@@ -775,7 +775,13 @@ void *_starpu_map_allocate(size_t length, unsigned node)
 	}
 
 	/*fix the length of file*/
-	ftruncate(fd, length);
+	int ret = ftruncate(fd, length);
+	if (ret < 0)
+	{
+		perror("fail to allocate room for mapping");
+		close(fd);
+		return NULL;
+	}
 	void* map_addr = mmap(NULL, length, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
 	close(fd);
 	if (map_addr == MAP_FAILED)
