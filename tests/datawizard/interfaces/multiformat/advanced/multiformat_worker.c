@@ -95,7 +95,7 @@ create_and_submit_tasks(void)
 #endif
 
 int
-main(int argc, char **argv)
+main(int argc STARPU_ATTRIBUTE_UNUSED, char **argv STARPU_ATTRIBUTE_UNUSED)
 {
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 	int err;

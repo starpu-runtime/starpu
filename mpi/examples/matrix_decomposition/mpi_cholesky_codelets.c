@@ -232,7 +232,7 @@ static void run_cholesky(starpu_data_handle_t **data_handles, int rank, int node
 }
 
 /* TODO: generate from compiler polyhedral analysis of classical algorithm */
-static void run_cholesky_column(starpu_data_handle_t **data_handles, int rank, int nodes)
+static void run_cholesky_column(starpu_data_handle_t **data_handles, int rank STARPU_ATTRIBUTE_UNUSED, int nodes STARPU_ATTRIBUTE_UNUSED)
 {
 	unsigned k, m, n;
 	unsigned unbound_prio = STARPU_MAX_PRIO == INT_MAX && STARPU_MIN_PRIO == INT_MIN;
@@ -316,7 +316,7 @@ static void run_cholesky_column(starpu_data_handle_t **data_handles, int rank, i
 }
 
 /* TODO: generate from compiler polyhedral analysis of classical algorithm */
-static void run_cholesky_antidiagonal(starpu_data_handle_t **data_handles, int rank, int nodes)
+static void run_cholesky_antidiagonal(starpu_data_handle_t **data_handles, int rank STARPU_ATTRIBUTE_UNUSED, int nodes STARPU_ATTRIBUTE_UNUSED)
 {
 	unsigned a;
 	unsigned k, m, n;
@@ -470,7 +470,7 @@ static void run_cholesky_antidiagonal(starpu_data_handle_t **data_handles, int r
 }
 
 /* TODO: generate from compiler polyhedral analysis of classical algorithm */
-static void run_cholesky_prio(starpu_data_handle_t **data_handles, int rank, int nodes)
+static void run_cholesky_prio(starpu_data_handle_t **data_handles, int rank STARPU_ATTRIBUTE_UNUSED, int nodes STARPU_ATTRIBUTE_UNUSED)
 {
 	unsigned a;
 	int k, m, n;
