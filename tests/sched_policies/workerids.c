@@ -40,7 +40,7 @@ void funcA(void *buffers[], void *args)
 	starpu_usleep(1000);
 }
 
-double cost_function(struct starpu_task *t, struct starpu_perfmodel_arch *a, unsigned i)
+double cost_function(struct starpu_task *t STARPU_ATTRIBUTE_UNUSED, struct starpu_perfmodel_arch *a STARPU_ATTRIBUTE_UNUSED, unsigned i STARPU_ATTRIBUTE_UNUSED)
 {
 	return 1000;
 }
