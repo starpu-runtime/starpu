@@ -164,8 +164,6 @@ int main(int argv, char **argc)
 	}
 	starpu_data_partition_clean(main_handle, PARTS, sub_handles_l1);
 	starpu_data_unregister(main_handle);
-	starpu_free_noflag(v, SIZE * sizeof(int));
-	starpu_shutdown();
 
 	for (i=0; i<SIZE; i++)
 	{
@@ -174,6 +172,9 @@ int main(int argv, char **argc)
 		for(j=0 ; j<STEPS ; j++) x*=2;
 		STARPU_ASSERT_MSG(v[i] == x, "Expected value %d != value %d", v[i], x);
 	}
+
+	starpu_free_noflag(v, SIZE * sizeof(int));
+	starpu_shutdown();
 
 	return 0;
 }
