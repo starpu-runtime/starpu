@@ -755,8 +755,8 @@ void *_starpu_map_allocate(size_t length, unsigned node)
 {
 	/*file*/
 	int fd;
-	char fd_name[16];
-	sprintf(fd_name,"starpu-%u-XXXXXX", node);
+	char fd_name[32];
+	snprintf(fd_name,sizeof(fd_name), "starpu-%u-XXXXXX", node);
 	
 	while(1)
 	{
@@ -784,10 +784,10 @@ void *_starpu_map_allocate(size_t length, unsigned node)
 		return NULL;
 	}
 
-	struct map_allocate_info * map_info = (struct map_allocate_info *)malloc(sizeof(struct map_allocate_info)+strlen(fd_name));
+	struct map_allocate_info * map_info = (struct map_allocate_info *)malloc(sizeof(struct map_allocate_info)+strlen(fd_name)+1);
 	map_info->map_addr = map_addr;
 	map_info->length = length;
-	memcpy(map_info->name, fd_name, strlen(fd_name));
+	memcpy(map_info->name, fd_name, strlen(fd_name)+1);
 
 	starpu_rbtree_node_init(&map_info->map_node);
 
@@ -808,7 +808,7 @@ int _starpu_map_deallocate(void* map_addr, size_t length)
 			/*unlink the map fd name*/
 			if (shm_unlink(map_info->name) != 0)
 			{
-				perror("cannot unlink the file");
+				_STARPU_DISP("warning: cannot unlink file %s: %s\n", map_info->name, strerror(errno));
 			}
 			starpu_rbtree_remove(&map_tree, &map_info->map_node);
 			free(map_info);
@@ -817,6 +817,9 @@ int _starpu_map_deallocate(void* map_addr, size_t length)
 		{
 			return -1;
 		}
+	} else
+	{
+		_STARPU_DISP("could not find mapped address %p\n", map_addr);
 	}
 
 	int res = munmap(map_addr, length);
