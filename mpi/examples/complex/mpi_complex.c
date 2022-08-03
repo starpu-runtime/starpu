@@ -113,7 +113,7 @@ int main(int argc, char **argv)
 		double xreal = 4.0;
 		double ximaginary = 8.0;
 		starpu_complex_data_register(&xhandle, STARPU_MAIN_RAM, &xreal, &ximaginary, 1);
-		ret = starpu_mpi_send(xhandle, 1, 10, MPI_COMM_WORLD);
+		ret = starpu_mpi_send(xhandle, 1, 30, MPI_COMM_WORLD);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
 		starpu_data_unregister(xhandle);
 	}
@@ -124,7 +124,7 @@ int main(int argc, char **argv)
 		double xreal = 14.0;
 		double ximaginary = 18.0;
 		starpu_complex_data_register(&xhandle, STARPU_MAIN_RAM, &xreal, &ximaginary, 1);
-		ret = starpu_mpi_recv(xhandle, 0, 10, MPI_COMM_WORLD, &status);
+		ret = starpu_mpi_recv(xhandle, 0, 30, MPI_COMM_WORLD, &status);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
 		starpu_data_unregister(xhandle);
 		FPRINTF(stderr, "[received] real %f imaginary %f\n", xreal, ximaginary);
