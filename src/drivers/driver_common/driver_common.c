@@ -726,7 +726,7 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 /*generate and initialize rbtree map_tree*/
 static struct starpu_rbtree map_tree = STARPU_RBTREE_INITIALIZER;
 
-static struct map_allocate_info
+struct map_allocate_info
 {
 	struct starpu_rbtree_node map_node;
 	void* map_addr;
