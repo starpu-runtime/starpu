@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -105,7 +105,7 @@ int main(int argc, char **argv)
 		double xreal = 4.0;
 		double ximaginary = 8.0;
 		starpu_complex_data_register(&xhandle, STARPU_MAIN_RAM, &xreal, &ximaginary, 1);
-		starpu_mpi_send(xhandle, 1, 10, MPI_COMM_WORLD);
+		starpu_mpi_send(xhandle, 1, 30, MPI_COMM_WORLD);
 		starpu_data_unregister(xhandle);
 	}
 	else if (rank == 1)
@@ -115,7 +115,7 @@ int main(int argc, char **argv)
 		double xreal = 14.0;
 		double ximaginary = 18.0;
 		starpu_complex_data_register(&xhandle, STARPU_MAIN_RAM, &xreal, &ximaginary, 1);
-		starpu_mpi_recv(xhandle, 0, 10, MPI_COMM_WORLD, &status);
+		starpu_mpi_recv(xhandle, 0, 30, MPI_COMM_WORLD, &status);
 		starpu_data_unregister(xhandle);
 		FPRINTF(stderr, "[received] real %f imaginary %f\n", xreal, ximaginary);
 		STARPU_ASSERT_MSG(xreal == 4 && ximaginary == 8, "Incorrect received value\n");
