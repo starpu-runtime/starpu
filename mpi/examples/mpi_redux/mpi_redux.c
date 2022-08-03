@@ -66,7 +66,11 @@ static void cl_cpu_task_init(void *handles[], void*arg)
 	(void) arg;
 	double *a = (double *)STARPU_VARIABLE_GET_PTR(handles[0]);
 	sleep(1);
-	printf("init_cl (rank:%d,worker:%d) %d (was %f)\n", starpu_mpi_world_rank(), starpu_worker_get_id(), starpu_mpi_world_rank(), RUNNING_ON_VALGRIND ? 0. : *a);
+	printf("init_cl (rank:%d,worker:%d) %d (was %f)\n", starpu_mpi_world_rank(), starpu_worker_get_id(), starpu_mpi_world_rank(),
+#ifdef STARPU_HAVE_VALGRIND_H
+			RUNNING_ON_VALGRIND ? 0. :
+#endif
+			*a);
 	*a = starpu_mpi_world_rank();
 }
 

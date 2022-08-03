@@ -37,11 +37,13 @@ int burst_nb_requests = NB_REQUESTS;
 void burst_init_data(int rank)
 {
 	unsigned nx = NX_ARRAY;
+#ifdef STARPU_HAVE_VALGRIND_H
 	if (RUNNING_ON_VALGRIND)
 	{
 		nx = 4*4;
 		burst_nb_requests = 4;
 	}
+#endif
 
 	if (rank == 0 || rank == 1)
 	{

@@ -92,8 +92,10 @@ int main(int argc, char **argv)
 {
 	int ret, worldsize, mpi_rank;
 
+#ifdef STARPU_HAVE_VALGRIND_H
 	if (RUNNING_ON_VALGRIND)
 		matrix_dim = 16;
+#endif
 
 	parse_args(argc, argv);
 
