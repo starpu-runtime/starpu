@@ -19,46 +19,44 @@ AM_CXXFLAGS = $(GLOBAL_AM_CXXFLAGS)
 AM_FFLAGS = $(GLOBAL_AM_FFLAGS)
 AM_FCFLAGS = $(GLOBAL_AM_FCFLAGS)
 
-if HAVE_PARALLEL
-# When GNU parallel is available and -j is passed to make, run tests through
-# parallel, using a "starpu" semaphore.
-# Also make test shell scripts run its tests through parallel, using a
-# "substarpu" semaphore. This brings some overload, but only one level.
-STARPU_SUB_PARALLEL=$(shell echo $(MAKEFLAGS) | sed -ne 's/.*-j\([0-9]\+\).*/parallel --semaphore --id substarpu --fg --fg-exit -j \1/p')
-export STARPU_SUB_PARALLEL
-endif
-
-# These are always defined, both for starpu-mpi and for mpi-ms
-# For MPI tests we don't want to oversubscribe the system
-MPI_RUN_ENV			= STARPU_WORKERS_NOBIND=1 STARPU_NCPU=3
-if STARPU_SIMGRID
-STARPU_MPIEXEC			= $(abs_top_builddir)/tools/starpu_smpirun -np 4 -platform $(abs_top_srcdir)/tools/perfmodels/cluster.xml -hostfile $(abs_top_srcdir)/tools/perfmodels/hostfile
-else
-STARPU_MPIEXEC			= $(MPIEXEC) $(MPIEXEC_ARGS) -np 4
-endif
-
-# LAUNCHER should be always put in front of the test loader
-LAUNCHER			=
-# LAUNCHER_ENV should be always put in TESTS_ENVIRONMENT
-LAUNCHER_ENV		=
-
-if STARPU_USE_MPI_MASTER_SLAVE
-# Make tests run through mpiexec
-LAUNCHER 			+= $(STARPU_MPIEXEC)
-LAUNCHER_ENV		+= $(MPI_RUN_ENV) STARPU_NMPIMSTHREADS=4
-endif
-
-if STARPU_USE_TCPIP_MASTER_SLAVE
-LAUNCHER			+=$(abs_top_srcdir)/tools/starpu_tcpipexec -np 2 -nobind -ncpus 1
-# switch off local socket usage
-#LAUNCHER			+=$(abs_top_srcdir)/tools/starpu_tcpipexec -np 2 -nobind -ncpus 1 -nolocal
-LAUNCHER_ENV			+= STARPU_RESERVE_NCPU=2
-endif
-
+if STARPU_USE_CUDA
 V_nvcc_  = $(V_nvcc_$(AM_DEFAULT_VERBOSITY))
 V_nvcc_0 = @echo "  NVCC    " $@;
 V_nvcc_1 =
 V_nvcc   = $(V_nvcc_$(V))
+
+if STARPU_COVERITY
+# Avoid using nvcc when making a coverity build, nvcc produces millions of
+# lines of code which we don't want to analyze.  Instead, build dumb .o files
+# containing empty functions.
+V_mynvcc_ = $(V_mynvcc_$(AM_DEFAULT_VERBOSITY))
+V_mynvcc_0 = @echo "  myNVCC  " $@;
+V_mynvcc_1 =
+V_mynvcc = $(V_mynvcc_$(V))
+.cu.o:
+	@$(MKDIR_P) `dirname $@`
+	$(V_mynvcc)grep 'extern *"C" *void *' $< | sed -ne 's/extern *"C" *void *\([a-zA-Z0-9_]*\) *(.*/void \1(void) {}/p' | $(CC) -x c - -o $@ -c
+else
+NVCCFLAGS += --compiler-options -fno-strict-aliasing -I$(top_builddir)/include -I$(top_srcdir)/include/ -I$(top_builddir)/src -I$(top_srcdir)/src/ $(STARPU_NVCC_H_CPPFLAGS)
+
+.cu.cubin:
+	$(V_nvcc) $(NVCC) -cubin $< -o $@ $(NVCCFLAGS)
+
+.cu.o:
+	$(V_nvcc) $(NVCC) $< -c -o $@ $(NVCCFLAGS)
+endif
+endif
+
+if STARPU_USE_HIP
+V_hipcc_  = $(V_hipcc_$(AM_DEFAULT_VERBOSITY))
+V_hipcc_0 = @echo "  HIPCC   " $@;
+V_hipcc_1 =
+V_hipcc   = $(V_hipcc_$(V))
+
+HIPCCFLAGS += -I$(top_builddir)/include -I$(top_srcdir)/include/ -I$(top_builddir)/src -I$(top_srcdir)/src/
+.hip.o:
+	$(V_hipcc) $(HIPCC) $< -c -o $@ $(HIPCCFLAGS)
+endif
 
 V_icc_  = $(V_icc_$(AM_DEFAULT_VERBOSITY))
 V_icc_0 = @echo "  ICC     " $@;
@@ -74,71 +72,3 @@ V_help2man_  = $(V_help2man_$(AM_DEFAULT_VERBOSITY))
 V_help2man_0 = @echo "  HELP2MAN" $@;
 V_help2man_1 =
 V_help2man   = $(V_help2man_$(V))
-
-showfailed:
-	@! grep "^FAIL " $(TEST_LOGS) /dev/null
-	@! grep -l "ERROR: AddressSanitizer: " $(TEST_LOGS) /dev/null
-	@! grep -l "WARNING: AddressSanitizer: " $(TEST_LOGS) /dev/null
-	@! grep -l "ERROR: ThreadSanitizer: " $(TEST_LOGS) /dev/null
-	@! grep -l "WARNING: ThreadSanitizer: " $(TEST_LOGS) /dev/null
-	@! grep -l "ERROR: LeakSanitizer: " $(TEST_LOGS) /dev/null
-	@! grep -l "WARNING: LeakSanitizer: " $(TEST_LOGS) /dev/null
-	@! grep -l " runtime error: " $(TEST_LOGS) /dev/null
-	@RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		make -C $$i showfailed || RET=1 ; \
-	done ; \
-	exit $$RET
-
-showcheck:
-	-cat $(TEST_LOGS) /dev/null
-	@! grep -q "ERROR: AddressSanitizer: " $(TEST_LOGS) /dev/null
-	@! grep -q "WARNING: AddressSanitizer: " $(TEST_LOGS) /dev/null
-	@! grep -q "ERROR: ThreadSanitizer: " $(TEST_LOGS) /dev/null
-	@! grep -q "WARNING: ThreadSanitizer: " $(TEST_LOGS) /dev/null
-	@! grep -q "ERROR: LeakSanitizer: " $(TEST_LOGS) /dev/null
-	@! grep -q "WARNING: LeakSanitizer: " $(TEST_LOGS) /dev/null
-	@! grep -q " runtime error: " $(TEST_LOGS) /dev/null
-	RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		make -C $$i showcheck || RET=1 ; \
-	done ; \
-	exit $$RET
-
-showsuite:
-	-cat $(TEST_SUITE_LOG) /dev/null
-	@! grep -q "ERROR: AddressSanitizer: " $(TEST_SUITE_LOG) /dev/null
-	@! grep -q "WARNING: AddressSanitizer: " $(TEST_SUITE_LOG) /dev/null
-	@! grep -q "ERROR: ThreadSanitizer: " $(TEST_SUITE_LOG) /dev/null
-	@! grep -q "WARNING: ThreadSanitizer: " $(TEST_SUITE_LOG) /dev/null
-	@! grep -q "ERROR: LeakSanitizer: " $(TEST_SUITE_LOG) /dev/null
-	@! grep -q "WARNING: LeakSanitizer: " $(TEST_SUITE_LOG) /dev/null
-	@! grep -q " runtime error: " $(TEST_SUITE_LOG) /dev/null
-	RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		make -C $$i showsuite || RET=1 ; \
-	done ; \
-	exit $$RET
-
-if STARPU_SIMGRID
-export STARPU_PERF_MODEL_DIR=$(abs_top_srcdir)/tools/perfmodels/sampling
-export STARPU_HOSTNAME=mirage
-export MALLOC_PERTURB_=0
-
-env:
-	@echo export STARPU_PERF_MODEL_DIR=$(STARPU_PERF_MODEL_DIR)
-	@echo export STARPU_HOSTNAME=$(STARPU_HOSTNAME)
-	@echo export MALLOC_PERTURB_=$(MALLOC_PERTURB_)
-endif
-
-if STARPU_SIMGRID
-export STARPU_SIMGRID=1
-endif
-
-if STARPU_QUICK_CHECK
-export STARPU_QUICK_CHECK=1
-endif
-
-if STARPU_LONG_CHECK
-export STARPU_LONG_CHECK=1
-endif

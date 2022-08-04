@@ -13,7 +13,7 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
-include $(top_srcdir)/starpu.mk
+include $(top_srcdir)/starpu-tests.mk
 include $(top_srcdir)/starpu-loader.mk
 
 BUILT_SOURCES =
@@ -61,20 +61,6 @@ EXTRA_DIST =					\
 examplebindir = $(libdir)/starpu/julia
 
 examplebin_PROGRAMS =
-
-if STARPU_USE_CUDA
-if STARPU_COVERITY
-include $(top_srcdir)/starpu-mynvcc.mk
-else
-NVCCFLAGS += --compiler-options -fno-strict-aliasing  -I$(top_srcdir)/include/ -I$(top_builddir)/include/ $(STARPU_H_CPPFLAGS)
-
-.cu.cubin:
-	$(V_nvcc) $(NVCC) -cubin $< -o $@ $(NVCCFLAGS)
-
-.cu.o:
-	$(V_nvcc) $(NVCC) $< -c -o $@ $(NVCCFLAGS)
-endif
-endif
 
 AM_CFLAGS += $(MAGMA_CFLAGS) $(APP_CFLAGS)
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/ -I$(top_builddir)/include $(STARPU_H_CPPFLAGS)

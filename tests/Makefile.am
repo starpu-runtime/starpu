@@ -13,7 +13,7 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
-include $(top_srcdir)/starpu.mk
+include $(top_srcdir)/starpu-tests.mk
 include $(top_srcdir)/starpu-loader.mk
 
 AM_CFLAGS += $(APP_CFLAGS)
@@ -103,30 +103,6 @@ examplebindir = $(libdir)/starpu/examples
 
 if STARPU_USE_OPENCL
 nobase_STARPU_OPENCL_DATA_DATA =
-endif
-
-if STARPU_USE_CUDA
-
-if STARPU_COVERITY
-include $(top_srcdir)/starpu-mynvcc.mk
-else
-NVCCFLAGS += --compiler-options -fno-strict-aliasing -I$(top_srcdir)/include/ -I$(top_builddir)/src -I$(top_srcdir)/src/ $(STARPU_NVCC_H_CPPFLAGS) -I$(top_builddir)/include
-
-.cu.cubin:
-	$(V_nvcc) $(NVCC) -cubin $< -o $@ $(NVCCFLAGS)
-
-.cu.o:
-	$(V_nvcc) $(NVCC) $< -c -o $@ $(NVCCFLAGS)
-endif
-
-endif
-
-if STARPU_USE_HIP
-
-HIPCCFLAGS += -I$(top_srcdir)/include/ -I$(top_builddir)/src -I$(top_srcdir)/src/ -I$(top_builddir)/include
-
-.hip.o:
-	$(HIPCC) $< -c -o $@ $(HIPCCFLAGS)
 endif
 
 testbindir = $(libdir)/starpu/tests

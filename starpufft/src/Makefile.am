@@ -42,24 +42,13 @@ libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_LDFLAGS = $(ldflags) -no-undefined			
 
 libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_LIBADD =
 if STARPU_USE_CUDA
-if STARPU_COVERITY
-include $(top_srcdir)/starpu-mynvcc.mk
-else
 NVCCFLAGS += -Xcompiler -fPIC -Xlinker -fPIC
-NVCCFLAGS += -I$(top_srcdir)/include/ -I$(top_builddir)/src -I$(top_srcdir)/src/ $(STARPU_NVCC_H_CPPFLAGS) -I$(top_builddir)/include
-
-cudaf_kernels.o: cudaf_kernels.cu
-	$(V_nvcc) $(NVCC) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS)
 
 libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_LIBADD += cudaf_kernels.o
 
 if STARPU_HAVE_CUFFTDOUBLECOMPLEX
-cuda_kernels.o: cuda_kernels.cu
-	$(V_nvcc) $(NVCC) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS)
-
 libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_LIBADD += cuda_kernels.o
 endif
 
 libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_LIBS = $(LIBS) $(STARPU_CUDA_LDFLAGS)
-endif
 endif

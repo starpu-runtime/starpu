@@ -14,7 +14,7 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
-include $(top_srcdir)/starpu.mk
+include $(top_srcdir)/starpu-tests.mk
 
 SUFFIXES = .hip
 
@@ -46,27 +46,6 @@ EXTRA_DIST = 				\
 examplebindir = $(libdir)/starpu/examples/mpi
 
 examplebin_PROGRAMS =
-
-if STARPU_USE_CUDA
-if STARPU_COVERITY
-include $(top_srcdir)/starpu-mynvcc.mk
-else
-NVCCFLAGS += --compiler-options -fno-strict-aliasing -I$(top_srcdir)/include/ -I$(top_builddir)/src -I$(top_srcdir)/src/ $(STARPU_NVCC_H_CPPFLAGS) -I$(top_builddir)/include
-.cu.cubin:
-	$(V_nvcc) $(NVCC) -cubin $< -o $@ $(NVCCFLAGS)
-
-.cu.o:
-	$(V_nvcc) $(NVCC) $< -c -o $@ $(NVCCFLAGS)
-endif
-endif
-
-if STARPU_USE_HIP
-
-HIPCCFLAGS += -I$(top_srcdir)/include/ -I$(top_builddir)/include/ -I$(top_srcdir)/src/ -I$(top_builddir)/src
-
-.hip.o:
-	$(HIPCC) $< -c -o $@ $(HIPCCFLAGS)
-endif
 
 AM_CFLAGS += $(APP_CFLAGS)
 AM_CXXFLAGS += $(APP_CXXFLAGS)

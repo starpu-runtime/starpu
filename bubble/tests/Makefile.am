@@ -13,7 +13,7 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
-include $(top_srcdir)/starpu.mk
+include $(top_srcdir)/starpu-tests.mk
 include $(top_srcdir)/starpu-loader.mk
 
 AM_CFLAGS += $(APP_CFLAGS)
@@ -38,14 +38,6 @@ EXTRA_DIST =		\
 	basic/basic.h
 
 CLEANFILES = *.gcno *.gcda *.linkinfo core starpu_idle_microsec.log
-
-if STARPU_USE_CUDA
-
-NVCCFLAGS += --compiler-options -fno-strict-aliasing $(AM_CPPFLAGS) -I$(top_builddir)/include $(HWLOC_CFLAGS) $(SIMGRID_CFLAGS)
-
-.cu.o:
-	$(V_nvcc) $(NVCC) $< -c -o $@ $(NVCCFLAGS)
-endif
 
 #####################################
 # What to install and what to check #

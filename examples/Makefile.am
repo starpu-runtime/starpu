@@ -16,7 +16,7 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
-include $(top_srcdir)/starpu.mk
+include $(top_srcdir)/starpu-tests.mk
 include $(top_srcdir)/starpu-loader.mk
 SUFFIXES = .hip
 AM_CFLAGS += $(MAGMA_CFLAGS) $(APP_CFLAGS)
@@ -100,27 +100,6 @@ clean-local:
 	-rm -rf mult/sgemm.traces lu/lu.traces
 
 pkglib_LTLIBRARIES =
-
-if STARPU_USE_CUDA
-
-if STARPU_COVERITY
-include $(top_srcdir)/starpu-mynvcc.mk
-else
-NVCCFLAGS += --compiler-options -fno-strict-aliasing  -I$(top_srcdir)/include/ -I$(top_builddir)/include/ $(HWLOC_CFLAGS)
-
-.cu.o:
-	$(V_nvcc) $(NVCC) $< -c -o $@ $(NVCCFLAGS)
-endif
-
-endif
-
-if STARPU_USE_HIP
-
-HIPCCFLAGS += -I$(top_srcdir)/include/ -I$(top_builddir)/include/
-
-.hip.o:
-	$(HIPCC) $< -c -o $@ $(HIPCCFLAGS)
-endif
 
 if STARPU_HAVE_ICC
 .icc.o:

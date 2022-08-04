@@ -13,7 +13,7 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
-include $(top_srcdir)/starpu.mk
+include $(top_srcdir)/starpu-subdirtests.mk
 
 SUBDIRS=src
 
@@ -29,11 +29,3 @@ versinclude_HEADERS = 				\
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = packages/libstarpufft.pc packages/starpufft-1.0.pc packages/starpufft-1.1.pc packages/starpufft-1.2.pc packages/starpufft-1.3.pc
-
-
-recheck:
-	RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		$(MAKE) -C $$i recheck || RET=1 ; \
-	done ; \
-	exit $$RET
