@@ -14,7 +14,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-include $(top_srcdir)/starpu.mk
+include $(top_srcdir)/starpu-tests.mk
 include $(top_srcdir)/starpu-loader.mk
 
 LAUNCHER_ENV += OMP_NUM_THREADS=4
