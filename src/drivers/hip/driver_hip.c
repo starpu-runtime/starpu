@@ -73,18 +73,7 @@ static size_t _starpu_hip_get_global_mem_size(unsigned devid)
 	return global_mem[devid];
 }
 
-hipStream_t starpu_hip_get_local_in_transfer_stream()
-{
-	int worker = starpu_worker_get_id_check();
-	int devid = starpu_worker_get_devid(worker);
-	hipStream_t stream;
-
-	stream = in_transfer_streams[devid];
-	STARPU_ASSERT(stream);
-	return stream;
-}
-
-hipStream_t starpu_hip_get_in_transfer_stream(unsigned dst_node)
+static hipStream_t starpu_hip_get_in_transfer_stream(unsigned dst_node)
 {
 	int dst_devid = starpu_memory_node_get_devid(dst_node);
 	hipStream_t stream;
@@ -94,18 +83,7 @@ hipStream_t starpu_hip_get_in_transfer_stream(unsigned dst_node)
 	return stream;
 }
 
-hipStream_t starpu_hip_get_local_out_transfer_stream()
-{
-	int worker = starpu_worker_get_id_check();
-	int devid = starpu_worker_get_devid(worker);
-	hipStream_t stream;
-
-	stream = out_transfer_streams[devid];
-	STARPU_ASSERT(stream);
-	return stream;
-}
-
-hipStream_t starpu_hip_get_out_transfer_stream(unsigned src_node)
+static hipStream_t starpu_hip_get_out_transfer_stream(unsigned src_node)
 {
 	int src_devid = starpu_memory_node_get_devid(src_node);
 	hipStream_t stream;
@@ -115,7 +93,7 @@ hipStream_t starpu_hip_get_out_transfer_stream(unsigned src_node)
 	return stream;
 }
 
-hipStream_t starpu_hip_get_peer_transfer_stream(unsigned src_node, unsigned dst_node)
+static hipStream_t starpu_hip_get_peer_transfer_stream(unsigned src_node, unsigned dst_node)
 {
 	int src_devid = starpu_memory_node_get_devid(src_node);
 	int dst_devid = starpu_memory_node_get_devid(dst_node);

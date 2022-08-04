@@ -118,18 +118,7 @@ static size_t _starpu_cuda_get_global_mem_size(unsigned devid)
 }
 
 #ifdef STARPU_USE_CUDA
-cudaStream_t starpu_cuda_get_local_in_transfer_stream()
-{
-	int worker = starpu_worker_get_id_check();
-	int devid = starpu_worker_get_devid(worker);
-	cudaStream_t stream;
-
-	stream = in_transfer_streams[devid];
-	STARPU_ASSERT(stream);
-	return stream;
-}
-
-cudaStream_t starpu_cuda_get_in_transfer_stream(unsigned dst_node)
+static cudaStream_t starpu_cuda_get_in_transfer_stream(unsigned dst_node)
 {
 	int dst_devid = starpu_memory_node_get_devid(dst_node);
 	cudaStream_t stream;
@@ -139,18 +128,7 @@ cudaStream_t starpu_cuda_get_in_transfer_stream(unsigned dst_node)
 	return stream;
 }
 
-cudaStream_t starpu_cuda_get_local_out_transfer_stream()
-{
-	int worker = starpu_worker_get_id_check();
-	int devid = starpu_worker_get_devid(worker);
-	cudaStream_t stream;
-
-	stream = out_transfer_streams[devid];
-	STARPU_ASSERT(stream);
-	return stream;
-}
-
-cudaStream_t starpu_cuda_get_out_transfer_stream(unsigned src_node)
+static cudaStream_t starpu_cuda_get_out_transfer_stream(unsigned src_node)
 {
 	int src_devid = starpu_memory_node_get_devid(src_node);
 	cudaStream_t stream;
@@ -160,7 +138,7 @@ cudaStream_t starpu_cuda_get_out_transfer_stream(unsigned src_node)
 	return stream;
 }
 
-cudaStream_t starpu_cuda_get_peer_transfer_stream(unsigned src_node, unsigned dst_node)
+static cudaStream_t starpu_cuda_get_peer_transfer_stream(unsigned src_node, unsigned dst_node)
 {
 	int src_devid = starpu_memory_node_get_devid(src_node);
 	int dst_devid = starpu_memory_node_get_devid(dst_node);

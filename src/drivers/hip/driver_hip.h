@@ -73,12 +73,6 @@ nvmlDevice_t _starpu_hip_get_nvmldev(struct hipDeviceProp_t *props);
 #endif
 
 #ifdef STARPU_USE_HIP
-hipStream_t starpu_hip_get_local_in_transfer_stream(void);
-hipStream_t starpu_hip_get_in_transfer_stream(unsigned dst_node);
-hipStream_t starpu_hip_get_local_out_transfer_stream(void);
-hipStream_t starpu_hip_get_out_transfer_stream(unsigned src_node);
-hipStream_t starpu_hip_get_peer_transfer_stream(unsigned src_node, unsigned dst_node);
-
 #ifdef STARPU_USE_HIP_MAP
 uintptr_t _starpu_hip_map_ram(uintptr_t src_ptr, size_t src_offset, unsigned src_node, unsigned dst_node, size_t size, int *ret);
 int _starpu_hip_unmap_ram(uintptr_t src_ptr, size_t src_offset, unsigned src_node, uintptr_t dst_ptr, unsigned dst_node, size_t size);
