@@ -41,7 +41,7 @@
 #include <hwloc/hip/hip_runtime.h>
 #endif
 
-#define starpu_hipStreamCreate(stream) hipStreamCreate(stream)
+#define starpu_hipStreamCreate(stream) hipStreamCreateWithFlags(stream, hipStreamNonBlocking)
 
 /* Consider a rough 10% overhead cost */
 #define FREE_MARGIN 0.9
