@@ -28,7 +28,9 @@
 #include <core/debug.h>
 #include <core/task.h>
 #include <datawizard/memory_nodes.h>
+#ifdef HAVE_MMAP
 #include <sys/mman.h>
+#endif
 #include <sys/stat.h>
 #include <fcntl.h> 
 #include <errno.h>
@@ -723,6 +725,7 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 	return count;
 }
 
+#ifdef HAVE_MMAP
 /*generate and initialize rbtree map_tree*/
 static struct starpu_rbtree map_tree = STARPU_RBTREE_INITIALIZER;
 
@@ -900,3 +903,17 @@ int _starpu_sink_unmap(uintptr_t map_addr, size_t length)
 	}
 	return 0;
 }
+#else
+char* _starpu_get_fdname_from_mapaddr(uintptr_t map_addr, size_t *offset, size_t length)
+{
+	return NULL;
+}
+void *_starpu_sink_map(char *fd_name, size_t offset, size_t length)
+{
+	return NULL;
+}
+int _starpu_sink_unmap(uintptr_t map_addr, size_t length)
+{
+	return -1;
+}
+#endif

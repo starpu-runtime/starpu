@@ -129,6 +129,8 @@ AC_SUBST(APP_CXXFLAGS)
 AC_SUBST(APP_FFLAGS)
 AC_SUBST(APP_FCFLAGS)
 
+AC_FUNC_MMAP
+
 ###############################################################################
 #                                                                             #
 #                            Hierarchical dags support                        #

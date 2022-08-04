@@ -378,6 +378,7 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 	}
 #endif
 
+#ifdef HAVE_MMAP
 #ifdef STARPU_USE_MP
 	if(_starpu_can_submit_ms_task())
 	{
@@ -401,6 +402,7 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 		}
 	}
 	else
+#endif
 #endif
 #ifdef STARPU_HAVE_HWLOC
 	if (starpu_memory_nodes_get_numa_count() > 1)
@@ -609,11 +611,13 @@ int _starpu_free_flags_on_node(unsigned dst_node, void *A, size_t dim, int flags
 		munmap(A, dim);
 	}
 #endif
+#ifdef HAVE_MMAP
 #ifdef STARPU_USE_MP
 	else if(_starpu_can_submit_ms_task())
 	{
 		_starpu_map_deallocate(A, dim);
 	}
+#endif
 #endif
 #ifdef STARPU_HAVE_HWLOC
 	else if (starpu_memory_nodes_get_numa_count() > 1)
