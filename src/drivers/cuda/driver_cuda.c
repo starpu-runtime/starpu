@@ -79,6 +79,7 @@ int _starpu_cuda_bus_ids[STARPU_MAXCUDADEVS+STARPU_MAXNUMANODES][STARPU_MAXCUDAD
 #ifdef STARPU_USE_CUDA
 static cudaStream_t streams[STARPU_NMAXWORKERS];
 static char used_stream[STARPU_NMAXWORKERS];
+/* TODO: ideally we'd have different streams for idle, prefetch and fetch, but apparently CUDA doesn't take priorities into account for transfers anyway? */
 static cudaStream_t out_transfer_streams[STARPU_MAXCUDADEVS];
 static cudaStream_t in_transfer_streams[STARPU_MAXCUDADEVS];
 /* Note: streams are not thread-safe, so we define them for each CUDA worker
