@@ -16,4 +16,6 @@
 
 #define NLISTS 1
 #define NTHREADS 3
+#define NELEMENTS 4
+#define NITERS 1
 #include "prio_list.c"

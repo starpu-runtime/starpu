@@ -48,14 +48,14 @@
 #ifndef NLISTS
 #define NLISTS 1
 #endif
-#ifndef NITERS
-#define NITERS 1
-#endif
 #ifndef NTHREADS
 #define NTHREADS 2
 #endif
 #ifndef NELEMENTS
-#define NELEMENTS 4
+#define NELEMENTS 6
+#endif
+#ifndef NITERS
+#define NITERS 1
 #endif
 
 // MC_ignore
