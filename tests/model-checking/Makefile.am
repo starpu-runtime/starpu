@@ -28,14 +28,29 @@ LIBS += $(SIMGRID_LDFLAGS)
 noinst_PROGRAMS = \
 		  prio_list \
 		  prio_list2 \
+		  prio_list3 \
 		  starpu_barrier
 
-if !STARPU_QUICK_CHECK
-SHELL_TESTS = prio_list.sh
+TESTS = $(SHELL_TESTS)
+SHELL_TESTS =
+
+# takes 1s
+SHELL_TESTS += prio_list.sh
+
+# https://github.com/simgrid/simgrid/issues/166
 #SHELL_TESTS += barrier.sh
+
+if !STARPU_QUICK_CHECK
+# takes 7m
+SHELL_TESTS += prio_list2.sh
 endif
 
-MC_FLAGS=--cfg=model-check/reduction:none
+if STARPU_LONG_CHECK
+# takes 25m
+SHELL_TESTS += prio_list3.sh
+endif
+
+#MC_FLAGS=--cfg=model-check/reduction:none
 
 #MC_FLAGS+=--cfg=contexts/factory:ucontext
 #MC_FLAGS+=--cfg=model-check/sparse-checkpoint:yes

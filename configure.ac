@@ -323,6 +323,18 @@ if test x$enable_simgrid = xyes ; then
 		LDFLAGS="$LDFLAGS -Wl,-znorelro -Wl,-znoseparate-code"
 		# libsimgrid needs to be linked from binaries themselves for MC to work
 		STARPU_EXPORTED_LIBS="$STARPU_EXPORTED_LIBS $SIMGRID_LDFLAGS"
+		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#ifdef STARPU_HAVE_XBT_BASE_H
+#include <xbt/base.h>
+#endif
+#ifdef STARPU_HAVE_SIMGRID_VERSION_H
+#include <simgrid/version.h>
+#endif
+#if SIMGRID_VERSION < 33100
+#error no mutex support with MC
+#endif
+				   ]])],,
+				AC_MSG_ERROR([We need simgrid >= 3.31 for MC]))
 	fi
 fi
 AM_CONDITIONAL(STARPU_SIMGRID_MC, test x$enable_simgrid_mc = xyes)

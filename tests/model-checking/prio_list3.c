@@ -14,6 +14,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#define NLISTS 2
-#define NTHREADS 2
+#define NLISTS 1
+#define NTHREADS 3
 #include "prio_list.c"

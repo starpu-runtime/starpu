@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2017-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2017-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -39,15 +39,6 @@
 #define _GNU_SOURCE 1
 #endif
 // Assuming recent simgrid
-#define STARPU_HAVE_SIMGRID_MSG_H
-#define STARPU_HAVE_SIMGRID_SEMAPHORE_H
-#define STARPU_HAVE_SIMGRID_MUTEX_H
-#define STARPU_HAVE_SIMGRID_COND_H
-#define STARPU_HAVE_SIMGRID_BARRIER_H
-#define STARPU_HAVE_XBT_SYNCHRO_H
-#define HAVE_SIMGRID_GET_CLOCK
-#define HAVE_SG_ACTOR_SLEEP_FOR
-#define HAVE_SG_CFG_SET_INT
 #endif
 #include <unistd.h>
 #include <stdlib.h>
@@ -55,23 +46,21 @@
 #include <limits.h>
 #include <math.h>
 #include <common/barrier.h>
-#ifdef STARPU_HAVE_SIMGRID_MSG_H
-#include <simgrid/msg.h>
-#else
-#include <msg/msg.h>
-#endif
+
 #include <simgrid/modelchecker.h>
-#ifdef STARPU_HAVE_XBT_SYNCHRO_H
-#include <xbt/synchro.h>
-#else
-#include <xbt/synchro_core.h>
-#endif
+
+#include <xbt/base.h>
+#include <simgrid/actor.h>
+#include <simgrid/host.h>
+#include <simgrid/engine.h>
+#include <xbt/config.h>
+
+#include <simgrid/mutex.h>
+#include <simgrid/cond.h>
 
 /* common/thread.c references these, but doesn't need to have them working anyway */
-int
-_starpu_simgrid_thread_start(int argc, char *argv[])
+void _starpu_simgrid_thread_start(int argc, char *argv[])
 {
-	return 0;
 }
 
 size_t _starpu_default_stack_size = 8192;
@@ -83,26 +72,19 @@ _starpu_simgrid_set_stack_size(size_t stack_size)
 
 starpu_sg_host_t _starpu_simgrid_get_host_by_name(const char *name)
 {
+	return NULL;
 }
 
 static void _starpu_clock_gettime(struct timespec *ts)
 {
-#ifdef HAVE_SIMGRID_GET_CLOCK
 	double now = simgrid_get_clock();
-#else
-	double now = MSG_get_clock();
-#endif
 	ts->tv_sec = floor(now);
 	ts->tv_nsec = floor((now - ts->tv_sec) * 1000000000);
 }
 
 void starpu_sleep(float nb_sec)
 {
-#ifdef HAVE_SG_ACTOR_SLEEP_FOR
 	sg_actor_sleep_for(nb_sec);
-#else
-	MSG_process_sleep(nb_sec);
-#endif
 }
 
 #include <common/barrier.c>
@@ -121,7 +103,7 @@ static inline unsigned _starpu_worker_mutex_is_sched_mutex(int workerid, starpu_
 
 struct _starpu_barrier barrier;
 
-int worker(int argc, char *argv[])
+void worker(int argc, char *argv[])
 {
 	unsigned iter;
 
@@ -130,13 +112,22 @@ int worker(int argc, char *argv[])
 		MC_assert(barrier.count <= NTHREADS);
 		_starpu_barrier_wait(&barrier);
 	}
-
-	return 0;
 }
 
-int master(int argc, char *argv[])
+#undef main
+int main(int argc, char *argv[])
 {
 	unsigned i;
+
+	if (argc < 3)
+	{
+		fprintf(stderr,"usage: %s platform.xml host\n", argv[0]);
+		exit(EXIT_FAILURE);
+	}
+	srand48(0);
+	simgrid_init(&argc, argv);
+	sg_cfg_set_int("contexts/stack-size", 128);
+	simgrid_load_platform(argv[1]);
 
 	_starpu_barrier_init(&barrier, NTHREADS);
 
@@ -147,32 +138,9 @@ int master(int argc, char *argv[])
 		char **args = malloc(sizeof(char*)*2);
 		args[0] = s;
 		args[1] = NULL;
-		MSG_process_create_with_arguments("test", worker, NULL, MSG_host_self(), 1, args);
+		sg_actor_create("test", sg_host_by_name(argv[2]), worker, 1, args);
 	}
 
-	return 0;
-}
-
-#undef main
-int main(int argc, char *argv[])
-{
-	if (argc < 3)
-	{
-		fprintf(stderr,"usage: %s platform.xml host\n", argv[0]);
-		exit(EXIT_FAILURE);
-	}
-	srand48(0);
-	MSG_init(&argc, argv);
-#ifdef HAVE_SG_CFG_SET_INT
-	sg_cfg_set_int("contexts/stack-size", 128);
-#elif SIMGRID_VERSION_MAJOR < 3 || (SIMGRID_VERSION_MAJOR == 3 && SIMGRID_VERSION_MINOR < 13)
-	extern xbt_cfg_t _sg_cfg_set;
-	xbt_cfg_set_int(_sg_cfg_set, "contexts/stack-size", 128);
-#else
-	xbt_cfg_set_int("contexts/stack-size", 128);
-#endif
-	MSG_create_environment(argv[1]);
-	MSG_process_create("master", master, NULL, MSG_get_host_by_name(argv[2]));
-	MSG_main();
+	simgrid_run();
 	return 0;
 }
