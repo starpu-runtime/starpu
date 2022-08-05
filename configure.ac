@@ -4092,6 +4092,8 @@ AC_CONFIG_COMMANDS([executable-scripts], [
     tests/datawizard/locality.sh \
     tests/overlap/overlap.sh \
     tests/model-checking/prio_list.sh \
+    tests/model-checking/prio_list2.sh \
+    tests/model-checking/prio_list3.sh \
     tests/model-checking/barrier.sh \
     examples/heat/heat.sh \
     examples/lu/lu.sh \
