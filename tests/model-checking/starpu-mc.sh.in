@@ -32,5 +32,5 @@ set -e
 #MC_FLAGS+=--cfg=model-check/visited:1000
 
 test() {
-	$SIMGRID_MC $abs_builddir/$1 $abs_top_srcdir/tests/model-checking/platform.xml MAIN $MC_FLAGS
+	time $SIMGRID_MC $abs_builddir/$1 $abs_top_srcdir/tests/model-checking/platform.xml MAIN $MC_FLAGS
 }

@@ -153,6 +153,9 @@ int main(int argc, char *argv[])
 		fprintf(stderr,"usage: %s platform.xml host\n", argv[0]);
 		exit(EXIT_FAILURE);
 	}
+
+	printf("Running with:\n- %d threads\n- %d lists\n- %d elements\n- %d iterations\n", NTHREADS, NLISTS, NELEMENTS, NITERS);
+
 	srand48(0);
 	simgrid_init(&argc, argv);
 	sg_cfg_set_int("contexts/stack-size", 128);
