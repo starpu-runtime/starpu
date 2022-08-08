@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -648,7 +648,9 @@ static unsigned build_sparse_stiffness_matrix_A(point *pmesh, float **nzval, uin
 				if (val != 0.0f)
 				{
 					*nzval = realloc(*nzval, (pos+1)*sizeof(float));
+					STARPU_ASSERT(*nzval);
 					*colind = realloc(*colind, (pos+1)*sizeof(uint32_t));
+					STARPU_ASSERT(*colind);
 
 					(*nzval)[pos] = val;
 					(*colind)[pos] = nodeneighbour;

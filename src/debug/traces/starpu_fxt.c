@@ -1445,7 +1445,7 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 	_STARPU_MALLOC(arch.devices, sizeof(struct starpu_perfmodel_device));
 
 	enum starpu_worker_archtype archtype = _STARPU_FUT_KEY_WORKER(ev->param[0]);
-	STARPU_ASSERT(archtype >= 0 && archtype < STARPU_NARCH);
+	STARPU_ASSERT(archtype < STARPU_NARCH);
 
 	kindstr = starpu_worker_get_type_as_string(archtype);
 	arch.devices[0].type = archtype;

@@ -2833,7 +2833,7 @@ const char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type)
 
 const char *starpu_worker_get_type_as_env_var(enum starpu_worker_archtype type)
 {
-	STARPU_ASSERT(type >= 0 && type < STARPU_NARCH);
+	STARPU_ASSERT(type < STARPU_NARCH);
 	const char *ret = starpu_driver_info[type].name_var;
 	if (!ret)
 		ret = "UNKNOWN";
