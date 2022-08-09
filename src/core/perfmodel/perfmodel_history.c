@@ -904,7 +904,6 @@ static void check_model(struct starpu_perfmodel *model)
 
 		for(dev = 0; dev < ndevices; dev++)
 		{
-			STARPU_ASSERT(arch_combs[comb]->devices[dev].type >= 0);
 			STARPU_ASSERT(arch_combs[comb]->devices[dev].type < STARPU_NARCH);
 
 			STARPU_ASSERT(arch_combs[comb]->devices[dev].devid >= 0);

@@ -225,7 +225,7 @@ struct _starpu_driver_info starpu_driver_info[STARPU_NARCH];
 
 void _starpu_driver_info_register(enum starpu_worker_archtype archtype, const struct _starpu_driver_info *info)
 {
-	STARPU_ASSERT(archtype >= 0 && archtype < STARPU_NARCH);
+	STARPU_ASSERT(archtype < STARPU_NARCH);
 	starpu_driver_info[archtype] = *info;
 }
 
@@ -2219,7 +2219,7 @@ enum starpu_worker_archtype starpu_arch_mask_to_worker_archtype(unsigned mask)
 
 	enum starpu_worker_archtype worker_type = ffs(mask)-2; // ffs(mask) is the indice of the lesser bit
 
-	STARPU_ASSERT(worker_type >= 0 && worker_type < STARPU_NARCH); // worker_type is positive and lesser than arch number
+	STARPU_ASSERT(worker_type < STARPU_NARCH); // worker_type is positive and lesser than arch number
 	STARPU_ASSERT(starpu_worker_archtype_is_valid(worker_type)); // worker_type is a valid worker architecture
 
 	return worker_type;
@@ -2824,7 +2824,7 @@ unsigned starpu_worker_get_sched_ctx_list(int workerid, unsigned **sched_ctxs)
 
 const char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type)
 {
-	STARPU_ASSERT(type >= 0 && type < STARPU_NARCH);
+	STARPU_ASSERT(type < STARPU_NARCH);
 	const char *ret = starpu_driver_info[type].name_upper;
 	if (!ret)
 		ret = "unknown";
@@ -3046,7 +3046,7 @@ void starpu_worker_set_waking_up_callback(void (*callback)(unsigned workerid))
 
 enum starpu_node_kind starpu_worker_get_memory_node_kind(enum starpu_worker_archtype type)
 {
-	STARPU_ASSERT(type >= 0 && type < STARPU_NARCH);
+	STARPU_ASSERT(type < STARPU_NARCH);
 	enum starpu_node_kind kind = starpu_driver_info[type].memory_kind;
 	STARPU_ASSERT_MSG(kind != (enum starpu_node_kind) -1, "no memory for archtype %d", type);
 	return kind;
