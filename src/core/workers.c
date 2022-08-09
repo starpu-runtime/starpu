@@ -2527,7 +2527,9 @@ struct _starpu_combined_worker *_starpu_get_combined_worker_struct(unsigned id)
 
 enum starpu_worker_archtype starpu_worker_get_type(int id)
 {
-	return _starpu_config.workers[id].arch;
+	enum starpu_worker_archtype type = _starpu_config.workers[id].arch;
+	STARPU_ASSERT(type < STARPU_NARCH);
+	return type;
 }
 
 unsigned starpu_worker_get_ids_by_type(enum starpu_worker_archtype type, int *workerids, unsigned maxsize)

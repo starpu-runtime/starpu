@@ -1626,6 +1626,7 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 			numa_physical_id = 0;
 		}
 		int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, numa_logical_id);
+		STARPU_ASSERT(memnode < STARPU_MAXNUMANODES);
 		_starpu_memory_manager_set_global_memory_size(memnode, _starpu_cpu_get_global_mem_size(numa_logical_id, config));
 		_starpu_memory_node_set_mapped(memnode);
 

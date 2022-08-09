@@ -189,6 +189,7 @@ static int dm_push_task(struct starpu_task *task)
 			}
 		}
 	}
+	STARPU_ASSERT(best >= 0);
 
 	// Set task implem.
 	starpu_task_set_implementation(task, best_impl);
