@@ -36,7 +36,7 @@
 #include <signal.h>
 #include <starpu.h>
 
-#define THREADS_PER_BLOCK 64
+#define THREADS_PER_BLOCK 256
 
 /*
  * That program should compute C = A * B
