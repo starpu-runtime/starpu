@@ -36,7 +36,7 @@
 #include <signal.h>
 #include <starpu.h>
 
-#define THREADS_PER_BLOCK 64
+#define THREADS_PER_BLOCK 256
 
 /*
  * That program should compute C = A * B
@@ -90,15 +90,15 @@ static __global__ void cuda_mult_kernel(uint32_t nxC, uint32_t nyC, uint32_t nyA
 extern "C" void cuda_mult(void *descr[], void *arg)
 {
 	(void)arg;
-	float *subA, *subB, *subC;
+	float *d_subA, *d_subB, *d_subC;
 	uint32_t nxC, nyC, nyA;
 	uint32_t ldA, ldB, ldC;
 	uint32_t nblocks;
 
 	/* ptr gives a pointer to the first element of the local copy */
-	subA = (float *)STARPU_MATRIX_GET_PTR(descr[0]);
-	subB = (float *)STARPU_MATRIX_GET_PTR(descr[1]);
-	subC = (float *)STARPU_MATRIX_GET_PTR(descr[2]);
+	d_subA = (float *)STARPU_MATRIX_GET_PTR(descr[0]);
+	d_subB = (float *)STARPU_MATRIX_GET_PTR(descr[1]);
+	d_subC = (float *)STARPU_MATRIX_GET_PTR(descr[2]);
 
 	/*
 	 * Note: STARPU_MATRIX_GET_NX/NY is different from X/Y of the FORTRAN
@@ -122,7 +122,7 @@ extern "C" void cuda_mult(void *descr[], void *arg)
 	ldC = STARPU_MATRIX_GET_LD(descr[2]);
 
 	nblocks = (nxC * nyC + THREADS_PER_BLOCK - 1)/THREADS_PER_BLOCK;
-        gpuMultKernel
+        cuda_mult_kernel
 		<<< nblocks, THREADS_PER_BLOCK, 0, starpu_cuda_get_local_stream()
 		>>> (nxC, nyC, nyA, ldA, ldB, ldC, d_subA, d_subB, d_subC);
 
