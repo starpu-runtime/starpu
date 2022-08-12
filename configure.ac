@@ -2775,6 +2775,9 @@ nmaxdevs=0
 if test $nmaxdevs -lt $nmaxcudadev; then
 	nmaxdevs=$nmaxcudadev
 fi
+if test $nmaxdevs -lt $nmaxhipdev; then
+	nmaxdevs=$nmaxhipdev
+fi
 if test $nmaxdevs -lt $nmaxopencldev; then
 	nmaxdevs=$nmaxopencldev
 fi
