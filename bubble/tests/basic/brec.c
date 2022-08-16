@@ -103,7 +103,7 @@ void rec_bubble_gen_dag(struct starpu_task *t, void *arg)
 int main(int argv, char **argc)
 {
 	int ret, i;
-	int * v;
+	int v[SIZE];
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return 77;
@@ -115,8 +115,6 @@ int main(int argv, char **argc)
 		starpu_shutdown();
 		return 77;
 	}
-
-	starpu_malloc((void **)&v, SIZE * sizeof(int));
 
 	for (i=0; i<SIZE; i++)
 	{
@@ -173,7 +171,6 @@ int main(int argv, char **argc)
 		STARPU_ASSERT_MSG(v[i] == x, "Expected value %d != value %d", v[i], x);
 	}
 
-	starpu_free_noflag(v, SIZE * sizeof(int));
 	starpu_shutdown();
 
 	return 0;

@@ -67,7 +67,7 @@ int vector_no_bubble()
 		return 77;
 	}
 
-	starpu_malloc((void **)&vector, X*sizeof(vector[0]));
+	vector = malloc(X*sizeof(vector[0]));
 	for(x=0 ; x<X ; x++)
 		vector[x]=x+1;
 
@@ -107,7 +107,7 @@ enodev:
 		FPRINTF(stderr, "\n");
 	}
 
-	starpu_free_noflag(vector, X*sizeof(vector[0]));
+	free(vector);
 	starpu_shutdown();
 	return (ret == -ENODEV) ? 77 : 0;
 }
@@ -166,7 +166,7 @@ int vector_bubble()
 		return 77;
 	}
 
-	starpu_malloc((void **)&vector, X*sizeof(vector[0]));
+	vector = malloc(X*sizeof(vector[0]));
 	for(x=0 ; x<X ; x++)
 		vector[x]=x+1;
 
@@ -207,7 +207,7 @@ enodev:
 		FPRINTF(stderr, "\n");
 	}
 
-	starpu_free_noflag(vector, X*sizeof(vector[0]));
+	free(vector);
 	starpu_shutdown();
 	return (ret == -ENODEV) ? 77 : 0;
 }
