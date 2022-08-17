@@ -20,12 +20,6 @@
 #include <mpi_failure_tolerance/starpu_mpi_checkpoint_tracker.h>
 #include "starpu_mpi_checkpoint_template.h"
 
-//int                              cp_id;
-//	int                              cp_inst;
-//	int                              cp_domain;
-//	starpu_mpi_checkpoint_template_t cp_template;
-//	int                              ack_msg_count;
-
 struct _starpu_mpi_checkpoint_domain_tracker_index_list* domain_tracker_list;
 starpu_pthread_mutex_t tracker_mutex;
 
@@ -207,7 +201,7 @@ struct _starpu_mpi_checkpoint_tracker* _starpu_mpi_checkpoint_tracker_update(sta
 
 int _starpu_mpi_checkpoint_check_tracker(struct _starpu_mpi_checkpoint_tracker* tracker)
 {
-	if (tracker->valid==1)
+	if (tracker->valid)
 	{
 		return -1;
 	}

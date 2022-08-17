@@ -220,9 +220,6 @@ static inline int _starpu_checkpoint_template_free(starpu_mpi_checkpoint_templat
 	return 0;
 }
 
-// For test purpose
-//int _starpu_mpi_checkpoint_template_print(starpu_mpi_checkpoint_template_t cp_template);
-
 #ifdef __cplusplus
 }
 #endif

@@ -128,7 +128,7 @@ static inline void stat_init()
 
 static inline void _starpu_ft_stats_send_data(size_t size)
 {
-	STARPU_ASSERT_MSG(size != -1, "Cannot count a data of size -1. An error has occured.\n");
+	STARPU_ASSERT_MSG((int)size != -1, "Cannot count a data of size -1. An error has occured.\n");
 	STARPU_PTHREAD_MUTEX_LOCK(&_ft_stats_mutex);
 	cp_data_msgs_sent_count++;
 	cp_data_msgs_sent_total_size+=size;
@@ -137,7 +137,7 @@ static inline void _starpu_ft_stats_send_data(size_t size)
 
 static inline void _starpu_ft_stats_cancel_send_data(size_t size)
 {
-	STARPU_ASSERT_MSG(size != -1, "Cannot count a data of size -1. An error has occured.\n");
+	STARPU_ASSERT_MSG((int)size != -1, "Cannot count a data of size -1. An error has occured.\n");
 	STARPU_PTHREAD_MUTEX_LOCK(&_ft_stats_mutex);
 	cp_data_msgs_sent_count--;
 	cp_data_msgs_sent_total_size-=size;
@@ -146,7 +146,7 @@ static inline void _starpu_ft_stats_cancel_send_data(size_t size)
 
 static inline void _starpu_ft_stats_send_data_cached(size_t size)
 {
-	STARPU_ASSERT_MSG(size != -1, "Cannot count a data of size -1. An error has occured.\n");
+	STARPU_ASSERT_MSG((int)size != -1, "Cannot count a data of size -1. An error has occured.\n");
 	STARPU_PTHREAD_MUTEX_LOCK(&_ft_stats_mutex);
 	cp_data_msgs_sent_cached_count++;
 	cp_data_msgs_sent_cached_total_size+=size;
@@ -155,7 +155,7 @@ static inline void _starpu_ft_stats_send_data_cached(size_t size)
 
 static inline void _starpu_ft_stats_recv_data(size_t size)
 {
-	STARPU_ASSERT_MSG(size != -1, "Cannot count a data of size -1. An error has occured.\n");
+	STARPU_ASSERT_MSG((int)size != -1, "Cannot count a data of size -1. An error has occured.\n");
 	STARPU_PTHREAD_MUTEX_LOCK(&_ft_stats_mutex);
 	cp_data_msgs_received_count++;
 	cp_data_msgs_received_total_size+=size;
@@ -164,7 +164,7 @@ static inline void _starpu_ft_stats_recv_data(size_t size)
 
 static inline void _starpu_ft_stats_cancel_recv_data(size_t size)
 {
-	STARPU_ASSERT_MSG(size != -1, "Cannot count a data of size -1. An error has occured.\n");
+	STARPU_ASSERT_MSG((int)size != -1, "Cannot count a data of size -1. An error has occured.\n");
 	STARPU_PTHREAD_MUTEX_LOCK(&_ft_stats_mutex);
 	cp_data_msgs_received_count--;
 	cp_data_msgs_received_total_size-=size;
@@ -173,7 +173,7 @@ static inline void _starpu_ft_stats_cancel_recv_data(size_t size)
 
 static inline void _starpu_ft_stats_recv_data_cached(size_t size)
 {
-	STARPU_ASSERT_MSG(size != -1, "Cannot count a data of size -1. An error has occured.\n");
+	STARPU_ASSERT_MSG((int)size != -1, "Cannot count a data of size -1. An error has occured.\n");
 	STARPU_PTHREAD_MUTEX_LOCK(&_ft_stats_mutex);
 	cp_data_msgs_received_cached_count++;
 	cp_data_msgs_received_cached_total_size+=size;
@@ -182,7 +182,7 @@ static inline void _starpu_ft_stats_recv_data_cached(size_t size)
 
 static inline void _starpu_ft_stats_recv_data_cp_cached(size_t size)
 {
-	STARPU_ASSERT_MSG(size != -1, "Cannot count a data of size -1. An error has occured.\n");
+	STARPU_ASSERT_MSG((int)size != -1, "Cannot count a data of size -1. An error has occured.\n");
 	STARPU_PTHREAD_MUTEX_LOCK(&_ft_stats_mutex);
 	cp_data_msgs_received_cp_cached_count++;
 	cp_data_msgs_received_cp_cached_total_size+=size;
@@ -191,7 +191,7 @@ static inline void _starpu_ft_stats_recv_data_cp_cached(size_t size)
 
 static inline void _starpu_ft_stats_service_msg_send(size_t size)
 {
-	STARPU_ASSERT_MSG(size != -1, "Cannot count a data of size -1. An error has occured.\n");
+	STARPU_ASSERT_MSG((int)size != -1, "Cannot count a data of size -1. An error has occured.\n");
 	STARPU_PTHREAD_MUTEX_LOCK(&_ft_stats_mutex);
 	ft_service_msgs_sent_count++;
 	ft_service_msgs_sent_total_size+=size;
@@ -200,7 +200,7 @@ static inline void _starpu_ft_stats_service_msg_send(size_t size)
 
 static inline void _starpu_ft_stats_service_msg_recv(size_t size)
 {
-	STARPU_ASSERT_MSG(size != -1, "Cannot count a data of size -1. An error has occured.\n");
+	STARPU_ASSERT_MSG((int)size != -1, "Cannot count a data of size -1. An error has occured.\n");
 	STARPU_PTHREAD_MUTEX_LOCK(&_ft_stats_mutex);
 	ft_service_msgs_received_count++;
 	ft_service_msgs_received_total_size+=size;
@@ -211,7 +211,7 @@ static inline void _starpu_ft_stats_add_cp_data_in_memory(size_t size)
 {
 	size_t tmp;
 	struct size_sample *tmp_sample, *sample = malloc(sizeof(struct size_sample));
-	STARPU_ASSERT_MSG(size != -1, "Cannot count a data of size -1. An error has occured.\n");
+	STARPU_ASSERT_MSG((int)size != -1, "Cannot count a data of size -1. An error has occured.\n");
 	STARPU_PTHREAD_MUTEX_LOCK(&_ft_stats_mutex);
 	cp_data_in_memory_size_total+=size;
 	tmp_sample = size_sample_list_back(&cp_data_in_memory_list);
@@ -230,7 +230,7 @@ static inline void _starpu_ft_stats_free_cp_data_in_memory(size_t size)
 {
 	size_t tmp;
 	struct size_sample* sample = malloc(sizeof(struct size_sample));
-	STARPU_ASSERT_MSG(size != -1, "Cannot count a data of size -1. An error has occured.\n");
+	STARPU_ASSERT_MSG((int)size != -1, "Cannot count a data of size -1. An error has occured.\n");
 	STARPU_PTHREAD_MUTEX_LOCK(&_ft_stats_mutex);
 	tmp = size_sample_list_back(&cp_data_in_memory_list)->size;
 	tmp-=size;

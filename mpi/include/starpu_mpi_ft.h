@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2020, 2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -49,7 +49,7 @@ int starpu_mpi_checkpoint_shutdown(void);
  * This command executes ::starpu_mpi_checkpoint_template_create(), adds the given checkpoint entry and freezes the
  * checkpoint, and therefore can no longer be modified.
  * A unique checkpoint id \p cp_id is requested from the user in order to create several templates and to
- * match with a corresponding ::starpu_mpi_init_from_checkpoint(not implemented yet).
+ * match with a corresponding ::starpu_mpi_init_from_checkpoint() (not implemented yet).
  *
  * The arguments following the \p cp_template and the \p cp_id can be of the following types:
  * <ul>
@@ -67,7 +67,7 @@ int starpu_mpi_checkpoint_template_register(starpu_mpi_checkpoint_template_t* cp
 /**
  * Create a new checkpoint template. A unique checkpoint id \p cp_id is requested from
  * the user in order to create several templates and to
- * match with a corresponding ::starpu_mpi_init_from_checkpoint(not implemented yet).
+ * match with a corresponding ::starpu_mpi_init_from_checkpoint() (not implemented yet).
  * Note a template must be frozen with ::starpu_mpi_checkpoint_template_freeze() in order to use it
  * with ::starpu_mpi_checkpoint_template_submit().
 */

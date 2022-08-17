@@ -17,8 +17,6 @@
 #ifndef FT_STARPU_STARPU_MPI_CHECKPOINT_TRACKER_H
 #define FT_STARPU_STARPU_MPI_CHECKPOINT_TRACKER_H
 
-//#include <mpi_failure_tolerance/starpu_mpi_checkpoint.h>
-
 #ifdef __cplusplus
 extern "C"
 {

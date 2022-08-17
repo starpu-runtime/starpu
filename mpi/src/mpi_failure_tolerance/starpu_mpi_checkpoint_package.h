@@ -26,8 +26,8 @@ extern "C"
 {
 #endif
 
-	/*TODO: This structure should be a hashtable accessible with these keys:
-	 *  CPid > CPinstance > Rank > tag */
+/*TODO: This structure should be a hashtable accessible with these keys:
+ *  CPid > CPinstance > Rank > tag */
 
 LIST_TYPE(_starpu_mpi_checkpoint_data,
 	int cp_id;

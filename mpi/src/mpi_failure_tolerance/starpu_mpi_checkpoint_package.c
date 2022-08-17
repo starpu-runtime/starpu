@@ -131,6 +131,7 @@ int _checkpoint_package_data_delete(struct _starpu_mpi_checkpoint_data* checkpoi
 
 int checkpoint_package_data_del(int cp_id, int cp_inst, int rank)
 {
+	(void)cp_id;
 	int done = 0;
 	size_t size = 0;
 	struct _starpu_mpi_checkpoint_data* next_checkpoint_data = NULL;
