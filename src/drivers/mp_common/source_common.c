@@ -738,7 +738,8 @@ uintptr_t _starpu_src_common_map(unsigned dst_node, uintptr_t addr, size_t size)
 	}
 
 	int map_cmd_size = sizeof(struct _starpu_mp_transfer_map_command)+strlen(map_name)+1;
-	struct _starpu_mp_transfer_map_command *map_cmd = (struct _starpu_mp_transfer_map_command *)malloc(map_cmd_size);
+	struct _starpu_mp_transfer_map_command *map_cmd;
+	_STARPU_MALLOC(map_cmd, map_cmd_size);
 	memcpy(map_cmd->fd_name, map_name, strlen(map_name)+1);
 	free(map_name);
 	map_cmd->offset = map_offset;

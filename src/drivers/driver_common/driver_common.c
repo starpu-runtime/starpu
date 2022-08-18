@@ -793,7 +793,8 @@ void *_starpu_map_allocate(size_t length, unsigned node)
 		return NULL;
 	}
 
-	struct map_allocate_info * map_info = (struct map_allocate_info *)malloc(sizeof(struct map_allocate_info)+strlen(fd_name)+1);
+	struct map_allocate_info *map_info;
+	_STARPU_MALLOC(map_info, sizeof(struct map_allocate_info)+strlen(fd_name)+1);
 	map_info->map_addr = map_addr;
 	map_info->length = length;
 	memcpy(map_info->name, fd_name, strlen(fd_name)+1);
