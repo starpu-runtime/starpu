@@ -112,7 +112,7 @@ int _starpu_debug_rank;
 	{ \
 	     	if (_starpu_mpi_comm_debug) \
 		{ \
-     			int __size; \
+			int __size;	      \
 			char _comm_name[128]; \
 			int _comm_name_len; \
 			int _rank; \
@@ -144,21 +144,21 @@ int _starpu_debug_rank;
 
 #define _STARPU_MPI_DISP(fmt, ...) do { if (!_starpu_silent) { \
 	       				     if (_starpu_debug_rank == -1) starpu_mpi_comm_rank(MPI_COMM_WORLD, &_starpu_debug_rank); \
-                                             fprintf(stderr, "%*s[%d][starpu_mpi][%s:%d] " fmt , (_starpu_debug_rank+1)*4, "", _starpu_debug_rank, __starpu_func__ , __LINE__ ,## __VA_ARGS__); \
-                                             fflush(stderr); }} while(0)
+					     fprintf(stderr, "%*s[%d][starpu_mpi][%s:%d] " fmt , (_starpu_debug_rank+1)*4, "", _starpu_debug_rank, __starpu_func__ , __LINE__ ,## __VA_ARGS__); \
+					     fflush(stderr); }} while(0)
 #define _STARPU_MPI_MSG(fmt, ...) do { if (_starpu_debug_rank == -1) starpu_mpi_comm_rank(MPI_COMM_WORLD, &_starpu_debug_rank); \
-                                             fprintf(stderr, "[%d][starpu_mpi][%s:%d] " fmt , _starpu_debug_rank, __starpu_func__ , __LINE__ ,## __VA_ARGS__); \
-                                             fflush(stderr); } while(0)
+					fprintf(stderr, "[%d][starpu_mpi][%s:%d] " fmt , _starpu_debug_rank, __starpu_func__ , __LINE__ ,## __VA_ARGS__); \
+					fflush(stderr); } while(0)
 
 #ifdef STARPU_MPI_EXTRA_VERBOSE
 #  define _STARPU_MPI_LOG_IN()             do { if (!_starpu_silent) { \
-                                               if (_starpu_debug_rank == -1) starpu_mpi_comm_rank(MPI_COMM_WORLD, &_starpu_debug_rank);                        \
-                                               fprintf(stderr, "%*s[%d][starpu_mpi][%s:%d] -->\n", (_starpu_debug_rank+1)*4, "", _starpu_debug_rank, __starpu_func__ , __LINE__); \
-                                               fflush(stderr); }} while(0)
+						if (_starpu_debug_rank == -1) starpu_mpi_comm_rank(MPI_COMM_WORLD, &_starpu_debug_rank); \
+						fprintf(stderr, "%*s[%d][starpu_mpi][%s:%d] -->\n", (_starpu_debug_rank+1)*4, "", _starpu_debug_rank, __starpu_func__ , __LINE__); \
+						fflush(stderr); }} while(0)
 #  define _STARPU_MPI_LOG_OUT()            do { if (!_starpu_silent) { \
-                                               if (_starpu_debug_rank == -1) starpu_mpi_comm_rank(MPI_COMM_WORLD, &_starpu_debug_rank);                        \
-                                               fprintf(stderr, "%*s[%d][starpu_mpi][%s:%d] <--\n", (_starpu_debug_rank+1)*4, "", _starpu_debug_rank, __starpu_func__, __LINE__ ); \
-                                               fflush(stderr); }} while(0)
+						if (_starpu_debug_rank == -1) starpu_mpi_comm_rank(MPI_COMM_WORLD, &_starpu_debug_rank); \
+						fprintf(stderr, "%*s[%d][starpu_mpi][%s:%d] <--\n", (_starpu_debug_rank+1)*4, "", _starpu_debug_rank, __starpu_func__, __LINE__ ); \
+						fflush(stderr); }} while(0)
 #else
 #  define _STARPU_MPI_LOG_IN()
 #  define _STARPU_MPI_LOG_OUT()
@@ -234,58 +234,58 @@ struct _starpu_mpi_data *_starpu_mpi_data_get(starpu_data_handle_t data_handle);
 struct _starpu_mpi_req_backend;
 struct _starpu_mpi_req;
 LIST_TYPE(_starpu_mpi_req,
-	/** description of the data at StarPU level */
-	starpu_data_handle_t data_handle;
+	  /** description of the data at StarPU level */
+	  starpu_data_handle_t data_handle;
 
-	int prio;
-	unsigned node;	/* Which StarPU memory node this will read from / write to */
+	  int prio;
+	  unsigned node;	/* Which StarPU memory node this will read from / write to */
 
-	/** description of the data to be sent/received */
-	MPI_Datatype datatype;
-	char *datatype_name;
-	void *ptr;
-	starpu_ssize_t count;
-	int registered_datatype; // = 0: datatype is not predefined by StarPU; = 1: otherwise; initialized with -1
+	  /** description of the data to be sent/received */
+	  MPI_Datatype datatype;
+	  char *datatype_name;
+	  void *ptr;
+	  starpu_ssize_t count;
+	  int registered_datatype; // = 0: datatype is not predefined by StarPU; = 1: otherwise; initialized with -1
 
-	struct _starpu_mpi_req_backend *backend;
+	  struct _starpu_mpi_req_backend *backend;
 
-	/** who are we talking to ? */
-	struct _starpu_mpi_node_tag node_tag;
-	void (*func)(struct _starpu_mpi_req *);
+	  /** who are we talking to ? */
+	  struct _starpu_mpi_node_tag node_tag;
+	  void (*func)(struct _starpu_mpi_req *);
 
-	MPI_Status *status;
-	struct _starpu_mpi_req_multilist_coop_sends coop_sends;
-	struct _starpu_mpi_coop_sends *coop_sends_head;
+	  MPI_Status *status;
+	  struct _starpu_mpi_req_multilist_coop_sends coop_sends;
+	  struct _starpu_mpi_coop_sends *coop_sends_head;
 
-	int *flag;
-	unsigned sync;
+	  int *flag;
+	  unsigned sync;
 
-	/** Amount of memory pre-reserved for the reception buffer */
-	size_t reserved_size;
+	  /** Amount of memory pre-reserved for the reception buffer */
+	  size_t reserved_size;
 
-	int ret;
+	  int ret;
 
-	/** 0 send, 1 recv */
-	enum _starpu_mpi_request_type request_type;
+	  /** 0 send, 1 recv */
+	  enum _starpu_mpi_request_type request_type;
 
-	unsigned submitted;
-	unsigned completed;
-	unsigned posted;
+	  unsigned submitted;
+	  unsigned completed;
+	  unsigned posted;
 
-	/** in the case of detached requests */
-	int detached;
-	void *callback_arg;
-	void (*callback)(void *);
+	  /** in the case of detached requests */
+	  int detached;
+	  void *callback_arg;
+	  void (*callback)(void *);
 
-	int sequential_consistency;
+	  int sequential_consistency;
 
-	long pre_sync_jobid;
-	long post_sync_jobid;
+	  long pre_sync_jobid;
+	  long post_sync_jobid;
 
 #ifdef STARPU_SIMGRID
-        MPI_Status status_store;
-	starpu_pthread_queue_t queue;
-	unsigned done;
+	  MPI_Status status_store;
+	  starpu_pthread_queue_t queue;
+	  unsigned done;
 #endif
 );
 PRIO_LIST_TYPE(_starpu_mpi_req, prio)

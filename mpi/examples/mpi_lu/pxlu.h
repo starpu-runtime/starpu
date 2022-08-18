@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,8 +25,7 @@
 #include <starpu_cublas_v2.h>
 #endif
 
-#define BLAS3_FLOP(n1,n2,n3)    \
-        (2*((uint64_t)n1)*((uint64_t)n2)*((uint64_t)n3))
+#define BLAS3_FLOP(n1,n2,n3) (2*((uint64_t)n1)*((uint64_t)n2)*((uint64_t)n3))
 
 //#define SINGLE_TMP11	1
 //#define SINGLE_TMP1221	1

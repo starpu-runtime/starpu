@@ -31,9 +31,9 @@ struct starpu_mpi_lb_conf
 };
 
 /**
-   Inits the load balancer's environment with the load policy provided by the
-   * user
-   */
+   Initialize the load balancer's environment with the load policy provided by the
+   user
+*/
 void starpu_mpi_lb_init(const char *lb_policy_name, struct starpu_mpi_lb_conf *);
 void starpu_mpi_lb_shutdown(void);
 
