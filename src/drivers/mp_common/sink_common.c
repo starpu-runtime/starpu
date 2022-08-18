@@ -116,7 +116,7 @@ void _starpu_sink_common_map(const struct _starpu_mp_node *mp_node, void *arg, i
 {
 	STARPU_ASSERT((unsigned int)arg_size >= sizeof(struct _starpu_mp_transfer_map_command));
 
-        struct _starpu_mp_transfer_map_command *map_cmd = (struct _starpu_mp_transfer_map_command *)arg;
+	struct _starpu_mp_transfer_map_command *map_cmd = (struct _starpu_mp_transfer_map_command *)arg;
 
 	void *map_addr = _starpu_sink_map(map_cmd->fd_name, map_cmd->offset, map_cmd->size);
 
@@ -132,9 +132,9 @@ void _starpu_sink_common_unmap(const struct _starpu_mp_node *mp_node STARPU_ATTR
 {
 	STARPU_ASSERT(arg_size == sizeof(struct _starpu_mp_transfer_unmap_command));
 
-        struct _starpu_mp_transfer_unmap_command *unmap_cmd = (struct _starpu_mp_transfer_unmap_command *)arg;
+	struct _starpu_mp_transfer_unmap_command *unmap_cmd = (struct _starpu_mp_transfer_unmap_command *)arg;
 
-        _starpu_sink_unmap(unmap_cmd->addr, unmap_cmd->size);
+	_starpu_sink_unmap(unmap_cmd->addr, unmap_cmd->size);
 }
 
 static void _starpu_sink_common_copy_from_host_sync(const struct _starpu_mp_node *mp_node, void *arg, int arg_size)

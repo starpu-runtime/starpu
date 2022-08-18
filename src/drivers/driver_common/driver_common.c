@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
- * Copyright (C) 2011       Télécom-SudParis
- * Copyright (C) 2013       Thibaut Lambert
+ * Copyright (C) 2011	    Télécom-SudParis
+ * Copyright (C) 2013	    Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -32,7 +32,7 @@
 #include <sys/mman.h>
 #endif
 #include <sys/stat.h>
-#include <fcntl.h> 
+#include <fcntl.h>
 #include <errno.h>
 
 
@@ -750,7 +750,7 @@ static unsigned int map_addr_cmp_insert(struct starpu_rbtree_node * left_elm, st
 static unsigned int map_addr_cmp_lookup(uintptr_t addr_left, struct starpu_rbtree_node * right_elm)
 {
 	unsigned int addr_right = (uintptr_t)((struct map_allocate_info *) right_elm)->map_addr;
-	
+
 	return addr_left - addr_right;
 }
 
@@ -760,7 +760,7 @@ void *_starpu_map_allocate(size_t length, unsigned node)
 	int fd;
 	char fd_name[32];
 	snprintf(fd_name,sizeof(fd_name), "starpu-%u-XXXXXX", node);
-	
+
 	while(1)
 	{
 		mktemp(fd_name);
@@ -809,7 +809,7 @@ void *_starpu_map_allocate(size_t length, unsigned node)
 int _starpu_map_deallocate(void* map_addr, size_t length)
 {
 	struct starpu_rbtree_node * currentNode = starpu_rbtree_lookup(&map_tree, (uintptr_t)map_addr, map_addr_cmp_lookup);
-	
+
 	if (currentNode != NULL)
 	{
 		struct map_allocate_info * map_info = (struct map_allocate_info *) currentNode;
@@ -879,7 +879,7 @@ void *_starpu_sink_map(char *fd_name, size_t offset, size_t length)
 
 	/* offset for mmap() must be page aligned */
 	off_t pa_offset = offset & ~(sysconf(_SC_PAGE_SIZE) - 1);
-               
+
 	void *map_sink_addr = mmap(NULL, length, PROT_READ|PROT_WRITE, MAP_SHARED, fd, pa_offset);
 	close(fd);
 	if (map_sink_addr == MAP_FAILED)

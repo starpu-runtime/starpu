@@ -14,7 +14,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-
 #include <mpi.h>
 #include <errno.h>
 
@@ -49,8 +48,8 @@ struct _starpu_mp_node *_starpu_mpi_ms_src_get_actual_thread_mp_node()
 
 /* Configure one MPI slaves for run */
 static void __starpu_init_mpi_config(struct _starpu_machine_topology *topology,
-				    struct _starpu_machine_config *config,
-				    unsigned mpi_idx)
+				     struct _starpu_machine_config *config,
+				     unsigned mpi_idx)
 {
 	int nhwcores;
 	_starpu_src_common_sink_nbcores(_starpu_src_nodes[STARPU_MPI_MS_WORKER][mpi_idx], &nhwcores);
@@ -75,7 +74,7 @@ static void __starpu_init_mpi_config(struct _starpu_machine_topology *topology,
 
 /* Determine which devices we will use */
 void _starpu_init_mpi_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *config,
-			    struct starpu_conf *user_conf, int no_mp_config)
+			     struct starpu_conf *user_conf, int no_mp_config)
 {
 	int i;
 
@@ -175,7 +174,7 @@ void _starpu_mpi_init_worker_memory(struct _starpu_machine_config *config, int n
 		mpi_memory_init[devid] = 1;
 		memory_node = mpi_memory_nodes[devid] = _starpu_memory_node_register(STARPU_MPI_MS_RAM, devid);
 
-                _starpu_memory_node_set_mapped(memory_node);
+		_starpu_memory_node_set_mapped(memory_node);
 
 		for (numa = 0; numa < starpu_memory_nodes_get_numa_count(); numa++)
 		{
@@ -341,37 +340,37 @@ int _starpu_mpi_is_direct_access_supported(unsigned node, unsigned handling_node
 
 uintptr_t _starpu_mpi_map(uintptr_t src, size_t src_offset, unsigned src_node STARPU_ATTRIBUTE_UNUSED, unsigned dst_node, size_t size, int *ret)
 {
-        uintptr_t map_addr = _starpu_src_common_map(dst_node, src+src_offset, size);
-        if(map_addr == 0)
-        {
-                *ret=-ENOMEM;
-        }
-        else
-        {
-                *ret = 0;
-        }
-        return map_addr;
+	uintptr_t map_addr = _starpu_src_common_map(dst_node, src+src_offset, size);
+	if(map_addr == 0)
+	{
+		*ret=-ENOMEM;
+	}
+	else
+	{
+		*ret = 0;
+	}
+	return map_addr;
 }
 
 int _starpu_mpi_unmap(uintptr_t src STARPU_ATTRIBUTE_UNUSED, size_t src_offset STARPU_ATTRIBUTE_UNUSED, unsigned src_node STARPU_ATTRIBUTE_UNUSED, uintptr_t dst, unsigned dst_node, size_t size)
 {
-        _starpu_src_common_unmap(dst_node, dst, size);
+	_starpu_src_common_unmap(dst_node, dst, size);
 
-        return 0;
+	return 0;
 }
 
 int _starpu_mpi_update_map(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size)
 {
-        (void) src;
-        (void) src_offset;
-        (void) src_node;
-        (void) dst;
-        (void) dst_offset;
-        (void) dst_node;
-        (void) size;
+	(void) src;
+	(void) src_offset;
+	(void) src_node;
+	(void) dst;
+	(void) dst_offset;
+	(void) dst_node;
+	(void) size;
 
-        /* Memory mappings are cache-coherent */
-        return 0;
+	/* Memory mappings are cache-coherent */
+	return 0;
 }
 
 struct _starpu_node_ops _starpu_driver_mpi_ms_node_ops =
@@ -400,7 +399,7 @@ struct _starpu_node_ops _starpu_driver_mpi_ms_node_ops =
 	.wait_request_completion = _starpu_mpi_common_wait_request_completion,
 	.test_request_completion = _starpu_mpi_common_test_event,
 
-        .map[STARPU_CPU_RAM] = _starpu_mpi_map,
-        .unmap[STARPU_CPU_RAM] = _starpu_mpi_unmap,
-        .update_map[STARPU_CPU_RAM] = _starpu_mpi_update_map,
+	.map[STARPU_CPU_RAM] = _starpu_mpi_map,
+	.unmap[STARPU_CPU_RAM] = _starpu_mpi_unmap,
+	.update_map[STARPU_CPU_RAM] = _starpu_mpi_update_map,
 };
