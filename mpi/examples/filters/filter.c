@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2019-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -26,18 +26,18 @@
 
 void cpu_func(void *buffers[], void *cl_arg)
 {
-        unsigned i;
-        int factor;
+	unsigned i;
+	int factor;
 	int rank;
 
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	fprintf(stderr, "computing on rank %d\n", rank);
-        unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
-        int *val = (int *)STARPU_VECTOR_GET_PTR(buffers[0]);
+	unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
+	int *val = (int *)STARPU_VECTOR_GET_PTR(buffers[0]);
 	starpu_codelet_unpack_args(cl_arg, &factor);
 
-        for (i = 0; i < n; i++)
-                val[i] *= factor;
+	for (i = 0; i < n; i++)
+		val[i] *= factor;
 }
 
 struct starpu_codelet cl =
@@ -51,8 +51,8 @@ struct starpu_codelet cl =
 
 void vector_filter(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nchunks)
 {
-        struct starpu_vector_interface *vector_father = (struct starpu_vector_interface *) father_interface;
-        struct starpu_vector_interface *vector_child = (struct starpu_vector_interface *) child_interface;
+	struct starpu_vector_interface *vector_father = (struct starpu_vector_interface *) father_interface;
+	struct starpu_vector_interface *vector_child = (struct starpu_vector_interface *) child_interface;
 
 	uint32_t nx = vector_father->nx;
 	size_t elemsize = vector_father->elemsize;
@@ -78,14 +78,14 @@ void vector_filter(void *father_interface, void *child_interface, struct starpu_
 int main(int argc, char **argv)
 {
 	int i, rank, nodes;
-        int vector[NX];
-        int vector_check[NX];
+	int vector[NX];
+	int vector_check[NX];
 	starpu_data_handle_t vhandle;
-        starpu_data_handle_t handles[2];
-        int factor[2] = {2, 3};
+	starpu_data_handle_t handles[2];
+	int factor[2] = {2, 3};
 	int ret;
 
-  	ret = starpu_mpi_init_conf(&argc, &argv, 1, MPI_COMM_WORLD, NULL);
+	ret = starpu_mpi_init_conf(&argc, &argv, 1, MPI_COMM_WORLD, NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &nodes);
@@ -130,7 +130,7 @@ int main(int argc, char **argv)
 	starpu_data_partition_plan(vhandle, &f, handles);
 	starpu_data_partition_submit(vhandle, 2, handles);
 
-        /* Submit a task on each sub-vector */
+	/* Submit a task on each sub-vector */
 	for (i=0; i<2; i++)
 	{
 		starpu_mpi_data_register(handles[i], 42+i, 0);

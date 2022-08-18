@@ -645,12 +645,12 @@ int starpu_mpi_wait_for_all(MPI_Comm comm)
 	return _mpi_backend._starpu_mpi_backend_wait_for_all(comm);
 }
 
-void starpu_mpi_comm_stats_disable() 
+void starpu_mpi_comm_stats_disable()
 {
-       _starpu_mpi_comm_stats_disable();
+	_starpu_mpi_comm_stats_disable();
 }
 
-void starpu_mpi_comm_stats_enable() 
+void starpu_mpi_comm_stats_enable()
 {
-       _starpu_mpi_comm_stats_enable();
+	_starpu_mpi_comm_stats_enable();
 }

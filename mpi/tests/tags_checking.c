@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -40,8 +40,8 @@ int do_test(int rank, int sdetached, int rdetached)
 	int val[2];
 	starpu_data_handle_t data[2];
 
-        ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, NULL);
-        STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
+	ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	if (rank == 1)
 	{
@@ -134,15 +134,15 @@ int main(int argc, char **argv)
 	int sdetached, rdetached;
 
 	MPI_INIT_THREAD_real(&argc, &argv, MPI_THREAD_SERIALIZED);
-        starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
-        starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
+	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
 
-        if (size < 2)
-        {
+	if (size < 2)
+	{
 		FPRINTF_MPI(stderr, "We need at least 2 processes.\n");
-                MPI_Finalize();
-                return rank == 0 ? STARPU_TEST_SKIPPED : 0;
-        }
+		MPI_Finalize();
+		return rank == 0 ? STARPU_TEST_SKIPPED : 0;
+	}
 
 	for(sdetached=0 ; sdetached<=1 ; sdetached++)
 	{
@@ -152,6 +152,6 @@ int main(int argc, char **argv)
 		}
 	}
 
-        MPI_Finalize();
+	MPI_Finalize();
 	return rank == 0 ? ret : 0;
 }

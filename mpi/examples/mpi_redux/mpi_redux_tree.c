@@ -112,9 +112,9 @@ int main(int argc, char *argv[])
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &comm_size);
 	if (comm_size < 2)
 	{
-        	FPRINTF(stderr, "We need at least 2 nodes.\n");
-        	starpu_mpi_shutdown();
-       		return STARPU_TEST_SKIPPED;
+		FPRINTF(stderr, "We need at least 2 nodes.\n");
+		starpu_mpi_shutdown();
+		return STARPU_TEST_SKIPPED;
 	}
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &comm_rank);
 
@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
 	double work_coef = 2;
 	enum starpu_data_access_mode task_mode;
 	int arity,j,work_node;
-    	starpu_mpi_tag_t tag = 0;
+	starpu_mpi_tag_t tag = 0;
 	for (arity = 2 ; arity < comm_size ; arity++)
 	{
 		starpu_mpi_barrier(MPI_COMM_WORLD);

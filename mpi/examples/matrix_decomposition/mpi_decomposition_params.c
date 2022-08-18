@@ -53,58 +53,58 @@ int checkpoint_enabled = 0;
 
 void parse_args(int argc, char **argv, int nodes)
 {
-        int i;
-        for (i = 1; i < argc; i++)
-        {
-                if (strcmp(argv[i], "-size") == 0)
-                {
-                        char *argptr;
-                        size = strtol(argv[++i], &argptr, 10);
-                }
+	int i;
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-size") == 0)
+		{
+			char *argptr;
+			size = strtol(argv[++i], &argptr, 10);
+		}
 
-                else if (strcmp(argv[i], "-dblockx") == 0)
-                {
-                        char *argptr;
-                        dblockx = strtol(argv[++i], &argptr, 10);
-                }
+		else if (strcmp(argv[i], "-dblockx") == 0)
+		{
+			char *argptr;
+			dblockx = strtol(argv[++i], &argptr, 10);
+		}
 
-                else if (strcmp(argv[i], "-dblocky") == 0)
-                {
-                        char *argptr;
-                        dblocky = strtol(argv[++i], &argptr, 10);
-                }
+		else if (strcmp(argv[i], "-dblocky") == 0)
+		{
+			char *argptr;
+			dblocky = strtol(argv[++i], &argptr, 10);
+		}
 
-                else if (strcmp(argv[i], "-nblocks") == 0)
-                {
-                        char *argptr;
-                        nblocks = strtol(argv[++i], &argptr, 10);
-                }
+		else if (strcmp(argv[i], "-nblocks") == 0)
+		{
+			char *argptr;
+			nblocks = strtol(argv[++i], &argptr, 10);
+		}
 
-                else if (strcmp(argv[i], "-nbigblocks") == 0)
-                {
-                        char *argptr;
-                        nbigblocks = strtol(argv[++i], &argptr, 10);
-                }
+		else if (strcmp(argv[i], "-nbigblocks") == 0)
+		{
+			char *argptr;
+			nbigblocks = strtol(argv[++i], &argptr, 10);
+		}
 
-                else if (strcmp(argv[i], "-columns") == 0)
-                {
-                        submission = COLUMNS;
-                }
+		else if (strcmp(argv[i], "-columns") == 0)
+		{
+			submission = COLUMNS;
+		}
 
-                else if (strcmp(argv[i], "-antidiagonals") == 0)
-                {
-                        submission = ANTIDIAGONALS;
-                }
+		else if (strcmp(argv[i], "-antidiagonals") == 0)
+		{
+			submission = ANTIDIAGONALS;
+		}
 
-                else if (strcmp(argv[i], "-prios") == 0)
-                {
-                        submission = PRIOS;
-                }
+		else if (strcmp(argv[i], "-prios") == 0)
+		{
+			submission = PRIOS;
+		}
 
-                else if (strcmp(argv[i], "-no-prio") == 0)
-                {
-                        noprio = 1;
-                }
+		else if (strcmp(argv[i], "-no-prio") == 0)
+		{
+			noprio = 1;
+		}
 
 		else if (strcmp(argv[i], "-checkpoint-period") == 0)
 		{
@@ -118,31 +118,31 @@ void parse_args(int argc, char **argv, int nodes)
 			checkpoint_enabled = strtol(argv[++i], &argptr, 10);
 		}
 
-                else if (strcmp(argv[i], "-check") == 0)
-                {
-                        check = 1;
-                }
+		else if (strcmp(argv[i], "-check") == 0)
+		{
+			check = 1;
+		}
 
-                else if (strcmp(argv[i], "-display") == 0)
-                {
-                        display = 1;
-                }
+		else if (strcmp(argv[i], "-display") == 0)
+		{
+			display = 1;
+		}
 
-                else
-                /* if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0) */
-                {
-                        printf("usage : %s [-size size] [-nblocks nblocks] [-columns] [-antidiagonals] [-prios] [-no-prio] [-display] [-check] [-checkpoint-period period] [-checkpoint-enabled 0/1]\n", argv[0]);
-                        fprintf(stderr,"Currently selected: %ux%u and %ux%u blocks checkpoint enabled %d with period %lu\n", size, size, nblocks, nblocks, checkpoint_enabled, checkpoint_period);
-                        exit(0);
-                }
-        }
+		else
+		/* if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0) */
+		{
+			printf("usage : %s [-size size] [-nblocks nblocks] [-columns] [-antidiagonals] [-prios] [-no-prio] [-display] [-check] [-checkpoint-period period] [-checkpoint-enabled 0/1]\n", argv[0]);
+			fprintf(stderr,"Currently selected: %ux%u and %ux%u blocks checkpoint enabled %d with period %lu\n", size, size, nblocks, nblocks, checkpoint_enabled, checkpoint_period);
+			exit(0);
+		}
+	}
 
 #ifdef STARPU_HAVE_VALGRIND_H
 	if (RUNNING_ON_VALGRIND)
 		size = 16;
 #endif
 
-        if (nblocks > size)
+	if (nblocks > size)
 		nblocks = size;
 
 	if (dblockx == -1 || dblocky == -1)

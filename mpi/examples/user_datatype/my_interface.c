@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -134,14 +134,14 @@ static void data_register_data_handle(starpu_data_handle_t handle, int home_node
 		if (node == home_node)
 		{
 			local_interface->ptr = my_data_interface->ptr;
-                        local_interface->dev_handle = my_data_interface->dev_handle;
-                        local_interface->offset = my_data_interface->offset;
+			local_interface->dev_handle = my_data_interface->dev_handle;
+			local_interface->offset = my_data_interface->offset;
 		}
 		else
 		{
 			local_interface->ptr = 0;
-                        local_interface->dev_handle = 0;
-                        local_interface->offset = 0;
+			local_interface->dev_handle = 0;
+			local_interface->offset = 0;
 		}
 	}
 }
@@ -163,7 +163,7 @@ static starpu_ssize_t data_allocate_data_on_node(void *data_interface, unsigned 
 	/* update the data properly in consequence */
 	my_data_interface->ptr = addr;
 	my_data_interface->dev_handle = handle;
-        my_data_interface->offset = 0;
+	my_data_interface->offset = 0;
 
 	return allocated_memory;
 }
@@ -332,7 +332,7 @@ void starpu_my_data_register(starpu_data_handle_t *handleptr, unsigned home_node
 
 	struct starpu_my_data_interface data =
 	{
-	 	.id = interface_data_ops.interfaceid,
+		.id = interface_data_ops.interfaceid,
 		.ptr = (uintptr_t) xc,
 		.dev_handle = (uintptr_t) xc,
 		.offset = 0,
@@ -375,7 +375,7 @@ void starpu_my_data2_register(starpu_data_handle_t *handleptr, unsigned home_nod
 
 	struct starpu_my_data_interface data =
 	{
-	 	.id = interface_data_ops.interfaceid,
+		.id = interface_data_ops.interfaceid,
 		.ptr = (uintptr_t) xc,
 		.dev_handle = (uintptr_t) xc,
 		.offset = 0,

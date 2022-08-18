@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -33,7 +33,7 @@ struct handle_tag_entry
 
 /* Hash table mapping host tags to data handles.  */
 static struct handle_tag_entry *registered_tag_handles;
-static struct _starpu_spinlock    registered_tag_handles_lock;
+static struct _starpu_spinlock	  registered_tag_handles_lock;
 
 void _starpu_mpi_tag_init(void)
 {
@@ -42,7 +42,7 @@ void _starpu_mpi_tag_init(void)
 
 void _starpu_mpi_tag_shutdown(void)
 {
-     	struct handle_tag_entry *tag_entry=NULL, *tag_tmp=NULL;
+	struct handle_tag_entry *tag_entry=NULL, *tag_tmp=NULL;
 
 	_starpu_spin_destroy(&registered_tag_handles_lock);
 

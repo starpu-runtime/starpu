@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -85,8 +85,8 @@ void _starpu_mpi_nmad_backend_comm_register(MPI_Comm comm)
 
 struct _starpu_mpi_backend _mpi_backend =
 {
- 	._starpu_mpi_backend_init = _starpu_mpi_nmad_backend_init,
- 	._starpu_mpi_backend_shutdown = _starpu_mpi_nmad_backend_shutdown,
+	._starpu_mpi_backend_init = _starpu_mpi_nmad_backend_init,
+	._starpu_mpi_backend_shutdown = _starpu_mpi_nmad_backend_shutdown,
 	._starpu_mpi_backend_reserve_core = _starpu_mpi_nmad_backend_reserve_core,
 	._starpu_mpi_backend_request_init = _starpu_mpi_nmad_backend_request_init,
 	._starpu_mpi_backend_request_fill = _starpu_mpi_nmad_backend_request_fill,

@@ -35,10 +35,10 @@
 static int M  = 1024; /* Matrix size */
 static int N  = 1024; /* Matrix size */
 static int K  = 1024; /* Matrix size */
-static int BS =  512; /* Block size */
-static int P  =    2; /* height of the grid */
-static int Q  =    2; /* width of the grid */
-static int T  =    1; /* number of runs */
+static int BS =	 512; /* Block size */
+static int P  =	   2; /* height of the grid */
+static int Q  =	   2; /* width of the grid */
+static int T  =	   1; /* number of runs */
 static int trace = 0; /* whether to trace */
 
 #define MB ((M)/(BS)) /* Number of blocks */
@@ -56,14 +56,14 @@ static int comm_size; /* size of the mpi session */
 
 struct block
 {
-        double* c;
-        int owner;
+	double* c;
+	int owner;
 };
 
 struct matrix
 {
-        int mb, nb, b;
-        struct block* blocks;
+	int mb, nb, b;
+	struct block* blocks;
 };
 
 /* Matrices. Will be allocated as regular, linearized C arrays */
@@ -75,7 +75,7 @@ struct matrix* alloc_matrix(int mb, int nb)
 {
 	struct matrix* X;
 	X = malloc(sizeof(struct matrix));
-      	X->blocks = malloc( mb*nb*sizeof(struct block));
+	X->blocks = malloc( mb*nb*sizeof(struct block));
 	int i,j;
 	for (i = 0; i<mb; i++)
 	{
@@ -83,12 +83,12 @@ struct matrix* alloc_matrix(int mb, int nb)
 		{
 			X->blocks[i*nb+j].owner = (i%P)*Q + (j%Q);
 			if (X->blocks[i*nb+j].owner == comm_rank)
-  				X->blocks[i*nb+j].c = malloc(BS*BS*sizeof(double));
+				X->blocks[i*nb+j].c = malloc(BS*BS*sizeof(double));
 		}
 	}
 	X->mb = mb;
 	X->nb = nb;
-       	X->b  = BS;
+	X->b  = BS;
 	return X;
 }
 static void alloc_matrices(void)
@@ -117,9 +117,9 @@ static void free_matrix(struct matrix* X, int mb, int nb)
 static void free_matrices(void)
 {
 	if (VERBOSE) printf( "Freeing matrices\n");
-  	free_matrix(A,MB,KB);
-  	free_matrix(B,KB,NB);
-  	free_matrix(C,MB,NB);
+	free_matrix(A,MB,KB);
+	free_matrix(B,KB,NB);
+	free_matrix(C,MB,NB);
 }
 
 static void register_matrix(struct matrix* X, starpu_data_handle_t* X_h, starpu_mpi_tag_t *tag, int mb, int nb)
@@ -129,7 +129,7 @@ static void register_matrix(struct matrix* X, starpu_data_handle_t* X_h, starpu_
 	{
 		for (b_col = 0; b_col < nb; b_col++)
 		{
-	    		if (X->blocks[b_row*nb+b_col].owner == comm_rank)
+			if (X->blocks[b_row*nb+b_col].owner == comm_rank)
 			{
 				starpu_matrix_data_register(&X_h[b_row*nb+b_col],
 							    STARPU_MAIN_RAM,
@@ -218,7 +218,7 @@ static void cpu_fill(void *handles[], void *arg)
 	if (VERBOSE) printf("fill_task\n");
 	for (i=0;i<n_row_A;i++)
 	{
-    		for (j=0;j<n_col_A;j++)
+		for (j=0;j<n_col_A;j++)
 		{
 			block_A[i*BS+j] = 1.1;
 		}
@@ -294,7 +294,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* Parse the matrix size and block size optional args */
- 	// M, N, K, B, P, Q
+	// M, N, K, B, P, Q
 	if (argc < 8)
 	{
 		if (comm_rank == 0) fprintf(stderr, "using default sizes for arguments\n");
@@ -352,17 +352,17 @@ int main(int argc, char *argv[])
 		printf("MxNxKb = %dx%dx%d\n", MB,NB,KB);
 		printf("comm_size = %d\n", comm_size);
 		printf("PxQ = %dx%d\n", P, Q);
-        }
-  	int trial;
-     	double start, stop;
+	}
+	int trial;
+	double start, stop;
 	if (trace) starpu_fxt_start_profiling();
 	for (trial =0; trial < T; trial++)
 	{
-	        alloc_matrices();
+		alloc_matrices();
 		register_matrices();
 
-	        init_matrices();
-	        starpu_mpi_barrier(MPI_COMM_WORLD);
+		init_matrices();
+		starpu_mpi_barrier(MPI_COMM_WORLD);
 		start = starpu_timing_now();
 
 		int b_row,b_col,b_aisle;
@@ -375,7 +375,7 @@ int main(int argc, char *argv[])
 					starpu_mpi_task_insert(MPI_COMM_WORLD, &gemm_cl,
 						STARPU_R,  A_h[b_row*KB+b_aisle],
 						STARPU_R,  B_h[b_aisle*NB+b_col],
-						STARPU_RW, C_h[b_row*NB+b_col],  0);
+						STARPU_RW, C_h[b_row*NB+b_col],	 0);
 				}
 			}
 			for (b_aisle=0;b_aisle<KB;b_aisle++)
@@ -385,7 +385,7 @@ int main(int argc, char *argv[])
 		}
 
 		starpu_mpi_wait_for_all(MPI_COMM_WORLD);
-	        starpu_mpi_barrier(MPI_COMM_WORLD);
+		starpu_mpi_barrier(MPI_COMM_WORLD);
 		stop = starpu_timing_now();
 		double timing = stop - start;
 		if (comm_rank==0) printf("RANK %d -> took %f s | %f Gflop/s\n", comm_rank, timing/1000/1000, 2.0*M*N*K/(timing*1000));

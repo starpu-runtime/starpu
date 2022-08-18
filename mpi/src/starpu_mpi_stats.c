@@ -53,12 +53,12 @@ void _starpu_mpi_comm_amounts_init(MPI_Comm comm)
 
 void _starpu_mpi_comm_stats_disable()
 {
-       stats_enabled = 0;
+	stats_enabled = 0;
 }
 
 void _starpu_mpi_comm_stats_enable()
 {
-       stats_enabled = 1;
+	stats_enabled = 1;
 }
 
 void _starpu_mpi_comm_amounts_shutdown()
@@ -122,4 +122,3 @@ void _starpu_mpi_comm_amounts_display(FILE *stream, int node)
 				(float)comm_amount[dst]/(float)time, ((float)comm_amount[dst])/(1024*1024)/(float)time);
 	}
 }
-

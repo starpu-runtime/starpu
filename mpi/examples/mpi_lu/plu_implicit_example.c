@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
- * Copyright (C) 2013       Thibaut Lambert
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013	    Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -275,15 +275,15 @@ int main(int argc, char **argv)
 	starpu_cublas_init();
 
 	/*
-	 * 	Problem Init
+	 *	Problem Init
 	 */
 
 	init_matrix(rank);
 
 	fprintf(stderr, "Rank %d: allocated (%d + %d) MB = %d MB\n", rank,
-                        (int)(allocated_memory/(1024*1024)),
+			(int)(allocated_memory/(1024*1024)),
 			(int)(allocated_memory_extra/(1024*1024)),
-                        (int)((allocated_memory+allocated_memory_extra)/(1024*1024)));
+			(int)((allocated_memory+allocated_memory_extra)/(1024*1024)));
 
 	display_grid(rank, nblocks);
 
@@ -321,7 +321,7 @@ int main(int argc, char **argv)
 	double timing = STARPU_PLU(plu_main)(nblocks, rank, world_size, no_prio);
 
 	/*
-	 * 	Report performance
+	 *	Report performance
 	 */
 
 	if (rank == 0)
@@ -377,7 +377,7 @@ int main(int argc, char **argv)
 	}
 
 	/*
-	 * 	Termination
+	 *	Termination
 	 */
 	size_t blocksize = (size_t)(size/nblocks)*(size/nblocks)*sizeof(TYPE);
 	for (j = 0; j < nblocks; j++)

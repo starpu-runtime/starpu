@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -60,15 +60,15 @@ int main(int argc, char **argv)
 	if (thread_support < MPI_THREAD_FUNNELED)
 		fprintf(stderr,"Warning: MPI does not have thread support!\n");
 
-        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-        MPI_Comm_size(MPI_COMM_WORLD, &size);
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-        if (size < 4)
-        {
+	if (size < 4)
+	{
 		FPRINTF(stderr, "We need at least 4 processes.\n");
-                MPI_Finalize();
-                return STARPU_TEST_SKIPPED;
-        }
+		MPI_Finalize();
+		return STARPU_TEST_SKIPPED;
+	}
 
 	color = rank%2;
 	MPI_Comm_split(MPI_COMM_WORLD, color, rank, &newcomm);
@@ -86,8 +86,8 @@ int main(int argc, char **argv)
 		FPRINTF(stderr, "[%d][%d] received %d\n", rank, newrank, x);
 	}
 
-        ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, NULL);
-        STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
+	ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	if (rank == 0)
 	{
@@ -188,6 +188,6 @@ int main(int argc, char **argv)
 
 	starpu_mpi_shutdown();
 	MPI_Comm_free(&newcomm);
-        MPI_Finalize();
+	MPI_Finalize();
 	return 0;
 }

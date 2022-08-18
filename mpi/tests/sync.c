@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -27,15 +27,15 @@ int main(int argc, char **argv)
 
 	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-        MPI_Comm_size(MPI_COMM_WORLD, &size);
+	MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-        if (size % 2)
-        {
+	if (size % 2)
+	{
 		FPRINTF(stderr, "We need a even number of processes.\n");
 		if (!mpi_init)
 			MPI_Finalize();
-                return rank == 0 ? STARPU_TEST_SKIPPED : 0;
-        }
+		return rank == 0 ? STARPU_TEST_SKIPPED : 0;
+	}
 
 	other_rank = rank%2 == 0 ? rank+1 : rank-1;
 	FPRINTF_MPI(stderr, "rank %d exchanging with rank %d\n", rank, other_rank);
@@ -51,8 +51,8 @@ int main(int argc, char **argv)
 		FPRINTF(stderr, "[%d] received %d\n", rank, x);
 	}
 
-        ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, NULL);
-        STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
+	ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	if (rank % 2)
 	{
@@ -88,7 +88,7 @@ int main(int argc, char **argv)
 
 		starpu_variable_data_register(&data[1], -1, (uintptr_t)NULL, sizeof(unsigned));
 		starpu_mpi_data_register(data[1], 22, 0);
-		ret = starpu_mpi_recv(data[0],  other_rank, 22, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		ret = starpu_mpi_recv(data[0],	other_rank, 22, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
 		starpu_data_acquire(data[0], STARPU_R);
 		xx = (int *)starpu_variable_get_local_ptr(data[0]);

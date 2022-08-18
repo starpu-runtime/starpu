@@ -126,11 +126,11 @@ extern void smpi_process_set_user_data(void *);
 static int trace_loop = 0;
 #endif
 
- /********************************************************/
- /*                                                      */
- /*  Send/Receive functionalities                        */
- /*                                                      */
- /********************************************************/
+/********************************************************/
+/*                                                      */
+/*  Send/Receive functionalities                        */
+/*                                                      */
+/********************************************************/
 
 struct _starpu_mpi_early_data_cb_args
 {
@@ -378,11 +378,11 @@ void _starpu_mpi_simgrid_wait_req(MPI_Request *request, MPI_Status *status, star
 }
 #endif
 
- /********************************************************/
- /*                                                      */
- /*  Send functionalities                                */
- /*                                                      */
- /********************************************************/
+/********************************************************/
+/*                                                      */
+/*  Send functionalities                                */
+/*                                                      */
+/********************************************************/
 
 static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 {
@@ -452,34 +452,34 @@ void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 	{
 		int ret;
 
- 		// Do not pack the data, just try to find out the size
+		// Do not pack the data, just try to find out the size
 		starpu_data_pack_node(req->data_handle, req->node, NULL, &(req->backend->envelope->size));
 
 		if (req->backend->envelope->size != -1)
- 		{
- 			// We already know the size of the data, let's send it to overlap with the packing of the data
+		{
+			// We already know the size of the data, let's send it to overlap with the packing of the data
 			_STARPU_MPI_DEBUG(20, "Sending size %ld (%ld %s) to node %d (first call to pack)\n", req->backend->envelope->size, sizeof(req->count), "MPI_BYTE", req->node_tag.node.rank);
 			req->count = req->backend->envelope->size;
 			_STARPU_MPI_COMM_TO_DEBUG(req->backend->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->node_tag.node.rank, _STARPU_MPI_TAG_ENVELOPE, req->backend->envelope->data_tag, req->node_tag.node.comm);
 			ret = MPI_Isend(req->backend->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->node_tag.node.rank, _STARPU_MPI_TAG_ENVELOPE, req->node_tag.node.comm, &req->backend->size_req);
 			STARPU_MPI_ASSERT_MSG(ret == MPI_SUCCESS, "when sending size, MPI_Isend returning %s", _starpu_mpi_get_mpi_error_code(ret));
- 		}
+		}
 
- 		// Pack the data
+		// Pack the data
 		starpu_data_pack_node(req->data_handle, req->node, &req->ptr, &req->count);
 		if (req->backend->envelope->size == -1)
- 		{
- 			// We know the size now, let's send it
+		{
+			// We know the size now, let's send it
 			_STARPU_MPI_DEBUG(20, "Sending size %ld (%ld %s) to node %d (second call to pack)\n", req->backend->envelope->size, sizeof(req->count), "MPI_BYTE", req->node_tag.node.rank);
 			_STARPU_MPI_COMM_TO_DEBUG(req->backend->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->node_tag.node.rank, _STARPU_MPI_TAG_ENVELOPE, req->backend->envelope->data_tag, req->node_tag.node.comm);
 			ret = MPI_Isend(req->backend->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->node_tag.node.rank, _STARPU_MPI_TAG_ENVELOPE, req->node_tag.node.comm, &req->backend->size_req);
 			STARPU_MPI_ASSERT_MSG(ret == MPI_SUCCESS, "when sending size, MPI_Isend returning %s", _starpu_mpi_get_mpi_error_code(ret));
- 		}
- 		else
- 		{
- 			// We check the size returned with the 2 calls to pack is the same
+		}
+		else
+		{
+			// We check the size returned with the 2 calls to pack is the same
 			STARPU_MPI_ASSERT_MSG(req->count == req->backend->envelope->size, "Calls to pack_data returned different sizes %ld != %ld", req->count, req->backend->envelope->size);
- 		}
+		}
 		// We can send the data now
 	}
 
@@ -496,9 +496,9 @@ void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 }
 
 /********************************************************/
-/*                                                      */
-/*  receive functionalities                             */
-/*                                                      */
+/*							*/
+/*  receive functionalities				*/
+/*							*/
 /********************************************************/
 
 void _starpu_mpi_irecv_size_func(struct _starpu_mpi_req *req)
@@ -552,9 +552,9 @@ void _starpu_mpi_irecv_size_func(struct _starpu_mpi_req *req)
 }
 
 /********************************************************/
-/*                                                      */
-/*  Wait functionalities                                */
-/*                                                      */
+/*							*/
+/*  Wait functionalities				*/
+/*							*/
 /********************************************************/
 
 #ifndef STARPU_SIMGRID
@@ -649,9 +649,9 @@ int _starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
 }
 
 /********************************************************/
-/*                                                      */
-/*  Test functionalities                                */
-/*                                                      */
+/*							*/
+/*  Test functionalities				*/
+/*							*/
 /********************************************************/
 
 #ifndef STARPU_SIMGRID
@@ -766,9 +766,9 @@ int _starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 }
 
 /********************************************************/
-/*                                                      */
-/*  Barrier functionalities                             */
-/*                                                      */
+/*							*/
+/*  Barrier functionalities				*/
+/*							*/
 /********************************************************/
 
 static void _starpu_mpi_barrier_func(struct _starpu_mpi_req *barrier_req)
@@ -846,9 +846,9 @@ int _starpu_mpi_wait_for_all(MPI_Comm comm)
 }
 
 /********************************************************/
-/*                                                      */
-/*  Progression                                         */
-/*                                                      */
+/*							*/
+/*  Progression						*/
+/*							*/
 /********************************************************/
 
 static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
@@ -1072,7 +1072,7 @@ static void _starpu_mpi_test_detached_requests(void)
 		else
 		{
 			_STARPU_MPI_TRACE_POLLING_END();
-		     	struct _starpu_mpi_req *next_req;
+			struct _starpu_mpi_req *next_req;
 			next_req = _starpu_mpi_req_list_next(req);
 
 			_STARPU_MPI_TRACE_COMPLETE_BEGIN(req->request_type, req->node_tag.node.rank, req->node_tag.data_tag);
@@ -1258,8 +1258,8 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	}
 	smpi_process_set_user_data(tsd);
 #endif
-        /* And wait for StarPU to get initialized, to come back to the same
-         * situation as native execution where that's always the case. */
+	/* And wait for StarPU to get initialized, to come back to the same
+	 * situation as native execution where that's always the case. */
 	starpu_wait_initialized();
 #endif
 
@@ -1292,7 +1292,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	running = 1;
 	STARPU_PTHREAD_COND_SIGNAL(&progress_cond);
 
- 	int envelope_request_submitted = 0;
+	int envelope_request_submitted = 0;
 	int mpi_driver_loop_counter = 0;
 	int mpi_driver_task_counter = 0;
 	_STARPU_MPI_TRACE_POLLING_BEGIN();
@@ -1375,8 +1375,8 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		_STARPU_MPI_TRACE_POLLING_BEGIN();
 
 		/* If there is no currently submitted envelope_request submitted to
-                 * catch envelopes from senders, and there is some pending
-                 * receive requests on our side, we resubmit a header request. */
+		 * catch envelopes from senders, and there is some pending
+		 * receive requests on our side, we resubmit a header request. */
 		if (((_starpu_mpi_early_request_count() > 0) || (_starpu_mpi_sync_data_count() > 0)) && (envelope_request_submitted == 0))// && (HASH_COUNT(_starpu_mpi_early_data_handle_hashmap) == 0))
 		{
 			_starpu_mpi_comm_post_recv();
@@ -1599,18 +1599,18 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 
 int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 {
-        STARPU_PTHREAD_MUTEX_INIT(&progress_mutex, NULL);
-        STARPU_PTHREAD_MUTEX_INIT(&early_data_mutex, NULL);
-        STARPU_PTHREAD_COND_INIT(&progress_cond, NULL);
-        STARPU_PTHREAD_COND_INIT(&barrier_cond, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&progress_mutex, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&early_data_mutex, NULL);
+	STARPU_PTHREAD_COND_INIT(&progress_cond, NULL);
+	STARPU_PTHREAD_COND_INIT(&barrier_cond, NULL);
 	_starpu_mpi_req_list_init(&ready_recv_requests);
 	_starpu_mpi_req_prio_list_init(&ready_send_requests);
 
-        STARPU_PTHREAD_MUTEX_INIT(&detached_requests_mutex, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&detached_requests_mutex, NULL);
 	_starpu_mpi_req_list_init(&detached_requests);
 
-        STARPU_PTHREAD_MUTEX_INIT(&mutex_posted_requests, NULL);
-        STARPU_PTHREAD_MUTEX_INIT(&mutex_ready_requests, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&mutex_posted_requests, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&mutex_ready_requests, NULL);
 
 	nready_process = starpu_get_env_number_default("STARPU_MPI_NREADY_PROCESS", 10);
 	ndetached_send = starpu_get_env_number_default("STARPU_MPI_NDETACHED_SEND", 10);
@@ -1622,17 +1622,17 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 #endif
 
 #ifdef STARPU_SIMGRID
-        _starpu_mpi_progress_thread_func(argc_argv);
-        return 0;
+	_starpu_mpi_progress_thread_func(argc_argv);
+	return 0;
 #else
-        STARPU_PTHREAD_CREATE(&progress_thread, NULL, _starpu_mpi_progress_thread_func, argc_argv);
+	STARPU_PTHREAD_CREATE(&progress_thread, NULL, _starpu_mpi_progress_thread_func, argc_argv);
 
-        STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
-        while (!running)
-                STARPU_PTHREAD_COND_WAIT(&progress_cond, &progress_mutex);
-        STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
+	while (!running)
+		STARPU_PTHREAD_COND_WAIT(&progress_cond, &progress_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 
-        return 0;
+	return 0;
 #endif
 }
 
@@ -1649,14 +1649,14 @@ void _starpu_mpi_wait_for_initialization()
 
 void _starpu_mpi_progress_shutdown(void **value)
 {
-        STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
-        running = 0;
-        STARPU_PTHREAD_COND_BROADCAST(&progress_cond);
+	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
+	running = 0;
+	STARPU_PTHREAD_COND_BROADCAST(&progress_cond);
 
 #ifdef STARPU_SIMGRID
 	starpu_pthread_queue_signal(&_starpu_mpi_thread_dontsleep);
 #endif
-        STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 
 #ifdef STARPU_SIMGRID
 	/* FIXME: should rather properly wait for _starpu_mpi_progress_thread_func to finish */
@@ -1666,11 +1666,11 @@ void _starpu_mpi_progress_shutdown(void **value)
 	STARPU_PTHREAD_JOIN(progress_thread, value);
 #endif
 
-        STARPU_PTHREAD_MUTEX_DESTROY(&mutex_posted_requests);
-        STARPU_PTHREAD_MUTEX_DESTROY(&mutex_ready_requests);
-        STARPU_PTHREAD_MUTEX_DESTROY(&progress_mutex);
-        STARPU_PTHREAD_MUTEX_DESTROY(&early_data_mutex);
-        STARPU_PTHREAD_COND_DESTROY(&barrier_cond);
+	STARPU_PTHREAD_MUTEX_DESTROY(&mutex_posted_requests);
+	STARPU_PTHREAD_MUTEX_DESTROY(&mutex_ready_requests);
+	STARPU_PTHREAD_MUTEX_DESTROY(&progress_mutex);
+	STARPU_PTHREAD_MUTEX_DESTROY(&early_data_mutex);
+	STARPU_PTHREAD_COND_DESTROY(&barrier_cond);
 }
 
 static int64_t _starpu_mpi_tag_max = INT64_MAX;

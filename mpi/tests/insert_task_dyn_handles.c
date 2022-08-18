@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -48,8 +48,8 @@ struct starpu_codelet codelet =
 
 int main(int argc, char **argv)
 {
-        int *x;
-        int i, ret, loop;
+	int *x;
+	int i, ret, loop;
 	int rank;
 	int factor=0;
 
@@ -58,8 +58,8 @@ int main(int argc, char **argv)
 #else
 	int nloops = 16;
 #endif
-        starpu_data_handle_t *data_handles;
-        starpu_data_handle_t factor_handle;
+	starpu_data_handle_t *data_handles;
+	starpu_data_handle_t factor_handle;
 	struct starpu_data_descr *descrs;
 	int mpi_init;
 
@@ -113,10 +113,10 @@ int main(int argc, char **argv)
 	}
 
 enodev:
-        for(i=0 ; i<STARPU_NMAXBUFS+15 ; i++)
+	for(i=0 ; i<STARPU_NMAXBUFS+15 ; i++)
 	{
-                starpu_data_unregister(data_handles[i]);
-        }
+		starpu_data_unregister(data_handles[i]);
+	}
 	starpu_data_unregister(factor_handle);
 
 	free(data_handles);
