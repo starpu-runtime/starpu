@@ -35,8 +35,7 @@ extern struct _starpu_node_ops _starpu_driver_tcpip_ms_node_ops;
 struct _starpu_mp_node *_starpu_tcpip_ms_src_get_actual_thread_mp_node();
 
 unsigned _starpu_tcpip_src_get_device_count();
-void _starpu_init_tcpip_config(struct _starpu_machine_topology * topology, struct _starpu_machine_config *config,
-                               struct starpu_conf *user_conf, int no_mp_config);
+void _starpu_init_tcpip_config(struct _starpu_machine_topology * topology, struct _starpu_machine_config *config, struct starpu_conf *user_conf, int no_mp_config);
 void _starpu_tcpip_init_worker_binding(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg);
 void _starpu_tcpip_init_worker_memory(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg);
 void _starpu_deinit_tcpip_config(struct _starpu_machine_config *config);

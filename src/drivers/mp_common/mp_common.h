@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
- * Copyright (C) 2013       Thibaut Lambert
+ * Copyright (C) 2012-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013	    Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -56,14 +56,14 @@ enum _starpu_mp_command
 	STARPU_MP_COMMAND_UNMAP,
 	STARPU_MP_COMMAND_SYNC_WORKERS,
 
-        /* Note: synchronous send */
+	/* Note: synchronous send */
 	STARPU_MP_COMMAND_RECV_FROM_HOST,
 	STARPU_MP_COMMAND_SEND_TO_HOST,
 	STARPU_MP_COMMAND_RECV_FROM_SINK,
 	STARPU_MP_COMMAND_SEND_TO_SINK,
 
-        /* Note: Asynchronous send */
-    STARPU_MP_COMMAND_RECV_FROM_HOST_ASYNC,
+	/* Note: Asynchronous send */
+	STARPU_MP_COMMAND_RECV_FROM_HOST_ASYNC,
 	STARPU_MP_COMMAND_SEND_TO_HOST_ASYNC,
 	STARPU_MP_COMMAND_RECV_FROM_SINK_ASYNC,
 	STARPU_MP_COMMAND_SEND_TO_SINK_ASYNC,
@@ -83,7 +83,7 @@ enum _starpu_mp_command
 	STARPU_MP_COMMAND_ANSWER_EXECUTION_DETACHED_SUBMITTED,
 
 	/* Asynchronous notifications from slave to master */
-    STARPU_MP_COMMAND_NOTIF_RECV_FROM_HOST_ASYNC_COMPLETED,
+	STARPU_MP_COMMAND_NOTIF_RECV_FROM_HOST_ASYNC_COMPLETED,
 	STARPU_MP_COMMAND_NOTIF_SEND_TO_HOST_ASYNC_COMPLETED,
 	STARPU_MP_COMMAND_NOTIF_RECV_FROM_SINK_ASYNC_COMPLETED,
 	STARPU_MP_COMMAND_NOTIF_SEND_TO_SINK_ASYNC_COMPLETED,
@@ -122,7 +122,7 @@ struct _starpu_mp_transfer_command
 {
 	size_t size;
 	void *addr;
-        void *event;
+	void *event;
 };
 
 struct _starpu_mp_transfer_command_to_device
@@ -130,7 +130,7 @@ struct _starpu_mp_transfer_command_to_device
 	int devid;
 	size_t size;
 	void *addr;
-        void *event;
+	void *event;
 };
 
 struct _starpu_mp_transfer_map_command
@@ -172,13 +172,13 @@ struct mp_task
 	int is_parallel_task;
 	int combined_workerid;
 	int detached;
- 	struct mp_barrier* mp_barrier;
+	struct mp_barrier* mp_barrier;
 };
 
 LIST_TYPE(_starpu_mp_event,
-                struct _starpu_async_channel event;
-                void * remote_event;
-                enum _starpu_mp_command answer_cmd;
+		struct _starpu_async_channel event;
+		void * remote_event;
+		enum _starpu_mp_command answer_cmd;
 );
 
 
@@ -211,75 +211,75 @@ struct _starpu_mp_node
 	 * sink it controls */
 	union _starpu_mp_connection mp_connection;
 
-        /** Mutex to protect the interleaving of communications when using one thread per node,
-         * for instance, when a thread transfers piece of data and an other wants to use
-         * a sink_to_sink communication */
-        starpu_pthread_mutex_t connection_mutex;
+	/** Mutex to protect the interleaving of communications when using one thread per node,
+	 * for instance, when a thread transfers piece of data and an other wants to use
+	 * a sink_to_sink communication */
+	starpu_pthread_mutex_t connection_mutex;
 
-        /** This list contains events
-         * about asynchronous request
-         */
-        struct _starpu_mp_event_list event_list;
-        /*list where threads add events to send to the source node */
-        struct _starpu_mp_event_list event_queue;
+	/** This list contains events
+	 * about asynchronous request
+	 */
+	struct _starpu_mp_event_list event_list;
+	/*list where threads add events to send to the source node */
+	struct _starpu_mp_event_list event_queue;
 
-        /** */
-        starpu_pthread_barrier_t init_completed_barrier;
+	/** */
+	starpu_pthread_barrier_t init_completed_barrier;
 
-        /** table to store pointer of the thread workers*/
-        void* thread_table;
+	/** table to store pointer of the thread workers*/
+	void* thread_table;
 
-        /*list where threads add messages to send to the source node */
-        struct mp_message_list message_queue;
-        starpu_pthread_mutex_t message_queue_mutex;
+	/*list where threads add messages to send to the source node */
+	struct mp_message_list message_queue;
+	starpu_pthread_mutex_t message_queue_mutex;
 
-        /*list of barrier for combined worker*/
-        struct mp_barrier_list barrier_list;
-        starpu_pthread_mutex_t barrier_mutex;
+	/*list of barrier for combined worker*/
+	struct mp_barrier_list barrier_list;
+	starpu_pthread_mutex_t barrier_mutex;
 
-        /*table where worker comme pick task*/
-        struct mp_task ** run_table;
-        struct mp_task ** run_table_detached;
-        sem_t * sem_run_table;
+	/*table where worker comme pick task*/
+	struct mp_task ** run_table;
+	struct mp_task ** run_table_detached;
+	sem_t * sem_run_table;
 
-        /** Node general functions */
-        void (*init)            (struct _starpu_mp_node *node);
-        void (*launch_workers)  (struct _starpu_mp_node *node);
-        void (*deinit)          (struct _starpu_mp_node *node);
-        void (*report_error)    (const char *, const char *, const int, const int);
+	/** Node general functions */
+	void (*init)		(struct _starpu_mp_node *node);
+	void (*launch_workers)	(struct _starpu_mp_node *node);
+	void (*deinit)		(struct _starpu_mp_node *node);
+	void (*report_error)	(const char *, const char *, const int, const int);
 
-        /** Message passing */
-        int (*mp_recv_is_ready) (const struct _starpu_mp_node *);
-        void (*mp_send)         (const struct _starpu_mp_node *, void *, int);
-        void (*mp_recv)         (const struct _starpu_mp_node *, void *, int);
+	/** Message passing */
+	int (*mp_recv_is_ready) (const struct _starpu_mp_node *);
+	void (*mp_send)		(const struct _starpu_mp_node *, void *, int);
+	void (*mp_recv)		(const struct _starpu_mp_node *, void *, int);
 
-        /** Notifications */
-        int (*nt_recv_is_ready) (const struct _starpu_mp_node *);
-        int (*nt_send_is_ready) (const struct _starpu_mp_node *);
-        void (*nt_send)         (const struct _starpu_mp_node *, void *, int);
-        void (*nt_recv)         (const struct _starpu_mp_node *, void *, int);
+	/** Notifications */
+	int (*nt_recv_is_ready) (const struct _starpu_mp_node *);
+	int (*nt_send_is_ready) (const struct _starpu_mp_node *);
+	void (*nt_send)		(const struct _starpu_mp_node *, void *, int);
+	void (*nt_recv)		(const struct _starpu_mp_node *, void *, int);
 
-        /*signal*/
-        void (*mp_wait)            (const struct _starpu_mp_node *);
-        void (*mp_signal)          (const struct _starpu_mp_node *);
+	/*signal*/
+	void (*mp_wait)		   (const struct _starpu_mp_node *);
+	void (*mp_signal)	   (const struct _starpu_mp_node *);
 
-        /** Data transfers */
-        void (*dt_send)             (const struct _starpu_mp_node *, void *, int, void *);
-        void (*dt_recv)             (const struct _starpu_mp_node *, void *, int, void *);
-        void (*dt_send_to_device)   (const struct _starpu_mp_node *, int, void *, int, void *);
-        void (*dt_recv_from_device) (const struct _starpu_mp_node *, int, void *, int, void *);
+	/** Data transfers */
+	void (*dt_send)		    (const struct _starpu_mp_node *, void *, int, void *);
+	void (*dt_recv)		    (const struct _starpu_mp_node *, void *, int, void *);
+	void (*dt_send_to_device)   (const struct _starpu_mp_node *, int, void *, int, void *);
+	void (*dt_recv_from_device) (const struct _starpu_mp_node *, int, void *, int, void *);
 
-        /** Test async transfers */
-        unsigned int (*dt_test) (struct _starpu_async_channel *);
+	/** Test async transfers */
+	unsigned int (*dt_test) (struct _starpu_async_channel *);
 
-        void (*(*get_kernel_from_job)   (const struct _starpu_mp_node *,struct _starpu_job *))(void);
-        void (*(*lookup)                (const struct _starpu_mp_node *, char* ))(void);
-        void (*bind_thread)             (const struct _starpu_mp_node *, int,int *,int);
-        void (*execute)                 (struct _starpu_mp_node *, void *, int);
-        void (*allocate)                (const struct _starpu_mp_node *, void *, int);
-        void (*free)                    (const struct _starpu_mp_node *, void *, int);
-        void (*map)                		(const struct _starpu_mp_node *, void *, int);
-        void (*unmap)                   (const struct _starpu_mp_node *, void *, int);
+	void (*(*get_kernel_from_job)	(const struct _starpu_mp_node *,struct _starpu_job *))(void);
+	void (*(*lookup)		(const struct _starpu_mp_node *, char* ))(void);
+	void (*bind_thread)		(const struct _starpu_mp_node *, int,int *,int);
+	void (*execute)			(struct _starpu_mp_node *, void *, int);
+	void (*allocate)		(const struct _starpu_mp_node *, void *, int);
+	void (*free)			(const struct _starpu_mp_node *, void *, int);
+	void (*map)			(const struct _starpu_mp_node *, void *, int);
+	void (*unmap)			(const struct _starpu_mp_node *, void *, int);
 };
 
 struct _starpu_mp_node * _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind, int peer_devid) STARPU_ATTRIBUTE_MALLOC;

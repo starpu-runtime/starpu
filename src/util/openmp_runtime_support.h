@@ -269,15 +269,15 @@ LIST_TYPE(starpu_omp_task,
 
 	size_t stacksize;
 
-   /*
-    * taskloop attribute
-    * */
-   int is_loop;
-   unsigned long long nb_iterations;
-   unsigned long long grainsize;
-   unsigned long long chunk;
-   unsigned long long begin_i;
-   unsigned long long end_i;
+	/*
+	 * taskloop attribute
+	 * */
+	int is_loop;
+	unsigned long long nb_iterations;
+	unsigned long long grainsize;
+	unsigned long long chunk;
+	unsigned long long begin_i;
+	unsigned long long end_i;
 )
 
 LIST_TYPE(starpu_omp_thread,

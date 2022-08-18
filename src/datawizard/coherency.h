@@ -109,7 +109,7 @@ struct _starpu_data_replicate
 	 */
 	unsigned nb_tasks_prefetch;
 
-        /** Pointer to memchunk for LRU strategy */
+	/** Pointer to memchunk for LRU strategy */
 	struct _starpu_mem_chunk * mc;
 };
 
@@ -238,7 +238,7 @@ struct _starpu_data_state
 	/* The following bitfields are set from the application submission thread */
 
 	/** in some case, the application may explicitly tell StarPU that a
- 	 * piece of data is not likely to be used soon again */
+	 * piece of data is not likely to be used soon again */
 	unsigned is_not_important:1;
 
 	/** Does StarPU have to enforce some implicit data-dependencies ? */
@@ -312,7 +312,7 @@ struct _starpu_data_state
 	/** Final request for write invalidation */
 	struct _starpu_data_request *write_invalidation_req;
 
-        /** Used for MPI */
+	/** Used for MPI */
 	void *mpi_data;
 
 	_starpu_memory_stats_t memory_stats;

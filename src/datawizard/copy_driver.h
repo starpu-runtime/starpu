@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2021       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -53,7 +53,7 @@ struct _starpu_disk_event
 {
 	unsigned memory_node;
 	unsigned node;
-        struct _starpu_disk_backend_event_list * requests;
+	struct _starpu_disk_backend_event_list * requests;
 
 	void * ptr;
 	size_t size;
@@ -71,12 +71,12 @@ struct _starpu_async_channel
 {
 	union _starpu_async_channel_event event;
 	const struct _starpu_node_ops *node_ops;
-        /** Which node to polling when needing ACK msg */
-        struct _starpu_mp_node *polling_node_sender;
-        struct _starpu_mp_node *polling_node_receiver;
-        /** Used to know if the acknowlegdment msg is arrived from sinks */
-        volatile int starpu_mp_common_finished_sender;
-        volatile int starpu_mp_common_finished_receiver;
+	/** Which node to polling when needing ACK msg */
+	struct _starpu_mp_node *polling_node_sender;
+	struct _starpu_mp_node *polling_node_receiver;
+	/** Used to know if the acknowlegdment msg is arrived from sinks */
+	volatile int starpu_mp_common_finished_sender;
+	volatile int starpu_mp_common_finished_receiver;
 };
 
 void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid);

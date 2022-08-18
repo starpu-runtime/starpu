@@ -46,8 +46,8 @@
  */
 struct starpu_rbtree_node
 {
-    uintptr_t parent;
-    struct starpu_rbtree_node *children[2];
+	uintptr_t parent;
+	struct starpu_rbtree_node *children[2];
 };
 
 /**
@@ -55,7 +55,7 @@ struct starpu_rbtree_node
  */
 struct starpu_rbtree
 {
-    struct starpu_rbtree_node *root;
+	struct starpu_rbtree_node *root;
 };
 
 /**
@@ -83,7 +83,7 @@ struct starpu_rbtree
  */
 static inline int starpu_rbtree_check_alignment(const struct starpu_rbtree_node *node)
 {
-    return ((uintptr_t)node & (~STARPU_RBTREE_PARENT_MASK)) == 0;
+	return ((uintptr_t)node & (~STARPU_RBTREE_PARENT_MASK)) == 0;
 }
 
 /**
@@ -91,7 +91,7 @@ static inline int starpu_rbtree_check_alignment(const struct starpu_rbtree_node 
  */
 static inline int starpu_rbtree_check_index(int index)
 {
-    return index == (index & 1);
+	return index == (index & 1);
 }
 
 /**
@@ -102,7 +102,7 @@ static inline int starpu_rbtree_check_index(int index)
  */
 static inline int starpu_rbtree_d2i(int diff)
 {
-    return !(diff <= 0);
+	return !(diff <= 0);
 }
 
 /**
@@ -110,7 +110,7 @@ static inline int starpu_rbtree_d2i(int diff)
  */
 static inline struct starpu_rbtree_node * starpu_rbtree_parent(const struct starpu_rbtree_node *node)
 {
-    return (struct starpu_rbtree_node *)(node->parent & STARPU_RBTREE_PARENT_MASK);
+	return (struct starpu_rbtree_node *)(node->parent & STARPU_RBTREE_PARENT_MASK);
 }
 
 /**
@@ -118,9 +118,9 @@ static inline struct starpu_rbtree_node * starpu_rbtree_parent(const struct star
  */
 static inline uintptr_t starpu_rbtree_slot(struct starpu_rbtree_node *parent, int index)
 {
-    assert(starpu_rbtree_check_alignment(parent));
-    assert(starpu_rbtree_check_index(index));
-    return (uintptr_t)parent | index;
+	assert(starpu_rbtree_check_alignment(parent));
+	assert(starpu_rbtree_check_index(index));
+	return (uintptr_t)parent | index;
 }
 
 /**
@@ -128,7 +128,7 @@ static inline uintptr_t starpu_rbtree_slot(struct starpu_rbtree_node *parent, in
  */
 static inline struct starpu_rbtree_node * starpu_rbtree_slot_parent(uintptr_t slot)
 {
-    return (struct starpu_rbtree_node *)(slot & STARPU_RBTREE_SLOT_PARENT_MASK);
+	return (struct starpu_rbtree_node *)(slot & STARPU_RBTREE_SLOT_PARENT_MASK);
 }
 
 /**
@@ -136,7 +136,7 @@ static inline struct starpu_rbtree_node * starpu_rbtree_slot_parent(uintptr_t sl
  */
 static inline int starpu_rbtree_slot_index(uintptr_t slot)
 {
-    return slot & STARPU_RBTREE_SLOT_INDEX_MASK;
+	return slot & STARPU_RBTREE_SLOT_INDEX_MASK;
 }
 
 /**
@@ -148,7 +148,7 @@ static inline int starpu_rbtree_slot_index(uintptr_t slot)
  * This function is intended to be used by the starpu_rbtree_insert() macro only.
  */
 void starpu_rbtree_insert_rebalance(struct starpu_rbtree *tree, struct starpu_rbtree_node *parent,
-                             int index, struct starpu_rbtree_node *node);
+				    int index, struct starpu_rbtree_node *node);
 
 /**
  * Return the previous or next node relative to a location in a tree.
@@ -158,7 +158,7 @@ void starpu_rbtree_insert_rebalance(struct starpu_rbtree *tree, struct starpu_rb
  * node) or STARPU_RBTREE_RIGHT (to obtain the next one).
  */
 struct starpu_rbtree_node * starpu_rbtree_nearest(struct starpu_rbtree_node *parent, int index,
-                                    int direction);
+						  int direction);
 
 /**
  * Return the first or last node of a tree.

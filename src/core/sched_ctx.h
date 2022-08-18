@@ -107,11 +107,11 @@ struct _starpu_sched_ctx
 	   to this context*/
 	unsigned finished_submit;
 
-        /** By default we have a binary type of priority: either a task is a priority
+	/** By default we have a binary type of priority: either a task is a priority
          * task (level 1) or it is not (level 0). */
-     	int min_priority;
+	int min_priority;
 	int max_priority;
-     	int min_priority_is_set;
+	int min_priority_is_set;
 	int max_priority_is_set;
 
 	/** hwloc tree structure of workers */

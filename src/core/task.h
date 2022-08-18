@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -151,7 +151,7 @@ enum _starpu_trs_state
 /** transaction epoch states */
 enum _starpu_trs_epoch_state
 {
- 	_starpu_trs_epoch_uninitialized	= 0,
+	_starpu_trs_epoch_uninitialized	= 0,
 
 	/** epoch is initialized but its entry task has not yet been executed to decide whether to confirm of cancel its execution */
 	_starpu_trs_epoch_inactive	= 1,

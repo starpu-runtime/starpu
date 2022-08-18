@@ -30,17 +30,17 @@ extern int _starpu_tcpip_common_multiple_thread;
 
 struct _starpu_tcpip_socket
 {
-    /* socket used for synchronous communications*/
-    int sync_sock;
-    /* socket used for asynchronous communications*/
-    int async_sock;
-    /* socket used for notification communications*/
-    int notif_sock;
-    /* a flag to detect whether the socket can be used for MSG_ZEROCOPY */
-    int zerocopy;
-    /* how many times is this message split up to send */
-    unsigned nbsend;
-    unsigned nback;
+	/* socket used for synchronous communications*/
+	int sync_sock;
+	/* socket used for asynchronous communications*/
+	int async_sock;
+	/* socket used for notification communications*/
+	int notif_sock;
+	/* a flag to detect whether the socket can be used for MSG_ZEROCOPY */
+	int zerocopy;
+	/* how many times is this message split up to send */
+	unsigned nbsend;
+	unsigned nback;
 };
 
 extern struct _starpu_tcpip_socket *tcpip_sock;

@@ -68,7 +68,7 @@ struct starpu_rbtree;
  */
 static inline void starpu_rbtree_init(struct starpu_rbtree *tree)
 {
-    tree->root = NULL;
+	tree->root = NULL;
 }
 
 /**
@@ -85,11 +85,11 @@ static inline void starpu_rbtree_init0(struct starpu_rbtree *tree STARPU_ATTRIBU
  */
 static inline void starpu_rbtree_node_init(struct starpu_rbtree_node *node)
 {
-    assert(starpu_rbtree_check_alignment(node));
+	assert(starpu_rbtree_check_alignment(node));
 
-    node->parent = (uintptr_t)node | STARPU_RBTREE_COLOR_RED;
-    node->children[STARPU_RBTREE_LEFT] = NULL;
-    node->children[STARPU_RBTREE_RIGHT] = NULL;
+	node->parent = (uintptr_t)node | STARPU_RBTREE_COLOR_RED;
+	node->children[STARPU_RBTREE_LEFT] = NULL;
+	node->children[STARPU_RBTREE_RIGHT] = NULL;
 }
 
 /**
@@ -97,11 +97,11 @@ static inline void starpu_rbtree_node_init(struct starpu_rbtree_node *node)
  */
 static inline void starpu_rbtree_node_init0(struct starpu_rbtree_node *node)
 {
-    assert(starpu_rbtree_check_alignment(node));
+	assert(starpu_rbtree_check_alignment(node));
 
-    node->parent = (uintptr_t)node | STARPU_RBTREE_COLOR_RED;
-    //node->children[STARPU_RBTREE_LEFT] = NULL;
-    //node->children[STARPU_RBTREE_RIGHT] = NULL;
+	node->parent = (uintptr_t)node | STARPU_RBTREE_COLOR_RED;
+	//node->children[STARPU_RBTREE_LEFT] = NULL;
+	//node->children[STARPU_RBTREE_RIGHT] = NULL;
 }
 
 /**
@@ -109,7 +109,7 @@ static inline void starpu_rbtree_node_init0(struct starpu_rbtree_node *node)
  */
 static inline int starpu_rbtree_node_unlinked(const struct starpu_rbtree_node *node)
 {
-    return starpu_rbtree_parent(node) == node;
+	return starpu_rbtree_parent(node) == node;
 }
 
 /**
@@ -123,7 +123,7 @@ static inline int starpu_rbtree_node_unlinked(const struct starpu_rbtree_node *n
  */
 static inline int starpu_rbtree_empty(const struct starpu_rbtree *tree)
 {
-    return tree->root == NULL;
+	return tree->root == NULL;
 }
 
 /**
@@ -140,21 +140,21 @@ static inline int starpu_rbtree_empty(const struct starpu_rbtree *tree)
  */
 #define starpu_rbtree_lookup(tree, key, cmp_fn)                \
 MACRO_BEGIN                                             \
-    struct starpu_rbtree_node *___cur;                         \
-    int ___diff;                                        \
-                                                        \
-    ___cur = (tree)->root;                              \
-                                                        \
-    while (___cur != NULL) {                            \
-        ___diff = cmp_fn(key, ___cur);                  \
-                                                        \
-        if (___diff == 0)                               \
-            break;                                      \
-                                                        \
-        ___cur = ___cur->children[starpu_rbtree_d2i(___diff)]; \
-    }                                                   \
-                                                        \
-    ___cur;                                             \
+	struct starpu_rbtree_node *___cur;              \
+	int ___diff;							   \
+									\
+	___cur = (tree)->root;                              \
+							    \
+	while (___cur != NULL) {			\
+		___diff = cmp_fn(key, ___cur);		\
+							\
+		if (___diff == 0)			\
+			break;				\
+									\
+		___cur = ___cur->children[starpu_rbtree_d2i(___diff)];	\
+	}								\
+									\
+	___cur;						\
 MACRO_END
 
 /**
@@ -169,28 +169,28 @@ MACRO_END
  */
 #define starpu_rbtree_lookup_nearest(tree, key, cmp_fn, dir)       \
 MACRO_BEGIN                                                 \
-    struct starpu_rbtree_node *___cur, *___prev;                   \
-    int ___diff, ___index;                                  \
-                                                            \
-    ___prev = NULL;                                         \
-    ___index = -1;                                          \
-    ___cur = (tree)->root;                                  \
-                                                            \
-    while (___cur != NULL) {                                \
-        ___diff = cmp_fn(key, ___cur);                      \
-                                                            \
-        if (___diff == 0)                                   \
-            break;                                          \
-                                                            \
-        ___prev = ___cur;                                   \
-        ___index = starpu_rbtree_d2i(___diff);                     \
-        ___cur = ___cur->children[___index];                \
-    }                                                       \
-                                                            \
-    if (___cur == NULL)                                     \
-        ___cur = starpu_rbtree_nearest(___prev, ___index, dir);    \
-                                                            \
-    ___cur;                                                 \
+	struct starpu_rbtree_node *___cur, *___prev;		    \
+	int ___diff, ___index;						    \
+									\
+	___prev = NULL;					    \
+	___index = -1;					    \
+	___cur = (tree)->root;				    \
+							    \
+	while (___cur != NULL) {			    \
+		___diff = cmp_fn(key, ___cur);		    \
+							    \
+		if (___diff == 0)			    \
+			break;				    \
+							    \
+		___prev = ___cur;				   \
+		___index = starpu_rbtree_d2i(___diff);		   \
+		___cur = ___cur->children[___index];		   \
+	}							   \
+								   \
+	if (___cur == NULL)					   \
+		___cur = starpu_rbtree_nearest(___prev, ___index, dir);	\
+									\
+	___cur;								\
 MACRO_END
 
 /**
@@ -211,22 +211,22 @@ MACRO_END
  */
 #define starpu_rbtree_insert(tree, node, cmp_fn)                   \
 MACRO_BEGIN                                                 \
-    struct starpu_rbtree_node *___cur, *___prev;                   \
-    int ___diff, ___index;                                  \
-                                                            \
-    ___prev = NULL;                                         \
-    ___index = -1;                                          \
-    ___cur = (tree)->root;                                  \
-                                                            \
-    while (___cur != NULL) {                                \
-        ___diff = cmp_fn(node, ___cur);                     \
-        assert(___diff != 0);                               \
-        ___prev = ___cur;                                   \
-        ___index = starpu_rbtree_d2i(___diff);                     \
-        ___cur = ___cur->children[___index];                \
-    }                                                       \
-                                                            \
-    starpu_rbtree_insert_rebalance(tree, ___prev, ___index, node); \
+	struct starpu_rbtree_node *___cur, *___prev;                   \
+	int ___diff, ___index;						       \
+									\
+	___prev = NULL;					    \
+	___index = -1;					    \
+	___cur = (tree)->root;				    \
+							    \
+	while (___cur != NULL) {			    \
+		___diff = cmp_fn(node, ___cur);		    \
+		assert(___diff != 0);			    \
+		___prev = ___cur;				   \
+		___index = starpu_rbtree_d2i(___diff);		   \
+		___cur = ___cur->children[___index];		   \
+	}							   \
+								   \
+	starpu_rbtree_insert_rebalance(tree, ___prev, ___index, node);	\
 MACRO_END
 
 /**
@@ -243,26 +243,26 @@ MACRO_END
  */
 #define starpu_rbtree_lookup_slot(tree, key, cmp_fn, slot) \
 MACRO_BEGIN                                         \
-    struct starpu_rbtree_node *___cur, *___prev;           \
-    int ___diff, ___index;                          \
-                                                    \
-    ___prev = NULL;                                 \
-    ___index = 0;                                   \
-    ___cur = (tree)->root;                          \
-                                                    \
-    while (___cur != NULL) {                        \
-        ___diff = cmp_fn(key, ___cur);              \
-                                                    \
-        if (___diff == 0)                           \
-            break;                                  \
-                                                    \
-        ___prev = ___cur;                           \
-        ___index = starpu_rbtree_d2i(___diff);             \
-        ___cur = ___cur->children[___index];        \
-    }                                               \
-                                                    \
-    (slot) = starpu_rbtree_slot(___prev, ___index);        \
-    ___cur;                                         \
+	struct starpu_rbtree_node *___cur, *___prev;	    \
+	int ___diff, ___index;                          \
+							\
+	___prev = NULL;                                 \
+	___index = 0;                                   \
+	___cur = (tree)->root;                          \
+							\
+	while (___cur != NULL) {                        \
+		___diff = cmp_fn(key, ___cur);		\
+							\
+		if (___diff == 0)			\
+			break;				\
+							\
+		___prev = ___cur;			   \
+		___index = starpu_rbtree_d2i(___diff);	   \
+		___cur = ___cur->children[___index];	   \
+	}						   \
+							   \
+	(slot) = starpu_rbtree_slot(___prev, ___index);	   \
+	___cur;						   \
 MACRO_END
 
 /**
@@ -275,14 +275,14 @@ MACRO_END
  * must denote a null node).
  */
 static inline void starpu_rbtree_insert_slot(struct starpu_rbtree *tree, uintptr_t slot,
-                   struct starpu_rbtree_node *node)
+					     struct starpu_rbtree_node *node)
 {
-    struct starpu_rbtree_node *parent;
-    int index;
+	struct starpu_rbtree_node *parent;
+	int index;
 
-    parent = starpu_rbtree_slot_parent(slot);
-    index = starpu_rbtree_slot_index(slot);
-    starpu_rbtree_insert_rebalance(tree, parent, index, node);
+	parent = starpu_rbtree_slot_parent(slot);
+	index = starpu_rbtree_slot_index(slot);
+	starpu_rbtree_insert_rebalance(tree, parent, index, node);
 }
 
 /**
@@ -326,9 +326,9 @@ void starpu_rbtree_remove(struct starpu_rbtree *tree, struct starpu_rbtree_node 
  * After completion, all nodes and the tree root member are stale.
  */
 #define starpu_rbtree_for_each_remove(tree, node, tmp)         \
-for (node = starpu_rbtree_postwalk_deepest(tree),              \
-     tmp = starpu_rbtree_postwalk_unlink(node);                \
-     node != NULL;                                      \
-     node = tmp, tmp = starpu_rbtree_postwalk_unlink(node))    \
+	for (node = starpu_rbtree_postwalk_deepest(tree),      \
+		     tmp = starpu_rbtree_postwalk_unlink(node);	\
+	     node != NULL;                                      \
+	     node = tmp, tmp = starpu_rbtree_postwalk_unlink(node))	\
 
 #endif /* _KERN_RBTREE_H */

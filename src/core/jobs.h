@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
- * Copyright (C) 2011       Télécom-SudParis
- * Copyright (C) 2013       Thibaut Lambert
+ * Copyright (C) 2011	    Télécom-SudParis
+ * Copyright (C) 2013	    Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -78,10 +78,10 @@ struct _starpu_job
 	/** The task associated to that job */
 	struct starpu_task *task;
 
-        /** A task that this will unlock quickly, e.g. we are the pre_sync part
-         * of a data acquisition, and the caller promised that data release will
+	/** A task that this will unlock quickly, e.g. we are the pre_sync part
+	 * of a data acquisition, and the caller promised that data release will
 	 * happen immediately, so that the post_sync task will be started
-         * immediately after. */
+	 * immediately after. */
 	struct _starpu_job *quick_next;
 
 	/** These synchronization structures are used to wait for the job to be

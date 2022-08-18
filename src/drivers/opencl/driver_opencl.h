@@ -83,12 +83,12 @@ int _starpu_opencl_update_cpu_map(uintptr_t src, size_t src_offset, unsigned src
 
 #if 0
 cl_int _starpu_opencl_copy_rect_opencl_to_ram(cl_mem buffer, unsigned src_node, void *ptr, unsigned dst_node, const size_t buffer_origin[3], const size_t host_origin[3],
-                                              const size_t region[3], size_t buffer_row_pitch, size_t buffer_slice_pitch,
-                                              size_t host_row_pitch, size_t host_slice_pitch, cl_event *event);
+					      const size_t region[3], size_t buffer_row_pitch, size_t buffer_slice_pitch,
+					      size_t host_row_pitch, size_t host_slice_pitch, cl_event *event);
 
 cl_int _starpu_opencl_copy_rect_ram_to_opencl(void *ptr, unsigned src_node, cl_mem buffer, unsigned dst_node, const size_t buffer_origin[3], const size_t host_origin[3],
-                                              const size_t region[3], size_t buffer_row_pitch, size_t buffer_slice_pitch,
-                                              size_t host_row_pitch, size_t host_slice_pitch, cl_event *event);
+					      const size_t region[3], size_t buffer_row_pitch, size_t buffer_slice_pitch,
+					      size_t host_row_pitch, size_t host_slice_pitch, cl_event *event);
 #endif
 
 unsigned _starpu_opencl_test_request_completion(struct _starpu_async_channel *async_channel);

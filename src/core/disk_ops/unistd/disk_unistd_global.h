@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
- * Copyright (C) 2013       Corentin Salingue
+ * Copyright (C) 2013	    Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -44,9 +44,9 @@ typedef off_t starpu_loff_t;
 
 struct starpu_unistd_global_obj
 {
-        int descriptor;
-        char * path;
-        size_t size;
+	int descriptor;
+	char * path;
+	size_t size;
 	int flags;
 	starpu_pthread_mutex_t mutex;
 };
@@ -70,7 +70,7 @@ void starpu_unistd_global_free_request(void * async_channel);
 int starpu_unistd_global_full_read(void *base, void * obj, void ** ptr, size_t * size, unsigned dst_node);
 int starpu_unistd_global_full_write (void * base, void * obj, void * ptr, size_t size);
 #ifdef STARPU_UNISTD_USE_COPY
-void *  starpu_unistd_global_copy(void *base_src, void* obj_src, off_t offset_src,  void *base_dst, void* obj_dst, off_t offset_dst, size_t size);
+void *	starpu_unistd_global_copy(void *base_src, void* obj_src, off_t offset_src,  void *base_dst, void* obj_dst, off_t offset_dst, size_t size);
 #endif
 
 #pragma GCC visibility pop

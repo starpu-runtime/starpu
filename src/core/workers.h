@@ -154,7 +154,7 @@ struct _starpu_ctx_change_list;
 /** This is initialized by _starpu_worker_init() */
 LIST_TYPE(_starpu_worker,
 	struct _starpu_machine_config *config;
-        starpu_pthread_mutex_t mutex;
+	starpu_pthread_mutex_t mutex;
 	enum starpu_worker_archtype arch; /**< what is the type of worker ? */
 	uint32_t worker_mask; /**< what is the type of worker ? */
 	struct starpu_perfmodel_arch perf_arch; /**< in case there are different models of the same arch */
@@ -176,7 +176,7 @@ LIST_TYPE(_starpu_worker,
 	   * STARPU_PTHREAD_COND_BROADCAST must be used instead of STARPU_PTHREAD_COND_SIGNAL,
 	   * since the condition is shared for multiple purpose */
 	starpu_pthread_cond_t sched_cond;
-        starpu_pthread_mutex_t sched_mutex; /**< mutex protecting sched_cond */
+	starpu_pthread_mutex_t sched_mutex; /**< mutex protecting sched_cond */
 	unsigned state_relax_refcnt; /**< mark scheduling sections where other workers can safely access the worker state */
 #ifdef STARPU_SPINLOCK_CHECK
 	const char *relax_on_file;
@@ -263,7 +263,7 @@ LIST_TYPE(_starpu_worker,
 	   */
 	unsigned shares_tasks_lists[STARPU_NMAX_SCHED_CTXS+1];
 
-	unsigned poped_in_ctx[STARPU_NMAX_SCHED_CTXS+1]; 	  /**< boolean to chose the next ctx a worker will pop into */
+	unsigned poped_in_ctx[STARPU_NMAX_SCHED_CTXS+1];	  /**< boolean to chose the next ctx a worker will pop into */
 
 	  /**
 	   * boolean indicating at which moment we checked all ctxs and change phase for the booleab poped_in_ctx
@@ -271,8 +271,8 @@ LIST_TYPE(_starpu_worker,
 	   */
 	unsigned reverse_phase[2];
 
-	unsigned pop_ctx_priority; 	  /**< indicate which priority of ctx is currently active: the values are 0 or 1*/
-	unsigned is_slave_somewhere; 	  /**< bool to indicate if the worker is slave in a ctx */
+	unsigned pop_ctx_priority;	  /**< indicate which priority of ctx is currently active: the values are 0 or 1*/
+	unsigned is_slave_somewhere;	  /**< bool to indicate if the worker is slave in a ctx */
 
 	struct _starpu_sched_ctx *stream_ctx;
 
@@ -309,10 +309,10 @@ LIST_TYPE(_starpu_worker,
 
 struct _starpu_combined_worker
 {
-	struct starpu_perfmodel_arch perf_arch; 	 /**< in case there are different models of the same arch */
+	struct starpu_perfmodel_arch perf_arch;		 /**< in case there are different models of the same arch */
 	uint32_t worker_mask; /**< what is the type of workers ? */
 	int worker_size;
-	unsigned memory_node; 	 /**< which memory node is associated that worker to ? */
+	unsigned memory_node;	 /**< which memory node is associated that worker to ? */
 	int combined_workerid[STARPU_NMAXWORKERS];
 #ifdef STARPU_USE_MP
 	int count;
@@ -337,13 +337,13 @@ struct _starpu_combined_worker
 */
 struct _starpu_worker_set
 {
-        starpu_pthread_mutex_t mutex;
+	starpu_pthread_mutex_t mutex;
 	starpu_pthread_t worker_thread; /**< the thread which runs the worker */
 	unsigned nworkers;
 	unsigned started; /**< Only one thread for the whole set */
 	void *retval;
 	struct _starpu_worker *workers;
-        starpu_pthread_cond_t ready_cond; /**< indicate when the set is ready */
+	starpu_pthread_cond_t ready_cond; /**< indicate when the set is ready */
 	unsigned set_is_initialized;
 	unsigned wait_for_set_initialization;
 };
@@ -396,7 +396,7 @@ struct _starpu_machine_topology
 	/** Whether we should have one thread per device */
 	int cuda_th_per_dev;
 
-        /** Whether we should have one thread per stream (for hip) */
+	/** Whether we should have one thread per stream (for hip) */
 	int hip_th_per_stream;
 	/** Whether we should have one thread per device (for hip) */
 	int hip_th_per_dev;
@@ -417,7 +417,7 @@ struct _starpu_machine_topology
 	unsigned workers_nbindid;
 
 	/** Indicates the successive device identifiers that should be
-	 * used by the driver.  It is either filled according to
+	 * used by the driver.	It is either filled according to
 	 * the user's explicit parameters (from starpu_conf) or
 	 * according to the corresponding env. variable.
 	 * Otherwise, they are taken in ID order.
@@ -480,7 +480,7 @@ struct _starpu_machine_config
 	 * the result of (worker_mask & STARPU_CUDA). */
 	uint32_t worker_mask;
 
-        /** either the user given configuration passed to starpu_init or a default configuration */
+	/** either the user given configuration passed to starpu_init or a default configuration */
 	struct starpu_conf conf;
 
 	/** this flag is set until the runtime is stopped */
@@ -721,8 +721,10 @@ static inline struct _starpu_sched_ctx* _starpu_get_initial_sched_ctx(void)
 
 int _starpu_worker_get_nids_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize);
 
-/** returns workers not belonging to any context, be careful no mutex is used,
-   the list might not be updated */
+/**
+ * returns workers not belonging to any context, be careful no mutex is used,
+ * the list might not be updated
+ */
 int _starpu_worker_get_nids_ctx_free_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize);
 
 static inline unsigned _starpu_worker_mutex_is_sched_mutex(int workerid, starpu_pthread_mutex_t *mutex)

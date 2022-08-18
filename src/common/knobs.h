@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2019-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -53,9 +53,9 @@ static inline void _starpu_perf_counter_update_##OPNAME##_##TYPENAME(TYPE *ptr, 
 	STARPU_ASSERT(sizeof(TYPE) == sizeof(uint32_t)); \
 	typedef uint32_t __attribute__((__may_alias__)) alias_uint32_t; \
 	typedef TYPE __attribute__((__may_alias__)) alias_##TYPE; \
- \
-	uint32_t raw_old = *(uint32_t *)ptr; \
- \
+								  \
+	uint32_t raw_old = *(uint32_t *)ptr;			  \
+								  \
 	while(value OP *(alias_##TYPE*)&raw_old) \
 	{ \
 		uint32_t raw_old_check = STARPU_VAL_COMPARE_AND_SWAP32((uint32_t *)ptr, raw_old, *(alias_uint32_t*)&value); \
@@ -71,11 +71,11 @@ static inline void _starpu_perf_counter_update_##OPNAME##_##TYPENAME(TYPE *ptr, 
 	STARPU_ASSERT(sizeof(TYPE) == sizeof(uint64_t)); \
 	typedef uint64_t __attribute__((__may_alias__)) alias_uint64_t; \
 	typedef TYPE __attribute__((__may_alias__)) alias_##TYPE; \
- \
-	uint64_t raw_old = *(uint64_t *)ptr; \
- \
+								  \
+	uint64_t raw_old = *(uint64_t *)ptr;	\
+						 \
 	while(value OP *(alias_##TYPE*)&raw_old) \
-	{ \
+	{								\
 		uint64_t raw_old_check = STARPU_VAL_COMPARE_AND_SWAP64((uint64_t *)ptr, raw_old, *(alias_uint64_t*)&value); \
 		if (raw_old_check == raw_old) \
 			break; \
@@ -224,7 +224,7 @@ static inline void _starpu_perf_counter_sample_set_##STRING##_value(struct starp
 	STARPU_ASSERT(starpu_perf_counter_get_type_id(counter_id) == starpu_perf_counter_type_##STRING); \
 	STARPU_ASSERT(sample->listener != NULL && sample->listener->set != NULL); \
 	STARPU_ASSERT(_starpu_perf_counter_id_get_scope(counter_id) == sample->listener->set->scope); \
- \
+									\
 	const struct starpu_perf_counter_set * const set = sample->listener->set; \
 	const int index =  _starpu_perf_counter_id_get_index(counter_id); \
 	STARPU_ASSERT(index < set->size); \

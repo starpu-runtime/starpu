@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -28,13 +28,13 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 int _starpu_free_flags_on_node(unsigned dst_node, void *A, size_t dim, int flags);
 
 /**
-   Returns whether when allocating data on \p dst_node, we will do pinning, i.e.
-   the allocation will be very expensive, and should thus be moved out from the
-   critical path
-  */
+ * Returns whether when allocating data on \p dst_node, we will do pinning, i.e.
+ * the allocation will be very expensive, and should thus be moved out from the
+ * critical path
+ */
 int _starpu_malloc_willpin_on_node(unsigned dst_node);
 
-/*
+/**
  * On CUDA which has very expensive malloc, for small sizes, allocate big
  * chunks divided in blocks, and we actually allocate segments of consecutive
  * blocks.
