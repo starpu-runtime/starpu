@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,7 +18,7 @@
 
 #ifdef STARPU_OPENGL_RENDER
 /*
- * Just some dummy OpenGL code to display our results 
+ * Just some dummy OpenGL code to display our results
  *
  */
 
@@ -29,7 +29,6 @@ static unsigned nthick;
 static float *result;
 static unsigned printmesh =0;
 static point *pmesh;
-
 
 float xmin, xmax, ymin, ymax;
 float xcenter, ycenter;
@@ -69,15 +68,15 @@ static void generate_graph(void)
 				coeffC = (result[nodeC] - minval)/amplitude;
 				coeffD = (result[nodeD] - minval)/amplitude;
 
-				colorA_R = coeffA>0.5f?1.0f:(2.0*coeffA)*1.0f; 
-				colorB_R = coeffB>0.5f?1.0f:(2.0*coeffB)*1.0f; 
-				colorC_R = coeffC>0.5f?1.0f:(2.0*coeffC)*1.0f; 
-				colorD_R = coeffD>0.5f?1.0f:(2.0*coeffD)*1.0f; 
+				colorA_R = coeffA>0.5f?1.0f:(2.0*coeffA)*1.0f;
+				colorB_R = coeffB>0.5f?1.0f:(2.0*coeffB)*1.0f;
+				colorC_R = coeffC>0.5f?1.0f:(2.0*coeffC)*1.0f;
+				colorD_R = coeffD>0.5f?1.0f:(2.0*coeffD)*1.0f;
 
-				colorA_B = 0.0f; 
-				colorB_B = 0.0f; 
-				colorC_B = 0.0f; 
-				colorD_B = 0.0f; 
+				colorA_B = 0.0f;
+				colorB_B = 0.0f;
+				colorC_B = 0.0f;
+				colorD_B = 0.0f;
 
 				colorA_G = coeffA<0.5f?1.0f:2.0*(1 - coeffA)*1.0f;
 				colorB_G = coeffB<0.5f?1.0f:2.0*(1 - coeffB)*1.0f;
@@ -107,21 +106,21 @@ static void generate_graph(void)
 
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 			glBegin(GL_POLYGON);
-   				glColor3f (colorA_R, colorA_G, colorA_B);
-				glVertex3f(pmesh[nodeA].x, pmesh[nodeA].y, 0.0f);
-   				glColor3f (colorD_R, colorD_G, colorD_B);
-				glVertex3f(pmesh[nodeD].x, pmesh[nodeD].y, 0.0f);
-   				glColor3f (colorC_R, colorC_G, colorC_B);
-				glVertex3f(pmesh[nodeC].x, pmesh[nodeC].y, 0.0f);
+			glColor3f (colorA_R, colorA_G, colorA_B);
+			glVertex3f(pmesh[nodeA].x, pmesh[nodeA].y, 0.0f);
+			glColor3f (colorD_R, colorD_G, colorD_B);
+			glVertex3f(pmesh[nodeD].x, pmesh[nodeD].y, 0.0f);
+			glColor3f (colorC_R, colorC_G, colorC_B);
+			glVertex3f(pmesh[nodeC].x, pmesh[nodeC].y, 0.0f);
 			glEnd();
 
 			glBegin(GL_POLYGON);
-   				glColor3f (colorA_R, colorA_G, colorA_B);
-				glVertex3f(pmesh[nodeA].x, pmesh[nodeA].y, 0.0f);
-   				glColor3f (colorC_R, colorC_G, colorC_B);
-				glVertex3f(pmesh[nodeC].x, pmesh[nodeC].y, 0.0f);
-   				glColor3f (colorB_R, colorB_G, colorB_B);
-				glVertex3f(pmesh[nodeB].x, pmesh[nodeB].y, 0.0f);
+			glColor3f (colorA_R, colorA_G, colorA_B);
+			glVertex3f(pmesh[nodeA].x, pmesh[nodeA].y, 0.0f);
+			glColor3f (colorC_R, colorC_G, colorC_B);
+			glVertex3f(pmesh[nodeC].x, pmesh[nodeC].y, 0.0f);
+			glColor3f (colorB_R, colorB_G, colorB_B);
+			glVertex3f(pmesh[nodeB].x, pmesh[nodeB].y, 0.0f);
 			glEnd();
 		}
 	}
@@ -207,7 +206,7 @@ void find_limits(void)
 				ymax = p->y;
 		}
 	}
-	
+
 	ycenter = (ymin + ymax)/2;
 	xcenter = (xmin + xmax)/2;
 }

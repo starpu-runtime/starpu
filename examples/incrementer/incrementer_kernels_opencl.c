@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -27,8 +27,8 @@ void opencl_codelet(void *descr[], void *_args)
 	cl_command_queue queue;
 	int id, devid, err;
 
-        id = starpu_worker_get_id_check();
-        devid = starpu_worker_get_devid(id);
+	id = starpu_worker_get_id_check();
+	devid = starpu_worker_get_devid(id);
 
 	err = starpu_opencl_load_kernel(&kernel, &queue, &opencl_program, "incrementer", devid);
 	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
@@ -39,12 +39,12 @@ void opencl_codelet(void *descr[], void *_args)
 	{
 		size_t global=4;
 		size_t local, s;
-                cl_device_id device;
+		cl_device_id device;
 
-                starpu_opencl_get_device(devid, &device);
-                err = clGetKernelWorkGroupInfo (kernel, device, CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, &s);
-                if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
-                if (local > global) local=global;
+		starpu_opencl_get_device(devid, &device);
+		err = clGetKernelWorkGroupInfo (kernel, device, CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, &s);
+		if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+		if (local > global) local=global;
 
 		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
 		if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);

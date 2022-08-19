@@ -30,8 +30,7 @@ static int nopencl = 0;
 static struct point array_of_structs[N_ELEMENTS];
 static starpu_data_handle_t array_of_structs_handle;
 
-void
-multiformat_scal_cpu_func(void *buffers[], void *args)
+void multiformat_scal_cpu_func(void *buffers[], void *args)
 {
 	struct point *aos;
 	unsigned int n, i;
@@ -112,12 +111,12 @@ static struct starpu_codelet opencl_cl =
 #endif /* !STARPU_USE_OPENCL */
 
 /*
- * Main functions 
+ * Main functions
  */
 static void
 init_problem_data(void)
 {
-	int i; 
+	int i;
 	for (i = 0; i < N_ELEMENTS; i++)
 	{
 		array_of_structs[i].x = 1.0 + i;
@@ -307,7 +306,7 @@ main(void)
 	ret = starpu_opencl_load_opencl_from_file("examples/basic_examples/multiformat_opencl_kernel.cl",
 						  &opencl_program, NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
-	ret = starpu_opencl_load_opencl_from_file("examples/basic_examples/multiformat_conversion_codelets_opencl_kernel.cl", 
+	ret = starpu_opencl_load_opencl_from_file("examples/basic_examples/multiformat_conversion_codelets_opencl_kernel.cl",
 						  &opencl_conversion_program, NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
 #endif
@@ -324,10 +323,10 @@ main(void)
 	print_it();
 
 #ifdef STARPU_USE_OPENCL
-        ret = starpu_opencl_unload_opencl(&opencl_program);
-        STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
-        ret = starpu_opencl_unload_opencl(&opencl_conversion_program);
-        STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
+	ret = starpu_opencl_unload_opencl(&opencl_program);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
+	ret = starpu_opencl_unload_opencl(&opencl_conversion_program);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
 #endif
 	starpu_shutdown();
 

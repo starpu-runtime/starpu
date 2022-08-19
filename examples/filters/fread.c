@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,59 +23,59 @@
 
 void display_func(void *buffers[], void *cl_arg)
 {
-        unsigned i;
+	unsigned i;
 
-        /* length of the vector */
-        unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
-        /* local copy of the vector pointer */
-        int *val = (int *)STARPU_VECTOR_GET_PTR(buffers[0]);
+	/* length of the vector */
+	unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
+	/* local copy of the vector pointer */
+	int *val = (int *)STARPU_VECTOR_GET_PTR(buffers[0]);
 
 	FPRINTF(stderr, "vector with n=%u : ", n);
-        for (i = 0; i < n; i++)
+	for (i = 0; i < n; i++)
 		FPRINTF(stderr, "%5d ", val[i]);
 	FPRINTF(stderr, "\n");
 }
 
 void cpu_func(void *buffers[], void *cl_arg)
 {
-        unsigned i;
+	unsigned i;
 
-        /* length of the vector */
-        unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
-        /* local copy of the vector pointer */
-        int *val = (int *)STARPU_VECTOR_GET_PTR(buffers[0]);
+	/* length of the vector */
+	unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
+	/* local copy of the vector pointer */
+	int *val = (int *)STARPU_VECTOR_GET_PTR(buffers[0]);
 
 	FPRINTF(stderr, "computing on vector with n=%u\n", n);
-        for (i = 0; i < n; i++)
-                val[i] *= 2;
+	for (i = 0; i < n; i++)
+		val[i] *= 2;
 }
 
 int main(void)
 {
 	int i;
-        int vector[NX];
-        starpu_data_handle_t handle;
+	int vector[NX];
+	starpu_data_handle_t handle;
 	starpu_data_handle_t subhandles[PARTS];
 	int ret;
 
-        struct starpu_codelet cl =
+	struct starpu_codelet cl =
 	{
-                .cpu_funcs = {cpu_func},
-                .cpu_funcs_name = {"cpu_func"},
-                .nbuffers = 1,
+		.cpu_funcs = {cpu_func},
+		.cpu_funcs_name = {"cpu_func"},
+		.nbuffers = 1,
 		.modes = {STARPU_RW},
 		.name = "vector_scal"
-        };
-        struct starpu_codelet print_cl =
+	};
+	struct starpu_codelet print_cl =
 	{
-                .cpu_funcs = {display_func},
-                .cpu_funcs_name = {"display_func"},
-                .nbuffers = 1,
+		.cpu_funcs = {display_func},
+		.cpu_funcs_name = {"display_func"},
+		.nbuffers = 1,
 		.modes = {STARPU_R},
 		.name = "vector_display"
-        };
+	};
 
-        for(i=0 ; i<NX ; i++) vector[i] = i;
+	for(i=0 ; i<NX ; i++) vector[i] = i;
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
@@ -85,7 +85,7 @@ int main(void)
 	/* Declare data to StarPU */
 	starpu_vector_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)vector, NX, sizeof(vector[0]));
 
-        /* Partition the vector in PARTS sub-vectors */
+	/* Partition the vector in PARTS sub-vectors */
 	struct starpu_data_filter f =
 	{
 		.filter_func = starpu_vector_filter_block,
@@ -99,7 +99,7 @@ int main(void)
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-        /* Submit a task on each sub-vector */
+	/* Submit a task on each sub-vector */
 	for (i=0; i<PARTS; i++)
 	{
 		ret = starpu_task_insert(&cl,
@@ -116,7 +116,7 @@ int main(void)
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-        /* Submit a read on each sub-vector */
+	/* Submit a read on each sub-vector */
 	for (i=0; i<PARTS; i++)
 	{
 		ret = starpu_task_insert(&print_cl,
@@ -134,7 +134,7 @@ int main(void)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	starpu_data_partition_clean(handle, PARTS, subhandles);
-        starpu_data_unregister(handle);
+	starpu_data_unregister(handle);
 	starpu_shutdown();
 
 	return 0;

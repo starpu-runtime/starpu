@@ -71,7 +71,7 @@ static struct starpu_codelet spmv_cl =
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
-        .opencl_funcs = {spmv_kernel_opencl},
+	.opencl_funcs = {spmv_kernel_opencl},
 	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
 	.nbuffers = 3,
@@ -231,7 +231,7 @@ int main(int argc, char **argv)
 	 */
 	for (row = 0; row < STARPU_MIN(size, 16); row++)
 	{
-                FPRINTF(stdout, "%2.2f\t%2.2f\n", vector_in_ptr[row], vector_out_ptr[row]);
+		FPRINTF(stdout, "%2.2f\t%2.2f\n", vector_in_ptr[row], vector_out_ptr[row]);
 	}
 
 	/* Check the result */

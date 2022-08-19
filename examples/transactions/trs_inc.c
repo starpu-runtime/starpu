@@ -148,7 +148,7 @@ int main(int argc, char **argv)
 
 	FPRINTF(stderr, "%u,%f,%d\n", niter, timing/1000, value);
 
- enodev:
+enodev:
 	starpu_shutdown();
 
 	return (ret == -ENODEV ? 77 : ret);

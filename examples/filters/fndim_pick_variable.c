@@ -25,12 +25,12 @@
 
 void cpu_func(void *buffers[], void *cl_arg)
 {
-    int *factor = (int *) cl_arg;
+	int *factor = (int *) cl_arg;
 
-    /* local copy of the variable pointer */
-    int *val = (int *)STARPU_VARIABLE_GET_PTR(buffers[0]);
+	/* local copy of the variable pointer */
+	int *val = (int *)STARPU_VARIABLE_GET_PTR(buffers[0]);
 
-    *val *= *factor;
+	*val *= *factor;
 }
 
 int main(void)

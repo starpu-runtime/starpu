@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -121,12 +121,11 @@ static int approximately_equal(float a, float b)
 
 int main(void)
 {
-	/* We consider a vector of float that is initialized just as any of C
- 	 * data */
+	/* We consider a vector of float that is initialized just as any of C data */
 	float vector[NX];
 	unsigned i;
 	for (i = 0; i < NX; i++)
-                vector[i] = (i+1.0f);
+		vector[i] = (i+1.0f);
 
 	/* Initialize StarPU with default configuration */
 	int ret = starpu_init(NULL);
@@ -161,7 +160,7 @@ int main(void)
 	float factor = 3.14;
 
 	/* create a synchronous task: any call to starpu_task_submit will block
- 	 * until it is terminated */
+	 * until it is terminated */
 	struct starpu_task *task = starpu_task_create();
 	task->synchronous = 1;
 
@@ -181,13 +180,13 @@ int main(void)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	/* StarPU does not need to manipulate the array anymore so we can stop
- 	 * monitoring it */
+	 * monitoring it */
 	starpu_data_unregister(vector_handle);
 	starpu_memory_unpin(vector, sizeof(vector));
 
 #ifdef STARPU_USE_OPENCL
-        ret = starpu_opencl_unload_opencl(&opencl_program);
-        STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
+	ret = starpu_opencl_unload_opencl(&opencl_program);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
 #endif
 
 	/* terminate StarPU, no task can be submitted after */

@@ -50,7 +50,7 @@ static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nim
 	/* We don't know, let's assume it can */
 	return 1;
 #else
-       /* Cuda device */
+	/* Cuda device */
 	const struct cudaDeviceProp *props;
 	props = starpu_cuda_get_device_properties(workerid);
 	if (props->major >= 2 || props->minor >= 3)

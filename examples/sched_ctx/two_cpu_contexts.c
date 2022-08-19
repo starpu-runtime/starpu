@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -77,9 +77,9 @@ int main(void)
 		procs2[i] = procs[i+nprocs1];
 	}
 
-        /* create sched context 1 with default policy, by giving a empty policy name */
+	/* create sched context 1 with default policy, by giving a empty policy name */
 	unsigned sched_ctx1 = starpu_sched_ctx_create(procs1, nprocs1, "ctx1", STARPU_SCHED_CTX_POLICY_NAME, "", 0);
-        /* create sched context 2 with a user selected policy name */
+	/* create sched context 2 with a user selected policy name */
 	unsigned sched_ctx2 = starpu_sched_ctx_create(procs2, nprocs2, "ctx2", STARPU_SCHED_CTX_POLICY_NAME, "eager", 0);
 
 	starpu_sched_ctx_set_inheritor(sched_ctx2, sched_ctx1);

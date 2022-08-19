@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -35,7 +35,7 @@
 #define PRINTF(fmt, ...) do { if (!getenv("STARPU_SSILENT")) {printf(fmt, ## __VA_ARGS__); }} while(0)
 
 #define BLAS3_FLOP(n1,n2,n3)    \
-        (2*((uint64_t)n1)*((uint64_t)n2)*((uint64_t)n3))
+	(2*((uint64_t)n1)*((uint64_t)n2)*((uint64_t)n3))
 
 typedef struct
 {
@@ -137,14 +137,13 @@ static void compare_A_LU(float *A, float *LU, unsigned size, unsigned ld)
 
 #endif
 
-
-        /* now A_err = L, compute L*U */
+	/* now A_err = L, compute L*U */
 	STARPU_STRMM("R", "U", "N", "U", size, size, 1.0f, U, size, L, size);
 
 	float max_err = 0.0f;
 	for (i = 0; i < size ; i++)
 	{
-		for (j = 0; j < size; j++) 
+		for (j = 0; j < size; j++)
 		{
 			max_err = STARPU_MAX(max_err, fabs(  L[j+i*size] - A[j+i*ld]  ));
 		}

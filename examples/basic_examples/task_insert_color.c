@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2018-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2018-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -31,7 +31,7 @@ struct starpu_codelet mycodelet =
 	.modes = { STARPU_RW },
 	.cpu_funcs = {func},
 	.cpu_funcs_name = {"func"},
-        .nbuffers = 1
+	.nbuffers = 1
 };
 
 struct starpu_codelet mycodelet_color =
@@ -39,7 +39,7 @@ struct starpu_codelet mycodelet_color =
 	.modes = { STARPU_RW },
 	.cpu_funcs = {func},
 	.cpu_funcs_name = {"func"},
-        .nbuffers = 1,
+	.nbuffers = 1,
 	.color = 0x0000FF,
 };
 
@@ -83,6 +83,6 @@ int main(void)
 
 	return 0;
 
- enodev:
+enodev:
 	return 77;
 }

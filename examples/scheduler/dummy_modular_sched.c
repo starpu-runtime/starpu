@@ -42,7 +42,7 @@ struct dummy_sched_data
 {
 	int verbose;
 	struct starpu_task_list sched_list;
-     	starpu_pthread_mutex_t policy_mutex;
+	starpu_pthread_mutex_t policy_mutex;
 };
 
 static void dummy_deinit_data(struct starpu_sched_component * component)
@@ -69,7 +69,7 @@ static int dummy_push_task(struct starpu_sched_component *component, struct star
 
 	/* lock all workers when pushing tasks on a list where all
 	   of them would pop for tasks */
-        STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 
 	starpu_task_list_push_front(&data->sched_list, task);
 

@@ -64,9 +64,9 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	{
 		int ret;
 		starpu_iteration_push(k);
-                starpu_data_handle_t sdatakk = starpu_data_get_sub_data(dataA, 2, k, k);
+		starpu_data_handle_t sdatakk = starpu_data_get_sub_data(dataA, 2, k, k);
 
-                ret = starpu_task_insert(&cl_potrf,
+		ret = starpu_task_insert(&cl_potrf,
 					 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k) : STARPU_MAX_PRIO,
 					 STARPU_RW, sdatakk,
 					 STARPU_CALLBACK, (k == 3*nblocks/4)?callback_turn_spmd_on:NULL,
@@ -79,9 +79,9 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 
 		for (m = k+1; m<nblocks; m++)
 		{
-                        starpu_data_handle_t sdatamk = starpu_data_get_sub_data(dataA, 2, m, k);
+			starpu_data_handle_t sdatamk = starpu_data_get_sub_data(dataA, 2, m, k);
 
-                        ret = starpu_task_insert(&cl_trsm,
+			ret = starpu_task_insert(&cl_trsm,
 						 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m) : (m == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
 						 STARPU_R, sdatakk,
 						 STARPU_RW, sdatamk,
@@ -96,7 +96,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 
 		for (n = k+1; n<nblocks; n++)
 		{
-                        starpu_data_handle_t sdatank = starpu_data_get_sub_data(dataA, 2, n, k);
+			starpu_data_handle_t sdatank = starpu_data_get_sub_data(dataA, 2, n, k);
 			starpu_data_handle_t sdatann = starpu_data_get_sub_data(dataA, 2, n, n);
 
 			ret = starpu_task_insert(&cl_syrk,
@@ -357,7 +357,7 @@ int main(int argc, char **argv)
 	int ret;
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return 77;
-        STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	//starpu_fxt_stop_profiling();
 

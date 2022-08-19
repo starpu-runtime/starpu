@@ -23,12 +23,12 @@
 
 void cpu_func(void *buffers[], void *cl_arg)
 {
-    int *factor = (int *) cl_arg;
+	int *factor = (int *) cl_arg;
 
-    /* local copy of the variable pointer */
-    int *val = (int *)STARPU_VARIABLE_GET_PTR(buffers[0]);
+	/* local copy of the variable pointer */
+	int *val = (int *)STARPU_VARIABLE_GET_PTR(buffers[0]);
 
-    *val *= *factor;
+	*val *= *factor;
 }
 
 int main(void)
@@ -39,18 +39,18 @@ int main(void)
 	int factor = 10;
 	int ret;
 
-        struct starpu_codelet cl =
+	struct starpu_codelet cl =
 	{
 		.cpu_funcs = {cpu_func},
 		.nbuffers = 1,
 		.modes = {STARPU_RW},
 		.name = "arr0d_to_variable_scal"
-        };
+	};
 
-        FPRINTF(stderr,"IN 0-dim Array: \n");
-        arr0d = 1;
-        FPRINTF(stderr, "%5d ", arr0d);
-        FPRINTF(stderr,"\n");
+	FPRINTF(stderr,"IN 0-dim Array: \n");
+	arr0d = 1;
+	FPRINTF(stderr, "%5d ", arr0d);
+	FPRINTF(stderr,"\n");
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
@@ -107,7 +107,7 @@ int main(void)
 
 	return 0;
 
- enodev:
+enodev:
 	FPRINTF(stderr, "WARNING: No one can execute this task\n");
 	starpu_shutdown();
 	return 77;

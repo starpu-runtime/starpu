@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,27 +16,27 @@
 
 /*
  * This examples demonstrates how to use multiple linear regression
-   models.
-
-   First, there is mlr_codelet__init codelet for which we know the
-   parameters, but not the their exponents and relations. This tasks
-   should be benchmarked and analyzed to find the model, using
-   "tools/starpu_mlr_analysis" script as a template.
-
-   For the second (codelet cl_model_final), it is assumed that the
-   analysis has already been performed and that the duration of the
-   codelet mlr_codelet_final will be computed using the following
-   equation:
-
-   T = a + b * (M^2*N) + c * (N^3*K)
-
-   where M, N, K are the parameters of the task, exponents are coming
-   from model->combinations[..][..]  and finally a, b, c are
-   coefficients which mostly depend on the machine speed.
-
-   These coefficients are going to be automatically computed using
-   least square method.
-
+ * models.
+ *
+ * First, there is mlr_codelet__init codelet for which we know the
+ * parameters, but not the their exponents and relations. This tasks
+ * should be benchmarked and analyzed to find the model, using
+ * "tools/starpu_mlr_analysis" script as a template.
+ *
+ * For the second (codelet cl_model_final), it is assumed that the
+ * analysis has already been performed and that the duration of the
+ * codelet mlr_codelet_final will be computed using the following
+ * equation:
+ *
+ * T = a + b * (M^2*N) + c * (N^3*K)
+ *
+ * where M, N, K are the parameters of the task, exponents are coming
+ * from model->combinations[..][..]  and finally a, b, c are
+ * coefficients which mostly depend on the machine speed.
+ *
+ * These coefficients are going to be automatically computed using
+ * least square method.
+ *
  */
 
 #include <stdio.h>

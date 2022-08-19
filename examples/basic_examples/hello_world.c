@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,7 +18,7 @@
  * This examples demonstrates how to construct and submit a task to StarPU and
  * more precisely:
  *  - how to allocate a new task structure (starpu_task_create)
- *  - how to describe a multi-versionned computational kernel (ie. a codelet) 
+ *  - how to describe a multi-versionned computational kernel (ie. a codelet)
  *  - how to pass an argument to the codelet (task->cl_arg)
  *  - how to declare a callback function that is called once the task has been
  *    executed
@@ -37,7 +37,7 @@
  * NB: Callback are NOT allowed to perform potentially blocking operations */
 void callback_func(void *callback_arg)
 {
-        FPRINTF(stdout, "Callback function got argument %p\n", callback_arg);
+	FPRINTF(stdout, "Callback function got argument %p\n", callback_arg);
 }
 
 /* Every implementation of a codelet must have this prototype, the first
@@ -67,8 +67,8 @@ int main(void)
 	int ret;
 
 	/* initialize StarPU : passing a NULL argument means that we use
- 	* default configuration for the scheduling policies and the number of
-	* processors/accelerators */
+	 * default configuration for the scheduling policies and the number of
+	 * processors/accelerators */
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
 		return 77;
@@ -81,7 +81,7 @@ int main(void)
 
 	starpu_codelet_init(&cl);
 	/* this codelet may only be executed on a CPU, and its cpu
- 	 * implementation is function "cpu_func" */
+	 * implementation is function "cpu_func" */
 	cl.cpu_funcs[0] = cpu_func;
 	cl.cpu_funcs_name[0] = "cpu_func";
 	/* the codelet does not manipulate any data that is managed
@@ -93,7 +93,7 @@ int main(void)
 	task->cl = &cl;
 
 	/* It is possible to pass buffers that are not managed by the DSM to the
- 	 * kernels: the second argument of the "cpu_func" function is a pointer to a
+	 * kernels: the second argument of the "cpu_func" function is a pointer to a
 	 * buffer that contains information for the codelet (cl_arg stands for
 	 * codelet argument). In the case of accelerators, it is possible that
 	 * the codelet is given a pointer to a copy of that buffer: this buffer

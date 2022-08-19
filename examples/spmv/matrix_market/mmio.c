@@ -306,13 +306,12 @@ int mm_read_mtx_crd_entry(FILE *f, int *I, int *J, double *real, double *imag, M
 }
 
 /************************************************************************
-    mm_read_mtx_crd()  fills M, N, nz, array of values, and return
-                        type code, e.g. 'MCRS'
-
-                        if matrix is complex, values[] is of size 2*nz,
-                            (nz pairs of real/imaginary values)
-************************************************************************/
-
+ *    mm_read_mtx_crd()  fills M, N, nz, array of values, and return
+ *                        type code, e.g. 'MCRS'
+ *
+ *                       if matrix is complex, values[] is of size 2*nz,
+ *                           (nz pairs of real/imaginary values)
+ ************************************************************************/
 int mm_read_mtx_crd(char *fname, int *M, int *N, int *nz, int **I, int **J, double **val, MM_typecode *matcode)
 {
 	int ret_code;

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -301,7 +301,7 @@ static bcsr_t * blocks_to_bcsr(tmp_block_t *block_list, unsigned c, unsigned r)
 bcsr_t *mm_to_bcsr(unsigned nz, unsigned *I, unsigned *J, float *val, unsigned c, unsigned r)
 {
 	bcsr_t *bcsr;
-   	tmp_block_t *block_list;
+	tmp_block_t *block_list;
 
 	block_list = mm_to_blocks(nz, I, J, val, c, r);
 	bcsr = blocks_to_bcsr(block_list, c, r);

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,7 +22,7 @@ do						    		\
 	int check_err;                                          \
 	check_err = clSetKernelArg(kernel, n, size, ptr);       \
 	if (check_err != CL_SUCCESS)                            \
-       		STARPU_OPENCL_REPORT_ERROR(check_err);          \
+		STARPU_OPENCL_REPORT_ERROR(check_err);          \
 } while (0)
 
 extern struct starpu_opencl_program opencl_code;
@@ -37,15 +37,15 @@ void opencl_codelet(void *descr[], void *_args)
 	int nx = (int)STARPU_BLOCK_GET_NX(descr[0]);
 	int ny = (int)STARPU_BLOCK_GET_NY(descr[0]);
 	int nz = (int)STARPU_BLOCK_GET_NZ(descr[0]);
-        int ldy = (int)STARPU_BLOCK_GET_LDY(descr[0]);
-        int ldz = (int) STARPU_BLOCK_GET_LDZ(descr[0]);
-        float *multiplier = (float *)_args;
+	int ldy = (int)STARPU_BLOCK_GET_LDY(descr[0]);
+	int ldz = (int) STARPU_BLOCK_GET_LDZ(descr[0]);
+	float *multiplier = (float *)_args;
 
-        id = starpu_worker_get_id_check();
-        devid = starpu_worker_get_devid(id);
+	id = starpu_worker_get_id_check();
+	devid = starpu_worker_get_devid(id);
 
-        err = starpu_opencl_load_kernel(&kernel, &queue, &opencl_code, "block", devid);
-        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+	err = starpu_opencl_load_kernel(&kernel, &queue, &opencl_code, "block", devid);
+	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
 	CHECK_CL_SET_KERNEL_ARG(kernel, 0, sizeof(block), &block);
 	CHECK_CL_SET_KERNEL_ARG(kernel, 1, sizeof(nx), &nx);
@@ -56,7 +56,7 @@ void opencl_codelet(void *descr[], void *_args)
 	CHECK_CL_SET_KERNEL_ARG(kernel, 6, sizeof(*multiplier), multiplier);
 
 	{
-                size_t global=nx*ny*nz;
+		size_t global=nx*ny*nz;
 		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, NULL, 0, NULL, &event);
 		if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 	}
@@ -65,6 +65,6 @@ void opencl_codelet(void *descr[], void *_args)
 	starpu_opencl_collect_stats(event);
 	clReleaseEvent(event);
 
-        starpu_opencl_release_kernel(kernel);
+	starpu_opencl_release_kernel(kernel);
 }
 

@@ -20,21 +20,21 @@
 
 void print_block(int *block, int nx, int ny, int nz, unsigned ldy, unsigned ldz)
 {
-        int i, j, k;
-        FPRINTF(stderr, "block=%p nx=%d ny=%d nz=%d ldy=%u ldz=%u\n", block, nx, ny, nz, ldy, ldz);
-        for(k=0 ; k<nz ; k++)
+	int i, j, k;
+	FPRINTF(stderr, "block=%p nx=%d ny=%d nz=%d ldy=%u ldz=%u\n", block, nx, ny, nz, ldy, ldz);
+	for(k=0 ; k<nz ; k++)
 	{
-                for(j=0 ; j<ny ; j++)
+		for(j=0 ; j<ny ; j++)
 		{
-                        for(i=0 ; i<nx ; i++)
+			for(i=0 ; i<nx ; i++)
 			{
-                                FPRINTF(stderr, "%2d ", block[(k*ldz)+(j*ldy)+i]);
-                        }
-                        FPRINTF(stderr,"\n");
-                }
-                FPRINTF(stderr,"\n");
-        }
-        FPRINTF(stderr,"\n");
+				FPRINTF(stderr, "%2d ", block[(k*ldz)+(j*ldy)+i]);
+			}
+			FPRINTF(stderr,"\n");
+		}
+		FPRINTF(stderr,"\n");
+	}
+	FPRINTF(stderr,"\n");
 }
 
 void print_block_data(starpu_data_handle_t block_handle)
@@ -46,7 +46,7 @@ void print_block_data(starpu_data_handle_t block_handle)
 	unsigned ldy = starpu_block_get_local_ldy(block_handle);
 	unsigned ldz = starpu_block_get_local_ldz(block_handle);
 
-        print_block(block, nx, ny, nz, ldy, ldz);
+	print_block(block, nx, ny, nz, ldy, ldz);
 }
 
 void print_3dim_data(starpu_data_handle_t ndim_handle)

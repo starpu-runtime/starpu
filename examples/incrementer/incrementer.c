@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -68,7 +68,7 @@ int main(int argc, char **argv)
 			(uintptr_t)&float_array, 4, sizeof(float));
 
 #ifdef STARPU_USE_OPENCL
-        ret = starpu_opencl_load_opencl_from_file("examples/incrementer/incrementer_kernels_opencl_kernel.cl", &opencl_program, NULL);
+	ret = starpu_opencl_load_opencl_from_file("examples/incrementer/incrementer_kernels_opencl_kernel.cl", &opencl_program, NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
 #endif
 
@@ -126,7 +126,7 @@ int main(int argc, char **argv)
 #endif
 
 	FPRINTF(stderr, "array -> %f, %f, %f, %f\n", float_array[0],
-                float_array[1], float_array[2], float_array[3]);
+		float_array[1], float_array[2], float_array[3]);
 
 	if (float_array[0] != niter || float_array[0] != float_array[1] + float_array[2] + float_array[3])
 	{

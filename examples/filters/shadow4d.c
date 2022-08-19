@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
- * Copyright (C) 2010       Mehdi Juhoor
+ * Copyright (C) 2010	    Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -46,27 +46,27 @@
 void cpu_func(void *buffers[], void *cl_arg)
 {
 	(void)cl_arg;
-        /* length of the shadowed source matrix */
-        unsigned ldy = STARPU_TENSOR_GET_LDY(buffers[0]);
-        unsigned ldz = STARPU_TENSOR_GET_LDZ(buffers[0]);
-        unsigned ldt = STARPU_TENSOR_GET_LDT(buffers[0]);
-        unsigned x = STARPU_TENSOR_GET_NX(buffers[0]);
-        unsigned y = STARPU_TENSOR_GET_NY(buffers[0]);
-        unsigned z = STARPU_TENSOR_GET_NZ(buffers[0]);
-        unsigned t = STARPU_TENSOR_GET_NT(buffers[0]);
-        /* local copy of the shadowed source matrix pointer */
-        int *val = (int *)STARPU_TENSOR_GET_PTR(buffers[0]);
+	/* length of the shadowed source matrix */
+	unsigned ldy = STARPU_TENSOR_GET_LDY(buffers[0]);
+	unsigned ldz = STARPU_TENSOR_GET_LDZ(buffers[0]);
+	unsigned ldt = STARPU_TENSOR_GET_LDT(buffers[0]);
+	unsigned x = STARPU_TENSOR_GET_NX(buffers[0]);
+	unsigned y = STARPU_TENSOR_GET_NY(buffers[0]);
+	unsigned z = STARPU_TENSOR_GET_NZ(buffers[0]);
+	unsigned t = STARPU_TENSOR_GET_NT(buffers[0]);
+	/* local copy of the shadowed source matrix pointer */
+	int *val = (int *)STARPU_TENSOR_GET_PTR(buffers[0]);
 
-        /* length of the destination matrix */
-        unsigned ldy2 = STARPU_TENSOR_GET_LDY(buffers[1]);
-        unsigned ldz2 = STARPU_TENSOR_GET_LDZ(buffers[1]);
-        unsigned ldt2 = STARPU_TENSOR_GET_LDT(buffers[1]);
-        unsigned x2 = STARPU_TENSOR_GET_NX(buffers[1]);
-        unsigned y2 = STARPU_TENSOR_GET_NY(buffers[1]);
-        unsigned z2 = STARPU_TENSOR_GET_NZ(buffers[1]);
-        unsigned t2 = STARPU_TENSOR_GET_NT(buffers[1]);
-        /* local copy of the destination matrix pointer */
-        int *val2 = (int *)STARPU_TENSOR_GET_PTR(buffers[1]);
+	/* length of the destination matrix */
+	unsigned ldy2 = STARPU_TENSOR_GET_LDY(buffers[1]);
+	unsigned ldz2 = STARPU_TENSOR_GET_LDZ(buffers[1]);
+	unsigned ldt2 = STARPU_TENSOR_GET_LDT(buffers[1]);
+	unsigned x2 = STARPU_TENSOR_GET_NX(buffers[1]);
+	unsigned y2 = STARPU_TENSOR_GET_NY(buffers[1]);
+	unsigned z2 = STARPU_TENSOR_GET_NZ(buffers[1]);
+	unsigned t2 = STARPU_TENSOR_GET_NT(buffers[1]);
+	/* local copy of the destination matrix pointer */
+	int *val2 = (int *)STARPU_TENSOR_GET_PTR(buffers[1]);
 
 	unsigned i, j, k, l;
 
@@ -86,27 +86,27 @@ void cpu_func(void *buffers[], void *cl_arg)
 void cuda_func(void *buffers[], void *cl_arg)
 {
 	(void)cl_arg;
-        /* length of the shadowed source matrix*/
-        unsigned ldy = STARPU_TENSOR_GET_LDY(buffers[0]);
-        unsigned ldz = STARPU_TENSOR_GET_LDZ(buffers[0]);
-        unsigned ldt = STARPU_TENSOR_GET_LDT(buffers[0]);
-        unsigned x = STARPU_TENSOR_GET_NX(buffers[0]);
-        unsigned y = STARPU_TENSOR_GET_NY(buffers[0]);
-        unsigned z = STARPU_TENSOR_GET_NZ(buffers[0]);
-        unsigned t = STARPU_TENSOR_GET_NT(buffers[0]);
-        /* local copy of the shadowed source matrix pointer */
-        int *val = (int *)STARPU_TENSOR_GET_PTR(buffers[0]);
+	/* length of the shadowed source matrix*/
+	unsigned ldy = STARPU_TENSOR_GET_LDY(buffers[0]);
+	unsigned ldz = STARPU_TENSOR_GET_LDZ(buffers[0]);
+	unsigned ldt = STARPU_TENSOR_GET_LDT(buffers[0]);
+	unsigned x = STARPU_TENSOR_GET_NX(buffers[0]);
+	unsigned y = STARPU_TENSOR_GET_NY(buffers[0]);
+	unsigned z = STARPU_TENSOR_GET_NZ(buffers[0]);
+	unsigned t = STARPU_TENSOR_GET_NT(buffers[0]);
+	/* local copy of the shadowed source matrix pointer */
+	int *val = (int *)STARPU_TENSOR_GET_PTR(buffers[0]);
 
-        /* length of the destination matrix */
-        unsigned ldy2 = STARPU_TENSOR_GET_LDY(buffers[1]);
-        unsigned ldz2 = STARPU_TENSOR_GET_LDZ(buffers[1]);
-        unsigned ldt2 = STARPU_TENSOR_GET_LDT(buffers[1]);
-        unsigned x2 = STARPU_TENSOR_GET_NX(buffers[1]);
-        unsigned y2 = STARPU_TENSOR_GET_NY(buffers[1]);
-        unsigned z2 = STARPU_TENSOR_GET_NZ(buffers[1]);
-        unsigned t2 = STARPU_TENSOR_GET_NT(buffers[1]);
-        /* local copy of the destination matrix pointer */
-        int *val2 = (int *)STARPU_TENSOR_GET_PTR(buffers[1]);
+	/* length of the destination matrix */
+	unsigned ldy2 = STARPU_TENSOR_GET_LDY(buffers[1]);
+	unsigned ldz2 = STARPU_TENSOR_GET_LDZ(buffers[1]);
+	unsigned ldt2 = STARPU_TENSOR_GET_LDT(buffers[1]);
+	unsigned x2 = STARPU_TENSOR_GET_NX(buffers[1]);
+	unsigned y2 = STARPU_TENSOR_GET_NY(buffers[1]);
+	unsigned z2 = STARPU_TENSOR_GET_NZ(buffers[1]);
+	unsigned t2 = STARPU_TENSOR_GET_NT(buffers[1]);
+	/* local copy of the destination matrix pointer */
+	int *val2 = (int *)STARPU_TENSOR_GET_PTR(buffers[1]);
 
 	unsigned k, l;
 	cudaError_t cures;
@@ -488,7 +488,7 @@ int main(void)
 
 	return 0;
 
- enodev:
+enodev:
 	FPRINTF(stderr, "WARNING: No one can execute this task\n");
 	starpu_shutdown();
 	return 77;

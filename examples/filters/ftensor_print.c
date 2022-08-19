@@ -20,10 +20,10 @@
 
 void print_tensor(int *tensor, int nx, int ny, int nz, int nt, unsigned ldy, unsigned ldz, unsigned ldt)
 {
-        int i, j, k, l;
-        FPRINTF(stderr, "tensor=%p nx=%d ny=%d nz=%d nt=%d ldy=%u ldz=%u ldt=%u\n", tensor, nx, ny, nz, nt, ldy, ldz, ldt);
-        for(l=0 ; l<nt ; l++)
-        {
+	int i, j, k, l;
+	FPRINTF(stderr, "tensor=%p nx=%d ny=%d nz=%d nt=%d ldy=%u ldz=%u ldt=%u\n", tensor, nx, ny, nz, nt, ldy, ldz, ldt);
+	for(l=0 ; l<nt ; l++)
+	{
 		for(k=0 ; k<nz ; k++)
 		{
 			for(j=0 ; j<ny ; j++)
@@ -37,8 +37,8 @@ void print_tensor(int *tensor, int nx, int ny, int nz, int nt, unsigned ldy, uns
 			FPRINTF(stderr,"\n");
 		}
 		FPRINTF(stderr,"\n");
-        }
-        FPRINTF(stderr,"\n");
+	}
+	FPRINTF(stderr,"\n");
 }
 
 void print_tensor_data(starpu_data_handle_t tensor_handle)

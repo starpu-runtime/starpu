@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -45,94 +45,94 @@ extern void print_tensor_data(starpu_data_handle_t tensor_handle);
 
 int main(void)
 {
-    int *tensor;
-    int i, j, k, l;
-    int ret;
+	int *tensor;
+	int i, j, k, l;
+	int ret;
 
-    starpu_data_handle_t handle;
-    struct starpu_codelet cl =
-    {
-        .cpu_funcs = {tensor_cpu_func},
-        .cpu_funcs_name = {"tensor_cpu_func"},
+	starpu_data_handle_t handle;
+	struct starpu_codelet cl =
+	{
+		.cpu_funcs = {tensor_cpu_func},
+		.cpu_funcs_name = {"tensor_cpu_func"},
 #ifdef STARPU_USE_CUDA
-        .cuda_funcs = {tensor_cuda_func},
-        .cuda_flags = {STARPU_CUDA_ASYNC},
+		.cuda_funcs = {tensor_cuda_func},
+		.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_HIP
-        .hip_funcs = {tensor_hip_func},
-        .hip_flags = {STARPU_HIP_ASYNC},
+		.hip_funcs = {tensor_hip_func},
+		.hip_flags = {STARPU_HIP_ASYNC},
 #endif
-        .nbuffers = 1,
-        .modes = {STARPU_RW},
-        .name = "tensor_scal"
-    };
+		.nbuffers = 1,
+		.modes = {STARPU_RW},
+		.name = "tensor_scal"
+	};
 
-    ret = starpu_init(NULL);
-    if (ret == -ENODEV)
-	exit(77);
-    STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV)
+		exit(77);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-    starpu_malloc((void **)&tensor, NX*NY*NZ*NT*sizeof(int));
-    assert(tensor);
-    generate_tensor_data(tensor, NX, NY, NZ, NT, NX, NX*NY, NX*NY*NZ);
-    
-    /* Declare data to StarPU */
-    starpu_tensor_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)tensor, NX, NX*NY, NX*NY*NZ, NX, NY, NZ, NT, sizeof(int));
-    FPRINTF(stderr, "IN  Tensor\n");
-    print_tensor_data(handle);
+	starpu_malloc((void **)&tensor, NX*NY*NZ*NT*sizeof(int));
+	assert(tensor);
+	generate_tensor_data(tensor, NX, NY, NZ, NT, NX, NX*NY, NX*NY*NZ);
 
-    /* Partition the tensor in PARTS sub-tensors */
-    struct starpu_data_filter f =
-    {
-        .filter_func = starpu_tensor_filter_block,
-        .nchildren = PARTS
-    };
-    starpu_data_partition(handle, &f);
+	/* Declare data to StarPU */
+	starpu_tensor_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)tensor, NX, NX*NY, NX*NY*NZ, NX, NY, NZ, NT, sizeof(int));
+	FPRINTF(stderr, "IN  Tensor\n");
+	print_tensor_data(handle);
 
-    FPRINTF(stderr,"Nb of partitions : %d\n",starpu_data_get_nb_children(handle));
+	/* Partition the tensor in PARTS sub-tensors */
+	struct starpu_data_filter f =
+	{
+		.filter_func = starpu_tensor_filter_block,
+		.nchildren = PARTS
+	};
+	starpu_data_partition(handle, &f);
 
-    for(i=0 ; i<starpu_data_get_nb_children(handle) ; i++)
-    {
-        starpu_data_handle_t stensor = starpu_data_get_sub_data(handle, 1, i);
-        FPRINTF(stderr, "Sub tensor %d\n", i);
-        print_tensor_data(stensor);
-    }
+	FPRINTF(stderr,"Nb of partitions : %d\n",starpu_data_get_nb_children(handle));
 
-    /* Submit a task on each sub-tensor */
-    for(i=0 ; i<starpu_data_get_nb_children(handle) ; i++)
-    {
-        int multiplier=i;
-        struct starpu_task *task = starpu_task_create();
+	for(i=0 ; i<starpu_data_get_nb_children(handle) ; i++)
+	{
+		starpu_data_handle_t stensor = starpu_data_get_sub_data(handle, 1, i);
+		FPRINTF(stderr, "Sub tensor %d\n", i);
+		print_tensor_data(stensor);
+	}
 
-        FPRINTF(stderr,"Dealing with sub-tensor %d\n", i);
-        task->cl = &cl;
-        task->synchronous = 1;
-        task->callback_func = NULL;
-        task->handles[0] = starpu_data_get_sub_data(handle, 1, i);
-        task->cl_arg = &multiplier;
-        task->cl_arg_size = sizeof(multiplier);
+	/* Submit a task on each sub-tensor */
+	for(i=0 ; i<starpu_data_get_nb_children(handle) ; i++)
+	{
+		int multiplier=i;
+		struct starpu_task *task = starpu_task_create();
 
-        ret = starpu_task_submit(task);
-        if (ret == -ENODEV) goto enodev;
-        STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-    }
+		FPRINTF(stderr,"Dealing with sub-tensor %d\n", i);
+		task->cl = &cl;
+		task->synchronous = 1;
+		task->callback_func = NULL;
+		task->handles[0] = starpu_data_get_sub_data(handle, 1, i);
+		task->cl_arg = &multiplier;
+		task->cl_arg_size = sizeof(multiplier);
 
-    /* Unpartition the data, unregister it from StarPU and shutdown */
-    starpu_data_unpartition(handle, STARPU_MAIN_RAM);
-    print_tensor_data(handle);
-    starpu_data_unregister(handle);
+		ret = starpu_task_submit(task);
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	}
 
-    /* Print result tensor */
-    FPRINTF(stderr, "OUT Tensor\n");
-    print_tensor(tensor, NX, NY, NZ, NT, NX, NX*NY, NX*NY*NZ);
+	/* Unpartition the data, unregister it from StarPU and shutdown */
+	starpu_data_unpartition(handle, STARPU_MAIN_RAM);
+	print_tensor_data(handle);
+	starpu_data_unregister(handle);
 
-    starpu_free_noflag(tensor, NX*NY*NZ*NT*sizeof(int));
+	/* Print result tensor */
+	FPRINTF(stderr, "OUT Tensor\n");
+	print_tensor(tensor, NX, NY, NZ, NT, NX, NX*NY, NX*NY*NZ);
 
-    starpu_shutdown();
-    return 0;
+	starpu_free_noflag(tensor, NX*NY*NZ*NT*sizeof(int));
+
+	starpu_shutdown();
+	return 0;
 
 enodev:
-    FPRINTF(stderr, "WARNING: No one can execute this task\n");
-    starpu_shutdown();
-    return 77;
+	FPRINTF(stderr, "WARNING: No one can execute this task\n");
+	starpu_shutdown();
+	return 77;
 }

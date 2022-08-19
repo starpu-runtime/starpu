@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -34,8 +34,8 @@
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 #define PRINTF(fmt, ...) do { if (!getenv("STARPU_SSILENT")) {printf(fmt, ## __VA_ARGS__); }} while(0)
 
-#define BLAS3_FLOP(n1,n2,n3)    \
-        (2*((uint64_t)n1)*((uint64_t)n2)*((uint64_t)n3))
+#define BLAS3_FLOP(n1,n2,n3) \
+	(2*((uint64_t)n1)*((uint64_t)n2)*((uint64_t)n3))
 
 #ifdef CHECK_RESULTS
 static void compare_A_LU(float *A, float *LU, unsigned size, unsigned ld)
@@ -68,7 +68,7 @@ static void compare_A_LU(float *A, float *LU, unsigned size, unsigned ld)
 		}
 	}
 
-        /* now A_err = L, compute L*U */
+	/* now A_err = L, compute L*U */
 	STARPU_STRMM("R", "U", "N", "U", size, size, 1.0f, U, size, L, size);
 
 	float max_err = 0.0f;

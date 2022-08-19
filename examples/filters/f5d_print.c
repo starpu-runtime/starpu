@@ -20,10 +20,10 @@
 
 void print_5darr(int *arr5d, int nx, int ny, int nz, int nt, int ng, unsigned ldy, unsigned ldz, unsigned ldt, unsigned ldg)
 {
-        int i, j, k, l, m;
-        FPRINTF(stderr, "5dim array=%p nx=%d ny=%d nz=%d nt=%d ng=%d ldy=%u ldz=%u ldt=%u ldg=%u\n", arr5d, nx, ny, nz, nt, ng, ldy, ldz, ldt, ldg);
-        for(m=0 ; m<ng ; m++)
-        {
+	int i, j, k, l, m;
+	FPRINTF(stderr, "5dim array=%p nx=%d ny=%d nz=%d nt=%d ng=%d ldy=%u ldz=%u ldt=%u ldg=%u\n", arr5d, nx, ny, nz, nt, ng, ldy, ldz, ldt, ldg);
+	for(m=0 ; m<ng ; m++)
+	{
 		for(l=0 ; l<nt ; l++)
 		{
 			for(k=0 ; k<nz ; k++)
@@ -41,8 +41,8 @@ void print_5darr(int *arr5d, int nx, int ny, int nz, int nt, int ng, unsigned ld
 			FPRINTF(stderr,"\n");
 		}
 		FPRINTF(stderr,"\n");
-        }
-        FPRINTF(stderr,"\n");
+	}
+	FPRINTF(stderr,"\n");
 }
 
 void print_5dim_data(starpu_data_handle_t ndim_handle)

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2018-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2018-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,29 +20,29 @@
 
 void cpu_codelet(void *buffers[], void *cl_arg)
 {
-        unsigned i, j;
-        int factor;
+	unsigned i, j;
+	int factor;
 
 	starpu_codelet_unpack_args(cl_arg, &factor, 0);
-        /* length of the matrix */
-        unsigned nx = STARPU_MATRIX_GET_NX(buffers[0]);
-        unsigned ny = STARPU_MATRIX_GET_NY(buffers[0]);
-        unsigned ld = STARPU_MATRIX_GET_LD(buffers[0]);
-        /* local copy of the matrix pointer */
-        int *val = (int *)STARPU_MATRIX_GET_PTR(buffers[0]);
+	/* length of the matrix */
+	unsigned nx = STARPU_MATRIX_GET_NX(buffers[0]);
+	unsigned ny = STARPU_MATRIX_GET_NY(buffers[0]);
+	unsigned ld = STARPU_MATRIX_GET_LD(buffers[0]);
+	/* local copy of the matrix pointer */
+	int *val = (int *)STARPU_MATRIX_GET_PTR(buffers[0]);
 
 	FPRINTF(stderr, "computing on matrix with nx=%u, ny=%u, ld=%u\n", nx, ny, ld);
-        for(j=0; j<ny ; j++)
+	for(j=0; j<ny ; j++)
 	{
-                for(i=0; i<nx ; i++)
-                        val[(j*ld)+i] *= factor;
-        }
+		for(i=0; i<nx ; i++)
+			val[(j*ld)+i] *= factor;
+	}
 }
 
 static struct starpu_codelet cl =
 {
-        .cpu_funcs = {cpu_codelet},
-        .nbuffers = 1,
+	.cpu_funcs = {cpu_codelet},
+	.nbuffers = 1,
 	.modes = {STARPU_RW},
 };
 
@@ -53,7 +53,7 @@ static struct starpu_codelet cl =
 
 int main(void)
 {
-        int *matrix;
+	int *matrix;
 	starpu_data_handle_t matrix_handle;
 	starpu_data_handle_t subhandle_l1[PARTS];
 	starpu_data_handle_t subhandle_l2[PARTS][PARTS];
@@ -64,7 +64,7 @@ int main(void)
 	int n=1;
 	int i,j,k;
 
-        ret = starpu_init(NULL);
+	ret = starpu_init(NULL);
 	if (STARPU_UNLIKELY(ret == -ENODEV))
 	{
 		return 77;
@@ -78,16 +78,16 @@ int main(void)
 	}
 
 	matrix = (int*)malloc(NX * NY * sizeof(int));
-        assert(matrix);
+	assert(matrix);
 	starpu_matrix_data_register(&matrix_handle, STARPU_MAIN_RAM, (uintptr_t)matrix, LD, NX, NY, sizeof(int));
 
-        for(j=0 ; j<NY ; j++)
+	for(j=0 ; j<NY ; j++)
 	{
-                for(i=0 ; i<NX ; i++)
+		for(i=0 ; i<NX ; i++)
 		{
-                        matrix[(j*LD)+i] = n++;
-                }
-        }
+			matrix[(j*LD)+i] = n++;
+		}
+	}
 
 	/* Split the matrix in PARTS sub-matrices, each sub-matrix in PARTS sub-sub-matrices, and each sub-sub matrix in PARTS sub-sub-sub-matrices */
 	struct starpu_data_filter f =
@@ -110,7 +110,7 @@ int main(void)
 		}
 	}
 
-        /* Submit a task on the first sub-matrix and sub-sub matrix, and on all others sub-sub-matrices */
+	/* Submit a task on the first sub-matrix and sub-sub matrix, and on all others sub-sub-matrices */
 	ret = starpu_task_insert(&cl,
 				 STARPU_RW, subhandle_l1[0],
 				 STARPU_VALUE, &factor, sizeof(factor),
@@ -168,7 +168,7 @@ int main(void)
 	}
 
 	free(matrix);
-        starpu_shutdown();
+	starpu_shutdown();
 
 	return ret;
 }

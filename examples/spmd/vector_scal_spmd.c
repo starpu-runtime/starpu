@@ -21,9 +21,9 @@
  */
 
 /* gcc build:
-
-   gcc -O2 -g vector_scal.c -o vector_scal $(pkg-config --cflags starpu-1.0) $(pkg-config --libs starpu-1.0)
-
+ *
+ *  gcc -O2 -g vector_scal.c -o vector_scal $(pkg-config --cflags starpu-1.0) $(pkg-config --libs starpu-1.0)
+ *
  */
 
 #include <starpu.h>

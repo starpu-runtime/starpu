@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +14,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/* Perform replication of data on X and Y edges, to fold the domain on 
-   itself through mere replication of the source state. */
+/*
+ * Perform replication of data on X and Y edges, to fold the domain on
+ * itself through mere replication of the source state.
+*/
 
 /* TODO: rather use a dummy for loop, to assign the job to the threads that will work on it? */
 	if (idy == 0)

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -27,7 +27,6 @@ static unsigned int _ncuda;
 #ifdef STARPU_USE_OPENCL
 static unsigned int _nopencl;
 #endif
-
 
 static struct point _array_of_structs[N];
 static starpu_data_handle_t _handle;
@@ -58,17 +57,15 @@ static struct starpu_multiformat_data_interface_ops format_ops =
 	.cpu_elemsize = sizeof(struct point),
 };
 
-
-static void
-custom_filter(void *father, void *child, struct starpu_data_filter *f,
-		unsigned id, unsigned nchunks)
+static void custom_filter(void *father, void *child, struct starpu_data_filter *f,
+			  unsigned id, unsigned nchunks)
 {
 	(void)f;
 	struct custom_data_interface *custom_father, *custom_child;
 	custom_father = (struct custom_data_interface *) father;
 	custom_child = (struct custom_data_interface *) child;
 
-	assert(N % nchunks == 0); // XXX 
+	assert(N % nchunks == 0); // XXX
 	starpu_ssize_t chunk_size = N/nchunks;
 
 	if (custom_father->cpu_ptr)
@@ -312,13 +309,13 @@ main(void)
 #ifdef STARPU_USE_OPENCL
 	if (_nopencl > 0)
 	{
-        	err = starpu_opencl_unload_opencl(&_opencl_program);
+		err = starpu_opencl_unload_opencl(&_opencl_program);
 		assert(err == 0);
 		err = starpu_opencl_unload_opencl(&_opencl_conversion_program);
 		assert(err == 0);
 	}
 #endif /* !STARPU_USE_OPENCL */
-	starpu_shutdown();		
+	starpu_shutdown();
 	print_it();
 	return check_it();
 

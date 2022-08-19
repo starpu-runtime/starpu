@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,7 +24,7 @@ void custom_scal_opencl_func(void *buffers[], void *args)
 {
 	(void) args;
 	int id, devid;
-        cl_int err;
+	cl_int err;
 	cl_kernel kernel;
 	cl_command_queue queue;
 
@@ -55,38 +55,37 @@ void custom_scal_opencl_func(void *buffers[], void *args)
 		assert(0);
 	}
 
-
 	{
 		size_t global=n;
 		size_t local;
-                size_t s;
-                cl_device_id device;
+		size_t s;
+		cl_device_id device;
 
-                starpu_opencl_get_device(devid, &device);
+		starpu_opencl_get_device(devid, &device);
 
-                err = clGetKernelWorkGroupInfo (kernel,
+		err = clGetKernelWorkGroupInfo (kernel,
 						device,
 						CL_KERNEL_WORK_GROUP_SIZE,
 						sizeof(local),
 						&local,
 						&s);
-                if (err != CL_SUCCESS)
+		if (err != CL_SUCCESS)
 			STARPU_OPENCL_REPORT_ERROR(err);
 
-                if (local > global)
+		if (local > global)
 			local = global;
-                else
-                        global = (global + local-1) / local * local;
+		else
+			global = (global + local-1) / local * local;
 
 		err = clEnqueueNDRangeKernel(
 				queue,
 				kernel,
-				1,       /* work_dim */
-				NULL,    /* global_work_offset */
+				1,	 /* work_dim */
+				NULL,	 /* global_work_offset */
 				&global, /* global_work_size */
-				&local,  /* local_work_size */
-				0,       /* num_events_in_wait_list */
-				NULL,    /* event_wait_list */
+				&local,	 /* local_work_size */
+				0,	 /* num_events_in_wait_list */
+				NULL,	 /* event_wait_list */
 				NULL);
 
 		if (err != CL_SUCCESS)

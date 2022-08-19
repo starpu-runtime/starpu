@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -52,7 +52,7 @@ life_update(int bz, __global const TYPE *old, __global TYPE *newp, int nx, int n
 			{\n					\
 				unsigned index = x + y*ldy + z*ldz;\n\
 				num = 0\n\
-                                        + old[index+1*ldy+0*ldz]\n\
+                                        + old[index+1*ldy+0*ldz]\n	\
                                         + old[index+1*ldy+1*ldz]\n\
                                         + old[index+0*ldy+1*ldz]\n\
                                         + old[index-1*ldy+1*ldz]\n\
@@ -71,20 +71,18 @@ life_update(int bz, __global const TYPE *old, __global TYPE *newp, int nx, int n
 static const char * src = clsrc(TYPE,K);
 static struct starpu_opencl_program program;
 
-void
-opencl_life_init(void)
+void opencl_life_init(void)
 {
-  starpu_opencl_load_opencl_from_string(src, &program, NULL);
+	starpu_opencl_load_opencl_from_string(src, &program, NULL);
 }
 
 void opencl_life_free(void)
 {
-  int ret = starpu_opencl_unload_opencl(&program);
-  STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
+	int ret = starpu_opencl_unload_opencl(&program);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
 }
 
-void
-opencl_life_update_host(int bz, const TYPE *old, TYPE *newp, int nx, int ny, int nz, int ldy, int ldz, int iter)
+void opencl_life_update_host(int bz, const TYPE *old, TYPE *newp, int nx, int ny, int nz, int ldy, int ldz, int iter)
 {
 #if 0
 	size_t dim[] = {nx, ny, nz};
@@ -92,27 +90,27 @@ opencl_life_update_host(int bz, const TYPE *old, TYPE *newp, int nx, int ny, int
 	size_t dim[] = {nx, ny, 1};
 #endif
 
-  int devid,id;
-  cl_int err;
+	int devid,id;
+	cl_int err;
 
-  id = starpu_worker_get_id_check();
-  devid = starpu_worker_get_devid(id);
+	id = starpu_worker_get_id_check();
+	devid = starpu_worker_get_devid(id);
 
-  cl_kernel kernel;
-  cl_command_queue cq;
-  err = starpu_opencl_load_kernel(&kernel, &cq, &program, "life_update", devid);
-  if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+	cl_kernel kernel;
+	cl_command_queue cq;
+	err = starpu_opencl_load_kernel(&kernel, &cq, &program, "life_update", devid);
+	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
-  clSetKernelArg(kernel, 0, sizeof(bz), &bz);
-  clSetKernelArg(kernel, 1, sizeof(old), &old);
-  clSetKernelArg(kernel, 2, sizeof(newp), &newp);
-  clSetKernelArg(kernel, 3, sizeof(nx), &nx);
-  clSetKernelArg(kernel, 4, sizeof(ny), &ny);
-  clSetKernelArg(kernel, 5, sizeof(nz), &nz);
-  clSetKernelArg(kernel, 6, sizeof(ldy), &ldy);
-  clSetKernelArg(kernel, 7, sizeof(ldz), &ldz);
-  clSetKernelArg(kernel, 8, sizeof(iter), &iter);
+	clSetKernelArg(kernel, 0, sizeof(bz), &bz);
+	clSetKernelArg(kernel, 1, sizeof(old), &old);
+	clSetKernelArg(kernel, 2, sizeof(newp), &newp);
+	clSetKernelArg(kernel, 3, sizeof(nx), &nx);
+	clSetKernelArg(kernel, 4, sizeof(ny), &ny);
+	clSetKernelArg(kernel, 5, sizeof(nz), &nz);
+	clSetKernelArg(kernel, 6, sizeof(ldy), &ldy);
+	clSetKernelArg(kernel, 7, sizeof(ldz), &ldz);
+	clSetKernelArg(kernel, 8, sizeof(iter), &iter);
 
-  err = clEnqueueNDRangeKernel(cq, kernel, 3, NULL, dim, NULL, 0, NULL, NULL);
-  if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+	err = clEnqueueNDRangeKernel(cq, kernel, 3, NULL, dim, NULL, 0, NULL, NULL);
+	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 }

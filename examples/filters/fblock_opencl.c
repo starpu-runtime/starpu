@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,7 +24,7 @@ do                                                          	\
 	int check_err;                           	        \
 	check_err = clSetKernelArg(kernel, n, size, ptr);       \
 	if (check_err != CL_SUCCESS)                            \
-       		STARPU_OPENCL_REPORT_ERROR(check_err);          \
+		STARPU_OPENCL_REPORT_ERROR(check_err);          \
 } while (0)
 
 extern struct starpu_opencl_program opencl_program;
@@ -41,8 +41,8 @@ void opencl_func(void *buffers[], void *cl_arg)
 	int nx = (int)STARPU_BLOCK_GET_NX(buffers[0]);
 	int ny = (int)STARPU_BLOCK_GET_NY(buffers[0]);
 	int nz = (int)STARPU_BLOCK_GET_NZ(buffers[0]);
-        unsigned ldy = STARPU_BLOCK_GET_LDY(buffers[0]);
-        unsigned ldz = STARPU_BLOCK_GET_LDZ(buffers[0]);
+	unsigned ldy = STARPU_BLOCK_GET_LDY(buffers[0]);
+	unsigned ldz = STARPU_BLOCK_GET_LDZ(buffers[0]);
 
 	id = starpu_worker_get_id_check();
 	devid = starpu_worker_get_devid(id);

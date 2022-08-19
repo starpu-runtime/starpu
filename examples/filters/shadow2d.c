@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -95,19 +95,19 @@
 void cpu_func(void *buffers[], void *cl_arg)
 {
 	(void)cl_arg;
-        /* length of the shadowed source matrix */
-        unsigned ld = STARPU_MATRIX_GET_LD(buffers[0]);
-        unsigned n = STARPU_MATRIX_GET_NX(buffers[0]);
-        unsigned m = STARPU_MATRIX_GET_NY(buffers[0]);
-        /* local copy of the shadowed source matrix pointer */
-        int *val = (int *)STARPU_MATRIX_GET_PTR(buffers[0]);
+	/* length of the shadowed source matrix */
+	unsigned ld = STARPU_MATRIX_GET_LD(buffers[0]);
+	unsigned n = STARPU_MATRIX_GET_NX(buffers[0]);
+	unsigned m = STARPU_MATRIX_GET_NY(buffers[0]);
+	/* local copy of the shadowed source matrix pointer */
+	int *val = (int *)STARPU_MATRIX_GET_PTR(buffers[0]);
 
-        /* length of the destination matrix */
-        unsigned ld2 = STARPU_MATRIX_GET_LD(buffers[1]);
-        unsigned n2 = STARPU_MATRIX_GET_NX(buffers[1]);
-        unsigned m2 = STARPU_MATRIX_GET_NY(buffers[1]);
-        /* local copy of the destination matrix pointer */
-        int *val2 = (int *)STARPU_MATRIX_GET_PTR(buffers[1]);
+	/* length of the destination matrix */
+	unsigned ld2 = STARPU_MATRIX_GET_LD(buffers[1]);
+	unsigned n2 = STARPU_MATRIX_GET_NX(buffers[1]);
+	unsigned m2 = STARPU_MATRIX_GET_NY(buffers[1]);
+	/* local copy of the destination matrix pointer */
+	int *val2 = (int *)STARPU_MATRIX_GET_PTR(buffers[1]);
 
 	unsigned i, j;
 
@@ -125,47 +125,47 @@ void cuda_func(void *buffers[], void *cl_arg)
 	(void)cl_arg;
 	cudaError_t cures;
 
-        /* length of the shadowed source matrix */
-        unsigned ld = STARPU_MATRIX_GET_LD(buffers[0]);
-        unsigned n = STARPU_MATRIX_GET_NX(buffers[0]);
-        unsigned m = STARPU_MATRIX_GET_NY(buffers[0]);
-        /* local copy of the shadowed source matrix pointer */
-        int *val = (int *)STARPU_MATRIX_GET_PTR(buffers[0]);
+	/* length of the shadowed source matrix */
+	unsigned ld = STARPU_MATRIX_GET_LD(buffers[0]);
+	unsigned n = STARPU_MATRIX_GET_NX(buffers[0]);
+	unsigned m = STARPU_MATRIX_GET_NY(buffers[0]);
+	/* local copy of the shadowed source matrix pointer */
+	int *val = (int *)STARPU_MATRIX_GET_PTR(buffers[0]);
 
-        /* length of the destination matrix */
-        unsigned ld2 = STARPU_MATRIX_GET_LD(buffers[1]);
-        unsigned n2 = STARPU_MATRIX_GET_NX(buffers[1]);
-        unsigned m2 = STARPU_MATRIX_GET_NY(buffers[1]);
-        /* local copy of the destination matrix pointer */
-        int *val2 = (int *)STARPU_MATRIX_GET_PTR(buffers[1]);
+	/* length of the destination matrix */
+	unsigned ld2 = STARPU_MATRIX_GET_LD(buffers[1]);
+	unsigned n2 = STARPU_MATRIX_GET_NX(buffers[1]);
+	unsigned m2 = STARPU_MATRIX_GET_NY(buffers[1]);
+	/* local copy of the destination matrix pointer */
+	int *val2 = (int *)STARPU_MATRIX_GET_PTR(buffers[1]);
 
 	/* If things go right, sizes should match */
 	STARPU_ASSERT(n == n2);
 	STARPU_ASSERT(m == m2);
 	cures = cudaMemcpy2DAsync(val2, ld2*sizeof(*val2), val, ld*sizeof(*val), n*sizeof(*val), m, cudaMemcpyDeviceToDevice, starpu_cuda_get_local_stream());
-        if (STARPU_UNLIKELY(cures)) STARPU_CUDA_REPORT_ERROR(cures);
+	if (STARPU_UNLIKELY(cures)) STARPU_CUDA_REPORT_ERROR(cures);
 }
 #endif
 
 int main(void)
 {
 	unsigned i, j, k, l;
-        int matrix[NY + 2*SHADOWY][NX + 2*SHADOWX];
-        int matrix2[NY + PARTSY*2*SHADOWY][NX + PARTSX*2*SHADOWX];
+	int matrix[NY + 2*SHADOWY][NX + 2*SHADOWX];
+	int matrix2[NY + PARTSY*2*SHADOWY][NX + PARTSX*2*SHADOWX];
 	starpu_data_handle_t handle, handle2;
 	int ret;
 
-        struct starpu_codelet cl =
+	struct starpu_codelet cl =
 	{
-                .cpu_funcs = {cpu_func},
-                .cpu_funcs_name = {"cpu_func"},
+		.cpu_funcs = {cpu_func},
+		.cpu_funcs_name = {"cpu_func"},
 #ifdef STARPU_USE_CUDA
-                .cuda_funcs = {cuda_func},
+		.cuda_funcs = {cuda_func},
 		.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
-                .nbuffers = 2,
+		.nbuffers = 2,
 		.modes = {STARPU_R, STARPU_W}
-        };
+	};
 
 	memset(matrix, -1, sizeof(matrix));
 	for(j=1 ; j<=NY ; j++)
@@ -195,14 +195,14 @@ int main(void)
 			matrix[SHADOWY+NY+j][SHADOWX+NX+i] = matrix[SHADOWY+j][SHADOWX+i];
 		}
 
-        FPRINTF(stderr,"IN  Matrix:\n");
+	FPRINTF(stderr,"IN  Matrix:\n");
 	for(j=0 ; j<NY + 2*SHADOWY ; j++)
 	{
 		for(i=0 ; i<NX + 2*SHADOWX ; i++)
 			FPRINTF(stderr, "%5d ", matrix[j][i]);
 		FPRINTF(stderr,"\n");
 	}
-        FPRINTF(stderr,"\n");
+	FPRINTF(stderr,"\n");
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
@@ -215,7 +215,7 @@ int main(void)
 	/* Declare destination matrix to StarPU */
 	starpu_matrix_data_register(&handle2, STARPU_MAIN_RAM, (uintptr_t)matrix2, NX + PARTSX*2*SHADOWX, NX + PARTSX*2*SHADOWX, NY + PARTSY*2*SHADOWY, sizeof(matrix2[0][0]));
 
-        /* Partition the source matrix in PARTSY*PARTSX sub-matrices with shadows */
+	/* Partition the source matrix in PARTSY*PARTSX sub-matrices with shadows */
 	/* NOTE: the resulting handles should only be used in read-only mode,
 	 * as StarPU will not know how the overlapping parts would have to be
 	 * combined. */
@@ -233,7 +233,7 @@ int main(void)
 	};
 	starpu_data_map_filters(handle, 2, &fy, &fx);
 
-        /* Partition the destination matrix in PARTSY*PARTSX sub-matrices */
+	/* Partition the destination matrix in PARTSY*PARTSX sub-matrices */
 	struct starpu_data_filter fy2 =
 	{
 		.filter_func = starpu_matrix_filter_vertical_block,
@@ -246,7 +246,7 @@ int main(void)
 	};
 	starpu_data_map_filters(handle2, 2, &fy2, &fx2);
 
-        /* Submit a task on each sub-matrix */
+	/* Submit a task on each sub-matrix */
 	for (j=0; j<PARTSY; j++)
 	{
 		for (i=0; i<PARTSX; i++)
@@ -268,18 +268,18 @@ int main(void)
 
 	starpu_data_unpartition(handle, STARPU_MAIN_RAM);
 	starpu_data_unpartition(handle2, STARPU_MAIN_RAM);
-        starpu_data_unregister(handle);
-        starpu_data_unregister(handle2);
+	starpu_data_unregister(handle);
+	starpu_data_unregister(handle2);
 	starpu_shutdown();
 
-        FPRINTF(stderr,"OUT Matrix:\n");
+	FPRINTF(stderr,"OUT Matrix:\n");
 	for(j=0 ; j<NY + PARTSY*2*SHADOWY ; j++)
 	{
 		for(i=0 ; i<NX + PARTSX*2*SHADOWX ; i++)
 			FPRINTF(stderr, "%5d ", matrix2[j][i]);
 		FPRINTF(stderr,"\n");
 	}
-        FPRINTF(stderr,"\n");
+	FPRINTF(stderr,"\n");
 	for(j=0 ; j<PARTSY ; j++)
 		for(i=0 ; i<PARTSX ; i++)
 			for (l=0 ; l<NY/PARTSY + 2*SHADOWY ; l++)

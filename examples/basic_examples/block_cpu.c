@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,18 +22,18 @@ void cpu_codelet(void *descr[], void *_args)
 	int nx = (int)STARPU_BLOCK_GET_NX(descr[0]);
 	int ny = (int)STARPU_BLOCK_GET_NY(descr[0]);
 	int nz = (int)STARPU_BLOCK_GET_NZ(descr[0]);
-        unsigned ldy = STARPU_BLOCK_GET_LDY(descr[0]);
-        unsigned ldz = STARPU_BLOCK_GET_LDZ(descr[0]);
-        float *multiplier = (float *)_args;
-        int i, j, k;
+	unsigned ldy = STARPU_BLOCK_GET_LDY(descr[0]);
+	unsigned ldz = STARPU_BLOCK_GET_LDZ(descr[0]);
+	float *multiplier = (float *)_args;
+	int i, j, k;
 
-        for(k=0; k<nz ; k++)
+	for(k=0; k<nz ; k++)
 	{
-                for(j=0; j<ny ; j++)
+		for(j=0; j<ny ; j++)
 		{
-                        for(i=0; i<nx ; i++)
-                                block[(k*ldz)+(j*ldy)+i] *= *multiplier;
-                }
-        }
+			for(i=0; i<nx ; i++)
+				block[(k*ldz)+(j*ldy)+i] *= *multiplier;
+		}
+	}
 }
 

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -92,8 +92,8 @@ int main(void)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 #ifdef STARPU_HAVE_VALGRIND_H
-       if (RUNNING_ON_VALGRIND)
-               ntasks = 8;
+	if (RUNNING_ON_VALGRIND)
+		ntasks = 8;
 #endif
 
 #ifdef STARPU_USE_CPU

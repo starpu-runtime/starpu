@@ -166,7 +166,7 @@ static void init_problem(int argc, char **argv, int rank, int world_size)
 
 static void free_problem(int rank)
 {
-    free_memory_on_node(rank);
+	free_memory_on_node(rank);
 	free_blocks_array();
 	free(who_runs_what);
 	free(who_runs_what_index);
@@ -254,8 +254,8 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef STARPU_USE_OPENCL
-        opencl_life_init();
-        opencl_shadow_init();
+	opencl_life_init();
+	opencl_shadow_init();
 #endif /*STARPU_USE_OPENCL*/
 
 	init_problem(argc, argv, rank, world_size);
@@ -277,7 +277,7 @@ int main(int argc, char **argv)
 
 	//wait_end_tasks(rank);
 
-    starpu_task_wait_for_all();
+	starpu_task_wait_for_all();
 
 	end = starpu_timing_now();
 
@@ -390,8 +390,8 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef STARPU_USE_OPENCL
-        opencl_life_free();
-        opencl_shadow_free();
+	opencl_life_free();
+	opencl_shadow_free();
 #endif /*STARPU_USE_OPENCL*/
 
 	return 0;

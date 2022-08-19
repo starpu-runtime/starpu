@@ -63,7 +63,6 @@ int mm_write_mtx_array_size(FILE *f, int M, int N);
 
 int mm_is_valid(MM_typecode matcode);		/* too complex for a macro */
 
-
 /********************* MM_typecode modify fucntions ***************************/
 
 #define mm_set_matrix(typecode)	((*typecode)[0]='M')
@@ -88,9 +87,7 @@ int mm_is_valid(MM_typecode matcode);		/* too complex for a macro */
 
 #define mm_initialize_typecode(typecode) mm_clear_typecode(typecode)
 
-
 /********************* Matrix Market error codes ***************************/
-
 
 #define MM_COULD_NOT_READ_FILE	11
 #define MM_PREMATURE_EOF		12
@@ -100,21 +97,20 @@ int mm_is_valid(MM_typecode matcode);		/* too complex for a macro */
 #define MM_LINE_TOO_LONG		16
 #define MM_COULD_NOT_WRITE_FILE	17
 
-
 /******************** Matrix Market internal definitions ********************
-
-   MM_matrix_typecode: 4-character sequence
-
-				    ojbect 		sparse/   	data        storage
-						  		dense     	type        scheme
-
-   string position:	 [0]        [1]			[2]         [3]
-
-   Matrix typecode:  M(atrix)  C(oord)		R(eal)   	G(eneral)
-						        A(array)	C(omplex)   H(ermitian)
-											P(attern)   S(ymmetric)
-								    		I(nteger)	K(kew)
-
+ *
+ *  MM_matrix_typecode: 4-character sequence
+ *
+ *				    ojbect 		sparse/   	data        storage
+ *						  		dense     	type        scheme
+ *
+ *   string position:	 [0]        [1]			[2]         [3]
+ *
+ *   Matrix typecode:  M(atrix)  C(oord)		R(eal)   	G(eneral)
+ *						        A(array)	C(omplex)   H(ermitian)
+ *											P(attern)   S(ymmetric)
+ *								    		I(nteger)	K(kew)
+ *
  ***********************************************************************/
 
 #define MM_MTX_STR		"matrix"
@@ -131,19 +127,16 @@ int mm_is_valid(MM_typecode matcode);		/* too complex for a macro */
 #define MM_SKEW_STR		"skew-symmetric"
 #define MM_PATTERN_STR  "pattern"
 
-
 /*  high level routines */
 
 int mm_write_mtx_crd(char fname[], int M, int N, int nz, int I_[], int J[],
-		 double val[], MM_typecode matcode);
+		     double val[], MM_typecode matcode);
 int mm_read_mtx_crd_data(FILE *f, int M, int N, int nz, int I_[], int J[],
-		double val[], MM_typecode matcode);
+			 double val[], MM_typecode matcode);
 int mm_read_mtx_crd_entry(FILE *f, int *I_, int *J, double *real, double *img,
-			MM_typecode matcode);
-
+			  MM_typecode matcode);
 int mm_read_unsymmetric_sparse(const char *fname, int *M_, int *N_, int *nz_,
-                double **val_, int **I_, int **J_);
-
+			       double **val_, int **I_, int **J_);
 
 
 #endif

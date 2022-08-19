@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -66,7 +66,7 @@ int MPI_TAG_LAYERS(int z, int buffer)
 {
 	z = (z + nbz)%nbz;
 
-    /* No direction for layers ; layer is 0 */
+	/* No direction for layers ; layer is 0 */
 	int tag = mpi_tag_common(z, 0, 0, buffer);
 
 	return tag;
@@ -386,11 +386,11 @@ void free_memory_on_node(int rank)
 			free_block_on_node(block->layers_handle[0], (sizex + 2*K), (sizey + 2*K), K);
 			free_block_on_node(block->layers_handle[1], (sizex + 2*K), (sizey + 2*K), K);
 		}
-        else
-        {
-            starpu_data_unregister(block->layers_handle[0]);
-            starpu_data_unregister(block->layers_handle[1]);
-        }
+		else
+		{
+			starpu_data_unregister(block->layers_handle[0]);
+			starpu_data_unregister(block->layers_handle[1]);
+		}
 
 		/* Boundary blocks : Top */
 		if (node == rank)
@@ -398,11 +398,11 @@ void free_memory_on_node(int rank)
 			free_block_on_node(block->boundaries_handle[T][0], (sizex + 2*K), (sizey + 2*K), K);
 			free_block_on_node(block->boundaries_handle[T][1], (sizex + 2*K), (sizey + 2*K), K);
 		}
-        else
-        {
-            starpu_data_unregister(block->boundaries_handle[T][0]);
-            starpu_data_unregister(block->boundaries_handle[T][1]);
-        }
+		else
+		{
+			starpu_data_unregister(block->boundaries_handle[T][0]);
+			starpu_data_unregister(block->boundaries_handle[T][1]);
+		}
 
 		/* Boundary blocks : Bottom */
 		if (node == rank)
@@ -410,11 +410,11 @@ void free_memory_on_node(int rank)
 			free_block_on_node(block->boundaries_handle[B][0], (sizex + 2*K), (sizey + 2*K), K);
 			free_block_on_node(block->boundaries_handle[B][1], (sizex + 2*K), (sizey + 2*K), K);
 		}
-        else
-        {
-            starpu_data_unregister(block->boundaries_handle[B][0]);
-            starpu_data_unregister(block->boundaries_handle[B][1]);
-        }
+		else
+		{
+			starpu_data_unregister(block->boundaries_handle[B][0]);
+			starpu_data_unregister(block->boundaries_handle[B][1]);
+		}
 	}
 }
 

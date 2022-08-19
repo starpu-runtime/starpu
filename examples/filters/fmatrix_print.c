@@ -20,17 +20,17 @@
 
 void print_matrix(int *matrix, int nx, int ny, unsigned ld)
 {
-        int i, j;
-        FPRINTF(stderr, "matrix=%p nx=%d ny=%d ld=%u\n", matrix, nx, ny, ld);
-        for(j=0 ; j<ny ; j++)
-        {
-                for(i=0 ; i<nx ; i++)
-                {
-                        FPRINTF(stderr, "%4d ", matrix[(j*ld)+i]);
-                }
-                FPRINTF(stderr,"\n");
-        }
-        FPRINTF(stderr,"\n");
+	int i, j;
+	FPRINTF(stderr, "matrix=%p nx=%d ny=%d ld=%u\n", matrix, nx, ny, ld);
+	for(j=0 ; j<ny ; j++)
+	{
+		for(i=0 ; i<nx ; i++)
+		{
+			FPRINTF(stderr, "%4d ", matrix[(j*ld)+i]);
+		}
+		FPRINTF(stderr,"\n");
+	}
+	FPRINTF(stderr,"\n");
 }
 
 void print_matrix_data(starpu_data_handle_t matrix_handle)

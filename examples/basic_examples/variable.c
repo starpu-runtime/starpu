@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -40,7 +40,7 @@ struct starpu_opencl_program opencl_program;
 int main(int argc, char **argv)
 {
 	unsigned i;
-        float foo;
+	float foo;
 	starpu_data_handle_t float_array_handle;
 	struct starpu_codelet cl;
 	int ret;
@@ -49,29 +49,29 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-        if (argc == 2) niter = atoi(argv[1]);
-        foo = 0.0f;
+	if (argc == 2) niter = atoi(argv[1]);
+	foo = 0.0f;
 
 	starpu_variable_data_register(&float_array_handle, STARPU_MAIN_RAM /* home node */,
-                                      (uintptr_t)&foo, sizeof(float));
+				      (uintptr_t)&foo, sizeof(float));
 
 #ifdef STARPU_USE_OPENCL
-        ret = starpu_opencl_load_opencl_from_file("examples/basic_examples/variable_kernels_opencl_kernel.cl", &opencl_program, NULL);
+	ret = starpu_opencl_load_opencl_from_file("examples/basic_examples/variable_kernels_opencl_kernel.cl", &opencl_program, NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
 #endif
 
 	starpu_codelet_init(&cl);
-        cl.cpu_funcs[0] = cpu_codelet;
-        cl.cpu_funcs_name[0] = "cpu_codelet";
+	cl.cpu_funcs[0] = cpu_codelet;
+	cl.cpu_funcs_name[0] = "cpu_codelet";
 #ifdef STARPU_USE_CUDA
-        cl.cuda_funcs[0] = cuda_codelet;
+	cl.cuda_funcs[0] = cuda_codelet;
 #endif
 #ifdef STARPU_USE_OPENCL
-        cl.opencl_funcs[0] = opencl_codelet;
+	cl.opencl_funcs[0] = opencl_codelet;
 #endif
-        cl.nbuffers = 1;
+	cl.nbuffers = 1;
 	cl.modes[0] = STARPU_RW;
-        cl.model = NULL;
+	cl.model = NULL;
 	cl.name = "variable_inc";
 
 	for (i = 0; i < niter; i++)

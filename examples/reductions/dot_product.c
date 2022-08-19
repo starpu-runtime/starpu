@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -103,7 +103,7 @@ void init_cuda_func(void *descr[], void *cl_arg)
 void init_opencl_func(void *buffers[], void *cl_arg)
 {
 	(void)cl_arg;
-        cl_int err;
+	cl_int err;
 	cl_command_queue queue;
 
 	cl_mem dot = (cl_mem) STARPU_VARIABLE_GET_PTR(buffers[0]);
@@ -111,17 +111,16 @@ void init_opencl_func(void *buffers[], void *cl_arg)
 	DOT_TYPE zero = (DOT_TYPE) 0.0;
 
 	err = clEnqueueWriteBuffer(queue,
-			dot,
-			CL_TRUE,
-			0,
-			sizeof(DOT_TYPE),
-			&zero,
-			0,
-			NULL,
-			NULL);
+				   dot,
+				   CL_TRUE,
+				   0,
+				   sizeof(DOT_TYPE),
+				   &zero,
+				   0,
+				   NULL,
+				   NULL);
 	if (err != CL_SUCCESS)
 		STARPU_OPENCL_REPORT_ERROR(err);
-
 }
 #endif
 
@@ -164,7 +163,7 @@ void redux_opencl_func(void *buffers[], void *args)
 {
 	(void)args;
 	int id, devid;
-        cl_int err;
+	cl_int err;
 	cl_kernel kernel;
 	cl_command_queue queue;
 
@@ -175,24 +174,21 @@ void redux_opencl_func(void *buffers[], void *args)
 	devid = starpu_worker_get_devid(id);
 
 	err = starpu_opencl_load_kernel(&kernel, &queue, &_opencl_program, "_redux_opencl", devid);
-	if (err != CL_SUCCESS)
-		STARPU_OPENCL_REPORT_ERROR(err);
+	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
 	err = clSetKernelArg(kernel, 0, sizeof(dota), &dota);
 	err|= clSetKernelArg(kernel, 1, sizeof(dotb), &dotb);
-	if (err != CL_SUCCESS)
-		STARPU_OPENCL_REPORT_ERROR(err);
+	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
 	{
 		size_t global=1;
-                size_t local=1;
-                cl_device_id device;
+		size_t local=1;
+		cl_device_id device;
 
-                starpu_opencl_get_device(devid, &device);
+		starpu_opencl_get_device(devid, &device);
 
 		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
-		if (err != CL_SUCCESS)
-			STARPU_OPENCL_REPORT_ERROR(err);
+		if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 	}
 	starpu_opencl_release_kernel(kernel);
 }
@@ -274,7 +270,7 @@ void dot_opencl_func(void *buffers[], void *cl_arg)
 {
 	(void)cl_arg;
 	int id, devid;
-        cl_int err;
+	cl_int err;
 	cl_kernel kernel;
 	cl_command_queue queue;
 
@@ -287,26 +283,23 @@ void dot_opencl_func(void *buffers[], void *cl_arg)
 	devid = starpu_worker_get_devid(id);
 
 	err = starpu_opencl_load_kernel(&kernel, &queue, &_opencl_program, "_dot_opencl", devid);
-	if (err != CL_SUCCESS)
-		STARPU_OPENCL_REPORT_ERROR(err);
+	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
 	err = clSetKernelArg(kernel, 0, sizeof(x), &x);
 	err|= clSetKernelArg(kernel, 1, sizeof(y), &y);
 	err|= clSetKernelArg(kernel, 2, sizeof(dot), &dot);
 	err|= clSetKernelArg(kernel, 3, sizeof(n), &n);
-	if (err != CL_SUCCESS)
-		STARPU_OPENCL_REPORT_ERROR(err);
+	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
 	{
 		size_t global=1;
-                size_t local=1;
-                cl_device_id device;
+		size_t local=1;
+		cl_device_id device;
 
-                starpu_opencl_get_device(devid, &device);
+		starpu_opencl_get_device(devid, &device);
 
 		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
-		if (err != CL_SUCCESS)
-			STARPU_OPENCL_REPORT_ERROR(err);
+		if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 	}
 	starpu_opencl_release_kernel(kernel);
 }
@@ -380,7 +373,7 @@ int main(void)
 
 	assert(_x && _y);
 
-        starpu_srand48(0);
+	starpu_srand48(0);
 
 	DOT_TYPE reference_dot = 0.0;
 
@@ -440,8 +433,8 @@ int main(void)
 #endif
 
 #ifdef STARPU_USE_OPENCL
-        ret = starpu_opencl_unload_opencl(&_opencl_program);
-        STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
+	ret = starpu_opencl_unload_opencl(&_opencl_program);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
 #endif
 	starpu_shutdown();
 
@@ -463,6 +456,6 @@ enodev:
 	starpu_shutdown();
 	FPRINTF(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one
- 	 * could perform the kernel, so this is not an error from StarPU */
+	 * could perform the kernel, so this is not an error from StarPU */
 	return 77;
 }

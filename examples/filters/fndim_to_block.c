@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -39,98 +39,98 @@ extern void print_block_data(starpu_data_handle_t block_handle);
 
 int main(void)
 {
-        int *arr3d;
-        int i, j, k;
+	int *arr3d;
+	int i, j, k;
 	int ret;
-        int factor = 2;
+	int factor = 2;
 
 	starpu_data_handle_t handle;
 	struct starpu_codelet cl =
 	{
-                .cpu_funcs = {block_cpu_func},
-                .cpu_funcs_name = {"block_cpu_func"},
+		.cpu_funcs = {block_cpu_func},
+		.cpu_funcs_name = {"block_cpu_func"},
 #ifdef STARPU_USE_CUDA
-                .cuda_funcs = {block_cuda_func},
-                .cuda_flags = {STARPU_CUDA_ASYNC},
+		.cuda_funcs = {block_cuda_func},
+		.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_HIP
-                .hip_funcs = {block_hip_func},
-                .hip_flags = {STARPU_HIP_ASYNC},
+		.hip_funcs = {block_hip_func},
+		.hip_flags = {STARPU_HIP_ASYNC},
 #endif
 		.nbuffers = 1,
-                .modes = {STARPU_RW},
+		.modes = {STARPU_RW},
 		.name = "arr3d_to_matrix_scal"
 	};
 
-        ret = starpu_init(NULL);
+	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
 		exit(77);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-        starpu_malloc((void **)&arr3d, NX*NY*NZ*sizeof(int));
-        assert(arr3d);
-        generate_block_data(arr3d, NX, NY, NZ, NX, NX*NY);
+	starpu_malloc((void **)&arr3d, NX*NY*NZ*sizeof(int));
+	assert(arr3d);
+	generate_block_data(arr3d, NX, NY, NZ, NX, NX*NY);
 
-        unsigned nn[3] = {NX, NY, NZ};
-        unsigned ldn[3] = {1, NX, NX*NY};
+	unsigned nn[3] = {NX, NY, NZ};
+	unsigned ldn[3] = {1, NX, NX*NY};
 
-        /* Declare data to StarPU */
-        starpu_ndim_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)arr3d, ldn, nn, 3, sizeof(int));
-        FPRINTF(stderr, "IN 3-dim Array: \n");
-        print_3dim_data(handle);
+	/* Declare data to StarPU */
+	starpu_ndim_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)arr3d, ldn, nn, 3, sizeof(int));
+	FPRINTF(stderr, "IN 3-dim Array: \n");
+	print_3dim_data(handle);
 
-        /* Partition the 3-dim array in PARTS sub-blocks */
+	/* Partition the 3-dim array in PARTS sub-blocks */
 	struct starpu_data_filter f =
 	{
 		.filter_func = starpu_ndim_filter_to_block,
-                .filter_arg = 0, //Partition the array along X dimension
-                .nchildren = PARTS,
-                /* the children use a block interface*/
-                .get_child_ops = starpu_ndim_filter_to_block_child_ops
+		.filter_arg = 0, //Partition the array along X dimension
+		.nchildren = PARTS,
+		/* the children use a block interface*/
+		.get_child_ops = starpu_ndim_filter_to_block_child_ops
 	};
-        starpu_data_partition(handle, &f);
+	starpu_data_partition(handle, &f);
 
-        FPRINTF(stderr,"Nb of partitions : %d\n",starpu_data_get_nb_children(handle));
+	FPRINTF(stderr,"Nb of partitions : %d\n",starpu_data_get_nb_children(handle));
 
-        for(i=0 ; i<starpu_data_get_nb_children(handle) ; i++)
-        {
-                starpu_data_handle_t block_handle = starpu_data_get_sub_data(handle, 1, i);
-                FPRINTF(stderr, "Sub Block %d: \n", i);
-                print_block_data(block_handle);
+	for(i=0 ; i<starpu_data_get_nb_children(handle) ; i++)
+	{
+		starpu_data_handle_t block_handle = starpu_data_get_sub_data(handle, 1, i);
+		FPRINTF(stderr, "Sub Block %d: \n", i);
+		print_block_data(block_handle);
 
-                /* Submit a task on each sub-block */
-                struct starpu_task *task = starpu_task_create();
+		/* Submit a task on each sub-block */
+		struct starpu_task *task = starpu_task_create();
 
-                FPRINTF(stderr,"Dealing with sub-block %d\n", i);
-                task->cl = &cl;
-                task->synchronous = 1;
-                task->callback_func = NULL;
-                task->handles[0] = block_handle;
-                task->cl_arg = &factor;
-                task->cl_arg_size = sizeof(factor);
+		FPRINTF(stderr,"Dealing with sub-block %d\n", i);
+		task->cl = &cl;
+		task->synchronous = 1;
+		task->callback_func = NULL;
+		task->handles[0] = block_handle;
+		task->cl_arg = &factor;
+		task->cl_arg_size = sizeof(factor);
 
-                ret = starpu_task_submit(task);
-                if (ret == -ENODEV) goto enodev;
-                STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+		ret = starpu_task_submit(task);
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-                /* Print result block */
-                FPRINTF(stderr, "OUT Block %d: \n", i);
-                print_block_data(block_handle);
-        }
+		/* Print result block */
+		FPRINTF(stderr, "OUT Block %d: \n", i);
+		print_block_data(block_handle);
+	}
 
-        /* Unpartition the data, unregister it from StarPU and shutdown */
-        starpu_data_unpartition(handle, STARPU_MAIN_RAM);
-        FPRINTF(stderr, "OUT 3-dim Array: \n");
-        print_3dim_data(handle);
-        starpu_data_unregister(handle);
+	/* Unpartition the data, unregister it from StarPU and shutdown */
+	starpu_data_unpartition(handle, STARPU_MAIN_RAM);
+	FPRINTF(stderr, "OUT 3-dim Array: \n");
+	print_3dim_data(handle);
+	starpu_data_unregister(handle);
 
-        starpu_free_noflag(arr3d, NX*NY*NZ*sizeof(int));
-        
-        starpu_shutdown();
-        return 0;
+	starpu_free_noflag(arr3d, NX*NY*NZ*sizeof(int));
+
+	starpu_shutdown();
+	return 0;
 
 enodev:
-        FPRINTF(stderr, "WARNING: No one can execute this task\n");
-        starpu_shutdown();
-        return 77;
+	FPRINTF(stderr, "WARNING: No one can execute this task\n");
+	starpu_shutdown();
+	return 77;
 }

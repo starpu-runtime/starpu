@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,16 +24,16 @@ void copy_complex_codelet_opencl(void *buffers[], void *_args)
 	(void) _args;
 
 	int id, devid;
-        cl_int err;
+	cl_int err;
 	cl_kernel kernel;
 	cl_command_queue queue;
 
 	/* length of the vector */
 	unsigned n = STARPU_COMPLEX_GET_NX(buffers[0]);
 	/* OpenCL copy of the vector pointer */
-	cl_mem i_real      = (cl_mem) STARPU_COMPLEX_GET_REAL(buffers[0]);
+	cl_mem i_real	   = (cl_mem) STARPU_COMPLEX_GET_REAL(buffers[0]);
 	cl_mem i_imaginary = (cl_mem) STARPU_COMPLEX_GET_IMAGINARY(buffers[0]);
-	cl_mem o_real      = (cl_mem) STARPU_COMPLEX_GET_REAL(buffers[1]);
+	cl_mem o_real	   = (cl_mem) STARPU_COMPLEX_GET_REAL(buffers[1]);
 	cl_mem o_imaginary = (cl_mem) STARPU_COMPLEX_GET_IMAGINARY(buffers[1]);
 
 	id = starpu_worker_get_id_check();
@@ -54,18 +54,18 @@ void copy_complex_codelet_opencl(void *buffers[], void *_args)
 	{
 		size_t global=n;
 		size_t local;
-                size_t s;
-                cl_device_id device;
+		size_t s;
+		cl_device_id device;
 
-                starpu_opencl_get_device(devid, &device);
+		starpu_opencl_get_device(devid, &device);
 
-                err = clGetKernelWorkGroupInfo (kernel, device, CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, &s);
-                if (err != CL_SUCCESS)
+		err = clGetKernelWorkGroupInfo (kernel, device, CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, &s);
+		if (err != CL_SUCCESS)
 			STARPU_OPENCL_REPORT_ERROR(err);
-                if (local > global)
+		if (local > global)
 			local=global;
-                else
-                        global = (global + local-1) / local * local;
+		else
+			global = (global + local-1) / local * local;
 
 		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
 		if (err != CL_SUCCESS)

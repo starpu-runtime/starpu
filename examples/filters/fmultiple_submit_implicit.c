@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -184,7 +184,7 @@ int main(void)
 		cl_check.cpu_funcs[0] = NULL;
 		cl_check.cpu_funcs_name[0] = NULL;
 	}
-        /* Disable codelet on CPUs if we have a HIP device, to force remote execution on the HIp device */
+	/* Disable codelet on CPUs if we have a HIP device, to force remote execution on the HIp device */
 	if (starpu_hip_worker_get_count())
 	{
 		cl_check_scale.cpu_funcs[0] = NULL;

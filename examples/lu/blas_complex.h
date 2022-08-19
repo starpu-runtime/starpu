@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,9 +23,9 @@
 #define MKLcomplex16 complex double
 #endif
 
-void CGEMM(char *transa, char *transb, int M, int N, int K, complex float alpha, complex float *A, int lda, 
+void CGEMM(char *transa, char *transb, int M, int N, int K, complex float alpha, complex float *A, int lda,
 		complex float *B, int ldb, complex float beta, complex float *C, int ldc);
-void ZGEMM(char *transa, char *transb, int M, int N, int K, complex double alpha, complex double *A, int lda, 
+void ZGEMM(char *transa, char *transb, int M, int N, int K, complex double alpha, complex double *A, int lda,
 		complex double *B, int ldb, complex double beta, complex double *C, int ldc);
 void CGEMV(char *transa, int M, int N, complex float alpha, complex float *A, int lda,
 		complex float *X, int incX, complex float beta, complex float *Y, int incY);
@@ -36,39 +36,39 @@ double DZASUM(int N, complex double *X, int incX);
 void CSCAL(int N, complex float alpha, complex float *X, int incX);
 void ZSCAL(int N, complex double alpha, complex double *X, int incX);
 void CTRSM (const char *side, const char *uplo, const char *transa,
-                   const char *diag, const int m, const int n,
-                   const complex float alpha, const complex float *A, const int lda,
-                   complex float *B, const int ldb);
+	    const char *diag, const int m, const int n,
+	    const complex float alpha, const complex float *A, const int lda,
+	    complex float *B, const int ldb);
 void ZTRSM (const char *side, const char *uplo, const char *transa,
-                   const char *diag, const int m, const int n,
-                   const complex double alpha, const complex double *A, const int lda,
-                   complex double *B, const int ldb);
+	    const char *diag, const int m, const int n,
+	    const complex double alpha, const complex double *A, const int lda,
+	    complex double *B, const int ldb);
 void CSYR (const char *uplo, const int n, const complex float alpha,
-                  const complex float *x, const int incx, complex float *A, const int lda);
+	   const complex float *x, const int incx, complex float *A, const int lda);
 void CSYRK (const char *uplo, const char *trans, const int n,
-                   const int k, const complex float alpha, const complex float *A,
-                   const int lda, const complex float beta, complex float *C,
-                   const int ldc);
+	    const int k, const complex float alpha, const complex float *A,
+	    const int lda, const complex float beta, complex float *C,
+	    const int ldc);
 void CGERU (const int m, const int n, const complex float alpha,
-                  const complex float *x, const int incx, const complex float *y,
-                  const int incy, complex float *A, const int lda);
+	    const complex float *x, const int incx, const complex float *y,
+	    const int incy, complex float *A, const int lda);
 void ZGERU(const int m, const int n, const complex double alpha,
-                  const complex double *x, const int incx, const complex double *y,
-                  const int incy, complex double *A, const int lda);
-void CTRSV (const char *uplo, const char *trans, const char *diag, 
-                   const int n, const complex float *A, const int lda, complex float *x, 
-                   const int incx);
+	   const complex double *x, const int incx, const complex double *y,
+	   const int incy, complex double *A, const int lda);
+void CTRSV (const char *uplo, const char *trans, const char *diag,
+	    const int n, const complex float *A, const int lda, complex float *x,
+	    const int incx);
 void CTRMM(const char *side, const char *uplo, const char *transA,
-                 const char *diag, const int m, const int n,
-                 const complex float alpha, const complex float *A, const int lda,
-                 complex float *B, const int ldb);
+	   const char *diag, const int m, const int n,
+	   const complex float alpha, const complex float *A, const int lda,
+	   complex float *B, const int ldb);
 void ZTRMM(const char *side, const char *uplo, const char *transA,
-                 const char *diag, const int m, const int n,
-                 const complex double alpha, const complex double *A, const int lda,
-                 complex double *B, const int ldb);
+	   const char *diag, const int m, const int n,
+	   const complex double alpha, const complex double *A, const int lda,
+	   complex double *B, const int ldb);
 void CTRMV(const char *uplo, const char *transA, const char *diag,
-                 const int n, const complex float *A, const int lda, complex float *X,
-                 const int incX);
+	   const int n, const complex float *A, const int lda, complex float *X,
+	   const int incX);
 void CAXPY(const int n, const complex float alpha, complex float *X, const int incX, complex float *Y, const int incy);
 void ZAXPY(const int n, const complex double alpha, complex double *X, const int incX, complex double *Y, const int incY);
 int ICAMAX (const int n, complex float *X, const int incX);
@@ -83,65 +83,65 @@ void ZSWAP(const int n, complex double *x, const int incx, complex double *y, co
 #elif defined(STARPU_OPENBLAS) || defined(STARPU_MKL)
 
 extern void cgemm_ (const char *transa, const char *transb, const int *m,
-                   const int *n, const int *k, const complex float *alpha, 
-                   const complex float *A, const int *lda, const complex float *B, 
-                   const int *ldb, const complex float *beta, complex float *C, 
-                   const int *ldc);
+		    const int *n, const int *k, const complex float *alpha,
+		    const complex float *A, const int *lda, const complex float *B,
+		    const int *ldb, const complex float *beta, complex float *C,
+		    const int *ldc);
 extern void zgemm_ (const char *transa, const char *transb, const int *m,
-                   const int *n, const int *k, const complex double *alpha, 
-                   const complex double *A, const int *lda, const complex double *B, 
-                   const int *ldb, const complex double *beta, complex double *C, 
-                   const int *ldc);
+		    const int *n, const int *k, const complex double *alpha,
+		    const complex double *A, const int *lda, const complex double *B,
+		    const int *ldb, const complex double *beta, complex double *C,
+		    const int *ldc);
 extern void cgemv_(const char *trans, int *m, int *n, complex float *alpha,
-                   void *a, int *lda, void *x, int *incx, 
-                   complex float *beta, void *y, int *incy);
+		   void *a, int *lda, void *x, int *incx,
+		   complex float *beta, void *y, int *incy);
 extern void zgemv_(const char *trans, int *m, int *n, complex double *alpha,
-                   void *a, int *lda, void *x, int *incx,
-                   complex double *beta, void *y, int *incy);
+		   void *a, int *lda, void *x, int *incx,
+		   complex double *beta, void *y, int *incy);
 extern void csyr_ (const char *uplo, const int *n, const complex float *alpha,
-                  const complex float *x, const int *incx, complex float *A, const int *lda);
+		   const complex float *x, const int *incx, complex float *A, const int *lda);
 extern void csyrk_ (const char *uplo, const char *trans, const int *n,
-                   const int *k, const complex float *alpha, const complex float *A,
-                   const int *lda, const complex float *beta, complex float *C,
-                   const int *ldc);
-extern void ctrsm_ (const char *side, const char *uplo, const char *transa, 
-                   const char *diag, const int *m, const int *n,
-                   const complex float *alpha, const complex float *A, const int *lda,
-                   complex float *B, const int *ldb);
-extern void ztrsm_ (const char *side, const char *uplo, const char *transa, 
-                   const char *diag, const int *m, const int *n,
-                   const complex double *alpha, const complex double *A, const int *lda,
-                   complex double *B, const int *ldb);
+		    const int *k, const complex float *alpha, const complex float *A,
+		    const int *lda, const complex float *beta, complex float *C,
+		    const int *ldc);
+extern void ctrsm_ (const char *side, const char *uplo, const char *transa,
+		    const char *diag, const int *m, const int *n,
+		    const complex float *alpha, const complex float *A, const int *lda,
+		    complex float *B, const int *ldb);
+extern void ztrsm_ (const char *side, const char *uplo, const char *transa,
+		    const char *diag, const int *m, const int *n,
+		    const complex double *alpha, const complex double *A, const int *lda,
+		    complex double *B, const int *ldb);
 extern complex double scasum_ (const int *n, const complex float *x, const int *incx);
 extern complex double dzasum_ (const int *n, const complex double *x, const int *incx);
 extern void cscal_ (const int *n, const complex float *alpha, complex float *x,
-                   const int *incx);
+		    const int *incx);
 extern void zscal_ (const int *n, const complex double *alpha, complex double *x,
-                   const int *incx);
+		    const int *incx);
 extern void cgeru_(const int *m, const int *n, const complex float *alpha,
-                  const complex float *x, const int *incx, const complex float *y,
-                  const int *incy, complex float *A, const int *lda);
+		   const complex float *x, const int *incx, const complex float *y,
+		   const int *incy, complex float *A, const int *lda);
 extern void zgeru_(const int *m, const int *n, const complex double *alpha,
-                  const complex double *x, const int *incx, const complex double *y,
-                  const int *incy, complex double *A, const int *lda);
-extern void ctrsv_ (const char *uplo, const char *trans, const char *diag, 
-                   const int *n, const complex float *A, const int *lda, complex float *x, 
-                   const int *incx);
+		   const complex double *x, const int *incx, const complex double *y,
+		   const int *incy, complex double *A, const int *lda);
+extern void ctrsv_ (const char *uplo, const char *trans, const char *diag,
+		    const int *n, const complex float *A, const int *lda, complex float *x,
+		    const int *incx);
 extern void ctrmm_(const char *side, const char *uplo, const char *transA,
-                 const char *diag, const int *m, const int *n,
-                 const complex float *alpha, const complex float *A, const int *lda,
-                 complex float *B, const int *ldb);
+		   const char *diag, const int *m, const int *n,
+		   const complex float *alpha, const complex float *A, const int *lda,
+		   complex float *B, const int *ldb);
 extern void ztrmm_(const char *side, const char *uplo, const char *transA,
-                 const char *diag, const int *m, const int *n,
-                 const complex double *alpha, const complex double *A, const int *lda,
-                 complex double *B, const int *ldb);
+		   const char *diag, const int *m, const int *n,
+		   const complex double *alpha, const complex double *A, const int *lda,
+		   complex double *B, const int *ldb);
 extern void ctrmv_(const char *uplo, const char *transA, const char *diag,
-                 const int *n, const complex float *A, const int *lda, complex float *X,
-                 const int *incX);
+		   const int *n, const complex float *A, const int *lda, complex float *X,
+		   const int *incX);
 extern void caxpy_(const int *n, const complex float *alpha, complex float *X, const int *incX,
-		complex float *Y, const int *incy);
+		   complex float *Y, const int *incy);
 extern void zaxpy_(const int *n, const complex double *alpha, complex double *X, const int *incX,
-		complex double *Y, const int *incy);
+		   complex double *Y, const int *incy);
 extern int icamax_(const int *n, complex float *X, const int *incX);
 extern int izamax_(const int *n, complex double *X, const int *incX);
 /* for some reason, FLOATRET is not a float but a double in GOTOBLAS */

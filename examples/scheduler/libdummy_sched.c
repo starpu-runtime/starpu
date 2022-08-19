@@ -28,7 +28,7 @@
 struct dummy_sched_data
 {
 	struct starpu_task_list sched_list;
-     	starpu_pthread_mutex_t policy_mutex;
+	starpu_pthread_mutex_t policy_mutex;
 };
 
 static void init_dummy_sched(unsigned sched_ctx_id)
@@ -68,26 +68,23 @@ static int push_task_dummy(struct starpu_task *task)
 
 	/* lock all workers when pushing tasks on a list where all
 	   of them would pop for tasks */
-        STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 
 	starpu_task_list_push_front(&data->sched_list, task);
 
 	starpu_push_task_end(task);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
-
-        /*if there are no tasks block */
-        /* wake people waiting for a task */
+	/*if there are no tasks block */
+	/* wake people waiting for a task */
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
-
-        struct starpu_sched_ctx_iterator it;
-
+	struct starpu_sched_ctx_iterator it;
 	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
-        {
+	{
 		unsigned worker = workers->get_next(workers, &it);
 		starpu_wake_worker_relax_light(worker);
-        }
+	}
 
 	return 0;
 }

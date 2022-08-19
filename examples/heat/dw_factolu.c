@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  * Copyright (C) 2013       Thibaut Lambert
  *
@@ -259,7 +259,7 @@ void dw_callback_v2_codelet_update_trsm_ll(void *argcb)
 		{
 			/* perhaps we may schedule the 22 i,args->k,slicey task */
 			uint8_t u = STARPU_ATOMIC_OR(&advance_22[i*nblocks*nblocks + slicey*nblocks + k], STARTED);
-                        if ((u & STARTED) == 0)
+			if ((u & STARTED) == 0)
 			{
 				/* update that square matrix */
 				cl_args *ugemma = malloc(sizeof(cl_args));
@@ -320,7 +320,7 @@ void dw_callback_v2_codelet_update_trsm_ru(void *argcb)
 		{
 			/* perhaps we may schedule the 22 i,args->k,slicey task */
 			uint8_t u = STARPU_ATOMIC_OR(&advance_22[i*nblocks*nblocks + k*nblocks + slicex], STARTED);
-                        if ((u & STARTED) == 0)
+			if ((u & STARTED) == 0)
 			{
 				/* update that square matrix */
 				cl_args *ugemma = malloc(sizeof(cl_args));

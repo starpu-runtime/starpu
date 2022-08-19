@@ -378,7 +378,7 @@ int main(int argc, char **argv)
 	/* Factorize the matrix (in place) */
 	if (pivot)
 	{
- 		ipiv = malloc(size*sizeof(unsigned));
+		ipiv = malloc(size*sizeof(unsigned));
 		if (no_stride)
 		{
 			/* in case the LU decomposition uses non-strided blocks, we _copy_ the matrix into smaller blocks */

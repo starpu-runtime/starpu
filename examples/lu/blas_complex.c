@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,9 +22,9 @@
 #include "blas_complex.h"
 
 /*
-    This files contains BLAS wrappers for the different BLAS implementations
-  (eg. REFBLAS, STARPU_ATLAS, GOTOBLAS ...). We assume a Fortran orientation as most
-  libraries do not supply C-based ordering.
+ * This file contains BLAS wrappers for the different BLAS implementations
+ * (eg. REFBLAS, STARPU_ATLAS, GOTOBLAS ...). We assume a Fortran orientation as most
+ * libraries do not supply C-based ordering.
  */
 
 #ifdef STARPU_ATLAS
@@ -33,33 +33,32 @@
 #error not implemented
 #elif defined(STARPU_OPENBLAS) || defined(STARPU_MKL)
 
-inline void CGEMM(char *transa, char *transb, int M, int N, int K, 
-			complex float alpha, complex float *A, int lda, complex float *B, int ldb, 
-			complex float beta, complex float *C, int ldc)
+inline void CGEMM(char *transa, char *transb, int M, int N, int K,
+		  complex float alpha, complex float *A, int lda, complex float *B, int ldb,
+		  complex float beta, complex float *C, int ldc)
 {
 	cgemm_(transa, transb, &M, &N, &K, &alpha,
-			 A, &lda, B, &ldb,
-			 &beta, C, &ldc);	
+	       A, &lda, B, &ldb,
+	       &beta, C, &ldc);
 }
 
-inline void ZGEMM(char *transa, char *transb, int M, int N, int K, 
-			complex double alpha, complex double *A, int lda, complex double *B, int ldb, 
-			complex double beta, complex double *C, int ldc)
+inline void ZGEMM(char *transa, char *transb, int M, int N, int K,
+		  complex double alpha, complex double *A, int lda, complex double *B, int ldb,
+		  complex double beta, complex double *C, int ldc)
 {
 	zgemm_(transa, transb, &M, &N, &K, &alpha,
-			 A, &lda, B, &ldb,
-			 &beta, C, &ldc);	
+	       A, &lda, B, &ldb,
+	       &beta, C, &ldc);
 }
 
-
 inline void CGEMV(char *transa, int M, int N, complex float alpha, complex float *A, int lda,
-		complex float *X, int incX, complex float beta, complex float *Y, int incY)
+		  complex float *X, int incX, complex float beta, complex float *Y, int incY)
 {
 	cgemv_(transa, &M, &N, &alpha, A, &lda, X, &incX, &beta, Y, &incY);
 }
 
 inline void ZGEMV(char *transa, int M, int N, complex double alpha, complex double *A, int lda,
-		complex double *X, int incX, complex double beta, complex double *Y, int incY)
+		  complex double *X, int incX, complex double beta, complex double *Y, int incY)
 {
 	zgemv_(transa, &M, &N, &alpha, A, &lda, X, &incX, &beta, Y, &incY);
 }
@@ -85,75 +84,75 @@ void ZSCAL(int N, complex double alpha, complex double *X, int incX)
 }
 
 void CTRSM (const char *side, const char *uplo, const char *transa,
-                   const char *diag, const int m, const int n,
-                   const complex float alpha, const complex float *A, const int lda,
-                   complex float *B, const int ldb)
+	    const char *diag, const int m, const int n,
+	    const complex float alpha, const complex float *A, const int lda,
+	    complex float *B, const int ldb)
 {
 	ctrsm_(side, uplo, transa, diag, &m, &n, &alpha, A, &lda, B, &ldb);
 }
 
 void ZTRSM (const char *side, const char *uplo, const char *transa,
-                   const char *diag, const int m, const int n,
-                   const complex double alpha, const complex double *A, const int lda,
-                   complex double *B, const int ldb)
+	    const char *diag, const int m, const int n,
+	    const complex double alpha, const complex double *A, const int lda,
+	    complex double *B, const int ldb)
 {
 	ztrsm_(side, uplo, transa, diag, &m, &n, &alpha, A, &lda, B, &ldb);
 }
 
 void CSYR (const char *uplo, const int n, const complex float alpha,
-                  const complex float *x, const int incx, complex float *A, const int lda)
+	   const complex float *x, const int incx, complex float *A, const int lda)
 {
-	csyr_(uplo, &n, &alpha, x, &incx, A, &lda); 
+	csyr_(uplo, &n, &alpha, x, &incx, A, &lda);
 }
 
 void CSYRK (const char *uplo, const char *trans, const int n,
-                   const int k, const complex float alpha, const complex float *A,
-                   const int lda, const complex float beta, complex float *C,
-                   const int ldc)
+	    const int k, const complex float alpha, const complex float *A,
+	    const int lda, const complex float beta, complex float *C,
+	    const int ldc)
 {
-	csyrk_(uplo, trans, &n, &k, &alpha, A, &lda, &beta, C, &ldc); 
+	csyrk_(uplo, trans, &n, &k, &alpha, A, &lda, &beta, C, &ldc);
 }
 
 void CGERU(const int m, const int n, const complex float alpha,
-                  const complex float *x, const int incx, const complex float *y,
-                  const int incy, complex float *A, const int lda)
+	   const complex float *x, const int incx, const complex float *y,
+	   const int incy, complex float *A, const int lda)
 {
 	cgeru_(&m, &n, &alpha, x, &incx, y, &incy, A, &lda);
 }
 
 void ZGERU(const int m, const int n, const complex double alpha,
-                  const complex double *x, const int incx, const complex double *y,
-                  const int incy, complex double *A, const int lda)
+	   const complex double *x, const int incx, const complex double *y,
+	   const int incy, complex double *A, const int lda)
 {
 	zgeru_(&m, &n, &alpha, x, &incx, y, &incy, A, &lda);
 }
 
-void CTRSV (const char *uplo, const char *trans, const char *diag, 
-                   const int n, const complex float *A, const int lda, complex float *x, 
-                   const int incx)
+void CTRSV (const char *uplo, const char *trans, const char *diag,
+	    const int n, const complex float *A, const int lda, complex float *x,
+	    const int incx)
 {
 	ctrsv_(uplo, trans, diag, &n, A, &lda, x, &incx);
 }
 
 void CTRMM(const char *side, const char *uplo, const char *transA,
-                 const char *diag, const int m, const int n,
-                 const complex float alpha, const complex float *A, const int lda,
-                 complex float *B, const int ldb)
+	   const char *diag, const int m, const int n,
+	   const complex float alpha, const complex float *A, const int lda,
+	   complex float *B, const int ldb)
 {
 	ctrmm_(side, uplo, transA, diag, &m, &n, &alpha, A, &lda, B, &ldb);
 }
 
 void ZTRMM(const char *side, const char *uplo, const char *transA,
-                 const char *diag, const int m, const int n,
-                 const complex double alpha, const complex double *A, const int lda,
-                 complex double *B, const int ldb)
+	   const char *diag, const int m, const int n,
+	   const complex double alpha, const complex double *A, const int lda,
+	   complex double *B, const int ldb)
 {
 	ztrmm_(side, uplo, transA, diag, &m, &n, &alpha, A, &lda, B, &ldb);
 }
 
 void CTRMV(const char *uplo, const char *transA, const char *diag,
-                 const int n, const complex float *A, const int lda, complex float *X,
-                 const int incX)
+	   const int n, const complex float *A, const int lda, complex float *X,
+	   const int incX)
 {
 	ctrmv_(uplo, transA, diag, &n, A, &lda, X, &incX);
 }
@@ -170,16 +169,16 @@ void ZAXPY(const int n, const complex double alpha, complex double *X, const int
 
 int ICAMAX (const int n, complex float *X, const int incX)
 {
-    int retVal;
-    retVal = icamax_ (&n, X, &incX);
-    return retVal;
+	int retVal;
+	retVal = icamax_ (&n, X, &incX);
+	return retVal;
 }
 
 int IZAMAX (const int n, complex double *X, const int incX)
 {
-    int retVal;
-    retVal = izamax_ (&n, X, &incX);
-    return retVal;
+	int retVal;
+	retVal = izamax_ (&n, X, &incX);
+	return retVal;
 }
 
 complex float CDOTU(const int n, const complex float *x, const int incx, const complex float *y, const int incy)

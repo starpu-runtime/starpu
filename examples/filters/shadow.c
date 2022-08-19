@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
- * Copyright (C) 2010       Mehdi Juhoor
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010	    Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -30,9 +30,9 @@
  * is partitioned into 4 pieces:
  *
  * x0 x1 x2 x3
- *       x2 x3 x4 x5
- *             x4 x5 x6 x7
- *                   x6 x7 x8 x9
+ *	 x2 x3 x4 x5
+ *	       x4 x5 x6 x7
+ *		     x6 x7 x8 x9
  *
  * which are copied into the 4 destination subparts of vector2, thus getting in
  * the end:
@@ -52,17 +52,17 @@
 void cpu_func(void *buffers[], void *cl_arg)
 {
 	(void)cl_arg;
-        unsigned i;
+	unsigned i;
 
-        /* length of the shadowed source vector */
-        unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
-        /* local copy of the shadowed source vector pointer */
-        int *val = (int *)STARPU_VECTOR_GET_PTR(buffers[0]);
+	/* length of the shadowed source vector */
+	unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
+	/* local copy of the shadowed source vector pointer */
+	int *val = (int *)STARPU_VECTOR_GET_PTR(buffers[0]);
 
-        /* length of the destination vector */
-        unsigned n2 = STARPU_VECTOR_GET_NX(buffers[1]);
-        /* local copy of the destination vector pointer */
-        int *val2 = (int *)STARPU_VECTOR_GET_PTR(buffers[1]);
+	/* length of the destination vector */
+	unsigned n2 = STARPU_VECTOR_GET_NX(buffers[1]);
+	/* local copy of the destination vector pointer */
+	int *val2 = (int *)STARPU_VECTOR_GET_PTR(buffers[1]);
 
 	/* If things go right, sizes should match */
 	STARPU_ASSERT(n == n2);
@@ -74,15 +74,15 @@ void cpu_func(void *buffers[], void *cl_arg)
 void cuda_func(void *buffers[], void *cl_arg)
 {
 	(void)cl_arg;
-        /* length of the shadowed source vector */
-        unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
-        /* local copy of the shadowed source vector pointer */
-        int *val = (int *)STARPU_VECTOR_GET_PTR(buffers[0]);
+	/* length of the shadowed source vector */
+	unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
+	/* local copy of the shadowed source vector pointer */
+	int *val = (int *)STARPU_VECTOR_GET_PTR(buffers[0]);
 
-        /* length of the destination vector */
-        unsigned n2 = STARPU_VECTOR_GET_NX(buffers[1]);
-        /* local copy of the destination vector pointer */
-        int *val2 = (int *)STARPU_VECTOR_GET_PTR(buffers[1]);
+	/* length of the destination vector */
+	unsigned n2 = STARPU_VECTOR_GET_NX(buffers[1]);
+	/* local copy of the destination vector pointer */
+	int *val2 = (int *)STARPU_VECTOR_GET_PTR(buffers[1]);
 
 	/* If things go right, sizes should match */
 	STARPU_ASSERT(n == n2);
@@ -93,29 +93,29 @@ void cuda_func(void *buffers[], void *cl_arg)
 int main(void)
 {
 	unsigned j;
-        int vector[NX + 2*SHADOW];
-        int vector2[NX + PARTS*2*SHADOW];
+	int vector[NX + 2*SHADOW];
+	int vector2[NX + PARTS*2*SHADOW];
 	starpu_data_handle_t handle, handle2;
 	int ret, i;
 
-        struct starpu_codelet cl =
+	struct starpu_codelet cl =
 	{
-                .cpu_funcs = {cpu_func},
-                .cpu_funcs_name = {"cpu_func"},
+		.cpu_funcs = {cpu_func},
+		.cpu_funcs_name = {"cpu_func"},
 #ifdef STARPU_USE_CUDA
-                .cuda_funcs = {cuda_func},
+		.cuda_funcs = {cuda_func},
 		.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
-                .nbuffers = 2,
+		.nbuffers = 2,
 		.modes = {STARPU_R, STARPU_W}
-        };
+	};
 
-        for(i=0 ; i<NX ; i++) vector[SHADOW+i] = i;
+	for(i=0 ; i<NX ; i++) vector[SHADOW+i] = i;
 	for(i=0 ; i<SHADOW ; i++) vector[i] = vector[i+NX];
 	for(i=0 ; i<SHADOW ; i++) vector[SHADOW+NX+i] = vector[SHADOW+i];
-        FPRINTF(stderr,"IN  Vector: ");
-        for(i=0 ; i<NX + 2*SHADOW ; i++) FPRINTF(stderr, "%5d ", vector[i]);
-        FPRINTF(stderr,"\n");
+	FPRINTF(stderr,"IN  Vector: ");
+	for(i=0 ; i<NX + 2*SHADOW ; i++) FPRINTF(stderr, "%5d ", vector[i]);
+	FPRINTF(stderr,"\n");
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
@@ -128,7 +128,7 @@ int main(void)
 	/* Declare destination vector to StarPU */
 	starpu_vector_data_register(&handle2, STARPU_MAIN_RAM, (uintptr_t)vector2, NX + PARTS*2*SHADOW, sizeof(vector[0]));
 
-        /* Partition the source vector in PARTS sub-vectors with shadows */
+	/* Partition the source vector in PARTS sub-vectors with shadows */
 	/* NOTE: the resulting handles should only be used in read-only mode,
 	 * as StarPU will not know how the overlapping parts would have to be
 	 * combined. */
@@ -140,7 +140,7 @@ int main(void)
 	};
 	starpu_data_partition(handle, &f);
 
-        /* Partition the destination vector in PARTS sub-vectors */
+	/* Partition the destination vector in PARTS sub-vectors */
 	struct starpu_data_filter f2 =
 	{
 		.filter_func = starpu_vector_filter_block,
@@ -148,17 +148,17 @@ int main(void)
 	};
 	starpu_data_partition(handle2, &f2);
 
-        /* Submit a task on each sub-vector */
+	/* Submit a task on each sub-vector */
 	for (i=0; i<starpu_data_get_nb_children(handle); i++)
 	{
-                starpu_data_handle_t sub_handle = starpu_data_get_sub_data(handle, 1, i);
-                starpu_data_handle_t sub_handle2 = starpu_data_get_sub_data(handle2, 1, i);
-                struct starpu_task *task = starpu_task_create();
+		starpu_data_handle_t sub_handle = starpu_data_get_sub_data(handle, 1, i);
+		starpu_data_handle_t sub_handle2 = starpu_data_get_sub_data(handle2, 1, i);
+		struct starpu_task *task = starpu_task_create();
 
 		task->handles[0] = sub_handle;
 		task->handles[1] = sub_handle2;
-                task->cl = &cl;
-                task->synchronous = 1;
+		task->cl = &cl;
+		task->synchronous = 1;
 
 		ret = starpu_task_submit(task);
 		if (ret == -ENODEV) goto enodev;
@@ -167,13 +167,13 @@ int main(void)
 
 	starpu_data_unpartition(handle, STARPU_MAIN_RAM);
 	starpu_data_unpartition(handle2, STARPU_MAIN_RAM);
-        starpu_data_unregister(handle);
-        starpu_data_unregister(handle2);
+	starpu_data_unregister(handle);
+	starpu_data_unregister(handle2);
 	starpu_shutdown();
 
-        FPRINTF(stderr,"OUT Vector: ");
-        for(i=0 ; i<NX + PARTS*2*SHADOW ; i++) FPRINTF(stderr, "%5d ", vector2[i]);
-        FPRINTF(stderr,"\n");
+	FPRINTF(stderr,"OUT Vector: ");
+	for(i=0 ; i<NX + PARTS*2*SHADOW ; i++) FPRINTF(stderr, "%5d ", vector2[i]);
+	FPRINTF(stderr,"\n");
 	for(i=0 ; i<PARTS ; i++)
 		for (j=0 ; j<NX/PARTS ; j++)
 			STARPU_ASSERT(vector2[i*(NX/PARTS+2*SHADOW)+j] == vector[i*(NX/PARTS)+j]);

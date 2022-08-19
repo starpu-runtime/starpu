@@ -38,8 +38,7 @@ static unsigned use_cg = 0; /* use a LU decomposition of CG ? */
 static unsigned no_prio = 0;
 
 extern void do_conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
-              		unsigned nrow, uint32_t *colind, uint32_t *rowptr);
-
+				  unsigned nrow, uint32_t *colind, uint32_t *rowptr);
 
 static void parse_args(int argc, char **argv)
 {
@@ -355,8 +354,8 @@ static void solve_system(unsigned size, unsigned subsize, float *result, int *Re
 	unsigned i;
 
 	/* solve the actual problem LU X = B */
-        /* solve LX' = Y with X' = UX */
-        /* solve UX = X' */
+	/* solve LX' = Y with X' = UX */
+	/* solve UX = X' */
 	FPRINTF(stderr, "Solving the problem ...\n");
 
 	float *savedB = NULL;

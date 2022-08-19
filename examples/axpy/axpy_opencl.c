@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,7 +25,7 @@ void axpy_opencl(void *buffers[], void *_args)
 {
 	TYPE *alpha = _args;
 	int id, devid;
-        cl_int err;
+	cl_int err;
 	cl_kernel kernel;
 	cl_command_queue queue;
 
@@ -54,18 +54,18 @@ void axpy_opencl(void *buffers[], void *_args)
 	{
 		size_t global=n;
 		size_t local;
-                size_t s;
-                cl_device_id device;
+		size_t s;
+		cl_device_id device;
 
-                starpu_opencl_get_device(devid, &device);
+		starpu_opencl_get_device(devid, &device);
 
-                err = clGetKernelWorkGroupInfo (kernel, device, CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, &s);
-                if (err != CL_SUCCESS)
+		err = clGetKernelWorkGroupInfo (kernel, device, CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, &s);
+		if (err != CL_SUCCESS)
 			STARPU_OPENCL_REPORT_ERROR(err);
-                if (local > global)
+		if (local > global)
 			local=global;
-                else
-                        global = (global + local-1) / local * local;
+		else
+			global = (global + local-1) / local * local;
 
 		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
 		if (err != CL_SUCCESS)

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -46,49 +46,47 @@
 
 void create_task_memset(unsigned sizex, unsigned sizey, unsigned z)
 {
-    struct block_description *descr = get_block_description(z);
+	struct block_description *descr = get_block_description(z);
 
-    int ret = starpu_insert_task(
-            &cl_memset,
-            STARPU_VALUE,   &sizex,  sizeof(unsigned),
-            STARPU_VALUE,   &sizey,  sizeof(unsigned),
-            STARPU_VALUE,   &z,  sizeof(unsigned),
-            STARPU_W,   descr->layers_handle[0],
-            STARPU_W,   descr->layers_handle[1],
-            STARPU_W,   descr->boundaries_handle[T][0],
-            STARPU_W,   descr->boundaries_handle[T][1],
-            STARPU_W,   descr->boundaries_handle[B][0],
-            STARPU_W,   descr->boundaries_handle[B][1],
-                0);
+	int ret = starpu_insert_task(&cl_memset,
+				     STARPU_VALUE,   &sizex,  sizeof(unsigned),
+				     STARPU_VALUE,   &sizey,  sizeof(unsigned),
+				     STARPU_VALUE,   &z,  sizeof(unsigned),
+				     STARPU_W,   descr->layers_handle[0],
+				     STARPU_W,   descr->layers_handle[1],
+				     STARPU_W,   descr->boundaries_handle[T][0],
+				     STARPU_W,   descr->boundaries_handle[T][1],
+				     STARPU_W,   descr->boundaries_handle[B][0],
+				     STARPU_W,   descr->boundaries_handle[B][1],
+				     0);
 
-    if (ret)
-    {
-        FPRINTF(stderr, "Could not submit task memset: %d\n", ret);
-        if (ret == -ENODEV)
-            exit(77);
-        STARPU_ABORT();
-    }
+	if (ret)
+	{
+		FPRINTF(stderr, "Could not submit task memset: %d\n", ret);
+		if (ret == -ENODEV)
+			exit(77);
+		STARPU_ABORT();
+	}
 }
 
 void create_task_initlayer(unsigned sizex, unsigned sizey, unsigned z)
 {
-    struct block_description *descr = get_block_description(z);
+	struct block_description *descr = get_block_description(z);
 
-    int ret = starpu_insert_task(
-            &cl_initlayer,
-            STARPU_VALUE,   &sizex,  sizeof(unsigned),
-            STARPU_VALUE,   &sizey,  sizeof(unsigned),
-            STARPU_VALUE,   &z,  sizeof(unsigned),
-            STARPU_W,   descr->layers_handle[0],
-                0);
+	int ret = starpu_insert_task(&cl_initlayer,
+				     STARPU_VALUE,   &sizex,  sizeof(unsigned),
+				     STARPU_VALUE,   &sizey,  sizeof(unsigned),
+				     STARPU_VALUE,   &z,  sizeof(unsigned),
+				     STARPU_W,   descr->layers_handle[0],
+				     0);
 
-    if (ret)
-    {
-        FPRINTF(stderr, "Could not submit task initlayer: %d\n", ret);
-        if (ret == -ENODEV)
-            exit(77);
-        STARPU_ABORT();
-    }
+	if (ret)
+	{
+		FPRINTF(stderr, "Could not submit task initlayer: %d\n", ret);
+		if (ret == -ENODEV)
+			exit(77);
+		STARPU_ABORT();
+	}
 }
 
 /*
@@ -102,8 +100,7 @@ static void create_task_save_local(unsigned z, int dir)
 	int ret;
 
 	codelet = (dir == -1)?&save_cl_bottom:&save_cl_top;
-	ret = starpu_insert_task(
-				 codelet,
+	ret = starpu_insert_task(codelet,
 				 STARPU_VALUE,   &z,  sizeof(unsigned),
 				 STARPU_R,   descr->layers_handle[0],
 				 STARPU_R,   descr->layers_handle[1],
@@ -138,24 +135,23 @@ void create_task_update(unsigned iter, unsigned z, int local_rank)
 
 	struct starpu_codelet *codelet = &cl_update;
 
-    // Simple-level prio
-    //int prio = ((bottom_neighbour->mpi_node != local_rank) || (top_neighbour->mpi_node != local_rank )) ? STARPU_MAX_PRIO : STARPU_DEFAULT_PRIO;
+	// Simple-level prio
+	//int prio = ((bottom_neighbour->mpi_node != local_rank) || (top_neighbour->mpi_node != local_rank )) ? STARPU_MAX_PRIO : STARPU_DEFAULT_PRIO;
 
-    // Two-level prio
-    int prio = ((bottom_neighbour->mpi_node != local_rank) || (top_neighbour->mpi_node != local_rank )) ? STARPU_MAX_PRIO :
-               ((bottom_neighbour->boundary_blocks[B]->mpi_node != local_rank) || (top_neighbour->boundary_blocks[T]->mpi_node != local_rank )) ? STARPU_MAX_PRIO-1 : STARPU_DEFAULT_PRIO;
+	// Two-level prio
+	int prio = ((bottom_neighbour->mpi_node != local_rank) || (top_neighbour->mpi_node != local_rank )) ? STARPU_MAX_PRIO :
+		((bottom_neighbour->boundary_blocks[B]->mpi_node != local_rank) || (top_neighbour->boundary_blocks[T]->mpi_node != local_rank )) ? STARPU_MAX_PRIO-1 : STARPU_DEFAULT_PRIO;
 
-    int ret = starpu_insert_task(
-            codelet,
-            STARPU_VALUE,   &z,  sizeof(unsigned),
-	        STARPU_RW,      descr->layers_handle[old_layer],
-	        STARPU_RW,      descr->layers_handle[new_layer],
-	        STARPU_R,       bottom_neighbour->boundaries_handle[T][old_layer],
-	        STARPU_R,       bottom_neighbour->boundaries_handle[T][new_layer],
-	        STARPU_R,       top_neighbour->boundaries_handle[B][old_layer],
-	        STARPU_R,       top_neighbour->boundaries_handle[B][new_layer],
-            STARPU_PRIORITY,    prio,
-                0);
+	int ret = starpu_insert_task(codelet,
+				     STARPU_VALUE,   &z,  sizeof(unsigned),
+				     STARPU_RW,      descr->layers_handle[old_layer],
+				     STARPU_RW,      descr->layers_handle[new_layer],
+				     STARPU_R,       bottom_neighbour->boundaries_handle[T][old_layer],
+				     STARPU_R,       bottom_neighbour->boundaries_handle[T][new_layer],
+				     STARPU_R,       top_neighbour->boundaries_handle[B][old_layer],
+				     STARPU_R,       top_neighbour->boundaries_handle[B][new_layer],
+				     STARPU_PRIORITY,    prio,
+				     0);
 	if (ret)
 	{
 		FPRINTF(stderr, "Could not submit task update block: %d\n", ret);

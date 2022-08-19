@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -42,59 +42,49 @@ void spmv_kernel_opencl(void *descr[], void *args)
 	cl_mem vecout = (cl_mem)STARPU_VECTOR_GET_DEV_HANDLE(descr[2]);
 	int nx_out = (int)STARPU_VECTOR_GET_NX(descr[2]);
 
-        id = starpu_worker_get_id_check();
-        devid = starpu_worker_get_devid(id);
+	id = starpu_worker_get_id_check();
+	devid = starpu_worker_get_devid(id);
 
-        err = starpu_opencl_load_kernel(&kernel, &queue, &opencl_codelet, "spmv", devid);
-        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+	err = starpu_opencl_load_kernel(&kernel, &queue, &opencl_codelet, "spmv", devid);
+	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
-        n=0;
+	n=0;
 	err = clSetKernelArg(kernel, n++, sizeof(nnz), &nnz);
-	if (err != CL_SUCCESS)
-		STARPU_OPENCL_REPORT_ERROR(err);
+	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
 	err = clSetKernelArg(kernel, n++, sizeof(nrow), &nrow);
-	if (err != CL_SUCCESS)
-		STARPU_OPENCL_REPORT_ERROR(err);
+	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
 	err = clSetKernelArg(kernel, n++, sizeof(nzval), &nzval);
-	if (err != CL_SUCCESS)
-		STARPU_OPENCL_REPORT_ERROR(err);
+	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
 	err = clSetKernelArg(kernel, n++, sizeof(colind), &colind);
-	if (err != CL_SUCCESS)
-		STARPU_OPENCL_REPORT_ERROR(err);
+	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
 	err = clSetKernelArg(kernel, n++, sizeof(rowptr), &rowptr);
-	if (err != CL_SUCCESS)
-		STARPU_OPENCL_REPORT_ERROR(err);
+	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
 	err = clSetKernelArg(kernel, n++, sizeof(firstentry), &firstentry);
-	if (err != CL_SUCCESS)
-		STARPU_OPENCL_REPORT_ERROR(err);
+	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
 	err = clSetKernelArg(kernel, n++, sizeof(vecin), &vecin);
-	if (err != CL_SUCCESS)
-		STARPU_OPENCL_REPORT_ERROR(err);
+	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
 	err = clSetKernelArg(kernel, n++, sizeof(nx_in), &nx_in);
-	if (err != CL_SUCCESS)
-		STARPU_OPENCL_REPORT_ERROR(err);
+	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
 	err = clSetKernelArg(kernel, n++, sizeof(vecout), &vecout);
-	if (err != CL_SUCCESS)
-		STARPU_OPENCL_REPORT_ERROR(err);
+	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
 	err = clSetKernelArg(kernel, n++, sizeof(nx_out), &nx_out);
-	if (err != CL_SUCCESS)
-		STARPU_OPENCL_REPORT_ERROR(err);
+	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
 	{
-                size_t global=nrow;
+		size_t global=nrow;
 		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, NULL, 0, NULL, NULL);
 		if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 	}
-        starpu_opencl_release_kernel(kernel);
+	starpu_opencl_release_kernel(kernel);
 }
 
 void compile_spmv_opencl_kernel(void)

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -54,7 +54,7 @@ static struct starpu_codelet cl =
 
 int compute_(int *F_NX, float *vector)
 {
-        int NX = *F_NX;
+	int NX = *F_NX;
 	int ret;
 
 	/* Initialize StarPU with default configuration */
@@ -81,7 +81,7 @@ int compute_(int *F_NX, float *vector)
 	float factor = 3.14;
 
 	/* create a synchronous task: any call to starpu_task_submit will block
- 	 * until it is terminated */
+	 * until it is terminated */
 	struct starpu_task *task = starpu_task_create();
 	task->synchronous = 1;
 
@@ -101,7 +101,7 @@ int compute_(int *F_NX, float *vector)
 	if (ret != -ENODEV) STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	/* StarPU does not need to manipulate the array anymore so we can stop
- 	 * monitoring it */
+	 * monitoring it */
 	starpu_data_unregister(vector_handle);
 
 	/* terminate StarPU, no task can be submitted after */

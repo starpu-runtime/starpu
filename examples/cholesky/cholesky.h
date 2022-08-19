@@ -41,22 +41,22 @@
 #define TAG_TRSM(k,j)	((starpu_tag_t)(((3ULL<<60) | (((unsigned long long)(k))<<32)	\
 					| (unsigned long long)(j))))
 #define TAG_GEMM(k,i,j)	((starpu_tag_t)(((4ULL<<60) | ((unsigned long long)(k)<<32) 	\
-					| ((unsigned long long)(i)<<16)	\
-					| (unsigned long long)(j))))
+					 | ((unsigned long long)(i)<<16) \
+					 | (unsigned long long)(j))))
 
 #define TAG_POTRF_AUX(k, prefix)	((starpu_tag_t)( (((unsigned long long)(prefix))<<60)  |  (1ULL<<56) | (unsigned long long)(k)))
-#define TAG_TRSM_AUX(k,j, prefix)	((starpu_tag_t)( (((unsigned long long)(prefix))<<60)  			\
-					|  ((3ULL<<56) | (((unsigned long long)(k))<<32)	\
-					| (unsigned long long)(j))))
-#define TAG_GEMM_AUX(k,i,j, prefix)    ((starpu_tag_t)(  (((unsigned long long)(prefix))<<60)	\
-					|  ((4ULL<<56) | ((unsigned long long)(k)<<32)  	\
-					| ((unsigned long long)(i)<<16) 			\
-					| (unsigned long long)(j))))
+#define TAG_TRSM_AUX(k,j, prefix)	((starpu_tag_t)( (((unsigned long long)(prefix))<<60) \
+							 |  ((3ULL<<56) | (((unsigned long long)(k))<<32) \
+							     | (unsigned long long)(j))))
+#define TAG_GEMM_AUX(k,i,j, prefix)    ((starpu_tag_t)(  (((unsigned long long)(prefix))<<60) \
+							 |  ((4ULL<<56) | ((unsigned long long)(k)<<32)	\
+							     | ((unsigned long long)(i)<<16) \
+							     | (unsigned long long)(j))))
 
 #define BLOCKSIZE	(size_p/nblocks_p)
 
 #define BLAS3_FLOP(n1,n2,n3)    \
-        (2*((uint64_t)n1)*((uint64_t)n2)*((uint64_t)n3))
+	(2*((uint64_t)n1)*((uint64_t)n2)*((uint64_t)n3))
 
 /* This is from magma
 

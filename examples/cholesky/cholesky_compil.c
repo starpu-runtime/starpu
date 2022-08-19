@@ -368,7 +368,7 @@ int main(int argc, char **argv)
 	int ret;
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return 77;
-        STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	//starpu_fxt_stop_profiling();
 

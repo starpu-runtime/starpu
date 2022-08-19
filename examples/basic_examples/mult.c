@@ -60,19 +60,19 @@ extern void hip_mult(void *descr[], void *arg);
  *   A of size (z,y)
  *   B of size (x,z)
  *   C of size (x,y)
-
-              |---------------|
-            z |       B       |
-              |---------------|
-       z              x
-     |----|   |---------------|
-     |    |   |               |
-     |    |   |               |
-     | A  | y |       C       |
-     |    |   |               |
-     |    |   |               |
-     |----|   |---------------|
-
+ *
+ *             |---------------|
+ *           z |       B       |
+ *             |---------------|
+ *      z              x
+ *    |----|   |---------------|
+ *    |    |   |               |
+ *    |    |   |               |
+ *    | A  | y |       C       |
+ *    |    |   |               |
+ *    |    |   |               |
+ *    |----|   |---------------|
+ *
  * Note: we use FORTRAN ordering.
  */
 
@@ -286,7 +286,7 @@ static struct starpu_codelet cl =
 #ifdef STARPU_USE_HIP
 	/* HIP implementation of the codelet */
 	.hip_funcs = {hip_mult},
-        .hip_flags = {STARPU_HIP_ASYNC},
+	.hip_flags = {STARPU_HIP_ASYNC},
 #endif
 	/* the codelet manipulates 3 buffers that are managed by the DSM */
 	.nbuffers = 3,
@@ -308,7 +308,7 @@ static int launch_tasks(void)
 			/* C[taskx, tasky] = A[tasky] B[taskx] */
 
 			/* by default, starpu_task_create() returns an
- 			 * asynchronous task (ie. task->synchronous = 0) */
+			 * asynchronous task (ie. task->synchronous = 0) */
 			struct starpu_task *task = starpu_task_create();
 
 			/* this task implements codelet "cl" */
@@ -364,13 +364,12 @@ void check_result(float* C_gpu, float* C_ref, uint32_t ldC)
 	{
 		for (j = 0; j < xdim; j++)
 		{
-
-                        if(C_gpu[j + i*ldC]-C_ref[j + i*ldC] > 1e-6*C_ref[j + i*ldC])
-                        {
-			        printf("| Cref[%u,%u]=%f - Cgpu[%u,%u]=%f | Error in the computation of C on GPU: the difference between the two is bigger than 1e-6 * the reference"
-                                        , i, j, C_ref[j + i*ldC], i, j, C_gpu[j + i*ldC]);
-                                exit(1);
-                        }
+			if(C_gpu[j + i*ldC]-C_ref[j + i*ldC] > 1e-6*C_ref[j + i*ldC])
+			{
+				printf("| Cref[%u,%u]=%f - Cgpu[%u,%u]=%f | Error in the computation of C on GPU: the difference between the two is bigger than 1e-6 * the reference"
+				       , i, j, C_ref[j + i*ldC], i, j, C_gpu[j + i*ldC]);
+				exit(1);
+			}
 		}
 	}
 	printf("SUCCESSFUL COMPUTATION ON GPU\n");
@@ -390,7 +389,7 @@ int main(void)
 	init_problem_data();
 
 	/* partition matrices into blocks that can be manipulated by the
- 	 * codelets */
+	 * codelets */
 	partition_mult_data();
 
 	/* submit all tasks in an asynchronous fashion */
@@ -419,11 +418,13 @@ int main(void)
 			Cref[j + i*ldC] = sum;
 		}
 	}
+
 	/* ============================================= */
 	/* wait for termination */
 	starpu_task_wait_for_all();
+
 	/* remove the filters applied by the means of starpu_data_map_filters; now
- 	 * it's not possible to manipulate a subset of C using starpu_data_get_sub_data until
+	 * it's not possible to manipulate a subset of C using starpu_data_get_sub_data until
 	 * starpu_data_map_filters is called again on C_handle.
 	 * The second argument is the memory node where the different subsets
 	 * should be reassembled, 0 = main memory (RAM) */

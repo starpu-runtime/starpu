@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,7 +17,7 @@
 #include "stencil.h"
 
 /* Perform replication of data on X and Y edges, to fold the domain on
-   itself through mere replication of the source state. */
+ * itself through mere replication of the source state. */
 
 #define str(x) #x
 
@@ -67,16 +67,15 @@ shadow( int bz, __global TYPE *ptr, int nx, int ny, int nz, int ldy, int ldz, in
 static const char * src = clsrc(TYPE,K);
 static struct starpu_opencl_program program;
 
-void
-opencl_shadow_init(void)
+void opencl_shadow_init(void)
 {
-  starpu_opencl_load_opencl_from_string(src, &program, NULL);
+	starpu_opencl_load_opencl_from_string(src, &program, NULL);
 }
 
 void opencl_shadow_free(void)
 {
-  int ret = starpu_opencl_unload_opencl(&program);
-  STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
+	int ret = starpu_opencl_unload_opencl(&program);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
 }
 
 void
@@ -88,26 +87,26 @@ opencl_shadow_host(int bz, TYPE *ptr, int nx, int ny, int nz, int ldy, int ldz, 
 	size_t dim[] = {nx, ny, 1};
 #endif
 
-        int devid,id;
-        id = starpu_worker_get_id_check();
-        devid = starpu_worker_get_devid(id);
+	int devid,id;
+	id = starpu_worker_get_id_check();
+	devid = starpu_worker_get_devid(id);
 
-        cl_kernel kernel;
-        cl_command_queue cq;
+	cl_kernel kernel;
+	cl_command_queue cq;
 	cl_int err;
 
-        err = starpu_opencl_load_kernel(&kernel, &cq, &program, "shadow", devid);
+	err = starpu_opencl_load_kernel(&kernel, &cq, &program, "shadow", devid);
 	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
-        clSetKernelArg(kernel, 0, sizeof(bz), &bz);
-        clSetKernelArg(kernel, 1, sizeof(ptr), &ptr);
-        clSetKernelArg(kernel, 2, sizeof(nx), &nx);
-        clSetKernelArg(kernel, 3, sizeof(ny), &ny);
-        clSetKernelArg(kernel, 4, sizeof(nz), &nz);
-        clSetKernelArg(kernel, 5, sizeof(ldy), &ldy);
-        clSetKernelArg(kernel, 6, sizeof(ldz), &ldz);
-        clSetKernelArg(kernel, 7, sizeof(i), &i);
+	clSetKernelArg(kernel, 0, sizeof(bz), &bz);
+	clSetKernelArg(kernel, 1, sizeof(ptr), &ptr);
+	clSetKernelArg(kernel, 2, sizeof(nx), &nx);
+	clSetKernelArg(kernel, 3, sizeof(ny), &ny);
+	clSetKernelArg(kernel, 4, sizeof(nz), &nz);
+	clSetKernelArg(kernel, 5, sizeof(ldy), &ldy);
+	clSetKernelArg(kernel, 6, sizeof(ldz), &ldz);
+	clSetKernelArg(kernel, 7, sizeof(i), &i);
 
-        err = clEnqueueNDRangeKernel(cq, kernel, 3, NULL, dim, NULL, 0, NULL, NULL);
-        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+	err = clEnqueueNDRangeKernel(cq, kernel, 3, NULL, dim, NULL, 0, NULL, NULL);
+	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 }

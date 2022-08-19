@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2016       Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -111,7 +111,7 @@ int main(void)
 #ifdef STARPU_DEVEL
 #warning temporary fix: skip test as cuda computation fails
 #endif
- 	return 77;
+	return 77;
 
 #ifndef STARPU_HAVE_SETENV
 	return 77;
@@ -226,7 +226,7 @@ enodev:
 		starpu_data_unregister(_handle_y[iter]);
 	}
 	end = starpu_timing_now();
-        double timing = end - start;
+	double timing = end - start;
 
 	FPRINTF(stderr, "timing -> %2.2f us %2.2f MB/s\n", timing, 3*N*sizeof(float)/timing);
 

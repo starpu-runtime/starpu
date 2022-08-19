@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -259,29 +259,29 @@ static struct starpu_codelet pi_cl_redux =
 void init_cpu_func(void *descr[], void *cl_arg)
 {
 	(void)cl_arg;
-        unsigned long *val = (unsigned long *)STARPU_VARIABLE_GET_PTR(descr[0]);
-        *val = 0;
+	unsigned long *val = (unsigned long *)STARPU_VARIABLE_GET_PTR(descr[0]);
+	*val = 0;
 }
 
 #ifdef STARPU_HAVE_CURAND
 static void init_cuda_func(void *descr[], void *cl_arg)
 {
 	(void)cl_arg;
-        unsigned long *val = (unsigned long *)STARPU_VARIABLE_GET_PTR(descr[0]);
-        cudaMemsetAsync(val, 0, sizeof(unsigned long), starpu_cuda_get_local_stream());
+	unsigned long *val = (unsigned long *)STARPU_VARIABLE_GET_PTR(descr[0]);
+	cudaMemsetAsync(val, 0, sizeof(unsigned long), starpu_cuda_get_local_stream());
 }
 #endif
 
 static struct starpu_codelet init_codelet =
 {
-        .cpu_funcs = {init_cpu_func},
-        .cpu_funcs_name = {"init_cpu_func"},
+	.cpu_funcs = {init_cpu_func},
+	.cpu_funcs_name = {"init_cpu_func"},
 #ifdef STARPU_HAVE_CURAND
-        .cuda_funcs = {init_cuda_func},
+	.cuda_funcs = {init_cuda_func},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 	.modes = {STARPU_W},
-        .nbuffers = 1
+	.nbuffers = 1
 };
 
 #ifdef STARPU_HAVE_CURAND

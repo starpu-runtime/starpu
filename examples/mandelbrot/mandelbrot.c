@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -124,11 +124,11 @@ static void init_x11(int width, int height, unsigned *buffer)
 	wmDeleteMessage = XInternAtom(dpy_p, "WM_DELETE_WINDOW", False);
 	XSetWMProtocols(dpy_p, win_p, &wmDeleteMessage, 1);
 
-        Left_p = XStringToKeysym ("Left");
-        Right_p = XStringToKeysym ("Right");
-        Up_p = XStringToKeysym ("Up");
-        Down_p = XStringToKeysym ("Down");
-        Alt_p = XStringToKeysym ("Alt");
+	Left_p = XStringToKeysym ("Left");
+	Right_p = XStringToKeysym ("Right");
+	Up_p = XStringToKeysym ("Up");
+	Down_p = XStringToKeysym ("Down");
+	Alt_p = XStringToKeysym ("Alt");
 }
 
 static int handle_events(void)

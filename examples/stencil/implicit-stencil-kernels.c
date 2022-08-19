@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -257,9 +257,9 @@ static void load_subblock_from_buffer_opencl(struct starpu_block_interface *bloc
 	cl_mem block_data = (cl_mem)block->dev_handle;
 	cl_mem boundary_data = (cl_mem)boundary->dev_handle;
 
-        cl_command_queue cq;
-        starpu_opencl_get_current_queue(&cq);
-        cl_int ret = clEnqueueCopyBuffer(cq, boundary_data, block_data, 0, offset, boundary_size, 0, NULL, NULL);
+	cl_command_queue cq;
+	starpu_opencl_get_current_queue(&cq);
+	cl_int ret = clEnqueueCopyBuffer(cq, boundary_data, block_data, 0, offset, boundary_size, 0, NULL, NULL);
 	if (ret != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(ret);
 }
 
@@ -291,8 +291,8 @@ static void update_func_opencl(void *descr[], void *arg)
 
 	record_who_runs_what(block);
 
-        cl_command_queue cq;
-        starpu_opencl_get_current_queue(&cq);
+	cl_command_queue cq;
+	starpu_opencl_get_current_queue(&cq);
 
 	/*
 	 *	Load neighbours' boundaries : TOP
@@ -325,7 +325,7 @@ static void update_func_opencl(void *descr[], void *arg)
 		opencl_life_update_host(block->bz, old, newer, oldb->nx, oldb->ny, oldb->nz, oldb->ldy, oldb->ldz, i);
 #else
 		cl_event event;
-                cl_int ret = clEnqueueCopyBuffer(cq, old, newer, 0, 0, oldb->nx * oldb->ny * oldb->nz * sizeof(*newer), 0, NULL, &event);
+		cl_int ret = clEnqueueCopyBuffer(cq, old, newer, 0, 0, oldb->nx * oldb->ny * oldb->nz * sizeof(*newer), 0, NULL, &event);
 		if (ret != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(ret);
 
 #endif /* LIFE */
@@ -487,10 +487,10 @@ static void load_subblock_into_buffer_opencl(struct starpu_block_interface *bloc
 	cl_mem block_data = (cl_mem)block->dev_handle;
 	cl_mem boundary_data = (cl_mem)boundary->dev_handle;
 
-        cl_command_queue cq;
-        starpu_opencl_get_current_queue(&cq);
+	cl_command_queue cq;
+	starpu_opencl_get_current_queue(&cq);
 
-        cl_int ret = clEnqueueCopyBuffer(cq, block_data, boundary_data, offset, 0, boundary_size, 0, NULL, NULL);
+	cl_int ret = clEnqueueCopyBuffer(cq, block_data, boundary_data, offset, 0, boundary_size, 0, NULL, NULL);
 	if (ret != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(ret);
 }
 #endif /* STARPU_USE_OPENCL */
@@ -502,8 +502,8 @@ unsigned bottom_per_worker[STARPU_NMAXWORKERS];
 /* top save, CPU version */
 void dummy_func_top_cpu(void *descr[], void *arg)
 {
-    unsigned z;
-    starpu_codelet_unpack_args(arg, &z);
+	unsigned z;
+	starpu_codelet_unpack_args(arg, &z);
 	struct block_description *block = get_block_description(z);
 
 	int workerid = starpu_worker_get_id_check();
@@ -521,10 +521,10 @@ void dummy_func_top_cpu(void *descr[], void *arg)
 /* bottom save, CPU version */
 void dummy_func_bottom_cpu(void *descr[], void *arg)
 {
-    unsigned z;
-    starpu_codelet_unpack_args(arg, &z);
+	unsigned z;
+	starpu_codelet_unpack_args(arg, &z);
 	struct block_description *block = get_block_description(z);
-    STARPU_ASSERT(block);
+	STARPU_ASSERT(block);
 
 	int workerid = starpu_worker_get_id_check();
 	bottom_per_worker[workerid]++;
@@ -539,8 +539,8 @@ void dummy_func_bottom_cpu(void *descr[], void *arg)
 #ifdef STARPU_USE_CUDA
 static void dummy_func_top_cuda(void *descr[], void *arg)
 {
-    unsigned z;
-    starpu_codelet_unpack_args(arg, &z);
+	unsigned z;
+	starpu_codelet_unpack_args(arg, &z);
 	struct block_description *block = get_block_description(z);
 
 	int workerid = starpu_worker_get_id_check();
@@ -577,8 +577,8 @@ static void dummy_func_bottom_cuda(void *descr[], void *arg)
 #ifdef STARPU_USE_OPENCL
 static void dummy_func_top_opencl(void *descr[], void *arg)
 {
-    unsigned z;
-    starpu_codelet_unpack_args(arg, &z);
+	unsigned z;
+	starpu_codelet_unpack_args(arg, &z);
 	struct block_description *block = get_block_description(z);
 
 	int workerid = starpu_worker_get_id_check();
@@ -660,10 +660,10 @@ struct starpu_codelet save_cl_top =
 void memset_func(void *descr[], void *arg)
 {
 	(void)descr;
-    	unsigned sizex, sizey, bz;
-    	starpu_codelet_unpack_args(arg, &sizex, &sizey, &bz);
+	unsigned sizex, sizey, bz;
+	starpu_codelet_unpack_args(arg, &sizex, &sizey, &bz);
 	struct block_description *block = get_block_description(bz);
-    	unsigned size_bz = get_block_size(bz);
+	unsigned size_bz = get_block_size(bz);
 
 	unsigned x,y,z;
 	for (x = 0; x < sizex + 2*K; x++)
