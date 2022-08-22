@@ -85,6 +85,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <starpu.h>
+#include <pthread.h>
 #include "starpupy_cloudpickle.h"
 #include "starpupy_handle.h"
 #include "starpupy_interface.h"
@@ -105,6 +106,9 @@ static PyObject *Handle_class = Py_None;  /*Handle class*/
 static PyObject *Token_class = Py_None;  /*Handle_token class*/
 
 static pthread_t main_thread;
+
+static PyObject *cb_loop = Py_None; /*another event loop besides main running loop*/
+static pthread_t thread_id;
 
 /*********************************************************************************************/
 
@@ -175,36 +179,28 @@ void prologue_cb_func(void *cl_arg)
 			fut_flag = 1;
 		#endif
 			PyObject *done = PyObject_CallMethod(obj, "done", NULL);
-			/*if the future object is not finished, we will await it for the result*/
+			/*if the argument is Future and future object is not finished, we will await its result in cb_loop, since the main loop may be occupied to await the final result of function*/
 			if (!PyObject_IsTrue(done))
 			{
+				/*if the future object is not finished, get its corresponding arg_fut*/
+				PyObject *cb_obj = PyObject_GetAttrString(obj, "arg_fut");
+
 				/*call the method wait_for_fut to await obj*/
-				/*call wait_for_fut(obj)*/
 				if (wait_method == Py_None)
 				{
 					wait_method = PyDict_GetItemString(starpu_dict, "wait_for_fut");
 				}
-				/*protect borrowed reference*/
-				Py_INCREF(wait_method);
-				PyObject *wait_obj = PyObject_CallFunctionObjArgs(wait_method, obj, NULL);
-				Py_DECREF(wait_method);
+				PyObject *wait_obj = PyObject_CallFunctionObjArgs(wait_method, cb_obj, NULL);
 
-				if (pthread_self() != main_thread)
-				{
-					/* We have to delegate the wait to the main thread */
-					/*decrement the reference obtained before if{}, then get the new reference*/
-					Py_DECREF(obj);
-					/*call obj = asyncio.run_coroutine_threadsafe(wait_for_fut(obj), loop)*/
-					obj = PyObject_CallMethod(asyncio_module, "run_coroutine_threadsafe", "O,O", wait_obj, loop);
-				}
-				else
-				{
-					PyObject *res;
-					res = PyObject_CallMethod(asyncio_module, "wait_for", "O,O", wait_obj, Py_None);
-					Py_DECREF(res);
-				}
+				/*decrement the reference obtained before if{}, then get the new reference*/
+				Py_DECREF(cb_obj);
+				/*call obj = asyncio.run_coroutine_threadsafe(wait_for_fut(cb_obj), cb_loop)*/
+				cb_obj = PyObject_CallMethod(asyncio_module, "run_coroutine_threadsafe", "O,O", wait_obj, cb_loop);
 
 				Py_DECREF(wait_obj);
+
+				Py_DECREF(obj);
+				obj = cb_obj;
 			}
 
 			/*if one of arguments is Future, get its result*/
@@ -563,6 +559,16 @@ void epilogue_cb_func(void *v)
 		/*set the Future result and mark the Future as done*/
 		if(fut!=Py_None && loop!=Py_None)
 		{
+			/*set the Future result in cb_loop*/
+			PyObject *cb_fut = PyObject_GetAttrString(fut, "arg_fut");
+			PyObject *cb_set_result = PyObject_GetAttrString(cb_fut, "set_result");
+			PyObject *cb_loop_callback = PyObject_CallMethod(cb_loop, "call_soon_threadsafe", "(O,O)", cb_set_result, rv);
+
+		    Py_DECREF(cb_loop_callback);
+			Py_DECREF(cb_set_result);
+			Py_DECREF(cb_fut);
+
+			/*set the Future result in main running loop*/
 			PyObject *set_result = PyObject_GetAttrString(fut, "set_result");
 			PyObject *loop_callback = PyObject_CallMethod(loop, "call_soon_threadsafe", "(O,O)", set_result, rv);
 
@@ -874,6 +880,20 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 			PyErr_Format(StarpupyError, "Can't find asyncio module (try to add \"-m asyncio\" when starting Python interpreter)");
 			return NULL;
 		}
+
+		/*create a asyncio.Future object attached to cb_loop*/
+		PyObject *cb_fut = PyObject_CallMethod(cb_loop, "create_future", NULL);
+
+		if (cb_fut == NULL)
+		{
+			PyErr_Format(StarpupyError, "Can't find asyncio module (try to add \"-m asyncio\" when starting Python interpreter)");
+			return NULL;
+		}
+
+		/*set one of fut attribute to cb_fut*/
+		PyObject_SetAttrString(fut, "arg_fut", cb_fut);
+
+		Py_DECREF(cb_fut);
 
 		task->destroy = 0;
 		PyObject *PyTask = PyTask_FromTask(task);
@@ -1497,6 +1517,10 @@ static PyObject* starpu_shutdown_wrapper(PyObject *self, PyObject *args)
 	Py_DECREF(gc_garbage);
 	Py_DECREF(gc_module);
 
+	/*stop the cb_loop*/
+	PyObject * cb_loop_stop = PyObject_CallMethod(cb_loop, "stop", NULL);
+	Py_DECREF(cb_loop_stop);
+
 	/*call starpu_shutdown method*/
 	Py_BEGIN_ALLOW_THREADS;
 	starpu_task_wait_for_all();
@@ -1627,6 +1651,7 @@ static void starpupyFree(void *self)
 	Py_DECREF(loads);
 	Py_DECREF(starpu_module);
 	Py_DECREF(starpu_dict);
+	Py_DECREF(cb_loop);
 }
 
 /*module definition structure*/
@@ -1642,6 +1667,15 @@ static struct PyModuleDef starpupymodule =
 	.m_clear = NULL,
 	.m_free = starpupyFree
 };
+
+static void* set_cb_loop(void* arg)
+{
+	PyGILState_STATE state = PyGILState_Ensure();
+	/*second loop will run until we stop it in starpu_shutdown*/
+	PyObject * cb_loop_run = PyObject_CallMethod(cb_loop, "run_forever", NULL);
+	Py_DECREF(cb_loop_run);
+	PyGILState_Release(state);
+}
 
 /*initialization function*/
 PyMODINIT_FUNC
@@ -1722,6 +1756,14 @@ PyInit_starpupy(void)
 	starpu_dict = PyModule_GetDict(starpu_module);
 	/*protect borrowed reference, decremented in starpupyFree*/
 	Py_INCREF(starpu_dict);
+
+	/*create a new event loop in another thread, in case the main loop is occupied*/
+	cb_loop = PyObject_CallMethod(asyncio_module, "new_event_loop", NULL);
+
+	int pc = pthread_create(&thread_id, NULL, set_cb_loop, NULL);
+	if (pc) {
+	printf("Fail to create thread\n");
+	}
 
 	/*module import multi-phase initialization*/
 	return PyModuleDef_Init(&starpupymodule);
