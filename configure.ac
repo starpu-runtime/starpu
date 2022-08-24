@@ -1850,6 +1850,7 @@ if test "x$enable_hip" = xyes; then
 else
 	STARPU_HIP_LDFLAGS=
 	STARPU_HIP_CPPFLAGS=
+	enable_hip_memcpy_peer=no
 fi
 
 AC_SUBST(STARPU_HIP_LDFLAGS)
