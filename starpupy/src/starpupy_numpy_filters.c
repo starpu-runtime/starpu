@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020-2021 Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2022 Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -27,8 +27,8 @@
 #include "starpupy_numpy_filters.h"
 
 #define RETURN_EXCEPT(...) do{ \
-        PyObject *starpupy_err = PyObject_GetAttrString(self, "error"); \
-		PyErr_Format(starpupy_err, __VA_ARGS__); \
+		PyObject *starpupy_err = PyObject_GetAttrString(self, "error"); \
+		PyErr_Format(starpupy_err, __VA_ARGS__);		\
 		Py_DECREF(starpupy_err); \
 		return NULL;\
 }while(0)

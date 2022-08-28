@@ -270,7 +270,7 @@ static int pyobject_copy_any_to_any(void *src_interface, unsigned src_node, void
 
 static const struct starpu_data_copy_methods pyobject_copy_data_methods_s =
 {
- 	.any_to_any = pyobject_copy_any_to_any,
+	.any_to_any = pyobject_copy_any_to_any,
 };
 
 static struct starpu_data_interface_ops interface_pyobject_ops =

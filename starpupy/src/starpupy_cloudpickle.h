@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020-2021 Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2022 Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,7 +24,7 @@ PyObject *loads; /*pickle.loads method*/
 /*return the reference of PyBytes which must be kept while using obj_data. See documentation of PyBytes_AsStringAndSize()*/
 static inline PyObject* starpu_cloudpickle_dumps(PyObject *obj, char **obj_data, Py_ssize_t *obj_data_size)
 {
-    PyObject *obj_bytes= PyObject_CallFunctionObjArgs(dumps, obj, NULL);
+	PyObject *obj_bytes= PyObject_CallFunctionObjArgs(dumps, obj, NULL);
 
 	PyBytes_AsStringAndSize(obj_bytes, obj_data, obj_data_size);
 
@@ -33,7 +33,7 @@ static inline PyObject* starpu_cloudpickle_dumps(PyObject *obj, char **obj_data,
 
 static inline PyObject* starpu_cloudpickle_loads(char* pyString, Py_ssize_t pyString_size)
 {
-    PyObject *obj_bytes_str = PyBytes_FromStringAndSize(pyString, pyString_size);
+	PyObject *obj_bytes_str = PyBytes_FromStringAndSize(pyString, pyString_size);
 	PyObject *obj = PyObject_CallFunctionObjArgs(loads, obj_bytes_str, NULL);
 
 	Py_DECREF(obj_bytes_str);

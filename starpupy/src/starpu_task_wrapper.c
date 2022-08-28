@@ -15,7 +15,7 @@
  */
 
 /* Python C extension reference count special cases:
- * 1. Stolen reference: When you pass an object reference into these functions, 
+ * 1. Stolen reference: When you pass an object reference into these functions,
  * they take over ownership of the item passed to them, even if they fail (except PyModule_AddObject()).
  *		PyErr_SetExcInfo()
  *		PyException_SetContext()
@@ -29,7 +29,7 @@
  *		PyModule_AddObject(): Unlike other functions that steal references, this function only decrements
  *							 the reference count of value on success. The new PyModule_AddObjectRef() function
  *							 is recommended for Python version >= 3.10
- * 2. Borrowed reference: return references that you borrow from the tuple, list or dictionary etc. 
+ * 2. Borrowed reference: return references that you borrow from the tuple, list or dictionary etc.
  * The borrowed reference’s lifetime is guaranteed until the function returns. It does not modify the
  * object reference count. It becomes a dangling pointer if the object is destroyed.
  * Calling Py_INCREF() on the borrowed reference is recommended to convert it to a strong reference
@@ -77,7 +77,7 @@
  *		PyObject_Init()
  *		PyObject_InitVar()
  *		Py_TYPE()
- *		
+ *
 */
 #undef NDEBUG
 #include <stdio.h>
@@ -564,7 +564,7 @@ void epilogue_cb_func(void *v)
 			PyObject *cb_set_result = PyObject_GetAttrString(cb_fut, "set_result");
 			PyObject *cb_loop_callback = PyObject_CallMethod(cb_loop, "call_soon_threadsafe", "(O,O)", cb_set_result, rv);
 
-		    Py_DECREF(cb_loop_callback);
+			Py_DECREF(cb_loop_callback);
 			Py_DECREF(cb_set_result);
 			Py_DECREF(cb_fut);
 
@@ -582,7 +582,7 @@ void epilogue_cb_func(void *v)
 
 	Py_DECREF(fut);
 	Py_DECREF(loop);
-	
+
 	struct starpu_codelet *func_cl=(struct starpu_codelet *) task->cl;
 	if (func_cl->model != NULL)
 	{
@@ -713,7 +713,7 @@ static PyObject* starpu_save_history_based_model_wrapper(PyObject *self, PyObjec
 		PyErr_Format(StarpupyError, "Expected a Perfmodel object");
 		return NULL;
 	}
-		
+
 	PyObject *perfmodel_capsule = PyObject_CallMethod(perfmodel, "get_struct", NULL);
 
 	/*PyObject*->struct perfmodel**/
@@ -1761,8 +1761,9 @@ PyInit_starpupy(void)
 	cb_loop = PyObject_CallMethod(asyncio_module, "new_event_loop", NULL);
 
 	int pc = pthread_create(&thread_id, NULL, set_cb_loop, NULL);
-	if (pc) {
-	printf("Fail to create thread\n");
+	if (pc)
+	{
+		printf("Fail to create thread\n");
 	}
 
 	/*module import multi-phase initialization*/

@@ -84,7 +84,7 @@ PyObject* starpupy_buffer_get_arrarr(struct starpupy_buffer_interface *pybuffer_
 
 	/*get array.array class*/
 	PyObject *arr_class = PyDict_GetItemString(arr_dict, "array");
-	
+
 	/*create an instance of array.array, decrement in the end of the function*/
 	PyObject *arr_instance = PyInstanceMethod_New(arr_class);
 
@@ -326,16 +326,15 @@ static void pybuffer_register_data_handle(starpu_data_handle_t handle, int home_
 static void pybuffer_unregister_data_handle(starpu_data_handle_t handle)
 {
 	unsigned node;
-    for (node = 0; node < STARPU_MAXNODES; node++)
-    {
+	for (node = 0; node < STARPU_MAXNODES; node++)
+	{
 		struct starpupy_buffer_interface *local_interface = (struct starpupy_buffer_interface *) starpu_data_get_interface_on_node(handle, node);
 
-	#ifdef STARPU_PYTHON_HAVE_NUMPY
+#ifdef STARPU_PYTHON_HAVE_NUMPY
 		free(local_interface->array_dim);
-	#endif
+#endif
 		free(local_interface->shape);
 	}
-	
 }
 
 static starpu_ssize_t pybuffer_allocate_data_on_node(void *data_interface, unsigned node)
