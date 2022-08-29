@@ -1,0 +1,216 @@
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+
+/*! \page BuildingAndInstallingStarPU Building and Installing StarPU
+
+Depending on how much you need to tune the library installation, we
+propose several solutions.
+
+<ul>
+<li>
+You just want to have a try, to see if it can be installed well on
+your system, what are the performances on simple cases, run the
+examples, or simply use the last stable version: we recommand to use
+the latest StarPU debian package (see \ref InstallingABinaryPackage)
+for those who work on a Linux Debian or Ubuntu distribution, Guix or
+Spack on other Linux systems (see \ref InstallingASourcePackage), Brew
+on macOS (see \ref InstallingASourcePackage).
+</li>
+<li>
+You want to use it but you need a change somewhere in the stack like
+considering another version (git branch), change the default
+MPI, use your favorite compiler, modify some sources: you may try with
+Guix or Spack because these package managers allow to build from
+sources and thus many options can be changed dynamically (command
+line), as described in \ref InstallingASourcePackage, or directly
+build from source with the native build system of the library
+(Makefile, GNU autotools) following the procedures described below in
+\ref InstallingFromSource.
+</li>
+<li>
+You need a tool for reproducibility of your experiments: Guix is
+recommended (see \ref InstallingASourcePackage).
+</li>
+</ul>
+
+Whatever solution you go for, the tool <c>bin/starpu_config</c> can be
+used to display all the configuration parameters StarPU was installed
+with.
+
+\section InstallingABinaryPackage Installing a Binary Package
+
+One of the StarPU developers being a Debian Developer, the packages
+are well integrated and very uptodate. To see which packages are
+available, simply type:
+
+\verbatim
+$ apt-cache search starpu
+\endverbatim
+
+To install what you need, type for example:
+
+\verbatim
+$ sudo apt-get install libstarpu-dev
+\endverbatim
+
+\section InstallingASourcePackage Installing a Source Package
+
+StarPU is available from different package managers.
+<ul>
+<li>
+Guix https://gitlab.inria.fr/guix-hpc/guix-hpc
+</li>
+<li>
+Spack https://github.com/spack/spack/
+</li>
+<li>
+Brew https://gitlab.inria.fr/solverstack/brew-repo
+</li>
+</ul>
+
+Documentation on how to install StarPU with these package managers is
+directly available from the links specified above.
+
+\section InstallingFromSource Building from Source
+
+StarPU can be built and installed by the standard means of the GNU
+autotools. The following chapter is intended to briefly remind how these tools
+can be used to install StarPU.
+
+\subsection OptionalDependencies Optional Dependencies
+
+The <c>hwloc</c> (http://www.open-mpi.org/software/hwloc) topology
+discovery library is not mandatory to use StarPU but strongly
+recommended.  It allows for topology aware scheduling, which improves
+performance. <c>hwloc</c> is available in major free operating system
+distributions, and for most operating systems. Make sure to not only install
+a <c>hwloc</c> or <c>libhwloc</c> package, but also <c>hwloc-devel</c> or
+<c>libhwloc-dev</c> so as to have \c hwloc headers etc.
+
+If <c>libhwloc</c> is installed in a standard
+location, no option is required, it will be detected automatically,
+otherwise \ref with-hwloc "--with-hwloc=<directory>" should be used to specify its
+location.
+
+If <c>libhwloc</c> is not available on your system, the option
+\ref without-hwloc "--without-hwloc" should be explicitely given when calling the
+script <c>configure</c>.
+
+
+\subsection GettingSources Getting Sources
+
+StarPU's sources can be obtained from the download page of
+the StarPU website (https://starpu.gitlabpages.inria.fr/files/).
+
+All releases and the development tree of StarPU are freely available
+on StarPU SCM server under the LGPL license. Some releases are available
+under the BSD license.
+
+The latest release can be downloaded from the StarPU download page (https://starpu.gitlabpages.inria.fr/files/).
+
+The latest nightly snapshot can be downloaded from the StarPU website (https://starpu.gitlabpages.inria.fr/files/testing/).
+
+And finally, current development version is also accessible via git.
+It should only be used if you need the very latest changes (i.e. less
+than a day old!).
+
+\verbatim
+$ git clone git@gitlab.inria.fr:starpu/starpu.git
+\endverbatim
+
+\subsection ConfiguringStarPU Configuring StarPU
+
+Running <c>autogen.sh</c> is not necessary when using the tarball
+releases of StarPU.  However when using the source code from the git
+repository, you first need to generate the script <c>configure</c> and the
+different Makefiles. This requires the availability of <c>autoconf</c> and
+<c>automake</c> >= 2.60.
+
+\verbatim
+$ ./autogen.sh
+\endverbatim
+
+You then need to configure StarPU. Details about options that are
+useful to give to <c>configure</c> are given in \ref CompilationConfiguration.
+
+\verbatim
+$ ./configure
+\endverbatim
+
+If <c>configure</c> does not detect some software or produces errors, please
+make sure to post the contents of the file <c>config.log</c> when
+reporting the issue.
+
+By default, the files produced during the compilation are placed in
+the source directory. As the compilation generates a lot of files, it
+is advised to put them all in a separate directory. It is then
+easier to cleanup, and this allows to compile several configurations
+out of the same source tree. To do so, simply enter the directory
+where you want the compilation to produce its files, and invoke the
+script <c>configure</c> located in the StarPU source directory.
+
+\verbatim
+$ mkdir build
+$ cd build
+$ ../configure
+\endverbatim
+
+By default, StarPU will be installed in <c>/usr/local/bin</c>,
+<c>/usr/local/lib</c>, etc. You can specify an installation prefix
+other than <c>/usr/local</c> using the option <c>--prefix</c>, for
+instance:
+
+\verbatim
+$ ../configure --prefix=$HOME/starpu
+\endverbatim
+
+\subsection BuildingStarPU Building StarPU
+
+\verbatim
+$ make
+\endverbatim
+
+Once everything is built, you may want to test the result. An
+extensive set of regression tests is provided with StarPU. Running the
+tests is done by calling <c>make check</c>. These tests are run every night
+and the result from the main profile is publicly available (https://starpu.gitlabpages/files/testing/master/).
+
+\verbatim
+$ make check
+\endverbatim
+
+\subsection InstallingStarPU Installing StarPU
+
+In order to install StarPU at the location which was specified during
+configuration:
+
+\verbatim
+$ make install
+\endverbatim
+
+If you have let StarPU install in <c>/usr/local/</c>, you additionally need to run
+
+\verbatim
+$ sudo ldconfig
+\endverbatim
+
+so the libraries can be found by the system.
+
+Libtool interface versioning information are included in
+libraries names (<c>libstarpu-1.3.so</c>, <c>libstarpumpi-1.3.so</c> and
+<c>libstarpufft-1.3.so</c>).
+
+*/

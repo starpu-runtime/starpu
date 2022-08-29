@@ -354,7 +354,7 @@ it before all the tasks with smaller order value have been executed, notably
 in case those tasks are not available yet due to some dependencies. This
 eventually gives total control of task scheduling, and StarPU will only serve as
 a "self-timed" task runtime. Of course, the provided order has to be runnable,
-i.e. a task should should not depend on another task bound to the same worker
+i.e. a task should not depend on another task bound to the same worker
 with a bigger order.
 
 Note however that using scheduling contexts while statically scheduling tasks on workers

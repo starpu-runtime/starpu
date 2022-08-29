@@ -27,17 +27,18 @@ DOX_STARPU_CONFIG = starpu_config.h
 include $(top_srcdir)/doc/doxy.mk
 
 chapters =	\
-	../doxygen/chapters/000_introduction.doxy		\
-	../doxygen/chapters/101_building.doxy		\
-	../doxygen/chapters/110_basic_examples.doxy		\
-	../doxygen/chapters/201_advanced_examples.doxy		\
-	../doxygen/chapters/210_check_list_performance.doxy		\
-	../doxygen/chapters/220_debugging_tools.doxy		\
-	../doxygen/chapters/230_online_performance_tools.doxy		\
-	../doxygen/chapters/240_offline_performance_tools.doxy		\
-	../doxygen/chapters/390_faq.doxy		\
-	../doxygen/chapters/601_scaling_vector_example.doxy		\
-	../doxygen/chapters/610_fdl_1_3.doxy		\
+	../doxygen/chapters/000_foreword.doxy		\
+	../doxygen/chapters/100_introduction.doxy		\
+	../doxygen/chapters/210_building.doxy		\
+	../doxygen/chapters/301_basic_examples.doxy		\
+	../doxygen/chapters/302_advanced_examples.doxy		\
+	../doxygen/chapters/303_scaling_vector_example.doxy		\
+	../doxygen/chapters/410_online_performance_tools.doxy		\
+	../doxygen/chapters/411_offline_performance_tools.doxy		\
+	../doxygen/chapters/500_check_list_performance.doxy		\
+	../doxygen/chapters/510_faq.doxy		\
+	../doxygen/chapters/700_debugging_tools.doxy		\
+	../doxygen/chapters/999_fdl_1_3.doxy		\
 	../doxygen/chapters/code/forkmode.c \
 	../doxygen/chapters/code/multiformat.c \
 	../doxygen/chapters/code/complex.c \

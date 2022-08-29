@@ -1,0 +1,68 @@
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+
+/*! \page Glossary GLossary
+    
+A \b codelet records pointers to various implementations of the same
+theoretical function.
+
+A <b>memory node</b> can be either the main RAM, GPU-embedded memory or a disk memory.
+
+A \b bus is a link between memory nodes.
+
+A <b>data handle</b> keeps track of replicates of the same data (\b registered by the
+application) over various memory nodes. The data management library manages to
+keep them coherent.
+
+The \b home memory node of a data handle is the memory node from which the data
+was registered (usually the main memory node).
+
+A \b task represents a scheduled execution of a codelet on some data handles.
+
+A \b tag is a rendez-vous point. Tasks typically have their own tag, and can
+depend on other tags. The value is chosen by the application.
+
+A \b worker execute tasks. There is typically one per CPU computation core and
+one per accelerator (for which a whole CPU core is dedicated).
+
+A \b driver drives a given kind of workers. There are currently CPU, CUDA,
+and OpenCL drivers. They usually start several workers to actually drive
+them.
+
+A <b>performance model</b> is a (dynamic or static) model of the performance of a
+given codelet. Codelets can have execution time performance model as well as
+energy consumption performance models.
+
+A data \b interface describes the layout of the data: for a vector, a pointer
+for the start, the number of elements and the size of elements ; for a matrix, a
+pointer for the start, the number of elements per row, the offset between rows,
+and the size of each element ; etc. To access their data, codelet functions are
+given interfaces for the local memory node replicates of the data handles of the
+scheduled task.
+
+\b Partitioning data means dividing the data of a given data handle (called
+\b father) into a series of \b children data handles which designate various
+portions of the former.
+
+A \b filter is the function which computes children data handles from a father
+data handle, and thus describes how the partitioning should be done (horizontal,
+vertical, etc.)
+
+\b Acquiring a data handle can be done from the main application, to safely
+access the data of a data handle from its home node, without having to
+unregister it.
+
+*/

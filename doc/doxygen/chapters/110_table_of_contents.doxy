@@ -1,0 +1,89 @@
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+
+/*! \page Tableofcontents Table of contents
+
+    The documentation chapters include
+
+<ul>
+<li> Part 1: StarPU Installation
+    <ul>
+    <li> \ref ExecutionConfigurationThroughEnvironmentVariables
+    <li> \ref CompilationConfiguration
+    <li> \ref BuildingAndInstallingStarPU
+    
+    </ul>
+<li> Part 2: StarPU Basics
+    <ul>
+    <li> \ref StarPUApplications
+    <li> \ref BasicExamples
+    <li> \ref AdvancedExamples
+    <li> \ref FullSourceCodeVectorScal
+    <li> \ref TasksInStarPU
+    <li> \ref DataManagement
+    <li> \ref Scheduling
+    <li> \ref SchedulingContexts
+    <li> \ref SchedulingContextHypervisor
+    </ul>
+<li> Part 3: StarPU Performances
+    <ul>
+    <li> \ref BenchmarkingStarPU
+    <li> \ref OnlinePerformanceTools
+    <li> \ref OfflinePerformanceTools
+    </ul>
+<li> Part 4: StarPU FAQ
+    <ul>
+    <li> \ref CheckListWhenPerformanceAreNotThere
+    <li> \ref FrequentlyAskedQuestions
+    </ul>
+<li> Part 6: StarPU Interfaces
+    <ul>
+    <li> \ref NativeFortranSupport
+    <li> \ref StarPUJavaInterface
+    <li> \ref EclipsePlugin
+    <li> \ref PythonInterface
+    <li> \ref OpenMPRuntimeSupport
+    </ul>
+<li> Part 5: StarPU Extensions
+    <ul>
+    <li> \ref DebuggingTools
+    <li> \ref AdvancedDataManagement
+    <li> \ref OutOfCore
+    <li> \ref MPISupport
+    <li> \ref TCPIPSupport
+    <li> \ref Transactions
+    <li> \ref FaultTolerance
+    <li> \ref FFTSupport
+    <li> \ref MaxFPGASupport
+    <li> \ref SOCLOpenclExtensions
+    <li> \ref HierarchicalDAGS
+    <li> \ref ClusteringAMachine
+    <li> \ref InteroperabilitySupport
+    <li> \ref HowToDefineANewSchedulingPolicy
+    <li> \ref SimGridSupport
+    </ul>
+<li> Part: Appendix
+    <ul>
+    <li> \ref GNUFreeDocumentationLicense
+    <li> \ref ModuleDocumentation
+    <li> \ref FileDocumentation
+    <li> \ref deprecated
+    </ul>
+</ul>
+
+Make sure to have had a look at those too!
+
+*/
