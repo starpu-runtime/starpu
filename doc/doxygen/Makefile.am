@@ -49,26 +49,26 @@ chapters =	\
 	chapters/500_check_list_performance.doxy		\
 	chapters/510_faq.doxy		\
 	chapters/600_native_fortran_support.doxy		\
-	chapters/601_java.doxy 		\
-	chapters/602_eclipse_plugin.doxy 		\
-	chapters/603_python.doxy		\
-	chapters/604_openmp_runtime_support.doxy		\
+	chapters/610_java.doxy 		\
+	chapters/620_eclipse_plugin.doxy 		\
+	chapters/630_python.doxy		\
+	chapters/640_openmp_runtime_support.doxy		\
 	chapters/700_debugging_tools.doxy		\
-	chapters/701_advanced_data_management.doxy		\
-	chapters/702_out_of_core.doxy		\
-	chapters/703_mpi_support.doxy		\
-	chapters/704_tcpip_support.doxy		\
-	chapters/705_transactions.doxy		\
-	chapters/706_fault_tolerance.doxy	\
-	chapters/707_fft_support.doxy		\
-	chapters/708_max_fpga_support.doxy		\
-	chapters/709_socl_opencl_extensions.doxy		\
-	chapters/710_bubble.doxy		\
-	chapters/711_clustering_a_machine.doxy		\
-	chapters/712_interoperability.doxy		\
-	chapters/713_scheduling_policy_definition.doxy		\
-	chapters/714_simgrid.doxy		\
-	chapters/800_files.doxy		\
+	chapters/710_advanced_data_management.doxy		\
+	chapters/720_out_of_core.doxy		\
+	chapters/730_mpi_support.doxy		\
+	chapters/740_tcpip_support.doxy		\
+	chapters/750_transactions.doxy		\
+	chapters/760_fault_tolerance.doxy	\
+	chapters/770_fft_support.doxy		\
+	chapters/780_max_fpga_support.doxy		\
+	chapters/790_socl_opencl_extensions.doxy		\
+	chapters/800_bubble.doxy		\
+	chapters/810_clustering_a_machine.doxy		\
+	chapters/820_interoperability.doxy		\
+	chapters/830_scheduling_policy_definition.doxy		\
+	chapters/840_simgrid.doxy		\
+	chapters/900_files.doxy		\
 	chapters/999_fdl_1_3.doxy		\
 	chapters/code/forkmode.c \
 	chapters/code/multiformat.c \
