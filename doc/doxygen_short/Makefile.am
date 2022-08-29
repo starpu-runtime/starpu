@@ -29,12 +29,12 @@ include $(top_srcdir)/doc/doxy.mk
 chapters =	\
 	../doxygen/chapters/000_foreword.doxy		\
 	../doxygen/chapters/100_introduction.doxy		\
-	../doxygen/chapters/210_building.doxy		\
-	../doxygen/chapters/301_basic_examples.doxy		\
-	../doxygen/chapters/302_advanced_examples.doxy		\
-	../doxygen/chapters/303_scaling_vector_example.doxy		\
+	../doxygen/chapters/220_building.doxy		\
+	../doxygen/chapters/310_basic_examples.doxy		\
+	../doxygen/chapters/320_advanced_examples.doxy		\
+	../doxygen/chapters/330_scaling_vector_example.doxy		\
 	../doxygen/chapters/410_online_performance_tools.doxy		\
-	../doxygen/chapters/411_offline_performance_tools.doxy		\
+	../doxygen/chapters/420_offline_performance_tools.doxy		\
 	../doxygen/chapters/500_check_list_performance.doxy		\
 	../doxygen/chapters/510_faq.doxy		\
 	../doxygen/chapters/700_debugging_tools.doxy		\

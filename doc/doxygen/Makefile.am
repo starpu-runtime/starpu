@@ -32,20 +32,20 @@ chapters =	\
 	chapters/110_table_of_contents.doxy		\
 	chapters/120_glossary.doxy		\
 	chapters/200_environment_variables.doxy		\
-	chapters/201_configure_options.doxy		\
-	chapters/210_building.doxy		\
+	chapters/210_configure_options.doxy		\
+	chapters/220_building.doxy		\
 	chapters/300_starpu_applications.doxy		\
-	chapters/301_basic_examples.doxy		\
-	chapters/302_advanced_examples.doxy		\
-	chapters/303_scaling_vector_example.doxy		\
-	chapters/310_tasks.doxy		\
-	chapters/311_data_management.doxy		\
-	chapters/312_scheduling.doxy		\
-	chapters/313_scheduling_contexts.doxy		\
-	chapters/314_scheduling_context_hypervisor.doxy		\
+	chapters/310_basic_examples.doxy		\
+	chapters/320_advanced_examples.doxy		\
+	chapters/330_scaling_vector_example.doxy		\
+	chapters/340_tasks.doxy		\
+	chapters/350_data_management.doxy		\
+	chapters/360_scheduling.doxy		\
+	chapters/370_scheduling_contexts.doxy		\
+	chapters/380_scheduling_context_hypervisor.doxy		\
 	chapters/400_benchmarking_starpu.doxy		\
 	chapters/410_online_performance_tools.doxy		\
-	chapters/411_offline_performance_tools.doxy		\
+	chapters/420_offline_performance_tools.doxy		\
 	chapters/500_check_list_performance.doxy		\
 	chapters/510_faq.doxy		\
 	chapters/600_native_fortran_support.doxy		\
