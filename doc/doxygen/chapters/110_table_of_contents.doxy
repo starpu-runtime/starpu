@@ -24,7 +24,6 @@
     <li> \ref ExecutionConfigurationThroughEnvironmentVariables
     <li> \ref CompilationConfiguration
     <li> \ref BuildingAndInstallingStarPU
-    
     </ul>
 <li> Part 2: StarPU Basics
     <ul>
