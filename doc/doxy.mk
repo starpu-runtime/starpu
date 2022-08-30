@@ -105,8 +105,8 @@ $(DOX_HTML_DIR): $(DOX_TAG)
 $(DOX_TAG): $(dox_inputs)
 	@rm -fr $(DOX_HTML_DIR) $(DOX_LATEX_DIR)
 	@$(DOXYGEN) $(DOX_CONFIG)
-	@$(SED) -i 's/ModuleDocumentation <\/li>/<a class="el" href="modules.html">Modules<\/a>/' $(DOX_HTML_DIR)/Tableofcontents.html
-	@$(SED) -i 's/FileDocumentation <\/li>/<a class="el" href="files.html">Files<\/a>/' $(DOX_HTML_DIR)/Tableofcontents.html
+	@if test -f $(DOX_HTML_DIR)/Tableofcontents.html ; then $(SED) -i 's/ModuleDocumentation <\/li>/<a class="el" href="modules.html">Modules<\/a>/' $(DOX_HTML_DIR)/Tableofcontents.html ; fi
+	@if test -f $(DOX_HTML_DIR)/Tableofcontents.html ; then $(SED) -i 's/FileDocumentation <\/li>/<a class="el" href="files.html">Files<\/a>/' $(DOX_HTML_DIR)/Tableofcontents.html ; fi
         # comment for the line below: what we really want to do is to remove the line, but dy doing so, it avoids opening the interactive menu when browsing files
 	@if test -f $(DOX_HTML_DIR)/navtree.js ; then $(SED) -i 's/\[ "Files", "Files.html", null \]/\[ "", "Files.html", null \]/' $(DOX_HTML_DIR)/navtree.js ; fi
 	@$(SED) -i 's/.*"Files.html".*//' $(DOX_HTML_DIR)/pages.html
@@ -124,8 +124,8 @@ $(DOX_DIR)/$(DOX_PDF): $(DOX_TAG) refman.tex $(images)
 	rm -f *.aux *.toc *.idx *.ind *.ilg *.log *.out ;\
 	if test -f ExecutionConfigurationThroughEnvironmentVariables.tex ; then $(SED) -i -e 's/__env__/\\_Environment Variables!/' -e 's/\\-\\_\\-\\-\\_\\-env\\-\\_\\-\\-\\_\\-//' ExecutionConfigurationThroughEnvironmentVariables.tex ; fi ;\
 	if test -f CompilationConfiguration.tex ; then $(SED) -i -e 's/__configure__/\\_Configure Options!/' -e 's/\\-\\_\\-\\-\\_\\-configure\\-\\_\\-\\-\\_\\-//' CompilationConfiguration.tex ; fi ;\
-	$(SED) -i s'/\\item Module\\.Documentation/\\item \\hyperlink{ModuleDocumentation}{Module Documentation}/' Tableofcontents.tex ;\
-	$(SED) -i s'/\\item File\\.Documentation/\\item \\hyperlink{FileDocumentation}{File Documentation}/' Tableofcontents.tex ;\
+	if test -f Tableofcontents.tex ; then $(SED) -i s'/\\item Module\\.Documentation/\\item \\hyperlink{ModuleDocumentation}{Module Documentation}/' Tableofcontents.tex ; fi ;\
+	if test -f Tableofcontents.tex ; then $(SED) -i s'/\\item File\\.Documentation/\\item \\hyperlink{FileDocumentation}{File Documentation}/' Tableofcontents.tex ; fi ;\
 	max_print_line=1000000 $(PDFLATEX) -interaction batchmode refman.tex ;\
 	! < refman.log grep -v group__ | grep -v _amgrp | grep -v deprecated__ | grep "multiply defined" || exit 1 ;\
 	$(MAKEINDEX) refman.idx ;\
