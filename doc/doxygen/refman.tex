@@ -60,48 +60,49 @@ Documentation License”.
 \hypertarget{index}{}
 \input{index}
 
-\part{StarPU Basics}
+\chapter{Glossary}
+\label{Glossary}
+\hypertarget{Glossary}{}
+\input{Glossary}
+
+\part{StarPU Installation}
+
+\chapter{Execution Configuration Through Environment Variables}
+\label{ExecutionConfigurationThroughEnvironmentVariables}
+\hypertarget{ExecutionConfigurationThroughEnvironmentVariables}{}
+\input{ExecutionConfigurationThroughEnvironmentVariables}
+
+\chapter{Compilation Configuration}
+\label{CompilationConfiguration}
+\hypertarget{CompilationConfiguration}{}
+\input{CompilationConfiguration}
 
 \chapter{Building and Installing StarPU}
 \label{BuildingAndInstallingStarPU}
 \hypertarget{BuildingAndInstallingStarPU}{}
 \input{BuildingAndInstallingStarPU}
 
+\part{StarPU Basics}
+
+\chapter{StarPU Applications}
+\label{StarPUApplications}
+\hypertarget{StarPUApplications}{}
+\input{StarPUApplications}
+
 \chapter{Basic Examples}
 \label{BasicExamples}
 \hypertarget{BasicExamples}{}
 \input{BasicExamples}
-
-\part{StarPU Quick Programming Guide}
 
 \chapter{Advanced Examples}
 \label{AdvancedExamples}
 \hypertarget{AdvancedExamples}{}
 \input{AdvancedExamples}
 
-\chapter{Check List When Performance Are Not There}
-\label{CheckListWhenPerformanceAreNotThere}
-\hypertarget{CheckListWhenPerformanceAreNotThere}{}
-\input{CheckListWhenPerformanceAreNotThere}
-
-\part{StarPU Tools}
-
-\chapter{Debugging Tools}
-\label{DebuggingTools}
-\hypertarget{DebuggingTools}{}
-\input{DebuggingTools}
-
-\chapter{Online Performance Tools}
-\label{OnlinePerformanceTools}
-\hypertarget{OnlinePerformanceTools}{}
-\input{OnlinePerformanceTools}
-
-\chapter{Offline Performance Tools}
-\label{OfflinePerformanceTools}
-\hypertarget{OfflinePerformanceTools}{}
-\input{OfflinePerformanceTools}
-
-\part{StarPU Inside}
+\chapter{Full Source Code for the ’Scaling a Vector’ Example}
+\label{FullSourceCodeVectorScal}
+\hypertarget{FullSourceCodeVectorScal}{}
+\input{FullSourceCodeVectorScal}
 
 \chapter{Tasks In StarPU}
 \label{TasksInStarPU}
@@ -128,17 +129,73 @@ Documentation License”.
 \hypertarget{SchedulingContextHypervisor}{}
 \input{SchedulingContextHypervisor}
 
-\chapter{How To Define a New Scheduling Policy}
-\label{HowToDefineANewSchedulingPolicy}
-\hypertarget{HowToDefineANewSchedulingPolicy}{}
-\input{HowToDefineANewSchedulingPolicy}
+\part{StarPU Performances}
+
+\chapter{Benchmarking StarPU}
+\label{BenchmarkingStarPU}
+\hypertarget{BenchmarkingStarPU}{}
+\input{BenchmarkingStarPU}
+
+\chapter{Online Performance Tools}
+\label{OnlinePerformanceTools}
+\hypertarget{OnlinePerformanceTools}{}
+\input{OnlinePerformanceTools}
+
+\chapter{Offline Performance Tools}
+\label{OfflinePerformanceTools}
+\hypertarget{OfflinePerformanceTools}{}
+\input{OfflinePerformanceTools}
+
+\part{StarPU FAQ}
+
+\chapter{Check List When Performance Are Not There}
+\label{CheckListWhenPerformanceAreNotThere}
+\hypertarget{CheckListWhenPerformanceAreNotThere}{}
+\input{CheckListWhenPerformanceAreNotThere}
 
 \chapter{Frequently Asked Questions}
 \label{FrequentlyAskedQuestions}
 \hypertarget{FrequentlyAskedQuestions}{}
 \input{FrequentlyAskedQuestions}
 
+\part{StarPU Interfaces}
+
+\chapter{Native Fortran Support}
+\label{NativeFortranSupport}
+\hypertarget{NativeFortranSupport}{}
+\input{NativeFortranSupport}
+
+\chapter{StarPU Java Interface}
+\label{StarPUJavaInterface}
+\hypertarget{StarPUJavaInterface}{}
+\input{StarPUJavaInterface}
+
+\chapter{Eclipse Plugin}
+\label{EclipsePlugin}
+\hypertarget{EclipsePlugin}{}
+\input{EclipsePlugin}
+
+\chapter{Python Interface}
+\label{PythonInterface}
+\hypertarget{PythonInterface}{}
+\input{PythonInterface}
+
+\chapter{The StarPU OpenMP Runtime Support (SORS)}
+\label{OpenMPRuntimeSupport}
+\hypertarget{OpenMPRuntimeSupport}{}
+\input{OpenMPRuntimeSupport}
+
 \part{StarPU Extensions}
+
+\chapter{Debugging Tools}
+\label{DebuggingTools}
+\hypertarget{DebuggingTools}{}
+\input{DebuggingTools}
+
+\chapter{Advanced Data Management}
+\label{AdvancedDataManagement}
+\hypertarget{AdvancedDataManagement}{}
+\input{AdvancedDataManagement}
 
 \chapter{Out Of Core}
 \label{OutOfCore}
@@ -155,6 +212,11 @@ Documentation License”.
 \hypertarget{TCPIPSupport}{}
 \input{TCPIPSupport}
 
+\chapter{Transactions}
+\label{Transactions}
+\hypertarget{Transactions}{}
+\input{Transactions}
+
 \chapter{Fault Tolerance}
 \label{FaultTolerance}
 \hypertarget{FaultTolerance}{}
@@ -170,72 +232,42 @@ Documentation License”.
 \hypertarget{MaxFPGASupport}{}
 \input{MaxFPGASupport}
 
-\chapter{Native Fortran Support}
-\label{NativeFortranSupport}
-\hypertarget{NativeFortranSupport}{}
-\input{NativeFortranSupport}
-
 \chapter{SOCL OpenCL Extensions}
 \label{SOCLOpenclExtensions}
 \hypertarget{SOCLOpenclExtensions}{}
 \input{SOCLOpenclExtensions}
-
-\chapter{SimGrid Support}
-\label{SimGridSupport}
-\hypertarget{SimGridSupport}{}
-\input{SimGridSupport}
-
-\chapter{The StarPU OpenMP Runtime Support (SORS)}
-\label{OpenMPRuntimeSupport}
-\hypertarget{OpenMPRuntimeSupport}{}
-\input{OpenMPRuntimeSupport}
-
-\chapter{Clustering a Machine}
-\label{ClusteringAMachine}
-\hypertarget{ClusteringAMachine}{}
-\input{ClusteringAMachine}
 
 \chapter{Hierarchical DAGS}
 \label{HierarchicalDAGS}
 \hypertarget{HierarchicalDAGS}{}
 \input{HierarchicalDAGS}
 
+\chapter{Clustering a Machine}
+\label{ClusteringAMachine}
+\hypertarget{ClusteringAMachine}{}
+\input{ClusteringAMachine}
+
 \chapter{Interoperability Support}
 \label{InteropSupport}
 \hypertarget{InteropSupport}{}
 \input{InteroperabilitySupport}
 
-\chapter{Transactions}
-\label{Transactions}
-\hypertarget{Transactions}{}
-\input{Transactions}
+\chapter{How To Define a New Scheduling Policy}
+\label{HowToDefineANewSchedulingPolicy}
+\hypertarget{HowToDefineANewSchedulingPolicy}{}
+\input{HowToDefineANewSchedulingPolicy}
 
-\chapter{Eclipse Plugin}
-\label{EclipsePlugin}
-\hypertarget{EclipsePlugin}{}
-\input{EclipsePlugin}
+\chapter{SimGrid Support}
+\label{SimGridSupport}
+\hypertarget{SimGridSupport}{}
+\input{SimGridSupport}
 
-\chapter{StarPU Java Interface}
-\label{StarPUJavaInterface}
-\hypertarget{StarPUJavaInterface}{}
-\input{StarPUJavaInterface}
+\part{Appendix}
 
-\chapter{Python Interface}
-\label{PythonInterface}
-\hypertarget{PythonInterface}{}
-\input{PythonInterface}
-
-\part{StarPU Reference API}
-
-\chapter{Execution Configuration Through Environment Variables}
-\label{ExecutionConfigurationThroughEnvironmentVariables}
-\hypertarget{ExecutionConfigurationThroughEnvironmentVariables}{}
-\input{ExecutionConfigurationThroughEnvironmentVariables}
-
-\chapter{Compilation Configuration}
-\label{CompilationConfiguration}
-\hypertarget{CompilationConfiguration}{}
-\input{CompilationConfiguration}
+\chapter{The GNU Free Documentation License}
+\label{GNUFreeDocumentationLicense}
+\hypertarget{GNUFreeDocumentationLicense}{}
+\input{GNUFreeDocumentationLicense}
 
 \chapter{Module Index}
 \input{modules}
@@ -367,18 +399,6 @@ Documentation License”.
 \label{deprecated}
 \hypertarget{deprecated}{}
 \input{deprecated}
-
-\part{Appendix}
-
-\chapter{Full Source Code for the ’Scaling a Vector’ Example}
-\label{FullSourceCodeVectorScal}
-\hypertarget{FullSourceCodeVectorScal}{}
-\input{FullSourceCodeVectorScal}
-
-\chapter{The GNU Free Documentation License}
-\label{GNUFreeDocumentationLicense}
-\hypertarget{GNUFreeDocumentationLicense}{}
-\input{GNUFreeDocumentationLicense}
 
 %\part{Index}
 \addcontentsline{toc}{chapter}{Index}
