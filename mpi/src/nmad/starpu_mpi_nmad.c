@@ -684,6 +684,11 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 
 void _starpu_mpi_progress_shutdown(void **value)
 {
+	if (!running)
+	{
+		_STARPU_ERROR("The progress thread was not launched. Was StarPU successfully initialized?\n");
+	}
+
 	/* kill the progression thread */
 	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 	running = 0;

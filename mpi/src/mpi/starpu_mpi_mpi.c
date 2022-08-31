@@ -1649,6 +1649,11 @@ void _starpu_mpi_wait_for_initialization()
 
 void _starpu_mpi_progress_shutdown(void **value)
 {
+	if (!running)
+	{
+		_STARPU_ERROR("The progress thread was not launched. Was StarPU successfully initialized?\n");
+	}
+
 	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 	running = 0;
 	STARPU_PTHREAD_COND_BROADCAST(&progress_cond);
