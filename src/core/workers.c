@@ -1593,6 +1593,11 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	if (_starpu_mpi_common_mp_init() == -ENODEV)
 	{
 		initialized = UNINITIALIZED;
+		STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
+		init_count--;
+		/* Let somebody else try to do it */
+		STARPU_PTHREAD_COND_SIGNAL(&init_cond);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
 		return -ENODEV;
 	}
 #endif
@@ -1601,6 +1606,11 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	if (_starpu_tcpip_common_mp_init() == -ENODEV)
 	{
 		initialized = UNINITIALIZED;
+		STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
+		init_count--;
+		/* Let somebody else try to do it */
+		STARPU_PTHREAD_COND_SIGNAL(&init_cond);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
 		return -ENODEV;
 	}
 #endif
@@ -1679,6 +1689,11 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	if (starpu_get_env_number_default("STARPU_SIMGRID", 0))
 	{
 		_STARPU_DISP("Simulation mode requested, but this libstarpu was built without simgrid support, please recompile\n");
+		STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
+		init_count--;
+		/* Let somebody else try to do it */
+		STARPU_PTHREAD_COND_SIGNAL(&init_cond);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
 		return -EINVAL;
 	}
 #endif
@@ -1698,6 +1713,11 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 		if (user_conf->magic != 42)
 		{
 			_STARPU_DISP("starpu_conf structure needs to be initialized with starpu_conf_init\n");
+			STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
+			init_count--;
+			/* Let somebody else try to do it */
+			STARPU_PTHREAD_COND_SIGNAL(&init_cond);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
 			return -EINVAL;
 		}
 		_starpu_config.conf = *user_conf;
