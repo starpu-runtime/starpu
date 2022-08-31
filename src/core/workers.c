@@ -1299,9 +1299,9 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
         if (_starpu_mpi_common_mp_init() == -ENODEV)
         {
-                initialized = UNINITIALIZED;
 		STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 		init_count--;
+		initialized = UNINITIALIZED;
 		/* Let somebody else try to do it */
 		STARPU_PTHREAD_COND_SIGNAL(&init_cond);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
@@ -1385,6 +1385,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 		_STARPU_DISP("Simulation mode requested, but this libstarpu was built without simgrid support, please recompile\n");
 		STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 		init_count--;
+		initialized = UNINITIALIZED;
 		/* Let somebody else try to do it */
 		STARPU_PTHREAD_COND_SIGNAL(&init_cond);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
@@ -1409,6 +1410,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 			_STARPU_DISP("starpu_conf structure needs to be initialized with starpu_conf_init\n");
 			STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 			init_count--;
+			initialized = UNINITIALIZED;
 			/* Let somebody else try to do it */
 			STARPU_PTHREAD_COND_SIGNAL(&init_cond);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
