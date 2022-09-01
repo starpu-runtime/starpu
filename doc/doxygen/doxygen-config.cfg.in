@@ -15,7 +15,49 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
-INPUT                  = @top_srcdir@/doc/doxygen/chapters \
+INPUT                  = @top_srcdir@/doc/doxygen/chapters/foreword.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_introduction/introduction.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_introduction/table_of_contents.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_introduction/glossary.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_installation/environment_variables.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_installation/configure_options.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_installation/building.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_basics/starpu_applications.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_basics/basic_examples.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_basics/advanced_examples.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_basics/scaling_vector_example.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_basics/tasks.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_basics/data_management.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_basics/scheduling.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_basics/scheduling_contexts.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_basics/scheduling_context_hypervisor.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_performances/benchmarking_starpu.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_performances/online_performance_tools.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_performances/offline_performance_tools.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_faq/check_list_performance.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_faq/faq.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_interfaces/native_fortran_support.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_interfaces/java.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_interfaces/eclipse_plugin.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_interfaces/python.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_interfaces/openmp_runtime_support.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_extensions/debugging_tools.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_extensions/advanced_data_management.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_extensions/out_of_core.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_extensions/mpi_support.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_extensions/tcpip_support.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_extensions/transactions.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_extensions/fault_tolerance.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_extensions/fft_support.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_extensions/max_fpga_support.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_extensions/socl_opencl_extensions.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_extensions/bubble.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_extensions/clustering_a_machine.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_extensions/interoperability.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_extensions/scheduling_policy_definition.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/starpu_extensions/simgrid.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/files.doxy \
+						 @top_srcdir@/doc/doxygen/chapters/fdl_1_3.doxy \
 		       	 @top_srcdir@/doc/doxygen/chapters/api \
                          @top_builddir@/doc/doxygen/starpu_config.h \
 			 @top_srcdir@/include/starpu_bitmap.h \
