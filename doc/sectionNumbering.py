@@ -6,7 +6,7 @@ import sys
 
 files = {}
 
-with open(sys.argv[1]+"/doxygen-config.cfg") as fin:
+with open(sys.argv[1]+"/doxygen-config.cfg", "r", encoding="utf-8") as fin:
     for line in fin.readlines():
         if ".doxy" in line:
             for x in line.split(" "):
