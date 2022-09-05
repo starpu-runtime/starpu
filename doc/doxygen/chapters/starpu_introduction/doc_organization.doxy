@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/*! \page Tableofcontents Table of contents
+/*! \page DocOrganization Documentation Organization
 
     The documentation chapters include
 
@@ -22,8 +22,8 @@
 <li> Part 1: StarPU Installation
     <ul>
     <li> \ref ExecutionConfigurationThroughEnvironmentVariables
-    <li> \ref CompilationConfiguration
     <li> \ref BuildingAndInstallingStarPU
+    <li> \ref CompilationConfiguration
     </ul>
 <li> Part 2: StarPU Basics
     <ul>

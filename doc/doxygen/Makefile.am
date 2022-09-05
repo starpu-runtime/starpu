@@ -29,7 +29,7 @@ include $(top_srcdir)/doc/doxy.mk
 chapters =	\
 	chapters/foreword.doxy		\
 	chapters/starpu_introduction/introduction.doxy		\
-	chapters/starpu_introduction/table_of_contents.doxy		\
+	chapters/starpu_introduction/doc_organization.doxy		\
 	chapters/starpu_introduction/glossary.doxy		\
 	chapters/starpu_installation/environment_variables.doxy		\
 	chapters/starpu_installation/building.doxy		\
