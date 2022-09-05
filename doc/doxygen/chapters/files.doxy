@@ -24,8 +24,8 @@
 \file starpu_clusters.h
 \file starpu_cublas.h
 \file starpu_cublas_v2.h
-\file starpu_cusparse.h
 \file starpu_cuda.h
+\file starpu_cusparse.h
 \file starpu_data_filters.h
 \file starpu_data.h
 \file starpu_data_interfaces.h
@@ -36,16 +36,14 @@
 \file starpu_fxt.h
 \file starpu_hash.h
 \file starpu_helper.h
-\file starpu_heteroprio.h
 \file starpu_hip.h
-\file starpu_scheduler_toolbox.h
 \file starpu_max_fpga.h
 \file starpu_mod.f90
 \file starpu_opencl.h
 \file starpu_openmp.h
+\file starpu_perfmodel.h
 \file starpu_perf_monitoring.h
 \file starpu_perf_steering.h
-\file starpu_perfmodel.h
 \file starpu_profiling.h
 \file starpu_rand.h
 \file starpu_sched_component.h
@@ -56,8 +54,8 @@
 \file starpu_sink.h
 \file starpu_stdlib.h
 \file starpu_task_bundle.h
-\file starpu_task.h
 \file starpu_task_dep.h
+\file starpu_task.h
 \file starpu_task_list.h
 \file starpu_task_util.h
 \file starpu_thread.h
@@ -66,8 +64,11 @@
 \file starpu_util.h
 \file starpu_worker.h
 
-\file starpu_mpi.h
+\file starpu_heteroprio.h
+\file starpu_scheduler_toolbox.h
+
 \file starpu_mpi_ft.h
+\file starpu_mpi.h
 \file starpu_mpi_lb.h
 
 \file sc_hypervisor_config.h
