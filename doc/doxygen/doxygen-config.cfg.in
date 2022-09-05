@@ -19,8 +19,8 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters/foreword.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_introduction/introduction.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_introduction/doc_organization.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_introduction/glossary.doxy \
-			 @top_srcdir@/doc/doxygen/chapters/starpu_installation/environment_variables.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_installation/building.doxy \
+			 @top_srcdir@/doc/doxygen/chapters/starpu_installation/environment_variables.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_installation/configure_options.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_basics/starpu_applications.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_basics/basic_examples.doxy \
