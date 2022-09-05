@@ -37,8 +37,6 @@ starpu.log
 /tests/datawizard/handle_to_pointer
 /tests/datawizard/data_lookup
 /doc/stamp-vti
-/doc/doxygen_short/chapters/version.sty
-/doc/doxygen_short/chapters/version.html
 /doc/doxygen/chapters/version.sty
 /doc/doxygen/chapters/version.html
 /doc/doxygen/doxygen-config.cfg

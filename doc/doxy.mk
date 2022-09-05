@@ -113,7 +113,7 @@ $(DOX_TAG): $(dox_inputs)
 	@if test -f $(DOX_LATEX_DIR)/main.tex ; then mv $(DOX_LATEX_DIR)/main.tex $(DOX_LATEX_DIR)/index.tex ; fi
 	@if test -f $(DOX_LATEX_DIR)/refman.tex ; then $(SED) -i '/\\begin{titlepage}/,$$d' $(DOX_LATEX_DIR)/refman.tex ; fi
 	@if test -f $(DOX_LATEX_DIR)/refman.tex ; then cat $(top_srcdir)/doc/$(DOX_MAIN_DIR)/refman.tex >> $(DOX_LATEX_DIR)/refman.tex ; fi
-	$(top_srcdir)/doc/doxygen/sectionNumbering.py $(top_srcdir)/doc/$(DOX_MAIN_DIR)/chapters/ $(DOX_HTML_DIR)
+	$(top_srcdir)/doc/sectionNumbering.py $(top_builddir)/doc/$(DOX_MAIN_DIR) $(DOX_HTML_DIR)
 
 $(DOX_DIR)/$(DOX_PDF): $(DOX_TAG) refman.tex $(images)
 	$(MKDIR_P) $(DOX_LATEX_DIR)

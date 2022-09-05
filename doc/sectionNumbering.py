@@ -5,17 +5,20 @@ import operator
 import sys
 
 files = {}
-for x in os.listdir(sys.argv[1]):
-    if x.endswith(".doxy"):
-        with open(sys.argv[1]+x, "r", encoding="utf-8") as fin:
-            for line in fin.readlines():
-                if "\page" in line:
-                    line = line.replace("/*! \page ", "").strip()
-                    files[x] = line[0:line.index(" ")]+".html"
 
-sfiles= dict(sorted(files.items(), key=operator.itemgetter(0)))
+with open(sys.argv[1]+"/doxygen-config.cfg", "r", encoding="utf-8") as fin:
+    for line in fin.readlines():
+        if ".doxy" in line:
+            for x in line.split(" "):
+                if ".doxy" in x:
+                    with open(x, "r", encoding="utf-8") as fin:
+                        for line in fin.readlines():
+                            if "\page" in line:
+                                line = line.replace("/*! \page ", "").strip()
+                                files[x] = line[0:line.index(" ")]+".html"
+
 htmlfiles = ["index.html"]
-htmlfiles.extend(sfiles.values())
+htmlfiles.extend(files.values())
 
 htmldir=sys.argv[2]+"/"
 
