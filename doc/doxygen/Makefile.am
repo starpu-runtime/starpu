@@ -32,8 +32,8 @@ chapters =	\
 	chapters/starpu_introduction/table_of_contents.doxy		\
 	chapters/starpu_introduction/glossary.doxy		\
 	chapters/starpu_installation/environment_variables.doxy		\
-	chapters/starpu_installation/configure_options.doxy		\
 	chapters/starpu_installation/building.doxy		\
+	chapters/starpu_installation/configure_options.doxy		\
 	chapters/starpu_basics/starpu_applications.doxy		\
 	chapters/starpu_basics/basic_examples.doxy		\
 	chapters/starpu_basics/advanced_examples.doxy		\
