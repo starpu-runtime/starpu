@@ -58,69 +58,7 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters/foreword.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_extensions/simgrid.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/fdl_1_3.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/files.doxy \
-			 @top_srcdir@/doc/doxygen/chapters/api \
-                         @top_builddir@/doc/doxygen/starpu_config.h \
-			 @top_srcdir@/include/starpu_bitmap.h \
-	 		 @top_srcdir@/include/starpu_bound.h \
-	 		 @top_srcdir@/include/starpu_clusters.h \
-			 @top_srcdir@/include/starpu_cusparse.h \
-			 @top_srcdir@/include/starpu_cublas.h \
-			 @top_srcdir@/include/starpu_cublas_v2.h \
-			 @top_srcdir@/include/starpu_cuda.h \
-			 @top_srcdir@/include/starpu_data_filters.h \
-			 @top_srcdir@/include/starpu_data.h \
-			 @top_srcdir@/include/starpu_data_interfaces.h \
-			 @top_srcdir@/include/starpu_deprecated_api.h \
-			 @top_srcdir@/include/starpu_disk.h \
-			 @top_srcdir@/include/starpu_driver.h \
-			 @top_srcdir@/include/starpu_expert.h \
-			 @top_srcdir@/include/starpu_fxt.h \
-			 @top_srcdir@/include/starpu.h \
-			 @top_srcdir@/include/starpu_hash.h \
-			 @top_srcdir@/include/starpu_helper.h \
-			 @top_srcdir@/include/starpu_hip.h \
-			 @top_srcdir@/include/starpu_max_fpga.h \
-			 @top_srcdir@/include/starpu_mod.f90 \
-			 @top_srcdir@/include/starpu_opencl.h \
-			 @top_srcdir@/include/starpu_openmp.h \
-			 @top_srcdir@/include/starpu_perf_monitoring.h \
-			 @top_srcdir@/include/starpu_perf_steering.h \
-			 @top_srcdir@/include/starpu_perfmodel.h \
-			 @top_srcdir@/include/starpu_profiling.h \
-			 @top_srcdir@/include/starpu_rand.h \
-			 @top_srcdir@/include/starpu_sched_component.h \
-			 @top_srcdir@/include/starpu_sched_ctx.h \
-			 @top_srcdir@/include/starpu_sched_ctx_hypervisor.h \
-			 @top_srcdir@/include/starpu_scheduler.h \
-			 @top_srcdir@/include/starpu_simgrid_wrap.h \
-			 @top_srcdir@/include/starpu_sink.h \
-			 @top_srcdir@/include/starpu_stdlib.h \
-			 @top_srcdir@/include/starpu_task_bundle.h \
-			 @top_srcdir@/include/starpu_task.h \
-			 @top_srcdir@/include/starpu_task_dep.h \
-			 @top_srcdir@/include/starpu_task_list.h \
-			 @top_srcdir@/include/starpu_task_util.h \
-			 @top_srcdir@/include/starpu_thread.h \
-			 @top_srcdir@/include/starpu_thread_util.h \
-			 @top_srcdir@/include/starpu_tree.h \
-			 @top_srcdir@/include/starpu_util.h \
-			 @top_srcdir@/include/starpu_worker.h \
-			 @top_srcdir@/include/fstarpu_mod.f90 \
-			 @top_srcdir@/mpi/include/ \
-			 @top_srcdir@/mpi/include/starpu_mpi.h \
-			 @top_srcdir@/mpi/include/starpu_mpi_ft.h \
-			 @top_srcdir@/mpi/include/starpu_mpi_lb.h \
-			 @top_srcdir@/mpi/include/fstarpu_mpi_mod.f90 \
-			 @top_srcdir@/starpufft/include/starpufft.h \
-			 @top_srcdir@/sc_hypervisor/include \
-			 @top_srcdir@/sc_hypervisor/include/sc_hypervisor_config.h \
-			 @top_srcdir@/sc_hypervisor/include/sc_hypervisor_policy.h \
-			 @top_srcdir@/sc_hypervisor/include/sc_hypervisor_lp.h  \
-			 @top_srcdir@/sc_hypervisor/include/sc_hypervisor.h \
-			 @top_srcdir@/sc_hypervisor/include/sc_hypervisor_monitoring.h \
-			 @top_srcdir@/starpurm/include/starpurm.h \
-			 @top_srcdir@/include/schedulers/starpu_heteroprio.h \
-			 @top_srcdir@/include/schedulers/starpu_scheduler_toolbox.h
+			 @top_srcdir@/doc/doxygen/chapters/api
 
 EXAMPLE_PATH           = @top_srcdir@/doc/doxygen \
 		       	 @top_srcdir@/doc/doxygen/chapters \

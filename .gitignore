@@ -40,6 +40,7 @@ starpu.log
 /doc/doxygen/chapters/version.sty
 /doc/doxygen/chapters/version.html
 /doc/doxygen/doxygen-config.cfg
+/doc/doxygen/doxygen-config-include.cfg
 /doc/doxygen/doxygen_filter.sh
 /doc/doxygen_dev/chapters/version.sty
 /doc/doxygen_dev/chapters/version.html
