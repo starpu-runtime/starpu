@@ -21,8 +21,8 @@
 <ul>
 <li> Part 1: StarPU Installation
     <ul>
-    <li> \ref ExecutionConfigurationThroughEnvironmentVariables
     <li> \ref BuildingAndInstallingStarPU
+    <li> \ref ExecutionConfigurationThroughEnvironmentVariables
     <li> \ref CompilationConfiguration
     </ul>
 <li> Part 2: StarPU Basics
