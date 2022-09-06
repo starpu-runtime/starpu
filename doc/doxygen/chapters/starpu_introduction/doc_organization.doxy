@@ -34,8 +34,7 @@
     <li> \ref TasksInStarPU
     <li> \ref DataManagement
     <li> \ref Scheduling
-    <li> \ref SchedulingContexts
-    <li> \ref SchedulingContextHypervisor
+    <li> \ref ExamplesInStarPUSources
     </ul>
 <li> Part 3: StarPU Performances
     <ul>
@@ -59,7 +58,11 @@
 <li> Part 5: StarPU Extensions
     <ul>
     <li> \ref DebuggingTools
+    <li> \ref AdvancedTasksInStarPU
     <li> \ref AdvancedDataManagement
+    <li> \ref AdvancedScheduling
+    <li> \ref SchedulingContexts
+    <li> \ref SchedulingContextHypervisor
     <li> \ref OutOfCore
     <li> \ref MPISupport
     <li> \ref TCPIPSupport
