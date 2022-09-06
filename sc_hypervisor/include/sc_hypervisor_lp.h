@@ -21,8 +21,7 @@
 #include <starpu_config.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -60,12 +59,12 @@ void sc_hypervisor_lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rou
 /**
    make the first distribution of ressource in contexts by assigning the first x available ressources to each one
 */
-void sc_hypervisor_lp_distribute_resources_in_ctxs(unsigned* sched_ctxs, int ns, int nw, int res_rounded[ns][nw], double res[ns][nw], int *workers, int nworkers, struct types_of_workers *tw);
+void sc_hypervisor_lp_distribute_resources_in_ctxs(unsigned *sched_ctxs, int ns, int nw, int res_rounded[ns][nw], double res[ns][nw], int *workers, int nworkers, struct types_of_workers *tw);
 
 /**
    make the first distribution of ressource in contexts by assigning the first x available ressources to each one, share not integer no of workers
 */
-void sc_hypervisor_lp_distribute_floating_no_resources_in_ctxs(unsigned* sched_ctxs, int ns, int nw, double res[ns][nw], int *workers, int nworkers, struct types_of_workers *tw);
+void sc_hypervisor_lp_distribute_floating_no_resources_in_ctxs(unsigned *sched_ctxs, int ns, int nw, double res[ns][nw], int *workers, int nworkers, struct types_of_workers *tw);
 
 /**
    place resources in contexts dependig on whether they already have workers or not
@@ -75,7 +74,7 @@ void sc_hypervisor_lp_place_resources_in_ctx(int ns, int nw, double w_in_s[ns][n
 /**
    not used resources are shared between all contexts
 */
-void sc_hypervisor_lp_share_remaining_resources(int ns, unsigned *sched_ctxs,  int nworkers, int *workers);
+void sc_hypervisor_lp_share_remaining_resources(int ns, unsigned *sched_ctxs, int nworkers, int *workers);
 
 /**
    dichotomy btw t1 & t2
@@ -117,7 +116,6 @@ double sc_hypervisor_lp_simulate_distrib_tasks(int ns, int nw, int nt, double w_
 double sc_hypervisor_lp_simulate_distrib_flops_on_sample(int ns, int nw, double final_w_in_s[ns][nw], unsigned is_integer, double tmax,
 							 double **speed, double flops[ns], double **final_flops_on_w);
 #endif // STARPU_HAVE_GLPK_H
-
 
 /** @} */
 

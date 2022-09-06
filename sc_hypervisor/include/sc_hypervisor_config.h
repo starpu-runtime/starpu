@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,8 +20,7 @@
 #include <sc_hypervisor.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -120,7 +119,7 @@ extern "C"
    followed by 1 argument, a double, that indicates the number of
    flops needed to be executed before computing the speed of a worker
 */
-#define	SC_HYPERVISOR_ISPEED_W_SAMPLE -12
+#define SC_HYPERVISOR_ISPEED_W_SAMPLE -12
 
 /**
    This macro is used when calling sc_hypervisor_ctl() and must be
@@ -131,7 +130,7 @@ extern "C"
 
 #define SC_HYPERVISOR_TIME_SAMPLE -14
 
-#define MAX_IDLE_TIME 5000000000
+#define MAX_IDLE_TIME	 5000000000
 #define MIN_WORKING_TIME 500
 
 /**
@@ -199,7 +198,7 @@ struct sc_hypervisor_policy_config
 	*/
 	double ispeed_ctx_sample;
 
-        /**
+	/**
 	   Indicate the sample used to compute the instant speed per
 	   ctx (in seconds)
 	*/

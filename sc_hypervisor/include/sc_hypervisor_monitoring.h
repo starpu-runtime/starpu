@@ -21,8 +21,7 @@
 #include <sc_hypervisor.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -259,12 +258,12 @@ double sc_hypervisor_get_elapsed_flops_per_sched_ctx(struct sc_hypervisor_wrappe
 /**
    Get the number of flops executed by a context since the begining
 */
-double sc_hypervisor_get_total_elapsed_flops_per_sched_ctx(struct sc_hypervisor_wrapper* sc_w);
+double sc_hypervisor_get_total_elapsed_flops_per_sched_ctx(struct sc_hypervisor_wrapper *sc_w);
 
 /**
    Compute an average value of the cpu/cuda speed
 */
-double sc_hypervisorsc_hypervisor_get_speed_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_worker_archtype arch);
+double sc_hypervisorsc_hypervisor_get_speed_per_worker_type(struct sc_hypervisor_wrapper *sc_w, enum starpu_worker_archtype arch);
 
 /**
    Compte the actual speed of all workers of a specific type of worker

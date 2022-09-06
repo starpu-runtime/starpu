@@ -20,8 +20,7 @@
 #include <sc_hypervisor.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -29,11 +28,11 @@ extern "C"
    @{
 */
 
-#define HYPERVISOR_REDIM_SAMPLE 0.02
+#define HYPERVISOR_REDIM_SAMPLE	      0.02
 #define HYPERVISOR_START_REDIM_SAMPLE 0.1
-#define SC_NOTHING 0
-#define SC_IDLE 1
-#define SC_SPEED 2
+#define SC_NOTHING		      0
+#define SC_IDLE			      1
+#define SC_SPEED		      2
 
 struct types_of_workers
 {
@@ -92,7 +91,7 @@ void sc_hypervisor_policy_remove_task_from_pool(struct starpu_task *task, uint32
 /**
    clone a task wrapper linked list
 */
-struct sc_hypervisor_policy_task_pool* sc_hypervisor_policy_clone_task_pool(struct sc_hypervisor_policy_task_pool *tp);
+struct sc_hypervisor_policy_task_pool *sc_hypervisor_policy_clone_task_pool(struct sc_hypervisor_policy_task_pool *tp);
 
 /**
    get the execution time of the submitted tasks out of starpu's calibration files
@@ -107,12 +106,12 @@ unsigned sc_hypervisor_find_lowest_prio_sched_ctx(unsigned req_sched_ctx, int nw
 /**
    find the first most idle workers of a contex
 */
-int* sc_hypervisor_get_idlest_workers(unsigned sched_ctx, int *nworkers, enum starpu_worker_archtype arch);
+int *sc_hypervisor_get_idlest_workers(unsigned sched_ctx, int *nworkers, enum starpu_worker_archtype arch);
 
 /**
    find the first most idle workers in a list
 */
-int* sc_hypervisor_get_idlest_workers_in_list(int *start, int *workers, int nall_workers,  int *nworkers, enum starpu_worker_archtype arch);
+int *sc_hypervisor_get_idlest_workers_in_list(int *start, int *workers, int nall_workers, int *nworkers, enum starpu_worker_archtype arch);
 
 /**
    find workers that can be moved from a context (if the constraints of min, max, etc allow this)
@@ -137,7 +136,7 @@ unsigned sc_hypervisor_policy_resize_to_unknown_receiver(unsigned sender_sched_c
 /**
    compute the speed of a context
 */
-double sc_hypervisor_get_ctx_speed(struct sc_hypervisor_wrapper* sc_w);
+double sc_hypervisor_get_ctx_speed(struct sc_hypervisor_wrapper *sc_w);
 
 /**
    get the time of execution of the slowest context
@@ -157,12 +156,12 @@ double sc_hypervisor_get_speed_per_worker(struct sc_hypervisor_wrapper *sc_w, un
 /**
    compute the speed of a type of worker in a context
 */
-double sc_hypervisor_get_speed_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_worker_archtype arch);
+double sc_hypervisor_get_speed_per_worker_type(struct sc_hypervisor_wrapper *sc_w, enum starpu_worker_archtype arch);
 
 /**
    compute the speed of a type of worker in a context depending on its history
 */
-double sc_hypervisor_get_ref_speed_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_worker_archtype arch);
+double sc_hypervisor_get_ref_speed_per_worker_type(struct sc_hypervisor_wrapper *sc_w, enum starpu_worker_archtype arch);
 
 /**
    compute the average speed of a type of worker in all ctxs from the begining of appl
@@ -217,7 +216,7 @@ unsigned sc_hypervisor_get_resize_criteria(void);
 /**
    load information concerning the type of workers into a types_of_workers struct
 */
-struct types_of_workers* sc_hypervisor_get_types_of_workers(int *workers, unsigned nworkers);
+struct types_of_workers *sc_hypervisor_get_types_of_workers(int *workers, unsigned nworkers);
 
 /** @} */
 

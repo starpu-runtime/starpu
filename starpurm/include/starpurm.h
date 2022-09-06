@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2017-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2017-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,8 +20,7 @@
 #include <starpurm_config.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -36,25 +35,10 @@ extern "C"
 */
 enum e_starpurm_drs_ret
 {
-	/**
-	   Dynamic resource sharing operation succeeded.
-	*/
-	starpurm_DRS_SUCCESS = 0,
-
-	/**
-	   Dynamic resource sharing is disabled.
-	*/
-	starpurm_DRS_DISABLD = -1,
-	/**
-	   Dynamic resource sharing operation is not authorized or
-	   implemented.
-	*/
-	starpurm_DRS_PERM    = -2,
-	/**
-	   Dynamic resource sharing operation has been called with one
-	   or more invalid parameters.
-	*/
-	starpurm_DRS_EINVAL  = -3
+	starpurm_DRS_SUCCESS = 0,  /**< Dynamic resource sharing operation succeeded. */
+	starpurm_DRS_DISABLD = -1, /**< Dynamic resource sharing is disabled. */
+	starpurm_DRS_PERM    = -2, /**< Dynamic resource sharing operation is not authorized or implemented. */
+	starpurm_DRS_EINVAL  = -3  /**< Dynamic resource sharing operation has been called with one or more invalid parameters. */
 #if 0
 	/* Unused for now */
 	starpurm_DRS_NOTED,
@@ -107,7 +91,7 @@ void starpurm_shutdown(void);
    function \p f, the temporary context is freed and the previous
    default context for the current thread is restored.
 */
-void starpurm_spawn_kernel_on_cpus(void *data, void(*f)(void *), void *args, hwloc_cpuset_t cpuset);
+void starpurm_spawn_kernel_on_cpus(void *data, void (*f)(void *), void *args, hwloc_cpuset_t cpuset);
 
 /**
    Spawn a POSIX thread and returns immediately. The thread spawned
@@ -119,9 +103,9 @@ void starpurm_spawn_kernel_on_cpus(void *data, void(*f)(void *), void *args, hwl
    callback \p cb_f will be called just before the termination of the
    thread.
 */
-void starpurm_spawn_kernel_on_cpus_callback(void *data, void(*f)(void *), void *args, hwloc_cpuset_t cpuset, void(*cb_f)(void *), void *cb_args);
+void starpurm_spawn_kernel_on_cpus_callback(void *data, void (*f)(void *), void *args, hwloc_cpuset_t cpuset, void (*cb_f)(void *), void *cb_args);
 
-void starpurm_spawn_kernel_callback(void *data, void(*f)(void *), void *args, void(*cb_f)(void *), void *cb_args);
+void starpurm_spawn_kernel_callback(void *data, void (*f)(void *), void *args, void (*cb_f)(void *), void *cb_args);
 
 /** @} */
 

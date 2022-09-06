@@ -24,8 +24,7 @@
 #include <math.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -39,7 +38,7 @@ struct sc_hypervisor_policy
 	   policy, the policy corresponding to this name will be used
 	   by the hypervisor
 	*/
-	const char* name;
+	const char *name;
 
 	/**
 	   Indicate whether the policy is custom or not
@@ -50,12 +49,12 @@ struct sc_hypervisor_policy
 	   Distribute workers to contexts even at the begining of the
 	   program
 	*/
-	void (*size_ctxs)(unsigned *sched_ctxs, int nsched_ctxs , int *workers, int nworkers);
+	void (*size_ctxs)(unsigned *sched_ctxs, int nsched_ctxs, int *workers, int nworkers);
 
 	/**
 	   Require explicit resizing
 	*/
-	void (*resize_ctxs)(unsigned *sched_ctxs, int nsched_ctxs , int *workers, int nworkers);
+	void (*resize_ctxs)(unsigned *sched_ctxs, int nsched_ctxs, int *workers, int nworkers);
 
 	/**
 	   Called whenever the indicated worker executes another idle
@@ -73,7 +72,7 @@ struct sc_hypervisor_policy
 	   Called whenever a task is poped from the worker’s queue
 	   corresponding to the context sched_ctx
 	*/
-	void (*handle_poped_task)(unsigned sched_ctx, int worker,struct starpu_task *task, uint32_t footprint);
+	void (*handle_poped_task)(unsigned sched_ctx, int worker, struct starpu_task *task, uint32_t footprint);
 
 	/**
 	   Called whenever a task is executed on the indicated worker
@@ -147,7 +146,7 @@ extern starpu_pthread_mutex_t act_hypervisor_mutex;
 /**
    Start the hypervisor with the given policy
 */
-void* sc_hypervisor_init(struct sc_hypervisor_policy *policy);
+void *sc_hypervisor_init(struct sc_hypervisor_policy *policy);
 
 /**
    Shutdown the hypervisor.
@@ -181,7 +180,7 @@ void sc_hypervisor_post_resize_request(unsigned sched_ctx, int task_tag);
    indicated scheduling contexts, i.e reevaluate the distribution of
    the resources and eventually resize if needed
 */
-void sc_hypervisor_resize_ctxs(unsigned *sched_ctxs, int nsched_ctxs , int *workers, int nworkers);
+void sc_hypervisor_resize_ctxs(unsigned *sched_ctxs, int nsched_ctxs, int *workers, int nworkers);
 
 /**
    Do not allow the hypervisor to resize a context.
@@ -201,12 +200,12 @@ const char *sc_hypervisor_get_policy(void);
 /**
    Ask the hypervisor to add workers to a sched_ctx
 */
-void sc_hypervisor_add_workers_to_sched_ctx(int* workers_to_add, unsigned nworkers_to_add, unsigned sched_ctx);
+void sc_hypervisor_add_workers_to_sched_ctx(int *workers_to_add, unsigned nworkers_to_add, unsigned sched_ctx);
 
 /**
    Ask the hypervisor to remove workers from a sched_ctx
 */
-void sc_hypervisor_remove_workers_from_sched_ctx(int* workers_to_remove, unsigned nworkers_to_remove, unsigned sched_ctx, unsigned now);
+void sc_hypervisor_remove_workers_from_sched_ctx(int *workers_to_remove, unsigned nworkers_to_remove, unsigned sched_ctx, unsigned now);
 
 /**
    Ask the hypervisor to move workers from one context to another
@@ -222,7 +221,7 @@ void sc_hypervisor_size_ctxs(unsigned *sched_ctxs, int nsched_ctxs, int *workers
 /**
    Check if there are pending demands of resizing
 */
-unsigned sc_hypervisor_get_size_req(unsigned **sched_ctxs, int* nsched_ctxs, int **workers, int *nworkers);
+unsigned sc_hypervisor_get_size_req(unsigned **sched_ctxs, int *nsched_ctxs, int **workers, int *nworkers);
 
 /**
    Save a demand of resizing
