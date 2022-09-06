@@ -23,8 +23,7 @@
 #include <MaxSLiCInterface.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -37,8 +36,8 @@ extern "C"
  */
 struct starpu_max_load
 {
-	max_file_t *file;		/**< Provide the file to be loaded */
-	const char *engine_id_pattern;	/**< Provide the engine(s) on which to be loaded, following
+	max_file_t *file;	       /**< Provide the file to be loaded */
+	const char *engine_id_pattern; /**< Provide the engine(s) on which to be loaded, following
 					     the Maxeler engine naming, i.e. typically
                                              "*:0", "*:1", etc.
                                              In an array of struct starpu_max_load, only one can have

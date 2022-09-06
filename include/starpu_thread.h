@@ -61,8 +61,7 @@
 #include <stdint.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /*
@@ -76,7 +75,8 @@ typedef sg_actor_t starpu_pthread_t;
 #else
 typedef msg_process_t starpu_pthread_t;
 #endif
-typedef struct {
+typedef struct
+{
 	size_t stacksize;
 } starpu_pthread_attr_t;
 
@@ -87,8 +87,8 @@ typedef msg_host_t starpu_sg_host_t;
 #endif
 int starpu_pthread_equal(starpu_pthread_t t1, starpu_pthread_t t2);
 starpu_pthread_t starpu_pthread_self(void);
-int starpu_pthread_create_on(const char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr, void *(*start_routine) (void *), void *arg, starpu_sg_host_t host);
-int starpu_pthread_create(starpu_pthread_t *thread, const starpu_pthread_attr_t *attr, void *(*start_routine) (void *), void *arg);
+int starpu_pthread_create_on(const char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr, void *(*start_routine)(void *), void *arg, starpu_sg_host_t host);
+int starpu_pthread_create(starpu_pthread_t *thread, const starpu_pthread_attr_t *attr, void *(*start_routine)(void *), void *arg);
 starpu_pthread_t _starpu_simgrid_actor_create(const char *name, xbt_main_func_t code, starpu_sg_host_t host, int argc, char *argv[]);
 int starpu_pthread_join(starpu_pthread_t thread, void **retval);
 int starpu_pthread_exit(void *retval) STARPU_ATTRIBUTE_NORETURN;
@@ -102,16 +102,16 @@ int starpu_pthread_attr_setstacksize(starpu_pthread_attr_t *attr, size_t stacksi
 typedef pthread_t starpu_pthread_t;
 typedef pthread_attr_t starpu_pthread_attr_t;
 
-#define starpu_pthread_equal pthread_equal
-#define starpu_pthread_self pthread_self
-#define starpu_pthread_create pthread_create
+#define starpu_pthread_equal						  pthread_equal
+#define starpu_pthread_self						  pthread_self
+#define starpu_pthread_create						  pthread_create
 #define starpu_pthread_create_on(name, thread, attr, routine, arg, where) starpu_pthread_create(thread, attr, routine, arg)
-#define starpu_pthread_join pthread_join
-#define starpu_pthread_exit pthread_exit
-#define starpu_pthread_attr_init pthread_attr_init
-#define starpu_pthread_attr_destroy pthread_attr_destroy
-#define starpu_pthread_attr_setdetachstate pthread_attr_setdetachstate
-#define starpu_pthread_attr_setstacksize pthread_attr_setstacksize
+#define starpu_pthread_join						  pthread_join
+#define starpu_pthread_exit						  pthread_exit
+#define starpu_pthread_attr_init					  pthread_attr_init
+#define starpu_pthread_attr_destroy					  pthread_attr_destroy
+#define starpu_pthread_attr_setdetachstate				  pthread_attr_setdetachstate
+#define starpu_pthread_attr_setstacksize				  pthread_attr_setstacksize
 
 #endif /* STARPU_SIMGRID, _MSC_VER */
 
@@ -154,20 +154,20 @@ int starpu_pthread_mutexattr_init(starpu_pthread_mutexattr_t *attr);
 typedef pthread_mutex_t starpu_pthread_mutex_t;
 typedef pthread_mutexattr_t starpu_pthread_mutexattr_t;
 
-#define starpu_pthread_mutex_init pthread_mutex_init
-#define starpu_pthread_mutex_destroy pthread_mutex_destroy
+#define starpu_pthread_mutex_init	 pthread_mutex_init
+#define starpu_pthread_mutex_destroy	 pthread_mutex_destroy
 #define starpu_pthread_mutexattr_gettype pthread_mutexattr_gettype
 #define starpu_pthread_mutexattr_settype pthread_mutexattr_settype
 #define starpu_pthread_mutexattr_destroy pthread_mutexattr_destroy
-#define starpu_pthread_mutexattr_init pthread_mutexattr_init
+#define starpu_pthread_mutexattr_init	 pthread_mutexattr_init
 
 #ifdef STARPU_FXT_LOCK_TRACES
 int starpu_pthread_mutex_lock(starpu_pthread_mutex_t *mutex);
 int starpu_pthread_mutex_unlock(starpu_pthread_mutex_t *mutex);
 int starpu_pthread_mutex_trylock(starpu_pthread_mutex_t *mutex);
 #else
-#define starpu_pthread_mutex_lock pthread_mutex_lock
-#define starpu_pthread_mutex_unlock pthread_mutex_unlock
+#define starpu_pthread_mutex_lock    pthread_mutex_lock
+#define starpu_pthread_mutex_unlock  pthread_mutex_unlock
 #define starpu_pthread_mutex_trylock pthread_mutex_trylock
 #endif
 
@@ -188,7 +188,7 @@ void starpu_pthread_mutex_check_sched(starpu_pthread_mutex_t *mutex, char *file,
 #ifdef STARPU_SIMGRID
 
 typedef int starpu_pthread_key_t;
-int starpu_pthread_key_create(starpu_pthread_key_t *key, void (*destr_function) (void *));
+int starpu_pthread_key_create(starpu_pthread_key_t *key, void (*destr_function)(void *));
 int starpu_pthread_key_delete(starpu_pthread_key_t key);
 int starpu_pthread_setspecific(starpu_pthread_key_t key, const void *pointer);
 void *starpu_pthread_getspecific(starpu_pthread_key_t key);
@@ -197,8 +197,8 @@ void *starpu_pthread_getspecific(starpu_pthread_key_t key);
 
 typedef pthread_key_t starpu_pthread_key_t;
 
-#define starpu_pthread_key_create pthread_key_create
-#define starpu_pthread_key_delete pthread_key_delete
+#define starpu_pthread_key_create  pthread_key_create
+#define starpu_pthread_key_delete  pthread_key_delete
 #define starpu_pthread_setspecific pthread_setspecific
 #define starpu_pthread_getspecific pthread_getspecific
 
@@ -231,8 +231,8 @@ typedef pthread_cond_t starpu_pthread_cond_t;
 typedef pthread_condattr_t starpu_pthread_condattr_t;
 #define STARPU_PTHREAD_COND_INITIALIZER PTHREAD_COND_INITIALIZER
 
-#define starpu_pthread_cond_init pthread_cond_init
-#define starpu_pthread_cond_signal pthread_cond_signal
+#define starpu_pthread_cond_init      pthread_cond_init
+#define starpu_pthread_cond_signal    pthread_cond_signal
 #define starpu_pthread_cond_broadcast pthread_cond_broadcast
 
 #ifdef STARPU_FXT_LOCK_TRACES
@@ -242,7 +242,7 @@ int starpu_pthread_cond_wait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t
 #endif
 
 #define starpu_pthread_cond_timedwait pthread_cond_timedwait
-#define starpu_pthread_cond_destroy pthread_cond_destroy
+#define starpu_pthread_cond_destroy   pthread_cond_destroy
 
 #endif /* STARPU_SIMGRID, _MSC_VER */
 
@@ -274,7 +274,7 @@ typedef pthread_rwlock_t starpu_pthread_rwlock_t;
 typedef pthread_rwlockattr_t starpu_pthread_rwlockattr_t;
 #define STARPU_PTHREAD_RWLOCK_INITIALIZER PTHREAD_RWLOCK_INITIALIZER
 
-#define starpu_pthread_rwlock_init pthread_rwlock_init
+#define starpu_pthread_rwlock_init    pthread_rwlock_init
 #define starpu_pthread_rwlock_destroy pthread_rwlock_destroy
 
 #ifdef STARPU_FXT_LOCK_TRACES
@@ -284,11 +284,11 @@ int starpu_pthread_rwlock_wrlock(starpu_pthread_rwlock_t *rwlock);
 int starpu_pthread_rwlock_trywrlock(starpu_pthread_rwlock_t *rwlock);
 int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock);
 #else
-#define starpu_pthread_rwlock_rdlock pthread_rwlock_rdlock
+#define starpu_pthread_rwlock_rdlock	pthread_rwlock_rdlock
 #define starpu_pthread_rwlock_tryrdlock pthread_rwlock_tryrdlock
-#define starpu_pthread_rwlock_wrlock pthread_rwlock_wrlock
+#define starpu_pthread_rwlock_wrlock	pthread_rwlock_wrlock
 #define starpu_pthread_rwlock_trywrlock pthread_rwlock_trywrlock
-#define starpu_pthread_rwlock_unlock pthread_rwlock_unlock
+#define starpu_pthread_rwlock_unlock	pthread_rwlock_unlock
 #endif
 
 #endif /* STARPU_SIMGRID, _MSC_VER */
@@ -307,12 +307,13 @@ typedef xbt_bar_t starpu_pthread_barrier_t;
 #endif
 typedef int starpu_pthread_barrierattr_t;
 #ifdef SG_BARRIER_SERIAL_THREAD
-#  define STARPU_PTHREAD_BARRIER_SERIAL_THREAD SG_BARRIER_SERIAL_THREAD
+#define STARPU_PTHREAD_BARRIER_SERIAL_THREAD SG_BARRIER_SERIAL_THREAD
 #else
-#  define STARPU_PTHREAD_BARRIER_SERIAL_THREAD -1
+#define STARPU_PTHREAD_BARRIER_SERIAL_THREAD -1
 #endif
 #else
-typedef struct {
+typedef struct
+{
 	starpu_pthread_mutex_t mutex;
 	starpu_pthread_cond_t cond;
 	starpu_pthread_cond_t cond_destroy;
@@ -333,7 +334,7 @@ int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier);
 typedef pthread_barrier_t starpu_pthread_barrier_t;
 typedef pthread_barrierattr_t starpu_pthread_barrierattr_t;
 
-#define starpu_pthread_barrier_init pthread_barrier_init
+#define starpu_pthread_barrier_init    pthread_barrier_init
 #define starpu_pthread_barrier_destroy pthread_barrier_destroy
 
 #ifdef STARPU_FXT_LOCK_TRACES
@@ -371,11 +372,11 @@ int starpu_pthread_spin_unlock(starpu_pthread_spinlock_t *lock);
 #elif !defined(_MSC_VER) /* !( defined(STARPU_SIMGRID) || !defined(STARPU_HAVE_PTHREAD_SPIN_LOCK)) */
 
 typedef pthread_spinlock_t starpu_pthread_spinlock_t;
-#define starpu_pthread_spin_init pthread_spin_init
+#define starpu_pthread_spin_init    pthread_spin_init
 #define starpu_pthread_spin_destroy pthread_spin_destroy
-#define starpu_pthread_spin_lock pthread_spin_lock
+#define starpu_pthread_spin_lock    pthread_spin_lock
 #define starpu_pthread_spin_trylock pthread_spin_trylock
-#define starpu_pthread_spin_unlock pthread_spin_unlock
+#define starpu_pthread_spin_unlock  pthread_spin_unlock
 
 #endif /* !( defined(STARPU_SIMGRID) || !defined(STARPU_HAVE_PTHREAD_SPIN_LOCK)) */
 
@@ -384,10 +385,10 @@ typedef pthread_spinlock_t starpu_pthread_spinlock_t;
  */
 
 #if defined(_MSC_VER) && !defined(BUILDING_STARPU)
-typedef void* starpu_pthread_rwlock_t;
-typedef void* starpu_pthread_mutex_t;
-typedef void* starpu_pthread_cond_t;
-typedef void* starpu_pthread_barrier_t;
+typedef void *starpu_pthread_rwlock_t;
+typedef void *starpu_pthread_mutex_t;
+typedef void *starpu_pthread_cond_t;
+typedef void *starpu_pthread_barrier_t;
 #endif /* _MSC_VER */
 
 /*
@@ -489,10 +490,10 @@ int starpu_sem_wait(starpu_sem_t *sem);
 #elif !defined(_MSC_VER) || defined(BUILDING_STARPU) /* !STARPU_SIMGRID */
 
 typedef sem_t starpu_sem_t;
-#define starpu_sem_destroy sem_destroy
+#define starpu_sem_destroy  sem_destroy
 #define starpu_sem_getvalue sem_getvalue
-#define starpu_sem_init sem_init
-#define starpu_sem_post sem_post
+#define starpu_sem_init	    sem_init
+#define starpu_sem_post	    sem_post
 int starpu_sem_trywait(starpu_sem_t *sem);
 int starpu_sem_wait(starpu_sem_t *sem);
 

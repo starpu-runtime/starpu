@@ -22,8 +22,7 @@
 #include <starpu_scheduler.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -42,7 +41,7 @@ extern "C"
 /**
    Opaque type for FIFO task queue
 */
-typedef struct starpu_st_fifo_taskq* starpu_st_fifo_taskq_t;
+typedef struct starpu_st_fifo_taskq *starpu_st_fifo_taskq_t;
 
 /** Create a FIFO task queue */
 starpu_st_fifo_taskq_t starpu_st_fifo_taskq_create(void) STARPU_ATTRIBUTE_MALLOC;
@@ -129,7 +128,7 @@ struct starpu_task *starpu_st_fifo_taskq_pop_first_ready_task(starpu_st_fifo_tas
 /**
    Opaque type for PRIO task queue
 */
-typedef struct starpu_st_prio_deque* starpu_st_prio_deque_t;
+typedef struct starpu_st_prio_deque *starpu_st_prio_deque_t;
 
 /** all _starpu_prio_deque_pop/deque_task function return a task or a NULL pointer if none are available
  * in O(lg(nb priorities))
@@ -144,9 +143,9 @@ int starpu_st_prio_deque_push_back_task(starpu_st_prio_deque_t pdeque, struct st
 int starpu_st_prio_deque_push_front_task(starpu_st_prio_deque_t pdeque, struct starpu_task *task);
 
 /** deque a task of the higher priority available from the front of the list for the highest priority */
-struct starpu_task *starpu_st_prio_deque_pop_task_for_worker(starpu_st_prio_deque_t pdeque, int workerid, struct starpu_task * *skipped);
+struct starpu_task *starpu_st_prio_deque_pop_task_for_worker(starpu_st_prio_deque_t pdeque, int workerid, struct starpu_task **skipped);
 /** return a task that can be executed by workerid from the back of the list for the highest priority */
-struct starpu_task *starpu_st_prio_deque_deque_task_for_worker(starpu_st_prio_deque_t pdeque, int workerid, struct starpu_task * *skipped);
+struct starpu_task *starpu_st_prio_deque_deque_task_for_worker(starpu_st_prio_deque_t pdeque, int workerid, struct starpu_task **skipped);
 struct starpu_task *starpu_st_prio_deque_deque_first_ready_task(starpu_st_prio_deque_t pdeque, unsigned workerid);
 
 struct starpu_task *starpu_st_prio_deque_pop_task(starpu_st_prio_deque_t pdeque);

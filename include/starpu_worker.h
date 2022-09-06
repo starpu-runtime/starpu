@@ -29,8 +29,7 @@
 #endif
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -43,16 +42,16 @@ extern "C"
 */
 enum starpu_node_kind
 {
-	STARPU_UNUSED=0,
-	STARPU_CPU_RAM=1,
-	STARPU_CUDA_RAM=2,
-	STARPU_OPENCL_RAM=3,
-	STARPU_MAX_FPGA_RAM=4,
-	STARPU_DISK_RAM=5,
-	STARPU_MPI_MS_RAM=6,
-	STARPU_TCPIP_MS_RAM=7,
-	STARPU_HIP_RAM=8,
-	STARPU_MAX_RAM=8
+	STARPU_UNUSED	    = 0,
+	STARPU_CPU_RAM	    = 1,
+	STARPU_CUDA_RAM	    = 2,
+	STARPU_OPENCL_RAM   = 3,
+	STARPU_MAX_FPGA_RAM = 4,
+	STARPU_DISK_RAM	    = 5,
+	STARPU_MPI_MS_RAM   = 6,
+	STARPU_TCPIP_MS_RAM = 7,
+	STARPU_HIP_RAM	    = 8,
+	STARPU_MAX_RAM	    = 8
 };
 
 /**
@@ -64,15 +63,15 @@ enum starpu_node_kind
 */
 enum starpu_worker_archtype
 {
-	STARPU_CPU_WORKER=0,        /**< CPU core */
-	STARPU_CUDA_WORKER=1,       /**< NVIDIA CUDA device */
-	STARPU_OPENCL_WORKER=2,     /**< OpenCL device */
-	STARPU_MAX_FPGA_WORKER=4,   /**< Maxeler FPGA device */
-	STARPU_MPI_MS_WORKER=5,     /**< MPI Slave device */
-	STARPU_TCPIP_MS_WORKER=6,   /**< TCPIP Slave device */
-	STARPU_HIP_WORKER=7,    /**< NVIDIA/AMD HIP device */
-	STARPU_NARCH = 8,    /**< Number of arch types */
-	STARPU_ANY_WORKER=255       /**< any worker, used in the hypervisor */
+	STARPU_CPU_WORKER      = 0,  /**< CPU core */
+	STARPU_CUDA_WORKER     = 1,  /**< NVIDIA CUDA device */
+	STARPU_OPENCL_WORKER   = 2,  /**< OpenCL device */
+	STARPU_MAX_FPGA_WORKER = 4,  /**< Maxeler FPGA device */
+	STARPU_MPI_MS_WORKER   = 5,  /**< MPI Slave device */
+	STARPU_TCPIP_MS_WORKER = 6,  /**< TCPIP Slave device */
+	STARPU_HIP_WORKER      = 7,  /**< NVIDIA/AMD HIP device */
+	STARPU_NARCH	       = 8,  /**< Number of arch types */
+	STARPU_ANY_WORKER      = 255 /**< any worker, used in the hypervisor */
 };
 
 /**
@@ -96,8 +95,8 @@ struct starpu_sched_ctx_iterator
 */
 enum starpu_worker_collection_type
 {
-	STARPU_WORKER_TREE,  /**< The collection is a tree */
-	STARPU_WORKER_LIST   /**< The collection is an array */
+	STARPU_WORKER_TREE, /**< The collection is a tree */
+	STARPU_WORKER_LIST  /**< The collection is an array */
 };
 
 /**
@@ -331,7 +330,7 @@ int starpu_worker_get_subworkerid(int id);
 
 int starpu_worker_get_mp_nodeid(int id);
 
-struct starpu_tree* starpu_workers_get_tree(void);
+struct starpu_tree *starpu_workers_get_tree(void);
 
 unsigned starpu_worker_get_sched_ctx_list(int worker, unsigned **sched_ctx);
 
@@ -441,7 +440,6 @@ enum starpu_worker_archtype starpu_memory_node_get_worker_archtype(enum starpu_n
    Return the type of memory node that arch type \p type operates on
   */
 enum starpu_node_kind starpu_worker_get_memory_node_kind(enum starpu_worker_archtype type);
-
 
 /**
    @name Scheduling operations

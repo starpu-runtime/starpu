@@ -22,8 +22,7 @@
 #include <starpu.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -48,58 +47,58 @@ extern "C"
    Used when calling starpu_sched_ctx_create() to specify a
    name for a scheduling policy
 */
-#define STARPU_SCHED_CTX_POLICY_NAME		 (1<<16)
+#define STARPU_SCHED_CTX_POLICY_NAME (1 << 16)
 
 /**
    Used when calling starpu_sched_ctx_create() to specify a
    pointer to a scheduling policy
 */
-#define STARPU_SCHED_CTX_POLICY_STRUCT		 (2<<16)
+#define STARPU_SCHED_CTX_POLICY_STRUCT (2 << 16)
 
 /**
    Used when calling starpu_sched_ctx_create() to specify a
    minimum scheduler priority value.
 */
-#define STARPU_SCHED_CTX_POLICY_MIN_PRIO	 (3<<16)
+#define STARPU_SCHED_CTX_POLICY_MIN_PRIO (3 << 16)
 
 /**
    Used when calling starpu_sched_ctx_create() to specify a
    maximum scheduler priority value.
 */
-#define STARPU_SCHED_CTX_POLICY_MAX_PRIO	 (4<<16)
+#define STARPU_SCHED_CTX_POLICY_MAX_PRIO (4 << 16)
 
-#define STARPU_SCHED_CTX_HIERARCHY_LEVEL         (5<<16)
-#define STARPU_SCHED_CTX_NESTED                  (6<<16)
+#define STARPU_SCHED_CTX_HIERARCHY_LEVEL (5 << 16)
+#define STARPU_SCHED_CTX_NESTED		 (6 << 16)
 
 /**
    Used when calling starpu_sched_ctx_create() to specify ???
 */
-#define STARPU_SCHED_CTX_AWAKE_WORKERS           (7<<16)
+#define STARPU_SCHED_CTX_AWAKE_WORKERS (7 << 16)
 
 /**
    Used when calling starpu_sched_ctx_create() to specify a
    function pointer allowing to initialize the scheduling policy.
 */
-#define STARPU_SCHED_CTX_POLICY_INIT             (8<<16)
+#define STARPU_SCHED_CTX_POLICY_INIT (8 << 16)
 
 /**
    Used when calling starpu_sched_ctx_create() to specify a
    pointer to some user data related to the context being created.
 */
-#define STARPU_SCHED_CTX_USER_DATA               (9<<16)
+#define STARPU_SCHED_CTX_USER_DATA (9 << 16)
 
 /**
    Used when calling starpu_sched_ctx_create() in order to create a
    context on the NVIDIA GPU to specify the number of SMs the context
    should have
 */
-#define STARPU_SCHED_CTX_CUDA_NSMS               (10<<16)
+#define STARPU_SCHED_CTX_CUDA_NSMS (10 << 16)
 
 /**
    Used when calling starpu_sched_ctx_create() to specify
    a list of sub contexts of the current context.
 */
-#define STARPU_SCHED_CTX_SUB_CTXS                (11<<16)
+#define STARPU_SCHED_CTX_SUB_CTXS (11 << 16)
 
 /**
    Create a scheduling context with the given parameters
@@ -147,7 +146,7 @@ unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const 
    executing, it is called with the parameters \p sched_ctx and any
    other parameter needed by the application (packed in \p args)
 */
-void starpu_sched_ctx_register_close_callback(unsigned sched_ctx_id, void (*close_callback)(unsigned sched_ctx_id, void* args), void *args);
+void starpu_sched_ctx_register_close_callback(unsigned sched_ctx_id, void (*close_callback)(unsigned sched_ctx_id, void *args), void *args);
 
 /**
    Add dynamically the workers in \p workerids_ctx to the context \p
@@ -267,7 +266,7 @@ unsigned starpu_sched_ctx_overlapping_ctxs_on_worker(int workerid);
 */
 void *starpu_sched_ctx_get_user_data(unsigned sched_ctx_id);
 
-void starpu_sched_ctx_set_user_data(unsigned sched_ctx_id, void* user_data);
+void starpu_sched_ctx_set_user_data(unsigned sched_ctx_id, void *user_data);
 
 /**
    Allocate the scheduling policy data (private information of the
@@ -288,7 +287,7 @@ struct starpu_sched_policy *starpu_sched_ctx_get_sched_policy(unsigned sched_ctx
    Execute any parallel code on the workers of the sched_ctx (workers
    are blocked)
 */
-void *starpu_sched_ctx_exec_parallel_code(void* (*func)(void*), void *param, unsigned sched_ctx_id);
+void *starpu_sched_ctx_exec_parallel_code(void *(*func)(void *), void *param, unsigned sched_ctx_id);
 
 int starpu_sched_ctx_get_nready_tasks(unsigned sched_ctx_id);
 
@@ -396,18 +395,18 @@ int starpu_sched_ctx_max_priority_is_set(unsigned sched_ctx_id);
 /**
    Provided for legacy reasons.
 */
-#define STARPU_MIN_PRIO		(starpu_sched_get_min_priority())
+#define STARPU_MIN_PRIO (starpu_sched_get_min_priority())
 
 /**
    Provided for legacy reasons.
 */
-#define STARPU_MAX_PRIO		(starpu_sched_get_max_priority())
+#define STARPU_MAX_PRIO (starpu_sched_get_max_priority())
 
 /**
    By convention, the default priority level should be 0 so that we
    can statically allocate tasks with a default priority.
 */
-#define STARPU_DEFAULT_PRIO	0
+#define STARPU_DEFAULT_PRIO 0
 
 /** @} */
 

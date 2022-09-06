@@ -313,18 +313,18 @@
 typedef long starpu_ssize_t;
 #define __starpu_func__ __FUNCTION__
 #else
-#  include <sys/types.h>
+#include <sys/types.h>
 typedef ssize_t starpu_ssize_t;
 #define __starpu_func__ __func__
 #endif
 
 #if defined(c_plusplus) || defined(__cplusplus)
 /* inline is part of C++ */
-#  define __starpu_inline inline
+#define __starpu_inline inline
 #elif defined(_MSC_VER) || defined(__HP_cc)
-#  define __starpu_inline __inline
+#define __starpu_inline __inline
 #else
-#  define __starpu_inline __inline__
+#define __starpu_inline __inline__
 #endif
 
 #undef STARPU_QUICK_CHECK
@@ -347,7 +347,7 @@ typedef ssize_t starpu_ssize_t;
 #undef STARPU_HAVE_HELGRIND_H
 
 /** Enable Fortran to C MPI interface */
-#undef  HAVE_MPI_COMM_F2C
+#undef HAVE_MPI_COMM_F2C
 
 #undef STARPU_HAVE_DARWIN
 

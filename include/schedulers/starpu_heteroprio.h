@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,8 +20,7 @@
 #include <starpu.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -69,8 +68,7 @@ enum starpu_autoheteroprio_priority_ordering_policy
 	STARPU_HETEROPRIO_NODS_TIME_RELEASED_DIFF
 };
 
-static const char starpu_autoheteroprio_priority_ordering_policy_names[STARPU_AUTOHETEROPRIO_PRIORITY_ORDERING_POLICY_COUNT][64] = 
-{
+static const char starpu_autoheteroprio_priority_ordering_policy_names[STARPU_AUTOHETEROPRIO_PRIORITY_ORDERING_POLICY_COUNT][64] = {
 	"STARPU_HETEROPRIO_NOD_TIME_COMBINATION",
 	"STARPU_HETEROPRIO_BEST_NODS_SCORE",
 	"STARPU_HETEROPRIO_BEST_NODS",
@@ -98,7 +96,7 @@ static const char starpu_autoheteroprio_priority_ordering_policy_names[STARPU_AU
 	"STARPU_HETEROPRIO_URTS_TIME_COMBINATION",
 	"STARPU_HETEROPRIO_NODS_PER_SECOND",
 	"STARPU_HETEROPRIO_NODS_TIME_RELEASED",
-	"STARPU_HETEROPRIO_NODS_TIME_RELEASED_DIFF"
+	"STARPU_HETEROPRIO_NODS_TIME_RELEASED_DIFF",
 };
 
 /** Set if heteroprio should use data locality or not */
@@ -129,4 +127,3 @@ void starpu_heteroprio_print_wgroups(FILE *stream, unsigned sched_ctx_id);
 #endif
 
 #endif /* __STARPU_SCHEDULER_HETEROPRIO_H__ */
-

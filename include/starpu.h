@@ -88,8 +88,7 @@ typedef INT_PTR intptr_t;
 #include <starpu_max_fpga.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -204,15 +203,15 @@ struct starpu_conf
 	   \ref STARPU_NMPI_MS.
 	   (default = \c -1)
 	*/
-        int nmpi_ms;
+	int nmpi_ms;
 
-   /**
+	/**
 	   Number of TCP/IP Master Slave devices that StarPU can use.
 	   This can also be specified with the environment variable
 	   \ref STARPU_NTCPIP_MS.
 	   (default = \c -1)
 	*/
-        int ntcpip_ms;
+	int ntcpip_ms;
 
 	/**
 	   If this flag is set, the starpu_conf::workers_bindid array
@@ -298,7 +297,7 @@ struct starpu_conf
 	   STARPU_WORKERS_MAX_FPGAID.
 	   (default = 0)
 	*/
-        unsigned use_explicit_workers_max_fpga_deviceid;
+	unsigned use_explicit_workers_max_fpga_deviceid;
 
 	/**
 	   If the starpu_conf::use_explicit_workers_max_fpga_deviceid flag
@@ -485,7 +484,7 @@ struct starpu_conf
 	   "--disable-asynchronous-fpga-copy".
 	   (default = 0).
 	*/
-        int disable_asynchronous_max_fpga_copy;
+	int disable_asynchronous_max_fpga_copy;
 
 	/**
 	   This flag should be set to 1 to disable memory mapping
@@ -726,7 +725,6 @@ int starpu_asynchronous_copy_disabled(void);
    accelerators are disabled.
 */
 int starpu_asynchronous_cuda_copy_disabled(void);
-
 
 /**
    Return 1 if asynchronous data transfers between CPU and HIP

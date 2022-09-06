@@ -19,8 +19,7 @@
 #define __STARPU_TASK_BUNDLE_H__
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**

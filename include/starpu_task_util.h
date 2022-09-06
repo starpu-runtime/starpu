@@ -24,8 +24,7 @@
 #include <starpu.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -37,19 +36,19 @@ extern "C"
  * src/util/starpu_task_insert_utils.c (in two places) and
  * mpi/src/starpu_mpi_task_insert.c and mpi/src/starpu_mpi_task_insert_fortran.c */
 
-#define STARPU_MODE_SHIFT	17
+#define STARPU_MODE_SHIFT 17
 
 /**
    Used when calling starpu_task_insert(), must be followed by a
    pointer to a constant value and the size of the constant
  */
-#define STARPU_VALUE		 (1<<STARPU_MODE_SHIFT)
+#define STARPU_VALUE (1 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), must be followed by a
    pointer to a callback function
 */
-#define STARPU_CALLBACK		 (2<<STARPU_MODE_SHIFT)
+#define STARPU_CALLBACK (2 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), must be followed by two
@@ -57,19 +56,19 @@ extern "C"
    an argument to the callback function; this is equivalent to using
    both ::STARPU_CALLBACK and ::STARPU_CALLBACK_ARG.
 */
-#define STARPU_CALLBACK_WITH_ARG (3<<STARPU_MODE_SHIFT)
+#define STARPU_CALLBACK_WITH_ARG (3 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), must be followed by a
    pointer to be given as an argument to the callback function
 */
-#define STARPU_CALLBACK_ARG	 (4<<STARPU_MODE_SHIFT)
+#define STARPU_CALLBACK_ARG (4 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), must
    be followed by a integer defining a priority level
 */
-#define STARPU_PRIORITY		 (5<<STARPU_MODE_SHIFT)
+#define STARPU_PRIORITY (5 << STARPU_MODE_SHIFT)
 
 /**
    \ingroup API_MPI_Support
@@ -77,7 +76,7 @@ extern "C"
    integer value which specified the node on which to execute the
    codelet.
  */
-#define STARPU_EXECUTE_ON_NODE	 (6<<STARPU_MODE_SHIFT)
+#define STARPU_EXECUTE_ON_NODE (6 << STARPU_MODE_SHIFT)
 
 /**
    \ingroup API_MPI_Support
@@ -85,7 +84,7 @@ extern "C"
    data handle to specify that the node owning the given data will
    execute the codelet.
 */
-#define STARPU_EXECUTE_ON_DATA	 (7<<STARPU_MODE_SHIFT)
+#define STARPU_EXECUTE_ON_DATA (7 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), must be followed by an array of
@@ -93,24 +92,24 @@ extern "C"
    to passing the handles as separate parameters with ::STARPU_R,
    ::STARPU_W or ::STARPU_RW.
 */
-#define STARPU_DATA_ARRAY        (8<<STARPU_MODE_SHIFT)
+#define STARPU_DATA_ARRAY (8 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), must be followed by an array of
    struct starpu_data_descr and the number of elements in the array (as int).
    This is equivalent to passing the handles with the corresponding modes.
 */
-#define STARPU_DATA_MODE_ARRAY   (9<<STARPU_MODE_SHIFT)
+#define STARPU_DATA_MODE_ARRAY (9 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), must be followed by a tag.
 */
-#define STARPU_TAG               (10<<STARPU_MODE_SHIFT)
+#define STARPU_TAG (10 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), must be followed by a tag.
 */
-#define STARPU_HYPERVISOR_TAG	 (11<<STARPU_MODE_SHIFT)
+#define STARPU_HYPERVISOR_TAG (11 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), must be followed by an
@@ -118,72 +117,72 @@ extern "C"
    explicitly cast into double, otherwise parameter passing will not
    work.
 */
-#define STARPU_FLOPS	         (12<<STARPU_MODE_SHIFT)
+#define STARPU_FLOPS (12 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), must be followed by the id
    of the scheduling context to which to submit the task to.
 */
-#define STARPU_SCHED_CTX	 (13<<STARPU_MODE_SHIFT)
+#define STARPU_SCHED_CTX (13 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), must be followed by a
    pointer to a prologue callback function
 */
-#define STARPU_PROLOGUE_CALLBACK   (14<<STARPU_MODE_SHIFT)
+#define STARPU_PROLOGUE_CALLBACK (14 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), must be followed by a
    pointer to be given as an argument to the prologue callback
    function
 */
-#define STARPU_PROLOGUE_CALLBACK_ARG (15<<STARPU_MODE_SHIFT)
+#define STARPU_PROLOGUE_CALLBACK_ARG (15 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), must be followed by a
    pointer to a prologue callback pop function
 */
-#define STARPU_PROLOGUE_CALLBACK_POP   (16<<STARPU_MODE_SHIFT)
+#define STARPU_PROLOGUE_CALLBACK_POP (16 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), must be followed by a
    pointer to be given as an argument to the prologue callback pop
    function
 */
-#define STARPU_PROLOGUE_CALLBACK_POP_ARG (17<<STARPU_MODE_SHIFT)
+#define STARPU_PROLOGUE_CALLBACK_POP_ARG (17 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), must be followed by an
    integer value specifying the worker on which to execute the task
    (as specified by starpu_task::execute_on_a_specific_worker)
 */
-#define STARPU_EXECUTE_ON_WORKER (18<<STARPU_MODE_SHIFT)
+#define STARPU_EXECUTE_ON_WORKER (18 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), must be followed by an
    unsigned long long value specifying the mask of worker on which to execute
    the task (as specified by starpu_task::where)
 */
-#define STARPU_EXECUTE_WHERE     (19<<STARPU_MODE_SHIFT)
+#define STARPU_EXECUTE_WHERE (19 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), must be followed by a tag
    stored in starpu_task::tag_id. Leave starpu_task::use_tag as 0.
 */
-#define STARPU_TAG_ONLY          (20<<STARPU_MODE_SHIFT)
+#define STARPU_TAG_ONLY (20 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), must be followed by an unsigned
    stored in starpu_task::possibly_parallel.
 */
-#define STARPU_POSSIBLY_PARALLEL    (21<<STARPU_MODE_SHIFT)
+#define STARPU_POSSIBLY_PARALLEL (21 << STARPU_MODE_SHIFT)
 
 /**
    used when calling starpu_task_insert(), must be
    followed by an integer value specifying the worker order in which
    to execute the tasks (as specified by starpu_task::workerorder)
 */
-#define STARPU_WORKER_ORDER      (22<<STARPU_MODE_SHIFT)
+#define STARPU_WORKER_ORDER (22 << STARPU_MODE_SHIFT)
 
 /**
    \ingroup API_MPI_Support
@@ -191,13 +190,13 @@ extern "C"
    identifier to a node selection policy. This is needed when several
    nodes own data in ::STARPU_W mode.
 */
-#define STARPU_NODE_SELECTION_POLICY (23<<STARPU_MODE_SHIFT)
+#define STARPU_NODE_SELECTION_POLICY (23 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), must be followed by a
    char * stored in starpu_task::name.
 */
-#define STARPU_NAME		 (24<<STARPU_MODE_SHIFT)
+#define STARPU_NAME (24 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), must be followed by a
@@ -206,7 +205,7 @@ extern "C"
    result of a previous call to starpu_codelet_pack_args(), and will
    be freed (i.e. starpu_task::cl_arg_free will be set to 1)
 */
-#define STARPU_CL_ARGS		(25<<STARPU_MODE_SHIFT)
+#define STARPU_CL_ARGS (25 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), similarly to
@@ -216,7 +215,7 @@ extern "C"
    call to starpu_codelet_pack_args(), and will NOT be freed (i.e.
    starpu_task::cl_arg_free will be set to 0)
 */
-#define STARPU_CL_ARGS_NFREE	(26<<STARPU_MODE_SHIFT)
+#define STARPU_CL_ARGS_NFREE (26 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), must be followed by a
@@ -224,26 +223,26 @@ extern "C"
    function starpu_task_declare_deps_array() will be called with the
    given values.
 */
-#define STARPU_TASK_DEPS_ARRAY	(27<<STARPU_MODE_SHIFT)
+#define STARPU_TASK_DEPS_ARRAY (27 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), must be followed by an
    integer representing a color
 */
-#define STARPU_TASK_COLOR       (28<<STARPU_MODE_SHIFT)
+#define STARPU_TASK_COLOR (28 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), must be followed by an
    array of characters representing the sequential consistency for
    each buffer of the task.
 */
-#define STARPU_HANDLES_SEQUENTIAL_CONSISTENCY (29<<STARPU_MODE_SHIFT)
+#define STARPU_HANDLES_SEQUENTIAL_CONSISTENCY (29 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), must be followed by an
    integer stating if the task is synchronous or not
 */
-#define STARPU_TASK_SYNCHRONOUS (30<<STARPU_MODE_SHIFT)
+#define STARPU_TASK_SYNCHRONOUS (30 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), must be followed by a
@@ -251,13 +250,13 @@ extern "C"
    function starpu_task_declare_end_deps_array() will be called with
    the given values.
 */
-#define STARPU_TASK_END_DEPS_ARRAY	(31<<STARPU_MODE_SHIFT)
+#define STARPU_TASK_END_DEPS_ARRAY (31 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), must be followed by an
    integer which will be given to starpu_task_end_dep_add()
 */
-#define STARPU_TASK_END_DEP	(32<<STARPU_MODE_SHIFT)
+#define STARPU_TASK_END_DEP (32 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), must be followed by an
@@ -265,26 +264,26 @@ extern "C"
    is the number of workers, the array indicates the set of workers
    which are allowed to execute the task.
 */
-#define STARPU_TASK_WORKERIDS (33<<STARPU_MODE_SHIFT)
+#define STARPU_TASK_WORKERIDS (33 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), must be followed by an
    unsigned which sets the sequential consistency for the data
    parameters of the task.
 */
-#define STARPU_SEQUENTIAL_CONSISTENCY (34<<STARPU_MODE_SHIFT)
+#define STARPU_SEQUENTIAL_CONSISTENCY (34 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert() and alike, must be followed
    by a pointer to a struct starpu_profiling_task_info
  */
-#define STARPU_TASK_PROFILING_INFO (35<<STARPU_MODE_SHIFT)
+#define STARPU_TASK_PROFILING_INFO (35 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert() and alike, must be followed
    by an unsigned specifying not to allocate a submitorder id for the task
  */
-#define STARPU_TASK_NO_SUBMITORDER (36<<STARPU_MODE_SHIFT)
+#define STARPU_TASK_NO_SUBMITORDER (36 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), similarly to
@@ -292,7 +291,7 @@ extern "C"
    an argument to the callback function, the argument will not be
    freed, i.e starpu_task::callback_arg_free will be set to 0
 */
-#define STARPU_CALLBACK_ARG_NFREE	 (37<<STARPU_MODE_SHIFT)
+#define STARPU_CALLBACK_ARG_NFREE (37 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), similarly to
@@ -301,7 +300,7 @@ extern "C"
    the callback function; this is equivalent to using both
    ::STARPU_CALLBACK and ::STARPU_CALLBACK_ARG_NFREE.
 */
-#define STARPU_CALLBACK_WITH_ARG_NFREE	 (38<<STARPU_MODE_SHIFT)
+#define STARPU_CALLBACK_WITH_ARG_NFREE (38 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), similarly to
@@ -310,7 +309,7 @@ extern "C"
    function, the argument will not be
    freed, i.e starpu_task::prologue_callback_arg_free will be set to 0
 */
-#define STARPU_PROLOGUE_CALLBACK_ARG_NFREE (39<<STARPU_MODE_SHIFT)
+#define STARPU_PROLOGUE_CALLBACK_ARG_NFREE (39 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), similarly to
@@ -319,20 +318,20 @@ extern "C"
    the argument will not be freed, i.e
    starpu_task::prologue_callback_pop_arg_free will be set to 0
 */
-#define STARPU_PROLOGUE_CALLBACK_POP_ARG_NFREE (40<<STARPU_MODE_SHIFT)
+#define STARPU_PROLOGUE_CALLBACK_POP_ARG_NFREE (40 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert() and alike, must be followed
    by a void* specifying the value to be set in starpu_task::sched_data
  */
-#define STARPU_TASK_SCHED_DATA (41<<STARPU_MODE_SHIFT)
+#define STARPU_TASK_SCHED_DATA (41 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert() and alike, must be followed
    by a struct starpu_transaction * specifying the value to be set in
    the transaction field of the task.
  */
-#define STARPU_TRANSACTION      (42<<STARPU_MODE_SHIFT)
+#define STARPU_TRANSACTION (42 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), must be followed by a
@@ -340,7 +339,7 @@ extern "C"
 
    This is automatically set when FXT is enabled.
 */
-#define STARPU_TASK_FILE	 (43<<STARPU_MODE_SHIFT)
+#define STARPU_TASK_FILE (43 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), must be followed by an
@@ -348,27 +347,27 @@ extern "C"
 
    This is automatically set when FXT is enabled.
 */
-#define STARPU_TASK_LINE	 (44<<STARPU_MODE_SHIFT)
+#define STARPU_TASK_LINE (44 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), must be followed by a
    pointer to a epilogue callback function
 */
-#define STARPU_EPILOGUE_CALLBACK   (45<<STARPU_MODE_SHIFT)
+#define STARPU_EPILOGUE_CALLBACK (45 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), must be followed by a
    pointer to be given as an argument to the epilogue callback
    function
 */
-#define STARPU_EPILOGUE_CALLBACK_ARG   (46<<STARPU_MODE_SHIFT)
+#define STARPU_EPILOGUE_CALLBACK_ARG (46 << STARPU_MODE_SHIFT)
 
 /**
    \ingroup API_Bubble
    Used when calling starpu_task_insert(), must be followed by a
    pointer to a bubble decision function starpu_bubble_func_t
 */
-#define STARPU_BUBBLE_FUNC             (47<<STARPU_MODE_SHIFT)
+#define STARPU_BUBBLE_FUNC (47 << STARPU_MODE_SHIFT)
 
 /**
    \ingroup API_Bubble
@@ -376,7 +375,7 @@ extern "C"
    pointer which will be passed to the function defined in
    starpu_codelet::bubble_func
 */
-#define STARPU_BUBBLE_FUNC_ARG         (48<<STARPU_MODE_SHIFT)
+#define STARPU_BUBBLE_FUNC_ARG (48 << STARPU_MODE_SHIFT)
 
 /**
    \ingroup API_Bubble
@@ -384,7 +383,7 @@ extern "C"
    pointer to a bubble DAG generation function
    starpu_bubble_gen_dag_func_t
 */
-#define STARPU_BUBBLE_GEN_DAG_FUNC     (49<<STARPU_MODE_SHIFT)
+#define STARPU_BUBBLE_GEN_DAG_FUNC (49 << STARPU_MODE_SHIFT)
 
 /**
    \ingroup API_Bubble
@@ -392,7 +391,7 @@ extern "C"
    pointer which will be passed to the function defined in
    starpu_codelet::bubble_gen_dag_func
 */
-#define STARPU_BUBBLE_GEN_DAG_FUNC_ARG (50<<STARPU_MODE_SHIFT)
+#define STARPU_BUBBLE_GEN_DAG_FUNC_ARG (50 << STARPU_MODE_SHIFT)
 
 /**
    \ingroup API_Bubble
@@ -400,12 +399,12 @@ extern "C"
    pointer to a task. The task will be set as the bubble parent task
    when using the offline tracing tool.
 */
-#define STARPU_BUBBLE_PARENT	       (51<<STARPU_MODE_SHIFT)
+#define STARPU_BUBBLE_PARENT (51 << STARPU_MODE_SHIFT)
 
 /**
    This has to be the last mode value plus 1
 */
-#define STARPU_SHIFTED_MODE_MAX (52<<STARPU_MODE_SHIFT)
+#define STARPU_SHIFTED_MODE_MAX (52 << STARPU_MODE_SHIFT)
 
 /**
    Set the given \p task corresponding to \p cl with the following arguments.
@@ -417,8 +416,7 @@ extern "C"
 */
 int starpu_task_set(struct starpu_task *task, struct starpu_codelet *cl, ...);
 #ifdef STARPU_USE_FXT
-#define starpu_task_set(task, cl, ...) \
-	starpu_task_set((task), (cl), STARPU_TASK_FILE, __FILE__, STARPU_TASK_LINE, __LINE__, ##__VA_ARGS__)
+#define starpu_task_set(task, cl, ...) starpu_task_set((task), (cl), STARPU_TASK_FILE, __FILE__, STARPU_TASK_LINE, __LINE__, ##__VA_ARGS__)
 #endif
 
 /**
@@ -431,8 +429,7 @@ int starpu_task_set(struct starpu_task *task, struct starpu_codelet *cl, ...);
 */
 struct starpu_task *starpu_task_build(struct starpu_codelet *cl, ...);
 #ifdef STARPU_USE_FXT
-#define starpu_task_build(cl, ...) \
-	starpu_task_build((cl), STARPU_TASK_FILE, __FILE__, STARPU_TASK_LINE, __LINE__, ##__VA_ARGS__)
+#define starpu_task_build(cl, ...) starpu_task_build((cl), STARPU_TASK_FILE, __FILE__, STARPU_TASK_LINE, __LINE__, ##__VA_ARGS__)
 #endif
 
 /**
@@ -473,8 +470,7 @@ struct starpu_task *starpu_task_build(struct starpu_codelet *cl, ...);
 */
 int starpu_task_insert(struct starpu_codelet *cl, ...);
 #ifdef STARPU_USE_FXT
-#define starpu_task_insert(cl, ...) \
-	starpu_task_insert((cl), STARPU_TASK_FILE, __FILE__, STARPU_TASK_LINE, __LINE__, ##__VA_ARGS__)
+#define starpu_task_insert(cl, ...) starpu_task_insert((cl), STARPU_TASK_FILE, __FILE__, STARPU_TASK_LINE, __LINE__, ##__VA_ARGS__)
 #endif
 
 /**
@@ -482,8 +478,7 @@ int starpu_task_insert(struct starpu_codelet *cl, ...);
 */
 int starpu_insert_task(struct starpu_codelet *cl, ...);
 #ifdef STARPU_USE_FXT
-#define starpu_insert_task(cl, ...) \
-	starpu_insert_task((cl), STARPU_TASK_FILE, __FILE__, STARPU_TASK_LINE, __LINE__, ##__VA_ARGS__)
+#define starpu_insert_task(cl, ...) starpu_insert_task((cl), STARPU_TASK_FILE, __FILE__, STARPU_TASK_LINE, __LINE__, ##__VA_ARGS__)
 #endif
 
 /**

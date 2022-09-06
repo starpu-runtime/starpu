@@ -24,8 +24,7 @@
 #include <starpu_perfmodel.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -47,10 +46,10 @@ struct starpu_fxt_codelet_event
 struct starpu_fxt_mpi_offset
 {
 	uint64_t local_time_start; /**< node time for the barrier at the beginning of the program */
-	int64_t offset_start; /**< offset to apply to node time, computed at the beginning of the program */
-	uint64_t local_time_end; /**< node time for the barrier at the end of the program (optional) */
-	int64_t offset_end; /**< offset to apply to node time, computed at the end of the program (optional) */
-	int nb_barriers; /**< number of barriers to synchronize clocks during the execution of the program
+	int64_t offset_start;	   /**< offset to apply to node time, computed at the beginning of the program */
+	uint64_t local_time_end;   /**< node time for the barrier at the end of the program (optional) */
+	int64_t offset_end;	   /**< offset to apply to node time, computed at the end of the program (optional) */
+	int nb_barriers;	   /**< number of barriers to synchronize clocks during the execution of the program
 			   (can be 0, 1 or 2) */
 };
 

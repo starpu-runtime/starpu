@@ -21,8 +21,7 @@
 #include <starpu.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -42,7 +41,7 @@ struct _starpu_data_state;
    can maintain data consistency and locate data replicates for
    instance.
 */
-typedef struct _starpu_data_state* starpu_data_handle_t;
+typedef struct _starpu_data_state *starpu_data_handle_t;
 
 /**
    Describe a StarPU data access mode
@@ -54,11 +53,11 @@ typedef struct _starpu_data_state* starpu_data_handle_t;
  */
 enum starpu_data_access_mode
 {
-	STARPU_NONE=0, /**< todo */
-	STARPU_R=(1<<0), /**< read-only mode */
-	STARPU_W=(1<<1), /**< write-only mode */
-	STARPU_RW=(STARPU_R|STARPU_W), /**< read-write mode. Equivalent to ::STARPU_R|::STARPU_W  */
-	STARPU_SCRATCH=(1<<2), /**< A temporary buffer is allocated
+	STARPU_NONE	 = 0,			  /**< todo */
+	STARPU_R	 = (1 << 0),		  /**< read-only mode */
+	STARPU_W	 = (1 << 1),		  /**< write-only mode */
+	STARPU_RW	 = (STARPU_R | STARPU_W), /**< read-write mode. Equivalent to ::STARPU_R|::STARPU_W  */
+	STARPU_SCRATCH	 = (1 << 2),		  /**< A temporary buffer is allocated
 				  for the task, but StarPU does not
 				  enforce data consistency---i.e. each
 				  device has its own buffer,
@@ -83,8 +82,8 @@ enum starpu_data_access_mode
 				  of the provided buffer is simply
 				  ignored for now.
 			       */
-	STARPU_REDUX=(1<<3), /**< todo */
-	STARPU_COMMUTE=(1<<4), /**<  ::STARPU_COMMUTE can be passed
+	STARPU_REDUX	 = (1 << 3),		  /**< todo */
+	STARPU_COMMUTE	 = (1 << 4),		  /**<  ::STARPU_COMMUTE can be passed
 				  along ::STARPU_W or ::STARPU_RW to
 				  express that StarPU can let tasks
 				  commute, which is useful e.g. when
@@ -94,12 +93,12 @@ enum starpu_data_access_mode
 				  consistency against reads or
 				  non-commutative writes).
 			       */
-	STARPU_SSEND=(1<<5), /**< used in starpu_mpi_insert_task() to
+	STARPU_SSEND	 = (1 << 5),		  /**< used in starpu_mpi_insert_task() to
 				specify the data has to be sent using
 				a synchronous and non-blocking mode
 				(see starpu_mpi_issend())
 			     */
-	STARPU_LOCALITY=(1<<6), /**< used to tell the scheduler which
+	STARPU_LOCALITY	 = (1 << 6),		  /**< used to tell the scheduler which
 				   data is the most important for the
 				   task, and should thus be used to
 				   try to group tasks on the same core
@@ -111,7 +110,7 @@ enum starpu_data_access_mode
 				   src/sched_policies/work_stealing_policy.c
 				   source code.
 				*/
-	STARPU_MPI_REDUX=(1<<7), /**< Inter-node reduction only. Codelets
+	STARPU_MPI_REDUX = (1 << 7),		  /**< Inter-node reduction only. Codelets
 				    contributing to these reductions should
 				    be registered with ::STARPU_RW | ::STARPU_COMMUTE
 				    access modes.
@@ -119,12 +118,12 @@ enum starpu_data_access_mode
 				    MPI layer however, the access mode needs
 				    to be ::STARPU_MPI_REDUX. */
 
-	STARPU_NOPLAN=(1<<8),	/**< Disable automatic submission of asynchronous
+	STARPU_NOPLAN = (1 << 8), /**< Disable automatic submission of asynchronous
 				    partitioning/unpartitioning */
 
-	STARPU_UNMAP=(1<<9),	/**< Request unmapping the destination replicate */
+	STARPU_UNMAP = (1 << 9), /**< Request unmapping the destination replicate */
 
-	STARPU_ACCESS_MODE_MAX=(1<<10) /**< The purpose of ::STARPU_ACCESS_MODE_MAX is to
+	STARPU_ACCESS_MODE_MAX = (1 << 10) /**< The purpose of ::STARPU_ACCESS_MODE_MAX is to
 					be the maximum of this enum. */
 };
 
@@ -352,16 +351,17 @@ int starpu_data_acquire_on_node_try(starpu_data_handle_t handle, int node, enum 
    value of some registered data. This is non-blocking too and may be
    called from task callbacks.
 */
-#  define STARPU_DATA_ACQUIRE_CB(handle, mode, code) do \
-	{ \						\
-		void callback(void *arg)		\
-		{					\
-			code;				\
-			starpu_data_release(handle);  	\
-		}			      		\
-		starpu_data_acquire_cb(handle, mode, callback, NULL);	\
-	}						\
-	while(0)
+#define STARPU_DATA_ACQUIRE_CB(handle, mode, code)                    \
+	do                                                            \
+	{                                                             \
+		void callback(void *arg)                              \
+		{                                                     \
+			code;                                         \
+			starpu_data_release(handle);                  \
+		}                                                     \
+		starpu_data_acquire_cb(handle, mode, callback, NULL); \
+	}                                                             \
+	while (0)
 #endif
 
 /**
@@ -602,7 +602,7 @@ struct starpu_codelet;
 */
 void starpu_data_set_reduction_methods(starpu_data_handle_t handle, struct starpu_codelet *redux_cl, struct starpu_codelet *init_cl);
 
-struct starpu_data_interface_ops* starpu_data_get_interface_ops(starpu_data_handle_t handle);
+struct starpu_data_interface_ops *starpu_data_get_interface_ops(starpu_data_handle_t handle);
 
 unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle_t handle, unsigned memory_node);
 unsigned starpu_data_test_if_mapped_on_node(starpu_data_handle_t handle, unsigned memory_node);
@@ -615,7 +615,7 @@ void starpu_memchunk_tidy(unsigned memory_node);
    application-defined value, for instance a pointer to an object-oriented
    container for the data.
 */
-void starpu_data_set_user_data(starpu_data_handle_t handle, void* user_data);
+void starpu_data_set_user_data(starpu_data_handle_t handle, void *user_data);
 
 /**
    Retrieve the field \c user_data previously set for the \p handle.
@@ -627,7 +627,7 @@ void *starpu_data_get_user_data(starpu_data_handle_t handle);
    then be retrieved with starpu_data_get_sched_data(). \p sched_data can be any
    scheduler-defined value.
 */
-void starpu_data_set_sched_data(starpu_data_handle_t handle, void* sched_data);
+void starpu_data_set_sched_data(starpu_data_handle_t handle, void *sched_data);
 
 /**
    Retrieve the field \c sched_data previously set for the \p handle.

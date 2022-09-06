@@ -20,8 +20,7 @@
 #include <starpu.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -40,10 +39,10 @@ extern "C"
  */
 enum starpu_perf_counter_scope
 {
-	starpu_perf_counter_scope_undefined     = 0, /**< undefined scope */
-	starpu_perf_counter_scope_global        = 2, /**< global scope */
-	starpu_perf_counter_scope_per_worker    = 4, /**< per-worker scope */
-	starpu_perf_counter_scope_per_codelet   = 6  /**< per-codelet scope */
+	starpu_perf_counter_scope_undefined   = 0, /**< undefined scope */
+	starpu_perf_counter_scope_global      = 2, /**< global scope */
+	starpu_perf_counter_scope_per_worker  = 4, /**< per-worker scope */
+	starpu_perf_counter_scope_per_codelet = 6  /**< per-codelet scope */
 };
 
 /**
@@ -52,10 +51,10 @@ enum starpu_perf_counter_scope
 enum starpu_perf_counter_type
 {
 	starpu_perf_counter_type_undefined = 0, /**< underfined value type */
-	starpu_perf_counter_type_int32     = 1, /**< signed 32-bit integer value */
-	starpu_perf_counter_type_int64     = 2, /**< signed 64-bit integer value */
-	starpu_perf_counter_type_float     = 3, /**< 32-bit single precision floating-point value */
-	starpu_perf_counter_type_double    = 4  /**< 64-bit double precision floating-point value */
+	starpu_perf_counter_type_int32	   = 1, /**< signed 32-bit integer value */
+	starpu_perf_counter_type_int64	   = 2, /**< signed 64-bit integer value */
+	starpu_perf_counter_type_float	   = 3, /**< 32-bit single precision floating-point value */
+	starpu_perf_counter_type_double	   = 4	/**< 64-bit double precision floating-point value */
 };
 
 struct starpu_perf_counter_listener;

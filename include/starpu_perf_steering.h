@@ -20,8 +20,7 @@
 #include <starpu.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -42,7 +41,7 @@ extern "C"
 enum starpu_perf_knob_scope
 {
 	starpu_perf_knob_scope_undefined     = 0, /**< undefined scope */
-	starpu_perf_knob_scope_global        = 1, /**< global scope */
+	starpu_perf_knob_scope_global	     = 1, /**< global scope */
 	starpu_perf_knob_scope_per_worker    = 3, /**< per-worker scope */
 	starpu_perf_knob_scope_per_scheduler = 5  /**< per-scheduler scope */
 };
@@ -53,10 +52,10 @@ enum starpu_perf_knob_scope
 enum starpu_perf_knob_type
 {
 	starpu_perf_knob_type_undefined = 0, /**< underfined value type */
-	starpu_perf_knob_type_int32     = 1, /**< signed 32-bit integer value */
-	starpu_perf_knob_type_int64     = 2, /**< signed 64-bit integer value */
-	starpu_perf_knob_type_float     = 3, /**< 32-bit single precision floating-point value */
-	starpu_perf_knob_type_double    = 4  /**< 64-bit double precision floating-point value */
+	starpu_perf_knob_type_int32	= 1, /**< signed 32-bit integer value */
+	starpu_perf_knob_type_int64	= 2, /**< signed 64-bit integer value */
+	starpu_perf_knob_type_float	= 3, /**< 32-bit single precision floating-point value */
+	starpu_perf_knob_type_double	= 4  /**< 64-bit double precision floating-point value */
 };
 
 /**
@@ -122,122 +121,122 @@ void starpu_perf_knob_list_all_avail(void);
 /**
    Get knob value for Global scope.
 */
-int32_t starpu_perf_knob_get_global_int32_value (const int knob_id);
+int32_t starpu_perf_knob_get_global_int32_value(const int knob_id);
 
 /**
    Get knob value for Global scope.
 */
-int64_t starpu_perf_knob_get_global_int64_value (const int knob_id);
+int64_t starpu_perf_knob_get_global_int64_value(const int knob_id);
 
 /**
    Get knob value for Global scope.
 */
-float   starpu_perf_knob_get_global_float_value (const int knob_id);
+float starpu_perf_knob_get_global_float_value(const int knob_id);
 
 /**
    Get knob value for Global scope.
 */
-double  starpu_perf_knob_get_global_double_value(const int knob_id);
+double starpu_perf_knob_get_global_double_value(const int knob_id);
 
 /**
    Set int32 knob value for Global scope.
 */
-void starpu_perf_knob_set_global_int32_value (const int knob_id, int32_t new_value);
+void starpu_perf_knob_set_global_int32_value(const int knob_id, int32_t new_value);
 
 /**
    Set int64 knob value for Global scope.
 */
-void starpu_perf_knob_set_global_int64_value (const int knob_id, int64_t new_value);
+void starpu_perf_knob_set_global_int64_value(const int knob_id, int64_t new_value);
 
 /**
    Set float knob value for Global scope.
 */
-void starpu_perf_knob_set_global_float_value (const int knob_id, float   new_value);
+void starpu_perf_knob_set_global_float_value(const int knob_id, float new_value);
 
 /**
    Set double knob value for Global scope.
 */
-void starpu_perf_knob_set_global_double_value(const int knob_id, double  new_value);
+void starpu_perf_knob_set_global_double_value(const int knob_id, double new_value);
 
 /**
    Get int32 value for Per_worker scope.
 */
-int32_t starpu_perf_knob_get_per_worker_int32_value (const int knob_id, unsigned workerid);
+int32_t starpu_perf_knob_get_per_worker_int32_value(const int knob_id, unsigned workerid);
 
 /**
    Get int64 value for Per_worker scope.
 */
-int64_t starpu_perf_knob_get_per_worker_int64_value (const int knob_id, unsigned workerid);
+int64_t starpu_perf_knob_get_per_worker_int64_value(const int knob_id, unsigned workerid);
 
 /**
    Get float value for Per_worker scope.
 */
-float   starpu_perf_knob_get_per_worker_float_value (const int knob_id, unsigned workerid);
+float starpu_perf_knob_get_per_worker_float_value(const int knob_id, unsigned workerid);
 
 /**
    Get double value for Per_worker scope.
 */
-double  starpu_perf_knob_get_per_worker_double_value(const int knob_id, unsigned workerid);
+double starpu_perf_knob_get_per_worker_double_value(const int knob_id, unsigned workerid);
 
 /**
    Set int32 value for Per_worker scope.
 */
-void starpu_perf_knob_set_per_worker_int32_value (const int knob_id, unsigned workerid, int32_t new_value);
+void starpu_perf_knob_set_per_worker_int32_value(const int knob_id, unsigned workerid, int32_t new_value);
 
 /**
    Set int64 value for Per_worker scope.
 */
-void starpu_perf_knob_set_per_worker_int64_value (const int knob_id, unsigned workerid, int64_t new_value);
+void starpu_perf_knob_set_per_worker_int64_value(const int knob_id, unsigned workerid, int64_t new_value);
 
 /**
    Set float value for Per_worker scope.
 */
-void starpu_perf_knob_set_per_worker_float_value (const int knob_id, unsigned workerid, float   new_value);
+void starpu_perf_knob_set_per_worker_float_value(const int knob_id, unsigned workerid, float new_value);
 
 /**
    Set double value for Per_worker scope.
 */
-void starpu_perf_knob_set_per_worker_double_value(const int knob_id, unsigned workerid, double  new_value);
+void starpu_perf_knob_set_per_worker_double_value(const int knob_id, unsigned workerid, double new_value);
 
 /**
    Get int32 value for per_scheduler scope.
 */
-int32_t starpu_perf_knob_get_per_scheduler_int32_value (const int knob_id, const char * sched_policy_name);
+int32_t starpu_perf_knob_get_per_scheduler_int32_value(const int knob_id, const char *sched_policy_name);
 
 /**
    Get int64 value for per_scheduler scope.
 */
-int64_t starpu_perf_knob_get_per_scheduler_int64_value (const int knob_id, const char * sched_policy_name);
+int64_t starpu_perf_knob_get_per_scheduler_int64_value(const int knob_id, const char *sched_policy_name);
 
 /**
    Get float value for per_scheduler scope.
 */
-float   starpu_perf_knob_get_per_scheduler_float_value (const int knob_id, const char * sched_policy_name);
+float starpu_perf_knob_get_per_scheduler_float_value(const int knob_id, const char *sched_policy_name);
 
 /**
    Get double value for per_scheduler scope.
 */
-double  starpu_perf_knob_get_per_scheduler_double_value(const int knob_id, const char * sched_policy_name);
+double starpu_perf_knob_get_per_scheduler_double_value(const int knob_id, const char *sched_policy_name);
 
 /**
    Set int32 value for per_scheduler scope.
 */
-void starpu_perf_knob_set_per_scheduler_int32_value (const int knob_id, const char * sched_policy_name, int32_t new_value);
+void starpu_perf_knob_set_per_scheduler_int32_value(const int knob_id, const char *sched_policy_name, int32_t new_value);
 
 /**
    Set int64 value for per_scheduler scope.
 */
-void starpu_perf_knob_set_per_scheduler_int64_value (const int knob_id, const char * sched_policy_name, int64_t new_value);
+void starpu_perf_knob_set_per_scheduler_int64_value(const int knob_id, const char *sched_policy_name, int64_t new_value);
 
 /**
    Set float value for per_scheduler scope.
 */
-void starpu_perf_knob_set_per_scheduler_float_value (const int knob_id, const char * sched_policy_name, float   new_value);
+void starpu_perf_knob_set_per_scheduler_float_value(const int knob_id, const char *sched_policy_name, float new_value);
 
 /**
    Set double value for per_scheduler scope.
 */
-void starpu_perf_knob_set_per_scheduler_double_value(const int knob_id, const char * sched_policy_name, double  new_value);
+void starpu_perf_knob_set_per_scheduler_double_value(const int knob_id, const char *sched_policy_name, double new_value);
 
 /** @} */
 

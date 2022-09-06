@@ -29,8 +29,7 @@
 #endif
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -41,11 +40,11 @@ extern "C"
 /**
    Used when calling the function starpu_profiling_status_set() to disable profiling.
 */
-#define STARPU_PROFILING_DISABLE	0
+#define STARPU_PROFILING_DISABLE 0
 /**
    Used when calling the function starpu_profiling_status_set() to enable profiling.
 */
-#define STARPU_PROFILING_ENABLE		1
+#define STARPU_PROFILING_ENABLE 1
 
 /**
    Information about the execution of a task. It is accessible from
@@ -102,7 +101,6 @@ struct starpu_profiling_task_info
 	long long int papi_values[PAPI_MAX_HWCTRS];
 	int papi_event_set;
 #endif
-
 };
 
 /**
@@ -216,13 +214,14 @@ int starpu_profiling_status_get(void);
 #include <common/utils.h>
 #ifdef __GNUC__
 extern int _starpu_profiling;
-#define starpu_profiling_status_get() ({ \
-	int __ret; \
-	ANNOTATE_HAPPENS_AFTER(&_starpu_profiling); \
-	__ret = _starpu_profiling; \
-	ANNOTATE_HAPPENS_BEFORE(&_starpu_profiling); \
-	__ret; \
-})
+#define starpu_profiling_status_get() (                      \
+	{                                                    \
+		int __ret;                                   \
+		ANNOTATE_HAPPENS_AFTER(&_starpu_profiling);  \
+		__ret = _starpu_profiling;                   \
+		ANNOTATE_HAPPENS_BEFORE(&_starpu_profiling); \
+		__ret;                                       \
+	})
 #endif
 #endif
 
@@ -269,7 +268,7 @@ int starpu_bus_get_profiling_info(int busid, struct starpu_profiling_bus_info *b
 /* Reset timespec */
 static __starpu_inline void starpu_timespec_clear(struct timespec *tsp)
 {
-	tsp->tv_sec = 0;
+	tsp->tv_sec  = 0;
 	tsp->tv_nsec = 0;
 }
 
@@ -280,7 +279,7 @@ static __starpu_inline void starpu_timespec_add(struct timespec *a,
 						struct timespec *b,
 						struct timespec *result)
 {
-	result->tv_sec = a->tv_sec + b->tv_sec;
+	result->tv_sec	= a->tv_sec + b->tv_sec;
 	result->tv_nsec = a->tv_nsec + b->tv_nsec;
 
 	if (result->tv_nsec >= STARPU_NS_PER_S)
@@ -309,7 +308,7 @@ static __starpu_inline void starpu_timespec_sub(const struct timespec *a,
 						const struct timespec *b,
 						struct timespec *result)
 {
-	result->tv_sec = a->tv_sec - b->tv_sec;
+	result->tv_sec	= a->tv_sec - b->tv_sec;
 	result->tv_nsec = a->tv_nsec - b->tv_nsec;
 
 	if ((result)->tv_nsec < 0)
@@ -319,8 +318,8 @@ static __starpu_inline void starpu_timespec_sub(const struct timespec *a,
 	}
 }
 
-#define starpu_timespec_cmp(a, b, CMP)                          \
-	(((a)->tv_sec == (b)->tv_sec) ? ((a)->tv_nsec CMP (b)->tv_nsec) : ((a)->tv_sec CMP (b)->tv_sec))
+#define starpu_timespec_cmp(a, b, CMP) \
+	(((a)->tv_sec == (b)->tv_sec) ? ((a)->tv_nsec CMP(b)->tv_nsec) : ((a)->tv_sec CMP(b)->tv_sec))
 
 /**
    Return the time elapsed between \p start and \p end in microseconds.

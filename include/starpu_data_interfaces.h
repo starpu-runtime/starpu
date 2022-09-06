@@ -21,19 +21,19 @@
 
 #ifdef STARPU_USE_CUDA
 /* to use CUDA streams */
-# ifdef STARPU_DONT_INCLUDE_CUDA_HEADERS
+#ifdef STARPU_DONT_INCLUDE_CUDA_HEADERS
 typedef void *starpu_cudaStream_t;
-# else
-#  include <cuda_runtime.h>
+#else
+#include <cuda_runtime.h>
 typedef cudaStream_t starpu_cudaStream_t;
-# endif
+#endif
 #endif
 
 #ifdef STARPU_USE_HIP
 /* to use HIP streams */
-# ifdef STARPU_DONT_INCLUDE_HIP_HEADERS
+#ifdef STARPU_DONT_INCLUDE_HIP_HEADERS
 typedef void *starpu_hipStream_t;
-# else
+#else
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wundef"
 #pragma GCC diagnostic ignored "-Wunused-result"
@@ -42,15 +42,14 @@ typedef void *starpu_hipStream_t;
 #pragma GCC diagnostic ignored "-Wimplicit-int"
 #endif
 #pragma GCC diagnostic ignored "-Wreturn-type"
-#  include <hip/hip_runtime.h>
+#include <hip/hip_runtime.h>
 #pragma GCC diagnostic pop
 typedef hipStream_t starpu_hipStream_t;
-# endif
+#endif
 #endif
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -133,7 +132,7 @@ struct starpu_data_copy_methods
 	*/
 	int (*ram_to_cuda)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 
-        /**
+	/**
 	   Define how to copy data from the \p src_interface interface on the
 	   \p src_node CPU node to the \p dst_interface interface on the \p
 	   dst_node HIP node. Return 0 on success.
@@ -357,19 +356,19 @@ struct starpu_data_copy_methods
 */
 enum starpu_data_interface_id
 {
-	STARPU_UNKNOWN_INTERFACE_ID = -1, /**< Unknown interface */
-	STARPU_MATRIX_INTERFACE_ID=0, /**< Identifier for the matrix data interface */
-	STARPU_BLOCK_INTERFACE_ID=1, /**< Identifier for the block data interface*/
-	STARPU_VECTOR_INTERFACE_ID=2, /**< Identifier for the vector data interface*/
-	STARPU_CSR_INTERFACE_ID=3, /**< Identifier for the CSR data interface*/
-	STARPU_BCSR_INTERFACE_ID=4, /**< Identifier for the BCSR data interface*/
-	STARPU_VARIABLE_INTERFACE_ID=5, /**< Identifier for the variable data interface*/
-	STARPU_VOID_INTERFACE_ID=6, /**< Identifier for the void data interface*/
-	STARPU_MULTIFORMAT_INTERFACE_ID=7, /**< Identifier for the multiformat data interface*/
-	STARPU_COO_INTERFACE_ID=8, /**< Identifier for the COO data interface*/
-	STARPU_TENSOR_INTERFACE_ID=9, /**< Identifier for the tensor data interface*/
-	STARPU_NDIM_INTERFACE_ID=10, /**< Identifier for the ndim array data interface*/
-	STARPU_MAX_INTERFACE_ID=11 /**< Maximum number of data interfaces */
+	STARPU_UNKNOWN_INTERFACE_ID	= -1, /**< Unknown interface */
+	STARPU_MATRIX_INTERFACE_ID	= 0,  /**< Identifier for the matrix data interface */
+	STARPU_BLOCK_INTERFACE_ID	= 1,  /**< Identifier for the block data interface*/
+	STARPU_VECTOR_INTERFACE_ID	= 2,  /**< Identifier for the vector data interface*/
+	STARPU_CSR_INTERFACE_ID		= 3,  /**< Identifier for the CSR data interface*/
+	STARPU_BCSR_INTERFACE_ID	= 4,  /**< Identifier for the BCSR data interface*/
+	STARPU_VARIABLE_INTERFACE_ID	= 5,  /**< Identifier for the variable data interface*/
+	STARPU_VOID_INTERFACE_ID	= 6,  /**< Identifier for the void data interface*/
+	STARPU_MULTIFORMAT_INTERFACE_ID = 7,  /**< Identifier for the multiformat data interface*/
+	STARPU_COO_INTERFACE_ID		= 8,  /**< Identifier for the COO data interface*/
+	STARPU_TENSOR_INTERFACE_ID	= 9,  /**< Identifier for the tensor data interface*/
+	STARPU_NDIM_INTERFACE_ID	= 10, /**< Identifier for the ndim array data interface*/
+	STARPU_MAX_INTERFACE_ID		= 11  /**< Maximum number of data interfaces */
 };
 
 /**
@@ -388,7 +387,7 @@ struct starpu_data_interface_ops
 
 	   This method is mandatory.
 	*/
-	void		 (*register_data_handle)	(starpu_data_handle_t handle, int home_node, void *data_interface);
+	void (*register_data_handle)(starpu_data_handle_t handle, int home_node, void *data_interface);
 
 	/**
 	   Unregister a data handle.
@@ -399,7 +398,7 @@ struct starpu_data_interface_ops
 	   At this point, free_data_on_node has been already called on each of them.
 	   This just clears anything that would still be left.
 	*/
-	void		 (*unregister_data_handle)	(starpu_data_handle_t handle);
+	void (*unregister_data_handle)(starpu_data_handle_t handle);
 
 	/**
 	   Allocate data for the interface on a given node. This should use
@@ -414,14 +413,14 @@ struct starpu_data_interface_ops
 
 	   This method is mandatory to be able to support memory nodes.
 	*/
-	starpu_ssize_t	 (*allocate_data_on_node)	(void *data_interface, unsigned node);
+	starpu_ssize_t (*allocate_data_on_node)(void *data_interface, unsigned node);
 
 	/**
 	   Free data of the interface on a given node.
 
 	   This method is mandatory to be able to support memory nodes.
 	*/
-	void 		 (*free_data_on_node)		(void *data_interface, unsigned node);
+	void (*free_data_on_node)(void *data_interface, unsigned node);
 
 	/**
 	   Reuse on the given node the buffers of the provided interface
@@ -441,29 +440,29 @@ struct starpu_data_interface_ops
 	   reuse_data_on_node should thus copy over pointers, and define fields
 	   that are usually set by allocate_data_on_node (e.g. ld).
 	*/
-	void 		 (*reuse_data_on_node)		(void *dst_data_interface, const void *cached_interface, unsigned node);
+	void (*reuse_data_on_node)(void *dst_data_interface, const void *cached_interface, unsigned node);
 
 	/**
 	   Map data from a source to a destination.
 	*/
-	int		 (*map_data)			(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+	int (*map_data)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 
 	/**
 	   Unmap data from a source to a destination.
 	*/
-	int		 (*unmap_data)			(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+	int (*unmap_data)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 
 	/**
 	   Update map data from a source to a destination.
 	*/
-	int		 (*update_map)			(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+	int (*update_map)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 
 	/**
 	   Initialize the interface.
 	   This method is optional. It is called when initializing the
 	   handler on all the memory nodes.
 	*/
-	void             (*init)                        (void *data_interface);
+	void (*init)(void *data_interface);
 
 	/**
 	   Struct with pointer to functions for performing ram/cuda/opencl synchronous and asynchronous transfers.
@@ -483,7 +482,7 @@ struct starpu_data_interface_ops
 	   This method is only required if starpu_data_interface_ops::to_pointer
 	   is not implemented.
 	*/
-	void * 		 (*handle_to_pointer)		(starpu_data_handle_t handle, unsigned node);
+	void *(*handle_to_pointer)(starpu_data_handle_t handle, unsigned node);
 
 	/**
 	   Return the current pointer (if any) for the given interface on the given node.
@@ -491,18 +490,18 @@ struct starpu_data_interface_ops
 	   This method is only required for starpu_data_handle_to_pointer()
 	   and starpu_data_get_local_ptr(), and for disk support.
 	*/
-	void * 		 (*to_pointer)			(void *data_interface, unsigned node);
+	void *(*to_pointer)(void *data_interface, unsigned node);
 
 	/**
 	   Return whether the given \p ptr is within the data for the given interface on the given node.
 	   This method is optional, as it is only used for coherency checks.
 	*/
-	int 		 (*pointer_is_inside)		(void *data_interface, unsigned node, void *ptr);
+	int (*pointer_is_inside)(void *data_interface, unsigned node, void *ptr);
 
 	/**
 	   Return an estimation of the size of data, for performance models and tracing feedback.
 	*/
-	size_t 		 (*get_size)			(starpu_data_handle_t handle);
+	size_t (*get_size)(starpu_data_handle_t handle);
 
 	/**
 	   Return an estimation of the size of allocated data, for allocation
@@ -510,7 +509,7 @@ struct starpu_data_interface_ops
 	   If not specified, the starpu_data_interface_ops::get_size method is
 	   used instead.
 	*/
-	size_t 		 (*get_alloc_size)		(starpu_data_handle_t handle);
+	size_t (*get_alloc_size)(starpu_data_handle_t handle);
 
 	/**
 	   Return the maximum size that the data may need to increase to. For
@@ -518,14 +517,14 @@ struct starpu_data_interface_ops
 	   when the block is fully dense.
 	   This is currently only used for feedback tools.
 	*/
-	size_t 		 (*get_max_size)		(starpu_data_handle_t handle);
+	size_t (*get_max_size)(starpu_data_handle_t handle);
 
 	/**
 	  Return a 32bit footprint which characterizes the data size and layout (nx, ny, ld, elemsize, etc.), required for indexing performance models.
 
 	  starpu_hash_crc32c_be() and alike can be used to produce this 32bit value from various types of values.
 	*/
-	uint32_t 	 (*footprint)			(starpu_data_handle_t handle);
+	uint32_t (*footprint)(starpu_data_handle_t handle);
 
 	/**
 	   Return a 32bit footprint which characterizes the data allocation, to be used
@@ -535,7 +534,7 @@ struct starpu_data_interface_ops
 	   If specified, alloc_compare should be set to provide the strict
 	   comparison, and reuse_data_on_node should be set to provide correct buffer reuse.
 	*/
-	uint32_t 	 (*alloc_footprint)		(starpu_data_handle_t handle);
+	uint32_t (*alloc_footprint)(starpu_data_handle_t handle);
 
 	/**
 	   Compare the data size and layout of two interfaces (nx, ny, ld, elemsize,
@@ -543,7 +542,7 @@ struct starpu_data_interface_ops
 	   the two interfaces size and layout match computation-wise, and 0 otherwise.
 	   It does *not* compare the actual content of the interfaces.
 	*/
-	int 		 (*compare)			(void *data_interface_a, void *data_interface_b);
+	int (*compare)(void *data_interface_a, void *data_interface_b);
 
 	/**
 	   Compare the data allocation of two interfaces etc.), to be used for indexing
@@ -552,13 +551,13 @@ struct starpu_data_interface_ops
 	   If not specified, the starpu_data_interface_ops::compare method is
 	   used instead.
 	*/
-	int 		 (*alloc_compare)		(void *data_interface_a, void *data_interface_b);
+	int (*alloc_compare)(void *data_interface_a, void *data_interface_b);
 
 	/**
 	   Dump the sizes of a handle to a file.
 	   This is required for performance models
 	*/
-	void 		 (*display)			(starpu_data_handle_t handle, FILE *f);
+	void (*display)(starpu_data_handle_t handle, FILE *f);
 
 	/**
 	   Describe the data into a string in a brief way, such as one
@@ -566,7 +565,7 @@ struct starpu_data_interface_ops
 	   dimensions.
 	   This is required for tracing feedback.
 	*/
-	starpu_ssize_t	 (*describe)			(void *data_interface, char *buf, size_t size);
+	starpu_ssize_t (*describe)(void *data_interface, char *buf, size_t size);
 
 	/**
 	   An identifier that is unique to each interface.
@@ -593,7 +592,7 @@ struct starpu_data_interface_ops
 
 	/**
 	*/
-	struct starpu_multiformat_data_interface_ops* (*get_mf_ops)(void *data_interface);
+	struct starpu_multiformat_data_interface_ops *(*get_mf_ops)(void *data_interface);
 
 	/**
 	   Pack the data handle into a contiguous buffer at the address
@@ -611,20 +610,20 @@ struct starpu_data_interface_ops
 
 	   This is also required for MPI support if there is no registered MPI data type.
 	*/
-	int (*pack_data) (starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count);
+	int (*pack_data)(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count);
 
 	/**
 	   Read the data handle from the contiguous buffer at the address
 	   \p ptr of size \p count.
 	*/
-	int (*peek_data) (starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
+	int (*peek_data)(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
 
 	/**
 	   Unpack the data handle from the contiguous buffer at the address
 	   \p ptr of size \p count.
 	   The memory at the address \p ptr should be freed after the data unpacking operation.
 	*/
-	int (*unpack_data) (starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
+	int (*unpack_data)(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
 
 	/**
 	   Name of the interface
@@ -887,7 +886,7 @@ int starpu_interface_copy4d(uintptr_t src, size_t src_offset, unsigned src_node,
 int starpu_interface_copynd(uintptr_t src, size_t src_offset, unsigned src_node,
 			    uintptr_t dst, size_t dst_offset, unsigned dst_node,
 			    size_t elemsize, size_t ndim,
-			    uint32_t* nn, uint32_t* ldn_src, uint32_t* ldn_dst,
+			    uint32_t *nn, uint32_t *ldn_src, uint32_t *ldn_dst,
 			    void *async_data);
 
 /**
@@ -970,16 +969,16 @@ extern struct starpu_data_interface_ops starpu_interface_matrix_ops;
 struct starpu_matrix_interface
 {
 	enum starpu_data_interface_id id; /**< Identifier of the interface */
-	uintptr_t ptr;                    /**< local pointer of the matrix */
-	uintptr_t dev_handle;             /**< device handle of the matrix */
-	size_t offset;                    /**< offset in the matrix */
-	uint32_t nx;                      /**< number of elements on the x-axis of the matrix */
-	uint32_t ny;                      /**< number of elements on the y-axis of the matrix */
-	uint32_t ld;                      /**< number of elements between each row of the
+	uintptr_t ptr;			  /**< local pointer of the matrix */
+	uintptr_t dev_handle;		  /**< device handle of the matrix */
+	size_t offset;			  /**< offset in the matrix */
+	uint32_t nx;			  /**< number of elements on the x-axis of the matrix */
+	uint32_t ny;			  /**< number of elements on the y-axis of the matrix */
+	uint32_t ld;			  /**< number of elements between each row of the
 					       matrix. Maybe be equal to starpu_matrix_interface::nx
 					       when there is no padding.
 					  */
-	size_t elemsize;                  /**< size of the elements of the matrix */
+	size_t elemsize;		  /**< size of the elements of the matrix */
 	size_t allocsize;		  /**< size actually currently allocated */
 };
 
@@ -1047,15 +1046,47 @@ size_t starpu_matrix_get_elemsize(starpu_data_handle_t handle);
 size_t starpu_matrix_get_allocsize(starpu_data_handle_t handle);
 
 #if defined(STARPU_HAVE_STATEMENT_EXPRESSIONS) && defined(STARPU_DEBUG)
-#define STARPU_MATRIX_CHECK(interface)          STARPU_ASSERT_MSG((((struct starpu_matrix_interface *)(interface))->id) == STARPU_MATRIX_INTERFACE_ID, "Error. The given data is not a matrix.")
-#define STARPU_MATRIX_GET_PTR(interface)	({ STARPU_MATRIX_CHECK(interface); (((struct starpu_matrix_interface *)(interface))->ptr) ; })
-#define STARPU_MATRIX_GET_DEV_HANDLE(interface)	({ STARPU_MATRIX_CHECK(interface); (((struct starpu_matrix_interface *)(interface))->dev_handle) ; })
-#define STARPU_MATRIX_GET_OFFSET(interface)	({ STARPU_MATRIX_CHECK(interface); (((struct starpu_matrix_interface *)(interface))->offset) ; })
-#define STARPU_MATRIX_GET_NX(interface)	        ({ STARPU_MATRIX_CHECK(interface); (((struct starpu_matrix_interface *)(interface))->nx) ; })
-#define STARPU_MATRIX_GET_NY(interface)	        ({ STARPU_MATRIX_CHECK(interface); (((struct starpu_matrix_interface *)(interface))->ny) ; })
-#define STARPU_MATRIX_GET_LD(interface)	        ({ STARPU_MATRIX_CHECK(interface); (((struct starpu_matrix_interface *)(interface))->ld) ; })
-#define STARPU_MATRIX_GET_ELEMSIZE(interface)	({ STARPU_MATRIX_CHECK(interface); (((struct starpu_matrix_interface *)(interface))->elemsize) ; })
-#define STARPU_MATRIX_GET_ALLOCSIZE(interface)	({ STARPU_MATRIX_CHECK(interface); (((struct starpu_matrix_interface *)(interface))->allocsize) ; })
+#define STARPU_MATRIX_CHECK(interface)	 STARPU_ASSERT_MSG((((struct starpu_matrix_interface *)(interface))->id) == STARPU_MATRIX_INTERFACE_ID, "Error. The given data is not a matrix.")
+#define STARPU_MATRIX_GET_PTR(interface) (                              \
+	{                                                               \
+		STARPU_MATRIX_CHECK(interface);                         \
+		(((struct starpu_matrix_interface *)(interface))->ptr); \
+	})
+#define STARPU_MATRIX_GET_DEV_HANDLE(interface) (                              \
+	{                                                                      \
+		STARPU_MATRIX_CHECK(interface);                                \
+		(((struct starpu_matrix_interface *)(interface))->dev_handle); \
+	})
+#define STARPU_MATRIX_GET_OFFSET(interface) (                              \
+	{                                                                  \
+		STARPU_MATRIX_CHECK(interface);                            \
+		(((struct starpu_matrix_interface *)(interface))->offset); \
+	})
+#define STARPU_MATRIX_GET_NX(interface) (                              \
+	{                                                              \
+		STARPU_MATRIX_CHECK(interface);                        \
+		(((struct starpu_matrix_interface *)(interface))->nx); \
+	})
+#define STARPU_MATRIX_GET_NY(interface) (                              \
+	{                                                              \
+		STARPU_MATRIX_CHECK(interface);                        \
+		(((struct starpu_matrix_interface *)(interface))->ny); \
+	})
+#define STARPU_MATRIX_GET_LD(interface) (                              \
+	{                                                              \
+		STARPU_MATRIX_CHECK(interface);                        \
+		(((struct starpu_matrix_interface *)(interface))->ld); \
+	})
+#define STARPU_MATRIX_GET_ELEMSIZE(interface) (                              \
+	{                                                                    \
+		STARPU_MATRIX_CHECK(interface);                              \
+		(((struct starpu_matrix_interface *)(interface))->elemsize); \
+	})
+#define STARPU_MATRIX_GET_ALLOCSIZE(interface) (                              \
+	{                                                                     \
+		STARPU_MATRIX_CHECK(interface);                               \
+		(((struct starpu_matrix_interface *)(interface))->allocsize); \
+	})
 #else
 /**
    Return a pointer to the matrix designated by \p interface, valid
@@ -1069,7 +1100,7 @@ size_t starpu_matrix_get_allocsize(starpu_data_handle_t handle);
    ::STARPU_MATRIX_GET_OFFSET has to be used in
    addition to this.
 */
-#define STARPU_MATRIX_GET_DEV_HANDLE(interface)	(((struct starpu_matrix_interface *)(interface))->dev_handle)
+#define STARPU_MATRIX_GET_DEV_HANDLE(interface) (((struct starpu_matrix_interface *)(interface))->dev_handle)
 /**
    Return the offset in the matrix designated by \p interface, to be
    used with the device handle.
@@ -1079,17 +1110,17 @@ size_t starpu_matrix_get_allocsize(starpu_data_handle_t handle);
    Return the number of elements on the x-axis of the matrix
    designated by \p interface.
 */
-#define STARPU_MATRIX_GET_NX(interface)	        (((struct starpu_matrix_interface *)(interface))->nx)
+#define STARPU_MATRIX_GET_NX(interface)		(((struct starpu_matrix_interface *)(interface))->nx)
 /**
    Return the number of elements on the y-axis of the matrix
    designated by \p interface.
 */
-#define STARPU_MATRIX_GET_NY(interface)	        (((struct starpu_matrix_interface *)(interface))->ny)
+#define STARPU_MATRIX_GET_NY(interface)		(((struct starpu_matrix_interface *)(interface))->ny)
 /**
    Return the number of elements between each row of the matrix
    designated by \p interface. May be equal to nx when there is no padding.
 */
-#define STARPU_MATRIX_GET_LD(interface)	        (((struct starpu_matrix_interface *)(interface))->ld)
+#define STARPU_MATRIX_GET_LD(interface)		(((struct starpu_matrix_interface *)(interface))->ld)
 /**
    Return the size of the elements registered into the matrix
    designated by \p interface.
@@ -1105,27 +1136,33 @@ size_t starpu_matrix_get_allocsize(starpu_data_handle_t handle);
    Set the number of elements on the x-axis of the matrix
    designated by \p interface.
 */
-#define STARPU_MATRIX_SET_NX(interface, newnx)	        do { \
-	STARPU_MATRIX_CHECK(interface); \
-	(((struct starpu_matrix_interface *)(interface))->nx) = (newnx); \
-} while (0)
+#define STARPU_MATRIX_SET_NX(interface, newnx)                                   \
+	do {                                                                     \
+		STARPU_MATRIX_CHECK(interface);                                  \
+		(((struct starpu_matrix_interface *)(interface))->nx) = (newnx); \
+	}                                                                        \
+	while (0)
 /**
    Set the number of elements on the y-axis of the matrix
    designated by \p interface.
 */
-#define STARPU_MATRIX_SET_NY(interface, newny)	        do { \
-	STARPU_MATRIX_CHECK(interface); \
-	(((struct starpu_matrix_interface *)(interface))->ny) = (newny); \
-} while(0)
+#define STARPU_MATRIX_SET_NY(interface, newny)                                   \
+	do {                                                                     \
+		STARPU_MATRIX_CHECK(interface);                                  \
+		(((struct starpu_matrix_interface *)(interface))->ny) = (newny); \
+	}                                                                        \
+	while (0)
 /**
    Set the number of elements between each row of the matrix
    designated by \p interface. May be set to the same value as nx when there is
    no padding.
 */
-#define STARPU_MATRIX_SET_LD(interface, newld)	        do { \
-	STARPU_MATRIX_CHECK(interface); \
-	(((struct starpu_matrix_interface *)(interface))->ld) = (newld); \
-} while(0)
+#define STARPU_MATRIX_SET_LD(interface, newld)                                   \
+	do {                                                                     \
+		STARPU_MATRIX_CHECK(interface);                                  \
+		(((struct starpu_matrix_interface *)(interface))->ld) = (newld); \
+	}                                                                        \
+	while (0)
 
 /** @} */
 
@@ -1143,13 +1180,13 @@ struct starpu_coo_interface
 {
 	enum starpu_data_interface_id id; /**< identifier of the interface */
 
-	uint32_t  *columns;               /**< column array of the matrix */
-	uint32_t  *rows;                  /**< row array of the matrix */
-	uintptr_t values;                 /**< values of the matrix */
-	uint32_t  nx;                     /**< number of elements on the x-axis of the matrix */
-	uint32_t  ny;                     /**< number of elements on the y-axis of the matrix */
-	uint32_t  n_values;               /**< number of values registered in the matrix */
-	size_t    elemsize;               /**< size of the elements of the matrix */
+	uint32_t *columns; /**< column array of the matrix */
+	uint32_t *rows;	   /**< row array of the matrix */
+	uintptr_t values;  /**< values of the matrix */
+	uint32_t nx;	   /**< number of elements on the x-axis of the matrix */
+	uint32_t ny;	   /**< number of elements on the y-axis of the matrix */
+	uint32_t n_values; /**< number of values registered in the matrix */
+	size_t elemsize;   /**< size of the elements of the matrix */
 };
 
 /**
@@ -1163,7 +1200,7 @@ void starpu_coo_data_register(starpu_data_handle_t *handleptr, int home_node, ui
    Return a pointer to the column array of the matrix designated
    by \p interface.
 */
-#define STARPU_COO_GET_COLUMNS(interface)	     (((struct starpu_coo_interface *)(interface))->columns)
+#define STARPU_COO_GET_COLUMNS(interface) (((struct starpu_coo_interface *)(interface))->columns)
 /**
    Return a device handle for the column array of the matrix
    designated by \p interface, to be used with OpenCL. The offset
@@ -1175,24 +1212,24 @@ void starpu_coo_data_register(starpu_data_handle_t *handleptr, int home_node, ui
    Return a pointer to the rows array of the matrix designated by
    \p interface.
 */
-#define STARPU_COO_GET_ROWS(interface)               (((struct starpu_coo_interface *)(interface))->rows)
+#define STARPU_COO_GET_ROWS(interface) (((struct starpu_coo_interface *)(interface))->rows)
 /**
    Return a device handle for the row array of the matrix
    designated by \p interface, to be used on OpenCL. The offset returned
    by ::STARPU_COO_GET_OFFSET has to be used in addition to this.
 */
-#define STARPU_COO_GET_ROWS_DEV_HANDLE(interface)    (((struct starpu_coo_interface *)(interface))->rows)
+#define STARPU_COO_GET_ROWS_DEV_HANDLE(interface) (((struct starpu_coo_interface *)(interface))->rows)
 /**
    Return a pointer to the values array of the matrix designated
    by \p interface.
 */
-#define STARPU_COO_GET_VALUES(interface)             (((struct starpu_coo_interface *)(interface))->values)
+#define STARPU_COO_GET_VALUES(interface) (((struct starpu_coo_interface *)(interface))->values)
 /**
    Return a device handle for the value array of the matrix
    designated by \p interface, to be used on OpenCL. The offset returned
    by ::STARPU_COO_GET_OFFSET has to be used in addition to this.
 */
-#define STARPU_COO_GET_VALUES_DEV_HANDLE(interface)  (((struct starpu_coo_interface *)(interface))->values)
+#define STARPU_COO_GET_VALUES_DEV_HANDLE(interface) (((struct starpu_coo_interface *)(interface))->values)
 /**
    Return the offset in the arrays of the COO matrix designated by
    \p interface.
@@ -1202,22 +1239,22 @@ void starpu_coo_data_register(starpu_data_handle_t *handleptr, int home_node, ui
    Return the number of elements on the x-axis of the matrix
    designated by \p interface.
 */
-#define STARPU_COO_GET_NX(interface)                 (((struct starpu_coo_interface *)(interface))->nx)
+#define STARPU_COO_GET_NX(interface) (((struct starpu_coo_interface *)(interface))->nx)
 /**
    Return the number of elements on the y-axis of the matrix
    designated by \p interface.
 */
-#define STARPU_COO_GET_NY(interface)                 (((struct starpu_coo_interface *)(interface))->ny)
+#define STARPU_COO_GET_NY(interface) (((struct starpu_coo_interface *)(interface))->ny)
 /**
    Return the number of values registered in the matrix designated
    by \p interface.
 */
-#define STARPU_COO_GET_NVALUES(interface)            (((struct starpu_coo_interface *)(interface))->n_values)
+#define STARPU_COO_GET_NVALUES(interface) (((struct starpu_coo_interface *)(interface))->n_values)
 /**
    Return the size of the elements registered into the matrix
    designated by \p interface.
 */
-#define STARPU_COO_GET_ELEMSIZE(interface)           (((struct starpu_coo_interface *)(interface))->elemsize)
+#define STARPU_COO_GET_ELEMSIZE(interface) (((struct starpu_coo_interface *)(interface))->elemsize)
 
 /** @} */
 
@@ -1237,15 +1274,15 @@ struct starpu_block_interface
 {
 	enum starpu_data_interface_id id; /**< identifier of the interface */
 
-	uintptr_t ptr;                    /**< local pointer of the block */
-	uintptr_t dev_handle;             /**< device handle of the block. */
-	size_t offset;                    /**< offset in the block. */
-	uint32_t nx;                      /**< number of elements on the x-axis of the block. */
-	uint32_t ny;                      /**< number of elements on the y-axis of the block. */
-	uint32_t nz;                      /**< number of elements on the z-axis of the block. */
-	uint32_t ldy;                     /**< number of elements between two lines */
-	uint32_t ldz;                     /**< number of elements between two planes */
-	size_t elemsize;                  /**< size of the elements of the block. */
+	uintptr_t ptr;	      /**< local pointer of the block */
+	uintptr_t dev_handle; /**< device handle of the block. */
+	size_t offset;	      /**< offset in the block. */
+	uint32_t nx;	      /**< number of elements on the x-axis of the block. */
+	uint32_t ny;	      /**< number of elements on the y-axis of the block. */
+	uint32_t nz;	      /**< number of elements on the z-axis of the block. */
+	uint32_t ldy;	      /**< number of elements between two lines */
+	uint32_t ldz;	      /**< number of elements between two planes */
+	size_t elemsize;      /**< size of the elements of the block. */
 };
 
 /**
@@ -1313,64 +1350,100 @@ uintptr_t starpu_block_get_local_ptr(starpu_data_handle_t handle);
 size_t starpu_block_get_elemsize(starpu_data_handle_t handle);
 
 #if defined(STARPU_HAVE_STATEMENT_EXPRESSIONS) && defined(STARPU_DEBUG)
-#define STARPU_BLOCK_CHECK(interface)           STARPU_ASSERT_MSG((((struct starpu_block_interface *)(interface))->id) == STARPU_BLOCK_INTERFACE_ID, "Error. The given data is not a block.")
-#define STARPU_BLOCK_GET_PTR(interface)	        ({ STARPU_BLOCK_CHECK(interface); (((struct starpu_block_interface *)(interface))->ptr) ; })
-#define STARPU_BLOCK_GET_DEV_HANDLE(interface)	({ STARPU_BLOCK_CHECK(interface); (((struct starpu_block_interface *)(interface))->dev_handle) ; })
-#define STARPU_BLOCK_GET_OFFSET(interface)	({ STARPU_BLOCK_CHECK(interface); (((struct starpu_block_interface *)(interface))->offset) ; })
-#define STARPU_BLOCK_GET_NX(interface)	        ({ STARPU_BLOCK_CHECK(interface); (((struct starpu_block_interface *)(interface))->nx) ; })
-#define STARPU_BLOCK_GET_NY(interface)	        ({ STARPU_BLOCK_CHECK(interface); (((struct starpu_block_interface *)(interface))->ny) ; })
-#define STARPU_BLOCK_GET_NZ(interface)	        ({ STARPU_BLOCK_CHECK(interface); (((struct starpu_block_interface *)(interface))->nz) ; })
-#define STARPU_BLOCK_GET_LDY(interface)	        ({ STARPU_BLOCK_CHECK(interface); (((struct starpu_block_interface *)(interface))->ldy) ; })
-#define STARPU_BLOCK_GET_LDZ(interface)	        ({ STARPU_BLOCK_CHECK(interface); (((struct starpu_block_interface *)(interface))->ldz) ; })
-#define STARPU_BLOCK_GET_ELEMSIZE(interface)	({ STARPU_BLOCK_CHECK(interface); (((struct starpu_block_interface *)(interface))->elemsize) ; })
+#define STARPU_BLOCK_CHECK(interface)	STARPU_ASSERT_MSG((((struct starpu_block_interface *)(interface))->id) == STARPU_BLOCK_INTERFACE_ID, "Error. The given data is not a block.")
+#define STARPU_BLOCK_GET_PTR(interface) (                              \
+	{                                                              \
+		STARPU_BLOCK_CHECK(interface);                         \
+		(((struct starpu_block_interface *)(interface))->ptr); \
+	})
+#define STARPU_BLOCK_GET_DEV_HANDLE(interface) (                              \
+	{                                                                     \
+		STARPU_BLOCK_CHECK(interface);                                \
+		(((struct starpu_block_interface *)(interface))->dev_handle); \
+	})
+#define STARPU_BLOCK_GET_OFFSET(interface) (                              \
+	{                                                                 \
+		STARPU_BLOCK_CHECK(interface);                            \
+		(((struct starpu_block_interface *)(interface))->offset); \
+	})
+#define STARPU_BLOCK_GET_NX(interface) (                              \
+	{                                                             \
+		STARPU_BLOCK_CHECK(interface);                        \
+		(((struct starpu_block_interface *)(interface))->nx); \
+	})
+#define STARPU_BLOCK_GET_NY(interface) (                              \
+	{                                                             \
+		STARPU_BLOCK_CHECK(interface);                        \
+		(((struct starpu_block_interface *)(interface))->ny); \
+	})
+#define STARPU_BLOCK_GET_NZ(interface) (                              \
+	{                                                             \
+		STARPU_BLOCK_CHECK(interface);                        \
+		(((struct starpu_block_interface *)(interface))->nz); \
+	})
+#define STARPU_BLOCK_GET_LDY(interface) (                              \
+	{                                                              \
+		STARPU_BLOCK_CHECK(interface);                         \
+		(((struct starpu_block_interface *)(interface))->ldy); \
+	})
+#define STARPU_BLOCK_GET_LDZ(interface) (                              \
+	{                                                              \
+		STARPU_BLOCK_CHECK(interface);                         \
+		(((struct starpu_block_interface *)(interface))->ldz); \
+	})
+#define STARPU_BLOCK_GET_ELEMSIZE(interface) (                              \
+	{                                                                   \
+		STARPU_BLOCK_CHECK(interface);                              \
+		(((struct starpu_block_interface *)(interface))->elemsize); \
+	})
 #else
 /**
    Return a pointer to the block designated by \p interface.
  */
-#define STARPU_BLOCK_GET_PTR(interface)	        (((struct starpu_block_interface *)(interface))->ptr)
+#define STARPU_BLOCK_GET_PTR(interface)	       (((struct starpu_block_interface *)(interface))->ptr)
 /**
    Return a device handle for the block designated by \p interface,
    to be used on OpenCL. The offset returned by
    ::STARPU_BLOCK_GET_OFFSET has to be used in
    addition to this.
  */
-#define STARPU_BLOCK_GET_DEV_HANDLE(interface)	(((struct starpu_block_interface *)(interface))->dev_handle)
+#define STARPU_BLOCK_GET_DEV_HANDLE(interface) (((struct starpu_block_interface *)(interface))->dev_handle)
 /**
    Return the offset in the block designated by \p interface, to be
    used with the device handle.
  */
-#define STARPU_BLOCK_GET_OFFSET(interface)	(((struct starpu_block_interface *)(interface))->offset)
+#define STARPU_BLOCK_GET_OFFSET(interface)     (((struct starpu_block_interface *)(interface))->offset)
 /**
    Return the number of elements on the x-axis of the block
    designated by \p interface.
  */
-#define STARPU_BLOCK_GET_NX(interface)	        (((struct starpu_block_interface *)(interface))->nx)
+#define STARPU_BLOCK_GET_NX(interface)	       (((struct starpu_block_interface *)(interface))->nx)
 /**
    Return the number of elements on the y-axis of the block
    designated by \p interface.
  */
-#define STARPU_BLOCK_GET_NY(interface)	        (((struct starpu_block_interface *)(interface))->ny)
+#define STARPU_BLOCK_GET_NY(interface)	       (((struct starpu_block_interface *)(interface))->ny)
 /**
 Return the number of elements on the z-axis of the block
 designated by \p interface.
  */
-#define STARPU_BLOCK_GET_NZ(interface)	        (((struct starpu_block_interface *)(interface))->nz)
+#define STARPU_BLOCK_GET_NZ(interface)	       (((struct starpu_block_interface *)(interface))->nz)
 /**
    Return the number of elements between each row of the block
    designated by \p interface. May be equal to nx when there is no padding.
  */
-#define STARPU_BLOCK_GET_LDY(interface)	        (((struct starpu_block_interface *)(interface))->ldy)
+#define STARPU_BLOCK_GET_LDY(interface)	       (((struct starpu_block_interface *)(interface))->ldy)
 /**
    Return the number of elements between each z plane of the block
    designated by \p interface. May be equal to nx*ny when there is no
    padding.
  */
-#define STARPU_BLOCK_GET_LDZ(interface)	        (((struct starpu_block_interface *)(interface))->ldz)
+#define STARPU_BLOCK_GET_LDZ(interface)	       (((struct starpu_block_interface *)(interface))->ldz)
 /**
    Return the size of the elements of the block designated by
    \p interface.
  */
-#define STARPU_BLOCK_GET_ELEMSIZE(interface)	(((struct starpu_block_interface *)(interface))->elemsize)
+#define STARPU_BLOCK_GET_ELEMSIZE(interface)   (((struct starpu_block_interface *)(interface))->elemsize)
 #endif
 
 /** @} */
@@ -1391,17 +1464,17 @@ struct starpu_tensor_interface
 {
 	enum starpu_data_interface_id id; /**< identifier of the interface */
 
-	uintptr_t ptr;                    /**< local pointer of the tensor */
-	uintptr_t dev_handle;             /**< device handle of the tensor. */
-	size_t offset;                    /**< offset in the tensor. */
-	uint32_t nx;                      /**< number of elements on the x-axis of the tensor. */
-	uint32_t ny;                      /**< number of elements on the y-axis of the tensor. */
-	uint32_t nz;                      /**< number of elements on the z-axis of the tensor. */
-	uint32_t nt;                      /**< number of elements on the t-axis of the tensor. */
-	uint32_t ldy;                     /**< number of elements between two lines */
-	uint32_t ldz;                     /**< number of elements between two planes */
-	uint32_t ldt;                     /**< number of elements between two cubes */
-	size_t elemsize;                  /**< size of the elements of the tensor. */
+	uintptr_t ptr;	      /**< local pointer of the tensor */
+	uintptr_t dev_handle; /**< device handle of the tensor. */
+	size_t offset;	      /**< offset in the tensor. */
+	uint32_t nx;	      /**< number of elements on the x-axis of the tensor. */
+	uint32_t ny;	      /**< number of elements on the y-axis of the tensor. */
+	uint32_t nz;	      /**< number of elements on the z-axis of the tensor. */
+	uint32_t nt;	      /**< number of elements on the t-axis of the tensor. */
+	uint32_t ldy;	      /**< number of elements between two lines */
+	uint32_t ldz;	      /**< number of elements between two planes */
+	uint32_t ldt;	      /**< number of elements between two cubes */
+	size_t elemsize;      /**< size of the elements of the tensor. */
 };
 
 /**
@@ -1481,30 +1554,74 @@ uintptr_t starpu_tensor_get_local_ptr(starpu_data_handle_t handle);
 size_t starpu_tensor_get_elemsize(starpu_data_handle_t handle);
 
 #if defined(STARPU_HAVE_STATEMENT_EXPRESSIONS) && defined(STARPU_DEBUG)
-#define STARPU_TENSOR_CHECK(interface)           STARPU_ASSERT_MSG((((struct starpu_tensor_interface *)(interface))->id) == STARPU_TENSOR_INTERFACE_ID, "Error. The given data is not a tensor.")
-#define STARPU_TENSOR_GET_PTR(interface)	        ({ STARPU_TENSOR_CHECK(interface); (((struct starpu_tensor_interface *)(interface))->ptr) ; })
-#define STARPU_TENSOR_GET_DEV_HANDLE(interface)	({ STARPU_TENSOR_CHECK(interface); (((struct starpu_tensor_interface *)(interface))->dev_handle) ; })
-#define STARPU_TENSOR_GET_OFFSET(interface)	({ STARPU_TENSOR_CHECK(interface); (((struct starpu_tensor_interface *)(interface))->offset) ; })
-#define STARPU_TENSOR_GET_NX(interface)	        ({ STARPU_TENSOR_CHECK(interface); (((struct starpu_tensor_interface *)(interface))->nx) ; })
-#define STARPU_TENSOR_GET_NY(interface)	        ({ STARPU_TENSOR_CHECK(interface); (((struct starpu_tensor_interface *)(interface))->ny) ; })
-#define STARPU_TENSOR_GET_NZ(interface)	        ({ STARPU_TENSOR_CHECK(interface); (((struct starpu_tensor_interface *)(interface))->nz) ; })
-#define STARPU_TENSOR_GET_NT(interface)	        ({ STARPU_TENSOR_CHECK(interface); (((struct starpu_tensor_interface *)(interface))->nt) ; })
-#define STARPU_TENSOR_GET_LDY(interface)	        ({ STARPU_TENSOR_CHECK(interface); (((struct starpu_tensor_interface *)(interface))->ldy) ; })
-#define STARPU_TENSOR_GET_LDZ(interface)	        ({ STARPU_TENSOR_CHECK(interface); (((struct starpu_tensor_interface *)(interface))->ldz) ; })
-#define STARPU_TENSOR_GET_LDT(interface)	        ({ STARPU_TENSOR_CHECK(interface); (((struct starpu_tensor_interface *)(interface))->ldt) ; })
-#define STARPU_TENSOR_GET_ELEMSIZE(interface)	({ STARPU_TENSOR_CHECK(interface); (((struct starpu_tensor_interface *)(interface))->elemsize) ; })
+#define STARPU_TENSOR_CHECK(interface)	 STARPU_ASSERT_MSG((((struct starpu_tensor_interface *)(interface))->id) == STARPU_TENSOR_INTERFACE_ID, "Error. The given data is not a tensor.")
+#define STARPU_TENSOR_GET_PTR(interface) (                              \
+	{                                                               \
+		STARPU_TENSOR_CHECK(interface);                         \
+		(((struct starpu_tensor_interface *)(interface))->ptr); \
+	})
+#define STARPU_TENSOR_GET_DEV_HANDLE(interface) (                              \
+	{                                                                      \
+		STARPU_TENSOR_CHECK(interface);                                \
+		(((struct starpu_tensor_interface *)(interface))->dev_handle); \
+	})
+#define STARPU_TENSOR_GET_OFFSET(interface) (                              \
+	{                                                                  \
+		STARPU_TENSOR_CHECK(interface);                            \
+		(((struct starpu_tensor_interface *)(interface))->offset); \
+	})
+#define STARPU_TENSOR_GET_NX(interface) (                              \
+	{                                                              \
+		STARPU_TENSOR_CHECK(interface);                        \
+		(((struct starpu_tensor_interface *)(interface))->nx); \
+	})
+#define STARPU_TENSOR_GET_NY(interface) (                              \
+	{                                                              \
+		STARPU_TENSOR_CHECK(interface);                        \
+		(((struct starpu_tensor_interface *)(interface))->ny); \
+	})
+#define STARPU_TENSOR_GET_NZ(interface) (                              \
+	{                                                              \
+		STARPU_TENSOR_CHECK(interface);                        \
+		(((struct starpu_tensor_interface *)(interface))->nz); \
+	})
+#define STARPU_TENSOR_GET_NT(interface) (                              \
+	{                                                              \
+		STARPU_TENSOR_CHECK(interface);                        \
+		(((struct starpu_tensor_interface *)(interface))->nt); \
+	})
+#define STARPU_TENSOR_GET_LDY(interface) (                              \
+	{                                                               \
+		STARPU_TENSOR_CHECK(interface);                         \
+		(((struct starpu_tensor_interface *)(interface))->ldy); \
+	})
+#define STARPU_TENSOR_GET_LDZ(interface) (                              \
+	{                                                               \
+		STARPU_TENSOR_CHECK(interface);                         \
+		(((struct starpu_tensor_interface *)(interface))->ldz); \
+	})
+#define STARPU_TENSOR_GET_LDT(interface) (                              \
+	{                                                               \
+		STARPU_TENSOR_CHECK(interface);                         \
+		(((struct starpu_tensor_interface *)(interface))->ldt); \
+	})
+#define STARPU_TENSOR_GET_ELEMSIZE(interface) (                              \
+	{                                                                    \
+		STARPU_TENSOR_CHECK(interface);                              \
+		(((struct starpu_tensor_interface *)(interface))->elemsize); \
+	})
 #else
 /**
    Return a pointer to the tensor designated by \p interface.
  */
-#define STARPU_TENSOR_GET_PTR(interface)	        (((struct starpu_tensor_interface *)(interface))->ptr)
+#define STARPU_TENSOR_GET_PTR(interface)	(((struct starpu_tensor_interface *)(interface))->ptr)
 /**
    Return a device handle for the tensor designated by \p interface,
    to be used on OpenCL. The offset returned by
    ::STARPU_TENSOR_GET_OFFSET has to be used in
    addition to this.
  */
-#define STARPU_TENSOR_GET_DEV_HANDLE(interface)	(((struct starpu_tensor_interface *)(interface))->dev_handle)
+#define STARPU_TENSOR_GET_DEV_HANDLE(interface) (((struct starpu_tensor_interface *)(interface))->dev_handle)
 /**
    Return the offset in the tensor designated by \p interface, to be
    used with the device handle.
@@ -1514,39 +1631,39 @@ size_t starpu_tensor_get_elemsize(starpu_data_handle_t handle);
    Return the number of elements on the x-axis of the tensor
    designated by \p interface.
  */
-#define STARPU_TENSOR_GET_NX(interface)	        (((struct starpu_tensor_interface *)(interface))->nx)
+#define STARPU_TENSOR_GET_NX(interface)		(((struct starpu_tensor_interface *)(interface))->nx)
 /**
    Return the number of elements on the y-axis of the tensor
    designated by \p interface.
  */
-#define STARPU_TENSOR_GET_NY(interface)	        (((struct starpu_tensor_interface *)(interface))->ny)
+#define STARPU_TENSOR_GET_NY(interface)		(((struct starpu_tensor_interface *)(interface))->ny)
 /**
 Return the number of elements on the z-axis of the tensor
 designated by \p interface.
  */
-#define STARPU_TENSOR_GET_NZ(interface)	        (((struct starpu_tensor_interface *)(interface))->nz)
+#define STARPU_TENSOR_GET_NZ(interface)		(((struct starpu_tensor_interface *)(interface))->nz)
 /**
 Return the number of elements on the t-axis of the tensor
 designated by \p interface.
  */
-#define STARPU_TENSOR_GET_NT(interface)	        (((struct starpu_tensor_interface *)(interface))->nt)
+#define STARPU_TENSOR_GET_NT(interface)		(((struct starpu_tensor_interface *)(interface))->nt)
 /**
    Return the number of elements between each row of the tensor
    designated by \p interface. May be equal to nx when there is no padding.
  */
-#define STARPU_TENSOR_GET_LDY(interface)	        (((struct starpu_tensor_interface *)(interface))->ldy)
+#define STARPU_TENSOR_GET_LDY(interface)	(((struct starpu_tensor_interface *)(interface))->ldy)
 /**
    Return the number of elements between each z plane of the tensor
    designated by \p interface. May be equal to nx*ny when there is no
    padding.
  */
-#define STARPU_TENSOR_GET_LDZ(interface)	        (((struct starpu_tensor_interface *)(interface))->ldz)
+#define STARPU_TENSOR_GET_LDZ(interface)	(((struct starpu_tensor_interface *)(interface))->ldz)
 /**
    Return the number of elements between each t cubes of the tensor
    designated by \p interface. May be equal to nx*ny*nz when there is no
    padding.
  */
-#define STARPU_TENSOR_GET_LDT(interface)	        (((struct starpu_tensor_interface *)(interface))->ldt)
+#define STARPU_TENSOR_GET_LDT(interface)	(((struct starpu_tensor_interface *)(interface))->ldt)
 /**
    Return the size of the elements of the tensor designated by
    \p interface.
@@ -1570,14 +1687,14 @@ struct starpu_ndim_interface
 {
 	enum starpu_data_interface_id id; /**< identifier of the interface */
 
-	uintptr_t ptr;                    /**< local pointer of the ndim */
-	uintptr_t dev_handle;             /**< device handle of the ndim. */
-	size_t offset;                    /**< offset in the ndim. */
-	size_t allocsize;                 /**< size actually currently allocated. */
-	uint32_t* nn;                     /**< array of element number on each dimension */
-	uint32_t* ldn;                    /**< array of element number between two units on each dimension */
-	size_t ndim;                      /**< size of the dimension. */
-	size_t elemsize;                  /**< size of the elements of the ndim. */
+	uintptr_t ptr;	      /**< local pointer of the ndim */
+	uintptr_t dev_handle; /**< device handle of the ndim. */
+	size_t offset;	      /**< offset in the ndim. */
+	size_t allocsize;     /**< size actually currently allocated. */
+	uint32_t *nn;	      /**< array of element number on each dimension */
+	uint32_t *ldn;	      /**< array of element number between two units on each dimension */
+	size_t ndim;	      /**< size of the dimension. */
+	size_t elemsize;      /**< size of the elements of the ndim. */
 };
 
 /**
@@ -1597,19 +1714,19 @@ struct starpu_ndim_interface
    starpu_ndim_data_register(&ndim_handle, STARPU_MAIN_RAM, (uintptr_t)ndim_arr, ldn, nn, ndim, sizeof(float));
    \endcode
 */
-void starpu_ndim_data_register(starpu_data_handle_t *handleptr, int home_node, uintptr_t ptr, uint32_t* ldn, uint32_t* nn, size_t ndim, size_t elemsize);
+void starpu_ndim_data_register(starpu_data_handle_t *handleptr, int home_node, uintptr_t ptr, uint32_t *ldn, uint32_t *nn, size_t ndim, size_t elemsize);
 /**
    Register into the \p handle that to store data on node \p node it should use the
    buffer located at \p ptr, or device handle \p dev_handle and offset \p offset
    (for OpenCL, notably), with \p ldn elements between two units on each dimension.
 */
-void starpu_ndim_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr, uintptr_t dev_handle, size_t offset, uint32_t* ldn);
+void starpu_ndim_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr, uintptr_t dev_handle, size_t offset, uint32_t *ldn);
 
 /**
    Return the number of elements on each dimension of the ndim array
    designated by \p handle.
  */
-uint32_t* starpu_ndim_get_nn(starpu_data_handle_t handle);
+uint32_t *starpu_ndim_get_nn(starpu_data_handle_t handle);
 
 /**
    Return the number of elements on the i-axis of the ndim array
@@ -1622,7 +1739,7 @@ uint32_t starpu_ndim_get_ni(starpu_data_handle_t handle, size_t i);
    Return the number of elements between two units on each dimension of the ndim array
    designated by \p handle, in the format of the current memory node.
 */
-uint32_t* starpu_ndim_get_local_ldn(starpu_data_handle_t handle);
+uint32_t *starpu_ndim_get_local_ldn(starpu_data_handle_t handle);
 
 /**
    Return the number of elements between two units i-axis dimension of the ndim array
@@ -1647,55 +1764,82 @@ size_t starpu_ndim_get_ndim(starpu_data_handle_t handle);
 size_t starpu_ndim_get_elemsize(starpu_data_handle_t handle);
 
 #if defined(STARPU_HAVE_STATEMENT_EXPRESSIONS) && defined(STARPU_DEBUG)
-#define STARPU_NDIM_CHECK(interface)           STARPU_ASSERT_MSG((((struct starpu_ndim_interface *)(interface))->id) == STARPU_NDIM_INTERFACE_ID, "Error. The given data is not a ndim.")
-#define STARPU_NDIM_GET_PTR(interface)	        ({ STARPU_NDIM_CHECK(interface); (((struct starpu_ndim_interface *)(interface))->ptr) ; })
-#define STARPU_NDIM_GET_DEV_HANDLE(interface)	({ STARPU_NDIM_CHECK(interface); (((struct starpu_ndim_interface *)(interface))->dev_handle) ; })
-#define STARPU_NDIM_GET_OFFSET(interface)	({ STARPU_NDIM_CHECK(interface); (((struct starpu_ndim_interface *)(interface))->offset) ; })
-#define STARPU_NDIM_GET_NN(interface)	        ({ STARPU_NDIM_CHECK(interface); (((struct starpu_ndim_interface *)(interface))->nn) ; })
-#define STARPU_NDIM_GET_LDN(interface)	        ({ STARPU_NDIM_CHECK(interface); (((struct starpu_ndim_interface *)(interface))->ldn) ; })
-#define STARPU_NDIM_GET_NDIM(interface)	({ STARPU_NDIM_CHECK(interface); (((struct starpu_ndim_interface *)(interface))->ndim) ; })
-#define STARPU_NDIM_GET_ELEMSIZE(interface)	({ STARPU_NDIM_CHECK(interface); (((struct starpu_ndim_interface *)(interface))->elemsize) ; })
+#define STARPU_NDIM_CHECK(interface)   STARPU_ASSERT_MSG((((struct starpu_ndim_interface *)(interface))->id) == STARPU_NDIM_INTERFACE_ID, "Error. The given data is not a ndim.")
+#define STARPU_NDIM_GET_PTR(interface) (                              \
+	{                                                             \
+		STARPU_NDIM_CHECK(interface);                         \
+		(((struct starpu_ndim_interface *)(interface))->ptr); \
+	})
+#define STARPU_NDIM_GET_DEV_HANDLE(interface) (                              \
+	{                                                                    \
+		STARPU_NDIM_CHECK(interface);                                \
+		(((struct starpu_ndim_interface *)(interface))->dev_handle); \
+	})
+#define STARPU_NDIM_GET_OFFSET(interface) (                              \
+	{                                                                \
+		STARPU_NDIM_CHECK(interface);                            \
+		(((struct starpu_ndim_interface *)(interface))->offset); \
+	})
+#define STARPU_NDIM_GET_NN(interface) (                              \
+	{                                                            \
+		STARPU_NDIM_CHECK(interface);                        \
+		(((struct starpu_ndim_interface *)(interface))->nn); \
+	})
+#define STARPU_NDIM_GET_LDN(interface) (                              \
+	{                                                             \
+		STARPU_NDIM_CHECK(interface);                         \
+		(((struct starpu_ndim_interface *)(interface))->ldn); \
+	})
+#define STARPU_NDIM_GET_NDIM(interface) (                              \
+	{                                                              \
+		STARPU_NDIM_CHECK(interface);                          \
+		(((struct starpu_ndim_interface *)(interface))->ndim); \
+	})
+#define STARPU_NDIM_GET_ELEMSIZE(interface) (                              \
+	{                                                                  \
+		STARPU_NDIM_CHECK(interface);                              \
+		(((struct starpu_ndim_interface *)(interface))->elemsize); \
+	})
 #else
 /**
    Return a pointer to the ndim array designated by \p interface.
  */
-#define STARPU_NDIM_GET_PTR(interface)	        (((struct starpu_ndim_interface *)(interface))->ptr)
+#define STARPU_NDIM_GET_PTR(interface)	      (((struct starpu_ndim_interface *)(interface))->ptr)
 /**
    Return a device handle for the ndim array designated by \p interface,
    to be used on OpenCL. The offset returned by
    ::STARPU_NDIM_GET_OFFSET has to be used in
    addition to this.
  */
-#define STARPU_NDIM_GET_DEV_HANDLE(interface)	(((struct starpu_ndim_interface *)(interface))->dev_handle)
+#define STARPU_NDIM_GET_DEV_HANDLE(interface) (((struct starpu_ndim_interface *)(interface))->dev_handle)
 /**
    Return the offset in the ndim designated by \p interface, to be
    used with the device handle.
  */
-#define STARPU_NDIM_GET_OFFSET(interface)	(((struct starpu_ndim_interface *)(interface))->offset)
+#define STARPU_NDIM_GET_OFFSET(interface)     (((struct starpu_ndim_interface *)(interface))->offset)
 /**
    Return the number of elements on each dimension of the ndim array
    designated by \p interface.
  */
-#define STARPU_NDIM_GET_NN(interface)	        (((struct starpu_ndim_interface *)(interface))->nn)
+#define STARPU_NDIM_GET_NN(interface)	      (((struct starpu_ndim_interface *)(interface))->nn)
 /**
    Return the number of elements between each two units on each dimension of the ndim array
    designated by \p interface. May be equal to nx when there is no padding.
  */
-#define STARPU_NDIM_GET_LDN(interface)	        (((struct starpu_ndim_interface *)(interface))->ldn)
+#define STARPU_NDIM_GET_LDN(interface)	      (((struct starpu_ndim_interface *)(interface))->ldn)
 /**
    Return the dimension size of the ndim array designated by
    \p interface.
  */
-#define STARPU_NDIM_GET_NDIM(interface)	(((struct starpu_ndim_interface *)(interface))->ndim)
+#define STARPU_NDIM_GET_NDIM(interface)	      (((struct starpu_ndim_interface *)(interface))->ndim)
 /**
    Return the size of the elements of the ndim array designated by
    \p interface.
  */
-#define STARPU_NDIM_GET_ELEMSIZE(interface)	(((struct starpu_ndim_interface *)(interface))->elemsize)
+#define STARPU_NDIM_GET_ELEMSIZE(interface)   (((struct starpu_ndim_interface *)(interface))->elemsize)
 #endif
 
 /** @} */
-
 
 /**
    @name Vector Data Interface
@@ -1710,13 +1854,13 @@ struct starpu_vector_interface
 {
 	enum starpu_data_interface_id id; /**< Identifier of the interface */
 
-	uintptr_t ptr;                    /**< local pointer of the vector */
-	uintptr_t dev_handle;             /**< device handle of the vector. */
-	size_t offset;                    /**< offset in the vector */
-	uint32_t nx;                      /**< number of elements on the x-axis of the vector */
-	size_t elemsize;                  /**< size of the elements of the vector */
-	uint32_t slice_base;              /**< vector slice base, used by the StarPU OpenMP runtime support */
-	size_t allocsize;                 /**< size actually currently allocated */
+	uintptr_t ptr;	      /**< local pointer of the vector */
+	uintptr_t dev_handle; /**< device handle of the vector. */
+	size_t offset;	      /**< offset in the vector */
+	uint32_t nx;	      /**< number of elements on the x-axis of the vector */
+	size_t elemsize;      /**< size of the elements of the vector */
+	uint32_t slice_base;  /**< vector slice base, used by the StarPU OpenMP runtime support */
+	size_t allocsize;     /**< size actually currently allocated */
 };
 
 /**
@@ -1765,14 +1909,42 @@ size_t starpu_vector_get_allocsize(starpu_data_handle_t handle);
 uintptr_t starpu_vector_get_local_ptr(starpu_data_handle_t handle);
 
 #if defined(STARPU_HAVE_STATEMENT_EXPRESSIONS) && defined(STARPU_DEBUG)
-#define STARPU_VECTOR_CHECK(interface)          STARPU_ASSERT_MSG((((struct starpu_vector_interface *)(interface))->id) == STARPU_VECTOR_INTERFACE_ID, "Error. The given data is not a vector.")
-#define STARPU_VECTOR_GET_PTR(interface)	({ STARPU_VECTOR_CHECK(interface); (((struct starpu_vector_interface *)(interface))->ptr); })
-#define STARPU_VECTOR_GET_DEV_HANDLE(interface)	({ STARPU_VECTOR_CHECK(interface); (((struct starpu_vector_interface *)(interface))->dev_handle); })
-#define STARPU_VECTOR_GET_OFFSET(interface)	({ STARPU_VECTOR_CHECK(interface); (((struct starpu_vector_interface *)(interface))->offset); })
-#define STARPU_VECTOR_GET_NX(interface)	        ({ STARPU_VECTOR_CHECK(interface); (((struct starpu_vector_interface *)(interface))->nx); })
-#define STARPU_VECTOR_GET_ELEMSIZE(interface)	({ STARPU_VECTOR_CHECK(interface); (((struct starpu_vector_interface *)(interface))->elemsize); })
-#define STARPU_VECTOR_GET_ALLOCSIZE(interface)	({ STARPU_VECTOR_CHECK(interface); (((struct starpu_vector_interface *)(interface))->allocsize); })
-#define STARPU_VECTOR_GET_SLICE_BASE(interface)	({ STARPU_VECTOR_CHECK(interface); (((struct starpu_vector_interface *)(interface))->slice_base); })
+#define STARPU_VECTOR_CHECK(interface)	 STARPU_ASSERT_MSG((((struct starpu_vector_interface *)(interface))->id) == STARPU_VECTOR_INTERFACE_ID, "Error. The given data is not a vector.")
+#define STARPU_VECTOR_GET_PTR(interface) (                              \
+	{                                                               \
+		STARPU_VECTOR_CHECK(interface);                         \
+		(((struct starpu_vector_interface *)(interface))->ptr); \
+	})
+#define STARPU_VECTOR_GET_DEV_HANDLE(interface) (                              \
+	{                                                                      \
+		STARPU_VECTOR_CHECK(interface);                                \
+		(((struct starpu_vector_interface *)(interface))->dev_handle); \
+	})
+#define STARPU_VECTOR_GET_OFFSET(interface) (                              \
+	{                                                                  \
+		STARPU_VECTOR_CHECK(interface);                            \
+		(((struct starpu_vector_interface *)(interface))->offset); \
+	})
+#define STARPU_VECTOR_GET_NX(interface) (                              \
+	{                                                              \
+		STARPU_VECTOR_CHECK(interface);                        \
+		(((struct starpu_vector_interface *)(interface))->nx); \
+	})
+#define STARPU_VECTOR_GET_ELEMSIZE(interface) (                              \
+	{                                                                    \
+		STARPU_VECTOR_CHECK(interface);                              \
+		(((struct starpu_vector_interface *)(interface))->elemsize); \
+	})
+#define STARPU_VECTOR_GET_ALLOCSIZE(interface) (                              \
+	{                                                                     \
+		STARPU_VECTOR_CHECK(interface);                               \
+		(((struct starpu_vector_interface *)(interface))->allocsize); \
+	})
+#define STARPU_VECTOR_GET_SLICE_BASE(interface) (                              \
+	{                                                                      \
+		STARPU_VECTOR_CHECK(interface);                                \
+		(((struct starpu_vector_interface *)(interface))->slice_base); \
+	})
 #else
 /**
    Return a pointer to the array designated by \p interface, valid on
@@ -1785,7 +1957,7 @@ uintptr_t starpu_vector_get_local_ptr(starpu_data_handle_t handle);
    to be used with OpenCL. the offset returned by ::STARPU_VECTOR_GET_OFFSET has to be used in
    addition to this.
  */
-#define STARPU_VECTOR_GET_DEV_HANDLE(interface)	(((struct starpu_vector_interface *)(interface))->dev_handle)
+#define STARPU_VECTOR_GET_DEV_HANDLE(interface) (((struct starpu_vector_interface *)(interface))->dev_handle)
 /**
    Return the offset in the array designated by \p interface, to be
    used with the device handle.
@@ -1795,7 +1967,7 @@ uintptr_t starpu_vector_get_local_ptr(starpu_data_handle_t handle);
    Return the number of elements registered into the array
    designated by \p interface.
  */
-#define STARPU_VECTOR_GET_NX(interface)	        (((struct starpu_vector_interface *)(interface))->nx)
+#define STARPU_VECTOR_GET_NX(interface)		(((struct starpu_vector_interface *)(interface))->nx)
 /**
    Return the size of each element of the array designated by
    \p interface.
@@ -1810,17 +1982,19 @@ uintptr_t starpu_vector_get_local_ptr(starpu_data_handle_t handle);
    Return the OpenMP slice base annotation of each element of the array designated by
    \p interface.
  */
-#define STARPU_VECTOR_GET_SLICE_BASE(interface)	(((struct starpu_vector_interface *)(interface))->slice_base)
+#define STARPU_VECTOR_GET_SLICE_BASE(interface) (((struct starpu_vector_interface *)(interface))->slice_base)
 #endif
 
 /**
    Set the number of elements registered into the array designated by \p
    interface.
  */
-#define STARPU_VECTOR_SET_NX(interface, newnx)	do { \
-	STARPU_VECTOR_CHECK(interface); \
-	(((struct starpu_vector_interface *)(interface))->nx) = (newnx); \
-} while(0)
+#define STARPU_VECTOR_SET_NX(interface, newnx)                                   \
+	do {                                                                     \
+		STARPU_VECTOR_CHECK(interface);                                  \
+		(((struct starpu_vector_interface *)(interface))->nx) = (newnx); \
+	}                                                                        \
+	while (0)
 
 /** @} */
 
@@ -1839,10 +2013,10 @@ struct starpu_variable_interface
 {
 	enum starpu_data_interface_id id; /**< Identifier of the interface */
 
-	uintptr_t ptr;                    /**< local pointer of the variable */
-	uintptr_t dev_handle;             /**< device handle of the variable. */
-	size_t offset;                    /**< offset in the variable */
-	size_t elemsize;                  /**< size of the variable */
+	uintptr_t ptr;	      /**< local pointer of the variable */
+	uintptr_t dev_handle; /**< device handle of the variable. */
+	size_t offset;	      /**< offset in the variable */
+	size_t elemsize;      /**< size of the variable */
 };
 
 /**
@@ -1876,11 +2050,27 @@ size_t starpu_variable_get_elemsize(starpu_data_handle_t handle);
 uintptr_t starpu_variable_get_local_ptr(starpu_data_handle_t handle);
 
 #if defined(STARPU_HAVE_STATEMENT_EXPRESSIONS) && defined(STARPU_DEBUG)
-#define STARPU_VARIABLE_CHECK(interface)          STARPU_ASSERT_MSG((((struct starpu_variable_interface *)(interface))->id) == STARPU_VARIABLE_INTERFACE_ID, "Error. The given data is not a variable.")
-#define STARPU_VARIABLE_GET_PTR(interface)	  ({ STARPU_VARIABLE_CHECK(interface); (((struct starpu_variable_interface *)(interface))->ptr) ; })
-#define STARPU_VARIABLE_GET_OFFSET(interface)	  ({ STARPU_VARIABLE_CHECK(interface); (((struct starpu_variable_interface *)(interface))->offset) ; })
-#define STARPU_VARIABLE_GET_ELEMSIZE(interface)	  ({ STARPU_VARIABLE_CHECK(interface); (((struct starpu_variable_interface *)(interface))->elemsize) ; })
-#define STARPU_VARIABLE_GET_DEV_HANDLE(interface) ({ STARPU_VARIABLE_CHECK(interface); (((struct starpu_variable_interface *)(interface))->ptr) ; })
+#define STARPU_VARIABLE_CHECK(interface)   STARPU_ASSERT_MSG((((struct starpu_variable_interface *)(interface))->id) == STARPU_VARIABLE_INTERFACE_ID, "Error. The given data is not a variable.")
+#define STARPU_VARIABLE_GET_PTR(interface) (                              \
+	{                                                                 \
+		STARPU_VARIABLE_CHECK(interface);                         \
+		(((struct starpu_variable_interface *)(interface))->ptr); \
+	})
+#define STARPU_VARIABLE_GET_OFFSET(interface) (                              \
+	{                                                                    \
+		STARPU_VARIABLE_CHECK(interface);                            \
+		(((struct starpu_variable_interface *)(interface))->offset); \
+	})
+#define STARPU_VARIABLE_GET_ELEMSIZE(interface) (                              \
+	{                                                                      \
+		STARPU_VARIABLE_CHECK(interface);                              \
+		(((struct starpu_variable_interface *)(interface))->elemsize); \
+	})
+#define STARPU_VARIABLE_GET_DEV_HANDLE(interface) (                       \
+	{                                                                 \
+		STARPU_VARIABLE_CHECK(interface);                         \
+		(((struct starpu_variable_interface *)(interface))->ptr); \
+	})
 #else
 /**
    Return a pointer to the variable designated by \p interface.
@@ -1940,17 +2130,17 @@ struct starpu_csr_interface
 {
 	enum starpu_data_interface_id id; /**< Identifier of the interface */
 
-	uint32_t nnz;                     /**< number of non-zero entries */
-	uint32_t nrow;                    /**< number of rows */
-	uintptr_t nzval;                  /**< non-zero values */
-	uint32_t *colind;                 /**< position of non-zero entries on the row */
-	uint32_t *rowptr;                 /**< index (in nzval) of the first entry of the row */
-	uint32_t *ram_colind;             /**< position of non-zero entries on the row (stored in RAM) */
-	uint32_t *ram_rowptr;             /**< index (in nzval) of the first entry of the row (stored in RAM) */
+	uint32_t nnz;	      /**< number of non-zero entries */
+	uint32_t nrow;	      /**< number of rows */
+	uintptr_t nzval;      /**< non-zero values */
+	uint32_t *colind;     /**< position of non-zero entries on the row */
+	uint32_t *rowptr;     /**< index (in nzval) of the first entry of the row */
+	uint32_t *ram_colind; /**< position of non-zero entries on the row (stored in RAM) */
+	uint32_t *ram_rowptr; /**< index (in nzval) of the first entry of the row (stored in RAM) */
 
-	uint32_t firstentry;              /**< k for k-based indexing (0 or 1 usually). also useful when partitionning the matrix. */
+	uint32_t firstentry; /**< k for k-based indexing (0 or 1 usually). also useful when partitionning the matrix. */
 
-	size_t elemsize;                  /**< size of the elements of the matrix */
+	size_t elemsize; /**< size of the elements of the matrix */
 };
 
 /**
@@ -2004,33 +2194,33 @@ size_t starpu_csr_get_elemsize(starpu_data_handle_t handle);
    Return the number of non-zero values in the matrix designated
    by \p interface.
  */
-#define STARPU_CSR_GET_NNZ(interface)	(((struct starpu_csr_interface *)(interface))->nnz)
+#define STARPU_CSR_GET_NNZ(interface) (((struct starpu_csr_interface *)(interface))->nnz)
 /**
    Return the size of the row pointer array of the matrix
    designated by \p interface.
  */
-#define STARPU_CSR_GET_NROW(interface)	(((struct starpu_csr_interface *)(interface))->nrow)
+#define STARPU_CSR_GET_NROW(interface) (((struct starpu_csr_interface *)(interface))->nrow)
 /**
    Return a pointer to the non-zero values of the matrix
    designated by \p interface.
  */
-#define STARPU_CSR_GET_NZVAL(interface)	(((struct starpu_csr_interface *)(interface))->nzval)
+#define STARPU_CSR_GET_NZVAL(interface) (((struct starpu_csr_interface *)(interface))->nzval)
 /**
    Return a device handle for the array of non-zero values in the
    matrix designated by \p interface. The offset returned by ::STARPU_CSR_GET_OFFSET
    has to used in addition to this.
  */
-#define STARPU_CSR_GET_NZVAL_DEV_HANDLE(interface)  (((struct starpu_csr_interface *)(interface))->nnz)
+#define STARPU_CSR_GET_NZVAL_DEV_HANDLE(interface) (((struct starpu_csr_interface *)(interface))->nnz)
 /**
    Return a pointer to the column index of the matrix designated
    by \p interface.
  */
-#define STARPU_CSR_GET_COLIND(interface)	    (((struct starpu_csr_interface *)(interface))->colind)
+#define STARPU_CSR_GET_COLIND(interface) (((struct starpu_csr_interface *)(interface))->colind)
 /**
    Return a RAM pointer to the column index of the matrix designated
    by \p interface.
  */
-#define STARPU_CSR_GET_RAM_COLIND(interface)	    (((struct starpu_csr_interface *)(interface))->ram_colind)
+#define STARPU_CSR_GET_RAM_COLIND(interface) (((struct starpu_csr_interface *)(interface))->ram_colind)
 /**
    Return a device handle for the column index of the matrix
    designated by \p interface. The offset returned by ::STARPU_CSR_GET_OFFSET has to be used in
@@ -2041,12 +2231,12 @@ size_t starpu_csr_get_elemsize(starpu_data_handle_t handle);
    Return a pointer to the row pointer array of the matrix
    designated by \p interface.
  */
-#define STARPU_CSR_GET_ROWPTR(interface)	    (((struct starpu_csr_interface *)(interface))->rowptr)
+#define STARPU_CSR_GET_ROWPTR(interface) (((struct starpu_csr_interface *)(interface))->rowptr)
 /**
    Return a RAM pointer to the row pointer array of the matrix
    designated by \p interface.
  */
-#define STARPU_CSR_GET_RAM_ROWPTR(interface)	    (((struct starpu_csr_interface *)(interface))->ram_rowptr)
+#define STARPU_CSR_GET_RAM_ROWPTR(interface) (((struct starpu_csr_interface *)(interface))->ram_rowptr)
 /**
    Return a device handle for the row pointer array of the matrix
    designated by \p interface. The offset returned by ::STARPU_CSR_GET_OFFSET has to be used in
@@ -2062,12 +2252,12 @@ size_t starpu_csr_get_elemsize(starpu_data_handle_t handle);
    Return the index at which all arrays (the column indexes, the
    row pointers...) of the \p interface start.
  */
-#define STARPU_CSR_GET_FIRSTENTRY(interface)	    (((struct starpu_csr_interface *)(interface))->firstentry)
+#define STARPU_CSR_GET_FIRSTENTRY(interface) (((struct starpu_csr_interface *)(interface))->firstentry)
 /**
    Return the size of the elements registered into the matrix
    designated by \p interface.
  */
-#define STARPU_CSR_GET_ELEMSIZE(interface)	    (((struct starpu_csr_interface *)(interface))->elemsize)
+#define STARPU_CSR_GET_ELEMSIZE(interface) (((struct starpu_csr_interface *)(interface))->elemsize)
 
 /** @} */
 
@@ -2091,12 +2281,12 @@ struct starpu_bcsr_interface
 {
 	enum starpu_data_interface_id id; /**< Identifier of the interface */
 
-	uint32_t nnz;                     /**< number of non-zero BLOCKS */
-	uint32_t nrow;                    /**< number of rows (in terms of BLOCKS) */
+	uint32_t nnz;  /**< number of non-zero BLOCKS */
+	uint32_t nrow; /**< number of rows (in terms of BLOCKS) */
 
-	uintptr_t nzval;                  /**< non-zero values: nnz blocks of r*c elements */
-	uint32_t *colind;                 /**< array of nnz elements, colind[i] is the block-column index for block i in nzval */
-	uint32_t *rowptr;                 /**< array of nrow+1
+	uintptr_t nzval;      /**< non-zero values: nnz blocks of r*c elements */
+	uint32_t *colind;     /**< array of nnz elements, colind[i] is the block-column index for block i in nzval */
+	uint32_t *rowptr;     /**< array of nrow+1
 					   * elements, rowptr[i] is
 					   * the block-index (in
 					   * nzval) of the first block
@@ -2106,15 +2296,15 @@ struct starpu_bcsr_interface
 					   * allows an easier access
 					   * of the matrix's elements
 					   * for the kernels. */
-	uint32_t *ram_colind;             /**< array of nnz elements (stored in RAM) */
-	uint32_t *ram_rowptr;             /**< array of nrow+1 elements (stored in RAM) */
+	uint32_t *ram_colind; /**< array of nnz elements (stored in RAM) */
+	uint32_t *ram_rowptr; /**< array of nrow+1 elements (stored in RAM) */
 
-	uint32_t firstentry;              /**< k for k-based indexing (0 or 1 usually). Also useful when partitionning the matrix. */
+	uint32_t firstentry; /**< k for k-based indexing (0 or 1 usually). Also useful when partitionning the matrix. */
 
-	uint32_t r;                       /**< height of the blocks */
-	uint32_t c;                       /**< width of the blocks */
+	uint32_t r; /**< height of the blocks */
+	uint32_t c; /**< width of the blocks */
 
-	size_t elemsize;                  /**< size of the elements of the matrix */
+	size_t elemsize; /**< size of the elements of the matrix */
 };
 
 /**
@@ -2241,17 +2431,17 @@ size_t starpu_bcsr_get_elemsize(starpu_data_handle_t handle);
    Return the number of non-zero values in the matrix designated
    by \p interface.
  */
-#define STARPU_BCSR_GET_NNZ(interface)        (((struct starpu_bcsr_interface *)(interface))->nnz)
+#define STARPU_BCSR_GET_NNZ(interface) (((struct starpu_bcsr_interface *)(interface))->nnz)
 /**
    Return the number of block rows in the matrix designated
    by \p interface.
  */
-#define STARPU_BCSR_GET_NROW(interface)        (((struct starpu_bcsr_interface *)(interface))->nrow)
+#define STARPU_BCSR_GET_NROW(interface) (((struct starpu_bcsr_interface *)(interface))->nrow)
 /**
    Return a pointer to the non-zero values of the matrix
    designated by \p interface.
  */
-#define STARPU_BCSR_GET_NZVAL(interface)      (((struct starpu_bcsr_interface *)(interface))->nzval)
+#define STARPU_BCSR_GET_NZVAL(interface) (((struct starpu_bcsr_interface *)(interface))->nzval)
 /**
    Return a device handle for the array of non-zero values in the
    matrix designated by \p interface. The offset returned by ::STARPU_BCSR_GET_OFFSET has to be
@@ -2262,7 +2452,7 @@ size_t starpu_bcsr_get_elemsize(starpu_data_handle_t handle);
    Return a pointer to the column index of the matrix designated
    by \p interface.
  */
-#define STARPU_BCSR_GET_COLIND(interface)     (((struct starpu_bcsr_interface *)(interface))->colind)
+#define STARPU_BCSR_GET_COLIND(interface) (((struct starpu_bcsr_interface *)(interface))->colind)
 /**
    Return a RAM pointer to the column index of the matrix designated
    by \p interface.
@@ -2278,7 +2468,7 @@ size_t starpu_bcsr_get_elemsize(starpu_data_handle_t handle);
    Return a pointer to the row pointer array of the matrix
    designated by \p interface.
  */
-#define STARPU_BCSR_GET_ROWPTR(interface)     (((struct starpu_bcsr_interface *)(interface))->rowptr)
+#define STARPU_BCSR_GET_ROWPTR(interface) (((struct starpu_bcsr_interface *)(interface))->rowptr)
 /**
    Return a RAM pointer to the row pointer array of the matrix
    designated by \p interface.
@@ -2294,21 +2484,21 @@ size_t starpu_bcsr_get_elemsize(starpu_data_handle_t handle);
    Return the base of the indexing (0 or 1 usually) in the matrix designated
    by \p interface.
  */
-#define STARPU_BCSR_GET_FIRSTENTRY(interface)        (((struct starpu_bcsr_interface *)(interface))->firstentry)
+#define STARPU_BCSR_GET_FIRSTENTRY(interface) (((struct starpu_bcsr_interface *)(interface))->firstentry)
 /**
    Return the height of blocks in the matrix designated
    by \p interface.
  */
-#define STARPU_BCSR_GET_R(interface)        (((struct starpu_bcsr_interface *)(interface))->r)
+#define STARPU_BCSR_GET_R(interface) (((struct starpu_bcsr_interface *)(interface))->r)
 /**
    Return the width of blocks in the matrix designated
    by \p interface.
  */
-#define STARPU_BCSR_GET_C(interface)        (((struct starpu_bcsr_interface *)(interface))->c)
+#define STARPU_BCSR_GET_C(interface) (((struct starpu_bcsr_interface *)(interface))->c)
 /**
    Return the size of elements in the matrix designated by \p interface.
  */
-#define STARPU_BCSR_GET_ELEMSIZE(interface)        (((struct starpu_bcsr_interface *)(interface))->elemsize)
+#define STARPU_BCSR_GET_ELEMSIZE(interface) (((struct starpu_bcsr_interface *)(interface))->elemsize)
 /**
    Return the offset in the arrays (coling, rowptr, nzval) of the
    matrix designated by \p interface, to be used with the device handles.
@@ -2327,13 +2517,13 @@ size_t starpu_bcsr_get_elemsize(starpu_data_handle_t handle);
  */
 struct starpu_multiformat_data_interface_ops
 {
-	size_t cpu_elemsize;                      /**< size of each element on CPUs */
-	size_t opencl_elemsize;                   /**< size of each element on OpenCL devices */
-	struct starpu_codelet *cpu_to_opencl_cl;  /**< pointer to a codelet which converts from CPU to OpenCL */
-	struct starpu_codelet *opencl_to_cpu_cl;  /**< pointer to a codelet which converts from OpenCL to CPU */
-	size_t cuda_elemsize;                     /**< size of each element on CUDA devices */
-	struct starpu_codelet *cpu_to_cuda_cl;    /**< pointer to a codelet which converts from CPU to CUDA */
-	struct starpu_codelet *cuda_to_cpu_cl;    /**< pointer to a codelet which converts from CUDA to CPU */
+	size_t cpu_elemsize;			 /**< size of each element on CPUs */
+	size_t opencl_elemsize;			 /**< size of each element on OpenCL devices */
+	struct starpu_codelet *cpu_to_opencl_cl; /**< pointer to a codelet which converts from CPU to OpenCL */
+	struct starpu_codelet *opencl_to_cpu_cl; /**< pointer to a codelet which converts from OpenCL to CPU */
+	size_t cuda_elemsize;			 /**< size of each element on CUDA devices */
+	struct starpu_codelet *cpu_to_cuda_cl;	 /**< pointer to a codelet which converts from CPU to CUDA */
+	struct starpu_codelet *cuda_to_cpu_cl;	 /**< pointer to a codelet which converts from CUDA to CPU */
 };
 
 struct starpu_multiformat_interface
@@ -2342,7 +2532,7 @@ struct starpu_multiformat_interface
 
 	void *cpu_ptr;
 	void *cuda_ptr;
-        void *hip_ptr;
+	void *hip_ptr;
 	void *opencl_ptr;
 	uint32_t nx;
 	struct starpu_multiformat_data_interface_ops *ops;
@@ -2361,7 +2551,7 @@ void starpu_multiformat_data_register(starpu_data_handle_t *handle, int home_nod
 /**
    Return the local pointer to the data with CPU format.
  */
-#define STARPU_MULTIFORMAT_GET_CPU_PTR(interface)  (((struct starpu_multiformat_interface *)(interface))->cpu_ptr)
+#define STARPU_MULTIFORMAT_GET_CPU_PTR(interface) (((struct starpu_multiformat_interface *)(interface))->cpu_ptr)
 /**
    Return the local pointer to the data with CUDA format.
  */
@@ -2378,7 +2568,7 @@ void starpu_multiformat_data_register(starpu_data_handle_t *handle, int home_nod
 /**
    Return the number of elements in the data.
  */
-#define STARPU_MULTIFORMAT_GET_NX(interface)  (((struct starpu_multiformat_interface *)(interface))->nx)
+#define STARPU_MULTIFORMAT_GET_NX(interface) (((struct starpu_multiformat_interface *)(interface))->nx)
 
 /** @} */
 

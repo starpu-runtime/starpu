@@ -25,8 +25,7 @@
 #endif
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -37,17 +36,17 @@ extern "C"
 /**
    Return the min of the two parameters.
 */
-#define STARPU_MIN(a,b)	((a)<(b)?(a):(b))
+#define STARPU_MIN(a, b) ((a) < (b) ? (a) : (b))
 /**
    Return the max of the two parameters.
 */
-#define STARPU_MAX(a,b)	((a)<(b)?(b):(a))
+#define STARPU_MAX(a, b) ((a) < (b) ? (b) : (a))
 
 /**
    Define a value which can be used to mark pointers as invalid
    values.
 */
-#define STARPU_POISON_PTR	((void *)0xdeadbeef)
+#define STARPU_POISON_PTR ((void *)0xdeadbeef)
 
 extern int _starpu_silent;
 
@@ -86,7 +85,7 @@ static __starpu_inline int starpu_get_env_number(const char *str)
 		val = strtol(strval, &pcheck, 10);
 		if (*pcheck)
 		{
-			fprintf(stderr,"The %s environment variable must contain an integer\n", str);
+			fprintf(stderr, "The %s environment variable must contain an integer\n", str);
 			STARPU_ABORT();
 		}
 
@@ -124,7 +123,7 @@ static __starpu_inline float starpu_get_env_float_default(const char *str, float
 		val = strtof(strval, &pcheck);
 		if (*pcheck)
 		{
-			fprintf(stderr,"The %s environment variable must contain a float\n", str);
+			fprintf(stderr, "The %s environment variable must contain a float\n", str);
 			STARPU_ABORT();
 		}
 
@@ -167,7 +166,7 @@ void starpu_execute_on_each_worker_ex(void (*func)(void *), void *arg, uint32_t 
    function is synchronous, but the different workers may execute the
    function in parallel.
 */
-void starpu_execute_on_specific_workers(void (*func)(void*), void *arg, unsigned num_workers, unsigned *workers, const char *name);
+void starpu_execute_on_specific_workers(void (*func)(void *), void *arg, unsigned num_workers, unsigned *workers, const char *name);
 
 /**
    Return the current date in micro-seconds.
@@ -184,14 +183,14 @@ double starpu_timing_now(void);
    the handle has been copied, and it is given the pointer \p
    callback_arg as argument.
 */
-int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle, int asynchronous, void (*callback_func)(void*), void *callback_arg);
+int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle, int asynchronous, void (*callback_func)(void *), void *callback_arg);
 
 /**
    Like starpu_data_cpy(), copy the content of \p src_handle into \p dst_handle,
    but additionally take a \p priority parameter to sort it among the whole task
    graph.
 */
-int starpu_data_cpy_priority(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle, int asynchronous, void (*callback_func)(void*), void *callback_arg, int priority);
+int starpu_data_cpy_priority(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle, int asynchronous, void (*callback_func)(void *), void *callback_arg, int priority);
 
 /**
    Create a copy of \p src_handle, and return a new handle in \p dst_handle,
@@ -226,7 +225,7 @@ int starpu_get_pu_os_index(unsigned logical_index);
    Return a bitmap representing logical indexes of NUMA nodes where the buffer
    targeted by \p ptr is allocated. An error is notified by a negative result.
 */
-long starpu_get_memory_location_bitmap(void* ptr, size_t size);
+long starpu_get_memory_location_bitmap(void *ptr, size_t size);
 
 #ifdef STARPU_HAVE_HWLOC
 /**

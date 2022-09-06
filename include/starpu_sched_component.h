@@ -26,8 +26,7 @@
 #endif
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -40,10 +39,8 @@ extern "C"
 */
 enum starpu_sched_component_properties
 {
-	/** indicate that all workers have the same starpu_worker_archtype */
-	STARPU_SCHED_COMPONENT_HOMOGENEOUS = (1<<0),
-	/** indicate that all workers have the same memory component */
-	STARPU_SCHED_COMPONENT_SINGLE_MEMORY_NODE = (1<<1)
+	STARPU_SCHED_COMPONENT_HOMOGENEOUS	  = (1 << 0), /**< indicate that all workers have the same starpu_worker_archtype */
+	STARPU_SCHED_COMPONENT_SINGLE_MEMORY_NODE = (1 << 1)  /**< indicate that all workers have the same memory component */
 };
 
 /**
@@ -143,7 +140,7 @@ struct starpu_sched_component
 	*/
 	void (*do_schedule)(struct starpu_sched_component *component);
 
-	int (*notify)(struct starpu_sched_component* component, int message_ID, void* arg);
+	int (*notify)(struct starpu_sched_component *component, int message_ID, void *arg);
 
 	/**
 	   heuristic to compute load of scheduler module. Basically the number of tasks divided by the sum
@@ -252,9 +249,9 @@ int starpu_sched_component_push_task(struct starpu_sched_component *from, struct
 */
 struct starpu_task *starpu_sched_component_pull_task(struct starpu_sched_component *from, struct starpu_sched_component *to);
 
-struct starpu_task* starpu_sched_component_pump_to(struct starpu_sched_component *component, struct starpu_sched_component *to, int* success);
-struct starpu_task* starpu_sched_component_pump_downstream(struct starpu_sched_component *component, int* success);
-int starpu_sched_component_send_can_push_to_parents(struct starpu_sched_component * component);
+struct starpu_task *starpu_sched_component_pump_to(struct starpu_sched_component *component, struct starpu_sched_component *to, int *success);
+struct starpu_task *starpu_sched_component_pump_downstream(struct starpu_sched_component *component, int *success);
+int starpu_sched_component_send_can_push_to_parents(struct starpu_sched_component *component);
 /**
    compatibility with starpu_sched_policy interface
 */
@@ -281,7 +278,7 @@ void starpu_sched_component_connect(struct starpu_sched_component *parent, struc
    @{
 */
 
-typedef struct starpu_sched_component * (*starpu_sched_component_create_t)(struct starpu_sched_tree *tree, void *data);
+typedef struct starpu_sched_component *(*starpu_sched_component_create_t)(struct starpu_sched_tree *tree, void *data);
 
 /**
    allocate and initialize component field with defaults values :
@@ -306,7 +303,7 @@ void starpu_sched_component_destroy(struct starpu_sched_component *component);
 */
 void starpu_sched_component_destroy_rec(struct starpu_sched_component *component);
 
-void starpu_sched_component_add_child(struct starpu_sched_component* component, struct starpu_sched_component * child);
+void starpu_sched_component_add_child(struct starpu_sched_component *component, struct starpu_sched_component *child);
 
 /**
    return true iff \p component can execute \p task, this function take into account the workers available in the scheduling context
@@ -388,33 +385,33 @@ void starpu_sched_component_worker_post_exec_hook(struct starpu_task *task, unsi
 /**
    default function for the pull component method, just call pull of parents until one of them returns a task
 */
-struct starpu_task * starpu_sched_component_parents_pull_task(struct starpu_sched_component * component, struct starpu_sched_component * to);
+struct starpu_task *starpu_sched_component_parents_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to);
 
 /**
    default function for the can_push component method, just call can_push of parents until one of them returns non-zero
 */
-int starpu_sched_component_can_push(struct starpu_sched_component * component, struct starpu_sched_component * to);
+int starpu_sched_component_can_push(struct starpu_sched_component *component, struct starpu_sched_component *to);
 
 /**
 default function for the can_pull component method, just call can_pull of children until one of them returns non-zero
 */
-int starpu_sched_component_can_pull(struct starpu_sched_component * component);
+int starpu_sched_component_can_pull(struct starpu_sched_component *component);
 
 /**
    function for the can_pull component method, call can_pull of all children
 */
-int starpu_sched_component_can_pull_all(struct starpu_sched_component * component);
+int starpu_sched_component_can_pull_all(struct starpu_sched_component *component);
 
 /**
    default function for the estimated_load component method, just sum up the loads
    of the children of the component.
 */
-double starpu_sched_component_estimated_load(struct starpu_sched_component * component);
+double starpu_sched_component_estimated_load(struct starpu_sched_component *component);
 
 /**
    function that can be used for the estimated_end component method, compute the minimum completion time of the children.
 */
-double starpu_sched_component_estimated_end_min(struct starpu_sched_component * component);
+double starpu_sched_component_estimated_end_min(struct starpu_sched_component *component);
 
 /**
    function that can be used for the estimated_end component method, compute
@@ -423,12 +420,12 @@ double starpu_sched_component_estimated_end_min(struct starpu_sched_component * 
    used instead of starpu_sched_component_estimated_end_min when the component
    contains a queue of tasks, which thus needs to be added to the estimations.
 */
-double starpu_sched_component_estimated_end_min_add(struct starpu_sched_component * component, double exp_len);
+double starpu_sched_component_estimated_end_min_add(struct starpu_sched_component *component, double exp_len);
 
 /**
    default function for the estimated_end component method, compute the average completion time of the children.
 */
-double starpu_sched_component_estimated_end_average(struct starpu_sched_component * component);
+double starpu_sched_component_estimated_end_average(struct starpu_sched_component *component);
 
 struct starpu_sched_component_fifo_data
 {
@@ -583,7 +580,7 @@ struct starpu_sched_component_heteroprio_data
 	unsigned batch;
 };
 
-struct starpu_sched_component * starpu_sched_component_heteroprio_create(struct starpu_sched_tree *tree, struct starpu_sched_component_heteroprio_data * params) STARPU_ATTRIBUTE_MALLOC;
+struct starpu_sched_component *starpu_sched_component_heteroprio_create(struct starpu_sched_tree *tree, struct starpu_sched_component_heteroprio_data *params) STARPU_ATTRIBUTE_MALLOC;
 int starpu_sched_component_is_heteroprio(struct starpu_sched_component *component);
 
 /** @} */
@@ -624,7 +621,7 @@ int starpu_sched_component_is_perfmodel_select(struct starpu_sched_component *co
    @{
 */
 
-struct starpu_sched_component * starpu_sched_component_stage_create(struct starpu_sched_tree *tree, void *arg) STARPU_ATTRIBUTE_MALLOC;
+struct starpu_sched_component *starpu_sched_component_stage_create(struct starpu_sched_tree *tree, void *arg) STARPU_ATTRIBUTE_MALLOC;
 int starpu_sched_component_is_stage(struct starpu_sched_component *component);
 
 /** @} */
@@ -634,7 +631,7 @@ int starpu_sched_component_is_stage(struct starpu_sched_component *component);
    @{
 */
 
-struct starpu_sched_component * starpu_sched_component_userchoice_create(struct starpu_sched_tree *tree, void *arg) STARPU_ATTRIBUTE_MALLOC;
+struct starpu_sched_component *starpu_sched_component_userchoice_create(struct starpu_sched_tree *tree, void *arg) STARPU_ATTRIBUTE_MALLOC;
 int starpu_sched_component_is_userchoice(struct starpu_sched_component *component);
 
 /** @} */
@@ -714,7 +711,6 @@ struct starpu_sched_component_specs
 	int mix_heterogeneous_workers;
 };
 
-
 /**
    build a scheduler for \p sched_ctx_id according to \p s and the hwloc topology of the machine.
 */
@@ -726,89 +722,89 @@ struct starpu_sched_tree *starpu_sched_component_make_scheduler(unsigned sched_c
    @{
 */
 
-#define STARPU_SCHED_SIMPLE_DECIDE_MASK		(3<<0)
+#define STARPU_SCHED_SIMPLE_DECIDE_MASK (3 << 0)
 
 /**
    Request to create downstream queues per worker, i.e. the scheduling decision-making component will choose exactly which workers tasks should got to.
 */
-#define STARPU_SCHED_SIMPLE_DECIDE_WORKERS	(1<<0)
+#define STARPU_SCHED_SIMPLE_DECIDE_WORKERS (1 << 0)
 
 /**
    Request to create downstream queues per memory nodes, i.e. the scheduling decision-making component will choose which memory node tasks will go to.
 */
-#define STARPU_SCHED_SIMPLE_DECIDE_MEMNODES	(2<<0)
+#define STARPU_SCHED_SIMPLE_DECIDE_MEMNODES (2 << 0)
 
 /**
    Request to create downstream queues per computation arch, i.e. the scheduling decision-making component will choose whether tasks go to CPUs, or CUDA, or OpenCL, etc.
 */
-#define STARPU_SCHED_SIMPLE_DECIDE_ARCHS	(3<<0)
+#define STARPU_SCHED_SIMPLE_DECIDE_ARCHS (3 << 0)
 
 /**
    Request to create the scheduling decision-making component even if there is only one available choice. This is useful for instance when the decision-making component will store tasks itself (and not use STARPU_SCHED_SIMPLE_FIFO_ABOVE) to decide in which order tasks should be passed below.
 */
-#define STARPU_SCHED_SIMPLE_DECIDE_ALWAYS	(1<<3)
+#define STARPU_SCHED_SIMPLE_DECIDE_ALWAYS (1 << 3)
 
 /**
    Request to add a perfmodel selector above the scheduling decision-making component. That way, only tasks with a calibrated performance model will be given to the component, other tasks will go to an eager branch that will distributed tasks so that their performance models will get calibrated.
    In other words, this is needed when using a component which needs performance models for tasks.
 */
-#define STARPU_SCHED_SIMPLE_PERFMODEL		(1<<4)
+#define STARPU_SCHED_SIMPLE_PERFMODEL (1 << 4)
 
 /**
    Request that a component be added just above workers, that chooses the best task implementation.
 */
-#define STARPU_SCHED_SIMPLE_IMPL		(1<<5)
+#define STARPU_SCHED_SIMPLE_IMPL (1 << 5)
 
 /**
    Request to create a fifo above the scheduling decision-making component, otherwise tasks will be pushed directly to the component.
 
    This is useful to store tasks if there is a fifo below which limits the number of tasks to be scheduld in advance. The scheduling decision-making component can also store tasks itself, in which case this flag is not useful.
 */
-#define STARPU_SCHED_SIMPLE_FIFO_ABOVE		(1<<6)
+#define STARPU_SCHED_SIMPLE_FIFO_ABOVE (1 << 6)
 
 /**
    Request that the fifo above be sorted by priorities
 */
-#define STARPU_SCHED_SIMPLE_FIFO_ABOVE_PRIO	(1<<7)
+#define STARPU_SCHED_SIMPLE_FIFO_ABOVE_PRIO (1 << 7)
 
 /**
    Request to create fifos below the scheduling decision-making component, otherwise tasks will be pulled directly from workers.
 
    This is useful to be able to schedule a (tunable) small number of tasks in advance only.
 */
-#define STARPU_SCHED_SIMPLE_FIFOS_BELOW		(1<<8)
+#define STARPU_SCHED_SIMPLE_FIFOS_BELOW (1 << 8)
 
 /**
    Request that the fifos below be sorted by priorities
 */
-#define STARPU_SCHED_SIMPLE_FIFOS_BELOW_PRIO	(1<<9)
+#define STARPU_SCHED_SIMPLE_FIFOS_BELOW_PRIO (1 << 9)
 
 /**
    Request that the fifos below be pulled rather ready tasks
 */
-#define STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY	(1<<10)
+#define STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY (1 << 10)
 
 /**
    Request that work between workers using the same fifo below be distributed using a work stealing component.
 */
-#define STARPU_SCHED_SIMPLE_WS_BELOW		(1<<11)
+#define STARPU_SCHED_SIMPLE_WS_BELOW (1 << 11)
 
 /**
    Request to not only choose between simple workers, but also choose between combined workers.
 */
-#define STARPU_SCHED_SIMPLE_COMBINED_WORKERS	(1<<12)
+#define STARPU_SCHED_SIMPLE_COMBINED_WORKERS (1 << 12)
 
 /**
    Request that the fifos below keep track of expected duration, start and end time of theirs elements
 */
-#define STARPU_SCHED_SIMPLE_FIFOS_BELOW_EXP	(1<<13)
+#define STARPU_SCHED_SIMPLE_FIFOS_BELOW_EXP (1 << 13)
 
 /**
    Request to prepend a component before the decision component. This should be
    used alone and followed by the component creation function pointer and its
    data.
 */
-#define STARPU_SCHED_SIMPLE_PRE_DECISION	(1<<14)
+#define STARPU_SCHED_SIMPLE_PRE_DECISION (1 << 14)
 
 /**
    Create a simple modular scheduler tree around a scheduling decision-making
@@ -835,17 +831,17 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 
 /** @} */
 
-#define STARPU_COMPONENT_MUTEX_LOCK(m) \
-do \
-{ \
-	const int _relaxed_state = starpu_worker_get_relax_state(); \
-	if (!_relaxed_state) \
-		starpu_worker_relax_on(); \
-	STARPU_PTHREAD_MUTEX_LOCK((m)); \
-	if (!_relaxed_state) \
-		starpu_worker_relax_off(); \
-} \
-while(0)
+#define STARPU_COMPONENT_MUTEX_LOCK(m)                                      \
+	do                                                                  \
+	{                                                                   \
+		const int _relaxed_state = starpu_worker_get_relax_state(); \
+		if (!_relaxed_state)                                        \
+			starpu_worker_relax_on();                           \
+		STARPU_PTHREAD_MUTEX_LOCK((m));                             \
+		if (!_relaxed_state)                                        \
+			starpu_worker_relax_off();                          \
+	}                                                                   \
+	while (0)
 
 #define STARPU_COMPONENT_MUTEX_TRYLOCK(m) STARPU_PTHREAD_MUTEX_TRYLOCK((m))
 

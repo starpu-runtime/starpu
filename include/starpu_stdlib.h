@@ -20,8 +20,7 @@
 #include <starpu.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -33,7 +32,7 @@ extern "C"
    Value passed to the function starpu_malloc_flags() to indicate the
    memory allocation should be pinned.
 */
-#define STARPU_MALLOC_PINNED	((1ULL)<<1)
+#define STARPU_MALLOC_PINNED ((1ULL) << 1)
 
 /**
    Value passed to the function starpu_malloc_flags() to indicate the
@@ -46,7 +45,7 @@ extern "C"
    Memory allocated this way needs to be freed by calling the function
    starpu_free_flags() with the same flag.
 */
-#define STARPU_MALLOC_COUNT	((1ULL)<<2)
+#define STARPU_MALLOC_COUNT ((1ULL) << 2)
 
 /**
    Value passed to the function starpu_malloc_flags() along
@@ -62,21 +61,21 @@ extern "C"
    starpu_malloc_flags() will wait for other eviction mechanisms to
    release enough memory.
 */
-#define STARPU_MALLOC_NORECLAIM	((1ULL)<<3)
+#define STARPU_MALLOC_NORECLAIM ((1ULL) << 3)
 
 /**
    Value passed to starpu_memory_allocate() to specify that the
    function should wait for the requested amount of memory to become
    available, and atomically allocate it.
 */
-#define STARPU_MEMORY_WAIT	((1ULL)<<4)
+#define STARPU_MEMORY_WAIT ((1ULL) << 4)
 
 /**
    Value passed to starpu_memory_allocate() to specify that the
    function should allocate the amount of memory, even if that means
    overflowing the total size of the memory node.
 */
-#define STARPU_MEMORY_OVERFLOW	((1ULL)<<5)
+#define STARPU_MEMORY_OVERFLOW ((1ULL) << 5)
 
 /**
    Value passed to the function starpu_malloc_flags() to indicate that
@@ -87,21 +86,21 @@ extern "C"
    actually consumes memory, to which one can read from and write to
    normally, but get bogus values.
 */
-#define STARPU_MALLOC_SIMULATION_FOLDED	((1ULL)<<6)
+#define STARPU_MALLOC_SIMULATION_FOLDED ((1ULL) << 6)
 
 /**
    @deprecated
    Equivalent to starpu_malloc(). This macro is provided to avoid
    breaking old codes.
 */
-#define starpu_data_malloc_pinned_if_possible	starpu_malloc
+#define starpu_data_malloc_pinned_if_possible starpu_malloc
 
 /**
    @deprecated
    Equivalent to starpu_free(). This macro is provided to avoid
    breaking old codes.
 */
-#define starpu_data_free_pinned_if_possible	starpu_free
+#define starpu_data_free_pinned_if_possible starpu_free
 
 /**
    Set an alignment constraints for starpu_malloc() allocations. \p

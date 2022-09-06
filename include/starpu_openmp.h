@@ -35,7 +35,10 @@
    \sa starpu_omp_unset_lock()
    \sa starpu_omp_test_lock()
 */
-typedef struct { void *internal; /**< opaque pointer for internal use */ } starpu_omp_lock_t;
+typedef struct
+{
+	void *internal; /**< opaque pointer for internal use */
+} starpu_omp_lock_t;
 
 /**
    Opaque Nestable Lock object (\anchor NestableLock) for inter-task
@@ -46,7 +49,10 @@ typedef struct { void *internal; /**< opaque pointer for internal use */ } starp
    \sa starpu_omp_unset_nest_lock()
    \sa starpu_omp_test_nest_lock()
 */
-typedef struct { void *internal; /**< opaque pointer for internal use */  } starpu_omp_nest_lock_t;
+typedef struct
+{
+	void *internal; /**< opaque pointer for internal use */
+} starpu_omp_nest_lock_t;
 
 /**
    Set of constants for selecting the for loop iteration scheduling
@@ -61,11 +67,11 @@ typedef struct { void *internal; /**< opaque pointer for internal use */  } star
 enum starpu_omp_sched_value
 {
 	starpu_omp_sched_undefined = 0, /**< Undefined iteration scheduling algorithm. */
-	starpu_omp_sched_static    = 1, /**< \b Static iteration scheduling algorithm.*/
+	starpu_omp_sched_static	   = 1, /**< \b Static iteration scheduling algorithm.*/
 	starpu_omp_sched_dynamic   = 2, /**< \b Dynamic iteration scheduling algorithm.*/
-	starpu_omp_sched_guided    = 3, /**< \b Guided iteration scheduling algorithm.*/
-	starpu_omp_sched_auto      = 4, /**< \b Automatically choosen iteration scheduling algorithm.*/
-	starpu_omp_sched_runtime   = 5 /**< Choice of iteration scheduling algorithm deferred at \b runtime.*/
+	starpu_omp_sched_guided	   = 3, /**< \b Guided iteration scheduling algorithm.*/
+	starpu_omp_sched_auto	   = 4, /**< \b Automatically choosen iteration scheduling algorithm.*/
+	starpu_omp_sched_runtime   = 5	/**< Choice of iteration scheduling algorithm deferred at \b runtime.*/
 };
 
 /**
@@ -75,12 +81,12 @@ enum starpu_omp_sched_value
 */
 enum starpu_omp_proc_bind_value
 {
-	starpu_omp_proc_bind_undefined  = -1, /**< Undefined processor binding method.*/
-	starpu_omp_proc_bind_false  = 0,      /**< Team threads may be moved between places at any time.*/
-	starpu_omp_proc_bind_true   = 1,      /**< Team threads may not be moved between places.*/
-	starpu_omp_proc_bind_master = 2,      /**< Assign every thread in the team to the same place as the \b master thread.*/
-	starpu_omp_proc_bind_close  = 3,      /**< Assign every thread in the team to a place \b close to the parent thread.*/
-	starpu_omp_proc_bind_spread = 4       /**< Assign team threads as a sparse distribution over the selected places.*/
+	starpu_omp_proc_bind_undefined = -1, /**< Undefined processor binding method.*/
+	starpu_omp_proc_bind_false     = 0,  /**< Team threads may be moved between places at any time.*/
+	starpu_omp_proc_bind_true      = 1,  /**< Team threads may not be moved between places.*/
+	starpu_omp_proc_bind_master    = 2,  /**< Assign every thread in the team to the same place as the \b master thread.*/
+	starpu_omp_proc_bind_close     = 3,  /**< Assign every thread in the team to a place \b close to the parent thread.*/
+	starpu_omp_proc_bind_spread    = 4   /**< Assign team threads as a sparse distribution over the selected places.*/
 };
 
 /**
@@ -94,27 +100,27 @@ struct starpu_omp_parallel_region_attr
 	   parallel region implicit tasks. The codelet must provide a
 	   CPU implementation function.
 	*/
-	struct starpu_codelet  cl;
+	struct starpu_codelet cl;
 	/**
 	   Array of zero or more ::starpu_data_handle_t data handle to
 	   be passed to the parallel region implicit tasks.
 	*/
-	starpu_data_handle_t  *handles;
+	starpu_data_handle_t *handles;
 	/**
 	   Optional pointer to an inline argument to be passed to the
 	   region implicit tasks.
 	*/
-	void     *cl_arg;
+	void *cl_arg;
 	/**
 	   Size of the optional inline argument to be passed to the
 	   region implicit tasks, or 0 if unused.
 	*/
-	size_t    cl_arg_size;
+	size_t cl_arg_size;
 	/**
 	    Boolean indicating whether the optional inline argument
 	    should be automatically freed (true), or not (false).
 	*/
-	unsigned  cl_arg_free;
+	unsigned cl_arg_free;
 
 	/**
 	   Boolean indicating whether the \b if clause of the
@@ -145,28 +151,28 @@ struct starpu_omp_task_region_attr
 	   CPU implementation function or an accelerator
 	   implementation for offloaded target regions.
 	*/
-	struct starpu_codelet  cl;
+	struct starpu_codelet cl;
 	/**
 	   Array of zero or more ::starpu_data_handle_t data handle to
 	   be passed to the task region explicit tasks.
 	*/
-	starpu_data_handle_t  *handles;
+	starpu_data_handle_t *handles;
 	/**
 	   Optional pointer to an inline argument to be passed to the
 	   region implicit tasks.
 	*/
-	void     *cl_arg;
+	void *cl_arg;
 	/**
 	   Size of the optional inline argument to be passed to the
 	   region implicit tasks, or 0 if unused.
 	*/
-	size_t    cl_arg_size;
+	size_t cl_arg_size;
 	/**
 	   Boolean indicating whether the optional inline argument
 	   should be automatically freed (true), or not (false).
 	*/
-	unsigned  cl_arg_free;
-	int       priority;
+	unsigned cl_arg_free;
+	int priority;
 
 	/**
 	   Boolean indicating whether the \b if clause of the
@@ -206,9 +212,8 @@ struct starpu_omp_task_region_attr
 };
 
 #ifdef __cplusplus
-extern "C"
-{
-#define __STARPU_OMP_NOTHROW throw ()
+extern "C" {
+#define __STARPU_OMP_NOTHROW throw()
 #else
 #define __STARPU_OMP_NOTHROW __attribute__((__nothrow__))
 #endif

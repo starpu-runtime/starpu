@@ -29,24 +29,23 @@ enum omp_sched_value
 	omp_sched_static    = 1,
 	omp_sched_dynamic   = 2,
 	omp_sched_guided    = 3,
-	omp_sched_auto      = 4,
+	omp_sched_auto	    = 4,
 	omp_sched_runtime   = 5
 };
 
 enum omp_proc_bind_value
 {
-	omp_proc_bind_undefined  = -1,
-	omp_proc_bind_false  = 0,
-	omp_proc_bind_true   = 1,
-	omp_proc_bind_master = 2,
-	omp_proc_bind_close  = 3,
-	omp_proc_bind_spread = 4
+	omp_proc_bind_undefined = -1,
+	omp_proc_bind_false	= 0,
+	omp_proc_bind_true	= 1,
+	omp_proc_bind_master	= 2,
+	omp_proc_bind_close	= 3,
+	omp_proc_bind_spread	= 4
 };
 
 #ifdef __cplusplus
-extern "C"
-{
-#define __STARPU_OMP_NOTHROW throw ()
+extern "C" {
+#define __STARPU_OMP_NOTHROW throw()
 #else
 #define __STARPU_OMP_NOTHROW __attribute__((__nothrow__))
 #endif
@@ -109,4 +108,3 @@ extern void *omp_get_local_cuda_stream(void) __STARPU_OMP_NOTHROW;
 
 #endif /* STARPU_USE_OPENMP && !STARPU_DONT_INCLUDE_OPENMP_HEADERS */
 #endif /* __STARPU_OPENMP_OMP_H__ */
-

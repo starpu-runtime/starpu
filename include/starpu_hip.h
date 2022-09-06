@@ -33,8 +33,7 @@
 #pragma GCC diagnostic pop
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**

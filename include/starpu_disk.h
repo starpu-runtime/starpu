@@ -35,79 +35,79 @@ struct starpu_disk_ops
 	   Connect a disk memory at location \p parameter with size \p size, and return a
 	   base as void*, which will be passed by StarPU to all other methods.
 	*/
-	void *  (*plug)   (void *parameter, starpu_ssize_t size);
+	void *(*plug)(void *parameter, starpu_ssize_t size);
 	/**
 	   Disconnect a disk memory \p base.
 	*/
-	void    (*unplug) (void *base);
+	void (*unplug)(void *base);
 
 	/**
 	   Measure the bandwidth and the latency for the disk \p node and save it. Returns
 	   1 if it could measure it.
 	*/
-	int    (*bandwidth)    (unsigned node, void *base);
+	int (*bandwidth)(unsigned node, void *base);
 
 	/**
 	   Create a new location for datas of size \p size. Return an opaque object pointer.
 	*/
-	void *  (*alloc)  (void *base, size_t size);
+	void *(*alloc)(void *base, size_t size);
 
 	/**
 	   Free a data \p obj previously allocated with starpu_disk_ops::alloc.
 	*/
-	void    (*free)   (void *base, void *obj, size_t size);
+	void (*free)(void *base, void *obj, size_t size);
 
 	/**
 	   Open an existing location of datas, at a specific position \p pos dependent on the backend.
 	*/
-	void *  (*open)   (void *base, void *pos, size_t size);
+	void *(*open)(void *base, void *pos, size_t size);
 	/**
 	   Close, without deleting it, a location of datas \p obj.
 	*/
-	void    (*close)  (void *base, void *obj, size_t size);
+	void (*close)(void *base, void *obj, size_t size);
 
 	/**
 	   Read \p size bytes of data from \p obj in \p base, at offset \p offset, and put
 	   into \p buf. Return the actual number of read bytes.
 	*/
-	int     (*read)   (void *base, void *obj, void *buf, off_t offset, size_t size);
+	int (*read)(void *base, void *obj, void *buf, off_t offset, size_t size);
 	/**
 	   Write \p size bytes of data to \p obj in \p base, at offset \p offset, from \p buf. Return 0 on success.
 	*/
-	int     (*write)  (void *base, void *obj, const void *buf, off_t offset, size_t size);
+	int (*write)(void *base, void *obj, const void *buf, off_t offset, size_t size);
 
 	/**
 	   Read all data from \p obj of \p base, from offset 0. Returns it in an allocated buffer \p ptr, of size \p size
 	*/
-	int	(*full_read)    (void * base, void * obj, void ** ptr, size_t * size, unsigned dst_node);
+	int (*full_read)(void *base, void *obj, void **ptr, size_t *size, unsigned dst_node);
 	/**
 	   Write data in \p ptr to \p obj of \p base, from offset 0, and truncate \p obj to
 	   \p size, so that a \c full_read will get it.
 	*/
-	int 	(*full_write)   (void * base, void * obj, void * ptr, size_t size);
+	int (*full_write)(void *base, void *obj, void *ptr, size_t size);
 
 	/**
 	   Asynchronously write \p size bytes of data to \p obj in \p base, at offset \p
 	   offset, from \p buf. Return a void* pointer that StarPU will pass to \c
 	   xxx_request methods for testing for the completion.
 	*/
-	void *  (*async_write)  (void *base, void *obj, void *buf, off_t offset, size_t size);
+	void *(*async_write)(void *base, void *obj, void *buf, off_t offset, size_t size);
 	/**
 	   Asynchronously read \p size bytes of data from \p obj in \p base, at offset \p
 	   offset, and put into \p buf. Return a void* pointer that StarPU will pass to \c
 	   xxx_request methods for testing for the completion.
 	*/
-	void *  (*async_read)   (void *base, void *obj, void *buf, off_t offset, size_t size);
+	void *(*async_read)(void *base, void *obj, void *buf, off_t offset, size_t size);
 
 	/**
 	   Read all data from \p obj of \p base, from offset 0. Return it in an allocated buffer \p ptr, of size \p size
 	*/
-	void *	(*async_full_read)    (void * base, void * obj, void ** ptr, size_t * size, unsigned dst_node);
+	void *(*async_full_read)(void *base, void *obj, void **ptr, size_t *size, unsigned dst_node);
 	/**
 	   Write data in \p ptr to \p obj of \p base, from offset 0, and truncate \p obj to
 	   \p size, so that a starpu_disk_ops::full_read will get it.
 	*/
-	void *	(*async_full_write)   (void * base, void * obj, void * ptr, size_t size);
+	void *(*async_full_write)(void *base, void *obj, void *ptr, size_t size);
 
 	/**
 	   Copy from offset \p offset_src of disk object \p obj_src in \p base_src to
@@ -115,23 +115,23 @@ struct starpu_disk_ops
 	   pointer that StarPU will pass to \c xxx_request methods for testing for the
 	   completion.
 	*/
-	void *  (*copy)   (void *base_src, void* obj_src, off_t offset_src,  void *base_dst, void* obj_dst, off_t offset_dst, size_t size);
+	void *(*copy)(void *base_src, void *obj_src, off_t offset_src, void *base_dst, void *obj_dst, off_t offset_dst, size_t size);
 
 	/**
 	   Wait for completion of request \p async_channel returned by a previous
 	   asynchronous read, write or copy.
 	*/
-	void   (*wait_request) (void * async_channel);
+	void (*wait_request)(void *async_channel);
 	/**
 	   Test for completion of request \p async_channel returned by a previous
 	   asynchronous read, write or copy. Return 1 on completion, 0 otherwise.
 	*/
-	int    (*test_request) (void * async_channel);
+	int (*test_request)(void *async_channel);
 
 	/**
 	   Free the request allocated by a previous asynchronous read, write or copy.
 	*/
-	void   (*free_request)(void * async_channel);
+	void (*free_request)(void *async_channel);
 
 	/* TODO: readv, writev, read2d, write2d, etc. */
 };
@@ -207,7 +207,7 @@ int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, starpu_s
    Minimum size of a registered disk. The size of a disk is the last
    parameter of the function starpu_disk_register().
 */
-#define STARPU_DISK_SIZE_MIN (16*1024*1024)
+#define STARPU_DISK_SIZE_MIN (16 * 1024 * 1024)
 
 /**
    Contain the node number of the disk swap, if set up through the

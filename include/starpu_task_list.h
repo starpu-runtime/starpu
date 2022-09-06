@@ -21,8 +21,7 @@
 #include <starpu_util.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -39,8 +38,8 @@ extern "C"
 */
 struct starpu_task_list
 {
-	struct starpu_task *head;  /**< head of the list */
-	struct starpu_task *tail;  /**< tail of the list */
+	struct starpu_task *head; /**< head of the list */
+	struct starpu_task *tail; /**< tail of the list */
 };
 #define STARPU_TASK_LIST_INLINE extern
 #endif

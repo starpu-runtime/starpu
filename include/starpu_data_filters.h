@@ -22,8 +22,7 @@
 #include <stdarg.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -158,7 +157,7 @@ int starpu_data_get_nb_children(starpu_data_handle_t handle);
    h = starpu_data_get_sub_data(A_handle, 1, taskx);
    \endcode
 */
-starpu_data_handle_t starpu_data_get_sub_data(starpu_data_handle_t root_data, unsigned depth, ... );
+starpu_data_handle_t starpu_data_get_sub_data(starpu_data_handle_t root_data, unsigned depth, ...);
 
 /**
    Similar to starpu_data_get_sub_data() but use a \c va_list for the
@@ -328,8 +327,7 @@ void starpu_bcsr_filter_canonical_block(void *father_interface, void *child_inte
 /**
    Return the number of children obtained with starpu_bcsr_filter_canonical_block().
 */
-unsigned starpu_bcsr_filter_canonical_block_get_nchildren(struct starpu_data_filter *f, starpu_data_handle_t handle)
-;
+unsigned starpu_bcsr_filter_canonical_block_get_nchildren(struct starpu_data_filter *f, starpu_data_handle_t handle);
 /**
    Return the child_ops of the partition obtained with starpu_bcsr_filter_canonical_block().
 */
@@ -911,11 +909,10 @@ struct starpu_data_interface_ops *starpu_ndim_filter_to_variable_child_ops(struc
    into account the size of the elements stored in the data structure \p elemsize
    and \p blocksize, which is most often 1.
  */
-void
-starpu_filter_nparts_compute_chunk_size_and_offset(unsigned n, unsigned nparts,
-					     size_t elemsize, unsigned id,
-					     unsigned blocksize, unsigned *chunk_size,
-					     size_t *offset);
+void starpu_filter_nparts_compute_chunk_size_and_offset(unsigned n, unsigned nparts,
+							size_t elemsize, unsigned id,
+							unsigned blocksize, unsigned *chunk_size,
+							size_t *offset);
 
 /** @} */
 

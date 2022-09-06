@@ -24,12 +24,11 @@
 #include <assert.h>
 
 #if defined STARPU_USE_CUDA && !defined STARPU_DONT_INCLUDE_CUDA_HEADERS
-# include <cuda.h>
+#include <cuda.h>
 #endif
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -45,103 +44,103 @@ extern "C"
    be scheduled, and data does not need to be actually loaded. This is
    thus essentially used for synchronization tasks.
 */
-#define STARPU_NOWHERE	((1ULL)<<0)
+#define STARPU_NOWHERE ((1ULL) << 0)
 
 /**
   Convert from enum starpu_worker_archtype to worker type mask for use in "where" fields
   */
 #define STARPU_WORKER_TO_MASK(worker_archtype) (1ULL << (worker_archtype + 1))
+
 /**
    To be used when setting the field starpu_codelet::where (or
    starpu_task::where) to specify the codelet (or the task) may be
    executed on a CPU processing unit.
 */
-#define STARPU_CPU	STARPU_WORKER_TO_MASK(STARPU_CPU_WORKER)
+#define STARPU_CPU STARPU_WORKER_TO_MASK(STARPU_CPU_WORKER)
 
 /**
    To be used when setting the field starpu_codelet::where (or
    starpu_task::where) to specify the codelet (or the task) may be
    executed on a CUDA processing unit.
 */
-#define STARPU_CUDA	STARPU_WORKER_TO_MASK(STARPU_CUDA_WORKER)
+#define STARPU_CUDA STARPU_WORKER_TO_MASK(STARPU_CUDA_WORKER)
 
 /**
    To be used when setting the field starpu_codelet::where (or
    starpu_task::where) to specify the codelet (or the task) may be
    executed on a HIP processing unit.
 */
-#define STARPU_HIP	STARPU_WORKER_TO_MASK(STARPU_HIP_WORKER)
+#define STARPU_HIP STARPU_WORKER_TO_MASK(STARPU_HIP_WORKER)
 
 /**
    To be used when setting the field starpu_codelet::where (or
    starpu_task::where) to specify the codelet (or the task) may be
    executed on a OpenCL processing unit.
 */
-#define STARPU_OPENCL	STARPU_WORKER_TO_MASK(STARPU_OPENCL_WORKER)
+#define STARPU_OPENCL STARPU_WORKER_TO_MASK(STARPU_OPENCL_WORKER)
 
 /**
    To be used when setting the field starpu_codelet::where (or
    starpu_task::where) to specify the codelet (or the task) may be
    executed on a MAX FPGA.
 */
-#define STARPU_MAX_FPGA	STARPU_WORKER_TO_MASK(STARPU_MAX_FPGA_WORKER)
+#define STARPU_MAX_FPGA STARPU_WORKER_TO_MASK(STARPU_MAX_FPGA_WORKER)
 
 /**
    To be used when setting the field starpu_codelet::where (or
    starpu_task::where) to specify the codelet (or the task) may be
    executed on a MPI Slave processing unit.
 */
-#define STARPU_MPI_MS	STARPU_WORKER_TO_MASK(STARPU_MPI_MS_WORKER)
+#define STARPU_MPI_MS STARPU_WORKER_TO_MASK(STARPU_MPI_MS_WORKER)
 
 /**
    To be used when setting the field starpu_codelet::where (or
    starpu_task::where) to specify the codelet (or the task) may be
    executed on a TCP/IP Slave processing unit.
 */
-#define STARPU_TCPIP_MS	STARPU_WORKER_TO_MASK(STARPU_TCPIP_MS_WORKER)
+#define STARPU_TCPIP_MS STARPU_WORKER_TO_MASK(STARPU_TCPIP_MS_WORKER)
 
 /**
    Value to be set in starpu_codelet::flags to execute the codelet
    functions even in simgrid mode.
 */
-#define STARPU_CODELET_SIMGRID_EXECUTE	(1<<0)
+#define STARPU_CODELET_SIMGRID_EXECUTE (1 << 0)
 
 /**
    Value to be set in starpu_codelet::flags to execute the codelet
    functions even in simgrid mode, and later inject the measured
    timing inside the simulation.
 */
-#define STARPU_CODELET_SIMGRID_EXECUTE_AND_INJECT	(1<<1)
+#define STARPU_CODELET_SIMGRID_EXECUTE_AND_INJECT (1 << 1)
 
 /**
    Value to be set in starpu_codelet::flags to make starpu_task_submit()
    not submit automatic asynchronous partitioning/unpartitioning.
 */
-#define STARPU_CODELET_NOPLANS	(1<<2)
+#define STARPU_CODELET_NOPLANS (1 << 2)
 
 /**
    Value to be set in starpu_codelet::cuda_flags to allow asynchronous
    CUDA kernel execution.
  */
-#define STARPU_CUDA_ASYNC	(1<<0)
+#define STARPU_CUDA_ASYNC (1 << 0)
 
 /**
    Value to be set in starpu_codelet::hip_flags to allow asynchronous
    HIP kernel execution.
  */
-#define STARPU_HIP_ASYNC	(1<<0)
+#define STARPU_HIP_ASYNC (1 << 0)
 
 /**
    Value to be set in starpu_codelet::opencl_flags to allow
    asynchronous OpenCL kernel execution.
 */
-#define STARPU_OPENCL_ASYNC	(1<<0)
+#define STARPU_OPENCL_ASYNC (1 << 0)
 
 /**
    To be used when the RAM memory node is specified.
 */
 #define STARPU_MAIN_RAM 0
-
 
 /**
    Describe the type of parallel task. See \ref ParallelTasks for
@@ -149,10 +148,10 @@ extern "C"
 */
 enum starpu_codelet_type
 {
-	STARPU_SEQ = 0,  /**< (default) for classical sequential
+	STARPU_SEQ = 0, /**< (default) for classical sequential
 			    tasks.
 			 */
-	STARPU_SPMD,     /**< for a parallel task whose threads are
+	STARPU_SPMD,	/**< for a parallel task whose threads are
 			    handled by StarPU, the code has to use
 			    starpu_combined_worker_get_size() and
 			    starpu_combined_worker_get_rank() to
@@ -168,44 +167,43 @@ enum starpu_codelet_type
 
 enum starpu_task_status
 {
-	STARPU_TASK_INIT,        /**< The task has just been initialized. */
-#define STARPU_TASK_INIT 0
-#define STARPU_TASK_INVALID STARPU_TASK_INIT  /**< old name for STARPU_TASK_INIT */
-	STARPU_TASK_BLOCKED,     /**< The task has just been
-				    submitted, and its dependencies has not been checked yet. */
-	STARPU_TASK_READY,       /**< The task is ready for execution. */
-	STARPU_TASK_RUNNING,     /**< The task is running on some worker. */
-	STARPU_TASK_FINISHED,    /**< The task is finished executing. */
-	STARPU_TASK_BLOCKED_ON_TAG,  /**< The task is waiting for a tag. */
-	STARPU_TASK_BLOCKED_ON_TASK, /**< The task is waiting for a task. */
-	STARPU_TASK_BLOCKED_ON_DATA, /**< The task is waiting for some data. */
-	STARPU_TASK_STOPPED          /**< The task is stopped. */
+	STARPU_TASK_INIT, /**< The task has just been initialized. */
+#define STARPU_TASK_INIT    0
+#define STARPU_TASK_INVALID STARPU_TASK_INIT /**< old name for STARPU_TASK_INIT */
+	STARPU_TASK_BLOCKED,		     /**< The task has just been submitted, and its dependencies has not been checked yet. */
+	STARPU_TASK_READY,		     /**< The task is ready for execution. */
+	STARPU_TASK_RUNNING,		     /**< The task is running on some worker. */
+	STARPU_TASK_FINISHED,		     /**< The task is finished executing. */
+	STARPU_TASK_BLOCKED_ON_TAG,	     /**< The task is waiting for a tag. */
+	STARPU_TASK_BLOCKED_ON_TASK,	     /**< The task is waiting for a task. */
+	STARPU_TASK_BLOCKED_ON_DATA,	     /**< The task is waiting for some data. */
+	STARPU_TASK_STOPPED		     /**< The task is stopped. */
 };
 
 /**
    CPU implementation of a codelet.
 */
-typedef void (*starpu_cpu_func_t)(void **, void*);
+typedef void (*starpu_cpu_func_t)(void **, void *);
 
 /**
    CUDA implementation of a codelet.
 */
-typedef void (*starpu_cuda_func_t)(void **, void*);
+typedef void (*starpu_cuda_func_t)(void **, void *);
 
 /**
    HIP implementation of a codelet.
 */
-typedef void (*starpu_hip_func_t)(void **, void*);
+typedef void (*starpu_hip_func_t)(void **, void *);
 
 /**
    OpenCL implementation of a codelet.
 */
-typedef void (*starpu_opencl_func_t)(void **, void*);
+typedef void (*starpu_opencl_func_t)(void **, void *);
 
 /**
    Maxeler FPGA implementation of a codelet.
 */
-typedef void (*starpu_max_fpga_func_t)(void **, void*);
+typedef void (*starpu_max_fpga_func_t)(void **, void *);
 
 /**
    @ingroup API_Bubble Hierarchical Dags
@@ -226,7 +224,7 @@ typedef void (*starpu_bubble_gen_dag_func_t)(struct starpu_task *t, void *arg);
    this macro is deprecated. One should always only define the field
    starpu_codelet::cpu_funcs.
 */
-#define STARPU_MULTIPLE_CPU_IMPLEMENTATIONS    ((starpu_cpu_func_t) -1)
+#define STARPU_MULTIPLE_CPU_IMPLEMENTATIONS ((starpu_cpu_func_t)-1)
 
 /**
    @deprecated
@@ -235,7 +233,7 @@ typedef void (*starpu_bubble_gen_dag_func_t)(struct starpu_task *t, void *arg);
    this macro is deprecated. One should always only define the field
    starpu_codelet::cuda_funcs.
 */
-#define STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS   ((starpu_cuda_func_t) -1)
+#define STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS ((starpu_cuda_func_t)-1)
 
 /**
    @deprecated
@@ -244,7 +242,7 @@ typedef void (*starpu_bubble_gen_dag_func_t)(struct starpu_task *t, void *arg);
    this macro is deprecated. One should always only define the field
    starpu_codelet::hip_funcs.
 */
-#define STARPU_MULTIPLE_HIP_IMPLEMENTATIONS   ((starpu_hip_func_t) -1)
+#define STARPU_MULTIPLE_HIP_IMPLEMENTATIONS ((starpu_hip_func_t)-1)
 
 /**
    @deprecated
@@ -253,7 +251,7 @@ typedef void (*starpu_bubble_gen_dag_func_t)(struct starpu_task *t, void *arg);
    this macro is deprecated. One should always only define the field
    starpu_codelet::opencl_funcs.
 */
-#define STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS ((starpu_opencl_func_t) -1)
+#define STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS ((starpu_opencl_func_t)-1)
 
 /**
    Value to set in starpu_codelet::nbuffers to specify that the
@@ -305,7 +303,7 @@ typedef void (*starpu_bubble_gen_dag_func_t)(struct starpu_task *t, void *arg);
 
 struct starpu_transaction;
 struct _starpu_trs_epoch;
-typedef struct _starpu_trs_epoch* starpu_trs_epoch_t;
+typedef struct _starpu_trs_epoch *starpu_trs_epoch_t;
 struct starpu_task;
 
 /**
@@ -647,7 +645,7 @@ extern struct starpu_codelet starpu_codelet_nop;
 */
 struct starpu_data_descr
 {
-	starpu_data_handle_t handle; /**< data */
+	starpu_data_handle_t handle;	   /**< data */
 	enum starpu_data_access_mode mode; /**< access mode */
 };
 
@@ -710,7 +708,7 @@ struct starpu_task
 	*/
 	int nbuffers;
 
-        /* Keep dyn_handles, dyn_interfaces and dyn_modes before the
+	/* Keep dyn_handles, dyn_interfaces and dyn_modes before the
 	 * equivalent static arrays, so we can detect dyn_handles
 	 * being NULL while nbuffers being bigger that STARPU_NMAXBUFS
 	 * (otherwise the overflow would put a non-NULL) */
@@ -994,7 +992,7 @@ struct starpu_task
 	   With starpu_task_insert() and alike this is set to 1 when using
 	   ::STARPU_CL_ARGS.
 	*/
-	unsigned cl_arg_free:1;
+	unsigned cl_arg_free : 1;
 
 	/**
 	   Optional field. In case starpu_task::cl_ret was allocated
@@ -1002,7 +1000,7 @@ struct starpu_task
 	   starpu_task::cl_ret_free to 1 makes StarPU automatically
 	   call <c>free(cl_ret)</c> when destroying the task.
 	*/
-	unsigned cl_ret_free:1;
+	unsigned cl_ret_free : 1;
 
 	/**
 	   Optional field. In case starpu_task::callback_arg was
@@ -1015,7 +1013,7 @@ struct starpu_task
 	   ::STARPU_CALLBACK_ARG or ::STARPU_CALLBACK_WITH_ARG, or set
 	   to 0 when using ::STARPU_CALLBACK_ARG_NFREE
 	*/
-	unsigned callback_arg_free:1;
+	unsigned callback_arg_free : 1;
 
 	/**
 	   Optional field. In case starpu_task::epilogue_callback_arg was
@@ -1024,7 +1022,7 @@ struct starpu_task
 	   automatically call <c>free(epilogue_callback_arg)</c> when
 	   destroying the task.
 	*/
-	unsigned epilogue_callback_arg_free:1;
+	unsigned epilogue_callback_arg_free : 1;
 
 	/**
 	   Optional field. In case starpu_task::prologue_callback_arg
@@ -1037,7 +1035,7 @@ struct starpu_task
 	   ::STARPU_PROLOGUE_CALLBACK_ARG, or set to 0 when using
 	   ::STARPU_PROLOGUE_CALLBACK_ARG_NFREE
 	*/
-	unsigned prologue_callback_arg_free:1;
+	unsigned prologue_callback_arg_free : 1;
 
 	/**
 	   Optional field. In case starpu_task::prologue_callback_pop_arg
@@ -1051,7 +1049,7 @@ struct starpu_task
 	   ::STARPU_PROLOGUE_CALLBACK_POP_ARG, or set to 0 when using
 	   ::STARPU_PROLOGUE_CALLBACK_POP_ARG_NFREE
 	*/
-	unsigned prologue_callback_pop_arg_free:1;
+	unsigned prologue_callback_pop_arg_free : 1;
 
 	/**
 	   Optional field, the default value is 0. If set, this flag
@@ -1063,7 +1061,7 @@ struct starpu_task
 	   With starpu_task_insert() and alike this is set to 1 when using
 	   ::STARPU_TAG.
 	*/
-	unsigned use_tag:1;
+	unsigned use_tag : 1;
 
 	/**
 	   If this flag is set (which is the default), sequential
@@ -1075,7 +1073,7 @@ struct starpu_task
 	   With starpu_task_insert() and alike this can be specified thanks to
 	   ::STARPU_SEQUENTIAL_CONSISTENCY followed by an unsigned.
 	*/
-	unsigned sequential_consistency:1;
+	unsigned sequential_consistency : 1;
 
 	/**
 	   If this flag is set, the function starpu_task_submit() is
@@ -1086,7 +1084,7 @@ struct starpu_task
 	   With starpu_task_insert() and alike this can be specified thanks to
 	   ::STARPU_TASK_SYNCHRONOUS followed an int.
 	*/
-	unsigned synchronous:1;
+	unsigned synchronous : 1;
 
 	/**
 	   Default value is 0. If this flag is set, StarPU will bypass
@@ -1096,7 +1094,7 @@ struct starpu_task
 	   With starpu_task_insert() and alike this is set to 1 when using
 	   ::STARPU_EXECUTE_ON_WORKER.
 	*/
-	unsigned execute_on_a_specific_worker:1;
+	unsigned execute_on_a_specific_worker : 1;
 
 	/**
 	   Optional field, default value is 1. If this flag is set, it
@@ -1107,7 +1105,7 @@ struct starpu_task
 
 	   With starpu_task_insert() and alike this is set to 1.
 	*/
-	unsigned detach:1;
+	unsigned detach : 1;
 
 	/**
 	   Optional value. Default value is 0 for starpu_task_init(),
@@ -1124,7 +1122,7 @@ struct starpu_task
 
 	   With starpu_task_insert() and alike this is set to 1.
 	*/
-	unsigned destroy:1;
+	unsigned destroy : 1;
 
 	/**
 	   Optional field. If this flag is set, the task will be
@@ -1135,7 +1133,7 @@ struct starpu_task
 
 	   With starpu_task_insert() and alike this is set to 0.
 	*/
-	unsigned regenerate:1;
+	unsigned regenerate : 1;
 
 	/**
 	   do not allocate a submitorder id for this task
@@ -1144,7 +1142,7 @@ struct starpu_task
 	   thanks to ::STARPU_TASK_NO_SUBMITORDER followed by
 	   an unsigned.
 	*/
-	unsigned no_submitorder:1;
+	unsigned no_submitorder : 1;
 
 	/**
 	   @private
@@ -1436,17 +1434,17 @@ struct starpu_task
 /**
    To be used in the starpu_task::type field, for normal application tasks.
 */
-#define STARPU_TASK_TYPE_NORMAL		0
+#define STARPU_TASK_TYPE_NORMAL 0
 
 /**
    To be used in the starpu_task::type field, for StarPU-internal tasks.
 */
-#define STARPU_TASK_TYPE_INTERNAL	(1<<0)
+#define STARPU_TASK_TYPE_INTERNAL (1 << 0)
 
 /**
    To be used in the starpu_task::type field, for StarPU-internal data acquisition tasks.
 */
-#define STARPU_TASK_TYPE_DATA_ACQUIRE	(1<<1)
+#define STARPU_TASK_TYPE_DATA_ACQUIRE (1 << 1)
 
 /**
    Value to be used to initialize statically allocated tasks. This is
@@ -1455,48 +1453,48 @@ struct starpu_task
 */
 /* Note: remember to update starpu_task_init and starpu_task_ft_create_retry
  * as well */
-#define STARPU_TASK_INITIALIZER 			\
-{							\
-	.cl = NULL,					\
-	.where = -1,					\
-	.cl_arg = NULL,					\
-	.cl_arg_size = 0,				\
-	.cl_ret = NULL,					\
-	.cl_ret_size = 0,				\
-	.callback_func = NULL,				\
-	.callback_arg = NULL,				\
-	.epilogue_callback_func = NULL,			\
-	.epilogue_callback_arg = NULL,			\
-	.priority = STARPU_DEFAULT_PRIO,		\
-	.use_tag = 0,					\
-	.sequential_consistency = 1,			\
-	.synchronous = 0,				\
-	.execute_on_a_specific_worker = 0,		\
-	.workerorder = 0,				\
-	.bundle = NULL,					\
-	.detach = 1,					\
-	.destroy = 0,					\
-	.regenerate = 0,				\
-	.status = STARPU_TASK_INIT,			\
-	.profiling_info = NULL,				\
-	.predicted = NAN,				\
-	.predicted_transfer = NAN,			\
-	.predicted_start = NAN,				\
-	.starpu_private = NULL,				\
-	.magic = 42,                  			\
-	.type = 0,					\
-	.color = 0,					\
-	.sched_ctx = STARPU_NMAX_SCHED_CTXS,		\
-	.hypervisor_tag = 0,				\
-	.flops = 0.0,					\
-	.scheduled = 0,					\
-	.prefetched = 0,				\
-	.dyn_handles = NULL,				\
-	.dyn_interfaces = NULL,				\
-	.dyn_modes = NULL,				\
-	.name = NULL,                        		\
-	.possibly_parallel = 0                        	\
-}
+#define STARPU_TASK_INITIALIZER                                         \
+	{                                                               \
+		.cl			      = NULL,                   \
+		.where			      = -1,                     \
+		.cl_arg			      = NULL,                   \
+		.cl_arg_size		      = 0,                      \
+		.cl_ret			      = NULL,                   \
+		.cl_ret_size		      = 0,                      \
+		.callback_func		      = NULL,                   \
+		.callback_arg		      = NULL,                   \
+		.epilogue_callback_func	      = NULL,                   \
+		.epilogue_callback_arg	      = NULL,                   \
+		.priority		      = STARPU_DEFAULT_PRIO,    \
+		.use_tag		      = 0,                      \
+		.sequential_consistency	      = 1,                      \
+		.synchronous		      = 0,                      \
+		.execute_on_a_specific_worker = 0,                      \
+		.workerorder		      = 0,                      \
+		.bundle			      = NULL,                   \
+		.detach			      = 1,                      \
+		.destroy		      = 0,                      \
+		.regenerate		      = 0,                      \
+		.status			      = STARPU_TASK_INIT,       \
+		.profiling_info		      = NULL,                   \
+		.predicted		      = NAN,                    \
+		.predicted_transfer	      = NAN,                    \
+		.predicted_start	      = NAN,                    \
+		.starpu_private		      = NULL,                   \
+		.magic			      = 42,                     \
+		.type			      = 0,                      \
+		.color			      = 0,                      \
+		.sched_ctx		      = STARPU_NMAX_SCHED_CTXS, \
+		.hypervisor_tag		      = 0,                      \
+		.flops			      = 0.0,                    \
+		.scheduled		      = 0,                      \
+		.prefetched		      = 0,                      \
+		.dyn_handles		      = NULL,                   \
+		.dyn_interfaces		      = NULL,                   \
+		.dyn_modes		      = NULL,                   \
+		.name			      = NULL,                   \
+		.possibly_parallel	      = 0                       \
+	}
 
 /**
    Return the number of buffers for \p task, i.e.
@@ -1529,8 +1527,14 @@ struct starpu_task
    \p i -th element of the field starpu_task::dyn_handles
    (see \ref SettingManyDataHandlesForATask)
 */
-#define STARPU_TASK_SET_HANDLE(task, handle, i)				\
-	do { if ((task)->dyn_handles) (task)->dyn_handles[i] = handle; else (task)->handles[i] = handle; } while(0)
+#define STARPU_TASK_SET_HANDLE(task, handle, i)          \
+	do {                                             \
+		if ((task)->dyn_handles)                 \
+			(task)->dyn_handles[i] = handle; \
+		else                                     \
+			(task)->handles[i] = handle;     \
+	}                                                \
+	while (0)
 
 /**
    Return the access mode of the \p i -th data handle of \p codelet.
@@ -1549,8 +1553,14 @@ struct starpu_task
    starpu_codelet::modes or the \p i -th element of the field
    starpu_codelet::dyn_modes (see \ref SettingManyDataHandlesForATask)
 */
-#define STARPU_CODELET_SET_MODE(codelet, mode, i) \
-	do { if ((codelet)->dyn_modes) (codelet)->dyn_modes[i] = mode; else (codelet)->modes[i] = mode; } while(0)
+#define STARPU_CODELET_SET_MODE(codelet, mode, i)       \
+	do {                                            \
+		if ((codelet)->dyn_modes)               \
+			(codelet)->dyn_modes[i] = mode; \
+		else                                    \
+			(codelet)->modes[i] = mode;     \
+	}                                               \
+	while (0)
 
 /**
    Return the access mode of the \p i -th data handle of \p task. If
@@ -1560,9 +1570,7 @@ struct starpu_task
    \ref SettingManyDataHandlesForATask)
 */
 #define STARPU_TASK_GET_MODE(task, i) \
-	((task)->cl->nbuffers == STARPU_VARIABLE_NBUFFERS || (task)->dyn_modes ? \
-	 (((task)->dyn_modes) ? (task)->dyn_modes[i] : (task)->modes[i]) : \
-	 STARPU_CODELET_GET_MODE((task)->cl, i) )
+	((task)->cl->nbuffers == STARPU_VARIABLE_NBUFFERS || (task)->dyn_modes ? (((task)->dyn_modes) ? (task)->dyn_modes[i] : (task)->modes[i]) : STARPU_CODELET_GET_MODE((task)->cl, i))
 
 /**
    Set the access mode of the \p i -th data handle of \p task. If \p
@@ -1571,18 +1579,22 @@ struct starpu_task
    the \p i -th element of the field starpu_task::dyn_modes (see \ref
    SettingManyDataHandlesForATask)
 */
-#define STARPU_TASK_SET_MODE(task, mode, i) \
-	do {								\
-		if ((task)->cl->nbuffers == STARPU_VARIABLE_NBUFFERS || (task)->cl->nbuffers > STARPU_NMAXBUFS) \
-			if ((task)->dyn_modes) (task)->dyn_modes[i] = mode; else (task)->modes[i] = mode; \
-		else \
-		{							\
-			enum starpu_data_access_mode cl_mode = STARPU_CODELET_GET_MODE((task)->cl, i); \
-			STARPU_ASSERT_MSG(cl_mode == mode,	\
-				"Task <%s> can't set its  %d-th buffer mode to %d as the codelet it derives from uses %d", \
-				(task)->cl->name, i, mode, cl_mode);	\
-		} \
-	} while(0)
+#define STARPU_TASK_SET_MODE(task, mode, i)                                                                                          \
+	do {                                                                                                                         \
+		if ((task)->cl->nbuffers == STARPU_VARIABLE_NBUFFERS || (task)->cl->nbuffers > STARPU_NMAXBUFS)                      \
+			if ((task)->dyn_modes)                                                                                       \
+				(task)->dyn_modes[i] = mode;                                                                         \
+			else                                                                                                         \
+				(task)->modes[i] = mode;                                                                             \
+		else                                                                                                                 \
+		{                                                                                                                    \
+			enum starpu_data_access_mode cl_mode = STARPU_CODELET_GET_MODE((task)->cl, i);                               \
+			STARPU_ASSERT_MSG(cl_mode == mode,                                                                           \
+					  "Task <%s> can't set its  %d-th buffer mode to %d as the codelet it derives from uses %d", \
+					  (task)->cl->name, i, mode, cl_mode);                                                       \
+		}                                                                                                                    \
+	}                                                                                                                            \
+	while (0)
 
 /**
    Return the target node of the \p i -th data handle of \p codelet.
@@ -1600,8 +1612,14 @@ struct starpu_task
    starpu_codelet::nodes or the \p i -th element of the field
    starpu_codelet::dyn_nodes (see \ref SettingManyDataHandlesForATask)
  */
-#define STARPU_CODELET_SET_NODE(codelet, __node, i) \
-	do { if ((codelet)->dyn_nodes) (codelet)->dyn_nodes[i] = __node; else (codelet)->nodes[i] = __node; } while(0)
+#define STARPU_CODELET_SET_NODE(codelet, __node, i)       \
+	do {                                              \
+		if ((codelet)->dyn_nodes)                 \
+			(codelet)->dyn_nodes[i] = __node; \
+		else                                      \
+			(codelet)->nodes[i] = __node;     \
+	}                                                 \
+	while (0)
 
 /**
    Initialize \p task with default values. This function is implicitly
@@ -1895,7 +1913,7 @@ void starpu_task_ft_prologue(void *check_ft);
    The try-task is returned, and can be modified (e.g. to change scheduling
    parameters) before being submitted with starpu_task_submit_nodeps().
  */
-struct starpu_task * starpu_task_ft_create_retry(const struct starpu_task *meta_task, const struct starpu_task *template_task, void (*check_ft)(void*));
+struct starpu_task *starpu_task_ft_create_retry(const struct starpu_task *meta_task, const struct starpu_task *template_task, void (*check_ft)(void *));
 
 /**
    Record that this task failed, and should thus be retried.
@@ -1955,7 +1973,7 @@ void starpu_set_limit_max_submitted_tasks(int limit_min);
    @return A pointer to an initializes <c>struct starpu_transaction</c>
    or \c NULL if submitting the transaction begin task failed with \c ENODEV.
  */
-struct starpu_transaction *starpu_transaction_open(int(*do_start_func)(void *buffer, void *arg), void *do_start_arg);
+struct starpu_transaction *starpu_transaction_open(int (*do_start_func)(void *buffer, void *arg), void *do_start_arg);
 
 /**
    Function to mark the end of the current transaction epoch and start a new epoch.

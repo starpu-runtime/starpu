@@ -29,8 +29,7 @@
 #endif
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -139,7 +138,6 @@ void starpu_cuda_set_device(unsigned devid);
 */
 nvmlDevice_t starpu_cuda_get_nvmldev(unsigned devid);
 #endif
-
 
 /** @} */
 

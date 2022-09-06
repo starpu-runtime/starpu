@@ -23,8 +23,7 @@
 #include <stdio.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -41,8 +40,8 @@ struct starpu_data_descr;
 struct starpu_perfmodel_device
 {
 	enum starpu_worker_archtype type; /**< type of the device */
-	int devid;                        /**< identifier of the precise device */
-	int ncores;                       /**< number of execution in parallel, minus 1 */
+	int devid;			  /**< identifier of the precise device */
+	int ncores;			  /**< number of execution in parallel, minus 1 */
 };
 
 /**
@@ -50,22 +49,21 @@ struct starpu_perfmodel_device
 */
 struct starpu_perfmodel_arch
 {
-	int ndevices;                            /**< number of the devices for the given arch */
+	int ndevices;				 /**< number of the devices for the given arch */
 	struct starpu_perfmodel_device *devices; /**< list of the devices for the given arch */
 };
 
-
 struct starpu_perfmodel_history_entry
 {
-	double mean;        /**< mean_n = 1/n sum */
-	double deviation;   /**< n dev_n = sum2 - 1/n (sum)^2 */
-	double sum;         /**< sum of samples (in µs) */
-	double sum2;        /**< sum of samples^2 */
-	unsigned nsample;   /**< number of samples */
+	double mean;	  /**< mean_n = 1/n sum */
+	double deviation; /**< n dev_n = sum2 - 1/n (sum)^2 */
+	double sum;	  /**< sum of samples (in µs) */
+	double sum2;	  /**< sum of samples^2 */
+	unsigned nsample; /**< number of samples */
 	unsigned nerror;
 	uint32_t footprint; /**< data footprint */
-	size_t size;        /**< in bytes */
-	double flops;       /**< Provided by the application */
+	size_t size;	    /**< in bytes */
+	double flops;	    /**< Provided by the application */
 
 	double duration;
 	starpu_tag_t tag;
@@ -83,38 +81,38 @@ struct starpu_perfmodel_history_list
 */
 struct starpu_perfmodel_regression_model
 {
-	double sumlny;          /**< sum of ln(measured) */
+	double sumlny; /**< sum of ln(measured) */
 
-	double sumlnx;          /**< sum of ln(size) */
-	double sumlnx2;         /**< sum of ln(size)^2 */
+	double sumlnx;	/**< sum of ln(size) */
+	double sumlnx2; /**< sum of ln(size)^2 */
 
-	unsigned long minx;     /**< minimum size */
-	unsigned long maxx;     /**< maximum size */
+	unsigned long minx; /**< minimum size */
+	unsigned long maxx; /**< maximum size */
 
-	double sumlnxlny;       /**< sum of ln(size)*ln(measured) */
+	double sumlnxlny; /**< sum of ln(size)*ln(measured) */
 
-	double alpha;           /**< estimated = alpha * size ^ beta */
-	double beta;            /**< estimated = alpha * size ^ beta */
-	unsigned valid;         /**< whether the linear regression model is valid (i.e. enough measures) */
+	double alpha;	/**< estimated = alpha * size ^ beta */
+	double beta;	/**< estimated = alpha * size ^ beta */
+	unsigned valid; /**< whether the linear regression model is valid (i.e. enough measures) */
 
-	double a;               /**< estimated = a size ^b + c */
-	double b;               /**< estimated = a size ^b + c */
-	double c;               /**< estimated = a size ^b + c */
-	unsigned nl_valid;      /**< whether the non-linear regression model is valid (i.e. enough measures) */
+	double a;	   /**< estimated = a size ^b + c */
+	double b;	   /**< estimated = a size ^b + c */
+	double c;	   /**< estimated = a size ^b + c */
+	unsigned nl_valid; /**< whether the non-linear regression model is valid (i.e. enough measures) */
 
-	unsigned nsample;       /**< number of sample values for non-linear regression */
+	unsigned nsample; /**< number of sample values for non-linear regression */
 
-	double *coeff;          /**< list of computed coefficients for multiple linear regression model */
-	unsigned ncoeff;        /**< number of coefficients for multiple linear regression model */
-	unsigned multi_valid;   /**< whether the multiple linear regression model is valid */
+	double *coeff;	      /**< list of computed coefficients for multiple linear regression model */
+	unsigned ncoeff;      /**< number of coefficients for multiple linear regression model */
+	unsigned multi_valid; /**< whether the multiple linear regression model is valid */
 };
 
 struct starpu_perfmodel_history_table;
 
 #define starpu_per_arch_perfmodel starpu_perfmodel_per_arch STARPU_DEPRECATED
 
-typedef double (*starpu_perfmodel_per_arch_cost_function)(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
-typedef size_t (*starpu_perfmodel_per_arch_size_base)(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
+typedef double (*starpu_perfmodel_per_arch_cost_function)(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl);
+typedef size_t (*starpu_perfmodel_per_arch_size_base)(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl);
 
 /**
    information about the performance model of a given arch.
@@ -162,19 +160,19 @@ struct starpu_perfmodel_per_arch
 */
 enum starpu_perfmodel_type
 {
-        STARPU_PERFMODEL_INVALID=0,
-	STARPU_PER_WORKER,                /**< Application-provided per-worker cost model function */
-	STARPU_PER_ARCH,                  /**< Application-provided per-arch cost model function */
-	STARPU_COMMON,                    /**< Application-provided common cost model function, with per-arch factor */
-	STARPU_HISTORY_BASED,             /**< Automatic history-based cost model */
-	STARPU_REGRESSION_BASED,          /**< Automatic linear regression-based cost model  (alpha * size ^ beta) */
-	STARPU_NL_REGRESSION_BASED,       /**< Automatic non-linear regression-based cost model (a * size ^ b + c) */
-	STARPU_MULTIPLE_REGRESSION_BASED  /**< Automatic multiple linear regression-based cost model. Application
+	STARPU_PERFMODEL_INVALID = 0,
+	STARPU_PER_WORKER,		 /**< Application-provided per-worker cost model function */
+	STARPU_PER_ARCH,		 /**< Application-provided per-arch cost model function */
+	STARPU_COMMON,			 /**< Application-provided common cost model function, with per-arch factor */
+	STARPU_HISTORY_BASED,		 /**< Automatic history-based cost model */
+	STARPU_REGRESSION_BASED,	 /**< Automatic linear regression-based cost model  (alpha * size ^ beta) */
+	STARPU_NL_REGRESSION_BASED,	 /**< Automatic non-linear regression-based cost model (a * size ^ b + c) */
+	STARPU_MULTIPLE_REGRESSION_BASED /**< Automatic multiple linear regression-based cost model. Application
 					     provides parameters, their combinations and exponents. */
 };
 
 struct _starpu_perfmodel_state;
-typedef struct _starpu_perfmodel_state* starpu_perfmodel_state_t;
+typedef struct _starpu_perfmodel_state *starpu_perfmodel_state_t;
 
 /**
    Contain all information about a performance model. At least the
@@ -229,7 +227,7 @@ struct starpu_perfmodel
 	   number, and must return a task duration estimation in
 	   micro-seconds on that arch.
 	*/
-	double (*arch_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch * arch, unsigned nimpl);
+	double (*arch_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch *arch, unsigned nimpl);
 	/**
 	   Used by ::STARPU_PER_WORKER. Take a task, a worker id and implementation
 	   number, and must return a task duration estimation in
@@ -273,7 +271,7 @@ struct starpu_perfmodel
 	*/
 	unsigned is_init;
 
-	void (*parameters)(struct starpu_task * task, double *parameters);
+	void (*parameters)(struct starpu_task *task, double *parameters);
 	/**
 	   \private
 	   Names of parameters used for multiple linear regression models (M,
@@ -336,7 +334,6 @@ int starpu_energy_start(int workerid, enum starpu_worker_archtype archi);
 */
 int starpu_energy_stop(struct starpu_perfmodel *model, struct starpu_task *task, unsigned nimpl, unsigned ntasks, int workerid, enum starpu_worker_archtype archi);
 
-
 /**
    Load the performance model found in the file named \p filename. \p model has to be
    completely zero, and will be filled with the information stored in the given file.
@@ -389,7 +386,7 @@ void starpu_perfmodel_free_sampling(void);
 struct starpu_perfmodel_arch *starpu_worker_get_perf_archtype(int workerid, unsigned sched_ctx_id);
 
 int starpu_perfmodel_get_narch_combs(void);
-int starpu_perfmodel_arch_comb_add(int ndevices, struct starpu_perfmodel_device* devices);
+int starpu_perfmodel_arch_comb_add(int ndevices, struct starpu_perfmodel_device *devices);
 int starpu_perfmodel_arch_comb_get(int ndevices, struct starpu_perfmodel_device *devices);
 struct starpu_perfmodel_arch *starpu_perfmodel_arch_comb_fetch(int comb);
 
@@ -404,7 +401,7 @@ int starpu_perfmodel_set_per_devices_size_base(struct starpu_perfmodel *model, i
 */
 void starpu_perfmodel_debugfilepath(struct starpu_perfmodel *model, struct starpu_perfmodel_arch *arch, char *path, size_t maxlen, unsigned nimpl);
 
-const char* starpu_perfmodel_get_archtype_name(enum starpu_worker_archtype archtype);
+const char *starpu_perfmodel_get_archtype_name(enum starpu_worker_archtype archtype);
 
 /**
    Return the architecture name for \p arch
@@ -414,7 +411,7 @@ void starpu_perfmodel_get_arch_name(struct starpu_perfmodel_arch *arch, char *ar
 /**
    Return the estimated time in µs of a task with the given model and the given footprint.
 */
-double starpu_perfmodel_history_based_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, uint32_t footprint);
+double starpu_perfmodel_history_based_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch *arch, uint32_t footprint);
 
 /**
    If starpu_init() is not used, starpu_perfmodel_initialize() should be used called calling starpu_perfmodel_* functions.

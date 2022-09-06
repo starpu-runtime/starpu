@@ -18,8 +18,7 @@
 #define __STARPU_EXPERT_H__
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**

@@ -22,8 +22,7 @@
 #include <cublas_v2.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**

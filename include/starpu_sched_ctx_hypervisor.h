@@ -18,8 +18,7 @@
 #define __STARPU_SCHED_CTX_HYPERVISOR_H__
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
