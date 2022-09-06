@@ -1,0 +1,83 @@
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+
+/*! \page ExamplesInStarPUSources Examples in StarPU Sources
+
+We have already seen some examples in chapters \ref BasicExamples and \ref AdvancedExamples.
+A tutorial is also installed in the directory <c>share/doc/starpu/tutorial/</c>.
+
+Many examples are also available in the StarPU sources in the directory
+<c>examples/</c>. Simple examples include:
+
+<dl>
+<dt> <c>incrementer/</c> </dt>
+<dd> Trivial incrementation test. </dd>
+
+<dt> <c>basic_examples/</c> </dt>
+<dd>
+        Simple documented Hello world and vector/scalar product (as
+        shown in \ref BasicExamples), matrix
+        product examples (as shown in \ref PerformanceModelExample), an example using the blocked matrix data
+        interface, an example using the variable data interface, and an example
+        using different formats on CPUs and GPUs.
+</dd>
+
+<dt> <c>matvecmult/</c></dt>
+<dd>
+    OpenCL example from NVidia, adapted to StarPU.
+</dd>
+
+<dt> <c>axpy/</c></dt>
+<dd>
+    AXPY CUBLAS operation adapted to StarPU.
+</dd>
+
+<dt> <c>native_fortran/</c> </dt>
+<dd>
+    Example of using StarPU's native Fortran support.
+</dd>
+
+<dt> <c>fortran90/</c> </dt>
+<dd>
+    Example of Fortran 90 bindings, using C marshalling wrappers.
+</dd>
+
+<dt> <c>fortran/</c> </dt>
+<dd>
+    Example of Fortran 77 bindings, using C marshalling wrappers.
+</dd>
+</dl>
+
+More advanced examples include:
+
+<dl>
+<dt><c>filters/</c></dt>
+<dd>
+    Examples using filters, as shown in \ref PartitioningData.
+</dd>
+
+<dt><c>lu/</c></dt>
+<dd>
+    LU matrix factorization, see for instance <c>xlu_implicit.c</c>
+</dd>
+
+<dt><c>cholesky/</c></dt>
+<dd>
+    Cholesky matrix factorization, see for instance <c>cholesky_implicit.c</c>.
+</dd>
+</dl>
+
+*/

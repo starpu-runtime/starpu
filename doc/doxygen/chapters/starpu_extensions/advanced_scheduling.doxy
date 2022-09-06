@@ -1,0 +1,307 @@
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+
+/*! \page AdvancedScheduling Advanced Scheduling
+
+\section Energy-basedScheduling Energy-based Scheduling
+
+Note: by default StarPU does not let CPU workers sleep, to let them react to
+task release as quickly as possible. For idle time to really let CPU cores save
+energy, one needs to use the \c configure option \ref enable-blocking-drivers
+"--enable-blocking-drivers".
+
+If the application can provide some energy consumption performance model (through
+the field starpu_codelet::energy_model), StarPU will
+take it into account when distributing tasks. The target function that
+the scheduler \b dmda minimizes becomes <c>alpha * T_execution +
+beta * T_data_transfer + gamma * Consumption</c> , where <c>Consumption</c>
+is the estimated task consumption in Joules. To tune this parameter, use
+<c>export STARPU_SCHED_GAMMA=3000</c> (\ref STARPU_SCHED_GAMMA) for instance, to express that each Joule
+(i.e kW during 1000us) is worth 3000us execution time penalty. Setting
+<c>alpha</c> and <c>beta</c> to zero permits to only take into account energy consumption.
+
+This is however not sufficient to correctly optimize energy: the scheduler would
+simply tend to run all computations on the most energy-conservative processing
+unit. To account for the consumption of the whole machine (including idle
+processing units), the idle power of the machine should be given by setting
+<c>export STARPU_IDLE_POWER=200</c> (\ref STARPU_IDLE_POWER) for 200W, for instance. This value can often
+be obtained from the machine power supplier, e.g. by running
+
+\verbatim
+ipmitool -I lanplus -H mymachine-ipmi -U myuser -P mypasswd sdr type Current
+\endverbatim
+
+The energy actually consumed by the total execution can be displayed by setting
+<c>export STARPU_PROFILING=1 STARPU_WORKER_STATS=1</c> (\ref STARPU_PROFILING and \ref STARPU_WORKER_STATS).
+
+For OpenCL devices, on-line task consumption measurement is currently supported through the OpenCL extension
+<c>CL_PROFILING_POWER_CONSUMED</c>, implemented in the MoviSim simulator.
+
+
+For CUDA devices, on-line task consumption measurement is supported on V100
+cards and beyond. This however only works for quite long tasks, since the
+measurement granularity is about 10ms.
+
+Applications can however provide explicit measurements by using the function
+starpu_perfmodel_update_history() (examplified in \ref PerformanceModelExample
+with the performance model <c>energy_model</c>). Fine-grain measurement
+is often not feasible with the feedback provided by the hardware, so the
+user can for instance run a given task a thousand times, measure the global
+consumption for that series of tasks, divide it by a thousand, repeat for
+varying kinds of tasks and task sizes, and eventually feed StarPU with these
+manual measurements through starpu_perfmodel_update_history().  For instance,
+for CUDA devices, <c>nvidia-smi -q -d POWER</c> can be used to get the current
+consumption in Watt. Multiplying this value by the average duration of a
+single task gives the consumption of the task in Joules, which can be given to
+starpu_perfmodel_update_history().
+
+Another way to provide the energy performance is to define a
+perfmodel with starpu_perfmodel::type ::STARPU_PER_ARCH or
+::STARPU_PER_WORKER , and set the field starpu_perfmodel::arch_cost_function or
+starpu_perfmodel::worker_cost_function to a function which shall return
+the estimated consumption of the task in Joules. Such a function can for instance
+use starpu_task_expected_length() on the task (in µs), multiplied by the
+typical power consumption of the device, e.g. in W, and divided by 1000000. to
+get Joules.
+
+\subsection MeasuringEnergyandPower Measuring energy and power with StarPU
+
+We have extended the performance model of StarPU to measure energy and power values of CPUs. These values are measured using the existing Performance API (PAPI) analysis library. PAPI provides the tool designer and application engineer with a consistent interface and methodology for use of the performance counter hardware found in most major microprocessors. PAPI enables software engineers to see, in near real time, the relation between software performance and processor events.
+
+
+- To measure energy consumption of CPUs, we use the <c>RAPL</c> events, which are available on CPU architecture:
+<c>RAPL_ENERGY_PKG</c> that represents the whole CPU socket power consumption,
+and <c>RAPL_ENERGY_DRAM</c> that represents the RAM power consumption.
+
+
+
+PAPI provides a generic, portable interface for the hardware performance counters available on all modern CPUs and some other components of interest that are scattered across the chip
+and system.
+
+
+In order to use the right <c>rapl events</c> for energy measurement, user should check the <c>rapl events</c> available on the machine, using this command:
+
+\verbatim
+$ papi_native_avail
+\endverbatim
+
+Depending on the system configuration, the user may have to run this as <b>root</b> to get the performance counter values.
+
+Since the measurement is for all the the CPUs and the memory, the approach taken
+here is to run a series of tasks on all of them and to take the overall measurement.
+
+- The example below illustrates the energy and power measurements, using the functions starpu_energy_start() and starpu_energy_stop().
+
+In this example, we launch several tasks of the same type in parallel. To perform the energy requirement measurement of a program, we call starpu_energy_start(), which initializes energy measurement counters and starpu_energy_stop(struct starpu_perfmodel *model, struct starpu_task *task, unsigned nimpl, unsigned ntasks, int workerid, enum starpu_worker_archtype archi) to stop counting and update the performance model. This ends up yielding the average energy requirement of a single task. The example below illustrates this for a given task type.
+
+\code{.c}
+        unsigned N = starpu_cpu_worker_get_count() * 40;
+
+        starpu_energy_start(-1, STARPU_CPU_WORKER);
+
+        for (i = 0; i < N; i++)
+      starpu_task_insert(&cl, STARPU_EXECUTE_WHERE, STARPU_CPU, STARPU_R, arg1, STARPU_RW, arg2, 0);
+
+        starpu_task_t *specimen = starpu_task_build(&cl, STARPU_R, arg1, STARPU_RW, arg2, 0);
+        starpu_energy_stop(&codelet.energy_model, specimen, 0, N, -1, STARPU_CPU_WORKER);
+
+       . . .
+\endcode
+
+The example starts 40 times more tasks of the same type than there are CPU execution unit. Once the tasks are distributed over all CPUs, the latter are all executing the same type of tasks (with the same data size and parameters); each CPU will in the end execute 40 tasks. A specimen task is then constructed and passed to starpu_energy_stop(), which will fold into the performance model the energy requirement measurement for that type and size of task.
+
+For the energy and power measurements, depending on the system configuration the user may have to run applications as <b>root</b> to use PAPI library.
+
+The function starpu_energy_stop() uses <c>PAPI_stop()</c> to stop counting and store the values into the array. We calculate both energy in <c>Joules</c> and power consumption in <c>Watt</c>. We call the function starpu_perfmodel_update_history() in the perfmormance model to provide explicit measurements.
+
+- In the CUDA case, nvml provides per-GPU energy measurement. We can thus calibrate the performance models per GPU:
+
+\code{.c}
+        unsigned N = 40;
+
+    for (i = 0; i < starpu_cuda_worker_get_count(); i++) {
+        int workerid = starpu_worker_get_by_type(STARPU_CUDA_WORKER, i);
+
+        starpu_energy_start(workerid, STARPU_CUDA_WORKER);
+
+        for (i = 0; i < N; i++)
+          starpu_task_insert(&cl, STARPU_EXECUTE_ON_WORKER, workerid, STARPU_R, arg1, STARPU_RW, arg2, 0);
+
+        starpu_task_t *specimen = starpu_task_build(&cl, STARPU_R, arg1, STARPU_RW, arg2, 0);
+        starpu_energy_stop(&codelet.energy_model, specimen, 0, N, workerid, STARPU_CUDA_WORKER);
+
+       }
+\endcode
+
+- A complete example is available in <c>tests/perfmodels/regression_based_memset.c</c>
+
+\section StaticScheduling Static Scheduling
+
+In some cases, one may want to force some scheduling, for instance force a given
+set of tasks to GPU0, another set to GPU1, etc. while letting some other tasks
+be scheduled on any other device. This can indeed be useful to guide StarPU into
+some work distribution, while still letting some degree of dynamism. For
+instance, to force execution of a task on CUDA0:
+
+\code{.c}
+task->execute_on_a_specific_worker = 1;
+task->workerid = starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0);
+\endcode
+
+or equivalently
+
+\code{.c}
+starpu_task_insert(&cl, ..., STARPU_EXECUTE_ON_WORKER, starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0), ...);
+\endcode
+
+One can also specify a set of worker(s) which are allowed to take the task, as an
+array of bit, for instance to allow workers 2 and 42:
+
+\code{.c}
+task->workerids = calloc(2,sizeof(uint32_t));
+task->workerids[2/32] |= (1 << (2%32));
+task->workerids[42/32] |= (1 << (42%32));
+task->workerids_len = 2;
+\endcode
+
+One can also specify the order in which tasks must be executed by setting the field
+starpu_task::workerorder. If this field is set to a non-zero value, it
+provides the per-worker consecutive order in which tasks will be executed,
+starting from 1. For a given of such task, the worker will thus not execute
+it before all the tasks with smaller order value have been executed, notably
+in case those tasks are not available yet due to some dependencies. This
+eventually gives total control of task scheduling, and StarPU will only serve as
+a "self-timed" task runtime. Of course, the provided order has to be runnable,
+i.e. a task should not depend on another task bound to the same worker
+with a bigger order.
+
+Note however that using scheduling contexts while statically scheduling tasks on workers
+could be tricky. Be careful to schedule the tasks exactly on the workers of the corresponding
+contexts, otherwise the workers' corresponding scheduling structures may not be allocated or
+the execution of the application may deadlock. Moreover, the hypervisor should not be used when
+statically scheduling tasks.
+
+\section configuringHeteroprio Configuring Heteroprio
+
+Within Heteroprio, one priority per processing unit type is assigned  to each task, such that a task has several
+priorities. Each worker pops the task that has the highest priority for the hardware type it uses, which
+could be CPU or CUDA for example. Therefore, the priorities has to be used to manage the critical path,
+but also to promote the consumption of tasks by the more appropriate workers.
+
+The tasks are stored inside buckets, where each bucket corresponds to a priority set. Then each
+worker uses an indirect access array to know the order in which it should access the buckets. Moreover,
+all the tasks inside a bucket must be compatible with all the processing units that may access it (at least).
+
+These priorities are now automatically assigned by Heteroprio in auto calibration mode using heuristics.
+If you want to set these priorities manually, you can change \ref STARPU_HETEROPRIO_USE_AUTO_CALIBRATION
+and follow the example below.
+
+In this example code, we have 5 types of tasks.
+CPU workers can compute all of them, but CUDA workers can only execute
+tasks of types 0 and 1, and is expected to go 20 and 30 time
+faster than the CPU, respectively.
+\code{.c}
+#include <starpu_heteroprio.h>
+
+ // Before calling starpu_init
+struct starpu_conf conf;
+starpu_conf_init(&conf);
+ // Inform StarPU to use Heteroprio
+conf.sched_policy_name = "heteroprio";
+ // Inform StarPU about the function that will init the priorities in Heteroprio
+ // where init_heteroprio is a function to implement
+conf.sched_policy_callback = &init_heteroprio;
+ // Do other things with conf if needed, then init StarPU
+starpu_init(&conf);
+\endcode
+
+\code{.c}
+void init_heteroprio(unsigned sched_ctx) {
+  // CPU uses 5 buckets and visits them in the natural order
+  starpu_heteroprio_set_nb_prios(sched_ctx, STARPU_CPU_WORKER, 5);
+  // It uses direct mapping idx => idx
+  for(unsigned idx = 0; idx < 5; ++idx){
+    starpu_heteroprio_set_mapping(sched_ctx, STARPU_CPU_WORKER, idx, idx);
+    // If there is no CUDA worker we must tell that CPU is faster
+    starpu_heteroprio_set_faster_arch(sched_ctx, STARPU_CPU_WORKER, idx);
+  }
+
+  if(starpu_cuda_worker_get_count()){
+    // CUDA is enabled and uses 2 buckets
+    starpu_heteroprio_set_nb_prios(sched_ctx, STARPU_CUDA_WORKER, 2);
+    // CUDA will first look at bucket 1
+    starpu_heteroprio_set_mapping(sched_ctx, STARPU_CUDA_WORKER, 0, 1);
+    // CUDA will then look at bucket 2
+    starpu_heteroprio_set_mapping(sched_ctx, STARPU_CUDA_WORKER, 1, 2);
+
+    // For bucket 1 CUDA is the fastest
+    starpu_heteroprio_set_faster_arch(sched_ctx, STARPU_CUDA_WORKER, 1);
+    // And CPU is 30 times slower
+    starpu_heteroprio_set_arch_slow_factor(sched_ctx, STARPU_CPU_WORKER, 1, 30.0f);
+
+    // For bucket 0 CUDA is the fastest
+    starpu_heteroprio_set_faster_arch(sched_ctx, STARPU_CUDA_WORKER, 0);
+    // And CPU is 20 times slower
+    starpu_heteroprio_set_arch_slow_factor(sched_ctx, STARPU_CPU_WORKER, 0, 20.0f);
+  }
+}
+\endcode
+
+Then, when a task is inserted <b>the priority of the task will be used to
+select in which bucket is has to be stored</b>.
+So, in the given example, the priority of a task will be between 0 and 4 included.
+However, tasks of priorities 0-1 must provide CPU and CUDA kernels, and
+tasks of priorities 2-4 must provide CPU kernels (at least).
+
+\subsection LAHeteroprio Using locality aware Heteroprio
+
+Heteroprio supports a mode where locality is evaluated to guide the distribution
+of the tasks (see https://peerj.com/articles/cs-190.pdf).
+Currently, this mode is available using the dedicated function or an environment variable
+\ref STARPU_HETEROPRIO_USE_LA, and can be configured using environment variables.
+\code{.c}
+void starpu_heteroprio_set_use_locality(unsigned sched_ctx_id, unsigned use_locality);
+\endcode
+
+In this mode, multiple strategies are available to determine which memory node's workers are the most qualified for executing a specific task. This strategy can be set with \ref STARPU_LAHETEROPRIO_PUSH
+and available strategies are:
+- WORKER: the worker which pushed the task is preferred for the execution.
+- LcS: the node with the shortest data transfer time (estimated by StarPU) is the most qualified
+- LS_SDH: the node with the smallest data amount to be transferred will be preferred.
+- LS_SDH2: similar to LS_SDH, but data in write access is counted in a quadratic manner to give them more importance.
+- LS_SDHB: similar to LS_SDH, but data in write access is balanced with a coefficient (its value is set to 1000) and
+for the same amount of data, the one with less pieces of data to be transferred will be preferred.
+- LC_SMWB: similar to LS_SDH, but the amount of data in write access gets multiplied by a coefficient which gets closer to 2
+as the amount of data in read access gets larger than the data in write access.
+- AUTO: strategy by default, this one selects the best strategy and changes it in runtime to improve performance
+
+Other environment variables to configure LaHeteteroprio are documented in \ref ConfiguringLaHeteroprio
+
+\subsection AutoHeteroprio Using Heteroprio in auto-calibration mode
+
+In this mode, Heteroprio saves data about each program execution, in order to improve future ones.
+By default, theses files are stored in the folder used by perfmodel, but this can be changed using the
+\ref STARPU_HETEROPRIO_DATA_DIR environment variable. You can also specify the data filename directly using
+\ref STARPU_HETEROPRIO_DATA_FILE.
+
+Additionally, to assign priorities to tasks, Heteroprio needs a way to detect that some tasks are similar.
+By default, Heteroprio looks for tasks with the same perfmodel, or with the same codelet's name if no perfmodel was assigned.
+This behavior can be changed to only consider the codelet's name by setting
+\ref STARPU_HETEROPRIO_CODELET_GROUPING_STRATEGY to <c>1</c>
+
+Other environment variables to configure AutoHeteteroprio are documented in \ref ConfiguringAutoHeteroprio
+
+*/
