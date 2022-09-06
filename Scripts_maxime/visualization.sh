@@ -7,6 +7,14 @@
 #~ bash Scripts_maxime/visualization.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 5 MatriceZ4 3 HFP
 #~ bash Scripts_maxime/visualization.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 5 Matrice3D 3 HFP
 
+# Pour à la main appeller la visualisation sans lancer d'expé, par exemple si on veut modifier des choses à la main dans les données on fais: python3 /home/gonthier/these_gonthier_maxime/Code/visualisation2D.py 4 HFP 1 Matrice_ligne 1 1
+# Les fichiers ouvert à modifier sont :
+	# Output_maxime/Data_stolen_load_balance.txt Pour le task stealing pour HFP
+	# Output_maxime/last_package_split.txt Pour les sous paquets avant dernier merge pour HFP
+	# Output_maxime/Data_to_load_prefetch_SCHEDULER.txt Pour les chargements en prefetch pour tous
+	# Output_maxime/Data_coordinates_order_last_SCHEDULER.txt Pour l'ordre de traitement des tâches pour tous
+	# Output_maxime/Data_to_load_SCHEDULER.txt Pour l'ordre de chargement des données pour tous
+
 make -j 6
 PATH_STARPU=$1
 PATH_R=$2
@@ -26,15 +34,15 @@ if [ $NGPU = 1 ]
 	MULTI=0
 fi
 
-#~ LA PERMUTATION 
-# ~ #~ /./home/gonthier/these_gonthier_maxime/Code/permutation_visu_python $((N)) HFP 1 1 QUe en 2D ? Oui :/.
+# LA PERMUTATION 
+# /./home/gonthier/these_gonthier_maxime/Code/permutation_visu_python $((N)) HFP 1 1 Que en 2D ? Oui :/.
 
 
 if [ $DOSSIER = "Matrice_ligne" ]
 	then
 	STARPU_SCHED=${ORDO} SEED=$((N/5)) EVICTION_STRATEGY_DYNAMIC_OUTER=0 PRINT_IN_TERMINAL=1 PRINT_N=$((N)) STARPU_SCHED_READY=0 STARPU_NTASKS_THRESHOLD=10 STARPU_CUDA_PIPELINE=5 MULTIGPU=$((MULTI)) BELADY=0 ORDER_U=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=gemini-1-fgcs ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 1
 	#~ /./home/gonthier/these_gonthier_maxime/Code/permutation_visu_python $((N)) DARTS 1 1
-	python3 /home/gonthier/these_gonthier_maxime/Code/visualisation2D.py ${N} ${ORDO} ${NGPU} ${DOSSIER} 1
+	python3 /home/gonthier/these_gonthier_maxime/Code/visualisation2D.py ${N} ${ORDO} ${NGPU} ${DOSSIER} 1 0
 fi
 if [ $DOSSIER = "MatriceZ4" ]
 	then
@@ -51,6 +59,3 @@ if [ $DOSSIER = "Cholesky" ]
 	DEPENDANCES=1 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_SCHED=${ORDO} SEED=$((N/5)) PRINT_IN_TERMINAL=1 PRINT_N=$((N)) STARPU_SCHED_READY=0 STARPU_NTASKS_THRESHOLD=10 STARPU_CUDA_PIPELINE=5 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_LIMIT_CUDA_MEM=500 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=gemini-1-fgcs ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N))
 	python3 /home/gonthier/these_gonthier_maxime/Code/visualisation2D.py ${N} ${ORDO} ${NGPU} ${DOSSIER}
 fi
-
-#~ python3 /home/gonthier/these_gonthier_maxime/Code/visualisation2D.py Output_maxime/Data_coordinates_order_last_SCHEDULER.txt Output_maxime/Data_to_load_SCHEDULER.txt ${N} ${ORDO} ${NGPU} 1
-#~ python3 /home/gonthier/these_gonthier_maxime/Code/test.py Output_maxime/Data_coordinates_order_last_SCHEDULER.txt Output_maxime/Data_to_load_SCHEDULER.txt ${N} ${ORDO} ${NGPU} 4
