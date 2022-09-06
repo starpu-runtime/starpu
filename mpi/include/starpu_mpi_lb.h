@@ -20,8 +20,7 @@
 #include <starpu.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 struct starpu_mpi_lb_conf

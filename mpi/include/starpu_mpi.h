@@ -27,8 +27,7 @@
 #include <stdint.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -133,7 +132,6 @@ int starpu_mpi_world_size(void);
    \0.
 */
 int starpu_mpi_comm_get_attr(MPI_Comm comm, int keyval, void *attribute_val, int *flag);
-
 
 /**
    Get the logical index of the core where the MPI thread is bound.
@@ -579,7 +577,7 @@ starpu_mpi_tag_t starpu_mpi_data_get_tag(starpu_data_handle_t handle);
 /**
    Return the redux map of the given data.
 */
-char* starpu_mpi_data_get_redux_map(starpu_data_handle_t handle);
+char *starpu_mpi_data_get_redux_map(starpu_data_handle_t handle);
 
 /**
    Symbol kept for backward compatibility. Call function starpu_mpi_data_get_tag()
@@ -695,7 +693,7 @@ int starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle_t data_handle,
    call the function. On reception, the \p callback function is called
    with the argument \p arg.
 */
-int starpu_mpi_get_data_on_node_detached(MPI_Comm comm, starpu_data_handle_t data_handle, int node, void (*callback)(void*), void *arg);
+int starpu_mpi_get_data_on_node_detached(MPI_Comm comm, starpu_data_handle_t data_handle, int node, void (*callback)(void *), void *arg);
 
 /**
    Transfer data \p data_handle to all MPI nodes, sending it from its
@@ -723,7 +721,6 @@ void starpu_mpi_data_migrate(MPI_Comm comm, starpu_data_handle_t handle, int new
    @{
 */
 
-
 /**
    Define the current policy
  */
@@ -732,7 +729,7 @@ void starpu_mpi_data_migrate(MPI_Comm comm, starpu_data_handle_t handle, int new
    Define the policy in which the selected node is the one having the
    most data in ::STARPU_R mode
 */
-#define STARPU_MPI_NODE_SELECTION_MOST_R_DATA    0
+#define STARPU_MPI_NODE_SELECTION_MOST_R_DATA 0
 
 typedef int (*starpu_mpi_select_node_policy_func_t)(int me, int nb_nodes, struct starpu_data_descr *descr, int nb_data);
 

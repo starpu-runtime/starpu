@@ -20,12 +20,11 @@
 #include <starpu.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 struct _starpu_mpi_checkpoint_template;
-typedef struct _starpu_mpi_checkpoint_template* starpu_mpi_checkpoint_template_t;
+typedef struct _starpu_mpi_checkpoint_template *starpu_mpi_checkpoint_template_t;
 
 #if defined(STARPU_USE_MPI_FT)
 /**
@@ -62,7 +61,7 @@ int starpu_mpi_checkpoint_shutdown(void);
  * <li> The argument list must be ended by the value 0.
  * </ul>
  */
-int starpu_mpi_checkpoint_template_register(starpu_mpi_checkpoint_template_t* cp_template, int cp_id, int cp_domain, ...);
+int starpu_mpi_checkpoint_template_register(starpu_mpi_checkpoint_template_t *cp_template, int cp_id, int cp_domain, ...);
 
 /**
  * Create a new checkpoint template. A unique checkpoint id \p cp_id is requested from
@@ -71,7 +70,7 @@ int starpu_mpi_checkpoint_template_register(starpu_mpi_checkpoint_template_t* cp
  * Note a template must be frozen with ::starpu_mpi_checkpoint_template_freeze() in order to use it
  * with ::starpu_mpi_checkpoint_template_submit().
 */
-int starpu_mpi_checkpoint_template_create(starpu_mpi_checkpoint_template_t* cp_template, int cp_id, int cp_domain);
+int starpu_mpi_checkpoint_template_create(starpu_mpi_checkpoint_template_t *cp_template, int cp_id, int cp_domain);
 
 /**
  * Add a single entry to a checkpoint template previously created with ::starpu_mpi_checkpoint_template_create().
@@ -91,14 +90,14 @@ int starpu_mpi_checkpoint_template_create(starpu_mpi_checkpoint_template_t* cp_t
  * <li> The argument list must be ended by the value 0.
  * </ul>
  */
-int starpu_mpi_checkpoint_template_add_entry(starpu_mpi_checkpoint_template_t* cp_template, ...);
+int starpu_mpi_checkpoint_template_add_entry(starpu_mpi_checkpoint_template_t *cp_template, ...);
 
 /**
  * Freeze the given template.
  * A frozen template can no longer be modified with ::starpu_mpi_checkpoint_template_add_entry().
  * A template must be frozen before using ::starpu_mpi_checkpoint_template_submit().
  */
-int starpu_mpi_checkpoint_template_freeze(starpu_mpi_checkpoint_template_t* cp_template);
+int starpu_mpi_checkpoint_template_freeze(starpu_mpi_checkpoint_template_t *cp_template);
 
 /**
  * Submit the checkpoint to StarPU, and can be seen as a cut in the task graph. StarPU will save the data as currently
@@ -113,16 +112,16 @@ int starpu_mpi_checkpoint_template_submit(starpu_mpi_checkpoint_template_t cp_te
 int starpu_mpi_checkpoint_template_print(starpu_mpi_checkpoint_template_t cp_template);
 
 #else // !STARPU_USE_MPI_FT
-static inline int starpu_mpi_checkpoint_template_register(starpu_mpi_checkpoint_template_t* cp_template STARPU_ATTRIBUTE_UNUSED, int cp_id STARPU_ATTRIBUTE_UNUSED, int cp_domain STARPU_ATTRIBUTE_UNUSED, ...) {return 0;}
-static inline int starpu_mpi_checkpoint_template_create(starpu_mpi_checkpoint_template_t* cp_template STARPU_ATTRIBUTE_UNUSED, int cp_id STARPU_ATTRIBUTE_UNUSED, int cp_domain STARPU_ATTRIBUTE_UNUSED) {return 0;}
-static inline int starpu_mpi_checkpoint_template_add_entry(starpu_mpi_checkpoint_template_t* cp_template STARPU_ATTRIBUTE_UNUSED, ...) {return 0;}
-static inline int starpu_mpi_checkpoint_template_freeze(starpu_mpi_checkpoint_template_t* cp_template STARPU_ATTRIBUTE_UNUSED) {return 0;}
-static inline int starpu_mpi_checkpoint_template_submit(starpu_mpi_checkpoint_template_t cp_template STARPU_ATTRIBUTE_UNUSED, int prio STARPU_ATTRIBUTE_UNUSED) {return 0;}
-static inline int starpu_mpi_ft_turn_on(void) {return 0;}
-static inline int starpu_mpi_ft_turn_off(void) {return 0;}
-static inline int starpu_mpi_checkpoint_template_print(starpu_mpi_checkpoint_template_t cp_template STARPU_ATTRIBUTE_UNUSED) {return 0;}
-static inline int starpu_mpi_checkpoint_init(void) {return 0;}
-static inline int starpu_mpi_checkpoint_shutdown(void) {return 0;}
+static inline int starpu_mpi_checkpoint_template_register(starpu_mpi_checkpoint_template_t *cp_template STARPU_ATTRIBUTE_UNUSED, int cp_id STARPU_ATTRIBUTE_UNUSED, int cp_domain STARPU_ATTRIBUTE_UNUSED, ...) { return 0; }
+static inline int starpu_mpi_checkpoint_template_create(starpu_mpi_checkpoint_template_t *cp_template STARPU_ATTRIBUTE_UNUSED, int cp_id STARPU_ATTRIBUTE_UNUSED, int cp_domain STARPU_ATTRIBUTE_UNUSED) { return 0; }
+static inline int starpu_mpi_checkpoint_template_add_entry(starpu_mpi_checkpoint_template_t *cp_template STARPU_ATTRIBUTE_UNUSED, ...) { return 0; }
+static inline int starpu_mpi_checkpoint_template_freeze(starpu_mpi_checkpoint_template_t *cp_template STARPU_ATTRIBUTE_UNUSED) { return 0; }
+static inline int starpu_mpi_checkpoint_template_submit(starpu_mpi_checkpoint_template_t cp_template STARPU_ATTRIBUTE_UNUSED, int prio STARPU_ATTRIBUTE_UNUSED) { return 0; }
+static inline int starpu_mpi_ft_turn_on(void) { return 0; }
+static inline int starpu_mpi_ft_turn_off(void) { return 0; }
+static inline int starpu_mpi_checkpoint_template_print(starpu_mpi_checkpoint_template_t cp_template STARPU_ATTRIBUTE_UNUSED) { return 0; }
+static inline int starpu_mpi_checkpoint_init(void) { return 0; }
+static inline int starpu_mpi_checkpoint_shutdown(void) { return 0; }
 
 /** @} */
 
