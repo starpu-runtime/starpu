@@ -65,19 +65,8 @@ void _starpu_hip_init_worker_binding(struct _starpu_machine_config *config, int 
 void _starpu_hip_init_worker_memory(struct _starpu_machine_config *config, int no_mp_config, struct _starpu_worker *workerarg);
 void _starpu_init_hip(void);
 void *_starpu_hip_worker(void *);
-#ifdef STARPU_HAVE_LIBNVIDIA_ML
-nvmlDevice_t _starpu_hip_get_nvmldev(struct hipDeviceProp_t *props);
-#endif
 #else
 #  define _starpu_hip_discover_devices(config) ((void) config)
-#endif
-
-#ifdef STARPU_USE_HIP
-#ifdef STARPU_USE_HIP_MAP
-uintptr_t _starpu_hip_map_ram(uintptr_t src_ptr, size_t src_offset, unsigned src_node, unsigned dst_node, size_t size, int *ret);
-int _starpu_hip_unmap_ram(uintptr_t src_ptr, size_t src_offset, unsigned src_node, uintptr_t dst_ptr, unsigned dst_node, size_t size);
-int _starpu_hip_update_map(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size);
-#endif
 #endif
 
 unsigned _starpu_hip_test_request_completion(struct _starpu_async_channel *async_channel);
