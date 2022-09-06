@@ -49,8 +49,7 @@ extern struct starpu_data_interface_ops starpu_interface_multiformat_ops;
 
 void _starpu_data_free_interfaces(starpu_data_handle_t handle);
 
-extern
-int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_interface_ops *interface_ops, unsigned int mf_node);
+extern int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_interface_ops *interface_ops, unsigned int mf_node);
 void _starpu_data_initialize_per_worker(starpu_data_handle_t handle);
 
 extern struct starpu_arbiter *_starpu_global_arbiter;
@@ -62,17 +61,7 @@ extern int __starpu_data_check_not_busy(starpu_data_handle_t handle) STARPU_ATTR
 		__starpu_data_check_not_busy(handle) : 0)
 extern void _starpu_data_interface_shutdown(void);
 
-#ifdef STARPU_OPENMP
-void _starpu_omp_unregister_region_handles(struct starpu_omp_region *region);
-void _starpu_omp_unregister_task_handles(struct starpu_omp_task *task);
-#endif
-
 struct starpu_data_interface_ops *_starpu_data_interface_get_ops(unsigned interface_id) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
-
-extern void _starpu_data_register_ram_pointer(starpu_data_handle_t handle,
-						void *ptr);
-
-extern void _starpu_data_unregister_ram_pointer(starpu_data_handle_t handle, unsigned node);
 
 #define _starpu_data_is_multiformat_handle(handle) handle->ops->is_multiformat
 
