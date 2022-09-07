@@ -365,7 +365,7 @@ extern "C" {
 /**
    \ingroup API_Bubble
    Used when calling starpu_task_insert(), must be followed by a
-   pointer to a bubble decision function starpu_bubble_func_t
+   pointer to a bubble decision function ::starpu_bubble_func_t
 */
 #define STARPU_BUBBLE_FUNC (47 << STARPU_MODE_SHIFT)
 
@@ -381,7 +381,7 @@ extern "C" {
    \ingroup API_Bubble
    Used when calling starpu_task_insert(), must be followed by a
    pointer to a bubble DAG generation function
-   starpu_bubble_gen_dag_func_t
+   ::starpu_bubble_gen_dag_func_t
 */
 #define STARPU_BUBBLE_GEN_DAG_FUNC (49 << STARPU_MODE_SHIFT)
 
