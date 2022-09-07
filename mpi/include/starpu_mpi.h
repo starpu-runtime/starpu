@@ -222,7 +222,7 @@ int starpu_mpi_recv(starpu_data_handle_t data_handle, int source, starpu_mpi_tag
 int starpu_mpi_isend_detached(starpu_data_handle_t data_handle, int dest, starpu_mpi_tag_t data_tag, MPI_Comm comm, void (*callback)(void *), void *arg);
 
 /**
-   Similar to starpu_mpi_isend_detached, but take a priority \p prio.
+   Similar to starpu_mpi_isend_detached(), but take a priority \p prio.
 */
 int starpu_mpi_isend_detached_prio(starpu_data_handle_t data_handle, int dest, starpu_mpi_tag_t data_tag, int prio, MPI_Comm comm, void (*callback)(void *), void *arg);
 
@@ -799,7 +799,7 @@ int starpu_mpi_node_selection_set_current_policy(int policy);
 int starpu_mpi_redux_data(MPI_Comm comm, starpu_data_handle_t data_handle);
 
 /**
-   Similar to starpu_mpi_redux_data, but take a priority \p prio.
+   Similar to starpu_mpi_redux_data(), but take a priority \p prio.
 */
 int starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle, int prio);
 
@@ -811,7 +811,7 @@ int starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle, 
 int starpu_mpi_redux_data_tree(MPI_Comm comm, starpu_data_handle_t data_handle, int arity);
 
 /**
-   Similar to starpu_mpi_redux_data_tree, but take a priority \p prio.
+   Similar to starpu_mpi_redux_data_tree(), but take a priority \p prio.
 */
 int starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_handle, int prio, int arity);
 
