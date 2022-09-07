@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -54,7 +54,7 @@ static unsigned _compute_max_speed(int ns, int nw, double w_in_s[ns][nw], unsign
 	gettimeofday(&end_time, NULL);
 
 	long diff_s = end_time.tv_sec  - start_time.tv_sec;
-	long diff_us = end_time.tv_usec  - start_time.tv_usec;
+	long diff_us = end_time.tv_usec	 - start_time.tv_usec;
 
 	__attribute__((unused)) float timing = (float)(diff_s*1000000 + diff_us)/1000;
 
@@ -99,7 +99,7 @@ static double _glp_resolve(int ns, int nw, double speed[ns][nw], double w_in_s[n
 				glp_set_col_name(lp, s*nw+w+1, name);
 				if (integer)
 				{
-                                        glp_set_col_kind(lp, s*nw+w+1, GLP_IV);
+					glp_set_col_kind(lp, s*nw+w+1, GLP_IV);
 					glp_set_col_bnds(lp, s*nw+w+1, GLP_DB, 0, 1);
 				}
 				else
@@ -182,12 +182,12 @@ static double _glp_resolve(int ns, int nw, double speed[ns][nw], double w_in_s[n
 		return 0.0;
 	}
 
-        if (integer)
-        {
-                glp_iocp iocp;
-                glp_init_iocp(&iocp);
-                iocp.msg_lev = GLP_MSG_OFF;
-                glp_intopt(lp, &iocp);
+	if (integer)
+	{
+		glp_iocp iocp;
+		glp_init_iocp(&iocp);
+		iocp.msg_lev = GLP_MSG_OFF;
+		glp_intopt(lp, &iocp);
 		int stat = glp_mip_status(lp);
 		/* if we don't have a solution return */
 		if(stat == GLP_NOFEAS)
@@ -196,7 +196,7 @@ static double _glp_resolve(int ns, int nw, double speed[ns][nw], double w_in_s[n
 			lp = NULL;
 			return 0.0;
 		}
-        }
+	}
 
 	int stat = glp_get_prim_stat(lp);
 	/* if we don't have a solution return */
@@ -232,7 +232,7 @@ static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs , int *workers, 
 	sched_ctxs = sched_ctxs == NULL ? sc_hypervisor_get_sched_ctxs() : sched_ctxs;
 
 	double w_in_s[ns][nw];
-	unsigned found_sol = _compute_max_speed(ns, nw,  w_in_s, sched_ctxs, workers);
+	unsigned found_sol = _compute_max_speed(ns, nw,	 w_in_s, sched_ctxs, workers);
 	/* if we did find at least one solution redistribute the resources */
 	if(found_sol)
 	{
@@ -271,9 +271,9 @@ static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs , int *workers, 
 				}
 			}
 		}
-/* 				for(s = 0; s < ns; s++) */
-/* 					printf("%d: cpus = %lf gpus = %lf cpus_round = %d gpus_round = %d\n", s, nworkers[s][1], nworkers[s][0], */
-/* 					       nworkers_rounded[s][1], nworkers_rounded[s][0]); */
+/*				for(s = 0; s < ns; s++) */
+/*					printf("%d: cpus = %lf gpus = %lf cpus_round = %d gpus_round = %d\n", s, nworkers[s][1], nworkers[s][0], */
+/*					       nworkers_rounded[s][1], nworkers_rounded[s][0]); */
 
 
 		sc_hypervisor_lp_redistribute_resources_in_ctxs(ns, tw->nw, nworkers_per_ctx_rounded, nworkers_per_ctx, sched_ctxs, tw);
@@ -285,7 +285,7 @@ static void throughput_lp_handle_poped_task(__attribute__((unused))unsigned sche
 				       __attribute__((unused))struct starpu_task *task, __attribute__((unused))uint32_t footprint)
 {
 	int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
-        if(ret != EBUSY)
+	if(ret != EBUSY)
 	{
 		unsigned criteria = sc_hypervisor_get_resize_criteria();
 		if(criteria != SC_NOTHING && criteria == SC_SPEED)
@@ -295,27 +295,27 @@ static void throughput_lp_handle_poped_task(__attribute__((unused))unsigned sche
 				_try_resizing(NULL, -1, NULL, -1);
 			}
 		}
-                STARPU_PTHREAD_MUTEX_UNLOCK(&act_hypervisor_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&act_hypervisor_mutex);
 	}
 }
 
 static void throughput_lp_handle_idle_cycle(unsigned sched_ctx, int worker)
 {
 	int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
-        if(ret != EBUSY)
+	if(ret != EBUSY)
 	{
-                unsigned criteria = sc_hypervisor_get_resize_criteria();
-                if(criteria != SC_NOTHING && criteria == SC_IDLE)
-                {
+		unsigned criteria = sc_hypervisor_get_resize_criteria();
+		if(criteria != SC_NOTHING && criteria == SC_IDLE)
+		{
 
 			if(sc_hypervisor_check_idle(sched_ctx, worker))
-                        {
-                                _try_resizing(NULL, -1, NULL, -1);
-//                              sc_hypervisor_move_workers(sched_ctx, 3 - sched_ctx, &worker, 1, 1);
+			{
+				_try_resizing(NULL, -1, NULL, -1);
+//				sc_hypervisor_move_workers(sched_ctx, 3 - sched_ctx, &worker, 1, 1);
 			}
-                }
-                STARPU_PTHREAD_MUTEX_UNLOCK(&act_hypervisor_mutex);
-        }
+		}
+		STARPU_PTHREAD_MUTEX_UNLOCK(&act_hypervisor_mutex);
+	}
 }
 
 static void throughput_lp_resize_ctxs(unsigned *sched_ctxs, int nsched_ctxs , int *workers, int nworkers)
@@ -330,15 +330,16 @@ static void throughput_lp_resize_ctxs(unsigned *sched_ctxs, int nsched_ctxs , in
 
 static void throughput_lp_end_ctx(__attribute__((unused))unsigned sched_ctx)
 {
-/* 	struct sc_hypervisor_wrapper* sc_w = sc_hypervisor_get_wrapper(sched_ctx); */
-/* 	int worker; */
-/* 	for(worker = 0; worker < 12; worker++) */
-/* 		printf("%d/%d: speed %lf\n", worker, sched_ctx, sc_w->ref_speed[worker]); */
+/*	struct sc_hypervisor_wrapper* sc_w = sc_hypervisor_get_wrapper(sched_ctx); */
+/*	int worker; */
+/*	for(worker = 0; worker < 12; worker++) */
+/*		printf("%d/%d: speed %lf\n", worker, sched_ctx, sc_w->ref_speed[worker]); */
 
 	return;
 }
 
-struct sc_hypervisor_policy throughput_lp_policy = {
+struct sc_hypervisor_policy throughput_lp_policy =
+{
 	.size_ctxs = NULL,
 	.resize_ctxs = throughput_lp_resize_ctxs,
 	.handle_poped_task = throughput_lp_handle_poped_task,

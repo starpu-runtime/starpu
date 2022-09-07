@@ -212,34 +212,34 @@ static int handle_events(void)
 
 #ifdef STARPU_USE_OPENCL
 char *mandelbrot_opencl_src = "\
-#pragma OPENCL EXTENSION cl_khr_fp64 : enable\n\
-#define MIN(a,b) (((a)<(b))? (a) : (b))					\n\
-__kernel void mandelbrot_kernel(__global unsigned* a,			\n\
-          double leftX, double topY,					\n\
-          double stepX, double stepY,					\n\
-          int maxIt, int iby, int block_size, int width)		\n\
-{									\n\
-    size_t id_x = get_global_id(0);	\n\
-    size_t id_y = get_global_id(1);	\n\
-    if ((id_x < width) && (id_y < block_size))				\n\
-    {									\n\
-        double xc = leftX + id_x * stepX;				\n\
-        double yc = topY - (id_y + iby*block_size) * stepY;		\n\
-        int it;								\n\
-        double x,y;							\n\
-        x = y = (double)0.0;						\n\
-        for (it=0;it<maxIt;it++)					\n\
-        {								\n\
-          double x2 = x*x;						\n\
-          double y2 = y*y;						\n\
-          if (x2+y2 > 4.0) break;					\n\
-          double twoxy = (double)2.0*x*y;				\n\
-          x = x2 - y2 + xc;						\n\
-          y = twoxy + yc;						\n\
-        }								\n\
-       unsigned int v = MIN((1024*((float)(it)/(2000))), 256);		\n\
-       a[id_x + width * id_y] = (v<<16|(255-v)<<8);			\n\
-   }									\n\
+#pragma OPENCL EXTENSION cl_khr_fp64 : enable\n				\
+#define MIN(a,b) (((a)<(b))? (a) : (b))					\n \
+__kernel void mandelbrot_kernel(__global unsigned* a,			\n \
+	double leftX, double topY,					\n \
+	double stepX, double stepY,					\n \
+	int maxIt, int iby, int block_size, int width)			\n \
+{									\n \
+	size_t id_x = get_global_id(0);	\n				\
+	size_t id_y = get_global_id(1);	\n				\
+	if ((id_x < width) && (id_y < block_size))			\n \
+	{								\n \
+	double xc = leftX + id_x * stepX;				\n \
+	double yc = topY - (id_y + iby*block_size) * stepY;		\n \
+	int it;								\n \
+	double x,y;							\n \
+	x = y = (double)0.0;						\n \
+	for (it=0;it<maxIt;it++)					\n \
+	{								\n \
+		double x2 = x*x;					\n \
+		double y2 = y*y;					\n \
+		if (x2+y2 > 4.0) break;					\n \
+		double twoxy = (double)2.0*x*y;				\n \
+		x = x2 - y2 + xc;					\n \
+		y = twoxy + yc;						\n \
+	}								\n \
+	unsigned int v = MIN((1024*((float)(it)/(2000))), 256);		\n \
+	a[id_x + width * id_y] = (v<<16|(255-v)<<8);			\n \
+	}								\n \
 }";
 
 static struct starpu_opencl_program opencl_programs;

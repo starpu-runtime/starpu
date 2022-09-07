@@ -114,7 +114,7 @@ static void *s_starpujni_disk_plug(void *parameter, starpu_ssize_t size)
 		HDFS_ERRMSG_GOTO(err, "can't create directory %s.", hdfs->path);
 	E("%s", (char *) parameter);
 	return hdfs;
- err:
+err:
 	s_hdfs_destroy(hdfs);
 	return NULL;
 }
@@ -282,7 +282,7 @@ static int s_copy(struct hdfs_base *base, const char *dstPath, hdfsFile dst, hdf
 	res = 1;
 	E("offset=%ld size=%lu", (long) offset, size);
 
- err:
+err:
 	if (buffer != NULL)
 		starpu_free_flags(buffer, size, 0);
 
@@ -351,7 +351,7 @@ static int s_starpujni_disk_write(void *base, void *obj, const void *buf, off_t 
 
 	return 0;
 
- err:
+err:
 	hdfsDelete(hdfs->fs, tmp->path, 0);
 	s_hdfs_file_destroy(hdfs, tmp);
 	if (tmpos != NULL)
@@ -522,10 +522,10 @@ static char *s_hdfs_create_or_resize_file(struct hdfs_base *hdfs, const char *fi
 	}
 	hdfsCloseFile(hdfs->fs, writefile);
 
- end:
+end:
 	return path;
 
- err:
+err:
 	starpu_free_noflag(path, hdfs->path_size);
 	if (buf != NULL)
 		starpu_free_noflag(buf, size);

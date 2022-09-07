@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -51,7 +51,7 @@ static struct starpu_codelet dummy_codelet =
 {
 	.cpu_funcs = {dummy_func},
 	.cuda_funcs = {dummy_func},
-        .opencl_funcs = {dummy_func},
+	.opencl_funcs = {dummy_func},
 	.cpu_funcs_name = {"dummy_func"},
 	.model = NULL,
 	.nbuffers = 0,
@@ -170,36 +170,36 @@ int main(int argc, char **argv)
 	fprintf(stderr, "Per task (push): %f usecs\n", cumulated_push/ntasks);
 	fprintf(stderr, "Per task (pop): %f usecs\n", cumulated_pop/ntasks);
 
-        {
-                char *output_dir = getenv("STARPU_BENCH_DIR");
-                char *bench_id = getenv("STARPU_BENCH_ID");
+	{
+		char *output_dir = getenv("STARPU_BENCH_DIR");
+		char *bench_id = getenv("STARPU_BENCH_ID");
 
-                if (output_dir && bench_id)
+		if (output_dir && bench_id)
 		{
-                        char number[1+sizeof(nbuffers)*3+1];
-                        const char *numberp;
-                        char file[1024];
-                        FILE *f;
+			char number[1+sizeof(nbuffers)*3+1];
+			const char *numberp;
+			char file[1024];
+			FILE *f;
 
-                        if (nbuffers)
-                        {
-                                snprintf(number, sizeof(number), "_%u", nbuffers);
-                                numberp = number;
-                        }
-                        else
-                                numberp = "";
+			if (nbuffers)
+			{
+				snprintf(number, sizeof(number), "_%u", nbuffers);
+				numberp = number;
+			}
+			else
+				numberp = "";
 
-                        snprintf(file, sizeof(file), "%s/async_tasks_overhead_total%s.dat", output_dir, numberp);
-                        f = fopen(file, "a");
-                        fprintf(f, "%s\t%f\n", bench_id, timing/1000000);
-                        fclose(f);
+			snprintf(file, sizeof(file), "%s/async_tasks_overhead_total%s.dat", output_dir, numberp);
+			f = fopen(file, "a");
+			fprintf(f, "%s\t%f\n", bench_id, timing/1000000);
+			fclose(f);
 
-                        snprintf(file, sizeof(file), "%s/async_tasks_overhead_per_task%s.dat", output_dir, numberp);
-                        f = fopen(file, "a");
-                        fprintf(f, "%s\t%f\n", bench_id, timing/ntasks);
-                        fclose(f);
-                }
-        }
+			snprintf(file, sizeof(file), "%s/async_tasks_overhead_per_task%s.dat", output_dir, numberp);
+			f = fopen(file, "a");
+			fprintf(f, "%s\t%f\n", bench_id, timing/ntasks);
+			fclose(f);
+		}
+	}
 
 	for (buffer = 0; buffer < nbuffers; buffer++)
 	{
@@ -215,7 +215,7 @@ int main(int argc, char **argv)
 enodev:
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one
- 	 * could perform the kernel, so this is not an error from StarPU */
+	 * could perform the kernel, so this is not an error from StarPU */
 	starpu_shutdown();
 	free(tasks);
 	return STARPU_TEST_SKIPPED;

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -30,14 +30,14 @@ void life_update(int bz, const TYPE *old, TYPE *newp, int nx, int ny, int nz, in
 			for (x = K; x < nx - K; x++)
 			{
 				num = 0
-                                        + old[x+(y+1)*ldy+(z+0)*ldz]
-                                        + old[x+(y+1)*ldy+(z+1)*ldz]
-                                        + old[x+(y+0)*ldy+(z+1)*ldz]
-                                        + old[x+(y-1)*ldy+(z+1)*ldz]
-                                        + old[x+(y-1)*ldy+(z+0)*ldz]
-                                        + old[x+(y-1)*ldy+(z-1)*ldz]
-                                        + old[x+(y+0)*ldy+(z-1)*ldz]
-                                        + old[x+(y+1)*ldy+(z-1)*ldz]
+					+ old[x+(y+1)*ldy+(z+0)*ldz]
+					+ old[x+(y+1)*ldy+(z+1)*ldz]
+					+ old[x+(y+0)*ldy+(z+1)*ldz]
+					+ old[x+(y-1)*ldy+(z+1)*ldz]
+					+ old[x+(y-1)*ldy+(z+0)*ldz]
+					+ old[x+(y-1)*ldy+(z-1)*ldz]
+					+ old[x+(y+0)*ldy+(z-1)*ldz]
+					+ old[x+(y+1)*ldy+(z-1)*ldz]
 					;
 				alive = old[x+y*ldy+z*ldz];
 				alive = (alive && num == 2) || num == 3;

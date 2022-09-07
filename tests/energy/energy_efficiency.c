@@ -48,18 +48,18 @@ static float power_min, power_fast;
  * This returns the dynamic power used by a CPU core in W at a given frequency
  * in MHz
  * This assumes C.V^2.F with V being proportional to F, thus C.F^3
-
-   freq_min = 1200
-   freq_fast = 3500
-   power_min = 2
-   power_fast = 8.2
-
-   freq_min3 = freq_min * freq_min * freq_min
-   freq_fast3 = freq_fast * freq_fast * freq_fast
-   alpha = (power_fast - power_min) / (freq_fast3 - freq_min3)
-   power(frequency) = power_min + alpha * (frequency*frequency*frequency - freq_min3)
-   plot [frequency=freq_min:freq_fast] power(frequency) lw 2
-
+ *
+ * freq_min = 1200
+ * freq_fast = 3500
+ * power_min = 2
+ * power_fast = 8.2
+ *
+ * freq_min3 = freq_min * freq_min * freq_min
+ * freq_fast3 = freq_fast * freq_fast * freq_fast
+ * alpha = (power_fast - power_min) / (freq_fast3 - freq_min3)
+ * power(frequency) = power_min + alpha * (frequency*frequency*frequency - freq_min3)
+ * plot [frequency=freq_min:freq_fast] power(frequency) lw 2
+ *
  */
 static float power(float frequency)
 {

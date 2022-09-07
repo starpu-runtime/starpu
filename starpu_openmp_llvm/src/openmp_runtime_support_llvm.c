@@ -57,7 +57,7 @@ typedef void *(*kmp_variant_entry_t)(void *, ...);
 
 typedef enum kmp_variant_kind
 {
- 	VARIANT_CPU,
+	VARIANT_CPU,
 	VARIANT_OPENCL,
 	VARIANT_CUDA
 } kmp_variant_kind_t;
@@ -397,11 +397,11 @@ static void task_call_cuda(void *buffers[], void *args)
 /*TODO: wrapper void *(buffers[], nbuffer) { push push call }*/
 
 kmp_task_t *__kmpc_omp_task_alloc_variants(ident_t *loc_ref, kmp_int32 gtid,
-                                           kmp_int32 flags,
-                                           size_t sizeof_kmp_task_t,
-                                           size_t sizeof_shareds,
-                                           kmp_routine_entry_t task_entry,
-                                           kmp_int32 nvariants)
+					   kmp_int32 flags,
+					   size_t sizeof_kmp_task_t,
+					   size_t sizeof_shareds,
+					   kmp_routine_entry_t task_entry,
+					   kmp_int32 nvariants)
 {
 	kmp_task_t *task = __kmpc_omp_task_alloc(loc_ref, gtid, flags, sizeof_kmp_task_t, sizeof_shareds, task_entry);
 	task->nvariants = nvariants;

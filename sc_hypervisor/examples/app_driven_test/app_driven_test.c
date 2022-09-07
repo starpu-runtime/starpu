@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -32,7 +32,8 @@ struct params
 unsigned val[2];
 starpu_pthread_mutex_t mut[2];
 
-/* Every implementation of a codelet must have this prototype, the first                                                                                                                                             * argument (buffers) describes the buffers/streams that are managed by the
+/* Every implementation of a codelet must have this prototype, the first
+ * argument (buffers) describes the buffers/streams that are managed by the
  * DSM; the second arguments references read-only data that is passed as an
  * argument of the codelet (task->cl_arg). Here, "buffers" is unused as there
  * are no data input/output managed by the DSM (cl.nbuffers = 0) */
@@ -78,7 +79,7 @@ void* submit_tasks_thread(void *arg)
 		{
 			/* tag the tasks whose execution will start the resizing process */
 			task[i]->hypervisor_tag = tag;
-			/* indicate particular settings the context should have when the 
+			/* indicate particular settings the context should have when the
 			   resizing will be done */
 			sc_hypervisor_ctl(sched_ctx,
 						   SC_HYPERVISOR_TIME_TO_APPLY, tag,
@@ -110,7 +111,7 @@ int main()
 	int ret = starpu_init(NULL);
 
 	if (ret == -ENODEV)
-        return 77;
+		return 77;
 
 	int num_workers = starpu_worker_get_count();
 	int nres1 = num_workers;
@@ -133,12 +134,12 @@ int main()
 
 	policy.custom = 0;
 	/* indicate which strategy to use
-	   in this particular case we use app_driven which allows the user to resize 
+	   in this particular case we use app_driven which allows the user to resize
 	   the ctxs dynamically at particular moments of the execution of the application */
 	policy.name = "app_driven";
 	void *perf_counters = sc_hypervisor_init(&policy);
 
-	/* let starpu know which performance counters should use 
+	/* let starpu know which performance counters should use
 	   to inform the hypervisor how the application and the resources are executing */
 	starpu_sched_ctx_set_perf_counters(sched_ctx1, perf_counters);
 	starpu_sched_ctx_set_perf_counters(sched_ctx2, perf_counters);

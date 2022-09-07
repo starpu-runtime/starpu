@@ -33,39 +33,39 @@
 #define TYPE " str(t) "\n\
 #define K " str(k) "\n\
 life_update(int bz, __global const TYPE *old, __global TYPE *newp, int nx, int ny, int nz, int ldy, int ldz, int iter)\n\
-{\n\
-	unsigned idx = get_global_id(0);\n\
-	unsigned idy = get_global_id(1);\n\
-	//unsigned idz = threadIdx.z + blockIdx.z * blockDim.z;\n\
-	unsigned idz = 0;\n\
-	unsigned stepx = get_global_size(0);\n\
-	unsigned stepy = get_global_size(1);\n\
-	//unsigned stepz = blockDim.z * gridDim.z;\n\
-	unsigned stepz = 1;\n\
-	unsigned x, y, z;\n\
-	unsigned num, alive;\n\
-\n\
-	for (z = iter + idz; z < nz - iter; z += stepz)\n\
-		for (y = K + idy; y < ny - K; y += stepy) \n\
-		{\n									\
-			for (x = K + idx; x < nx - K; x += stepx) \
-			{\n					\
-				unsigned index = x + y*ldy + z*ldz;\n\
-				num = 0\n\
-                                        + old[index+1*ldy+0*ldz]\n	\
-                                        + old[index+1*ldy+1*ldz]\n\
-                                        + old[index+0*ldy+1*ldz]\n\
-                                        + old[index-1*ldy+1*ldz]\n\
-                                        + old[index-1*ldy+0*ldz]\n\
-                                        + old[index-1*ldy-1*ldz]\n\
-                                        + old[index+0*ldy-1*ldz]\n\
-                                        + old[index+1*ldy-1*ldz]\n\
-					;\n\
-				alive = old[index];\n\
-				alive = (alive && num == 2) || num == 3;\n\
-				newp[index] = alive;\n\
-			}\n\
-		}\n\
+{\n									\
+	unsigned idx = get_global_id(0);\n				\
+	unsigned idy = get_global_id(1);\n				\
+	//unsigned idz = threadIdx.z + blockIdx.z * blockDim.z;\n	\
+	unsigned idz = 0;\n						\
+	unsigned stepx = get_global_size(0);\n				\
+	unsigned stepy = get_global_size(1);\n				\
+	//unsigned stepz = blockDim.z * gridDim.z;\n			\
+	unsigned stepz = 1;\n						\
+	unsigned x, y, z;\n						\
+	unsigned num, alive;\n						\
+	\n								\
+	for (z = iter + idz; z < nz - iter; z += stepz)\n		\
+		for (y = K + idy; y < ny - K; y += stepy) \n		\
+		{\n							\
+			for (x = K + idx; x < nx - K; x += stepx)	\
+			{\n						\
+				unsigned index = x + y*ldy + z*ldz;\n	\
+				num = 0\n				\
+					+ old[index+1*ldy+0*ldz]\n	\
+					+ old[index+1*ldy+1*ldz]\n	\
+					+ old[index+0*ldy+1*ldz]\n	\
+					+ old[index-1*ldy+1*ldz]\n	\
+					+ old[index-1*ldy+0*ldz]\n	\
+					+ old[index-1*ldy-1*ldz]\n	\
+					+ old[index+0*ldy-1*ldz]\n	\
+					+ old[index+1*ldy-1*ldz]\n	\
+					;\n				\
+				alive = old[index];\n			\
+				alive = (alive && num == 2) || num == 3;\n \
+				newp[index] = alive;\n			\
+			}\n						\
+		}\n							\
 }"
 
 static const char * src = clsrc(TYPE,K);

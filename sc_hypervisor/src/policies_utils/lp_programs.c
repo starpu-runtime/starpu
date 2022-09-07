@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -59,10 +59,10 @@ double sc_hypervisor_lp_simulate_distrib_tasks(int ns, int nw, int nt, double w_
 				snprintf(name, sizeof(name), "w%dt%dn", w, t);
 				glp_set_col_name(lp, colnum(w, t), name);
 				if (is_integer)
-                                {
-                                        glp_set_col_kind(lp, colnum(w, t), GLP_IV);
+				{
+					glp_set_col_kind(lp, colnum(w, t), GLP_IV);
 					glp_set_col_bnds(lp, colnum(w, t), GLP_LO, 0, 0);
-                                }
+				}
 				else
 					glp_set_col_bnds(lp, colnum(w, t), GLP_LO, 0.0, 0.0);
 			}
@@ -73,11 +73,11 @@ double sc_hypervisor_lp_simulate_distrib_tasks(int ns, int nw, int nt, double w_
 				snprintf(name, sizeof(name), "w%ds%dn", w, s);
 				glp_set_col_name(lp, nw*nt+s*nw+w+1, name);
 				if (is_integer)
-                                {
-                                        glp_set_col_kind(lp, nw*nt+s*nw+w+1, GLP_IV);
-                                        glp_set_col_bnds(lp, nw*nt+s*nw+w+1, GLP_DB, 0, 1);
-                                }
-                                else
+				{
+					glp_set_col_kind(lp, nw*nt+s*nw+w+1, GLP_IV);
+					glp_set_col_bnds(lp, nw*nt+s*nw+w+1, GLP_DB, 0, 1);
+				}
+				else
 					glp_set_col_bnds(lp, nw*nt+s*nw+w+1, GLP_DB, 0.0, 1.0);
 			}
 
@@ -131,10 +131,10 @@ double sc_hypervisor_lp_simulate_distrib_tasks(int ns, int nw, int nt, double w_
 				ar[n] = (-1) * tmax;
 				n++;
 				if (is_integer)
-                                {
+				{
 					glp_set_row_bnds(lp, curr_row_idx+s*nw+w+1, GLP_UP, 0, 0);
-                                }
-                                else
+				}
+				else
 					glp_set_row_bnds(lp, curr_row_idx+s*nw+w+1, GLP_UP, 0.0, 0.0);
 			}
 		}
@@ -177,7 +177,7 @@ double sc_hypervisor_lp_simulate_distrib_tasks(int ns, int nw, int nt, double w_
 				n++;
 			}
 			if(is_integer)
-                                glp_set_row_bnds(lp, curr_row_idx+w+1, GLP_FX, 1, 1);
+				glp_set_row_bnds(lp, curr_row_idx+w+1, GLP_FX, 1, 1);
 			else
 				glp_set_row_bnds(lp, curr_row_idx+w+1, GLP_FX, 1.0, 1.0);
 		}
@@ -218,10 +218,10 @@ double sc_hypervisor_lp_simulate_distrib_tasks(int ns, int nw, int nt, double w_
 
 
 	if (is_integer)
-        {
-                glp_iocp iocp;
-                glp_init_iocp(&iocp);
-                iocp.msg_lev = GLP_MSG_OFF;
+	{
+		glp_iocp iocp;
+		glp_init_iocp(&iocp);
+		iocp.msg_lev = GLP_MSG_OFF;
 //		iocp.tm_lim = 1000;
 		glp_intopt(lp, &iocp);
 		stat = glp_mip_status(lp);
@@ -242,7 +242,7 @@ double sc_hypervisor_lp_simulate_distrib_tasks(int ns, int nw, int nt, double w_
 		for (t = 0; t < nt; t++)
 			if (is_integer)
 				tasks[w][t] = (double)glp_mip_col_val(lp, colnum(w, t));
-                        else
+			else
 				tasks[w][t] = glp_get_col_prim(lp, colnum(w, t));
 
 	/* printf("**********************************************\n"); */
@@ -252,7 +252,7 @@ double sc_hypervisor_lp_simulate_distrib_tasks(int ns, int nw, int nt, double w_
 		{
 			if (is_integer)
 				w_in_s[s][w] = (double)glp_mip_col_val(lp, nw*nt+s*nw+w+1);
-                        else
+			else
 				w_in_s[s][w] = glp_get_col_prim(lp, nw*nt+s*nw+w+1);
 //			printf("w %d in ctx %d = %lf\n", w, s, w_in_s[s][w]);
 		}
@@ -279,7 +279,7 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
 
 	glp_set_prob_name(lp, "sample");
 	glp_set_obj_dir(lp, GLP_MAX);
-        glp_set_obj_name(lp, "max speed");
+	glp_set_obj_name(lp, "max speed");
 
 	/* we add nw*ns columns one for each type of worker in each context
 	   and another column corresponding to the 1/tmax bound (bc 1/tmax is a variable too)*/
@@ -301,10 +301,10 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
 				glp_set_col_kind(lp, n, GLP_IV);
 				/* if(sc_w->consider_max) */
 				/* { */
-				/* 	if(config->max_nworkers == 0) */
-				/* 		glp_set_col_bnds(lp, n, GLP_FX, config->min_nworkers, config->max_nworkers); */
-				/* 	else */
-				/* 		glp_set_col_bnds(lp, n, GLP_DB, config->min_nworkers, config->max_nworkers); */
+				/*	if(config->max_nworkers == 0) */
+				/*		glp_set_col_bnds(lp, n, GLP_FX, config->min_nworkers, config->max_nworkers); */
+				/*	else */
+				/*		glp_set_col_bnds(lp, n, GLP_DB, config->min_nworkers, config->max_nworkers); */
 				/* } */
 				/* else */
 				{
@@ -316,17 +316,17 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
 			}
 			else
 			{
-/* 				if(sc_w->consider_max) */
-/* 				{ */
-/* 					if(config->max_nworkers == 0) */
-/* 						glp_set_col_bnds(lp, n, GLP_FX, config->min_nworkers*1.0, config->max_nworkers*1.0); */
-/* 					else */
-/* 						glp_set_col_bnds(lp, n, GLP_DB, config->min_nworkers*1.0, config->max_nworkers*1.0); */
+/*				if(sc_w->consider_max) */
+/*				{ */
+/*					if(config->max_nworkers == 0) */
+/*						glp_set_col_bnds(lp, n, GLP_FX, config->min_nworkers*1.0, config->max_nworkers*1.0); */
+/*					else */
+/*						glp_set_col_bnds(lp, n, GLP_DB, config->min_nworkers*1.0, config->max_nworkers*1.0); */
 /* #ifdef STARPU_SC_HYPERVISOR_DEBUG */
-/* 					printf("%d****************consider max %lf in lp\n", sched_ctxs[s], config->max_nworkers*1.0); */
+/*					printf("%d****************consider max %lf in lp\n", sched_ctxs[s], config->max_nworkers*1.0); */
 /* #endif */
-/* 				} */
-/* 				else */
+/*				} */
+/*				else */
 				{
 					if(total_nw[w] == 0)
 						glp_set_col_bnds(lp, n, GLP_FX, config->min_nworkers*1.0, total_nw[w]*1.0);
@@ -446,43 +446,43 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
 
 	glp_smcp parm;
 	glp_init_smcp(&parm);
-  	parm.msg_lev = GLP_MSG_OFF;
+	parm.msg_lev = GLP_MSG_OFF;
 	int ret = glp_simplex(lp, &parm);
 	if (ret)
-        {
-                printf("error in simplex\n");
+	{
+		printf("error in simplex\n");
 		glp_delete_prob(lp);
-                lp = NULL;
-                return 0.0;
-        }
+		lp = NULL;
+		return 0.0;
+	}
 
 	int stat = glp_get_prim_stat(lp);
-        /* if we don't have a solution return */
-        if(stat == GLP_NOFEAS)
-        {
-                glp_delete_prob(lp);
+	/* if we don't have a solution return */
+	if(stat == GLP_NOFEAS)
+	{
+		glp_delete_prob(lp);
 		printf("no_sol\n");
-                lp = NULL;
-                return 0.0;
-        }
+		lp = NULL;
+		return 0.0;
+	}
 
 
 	if (integer)
-        {
-                glp_iocp iocp;
-                glp_init_iocp(&iocp);
-                iocp.msg_lev = GLP_MSG_OFF;
-                glp_intopt(lp, &iocp);
-                stat = glp_mip_status(lp);
-                /* if we don't have a solution return */
-                if(stat == GLP_NOFEAS)
-                {
+	{
+		glp_iocp iocp;
+		glp_init_iocp(&iocp);
+		iocp.msg_lev = GLP_MSG_OFF;
+		glp_intopt(lp, &iocp);
+		stat = glp_mip_status(lp);
+		/* if we don't have a solution return */
+		if(stat == GLP_NOFEAS)
+		{
 			printf("no int sol\n");
-                        glp_delete_prob(lp);
-                        lp = NULL;
-                        return 0.0;
-                }
-        }
+			glp_delete_prob(lp);
+			lp = NULL;
+			return 0.0;
+		}
+	}
 
 	double vmax = glp_get_obj_val(lp);
 #ifdef STARPU_SC_HYPERVISOR_DEBUG
@@ -494,11 +494,11 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
 		for(w = 0; w < nw; w++)
 		{
 			if (integer)
-                                res[s][w] = (double)glp_mip_col_val(lp, n);
+				res[s][w] = (double)glp_mip_col_val(lp, n);
 			else
 				res[s][w] = glp_get_col_prim(lp, n);
 #ifdef STARPU_SC_HYPERVISOR_DEBUG
-  			printf("%d/%d: res %lf flops = %lf v = %lf\n", w,s, res[s][w], flops[s], v[s][w]);
+			printf("%d/%d: res %lf flops = %lf v = %lf\n", w,s, res[s][w], flops[s], v[s][w]);
 #endif
 			n++;
 		}
@@ -551,7 +551,7 @@ double sc_hypervisor_lp_simulate_distrib_flops_on_sample(int ns, int nw, double 
 				glp_set_col_name(lp, nw*ns+colnum_sample(w,s), name);
 				if (is_integer)
 				{
-                                        glp_set_col_kind(lp, nw*ns+colnum_sample(w, s), GLP_IV);
+					glp_set_col_kind(lp, nw*ns+colnum_sample(w, s), GLP_IV);
 					glp_set_col_bnds(lp, nw*ns+colnum_sample(w,s), GLP_DB, 0, 1);
 				}
 				else
@@ -672,12 +672,12 @@ double sc_hypervisor_lp_simulate_distrib_flops_on_sample(int ns, int nw, double 
 		return 0.0;
 	}
 
-        if (is_integer)
-        {
-                glp_iocp iocp;
-                glp_init_iocp(&iocp);
-                iocp.msg_lev = GLP_MSG_OFF;
-                glp_intopt(lp, &iocp);
+	if (is_integer)
+	{
+		glp_iocp iocp;
+		glp_init_iocp(&iocp);
+		iocp.msg_lev = GLP_MSG_OFF;
+		glp_intopt(lp, &iocp);
 		int stat = glp_mip_status(lp);
 		/* if we don't have a solution return */
 		if(stat == GLP_NOFEAS)
@@ -686,7 +686,7 @@ double sc_hypervisor_lp_simulate_distrib_flops_on_sample(int ns, int nw, double 
 			lp = NULL;
 			return 0.0;
 		}
-        }
+	}
 
 	int stat = glp_get_prim_stat(lp);
 	/* if we don't have a solution return */

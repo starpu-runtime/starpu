@@ -93,10 +93,10 @@ void cpu_func(void *buffers[], void *cl_arg)
 /* Start of the part specific to multiple linear regression perfmodels */
 
 /* Defining perfmodel, number of parameters and their names Initially
-   application developer only knows these parameters. The execution of
-   this codelet will generate traces that can be analyzed using
-   "tools/starpu_mlr_analysis" as a template to obtain the parameters
-   combinations and exponents.
+ * application developer only knows these parameters. The execution of
+ * this codelet will generate traces that can be analyzed using
+ * "tools/starpu_mlr_analysis" as a template to obtain the parameters
+ * combinations and exponents.
  */
 
 static const char * parameters_names[]	= {	"M",	"N",	"K", };
@@ -111,9 +111,9 @@ static struct starpu_perfmodel cl_model_init =
 };
 
 /* Defining the equation for modeling duration of the task. The
-   parameters combinations and exponents are computed externally
-   offline, for example using "tools/starpu_mlr_analysis" tool as a
-   template.
+ * parameters combinations and exponents are computed externally
+ * offline, for example using "tools/starpu_mlr_analysis" tool as a
+ * template.
  */
 
 /* M^2 * N^1 * K^0 */

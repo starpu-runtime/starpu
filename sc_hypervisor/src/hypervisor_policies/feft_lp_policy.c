@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -49,16 +49,16 @@ static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs, int *workers, i
 	gettimeofday(&end_time, NULL);
 
 	long diff_s = end_time.tv_sec  - start_time.tv_sec;
-	long diff_us = end_time.tv_usec  - start_time.tv_usec;
+	long diff_us = end_time.tv_usec	 - start_time.tv_usec;
 
 	__attribute__((unused))	float timing = (float)(diff_s*1000000 + diff_us)/1000.0;
 
 	if(vmax != -1.0)
 	{
-/* 		int nworkers_per_ctx_rounded[ns][nw]; */
-/* 		sc_hypervisor_lp_round_double_to_int(ns, nw, nworkers_per_ctx, nworkers_per_ctx_rounded); */
+/*		int nworkers_per_ctx_rounded[ns][nw]; */
+/*		sc_hypervisor_lp_round_double_to_int(ns, nw, nworkers_per_ctx, nworkers_per_ctx_rounded); */
 /* //		sc_hypervisor_lp_redistribute_resources_in_ctxs(ns, nw, nworkers_per_ctx_rounded, nworkers_per_ctx, curr_sched_ctxs, tw); */
-/* 		sc_hypervisor_lp_distribute_resources_in_ctxs(curr_sched_ctxs, ns, nw, nworkers_per_ctx_rounded, nworkers_per_ctx, workers, curr_nworkers, tw); */
+/*		sc_hypervisor_lp_distribute_resources_in_ctxs(curr_sched_ctxs, ns, nw, nworkers_per_ctx_rounded, nworkers_per_ctx, workers, curr_nworkers, tw); */
 		sc_hypervisor_lp_distribute_floating_no_resources_in_ctxs(curr_sched_ctxs, ns, nw, nworkers_per_ctx, workers, curr_nworkers, tw);
 
 		sc_hypervisor_lp_share_remaining_resources(ns, curr_sched_ctxs, curr_nworkers, workers);
@@ -134,7 +134,7 @@ static void _resize(unsigned *sched_ctxs, int nsched_ctxs, int *workers, int nwo
 			int nsched_ctxs2;
 			sc_hypervisor_get_ctxs_on_level(&sched_ctxs2, &nsched_ctxs2, 0, STARPU_NMAX_SCHED_CTXS);
 
-			if(nsched_ctxs2  > 0)
+			if(nsched_ctxs2	 > 0)
 			{
 				_try_resizing_hierarchically(nhierarchy_levels, 0, sched_ctxs2, nsched_ctxs2, workers, nworkers);
 				free(sched_ctxs2);
@@ -299,7 +299,7 @@ static void _resize_leaves(int worker)
 	unsigned s;
 	unsigned *sched_ctxs = NULL;
 	unsigned nsched_ctxs = starpu_worker_get_sched_ctx_list(worker, &sched_ctxs);
-       	unsigned workers_sched_ctxs[nsched_ctxs];
+	unsigned workers_sched_ctxs[nsched_ctxs];
 	unsigned nworkers_sched_ctxs = 0;
 
 	struct sc_hypervisor_wrapper *sc_w = NULL;
@@ -362,7 +362,8 @@ static void feft_lp_resize_ctxs(unsigned *sched_ctxs, int nsched_ctxs ,
 	}
 }
 
-struct sc_hypervisor_policy feft_lp_policy = {
+struct sc_hypervisor_policy feft_lp_policy =
+{
 	.size_ctxs = feft_lp_size_ctxs,
 	.resize_ctxs = feft_lp_resize_ctxs,
 	.handle_poped_task = feft_lp_handle_poped_task,

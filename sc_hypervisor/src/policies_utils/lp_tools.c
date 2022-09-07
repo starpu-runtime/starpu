@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -289,11 +289,12 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 		sc_w = sc_hypervisor_get_wrapper(sched_ctxs[i]);
 
 /* if the hypervisor gave 0 workers to a context but the context still
-   has some last flops or a ready task that does not even have any flops
-   we give a worker (in shared mode) to the context in order to leave him
-   finish its work = we give -1.0 value instead of 0.0 and further on in
-   the distribution function we take this into account and revert the variable
-   to its 0.0 value */
+ * has some last flops or a ready task that does not even have any flops
+ * we give a worker (in shared mode) to the context in order to leave him
+ * finish its work = we give -1.0 value instead of 0.0 and further on in
+ * the distribution function we take this into account and revert the variable
+ * to its 0.0 value
+*/
 //		if(no_workers && (flops[i] != 0.0 || sc_w->nready_tasks > 0))
 		if(no_workers)
 		{
@@ -314,10 +315,10 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 double sc_hypervisor_lp_get_tmax(int nworkers, int *workers)
 {
 	struct types_of_workers *tw = sc_hypervisor_get_types_of_workers(workers, nworkers);
-        int nw = tw->nw;
+	int nw = tw->nw;
 
-        int total_nw[nw];
-        sc_hypervisor_group_workers_by_type(tw, total_nw);
+	int total_nw[nw];
+	sc_hypervisor_group_workers_by_type(tw, total_nw);
 
 	int nsched_ctxs = sc_hypervisor_get_nsched_ctxs();
 
@@ -664,7 +665,7 @@ void sc_hypervisor_lp_distribute_resources_in_ctxs(unsigned* sched_ctxs, int ns,
 	for(s = 0; s < ns; s++)
 	{
 		int workers_add[STARPU_NMAXWORKERS];
-                int nw_add = 0;
+		int nw_add = 0;
 		double target_res = 0.0;
 		for(w = 0; w < nw; w++)
 		{
@@ -751,7 +752,7 @@ void sc_hypervisor_lp_distribute_floating_no_resources_in_ctxs(unsigned* sched_c
 	for(s = 0; s < ns; s++)
 	{
 		int workers_add[STARPU_NMAXWORKERS];
-                int nw_add = 0;
+		int nw_add = 0;
 		double target_res = 0.0;
 		for(w = 0; w < nw; w++)
 		{

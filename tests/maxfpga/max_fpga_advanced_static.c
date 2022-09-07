@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2019-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -101,7 +101,7 @@ void fpga_impl1(void *buffers[], void *cl_arg)
 
 	int32_t *ptrA = (int32_t*) STARPU_VECTOR_GET_PTR(buffers[0]);
 	int32_t *ptrB = (int32_t*) STARPU_VECTOR_GET_PTR(buffers[1]);
-	size_t   ptrC = (size_t)   STARPU_VECTOR_GET_PTR(buffers[2]); /* FPGA */
+	size_t	 ptrC = (size_t)   STARPU_VECTOR_GET_PTR(buffers[2]); /* FPGA */
 
 	int size = STARPU_VECTOR_GET_NX(buffers[0]);
 
@@ -122,7 +122,7 @@ void fpga_impl1(void *buffers[], void *cl_arg)
 
 static struct starpu_codelet cl1 =
 {
- 	.max_fpga_funcs = {fpga_impl1},
+	.max_fpga_funcs = {fpga_impl1},
 	.nbuffers = 3,
 	.modes = {STARPU_R, STARPU_R, STARPU_W},
 	.specific_nodes = 1,
@@ -156,7 +156,7 @@ void fpga_impl2(void *buffers[], void *cl_arg)
 
 static struct starpu_codelet cl2 =
 {
- 	.max_fpga_funcs = {fpga_impl2},
+	.max_fpga_funcs = {fpga_impl2},
 	.nbuffers = 3,
 	.modes = {STARPU_R, STARPU_R, STARPU_W}
 	/* local by default */
@@ -166,8 +166,8 @@ void fpga_impl3(void *buffers[], void *cl_arg)
 {
 	(void)cl_arg;
 
-	size_t   ptrA = (size_t)   STARPU_VECTOR_GET_PTR(buffers[0]); /* FPGA */
-	size_t   ptrB = (size_t)   STARPU_VECTOR_GET_PTR(buffers[1]); /* FPGA */
+	size_t	 ptrA = (size_t)   STARPU_VECTOR_GET_PTR(buffers[0]); /* FPGA */
+	size_t	 ptrB = (size_t)   STARPU_VECTOR_GET_PTR(buffers[1]); /* FPGA */
 	int32_t *ptrC = (int32_t*) STARPU_VECTOR_GET_PTR(buffers[2]);
 
 	int size = STARPU_VECTOR_GET_NX(buffers[0]);
@@ -189,7 +189,7 @@ void fpga_impl3(void *buffers[], void *cl_arg)
 
 static struct starpu_codelet cl3 =
 {
- 	.max_fpga_funcs = {fpga_impl3},
+	.max_fpga_funcs = {fpga_impl3},
 	.nbuffers = 3,
 	.modes = {STARPU_R, STARPU_R, STARPU_W},
 	.specific_nodes = 1,

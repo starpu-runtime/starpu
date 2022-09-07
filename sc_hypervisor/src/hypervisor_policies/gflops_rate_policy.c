@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -57,109 +57,109 @@ static int* _get_workers_to_move(unsigned sender_sched_ctx, unsigned receiver_sc
 {
 	struct sc_hypervisor_wrapper* sender_sc_w = sc_hypervisor_get_wrapper(sender_sched_ctx);
 	struct sc_hypervisor_wrapper* receiver_sc_w = sc_hypervisor_get_wrapper(receiver_sched_ctx);
-        int *workers = NULL;
-        double v_receiver = sc_hypervisor_get_ctx_speed(receiver_sc_w);
-        double receiver_remainig_flops = receiver_sc_w->remaining_flops;
-        double sender_exp_end = _get_exp_end(sender_sched_ctx);
-        double sender_v_cpu = sc_hypervisor_get_speed_per_worker_type(sender_sc_w, STARPU_CPU_WORKER);
-        double v_for_rctx = (receiver_remainig_flops/(sender_exp_end - starpu_timing_now())) - v_receiver;
+	int *workers = NULL;
+	double v_receiver = sc_hypervisor_get_ctx_speed(receiver_sc_w);
+	double receiver_remainig_flops = receiver_sc_w->remaining_flops;
+	double sender_exp_end = _get_exp_end(sender_sched_ctx);
+	double sender_v_cpu = sc_hypervisor_get_speed_per_worker_type(sender_sc_w, STARPU_CPU_WORKER);
+	double v_for_rctx = (receiver_remainig_flops/(sender_exp_end - starpu_timing_now())) - v_receiver;
 
-        int nworkers_needed = v_for_rctx/sender_v_cpu;
-/*      printf("%d->%d: v_rec %lf v %lf v_cpu %lf w_needed %d \n", sender_sched_ctx, receiver_sched_ctx, */
-/*             v_receiver, v_for_rctx, sender_v_cpu, nworkers_needed); */
-        if(nworkers_needed > 0)
-        {
-                struct sc_hypervisor_policy_config *sender_config = sc_hypervisor_get_config(sender_sched_ctx);
-                int potential_moving_cpus = sc_hypervisor_get_movable_nworkers(sender_config, sender_sched_ctx, STARPU_CPU_WORKER);
-                int potential_moving_gpus = sc_hypervisor_get_movable_nworkers(sender_config, sender_sched_ctx, STARPU_CUDA_WORKER);
-                int sender_nworkers = (int)starpu_sched_ctx_get_nworkers(sender_sched_ctx);
-                struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(receiver_sched_ctx);
-                int nworkers_ctx = (int)starpu_sched_ctx_get_nworkers(receiver_sched_ctx);
+	int nworkers_needed = v_for_rctx/sender_v_cpu;
+/*	printf("%d->%d: v_rec %lf v %lf v_cpu %lf w_needed %d \n", sender_sched_ctx, receiver_sched_ctx, */
+/*	       v_receiver, v_for_rctx, sender_v_cpu, nworkers_needed); */
+	if(nworkers_needed > 0)
+	{
+		struct sc_hypervisor_policy_config *sender_config = sc_hypervisor_get_config(sender_sched_ctx);
+		int potential_moving_cpus = sc_hypervisor_get_movable_nworkers(sender_config, sender_sched_ctx, STARPU_CPU_WORKER);
+		int potential_moving_gpus = sc_hypervisor_get_movable_nworkers(sender_config, sender_sched_ctx, STARPU_CUDA_WORKER);
+		int sender_nworkers = (int)starpu_sched_ctx_get_nworkers(sender_sched_ctx);
+		struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(receiver_sched_ctx);
+		int nworkers_ctx = (int)starpu_sched_ctx_get_nworkers(receiver_sched_ctx);
 
-                if(nworkers_needed < (potential_moving_cpus + 5 * potential_moving_gpus))
-                {
-                        if((sender_nworkers - nworkers_needed) >= sender_config->min_nworkers)
-                        {
-                                if((nworkers_ctx + nworkers_needed) > config->max_nworkers)
-                                        nworkers_needed = nworkers_ctx > config->max_nworkers ? 0 : (config->max_nworkers - nworkers_ctx);
+		if(nworkers_needed < (potential_moving_cpus + 5 * potential_moving_gpus))
+		{
+			if((sender_nworkers - nworkers_needed) >= sender_config->min_nworkers)
+			{
+				if((nworkers_ctx + nworkers_needed) > config->max_nworkers)
+					nworkers_needed = nworkers_ctx > config->max_nworkers ? 0 : (config->max_nworkers - nworkers_ctx);
 
-                                if(nworkers_needed > 0)
-                                {
-                                        int ngpus = nworkers_needed / 5;
-                                        int *gpus;
-                                        gpus = sc_hypervisor_get_idlest_workers(sender_sched_ctx, &ngpus, STARPU_CUDA_WORKER);
-                                        int ncpus = nworkers_needed - ngpus;
-                                        int *cpus;
-                                        cpus = sc_hypervisor_get_idlest_workers(sender_sched_ctx, &ncpus, STARPU_CPU_WORKER);
-                                        workers = (int*)malloc(nworkers_needed*sizeof(int));
-                                        int i;
+				if(nworkers_needed > 0)
+				{
+					int ngpus = nworkers_needed / 5;
+					int *gpus;
+					gpus = sc_hypervisor_get_idlest_workers(sender_sched_ctx, &ngpus, STARPU_CUDA_WORKER);
+					int ncpus = nworkers_needed - ngpus;
+					int *cpus;
+					cpus = sc_hypervisor_get_idlest_workers(sender_sched_ctx, &ncpus, STARPU_CPU_WORKER);
+					workers = (int*)malloc(nworkers_needed*sizeof(int));
+					int i;
 					printf("%d: gpus: ", nworkers_needed);
-                                        for(i = 0; i < ngpus; i++)
+					for(i = 0; i < ngpus; i++)
 					{
-                                                workers[(*nworkers)++] = gpus[i];
+						workers[(*nworkers)++] = gpus[i];
 						printf("%d ", gpus[i]);
 					}
 					printf(" cpus:");
-                                        for(i = 0; i < ncpus; i++)
+					for(i = 0; i < ncpus; i++)
 					{
-                                                workers[(*nworkers)++] = cpus[i];
+						workers[(*nworkers)++] = cpus[i];
 						printf("%d ", cpus[i]);
 					}
 					printf("\n");
-                                        free(gpus);
-                                        free(cpus);
-                                }
-                        }
-                }
+					free(gpus);
+					free(cpus);
+				}
+			}
+		}
 		else
-                {
+		{
 			/*if the needed number of workers is to big we only move the number of workers
 			  corresponding to the granularity set by the user */
-                        int nworkers_to_move = sc_hypervisor_compute_nworkers_to_move(sender_sched_ctx);
+			int nworkers_to_move = sc_hypervisor_compute_nworkers_to_move(sender_sched_ctx);
 
-                        if(sender_nworkers - nworkers_to_move >= sender_config->min_nworkers)
-                        {
-                                int nshared_workers = (int)starpu_sched_ctx_get_nshared_workers(sender_sched_ctx, receiver_sched_ctx);
-                                if((nworkers_ctx + nworkers_to_move - nshared_workers) > config->max_nworkers)
-                                        nworkers_to_move = nworkers_ctx > config->max_nworkers ? 0 : (config->max_nworkers - nworkers_ctx + nshared_workers);
+			if(sender_nworkers - nworkers_to_move >= sender_config->min_nworkers)
+			{
+				int nshared_workers = (int)starpu_sched_ctx_get_nshared_workers(sender_sched_ctx, receiver_sched_ctx);
+				if((nworkers_ctx + nworkers_to_move - nshared_workers) > config->max_nworkers)
+					nworkers_to_move = nworkers_ctx > config->max_nworkers ? 0 : (config->max_nworkers - nworkers_ctx + nshared_workers);
 
-                                if(nworkers_to_move > 0)
-                                {
-                                        workers = sc_hypervisor_get_idlest_workers(sender_sched_ctx, &nworkers_to_move, STARPU_ANY_WORKER);
-                                        *nworkers = nworkers_to_move;
-                                }
-                        }
-                }
-        }
-        return workers;
+				if(nworkers_to_move > 0)
+				{
+					workers = sc_hypervisor_get_idlest_workers(sender_sched_ctx, &nworkers_to_move, STARPU_ANY_WORKER);
+					*nworkers = nworkers_to_move;
+				}
+			}
+		}
+	}
+	return workers;
 }
 
 static unsigned _gflops_rate_resize(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, unsigned force_resize)
 {
-        int ret = 1;
-        if(force_resize)
-                STARPU_PTHREAD_MUTEX_LOCK(&act_hypervisor_mutex);
-        else
-                ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
-        if(ret != EBUSY)
-        {
-                int nworkers_to_move = 0;
-                int *workers_to_move =  _get_workers_to_move(sender_sched_ctx, receiver_sched_ctx, &nworkers_to_move);
+	int ret = 1;
+	if(force_resize)
+		STARPU_PTHREAD_MUTEX_LOCK(&act_hypervisor_mutex);
+	else
+		ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
+	if(ret != EBUSY)
+	{
+		int nworkers_to_move = 0;
+		int *workers_to_move =	_get_workers_to_move(sender_sched_ctx, receiver_sched_ctx, &nworkers_to_move);
 		if(nworkers_to_move > 0)
-                {
-                        sc_hypervisor_move_workers(sender_sched_ctx, receiver_sched_ctx, workers_to_move, nworkers_to_move, 0);
+		{
+			sc_hypervisor_move_workers(sender_sched_ctx, receiver_sched_ctx, workers_to_move, nworkers_to_move, 0);
 
-                        struct sc_hypervisor_policy_config *new_config = sc_hypervisor_get_config(receiver_sched_ctx);
-                        int i;
-                        for(i = 0; i < nworkers_to_move; i++)
-                                new_config->max_idle[workers_to_move[i]] = new_config->max_idle[workers_to_move[i]] !=MAX_IDLE_TIME ? new_config->max_idle[workers_to_move[i]] :  new_config->new_workers_max_idle;
+			struct sc_hypervisor_policy_config *new_config = sc_hypervisor_get_config(receiver_sched_ctx);
+			int i;
+			for(i = 0; i < nworkers_to_move; i++)
+				new_config->max_idle[workers_to_move[i]] = new_config->max_idle[workers_to_move[i]] !=MAX_IDLE_TIME ? new_config->max_idle[workers_to_move[i]] :  new_config->new_workers_max_idle;
 
-                        free(workers_to_move);
-                }
-                STARPU_PTHREAD_MUTEX_UNLOCK(&act_hypervisor_mutex);
-                return 1;
-        }
-        return 0;
+			free(workers_to_move);
+		}
+		STARPU_PTHREAD_MUTEX_UNLOCK(&act_hypervisor_mutex);
+		return 1;
+	}
+	return 0;
 
 }
 
@@ -289,13 +289,14 @@ static void gflops_rate_resize(unsigned sched_ctx)
 	}
 }
 
-static void gflops_rate_handle_poped_task(unsigned sched_ctx, __attribute__((unused)) int worker, 
+static void gflops_rate_handle_poped_task(unsigned sched_ctx, __attribute__((unused)) int worker,
 					  __attribute__((unused))struct starpu_task *task, __attribute__((unused))uint32_t footprint)
 {
 	gflops_rate_resize(sched_ctx);
 }
 
-struct sc_hypervisor_policy gflops_rate_policy = {
+struct sc_hypervisor_policy gflops_rate_policy =
+{
 	.size_ctxs = NULL,
 	.resize_ctxs = NULL,
 	.handle_poped_task = gflops_rate_handle_poped_task,

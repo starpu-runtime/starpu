@@ -190,13 +190,13 @@ void initialize_chol_model(struct starpu_perfmodel* model, char * symbol,
 	starpu_perfmodel_init(model);
 
 	per_arch = starpu_perfmodel_get_model_per_devices(model, 0, STARPU_CPU_WORKER, 0, 1, -1);
-        per_arch->cost_function = cpu_cost_function;
+	per_arch->cost_function = cpu_cost_function;
 	// We could also call directly:
 	// starpu_perfmodel_set_per_devices_cost_function(model, 0, cpu_cost_function, STARPU_CPU_WORKER, 0, 1, -1);
 
 	if(starpu_worker_get_count_by_type(STARPU_CUDA_WORKER) != 0)
 	{
-	     	per_arch = starpu_perfmodel_get_model_per_devices(model, 0, STARPU_CUDA_WORKER, 0, 1, -1);
+		per_arch = starpu_perfmodel_get_model_per_devices(model, 0, STARPU_CUDA_WORKER, 0, 1, -1);
 		per_arch->cost_function = cuda_cost_function;
 
 	}

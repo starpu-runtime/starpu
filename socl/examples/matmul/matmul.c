@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -69,46 +69,46 @@ void computeReference(TYPE*, const TYPE*, const TYPE*, unsigned int, unsigned in
 #define CODE "\
 #define TYPE float\n\
 __kernel void sgemmNN(int wa, int ha, int wb,  __global TYPE* A, __global TYPE* B, __global TYPE* C) {\n\
-#define BS 16\n\
-#define BLOCK_SIZE 16\n\
-  int bx = get_group_id(0);\n\
-  int by = get_group_id(1);\n\
-  \n\
-  int tx = get_local_id(0);\n\
-  int ty = get_local_id(1);\n\
-  \n\
-  int gx = get_global_id(0);\n\
-  int gy = get_global_id(1);\n\
-    __local float As[BS][BS+1];\
-    __local float Bs[BS][BS+1];\
-  \n\
-  unsigned int block_w = min(wb - bx * BLOCK_SIZE, BLOCK_SIZE);\n\
-  unsigned int block_h = min(ha - by * BLOCK_SIZE, BLOCK_SIZE);\n\
-  \n\
-  int valid = (gx < wb && gy < ha);\n\
-  \n\
-  TYPE Csub = (TYPE)0.0;\n\
-  \n\
-  int pos = 0;\n\
-  while (pos < wa) {\n\
-    unsigned int size = min(wa-pos, BLOCK_SIZE);\n\
-    if (tx < size && gy < ha)\n\
-      As[tx][ty] = A[pos + tx + wa * gy];\n\
-    if (ty < size && gx < wb)\n\
-      Bs[tx][ty] = B[gx + wb * (pos+ty)];\n\
-    \n\
-    barrier(CLK_LOCAL_MEM_FENCE);\n\
-    \n\
-    if (valid) {\n\
-      for (int k = 0; k < size; ++k)\n\
-        Csub += As[k][ty] * Bs[tx][k];\n\
-    }\n\
-    pos += size;\n\
-    barrier(CLK_LOCAL_MEM_FENCE);\n\
-  }\n\
-  \n\
-  if (valid)\n\
-    C[wb * gy + gx] = Csub;\n\
+	#define BS 16\n							\
+	#define BLOCK_SIZE 16\n						\
+	int bx = get_group_id(0);\n					\
+	int by = get_group_id(1);\n					\
+	\n								\
+	int tx = get_local_id(0);\n					\
+	int ty = get_local_id(1);\n					\
+	\n								\
+	int gx = get_global_id(0);\n					\
+	int gy = get_global_id(1);\n					\
+	__local float As[BS][BS+1];					\
+	__local float Bs[BS][BS+1];					\
+	\n								\
+	unsigned int block_w = min(wb - bx * BLOCK_SIZE, BLOCK_SIZE);\n	\
+	unsigned int block_h = min(ha - by * BLOCK_SIZE, BLOCK_SIZE);\n	\
+	\n								\
+	int valid = (gx < wb && gy < ha);\n				\
+	\n								\
+	TYPE Csub = (TYPE)0.0;\n					\
+	\n								\
+	int pos = 0;\n							\
+	while (pos < wa) {\n						\
+		unsigned int size = min(wa-pos, BLOCK_SIZE);\n		\
+		if (tx < size && gy < ha)\n				\
+			As[tx][ty] = A[pos + tx + wa * gy];\n		\
+		if (ty < size && gx < wb)\n				\
+			Bs[tx][ty] = B[gx + wb * (pos+ty)];\n		\
+		\n							\
+		barrier(CLK_LOCAL_MEM_FENCE);\n				\
+		\n							\
+		if (valid) {\n						\
+			for (int k = 0; k < size; ++k)\n		\
+				Csub += As[k][ty] * Bs[tx][k];\n	\
+		}\n							\
+		pos += size;\n						\
+		barrier(CLK_LOCAL_MEM_FENCE);\n				\
+	}\n								\
+	\n								\
+	if (valid)\n							\
+		C[wb * gy + gx] = Csub;\n				\
 }"
 
 static char * code =  CODE;

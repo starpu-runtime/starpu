@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -101,7 +101,7 @@ static void _size_ctxs(unsigned *sched_ctxs, int nsched_ctxs , int *workers, int
 
 	/* smallest possible tmax, difficult to obtain as we
 	   compute the nr of flops and not the tasks */
-        /*lp computes it in s but it's converted to ms just before return */
+	/*lp computes it in s but it's converted to ms just before return */
 	double possible_tmax = sc_hypervisor_lp_get_tmax(nw, workers);
 	double smallest_tmax = possible_tmax / 3;
 	double tmax = possible_tmax * ns;
@@ -208,7 +208,7 @@ static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs , int *workers, 
 
 	/* smallest possible tmax, difficult to obtain as we
 	   compute the nr of flops and not the tasks */
-        /*lp computes it in s but it's converted to ms just before return */
+	/*lp computes it in s but it's converted to ms just before return */
 	double possible_tmax = sc_hypervisor_lp_get_tmax(nw, NULL);
 	double smallest_tmax = possible_tmax/2.0;
 	double tmax = possible_tmax + smallest_tmax;
@@ -227,7 +227,7 @@ static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs , int *workers, 
 		gettimeofday(&end_time, NULL);
 
 		long diff_s = end_time.tv_sec  - start_time.tv_sec;
-		long diff_us = end_time.tv_usec  - start_time.tv_usec;
+		long diff_us = end_time.tv_usec	 - start_time.tv_usec;
 
 		__attribute__((unused))	float timing = (float)(diff_s*1000000 + diff_us)/1000.0;
 	}
@@ -329,7 +329,8 @@ static void teft_lp_resize_ctxs(unsigned *sched_ctxs, int nsched_ctxs , int *wor
 	}
 }
 
-struct sc_hypervisor_policy teft_lp_policy = {
+struct sc_hypervisor_policy teft_lp_policy =
+{
 	.size_ctxs = teft_lp_size_ctxs,
 	.resize_ctxs = teft_lp_resize_ctxs,
 	.handle_poped_task = teft_lp_handle_poped_task,

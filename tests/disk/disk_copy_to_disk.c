@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2017-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2017-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -63,15 +63,15 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 	strcat(path_file_start, "/");
 	strcat(path_file_start, name_file_start);
 
-        char * base_src = malloc(strlen(base) + 1 + strlen(name_dir_src) + 1);
-        strcpy(base_src, base);
-        strcat(base_src, "/");
-        strcat(base_src, name_dir_src);
+	char * base_src = malloc(strlen(base) + 1 + strlen(name_dir_src) + 1);
+	strcpy(base_src, base);
+	strcat(base_src, "/");
+	strcat(base_src, name_dir_src);
 
-        char * base_dst = malloc(strlen(base) + 1 + strlen(name_dir_dst) + 1);
-        strcpy(base_dst, base);
-        strcat(base_dst, "/");
-        strcat(base_dst, name_dir_dst);
+	char * base_dst = malloc(strlen(base) + 1 + strlen(name_dir_dst) + 1);
+	strcpy(base_dst, base);
+	strcat(base_dst, "/");
+	strcat(base_dst, name_dir_dst);
 
 	/* register a disks */
 	int disk_src = starpu_disk_register(ops, (void *) base_src, STARPU_DISK_SIZE_MIN);
@@ -141,7 +141,7 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 		goto enoent2;
 	/* take datas */
 	size_t read = fread(C, sizeof(int), NX, f);
-        STARPU_ASSERT(read == NX);
+	STARPU_ASSERT(read == NX);
 
 	/* close the file */
 	fclose(f);
@@ -192,7 +192,7 @@ enoent:
 int dotest_hdf5(struct starpu_disk_ops *ops, char *base)
 {
 	int *A, *C;
-        herr_t status;
+	herr_t status;
 
 
 	/* Initialize path */
@@ -200,28 +200,28 @@ int dotest_hdf5(struct starpu_disk_ops *ops, char *base)
 	const char *name_hdf5_start = "STARPU_HDF5_src_file.h5";
 	const char *name_hdf5_end = "STARPU_HDF5_dst_file.h5";
 
-        char * hdf5_base_src = malloc(strlen(base) + 1 + strlen(name_hdf5_start) + 1);
-        strcpy(hdf5_base_src, base);
-        strcat(hdf5_base_src, "/");
-        strcat(hdf5_base_src, name_hdf5_start);
+	char * hdf5_base_src = malloc(strlen(base) + 1 + strlen(name_hdf5_start) + 1);
+	strcpy(hdf5_base_src, base);
+	strcat(hdf5_base_src, "/");
+	strcat(hdf5_base_src, name_hdf5_start);
 
-        char * hdf5_base_dst = malloc(strlen(base) + 1 + strlen(name_hdf5_end) + 1);
-        strcpy(hdf5_base_dst, base);
-        strcat(hdf5_base_dst, "/");
-        strcat(hdf5_base_dst, name_hdf5_end);
+	char * hdf5_base_dst = malloc(strlen(base) + 1 + strlen(name_hdf5_end) + 1);
+	strcpy(hdf5_base_dst, base);
+	strcat(hdf5_base_dst, "/");
+	strcat(hdf5_base_dst, name_hdf5_end);
 
-        /* Open and close files, just to create empty files */
-        FILE * file_src = fopen(hdf5_base_src, "wb+");
-        if (!file_src)
-                goto h5fail2;
-        fclose(file_src);
+	/* Open and close files, just to create empty files */
+	FILE * file_src = fopen(hdf5_base_src, "wb+");
+	if (!file_src)
+		goto h5fail2;
+	fclose(file_src);
 
-        FILE * file_dst = fopen(hdf5_base_dst, "wb+");
-        if (!file_dst)
+	FILE * file_dst = fopen(hdf5_base_dst, "wb+");
+	if (!file_dst)
 	{
-                goto h5fail2;
+		goto h5fail2;
 	}
-        fclose(file_dst);
+	fclose(file_dst);
 
 	/* Initialize StarPU with default configuration */
 	int ret = starpu_init(NULL);
@@ -249,40 +249,40 @@ int dotest_hdf5(struct starpu_disk_ops *ops, char *base)
 	}
 
 	/* Open HDF5 file to store data */
-        hid_t file = H5Fopen(hdf5_base_src, H5F_ACC_RDWR, H5P_DEFAULT);
-        if (file < 0)
-                goto h5fail;
+	hid_t file = H5Fopen(hdf5_base_src, H5F_ACC_RDWR, H5P_DEFAULT);
+	if (file < 0)
+		goto h5fail;
 
 	/* store initial data in the file */
-        hsize_t dims[1] = {NX};
-        hid_t dataspace = H5Screate_simple(1, dims, NULL);
-        if (dataspace < 0)
-        {
-                H5Fclose(file);
-                goto h5fail;
-        }
+	hsize_t dims[1] = {NX};
+	hid_t dataspace = H5Screate_simple(1, dims, NULL);
+	if (dataspace < 0)
+	{
+		H5Fclose(file);
+		goto h5fail;
+	}
 
-        hid_t dataset = H5Dcreate2(file, path_obj_start, H5T_NATIVE_INT, dataspace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-        if (dataset < 0)
-        {
-                H5Sclose(dataspace);
-                H5Fclose(file);
-                goto h5fail;
-        }
+	hid_t dataset = H5Dcreate2(file, path_obj_start, H5T_NATIVE_INT, dataspace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+	if (dataset < 0)
+	{
+		H5Sclose(dataspace);
+		H5Fclose(file);
+		goto h5fail;
+	}
 
-        status = H5Dwrite(dataset, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, A);
+	status = H5Dwrite(dataset, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, A);
 
 	/* close the resources before checking the writing */
-        H5Dclose(dataset);
+	H5Dclose(dataset);
 
-        if (status < 0)
-        {
-                H5Fclose(file);
-                goto h5fail;
-        }
+	if (status < 0)
+	{
+		H5Fclose(file);
+		goto h5fail;
+	}
 
-        H5Sclose(dataspace);
-        H5Fclose(file);
+	H5Sclose(dataspace);
+	H5Fclose(file);
 
 	/* Open the file ON the disk */
 	void * data = starpu_disk_open(disk_src, (void *) path_obj_start, NX*sizeof(int));
@@ -303,25 +303,25 @@ int dotest_hdf5(struct starpu_disk_ops *ops, char *base)
 	starpu_disk_close(disk_src, data, NX*sizeof(int));
 
 	/* check results */
-        file = H5Fopen(hdf5_base_src, H5F_ACC_RDWR, H5P_DEFAULT);
-        if (file < 0)
-                goto h5fail;
+	file = H5Fopen(hdf5_base_src, H5F_ACC_RDWR, H5P_DEFAULT);
+	if (file < 0)
+		goto h5fail;
 
-        dataset = H5Dopen2(file, path_obj_start, H5P_DEFAULT);
-        if (dataset < 0)
-        {
-                H5Fclose(file);
-                goto h5fail;
-        }
+	dataset = H5Dopen2(file, path_obj_start, H5P_DEFAULT);
+	if (dataset < 0)
+	{
+		H5Fclose(file);
+		goto h5fail;
+	}
 
-        status = H5Dread(dataset, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, C);
+	status = H5Dread(dataset, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, C);
 
 	/* close the resources before checking the writing */
-        H5Dclose(dataset);
-        H5Fclose(file);
+	H5Dclose(dataset);
+	H5Fclose(file);
 
-        if (status < 0)
-                goto h5fail;
+	if (status < 0)
+		goto h5fail;
 
 	int try = 1;
 	for (j = 0; j < NX; ++j)
@@ -337,8 +337,8 @@ int dotest_hdf5(struct starpu_disk_ops *ops, char *base)
 	/* terminate StarPU, no task can be submitted after */
 	starpu_shutdown();
 
-        unlink(hdf5_base_src);
-        unlink(hdf5_base_dst);
+	unlink(hdf5_base_src);
+	unlink(hdf5_base_dst);
 
 	free(hdf5_base_src);
 	free(hdf5_base_dst);
@@ -356,8 +356,8 @@ h5enoent:
 	FPRINTF(stderr, "Couldn't write data: ENOENT\n");
 	starpu_shutdown();
 h5enodev:
-        unlink(hdf5_base_src);
-        unlink(hdf5_base_dst);
+	unlink(hdf5_base_src);
+	unlink(hdf5_base_dst);
 	free(hdf5_base_src);
 	free(hdf5_base_dst);
 	return STARPU_TEST_SKIPPED;
@@ -365,7 +365,7 @@ h5fail2:
 	free(hdf5_base_src);
 	free(hdf5_base_dst);
 	FPRINTF(stderr, "Something goes wrong with HDF5 dataset/dataspace/write \n");
-        return EXIT_FAILURE;
+	return EXIT_FAILURE;
 
 }
 #endif
@@ -411,7 +411,7 @@ int main(void)
 	}
 #endif
 #ifdef STARPU_HAVE_HDF5
-        ret = merge_result(ret, dotest_hdf5(&starpu_disk_hdf5_ops, s));
+	ret = merge_result(ret, dotest_hdf5(&starpu_disk_hdf5_ops, s));
 #endif
 
 	ret2 = rmdir(s);

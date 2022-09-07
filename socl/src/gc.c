@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2012       Vincent Danjean
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -37,8 +37,7 @@ static starpu_pthread_cond_t  gc_cond = STARPU_PTHREAD_COND_INITIALIZER;
 static volatile int gc_stop_required = 0;
 
 #define GC_LOCK STARPU_PTHREAD_MUTEX_LOCK(&gc_mutex)
-#define GC_UNLOCK { STARPU_PTHREAD_COND_SIGNAL(&gc_cond); \
-                    STARPU_PTHREAD_MUTEX_UNLOCK(&gc_mutex);}
+#define GC_UNLOCK { STARPU_PTHREAD_COND_SIGNAL(&gc_cond); STARPU_PTHREAD_MUTEX_UNLOCK(&gc_mutex);}
 #define GC_UNLOCK_NO_SIGNAL STARPU_PTHREAD_MUTEX_UNLOCK(&gc_mutex)
 
 /* Thread routine */

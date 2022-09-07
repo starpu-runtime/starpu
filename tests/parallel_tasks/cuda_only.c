@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -63,7 +63,7 @@ int main(void)
 	starpu_data_handle_t handle;
 	unsigned data;
 
-        struct starpu_conf conf;
+	struct starpu_conf conf;
 	starpu_conf_init(&conf);
 	conf.sched_policy_name = "pheft";
 
@@ -107,7 +107,7 @@ enodev:
 	starpu_task_destroy(task);
 	starpu_data_unregister(handle);
 	/* yes, we do not perform the computation but we did detect that no one
- 	 * could perform the kernel, so this is not an error from StarPU */
+	 * could perform the kernel, so this is not an error from StarPU */
 	starpu_shutdown();
 	STARPU_RETURN(STARPU_TEST_SKIPPED);
 }

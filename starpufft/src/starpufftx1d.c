@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,39 +22,39 @@
 
 #define DIV_1D 64
 
-  /*
-   * Overall strategy for an fft of size n:
-   * - perform n1 ffts of size n2
-   * - twiddle
-   * - perform n2 ffts of size n1
-   *
-   * - n1 defaults to DIV_1D, thus n2 defaults to n / DIV_1D.
-   *
-   * Precise tasks:
-   *
-   * - twist1: twist the whole n-element input (called "in") into n1 chunks of
-   *           size n2, by using n1 tasks taking the whole n-element input as a
-   *           R parameter and one n2 output as a W parameter. The result is
-   *           called twisted1.
-   * - fft1:   perform n1 (n2) ffts, by using n1 tasks doing one fft each. Also
-   *           twiddle the result to prepare for the fft2. The result is called
-   *           fft1.
-   * - join:   depends on all the fft1s, to gather the n1 results of size n2 in
-   *           the fft1 vector.
-   * - twist2: twist the fft1 vector into n2 chunks of size n1, called twisted2.
-   *           since n2 is typically very large, this step is divided in DIV_1D
-   *           tasks, each of them performing n2/DIV_1D of them
-   * - fft2:   perform n2 ffts of size n1. This is divided in DIV_1D tasks of
-   *           n2/DIV_1D ffts, to be performed in batches. The result is called
-   *           fft2.
-   * - twist3: twist back the result of the fft2s above into the output buffer.
-   *           Only implemented on CPUs for simplicity of the gathering.
-   *
-   * The tag space thus uses 3 dimensions:
-   * - the number of the plan.
-   * - the step (TWIST1, FFT1, JOIN, TWIST2, FFT2, TWIST3, END)
-   * - an index i between 0 and DIV_1D-1.
-   */
+/*
+ * Overall strategy for an fft of size n:
+ * - perform n1 ffts of size n2
+ * - twiddle
+ * - perform n2 ffts of size n1
+ *
+ * - n1 defaults to DIV_1D, thus n2 defaults to n / DIV_1D.
+ *
+ * Precise tasks:
+ *
+ * - twist1: twist the whole n-element input (called "in") into n1 chunks of
+ *           size n2, by using n1 tasks taking the whole n-element input as a
+ *           R parameter and one n2 output as a W parameter. The result is
+ *           called twisted1.
+ * - fft1:   perform n1 (n2) ffts, by using n1 tasks doing one fft each. Also
+ *           twiddle the result to prepare for the fft2. The result is called
+ *           fft1.
+ * - join:   depends on all the fft1s, to gather the n1 results of size n2 in
+ *           the fft1 vector.
+ * - twist2: twist the fft1 vector into n2 chunks of size n1, called twisted2.
+ *           since n2 is typically very large, this step is divided in DIV_1D
+ *           tasks, each of them performing n2/DIV_1D of them
+ * - fft2:   perform n2 ffts of size n1. This is divided in DIV_1D tasks of
+ *           n2/DIV_1D ffts, to be performed in batches. The result is called
+ *           fft2.
+ * - twist3: twist back the result of the fft2s above into the output buffer.
+ *           Only implemented on CPUs for simplicity of the gathering.
+ *
+ * The tag space thus uses 3 dimensions:
+ * - the number of the plan.
+ * - the step (TWIST1, FFT1, JOIN, TWIST2, FFT2, TWIST3, END)
+ * - an index i between 0 and DIV_1D-1.
+ */
 
 #define STEP_TAG_1D(plan, step, i) _STEP_TAG(plan, step, i)
 
@@ -74,7 +74,7 @@ STARPUFFT(twist1_1d_kernel_gpu)(void *descr[], void *_args)
 
 	_cufftComplex * restrict in = (_cufftComplex *)STARPU_VECTOR_GET_PTR(descr[0]);
 	_cufftComplex * restrict twisted1 = (_cufftComplex *)STARPU_VECTOR_GET_PTR(descr[1]);
-	
+
 	STARPUFFT(cuda_twist1_1d_host)(in, twisted1, i, n1, n2);
 
 	cudaStreamSynchronize(starpu_cuda_get_local_stream());

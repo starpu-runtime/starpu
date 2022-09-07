@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -27,7 +27,8 @@
 unsigned val[2];
 starpu_pthread_mutex_t mut[2];
 
-/* Every implementation of a codelet must have this prototype, the first                                                                                                                                             * argument (buffers) describes the buffers/streams that are managed by the
+/* Every implementation of a codelet must have this prototype, the first
+ * argument (buffers) describes the buffers/streams that are managed by the
  * DSM; the second arguments references read-only data that is passed as an
  * argument of the codelet (task->cl_arg). Here, "buffers" is unused as there
  * are no data input/output managed by the DSM (cl.nbuffers = 0) */
@@ -80,7 +81,7 @@ int main()
 	int ret = starpu_init(NULL);
 
 	if (ret == -ENODEV)
-        return 77;
+		return 77;
 
 
 	/* create contexts */
@@ -108,7 +109,7 @@ int main()
 	   in this case we don't know it and we put 0 */
 	sc_hypervisor_register_ctx(sched_ctx1, flops1);
 	sc_hypervisor_register_ctx(sched_ctx2, flops2);
-        /* lp strategy allows sizing the contexts because we know the total number of flops
+	/* lp strategy allows sizing the contexts because we know the total number of flops
 	   to be executed */
 	sc_hypervisor_size_ctxs(NULL, -1, NULL, -1);
 

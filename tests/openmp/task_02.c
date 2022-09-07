@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2014-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -58,7 +58,7 @@ void task_region_h(void *buffers[], void *args)
 
 	for (i = 0; i < nx; i++)
 	{
-                v[i] += f;
+		v[i] += f;
 	}
 
 	printf("depth 2 task ending\n");
@@ -98,17 +98,17 @@ void task_region_g(void *buffers[], void *args)
 
 		memset(&attr, 0, sizeof(attr));
 #ifdef STARPU_SIMGRID
-		attr.cl.model         = &starpu_perfmodel_nop;
+		attr.cl.model	      = &starpu_perfmodel_nop;
 #endif
-		attr.cl.flags         = STARPU_CODELET_SIMGRID_EXECUTE;
+		attr.cl.flags	      = STARPU_CODELET_SIMGRID_EXECUTE;
 		attr.cl.cpu_funcs[0]  = task_region_h;
-		attr.cl.where         = STARPU_CPU;
+		attr.cl.where	      = STARPU_CPU;
 		attr.cl.nbuffers      = 1;
 		attr.cl.modes[0]      = STARPU_RW;
-		attr.handles          = &task_vector_handle;
+		attr.handles	      = &task_vector_handle;
 		attr.cl_arg_size      = sizeof(void *);
 		attr.cl_arg_free      = 0;
-		attr.if_clause        = 1;
+		attr.if_clause	      = 1;
 		attr.final_clause     = 0;
 		attr.untied_clause    = 1;
 		attr.mergeable_clause = 0;
@@ -153,17 +153,17 @@ void master_g2(void *arg)
 
 	memset(&attr, 0, sizeof(attr));
 #ifdef STARPU_SIMGRID
-	attr.cl.model         = &starpu_perfmodel_nop;
+	attr.cl.model	      = &starpu_perfmodel_nop;
 #endif
-	attr.cl.flags         = STARPU_CODELET_SIMGRID_EXECUTE;
+	attr.cl.flags	      = STARPU_CODELET_SIMGRID_EXECUTE;
 	attr.cl.cpu_funcs[0]  = task_region_g;
-	attr.cl.where         = STARPU_CPU;
+	attr.cl.where	      = STARPU_CPU;
 	attr.cl.nbuffers      = 1;
 	attr.cl.modes[0]      = STARPU_RW;
-	attr.handles          = &region_vector_handle;
+	attr.handles	      = &region_vector_handle;
 	attr.cl_arg_size      = sizeof(void *);
 	attr.cl_arg_free      = 0;
-	attr.if_clause        = 1;
+	attr.if_clause	      = 1;
 	attr.final_clause     = 0;
 	attr.untied_clause    = 1;
 	attr.mergeable_clause = 0;
@@ -208,12 +208,12 @@ main (void)
 
 	memset(&attr, 0, sizeof(attr));
 #ifdef STARPU_SIMGRID
-	attr.cl.model        = &starpu_perfmodel_nop;
+	attr.cl.model	     = &starpu_perfmodel_nop;
 #endif
-	attr.cl.flags        = STARPU_CODELET_SIMGRID_EXECUTE;
+	attr.cl.flags	     = STARPU_CODELET_SIMGRID_EXECUTE;
 	attr.cl.cpu_funcs[0] = parallel_region_f;
-	attr.cl.where        = STARPU_CPU;
-	attr.if_clause       = 1;
+	attr.cl.where	     = STARPU_CPU;
+	attr.if_clause	     = 1;
 	starpu_omp_parallel_region(&attr);
 	return 0;
 }

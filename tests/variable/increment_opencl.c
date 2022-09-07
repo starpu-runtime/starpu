@@ -37,19 +37,19 @@ void increment_load_opencl()
 
 void increment_unload_opencl()
 {
-        int ret = starpu_opencl_unload_opencl(&opencl_increment_program);
-        STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
-        ret = starpu_opencl_unload_opencl(&opencl_redux_program);
-        STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
-        ret = starpu_opencl_unload_opencl(&opencl_neutral_program);
-        STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
+	int ret = starpu_opencl_unload_opencl(&opencl_increment_program);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
+	ret = starpu_opencl_unload_opencl(&opencl_redux_program);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
+	ret = starpu_opencl_unload_opencl(&opencl_neutral_program);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
 }
 
 void increment_opencl(void *buffers[], void *args)
 {
 	(void) args;
 	int id, devid;
-        cl_int err;
+	cl_int err;
 	cl_kernel kernel;
 	cl_command_queue queue;
 
@@ -81,7 +81,7 @@ void redux_opencl(void *buffers[], void *args)
 {
 	(void) args;
 	int id, devid;
-        cl_int err;
+	cl_int err;
 	cl_kernel kernel;
 	cl_command_queue queue;
 
@@ -113,7 +113,7 @@ void neutral_opencl(void *buffers[], void *args)
 {
 	(void) args;
 	int id, devid;
-        cl_int err;
+	cl_int err;
 	cl_kernel kernel;
 	cl_command_queue queue;
 

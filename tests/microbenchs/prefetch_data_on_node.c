@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -26,11 +26,11 @@
  */
 
 #ifdef STARPU_QUICK_CHECK
-  #define N 10
+#define N 10
 #elif !defined(STARPU_LONG_CHECK)
-  #define N 100
+#define N 100
 #else
-  #define N 1000
+#define N 1000
 #endif
 
 #define VECTORSIZE	1024
@@ -105,12 +105,12 @@ int main(int argc, char **argv)
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
 	starpu_conf_noworker(&conf);
-        
-        conf.ncpus = -1;
-        conf.ncuda = -1;
-        conf.nopencl = -1;
-        conf.nmpi_ms = -1;
-        conf.ntcpip_ms = -1;
+	
+	conf.ncpus = -1;
+	conf.ncuda = -1;
+	conf.nopencl = -1;
+	conf.nmpi_ms = -1;
+	conf.ntcpip_ms = -1;
 
 	ret = starpu_initialize(&conf, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
@@ -186,7 +186,7 @@ enodev:
 	starpu_free_noflag(v, VECTORSIZE*sizeof(unsigned));
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one
- 	 * could perform the kernel, so this is not an error from StarPU */
+	 * could perform the kernel, so this is not an error from StarPU */
 	starpu_shutdown();
 	return STARPU_TEST_SKIPPED;
 }

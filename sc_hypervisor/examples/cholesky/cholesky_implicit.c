@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
- * Copyright (C) 2010       Mehdi Juhoor
- * Copyright (C) 2013       Thibaut Lambert
+ * Copyright (C) 2010	    Mehdi Juhoor
+ * Copyright (C) 2013	    Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -52,7 +52,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	for (k = 0; k < nblocks; k++)
 	{
 		starpu_iteration_push(k);
-                starpu_data_handle_t sdatakk = starpu_data_get_sub_data(dataA, 2, k, k);
+		starpu_data_handle_t sdatakk = starpu_data_get_sub_data(dataA, 2, k, k);
 		if(k == 0 && g_with_ctxs)
 		{
 			 ret = starpu_task_insert(&cl_potrf,
@@ -79,9 +79,9 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 
 		for (m = k+1; m<nblocks; m++)
 		{
-                        starpu_data_handle_t sdatamk = starpu_data_get_sub_data(dataA, 2, m, k);
+			starpu_data_handle_t sdatamk = starpu_data_get_sub_data(dataA, 2, m, k);
 
-                        ret = starpu_task_insert(&cl_trsm,
+			ret = starpu_task_insert(&cl_trsm,
 						 STARPU_PRIORITY, (m == k+1)?prio_level:STARPU_DEFAULT_PRIO,
 						 STARPU_R, sdatakk,
 						 STARPU_RW, sdatamk,
@@ -307,16 +307,16 @@ static void execute_cholesky(float *pmat, unsigned size, unsigned nblocks)
 			{
 				if (n <= m)
 				{
-	                                float orig = (1.0f/(1.0f+m+n)) + ((m == n)?1.0f*size:0.0f);
-	                                float err = fabsf(test_mat[m +n*size] - orig) / orig;
-	                                if (err > 0.0001)
+					float orig = (1.0f/(1.0f+m+n)) + ((m == n)?1.0f*size:0.0f);
+					float err = fabsf(test_mat[m +n*size] - orig) / orig;
+					if (err > 0.0001)
 					{
-	                                        FPRINTF(stderr, "Error[%u, %u] --> %2.6f != %2.6f (err %2.6f)\n", m, n, test_mat[m +n*size], orig, err);
-	                                        assert(0);
-	                                }
-	                        }
+						FPRINTF(stderr, "Error[%u, %u] --> %2.6f != %2.6f (err %2.6f)\n", m, n, test_mat[m +n*size], orig, err);
+						assert(0);
+					}
+				}
 			}
-	        }
+		}
 		free(test_mat);
 	}
 	starpu_free_noflag(mat, (size_t)size*size*sizeof(float));

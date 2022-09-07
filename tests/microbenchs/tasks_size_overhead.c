@@ -126,8 +126,8 @@ static void parse_args(int argc, char **argv)
 		case 'h':
 			fprintf(stderr, "\
 Usage: %s [-h]\n\
-          [-i ntasks] [-b nbuffers] [-B total_nbuffers]\n\
-          [-c mincpus] [ -C maxcpus] [-s cpustep]\n\
+	  [-i ntasks] [-b nbuffers] [-B total_nbuffers]\n\
+	  [-c mincpus] [ -C maxcpus] [-s cpustep]\n\
 	  [-t mintime] [-T maxtime] [-f factortime]\n\n", argv[0]);
 			fprintf(stderr,"\
 runs 'ntasks' tasks\n\
@@ -222,7 +222,7 @@ int main(int argc, char **argv)
 		for (i = 0; i < ntasks; i++)
 			func(NULL, (void*) (uintptr_t) size);
 		dend = starpu_timing_now();
-		FPRINTF(stdout, "%.0f       \t%f\t", (dend-dstart)/ntasks, (dend-dstart)/1000000);
+		FPRINTF(stdout, "%.0f	    \t%f\t", (dend-dstart)/ntasks, (dend-dstart)/1000000);
 	}
 	FPRINTF(stdout, "\n");
 	fflush(stdout);
@@ -333,7 +333,7 @@ int main(int argc, char **argv)
 enodev:
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one
- 	 * could perform the kernel, so this is not an error from StarPU */
+	 * could perform the kernel, so this is not an error from StarPU */
 error:
 	starpu_shutdown();
 	free(tasks);

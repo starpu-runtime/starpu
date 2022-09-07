@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2019-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -31,7 +31,7 @@ static max_file_t *maxfile;
 
 /*
  * Dynamically configure multiplexer and streaming from CPU or from LMem (ignoring the other)
-  */
+ */
 #define setupReadData(name) do { \
 	if (kind##name == STARPU_CPU_RAM) { \
 		max_route(acts, "joinIn"#name".inCPU", "joinIn"#name".join"); \
@@ -46,7 +46,7 @@ static max_file_t *maxfile;
 
 /*
  * Ignore data from unused input
-  */
+ */
 #define ignoreReadData(name) do { \
 	max_route(acts, "joinIn"#name".inLMem", "joinIn"#name".join"); \
 	max_ignore_stream(acts, "in"#name"CPU"); \
@@ -120,7 +120,7 @@ void fpga_impl1(void *buffers[], void *cl_arg)
 
 static struct starpu_codelet cl1 =
 {
- 	.max_fpga_funcs = {fpga_impl1},
+	.max_fpga_funcs = {fpga_impl1},
 	.nbuffers = 3,
 	.modes = {STARPU_R, STARPU_R, STARPU_W},
 	.specific_nodes = 1,
@@ -170,7 +170,7 @@ void fpga_impl2(void *buffers[], void *cl_arg)
 
 static struct starpu_codelet cl2 =
 {
- 	.max_fpga_funcs = {fpga_impl2},
+	.max_fpga_funcs = {fpga_impl2},
 	.nbuffers = 3,
 	.modes = {STARPU_R, STARPU_R, STARPU_W},
 	.specific_nodes = 1,
@@ -220,7 +220,7 @@ void fpga_impl3(void *buffers[], void *cl_arg)
 
 static struct starpu_codelet cl3 =
 {
- 	.max_fpga_funcs = {fpga_impl3},
+	.max_fpga_funcs = {fpga_impl3},
 	.nbuffers = 3,
 	.modes = {STARPU_R, STARPU_R, STARPU_W},
 	.specific_nodes = 1,

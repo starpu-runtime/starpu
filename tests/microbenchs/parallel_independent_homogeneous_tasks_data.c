@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
- * Copyright (C) 2016       Bérangère Subervie
+ * Copyright (C) 2016-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016	    Bérangère Subervie
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
 	nb_tasks = nb_workers*TASK_COEFFICIENT;
 
 	/* We consider a vector of float that is initialized just as any of C
- 	 * data */
+	 * data */
 	float *vector[nb_tasks];
 	starpu_data_handle_t vector_handle[nb_tasks];
 	unsigned i,j;
@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
 		vector[j] = malloc(NB_FLOAT * sizeof(float));
 #ifndef STARPU_SIMGRID
 		for (i = 0; i < NB_FLOAT; i++)
-        	        vector[j][i] = (i+1.0f);
+			vector[j][i] = (i+1.0f);
 #endif
 
 	/* Tell StaPU to associate the "vector" vector with the "vector_handle"

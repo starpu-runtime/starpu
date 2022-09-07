@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -33,8 +33,8 @@ unsigned hard_coded_worker_belong_to_other_sched_ctx(unsigned sched_ctx, int wor
 void hard_coded_handle_idle_cycle(unsigned sched_ctx, int worker)
 {
 	unsigned criteria = sc_hypervisor_get_resize_criteria();
-        if(criteria != SC_NOTHING)// && criteria == SC_SPEED)
-        {
+	if(criteria != SC_NOTHING)// && criteria == SC_SPEED)
+	{
 
 		int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
 		if(ret != EBUSY)
@@ -76,8 +76,8 @@ static void hard_coded_handle_poped_task(unsigned sched_ctx, __attribute__((unus
 	(void)task;
 	(void)footprint;
 	unsigned criteria = sc_hypervisor_get_resize_criteria();
-        if(criteria != SC_NOTHING && criteria == SC_SPEED)
-        {
+	if(criteria != SC_NOTHING && criteria == SC_SPEED)
+	{
 
 		int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
 		if(ret != EBUSY)

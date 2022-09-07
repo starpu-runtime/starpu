@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,7 +22,7 @@
 #include <starpu.h>
 #include "../helper.h"
 
-/* This task fakes some repeated errors  */
+/* This task fakes some repeated errors	 */
 static int retry;
 void cpu_increment(void *descr[], void *arg)
 {
@@ -81,7 +81,7 @@ int main(void)
 {
 	int x = 12;
 	int y = 1;
-        starpu_data_handle_t h_x, h_y;
+	starpu_data_handle_t h_x, h_y;
 	int ret, ret1;
 
 	if (starpu_get_env_number_default("STARPU_GLOBAL_ARBITER", 0) > 0)

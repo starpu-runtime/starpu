@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -60,10 +60,10 @@ struct read_format
 };
 
 static long perf_event_open(struct perf_event_attr *attr, pid_t pid, int cpu,
-                            int group_fd, unsigned long flags)
+			    int group_fd, unsigned long flags)
 {
-        int ret = syscall(__NR_perf_event_open, attr, pid, cpu, group_fd, flags);
-        return ret;
+	int ret = syscall(__NR_perf_event_open, attr, pid, cpu, group_fd, flags);
+	return ret;
 }
 
 void print_results_for_worker(int workerid, unsigned sched_ctx, struct starpu_task *task)
@@ -86,24 +86,24 @@ void print_results_for_worker(int workerid, unsigned sched_ctx, struct starpu_ta
 	/* total_branch_instr[sched_ctx] += branch_instr; */
 	total_fps[sched_ctx] += fps;
 
-        printf("Instrs %lf M instr of worker %lf M\n", (double)total_instr[sched_ctx]/1000000,
-               (double)instr/1000000);
-        printf("Fps %lf M curr fps %lf M \n",  (double)total_fps[sched_ctx]/1000000,
+	printf("Instrs %lf M instr of worker %lf M\n", (double)total_instr[sched_ctx]/1000000,
+	       (double)instr/1000000);
+	printf("Fps %lf M curr fps %lf M \n",  (double)total_fps[sched_ctx]/1000000,
 	       (double)fps/1000000);
 
 	printf("Task Flops %lf k %s \n", task->flops/1000, (task->cl && task->cl->model) ? task->cl->model->symbol : "task null");
-        printf("-------------------------------------------\n");
+	printf("-------------------------------------------\n");
 
 }
 
 void print_results_for_ctx(unsigned sched_ctx, struct starpu_task *task)
 {
-        long long curr_total_instr = 0;
-        /* long long curr_total_cycles = 0; */
-        /* long long curr_total_cache_misses = 0; */
-        /* long long curr_total_cache_refs = 0; */
-        /* long long curr_total_branch_instr = 0; */
-        long long curr_total_fps = 0;
+	long long curr_total_instr = 0;
+	/* long long curr_total_cycles = 0; */
+	/* long long curr_total_cache_misses = 0; */
+	/* long long curr_total_cache_refs = 0; */
+	/* long long curr_total_branch_instr = 0; */
+	long long curr_total_fps = 0;
 
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx);
 
@@ -111,17 +111,17 @@ void print_results_for_ctx(unsigned sched_ctx, struct starpu_task *task)
 
 	int workerid;
 	workers->init_iterator(workers, &it);
-        while(workers->has_next(workers, &it))
+	while(workers->has_next(workers, &it))
 	{
 		ssize_t rread;
 
 		workerid = workers->get_next(workers, &it);
-                // Read event counter value
-                struct read_format instr, /*cycles, cache_misses, cache_refs, branch_instr,*/ fps;
-                rread = read(fd_instr[workerid], &instr, sizeof(struct read_format));
+		// Read event counter value
+		struct read_format instr, /*cycles, cache_misses, cache_refs, branch_instr,*/ fps;
+		rread = read(fd_instr[workerid], &instr, sizeof(struct read_format));
 		assert(rread==sizeof(struct read_format));
 		/* read(fd_cycles[workerid], &cycles, sizeof(long long));  */
-                /* read(fd_cache_misses[workerid], &cache_misses, sizeof(long long)); */
+		/* read(fd_cache_misses[workerid], &cache_misses, sizeof(long long)); */
 		/* read(fd_cache_refs[workerid], &cache_refs, sizeof(long long));   */
 		/* read(fd_branch_instr[workerid], &branch_instr, sizeof(long long));  */
 		rread = read(fd_fps[workerid], &fps, sizeof(struct read_format));
@@ -136,23 +136,23 @@ void print_results_for_ctx(unsigned sched_ctx, struct starpu_task *task)
 		/* curr_total_branch_instr += branch_instr; */
 		curr_total_fps += (fps.time_enabled != 0 && fps.time_running !=0) ? fps.value * fps.time_enabled/fps.time_running : fps.value;
 		printf("w%d fps time enabled %lu time running %lu \n", workerid, fps.time_enabled, fps.time_running);
-        }
+	}
 
-        total_instr[sched_ctx] += curr_total_instr;
+	total_instr[sched_ctx] += curr_total_instr;
 	/* total_cycles[sched_ctx] += curr_total_cycles; */
-        /* total_cache_misses[sched_ctx] += curr_total_cache_misses; */
-        /* total_cache_refs[sched_ctx] += curr_total_cache_refs; */
-        /* total_branch_instr[sched_ctx] += curr_total_branch_instr; */
-        total_fps[sched_ctx] += curr_total_fps;
+	/* total_cache_misses[sched_ctx] += curr_total_cache_misses; */
+	/* total_cache_refs[sched_ctx] += curr_total_cache_refs; */
+	/* total_branch_instr[sched_ctx] += curr_total_branch_instr; */
+	total_fps[sched_ctx] += curr_total_fps;
 
-        printf("%u: Instrs %lf k curr instr %lf k\n", sched_ctx, (double)total_instr[sched_ctx]/1000,
-               (double)curr_total_instr/1000);
-        printf("%u: Fps %lf k curr fps %lf k\n",  sched_ctx,
+	printf("%u: Instrs %lf k curr instr %lf k\n", sched_ctx, (double)total_instr[sched_ctx]/1000,
+	       (double)curr_total_instr/1000);
+	printf("%u: Fps %lf k curr fps %lf k\n",  sched_ctx,
 	       (double)total_fps[sched_ctx]/1000,
 	       (double)curr_total_fps/1000);
 
 	printf("%u: Task Flops %lf k %s \n", sched_ctx, task->flops/1000, (task->cl && task->cl->model) ? task->cl->model->symbol : "task null");
-        printf("-------------------------------------------\n");
+	printf("-------------------------------------------\n");
 }
 
 void config_event(struct perf_event_attr *event, unsigned with_time, uint64_t event_type, uint64_t config_type)
@@ -161,7 +161,7 @@ void config_event(struct perf_event_attr *event, unsigned with_time, uint64_t ev
 	event->type = event_type;
 	event->size = sizeof(struct perf_event_attr);
 	event->config = config_type;
-	event->disabled = 1;        // Event is initially disabled
+	event->disabled = 1;	    // Event is initially disabled
 	event->exclude_kernel = 1;  // excluding events that happen in the kernel space
 	if(with_time)
 	{

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
- * Copyright (C) 2013       Thibaut Lambert
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013	    Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -56,7 +56,7 @@ static struct starpu_codelet cl =
 	.cpu_funcs = {codelet_null},
 	.cuda_funcs = {codelet_null},
 	.cpu_funcs_name = {"codelet_null"},
-        .opencl_funcs = {codelet_null},
+	.opencl_funcs = {codelet_null},
 	.model = &model,
 	.nbuffers = 1,
 	.modes = {STARPU_R}
@@ -67,7 +67,7 @@ static struct starpu_codelet cl_seq =
 	.cpu_funcs = {codelet_null},
 	.cuda_funcs = {codelet_null},
 	.cpu_funcs_name = {"codelet_null"},
-        .opencl_funcs = {codelet_null},
+	.opencl_funcs = {codelet_null},
 	.model = &model,
 	.nbuffers = 1,
 	.modes = {STARPU_R}
@@ -79,7 +79,7 @@ int main(void)
 	starpu_data_handle_t v_handle;
 	unsigned *v;
 
-        struct starpu_conf conf;
+	struct starpu_conf conf;
 	starpu_conf_init(&conf);
 	conf.ncpus = 2;
 	conf.sched_policy_name = "pheft";
@@ -102,8 +102,8 @@ int main(void)
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-        /* Then another parallel task, which is interesting to run in parallel
-        since the two cpus are now finishing at the same time. */
+	/* Then another parallel task, which is interesting to run in parallel
+	since the two cpus are now finishing at the same time. */
 	ret = starpu_task_insert(&cl, STARPU_R, v_handle, 0);
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
@@ -122,7 +122,7 @@ enodev:
 	starpu_free_noflag(v, VECTORSIZE*sizeof(unsigned));
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one
- 	 * could perform the kernel, so this is not an error from StarPU */
+	 * could perform the kernel, so this is not an error from StarPU */
 	starpu_shutdown();
 	STARPU_RETURN(STARPU_TEST_SKIPPED);
 }

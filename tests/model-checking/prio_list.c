@@ -80,8 +80,8 @@ void check_list_prio(struct foo_prio_list *list)
 	     cur  = foo_prio_list_next(list, cur))
 	{
 		if (cur->prio == lastprio)
-                        /* For same prio, back elements should never get before
-                         * front elements */
+			/* For same prio, back elements should never get before
+			 * front elements */
 			MC_assert(!(back && !cur->back));
 		else
 			MC_assert(lastprio > cur->prio);

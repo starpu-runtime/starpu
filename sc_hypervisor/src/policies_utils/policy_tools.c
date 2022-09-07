@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -189,8 +189,8 @@ int sc_hypervisor_get_movable_nworkers(struct sc_hypervisor_policy_config *confi
 	{
 		worker = workers->get_next(workers, &it);
 		enum starpu_worker_archtype curr_arch = starpu_worker_get_type(worker);
-                if(arch == STARPU_ANY_WORKER || curr_arch == arch)
-                {
+		if(arch == STARPU_ANY_WORKER || curr_arch == arch)
+		{
 			if(!config->fixed_workers[worker])
 				potential_workers++;
 		}
@@ -200,11 +200,11 @@ int sc_hypervisor_get_movable_nworkers(struct sc_hypervisor_policy_config *confi
 }
 
 /* compute the number of workers that should be moved depending:
-   - on the min/max number of workers in a context imposed by the user,
-   - on the resource granularity imposed by the user for the resizing process*/
+ * - on the min/max number of workers in a context imposed by the user,
+ * - on the resource granularity imposed by the user for the resizing process*/
 int sc_hypervisor_compute_nworkers_to_move(unsigned req_sched_ctx)
 {
-       	struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(req_sched_ctx);
+	struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(req_sched_ctx);
 	int nworkers = (int)starpu_sched_ctx_get_nworkers(req_sched_ctx);
 	int nworkers_to_move = 0;
 
@@ -319,7 +319,7 @@ double sc_hypervisor_get_slowest_ctx_exec_time(void)
 		if(elapsed_time > slowest_time)
 			slowest_time = elapsed_time;
 
-        }
+	}
 	return slowest_time;
 }
 
@@ -329,7 +329,7 @@ double sc_hypervisor_get_fastest_ctx_exec_time(void)
 	int nsched_ctxs = sc_hypervisor_get_nsched_ctxs();
 
 	double curr_time = starpu_timing_now();
- 	double fastest_time = curr_time;
+	double fastest_time = curr_time;
 
 	int s;
 	struct sc_hypervisor_wrapper* sc_w;
@@ -343,7 +343,7 @@ double sc_hypervisor_get_fastest_ctx_exec_time(void)
 		if(elapsed_time < fastest_time)
 			fastest_time = elapsed_time;
 
-        }
+	}
 
 	return fastest_time;
 }
@@ -407,24 +407,24 @@ unsigned sc_hypervisor_get_index_for_arch(enum starpu_worker_archtype arch, stru
 
 void sc_hypervisor_get_tasks_times(int nw, int nt, double times[nw][nt], int *workers, unsigned size_ctxs, struct sc_hypervisor_policy_task_pool *task_pools)
 {
-        struct sc_hypervisor_policy_task_pool *tp;
-        int w, t;
+	struct sc_hypervisor_policy_task_pool *tp;
+	int w, t;
 	for(w = 0; w < nw; w++)
 		for(t = 0; t < nt; t++)
 			times[w][t] = NAN;
-        for (w = 0; w < nw; w++)
-        {
-                for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
-                {
+	for (w = 0; w < nw; w++)
+	{
+		for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
+		{
 			int worker = workers == NULL ? w : workers[w];
-                        struct starpu_perfmodel_arch* arch = starpu_worker_get_perf_archtype(worker, STARPU_NMAX_SCHED_CTXS);
-                        double length = starpu_perfmodel_history_based_expected_perf(tp->cl->model, arch, tp->footprint);
+			struct starpu_perfmodel_arch* arch = starpu_worker_get_perf_archtype(worker, STARPU_NMAX_SCHED_CTXS);
+			double length = starpu_perfmodel_history_based_expected_perf(tp->cl->model, arch, tp->footprint);
 
-                        if (isnan(length))
-                                times[w][t] = NAN;
+			if (isnan(length))
+				times[w][t] = NAN;
 			else
 			{
-                                times[w][t] = (length / 1000.);
+				times[w][t] = (length / 1000.);
 				double transfer_time = 0.0;
 				unsigned worker_in_ctx = starpu_sched_ctx_contains_worker(worker, tp->sched_ctx_id);
 				enum starpu_worker_archtype warch = starpu_worker_get_type(worker);
@@ -458,8 +458,8 @@ void sc_hypervisor_get_tasks_times(int nw, int nt, double times[nw][nt], int *wo
 				times[w][t] += transfer_time;
 			}
 //			printf("sc%d w%d task %s nt %d times %lf s\n", tp->sched_ctx_id, w, tp->cl->model->symbol, tp->n, times[w][t]);
-                }
-        }
+		}
+	}
 }
 
 unsigned sc_hypervisor_check_idle(unsigned sched_ctx, int worker)
@@ -534,8 +534,8 @@ unsigned sc_hypervisor_check_speed_gap_btw_ctxs(unsigned *sched_ctxs_in, int ns_
 		free(tw);
 	}
 
-/* if we have an optimal speed for each type of worker compare the monitored one with the
-   theoretical one */
+	/* if we have an optimal speed for each type of worker compare the monitored one with the
+	 * theoretical one */
 	if(has_opt_v)
 	{
 		for(i = 0; i < ns; i++)
@@ -600,7 +600,7 @@ unsigned sc_hypervisor_check_speed_gap_btw_ctxs_on_level(int level, int *workers
 {
 	sc_hypervisor_get_ctxs_on_level(sched_ctxs, nsched_ctxs, level, father_sched_ctx_id);
 
-	if(*nsched_ctxs  > 0)
+	if(*nsched_ctxs	 > 0)
 		return sc_hypervisor_check_speed_gap_btw_ctxs(*sched_ctxs, *nsched_ctxs, workers_in, nworkers_in);
 	return 0;
 }

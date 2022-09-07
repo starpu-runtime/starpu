@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,11 +20,11 @@
 #include <sys/time.h>
 
 /* executes the function lp_estimated_distrib_func over the interval [tmin, tmax] until it finds the lowest value that
-   still has solutions */
+ * still has solutions */
 unsigned sc_hypervisor_lp_execute_dichotomy(int ns, int nw, double w_in_s[ns][nw], unsigned solve_lp_integer, void *specific_data,
 					    double tmin, double tmax, double smallest_tmax,
 					    double (*lp_estimated_distrib_func)(int lns, int lnw, double ldraft_w_in_s[ns][nw],
-									     unsigned lis_integer, double ltmax, void *lspecifc_data))
+										unsigned lis_integer, double ltmax, void *lspecifc_data))
 {
 	(void)smallest_tmax;
 	double res = 1.0;

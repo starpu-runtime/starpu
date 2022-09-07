@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,7 +22,7 @@
 double sc_hypervisor_get_ctx_speed(struct sc_hypervisor_wrapper* sc_w)
 {
 	struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(sc_w->sched_ctx);
-        double elapsed_flops = sc_hypervisor_get_elapsed_flops_per_sched_ctx(sc_w);
+	double elapsed_flops = sc_hypervisor_get_elapsed_flops_per_sched_ctx(sc_w);
 	double sample = config->ispeed_ctx_sample;
 
 
@@ -45,9 +45,9 @@ double sc_hypervisor_get_ctx_speed(struct sc_hypervisor_wrapper* sc_w)
 		can_compute_speed = elapsed_flops >= redim_sample;
 
 	if(can_compute_speed)
-        {
-                return (elapsed_flops/1000000000.0)/elapsed_time;/* in Gflops/s */
-        }
+	{
+		return (elapsed_flops/1000000000.0)/elapsed_time;/* in Gflops/s */
+	}
 	return -1.0;
 }
 
@@ -56,7 +56,7 @@ double sc_hypervisor_get_speed_per_worker(struct sc_hypervisor_wrapper *sc_w, un
 	if(!starpu_sched_ctx_contains_worker(worker, sc_w->sched_ctx))
 		return -1.0;
 
-        double elapsed_flops = sc_w->elapsed_flops[worker] / 1000000000.0; /*in gflops */
+	double elapsed_flops = sc_w->elapsed_flops[worker] / 1000000000.0; /*in gflops */
 
 	struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(sc_w->sched_ctx);
 	double sample = config->ispeed_w_sample[worker] / 1000000000.0; /*in gflops */
@@ -66,13 +66,11 @@ double sc_hypervisor_get_speed_per_worker(struct sc_hypervisor_wrapper *sc_w, un
 	if(ctx_elapsed_flops > ctx_sample && elapsed_flops == 0.0)
 		return 0.00000000000001;
 
-
-        if( elapsed_flops > sample)
-        {
-                double curr_time = starpu_timing_now();
-                double elapsed_time = (curr_time - sc_w->start_time) / 1000000.0; /* in seconds */
+	if( elapsed_flops > sample)
+	{
+		double curr_time = starpu_timing_now();
+		double elapsed_time = (curr_time - sc_w->start_time) / 1000000.0; /* in seconds */
 		elapsed_time -= sc_w->idle_time[worker];
-
 
 /* 		size_t elapsed_data_used = sc_w->elapsed_data[worker]; */
 /*  		enum starpu_worker_archtype arch = starpu_worker_get_type(worker); */
@@ -91,15 +89,12 @@ double sc_hypervisor_get_speed_per_worker(struct sc_hypervisor_wrapper *sc_w, un
 /* //			printf("elapsed time after %lf \n", elapsed_time); */
 /* 		} */
 
-                double vel  = (elapsed_flops/elapsed_time);/* in Gflops/s */
-                return vel;
-        }
+		double vel  = (elapsed_flops/elapsed_time);/* in Gflops/s */
+		return vel;
+	}
 
-        return -1.0;
-
-
+	return -1.0;
 }
-
 
 /* compute an average value of the cpu/cuda speed */
 double sc_hypervisor_get_speed_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_worker_archtype arch)
@@ -120,7 +115,7 @@ double sc_hypervisor_get_speed_per_worker_type(struct sc_hypervisor_wrapper* sc_
 		can_compute_speed = ctx_elapsed_flops > ctx_sample;
 
 	if(can_compute_speed)
-        {
+	{
 		if(ctx_elapsed_flops == 0.0) return -1.0;
 
 		struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sc_w->sched_ctx);

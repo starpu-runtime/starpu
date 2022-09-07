@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
- * Copyright (C) 2016       Bérangère Subervie
+ * Copyright (C) 2016-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016	    Bérangère Subervie
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
 	nb_tasks = nb_workers*TASK_COEFFICIENT;
 
 	/* We consider a vector of float that is initialized just as any of C
- 	 * data */
+	 * data */
 	float *vector;
 	starpu_data_handle_t vector_handle;
 	unsigned i;

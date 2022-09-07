@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
- * Copyright (C) 2013       Corentin Salingue
+ * Copyright (C) 2015-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013	    Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -80,7 +80,7 @@ const struct starpu_data_copy_methods my_vector_copy_data_methods_s =
 struct starpu_data_interface_ops starpu_interface_my_vector_ops;
 
 void starpu_my_vector_data_register(starpu_data_handle_t *handleptr, int home_node,
-                        uintptr_t ptr, uint32_t nx, size_t elemsize)
+			uintptr_t ptr, uint32_t nx, size_t elemsize)
 {
 	struct starpu_vector_interface vector =
 	{
@@ -88,9 +88,9 @@ void starpu_my_vector_data_register(starpu_data_handle_t *handleptr, int home_no
 		.ptr = ptr,
 		.nx = nx,
 		.elemsize = elemsize,
-                .dev_handle = ptr,
+		.dev_handle = ptr,
 		.slice_base = 0,
-                .offset = 0,
+		.offset = 0,
 		.allocsize = nx * elemsize,
 	};
 
