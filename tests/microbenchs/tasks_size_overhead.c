@@ -222,7 +222,7 @@ int main(int argc, char **argv)
 		for (i = 0; i < ntasks; i++)
 			func(NULL, (void*) (uintptr_t) size);
 		dend = starpu_timing_now();
-		FPRINTF(stdout, "%.0f	    \t%f\t", (dend-dstart)/ntasks, (dend-dstart)/1000000);
+		FPRINTF(stdout, "%.0f        \t%f\t", (dend-dstart)/ntasks, (dend-dstart)/1000000);
 	}
 	FPRINTF(stdout, "\n");
 	fflush(stdout);
