@@ -1915,6 +1915,16 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 	while (!starpu_task_list_empty(task_list))
 	{
 		task = starpu_task_list_pop_front(task_list);
+		
+		#ifdef PRINT
+		printf("Task %p using data(s) ", task);
+		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
+		{
+			printf("%p ", STARPU_TASK_GET_HANDLE(task, i));
+		}
+		printf("\n");
+		#endif
+		
 		paquets_data->temp_pointer_1->expected_time = starpu_task_expected_length(task, starpu_worker_get_perf_archtype(0, 0), 0);	
 		paquets_data->temp_pointer_1->data_weight = 0;
 		paquets_data->temp_pointer_1->data_to_evict_next = NULL; /* Mise à NULL de data to evict next pour eviter les pb en réel sur grid5k */

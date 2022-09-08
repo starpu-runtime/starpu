@@ -21,7 +21,6 @@
 #include "common/list.h"
 #include <assert.h>
 
-#define PRINT_IN_TERMINAL /* O we print nothing, 1 we print in terminal and also fill data coordinate order, task order etc... so it can take more time. */
 #define ORDER_U /* O or 1 */
 #define BELADY /* O or 1 */
 #define MULTIGPU /* 0 : on ne fais rien, 1 : on construit |GPU| paquets et on attribue chaque paquet à un GPU au hasard, 2 : pareil que 1 + load balance, 3 : pareil que 2 + HFP sur chaque paquet, 4 : pareil que 2 mais avec expected time a la place du nb de données, 5 pareil que 4 + HFP sur chaque paquet, 6 : load balance avec expected time d'un paquet en comptant transferts et overlap, 7 : pareil que 6 + HFP sur chaque paquet */
@@ -32,10 +31,11 @@ but we apply HFP on each package (pas codé en réalité car j'avais changé la 
 #define PRINT3D /* 1 we print coordinates and visualize data. 2 same but it is 3D with Z = N. Needed to differentiate 2D from 3D. */
 #define TASK_STEALING /* 0 we don't use it, 1 when a gpu (so a package) has finished all it tasks, it steal a task, starting by the end of the package of the package that has the most tasks left. It can be done with load balance on but was first thinked to be used with no load balance bbut |GPU| packages (MULTIGPU=1), 2 same than 1 but we steal from the package that has the biggest expected package time, 3 same than 2 but we always steal half (arondi à l'inférieur) of the package at once (in term of task duration). All that is implemented in get_task_to_return */
 #define INTERLACING /* 0 we don't use it, 1 we start giving task at the middle of the package then do right, left and so on. */
-#define PRINT_N /* To precise the value of N for visualization in scheduelers that does not count the toal number of tasks. Also use PRINT3D=1  or 2 so we know we are in 3D". */
-#define PRINT_TIME /* Pour afficher le temps d'exécution des fonctions dans HFP. A 1 on print à la 11ème itération et on fera la moyenne. A 2 on print à la première itération. Utile pour que cela fonctionne avec Grid5k. */
 #define FASTER_FIRST_ITERATION /* A 0 on ne fais rien, a 1 on le fais. Permet de faire une première itération où on merge ensemble els taches partageant une données sans regarder le max et donc sans calculer la matrice. Ne marche que pour matrice 2D, 3D. */
 
+//~ #define PRINT_IN_TERMINAL /* O we print nothing, 1 we print in terminal and also fill data coordinate order, task order etc... so it can take more time. */
+//~ #define PRINT_N /* To precise the value of N for visualization in scheduelers that does not count the toal number of tasks. Also use PRINT3D=1  or 2 so we know we are in 3D". */
+//~ #define PRINT_TIME /* Pour afficher le temps d'exécution des fonctions dans HFP. A 1 on print à la 11ème itération et on fera la moyenne. A 2 on print à la première itération. Utile pour que cela fonctionne avec Grid5k. */
 //~ #define PRINT /* A define pour print quoique ce soit. */
 //~ #define PRINT_PYTHON /* Visu python */
 

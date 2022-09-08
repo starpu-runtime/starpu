@@ -17,8 +17,8 @@
 #	bash Scripts_maxime/PlaFRIM-Grid5k/FGCS.sh 2 Random_task_order HFP 1
 #	bash Scripts_maxime/PlaFRIM-Grid5k/FGCS.sh 16 Random_task_order HFP 1
 
-#	bash Scripts_maxime/PlaFRIM-Grid5k/FGCS.sh 2 Sparse HFP 1
-#	bash Scripts_maxime/PlaFRIM-Grid5k/FGCS.sh 16 Sparse HFP 1
+#	bash Scripts_maxime/PlaFRIM-Grid5k/FGCS.sh 2 Sparse HFP 1 2/10
+#	bash Scripts_maxime/PlaFRIM-Grid5k/FGCS.sh 16 Sparse HFP 1 2/10
 
 #	bash Scripts_maxime/PlaFRIM-Grid5k/FGCS.sh 2 Sparse HFP_mem_infinie 1
 #	bash Scripts_maxime/PlaFRIM-Grid5k/FGCS.sh 16 Sparse HFP_mem_infinie 1
@@ -452,7 +452,8 @@ then
 fi
 if [ $DOSSIER = "Sparse" ]
 then
-	SPARSE=2
+	#~ SPARSE=2
+	SPARSE=$5
 	ECHELLE_X=$((50))
 	if [ $MODEL = "HFP" ]
 	then

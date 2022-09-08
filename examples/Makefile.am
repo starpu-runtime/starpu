@@ -52,6 +52,7 @@ EXTRA_DIST = 					\
 	mult/xgemm.c				\
 	mult/sgemm.sh				\
 	random_task_graph/random_task_graph.c \
+	QR/qr_without_dependancies.c \
 	lu/xlu.c				\
 	lu/xlu_pivot.c				\
 	lu/xlu_implicit.c			\
@@ -320,6 +321,7 @@ if !STARPU_NO_BLAS_LIB
 STARPU_EXAMPLES +=				\
 	mult/sgemm 				\
 	random_task_graph/random_task_graph		\
+	QR/qr_without_dependancies		\
 	mult/dgemm				\
 	lu/lu_example_float			\
 	lu/lu_example_double			\
