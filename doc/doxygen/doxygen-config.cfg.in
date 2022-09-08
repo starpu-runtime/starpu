@@ -37,7 +37,6 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters/foreword.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_faq/faq.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_interfaces/native_fortran_support.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_interfaces/java.doxy \
-			 @top_srcdir@/doc/doxygen/chapters/starpu_interfaces/eclipse_plugin.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_interfaces/python.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_interfaces/openmp_runtime_support.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_extensions/debugging_tools.doxy \

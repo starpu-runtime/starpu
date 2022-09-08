@@ -49,7 +49,6 @@ chapters =	\
 	chapters/starpu_faq/faq.doxy		\
 	chapters/starpu_interfaces/native_fortran_support.doxy		\
 	chapters/starpu_interfaces/java.doxy 		\
-	chapters/starpu_interfaces/eclipse_plugin.doxy 		\
 	chapters/starpu_interfaces/python.doxy		\
 	chapters/starpu_interfaces/openmp_runtime_support.doxy		\
 	chapters/starpu_extensions/debugging_tools.doxy		\

@@ -47,15 +47,14 @@
     <li> \ref CheckListWhenPerformanceAreNotThere
     <li> \ref FrequentlyAskedQuestions
     </ul>
-<li> Part 6: StarPU Interfaces
+<li> Part 5: StarPU Language Bindings
     <ul>
     <li> \ref NativeFortranSupport
     <li> \ref StarPUJavaInterface
-    <li> \ref EclipsePlugin
     <li> \ref PythonInterface
     <li> \ref OpenMPRuntimeSupport
     </ul>
-<li> Part 5: StarPU Extensions
+<li> Part 6: StarPU Extensions
     <ul>
     <li> \ref DebuggingTools
     <li> \ref AdvancedTasksInStarPU

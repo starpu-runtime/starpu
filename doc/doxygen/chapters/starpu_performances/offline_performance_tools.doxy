@@ -845,12 +845,79 @@ An example of visualization follows:
 \image html starvz_visu_r.png
 \image latex starvz_visu_r.png "" width=\textwidth
 
-\section EclipsePluginUsage StarPU Eclipse Plugin
+\section EclipsePlugin StarPU Eclipse Plugin
 
 The StarPU Eclipse Plugin provides the ability to generate the
-different traces directly from the Eclipse IDE. Once StarPU has been
-configured and installed with its Eclipse plugin (see Section \ref
-EclipsePlugin), you first need to set up your environment for StarPU.
+different traces directly from the Eclipse IDE. 
+
+\subsection EclipseInstallation Eclipse Installation
+
+Download the Eclipse installer from
+https://www.eclipse.org/downloads/packages/installer. When you run the
+installer, click on <em>Eclipse IDE for Java Developers</em> to start
+the installation process.
+
+\image html eclipse_installer.png
+\image latex eclipse_installer.png "" width=10cm
+
+To be able to develop C/C++ applications, you need to install the CDT
+plugin. To do so, go to the <em>Help</em> dropdown menu at the top of the
+Eclipse window, choose <em>Install New Software ...</em>. In the new
+window, enter the URL
+http://download.eclipse.org/tools/cdt/releases/9.10
+into the box <em>Work with</em> and press the return key.
+
+\image html eclipse_install_cdt.png
+\image latex eclipse_install_cdt.png "" width=10cm
+
+You need then to select <em>CDT Main Features</em>, then click the
+button <em>Next</em> twice, accept the terms of the license, and click
+the button <em>Finish</em>. Eclipse will ask you to restart.
+
+To be able to compile the plugin, you need to install the plugin
+development environnement (PDE). To do so, go to the menu
+<em>Help</em>, choose <em>Eclipse Marketplace...</em>. In the new
+window, enter <em>PDE</em> into the box <em>Find</em> and press the
+return key.
+
+\image html eclipse_install_pde.png
+\image latex eclipse_install_pde.png "" width=10cm
+
+You can then click on the button <em>Install</em> of the <em>Eclipse
+PDE latest</em>. You may need to confirm the installation, then accept
+the terms of the license, and finally restart the Eclipse IDE.
+
+The installation is now done.
+
+\subsection PluginInstallation StarPU Eclipse Plugin Compilation and Installation
+
+StarPU can now be compiled and installed with its Eclipse plugin. To
+do so, you first need to configure StarPU with the option \ref
+enable-eclipse-plugin "--enable-eclipse-plugin". The Eclipse IDE
+executable \c eclipse must be in your \c PATH.
+
+\verbatim
+export PATH=$HOME/usr/local/eclipse/java-2021-03/eclipse:$PATH
+mkdir build
+cd build
+../configure --prefix=$HOME/usr/local/starpu --enable-eclipse-plugin
+make
+make install
+\endverbatim
+
+The StarPU Eclipse plugin is installed in the directory \c dropins.
+
+\verbatim
+$ ls $HOME/usr/local/eclipse/java-2021-03/eclipse/dropins
+StarPU_1.0.0.202105272056.jar
+\endverbatim
+
+In the next section we will show you how to use the plugin.
+
+\subsection PluginInstruction StarPU Eclipse Plugin Instruction
+
+Once StarPU has been configured and installed with its Eclipse plugin, you first 
+need to set up your environment for StarPU.
 
 \verbatim
 cd $HOME/usr/local/starpu
