@@ -25,7 +25,7 @@ make install
 #~ mv Output_maxime/GFlops_raw_out_3.txt Output_maxime/Data/DT_HFP_M2D_RANDOM_TASKS.txt
 
 # Pour la révision
-bash Scripts_maxime/PlaFRIM-Grid5k/FGCS.sh 8 Sparse HFP 1 10				
+bash Scripts_maxime/PlaFRIM-Grid5k/FGCS.sh 8 Sparse HFP 1 10		
 mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/Data/GF_HFP_SPARSE.txt
 mv Output_maxime/GFlops_raw_out_3.txt Output_maxime/Data/DT_HFP_SPARSE.txt
 

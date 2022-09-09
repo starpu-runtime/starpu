@@ -110,10 +110,11 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+	int minMNT = 0;
 	
 	if (A_M > A_N)
 	{
-        minMNT = A_N
+        minMNT = A_N;
     } 
     else
     {
@@ -128,61 +129,61 @@ int main(int argc, char **argv)
     //~ }
 
 
-	int i = 0;
-	int j = 0;
-	starpu_data_handle_t * tab_handle = malloc(number_data*sizeof(starpu_data_handle_t));
-	int * forbidden_data = malloc(number_data*sizeof(int));
-	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Set of data: "); }
-	for (i = 0; i < number_data; i++)
-	{
-		starpu_data_handle_t new_handle;
-		starpu_variable_data_register(&new_handle, STARPU_MAIN_RAM, (uintptr_t)&value, sizeof(value));
-		tab_handle[i] = new_handle;
-		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("%p ", new_handle); }
-	}
-	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("\n"); }
+	//~ int i = 0;
+	//~ int j = 0;
+	//~ starpu_data_handle_t * tab_handle = malloc(number_data*sizeof(starpu_data_handle_t));
+	//~ int * forbidden_data = malloc(number_data*sizeof(int));
+	//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Set of data: "); }
+	//~ for (i = 0; i < number_data; i++)
+	//~ {
+		//~ starpu_data_handle_t new_handle;
+		//~ starpu_variable_data_register(&new_handle, STARPU_MAIN_RAM, (uintptr_t)&value, sizeof(value));
+		//~ tab_handle[i] = new_handle;
+		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("%p ", new_handle); }
+	//~ }
+	//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("\n"); }
 
-	start = starpu_timing_now();
-	starpu_pause();
-	starpu_sleep(0.001);
-	for (i = 0; i < number_task; i++)
-	{
-		struct starpu_task *task = starpu_task_create();
+	//~ start = starpu_timing_now();
+	//~ starpu_pause();
+	//~ starpu_sleep(0.001);
+	//~ for (i = 0; i < number_task; i++)
+	//~ {
+		//~ struct starpu_task *task = starpu_task_create();
 
-		task->cl = &cl_random_task_graph;
+		//~ task->cl = &cl_random_task_graph;
 				
-		random_degree = random()%degree_max + 1;
-		task->nbuffers = random_degree;
-		for (j = 0; j < number_data; j++)
-		{
-			forbidden_data[j] = 0; /* 0 = not forbidden, 1 = forbidden because already in the task */
-		}
-		number_forbidden_data = 0;
-		for (j = 0; j < random_degree; j++)
-		{
-			/* A task can't have two times the same data. So I put 1 in forbidden_data in the corresponding space. Each time our random number pass over a forbidden data, I add 1 to random_data. Also the modulo for random_data is on the number of remaining data. */
-			random_data = random()%(number_data - number_forbidden_data);
-			for (k = 0; k <= random_data; k++)
-			{
-				if (forbidden_data[k] == 1)
-				{
-					random_data++;
-				}
-			}
-			task->handles[j] = tab_handle[random_data];
-			forbidden_data[random_data] = 1;
-			number_forbidden_data++;
-			task->modes[j] = STARPU_R; /* Acces mode of each data set here because the codelet won't work if the number of data is variable */
-		}
-		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Created task %p, with %d data:", task, random_degree);
-		for (j = 0; j < random_degree; j++) { printf(" %p", task->handles[j]); } printf("\n"); }
+		//~ random_degree = random()%degree_max + 1;
+		//~ task->nbuffers = random_degree;
+		//~ for (j = 0; j < number_data; j++)
+		//~ {
+			//~ forbidden_data[j] = 0; /* 0 = not forbidden, 1 = forbidden because already in the task */
+		//~ }
+		//~ number_forbidden_data = 0;
+		//~ for (j = 0; j < random_degree; j++)
+		//~ {
+			//~ /* A task can't have two times the same data. So I put 1 in forbidden_data in the corresponding space. Each time our random number pass over a forbidden data, I add 1 to random_data. Also the modulo for random_data is on the number of remaining data. */
+			//~ random_data = random()%(number_data - number_forbidden_data);
+			//~ for (k = 0; k <= random_data; k++)
+			//~ {
+				//~ if (forbidden_data[k] == 1)
+				//~ {
+					//~ random_data++;
+				//~ }
+			//~ }
+			//~ task->handles[j] = tab_handle[random_data];
+			//~ forbidden_data[random_data] = 1;
+			//~ number_forbidden_data++;
+			//~ task->modes[j] = STARPU_R; /* Acces mode of each data set here because the codelet won't work if the number of data is variable */
+		//~ }
+		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Created task %p, with %d data:", task, random_degree);
+		//~ for (j = 0; j < random_degree; j++) { printf(" %p", task->handles[j]); } printf("\n"); }
 				
-		/* submit the task to StarPU */
-		ret = starpu_task_submit(task);
-		if (ret == -ENODEV) { goto enodev; }
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-	}
-	starpu_resume();
+		//~ /* submit the task to StarPU */
+		//~ ret = starpu_task_submit(task);
+		//~ if (ret == -ENODEV) { goto enodev; }
+		//~ STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	//~ }
+	//~ starpu_resume();
 	//~ starpu_task_wait_for_all();
 	
 					//~ if (starpu_get_env_number_default("COUNT_DO_SCHEDULE", 0) == 0)
@@ -209,20 +210,20 @@ int main(int argc, char **argv)
 	//~ {
 		//~ starpu_data_unregister(tab_handle[i]);
 	//~ }
-	end = starpu_timing_now();
-	double timing = end - start;
-	double temp_number_task = number_task;
-	double flops = 960*temp_number_task*960*960*4;
+	//~ end = starpu_timing_now();
+	//~ double timing = end - start;
+	//~ double temp_number_task = number_task;
+	//~ double flops = 960*temp_number_task*960*960*4;
 	//~ printf("flops : %f, time : %f\n", flops, timing);
-	PRINTF("# Nbtasks\tms\tGFlops\n");
-	PRINTF("%d\t%.0f\t%.1f\n", number_task, timing/1000.0, flops/timing/1000);
+	//~ PRINTF("# Nbtasks\tms\tGFlops\n");
+	//~ PRINTF("%d\t%.0f\t%.1f\n", number_task, timing/1000.0, flops/timing/1000);
 	
-	for (i = 0; i < number_data; i++)
-	{
-		starpu_data_unregister(tab_handle[i]);
-	}
+	//~ for (i = 0; i < number_data; i++)
+	//~ {
+		//~ starpu_data_unregister(tab_handle[i]);
+	//~ }
 	
-	starpu_shutdown();
+	//~ starpu_shutdown();
 	
 	return 0;
 
