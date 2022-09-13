@@ -39,13 +39,13 @@ struct s_starpurm
 	hwloc_topology_t topology;
 
 	/** Current upper bound on the number of CPU cores selectable for computing with the runtime system. */
-	unsigned max_ncpus;
+	int max_ncpus;
 
 	/** Number of currently selected CPU workers */
-	unsigned selected_ncpus;
+	int selected_ncpus;
 
 	/** Number of currently selected workers (CPU+devices) */
-	unsigned selected_nworkers;
+	int selected_nworkers;
 
 	/** Initialization state of the RM instance. */
 	int state;
@@ -105,17 +105,17 @@ struct s_starpurm
 	/** Temporary contexts accounting. */
 	unsigned int max_temporary_ctxs;
 	unsigned int avail_temporary_ctxs;
-	pthread_mutex_t temporary_ctxs_mutex;
-	pthread_cond_t temporary_ctxs_cond;
+	starpu_pthread_mutex_t temporary_ctxs_mutex;
+	starpu_pthread_cond_t temporary_ctxs_cond;
 
 	/** Global StarPU pause state */
 	int starpu_in_pause;
 
 	/** Event list. */
 	pthread_t event_thread;
-	pthread_mutex_t event_list_mutex;
-	pthread_cond_t event_list_cond;
-	pthread_cond_t event_processing_cond;
+	starpu_pthread_mutex_t event_list_mutex;
+	starpu_pthread_cond_t event_list_cond;
+	starpu_pthread_cond_t event_processing_cond;
 	int event_processing_enabled;
 	int event_processing_ended;
 	struct s_starpurm_event *event_list_head;

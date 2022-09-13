@@ -49,7 +49,7 @@ struct s_starpurm_unit
 	hwloc_cpuset_t worker_cpuset;
 
 	/* Condition variable to notify that a unit is now available to driver a worker waking up. */
-	pthread_cond_t unit_available_cond;
+	starpu_pthread_cond_t unit_available_cond;
 };
 
 static struct s_starpurm *_starpurm = NULL;
@@ -106,7 +106,7 @@ struct s_starpurm_event
 	struct s_starpurm_event *next;
 	struct s_starpurm_event *prev;
 	enum e_starpurm_event code;
-	unsigned int workerid;
+	int workerid;
 };
 
 static void _enqueue_event(struct s_starpurm_event *event)
@@ -117,10 +117,10 @@ static void _enqueue_event(struct s_starpurm_event *event)
 	assert(event->next == NULL);
 	assert(event->prev == NULL);
 	assert(event->code >= starpurm_event_code_min && event->code <= starpurm_event_code_max);
-	pthread_mutex_lock(&rm->event_list_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&rm->event_list_mutex);
 	if (rm->event_processing_ended)
 	{
-		pthread_mutex_unlock(&rm->event_list_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&rm->event_list_mutex);
 		return;
 	}
 	assert((rm->event_list_head == NULL && rm->event_list_tail == NULL)
@@ -141,14 +141,14 @@ static void _enqueue_event(struct s_starpurm_event *event)
 		int i;
 		for (i=0; i<rm->nunits; i++)
 		{
-			pthread_cond_broadcast(&rm->units[i].unit_available_cond);
+			STARPU_PTHREAD_COND_BROADCAST(&rm->units[i].unit_available_cond);
 		}
 	}
 #ifdef STARPURM_VERBOSE
 	if (event->code != starpurm_event_worker_waking_up)
 		fprintf(stderr, "%s: event->code=%d('%s'), workerid=%u\n", __func__, event->code, _starpurm_event_to_str(event->code), event->workerid);
 #endif
-	pthread_cond_broadcast(&rm->event_list_cond);
+	STARPU_PTHREAD_COND_BROADCAST(&rm->event_list_cond);
 #ifdef STARPURM_HAVE_DLB
 	if (event->code == starpurm_event_worker_waking_up)
 	{
@@ -157,13 +157,13 @@ static void _enqueue_event(struct s_starpurm_event *event)
 #ifdef STARPURM_VERBOSE
 		fprintf(stderr, "%s: event->code=%d('%s'), workerid=%u - waiting\n", __func__, event->code, _starpurm_event_to_str(event->code), event->workerid);
 #endif
-		pthread_cond_wait(&rm->units[unit_id].unit_available_cond, &rm->event_list_mutex);
+		STARPU_PTHREAD_COND_WAIT(&rm->units[unit_id].unit_available_cond, &rm->event_list_mutex);
 #ifdef STARPURM_VERBOSE
 		fprintf(stderr, "%s: event->code=%d('%s'), workerid=%u - wakeup\n", __func__, event->code, _starpurm_event_to_str(event->code), event->workerid);
 #endif
 	}
 #endif
-	pthread_mutex_unlock(&rm->event_list_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&rm->event_list_mutex);
 }
 
 static struct s_starpurm_event *_dequeue_event_no_lock(void)
@@ -194,7 +194,7 @@ static struct s_starpurm_event *_wait_event_no_lock(void)
 	struct s_starpurm *rm = _starpurm;
 	while (rm->event_list_head == NULL)
 	{
-		pthread_cond_wait(&rm->event_list_cond, &rm->event_list_mutex);
+		STARPU_PTHREAD_COND_WAIT(&rm->event_list_cond, &rm->event_list_mutex);
 	}
 	struct s_starpurm_event *event = _dequeue_event_no_lock();
 	return event;
@@ -206,9 +206,9 @@ static struct s_starpurm_event *_dequeue_event(void)
 	assert(_starpurm != NULL);
 	assert(_starpurm->state != state_uninitialized);
 	struct s_starpurm *rm = _starpurm;
-	pthread_mutex_lock(&rm->event_list_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&rm->event_list_mutex);
 	struct s_starpurm_event *event = _dequeue_event_no_lock();
-	pthread_mutex_unlock(&rm->event_list_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&rm->event_list_mutex);
 	return event;
 }
 
@@ -218,9 +218,9 @@ static struct s_starpurm_event *_wait_event(void)
 	assert(_starpurm != NULL);
 	assert(_starpurm->state != state_uninitialized);
 	struct s_starpurm *rm = _starpurm;
-	pthread_mutex_lock(&rm->event_list_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&rm->event_list_mutex);
 	struct s_starpurm_event *event = _wait_event_no_lock();
-	pthread_mutex_unlock(&rm->event_list_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&rm->event_list_mutex);
 	return event;
 }
 
@@ -232,7 +232,7 @@ static void _enqueue_exit_event(void)
 	_enqueue_event(event);
 }
 
-static void callback_worker_going_to_sleep(unsigned workerid)
+static void callback_worker_going_to_sleep(int workerid)
 {
 
 	struct s_starpurm_event *event = calloc(1, sizeof(*event));
@@ -241,7 +241,7 @@ static void callback_worker_going_to_sleep(unsigned workerid)
 	_enqueue_event(event);
 }
 
-static void callback_worker_waking_up(unsigned workerid)
+static void callback_worker_waking_up(int workerid)
 {
 	struct s_starpurm_event *event = calloc(1, sizeof(*event));
 	event->code = starpurm_event_worker_waking_up;
@@ -261,7 +261,7 @@ void starpurm_enqueue_event_cpu_unit_available(int unit_id)
 	 *
 	 * //assert(unit_id < rm->nunits_by_type[starpurm_unit_cpu]);
 	 */
-	unsigned workerid = rm->units[unit_id].workerid; struct
+	int workerid = rm->units[unit_id].workerid; struct
 		s_starpurm_event *event = calloc(1, sizeof(*event));
 	event->code = starpurm_event_unit_available; event->workerid =
 		workerid; _enqueue_event(event); }
@@ -274,12 +274,12 @@ static void *event_thread_func(void *_arg)
 	struct s_starpurm *rm = _starpurm;
 	int need_refresh = 0;
 
-	pthread_mutex_lock(&rm->event_list_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&rm->event_list_mutex);
 	while (rm->event_processing_enabled == 0)
 	{
-		pthread_cond_wait(&rm->event_processing_cond, &rm->event_list_mutex);
+		STARPU_PTHREAD_COND_WAIT(&rm->event_processing_cond, &rm->event_list_mutex);
 	}
-	pthread_mutex_unlock(&rm->event_list_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&rm->event_list_mutex);
 	hwloc_cpuset_t owned_cpuset = hwloc_bitmap_dup(rm->global_cpuset);
 	hwloc_cpuset_t to_reclaim_cpuset = hwloc_bitmap_alloc();
 	hwloc_cpuset_t to_lend_cpuset = hwloc_bitmap_alloc();
@@ -362,7 +362,7 @@ static void *event_thread_func(void *_arg)
 						}
 						else
 						{
-							pthread_cond_broadcast(&rm->units[unit_id].unit_available_cond);
+							STARPU_PTHREAD_COND_BROADCAST(&rm->units[unit_id].unit_available_cond);
 						}
 #else
 						hwloc_bitmap_or(to_reclaim_cpuset, to_reclaim_cpuset, rm->units[unit_id].worker_cpuset);
@@ -377,7 +377,7 @@ static void *event_thread_func(void *_arg)
 					{
 						/* a reclaimed unit is now available from DLB, unlock the corresponding worker waking up */
 						int unit_id = rm->worker_unit_ids[event->workerid];
-						pthread_cond_broadcast(&rm->units[unit_id].unit_available_cond);
+						STARPU_PTHREAD_COND_BROADCAST(&rm->units[unit_id].unit_available_cond);
 					}
 				}
 				break;
@@ -390,14 +390,14 @@ static void *event_thread_func(void *_arg)
 		free(event);
 		need_refresh = 1;
 	}
-	pthread_mutex_lock(&rm->event_list_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&rm->event_list_mutex);
 	/* exit event should be last */
 	assert(rm->event_list_head == NULL);
 	assert(rm->event_list_tail == NULL);
 	hwloc_bitmap_free(owned_cpuset);
 	hwloc_bitmap_free(to_reclaim_cpuset);
 	hwloc_bitmap_free(to_lend_cpuset);
-	pthread_mutex_unlock(&rm->event_list_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&rm->event_list_mutex);
 	return NULL;
 }
 #endif /* STARPURM_STARPU_HAVE_WORKER_CALLBACKS */
@@ -412,16 +412,16 @@ static starpurm_drs_ret_t _starpurm_update_cpuset(hwloc_cpuset_t cpuset)
 	{
 		return starpurm_DRS_SUCCESS;
 	}
-	pthread_mutex_lock(&rm->temporary_ctxs_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&rm->temporary_ctxs_mutex);
 	if (rm->starpu_in_pause)
 	{
 		starpu_resume();
 		rm->starpu_in_pause = 0;
 	}
 	int workers_to_remove[_starpurm->nunits];
-	unsigned nworkers_to_remove = 0;
+	int nworkers_to_remove = 0;
 	int workers_to_add[_starpurm->nunits];
-	unsigned nworkers_to_add = 0;
+	int nworkers_to_add = 0;
 	int i;
 	hwloc_cpuset_t temp_cpuset = hwloc_bitmap_alloc();
 	int new_selected_ncpus = 0;
@@ -492,13 +492,13 @@ static starpurm_drs_ret_t _starpurm_update_cpuset(hwloc_cpuset_t cpuset)
 	}
 #ifdef _DEBUG
 	starpu_sched_ctx_display_workers(rm->sched_ctx_id, stderr);
-#endif /* DEBUG */
+#endif /* _DEBUG */
 	if (rm->selected_nworkers == 0 && rm->avail_temporary_ctxs == rm->max_temporary_ctxs)
 	{
 		rm->starpu_in_pause = 1;
 		starpu_pause();
 	}
-	pthread_mutex_unlock(&rm->temporary_ctxs_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&rm->temporary_ctxs_mutex);
 	return starpurm_DRS_SUCCESS;
 }
 
@@ -508,10 +508,10 @@ static unsigned _starpurm_temporary_context_alloc(hwloc_cpuset_t cpuset)
 	assert(_starpurm->state != state_uninitialized);
 	assert(_starpurm->max_temporary_ctxs > 0);
 	struct s_starpurm *rm = _starpurm;
-	pthread_mutex_lock(&rm->temporary_ctxs_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&rm->temporary_ctxs_mutex);
 	while(rm->avail_temporary_ctxs == 0)
 	{
-		pthread_cond_wait(&rm->temporary_ctxs_cond, &rm->temporary_ctxs_mutex);
+		STARPU_PTHREAD_COND_WAIT(&rm->temporary_ctxs_cond, &rm->temporary_ctxs_mutex);
 	}
 	assert(rm->avail_temporary_ctxs > 0);
 	rm->avail_temporary_ctxs--;
@@ -520,13 +520,13 @@ static unsigned _starpurm_temporary_context_alloc(hwloc_cpuset_t cpuset)
 		starpu_resume();
 		rm->starpu_in_pause = 0;
 	}
-	pthread_mutex_unlock(&rm->temporary_ctxs_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&rm->temporary_ctxs_mutex);
 	unsigned sched_ctx_id = starpu_sched_ctx_create(NULL, -1, "starpurm_temp", STARPU_SCHED_CTX_POLICY_NAME, "eager", 0);
 	assert(sched_ctx_id != STARPU_NMAX_SCHED_CTXS);
 	int workers_to_remove[_starpurm->nunits];
-	unsigned nworkers_to_remove = 0;
+	int nworkers_to_remove = 0;
 	int workers_to_add[_starpurm->nunits];
-	unsigned nworkers_to_add = 0;
+	int nworkers_to_add = 0;
 	int i;
 	hwloc_cpuset_t temp_cpuset = hwloc_bitmap_alloc();
 	for (i=0; i<rm->nunits; i++)
@@ -552,7 +552,7 @@ static unsigned _starpurm_temporary_context_alloc(hwloc_cpuset_t cpuset)
 		starpu_sched_ctx_remove_workers(workers_to_remove, nworkers_to_remove, sched_ctx_id);
 #ifdef _DEBUG
 	starpu_sched_ctx_display_workers(sched_ctx_id, stderr);
-#endif /* DEBUG */
+#endif /* _DEBUG */
 	return sched_ctx_id;
 }
 
@@ -563,18 +563,18 @@ static void _starpurm_temporary_context_free(unsigned ctx)
 	assert(_starpurm->max_temporary_ctxs > 0);
 	struct s_starpurm *rm = _starpurm;
 	starpu_sched_ctx_delete(ctx);
-	pthread_mutex_lock(&rm->temporary_ctxs_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&rm->temporary_ctxs_mutex);
 	rm->avail_temporary_ctxs++;
-	pthread_cond_signal(&rm->temporary_ctxs_cond);
+	STARPU_PTHREAD_COND_SIGNAL(&rm->temporary_ctxs_cond);
 	if (rm->selected_nworkers == 0 && rm->avail_temporary_ctxs == rm->max_temporary_ctxs)
 	{
 		rm->starpu_in_pause = 1;
 		starpu_pause();
 	}
-	pthread_mutex_unlock(&rm->temporary_ctxs_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&rm->temporary_ctxs_mutex);
 }
 
-static starpurm_drs_ret_t _starpurm_set_ncpus(unsigned int ncpus)
+static starpurm_drs_ret_t _starpurm_set_ncpus(int ncpus)
 {
 	assert(_starpurm != NULL);
 	assert(_starpurm->state != state_uninitialized);
@@ -588,16 +588,16 @@ static starpurm_drs_ret_t _starpurm_set_ncpus(unsigned int ncpus)
 	{
 		return starpurm_DRS_SUCCESS;
 	}
-	pthread_mutex_lock(&rm->temporary_ctxs_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&rm->temporary_ctxs_mutex);
 	if (rm->starpu_in_pause)
 	{
 		starpu_resume();
 		rm->starpu_in_pause = 0;
 	}
 	int workers_to_remove[_starpurm->nunits];
-	unsigned nworkers_to_remove = 0;
+	int nworkers_to_remove = 0;
 	int workers_to_add[_starpurm->nunits];
-	unsigned nworkers_to_add = 0;
+	int nworkers_to_add = 0;
 	for (i=0; i<rm->nunits; i++)
 	{
 		struct s_starpurm_unit *unit = &rm->units[i];
@@ -626,15 +626,15 @@ static starpurm_drs_ret_t _starpurm_set_ncpus(unsigned int ncpus)
 		starpu_sched_ctx_add_workers(workers_to_add, nworkers_to_add, rm->sched_ctx_id);
 	if (nworkers_to_remove > 0)
 		starpu_sched_ctx_remove_workers(workers_to_remove, nworkers_to_remove, rm->sched_ctx_id);
-#if def_DEBUG
+#ifdef _DEBUG
 	starpu_sched_ctx_display_workers(rm->sched_ctx_id, stderr);
-#endif /* DEBUG */
+#endif /* _DEBUG */
 	if (rm->selected_nworkers == 0 && rm->avail_temporary_ctxs == rm->max_temporary_ctxs)
 	{
 		rm->starpu_in_pause = 1;
 		starpu_pause();
 	}
-	pthread_mutex_unlock(&rm->temporary_ctxs_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&rm->temporary_ctxs_mutex);
 	return starpurm_DRS_SUCCESS;
 }
 
@@ -645,8 +645,8 @@ void starpurm_initialize_with_cpuset(const hwloc_cpuset_t initially_owned_cpuset
 	assert(_starpurm == NULL);
 
 	struct s_starpurm *rm = calloc(1, sizeof(*rm));
-	pthread_mutex_init(&rm->temporary_ctxs_mutex, NULL);
-	pthread_cond_init(&rm->temporary_ctxs_cond, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&rm->temporary_ctxs_mutex, NULL);
+	STARPU_PTHREAD_COND_INIT(&rm->temporary_ctxs_cond, NULL);
 	rm->state = state_init;
 
 	/* init hwloc objects */
@@ -672,15 +672,15 @@ void starpurm_initialize_with_cpuset(const hwloc_cpuset_t initially_owned_cpuset
 	hwloc_bitmap_zero(rm->all_device_workers_cpuset);
 
 	/* init event list, before StarPU is initialized */
-	pthread_mutex_init(&rm->event_list_mutex, NULL);
-	pthread_cond_init(&rm->event_list_cond, NULL);
-	pthread_cond_init(&rm->event_processing_cond, NULL);
-	pthread_mutex_lock(&rm->event_list_mutex);
+	STARPU_PTHREAD_MUTEX_INIT(&rm->event_list_mutex, NULL);
+	STARPU_PTHREAD_COND_INIT(&rm->event_list_cond, NULL);
+	STARPU_PTHREAD_COND_INIT(&rm->event_processing_cond, NULL);
+	STARPU_PTHREAD_MUTEX_LOCK(&rm->event_list_mutex);
 	rm->event_processing_enabled = 0;
 	rm->event_processing_ended = 0;
 	rm->event_list_head = NULL;
 	rm->event_list_tail = NULL;
-	pthread_mutex_unlock(&rm->event_list_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&rm->event_list_mutex);
 
 	/* set _starpurm here since StarPU's callbacks may reference it once starpu_init is called */
 	_starpurm = rm;
@@ -730,7 +730,7 @@ void starpurm_initialize_with_cpuset(const hwloc_cpuset_t initially_owned_cpuset
 	int cpu_workerids[cpu_nunits];
 	starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, cpu_workerids, cpu_nunits);
 	rm->unit_offsets_by_type[starpurm_unit_cpu] = unitid;
-	unsigned int max_worker_id = 0;
+	int max_worker_id = 0;
 	int i;
 	for (i = 0; i < cpu_nunits; i++)
 	{
@@ -743,7 +743,7 @@ void starpurm_initialize_with_cpuset(const hwloc_cpuset_t initially_owned_cpuset
 			max_worker_id = rm->units[unitid].workerid;
 		}
 		rm->units[unitid].worker_cpuset = starpu_worker_get_hwloc_cpuset(rm->units[unitid].workerid);
-		pthread_cond_init(&rm->units[unitid].unit_available_cond, NULL);
+		STARPU_PTHREAD_COND_INIT(&rm->units[unitid].unit_available_cond, NULL);
 		hwloc_bitmap_or(rm->global_cpuset, rm->global_cpuset, rm->units[unitid].worker_cpuset);
 		hwloc_bitmap_or(rm->all_cpu_workers_cpuset, rm->all_cpu_workers_cpuset, rm->units[unitid].worker_cpuset);;
 #ifdef STARPURM_VERBOSE
@@ -771,7 +771,7 @@ void starpurm_initialize_with_cpuset(const hwloc_cpuset_t initially_owned_cpuset
 			max_worker_id = rm->units[unitid].workerid;
 		}
 		rm->units[unitid].worker_cpuset = starpu_worker_get_hwloc_cpuset(rm->units[unitid].workerid);
-		pthread_cond_init(&rm->units[unitid].unit_available_cond, NULL);
+		STARPU_PTHREAD_COND_INIT(&rm->units[unitid].unit_available_cond, NULL);
 		hwloc_bitmap_or(rm->global_cpuset, rm->global_cpuset, rm->units[unitid].worker_cpuset);
 		hwloc_bitmap_or(rm->all_opencl_device_workers_cpuset, rm->all_opencl_device_workers_cpuset, rm->units[unitid].worker_cpuset);
 		hwloc_bitmap_or(rm->all_device_workers_cpuset, rm->all_device_workers_cpuset, rm->units[unitid].worker_cpuset);
@@ -792,7 +792,7 @@ void starpurm_initialize_with_cpuset(const hwloc_cpuset_t initially_owned_cpuset
 			max_worker_id = rm->units[unitid].workerid;
 		}
 		rm->units[unitid].worker_cpuset = starpu_worker_get_hwloc_cpuset(rm->units[unitid].workerid);
-		pthread_cond_init(&rm->units[unitid].unit_available_cond, NULL);
+		STARPU_PTHREAD_COND_INIT(&rm->units[unitid].unit_available_cond, NULL);
 		hwloc_bitmap_or(rm->global_cpuset, rm->global_cpuset, rm->units[unitid].worker_cpuset);
 		hwloc_bitmap_or(rm->all_cuda_device_workers_cpuset, rm->all_cuda_device_workers_cpuset, rm->units[unitid].worker_cpuset);
 		hwloc_bitmap_or(rm->all_device_workers_cpuset, rm->all_device_workers_cpuset, rm->units[unitid].worker_cpuset);
@@ -821,7 +821,7 @@ void starpurm_initialize_with_cpuset(const hwloc_cpuset_t initially_owned_cpuset
 		rm->sched_ctx_id = starpu_sched_ctx_create(workerids, rm->nunits, "starpurm", STARPU_SCHED_CTX_POLICY_NAME, "eager", 0);
 #ifdef _DEBUG
 		starpu_sched_ctx_display_workers(rm->sched_ctx_id, stderr);
-#endif /* DEBUG */
+#endif /* _DEBUG */
 	}
 
 	starpu_sched_ctx_set_context(&rm->sched_ctx_id);
@@ -859,10 +859,10 @@ void starpurm_initialize_with_cpuset(const hwloc_cpuset_t initially_owned_cpuset
 #ifdef STARPURM_HAVE_DLB
 	starpurm_dlb_init(rm);
 #endif
-	pthread_mutex_lock(&rm->event_list_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&rm->event_list_mutex);
 	rm->event_processing_enabled = 1;
-	pthread_cond_broadcast(&rm->event_processing_cond);
-	pthread_mutex_unlock(&rm->event_list_mutex);
+	STARPU_PTHREAD_COND_BROADCAST(&rm->event_processing_cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&rm->event_list_mutex);
 	_starpurm = rm;
 
 }
@@ -901,8 +901,8 @@ void starpurm_shutdown(void)
 #endif
 	assert(rm->event_list_head == NULL);
 	assert(rm->event_list_tail == NULL);
-	pthread_cond_destroy(&rm->event_list_cond);
-	pthread_mutex_destroy(&rm->event_list_mutex);
+	STARPU_PTHREAD_COND_DESTROY(&rm->event_list_cond);
+	STARPU_PTHREAD_MUTEX_DESTROY(&rm->event_list_mutex);
 
 	rm->state = state_uninitialized;
 
@@ -917,7 +917,7 @@ void starpurm_shutdown(void)
 	int i;
 	for (i=0; i<rm->nunits; i++)
 	{
-		pthread_cond_destroy(&rm->units[i].unit_available_cond);
+		STARPU_PTHREAD_COND_DESTROY(&rm->units[i].unit_available_cond);
 	}
 	free(rm->units);
 	rm->units = NULL;
@@ -1118,6 +1118,7 @@ starpurm_drs_ret_t starpurm_callback_get(starpurm_drs_desc_t *spd, starpurm_drs_
 
 starpurm_drs_ret_t starpurm_assign_cpu_to_starpu(starpurm_drs_desc_t *spd, int cpuid)
 {
+	(void)spd;
 	assert(_starpurm != NULL);
 	assert(_starpurm->state != state_uninitialized);
 	struct s_starpurm *rm = _starpurm;
@@ -1174,6 +1175,7 @@ starpurm_drs_ret_t starpurm_assign_all_cpus_to_starpu(starpurm_drs_desc_t *spd)
 
 starpurm_drs_ret_t starpurm_withdraw_cpu_from_starpu(starpurm_drs_desc_t *spd, int cpuid)
 {
+	(void)spd;
 	assert(_starpurm != NULL);
 	assert(_starpurm->state != state_uninitialized);
 	struct s_starpurm *rm = _starpurm;
@@ -1316,6 +1318,7 @@ starpurm_drs_ret_t starpurm_return_cpu(starpurm_drs_desc_t *spd, int cpuid)
 starpurm_drs_ret_t starpurm_create_block_condition(starpurm_block_cond_t *cond)
 {
 	/* unimplemented */
+	(void)cond;
 	assert(0);
 	return starpurm_DRS_PERM;
 }
@@ -1323,12 +1326,14 @@ starpurm_drs_ret_t starpurm_create_block_condition(starpurm_block_cond_t *cond)
 void starpurm_block_current_task(starpurm_block_cond_t *cond)
 {
 	/* unimplemented */
+	(void)cond;
 	assert(0);
 }
 
 void starpurm_signal_block_condition(starpurm_block_cond_t *cond)
 {
 	/* unimplemented */
+	(void)cond;
 	assert(0);
 }
 
@@ -1336,12 +1341,18 @@ void starpurm_signal_block_condition(starpurm_block_cond_t *cond)
 void starpurm_register_polling_service(const char *service_name, starpurm_polling_t function, void *data)
 {
 	/* unimplemented */
+	(void)service_name;
+	(void)function;
+	(void)data;
 	assert(0);
 }
 
 void starpurm_unregister_polling_service(const char *service_name, starpurm_polling_t function, void *data)
 {
 	/* unimplemented */
+	(void)service_name;
+	(void)function;
+	(void)data;
 	assert(0);
 }
 
@@ -1395,6 +1406,7 @@ int starpurm_get_device_id(int type_id, int unit_rank)
 
 starpurm_drs_ret_t starpurm_assign_device_to_starpu(starpurm_drs_desc_t *spd, int type_id, int unit_rank)
 {
+	(void)spd;
 	assert(_starpurm != NULL);
 	assert(_starpurm->state != state_uninitialized);
 	struct s_starpurm *rm = _starpurm;
@@ -1465,6 +1477,7 @@ starpurm_drs_ret_t starpurm_assign_all_devices_to_starpu(starpurm_drs_desc_t *sp
 
 starpurm_drs_ret_t starpurm_withdraw_device_from_starpu(starpurm_drs_desc_t *spd, int type_id, int unit_rank)
 {
+	(void)spd;
 	assert(_starpurm != NULL);
 	assert(_starpurm->state != state_uninitialized);
 	struct s_starpurm *rm = _starpurm;
