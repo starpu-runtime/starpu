@@ -159,29 +159,61 @@ fi
 # HFP M2D SPARSE
 if [ $DOSSIER == "Sparse" ]
 	then
-	echo "Tracage de HFP SPARSE"
-	ECHELLE_X=$((50*NGPU))
-		
-	scp ${NAME}@access.grid5000.fr:/home/${NAME}/lyon/starpu/Output_maxime/Data/GF_HFP_SPARSE.txt ${PATH_STARPU}/starpu/Output_maxime/Data/FGCS/GF_HFP_SPARSE.txt
-	scp ${NAME}@access.grid5000.fr:/home/${NAME}/lyon/starpu/Output_maxime/Data/DT_HFP_SPARSE.txt ${PATH_STARPU}/starpu/Output_maxime/Data/FGCS/DT_HFP_SPARSE.txt
-	
-	# Tracage des GFlops 1 
+	if [ $MODEL == "HFP_N15" ] || [ $MODEL == "HFP_N40" ]
+	then
+		ECHELLE_X=$((10))
+	else
+		ECHELLE_X=$((5*NGPU))
+	fi
+	echo "Tracage" ${MODEL}
+			
+	scp ${NAME}@access.grid5000.fr:/home/${NAME}/lyon/starpu/Output_maxime/Data/GF_${MODEL}_SPARSE.txt ${PATH_STARPU}/starpu/Output_maxime/Data/FGCS/GF_${MODEL}_SPARSE.txt
+	scp ${NAME}@access.grid5000.fr:/home/${NAME}/lyon/starpu/Output_maxime/Data/DT_${MODEL}_SPARSE.txt ${PATH_STARPU}/starpu/Output_maxime/Data/FGCS/DT_${MODEL}_SPARSE.txt
+
+	# Tracage des GFlops 1
 	gcc -o cut_gflops_raw_out cut_gflops_raw_out.c
-	./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${PATH_STARPU}/starpu/Output_maxime/Data/FGCS/GF_HFP_SPARSE.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.txt
+	./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${PATH_STARPU}/starpu/Output_maxime/Data/FGCS/GF_${MODEL}_SPARSE.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.txt
 	Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.txt ${MODEL}_FGCS ${DOSSIER} ${GPU} ${NGPU} ${NITER}
 	mv ~/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.pdf
-	
+		
 	# Tracage des GFlops 2
 	gcc -o cut_gflops_raw_out cut_gflops_raw_out.c
-	./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${PATH_STARPU}/starpu/Output_maxime/Data/FGCS/GF_HFP_SPARSE.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.txt
+	./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${PATH_STARPU}/starpu/Output_maxime/Data/FGCS/GF_${MODEL}_SPARSE.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.txt
 	Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.txt ${MODEL}_WITH_SCHEDULING_TIME_FGCS ${DOSSIER} ${GPU} ${NGPU} ${NITER}
 	mv ~/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_WITH_SCHEDULING_TIME_FGCS_${GPU}_${NGPU}GPU.pdf
 
 	# Tracage data transfers
 	gcc -o cut_datatransfers_raw_out cut_datatransfers_raw_out.c
-	./cut_datatransfers_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X $NGPU ${PATH_STARPU}/starpu/Output_maxime/Data/FGCS/DT_HFP_SPARSE.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/DT_${MODEL}_${GPU}_${NGPU}GPU.txt
-	Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/DT_${MODEL}_${GPU}_${NGPU}GPU.txt DT_${MODEL}_FGCS ${DOSSIER} ${GPU} ${NGPU} ${NITER}
-	mv ~/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/DT_${MODEL}_${GPU}_${NGPU}GPU.pdf
+	./cut_datatransfers_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X $NGPU ${PATH_STARPU}/starpu/Output_maxime/Data/FGCS/DT_${MODEL}_SPARSE.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/DT_${MODEL}_${GPU}_${NGPU}GPU.txt
+	#~ Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/DT_${MODEL}_${GPU}_${NGPU}GPU.txt DT_${MODEL}_FGCS ${DOSSIER} ${GPU} ${NGPU} ${NITER}
+	#~ mv ~/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/DT_${MODEL}_${GPU}_${NGPU}GPU.pdf
+fi
+
+# HFP M3DZN SPARSE
+if [ $DOSSIER == "Sparse3DZN" ]
+	then
+	if [ $MODEL == "HFP_N6" ] || [ $MODEL == "HFP_N14" ]
+	then
+		ECHELLE_X=$((10))
+	else
+		ECHELLE_X=$((2*NGPU))
+	fi
+	echo "Tracage" ${MODEL} "dans Sparse3DZN"
+			
+	scp ${NAME}@access.grid5000.fr:/home/${NAME}/lyon/starpu/Output_maxime/Data/GF_${MODEL}_SPARSE_3DZN.txt ${PATH_STARPU}/starpu/Output_maxime/Data/FGCS/GF_${MODEL}_SPARSE_3DZN.txt
+	scp ${NAME}@access.grid5000.fr:/home/${NAME}/lyon/starpu/Output_maxime/Data/DT_${MODEL}_SPARSE_3DZN.txt ${PATH_STARPU}/starpu/Output_maxime/Data/FGCS/DT_${MODEL}_SPARSE_3DZN.txt
+
+	# Tracage des GFlops 1
+	gcc -o cut_gflops_raw_out cut_gflops_raw_out.c
+	./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${PATH_STARPU}/starpu/Output_maxime/Data/FGCS/GF_${MODEL}_SPARSE_3DZN.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.txt
+	Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.txt ${MODEL}_FGCS ${DOSSIER} ${GPU} ${NGPU} ${NITER}
+	mv ~/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.pdf
+		
+	# Tracage data transfers
+	gcc -o cut_datatransfers_raw_out cut_datatransfers_raw_out.c
+	./cut_datatransfers_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X $NGPU ${PATH_STARPU}/starpu/Output_maxime/Data/FGCS/DT_${MODEL}_SPARSE_3DZN.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/DT_${MODEL}_${GPU}_${NGPU}GPU.txt
+	#~ Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/DT_${MODEL}_${GPU}_${NGPU}GPU.txt DT_${MODEL}_FGCS ${DOSSIER} ${GPU} ${NGPU} ${NITER}
+	#~ mv ~/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/DT_${MODEL}_${GPU}_${NGPU}GPU.pdf
 fi
 
 # HFP M2D SPARSE INFINIE
