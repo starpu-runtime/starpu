@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -31,7 +31,7 @@ void func_cpu(void *descr[], void *args)
 	float factor;
 
 	factor = *(float *) args;
-        *x *= factor;
+	*x *= factor;
 }
 
 struct starpu_codelet codelet =
@@ -44,7 +44,7 @@ struct starpu_codelet codelet =
 
 int main(int argc, char **argv)
 {
-        int i, j, ret;
+	int i, j, ret;
 
 	ret = starpu_initialize(NULL, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
@@ -53,7 +53,7 @@ int main(int argc, char **argv)
 	float *data;
 	starpu_malloc((void**)&data, sizeof(*data) * NB_BUNDLE);
 	float factors[NB_BUNDLE];
-        starpu_data_handle_t handles[NB_BUNDLE];
+	starpu_data_handle_t handles[NB_BUNDLE];
 
 	struct starpu_task *task[NB_ITERATION];
 
@@ -68,10 +68,10 @@ int main(int argc, char **argv)
 	for (i = 0; i < NB_BUNDLE; i++)
 		starpu_variable_data_register(&handles[i], STARPU_MAIN_RAM, (uintptr_t)&data[i], sizeof(float));
 
-        FPRINTF(stderr, "VALUES:");
+	FPRINTF(stderr, "VALUES:");
 	for (i = 0; i < NB_BUNDLE; i++)
 		FPRINTF(stderr, " %f (%f)", data[i], factors[i]);
-        FPRINTF(stderr, "\n");
+	FPRINTF(stderr, "\n");
 
 	for (i = 0; i < NB_BUNDLE; i++)
 	{
@@ -106,23 +106,23 @@ int main(int argc, char **argv)
 		starpu_task_bundle_close(bundles[i]);
 	}
 
-        ret = starpu_task_wait_for_all();
+	ret = starpu_task_wait_for_all();
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
-        for(i = 0; i < NB_BUNDLE ; i++)
+	for(i = 0; i < NB_BUNDLE ; i++)
 	{
-                ret = starpu_data_acquire(handles[i], STARPU_R);
+		ret = starpu_data_acquire(handles[i], STARPU_R);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
-        }
+	}
 
-        FPRINTF(stderr, "VALUES:");
+	FPRINTF(stderr, "VALUES:");
 	for (i = 0; i < NB_BUNDLE; i++)
 		FPRINTF(stderr, " %f (%f)", data[i], factors[i]);
-        FPRINTF(stderr, "\n");
+	FPRINTF(stderr, "\n");
 
-        for(i = 0; i < NB_BUNDLE ; i++)
+	for(i = 0; i < NB_BUNDLE ; i++)
 	{
-                starpu_data_release(handles[i]);
+		starpu_data_release(handles[i]);
 		starpu_data_unregister(handles[i]);
 	}
 
@@ -136,6 +136,6 @@ enodev:
 	starpu_shutdown();
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one
- 	 * could perform the kernel, so this is not an error from StarPU */
+	 * could perform the kernel, so this is not an error from StarPU */
 	return STARPU_TEST_SKIPPED;
 }

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -143,7 +143,7 @@ static void test_memset(int nelems, struct starpu_codelet *codelet)
 	int loop;
 	starpu_data_handle_t handle;
 
-        starpu_vector_data_register(&handle, -1, (uintptr_t)NULL, nelems, sizeof(int));
+	starpu_vector_data_register(&handle, -1, (uintptr_t)NULL, nelems, sizeof(int));
 	for (loop = 0; loop < nloops; loop++)
 	{
 		struct starpu_task *task = starpu_task_create();
@@ -158,7 +158,7 @@ static void test_memset(int nelems, struct starpu_codelet *codelet)
 	}
 
 	starpu_do_schedule();
-        starpu_data_unregister(handle);
+	starpu_data_unregister(handle);
 }
 
 static int test_memset_energy(int nelems, int workerid, int where, enum starpu_worker_archtype archtype, int impl, struct starpu_codelet *codelet)
@@ -322,11 +322,10 @@ int main(int argc, char **argv)
 	starpu_data_unregister(handle);
 
 #ifdef STARPU_USE_OPENCL
-        ret = starpu_opencl_unload_opencl(&opencl_program);
-        STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
+	ret = starpu_opencl_unload_opencl(&opencl_program);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
 #endif
 	starpu_shutdown();
-
 
 	starpu_conf_init(&conf);
 
@@ -374,8 +373,8 @@ int main(int argc, char **argv)
 	}
 
 #ifdef STARPU_USE_OPENCL
-        ret = starpu_opencl_unload_opencl(&opencl_program);
-        STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
+	ret = starpu_opencl_unload_opencl(&opencl_program);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
 #endif
 	starpu_shutdown();
 

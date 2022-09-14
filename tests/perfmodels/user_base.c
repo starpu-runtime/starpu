@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -99,14 +99,14 @@ static int submit(struct starpu_codelet *codelet, struct starpu_perfmodel *model
 
 	codelet->model = model;
 
-        starpu_vector_data_register(&handle, -1, (uintptr_t)NULL, 100, sizeof(int));
+	starpu_vector_data_register(&handle, -1, (uintptr_t)NULL, 100, sizeof(int));
 	for (loop = 0; loop < nloops; loop++)
 	{
 		ret = starpu_task_insert(codelet, STARPU_W, handle, 0);
 		if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
-        starpu_data_unregister(handle);
+	starpu_data_unregister(handle);
 	starpu_shutdown();
 	return EXIT_SUCCESS;
 }

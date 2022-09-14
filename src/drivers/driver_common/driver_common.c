@@ -827,7 +827,8 @@ int _starpu_map_deallocate(void* map_addr, size_t length)
 		{
 			return -1;
 		}
-	} else
+	}
+	else
 	{
 		_STARPU_DISP("could not find mapped address %p\n", map_addr);
 	}

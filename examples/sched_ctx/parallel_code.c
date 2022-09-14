@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -81,9 +81,9 @@ int main(void)
 	/* This is the interesting part, we can launch a code to hijack the context and
 		 use its cores to do something else entirely thanks to this */
 	pthread_t mp;
-	pthread_create(&mp, NULL, th, &sched_ctx1);
+	STARPU_PTHREAD_CREATE(&mp, NULL, th, &sched_ctx1);
 
-	pthread_join(mp, &tasks_executed);
+	STARPU_PTHREAD_JOIN(mp, &tasks_executed);
 
 	/* Finished, delete the context and print the amount of executed tasks */
 	starpu_sched_ctx_delete(sched_ctx1);

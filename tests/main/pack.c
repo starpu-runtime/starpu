@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2014-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -31,7 +31,7 @@ void func_unpack_args(void *descr[], void *_args)
 
 	starpu_codelet_unpack_args(_args, &factor, &c, &x);
 
-        FPRINTF(stderr, "[codelet unpack_args] values: %d %c %d\n", factor, c, x);
+	FPRINTF(stderr, "[codelet unpack_args] values: %d %c %d\n", factor, c, x);
 	assert(factor == 12 && c == 'n' && x == 42);
 }
 
@@ -58,7 +58,7 @@ void func_unpack_arg(void *descr[], void *_args)
 	starpu_codelet_unpack_arg(&state, (void**)&x, sizeof(x));
 	starpu_codelet_unpack_arg_fini(&state);
 
-        FPRINTF(stderr, "[codelet unpack_arg] values: %d %c %d\n", factor, c, x);
+	FPRINTF(stderr, "[codelet unpack_arg] values: %d %c %d\n", factor, c, x);
 	assert(factor == 12 && c == 'n' && x == 42);
 }
 
@@ -89,7 +89,7 @@ void func_dup_arg(void *descr[], void *_args)
 	assert(size == sizeof(*x));
 	starpu_codelet_unpack_arg_fini(&state);
 
-        FPRINTF(stderr, "[codelet dup_arg] values: %d %c %d\n", *factor, *c, *x);
+	FPRINTF(stderr, "[codelet dup_arg] values: %d %c %d\n", *factor, *c, *x);
 	assert(*factor == 12 && *c == 'n' && *x == 42);
 	free(factor);
 	free(c);
@@ -129,7 +129,7 @@ void func_pick_arg(void *descr[], void *_args)
 	assert(size == sizeof(*x));
 	starpu_codelet_unpack_arg_fini(&state);
 
-        FPRINTF(stderr, "[codelet pick_arg] values: %d %c %d\n", *factor, *c, *x);
+	FPRINTF(stderr, "[codelet pick_arg] values: %d %c %d\n", *factor, *c, *x);
 	assert(*factor == 12 && *c == 'n' && *x == 42);
 }
 
@@ -142,8 +142,8 @@ struct starpu_codelet mycodelet_pick_arg =
 
 int main(void)
 {
-        int ret;
-        int x=42;
+	int ret;
+	int x=42;
 	int factor=12;
 	char c='n';
 
@@ -151,7 +151,7 @@ int main(void)
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-        FPRINTF(stderr, "[init] values: %d %c %d\n", factor, c, x);
+	FPRINTF(stderr, "[init] values: %d %c %d\n", factor, c, x);
 
 	{
 		struct starpu_task *task = starpu_task_build(&mycodelet_unpack_args, STARPU_TASK_SYNCHRONOUS, 1, 0);

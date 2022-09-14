@@ -897,7 +897,7 @@ void starpurm_shutdown(void)
 #endif
 	hwloc_topology_destroy(rm->topology);
 #ifdef STARPURM_STARPU_HAVE_WORKER_CALLBACKS
-	pthread_join(rm->event_thread, NULL);
+	STARPU_PTHREAD_JOIN(rm->event_thread, NULL);
 #endif
 	assert(rm->event_list_head == NULL);
 	assert(rm->event_list_tail == NULL);

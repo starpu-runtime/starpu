@@ -51,7 +51,7 @@ struct test_config
 	 */
 	starpu_cpu_func_t cpu_func;
 	starpu_cuda_func_t cuda_func;
-        starpu_hip_func_t hip_func;
+	starpu_hip_func_t hip_func;
 	starpu_opencl_func_t opencl_func;
 	char *cpu_func_name;
 
@@ -75,7 +75,7 @@ struct data_interface_test_summary
 	int cpu_to_cuda_async;
 	int cuda_to_cpu_async;
 	int cuda_to_cuda_async;
-        int cpu_to_hip;
+	int cpu_to_hip;
 	int hip_to_hip;
 	int hip_to_cpu;
 	int cpu_to_hip_async;
