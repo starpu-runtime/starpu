@@ -1675,6 +1675,7 @@ static void* set_cb_loop(void* arg)
 	PyObject * cb_loop_run = PyObject_CallMethod(cb_loop, "run_forever", NULL);
 	Py_DECREF(cb_loop_run);
 	PyGILState_Release(state);
+	return NULL;
 }
 
 /*initialization function*/
