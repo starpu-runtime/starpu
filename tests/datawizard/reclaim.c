@@ -48,8 +48,13 @@ static uint64_t get_total_memory_size(void)
 {
 	uint64_t size;
 	hwloc_topology_t hwtopology;
-	hwloc_topology_init(&hwtopology);
-	hwloc_topology_load(hwtopology);
+	int err;
+
+	err = hwloc_topology_init(&hwtopology);
+	STARPU_ASSERT_MSG(err == 0, "Could not initialize Hwloc topology (%s)\n", strerror(errno));
+	err = hwloc_topology_load(hwtopology);
+	STARPU_ASSERT_MSG(err == 0, "Could not load Hwloc topology (%s)\n", strerror(errno));
+
 	hwloc_obj_t root = hwloc_get_root_obj(hwtopology);
 #if HWLOC_API_VERSION >= 0x00020000
 	size = root->total_memory;

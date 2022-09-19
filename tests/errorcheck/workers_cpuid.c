@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -153,12 +153,15 @@ static void init_array(long *a, int n)
 
 int main(void)
 {
-	int i;
+	int i, err;
 	long *cpuids;
 	hwloc_topology_t topology;
 
-	hwloc_topology_init(&topology);
-	hwloc_topology_load(topology);
+	err = hwloc_topology_init(&topology);
+	STARPU_ASSERT_MSG(err == 0, "Could not initialize Hwloc topology (%s)\n", strerror(errno));
+	err = hwloc_topology_load(topology);
+	STARPU_ASSERT_MSG(err == 0, "Could not load Hwloc topology (%s)\n", strerror(errno));
+
 	nhwpus = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_PU);
 	if (nhwpus > STARPU_NMAXWORKERS)
 		nhwpus = STARPU_NMAXWORKERS;

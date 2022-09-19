@@ -552,9 +552,10 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 
 #ifndef STARPU_SIMGRID
 #ifdef STARPU_HAVE_HWLOC
-	hwloc_topology_init(&topology->hwtopology);
-	char *hwloc_input = starpu_getenv("STARPU_HWLOC_INPUT");
 	int err;
+	err = hwloc_topology_init(&topology->hwtopology);
+	STARPU_ASSERT_MSG(err == 0, "Could not initialize Hwloc topology (%s)\n", strerror(errno));
+	char *hwloc_input = starpu_getenv("STARPU_HWLOC_INPUT");
 	if (hwloc_input && hwloc_input[0])
 	{
 		err = hwloc_topology_set_xml(topology->hwtopology, hwloc_input);
