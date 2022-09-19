@@ -15,11 +15,11 @@
 #
 ---
 stages:
+  - build_MR
+  - deploy_MR
   - build
-  - deploy
 
-build:
-  stage: build
+.build_template:
   tags:
     - starpu
     - linux
@@ -28,13 +28,17 @@ build:
   artifacts:
     paths:
       - starpu*.tar.gz
+
+build_MR:
+  extends: .build_template
+  stage: build_MR
   rules:
     - if: '$CI_PIPELINE_SOURCE == "push"'
       when: never  # Prevent pipeline run for push event
     - when: always # Run pipeline for all other cases
 
-.check_template:
-  stage: deploy
+.check_template_MR:
+  stage: deploy_MR
   tags:
     - starpu
     - linux
@@ -46,8 +50,8 @@ build:
       when: never  # Prevent pipeline run for push event
     - when: always # Run pipeline for all other cases
 
-check_linux:
-  extends: .check_template
+check_linux_MR:
+  extends: .check_template_MR
   script:
     - ./contrib/gitlab/deploy.sh
 
@@ -57,12 +61,20 @@ check_linux:
 #  script:
 #    - STARPU_USER_CONFIGURE_OPTIONS=--disable-mpi ./contrib/gitlab/deploy.sh
 
-check_simgrid:
-  extends: .check_template
+check_simgrid_MR:
+  extends: .check_template_MR
   script:
     - ./contrib/gitlab/simgrid.sh
 
-check_coverity:
-  extends: .check_template
+check_coverity_MR:
+  extends: .check_template_MR
   script:
     - ./contrib/gitlab/coverity.sh
+
+build:
+  extends: .build_template
+  stage: build
+  variables:
+      STARPU_BUILD: "define to run the stage"
+  rules:
+    - if: '$STARPU_BUILD == "yes"'
