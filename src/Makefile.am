@@ -158,6 +158,7 @@ noinst_HEADERS = 						\
 	debug/traces/starpu_fxt.h				\
 	profiling/bound.h					\
 	profiling/profiling.h					\
+	profiling/callbacks.h					\
 	util/openmp_runtime_support.h				\
 	util/starpu_clusters_create.h				\
 	util/starpu_task_insert_utils.h				\
@@ -287,6 +288,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	profiling/profiling.c					\
 	profiling/bound.c					\
 	profiling/profiling_helpers.c				\
+	profiling/callbacks.c					\
 	worker_collection/worker_list.c				\
 	worker_collection/worker_tree.c				\
 	sched_policies/component_worker.c				\

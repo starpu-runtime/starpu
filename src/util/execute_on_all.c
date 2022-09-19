@@ -19,6 +19,7 @@
 #include <core/jobs.h>
 #include <core/task.h>
 #include <core/workers.h>
+#include <profiling/callbacks.h>
 
 struct wrapper_func_args
 {
@@ -29,7 +30,17 @@ struct wrapper_func_args
 static void wrapper_func(void *buffers[] STARPU_ATTRIBUTE_UNUSED, void *_args)
 {
 	struct wrapper_func_args *args = (struct wrapper_func_args *) _args;
+	starpu_prof_tool_info_t pi;
+
+	int worker = starpu_worker_get_id();
+
+	pi = starpu_prof_tool_get_info( starpu_prof_tool_event_start_gpu_exec, worker, starpu_driver_gpu, -1, (void*)args->func );
+	starpu_prof_tool_callbacks.starpu_prof_tool_event_start_gpu_exec( &pi, NULL, NULL );
+
 	args->func(args->arg);
+
+	pi = starpu_prof_tool_get_info( starpu_prof_tool_event_end_gpu_exec, worker, starpu_driver_gpu, -1, (void*)args->func );
+	starpu_prof_tool_callbacks.starpu_prof_tool_event_end_gpu_exec( &pi, NULL, NULL );
 }
 
 /**
