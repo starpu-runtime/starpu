@@ -44,7 +44,7 @@ build_MR:
     - linux
   needs: [build]
   dependencies:
-    - build
+    - build_MR
   rules:
     - if: '$CI_PIPELINE_SOURCE == "push"'
       when: never  # Prevent pipeline run for push event
