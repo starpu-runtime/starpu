@@ -42,7 +42,7 @@ build_MR:
   tags:
     - starpu
     - linux
-  needs: [build]
+  needs: [build_MR]
   dependencies:
     - build_MR
   rules:
