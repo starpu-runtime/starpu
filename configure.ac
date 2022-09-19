@@ -3249,6 +3249,7 @@ if test x$blas_lib = xmaybe -o x$blas_lib = xatlas; then
 	AC_CHECK_HEADER([cblas.h],,AC_MSG_ERROR([cannot find atlas headers]))
 	STARPU_CHECK_LIB(BLAS, atlas, ATL_sgemm,,AC_MSG_ERROR([cannot find atlas lib]),)
 	STARPU_CHECK_LIB(BLAS, cblas, cblas_sgemm,,AC_MSG_ERROR([cannot find atlas lib]),[-latlas])
+	STARPU_CHECK_LIB(BLAS, f77blas, sgemm_,,AC_MSG_ERROR([cannot find f77blas lib]),)
 	AC_DEFINE(STARPU_ATLAS, [1], [use STARPU_ATLAS library])
     fi
 fi
