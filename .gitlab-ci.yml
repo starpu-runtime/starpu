@@ -52,6 +52,14 @@ check_linux_debian10:
   script:
     - ./contrib/gitlab/deploy.sh
 
+check_linux_debian8:
+  extends: .check_template
+  tags:
+    - starpu
+    - debian8amd64
+  script:
+    - ./contrib/gitlab/deploy.sh
+
 check_linux_centos72amd64:
   extends: .check_template
   tags:
