@@ -1,4 +1,5 @@
 # Réserver sur Grid5k: oarsub -t exotic -p "network_address in ('gemini-1.lyon.grid5000.fr')" -r "2022-09-12 19:00:00" -l walltime=14:00:00
+# Pour lancer en bash: oarsub -t exotic -p "network_address in ('gemini-1.lyon.grid5000.fr')" -l walltime=14:00:00 -r '2022-09-14 19:00:00' "bash Scripts_maxime/FGCS2021/Experiments.sh mgonthier"
 # A lancer dans le dossier starpu/ avec bash Scripts_maxime/FGCS2021/Experiments.sh name_grid5k
 NAME=$1
 ./configure --prefix=/home/${NAME}/starpu

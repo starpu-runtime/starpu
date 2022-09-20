@@ -1,15 +1,6 @@
 #!/usr/bin/bash
 # Attention il faut dé-commenter les #define PRINT et #define PRINT_PYTHON et #define PRINT_STATS dans le scheduler que l'on veut visualiser!
 
-# bash Scripts_maxime/visualization.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10 Matrice_ligne 1 dynamic-data-aware
-# bash Scripts_maxime/visualization.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 20 Matrice_ligne 1 cuthillmckee
-# bash Scripts_maxime/visualization.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10 Cholesky 1 dynamic-data-aware
-# bash Scripts_maxime/visualization.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 4 Matrice_ligne 1 HFP
-# bash Scripts_maxime/visualization.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10 Matrice_ligne 3 HFP
-# bash Scripts_maxime/visualization.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 30 Matrice_ligne 8 HFP
-# bash Scripts_maxime/visualization.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 5 MatriceZ4 3 HFP
-# bash Scripts_maxime/visualization.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 5 Matrice3D 3 HFP
-
 # Pour à la main appeller la visualisation sans lancer d'expé, par exemple si on veut modifier des choses à la main dans les données on fais: python3 /home/gonthier/these_gonthier_maxime/Code/visualisation2D.py 4 HFP 1 Matrice_ligne 1 1 1
 # Les fichiers ouvert à modifier sont :
 	# Output_maxime/Data_stolen_load_balance.txt Pour le task stealing pour HFP
@@ -17,6 +8,16 @@
 	# Output_maxime/Data_to_load_prefetch_SCHEDULER.txt Pour les chargements en prefetch pour tous
 	# Output_maxime/Data_coordinates_order_last_SCHEDULER.txt Pour l'ordre de traitement des tâches pour tous
 	# Output_maxime/Data_to_load_SCHEDULER.txt Pour l'ordre de chargement des données pour tous
+
+# Dans FGCS
+# bash Scripts_maxime/visualization.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 20 Matrice_ligne 1 cuthillmckee
+# bash Scripts_maxime/visualization.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 20 Matrice_ligne 1 dmdar
+# bash Scripts_maxime/visualization.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 20 Matrice_ligne 1 HFP
+# bash Scripts_maxime/visualization.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10 MatriceZ4 1 HFP
+# Avec random task order à 1
+# bash Scripts_maxime/visualization.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 20 Matrice_ligne 1 dmdar
+# bash Scripts_maxime/visualization.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 20 Matrice_ligne 1 HFP
+
 
 make -j 6
 PATH_STARPU=$1
