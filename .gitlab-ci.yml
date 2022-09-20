@@ -35,9 +35,6 @@ build:
 
 .check_template:
   stage: deploy
-  tags:
-    - starpu
-    - linux
   needs: [build]
   dependencies:
     - build
@@ -46,8 +43,21 @@ build:
       when: never  # Prevent pipeline run for push event
     - when: always # Run pipeline for all other cases
 
-check_linux:
+check_linux_debian10:
   extends: .check_template
+  tags:
+    - starpu
+    - linux
+    - debian10
+  script:
+    - ./contrib/gitlab/deploy.sh
+
+check_linux_centos72amd64:
+  extends: .check_template
+  tags:
+    - starpu
+    - linux
+    - centos72amd64
   script:
     - ./contrib/gitlab/deploy.sh
 
@@ -59,10 +69,16 @@ check_linux:
 
 check_simgrid:
   extends: .check_template
+  tags:
+    - starpu
+    - linux
   script:
     - ./contrib/gitlab/simgrid.sh
 
 check_coverity:
   extends: .check_template
+  tags:
+    - starpu
+    - linux
   script:
     - ./contrib/gitlab/coverity.sh
