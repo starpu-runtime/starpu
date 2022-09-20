@@ -56,7 +56,6 @@ check_linux_centos72amd64:
   extends: .check_template
   tags:
     - starpu
-    - linux
     - centos72amd64
   script:
     - ./contrib/gitlab/deploy.sh
