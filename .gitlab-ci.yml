@@ -90,9 +90,9 @@ check_simgrid:
 .analyze_template:
   extends: .main_template
   stage: analyze
-  needs: [check]
+  needs: [build]
   dependencies:
-    - check
+    - build
 
 analyze_coverity:
   extends: .analyze_template
