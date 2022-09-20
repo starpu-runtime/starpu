@@ -29,5 +29,10 @@ then
     exit 1
 fi
 
-
-
+if test ! -f starpu.pdf
+then
+    echo Error. No documentation file
+    ls
+    pwd
+    exit 1
+fi
