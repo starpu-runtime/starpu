@@ -38,9 +38,9 @@ build:
   tags:
     - starpu
     - linux
-  needs: [build_MR]
+  needs: [build]
   dependencies:
-    - build_MR
+    - build
   rules:
     - if: '$CI_PIPELINE_SOURCE == "push"'
       when: never  # Prevent pipeline run for push event
