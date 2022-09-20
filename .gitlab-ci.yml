@@ -60,6 +60,14 @@ check_linux_debian8:
   script:
     - ./contrib/gitlab/deploy.sh
 
+check_linux_ubuntu1604:
+  extends: .check_template
+  tags:
+    - starpu
+    - ubuntu1604
+  script:
+    - ./contrib/gitlab/deploy.sh
+
 check_linux_centos72amd64:
   extends: .check_template
   tags:
