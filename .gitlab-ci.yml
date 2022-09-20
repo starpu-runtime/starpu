@@ -18,6 +18,10 @@ stages:
   - build
   - deploy
 
+# to download all the artifacts https://gitlab.inria.fr/starpu/starpu/-/jobs/artifacts/master/download?job=build
+# https://gitlab.inria.fr/starpu/starpu/-/jobs/artifacts/master/raw/starpu-1.3.99.tar.gz?job=build
+# https://gitlab.inria.fr/starpu/starpu/-/jobs/artifacts/master/raw/starpu.pdf?job=build
+# https://docs.gitlab.com/ee/ci/pipelines/job_artifacts.html#downloading-artifacts
 build:
   stage: build
   tags:
