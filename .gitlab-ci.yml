@@ -16,13 +16,21 @@
 ---
 stages:
   - build
-  - deploy
+  - check
+  - analyze
+
+.main_template:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push"'
+      when: never  # Prevent pipeline run for push event
+    - when: always # Run pipeline for all other cases
 
 # to download all the artifacts https://gitlab.inria.fr/starpu/starpu/-/jobs/artifacts/master/download?job=build
 # https://gitlab.inria.fr/starpu/starpu/-/jobs/artifacts/master/raw/starpu-1.3.99.tar.gz?job=build
 # https://gitlab.inria.fr/starpu/starpu/-/jobs/artifacts/master/raw/starpu.pdf?job=build
 # https://docs.gitlab.com/ee/ci/pipelines/job_artifacts.html#downloading-artifacts
 build:
+  extends: .main_template
   stage: build
   tags:
     - starpu
@@ -33,53 +41,45 @@ build:
     paths:
       - starpu*.tar.gz
       - starpu*.pdf
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "push"'
-      when: never  # Prevent pipeline run for push event
-    - when: always # Run pipeline for all other cases
 
 .check_template:
-  stage: deploy
+  extends: .main_template
+  stage: check
   needs: [build]
   dependencies:
     - build
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "push"'
-      when: never  # Prevent pipeline run for push event
-    - when: always # Run pipeline for all other cases
+  script:
+    - ./contrib/gitlab/deploy.sh
 
 check_linux_debian10:
   extends: .check_template
   tags:
     - starpu
-    - linux
     - debian10
-  script:
-    - ./contrib/gitlab/deploy.sh
 
 check_linux_debian8:
   extends: .check_template
   tags:
     - starpu
     - debian8amd64
-  script:
-    - ./contrib/gitlab/deploy.sh
 
 check_linux_ubuntu1604:
   extends: .check_template
   tags:
     - starpu
     - ubuntu1604
-  script:
-    - ./contrib/gitlab/deploy.sh
 
 check_linux_centos72amd64:
   extends: .check_template
   tags:
     - starpu
     - centos72amd64
-  script:
-    - ./contrib/gitlab/deploy.sh
+
+check_simgrid:
+  extends: .check_template
+  tags:
+    - starpu
+    - linux
 
 #check_macosx:
 #  extends: .check_template
@@ -87,16 +87,15 @@ check_linux_centos72amd64:
 #  script:
 #    - STARPU_USER_CONFIGURE_OPTIONS=--disable-mpi ./contrib/gitlab/deploy.sh
 
-check_simgrid:
-  extends: .check_template
-  tags:
-    - starpu
-    - linux
-  script:
-    - ./contrib/gitlab/simgrid.sh
+.analyze_template:
+  extends: .main_template
+  stage: analyze
+  needs: [check]
+  dependencies:
+    - check
 
-check_coverity:
-  extends: .check_template
+analyze_coverity:
+  extends: .analyze_template
   tags:
     - starpu
     - linux
