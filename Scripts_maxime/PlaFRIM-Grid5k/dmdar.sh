@@ -1,7 +1,10 @@
 #!/usr/bin/bash
-#	bash Scripts_maxime/PlaFRIM-Grid5k/dmdar.sh 1
-#	oarsub -t exotic -p "network_address in ('gemini-1.lyon.grid5000.fr')" -l walltime=14:00:00 -r '2022-09-14 19:00:00' "bash Scripts_maxime/FGCS2021/Experiments.sh mgonthier"
-NGPU=$1
+#	bash Scripts_maxime/PlaFRIM-Grid5k/dmdar.sh mgonthier 1
+NAME=$1
+./configure --prefix=/home/${NAME}/starpu
+make -j 100
+make install
+NGPU=$2
 START_X=0 
 FICHIER_RAW=Output_maxime/GFlops_raw_out_1.txt
 ulimit -S -s 500000000
