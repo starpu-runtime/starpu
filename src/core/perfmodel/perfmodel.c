@@ -425,6 +425,10 @@ static double _starpu_data_expected_transfer_time(starpu_data_handle_t handle, u
 /* Predict the transfer time (in µs) to move a handle to a memory node */
 double starpu_data_expected_transfer_time(starpu_data_handle_t handle, unsigned memory_node, enum starpu_data_access_mode mode)
 {
+	/* FIXME: Fix write-only mode with _starpu_expected_transfer_time_writeback */
+	/* FIXME: count time_writeback only if the data is not dirty. Once it is dirty, we shouldn't
+	 * count the writeback penatly again. */
+
 	/* If we don't need to read the content of the handle */
 	if (!(mode & STARPU_R))
 		return 0.0;
