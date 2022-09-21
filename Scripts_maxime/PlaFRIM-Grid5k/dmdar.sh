@@ -1,8 +1,7 @@
 #!/usr/bin/bash
-#	bash Scripts_maxime/PlaFRIM-Grid5k/dmdar.sh 10 1
-
-NB_TAILLE_TESTE=$1
-NGPU=$2
+#	bash Scripts_maxime/PlaFRIM-Grid5k/dmdar.sh 1
+#	oarsub -t exotic -p "network_address in ('gemini-1.lyon.grid5000.fr')" -l walltime=14:00:00 -r '2022-09-14 19:00:00' "bash Scripts_maxime/FGCS2021/Experiments.sh mgonthier"
+NGPU=$1
 START_X=0 
 FICHIER_RAW=Output_maxime/GFlops_raw_out_1.txt
 ulimit -S -s 500000000
@@ -15,6 +14,7 @@ NITER=11
 
 
 ECHELLE_X=5
+NB_TAILLE_TESTE=18
 echo "############## Dmdar WRITEBACK 0 ##############"
 for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 	do 
@@ -31,6 +31,7 @@ mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/Data/GF_dmdar_writeback_M2D.
 
 truncate -s 0 ${FICHIER_RAW}
 ECHELLE_X=2
+NB_TAILLE_TESTE=10
 echo "############## Dmdar WRITEBACK 0 ##############"
 for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 	do 

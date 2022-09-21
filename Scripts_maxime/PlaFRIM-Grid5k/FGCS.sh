@@ -23,6 +23,8 @@
 #	bash Scripts_maxime/PlaFRIM-Grid5k/FGCS.sh 2 Sparse HFP_mem_infinie 1
 #	bash Scripts_maxime/PlaFRIM-Grid5k/FGCS.sh 16 Sparse HFP_mem_infinie 1
 
+#~ oarsub -t exotic -p "network_address in ('gemini-1.lyon.grid5000.fr')" -l walltime=14:00:00 -r '2022-09-14 19:00:00' "bash Scripts_maxime/FGCS2021/Experiments.sh mgonthier"
+
 NB_TAILLE_TESTE=$1
 DOSSIER=$2
 MODEL=$3
