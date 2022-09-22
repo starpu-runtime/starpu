@@ -1,5 +1,6 @@
 #!/usr/bin/bash
 #	bash Scripts_maxime/PlaFRIM-Grid5k/dmdar.sh mgonthier 1
+#	oarsub -t exotic -p "network_address in ('gemini-1.lyon.grid5000.fr')" -l walltime=02:00:00 -r '2022-09-21 11:06:00' "bash Scripts_maxime/PlaFRIM-Grid5k/dmdar.sh mgonthier 1"
 NAME=$1
 ./configure --prefix=/home/${NAME}/starpu
 make -j 100

@@ -37,8 +37,12 @@
 #define SEED
 
 /* Global variables of sizes of matrices */
-int A_M = 0;
-int A_N = 0;
+static unsigned A_M = 0;
+static unsigned A_N = 0;
+static unsigned niter = 10;
+static unsigned temp_niter = 10;
+
+static starpu_data_handle_t A_handle, B_handle, C_handle, T_handle, V_handle;
 
 void wait_CUDA (void *descr[], void *_args)
 {
@@ -68,11 +72,35 @@ static struct starpu_perfmodel perf_model =
 	.symbol = "qr_without_dependancies",
 };
 
-/* Codelet for random task graph */
-static struct starpu_codelet cl_qr_without_dependancies =
+static struct starpu_codelet cl_geqrt =
 {
 	.cuda_funcs = {wait_CUDA},
-	.nbuffers = STARPU_VARIABLE_NBUFFERS,
+	.nbuffers = 2,
+	.modes = {STARPU_RW, STARPU_W}, /* A, T */
+	.model = &perf_model
+};
+
+static struct starpu_codelet cl_unmqr =
+{
+	.cuda_funcs = {wait_CUDA},
+	.nbuffers = 3,
+	.modes = {STARPU_R, STARPU_R, STARPU_RW}, /* A, T, C */
+	.model = &perf_model
+};
+
+static struct starpu_codelet cl_tpqrt =
+{
+	.cuda_funcs = {wait_CUDA},
+	.nbuffers = 3,
+	.modes = {STARPU_RW, STARPU_RW, STARPU_W}, /* A, B, T */
+	.model = &perf_model
+};
+
+static struct starpu_codelet cl_tpmqrt =
+{
+	.cuda_funcs = {wait_CUDA},
+	.nbuffers = 4,
+	.modes = {STARPU_R, STARPU_R, STARPU_RW, STARPU_RW}, /* V, T, A, B */
 	.model = &perf_model
 };
 
@@ -90,6 +118,18 @@ static void parse_args(int argc, char **argv)
 		{
 			char *argptr;
 			A_N = strtol(argv[++i], &argptr, 10);
+		}
+		else if (strcmp(argv[i], "-iter") == 0)
+		{
+			char *argptr;
+			niter = strtol(argv[++i], &argptr, 10);
+			temp_niter = niter;
+		}
+		else if (strcmp(argv[i], "-help") == 0 || strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
+		{
+			fprintf(stderr,"Usage: %s [-M A_M] [-N A_N] [-iter iter]\n", argv[0]);
+			fprintf(stderr,"Currently selected: M: %u, N: %u, %u iterations\n", A_M, A_N, niter);
+			exit(EXIT_SUCCESS);
 		}
 		else
 		{
@@ -121,14 +161,102 @@ int main(int argc, char **argv)
         minMNT = A_M;
     }
     
-    /* pzgeqrf */
-    //~ for (k = 0; k < minMNT; k++)
-    //~ {
-        //~ chameleon_pzgeqrf_step( genD, k, ib,
-                                //~ A, T, D, &options, sequence );
+    printf("A_M = %u, A_N = %u\n", A_M, A_N);
+    
+    //~ if ( (genD == 0) || (D == NULL) ) { /* GenD == 0 */
+        //~ D    = A;
+        //~ genD = 0;
     //~ }
 
+    /*
+     * zgeqrt  = A->nb * (ib+1)
+     * zunmqr  = A->nb * ib
+     * ztpqrt  = A->nb * (ib+1)
+     * ztpmqrt = A->nb * ib
+     */
+    //~ ws_worker = A->nb * (ib+1);
+    
+    /* pzgeqrf */
+    for (k = 0; k < minMNT; k++)
+    {
+		
+			//~ INSERT_TASK_zgeqrt(
+			//~ options,
+			//~ tempkm, tempkn, ib, T->nb,
+			//~ A(k, k),
+			//~ T(k, k));
+			struct starpu_task *task = starpu_task_create();
+			task->cl = &cl_geqrt;
+			//~ task->handles[0] = starpu_data_get_sub_data(A_handle, 2, z, y);
+			//~ ...
+			//~ task->flops = 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * (zdim/nslicesz);
+			//~ ret = starpu_task_submit(task);
+			//~ if (ret == -ENODEV)
+			//~ {
+				//~ check = 0;
+				//~ ret = 77;
+				//~ starpu_resume();
+				//~ goto enodev;
+			//~ }
+			//~ STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
+		//~ for (n = k+1; n < A->nt; n++)
+		//~ {
+			//~ tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
+			//~ INSERT_TASK_zunmqr(
+				//~ options,
+				//~ ChamLeft, ChamConjTrans,
+				//~ tempkm, tempnn, tempkm, ib, T->nb,
+				//~ D(k),
+				//~ T(k, k),
+				//~ A(k, n));
+		//~ }
+
+		//~ for (m = k+1; m < A->mt; m++)
+		//~ {
+			//~ tempmm = m == A->mt-1 ? A->m-m*A->mb : A->mb;
+			//~ /* TS kernel */
+			//~ INSERT_TASK_ztpqrt(
+				//~ options,
+				//~ tempmm, tempkn, 0, ib, T->nb,
+				//~ A(k, k),
+				//~ A(m, k),
+				//~ T(m, k));
+
+			//~ for (n = k+1; n < A->nt; n++) {
+				//~ tempnn = n == A->nt-1 ? A->n-n*A->nb : A->nb;
+
+				//~ RUNTIME_data_migrate( sequence, A(k, n),
+									  //~ A->get_rankof( A, m, n ) );
+
+				//~ /* TS kernel */
+				//~ INSERT_TASK_ztpmqrt(
+					//~ options,
+					//~ ChamLeft, ChamConjTrans,
+					//~ tempmm, tempnn, A->nb, 0, ib, T->nb,
+					//~ A(m, k),
+					//~ T(m, k),
+					//~ A(k, n),
+					//~ A(m, n));
+			//~ }
+			//~ RUNTIME_data_flush( sequence, A(m, k) );
+			//~ RUNTIME_data_flush( sequence, T(m, k) );
+		//~ }
+    }
+
+
+
+
+
+
+
+
+
+
+
+	/* TODO: unregister handles */
+
+	/* Code de random_task_graph.c */
 	//~ int i = 0;
 	//~ int j = 0;
 	//~ starpu_data_handle_t * tab_handle = malloc(number_data*sizeof(starpu_data_handle_t));
@@ -190,7 +318,7 @@ int main(int argc, char **argv)
 				//~ {
 					//~ starpu_do_schedule();
 					//~ printf("la1.5 random set of tasks \n");
-					//~ start = starpu_timing_now();	
+					//~ start = starpu_timing_now();
 					//~ printf("la1.6 random set of tasks \n");				
 					//~ starpu_resume();
 					//~ printf("la1.7 random set of tasks \n");
