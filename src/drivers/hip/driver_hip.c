@@ -367,7 +367,7 @@ static void init_device_context(unsigned devid, unsigned memnode)
 
 	/* force HIP to initialize the context for real */
 	hipres = hipInit(0);
-	while (hipres == hipErrorDeinitialized && ++attempts < 10)
+	while (hipres == hipErrorDeinitialized && ++attempts < 100)
 	{
 		usleep(100000);
 		hipres = hipInit(0);
