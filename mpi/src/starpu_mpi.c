@@ -61,8 +61,8 @@ int _starpu_mpi_choose_node(starpu_data_handle_t handle, enum starpu_data_access
 
 		for (i = 0; i < STARPU_MAXNODES; i++)
 		{
-			/* Note: We take as a hint that it's allocated on the GPU as
-			 * a clue that we want to push directly to the GPU */
+			/* Note: We take as a hint that it's allocated on a NUMA node as
+			 * a clue that we want to push directly to that NUMA node */
 			if (starpu_node_get_kind(i) == STARPU_CPU_RAM
 				&& handle->per_node[i].allocated)
 				/* This node already has allocated buffers, let's just use it */
