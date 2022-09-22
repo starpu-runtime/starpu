@@ -190,14 +190,14 @@ $ STARPU_SCHED=dmda starpu_smpirun -platform cluster.xml -hostfile hostfile ./mp
 \endverbatim
 
 Where \c cluster.xml is a SimGrid-MPI platform description, and \c hostfile the
-list of MPI nodes to be used. In homogeneous MPI clusters: for each MPI node it
+list of MPI nodes to be used. Examples of such files are available in \c tools/perfmodels. In homogeneous MPI clusters: for each MPI node it
 will just replicate the architecture referred by
 \ref STARPU_HOSTNAME. To use multiple performance models in different ranks,
 in case of a heterogeneous platform, it is possible to use the
 option <c>-hostfile-platform</c> in <c>starpu_smpirun</c>, that will define
 \ref STARPU_MPI_HOSTNAMES with the hostnames of your hostfile.
 
-So as to use FxT traces, libfxt also needs to be built statically, <b>and</b>
+So as to use FxT traces, libfxt itself also needs to be built statically, <b>and</b>
 with dynamic linking flags, i.e. with
 
 \verbatim
