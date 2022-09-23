@@ -16,7 +16,7 @@
 PROG = nf_sched_ctx
 
 STARPU_VERSION=1.3
-FSTARPU_MOD = $(shell pkg-config --cflags-only-I starpu-$(STARPU_VERSION)|sed -e 's/^\([^ ]*starpu\/$(STARPU_VERSION)\).*$$/\1/;s/^.* //;s/^-I//')/fstarpu_mod.f90
+FSTARPU_MOD = $(shell pkg-config --variable=starpu_includedir starpu-$(STARPU_VERSION))/fstarpu_mod.f90
 
 SRCSF = nf_sched_ctx_cl.f90	\
 	nf_sched_ctx.f90
