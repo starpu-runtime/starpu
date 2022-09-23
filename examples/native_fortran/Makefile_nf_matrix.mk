@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2016-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +15,8 @@
 #
 PROG = nf_matrix
 
-FSTARPU_MOD = $(shell pkg-config --cflags-only-I starpu-1.3|sed -e 's/^\([^ ]*starpu\/1.3\).*$$/\1/;s/^.* //;s/^-I//')/fstarpu_mod.f90
+STARPU_VERSION=1.3
+FSTARPU_MOD = $(shell pkg-config --cflags-only-I starpu-$(STARPU_VERSION)|sed -e 's/^\([^ ]*starpu\/$(STARPU_VERSION)\).*$$/\1/;s/^.* //;s/^-I//')/fstarpu_mod.f90
 
 SRCSF = nf_matrix.f90		\
 	nf_codelets.f90
@@ -23,9 +24,9 @@ SRCSF = nf_matrix.f90		\
 FC = gfortran
 CC = gcc
 
-CFLAGS = -g $(shell pkg-config --cflags starpu-1.3)
+CFLAGS = -g $(shell pkg-config --cflags starpu-$(STARPU_VERSION))
 FCFLAGS = -fdefault-real-8 -J. -g
-LDLIBS =  $(shell pkg-config --libs starpu-1.3)
+LDLIBS =  $(shell pkg-config --libs starpu-$(STARPU_VERSION))
 
 OBJS = $(SRCSC:%.c=%.o) fstarpu_mod.o $(SRCSF:%.f90=%.o)
 
