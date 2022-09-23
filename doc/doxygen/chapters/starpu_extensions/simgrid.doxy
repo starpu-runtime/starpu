@@ -237,7 +237,12 @@ starpu_malloc_flags() function. This will make it allocate a memory area which
 one can read/write, but optimized so that this does not actually consume
 memory. Of course, the values read from such area will be bogus, but this allows
 the application to keep e.g. data load, store, initialization as it is, and also
-work in MPI mode.
+work in MPI mode. A more aggressive alternative is to pass also the
+\ref STARPU_MALLOC_SIMULATION_UNIQUE flag (alongside with
+\ref STARPU_MALLOC_SIMULATION_FOLDED) to the starpu_malloc_flags() function.
+This will make StarPU reuse the pointers for allocations of the same size
+without calling the folded allocation again, thus decreasing some pressure on
+memory management.
 
 Note however that notably Linux kernels refuse obvious memory overcommitting by
 default, so a single allocation can typically not be bigger than the amount of

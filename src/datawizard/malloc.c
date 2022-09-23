@@ -62,6 +62,16 @@ static int enable_suballocator;
 #ifdef STARPU_SIMGRID
 static int bogusfile = -1;
 static unsigned long _starpu_malloc_simulation_fold;
+/* Table to control unique simulation mallocs */
+#include <common/uthash.h>
+struct unique_shared_alloc
+{
+        size_t id;
+        int count;
+        void* addr;
+        UT_hash_handle hh;
+};
+static struct unique_shared_alloc* unique_shared_alloc_table = NULL;
 #endif
 
 static starpu_malloc_hook malloc_hook;
@@ -313,11 +323,34 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 	if (flags & STARPU_MALLOC_SIMULATION_FOLDED)
 	{
 #if SIMGRID_VERSION >= 31500 && SIMGRID_VERSION != 31559
-	    if (_starpu_simgrid_running_smpi())
-		    *A = SMPI_SHARED_MALLOC(dim);
-	    else
+		if(_starpu_simgrid_running_smpi())
+		{
+			if(flags & STARPU_MALLOC_SIMULATION_UNIQUE)
+			{
+				struct unique_shared_alloc *block;
+				HASH_FIND(hh, unique_shared_alloc_table, &dim, sizeof(dim), block);
+				if(block==NULL)
+				{
+					block = (struct unique_shared_alloc*)malloc(sizeof(struct unique_shared_alloc));
+					block->addr = SMPI_SHARED_MALLOC(dim);
+					block->count = 1;
+					block->id = dim;
+					HASH_ADD(hh, unique_shared_alloc_table, id, sizeof(dim), block);
+				}
+				else
+				{
+					block->count++;
+				}
+				*A = block->addr;
+			}
+			else
+			{
+				*A = SMPI_SHARED_MALLOC(dim);
+			}
+		}
+		else
 #endif
-	    {
+		{
 		/* Use "folded" allocation: the same file is mapped several
 		 * times contiguously, to get a memory area one can read/write,
 		 * without consuming memory */
@@ -604,11 +637,29 @@ int _starpu_free_flags_on_node(unsigned dst_node, void *A, size_t dim, int flags
 	if (flags & STARPU_MALLOC_SIMULATION_FOLDED)
 	{
 #if SIMGRID_VERSION >= 31500 && SIMGRID_VERSION != 31559
-	    if (_starpu_simgrid_running_smpi())
-		SMPI_SHARED_FREE(A);
-	    else
+		if(_starpu_simgrid_running_smpi())
+		{
+			if(flags & STARPU_MALLOC_SIMULATION_UNIQUE)
+			{
+				struct unique_shared_alloc *block;
+				HASH_FIND(hh, unique_shared_alloc_table, &dim, sizeof(dim), block);
+				STARPU_ASSERT(block != NULL);
+				block->count--;
+				if(block->count == 0)
+				{
+					SMPI_SHARED_FREE(block->addr);
+					HASH_DEL(unique_shared_alloc_table, block);
+					free(block);
+				}
+			}
+			else
+			{
+				SMPI_SHARED_FREE(A);
+			}
+		}
+		else
 #endif
-		munmap(A, dim);
+			munmap(A, dim);
 	}
 #endif
 #ifdef HAVE_MMAP

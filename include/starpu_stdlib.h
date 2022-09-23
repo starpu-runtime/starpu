@@ -89,6 +89,14 @@ extern "C" {
 #define STARPU_MALLOC_SIMULATION_FOLDED ((1ULL) << 6)
 
 /**
+   Value passed to the function starpu_malloc_flags() to indicate that
+   when StarPU is using simgrid, the allocation for that size could be unique.
+   Different from only STARPU_MALLOC_SIMULATION_FOLDED, the same address will
+   be given for all mallocs of that particular size.
+*/
+#define STARPU_MALLOC_SIMULATION_UNIQUE ((1ULL)<<7)
+
+/**
    @deprecated
    Equivalent to starpu_malloc(). This macro is provided to avoid
    breaking old codes.
