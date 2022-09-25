@@ -851,12 +851,12 @@ int starpu_mpi_pre_submit_hook_register(void (*f)(struct starpu_task *));
 int starpu_mpi_pre_submit_hook_unregister(void);
 
 /**
-   Disable the aggregation of statistics on communications based on STARPU_MPI_STATS.
+   Disable the aggregation of statistics on communications based on \ref STARPU_MPI_STATS.
 */
 void starpu_mpi_comm_stats_disable(void);
 
 /**
-   Enable the aggregation of statistics on communications based on STARPU_MPI_STATS.
+   Enable the aggregation of statistics on communications based on \ref STARPU_MPI_STATS.
 */
 void starpu_mpi_comm_stats_enable(void);
 
