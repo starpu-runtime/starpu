@@ -1002,8 +1002,8 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 			}
 
 			/* For driver worker sets, we only start a thread for the first worker set.  */
-			if (( !driver_worker_set || driver_worker_set == worker_set) &&
-			   (! workerarg->driver_ops || _starpu_may_launch_driver(&pconfig->conf, &driver)))
+			if ((!driver_worker_set || driver_worker_set == worker_set) &&
+			    (! workerarg->driver_ops || _starpu_may_launch_driver(&pconfig->conf, &driver)))
 			{
 				STARPU_PTHREAD_CREATE_ON(
 					starpu_driver_info[workerarg->arch].name_upper,
@@ -1562,9 +1562,9 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	int rc = starpu_prof_tool_try_load();
 	(void) rc; /* unused for now */
 
-	starpu_prof_tool_info_t pi = starpu_prof_tool_get_info( starpu_prof_tool_event_init_begin, 0, starpu_driver_cpu, -1, NULL );
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_init( &pi, NULL, NULL );
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_init_begin( &pi, NULL, NULL );
+	starpu_prof_tool_info_t pi = starpu_prof_tool_get_info(starpu_prof_tool_event_init_begin, 0, starpu_driver_cpu, -1, NULL);
+	starpu_prof_tool_callbacks.starpu_prof_tool_event_init(&pi, NULL, NULL);
+	starpu_prof_tool_callbacks.starpu_prof_tool_event_init_begin(&pi, NULL, NULL);
 
 #if !defined(STARPU_SIMGRID) && !defined(STARPU_USE_MP)
 	(void)argc;
@@ -1923,9 +1923,9 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 		fflush(stdout);
 	}
 
-	pi = starpu_prof_tool_get_info_init( starpu_prof_tool_event_init_end, 0, starpu_driver_cpu, &( _starpu_config.conf ) );
+	pi = starpu_prof_tool_get_info_init(starpu_prof_tool_event_init_end, 0, starpu_driver_cpu, &(_starpu_config.conf));
 	pi.conf = &_starpu_config.conf;
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_init_end( &pi, NULL, NULL );
+	starpu_prof_tool_callbacks.starpu_prof_tool_event_init_end(&pi, NULL, NULL);
 
 	return 0;
 }
@@ -1989,9 +1989,9 @@ out:
 		free(worker->local_ordered_tasks);
 		STARPU_ASSERT(_starpu_ctx_change_list_empty(&worker->ctx_change_list));
 	}
-    
-	starpu_prof_tool_info_t pi = starpu_prof_tool_get_info_init( starpu_prof_tool_event_terminate, 0, starpu_driver_cpu, NULL );
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_terminate( &pi, NULL, NULL );
+
+	starpu_prof_tool_info_t pi = starpu_prof_tool_get_info_init(starpu_prof_tool_event_terminate, 0, starpu_driver_cpu, NULL);
+	starpu_prof_tool_callbacks.starpu_prof_tool_event_terminate(&pi, NULL, NULL);
 }
 
 /* Condition variable and mutex used to pause/resume. */
