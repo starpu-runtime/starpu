@@ -1559,10 +1559,10 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 			    * used, we cannot be a sink. */
 	unsigned worker;
 
-	int rc = starpu_prof_tool_try_load();
+	int rc = _starpu_prof_tool_try_load();
 	(void) rc; /* unused for now */
 
-	starpu_prof_tool_info_t pi = starpu_prof_tool_get_info(starpu_prof_tool_event_init_begin, 0, starpu_driver_cpu, -1, NULL);
+	struct _starpu_prof_tool_info pi = _starpu_prof_tool_get_info(_starpu_prof_tool_event_init_begin, 0, _starpu_driver_cpu, -1, NULL);
 	starpu_prof_tool_callbacks.starpu_prof_tool_event_init(&pi, NULL, NULL);
 	starpu_prof_tool_callbacks.starpu_prof_tool_event_init_begin(&pi, NULL, NULL);
 
@@ -1923,7 +1923,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 		fflush(stdout);
 	}
 
-	pi = starpu_prof_tool_get_info_init(starpu_prof_tool_event_init_end, 0, starpu_driver_cpu, &(_starpu_config.conf));
+	pi = _starpu_prof_tool_get_info_init(_starpu_prof_tool_event_init_end, 0, _starpu_driver_cpu, &(_starpu_config.conf));
 	pi.conf = &_starpu_config.conf;
 	starpu_prof_tool_callbacks.starpu_prof_tool_event_init_end(&pi, NULL, NULL);
 
@@ -1990,7 +1990,7 @@ out:
 		STARPU_ASSERT(_starpu_ctx_change_list_empty(&worker->ctx_change_list));
 	}
 
-	starpu_prof_tool_info_t pi = starpu_prof_tool_get_info_init(starpu_prof_tool_event_terminate, 0, starpu_driver_cpu, NULL);
+	struct _starpu_prof_tool_info pi = _starpu_prof_tool_get_info_init(_starpu_prof_tool_event_terminate, 0, _starpu_driver_cpu, NULL);
 	starpu_prof_tool_callbacks.starpu_prof_tool_event_terminate(&pi, NULL, NULL);
 }
 

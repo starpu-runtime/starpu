@@ -22,49 +22,50 @@
 #include <string.h>
 #include <pthread.h>
 #include <stdio.h>
+#include <starpu_helper.h>
 
-starpu_prof_tool_callbacks_t starpu_prof_tool_callbacks;
-starpu_prof_tool_cb_func_t* starpu_prof_tool_callback_map[STARPU_NB_CALLBACKS];
-static void* lib_handle;
+struct _starpu_prof_tool_callbacks starpu_prof_tool_callbacks;
+_starpu_prof_tool_cb_func *starpu_prof_tool_callback_map[STARPU_NB_CALLBACKS];
+static void *lib_handle;
 
 /*
   Dummy implementations of the callbacks
 */
-void _starpu_prof_tool_event_driver_init()
+void _starpu_prof_tool_event_driver_init_func()
 {
 	//    printf("Hello!");
 }
 
-void _starpu_prof_tool_event_dummy()
+void _starpu_prof_tool_event_dummy_func()
 {
 }
 
 void starpu_profiling_init_lib()
 {
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_init = &_starpu_prof_tool_event_dummy;
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_terminate = &_starpu_prof_tool_event_dummy;
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_init_begin = &_starpu_prof_tool_event_dummy;
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_init_end = &_starpu_prof_tool_event_dummy;
+	starpu_prof_tool_callbacks.starpu_prof_tool_event_init = &_starpu_prof_tool_event_dummy_func;
+	starpu_prof_tool_callbacks.starpu_prof_tool_event_terminate = &_starpu_prof_tool_event_dummy_func;
+	starpu_prof_tool_callbacks.starpu_prof_tool_event_init_begin = &_starpu_prof_tool_event_dummy_func;
+	starpu_prof_tool_callbacks.starpu_prof_tool_event_init_end = &_starpu_prof_tool_event_dummy_func;
 
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_init = &_starpu_prof_tool_event_driver_init;
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_deinit = &_starpu_prof_tool_event_dummy;
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_init_start = &_starpu_prof_tool_event_dummy;
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_init_end = &_starpu_prof_tool_event_dummy;
+	starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_init = &_starpu_prof_tool_event_driver_init_func;
+	starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_deinit = &_starpu_prof_tool_event_dummy_func;
+	starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_init_start = &_starpu_prof_tool_event_dummy_func;
+	starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_init_end = &_starpu_prof_tool_event_dummy_func;
 
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_start_cpu_exec = &_starpu_prof_tool_event_dummy;
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_end_cpu_exec = &_starpu_prof_tool_event_dummy;
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_start_gpu_exec = &_starpu_prof_tool_event_dummy;
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_end_gpu_exec = &_starpu_prof_tool_event_dummy;
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_start_transfer = &_starpu_prof_tool_event_dummy;
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_end_transfer = &_starpu_prof_tool_event_dummy;
+	starpu_prof_tool_callbacks.starpu_prof_tool_event_start_cpu_exec = &_starpu_prof_tool_event_dummy_func;
+	starpu_prof_tool_callbacks.starpu_prof_tool_event_end_cpu_exec = &_starpu_prof_tool_event_dummy_func;
+	starpu_prof_tool_callbacks.starpu_prof_tool_event_start_gpu_exec = &_starpu_prof_tool_event_dummy_func;
+	starpu_prof_tool_callbacks.starpu_prof_tool_event_end_gpu_exec = &_starpu_prof_tool_event_dummy_func;
+	starpu_prof_tool_callbacks.starpu_prof_tool_event_start_transfer = &_starpu_prof_tool_event_dummy_func;
+	starpu_prof_tool_callbacks.starpu_prof_tool_event_end_transfer = &_starpu_prof_tool_event_dummy_func;
 
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_user_start = &_starpu_prof_tool_event_dummy;
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_user_end = &_starpu_prof_tool_event_dummy;
+	starpu_prof_tool_callbacks.starpu_prof_tool_event_user_start = &_starpu_prof_tool_event_dummy_func;
+	starpu_prof_tool_callbacks.starpu_prof_tool_event_user_end = &_starpu_prof_tool_event_dummy_func;
 }
 
-starpu_prof_tool_info_t starpu_prof_tool_get_info(starpu_prof_tool_event_t event_type, int device_num, starpu_driver_type_t driver, unsigned int memnode, void* fun_ptr)
+struct _starpu_prof_tool_info starpu_prof_tool_get_info(enum _starpu_prof_tool_event event_type, int device_num, enum _starpu_driver_type driver, unsigned int memnode, void* fun_ptr)
 {
-	starpu_prof_tool_info_t ret;
+	struct _starpu_prof_tool_info ret;
 
 	ret.event_type = event_type;
 	ret.starpu_version[0] = STARPU_MAJOR_VERSION;
@@ -81,10 +82,9 @@ starpu_prof_tool_info_t starpu_prof_tool_get_info(starpu_prof_tool_event_t event
 }
 
 /* This function is specific for data transfers, in order to keep the prototypes simple */
-
-starpu_prof_tool_info_t starpu_prof_tool_get_info_d(starpu_prof_tool_event_t event_type, int device_num, starpu_driver_type_t driver, unsigned memnode, unsigned to_transfer, unsigned transfered)
+struct _starpu_prof_tool_info starpu_prof_tool_get_info_d(enum _starpu_prof_tool_event event_type, int device_num, enum _starpu_driver_type driver, unsigned memnode, unsigned to_transfer, unsigned transfered)
 {
-	starpu_prof_tool_info_t ret;
+	struct _starpu_prof_tool_info ret;
 
 	ret.event_type = event_type;
 	ret.starpu_version[0] = STARPU_MAJOR_VERSION;
@@ -104,9 +104,9 @@ starpu_prof_tool_info_t starpu_prof_tool_get_info_d(starpu_prof_tool_event_t eve
 	return ret;
 }
 
-starpu_prof_tool_info_t starpu_prof_tool_get_info_init(starpu_prof_tool_event_t event_type, int device_num, starpu_driver_type_t driver, struct starpu_conf* conf)
+struct _starpu_prof_tool_info starpu_prof_tool_get_info_init(enum _starpu_prof_tool_event event_type, int device_num, enum _starpu_driver_type driver, struct starpu_conf* conf)
 {
-	starpu_prof_tool_info_t ret;
+	struct _starpu_prof_tool_info ret;
 
 	ret.event_type = event_type;
 	ret.starpu_version[0] = STARPU_MAJOR_VERSION;
@@ -121,7 +121,7 @@ starpu_prof_tool_info_t starpu_prof_tool_get_info_init(starpu_prof_tool_event_t 
 	return ret;
 }
 
-__attribute__((weak)) void starpu_prof_tool_library_register(starpu_prof_tool_entry_t reg, starpu_prof_tool_entry_t unreg)
+__attribute__((weak)) void starpu_prof_tool_library_register(_starpu_prof_tool_entry_func reg, _starpu_prof_tool_entry_func unreg)
 {
 	(void) reg;
 	(void) unreg;
@@ -131,7 +131,7 @@ __attribute__((weak)) void starpu_prof_tool_library_register(starpu_prof_tool_en
    Register a callback for a given event.
    TODO use a list in order to link multiple callbacks
    */
-void starpu_prof_tool_register_cb(starpu_prof_tool_event_t event_type, starpu_prof_tool_cb_func_t cb, starpu_prof_tool_command_t info)
+void starpu_prof_tool_register_cb(enum _starpu_prof_tool_event event_type, _starpu_prof_tool_cb_func cb, enum _starpu_prof_tool_command info)
 {
 	(void) info;
 	*(starpu_prof_tool_callback_map[event_type]) = cb;
@@ -141,8 +141,7 @@ void starpu_prof_tool_register_cb(starpu_prof_tool_event_t event_type, starpu_pr
    Unegister a callback for a given event.
    TODO use a list in order to link multiple callbacks
    */
-
-void starpu_prof_tool_unregister_cb(starpu_prof_tool_event_t event_type, starpu_prof_tool_cb_func_t cb, starpu_prof_tool_command_t info)
+void starpu_prof_tool_unregister_cb(enum _starpu_prof_tool_event event_type, _starpu_prof_tool_cb_func cb, enum _starpu_prof_tool_command info)
 {
 	(void) info;
 	(void) cb;
@@ -151,25 +150,25 @@ void starpu_prof_tool_unregister_cb(starpu_prof_tool_event_t event_type, starpu_
 
 static void init_prof_map()
 {
-	starpu_prof_tool_callback_map[starpu_prof_tool_event_init] = &(starpu_prof_tool_callbacks.starpu_prof_tool_event_init);
-	starpu_prof_tool_callback_map[starpu_prof_tool_event_terminate] = &(starpu_prof_tool_callbacks.starpu_prof_tool_event_terminate);
-	starpu_prof_tool_callback_map[starpu_prof_tool_event_init_begin] = &(starpu_prof_tool_callbacks.starpu_prof_tool_event_init_begin);
-	starpu_prof_tool_callback_map[starpu_prof_tool_event_init_end] = &(starpu_prof_tool_callbacks.starpu_prof_tool_event_init_end);
+	starpu_prof_tool_callback_map[_starpu_prof_tool_event_init] = &(starpu_prof_tool_callbacks.starpu_prof_tool_event_init);
+	starpu_prof_tool_callback_map[_starpu_prof_tool_event_terminate] = &(starpu_prof_tool_callbacks.starpu_prof_tool_event_terminate);
+	starpu_prof_tool_callback_map[_starpu_prof_tool_event_init_begin] = &(starpu_prof_tool_callbacks.starpu_prof_tool_event_init_begin);
+	starpu_prof_tool_callback_map[_starpu_prof_tool_event_init_end] = &(starpu_prof_tool_callbacks.starpu_prof_tool_event_init_end);
 
-	starpu_prof_tool_callback_map[starpu_prof_tool_event_driver_init] = &(starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_init);
-	starpu_prof_tool_callback_map[starpu_prof_tool_event_driver_deinit] = &(starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_deinit);
-	starpu_prof_tool_callback_map[starpu_prof_tool_event_driver_init_start] = &(starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_init_start);
-	starpu_prof_tool_callback_map[starpu_prof_tool_event_driver_init_end] = &(starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_init_end);
+	starpu_prof_tool_callback_map[_starpu_prof_tool_event_driver_init] = &(starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_init);
+	starpu_prof_tool_callback_map[_starpu_prof_tool_event_driver_deinit] = &(starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_deinit);
+	starpu_prof_tool_callback_map[_starpu_prof_tool_event_driver_init_start] = &(starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_init_start);
+	starpu_prof_tool_callback_map[_starpu_prof_tool_event_driver_init_end] = &(starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_init_end);
 
-	starpu_prof_tool_callback_map[starpu_prof_tool_event_start_cpu_exec] = &(starpu_prof_tool_callbacks.starpu_prof_tool_event_start_cpu_exec);
-	starpu_prof_tool_callback_map[starpu_prof_tool_event_end_cpu_exec] = &(starpu_prof_tool_callbacks.starpu_prof_tool_event_end_cpu_exec);
-	starpu_prof_tool_callback_map[starpu_prof_tool_event_start_gpu_exec] = &(starpu_prof_tool_callbacks.starpu_prof_tool_event_start_gpu_exec);
-	starpu_prof_tool_callback_map[starpu_prof_tool_event_end_gpu_exec] = &(starpu_prof_tool_callbacks.starpu_prof_tool_event_end_gpu_exec);
-	starpu_prof_tool_callback_map[starpu_prof_tool_event_start_transfer] = &(starpu_prof_tool_callbacks.starpu_prof_tool_event_start_transfer);
-	starpu_prof_tool_callback_map[starpu_prof_tool_event_end_transfer] = &(starpu_prof_tool_callbacks.starpu_prof_tool_event_end_transfer);
+	starpu_prof_tool_callback_map[_starpu_prof_tool_event_start_cpu_exec] = &(starpu_prof_tool_callbacks.starpu_prof_tool_event_start_cpu_exec);
+	starpu_prof_tool_callback_map[_starpu_prof_tool_event_end_cpu_exec] = &(starpu_prof_tool_callbacks.starpu_prof_tool_event_end_cpu_exec);
+	starpu_prof_tool_callback_map[_starpu_prof_tool_event_start_gpu_exec] = &(starpu_prof_tool_callbacks.starpu_prof_tool_event_start_gpu_exec);
+	starpu_prof_tool_callback_map[_starpu_prof_tool_event_end_gpu_exec] = &(starpu_prof_tool_callbacks.starpu_prof_tool_event_end_gpu_exec);
+	starpu_prof_tool_callback_map[_starpu_prof_tool_event_start_transfer] = &(starpu_prof_tool_callbacks.starpu_prof_tool_event_start_transfer);
+	starpu_prof_tool_callback_map[_starpu_prof_tool_event_end_transfer] = &(starpu_prof_tool_callbacks.starpu_prof_tool_event_end_transfer);
 
-	starpu_prof_tool_callback_map[starpu_prof_tool_event_user_start] = &(starpu_prof_tool_callbacks.starpu_prof_tool_event_user_start);
-	starpu_prof_tool_callback_map[starpu_prof_tool_event_user_end] = &(starpu_prof_tool_callbacks.starpu_prof_tool_event_user_end);
+	starpu_prof_tool_callback_map[_starpu_prof_tool_event_user_start] = &(starpu_prof_tool_callbacks.starpu_prof_tool_event_user_start);
+	starpu_prof_tool_callback_map[_starpu_prof_tool_event_user_end] = &(starpu_prof_tool_callbacks.starpu_prof_tool_event_user_end);
 }
 
 /*
@@ -183,7 +182,7 @@ int starpu_prof_tool_try_load()
 	init_prof_map();
 	starpu_profiling_init_lib();
 
-	const char *tool_libs = getenv(STARPU_PROF_TOOL_ENV_VAR);
+	const char *tool_libs = starpu_getenv(STARPU_PROF_TOOL_ENV_VAR);
 	if (NULL != tool_libs)
 	{
 		//        printf("Loading profiling tool %s\n", tool_libs);
