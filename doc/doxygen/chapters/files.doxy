@@ -45,6 +45,7 @@
 \file starpu_perf_monitoring.h
 \file starpu_perf_steering.h
 \file starpu_profiling.h
+\file starpu_profiling_tool.h
 \file starpu_rand.h
 \file starpu_sched_component.h
 \file starpu_sched_ctx.h

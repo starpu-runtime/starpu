@@ -280,7 +280,15 @@ STARPU_EXAMPLES +=				\
 	subgraphs/manual			\
 	subgraphs/partition			\
 	subgraphs/plan
+endif
 
+if !STARPU_SIMGRID
+SHELL_TESTS +=					\
+	profiling_tool/prof.sh
+
+pkglib_LTLIBRARIES +=	\
+	profiling_tool/libprofiling_tool.la
+profiling_tool_libprofiling_tool_la_LDFLAGS = $(ldflags) -no-undefined
 endif
 
 if !STARPU_SIMGRID

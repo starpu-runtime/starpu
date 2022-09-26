@@ -30,16 +30,16 @@ struct wrapper_func_args
 static void wrapper_func(void *buffers[] STARPU_ATTRIBUTE_UNUSED, void *_args)
 {
 	struct wrapper_func_args *args = (struct wrapper_func_args *) _args;
-	struct _starpu_prof_tool_info pi;
+	struct starpu_prof_tool_info pi;
 
 	int worker = starpu_worker_get_id();
 
-	pi = _starpu_prof_tool_get_info(_starpu_prof_tool_event_start_gpu_exec, worker, _starpu_driver_gpu, -1, (void*)args->func);
+	pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_start_gpu_exec, worker, starpu_prof_tool_driver_gpu, -1, (void*)args->func);
 	starpu_prof_tool_callbacks.starpu_prof_tool_event_start_gpu_exec(&pi, NULL, NULL);
 
 	args->func(args->arg);
 
-	pi = _starpu_prof_tool_get_info(_starpu_prof_tool_event_end_gpu_exec, worker, _starpu_driver_gpu, -1, (void*)args->func);
+	pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_gpu_exec, worker, starpu_prof_tool_driver_gpu, -1, (void*)args->func);
 	starpu_prof_tool_callbacks.starpu_prof_tool_event_end_gpu_exec(&pi, NULL, NULL);
 }
 

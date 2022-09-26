@@ -107,6 +107,7 @@ versinclude_HEADERS = 				\
 	include/starpu_sink.h			\
 	include/starpu_expert.h			\
 	include/starpu_profiling.h		\
+	include/starpu_profiling_tool.h		\
 	include/starpu_bound.h			\
 	include/starpu_scheduler.h		\
 	include/schedulers/starpu_heteroprio.h	\

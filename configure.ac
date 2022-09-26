@@ -4105,6 +4105,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
     examples/scheduler/schedulers.sh \
     examples/scheduler/schedulers_context.sh \
     examples/scheduler/libdummy_sched.sh \
+    examples/profiling_tool/prof.sh \
     tools/starpu_paje_draw_histogram.R \
     tools/starpu_paje_state_stats.R \
     tools/starpu_mlr_analysis.Rmd \
