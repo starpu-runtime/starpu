@@ -122,7 +122,7 @@ struct _starpu_prof_tool_info _starpu_prof_tool_get_info_init(enum _starpu_prof_
 	return ret;
 }
 
-__attribute__((weak)) void _starpu_prof_tool_library_register(_starpu_prof_tool_entry_register_func reg, _starpu_prof_tool_entry_register_func unreg)
+__attribute__((weak)) void starpu_prof_tool_library_register(_starpu_prof_tool_entry_register_func reg, _starpu_prof_tool_entry_register_func unreg)
 {
 	(void) reg;
 	(void) unreg;
@@ -197,7 +197,7 @@ int _starpu_prof_tool_try_load()
 		}
 
 		/* load the loading function we find in this library */
-		found = dlsym(lib_handle, "starpu_register_library");
+		found = dlsym(lib_handle, "starpu_prof_tool_library_register");
 		if (!found)
 		{
 			perror("Could not find the required registration function in the profiling library\n");
@@ -212,7 +212,7 @@ int _starpu_prof_tool_try_load()
 	}
 
 	/* This corresponds to something if we LD_PRELOAD a tool */
-	_starpu_prof_tool_library_register(_starpu_prof_tool_register_cb, _starpu_prof_tool_unregister_cb);
+	starpu_prof_tool_library_register(_starpu_prof_tool_register_cb, _starpu_prof_tool_unregister_cb);
 	return 0;
 }
 

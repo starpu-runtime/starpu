@@ -152,7 +152,7 @@ typedef void (*_starpu_prof_tool_entry_register_func)(enum _starpu_prof_tool_eve
   TODO: both?
   TODO: removed the lookup argument
 */
-void _starpu_prof_tool_library_register(_starpu_prof_tool_entry_register_func reg, _starpu_prof_tool_entry_register_func unreg);
+void starpu_prof_tool_library_register(_starpu_prof_tool_entry_register_func reg, _starpu_prof_tool_entry_register_func unreg);
 typedef void (*_starpu_prof_tool_entry_func)(_starpu_prof_tool_entry_register_func reg, _starpu_prof_tool_entry_register_func unreg);
 
 /* The events themselves.
