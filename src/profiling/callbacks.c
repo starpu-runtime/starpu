@@ -64,7 +64,7 @@ void starpu_profiling_init_lib()
 	starpu_prof_tool_callbacks.starpu_prof_tool_event_user_end = &_starpu_prof_tool_event_dummy_func;
 }
 
-struct _starpu_prof_tool_info starpu_prof_tool_get_info(enum _starpu_prof_tool_event event_type, int device_num, enum _starpu_driver_type driver, unsigned int memnode, void* fun_ptr)
+struct _starpu_prof_tool_info _starpu_prof_tool_get_info(enum _starpu_prof_tool_event event_type, int device_num, enum _starpu_driver_type driver, unsigned int memnode, void* fun_ptr)
 {
 	struct _starpu_prof_tool_info ret;
 
@@ -83,7 +83,7 @@ struct _starpu_prof_tool_info starpu_prof_tool_get_info(enum _starpu_prof_tool_e
 }
 
 /* This function is specific for data transfers, in order to keep the prototypes simple */
-struct _starpu_prof_tool_info starpu_prof_tool_get_info_d(enum _starpu_prof_tool_event event_type, int device_num, enum _starpu_driver_type driver, unsigned memnode, unsigned to_transfer, unsigned transfered)
+struct _starpu_prof_tool_info _starpu_prof_tool_get_info_d(enum _starpu_prof_tool_event event_type, int device_num, enum _starpu_driver_type driver, unsigned memnode, unsigned to_transfer, unsigned transfered)
 {
 	struct _starpu_prof_tool_info ret;
 
@@ -122,7 +122,7 @@ struct _starpu_prof_tool_info _starpu_prof_tool_get_info_init(enum _starpu_prof_
 	return ret;
 }
 
-__attribute__((weak)) void _starpu_prof_tool_library_register(_starpu_prof_tool_entry_func reg, _starpu_prof_tool_entry_func unreg)
+__attribute__((weak)) void _starpu_prof_tool_library_register(_starpu_prof_tool_entry_register_func reg, _starpu_prof_tool_entry_register_func unreg)
 {
 	(void) reg;
 	(void) unreg;
