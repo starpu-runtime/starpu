@@ -139,12 +139,12 @@ typedef void (*_starpu_prof_tool_cb_func)(struct _starpu_prof_tool_info*, union 
   This function must be called by external tools that want
   to use the callbacks
 */
-void starpu_prof_tool_library_init(void);
+void _starpu_prof_tool_library_init(void);
 
 /*
   Register / unregister events
 */
-typedef void (*_starpu_prof_tool_entry_func)(enum _starpu_prof_tool_event event_type, _starpu_prof_tool_cb_func cb, enum _starpu_prof_tool_command info);
+typedef void (*_starpu_prof_tool_entry_register_func)(enum _starpu_prof_tool_event event_type, _starpu_prof_tool_cb_func cb, enum _starpu_prof_tool_command info);
 
 /*
   This function must be implemented by external tools that want
@@ -152,8 +152,8 @@ typedef void (*_starpu_prof_tool_entry_func)(enum _starpu_prof_tool_event event_
   TODO: both?
   TODO: removed the lookup argument
 */
-void starpu_prof_tool_library_register(_starpu_prof_tool_entry_func reg, _starpu_prof_tool_entry_func unreg);
-typedef void (*starpu_prof_tool_entry_func_t)(_starpu_prof_tool_entry_func reg, _starpu_prof_tool_entry_func unreg);
+void _starpu_prof_tool_library_register(_starpu_prof_tool_entry_register_func reg, _starpu_prof_tool_entry_register_func unreg);
+typedef void (*_starpu_prof_tool_entry_func)(_starpu_prof_tool_entry_register_func reg, _starpu_prof_tool_entry_register_func unreg);
 
 /* The events themselves.
    This structure can be built by the preprocessor, but we decided
@@ -184,9 +184,6 @@ struct _starpu_prof_tool_callbacks
 };
 
 extern struct _starpu_prof_tool_callbacks starpu_prof_tool_callbacks;
-
-#define STARPU_NB_CALLBACKS   17
-extern _starpu_prof_tool_cb_func* starpu_prof_tool_callback_map[STARPU_NB_CALLBACKS];
 
 /*******************************************************************************
  * Functions used by the callbacks
