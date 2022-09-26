@@ -105,7 +105,7 @@ struct _starpu_prof_tool_info starpu_prof_tool_get_info_d(enum _starpu_prof_tool
 	return ret;
 }
 
-struct _starpu_prof_tool_info starpu_prof_tool_get_info_init(enum _starpu_prof_tool_event event_type, int device_num, enum _starpu_driver_type driver, struct starpu_conf* conf)
+struct _starpu_prof_tool_info _starpu_prof_tool_get_info_init(enum _starpu_prof_tool_event event_type, int device_num, enum _starpu_driver_type driver, struct starpu_conf* conf)
 {
 	struct _starpu_prof_tool_info ret;
 
@@ -122,7 +122,7 @@ struct _starpu_prof_tool_info starpu_prof_tool_get_info_init(enum _starpu_prof_t
 	return ret;
 }
 
-__attribute__((weak)) void starpu_prof_tool_library_register(_starpu_prof_tool_entry_func reg, _starpu_prof_tool_entry_func unreg)
+__attribute__((weak)) void _starpu_prof_tool_library_register(_starpu_prof_tool_entry_func reg, _starpu_prof_tool_entry_func unreg)
 {
 	(void) reg;
 	(void) unreg;
