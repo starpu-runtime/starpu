@@ -1,7 +1,8 @@
-#!/bin/sh
+#!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2021-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2022       Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2022       Camille Coti
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -15,24 +16,10 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-set -e
-
-./contrib/ci.inria.fr/job-0-tarball.sh
-
-tarball=$(ls -tr starpu-*.tar.gz | tail -1)
-
-if test -z "$tarball"
+ROOT=${0%/prof.sh}
+if test -x $ROOT/../basic_examples/hello_world
 then
-    echo Error. No tar.gz file
-    ls
-    pwd
-    exit 1
-fi
-
-if test ! -f starpu.pdf
-then
-    echo Error. No documentation file
-    ls
-    pwd
-    exit 1
+    STARPU_PROF_TOOL=$ROOT/.libs/libprofiling_tool.so $ROOT/../basic_examples/hello_world
+else
+    exit 77
 fi

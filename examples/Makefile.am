@@ -91,7 +91,8 @@ EXTRA_DIST = 					\
 	native_fortran/Makefile_nf_vector.mk		\
 	cpp/Makefile_add_vectors_cpp11.mk		\
 	cpp/Makefile_add_vectors.mk			\
-	fortran90/Makefile.mk
+	fortran90/Makefile.mk				\
+	profiling_tool/prof.sh
 
 
 CLEANFILES = *.gcno *.gcda *.linkinfo *.mod starpu_idle_microsec.log *.mps */*.mps */*/*.mps *.dot */*.dot */*/*.dot *.pl */*.pl */*/*.pl *.png *.output tasks.rec perfs.rec */perfs.rec */*/perfs.rec perfs2.rec fortran90/starpu_mod.f90 native_fortran/fstarpu_mod.f90 *.csv *.md *.Rmd *.pdf *.html
@@ -280,7 +281,15 @@ STARPU_EXAMPLES +=				\
 	subgraphs/manual			\
 	subgraphs/partition			\
 	subgraphs/plan
+endif
 
+if !STARPU_SIMGRID
+SHELL_TESTS +=					\
+	profiling_tool/prof.sh
+
+pkglib_LTLIBRARIES +=	\
+	profiling_tool/libprofiling_tool.la
+profiling_tool_libprofiling_tool_la_LDFLAGS = $(ldflags) -no-undefined
 endif
 
 if !STARPU_SIMGRID

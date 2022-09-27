@@ -76,6 +76,7 @@ typedef INT_PTR intptr_t;
 #include <starpu_bound.h>
 #include <starpu_hash.h>
 #include <starpu_profiling.h>
+#include <starpu_profiling_tool.h>
 #include <starpu_fxt.h>
 #include <starpu_driver.h>
 #include <starpu_tree.h>

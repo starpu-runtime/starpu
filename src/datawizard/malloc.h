@@ -92,7 +92,6 @@ LIST_TYPE(_starpu_chunk,
 	struct block bitmap[CHUNK_NBLOCKS+1];
 )
 
-
 #pragma GCC visibility pop
 
 #endif

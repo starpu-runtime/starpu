@@ -42,6 +42,7 @@
 #include <datawizard/datawizard.h>
 #include <core/task.h>
 #include <common/knobs.h>
+#include <profiling/callbacks.h>
 
 #ifdef STARPU_SIMGRID
 #include <core/simgrid.h>
@@ -767,6 +768,9 @@ static void init_worker_context(unsigned workerid, unsigned devid STARPU_ATTRIBU
 		STARPU_CUDA_REPORT_ERROR(cures);
 
 #endif /* !STARPU_SIMGRID */
+
+	struct starpu_prof_tool_info pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_driver_deinit, workerid, starpu_prof_tool_driver_gpu, 0 /* memnode */, NULL);
+	starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_deinit(&pi, NULL, NULL);
 }
 
 static void deinit_worker_context(unsigned workerid, unsigned devid STARPU_ATTRIBUTE_UNUSED)
@@ -809,6 +813,7 @@ int _starpu_cuda_driver_init(struct _starpu_worker *worker)
 	struct _starpu_worker *worker0 = &worker_set->workers[0];
 	int lastdevid = -1;
 	unsigned i;
+	struct starpu_prof_tool_info pi;
 
 	_starpu_driver_start(worker0, STARPU_CUDA_WORKER, 0);
 	_starpu_set_local_worker_set_key(worker_set);
@@ -823,6 +828,10 @@ int _starpu_cuda_driver_init(struct _starpu_worker *worker)
 		worker = &worker_set->workers[i];
 		unsigned devid = worker->devid;
 		unsigned memnode = worker->memory_node;
+
+		pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_driver_init_start, devid, starpu_prof_tool_driver_gpu, memnode, NULL);
+		starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_init_start(&pi, NULL, NULL);
+
 		if ((int) devid == lastdevid)
 		{
 #ifdef STARPU_SIMGRID
@@ -897,6 +906,8 @@ int _starpu_cuda_driver_init(struct _starpu_worker *worker)
 		init_worker_context(workerid, worker->devid);
 
 		_STARPU_TRACE_WORKER_INIT_END(workerid);
+		pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_driver_init_end, devid, starpu_prof_tool_driver_gpu, 0, NULL);
+		starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_init_end(&pi, NULL, NULL);
 	}
 	{
 		char thread_name[16];
@@ -966,8 +977,12 @@ int _starpu_cuda_driver_deinit(struct _starpu_worker *worker)
 	{
 		worker = &worker_set->workers[i];
 		unsigned workerid = worker->workerid;
+		unsigned memnode = worker->memory_node;
 
 		deinit_worker_context(workerid, worker->devid);
+
+		struct starpu_prof_tool_info pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_driver_deinit, workerid, starpu_prof_tool_driver_gpu, memnode, NULL);
+		starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_deinit(&pi, NULL, NULL);
 	}
 
 	worker_set->workers[0].worker_is_initialized = 0;
@@ -1841,6 +1856,7 @@ static void start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *work
 	struct starpu_task *task = j->task;
 
 	int profiling = starpu_profiling_status_get();
+	struct starpu_prof_tool_info pi;
 
 	STARPU_ASSERT(task);
 	struct starpu_codelet *cl = task->cl;
@@ -1896,7 +1912,14 @@ static void start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *work
 		}
 #endif
 
+		pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_start_gpu_exec, worker->devid, starpu_prof_tool_driver_gpu, -1, (void*)func);
+		starpu_prof_tool_callbacks.starpu_prof_tool_event_start_gpu_exec(&pi, NULL, NULL);
+
 		func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
+
+		pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_gpu_exec, worker->devid, starpu_prof_tool_driver_gpu, -1, (void*)func);
+		starpu_prof_tool_callbacks.starpu_prof_tool_event_end_gpu_exec(&pi, NULL, NULL);
+
 #endif
 		_STARPU_TRACE_END_EXECUTING();
 	}

@@ -177,6 +177,7 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/include/starpu_perf_steering.h	\
 	$(top_srcdir)/include/starpu_perfmodel.h	\
 	$(top_srcdir)/include/starpu_profiling.h	\
+	$(top_srcdir)/include/starpu_profiling_tool.h	\
 	$(top_srcdir)/include/starpu_rand.h		\
 	$(top_srcdir)/include/starpu_sched_component.h	\
 	$(top_srcdir)/include/starpu_sched_ctx.h	\

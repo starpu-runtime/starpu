@@ -190,14 +190,14 @@ $ STARPU_SCHED=dmda starpu_smpirun -platform cluster.xml -hostfile hostfile ./mp
 \endverbatim
 
 Where \c cluster.xml is a SimGrid-MPI platform description, and \c hostfile the
-list of MPI nodes to be used. In homogeneous MPI clusters: for each MPI node it
+list of MPI nodes to be used. Examples of such files are available in \c tools/perfmodels. In homogeneous MPI clusters: for each MPI node it
 will just replicate the architecture referred by
 \ref STARPU_HOSTNAME. To use multiple performance models in different ranks,
 in case of a heterogeneous platform, it is possible to use the
 option <c>-hostfile-platform</c> in <c>starpu_smpirun</c>, that will define
 \ref STARPU_MPI_HOSTNAMES with the hostnames of your hostfile.
 
-So as to use FxT traces, libfxt also needs to be built statically, <b>and</b>
+So as to use FxT traces, libfxt itself also needs to be built statically, <b>and</b>
 with dynamic linking flags, i.e. with
 
 \verbatim
@@ -237,7 +237,12 @@ starpu_malloc_flags() function. This will make it allocate a memory area which
 one can read/write, but optimized so that this does not actually consume
 memory. Of course, the values read from such area will be bogus, but this allows
 the application to keep e.g. data load, store, initialization as it is, and also
-work in MPI mode.
+work in MPI mode. A more aggressive alternative is to pass also the
+\ref STARPU_MALLOC_SIMULATION_UNIQUE flag (alongside with
+\ref STARPU_MALLOC_SIMULATION_FOLDED) to the starpu_malloc_flags() function.
+This will make StarPU reuse the pointers for allocations of the same size
+without calling the folded allocation again, thus decreasing some pressure on
+memory management.
 
 Note however that notably Linux kernels refuse obvious memory overcommitting by
 default, so a single allocation can typically not be bigger than the amount of
