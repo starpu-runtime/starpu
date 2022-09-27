@@ -27,19 +27,8 @@
 extern "C" {
 #endif
 
-/*******************************************************************************
- * Callback signature
- *******************************************************************************/
-
-/*
-  This function must be implemented by external tools that want
-  to use the callbacks
-  TODO: both?
-  TODO: removed the lookup argument
-*/
-void starpu_prof_tool_library_register(starpu_prof_tool_entry_register_func reg, starpu_prof_tool_entry_register_func unreg);
-
-/* The events themselves.
+/**
+   The events themselves.
    This structure can be built by the preprocessor, but we decided
    to list the function pointers explicitly for readability purpose.
 */
@@ -86,10 +75,4 @@ void _starpu_prof_tool_unload();
 }
 #endif
 
-#if 0
-acc_prof_info pi = acc_get_prof_info(event_type, device_num);
-acc_event_info ei = acc_get_launch_event_info(event_type);
-acc_api_info ai = acc_get_api_info(device_num);
-#endif
-
-#endif  // _STARPU_CALLBACKS_H_:x
+#endif  // _STARPU_CALLBACKS_H_

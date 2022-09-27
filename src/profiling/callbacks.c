@@ -30,14 +30,9 @@ struct _starpu_prof_tool_callbacks starpu_prof_tool_callbacks;
 starpu_prof_tool_cb_func *_starpu_prof_tool_callback_map[STARPU_NB_CALLBACKS];
 static void *lib_handle;
 
-/*
-  Dummy implementations of the callbacks
+/**
+   Dummy implementations of the callbacks
 */
-void _starpu_prof_tool_event_driver_init_func()
-{
-	//    printf("Hello!");
-}
-
 void _starpu_prof_tool_event_dummy_func()
 {
 }
@@ -49,7 +44,7 @@ void starpu_profiling_init_lib()
 	starpu_prof_tool_callbacks.starpu_prof_tool_event_init_begin = &_starpu_prof_tool_event_dummy_func;
 	starpu_prof_tool_callbacks.starpu_prof_tool_event_init_end = &_starpu_prof_tool_event_dummy_func;
 
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_init = &_starpu_prof_tool_event_driver_init_func;
+	starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_init = &_starpu_prof_tool_event_dummy_func;
 	starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_deinit = &_starpu_prof_tool_event_dummy_func;
 	starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_init_start = &_starpu_prof_tool_event_dummy_func;
 	starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_init_end = &_starpu_prof_tool_event_dummy_func;
@@ -83,7 +78,9 @@ struct starpu_prof_tool_info _starpu_prof_tool_get_info(enum starpu_prof_tool_ev
 	return ret;
 }
 
-/* This function is specific for data transfers, in order to keep the prototypes simple */
+/**
+   This function is specific for data transfers, in order to keep the prototypes simple
+*/
 struct starpu_prof_tool_info _starpu_prof_tool_get_info_d(enum starpu_prof_tool_event event_type, int device_num, enum starpu_prof_tool_driver_type driver, unsigned memnode, unsigned to_transfer, unsigned transfered)
 {
 	struct starpu_prof_tool_info ret;
@@ -123,26 +120,26 @@ struct starpu_prof_tool_info _starpu_prof_tool_get_info_init(enum starpu_prof_to
 	return ret;
 }
 
-__attribute__((weak)) void starpu_prof_tool_library_register(starpu_prof_tool_entry_register_func reg, starpu_prof_tool_entry_register_func unreg)
+__attribute__((weak)) void _starpu_prof_tool_library_register(starpu_prof_tool_entry_register_func reg, starpu_prof_tool_entry_register_func unreg)
 {
 	(void) reg;
 	(void) unreg;
 }
 
-/*
+/**
    Register a callback for a given event.
    TODO use a list in order to link multiple callbacks
-   */
+*/
 void _starpu_prof_tool_register_cb(enum starpu_prof_tool_event event_type, starpu_prof_tool_cb_func cb, enum starpu_prof_tool_command info)
 {
 	(void) info;
 	*(_starpu_prof_tool_callback_map[event_type]) = cb;
 }
 
-/*
+/**
    Unregister a callback for a given event.
    TODO use a list in order to link multiple callbacks
-   */
+*/
 void _starpu_prof_tool_unregister_cb(enum starpu_prof_tool_event event_type, starpu_prof_tool_cb_func cb, enum starpu_prof_tool_command info)
 {
 	(void) info;
@@ -173,7 +170,7 @@ static void init_prof_map()
 	_starpu_prof_tool_callback_map[starpu_prof_tool_event_user_end] = &(starpu_prof_tool_callbacks.starpu_prof_tool_event_user_end);
 }
 
-/*
+/**
  * Looks if there is a profiling tool pointed at by the appropriate
  * environment variable.
  * Returns 0 if nothing is loaded, -1 if there was a problem, 1 otherwise.
@@ -216,7 +213,7 @@ int _starpu_prof_tool_try_load()
 	}
 
 	/* This corresponds to something if we LD_PRELOAD a tool */
-	starpu_prof_tool_library_register(_starpu_prof_tool_register_cb, _starpu_prof_tool_unregister_cb);
+	_starpu_prof_tool_library_register(_starpu_prof_tool_register_cb, _starpu_prof_tool_unregister_cb);
 	return 0;
 }
 
