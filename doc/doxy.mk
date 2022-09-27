@@ -118,6 +118,7 @@ $(DOX_TAG): $(dox_inputs)
 $(DOX_DIR)/$(DOX_PDF): $(DOX_TAG) refman.tex $(images)
 	$(MKDIR_P) $(DOX_LATEX_DIR)
 	@cp $(top_srcdir)/doc/$(DOX_MAIN_DIR)/chapters/version.sty $(DOX_LATEX_DIR)
+	@cp $(top_srcdir)/doc/title.tex $(DOX_LATEX_DIR)
 	@if test -f $(top_srcdir)/doc/$(DOX_MAIN_DIR)/modules.tex ; then cp $(top_srcdir)/doc/$(DOX_MAIN_DIR)/modules.tex $(DOX_LATEX_DIR) ; fi
 	@echo $(PDFLATEX) $(DOX_LATEX_DIR)/refman.tex
 	@cd $(DOX_LATEX_DIR) ;\
