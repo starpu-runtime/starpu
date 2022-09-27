@@ -27,6 +27,7 @@ void myfunction_cb(struct starpu_prof_tool_info *prof_info, union starpu_prof_to
 	else
 	{
 		printf("CALLBACK CALLED NULL INFO\n");
+        return;
 	}
 
 	switch (prof_info->event_type)
@@ -61,7 +62,7 @@ void myfunction_cb(struct starpu_prof_tool_info *prof_info, union starpu_prof_to
 /* Mandatory */
 void starpu_prof_tool_library_register(starpu_prof_tool_entry_register_func reg, starpu_prof_tool_entry_register_func unreg)
 {
-	enum  starpu_prof_tool_command info;
+	enum  starpu_prof_tool_command info = 0;
 	reg(starpu_prof_tool_event_driver_init, &myfunction_cb, info);
 	reg(starpu_prof_tool_event_driver_init_start, &myfunction_cb, info);
 	reg(starpu_prof_tool_event_driver_init_end, &myfunction_cb, info);
