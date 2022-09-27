@@ -233,21 +233,6 @@ res
 2
 \endverbatim
 
-It is also possible to return a normal StarPU object when submitting a function. To do so, you need to set the <c>starpu.task_submit</c> option \c ret_handle to \c True, its default value is \c False. You then need to call the \c get() method on the object to return its value.
-
-\code{.py}
-import asyncio
-import starpu
-def add(a, b):
-    return a+b
-r = starpu.task_submit(ret_handle=True)(add, 1, 2)
-r.get()
-\endcode
-
-\verbatim
-3
-\endverbatim
-
 \subsection SubmitPythonBuffer Submit Python Objects Supporting The Buffer Protocol
 
 The Python buffer protocol is a framework in which Python objects can expose raw byte arrays to other Python objects. This can be extremely useful to efficiently store and manipulate large arrays of data. The StarPU Python Interface allows users to use such objects as task parameters.
@@ -274,19 +259,17 @@ array([5., 7., 9.])
 \endverbatim
 
 StarPU uses a specific data interface to handle Python objects supporting buffer protocol, such python objects are then managed by the StarPU data management library which allows to minimize data transfers between accelerators, and avoids to copy the object each time.
-To deactivate the use of this data interface, you need to set the \c starpu.task_submit() option \c arg_handle to \c False (its default value is \c True).
 
-We show the performances below of the \c numpy addition (<c>numpy.add</c> running the script <c>test_handle_perf.sh</c>) with different array sizes (10, 20, ..., 100, 200, ..., 1000, 2000, ..., 10000, 20000, ..., 100000, 200000, ..., 1000000, 2000000, ..., 10000000, ..., 50000000). We compare three cases:
+We show the performances below of the \c numpy addition (<c>numpy.add</c> running the script <c>test_perf.sh</c>) with different array sizes (10, 20, ..., 100, 200, ..., 1000, 2000, ..., 10000, 20000, ..., 100000, 200000, ..., 1000000, 2000000, ..., 10000000, ..., 50000000). We compare two cases:
 <ol>
-<li> Using StarPU and returning future object, </li>
-<li> Using StarPU and returning handle object,</li>
+<li> Using StarPU, </li>
 <li> Without using StarPU tasks, but directly calling the <c>numpy.add</c> function.</li>
 </ol>
 
-The first plot compares the task submission time when using StarPU either returning a Future or a handle object and the program execution time without using StarPU. We can see that there is an obvious optimization using StarPU when the test array size is large, the task has not finished its execution yet as shown in second figure, the time can be used to perform other operations.
+The first plot compares the task submission time when using StarPU and the program execution time without using StarPU. We can see that there is an obvious optimization using StarPU when the test array size is large. The task has not finished its execution yet as shown in second figure, the time can be used to perform other operations.
 
-\image html starpupy_handle_perf.png width=85%
-\image latex starpupy_handle_perf.png "" width=\textwidth
+\image html starpupy_perf.png width=85%
+\image latex starpupy_perf.png "" width=\textwidth
 
 We can also define our own function to do the \c numpy operation, e.g. the element addition:
 
@@ -296,12 +279,12 @@ def add(a, b):
 		a[i] = a[i] + b[i]
 \endcode
 
-We will compare operation performances with the same three cases but based on our custom function <c>add(a, b)</c>.
+We will compare operation performances with the same two cases but based on our custom function <c>add(a, b)</c>.
 
 We can see that the custom function is not as efficient as the \c numpy function overall. The optimisation for large arrays is the same when using StarPU.
 
-\image html starpupy_handle_func_perf.png width=85%
-\image latex starpupy_handle_func_perf.png "" width=\textwidth
+\image html starpupy_func_perf.png width=85%
+\image latex starpupy_func_perf.png "" width=\textwidth
 
 \subsubsection AnnotationAccess Access Mode Annotation
 
@@ -378,6 +361,31 @@ starpu.release(e)
 
 \subsubsection MethodsAcquireRelease Methods
 
+Once the access mode of one argument is set to at least \c W, it may be modified during the task execution. We should pay attention that before the task is finished, we cannot get the up-to-date value of this argument by simply using \c print function. For example:
+
+\code{.py}
+import asyncio
+import starpu
+import numpy as np
+import time
+a = np.array([1, 2, 3, 4, 5, 6])
+e = np.array([0, 0, 0, 0, 0, 0, 0])
+@starpu.access(a="R", b="W")
+def assign(a,b):
+	time.sleep(10)
+	for i in range(min(np.size(a), np.size(b))):
+		b[i]=a[i]
+fut = starpu.task_submit()(assign, a, e)
+print(e) # before the task is finished
+\endcode
+
+\verbatim
+[0 0 0 0 0 0 0]
+\endverbatim
+
+We \c print argument \c e right after submitting the task, but since the task is not finished yet, we can only get its unchanged value.
+If we want to get its up-to-date value, we need extra functions.
+
 In order to access data registered to StarPU outside tasks, we provide a acquire and release mechanism.
 
 <ul>
@@ -390,6 +398,16 @@ In order to access data registered to StarPU outside tasks, we provide a acquire
 <li> The <c>starpu.unregister(data)</c> method must be called to unregister the Python object from StarPU. (Refer to the method <c>starpu_data_unregister()</c> in C interface). This method waits for all calculations to be finished before unregistering data.
 </li>
 </ul>
+
+With \c acquire, even we ask to access the argument right after submitting the task, the up-to-date value will be printed once the task is finished.
+
+\code{.py}
+starpu.acquire(e) # before the task is finished
+\endcode
+
+\verbatim
+array([1, 2, 3, 4, 5, 6, 0])
+\endverbatim
 
 In order to complete the addition operation example, execution steps are:
 
@@ -487,30 +505,15 @@ starpu.unregister(a)
 starpu.unregister(b)
 \endcode
 
-\subsection Benchmark Benchmark
-
-This benchmark gives a glimpse into how long a task should be (in µs) for the StarPU Python interface overhead to be low enough to keep efficiency. Running <c>tasks_size_overhead.sh</c> generates a plot of the speedup of tasks of various sizes, depending on the number of CPUs being used.
-
-In the first figure, the return value is a handle object.
-In the second figure, the return value is a future object.
-In the third figure, the return value is \c None.
-
-\image html tasks_size_overhead_py_handle.png "(1) Returning handle object" width=50%
-\image latex tasks_size_overhead_py_handle.png "" width=\textwidth
-
-\image html tasks_size_overhead_py_futur.png "(2) Returning future object" width=50%
-\image latex tasks_size_overhead_py_futur.png "" width=\textwidth
-
-\image html tasks_size_overhead_py_none.png "(3) Returning None" width=50%
-\image latex tasks_size_overhead_py_none.png "" width=\textwidth
-
 \section StarPUPYInterface StarPU Data Interface for Python Objects
 
 StarPU uses data handles to manage piece of data. A data handle keeps track of replicates of the same data (registered by the application) over various memory nodes. The data management library manages to keep them coherent. That also allows to minimize the data transfers, and avoids to copy the object each time. Data handles are managed through specific data interfaces.
 
 \subsection PythonObject Interface for Ordinary Python Objects
 
-A specific data interface has been defined to manage Python Objects, such as constant (interger, float...), string, list, etc. This interface is defined with the class <c>Handle</c>. When submitting a task, instead of specifyng a function and its arguments, we specify a function and the handles of its arguments.
+A specific data interface has been defined to manage Python objects, such as constant (interger, float...), string, list, etc. This interface is defined with the class <c>Handle</c>. When submitting a task, instead of specifyng a function and its arguments, we specify a function and the handles of its arguments.
+
+In addition to returning a Future object, it is also possible to return a StarPU handle object when submitting a function. To do so, you need to set the <c>starpu.task_submit</c> option \c ret_handle to \c True, its default value is \c False. 
 
 \code{.py}
 import starpu
@@ -540,9 +543,16 @@ res_fut = starpu.task_submit()(add, x, y)
 await res_fut
 \endcode
 
+If the Python object is immutable (such as int, float, str, tuple...), registering the same object several times is authorised. That means you can do this:
+\code{.py}
+x = Handle(2)
+x1 = Handle(2)
+\endcode
+x and x1 are two different Handle objects.
+
 \subsection PythonBuffer Interface for Python Objects Supporting Buffer Protocol
 
-This StarPU data interface can be also used to manage Python Objects supporting buffer protocol, i.e \c numpy array, bytes, bytearray, array.array and memoryview object.
+This StarPU data interface can be also used to manage Python objects supporting buffer protocol, i.e \c numpy array, bytes, bytearray, array.array and memoryview object.
 
 \code{.py}
 import starpu
@@ -564,6 +574,64 @@ res.get()
 \verbatim
 array([3, 6, 9])
 \endverbatim
+
+Different from immutable Python object, all Python objects supporting buffer protocol are mutable, and registering the same object one more time is not authorised. If you do this:
+
+\code{.py}
+a = np.array([1, 2, 3])
+a_h = Handle(a)
+a1_h = Handle(a)
+\endcode
+
+You will get an error message:
+
+\verbatim
+starpupy.error: Should not register the same mutable python object once more.
+\endverbatim
+
+You may refer the section \ref SubmitPythonBuffer, and realize that StarPU Python interface uses data handles to manage Python objects supporting buffer protocol by default. These objects are usually relatively large, such as a big NumPy matrix. We want to avoid multiple copies and transfers of this data over various memory nodes, so we set the default \c starpu.task_submit() option \c arg_handle to \c True for users to allow their applications to get the most optimization. To deactivate the use of this data interface, you need to set the option \c arg_handle to \c False.
+
+Since we use data handles by default, registration is implemented in the step of task submission. Therefore, you should be careful not to register again the same object after the task submission, like this:
+
+\code{.py}
+a = np.array([1, 2, 3])
+b = np.array([2, 4, 6])
+res = starpu.task_submit(ret_handle=True)(add, a, b)
+a_h = Handle(a)
+\endcode
+
+You will get the error message:
+
+\verbatim
+starpupy.error: Should not register the same mutable python object once more.
+\endverbatim
+
+As performances we shown in section \ref SubmitPythonBuffer, we add one case to compare with the others two cases. We still test the \c numpy addition (<c>numpy.add</c> running the script <c>test_handle_perf.sh</c>) with different array sizes (10, 20, ..., 100, 200, ..., 1000, 2000, ..., 10000, 20000, ..., 100000, 200000, ..., 1000000, 2000000, ..., 10000000, ..., 50000000). Three cases are:
+<ol>
+<li> Using StarPU and returning future object, </li>
+<li> Using StarPU and returning handle object,</li>
+<li> Without using StarPU tasks, but directly calling the <c>numpy.add</c> function.</li>
+</ol>
+
+The first plot compares the task submission time when using StarPU either returning a Future or a handle object and the program execution time without using StarPU. We can see that there is an obvious optimization using StarPU either returning a Future or a handle object when the test array size is large. The task has not finished its execution yet as shown in second figure, the time can be used to perform other operations. When array size is not very large, returning a handle has a better execution performance than returning a Future.
+
+\image html starpupy_handle_perf.png width=85%
+\image latex starpupy_handle_perf.png "" width=\textwidth
+
+We can also define our own function to do the \c numpy operation, e.g. the element addition:
+
+\code{.py}
+def add(a, b):
+	for i in range(np.size(a)):
+		a[i] = a[i] + b[i]
+\endcode
+
+We will compare operation performances with the same three cases but based on our custom function <c>add(a, b)</c>.
+
+We can see that the custom function is not as efficient as the \c numpy function overall. The optimisation for large arrays is the same when using StarPU.
+
+\image html starpupy_handle_func_perf.png width=85%
+\image latex starpupy_handle_func_perf.png "" width=\textwidth
 
 \subsubsection Methods Methods
 
@@ -773,6 +841,28 @@ arr_h.get_partition_size(arr_h_list)
 \verbatim
 [60, 40, 100]
 \endverbatim
+
+\section Benchmark Benchmark
+
+This benchmark gives a glimpse into how long a task should be (in µs) for the StarPU Python interface overhead to be low enough to keep efficiency. Running <c>tasks_size_overhead.sh</c> generates a plot of the speedup of tasks of various sizes, depending on the number of CPUs being used.
+
+In the first figure, the return value is a handle object.
+In the second figure, the return value is a future object.
+In the third figure, the return value is \c None.
+
+For example, in the figure of returning handle object, for a 571 µs task (the green line), StarPU overhead is low enough
+to guarantee a good speedup if the number of CPUs is not more than 12. But with the same number of CPUs,
+a 314 µs task (the blue line) cannot have a correct speedup. We need to decrease the number of CPUs
+to about 8 if we want to keep efficiency.
+
+\image html tasks_size_overhead_py_handle.png "(1) Returning handle object" width=50%
+\image latex tasks_size_overhead_py_handle.png "" width=\textwidth
+
+\image html tasks_size_overhead_py_futur.png "(2) Returning future object" width=50%
+\image latex tasks_size_overhead_py_futur.png "" width=\textwidth
+
+\image html tasks_size_overhead_py_none.png "(3) Returning None" width=50%
+\image latex tasks_size_overhead_py_none.png "" width=\textwidth
 
 \section ImitatingJoblibLibrary Running Python Functions as Pipeline Jobs (Imitating Joblib Library)
 

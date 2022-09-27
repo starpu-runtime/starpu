@@ -24,13 +24,6 @@ retfut_dict = json.loads(js1)
 program_submit1 = [x*1000 for x in retfut_dict['program_submit']]
 program_await1 = [x*1000 for x in retfut_dict['program_await']]
 
-file2 = open('handle_perf2.txt', 'r')
-js2 = file2.read()
-rethandle_dict = json.loads(js2)
-#print(rethandle_dict)
-program_submit2 = [x*1000 for x in rethandle_dict['program_submit']]
-program_await2 = [x*1000 for x in rethandle_dict['program_await']]
-
 file3 = open('handle_perf3.txt', 'r')
 js3 = file3.read()
 nostarpu_dict = json.loads(js3)
@@ -42,14 +35,11 @@ js_std = file_std.read()
 dict_std = json.loads(js_std)
 
 file1.close()
-file2.close()
 file3.close()
 file_std.close()
 
 std11 = dict_std['list_std11']
 std12 = dict_std['list_std12']
-std21 = dict_std['list_std21']
-std22 = dict_std['list_std22']
 std3 = dict_std['list_std3']
 
 plt.subplot(2, 1, 1)
@@ -57,8 +47,7 @@ plt.xticks(fontsize=15)
 plt.yticks(fontsize=15)
 plt.xscale("log")
 plt.yscale("log")
-plt.errorbar([i for i in test_handle_bench.list_size], program_submit1, yerr=std11, fmt='+-', ecolor='r', color='r', elinewidth=1, capsize=3, linewidth=1, label='using StarPU and returning future object')
-plt.errorbar([i for i in test_handle_bench.list_size], program_submit2, yerr=std21, fmt='+-', ecolor='b', color='b', elinewidth=1, capsize=3, linewidth=1, label='using StarPU and returning handle object')
+plt.errorbar([i for i in test_handle_bench.list_size], program_submit1, yerr=std11, fmt='+-', ecolor='r', color='r', elinewidth=1, capsize=3, linewidth=1, label='using StarPU')
 plt.errorbar([i for i in test_handle_bench.list_size], program_submit3, yerr=std3, fmt='+-',ecolor='y', color='y', elinewidth=1, capsize=3, linewidth=1, label='using numpy.add function')
 
 plt.legend(loc='upper left', fontsize=15)
@@ -70,8 +59,7 @@ plt.xticks(fontsize=15)
 plt.yticks(fontsize=15)
 plt.xscale("log")
 plt.yscale("log")
-plt.errorbar([i for i in test_handle_bench.list_size], program_await1, yerr=std12, fmt='+-',ecolor='r', color='r', elinewidth=1, capsize=3, linewidth=1, label='using StarPU and returning future object')
-plt.errorbar([i for i in test_handle_bench.list_size], program_await2, yerr=std22, fmt='+-',ecolor='b', color='b', elinewidth=1, capsize=3, linewidth=1, label='using StarPU and returning handle object')
+plt.errorbar([i for i in test_handle_bench.list_size], program_await1, yerr=std12, fmt='+-',ecolor='r', color='r', elinewidth=1, capsize=3, linewidth=1, label='using StarPU')
 
 plt.legend(loc='upper left', fontsize=15)
 plt.xlabel("Numpy array size (# of elements)", fontsize=15)
