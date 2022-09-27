@@ -901,7 +901,7 @@ SIZEOF_VOID_P=$ac_cv_sizeof_void_p
 case $SIZEOF_VOID_P in
 	4)
 		case "$target" in
-		i386-*darwin*) CFLAGS+=" -march=i686 " ;;
+		i386-*darwin*) CFLAGS="$CFLAGS -march=i686" ;;
 		esac
 		STARPU_MS_LIB_ARCH=X86
 		;;
@@ -948,7 +948,7 @@ $INCLUDE_PTHREAD_H
 ])
 
 if test x"$enable_native_winthreads" = xyes ; then
-    CPPFLAGS+=" -I$STARPU_SRC_DIR/include/pthread_win32 "
+    CPPFLAGS="$CPPFLAGS -I$STARPU_SRC_DIR/include/pthread_win32"
     AC_COMPILE_IFELSE(
           [AC_LANG_PROGRAM([[
 	        #define STARPU_CONFIGURE
@@ -2246,19 +2246,19 @@ if test x$enable_gdb = xyes; then
 	if test x$enable_full_gdb_information = xyes -a x$GCC = xyes; then
 	   	IS_SUPPORTED_FLAG(-gdwarf-2)
 	   	IS_SUPPORTED_FLAG(-g3)
-		NVCCFLAGS+=" -g"
-		HIPCCFLAGS+=" -g"
+		NVCCFLAGS="$NVCCFLAGS -g"
+		HIPCCFLAGS="$HIPCCFLAGS -g"
 	else
 	   	IS_SUPPORTED_FLAG(-g)
-		NVCCFLAGS+=" -g "
-		HIPCCFLAGS+=" -g "
+		NVCCFLAGS="$NVCCFLAGS -g"
+		HIPCCFLAGS="$HIPCCFLAGS -g"
 	fi
 else
-	CFLAGS+=" -g0 "
-	CXXFLAGS+=" -g0 "
-	FFLAGS+=" -g0 "
-	FCFLAGS+=" -g0 "
-	LDFLAGS+=" -g0 "
+	CFLAGS="$CFLAGS -g0"
+	CXXFLAGS="$CXXFLAGS -g0"
+	FFLAGS="$FFLAGS -g0"
+	FCFLAGS="$FCFLAGS -g0"
+	LDFLAGS="$LDFLAGS -g0"
 fi
 
 if test x$enable_spinlock_check = xyes; then
