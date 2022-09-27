@@ -17,8 +17,9 @@
 
 #include <profiling/callbacks.h>
 #include <stdlib.h>
+#ifdef HAVE_DLOPEN
 #include <dlfcn.h>
-
+#endif
 #include <string.h>
 #include <pthread.h>
 #include <stdio.h>
@@ -186,6 +187,7 @@ int _starpu_prof_tool_try_load()
 	const char *tool_libs = starpu_getenv(STARPU_PROF_TOOL_ENV_VAR);
 	if (tool_libs != NULL)
 	{
+#ifdef HAVE_DLOPEN
 		_STARPU_DEBUG("Loading profiling tool %s\n", tool_libs);
 
 		lib_handle = dlopen(tool_libs, RTLD_LAZY); // TODO best flag?
@@ -209,6 +211,9 @@ int _starpu_prof_tool_try_load()
 		// dlclose(lib_handle);
 
 		return 1;
+#else
+		_STARPU_MSG("Environment variable '%s' defined but the dlopen functionality is unavailable on the system\n", STARPU_PROF_TOOL_ENV_VAR);
+#endif
 	}
 
 	/* This corresponds to something if we LD_PRELOAD a tool */
