@@ -28,7 +28,7 @@
 #define STARPU_NB_CALLBACKS   17
 struct _starpu_prof_tool_callbacks starpu_prof_tool_callbacks;
 starpu_prof_tool_cb_func *_starpu_prof_tool_callback_map[STARPU_NB_CALLBACKS];
-static void *lib_handle;
+static void *lib_handle=NULL;
 
 /**
    Dummy implementations of the callbacks
@@ -219,5 +219,9 @@ int _starpu_prof_tool_try_load()
 
 void _starpu_prof_tool_unload()
 {
-	dlclose(lib_handle);
+	if (lib_handle)
+	{
+		dlclose(lib_handle);
+		lib_handle = NULL;
+	}
 }
