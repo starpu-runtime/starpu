@@ -1,0 +1,26 @@
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+ 
+/*! \intropage{IntroPerformances, -- StarPU Performances --}
+
+This part is for users who want to measure performances of their applications.
+
+<ul>
+<li> We introduce some interesting benchmarks in \ref BenchmarkingStarPU, which can be found in StarPU sources.
+<li> We provide several online performance monitoring tools in \ref OnlinePerformanceTools to help you analyze your program and offline performance tools in \ref OfflinePerformanceTools such as FxT library to trace execution data and tasks and a StarPU Eclipse Plugin to visualize data traces directly from the Eclipse IDE.
+</ul>
+
+*/

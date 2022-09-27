@@ -1,0 +1,29 @@
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+ 
+/*! \intropage{IntroLanguage, -- StarPU Language Bindings --}
+
+StarPU is a software tool written in C. Due to its practicality, more and more StarPU applications in other languages are needed. To meet theses needs, we developped StarPU APIs for several commonly used languages.
+
+<ul>
+<li> You can learn to natively access most of StarPU functionalities from Fortran 2008+ codes with some explanations and examples in \ref NativeFortranSupport.
+<li> You can find out how to execute the Jave applications with some important StarPU APIs in section \ref StarPUJavaInterface.
+<li> Python interface supports most of the main StarPU functionalities, and new functions especially adapted to Python have been added as well. There are detailed explanations and examples in section \ref PythonInterface.
+<li> You can learn how to execute OpenMP tasks with some specific functions in \ref OpenMPRuntimeSupport.
+</ul>
+
+
+*/

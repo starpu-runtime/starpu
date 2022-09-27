@@ -19,9 +19,11 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters/foreword.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_introduction/introduction.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_introduction/doc_organization.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_introduction/glossary.doxy \
+			 @top_srcdir@/doc/doxygen/chapters/starpu_installation/installation_intro.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_installation/building.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_installation/environment_variables.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_installation/configure_options.doxy \
+			 @top_srcdir@/doc/doxygen/chapters/starpu_basics/basics_intro.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_basics/starpu_applications.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_basics/basic_examples.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_basics/advanced_examples.doxy \
@@ -30,15 +32,19 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters/foreword.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_basics/data_management.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_basics/scheduling.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_basics/examples_sources.doxy \
+			 @top_srcdir@/doc/doxygen/chapters/starpu_performances/performances_intro.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_performances/benchmarking_starpu.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_performances/online_performance_tools.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_performances/offline_performance_tools.doxy \
+			 @top_srcdir@/doc/doxygen/chapters/starpu_faq/faq_intro.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_faq/check_list_performance.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_faq/faq.doxy \
+			 @top_srcdir@/doc/doxygen/chapters/starpu_interfaces/language_intro.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_interfaces/native_fortran_support.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_interfaces/java.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_interfaces/python.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_interfaces/openmp_runtime_support.doxy \
+			 @top_srcdir@/doc/doxygen/chapters/starpu_extensions/extensions_intro.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_extensions/debugging_tools.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_extensions/advanced_tasks.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_extensions/advanced_data_management.doxy \

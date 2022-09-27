@@ -1,0 +1,29 @@
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+ 
+/*! \intropage{IntroInstallation, -- StarPU Installation --}
+
+If you want to use StarPU and implement the exist examples or your own applications, you need to read this part.
+
+<ul>
+<li> We show how to build and install StarPU in section \ref BuildingAndInstallingStarPU. 
+</ul>
+Once you have successfully installed StarPU, you may also need the extension functionalities of StarPU during execution. 
+<ul>
+<li> We list all environment variables in \ref ExecutionConfigurationThroughEnvironmentVariables and configuration options in \ref CompilationConfiguration which should be useful when building and executing StarPU.
+</ul>
+
+*/

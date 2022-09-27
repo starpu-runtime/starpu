@@ -31,9 +31,11 @@ chapters =	\
 	chapters/starpu_introduction/introduction.doxy		\
 	chapters/starpu_introduction/doc_organization.doxy		\
 	chapters/starpu_introduction/glossary.doxy		\
+	chapters/starpu_installation/installation_intro.doxy		\
 	chapters/starpu_installation/environment_variables.doxy		\
 	chapters/starpu_installation/building.doxy		\
 	chapters/starpu_installation/configure_options.doxy		\
+	chapters/starpu_basics/basics_intro.doxy		\
 	chapters/starpu_basics/starpu_applications.doxy		\
 	chapters/starpu_basics/basic_examples.doxy		\
 	chapters/starpu_basics/advanced_examples.doxy		\
@@ -42,15 +44,19 @@ chapters =	\
 	chapters/starpu_basics/data_management.doxy		\
 	chapters/starpu_basics/scheduling.doxy		\
 	chapters/starpu_basics/examples_sources.doxy		\
+	chapters/starpu_performances/performances_intro.doxy		\
 	chapters/starpu_performances/benchmarking_starpu.doxy		\
 	chapters/starpu_performances/online_performance_tools.doxy		\
 	chapters/starpu_performances/offline_performance_tools.doxy		\
+	chapters/starpu_faq/faq_intro.doxy		\
 	chapters/starpu_faq/check_list_performance.doxy		\
 	chapters/starpu_faq/faq.doxy		\
+	chapters/starpu_interfaces/language_intro.doxy 		\
 	chapters/starpu_interfaces/native_fortran_support.doxy		\
 	chapters/starpu_interfaces/java.doxy 		\
 	chapters/starpu_interfaces/python.doxy		\
 	chapters/starpu_interfaces/openmp_runtime_support.doxy		\
+	chapters/starpu_extensions/extensions_intro.doxy		\
 	chapters/starpu_extensions/debugging_tools.doxy		\
 	chapters/starpu_extensions/advanced_tasks.doxy		\
 	chapters/starpu_extensions/advanced_data_management.doxy		\
