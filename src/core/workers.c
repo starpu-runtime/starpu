@@ -2181,6 +2181,8 @@ void starpu_shutdown(void)
 	for (worker = 0; worker < _starpu_config.topology.nworkers; worker++)
 		_starpu_worker_deinit(&_starpu_config.workers[worker]);
 
+	_starpu_prof_tool_unload();
+
 	_starpu_profiling_terminate();
 
 	_starpu_disk_unregister();
