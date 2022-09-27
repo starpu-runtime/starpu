@@ -206,9 +206,8 @@ int _starpu_prof_tool_try_load()
 			return -1;
 		}
 
-		_starpu_prof_tool_entry_func entry_func = (_starpu_prof_tool_entry_func)found;
+		starpu_prof_tool_entry_func entry_func = (starpu_prof_tool_entry_func)found;
 		entry_func(_starpu_prof_tool_register_cb, _starpu_prof_tool_unregister_cb);
-		// dlclose(lib_handle);
 
 		return 1;
 #else

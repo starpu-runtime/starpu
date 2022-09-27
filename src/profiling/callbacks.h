@@ -38,7 +38,6 @@ extern "C" {
   TODO: removed the lookup argument
 */
 void starpu_prof_tool_library_register(starpu_prof_tool_entry_register_func reg, starpu_prof_tool_entry_register_func unreg);
-typedef void (*_starpu_prof_tool_entry_func)(starpu_prof_tool_entry_register_func reg, starpu_prof_tool_entry_register_func unreg);
 
 /* The events themselves.
    This structure can be built by the preprocessor, but we decided

@@ -127,10 +127,15 @@ struct starpu_prof_tool_api_info
 
 typedef void (*starpu_prof_tool_cb_func)(struct starpu_prof_tool_info*, union starpu_prof_tool_event_info*, struct starpu_prof_tool_api_info*);
 
-/*
-  Register / unregister events
+/**
+   Register / unregister events
 */
 typedef void (*starpu_prof_tool_entry_register_func)(enum starpu_prof_tool_event event_type, starpu_prof_tool_cb_func cb, enum starpu_prof_tool_command info);
+
+/**
+   A function with this signature must be implemented by external tools that want to use the callbacks
+*/
+typedef void (*starpu_prof_tool_entry_func)(starpu_prof_tool_entry_register_func reg, starpu_prof_tool_entry_register_func unreg);
 
 /** @} */
 
