@@ -4242,6 +4242,20 @@ AC_OUTPUT([
 	doc/doxygen_dev/Makefile
 	doc/doxygen_dev/doxygen-config.cfg
 	doc/doxygen_dev/doxygen_filter.sh
+	doc/doxygen_web_introduction/Makefile
+	doc/doxygen_web_introduction/doxygen-config.cfg
+	doc/doxygen_web_installation/Makefile
+	doc/doxygen_web_installation/doxygen-config.cfg
+	doc/doxygen_web_basics/Makefile
+	doc/doxygen_web_basics/doxygen-config.cfg
+	doc/doxygen_web_performances/Makefile
+	doc/doxygen_web_performances/doxygen-config.cfg
+	doc/doxygen_web_faqs/Makefile
+	doc/doxygen_web_faqs/doxygen-config.cfg
+	doc/doxygen_web_languages/Makefile
+	doc/doxygen_web_languages/doxygen-config.cfg
+	doc/doxygen_web_extensions/Makefile
+	doc/doxygen_web_extensions/doxygen-config.cfg
 	tools/msvc/starpu_var.bat
 	min-dgels/Makefile
 	bubble/Makefile
