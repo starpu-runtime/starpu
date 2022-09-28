@@ -136,6 +136,7 @@ struct starpu_prof_tool_info _starpu_prof_tool_get_info_init(enum starpu_prof_to
 	return ret;
 }
 
+// The name of the function below is important so it can be found in a library preloaded with LD_PRELOAD (necessary for TAU and Apex)
 __attribute__((weak)) void starpu_prof_tool_library_register(starpu_prof_tool_entry_register_func reg, starpu_prof_tool_entry_register_func unreg)
 {
 	(void) reg;
