@@ -27,7 +27,7 @@ void myfunction_cb(struct starpu_prof_tool_info *prof_info, union starpu_prof_to
 	else
 	{
 		printf("CALLBACK CALLED NULL INFO\n");
-        return;
+		return;
 	}
 
 	switch (prof_info->event_type)

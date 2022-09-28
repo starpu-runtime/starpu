@@ -35,16 +35,18 @@ DIST_SUBDIRS += doxygen_web_faqs
 DIST_SUBDIRS += doxygen_web_languages
 DIST_SUBDIRS += doxygen_web_extensions
 
-EXTRA_DIST =    tutorial/hello_world.c \
-		tutorial/hello_world_msvc.c \
-		tutorial/Makefile \
-		tutorial/README \
-		tutorial/vector_scal.c \
-		tutorial/vector_scal_cpu.c \
-		tutorial/vector_scal_cuda.cu \
-		tutorial/vector_scal_opencl.c \
-		tutorial/vector_scal_opencl_kernel.cl	\
-		tutorial/vector_scal_task_insert.c
+EXTRA_DIST =	\
+	tutorial/hello_world.c \
+	tutorial/hello_world_msvc.c \
+	tutorial/Makefile \
+	tutorial/README \
+	tutorial/vector_scal.c \
+	tutorial/vector_scal_cpu.c \
+	tutorial/vector_scal_cuda.cu \
+	tutorial/vector_scal_opencl.c \
+	tutorial/vector_scal_opencl_kernel.cl	\
+	tutorial/vector_scal_task_insert.c \
+	title.tex
 
 txtdir = ${docdir}/tutorial
 txt_DATA = $(EXTRA_DIST)

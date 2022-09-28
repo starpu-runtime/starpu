@@ -61,7 +61,7 @@ enum starpu_prof_tool_driver_type
 	starpu_prof_tool_driver_gpu
 };
 
-enum  starpu_prof_tool_command
+enum starpu_prof_tool_command
 {
 	starpu_prof_tool_command_reg = 0,
 	starpu_prof_tool_command_toggle = 1,
