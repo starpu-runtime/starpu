@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2018-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2018-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -115,7 +115,7 @@ complete and should be woken up upon completion.
 <b>Relaxed synchronization related states</b>
 
 Any StarPU worker may participate to scheduling operations, and in this process,
-may be forced to observe state information from other workers. 
+may be forced to observe state information from other workers.
 A StarPU worker thread may therefore be observed by any thread, even
 other StarPU workers. Since workers may observe each other in any order, it is
 not possible to rely exclusively on the \c sched_mutex of each worker to protect the
@@ -215,11 +215,11 @@ starpu_conf struct, and is decided in \c _starpu_launch_drivers function.
 
 When managed automatically, cycles of operations for a worker are handled by the corresponding
 driver specific <code>_starpu_<DRV>_worker()</code> function, where \c DRV is a driver name such as
-cpu (\c _starpu_cpu_worker) or cuda (\c _starpu_cuda_worker), for instance. 
+cpu (\c _starpu_cpu_worker) or cuda (\c _starpu_cuda_worker), for instance.
 Otherwise, the application must supply a thread which will repeatedly call \ref
 starpu_driver_run_once() for the corresponding worker.
 
-In both cases, control is then transferred to 
+In both cases, control is then transferred to
 \c _starpu_cpu_driver_run_once (or the corresponding driver specific func).
 The cycle of operations typically includes, at least, the following operations:
 
@@ -289,7 +289,7 @@ scheduling context.
 Accesses to the scheduling context structure are governed by a
 multiple-readers/single-writer lock (\c rwlock field). Changes to the structure
 contents, additions or removals of workers, statistics updates, all must be done
-with proper exclusive write access. 
+with proper exclusive write access.
 
 \subsection CoreEntitiesWorkersAndContexts Workers and Scheduling Contexts
 
@@ -303,7 +303,7 @@ to or remove itself from a scheduling context.
 
 A thread currently holding a worker sched_mutex must not attempt to acquire a
 scheduling context rwlock, neither for writing nor for reading. Such an attempt
-constitutes a lock inversion and may result in a deadlock. 
+constitutes a lock inversion and may result in a deadlock.
 
 A worker currently in a scheduling operation must enter the relaxed state before
 attempting to acquire a scheduling context rwlock, either for reading or for
@@ -343,7 +343,7 @@ subdirectories of \c src/datawizard/interfaces/ for data transfer routines.
 The driver ABI defined in the \ref _starpu_driver_ops structure includes the
 following operations:
 
-- \c .init: initialize a driver instance for the calling worker 
+- \c .init: initialize a driver instance for the calling worker
   managing a hardware computing unit compatible with
   this driver.
 
@@ -391,4 +391,3 @@ TODO
 TODO
 
 */
-

@@ -13,7 +13,7 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
- 
+
 /*! \intropage{IntroLanguage, -- StarPU Language Bindings --}
 
 StarPU is a software tool written in C. Due to its practicality, more and more StarPU applications in other languages are needed. To meet theses needs, we developped StarPU APIs for several commonly used languages.

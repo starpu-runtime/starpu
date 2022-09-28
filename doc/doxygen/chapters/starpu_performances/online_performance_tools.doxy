@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -434,7 +434,7 @@ executions. By default StarPU uses a lightweight dgels implementation, but the
 \ref enable-mlr-system-blas "--enable-mlr-system-blas" configure option can be
 used to make StarPU use a system-provided dgels BLAS.
 
-Additionally, when multiple linear regression models are not enabled through 
+Additionally, when multiple linear regression models are not enabled through
 \ref enable-mlr "--enable-mlr" or when the
 <c>model->combinations</c> are not defined, StarPU will still write
 output files into <c>.starpu/sampling/codelets/tmp/</c> to allow
@@ -565,7 +565,7 @@ A performance counter belongs to a scope. The scope of a counter defines the con
 Scope Name	Scope Definition
 "global"	Counter is global to the StarPU instance
 "per_worker"	Counter is within the scope of a thread worker
-"per_codelet"	Counter is within the scope of a task codelet 
+"per_codelet"	Counter is within the scope of a task codelet
 \endverbatim
 
 \subsubsection PerfMonCountCounterSet Performance Counter Set
@@ -727,7 +727,7 @@ This section presents a typical sequence of operations to interface an external 
 StarPU must first be initialized, by a call to starpu_init(), for performance counters to become available, since each module of StarPU registers the performance counters it exports during that initialization phase.
 
 \verbatim
-int ret = starpu_init(NULL);	
+int ret = starpu_init(NULL);
 \endverbatim
 
 
@@ -737,7 +737,7 @@ A counter set has to be allocated on the per-worker scope. The per-worker scope 
 
 \verbatim
 enum starpu_perf_counter_scope w_scope = starpu_perf_counter_scope_per_worker;
-struct starpu_perf_counter_set *w_set = starpu_perf_counter_set_alloc(w_scope);	
+struct starpu_perf_counter_set *w_set = starpu_perf_counter_set_alloc(w_scope);
 \endverbatim
 
 
@@ -745,10 +745,10 @@ struct starpu_perf_counter_set *w_set = starpu_perf_counter_set_alloc(w_scope);
 Each performance counter has a unique ID used to refer to it in subsequent calls to the performance monitoring framework.
 
 \verbatim
-int id_w_total_executed = starpu_perf_counter_name_to_id(w_scope, 
+int id_w_total_executed = starpu_perf_counter_name_to_id(w_scope,
                                                      "starpu.task.w_total_executed");
 
-int id_w_cumul_execution_time = starpu_perf_counter_name_to_id(w_scope, 
+int id_w_cumul_execution_time = starpu_perf_counter_name_to_id(w_scope,
                                                "starpu.task.w_cumul_execution_time");
 \endverbatim
 
@@ -759,7 +759,7 @@ This step indicates which counters will be collected into performance monitoring
 
 \verbatim
 starpu_perf_counter_set_enable_id(w_set, id_w_total_executed);
-starpu_perf_counter_set_enable_id(w_set, id_w_cumul_execution_time);	
+starpu_perf_counter_set_enable_id(w_set, id_w_cumul_execution_time);
 \endverbatim
 
 
@@ -768,21 +768,21 @@ starpu_perf_counter_set_enable_id(w_set, id_w_cumul_execution_time);
 This callback will be triggered when a sample becomes available. Upon execution, it reads the values for the two counters from the sample and displays these values, for the sake of the example.
 
 \verbatim
-void w_listener_cb(struct starpu_perf_counter_listener *listener, 
-                   struct starpu_perf_counter_sample   *sample, 
+void w_listener_cb(struct starpu_perf_counter_listener *listener,
+                   struct starpu_perf_counter_sample   *sample,
                    void *context)
 {
-  int32_t w_total_executed = 
+  int32_t w_total_executed =
              starpu_perf_counter_sample_get_int32_value(sample, id_w_total_executed);
-  
-  double w_cumul_execution_time = 
+
+  double w_cumul_execution_time =
       starpu_perf_counter_sample_get_double_value(sample, id_w_cumul_execution_time);
- 
-  printf("worker[%d]: w_total_executed = %d, w_cumul_execution_time = %lf\n", 
-                                 starpu_worker_get_id(), 
-                                 w_total_executed, 
+
+  printf("worker[%d]: w_total_executed = %d, w_cumul_execution_time = %lf\n",
+                                 starpu_worker_get_id(),
+                                 w_total_executed,
                                  w_cumul_execution_time);
-}	
+}
 \endverbatim
 
 
@@ -791,13 +791,13 @@ void w_listener_cb(struct starpu_perf_counter_listener *listener,
 This step allocates the listener structure and prepares it to listen to the selected set of per-worker counters. However, it is not actually active until Step 6, once it is attached to one or more worker.
 
 \verbatim
-struct starpu_perf_counter_listener * w_listener =   
+struct starpu_perf_counter_listener * w_listener =
                        starpu_perf_counter_listener_init(w_set, w_listener_cb, NULL);
 \endverbatim
 
 
 <b>Step 6: Set the listener on all workers</b>
-This step actually makes the listener active, in this case on every StarPU worker thread. 
+This step actually makes the listener active, in this case on every StarPU worker thread.
 
 \verbatim
 starpu_perf_counter_set_all_per_worker_listeners(w_listener);

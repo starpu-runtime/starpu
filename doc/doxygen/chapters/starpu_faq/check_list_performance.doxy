@@ -260,7 +260,7 @@ structures of StarPU by describing the shape of your machine and/or your
 application when calling \c configure.
 
 To reduce the memory footprint of the data internal structures of StarPU, one
-can set the \c configure parameters 
+can set the \c configure parameters
 \ref enable-maxcpus "--enable-maxcpus",
 \ref enable-maxnumanodes "--enable-maxnumanodes",
 \ref enable-maxcudadev "--enable-maxcudadev",

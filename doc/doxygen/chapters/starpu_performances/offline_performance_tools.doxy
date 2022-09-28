@@ -848,7 +848,7 @@ An example of visualization follows:
 \section EclipsePlugin StarPU Eclipse Plugin
 
 The StarPU Eclipse Plugin provides the ability to generate the
-different traces directly from the Eclipse IDE. 
+different traces directly from the Eclipse IDE.
 
 \subsection EclipseInstallation Eclipse Installation
 
@@ -916,7 +916,7 @@ In the next section we will show you how to use the plugin.
 
 \subsection PluginInstruction StarPU Eclipse Plugin Instruction
 
-Once StarPU has been configured and installed with its Eclipse plugin, you first 
+Once StarPU has been configured and installed with its Eclipse plugin, you first
 need to set up your environment for StarPU.
 
 \verbatim

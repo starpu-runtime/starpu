@@ -13,15 +13,15 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
- 
+
 /*! \intropage{IntroExtensions, -- StarPU Extensions --}
 
-In this part, we further present the knowledge of StarPU. For users who need StarPU not only for task submission but for some more complex applications, you should read this part according to your needs. 
+In this part, we further present the knowledge of StarPU. For users who need StarPU not only for task submission but for some more complex applications, you should read this part according to your needs.
 
 <ul>
-<li> We provides several tools to help debugging applications in \ref DebuggingTools. 
+<li> We provides several tools to help debugging applications in \ref DebuggingTools.
 
-<li> You can learn more knowledge about some important and core concepts in StarPU: 
+<li> You can learn more knowledge about some important and core concepts in StarPU:
     <ul>
     <li> After reading \ref TasksInStarPU, you can get more information about how to manage tasks in StarPU in section: \ref AdvancedTasksInStarPU.
     <li> After reading \ref DataManagement, you can know more about how to manage the data layout of your applications in section: \ref AdvancedDataManagement.

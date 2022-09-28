@@ -817,7 +817,7 @@ in order to reduce the data transfers between memory nodes.
 <dd>
 \anchor STARPU_LAHETEROPRIO_PUSH
 \addindex __env__STARPU_LAHETEROPRIO_PUSH
-Choose between the different push strategies for locality aware Heteroprio: 
+Choose between the different push strategies for locality aware Heteroprio:
 WORKER, LcS, LS_SDH, LS_SDH2, LS_SDHB, LC_SMWB, AUTO (by default: AUTO). These are detailed in
 \ref LAHeteroprio
 </dd>

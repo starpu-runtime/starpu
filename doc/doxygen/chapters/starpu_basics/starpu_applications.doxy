@@ -183,7 +183,7 @@ Release, ...) unavailable because of the direct affectation to variable
 support are needed, the \c CMakeLists.txt below may be altered to work with
 <c>CMAKE_C_FLAGS_RELEASE</c>, <c>CMAKE_C_FLAGS_DEBUG</c>, and others as needed.
 This example has been successfully tested with CMake 3.2, though it may work
-with earlier CMake 3.x versions. 
+with earlier CMake 3.x versions.
 
 \code{File CMakeLists.txt}
 cmake_minimum_required (VERSION 3.2)

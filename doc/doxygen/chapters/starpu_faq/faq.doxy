@@ -219,7 +219,7 @@ sleep or waking them, but avoid eating 100% CPU permanently.
 If your application only partially uses StarPU, and you do not want to
 call starpu_init() / starpu_shutdown() at the beginning/end
 of each section, StarPU workers will poll for work between the
-sections. To avoid this behavior, you can "pause" StarPU with the 
+sections. To avoid this behavior, you can "pause" StarPU with the
 starpu_pause() function. This will prevent the StarPU workers from
 accepting new work (tasks that are already in progress will not be
 frozen), and stop them from polling for more work.

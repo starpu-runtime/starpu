@@ -13,7 +13,7 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
- 
+
 /*! \intropage{IntroPerformances, -- StarPU Performances --}
 
 This part is for users who want to measure performances of their applications.

@@ -61,7 +61,7 @@ default). These prefetches are only processed when there are no fetch data
 requests (i.e. a task is waiting for it) to process. The <c>_idle</c> versions
 queue the transfers on the idle prefetch queue, which is only processed when
 there are no non-idle prefetch to process.
-starpu_get_prefetch_flag() is a convenient helper for checking the value of the 
+starpu_get_prefetch_flag() is a convenient helper for checking the value of the
 \ref STARPU_PREFETCH environment variable.
 When a scheduler does such prefetching, it should set the <c>prefetches</c>
 field of the <c>starpu_sched_policy</c> to 1, to prevent the core from
@@ -521,7 +521,7 @@ The implemented Push function is the "fingerprint" of a Scheduling Component.
 Depending on how functionalities or properties programmers want to give
 to the Scheduling Component they are implementing, it is possible to reimplement
 all the functions of the Interface. For example, a Flow-control Component
-reimplements the Pull and the Can_Push functions of the Interface, allowing 
+reimplements the Pull and the Can_Push functions of the Interface, allowing
 to catch the generic recursive calls of these functions. The Pull function of
 a Flow-control Component can, for example, pop a task from the local storage
 queue of the Component, and give it to the calling Component which asks for it.

@@ -761,7 +761,7 @@ Using \c STARPU_REDUX, one can obtain reduction patterns across several nodes,
 however each core across the contributing nodes will spawn their own
 contribution to work with. In the case that these allocations or the
 required reductions are too expensive to execute for each contribution,
-the access mode \c STARPU_MPI_REDUX tells StarPU to spawn only one contribution 
+the access mode \c STARPU_MPI_REDUX tells StarPU to spawn only one contribution
 on node executing tasks partaking in the reduction.
 
 Tasks producing a result in the inter-node reduction should be registered as

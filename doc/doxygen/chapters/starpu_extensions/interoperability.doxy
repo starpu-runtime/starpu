@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2018-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2018-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -74,8 +74,8 @@ Each CPU core unit available for computation is designated by its rank among the
 StarPU CPU worker threads and by its own CPUSET bit. Each non-CPU device unit
 can be designated both by its rank number in the type, and by the CPUSET bit
 corresponding to its StarPU device worker thread. The CPUSET of a computing unit
-or its associated worker can be obtained from its type ID and rank with 
-starpurm_get_device_worker_cpuset(), which returns the corresponding HWLOC CPUSET. 
+or its associated worker can be obtained from its type ID and rank with
+starpurm_get_device_worker_cpuset(), which returns the corresponding HWLOC CPUSET.
 
 
 \subsection DefCTX Default Context

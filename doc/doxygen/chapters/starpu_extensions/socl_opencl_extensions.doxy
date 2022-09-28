@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -72,7 +72,7 @@ Number of platforms:	2
   Plaform Version:	OpenCL 1.1 CUDA 4.2.1
   Plaform Name:		NVIDIA CUDA
   Plaform Vendor:	NVIDIA Corporation
-  Plaform Extensions:	cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll 
+  Plaform Extensions:	cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll
 
   Plaform Profile:	FULL_PROFILE
   Plaform Version:	OpenCL 1.0 SOCL Edition (0.1.0)

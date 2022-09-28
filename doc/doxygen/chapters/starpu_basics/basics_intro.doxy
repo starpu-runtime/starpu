@@ -18,15 +18,15 @@
 
 In this part, we present the basic knowledge of StarPU. You should read this part, as long as you need to understand how StarPU works and how to execute a basic StarPU application.
 <ul>
-<li> You can learn how to create and run your own StarPU applications after reading the section \ref StarPUApplications. 
+<li> You can learn how to create and run your own StarPU applications after reading the section \ref StarPUApplications.
 <li> We also explain to you how to implement simple programs that submit tasks to StarPU in \ref BasicExamples and some complex programs in \ref AdvancedExamples.
-<li> A full source code about scaling a vector is shown in \ref FullSourceCodeVectorScal. 
-<li> We introduce the most important and core concepts in StarPU: 
+<li> A full source code about scaling a vector is shown in \ref FullSourceCodeVectorScal.
+<li> We introduce the most important and core concepts in StarPU:
     <ul>
     <li> The basic information about how to manage tasks in StarPU is in section \ref TasksInStarPU.
     <li> In \ref DataManagement, we show you how to manage the data layout of your applications according to different data interfaces provided by StarPU.
     <li> We list basic scheduling policies in StarPU in section \ref Scheduling.
-    </ul> 
+    </ul>
 <li> Once you read all contents above, you can try some examples in StarPU sources. The list of example directories is in \ref ExamplesInStarPUSources.
 </ul>
 

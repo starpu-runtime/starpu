@@ -19,7 +19,7 @@
     The documentation chapters include
 
 <ul>
-<li> Part 1: <b> StarPU Installation: </b> 
+<li> Part 1: <b> StarPU Installation: </b>
     In this part, we show how to build and install StarPU. We also list all the environment variables and configuration options which should be useful when building and executing StarPU. If you want to use StarPU and implement the exist examples or your own applications, this part is useful.
     <ul>
     <li> \ref IntroInstallation
@@ -27,7 +27,7 @@
     <li> \ref ExecutionConfigurationThroughEnvironmentVariables
     <li> \ref CompilationConfiguration
     </ul>
-<li> Part 2: <b> StarPU Basics: </b> 
+<li> Part 2: <b> StarPU Basics: </b>
     In this part, we present the basic knowledge of StarPU. You can learn how to create and implement StarPU applications, and the most important and core concepts in StarPU. You should read this part, as long as you need to understand how StarPU works and how to execute a basic StarPU application.
     <ul>
     <li> \ref IntroBasics
@@ -48,7 +48,7 @@
     <li> \ref OnlinePerformanceTools
     <li> \ref OfflinePerformanceTools
     </ul>
-<li> Part 4: <b> StarPU FAQs: </b> 
+<li> Part 4: <b> StarPU FAQs: </b>
     This part can be useful if your program cannot achieve a good performance as we show or you encounter some difficulties during implementing your applications. You can check the list of features which may improve the performance of your applications, or you may find solutions to solve your problems.
     <ul>
     <li> \ref IntroFAQ
@@ -56,7 +56,7 @@
     <li> \ref FrequentlyAskedQuestions
     </ul>
 <li> Part 5: <b> StarPU Language Bindings: </b>
-    In this part, you can find StarPU versions in other languages or for specific usage. So far, Fortran, Java, Python APIs are available to execute StarPU applications in respective languages. You can likewise execute OpenMP tasks with some specific functions. 
+    In this part, you can find StarPU versions in other languages or for specific usage. So far, Fortran, Java, Python APIs are available to execute StarPU applications in respective languages. You can likewise execute OpenMP tasks with some specific functions.
     <ul>
     <li> \ref IntroLanguage
     <li> \ref NativeFortranSupport

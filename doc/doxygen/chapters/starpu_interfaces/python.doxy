@@ -513,7 +513,7 @@ StarPU uses data handles to manage piece of data. A data handle keeps track of r
 
 A specific data interface has been defined to manage Python objects, such as constant (interger, float...), string, list, etc. This interface is defined with the class <c>Handle</c>. When submitting a task, instead of specifyng a function and its arguments, we specify a function and the handles of its arguments.
 
-In addition to returning a Future object, it is also possible to return a StarPU handle object when submitting a function. To do so, you need to set the <c>starpu.task_submit</c> option \c ret_handle to \c True, its default value is \c False. 
+In addition to returning a Future object, it is also possible to return a StarPU handle object when submitting a function. To do so, you need to set the <c>starpu.task_submit</c> option \c ret_handle to \c True, its default value is \c False.
 
 \code{.py}
 import starpu
