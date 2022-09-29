@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/*! \intropage{IntroExtensions, -- StarPU Extensions --}
+/*! \intropage{IntroExtensions, ------ StarPU Extensions ------------}
 
 In this part, we further present the knowledge of StarPU. For users who need StarPU not only for task submission but for some more complex applications, you should read this part according to your needs.
 

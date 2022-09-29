@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/*! \intropage{IntroFAQ, -- StarPU FAQs --}
+/*! \intropage{IntroFAQ, ------ StarPU FAQs ------------}
 
 Make sure that you have already read the part StarPU basics. If your program cannot achieve a good performance as we show or you encounter some difficulties during implementing your applications, this part may be helpful.
 
