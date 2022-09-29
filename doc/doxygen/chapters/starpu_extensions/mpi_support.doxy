@@ -757,15 +757,18 @@ The data can then be used just like pernode above.
 \section MPIMpiRedux Inter-node reduction
 
 One might want to leverage a reduction pattern across several nodes.
-Using \c STARPU_REDUX, one can obtain reduction patterns across several nodes,
-however each core across the contributing nodes will spawn their own
-contribution to work with. In the case that these allocations or the
-required reductions are too expensive to execute for each contribution,
-the access mode \c STARPU_MPI_REDUX tells StarPU to spawn only one contribution
-on node executing tasks partaking in the reduction.
+Using \c STARPU_REDUX (see \ref DataReduction), one can obtain such patterns where each 
+core on contributing nodes spawns their own copy to work with. In the case that the
+required reductions are too numerous and expensive, the access mode \c STARPU_MPI_REDUX 
+tells StarPU to spawn only one contribution per contributing node. 
 
-Tasks producing a result in the inter-node reduction should be registered as
-accessing the contribution through \c STARPU_RW|STARPU_COMMUTE mode.
+The setup and use of \c STARPU_MPI_REDUX is similar to \c STARPU_REDUX : the initialization and
+reduction codelets should be declared through starpu_data_set_reduction_methods() in the 
+same fashion as \c STARPU_REDUX. The function starpu_mpi_redux_data() has to be called
+when all tasks contributing to the reduction have been inserted so that the reduction tree 
+can be submitted. Tasks contributing to the inter-node reduction should be registered as
+accessing the contribution through \c STARPU_RW|STARPU_COMMUTE mode, as for the 
+\c STARPU_REDUX mode, as in the following example.
 
 \code{.c}
 static struct starpu_codelet contrib_cl =
@@ -778,8 +781,8 @@ static struct starpu_codelet contrib_cl =
 \endcode
 
 When inserting these tasks, the access mode handed out to the StarPU-MPI layer
-should be \c STARPU_MPI_REDUX. Assuming \c data is owned by node 0 and we want node
-1 to compute the contribution, we could do the following.
+should be \c STARPU_MPI_REDUX. If a task uses a \c data owned by node 0 and is executed
+on the node 1, it can be inserted as in the following example.
 
 \code{.c}
 starpu_mpi_task_insert(MPI_COMM_WORLD, &contrib_cl, STARPU_MPI_REDUX, data, STARPU_EXECUTE_ON_NODE, 1); /* Node 1 computes it */
