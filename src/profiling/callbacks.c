@@ -236,9 +236,11 @@ int _starpu_prof_tool_try_load()
 
 void _starpu_prof_tool_unload()
 {
+#ifdef HAVE_DLOPEN
 	if (lib_handle)
 	{
 		dlclose(lib_handle);
 		lib_handle = NULL;
 	}
+#endif
 }
