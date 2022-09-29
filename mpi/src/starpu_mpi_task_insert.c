@@ -827,7 +827,7 @@ int starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_han
 	}
 	if (mpi_data->redux_map == NULL)
 	{
-		_STARPU_MPI_DEBUG(5, "We do not contribute to the data being reduced.\n");
+		_STARPU_MPI_DEBUG(5, "I do not contribute to this reduction\n");
 		return 0;
 	}
 	starpu_mpi_comm_rank(comm, &me);
@@ -849,9 +849,9 @@ int starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_han
 		_STARPU_MPI_DEBUG(5, "mpi_data->redux_map[%d] = %d\n", i, mpi_data->redux_map[i]);
 		if (mpi_data->redux_map[i]) nb_contrib++;
 	}
-	if (nb_contrib == 0)
+	if (nb_contrib < 2)
 	{
-		/* Nothing to do! */
+		_STARPU_MPI_DEBUG(5, "Not enough contributors to create a n-ary reduction tree.\n");
 		return 0;
 	}
 	if (arity < 2)
@@ -981,6 +981,10 @@ int starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle, 
 {
 	int nb_nodes, nb_contrib, i;
 	struct _starpu_mpi_data *mpi_data = data_handle->mpi_data;
+	if (mpi_data->redux_map == NULL) {
+		_STARPU_MPI_DEBUG(5, "I do not contribute to this reduction\n");
+		return 0;
+	}
 	starpu_mpi_comm_size(comm, &nb_nodes);
 	nb_contrib=0;
 	for (i=0;i<nb_nodes;i++)
@@ -989,6 +993,11 @@ int starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle, 
 		{
 			nb_contrib++;
 		}
+	}
+	if (nb_contrib < 2)
+	{
+		_STARPU_MPI_DEBUG(5, "Not enough contributors to create a n-ary reduction tree.\n");
+		return 0;
 	}
 	return starpu_mpi_redux_data_prio_tree(comm, data_handle, prio, nb_contrib);
 }
