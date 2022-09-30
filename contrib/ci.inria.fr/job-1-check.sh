@@ -18,6 +18,8 @@
 set -e
 set -x
 
+export LC_ALL=C
+
 ulimit -c unlimited
 
 export PKG_CONFIG_PATH=/home/ci/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH

@@ -17,6 +17,7 @@
 
 set -e
 
+export LC_ALL=C
 oldPATH=$PATH
 export PATH=/c/Builds:/usr/bin:/bin:"/c/Program Files (x86)/Microsoft Visual Studio 11.0/VC/bin":"/c/Program Files/Microsoft Visual Studio 11.0/Common7/IDE":$oldPATH
 
