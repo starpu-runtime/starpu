@@ -25,20 +25,25 @@ static size_t *comm_amount;
 static int world_size;
 static int stats_enabled=0;
 static double time_init;
+static MPI_Comm comm_init;
 
 void _starpu_mpi_comm_amounts_init(MPI_Comm comm)
 {
-	stats_enabled = starpu_get_env_number("STARPU_MPI_STATS");
-	if (stats_enabled == -1)
+	if (stats_enabled != 1)
 	{
-		/* Legacy env var */
-		stats_enabled = starpu_get_env_number("STARPU_COMM_STATS");
+		time_init = starpu_timing_now();
+		comm_init = comm;
+		stats_enabled = starpu_get_env_number("STARPU_MPI_STATS");
+		if (stats_enabled == -1)
+		{
+			/* Legacy env var */
+			stats_enabled = starpu_get_env_number("STARPU_COMM_STATS");
+		}
+		if (stats_enabled == -1)
+		{
+			stats_enabled = 0;
+		}
 	}
-	if (stats_enabled == -1)
-	{
-		stats_enabled = 0;
-	}
-
 	if (stats_enabled == 0)
 		return;
 
@@ -48,7 +53,6 @@ void _starpu_mpi_comm_amounts_init(MPI_Comm comm)
 	_STARPU_MPI_DEBUG(1, "allocating for %d nodes\n", world_size);
 
 	_STARPU_MPI_CALLOC(comm_amount, world_size, sizeof(size_t));
-	time_init = starpu_timing_now();
 }
 
 void _starpu_mpi_comm_stats_disable()
@@ -59,6 +63,10 @@ void _starpu_mpi_comm_stats_disable()
 void _starpu_mpi_comm_stats_enable()
 {
 	stats_enabled = 1;
+	if (comm_amount = NULL)
+	{
+		_starpu_mpi_comm_amounts_init(comm_init);
+	}
 }
 
 void _starpu_mpi_comm_amounts_shutdown()
@@ -66,6 +74,7 @@ void _starpu_mpi_comm_amounts_shutdown()
 	if (stats_enabled == 0)
 		return;
 	free(comm_amount);
+	comm_amount = NULL;
 }
 
 void _starpu_mpi_comm_amounts_inc(MPI_Comm comm, unsigned dst, MPI_Datatype datatype, int count)
@@ -102,7 +111,7 @@ void _starpu_mpi_comm_amounts_display(FILE *stream, int node)
 	int dst;
 	size_t sum = 0;
 
-	if (stats_enabled == 0)
+	if (comm_amount == NULL)
 		return;
 
 	double time = starpu_timing_now() - time_init;
