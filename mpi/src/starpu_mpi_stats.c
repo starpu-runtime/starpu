@@ -63,7 +63,7 @@ void _starpu_mpi_comm_stats_disable()
 void _starpu_mpi_comm_stats_enable()
 {
 	stats_enabled = 1;
-	if (comm_amount = NULL)
+	if (comm_amount == NULL)
 	{
 		_starpu_mpi_comm_amounts_init(comm_init);
 	}
