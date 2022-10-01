@@ -110,19 +110,20 @@ then
     ARGS="--with-mpiexec-args=-oversubscribe"
 fi
 
+export STARPU_TIMEOUT_ENV=3600
+export MPIEXEC_TIMEOUT=3600
 CONFIGURE_OPTIONS="--enable-debug --enable-verbose --enable-mpi-check=maybe --disable-build-doc $ARGS"
 CONFIGURE_CHECK=""
 day=$(date +%u)
 if test $day -le 5
 then
     CONFIGURE_CHECK="--enable-quick-check"
+    export STARPU_TIMEOUT_ENV=1800
+    export MPIEXEC_TIMEOUT=1800
 #else
     # we do a normal check, a long check takes too long on VM nodes
 fi
 ../configure $CONFIGURE_OPTIONS $CONFIGURE_CHECK  $STARPU_CONFIGURE_OPTIONS $STARPU_USER_CONFIGURE_OPTIONS
-
-export STARPU_TIMEOUT_ENV=1800
-export MPIEXEC_TIMEOUT=1800
 
 if test "$COVERITY" == "1"
 then
