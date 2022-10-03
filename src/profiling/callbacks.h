@@ -61,8 +61,8 @@ extern struct _starpu_prof_tool_callbacks starpu_prof_tool_callbacks;
 /*******************************************************************************
  * Functions used by the callbacks
  *******************************************************************************/
-struct starpu_prof_tool_info _starpu_prof_tool_get_info(enum starpu_prof_tool_event, int, enum starpu_prof_tool_driver_type, unsigned int, /*_starpu_cl_func_t*/ void*);
-struct starpu_prof_tool_info _starpu_prof_tool_get_info_d(enum starpu_prof_tool_event, int, enum starpu_prof_tool_driver_type, unsigned, unsigned, unsigned /* void*: can be added later if necessary */);
+struct starpu_prof_tool_info _starpu_prof_tool_get_info(enum starpu_prof_tool_event, int, int, enum starpu_prof_tool_driver_type, unsigned int, /*_starpu_cl_func_t*/ void*);
+struct starpu_prof_tool_info _starpu_prof_tool_get_info_d(enum starpu_prof_tool_event, int, int, enum starpu_prof_tool_driver_type, unsigned, unsigned, unsigned /* void*: can be added later if necessary */);
 struct starpu_prof_tool_info _starpu_prof_tool_get_info_init(enum starpu_prof_tool_event, int, enum starpu_prof_tool_driver_type, struct starpu_conf*);
 
 /*******************************************************************************

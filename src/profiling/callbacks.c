@@ -60,7 +60,7 @@ void starpu_profiling_init_lib()
 	starpu_prof_tool_callbacks.starpu_prof_tool_event_user_end = &_starpu_prof_tool_event_dummy_func;
 }
 
-struct starpu_prof_tool_info _starpu_prof_tool_get_info(enum starpu_prof_tool_event event_type, int device_num, enum starpu_prof_tool_driver_type driver, unsigned int memnode, void* fun_ptr)
+struct starpu_prof_tool_info _starpu_prof_tool_get_info(enum starpu_prof_tool_event event_type, int device_num, int workerid, enum starpu_prof_tool_driver_type driver, unsigned int memnode, void* fun_ptr)
 {
 	struct starpu_prof_tool_info ret;
 
@@ -74,10 +74,10 @@ struct starpu_prof_tool_info _starpu_prof_tool_get_info(enum starpu_prof_tool_ev
 	ret.memnode = memnode;
 
 	ret.thread_id = (int)pthread_self();
-
+    ret.worker_id = workerid;
+    
 	/* unused fields */
 	ret.conf = NULL;
-	ret.worker_id = -1;
 	ret.bytes_to_transfer = 0;
 	ret.bytes_transfered = 0;
 
@@ -87,7 +87,7 @@ struct starpu_prof_tool_info _starpu_prof_tool_get_info(enum starpu_prof_tool_ev
 /**
    This function is specific for data transfers, in order to keep the prototypes simple
 */
-struct starpu_prof_tool_info _starpu_prof_tool_get_info_d(enum starpu_prof_tool_event event_type, int device_num, enum starpu_prof_tool_driver_type driver, unsigned memnode, unsigned to_transfer, unsigned transfered)
+struct starpu_prof_tool_info _starpu_prof_tool_get_info_d(enum starpu_prof_tool_event event_type, int device_num, int workerid, enum starpu_prof_tool_driver_type driver, unsigned memnode, unsigned to_transfer, unsigned transfered)
 {
 	struct starpu_prof_tool_info ret;
 
@@ -103,10 +103,10 @@ struct starpu_prof_tool_info _starpu_prof_tool_get_info_d(enum starpu_prof_tool_
 	ret.fun_ptr = NULL;
 
 	ret.thread_id = (int)pthread_self();
+    ret.worker_id = workerid;
 
 	/* unused fields */
 	ret.conf = NULL;
-	ret.worker_id = -1;
 	ret.fun_ptr = NULL;
 
 	return ret;
@@ -125,9 +125,9 @@ struct starpu_prof_tool_info _starpu_prof_tool_get_info_init(enum starpu_prof_to
 	ret.conf = conf;
 
 	ret.thread_id = (int)pthread_self();
+	ret.worker_id = 0;
 
 	/* unused fields */
-	ret.worker_id = -1;
 	ret.memnode = -1;
 	ret.bytes_to_transfer = 0;
 	ret.bytes_transfered = 0;
