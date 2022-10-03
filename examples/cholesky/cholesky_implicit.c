@@ -66,14 +66,14 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		starpu_bound_start(bound_deps_p, 0);
 	starpu_fxt_start_profiling();
 	
-	//~ if (dependances == 1) /* Version avec dépendances */
-	//~ {
+	if (dependances == 1) /* Version avec dépendances */
+	{
 		start = starpu_timing_now();
-	//~ }
-	//~ else /* Version sans dépendances */
-	//~ {
-		//~ starpu_pause(); /* To get all tasks at once, resume at the end of the loop for (k = 0; k < nblocks; k++) */
-	//~ }
+	}
+	else /* Version sans dépendances */
+	{
+		starpu_pause(); /* To get all tasks at once, resume at the end of the loop for (k = 0; k < nblocks; k++) */
+	}
 	
 	/* create all the DAG nodes */
 	for (k = 0; k < nblocks; k++)
@@ -135,30 +135,30 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	}
 	//~ starpu_resume();
 	
-	//~ if (dependances == 1)
-	//~ {
+	if (dependances == 1)
+	{
 		starpu_task_wait_for_all();
 		end = starpu_timing_now();
-	//~ }
-	//~ else
-	//~ {
-		//~ if (count_do_schedule == 0)
-		//~ {
-			//~ starpu_do_schedule();
-			//~ start = starpu_timing_now();					
-			//~ starpu_resume();
-			//~ starpu_task_wait_for_all();
-			//~ end = starpu_timing_now();
-		//~ }
-		//~ else
-		//~ {
-			//~ start = starpu_timing_now();
-			//~ starpu_do_schedule();		
-			//~ starpu_resume();
-			//~ starpu_task_wait_for_all();
-			//~ end = starpu_timing_now();
-		//~ }
-	//~ }
+	}
+	else
+	{
+		if (count_do_schedule == 0)
+		{
+			starpu_do_schedule();
+			start = starpu_timing_now();					
+			starpu_resume();
+			starpu_task_wait_for_all();
+			end = starpu_timing_now();
+		}
+		else
+		{
+			start = starpu_timing_now();
+			starpu_do_schedule();		
+			starpu_resume();
+			starpu_task_wait_for_all();
+			end = starpu_timing_now();
+		}
+	}
 	
 	
 	starpu_fxt_stop_profiling();
