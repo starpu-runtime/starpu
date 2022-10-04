@@ -115,7 +115,10 @@ int main(int argc, char *argv[])
 	/*execution des tasks*/
 
 	for (i=0; i<nb_tasks; i++)
-		starpu_task_insert(&cl, STARPU_RW, vector_handle[i%nb_data], 0);
+	{
+		ret = starpu_task_insert(&cl, STARPU_RW, vector_handle[i%nb_data], 0);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+	}
 	for (i=0; i<nb_data; i++)
 		starpu_data_wont_use(vector_handle[i]);
 

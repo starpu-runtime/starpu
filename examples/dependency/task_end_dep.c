@@ -47,11 +47,13 @@ void cpu_codelet(void *descr[], void *args)
 	(void)args;
 	int *val = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	struct starpu_task *task = starpu_task_get_current();
+	int ret;
 
-	starpu_task_insert(&cl2,
-			   STARPU_RW, task->handles[0],
-			   STARPU_TASK_END_DEPS_ARRAY, 1, &task,
-			   0);
+	ret = starpu_task_insert(&cl2,
+				 STARPU_RW, task->handles[0],
+				 STARPU_TASK_END_DEPS_ARRAY, 1, &task,
+				 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	STARPU_ASSERT(*val == INIT);
 	starpu_sleep(0.1);
 	STARPU_ASSERT(*val == INIT);

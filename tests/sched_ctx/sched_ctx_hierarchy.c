@@ -37,11 +37,12 @@ void func_cpu_bis(void *descr[], void *_args)
 	if (ntasks > 0)
 	{
 		int nntasks = ntasks - 1;
-		starpu_task_insert(&mycodelet_bis,
-				   STARPU_VALUE, &msg, sizeof(msg),
-				   STARPU_VALUE, &nntasks, sizeof(ntasks),
-				   STARPU_VALUE, &worker_id, sizeof(worker_id),
-				   0);
+		ret = starpu_task_insert(&mycodelet_bis,
+					 STARPU_VALUE, &msg, sizeof(msg),
+					 STARPU_VALUE, &nntasks, sizeof(ntasks),
+					 STARPU_VALUE, &worker_id, sizeof(worker_id),
+					 0);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	}
 }
 

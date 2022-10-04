@@ -183,7 +183,8 @@ int dotest(struct starpu_disk_ops *ops, char *base, void (*vector_data_register)
 	for (i = 0; i < NDATA; i++)
 	{
 		vector_data_register(&handles[i], -1, 0, (MEMSIZE*1024*1024*2) / NDATA, sizeof(char));
-		starpu_task_insert(&zero_cl, STARPU_W, handles[i], 0);
+		ret = starpu_task_insert(&zero_cl, STARPU_W, handles[i], 0);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	}
 	memset(values, 0, sizeof(values));
 
@@ -191,7 +192,8 @@ int dotest(struct starpu_disk_ops *ops, char *base, void (*vector_data_register)
 	for (i = 0; i < NITER; i++)
 	{
 		j = rand()%NDATA;
-		starpu_task_insert(&inc_cl, STARPU_RW, handles[j], STARPU_VALUE, &j, sizeof(j), 0);
+		ret = starpu_task_insert(&inc_cl, STARPU_RW, handles[j], STARPU_VALUE, &j, sizeof(j), 0);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	}
 	starpu_task_wait_for_all();
 
@@ -206,13 +208,15 @@ int dotest(struct starpu_disk_ops *ops, char *base, void (*vector_data_register)
 	for (i = 0; i < NITER; i++)
 	{
 		j = rand()%NDATA;
-		starpu_task_insert(&inc_cl, STARPU_RW, handles[j], STARPU_VALUE, &j, sizeof(j), 0);
+		ret = starpu_task_insert(&inc_cl, STARPU_RW, handles[j], STARPU_VALUE, &j, sizeof(j), 0);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	}
 
 	/* Check and free data */
 	for (i = 0; i < NDATA; i++)
 	{
-		starpu_task_insert(&check_cl, STARPU_R, handles[i], STARPU_VALUE, &i, sizeof(i), 0);
+		ret = starpu_task_insert(&check_cl, STARPU_R, handles[i], STARPU_VALUE, &i, sizeof(i), 0);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 		starpu_data_unregister(handles[i]);
 	}
 
