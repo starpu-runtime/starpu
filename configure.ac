@@ -3590,7 +3590,7 @@ if test "$enable_icc" = "yes" ; then
       ICC="$icc_path"
    else
       # Check if icc is available
-      AC_CHECK_PROGS([ICC], [icc])
+      AC_PATH_PROG([ICC], [icc])
    fi
 fi
 if test ! -x "$ICC"; then
