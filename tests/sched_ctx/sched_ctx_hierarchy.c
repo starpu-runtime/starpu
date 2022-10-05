@@ -36,6 +36,7 @@ void func_cpu_bis(void *descr[], void *_args)
 	FPRINTF(stderr, "[msg '%c'] [worker id %d] [worker name %s] [tasks %d]\n", msg, worker_id, worker_name, ntasks);
 	if (ntasks > 0)
 	{
+		int ret;
 		int nntasks = ntasks - 1;
 		ret = starpu_task_insert(&mycodelet_bis,
 					 STARPU_VALUE, &msg, sizeof(msg),
@@ -68,12 +69,14 @@ void func_cpu(void *descr[], void *_args)
 	FPRINTF(stderr, "[msg '%c'] [worker id %d] [worker name %s] [sched_ctx_id %u] [tasks %d] [buffer %p]\n", msg, worker_id, worker_name, sched_ctx_id, ntasks, sched_ctx_id_p);
 	if (ntasks > 0)
 	{
+		int ret;
 		int nntasks = ntasks - 1;
-		starpu_task_insert(&mycodelet_bis,
-				   STARPU_VALUE, &msg, sizeof(msg),
-				   STARPU_VALUE, &nntasks, sizeof(nntasks),
-				   STARPU_VALUE, &worker_id, sizeof(worker_id),
-				   0);
+		ret = starpu_task_insert(&mycodelet_bis,
+					 STARPU_VALUE, &msg, sizeof(msg),
+					 STARPU_VALUE, &nntasks, sizeof(nntasks),
+					 STARPU_VALUE, &worker_id, sizeof(worker_id),
+					 0);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	}
 }
 
