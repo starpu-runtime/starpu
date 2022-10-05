@@ -3578,14 +3578,25 @@ if test x$have_f77_h = xyes; then
         AC_DEFINE([STARPU_HAVE_F77_H], [1], [Define to 1 if you have the <f77.h> header file.])
 fi
 
+AC_ARG_WITH(icc, [AS_HELP_STRING([--with-icc=<path to icc>], [Name or path of the icc compiler])], icc_path="$withval",icc_path="")
+AC_ARG_WITH(icc-args, [AS_HELP_STRING([--with-icc-args[=<arguments to give when running icc>]], [Arguments for icc])], [icc_args=$withval])
+AC_SUBST(ICC_ARGS,$icc_args)
 AC_ARG_ENABLE(icc, [AS_HELP_STRING([--enable-icc],
 				[Enable the compilation of specific ICC examples])],
 				enable_icc=$enableval, enable_icc=yes)
-
 ICC=""
 if test "$enable_icc" = "yes" ; then
-   # Check if icc is available
-   AC_CHECK_PROGS([ICC], [icc])
+   if test "$icc_path" != "" ; then
+      ICC="$icc_path"
+   else
+      # Check if icc is available
+      AC_CHECK_PROGS([ICC], [icc])
+   fi
+fi
+if test ! -x "$ICC"; then
+    AC_MSG_RESULT(The ICC compiler '$ICC' does not have the execute permission)
+    enable_icc=no
+    ICC=""
 fi
 
 # If cuda and icc are both available, check they are compatible

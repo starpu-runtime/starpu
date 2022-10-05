@@ -104,7 +104,7 @@ pkglib_LTLIBRARIES =
 
 if STARPU_HAVE_ICC
 .icc.o:
-	$(V_icc) $(ICC) -x c $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) $< -c -o $@
+	$(V_icc) $(ICC) $(ICC_ARGS) -x c $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) $< -c -o $@
 endif
 
 examplebindir = $(libdir)/starpu/examples/
