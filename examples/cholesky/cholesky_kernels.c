@@ -314,8 +314,8 @@ struct starpu_codelet cl11 =
 	.cuda_funcs = {(void*)1},
 #endif
 	.nbuffers = 1,
-	.modes = { STARPU_R },
-	//~ .modes = { STARPU_RW },  /* Cas dep == 1 */
+	//~ .modes = { STARPU_R }, /* Version sans dépendances */
+	.modes = { STARPU_RW },  /* Cas dep == 1 */
 	.model = &chol_model_11,
 	.color = 0xffff00,
 };
@@ -332,8 +332,8 @@ struct starpu_codelet cl21 =
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 2,
-	.modes = { STARPU_R, STARPU_R },
-	//~ .modes = { STARPU_R, STARPU_RW },  /* Cas dep == 1 */
+	//~ .modes = { STARPU_R, STARPU_R }, /* Version sans dépendances */
+	.modes = { STARPU_R, STARPU_RW },  /* Cas dep == 1 */
 	.model = &chol_model_21,
 	.color = 0x8080ff,
 };
@@ -351,8 +351,8 @@ struct starpu_codelet cl22 =
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 3,
-	.modes = { STARPU_R, STARPU_R, STARPU_R },
-	//~ .modes = { STARPU_R, STARPU_R, STARPU_RW },  /* Cas dep == 1 */
+	//~ .modes = { STARPU_R, STARPU_R, STARPU_R }, /* Version sans dépendances */
+	.modes = { STARPU_R, STARPU_R, STARPU_RW },  /* Cas dep == 1 */
 	.model = &chol_model_22,
 	.color = 0x00ff00,
 };
@@ -365,8 +365,8 @@ struct starpu_codelet cl11_gpu =
 	.cuda_funcs = {(void*)1},
 #endif
 	.nbuffers = 1,
-	.modes = { STARPU_R },
-	//~ .modes = { STARPU_RW },  /* Cas dep == 1 */
+	//~ .modes = { STARPU_R }, /* Version sans dépendances */
+	.modes = { STARPU_RW },  /* Cas dep == 1 */
 	.model = &chol_model_11,
 	.color = 0xffff00,
 };
@@ -380,8 +380,8 @@ struct starpu_codelet cl21_gpu =
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 2,
-	.modes = { STARPU_R, STARPU_R },
-	//~ .modes = { STARPU_R, STARPU_RW },  /* Cas dep == 1 */
+	//~ .modes = { STARPU_R, STARPU_R }, /* Version sans dépendances */
+	.modes = { STARPU_R, STARPU_RW },  /* Cas dep == 1 */
 	.model = &chol_model_21,
 	.color = 0x8080ff,
 };
@@ -395,8 +395,8 @@ struct starpu_codelet cl22_gpu =
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 3,
-	.modes = { STARPU_R, STARPU_R, STARPU_R },
-	//~ .modes = { STARPU_R, STARPU_R, STARPU_RW },  /* Cas dep == 1 */
+	//~ .modes = { STARPU_R, STARPU_R, STARPU_R }, /* Version sans dépendances */
+	.modes = { STARPU_R, STARPU_R, STARPU_RW },  /* Cas dep == 1 */
 	.model = &chol_model_22,
 	.color = 0x00ff00,
 };
@@ -407,8 +407,8 @@ struct starpu_codelet cl11_cpu =
 	.cpu_funcs = {chol_cpu_codelet_update_u11},
 	.cpu_funcs_name = {"chol_cpu_codelet_update_u11"},
 	.nbuffers = 1,
-	.modes = { STARPU_R },
-	//~ .modes = { STARPU_RW },  /* Cas dep == 1 */
+	//~ .modes = { STARPU_R }, /* Version sans dépendances */
+	.modes = { STARPU_RW },  /* Cas dep == 1 */
 	.model = &chol_model_11,
 	.color = 0xffff00,
 };
@@ -419,8 +419,8 @@ struct starpu_codelet cl21_cpu =
 	.cpu_funcs = {chol_cpu_codelet_update_u21},
 	.cpu_funcs_name = {"chol_cpu_codelet_update_u21"},
 	.nbuffers = 2,
-	.modes = { STARPU_R, STARPU_R },
-	//~ .modes = { STARPU_R, STARPU_RW },  /* Cas dep == 1 */
+	//~ .modes = { STARPU_R, STARPU_R }, /* Version sans dépendances */
+	.modes = { STARPU_R, STARPU_RW },  /* Cas dep == 1 */
 	.model = &chol_model_21,
 	.color = 0x8080ff,
 };
@@ -432,8 +432,8 @@ struct starpu_codelet cl22_cpu =
 	.cpu_funcs = {chol_cpu_codelet_update_u22},
 	.cpu_funcs_name = {"chol_cpu_codelet_update_u22"},
 	.nbuffers = 3,
-	.modes = { STARPU_R, STARPU_R, STARPU_R },
-	//~ .modes = { STARPU_R, STARPU_R, STARPU_RW },  /* Cas dep == 1 */
+	//~ .modes = { STARPU_R, STARPU_R, STARPU_R }, /* Version sans dépendances */
+	.modes = { STARPU_R, STARPU_R, STARPU_RW },  /* Cas dep == 1 */
 	.model = &chol_model_22,
 	.color = 0x00ff00,
 };
