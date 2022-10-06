@@ -790,6 +790,8 @@ starpu_mpi_task_insert(MPI_COMM_WORLD, &contrib_cl, STARPU_MPI_REDUX, data, STAR
 
 Note that if the specified node is set to \c -1, the option is ignored.
 
+More examples are available at mpi/examples/mpi_redux/mpi_redux.c and mpi/examples/mpi_redux/mpi_redux_tree.c.
+
 \section MPIPriorities Priorities
 
 All send functions have a <c>_prio</c> variant which takes an additional
