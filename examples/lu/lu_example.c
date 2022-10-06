@@ -209,7 +209,7 @@ static void init_matrix(void)
 			if (i == j)
 			{
 				A[i + j*size] += 1;
-				A[i + j*size] *= 100;
+				A[i + j*size] *= size;
 			}
 		}
 	}
