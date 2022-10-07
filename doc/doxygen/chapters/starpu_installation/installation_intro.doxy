@@ -14,16 +14,14 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/*! \intropage{IntroInstallation, ------ StarPU Installation ------------}
+/*! \intropage{IntroInstallation, --- StarPU Installation ---}
 
-If you want to use StarPU and implement the exist examples or your own applications, you need to read this part.
+This parts shows a basic usage StarPU and how to execute the provided examples or your own applications.
 
 <ul>
-<li> We show how to build and install StarPU in section \ref BuildingAndInstallingStarPU.
-</ul>
-Once you have successfully installed StarPU, you may also need the extension functionalities of StarPU during execution.
-<ul>
-<li> We list all environment variables in \ref ExecutionConfigurationThroughEnvironmentVariables and configuration options in \ref CompilationConfiguration which should be useful when building and executing StarPU.
+<li> Chapter \ref BuildingAndInstallingStarPU shows how to build and install StarPU.
+<li> Chapter \ref ExecutionConfigurationThroughEnvironmentVariables lists environment variables that can be used to tune StarPU when executing an application;
+<li> Chapter \ref CompilationConfiguration shows configuration options to tune StarPU building process.
 </ul>
 
 */

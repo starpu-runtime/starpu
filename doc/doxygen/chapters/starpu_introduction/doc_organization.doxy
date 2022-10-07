@@ -16,11 +16,10 @@
 
 /*! \page DocOrganization Documentation Organization
 
-    The documentation chapters include
+The documentation chapters include
 
 <ul>
 <li> Part 1: <b> StarPU Installation: </b>
-    In this part, we show how to build and install StarPU. We also list all the environment variables and configuration options which should be useful when building and executing StarPU. If you want to use StarPU and implement the exist examples or your own applications, this part is useful.
     <ul>
     <li> \ref IntroInstallation
     <li> \ref BuildingAndInstallingStarPU
@@ -28,7 +27,6 @@
     <li> \ref CompilationConfiguration
     </ul>
 <li> Part 2: <b> StarPU Basics: </b>
-    In this part, we present the basic knowledge of StarPU. You can learn how to create and implement StarPU applications, and the most important and core concepts in StarPU. You should read this part, as long as you need to understand how StarPU works and how to execute a basic StarPU application.
     <ul>
     <li> \ref IntroBasics
     <li> \ref StarPUApplications
@@ -41,7 +39,6 @@
     <li> \ref ExamplesInStarPUSources
     </ul>
 <li> Part 3: <b> StarPU Performances: </b>
-    This part is for users who want to measure performances of their applications. We introduce some interesting benchmarks in StarPU sources. We also provide several online and offline performance monitoring tools to help you analyze your program and trace execution.
     <ul>
     <li> \ref IntroPerformances
     <li> \ref BenchmarkingStarPU
@@ -49,14 +46,12 @@
     <li> \ref OfflinePerformanceTools
     </ul>
 <li> Part 4: <b> StarPU FAQs: </b>
-    This part can be useful if your program cannot achieve a good performance as we show or you encounter some difficulties during implementing your applications. You can check the list of features which may improve the performance of your applications, or you may find solutions to solve your problems.
     <ul>
     <li> \ref IntroFAQ
     <li> \ref CheckListWhenPerformanceAreNotThere
     <li> \ref FrequentlyAskedQuestions
     </ul>
 <li> Part 5: <b> StarPU Language Bindings: </b>
-    In this part, you can find StarPU versions in other languages or for specific usage. So far, Fortran, Java, Python APIs are available to execute StarPU applications in respective languages. You can likewise execute OpenMP tasks with some specific functions.
     <ul>
     <li> \ref IntroLanguage
     <li> \ref NativeFortranSupport
@@ -65,7 +60,6 @@
     <li> \ref OpenMPRuntimeSupport
     </ul>
 <li> Part 6: <b> StarPU Extensions: </b>
-    This part is prepared for some users who need StarPU not only for task submission but for some more complex applications. You can learn more knowledge about some core concepts in StarPU and some further usages of StarPU according to your needs.
     <ul>
     <li> \ref IntroExtensions
     <li> \ref DebuggingTools

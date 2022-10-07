@@ -14,16 +14,16 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/*! \intropage{IntroFAQ, ------ StarPU FAQs ------------}
+/*! \intropage{IntroFAQ, --- StarPU FAQs ---}
 
-Make sure that you have already read the part StarPU basics. If your program cannot achieve a good performance as we show or you encounter some difficulties during implementing your applications, this part may be helpful.
+This part explains how to better tune your application to achieve good performance, and also how to fix some difficulties you may encounter while implementing your applications.
 
 <ul>
-<li> We give a list of features in \ref CheckListWhenPerformanceAreNotThere which should be checked to improve performances of your applications.
-<li> There are some frequently asked questions in \ref FrequentlyAskedQuestions that may help you to solve your problems.
+<li> We give a list of features in Chapter \ref CheckListWhenPerformanceAreNotThere which should be checked to improve performances of your applications.
+<li> There are some frequently asked questions in Chapter \ref FrequentlyAskedQuestions that may help you to solve your problems.
 </ul>
 
-Even so, you still have problems that cannot be solved, please contact us.
+If you have problems that cannot be solved, please contact us.
 
 
 */

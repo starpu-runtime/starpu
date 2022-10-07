@@ -75,7 +75,7 @@ bigger or equal to <c>nx</c>.
 
 Important note: one can not change the size of a partitioned data.
 
-\section DataManagement Data Management
+\section DataManagementAllocation Data Management Allocation
 
 When the application allocates data, whenever possible it should use
 the function starpu_malloc(), which will ask CUDA or OpenCL to make

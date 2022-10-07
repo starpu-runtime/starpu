@@ -14,15 +14,15 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/*! \intropage{IntroLanguage, ------ StarPU Language Bindings ------------}
+/*! \intropage{IntroLanguage, --- StarPU Language Bindings ---}
 
-StarPU is a software tool written in C. Due to its practicality, more and more StarPU applications in other languages are needed. To meet theses needs, we developped StarPU APIs for several commonly used languages.
+This part shows how StarPU which is natively written in C, has been extended to allow applications written in other languaged to use it.
 
 <ul>
-<li> You can learn to natively access most of StarPU functionalities from Fortran 2008+ codes with some explanations and examples in \ref NativeFortranSupport.
-<li> You can find out how to execute the Jave applications with some important StarPU APIs in section \ref StarPUJavaInterface.
-<li> Python interface supports most of the main StarPU functionalities, and new functions especially adapted to Python have been added as well. There are detailed explanations and examples in section \ref PythonInterface.
-<li> You can learn how to execute OpenMP tasks with some specific functions in \ref OpenMPRuntimeSupport.
+<li> You can learn to natively access most of StarPU functionalities from Fortran 2008+ codes with some explanations and examples in Chapter \ref NativeFortranSupport.
+<li> You can find out how to execute Java applications with some important StarPU APIs in Chapter \ref StarPUJavaInterface.
+<li> Python interface supports most of the main StarPU functionalities, and new functions especially adapted to Python have been added as well. There are detailed explanations and examples in Chapter \ref PythonInterface.
+<li> You can learn how to execute OpenMP tasks with some specific functions in Chapter \ref OpenMPRuntimeSupport.
 </ul>
 
 

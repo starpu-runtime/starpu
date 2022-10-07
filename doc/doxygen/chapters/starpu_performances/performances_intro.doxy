@@ -14,13 +14,14 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/*! \intropage{IntroPerformances, ------ StarPU Performances ------------}
+/*! \intropage{IntroPerformances, --- StarPU Performances ---}
 
-This part is for users who want to measure performances of their applications.
+This part shows how to measure application performances.
 
 <ul>
-<li> We introduce some interesting benchmarks in \ref BenchmarkingStarPU, which can be found in StarPU sources.
-<li> We provide several online performance monitoring tools in \ref OnlinePerformanceTools to help you analyze your program and offline performance tools in \ref OfflinePerformanceTools such as FxT library to trace execution data and tasks and a StarPU Eclipse Plugin to visualize data traces directly from the Eclipse IDE.
+<li> Chapter \ref BenchmarkingStarPU introduces some interesting benchmarks which can be found in StarPU sources.
+<li> Chapter \ref OnlinePerformanceTools gives information on online performance monitoring tools to help you analyze your program
+<li> Chapter \ref OfflinePerformanceTools gives information on offline performance tools such as a FxT library to trace execution data and tasks and a StarPU Eclipse Plugin to visualize data traces directly from the Eclipse IDE.
 </ul>
 
 */
