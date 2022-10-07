@@ -73,7 +73,7 @@
 
 {
    Ignore libc aio-internal leak
-   Helgrind:Leak
+   Memcheck:Leak
    match-leak-kinds: possible
    ...
    fun:__aio_create_helper_thread
