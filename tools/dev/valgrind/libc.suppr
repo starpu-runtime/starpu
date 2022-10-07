@@ -72,6 +72,15 @@
 }
 
 {
+   Ignore libc aio-internal leak
+   Helgrind:Leak
+   match-leak-kinds: possible
+   ...
+   fun:__aio_create_helper_thread
+   ...
+}
+
+{
    Ignore libc printf races
    Helgrind:Race
    ...
@@ -293,6 +302,28 @@
    fun:_dl_catch_error
    fun:dlerror_run
    fun:free_mem
+   fun:__libc_freeres
+   fun:_vgnU_freeres
+   fun:__run_exit_handlers
+   fun:exit
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   fun:free
+   fun:free_res
+   fun:__libc_freeres
+   fun:_vgnU_freeres
+   fun:__run_exit_handlers
+   fun:exit
+   fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Free
+   fun:free
+   fun:free_res
    fun:__libc_freeres
    fun:_vgnU_freeres
    fun:__run_exit_handlers
