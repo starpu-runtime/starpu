@@ -22,7 +22,7 @@ SUBDIRS	+= doxygen_web_introduction
 SUBDIRS	+= doxygen_web_installation
 SUBDIRS	+= doxygen_web_basics
 SUBDIRS	+= doxygen_web_performances
-SUBDIRS	+= doxygen_web_faqs
+SUBDIRS	+= doxygen_web_faq
 SUBDIRS	+= doxygen_web_languages
 SUBDIRS	+= doxygen_web_extensions
 DIST_SUBDIRS = doxygen
@@ -31,7 +31,7 @@ DIST_SUBDIRS += doxygen_web_introduction
 DIST_SUBDIRS += doxygen_web_installation
 DIST_SUBDIRS += doxygen_web_basics
 DIST_SUBDIRS += doxygen_web_performances
-DIST_SUBDIRS += doxygen_web_faqs
+DIST_SUBDIRS += doxygen_web_faq
 DIST_SUBDIRS += doxygen_web_languages
 DIST_SUBDIRS += doxygen_web_extensions
 

@@ -126,7 +126,8 @@ INPUT                  = @top_srcdir@/doc/doxygen_dev/chapters/000_introduction.
 			 @top_srcdir@/starpurm/src/starpurm_private.h
 
 
-EXAMPLE_PATH           = @top_srcdir@/doc/doxygen_dev \
+EXAMPLE_PATH           = @top_srcdir@/doc/doxygen \
+		         @top_srcdir@/doc/doxygen_dev \
 		       	 @top_srcdir@/doc/doxygen/chapters
 
 INPUT_FILTER           = @top_builddir@/doc/doxygen_dev/doxygen_filter.sh

@@ -16,7 +16,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 INPUT                  = @top_srcdir@/doc/doxygen/chapters/foreword.doxy \
-			 @top_srcdir@/doc/doxygen/chapters/starpu_introduction/introduction.doxy \
+			 @top_srcdir@/doc/doxygen/chapters/starpu_introduction/introduction_intro.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_introduction/doc_organization.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_introduction/glossary.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_installation/installation_intro.doxy \
@@ -39,11 +39,11 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters/foreword.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_faq/faq_intro.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_faq/check_list_performance.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_faq/faq.doxy \
-			 @top_srcdir@/doc/doxygen/chapters/starpu_interfaces/language_intro.doxy \
-			 @top_srcdir@/doc/doxygen/chapters/starpu_interfaces/native_fortran_support.doxy \
-			 @top_srcdir@/doc/doxygen/chapters/starpu_interfaces/java.doxy \
-			 @top_srcdir@/doc/doxygen/chapters/starpu_interfaces/python.doxy \
-			 @top_srcdir@/doc/doxygen/chapters/starpu_interfaces/openmp_runtime_support.doxy \
+			 @top_srcdir@/doc/doxygen/chapters/starpu_languages/languages_intro.doxy \
+			 @top_srcdir@/doc/doxygen/chapters/starpu_languages/native_fortran_support.doxy \
+			 @top_srcdir@/doc/doxygen/chapters/starpu_languages/java.doxy \
+			 @top_srcdir@/doc/doxygen/chapters/starpu_languages/python.doxy \
+			 @top_srcdir@/doc/doxygen/chapters/starpu_languages/openmp_runtime_support.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_extensions/extensions_intro.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_extensions/debugging_tools.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_extensions/advanced_tasks.doxy \

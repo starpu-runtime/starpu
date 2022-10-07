@@ -28,7 +28,7 @@ include $(top_srcdir)/doc/doxy.mk
 
 chapters =	\
 	../doxygen/chapters/foreword.doxy		\
-	../doxygen/chapters/starpu_introduction/introduction.doxy		\
+	../doxygen/chapters/starpu_introduction/introduction_intro.doxy		\
 	../doxygen/chapters/starpu_introduction/glossary.doxy		\
 	../doxygen/chapters/files.doxy		\
 	../doxygen/chapters/fdl_1_3.doxy		\

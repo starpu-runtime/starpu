@@ -28,7 +28,7 @@ include $(top_srcdir)/doc/doxy.mk
 
 chapters =	\
 	chapters/foreword.doxy		\
-	chapters/starpu_introduction/introduction.doxy		\
+	chapters/starpu_introduction/introduction_intro.doxy		\
 	chapters/starpu_introduction/doc_organization.doxy		\
 	chapters/starpu_introduction/glossary.doxy		\
 	chapters/starpu_installation/installation_intro.doxy		\
@@ -51,11 +51,11 @@ chapters =	\
 	chapters/starpu_faq/faq_intro.doxy		\
 	chapters/starpu_faq/check_list_performance.doxy		\
 	chapters/starpu_faq/faq.doxy		\
-	chapters/starpu_interfaces/language_intro.doxy 		\
-	chapters/starpu_interfaces/native_fortran_support.doxy		\
-	chapters/starpu_interfaces/java.doxy 		\
-	chapters/starpu_interfaces/python.doxy		\
-	chapters/starpu_interfaces/openmp_runtime_support.doxy		\
+	chapters/starpu_languages/languages_intro.doxy 		\
+	chapters/starpu_languages/native_fortran_support.doxy		\
+	chapters/starpu_languages/java.doxy 		\
+	chapters/starpu_languages/python.doxy		\
+	chapters/starpu_languages/openmp_runtime_support.doxy		\
 	chapters/starpu_extensions/extensions_intro.doxy		\
 	chapters/starpu_extensions/debugging_tools.doxy		\
 	chapters/starpu_extensions/advanced_tasks.doxy		\

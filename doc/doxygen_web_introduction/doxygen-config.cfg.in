@@ -16,12 +16,12 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 INPUT                  = @top_srcdir@/doc/doxygen/chapters/foreword.doxy \
-                      @top_srcdir@/doc/doxygen/chapters/starpu_introduction/introduction.doxy \
+                      @top_srcdir@/doc/doxygen/chapters/starpu_introduction/introduction_intro.doxy \
                       @top_srcdir@/doc/doxygen/chapters/starpu_introduction/glossary.doxy \
                       @top_srcdir@/doc/doxygen/chapters/fdl_1_3.doxy \
                       @top_srcdir@/doc/doxygen/chapters/files.doxy \
-                      @top_srcdir@/doc/doxygen/chapters/api 
-                      
+                      @top_srcdir@/doc/doxygen/chapters/api
+
 EXAMPLE_PATH           = @top_srcdir@/doc/doxygen \
                              @top_srcdir@/doc/doxygen/chapters \
                              @top_srcdir@/doc/doxygen/chapters/code

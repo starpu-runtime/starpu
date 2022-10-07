@@ -14,13 +14,13 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-DOX_DIR = $(top_builddir)/doc/doxygen_web_faqs
-DOX_CONFIG = $(top_srcdir)/doc/doxygen_web_faqs/doxygen.cfg
+DOX_DIR = $(top_builddir)/doc/doxygen_web_faq
+DOX_CONFIG = $(top_srcdir)/doc/doxygen_web_faq/doxygen.cfg
 
-DOX_MAIN_DIR = doxygen_web_faqs
-DOX_HTML_DIR = html_web_faqs
+DOX_MAIN_DIR = doxygen_web_faq
+DOX_HTML_DIR = html_web_faq
 DOX_LATEX_DIR = latex
-DOX_PDF = starpu_web_faqs.pdf
+DOX_PDF = starpu_web_faq.pdf
 DOX_TAG = starpu.tag
 DOX_STARPU_CONFIG = starpu_config.h
 

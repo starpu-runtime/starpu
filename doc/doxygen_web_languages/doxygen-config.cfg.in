@@ -16,15 +16,15 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 INPUT                  = @top_srcdir@/doc/doxygen/chapters/foreword.doxy \
-                      @top_srcdir@/doc/doxygen/chapters/starpu_interfaces/language_intro.doxy \
-                      @top_srcdir@/doc/doxygen/chapters/starpu_interfaces/native_fortran_support.doxy \
-                      @top_srcdir@/doc/doxygen/chapters/starpu_interfaces/java.doxy \
-                      @top_srcdir@/doc/doxygen/chapters/starpu_interfaces/python.doxy \
-                      @top_srcdir@/doc/doxygen/chapters/starpu_interfaces/openmp_runtime_support.doxy \
+                      @top_srcdir@/doc/doxygen/chapters/starpu_languages/languages_intro.doxy \
+                      @top_srcdir@/doc/doxygen/chapters/starpu_languages/native_fortran_support.doxy \
+                      @top_srcdir@/doc/doxygen/chapters/starpu_languages/java.doxy \
+                      @top_srcdir@/doc/doxygen/chapters/starpu_languages/python.doxy \
+                      @top_srcdir@/doc/doxygen/chapters/starpu_languages/openmp_runtime_support.doxy \
                       @top_srcdir@/doc/doxygen/chapters/fdl_1_3.doxy \
                       @top_srcdir@/doc/doxygen/chapters/files.doxy \
-                      @top_srcdir@/doc/doxygen/chapters/api 
-                      
+                      @top_srcdir@/doc/doxygen/chapters/api
+
 EXAMPLE_PATH           = @top_srcdir@/doc/doxygen \
                              @top_srcdir@/doc/doxygen/chapters \
                              @top_srcdir@/doc/doxygen/chapters/code

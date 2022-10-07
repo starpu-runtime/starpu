@@ -21,8 +21,8 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters/foreword.doxy \
                       @top_srcdir@/doc/doxygen/chapters/starpu_faq/faq.doxy \
                       @top_srcdir@/doc/doxygen/chapters/fdl_1_3.doxy \
                       @top_srcdir@/doc/doxygen/chapters/files.doxy \
-                      @top_srcdir@/doc/doxygen/chapters/api 
-                      
+                      @top_srcdir@/doc/doxygen/chapters/api
+
 EXAMPLE_PATH           = @top_srcdir@/doc/doxygen \
                              @top_srcdir@/doc/doxygen/chapters \
                              @top_srcdir@/doc/doxygen/chapters/code

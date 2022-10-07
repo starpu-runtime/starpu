@@ -28,11 +28,11 @@ include $(top_srcdir)/doc/doxy.mk
 
 chapters =	\
 	../doxygen/chapters/foreword.doxy		\
-	../doxygen/chapters/starpu_interfaces/language_intro.doxy 		\
-	../doxygen/chapters/starpu_interfaces/native_fortran_support.doxy		\
-	../doxygen/../doxygen/../doxygen/chapters/starpu_interfaces/java.doxy 		\
-	../doxygen/../doxygen/chapters/starpu_interfaces/python.doxy		\
-	../doxygen/chapters/starpu_interfaces/openmp_runtime_support.doxy		\
+	../doxygen/chapters/starpu_languages/languages_intro.doxy 		\
+	../doxygen/chapters/starpu_languages/native_fortran_support.doxy		\
+	../doxygen/chapters/starpu_languages/java.doxy 		\
+	../doxygen/chapters/starpu_languages/python.doxy		\
+	../doxygen/chapters/starpu_languages/openmp_runtime_support.doxy		\
 	../doxygen/chapters/files.doxy		\
 	../doxygen/chapters/fdl_1_3.doxy		\
 	../doxygen/chapters/code/forkmode.c \
