@@ -359,4 +359,6 @@ typedef ssize_t starpu_ssize_t;
 #undef STARPU_PYTHON_HAVE_NUMPY
 #undef STARPU_STARPUPY_MULTI_INTERPRETER
 
+#undef STARPU_PROF_TOOL
+
 #endif

@@ -71,6 +71,6 @@ void starpu_prof_tool_library_register(starpu_prof_tool_entry_register_func reg,
 	reg(starpu_prof_tool_event_start_transfer, &myfunction_cb, info);
 	reg(starpu_prof_tool_event_end_transfer, &myfunction_cb, info);
 
-	printf("REGISTER LIBRARY\n");
+	fprintf(stderr,"REGISTER LIBRARY\n");
 }
 

@@ -1564,9 +1564,11 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	int rc = _starpu_prof_tool_try_load();
 	(void) rc; /* unused for now */
 
+#ifdef STARPU_PROF_TOOL
 	struct starpu_prof_tool_info pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_init_begin, 0, NULL, starpu_prof_tool_driver_cpu, -1, NULL);
 	starpu_prof_tool_callbacks.starpu_prof_tool_event_init(&pi, NULL, NULL);
 	starpu_prof_tool_callbacks.starpu_prof_tool_event_init_begin(&pi, NULL, NULL);
+#endif
 
 #if !defined(STARPU_SIMGRID) && !defined(STARPU_USE_MP)
 	(void)argc;
@@ -1925,9 +1927,11 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 		fflush(stdout);
 	}
 
+#ifdef STARPU_PROF_TOOL
 	pi = _starpu_prof_tool_get_info_init(starpu_prof_tool_event_init_end, 0, starpu_prof_tool_driver_cpu, &(_starpu_config.conf));
 	pi.conf = &_starpu_config.conf;
 	starpu_prof_tool_callbacks.starpu_prof_tool_event_init_end(&pi, NULL, NULL);
+#endif
 
 	return 0;
 }
@@ -1992,8 +1996,10 @@ out:
 		STARPU_ASSERT(_starpu_ctx_change_list_empty(&worker->ctx_change_list));
 	}
 
+#ifdef STARPU_PROF_TOOL
 	struct starpu_prof_tool_info pi = _starpu_prof_tool_get_info_init(starpu_prof_tool_event_terminate, 0, starpu_prof_tool_driver_cpu, NULL);
 	starpu_prof_tool_callbacks.starpu_prof_tool_event_terminate(&pi, NULL, NULL);
+#endif
 }
 
 /* Condition variable and mutex used to pause/resume. */

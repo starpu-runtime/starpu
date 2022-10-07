@@ -24,6 +24,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <starpu_helper.h>
+#include <common/config.h>
 
 #define STARPU_NB_CALLBACKS   17
 struct _starpu_prof_tool_callbacks starpu_prof_tool_callbacks;
@@ -164,6 +165,7 @@ void _starpu_prof_tool_unregister_cb(enum starpu_prof_tool_event event_type, sta
 	*(_starpu_prof_tool_callback_map[event_type]) = NULL;
 }
 
+#ifdef STARPU_PROF_TOOL
 static void init_prof_map()
 {
 	_starpu_prof_tool_callback_map[starpu_prof_tool_event_init] = &(starpu_prof_tool_callbacks.starpu_prof_tool_event_init);
@@ -186,6 +188,7 @@ static void init_prof_map()
 	_starpu_prof_tool_callback_map[starpu_prof_tool_event_user_start] = &(starpu_prof_tool_callbacks.starpu_prof_tool_event_user_start);
 	_starpu_prof_tool_callback_map[starpu_prof_tool_event_user_end] = &(starpu_prof_tool_callbacks.starpu_prof_tool_event_user_end);
 }
+#endif
 
 /**
  * Looks if there is a profiling tool pointed at by the appropriate
@@ -194,6 +197,7 @@ static void init_prof_map()
  */
 int _starpu_prof_tool_try_load()
 {
+#ifdef STARPU_PROF_TOOL
 	void *found;
 	init_prof_map();
 	starpu_profiling_init_lib();
@@ -232,6 +236,14 @@ int _starpu_prof_tool_try_load()
 	/* This corresponds to something if we LD_PRELOAD a tool */
 	starpu_prof_tool_library_register(_starpu_prof_tool_register_cb, _starpu_prof_tool_unregister_cb);
 	return 0;
+#else
+	const char *tool_libs = starpu_getenv(STARPU_PROF_TOOL_ENV_VAR);
+	if (tool_libs != NULL)
+	{
+		_STARPU_MSG("Variable '%s' is defined but StarPU profiling tool is not enabled\n", STARPU_PROF_TOOL_ENV_VAR);
+	}
+	return 1;
+#endif
 }
 
 void _starpu_prof_tool_unload()

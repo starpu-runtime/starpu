@@ -133,6 +133,21 @@ AC_FUNC_MMAP
 
 ###############################################################################
 #                                                                             #
+#                     Profiling tool support                                  #
+#                                                                             #
+###############################################################################
+
+AC_ARG_ENABLE(prof-tool, [AS_HELP_STRING([--enable-prof-tool],
+			[enable profiling tool])],
+			enable_prof_tool=$enableval, enable_prof_tool=yes)
+if test x$enable_prof_tool = xyes; then
+	AC_DEFINE(STARPU_PROF_TOOL, [1], [Define this to enable profiling tool support])
+fi
+AC_MSG_CHECKING([for profiling tool support])
+AC_MSG_RESULT($enable_prof_tool)
+
+###############################################################################
+#                                                                             #
 #                            Hierarchical dags support                        #
 #                                                                             #
 ###############################################################################
