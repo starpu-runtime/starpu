@@ -16,7 +16,7 @@
 
 /*! \intropage{IntroInstallation, --- StarPU Installation ---}
 
-This parts shows a basic usage StarPU and how to execute the provided examples or your own applications.
+This parts shows a basic usage of StarPU and how to execute the provided examples or your own applications.
 
 <ul>
 <li> Chapter \ref BuildingAndInstallingStarPU shows how to build and install StarPU.

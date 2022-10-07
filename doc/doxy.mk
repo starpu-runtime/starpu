@@ -32,19 +32,21 @@ EXTRA_DIST += $(DOX_HTML_DIR)
 endif # STARPU_BUILD_DOC_PDF
 DOX_HTML_SRCDIR=$(DOX_HTML_DIR)
 install-exec-hook: $(DOX_HTML_DIR)
-	$(MKDIR_P) $(DESTDIR)$(docdir)/manual/$(DOX_HTML_DIR)
-	(cd $(DOX_HTML_SRCDIR) && $(PROG_FIND) . -type f -exec $(INSTALL_DATA) {} $(DESTDIR)$(docdir)/manual/$(DOX_HTML_DIR) \;)
+	@$(top_srcdir)/doc/extractHeadline.sh $(DESTDIR)$(docdir)/manual/
+	@$(MKDIR_P) $(DESTDIR)$(docdir)/manual/$(DOX_HTML_DIR)
+	@(cd $(DOX_HTML_SRCDIR) && $(PROG_FIND) . -type f -exec $(INSTALL_DATA) {} $(DESTDIR)$(docdir)/manual/$(DOX_HTML_DIR) \;)
 uninstall-hook:
-	rm -rf $(DESTDIR)$(docdir)/manual/$(DOX_HTML_DIR)
+	@rm -f $(DESTDIR)$(docdir)/manual/README
+	@rm -rf $(DESTDIR)$(docdir)/manual/$(DOX_HTML_DIR)
 else
 if STARPU_AVAILABLE_DOC
 EXTRA_DIST += $(top_srcdir)/doc/$(DOX_MAIN_DIR)/$(DOX_HTML_DIR)
 DOX_HTML_SRCDIR=$(top_srcdir)/doc/$(DOX_MAIN_DIR)/$(DOX_HTML_DIR)
 install-exec-hook:
-	$(MKDIR_P) $(DESTDIR)$(docdir)/manual/$(DOX_HTML_DIR)
-	(cd $(DOX_HTML_SRCDIR) && $(PROG_FIND) . -type f -exec $(INSTALL_DATA) {} $(DESTDIR)$(docdir)/manual/$(DOX_HTML_DIR) \;)
+	@$(MKDIR_P) $(DESTDIR)$(docdir)/manual/$(DOX_HTML_DIR)
+	@(cd $(DOX_HTML_SRCDIR) && $(PROG_FIND) . -type f -exec $(INSTALL_DATA) {} $(DESTDIR)$(docdir)/manual/$(DOX_HTML_DIR) \;)
 uninstall-hook:
-	rm -rf $(DESTDIR)$(docdir)/manual/$(DOX_HTML_DIR)
+	@rm -rf $(DESTDIR)$(docdir)/manual/$(DOX_HTML_DIR)
 endif # STARPU_AVAILABLE_DOC
 if STARPU_AVAILABLE_DOC_PDF
 EXTRA_DIST += $(top_srcdir)/doc/$(DOX_MAIN_DIR)/$(DOX_PDF)

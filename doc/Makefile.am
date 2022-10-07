@@ -46,7 +46,9 @@ EXTRA_DIST =	\
 	tutorial/vector_scal_opencl.c \
 	tutorial/vector_scal_opencl_kernel.cl	\
 	tutorial/vector_scal_task_insert.c \
-	title.tex
+	title.tex \
+	sectionNumbering.py \
+	extractHeadline.sh
 
 txtdir = ${docdir}/tutorial
 txt_DATA = $(EXTRA_DIST)
