@@ -34,7 +34,9 @@
 #endif
 
 #ifdef STARPU_QUICK_CHECK
-/* Quick checks are supposed to be real quick, typically less than 1s each, sometimes 10s */
+/* Quick checks are supposed to be real quick, typically less than 1s each, sometimes 10s
+   add some extra times for tests which run with all schedulers
+*/
 #define  DEFAULT_TIMEOUT       100
 #elif !defined(STARPU_LONG_CHECK)
 /* Normal checks are supposed to be short enough, typically less than 10s each, sometimes 1-2m */
