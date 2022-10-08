@@ -52,3 +52,11 @@ EXTRA_DIST =	\
 
 txtdir = ${docdir}/tutorial
 txt_DATA = $(EXTRA_DIST)
+
+readmedir = ${docdir}/manual
+readme_DATA = README.org
+
+all:	README.org
+README.org:
+	$(top_srcdir)/doc/extractHeadline.sh
+

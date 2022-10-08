@@ -32,11 +32,9 @@ EXTRA_DIST += $(DOX_HTML_DIR)
 endif # STARPU_BUILD_DOC_PDF
 DOX_HTML_SRCDIR=$(DOX_HTML_DIR)
 install-exec-hook: $(DOX_HTML_DIR)
-	@$(top_srcdir)/doc/extractHeadline.sh $(DESTDIR)$(docdir)/manual/
 	@$(MKDIR_P) $(DESTDIR)$(docdir)/manual/$(DOX_HTML_DIR)
 	@(cd $(DOX_HTML_SRCDIR) && $(PROG_FIND) . -type f -exec $(INSTALL_DATA) {} $(DESTDIR)$(docdir)/manual/$(DOX_HTML_DIR) \;)
 uninstall-hook:
-	@rm -f $(DESTDIR)$(docdir)/manual/README
 	@rm -rf $(DESTDIR)$(docdir)/manual/$(DOX_HTML_DIR)
 else
 if STARPU_AVAILABLE_DOC
@@ -152,5 +150,3 @@ endif
 
 EXTRA_DIST += doxygen.cfg refman.tex \
 	      $(chapters) $(images)
-
-
