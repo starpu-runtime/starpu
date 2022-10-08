@@ -3,7 +3,7 @@
 root=$(dirname $0)
 
 (
-    for doc in doxygen_web_*
+    for doc in doxygen_web_introduction doxygen_web_installation doxygen_web_basics doxygen_web_performances doxygen_web_faq doxygen_web_languages doxygen_web_extensions
     do
 	x=$(echo $doc | sed 's/.*_web_//')
 
