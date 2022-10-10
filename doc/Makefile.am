@@ -57,7 +57,7 @@ readmedir = ${docdir}/manual
 readme_DATA = README.org
 
 all-local: README.org
-CLEANFILES: README.org
+DISTCLEANFILES = README.org
 README.org:
 	$(top_srcdir)/doc/extractHeadline.sh
 
