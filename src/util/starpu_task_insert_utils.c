@@ -77,12 +77,12 @@ void starpu_codelet_unpack_arg_init(struct starpu_codelet_pack_arg_data *state, 
 void starpu_codelet_unpack_arg(struct starpu_codelet_pack_arg_data *state, void *ptr, size_t size)
 {
 	size_t ptr_size;
-	STARPU_ASSERT_MSG(state->current_offset + sizeof(size) <= state->arg_buffer_size, "The unpack brings offset %ld beyond the buffer size (%ld)\n", state->current_offset, state->arg_buffer_size);
+	STARPU_ASSERT_MSG(state->current_offset + sizeof(size) <= state->arg_buffer_size, "The unpack brings offset %ld beyond the buffer size (%ld)\n", state->current_offset, (long)state->arg_buffer_size);
 	memcpy((void *)&ptr_size, state->arg_buffer+state->current_offset, sizeof(ptr_size));
 	STARPU_ASSERT_MSG(ptr_size==size, "The given size (%ld) is not the size of the next argument (%ld)\n", size, ptr_size);
 	state->current_offset += sizeof(size);
 
-	STARPU_ASSERT_MSG(state->current_offset + size <= state->arg_buffer_size, "The recorded size (%ld) brings beyond the buffer size (%ld)\n", size, state->arg_buffer_size);
+	STARPU_ASSERT_MSG(state->current_offset + size <= state->arg_buffer_size, "The recorded size (%ld) brings beyond the buffer size (%ld)\n", (long)size, (long)state->arg_buffer_size);
 	memcpy(ptr, state->arg_buffer+state->current_offset, ptr_size);
 	state->current_offset += size;
 
@@ -91,11 +91,11 @@ void starpu_codelet_unpack_arg(struct starpu_codelet_pack_arg_data *state, void 
 
 void starpu_codelet_dup_arg(struct starpu_codelet_pack_arg_data *state, void **ptr, size_t *size)
 {
-	STARPU_ASSERT_MSG(state->current_offset + sizeof(*size) <= state->arg_buffer_size, "The unpack brings offset %ld beyond the buffer size (%ld)\n", state->current_offset, state->arg_buffer_size);
+	STARPU_ASSERT_MSG(state->current_offset + sizeof(*size) <= state->arg_buffer_size, "The unpack brings offset %ld beyond the buffer size (%ld)\n", state->current_offset, (long)state->arg_buffer_size);
 	memcpy((void*)size, state->arg_buffer+state->current_offset, sizeof(*size));
 	state->current_offset += sizeof(*size);
 
-	STARPU_ASSERT_MSG(state->current_offset + *size <= state->arg_buffer_size, "The recorded size (%ld) brings beyond the buffer size (%ld)\n", *size, state->arg_buffer_size);
+	STARPU_ASSERT_MSG(state->current_offset + *size <= state->arg_buffer_size, "The recorded size (%ld) brings beyond the buffer size (%ld)\n", *size, (long)state->arg_buffer_size);
 	_STARPU_MALLOC(*ptr, *size);
 	memcpy(*ptr, state->arg_buffer+state->current_offset, *size);
 	state->current_offset += *size;
@@ -105,11 +105,11 @@ void starpu_codelet_dup_arg(struct starpu_codelet_pack_arg_data *state, void **p
 
 void starpu_codelet_pick_arg(struct starpu_codelet_pack_arg_data *state, void **ptr, size_t *size)
 {
-	STARPU_ASSERT_MSG(state->current_offset + sizeof(*size) <= state->arg_buffer_size, "The unpack brings offset %ld beyond the buffer size (%ld)\n", state->current_offset, state->arg_buffer_size);
+	STARPU_ASSERT_MSG(state->current_offset + sizeof(*size) <= state->arg_buffer_size, "The unpack brings offset %ld beyond the buffer size (%ld)\n", state->current_offset, (long)state->arg_buffer_size);
 	memcpy((void*)size, state->arg_buffer+state->current_offset, sizeof(*size));
 	state->current_offset += sizeof(*size);
 
-	STARPU_ASSERT_MSG(state->current_offset + *size <= state->arg_buffer_size, "The recorded size (%ld) brings beyond the buffer size (%ld)\n", *size, state->arg_buffer_size);
+	STARPU_ASSERT_MSG(state->current_offset + *size <= state->arg_buffer_size, "The recorded size (%ld) brings beyond the buffer size (%ld)\n", (long)(*size), (long)state->arg_buffer_size);
 	*ptr = state->arg_buffer+state->current_offset;
 	state->current_offset += *size;
 
@@ -120,7 +120,7 @@ void starpu_codelet_unpack_arg_fini(struct starpu_codelet_pack_arg_data *state)
 {
 	if (state->current_offset < state->arg_buffer_size)
 	{
-		_STARPU_MSG("Arguments still need to be unpacked from the starpu_codelet_pack_arg_data (offset %ld - buffer_size %ld)\n", state->current_offset, state->arg_buffer_size);
+		_STARPU_MSG("Arguments still need to be unpacked from the starpu_codelet_pack_arg_data (offset %ld - buffer_size %ld)\n", state->current_offset, (long)state->arg_buffer_size);
 	}
 }
 

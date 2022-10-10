@@ -63,7 +63,7 @@ void starpu_profiling_init_lib()
 	starpu_prof_tool_callbacks.starpu_prof_tool_event_user_end = &_starpu_prof_tool_event_dummy_func;
 }
 
-struct starpu_prof_tool_info _starpu_prof_tool_get_info(enum starpu_prof_tool_event event_type, int device_num, int workerid, enum starpu_prof_tool_driver_type driver, unsigned int memnode, void* fun_ptr)
+struct starpu_prof_tool_info _starpu_prof_tool_get_info(enum starpu_prof_tool_event event_type, int device_num, int workerid, enum starpu_prof_tool_driver_type driver, unsigned int memnode, void *fun_ptr)
 {
 	struct starpu_prof_tool_info ret;
 
@@ -200,7 +200,6 @@ static void init_prof_map()
 int _starpu_prof_tool_try_load()
 {
 #ifdef STARPU_PROF_TOOL
-	void *found;
 	init_prof_map();
 	starpu_profiling_init_lib();
 
@@ -208,6 +207,7 @@ int _starpu_prof_tool_try_load()
 	if (tool_libs != NULL)
 	{
 #ifdef HAVE_DLOPEN
+		void *found;
 		_STARPU_DEBUG("Loading profiling tool %s\n", tool_libs);
 
 		lib_handle = dlopen(tool_libs, RTLD_LAZY); // TODO best flag?

@@ -908,14 +908,22 @@ int _starpu_sink_unmap(uintptr_t map_addr, size_t length)
 #else
 char* _starpu_get_fdname_from_mapaddr(uintptr_t map_addr, size_t *offset, size_t length)
 {
+	(void)map_addr;
+	(void)offset;
+	(void)length;
 	return NULL;
 }
 void *_starpu_sink_map(char *fd_name, size_t offset, size_t length)
 {
+	(void)fd_name;
+	(void)offset;
+	(void)length;
 	return NULL;
 }
 int _starpu_sink_unmap(uintptr_t map_addr, size_t length)
 {
+	(void)map_addr;
+	(void)length;
 	return -1;
 }
 #endif

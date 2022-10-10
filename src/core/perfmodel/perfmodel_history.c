@@ -1458,6 +1458,7 @@ int starpu_perfmodel_list(FILE *output)
 		return 0;
 	}
 #else
+	(void)output;
 	_STARPU_MSG("Listing perfmodels is not implemented on pure Windows yet\n");
 	return 1;
 #endif
