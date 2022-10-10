@@ -307,6 +307,11 @@ unsigned starpu_worker_type_can_execute_task(enum starpu_worker_archtype worker_
 void starpu_worker_get_name(int id, char *dst, size_t maxlen);
 
 /**
+   Display on \p output the list (if any) of all workers.
+*/
+void starpu_worker_display_all(FILE *output);
+
+/**
    Display on \p output the list (if any) of all the workers of the
    given \p type.
 */
