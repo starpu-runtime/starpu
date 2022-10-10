@@ -29,7 +29,9 @@
 #define STARPU_NB_CALLBACKS   17
 struct _starpu_prof_tool_callbacks starpu_prof_tool_callbacks;
 starpu_prof_tool_cb_func *_starpu_prof_tool_callback_map[STARPU_NB_CALLBACKS];
+#ifdef HAVE_DLOPEN
 static void *lib_handle=NULL;
+#endif
 
 /**
    Dummy implementations of the callbacks
