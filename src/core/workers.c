@@ -2935,12 +2935,12 @@ void starpu_worker_display_names(FILE *output, enum starpu_worker_archtype type)
 
 void starpu_worker_display_all(FILE *output)
 {
-	starpu_worker_display_names(stdout, STARPU_CPU_WORKER);
-	starpu_worker_display_names(stdout, STARPU_CUDA_WORKER);
-	starpu_worker_display_names(stdout, STARPU_OPENCL_WORKER);
-	starpu_worker_display_names(stdout, STARPU_HIP_WORKER);
-	starpu_worker_display_names(stdout, STARPU_MPI_MS_WORKER);
-	starpu_worker_display_names(stdout, STARPU_TCPIP_MS_WORKER);
+	starpu_worker_display_names(output, STARPU_CPU_WORKER);
+	starpu_worker_display_names(output, STARPU_CUDA_WORKER);
+	starpu_worker_display_names(output, STARPU_OPENCL_WORKER);
+	starpu_worker_display_names(output, STARPU_HIP_WORKER);
+	starpu_worker_display_names(output, STARPU_MPI_MS_WORKER);
+	starpu_worker_display_names(output, STARPU_TCPIP_MS_WORKER);
 }
 
 void _starpu_worker_refuse_task(struct _starpu_worker *worker, struct starpu_task *task)
