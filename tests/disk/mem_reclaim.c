@@ -184,6 +184,7 @@ int dotest(struct starpu_disk_ops *ops, char *base, void (*vector_data_register)
 	{
 		vector_data_register(&handles[i], -1, 0, (MEMSIZE*1024*1024*2) / NDATA, sizeof(char));
 		ret = starpu_task_insert(&zero_cl, STARPU_W, handles[i], 0);
+		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	}
 	memset(values, 0, sizeof(values));
@@ -193,6 +194,7 @@ int dotest(struct starpu_disk_ops *ops, char *base, void (*vector_data_register)
 	{
 		j = rand()%NDATA;
 		ret = starpu_task_insert(&inc_cl, STARPU_RW, handles[j], STARPU_VALUE, &j, sizeof(j), 0);
+		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	}
 	starpu_task_wait_for_all();
@@ -209,6 +211,7 @@ int dotest(struct starpu_disk_ops *ops, char *base, void (*vector_data_register)
 	{
 		j = rand()%NDATA;
 		ret = starpu_task_insert(&inc_cl, STARPU_RW, handles[j], STARPU_VALUE, &j, sizeof(j), 0);
+		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	}
 
@@ -216,6 +219,7 @@ int dotest(struct starpu_disk_ops *ops, char *base, void (*vector_data_register)
 	for (i = 0; i < NDATA; i++)
 	{
 		ret = starpu_task_insert(&check_cl, STARPU_R, handles[i], STARPU_VALUE, &i, sizeof(i), 0);
+		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 		starpu_data_unregister(handles[i]);
 	}
@@ -227,15 +231,15 @@ int dotest(struct starpu_disk_ops *ops, char *base, void (*vector_data_register)
 
 enoent:
 	FPRINTF(stderr, "Couldn't write data: ENOENT\n");
-	starpu_shutdown();
 enodev:
+	starpu_shutdown();
 	return STARPU_TEST_SKIPPED;
 }
 
 static int merge_result(int old, int new)
 {
-	if (new == EXIT_FAILURE)
-		return EXIT_FAILURE;
+	if (new == EXIT_FAILURE || new == STARPU_TEST_SKIPPED)
+		return new;
 	if (old == 0)
 		return 0;
 	return new;
@@ -268,14 +272,21 @@ int main(void)
 	starpu_interface_my_vector_ops.copy_methods = &my_vector_copy_data_methods_s;
 
 	ret = merge_result(ret, dotest(&starpu_disk_stdio_ops, s, starpu_vector_data_register, "Stdio with read/write vector ops"));
+	if (ret == STARPU_TEST_SKIPPED) goto skipped;
 	ret = merge_result(ret, dotest(&starpu_disk_stdio_ops, s, starpu_my_vector_data_register, "Stdio with pack/unpack vector ops"));
+	if (ret == STARPU_TEST_SKIPPED) goto skipped;
 	ret = merge_result(ret, dotest(&starpu_disk_unistd_ops, s, starpu_vector_data_register, "unistd with read/write vector ops"));
+	if (ret == STARPU_TEST_SKIPPED) goto skipped;
 	ret = merge_result(ret, dotest(&starpu_disk_unistd_ops, s, starpu_my_vector_data_register, "unistd with pack/unpack vector ops"));
+	if (ret == STARPU_TEST_SKIPPED) goto skipped;
 #ifdef STARPU_LINUX_SYS
 	ret = merge_result(ret, dotest(&starpu_disk_unistd_o_direct_ops, s, starpu_vector_data_register, "unistd_direct with read/write vector ops"));
+	if (ret == STARPU_TEST_SKIPPED) goto skipped;
 	ret = merge_result(ret, dotest(&starpu_disk_unistd_o_direct_ops, s, starpu_my_vector_data_register, "unistd_direct with pack/unpack vector ops"));
+	if (ret == STARPU_TEST_SKIPPED) goto skipped;
 #endif
 
+skipped:
 	ret2 = rmdir(s);
 	STARPU_CHECK_RETURN_VALUE(ret2, "rmdir '%s'\n", s);
 
