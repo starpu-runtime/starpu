@@ -14,9 +14,9 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/*! \intropage{IntroExtensions, --- StarPU Extensions ---}
+/*! \intropage{IntroExtensions, --------- StarPU Extensions ---------}
 
-This part explains the advanced concepts of StarPU. It is intended for users who have applications which not only need basic task submission.
+This part explains the advanced concepts of StarPU. It is intended for users whose applications need more than basic task submission.
 
 <ul>
 <li> Tools to help debugging applications are presented in Chapter \ref DebuggingTools.

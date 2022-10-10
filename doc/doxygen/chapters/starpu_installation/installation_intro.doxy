@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/*! \intropage{IntroInstallation, --- StarPU Installation ---}
+/*! \intropage{IntroInstallation, --------- StarPU Installation ---------}
 
 This parts shows a basic usage of StarPU and how to execute the provided examples or your own applications.
 

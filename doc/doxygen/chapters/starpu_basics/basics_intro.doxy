@@ -14,9 +14,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/*! \intropage{IntroBasics, --- StarPU Basics ---}
+/*! \intropage{IntroBasics, --------- StarPU Basics ---------}
 
-This part presents the basic knowledge of StarPU. It should be read to understand how StarPU works and to know how to execute a basic StarPU application.
+This part presents the basic knowledge of StarPU. It should be read to understand how StarPU works and how to execute a basic StarPU application.
+
 <ul>
 <li> You can learn how to create and run your own StarPU applications after reading Chapter \ref StarPUApplications.
 <li> We also explain to you how to implement simple programs that submit tasks to StarPU in Chapter \ref BasicExamples and some complex programs in Chapter \ref AdvancedExamples.

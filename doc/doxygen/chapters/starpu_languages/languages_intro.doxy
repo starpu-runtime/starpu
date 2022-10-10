@@ -14,9 +14,9 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/*! \intropage{IntroLanguage, --- StarPU Language Bindings ---}
+/*! \intropage{IntroLanguage, --------- StarPU Language Bindings ---------}
 
-This part shows how StarPU which is natively written in C, has been extended to allow applications written in other languaged to use it.
+This part shows how StarPU which is natively written in C, has been extended to allow applications written in other languages to use it.
 
 <ul>
 <li> You can learn to natively access most of StarPU functionalities from Fortran 2008+ codes with some explanations and examples in Chapter \ref NativeFortranSupport.
