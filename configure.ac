@@ -4137,6 +4137,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
     tools/starpu_mlr_analysis.Rmd \
     tools/starpu_paje_summary.Rmd \
     tools/starpu_trace_state_stats.py \
+    tools/starpu_tcpipexec \
     julia/examples/check_deps/check_deps.sh \
     julia/examples/mult/mult_starpu.sh \
     julia/examples/mult/perf.sh \

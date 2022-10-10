@@ -16,6 +16,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 NP=""
+EXECUTE=""
 while true; do
 	case "$1" in
 		"-np")
@@ -34,6 +35,10 @@ while true; do
 			export STARPU_TCPIP_USE_LOCAL_SOCKET=0
 			shift
 			;;
+		"-ex")
+			EXECUTE="$2"
+			shift 2
+			;;
 		*)
 			break
 			;;
@@ -44,13 +49,13 @@ trap 'kill -INT $CHILDPIDS' INT
 trap 'kill -QUIT $CHILDPIDS' QUIT
 
 #echo "STARPU_TCPIP_MS_SLAVES=$NP $@"
-STARPU_TCPIP_MS_SLAVES=$NP "$@" &
+STARPU_TCPIP_MS_SLAVES=$NP $EXECUTE "$@" &
 CHILDPIDS="$!"
 
 sleep 1
 for i in $(seq 1 $NP):
 do
-	STARPU_TCPIP_MS_SLAVES=$NP STARPU_TCPIP_MS_MASTER="127.0.0.1" "$@" &
+	STARPU_TCPIP_MS_SLAVES=$NP STARPU_TCPIP_MS_MASTER="127.0.0.1" $EXECUTE "$@" &
 	CHILDPIDS="$CHILDPIDS $!"
 done
 wait %1
