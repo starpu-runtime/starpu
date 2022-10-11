@@ -1794,6 +1794,10 @@ if test x$enable_hip != xno; then
 	fi
 fi
 
+if test "$HIP_PLATFORM" = "amd"; then
+   AC_SEARCH_LIBS([hipMemGetInfo],[amdhip64],,have_valid_hip=no)
+fi
+
 if test x$have_valid_hip = xyes; then
     SAVED_CPPFLAGS="$CPPFLAGS"
     CPPFLAGS="${CPPFLAGS} $STARPU_HIP_CPPFLAGS"
