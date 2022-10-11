@@ -169,7 +169,7 @@ int dotest(struct starpu_disk_ops *ops, char *base, void (*vector_data_register)
 	conf.nmpi_ms = -1;
 	conf.ntcpip_ms = -1;
 	ret = starpu_init(&conf);
-	if (ret == -ENODEV) goto enodev;
+	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 
 	/* Initialize path and name */
 	/* register swap disk */
