@@ -23,28 +23,18 @@
 #include <starpu_mpi_datatype.h>
 #include <nm_sendrecv_interface.h>
 #include <nm_mpi_nmad.h>
+#include "starpu_mpi_nmad.h"
 #include "starpu_mpi_nmad_backend.h"
 #include "starpu_mpi_nmad_unknown_datatype.h"
 
-extern void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req);
-extern void _starpu_mpi_handle_pending_request(struct _starpu_mpi_req *req);
 
 
 /**********************************************
 * Send
 **********************************************/
-
-void _starpu_mpi_isend_unknown_datatype(struct _starpu_mpi_req *req)
+void _starpu_mpi_isend_prepare_unknown_datatype(struct _starpu_mpi_req* req, struct nm_data_s* data)
 {
-	_STARPU_MPI_LOG_IN();
-
 	STARPU_ASSERT_MSG(req->registered_datatype != 1, "Datatype is registered, no need to send it through this way !");
-
-	_STARPU_MPI_DEBUG(30, "post NM isend (unknown datatype) request %p type %s tag %ld src %d data %p datasize %ld ptr %p datatype '%s' count %d registered_datatype %d sync %d\n", req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.node.rank, req->data_handle, starpu_data_get_size(req->data_handle), req->ptr, req->datatype_name, (int)req->count, req->registered_datatype, req->sync);
-
-	_starpu_mpi_comm_amounts_inc(req->node_tag.node.comm, req->node_tag.node.rank, req->datatype, req->count);
-
-	_STARPU_MPI_TRACE_ISEND_SUBMIT_BEGIN(req->node_tag.node.rank, req->node_tag.data_tag, 0);
 
 	starpu_data_pack_node(req->data_handle, req->node, &req->ptr, &req->count);
 
@@ -52,7 +42,20 @@ void _starpu_mpi_isend_unknown_datatype(struct _starpu_mpi_req *req)
 	req->backend->unknown_datatype_v[0].iov_len = sizeof(starpu_ssize_t);
 	req->backend->unknown_datatype_v[1].iov_base = req->ptr;
 	req->backend->unknown_datatype_v[1].iov_len = req->count;
-	nm_data_iov_build(&req->backend->unknown_datatype_data, req->backend->unknown_datatype_v, 2);
+	nm_data_iov_build(data, req->backend->unknown_datatype_v, 2);
+}
+
+void _starpu_mpi_isend_unknown_datatype(struct _starpu_mpi_req *req)
+{
+	_STARPU_MPI_LOG_IN();
+
+	_STARPU_MPI_DEBUG(30, "post NM isend (unknown datatype) request %p type %s tag %ld src %d data %p datasize %ld ptr %p datatype '%s' count %d registered_datatype %d sync %d\n", req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.node.rank, req->data_handle, starpu_data_get_size(req->data_handle), req->ptr, req->datatype_name, (int)req->count, req->registered_datatype, req->sync);
+
+	_starpu_mpi_comm_amounts_inc(req->node_tag.node.comm, req->node_tag.node.rank, req->datatype, req->count);
+
+	_STARPU_MPI_TRACE_ISEND_SUBMIT_BEGIN(req->node_tag.node.rank, req->node_tag.data_tag, 0);
+
+	_starpu_mpi_isend_prepare_unknown_datatype(req, &req->backend->unknown_datatype_data);
 
 	nm_sr_send_init(req->backend->session, &req->backend->data_request);
 	nm_sr_send_pack_data(req->backend->session, &req->backend->data_request, &req->backend->unknown_datatype_data);
@@ -88,6 +91,10 @@ static void _starpu_mpi_unknown_datatype_recv_callback(nm_sr_event_t event, cons
 	STARPU_ASSERT_MSG(!((event & NM_SR_EVENT_FINALIZED) && (event & NM_SR_EVENT_RECV_DATA)), "Both events can't be triggered at the same time !");
 
 	struct _starpu_mpi_req* req = (struct _starpu_mpi_req*) ref;
+	assert(req->request_type == RECV_REQ);
+	assert(req->registered_datatype != 1);
+
+	req->backend->posted = 1; // a network event was triggered for this request, so it was really posted
 
 	if (event & NM_SR_EVENT_RECV_DATA)
 	{
@@ -115,6 +122,10 @@ static void _starpu_mpi_unknown_datatype_recv_callback(nm_sr_event_t event, cons
 	{
 		_starpu_mpi_handle_request_termination(req);
 	}
+	else if (event & NM_SR_EVENT_RECV_COMPLETED && !_starpu_mpi_recv_wait_finalize && req->sequential_consistency && starpu_data_get_interface_ops(req->data_handle)->peek_data)
+	{
+		_starpu_mpi_handle_received_data(req);
+	}
 }
 
 void _starpu_mpi_irecv_unknown_datatype(struct _starpu_mpi_req *req)
@@ -132,8 +143,9 @@ void _starpu_mpi_irecv_unknown_datatype(struct _starpu_mpi_req *req)
 	 * in _starpu_mpi_unknown_datatype_recv_callback() */
 	nm_sr_recv_init(req->backend->session, &req->backend->data_request);
 	nm_sr_request_set_ref(&req->backend->data_request, req);
-	nm_sr_request_monitor(req->backend->session, &req->backend->data_request, NM_SR_EVENT_FINALIZED | NM_SR_EVENT_RECV_DATA,
-				&_starpu_mpi_unknown_datatype_recv_callback);
+	nm_sr_request_monitor(req->backend->session, &req->backend->data_request,
+						  NM_SR_EVENT_FINALIZED | NM_SR_EVENT_RECV_DATA | NM_SR_EVENT_RECV_COMPLETED,
+						  &_starpu_mpi_unknown_datatype_recv_callback);
 	nm_sr_recv_irecv(req->backend->session, &req->backend->data_request, req->backend->gate, req->node_tag.data_tag, NM_TAG_MASK_FULL);
 
 	_STARPU_MPI_TRACE_IRECV_SUBMIT_END(req->node_tag.node.rank, req->node_tag.data_tag);

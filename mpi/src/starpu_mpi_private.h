@@ -70,6 +70,7 @@ extern int _starpu_mpi_nobind;
 extern int _starpu_mpi_thread_cpuid;
 extern int _starpu_mpi_use_coop_sends;
 extern int _starpu_mpi_mem_throttle;
+extern int _starpu_mpi_recv_wait_finalize;
 extern int _starpu_mpi_has_cuda;
 void _starpu_mpi_env_init(void);
 
@@ -227,6 +228,9 @@ struct _starpu_mpi_data
 	struct _starpu_spinlock coop_lock;
 	/** Current cooperative send bag */
 	struct _starpu_mpi_coop_sends *coop_sends;
+
+	/** When provided, wait the given number of sends to start a coop, instead of just waiting that data are ready */
+	unsigned nb_future_sends;
 };
 
 struct _starpu_mpi_data *_starpu_mpi_data_get(starpu_data_handle_t data_handle);
@@ -298,6 +302,8 @@ void _starpu_mpi_req_willpost(struct _starpu_mpi_req *req);
 void _starpu_mpi_submit_ready_request(void *arg);
 /** To be called when request is completed */
 void _starpu_mpi_release_req_data(struct _starpu_mpi_req *req);
+
+void _starpu_mpi_isend_irecv_common(struct _starpu_mpi_req *req, enum starpu_data_access_mode mode, int sequential_consistency);
 
 #if 0
 /** Build a communication tree. Called before _starpu_mpi_coop_send is ever called. coop_sends->lock is held. */

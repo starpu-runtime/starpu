@@ -53,6 +53,11 @@ void _starpu_mpi_nmad_backend_request_init(struct _starpu_mpi_req *req)
 	_STARPU_MPI_CALLOC(req->backend, 1, sizeof(struct _starpu_mpi_req_backend));
 	piom_cond_init(&req->backend->req_cond, 0);
 	req->backend->data_request = NM_SR_REQUEST_NULL;
+	req->backend->posted = 0;
+	req->backend->has_received_data = 0;
+	req->backend->finalized = 0;
+	req->backend->to_destroy = 0;
+	_starpu_spin_init(&req->backend->finalized_to_destroy_lock);
 }
 
 void _starpu_mpi_nmad_backend_request_fill(struct _starpu_mpi_req *req, MPI_Comm comm, int is_internal_req STARPU_ATTRIBUTE_UNUSED)
@@ -64,6 +69,7 @@ void _starpu_mpi_nmad_backend_request_fill(struct _starpu_mpi_req *req, MPI_Comm
 void _starpu_mpi_nmad_backend_request_destroy(struct _starpu_mpi_req *req)
 {
 	piom_cond_destroy(&(req->backend->req_cond));
+	_starpu_spin_destroy(&req->backend->finalized_to_destroy_lock);
 	free(req->backend);
 }
 

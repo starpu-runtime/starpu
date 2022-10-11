@@ -31,6 +31,7 @@ int _starpu_mpi_fake_world_size = -1;
 int _starpu_mpi_fake_world_rank = -1;
 int _starpu_mpi_use_coop_sends = 1;
 int _starpu_mpi_mem_throttle = 0;
+int _starpu_mpi_recv_wait_finalize = 0;
 
 void _starpu_mpi_set_debug_level_min(int level)
 {
@@ -72,6 +73,7 @@ void _starpu_mpi_env_init(void)
 	_starpu_mpi_mem_throttle = starpu_get_env_number_default("STARPU_MPI_MEM_THROTTLE", 0);
 	_starpu_debug_level_min = starpu_get_env_number_default("STARPU_MPI_DEBUG_LEVEL_MIN", 0);
 	_starpu_debug_level_max = starpu_get_env_number_default("STARPU_MPI_DEBUG_LEVEL_MAX", 0);
+	_starpu_mpi_recv_wait_finalize = starpu_get_env_number_default("STARPU_MPI_RECV_WAIT_FINALIZE", _starpu_mpi_recv_wait_finalize);
 
 	int mpi_thread_coreid = starpu_get_env_number_default("STARPU_MPI_THREAD_COREID", -1);
 	if (_starpu_mpi_thread_cpuid >= 0 && mpi_thread_coreid >= 0)

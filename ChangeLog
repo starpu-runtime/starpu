@@ -55,6 +55,11 @@ New features:
     starpu_mpi_interface_datatype_node_register which will be needed for
     MPI/NUMA/GPUDirect.
   * Add peek_data interface method.
+  * Add support of dynamic broadcasts when StarPU-MPI is used with
+    NewMadeleine.
+  * New STARPU_MPI_RECV_WAIT_FINALIZE environment variable to wait
+    communication library completely releases the handle to unlock tasks
+    (instead of just releasing the write lock). Only for NewMadeleine.
   * Add STARPU_MPI_REDUX
   * New StarPU Java Bindings
   * Add starpu_data_query_status2 function.

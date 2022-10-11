@@ -13,9 +13,10 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
+
 /*
  * Basic broadcast benchmark with synchronized clocks.
- * Inspired a lot from NewMadeleine examples/mcast/nm_mcast_bench.c
+ * Inspired a lot from NewMadeleine examples/bench-coll/nm_bench_coll_mcast.c
  *
  * Synchronized clocks (mpi_sync_clocks) are available here:
  * https://gitlab.inria.fr/pm2/pm2/-/tree/master/mpi_sync_clocks
@@ -29,220 +30,141 @@
 
 #define SERVER_PRINTF(fmt, ...) do { if(rank == 0) { printf(fmt, ## __VA_ARGS__); fflush(stdout); }} while(0)
 
-typedef void (*algorithm_t)(int nb_dest_nodes, starpu_data_handle_t handle, int nb_nodes_id, int size_id, int bench_id);
-
-static void dummy_loop(int nb_dest_nodes, starpu_data_handle_t handle, int nb_nodes_id, int size_id, int bench_id);
-
-static algorithm_t algorithms[] = { dummy_loop };
-
-#undef NX_MAX
-#undef NX_MIN
-
-#define NX_MIN 1
+#undef MULT_DEFAULT
+#undef LOOPS_DEFAULT
 
 #ifdef STARPU_QUICK_CHECK
-#define NB_BENCH 2
-#define NX_MAX 100 // kB
+#define MIN_DEFAULT   1
+#define MAX_DEFAULT   1024
+#define LOOPS_DEFAULT 2
+#define INCR_DEFAULT  2
+#define MULT_DEFAULT  2
 #else
-#define NB_BENCH 10
-#define NX_MAX 240196 // kB
+#define MIN_DEFAULT   1
+#define MAX_DEFAULT   (16*1024*1024)
+#define LOOPS_DEFAULT 50
+#define INCR_DEFAULT  1
+#define MULT_DEFAULT  1.4
 #endif
 
-#define NX_STEP 1.4 // multiplication
-#define NB_NODES_STEP 2 // addition
-#define NB_NODES_START 3
-#define NB_METHODS (sizeof(algorithms)/sizeof(algorithm_t))
+#define NODE_INCREMENT 1
 
-struct statistics
+static starpu_data_handle_t data_handle, data_handle_in, data_handle_out;
+static int use_tasks = 0;
+
+static void writer_cpu_func(void *descr[], void *args)
 {
-	double min;
-	double med;
-	double avg;
-	double max;
+	(void) descr;
+	(void) args;
+}
+
+static struct starpu_codelet writer_cl =
+{
+	.cpu_funcs = { writer_cpu_func },
+	.cpu_funcs_name = { "writer_task" },
+	.nbuffers = 1,
+	.modes = { STARPU_W }
 };
 
-static int times_nb_nodes;
-static int times_size;
-static int worldsize;
-static int rank;
-static double* times;
-static mpi_sync_clocks_t clocks;
-
-static const starpu_mpi_tag_t data_tag = 0x12;
-static const starpu_mpi_tag_t time_tag = 0x13;
-
-static double find_max(double* array, int size)
+static void reader_cpu_func(void* descr[], void* args)
 {
-	double t_max = mpi_sync_clocks_remote_to_global(clocks, 1, array[0]);
-	double t_value;
-	int i;
+	(void) descr;
+	(void) args;
+}
 
-	for (i = 1; i < size; i++)
+static struct starpu_codelet reader_cl =
+{
+	.cpu_funcs = { reader_cpu_func },
+	.cpu_funcs_name = { "reader_task" },
+	.nbuffers = 2,
+	.modes = { STARPU_R, STARPU_W }
+};
+
+static void usage(void)
+{
+	fprintf(stderr, "-N iterations - iterations per length [%d]\n", LOOPS_DEFAULT);
+	fprintf(stderr, "--tasks - triggers coop through task dependency instead of StarPU's MPI interface\n");
+	fprintf(stderr, "-P incr - number of nodes increment [%d]\n", NODE_INCREMENT);
+}
+
+static inline uint64_t _next(uint64_t len, double multiplier, uint64_t increment)
+{
+	uint64_t next = len * multiplier + increment;
+	if (next <= len)
+		next++;
+	return next;
+}
+
+static void bcast(MPI_Comm subcomm, int rank, int nb_dests)
+{
+	int i = 0, ret;
+
+	if (use_tasks)
 	{
-		t_value = mpi_sync_clocks_remote_to_global(clocks, i+1, array[i]);
-		if (t_value > t_max)
+		starpu_mpi_task_insert(subcomm, &writer_cl, STARPU_W, data_handle_in, 0);
+		for (i = 1; i <= nb_dests; i++)
 		{
-			t_max = t_value;
+			starpu_mpi_data_register(data_handle_out, i, i);
+			starpu_mpi_task_insert(subcomm, &reader_cl, STARPU_R, data_handle_in, STARPU_W, data_handle_out, 0);
 		}
+		/* Resume StarPU's workers only after submitting tasks, to make
+		 * sure the coop will be correctly detected. */
+		starpu_resume();
+		starpu_task_wait_for_all();
+
+		starpu_pause();
 	}
-
-	return t_max;
-}
-
-static struct statistics compute_statistics(double* array, int size)
-{
-	struct statistics stat;
-	int i;
-
-	qsort(array, size, sizeof(double), &comp_double);
-
-	double avg = 0;
-	for (i = 0; i < size; i++)
+	else
 	{
-		avg += array[i];
-	}
-	stat.avg = avg / size;
-
-	stat.min = array[0];
-	stat.med = array[(int) floor(size / 2)];
-	stat.max = array[size - 1];
-
-	return stat;
-}
-
-static int time_index(int size, int bench, int node)
-{
-	assert(size < times_size);
-	assert(bench < NB_BENCH);
-	assert(node < worldsize);
-
-	// Warning: if bench < 0 (warmup case), this function returns a result, the user has to check if it makes sense.
-	return size * (NB_BENCH * (worldsize + 1)) + bench * (worldsize + 1) + node;
-}
-
-static void dummy_loop(int nb_dest_nodes, starpu_data_handle_t data_handle, int nb_nodes_id, int size_id, int bench_id)
-{
-	double t_end = 0.0;
-	int i, ret;
-	starpu_data_handle_t time_handle;
-
-	if (rank == 0)
-	{
-		int t_index = time_index(size_id, bench_id, 0);
-		if (bench_id >= 0)
+		if (rank == 0)
 		{
-			times[t_index] = mpi_sync_clocks_get_time_usec(clocks);
-		}
-
-		starpu_mpi_req* reqs = malloc(nb_dest_nodes*sizeof(starpu_mpi_req));
-
-		for (i = 1; i <= nb_dest_nodes; i++)
-		{
-			ret = starpu_mpi_isend(data_handle, &reqs[i-1], i, data_tag, MPI_COMM_WORLD);
-			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend");
-		}
-
-		for (i = 0; i < nb_dest_nodes; i++)
-		{
-			ret = starpu_mpi_wait(&reqs[i], MPI_STATUS_IGNORE);
-			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_wait");
-		}
-
-		for (i = 1; i <= nb_dest_nodes; i++)
-		{
-			starpu_variable_data_register(&time_handle, STARPU_MAIN_RAM, (uintptr_t) &t_end, sizeof(double));
-			ret = starpu_mpi_recv(time_handle, i, time_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
-			starpu_data_unregister(time_handle);
-
-			if (bench_id >= 0)
+			/* We explicitely tell StarPU this send will be a broadcast with n recipients. */
+			starpu_mpi_coop_sends_data_handle_nb_sends(data_handle, nb_dests);
+			for (i = 1; i <= nb_dests; i++)
 			{
-				times[t_index+i] = t_end;
+				ret = starpu_mpi_isend_detached(data_handle, i , 0x42, subcomm, NULL, NULL);
+				STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend_detached");
 			}
-		}
-
-		free(reqs);
-	}
-	else // not server
-	{
-		ret = starpu_mpi_recv(data_handle, 0, data_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
-		t_end = mpi_sync_clocks_get_time_usec(clocks);
-
-		starpu_variable_data_register(&time_handle, STARPU_MAIN_RAM, (uintptr_t) &t_end, sizeof(double));
-		ret = starpu_mpi_send(time_handle, 0, time_tag, MPI_COMM_WORLD);
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
-		starpu_data_unregister(time_handle);
-	}
-}
-
-static void compute_display_times(const int method, const int nb_nodes_id, const int nb_dest_nodes)
-{
-	int size_id = 0;
-	double times_bench[NB_BENCH];
-	int s, b;
-
-	SERVER_PRINTF("Computing clock offsets... ");
-
-	mpi_sync_clocks_synchronize(clocks);
-
-	if (rank == 0)
-	{
-		printf("done\n");
-
-		/* Computing times */
-		for (s = NX_MIN; s < NX_MAX; s = (s * NX_STEP) + 1)
-		{
-			for (b = 0; b < NB_BENCH; b++)
-			{
-				double t_begin = times[time_index(size_id, b, 0)];
-				double t_end = find_max(times + time_index(size_id, b, 1), nb_dest_nodes);
-				assert(t_begin < t_end);
-				times_bench[b] = t_end - t_begin;
-			}
-
-			struct statistics stat_main_task = compute_statistics(times_bench, NB_BENCH);
-			printf("   %d    |   %3d  \t| %5d\t\t| ", method, nb_dest_nodes+1, s);
-			printf("%10.3lf\t%10.3lf\t%10.3lf\t%10.3lf\n", stat_main_task.min, stat_main_task.med, stat_main_task.avg, stat_main_task.max);
-			fflush(stdout);
-
-			size_id++;
-		}
-	}
-}
-
-static inline void man()
-{
-	fprintf(stderr, "Options:\n");
-	fprintf(stderr, "\t-h --help   display this help\n");
-	fprintf(stderr, "\t-p          pause workers during benchmark\n");
-	exit(EXIT_SUCCESS);
-}
-
-int main(int argc, char **argv)
-{
-	int pause_workers = 0;
-	int nb_nodes_id;
-	int size_id;
-	int thread_support;
-	int ret, method, nb_dest_nodes, s, b, i, array_size;
-	starpu_data_handle_t data_handle;
-	float* msg;
-
-	for (i = 1; i < argc; i++)
-	{
-		if (strcmp(argv[i], "-p") == 0)
-		{
-			pause_workers = 1;
-		}
-		else if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
-		{
-			man();
 		}
 		else
 		{
-			fprintf(stderr,"Unrecognized option %s\n", argv[i]);
-			man();
+			ret = starpu_mpi_recv(data_handle, 0, 0x42, subcomm, MPI_STATUS_IGNORE);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
+		}
+	}
+}
+
+
+int main(int argc, char**argv)
+{
+	const uint64_t start_len  = MIN_DEFAULT;
+	const uint64_t end_len    = MAX_DEFAULT;
+	const double   multiplier = MULT_DEFAULT;
+	const uint64_t increment  = INCR_DEFAULT;
+	int iterations            = LOOPS_DEFAULT;
+	int node_increment        = NODE_INCREMENT;
+	int i, ret, rank, worldsize, subcomm_rank, thread_support;
+	MPI_Group world_group;
+
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-N") == 0)
+		{
+			iterations = atoi(argv[++i]);
+		}
+		else if (strcmp(argv[i], "--tasks") == 0)
+		{
+			use_tasks = 1;
+		}
+		else if (strcmp(argv[i], "-P") == 0)
+		{
+			node_increment = atoi(argv[++i]);
+		}
+		else
+		{
+			fprintf(stderr, "%s: illegal argument %s\n", argv[0], argv[i]);
+			usage();
+			exit(1);
 		}
 	}
 
@@ -267,93 +189,162 @@ int main(int argc, char **argv)
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &worldsize);
 
-	if (worldsize < 4)
+	if (worldsize < 2)
 	{
 		if (rank == 0)
-			FPRINTF(stderr, "We need at least 4 processes.\n");
+			FPRINTF(stderr, "We need at least 2 processes.\n");
 
 		starpu_mpi_shutdown();
 
 		return STARPU_TEST_SKIPPED;
 	}
 
-	if (pause_workers)
+	MPI_Comm_group(MPI_COMM_WORLD, &world_group);
+
+	/* Pause workers for this bench, to avoid any impact on performances from polling workers */
+	starpu_pause();
+
+	starpu_mpi_barrier(MPI_COMM_WORLD);
+
+	SERVER_PRINTF("# start_len  = %lu B\n", start_len);
+	SERVER_PRINTF("# end_len    = %lu B\n", end_len);
+	SERVER_PRINTF("# increment  = %lu\n", increment);
+	SERVER_PRINTF("# multiplier = %f\n", multiplier);
+	SERVER_PRINTF("# iterations = %d\n", iterations);
+	SERVER_PRINTF("# coop       = %s\n", starpu_mpi_coop_sends_get_use() ? "on" : "off");
+	SERVER_PRINTF("# n.nodes  length        n.iter     min.lat.          median         average        max.lat. \n");
+
+	int nb_nodes;
+	for (nb_nodes = 2; nb_nodes <= worldsize; nb_nodes += node_increment)
 	{
-		SERVER_PRINTF("Workers will be paused during benchmark.\n");
-		/* Pause workers for this bench: all workers polling for tasks has a strong impact on performances */
-		starpu_pause();
-	}
+		SERVER_PRINTF("# starting %d nb_nodes...\n", nb_nodes);
 
-	times_nb_nodes = ((worldsize - NB_NODES_START) / NB_NODES_STEP) + 1;
-	times_size = (int) (logf((float) NX_MAX / (float) NX_MIN) / logf(NX_STEP)) + 1;
-	assert(times_size > 0);
-
-	times = malloc(times_size * NB_BENCH * (worldsize + 1) * sizeof(double));
-
-	SERVER_PRINTF("#0: dummy loop\n");
-	SERVER_PRINTF("        |  Nodes  \t|          \t| \tMain task lasted (us):\n");
-	SERVER_PRINTF("  Algo  | in comm \t| Size (KB)\t| min\tmed\tavg\tmax\n");
-	SERVER_PRINTF("-----------------------------------------------------------------------\n");
-
-	for (method = 0; method < NB_METHODS; method++)
-	{
-		nb_nodes_id = 0;
-
-		for (nb_dest_nodes = NB_NODES_START; nb_dest_nodes < worldsize; nb_dest_nodes += NB_NODES_STEP)
+		if (rank >= nb_nodes)
 		{
-			starpu_mpi_barrier(MPI_COMM_WORLD);
+			continue;
+		}
 
-			SERVER_PRINTF("Starting global clock... ");
-			clocks = mpi_sync_clocks_init(MPI_COMM_WORLD);
-			SERVER_PRINTF("done\n");
+		int* group_ranks = malloc(nb_nodes * sizeof(int));
+		for (i = 0; i < nb_nodes; i++)
+		{
+			group_ranks[i] = i;
+		}
 
-			size_id = 0;
+		MPI_Group sub_group;
+		MPI_Group_incl(world_group, nb_nodes, group_ranks, &sub_group);
 
-			for (s = NX_MIN; s < NX_MAX; s = (s * NX_STEP) + 1)
+		MPI_Comm sub_comm;
+		MPI_Comm_create_group(MPI_COMM_WORLD, sub_group, 0, &sub_comm);
+
+		MPI_Comm_rank(sub_comm, &subcomm_rank);
+
+		uint64_t len;
+		for (len = start_len; len < end_len; len = _next(len, multiplier, increment))
+		{
+			char* buf1 = malloc(len);
+			char* buf2 = malloc(len);
+			/* Precise the buffer where the data will be received, to take benefit from the rcache. */
+			if (use_tasks)
 			{
-				SERVER_PRINTF("   %d    |   %3d  \t| %5d\t\t| ", method, nb_dest_nodes+1, s);
-
-				array_size = s * 1000 / sizeof(float);
-
-				starpu_malloc((void **)&msg, array_size * sizeof(float));
-				for (i = 0; i < array_size; i++)
+				starpu_vector_data_register(&data_handle_in, STARPU_MAIN_RAM, (uintptr_t) buf1, len, 1);
+				starpu_vector_data_register(&data_handle_out, STARPU_MAIN_RAM, (uintptr_t) buf2, len, 1);
+				starpu_mpi_data_register(data_handle_in, 0, 0);
+			}
+			else
+			{
+				starpu_vector_data_register(&data_handle, STARPU_MAIN_RAM, (uintptr_t) buf1, len, 1);
+			}
+			mpi_sync_clocks_t clocks = mpi_sync_clocks_init(sub_comm);
+			double* lats = (subcomm_rank == 0) ? malloc(iterations * sizeof(double)) : NULL;
+			int k;
+			for (k = 0; k < iterations; k++)
+			{
+				int* rc_all = (subcomm_rank == 0) ? malloc(nb_nodes * sizeof(int)) : NULL;
+				double local_lat = -1.0;
+				int rc = 0;
+				do
 				{
-					msg[i] = 3.14;
-				}
-				starpu_vector_data_register(&data_handle, STARPU_MAIN_RAM, (uintptr_t) msg, array_size, sizeof(float));
+					const double b = mpi_sync_clocks_barrier(clocks, NULL);
+					rc = (b < 0.0);
 
-				for (b = -1; b < NB_BENCH; b++)
-				{
-					if (rank <= nb_dest_nodes)
+					const double t_begin = mpi_sync_clocks_get_time_usec(clocks);
+					bcast(sub_comm, subcomm_rank, nb_nodes-1);
+					const double t_end = mpi_sync_clocks_get_time_usec(clocks);
+
+					local_lat = t_end - t_begin;
+
+					/* collect sync barrier success */
+					MPI_Gather(&rc, 1, MPI_INT, rc_all, 1, MPI_INT, 0, sub_comm);
+					if (subcomm_rank == 0)
 					{
-						algorithms[method](nb_dest_nodes, data_handle, nb_nodes_id, size_id, b);
+						int i;
+						for (i = 0; i < nb_nodes; i++)
+						{
+							rc |= rc_all[i];
+						}
 					}
+					MPI_Bcast(&rc, 1, MPI_INT, 0, sub_comm);
+				} while(rc != 0);
 
-					SERVER_PRINTF(".");
+				/* find maximum latency accross nb_nodes */
+				double* lat_all = (subcomm_rank == 0) ? malloc(nb_nodes * sizeof(double)) : NULL;
+				MPI_Gather(&local_lat, 1, MPI_DOUBLE, lat_all, 1, MPI_DOUBLE, 0, sub_comm);
+
+				if (subcomm_rank == 0)
+				{
+					int i;
+					double max_lat = 0.0;
+					for (i = 0; i < nb_nodes; i++)
+					{
+						if (lat_all[i] > max_lat)
+						{
+							max_lat = lat_all[i];
+						}
+					}
+					lats[k] = max_lat;
+					free(rc_all);
+					free(lat_all);
 				}
-
-				SERVER_PRINTF("\n");
-
-				starpu_data_unregister(data_handle);
-				starpu_free_noflag(msg, array_size * sizeof(float));
-				size_id++;
 			}
 
-			// flush clocks
-			compute_display_times(method, nb_nodes_id, nb_dest_nodes);
+			/* compute time stats accross iterations */
+			if (subcomm_rank == 0)
+			{
+				qsort(lats, iterations, sizeof(double), &comp_double);
+				const double min_lat = lats[0];
+				const double max_lat = lats[iterations - 1];
+				const double med_lat = lats[(iterations - 1) / 2];
+				double avg_lat = 0.0;
+				for (k = 0; k < iterations; k++)
+				{
+					avg_lat += lats[k];
+				}
+				avg_lat /= iterations;
+				printf("%4d\t%9lu\t%7d\t%9.3lf\t%9.3lf\t%9.3lf\t%9.3lf \n", nb_nodes, len, iterations, min_lat, med_lat, avg_lat, max_lat);
+				fflush(stdout);
+				free(lats);
+			}
+			if (use_tasks)
+			{
+				starpu_data_unregister(data_handle_in);
+				starpu_data_unregister(data_handle_out);
+			}
+			else
+			{
+				starpu_data_unregister(data_handle);
+			}
+			free(buf1);
+			free(buf2);
 			mpi_sync_clocks_shutdown(clocks);
-
-			nb_nodes_id++;
+			clocks = NULL;
 		}
 	}
 
-	if (pause_workers)
-	{
-		starpu_resume();
-	}
+	SERVER_PRINTF("# bench end\n");
 
+	MPI_Group_free(&world_group);
+	starpu_resume();
 	starpu_mpi_shutdown();
-	free(times);
 	MPI_Finalize();
 
 	return 0;

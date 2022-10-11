@@ -1034,6 +1034,28 @@ of one of the nodes of a big cluster without actually running the rest.
 It of course does not provide computation results and timing.
 </dd>
 
+<dt>STARPU_MPI_COOP_SENDS</dt>
+<dd>
+\anchor STARPU_MPI_COOP_SENDS
+\addindex __env__STARPU_MPI_COOP_SENDS
+Setting to 0 disables dynamic collective operations: grouping same requests to
+different nodes until the data becomes available and then use a broadcast tree
+to execute requests.<br>
+By now, it is only supported with the NewMadeleine library (see \ref Nmad).
+</dd>
+
+<dt>STARPU_MPI_RECV_WAIT_FINALIZE</dt>
+<dd>
+\anchor STARPU_MPI_RECV_WAIT_FINALIZE
+\addindex __env__STARPU_MPI_RECV_WAIT_FINALIZE
+Setting to 1 disables releasing the write acquire of receiving handles when
+data is received but the communication library still needs the data. Set to 0
+by default to unlock as soon as possible tasks which only require a read access
+on the handle; write access will become possible for tasks when the
+communication library will not need the data anymore.<br/>
+By now, it is only supported with the NewMadeleine library (see \ref Nmad).
+</dd>
+
 <dt>STARPU_MPI_TRACE_SYNC_CLOCKS</dt>
 <dd>
 \anchor STARPU_MPI_TRACE_SYNC_CLOCKS

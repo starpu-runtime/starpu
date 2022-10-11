@@ -40,15 +40,18 @@
 #endif
 
 #ifdef STARPU_USE_MPI_NMAD
-
-#include <nm_sendrecv_interface.h>
 #include <nm_mpi_nmad.h>
+#include <nm_mcast_interface.h>
+#include <nm_sendrecv_interface.h>
+
+#include "starpu_mpi_nmad_coop.h"
 #include "starpu_mpi_nmad_backend.h"
 #include "starpu_mpi_nmad_unknown_datatype.h"
 
 void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req);
 void _starpu_mpi_handle_pending_request(struct _starpu_mpi_req *req);
 static inline void _starpu_mpi_request_end(struct _starpu_mpi_req* req, int post_callback_sem);
+static inline void _starpu_mpi_request_try_end(struct _starpu_mpi_req* req, int post_callback_sem);
 
 
 /* Condition to wake up waiting for all current MPI requests to finish */
@@ -71,6 +74,9 @@ PUK_LFSTACK_TYPE(callback, struct _starpu_mpi_req *req;);
 static callback_lfstack_t callback_stack;
 
 static starpu_sem_t callback_sem;
+
+static int nmad_mcast_started = 0;
+
 
 /********************************************************/
 /*                                                      */
@@ -227,7 +233,7 @@ int _starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
 	if (status!=MPI_STATUS_IGNORE)
 		_starpu_mpi_req_status(req,status);
 
-	_starpu_mpi_request_end(req, 1);
+	_starpu_mpi_request_try_end(req, 1);
 	*public_req = NULL;
 
 	_STARPU_MPI_LOG_OUT();
@@ -263,7 +269,7 @@ int _starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 
 	if(*flag)
 	{
-		_starpu_mpi_request_end(req, 1);
+		_starpu_mpi_request_try_end(req, 1);
 		*public_req = NULL;
 	}
 	_STARPU_MPI_LOG_OUT();
@@ -318,15 +324,21 @@ int _starpu_mpi_wait_for_all(MPI_Comm comm)
 /*                                                      */
 /********************************************************/
 
+/* Completely finalize a request: destroy it and decrement the number of pending requests */
 static inline void _starpu_mpi_request_end(struct _starpu_mpi_req* req, int post_callback_sem)
 {
 	/* Destroying a request and decrementing the number of pending requests
 	 * should be done together, so let's wrap these two things in a
 	 * function. This means instead of calling _starpu_mpi_request_destroy(),
 	 * you should call this function. */
+
+	/* If request went through _starpu_mpi_handle_received_data(), finalized has to be true: */
+	assert((req->backend->has_received_data && req->backend->finalized) || !req->backend->has_received_data);
+
 	_starpu_mpi_request_destroy(req);
 
 	int pending_remaining = STARPU_ATOMIC_ADD(&nb_pending_requests, -1);
+	assert(pending_remaining >= 0);
 	if (!pending_remaining)
 	{
 		STARPU_PTHREAD_COND_BROADCAST(&mpi_wait_for_all_running_cond);
@@ -337,50 +349,34 @@ static inline void _starpu_mpi_request_end(struct _starpu_mpi_req* req, int post
 	}
 }
 
-void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req* req)
+/* Check if the caller has to completely finalize a request and try to do it */
+static inline void _starpu_mpi_request_try_end(struct _starpu_mpi_req* req, int post_callback_sem)
 {
-	_STARPU_MPI_LOG_IN();
-
-	_STARPU_MPI_DEBUG(2, "complete MPI request %p type %s tag %ld src %d data %p ptr %p datatype '%s' count %d registered_datatype %d \n",
-			  req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.node.rank, req->data_handle, req->ptr, req->datatype_name, (int)req->count, req->registered_datatype);
-
-	if (req->request_type == RECV_REQ || req->request_type == SEND_REQ)
+	_starpu_spin_lock(&req->backend->finalized_to_destroy_lock);
+	if (!req->backend->has_received_data || req->backend->finalized)
 	{
-		if (req->registered_datatype == 0)
-		{
-			if (req->request_type == RECV_REQ)
-			{
-				if (starpu_data_get_interface_ops(req->data_handle)->peek_data)
-				{
-					starpu_data_peek_node(req->data_handle, req->node, req->ptr, req->count);
-					starpu_free_on_node_flags(req->node, (uintptr_t) req->ptr, req->count, 0);
-				}
-				else
-				{
-					// req->ptr is freed by starpu_data_unpack
-					starpu_data_unpack_node(req->data_handle, req->node, req->ptr, req->count);
-				}
-			}
-			else
-				starpu_free_on_node_flags(req->node, (uintptr_t) req->ptr, req->count, 0);
-		}
-		else
-		{
-			nm_mpi_nmad_data_release(req->datatype);
-			_starpu_mpi_datatype_free(req->data_handle, &req->datatype);
-		}
+		_starpu_spin_unlock(&req->backend->finalized_to_destroy_lock);
+		_starpu_mpi_request_end(req, post_callback_sem);
 	}
+	else
+	{
+		/* Request isn't finalized yet (NewMadeleine still needs it), since
+		 * this function should have destroyed the request, tell
+		 * _starpu_mpi_handle_request_termination() to destroy it when
+		 * NewMadeleine won't need it anymore. */
+		req->backend->to_destroy = 1;
+		_starpu_spin_unlock(&req->backend->finalized_to_destroy_lock);
+	}
+}
 
-	// for recv requests, this event is the end of the communication link:
-	_STARPU_MPI_TRACE_TERMINATED(req);
-
-	_starpu_mpi_release_req_data(req);
-
+/* Do required actions when a request is completed (but maybe not finalized!) */
+static inline void _starpu_mpi_handle_post_actions(struct _starpu_mpi_req* req)
+{
 	if (req->callback)
 	{
 		/* Callbacks are executed outside of this function, later by the
 		 * progression thread.
-		 * Indeed this current function is executed by a NewMadeleine handler,
+		 * Indeed, this current function is executed by a NewMadeleine handler,
 		 * and possibly inside of a PIOman ltask. In such context, some locking
 		 * or system calls can be forbidden to avoid any deadlock, thus
 		 * callbacks are deported outside of this handler. */
@@ -393,56 +389,157 @@ void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req* req)
 		* must then be kept alive if they have a callback.*/
 		starpu_sem_post(&callback_sem);
 	}
-	else
+	else if(!req->detached)
 	{
-		if(req->detached)
+		/* tell anyone potentially waiting on the request that it is
+		 * terminated now (should be done after the callback)*/
+		req->completed = 1;
+		piom_cond_signal(&req->backend->req_cond, REQ_FINALIZED);
+	}
+}
+
+/* Function called when data arrived, but NewMadeleine still holds a reference
+ * on it (to make progress a broadcast for instance). Application can thus read
+ * the data, but not yet write it. */
+void _starpu_mpi_handle_received_data(struct _starpu_mpi_req* req)
+{
+	_STARPU_MPI_LOG_IN();
+
+	assert(req->request_type == RECV_REQ);
+	assert(!_starpu_mpi_recv_wait_finalize);
+	assert(!req->backend->has_received_data);
+	assert(!req->backend->finalized);
+
+	req->backend->has_received_data = 1;
+
+	if (req->registered_datatype == 0)
+	{
+		/* Without peek_data, we can't unpack data for StarPU's use and keep
+		 * the buffer alive for NewMadeleine, so calling
+		 * _starpu_mpi_handle_received_data() makes no sense. */
+		assert(starpu_data_get_interface_ops(req->data_handle)->peek_data);
+		starpu_data_peek_node(req->data_handle, req->node, req->ptr, req->count);
+	}
+
+	// Release write acquire on the handle: can unlock tasks waiting to read the handle:
+	starpu_data_release_to(req->data_handle, STARPU_R);
+
+	_starpu_mpi_handle_post_actions(req);
+
+	_STARPU_MPI_LOG_OUT();
+}
+
+/* Function called when nmad completely finished a request */
+void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req* req)
+{
+	_STARPU_MPI_LOG_IN();
+
+	_STARPU_MPI_DEBUG(2, "complete MPI request %p type %s tag %ld src %d data %p ptr %p datatype '%s' count %d registered_datatype %d \n",
+			  req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.node.rank, req->data_handle, req->ptr, req->datatype_name, (int)req->count, req->registered_datatype);
+
+	assert(!req->backend->finalized);
+
+	if (req->request_type == RECV_REQ || req->request_type == SEND_REQ)
+	{
+		if (req->registered_datatype == 0)
 		{
-			// a detached request wont be wait/test (and freed inside).
+			if (req->request_type == RECV_REQ)
+			{
+				if (starpu_data_get_interface_ops(req->data_handle)->peek_data)
+				{
+					if (!req->backend->has_received_data)
+					{
+						starpu_data_peek_node(req->data_handle, req->node, req->ptr, req->count);
+					}
+					starpu_free_on_node_flags(req->node, (uintptr_t) req->ptr, req->count, 0);
+				}
+				else
+				{
+					// req->ptr is freed by starpu_data_unpack
+					starpu_data_unpack_node(req->data_handle, req->node, req->ptr, req->count);
+				}
+			}
+			else
+				starpu_free_on_node_flags(req->node, (uintptr_t) req->ptr, req->count, 0);
+		}
+		else if (req->backend->posted) // with coop, only one request is really used to do the broadcast, so only posted request really allocates memory for the data:
+		{
+			nm_mpi_nmad_data_release(req->datatype);
+			_starpu_mpi_datatype_free(req->data_handle, &req->datatype);
+		}
+	}
+
+	// for recv requests, this event is the end of the communication link:
+	_STARPU_MPI_TRACE_TERMINATED(req);
+
+	_starpu_mpi_release_req_data(req);
+
+	if (req->backend->has_received_data)
+	{
+		assert(req->request_type == RECV_REQ);
+
+		/* Callback, test or wait were unlocked by
+		 * _starpu_mpi_handle_received_data(), maybe they were already
+		 * executed and since the request wasn't finalized yet, they didn't
+		 * destroy the request, and we have to do it now: */
+		_starpu_spin_lock(&req->backend->finalized_to_destroy_lock);
+		req->backend->finalized = 1;
+		if (req->backend->to_destroy || req->detached)
+		{
+			_starpu_spin_unlock(&req->backend->finalized_to_destroy_lock);
 			_starpu_mpi_request_end(req, 1);
 		}
 		else
 		{
-			/* tell anyone potentially waiting on the request that it is
-			 * terminated now (should be done after the callback)*/
-			req->completed = 1;
-			piom_cond_signal(&req->backend->req_cond, REQ_FINALIZED);
+			_starpu_spin_unlock(&req->backend->finalized_to_destroy_lock);
 		}
 	}
+	else if (!req->callback && req->detached)
+	{
+		/* This request has no callback and is detached: we have to end it now: */
+		_starpu_mpi_request_end(req, 1);
+	}
+	else
+	{
+		_starpu_mpi_handle_post_actions(req);
+	}
+
 	_STARPU_MPI_LOG_OUT();
 }
 
 void _starpu_mpi_handle_request_termination_callback(nm_sr_event_t event STARPU_ATTRIBUTE_UNUSED, const nm_sr_event_info_t* event_info STARPU_ATTRIBUTE_UNUSED, void* ref)
 {
-	_starpu_mpi_handle_request_termination(ref);
+	assert(ref != NULL);
+
+	struct _starpu_mpi_req* req = (struct _starpu_mpi_req*) ref;
+	req->backend->posted = 1; // a network event was triggered for this request, so it was really posted
+
+	if (event & NM_SR_EVENT_FINALIZED)
+	{
+		_starpu_mpi_handle_request_termination(req);
+	}
+	else if (event & NM_SR_EVENT_RECV_COMPLETED && req->request_type == RECV_REQ && !_starpu_mpi_recv_wait_finalize && req->sequential_consistency)
+	{
+		/* About required sequential consistency:
+		 * "If it is 0, user can launch tasks writing in the handle, which will
+		 * mix data manipulated by nmad and data manipulated by tasks, this
+		 * could break some expected behaviours." (sthibault) */
+
+		/* Unknown datatype case is in starpu_mpi_nmad_unknown_datatype.c */
+		assert(req->registered_datatype == 1);
+
+		_starpu_mpi_handle_received_data(req);
+	}
 }
 
 void _starpu_mpi_handle_pending_request(struct _starpu_mpi_req *req)
 {
+	assert(req != NULL);
 	nm_sr_request_set_ref(&req->backend->data_request, req);
-	nm_sr_request_monitor(req->backend->session, &req->backend->data_request, NM_SR_EVENT_FINALIZED, _starpu_mpi_handle_request_termination_callback);
-}
-
-#if 0
-void _starpu_mpi_coop_sends_build_tree(struct _starpu_mpi_coop_sends *coop_sends)
-{
-	/* TODO: turn them into redirects & forwards */
-}
-#endif
-
-void _starpu_mpi_submit_coop_sends(struct _starpu_mpi_coop_sends *coop_sends, int submit_control STARPU_ATTRIBUTE_UNUSED, int submit_data)
-{
-	unsigned i, n = coop_sends->n;
-
-	/* Note: coop_sends might disappear very very soon after last request is submitted */
-	for (i = 0; i < n; i++)
-	{
-		if (coop_sends->reqs_array[i]->request_type == SEND_REQ && submit_data)
-		{
-			_STARPU_MPI_DEBUG(0, "cooperative sends %p sending to %d\n", coop_sends, coop_sends->reqs_array[i]->node_tag.node.rank);
-			_starpu_mpi_submit_ready_request(coop_sends->reqs_array[i]);
-		}
-		/* TODO: handle redirect requests */
-	}
+	int ret = nm_sr_request_monitor(req->backend->session, &req->backend->data_request,
+									NM_SR_EVENT_FINALIZED | NM_SR_EVENT_RECV_COMPLETED,
+									_starpu_mpi_handle_request_termination_callback);
+	assert(ret == NM_ESUCCESS);
 }
 
 void _starpu_mpi_submit_ready_request(void *arg)
@@ -510,6 +607,19 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	_starpu_mpi_fxt_init(argc_argv);
 #endif
 
+	if (_starpu_mpi_use_coop_sends)
+	{
+		if (argc_argv->world_size > 2)
+		{
+			_starpu_mpi_nmad_coop_init();
+			nmad_mcast_started = 1; // to shutdown mcast
+		}
+		else
+		{
+			_starpu_mpi_use_coop_sends = 0;
+		}
+	}
+
 	/* notify the main thread that the progression thread is ready */
 	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 	running = 1;
@@ -548,7 +658,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		c->req->callback(c->req->callback_arg);
 		if (c->req->detached)
 		{
-			_starpu_mpi_request_end(c->req, 0);
+			_starpu_mpi_request_try_end(c->req, 0);
 		}
 		else
 		{
@@ -565,6 +675,14 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 
 	STARPU_ASSERT_MSG(callback_lfstack_pop(&callback_stack)==NULL, "List of callback not empty.");
 	STARPU_ASSERT_MSG(nb_pending_requests==0, "Request still pending.");
+
+	/* We cannot rely on _starpu_mpi_use_coop_sends to shutdown mcast:
+	 * coops can be disabled with starpu_mpi_coop_sends_set_use() after
+	 * initialiazation of mcast. */
+	if (nmad_mcast_started)
+	{
+		_starpu_mpi_nmad_coop_shutdown();
+	}
 
 #ifdef STARPU_USE_FXT
 	_starpu_mpi_fxt_shutdown();

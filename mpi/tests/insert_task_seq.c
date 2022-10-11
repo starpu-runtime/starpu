@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -120,12 +120,24 @@ void dotest(int rank, int size, char *enabled)
 int main(int argc, char **argv)
 {
 	int rank, size;
+	int barrier_ret;
 
 	MPI_INIT_THREAD_real(&argc, &argv, MPI_THREAD_SERIALIZED);
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
 
 	dotest(rank, size, "0");
+
+	/* Be sure all nodes finished the dotest function before repeating it.
+	 * This is required by the dynamic broadcasts of StarPU-nmad:
+	 * initialization and release of dynamic broadcasts are made when
+	 * calling starpu_mpi_init() and starpu_mpi_shutdown() respectively,
+	 * but the restart of the dynamic broadcast component can create
+	 * deadlocks if the second test starts on a node before the first one
+	 * finishes on other nodes. */
+	barrier_ret = MPI_Barrier(MPI_COMM_WORLD);
+	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);
+
 	dotest(rank, size, "1");
 
 	MPI_Finalize();

@@ -61,6 +61,8 @@ void test_cache(int rank, char *enabled, size_t *comm_amount)
 	ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
+	starpu_mpi_coop_sends_set_use(0); // disable coop_sends to avoid having wrong results when cache is disabled
+
 	for(i = 0; i < 2; i++)
 	{
 		int j;

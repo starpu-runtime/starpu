@@ -970,6 +970,11 @@ for(x = 0; x < nblocks ;  x++)
 starpu_mpi_gather_detached(data_handles, nblocks, 0, MPI_COMM_WORLD, NULL, NULL, NULL, NULL);
 \endcode
 
+With NewMadeleine (see \ref Nmad), broadcasts can automatically be detected and
+be optimized by using routing trees. This behaviour can be controlled with the
+environment variable \ref STARPU_MPI_COOP_SENDS. See the corresponding
+[paper](https://hal.inria.fr/hal-02872765) for more information.
+
 Other collective operations would be easy to define, just ask starpu-devel for
 them!
 

@@ -140,7 +140,7 @@ static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_dat
 	req->node = *nodep = node;
 }
 
-static void _starpu_mpi_isend_irecv_common(struct _starpu_mpi_req *req, enum starpu_data_access_mode mode, int sequential_consistency)
+void _starpu_mpi_isend_irecv_common(struct _starpu_mpi_req *req, enum starpu_data_access_mode mode, int sequential_consistency)
 {
 	int node = -1;
 
@@ -469,6 +469,7 @@ struct _starpu_mpi_data *_starpu_mpi_data_get(starpu_data_handle_t data_handle)
 		mpi_data->node_tag.data_tag = -1;
 		mpi_data->node_tag.node.rank = -1;
 		mpi_data->node_tag.node.comm = MPI_COMM_WORLD;
+		mpi_data->nb_future_sends = 0;
 		_starpu_spin_init(&mpi_data->coop_lock);
 		data_handle->mpi_data = mpi_data;
 		_starpu_mpi_cache_data_init(data_handle);

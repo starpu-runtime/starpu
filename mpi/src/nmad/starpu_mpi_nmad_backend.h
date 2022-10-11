@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,6 +18,7 @@
 #define __STARPU_MPI_NMAD_BACKEND_H__
 
 #include <common/config.h>
+#include <common/starpu_spinlock.h>
 
 /** @file */
 
@@ -38,6 +39,12 @@ struct _starpu_mpi_req_backend
 	nm_session_t session;
 	nm_sr_request_t data_request;
 	piom_cond_t req_cond;
+
+	int posted; // with coop, only one request is really posted, we need to know if the request was really posted to possibly free data
+	int has_received_data; // tell if request went through _starpu_mpi_handle_received_data() to release write lock
+	int finalized; // tell if _starpu_mpi_handle_request_termination() was called, so starpu_mpi_test() and starpu_mpi_wait() have to free the request
+	int to_destroy; // tell if starpu_mpi_wait() or starpu_mpi_test() was called before _starpu_mpi_handle_request_termination() and thus this last function will have to free the request
+	struct _starpu_spinlock finalized_to_destroy_lock;
 
 	/** When datatype is unknown */
 	struct nm_data_s unknown_datatype_data; // will contain size of the datatype and data itself

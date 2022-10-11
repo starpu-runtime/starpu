@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2021       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -18,6 +18,7 @@
 #include <starpu_mpi.h>
 #include <starpu_mpi_private.h>
 #include <datawizard/coherency.h>
+#include <starpu_mpi_cache.h>
 
 /*
  * One node sends the same data to several nodes. Gather them into a
@@ -36,6 +37,8 @@ void _starpu_mpi_release_req_data(struct _starpu_mpi_req *req)
 	if (_starpu_mpi_req_multilist_queued_coop_sends(req))
 	{
 		struct _starpu_mpi_coop_sends *coop_sends = req->coop_sends_head;
+		assert(coop_sends != NULL);
+
 		struct _starpu_mpi_data *mpi_data = coop_sends->mpi_data;
 		int last;
 		_starpu_spin_lock(&mpi_data->coop_lock);
@@ -163,7 +166,10 @@ static void _starpu_mpi_coop_sends_data_ready(void *arg)
 
 		/* And submit them */
 		if (STARPU_TEST_AND_SET(&coop_sends->redirects_sent, 1) == 0)
+		{
+			mpi_data->nb_future_sends = 0;
 			_starpu_mpi_submit_coop_sends(coop_sends, 1, 1);
+		}
 		else
 			_starpu_mpi_submit_coop_sends(coop_sends, 0, 1);
 	}
@@ -211,9 +217,34 @@ void _starpu_mpi_data_flush(starpu_data_handle_t data_handle)
 /* Test whether a request is compatible with a cooperative send */
 static int _starpu_mpi_coop_send_compatible(struct _starpu_mpi_req *req, struct _starpu_mpi_coop_sends *coop_sends)
 {
-	struct _starpu_mpi_req *prevreq;
+	if (!_starpu_cache_enabled)
+	{
+		/* If MPI cache isn't enabled, duplicates can appear in the list
+		 * of recipients.
+		 * Presence of duplicates can lead to deadlocks, so if adding
+		 * this req request to the coop_sends will introduce
+		 * duplicates, we consider this req as incompatible.
+		 *
+		 * This a requirement coming from the NewMadeleine
+		 * implementation. If one day, there is a MPI implementation,
+		 * this constraint might move to the NewMadeleine backend.
+		 *
+		 * See mpi/tests/coop_cache.c for a test case.
+		 */
+		int inserting_dest = req->node_tag.node.rank;
+		struct _starpu_mpi_req* cur = NULL;
+		for ( cur = _starpu_mpi_req_multilist_begin_coop_sends(&coop_sends->reqs);
+		cur != _starpu_mpi_req_multilist_end_coop_sends(&coop_sends->reqs);
+		cur  = _starpu_mpi_req_multilist_next_coop_sends(cur))
+		{
+			if (cur->node_tag.node.rank == inserting_dest)
+			{
+				return 0;
+			}
+		}
+	}
 
-	prevreq = _starpu_mpi_req_multilist_begin_coop_sends(&coop_sends->reqs);
+	struct _starpu_mpi_req *prevreq = _starpu_mpi_req_multilist_begin_coop_sends(&coop_sends->reqs);
 	return /* we can cope with tag being different */
 	          prevreq->node_tag.node.comm == req->node_tag.node.comm
 	       && prevreq->sequential_consistency == req->sequential_consistency;
@@ -240,6 +271,10 @@ void _starpu_mpi_coop_send(starpu_data_handle_t data_handle, struct _starpu_mpi_
 				if (coop_sends)
 				{
 					/* Remove ourself from what we created for ourself first */
+
+					/* Note 2022-09-21: according to code coverage(see
+					 * https://files.inria.fr/starpu/testing/master/coverage/mpi/src/starpu_mpi_coop_sends.c.gcov.html),
+					 * this block is dead code. */
 					_starpu_mpi_req_multilist_erase_coop_sends(&coop_sends->reqs, req);
 					tofree = coop_sends;
 				}
@@ -259,14 +294,14 @@ void _starpu_mpi_coop_send(starpu_data_handle_t data_handle, struct _starpu_mpi_
 			}
 			else
 			{
-				/* Nope, incompatible, put ours instead */
-				_STARPU_MPI_DEBUG(0, "%p: new cooperative sends %p for tag %"PRIi64", dest %d\n", data_handle, coop_sends, req->node_tag.data_tag, req->node_tag.node.rank);
-				mpi_data->coop_sends = coop_sends;
-				first = 1;
+				/* Nope, incompatible, send it as a regular point-to-point communication
+				 *
+				 * TODO: this could be improved by having several coop_sends "bags" available
+				 * simultaneously, which will trigger different broadcasts. */
 				_starpu_spin_unlock(&mpi_data->coop_lock);
-				/* and flush it */
-				_starpu_mpi_coop_send_flush(coop_sends);
-				break;
+
+				_starpu_mpi_isend_irecv_common(req, mode, sequential_consistency);
+				return;
 			}
 		}
 		else if (coop_sends)
@@ -301,9 +336,34 @@ void _starpu_mpi_coop_send(starpu_data_handle_t data_handle, struct _starpu_mpi_
 	/* In case we created one for nothing after all */
 	free(tofree);
 
-	if (first)
+	if ((mpi_data->nb_future_sends != 0 && mpi_data->nb_future_sends == coop_sends->n) || (mpi_data->nb_future_sends == 0 && first))
 		/* We were first, we are responsible for acquiring the data for everybody */
 		starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(req->data_handle, -1, mode, _starpu_mpi_coop_send_acquired_callback, _starpu_mpi_coop_sends_data_ready, coop_sends, sequential_consistency, 0, &coop_sends->pre_sync_jobid, NULL, req->prio);
 	else
 		req->pre_sync_jobid = coop_sends->pre_sync_jobid;
+}
+
+void starpu_mpi_coop_sends_data_handle_nb_sends(starpu_data_handle_t data_handle, int nb_sends)
+{
+	struct _starpu_mpi_data *mpi_data = _starpu_mpi_data_get(data_handle);
+
+	/* Has no effect is coops are disabled: this attribute is used only in
+	 * _starpu_mpi_coop_send() that is called only if coops are enabled */
+	mpi_data->nb_future_sends = nb_sends;
+}
+
+void starpu_mpi_coop_sends_set_use(int use_coop_sends)
+{
+	if (starpu_mpi_world_size() <= 2)
+	{
+		_STARPU_DISP("Not enough MPI processes to use coop_sends\n");
+		return;
+	}
+
+	_starpu_mpi_use_coop_sends = use_coop_sends;
+}
+
+int starpu_mpi_coop_sends_get_use(void)
+{
+	return _starpu_mpi_use_coop_sends;
 }

@@ -566,10 +566,12 @@ starpu_mpi_EXAMPLES	+=	\
 
 if STARPU_MPI_SYNC_CLOCKS
 examplebin_PROGRAMS +=		\
-	benchs/bcast_bench
+	benchs/bcast_bench		\
+	benchs/recv_wait_finalize_bench
 
 starpu_mpi_EXAMPLES	+=	\
-	benchs/bcast_bench
+	benchs/bcast_bench		\
+	benchs/recv_wait_finalize_bench
 endif
 
 if !STARPU_USE_MPI_MPI
@@ -592,6 +594,10 @@ benchs_bcast_bench_SOURCES = benchs/bcast_bench.c
 benchs_bcast_bench_SOURCES += benchs/bench_helper.c
 benchs_bcast_bench_LDADD = $(MPI_SYNC_CLOCKS_LDFLAGS)
 benchs_bcast_bench_CFLAGS = $(MPI_SYNC_CLOCKS_CFLAGS)
+
+benchs_recv_wait_finalize_bench_SOURCES = benchs/recv_wait_finalize_bench.c
+benchs_recv_wait_finalize_bench_LDADD = $(MPI_SYNC_CLOCKS_LDFLAGS)
+benchs_recv_wait_finalize_bench_CFLAGS = $(MPI_SYNC_CLOCKS_CFLAGS)
 
 benchs_sendrecv_parallel_tasks_bench_SOURCES = benchs/sendrecv_parallel_tasks_bench.c
 benchs_sendrecv_parallel_tasks_bench_SOURCES += benchs/bench_helper.c

@@ -122,7 +122,20 @@ starpu_mpi_TESTS +=				\
 	insert_task_recv_cache			\
 	insert_task_seq				\
 	tags_checking				\
-	sync
+	sync					\
+	coop 					\
+	coop_datatype 				\
+	coop_large 				\
+	coop_many				\
+	coop_acknowledgement 			\
+	coop_recv_not_yet_posted 		\
+	coop_chained_sends 			\
+	coop_wrong_order			\
+	coop_without_task			\
+	coop_user_defined_datatype		\
+	coop_recv_wait_finalize			\
+	coop_insert_task			\
+	coop_cache
 
 if STARPU_USE_MPI_MPI
 starpu_mpi_TESTS +=				\
@@ -196,8 +209,21 @@ noinst_PROGRAMS +=				\
 	early_request				\
 	starpu_redefine				\
 	load_balancer				\
-	driver					\
-	nothing							\
+	driver 					\
+	coop 					\
+	coop_datatype 				\
+	coop_large 				\
+	coop_many 				\
+	coop_acknowledgement 			\
+	coop_recv_not_yet_posted 		\
+	coop_chained_sends 			\
+	coop_wrong_order			\
+	coop_without_task			\
+	coop_user_defined_datatype		\
+	coop_recv_wait_finalize			\
+	coop_insert_task			\
+	coop_cache				\
+	nothing					\
 	display_bindings
 
 if STARPU_USE_MPI_FT
@@ -242,5 +268,8 @@ mpi_earlyrecv2_SOURCES = mpi_earlyrecv2.c
 mpi_earlyrecv2_SOURCES += ../../examples/interface/complex_interface.c
 mpi_earlyrecv2_sync_SOURCES = mpi_earlyrecv2_sync.c
 mpi_earlyrecv2_sync_SOURCES += ../../examples/interface/complex_interface.c
+
+coop_user_defined_datatype_SOURCES = coop_user_defined_datatype.c
+coop_user_defined_datatype_SOURCES += ../../examples/interface/complex_interface.c
 
 early_stuff_CFLAGS = $(AM_CFLAGS) $(FXT_CFLAGS)

@@ -204,13 +204,14 @@ int main(int argc, char **argv)
 			starpu_vector_data_register(&handles_send[i], STARPU_MAIN_RAM, (uintptr_t) vectors_send[i], s, 1);
 			starpu_vector_data_register(&handles_recv[i], STARPU_MAIN_RAM, (uintptr_t) vectors_recv[i], s, 1);
 
-			starpu_task_insert(&cl,
-					STARPU_EXECUTE_ON_WORKER, workers[i],
-					STARPU_VALUE, &rank, sizeof(int),
-					STARPU_VALUE, workers + i, sizeof(int),
-					STARPU_VALUE, &s, sizeof(uint64_t),
-					STARPU_VALUE, &handles_send[i], sizeof(starpu_data_handle_t),
-					STARPU_VALUE, &handles_recv[i], sizeof(starpu_data_handle_t), 0);
+			ret = starpu_task_insert(&cl,
+						 STARPU_EXECUTE_ON_WORKER, workers[i],
+						 STARPU_VALUE, &rank, sizeof(int),
+						 STARPU_VALUE, workers + i, sizeof(int),
+						 STARPU_VALUE, &s, sizeof(uint64_t),
+						 STARPU_VALUE, &handles_send[i], sizeof(starpu_data_handle_t),
+						 STARPU_VALUE, &handles_recv[i], sizeof(starpu_data_handle_t), 0);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 		}
 
 		starpu_resume();

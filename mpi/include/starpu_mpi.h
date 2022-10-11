@@ -842,6 +842,36 @@ int starpu_mpi_gather_detached(starpu_data_handle_t *data_handles, int count, in
 /** @} */
 
 /**
+   @name Dynamic Broadcasts
+   \anchor MPIDynamicBroadcasts
+   @{
+*/
+
+/**
+   Enable or disable coop sends.<br>
+   Used for benchmark, not recommended for production: can cause problems
+   if there are still communications while disabling, or when shutting down
+   StarPU.<br>
+   This function must be called after the initialization of StarPU.
+*/
+void starpu_mpi_coop_sends_set_use(int use_coop_sends);
+
+/**
+   Return wether coop sends are enabled or not.
+*/
+int starpu_mpi_coop_sends_get_use(void);
+
+/**
+   Explicit the number of different sends of the \p data_handle. When the number
+   of sends is reached, a collective operation is triggered. If this function isn't
+   called, StarPU will trigger a collective operation containing only posted sends
+   while the data wasn't available.
+*/
+void starpu_mpi_coop_sends_data_handle_nb_sends(starpu_data_handle_t data_handle, int nb_sends);
+
+/** @} */
+
+/**
    @name Miscellaneous
    \anchor MPIMisc
    @{

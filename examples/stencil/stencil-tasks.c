@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -95,9 +95,12 @@ static void create_task_save_mpi_send(unsigned iter, unsigned z, int dir, int lo
 	/* Send neighbour's border copy to the neighbour */
 	starpu_data_handle_t handle0 = neighbour->boundaries_handle[(1-dir)/2][0];
 	starpu_data_handle_t handle1 = neighbour->boundaries_handle[(1-dir)/2][1];
+	int ret;
 
-	starpu_mpi_isend_detached(handle0, dest, MPI_TAG0(z, iter, dir), MPI_COMM_WORLD, send_done, (void*)(uintptr_t)z);
-	starpu_mpi_isend_detached(handle1, dest, MPI_TAG1(z, iter, dir), MPI_COMM_WORLD, send_done, (void*)(uintptr_t)z);
+	ret = starpu_mpi_isend_detached(handle0, dest, MPI_TAG0(z, iter, dir), MPI_COMM_WORLD, send_done, (void*)(uintptr_t)z);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend_detached");
+	ret = starpu_mpi_isend_detached(handle1, dest, MPI_TAG1(z, iter, dir), MPI_COMM_WORLD, send_done, (void*)(uintptr_t)z);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend_detached");
 }
 
 /* R(z) != local & R(z+d) = local */
@@ -123,9 +126,12 @@ static void create_task_save_mpi_recv(unsigned iter, unsigned z, int dir, int lo
 	/* Receive our neighbour's border in our neighbour copy */
 	starpu_data_handle_t handle0 = neighbour->boundaries_handle[(1-dir)/2][0];
 	starpu_data_handle_t handle1 = neighbour->boundaries_handle[(1-dir)/2][1];
+	int ret;
 
-	starpu_mpi_irecv_detached(handle0, source, MPI_TAG0(z, iter, dir), MPI_COMM_WORLD, recv_done, (void*)(uintptr_t)z);
-	starpu_mpi_irecv_detached(handle1, source, MPI_TAG1(z, iter, dir), MPI_COMM_WORLD, recv_done, (void*)(uintptr_t)z);
+	ret = starpu_mpi_irecv_detached(handle0, source, MPI_TAG0(z, iter, dir), MPI_COMM_WORLD, recv_done, (void*)(uintptr_t)z);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv_detached");
+	ret = starpu_mpi_irecv_detached(handle1, source, MPI_TAG1(z, iter, dir), MPI_COMM_WORLD, recv_done, (void*)(uintptr_t)z);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv_detached");
 }
 #endif /* STARPU_USE_MPI */
 

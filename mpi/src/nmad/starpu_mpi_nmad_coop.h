@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2019-2022 Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,33 +14,28 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef __STARPU_MPI_NMAD_UNKNOWN_DATATYPE_H__
-#define __STARPU_MPI_NMAD_UNKNOWN_DATATYPE_H__
+#ifndef __STARPU_MPI_NMAD_COOP_H__
+#define __STARPU_MPI_NMAD_COOP_H__
 
 #include <common/config.h>
 
-/** @file */
+#ifdef STARPU_USE_MPI_NMAD
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-#ifdef STARPU_USE_MPI_NMAD
-
+#include <starpu_config.h>
 #include <nm_sendrecv_interface.h>
-#include <nm_mpi_nmad.h>
 
-
-void _starpu_mpi_isend_prepare_unknown_datatype(struct _starpu_mpi_req* req, struct nm_data_s* data);
-void _starpu_mpi_isend_unknown_datatype(struct _starpu_mpi_req *req);
-void _starpu_mpi_irecv_unknown_datatype(struct _starpu_mpi_req *req);
-
-
-#endif // STARPU_USE_MPI_NMAD
+void _starpu_mpi_nmad_coop_init(void);
+void _starpu_mpi_nmad_coop_shutdown(void);
+void _starpu_mpi_nmad_end_coop_callback(void* arg);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // __STARPU_MPI_NMAD_UNKNOWN_DATATYPE_H__
+#endif // STARPU_USE_MPI_NMAD
+#endif // __STARPU_MPI_NMAD_COOP_H__
