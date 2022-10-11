@@ -495,7 +495,13 @@ starpu_fxt_data_trace.1: starpu_fxt_data_trace$(EXEEXT)
 	$(V_help2man) LC_ALL=C help2man --no-discard-stderr -N -n "Print data trace from raw StarPU FxT trace" --output=$@ ./$<
 endif
 
-dist_man1_MANS =\
+if STARPU_USE_TCPIP_MASTER_SLAVE
+starpu_tcpipexec.1: starpu_tcpipexec
+	@chmod +x $<
+	$(V_help2man) LC_ALL=C help2man --no-discard-stderr -N -n "Execute TCPIP application" --output=$@ ./$<
+endif
+
+dist_man1_MANS = \
 	starpu_calibrate_bus.1 \
 	starpu_machine_display.1 \
 	starpu_perfmodel_display.1 \
@@ -517,6 +523,11 @@ dist_man1_MANS +=\
 	starpu_fxt_tool.1 \
 	starpu_fxt_stats.1 \
 	starpu_fxt_data_trace.1
+endif
+
+if STARPU_USE_TCPIP_MASTER_SLAVE
+dist_man1_MANS +=\
+	starpu_tcpipexec.1
 endif
 
 clean-local:

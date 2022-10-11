@@ -4093,6 +4093,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x tools/starpu_mlr_analysis
   chmod +x tools/starpu_paje_sort
   chmod +x tools/starpu_smpirun
+  chmod +x tools/starpu_tcpipexec
   chmod +x doc/doxygen/doxygen_filter.sh
   chmod +x doc/doxygen_dev/doxygen_filter.sh
   chmod +x starpupy/examples/execute.sh
@@ -4137,7 +4138,6 @@ AC_CONFIG_COMMANDS([executable-scripts], [
     tools/starpu_mlr_analysis.Rmd \
     tools/starpu_paje_summary.Rmd \
     tools/starpu_trace_state_stats.py \
-    tools/starpu_tcpipexec \
     julia/examples/check_deps/check_deps.sh \
     julia/examples/mult/mult_starpu.sh \
     julia/examples/mult/perf.sh \
@@ -4209,6 +4209,7 @@ AC_OUTPUT([
 	tools/starpu_mlr_analysis
 	tools/starpu_paje_sort
 	tools/starpu_smpirun
+	tools/starpu_tcpipexec
 	socl/Makefile
 	socl/src/Makefile
 	socl/examples/Makefile

@@ -15,6 +15,45 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
+
+set -e # fail fast
+PROGNAME=$0
+
+help_script()
+{
+cat << EOF
+Execute a StarPU TCP IP application
+
+$0 [option ....] application
+
+Options:
+   -np      To set the number of workers
+   -nobind
+   -ncpus   To set the number of threads to use on the TCP/IP Slave devices (environment variable STARPU_NTCPIPMSTHREADS)
+   -nolocal
+   -ex      To specify an external launcher for the application
+   -v       Output version information and exit
+   -h       Display the help and exit
+
+Examples:
+
+$0 -np 2 -nobind -ncpus 1 myapp
+$0 -np 2 -nobind -ncpus 1 -ex 'xterm -e gdb' myapp
+
+Report bugs to <@PACKAGE_BUGREPORT@>
+EOF
+}
+
+if [ "$1" = "--version" ] ; then
+    echo "$PROGNAME (@PACKAGE_NAME@) @PACKAGE_VERSION@"
+    exit 0
+fi
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ] || [ "$1" = "" ] ; then
+    help_script
+    exit 0
+fi
+
 NP=""
 EXECUTE=""
 while true; do
