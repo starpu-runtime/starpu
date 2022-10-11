@@ -30,7 +30,7 @@
 
 #include <common/list.h>
 
-const char *_starpu_mp_common_command_to_string(const int command)
+const char *_starpu_mp_common_command_to_string(const enum _starpu_mp_command command)
 {
 	switch(command)
 	{
@@ -56,7 +56,7 @@ const char *_starpu_mp_common_command_to_string(const int command)
 		case STARPU_MP_COMMAND_SYNC_WORKERS:
 			return "SYNC_WORKERS";
 
-			/* Note: synchronous send */
+		/* Note: synchronous send */
 		case STARPU_MP_COMMAND_RECV_FROM_HOST:
 			return "RECV_FROM_HOST";
 		case STARPU_MP_COMMAND_SEND_TO_HOST:
@@ -66,7 +66,7 @@ const char *_starpu_mp_common_command_to_string(const int command)
 		case STARPU_MP_COMMAND_SEND_TO_SINK:
 			return "SEND_TO_SINK";
 
-			/* Note: Asynchronous send */
+		/* Note: Asynchronous send */
 		case STARPU_MP_COMMAND_RECV_FROM_HOST_ASYNC:
 			return "RECV_FROM_HOST_ASYNC";
 		case STARPU_MP_COMMAND_SEND_TO_HOST_ASYNC:

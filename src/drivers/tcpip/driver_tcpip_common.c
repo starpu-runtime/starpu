@@ -1202,7 +1202,7 @@ static void _starpu_tcpip_common_polling_node(struct _starpu_mp_node * node)
 			answer = _starpu_nt_common_recv_command(node, &arg, &arg_size);
 			if(!_starpu_src_common_store_message(node,arg,arg_size,answer))
 			{
-				_STARPU_ERROR("incorrect command: unknown command or sync command");
+				_STARPU_ERROR("incorrect command '%s'", _starpu_mp_common_command_to_string(answer));
 			}
 		}
 		STARPU_PTHREAD_MUTEX_UNLOCK(&node->connection_mutex);

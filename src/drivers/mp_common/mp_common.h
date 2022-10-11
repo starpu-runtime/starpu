@@ -95,7 +95,7 @@ enum _starpu_mp_command
 	STARPU_MP_COMMAND_NOTIF_LAST = STARPU_MP_COMMAND_NOTIF_PRE_EXECUTION,
 };
 
-const char *_starpu_mp_common_command_to_string(const int command);
+const char *_starpu_mp_common_command_to_string(const enum _starpu_mp_command command);
 
 enum _starpu_mp_node_kind
 {
@@ -114,7 +114,7 @@ union _starpu_mp_connection
 	int mpi_remote_nodeid;
 #endif
 #ifdef STARPU_USE_TCPIP_MASTER_SLAVE
-	struct _starpu_tcpip_socket *tcpip_mp_connection;	
+	struct _starpu_tcpip_socket *tcpip_mp_connection;
 #endif
 };
 
