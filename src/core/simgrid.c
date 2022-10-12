@@ -857,7 +857,7 @@ void _starpu_simgrid_submit_job(int workerid, int sched_ctx_id, struct _starpu_j
 		*finished = 0;
 		task->next = NULL;
 		/* Sleep 10µs for the GPU task queueing */
-		if (_starpu_simgrid_queue_malloc_cost())
+		if (_starpu_simgrid_cuda_queue_cost())
 			starpu_sleep(0.000010);
 		if (w->last_task)
 		{
@@ -1240,7 +1240,7 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 		starpu_interface_start_driver_copy_async(src_node, dst_node, &start);
 
 	/* Sleep 10µs for the GPU transfer queueing */
-	if (_starpu_simgrid_queue_malloc_cost())
+	if (_starpu_simgrid_cuda_queue_cost())
 		starpu_sleep(0.000010);
 	transfer_submit(transfer);
 	/* Note: from here, transfer might be already freed */
