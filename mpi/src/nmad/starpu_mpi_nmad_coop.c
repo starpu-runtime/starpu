@@ -29,10 +29,10 @@
 #include "starpu_mpi_nmad_backend.h"
 #include "starpu_mpi_nmad_unknown_datatype.h"
 
-
 extern void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req);
 
-struct mcast_send {
+struct mcast_send
+{
 	nm_mcast_t mcast;
 	int* dests;
 	int* prios;
