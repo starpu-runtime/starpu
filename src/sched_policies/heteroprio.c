@@ -3375,7 +3375,7 @@ the HETEROPRIO_USE_LA variable to 0, or calling starpu_laheteroprio_map_wgroup_m
 			laqueue_push(&bucket->auto_mn[best_mem_node], best_node_now);
 		}
 #ifdef LAHETEROPRIO_PRINT_STAT
-		if( starpu_worker_get_id() != -1)
+		if(starpu_worker_get_id() != -1)
 		{
 			lastats.nb_tasks_per_wgroup[best_mem_node][task_priority] += 1;
 			lastats.nb_tasks_per_worker[starpu_worker_get_id()][task_priority] += 1;
@@ -3584,7 +3584,7 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 	{
 		// !hp->use_locality
 		/* Check that some tasks are available for the current worker arch */
-		if( hp->nb_remaining_tasks_per_arch_index[worker->arch_index] != 0 )
+		if(hp->nb_remaining_tasks_per_arch_index[worker->arch_index] != 0)
 		{
 			/* Ideally we would like to fill the prefetch array */
 			unsigned nb_tasks_to_prefetch = (STARPU_HETEROPRIO_MAX_PREFETCH-worker->tasks_queue.ntasks);

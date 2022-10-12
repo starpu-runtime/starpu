@@ -184,13 +184,13 @@ static __inline int pthread_setcancelstate(int state, int *oldstate)
 {
 	(void)state;
 	(void)oldstate;
-	/* not yet implemented :( */
+	/* not yet implemented */
 	return 0;
 }
 
 static __inline int pthread_cancel(pthread_t thread)
 {
-	/* This is quite harsh :( */
+	/* This is quite harsh */
 	winPthreadAssertWindows(TerminateThread(thread, 0));
 	return 0;
 }

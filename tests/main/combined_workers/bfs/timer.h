@@ -45,7 +45,7 @@ private:
 			if (max < *it)
 				max = *it;
 		}
-		time.push_back( max );
+		time.push_back(max);
 		//std::cout<<"MAXXX:"<<max<<" ";
 
 		multi_time.clear();  // clear it in both cases.
@@ -62,7 +62,7 @@ private:
 			if (min > *it)
 				min = *it;
 		}
-		time.push_back( min );
+		time.push_back(min);
 
 		multi_time.clear();  // clear it in both cases.
 	}
@@ -102,9 +102,9 @@ public:
 	{
 		gettimeofday(&timerEnd, NULL);
 		if(record_multi)
-			multi_time.push_back( (timerEnd.tv_sec - timerStart.tv_sec + (timerEnd.tv_usec - timerStart.tv_usec) / 1000000.0) * 1000 );
+			multi_time.push_back((timerEnd.tv_sec - timerStart.tv_sec + (timerEnd.tv_usec - timerStart.tv_usec) / 1000000.0) * 1000);
 		else
-			time.push_back( (timerEnd.tv_sec - timerStart.tv_sec + (timerEnd.tv_usec - timerStart.tv_usec) / 1000000.0) * 1000 );
+			time.push_back((timerEnd.tv_sec - timerStart.tv_sec + (timerEnd.tv_usec - timerStart.tv_usec) / 1000000.0) * 1000);
 		//std::cout<<"stop_\n";
 	}
 

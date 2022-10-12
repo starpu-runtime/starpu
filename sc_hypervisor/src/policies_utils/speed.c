@@ -66,7 +66,7 @@ double sc_hypervisor_get_speed_per_worker(struct sc_hypervisor_wrapper *sc_w, un
 	if(ctx_elapsed_flops > ctx_sample && elapsed_flops == 0.0)
 		return 0.00000000000001;
 
-	if( elapsed_flops > sample)
+	if(elapsed_flops > sample)
 	{
 		double curr_time = starpu_timing_now();
 		double elapsed_time = (curr_time - sc_w->start_time) / 1000000.0; /* in seconds */
@@ -167,9 +167,9 @@ double sc_hypervisor_get_speed_per_worker_type(struct sc_hypervisor_wrapper* sc_
 			   register only the last frame otherwise make the average with the speed
 			   behavior of the application until now */
 			if(arch == STARPU_CUDA_WORKER)
-				sc_w->ref_speed[0] = (sc_w->ref_speed[0] > 0.1) ? ((sc_w->ref_speed[0] + speed ) / 2.0) : speed;
+				sc_w->ref_speed[0] = (sc_w->ref_speed[0] > 0.1) ? ((sc_w->ref_speed[0] + speed) / 2.0) : speed;
 			else
-				sc_w->ref_speed[1] = (sc_w->ref_speed[1] > 0.1) ? ((sc_w->ref_speed[1] + speed ) / 2.0) : speed;
+				sc_w->ref_speed[1] = (sc_w->ref_speed[1] > 0.1) ? ((sc_w->ref_speed[1] + speed) / 2.0) : speed;
 		}
 		return speed;
 	}

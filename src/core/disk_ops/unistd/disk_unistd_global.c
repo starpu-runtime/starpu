@@ -54,7 +54,7 @@
 #define MAX_OPEN_FILES 64
 #define TEMP_HIERARCHY_DEPTH 2
 
-#if !defined(HAVE_COPY_FILE_RANGE) && defined(__linux__) && defined( __NR_copy_file_range)
+#if !defined(HAVE_COPY_FILE_RANGE) && defined(__linux__) && defined(__NR_copy_file_range)
 static starpu_ssize_t copy_file_range(int fd_in, loff_t *off_in, int fd_out,
 				      loff_t *off_out, size_t len, unsigned int flags)
 {

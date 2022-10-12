@@ -80,7 +80,7 @@ static int _starpu_compar_handles(const struct _starpu_data_descr *descrA,
 		 * locking, see _submit_job_access_data,
 		 * _starpu_fetch_task_input, and _starpu_push_task_output  */
 
-		if ( Awrites && !Bwrites)
+		if (Awrites && !Bwrites)
 			/* Only A writes, take it first */
 			return -1;
 		if (!Awrites &&  Bwrites)
@@ -88,7 +88,7 @@ static int _starpu_compar_handles(const struct _starpu_data_descr *descrA,
 			return 1;
 		/* Both A and B write */
 
-		if ( Areads && !Breads)
+		if (Areads && !Breads)
 			/* Only A reads, take it first */
 			return -1;
 		if (!Areads &&  Breads)

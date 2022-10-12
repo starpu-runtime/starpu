@@ -1513,7 +1513,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 				 * depending on whether the user wants
 				 * reactivity or computing power from the MPI
 				 * progression thread. */
-				if ( mpi_driver && ( ++mpi_driver_loop_counter == mpi_driver_call_freq ))
+				if (mpi_driver && (++mpi_driver_loop_counter == mpi_driver_call_freq))
 				{
 					mpi_driver_loop_counter = 0;
 					mpi_driver_task_counter = 0;

@@ -213,7 +213,7 @@ static int bench_energy(int workerid, int where, enum starpu_worker_archtype arc
 		starpu_data_handle_t handle;
 		starpu_vector_data_register(&handle, -1, (uintptr_t)NULL, size, sizeof(int));
 
-		if ( (retval = starpu_energy_start(workerid, archtype)) != 0)
+		if ((retval = starpu_energy_start(workerid, archtype)) != 0)
 		{
 			starpu_data_unregister(handle);
 			_STARPU_DISP("Energy measurement not supported for archtype %s\n", starpu_perfmodel_get_archtype_name(archtype));

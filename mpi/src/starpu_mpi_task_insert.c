@@ -244,7 +244,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 			if (rank != -1)
 			{
 				*xrank = rank;
-				if (node_selected == 0 )
+				if (node_selected == 0)
 				{
 					_STARPU_MPI_DEBUG(100, "Executing on node %d\n", *xrank);
 					*do_execute = 1;

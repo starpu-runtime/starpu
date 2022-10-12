@@ -603,7 +603,7 @@ static void _starpu_sink_common_execution_completed_message(struct _starpu_mp_no
 	*(int*) message->buffer = task->coreid;
 
 	 if (task->cl_ret)
-		memcpy( message->buffer+sizeof(int), task->cl_ret, task->cl_ret_size);
+		memcpy(message->buffer+sizeof(int), task->cl_ret, task->cl_ret_size);
 
 	/* Append the message to the queue */
 	_starpu_sink_common_append_message(node, message);

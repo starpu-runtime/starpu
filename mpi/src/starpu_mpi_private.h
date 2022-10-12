@@ -158,7 +158,7 @@ int _starpu_debug_rank;
 						fflush(stderr); }} while(0)
 #  define _STARPU_MPI_LOG_OUT()            do { if (!_starpu_silent) { \
 						if (_starpu_debug_rank == -1) starpu_mpi_comm_rank(MPI_COMM_WORLD, &_starpu_debug_rank); \
-						fprintf(stderr, "%*s[%d][starpu_mpi][%s:%d] <--\n", (_starpu_debug_rank+1)*4, "", _starpu_debug_rank, __starpu_func__, __LINE__ ); \
+						fprintf(stderr, "%*s[%d][starpu_mpi][%s:%d] <--\n", (_starpu_debug_rank+1)*4, "", _starpu_debug_rank, __starpu_func__, __LINE__); \
 						fflush(stderr); }} while(0)
 #else
 #  define _STARPU_MPI_LOG_IN()

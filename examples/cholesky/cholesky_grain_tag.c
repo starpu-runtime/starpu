@@ -145,7 +145,7 @@ static int create_task_gemm(starpu_data_handle_t dataA, unsigned k, unsigned m, 
 		task->flops = FLOPS_SGEMM(nx, nx, nx);
 	}
 
-	if ( (n == k + 1) && (m == k +1) )
+	if ((n == k + 1) && (m == k +1))
 	{
 		task->priority = STARPU_MAX_PRIO;
 	}

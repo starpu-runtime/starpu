@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  * Copyright (C) 2013       Thibaut Lambert
  *
@@ -27,12 +27,12 @@
 
 #include "dw_factolu.h"
 
-#define TAG_GETRF(k, prefix)	((starpu_tag_t)( (((unsigned long long)(prefix))<<60)  |  (1ULL<<56) | (unsigned long long)(k)))
+#define TAG_GETRF(k, prefix)	((starpu_tag_t)((((unsigned long long)(prefix))<<60)  |  (1ULL<<56) | (unsigned long long)(k)))
 #define TAG_TRSM_LL(k,i, prefix)	((starpu_tag_t)((((unsigned long long)(prefix))<<60)  | ((2ULL<<56) | (((unsigned long long)(k))<<32)	\
 					| (unsigned long long)(i))))
-#define TAG_TRSM_RU(k,j, prefix)	((starpu_tag_t)( (((unsigned long long)(prefix))<<60)  |  ((3ULL<<56) | (((unsigned long long)(k))<<32)	\
+#define TAG_TRSM_RU(k,j, prefix)	((starpu_tag_t)((((unsigned long long)(prefix))<<60)  |  ((3ULL<<56) | (((unsigned long long)(k))<<32)	\
 					| (unsigned long long)(j))))
-#define TAG_GEMM(k,i,j, prefix)	((starpu_tag_t)(  (((unsigned long long)(prefix))<<60)  |  ((4ULL<<56) | ((unsigned long long)(k)<<32) 	\
+#define TAG_GEMM(k,i,j, prefix)	((starpu_tag_t)((((unsigned long long)(prefix))<<60)  |  ((4ULL<<56) | ((unsigned long long)(k)<<32) 	\
 					| ((unsigned long long)(i)<<16)	\
 					| (unsigned long long)(j))))
 
@@ -202,7 +202,7 @@ static void create_task_gemm(starpu_data_handle_t dataA, unsigned k, unsigned i,
 	task->handles[1] = starpu_data_get_sub_data(dataA, 2, k, j);
 	task->handles[2] = starpu_data_get_sub_data(dataA, 2, i, j);
 
-	if ( (i == k + 1) && (j == k +1) )
+	if ((i == k + 1) && (j == k +1))
 	{
 		task->priority = STARPU_MAX_PRIO;
 	}

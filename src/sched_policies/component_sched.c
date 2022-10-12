@@ -694,7 +694,7 @@ double starpu_sched_component_estimated_load(struct starpu_sched_component * com
 {
 	double sum = 0.0;
 	unsigned i;
-	for( i = 0; i < component->nchildren; i++)
+	for(i = 0; i < component->nchildren; i++)
 	{
 		struct starpu_sched_component * c = component->children[i];
 		sum += c->estimated_load(c);

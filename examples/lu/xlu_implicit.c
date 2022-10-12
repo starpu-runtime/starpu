@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -99,7 +99,7 @@ static int create_task_gemm(starpu_data_handle_t dataA, unsigned k, unsigned i, 
 
 	task->tag_id = TAG_GEMM(k,i,j);
 
-	if (!no_prio &&  (i == k + 1) && (j == k +1) )
+	if (!no_prio &&  (i == k + 1) && (j == k +1))
 		task->priority = STARPU_MAX_PRIO;
 
 	ret = starpu_task_submit(task);

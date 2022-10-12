@@ -56,7 +56,7 @@ void cpu_func(void *buffers[], void *cl_arg)
 	(void)buffers;
 	struct params *params = (struct params *) cl_arg;
 
-	FPRINTF(stdout, "Hello world (params = {%i, %f} )\n", params->i, params->f);
+	FPRINTF(stdout, "Hello world (params = {%i, %f})\n", params->i, params->f);
 }
 
 int main(void)

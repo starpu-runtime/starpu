@@ -338,7 +338,7 @@ bcsr_t *mm_file_to_bcsr(char *filename, unsigned c, unsigned r)
 	/*  This is how one can screen matrix types if their application */
 	/*  only supports a subset of the Matrix Market data types.      */
 
-	if (mm_is_complex(matcode) && mm_is_matrix(matcode) &&  mm_is_sparse(matcode) )
+	if (mm_is_complex(matcode) && mm_is_matrix(matcode) &&  mm_is_sparse(matcode))
 	{
 		printf("Sorry, this application does not support ");
 		printf("Market Market type: [%s]\n", mm_typecode_to_str(matcode));

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,7 +25,7 @@
  *
  *		i = 0
  *		r = b - A x
- *			( d = A x ; r = r - d )
+ *			(d = A x ; r = r - d)
  *		d = r
  *		delta_new = trans(r) r
  *		delta_0 = delta_new
@@ -33,9 +33,9 @@
  * 		while (i < i_max && delta_new > eps^2 delta_0)
  * 		{
  *			q = A d
- *			alpha = delta_new / ( trans(d) q )
+ *			alpha = delta_new / (trans(d) q)
  *			x = x + alpha d
- *			if ( i is divisible by 50 )
+ *			if (i is divisible by 50)
  *				r = b - A x
  *			else
  *				r = r - alpha q
@@ -207,7 +207,7 @@ void cpu_codelet_func_4(void *descr[], void *arg)
 }
 
 /*
- *	compute alpha = delta_new / ( trans(d) q )
+ *	compute alpha = delta_new / (trans(d) q)
  *
  * 		descr[0] = d, descr[1] = q
  *		args = &alpha, &delta_new

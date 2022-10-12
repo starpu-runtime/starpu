@@ -2147,10 +2147,10 @@ static inline void _starpu_omp_for_loop(struct starpu_omp_region *parallel_regio
 		schedule = parallel_region->icvs.run_sched_var;
 		chunk = parallel_region->icvs.run_sched_chunk_var;
 	}
-	STARPU_ASSERT(     schedule == starpu_omp_sched_static
-			|| schedule == starpu_omp_sched_dynamic
-			|| schedule == starpu_omp_sched_guided
-			|| schedule == starpu_omp_sched_auto);
+	STARPU_ASSERT(schedule == starpu_omp_sched_static
+		      || schedule == starpu_omp_sched_dynamic
+		      || schedule == starpu_omp_sched_guided
+		      || schedule == starpu_omp_sched_auto);
 	if (schedule == starpu_omp_sched_auto)
 	{
 		schedule = starpu_omp_sched_static;

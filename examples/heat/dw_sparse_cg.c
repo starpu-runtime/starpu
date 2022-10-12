@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -288,7 +288,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	task4->handles[1] = problem->ds_vecd;
 	task4->handles[2] = problem->ds_vecq;
 
-	/* alpha = delta_new / ( trans(d) q )*/
+	/* alpha = delta_new / (trans(d) q)*/
 	struct starpu_task *task5 = create_task(maskiter | 5UL);
 	task5->cl = &cl5;
 	task5->cl_arg = problem;
@@ -362,7 +362,7 @@ void iteration_cg(void *problem)
 	FPRINTF(stdout, "i : %d (MAX %d)\n\tdelta_new %f (%f)\n", pb->i, MAXITER, pb->delta_new, sqrt(pb->delta_new / pb->size));
 
 	if ((pb->i < MAXITER) &&
-		(pb->delta_new > pb->epsilon) )
+		(pb->delta_new > pb->epsilon))
 	{
 		if (pb->i % 1000 == 0)
 			FPRINTF(stdout, "i : %d\n\tdelta_new %f (%f)\n", pb->i, pb->delta_new, sqrt(pb->delta_new / pb->size));

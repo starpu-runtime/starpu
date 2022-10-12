@@ -31,7 +31,7 @@ double _get_exp_end(unsigned sched_ctx)
 	struct sc_hypervisor_wrapper *sc_w = sc_hypervisor_get_wrapper(sched_ctx);
 	double elapsed_flops = sc_hypervisor_get_elapsed_flops_per_sched_ctx(sc_w);
 
-	if( elapsed_flops >= 1.0)
+	if(elapsed_flops >= 1.0)
 	{
 		double curr_time = starpu_timing_now();
 		double elapsed_time = curr_time - sc_w->start_time;
@@ -201,7 +201,7 @@ static int _find_slowest_sched_ctx()
 		/*if it hasn't started bc of no ressources give it priority */
 		if(curr_exp_end == -1.0)
 			return sched_ctxs[i];
-		if( curr_exp_end > last_exp_end)
+		if(curr_exp_end > last_exp_end)
 		{
 			slowest_sched_ctx = sched_ctxs[i];
 			last_exp_end = curr_exp_end;
@@ -274,7 +274,7 @@ static void gflops_rate_resize(unsigned sched_ctx)
 		double fastest_exp_end = _get_exp_end(fastest_sched_ctx);
 		double slowest_exp_end = _get_exp_end(slowest_sched_ctx);
 
-		if((slowest_exp_end == -1.0 && fastest_exp_end != -1.0) || ((fastest_exp_end + (fastest_exp_end*0.5)) < slowest_exp_end ))
+		if((slowest_exp_end == -1.0 && fastest_exp_end != -1.0) || ((fastest_exp_end + (fastest_exp_end*0.5)) < slowest_exp_end))
 		{
 			double fast_flops_left_pct = _get_flops_left_pct(fastest_sched_ctx);
 			if(fast_flops_left_pct < 0.8)

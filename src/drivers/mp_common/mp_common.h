@@ -273,7 +273,7 @@ struct _starpu_mp_node
 	unsigned int (*dt_test) (struct _starpu_async_channel *);
 
 	void (*(*get_kernel_from_job)	(const struct _starpu_mp_node *,struct _starpu_job *))(void);
-	void (*(*lookup)		(const struct _starpu_mp_node *, char* ))(void);
+	void (*(*lookup)		(const struct _starpu_mp_node *, char*))(void);
 	void (*bind_thread)		(const struct _starpu_mp_node *, int,int *,int);
 	void (*execute)			(struct _starpu_mp_node *, void *, int);
 	void (*allocate)		(const struct _starpu_mp_node *, void *, int);

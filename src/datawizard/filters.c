@@ -96,7 +96,7 @@ starpu_data_handle_t starpu_data_get_child(starpu_data_handle_t handle, unsigned
 /*
  * example starpu_data_get_sub_data(starpu_data_handle_t root_handle, 3, 42, 0, 1);
  */
-starpu_data_handle_t starpu_data_get_sub_data(starpu_data_handle_t root_handle, unsigned depth, ... )
+starpu_data_handle_t starpu_data_get_sub_data(starpu_data_handle_t root_handle, unsigned depth, ...)
 {
 	va_list pa;
 	va_start(pa, depth);
@@ -106,7 +106,7 @@ starpu_data_handle_t starpu_data_get_sub_data(starpu_data_handle_t root_handle, 
 	return handle;
 }
 
-starpu_data_handle_t starpu_data_vget_sub_data(starpu_data_handle_t root_handle, unsigned depth, va_list pa )
+starpu_data_handle_t starpu_data_vget_sub_data(starpu_data_handle_t root_handle, unsigned depth, va_list pa)
 {
 	STARPU_ASSERT(root_handle);
 	starpu_data_handle_t current_handle = root_handle;

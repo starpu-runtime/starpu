@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  * Copyright (C) 2013       Thibaut Lambert
  *
@@ -23,7 +23,7 @@
 
 #include "dw_factolu.h"
 
-#define TAG_GETRF(k)	((starpu_tag_t)( (1ULL<<60) | (unsigned long long)(k)))
+#define TAG_GETRF(k)	((starpu_tag_t)((1ULL<<60) | (unsigned long long)(k)))
 #define TAG_TRSM_LL(k,i)	((starpu_tag_t)(((2ULL<<60) | (((unsigned long long)(k))<<32)	\
 					| (unsigned long long)(i))))
 #define TAG_TRSM_RU(k,j)	((starpu_tag_t)(((3ULL<<60) | (((unsigned long long)(k))<<32)	\
@@ -104,7 +104,7 @@ static void create_task_trsm_ll(starpu_data_handle_t dataA, unsigned k, unsigned
 /*	printf("task 12 k,i = %d,%d TAG = %llx\n", k,i, TAG_TRSM_LL(k,i)); */
 
 	struct starpu_task *task = create_task(TAG_TRSM_LL(k, i));
-	
+
 	task->cl = &cl_trsm_ll;
 
 	/* which sub-data is manipulated ? */
@@ -148,7 +148,7 @@ static void create_task_trsm_ru(starpu_data_handle_t dataA, unsigned k, unsigned
 	struct starpu_task *task = create_task(TAG_TRSM_RU(k, j));
 
 	task->cl = &cl_trsm_ru;
-	
+
 	/* which sub-data is manipulated ? */
 	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, k);
 	task->handles[1] = starpu_data_get_sub_data(dataA, 2, k, j);
@@ -199,7 +199,7 @@ static void create_task_gemm(starpu_data_handle_t dataA, unsigned k, unsigned i,
 	task->handles[1] = starpu_data_get_sub_data(dataA, 2, k, j);
 	task->handles[2] = starpu_data_get_sub_data(dataA, 2, i, j);
 
-	if (!no_prio &&  (i == k + 1) && (j == k +1) )
+	if (!no_prio &&  (i == k + 1) && (j == k +1))
 	{
 		task->priority = STARPU_MAX_PRIO;
 	}
@@ -219,7 +219,7 @@ static void create_task_gemm(starpu_data_handle_t dataA, unsigned k, unsigned i,
 }
 
 /*
- *	code to bootstrap the factorization 
+ *	code to bootstrap the factorization
  */
 
 static void dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks)
@@ -248,7 +248,7 @@ static void dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks)
 			ret = starpu_task_submit(task);
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
-		
+
 		for (i = k+1; i<nblocks; i++)
 		{
 			create_task_trsm_ll(dataA, k, i);

@@ -329,12 +329,12 @@ static float compute_A_value(unsigned i, unsigned j, point *pmesh)
 	theta_j = NODE_TO_THETA(j);
 
 	/* Compute the Sum of all the integral over all triangles */
-	if ( (abs((int)thick_i - (int)thick_j) <= 1) && (abs((int)theta_i - (int)theta_j) <= 1) )
+	if ((abs((int)thick_i - (int)thick_j) <= 1) && (abs((int)theta_i - (int)theta_j) <= 1))
 	{
-		if ( (theta_j == theta_i -1) && (thick_j == thick_i +1))
+		if ((theta_j == theta_i -1) && (thick_j == thick_i +1))
 			goto done;
 
-		if ( (theta_j == theta_i + 1) && (thick_j == thick_i  - 1))
+		if ((theta_j == theta_i + 1) && (thick_j == thick_i  - 1))
 			goto done;
 
 		/* this may not be a null entry */
@@ -523,11 +523,11 @@ static unsigned long build_neighbour_vector(unsigned long*neighbours, unsigned n
 	int dtheta, dthick;
 	for (dthick = -1; dthick <= 1; dthick++)
 	{
-		if ((former_thick + dthick) >= 0 && (former_thick + dthick) <= (int)nthick )
+		if ((former_thick + dthick) >= 0 && (former_thick + dthick) <= (int)nthick)
 		{
 			for (dtheta = -1; dtheta <= 1; dtheta++)
 			{
-				if ((former_theta + dtheta) >= 0 && (former_theta + dtheta) <= (int)ntheta )
+				if ((former_theta + dtheta) >= 0 && (former_theta + dtheta) <= (int)ntheta)
 				{
 					/* we got a possible neighbour */
 					unsigned pnode =

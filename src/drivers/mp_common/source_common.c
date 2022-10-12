@@ -586,7 +586,7 @@ static struct _starpu_sink_kernel *starpu_src_common_register_kernel(const char 
 	}
 
 	unsigned int nb_devices = _starpu_get_machine_config()->topology.ndevices[archtype];
-	_STARPU_MALLOC(kernel, sizeof(*kernel) + nb_devices * sizeof(starpu_cpu_func_t ));
+	_STARPU_MALLOC(kernel, sizeof(*kernel) + nb_devices * sizeof(starpu_cpu_func_t));
 
 	kernel->name = strdup(func_name);
 

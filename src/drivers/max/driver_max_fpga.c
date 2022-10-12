@@ -39,7 +39,7 @@ static unsigned max_fpga_bindid[STARPU_MAXMAXFPGADEVS];
 static unsigned max_fpga_memory_init[STARPU_MAXMAXFPGADEVS];
 static unsigned max_fpga_memory_nodes[STARPU_MAXMAXFPGADEVS];
 
-static void _starpu_max_fpga_limit_max_fpga_mem(unsigned );
+static void _starpu_max_fpga_limit_max_fpga_mem(unsigned);
 static size_t _starpu_max_fpga_get_max_fpga_mem_size(unsigned devid);
 
 static size_t _starpu_max_fpga_get_max_fpga_mem_size(unsigned devid)

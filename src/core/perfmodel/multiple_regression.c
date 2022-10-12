@@ -164,9 +164,9 @@ int dgels_multiple_reg_coeff(double *mpar, double *my, unsigned long nn, unsigne
 
 /*  LWORK   (input) INTEGER */
 /*	    The dimension of the array WORK. */
-/*	    LWORK >= max( 1, MN + max( MN, NRHS ) ). */
+/*	    LWORK >= max(1, MN + max(MN, NRHS)). */
 /*	    For optimal performance, */
-/*	    LWORK >= max( 1, MN + max( MN, NRHS )*NB ). */
+/*	    LWORK >= max(1, MN + max(MN, NRHS) * NB). */
 /*	    where MN = min(M,N) and NB is the optimum block size. */
 
 /*	    If LWORK = -1, then a workspace query is assumed; the routine */
@@ -233,7 +233,7 @@ int dgels_multiple_reg_coeff(double *mpar, double *my, unsigned long nn, unsigne
 #endif
 
 	/* Check for the full rank */
-	if( info != 0 )
+	if(info != 0)
 	{
 		_STARPU_DISP("Warning: Problems when executing dgels_ function. It seems like the diagonal element %ld is zero.\n Multiple linear regression model will not be written into perfmodel file.\n", info);
 		free(X);

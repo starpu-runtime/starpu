@@ -354,7 +354,7 @@ static struct starpu_task *ws_pick_task(struct _starpu_work_stealing_data *ws, i
 		}
 	}
 
-	/* Didn't find an interesting task, or couldn't run it :( */
+	/* Didn't find an interesting task, or couldn't run it */
 	struct starpu_task *task;
 
 	if (source != target)

@@ -186,17 +186,17 @@ static void update_func_cuda(void *descr[], void *arg)
 	struct block_description *block = get_block_description(z);
 
 	int workerid = starpu_worker_get_id_check();
-	DEBUG( "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+	DEBUG("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 	if (block->bz == 0)
 		FPRINTF(stderr,"!!! DO update_func_cuda z %u CUDA%d !!!\n", block->bz, workerid);
 	else
-		DEBUG( "!!! DO update_func_cuda z %u CUDA%d !!!\n", block->bz, workerid);
+		DEBUG("!!! DO update_func_cuda z %u CUDA%d !!!\n", block->bz, workerid);
 #if defined(STARPU_USE_MPI) && !defined(STARPU_SIMGRID) && !defined(STARPU_USE_MPI_MASTER_SLAVE)
 	int rank = 0;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	DEBUG( "!!!           RANK %d              !!!\n", rank);
+	DEBUG("!!!           RANK %d              !!!\n", rank);
 #endif
-	DEBUG( "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+	DEBUG("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 
 	unsigned block_size_z = get_block_size(block->bz);
 	unsigned i;
@@ -273,17 +273,17 @@ static void update_func_opencl(void *descr[], void *arg)
 	struct block_description *block = get_block_description(z);
 
 	int workerid = starpu_worker_get_id_check();
-	DEBUG( "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+	DEBUG("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 	if (block->bz == 0)
 		FPRINTF(stderr,"!!! DO update_func_opencl z %u OPENCL%d !!!\n", block->bz, workerid);
 	else
-		DEBUG( "!!! DO update_func_opencl z %u OPENCL%d !!!\n", block->bz, workerid);
+		DEBUG("!!! DO update_func_opencl z %u OPENCL%d !!!\n", block->bz, workerid);
 #if defined(STARPU_USE_MPI) && !defined(STARPU_SIMGRID) && !defined(STARPU_USE_MPI_MASTER_SLAVE)
 	int rank = 0;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	DEBUG( "!!!           RANK %d              !!!\n", rank);
+	DEBUG("!!!           RANK %d              !!!\n", rank);
 #endif
-	DEBUG( "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+	DEBUG("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 
 	unsigned block_size_z = get_block_size(block->bz);
 	unsigned i;
@@ -343,7 +343,7 @@ void update_func_cpu(void *descr[], void *arg)
 	struct block_description *block = get_block_description(zz);
 
 	int workerid = starpu_worker_get_id_check();
-	DEBUG( "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+	DEBUG("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 	if (block->bz == 0)
 		DEBUG("!!! DO update_func_cpu z %u worker%d !!!\n", block->bz, workerid);
 	else
@@ -351,9 +351,9 @@ void update_func_cpu(void *descr[], void *arg)
 #if defined(STARPU_USE_MPI) && !defined(STARPU_SIMGRID) && !defined(STARPU_USE_MPI_MASTER_SLAVE)
 	int rank = 0;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	DEBUG( "!!!            RANK %d              !!!\n", rank);
+	DEBUG("!!!            RANK %d              !!!\n", rank);
 #endif
-	DEBUG( "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+	DEBUG("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 
 	unsigned block_size_z = get_block_size(block->bz);
 	unsigned i;
@@ -509,7 +509,7 @@ void dummy_func_top_cpu(void *descr[], void *arg)
 	int workerid = starpu_worker_get_id_check();
 	top_per_worker[workerid]++;
 
-	DEBUG( "DO SAVE Bottom block %d\n", block->bz);
+	DEBUG("DO SAVE Bottom block %d\n", block->bz);
 
 	/* The offset along the z axis is (block_size_z + K)- K */
 	unsigned block_size_z = get_block_size(block->bz);
@@ -529,7 +529,7 @@ void dummy_func_bottom_cpu(void *descr[], void *arg)
 	int workerid = starpu_worker_get_id_check();
 	bottom_per_worker[workerid]++;
 
-	DEBUG( "DO SAVE Top block %d\n", block->bz);
+	DEBUG("DO SAVE Top block %d\n", block->bz);
 
 	load_subblock_into_buffer_cpu(descr[0], descr[2], K);
 	load_subblock_into_buffer_cpu(descr[1], descr[3], K);
@@ -546,7 +546,7 @@ static void dummy_func_top_cuda(void *descr[], void *arg)
 	int workerid = starpu_worker_get_id_check();
 	top_per_worker[workerid]++;
 
-	DEBUG( "DO SAVE Top block %d\n", block->bz);
+	DEBUG("DO SAVE Top block %d\n", block->bz);
 
 	/* The offset along the z axis is (block_size_z + K)- K */
 	unsigned block_size_z = get_block_size(block->bz);
@@ -566,7 +566,7 @@ static void dummy_func_bottom_cuda(void *descr[], void *arg)
 	int workerid = starpu_worker_get_id_check();
 	bottom_per_worker[workerid]++;
 
-	DEBUG( "DO SAVE Bottom block %d on CUDA\n", block->bz);
+	DEBUG("DO SAVE Bottom block %d on CUDA\n", block->bz);
 
 	load_subblock_into_buffer_cuda(descr[0], descr[2], K);
 	load_subblock_into_buffer_cuda(descr[1], descr[3], K);
@@ -584,7 +584,7 @@ static void dummy_func_top_opencl(void *descr[], void *arg)
 	int workerid = starpu_worker_get_id_check();
 	top_per_worker[workerid]++;
 
-	DEBUG( "DO SAVE Top block %d\n", block->bz);
+	DEBUG("DO SAVE Top block %d\n", block->bz);
 
 	/* The offset along the z axis is (block_size_z + K)- K */
 	unsigned block_size_z = get_block_size(block->bz);
@@ -604,7 +604,7 @@ static void dummy_func_bottom_opencl(void *descr[], void *arg)
 	int workerid = starpu_worker_get_id_check();
 	bottom_per_worker[workerid]++;
 
-	DEBUG( "DO SAVE Bottom block %d on OPENCL\n", block->bz);
+	DEBUG("DO SAVE Bottom block %d on OPENCL\n", block->bz);
 
 	load_subblock_into_buffer_opencl(descr[0], descr[2], K);
 	load_subblock_into_buffer_opencl(descr[1], descr[3], K);

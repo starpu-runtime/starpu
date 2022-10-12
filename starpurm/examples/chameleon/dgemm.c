@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2017-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2017-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -145,13 +145,13 @@ static void test(void *_args)
 	MORSE_dgemm(transA, transB, m, n, k, alpha, A, k, B, n, beta, C, n);
 #ifdef CHECK
 	/* Check */
-	cblas_dgemm( CblasColMajor,
-			( CBLAS_TRANSPOSE ) transA,
-			( CBLAS_TRANSPOSE ) transB,
-			m, n, k,
-			alpha, A, k,
-			B, n,
-			beta, C_test, n );
+	cblas_dgemm(CblasColMajor,
+		    (CBLAS_TRANSPOSE) transA,
+		    (CBLAS_TRANSPOSE) transB,
+		    m, n, k,
+		    alpha, A, k,
+		    B, n,
+		    beta, C_test, n);
 
 	double C_test_inorm = LAPACKE_dlange(CblasColMajor, 'I', m, n, C_test, n);
 	cblas_daxpy(m*n, -1, C, 1, C_test, 1);
@@ -223,7 +223,7 @@ void spawn_tests(int cpu_offset, int cpu_nb, int cuda_offset, int cuda_nb, void 
 	hwloc_bitmap_free(cuda_cpuset);
 }
 
-int main( int argc, char const *argv[])
+int main(int argc, char const *argv[])
 {
 	pthread_cond_init(&spawn_pending_cond, NULL);
 

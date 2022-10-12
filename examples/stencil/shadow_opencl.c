@@ -24,7 +24,7 @@
 #define clsrc(t,k) "__kernel void\n\
 #define TYPE " str(t) "\n\
 #define K " str(k) "\n\
-shadow( int bz, __global TYPE *ptr, int nx, int ny, int nz, int ldy, int ldz, int i)\n\
+shadow(int bz, __global TYPE *ptr, int nx, int ny, int nz, int ldy, int ldz, int i)\n\
 {\n\
 	unsigned idx = get_global_id(0);\n\
 	unsigned idy = get_global_id(1);\n\

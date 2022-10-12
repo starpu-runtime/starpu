@@ -52,7 +52,7 @@ int mm_read_unsymmetric_sparse(const char *fname, int *M_, int *N_, int *nz_, do
 		return -1;
 	}
 
-	if ( !(mm_is_real(matcode) && mm_is_matrix(matcode) && mm_is_sparse(matcode)))
+	if (!(mm_is_real(matcode) && mm_is_matrix(matcode) && mm_is_sparse(matcode)))
 	{
 		fprintf(stderr, "Sorry, this application does not support ");
 		fprintf(stderr, "Market Market type: [%s]\n", mm_typecode_to_str(matcode));
@@ -178,7 +178,7 @@ int mm_write_mtx_crd_size(FILE *f, int M, int N, int nz)
 		return 0;
 }
 
-int mm_read_mtx_crd_size(FILE *f, int *M, int *N, int *nz )
+int mm_read_mtx_crd_size(FILE *f, int *M, int *N, int *nz)
 {
 	char line[MM_MAX_LINE_LENGTH];
 

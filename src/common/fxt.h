@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Joris Pablo
  * Copyright (C) 2018,2020  Federal University of Rio Grande do Sul (UFRGS)
  *
@@ -351,7 +351,7 @@ void _starpu_fxt_dump_file(void);
 #else
 #define _STARPU_FUT_ALWAYS_PROBE1STR(CODE, P1, str)	\
 do {									\
-    if( STARPU_UNLIKELY(fut_active) ) { \
+    if(STARPU_UNLIKELY(fut_active)) { \
 	/* No more than FXT_MAX_PARAMS args are allowed */		\
 	/* we add a \0 just in case ... */				\
 	size_t len = STARPU_MIN(strlen(str)+1, (FXT_MAX_PARAMS - 1)*sizeof(unsigned long));\
@@ -784,7 +784,7 @@ do {									\
 
 #ifndef FUT_FULL_PROBE8
 #define FUT_FULL_PROBE8(KEYMASK,CODE,P1,P2,P3,P4,P5,P6,P7,P8) do { \
-        if( KEYMASK & fut_active ) { \
+        if(KEYMASK & fut_active) { \
                 FUT_RAW_ALWAYS_PROBE8(FUT_CODE(CODE, 8),P1,P2,P3,P4,P5,P6,P7,P8); \
         } \
 } while(0)
@@ -792,7 +792,7 @@ do {									\
 
 #ifndef FUT_FULL_PROBE9
 #define FUT_FULL_PROBE9(KEYMASK,CODE,P1,P2,P3,P4,P5,P6,P7,P8,P9) do { \
-        if( KEYMASK & fut_active ) { \
+        if(KEYMASK & fut_active) { \
                 FUT_RAW_ALWAYS_PROBE9(FUT_CODE(CODE, 9),P1,P2,P3,P4,P5,P6,P7,P8,P9); \
         } \
 } while(0)
@@ -820,7 +820,7 @@ do {									\
 
 #define _STARPU_TRACE_START_CODELET_BODY(job, nimpl, perf_arch, workerid)				\
 do {									\
-    if( STARPU_UNLIKELY((_STARPU_FUT_KEYMASK_TASK|_STARPU_FUT_KEYMASK_TASK_VERBOSE|_STARPU_FUT_KEYMASK_DATA|_STARPU_FUT_KEYMASK_TASK_VERBOSE_EXTRA) & fut_active) ) { \
+    if(STARPU_UNLIKELY((_STARPU_FUT_KEYMASK_TASK|_STARPU_FUT_KEYMASK_TASK_VERBOSE|_STARPU_FUT_KEYMASK_DATA|_STARPU_FUT_KEYMASK_TASK_VERBOSE_EXTRA) & fut_active)) { \
 	FUT_FULL_PROBE4(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_START_CODELET_BODY, (job)->job_id, ((job)->task)->sched_ctx, workerid, starpu_worker_get_memory_node(workerid)); \
 	{								\
 		if ((job)->task->cl)					\
@@ -860,7 +860,7 @@ do {									\
 
 #define _STARPU_TRACE_END_CODELET_BODY(job, nimpl, perf_arch, workerid)			\
 do {									\
-    if( STARPU_UNLIKELY((_STARPU_FUT_KEYMASK_TASK) & fut_active) ) { \
+    if(STARPU_UNLIKELY((_STARPU_FUT_KEYMASK_TASK) & fut_active)) { \
 	const size_t job_size = _starpu_job_get_data_size((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job));	\
 	const uint32_t job_hash = _starpu_compute_buffers_footprint((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job));\
 	char _archname[32]=""; \
@@ -950,7 +950,7 @@ do {									\
 #ifdef STARPU_BUBBLE
 #define _STARPU_TRACE_BUBBLE(job)					\
 do {								\
-    if( STARPU_UNLIKELY((_STARPU_FUT_KEYMASK_TASK) & fut_active) ) { \
+    if(STARPU_UNLIKELY((_STARPU_FUT_KEYMASK_TASK) & fut_active)) { \
 	unsigned int is_bubble=(job)->is_bubble;			\
 	unsigned long bubble_parent=(job)->task->bubble_parent;		\
 	FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_BUBBLE, (job)->job_id, is_bubble, bubble_parent); \
@@ -960,7 +960,7 @@ do {								\
 
 #define _STARPU_TRACE_TASK_NAME(job)				\
 do {								\
-    if( STARPU_UNLIKELY((_STARPU_FUT_KEYMASK_TASK) & fut_active) ) { \
+    if(STARPU_UNLIKELY((_STARPU_FUT_KEYMASK_TASK) & fut_active)) { \
         const char *model_name = _starpu_job_get_model_name((job));		\
 	const char *name = _starpu_job_get_task_name((job));			\
 	if (name)					                        \
@@ -977,7 +977,7 @@ do {								\
 
 #define _STARPU_TRACE_TASK_COLOR(job)						\
 do { \
-    if( STARPU_UNLIKELY((_STARPU_FUT_KEYMASK_TASK) & fut_active) ) { \
+    if(STARPU_UNLIKELY((_STARPU_FUT_KEYMASK_TASK) & fut_active)) { \
 	if ((job)->task->color != 0) \
 		FUT_FULL_PROBE2(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_COLOR, (job)->job_id, (job)->task->color); \
 	else if ((job)->task->cl && (job)->task->cl->color != 0) \
@@ -990,7 +990,7 @@ do { \
 
 #define _STARPU_TRACE_TAG_DONE(tag)						\
 do {										\
-    if( STARPU_UNLIKELY((_STARPU_FUT_KEYMASK_TASK) & fut_active) ) { \
+    if(STARPU_UNLIKELY((_STARPU_FUT_KEYMASK_TASK) & fut_active)) { \
         struct _starpu_job *job = (tag)->job;                                  \
         const char *model_name = _starpu_job_get_task_name((job));                       \
 	if (model_name)                                                         \
@@ -1392,7 +1392,7 @@ do {										\
 	FUT_FULL_PROBE5(_STARPU_FUT_KEYMASK_SCHED, _STARPU_FUT_SCHED_COMPONENT_PULL, _starpu_gettid(), from, to, task, (task)->priority);
 
 #define _STARPU_TRACE_HANDLE_DATA_REGISTER(handle)	do {	\
-    if( STARPU_UNLIKELY((_STARPU_FUT_KEYMASK_META) & fut_active) ) { \
+    if(STARPU_UNLIKELY((_STARPU_FUT_KEYMASK_META) & fut_active)) { \
 	const size_t __data_size = handle->ops->get_size(handle); \
 	const starpu_ssize_t __max_data_size = _starpu_data_get_max_size(handle); \
 	char __buf[(FXT_MAX_PARAMS-4)*sizeof(long)]; \
@@ -1502,8 +1502,8 @@ do {										\
 #define _STARPU_TRACE_END_MEMRECLAIM(memnode,is_prefetch)	do {(void)(memnode); (void)(is_prefetch);} while(0)
 #define _STARPU_TRACE_START_WRITEBACK_ASYNC(memnode)	do {(void)(memnode);} while(0)
 #define _STARPU_TRACE_END_WRITEBACK_ASYNC(memnode)	do {(void)(memnode);} while(0)
-#define _STARPU_TRACE_START_PROGRESS(memnode)		do {(void)( memnode);} while(0)
-#define _STARPU_TRACE_END_PROGRESS(memnode)		do {(void)( memnode);} while(0)
+#define _STARPU_TRACE_START_PROGRESS(memnode)		do {(void)(memnode);} while(0)
+#define _STARPU_TRACE_END_PROGRESS(memnode)		do {(void)(memnode);} while(0)
 #define _STARPU_TRACE_USER_EVENT(code)			do {(void)(code);} while(0)
 #define _STARPU_TRACE_SET_PROFILING(status)		do {(void)(status);} while(0)
 #define _STARPU_TRACE_TASK_WAIT_FOR_ALL()		do {} while(0)

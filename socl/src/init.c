@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2012       Vincent Danjean
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -104,12 +104,12 @@ void soclShutdown()
 		shutdown = 1;
 
 		STARPU_PTHREAD_MUTEX_LOCK(&_socl_mutex);
-		if( _socl_init )
+		if(_socl_init)
 			starpu_task_wait_for_all();
 
 		gc_stop();
 
-		if( _socl_init )
+		if(_socl_init)
 			starpu_task_wait_for_all();
 
 		int active_entities = gc_active_entity_count();
@@ -120,7 +120,7 @@ void soclShutdown()
 			gc_print_remaining_entities();
 		}
 
-		if( _socl_init && _starpu_init_failed != -ENODEV)
+		if(_socl_init && _starpu_init_failed != -ENODEV)
 			starpu_shutdown();
 		STARPU_PTHREAD_MUTEX_UNLOCK(&_socl_mutex);
 

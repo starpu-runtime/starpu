@@ -770,7 +770,7 @@ int _starpu_bubble_unpartition_data_if_needed(struct _starpu_job *j)
 		 * handled by _starpu_data_partition_access_submit()
 		 * called in _starpu_task_submit_head().
 		 */
-		if ( handle->nplans > 0 )
+		if (handle->nplans > 0)
 		{
 			if (unpartition_needed == 0)
 			{
@@ -798,7 +798,7 @@ int _starpu_bubble_unpartition_data_if_needed(struct _starpu_job *j)
 		 */
 		else
 		{
-			//_starpu_data_partition_access_submit( handle, (mode & STARPU_W) != 0 );
+			//_starpu_data_partition_access_submit(handle, (mode & STARPU_W) != 0);
 			// + replug on the current task
 		}
 		STARPU_PTHREAD_MUTEX_UNLOCK(&handle->unpartition_mutex);

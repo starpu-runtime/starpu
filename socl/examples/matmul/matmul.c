@@ -173,7 +173,7 @@ void printArray(float* data, int size)
  * @param len        number of elements in reference and data
  * @param epsilon    epsilon to use for the comparison
 */
-int shrCompareL2fe( const float* reference, const float* data, const unsigned int len, const float epsilon )
+int shrCompareL2fe(const float* reference, const float* data, const unsigned int len, const float epsilon)
 {
 	assert(epsilon >= 0);
 
@@ -200,7 +200,7 @@ int shrCompareL2fe( const float* reference, const float* data, const unsigned in
 	error = normError / normRef;
 	int result = error < epsilon;
 #ifdef _DEBUG
-	if( !result)
+	if(!result)
 	{
 		fprintf(stderr, "ERROR, l2-norm error %lf is greater than epsilon %lf \n", error, epsilon);
 	}

@@ -449,7 +449,7 @@ unsigned sc_hypervisor_get_resize_criteria()
 	return hypervisor.resize_criteria;
 }
 
-static int get_ntasks( int *tasks)
+static int get_ntasks(int *tasks)
 {
 	int ntasks = 0;
 	int j;

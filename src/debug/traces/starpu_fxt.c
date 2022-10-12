@@ -3012,9 +3012,9 @@ static void handle_task_name(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 	{
 		snprintf(buffer, sizeof(buffer), "#%06x", task->color);
 		color = &buffer[0];
-		code = ( (task->color & 0xff) +
+		code = ((task->color & 0xff) +
 			((task->color >> 8) & 0xff) +
-			((task->color >> 16) & 0xff) ) / 256;
+			((task->color >> 16) & 0xff)) / 256;
 	}
 	else if (options->per_task_colour)
 	{

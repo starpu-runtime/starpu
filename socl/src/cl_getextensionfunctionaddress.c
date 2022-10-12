@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2012       Vincent Danjean
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -42,7 +42,7 @@ soclGetExtensionFunctionAddressForPlatform(cl_platform_id p, const char * func_n
 
 CL_API_ENTRY void * CL_API_CALL clGetExtensionFunctionAddress(const char * func_name) CL_API_SUFFIX__VERSION_1_0
 {
-	if( func_name != NULL &&  strcmp("clIcdGetPlatformIDsKHR", func_name) == 0 )
+	if(func_name != NULL &&  strcmp("clIcdGetPlatformIDsKHR", func_name) == 0)
 		return (void *)soclIcdGetPlatformIDsKHR;
 	return NULL;
 }

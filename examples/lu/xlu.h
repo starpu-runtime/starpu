@@ -20,7 +20,7 @@
 #include <starpu.h>
 #include <common/blas.h>
 
-#define TAG_GETRF(k)	((starpu_tag_t)( (1ULL<<60) | (unsigned long long)(k)))
+#define TAG_GETRF(k)	((starpu_tag_t)((1ULL<<60) | (unsigned long long)(k)))
 #define TAG_TRSM_LL(k,i)	((starpu_tag_t)(((2ULL<<60) | (((unsigned long long)(k))<<32)	\
 					| (unsigned long long)(i))))
 #define TAG_TRSM_RU(k,j)	((starpu_tag_t)(((3ULL<<60) | (((unsigned long long)(k))<<32)	\
@@ -74,9 +74,9 @@ static void compare_A_LU(float *A, float *LU, unsigned size, unsigned ld)
 	float max_err = 0.0f;
 	for (i = 0; i < size ; i++)
 	{
-		for (j = 0; j < size; j++) 
+		for (j = 0; j < size; j++)
 		{
-			max_err = STARPU_MAX(max_err, fabs(  L[j+i*size] - A[j+i*ld]  ));
+			max_err = STARPU_MAX(max_err, fabs(L[j+i*size] - A[j+i*ld]));
 		}
 	}
 

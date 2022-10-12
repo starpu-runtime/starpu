@@ -1231,7 +1231,7 @@ static int load_bus_latency_file_content(void)
 		}
 
 		/* No more values, take NAN */
-		for ( ; dst < STARPU_MAXNODES; dst++)
+		for (; dst < STARPU_MAXNODES; dst++)
 			latency_matrix[src][dst] = NAN;
 
 		while (n == '\t')
@@ -1269,7 +1269,7 @@ static int load_bus_latency_file_content(void)
 	fclose(f);
 
 	/* No more values, take NAN */
-	for ( ; src < STARPU_MAXNODES; src++)
+	for (; src < STARPU_MAXNODES; src++)
 		for (dst = 0; dst < STARPU_MAXNODES; dst++)
 			latency_matrix[src][dst] = NAN;
 
@@ -1581,7 +1581,7 @@ static int load_bus_bandwidth_file_content(void)
 		}
 
 		/* No more values, take NAN */
-		for ( ; dst < STARPU_MAXNODES; dst++)
+		for (; dst < STARPU_MAXNODES; dst++)
 			bandwidth_matrix[src][dst] = NAN;
 
 		while (n == '\t')
@@ -1619,7 +1619,7 @@ static int load_bus_bandwidth_file_content(void)
 	fclose(f);
 
 	/* No more values, take NAN */
-	for ( ; src < STARPU_MAXNODES; src++)
+	for (; src < STARPU_MAXNODES; src++)
 		for (dst = 0; dst < STARPU_MAXNODES; dst++)
 			latency_matrix[src][dst] = NAN;
 

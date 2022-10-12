@@ -498,7 +498,7 @@ static double simple_worker_estimated_end(struct starpu_sched_component * compon
 {
 	struct _starpu_worker_component_data * data = component->data;
 	double now = starpu_timing_now();
-	if (now + data->list->pipeline_len > data->list->exp_start )
+	if (now + data->list->pipeline_len > data->list->exp_start)
 	{
 		data->list->exp_start = now + data->list->pipeline_len;
 		data->list->exp_end = data->list->exp_start + data->list->exp_len;

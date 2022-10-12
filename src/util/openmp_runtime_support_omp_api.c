@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2014-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -107,10 +107,10 @@ int starpu_omp_get_cancellation(void)
 void starpu_omp_set_schedule (enum starpu_omp_sched_value kind, int modifier)
 {
 	struct starpu_omp_region * const parallel_region = _starpu_omp_get_task()->owner_region;
-	STARPU_ASSERT(     kind == starpu_omp_sched_static
-			|| kind == starpu_omp_sched_dynamic
-			|| kind == starpu_omp_sched_guided
-			|| kind == starpu_omp_sched_auto);
+	STARPU_ASSERT(kind == starpu_omp_sched_static
+		      || kind == starpu_omp_sched_dynamic
+		      || kind == starpu_omp_sched_guided
+		      || kind == starpu_omp_sched_auto);
 	STARPU_ASSERT(modifier >= 0);
 	parallel_region->icvs.run_sched_var = kind;
 	parallel_region->icvs.run_sched_chunk_var = (unsigned long long)modifier;

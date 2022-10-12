@@ -204,7 +204,7 @@ static int create_task_gemm(starpu_data_handle_t *dataAp, unsigned nblocks, unsi
 	task->handles[1] = get_block(dataAp, nblocks, j, k); /* produced by TAG_TRSM_LL(k, j) */
 	task->handles[2] = get_block(dataAp, nblocks, j, i);  /* produced by TAG_GEMM(k-1, i, j) */
 
-	if (!no_prio &&  (i == k + 1) && (j == k +1) )
+	if (!no_prio &&  (i == k + 1) && (j == k +1))
 	{
 		task->priority = STARPU_MAX_PRIO;
 	}

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -369,7 +369,7 @@ int starpu_pthread_spin_lock(starpu_pthread_spinlock_t *lock);
 int starpu_pthread_spin_trylock(starpu_pthread_spinlock_t *lock);
 int starpu_pthread_spin_unlock(starpu_pthread_spinlock_t *lock);
 
-#elif !defined(_MSC_VER) /* !( defined(STARPU_SIMGRID) || !defined(STARPU_HAVE_PTHREAD_SPIN_LOCK)) */
+#elif !defined(_MSC_VER) /* !(defined(STARPU_SIMGRID) || !defined(STARPU_HAVE_PTHREAD_SPIN_LOCK)) */
 
 typedef pthread_spinlock_t starpu_pthread_spinlock_t;
 #define starpu_pthread_spin_init    pthread_spin_init
@@ -378,7 +378,7 @@ typedef pthread_spinlock_t starpu_pthread_spinlock_t;
 #define starpu_pthread_spin_trylock pthread_spin_trylock
 #define starpu_pthread_spin_unlock  pthread_spin_unlock
 
-#endif /* !( defined(STARPU_SIMGRID) || !defined(STARPU_HAVE_PTHREAD_SPIN_LOCK)) */
+#endif /* !(defined(STARPU_SIMGRID) || !defined(STARPU_HAVE_PTHREAD_SPIN_LOCK)) */
 
 /*
  * Other needed pthread definitions

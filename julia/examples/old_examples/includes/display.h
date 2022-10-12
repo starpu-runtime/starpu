@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020       Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2019       Mael Keryell
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -14,6 +14,7 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
+
 #ifndef DISPLAY_H
 #define DISPLAY_H
 #include <stdio.h>
@@ -21,18 +22,20 @@
 #include <math.h>
 #include <stdint.h>
 
-struct Position {
+struct Position
+{
 	int x;
 	int y;
 };
 
-struct Pixel {
+struct Pixel
+{
 	unsigned r;
 	unsigned g;
 	unsigned b;
 };
 
-// Fills PPM/mandelbrot.ppm with the red values inside the pixels matrix.           
+// Fills PPM/mandelbrot.ppm with the red values inside the pixels matrix.
 void mandelbrot_graph(char *filename, int *pixels, unsigned width, unsigned height);
 void mandelbrot_graph_transpose(char *filename, int64_t *pixels, unsigned width, unsigned height);
 void pixels_print(int *pixels, unsigned width, unsigned height);

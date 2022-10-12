@@ -136,11 +136,11 @@ void create_task_update(unsigned iter, unsigned z, int local_rank)
 	struct starpu_codelet *codelet = &cl_update;
 
 	// Simple-level prio
-	//int prio = ((bottom_neighbour->mpi_node != local_rank) || (top_neighbour->mpi_node != local_rank )) ? STARPU_MAX_PRIO : STARPU_DEFAULT_PRIO;
+	//int prio = ((bottom_neighbour->mpi_node != local_rank) || (top_neighbour->mpi_node != local_rank)) ? STARPU_MAX_PRIO : STARPU_DEFAULT_PRIO;
 
 	// Two-level prio
-	int prio = ((bottom_neighbour->mpi_node != local_rank) || (top_neighbour->mpi_node != local_rank )) ? STARPU_MAX_PRIO :
-		((bottom_neighbour->boundary_blocks[B]->mpi_node != local_rank) || (top_neighbour->boundary_blocks[T]->mpi_node != local_rank )) ? STARPU_MAX_PRIO-1 : STARPU_DEFAULT_PRIO;
+	int prio = ((bottom_neighbour->mpi_node != local_rank) || (top_neighbour->mpi_node != local_rank)) ? STARPU_MAX_PRIO :
+		((bottom_neighbour->boundary_blocks[B]->mpi_node != local_rank) || (top_neighbour->boundary_blocks[T]->mpi_node != local_rank)) ? STARPU_MAX_PRIO-1 : STARPU_DEFAULT_PRIO;
 
 	int ret = starpu_insert_task(codelet,
 				     STARPU_VALUE,   &z,  sizeof(unsigned),

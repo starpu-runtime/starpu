@@ -118,7 +118,7 @@ void _send_internal_data_stats(struct _starpu_mpi_cp_ack_arg_cb* arg)
 {
 	if (arg->cache_flag)
 	{
-		_STARPU_MPI_FT_STATS_SEND_CACHED_CP_DATA( starpu_data_get_size(arg->handle));
+		_STARPU_MPI_FT_STATS_SEND_CACHED_CP_DATA(starpu_data_get_size(arg->handle));
 	}
 	else
 	{
@@ -185,7 +185,7 @@ int starpu_mpi_checkpoint_template_submit(starpu_mpi_checkpoint_template_t cp_te
 						_starpu_mpi_checkpoint_tracker_update(cp_template, cp_template->cp_id, cp_template->checkpoint_domain, current_instance);
 						//TODO: check if the data are all acknowledged
 						_STARPU_MPI_DEBUG(0, "Submit CP: skip send starPU data to %d (tag %d)\n", item->backupped_by, (int)starpu_mpi_data_get_tag(handle));
-						_STARPU_MPI_FT_STATS_SEND_CACHED_CP_DATA( starpu_data_get_size(handle));
+						_STARPU_MPI_FT_STATS_SEND_CACHED_CP_DATA(starpu_data_get_size(handle));
 						break; // We don't want to CP a data that is still at initial state.
 					}
 					_STARPU_MPI_DEBUG(0, "Submit CP: sending starPU data to %d (tag %d)\n", item->backupped_by, (int)starpu_mpi_data_get_tag(handle));
@@ -206,7 +206,7 @@ int starpu_mpi_checkpoint_template_submit(starpu_mpi_checkpoint_template_t cp_te
 					if (!mpi_data->modified)
 					{
 						_STARPU_MPI_DEBUG(0, "Submit CP: skip recv starPU data to %d (tag %d)\n", item->backupped_by, (int)starpu_mpi_data_get_tag(handle));
-						_STARPU_MPI_FT_STATS_RECV_CACHED_CP_DATA( starpu_data_get_size(handle));
+						_STARPU_MPI_FT_STATS_RECV_CACHED_CP_DATA(starpu_data_get_size(handle));
 						break; // We don't want to CP a data that is still at initial state.
 					}
 					_STARPU_MPI_DEBUG(0, "Submit CP: receiving starPU data from %d (tag %d)\n", starpu_mpi_data_get_rank(handle), (int)starpu_mpi_data_get_tag(handle));

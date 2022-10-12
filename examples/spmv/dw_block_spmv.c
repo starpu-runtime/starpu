@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -109,7 +109,7 @@ void init_problem_callback(void *arg)
 /*	if (val < 10)
 		printf("callback %d remaining \n", val); */
 
-	if ( val == 0 )
+	if (val == 0)
 	{
 		ANNOTATE_HAPPENS_AFTER(&remaining);
 		printf("DONE ...\n");

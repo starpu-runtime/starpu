@@ -75,7 +75,7 @@ struct matrix* alloc_matrix(int mb, int nb)
 {
 	struct matrix* X;
 	X = malloc(sizeof(struct matrix));
-	X->blocks = malloc( mb*nb*sizeof(struct block));
+	X->blocks = malloc(mb*nb*sizeof(struct block));
 	int i,j;
 	for (i = 0; i<mb; i++)
 	{
@@ -93,7 +93,7 @@ struct matrix* alloc_matrix(int mb, int nb)
 }
 static void alloc_matrices(void)
 {
-	if (VERBOSE) printf( "Allocating matrices\n");
+	if (VERBOSE) printf("Allocating matrices\n");
 	A = alloc_matrix(MB,KB);
 	B = alloc_matrix(KB,NB);
 	C = alloc_matrix(MB,NB);
@@ -116,7 +116,7 @@ static void free_matrix(struct matrix* X, int mb, int nb)
 
 static void free_matrices(void)
 {
-	if (VERBOSE) printf( "Freeing matrices\n");
+	if (VERBOSE) printf("Freeing matrices\n");
 	free_matrix(A,MB,KB);
 	free_matrix(B,KB,NB);
 	free_matrix(C,MB,NB);
@@ -179,7 +179,7 @@ static void unregister_matrix(struct matrix* X, starpu_data_handle_t* X_h, int m
 /* Unregister matrices from the StarPU management. */
 static void unregister_matrices()
 {
-	if (VERBOSE) printf( "Unregistering matrices\n");
+	if (VERBOSE) printf("Unregistering matrices\n");
 	unregister_matrix(A,A_h,MB,KB);
 	unregister_matrix(B,B_h,KB,NB);
 	unregister_matrix(C,C_h,MB,NB);
@@ -262,7 +262,7 @@ static void init_matrix(struct matrix* X, starpu_data_handle_t* X_h, int mb, int
 
 static void init_matrices(void)
 {
-	if (VERBOSE) printf( "Initializing matrices\n");
+	if (VERBOSE) printf("Initializing matrices\n");
 	// I own all the blocks
 	init_matrix(A,A_h,MB,KB);
 	starpu_mpi_wait_for_all(MPI_COMM_WORLD);

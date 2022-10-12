@@ -29,17 +29,16 @@
 
 /** Performance Monitoring */
 #define STARPU_ASSERT_PERF_COUNTER_SCOPE_DEFINED(t) STARPU_ASSERT( \
-		(t == starpu_perf_counter_scope_global ) \
-		|| (t == starpu_perf_counter_scope_per_worker ) \
-		|| (t == starpu_perf_counter_scope_per_codelet ) \
+		(t == starpu_perf_counter_scope_global) \
+		|| (t == starpu_perf_counter_scope_per_worker) \
+		|| (t == starpu_perf_counter_scope_per_codelet) \
 	)
 
-
 #define STARPU_ASSERT_PERF_COUNTER_TYPE_DEFINED(t) STARPU_ASSERT( \
-		(t == starpu_perf_counter_type_int32 ) \
-		|| (t == starpu_perf_counter_type_int64 ) \
-		|| (t == starpu_perf_counter_type_float ) \
-		|| (t == starpu_perf_counter_type_double ) \
+		(t == starpu_perf_counter_type_int32) \
+		|| (t == starpu_perf_counter_type_int64) \
+		|| (t == starpu_perf_counter_type_float) \
+		|| (t == starpu_perf_counter_type_double) \
 	)
 
 #define _STARPU_PERF_COUNTER_ID_SCOPE_BITS 4
@@ -265,17 +264,16 @@ void _starpu__task_c__register_counters(void);	/* module: task.c */
 /* Performance Steering */
 
 #define STARPU_ASSERT_PERF_KNOB_SCOPE_DEFINED(t) STARPU_ASSERT( \
-		(t == starpu_perf_knob_scope_global ) \
-		|| (t == starpu_perf_knob_scope_per_worker ) \
-		|| (t == starpu_perf_knob_scope_per_scheduler ) \
+		(t == starpu_perf_knob_scope_global) \
+		|| (t == starpu_perf_knob_scope_per_worker) \
+		|| (t == starpu_perf_knob_scope_per_scheduler) \
 	)
 
-
 #define STARPU_ASSERT_PERF_KNOB_TYPE_DEFINED(t) STARPU_ASSERT( \
-		(t == starpu_perf_knob_type_int32 ) \
-		|| (t == starpu_perf_knob_type_int64 ) \
-		|| (t == starpu_perf_knob_type_float ) \
-		|| (t == starpu_perf_knob_type_double ) \
+		(t == starpu_perf_knob_type_int32) \
+		|| (t == starpu_perf_knob_type_int64) \
+		|| (t == starpu_perf_knob_type_float) \
+		|| (t == starpu_perf_knob_type_double) \
 	)
 
 #define _STARPU_PERF_KNOBS_ID_SCOPE_BITS 4

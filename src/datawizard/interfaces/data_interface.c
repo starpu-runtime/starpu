@@ -1177,7 +1177,7 @@ void starpu_data_print(starpu_data_handle_t handle, unsigned node, FILE *stream)
 		case(STARPU_TENSOR_INTERFACE_ID):
 			fprintf(stream, "Tensor");
 			break;
-		case(STARPU_UNKNOWN_INTERFACE_ID ):
+		case(STARPU_UNKNOWN_INTERFACE_ID):
 			fprintf(stream, "UNKNOWN");
 			break;
 		default:

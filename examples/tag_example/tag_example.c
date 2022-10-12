@@ -43,7 +43,7 @@
 #endif
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
-#define TAG(i, j, iter)	((starpu_tag_t) ( ((uint64_t)(iter)<<48) |  ((uint64_t)(j)<<24) | (i)) )
+#define TAG(i, j, iter)	((starpu_tag_t) (((uint64_t)(iter)<<48) |  ((uint64_t)(j)<<24) | (i)))
 
 #ifdef STARPU_QUICK_CHECK
 #define Ni	32

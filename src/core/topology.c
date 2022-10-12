@@ -1255,10 +1255,10 @@ int _starpu_bind_thread_on_cpu(int cpuid STARPU_ATTRIBUTE_UNUSED, int workerid S
 /* TODO: mutex... */
 		int previous = cpu_worker[cpuid];
 		/* We would like the PU to be available, or we are perhaps fine to share it */
-		if ( !(  previous == STARPU_NOWORKERID ||
-			 (previous == STARPU_NONACTIVETHREAD && workerid == STARPU_NONACTIVETHREAD) ||
-			 (previous >= 0 && previous == workerid) ||
-			 (name && cpu_name[cpuid] && !strcmp(name, cpu_name[cpuid])) ) )
+		if (!(previous == STARPU_NOWORKERID ||
+		      (previous == STARPU_NONACTIVETHREAD && workerid == STARPU_NONACTIVETHREAD) ||
+		      (previous >= 0 && previous == workerid) ||
+		      (name && cpu_name[cpuid] && !strcmp(name, cpu_name[cpuid]))))
 		{
 			char hostname[65];
 			gethostname(hostname, sizeof(hostname));

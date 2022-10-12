@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020       Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2019       Mael Keryell
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -14,11 +14,12 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
+
 #include "sorting.h"
 
 unsigned chose_pivot(int first, int last)
 {
-	return ( rand() % (last - first + 1) + first );
+	return (rand() % (last - first + 1) + first);
 }
 
 int partitionning(double *arr, int first, int last, int pivot)
@@ -34,8 +35,8 @@ int partitionning(double *arr, int first, int last, int pivot)
 
 	for (i = first; i < last; i++)
 	{
-
-		if (arr[i] <= arr[last]){
+		if (arr[i] <= arr[last])
+		{
 			tmp = arr[i];
 
 			arr[i] = arr[j];
@@ -54,8 +55,8 @@ int partitionning(double *arr, int first, int last, int pivot)
 
 void quicksort(double *arr, int first, int last)
 {
-
-	if (first < last){
+	if (first < last)
+	{
 		int pivot = chose_pivot(first, last);
 		int j;
 
@@ -64,5 +65,4 @@ void quicksort(double *arr, int first, int last)
 		quicksort(arr, first, j - 1);
 		quicksort(arr, j + 1, last);
 	}
-
 }

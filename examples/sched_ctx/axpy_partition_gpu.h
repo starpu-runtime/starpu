@@ -26,7 +26,7 @@ __device__ static uint get_smid(void)
 {
 #if defined(__CUDACC__)
 	uint ret;
-	asm("mov.u32 %0, %smid;" : "=r"(ret) );
+	asm("mov.u32 %0, %smid;" : "=r"(ret));
 	return ret;
 #else
 	return 0;

@@ -66,7 +66,7 @@ static float power(float frequency)
 	double freq_min3 = freq_min * freq_min * freq_min;
 	double freq_fast3 = freq_fast * freq_fast * freq_fast;
 	double alpha = (power_fast - power_min) / (freq_fast3 - freq_min3);
-	return power_min + alpha * ( frequency*frequency*frequency - freq_min3);
+	return power_min + alpha * (frequency*frequency*frequency - freq_min3);
 }
 
 /*
@@ -140,38 +140,38 @@ static float frequency(int worker, unsigned i)
   */
 
 #define FMULS_POTRF(__n) ((double)(__n) * (((1. / 6.) * (double)(__n) + 0.5) * (double)(__n) + (1. / 3.)))
-#define FADDS_POTRF(__n) ((double)(__n) * (((1. / 6.) * (double)(__n)      ) * (double)(__n) - (1. / 6.)))
+#define FADDS_POTRF(__n) ((double)(__n) * (((1. / 6.) * (double)(__n)) * (double)(__n) - (1. / 6.)))
 
-#define FLOPS_SPOTRF(__n) (     FMULS_POTRF((__n)) +       FADDS_POTRF((__n)) )
+#define FLOPS_SPOTRF(__n) (FMULS_POTRF((__n)) + FADDS_POTRF((__n)))
 
 #define FMULS_TRMM_2(__m, __n) (0.5 * (double)(__n) * (double)(__m) * ((double)(__m)+1.))
 #define FADDS_TRMM_2(__m, __n) (0.5 * (double)(__n) * (double)(__m) * ((double)(__m)-1.))
 
-#define FMULS_TRMM(__m, __n) ( /*( (__side) == PlasmaLeft ) ? FMULS_TRMM_2((__m), (__n)) :*/ FMULS_TRMM_2((__n), (__m)) )
-#define FADDS_TRMM(__m, __n) ( /*( (__side) == PlasmaLeft ) ? FADDS_TRMM_2((__m), (__n)) :*/ FADDS_TRMM_2((__n), (__m)) )
+#define FMULS_TRMM(__m, __n) (/*((__side) == PlasmaLeft) ? FMULS_TRMM_2((__m), (__n)) :*/ FMULS_TRMM_2((__n), (__m)))
+#define FADDS_TRMM(__m, __n) (/*((__side) == PlasmaLeft) ? FADDS_TRMM_2((__m), (__n)) :*/ FADDS_TRMM_2((__n), (__m)))
 
 #define FMULS_TRSM FMULS_TRMM
 #define FADDS_TRSM FMULS_TRMM
 
-#define FLOPS_STRSM(__m, __n) (     FMULS_TRSM((__m), (__n)) +       FADDS_TRSM((__m), (__n)) )
+#define FLOPS_STRSM(__m, __n) (FMULS_TRSM((__m), (__n)) + FADDS_TRSM((__m), (__n)))
 
 
 #define FMULS_SYRK(__k, __n) (0.5 * (double)(__k) * (double)(__n) * ((double)(__n)+1.))
 #define FADDS_SYRK(__k, __n) (0.5 * (double)(__k) * (double)(__n) * ((double)(__n)+1.))
 
-#define FLOPS_SSYRK(__k, __n) (     FMULS_SYRK((__k), (__n)) +       FADDS_SYRK((__k), (__n)) )
+#define FLOPS_SSYRK(__k, __n) (FMULS_SYRK((__k), (__n)) + FADDS_SYRK((__k), (__n)))
 
 
 
 #define FMULS_GEMM(__m, __n, __k) ((double)(__m) * (double)(__n) * (double)(__k))
 #define FADDS_GEMM(__m, __n, __k) ((double)(__m) * (double)(__n) * (double)(__k))
 
-#define FLOPS_SGEMM(__m, __n, __k) (     FMULS_GEMM((__m), (__n), (__k)) +       FADDS_GEMM((__m), (__n), (__k)) )
+#define FLOPS_SGEMM(__m, __n, __k) (FMULS_GEMM((__m), (__n), (__k)) + FADDS_GEMM((__m), (__n), (__k)))
 
 
 
 /* Tags for spotting tasks in the trace */
-#define TAG_POTRF(k)	((starpu_tag_t)( (1ULL<<60) | (unsigned long long)(k)))
+#define TAG_POTRF(k)	((starpu_tag_t)((1ULL<<60) | (unsigned long long)(k)))
 #define TAG_TRSM(k,j)	((starpu_tag_t)(((3ULL<<60) | (((unsigned long long)(k))<<32)	\
 					| (unsigned long long)(j))))
 #define TAG_GEMM(k,i,j)	((starpu_tag_t)(((4ULL<<60) | ((unsigned long long)(k)<<32) 	\

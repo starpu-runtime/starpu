@@ -676,11 +676,11 @@ void _starpu_simgrid_deinit(void)
 #if SIMGRID_VERSION >= 31300
 	/* clean-atexit introduced in simgrid 3.13 */
 #  ifdef HAVE_SG_CFG_SET_INT
-	if ( sg_cfg_get_boolean("debug/clean-atexit"))
+	if (sg_cfg_get_boolean("debug/clean-atexit"))
 #  elif SIMGRID_VERSION >= 32300
-	if ( xbt_cfg_get_boolean("debug/clean-atexit"))
+	if (xbt_cfg_get_boolean("debug/clean-atexit"))
 #  else
-	if ( xbt_cfg_get_boolean("clean-atexit"))
+	if (xbt_cfg_get_boolean("clean-atexit"))
 #  endif
 	{
 		_starpu_simgrid_deinit_late();

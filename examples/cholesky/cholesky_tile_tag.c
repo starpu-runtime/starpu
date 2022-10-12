@@ -144,7 +144,7 @@ static int create_task_gemm(unsigned k, unsigned m, unsigned n)
 		task->flops = FLOPS_SGEMM(nx, nx, nx);
 	}
 
-	if (!noprio_p && (n == k + 1) && (m == k +1) )
+	if (!noprio_p && (n == k + 1) && (m == k +1))
 	{
 		task->priority = STARPU_MAX_PRIO;
 	}
@@ -284,7 +284,7 @@ int main(int argc, char **argv)
 #ifndef STARPU_SIMGRID
 	/* create a simple definite positive symetric matrix example
 	 *
-	 *	Hilbert matrix : h(i,j) = 1/(i+j+1) ( + n In to make is stable )
+	 *	Hilbert matrix : h(i,j) = 1/(i+j+1) (+ n In to make is stable)
 	 * */
 	for (m = 0; m < nblocks_p; m++)
 	for (n = 0; n < nblocks_p; n++)

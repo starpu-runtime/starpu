@@ -271,7 +271,7 @@ static int s_copy(struct hdfs_base *base, const char *dstPath, hdfsFile dst, hdf
 	while (remain > 0)
 	{
 		ssize_t len = hdfsRead(base->fs, src, buffer, remain);
-		if (len < 0 )
+		if (len < 0)
 			HDFS_ERRMSG_GOTO(err, "while reading %ld bytes.", remain);
 		STARPU_ASSERT((ssize_t) len <= remain);
 		remain -= len;

@@ -373,7 +373,7 @@ void _starpu_graph_compute_descendants(void)
 
 	_starpu_graph_wrlock();
 
-	/* Yes, this is O(|V|.(|V|+|E|)) :( */
+	/* Yes, this is O(|V|.(|V|+|E|)) */
 
 	/* We could get O(|V|.|E|) by doing a topological sort first.
 	 *

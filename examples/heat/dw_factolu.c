@@ -129,7 +129,7 @@ void dw_callback_v2_codelet_update_gemm(void *argcb)
 	/* we did task 22k,i,j */
 	advance_22[k*nblocks*nblocks + i + j*nblocks] = DONE;
 
-	if ( (i == j) && (i == k+1))
+	if ((i == j) && (i == k+1))
 	{
 		/* we now reduce the LU22 part (recursion appears there) */
 		cl_args *ugetrfarg = malloc(sizeof(cl_args));
@@ -151,13 +151,13 @@ void dw_callback_v2_codelet_update_gemm(void *argcb)
 		if (!no_prio)
 			task->priority = STARPU_MAX_PRIO;
 
-		debug( "ugemm %d %d %d start ugetrf %d\n", k, i, j, k + 1);
+		debug("ugemm %d %d %d start ugetrf %d\n", k, i, j, k + 1);
 		ret = starpu_task_submit(task);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
 	/* 11k+1 + 22k,k+1,j => 21 k+1,j */
-	if ( i == k + 1 && j > k + 1)
+	if (i == k + 1 && j > k + 1)
 	{
 		uint8_t dep;
 		/* 11 k+1*/
@@ -186,7 +186,7 @@ void dw_callback_v2_codelet_update_gemm(void *argcb)
 					task_trsm_ru->handles[0] = starpu_data_get_sub_data(args->dataA, 2, utrsmrua->i, utrsmrua->i);
 					task_trsm_ru->handles[1] = starpu_data_get_sub_data(args->dataA, 2, utrsmrua->i, utrsmrua->k);
 
-					debug( "ugemm %d %d %d start utrsmru %d %d\n", k, i, j, k+1, j);
+					debug("ugemm %d %d %d start utrsmru %d %d\n", k, i, j, k+1, j);
 					ret = starpu_task_submit(task_trsm_ru);
 					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 				}
@@ -223,7 +223,7 @@ void dw_callback_v2_codelet_update_gemm(void *argcb)
 					task_trsm_ll->handles[0] = starpu_data_get_sub_data(args->dataA, 2, utrsmlla->i, utrsmlla->i);
 					task_trsm_ll->handles[1] = starpu_data_get_sub_data(args->dataA, 2, utrsmlla->k, utrsmlla->i);
 
-					debug( "ugemm %d %d %d start utrsmll %d %d\n", k, i, j, k+1, i);
+					debug("ugemm %d %d %d start utrsmll %d %d\n", k, i, j, k+1, i);
 					ret = starpu_task_submit(task_trsm_ll);
 					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 				}
@@ -243,7 +243,7 @@ void dw_callback_v2_codelet_update_trsm_ll(void *argcb)
 	unsigned k = args->k;
 	unsigned nblocks = args->nblocks;
 
-	debug( "utrsmll %d %d\n", i, k);
+	debug("utrsmll %d %d\n", i, k);
 
 	/* we did task 21i,k */
 	advance_12_21[i*nblocks + k] = DONE;
@@ -285,7 +285,7 @@ void dw_callback_v2_codelet_update_trsm_ll(void *argcb)
 				if (!no_prio && (slicey == i+1))
 					task_gemm->priority = STARPU_MAX_PRIO;
 
-				debug( "utrsmll %d %d start ugemm %d %d %d\n", i, k, i, k, slicey);
+				debug("utrsmll %d %d start ugemm %d %d %d\n", i, k, i, k, slicey);
 				ret = starpu_task_submit(task_gemm);
 				STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 			}
@@ -346,7 +346,7 @@ void dw_callback_v2_codelet_update_trsm_ru(void *argcb)
 				if (!no_prio && (slicex == i+1))
 					task_gemm->priority = STARPU_MAX_PRIO;
 
-				debug( "utrsmru %d %d start ugemm %d %d %d\n", i, k, i, slicex, k);
+				debug("utrsmru %d %d start ugemm %d %d %d\n", i, k, i, slicex, k);
 				ret = starpu_task_submit(task_gemm);
 				STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 			}
@@ -420,7 +420,7 @@ void dw_callback_v2_codelet_update_getrf(void *argcb)
 					if (!no_prio && (slice == i +1))
 						task_trsm_ll->priority = STARPU_MAX_PRIO;
 
-					debug( "ugetrf %d start utrsmll %d %d\n", i, i, slice);
+					debug("ugetrf %d start utrsmll %d %d\n", i, i, slice);
 					ret = starpu_task_submit(task_trsm_ll);
 					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 				}
@@ -464,7 +464,7 @@ void dw_callback_v2_codelet_update_getrf(void *argcb)
 					if (!no_prio && (slice == i +1))
 						task_trsm_ru->priority = STARPU_MAX_PRIO;
 
-					debug( "ugetrf %d start utrsmru %d %d\n", i, i, slice);
+					debug("ugetrf %d start utrsmru %d %d\n", i, i, slice);
 					ret = starpu_task_submit(task_trsm_ru);
 					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 				}

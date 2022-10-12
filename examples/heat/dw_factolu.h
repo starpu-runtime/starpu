@@ -145,7 +145,7 @@ static void compare_A_LU(float *A, float *LU, unsigned size, unsigned ld)
 	{
 		for (j = 0; j < size; j++)
 		{
-			max_err = STARPU_MAX(max_err, fabs(  L[j+i*size] - A[j+i*ld]  ));
+			max_err = STARPU_MAX(max_err, fabs(L[j+i*size] - A[j+i*ld]));
 		}
 	}
 

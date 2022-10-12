@@ -486,7 +486,7 @@ void _lp_find_workers_to_accept(int nw, int ns, unsigned sched_ctx, int sched_ct
 		int nw_ctx2 = sc_hypervisor_get_nworkers_ctx(sched_ctx, arch);
 		int nw_needed = res_rounded[sched_ctx_idx][w] - nw_ctx2;
 
-		if( nw_needed > 0 && tmp_nw_move[w] > 0)
+		if(nw_needed > 0 && tmp_nw_move[w] > 0)
 		{
 			*nw_move += nw_needed >= tmp_nw_move[w] ? tmp_nw_move[w] : nw_needed;
 			int i = 0;

@@ -165,7 +165,7 @@ int main(int argc, char **argv)
 
 	for (j = 0; j < mb; j++)
 	{
-		if ( j%20 == 0 )
+		if (j%20 == 0)
 			starpu_data_unregister_submit(handle_array[j]);
 	}
 
@@ -174,7 +174,7 @@ int main(int argc, char **argv)
 
 	for (j = 0; j < mb; j++)
 	{
-		if ( j%20 != 0 )
+		if (j%20 != 0)
 			starpu_data_unregister(handle_array[j]);
 		free(host_ptr_array[j]);
 	}

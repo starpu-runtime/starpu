@@ -31,7 +31,7 @@
 #include <starpu.h>
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
-#define TAG(i, iter)	((starpu_tag_t)  (((uint64_t)iter)<<32 | (i)) )
+#define TAG(i, iter)	((starpu_tag_t)  (((uint64_t)iter)<<32 | (i)))
 
 #define Ni	64
 #define Nk	256

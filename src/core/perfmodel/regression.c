@@ -152,7 +152,7 @@ static double test_r(double c, unsigned n, size_t *x, double *y, unsigned *pop)
 	//printf("sumy %e\n", sumy);
 	//printf("sumy2 %e\n", sumy2);
 
-	r = (nn * sumxy - sumx * sumy) / sqrt( (nn* sumx2 - sumx*sumx) * (nn*sumy2 - sumy*sumy) );
+	r = (nn * sumxy - sumx * sumy) / sqrt((nn* sumx2 - sumx*sumx) * (nn*sumy2 - sumy*sumy));
 
 	return r;
 }

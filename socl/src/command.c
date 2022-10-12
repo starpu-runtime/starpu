@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -247,8 +247,7 @@ void command_map_buffer_release(void * UNUSED(arg))
 command_map_buffer command_map_buffer_create(cl_mem buffer,
 					     cl_map_flags map_flags,
 					     size_t offset,
-					     size_t cb
-					     )
+					     size_t cb)
 {
 	command_map_buffer cmd = malloc(sizeof(struct command_map_buffer_t));
 	command_init(cmd, CL_COMMAND_MAP_BUFFER, command_map_buffer_release);
@@ -326,8 +325,8 @@ void command_copy_buffer_release(void *arg)
 	gc_entity_unstore(&cmd->dst_buffer);
 }
 
-command_copy_buffer command_copy_buffer_create( cl_mem src_buffer, cl_mem dst_buffer,
-						size_t src_offset, size_t dst_offset, size_t cb)
+command_copy_buffer command_copy_buffer_create(cl_mem src_buffer, cl_mem dst_buffer,
+					       size_t src_offset, size_t dst_offset, size_t cb)
 {
 	command_copy_buffer cmd = malloc(sizeof(struct command_copy_buffer_t));
 	command_init(cmd, CL_COMMAND_COPY_BUFFER, command_copy_buffer_release);

@@ -146,7 +146,7 @@ static void _starpu_mpi_coop_sends_data_ready(void *arg)
 	cur = _starpu_mpi_req_multilist_begin_coop_sends(&coop_sends->reqs);
 	node = cur->node;
 
-	for ( ;
+	for (;
 	     cur != _starpu_mpi_req_multilist_end_coop_sends(&coop_sends->reqs);
 	     cur  = _starpu_mpi_req_multilist_next_coop_sends(cur))
 	{
@@ -233,7 +233,7 @@ static int _starpu_mpi_coop_send_compatible(struct _starpu_mpi_req *req, struct 
 		 */
 		int inserting_dest = req->node_tag.node.rank;
 		struct _starpu_mpi_req* cur = NULL;
-		for ( cur = _starpu_mpi_req_multilist_begin_coop_sends(&coop_sends->reqs);
+		for (cur = _starpu_mpi_req_multilist_begin_coop_sends(&coop_sends->reqs);
 		cur != _starpu_mpi_req_multilist_end_coop_sends(&coop_sends->reqs);
 		cur  = _starpu_mpi_req_multilist_next_coop_sends(cur))
 		{

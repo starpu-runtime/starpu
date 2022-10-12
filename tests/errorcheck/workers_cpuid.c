@@ -51,7 +51,7 @@ static int check_workers_mapping(long *cpuid, int *workerids, int nb_workers)
 	{
 		int workerid = workerids[i];
 		long bindid = starpu_worker_get_bindid(workerid);
-		if ( bindid != cpuid[i])
+		if (bindid != cpuid[i])
 		{
 			fprintf(stderr, "Worker %d (%s) is on cpu %ld rather than on %ld\n",
 			       workerid, starpu_worker_get_type_as_string(starpu_worker_get_type(workerid)),

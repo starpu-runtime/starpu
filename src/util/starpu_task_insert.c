@@ -87,7 +87,7 @@ void _starpu_codelet_unpack_args_and_copyleft(char *cl_arg, void *_buffer, size_
 		int current_buffer_offset = 0;
 		memcpy(buffer, (int *)&left, sizeof(left));
 		current_buffer_offset += sizeof(left);
-		for ( ; arg < nargs; arg++)
+		for (; arg < nargs; arg++)
 		{
 			size_t arg_size;
 			memcpy(&arg_size, cl_arg+current_arg_offset, sizeof(arg_size));

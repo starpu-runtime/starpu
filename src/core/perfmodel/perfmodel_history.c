@@ -693,7 +693,7 @@ static void parse_arch(FILE *f, const char *path, struct starpu_perfmodel *model
 	ret = fscanf(f, "%u\n", &nimpls);
 	STARPU_ASSERT_MSG(ret == 1, "Incorrect performance model file %s", path);
 
-	if( model != NULL)
+	if(model != NULL)
 	{
 		/* Parsing each implementation */
 		unsigned implmax = STARPU_MIN(nimpls, STARPU_MAXIMPLEMENTATIONS);
@@ -729,7 +729,7 @@ static void parse_comb(FILE *f, const char *path, struct starpu_perfmodel *model
 {
 	int ndevices = 0;
 	_starpu_drop_comments(f);
-	int ret = fscanf(f, "%d\n", &ndevices );
+	int ret = fscanf(f, "%d\n", &ndevices);
 	STARPU_ASSERT_MSG(ret == 1, "Incorrect performance model file %s", path);
 
 	struct starpu_perfmodel_device devices[ndevices];
@@ -1749,7 +1749,7 @@ docal:
 
 	// In the unlikely event that predicted duration is negative
 	// in case multiple linear regression is not so accurate
-	if (expected_duration < 0 )
+	if (expected_duration < 0)
 		expected_duration = 0.00001;
 
 	//Make sure that the injected time is in milliseconds

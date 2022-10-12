@@ -54,7 +54,7 @@ void cpu_show_bcsr(void *descr[], void *arg)
 		{
 			int *block = nzval + j * r*c;
 
-			printf( " column %u\n", colind[j]);
+			printf(" column %u\n", colind[j]);
 
 			for (y = 0; y < r; y++)
 			{

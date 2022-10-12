@@ -112,12 +112,12 @@ int starpu_energy_start(int workerid STARPU_ATTRIBUTE_UNUSED, enum starpu_worker
 			ERROR_RETURN(retval, "PAPI_create_eventset");
 
 		int i;
-		for (i = 0 ; i < nsockets ; i ++ )
+		for (i = 0 ; i < nsockets ; i ++)
 		{
 			/* return the index of socket */
 			hwloc_obj_t obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_PACKAGE, i);
 			STARPU_ASSERT(obj);
-			if ( (retval = add_event(EventSet, obj->os_index)) != PAPI_OK)
+			if ((retval = add_event(EventSet, obj->os_index)) != PAPI_OK)
 			{
 				if (retval == PAPI_EPERM)
 					_STARPU_DISP("PAPI could not access counters due to permissions errors. Perhaps your system requires to run measurements as root?\n");
@@ -129,13 +129,13 @@ int starpu_energy_start(int workerid STARPU_ATTRIBUTE_UNUSED, enum starpu_worker
 
 		/* get the number of events in the event set */
 		number = 0;
-		if ( (retval = PAPI_list_events(EventSet, NULL, &number)) != PAPI_OK)
+		if ((retval = PAPI_list_events(EventSet, NULL, &number)) != PAPI_OK)
 			ERROR_RETURN(retval, "PAPI_list_events");
 
 		debug("There are %d events in the event set\n", number);
 
 		/* Start counting */
-		if ( (retval = PAPI_start(EventSet)) != PAPI_OK)
+		if ((retval = PAPI_start(EventSet)) != PAPI_OK)
 			ERROR_RETURN(retval, "PAPI_start");
 
 		return retval;
@@ -154,7 +154,7 @@ int starpu_energy_start(int workerid STARPU_ATTRIBUTE_UNUSED, enum starpu_worker
 			_STARPU_DISP("Could not get CUDA device %d from nvml\n", devid);
 			return -1;
 		}
-		ret = nvmlDeviceGetTotalEnergyConsumption ( device, &energy_begin );
+		ret = nvmlDeviceGetTotalEnergyConsumption(device, &energy_begin);
 		if (ret != NVML_SUCCESS)
 		{
 			_STARPU_DISP("Could not measure energy used by CUDA device %d\n", devid);
@@ -191,12 +191,12 @@ int starpu_energy_stop(struct starpu_perfmodel *model, struct starpu_task *task,
 		long long values[nsockets*n_recorded];
 
 		/* Stop counting and store the values into the array */
-		if ( (retval = PAPI_stop(EventSet, values)) != PAPI_OK)
+		if ((retval = PAPI_stop(EventSet, values)) != PAPI_OK)
 			ERROR_RETURN(retval, "PAPI_stop");
 
 		int k,s;
 
-		for( s = 0 ; s < nsockets ; s ++)
+		for(s = 0 ; s < nsockets ; s ++)
 		{
 			for(k = 0 ; k < n_recorded; k++)
 			{
@@ -210,11 +210,11 @@ int starpu_energy_stop(struct starpu_perfmodel *model, struct starpu_task *task,
 		}
 
 		/*removes all events from a PAPI event set */
-		if ( (retval = PAPI_cleanup_eventset(EventSet)) != PAPI_OK)
+		if ((retval = PAPI_cleanup_eventset(EventSet)) != PAPI_OK)
 			ERROR_RETURN(retval, "PAPI_cleanup_eventset");
 
 		/*deallocates the memory associated with an empty PAPI EventSet*/
-		if ( (retval = PAPI_destroy_eventset(&EventSet)) != PAPI_OK)
+		if ((retval = PAPI_destroy_eventset(&EventSet)) != PAPI_OK)
 			ERROR_RETURN(retval, "PAPI_destroy_eventset");
 
 		break;
@@ -287,7 +287,7 @@ static int add_event(int eventSet, int socket)
 	}
 
 	n_recorded = i;
-	return ( PAPI_OK );
+	return(PAPI_OK);
 }
 #endif
 #endif
