@@ -55,7 +55,7 @@ then
     config_file="$starpu_datarootdir/starpu/starpu_config.cfg"
     if test ! -f "$config_file"
     then
-	config_file=$(realpath $($dirname $0))/starpu_config.cfg
+	config_file=$(realpath $(dirname $0))/starpu_config.cfg
     fi
 else
     config_file=$(realpath $(dirname $0))/starpu_config.cfg

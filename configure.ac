@@ -1795,10 +1795,12 @@ if test x$enable_hip != xno; then
 fi
 
 if test "$HIP_PLATFORM" = "amd"; then
+   SAVED_LIBS=${LIBS}
    SAVED_LDFLAGS="${LDFLAGS}"
    LDFLAGS="${LDFLAGS} -L$HIP_LIB_DIR"
    AC_SEARCH_LIBS([hipMemGetInfo],[amdhip64],,have_valid_hip=no)
    LDFLAGS="${SAVED_LDFLAGS}"
+   LIBS=${SAVED_LIBS}
 fi
 
 if test x$have_valid_hip = xyes; then
