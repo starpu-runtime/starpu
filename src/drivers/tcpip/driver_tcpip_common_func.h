@@ -196,7 +196,7 @@ static inline int master_init(int master, int *ss, int *ls, struct sockaddr_in *
 	*source_addr_init_size = addr_init_size;
 
 	/*local socket*/
-	if (starpu_get_env_number_default("STARPU_TCPIP_USE_LOCAL_SOCKET", 1) != 0)
+	if (starpu_getenv_number_default("STARPU_TCPIP_USE_LOCAL_SOCKET", 1) != 0)
 	{
 		*ls = SOCKET(AF_UNIX, SOCK_STREAM, 0, 0);
 
@@ -238,7 +238,7 @@ static inline int master_accept(int *sink_sock, int source_sock, int local_sock,
 		*local_sock_flag = 0;
 
 	/*local socket*/
-	if (starpu_get_env_number_default("STARPU_TCPIP_USE_LOCAL_SOCKET", 1) != 0)
+	if (starpu_getenv_number_default("STARPU_TCPIP_USE_LOCAL_SOCKET", 1) != 0)
 	{
 		struct sockaddr_in boundAddr;
 		socklen_t boundAddr_size = sizeof(boundAddr);
@@ -310,7 +310,7 @@ static inline int slave_connect(int *source_sock, struct addrinfo *cur, struct s
 		*bound_addr = boundAddr;
 
 	/*local socket*/
-	if (starpu_get_env_number_default("STARPU_TCPIP_USE_LOCAL_SOCKET", 1) != 0)
+	if (starpu_getenv_number_default("STARPU_TCPIP_USE_LOCAL_SOCKET", 1) != 0)
 	{
 		/*master and slave sides use the same ip address*/
 		if(boundAddr.sin_addr.s_addr == peerAddr.sin_addr.s_addr)

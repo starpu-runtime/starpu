@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -165,12 +165,12 @@ static void find_and_assign_combinations_with_hwloc(int *workerids, int nworkers
 {
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	struct _starpu_machine_topology *topology = &config->topology;
-	int synthesize_arity = starpu_get_env_number("STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER");
+	int synthesize_arity = starpu_getenv_number("STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER");
 
-	int min = starpu_get_env_number("STARPU_MIN_WORKERSIZE");
+	int min = starpu_getenv_number("STARPU_MIN_WORKERSIZE");
 	if (min < 2)
 		min = 2;
-	int max = starpu_get_env_number("STARPU_MAX_WORKERSIZE");
+	int max = starpu_getenv_number("STARPU_MAX_WORKERSIZE");
 	if (max == -1)
 		max = INT_MAX;
 
@@ -254,10 +254,10 @@ static void find_and_assign_combinations_without_hwloc(int *workerids, int nwork
 			cpu_workers[ncpus++] = i;
 	}
 
-	min = starpu_get_env_number("STARPU_MIN_WORKERSIZE");
+	min = starpu_getenv_number("STARPU_MIN_WORKERSIZE");
 	if (min < 2)
 		min = 2;
-	max = starpu_get_env_number("STARPU_MAX_WORKERSIZE");
+	max = starpu_getenv_number("STARPU_MAX_WORKERSIZE");
 	if (max == -1 || max > (int) ncpus)
 		max = ncpus;
 
@@ -286,10 +286,10 @@ static void combine_all_cpu_workers(int *workerids, int nworkers)
 			cpu_workers[ncpus++] = workerids[i];
 	}
 
-	min = starpu_get_env_number("STARPU_MIN_WORKERSIZE");
+	min = starpu_getenv_number("STARPU_MIN_WORKERSIZE");
 	if (min < 1)
 		min = 1;
-	max = starpu_get_env_number("STARPU_MAX_WORKERSIZE");
+	max = starpu_getenv_number("STARPU_MAX_WORKERSIZE");
 	if (max == -1 || max > ncpus)
 		max = ncpus;
 

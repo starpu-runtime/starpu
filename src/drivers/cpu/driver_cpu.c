@@ -112,7 +112,7 @@ void _starpu_init_cpu_config(struct _starpu_machine_topology *topology, struct _
 		long avail_cpus = (long) topology->nhwworker[STARPU_CPU_WORKER][0] - (long) already_busy_cpus;
 		if (avail_cpus < 0)
 			avail_cpus = 0;
-		int nth_per_core = starpu_get_env_number_default("STARPU_NTHREADS_PER_CORE", 1);
+		int nth_per_core = starpu_getenv_number_default("STARPU_NTHREADS_PER_CORE", 1);
 		avail_cpus *= nth_per_core;
 
 		if (avail_cpus > STARPU_MAXCPUS)
@@ -139,7 +139,7 @@ void _starpu_init_cpu_config(struct _starpu_machine_topology *topology, struct _
 	}
 
 	topology->ndevices[STARPU_CPU_WORKER] = 1;
-	unsigned homogeneous = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_CPU", 1);
+	unsigned homogeneous = starpu_getenv_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_CPU", 1);
 
 	_starpu_topology_configure_workers(topology, config,
 					   STARPU_CPU_WORKER,

@@ -340,12 +340,12 @@ static void _starpu_hip_limit_gpu_mem_if_needed(unsigned devid)
 	/* Find the size of the memory on the device */
 	totalGlobalMem = props[devid].totalGlobalMem;
 
-	limit = starpu_get_env_number("STARPU_LIMIT_HIP_MEM");
+	limit = starpu_getenv_number("STARPU_LIMIT_HIP_MEM");
 	if (limit == -1)
 	{
 		char name[30];
 		snprintf(name, sizeof(name), "STARPU_LIMIT_HIP_%u_MEM", devid);
-		limit = starpu_get_env_number(name);
+		limit = starpu_getenv_number(name);
 	}
 #if defined(STARPU_USE_HIP)
 	if (limit == -1)

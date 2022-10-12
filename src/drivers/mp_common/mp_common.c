@@ -520,7 +520,7 @@ void _starpu_sink_launch_workers(struct _starpu_mp_node *node)
 
 		ret = starpu_pthread_attr_init(&attr);
 		STARPU_ASSERT(ret == 0);
-		int nobind = starpu_get_env_number("STARPU_WORKERS_NOBIND");
+		int nobind = starpu_getenv_number("STARPU_WORKERS_NOBIND");
 
 		if (nobind <= 0)
 		{

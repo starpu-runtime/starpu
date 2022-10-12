@@ -149,7 +149,7 @@ int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi, MPI_Comm
 
 	_starpu_mpi_backend_check();
 
-	_starpu_mpi_gpudirect = starpu_get_env_number_default("STARPU_MPI_GPUDIRECT", 1);
+	_starpu_mpi_gpudirect = starpu_getenv_number_default("STARPU_MPI_GPUDIRECT", 1);
 #ifdef STARPU_SIMGRID
 	/* Call MPI_Init_thread as early as possible, to initialize simgrid
 	 * before working with mutexes etc. */
@@ -158,7 +158,7 @@ int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi, MPI_Comm
 
 	int ret = _mpi_backend._starpu_mpi_backend_progress_init(argc_argv);
 
-	if (starpu_get_env_number_default("STARPU_DISPLAY_BINDINGS", 0))
+	if (starpu_getenv_number_default("STARPU_DISPLAY_BINDINGS", 0))
 	{
 		int rank, size, i;
 		char hostname[65];

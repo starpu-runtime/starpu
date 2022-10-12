@@ -40,7 +40,7 @@ static int _starpu_expected_transfer_time_writeback;
 
 void _starpu_init_perfmodel(void)
 {
-	_starpu_expected_transfer_time_writeback = starpu_get_env_number_default("STARPU_EXPECTED_TRANSFER_TIME_WRITEBACK", 0);
+	_starpu_expected_transfer_time_writeback = starpu_getenv_number_default("STARPU_EXPECTED_TRANSFER_TIME_WRITEBACK", 0);
 }
 
 /* This flag indicates whether performance models should be calibrated or not.

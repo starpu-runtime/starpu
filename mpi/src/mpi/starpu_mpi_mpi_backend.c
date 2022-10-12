@@ -52,7 +52,7 @@ void _starpu_mpi_mpi_backend_shutdown(void)
 
 int _starpu_mpi_mpi_backend_reserve_core(void)
 {
-	return (starpu_get_env_number_default("STARPU_MPI_DRIVER_CALL_FREQUENCY", 0) <= 0);
+	return (starpu_getenv_number_default("STARPU_MPI_DRIVER_CALL_FREQUENCY", 0) <= 0);
 }
 
 void _starpu_mpi_mpi_backend_request_init(struct _starpu_mpi_req *req)

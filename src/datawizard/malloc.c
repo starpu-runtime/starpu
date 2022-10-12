@@ -783,12 +783,12 @@ _starpu_malloc_init(unsigned dst_node)
 	_starpu_chunk_list_init(&node_struct->chunks);
 	node_struct->nfreechunks = 0;
 	STARPU_PTHREAD_MUTEX_INIT(&node_struct->chunk_mutex, NULL);
-	disable_pinning = starpu_get_env_number("STARPU_DISABLE_PINNING");
-	enable_suballocator = starpu_get_env_number_default("STARPU_SUBALLOCATOR", 1);
+	disable_pinning = starpu_getenv_number("STARPU_DISABLE_PINNING");
+	enable_suballocator = starpu_getenv_number_default("STARPU_SUBALLOCATOR", 1);
 	node_struct->malloc_on_node_default_flags = STARPU_MALLOC_PINNED | STARPU_MALLOC_COUNT;
 #ifdef STARPU_SIMGRID
 	/* Reasonably "costless" */
-	_starpu_malloc_simulation_fold = starpu_get_env_number_default("STARPU_MALLOC_SIMULATION_FOLD", 1) << 20;
+	_starpu_malloc_simulation_fold = starpu_getenv_number_default("STARPU_MALLOC_SIMULATION_FOLD", 1) << 20;
 #endif
 }
 

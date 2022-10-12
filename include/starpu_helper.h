@@ -53,6 +53,11 @@ extern int _starpu_silent;
 char *starpu_getenv(const char *str);
 
 /**
+   Same as starpu_get_env_string_var_default()
+ */
+#define starpu_getenv_string_var_default(s, ss, d) starpu_get_env_string_var_default(s, ss, d)
+
+/**
    If the environment variable \c str is defined and its value is contained in the array \c strings, return the array position.
    Raise an error if the environment variable \c str is defined with a value not in \c strings
    Return \c defvalue if the environment variable \c str is not defined.
@@ -60,11 +65,21 @@ char *starpu_getenv(const char *str);
 int starpu_get_env_string_var_default(const char *str, const char *strings[], int defvalue);
 
 /**
+   Same as starpu_get_env_size_default()
+ */
+#define starpu_getenv_size_default(s, d) starpu_get_env_size_default(s, d)
+
+/**
    If the environment variable \c str is defined with a well-defined size value, return the value as a size in bytes. Expected size qualifiers are b, B, k, K, m, M, g, G. The default qualifier is K.
    If the environment variable \c str is not defined or is empty, return \c defval
    Raise an error if the value of the environment variable \c str is not well-defined.
  */
 int starpu_get_env_size_default(const char *str, int defval);
+
+/**
+   Same as starpu_get_env_number()
+ */
+#define starpu_getenv_number(s) starpu_get_env_number(s)
 
 /**
    Return the integer value of the environment variable named \p str.
@@ -101,6 +116,11 @@ static __starpu_inline int starpu_get_env_number(const char *str)
 	}
 }
 
+/**
+   Same as starpu_get_env_number_default()
+ */
+#define starpu_getenv_number_default(s, d) starpu_get_env_number_default(s, d)
+
 static __starpu_inline int starpu_get_env_number_default(const char *str, int defval)
 {
 	int ret = starpu_get_env_number(str);
@@ -108,6 +128,11 @@ static __starpu_inline int starpu_get_env_number_default(const char *str, int de
 		ret = defval;
 	return ret;
 }
+
+/**
+   Same as starpu_get_env_float_default()
+ */
+#define starpu_getenv_float_default(s, d) starpu_get_env_float_default(s, d)
 
 static __starpu_inline float starpu_get_env_float_default(const char *str, float defval)
 {

@@ -148,7 +148,7 @@ int main(void)
 	int ret;
 
 	/* Not supported yet */
-	if (starpu_get_env_number_default("STARPU_GLOBAL_ARBITER", 0) > 0)
+	if (starpu_getenv_number_default("STARPU_GLOBAL_ARBITER", 0) > 0)
 		return 77;
 
 	ret = starpu_init(NULL);

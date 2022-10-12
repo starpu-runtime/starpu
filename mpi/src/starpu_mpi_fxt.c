@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2021, 2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -62,7 +62,7 @@ static void _starpu_mpi_add_sync_point_in_fxt(void)
 	}
 
 #ifdef STARPU_HAVE_MPI_SYNC_CLOCKS
-	if (starpu_get_env_number("STARPU_MPI_TRACE_SYNC_CLOCKS") != 0)
+	if (starpu_getenv_number("STARPU_MPI_TRACE_SYNC_CLOCKS") != 0)
 	{
 		mpi_sync_clocks_synchronize(mpi_sync_clock);
 		double local_sync_time;
@@ -93,7 +93,7 @@ void _starpu_mpi_fxt_init(void* arg)
 	if (_starpu_fxt_wait_initialisation())
 	{
 #ifdef STARPU_HAVE_MPI_SYNC_CLOCKS
-		if (argc_argv->world_size > 1 && starpu_get_env_number("STARPU_MPI_TRACE_SYNC_CLOCKS") != 0)
+		if (argc_argv->world_size > 1 && starpu_getenv_number("STARPU_MPI_TRACE_SYNC_CLOCKS") != 0)
 		{
 			mpi_sync_clock = mpi_sync_clocks_init(MPI_COMM_WORLD);
 		}
@@ -127,7 +127,7 @@ void _starpu_mpi_fxt_shutdown()
 			_starpu_mpi_add_sync_point_in_fxt();
 
 #ifdef STARPU_HAVE_MPI_SYNC_CLOCKS
-			if (starpu_get_env_number("STARPU_MPI_TRACE_SYNC_CLOCKS") != 0)
+			if (starpu_getenv_number("STARPU_MPI_TRACE_SYNC_CLOCKS") != 0)
 			{
 				mpi_sync_clocks_shutdown(mpi_sync_clock);
 			}

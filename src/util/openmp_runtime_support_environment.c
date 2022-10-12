@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2014-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -530,21 +530,21 @@ static void read_omp_environment(void)
 {
 	const char *boolean_strings[] = { "false", "true", NULL };
 
-	_initial_icv_values.dyn_var = starpu_get_env_string_var_default("OMP_DYNAMIC", boolean_strings, _initial_icv_values.dyn_var);
-	_initial_icv_values.nest_var = starpu_get_env_string_var_default("OMP_NESTED", boolean_strings, _initial_icv_values.nest_var);
+	_initial_icv_values.dyn_var = starpu_getenv_string_var_default("OMP_DYNAMIC", boolean_strings, _initial_icv_values.dyn_var);
+	_initial_icv_values.nest_var = starpu_getenv_string_var_default("OMP_NESTED", boolean_strings, _initial_icv_values.nest_var);
 
 	read_sched_var("OMP_SCHEDULE", &_initial_icv_values.run_sched_var, &_initial_icv_values.run_sched_chunk_var);
-	_initial_icv_values.stacksize_var = starpu_get_env_size_default("OMP_STACKSIZE", _initial_icv_values.stacksize_var);
+	_initial_icv_values.stacksize_var = starpu_getenv_size_default("OMP_STACKSIZE", _initial_icv_values.stacksize_var);
 
 	{
 		const char *strings[] = { "passive", "active", NULL };
-		_initial_icv_values.wait_policy_var = starpu_get_env_string_var_default("OMP_WAIT_POLICY", strings, _initial_icv_values.wait_policy_var);
+		_initial_icv_values.wait_policy_var = starpu_getenv_string_var_default("OMP_WAIT_POLICY", strings, _initial_icv_values.wait_policy_var);
 	}
-	_initial_icv_values.thread_limit_var = starpu_get_env_number_default("OMP_THREAD_LIMIT", _initial_icv_values.thread_limit_var);
-	_initial_icv_values.max_active_levels_var = starpu_get_env_number_default("OMP_MAX_ACTIVE_LEVELS", _initial_icv_values.max_active_levels_var);
-	_initial_icv_values.cancel_var = starpu_get_env_string_var_default("OMP_CANCELLATION", boolean_strings, _initial_icv_values.cancel_var);
-	_initial_icv_values.default_device_var = starpu_get_env_number_default("OMP_DEFAULT_DEVICE", _initial_icv_values.default_device_var);
-	_initial_icv_values.max_task_priority_var = starpu_get_env_number_default("OMP_MAX_TASK_PRIORITY", _initial_icv_values.max_task_priority_var);
+	_initial_icv_values.thread_limit_var = starpu_getenv_number_default("OMP_THREAD_LIMIT", _initial_icv_values.thread_limit_var);
+	_initial_icv_values.max_active_levels_var = starpu_getenv_number_default("OMP_MAX_ACTIVE_LEVELS", _initial_icv_values.max_active_levels_var);
+	_initial_icv_values.cancel_var = starpu_getenv_string_var_default("OMP_CANCELLATION", boolean_strings, _initial_icv_values.cancel_var);
+	_initial_icv_values.default_device_var = starpu_getenv_number_default("OMP_DEFAULT_DEVICE", _initial_icv_values.default_device_var);
+	_initial_icv_values.max_task_priority_var = starpu_getenv_number_default("OMP_MAX_TASK_PRIORITY", _initial_icv_values.max_task_priority_var);
 
 	/* Avoid overflow e.g. in num_threads_list allocation */
 	STARPU_ASSERT_MSG(_initial_icv_values.max_active_levels_var > 0 && _initial_icv_values.max_active_levels_var < 1000000, "OMP_MAX_ACTIVE_LEVELS should have a reasonable value");
@@ -760,7 +760,7 @@ void _starpu_omp_environment_init(void)
 	read_omp_environment();
 
 	const char *strings[] = { "false", "true", "verbose", NULL };
-	int display_env = starpu_get_env_string_var_default("OMP_DISPLAY_ENV", strings, 0);
+	int display_env = starpu_getenv_string_var_default("OMP_DISPLAY_ENV", strings, 0);
 	if (display_env > 0)
 	{
 		display_omp_environment(display_env);

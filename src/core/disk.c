@@ -535,7 +535,7 @@ void _starpu_swap_init(void)
 		return;
 	}
 
-	size = starpu_get_env_number_default("STARPU_DISK_SWAP_SIZE", -1);
+	size = starpu_getenv_number_default("STARPU_DISK_SWAP_SIZE", -1);
 
 	starpu_disk_swap_node = starpu_disk_register(ops, path, ((size_t) size) << 20);
 	if (starpu_disk_swap_node < 0)

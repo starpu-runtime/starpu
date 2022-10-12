@@ -398,7 +398,7 @@ void _starpu_start_simgrid(int *argc, char **argv)
 #else
 	MSG_create_environment(path);
 #endif
-	int limit_bandwidth = starpu_get_env_number("STARPU_LIMIT_BANDWIDTH");
+	int limit_bandwidth = starpu_getenv_number("STARPU_LIMIT_BANDWIDTH");
 	if (limit_bandwidth >= 0)
 	{
 #if defined(HAVE_SG_LINK_BANDWIDTH_SET) || defined(HAVE_SG_LINK_SET_BANDWIDTH)
@@ -417,7 +417,7 @@ void _starpu_start_simgrid(int *argc, char **argv)
 #endif
 	}
 
-	simgrid_transfer_cost = starpu_get_env_number_default("STARPU_SIMGRID_TRANSFER_COST", 1);
+	simgrid_transfer_cost = starpu_getenv_number_default("STARPU_SIMGRID_TRANSFER_COST", 1);
 }
 
 static int
@@ -1526,7 +1526,7 @@ void starpu_energy_use(float joules)
 
 double starpu_energy_used(void)
 {
-	float idle_power = starpu_get_env_float_default("STARPU_IDLE_POWER", 0.0);
+	float idle_power = starpu_getenv_float_default("STARPU_IDLE_POWER", 0.0);
 	return _starpu_simgrid_dynamic_energy + idle_power * starpu_timing_now() / 1000000;
 }
 

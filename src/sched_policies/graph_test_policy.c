@@ -57,7 +57,7 @@ static void initialize_graph_test_policy(unsigned sched_ctx_id)
 	 starpu_st_prio_deque_init(&data->prio_gpu);
 	starpu_bitmap_init(&data->waiters);
 	data->computed = 0;
-	data->descendants = starpu_get_env_number_default("STARPU_SCHED_GRAPH_TEST_DESCENDANTS", 0);
+	data->descendants = starpu_getenv_number_default("STARPU_SCHED_GRAPH_TEST_DESCENDANTS", 0);
 
 	_starpu_graph_record = 1;
 

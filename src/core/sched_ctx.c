@@ -1457,8 +1457,8 @@ int _starpu_workers_able_to_execute_task(struct starpu_task *task, struct _starp
 void _starpu_init_all_sched_ctxs(struct _starpu_machine_config *config)
 {
 	STARPU_PTHREAD_KEY_CREATE(&sched_ctx_key, NULL);
-	window_size = starpu_get_env_float_default("STARPU_WINDOW_TIME_SIZE", 0.0);
-	nobind = starpu_get_env_number("STARPU_WORKERS_NOBIND");
+	window_size = starpu_getenv_float_default("STARPU_WINDOW_TIME_SIZE", 0.0);
+	nobind = starpu_getenv_number("STARPU_WORKERS_NOBIND");
 
 	unsigned i;
 	for(i = 0; i <= STARPU_NMAX_SCHED_CTXS; i++)

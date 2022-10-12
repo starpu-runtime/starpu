@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2020       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -51,7 +51,7 @@ int _starpu_silent;
 
 void _starpu_util_init(void)
 {
-	_starpu_silent = starpu_get_env_number_default("STARPU_SILENT", 0);
+	_starpu_silent = starpu_getenv_number_default("STARPU_SILENT", 0);
 	STARPU_HG_DISABLE_CHECKING(_starpu_silent);
 }
 
@@ -617,7 +617,7 @@ char *starpu_getenv(const char *str)
 	worker = _starpu_get_local_worker_key();
 
 	if (worker && worker->worker_is_initialized)
-		_STARPU_DISP( "getenv should not be called from running workers, only for main() or worker initialization, since it is not reentrant\n");
+		_STARPU_DISP("getenv should not be called from running workers, only for main() or worker initialization, since it is not reentrant\n");
 #endif
 #endif
 	return getenv(str);

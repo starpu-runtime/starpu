@@ -144,8 +144,8 @@ static int test_cuda(void)
 	struct starpu_conf conf;
 
 	/* FIXME: starpu_driver would need another field to specify which stream we're driving */
-	if (starpu_get_env_number_default("STARPU_NWORKER_PER_CUDA", 1) != 1 &&
-	    starpu_get_env_number_default("STARPU_CUDA_THREAD_PER_WORKER", -1) > 0)
+	if (starpu_getenv_number_default("STARPU_NWORKER_PER_CUDA", 1) != 1 &&
+	    starpu_getenv_number_default("STARPU_CUDA_THREAD_PER_WORKER", -1) > 0)
 		return STARPU_TEST_SKIPPED;
 
 	ret = starpu_conf_init(&conf);
@@ -201,9 +201,9 @@ static int test_opencl(void)
 	}
 
 	cl_device_type device_type = CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR;
-	if (starpu_get_env_number("STARPU_OPENCL_ON_CPUS") > 0)
+	if (starpu_getenv_number("STARPU_OPENCL_ON_CPUS") > 0)
 		device_type |= CL_DEVICE_TYPE_CPU;
-	if (starpu_get_env_number("STARPU_OPENCL_ONLY_ON_CPUS") > 0)
+	if (starpu_getenv_number("STARPU_OPENCL_ONLY_ON_CPUS") > 0)
 		device_type = CL_DEVICE_TYPE_CPU;
 
 	cl_device_id device_id;

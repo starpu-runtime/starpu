@@ -246,7 +246,7 @@ static void _starpu_max_fpga_limit_max_fpga_mem(unsigned devid)
 	starpu_ssize_t limit=-1;
 
 	//TODO
-	limit = starpu_get_env_number("STARPU_LIMIT_MAX_FPGA_MEM");
+	limit = starpu_getenv_number("STARPU_LIMIT_MAX_FPGA_MEM");
 	if(limit != -1)
 		max_fpga_mem[devid] = limit*1024*1024;
 }

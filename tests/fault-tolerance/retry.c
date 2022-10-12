@@ -84,7 +84,7 @@ int main(void)
 	starpu_data_handle_t h_x, h_y;
 	int ret, ret1;
 
-	if (starpu_get_env_number_default("STARPU_GLOBAL_ARBITER", 0) > 0)
+	if (starpu_getenv_number_default("STARPU_GLOBAL_ARBITER", 0) > 0)
 		/* TODO _submit_job_take_data_deps */
 		return STARPU_TEST_SKIPPED;
 

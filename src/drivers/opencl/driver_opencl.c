@@ -135,9 +135,9 @@ void _starpu_opencl_init(void)
 		_STARPU_DEBUG("Initialising OpenCL\n");
 
 		// Get Platforms
-		if (starpu_get_env_number("STARPU_OPENCL_ON_CPUS") > 0)
+		if (starpu_getenv_number("STARPU_OPENCL_ON_CPUS") > 0)
 		     device_type |= CL_DEVICE_TYPE_CPU;
-		if (starpu_get_env_number("STARPU_OPENCL_ONLY_ON_CPUS") > 0)
+		if (starpu_getenv_number("STARPU_OPENCL_ONLY_ON_CPUS") > 0)
 		     device_type = CL_DEVICE_TYPE_CPU;
 		err = clGetPlatformIDs(_STARPU_OPENCL_PLATFORM_MAX, platform_id, &nb_platforms);
 		if (STARPU_UNLIKELY(err != CL_SUCCESS)) nb_platforms=0;
@@ -534,12 +534,12 @@ static void _starpu_opencl_limit_gpu_mem_if_needed(unsigned devid)
 	totalGlobalMem = size;
 #endif
 
-	limit = starpu_get_env_number("STARPU_LIMIT_OPENCL_MEM");
+	limit = starpu_getenv_number("STARPU_LIMIT_OPENCL_MEM");
 	if (limit == -1)
 	{
 		char name[30];
 		snprintf(name, sizeof(name), "STARPU_LIMIT_OPENCL_%u_MEM", devid);
-		limit = starpu_get_env_number(name);
+		limit = starpu_getenv_number(name);
 	}
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 	if (limit == -1)
@@ -592,7 +592,7 @@ int _starpu_opencl_driver_init(struct _starpu_worker *worker)
 	snprintf(worker->short_name, sizeof(worker->short_name), "OpenCL %d", devid);
 	starpu_pthread_setname(worker->short_name);
 
-	worker->pipeline_length = starpu_get_env_number_default("STARPU_OPENCL_PIPELINE", 2);
+	worker->pipeline_length = starpu_getenv_number_default("STARPU_OPENCL_PIPELINE", 2);
 	if (worker->pipeline_length > STARPU_MAX_PIPELINE)
 	{
 		_STARPU_DISP("Warning: STARPU_OPENCL_PIPELINE is %u, but STARPU_MAX_PIPELINE is only %u", worker->pipeline_length, STARPU_MAX_PIPELINE);

@@ -166,11 +166,11 @@ void _starpu_init_mem_chunk_lists(void)
 	  this makes StarPU spuriously free data when prefetching fills the
 	  memory. Clean buffers should be enough to be able to allocate data
 	  easily anyway. */
-	minimum_p = starpu_get_env_number_default("STARPU_MINIMUM_AVAILABLE_MEM", 0);
-	target_p = starpu_get_env_number_default("STARPU_TARGET_AVAILABLE_MEM", 0);
-	minimum_clean_p = starpu_get_env_number_default("STARPU_MINIMUM_CLEAN_BUFFERS", 5);
-	target_clean_p = starpu_get_env_number_default("STARPU_TARGET_CLEAN_BUFFERS", 10);
-	limit_cpu_mem = starpu_get_env_number("STARPU_LIMIT_CPU_MEM");
+	minimum_p = starpu_getenv_number_default("STARPU_MINIMUM_AVAILABLE_MEM", 0);
+	target_p = starpu_getenv_number_default("STARPU_TARGET_AVAILABLE_MEM", 0);
+	minimum_clean_p = starpu_getenv_number_default("STARPU_MINIMUM_CLEAN_BUFFERS", 5);
+	target_clean_p = starpu_getenv_number_default("STARPU_TARGET_CLEAN_BUFFERS", 10);
+	limit_cpu_mem = starpu_getenv_number("STARPU_LIMIT_CPU_MEM");
 }
 
 void _starpu_deinit_mem_chunk_lists(void)

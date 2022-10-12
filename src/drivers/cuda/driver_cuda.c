@@ -274,7 +274,7 @@ void _starpu_init_cuda_config(struct _starpu_machine_topology *topology, struct 
 		_starpu_topology_check_ndevices(&ncuda, nb_devices, 0, STARPU_MAXCUDADEVS, "ncuda", "CUDA", "maxcudadev");
 	}
 
-	int nworker_per_cuda = starpu_get_env_number_default("STARPU_NWORKER_PER_CUDA", 1);
+	int nworker_per_cuda = starpu_getenv_number_default("STARPU_NWORKER_PER_CUDA", 1);
 
 	STARPU_ASSERT_MSG(nworker_per_cuda > 0, "STARPU_NWORKER_PER_CUDA has to be > 0");
 	STARPU_ASSERT_MSG(nworker_per_cuda < STARPU_NMAXWORKERS, "STARPU_NWORKER_PER_CUDA (%d) cannot be higher than STARPU_NMAXWORKERS (%d)\n", nworker_per_cuda, STARPU_NMAXWORKERS);
@@ -293,8 +293,8 @@ void _starpu_init_cuda_config(struct _starpu_machine_topology *topology, struct 
 	_starpu_initialize_workers_cuda_gpuid(config);
 
 	/* allow having one worker per stream */
-	topology->cuda_th_per_stream = starpu_get_env_number_default("STARPU_CUDA_THREAD_PER_WORKER", -1);
-	topology->cuda_th_per_dev = starpu_get_env_number_default("STARPU_CUDA_THREAD_PER_DEV", -1);
+	topology->cuda_th_per_stream = starpu_getenv_number_default("STARPU_CUDA_THREAD_PER_WORKER", -1);
+	topology->cuda_th_per_dev = starpu_getenv_number_default("STARPU_CUDA_THREAD_PER_DEV", -1);
 
 	STARPU_ASSERT_MSG(!(topology->cuda_th_per_stream == 1 && topology->cuda_th_per_dev != -1), "It does not make sense to set both STARPU_CUDA_THREAD_PER_WORKER to 1 and to set STARPU_CUDA_THREAD_PER_DEV, please choose either per worker or per device or none");
 
@@ -594,12 +594,12 @@ static void _starpu_cuda_limit_gpu_mem_if_needed(unsigned devid)
 	totalGlobalMem = props[devid].totalGlobalMem;
 #endif
 
-	limit = starpu_get_env_number("STARPU_LIMIT_CUDA_MEM");
+	limit = starpu_getenv_number("STARPU_LIMIT_CUDA_MEM");
 	if (limit == -1)
 	{
 		char name[30];
 		snprintf(name, sizeof(name), "STARPU_LIMIT_CUDA_%u_MEM", devid);
-		limit = starpu_get_env_number(name);
+		limit = starpu_getenv_number(name);
 	}
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	if (limit == -1)
@@ -650,7 +650,7 @@ static void init_device_context(unsigned devid, unsigned memnode)
 
 #ifndef STARPU_SIMGRID
 #ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
-	if (starpu_get_env_number("STARPU_ENABLE_CUDA_GPU_GPU_DIRECT") != 0)
+	if (starpu_getenv_number("STARPU_ENABLE_CUDA_GPU_GPU_DIRECT") != 0)
 	{
 		int nworkers = starpu_worker_get_count();
 		int workerid;
@@ -889,7 +889,7 @@ int _starpu_cuda_driver_init(struct _starpu_worker *worker)
 		snprintf(worker->short_name, sizeof(worker->short_name), "CUDA %u.%u", devid, subdev);
 		_STARPU_DEBUG("cuda (%s) dev id %u worker %u thread is ready to run on CPU %d !\n", devname, devid, subdev, worker->bindid);
 
-		worker->pipeline_length = starpu_get_env_number_default("STARPU_CUDA_PIPELINE", 2);
+		worker->pipeline_length = starpu_getenv_number_default("STARPU_CUDA_PIPELINE", 2);
 		if (worker->pipeline_length > STARPU_MAX_PIPELINE)
 		{
 			_STARPU_DISP("Warning: STARPU_CUDA_PIPELINE is %u, but STARPU_MAX_PIPELINE is only %u", worker->pipeline_length, STARPU_MAX_PIPELINE);

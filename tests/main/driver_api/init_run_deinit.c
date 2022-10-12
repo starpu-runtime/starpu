@@ -203,9 +203,9 @@ static int test_opencl(void)
 	}
 
 	cl_device_type device_type = CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR;
-	if (starpu_get_env_number("STARPU_OPENCL_ON_CPUS") > 0)
+	if (starpu_getenv_number("STARPU_OPENCL_ON_CPUS") > 0)
 		device_type |= CL_DEVICE_TYPE_CPU;
-	if (starpu_get_env_number("STARPU_OPENCL_ONLY_ON_CPUS") > 0)
+	if (starpu_getenv_number("STARPU_OPENCL_ONLY_ON_CPUS") > 0)
 		device_type = CL_DEVICE_TYPE_CPU;
 
 	cl_device_id device_id;

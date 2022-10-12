@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -221,7 +221,7 @@ void _starpu_profiling_set_mpi_worldsize(int worldsize)
 	STARPU_ASSERT(worldsize >= 1);
 	_starpu_mpi_worldsize = worldsize;
 
-	int generate_trace = starpu_get_env_number("STARPU_GENERATE_TRACE");
+	int generate_trace = starpu_getenv_number("STARPU_GENERATE_TRACE");
 	if (generate_trace == 1 && _starpu_mpi_worldsize > 1)
 	{
 		/** TODO: make it work !
@@ -265,7 +265,7 @@ void starpu_fxt_stop_profiling()
 
 int starpu_fxt_is_enabled()
 {
-	return starpu_get_env_number_default("STARPU_FXT_TRACE", 0);
+	return starpu_getenv_number_default("STARPU_FXT_TRACE", 0);
 }
 
 #ifdef HAVE_FUT_SETUP_FLUSH_CALLBACK
@@ -437,7 +437,7 @@ void _starpu_stop_fxt_profiling(void)
 		_starpu_fxt_dump_file();
 
 		/* Should we generate a Paje trace directly ? */
-		int generate_trace = starpu_get_env_number("STARPU_GENERATE_TRACE");
+		int generate_trace = starpu_getenv_number("STARPU_GENERATE_TRACE");
 		if (_starpu_mpi_worldsize == 1 && generate_trace == 1)
 		{
 			_starpu_set_catch_signals(0);

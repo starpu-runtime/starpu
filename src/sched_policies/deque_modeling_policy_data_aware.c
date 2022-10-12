@@ -890,16 +890,16 @@ static void initialize_dmda_policy(unsigned sched_ctx_id)
 
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)dt);
 
-	dt->alpha = starpu_get_env_float_default("STARPU_SCHED_ALPHA", _STARPU_SCHED_ALPHA_DEFAULT);
-	dt->beta = starpu_get_env_float_default("STARPU_SCHED_BETA", _STARPU_SCHED_BETA_DEFAULT);
+	dt->alpha = starpu_getenv_float_default("STARPU_SCHED_ALPHA", _STARPU_SCHED_ALPHA_DEFAULT);
+	dt->beta = starpu_getenv_float_default("STARPU_SCHED_BETA", _STARPU_SCHED_BETA_DEFAULT);
 	/* data->_gamma: cost of one Joule in us. If gamma is set to 10^6, then one Joule cost 1s */
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 	if (starpu_getenv("STARPU_SCHED_GAMMA"))
 		_STARPU_DISP("Warning: STARPU_SCHED_GAMMA was used, but --enable-blocking-drivers configuration was not set, CPU cores will not actually be sleeping\n");
 #endif
-	dt->_gamma = starpu_get_env_float_default("STARPU_SCHED_GAMMA", _STARPU_SCHED_GAMMA_DEFAULT);
+	dt->_gamma = starpu_getenv_float_default("STARPU_SCHED_GAMMA", _STARPU_SCHED_GAMMA_DEFAULT);
 	/* data->idle_power: Idle power of the whole machine in Watt */
-	dt->idle_power = starpu_get_env_float_default("STARPU_IDLE_POWER", 0.0);
+	dt->idle_power = starpu_getenv_float_default("STARPU_IDLE_POWER", 0.0);
 
 	if(starpu_sched_ctx_min_priority_is_set(sched_ctx_id) != 0 && starpu_sched_ctx_max_priority_is_set(sched_ctx_id) != 0)
 		dt->num_priorities = starpu_sched_ctx_get_max_priority(sched_ctx_id) - starpu_sched_ctx_get_min_priority(sched_ctx_id) + 1;

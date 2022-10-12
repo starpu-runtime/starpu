@@ -34,8 +34,8 @@ static void initialize_prio_prefetching_center_policy(unsigned sched_ctx_id)
 
 	struct starpu_sched_component_prio_data prio_data =
 	{
-		.ntasks_threshold = starpu_get_env_number_default("STARPU_NTASKS_THRESHOLD", _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT),
-		.exp_len_threshold = starpu_get_env_float_default("STARPU_EXP_LEN_THRESHOLD", _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT),
+		.ntasks_threshold = starpu_getenv_number_default("STARPU_NTASKS_THRESHOLD", _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT),
+		.exp_len_threshold = starpu_getenv_float_default("STARPU_EXP_LEN_THRESHOLD", _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT),
 	};
 
 	unsigned i;

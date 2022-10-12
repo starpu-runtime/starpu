@@ -313,15 +313,15 @@ int main(int argc, char *argv[])
 		printf("Warning: This is expected to be run with export STARPU_HOSTNAME=sirocco\n");
 	}
 
-	freq_min =  starpu_get_env_number_default("STARPU_FREQ_MIN", 1200);
-	freq_slow =  starpu_get_env_number_default("STARPU_FREQ_SLOW", 1200);
-	freq_fast =  starpu_get_env_number_default("STARPU_FREQ_FAST", 3500);
+	freq_min =  starpu_getenv_number_default("STARPU_FREQ_MIN", 1200);
+	freq_slow =  starpu_getenv_number_default("STARPU_FREQ_SLOW", 1200);
+	freq_fast =  starpu_getenv_number_default("STARPU_FREQ_FAST", 3500);
 
-	power_min =  starpu_get_env_float_default("STARPU_POWER_MIN", 2);
-	power_fast =  starpu_get_env_float_default("STARPU_POWER_FAST", 8.2);
+	power_min =  starpu_getenv_float_default("STARPU_POWER_MIN", 2);
+	power_fast =  starpu_getenv_float_default("STARPU_POWER_FAST", 8.2);
 
 	/* Number of slow CPU cores */
-	ncpu_slow = starpu_get_env_number_default("STARPU_NCPU_SLOW", -1);
+	ncpu_slow = starpu_getenv_number_default("STARPU_NCPU_SLOW", -1);
 	if (ncpu_slow == -1)
 	{
 		/* Enable second implementation.  */

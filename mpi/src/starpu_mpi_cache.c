@@ -64,7 +64,7 @@ int starpu_mpi_cache_set(int enabled)
 
 void _starpu_mpi_cache_init(MPI_Comm comm)
 {
-	_starpu_cache_enabled = starpu_get_env_number("STARPU_MPI_CACHE");
+	_starpu_cache_enabled = starpu_getenv_number("STARPU_MPI_CACHE");
 	if (_starpu_cache_enabled == -1)
 	{
 		_starpu_cache_enabled = 1;

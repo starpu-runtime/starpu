@@ -568,14 +568,14 @@ static void initialize_parallel_heft_policy(unsigned sched_ctx_id)
 
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)hd);
 
-	hd->alpha = starpu_get_env_float_default("STARPU_SCHED_ALPHA", _STARPU_SCHED_ALPHA_DEFAULT);
-	hd->beta = starpu_get_env_float_default("STARPU_SCHED_BETA", _STARPU_SCHED_BETA_DEFAULT);
+	hd->alpha = starpu_getenv_float_default("STARPU_SCHED_ALPHA", _STARPU_SCHED_ALPHA_DEFAULT);
+	hd->beta = starpu_getenv_float_default("STARPU_SCHED_BETA", _STARPU_SCHED_BETA_DEFAULT);
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 	if (starpu_getenv("STARPU_SCHED_GAMMA"))
 		_STARPU_DISP("Warning: STARPU_SCHED_GAMMA was used, but --enable-blocking-drivers configuration was not set, CPU cores will not actually be sleeping\n");
 #endif
-	hd->_gamma = starpu_get_env_float_default("STARPU_SCHED_GAMMA", _STARPU_SCHED_GAMMA_DEFAULT);
-	hd->idle_power = starpu_get_env_float_default("STARPU_IDLE_POWER", 0.0);
+	hd->_gamma = starpu_getenv_float_default("STARPU_SCHED_GAMMA", _STARPU_SCHED_GAMMA_DEFAULT);
+	hd->idle_power = starpu_getenv_float_default("STARPU_IDLE_POWER", 0.0);
 
 	STARPU_PTHREAD_MUTEX_INIT(&hd->global_push_mutex, NULL);
 

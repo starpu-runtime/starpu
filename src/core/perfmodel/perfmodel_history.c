@@ -123,8 +123,8 @@ void _starpu_initialize_registered_performance_models(void)
 	nb_arch_combs = 2 * (ncores + ncuda + nopencl + nmpi + ntcpip);
 	_STARPU_MALLOC(arch_combs, nb_arch_combs*sizeof(struct starpu_perfmodel_arch*));
 	current_arch_comb = 0;
-	historymaxerror = starpu_get_env_number_default("STARPU_HISTORY_MAX_ERROR", STARPU_HISTORYMAXERROR);
-	_starpu_calibration_minimum = starpu_get_env_number_default("STARPU_CALIBRATE_MINIMUM", 10);
+	historymaxerror = starpu_getenv_number_default("STARPU_HISTORY_MAX_ERROR", STARPU_HISTORYMAXERROR);
+	_starpu_calibration_minimum = starpu_getenv_number_default("STARPU_CALIBRATE_MINIMUM", 10);
 
 	for (archtype = 0; archtype < STARPU_NARCH; archtype++)
 	{
@@ -132,7 +132,7 @@ void _starpu_initialize_registered_performance_models(void)
 		const char *arch = starpu_worker_get_type_as_env_var(archtype);
 		int def = archtype == STARPU_CPU_WORKER ? 1 : 0;
 		snprintf(name, sizeof(name), "STARPU_PERF_MODEL_HOMOGENEOUS_%s", arch);
-		ignore_devid[archtype] = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_CPU", def);
+		ignore_devid[archtype] = starpu_getenv_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_CPU", def);
 	}
 }
 

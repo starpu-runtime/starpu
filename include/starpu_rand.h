@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -31,9 +31,9 @@ extern "C" {
 
 #ifdef STARPU_SIMGRID
 /* In simgrid mode, force using seed 0 by default to get reproducible behavior by default */
-#define starpu_seed(seed) starpu_get_env_number_default("STARPU_RAND_SEED", 0)
+#define starpu_seed(seed) starpu_getenv_number_default("STARPU_RAND_SEED", 0)
 #else
-#define starpu_seed(seed) starpu_get_env_number_default("STARPU_RAND_SEED", (seed))
+#define starpu_seed(seed) starpu_getenv_number_default("STARPU_RAND_SEED", (seed))
 #endif
 
 #ifdef STARPU_USE_DRAND48

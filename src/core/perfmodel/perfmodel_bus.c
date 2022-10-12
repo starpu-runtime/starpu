@@ -364,7 +364,7 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 	 * since we cleanly shutdown CUDA before returning. */
 	cudaSetDevice(src);
 
-	if (starpu_get_env_number("STARPU_ENABLE_CUDA_GPU_GPU_DIRECT") != 0)
+	if (starpu_getenv_number("STARPU_ENABLE_CUDA_GPU_GPU_DIRECT") != 0)
 	{
 		cures = cudaDeviceCanAccessPeer(&can, src, dst);
 		(void) cudaGetLastError();
@@ -392,7 +392,7 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 	 * since we cleanly shutdown CUDA before returning. */
 	cudaSetDevice(dst);
 
-	if (starpu_get_env_number("STARPU_ENABLE_CUDA_GPU_GPU_DIRECT") != 0)
+	if (starpu_getenv_number("STARPU_ENABLE_CUDA_GPU_GPU_DIRECT") != 0)
 	{
 		cures = cudaDeviceCanAccessPeer(&can, dst, src);
 		(void) cudaGetLastError();
@@ -1556,7 +1556,7 @@ static int load_bus_bandwidth_file_content(void)
 				return 0;
 			}
 
-			int limit_bandwidth = starpu_get_env_number("STARPU_LIMIT_BANDWIDTH");
+			int limit_bandwidth = starpu_getenv_number("STARPU_LIMIT_BANDWIDTH");
 			if (limit_bandwidth >= 0)
 			{
 #ifndef STARPU_SIMGRID
@@ -2833,7 +2833,7 @@ static void write_bus_platform_file_content(int version)
 #warning TODO: use libnvml to get NVLink links, otherwise numbers will be bogusly propagated through PCI topology
 #endif
 	/* If we have enough hwloc information, write PCI bandwidths and routes */
-	if (!starpu_get_env_number_default("STARPU_PCI_FLAT", 0) && ncuda > 0)
+	if (!starpu_getenv_number_default("STARPU_PCI_FLAT", 0) && ncuda > 0)
 	{
 		int ret;
 		hwloc_topology_t topology;
@@ -3211,7 +3211,7 @@ void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double band
 {
 	unsigned int i, j;
 	double slowness_disk_between_main_ram, slowness_main_ram_between_node;
-	int print_stats = starpu_get_env_number_default("STARPU_BUS_STATS", 0);
+	int print_stats = starpu_getenv_number_default("STARPU_BUS_STATS", 0);
 
 	if (print_stats)
 	{

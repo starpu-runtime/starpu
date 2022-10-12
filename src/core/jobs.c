@@ -46,8 +46,8 @@ void _starpu_job_crash();
 
 void _starpu_job_init(void)
 {
-	max_memory_use = starpu_get_env_number_default("STARPU_MAX_MEMORY_USE", 0);
-	task_progress = starpu_get_env_number_default("STARPU_TASK_PROGRESS", 0);
+	max_memory_use = starpu_getenv_number_default("STARPU_MAX_MEMORY_USE", 0);
+	task_progress = starpu_getenv_number_default("STARPU_TASK_PROGRESS", 0);
 #ifdef STARPU_DEBUG
 	_starpu_job_multilist_head_init_all_submitted(&all_jobs_list);
 #endif

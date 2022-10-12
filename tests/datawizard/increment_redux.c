@@ -28,7 +28,7 @@ int main(int argc, char **argv)
 	starpu_data_handle_t handle;
 
 	/* Not supported yet */
-	if (starpu_get_env_number_default("STARPU_GLOBAL_ARBITER", 0) > 0)
+	if (starpu_getenv_number_default("STARPU_GLOBAL_ARBITER", 0) > 0)
 		return STARPU_TEST_SKIPPED;
 
 	ret = starpu_initialize(NULL, &argc, &argv);

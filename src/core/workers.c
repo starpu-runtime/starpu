@@ -1116,29 +1116,29 @@ int starpu_conf_init(struct starpu_conf *conf)
 	conf->will_use_mpi = 0;
 	conf->sched_policy_name = starpu_getenv("STARPU_SCHED");
 	conf->sched_policy = NULL;
-	conf->global_sched_ctx_min_priority = starpu_get_env_number("STARPU_MIN_PRIO");
-	conf->global_sched_ctx_max_priority = starpu_get_env_number("STARPU_MAX_PRIO");
-	conf->catch_signals = starpu_get_env_number_default("STARPU_CATCH_SIGNALS", 1);
+	conf->global_sched_ctx_min_priority = starpu_getenv_number("STARPU_MIN_PRIO");
+	conf->global_sched_ctx_max_priority = starpu_getenv_number("STARPU_MAX_PRIO");
+	conf->catch_signals = starpu_getenv_number_default("STARPU_CATCH_SIGNALS", 1);
 
-	/* Note that starpu_get_env_number returns -1 in case the variable is
+	/* Note that starpu_getenv_number returns -1 in case the variable is
 	 * not defined */
 	/* Backward compatibility: check the value of STARPU_NCPUS if
 	 * STARPU_NCPU is not set. */
-	conf->ncpus = starpu_get_env_number("STARPU_NCPU");
+	conf->ncpus = starpu_getenv_number("STARPU_NCPU");
 	if (conf->ncpus == -1)
-		conf->ncpus = starpu_get_env_number("STARPU_NCPUS");
-	conf->reserve_ncpus = starpu_get_env_number("STARPU_RESERVE_NCPU");
-	int main_thread_bind = starpu_get_env_number_default("STARPU_MAIN_THREAD_BIND", 0);
+		conf->ncpus = starpu_getenv_number("STARPU_NCPUS");
+	conf->reserve_ncpus = starpu_getenv_number("STARPU_RESERVE_NCPU");
+	int main_thread_bind = starpu_getenv_number_default("STARPU_MAIN_THREAD_BIND", 0);
 	if (main_thread_bind)
 		conf->reserve_ncpus++;
-	conf->ncuda = starpu_get_env_number("STARPU_NCUDA");
-	conf->nhip = starpu_get_env_number("STARPU_NHIP");
-	conf->nopencl = starpu_get_env_number("STARPU_NOPENCL");
-	conf->nmax_fpga = starpu_get_env_number("STARPU_NMAX_FPGA");
-	conf->nmpi_ms = starpu_get_env_number("STARPU_NMPI_MS");
-	conf->ntcpip_ms = starpu_get_env_number("STARPU_NTCPIP_MS");
-	conf->calibrate = starpu_get_env_number("STARPU_CALIBRATE");
-	conf->bus_calibrate = starpu_get_env_number("STARPU_BUS_CALIBRATE");
+	conf->ncuda = starpu_getenv_number("STARPU_NCUDA");
+	conf->nhip = starpu_getenv_number("STARPU_NHIP");
+	conf->nopencl = starpu_getenv_number("STARPU_NOPENCL");
+	conf->nmax_fpga = starpu_getenv_number("STARPU_NMAX_FPGA");
+	conf->nmpi_ms = starpu_getenv_number("STARPU_NMPI_MS");
+	conf->ntcpip_ms = starpu_getenv_number("STARPU_NTCPIP_MS");
+	conf->calibrate = starpu_getenv_number("STARPU_CALIBRATE");
+	conf->bus_calibrate = starpu_getenv_number("STARPU_BUS_CALIBRATE");
 
 	if (conf->calibrate == -1)
 	     conf->calibrate = 0;
@@ -1153,14 +1153,14 @@ int starpu_conf_init(struct starpu_conf *conf)
 	conf->use_explicit_workers_max_fpga_deviceid = 0; /* TODO */
 	conf->use_explicit_workers_mpi_ms_deviceid = 0; /* TODO */
 
-	conf->single_combined_worker = starpu_get_env_number("STARPU_SINGLE_COMBINED_WORKER");
+	conf->single_combined_worker = starpu_getenv_number("STARPU_SINGLE_COMBINED_WORKER");
 	if (conf->single_combined_worker == -1)
 	     conf->single_combined_worker = 0;
 
 #if defined(STARPU_DATA_LOCALITY_ENFORCE)
 	conf->data_locality_enforce = 1;
 #else
-	conf->data_locality_enforce = starpu_get_env_number("STARPU_DATA_LOCALITY_ENFORCE");
+	conf->data_locality_enforce = starpu_getenv_number("STARPU_DATA_LOCALITY_ENFORCE");
 	if (conf->data_locality_enforce == -1)
 		conf->data_locality_enforce = 0;
 #endif
@@ -1168,7 +1168,7 @@ int starpu_conf_init(struct starpu_conf *conf)
 #if defined(STARPU_DISABLE_ASYNCHRONOUS_COPY)
 	conf->disable_asynchronous_copy = 1;
 #else
-	conf->disable_asynchronous_copy = starpu_get_env_number("STARPU_DISABLE_ASYNCHRONOUS_COPY");
+	conf->disable_asynchronous_copy = starpu_getenv_number("STARPU_DISABLE_ASYNCHRONOUS_COPY");
 	if (conf->disable_asynchronous_copy == -1)
 		conf->disable_asynchronous_copy = 0;
 #endif
@@ -1176,7 +1176,7 @@ int starpu_conf_init(struct starpu_conf *conf)
 #if defined(STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY)
 	conf->disable_asynchronous_cuda_copy = 1;
 #else
-	conf->disable_asynchronous_cuda_copy = starpu_get_env_number("STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY");
+	conf->disable_asynchronous_cuda_copy = starpu_getenv_number("STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY");
 	if (conf->disable_asynchronous_cuda_copy == -1)
 		conf->disable_asynchronous_cuda_copy = 0;
 #endif
@@ -1185,7 +1185,7 @@ int starpu_conf_init(struct starpu_conf *conf)
 #if defined(STARPU_DISABLE_ASYNCHRONOUS_HIP_COPY)
 	conf->disable_asynchronous_hip_copy = 1;
 #else
-	conf->disable_asynchronous_hip_copy = starpu_get_env_number("STARPU_DISABLE_ASYNCHRONOUS_HIP_COPY");
+	conf->disable_asynchronous_hip_copy = starpu_getenv_number("STARPU_DISABLE_ASYNCHRONOUS_HIP_COPY");
 	if (conf->disable_asynchronous_hip_copy == -1)
 		conf->disable_asynchronous_hip_copy = 0;
 #endif
@@ -1193,7 +1193,7 @@ int starpu_conf_init(struct starpu_conf *conf)
 #if defined(STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY)
 	conf->disable_asynchronous_opencl_copy = 1;
 #else
-	conf->disable_asynchronous_opencl_copy = starpu_get_env_number("STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY");
+	conf->disable_asynchronous_opencl_copy = starpu_getenv_number("STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY");
 	if (conf->disable_asynchronous_opencl_copy == -1)
 		conf->disable_asynchronous_opencl_copy = 0;
 #endif
@@ -1201,7 +1201,7 @@ int starpu_conf_init(struct starpu_conf *conf)
 #if defined(STARPU_DISABLE_ASYNCHRONOUS_MAX_FPGA_COPY)
 	conf->disable_asynchronous_max_fpga_copy = 1;
 #else
-	conf->disable_asynchronous_max_fpga_copy = starpu_get_env_number("STARPU_DISABLE_ASYNCHRONOUS_MAX_FPGA_COPY");
+	conf->disable_asynchronous_max_fpga_copy = starpu_getenv_number("STARPU_DISABLE_ASYNCHRONOUS_MAX_FPGA_COPY");
 	if (conf->disable_asynchronous_max_fpga_copy == -1)
 		conf->disable_asynchronous_max_fpga_copy = 0;
 #endif
@@ -1209,7 +1209,7 @@ int starpu_conf_init(struct starpu_conf *conf)
 #if defined(STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY)
 	conf->disable_asynchronous_mpi_ms_copy = 1;
 #else
-	conf->disable_asynchronous_mpi_ms_copy = starpu_get_env_number("STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY");
+	conf->disable_asynchronous_mpi_ms_copy = starpu_getenv_number("STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY");
 	if(conf->disable_asynchronous_mpi_ms_copy == -1)
 		conf->disable_asynchronous_mpi_ms_copy = 0;
 #endif
@@ -1217,25 +1217,25 @@ int starpu_conf_init(struct starpu_conf *conf)
 #if defined(STARPU_DISABLE_ASYNCHRONOUS_TCPIP_MS_COPY)
 	conf->disable_asynchronous_tcpip_ms_copy = 1;
 #else
-	conf->disable_asynchronous_tcpip_ms_copy = starpu_get_env_number("STARPU_DISABLE_ASYNCHRONOUS_TCPIP_MS_COPY");
+	conf->disable_asynchronous_tcpip_ms_copy = starpu_getenv_number("STARPU_DISABLE_ASYNCHRONOUS_TCPIP_MS_COPY");
 	if(conf->disable_asynchronous_tcpip_ms_copy == -1)
 		conf->disable_asynchronous_tcpip_ms_copy = 0;
 #endif
 
-	conf->enable_map = starpu_get_env_number("STARPU_ENABLE_MAP");
+	conf->enable_map = starpu_getenv_number("STARPU_ENABLE_MAP");
 	if (conf->enable_map == -1)
 		conf->enable_map = 0;
 
 	/* 64MiB by default */
-	conf->trace_buffer_size = ((uint64_t) starpu_get_env_number_default("STARPU_TRACE_BUFFER_SIZE", 64)) << 20;
+	conf->trace_buffer_size = ((uint64_t) starpu_getenv_number_default("STARPU_TRACE_BUFFER_SIZE", 64)) << 20;
 
-	conf->driver_spinning_backoff_min = (unsigned) starpu_get_env_number_default("STARPU_BACKOFF_MIN", 1);
-	conf->driver_spinning_backoff_max = (unsigned) starpu_get_env_number_default("STARPU_BACKOFF_MAX", 32);
+	conf->driver_spinning_backoff_min = (unsigned) starpu_getenv_number_default("STARPU_BACKOFF_MIN", 1);
+	conf->driver_spinning_backoff_max = (unsigned) starpu_getenv_number_default("STARPU_BACKOFF_MAX", 32);
 
 	/* Do not start performance counter collection by default */
 	conf->start_perf_counter_collection = 0;
 
-	conf->cuda_only_fast_alloc_other_memnodes = starpu_get_env_number_default("STARPU_CUDA_ONLY_FAST_ALLOC_OTHER_MEMNODES", 0);
+	conf->cuda_only_fast_alloc_other_memnodes = starpu_getenv_number_default("STARPU_CUDA_ONLY_FAST_ALLOC_OTHER_MEMNODES", 0);
 	return 0;
 }
 
@@ -1256,7 +1256,7 @@ static void _starpu_conf_set_value_against_environment(char *name, int *value, i
 	if (precedence_over_env == 0)
 	{
 		int number;
-		number = starpu_get_env_number(name);
+		number = starpu_getenv_number(name);
 		if (number != -1)
 		{
 			*value = number;
@@ -1275,7 +1275,7 @@ void _starpu_conf_check_environment(struct starpu_conf *conf)
 	_starpu_conf_set_value_against_environment("STARPU_NCPUS", &conf->ncpus, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_NCPU", &conf->ncpus, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_RESERVE_NCPU", &conf->reserve_ncpus, conf->precedence_over_environment_variables);
-	int main_thread_bind = starpu_get_env_number_default("STARPU_MAIN_THREAD_BIND", 0);
+	int main_thread_bind = starpu_getenv_number_default("STARPU_MAIN_THREAD_BIND", 0);
 	if (main_thread_bind)
 		conf->reserve_ncpus++;
 	_starpu_conf_set_value_against_environment("STARPU_NCUDA", &conf->ncuda, conf->precedence_over_environment_variables);
@@ -1669,7 +1669,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	if (starpu_fxt_is_enabled())
 		_STARPU_DISP("Warning: FxT is enabled, which slows down a bit, limits scalability and makes worker initialization sequential\n");
 #else
-	if (starpu_get_env_number("STARPU_FXT_TRACE") > 0)
+	if (starpu_getenv_number("STARPU_FXT_TRACE") > 0)
 		_STARPU_DISP("Warning: FxT trace is requested but StarPU was configured without FxT support\n");
 #endif
 #ifdef STARPU_FXT_LOCK_TRACES
@@ -1698,7 +1698,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	}
 
 #ifndef STARPU_SIMGRID
-	if (starpu_get_env_number_default("STARPU_SIMGRID", 0))
+	if (starpu_getenv_number_default("STARPU_SIMGRID", 0))
 	{
 		_STARPU_DISP("Simulation mode requested, but this libstarpu was built without simgrid support, please recompile\n");
 		STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
@@ -1830,9 +1830,9 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 		_starpu_worker_init(&_starpu_config.workers[worker], &_starpu_config);
 
 //FIXME: find out if the variable STARPU_CHECK_ENTIRE_PLATFORM is really needed, for now, just set 1 as a default value
-	check_entire_platform = 1;//starpu_get_env_number("STARPU_CHECK_ENTIRE_PLATFORM");
+	check_entire_platform = 1;//starpu_getenv_number("STARPU_CHECK_ENTIRE_PLATFORM");
 
-	_starpu_config.disable_kernels = starpu_get_env_number("STARPU_DISABLE_KERNELS");
+	_starpu_config.disable_kernels = starpu_getenv_number("STARPU_DISABLE_KERNELS");
 	STARPU_PTHREAD_KEY_CREATE(&_starpu_worker_key, NULL);
 	STARPU_PTHREAD_KEY_CREATE(&_starpu_worker_set_key, NULL);
 	_starpu_keys_initialized = 1;
@@ -1879,8 +1879,8 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	STARPU_PTHREAD_COND_BROADCAST(&init_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
 
-	int main_thread_cpuid = starpu_get_env_number_default("STARPU_MAIN_THREAD_CPUID", -1);
-	int main_thread_coreid = starpu_get_env_number_default("STARPU_MAIN_THREAD_COREID", -1);
+	int main_thread_cpuid = starpu_getenv_number_default("STARPU_MAIN_THREAD_CPUID", -1);
+	int main_thread_coreid = starpu_getenv_number_default("STARPU_MAIN_THREAD_COREID", -1);
 	if (main_thread_cpuid >= 0 && main_thread_coreid >= 0)
 	{
 		_STARPU_DISP("Warning: STARPU_MAIN_THREAD_CPUID and STARPU_MAIN_THREAD_COREID cannot be set at the same time. STARPU_MAIN_THREAD_CPUID will be used.\n");
@@ -1889,7 +1889,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	{
 		main_thread_cpuid = main_thread_coreid * _starpu_get_nhyperthreads();
 	}
-	int main_thread_bind = starpu_get_env_number_default("STARPU_MAIN_THREAD_BIND", 0);
+	int main_thread_bind = starpu_getenv_number_default("STARPU_MAIN_THREAD_BIND", 0);
 	int main_thread_activity = STARPU_NONACTIVETHREAD;
 	if (main_thread_bind)
 	{
@@ -1919,7 +1919,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	_starpu_catch_signals();
 
 	/* if MPI is enabled, binding display will be done later, after MPI initialization */
-	if (!_starpu_config.conf.will_use_mpi && starpu_get_env_number_default("STARPU_DISPLAY_BINDINGS", 0))
+	if (!_starpu_config.conf.will_use_mpi && starpu_getenv_number_default("STARPU_DISPLAY_BINDINGS", 0))
 	{
 		fprintf(stdout, "== Binding ==\n");
 		starpu_display_bindings();
@@ -2153,7 +2153,7 @@ void starpu_shutdown(void)
 	}
 
 	{
-	     int stats = starpu_get_env_number("STARPU_STATS");
+	     int stats = starpu_getenv_number("STARPU_STATS");
 	     if (stats != 0)
 	     {
 		  _starpu_display_msi_stats(stderr);
@@ -2173,7 +2173,7 @@ void starpu_shutdown(void)
 	_starpu_terminate_workers(&_starpu_config);
 
 	{
-	     int stats = starpu_get_env_number("STARPU_MEMORY_STATS");
+	     int stats = starpu_getenv_number("STARPU_MEMORY_STATS");
 	     if (stats != 0)
 	     {
 		  // Display statistics on data which have not been unregistered

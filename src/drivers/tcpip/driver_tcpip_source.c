@@ -55,7 +55,7 @@ static void __starpu_init_tcpip_config(struct _starpu_machine_topology * topolog
 	topology->nhwworker[STARPU_TCPIP_MS_WORKER][tcpip_idx] = nbcores;
 
 	int ntcpipcores;
-	ntcpipcores = starpu_get_env_number("STARPU_NTCPIPMSTHREADS");
+	ntcpipcores = starpu_getenv_number("STARPU_NTCPIPMSTHREADS");
 
 	_starpu_topology_check_ndevices(&ntcpipcores, nbcores, 0, INT_MAX, "STARPU_NTCPIPMSTHREADS", "TCPIP cores", "");
 
@@ -64,7 +64,7 @@ static void __starpu_init_tcpip_config(struct _starpu_machine_topology * topolog
 	_starpu_src_nodes[STARPU_TCPIP_MS_WORKER][tcpip_idx]->baseworkerid = topology->nworkers;
 
 	_starpu_topology_configure_workers(topology, config,
-					 STARPU_TCPIP_MS_WORKER, 
+					 STARPU_TCPIP_MS_WORKER,
 					 tcpip_idx, tcpip_idx, 0, 0,
 					ntcpipcores, 1, &tcpip_worker_set[tcpip_idx],
 					_starpu_tcpip_common_multiple_thread  ? NULL : tcpip_worker_set);
@@ -242,7 +242,7 @@ void _starpu_tcpip_source_deinit(struct _starpu_mp_node *node STARPU_ATTRIBUTE_U
 
 unsigned _starpu_tcpip_src_get_device_count()
 {
-	int nmpims = starpu_get_env_number("STARPU_TCPIP_MS_SLAVES");
+	int nmpims = starpu_getenv_number("STARPU_TCPIP_MS_SLAVES");
 	if (nmpims == -1)
 		/* No slave */
 		nmpims = 0;

@@ -1612,9 +1612,9 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 	STARPU_PTHREAD_MUTEX_INIT(&mutex_posted_requests, NULL);
 	STARPU_PTHREAD_MUTEX_INIT(&mutex_ready_requests, NULL);
 
-	nready_process = starpu_get_env_number_default("STARPU_MPI_NREADY_PROCESS", 10);
-	ndetached_send = starpu_get_env_number_default("STARPU_MPI_NDETACHED_SEND", 10);
-	early_data_force_allocate = starpu_get_env_number_default("STARPU_MPI_EARLYDATA_ALLOCATE", 0);
+	nready_process = starpu_getenv_number_default("STARPU_MPI_NREADY_PROCESS", 10);
+	ndetached_send = starpu_getenv_number_default("STARPU_MPI_NDETACHED_SEND", 10);
+	early_data_force_allocate = starpu_getenv_number_default("STARPU_MPI_EARLYDATA_ALLOCATE", 0);
 
 #ifdef STARPU_SIMGRID
 	STARPU_PTHREAD_MUTEX_INIT(&wait_counter_mutex, NULL);
@@ -1701,7 +1701,7 @@ void _starpu_mpi_driver_init(struct starpu_conf *conf)
 	 * STARPU_MPI_DRIVER_CALL_FREQUENCY is defined by the user. If this environment
 	 * variable is not defined or defined at a value lower than or equal to zero,
 	 * StarPU-MPI will not use a driver. */
-	int driver_env = starpu_get_env_number_default("STARPU_MPI_DRIVER_CALL_FREQUENCY", 0);
+	int driver_env = starpu_getenv_number_default("STARPU_MPI_DRIVER_CALL_FREQUENCY", 0);
 	if (driver_env > 0)
 	{
 #ifdef STARPU_SIMGRID
@@ -1717,7 +1717,7 @@ void _starpu_mpi_driver_init(struct starpu_conf *conf)
 		conf->not_launched_drivers = mpi_driver;
 		conf->n_not_launched_drivers = 1;
 
-		int tasks_freq_env = starpu_get_env_number_default("STARPU_MPI_DRIVER_TASK_FREQUENCY", 0);
+		int tasks_freq_env = starpu_getenv_number_default("STARPU_MPI_DRIVER_TASK_FREQUENCY", 0);
 		if (tasks_freq_env > 0)
 			mpi_driver_task_freq = tasks_freq_env;
 	}

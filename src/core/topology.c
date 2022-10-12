@@ -544,7 +544,7 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 		_starpu_init_max_fpga();
 #endif
 
-	nobind = starpu_get_env_number("STARPU_WORKERS_NOBIND");
+	nobind = starpu_getenv_number("STARPU_WORKERS_NOBIND");
 
 	topology->nhwdevices[STARPU_CPU_WORKER] = 1;
 	topology->nhwworker[STARPU_CPU_WORKER][0] = 0;
@@ -572,7 +572,7 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 		_STARPU_DISP("Warning: there are several kinds of CPU on this system. For now StarPU assumes all CPU are equal\n");
 #endif
 
-	if (starpu_get_env_number_default("STARPU_WORKERS_GETBIND", 0))
+	if (starpu_getenv_number_default("STARPU_WORKERS_GETBIND", 0))
 	{
 		/* Respect the existing binding */
 		hwloc_bitmap_t cpuset = hwloc_bitmap_alloc();
@@ -771,7 +771,7 @@ static void _starpu_initialize_workers_bindid(struct _starpu_machine_config *con
 	}
 	else
 	{
-		int nth_per_core = starpu_get_env_number_default("STARPU_NTHREADS_PER_CORE", 1);
+		int nth_per_core = starpu_getenv_number_default("STARPU_NTHREADS_PER_CORE", 1);
 		int k;
 		int nbindids=0;
 		STARPU_ASSERT_MSG(nth_per_core > 0 && nth_per_core <= nhyperthreads , "Incorrect number of hyperthreads");
@@ -921,7 +921,7 @@ unsigned _starpu_topology_get_nnumanodes(struct _starpu_machine_config *config S
 	int res;
 #if defined(STARPU_HAVE_HWLOC)
 	if (numa_enabled == -1)
-		numa_enabled = starpu_get_env_number_default("STARPU_USE_NUMA", 0);
+		numa_enabled = starpu_getenv_number_default("STARPU_USE_NUMA", 0);
 	if (numa_enabled)
 	{
 		struct _starpu_machine_topology *topology = &config->topology ;
@@ -1419,7 +1419,7 @@ static size_t _starpu_cpu_get_global_mem_size(int nodeid, struct _starpu_machine
 			global_mem = obj->memory.local_memory;
 #endif
 			snprintf(name, sizeof(name), "STARPU_LIMIT_CPU_NUMA_%d_MEM", obj->os_index);
-			limit = starpu_get_env_number(name);
+			limit = starpu_getenv_number(name);
 		}
 	}
 	else
@@ -1440,11 +1440,11 @@ static size_t _starpu_cpu_get_global_mem_size(int nodeid, struct _starpu_machine
 #endif
 
 	if (limit == -1)
-		limit = starpu_get_env_number("STARPU_LIMIT_CPU_NUMA_MEM");
+		limit = starpu_getenv_number("STARPU_LIMIT_CPU_NUMA_MEM");
 
 	if (limit == -1)
 	{
-		limit = starpu_get_env_number("STARPU_LIMIT_CPU_MEM");
+		limit = starpu_getenv_number("STARPU_LIMIT_CPU_MEM");
 		if (limit != -1 && numa_enabled)
 		{
 			_STARPU_DISP("NUMA is enabled and STARPU_LIMIT_CPU_MEM is set to %luMB. Assuming that it should be distributed over the %d NUMA node(s). You probably want to use STARPU_LIMIT_CPU_NUMA_MEM instead.\n", (long) limit, _starpu_topology_get_nnumanodes(config));
@@ -1488,7 +1488,7 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 	starpu_sg_host_t host;
 #endif
 
-	numa_enabled = starpu_get_env_number_default("STARPU_USE_NUMA", 0);
+	numa_enabled = starpu_getenv_number_default("STARPU_USE_NUMA", 0);
 	/* NUMA mode activated */
 	if (numa_enabled)
 	{

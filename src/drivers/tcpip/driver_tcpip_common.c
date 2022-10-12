@@ -423,7 +423,7 @@ int _starpu_tcpip_common_mp_init()
 		return -ENODEV;
 
 	/*get the slave number*/
-	nb_sink = starpu_get_env_number("STARPU_TCPIP_MS_SLAVES");
+	nb_sink = starpu_getenv_number("STARPU_TCPIP_MS_SLAVES");
 	//_TCPIP_PRINT("the slave number is %d\n", nb_sink);
 
 	if (nb_sink <= 0)
@@ -432,7 +432,7 @@ int _starpu_tcpip_common_mp_init()
 
 	tcpip_initialized = 1;
 
-	_starpu_tcpip_common_multiple_thread = starpu_get_env_number_default("STARPU_TCPIP_MS_MULTIPLE_THREAD", 0);
+	_starpu_tcpip_common_multiple_thread = starpu_getenv_number_default("STARPU_TCPIP_MS_MULTIPLE_THREAD", 0);
 
 	master_thread = pthread_self();
 	signal(SIGUSR1, handler);
@@ -545,7 +545,7 @@ int _starpu_tcpip_common_mp_init()
 		}
 
 		close(source_sock_init);
-		if (starpu_get_env_number_default("STARPU_TCPIP_USE_LOCAL_SOCKET", 1) != 0)
+		if (starpu_getenv_number_default("STARPU_TCPIP_USE_LOCAL_SOCKET", 1) != 0)
 		{
 			close(local_sock);
 			unlink(name.sun_path);
@@ -836,7 +836,7 @@ int _starpu_tcpip_common_mp_init()
 		}
 
 		close(sink_serv_sock);
-		if (starpu_get_env_number_default("STARPU_TCPIP_USE_LOCAL_SOCKET", 1) != 0)
+		if (starpu_getenv_number_default("STARPU_TCPIP_USE_LOCAL_SOCKET", 1) != 0)
 		{
 			close(sink_local_sock);
 			unlink(sink_name.sun_path);
@@ -910,7 +910,7 @@ void _starpu_tcpip_common_mp_initialize_src_sink(struct _starpu_mp_node *node)
 {
 	struct _starpu_machine_topology *topology = &_starpu_get_machine_config()->topology;
 
-	int ntcpipcores = starpu_get_env_number("STARPU_NTCPIPMSTHREADS");
+	int ntcpipcores = starpu_getenv_number("STARPU_NTCPIPMSTHREADS");
 	if (ntcpipcores == -1)
 		node->nb_cores = topology->nhwworker[STARPU_CPU_WORKER][0];
 	else

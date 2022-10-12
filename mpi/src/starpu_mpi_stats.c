@@ -40,11 +40,11 @@ void _starpu_mpi_comm_amounts_init(MPI_Comm comm)
 	{
 		time_init = starpu_timing_now();
 		comm_init = comm;
-		stats_enabled = starpu_get_env_number("STARPU_MPI_STATS");
+		stats_enabled = starpu_getenv_number("STARPU_MPI_STATS");
 		if (stats_enabled == -1)
 		{
 			/* Legacy env var */
-			stats_enabled = starpu_get_env_number("STARPU_COMM_STATS");
+			stats_enabled = starpu_getenv_number("STARPU_COMM_STATS");
 		}
 		if (stats_enabled == -1)
 		{

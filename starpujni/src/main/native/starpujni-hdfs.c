@@ -82,7 +82,7 @@ static void *s_starpujni_disk_plug(void *parameter, starpu_ssize_t size)
 {
 	struct hdfs_base *hdfs;
 
-	_starpu_calibration_minimum = starpu_get_env_number_default("STARPU_CALIBRATE_MINIMUM", 10);
+	_starpu_calibration_minimum = starpu_getenv_number_default("STARPU_CALIBRATE_MINIMUM", 10);
 
 	S("%s", (char *) parameter);
 

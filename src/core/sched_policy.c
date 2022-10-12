@@ -45,10 +45,10 @@ static const char *sched_lib = NULL;
 
 void _starpu_sched_init(void)
 {
-	_starpu_task_break_on_push = starpu_get_env_number_default("STARPU_TASK_BREAK_ON_PUSH", -1);
-	_starpu_task_break_on_sched = starpu_get_env_number_default("STARPU_TASK_BREAK_ON_SCHED", -1);
-	_starpu_task_break_on_pop = starpu_get_env_number_default("STARPU_TASK_BREAK_ON_POP", -1);
-	_starpu_task_break_on_exec = starpu_get_env_number_default("STARPU_TASK_BREAK_ON_EXEC", -1);
+	_starpu_task_break_on_push = starpu_getenv_number_default("STARPU_TASK_BREAK_ON_PUSH", -1);
+	_starpu_task_break_on_sched = starpu_getenv_number_default("STARPU_TASK_BREAK_ON_SCHED", -1);
+	_starpu_task_break_on_pop = starpu_getenv_number_default("STARPU_TASK_BREAK_ON_POP", -1);
+	_starpu_task_break_on_exec = starpu_getenv_number_default("STARPU_TASK_BREAK_ON_EXEC", -1);
 	starpu_idle_file = starpu_getenv("STARPU_IDLE_FILE");
 }
 
@@ -293,7 +293,7 @@ void _starpu_init_sched_policy(struct _starpu_machine_config *config, struct _st
 	display_sched_help_message(stderr);
 
 	/* Prefetch is activated by default */
-	use_prefetch = starpu_get_env_number("STARPU_PREFETCH");
+	use_prefetch = starpu_getenv_number("STARPU_PREFETCH");
 	if (use_prefetch == -1)
 		use_prefetch = 1;
 
@@ -302,7 +302,7 @@ void _starpu_init_sched_policy(struct _starpu_machine_config *config, struct _st
 
 	load_sched_policy(selected_policy, sched_ctx);
 
-	if (starpu_get_env_number_default("STARPU_WORKER_TREE", 0))
+	if (starpu_getenv_number_default("STARPU_WORKER_TREE", 0))
 	{
 #ifdef STARPU_HAVE_HWLOC
 		sched_ctx->sched_policy->worker_type = STARPU_WORKER_TREE;

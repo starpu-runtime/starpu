@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -103,8 +103,8 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 			flags = va_arg(varg_list, unsigned);
 		}
 
-		int above_prio = starpu_get_env_number_default("STARPU_SCHED_SORTED_ABOVE", (flags & STARPU_SCHED_SIMPLE_FIFO_ABOVE_PRIO) ? 1 : 0);
-		int below_prio = starpu_get_env_number_default("STARPU_SCHED_SORTED_BELOW", (flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW_PRIO) ? 1 : 0);
+		int above_prio = starpu_getenv_number_default("STARPU_SCHED_SORTED_ABOVE", (flags & STARPU_SCHED_SIMPLE_FIFO_ABOVE_PRIO) ? 1 : 0);
+		int below_prio = starpu_getenv_number_default("STARPU_SCHED_SORTED_BELOW", (flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW_PRIO) ? 1 : 0);
 
 		/* Create combined workers if requested */
 		if (flags & STARPU_SCHED_SIMPLE_COMBINED_WORKERS)
@@ -219,8 +219,8 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 			last_pre_decision_component = component;
 		}
 
-		int above_prio = starpu_get_env_number_default("STARPU_SCHED_SORTED_ABOVE", (flags & STARPU_SCHED_SIMPLE_FIFO_ABOVE_PRIO) ? 1 : 0);
-		int below_prio = starpu_get_env_number_default("STARPU_SCHED_SORTED_BELOW", (flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW_PRIO) ? 1 : 0);
+		int above_prio = starpu_getenv_number_default("STARPU_SCHED_SORTED_ABOVE", (flags & STARPU_SCHED_SIMPLE_FIFO_ABOVE_PRIO) ? 1 : 0);
+		int below_prio = starpu_getenv_number_default("STARPU_SCHED_SORTED_BELOW", (flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW_PRIO) ? 1 : 0);
 
 		if (nbelow == 1 && !(flags & STARPU_SCHED_SIMPLE_DECIDE_ALWAYS))
 		{
@@ -310,12 +310,12 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 			ntasks_threshold = _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT;
 		}
 		/* But let user tune it */
-		ntasks_threshold = starpu_get_env_number_default("STARPU_NTASKS_THRESHOLD", ntasks_threshold);
+		ntasks_threshold = starpu_getenv_number_default("STARPU_NTASKS_THRESHOLD", ntasks_threshold);
 
 		double exp_len_threshold = _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT;
-		exp_len_threshold = starpu_get_env_float_default("STARPU_EXP_LEN_THRESHOLD", exp_len_threshold);
+		exp_len_threshold = starpu_getenv_float_default("STARPU_EXP_LEN_THRESHOLD", exp_len_threshold);
 
-		int ready = starpu_get_env_number_default("STARPU_SCHED_READY", (flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY) ? 1 : 0);
+		int ready = starpu_getenv_number_default("STARPU_SCHED_READY", (flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY) ? 1 : 0);
 
 		int exp = (flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW_EXP) ? 1 : 0;
 

@@ -747,7 +747,7 @@ void starpu_heteroprio_map_wgroup_memory_nodes_hp(struct _starpu_heteroprio_data
 					arch_env_name);
 				unsigned default_value = arch == STARPU_CPU_WORKER ? current_nb_memory_nodes - 1 : 1;
 
-				nb_closed_nodes[arch] = starpu_get_env_number_default(var_name, default_value);
+				nb_closed_nodes[arch] = starpu_getenv_number_default(var_name, default_value);
 			}
 		}
 	}
@@ -766,7 +766,7 @@ void starpu_heteroprio_map_wgroup_memory_nodes_hp(struct _starpu_heteroprio_data
 					arch_env_name);
 				unsigned default_value = arch != STARPU_CPU_WORKER ? hp->nb_prio_per_arch_index[arch] : 1;
 
-				nb_prio_step[arch] = starpu_get_env_number_default(var_name, default_value);
+				nb_prio_step[arch] = starpu_getenv_number_default(var_name, default_value);
 			}
 		}
 	}
@@ -1415,10 +1415,10 @@ static void initialize_heteroprio_policy(unsigned sched_ctx_id)
 	_STARPU_MALLOC(hp, sizeof(struct _starpu_heteroprio_data));
 	memset(hp, 0, sizeof(*hp));
 
-	hp->use_locality = use_la_mode = starpu_get_env_number_default("STARPU_HETEROPRIO_USE_LA", 0);
+	hp->use_locality = use_la_mode = starpu_getenv_number_default("STARPU_HETEROPRIO_USE_LA", 0);
 	_STARPU_MSG("[HETEROPRIO] Data locality : %s\n", hp->use_locality?"ENABLED":"DISABLED");
 
-	hp->codelet_grouping_strategy = use_auto_mode = starpu_get_env_number_default("STARPU_HETEROPRIO_CODELET_GROUPING_STRATEGY", 0);
+	hp->codelet_grouping_strategy = use_auto_mode = starpu_getenv_number_default("STARPU_HETEROPRIO_CODELET_GROUPING_STRATEGY", 0);
 	switch(hp->codelet_grouping_strategy)
 	{
 		case BY_PERF_MODEL_OR_NAME:
@@ -1433,29 +1433,29 @@ static void initialize_heteroprio_policy(unsigned sched_ctx_id)
 			hp->codelet_grouping_strategy = BY_PERF_MODEL_OR_NAME; // setting to default
 	}
 
-	hp->use_auto_calibration = use_auto_mode = starpu_get_env_number_default("STARPU_HETEROPRIO_USE_AUTO_CALIBRATION", 1);
+	hp->use_auto_calibration = use_auto_mode = starpu_getenv_number_default("STARPU_HETEROPRIO_USE_AUTO_CALIBRATION", 1);
 	_STARPU_MSG("[HETEROPRIO] Auto calibration : %s\n", hp->use_auto_calibration?"ENABLED":"DISABLED");
 	if(hp->use_auto_calibration)
 	{
-		const int ordering_policy = starpu_get_env_number_default("STARPU_AUTOHETEROPRIO_PRIORITY_ORDERING_POLICY", STARPU_HETEROPRIO_URT_DOT_DIFF_4); 
+		const int ordering_policy = starpu_getenv_number_default("STARPU_AUTOHETEROPRIO_PRIORITY_ORDERING_POLICY", STARPU_HETEROPRIO_URT_DOT_DIFF_4); 
 		STARPU_ASSERT_MSG(ordering_policy < STARPU_AUTOHETEROPRIO_PRIORITY_ORDERING_POLICY_COUNT, "STARPU_AUTOHETEROPRIO_PRIORITY_ORDERING_POLICY must be < %d.\n", STARPU_AUTOHETEROPRIO_PRIORITY_ORDERING_POLICY_COUNT);
 		STARPU_ASSERT_MSG(ordering_policy >= 0, "STARPU_AUTOHETEROPRIO_PRIORITY_ORDERING_POLICY must be >= 0.\n");
 		hp->autoheteroprio_priority_ordering_policy = ordering_policy;
 		_STARPU_MSG("[AUTOHETEROPRIO] Priority ordering policy : %s\n", &starpu_autoheteroprio_priority_ordering_policy_names[hp->autoheteroprio_priority_ordering_policy][0]);
 
 
-		hp->priority_ordering_interval = starpu_get_env_number_default("STARPU_AUTOHETEROPRIO_ORDERING_INTERVAL", 32);
+		hp->priority_ordering_interval = starpu_getenv_number_default("STARPU_AUTOHETEROPRIO_ORDERING_INTERVAL", 32);
 
-		hp->freeze_data_gathering = starpu_get_env_number_default("STARPU_AUTOHETEROPRIO_FREEZE_GATHERING", 0);
+		hp->freeze_data_gathering = starpu_getenv_number_default("STARPU_AUTOHETEROPRIO_FREEZE_GATHERING", 0);
 		_STARPU_MSG("[AUTOHETEROPRIO] Data gathering : %s\n", !hp->freeze_data_gathering?"ENABLED":"DISABLED");
 
-		hp->autoheteroprio_print_prio_after_ordering = starpu_get_env_number_default("STARPU_AUTOHETEROPRIO_PRINT_AFTER_ORDERING", 0);
+		hp->autoheteroprio_print_prio_after_ordering = starpu_getenv_number_default("STARPU_AUTOHETEROPRIO_PRINT_AFTER_ORDERING", 0);
 		_STARPU_MSG("[AUTOHETEROPRIO] Print after ordering : %s\n", hp->autoheteroprio_print_prio_after_ordering?"ENABLED":"DISABLED");
 
-		hp->autoheteroprio_print_data_on_update = starpu_get_env_number_default("STARPU_AUTOHETEROPRIO_PRINT_DATA_ON_UPDATE", 0);
+		hp->autoheteroprio_print_data_on_update = starpu_getenv_number_default("STARPU_AUTOHETEROPRIO_PRINT_DATA_ON_UPDATE", 0);
 		_STARPU_MSG("[AUTOHETEROPRIO] Print on update : %s\n", hp->autoheteroprio_print_data_on_update?"ENABLED":"DISABLED");
 
-		hp->autoheteroprio_time_estimation_policy = starpu_get_env_number_default("STARPU_AUTOHETEROPRIO_TIME_ESTIMATION_POLICY", 0);
+		hp->autoheteroprio_time_estimation_policy = starpu_getenv_number_default("STARPU_AUTOHETEROPRIO_TIME_ESTIMATION_POLICY", 0);
 	}
 
 	starpu_bitmap_init(&hp->waiters);
@@ -1486,25 +1486,25 @@ static void initialize_heteroprio_policy(unsigned sched_ctx_id)
 
 	// get environment hyperparameters
 
-	hp->NTnodPond = starpu_get_env_float_default("STARPU_HETEROPRIO_NOD_TIME_COMBINATION_NOD_MULTIPLIER", 0.3);
-	hp->NTexpVal = starpu_get_env_float_default("STARPU_HETEROPRIO_NOD_TIME_COMBINATION_EXP_SELECTIVITY", 0.5);
-	hp->BNexpVal = starpu_get_env_float_default("STARPU_HETEROPRIO_BEST_NODS_SCORE_EXP_SELECTIVITY", 0.5);
-	hp->URTurt = starpu_get_env_float_default("STARPU_HETEROPRIO_URT_URT_MULTIPLIER", 0.5);
-	hp->URT2urt = starpu_get_env_float_default("STARPU_HETEROPRIO_URT_2_URT_MULTIPLIER", 0.5);
-	hp->URT2prop = starpu_get_env_float_default("STARPU_HETEROPRIO_URT_2_ARCH_NEED_MULTIPLIER", 2.0);
-	hp->and2pond = starpu_get_env_float_default("STARPU_HETEROPRIO_URT_DOT_DIFF_2_ARCH_NEED_MULTIPLIER", 1.0);
-	hp->and3pond = starpu_get_env_float_default("STARPU_HETEROPRIO_URT_DOT_DIFF_3_ARCH_NEED_MULTIPLIER", 1.0);
-	hp->and4pond = starpu_get_env_float_default("STARPU_HETEROPRIO_URT_DOT_DIFF_4_ARCH_NEED_MULTIPLIER", 1.0);
-	hp->and5xoffset = starpu_get_env_float_default("STARPU_HETEROPRIO_URT_DOT_DIFF_5_NOD_OFFSET", 1.3);
-	hp->and5yoffset = starpu_get_env_float_default("STARPU_HETEROPRIO_URT_DOT_DIFF_5_ARCH_DIFF_OFFSET", 1.0);
-	hp->and9xoffset = starpu_get_env_float_default("STARPU_HETEROPRIO_URT_DOT_DIFF_9_NOD_OFFSET", 1.3);
-	hp->and9yoffset = starpu_get_env_float_default("STARPU_HETEROPRIO_URT_DOT_DIFF_9_ARCH_DIFF_OFFSET", 1.0);
-	hp->and10xoffset = starpu_get_env_float_default("STARPU_HETEROPRIO_AURT_DOT_DIFF_10_NOD_OFFSET", 1.3);
-	hp->and10yoffset = starpu_get_env_float_default("STARPU_HETEROPRIO_URT_DOT_DIFF_10_ARCH_DIFF_OFFSET", 1.0);
-	hp->and11xoffset = starpu_get_env_float_default("STARPU_HETEROPRIO_URT_DOT_DIFF_11_NOD_OFFSET", 1.3);
-	hp->and11yoffset = starpu_get_env_float_default("STARPU_HETEROPRIO_URT_DOT_DIFF_11_ARCH_DIFF_OFFSET", 1.0);
-	hp->ANTnodPond = starpu_get_env_float_default("STARPU_HETEROPRIO_URTS_TIME_COMBINATION_NOD_MULTIPLIER", 0.3);
-	hp->ANTexpVal = starpu_get_env_float_default("STARPU_HETEROPRIO_URTS_TIME_COMBINATION_EXP_SELECTIVITY", 0.5);
+	hp->NTnodPond = starpu_getenv_float_default("STARPU_HETEROPRIO_NOD_TIME_COMBINATION_NOD_MULTIPLIER", 0.3);
+	hp->NTexpVal = starpu_getenv_float_default("STARPU_HETEROPRIO_NOD_TIME_COMBINATION_EXP_SELECTIVITY", 0.5);
+	hp->BNexpVal = starpu_getenv_float_default("STARPU_HETEROPRIO_BEST_NODS_SCORE_EXP_SELECTIVITY", 0.5);
+	hp->URTurt = starpu_getenv_float_default("STARPU_HETEROPRIO_URT_URT_MULTIPLIER", 0.5);
+	hp->URT2urt = starpu_getenv_float_default("STARPU_HETEROPRIO_URT_2_URT_MULTIPLIER", 0.5);
+	hp->URT2prop = starpu_getenv_float_default("STARPU_HETEROPRIO_URT_2_ARCH_NEED_MULTIPLIER", 2.0);
+	hp->and2pond = starpu_getenv_float_default("STARPU_HETEROPRIO_URT_DOT_DIFF_2_ARCH_NEED_MULTIPLIER", 1.0);
+	hp->and3pond = starpu_getenv_float_default("STARPU_HETEROPRIO_URT_DOT_DIFF_3_ARCH_NEED_MULTIPLIER", 1.0);
+	hp->and4pond = starpu_getenv_float_default("STARPU_HETEROPRIO_URT_DOT_DIFF_4_ARCH_NEED_MULTIPLIER", 1.0);
+	hp->and5xoffset = starpu_getenv_float_default("STARPU_HETEROPRIO_URT_DOT_DIFF_5_NOD_OFFSET", 1.3);
+	hp->and5yoffset = starpu_getenv_float_default("STARPU_HETEROPRIO_URT_DOT_DIFF_5_ARCH_DIFF_OFFSET", 1.0);
+	hp->and9xoffset = starpu_getenv_float_default("STARPU_HETEROPRIO_URT_DOT_DIFF_9_NOD_OFFSET", 1.3);
+	hp->and9yoffset = starpu_getenv_float_default("STARPU_HETEROPRIO_URT_DOT_DIFF_9_ARCH_DIFF_OFFSET", 1.0);
+	hp->and10xoffset = starpu_getenv_float_default("STARPU_HETEROPRIO_AURT_DOT_DIFF_10_NOD_OFFSET", 1.3);
+	hp->and10yoffset = starpu_getenv_float_default("STARPU_HETEROPRIO_URT_DOT_DIFF_10_ARCH_DIFF_OFFSET", 1.0);
+	hp->and11xoffset = starpu_getenv_float_default("STARPU_HETEROPRIO_URT_DOT_DIFF_11_NOD_OFFSET", 1.3);
+	hp->and11yoffset = starpu_getenv_float_default("STARPU_HETEROPRIO_URT_DOT_DIFF_11_ARCH_DIFF_OFFSET", 1.0);
+	hp->ANTnodPond = starpu_getenv_float_default("STARPU_HETEROPRIO_URTS_TIME_COMBINATION_NOD_MULTIPLIER", 0.3);
+	hp->ANTexpVal = starpu_getenv_float_default("STARPU_HETEROPRIO_URTS_TIME_COMBINATION_EXP_SELECTIVITY", 0.5);
 
 	unsigned idx_prio;
 	for(idx_prio = 0; idx_prio < HETEROPRIO_MAX_PRIO; ++idx_prio)

@@ -45,10 +45,10 @@ void _starpu_data_interface_fini(void);
 
 void _starpu_data_interface_init(void)
 {
-	max_memory_use = starpu_get_env_number_default("STARPU_MAX_MEMORY_USE", 0);
+	max_memory_use = starpu_getenv_number_default("STARPU_MAX_MEMORY_USE", 0);
 
 	/* Just for testing purpose */
-	if (starpu_get_env_number_default("STARPU_GLOBAL_ARBITER", 0) > 0)
+	if (starpu_getenv_number_default("STARPU_GLOBAL_ARBITER", 0) > 0)
 		_starpu_global_arbiter = starpu_arbiter_create();
 
 	_starpu_crash_add_hook(&_starpu_data_interface_fini);

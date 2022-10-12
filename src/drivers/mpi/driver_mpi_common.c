@@ -53,7 +53,7 @@ static inline struct _starpu_mpi_ms_async_event *_starpu_mpi_ms_async_event(unio
 /* This lets the user decide which MPI rank is to be the master. Usually it's just rank 0 */
 static void _starpu_mpi_set_src_node_id()
 {
-	int node_id = starpu_get_env_number("STARPU_MPI_MASTER_NODE");
+	int node_id = starpu_getenv_number("STARPU_MPI_MASTER_NODE");
 
 	if (node_id != -1)
 	{
@@ -87,7 +87,7 @@ int _starpu_mpi_common_mp_init()
 
 	mpi_initialized = 1;
 
-	_starpu_mpi_common_multiple_thread = starpu_get_env_number_default("STARPU_MPI_MS_MULTIPLE_THREAD", 0);
+	_starpu_mpi_common_multiple_thread = starpu_getenv_number_default("STARPU_MPI_MS_MULTIPLE_THREAD", 0);
 
 	if (MPI_Initialized(&extern_initialized) != MPI_SUCCESS)
 		STARPU_ABORT_MSG("Cannot check if MPI is initialized or not !");
@@ -151,7 +151,7 @@ void _starpu_mpi_common_mp_initialize_src_sink(struct _starpu_mp_node *node)
 {
 	struct _starpu_machine_topology *topology = &_starpu_get_machine_config()->topology;
 
-	int nmpicores = starpu_get_env_number("STARPU_NMPIMSTHREADS");
+	int nmpicores = starpu_getenv_number("STARPU_NMPIMSTHREADS");
 	if (nmpicores == -1)
 		node->nb_cores = topology->nhwworker[STARPU_CPU_WORKER][0];
 	else
