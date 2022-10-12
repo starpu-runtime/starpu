@@ -467,7 +467,7 @@ void _starpu_sink_common_worker(void)
 		struct _starpu_mp_event * sink_event;
 		struct _starpu_mp_event * sink_event_next;
 
-		for (sink_event = _starpu_mp_event_list_begin(&node->event_list); 
+		for (sink_event = _starpu_mp_event_list_begin(&node->event_list);
 		     sink_event != _starpu_mp_event_list_end(&node->event_list);
 		     sink_event = sink_event_next)
 		{
@@ -765,8 +765,8 @@ void* _starpu_sink_thread(void * thread_arg)
 		/*Wait there is a task available */
 		sem_wait(&node->sem_run_table[coreid]);
 
-		STARPU_ASSERT((node->run_table_detached[coreid]!=NULL) || (node->run_table[coreid]!=NULL) || node->is_running==0);		
-		
+		STARPU_ASSERT((node->run_table_detached[coreid]!=NULL) || (node->run_table[coreid]!=NULL) || node->is_running==0);
+
 		if (node->run_table_detached[coreid] != NULL)
 			_starpu_sink_common_execute_kernel(node, coreid, worker, 1);
 		else if (node->run_table[coreid] != NULL)

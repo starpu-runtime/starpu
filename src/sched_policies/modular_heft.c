@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -40,7 +40,7 @@
  * tasks by calling can_push to their parent (classically, just after a successful pop have
  * been made by its associated worker_component), this call goes up to the window_component which
  * pops a task from its local queue and try to schedule it by pushing it to the
- * decision_component. 
+ * decision_component.
  * Finally, the task will be pushed to the prio_component which is the direct
  * parent in the tree of the worker_component the task has been scheduled on. This
  * component will push the task on its local queue if no one of the two thresholds

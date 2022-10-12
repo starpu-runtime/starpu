@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -85,7 +85,7 @@ test_tensor_opencl_func(void *buffers[], void *args)
 		fprintf(stderr, "Failed to set argument #%d\n", nargs);
 		STARPU_OPENCL_REPORT_ERROR(err);
 	}
-			
+
 	{
 		size_t global[3] = {nx, ny, nz*nt};
 		err = clEnqueueNDRangeKernel(queue,
@@ -105,7 +105,7 @@ test_tensor_opencl_func(void *buffers[], void *args)
 	err = clEnqueueReadBuffer(queue,
 				  fail,
 				  CL_TRUE,
-				  0, 
+				  0,
 				  sizeof(int),
 				  &tensor_config.copy_failed,
 				  0,

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,8 +19,8 @@
 CL_API_SUFFIX__VERSION_1_0
 CL_API_ENTRY cl_sampler CL_API_CALL
 soclCreateSampler(cl_context          UNUSED(context),
-		  cl_bool             UNUSED(normalized_coords), 
-		  cl_addressing_mode  UNUSED(addressing_mode), 
+		  cl_bool             UNUSED(normalized_coords),
+		  cl_addressing_mode  UNUSED(addressing_mode),
 		  cl_filter_mode      UNUSED(filter_mode),
 		  cl_int *            errcode_ret)
 {

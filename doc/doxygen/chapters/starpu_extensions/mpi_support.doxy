@@ -757,17 +757,17 @@ The data can then be used just like pernode above.
 \section MPIMpiRedux Inter-node reduction
 
 One might want to leverage a reduction pattern across several nodes.
-Using \c STARPU_REDUX (see \ref DataReduction), one can obtain such patterns where each 
+Using \c STARPU_REDUX (see \ref DataReduction), one can obtain such patterns where each
 core on contributing nodes spawns their own copy to work with. In the case that the
-required reductions are too numerous and expensive, the access mode \c STARPU_MPI_REDUX 
-tells StarPU to spawn only one contribution per contributing node. 
+required reductions are too numerous and expensive, the access mode \c STARPU_MPI_REDUX
+tells StarPU to spawn only one contribution per contributing node.
 
 The setup and use of \c STARPU_MPI_REDUX is similar to \c STARPU_REDUX : the initialization and
-reduction codelets should be declared through starpu_data_set_reduction_methods() in the 
+reduction codelets should be declared through starpu_data_set_reduction_methods() in the
 same fashion as \c STARPU_REDUX. The function starpu_mpi_redux_data() has to be called
-when all tasks contributing to the reduction have been inserted so that the reduction tree 
+when all tasks contributing to the reduction have been inserted so that the reduction tree
 can be submitted. Tasks contributing to the inter-node reduction should be registered as
-accessing the contribution through \c STARPU_RW|STARPU_COMMUTE mode, as for the 
+accessing the contribution through \c STARPU_RW|STARPU_COMMUTE mode, as for the
 \c STARPU_REDUX mode, as in the following example.
 
 \code{.c}

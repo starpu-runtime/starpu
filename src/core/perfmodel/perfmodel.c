@@ -70,7 +70,7 @@ struct starpu_perfmodel_arch* starpu_worker_get_perf_archtype(int workerid, unsi
 			return _starpu_sched_ctx_get_perf_archtype(child_sched_ctx);
 		struct _starpu_sched_ctx *stream_ctx = _starpu_worker_get_ctx_stream(workerid);
 		if(stream_ctx != NULL)
-			return _starpu_sched_ctx_get_perf_archtype(stream_ctx->id); 
+			return _starpu_sched_ctx_get_perf_archtype(stream_ctx->id);
 	}
 
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
@@ -733,4 +733,3 @@ struct starpu_perfmodel starpu_perfmodel_nop =
 	.type = STARPU_PER_ARCH,
 	.arch_cost_function = nop_cost_function,
 };
-

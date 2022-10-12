@@ -444,10 +444,10 @@ static unsigned count_number_tokens(const char* buffer, const char* delim)
 	while(token != NULL)
 	{
 		++result;
-		token = strtok(NULL, delim); 
+		token = strtok(NULL, delim);
 	}
 	free(dup);
-	return result; 
+	return result;
 }
 
 /* Check if a handle hasn't been registered yet */
@@ -1003,20 +1003,20 @@ int main(int argc, char **argv)
 		}
 		else if (TEST("Handles"))
 		{
-			*ln = 0; 
+			*ln = 0;
 			char *buffer = s + 9;
 			const char *delim = " ";
-			unsigned nb_parameters_line = count_number_tokens(buffer, delim); 
-			
+			unsigned nb_parameters_line = count_number_tokens(buffer, delim);
+
 			if(nb_parameters == 0)
 			{
-				nb_parameters = nb_parameters_line; 
+				nb_parameters = nb_parameters_line;
 				arrays_managing(set_alloc_mode(nb_parameters));
 			}
 			else
 				STARPU_ASSERT(nb_parameters == nb_parameters_line);
-			
-			char* token = strtok(buffer, delim); 
+
+			char* token = strtok(buffer, delim);
 			for (i = 0 ; i < nb_parameters ; i++)
 			{
 				STARPU_ASSERT(token);
@@ -1043,21 +1043,21 @@ int main(int argc, char **argv)
 		}
 		else if (TEST("Modes"))
 		{
-			*ln = 0; 
+			*ln = 0;
 			char * buffer = s + 7;
 			unsigned mode_i = 0;
 			const char * delim = " ";
-			unsigned nb_parameters_line = count_number_tokens(buffer, delim); 
-			
+			unsigned nb_parameters_line = count_number_tokens(buffer, delim);
+
 			if(nb_parameters == 0)
 			{
-				nb_parameters = nb_parameters_line; 
+				nb_parameters = nb_parameters_line;
 				arrays_managing(set_alloc_mode(nb_parameters));
 			}
 			else
 				STARPU_ASSERT(nb_parameters == nb_parameters_line);
 
-			char* token = strtok(buffer, delim); 
+			char* token = strtok(buffer, delim);
 
 			while (token != NULL && mode_i < nb_parameters)
 			{
@@ -1090,12 +1090,12 @@ int main(int argc, char **argv)
 			*ln = 0;
 			char *  buffer = s + 7;
 			const char * delim = " ";
-			unsigned nb_parameters_line = count_number_tokens(buffer, delim); 
+			unsigned nb_parameters_line = count_number_tokens(buffer, delim);
 			unsigned k = 0;
 
 			if(nb_parameters == 0)
 			{
-				nb_parameters = nb_parameters_line; 
+				nb_parameters = nb_parameters_line;
 				arrays_managing(set_alloc_mode(nb_parameters));
 			}
 			else

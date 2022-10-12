@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -95,7 +95,7 @@ void test_variable_opencl_func(void *buffers[], void *args)
 	err = clEnqueueReadBuffer(queue,
 				  fail,
 				  CL_TRUE,
-				  0, 
+				  0,
 				  sizeof(int),
 				  &variable_config.copy_failed,
 				  0,

@@ -204,7 +204,7 @@ int main(int argc, char **argv)
 	starpu_data_set_sequential_consistency_flag(D_handle, 0);
 #endif
 
-	/* 	f(Ar, Brw): sleep 
+	/* 	f(Ar, Brw): sleep
 	 *	g(Br; Crw); sleep, var = 42
 	 *	h(Cr; Drw); check that var == 42
 	 */

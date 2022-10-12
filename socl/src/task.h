@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -31,7 +31,7 @@ void command_completed_task_callback(void *);
  * The codelet is used to give a fixed name to the task without allocating a
  * new codelet structure each time. This function will fill the other fields
  * as appropriate */
-void cpu_task_submit_ex(cl_command cmd, void (*callback)(void*), void *arg, int free_arg, int release_cmd, struct starpu_codelet *, unsigned num_events, cl_event * events); 
+void cpu_task_submit_ex(cl_command cmd, void (*callback)(void*), void *arg, int free_arg, int release_cmd, struct starpu_codelet *, unsigned num_events, cl_event * events);
 
 #define cpu_task_submit(cmd, args...) cpu_task_submit_ex((cl_command)cmd, args)
 

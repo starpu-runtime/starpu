@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -130,6 +130,6 @@ static inline int __starpu_spin_unlock(struct _starpu_spinlock *lock, const char
 #define _starpu_spin_unlock(lock) \
 	__starpu_spin_unlock(lock, __FILE__, __LINE__, __starpu_func__)
 
-#define STARPU_SPIN_MAXTRY 10 
+#define STARPU_SPIN_MAXTRY 10
 
 #endif // __STARPU_SPINLOCK_H__

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -40,7 +40,7 @@ static unsigned k=K_DEF;
  *  - incrementer b
  *  - notify the modification of v
  *  - incrementer c n times
- *  - sync v 
+ *  - sync v
  *
  * At the end, we have to make sure that if we did k iterations,
  *  v == (kn, k, kn)

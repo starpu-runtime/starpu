@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -184,7 +184,7 @@ static void distribute_matrix_C(void)
 	{
 		for (b_col = 0; b_col < NB; b_col++)
 		{
-			starpu_data_handle_t h = C_h[b_row*NB+b_col]; 
+			starpu_data_handle_t h = C_h[b_row*NB+b_col];
 
 			/* Select the node where the block should be computed. */
 			int target_rank = (b_row+b_col)%comm_size;
@@ -203,7 +203,7 @@ static void undistribute_matrix_C(void)
 	{
 		for (b_col = 0; b_col < NB; b_col++)
 		{
-			starpu_data_handle_t h = C_h[b_row*NB+b_col]; 
+			starpu_data_handle_t h = C_h[b_row*NB+b_col];
 			starpu_mpi_data_migrate(MPI_COMM_WORLD, h, 0);
 		}
 	}
@@ -270,7 +270,7 @@ static void cpu_mult(void *handles[], void *arg)
 		{
 			for (i = 0; i < n_col_A; i++)
 			{
-				block_C[k*ld_C+j] += block_A[k*ld_A+i] * block_B[i*ld_B+j]; 
+				block_C[k*ld_C+j] += block_A[k*ld_A+i] * block_B[i*ld_B+j];
 			}
 
 #if VERBOSE
@@ -383,4 +383,3 @@ int main(int argc, char *argv[])
 	starpu_mpi_shutdown();
 	return 0;
 }
-

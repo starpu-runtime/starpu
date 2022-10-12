@@ -1316,7 +1316,7 @@ static double search_bus_best_latency(int src, char * type, int htod)
 }
 #endif
 
-#if !defined(STARPU_SIMGRID) 
+#if !defined(STARPU_SIMGRID)
 static void write_bus_latency_file_content(void)
 {
 	unsigned src, dst, maxnode;

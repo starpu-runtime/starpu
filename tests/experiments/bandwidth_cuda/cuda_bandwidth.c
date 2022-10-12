@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -135,7 +135,7 @@ void benchmark_memcpy(void)
 	cublasAlloc(GPU_LD*GPU_LD, sizeof(float), &d_A);
 	STARPU_ASSERT(d_A);
 
-	tv_start = starpu_timing_now();	
+	tv_start = starpu_timing_now();
 
 	if (!pinned)
 	{
@@ -148,9 +148,9 @@ void benchmark_memcpy(void)
 					(void *)d_A, GPU_LD, h_A, CPU_LD);
 				cuCtxSynchronize();
 			}
-		
+
 		}
-		else 
+		else
 		{
 			for (count = 0; count < ITER; count++)
 			{
@@ -180,7 +180,7 @@ void benchmark_memcpy(void)
 				cuCtxSynchronize();
 			}
 		}
-	
+
 	}
 
 	tv_end = starpu_timing_now();
@@ -200,7 +200,7 @@ void benchmark_memcpy(void)
 int main(int argc, char **argv)
 {
 	parse_args(argc, argv);
-	
+
 	bind_thread(0);
 
 //	printf("Memcpy alone\n");

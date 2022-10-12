@@ -19,7 +19,7 @@
 #include "../../../helper.h"
 
 /*
- * In this test, we use the following matrix: 
+ * In this test, we use the following matrix:
  *
  *   +----------------+
  *   |  0   1   0   0 |

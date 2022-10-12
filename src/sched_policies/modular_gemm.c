@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -83,7 +83,7 @@ static int gemm_push_task(struct starpu_sched_component * component, struct star
 				child_data[i].expected_start =
 					expected_start = child->estimated_end(child);
 				child_data[i].predicted = predicted;
-				child_data[i].expected_end = expected_start 
+				child_data[i].expected_end = expected_start
 					+ predicted;
 
 #ifdef MEMORY_AFFINITY

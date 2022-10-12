@@ -137,7 +137,7 @@ void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct _star
 
 			_starpu_src_common_execute_kernel(node,
 					(void(*)(void))init_func, subworkerid,
-					STARPU_SEQ, 0, 0, &handle, 
+					STARPU_SEQ, 0, 0, &handle,
 					&(replicate->data_interface), 1,
 					NULL, 0 , 1);
 
@@ -155,7 +155,7 @@ void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct _star
 
 			_starpu_src_common_execute_kernel(node,
 					(void(*)(void))init_func, subworkerid,
-					STARPU_SEQ, 0, 0, &handle, 
+					STARPU_SEQ, 0, 0, &handle,
 					&(replicate->data_interface), 1,
 					NULL, 0 , 1);
 

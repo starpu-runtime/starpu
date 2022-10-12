@@ -63,7 +63,7 @@ create_and_submit(int where)
 	task->cl = &cl;
 	task->handles[0] = handle;
 
-	/* We need to be sure the data has been copied to the GPU at the end 
+	/* We need to be sure the data has been copied to the GPU at the end
 	 * of this function */
 	task->synchronous = 1;
 	if (starpu_task_submit(task) == -ENODEV)

@@ -981,7 +981,7 @@ int starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle, 
 {
 	int nb_nodes, nb_contrib, i;
 	struct _starpu_mpi_data *mpi_data = data_handle->mpi_data;
-	if (mpi_data->redux_map == NULL) 
+	if (mpi_data->redux_map == NULL)
 	{
 		_STARPU_MPI_DEBUG(5, "I do not contribute to this reduction\n");
 		return 0;

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2017-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2017-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -81,7 +81,7 @@ static void test1(const int N)
 	const double scalar = 2.0;
 	starpu_data_handle_t vector_handle;
 	int ret;
-	
+
 	starpu_malloc((void **)&vector, N * sizeof(*vector));
 	{
 		int i;
@@ -92,7 +92,7 @@ static void test1(const int N)
 	}
 	starpu_vector_data_register(&vector_handle, STARPU_MAIN_RAM, (uintptr_t)vector, N, sizeof(*vector));
 
-	ret = starpu_task_insert(&vector_scale_cl, 
+	ret = starpu_task_insert(&vector_scale_cl,
 			STARPU_RW, vector_handle,
 			STARPU_VALUE, &scalar, sizeof(scalar),
 			0);
@@ -121,7 +121,7 @@ static void test2(const int N, const int task_mult)
 	const double scalar = 3.0;
 	starpu_data_handle_t vector_handle;
 	int ret;
-	
+
 	starpu_malloc((void **)&vector, N * sizeof(*vector));
 	{
 		int i;
@@ -144,7 +144,7 @@ static void test2(const int N, const int task_mult)
 		for (i = 0; i < rm_nb_cpu_units*task_mult; i++)
 		{
 			starpu_data_handle_t sub_vector_handle = starpu_data_get_sub_data(vector_handle, 1, i);
-			ret = starpu_task_insert(&vector_scale_cl, 
+			ret = starpu_task_insert(&vector_scale_cl,
 					STARPU_RW, sub_vector_handle,
 					STARPU_VALUE, &scalar, sizeof(scalar),
 					0);

@@ -1730,7 +1730,7 @@ uint32_t *starpu_ndim_get_nn(starpu_data_handle_t handle);
 
 /**
    Return the number of elements on the i-axis of the ndim array
-   designated by \p handle. When i=0, it means x-axis, 
+   designated by \p handle. When i=0, it means x-axis,
    when i=1, it means y-axis, when i=2, it means z-axis, etc.
  */
 uint32_t starpu_ndim_get_ni(starpu_data_handle_t handle, size_t i);

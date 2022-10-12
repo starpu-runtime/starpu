@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -35,9 +35,9 @@ double task_trsm_ll_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_a
 double task_trsm_ru_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
 double task_gemm_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
 
-void initialize_lu_kernels_model(struct starpu_perfmodel* model, char * symbol, 
-		double (*cost_function)(struct starpu_task *, unsigned), 
-		double (*cpu_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch*, unsigned), 
+void initialize_lu_kernels_model(struct starpu_perfmodel* model, char * symbol,
+		double (*cost_function)(struct starpu_task *, unsigned),
+		double (*cpu_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch*, unsigned),
 		double (*cuda_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch*, unsigned));
 
 #endif /* __LU_KERNELS_MODEL_H__ */

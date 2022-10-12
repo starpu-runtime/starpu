@@ -1437,7 +1437,7 @@ static void initialize_heteroprio_policy(unsigned sched_ctx_id)
 	_STARPU_MSG("[HETEROPRIO] Auto calibration : %s\n", hp->use_auto_calibration?"ENABLED":"DISABLED");
 	if(hp->use_auto_calibration)
 	{
-		const int ordering_policy = starpu_getenv_number_default("STARPU_AUTOHETEROPRIO_PRIORITY_ORDERING_POLICY", STARPU_HETEROPRIO_URT_DOT_DIFF_4); 
+		const int ordering_policy = starpu_getenv_number_default("STARPU_AUTOHETEROPRIO_PRIORITY_ORDERING_POLICY", STARPU_HETEROPRIO_URT_DOT_DIFF_4);
 		STARPU_ASSERT_MSG(ordering_policy < STARPU_AUTOHETEROPRIO_PRIORITY_ORDERING_POLICY_COUNT, "STARPU_AUTOHETEROPRIO_PRIORITY_ORDERING_POLICY must be < %d.\n", STARPU_AUTOHETEROPRIO_PRIORITY_ORDERING_POLICY_COUNT);
 		STARPU_ASSERT_MSG(ordering_policy >= 0, "STARPU_AUTOHETEROPRIO_PRIORITY_ORDERING_POLICY must be >= 0.\n");
 		hp->autoheteroprio_priority_ordering_policy = ordering_policy;
@@ -2414,7 +2414,7 @@ static void order_priorities(struct _starpu_heteroprio_data *hp)
 				secondWorstTime = arch_time;
 			}
 		}
-		
+
 		// Ensure that there is at least one arch that can execute priority
 		STARPU_ASSERT(worst_arch != -1);
 
