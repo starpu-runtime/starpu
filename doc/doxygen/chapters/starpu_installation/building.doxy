@@ -82,7 +82,29 @@ Brew https://gitlab.inria.fr/solverstack/brew-repo
 </ul>
 
 Documentation on how to install StarPU with these package managers is
-directly available from the links specified above.
+directly available from the links specified above. We give below a
+brief overview of the spack installation.
+
+\subsection SpackInstallation Installing the Spack Package
+
+Here a quick guide to install StarPU with spack.
+
+\verbatim
+$ git clone git@github.com:spack/spack.git
+$ source ./spack/share/spack/setup-env.sh # if you use bash or zsh
+$ spack install starpu
+\endverbatim
+
+By default, the latest release will be installed, one can choose to
+install a specific release or even the master version.
+
+\verbatim
+$ spack install starpu@master
+$ spack install starpu@1.3.5
+\endverbatim
+
+We strongly advise to read the detailed reference manual at
+https://spack.readthedocs.io/en/latest/getting_started.html
 
 \section InstallingFromSource Building from Source
 
