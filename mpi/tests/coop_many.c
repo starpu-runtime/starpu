@@ -37,9 +37,9 @@ int main(int argc, char **argv)
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &worldsize);
 
-	float** vectors = malloc(NB_MCASTS*worldsize*sizeof(float*));
-	starpu_data_handle_t* handles = malloc(NB_MCASTS*worldsize*sizeof(starpu_data_handle_t));
-	starpu_mpi_req* reqs = malloc(NB_MCASTS*worldsize*sizeof(starpu_mpi_req));
+	float **vectors = malloc(NB_MCASTS*worldsize*sizeof(float*));
+	starpu_data_handle_t *handles = malloc(NB_MCASTS*worldsize*sizeof(starpu_data_handle_t));
+	starpu_mpi_req *reqs = malloc(NB_MCASTS*worldsize*sizeof(starpu_mpi_req));
 	for (i = 0; i < NB_MCASTS*worldsize; i++)
 	{
 		vectors[i] = malloc(NX*sizeof(float));
@@ -110,6 +110,8 @@ int main(int argc, char **argv)
 		free(vectors[i]);
 	}
 	free(vectors);
+	free(handles);
+	free(reqs);
 
 	printf("[%d] end\n", rank);
 

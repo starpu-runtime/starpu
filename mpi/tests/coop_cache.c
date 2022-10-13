@@ -88,7 +88,7 @@ static inline void do_test(char* cache_enabled)
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &worldsize);
 
 	int nblocks = 2 * worldsize;
-	int** blocks = malloc(nblocks * sizeof(int*));
+	int **blocks = malloc(nblocks * sizeof(int*));
 
 	handles = malloc(nblocks*sizeof(starpu_data_handle_t));
 
@@ -97,7 +97,7 @@ static inline void do_test(char* cache_enabled)
 		int mpi_rank = my_distrib(i, worldsize);
 		if (mpi_rank == rank)
 		{
-			blocks[i] = malloc(320*320*sizeof(float));
+			blocks[i] = calloc(320*320, sizeof(float));
 			starpu_vector_data_register(&handles[i], STARPU_MAIN_RAM, (uintptr_t)blocks[i], 320*320, sizeof(float));
 		}
 		else
