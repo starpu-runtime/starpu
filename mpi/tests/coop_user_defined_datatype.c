@@ -51,7 +51,7 @@ void test_handle_recv_send(starpu_data_handle_t *handles, int nb_handles, starpu
 	{
 		for(i=0 ; i<nb_handles ; i++)
 		{
-			ret = starpu_mpi_recv(handles[i], 0, i+tag, MPI_COMM_WORLD, NULL);
+			ret = starpu_mpi_recv(handles[i], 0, i+tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
 		}
 	}
