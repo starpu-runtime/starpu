@@ -89,7 +89,7 @@ int main(int argc, char **argv)
 
 			if (rank != sender_rank)
 			{
-				ret = starpu_mpi_wait(&reqs[tag], NULL);
+				ret = starpu_mpi_wait(&reqs[tag], MPI_STATUS_IGNORE);
 				STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_wait");
 
 				starpu_data_acquire(handles[i], STARPU_R);

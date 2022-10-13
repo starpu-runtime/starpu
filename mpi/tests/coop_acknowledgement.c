@@ -83,7 +83,7 @@ int main(int argc, char **argv)
 
 		for(i = 0; i < size-1; i++)
 		{
-			ret = starpu_mpi_wait(&ack_reqs[i], NULL);
+			ret = starpu_mpi_wait(&ack_reqs[i], MPI_STATUS_IGNORE);
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_wait");
 			starpu_data_acquire(ack_handles[i], STARPU_R);
 
