@@ -164,14 +164,16 @@ int starpu_mpi_checkpoint_template_submit(starpu_mpi_checkpoint_template_t cp_te
 				}
 				else if (item->backup_of != -1)
 				{
+					int ret;
 					arg->msg.checkpoint_id = cp_template->cp_id;
 					arg->msg.checkpoint_instance = current_instance;
 					_STARPU_MALLOC(cpy_ptr, item->count);
 					starpu_variable_data_register(&arg->handle, STARPU_MAIN_RAM, (uintptr_t)cpy_ptr, item->count);
 					arg->rank = item->backup_of;
 					_STARPU_MPI_DEBUG(0, "Submit CP: receiving external data tag:%ld, from :%d\n", arg->tag, arg->rank);
-					starpu_mpi_irecv_detached(arg->handle, arg->rank, arg->tag, MPI_COMM_WORLD,
-											  &_recv_cp_external_data_cb, (void*)arg);
+					ret = starpu_mpi_irecv_detached(arg->handle, arg->rank, arg->tag, MPI_COMM_WORLD,
+									&_recv_cp_external_data_cb, (void*)arg);
+					STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv_detached");
 					// The callback needs to store the received data and post ack send
 				}
 				break;
