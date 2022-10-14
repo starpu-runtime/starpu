@@ -231,7 +231,7 @@ extern "C" {
 		if (STARPU_UNLIKELY(!(x)))        \
 		{                                 \
 			STARPU_DUMP_BACKTRACE();  \
-			STARPU_SIMGRID_ASSERT(x); \
+			STARPU_SIMGRID_ASSERT(0 && #x); \
 			*(int *)NULL = 0;         \
 		}                                 \
 	}                                         \
@@ -242,7 +242,7 @@ extern "C" {
 		if (STARPU_UNLIKELY(!(x)))        \
 		{                                 \
 			STARPU_DUMP_BACKTRACE();  \
-			STARPU_SIMGRID_ASSERT(x); \
+			STARPU_SIMGRID_ASSERT(0 && #x); \
 			assert(0 && #x);          \
 		}                                 \
 	}                                         \
@@ -301,7 +301,7 @@ extern "C" {
 		{                                                                                                      \
 			STARPU_DUMP_BACKTRACE();                                                                       \
 			fprintf(stderr, "\n[starpu][%s][assert failure] " msg "\n\n", __starpu_func__, ##__VA_ARGS__); \
-			STARPU_SIMGRID_ASSERT(x);                                                                      \
+			STARPU_SIMGRID_ASSERT(0 && #x);                                                                      \
 			*(int *)NULL = 0;                                                                              \
 		}                                                                                                      \
 	}                                                                                                              \
@@ -313,8 +313,8 @@ extern "C" {
 		{                                                                                                      \
 			STARPU_DUMP_BACKTRACE();                                                                       \
 			fprintf(stderr, "\n[starpu][%s][assert failure] " msg "\n\n", __starpu_func__, ##__VA_ARGS__); \
-			STARPU_SIMGRID_ASSERT(x);                                                                      \
-			assert(x);                                                                                     \
+			STARPU_SIMGRID_ASSERT(0 && #x);                                                                      \
+			assert(0 && #x);                                                                                     \
 		}                                                                                                      \
 	}                                                                                                              \
 	while (0)
