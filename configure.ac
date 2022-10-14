@@ -1838,6 +1838,9 @@ if test x$have_valid_hip = xyes; then
     CPPFLAGS="${CPPFLAGS} $STARPU_HIP_CPPFLAGS"
     AC_CHECK_HEADER([hip/hip_runtime.h],[have_valid_hip=yes],[have_valid_hip=no])
     AC_CHECK_HEADER([hip/hip_runtime_api.h],[have_valid_hip=yes],[have_valid_hip=no])
+    AC_CHECK_HEADER([hipblas.h],[have_valid_hip=yes],[have_valid_hip=no])
+    AC_HAVE_LIBRARY([hipblas],[have_valid_hip=yes],[have_valid_hip=no])
+    #unset ac_cv_lib_cublas_main
     CPPFLAGS="${SAVED_CPPFLAGS}"
 fi
 
@@ -1891,10 +1894,10 @@ enable_hip=$have_valid_hip
 if test "x$enable_hip" = xyes; then
         AC_DEFINE(STARPU_USE_HIP,[1],[Define to 1 if the HIP driver is to be tested])
         if test "$HIP_PLATFORM" = "nvidia"; then
-                STARPU_HIP_LDFLAGS="-L$HIP_LIB_DIR -lcuda -lcudart"
+                STARPU_HIP_LDFLAGS="-L$HIP_LIB_DIR -lcuda -lcudart -lcublas"
         fi
         if test "$HIP_PLATFORM" = "amd"; then
-	        STARPU_HIP_LDFLAGS="-L$HIP_LIB_DIR -lamdhip64 -lstdc++"
+	        STARPU_HIP_LDFLAGS="-L$HIP_LIB_DIR -lamdhip64 -lstdc++ -lhipblas"
         fi
 
         AC_ARG_ENABLE(hip_memcpy_peer, [AS_HELP_STRING([--disable-hip-memcpy-peer], [if you want to disable peer transfers when using hip])],, [enable_hip_memcpy_peer=$enable_hip])

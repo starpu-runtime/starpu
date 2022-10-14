@@ -344,8 +344,10 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cuda/driver_cuda_init
 
 if STARPU_USE_HIP
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/hip/driver_hip.c
-
 endif
+
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/hip/starpu_hipblas.c
+
 if STARPU_USE_CUDA0
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cuda/driver_cuda0.c
 else
