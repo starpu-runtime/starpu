@@ -202,7 +202,7 @@ extern "C"
 #  if defined(__CUDACC__) || defined(STARPU_HAVE_WINDOWS)
 #    define STARPU_ASSERT(x)		do { if (STARPU_UNLIKELY(!(x))) { STARPU_DUMP_BACKTRACE(); STARPU_SIMGRID_ASSERT(x); *(int*)NULL = 0; } } while(0)
 #  else
-#    define STARPU_ASSERT(x)		do { if (STARPU_UNLIKELY(!(x))) { STARPU_DUMP_BACKTRACE(); STARPU_SIMGRID_ASSERT(x); assert(x); } } while (0)
+#    define STARPU_ASSERT(x)		do { if (STARPU_UNLIKELY(!(x))) { STARPU_DUMP_BACKTRACE(); STARPU_SIMGRID_ASSERT(x); assert(0 && #x); } } while (0)
 #  endif
 #endif
 
