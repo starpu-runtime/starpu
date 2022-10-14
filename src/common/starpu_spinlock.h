@@ -50,8 +50,7 @@ static inline int __starpu_spin_lock(struct _starpu_spinlock *lock, const char *
 
 static inline void _starpu_spin_checklocked(struct _starpu_spinlock *lock STARPU_ATTRIBUTE_UNUSED)
 {
-	int ret = starpu_pthread_mutex_trylock(&lock->errcheck_lock);
-	STARPU_ASSERT(ret != 0);
+	STARPU_ASSERT(starpu_pthread_mutex_trylock(&lock->errcheck_lock) != 0);
 }
 
 static inline int __starpu_spin_trylock(struct _starpu_spinlock *lock, const char *file STARPU_ATTRIBUTE_UNUSED, int line STARPU_ATTRIBUTE_UNUSED, const char *func STARPU_ATTRIBUTE_UNUSED)

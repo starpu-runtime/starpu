@@ -243,7 +243,7 @@ extern "C" {
 		{                                 \
 			STARPU_DUMP_BACKTRACE();  \
 			STARPU_SIMGRID_ASSERT(x); \
-			assert(x);                \
+			assert(0 && #x);          \
 		}                                 \
 	}                                         \
 	while (0)
