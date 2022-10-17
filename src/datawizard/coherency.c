@@ -692,8 +692,11 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 	STARPU_ASSERT(nhops >= 0 && nhops <= MAX_REQUESTS-1);
 	struct _starpu_data_request *requests[nhops + write_invalidation];
 
+	memset(requests, 0, (nhops + write_invalidation)*sizeof(struct _starpu_data_request));
+
 	/* Did we reuse a request for that hop ? */
 	int reused_requests[nhops + write_invalidation];
+	memset(reused_requests, 0, (nhops + write_invalidation)*sizeof(int));
 
 	/* Construct an array with a list of requests, possibly reusing existing requests */
 	int hop;
@@ -719,7 +722,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 #warning We do not actually want to reuse an existing request when our request is for a task with low priority, that will get executed much later. We don t want to wire down the data in between, at worse that could hog the complete gpu memory...
 #endif
 		r = _starpu_search_existing_data_request(hop_dst_replicate,
-				(mode & STARPU_R)?hop_src_node:hop_dst_node,
+							 (mode & STARPU_R)?hop_src_node:hop_dst_node,
 							 mode, task, is_prefetch);
 
 		reused_requests[hop] = !!r;
@@ -761,7 +764,6 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 				/* The last request will perform the callback after termination */
 				_starpu_data_request_append_callback(r, callback_func, callback_arg);
 		}
-
 
 		if (reused_requests[hop])
 			_starpu_spin_unlock(&r->lock);

@@ -203,6 +203,7 @@ int main(int argc, char **argv)
 	{
 		a[i] = random() % 100;
 		b[i] = random() % 100;
+		c[i] = 0;
 	}
 
 	starpu_vector_data_register(&handle_a, STARPU_MAIN_RAM, (uintptr_t) &a, SIZE, sizeof(a[0]));
