@@ -20,10 +20,10 @@
 
 Like any other runtime, StarPU has some overhead to manage tasks. Since
 it does smart scheduling and data management, this overhead is not always
-neglectable. The order of magnitude of the overhead is typically a couple of
+neglegible. The order of magnitude of the overhead is typically a couple of
 microseconds, which is actually quite smaller than the CUDA overhead itself. The
 amount of work that a task should do should thus be somewhat
-bigger, to make sure that the overhead becomes neglectible. The offline
+bigger, to make sure that the overhead becomes neglegible. The offline
 performance feedback can provide a measure of task length, which should thus be
 checked if bad performance are observed. To get a grasp at the scalability
 possibility according to task size, one can run
@@ -200,11 +200,11 @@ STARPU_DATA_ACQUIRE_CB(i_handle, STARPU_R,
 
 The macro ::STARPU_DATA_ACQUIRE_CB submits an asynchronous request for
 acquiring data <c>i</c> for the main application, and will execute the code
-given as third parameter when it is acquired. In other words, as soon as the
+given as the third parameter when it is acquired. In other words, as soon as the
 value of <c>i</c> computed by the codelet <c>which_index</c> can be read, the
-portion of code passed as third parameter of ::STARPU_DATA_ACQUIRE_CB will
+portion of code passed as the third parameter of ::STARPU_DATA_ACQUIRE_CB will
 be executed, and is allowed to read from <c>i</c> to use it e.g. as an
-index. Note that this macro is only avaible when compiling StarPU with
+index. Note that this macro is only available when compiling StarPU with
 the compiler <c>gcc</c>.
 
 StarPU also provides a utility function starpu_codelet_unpack_args() to retrieve the ::STARPU_VALUE arguments passed to the task. There is several ways of calling this function starpu_codelet_unpack_args().

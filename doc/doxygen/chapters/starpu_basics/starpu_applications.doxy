@@ -28,7 +28,7 @@ StarPU may require to use specific flags or libraries (for instance
 If StarPU was not installed at some standard location, the path of StarPU's
 library must be specified in the environment variable
 <c>PKG_CONFIG_PATH</c> to allow <c>pkg-config</c> to find it. For
-example if StarPU was installed in
+example, if StarPU was installed in
 <c>$STARPU_PATH</c>:
 
 \verbatim
@@ -80,7 +80,7 @@ If it does not, please check the output of \c lstopo from \c hwloc and report
 the issue to the \c hwloc project, since this is what StarPU uses to detect the hardware.
 
 <br>
-A tool is provided to help setting all the environment variables
+A tool is provided to help set all the environment variables
 needed by StarPU. Once StarPU is installed in a specific directory,
 calling the script <c>bin/starpu_env</c> will set in your current
 environment the variables <c>STARPU_PATH</c>, <c>LD_LIBRARY_PATH</c>,

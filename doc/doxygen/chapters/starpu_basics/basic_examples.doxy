@@ -36,10 +36,10 @@ may contain an implementation of the same kernel on different architectures
 (e.g. CUDA, x86, ...). For compatibility, make sure that the whole
 structure is properly initialized to zero, either by using the
 function starpu_codelet_init(), or by letting the
-compiler implicitly do it as examplified below.
+compiler implicitly do it as exemplified below.
 
 The field starpu_codelet::nbuffers specifies the number of data buffers that are
-manipulated by the codelet: here the codelet does not access or modify any data
+manipulated by the codelet. Here, the codelet does not access or modify any data
 that is controlled by our data management library.
 
 We create a codelet which may only be executed on CPUs. When a CPU
@@ -52,7 +52,7 @@ void (*cpu_func)(void *buffers[], void *cl_arg);
 
 In this example, we can ignore the first argument of this function which gives a
 description of the input and output buffers (e.g. the size and the location of
-the matrices) since there is none. We also ignore the second argument
+the matrices) since there is none. We also ignore the second argument,
 which is a pointer to optional arguments for the codelet.
 
 \code{.c}
@@ -139,7 +139,7 @@ computational kernel that multiplies its input vector by a constant,
 the constant could be specified by the means of this buffer, instead
 of registering it as a StarPU data. It must however be noted that
 StarPU avoids making copy whenever possible and rather passes the
-pointer as such, so the buffer which is pointed at must be kept allocated
+pointer as such, so the buffer which is pointed to must be kept allocated
 until the task terminates, and if several tasks are submitted with
 various parameters, each of them must be given a pointer to their
 own buffer.
