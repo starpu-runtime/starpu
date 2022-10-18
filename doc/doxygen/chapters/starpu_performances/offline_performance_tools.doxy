@@ -18,7 +18,7 @@
 /*! \page OfflinePerformanceTools Offline Performance Tools
 
 To get an idea of what is happening, a lot of performance feedback is available,
-detailed in this chapter. The various informations should be checked for.
+detailed in this chapter. The various information should be checked for.
 
 <ul>
 <li>
@@ -70,7 +70,7 @@ $ make
 $ make install
 \endverbatim
 
-In order to have StarPU to generate traces, StarPU needs be configured again
+In order to have StarPU to generate traces, StarPU needs to be configured again
 after installing FxT, and configuration show:
 
 \verbatim
@@ -89,17 +89,17 @@ Or you can simply point the <c>PKG_CONFIG_PATH</c> environment variable to
 
 When \ref STARPU_FXT_TRACE is set to 1, a trace is generated when StarPU is terminated by calling
 starpu_shutdown(). The trace is a binary file whose name has the form
-<c>prof_file_XXX_YYY</c> where <c>XXX</c> is the user name, and
+<c>prof_file_XXX_YYY</c> where <c>XXX</c> is the username, and
 <c>YYY</c> is the MPI id of the process that used StarPU (or 0 when running a sequential program).
 One can change
-the name of the file by setting the environnement variable \ref
+the name of the file by setting the environment variable \ref
 STARPU_FXT_SUFFIX, its contents will be used instead of <c>prof_file_XXX</c>.
 This file is saved in the
 <c>/tmp/</c> directory by default, or by the directory specified by
 the environment variable \ref STARPU_FXT_PREFIX.
 
 The additional \c configure option \ref enable-fxt-lock "--enable-fxt-lock" can
-be used to generate trace events which describes the locks behaviour during
+be used to generate trace events which describes the lock's behavior during
 the execution. It is however very heavy and should not be used unless debugging
 StarPU's internal locking.
 
@@ -125,7 +125,7 @@ $ export STARPU_GENERATE_TRACE=1
 $ export STARPU_GENERATE_TRACE_OPTIONS="-no-acquire"
 \endverbatim
 
-When running a MPI application, \ref STARPU_GENERATE_TRACE will not
+When running an MPI application, \ref STARPU_GENERATE_TRACE will not
 work as expected (each node will try to generate trace files, thus
 mixing outputs...), you have to collect the trace files from the MPI
 nodes, and specify them all on the command <c>starpu_fxt_tool</c>, for
@@ -135,7 +135,7 @@ instance:
 $ starpu_fxt_tool -i /tmp/prof_file_something*
 \endverbatim
 
-By default, the generated trace contains all informations. To reduce
+By default, the generated trace contains all information. To reduce
 the trace size, various <c>-no-foo</c> options can be passed to
 <c>starpu_fxt_tool</c>, see <c>starpu_fxt_tool --help</c> .
 
@@ -164,7 +164,7 @@ one can specify the option <c>-c</c> to <c>starpu_fxt_tool</c> or in
 \ref STARPU_GENERATE_TRACE_OPTIONS. Tasks can also be given a specific
 color by setting the field starpu_codelet::color or the
 starpu_task::color. Colors are expressed with the following format
-\c 0xRRGGBB (e.g \c 0xFF0000 for red). See
+\c 0xRRGGBB (e.g. \c 0xFF0000 for red). See
 <c>basic_examples/task_insert_color</c> for examples on how to assign
 colors.
 
@@ -219,7 +219,7 @@ Another generated trace file gives details on the executed tasks. The
 file, created in the current directory, is named <c>tasks.rec</c>. This file
 is in the recutils format, i.e. <c>Field: value</c> lines, and empty lines are used to
 separate each task.  This can be used as a convenient input for various ad-hoc
-analysis tools. By default it only contains information about the actual
+analysis tools. By default, it only contains information about the actual
 execution. Performance models can be obtained by running
 <c>starpu_tasks_rec_complete</c> on it:
 
@@ -263,10 +263,10 @@ This picture is composed of two parts.
 The first part shows the activity of the different workers. The green sections
 indicate which proportion of the time was spent executed kernels on the
 processing unit. The red sections indicate the proportion of time spent in
-StartPU: an important overhead may indicate that the granularity may be too
+StarPU: an important overhead may indicate that the granularity may be too
 low, and that bigger tasks may be appropriate to use the processing unit more
 efficiently. The black sections indicate that the processing unit was blocked
-because there was no task to process: this may indicate a lack of parallelism
+because there was no task to process: this may indicate a lack of parallelism,
 which may be alleviated by creating more tasks when it is possible.
 
 The second part of the picture <c>activity.eps</c> is a graph showing the
@@ -499,7 +499,7 @@ histogram of the codelet execution time distribution.
 
 A performance model of the energy of codelets can also be recorded thanks to
 the starpu_codelet::energy_model field of the starpu_codelet structure. StarPU usually cannot
-record this automatically since the energy measurement probes are usually not
+record this automatically, since the energy measurement probes are usually not
 fine-grain enough.  It is however possible to measure it by writing a program
 that submits batches of tasks, let StarPU measure the energy requirement of
 the batch, and compute an average, see \ref MeasuringEnergyandPower .
@@ -561,7 +561,7 @@ task, and each color corresponds to a codelet.
 
 More than just codelet performance, it is interesting to get statistics over all
 kinds of StarPU states (allocations, data transfers, etc.). This is particularly
-useful to check what may have gone wrong in the accurracy of the SimGrid
+useful to check what may have gone wrong in the accuracy of the SimGrid
 simulation.
 
 This requires the <c>R</c> statistical tool, with the <c>plyr</c>,
@@ -593,9 +593,9 @@ $ starpu_paje_state_stats native.trace simgrid.trace
 \endverbatim
 
 An other way to get statistics of StarPU states (without installing <c>R</c> and
-<c>pj_dump</c>) is to use the <c>starpu_trace_state_stats.py</c> script which parses the
+<c>pj_dump</c>) is to use the <c>starpu_trace_state_stats.py</c> script, which parses the
 generated <c>trace.rec</c> file instead of the <c>paje.trace</c> file. The output is similar
-to the previous script but it doesn't need any dependencies.
+to the previous script, but it doesn't need any dependencies.
 
 The different prefixes used in <c>trace.rec</c> are:
 
@@ -622,7 +622,7 @@ $ starpu_trace_state_stats.py trace.rec | column -t -s ","
 <c>starpu_trace_state_stats.py</c> can also be used to compute the different
 efficiencies. Refer to the usage description to show some examples.
 
-And one can plot histograms of execution times, of several states for instance:
+And one can plot histograms of execution times, of several states, for instance:
 \verbatim
 $ starpu_paje_draw_histogram -n chol_model_potrf,chol_model_trsm,chol_model_gemm native.trace simgrid.trace
 \endverbatim
@@ -691,7 +691,7 @@ Event Id
 Value
 \endverbatim
 
-External tools like <c>rec2csv</c> can be used to convert this rec file to a <c>csv</c>, where each
+External tools like <c>rec2csv</c> can be used to convert this rec file to a <c>csv</c> file, where each
 line represents a value for an event for a task.
 
 \section TheoreticalLowerBoundOnExecutionTime Theoretical Lower Bound On Execution Time
@@ -724,7 +724,7 @@ programming solver, and that will give you a lower bound for the total
 execution time of your tasks. If StarPU was compiled with the library
 <c>glpk</c> installed, starpu_bound_compute() can be used to solve it
 immediately and get the optimized minimum, in ms. Its parameter
-<c>integer</c> allows to decide whether integer resolution should be
+<c>integer</c> allows deciding whether integer resolution should be
 computed and returned
 
 The <c>deps</c> parameter tells StarPU whether to take tasks, implicit
@@ -749,7 +749,7 @@ data transfers inferred from implicit data dependencies between tasks are taken
 into account. Other data transfers are assumed to be completely overlapped.
 
 Setting <c>deps</c> to 0 will only take into account the actual computations
-on processing units. It however still properly takes into account the varying
+on processing units. However, it still properly takes into account the varying
 performances of kernels and processing units, which is quite more accurate than
 just comparing StarPU performances with the fastest of the kernels being used.
 
@@ -875,7 +875,7 @@ button <em>Next</em> twice, accept the terms of the license, and click
 the button <em>Finish</em>. Eclipse will ask you to restart.
 
 To be able to compile the plugin, you need to install the plugin
-development environnement (PDE). To do so, go to the menu
+development environment (PDE). To do so, go to the menu
 <em>Help</em>, choose <em>Eclipse Marketplace...</em>. In the new
 window, enter <em>PDE</em> into the box <em>Find</em> and press the
 return key.
@@ -912,7 +912,7 @@ $ ls $HOME/usr/local/eclipse/java-2021-03/eclipse/dropins
 StarPU_1.0.0.202105272056.jar
 \endverbatim
 
-In the next section we will show you how to use the plugin.
+In the next section, we will show you how to use the plugin.
 
 \subsection PluginInstruction StarPU Eclipse Plugin Instruction
 

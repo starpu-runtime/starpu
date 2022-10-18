@@ -20,10 +20,10 @@
 
 Like any other runtime, StarPU has some overhead to manage tasks. Since
 it does smart scheduling and data management, this overhead is not always
-neglegible. The order of magnitude of the overhead is typically a couple of
+negligible. The order of magnitude of the overhead is typically a couple of
 microseconds, which is actually quite smaller than the CUDA overhead itself. The
 amount of work that a task should do should thus be somewhat
-bigger, to make sure that the overhead becomes neglegible. The offline
+bigger, to make sure that the overhead becomes negligible. The offline
 performance feedback can provide a measure of task length, which should thus be
 checked if bad performance are observed. To get a grasp at the scalability
 possibility according to task size, one can run
@@ -120,7 +120,7 @@ the handles.
 StarPU provides the wrapper function starpu_task_insert() to ease
 the creation and submission of tasks.
 
-Here the implementation of a codelet:
+Here is the implementation of a codelet:
 
 \code{.c}
 void func_cpu(void *descr[], void *_args)

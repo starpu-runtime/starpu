@@ -53,11 +53,11 @@ task was submitted (starpu_profiling_task_info::submit_time), started
 (starpu_profiling_task_info::end_time), relative to the initialization
 of StarPU with starpu_init(). It also specifies the identifier of the worker
 that has executed the task (starpu_profiling_task_info::workerid).
-These date are stored as <c>timespec</c> structures which the user may convert
+These dates are stored as <c>timespec</c> structures which the user may convert
 into micro-seconds using the helper function
 starpu_timing_timespec_to_us().
 
-It it worth noting that the application may directly access this structure from
+It is worth noting that the application may directly access this structure from
 the callback executed at the end of the task. The structure starpu_task
 associated to the callback currently being executed is indeed accessible with
 the function starpu_task_get_current().
@@ -86,7 +86,7 @@ measurement interval.
 were executed while profiling was enabled.
 
 It also specifies how much time was spent in various states (executing a task,
-executing a callback, waiting for a data transfer to complete, etc.). since
+executing a callback, waiting for a data transfer to complete, etc.). Since
 these can happen at the same time (waiting for a data transfer while executing
 the previous tasks, and scheduling the next task), we provide two views. Firstly,
 the "all" view:
@@ -308,7 +308,7 @@ starpu_perfmodel::symbol and starpu_perfmodel::type are mandatory, to
 give a name to the model, and the type of the model, since there are
 several kinds of performance models. For compatibility, make sure to
 initialize the whole structure to zero, either by using explicit
-memset(), or by letting the compiler implicitly do it as examplified
+memset(), or by letting the compiler implicitly do it as exemplified
 below.
 
 <ul>
@@ -320,7 +320,7 @@ and just a bit less true on CPUs (~=1% error). This also assumes that there are
 few different sets of data input/output sizes. StarPU will then keep record of
 the average time of previous executions on the various processing units, and use
 it as an estimation. History is done per task size, by using a hash of the input
-and ouput sizes as an index.
+and output sizes as an index.
 It will also save it in <c>$STARPU_HOME/.starpu/sampling/codelets</c>
 for further executions, and can be observed by using the tool
 <c>starpu_perfmodel_display</c>, or drawn by using
@@ -378,12 +378,12 @@ trust the regression unless there is at least 10% difference between the minimum
 and maximum observed input size. It can be useful to set the
 environment variable \ref STARPU_CALIBRATE to <c>1</c> and run the application
 on varying input sizes with \ref STARPU_SCHED set to <c>dmda</c> scheduler,
-so as to feed the performance model for a variety of
-inputs. The application can also provide the measurements explictly by
+to feed the performance model for a variety of
+inputs. The application can also provide the measurements explicitly by
 using the function starpu_perfmodel_update_history(). The tools
 <c>starpu_perfmodel_display</c> and <c>starpu_perfmodel_plot</c> can
 be used to observe how much the performance model is calibrated
-(\ref PerformanceModelCalibration); when their output look good,
+(\ref PerformanceModelCalibration); when their output looks good,
 \ref STARPU_CALIBRATE can be reset to <c>0</c> to let
 StarPU use the resulting performance model without recording new measures, and
 \ref STARPU_SCHED can be set to <c>dmda</c> to benefit from the performance models. If
@@ -425,12 +425,12 @@ the usage of ::STARPU_MULTIPLE_REGRESSION_BASED models. The \ref enable-mlr
 
 Coefficients computation is done at the end of the execution, and the
 results are stored in standard codelet perfmodel files. Additional
-files containing the duration of task together with the value of each
+files containing the duration of tasks together with the value of each
 parameter are stored in <c>.starpu/sampling/codelets/tmp/</c>
 directory. These files are reused when \ref STARPU_CALIBRATE
 environment variable is set to <c>1</c>, to recompute coefficients
 based on the current, but also on the previous
-executions. By default StarPU uses a lightweight dgels implementation, but the
+executions. By default, StarPU uses a lightweight dgels implementation, but the
 \ref enable-mlr-system-blas "--enable-mlr-system-blas" configure option can be
 used to make StarPU use a system-provided dgels BLAS.
 
@@ -535,11 +535,11 @@ This section presents the StarPU performance monitoring framework. It summarizes
 
 \subsection PerfMonCountObjectives Objectives
 
-The objectives of this framework are to let external tools interface with StarPU to collect various performance metrics at runtime, in a generic, safe, extensible way. For that, it enables such tools to discover the available performance metrics in a particular StarPU build as well as the type of each performance counter value. It lets these tools build sets of performance counters to monitor, and then register listener callbacks to collect the measurement samples of these sets of performance counters at runtime.
+The objectives of this framework are to let external tools interface with StarPU to collect various performance metrics at runtime, in a generic, safe, extensible way. For that, it enables such tools to discover the available performance metrics in a particular StarPU build, as well as the type of each performance counter value. It lets these tools build sets of performance counters to monitor, and then register listener callbacks to collect the measurement samples of these sets of performance counters at runtime.
 
 \subsection PerfMonCountEntities Entities
 
-The performance monitoring framework is built on a series of concepts and items, organized in a consistent way. The corresponding C language objects should be considered opaque by external tools, and should only be manipulated through proper function calls and accessors.
+The performance monitoring framework is built on a series of concepts and items, organized consistently. The corresponding C language objects should be considered opaque by external tools, and should only be manipulated through proper function calls and accessors.
 
 \subsubsection PerfMonCountCounter Performance Counter
 
@@ -547,7 +547,7 @@ The performance counter entity is the fundamental object of the framework, repre
 
 \subsubsection PerfMonCountCounterType Performance Counter Type
 
-A performance counter has a type. A type is designated by a unique name and unique ID number. Currently supported types include:
+A performance counter has a type. A type is designated by a unique name and unique ID number. Currently, supported types include:
 
 \verbatim
 Type Name	Type Definition
@@ -559,7 +559,7 @@ Type Name	Type Definition
 
 \subsubsection PerfMonCountCounterScope Performance Counter Scope
 
-A performance counter belongs to a scope. The scope of a counter defines the context considered for computing the corresponding performance counter. A scope is designated with a unique name and unique ID number. Currently defined scopes include:
+A performance counter belongs to a scope. The scope of a counter defines the context considered for computing the corresponding performance counter. A scope is designated with a unique name and unique ID number. Currently, defined scopes include:
 
 \verbatim
 Scope Name	Scope Definition
@@ -578,7 +578,7 @@ A performance counter sample corresponds to one sample of collected measurement 
 
 \subsubsection PerfMonCountCounterListener Performance Counter Listener
 
-A performance counter listener is a callback function registered by some external tool to monitor a set of performance counters in a particular scope. It is called each time a new performance counter sample is ready to be observed. The sample object should not be accessed outside of the callback.
+A performance counter listener is a callback function registered by some external tool to monitor a set of performance counters in a particular scope. It is called each time a new performance counter sample is ready to be observed. The sample object should not be accessed outside the callback.
 
 \subsubsection PerfMonCountCounterAPI Application Programming Interface
 
@@ -680,11 +680,11 @@ The location of the updaters' calls is chosen to minimize the sequentialization 
 
 \subsubsection PerfMonCountCounterImplOperations Counter operations
 
-In practice the sample updaters only take snapshots of the actual performance counters. The performance counters themselves are updated with ad-hoc procedures depending on each counter. Such procedures typically involve atomic operations. While operations such as atomic increments or decrements on integer values are readily available, this is not the case for more complex operations such as min/max for computing peak value counters (for instance in the global and per-codelet counters for peak number of submitted tasks and peak number of ready tasks waiting for execution), and this is also not the case for computations on floating point data (used for instance in computing cumulated execution time of tasks, either per worker or per codelet). The performance monitoring framework therefore supplies such missing routines, for the internal use of StarPU.
+In practice, the sample updaters only take snapshots of the actual performance counters. The performance counters themselves are updated with ad-hoc procedures depending on each counter. Such procedures typically involve atomic operations. While operations such as atomic increments or decrements on integer values are readily available, this is not the case for more complex operations such as min/max for computing peak value counters (for instance in the global and per-codelet counters for peak number of submitted tasks and peak number of ready tasks waiting for execution), and this is also not the case for computations on floating point data (used for instance in computing cumulated execution time of tasks, either per worker or per codelet). The performance monitoring framework therefore supplies such missing routines, for the internal use of StarPU.
 
 \subsubsection PerfMonCountCounterImplRuntime Runtime checks
 
-The performance monitoring framework features a comprehensive set of runtime checks to verify that both StarPU and some external tool do not access a performance counter with the wrong typed routines, to quickly detect situations of mismatch that can result from the evolution of multiple pieces of software at distinct paces. Moreover, no StarPU data structure is accessed directly either by the external code making use of the performance monitoring framework. The use of the C enum constants is optional; referring to values through constant strings is available when more robustness is desired. These runtime checks enable the framework to be extensible. Moreover, while the framework's counters currently are permanently compiled in, they could be made optional at compile time, for instance to suppress any overhead once the analysis and optimization process has been completed by the programmer. Thanks to the runtime discovery of available counters, the applicative code, or an intermediate layer such as skeleton layer acting on its behalf, would then be able to adapt to performance analysis builds versus optimized builds.
+The performance monitoring framework features a comprehensive set of runtime checks to verify that both StarPU and some external tool do not access a performance counter with the wrong typed routines, to quickly detect situations of mismatch that can result from the evolution of multiple pieces of software at distinct paces. Moreover, no StarPU data structure is accessed directly, either by the external code making use of the performance monitoring framework. The use of the C enum constants is optional; referring to values through constant strings is available when more robustness is desired. These runtime checks enable the framework to be extensible. Moreover, while the framework's counters currently are permanently compiled in, they could be made optional at compile time, for instance to suppress any overhead once the analysis and optimization process has been completed by the programmer. Thanks to the runtime discovery of available counters, the applicative code, or an intermediate layer such as skeleton layer acting on its behalf, would then be able to adapt to performance analysis builds versus optimized builds.
 
 \subsection PerfMonCountCounterExported Exported Counters
 
@@ -824,7 +824,7 @@ The performance steering knob entity designates one runtime-actionable knob expo
 
 \subsubsection PerfKnobsEntitiesKnobType Knob Type
 
-A performance steering knob has a type. A type is designated by a unique name and unique ID number. Currently supported types include:
+A performance steering knob has a type. A type is designated by a unique name and unique ID number. Currently, supported types include:
 
 \verbatim
 Type Name	Type Definition
@@ -838,7 +838,7 @@ On/Off knobs are defined as "int32" type, with value 0 for Off and value !0 for 
 
 \subsubsection PerfKnobsEntitiesKnobScope Knob Scope
 
-A performance steering knob belongs to a scope. The scope of a knob defines the context considered for computing the corresponding knob. A scope is designated with a unique name and unique ID number. Currently defined scopes include:
+A performance steering knob belongs to a scope. The scope of a knob defines the context considered for computing the corresponding knob. A scope is designated with a unique name and unique ID number. Currently, defined scopes include:
 
 \verbatim
 Scope Name	Scope Definition
@@ -933,7 +933,7 @@ starpu.dmda.s_idle_power_knob	Scaling factor for the baseline Idle power consump
 
 \subsection PerfKnobsSequence Sequence of operations
 
-This section presents an example of sequence of operations representing a typical use of the performance steering knobs exported by StarPU. In this example, a worker thread is temporarily barred from executing tasks. For that, the corresponding "starpu.worker.w_enable_worker_knob" of the worker, initially set to 1 (= enabled) is changed to 0 (= disabled).
+This section presents an example of a sequence of operations representing a typical use of the performance steering knobs exported by StarPU. In this example, a worker thread is temporarily barred from executing tasks. For that, the corresponding "starpu.worker.w_enable_worker_knob" of the worker, initially set to 1 (= enabled) is changed to 0 (= disabled).
 
 <b>Step 0: Initialize StarPU</b>
 
@@ -973,7 +973,7 @@ starpu_perf_knob_set_per_worker_int32_value(w_enable_id, 5, 0);
 \endverbatim
 
 
-Subsequently setting the value of the knob back to 1 enables the corresponding to accept new tasks for execution again.
+Subsequently, setting the value of the knob back to 1 enables the corresponding to accept new tasks for execution again.
 
 \verbatim
 starpu_perf_knob_set_per_worker_int32_value(w_enable_id, 5, 1);

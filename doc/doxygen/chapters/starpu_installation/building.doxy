@@ -23,7 +23,7 @@ propose several solutions.
 <li>
 You just want to have a try, to see if it can be installed well on
 your system, what are the performances on simple cases, run the
-examples, or simply use the last stable version: we recommend to use
+examples, or simply use the last stable version: we recommend using
 the latest StarPU debian package (see \ref InstallingABinaryPackage)
 for those who work on a Linux Debian or Ubuntu distribution, Guix or
 Spack on other Linux systems (see \ref InstallingASourcePackage), Brew

@@ -35,7 +35,7 @@ By default, StarPU uses the work-stealing scheduler \b lws. This is
 because it provides correct load balance and locality even if the application codelets do
 not have performance models. Other non-modelling scheduling policies can be
 selected among the list below, thanks to the environment variable \ref
-STARPU_SCHED. For instance <c>export STARPU_SCHED=dmda</c> . Use <c>help</c> to
+STARPU_SCHED. For instance, <c>export STARPU_SCHED=dmda</c> . Use <c>help</c> to
 get the list of available schedulers.
 
 
@@ -55,14 +55,14 @@ worker.
 
 - The <b>lws</b> (locality work stealing) scheduler uses a queue per worker, and schedules
 a task on the worker which released it by
-default. When a worker becomes idle, it steals a task from neighbour workers. It
+default. When a worker becomes idle, it steals a task from neighbor workers. It
 also takes into account priorities.
 
 - The <b>prio</b> scheduler also uses a central task queue, but sorts tasks by
 priority specified by the programmer.
 
 - The <b>heteroprio</b> scheduler uses different priorities for the different processing units.
-This scheduler must be configured to work correclty and to expect high-performance
+This scheduler must be configured to work correctly and to expect high-performance
 as described in the corresponding section.
 
 \subsection DMTaskSchedulingPolicy Performance Model-Based Task Scheduling Policies
@@ -70,7 +70,7 @@ as described in the corresponding section.
 If (<b>and only if</b>) your application <b>codelets have performance models</b> (\ref
 PerformanceModelExample), you should change the scheduler thanks to the
 environment variable \ref STARPU_SCHED, to select one of the policies below, in
-order to take advantage of StarPU's performance modelling. For instance
+order to take advantage of StarPU's performance modelling. For instance,
 <c>export STARPU_SCHED=dmda</c> . Use <c>help</c> to get the list of available
 schedulers.
 
@@ -97,7 +97,7 @@ become available, without taking priorities into account.
 into account data transfer time.
 
 - The <b>dmdap</b> (deque model data aware prio) scheduler is similar to \b dmda,
-except that it sorts tasks by priority order, which allows to become even closer
+except that it sorts tasks by priority order, which allows becoming even closer
 to HEFT by respecting priorities after having made the scheduling decision (but
 it still schedules tasks in the order they become available).
 
@@ -146,7 +146,7 @@ single component. This allows it to do a better job at pushing tasks.
 Select randomly a resource to be mapped on for each task.
 
 - <b>modular-ws</b>) implements Work Stealing:
-Maps tasks to workers in round robin, but allows workers to steal work from other workers.
+Maps tasks to workers in round-robin, but allows workers to steal work from other workers.
 
 - <b>modular-heft</b>, <b>modular-heft2</b>, and <b>modular-heft-prio</b> are
 HEFT Schedulers : \n
@@ -159,7 +159,7 @@ model. <b>modular-heft</b> just takes tasks by order. <b>modular-heft2</b> takes
 at most 5 tasks of the same priority and checks which one fits best.
 <b>modular-heft-prio</b> is similar to <b>modular-heft</b>, but only decides the memory
 node, not the exact worker, just pushing tasks to one central queue per memory
-node. By default, they sort tasks by priorities and privilege running first
+node. By default, they sort tasks by priorities and privilege, running first
 a task which has most of its data already available on the target. These can
 however be changed with \ref STARPU_SCHED_SORTED_ABOVE, \ref
 STARPU_SCHED_SORTED_BELOW, and \ref STARPU_SCHED_READY .

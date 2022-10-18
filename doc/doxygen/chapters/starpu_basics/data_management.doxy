@@ -29,7 +29,7 @@ short list below.
 
 \subsection VariableDataInterface Variable Data Interface
 
-A variable is a given-size byte element, typically a scalar. Here an
+A variable is a given-size byte element, typically a scalar. Here is an
 example of how to register a variable data to StarPU by using
 starpu_variable_data_register().
 
@@ -42,7 +42,7 @@ starpu_variable_data_register(&var_handle, STARPU_MAIN_RAM, (uintptr_t)&var, siz
 
 \subsection VectorDataInterface Vector Data Interface
 
-A vector is a fixed number of elements of a given size. Here an
+A vector is a fixed number of elements of a given size. Here is an
 example of how to register a vector data to StarPU by using
 starpu_vector_data_register().
 
@@ -54,7 +54,7 @@ starpu_vector_data_register(&vector_handle, STARPU_MAIN_RAM, (uintptr_t)vector, 
 
 Vectors can be partitioned into pieces by using
 starpu_vector_filter_block(). They can also be partitioned with some overlapping
-by using starpu_vector_filter_block_shadow(). By default StarPU
+by using starpu_vector_filter_block_shadow(). By default, StarPU
 uses the same size for each piece. If different sizes are desired,
 starpu_vector_filter_list() or starpu_vector_filter_list_long() can be used
 instead. To just divide in two pieces, starpu_vector_filter_divide_in_2() can be used.
@@ -62,7 +62,7 @@ instead. To just divide in two pieces, starpu_vector_filter_divide_in_2() can be
 \subsection MatrixDataInterface Matrix Data Interface
 
 To register 2-D matrices with a potential padding, one can use the
-matrix data interface. Here an example of how to register a matrix
+matrix data interface. Here is an example of how to register a matrix
 data to StarPU by using starpu_matrix_data_register().
 
 \code{.c}
@@ -81,7 +81,7 @@ starpu_matrix_filter_vertical_block_shadow().
 \subsection BlockDataInterface Block Data Interface
 
 To register 3-D matrices with potential paddings on Y and Z dimensions,
-one can use the block data interface. Here an example of how to
+one can use the block data interface. Here is an example of how to
 register a block data to StarPU by using starpu_block_data_register().
 
 \code{.c}
@@ -102,7 +102,7 @@ or starpu_block_filter_depth_block_shadow().
 \subsection TensorDataInterface Tensor Data Interface
 
 To register 4-D matrices with potential paddings on Y, Z, and T dimensions,
-one can use the tensor data interface. Here an example of how to
+one can use the tensor data interface. Here is an example of how to
 register a tensor data to StarPU by using starpu_tensor_data_register().
 
 \code{.c}
@@ -117,7 +117,7 @@ Partitioning filters are not implemented yet.
 \subsection BCSRDataInterface BCSR Data Interface
 
 BCSR (Blocked Compressed Sparse Row Representation) sparse matrix data
-can be registered to StarPU using the bcsr data interface. Here an
+can be registered to StarPU using the bcsr data interface. Here is an
 example on how to do so by using starpu_bcsr_data_register().
 
 \code{.c}
@@ -287,7 +287,7 @@ currently working on the data.  This can be a bottleneck for the application.
 An asynchronous API also exists, it works only on handles with sequential
 consistency. The principle is to first plan the partitioning, which returns
 data handles of the partition, which are not functional yet. When submitting
-tasks, one can mix using the handles of the partition, of the whole data. One
+tasks, one can mix using the handles of the partition or the whole data. One
 can even partition recursively and mix using handles at different levels of the
 recursion. Of course, StarPU will have to introduce coherency synchronization.
 
@@ -443,7 +443,7 @@ for (i = 0; i < 100; i++)
 By default, the implicit dependencies computed from data access use the
 sequential semantic. Notably, write accesses are always serialized in the order
 of submission. In some applicative cases, the write contributions can actually
-be performed in any order without affecting the eventual result. In this case
+be performed in any order without affecting the eventual result. In this case,
 it is useful to drop the strictly sequential semantic, to improve parallelism
 by allowing StarPU to reorder the write accesses. This can be done by using
 the data access flag ::STARPU_COMMUTE. Accesses without this flag will however
@@ -468,11 +468,11 @@ see \ref ConcurrentDataAccess.
 \section ConcurrentDataAccess Concurrent Data Accesses
 
 When several tasks are ready and will work on several data, StarPU is faced with
-the classical Dining Philosophers problem, and has to determine the order in
+the classical Dining Philosopher's problem, and has to determine the order in
 which it will run the tasks.
 
 Data accesses usually use sequential ordering, so data accesses are usually
-already serialized, and thus by default StarPU uses the Dijkstra solution which
+already serialized, and thus by default, StarPU uses the Dijkstra solution which
 scales very well in terms of overhead: tasks will just acquire data one by one
 by data handle pointer value order.
 
@@ -512,7 +512,7 @@ done lazily by using the function starpu_data_unregister_submit(),
 which will record that no more tasks accessing the handle will be submitted, so
 that it can be freed as soon as the last task accessing it is over.
 
-The following code examplifies both points: it registers the temporary
+The following code exemplifies both points: it registers the temporary
 data, submits three tasks accessing it, and records the data for automatic
 unregistration.
 
@@ -531,13 +531,13 @@ codelet is needed).
 
 \subsection ScratchData Scratch Data
 
-Some kernels sometimes need temporary data to achieve the computations, i.e. a
+Some kernels sometimes need temporary data to complete the computations, i.e. a
 workspace. The application could allocate it at the start of the codelet
 function, and free it at the end, but this would be costly. It could also
 allocate one buffer per worker (similarly to \ref HowToInitializeAComputationLibraryOnceForEachWorker),
 but this would
 make them systematic and permanent. A more  optimized way is to use
-the data access mode ::STARPU_SCRATCH, as examplified below, which
+the data access mode ::STARPU_SCRATCH, as exemplified below, which
 provides per-worker buffers without content consistency. The buffer is
 registered only once, using memory node <c>-1</c>, i.e. the application didn't allocate
 memory for it, and StarPU will allocate it on demand at task execution.
