@@ -692,11 +692,8 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 	STARPU_ASSERT(nhops >= 0 && nhops <= MAX_REQUESTS-1);
 	struct _starpu_data_request *requests[nhops + write_invalidation];
 
-	memset(requests, 0, (nhops + write_invalidation)*sizeof(struct _starpu_data_request));
-
 	/* Did we reuse a request for that hop ? */
 	int reused_requests[nhops + write_invalidation];
-	memset(reused_requests, 0, (nhops + write_invalidation)*sizeof(int));
 
 	/* Construct an array with a list of requests, possibly reusing existing requests */
 	int hop;
