@@ -156,6 +156,11 @@ PyObject* starpu_data_partition_wrapper(PyObject *self, PyObject *args)
 		RETURN_EXCEPT("Dimension size %d must be greater than 0.", ndim);
 	}
 
+	if (dim < 0)
+	{
+		RETURN_EXCEPT("The given dimension dim %d must not be less than 0.", dim);
+	}
+
 	if (dim >= ndim)
 	{
 		RETURN_EXCEPT("dim %d must be less than dimension size %d.", dim, ndim);
