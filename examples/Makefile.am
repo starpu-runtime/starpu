@@ -226,10 +226,11 @@ STARPU_EXAMPLES +=				\
 	filters/fmatrix_pick_vector		\
 	filters/fndim				\
 	filters/fndim_pick_ndim			\
-	filters/fndim_pick_tensor		\
-	filters/fndim_pick_block		\
-	filters/fndim_pick_matrix		\
-	filters/fndim_pick_vector		\
+	filters/fndim_5d_pick_tensor		\
+	filters/fndim_4d_pick_block		\
+	filters/fndim_3d_pick_matrix		\
+	filters/fndim_2d_pick_vector		\
+	filters/fndim_1d_pick_variable		\
 	filters/fndim_pick_variable		\
 	filters/fndim_to_tensor			\
 	filters/fndim_to_block			\
@@ -739,60 +740,64 @@ filters_fndim_pick_ndim_SOURCES +=			\
 	filters/f3d_hip.hip
 endif
 
-filters_fndim_pick_tensor_SOURCES =			\
-	filters/fndim_pick_tensor.c			\
+filters_fndim_5d_pick_tensor_SOURCES =			\
+	filters/fndim_5d_pick_tensor.c			\
 	filters/f5d_print.c			\
 	filters/ftensor_print.c			\
 	filters/ftensor_cpu.c
 if STARPU_USE_CUDA
-filters_fndim_pick_tensor_SOURCES +=			\
+filters_fndim_5d_pick_tensor_SOURCES +=			\
 	filters/ftensor_cuda.cu
 endif
 if STARPU_USE_HIP
-filters_fndim_pick_tensor_SOURCES +=			\
+filters_fndim_5d_pick_tensor_SOURCES +=			\
 	filters/ftensor_hip.hip
 endif
 
-filters_fndim_pick_block_SOURCES =			\
-	filters/fndim_pick_block.c			\
+filters_fndim_4d_pick_block_SOURCES =			\
+	filters/fndim_4d_pick_block.c			\
 	filters/ftensor_print.c			\
 	filters/fblock_print.c			\
 	filters/fblock_cpu.c
 if STARPU_USE_CUDA
-filters_fndim_pick_block_SOURCES +=			\
+filters_fndim_4d_pick_block_SOURCES +=			\
 	filters/fblock_cuda.cu
 endif
 if STARPU_USE_HIP
-filters_fndim_pick_block_SOURCES +=			\
+filters_fndim_4d_pick_block_SOURCES +=			\
 	filters/fblock_hip.hip
 endif
 
-filters_fndim_pick_matrix_SOURCES =			\
-	filters/fndim_pick_matrix.c			\
+filters_fndim_3d_pick_matrix_SOURCES =			\
+	filters/fndim_3d_pick_matrix.c			\
 	filters/fblock_print.c			\
 	filters/fmatrix_print.c			\
 	filters/fmatrix_cpu.c
 if STARPU_USE_CUDA
-filters_fndim_pick_matrix_SOURCES +=			\
+filters_fndim_3d_pick_matrix_SOURCES +=			\
 	filters/fmatrix_cuda.cu
 endif
 if STARPU_USE_HIP
-filters_fndim_pick_matrix_SOURCES +=			\
+filters_fndim_3d_pick_matrix_SOURCES +=			\
 	filters/fmatrix_hip.hip
 endif
 
-filters_fndim_pick_vector_SOURCES =			\
-	filters/fndim_pick_vector.c			\
+filters_fndim_2d_pick_vector_SOURCES =			\
+	filters/fndim_2d_pick_vector.c			\
 	filters/fmatrix_print.c			\
 	filters/fvector_cpu.c
 if STARPU_USE_CUDA
-filters_fndim_pick_vector_SOURCES +=			\
+filters_fndim_2d_pick_vector_SOURCES +=			\
 	filters/fvector_cuda.cu
 endif
 if STARPU_USE_HIP
-filters_fndim_pick_vector_SOURCES +=			\
+filters_fndim_2d_pick_vector_SOURCES +=			\
 	filters/fvector_hip.hip
 endif
+
+filters_fndim_pick_variable_SOURCES =			\
+	filters/fndim_pick_variable.c			\
+	filters/f5d_print.c
 
 filters_fndim_to_tensor_SOURCES =			\
 	filters/fndim_to_tensor.c			\

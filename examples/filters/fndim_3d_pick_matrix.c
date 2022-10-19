@@ -16,80 +16,79 @@
 
 #include <starpu.h>
 
-#define NX    6
-#define NY    5
-#define NZ    4
-#define NT    3
+#define NX    5
+#define NY    4
+#define NZ    3
 #define PARTS 2
 #define POS   1
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
-extern void block_cpu_func(void *buffers[], void *cl_arg);
+extern void matrix_cpu_func(void *buffers[], void *cl_arg);
 
 #ifdef STARPU_USE_CUDA
-extern void block_cuda_func(void *buffers[], void *cl_arg);
+extern void matrix_cuda_func(void *buffers[], void *cl_arg);
 #endif
 
 #ifdef STARPU_USE_HIP
-extern void block_hip_func(void *buffers[], void *cl_arg);
+extern void matrix_hip_func(void *buffers[], void *cl_arg);
 #endif
 
-extern void generate_tensor_data(int *tensor, int nx, int ny, int nz, int nt, unsigned ldy, unsigned ldz, unsigned ldt);
-extern void print_4dim_data(starpu_data_handle_t ndim_handle);
-extern void print_block_data(starpu_data_handle_t block_handle);
+extern void generate_block_data(int *block, int nx, int ny, int nz, unsigned ldy, unsigned ldz);
+extern void print_3dim_data(starpu_data_handle_t ndim_handle);
+extern void print_matrix_data(starpu_data_handle_t matrix_handle);
 
 int main(void)
 {
-	int *arr4d;
-	int i, j, k, l;
+	int *arr3d;
+	int i, j, k;
 	int ret;
 	int factor = 2;
 
 	starpu_data_handle_t handle;
 	struct starpu_codelet cl =
 	{
-		.cpu_funcs = {block_cpu_func},
-		.cpu_funcs_name = {"block_cpu_func"},
+		.cpu_funcs = {matrix_cpu_func},
+		.cpu_funcs_name = {"matrix_cpu_func"},
 #ifdef STARPU_USE_CUDA
-		.cuda_funcs = {block_cuda_func},
+		.cuda_funcs = {matrix_cuda_func},
 		.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_HIP
-		.hip_funcs = {block_hip_func},
+		.hip_funcs = {matrix_hip_func},
 		.hip_flags = {STARPU_HIP_ASYNC},
 #endif
 		.nbuffers = 1,
 		.modes = {STARPU_RW},
-		.name = "arr4d_pick_block_scal"
+		.name = "arr3d_pick_matrix_scal"
 	};
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
-		return 77;
+		exit(77);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	starpu_malloc((void **)&arr4d, NX*NY*NZ*NT*sizeof(int));
-	assert(arr4d);
-	generate_tensor_data(arr4d, NX, NY, NZ, NT, NX, NX*NY, NX*NY*NZ);
+	starpu_malloc((void **)&arr3d, NX*NY*NZ*sizeof(int));
+	assert(arr3d);
+	generate_block_data(arr3d, NX, NY, NZ, NX, NX*NY);
 
-	unsigned nn[4] = {NX, NY, NZ, NT};
-	unsigned ldn[4] = {1, NX, NX*NY, NX*NY*NZ};
+	unsigned nn[3] = {NX, NY, NZ};
+	unsigned ldn[3] = {1, NX, NX*NY};
 
 	/* Declare data to StarPU */
-	starpu_ndim_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)arr4d, ldn, nn, 4, sizeof(int));
-	FPRINTF(stderr, "IN 4-dim Array: \n");
-	print_4dim_data(handle);
+	starpu_ndim_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)arr3d, ldn, nn, 3, sizeof(int));
+	FPRINTF(stderr, "IN 3-dim Array: \n");
+	print_3dim_data(handle);
 
-	/* Partition the 4-dim array in PARTS sub-blocks */
+	/* Partition the 3-dim array in PARTS sub-matrices */
 	struct starpu_data_filter f =
 	{
-		.filter_func = starpu_ndim_filter_pick_block,
-		.filter_arg = 2, //Partition the array along Z dimension
+		.filter_func = starpu_ndim_filter_3d_pick_matrix,
+		.filter_arg = 1, //Partition the array along Y dimension
 		.filter_arg_ptr = (void*)(uintptr_t) POS,
 		.nchildren = PARTS,
-		/* the children use a block interface*/
-		.get_child_ops = starpu_ndim_filter_pick_block_child_ops
+		/* the children use a matrix interface*/
+		.get_child_ops = starpu_ndim_filter_pick_matrix_child_ops
 	};
 	starpu_data_partition(handle, &f);
 
@@ -97,18 +96,18 @@ int main(void)
 
 	for(i=0 ; i<starpu_data_get_nb_children(handle) ; i++)
 	{
-		starpu_data_handle_t block_handle = starpu_data_get_sub_data(handle, 1, i);
-		FPRINTF(stderr, "Sub Block %d: \n", i);
-		print_block_data(block_handle);
+		starpu_data_handle_t matrix_handle = starpu_data_get_sub_data(handle, 1, i);
+		FPRINTF(stderr, "Sub Matrix %d: \n", i);
+		print_matrix_data(matrix_handle);
 
-		/* Submit a task on each sub-block */
+		/* Submit a task on each sub-matrix */
 		struct starpu_task *task = starpu_task_create();
 
-		FPRINTF(stderr,"Dealing with sub-block %d\n", i);
+		FPRINTF(stderr,"Dealing with sub-matrix %d\n", i);
 		task->cl = &cl;
 		task->synchronous = 1;
 		task->callback_func = NULL;
-		task->handles[0] = block_handle;
+		task->handles[0] = matrix_handle;
 		task->cl_arg = &factor;
 		task->cl_arg_size = sizeof(factor);
 
@@ -116,18 +115,18 @@ int main(void)
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-		/* Print result block */
-		FPRINTF(stderr, "OUT Block %d: \n", i);
-		print_block_data(block_handle);
+		/* Print result matrix */
+		FPRINTF(stderr, "OUT Matrix %d: \n", i);
+		print_matrix_data(matrix_handle);
 	}
 
 	/* Unpartition the data, unregister it from StarPU and shutdown */
 	starpu_data_unpartition(handle, STARPU_MAIN_RAM);
-	FPRINTF(stderr, "OUT 4-dim Array: \n");
-	print_4dim_data(handle);
+	FPRINTF(stderr, "OUT 3-dim Array: \n");
+	print_3dim_data(handle);
 	starpu_data_unregister(handle);
 
-	starpu_free_noflag(arr4d, NX*NY*NZ*NT*sizeof(int));
+	starpu_free_noflag(arr3d, NX*NY*NZ*sizeof(int));
 
 	starpu_shutdown();
 	return 0;

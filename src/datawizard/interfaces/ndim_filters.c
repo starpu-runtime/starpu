@@ -314,7 +314,7 @@ void starpu_ndim_filter_pick_ndim(void *father_interface, void *child_interface,
 	}
 }
 
-void starpu_ndim_filter_pick_tensor(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+void starpu_ndim_filter_5d_pick_tensor(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 				    unsigned id, unsigned nparts)
 {
 	struct starpu_ndim_interface *ndim_father = (struct starpu_ndim_interface *) father_interface;
@@ -330,7 +330,7 @@ void starpu_ndim_filter_pick_tensor(void *father_interface, void *child_interfac
 	_interface_deallocate(&ndim_child);
 }
 
-void starpu_ndim_filter_pick_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+void starpu_ndim_filter_4d_pick_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 				   unsigned id, unsigned nparts)
 {
 	struct starpu_ndim_interface *ndim_father = (struct starpu_ndim_interface *) father_interface;
@@ -346,7 +346,7 @@ void starpu_ndim_filter_pick_block(void *father_interface, void *child_interface
 	_interface_deallocate(&ndim_child);
 }
 
-void starpu_ndim_filter_pick_matrix(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+void starpu_ndim_filter_3d_pick_matrix(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 				    unsigned id, unsigned nparts)
 {
 	struct starpu_ndim_interface *ndim_father = (struct starpu_ndim_interface *) father_interface;
@@ -362,7 +362,7 @@ void starpu_ndim_filter_pick_matrix(void *father_interface, void *child_interfac
 	_interface_deallocate(&ndim_child);
 }
 
-void starpu_ndim_filter_pick_vector(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+void starpu_ndim_filter_2d_pick_vector(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 				    unsigned id, unsigned nparts)
 {
 	struct starpu_ndim_interface *ndim_father = (struct starpu_ndim_interface *) father_interface;
@@ -378,7 +378,7 @@ void starpu_ndim_filter_pick_vector(void *father_interface, void *child_interfac
 	_interface_deallocate(&ndim_child);
 }
 
-void starpu_ndim_filter_pick_variable(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+void starpu_ndim_filter_1d_pick_variable(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 				      unsigned id, unsigned nparts)
 {
 	struct starpu_ndim_interface *ndim_father = (struct starpu_ndim_interface *) father_interface;
@@ -528,4 +528,57 @@ static void _interface_assignment_ndim_to_variable(void *ndim_interface, void *c
 	variable->ptr = ndarr->ptr;
 	variable->dev_handle = ndarr->dev_handle;
 	variable->offset = ndarr->offset;
+}
+
+void starpu_ndim_filter_pick_variable(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, STARPU_ATTRIBUTE_UNUSED unsigned id, STARPU_ATTRIBUTE_UNUSED unsigned nchunks)
+{
+    struct starpu_ndim_interface *ndim_father = (struct starpu_ndim_interface *) father_interface;
+    /* each chunk becomes a variable */
+    struct starpu_variable_interface *variable_child = (struct starpu_variable_interface *) child_interface;
+
+    size_t ndim = ndim_father->ndim;
+    STARPU_ASSERT_MSG(ndim > 0, "ndim %u must be greater than 0!\n", (unsigned) ndim);
+
+    uint32_t nn[ndim];
+    unsigned ldn[ndim];
+
+    unsigned i;
+    for (i=0; i<ndim; i++)
+    {
+        nn[i] = ndim_father->nn[i];
+        ldn[i] = ndim_father->ldn[i];
+    }
+
+    size_t elemsize = ndim_father->elemsize;
+
+    uint32_t* chunk_pos = (uint32_t*)f->filter_arg_ptr;
+
+    int b = 1;
+    size_t offset = 0;
+    for (i = 0; i < ndim; i++)
+    {
+        if(chunk_pos[i] >= nn[i])
+        {
+            b = 0;
+            break;
+        }
+        offset += chunk_pos[i]*ldn[i]*elemsize;
+    }
+
+    STARPU_ASSERT_MSG(b == 1, "the chosen variable should be in the ndim array");
+
+    STARPU_ASSERT_MSG(ndim_father->id == STARPU_NDIM_INTERFACE_ID, "%s can only be applied on a ndim array data", __func__);
+
+    /* update the child's interface */
+    variable_child->id = STARPU_VARIABLE_INTERFACE_ID;
+    variable_child->elemsize = elemsize;
+
+    /* is the information on this node valid ? */
+    if (ndim_father->dev_handle)
+    {
+        if (ndim_father->ptr)
+            variable_child->ptr = ndim_father->ptr + offset;
+        variable_child->dev_handle = ndim_father->dev_handle;
+        variable_child->offset = ndim_father->offset + offset;
+    }
 }

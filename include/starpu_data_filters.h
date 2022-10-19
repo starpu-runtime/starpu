@@ -820,9 +820,9 @@ void starpu_ndim_filter_pick_ndim(void *father_interface, void *child_interface,
 
    <c>starpu_data_filter::get_child_ops</c> needs to be set to
    starpu_ndim_filter_pick_tensor_child_ops. A usage example is
-   available in examples/filters/fndim_pick_tensor.c
+   available in examples/filters/fndim_5d_pick_tensor.c
 */
-void starpu_ndim_filter_pick_tensor(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_ndim_filter_5d_pick_tensor(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Pick \p nparts contiguous blocks from a 4-dim array along
@@ -831,9 +831,9 @@ void starpu_ndim_filter_pick_tensor(void *father_interface, void *child_interfac
 
    <c>starpu_data_filter::get_child_ops</c> needs to be set to
    starpu_ndim_filter_pick_block_child_ops. A usage example is
-   available in examples/filters/fndim_pick_block.c
+   available in examples/filters/fndim_4d_pick_block.c
 */
-void starpu_ndim_filter_pick_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_ndim_filter_4d_pick_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Pick \p nparts contiguous matrices from a 3-dim array along
@@ -842,9 +842,9 @@ void starpu_ndim_filter_pick_block(void *father_interface, void *child_interface
 
    <c>starpu_data_filter::get_child_ops</c> needs to be set to
    starpu_ndim_filter_pick_matrix_child_ops. A usage example is
-   available in examples/filters/fndim_pick_matrix.c
+   available in examples/filters/fndim_3d_pick_matrix.c
 */
-void starpu_ndim_filter_pick_matrix(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_ndim_filter_3d_pick_matrix(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Pick \p nparts contiguous vectors from a 2-dim array along
@@ -853,12 +853,22 @@ void starpu_ndim_filter_pick_matrix(void *father_interface, void *child_interfac
 
    <c>starpu_data_filter::get_child_ops</c> needs to be set to
    starpu_ndim_filter_pick_vector_child_ops. A usage example is
-   available in examples/filters/fndim_pick_vector.c
+   available in examples/filters/fndim_2d_pick_vector.c
 */
-void starpu_ndim_filter_pick_vector(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_ndim_filter_2d_pick_vector(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Pick \p nparts contiguous variables from a 1-dim array.
+   The starting position is set in <c>starpu_data_filter::filter_arg_ptr</c>.
+
+   <c>starpu_data_filter::get_child_ops</c> needs to be set to
+   starpu_ndim_filter_pick_variable_child_ops. A usage example is
+   available in examples/filters/fndim_1d_pick_variable.c
+*/
+void starpu_ndim_filter_1d_pick_variable(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Pick \p nparts contiguous variables from a ndim array.
    The starting position is set in <c>starpu_data_filter::filter_arg_ptr</c>.
 
    <c>starpu_data_filter::get_child_ops</c> needs to be set to

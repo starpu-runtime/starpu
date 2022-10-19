@@ -79,7 +79,7 @@ int main(void)
 	/* Partition the 2-dim array in PARTS sub-vectors */
 	struct starpu_data_filter f =
 	{
-		.filter_func = starpu_ndim_filter_pick_vector,
+		.filter_func = starpu_ndim_filter_2d_pick_vector,
 		.filter_arg = 1, //Partition the array along Y dimension
 		.filter_arg_ptr = (void*)(uintptr_t) POS,
 		.nchildren = PARTS,
