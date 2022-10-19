@@ -179,6 +179,20 @@ void starpu_data_map_filters(starpu_data_handle_t root_data, unsigned nfilters, 
 */
 void starpu_data_vmap_filters(starpu_data_handle_t root_data, unsigned nfilters, va_list pa);
 
+/**
+   Apply \p nfilters filters to the handle designated by \p
+   root_handle recursively. The pointer of the filter list \p filters
+   of the type starpu_data_filter should be given.
+*/
+void starpu_data_map_filters_parray(starpu_data_handle_t root_handle, int nfilters, struct starpu_data_filter **filters);
+
+/**
+   Apply \p nfilters filters to the handle designated by \p
+   root_handle recursively. The list of filter \p filters
+   of the type starpu_data_filter should be given.
+*/
+void starpu_data_map_filters_array(starpu_data_handle_t root_handle, int nfilters, struct starpu_data_filter *filters);
+
 /** @} */
 
 /**

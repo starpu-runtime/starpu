@@ -69,7 +69,7 @@ void starpu_data_map_filters(starpu_data_handle_t root_handle, unsigned nfilters
 	va_end(pa);
 }
 
-void fstarpu_data_map_filters(starpu_data_handle_t root_handle, int nfilters, struct starpu_data_filter **filters)
+void starpu_data_map_filters_parray(starpu_data_handle_t root_handle, int nfilters, struct starpu_data_filter **filters)
 {
 	int i;
 	assert(nfilters >= 0);
@@ -79,6 +79,21 @@ void fstarpu_data_map_filters(starpu_data_handle_t root_handle, int nfilters, st
 		STARPU_ASSERT(next_filter);
 		map_filter(root_handle, next_filter);
 	}
+}
+
+void starpu_data_map_filters_array(starpu_data_handle_t root_handle, int nfilters, struct starpu_data_filter *filters)
+{
+	int i;
+	assert(nfilters >= 0);
+	for (i = 0; i < nfilters; i++)
+	{
+		map_filter(root_handle, &filters[i]);
+	}
+}
+
+void fstarpu_data_map_filters(starpu_data_handle_t root_handle, int nfilters, struct starpu_data_filter **filters)
+{
+	starpu_data_map_filters_parray(root_handle, nfilters, filters);
 }
 
 int starpu_data_get_nb_children(starpu_data_handle_t handle)
