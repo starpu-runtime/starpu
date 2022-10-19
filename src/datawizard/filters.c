@@ -72,7 +72,7 @@ void starpu_data_map_filters(starpu_data_handle_t root_handle, unsigned nfilters
 void starpu_data_map_filters_parray(starpu_data_handle_t root_handle, int nfilters, struct starpu_data_filter **filters)
 {
 	int i;
-	assert(nfilters >= 0);
+	STARPU_ASSERT(nfilters >= 0);
 	for (i = 0; i < nfilters; i++)
 	{
 		struct starpu_data_filter *next_filter = filters[i];
@@ -84,7 +84,7 @@ void starpu_data_map_filters_parray(starpu_data_handle_t root_handle, int nfilte
 void starpu_data_map_filters_array(starpu_data_handle_t root_handle, int nfilters, struct starpu_data_filter *filters)
 {
 	int i;
-	assert(nfilters >= 0);
+	STARPU_ASSERT(nfilters >= 0);
 	for (i = 0; i < nfilters; i++)
 	{
 		map_filter(root_handle, &filters[i]);

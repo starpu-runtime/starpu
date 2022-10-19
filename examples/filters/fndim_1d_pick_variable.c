@@ -51,8 +51,7 @@ int main(void)
 	};
 
 	ret = starpu_init(NULL);
-	if (ret == -ENODEV)
-	exit(77);
+	if (ret == -ENODEV) exit(77);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	starpu_malloc((void **)&arr1d, NX*sizeof(int));
