@@ -155,14 +155,14 @@ void _starpu_init_hip(void)
 }
 
 /* This is called to really discover the hardware */
-void _starpu_hip_discover_devices (struct _starpu_machine_config *config)
+void _starpu_hip_discover_devices(struct _starpu_machine_config *config)
 {
 	/* Discover the number of HIP devices. Fill the result in CONFIG. */
 
 	int cnt;
 	hipError_t hipres;
 
-	hipres = hipGetDeviceCount (&cnt);
+	hipres = hipGetDeviceCount(&cnt);
 	if (STARPU_UNLIKELY(hipres != hipSuccess))
 		cnt = 0;
 	config->topology.nhwdevices[STARPU_HIP_WORKER] = cnt;

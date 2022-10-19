@@ -88,7 +88,7 @@ int main(int argc, char **argv)
 		printf("%s:\n", min_prio_knob_name);
 		min_prio_val = starpu_perf_knob_get_per_scheduler_int32_value(min_prio_id, "prio");
 		printf("- %d\n", min_prio_val);
-		STARPU_ASSERT (max_prio_val >= min_prio_val);
+		STARPU_ASSERT(max_prio_val >= min_prio_val);
 
 		if (min_prio_val > 0)
 		{
@@ -108,8 +108,8 @@ int main(int argc, char **argv)
 		printf("%s:\n", min_prio_knob_name);
 		min_prio_val = starpu_perf_knob_get_per_scheduler_int32_value(min_prio_id, "prio");
 		printf("- %d\n", min_prio_val);
-		STARPU_ASSERT (max_prio_val == 0);
-		STARPU_ASSERT (min_prio_val == 0);
+		STARPU_ASSERT(max_prio_val == 0);
+		STARPU_ASSERT(min_prio_val == 0);
 
 	}
 

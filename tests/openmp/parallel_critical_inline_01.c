@@ -72,8 +72,7 @@ void parallel_region_f(void *buffers[], void *args)
 	printf("[tid %p] task thread = %d -- parallel <--\n", (void *)tid, worker_id);
 }
 
-int
-main (void)
+int main(void)
 {
 	struct starpu_omp_parallel_region_attr attr;
 	pthread_t tid;

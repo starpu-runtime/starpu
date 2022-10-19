@@ -148,7 +148,7 @@ int starpu_energy_start(int workerid STARPU_ATTRIBUTE_UNUSED, enum starpu_worker
 	{
 		STARPU_ASSERT_MSG(workerid != -1, "For CUDA GPUs we measure each GPU separately, please specify a worker\n");
 		int devid = starpu_worker_get_devid(workerid);
-		int ret = nvmlDeviceGetHandleByIndex_v2 (devid,  &device);
+		int ret = nvmlDeviceGetHandleByIndex_v2(devid,  &device);
 		if (ret != NVML_SUCCESS)
 		{
 			_STARPU_DISP("Could not get CUDA device %d from nvml\n", devid);

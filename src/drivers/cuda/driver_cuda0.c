@@ -121,15 +121,14 @@ void _starpu_init_cuda(void)
 }
 
 /* This is called to really discover the hardware */
-void
-_starpu_cuda_discover_devices (struct _starpu_machine_config *config)
+void _starpu_cuda_discover_devices(struct _starpu_machine_config *config)
 {
 	/* Discover the number of CUDA devices. Fill the result in CONFIG. */
 
 	int cnt;
 	cudaError_t cures;
 
-	cures = cudaGetDeviceCount (&cnt);
+	cures = cudaGetDeviceCount(&cnt);
 	if (STARPU_UNLIKELY(cures != cudaSuccess))
 		cnt = 0;
 	config->topology.nhwdevices[STARPU_CUDA_WORKER] = cnt;
@@ -417,11 +416,10 @@ void _starpu_cuda_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, i
 		STARPU_CUDA_REPORT_ERROR(err);
 }
 
-int
-starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node,
-			    void *dst_ptr, unsigned dst_node,
-			    size_t ssize, cudaStream_t stream STARPU_ATTRIBUTE_UNUSED,
-			    enum cudaMemcpyKind kind)
+int starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node,
+				void *dst_ptr, unsigned dst_node,
+				size_t ssize, cudaStream_t stream STARPU_ATTRIBUTE_UNUSED,
+				enum cudaMemcpyKind kind)
 {
 	cudaError_t cures = 0;
 

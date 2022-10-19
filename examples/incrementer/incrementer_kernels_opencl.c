@@ -42,7 +42,7 @@ void opencl_codelet(void *descr[], void *_args)
 		cl_device_id device;
 
 		starpu_opencl_get_device(devid, &device);
-		err = clGetKernelWorkGroupInfo (kernel, device, CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, &s);
+		err = clGetKernelWorkGroupInfo(kernel, device, CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, &s);
 		if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 		if (local > global) local=global;
 

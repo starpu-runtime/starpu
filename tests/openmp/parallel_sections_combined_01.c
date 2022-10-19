@@ -92,8 +92,7 @@ void parallel_region_f(void *buffers[], void *args)
 	starpu_omp_sections_combined(4, func, section_args, 0);
 }
 
-int
-main (void)
+int main(void)
 {
 	struct starpu_omp_parallel_region_attr attr;
 	memset(&attr, 0, sizeof(attr));

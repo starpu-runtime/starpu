@@ -35,37 +35,37 @@ static const struct starpu_data_copy_methods JOBJECT_VECTOR_COPY_METHODS =
 	.any_to_any = NULL
 };
 
-static void s_jobject_vector_register_data_handle (starpu_data_handle_t handle, unsigned home_node, void *data_interface);
+static void s_jobject_vector_register_data_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface);
 
-static starpu_ssize_t s_jobject_vector_allocate_data_on_node (void *data_interface, unsigned node);
+static starpu_ssize_t s_jobject_vector_allocate_data_on_node(void *data_interface, unsigned node);
 
-static void s_jobject_vector_free_data_on_node (void *data_interface, unsigned node);
+static void s_jobject_vector_free_data_on_node(void *data_interface, unsigned node);
 
 #define s_jobject_vector_handle_to_pointer NULL
 
-static void *s_jobject_vector_to_pointer (void *data_interface, unsigned node);
+static void *s_jobject_vector_to_pointer(void *data_interface, unsigned node);
 
-static int s_jobject_vector_pointer_is_inside (void *data_interface, unsigned node, void *ptr);
+static int s_jobject_vector_pointer_is_inside(void *data_interface, unsigned node, void *ptr);
 
-static size_t s_jobject_vector_get_size (starpu_data_handle_t handle);
+static size_t s_jobject_vector_get_size(starpu_data_handle_t handle);
 
-static uint32_t s_jobject_vector_footprint (starpu_data_handle_t handle);
+static uint32_t s_jobject_vector_footprint(starpu_data_handle_t handle);
 
 #define s_jobject_vector_alloc_footprint NULL
 
-static int s_jobject_vector_compare (void *data_interface_a, void *data_interface_b);
+static int s_jobject_vector_compare(void *data_interface_a, void *data_interface_b);
 
 #define s_jobject_vector_alloc_compare NULL
 
-static void s_jobject_vector_display (starpu_data_handle_t handle, FILE *f);
+static void s_jobject_vector_display(starpu_data_handle_t handle, FILE *f);
 
-static starpu_ssize_t s_jobject_vector_describe (void *data_interface, char *buf, size_t size);
+static starpu_ssize_t s_jobject_vector_describe(void *data_interface, char *buf, size_t size);
 
 #define s_jobject_vector_get_mf_ops NULL
 
-static int s_jobject_vector_pack_data (starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count);
+static int s_jobject_vector_pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count);
 
-static int s_jobject_vector_unpack_data (starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
+static int s_jobject_vector_unpack_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
 
 static struct starpu_data_interface_ops JOBJECT_VECTOR_INTERFACE_OPS =
 {
@@ -93,19 +93,19 @@ static struct starpu_data_interface_ops JOBJECT_VECTOR_INTERFACE_OPS =
 	.name = (char *) "JOBJECT_VECTOR_INTERFACE"
 };
 
-static unsigned s_memory_node (void)
+static unsigned s_memory_node(void)
 {
-	int workerid = starpu_worker_get_id ();
+	int workerid = starpu_worker_get_id();
 	unsigned result;
 	if (workerid == -1)
 		result = STARPU_MAIN_RAM;
 	else
-		result = starpu_worker_get_memory_node (workerid);
+		result = starpu_worker_get_memory_node(workerid);
 
 	return result;
 }
 
-void starpujni_jobject_vector_data_register (starpu_data_handle_t *handleptr, int home_node, uint32_t size)
+void starpujni_jobject_vector_data_register(starpu_data_handle_t *handleptr, int home_node, uint32_t size)
 {
 	struct jobject_vector_interface vector =
 	{
@@ -116,33 +116,33 @@ void starpujni_jobject_vector_data_register (starpu_data_handle_t *handleptr, in
 
 	if (JOBJECT_VECTOR_INTERFACE_OPS.interfaceid == STARPU_UNKNOWN_INTERFACE_ID)
 		JOBJECT_VECTOR_INTERFACE_OPS.interfaceid = STARPUJNI_JOBJECT_VECTOR_INTERFACE_ID;
-	starpu_data_register (handleptr, home_node, &vector, &JOBJECT_VECTOR_INTERFACE_OPS);
+	starpu_data_register(handleptr, home_node, &vector, &JOBJECT_VECTOR_INTERFACE_OPS);
 }
 
-uint32_t starpujni_jobject_vector_get_nx (starpu_data_handle_t handle)
+uint32_t starpujni_jobject_vector_get_nx(starpu_data_handle_t handle)
 {
-	struct jobject_vector_interface *vector = starpu_data_get_interface_on_node (handle, STARPU_MAIN_RAM);
+	struct jobject_vector_interface *vector = starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 	return vector->nx;
 }
 
-uintptr_t starpujni_jobject_vector_get_local_ptr (starpu_data_handle_t handle)
+uintptr_t starpujni_jobject_vector_get_local_ptr(starpu_data_handle_t handle)
 {
-	unsigned node = s_memory_node ();
+	unsigned node = s_memory_node();
 
-	STARPU_ASSERT(starpu_data_test_if_allocated_on_node (handle, node));
-	struct jobject_vector_interface *vector = starpu_data_get_interface_on_node (handle, node);
+	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
+	struct jobject_vector_interface *vector = starpu_data_get_interface_on_node(handle, node);
 
 	return vector->ptr;
 }
 
-static void s_jobject_vector_register_data_handle (starpu_data_handle_t handle, unsigned home_node, void *data_interface)
+static void s_jobject_vector_register_data_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
 {
 	struct jobject_vector_interface *vector_interface = data_interface;
 
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
-		struct jobject_vector_interface *local_interface = starpu_data_get_interface_on_node (handle, node);
+		struct jobject_vector_interface *local_interface = starpu_data_get_interface_on_node(handle, node);
 
 		if (node == home_node)
 		{
@@ -157,11 +157,11 @@ static void s_jobject_vector_register_data_handle (starpu_data_handle_t handle, 
 	}
 }
 
-static starpu_ssize_t s_jobject_vector_allocate_data_on_node (void *data_interface, unsigned node)
+static starpu_ssize_t s_jobject_vector_allocate_data_on_node(void *data_interface, unsigned node)
 {
 	struct jobject_vector_interface *vector = data_interface;
-	size_t allocsize = sizeof (jobject) * vector->nx;
-	uintptr_t addr = starpu_malloc_on_node (node, allocsize);
+	size_t allocsize = sizeof(jobject) * vector->nx;
+	uintptr_t addr = starpu_malloc_on_node(node, allocsize);
 
 	if (!addr)
 		return -ENOMEM;
@@ -171,14 +171,14 @@ static starpu_ssize_t s_jobject_vector_allocate_data_on_node (void *data_interfa
 	return allocsize;
 }
 
-static void s_jobject_vector_free_data_on_node (void *data_interface, unsigned node)
+static void s_jobject_vector_free_data_on_node(void *data_interface, unsigned node)
 {
 	struct jobject_vector_interface *vector = data_interface;
 
-	starpu_free_on_node (node, vector->ptr, vector->nx * sizeof (jobject));
+	starpu_free_on_node(node, vector->ptr, vector->nx * sizeof(jobject));
 }
 
-static void *s_jobject_vector_to_pointer (void *data_interface, unsigned node)
+static void *s_jobject_vector_to_pointer(void *data_interface, unsigned node)
 {
 	(void) node;
 	struct jobject_vector_interface *vector = data_interface;
@@ -186,30 +186,30 @@ static void *s_jobject_vector_to_pointer (void *data_interface, unsigned node)
 	return (void *) vector->ptr;
 }
 
-static int s_jobject_vector_pointer_is_inside (void *data_interface, unsigned node, void *ptr)
+static int s_jobject_vector_pointer_is_inside(void *data_interface, unsigned node, void *ptr)
 {
 	(void) node;
 	struct jobject_vector_interface *vector = data_interface;
 
 	return
 		((char *) ptr >= (char *) vector->ptr &&
-		 (char *) ptr < (char *) vector->ptr + vector->nx * sizeof (jobject));
+		 (char *) ptr < (char *) vector->ptr + vector->nx * sizeof(jobject));
 }
 
-static size_t s_jobject_vector_get_size (starpu_data_handle_t handle)
+static size_t s_jobject_vector_get_size(starpu_data_handle_t handle)
 {
-	struct jobject_vector_interface *vector = starpu_data_get_interface_on_node (handle, STARPU_MAIN_RAM);
-	size_t size = vector->nx * sizeof (jobject);
+	struct jobject_vector_interface *vector = starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+	size_t size = vector->nx * sizeof(jobject);
 
 	return size;
 }
 
-static uint32_t s_jobject_vector_footprint (starpu_data_handle_t handle)
+static uint32_t s_jobject_vector_footprint(starpu_data_handle_t handle)
 {
-	return starpu_hash_crc32c_be (starpujni_jobject_vector_get_nx (handle), 0);
+	return starpu_hash_crc32c_be(starpujni_jobject_vector_get_nx(handle), 0);
 }
 
-static int s_jobject_vector_compare (void *data_interface_a, void *data_interface_b)
+static int s_jobject_vector_compare(void *data_interface_a, void *data_interface_b)
 {
 	struct jobject_vector_interface *v1 = data_interface_a;
 	struct jobject_vector_interface *v2 = data_interface_b;
@@ -217,44 +217,44 @@ static int s_jobject_vector_compare (void *data_interface_a, void *data_interfac
 	return v1->nx == v2->nx;
 }
 
-static void s_jobject_vector_display (starpu_data_handle_t handle, FILE *f)
+static void s_jobject_vector_display(starpu_data_handle_t handle, FILE *f)
 {
-	struct jobject_vector_interface *vector = starpu_data_get_interface_on_node (handle, STARPU_MAIN_RAM);
-	fprintf (f, "%u\t", vector->nx);
+	struct jobject_vector_interface *vector = starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+	fprintf(f, "%u\t", vector->nx);
 }
 
-static starpu_ssize_t s_jobject_vector_describe (void *data_interface, char *buf, size_t size)
+static starpu_ssize_t s_jobject_vector_describe(void *data_interface, char *buf, size_t size)
 {
 	struct jobject_vector_interface *vector = data_interface;
-	return snprintf(buf, size, "JV%u", (unsigned) vector->nx);
+	return snprintf(buf, size, "JV%u",(unsigned) vector->nx);
 }
 
-static int s_jobject_vector_pack_data (starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count)
+static int s_jobject_vector_pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count)
 {
 	jbyte *buf;
 	JNIEnv *env = NULL;
 	jbyteArray output;
 
-	STARPU_ASSERT(starpu_data_test_if_allocated_on_node (handle, node));
-	if ((*THE_VM)->AttachCurrentThread (THE_VM, (void **) &env, NULL) != JNI_OK)
+	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
+	if ((*THE_VM)->AttachCurrentThread(THE_VM, (void **) &env, NULL) != JNI_OK)
 	{
-		fprintf (stderr, "Cannot attach current thread.\n");
+		fprintf(stderr, "Cannot attach current thread.\n");
 		return -1;
 	}
 	STARPU_ASSERT(env != NULL);
 	struct jobject_vector_interface *vector = starpu_data_get_interface_on_node(handle, node);
-	output = (*env)->CallStaticObjectMethod (env, starpujni_vector_handle_class,
+	output = (*env)->CallStaticObjectMethod(env, starpujni_vector_handle_class,
 						 starpujni_vector_handle_pack_method,
-						 (jlong) PTR_SET_MARK (vector));
-	*count = (*env)->GetArrayLength (env, output) * sizeof (jbyte);
+						 (jlong) PTR_SET_MARK(vector));
+	*count = (*env)->GetArrayLength(env, output) * sizeof(jbyte);
 	if (ptr != NULL)
 	{
-		starpu_malloc_flags (ptr, *count, 0);
+		starpu_malloc_flags(ptr, *count, 0);
 		if (*ptr != NULL)
 		{
-			buf = (*env)->GetByteArrayElements (env, output, NULL);
-			memcpy (*ptr, buf, *count);
-			(*env)->ReleaseByteArrayElements (env, output, buf, JNI_ABORT);
+			buf = (*env)->GetByteArrayElements(env, output, NULL);
+			memcpy(*ptr, buf, *count);
+			(*env)->ReleaseByteArrayElements(env, output, buf, JNI_ABORT);
 		}
 		else
 			{
@@ -265,34 +265,34 @@ static int s_jobject_vector_pack_data (starpu_data_handle_t handle, unsigned nod
 	return 0;
 }
 
-static int s_jobject_vector_unpack_data (starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
+static int s_jobject_vector_unpack_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
 {
 	jbyteArray input;
 	jbyte *buf;
 	JNIEnv *env = NULL;
 	struct jobject_vector_interface *vector;
 
-	STARPU_ASSERT(starpu_data_test_if_allocated_on_node (handle, node));
-	if ((*THE_VM)->AttachCurrentThread (THE_VM, (void **) &env, NULL) != JNI_OK)
+	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
+	if ((*THE_VM)->AttachCurrentThread(THE_VM, (void **) &env, NULL) != JNI_OK)
 	{
-		fprintf (stderr, "Cannot attach current thread.\n");
+		fprintf(stderr, "Cannot attach current thread.\n");
 		return -1;
 	}
 	STARPU_ASSERT(env != NULL);
-	input = (*env)->NewByteArray (env, count);
+	input = (*env)->NewByteArray(env, count);
 	if (input == NULL)
 		return -1;
 
-	buf = (*env)->GetByteArrayElements (env, input, NULL);
+	buf = (*env)->GetByteArrayElements(env, input, NULL);
 	memcpy(buf, ptr, count);
 	(*env)->ReleaseByteArrayElements(env, input, buf, 0);
 
 	vector = starpu_data_get_interface_on_node(handle, node);
 
-	(*env)->CallStaticObjectMethod (env, starpujni_vector_handle_class,
+	(*env)->CallStaticObjectMethod(env, starpujni_vector_handle_class,
 					starpujni_vector_handle_unpack_method,
-					(jlong) PTR_SET_MARK (vector), input);
-	(*env)->DeleteLocalRef (env, input);
+					(jlong) PTR_SET_MARK(vector), input);
+	(*env)->DeleteLocalRef(env, input);
 
 	return 0;
 }
@@ -301,38 +301,38 @@ JNIEXPORT jlong JNICALL STARPU_DATA_FUNCNAME(VectorHandle, vectorObjectRegister)
 {
 	int i;
 	starpu_data_handle_t hdl = NULL;
-	starpujni_jobject_vector_data_register (&hdl, -1, size);
+	starpujni_jobject_vector_data_register(&hdl, -1, size);
 	jobject *array;
 
 	if(hdl == NULL)
-		starpujni_raise_exception (env, "not enough memory");
-	starpu_data_acquire (hdl, STARPU_W);
-	array = (jobject *) starpu_data_get_local_ptr (hdl);
+		starpujni_raise_exception(env, "not enough memory");
+	starpu_data_acquire(hdl, STARPU_W);
+	array = (jobject *) starpu_data_get_local_ptr(hdl);
 	for(i = 0; i < size; i++)
 		array[i] = NULL;
-	starpu_data_release (hdl);
+	starpu_data_release(hdl);
 
 	return (jlong) hdl;
 }
 
 JNIEXPORT jint JNICALL STARPU_DATA_FUNCNAME(VectorHandle, vectorObjectGetSize)(JNIEnv *env, jclass cls, jlong handle)
 {
-	starpu_data_handle_t hdl = (starpu_data_handle_t) PTR_GET_ADDR (handle);
+	starpu_data_handle_t hdl =(starpu_data_handle_t) PTR_GET_ADDR(handle);
 
-	if (PTR_HAS_MARK (handle))
-		return (jint) STARPUJNI_JOBJECT_VECTOR_GET_NX (handle);
-	return (jint) starpujni_jobject_vector_get_nx (hdl);
+	if (PTR_HAS_MARK(handle))
+		return (jint) STARPUJNI_JOBJECT_VECTOR_GET_NX(handle);
+	return (jint) starpujni_jobject_vector_get_nx(hdl);
 }
 
 JNIEXPORT jobject JNICALL STARPU_DATA_FUNCNAME(VectorHandle, vectorObjectGetAt)(JNIEnv *env, jclass cls, jlong handle, jint idx)
 {
 	jobject result;
 
-	if (PTR_HAS_MARK (handle))
+	if (PTR_HAS_MARK(handle))
 	{
-		STARPU_ASSERT(0 <= idx && idx < STARPUJNI_JOBJECT_VECTOR_GET_NX (handle));
+		STARPU_ASSERT(0 <= idx && idx < STARPUJNI_JOBJECT_VECTOR_GET_NX(handle));
 		jobject *array = (jobject *)
-			STARPUJNI_JOBJECT_VECTOR_GET_LOCAL_PTR (handle);
+			STARPUJNI_JOBJECT_VECTOR_GET_LOCAL_PTR(handle);
 		if (array == NULL)
 			return NULL;
 		result = array[idx];
@@ -340,11 +340,11 @@ JNIEXPORT jobject JNICALL STARPU_DATA_FUNCNAME(VectorHandle, vectorObjectGetAt)(
 	else
 	{
 		jobject *array;
-		starpu_data_handle_t hdl = (starpu_data_handle_t) PTR_GET_ADDR (handle);
-		if (starpu_data_test_if_allocated_on_node (hdl, s_memory_node ()))
+		starpu_data_handle_t hdl = (starpu_data_handle_t) PTR_GET_ADDR(handle);
+		if (starpu_data_test_if_allocated_on_node(hdl, s_memory_node()))
 		{
-			STARPU_ASSERT(0 <= idx && idx < starpujni_jobject_vector_get_nx (hdl));
-			array = (jobject *) starpujni_jobject_vector_get_local_ptr (hdl);
+			STARPU_ASSERT(0 <= idx && idx < starpujni_jobject_vector_get_nx(hdl));
+			array = (jobject *) starpujni_jobject_vector_get_local_ptr(hdl);
 			result = array[idx];
 		}
 		else
@@ -357,30 +357,30 @@ JNIEXPORT jobject JNICALL STARPU_DATA_FUNCNAME(VectorHandle, vectorObjectGetAt)(
 
 JNIEXPORT void JNICALL STARPU_DATA_FUNCNAME(VectorHandle, vectorObjectSetAt)(JNIEnv *env, jclass cls, jlong handle, jint idx, jobject value)
 {
-	jobject old = STARPU_DATA_FUNCNAME(VectorHandle, vectorObjectGetAt) (env, cls, handle, idx);
+	jobject old = STARPU_DATA_FUNCNAME(VectorHandle, vectorObjectGetAt)(env, cls, handle, idx);
 	if (old != NULL)
-		(*env)->DeleteGlobalRef (env, old);
-	value = (*env)->NewGlobalRef (env, value);
+		(*env)->DeleteGlobalRef(env, old);
+	value = (*env)->NewGlobalRef(env, value);
 
-	if (PTR_HAS_MARK (handle))
+	if (PTR_HAS_MARK(handle))
 	{
-		STARPU_ASSERT(0 <= idx && idx < STARPUJNI_JOBJECT_VECTOR_GET_NX (handle));
-		jobject *array = (jobject *) STARPUJNI_JOBJECT_VECTOR_GET_LOCAL_PTR (handle);
+		STARPU_ASSERT(0 <= idx && idx < STARPUJNI_JOBJECT_VECTOR_GET_NX(handle));
+		jobject *array = (jobject *) STARPUJNI_JOBJECT_VECTOR_GET_LOCAL_PTR(handle);
 		array[idx] = value;
 	}
 	else
 	{
 		jobject *array;
-		starpu_data_handle_t hdl = (starpu_data_handle_t) PTR_GET_ADDR (handle);
+		starpu_data_handle_t hdl = (starpu_data_handle_t) PTR_GET_ADDR(handle);
 
-		STARPU_ASSERT(0 <= idx && idx < starpujni_jobject_vector_get_nx (hdl));
-		array = (jobject *) starpujni_jobject_vector_get_local_ptr (hdl);
+		STARPU_ASSERT(0 <= idx && idx < starpujni_jobject_vector_get_nx(hdl));
+		array = (jobject *) starpujni_jobject_vector_get_local_ptr(hdl);
 		array[idx] = value;
 	}
 }
 
 /* copy/paste from *PU */
-static void s_compute_chunk_size_and_offset (unsigned n, unsigned nparts, size_t elemsize, unsigned i, unsigned ld, unsigned *chunk_size, size_t *offset)
+static void s_compute_chunk_size_and_offset(unsigned n, unsigned nparts, size_t elemsize, unsigned i, unsigned ld, unsigned *chunk_size, size_t *offset)
 {
 	*chunk_size = n / nparts;
 	unsigned remainder = n % nparts;
@@ -390,7 +390,7 @@ static void s_compute_chunk_size_and_offset (unsigned n, unsigned nparts, size_t
 		*offset = (i * (n / nparts) + STARPU_MIN(remainder, i)) * ld * elemsize;
 }
 
-static void s_jobject_vector_filter_block (void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
+static void s_jobject_vector_filter_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
 {
 	uint32_t child_nx;
 	size_t offset;
@@ -400,7 +400,7 @@ static void s_jobject_vector_filter_block (void *father_interface, void *child_i
 
 	STARPU_ASSERT_MSG(nchunks <= nx, "%u parts for %u elements", nchunks, nx);
 
-	s_compute_chunk_size_and_offset (nx, nchunks, sizeof (jobject), id, 1, &child_nx, &offset);
+	s_compute_chunk_size_and_offset(nx, nchunks, sizeof(jobject), id, 1, &child_nx, &offset);
 
 	STARPU_ASSERT_MSG(vector_father->id == STARPUJNI_JOBJECT_VECTOR_INTERFACE_ID,
 			  "%s can only be applied on a jobject-vector data", __func__);
@@ -417,8 +417,8 @@ JNIEXPORT void JNICALL STARPU_DATA_FUNCNAME(VectorHandle, partition)(JNIEnv *env
 		.nchildren = nbParts
 	};
 
-	assert (nbParts > 0);
-	assert (!PTR_HAS_MARK (handle));
+	assert(nbParts > 0);
+	assert(!PTR_HAS_MARK(handle));
 
-	starpu_data_partition ((starpu_data_handle_t) handle, &f);
+	starpu_data_partition((starpu_data_handle_t) handle, &f);
 }

@@ -50,12 +50,13 @@ static enum _starpu_mp_node_kind _starpu_sink_common_get_kind(void)
 		return STARPU_NODE_INVALID_KIND;
 }
 
-/* Send to host the number of cores of the sink device
- */
-static void _starpu_sink_common_get_nb_cores (struct _starpu_mp_node *node)
+/*
+  Send to host the number of cores of the sink device
+*/
+static void _starpu_sink_common_get_nb_cores(struct _starpu_mp_node *node)
 {
 	// Process packet received from `_starpu_src_common_sink_cores'.
-	_starpu_mp_common_send_command (node, STARPU_MP_COMMAND_ANSWER_SINK_NBCORES, &node->nb_cores, sizeof (int));
+	_starpu_mp_common_send_command(node, STARPU_MP_COMMAND_ANSWER_SINK_NBCORES, &node->nb_cores, sizeof(int));
 }
 
 /* Send to host the address of the function given in parameter
@@ -76,7 +77,7 @@ static void _starpu_sink_common_lookup(const struct _starpu_mp_node *node, char 
 }
 
 /* CPU version of sink lookup */
-void (*_starpu_sink_common_cpu_lookup (const struct _starpu_mp_node * node STARPU_ATTRIBUTE_UNUSED, char* func_name))(void)
+void (*_starpu_sink_common_cpu_lookup(const struct _starpu_mp_node * node STARPU_ATTRIBUTE_UNUSED, char* func_name))(void)
 {
 #ifdef RTLD_DEFAULT
 	return dlsym(RTLD_DEFAULT, func_name);

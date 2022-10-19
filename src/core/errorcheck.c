@@ -23,7 +23,7 @@ void _starpu_add_worker_status(struct _starpu_worker *worker, enum _starpu_worke
 	starpu_pthread_cond_t *sched_cond;
 	starpu_worker_get_sched_condition(worker->workerid, &sched_mutex, &sched_cond);
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(sched_mutex);
-	STARPU_ASSERT(! (worker->status & (1 << st)));
+	STARPU_ASSERT(!(worker->status & (1 << st)));
 	if (starpu_profiling_status_get())
 		_starpu_worker_start_state(worker->workerid, st, time);
 	worker->status |= (1 << st);

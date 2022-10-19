@@ -185,7 +185,7 @@ void _starpu_deinit_mem_chunk_lists(void)
 		STARPU_ASSERT(node->mc_dirty_head == NULL);
 		HASH_ITER(hh, node->mc_cache, entry, tmp)
 		{
-			STARPU_ASSERT (_starpu_mem_chunk_list_empty(&entry->list));
+			STARPU_ASSERT(_starpu_mem_chunk_list_empty(&entry->list));
 			HASH_DEL(node->mc_cache, entry);
 			free(entry);
 		}

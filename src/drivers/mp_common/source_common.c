@@ -73,7 +73,7 @@ static unsigned mp_node_memory_node(struct _starpu_mp_node *node)
 }
 
 /* Finalize the execution of a task by a worker*/
-static int _starpu_src_common_finalize_job (struct _starpu_job *j, struct _starpu_worker *worker)
+static int _starpu_src_common_finalize_job(struct _starpu_job *j, struct _starpu_worker *worker)
 {
 	int profiling = starpu_profiling_status_get();
 	_starpu_driver_end_job(worker, j, &worker->perf_arch, 0, profiling);
@@ -98,7 +98,7 @@ static int _starpu_src_common_finalize_job (struct _starpu_job *j, struct _starp
 	{
 		_starpu_driver_update_job_feedback(j, worker, &worker->perf_arch, profiling);
 
-		_starpu_push_task_output (j);
+		_starpu_push_task_output(j);
 
 		_starpu_handle_job_termination(j);
 	}
@@ -140,7 +140,7 @@ static int _starpu_src_common_process_completed_job(struct _starpu_mp_node *node
 		STARPU_PTHREAD_MUTEX_UNLOCK(&node->connection_mutex);
 
 	_starpu_set_local_worker_key(worker);
-	_starpu_src_common_finalize_job (j, worker);
+	_starpu_src_common_finalize_job(j, worker);
 	_starpu_set_local_worker_key(old_worker);
 
 	worker->current_task = NULL;
@@ -326,7 +326,7 @@ enum _starpu_mp_command _starpu_src_common_wait_completed_execution(struct _star
 	/*While the waited completed execution message has not been receive*/
 	while(!completed)
 	{
-		answer = _starpu_nt_common_recv_command (node, arg, arg_size);
+		answer = _starpu_nt_common_recv_command(node, arg, arg_size);
 
 		if(answer == STARPU_MP_COMMAND_NOTIF_EXECUTION_DETACHED_COMPLETED)
 		{
@@ -350,21 +350,21 @@ enum _starpu_mp_command _starpu_src_common_wait_completed_execution(struct _star
 }
 
 /* Send a request to the sink NODE for the number of cores on it. */
-int _starpu_src_common_sink_nbcores (struct _starpu_mp_node *node, int *buf)
+int _starpu_src_common_sink_nbcores(struct _starpu_mp_node *node, int *buf)
 {
 	enum _starpu_mp_command answer;
 	void *arg;
-	int arg_size = sizeof (int);
+	int arg_size = sizeof(int);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&node->connection_mutex);
 
-	_starpu_mp_common_send_command (node, STARPU_MP_COMMAND_SINK_NBCORES, NULL, 0);
+	_starpu_mp_common_send_command(node, STARPU_MP_COMMAND_SINK_NBCORES, NULL, 0);
 
-	answer = _starpu_mp_common_recv_command (node, &arg, &arg_size);
+	answer = _starpu_mp_common_recv_command(node, &arg, &arg_size);
 
-	STARPU_ASSERT(answer == STARPU_MP_COMMAND_ANSWER_SINK_NBCORES && arg_size == sizeof (int));
+	STARPU_ASSERT(answer == STARPU_MP_COMMAND_ANSWER_SINK_NBCORES && arg_size == sizeof(int));
 
-	memcpy (buf, arg, arg_size);
+	memcpy(buf, arg, arg_size);
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&node->connection_mutex);
 
@@ -508,7 +508,7 @@ int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 				  /* NDIM is not currently supported: would need to transfer the nn and ldn arrays */
 				  "MPI-MS currently cannot work with interface type %d", id);
 
-		memcpy ((void*) buffer_ptr, interfaces[i], handle->ops->interface_size);
+		memcpy((void*) buffer_ptr, interfaces[i], handle->ops->interface_size);
 		/* The sink side has no mean to get the type of each
 		 * interface, we use a union to make it generic and permit the
 		 * sink to go through the array */

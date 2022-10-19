@@ -175,7 +175,7 @@ void _starpu_profiling_init(void)
 			}
 
 			_STARPU_DEBUG("Loading PAPI Event: %s\n", papi_event_name);
-			retval = PAPI_event_name_to_code ((char*)papi_event_name, &papi_events[papi_nevents]);
+			retval = PAPI_event_name_to_code((char*)papi_event_name, &papi_events[papi_nevents]);
 			if (retval != PAPI_OK)
 				_STARPU_MSG("Failed to codify papi event [%s], error: %s.\n", papi_event_name, PAPI_strerror(retval));
 			else
@@ -371,7 +371,7 @@ void _starpu_worker_start_state(int workerid, enum _starpu_worker_status_index i
 		struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 
 		STARPU_PTHREAD_MUTEX_LOCK(&worker->profiling_info_mutex);
-		STARPU_ASSERT (worker->profiling_registered_start[index] == 0);
+		STARPU_ASSERT(worker->profiling_registered_start[index] == 0);
 		worker->profiling_registered_start[index] = 1;
 		worker->profiling_registered_start_date[index] = *start_time;
 

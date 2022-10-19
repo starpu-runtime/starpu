@@ -236,8 +236,7 @@ void parallel_region_f(void *buffers[], void *args)
 	}
 }
 
-int
-main (void)
+int main(void)
 {
 	struct starpu_omp_parallel_region_attr attr;
 

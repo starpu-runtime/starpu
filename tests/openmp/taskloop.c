@@ -58,8 +58,7 @@ void taskloop_callback_wrapper(void *buffers[], void *_args)
 	taskloop_callback(args->begin_i, args->end_i);
 }
 
-int
-main (void)
+int main(void)
 {
 	struct starpu_omp_task_region_attr attr;
 	memset(&attr, 0, sizeof(attr));

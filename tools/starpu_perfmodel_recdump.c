@@ -460,7 +460,7 @@ int main(int argc, char **argv)
 					free(symbol);
 				}
 			}
-			closedir (dp);
+			closedir(dp);
 		}
 		else
 		{

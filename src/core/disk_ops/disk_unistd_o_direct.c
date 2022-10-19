@@ -38,7 +38,7 @@ static void *starpu_unistd_o_direct_alloc(void *base, size_t size)
 	_STARPU_MALLOC(obj, sizeof(struct starpu_unistd_global_obj));
 	/* only flags change between unistd and unistd_o_direct */
 	obj->flags = O_RDWR | O_DIRECT | O_BINARY;
-	return starpu_unistd_global_alloc (obj, base, size);
+	return starpu_unistd_global_alloc(obj, base, size);
 }
 
 /* open an existing memory on disk */
@@ -48,7 +48,7 @@ static void *starpu_unistd_o_direct_open(void *base, void *pos, size_t size)
 	_STARPU_MALLOC(obj, sizeof(struct starpu_unistd_global_obj));
 	/* only flags change between unistd and unistd_o_direct */
 	obj->flags = O_RDWR | O_DIRECT | O_BINARY;
-	return starpu_unistd_global_open (obj, base, pos, size);
+	return starpu_unistd_global_open(obj, base, pos, size);
 }
 
 /* read the memory disk */
@@ -58,7 +58,7 @@ static int starpu_unistd_o_direct_read(void *base, void *obj, void *buf, off_t o
 
 	STARPU_ASSERT_MSG((((uintptr_t) buf) % getpagesize()) == 0, "You have to use starpu_malloc function to get aligned buffers for the unistd_o_direct variant");
 
-	return starpu_unistd_global_read (base, obj, buf, offset, size);
+	return starpu_unistd_global_read(base, obj, buf, offset, size);
 }
 
 /* write on the memory disk */
@@ -68,7 +68,7 @@ static int starpu_unistd_o_direct_write(void *base, void *obj, const void *buf, 
 
 	STARPU_ASSERT_MSG((((uintptr_t)buf) % getpagesize()) == 0, "You have to use starpu_malloc function to get aligned buffers for the unistd_o_direct variant");
 
-	return starpu_unistd_global_write (base, obj, buf, offset, size);
+	return starpu_unistd_global_write(base, obj, buf, offset, size);
 }
 
 /* create a new copy of parameter == base */
@@ -76,7 +76,7 @@ static void *starpu_unistd_o_direct_plug(void *parameter, starpu_ssize_t size)
 {
 	starpu_malloc_set_align(getpagesize());
 
-	return starpu_unistd_global_plug (parameter, size);
+	return starpu_unistd_global_plug(parameter, size);
 }
 
 #if defined(HAVE_AIO_H) || defined(HAVE_LIBAIO_H)
@@ -87,7 +87,7 @@ void *starpu_unistd_o_direct_global_async_read(void *base, void *obj, void *buf,
 
 	STARPU_ASSERT_MSG((((uintptr_t) buf) % getpagesize()) == 0, "You have to use starpu_malloc function to get aligned buffers for the unistd_o_direct variant");
 
-	return starpu_unistd_global_async_read (base, obj, buf, offset, size);
+	return starpu_unistd_global_async_read(base, obj, buf, offset, size);
 }
 
 void *starpu_unistd_o_direct_global_async_write(void *base, void *obj, void *buf, off_t offset, size_t size)
@@ -97,7 +97,7 @@ void *starpu_unistd_o_direct_global_async_write(void *base, void *obj, void *buf
 
 	STARPU_ASSERT_MSG((((uintptr_t)buf) % getpagesize()) == 0, "You have to use starpu_malloc function to get aligned buffers for the unistd_o_direct variant");
 
-	return starpu_unistd_global_async_write (base, obj, buf, offset, size);
+	return starpu_unistd_global_async_write(base, obj, buf, offset, size);
 }
 #endif
 

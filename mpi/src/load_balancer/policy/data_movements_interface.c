@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -101,7 +101,7 @@ int data_movements_reallocate_tables(starpu_data_handle_t handle, unsigned node,
 {
 	struct data_movements_interface *dm_interface =
 		(struct data_movements_interface *) starpu_data_get_interface_on_node(handle, node);
-	return data_movements_reallocate_tables_interface (dm_interface, node, size);
+	return data_movements_reallocate_tables_interface(dm_interface, node, size);
 }
 
 static void data_movements_register_data_handle(starpu_data_handle_t handle, int home_node, void *data_interface)

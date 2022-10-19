@@ -195,15 +195,14 @@ void _starpu_init_cuda(void)
 }
 
 /* This is called to really discover the hardware */
-void
-_starpu_cuda_discover_devices (struct _starpu_machine_config *config)
+void _starpu_cuda_discover_devices(struct _starpu_machine_config *config)
 {
 	/* Discover the number of CUDA devices. Fill the result in CONFIG. */
 
 	int cnt;
 	cudaError_t cures;
 
-	cures = cudaGetDeviceCount (&cnt);
+	cures = cudaGetDeviceCount(&cnt);
 	if (STARPU_UNLIKELY(cures != cudaSuccess))
 		cnt = 0;
 	config->topology.nhwdevices[STARPU_CUDA_WORKER] = cnt;
@@ -586,11 +585,10 @@ void _starpu_cuda_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, i
 		STARPU_CUDA_REPORT_ERROR(err);
 }
 
-int
-starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node,
-			    void *dst_ptr, unsigned dst_node,
-			    size_t ssize, cudaStream_t stream,
-			    enum cudaMemcpyKind kind)
+int starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node,
+				void *dst_ptr, unsigned dst_node,
+				size_t ssize, cudaStream_t stream,
+				enum cudaMemcpyKind kind)
 {
 #ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 	int peer_copy = 0;
@@ -736,17 +734,16 @@ starpu_cuda_copy2d_async_sync(void *src_ptr, unsigned src_node,
 		/* Test if the asynchronous copy has failed or if the caller only asked for a synchronous copy */
 		if (stream == NULL || cures)
 		{
-	cures = cudaMemcpy2D((char *)dst_ptr, ld_dst, (char *)src_ptr, ld_src,
-			blocksize, numblocks, kind);
-	if (!cures)
-		cures = cudaDeviceSynchronize();
-	if (STARPU_UNLIKELY(cures))
-		STARPU_CUDA_REPORT_ERROR(cures);
+			cures = cudaMemcpy2D((char *)dst_ptr, ld_dst, (char *)src_ptr, ld_src,
+					     blocksize, numblocks, kind);
+			if (!cures)
+				cures = cudaDeviceSynchronize();
+			if (STARPU_UNLIKELY(cures))
+				STARPU_CUDA_REPORT_ERROR(cures);
 
-	return 0;
+			return 0;
 		}
 	}
-
 
 	return -EAGAIN;
 }
@@ -995,10 +992,10 @@ int _starpu_cuda_copy2d_data_from_cuda_to_cpu(uintptr_t src, size_t src_offset, 
 	STARPU_ASSERT(src_kind == STARPU_CUDA_RAM && dst_kind == STARPU_CPU_RAM);
 
 	return starpu_cuda_copy2d_async_sync((void*) (src + src_offset), src_node,
-					   (void*) (dst + dst_offset), dst_node,
-					   blocksize, numblocks, ld_src, ld_dst,
-					   async_channel?starpu_cuda_get_out_transfer_stream(src_node):NULL,
-					   cudaMemcpyDeviceToHost);
+					     (void*) (dst + dst_offset), dst_node,
+					     blocksize, numblocks, ld_src, ld_dst,
+					     async_channel?starpu_cuda_get_out_transfer_stream(src_node):NULL,
+					     cudaMemcpyDeviceToHost);
 }
 
 int _starpu_cuda_copy2d_data_from_cuda_to_cuda(uintptr_t src, size_t src_offset, unsigned src_node,
@@ -1015,10 +1012,10 @@ int _starpu_cuda_copy2d_data_from_cuda_to_cuda(uintptr_t src, size_t src_offset,
 #endif
 
 	return starpu_cuda_copy2d_async_sync((void*) (src + src_offset), src_node,
-					   (void*) (dst + dst_offset), dst_node,
-					   blocksize, numblocks, ld_src, ld_dst,
-					   async_channel?starpu_cuda_get_peer_transfer_stream(src_node, dst_node):NULL,
-					   cudaMemcpyDeviceToDevice);
+					     (void*) (dst + dst_offset), dst_node,
+					     blocksize, numblocks, ld_src, ld_dst,
+					     async_channel?starpu_cuda_get_peer_transfer_stream(src_node, dst_node):NULL,
+					     cudaMemcpyDeviceToDevice);
 }
 
 int _starpu_cuda_copy2d_data_from_cpu_to_cuda(uintptr_t src, size_t src_offset, unsigned src_node,
@@ -1032,10 +1029,10 @@ int _starpu_cuda_copy2d_data_from_cpu_to_cuda(uintptr_t src, size_t src_offset, 
 	STARPU_ASSERT(src_kind == STARPU_CPU_RAM && dst_kind == STARPU_CUDA_RAM);
 
 	return starpu_cuda_copy2d_async_sync((void*) (src + src_offset), src_node,
-					   (void*) (dst + dst_offset), dst_node,
-					   blocksize, numblocks, ld_src, ld_dst,
-					   async_channel?starpu_cuda_get_in_transfer_stream(dst_node):NULL,
-					   cudaMemcpyHostToDevice);
+					     (void*) (dst + dst_offset), dst_node,
+					     blocksize, numblocks, ld_src, ld_dst,
+					     async_channel?starpu_cuda_get_in_transfer_stream(dst_node):NULL,
+					     cudaMemcpyHostToDevice);
 }
 
 int _starpu_cuda_is_direct_access_supported(unsigned node, unsigned handling_node)

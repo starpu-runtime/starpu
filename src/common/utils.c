@@ -481,7 +481,7 @@ int _starpu_check_mutex_deadlock(starpu_pthread_mutex_t *mutex)
 	if (ret == EBUSY)
 		return 0;
 
-	STARPU_ASSERT (ret != EDEADLK);
+	STARPU_ASSERT(ret != EDEADLK);
 
 	return 1;
 }

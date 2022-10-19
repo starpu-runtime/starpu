@@ -63,37 +63,37 @@ int starpu_omp_get_max_threads()
 	return max_threads;
 }
 
-int starpu_omp_get_num_procs (void)
+int starpu_omp_get_num_procs(void)
 {
 	/* starpu_cpu_worker_get_count defined as topology.nworkers[STARPU_CPU_WORKER] */
 	return starpu_cpu_worker_get_count();
 }
 
-int starpu_omp_in_parallel (void)
+int starpu_omp_in_parallel(void)
 {
 	const struct starpu_omp_region * const parallel_region = _starpu_omp_get_task()->owner_region;
 	return parallel_region->icvs.active_levels_var > 0;
 }
 
-void starpu_omp_set_dynamic (int dynamic_threads)
+void starpu_omp_set_dynamic(int dynamic_threads)
 {
 	(void) dynamic_threads;
 	/* TODO: dynamic adjustment of the number of threads is not supported for now */
 }
 
-int starpu_omp_get_dynamic (void)
+int starpu_omp_get_dynamic(void)
 {
 	const struct starpu_omp_region * const parallel_region = _starpu_omp_get_task()->owner_region;
 	return parallel_region->icvs.dyn_var;
 }
 
-void starpu_omp_set_nested (int nested)
+void starpu_omp_set_nested(int nested)
 {
 	(void) nested;
 	/* TODO: nested parallelism not supported for now */
 }
 
-int starpu_omp_get_nested (void)
+int starpu_omp_get_nested(void)
 {
 	const struct starpu_omp_region * const parallel_region = _starpu_omp_get_task()->owner_region;
 	return parallel_region->icvs.nest_var;
@@ -104,7 +104,7 @@ int starpu_omp_get_cancellation(void)
 	return _starpu_omp_global_state->icvs.cancel_var;
 }
 
-void starpu_omp_set_schedule (enum starpu_omp_sched_value kind, int modifier)
+void starpu_omp_set_schedule(enum starpu_omp_sched_value kind, int modifier)
 {
 	struct starpu_omp_region * const parallel_region = _starpu_omp_get_task()->owner_region;
 	STARPU_ASSERT(kind == starpu_omp_sched_static
@@ -116,19 +116,19 @@ void starpu_omp_set_schedule (enum starpu_omp_sched_value kind, int modifier)
 	parallel_region->icvs.run_sched_chunk_var = (unsigned long long)modifier;
 }
 
-void starpu_omp_get_schedule (enum starpu_omp_sched_value *kind, int *modifier)
+void starpu_omp_get_schedule(enum starpu_omp_sched_value *kind, int *modifier)
 {
 	const struct starpu_omp_region * const parallel_region = _starpu_omp_get_task()->owner_region;
 	*kind = parallel_region->icvs.run_sched_var;
 	*modifier = (int)parallel_region->icvs.run_sched_chunk_var;
 }
 
-int starpu_omp_get_thread_limit (void)
+int starpu_omp_get_thread_limit(void)
 {
 	return starpu_cpu_worker_get_count();
 }
 
-void starpu_omp_set_max_active_levels (int max_levels)
+void starpu_omp_set_max_active_levels(int max_levels)
 {
 	struct starpu_omp_device * const device = _starpu_omp_get_task()->owner_region->owner_device;
 	if (max_levels > 1)
@@ -139,19 +139,19 @@ void starpu_omp_set_max_active_levels (int max_levels)
 	device->icvs.max_active_levels_var = max_levels;
 }
 
-int starpu_omp_get_max_active_levels (void)
+int starpu_omp_get_max_active_levels(void)
 {
 	const struct starpu_omp_device * const device = _starpu_omp_get_task()->owner_region->owner_device;
 	return device->icvs.max_active_levels_var;
 }
 
-int starpu_omp_get_level (void)
+int starpu_omp_get_level(void)
 {
 	const struct starpu_omp_region * const parallel_region = _starpu_omp_get_task()->owner_region;
 	return parallel_region->icvs.levels_var;
 }
 
-int starpu_omp_get_ancestor_thread_num (int level)
+int starpu_omp_get_ancestor_thread_num(int level)
 {
 	struct starpu_omp_region *parallel_region;
 
@@ -165,7 +165,7 @@ int starpu_omp_get_ancestor_thread_num (int level)
 	return _starpu_omp_get_region_thread_num(parallel_region);
 }
 
-int starpu_omp_get_team_size (int level)
+int starpu_omp_get_team_size(int level)
 {
 	struct starpu_omp_region *parallel_region;
 
@@ -179,7 +179,7 @@ int starpu_omp_get_team_size (int level)
 	return parallel_region->nb_threads;
 }
 
-int starpu_omp_get_active_level (void)
+int starpu_omp_get_active_level(void)
 {
 	const struct starpu_omp_region * const parallel_region = _starpu_omp_get_task()->owner_region;
 	return parallel_region->icvs.active_levels_var;
@@ -290,12 +290,12 @@ int starpu_omp_get_max_task_priority(void)
 	return parallel_region->icvs.max_task_priority_var;
 }
 
-double starpu_omp_get_wtime (void)
+double starpu_omp_get_wtime(void)
 {
 	return 1e-6 * (starpu_timing_now() - _starpu_omp_clock_ref);
 }
 
-double starpu_omp_get_wtick (void)
+double starpu_omp_get_wtick(void)
 {
 	/* arbitrary precision value */
 	return 1e-6;

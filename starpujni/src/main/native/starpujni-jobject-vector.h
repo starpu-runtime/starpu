@@ -30,11 +30,11 @@ struct jobject_vector_interface
 
 #define STARPUJNI_JOBJECT_VECTOR_GET_LOCAL_PTR(_i_) ((struct jobject_vector_interface *)PTR_GET_ADDR(_i_))->ptr
 
-EXTERN void starpujni_jobject_vector_data_register (starpu_data_handle_t *handleptr, int home_node, uint32_t size);
+EXTERN void starpujni_jobject_vector_data_register(starpu_data_handle_t *handleptr, int home_node, uint32_t size);
 
-EXTERN uint32_t starpujni_jobject_vector_get_nx (starpu_data_handle_t handle);
+EXTERN uint32_t starpujni_jobject_vector_get_nx(starpu_data_handle_t handle);
 
-EXTERN uintptr_t starpujni_jobject_vector_get_local_ptr (starpu_data_handle_t handle);
+EXTERN uintptr_t starpujni_jobject_vector_get_local_ptr(starpu_data_handle_t handle);
 
 #endif /* __STARPUJNI_JOBJECT_VECTOR_H__ */
 

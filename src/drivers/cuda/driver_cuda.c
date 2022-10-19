@@ -215,8 +215,7 @@ void _starpu_init_cuda(void)
 }
 
 /* This is called to really discover the hardware */
-void
-_starpu_cuda_discover_devices (struct _starpu_machine_config *config)
+void _starpu_cuda_discover_devices(struct _starpu_machine_config *config)
 {
 	/* Discover the number of CUDA devices. Fill the result in CONFIG. */
 
@@ -226,7 +225,7 @@ _starpu_cuda_discover_devices (struct _starpu_machine_config *config)
 	int cnt;
 	cudaError_t cures;
 
-	cures = cudaGetDeviceCount (&cnt);
+	cures = cudaGetDeviceCount(&cnt);
 	if (STARPU_UNLIKELY(cures != cudaSuccess))
 		cnt = 0;
 	config->topology.nhwdevices[STARPU_CUDA_WORKER] = cnt;
@@ -1095,11 +1094,10 @@ void _starpu_cuda_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, i
 }
 
 #ifdef STARPU_USE_CUDA
-int
-starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node,
-			    void *dst_ptr, unsigned dst_node,
-			    size_t ssize, cudaStream_t stream,
-			    enum cudaMemcpyKind kind)
+int starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node,
+				void *dst_ptr, unsigned dst_node,
+				size_t ssize, cudaStream_t stream,
+				enum cudaMemcpyKind kind)
 {
 #ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 	int peer_copy = 0;
@@ -1627,10 +1625,10 @@ int _starpu_cuda_copy2d_data_from_cuda_to_cpu(uintptr_t src, size_t src_offset, 
 	STARPU_ASSERT(src_kind == STARPU_CUDA_RAM && dst_kind == STARPU_CPU_RAM);
 
 	return starpu_cuda_copy2d_async_sync((void*) (src + src_offset), src_node,
-					   (void*) (dst + dst_offset), dst_node,
-					   blocksize, numblocks, ld_src, ld_dst,
-					   async_channel?starpu_cuda_get_out_transfer_stream(src_node):NULL,
-					   cudaMemcpyDeviceToHost);
+					     (void*) (dst + dst_offset), dst_node,
+					     blocksize, numblocks, ld_src, ld_dst,
+					     async_channel?starpu_cuda_get_out_transfer_stream(src_node):NULL,
+					     cudaMemcpyDeviceToHost);
 }
 
 int _starpu_cuda_copy2d_data_from_cuda_to_cuda(uintptr_t src, size_t src_offset, unsigned src_node,
@@ -1647,10 +1645,10 @@ int _starpu_cuda_copy2d_data_from_cuda_to_cuda(uintptr_t src, size_t src_offset,
 #endif
 
 	return starpu_cuda_copy2d_async_sync((void*) (src + src_offset), src_node,
-					   (void*) (dst + dst_offset), dst_node,
-					   blocksize, numblocks, ld_src, ld_dst,
-					   async_channel?starpu_cuda_get_peer_transfer_stream(src_node, dst_node):NULL,
-					   cudaMemcpyDeviceToDevice);
+					     (void*) (dst + dst_offset), dst_node,
+					     blocksize, numblocks, ld_src, ld_dst,
+					     async_channel?starpu_cuda_get_peer_transfer_stream(src_node, dst_node):NULL,
+					     cudaMemcpyDeviceToDevice);
 }
 
 int _starpu_cuda_copy2d_data_from_cpu_to_cuda(uintptr_t src, size_t src_offset, unsigned src_node,
@@ -1664,17 +1662,16 @@ int _starpu_cuda_copy2d_data_from_cpu_to_cuda(uintptr_t src, size_t src_offset, 
 	STARPU_ASSERT(src_kind == STARPU_CPU_RAM && dst_kind == STARPU_CUDA_RAM);
 
 	return starpu_cuda_copy2d_async_sync((void*) (src + src_offset), src_node,
-					   (void*) (dst + dst_offset), dst_node,
-					   blocksize, numblocks, ld_src, ld_dst,
-					   async_channel?starpu_cuda_get_in_transfer_stream(dst_node):NULL,
-					   cudaMemcpyHostToDevice);
+					     (void*) (dst + dst_offset), dst_node,
+					     blocksize, numblocks, ld_src, ld_dst,
+					     async_channel?starpu_cuda_get_in_transfer_stream(dst_node):NULL,
+					     cudaMemcpyHostToDevice);
 }
 
 #ifdef STARPU_USE_CUDA_MAP
-uintptr_t
-_starpu_cuda_map_ram(uintptr_t src_ptr STARPU_ATTRIBUTE_UNUSED, size_t src_offset, unsigned src_node STARPU_ATTRIBUTE_UNUSED,
-		    unsigned dst_node STARPU_ATTRIBUTE_UNUSED,
-		    size_t size STARPU_ATTRIBUTE_UNUSED, int *ret STARPU_ATTRIBUTE_UNUSED)
+uintptr_t _starpu_cuda_map_ram(uintptr_t src_ptr STARPU_ATTRIBUTE_UNUSED, size_t src_offset, unsigned src_node STARPU_ATTRIBUTE_UNUSED,
+			       unsigned dst_node STARPU_ATTRIBUTE_UNUSED,
+			       size_t size STARPU_ATTRIBUTE_UNUSED, int *ret STARPU_ATTRIBUTE_UNUSED)
 {
 	/* TODO */
 	/*
@@ -1793,10 +1790,9 @@ _starpu_cuda_map_ram(uintptr_t src_ptr STARPU_ATTRIBUTE_UNUSED, size_t src_offse
 	return dst_addr;
 }
 
-int
-_starpu_cuda_unmap_ram(uintptr_t src_ptr STARPU_ATTRIBUTE_UNUSED, size_t src_offset STARPU_ATTRIBUTE_UNUSED, unsigned src_node STARPU_ATTRIBUTE_UNUSED,
-		       uintptr_t dst_ptr STARPU_ATTRIBUTE_UNUSED, unsigned dst_node STARPU_ATTRIBUTE_UNUSED,
-		       size_t size STARPU_ATTRIBUTE_UNUSED)
+int _starpu_cuda_unmap_ram(uintptr_t src_ptr STARPU_ATTRIBUTE_UNUSED, size_t src_offset STARPU_ATTRIBUTE_UNUSED, unsigned src_node STARPU_ATTRIBUTE_UNUSED,
+			   uintptr_t dst_ptr STARPU_ATTRIBUTE_UNUSED, unsigned dst_node STARPU_ATTRIBUTE_UNUSED,
+			   size_t size STARPU_ATTRIBUTE_UNUSED)
 {
 #if defined(STARPU_HAVE_CUDA_CANMAPHOST) || defined(STARPU_HAVE_CUDA_UNIFIEDADDR) || defined(STARPU_HAVE_CUDA_MNGMEM)
 	/* TODO */

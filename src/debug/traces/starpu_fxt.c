@@ -794,7 +794,7 @@ static void register_user_thread(double timestamp, unsigned long tid, const char
 		char program_container[STARPU_POTI_STR_LEN];
 		program_container_alias(program_container, STARPU_POTI_STR_LEN, prefix);
 		char new_thread_container_alias[STARPU_POTI_STR_LEN];
-		thread_container_alias (new_thread_container_alias, STARPU_POTI_STR_LEN, prefix, tid);
+		thread_container_alias(new_thread_container_alias, STARPU_POTI_STR_LEN, prefix, tid);
 		char new_thread_container_name[STARPU_POTI_STR_LEN];
 		snprintf(new_thread_container_name, sizeof(new_thread_container_name), "%sUserThread%lu", prefix, tid);
 		poti_CreateContainer(timestamp, new_thread_container_alias, "UT", program_container, new_thread_container_alias);
@@ -1380,12 +1380,12 @@ static void handle_new_mem_node(struct fxt_ev_64 *ev, struct starpu_fxt_options 
 		program_container_alias(program_container, STARPU_POTI_STR_LEN, prefix);
 		char new_memnode_container_alias[STARPU_POTI_STR_LEN], new_memnode_container_name[STARPU_POTI_STR_LEN];
 		char new_memmanager_container_alias[STARPU_POTI_STR_LEN], new_memmanager_container_name[STARPU_POTI_STR_LEN];
-		memnode_container_alias (new_memnode_container_alias, STARPU_POTI_STR_LEN, prefix, ev->param[0]);
+		memnode_container_alias(new_memnode_container_alias, STARPU_POTI_STR_LEN, prefix, ev->param[0]);
 		/* TODO: ramkind */
 		snprintf(new_memnode_container_name, sizeof(new_memnode_container_name), "%sMEMNODE%"PRIu64"", prefix, ev->param[0]);
 		poti_CreateContainer(now, new_memnode_container_alias, "Mn", program_container, new_memnode_container_name);
 
-		memmanager_container_alias (new_memmanager_container_alias, STARPU_POTI_STR_LEN, prefix, ev->param[0]);
+		memmanager_container_alias(new_memmanager_container_alias, STARPU_POTI_STR_LEN, prefix, ev->param[0]);
 		/* TODO: ramkind */
 		snprintf(new_memmanager_container_name, sizeof(new_memmanager_container_name), "%sMEMMANAGER%"PRIu64"", prefix, ev->param[0]);
 		poti_CreateContainer(now, new_memmanager_container_alias, "Mm", new_memnode_container_alias, new_memmanager_container_name);
@@ -1412,7 +1412,7 @@ static void handle_new_mem_node(struct fxt_ev_64 *ev, struct starpu_fxt_options 
 /*
  * Function that creates a synthetic stream id based on the order they appear from the trace
  */
-static int create_ordered_stream_id (int nodeid, int devid)
+static int create_ordered_stream_id(int nodeid, int devid)
 {
 	static int stable[STARPU_FXT_MAX_FILES][STARPU_MAXCUDADEVS];
 	STARPU_ASSERT(nodeid < STARPU_FXT_MAX_FILES);
@@ -1465,7 +1465,7 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		if (arch.devices[0].type == STARPU_CUDA_WORKER)
 		{
 			// If CUDA, workers might be streams, so create an unique name for each of them
-			int streamid = create_ordered_stream_id (prefixTOnodeid(prefix), devid);
+			int streamid = create_ordered_stream_id(prefixTOnodeid(prefix), devid);
 			snprintf(new_worker_container_name, sizeof(new_worker_container_name), "%s%s%d_%d", prefix, kindstr, devid, streamid);
 		}
 		else
@@ -1475,9 +1475,9 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		}
 #ifdef STARPU_HAVE_POTI
 		char new_thread_container_alias[STARPU_POTI_STR_LEN];
-		thread_container_alias (new_thread_container_alias, STARPU_POTI_STR_LEN, prefix, threadid);
+		thread_container_alias(new_thread_container_alias, STARPU_POTI_STR_LEN, prefix, threadid);
 		char new_worker_container_alias[STARPU_POTI_STR_LEN];
-		worker_container_alias (new_worker_container_alias, STARPU_POTI_STR_LEN, prefix, workerid);
+		worker_container_alias(new_worker_container_alias, STARPU_POTI_STR_LEN, prefix, workerid);
 		char memnode_container[STARPU_POTI_STR_LEN];
 		memnode_container_alias(memnode_container, STARPU_POTI_STR_LEN, prefix, nodeid);
 		char new_thread_container_name[STARPU_POTI_STR_LEN];
@@ -2089,7 +2089,7 @@ static void handle_user_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *o
 	{
 		if (out_paje_file)
 #ifdef STARPU_HAVE_POTI
-			program_container_alias (container, STARPU_POTI_STR_LEN, prefix);
+			program_container_alias(container, STARPU_POTI_STR_LEN, prefix);
 #else
 			fprintf(out_paje_file, "9	%.9f	user_user_event	%sp	%lu\n", now, prefix, code);
 #endif
@@ -2098,7 +2098,7 @@ static void handle_user_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *o
 	{
 		if (out_paje_file)
 #ifdef STARPU_HAVE_POTI
-			thread_container_alias (container, STARPU_POTI_STR_LEN, prefix, ev->param[1]);
+			thread_container_alias(container, STARPU_POTI_STR_LEN, prefix, ev->param[1]);
 #else
 			fprintf(out_paje_file, "9	%.9f	user_event	%st%"PRIu64"	%lu\n", now, prefix, ev->param[1], code);
 #endif
@@ -2225,7 +2225,7 @@ static void handle_data_register(struct fxt_ev_64 *ev, struct starpu_fxt_options
 #ifdef STARPU_HAVE_POTI
 		char paje_value[STARPU_POTI_STR_LEN], container[STARPU_POTI_STR_LEN];
 		snprintf(paje_value, sizeof(paje_value), "%lx", handle);
-		program_container_alias (container, STARPU_POTI_STR_LEN, prefix);
+		program_container_alias(container, STARPU_POTI_STR_LEN, prefix);
 		poti_NewEvent(get_event_time_stamp(ev, options), container, "register", paje_value);
 #else
 		fprintf(out_paje_file, "9	%.9f	register	%sp	%lx\n", get_event_time_stamp(ev, options), prefix, handle);
@@ -2244,7 +2244,7 @@ static void handle_data_unregister(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 #ifdef STARPU_HAVE_POTI
 		char paje_value[STARPU_POTI_STR_LEN], container[STARPU_POTI_STR_LEN];
 		snprintf(paje_value, sizeof(paje_value), "%lx", handle);
-		program_container_alias (container, STARPU_POTI_STR_LEN, prefix);
+		program_container_alias(container, STARPU_POTI_STR_LEN, prefix);
 		poti_NewEvent(get_event_time_stamp(ev, options), container, "unregister", paje_value);
 #else
 		fprintf(out_paje_file, "9	%.9f	unregister	%sp	%lx\n", get_event_time_stamp(ev, options), prefix, handle);
@@ -4848,14 +4848,14 @@ void _starpu_fxt_paje_file_init(struct starpu_fxt_options *options)
 #ifdef STARPU_HAVE_POTI
 #ifdef HAVE_POTI_INIT_CUSTOM
 		fclose(out_paje_file);
-		poti_init_custom (options->out_paje_path,
-				  0, //if false, allow extended events
-				  1, //if true, an old header (pj_dump -n)
-				  0, //if false, the trace has no comments
-				  1, //if true, events have aliases
-				  1);//if true, relative timestamps
+		poti_init_custom(options->out_paje_path,
+				 0, //if false, allow extended events
+				 1, //if true, an old header (pj_dump -n)
+				 0, //if false, the trace has no comments
+				 1, //if true, events have aliases
+				 1);//if true, relative timestamps
 #else
-		poti_init (out_paje_file);
+		poti_init(out_paje_file);
 #endif
 #endif
 		_starpu_fxt_write_paje_header(out_paje_file, options);
@@ -4915,7 +4915,7 @@ uint64_t _starpu_fxt_find_start_time(char *filename_in)
 	struct fxt_ev_64 ev;
 
 	int ret = fxt_next_ev(block, FXT_EV_TYPE_64, (struct fxt_ev *)&ev);
-	STARPU_ASSERT (ret == FXT_EV_OK);
+	STARPU_ASSERT(ret == FXT_EV_OK);
 
 #ifdef HAVE_FXT_BLOCKEV_LEAVE
 	fxt_blockev_leave(block);
