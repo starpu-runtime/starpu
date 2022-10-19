@@ -24,7 +24,7 @@ Every symbol of the Native Fortran support API is prefixed by
 <c>fstarpu_</c>.
 
 Note: Mixing uses of <c>fstarpu_</c> and <c>starpu_</c>
-symbols in the same Fortran code has unspecified behaviour.
+symbols in the same Fortran code has unspecified behavior.
 See \ref NFAPIMIX for a discussion about valid and unspecified
 combinations.
 
@@ -33,14 +33,14 @@ combinations.
 \subsection NFPrerequisites Prerequisites
 
 The Native Fortran support relies on Fortran 2008 specific constructs,
-as well as on the support of interoperability of assumed-shape arrays
+as well as on the support for interoperability of assumed-shape arrays
 introduced as part of Fortran's Technical Specification ISO/IEC TS 29113:2012,
 for which no equivalent are available in previous versions of the
 standard. It has currently been tested successfully with GNU GFortran 4.9,
 GFortran 5.x, GFortran 6.x and the Intel Fortran Compiler >= 2016. It is known
 not to work with GNU GFortran < 4.9, Intel Fortran Compiler < 2016.
 
-See Section \ref NFOldFortran on information on how to write StarPU
+See Section \ref NFOldFortran for information on how to write StarPU
 Fortran code with older compilers.
 
 \subsection NFConfiguration Configuration
@@ -66,7 +66,7 @@ The Fortran module <c>fstarpu_mod.f90</c> installed in StarPU's
 <c>include/</c> directory provides all the necessary API definitions. It
 must be compiled with the same compiler (same vendor, same version) as
 the application itself, and the resulting <c>fstarpu_mod.o</c> object
-file must linked with the application executable.
+file must be linked with the application executable.
 
 Each example provided in StarPU's <c>examples/native_fortran/</c>
 examples directory comes with its own dedicated Makefile for out-of-tree
@@ -155,7 +155,7 @@ the runtime engine and frees all internal StarPU data structures.
 
 \section NFInsertTask Fortran Flavor of StarPU's Variadic Insert_task
 
-Fortran does not have a construction similar to C variadic functions on which
+Fortran does not have a construction similar to C variadic functions, on which
 starpu_insert_task() relies at the time of this writing. However, Fortran's variable
 length arrays of <c>c_ptr</c> elements enable to emulate much of the
 convenience of C's variadic functions. This is the approach retained for
@@ -186,7 +186,7 @@ Example extracted from nf_vector.f90:
 
 Several StarPU structures that are expected to be passed to the C API,
 are replaced by function/subroutine wrapper sets to allocate, set fields
-and free such structure. This strategy has been prefered over defining
+and free such structure. This strategy has been preferred over defining
 native Fortran equivalent of such structures using Fortran's derived
 types, to avoid potential layout mismatch between C and Fortran StarPU
 data structures. Examples of such data structures wrappers include
@@ -236,14 +236,14 @@ when specifying \c configure option \ref disable-fortran "--disable-fortran"
 
 Mixing uses of
 <c>fstarpu_</c> and <c>starpu_</c> symbols in the same
-Fortran code has unspecified behaviour. Using <c>fstarpu_</c>
-symbols in C code has unspecified behaviour.
+Fortran code has unspecified behavior. Using <c>fstarpu_</c>
+symbols in C code has unspecified behavior.
 
 For multi-language applications using both C and Fortran source files:
 
 - C source files must use <c>starpu_</c> symbols exclusively
 - Fortran sources must uniformly use either <c>fstarpu_</c> symbols
 exclusively, or <c>starpu_</c> symbols exclusively. Every other
-combination has unspecified behaviour.
+combination has unspecified behavior.
 
 */

@@ -21,13 +21,13 @@
 
 /*! \page SimGridSupport SimGrid Support
 
-StarPU can use Simgrid in order to simulate execution on an arbitrary
+StarPU can use SimGrid in order to simulate execution on an arbitrary
 platform. This was tested with SimGrid from 3.11 to 3.16, and 3.18 to
 3.30. SimGrid version 3.25 needs to be configured with -Denable_msg=ON .
 Other versions may have compatibility issues. 3.17 notably does not build at
 all. MPI simulation does not work with version 3.22.
 
-If you have installed simgrid by hand, make sure to set \c PKG_CONFIG_PATH to
+If you have installed SimGrid by hand, make sure to set \c PKG_CONFIG_PATH to
 the path where \c simgrid.pc was installed:
 
 \verbatim
@@ -39,7 +39,7 @@ $ export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/where/simgrid/installed/lib/ppkgconfi
 There are a few technical details which need to be handled for an application to
 be simulated through SimGrid.
 
-If the application uses <c>gettimeofday</c> to make its
+If the application uses <c>gettimeofday()</c> to make its
 performance measurements, the real time will be used, which will be bogus. To
 get the simulated time, it has to use starpu_timing_now() which returns the
 virtual timestamp in us.
@@ -70,7 +70,7 @@ flags are set in the codelet)
 \section Calibration Calibration
 
 The idea is to first compile StarPU normally, and run the application,
-so as to automatically benchmark the bus and the codelets.
+to automatically benchmark the bus and the codelets.
 
 \verbatim
 $ ./configure && make
@@ -90,7 +90,7 @@ run several times before the model is calibrated.
 \section Simulation Simulation
 
 Then, recompile StarPU, passing \ref enable-simgrid "--enable-simgrid"
-to <c>configure</c>. Make sure to keep all other <c>configure</c> options
+to <c>configure</c>. Make sure to keep all the other <c>configure</c> options
 the same, and notably options such as <c>--enable-maxcudadev</c>.
 
 \verbatim
@@ -115,7 +115,7 @@ $ STARPU_SCHED=dmda ./examples/matvecmult/matvecmult
 TEST FAILED !!!
 \endverbatim
 
-It is normal that the test fails: since the computation are not actually done
+It is normal that the test fails: since the computation is not actually done
 (that is the whole point of SimGrid), the result is wrong, of course.
 
 If the performance model is not calibrated enough, the following error
@@ -190,14 +190,14 @@ $ STARPU_SCHED=dmda starpu_smpirun -platform cluster.xml -hostfile hostfile ./mp
 \endverbatim
 
 Where \c cluster.xml is a SimGrid-MPI platform description, and \c hostfile the
-list of MPI nodes to be used. Examples of such files are available in \c tools/perfmodels. In homogeneous MPI clusters: for each MPI node it
+list of MPI nodes to be used. Examples of such files are available in \c tools/perfmodels. In homogeneous MPI clusters: for each MPI node, it
 will just replicate the architecture referred by
 \ref STARPU_HOSTNAME. To use multiple performance models in different ranks,
 in case of a heterogeneous platform, it is possible to use the
 option <c>-hostfile-platform</c> in <c>starpu_smpirun</c>, that will define
 \ref STARPU_MPI_HOSTNAMES with the hostnames of your hostfile.
 
-So as to use FxT traces, libfxt itself also needs to be built statically, <b>and</b>
+To use FxT traces, libfxt itself also needs to be built statically, <b>and</b>
 with dynamic linking flags, i.e. with
 
 \verbatim
@@ -213,7 +213,7 @@ option to the application, to make SimGrid use system threads, which \c gdb will
 able to manipulate as usual.
 
 It is also worth noting SimGrid 3.21's new parameter
-<c>--cfg=simix/breakpoint</c> which allows to put a breakpoint at a precise
+<c>--cfg=simix/breakpoint</c> which allows putting a breakpoint at a precise
 (deterministic!) timing of the execution. If for instance in an execution
 trace we see that something odd is happening at time 19000ms, we can use
 <c>--cfg=simix/breakpoint:19.000</c> and \c SIGTRAP will be raised at that point,
@@ -228,7 +228,7 @@ for instance to simulate the execution of applications processing very big data
 on a small laptop.
 
 The application can for instance pass <c>1</c> (or whatever bogus pointer)
-to starpu data registration functions, instead of allocating data. This will
+to StarPU data registration functions, instead of allocating data. This will
 however require the application to take care of not trying to access the data,
 and will not work in MPI mode, which performs transfers.
 
@@ -254,8 +254,8 @@ vm.overcommit_memory=1</c> can also be used to allow such overcommit.
 Note however that this folding is done by remapping the same file several times,
 and Linux kernels will also refuse to create too many memory areas. <c>sysctl
 vm.max_map_count</c> can be used to check and change the default (65535). By
-default, StarPU uses a 1MiB file, so it hopefully fits in the CPU cache. This
-however limits the amount of such folded memory to a bit below 64GiB. The
+default, StarPU uses a 1MiB file, so it hopefully fits in the CPU cache. However,
+this limits the amount of such folded memory to a bit below 64GiB. The
 \ref STARPU_MALLOC_SIMULATION_FOLD environment variable can be used to increase the
 size of the file.
 

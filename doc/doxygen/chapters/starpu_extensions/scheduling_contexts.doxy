@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2016       Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -37,18 +37,18 @@ disposes of all the computation resources available to StarPU (all
 the workers). If the application programmer plans to launch several
 kernels simultaneously, by default these kernels will be
 executed within this initial context, using a single scheduler
-policy(see \ref TaskSchedulingPolicy). Meanwhile, if the application
+policy (see \ref TaskSchedulingPolicy). Meanwhile, if the application
 programmer is aware of the demands of these kernels and of the
 specificity of the machine used to execute them, the workers can be
 divided between several contexts. These scheduling contexts will
-isolate the execution of each kernel and they will permit the use of a
+isolate the execution of each kernel, and they will permit the use of a
 scheduling policy proper to each one of them.
 
 Scheduling Contexts may be created in two ways: either the programmers
 indicates the set of workers corresponding to each context (providing
 he knows the identifiers of the workers running within StarPU), or the
 programmer does not provide any worker list and leaves the Hypervisor
-assign workers to each context according to their needs (\ref
+to assign workers to each context according to their needs (\ref
 SchedulingContextHypervisor).
 
 Both cases require a call to the function
@@ -58,7 +58,7 @@ list (the exact list or a <c>NULL</c> pointer), the amount of workers
 optional parameters such as the scheduling policy, terminated by a
 <c>0</c>. The scheduling policy can be a character list corresponding
 to the name of a StarPU predefined policy or the pointer to a custom
-policy. The function returns an identifier of the context created
+policy. The function returns an identifier of the context created,
 which you will use to indicate the context you want to submit the
 tasks to.
 
@@ -86,7 +86,7 @@ Combined workers are constructed depending on the entire topology of the machine
 If <b>no scheduling policy</b> is specified when creating the context,
 it will be used as <b>another type of resource</b>: a cluster. A
 cluster is a context without scheduler (eventually delegated to
-another runtime). For more information see \ref ClusteringAMachine. It
+another runtime). For more information, see \ref ClusteringAMachine. It
 is therefore <b>mandatory</b> to stipulate a scheduler to use the
 contexts in this traditional way.
 
@@ -107,8 +107,8 @@ int id_ctx = starpu_sched_ctx_create(workerids, 3, "my_ctx", STARPU_SCHED_CTX_PO
 
 \section CreatingAGPUContext Creating A Context To Partition a GPU
 
-The contexts can also be used to group set of SMs of an NVIDIA GPU in order to isolate
-the parallel kernels and allow them to coexecution on a specified partiton of the GPU.
+The contexts can also be used to group a set of SMs of an NVIDIA GPU in order to isolate
+the parallel kernels and allow them to coexecution on a specified partition of the GPU.
 
 Each context will be mapped to a stream and the user can indicate the number of SMs.
 The context can be added to a larger context already grouping CPU cores.
@@ -139,11 +139,11 @@ starpu_task_submit_to_ctx(task, big_sched_ctx);
 \section ModifyingAContext Modifying A Context
 
 A scheduling context can be modified dynamically. The application may
-change its requirements during the execution and the programmer can
+change its requirements during the execution, and the programmer can
 add additional workers to a context or remove those no longer needed. In
-the following example we have two scheduling contexts
+the following example, we have two scheduling contexts
 <c>sched_ctx1</c> and <c>sched_ctx2</c>. After executing a part of the
-tasks some of the workers of <c>sched_ctx1</c> will be moved to
+tasks, some of the workers of <c>sched_ctx1</c> will be moved to
 context <c>sched_ctx2</c>.
 
 \code{.c}
@@ -158,11 +158,11 @@ starpu_sched_ctx_remove_workers(workerids, 3, sched_ctx1);
 \endcode
 
 \section SubmittingTasksToAContext Submitting Tasks To A Context
-The application may submit tasks to several contexts either
-simultaneously or sequnetially. If several threads of submission
-are used the function starpu_sched_ctx_set_context() may be called just
-before starpu_task_submit(). Thus StarPU considers that
-the current thread will submit tasks to the coresponding context.
+The application may submit tasks to several contexts, either
+simultaneously or sequentially. If several threads of submission
+are used, the function starpu_sched_ctx_set_context() may be called just
+before starpu_task_submit(). Thus, StarPU considers that
+the current thread will submit tasks to the corresponding context.
 
 When the application may not assign a thread of submission to each
 context, the id of the context must be indicated by using the
@@ -171,7 +171,7 @@ for starpu_task_insert().
 
 \section DeletingAContext Deleting A Context
 
-When a context is no longer needed it must be deleted. The application
+When a context is no longer needed, it must be deleted. The application
 can indicate which context should keep the resources of a deleted one.
 All the tasks of the context should be executed before doing this.
 Thus, the programmer may use either a barrier and then delete the context
@@ -206,9 +206,9 @@ starpu_sched_ctx_delete(sched_ctx1);
 
 \section EmptyingAContext Emptying A Context
 
-A context may have no resources at the begining or at a certain
-moment of the execution. Tasks can still be submitted to these contexts
-and they will be executed as soon as the contexts will have resources. A list
+A context may have no resources at the beginning or at a certain
+moment of the execution. Tasks can still be submitted to these contexts,
+they will be executed as soon as the contexts will have resources. A list
 of tasks pending to be executed is kept and will be submitted when
 workers are added to the contexts.
 

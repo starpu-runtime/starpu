@@ -216,7 +216,7 @@ int main(int argc, char **argv)
 We have here replaced <c>MPI_Recv()</c> and <c>MPI_Send()</c> with starpu_mpi_irecv_detached()
 and starpu_mpi_isend_detached(), which just submit the communication to be
 performed. The implicit sequential consistency dependencies provide
-synchronization between mpi reception and emission and the corresponding tasks.
+synchronization between MPI reception and emission and the corresponding tasks.
 The only remaining synchronization with starpu_data_acquire() is at
 the beginning and the end.
 
@@ -224,7 +224,7 @@ the beginning and the end.
 
 As seen in the previous example, one has to call starpu_mpi_init_conf() to
 initialize StarPU-MPI. The third parameter of the function indicates
-if MPI should be initialized by StarPU or if the application did it
+if MPI should be initialized by StarPU, or if the application did it
 itself. If the application initializes MPI itself, it must call
 <c>MPI_Init_thread()</c> with <c>MPI_THREAD_SERIALIZED</c> or
 <c>MPI_THREAD_MULTIPLE</c>, since StarPU-MPI uses a separate thread to
@@ -235,7 +235,7 @@ the application also performs some MPI communications.
 
 The standard point to point communications of MPI have been
 implemented. The semantic is similar to the MPI one, but adapted to
-the DSM provided by StarPU. A MPI request will only be submitted when
+the DSM provided by StarPU. An MPI request will only be submitted when
 the data is available in the main memory of the node submitting the
 request.
 
@@ -248,7 +248,7 @@ test the completion of the communication. Waiting for or testing the
 completion of detached communications is not possible, this is done
 internally by StarPU-MPI, on completion, the resources are
 automatically released. This mechanism is similar to the pthread
-detach state attribute which determines whether a thread will be
+detach state attribute, which determines whether a thread will be
 created in a joinable or a detached state.
 
 For send communications, data is acquired with the mode ::STARPU_R.
@@ -259,16 +259,16 @@ When using the \c configure option
 and StarPU does not read from it from tasks during the communication.
 
 Internally, all communication are divided in 2 communications, a first
-message is used to exchange an envelope describing the data (i.e its
+message is used to exchange an envelope describing the data (i.e. its
 tag and its size), the data itself is sent in a second message. All
-MPI communications submitted by StarPU uses a unique tag which has a
+MPI communications submitted by StarPU uses a unique tag, which has a
 default value. This value can be accessed with the function
 starpu_mpi_get_communication_tag() and changed with the function
 starpu_mpi_set_communication_tag(). The matching of tags with
 corresponding requests is done within StarPU-MPI.
 
 For any userland communication, the call of the corresponding function
-(e.g starpu_mpi_isend()) will result in the creation of a StarPU-MPI
+(e.g. starpu_mpi_isend()) will result in the creation of a StarPU-MPI
 request, the function starpu_data_acquire_cb() is then called to
 asynchronously request StarPU to fetch the data in main memory; when
 the data is ready and the corresponding buffer has already been
@@ -284,10 +284,10 @@ does the following:
 requests, the appropriate function is called to post the corresponding
 MPI call. For example, an initial call to starpu_mpi_isend() will
 result in a call to <c>MPI_Isend()</c>. If the request is marked as
-detached, the request will then be added in the <em>detached requests
+detached, the request will then be added to the <em>detached requests
 list</em>.
 </li>
-<li> it posts a <c>MPI_Irecv()</c> to retrieve a data envelope.
+<li> it posts an <c>MPI_Irecv()</c> to retrieve a data envelope.
 </li>
 <li> it polls the <em>detached requests list</em>. For all the detached
 requests, it tests its completion of the MPI request by calling
@@ -295,7 +295,7 @@ requests, it tests its completion of the MPI request by calling
 callback was defined, it is called.
 </li>
 <li> finally, it checks if a data envelope has been received. If so,
-if the data envelope matches a request in the <em>early requests list</em> (i.e
+if the data envelope matches a request in the <em>early requests list</em> (i.e.
 the request has already been posted by the application), the
 corresponding MPI call is posted (similarly to the first step above).
 
@@ -307,10 +307,10 @@ processed in the first step of the next loop.
 </ol>
 
 To prevent putting too much pressure on the MPI library, only a limited number
-of requests are emitted concurrently. This behaviour can be tuned with the
+of requests are emitted concurrently. This behavior can be tuned with the
 environment variable \ref STARPU_MPI_NDETACHED_SEND. In the same fashion, the
 progression thread will poll for termination of existing requests after
-submitting a defined number of requests. This behaviour can be tuned with the
+submitting a defined number of requests. This behavior can be tuned with the
 environment variable \ref STARPU_MPI_NREADY_PROCESS.
 
 \ref MPIPtpCommunication gives the list of all the
@@ -329,7 +329,7 @@ contiguous memory buffer allocated with
 starpu_malloc_flags(ptr, size, 0)
 \endcode
 
-along with its size where data to be conveyed
+along with its size, where data to be conveyed
 to another node should be copied.
 
 \code{.c}
@@ -369,7 +369,7 @@ static int complex_unpack_data(starpu_data_handle_t handle, unsigned node, void 
 \endcode
 
 And the starpu_data_interface_ops::peek_data operation does
-the same, but without freeing the buffer. Of course one can
+the same, but without freeing the buffer. Of course, one can
 implement starpu_data_interface_ops::unpack_data as merely calling
 starpu_data_interface_ops::peek_data and do the free:
 
@@ -401,8 +401,8 @@ static struct starpu_data_interface_ops interface_complex_ops =
 
 
 Instead of defining pack and unpack operations, users may want to
-attach a MPI type to their user-defined data interface. The function
-starpu_mpi_interface_datatype_register() allows to do so. This function takes 3
+attach an MPI type to their user-defined data interface. The function
+starpu_mpi_interface_datatype_register() allows doing so. This function takes 3
 parameters: the interface ID for which the MPI datatype is going to be defined,
 a function's pointer that will create the MPI datatype, and a function's pointer
 that will free the MPI datatype. If for some data an MPI datatype can not be
@@ -476,7 +476,7 @@ starpu_mpi_barrier(MPI_COMM_WORLD);
 
 \section MPIInsertTaskUtility MPI Insert Task Utility
 
-To save the programmer from having to explicit all communications, StarPU
+To save the programmer from having to specify all communications, StarPU
 provides an "MPI Insert Task Utility". The principle is that the application
 decides a distribution of the data over the MPI nodes by allocating it and
 notifying StarPU of this decision, i.e. tell StarPU which MPI node "owns"
@@ -487,10 +487,10 @@ task, and trigger the required MPI transfers.
 
 The list of functions is described in \ref MPIInsertTask.
 
-Here an stencil example showing how to use starpu_mpi_task_insert(). One
+Here is an stencil example showing how to use starpu_mpi_task_insert(). One
 first needs to define a distribution function which specifies the
 locality of the data. Note that the data needs to be registered to MPI
-by calling starpu_mpi_data_register(). This function allows to set
+by calling starpu_mpi_data_register(). This function allows setting
 the distribution information and the MPI tag which should be used when
 communicating the data. It also allows to automatically clear the MPI
 communication cache when unregistering the data.
@@ -606,7 +606,7 @@ starpu_mpi_task_post_build(MPI_COMM_WORLD, &cl,
 Making all MPI nodes process the whole graph can be a concern with a growing
 number of nodes. To avoid this, the
 application can prune the task for loops according to the data distribution,
-so as to only submit tasks on nodes which have to care about them (either to
+to only submit tasks on nodes which have to care about them (either to
 execute them, or to send the required data).
 
 A way to do some of this quite easily can be to just add an <c>if</c> like this:
@@ -736,7 +736,7 @@ starpu_mpi_task_insert(MPI_COMM_WORLD, &cl2, STARPU_RW, data0, STARPU_R, pernode
 starpu_mpi_task_insert(MPI_COMM_WORLD, &cl2, STARPU_RW, data1, STARPU_R, pernode); /* Will execute on node 1, using its own pernode*/
 \endcode
 
-One can turn a normal data into pernode data, by first broadcasting it to all nodes:
+One can turn a normal data into per-node data, by first broadcasting it to all nodes:
 
 \code{.c}
 starpu_data_handle data;
@@ -752,7 +752,7 @@ starpu_mpi_get_data_on_all_nodes_detached(MPI_COMM_WORLD, data);
 starpu_mpi_data_set_rank(data, STARPU_MPI_PER_NODE);
 \endcode
 
-The data can then be used just like pernode above.
+The data can then be used just like per-node above.
 
 \section MPIMpiRedux Inter-node reduction
 
@@ -795,7 +795,7 @@ More examples are available at mpi/examples/mpi_redux/mpi_redux.c and mpi/exampl
 \section MPIPriorities Priorities
 
 All send functions have a <c>_prio</c> variant which takes an additional
-priority parameter, which allows to make StarPU-MPI change the order of MPI
+priority parameter, which allows making StarPU-MPI change the order of MPI
 requests before submitting them to MPI. The default priority is \c 0.
 
 When using the starpu_mpi_task_insert() helper, ::STARPU_PRIORITY defines both the
@@ -823,7 +823,7 @@ being modified by another newly-submitted task, so until a task is submitted to
 modify the current value, it can not decide by itself whether to flush the cache
 or not.  The application can however explicitly tell StarPU-MPI to flush the
 cache by calling starpu_mpi_cache_flush() or starpu_mpi_cache_flush_all_data(),
-for instance in case the data will not be used at all any more (see for instance
+for instance in case the data will not be used at all anymore (see for instance
 the cholesky example in <c>mpi/examples/matrix_decomposition</c>), or at least not in
 the close future. If a newly-submitted task actually needs the value again,
 another transmission of \c D will be initiated from \c A to \c B.  A mere
@@ -853,7 +853,7 @@ from the cache holding the received data.
 \section MPIMigration MPI Data Migration
 
 The application can dynamically change its mind about the data distribution, to
-balance the load over MPI nodes for instance. This can be done very simply by
+balance the load over MPI nodes, for instance. This can be done very simply by
 requesting an explicit move and then change the registered rank. For instance,
 we here switch to a new distribution function <c>my_distrib2</c>: we first
 register any data which wasn't registered already and will be needed, then
@@ -883,14 +883,14 @@ From then on, further tasks submissions will use the new data distribution,
 which will thus change both MPI communications and task assignments.
 
 Very importantly, since all nodes have to agree on which node owns which data
-so as to determine MPI communications and task assignments the same way, all
+to determine MPI communications and task assignments the same way, all
 nodes have to perform the same data migration, and at the same point among task
 submissions. It thus does not require a strict synchronization, just a clear
 separation of task submissions before and after the data redistribution.
 
 Before data unregistration, it has to be migrated back to its original home
 node (the value, at least), since that is where the user-provided buffer
-resides. Otherwise the unregistration will complain that it does not have the
+resides. Otherwise, the unregistration will complain that it does not have the
 latest value on the original home node.
 
 \code{.c}
@@ -971,7 +971,7 @@ starpu_mpi_gather_detached(data_handles, nblocks, 0, MPI_COMM_WORLD, NULL, NULL,
 \endcode
 
 With NewMadeleine (see \ref Nmad), broadcasts can automatically be detected and
-be optimized by using routing trees. This behaviour can be controlled with the
+be optimized by using routing trees. This behavior can be controlled with the
 environment variable \ref STARPU_MPI_COOP_SENDS. See the corresponding
 [paper](https://hal.inria.fr/hal-02872765) for more information.
 
@@ -980,9 +980,9 @@ them!
 
 \section MPIDriver Make StarPU-MPI Progression Thread Execute Tasks
 
-The default behaviour of StarPU-MPI is to spawn an MPI thread to take care only
-of MPI communications in an active fashion (i.e the StarPU-MPI thread sleeps
-only when there is no active request submitted by the application), with the
+The default behavior of StarPU-MPI is to spawn an MPI thread to take care only
+of MPI communications in an active fashion (i.e. the StarPU-MPI thread sleeps
+only when there are no active request submitted by the application), with the
 goal of being as reactive as possible to communications. Knowing that, users
 usually leave one free core for the MPI thread when starting a distributed
 execution with StarPU-MPI.  However, this could result in a loss of performance
@@ -1001,8 +1001,8 @@ computational power of the "lost" core. Since there is a trade-off between
 executing tasks and polling MPI requests, which is how much the application
 wants to lose in reactivity to MPI communications to get back the computing
 power of the core dedicated to the StarPU-MPI thread, there are two environment
-variables to pilot the behaviour of the MPI thread so that users can tune
-this trade-off depending of the behaviour of the application.
+variables to pilot the behavior of the MPI thread so that users can tune
+this trade-off depending on the behavior of the application.
 
 The \ref STARPU_MPI_DRIVER_CALL_FREQUENCY environment variable sets how many times
 the MPI progression thread goes through the MPI_Test() loop on each active communication request
@@ -1010,7 +1010,7 @@ the MPI progression thread goes through the MPI_Test() loop on each active commu
 before executing tasks. The default value for this environment variable is 0,
 which means that the support for interleaving task execution and communication
 polling is deactivated, thus returning the MPI progression thread to its
-original behaviour.
+original behavior.
 
 The \ref STARPU_MPI_DRIVER_TASK_FREQUENCY environment variable sets how many tasks
 are executed by the MPI communication thread before checking all active
@@ -1033,7 +1033,7 @@ When the environment variable \ref STARPU_MPI_STATS is set to \c 1,
 StarPU will display at the end of the execution for each node the
 volume and the bandwidth of data sent to all the other nodes.
 
-Here an example of such a trace.
+Here is an example of such a trace.
 
 \verbatim
 [starpu_comm_stats][3] TOTAL:	476.000000 B	0.000454 MB	 0.000098 B/s	 0.000000 MB/s
@@ -1096,7 +1096,7 @@ data transfers and supports data matrices which do not fit in memory (out-of-cor
 NewMadeleine (see https://pm2.gitlabpages.inria.fr/newmadeleine/, part of the PM2
 project) is an optimizing communication library for high-performance networks.
 NewMadeleine provides its own interface, but also an MPI interface (called
-MadMPI). Thus there are two possibilities to use NewMadeleine with StarPU:
+MadMPI). Thus, there are two possibilities to use NewMadeleine with StarPU:
 
 <ul>
 <li>
@@ -1134,7 +1134,7 @@ MPI interface of StarPU (described in \ref API_MPI_Support) is the same.
 
 \section MPIMasterSlave MPI Master Slave Support
 
-StarPU provides an other way to execute applications across many
+StarPU provides another way to execute applications across many
 nodes. The Master Slave support permits to use remote cores without
 thinking about data distribution. This support can be activated with
 the \c configure option \ref enable-mpi-master-slave
@@ -1155,7 +1155,7 @@ slave.
 
 Choosing the number of cores on each slave device is done by setting
 the environment variable \ref STARPU_NMPIMSTHREADS "STARPU_NMPIMSTHREADS=\<number\>"
-with <c>\<number\></c> being the requested number of cores. By default
+with <c>\<number\></c> being the requested number of cores. By default,
 all the slave's cores are used.
 
 Setting the number of slaves nodes is done by changing the <c>-np</c>

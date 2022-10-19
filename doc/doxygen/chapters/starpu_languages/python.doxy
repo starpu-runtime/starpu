@@ -22,9 +22,9 @@ This interface supports most of the main StarPU functionalities. All the functio
 
 \section Installation Installation of the Python Interface
 
-The python modules \c joblib and \c cloudpickle are mandatory and should be installed before calling \c configure. The python module \c numpy is recommended but not mandatory.
+The python modules \c joblib and \c cloudpickle are mandatory and should be installed before calling \c configure. The python module \c numpy is recommended, but not mandatory.
 
-If all requirements are met, calling \c configure will enable by default the Python Interface. You can also specify th option \ref enable-starpupy "--enable-starpupy" which will fail if some requirements are missing.
+If all requirements are met, calling \c configure will enable by default the Python Interface. You can also specify the option \ref enable-starpupy "--enable-starpupy" which will fail if some requirements are missing.
 
 \verbatim
 $ pip3 install joblib
@@ -35,7 +35,7 @@ $ make
 $ make install
 \endverbatim
 
-You can then go in the directory in which StarPU is installed, and test the provided Python examples.
+You can then go to the directory in which StarPU is installed, and test the provided Python examples.
 
 \verbatim
 $ cd $HOME/usr/starpu
@@ -61,7 +61,7 @@ import starpu
 
 One of the most important functionalities in StarPU is the task submission. The Python interface simplifies its usage, as the function can directly be called without any extra steps.
 
-The Python function to submit tasks is <c>task_submit(options)(func, *args, **kwargs)</c>. \c func is any Python function, \c args and \c kwargs are the function arguments. The function can be also provided as a string. In order to let StarPU make optimizations for your program, you should submit all tasks so as to allow StarPU to efficiently schedule the underlying tasks. Submitted tasks will not be executed immediately, and you can only get the return value once the task has been executed.
+The Python function to submit tasks is <c>task_submit(options)(func, *args, **kwargs)</c>. \c func is any Python function, \c args and \c kwargs are the function arguments. The function can also be provided as a string. In order to let StarPU make optimizations for your program, you should submit all tasks to allow StarPU to efficiently schedule the underlying tasks. Submitted tasks will not be executed immediately, and you can only get the return value once the task has been executed.
 
 In the first set of parentheses, the following options may be specified. Please note that all options have a default value, the parentheses must be kept even without any option.
 
@@ -197,7 +197,7 @@ res
 3
 \endverbatim
 
-The Future object can be also used for the next step calculation even before being ready. The eventual result will be awaited until the Future has a result.
+The Future object can also be used for the next step calculation even before being ready. The eventual result will be awaited until the Future has a result.
 
 In this example, after submitting the first task, a Future object <c>fut1</c> is created, and it is used as an argument of a second task. The second task is submitted even without having the return value of the first task.
 
@@ -258,7 +258,7 @@ res
 array([5., 7., 9.])
 \endverbatim
 
-StarPU uses a specific data interface to handle Python objects supporting buffer protocol, such python objects are then managed by the StarPU data management library which allows to minimize data transfers between accelerators, and avoids to copy the object each time.
+StarPU uses a specific data interface to handle Python objects supporting buffer protocol, such python objects are then managed by the StarPU data management library which allows minimizing data transfers between accelerators, and avoids copying the object each time.
 
 We show the performances below of the \c numpy addition (<c>numpy.add</c> running the script <c>test_perf.sh</c>) with different array sizes (10, 20, ..., 100, 200, ..., 1000, 2000, ..., 10000, 20000, ..., 100000, 200000, ..., 1000000, 2000000, ..., 10000000, ..., 50000000). We compare two cases:
 <ol>
@@ -279,9 +279,9 @@ def add(a, b):
 		a[i] = a[i] + b[i]
 \endcode
 
-We will compare operation performances with the same two cases but based on our custom function <c>add(a, b)</c>.
+We will compare operation performances with the same two cases, but based on our custom function <c>add(a, b)</c>.
 
-We can see that the custom function is not as efficient as the \c numpy function overall. The optimisation for large arrays is the same when using StarPU.
+We can see that the custom function is not as efficient as the \c numpy function overall. The optimization for large arrays is the same when using StarPU.
 
 \image html starpupy_func_perf.png width=85%
 \image latex starpupy_func_perf.png "" width=\textwidth
@@ -386,7 +386,7 @@ print(e) # before the task is finished
 We \c print argument \c e right after submitting the task, but since the task is not finished yet, we can only get its unchanged value.
 If we want to get its up-to-date value, we need extra functions.
 
-In order to access data registered to StarPU outside tasks, we provide a acquire and release mechanism.
+In order to access data registered to StarPU outside tasks, we provide an acquire and release mechanism.
 
 <ul>
 <li> The <c>starpu.acquire(data, mode)</c> method should be called to access registered data outside tasks (Refer to the method <c>starpu_data_acquire()</c> in C interface).  StarPU will ensure that the application will get an up-to-date copy of handle in main memory located where the data was originally registered, and that all concurrent accesses (e.g. from tasks) will be consistent with the access mode specified with the given mode (\c R the default mode, \c W or \c RW).
@@ -507,11 +507,11 @@ starpu.unregister(b)
 
 \section StarPUPYInterface StarPU Data Interface for Python Objects
 
-StarPU uses data handles to manage piece of data. A data handle keeps track of replicates of the same data (registered by the application) over various memory nodes. The data management library manages to keep them coherent. That also allows to minimize the data transfers, and avoids to copy the object each time. Data handles are managed through specific data interfaces.
+StarPU uses data handles to manage a piece of data. A data handle keeps track of replicates of the same data (registered by the application) over various memory nodes. The data management library manages to keep them coherent. That also allows minimizing the data transfers, and avoids copying the object each time. Data handles are managed through specific data interfaces.
 
 \subsection PythonObject Interface for Ordinary Python Objects
 
-A specific data interface has been defined to manage Python objects, such as constant (interger, float...), string, list, etc. This interface is defined with the class <c>Handle</c>. When submitting a task, instead of specifyng a function and its arguments, we specify a function and the handles of its arguments.
+A specific data interface has been defined to manage Python objects, such as constant (integer, float...), string, list, etc. This interface is defined with the class <c>Handle</c>. When submitting a task, instead of specifying a function and its arguments, we specify a function and the handles of its arguments.
 
 In addition to returning a Future object, it is also possible to return a StarPU handle object when submitting a function. To do so, you need to set the <c>starpu.task_submit</c> option \c ret_handle to \c True, its default value is \c False.
 
@@ -552,7 +552,7 @@ x and x1 are two different Handle objects.
 
 \subsection PythonBuffer Interface for Python Objects Supporting Buffer Protocol
 
-This StarPU data interface can be also used to manage Python objects supporting buffer protocol, i.e \c numpy array, bytes, bytearray, array.array and memoryview object.
+This StarPU data interface can also be used to manage Python objects supporting buffer protocol, i.e \c numpy array, bytes, bytearray, array.array and memoryview object.
 
 \code{.py}
 import starpu
@@ -575,7 +575,7 @@ res.get()
 array([3, 6, 9])
 \endverbatim
 
-Different from immutable Python object, all Python objects supporting buffer protocol are mutable, and registering the same object one more time is not authorised. If you do this:
+Different from immutable Python object, all Python objects supporting buffer protocol are mutable, and registering the same object one more time is not authorized. If you do this:
 
 \code{.py}
 a = np.array([1, 2, 3])
@@ -606,14 +606,14 @@ You will get the error message:
 starpupy.error: Should not register the same mutable python object once more.
 \endverbatim
 
-As performances we shown in section \ref SubmitPythonBuffer, we add one case to compare with the others two cases. We still test the \c numpy addition (<c>numpy.add</c> running the script <c>test_handle_perf.sh</c>) with different array sizes (10, 20, ..., 100, 200, ..., 1000, 2000, ..., 10000, 20000, ..., 100000, 200000, ..., 1000000, 2000000, ..., 10000000, ..., 50000000). Three cases are:
+As performances, we showed in Section \ref SubmitPythonBuffer, we add one case to compare with the others two cases. We still test the \c numpy addition (<c>numpy.add</c> running the script <c>test_handle_perf.sh</c>) with different array sizes (10, 20, ..., 100, 200, ..., 1000, 2000, ..., 10000, 20000, ..., 100000, 200000, ..., 1000000, 2000000, ..., 10000000, ..., 50000000). Three cases are:
 <ol>
 <li> Using StarPU and returning future object, </li>
 <li> Using StarPU and returning handle object,</li>
 <li> Without using StarPU tasks, but directly calling the <c>numpy.add</c> function.</li>
 </ol>
 
-The first plot compares the task submission time when using StarPU either returning a Future or a handle object and the program execution time without using StarPU. We can see that there is an obvious optimization using StarPU either returning a Future or a handle object when the test array size is large. The task has not finished its execution yet as shown in second figure, the time can be used to perform other operations. When array size is not very large, returning a handle has a better execution performance than returning a Future.
+The first plot compares the task submission time when using StarPU either returning a Future or a handle object and the program execution time without using StarPU. We can see that there is an obvious optimization using StarPU, either returning a Future or a handle object when the test array size is large. The task has not finished its execution yet as shown in second figure, the time can be used to perform other operations. When array size is not very large, returning a handle has a better execution performance than returning a Future.
 
 \image html starpupy_handle_perf.png width=85%
 \image latex starpupy_handle_perf.png "" width=\textwidth
@@ -635,7 +635,7 @@ We can see that the custom function is not as efficient as the \c numpy function
 
 \subsubsection Methods Methods
 
-As in section \ref MethodsAcquireRelease, the \c Handle class defines methods to provide a acquire and release mechanism.
+As in section \ref MethodsAcquireRelease, the \c Handle class defines methods to provide an acquire and release mechanism.
 
 <ul>
 <li>
@@ -728,7 +728,7 @@ e_h.release()
 
 \subsection HandlePartition Array Partitioning
 
-A n-dim \c numpy array can be splitted into several sub-arrays by calling the method <c>Handle::partition(nchildren, dim, chunks_list)</c> (Refer to the method <c>starpu_data_partition_plan()</c> in C interface).
+A n-dim \c numpy array can be split into several sub-arrays by calling the method <c>Handle::partition(nchildren, dim, chunks_list)</c> (Refer to the method <c>starpu_data_partition_plan()</c> in C interface).
 <ul>
 <li>
 <c>nchildren</c> is the number of sub-handles,
@@ -866,7 +866,7 @@ to about 8 if we want to keep efficiency.
 
 \section ImitatingJoblibLibrary Running Python Functions as Pipeline Jobs (Imitating Joblib Library)
 
-The StarPU Python interface also provides parallel computing for loops using multiprocessing, in a similar way to the <a href="https://joblib.readthedocs.io/en/latest/index.html">Joblib Library</a> that can simply turn out Python code into parallel computing code and thus increase the computing speed.
+The StarPU Python interface also provides parallel computing for loops using multiprocessing, similarly to the <a href="https://joblib.readthedocs.io/en/latest/index.html">Joblib Library</a> that can simply turn out Python code into parallel computing code and thus increase the computing speed.
 
 \subsection JobLibraryExamples Examples
 
@@ -1045,7 +1045,7 @@ The \c starpu.joblib.Parallel class accepts the following parameters:
 <ul>
 <li> \c mode (string, default: \c "normal")
 
-A string with the value <c>"normal"</c> or <c>"future"</c>. With the <c>"normal"</c> mode, you can call \c starpu.joblib.Parallel directly without using the \c asyncio module and you will get the result when the task is executed. With the <c>"future"</c> mode, when calling \c starpu.joblib.Parallel, you will get a Future object as a return value. By setting the parameter <c>end_msg</c>, the given message will be displayed when the result is ready, then you can call \c await to get the result. The \c asyncio module should be imported in this case.
+A string with the value <c>"normal"</c> or <c>"future"</c>. With the <c>"normal"</c> mode, you can call \c starpu.joblib.Parallel directly without using the \c asyncio module, and you will get the result when the task is executed. With the <c>"future"</c> mode, when calling \c starpu.joblib.Parallel, you will get a Future object as a return value. By setting the parameter <c>end_msg</c>, the given message will be displayed when the result is ready, then you can call \c await to get the result. The \c asyncio module should be imported in this case.
 
 \code{.py}
 import starpu
@@ -1068,7 +1068,7 @@ A message that will be displayed when the task is executed and the result is rea
 
 <li> \c n_jobs (int, default: \c None)
 
-The maximum number of concurrently running jobs. If -1 all CPUs are used. If 1 is given, no parallel computing code is used at all, which is useful for debugging. For \c n_jobs below -1, (\c n_cpus + 1 + \c n_jobs) are used. Thus for \c n_jobs = -2, all CPUs but one are used. \c None is a marker for ‘unset’ that will be interpreted as \c n_jobs=1 (sequential execution).
+The maximum number of concurrently running jobs. If -1 all CPUs are used. If 1 is given, no parallel computing code is used at all, which is useful for debugging. For \c n_jobs below -1, (\c n_cpus + 1 + \c n_jobs) are used. Thus, for \c n_jobs = -2, all CPUs but one are used. \c None is a marker for ‘unset’ that will be interpreted as \c n_jobs=1 (sequential execution).
 \c n_cpus is the number of CPUs detected by StarPU on the running device.
 </li>
 
@@ -1195,7 +1195,7 @@ $ make
 $ make install
 \endverbatim
 
-Python interpreters have a Global Interpreter Lock (GIL), which requires that at any time one and only one thread has the right to execute a task. In other words, GIL makes the multiple interpreters execution of Python actually serial rather than parallel, and the execution of Python program is single-threaded essentially.
+Python interpreters have a Global Interpreter Lock (GIL), which requires that at any time, one and only one thread has the right to execute a task. In other words, GIL makes the multiple interpreters execution of Python actually serial rather than parallel, and the execution of Python program is single-threaded essentially.
 
 In order to transfer data between interpreters, the module \c cloudpickle is used to serialize Python objects in contiguous byte array. This mechanism increases the overhead of the StarPU Python interface, as shown in the following plots, to be compared to the plots given in \ref Benchmark.
 
@@ -1214,11 +1214,11 @@ In the third figure, the return value is \c None.
 
 In order to reflect this influence more intuitively, we make a performance comparison.
 
-By default, StarPU uses virtually shared memory manager for Python objects supporting buffer protocol that allows to minimize data transfers. But in the case multi-interpreter, if we do not use virtually shared memory manager, data transfer can be realized only with the help of cloudpickle.
+By default, StarPU uses virtually shared memory manager for Python objects supporting buffer protocol that allows to minimize data transfers. But in the case of multi-interpreter, if we do not use virtually shared memory manager, data transfer can be realized only with the help of cloudpickle.
 
 We will show the operation performances below (Running <c>test_handle_perf_pickle.sh</c>). The operation that we test is \c numpy addition (<c>numpy.add</c>), and the array size is 10, 20, ..., 100, 200, ..., 1000, 2000, ..., 10000, 2000, ..., 100000,200000, ..., 1000000, 2000000, ..., 10000000, ..., 50000000. We compared three cases: first, using virtually shared memory manager, second, without using virtually shared memory manager, third, without using StarPU task submitting, but directly calling <c>numpy.add</c> function.
 
-In first figure, we compare the submission time when using StarPU and the execution time without using StarPU. We can see that there is still an obvious optimization using StarPU virtually shared memory manager when the test array size is large. However, if only using cloudpickle, StarPU Python interface cannot provide an effective optimization. And in second figure, we can see that the same operation will take more time to finish the program execution when only using cloudpickle.
+In the first figure, we compare the submission time when using StarPU and the execution time without using StarPU. We can see that there is still an obvious optimization using StarPU virtually shared memory manager when the test array size is large. However, if only using cloudpickle, StarPU Python interface cannot provide an effective optimization. And in the second figure, we can see that the same operation will take more time to finish the program execution when only using cloudpickle.
 
 \image html starpupy_handle_perf_pickle.png width=85%
 \image latex starpupy_handle_perf_pickle.png "" width=\textwidth
@@ -1231,9 +1231,9 @@ def add(a, b):
       a[i] = a[i] + b[i]
 \endcode
 
-We will compare operation performances of the same three cases but based on the custom function <c>add(a, b)</c>.
+We will compare operation performances of the same three cases, but based on the custom function <c>add(a, b)</c>.
 
-We can see that the custom function takes more time than \c numpy function overall. Although the same operation still takes more time to submit the task when only using cloudpickle than with virtually shared memory manager, there is still a better optimization. The operation takes less time than only calling custom function even when the array is not very large.
+We can see that the custom function takes more time than \c numpy function overall. Although the same operation still takes more time to submit the task when only using cloudpickle than with virtually shared memory manager, there is still a better optimization. The operation takes less time than only calling a custom function even when the array is not very large.
 
 \image html starpupy_handle_func_perf_pickle.png width=85%
 \image latex starpupy_handle_func_perf_pickle.png "" width=\textwidth

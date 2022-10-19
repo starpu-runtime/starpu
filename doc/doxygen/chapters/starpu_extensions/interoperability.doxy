@@ -101,9 +101,9 @@ allocates a temporary context and spawns a kernel within this context. The
 temporary context is subsequently freed upon completion of the kernel. The
 temporary context is set as the default context for the kernel throughout its
 lifespan. This routine should typically be used to control resource usage for a
-parallel kernel handled by an external library built on StarPU. Internally, it
+parallel kernel, handled by an external library built on StarPU. Internally, it
 relies on the use of starpu_sched_ctx_set_context() to set the temporary
-context as default context for the parallel kernel, and then restore the main
+context as the default context for the parallel kernel, and then restore the main
 context upon completion. Note: the maximum number of temporary contexts
 allocated concurrently at any time should not exceed
 ::STARPU_NMAX_SCHED_CTXS-2, otherwise, the call to

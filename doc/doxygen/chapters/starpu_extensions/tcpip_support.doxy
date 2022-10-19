@@ -35,10 +35,10 @@ entire set of slaves.
 
 Choosing the number of cores on each slave device is done by setting
 the environment variable \ref STARPU_NTCPIPMSTHREADS "STARPU_NTCPIPMSTHREADS=\<number\>"
-with <c>\<number\></c> being the requested number of cores. By default
+with <c>\<number\></c> being the requested number of cores. By default,
 all the slave's cores are used.
 
-The master should given the number of slaves that are expected to be run with
+The master should be given the number of slaves that are expected to be run with
 the \ref STARPU_TCPIP_MS_SLAVES environment variable.
 
 The slaves should then be started, and their number also should be given with
@@ -46,7 +46,7 @@ the \ref STARPU_TCPIP_MS_SLAVES environment variable. They should additionally b
 given the IP address of the master with the \ref STARPU_TCPIP_MS_MASTER environment
 variable.
 
-For simple local checks, one can use the <c>starpu_tcpipexec</c> tool which just
+For simple local checks, one can use the <c>starpu_tcpipexec</c> tool, which just
 starts the application several times. Setting the number of slaves nodes is done
 by changing the <c>-np</c> parameter.
 

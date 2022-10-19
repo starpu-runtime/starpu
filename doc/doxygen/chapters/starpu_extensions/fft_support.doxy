@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,7 +19,7 @@
 StarPU provides <c>libstarpufft</c>, a library whose design is very similar to
 both <c>fftw</c> and <c>cufft</c>, the difference being that it takes benefit from both CPUs
 and GPUs. It should however be noted that GPUs do not have the same precision as
-CPUs, so the results may different by a negligible amount.
+CPUs, so the results may be different by a negligible amount.
 
 Different precisions are available, namely \c float, \c double and <c>long
 double</c> precisions, with the following \c fftw naming conventions:
@@ -53,11 +53,11 @@ StarPU will have to register the data on the fly. In the starpufft_start()
 case, starpufft_cleanup() needs to be called to unregister the data.
 </li>
 <li>
-To provide data handles (which is preferrable),
+To provide data handles (which is preferable),
 use starpufft_start_handle() (preferred) or
 starpufft_execute_handle(). Several FFTs tasks can be submitted
 for a given plan, which permits e.g. to start a series of FFT with just one
-plan. starpufft_start_handle() is preferrable since it does not wait for
+plan. starpufft_start_handle() is preferable since it does not wait for
 the task completion, and thus permits to enqueue a series of tasks.
 </li>
 </ul>

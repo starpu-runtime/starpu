@@ -16,7 +16,7 @@
 
 /*! \page SOCLOpenclExtensions SOCL OpenCL Extensions
 
-SOCL is an OpenCL implementation based on StarPU. It gives a unified access to
+SOCL is an OpenCL implementation based on StarPU. It gives unified access to
 every available OpenCL device: applications can now share entities such as
 Events, Contexts or Command Queues between several OpenCL implementations.
 
@@ -26,8 +26,8 @@ the context to which the command queue is attached.
 
 Setting the <c>CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE</c> flag on a command
 queue also allows StarPU to reorder kernels queued on the queue, otherwise they
-would be serialized and several command queues would be necessary to see kernels
-dispatched on the various OpenCL devices.
+would be serialized, and several command queues would be necessary to see kernels
+dispatched to the various OpenCL devices.
 
 Note: this is still an area under development and subject to change.
 
@@ -63,7 +63,7 @@ are in the directory <c>socl/vendors</c>. With an installed version of
 StarPU, the files are installed in the directory
 <c>$prefix/share/starpu/opencl/vendors</c>.
 
-To run the tests by hand, you have to call for example,
+To run the tests by hand, you have to call, for example,
 
 \verbatim
 $ LD_PRELOAD=$SOCL_OCL_LIB_OPENCL OCL_ICD_VENDORS=socl/vendors/ socl/examples/clinfo/clinfo

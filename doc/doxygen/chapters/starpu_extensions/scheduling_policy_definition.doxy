@@ -29,11 +29,11 @@ prefetching, task performance model calibration, worker locking, etc.
 handle this, and thus e.g. does not achieve any data prefetching or smart
 scheduling.
 
-The modular way allows to implement just one component, and
+The modular way allows implementing just one component, and
 reuse existing components to cope with all these details.
 <c>examples/scheduler/dummy_modular_sched.c</c> is a trivial example very
-similar to <c>dummy_sched.c</c>, but implemented as a component, which allows to
-assemble it with other components, and notably get data prefetching support for
+similar to <c>dummy_sched.c</c>, but implemented as a component, which allows
+assembling it with other components, and notably get data prefetching support for
 free, and task performance model calibration is properly performed, which allows
 to easily extend it into taking task duration into account, etc.
 
@@ -55,12 +55,12 @@ The successors of a task can be obtained with starpu_task_get_task_succs().
 One can also directly test the presence of a data handle with starpu_data_is_on_node().
 Prefetches can be triggered by calling either starpu_prefetch_task_input_for(),
 starpu_idle_prefetch_task_input(), starpu_prefetch_task_input_for_prio(), or
-starpu_idle_prefetch_task_input_for_prio(). The <c>_prio</c> versions allow to
-specify a priority for the transfer (instead of taking the task priority by
+starpu_idle_prefetch_task_input_for_prio(). The <c>_prio</c> versions allow
+specifying a priority for the transfer (instead of taking the task priority by
 default). These prefetches are only processed when there are no fetch data
 requests (i.e. a task is waiting for it) to process. The <c>_idle</c> versions
 queue the transfers on the idle prefetch queue, which is only processed when
-there are no non-idle prefetch to process.
+there are no non-idle prefetches to process.
 starpu_get_prefetch_flag() is a convenient helper for checking the value of the
 \ref STARPU_PREFETCH environment variable.
 When a scheduler does such prefetching, it should set the <c>prefetches</c>
@@ -117,7 +117,7 @@ scheduler to implement what is between. A simple eager scheduler is for instance
 to make starpu_sched_policy::push_task push the task to a global list, and make
 starpu_sched_policy::pop_task pop from this list. A scheduler can also use
 starpu_push_local_task() to directly push tasks to a per-worker queue, and then
-starpu does not even need to implement starpu_sched_policy::pop_task.
+StarPU does not even need to implement starpu_sched_policy::pop_task.
 If there are no ready tasks within the scheduler, it can just return \c NULL, and
 the worker will sleep.
 
@@ -168,7 +168,7 @@ wake one idle worker. An example doing this is available in
 A pointer to one data structure specific to the scheduler can be set with
 starpu_sched_ctx_set_policy_data() and fetched with
 starpu_sched_ctx_get_policy_data(). Per-worker data structures can then be
-store in it by allocating a \ref STARPU_NMAXWORKERS -sized array of structures indexed
+stored in it by allocating a \ref STARPU_NMAXWORKERS -sized array of structures indexed
 by workers.
 
 A variety of examples of
@@ -181,7 +181,7 @@ contexts, which is an experimental feature.
 \section DefiningANewModularSchedulingPolicy Defining A New Modular Scheduling Policy
 
 StarPU's Modularized Schedulers are made of individual Scheduling Components
-Modularizedly assembled as a Scheduling Tree. Each Scheduling Component has an
+Modularizedly assembled as a Scheduling Tree. Each Scheduling Component has a
 unique purpose, such as prioritizing tasks or mapping tasks over resources.
 A typical Scheduling Tree is shown below.
 
@@ -213,12 +213,12 @@ starpu_pop_task   |                             |
 </pre>
 
 When a task is pushed by StarPU in a Modularized Scheduler, the task moves from
-a Scheduling Component to an other, following the hierarchy of the
+a Scheduling Component to another, following the hierarchy of the
 Scheduling Tree, and is stored in one of the Scheduling Components of the
 strategy.
 When a worker wants to pop a task from the Modularized Scheduler, the
 corresponding Worker Component of the Scheduling Tree tries to pull a task from
-its parents, following the hierarchy, and gives it to the worker if it succeded
+its parents, following the hierarchy, and gives it to the worker if it succeeded
 to get one.
 
 \subsection Interface
@@ -279,7 +279,7 @@ StarPU is currently shipped with the following four Scheduling Components :
 <li> Storage Components : Fifo, Prio \n
 Components which store tasks. They can also prioritize them if
 they have a defined priority. It is possible to define a threshold
-for those Components following two criterias : the number of tasks
+for those Components following two criteria : the number of tasks
 stored in the Component, or the sum of the expected length of all
 tasks stored in the Component. When a push operation tries to queue a
 task beyond the threshold, the push fails. When some task leaves the
@@ -328,7 +328,7 @@ the workers themselves.
 
 <li> At least one Resource-Mapping Component is needed in a Modularized
 Scheduler. Resource-Mapping Components are the only ones which can make
-scheduling choices, and so the only ones which can have several child.
+scheduling choices, and so the only ones which can have several children.
 </li>
 </ul>
 
@@ -339,7 +339,7 @@ operation to be called in parallel when tasks get released in parallel from
 different workers which have completed different ancestor tasks.
 
 When a component has internal information which needs to be kept coherent, the
-component can define its own lock at take it as it sees fit, e.g. to protect a
+component can define its own lock to take it as it sees fit, e.g. to protect a
 task queue. This may however limit scalability of the scheduler. Conversely,
 since push and pull operations will be called concurrently from different
 workers, the component might prefer to use a central mutex to serialize all
@@ -392,7 +392,7 @@ struct starpu_sched_policy _starpu_sched_tree_eager_prefetching_policy =
 starpu_sched_component_initialize_simple_scheduler() is a helper function which
 makes it very trivial to assemble a modular scheduler around a scheduling
 decision component as seen above (here, a dumb eager decision component). Most
-often a modular scheduler can be implemented that way.
+often, a modular scheduler can be implemented that way.
 
 A modular scheduler can also be constructed hierarchically with
 starpu_sched_component_composed_recipe_create().
@@ -510,7 +510,7 @@ Each Scheduling Component is instantiated from a Generic Scheduling Component,
 which implements a generic version of the Interface. The generic implementation
 of Pull, Can_Pull and Can_Push functions are recursive calls to their parents
 (respectively to their children). However, as a Generic Scheduling Component do
-not know how much children it will have when it will be instantiated, it does
+not know how many children it will have when it will be instantiated, it does
 not implement the Push function.
 
 \subsubsection InstantiationRedefineInterface Instantiation : Redefining the Interface
@@ -535,7 +535,7 @@ Areas in the Scheduling Tree.
 </li>
 
 <li> A Pump is the engine source of the Scheduler : it pushes/pulls tasks
-to/from a Scheduling Component to an other. Native Pumps of a Scheduling
+to/from a Scheduling Component to another. Native Pumps of a Scheduling
 Tree are located at the root of the Tree (incoming Push calls from StarPU),
 and at the leafs of the Tree (Pop calls coming from StarPU Workers).
 Pre-implemented Scheduling Components currently shipped with Pumps are
@@ -582,7 +582,7 @@ The Tree-Eager-Prefetching Scheduler shown in Section
 
 \section UsingaNewSchedulingPolicy Using a New Scheduling Policy
 
-There is two ways to use a new scheduling policy.
+There are two ways to use a new scheduling policy.
 
 <ul>
 <li>
@@ -675,7 +675,7 @@ Precise debugging can also be performed by using the
 By setting the job_id of a task
 in these environment variables, StarPU will raise <c>SIGTRAP</c> when the task is being
 scheduled, pushed, or popped by the scheduler. This means that when one notices
-that a task is being scheduled in a seemingly odd way, one can just reexecute
+that a task is being scheduled in a seemingly odd way, one can just re-execute
 the application in a debugger, with some of those variables set, and the
 execution will stop exactly at the scheduling points of this task, thus allowing
 to inspect the scheduler state, etc.

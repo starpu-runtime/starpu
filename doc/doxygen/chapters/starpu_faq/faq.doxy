@@ -20,18 +20,18 @@
 
 Some libraries need to be initialized once for each concurrent instance that
 may run on the machine. For instance, a C++ computation class which is not
-thread-safe by itself, but for which several instanciated objects of that class
+thread-safe by itself, but for which several instantiated objects of that class
 can be used concurrently. This can be used in StarPU by initializing one such
 object per worker. For instance, the <c>libstarpufft</c> example does the following to
 be able to use FFTW on CPUs.
 
-Some global array stores the instanciated objects:
+Some global array stores the instantiated objects:
 
 \code{.c}
 fftw_plan plan_cpu[STARPU_NMAXWORKERS];
 \endcode
 
-At initialisation time of libstarpu, the objects are initialized:
+At initialization time of libstarpu, the objects are initialized:
 
 \code{.c}
 int workerid;
@@ -61,7 +61,7 @@ static void fft(void *descr[], void *_args)
 
 This however is not sufficient for FFT on CUDA: initialization has
 to be done from the workers themselves.  This can be done thanks to
-starpu_execute_on_each_worker().  For instance <c>libstarpufft</c> does the following.
+starpu_execute_on_each_worker().  For instance, <c>libstarpufft</c> does the following.
 
 \code{.c}
 static void fft_plan_gpu(void *args)
@@ -206,7 +206,7 @@ security.models.extensions.user_set_cpu_affinity=1
 
 Yes, this is on purpose.
 
-By default, StarPU uses active polling on task queues, so as to minimize wake-up
+By default, StarPU uses active polling on task queues to minimize wake-up
 latency for better overall performance.
 
 If eating CPU time is a problem (e.g. application running on a desktop),
@@ -227,7 +227,7 @@ frozen), and stop them from polling for more work.
 Note that this does not prevent you from submitting new tasks, but
 they won't execute until starpu_resume() is called. Also note
 that StarPU must not be paused when you call starpu_shutdown(), and
-that this function pair works in a push/pull manner, i.e you need to
+that this function pair works in a push/pull manner, i.e. you need to
 match the number of calls to these functions to clear their effect.
 
 
@@ -255,7 +255,7 @@ Yes, this is on purpose.
 
 Since GPU devices are way faster than CPUs, StarPU needs to react quickly when
 a task is finished, to feed the GPU with another task (StarPU actually submits
-a couple of tasks in advance so as to pipeline this, but filling the pipeline
+a couple of tasks in advance to pipeline this, but filling the pipeline
 still has to be happening often enough), and thus it has to dedicate threads for
 this, and this is a very CPU-consuming duty. StarPU thus dedicates one CPU core
 for driving each GPU by default.
@@ -273,7 +273,7 @@ executing.
 
 \section CUDADrivers StarPU does not see my CUDA device
 
-First make sure that CUDA is properly running outside StarPU: build and
+First, make sure that CUDA is properly running outside StarPU: build and
 run the following program with \c -lcudart :
 
 \code{.c}
@@ -332,14 +332,14 @@ int main(void)
 \endcode
 
 If that program does not find your device, the problem is not at the StarPU
-level, but the CUDA drivers, check the documentation of your CUDA
+level, but with the CUDA drivers, check the documentation of your CUDA
 setup.  This program is available in the source directory of
 StarPU in <c>tools/gpus/check_cuda.c</c>, along with another CUDA
 program <c>tools/gpus/cuda_list.cu</c>.
 
 \section OpenCLDrivers StarPU does not see my OpenCL device
 
-First make sure that OpenCL is properly running outside StarPU: build and
+First, make sure that OpenCL is properly running outside StarPU: build and
 run the following program with \c -lOpenCL :
 
 \code{.c}
@@ -388,7 +388,7 @@ int main(void)
 \endcode
 
 If that program does not find your device, the problem is not at the StarPU
-level, but the OpenCL drivers, check the documentation of your OpenCL
+level, but with the OpenCL drivers, check the documentation of your OpenCL
 implementation. This program is available in the source directory of
 StarPU in <c>tools/gpus/check_opencl.c</c>.
 
@@ -400,7 +400,7 @@ CPU workers. You can either do that with the configuration parameter
 or with the environment variable \ref
 STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY.
 
-If you application keeps failing, you will find in the source
+If your application keeps failing, you will find in the source
 directory of StarPU, a directory named <c>tools/gpus</c> with various
 programs. <c>cuda_copy.cu</c> is testing the direct or undirect copy
 between CUDA devices.

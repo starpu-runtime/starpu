@@ -43,12 +43,12 @@ tasks.
 \section BubblesExamples An Example
 
 In order to understand the hierarchical tasks model, an example of
-"bubblification" is showed here. We start from a simple example
+"bubblification" is showed here. We start from a simple example,
 multiplying the elements of a vector.
 
 \subsection BubblesInitialVersion Initial Version
 
-A computation is done several times on a vector splitted in smaller
+A computation is done several times on a vector split in smaller
 vectors. For each step and each sub-vector, a task is generated to
 perform the computation.
 
@@ -185,7 +185,7 @@ When executed, the function starpu_codelet::bubble_func will be given
 as parameter the task being checked, and the value specified with
 ::STARPU_BUBBLE_FUNC_ARG.
 
-When executed the function starpu_codelet::bubble_gen_dag_func will be
+When executed, the function starpu_codelet::bubble_gen_dag_func will be
 given as parameter the task being turned into a hierarchical task and
 the value specified with ::STARPU_BUBBLE_GEN_DAG_FUNC_ARG.
 

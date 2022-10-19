@@ -43,7 +43,7 @@ however then needs to have the field starpu_data_interface_ops::dontcache
 set to 1, to prevent StarPU from trying to perform any cached allocation,
 since the allocated size will vary. An example is available in
 <c>tests/datawizard/variable_size.c</c>. The example uses its own data
-interface so as to contain some simulation information for data growth, but the
+interface to contain some simulation information for data growth, but the
 principle can be applied for any data interface.
 
 The principle is to use starpu_malloc_on_node_flags() to make the new
@@ -68,7 +68,7 @@ Some interfaces make a distinction between the actual number of elements
 stored in the data and the actually allocated buffer. For instance, the vector
 interface uses the <c>nx</c> field for the former, and the <c>allocsize</c> for
 the latter. This allows for lazy reallocation to avoid reallocating the buffer
-everytime to exactly match the actual number of elements. Computations and data
+every time to exactly match the actual number of elements. Computations and data
 transfers will use the field <c>nx</c>, while allocation functions will use the field
 <c>allocsize</c>. One just has to make sure that <c>allocsize</c> is always
 bigger or equal to <c>nx</c>.
@@ -114,7 +114,7 @@ nodes.
 
 Setting the write-through mask to <c>~0U</c> can also be useful to make sure all
 memory nodes always have a copy of the data, so that it is never evicted when
-memory gets scarse.
+memory gets scarce.
 
 Implicit data dependency computation can become expensive if a lot
 of tasks access the same piece of data. If no dependency is required
@@ -139,7 +139,7 @@ starpu_vector_data_register(&handle, -1, 0, n, sizeof(float));
 StarPU will then allocate the actual buffer only when it is actually needed,
 e.g. directly on the GPU without allocating in main memory.
 
-In the same vein, once the temporary results are not useful any more, the
+In the same vein, once the temporary results are not useful anymore, the
 data should be thrown away. If the handle is not to be reused, it can be
 unregistered:
 
@@ -166,7 +166,7 @@ perform data prefetch (see \ref STARPU_PREFETCH):
 as soon as a scheduling decision is taken for a task, requests are issued to
 transfer its required data to the target processing unit, if needed, so that
 when the processing unit actually starts the task, its data will hopefully be
-already available and it will not have to wait for the transfer to finish.
+already available, and it will not have to wait for the transfer to finish.
 
 The application may want to perform some manual prefetching, for several reasons
 such as excluding initial data transfers from performance measurements, or
@@ -406,7 +406,7 @@ static struct starpu_data_interface_ops interface_complex_ops =
 };
 \endcode
 
-Convenience functions can defined to access the different fields of the
+Convenience functions can be defined to access the different fields of the
 complex interface from a StarPU data handle after a call to starpu_data_acquire():
 
 \code{.c}
@@ -423,7 +423,7 @@ int starpu_complex_get_nx(starpu_data_handle_t handle);
 
 Similar functions need to be defined to access the different fields of the
 complex interface from a <c>void *</c> pointer to be used within codelet
-implemetations.
+implementations.
 
 \snippet complex.c To be included. You should update doxygen if you see this text.
 
@@ -510,7 +510,7 @@ static void complex_free_data_on_node(void *data_interface, unsigned node)
 }
 \endcode
 
-We we have not made anything particular for GPUs or whatsoever: it is
+We have not made anything particular for GPUs or whatsoever: it is
 starpu_free_on_node() which knows how to actually make the allocation, and
 returns the resulting pointer, be it in main memory, in GPU memory, etc.
 
@@ -561,7 +561,7 @@ static const struct starpu_data_copy_methods complex_copy_methods =
 
 which was referenced in the structure \ref starpu_data_interface_ops above.
 
-Other fields of \ref starpu_data_copy_methods allow to provide optimized
+Other fields of \ref starpu_data_copy_methods allow providing optimized
 variants, notably for the case of 2D or 3D matrix tiles with non-trivial ld.
 
 \subsection DefiningANewDataInterface_pack Data pack/peek/unpack
@@ -634,7 +634,7 @@ And \c complex_unpack_data() just calls \c complex_peek_data() and releases the 
 \subsection DefiningANewDataInterface_pointers Pointers inside the data interface
 
 In the example described above, the two pointers stored in the data interface
-are data buffers, which may point into main memory GPU memory, etc. One may also
+are data buffers, which may point into main memory, GPU memory, etc. One may also
 want to store pointers to meta-data for the interface, for instance the list of
 dimensions sizes for the n-dimension matrix interface, but such pointers are to
 be handled completely differently.
@@ -695,7 +695,7 @@ disabled by setting starpu_data_interface_ops::dontcache to 1.
 
 Note: It should be noted that because of the allocation cache,
 starpu_data_interface_ops::free_data_on_node may be called on an interface which
-is not attached to a handle any more. This means that the meta-data pointers
+is not attached to a handle anymore. This means that the meta-data pointers
 will have been deallocated by starpu_data_interface_ops::unregister_data_handle,
 and cannot be used by starpu_data_interface_ops::free_data_on_node to e.g.
 compute the size to be deallocated. For instance, the n-dimension matrix
@@ -747,9 +747,9 @@ A full example may be found in <c>examples/basic_examples/multiformat.c</c>.
 
 \section SpecifyingATargetNode Specifying A Target Node For Task Data
 
-When executing a task on a GPU for instance, StarPU would normally copy all the
-needed data for the tasks on the embedded memory of the GPU.  It may however
-happen that the task kernel would rather have some of the datas kept in the
+When executing a task on GPU, for instance, StarPU would normally copy all the
+needed data for the tasks to the embedded memory of the GPU.  It may however
+happen that the task kernel would rather have some of the data kept in the
 main memory instead of copied in the GPU, a pivoting vector for instance.
 This can be achieved by setting the flag starpu_codelet::specific_nodes to
 <c>1</c>, and then fill the array starpu_codelet::nodes (or starpu_codelet::dyn_nodes when
@@ -793,7 +793,7 @@ struct starpu_codelet cl =
 };
 \endcode
 
-The first data will be copied into fast (but probably size-limited) local memory
+The first data will be copied into fast (but probably size-limited) local memory,
 while the second data will be left in slow (but large) memory. This makes sense
 when the kernel does not make so many accesses to the second data, and thus data
 being remote e.g. over a PCI bus is not a performance problem, and avoids

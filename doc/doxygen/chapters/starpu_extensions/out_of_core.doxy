@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -24,7 +24,7 @@ When using StarPU, one may need to store more data than what the main memory
 disk and to use it.
 
 Similarly to what happens with GPUs (it's actually exactly the same code), when
-available main memory becomes scarse, StarPU will evict unused data to the disk,
+available main memory becomes scarce, StarPU will evict unused data to the disk,
 thus leaving room for new allocations. Whenever some evicted data is needed
 again for a task, StarPU will automatically fetch it back from the disk.
 
@@ -41,11 +41,11 @@ disk write method, without user intervention.
 The user can also use starpu_disk_open() to explicitly open an object within the
 disk, e.g. a file name in the \c stdio or \c unistd cases, or a database key in the
 \c leveldb case, and then use <c>starpu_*_register</c> functions to turn it into a StarPU
-data handle. StarPU will then use this file as external source of data, and
+data handle. StarPU will then use this file as an external source of data, and
 automatically read and write data as appropriate.
 
 In any case, the user also needs to set \ref STARPU_LIMIT_CPU_MEM to the amount of
-data that StarPU will be allowed to afford. By default StarPU will use the
+data that StarPU will be allowed to afford. By default, StarPU will use the
 machine memory size, but part of it is taken by the kernel, the system,
 daemons, and the application's own allocated data, whose size can not be
 predicted. That is why the user needs to specify what StarPU can afford.
@@ -62,7 +62,7 @@ int new_dd = starpu_disk_register(&starpu_disk_unistd_ops, (void *) "/tmp/", 102
 
 Here, we use the \c unistd library to realize the read/write operations, i.e.
 \c fread/\c fwrite. This structure must have a path where to store files, as well as
-the maximum size the software can afford storing on the disk.
+the maximum size the software can afford to store on the disk.
 
 Don't forget to check if the result is correct!
 
@@ -80,7 +80,7 @@ caching in the kernel), \c unistd_o_direct (no caching), \c leveldb, or \c hdf5.
 It is important to understand that when the backend is not set to \c
 unistd_o_direct, some caching will occur at the kernel level (the page cache),
 which will also consume memory... \ref STARPU_LIMIT_CPU_MEM might need to be set
-to less that half of the machine memory just to leave room for the kernel's
+to less than half of the machine memory just to leave room for the kernel's
 page cache, otherwise the kernel will struggle to get memory. Using \c
 unistd_o_direct avoids this caching, thus allowing to set \ref STARPU_LIMIT_CPU_MEM
 to the machine memory size (minus some memory for normal kernel operations,
@@ -95,7 +95,7 @@ StarPU will then automatically try to evict unused data to this new disk. One
 can also use the standard StarPU memory node API to prefetch data etc., see the
 \ref API_Standard_Memory_Library and the \ref API_Data_Interfaces.
 
-The disk is unregistered during the starpu_shutdown().
+The disk is unregistered during the execution of starpu_shutdown().
 
 \section OOCDataRegistration Data Registration
 
@@ -118,7 +118,7 @@ starpu_task_insert(cl_fill_with_data, STARPU_W, h, 0);
 \endcode
 
 Which makes StarPU automatically do the allocation when the task running
-cl_fill_with_data gets executed. And then if its needs to, it will be able to
+cl_fill_with_data gets executed. And then if it needs to, it will be able to
 release it after having pushed the data to the disk. Since no initial buffer is
 provided to starpu_matrix_data_register(), the handle does not have any initial
 value right after this call, and thus the very first task using the handle needs
@@ -133,7 +133,7 @@ starpu_data_set_ooc_flag() should be used.
 
 By default, StarPU uses a Least-Recently-Used (LRU) algorithm to determine
 which data should be evicted to the disk. This algorithm can be hinted
-by telling which data will no be used in the coming future thanks to
+by telling which data will not be used in the coming future thanks to
 starpu_data_wont_use(), for instance:
 
 \code{.c}
@@ -162,7 +162,7 @@ at the end of the task graph.
 
 It is notably better to avoid defining different priorities to tasks with low
 priority, since that will make the scheduler want to schedule them by levels of
-priority, at the depense of locality.
+priority, at the expense of locality.
 
 The scheduling algorithms worth trying are thus <code>dmdar</code> and
 <code>lws</code>, which privilege data locality over priorities. There will be

@@ -27,7 +27,7 @@ for some data, and dependencies can be specifically expressed.
 Setting (or unsetting) sequential consistency can be done at the data
 level by calling starpu_data_set_sequential_consistency_flag() for a
 specific data or starpu_data_set_default_sequential_consistency_flag()
-for all datas.
+for all data.
 
 Setting (or unsetting) sequential consistency can also be done at task
 level by setting the field starpu_task::sequential_consistency to \c 0.
@@ -35,7 +35,7 @@ level by setting the field starpu_task::sequential_consistency to \c 0.
 Sequential consistency can also be set (or unset) for each handle of a
 specific task, this is done by using the field
 starpu_task::handles_sequential_consistency. When set, its value
-should be a array with the number of elements being the number of
+should be an array with the number of elements being the number of
 handles for the task, each element of the array being the sequential
 consistency for the \c i-th handle of the task. The field can easily be
 set when calling starpu_task_insert() with the flag
@@ -65,7 +65,7 @@ if (sequential_consistency(task) == 1)
 
 \subsection TasksAndTagsDependencies Tasks And Tags Dependencies
 
-One can explicitely set dependencies between tasks using
+One can explicitly set dependencies between tasks using
 starpu_task_declare_deps() or starpu_task_declare_deps_array(). Dependencies between tasks can be
 expressed through tags associated to a tag with the field
 starpu_task::tag_id and using the function starpu_tag_declare_deps()
@@ -158,7 +158,7 @@ of CUDA devices, to take benefit from the new models without crashing on old mod
 Note: the function starpu_codelet::can_execute is called by the
 scheduler each time it tries to match a task with a worker, and should
 thus be very fast. The function starpu_cuda_get_device_properties()
-provides a quick access to CUDA properties of CUDA devices to achieve
+provides quick access to CUDA properties of CUDA devices to achieve
 such efficiency.
 
 Another example is to compile CUDA code for various compute capabilities,
@@ -261,7 +261,7 @@ discrepancy concerns. <c>hwloc</c> support needs to be enabled to get
 good performance, otherwise StarPU will not know how to better group
 cores.
 
-Two modes of execution exist to accomodate with existing usages.
+Two modes of execution exist to accommodate with existing usages.
 
 \subsection Fork-modeParallelTasks Fork-mode Parallel Tasks
 
@@ -357,7 +357,7 @@ as <c>pheft</c> or <c>peager</c>).
 
 \subsection ConcurrentParallelTasks Concurrent Parallel Tasks
 
-Unfortunately, many environments and librairies do not support concurrent
+Unfortunately, many environments and libraries do not support concurrent
 calls.
 
 For instance, most OpenMP implementations (including the main ones) do not
@@ -367,7 +367,7 @@ creating its CPU workers by using such pragma.
 
 Other parallel libraries are also not safe when being invoked concurrently
 from different threads, due to the use of global variables in their sequential
-sections for instance.
+sections, for instance.
 
 The solution is then to use only one combined worker at a time.  This can be
 done by setting the field starpu_conf::single_combined_worker to <c>1</c>, or
@@ -379,7 +379,7 @@ sizes to look for the most efficient ones.
 
 \section SynchronizationTasks Synchronization Tasks
 
-For the application conveniency, it may be useful to define tasks which do not
+For the application convenience, it may be useful to define tasks which do not
 actually make any computation, but wear for instance dependencies between other
 tasks or tags, or to be submitted in callbacks, etc.
 

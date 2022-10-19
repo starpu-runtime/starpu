@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,7 +25,7 @@ Generally-speaking, if you have troubles, pass \ref enable-debug "--enable-debug
 <c>configure</c> to enable some checks which impact performance, but will
 catch common issues, possibly earlier than the actual problem you are observing,
 which may just be a consequence of a bug that happened earlier. Also, make sure
-not to have the \ref enable-fast "--enable-fast" \c configure option which drops very useful
+not to have the \ref enable-fast "--enable-fast" \c configure option, which drops very useful
 catchup assertions. If your program is valgrind-safe, you can use it, see \ref
 UsingOtherDebugger.
 
@@ -75,7 +75,7 @@ Some <c>gdb</c> helpers are provided to show the whole StarPU state:
 For instance,
 <ul>
 <li> one can print all tasks with <c>starpu-print-all-tasks</c>, </li>
-<li> print all datas with <c>starpu-print-datas</c>, </li>
+<li> print all data with <c>starpu-print-datas</c>, </li>
 <li> print all pending data transfers with <c>starpu-print-prequests</c>, <c>starpu-print-requests</c>, <c>starpu-print-frequests</c>, <c>starpu-print-irequests</c>,</li>
 <li> print pending MPI requests with <c>starpu-mpi-print-detached-requests</c></li>
 </ul>
@@ -117,7 +117,7 @@ machine has, otherwise an error will happen during execution. Future versions
 of Temanejo should be able to tell StarPU the number of CPUs to use.
 
 Tag numbers have to be below <c>4000000000000000000ULL</c> to be usable for
-Temanejo (so as to distinguish them from tasks).
+Temanejo (to distinguish them from tasks).
 
 
 

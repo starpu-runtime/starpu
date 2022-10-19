@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -34,19 +34,19 @@ according to the behavior of the parallel kernels.
 The Hypervisor receives information from StarPU concerning the
 execution of the tasks, the efficiency of the resources, etc. and it
 decides accordingly when and how the contexts can be resized. Basic
-strategies of resizing scheduling contexts already exist but a
+strategies of resizing scheduling contexts already exist, but a
 platform for implementing additional custom ones is available.
 
 \section StartTheHypervisor Start the Hypervisor
 
 The Hypervisor must be initialized once at the beginning of the
-application. At this point a resizing policy should be indicated. This
+application. At this point, a resizing policy should be indicated. This
 strategy depends on the information the application is able to provide
-to the hypervisor as well as on the accuracy needed for the resizing
+to the hypervisor, as well as on the accuracy needed for the resizing
 procedure. For example, the application may be able to provide an
-estimation of the workload of the contexts. In this situation the
+estimation of the workload of the contexts. In this situation, the
 hypervisor may decide what resources the contexts need. However, if no
-information is provided the hypervisor evaluates the behavior of the
+information is provided, the hypervisor evaluates the behavior of the
 resources and of the application and makes a guess about the future.
 The hypervisor resizes only the registered contexts.
 
@@ -56,23 +56,23 @@ The runtime provides the hypervisor with information concerning the
 behavior of the resources and the application. This is done by using
 the <c>performance_counters</c> which represent callbacks indicating
 when the resources are idle or not efficient, when the application
-submits tasks or when it becomes to slow.
+submits tasks or when it becomes too slow.
 
 \section TriggerTheHypervisor Trigger the Hypervisor
 
 The resizing is triggered either when the application requires it
 (sc_hypervisor_resize_ctxs()) or
-when the initials distribution of resources alters the performance of
-the application (the application is to slow or the resource are idle
+when the initial distribution of resources alters the performance of
+the application (the application is too slow or the resource are idle
 for too long time). If the environment
-variable \ref SC_HYPERVISOR_TRIGGER_RESIZE is set to <c>speed</c>
+variable \ref SC_HYPERVISOR_TRIGGER_RESIZE is set to <c>speed</c>,
 the monitored speed of the contexts is compared to a theoretical value
 computed with a linear program, and the resizing is triggered
 whenever the two values do not correspond. Otherwise, if the environment
 variable is set to <c>idle</c> the hypervisor triggers the resizing algorithm
 whenever the workers are idle for a period longer than the threshold
 indicated by the programmer. When this
-happens different resizing strategy are applied that target minimizing
+happens, different resizing strategy are applied that target minimizing
 the total execution of the application, the instant speed or the idle
 time of the resources.
 
@@ -99,7 +99,7 @@ starpu_task_insert(&codelet,
                     0);
 \endcode
 
-Then users have to indicate that when a task with the specified tag is executed the contexts should resize.
+Then users have to indicate that when a task with the specified tag is executed, the contexts should resize.
 
 \code{.c}
 sc_hypervisor_resize(sched_ctx, 2);
@@ -129,8 +129,8 @@ sc_hypervisor_ctl(sched_ctx_id,
 \endcode
 
 The <b>Gflops/s rate</b> based strategy resizes the scheduling contexts such that they all finish at the same time.
-The speed of each of them is computed and once one of them is significantly slower the resizing process is triggered.
-In order to do these computations users have to input the total number of instructions needed to be executed by the
+The speed of each of them is computed and once one of them is significantly slower, the resizing process is triggered.
+In order to do these computations, users have to input the total number of instructions needed to be executed by the
 parallel kernels and the number of instruction to be executed by each
 task.
 
@@ -145,7 +145,7 @@ and the one
  The corresponding field is starpu_task::flops and the corresponding
  macro in the function starpu_task_insert() is ::STARPU_FLOPS
  (<b>Caution</b>: but take care of passing a double, not an integer,
- otherwise parameter passing will be bogus). When the task is executed
+ otherwise parameter passing will be bogus). When the task is executed,
  the resizing process is triggered.
 
 \code{.c}
@@ -163,31 +163,31 @@ starpu_task_insert(&codelet,
 
 The <b>Feft</b> strategy uses a linear program to predict the best distribution of resources
 such that the application finishes in a minimum amount of time. As for the <b>Gflops/s rate </b>
-strategy the programmers has to indicate the total number of flops to be executed
+strategy, the programmers have to indicate the total number of flops to be executed
 when registering the context. This number of flops may be updated dynamically during the execution
 of the application whenever this information is not very accurate from the beginning.
 The function sc_hypervisor_update_diff_total_flops() is called in order to add or to remove
 a difference to the flops left to be executed.
 Tasks are provided also the number of flops corresponding to each one of them. During the
-execution of the application the hypervisor monitors the consumed flops and recomputes
+execution of the application, the hypervisor monitors the consumed flops and recomputes
 the time left and the number of resources to use. The speed of each type of resource
 is (re)evaluated and inserter in the linear program in order to better adapt to the
 needs of the application.
 
 The <b>Teft</b> strategy uses a linear program too, that considers all the types of tasks
-and the number of each of them and it tries to allocates resources such that the application
+and the number of each of them, and it tries to allocate resources such that the application
 finishes in a minimum amount of time. A previous calibration of StarPU would be useful
 in order to have good predictions of the execution time of each type of task.
 
-The types of tasks may be determines directly by the hypervisor when they are submitted.
-However there are applications that do not expose all the graph of tasks from the beginning.
-In this case in order to let the hypervisor know about all the tasks the function
+The types of tasks may be determined directly by the hypervisor when they are submitted.
+However, there are applications that do not expose all the graph of tasks from the beginning.
+In this case, in order to let the hypervisor know about all the tasks, the function
 sc_hypervisor_set_type_of_task() will just inform the hypervisor about future tasks
 without submitting them right away.
 
 The <b>Ispeed </b> strategy divides the execution of the application in several frames.
-For each frame the hypervisor computes the speed of the contexts and tries making them
-run at the same speed. The strategy requires less contribution from users as
+For each frame, the hypervisor computes the speed of the contexts and tries making them
+run at the same speed. The strategy requires less contribution from users, as
 the hypervisor requires only the size of the frame in terms of flops.
 
 \code{.c}
@@ -211,7 +211,7 @@ resizing policies (see \ref ResizingStrategies), it may sometimes be
 desirable to implement custom policies to address specific problems.
 The API described below allows users to write their own resizing policy.
 
-Here an example of how to define a new policy
+Here is an example of how to define a new policy
 
 \code{.c}
 struct sc_hypervisor_policy dummy_policy =

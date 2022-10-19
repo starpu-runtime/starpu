@@ -50,7 +50,7 @@ synchronize the tasks execution.
 If you do not plan to use support for GPUs or out-of-core, i.e. not use StarPU's ability to manage data coherency between several memory nodes, the \c configure option \ref enable-maxnodes "--enable-maxnodes=1" allows to considerably reduce StarPU's memory management overhead.
 
 The \c configure option \ref enable-fast "--enable-fast" disables all
-assertions. This makes StarPU more performant for really small tasks by
+assertions. This makes StarPU more performant for tiny tasks by
 disabling all sanity checks. Only use this for measurements and production, not for development, since this will drop all basic checks.
 
 \section DataRelatedFeaturesToImprovePerformance Data Related Features Which May Improve Performance
@@ -99,7 +99,7 @@ cudaStreamSynchronize(starpu_cuda_get_local_stream());
 \endcode
 
 as well as the use of \c cudaMemcpyAsync(), etc. for each CUDA operation one needs
-to use a version that takes the a stream parameter.
+to use a version that takes a stream parameter.
 
 If the kernel uses its own non-default stream, one can synchronize this stream
 with the StarPU-provided stream this way:
@@ -119,7 +119,7 @@ triggered by the completion of the kernel.
 Unfortunately, some CUDA libraries do not have stream variants of
 kernels. This will seriously lower the potential for overlapping.
 If some CUDA calls are made without specifying this local stream,
-synchronization needs to be explicited with cudaDeviceSynchronize() around these
+synchronization needs to be explicit with cudaDeviceSynchronize() around these
 calls, to make sure that they get properly synchronized with the calls using
 the local stream. Notably, \c cudaMemcpy() and \c cudaMemset() are actually
 asynchronous and need such explicit synchronization! Use \c cudaMemcpyAsync() and
@@ -153,7 +153,7 @@ number of kernels to be executed concurrently.  This is useful when kernels are
 small and do not feed the whole GPU with threads to run.
 
 Concerning memory allocation, you should really not use \c cudaMalloc()/ \c cudaFree()
-within the kernel, since \c cudaFree() introduces a awfully lot of synchronizations
+within the kernel, since \c cudaFree() introduces way too many synchronizations
 within CUDA itself. You should instead add a parameter to the codelet with the
 ::STARPU_SCRATCH mode access. You can then pass to the task a handle registered
 with the desired size but with the \c NULL pointer, the handle can even be
@@ -177,14 +177,12 @@ kernel startup and completion.
 
 \section DetectionStuckConditions Detecting Stuck Conditions
 
-It may happen that for some reason, StarPU does not make progress for a long
-period of time.  Reason are sometimes due to contention inside StarPU, but
-sometimes this is due to external reasons, such as a stuck MPI or CUDA
-driver.
+It may happen that StarPU does not make progress for a long
+period of time.  It may be due to contention inside StarPU, but it may also be an external problem, such as a stuck MPI or CUDA driver.
 
 <c>export STARPU_WATCHDOG_TIMEOUT=10000</c> (\ref STARPU_WATCHDOG_TIMEOUT)
 
-allows to make StarPU print an error message whenever StarPU does not terminate
+allows making StarPU print an error message whenever StarPU does not terminate
 any task for 10ms, but lets the application continue normally. In addition to that,
 
 <c>export STARPU_WATCHDOG_CRASH=1</c> (\ref STARPU_WATCHDOG_CRASH)
@@ -199,7 +197,7 @@ the process continue, after inspecting the state of the process.
 
 By default, StarPU makes sure to use at most 90% of the memory of GPU devices,
 moving data in and out of the device as appropriate, as well as using
-prefetch and writeback optimizations.
+prefetch and write-back optimizations.
 
 The environment variables \ref STARPU_LIMIT_CUDA_MEM, \ref STARPU_LIMIT_CUDA_devid_MEM,
 \ref STARPU_LIMIT_OPENCL_MEM, and \ref STARPU_LIMIT_OPENCL_devid_MEM
@@ -208,8 +206,8 @@ should be used at most by StarPU (the default value is to use 90% of the
 available memory).
 
 By default, the usage of the main memory is not limited, as the
-default mechanims do not provide means to evict main memory when it
-gets too tight. This also means that by default StarPU will not cache buffer
+default mechanisms do not provide means to evict main memory when it
+gets too tight. This also means that by default, StarPU will not cache buffer
 allocations in main memory, since it does not know how much of the
 system memory it can afford.
 
@@ -245,7 +243,7 @@ the delta by calling starpu_memory_allocate() and starpu_memory_deallocate().
 starpu_memory_get_total() and starpu_memory_get_available()
 can be used to get an estimation of how much memory is available.
 starpu_memory_wait_available() can also be used to block until an
-amount of memory becomes available, but it may be preferrable to call
+amount of memory becomes available, but it may be preferable to call
 
 \code{.c}
 starpu_memory_allocate(STARPU_MEMORY_WAIT)
@@ -312,12 +310,12 @@ tasks. For this system to work with MPI tasks, you need to submit tasks progress
 of as soon as possible, because in the case of MPI receives, the allocation cache check for reusing data
 buffers will be done at submission time, not at execution time.
 
-There is two options to control the task submission flow. The first one is by
+There are two options to control the task submission flow. The first one is by
 controlling the number of submitted tasks during the whole execution. This can
 be done whether by setting the environment variables
 \ref STARPU_LIMIT_MAX_SUBMITTED_TASKS and \ref STARPU_LIMIT_MIN_SUBMITTED_TASKS to
 tell StarPU when to stop submitting tasks and when to wake up and submit tasks
-again, or by explicitely calling starpu_task_wait_for_n_submitted() in
+again, or by explicitly calling starpu_task_wait_for_n_submitted() in
 your application code for finest grain control (for example, between two
 iterations of a submission loop).
 
@@ -325,7 +323,7 @@ The second option is to control the memory size of the allocation cache. This
 can be done in the application by using jointly
 starpu_memory_get_available() and starpu_memory_wait_available() to submit
 tasks only when there is enough memory space to allocate the data needed by the
-task, i.e when enough data are available for reuse in the allocation cache.
+task, i.e. when enough data are available for reuse in the allocation cache.
 
 \section PerformanceModelCalibration Performance Model Calibration
 
@@ -380,7 +378,7 @@ indication of an issue in the computation library, or the execution environment
 Details on the current performance model status
 can be obtained with the tool <c>starpu_perfmodel_display</c>: the
 option <c>-l</c> lists the available performance models, and the
-option <c>-s</c> allows to choose the performance model to be
+option <c>-s</c> allows choosing the performance model to be
 displayed. The result looks like:
 
 \verbatim
@@ -393,7 +391,7 @@ e5a07e31  4096     0.000000e+00  1.717457e+01  5.190038e+00  14
 ...
 \endverbatim
 
-which shows that for the LU 11 kernel with a 1MiB matrix, the average
+It shows that for the LU 11 kernel with a 1MiB matrix, the average
 execution time on CPUs was about 25ms, with a 0.2ms standard deviation, over
 8 samples. It is a good idea to check this before doing actual performance
 measurements.
