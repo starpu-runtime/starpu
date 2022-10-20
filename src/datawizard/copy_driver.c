@@ -687,8 +687,8 @@ int starpu_interface_copynd(uintptr_t src, size_t src_offset, unsigned src_node,
 	{
 		for (i = 0; i < nn[ndim-1]; i++)
 		{
-			if (starpu_interface_copynd(src, src_offset + i*ldn_src[ndim-1], src_node,
-						    dst, dst_offset + i*ldn_dst[ndim-1], dst_node,
+			if (starpu_interface_copynd(src, src_offset + i*ldn_src[ndim-1]*elemsize, src_node,
+						    dst, dst_offset + i*ldn_dst[ndim-1]*elemsize, dst_node,
 						    elemsize, ndim-1,
 						    nn, ldn_src, ldn_dst,
 						    async_data))
