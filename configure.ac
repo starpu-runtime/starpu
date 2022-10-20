@@ -2446,10 +2446,15 @@ if  test x$enable_fxt_lock = xyes; then
 	AC_DEFINE(STARPU_FXT_LOCK_TRACES, [1], [enable additional locking systems FxT traces])
 fi
 
-PKG_CHECK_MODULES([PAPI], [papi], [have_valid_papi=yes], [have_valid_papi=no])
-if test x$have_valid_papi = xyes ; then
-   AC_DEFINE([STARPU_PAPI], [1], [Define to 1 if you have the libpapi library])
-   STARPU_EXPORTED_LIBS="$STARPU_EXPORTED_LIBS $PAPI_LIBS"
+AC_ARG_ENABLE(papi, [AS_HELP_STRING([--disable-papi],
+      [disable using papi])],
+      enable_papi=$enableval, enable_papi=yes)
+if test x$enable_papi = xyes; then
+  PKG_CHECK_MODULES([PAPI], [papi], [have_valid_papi=yes], [have_valid_papi=no])
+  if test x$have_valid_papi = xyes ; then
+    AC_DEFINE([STARPU_PAPI], [1], [Define to 1 if you have the libpapi library])
+    STARPU_EXPORTED_LIBS="$STARPU_EXPORTED_LIBS $PAPI_LIBS"
+  fi
 fi
 
 AC_MSG_CHECKING(whether performance debugging should be enabled)
