@@ -46,7 +46,7 @@ int main(void)
 	uint32_t pos[5] = {1,2,1,2,1};
 
 	starpu_data_handle_t handle;
-	starpu_data_handle_t var_handle;
+	starpu_data_handle_t var_handle[1];
 
 	struct starpu_codelet cl =
 	{
@@ -84,10 +84,10 @@ int main(void)
 		.get_child_ops = starpu_ndim_filter_pick_variable_child_ops
 	};
 
-	starpu_data_partition_plan(handle, &f_var, &var_handle);
+	starpu_data_partition_plan(handle, &f_var, var_handle);
 
 	FPRINTF(stderr, "Sub Variable:\n");
-	int *variable = (int *)starpu_variable_get_local_ptr(var_handle);
+	int *variable = (int *)starpu_variable_get_local_ptr(var_handle[0]);
 	FPRINTF(stderr, "%5d ", *variable);
 	FPRINTF(stderr,"\n");
 
@@ -95,7 +95,7 @@ int main(void)
 	struct starpu_task *task = starpu_task_create();
 
 	FPRINTF(stderr,"Dealing with sub-variable\n");
-	task->handles[0] = var_handle;
+	task->handles[0] = var_handle[0];
 	task->cl = &cl;
 	task->synchronous = 1;
 	task->cl_arg = &factor;
@@ -110,7 +110,7 @@ int main(void)
 	FPRINTF(stderr, "%5d ", *variable);
 	FPRINTF(stderr,"\n");
 
-	starpu_data_partition_clean(handle, 1, &var_handle);
+	starpu_data_partition_clean(handle, 1, var_handle);
 
 	/* Unpartition the data, unregister it from StarPU and shutdown */
 	//starpu_data_unpartition(handle, STARPU_MAIN_RAM);
