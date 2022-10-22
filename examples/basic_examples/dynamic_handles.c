@@ -65,6 +65,13 @@ struct starpu_codelet dummy_big_cl =
 	.nbuffers = STARPU_NMAXBUFS+1
 };
 
+struct starpu_codelet dummy_variable_cl =
+{
+	.cpu_funcs = {dummy_big_kernel},
+	.cpu_funcs_name = {"dummy_big_kernel"},
+	.nbuffers = STARPU_VARIABLE_NBUFFERS
+};
+
 int main(void)
 {
 	starpu_data_handle_t handle;
@@ -72,7 +79,7 @@ int main(void)
 	int ret;
 	int val=42;
 	int i;
-	struct starpu_task *task, *task2;
+	struct starpu_task *task, *task2, *task3;
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return 77;
@@ -80,6 +87,8 @@ int main(void)
 
 	starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&val, sizeof(int));
 
+
+	/* This tests a small constant number of arguments with starpu_task_submit */
 	task = starpu_task_create();
 	task->synchronous = 1;
 	task->cl = &dummy_small_cl;
@@ -93,6 +102,8 @@ int main(void)
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
+
+	/* This tests a large constant number of arguments with starpu_task_submit */
 	task2 = starpu_task_create();
 	task2->synchronous = 1;
 	task2->cl = &dummy_big_cl;
@@ -111,6 +122,29 @@ int main(void)
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
+
+	/* This tests a large variable number of arguments with starpu_task_submit */
+	task3 = starpu_task_create();
+	task3->synchronous = 1;
+	task3->cl = &dummy_variable_cl;
+	task3->cl_arg_free = 1;
+	starpu_codelet_pack_args(&task3->cl_arg, &task3->cl_arg_size,
+				 STARPU_VALUE, &(dummy_big_cl.nbuffers), sizeof(dummy_big_cl.nbuffers),
+				 0);
+	task3->dyn_handles = malloc(dummy_big_cl.nbuffers * sizeof(*(task3->dyn_handles)));
+	task3->dyn_modes = malloc(dummy_big_cl.nbuffers * sizeof(*(task3->dyn_modes)));
+	task3->nbuffers = dummy_big_cl.nbuffers;
+	for(i=0 ; i<dummy_big_cl.nbuffers ; i++)
+	{
+		task3->dyn_handles[i] = handle;
+		task3->dyn_modes[i] = STARPU_RW;
+	}
+	ret = starpu_task_submit(task3);
+	if (ret == -ENODEV) goto enodev;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+
+
+	/* This tests a small number of arguments with starpu_task_insert */
 	ret = starpu_task_insert(&dummy_small_cl,
 				 STARPU_VALUE, &(dummy_small_cl.nbuffers), sizeof(dummy_small_cl.nbuffers),
 				 STARPU_RW, handle,
@@ -120,6 +154,8 @@ int main(void)
 	ret = starpu_task_wait_for_all();
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
+
+	/* This tests a large constant number of arguments with starpu_task_insert */
 	descrs = malloc(dummy_big_cl.nbuffers * sizeof(struct starpu_data_descr));
 	for(i=0 ; i<dummy_big_cl.nbuffers ; i++)
 	{
@@ -135,6 +171,25 @@ int main(void)
 	ret = starpu_task_wait_for_all();
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 	free(descrs);
+
+
+	/* This tests a large variable number of arguments with starpu_task_insert */
+	descrs = malloc(dummy_big_cl.nbuffers * sizeof(struct starpu_data_descr));
+	for(i=0 ; i<dummy_big_cl.nbuffers ; i++)
+	{
+		descrs[i].handle = handle;
+		descrs[i].mode = STARPU_RW;
+	}
+	ret = starpu_task_insert(&dummy_variable_cl,
+				 STARPU_VALUE, &(dummy_big_cl.nbuffers), sizeof(dummy_big_cl.nbuffers),
+				 STARPU_DATA_MODE_ARRAY, descrs, dummy_big_cl.nbuffers,
+				 0);
+	if (ret == -ENODEV) goto enodev;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+	ret = starpu_task_wait_for_all();
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
+	free(descrs);
+
 
 	starpu_data_unregister(handle);
 	starpu_shutdown();
