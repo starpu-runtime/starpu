@@ -42,6 +42,16 @@ extern "C" {
  */
 
 /**
+   Report a HIPBLAS error.
+*/
+void starpu_hipblas_report_error(const char *func, const char *file, int line, int status);
+
+/**
+   Call starpu_hipblas_report_error(), passing the current function, file and line position.
+*/
+#define STARPU_HIPBLAS_REPORT_ERROR(status) starpu_hipblas_report_error(__starpu_func__, __FILE__, __LINE__, status)
+
+/**
    Report a HIP error.
 */
 void starpu_hip_report_error(const char *func, const char *file, int line, hipError_t status);
@@ -49,13 +59,7 @@ void starpu_hip_report_error(const char *func, const char *file, int line, hipEr
 /**
    Call starpu_hip_report_error(), passing the current function, file and line position.
 */
-
 #define STARPU_HIP_REPORT_ERROR(status) starpu_hip_report_error(__starpu_func__, __FILE__, __LINE__, status)
-
-/**
-   @defgroup API_HIP_Extensions HIP Extensions
-   @{
- */
 
 /**
    Return the current worker’s HIP stream. StarPU provides a stream

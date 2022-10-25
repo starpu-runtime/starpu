@@ -34,8 +34,7 @@ extern "C" {
    Return the HIPBLAS handle to be used to queue HIPBLAS kernels. It
    is properly initialized and configured for multistream by
    starpu_cublas_init().
-*/
-cublasHandle_t starpu_cublas_get_local_handle(void);
+*/hipblasHandle_t starpu_hipblas_get_local_handle(void);
 
 /** @} */
 

@@ -47,12 +47,13 @@ static void init_hipblas_func(void *args STARPU_ATTRIBUTE_UNUSED)
 {
 	unsigned idx = get_idx();
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
-	if (!(hipblas_initialized[idx]++))
-	{
-		hipblasStatus_t hipblasst = hipblasCreate();
-		if (STARPU_UNLIKELY(hipblasst))
-			STARPU_hipblas_REPORT_ERROR(hipblasst);
-	}
+	/* NOT NEEDED ?*/*/
+	// if (!(hipblas_initialized[idx]++))
+	// {
+	// 	hipblasStatus_t hipblasst = hipblasCreate();
+	// 	if (STARPU_UNLIKELY(hipblasst))
+	// 		STARPU_hipblas_REPORT_ERROR(hipblasst);
+	// }
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
 	hipblasCreate(&hipblas_handles[starpu_worker_get_id_check()]);
@@ -61,7 +62,7 @@ static void init_hipblas_func(void *args STARPU_ATTRIBUTE_UNUSED)
 
 static void set_hipblas_stream_func(void *args STARPU_ATTRIBUTE_UNUSED)
 {
-	hipblasSetStream(starpu_hip_get_local_stream());
+	hipblasSetStream(hipblas_handles[starpu_worker_get_id_check()], starpu_hip_get_local_stream());
 }
 
 static void shutdown_hipblas_func(void *args STARPU_ATTRIBUTE_UNUSED)
@@ -69,7 +70,7 @@ static void shutdown_hipblas_func(void *args STARPU_ATTRIBUTE_UNUSED)
 	unsigned idx = get_idx();
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	if (!--hipblas_initialized[idx])
-		hipblasDestroy();
+		hipblasDestroy(hipblas_handles[starpu_worker_get_id_check()]);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
 	hipblasDestroy(hipblas_handles[starpu_worker_get_id_check()]);
@@ -105,7 +106,7 @@ void starpu_hipblas_set_stream(void)
 	if (!_starpu_get_machine_config()->topology.hip_th_per_dev ||
 		(!_starpu_get_machine_config()->topology.hip_th_per_stream &&
 		 _starpu_get_machine_config()->topology.nworker[STARPU_HIP_WORKER][devnum] > 1))
-		hipblasSetStream(starpu_hip_get_local_stream());
+		hipblasSetStream(hipblas_handles[starpu_worker_get_id_check()], starpu_hip_get_local_stream());
 #endif
 }
 

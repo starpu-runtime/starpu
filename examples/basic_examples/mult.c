@@ -43,13 +43,13 @@ static starpu_data_handle_t A_handle, B_handle, C_handle;
 static unsigned nslicesx = 10;
 static unsigned nslicesy = 10;
 #ifdef STARPU_QUICK_CHECK
-static unsigned xdim = 21600;
-static unsigned ydim = 21600;
-static unsigned zdim = 2160;
-#else
 static unsigned xdim = 1024;
 static unsigned ydim = 1024;
-static unsigned zdim = 512;
+static unsigned zdim = 1024;
+#else
+static unsigned xdim = 128;
+static unsigned ydim = 128;
+static unsigned zdim = 128;
 #endif
 
 extern void hip_mult(void *descr[], void *arg);
@@ -449,7 +449,7 @@ int main(void)
 	starpu_data_unregister(C_handle);
 
 	/* Comment to remove printing of results */
-	/* check_result(C, Cref, ldC); */
+	check_result(C, Cref, ldC); 
 
         starpu_free_flags(A, zdim*ydim*sizeof(float), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 	starpu_free_flags(B, xdim*zdim*sizeof(float), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
