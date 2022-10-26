@@ -1814,13 +1814,13 @@ if test x$enable_hip != xno; then
 		fi
 		have_valid_hip=no
 	else
-		HIP_PLATFORM="`hipconfig --platform`"
+                HIP_PLATFORM="`hipconfig --platform`"
                 HIP_DIR="`hipconfig --path`"
                 HIP_LIB_DIR="$HIP_DIR/lib"
-				HIPBLAS_LIB_DIR="$HIP_DIR/hipblas/lib"
-				HIPBLAS_INCLUDE_DIR="$HIP_DIR/hipblas/include"
+                HIPBLAS_LIB_DIR="$HIP_DIR/../hipblas/lib"
+                HIPBLAS_INCLUDE_DIR="$HIP_DIR/../hipblas/include"
                 HIP_INCLUDE_DIR="$HIP_DIR/include"
-                STARPU_HIP_CPPFLAGS="`hipconfig --cpp_config`"
+                STARPU_HIP_CPPFLAGS="`hipconfig --cpp_config` -I$HIPBLAS_INCLUDE_DIR"
                 HIP_CLANG_PATH="`hipconfig --hipclangpath`"
                 have_valid_hip=yes
 	fi
@@ -1841,7 +1841,7 @@ if test x$have_valid_hip = xyes; then
     AC_CHECK_HEADER([hip/hip_runtime.h],[have_valid_hip=yes],[have_valid_hip=no])
     AC_CHECK_HEADER([hip/hip_runtime_api.h],[have_valid_hip=yes],[have_valid_hip=no])
     AC_CHECK_HEADER([hipblas.h],[have_valid_hip=yes],[have_valid_hip=no])
-    # AC_HAVE_LIBRARY([hipblas],[have_valid_hip=yes],[have_valid_hip=no])
+    #AC_HAVE_LIBRARY([hipblas],[have_valid_hip=yes],[have_valid_hip=no])
     #unset ac_cv_lib_cublas_main
     CPPFLAGS="${SAVED_CPPFLAGS}"
 fi
