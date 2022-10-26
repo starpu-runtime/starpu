@@ -45,6 +45,14 @@ static const TYPE m1 = -1.0;
 static const TYPE v0 = 0.0;
 #endif
 
+#ifdef STARPU_USE_HIP
+#include <hip/hip_runtime.h>
+#include <starpu_hipblas.h>
+static const TYPE p1 = 1.0;
+static const TYPE m1 = -1.0;
+static const TYPE v0 = 0.0;
+#endif
+
 static unsigned niter = 10;
 static unsigned nsleeps = 1;
 static unsigned nslicesx = 4;
@@ -236,6 +244,42 @@ static void cublas_gemm(void *descr[], void *arg)
 }
 #endif
 
+#ifdef STARPU_USE_HIP
+static void hipblas_mult(void *descr[], void *arg, const TYPE *beta)
+{
+        (void)arg;
+        TYPE *subA = (TYPE *)STARPU_MATRIX_GET_PTR(descr[0]);
+        TYPE *subB = (TYPE *)STARPU_MATRIX_GET_PTR(descr[1]);
+        TYPE *subC = (TYPE *)STARPU_MATRIX_GET_PTR(descr[2]);
+
+        unsigned nxC = STARPU_MATRIX_GET_NX(descr[2]);
+        unsigned nyC = STARPU_MATRIX_GET_NY(descr[2]);
+        unsigned nyA = STARPU_MATRIX_GET_NY(descr[0]);
+
+        unsigned ldA = STARPU_MATRIX_GET_LD(descr[0]);
+        unsigned ldB = STARPU_MATRIX_GET_LD(descr[1]);
+        unsigned ldC = STARPU_MATRIX_GET_LD(descr[2]);
+
+        hipblasStatus_t status = HIPBLAS_GEMM(starpu_hipblas_get_local_handle(),
+                        HIPBLAS_OP_N, HIPBLAS_OP_N,
+                        nxC, nyC, nyA,
+                        &p1, subA, ldA, subB, ldB,
+                        beta, subC, ldC);
+        if (status != HIPBLAS_STATUS_SUCCESS)
+                STARPU_HIPBLAS_REPORT_ERROR(status);
+}
+
+static void hipblas_gemm0(void *descr[], void *arg)
+{
+        hipblas_mult(descr, arg, &v0);
+}
+
+static void hipblas_gemm(void *descr[], void *arg)
+{
+        hipblas_mult(descr, arg, &p1);
+}
+#endif
+
 #ifdef STARPU_HAVE_BLAS
 void cpu_mult(void *descr[], void *arg, TYPE beta)
 {
@@ -303,10 +347,13 @@ static struct starpu_codelet cl_gemm0 =
 #endif
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {cublas_gemm0},
+#elif defined(STARPU_USE_HIP)
+	.hip_funcs = {hipblas_gemm0},
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
+	.hip_flags = {STARPU_HIP_ASYNC},
 	.nbuffers = 3,
 	.modes = {STARPU_R, STARPU_R, STARPU_W},
 	.model = &starpu_gemm_model
@@ -323,9 +370,12 @@ static struct starpu_codelet cl_gemm =
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {cublas_gemm},
 #elif defined(STARPU_SIMGRID)
+	.hip_funcs = {hipblas_gemm},
+#elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
+	.hip_flags = {STARPU_HIP_ASYNC},
 	.nbuffers = 3,
 	.modes = {STARPU_R, STARPU_R, STARPU_RW},
 	.model = &starpu_gemm_model
@@ -535,6 +585,7 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	starpu_cublas_init();
+	starpu_hipblas_init();
 
 	init_problem_data();
 	partition_mult_data();
@@ -674,6 +725,7 @@ enodev:
 	starpu_free_flags(C, xdim*ydim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 
 	starpu_cublas_shutdown();
+	starpu_hipblas_shutdown();
 	starpu_shutdown();
 
 	return ret;

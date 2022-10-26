@@ -18,6 +18,7 @@
 #define EPSILON	0.000001
 
 #define CUBLAS_GEMM cublasSgemm
+#define HIPBLAS_GEMM hipblasSgemm
 #define CPU_GEMM	STARPU_SGEMM
 #define CPU_ASUM	STARPU_SASUM
 #define CPU_IAMAX	STARPU_ISAMAX
