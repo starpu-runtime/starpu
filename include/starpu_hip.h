@@ -28,6 +28,7 @@
 #pragma GCC diagnostic ignored "-Wimplicit-int"
 #endif
 #pragma GCC diagnostic ignored "-Wreturn-type"
+#include <hipblas.h>
 #include <hip/hip_runtime.h>
 #include <hip/hip_runtime_api.h>
 #pragma GCC diagnostic pop

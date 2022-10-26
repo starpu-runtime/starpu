@@ -1587,6 +1587,40 @@ hwloc_obj_t _starpu_hip_get_hwloc_obj(hwloc_topology_t topology, int devid)
 }
 #endif
 
+void starpu_hipblas_report_error(const char *func, const char *file, int line, int status)
+{
+        char *errormsg;
+        switch (status)
+        {
+                case HIPBLAS_STATUS_SUCCESS:
+                        errormsg = "success";
+                        break;
+                case HIPBLAS_STATUS_NOT_INITIALIZED:
+                        errormsg = "not initialized";
+                        break;
+                case HIPBLAS_STATUS_ALLOC_FAILED:
+                        errormsg = "alloc failed";
+                        break;
+                case HIPBLAS_STATUS_INVALID_VALUE:
+                        errormsg = "invalid value";
+                        break;
+                case HIPBLAS_STATUS_ARCH_MISMATCH:
+                        errormsg = "arch mismatch";
+                        break;
+                case HIPBLAS_STATUS_EXECUTION_FAILED:
+                        errormsg = "execution failed";
+                        break;
+                case HIPBLAS_STATUS_INTERNAL_ERROR:
+                        errormsg = "internal error";
+                        break;
+                default:
+                        errormsg = "unknown error";
+                        break;
+        }
+        _STARPU_MSG("oops in %s (%s:%d)... %d: %s \n", func, file, line, status, errormsg);
+        STARPU_ABORT();
+}
+
 void starpu_hip_report_error(const char *func, const char *file, int line, hipError_t status)
 {
 	const char *errormsg = hipGetErrorString(status);

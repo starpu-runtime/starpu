@@ -14,8 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef __STARPU_HIPBLAS_V2_H__
-#define __STARPU_HIPBLAS_V2_H__
+#ifndef __STARPU_HIPBLAS_H__
+#define __STARPU_HIPBLAS_H__
 
 #if defined STARPU_USE_HIP && !defined STARPU_DONT_INCLUDE_HIP_HEADERS
 
@@ -31,10 +31,27 @@ extern "C" {
  */
 
 /**
+   Initialize HIPBLAS on every HIPdevice. The
+   HIPBLAS library must be initialized prior to any HIPBLAS call. Calling
+   starpu_hipblas_init() will initialize HIPBLAS on every HIP device
+   controlled by StarPU. This call blocks until HIPBLAS has been properly
+   initialized on every device.
+*/
+void starpu_hipblas_init(void);
+
+/**
    Return the HIPBLAS handle to be used to queue HIPBLAS kernels. It
    is properly initialized and configured for multistream by
    starpu_cublas_init().
-*/hipblasHandle_t starpu_hipblas_get_local_handle(void);
+*/
+
+hipblasHandle_t starpu_hipblas_get_local_handle(void);
+
+/**
+   Synchronously deinitialize the HIPBLAS library on
+   every HIP device.
+*/
+void starpu_hipblas_shutdown(void);
 
 /** @} */
 
@@ -44,4 +61,4 @@ extern "C" {
 
 #endif
 
-#endif /* __STARPU_HIPBLAS_V2_H__ */
+#endif /* __STARPU_HIPBLAS_H__ */
