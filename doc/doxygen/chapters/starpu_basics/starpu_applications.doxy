@@ -90,7 +90,7 @@ $ source $STARPU_PATH/bin/starpu_env
 
 \section IntegratingStarPUInABuildSystem Integrating StarPU in a Build System
 
-\subsubsection StarPUInMake Integrating StarPU in a Make Build System
+\subsection StarPUInMake Integrating StarPU in a Make Build System
 
 When using a Makefile, the following lines can be added to set the
 options for the compiler and the linker:
@@ -124,7 +124,7 @@ int main(void)
 
 You can build it with <code>make test-starpu</code> and run it with <code>./test-starpu</code>
 
-\subsubsection StarPUInCMake Integrating StarPU in a CMake Build System
+\subsection StarPUInCMake Integrating StarPU in a CMake Build System
 
 This section shows a minimal example integrating StarPU in an existing application's CMake build system.
 
