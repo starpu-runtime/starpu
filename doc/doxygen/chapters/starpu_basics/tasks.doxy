@@ -29,6 +29,22 @@ checked if bad performance are observed. To get a grasp at the scalability
 possibility according to task size, one can run
 <c>tests/microbenchs/tasks_size_overhead.sh</c> which draws curves of the
 speedup of independent tasks of very small sizes.
+
+This benchmark is installed in <c>$STARPU_PATH/lib/starpu/examples/</c>.
+It gives a glimpse into how long a task should be (in µs) for StarPU overhead
+to be low enough to keep efficiency.  Running
+<c>tasks_size_overhead.sh</c> generates a plot
+of the speedup of tasks of various sizes, depending on the number of CPUs being
+used.
+
+For example, in figure below, for 128 µs tasks (the red line), StarPU overhead is low enough
+to guarantee a good speedup if the number of CPUs is not more than 36. But with the same number of CPUs,
+64 µs tasks (the black line) cannot have a correct speedup. We need to decrease the number of CPUs
+to about 17 if we want to keep efficiency.
+
+\image html tasks_size_overhead.png
+\image latex tasks_size_overhead.png "" width=\textwidth
+
 To determine what task size your application is actually using, one can use
 <c>starpu_fxt_data_trace</c>, see \ref DataTrace .
 

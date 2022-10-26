@@ -14,11 +14,9 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/*! \page StarPUApplications StarPU Applications
+/*! \page StarPUApplications StarPU Applications, setting up Your Own Code
 
-\section SettingUpYourOwnCode Setting up Your Own Code
-
-\subsection SettingFlagsForCompilingLinkingAndRunningApplications Setting Flags for Compiling, Linking and Running Applications
+\section SettingFlagsForCompilingLinkingAndRunningApplications Setting Flags for Compiling, Linking and Running Applications
 
 StarPU provides a <c>pkg-config</c> executable to obtain relevant compiler
 and linker flags. As compiling and linking an application against
@@ -90,7 +88,7 @@ environment the variables <c>STARPU_PATH</c>, <c>LD_LIBRARY_PATH</c>,
 $ source $STARPU_PATH/bin/starpu_env
 \endverbatim
 
-\subsection IntegratingStarPUInABuildSystem Integrating StarPU in a Build System
+\section IntegratingStarPUInABuildSystem Integrating StarPU in a Build System
 
 \subsubsection StarPUInMake Integrating StarPU in a Make Build System
 
@@ -222,7 +220,7 @@ if (STARPU_FOUND)
 endif()
 \endcode
 
-\subsection RunningABasicStarPUApplication Running a Basic StarPU Application
+\section RunningABasicStarPUApplication Running a Basic StarPU Application
 
 Basic examples using StarPU are built in the directory
 <c>examples/basic_examples/</c> (and installed in
@@ -243,7 +241,7 @@ Please note that buses are benchmarked when StarPU is launched for the
 first time. This may take a few minutes, or less if <c>libhwloc</c> is
 installed. This step is done only once per user and per machine.
 
-\subsection RunningABasicStarPUApplicationOnMicrosoft Running a Basic StarPU Application on Microsoft Visual C
+\section RunningABasicStarPUApplicationOnMicrosoft Running a Basic StarPU Application on Microsoft Visual C
 
 Batch files are provided to run StarPU applications under Microsoft
 Visual C. They are installed in <c>$STARPU_PATH/bin/msvc</c>.
@@ -284,7 +282,7 @@ Callback function got argument 0000042
 c:\....>
 \endverbatim
 
-\subsection KernelThreadsStartedByStarPU Kernel Threads Started by StarPU
+\section KernelThreadsStartedByStarPU Kernel Threads Started by StarPU
 
 StarPU automatically binds one thread per CPU core. It does not use
 SMT/hyperthreading because kernels are usually already optimized for using a
@@ -305,7 +303,7 @@ starpu_pause(), then to perform its own computations, and then to
 resume StarPU by calling starpu_resume() so that StarPU can execute
 tasks.
 
-\subsection EnablingOpenCL Enabling OpenCL
+\section EnablingOpenCL Enabling OpenCL
 
 When both CUDA and OpenCL drivers are enabled, StarPU will launch an
 OpenCL worker for NVIDIA GPUs only if CUDA is not already running on them.
@@ -333,23 +331,5 @@ so:
 \verbatim
 $ STARPU_NCUDA=2 ./application
 \endverbatim
-
-\section TaskSizeOverheadBenchmark Task Size Overhead Benchmark
-
-This benchmark is installed in <c>$STARPU_PATH/lib/starpu/examples/</c>. Make sure to try various
-schedulers, for instance <c>STARPU_SCHED=dmda</c>.
-It gives a glimpse into how long a task should be (in µs) for StarPU overhead
-to be low enough to keep efficiency.  Running
-<c>tasks_size_overhead.sh</c> generates a plot
-of the speedup of tasks of various sizes, depending on the number of CPUs being
-used.
-
-For example, in figure below, for a 128 µs task (the red line), StarPU overhead is low enough
-to guarantee a good speedup if the number of CPUs is not more than 36. But with the same number of CPUs,
-a 64 µs task (the black line) cannot have a correct speedup. We need to decrease the number of CPUs
-to about 17 if we want to keep efficiency.
-
-\image html tasks_size_overhead.png
-\image latex tasks_size_overhead.png "" width=\textwidth
 
 */
