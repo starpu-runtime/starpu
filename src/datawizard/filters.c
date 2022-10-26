@@ -803,9 +803,7 @@ void _starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsign
 	_starpu_spin_lock(&initial_handle->header_lock);
 	STARPU_ASSERT_MSG(initial_handle->partitioned >= 1, "No partition planning is active for handle %p", initial_handle);
 	STARPU_ASSERT_MSG(nparts > 0, "One can't partition into 0 parts");
-	int ro = !!initial_handle->part_readonly;
-
-	if (ro)
+	if (initial_handle->part_readonly)
 	{
 		/* Replace this children set with the last set in the list of readonly children sets */
 		for (i = 0; i < initial_handle->partitioned-1; i++)
@@ -853,22 +851,19 @@ void _starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsign
 		n++;
 	}
 	/* TODO: assert nparts too */
-	if (!ro) {
-		int ret;
-		if (handles_sequential_consistency)
-			// FIXME: when partitioned as read-only only, we don't need a switch !
-			ret = starpu_task_insert(initial_handle->switch_cl, STARPU_W, initial_handle, STARPU_DATA_MODE_ARRAY, descr, n,
-						 STARPU_NAME, "unpartition",
-						 STARPU_HANDLES_SEQUENTIAL_CONSISTENCY, handles_sequential_consistency,
-						 STARPU_CALLBACK_WITH_ARG_NFREE, callback_func, callback_arg,
-						 0);
-		else
-			ret = starpu_task_insert(initial_handle->switch_cl, STARPU_W, initial_handle, STARPU_DATA_MODE_ARRAY, descr, n,
-						 STARPU_NAME, "unpartition",
-						 STARPU_CALLBACK_WITH_ARG_NFREE, callback_func, callback_arg,
-						 0);
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
-	}
+	int ret;
+	if (handles_sequential_consistency)
+		ret = starpu_task_insert(initial_handle->switch_cl, STARPU_W, initial_handle, STARPU_DATA_MODE_ARRAY, descr, n,
+					 STARPU_NAME, "unpartition",
+					 STARPU_HANDLES_SEQUENTIAL_CONSISTENCY, handles_sequential_consistency,
+					 STARPU_CALLBACK_WITH_ARG_NFREE, callback_func, callback_arg,
+					 0);
+	else
+		ret = starpu_task_insert(initial_handle->switch_cl, STARPU_W, initial_handle, STARPU_DATA_MODE_ARRAY, descr, n,
+					 STARPU_NAME, "unpartition",
+					 STARPU_CALLBACK_WITH_ARG_NFREE, callback_func, callback_arg,
+					 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
 	for (i = 0; i < nparts; i++)
 	{
