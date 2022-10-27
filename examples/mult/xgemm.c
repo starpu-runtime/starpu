@@ -369,7 +369,7 @@ static struct starpu_codelet cl_gemm =
 #endif
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {cublas_gemm},
-#elif defined(STARPU_SIMGRID)
+#elif defined(STARPU_USE_HIP)
 	.hip_funcs = {hipblas_gemm},
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
@@ -460,7 +460,7 @@ static void parse_args(int argc, char **argv)
 			}
 			size_set = 1;
 		}
-		
+
 		else if (strcmp(argv[i], "-xyz") == 0)
 		{
 			char *argptr;
