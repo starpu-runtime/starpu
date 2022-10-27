@@ -1821,6 +1821,12 @@ if test x$enable_hip != xno; then
                 HIPBLAS_INCLUDE_DIR="$HIP_DIR/../hipblas/include"
                 HIP_INCLUDE_DIR="$HIP_DIR/include"
                 STARPU_HIP_CPPFLAGS="`hipconfig --cpp_config` -I$HIPBLAS_INCLUDE_DIR"
+                if test "$HIP_PLATFORM" = "nvidia"; then
+                      STARPU_HIP_CPPFLAGS="$STARPU_HIP_CPPFLAGS -DSTARPU_HIP_PLATFORM_NVIDIA"
+                fi
+                if test "$HIP_PLATFORM" = "amd"; then
+                      STARPU_HIP_CPPFLAGS="$STARPU_HIP_CPPFLAGS -DSTARPU_HIP_PLATFORM_AMD"
+                fi
                 HIP_CLANG_PATH="`hipconfig --hipclangpath`"
                 have_valid_hip=yes
 	fi

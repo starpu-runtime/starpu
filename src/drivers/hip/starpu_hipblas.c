@@ -46,26 +46,20 @@ static unsigned get_idx(void)
 static void init_hipblas_func(void *args STARPU_ATTRIBUTE_UNUSED)
 {
 	unsigned idx = get_idx();
+	hipblasCreate(&hipblas_handles[starpu_worker_get_id_check()]);
+
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	if (!(hipblas_initialized[idx]++))
 	{
-		float *dA,*dB,*dC;
-		float v = 0.0;
-		hipMalloc(&dA, sizeof(*dA));
-		hipMalloc(&dB, sizeof(*dB));
-		hipMalloc(&dC, sizeof(*dC));
-		hipblasStatus_t status = hipblasSgemm(main_handle,
-						      HIPBLAS_OP_N, HIPBLAS_OP_N,
-						      1,1,1,
-						      &v, dA, 1, dB, 1,
-						      &v, dC, 1);
-		if (STARPU_UNLIKELY(status))
-			STARPU_HIPBLAS_REPORT_ERROR(status);
+#ifdef STARPU_HIP_PLATFORM_NVIDIA
+		cublasStatus cublasst = cublasInit();
+		if (STARPU_UNLIKELY(cublasst))
+			STARPU_CUBLAS_REPORT_ERROR(cublasst);
+#elif defined(STARPU_HIP_PLATFORM_AMD)
+		rocblas_initialize();
+#endif
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
-
-	hipblasCreate(&hipblas_handles[starpu_worker_get_id_check()]);
-	hipblasSetStream(hipblas_handles[starpu_worker_get_id_check()], starpu_hip_get_local_stream());
 }
 
 static void set_hipblas_stream_func(void *args STARPU_ATTRIBUTE_UNUSED)
@@ -78,7 +72,13 @@ static void shutdown_hipblas_func(void *args STARPU_ATTRIBUTE_UNUSED)
 	unsigned idx = get_idx();
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	if (!--hipblas_initialized[idx])
-		hipblasDestroy(hipblas_handles[starpu_worker_get_id_check()]);
+	{
+#ifdef STARPU_HIP_PLATFORM_NVIDIA
+		cublasShutdown();
+#elif defined(STARPU_HIP_PLATFORM_AMD)
+		// no equivalent
+#endif
+	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
 	hipblasDestroy(hipblas_handles[starpu_worker_get_id_check()]);
