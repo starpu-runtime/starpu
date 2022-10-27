@@ -605,7 +605,7 @@ int _starpu_opencl_driver_init(struct _starpu_worker *worker)
 	worker->pipeline_length = starpu_getenv_number_default("STARPU_OPENCL_PIPELINE", 2);
 	if (worker->pipeline_length > STARPU_MAX_PIPELINE)
 	{
-		_STARPU_DISP("Warning: STARPU_OPENCL_PIPELINE is %u, but STARPU_MAX_PIPELINE is only %u", worker->pipeline_length, STARPU_MAX_PIPELINE);
+		_STARPU_DISP("Warning: STARPU_OPENCL_PIPELINE is %u, but STARPU_MAX_PIPELINE is only %u\n", worker->pipeline_length, STARPU_MAX_PIPELINE);
 		worker->pipeline_length = STARPU_MAX_PIPELINE;
 	}
 #if !defined(STARPU_SIMGRID) && !defined(STARPU_NON_BLOCKING_DRIVERS)

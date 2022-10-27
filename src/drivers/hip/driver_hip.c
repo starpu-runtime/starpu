@@ -693,7 +693,7 @@ int _starpu_hip_driver_init(struct _starpu_worker *worker)
 		worker->pipeline_length = starpu_get_env_number_default("STARPU_HIP_PIPELINE", 2);
 		if (worker->pipeline_length > STARPU_MAX_PIPELINE)
 		{
-			_STARPU_DISP("Warning: STARPU_HIP_PIPELINE is %u, but STARPU_MAX_PIPELINE is only %u", worker->pipeline_length, STARPU_MAX_PIPELINE);
+			_STARPU_DISP("Warning: STARPU_HIP_PIPELINE is %u, but STARPU_MAX_PIPELINE is only %u\n", worker->pipeline_length, STARPU_MAX_PIPELINE);
 			worker->pipeline_length = STARPU_MAX_PIPELINE;
 		}	/* tell the main thread that this one is ready */
 #if !defined(STARPU_NON_BLOCKING_DRIVERS)
