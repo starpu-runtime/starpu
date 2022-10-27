@@ -47,6 +47,7 @@ static void init_hipblas_func(void *args STARPU_ATTRIBUTE_UNUSED)
 {
 	unsigned idx = get_idx();
 	hipblasCreate(&hipblas_handles[starpu_worker_get_id_check()]);
+	hipblasSetStream(hipblas_handles[starpu_worker_get_id_check()], starpu_hip_get_local_stream());
 
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	if (!(hipblas_initialized[idx]++))
@@ -60,11 +61,6 @@ static void init_hipblas_func(void *args STARPU_ATTRIBUTE_UNUSED)
 #endif
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
-}
-
-static void set_hipblas_stream_func(void *args STARPU_ATTRIBUTE_UNUSED)
-{
-	hipblasSetStream(hipblas_handles[starpu_worker_get_id_check()], starpu_hip_get_local_stream());
 }
 
 static void shutdown_hipblas_func(void *args STARPU_ATTRIBUTE_UNUSED)
@@ -89,7 +85,6 @@ void starpu_hipblas_init(void)
 {
 #ifdef STARPU_USE_HIP
 	starpu_execute_on_each_worker(init_hipblas_func, NULL, STARPU_HIP);
-	starpu_execute_on_each_worker(set_hipblas_stream_func, NULL, STARPU_HIP);
 
 	if (hipblasCreate(&main_handle) != HIPBLAS_STATUS_SUCCESS)
 		main_handle = NULL;
