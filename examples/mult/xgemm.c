@@ -53,7 +53,11 @@ static const TYPE m1 = -1.0;
 static const TYPE v0 = 0.0;
 #endif
 
+#ifdef STARPU_QUICK_CHECK
+static unsigned niter = 2;
+#else
 static unsigned niter = 10;
+#endif
 static unsigned nsleeps = 1;
 static unsigned nslicesx = 4;
 static unsigned nslicesy = 4;
@@ -574,10 +578,6 @@ int main(int argc, char **argv)
 	}
 #endif
 
-#ifdef STARPU_QUICK_CHECK
-	niter /= 10;
-#endif
-
 	starpu_fxt_autostart_profiling(0);
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
@@ -604,12 +604,13 @@ int main(int argc, char **argv)
 		if (bound)
 			starpu_bound_start(0, 0);
 
-		starpu_fxt_start_profiling();
-		start = starpu_timing_now();
+	        starpu_fxt_start_profiling();
 
 		unsigned x, y, z, iter;
 		for (iter = 0; iter < niter; iter++)
 		{
+                        if (iter==1)
+                                start = starpu_timing_now();
 			if (tiled)
 			{
 				for (x = 0; x < nslicesx; x++)
@@ -681,7 +682,7 @@ int main(int argc, char **argv)
 
 		double timing = end - start;
 		double min, min_int;
-		double flops = 2.0*((unsigned long long)niter)*((unsigned long long)xdim)
+		double flops = 2.0*((unsigned long long)(niter-1))*((unsigned long long)xdim)
 				   *((unsigned long long)ydim)*((unsigned long long)zdim);
 
 		if (bound)
@@ -693,7 +694,7 @@ int main(int argc, char **argv)
 			gethostname(hostname, 255);
 			PRINTF("%s\t", hostname);
 		}
-		PRINTF("%u\t%u\t%u\t%.0f\t%.1f", xdim, ydim, zdim, timing/niter/1000.0, flops/timing/1000.0);
+		PRINTF("%u\t%u\t%u\t%.0f\t%.1f", xdim, ydim, zdim, timing/(niter-1)/1000.0, flops/timing/1000.0);
 		if (bound)
 			PRINTF("\t%.0f\t%.1f\t%.0f\t%.1f", min, flops/min/1000000.0, min_int, flops/min_int/1000000.0);
 		PRINTF("\n");
