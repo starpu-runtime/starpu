@@ -762,6 +762,16 @@ struct starpu_task *starpu_mpi_task_build(MPI_Comm comm, struct starpu_codelet *
 	return (ret > 0) ? NULL : task;
 }
 
+struct starpu_task *starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, va_list varg_list)
+{
+	struct starpu_task *task;
+	int ret;
+
+	ret = _starpu_mpi_task_build_v(comm, codelet, &task, NULL, NULL, NULL, NULL, varg_list);
+	STARPU_ASSERT(ret >= 0);
+	return (ret > 0) ? NULL : task;
+}
+
 int starpu_mpi_task_post_build(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 {
 	int xrank, do_execute;
@@ -783,6 +793,26 @@ int starpu_mpi_task_post_build(MPI_Comm comm, struct starpu_codelet *codelet, ..
 
 	return _starpu_mpi_task_postbuild_v(comm, xrank, do_execute, descrs, nb_data, prio);
 }
+
+int starpu_mpi_task_post_build_v(MPI_Comm comm, struct starpu_codelet *codelet, va_list varg_list)
+{
+	int xrank, do_execute;
+	int ret, me, nb_nodes;
+	struct starpu_data_descr *descrs;
+	int nb_data;
+	int prio;
+
+	starpu_mpi_comm_rank(comm, &me);
+	starpu_mpi_comm_size(comm, &nb_nodes);
+
+	/* Find out whether we are to execute the data because we own the data to be written to. */
+	ret = _starpu_mpi_task_decode_v(codelet, me, nb_nodes, &xrank, &do_execute, &descrs, &nb_data, &prio, varg_list);
+	if (ret < 0)
+		return ret;
+
+	return _starpu_mpi_task_postbuild_v(comm, xrank, do_execute, descrs, nb_data, prio);
+}
+
 
 struct starpu_codelet _starpu_mpi_redux_data_synchro_cl =
 {

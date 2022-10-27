@@ -673,11 +673,21 @@ struct starpu_task *starpu_mpi_task_build(MPI_Comm comm, struct starpu_codelet *
 #endif
 
 /**
+   Offer a va_list variant of starpu_mpi_task_build.
+ */
+struct starpu_task *starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, va_list varg_list);
+
+/**
    MUST be called after a call to starpu_mpi_task_build(),
    with the SAME list of arguments. Perform the fourth -- last -- step of
    the algorithm described in starpu_mpi_task_insert().
 */
 int starpu_mpi_task_post_build(MPI_Comm comm, struct starpu_codelet *codelet, ...);
+
+/**
+   Offer a va_list variant of starpu_mpi_task_post_build.
+ */
+int starpu_mpi_task_post_build_v(MPI_Comm comm, struct starpu_codelet *codelet, va_list varg_list);
 
 /**
    Transfer data \p data_handle to MPI node \p node, sending it from
