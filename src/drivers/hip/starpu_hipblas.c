@@ -47,13 +47,21 @@ static void init_hipblas_func(void *args STARPU_ATTRIBUTE_UNUSED)
 {
 	unsigned idx = get_idx();
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
-	// XXX: not needed?
-	// if (!(hipblas_initialized[idx]++))
-	// {
-	// 	hipblasStatus_t hipblasst = hipblasCreate();
-	// 	if (STARPU_UNLIKELY(hipblasst))
-	// 		STARPU_HIPBLAS_REPORT_ERROR(hipblasst);
-	// }
+	if (!(hipblas_initialized[idx]++))
+	{
+		float *dA,*dB,*dC;
+		float v = 0.0;
+		hipMalloc(&dA, sizeof(*dA));
+		hipMalloc(&dB, sizeof(*dB));
+		hipMalloc(&dC, sizeof(*dC));
+		hipblasStatus_t status = hipblasSgemm(main_handle,
+						      HIPBLAS_OP_N, HIPBLAS_OP_N,
+						      1,1,1,
+						      &v, dA, 1, dB, 1,
+						      &v, dC, 1);
+		if (STARPU_UNLIKELY(status))
+			STARPU_HIPBLAS_REPORT_ERROR(status);
+	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
 	hipblasCreate(&hipblas_handles[starpu_worker_get_id_check()]);
