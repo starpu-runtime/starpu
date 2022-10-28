@@ -1339,6 +1339,14 @@ AC_DEFINE_UNQUOTED(STARPU_MAXCUDADEVS, [$nmaxcudadev],
 AC_ARG_ENABLE(cuda, [AS_HELP_STRING([--disable-cuda],
 		[do not use CUDA device(s)])],, [enable_cuda=maybe])
 
+# We don't want to be hit by conflicts between simgrid, boost, and CUDA
+if test x$enable_simgrid = xyes; then
+	if test x$enable_cuda = xyes; then
+		AC_MSG_ERROR([Building against CUDA should not be enabled with simgrid])
+	fi
+	enable_cuda=no
+fi
+
 #AC_MSG_CHECKING(whether CUDA is available)
 AC_ARG_WITH(cuda-dir,
 	[AS_HELP_STRING([--with-cuda-dir=<path>],
