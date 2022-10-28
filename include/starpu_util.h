@@ -220,6 +220,9 @@ extern "C"
 #ifdef STARPU_NO_ASSERT
 #define STARPU_ASSERT_MSG(x, msg, ...)	do { if (0) { (void) (x); (void) msg; } } while(0)
 #else
+#  if defined(__INTEL_COMPILER)
+#  pragma warning disable 279 // otherwise icc triggers "warning #279: controlling expression is constant" (probably because of assert(0 && #x))
+#  endif
 #  if defined(__CUDACC__) || defined(STARPU_HAVE_WINDOWS)
 #    define STARPU_ASSERT_MSG(x, msg, ...)	do { if (STARPU_UNLIKELY(!(x))) { STARPU_DUMP_BACKTRACE(); fprintf(stderr, "\n[starpu][%s][assert failure] " msg "\n\n", __starpu_func__, ## __VA_ARGS__); STARPU_SIMGRID_ASSERT(0 && #x); *(int*)NULL = 0; }} while(0)
 #  else
