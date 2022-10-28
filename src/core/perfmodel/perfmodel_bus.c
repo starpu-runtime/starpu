@@ -108,34 +108,37 @@ static double numa_timing[STARPU_MAXNUMANODES][STARPU_MAXNUMANODES];
 static uint64_t cuda_size[STARPU_MAXCUDADEVS];
 static char cuda_devname[STARPU_MAXCUDADEVS][256];
 #endif
+
 #ifdef STARPU_USE_CUDA
 /* preference order of NUMA nodes (logical indexes) */
 static unsigned cuda_affinity_matrix[STARPU_MAXCUDADEVS][STARPU_MAXNUMANODES];
+#endif
+#ifdef STARPU_USE_OPENCL
+/* preference order of NUMA nodes (logical indexes) */
+static unsigned opencl_affinity_matrix[STARPU_MAXOPENCLDEVS][STARPU_MAXNUMANODES];
+#endif
 
 #ifndef STARPU_SIMGRID
+#ifdef STARPU_USE_CUDA
 #ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 static double cudadev_timing_dtod[STARPU_MAXNODES][STARPU_MAXNODES] = {{0.0}};
 static double cudadev_latency_dtod[STARPU_MAXNODES][STARPU_MAXNODES] = {{0.0}};
-#endif
 #endif
 static struct dev_timing cudadev_timing_per_numa[STARPU_MAXCUDADEVS*STARPU_MAXNUMANODES];
 static char cudadev_direct[STARPU_MAXNODES][STARPU_MAXNODES];
 #endif
 
-#ifndef STARPU_SIMGRID
 static uint64_t opencl_size[STARPU_MAXOPENCLDEVS];
 static char opencl_devname[STARPU_MAXOPENCLDEVS][64];
-#endif
 
 #ifdef STARPU_USE_OPENCL
-/* preference order of NUMA nodes (logical indexes) */
-static unsigned opencl_affinity_matrix[STARPU_MAXOPENCLDEVS][STARPU_MAXNUMANODES];
 static struct dev_timing opencldev_timing_per_numa[STARPU_MAXOPENCLDEVS*STARPU_MAXNUMANODES];
 #endif
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 static double mpi_time_device_to_device[STARPU_MAXMPIDEVS][STARPU_MAXMPIDEVS] = {{0.0}};
 static double mpi_latency_device_to_device[STARPU_MAXMPIDEVS][STARPU_MAXMPIDEVS] = {{0.0}};
+#endif
 #endif
 
 #ifdef STARPU_HAVE_HWLOC
@@ -1868,6 +1871,7 @@ void starpu_bus_print_bandwidth(FILE *f)
 		fprintf(f, "\n");
 	}
 
+#ifndef STARPU_SIMGRID
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 	if (ncuda != 0 || nopencl != 0)
 		fprintf(f, "\nGPU\tNUMA in preference order (logical index), host-to-device, device-to-host\n");
@@ -1910,6 +1914,7 @@ void starpu_bus_print_bandwidth(FILE *f)
 #endif
 		fprintf(f, "\n");
 	}
+#endif
 #endif
 }
 
