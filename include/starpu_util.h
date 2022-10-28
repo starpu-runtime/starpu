@@ -119,7 +119,13 @@ extern "C"
 #    define STARPU_ASSERT(x)		do { if (STARPU_UNLIKELY(!(x))) { STARPU_DUMP_BACKTRACE(); *(int*)NULL = 0; } } while(0)
 #    define STARPU_ASSERT_MSG(x, msg, ...)	do { if (STARPU_UNLIKELY(!(x))) { STARPU_DUMP_BACKTRACE(); fprintf(stderr, "\n[starpu][%s][assert failure] " msg "\n\n", __starpu_func__, ## __VA_ARGS__); *(int*)NULL = 0; }} while(0)
 #  else
+#    if defined(__INTEL_COMPILER)
+#    pragma warning disable 279 // otherwise icc triggers "warning #279: controlling expression is constant" (probably because of assert(0 && #x))
+#    endif
 #    define STARPU_ASSERT(x)		do { if (STARPU_UNLIKELY(!(x))) { STARPU_DUMP_BACKTRACE(); assert(0 && #x); } } while (0)
+#    if defined(__INTEL_COMPILER)
+#    pragma warning disable 279 // otherwise icc triggers "warning #279: controlling expression is constant" (probably because of assert(0 && #x))
+#    endif
 #    define STARPU_ASSERT_MSG(x, msg, ...)	do { if (STARPU_UNLIKELY(!(x))) { STARPU_DUMP_BACKTRACE(); fprintf(stderr, "\n[starpu][%s][assert failure] " msg "\n\n", __starpu_func__, ## __VA_ARGS__); assert(0 && #x); } } while(0)
 
 #  endif
