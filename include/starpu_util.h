@@ -294,6 +294,9 @@ extern "C" {
 	}                              \
 	while (0)
 #else
+#if defined(__INTEL_COMPILER)
+#pragma warning disable 279 // otherwise icc triggers "warning #279: controlling expression is constant" (probably because of assert(0 && #x))
+#endif
 #if defined(__CUDACC__) || defined(STARPU_HAVE_WINDOWS)
 #define STARPU_ASSERT_MSG(x, msg, ...)                                                                                 \
 	do {                                                                                                           \
