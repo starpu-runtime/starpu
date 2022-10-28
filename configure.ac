@@ -1807,6 +1807,7 @@ fi
 
 have_valid_hip=no
 if test x$enable_hip != xno; then
+
 	AC_PATH_PROG([HIPCONFIG], [hipconfig], [not-found])
 	if test "x$HIPCONFIG" = "xnot-found"; then
 		if test x$enable_hip = xyes; then
@@ -1814,21 +1815,29 @@ if test x$enable_hip != xno; then
 		fi
 		have_valid_hip=no
 	else
-                HIP_PLATFORM="`hipconfig --platform`"
-                HIP_DIR="`hipconfig --path`"
-                HIP_LIB_DIR="$HIP_DIR/lib"
-                HIPBLAS_LIB_DIR="$HIP_DIR/../hipblas/lib"
-                HIPBLAS_INCLUDE_DIR="$HIP_DIR/../hipblas/include"
-                HIP_INCLUDE_DIR="$HIP_DIR/include"
-                STARPU_HIP_CPPFLAGS="`hipconfig --cpp_config` -I$HIPBLAS_INCLUDE_DIR"
-                if test "$HIP_PLATFORM" = "nvidia"; then
-                      STARPU_HIP_CPPFLAGS="$STARPU_HIP_CPPFLAGS -DSTARPU_HIP_PLATFORM_NVIDIA"
-                fi
-                if test "$HIP_PLATFORM" = "amd"; then
-                      STARPU_HIP_CPPFLAGS="$STARPU_HIP_CPPFLAGS -DSTARPU_HIP_PLATFORM_AMD"
-                fi
-                HIP_CLANG_PATH="`hipconfig --hipclangpath`"
-                have_valid_hip=yes
+		HIP_PLATFORM="`hipconfig --platform`"
+		HIP_DIR="`hipconfig --path`"
+		HIP_LIB_DIR="$HIP_DIR/lib"
+		HIP_INCLUDE_DIR="$HIP_DIR/include"
+		STARPU_HIP_CPPFLAGS="`hipconfig --cpp_config`"
+		if test "$HIP_PLATFORM" = "nvidia"; then
+			STARPU_HIP_CPPFLAGS="$STARPU_HIP_CPPFLAGS -DSTARPU_HIP_PLATFORM_NVIDIA"
+		fi
+		if test "$HIP_PLATFORM" = "amd"; then
+			STARPU_HIP_CPPFLAGS="$STARPU_HIP_CPPFLAGS -DSTARPU_HIP_PLATFORM_AMD"
+		fi
+		HIP_CLANG_PATH="`hipconfig --hipclangpath`"
+		have_valid_hip=yes
+
+		AC_ARG_WITH([hipblas],
+			[AS_HELP_STRING([--with-hipblas=<path>], [specify where hipblas is installed])],
+			[hipblas_dir="$withval"],
+			[hipblas_dir="$HIP_DIR/../hipblas"])
+
+		HIPBLAS_INCLUDE_DIR="$hipblas_dir/include"
+		HIPBLAS_LIB_DIR="$hipblas_dir/lib"
+		STARPU_HIP_CPPFLAGS="$STARPU_HIP_CPPFLAGS -I$HIPBLAS_INCLUDE_DIR"
+		HIPCCFLAGS="$HIPCCFLAGS $STARPU_HIP_CPPFLAGS"
 	fi
 fi
 

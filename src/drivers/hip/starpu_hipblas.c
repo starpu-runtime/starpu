@@ -53,9 +53,7 @@ static void init_hipblas_func(void *args STARPU_ATTRIBUTE_UNUSED)
 	if (!(hipblas_initialized[idx]++))
 	{
 #ifdef STARPU_HIP_PLATFORM_NVIDIA
-		cublasStatus cublasst = cublasInit();
-		if (STARPU_UNLIKELY(cublasst))
-			STARPU_CUBLAS_REPORT_ERROR(cublasst);
+		cublasInit();
 #elif defined(STARPU_HIP_PLATFORM_AMD)
 		rocblas_initialize();
 #endif
