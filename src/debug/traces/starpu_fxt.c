@@ -197,7 +197,7 @@ void _starpu_convert_numa_nodes_bitmap_to_str(long bitmap, char* str)
 	{
 		long i = 0;
 		int first = 1;
-		for (; i < (long) (sizeof(bitmap)*8); i++)
+		for (; i < (long) (sizeof(bitmap)*8)-1; i++)
 		{
 			if (bitmap & ((long) 1 << i))
 			{
