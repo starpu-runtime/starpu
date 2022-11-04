@@ -103,9 +103,6 @@ void _starpu_destroy_topology(struct _starpu_machine_config *config);
 /** returns the number of physical cpus */
 unsigned _starpu_topology_get_nhwcpu(struct _starpu_machine_config *config);
 
-/** returns the number of logical cpus */
-unsigned _starpu_topology_get_nhwpu(struct _starpu_machine_config *config);
-
 /** returns the number of NUMA nodes */
 unsigned _starpu_topology_get_nnumanodes(struct _starpu_machine_config *config);
 
