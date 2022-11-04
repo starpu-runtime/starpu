@@ -37,14 +37,10 @@ CPUs. This is for instance useful when running the test suite in parallel.
 <dd>
 \anchor STARPU_WORKERS_GETBIND
 \addindex __env__STARPU_WORKERS_GETBIND
-By default StarPU uses the OS-provided CPU binding to determine
+Setting it to non-zero makes StarPU use the OS-provided CPU binding to determine
 how many and which CPU cores it should use. This is notably useful when running
 several StarPU-MPI processes on the same host, to let the MPI launcher set the
 CPUs to be used.
-
-If that binding is erroneous (e.g. because the job scheduler binds to just one
-core of the allocated cores), you can set STARPU_WORKERS_GETBIND to 0 to make
-StarPU use all cores of the machine.
 </dd>
 
 <dt>STARPU_WORKERS_CPUID</dt>
