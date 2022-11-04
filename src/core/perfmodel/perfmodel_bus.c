@@ -2000,8 +2000,8 @@ static void compare_value_and_recalibrate(char * msg, unsigned val_file, unsigne
 #endif
 			_STARPU_DISP("Current configuration does not match the bus performance model (%s: (stored) %d != (current) %d), recalibrating...\n", msg, val_file, val_detected);
 
-#warning tofix
-		_starpu_bus_force_sampling(42);
+		int location = _starpu_get_perf_model_bus();
+		_starpu_bus_force_sampling(location);
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 		if (_starpu_mpi_common_is_src_node())
