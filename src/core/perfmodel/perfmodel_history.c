@@ -44,10 +44,6 @@
 #define HASH_ADD_UINT32_T(head,field,add) HASH_ADD(hh,head,field,sizeof(uint32_t),add)
 #define HASH_FIND_UINT32_T(head,find,out) HASH_FIND(hh,head,find,sizeof(uint32_t),out)
 
-#define STR_SHORT_LENGTH 32
-#define STR_LONG_LENGTH 256
-#define STR_VERY_LONG_LENGTH 1024
-
 static struct starpu_perfmodel_arch **arch_combs;
 static int current_arch_comb;
 static int nb_arch_combs;
@@ -80,8 +76,8 @@ static char _starpu_perfmodel_hostname[STR_LONG_LENGTH];
 
 void starpu_perfmodel_initialize(void)
 {
-	/* make sure the performance model directory exists (or create it) */
-	_starpu_create_sampling_directory_if_needed();
+	/* make sure performance model directories exist (or create them) */
+	_starpu_create_bus_sampling_directory_if_needed(-1);
 
 	_starpu_perfmodel_list_init(&registered_models);
 
@@ -1207,15 +1203,17 @@ void starpu_perfmodel_init(struct starpu_perfmodel *model)
 static void get_model_debug_path(struct starpu_perfmodel *model, const char *arch, char *path, size_t maxlen)
 {
 	STARPU_ASSERT(path);
-
-	snprintf(path, maxlen, "%s/%s.%s.%s.debug", _starpu_get_perf_model_dir_debug(), model->symbol, _starpu_perfmodel_hostname, arch);
+	_starpu_find_perf_model_codelet_debug(model->symbol, _starpu_perfmodel_hostname, arch, path, maxlen);
 }
 
 void starpu_perfmodel_get_model_path(const char *symbol, char *path, size_t maxlen)
 {
-	const char *dot = strrchr(symbol, '.');
+	_starpu_find_perf_model_codelet(symbol, _starpu_perfmodel_hostname, path, maxlen);
+}
 
-	snprintf(path, maxlen, "%s/%s%s%s", _starpu_get_perf_model_dir_codelet(), symbol, dot?"":".", dot?"":_starpu_perfmodel_hostname);
+void starpu_perfmodel_get_model_path_default_location(const char *symbol, char *path, size_t maxlen)
+{
+	_starpu_set_default_perf_model_codelet(symbol, _starpu_perfmodel_hostname, path, maxlen);
 }
 
 #ifndef STARPU_SIMGRID
@@ -1231,7 +1229,10 @@ void starpu_save_history_based_model(struct starpu_perfmodel *model)
 	char path[STR_LONG_LENGTH];
 	starpu_perfmodel_get_model_path(model->symbol, path, sizeof(path));
 
-	_STARPU_DEBUG("Opening performance model file %s for model %s\n", path, model->symbol);
+	if (path[0] == '\0')
+		starpu_perfmodel_get_model_path_default_location(model->symbol, path, sizeof(path));
+
+	_STARPU_DEBUG("Opening performance model file <%s> for model <%s>\n", path, model->symbol);
 
 	/* overwrite existing file, or create it */
 	FILE *f;
@@ -1385,11 +1386,18 @@ void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned s
 
 		starpu_perfmodel_get_model_path(model->symbol, path, sizeof(path));
 
-		_STARPU_DEBUG("Opening performance model file %s for model %s ...\n", path, model->symbol);
-
 		unsigned calibrate_flag = _starpu_get_calibrate_flag();
 		model->benchmarking = calibrate_flag;
 		model->is_loaded = 1;
+
+		if (path[0] == '\0')
+		{
+			_STARPU_DEBUG("No performance model file for model %s ...\n", model->symbol);
+			STARPU_PTHREAD_RWLOCK_UNLOCK(&model->state->model_rwlock);
+			return;
+		}
+
+		_STARPU_DEBUG("Opening performance model file %s for model %s ...\n", path, model->symbol);
 
 		if (calibrate_flag == 2)
 		{
@@ -1424,63 +1432,20 @@ void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned s
 
 }
 
-void starpu_perfmodel_directory(FILE *output)
-{
-	fprintf(output, "directory: <%s>\n", _starpu_get_perf_model_dir_codelet());
-}
-
-/* This function is intended to be used by external tools that should read
- * the performance model files */
-int starpu_perfmodel_list(FILE *output)
-{
-#ifdef HAVE_SCANDIR
-	char *path;
-	struct dirent **list;
-	int n;
-
-	path = _starpu_get_perf_model_dir_codelet();
-	n = scandir(path, &list, NULL, alphasort);
-	if (n < 0)
-	{
-		_STARPU_DISP("Could not open the perfmodel directory <%s>: %s\n", path, strerror(errno));
-		return 1;
-	}
-	else
-	{
-		int i;
-		for (i = 0; i < n; i++)
-		{
-			if (strcmp(list[i]->d_name, ".") && strcmp(list[i]->d_name, ".."))
-				fprintf(output, "file: <%s>\n", list[i]->d_name);
-			free(list[i]);
-		}
-		free(list);
-		return 0;
-	}
-#else
-	(void)output;
-	_STARPU_MSG("Listing perfmodels is not implemented on pure Windows yet\n");
-	return 1;
-#endif
-}
-
 /* This function is intended to be used by external tools that should read the
  * performance model files */
 /* TODO: write an clear function, to free symbol and history */
 int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *model)
 {
-	model->symbol = strdup(symbol);
-
-	/* where is the file if it exists ? */
 	char path[STR_LONG_LENGTH];
+
+	model->symbol = strdup(symbol);
 	starpu_perfmodel_get_model_path(model->symbol, path, sizeof(path));
+	_STARPU_DEBUG("get_model_path -> %s\n", path);
 
-	//	_STARPU_DEBUG("get_model_path -> %s\n", path);
-
-	/* does it exist ? */
-	int res;
-	res = access(path, F_OK);
-	if (res)
+	if (path[0] != '\0')
+		return starpu_perfmodel_load_file(path, model);
+	else
 	{
 		const char *dot = strrchr(symbol, '.');
 		if (dot)
@@ -1489,15 +1454,16 @@ int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *mo
 			symbol2[dot-symbol] = '\0';
 			int ret;
 			_STARPU_DISP("note: loading history from %s instead of %s\n", symbol2, symbol);
-			ret = starpu_perfmodel_load_symbol(symbol2,model);
+			ret = starpu_perfmodel_load_symbol(symbol2, model);
 			free(symbol2);
 			return ret;
 		}
-		_STARPU_DISP("There is no performance model for symbol %s\n", symbol);
-		return 1;
+		else
+		{
+			_STARPU_DISP("There is no performance model for symbol %s\n", symbol);
+			return 1;
+		}
 	}
-
-	return starpu_perfmodel_load_file(path, model);
 }
 
 int starpu_perfmodel_load_file(const char *filename, struct starpu_perfmodel *model)

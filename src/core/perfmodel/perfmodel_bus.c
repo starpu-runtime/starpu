@@ -71,10 +71,8 @@
 #define SIZE	(32*1024*1024*sizeof(char))
 #define NITER	32
 
-#define PATH_LENGTH 256
-
 #ifndef STARPU_SIMGRID
-static void _starpu_bus_force_sampling(void);
+static void _starpu_bus_force_sampling(int location);
 #endif
 
 /* timing is in µs per byte (i.e. slowness, inverse of bandwidth) */
@@ -872,9 +870,11 @@ static void benchmark_all_memory_nodes(void)
 static void get_bus_path(const char *type, char *path, size_t maxlen)
 {
 	char hostname[65];
+	char *bus;
 
+	bus = _starpu_get_perf_model_dir_bus();
 	_starpu_gethostname(hostname, sizeof(hostname));
-	snprintf(path, maxlen, "%s%s.%s", _starpu_get_perf_model_dir_bus(), hostname, type);
+	snprintf(path, maxlen, "%s%s.%s", bus?_starpu_get_perf_model_dir_bus():"INVALID_LOCATION/", hostname, type);
 }
 
 /*
@@ -2000,7 +2000,8 @@ static void compare_value_and_recalibrate(char * msg, unsigned val_file, unsigne
 #endif
 			_STARPU_DISP("Current configuration does not match the bus performance model (%s: (stored) %d != (current) %d), recalibrating...\n", msg, val_file, val_detected);
 
-		_starpu_bus_force_sampling();
+#warning tofix
+		_starpu_bus_force_sampling(42);
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 		if (_starpu_mpi_common_is_src_node())
@@ -2011,15 +2012,12 @@ static void compare_value_and_recalibrate(char * msg, unsigned val_file, unsigne
 
 static void check_bus_config_file(void)
 {
-	int res;
-	char path[PATH_LENGTH];
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	int recalibrate = 0;
+	char path[PATH_LENGTH];
 
-	get_config_path(path, sizeof(path));
-	res = access(path, F_OK);
-
-	if (res || config->conf.bus_calibrate > 0)
+	int location = _starpu_get_perf_model_bus();
+	if (location < 0 || config->conf.bus_calibrate > 0)
 		recalibrate = 1;
 
 #if defined(STARPU_USE_MPI_MASTER_SLAVE)
@@ -2029,10 +2027,10 @@ static void check_bus_config_file(void)
 
 	if (recalibrate)
 	{
-		if (res)
+		if (location < 0)
 			_STARPU_DISP("No performance model for the bus, calibrating...\n");
-		_starpu_bus_force_sampling();
-		if (res)
+		_starpu_bus_force_sampling(location);
+		if (location < 0)
 			_STARPU_DISP("... done\n");
 	}
 	else
@@ -2042,6 +2040,8 @@ static void check_bus_config_file(void)
 		unsigned read_cuda = -1, read_opencl = -1, read_mpi_ms = -1;
 		unsigned read_cpus = -1, read_numa = -1;
 		int locked;
+
+		get_config_path(path, sizeof(path));
 
 		// Loading configuration from file
 		f = fopen(path, "r");
@@ -3112,10 +3112,14 @@ static void check_bus_platform_file(void)
  *	Generic
  */
 
-static void _starpu_bus_force_sampling(void)
+static void _starpu_bus_force_sampling(int location)
 {
 	_STARPU_DEBUG("Force bus sampling ...\n");
-	_starpu_create_sampling_directory_if_needed();
+	if (location < 0)
+	{
+		location = _starpu_set_default_perf_model_bus();
+	}
+	_starpu_create_bus_sampling_directory_if_needed(location);
 
 	generate_bus_affinity_file();
 	generate_bus_latency_file();
@@ -3127,7 +3131,7 @@ static void _starpu_bus_force_sampling(void)
 
 void _starpu_load_bus_performance_files(void)
 {
-	_starpu_create_sampling_directory_if_needed();
+	_starpu_create_bus_sampling_directory_if_needed(-1);
 
 	struct _starpu_machine_config * config = _starpu_get_machine_config();
 	nnumas = _starpu_topology_get_nnumanodes(config);

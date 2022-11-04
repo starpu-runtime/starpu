@@ -2688,7 +2688,7 @@ AC_ARG_WITH(perf-model-dir, [AS_HELP_STRING([--with-perf-model-dir=<dir>], [spec
 		# by default, we put the performance models in
 		# $HOME/.starpu/sampling/
 		have_explicit_perf_model_dir=no
-		perf_model_dir="\$HOME/.starpu/sampling/"
+		perf_model_dir="\$STARPU_HOME/.starpu/sampling/"
 	]
 	)
 AC_MSG_CHECKING(using explicit performance model location)
@@ -4072,6 +4072,7 @@ if test x$enable_openmp = xyes -a \( x$enable_cuda0 = xyes -o x$enable_cuda1 = x
 fi
 
 
+CPPFLAGS="$CPPFLAGS -DSTARPU_SAMPLING_DIR=${datarootdir}/starpu/perfmodels/sampling"
 STARPU_BASIC_H_CPPFLAGS="$HWLOC_CFLAGS $STARPU_CUDA_CPPFLAGS $STARPU_HIP_CPPFLAGS $STARPU_OPENCL_CPPFLAGS $STARPU_MAX_FPGA_CPPFLAGS $SIMGRID_CFLAGS $PAPI_CFLAGS"
 
 # these are the flags needed to compile starpu.h

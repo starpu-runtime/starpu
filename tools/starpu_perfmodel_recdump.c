@@ -400,73 +400,80 @@ int main(int argc, char **argv)
 	{
 		fprintf(output, "%%rec: timing\n\n");
 
-		char *path;
+		char **paths;
 		DIR *dp;
 		struct dirent *ep;
+		int i;
 
-		path = _starpu_get_perf_model_dir_codelet();
-		dp = opendir(path);
-		if (dp != NULL)
+		paths = _starpu_get_perf_model_dirs_codelet();
+		for(i=0 ; paths[i] != NULL ; i++)
 		{
-			while ((ep = readdir(dp)))
+			_STARPU_DISP("Processing directory %s\n", paths[i]);
+			dp = opendir(paths[i]);
+			if (dp != NULL)
 			{
-				if (strcmp(ep->d_name, ".") && strcmp(ep->d_name, ".."))
+				while ((ep = readdir(dp)))
 				{
-					int comb, nb_combs;
-					char* symbol = strdup(ep->d_name);
-					char *dot = strrchr(symbol, '.');
-					struct starpu_perfmodel model = {.type = STARPU_PERFMODEL_INVALID };
-
-					if(dot) *dot = '\0';
-					if (starpu_perfmodel_load_symbol(symbol, &model) != 0)
+					if (strcmp(ep->d_name, ".") && strcmp(ep->d_name, ".."))
 					{
-						free(symbol);
-						continue;
-					}
-					if(model.state == NULL)
-					{
-						free(symbol);
-						continue;
-					}
+						int comb, nb_combs;
+						char* symbol = strdup(ep->d_name);
+						char *dot = strrchr(symbol, '.');
+						struct starpu_perfmodel model = {.type = STARPU_PERFMODEL_INVALID };
 
-					_STARPU_DISP("Dumping %s\n", symbol);
-
-					nb_combs = starpu_perfmodel_get_narch_combs();
-					for(comb = 0; comb < nb_combs; ++comb)
-					{
-						char name[32];
-						get_comb_name(comb, name, 32);
-
-						if(!model.state || model.state->nimpls[comb] == 0)
+						if(dot) *dot = '\0';
+						if (starpu_perfmodel_load_symbol(symbol, &model) != 0)
 						{
-							_STARPU_DISP("Symbol %s does not have any implementation on comb %d, not dumping\n", symbol, comb);
-							fprintf(output, "\n");
+							free(symbol);
+							continue;
+						}
+						if(model.state == NULL)
+						{
+							free(symbol);
 							continue;
 						}
 
-						struct starpu_perfmodel_per_arch *arch_model = &model.state->per_arch[comb][0];
-						struct starpu_perfmodel_history_list *ptr;
+						_STARPU_DISP("Dumping %s\n", symbol);
 
-						ptr = arch_model->list;
-						if(!ptr)
-							_STARPU_DISP("Symbol %s for comb %d does not have history based model, not dumping\n", symbol,  comb);
-						else while(ptr)
-						     {
-							     print_entry(symbol, name, output, ptr->entry);
-							     ptr=ptr->next;
-						     }
+						nb_combs = starpu_perfmodel_get_narch_combs();
+						for(comb = 0; comb < nb_combs; ++comb)
+						{
+							char name[32];
+							get_comb_name(comb, name, 32);
+
+							if(!model.state || model.state->nimpls[comb] == 0)
+							{
+								_STARPU_DISP("Symbol %s does not have any implementation on comb %d, not dumping\n", symbol, comb);
+								fprintf(output, "\n");
+								continue;
+							}
+
+							struct starpu_perfmodel_per_arch *arch_model = &model.state->per_arch[comb][0];
+							struct starpu_perfmodel_history_list *ptr;
+
+							ptr = arch_model->list;
+							if(!ptr)
+								_STARPU_DISP("Symbol %s for comb %d does not have history based model, not dumping\n", symbol,  comb);
+							else
+							{
+								while(ptr)
+								{
+									print_entry(symbol, name, output, ptr->entry);
+									ptr=ptr->next;
+								}
+							}
+						}
+						starpu_perfmodel_unload_model(&model);
+						free(symbol);
 					}
-					starpu_perfmodel_unload_model(&model);
-					free(symbol);
 				}
+				closedir(dp);
 			}
-			closedir(dp);
+			else
+			{
+				_STARPU_DISP("Could not open the perfmodel directory <%s>: %s\n", paths[i], strerror(errno));
+			}
 		}
-		else
-		{
-			_STARPU_DISP("Could not open the perfmodel directory <%s>: %s\n", path, strerror(errno));
-		}
-
 		print_archs(output);
 	}
 

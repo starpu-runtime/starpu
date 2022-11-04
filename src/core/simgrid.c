@@ -191,7 +191,7 @@ int _starpu_simgrid_get_nbhosts(const char *prefix)
 	if (_starpu_simgrid_running_smpi())
 	{
 #ifdef HAVE_STARPU_SIMGRID_GET_AS_BY_NAME
-		char new_prefix[32];
+		char new_prefix[32+strlen(prefix)];
 		char name[32];
 		STARPU_ASSERT(starpu_mpi_world_rank);
 		snprintf(name, sizeof(name), STARPU_MPI_AS_PREFIX"%d", starpu_mpi_world_rank());
@@ -389,7 +389,7 @@ void _starpu_start_simgrid(int *argc, char **argv)
 #endif
 	if (access(path, R_OK) != 0)
 	{
-		fprintf(stderr, "Machine performance file %s does not exist, please re-run in non-simgrid mode to calibrate it, or fix the STARPU_HOSTNAME and STARPU_PERF_MODEL_DIR environment variables\n", path);
+		fprintf(stderr, "Machine performance file <%s> does not exist, please re-run in non-simgrid mode to calibrate it, or fix the STARPU_HOSTNAME and STARPU_PERF_MODEL_DIR environment variables\n", path);
 		exit(1);
 	}
 
@@ -792,8 +792,8 @@ void _starpu_simgrid_submit_job(int workerid, int sched_ctx_id, struct _starpu_j
 		length = starpu_task_worker_expected_length(starpu_task, workerid, sched_ctx_id, j->nimpl);
 		if (STARPU_UNLIKELY(_STARPU_IS_ZERO(length) || isnan(length)))
 		{
-			fprintf(stderr, "Codelet %s does not have a perfmodel (in directory %s), or is not calibrated enough, please re-run in non-simgrid mode until it is calibrated, or fix the STARPU_HOSTNAME and STARPU_PERF_MODEL_DIR environment variables\n",
-				  _starpu_job_get_model_name(j), _starpu_get_perf_model_dir_codelet());
+			fprintf(stderr, "Codelet %s does not have a perfmodel, or is not calibrated enough, please re-run in non-simgrid mode until it is calibrated, or fix the STARPU_HOSTNAME and STARPU_PERF_MODEL_DIR environment variables\n",
+				_starpu_job_get_model_name(j));
 			exit(1);
 		}
 		/* TODO: option to add variance according to performance model,

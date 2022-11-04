@@ -17,6 +17,8 @@
 StarPU 1.4.0 (git revision xxxx)
 ==============================================
 New features:
+  * Possibility to specify different directories to store performance
+    model files with new variable STARPU_PERF_MODEL_PATH
   * Checkpoint mechanism for MPI applications
   * Transaction support
   * OpenMP LLVM support

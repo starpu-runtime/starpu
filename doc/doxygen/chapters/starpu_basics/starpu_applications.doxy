@@ -332,4 +332,97 @@ so:
 $ STARPU_NCUDA=2 ./application
 \endverbatim
 
+\section Storing Performance Model Files
+
+StarPU stores performance model files for bus benchmarking and codelet
+profiles in different directories.
+
+By default, all files are stored in <c>$STARPU_HOME/.starpu/sampling</c>.
+
+If the environment variable \ref STARPU_HOME is not defined, its
+default value is <c>$HOME</c> on Unix environments, and
+<c>$USERPROFILE</c> on Windows environments.
+
+Environment variables \ref STARPU_PERF_MODEL_DIR and \ref
+STARPU_PERF_MODEL_PATH can also be used to specify other directories
+in which to store performance files (\ref SimulatedBenchmarks).
+
+The configure option \ref with-perf-model-dir "--with-perf-model-dir"
+can also be used to define a performance model directory.
+
+When looking for performance files either for bus benchmarking or for
+codelet performances, StarPU
+<ul>
+<li>
+first looks in the directory specified by the environment variable
+\ref STARPU_PERF_MODEL_DIR
+</li>
+<li>
+then looks in the directory specified by the configure option \ref
+with-perf-model-dir "--with-perf-model-dir" <br/>
+or in $STARPU_HOME/.starpu/sampling if the option is not set
+</li>
+<li>
+then looks in the directories specified by the environment
+variable \ref STARPU_PERF_MODEL_PATH
+</li>
+<li>
+and finally looks in <c>$prefix/share/starpu/perfmodels</c>
+</li>
+</ul>
+
+If the files are not present and must be created, they will be created
+in the first defined directory from the list above.
+
+\verbatim
+rm -rf $PWD/xxx && STARPU_PERF_MODEL_DIR=$PWD/xxx ./application
+\endverbatim
+
+will use performance model files from the directory
+<c>$STARPU_HOME/.starpu/sampling</c> if they are available, otherwise will
+create these files in <c>$STARPU_PERF_MODEL_DIR</c>.
+
+To know the list of directories StarPU will search for performances
+files, one can use the tool <c>starpu_perfmodel_display</c>
+
+\verbatim
+$ starpu_perfmodel_display -d
+directory: </home/user1/.starpu/sampling/codelets/45/>
+directory: </usr/local/install/share/starpu/perfmodels/sampling/codelets/45/>
+\endverbatim
+
+\verbatim
+$ STARPU_PERF_MODEL_DIR=/tmp/xxx starpu_perfmodel_display -d
+directory: </tmp/xxx/codelets/45/>
+directory: </home/user1/.starpu/sampling/codelets/45/>
+directory: </usr/local/install/share/starpu/perfmodels/sampling/codelets/45/>
+\endverbatim
+
+When using the variable \ref STARPU_PERF_MODEL_DIR, the directory will
+be created if it does not exist when dumping new performance model
+files.
+
+When using the variable \ref STARPU_PERF_MODEL_PATH, only existing
+directories will be taken into account.
+
+\verbatim
+$ mkdir /tmp/yyy && STARPU_PERF_MODEL_DIR=/tmp/xxx STARPU_PERF_MODEL_PATH=/tmp/zzz:/tmp/yyy starpu_perfmodel_display -d
+[starpu][adrets][_perf_model_add_dir] Warning: directory </tmp/zzz> as set by variable STARPU_PERF_MODEL_PATH does not exist
+directory: </tmp/xxx/codelets/45/>
+directory: </home/user1/.starpu/sampling/codelets/45/>
+directory: </tmp/yyy/codelets/45/>
+directory: </usr/local/install/share/starpu/perfmodels/sampling/codelets/45/>
+\endverbatim
+
+Once your application has created the performance files in a given
+directory, it is thus possible to move these files in another location
+and keep using them.
+
+\verbatim
+./application
+# files are created in $HOME/.starpu/sampling
+mv $HOME/.starpu/sampling /usr/local/starpu/sampling
+STARPU_PERF_MODEL_DIR=/usr/local/starpu/sampling ./application
+\endverbatim
+
 */

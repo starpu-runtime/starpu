@@ -357,6 +357,7 @@ myPROGRAMS +=				\
 	perfmodels/feed				\
 	perfmodels/user_base			\
 	perfmodels/valid_model			\
+	perfmodels/path				\
 	perfmodels/memory			\
 	sched_policies/data_locality            \
 	sched_policies/execute_all_tasks        \

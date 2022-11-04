@@ -45,6 +45,10 @@ void _starpu_init_perfmodel(void);
  * formats.
  */
 #define _STARPU_PERFMODEL_VERSION 45
+#define PATH_LENGTH 256
+#define STR_SHORT_LENGTH 32
+#define STR_LONG_LENGTH 256
+#define STR_VERY_LONG_LENGTH 1024
 
 struct _starpu_perfmodel_state
 {
@@ -67,10 +71,13 @@ struct starpu_perfmodel_arch;
 
 extern unsigned _starpu_calibration_minimum;
 
-char *_starpu_get_perf_model_dir();
-char *_starpu_get_perf_model_dir_codelet() STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
+void _starpu_find_perf_model_codelet(const char *symbol, const char *hostname, char *path, size_t maxlen);
+void _starpu_find_perf_model_codelet_debug(const char *symbol, const char *hostname, const char *arch, char *path, size_t maxlen);
+void _starpu_set_default_perf_model_codelet(const char *symbol, const char *hostname, char *path, size_t maxlen);
+
+char *_starpu_get_perf_model_dir_default();
+char **_starpu_get_perf_model_dirs_codelet() STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
 char *_starpu_get_perf_model_dir_bus();
-char *_starpu_get_perf_model_dir_debug();
 
 double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, struct _starpu_job *j, unsigned nimpl);
 void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned scan_history);
@@ -85,9 +92,13 @@ double _starpu_multiple_regression_based_job_expected_perf(struct starpu_perfmod
 void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfmodel *model, struct starpu_perfmodel_arch * arch, unsigned cpuid, double measured, unsigned nimpl, unsigned number);
 int _starpu_perfmodel_create_comb_if_needed(struct starpu_perfmodel_arch* arch);
 
-void _starpu_create_sampling_directory_if_needed(void);
+int _starpu_create_bus_sampling_directory_if_needed(int location);
+void _starpu_create_codelet_sampling_directory_if_needed(int location);
 
 void _starpu_load_bus_performance_files(void);
+
+int _starpu_get_perf_model_bus();
+int _starpu_set_default_perf_model_bus();
 
 void _starpu_set_calibrate_flag(unsigned val);
 unsigned _starpu_get_calibrate_flag(void);

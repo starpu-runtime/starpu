@@ -39,6 +39,9 @@
 
 #pragma GCC visibility push(hidden)
 
+#define _STARPU_STRINGIFY_(x) #x
+#define _STARPU_STRINGIFY(x) _STARPU_STRINGIFY_(x)
+
 #ifndef DO_CREQ_v_WW
 #define DO_CREQ_v_WW(_creqF, _ty1F, _arg1F, _ty2F, _arg2F) ((void)0)
 #endif
@@ -164,7 +167,7 @@
 char *_starpu_mkdtemp_internal(char *tmpl) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
 char *_starpu_mkdtemp(char *tmpl) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
 int _starpu_mkpath(const char *s, mode_t mode);
-void _starpu_mkpath_and_check(const char *s, mode_t mode);
+void _starpu_mkpath_and_check(const char *s, mode_t mode) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
 char *_starpu_mktemp(const char *directory, int flags, int *fd);
 /** This version creates a hierarchy of n temporary directories, useful when
  * creating a lot of temporary files to be stored in the same place */

@@ -31,6 +31,7 @@
 #include <datawizard/datawizard.h>
 #include <core/task.h>
 #include <float.h>
+#include <dirent.h>
 
 #ifdef STARPU_HAVE_WINDOWS
 #include <windows.h>
@@ -624,101 +625,278 @@ double starpu_task_bundle_expected_data_transfer_time(starpu_task_bundle_t bundl
 	return total_exp;
 }
 
-static int directory_existence_was_tested = 0;
-static char *_perf_model_dir = NULL;
-static char *_perf_model_dir_codelet = NULL;
-static char *_perf_model_dir_bus = NULL;
-static char *_perf_model_dir_debug = NULL;
 #define _PERF_MODEL_DIR_MAXLEN 256
+#define _PERF_MODEL_DIR_MAXNB  20
 
-void _starpu_set_perf_model_dirs()
+static char *_perf_model_paths[_PERF_MODEL_DIR_MAXNB];
+static int _perf_model_paths_nb=0;
+
+static int _perf_model_bus_location = -1;
+static int _perf_model_bus_directory_existence_was_tested[_PERF_MODEL_DIR_MAXNB];
+static char *_perf_model_dir_bus = NULL;
+static char *_perf_model_dirs_codelet[_PERF_MODEL_DIR_MAXNB];
+
+static int _perf_model_codelet_directory_existence_was_tested[_PERF_MODEL_DIR_MAXNB];
+
+static void _starpu_set_perf_model_dirs();
+
+void _starpu_find_perf_model_codelet(const char *symbol, const char *hostname, char *path, size_t maxlen)
 {
-	_STARPU_MALLOC(_perf_model_dir, _PERF_MODEL_DIR_MAXLEN);
-	_STARPU_MALLOC(_perf_model_dir_codelet, _PERF_MODEL_DIR_MAXLEN);
-	_STARPU_MALLOC(_perf_model_dir_bus, _PERF_MODEL_DIR_MAXLEN);
-	_STARPU_MALLOC(_perf_model_dir_debug, _PERF_MODEL_DIR_MAXLEN);
+	const char *dot = strrchr(symbol, '.');
+	int i=0;
 
-#ifdef STARPU_PERF_MODEL_DIR
-	/* use the directory specified at configure time */
-	snprintf(_perf_model_dir, _PERF_MODEL_DIR_MAXLEN, "%s", (char *)STARPU_PERF_MODEL_DIR);
-#else
-	snprintf(_perf_model_dir, _PERF_MODEL_DIR_MAXLEN, "%s/.starpu/sampling/", _starpu_get_home_path());
-#endif
-	char *path = starpu_getenv("STARPU_PERF_MODEL_DIR");
-	if (path)
+	_starpu_set_perf_model_dirs();
+
+	for(i=0 ; _perf_model_paths[i]!=NULL ; i++)
 	{
-		snprintf(_perf_model_dir, _PERF_MODEL_DIR_MAXLEN, "%s/", path);
+		snprintf(path, maxlen, "%scodelets/%d/%s%s%s", _perf_model_paths[i], _STARPU_PERFMODEL_VERSION, symbol, dot?"":".", dot?"":hostname);
+		//_STARPU_MSG("checking file %s\n", path);
+		int res = access(path, F_OK);
+		if (res == 0)
+		{
+			return;
+		}
 	}
 
-	snprintf(_perf_model_dir_codelet, _PERF_MODEL_DIR_MAXLEN, "%s/codelets/%d/", _perf_model_dir, _STARPU_PERFMODEL_VERSION);
-	snprintf(_perf_model_dir_bus, _PERF_MODEL_DIR_MAXLEN, "%s/bus/", _perf_model_dir);
-	snprintf(_perf_model_dir_debug, _PERF_MODEL_DIR_MAXLEN, "%s/debug/", _perf_model_dir);
+	// The file was not found
+	path[0] = '\0';
 }
 
-char *_starpu_get_perf_model_dir()
+void _starpu_find_perf_model_codelet_debug(const char *symbol, const char *hostname, const char *arch, char *path, size_t maxlen)
 {
-	_starpu_create_sampling_directory_if_needed();
-	return _perf_model_dir;
+	const char *dot = strrchr(symbol, '.');
+	int i=0;
+
+	_starpu_set_perf_model_dirs();
+
+	for(i=0 ; _perf_model_paths[i]!=NULL ; i++)
+	{
+		snprintf(path, maxlen, "%scodelets/%d/%s%s%s", _perf_model_paths[i], _STARPU_PERFMODEL_VERSION, symbol, dot?"":".", dot?"":hostname);
+		//_STARPU_MSG("checking file %s\n", path);
+		int res = access(path, F_OK);
+		if (res == 0)
+		{
+			snprintf(path, maxlen, "%sdebug/%s%s%s%s", _perf_model_paths[i], symbol, dot?"":".", dot?"":hostname, arch);
+			return;
+		}
+	}
+
+	// The file was not found
+	path[0] = '\0';
 }
 
-char *_starpu_get_perf_model_dir_codelet()
+void _starpu_set_default_perf_model_codelet(const char *symbol, const char *hostname, char *path, size_t maxlen)
 {
-	_starpu_create_sampling_directory_if_needed();
-	return _perf_model_dir_codelet;
+	_starpu_create_codelet_sampling_directory_if_needed(0);
+	const char *dot = strrchr(symbol, '.');
+	snprintf(path, maxlen, "%scodelets/%d/%s%s%s", _perf_model_paths[0], _STARPU_PERFMODEL_VERSION, symbol, dot?"":".", dot?"":hostname);
+}
+
+char *_starpu_get_perf_model_dir_default()
+{
+	_starpu_create_codelet_sampling_directory_if_needed(0);
+	return _perf_model_paths[0];
 }
 
 char *_starpu_get_perf_model_dir_bus()
 {
-	_starpu_create_sampling_directory_if_needed();
+	int loc = _starpu_create_bus_sampling_directory_if_needed(-1);
+	if (loc == -ENOENT)
+		return NULL;
+	if (_perf_model_dir_bus == NULL)
+	{
+		_STARPU_MALLOC(_perf_model_dir_bus, _PERF_MODEL_DIR_MAXLEN);
+		snprintf(_perf_model_dir_bus, _PERF_MODEL_DIR_MAXLEN, "%sbus/", _perf_model_paths[_perf_model_bus_location]);
+	}
 	return _perf_model_dir_bus;
 }
 
-char *_starpu_get_perf_model_dir_debug()
+char **_starpu_get_perf_model_dirs_codelet()
 {
-	_starpu_create_sampling_directory_if_needed();
-	return _perf_model_dir_debug;
+	if (_perf_model_dirs_codelet[0] == NULL)
+	{
+		int i;
+		for(i=0 ; i<_perf_model_paths_nb ; i++)
+		{
+			_STARPU_MALLOC(_perf_model_dirs_codelet[i], _PERF_MODEL_DIR_MAXLEN);
+			snprintf(_perf_model_dirs_codelet[i], _PERF_MODEL_DIR_MAXLEN, "%scodelets/%d/", _perf_model_paths[i], _STARPU_PERFMODEL_VERSION);
+			_starpu_create_codelet_sampling_directory_if_needed(i);
+		}
+	}
+	return _perf_model_dirs_codelet;
 }
 
-void _starpu_create_sampling_directory_if_needed(void)
+static void _perf_model_add_dir(char *dir, int only_is_valid, char *var)
 {
-	if (!directory_existence_was_tested)
+	STARPU_ASSERT_MSG(_perf_model_paths_nb < _PERF_MODEL_DIR_MAXNB, "Maximum number of performance models directory");
+
+	if (dir == NULL || strlen(dir) == 0)
 	{
-		_starpu_set_perf_model_dirs();
+		_STARPU_MSG("Warning: directory <%s> as set %s is empty\n", dir, var);
+		return;
+	}
+	int add=1;
+	if (only_is_valid)
+	{
+		DIR *ddir = opendir(dir);
+		if (ddir == NULL)
+		{
+			add = 0;
+			_STARPU_MSG("Warning: directory <%s> as set %s does not exist\n", dir, var);
+		}
+		closedir(ddir);
+	}
+
+	if (add == 1)
+	{
+		_STARPU_DEBUG("Adding directory <%s> as set %s at location %d\n", dir, var, _perf_model_paths_nb);
+		_STARPU_MALLOC(_perf_model_paths[_perf_model_paths_nb], _PERF_MODEL_DIR_MAXLEN);
+		snprintf(_perf_model_paths[_perf_model_paths_nb], _PERF_MODEL_DIR_MAXLEN, "%s/", dir);
+		_perf_model_bus_directory_existence_was_tested[_perf_model_paths_nb] = 0;
+		_perf_model_codelet_directory_existence_was_tested[_perf_model_paths_nb] = 0;
+		_perf_model_paths_nb ++;
+		_perf_model_paths[_perf_model_paths_nb] = NULL;
+	}
+}
+
+void _starpu_set_perf_model_dirs()
+{
+	if (_perf_model_paths_nb != 0) return;
+
+	char *env = starpu_getenv("STARPU_PERF_MODEL_DIR");
+	if (env)
+	{
+		_perf_model_add_dir(env, 0, "by variable STARPU_PERF_MODEL_DIR");
+	}
+
+#ifdef STARPU_PERF_MODEL_DIR
+	_perf_model_add_dir((char *)STARPU_PERF_MODEL_DIR, 0, "by configure parameter");
+#else
+	char home[_PERF_MODEL_DIR_MAXLEN];
+	snprintf(home, _PERF_MODEL_DIR_MAXLEN, "%s/.starpu/sampling", _starpu_get_home_path());
+	_perf_model_add_dir(home, 0, "by STARPU_HOME directory");
+#endif
+
+	env = starpu_getenv("STARPU_PERF_MODEL_PATH");
+	if (env)
+	{
+		char *saveptr, *token;
+		token = strtok_r(env, ":", &saveptr);
+		for (; token != NULL; token = strtok_r(NULL, ",", &saveptr))
+		{
+			_perf_model_add_dir(token, 1, "by variable STARPU_PERF_MODEL_PATH");
+		}
+	}
+
+	_perf_model_add_dir(_STARPU_STRINGIFY(STARPU_SAMPLING_DIR), 1, "by installation directory");
+}
+
+int _starpu_set_default_perf_model_bus()
+{
+	assert(_perf_model_bus_location < 0);
+	_perf_model_bus_location = 0;
+	return _perf_model_bus_location;
+}
+
+int _starpu_get_perf_model_bus()
+{
+	if (_perf_model_bus_location != -1)
+		return _perf_model_bus_location;
+
+	char hostname[65];
+	int i=0;
+
+	_starpu_set_perf_model_dirs();
+	_starpu_gethostname(hostname, sizeof(hostname));
+
+	while(_perf_model_paths[i])
+	{
+		char path[PATH_LENGTH];
+		snprintf(path, PATH_LENGTH, "%sbus/%s.config", _perf_model_paths[i], hostname);
+		_STARPU_DEBUG("checking path %s\n", path);
+		int res = access(path, F_OK);
+		if (res == 0)
+		{
+			_perf_model_bus_location = i;
+			return _perf_model_bus_location;
+		}
+		i++;
+	}
+	return -ENOENT;
+}
+
+int _starpu_create_bus_sampling_directory_if_needed(int location)
+{
+	if (location < 0)
+		location = _starpu_get_perf_model_bus();
+	if (location == -ENOENT)
+		return -ENOENT;
+
+	STARPU_ASSERT_MSG(location < _perf_model_paths_nb, "Location %d for performance models file is invalid", location);
+	if (!_perf_model_bus_directory_existence_was_tested[location])
+	{
+		char *dir = _perf_model_paths[location];
+
+		_STARPU_DEBUG("creating directories at <%s>\n", dir);
 
 		/* The performance of the codelets are stored in
 		 * $STARPU_PERF_MODEL_DIR/codelets/ while those of the bus are stored in
 		 * $STARPU_PERF_MODEL_DIR/bus/ so that we don't have name collisions */
 
-		/* Testing if a directory exists and creating it otherwise
-		   may not be safe: it is possible that the permission are
-		   changed in between. Instead, we create it and check if
-		   it already existed before */
-		_starpu_mkpath_and_check(_perf_model_dir, S_IRWXU);
-
-		/* Per-task performance models */
-		_starpu_mkpath_and_check(_perf_model_dir_codelet, S_IRWXU);
+		_starpu_mkpath_and_check(dir, S_IRWXU);
 
 		/* Performance of the memory subsystem */
-		_starpu_mkpath_and_check(_perf_model_dir_bus, S_IRWXU);
+		char bus[_PERF_MODEL_DIR_MAXLEN];
+		snprintf(bus, _PERF_MODEL_DIR_MAXLEN, "%s/bus/", dir);
+		_starpu_mkpath_and_check(bus, S_IRWXU);
 
-		/* Performance debug measurements */
-		_starpu_mkpath(_perf_model_dir_debug, S_IRWXU);
+		_perf_model_bus_directory_existence_was_tested[location] = 1;
+	}
+	return 0;
+}
 
-		directory_existence_was_tested = 1;
+void _starpu_create_codelet_sampling_directory_if_needed(int location)
+{
+	STARPU_ASSERT_MSG(location < _perf_model_paths_nb, "Location %d for performance models file is invalid", location);
+	if (!_perf_model_codelet_directory_existence_was_tested[location])
+	{
+		char *dir = _perf_model_paths[location];
+
+		if (dir)
+		{
+			_STARPU_DEBUG("creating directories at <%s>\n", dir);
+
+			/* Per-task performance models */
+			char codelet[_PERF_MODEL_DIR_MAXLEN];
+			snprintf(codelet, _PERF_MODEL_DIR_MAXLEN, "%scodelets/%d/", dir, _STARPU_PERFMODEL_VERSION);
+			_starpu_mkpath_and_check(codelet, S_IRWXU);
+
+			/* Performance debug measurements */
+			char debug[_PERF_MODEL_DIR_MAXLEN];
+			snprintf(debug, _PERF_MODEL_DIR_MAXLEN, "%sdebug/", dir);
+			_starpu_mkpath(debug, S_IRWXU);
+
+			_perf_model_codelet_directory_existence_was_tested[location] = 1;
+		}
 	}
 }
 
 void starpu_perfmodel_free_sampling(void)
 {
-	free(_perf_model_dir);
-	_perf_model_dir = NULL;
-	free(_perf_model_dir_codelet);
-	_perf_model_dir_codelet = NULL;
+	int i;
+	for(i=0 ; i<_perf_model_paths_nb ; i++)
+	{
+		free(_perf_model_paths[i]);
+		_perf_model_paths[i] = NULL;
+		_perf_model_bus_directory_existence_was_tested[i] = 0;
+		_perf_model_codelet_directory_existence_was_tested[i] = 0;
+		free(_perf_model_dirs_codelet[i]);
+		_perf_model_dirs_codelet[i] = NULL;
+	}
+	_perf_model_paths_nb = 0;
+	_perf_model_bus_location = -1;
 	free(_perf_model_dir_bus);
 	_perf_model_dir_bus = NULL;
-	free(_perf_model_dir_debug);
-	_perf_model_dir_debug = NULL;
-	directory_existence_was_tested = 0;
 	_starpu_free_arch_combs();
 }
 
@@ -733,3 +911,59 @@ struct starpu_perfmodel starpu_perfmodel_nop =
 	.type = STARPU_PER_ARCH,
 	.arch_cost_function = nop_cost_function,
 };
+
+/* This function is intended to be used by external tools that should read
+ * the performance model files */
+int starpu_perfmodel_list(FILE *output)
+{
+#ifdef HAVE_SCANDIR
+	struct dirent **list;
+	int i=0;
+
+	_starpu_set_perf_model_dirs();
+
+	for(i=0 ; _perf_model_paths[i]!=NULL ; i++)
+	{
+		char pcodelet[_PERF_MODEL_DIR_MAXLEN];
+		int n;
+
+		snprintf(pcodelet, _PERF_MODEL_DIR_MAXLEN, "%scodelets/%d/", _perf_model_paths[i], _STARPU_PERFMODEL_VERSION);
+		n = scandir(pcodelet, &list, NULL, alphasort);
+		if (n < 0)
+		{
+			_STARPU_DISP("Could not open the perfmodel directory <%s>: %s\n", pcodelet, strerror(errno));
+		}
+		else
+		{
+			int j;
+			fprintf(output, "codelet directory: <%s>\n", pcodelet);
+			for (j = 0; j < n; j++)
+			{
+				if (strcmp(list[j]->d_name, ".") && strcmp(list[j]->d_name, ".."))
+					fprintf(output, "file: <%s>\n", list[j]->d_name);
+				free(list[j]);
+			}
+			free(list);
+		}
+	}
+	return 0;
+#else
+	(void)output;
+	_STARPU_MSG("Listing perfmodels is not implemented on pure Windows yet\n");
+	return 1;
+#endif
+}
+
+void starpu_perfmodel_directory(FILE *output)
+{
+	int i;
+
+	_starpu_set_perf_model_dirs();
+
+	for(i=0 ; _perf_model_paths[i]!=NULL ; i++)
+	{
+		char pcodelet[_PERF_MODEL_DIR_MAXLEN];
+		snprintf(pcodelet, _PERF_MODEL_DIR_MAXLEN, "%scodelets/%d/", _perf_model_paths[i], _STARPU_PERFMODEL_VERSION);
+		fprintf(output, "directory: <%s>\n", pcodelet);
+	}
+}

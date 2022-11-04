@@ -1035,7 +1035,7 @@ static char *_starpu_heteroprio_get_data_dir()
 		}
 		else
 		{
-			snprintf(_heteroprio_data_dir, _HETEROPRIO_DIR_MAXLEN, "%s/heteroprio/", _starpu_get_perf_model_dir());
+			snprintf(_heteroprio_data_dir, _HETEROPRIO_DIR_MAXLEN, "%s/heteroprio/", _starpu_get_perf_model_dir_default());
 		}
 
 		_starpu_mkpath_and_check(_heteroprio_data_dir, S_IRWXU);
