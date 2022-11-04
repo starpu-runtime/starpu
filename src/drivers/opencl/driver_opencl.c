@@ -323,7 +323,7 @@ void _starpu_opencl_init_worker_binding(struct _starpu_machine_config *config, i
 	{
 		/* StarPU is allowed to bind threads automatically */
 		unsigned *preferred_numa_binding = _starpu_get_opencl_affinity_vector(devid);
-		unsigned npreferred_numa = _starpu_topology_get_nnumanodes(config);
+		unsigned npreferred_numa = _starpu_topology_get_nhwnumanodes(config);
 		npreferred = _starpu_topology_get_numa_core_binding(config, preferred_numa_binding, npreferred_numa, preferred_binding, STARPU_NMAXWORKERS);
 	}
 #endif /* SIMGRID */

@@ -1883,7 +1883,7 @@ void starpu_bus_print_bandwidth(FILE *f)
 	{
 		struct dev_timing *timing;
 		struct _starpu_machine_config * config = _starpu_get_machine_config();
-		unsigned config_nnumas = _starpu_topology_get_nnumanodes(config);
+		unsigned config_nnumas = _starpu_topology_get_nhwnumanodes(config);
 		unsigned numa;
 
 #ifdef STARPU_USE_CUDA
@@ -2080,7 +2080,7 @@ static void check_bus_config_file(void)
 
 		// Loading current configuration
 		ncpus = _starpu_topology_get_nhwcpu(config);
-		nnumas = _starpu_topology_get_nnumanodes(config);
+		nnumas = _starpu_topology_get_nhwnumanodes(config);
 #ifdef STARPU_USE_CUDA
 		ncuda = _starpu_get_cuda_device_count();
 #endif
@@ -3138,7 +3138,7 @@ void _starpu_load_bus_performance_files(void)
 	_starpu_create_bus_sampling_directory_if_needed(-1);
 
 	struct _starpu_machine_config * config = _starpu_get_machine_config();
-	nnumas = _starpu_topology_get_nnumanodes(config);
+	nnumas = _starpu_topology_get_nhwnumanodes(config);
 #ifndef STARPU_SIMGRID
 	ncpus = _starpu_topology_get_nhwcpu(config);
 #endif
