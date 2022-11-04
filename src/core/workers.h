@@ -366,15 +366,9 @@ struct _starpu_machine_topology
 	struct starpu_tree *tree;
 
 	/** Total number of PUs (i.e. threads), as detected by the topology code. May
-	 * be different from the actual number of CPU workers. May be different from
-	 * the actual number of CPUs for administrative reasons (e.g. from job scheduler)
+	 * be different from the actual number of CPU workers.
 	 */
 	unsigned nhwpus;
-
-	/** First PU detected by the topology code (logical index). May be different from
-	 * 0 for administrative reasons (e.g. from job scheduler).
-	 */
-	unsigned firsthwpu;
 
 	/** Total number of devices, as detected. May be different from the
 	 * actual number of devices run by StarPU.

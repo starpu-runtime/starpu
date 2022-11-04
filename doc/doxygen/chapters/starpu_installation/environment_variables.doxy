@@ -53,9 +53,7 @@ bound. For instance, if <c>STARPU_WORKERS_CPUID = "0 1 4 5"</c>, the first
 worker will be bound to logical CPU #0, the second CPU worker will be bound to
 logical CPU #1 and so on.  Note that the logical ordering of the CPUs is either
 determined by the OS, or provided by the library <c>hwloc</c> in case it is
-available (in which case it might by provided by the job scheduler, see \ref
-STARPU_WORKERS_CPUID_FROM_PROCESS).
-Ranges can be provided: for instance, <c>STARPU_WORKERS_CPUID = "1-3
+available. Ranges can be provided: for instance, <c>STARPU_WORKERS_CPUID = "1-3
 5"</c> will bind the first three workers on logical CPUs #1, #2, and #3, and the
 fourth worker on logical CPU #5. Unbound ranges can also be provided:
 <c>STARPU_WORKERS_CPUID = "1-"</c> will bind the workers starting from logical
@@ -77,20 +75,6 @@ and the third (resp. second and fourth) workers will be put on CPU #0
 This variable is ignored if the field
 starpu_conf::use_explicit_workers_bindid passed to starpu_init() is
 set.
-</dd>
-
-<dt>STARPU_WORKERS_CPUID_FROM_PROCESS</dt>
-<dd>
-\anchor STARPU_WORKERS_CPUID_FROM_PROCESS
-\addindex __env__STARPU_WORKERS_CPUID_FROM_PROCESS
-
-When <c>hwloc</c> is available, StarPU will by default request the CPU binding
-of the process to determine which CPU cores it is allowed to use. That allows to
-nicely integrate with e.g. a job scheduler that places several MPI processes on
-the same machine, so that they do not step on each other.
-
-Setting STARPU_WORKERS_CPUID_FROM_PROCESS disables this, and lets StarPU place
-workers on all cores of the machine.
 </dd>
 
 <dt>STARPU_WORKERS_COREID</dt>

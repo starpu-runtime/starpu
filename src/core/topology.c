@@ -549,7 +549,6 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 	topology->nhwdevices[STARPU_CPU_WORKER] = 1;
 	topology->nhwworker[STARPU_CPU_WORKER][0] = 0;
 	topology->nhwpus = 0;
-	topology->firsthwpu = 0;
 
 #ifndef STARPU_SIMGRID
 #ifdef STARPU_HAVE_HWLOC
@@ -600,6 +599,7 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 	/* Discover the CPUs relying on the hwloc interface and fills CONFIG
 	 * accordingly. */
 
+
 	config->cpu_depth = hwloc_get_type_depth(topology->hwtopology, HWLOC_OBJ_CORE);
 	config->pu_depth = hwloc_get_type_depth(topology->hwtopology, HWLOC_OBJ_PU);
 
@@ -616,57 +616,6 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 
 	topology->nhwworker[STARPU_CPU_WORKER][0] = hwloc_get_nbobjs_by_depth(topology->hwtopology, config->cpu_depth);
 	topology->nhwpus = hwloc_get_nbobjs_by_depth(topology->hwtopology, config->pu_depth);
-
-	if (starpu_getenv_number_default("STARPU_WORKERS_CPUID_FROM_PROCESS", 1)) do
-	{
-		hwloc_bitmap_t set = hwloc_bitmap_alloc();
-		hwloc_bitmap_t log_cpuset = hwloc_bitmap_alloc();
-		hwloc_bitmap_t log_coreset = hwloc_bitmap_alloc();
-		unsigned n, i, first, last, weight;
-
-		/* Get the process binding (e.g. provided by the job scheduler) */
-		hwloc_get_cpubind(topology->hwtopology, set, HWLOC_CPUBIND_PROCESS);
-
-		/* Compute logical sets */
-		n = hwloc_get_nbobjs_by_depth(topology->hwtopology, config->pu_depth);
-		for (i = 0; i < n; i++)
-		{
-			hwloc_obj_t pu = hwloc_get_obj_by_depth(topology->hwtopology, config->pu_depth, i), core;
-
-			if (!hwloc_bitmap_isset(set, pu->os_index))
-				continue;
-
-			hwloc_bitmap_set(log_cpuset, i);
-
-			core = pu;
-			if (config->cpu_depth != config->pu_depth)
-			{
-				while (core && core->type != HWLOC_OBJ_CORE)
-					core = core->parent;
-				if (!core)
-				{
-					_STARPU_DISP("Warning: hwloc did not report a core above PU %d\n", i);
-					break;
-				}
-			}
-			hwloc_bitmap_set(log_coreset, core->logical_index);
-		}
-
-		/* Check that PU numbers are consecutive */
-		first = hwloc_bitmap_first(log_cpuset);
-		last = hwloc_bitmap_last(log_cpuset);
-		weight = hwloc_bitmap_weight(log_cpuset);
-		if (last - first + 1 != weight)
-		{
-			_STARPU_DISP("Warning: hwloc reported non-consecutive binding, this is not supported yet, sorry, please use STARPU_WORKERS_CPUID or STARPU_WORKERS_COREID to set this by hand\n");
-			break;
-		}
-
-		topology->nhwworker[STARPU_CPU_WORKER][0] = hwloc_bitmap_weight(log_coreset);
-		topology->nhwpus = weight;
-		topology->firsthwpu = first;
-		hwloc_bitmap_free(set);
-	} while(0);
 
 #elif defined(HAVE_SYSCONF)
 	/* Discover the CPUs relying on the sysconf(3) function and fills
@@ -763,7 +712,7 @@ static void _starpu_initialize_workers_bindid(struct _starpu_machine_config *con
 				val = strtol(strval, &endptr, 10);
 				if (endptr != strval)
 				{
-					topology->workers_bindid[i] = (unsigned)((val * scale) % topology->nhwpus) + topology->firsthwpu;
+					topology->workers_bindid[i] = (unsigned)((val * scale) % topology->nhwpus);
 					strval = endptr;
 					if (*strval == '-')
 					{
@@ -784,7 +733,7 @@ static void _starpu_initialize_workers_bindid(struct _starpu_machine_config *con
 						for (val++; val <= endval && i < STARPU_NMAXWORKERS-1; val++)
 						{
 							i++;
-							topology->workers_bindid[i] = (unsigned)((val * scale) % topology->nhwpus) + topology->firsthwpu;
+							topology->workers_bindid[i] = (unsigned)((val * scale) % topology->nhwpus);
 						}
 					}
 					if (*strval == ',')
@@ -842,7 +791,7 @@ static void _starpu_initialize_workers_bindid(struct _starpu_machine_config *con
 			}
 
 			/* Add a worker to this core, by using this logical PU */
-			topology->workers_bindid[nbindids++] = (unsigned)(i % topology->nhwpus) + topology->firsthwpu;
+			topology->workers_bindid[nbindids++] = (unsigned)(i % topology->nhwpus);
 			k++;
 			i++;
 		}
@@ -956,6 +905,13 @@ unsigned _starpu_topology_get_nhwcpu(struct _starpu_machine_config *config)
 	_starpu_init_topology(config);
 
 	return config->topology.nhwworker[STARPU_CPU_WORKER][0];
+}
+
+unsigned _starpu_topology_get_nhwpu(struct _starpu_machine_config *config)
+{
+	_starpu_init_topology(config);
+
+	return config->topology.nhwpus;
 }
 
 unsigned _starpu_topology_get_nnumanodes(struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED)
@@ -1325,7 +1281,7 @@ int _starpu_bind_thread_on_cpu(int cpuid STARPU_ATTRIBUTE_UNUSED, int workerid S
 
 			if (workerid >= 0)
 				/* This shouldn't happen for workers */
-				_STARPU_DISP("[%s] Maybe check starpu_machine_display's output to determine what wrong binding happened. Hwloc reported %d cores and %d threads (from thread %d), perhaps there is misdetection between hwloc, the kernel and the BIOS, or an administrative allocation issue from e.g. the job scheduler?\n", hostname, config->topology.nhwworker[STARPU_CPU_WORKER][0], config->topology.nhwpus, config->topology.firsthwpu);
+				_STARPU_DISP("[%s] Maybe check starpu_machine_display's output to determine what wrong binding happened. Hwloc reported %d cores and %d threads, perhaps there is misdetection between hwloc, the kernel and the BIOS, or an administrative allocation issue from e.g. the job scheduler?\n", hostname, config->topology.nhwworker[STARPU_CPU_WORKER][0], config->topology.nhwpus);
 			ret = -1;
 		}
 		else
@@ -1958,7 +1914,7 @@ void starpu_topology_print(FILE *output)
 	hwloc_obj_t last_package_obj = (void*) -1, package_obj;
 #endif
 
-	for (pu = topology->firsthwpu; pu < topology->nhwpus + topology->firsthwpu; pu++)
+	for (pu = 0; pu < topology->nhwpus; pu++)
 	{
 #ifdef STARPU_HAVE_HWLOC
 		pu_obj = hwloc_get_obj_by_type(topo, HWLOC_OBJ_PU, pu);
