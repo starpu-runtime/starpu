@@ -27,7 +27,7 @@ endif
 
 # These are always defined, both for starpu-mpi and for mpi-ms
 # For MPI tests we don't want to oversubscribe the system
-MPI_RUN_ENV			= STARPU_WORKERS_NOBIND=1 STARPU_NCPU=3
+MPI_RUN_ENV			= STARPU_WORKERS_GETBIND=0 STARPU_WORKERS_NOBIND=1 STARPU_NCPU=3
 if STARPU_SIMGRID
 STARPU_MPIEXEC			= $(abs_top_builddir)/tools/starpu_smpirun -np 4 -platform $(abs_top_srcdir)/tools/perfmodels/cluster.xml -hostfile $(abs_top_srcdir)/tools/perfmodels/hostfile
 else
