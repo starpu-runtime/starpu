@@ -26,7 +26,7 @@ use the usual <c>mpirun</c> command of the MPI implementation to start StarPU on
 the different MPI nodes.
 
 In case the user wants to run several MPI processes by machine (e.g. one per
-NUMA node), \ref STARPU_WORKERS_GETBIND should be used to make StarPU take into
+NUMA node), \ref STARPU_WORKERS_GETBIND needs to be left to its default value 1 to make StarPU take into
 account the binding set by the MPI launcher (otherwise each StarPU instance
 would try to bind on all cores of the machine...)
 

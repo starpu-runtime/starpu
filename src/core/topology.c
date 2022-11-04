@@ -572,7 +572,7 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 		_STARPU_DISP("Warning: there are several kinds of CPU on this system. For now StarPU assumes all CPU are equal\n");
 #endif
 
-	if (starpu_getenv_number_default("STARPU_WORKERS_GETBIND", 0))
+	if (starpu_getenv_number_default("STARPU_WORKERS_GETBIND", 1))
 	{
 		/* Respect the existing binding */
 		hwloc_bitmap_t cpuset = hwloc_bitmap_alloc();
@@ -582,6 +582,8 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 			_STARPU_DISP("Warning: could not get current CPU binding: %s\n", strerror(errno));
 		else
 		{
+			if (hwloc_bitmap_weight(cpuset) == 1)
+				_STARPU_DISP("Warning: the current CPU binding set contains only one CPU, maybe you need to tell your job scheduler to bind on all allocated cores (e.g. --cpus-per-task for Slurm), or you can use STARPU_WORKERS_GETBIND=0 to bypass it\n");
 			ret = hwloc_topology_restrict(topology->hwtopology, cpuset, 0);
 			if (ret)
 				_STARPU_DISP("Warning: could not restrict hwloc to cpuset: %s\n", strerror(errno));
