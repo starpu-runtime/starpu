@@ -370,6 +370,16 @@ struct _starpu_machine_topology
 	 */
 	unsigned nhwpus;
 
+	/** First PU to be used. May be different from 0 for administrative reasons
+	 * (e.g. from job scheduler).
+	 */
+	unsigned firstusedpu;
+
+	/** Number of PUs (i.e. threads) to be used. May be different from nhwpus for
+	 * administrative reasons (e.g. from job scheduler).
+	 */
+	unsigned nusedpus;
+
 	/** Total number of devices, as detected. May be different from the
 	 * actual number of devices run by StarPU.
 	 */

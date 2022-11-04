@@ -153,7 +153,10 @@ void _starpu_mpi_common_mp_initialize_src_sink(struct _starpu_mp_node *node)
 
 	int nmpicores = starpu_getenv_number("STARPU_NMPIMSTHREADS");
 	if (nmpicores == -1)
-		node->nb_cores = topology->nhwworker[STARPU_CPU_WORKER][0];
+	{
+		int nhyperthreads = topology->nhwpus / topology->nhwworker[STARPU_CPU_WORKER][0];
+		node->nb_cores = topology->nusedpus / nhyperthreads;
+	}
 	else
 		node->nb_cores = nmpicores;
 }

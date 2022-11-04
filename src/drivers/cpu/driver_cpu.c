@@ -109,7 +109,8 @@ void _starpu_init_cpu_config(struct _starpu_machine_topology *topology, struct _
 	{
 		STARPU_ASSERT_MSG(ncpu >= -1, "ncpus can not be negative and different from -1 (is is %d)", ncpu);
 
-		long avail_cpus = (long) topology->nhwworker[STARPU_CPU_WORKER][0] - (long) already_busy_cpus;
+		int nhyperthreads = topology->nhwpus / topology->nhwworker[STARPU_CPU_WORKER][0];
+		long avail_cpus = (long) (topology->nusedpus / nhyperthreads) - (long) already_busy_cpus;
 		if (avail_cpus < 0)
 			avail_cpus = 0;
 		int nth_per_core = starpu_getenv_number_default("STARPU_NTHREADS_PER_CORE", 1);

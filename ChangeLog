@@ -80,6 +80,8 @@ New features:
   * New function starpu_get_memory_location_bitmap() and register in traces on
     which NUMA node are buffers used for MPI or tasks.
   * TCP/IP-based master-slave support.
+  * Set STARPU_WORKERS_GETBIND to 1 by default, to inherit CPU binding from
+    the job scheduler.
 
 Small features:
   * New configure option --with-check-cflags to define flags for C,
