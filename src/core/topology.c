@@ -656,6 +656,8 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 				break;
 			}
 
+			if (weight == 1)
+				_STARPU_DISP("Warning: the current CPU binding set contains only one CPU, maybe you need to tell your job scheduler to bind on all allocated cores (e.g. --cpus-per-task for Slurm), or you can use STARPU_WORKERS_GETBIND=0 to bypass it\n");
 			topology->nusedpus = weight;
 			topology->firstusedpu = first;
 		} while(0);
