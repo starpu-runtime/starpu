@@ -775,6 +775,10 @@ static void benchmark_all_memory_nodes(void)
 
 	_STARPU_DEBUG("Benchmarking the speed of the bus\n");
 
+#ifdef STARPU_DEVEL
+#warning FIXME: when running several StarPU processes on the same node (MPI rank per numa), we need to use a lock to avoid concurrent benchmarking.
+#endif
+
 #ifdef STARPU_HAVE_HWLOC
 	int ret;
 	ret  = hwloc_topology_init(&hwtopology);
