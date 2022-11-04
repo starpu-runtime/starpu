@@ -169,6 +169,46 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
+	const char *env[] = {
+		"STARPU_NCPU",
+		"STARPU_NCPUS",
+		"STARPU_NCUDA",
+		"STARPU_NHIP",
+		"STARPU_NOPENCL",
+		"STARPU_NMAX_FPGA",
+		"STARPU_NMPI_MS",
+		"STARPU_NTCPIP_MS",
+
+		"STARPU_WORKERS_CPUID",
+		"STARPU_WORKERS_COREID",
+		"STARPU_NTHREADS_PER_CORE",
+		"STARPU_RESERVE_NCPU",
+		"STARPU_MAIN_THREAD_BIND",
+		"STARPU_MAIN_THREAD_CPUID",
+		"STARPU_MAIN_THREAD_COREID",
+
+		"STARPU_WORKERS_CUDAID",
+		"STARPU_CUDA_THREAD_PER_WORKER",
+		"STARPU_CUDA_THREAD_PER_DEV",
+
+		"STARPU_WORKERS_OPENCLID",
+		"STARPU_WORKERS_MAX_FPGAID",
+
+		"STARPU_MPI_MS_MULTIPLE_THREAD",
+		"STARPU_NMPIMSTHREADS",
+		"STARPU_TCPIP_MS_MULTIPLE_THREAD",
+		"STARPU_NTCPIPMSTHREADS",
+		NULL
+	};
+	int i;
+
+	for (i = 0; env[i]; i++)
+	{
+		const char *e = getenv(env[i]);
+		if (e)
+			fprintf(stdout, "%s=%s\n", env[i], e);
+	}
+
 	fprintf(stdout, "StarPU has found :\n");
 
 	starpu_worker_display_names(stdout, STARPU_CPU_WORKER);
