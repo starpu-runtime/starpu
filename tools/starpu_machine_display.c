@@ -169,7 +169,8 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-	const char *env[] = {
+	const char *env[] =
+	{
 		"STARPU_NCPU",
 		"STARPU_NCPUS",
 		"STARPU_NCUDA",
@@ -200,14 +201,24 @@ int main(int argc, char **argv)
 		"STARPU_NTCPIPMSTHREADS",
 		NULL
 	};
-	int i;
 
+	int i;
+	static int message=0;
 	for (i = 0; env[i]; i++)
 	{
 		const char *e = getenv(env[i]);
 		if (e)
-			fprintf(stdout, "%s=%s\n", env[i], e);
+		{
+			if (!message)
+			{
+				fprintf(stdout, "Environment variables\n");
+				message=1;
+			}
+			fprintf(stdout, "\t%s=%s\n", env[i], e);
+		}
 	}
+	if (message)
+		fprintf(stdout,"\n");
 
 	fprintf(stdout, "StarPU has found :\n");
 
