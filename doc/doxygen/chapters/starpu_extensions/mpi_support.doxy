@@ -601,6 +601,29 @@ starpu_mpi_task_post_build(MPI_COMM_WORLD, &cl,
                            0);
 \endcode
 
+It is also possible to create and submit the task outside of StarPU-MPI functions
+and call the functions
+starpu_mpi_task_exchange_data_before_execution() and
+starpu_mpi_task_exchange_data_after_execution() to exchange data as
+required by the data ownership's nodes.
+
+\code{.c}
+struct starpu_mpi_task_exchange_params params;
+struct starpu_data_descr descrs[2];
+struct starpu_task *task;
+
+task = starpu_task_create();
+task->cl = &mycodelet;
+task->handles[0] = data_handles[0];
+task->handles[1] = data_handles[1];
+
+starpu_mpi_task_exchange_data_before_execution(MPI_COMM_WORLD, task, descrs, &params);
+
+if (params.do_execute) starpu_task_submit(task);
+
+starpu_mpi_task_exchange_data_after_execution(MPI_COMM_WORLD, descrs, 2, params);
+\endcode
+
 \section MPIInsertPruning Pruning MPI Task Insertion
 
 Making all MPI nodes process the whole graph can be a concern with a growing

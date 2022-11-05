@@ -690,6 +690,40 @@ int starpu_mpi_task_post_build(MPI_Comm comm, struct starpu_codelet *codelet, ..
 int starpu_mpi_task_post_build_v(MPI_Comm comm, struct starpu_codelet *codelet, va_list varg_list);
 
 /**
+   Structure used to pass data from
+   starpu_mpi_task_exchange_data_before_execution() to
+   starpu_mpi_task_exchange_data_after_execution()
+ */
+struct starpu_mpi_task_exchange_params
+{
+	int do_execute; /**< is the caller going to execute the task */
+	int xrank;      /**< node executing the task */
+	int priority;   /**< priority of the task being executed */
+};
+
+/**
+   Perform all necessary communications needed before the execution of
+   the given task. The field \c priority of \p params will be set with
+   the rank of the node which is selected to submit \p task.
+   After calling this function, and the submission of the task for the
+   selected node, all nodes MUST call the function
+   starpu_mpi_task_exchange_data_after_execution() with the parameters
+   \p descrs and \p params.
+ */
+int starpu_mpi_task_exchange_data_before_execution(MPI_Comm comm, struct starpu_task *task, struct starpu_data_descr *descrs, struct starpu_mpi_task_exchange_params *params);
+
+/**
+   MUST be called after a call to
+   starpu_mpi_task_exchange_data_before_execution() with the same
+   arguments \p descrs and \p params.
+   \p nb_data is the number of data in \p descrs.
+   Perform all the necessary communications needed after the execution
+   of the task, i.e the fourth -- last -- step of the algorithm
+   described in starpu_mpi_task_insert().
+*/
+int starpu_mpi_task_exchange_data_after_execution(MPI_Comm comm, struct starpu_data_descr *descrs, unsigned nb_data, struct starpu_mpi_task_exchange_params params);
+
+/**
    Transfer data \p data_handle to MPI node \p node, sending it from
    its owner if needed. At least the target node and the owner have to
    call the function.
