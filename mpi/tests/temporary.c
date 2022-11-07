@@ -139,6 +139,7 @@ int main(int argc, char **argv)
 
 skip:
 	starpu_mpi_shutdown();
+	starpu_shutdown();
 
 	return 0;
 }
