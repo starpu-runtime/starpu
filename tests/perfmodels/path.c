@@ -129,7 +129,8 @@ int do_test(const char *test_name, const char *bus_dir, const char *codelet_dir,
 int main(void)
 {
 	char sampling_dir[256];
-	int ret = 0;
+	int global_ret = 0;
+	int ret;
 
 	unsetenv("STARPU_PERF_MODEL_DIR");
 	unsetenv("STARPU_PERF_MODEL_PATH");
@@ -141,8 +142,9 @@ int main(void)
 		snprintf(perf_model_dir, 512, "%s/sampling", sampling_dir);
 		setenv("STARPU_PERF_MODEL_DIR", perf_model_dir, 1);
 
-		ret += do_test("STARPU_PERF_MODEL_DIR", perf_model_dir, perf_model_dir, "mymodel");
+		ret = do_test("STARPU_PERF_MODEL_DIR", perf_model_dir, perf_model_dir, "mymodel");
 		if (ret == STARPU_TEST_SKIPPED) return ret;
+		global_ret += ret;
 		unsetenv("STARPU_PERF_MODEL_DIR");
 	}
 
@@ -152,7 +154,9 @@ int main(void)
 		snprintf(starpu_home, 512, "%s/.starpu/sampling", sampling_dir);
 		setenv("STARPU_HOME", sampling_dir, 1);
 
-		ret += do_test("STARPU_HOME", starpu_home, starpu_home, "mymodel");
+		ret = do_test("STARPU_HOME", starpu_home, starpu_home, "mymodel");
+		if (ret == STARPU_TEST_SKIPPED) return ret;
+		global_ret += ret;
 	}
 
 	{
@@ -160,9 +164,11 @@ int main(void)
 		snprintf(perf_model_path, 512, "%s/sampling", sampling_dir);
 		setenv("STARPU_PERF_MODEL_PATH", perf_model_path, 1);
 
-		ret += do_test("STARPU_PERF_MODEL_PATH", starpu_home, perf_model_path, "mymodel2");
+		ret = do_test("STARPU_PERF_MODEL_PATH", starpu_home, perf_model_path, "mymodel2");
+		if (ret == STARPU_TEST_SKIPPED) return ret;
+		global_ret += ret;
 	}
 
-	return ret;
+	return global_ret;
 }
 #endif
