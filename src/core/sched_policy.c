@@ -499,7 +499,7 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 int _starpu_push_task(struct _starpu_job *j)
 {
 #ifdef STARPU_SIMGRID
-	//if (_starpu_simgrid_task_push_cost())
+	if (_starpu_simgrid_task_push_cost())
 		starpu_sleep(0.000001);
 #endif
 	if(j->task->prologue_callback_func)

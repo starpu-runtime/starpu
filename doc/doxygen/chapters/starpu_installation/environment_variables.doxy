@@ -1180,6 +1180,15 @@ account in SimGrid mode. This provides more accurate SimGrid predictions,
 especially for the beginning of the execution.
 </dd>
 
+<dt>STARPU_SIMGRID_TASK_PUSH_COST</dt>
+<dd>
+\anchor STARPU_SIMGRID_TASK_PUSH_COST
+\addindex __env__STARPU_SIMGRID_TASK_PUSH_COST
+When set to 1 (which is the default), task push costs are taken into
+account in SimGrid mode. This provides more accurate SimGrid predictions,
+especially with large dependency arities.
+</dd>
+
 <dt>STARPU_SIMGRID_FETCHING_INPUT_COST</dt>
 <dd>
 \anchor STARPU_SIMGRID_FETCHING_INPUT_COST

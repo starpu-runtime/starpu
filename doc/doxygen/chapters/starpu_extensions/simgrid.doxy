@@ -173,7 +173,7 @@ be extended as well), change the available GPU memory size, PCI memory bandwidth
 The simulation can be tweaked, to be able to tune it between a very accurate
 simulation and a very simple simulation (which is thus close to scheduling
 theory results), see the \ref STARPU_SIMGRID_TRANSFER_COST, \ref STARPU_SIMGRID_CUDA_MALLOC_COST,
-\ref STARPU_SIMGRID_CUDA_QUEUE_COST, \ref STARPU_SIMGRID_TASK_SUBMIT_COST,
+\ref STARPU_SIMGRID_CUDA_QUEUE_COST, \ref STARPU_SIMGRID_TASK_SUBMIT_COST, \ref STARPU_SIMGRID_TASK_PUSH_COST,
 \ref STARPU_SIMGRID_FETCHING_INPUT_COST and \ref STARPU_SIMGRID_SCHED_COST environment variables.
 
 \section SimulationMPIApplications MPI Applications

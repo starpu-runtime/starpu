@@ -122,6 +122,7 @@ extern starpu_pthread_queue_t _starpu_simgrid_task_queue[STARPU_NMAXWORKERS];
 #define _starpu_simgrid_cuda_malloc_cost() starpu_getenv_number_default("STARPU_SIMGRID_CUDA_MALLOC_COST", 1)
 #define _starpu_simgrid_cuda_queue_cost() starpu_getenv_number_default("STARPU_SIMGRID_CUDA_QUEUE_COST", 1)
 #define _starpu_simgrid_task_submit_cost() starpu_getenv_number_default("STARPU_SIMGRID_TASK_SUBMIT_COST", 1)
+#define _starpu_simgrid_task_push_cost() starpu_getenv_number_default("STARPU_SIMGRID_TASK_PUSH_COST", 1)
 #define _starpu_simgrid_fetching_input_cost() starpu_getenv_number_default("STARPU_SIMGRID_FETCHING_INPUT_COST", 1)
 #define _starpu_simgrid_sched_cost() starpu_getenv_number_default("STARPU_SIMGRID_SCHED_COST", 0)
 

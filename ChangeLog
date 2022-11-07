@@ -118,6 +118,7 @@ Small features:
     empty function defined for all drivers
   * Add starpu_task_expected_length_average and
     starpu_task_expected_energy_average.
+  * Add STARPU_SIMGRID_TASK_PUSH_COST environment variable.
 
 Changes:
   * The redux codelet should expose the STARPU_COMMUTE flag, since StarPU
