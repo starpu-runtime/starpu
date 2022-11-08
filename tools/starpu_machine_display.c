@@ -18,6 +18,7 @@
 #include <starpu.h>
 #include <starpu_scheduler.h>
 #include <common/config.h>
+#include <common/utils.h>
 
 #define PROGNAME "starpu_machine_display"
 
@@ -145,6 +146,12 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
+	char real_hostname[128];
+	char starpu_hostname[128];
+	gethostname(real_hostname, sizeof(real_hostname));
+	_starpu_gethostname(starpu_hostname, sizeof(starpu_hostname));
+	fprintf(stdout, "Real hostname: %s (StarPU hostname: %s)\n", real_hostname, starpu_hostname);
+
 	if (worker_type)
 	{
 		if (strcmp(worker_type, "CPU") == 0)
@@ -199,6 +206,9 @@ int main(int argc, char **argv)
 		"STARPU_NMPIMSTHREADS",
 		"STARPU_TCPIP_MS_MULTIPLE_THREAD",
 		"STARPU_NTCPIPMSTHREADS",
+
+		"STARPU_MPI_HOSTNAMES",
+		"STARPU_HOSTNAME",
 		NULL
 	};
 
