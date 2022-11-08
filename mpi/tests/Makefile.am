@@ -105,8 +105,7 @@ starpu_mpi_TESTS +=				\
 	temporary				\
 	user_defined_datatype			\
 	early_stuff				\
-	star					\
-	mpi_task_submit
+	star
 
 if !STARPU_SIMGRID
 # missing support in simgrid
@@ -136,7 +135,8 @@ starpu_mpi_TESTS +=				\
 	coop_user_defined_datatype		\
 	coop_recv_wait_finalize			\
 	coop_insert_task			\
-	coop_cache
+	coop_cache				\
+	mpi_task_submit
 
 if STARPU_USE_MPI_MPI
 starpu_mpi_TESTS +=				\
