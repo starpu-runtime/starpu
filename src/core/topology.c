@@ -579,7 +579,9 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 #endif
 
 #ifdef STARPU_SIMGRID
-	config->topology.nhwworker[STARPU_CPU_WORKER][0] = config->topology.nhwpus = _starpu_simgrid_get_nbhosts("CPU");
+	config->topology.nhwworker[STARPU_CPU_WORKER][0] =
+	config->topology.nhwpus =
+	config->topology.nusedpus = _starpu_simgrid_get_nbhosts("CPU");
 #elif defined(STARPU_HAVE_HWLOC)
 	/* Discover the CPUs relying on the hwloc interface and fills CONFIG
 	 * accordingly. */
