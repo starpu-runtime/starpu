@@ -1055,12 +1055,6 @@ static void generate_bus_affinity_file(void)
 	if (!was_benchmarked)
 		benchmark_all_memory_nodes();
 
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-	/* Slaves don't write files */
-	if (!_starpu_mpi_common_is_src_node())
-		return;
-#endif
-
 	write_bus_affinity_file_content();
 }
 
@@ -1479,12 +1473,6 @@ static void generate_bus_latency_file(void)
 {
 	if (!was_benchmarked)
 		benchmark_all_memory_nodes();
-
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-	/* Slaves don't write files */
-	if (!_starpu_mpi_common_is_src_node())
-		return;
-#endif
 
 #ifndef STARPU_SIMGRID
 	write_bus_latency_file_content();
@@ -1927,12 +1915,6 @@ static void generate_bus_bandwidth_file(void)
 	if (!was_benchmarked)
 		benchmark_all_memory_nodes();
 
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-	/* Slaves don't write files */
-	if (!_starpu_mpi_common_is_src_node())
-		return;
-#endif
-
 #ifndef STARPU_SIMGRID
 	write_bus_bandwidth_file_content();
 #endif
@@ -2133,12 +2115,6 @@ static void generate_bus_config_file(void)
 {
 	if (!was_benchmarked)
 		benchmark_all_memory_nodes();
-
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-	/* Slaves don't write files */
-	if (!_starpu_mpi_common_is_src_node())
-		return;
-#endif
 
 	write_bus_config_file_content();
 }
@@ -3079,12 +3055,6 @@ static void generate_bus_platform_file(void)
 {
 	if (!was_benchmarked)
 		benchmark_all_memory_nodes();
-
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-	/* Slaves don't write files */
-	if (!_starpu_mpi_common_is_src_node())
-		return;
-#endif
 
 	write_bus_platform_file_content(3);
 	write_bus_platform_file_content(4);
