@@ -133,6 +133,17 @@ AC_FUNC_MMAP
 
 ###############################################################################
 #                                                                             #
+#                     Forwarded options                                       #
+#                                                                             #
+# Move here options whose values are needed early                             #
+#                                                                             #
+###############################################################################
+#
+AC_ARG_ENABLE(starpupy, [AS_HELP_STRING([--enable-starpupy], [enable StarPU python interface])],
+                    enable_starpupy=$enableval, enable_starpupy=maybe)
+
+###############################################################################
+#                                                                             #
 #                     Profiling tool support                                  #
 #                                                                             #
 ###############################################################################
@@ -2350,9 +2361,15 @@ AC_ARG_ENABLE(coverity, [AS_HELP_STRING([--enable-coverity], [enable coverity mo
 AC_MSG_RESULT($enable_coverity)
 AM_CONDITIONAL(STARPU_COVERITY, test x$enable_coverity = xyes)
 
+# We would need a PIC-compiled libfxt.a for this to work ; that's usually not available.
+if test x$enable_mpi = xyes -a x$enable_simgrid = xyes -o x$enable_shared=no -a x$enable_starpupy=yes ; then
+	default_enable_fxt=no
+else
+	default_enable_fxt=maybe
+fi
 # shall we use FxT to generate trace of the execution ?
 AC_ARG_ENABLE(fxt, [AS_HELP_STRING([--disable-fxt],
-		[disable FxT trace mechanisms])],, [enable_fxt=maybe])
+		[disable FxT trace mechanisms])],, [enable_fxt=$default_enable_fxt])
 AC_ARG_WITH(fxt,
 	[AS_HELP_STRING([--with-fxt=<path>],
 	[specify FxT installation directory])],
@@ -3854,8 +3871,6 @@ fi
 
 AM_CONDITIONAL(STARPU_STARPUPY_MULTI_INTERPRETER, [test x$starpupy_multi_interpreter = xyes])
 
-AC_ARG_ENABLE(starpupy, [AS_HELP_STRING([--enable-starpupy], [enable StarPU python interface])],
-                    enable_starpupy=$enableval, enable_starpupy=maybe)
 if test "x$enable_starpupy" != xno
 then
 	AC_CHECK_PROGS([PYTHON], python3)
