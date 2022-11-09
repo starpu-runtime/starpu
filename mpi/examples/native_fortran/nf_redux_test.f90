@@ -174,7 +174,7 @@ contains
 
     call c_f_pointer(fstarpu_variable_get_ptr(buffers, 0), a)
     call c_f_pointer(fstarpu_variable_get_ptr(buffers, 1), b)
-    call fstarpu_sleep(real(0.1, c_float))
+    call fstarpu_sleep(real(0.01, c_float))
     old_a = a
     a = 3.0 + b
     write(*,*) "task   (c_w_rank:",comm_rank,") from ",old_a,"to",a
@@ -198,7 +198,7 @@ contains
     call c_f_pointer(fstarpu_variable_get_ptr(buffers, 1), as)
     old_ad = ad
     ad = ad + as
-    call fstarpu_sleep(real(0.1, c_float))
+    call fstarpu_sleep(real(0.01, c_float))
     write(*,*) "red_cl (c_w_rank:",comm_rank,")",as, old_ad, ' ---> ',ad
 
     return
@@ -217,7 +217,7 @@ contains
 
     comm_rank  = fstarpu_mpi_world_rank()
     call c_f_pointer(fstarpu_variable_get_ptr(buffers, 0), a)
-    call fstarpu_sleep(real(0.05, c_float))
+    call fstarpu_sleep(real(0.005, c_float))
     a = 0.0
     write(*,*) "ini_cl (c_w_rank:",comm_rank,")"
     return
