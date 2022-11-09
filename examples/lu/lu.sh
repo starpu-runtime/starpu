@@ -32,9 +32,9 @@ export STARPU_FXT_PREFIX=$PREFIX/lu.traces
 
 if [ "$STARPU_QUICK_CHECK" = 1 ]
 then
-	SIDE=160
-else
 	SIDE=16
+else
+	SIDE=160
 fi
 
 if [ -n "$STARPU_MIC_SINK_PROGRAM_PATH" ] ; then

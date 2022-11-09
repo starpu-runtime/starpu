@@ -38,9 +38,9 @@ fi
 
 if [ "$STARPU_QUICK_CHECK" = 1 ]
 then
-	SIDE=320
-else
 	SIDE=32
+else
+	SIDE=320
 fi
 
 run()
