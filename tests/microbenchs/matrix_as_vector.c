@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -186,7 +186,11 @@ end:
 }
 
 #define NX_MIN 1024
+#ifdef STARPU_QUICK_CHECK
+#define NX_MAX 1024*32
+#else
 #define NX_MAX 1024*1024
+#endif
 
 static
 int check_size_on_device(uint32_t where, char *device_name)
