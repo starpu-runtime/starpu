@@ -1,7 +1,7 @@
 #!/bin/sh
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2017-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2017-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -30,11 +30,12 @@ fi
 
 export STARPU_FXT_PREFIX=$PREFIX/lu.traces
 
-$STARPU_LAUNCH $PREFIX/lu_implicit_example_float -size $((160 * 4)) -nblocks 4 -piv
-$STARPU_LAUNCH $PREFIX/lu_implicit_example_float -size $((160 * 4)) -nblocks 4 -no-stride
-$STARPU_LAUNCH $PREFIX/lu_implicit_example_float -size $((160 * 4)) -nblocks 4 -bound
-$STARPU_LAUNCH $PREFIX/lu_implicit_example_float -size $((160 * 2)) -nblocks 2 -bounddeps -directory $STARPU_FXT_PREFIX
-$STARPU_LAUNCH $PREFIX/lu_implicit_example_float -size $((160 * 2)) -nblocks 2 -bound -bounddeps -bounddepsprio -directory $STARPU_FXT_PREFIX
+if [ "$STARPU_QUICK_CHECK" = 1 ]
+then
+	SIDE=160
+else
+	SIDE=16
+fi
 
 if [ -n "$STARPU_MIC_SINK_PROGRAM_PATH" ] ; then
 	STARPU_MIC_SINK_PROGRAM_NAME=$STARPU_MIC_SINK_PROGRAM_PATH/lu_example_float
@@ -42,8 +43,8 @@ if [ -n "$STARPU_MIC_SINK_PROGRAM_PATH" ] ; then
 	[ -x "$STARPU_MIC_SINK_PROGRAM_PATH/.libs/lu_example_float" ] && STARPU_MIC_SINK_PROGRAM_NAME=$STARPU_MIC_SINK_PROGRAM_PATH/.libs/lu_example_float
 fi
 
-$STARPU_LAUNCH $PREFIX/lu_example_float -size $((160 * 4)) -nblocks 4 -piv
-$STARPU_LAUNCH $PREFIX/lu_example_float -size $((160 * 4)) -nblocks 4 -no-stride
-$STARPU_LAUNCH $PREFIX/lu_example_float -size $((160 * 4)) -nblocks 4 -bound
-$STARPU_LAUNCH $PREFIX/lu_example_float -size $((160 * 2)) -nblocks 2 -bounddeps -directory $PREFIX/lu.traces
-$STARPU_LAUNCH $PREFIX/lu_example_float -size $((160 * 2)) -nblocks 2 -bound -bounddeps -bounddepsprio -directory $STARPU_FXT_PREFIX
+$STARPU_LAUNCH $PREFIX/lu_example_float -size $(($SIDE * 4)) -nblocks 4 -piv
+$STARPU_LAUNCH $PREFIX/lu_example_float -size $(($SIDE * 4)) -nblocks 4 -no-stride
+$STARPU_LAUNCH $PREFIX/lu_example_float -size $(($SIDE * 4)) -nblocks 4 -bound
+$STARPU_LAUNCH $PREFIX/lu_example_float -size $(($SIDE * 2)) -nblocks 2 -bounddeps -directory $PREFIX/lu.traces
+$STARPU_LAUNCH $PREFIX/lu_example_float -size $(($SIDE * 2)) -nblocks 2 -bound -bounddeps -bounddepsprio -directory $STARPU_FXT_PREFIX
