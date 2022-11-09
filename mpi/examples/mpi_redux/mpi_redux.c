@@ -39,7 +39,7 @@ static void cl_cpu_work(void *handles[], void*arg)
 	(void)arg;
 	double *a = (double *)STARPU_VARIABLE_GET_PTR(handles[0]);
 	double *b = (double *)STARPU_VARIABLE_GET_PTR(handles[1]);
-	sleep(2);
+	starpu_sleep(0.01);
 	printf("work_cl (rank:%d,worker:%d) %f =>",starpu_mpi_world_rank(), starpu_worker_get_id(), *a);
 	*a = 3.0 + *a + *b;
 	printf("%f\n",*a);
@@ -65,7 +65,7 @@ static void cl_cpu_task_init(void *handles[], void*arg)
 {
 	(void) arg;
 	double *a = (double *)STARPU_VARIABLE_GET_PTR(handles[0]);
-	sleep(1);
+	starpu_sleep(0.005);
 	printf("init_cl (rank:%d,worker:%d) %d (was %f)\n", starpu_mpi_world_rank(), starpu_worker_get_id(), starpu_mpi_world_rank(),
 #ifdef STARPU_HAVE_VALGRIND_H
 			RUNNING_ON_VALGRIND ? 0. :
@@ -87,7 +87,7 @@ static void cl_cpu_task_red(void *handles[], void*arg)
 	(void) arg;
 	double *ad = (double *)STARPU_VARIABLE_GET_PTR(handles[0]);
 	double *as = (double *)STARPU_VARIABLE_GET_PTR(handles[1]);
-	sleep(2);
+	starpu_sleep(0.01);
 	printf("red_cl (rank:%d,worker:%d) %f ; %f --> %f\n", starpu_mpi_world_rank(), starpu_worker_get_id(), *as, *ad, *as+*ad);
 	*ad = *ad + *as;
 }
