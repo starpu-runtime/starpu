@@ -47,9 +47,11 @@ static void init_hipblas_func(void *args STARPU_ATTRIBUTE_UNUSED)
 {
 	unsigned idx = get_idx();
 	hipblasStatus_t status = hipblasCreate(&hipblas_handles[starpu_worker_get_id_check()]);
-	STARPU_HIPBLAS_REPORT_ERROR(status);
+	if (status != HIPBLAS_STATUS_SUCCESS)
+		STARPU_HIPBLAS_REPORT_ERROR(status);
 	status=hipblasSetStream(hipblas_handles[starpu_worker_get_id_check()], starpu_hip_get_local_stream());
-	STARPU_HIPBLAS_REPORT_ERROR(status);
+	if (status != HIPBLAS_STATUS_SUCCESS)
+		STARPU_HIPBLAS_REPORT_ERROR(status);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	if (!(hipblas_initialized[idx]++))
