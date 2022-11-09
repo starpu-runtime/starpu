@@ -72,7 +72,7 @@ static void shutdown_hipblas_func(void *args STARPU_ATTRIBUTE_UNUSED)
 #ifdef STARPU_HIP_PLATFORM_NVIDIA
 		cublasShutdown();
 #elif defined(STARPU_HIP_PLATFORM_AMD)
-		rocblas_initialize();
+		// no equivalent
 #endif
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
