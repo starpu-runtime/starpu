@@ -1,6 +1,6 @@
 ! StarPU --- Runtime system for heterogeneous multicore architectures.
 !
-! Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+! Copyright (C) 2016-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 !
 ! StarPU is free software; you can redistribute it and/or modify
 ! it under the terms of the GNU Lesser General Public License as published by
@@ -2403,6 +2403,18 @@ module fstarpu_mod
                         integer(c_long), value, intent(in) :: len
                         integer(c_int) :: fstarpu_memory_unpin
                 end function fstarpu_memory_unpin
+
+                ! int starpu_sleep(float nb_sec);
+                subroutine fstarpu_sleep (nb_sec) bind(C,name="starpu_sleep")
+                        use iso_c_binding, only: c_float
+                        real(c_float), value, intent(in) :: nb_sec
+                end subroutine fstarpu_sleep
+
+                ! int starpu_usleep(float nb_sec);
+                subroutine fstarpu_usleep (nb_sec) bind(C,name="starpu_usleep")
+                        use iso_c_binding, only: c_float
+                        real(c_float), value, intent(in) :: nb_sec
+                end subroutine fstarpu_usleep
         end interface
 
         contains

@@ -1,6 +1,6 @@
 ! StarPU --- Runtime system for heterogeneous multicore architectures.
 !
-! Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+! Copyright (C) 2016-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 !
 ! StarPU is free software; you can redistribute it and/or modify
 ! it under the terms of the GNU Lesser General Public License as published by
@@ -174,7 +174,7 @@ contains
 
     call c_f_pointer(fstarpu_variable_get_ptr(buffers, 0), a)
     call c_f_pointer(fstarpu_variable_get_ptr(buffers, 1), b)
-    call nf_sleep(1.d0)
+    call fstarpu_sleep(real(1.0, c_float))
     old_a = a
     a = 3.0 + b
     write(*,*) "task   (c_w_rank:",comm_rank,") from ",old_a,"to",a
@@ -198,7 +198,7 @@ contains
     call c_f_pointer(fstarpu_variable_get_ptr(buffers, 1), as)
     old_ad = ad
     ad = ad + as
-    call nf_sleep(1.d0)
+    call fstarpu_sleep(real(1.0, c_float))
     write(*,*) "red_cl (c_w_rank:",comm_rank,")",as, old_ad, ' ---> ',ad
 
     return
@@ -217,22 +217,10 @@ contains
 
     comm_rank  = fstarpu_mpi_world_rank()
     call c_f_pointer(fstarpu_variable_get_ptr(buffers, 0), a)
-    call nf_sleep(0.5d0)
+    call fstarpu_sleep(real(0.5, c_float))
     a = 0.0
     write(*,*) "ini_cl (c_w_rank:",comm_rank,")"
     return
   end subroutine cl_cpu_task_ini
-
-  subroutine nf_sleep(t)
-    implicit none
-    integer :: t_start, t_end, t_rate
-    real(kind(1.d0))     :: ta, t
-    call system_clock(t_start)
-    do
-       call system_clock(t_end, t_rate)
-       ta = real(t_end-t_start)/real(t_rate)
-       if(ta.gt.t) return
-    end do
-  end subroutine nf_sleep
 
 end program main
