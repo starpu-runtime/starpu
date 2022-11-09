@@ -27,9 +27,9 @@ export STARPU_FXT_TRACE=1
 
 if [ "$STARPU_QUICK_CHECK" = 1 ]
 then
-	SIDE=160
-else
 	SIDE=16
+else
+	SIDE=160
 fi
 
 $STARPU_LAUNCH $PREFIX/lu_implicit_example_float -size $(($SIDE * 4)) -nblocks 4 -piv
