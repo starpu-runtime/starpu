@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2014-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2014-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2020       Federal University of Rio Grande do Sul (UFRGS)
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -66,6 +66,18 @@ GDB=""
 HOSTFILE_PLATFORM_DETECT=""
 while true; do
 	case "$1" in
+		"-help"|"-h"|"--help")
+			echo "$0 [OPTIONS] program"
+			echo
+			echo "Available options are":
+			echo " -platform FILE      specify the simgrid cluster file to be used"
+			echo " -hostfile FILE      specify the list of machines to be used":
+			echo " -np N               specify the number of nodes to run":
+			echo " -hostfile-platform  use performance models of each host specified in the"
+			echo "                     hostfile"
+			echo " -gdb                run through gdb"
+			exit 0
+			;;
 		"-platform")
 			MPI_PLATFORM=$2
 			if [ ! -r "$MPI_PLATFORM" ]; then
