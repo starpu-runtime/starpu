@@ -1850,10 +1850,10 @@ according to data locality, migrated data when appropriate, etc.
 
 When enabled, ::STARPU_MAIN_RAM is associated to the NUMA node associated to the
 first CPU worker if it exists, the NUMA node associated to the first GPU discovered otherwise.
-If StarPU doesn't find any NUMA node after these step, ::STARPU_MAIN_RAM is the first NUMA node
+If StarPU doesn't find any NUMA node after these steps, ::STARPU_MAIN_RAM is the first NUMA node
 discovered by StarPU.
 
-Applications should thus rather pass a NULL pointer and a -1 memory node to
+Applications should thus rather pass a \c NULL pointer and a -1 memory node to
 <c>starpu_data_*_register</c> functions, so that StarPU can manage memory as it
 wishes.
 
@@ -1862,7 +1862,7 @@ some data, it can use starpu_malloc_on_node and pass the memory node to the
 <c>starpu_data_*_register</c> functions to tell StarPU where the allocation was
 made.
 
-starpu_memory_nodes_numa_id_to_devid and starpu_memory_nodes_numa_devid_to_id
+starpu_memory_nodes_numa_id_to_devid() and starpu_memory_nodes_numa_devid_to_id()
 are also available to convert between OS NUMA id and StarPU memory node number.
 
 If this variable is unset, or set to 0, CPU memory is considered as only one
