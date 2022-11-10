@@ -72,6 +72,39 @@ unsigned starpu_memory_nodes_get_count(void)
 	return _starpu_memory_nodes_get_count();
 }
 
+unsigned starpu_memory_nodes_get_count_by_kind(enum starpu_node_kind kind)
+{
+	unsigned nnodes = _starpu_memory_nodes_get_count();
+	unsigned id, cnt = 0;
+
+	for (id = 0; id < nnodes; id++)
+		if (_starpu_node_get_kind(id) == kind)
+			cnt++;
+
+	return cnt;
+}
+
+unsigned starpu_memory_node_get_ids_by_type(enum starpu_node_kind kind, unsigned *memory_nodes_ids, unsigned maxsize)
+{
+	unsigned nnodes = _starpu_memory_nodes_get_count();
+	unsigned cnt = 0;
+	unsigned id;
+
+	for (id = 0; id < nnodes; id++)
+	{
+		if (_starpu_node_get_kind(id) == kind)
+		{
+			/* Perhaps the array is too small ? */
+			if (cnt >= maxsize)
+				return -ERANGE;
+
+			memory_nodes_ids[cnt++] = id;
+		}
+	}
+
+	return cnt;
+}
+
 int starpu_memory_node_get_name(unsigned node, char *name, size_t size)
 {
 	const char *prefix = _starpu_node_get_prefix(_starpu_descr.nodes[node]);

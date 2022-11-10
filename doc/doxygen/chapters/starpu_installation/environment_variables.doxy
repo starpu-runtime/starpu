@@ -1860,7 +1860,9 @@ wishes.
 If the application wants to control memory allocation on NUMA nodes for
 some data, it can use starpu_malloc_on_node and pass the memory node to the
 <c>starpu_data_*_register</c> functions to tell StarPU where the allocation was
-made.
+made. starpu_memory_nodes_get_count_by_kind() and
+starpu_memory_node_get_ids_by_type() can be used to get the memory nodes numbers
+of the CPU memory nodes.
 
 starpu_memory_nodes_numa_id_to_devid() and starpu_memory_nodes_numa_devid_to_id()
 are also available to convert between OS NUMA id and StarPU memory node number.

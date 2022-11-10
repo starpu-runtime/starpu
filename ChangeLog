@@ -119,6 +119,8 @@ Small features:
   * Add starpu_task_expected_length_average and
     starpu_task_expected_energy_average.
   * Add STARPU_SIMGRID_TASK_PUSH_COST environment variable.
+  * Add starpu_memory_nodes_get_count_by_kind and
+    starpu_memory_node_get_ids_by_type.
 
 Changes:
   * The redux codelet should expose the STARPU_COMMUTE flag, since StarPU

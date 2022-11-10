@@ -406,6 +406,25 @@ unsigned starpu_worker_get_memory_node(unsigned workerid);
 unsigned starpu_memory_nodes_get_count(void);
 
 /**
+   Return the number of memory nodes of a given \p kind
+*/
+unsigned starpu_memory_nodes_get_count_by_kind(enum starpu_node_kind kind);
+
+/**
+   Get the list of memory nodes of kind \p kind.
+   Fill the array \p memory_nodes_ids with the memory nodes numbers.
+   The argument \p maxsize indicates the size of the array
+   \p memory_nodes_ids. The return value gives the number of node numbers
+   that were put in the array. <c>-ERANGE</c> is returned if \p maxsize
+   is lower than the number of memory nodes with the appropriate kind: in that
+   case, the array is filled with the \p maxsize first elements. To avoid such
+   overflows, the value of maxsize can be chosen by the means of function
+   starpu_memory_nodes_get_count_by_kind(), or by passing a value greater or
+   equal to \ref STARPU_MAXNODES.
+*/
+unsigned starpu_memory_node_get_ids_by_type(enum starpu_node_kind kind, unsigned *memory_nodes_ids, unsigned maxsize);
+
+/**
    Return in \p name the name of a memory node (NUMA 0, CUDA 0, etc.)
    \p size is the size of the \p name array.
 */
