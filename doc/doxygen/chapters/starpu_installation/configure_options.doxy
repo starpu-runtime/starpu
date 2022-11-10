@@ -131,13 +131,20 @@ done on a machine which does have the tools <c>doxygen</c> and <c>latex</c>
 <c>texlive-latex-extra</c>).
 </dd>
 
+<dt>--enable-icc</dt>
+<dd>
+\anchor enable-icc
+\addindex __configure__--enable-icc
+Enable the compilation of specific ICC examples.
+StarPU itself will not be compiled with ICC unless specified with <c>CC=icc</c>
+</dd>
+
 <dt>--disable-icc</dt>
 <dd>
 \anchor disable-icc
 \addindex __configure__--disable-icc
-Disable the usage of the ICC compiler. Otherwise, when ICC is found, some
-specific ICC examples are compiled. StarPU itself will not be compiled with ICC
-unless specified with <c>CC=icc</c>
+Disable the usage of the ICC compiler. Otherwise, when a ICC compiler
+is found, some specific ICC examples are compiled as explained above.
 </dd>
 
 <dt>--with-check-flags</dt>
