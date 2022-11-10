@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -82,7 +82,20 @@ enum starpu_data_access_mode
 				  of the provided buffer is simply
 				  ignored for now.
 			       */
-	STARPU_REDUX=(1<<3), /**< todo */
+	STARPU_REDUX	 = (1 << 3),		  /**< Reduction mode.
+				  StarPU will allocate on the fly a per-worker
+				  buffer, so that various tasks that access the
+				  same data in ::STARPU_REDUX mode can execute
+				  in parallel. When a task accesses the
+				  data without ::STARPU_REDUX, StarPU will
+				  automatically reduce the different contributions.
+
+				  Codelets contributing to these reductions
+				  with ::STARPU_REDUX must be registered with
+				  ::STARPU_RW | ::STARPU_COMMUTE access modes.
+
+				  See \ref DataReduction for more details.
+				  */
 	STARPU_COMMUTE=(1<<4), /**<  ::STARPU_COMMUTE can be passed
 				  along ::STARPU_W or ::STARPU_RW to
 				  express that StarPU can let tasks
