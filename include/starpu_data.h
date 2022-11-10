@@ -82,7 +82,20 @@ enum starpu_data_access_mode
 				  of the provided buffer is simply
 				  ignored for now.
 			       */
-	STARPU_REDUX	 = (1 << 3),		  /**< todo */
+	STARPU_REDUX	 = (1 << 3),		  /**< Reduction mode.
+				  StarPU will allocate on the fly a per-worker
+				  buffer, so that various tasks that access the
+				  same data in ::STARPU_REDUX mode can execute
+				  in parallel. When a task accesses the
+				  data without ::STARPU_REDUX, StarPU will
+				  automatically reduce the different contributions.
+
+				  Codelets contributing to these reductions
+				  with ::STARPU_REDUX must be registered with
+				  ::STARPU_RW | ::STARPU_COMMUTE access modes.
+
+				  See \ref DataReduction for more details.
+				  */
 	STARPU_COMMUTE	 = (1 << 4),		  /**<  ::STARPU_COMMUTE can be passed
 				  along ::STARPU_W or ::STARPU_RW to
 				  express that StarPU can let tasks
@@ -110,13 +123,16 @@ enum starpu_data_access_mode
 				   src/sched_policies/work_stealing_policy.c
 				   source code.
 				*/
-	STARPU_MPI_REDUX = (1 << 7),		  /**< Inter-node reduction only. Codelets
-				    contributing to these reductions should
-				    be registered with ::STARPU_RW | ::STARPU_COMMUTE
-				    access modes.
-			            When inserting these tasks through the
-				    MPI layer however, the access mode needs
-				    to be ::STARPU_MPI_REDUX. */
+	STARPU_MPI_REDUX = (1 << 7),		  /**< Inter-node reduction only.
+				   This is similar to ::STARPU_REDUX, except that
+				   StarPU will allocate a per-node buffer only,
+				   i.e. parallelism will be achieved between
+				   nodes, but not within each node. This is
+				   useful when the per-worker buffers allocated
+				   with ::STARPU_REDUX consume too much memory.
+
+				   See \ref MPIMpiRedux for more details.
+				   */
 
 	STARPU_NOPLAN = (1 << 8), /**< Disable automatic submission of asynchronous
 				    partitioning/unpartitioning */
