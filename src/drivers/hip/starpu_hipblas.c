@@ -20,7 +20,7 @@
 #include <core/workers.h>
 
 #ifdef STARPU_USE_HIP
-#include <hipblas.h>
+#include <hipblas/hipblas.h>
 #include <starpu_hipblas.h>
 
 static int hipblas_initialized[STARPU_NMAXWORKERS];

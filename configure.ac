@@ -1832,7 +1832,7 @@ if test x$enable_hip != xno; then
 		AC_ARG_WITH([hipblas],
 			[AS_HELP_STRING([--with-hipblas=<path>], [specify where hipblas is installed])],
 			[hipblas_dir="$withval"],
-			[hipblas_dir="$HIP_DIR/../hipblas"])
+			[hipblas_dir="$HIP_DIR/include"])
 
 		HIPBLAS_INCLUDE_DIR="$hipblas_dir/include"
 		HIPBLAS_LIB_DIR="$hipblas_dir/lib"
@@ -1855,7 +1855,7 @@ if test x$have_valid_hip = xyes; then
     CPPFLAGS="${CPPFLAGS} $STARPU_HIP_CPPFLAGS"
     AC_CHECK_HEADER([hip/hip_runtime.h],[have_valid_hip=yes],[have_valid_hip=no])
     AC_CHECK_HEADER([hip/hip_runtime_api.h],[have_valid_hip=yes],[have_valid_hip=no])
-    AC_CHECK_HEADER([hipblas.h],[have_valid_hip=yes],[have_valid_hip=no])
+    AC_CHECK_HEADER([hipblas/hipblas.h],[have_valid_hip=yes],[have_valid_hip=no])
     #AC_HAVE_LIBRARY([hipblas],[have_valid_hip=yes],[have_valid_hip=no])
     #unset ac_cv_lib_cublas_main
     CPPFLAGS="${SAVED_CPPFLAGS}"

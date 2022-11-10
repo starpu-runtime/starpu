@@ -19,7 +19,7 @@
 
 #if defined STARPU_USE_HIP && !defined STARPU_DONT_INCLUDE_HIP_HEADERS
 
-#include <hipblas.h>
+#include <hipblas/hipblas.h>
 
 #ifdef __cplusplus
 extern "C" {
