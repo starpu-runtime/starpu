@@ -913,6 +913,10 @@ unsigned _starpu_get_next_bindid(struct _starpu_machine_config *config, unsigned
 					)
 			{
 				/* the PU is available, or shareable with us, we use it ! */
+				_STARPU_DEBUG("PU %d is %sbound and %sshared and we %sshare, use it\n", requested_bindid,
+						config->currently_bound[i] ? "" : "not ",
+						config->currently_shared[i] ? "" : "not ",
+						flags & STARPU_THREAD_ACTIVE ? "don't ": "");
 				config->currently_bound[i] = 1;
 				if (!(flags & STARPU_THREAD_ACTIVE))
 					config->currently_shared[i] = 1;
@@ -926,7 +930,10 @@ unsigned _starpu_get_next_bindid(struct _starpu_machine_config *config, unsigned
 		/* Try to find a shareable PU */
 		for (i = 0; i < workers_nbindid; i++)
 			if (config->currently_shared[i])
+			{
+				_STARPU_DEBUG("PU %d is available for sharing\n", topology->workers_bindid[i]);
 				return topology->workers_bindid[i];
+			}
 	}
 
 	/* Try to find an available PU from last used PU */
@@ -937,6 +944,7 @@ unsigned _starpu_get_next_bindid(struct _starpu_machine_config *config, unsigned
 
 	if (i == workers_nbindid)
 	{
+		_STARPU_DEBUG("Looped over %d cpus, restarting from 0\n", workers_nbindid);
 		/* Finished binding on all cpus, restart from start in
 		 * case the user really wants overloading */
 		memset(&config->currently_bound, 0, sizeof(config->currently_bound));
@@ -945,6 +953,7 @@ unsigned _starpu_get_next_bindid(struct _starpu_machine_config *config, unsigned
 
 	STARPU_ASSERT(i < workers_nbindid);
 	unsigned bindid = topology->workers_bindid[i];
+	_STARPU_DEBUG("binding on PU %d\n", bindid);
 	config->currently_bound[i] = 1;
 	if (!(flags & STARPU_THREAD_ACTIVE))
 		config->currently_shared[i] = 1;
