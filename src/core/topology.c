@@ -907,20 +907,22 @@ unsigned _starpu_get_next_bindid(struct _starpu_machine_config *config, unsigned
 		/* Look at the remaining PUs to be bound to */
 		for (i = 0; i < workers_nbindid; i++)
 		{
-			if (topology->workers_bindid[i] == requested_bindid &&
-					(!config->currently_bound[i] ||
-					 (config->currently_shared[i] && !(flags & STARPU_THREAD_ACTIVE)))
-					)
+			if (topology->workers_bindid[i] == requested_bindid)
 			{
-				/* the PU is available, or shareable with us, we use it ! */
-				_STARPU_DEBUG("PU %d is %sbound and %sshared and we %sshare, use it\n", requested_bindid,
-						config->currently_bound[i] ? "" : "not ",
-						config->currently_shared[i] ? "" : "not ",
-						flags & STARPU_THREAD_ACTIVE ? "don't ": "");
-				config->currently_bound[i] = 1;
-				if (!(flags & STARPU_THREAD_ACTIVE))
-					config->currently_shared[i] = 1;
-				return requested_bindid;
+				if ((!config->currently_bound[i] ||
+					 (config->currently_shared[i] && !(flags & STARPU_THREAD_ACTIVE))))
+				{
+					/* the PU is available, or shareable with us, we use it ! */
+					_STARPU_DEBUG("PU %d is %sbound and %sshared and we %sshare, use it\n", requested_bindid,
+							config->currently_bound[i] ? "" : "not ",
+							config->currently_shared[i] ? "" : "not ",
+							flags & STARPU_THREAD_ACTIVE ? "don't ": "");
+					config->currently_bound[i] = 1;
+					if (!(flags & STARPU_THREAD_ACTIVE))
+						config->currently_shared[i] = 1;
+					return requested_bindid;
+				}
+				break;
 			}
 		}
 	}
