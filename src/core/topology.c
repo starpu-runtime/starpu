@@ -823,8 +823,8 @@ static void _starpu_initialize_workers_bindid(struct _starpu_machine_config *con
 		/* we use the explicit value from the user */
 		memcpy(topology->workers_bindid,
 			config->conf.workers_bindid,
-			STARPU_NMAXWORKERS*sizeof(unsigned));
-		topology->workers_nbindid = STARPU_NMAXWORKERS;
+			config->conf.workers_nbindid*sizeof(unsigned));
+		topology->workers_nbindid = config->conf.workers_nbindid;
 	}
 	else
 	{
@@ -835,7 +835,7 @@ static void _starpu_initialize_workers_bindid(struct _starpu_machine_config *con
 
 		i = 0; /* PU number currently assigned */
 		k = 0; /* Number of threads already put on the current core */
-		while(nbindids < STARPU_NMAXWORKERS)
+		while(i < topology->nusedpus)
 		{
 			if (k >= nth_per_core)
 			{
@@ -848,7 +848,7 @@ static void _starpu_initialize_workers_bindid(struct _starpu_machine_config *con
 			}
 
 			/* Add a worker to this core, by using this logical PU */
-			topology->workers_bindid[nbindids++] = (unsigned)(i % topology->nusedpus) + topology->firstusedpu;
+			topology->workers_bindid[nbindids++] = (unsigned)i + topology->firstusedpu;
 			k++;
 			i++;
 		}
