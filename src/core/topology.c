@@ -823,8 +823,8 @@ static void _starpu_initialize_workers_bindid(struct _starpu_machine_config *con
 		/* we use the explicit value from the user */
 		memcpy(topology->workers_bindid,
 			config->conf.workers_bindid,
-			config->conf.workers_nbindid*sizeof(unsigned));
-		topology->workers_nbindid = config->conf.workers_nbindid;
+			STARPU_NMAXWORKERS*sizeof(unsigned));
+		topology->workers_nbindid = STARPU_NMAXWORKERS;
 	}
 	else
 	{
