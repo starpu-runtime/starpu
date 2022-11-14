@@ -41,7 +41,7 @@ static struct starpu_opencl_program _opencl_program;
 #endif
 
 #ifdef STARPU_QUICK_CHECK
-static unsigned _nblocks = 512;
+static unsigned _nblocks = 128;
 #else
 static unsigned _nblocks = 4096;
 #endif
