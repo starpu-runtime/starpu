@@ -55,7 +55,7 @@ struct starpu_fxt_mpi_offset _starpu_fxt_mpi_find_sync_points(char *filename_in,
 	if (fd_in < 0)
 	{
 		perror("open failed :");
-		exit(-1);
+		_exit(EXIT_FAILURE);
 	}
 
 	static fxt_t fut;
@@ -63,7 +63,7 @@ struct starpu_fxt_mpi_offset _starpu_fxt_mpi_find_sync_points(char *filename_in,
 	if (!fut)
 	{
 		perror("fxt_fdopen :");
-		exit(-1);
+		_exit(EXIT_FAILURE);
 	}
 
 	fxt_blockev_t block;
@@ -107,7 +107,7 @@ struct starpu_fxt_mpi_offset _starpu_fxt_mpi_find_sync_points(char *filename_in,
 	if (close(fd_in))
 	{
 		perror("close failed :");
-		exit(-1);
+		_exit(EXIT_FAILURE);
 	}
 
 	return offset;

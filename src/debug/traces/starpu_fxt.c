@@ -3605,7 +3605,7 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 	if (!fut)
 	{
 		perror("fxt_fdopen :");
-		exit(-1);
+		_exit(EXIT_FAILURE);
 	}
 
 	fxt_blockev_t block;
@@ -4499,7 +4499,7 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 	if (close(fd_in))
 	{
 		perror("close failed :");
-		exit(-1);
+		_exit(EXIT_FAILURE);
 	}
 #endif
 }
@@ -4842,7 +4842,7 @@ void _starpu_fxt_paje_file_init(struct starpu_fxt_options *options)
 		{
 			_STARPU_MSG("error while opening %s\n", options->out_paje_path);
 			perror("fopen");
-			exit(1);
+			_exit(EXIT_FAILURE);
 		}
 
 #ifdef STARPU_HAVE_POTI
@@ -4906,7 +4906,7 @@ uint64_t _starpu_fxt_find_start_time(char *filename_in)
 	if (!fut)
 	{
 		perror("fxt_fdopen :");
-		exit(-1);
+		_exit(EXIT_FAILURE);
 	}
 
 	fxt_blockev_t block;
@@ -4928,7 +4928,7 @@ uint64_t _starpu_fxt_find_start_time(char *filename_in)
 	if (close(fd_in))
 	{
 		perror("close failed :");
-		exit(-1);
+		_exit(EXIT_FAILURE);
 	}
 #endif
 	return (ev.time);
@@ -5216,7 +5216,7 @@ void starpu_fxt_write_data_trace_in_dir(char *filename_in, char *dir)
 	if (!fut)
 	{
 		perror("fxt_fdopen :");
-		exit(-1);
+		_exit(EXIT_FAILURE);
 	}
 
 	char filename_out[512];
@@ -5309,14 +5309,14 @@ void starpu_fxt_write_data_trace_in_dir(char *filename_in, char *dir)
 	if (close(fd_in))
 	{
 		perror("close failed :");
-		exit(-1);
+		_exit(EXIT_FAILURE);
 	}
 #endif
 
 	if(fclose(codelet_list))
 	{
 		perror("close failed :");
-		exit(-1);
+		_exit(EXIT_FAILURE);
 	}
 
 	unsigned i;
@@ -5332,7 +5332,7 @@ void starpu_fxt_write_data_trace_in_dir(char *filename_in, char *dir)
 			if(fclose(kernel->file))
 			{
 				perror("close failed :");
-				exit(-1);
+				_exit(EXIT_FAILURE);
 			}
 			HASH_DEL(kernels, kernel);
 			free(kernel->name);
