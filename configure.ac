@@ -1832,7 +1832,7 @@ if test x$enable_hip != xno; then
 		AC_ARG_WITH([hipblas],
 			[AS_HELP_STRING([--with-hipblas=<path>], [specify where hipblas is installed])],
 			[hipblas_dir="$withval"],
-			[hipblas_dir="$HIP_DIR/include"])
+			[hipblas_dir="$HIP_DIR/.."])
 
 		HIPBLAS_INCLUDE_DIR="$hipblas_dir/include"
 		HIPBLAS_LIB_DIR="$hipblas_dir/lib"
