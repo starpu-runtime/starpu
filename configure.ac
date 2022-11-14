@@ -2362,7 +2362,7 @@ AC_MSG_RESULT($enable_coverity)
 AM_CONDITIONAL(STARPU_COVERITY, test x$enable_coverity = xyes)
 
 # We would need a PIC-compiled libfxt.a for this to work ; that's usually not available.
-if test x$enable_mpi = xyes -a x$enable_simgrid = xyes -o x$enable_shared=no -a x$enable_starpupy=yes ; then
+if test x$enable_mpi = xyes -a x$enable_simgrid = xyes -o x$enable_shared = xno -a x$enable_starpupy = xyes ; then
 	default_enable_fxt=no
 else
 	default_enable_fxt=maybe
