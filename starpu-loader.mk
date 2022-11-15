@@ -17,11 +17,11 @@
 noinst_PROGRAMS		=
 
 if STARPU_HAVE_WINDOWS
-LOADER_BIN		=	$(LAUNCHER)
+LOADER_BIN		=	$(LAUNCHER) $(EXTERNAL)
 else
 LOADER			=	loader
 loader_CPPFLAGS 	= 	$(AM_CPPFLAGS) -I$(top_builddir)/src/
-LOADER_BIN		=	$(LAUNCHER) ./$(LOADER)
+LOADER_BIN		=	$(LAUNCHER) ./$(LOADER) $(EXTERNAL)
 noinst_PROGRAMS		+=	loader
 endif
 
