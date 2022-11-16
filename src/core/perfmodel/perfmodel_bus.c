@@ -661,6 +661,8 @@ static void measure_bandwidth_between_numa_nodes_and_dev(int dev, struct dev_tim
 		if (cpu_id < 0)
 			continue;
 
+		_STARPU_DISP("with NUMA %d...\n", numa_id);
+
 #ifdef STARPU_USE_CUDA
 		if (strncmp(type, "CUDA", 4) == 0)
 			measure_bandwidth_between_host_and_dev_on_numa_with_cuda(dev, numa_id, cpu_id, dev_timing_per_numanode);
@@ -1740,12 +1742,12 @@ static void write_bus_bandwidth_file_content(void)
 					/* Check if it's CUDA <-> NUMA link */
 					if (src >= b_low && src < b_up && dst >= numa_low && dst < numa_up)
 						slowness += cudadev_timing_per_numa[(src-b_low)*STARPU_MAXNUMANODES+dst-numa_low].timing_dtoh;
-					if (dst >= b_low && dst < b_up && src >= numa_low && dst < numa_up)
+					if (dst >= b_low && dst < b_up && src >= numa_low && src < numa_up)
 						slowness += cudadev_timing_per_numa[(dst-b_low)*STARPU_MAXNUMANODES+src-numa_low].timing_htod;
 					/* To other devices, take the best slowness */
 					if (src >= b_low && src < b_up && !(dst >= numa_low && dst < numa_up))
 						slowness += search_bus_best_timing(src-b_low, "CUDA", 0);
-					if (dst >= b_low && dst < b_up && !(src >= numa_low && dst < numa_up))
+					if (dst >= b_low && dst < b_up && !(src >= numa_low && src < numa_up))
 						slowness += search_bus_best_timing(dst-b_low, "CUDA", 1);
 				}
 				b_low += ncuda;
@@ -1755,12 +1757,12 @@ static void write_bus_bandwidth_file_content(void)
 				  /* Check if it's OpenCL <-> NUMA link */
 				if (src >= b_low && src < b_up && dst >= numa_low && dst < numa_up)
 					slowness += opencldev_timing_per_numa[(src-b_low)*STARPU_MAXNUMANODES+dst-numa_low].timing_dtoh;
-				if (dst >= b_low && dst < b_up && src >= numa_low && dst < numa_up)
+				if (dst >= b_low && dst < b_up && src >= numa_low && src < numa_up)
 					slowness += opencldev_timing_per_numa[(dst-b_low)*STARPU_MAXNUMANODES+src-numa_low].timing_htod;
 				/* To other devices, take the best slowness */
 				if (src >= b_low && src < b_up && !(dst >= numa_low && dst < numa_up))
 					slowness += search_bus_best_timing(src-b_low, "OpenCL", 0);
-				if (dst >= b_low && dst < b_up && !(src >= numa_low && dst < numa_up))
+				if (dst >= b_low && dst < b_up && !(src >= numa_low && src < numa_up))
 					slowness += search_bus_best_timing(dst-b_low, "OpenCL", 1);
 				b_low += nopencl;
 #endif
