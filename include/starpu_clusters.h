@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -115,10 +115,24 @@ enum starpu_cluster_types
 #endif
 };
 
+/**
+   Cluster configuration
+ */
 struct starpu_cluster_machine;
 
+/**
+   Create clusters on the machine with the given parameters
+ */
 struct starpu_cluster_machine *starpu_cluster_machine(hwloc_obj_type_t cluster_level, ...);
+
+/**
+   Delete the given clusters configuration
+ */
 int starpu_uncluster_machine(struct starpu_cluster_machine *clusters);
+
+/**
+   Print the given clusters configuration
+ */
 int starpu_cluster_print(struct starpu_cluster_machine *clusters);
 
 /** Prologue functions */

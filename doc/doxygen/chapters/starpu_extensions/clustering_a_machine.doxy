@@ -74,7 +74,7 @@ starpu_cluster_print(clusters);
 /* submit some tasks with OpenMP computations */
 
 starpu_uncluster_machine(clusters);
-/* we are back in the default StarPU state */
+/* we are back to the default StarPU state */
 \endcode
 
 The following graphic is an example of what a particular machine can
