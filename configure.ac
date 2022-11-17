@@ -62,7 +62,7 @@ AC_SUBST([LIBSOCL_INTERFACE_AGE])
 
 AC_CANONICAL_SYSTEM
 
-AM_INIT_AUTOMAKE([1.11 -Wall -Wno-portability foreign silent-rules color-tests parallel-tests])
+AM_INIT_AUTOMAKE([1.11 -Wall -Wno-portability foreign silent-rules color-tests parallel-tests tar-pax])
 
 m4_ifdef([AM_SILENT_RULES],
   [AM_SILENT_RULES(yes)])
