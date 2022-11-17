@@ -1,7 +1,7 @@
 #!/bin/sh
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2018-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2021-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -17,25 +17,22 @@
 
 set -e
 
-export LC_ALL=C
-export PKG_CONFIG_PATH=/home/ci/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH
-export LD_LIBRARY_PATH=/home/ci/usr/local/lib:$LD_LIBRARY_PATH
+./contrib/ci.inria.fr/job-0-tarball.sh
 
-if test -f ./contrib/specific_env.sh
+tarball=$(ls -tr starpu-*.tar.gz | tail -1)
+
+if test -z "$tarball"
 then
-    . ./contrib/specific_env.sh
+    echo Error. No tar.gz file
+    ls
+    pwd
+    exit 1
 fi
 
-BUILD=./build_$$
-
-./autogen.sh
-if test -d $BUILD ; then chmod -R 777 $BUILD && rm -rf $BUILD ; fi
-mkdir $BUILD && cd $BUILD
-../configure --enable-build-doc-pdf $STARPU_USER_CONFIGURE_OPTIONS
-make -j4
-make dist
-cp *gz ..
-cp doc/doxygen/starpu.pdf ..
-cp doc/doxygen_dev/starpu_dev.pdf ..
-make clean
-
+if test ! -f starpu.pdf
+then
+    echo Error. No documentation file
+    ls
+    pwd
+    exit 1
+fi
