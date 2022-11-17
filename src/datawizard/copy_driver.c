@@ -142,8 +142,8 @@ static unsigned long communication_cnt = 0;
 
 int _starpu_copy_interface_any_to_any(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
 {
-	int src_kind = starpu_node_get_kind(src_node);
-	int dst_kind = starpu_node_get_kind(dst_node);
+	enum starpu_node_kind src_kind = starpu_node_get_kind(src_node);
+	enum starpu_node_kind dst_kind = starpu_node_get_kind(dst_node);
 
 	int ret = 0;
 	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
