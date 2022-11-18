@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -41,30 +41,30 @@ STARPU_EFFECTIVE_VERSION=1.3
 # Note for StarPU 1.2: reset everything to 0:0:0
 
 # Libtool interface versioning (info "(libtool) Versioning").
-LIBSTARPU_INTERFACE_CURRENT=0	# increment upon ABI change
+LIBSTARPU_INTERFACE_CURRENT=1	# increment upon ABI change
 LIBSTARPU_INTERFACE_REVISION=0	# increment upon implementation change
 LIBSTARPU_INTERFACE_AGE=0	# set to CURRENT - PREVIOUS interface
 
-LIBSTARPUFFT_INTERFACE_CURRENT=0	# increment upon ABI change
+LIBSTARPUFFT_INTERFACE_CURRENT=1	# increment upon ABI change
 LIBSTARPUFFT_INTERFACE_REVISION=0	# increment upon implementation change
 LIBSTARPUFFT_INTERFACE_AGE=0		# set to CURRENT - PREVIOUS interface
 
-LIBSTARPUMPI_INTERFACE_CURRENT=0	# increment upon ABI change
+LIBSTARPUMPI_INTERFACE_CURRENT=1	# increment upon ABI change
 LIBSTARPUMPI_INTERFACE_REVISION=0	# increment upon implementation change
 LIBSTARPUMPI_INTERFACE_AGE=0		# set to CURRENT - PREVIOUS interface
 
-LIBSOCL_INTERFACE_CURRENT=0	# increment upon ABI change
+LIBSOCL_INTERFACE_CURRENT=1	# increment upon ABI change
 LIBSOCL_INTERFACE_REVISION=0	# increment upon implementation change
 LIBSOCL_INTERFACE_AGE=0		# set to CURRENT - PREVIOUS interface
 
-LIBSTARPURM_INTERFACE_CURRENT=0	# increment upon ABI change
+LIBSTARPURM_INTERFACE_CURRENT=1	# increment upon ABI change
 LIBSTARPURM_INTERFACE_REVISION=0	# increment upon implementation change
 LIBSTARPURM_INTERFACE_AGE=0	# set to CURRENT - PREVIOUS interface
 
-LIBSTARPU_OPENMP_LLVM_INTERFACE_CURRENT=0	# increment upon ABI change
+LIBSTARPU_OPENMP_LLVM_INTERFACE_CURRENT=1	# increment upon ABI change
 LIBSTARPU_OPENMP_LLVM_INTERFACE_REVISION=0	# increment upon implementation change
 LIBSTARPU_OPENMP_LLVM_INTERFACE_AGE=0	        # set to CURRENT - PREVIOUS interface
 
-LIBSTARPUJULIA_INTERFACE_CURRENT=0	# increment upon ABI change
+LIBSTARPUJULIA_INTERFACE_CURRENT=1	# increment upon ABI change
 LIBSTARPUJULIA_INTERFACE_REVISION=0	# increment upon implementation change
 LIBSTARPUJULIA_INTERFACE_AGE=0		# set to CURRENT - PREVIOUS interface

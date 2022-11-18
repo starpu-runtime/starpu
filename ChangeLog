@@ -14,8 +14,9 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-StarPU 1.4.0 (git revision xxxx)
+StarPU 1.4.0
 ==============================================
+
 New features:
   * Add a starpu_mpi_task_submit-oriented way of submitting MPI tasks
     with functions starpu_mpi_task_exchange_data_before_execution() and
