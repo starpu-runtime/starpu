@@ -367,7 +367,7 @@ then looks in the directories specified by the environment
 variable \ref STARPU_PERF_MODEL_PATH
 </li>
 <li>
-and finally looks in <c>$prefix/share/starpu/perfmodels</c>
+and finally looks in <c>$prefix/share/starpu/perfmodels/sampling</c>
 </li>
 </ul>
 
