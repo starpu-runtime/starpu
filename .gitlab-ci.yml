@@ -80,6 +80,8 @@ check_simgrid:
   tags:
     - starpu
     - linux
+  script:
+    - ./contrib/gitlab/simgrid.sh
 
 #check_macosx:
 #  extends: .check_template
