@@ -50,12 +50,10 @@
 #include <simgrid/host.h>
 #endif
 
-#if ! defined(STARPU_HAVE_SIMGRID_ACTOR_H) && ! defined(STARPU_HAVE_SIMGRID_SEMAPHORE_H)
 #ifdef STARPU_HAVE_SIMGRID_MSG_H
 #include <simgrid/msg.h>
 #elif defined(STARPU_HAVE_MSG_MSG_H)
 #include <msg/msg.h>
-#endif
 #endif
 
 #elif !defined(_MSC_VER) || defined(BUILDING_STARPU)
