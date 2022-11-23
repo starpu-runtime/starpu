@@ -1549,18 +1549,18 @@ the small buffers within them.
 <dd>
 \anchor STARPU_MINIMUM_AVAILABLE_MEM
 \addindex __env__STARPU_MINIMUM_AVAILABLE_MEM
-Specify the minimum percentage of memory that should be available in GPUs
-(or in main memory, when using out of core), below which a reclaiming pass is
-performed. The default is 0%.
+Specify the minimum percentage of memory that should be available in GPUs, i.e.
+not used at all by StarPU (or in main memory, when using out of core), below
+which a eviction pass is performed. The default is 0%.
 </dd>
 
 <dt>STARPU_TARGET_AVAILABLE_MEM</dt>
 <dd>
 \anchor STARPU_TARGET_AVAILABLE_MEM
 \addindex __env__STARPU_TARGET_AVAILABLE_MEM
-Specify the target percentage of memory that should be reached in
-GPUs (or in main memory, when using out of core), when performing a periodic
-reclaiming pass. The default is 0%.
+Specify the target percentage of memory that should be available in GPUs, i.e.
+not used at all by StarPU (or in main memory, when using out of core), when
+performing a periodic eviction pass. The default is 0%.
 </dd>
 
 <dt>STARPU_MINIMUM_CLEAN_BUFFERS</dt>
@@ -1568,8 +1568,9 @@ reclaiming pass. The default is 0%.
 \anchor STARPU_MINIMUM_CLEAN_BUFFERS
 \addindex __env__STARPU_MINIMUM_CLEAN_BUFFERS
 Specify the minimum percentage of number of buffers that should be clean in GPUs
-(or in main memory, when using out of core), below which asynchronous writebacks will be
-issued. The default is 5%.
+(or in main memory, when using out of core), i.e. used by StarPU, but for which
+a copy is available in memory (or on disk, when using out of core), below which
+asynchronous writebacks will be issued. The default is 5%.
 </dd>
 
 <dt>STARPU_TARGET_CLEAN_BUFFERS</dt>
@@ -1577,8 +1578,9 @@ issued. The default is 5%.
 \anchor STARPU_TARGET_CLEAN_BUFFERS
 \addindex __env__STARPU_TARGET_CLEAN_BUFFERS
 Specify the target percentage of number of buffers that should be reached in
-GPUs (or in main memory, when using out of core), when performing an asynchronous
-writeback pass. The default is 10%.
+GPUs (or in main memory, when using out of core), i.e. used by StarPU, but for
+which a copy is available in memory (or on disk, when using out of core), when
+performing an asynchronous writeback pass. The default is 10%.
 </dd>
 
 <dt>STARPU_DISK_SWAP</dt>
