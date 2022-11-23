@@ -265,9 +265,12 @@ void starpu_memory_deallocate(unsigned node, size_t size);
 void starpu_memory_wait_available(unsigned node, size_t size);
 
 /**
-   Sleep for the given \p nb_sec seconds.
-   In simgrid mode, this only sleeps within virtual time.
-  */
+   Sleep for the given \p nb_sec seconds. Similar to calling Unix' \c
+   sleep function, except that it takes a float to allow sub-second
+   sleeping, and when StarPU is compiled in SimGrid mode it does not
+   really sleep but just makes SimGrid record that the thread has
+   taken some time to sleep.
+*/
 void starpu_sleep(float nb_sec);
 
 /**

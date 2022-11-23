@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -374,12 +374,5 @@ todo
 \fn int starpu_pthread_spin_unlock(starpu_pthread_spinlock_t *lock)
 \ingroup API_Threads
 todo
-
-\fn void starpu_sleep(float nb_sec)
-\ingroup API_Threads
-Similar to calling Unix' \c sleep function, except that it takes a float
-to allow sub-second sleeping, and when StarPU is compiled in SimGrid mode it
-does not really sleep but just makes SimGrid record that the thread has taken
-some time to sleep.
 
 */
