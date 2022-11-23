@@ -108,7 +108,7 @@ $(DOX_TAG): $(dox_inputs)
 	@if test -f $(DOX_HTML_DIR)/DocOrganization.html ; then $(SED) -i 's/ModuleDocumentation <\/li>/<a class="el" href="modules.html">Modules<\/a>/' $(DOX_HTML_DIR)/DocOrganization.html ; fi
 	@if test -f $(DOX_HTML_DIR)/DocOrganization.html ; then $(SED) -i 's/FileDocumentation <\/li>/<a class="el" href="files.html">Files<\/a>/' $(DOX_HTML_DIR)/DocOrganization.html ; fi
         # comment for the line below: what we really want to do is to remove the line, but dy doing so, it avoids opening the interactive menu when browsing files
-	@if test -f $(DOX_HTML_DIR)/navtree.js ; then $(SED) -i 's/\[ "Files", "Files.html", null \]/\[ "", "Files.html", null \]/' $(DOX_HTML_DIR)/navtree.js ; fi
+	@if test -f $(DOX_HTML_DIR)/navtreedata.js ; then $(SED) -i 's/\[ "Files", "Files.html", null \]/\[ "", "Files.html", null \]/' $(DOX_HTML_DIR)/navtreedata.js ; fi
 	@$(SED) -i 's/.*"Files.html".*//' $(DOX_HTML_DIR)/pages.html
 	@if test -f $(DOX_LATEX_DIR)/main.tex ; then mv $(DOX_LATEX_DIR)/main.tex $(DOX_LATEX_DIR)/index.tex ; fi
 	@if test -f $(DOX_LATEX_DIR)/refman.tex ; then $(SED) -i '/\\begin{titlepage}/,$$d' $(DOX_LATEX_DIR)/refman.tex ; fi
