@@ -90,6 +90,7 @@ chapters =	\
 	chapters/code/disk_copy.c \
 	chapters/code/disk_compute.c \
 	chapters/code/nf_initexit.f90 \
+	chapters/api/fortran_support.doxy \
 	chapters/api/bubble_support.doxy \
 	chapters/api/fft_support.doxy \
 	chapters/api/threads.doxy

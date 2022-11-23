@@ -13,6 +13,8 @@
 !
 ! See the GNU Lesser General Public License in COPYING.LGPL for more details.
 !
+!> @ingroup API_Fortran
+!> @brief Fortran API
 module fstarpu_mod
         use iso_c_binding
         implicit none

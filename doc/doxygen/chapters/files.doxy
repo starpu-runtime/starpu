@@ -64,6 +64,7 @@
 \file starpu_tree.h
 \file starpu_util.h
 \file starpu_worker.h
+\file fstarpu_mod.f90
 
 \file starpu_heteroprio.h
 \file starpu_scheduler_toolbox.h
