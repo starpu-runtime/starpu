@@ -17,12 +17,7 @@
 #include <starpu_mpi.h>
 #include <starpu_mpi_lb.h>
 #include <math.h>
-
-#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
-#define FPRINTF_MPI(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) { \
-						int _disp_rank; starpu_mpi_comm_rank(MPI_COMM_WORLD, &_disp_rank);	 \
-						fprintf(ofile, "[%d][starpu_mpi][%s] " fmt , _disp_rank, __starpu_func__ ,## __VA_ARGS__); \
-						fflush(ofile); }} while(0);
+#include <helper.h>
 
 void stencil5_cpu(void *descr[], void *_args)
 {

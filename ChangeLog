@@ -91,6 +91,10 @@ New features:
     the job scheduler.
 
 Small features:
+  * New function starpu_mpi_comm_register() to store the size and the
+    rank of the given communicator (update functions
+    starpu_mpi_comm_rank() and starpu_mpi_comm_size() to no longer
+    call directly the mpi functions)
   * New configure option --with-check-cflags to define flags for C,
     CXX and Fortran compilers
   * FxT is now automatically enabled at build-time, but not enabled at

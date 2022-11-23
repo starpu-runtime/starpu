@@ -454,15 +454,15 @@ int main(int argc, char **argv)
 	if (thread_support < MPI_THREAD_FUNNELED)
 		fprintf(stderr,"Warning: MPI does not have thread support!\n");
 
-	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
-	starpu_mpi_comm_size(MPI_COMM_WORLD, &world_size);
-
 	starpu_srand48((long int)time(NULL));
 
 	parse_args(rank, argc, argv);
 
 	ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
+
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
+	starpu_mpi_comm_size(MPI_COMM_WORLD, &world_size);
 
 	/* We disable sequential consistency in this example */
 	starpu_data_set_default_sequential_consistency_flag(0);

@@ -38,7 +38,7 @@ int main(int argc, char **argv)
 	}
 
 	other_rank = rank%2 == 0 ? rank+1 : rank-1;
-	FPRINTF_MPI(stderr, "rank %d exchanging with rank %d\n", rank, other_rank);
+	FPRINTF(stderr, "rank %d exchanging with rank %d\n", rank, other_rank);
 
 	if (rank % 2)
 	{

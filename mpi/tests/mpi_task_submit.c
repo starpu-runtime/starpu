@@ -44,9 +44,9 @@ int main(int argc, char **argv)
 	struct starpu_data_descr descrs[2];
 
 	MPI_INIT_THREAD_real(&argc, &argv, MPI_THREAD_SERIALIZED);
-	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 
 	ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, NULL);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	if (ret == -ENODEV) return rank==0?STARPU_TEST_SKIPPED:0;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 

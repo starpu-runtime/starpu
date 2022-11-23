@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -56,7 +56,7 @@ void test_cache(int rank, char *enabled, size_t *comm_amount)
 	unsigned *v[2];
 	starpu_data_handle_t data_handles[2];
 
-	FPRINTF_MPI(stderr, "Testing with STARPU_MPI_CACHE=%s\n", enabled);
+	FPRINTF(stderr, "Testing with STARPU_MPI_CACHE=%s\n", enabled);
 	setenv("STARPU_MPI_CACHE", enabled, 1);
 
 	ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, NULL);
@@ -125,8 +125,8 @@ int main(int argc, char **argv)
 	size_t *comm_amount_without_cache;
 
 	MPI_INIT_THREAD_real(&argc, &argv, MPI_THREAD_SERIALIZED);
-	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
-	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &size);
 
 	setenv("STARPU_MPI_STATS", "1", 1);
 	setenv("STARPU_MPI_CACHE_STATS", "1", 1);
@@ -140,7 +140,7 @@ int main(int argc, char **argv)
 	if (rank == 1)
 	{
 		result = (comm_amount_with_cache[0] == comm_amount_without_cache[0] * 2);
-		FPRINTF_MPI(stderr, "Communication cache mechanism is %sworking (with cache: %ld) (without cache: %ld)\n", result?"":"NOT ", (long)comm_amount_with_cache[0], (long)comm_amount_without_cache[0]);
+		FPRINTF(stderr, "[%d] Communication cache mechanism is %sworking (with cache: %ld) (without cache: %ld)\n", rank, result?"":"NOT ", (long)comm_amount_with_cache[0], (long)comm_amount_without_cache[0]);
 	}
 	else
 	{

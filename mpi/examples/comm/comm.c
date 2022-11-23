@@ -25,13 +25,15 @@
 #define DATA0_TAG 12
 #define DATA1_TAG 22
 
+MPI_Comm newcomm;
+
 void func_cpu(void *descr[], void *_args)
 {
 	int *value = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	int rank;
 
 	starpu_codelet_unpack_args(_args, &rank);
-	FPRINTF_MPI(stderr, "Executing codelet with value %d and rank %d\n", *value, rank);
+	FPRINTF_MPI_COMM(stderr, newcomm, "Executing codelet with value %d and rank %d\n", *value, rank);
 	STARPU_ASSERT_MSG(*value == rank, "Received value %d is not the expected value %d\n", *value, rank);
 }
 
@@ -47,7 +49,6 @@ int main(int argc, char **argv)
 {
 	int size, x=789;
 	int color;
-	MPI_Comm newcomm;
 	int rank, newrank;
 	int ret;
 	starpu_data_handle_t data[2];
@@ -150,7 +151,7 @@ int main(int argc, char **argv)
 		starpu_data_unregister(data[1]);
 	}
 
-	starpu_mpi_shutdown();
+	starpu_mpi_shutdown_comm(newcomm);
 	MPI_Comm_free(&newcomm);
 	MPI_Finalize();
 	return 0;

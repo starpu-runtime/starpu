@@ -87,6 +87,9 @@ void _starpu_mpi_do_initialize(struct _starpu_mpi_argc_argv *argc_argv)
 		_starpu_mpi_print_thread_level_support(provided, " has been initialized with");
 	}
 
+	// automatically register the given communicator
+	starpu_mpi_comm_register(argc_argv->comm);
+
 	MPI_Comm_rank(argc_argv->comm, &argc_argv->rank);
 	MPI_Comm_size(argc_argv->comm, &argc_argv->world_size);
 	MPI_Comm_set_errhandler(argc_argv->comm, MPI_ERRORS_RETURN);
@@ -136,6 +139,7 @@ void _starpu_mpi_backend_check()
 	STARPU_ASSERT(_mpi_backend._starpu_mpi_backend_isend_size_func != NULL);
 	STARPU_ASSERT(_mpi_backend._starpu_mpi_backend_irecv_size_func != NULL);
 }
+
 static
 int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi, MPI_Comm comm)
 {
@@ -280,16 +284,31 @@ int starpu_mpi_init_conf(int *argc, char ***argv, int initialize_mpi, MPI_Comm c
 
 int starpu_mpi_shutdown(void)
 {
+	return starpu_mpi_shutdown_comm(MPI_COMM_WORLD);
+}
+
+struct comm_size_entry
+{
+	UT_hash_handle hh;
+	MPI_Comm comm;
+	int size;
+	int rank;
+};
+
+static struct comm_size_entry *registered_comms = NULL;
+
+int starpu_mpi_shutdown_comm(MPI_Comm comm)
+{
 	void *value;
 	int rank, world_size;
 
 	/* Make sure we do not have MPI communications pending in the task graph
 	 * before shutting down MPI */
-	starpu_mpi_wait_for_all(MPI_COMM_WORLD);
+	starpu_mpi_wait_for_all(comm);
 
 	/* We need to get the rank before calling MPI_Finalize to pass to _starpu_mpi_comm_amounts_display() */
-	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
-	starpu_mpi_comm_size(MPI_COMM_WORLD, &world_size);
+	starpu_mpi_comm_rank(comm, &rank);
+	starpu_mpi_comm_size(comm, &world_size);
 
 	/* kill the progression thread */
 	_mpi_backend._starpu_mpi_backend_progress_shutdown(&value);
@@ -307,9 +326,28 @@ int starpu_mpi_shutdown(void)
 
 	_mpi_backend._starpu_mpi_backend_shutdown();
 
+	struct comm_size_entry *entry=NULL, *tmp=NULL;
+	HASH_ITER(hh, registered_comms, entry, tmp)
+	{
+		HASH_DEL(registered_comms, entry);
+		free(entry);
+	}
+
 	if (_mpi_initialized_starpu)
 		starpu_shutdown();
 
+	return 0;
+}
+
+int starpu_mpi_comm_register(MPI_Comm comm)
+{
+	struct comm_size_entry *entry;
+
+	_STARPU_MPI_MALLOC(entry, sizeof(*entry));
+	entry->comm = comm;
+	MPI_Comm_size(entry->comm, &(entry->size));
+	MPI_Comm_rank(entry->comm, &(entry->rank));
+	HASH_ADD(hh, registered_comms, comm, sizeof(entry->comm), entry);
 	return 0;
 }
 
@@ -325,7 +363,11 @@ int starpu_mpi_comm_size(MPI_Comm comm, int *size)
 	*size = _mpi_world_size;
 	return 0;
 #else
-	return MPI_Comm_size(comm, size);
+	struct comm_size_entry *entry;
+	HASH_FIND(hh, registered_comms, &comm, sizeof(entry->comm), entry);
+	STARPU_ASSERT_MSG(entry, "Communicator %d has not been registered\n", (int)comm);
+	*size = entry->size;
+	return 0;
 #endif
 }
 
@@ -341,7 +383,11 @@ int starpu_mpi_comm_rank(MPI_Comm comm, int *rank)
 	*rank = _mpi_world_rank;
 	return 0;
 #else
-	return MPI_Comm_rank(comm, rank);
+	struct comm_size_entry *entry;
+	HASH_FIND(hh, registered_comms, &comm, sizeof(entry->comm), entry);
+	STARPU_ASSERT_MSG(entry, "Communicator %d has not been registered\n", (int)comm);
+	*rank = entry->rank;
+	return 0;
 #endif
 }
 

@@ -22,13 +22,15 @@
 #include <starpu_mpi.h>
 #include "../helper.h"
 
+MPI_Comm newcomm;
+
 void func_cpu(void *descr[], void *_args)
 {
 	int *value = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	int rank;
 
 	starpu_codelet_unpack_args(_args, &rank);
-	FPRINTF_MPI(stderr, "Executing codelet with value %d and rank %d\n", *value, rank);
+	FPRINTF_MPI_COMM(stderr, newcomm, "Executing codelet with value %d and rank %d\n", *value, rank);
 	STARPU_ASSERT_MSG(*value == rank, "Received value %d is not the expected value %d\n", *value, rank);
 }
 
@@ -44,7 +46,6 @@ int main(int argc, char **argv)
 {
 	int size, x;
 	int color;
-	MPI_Comm newcomm;
 	int rank, newrank;
 	int ret;
 	starpu_data_handle_t data[3];
@@ -88,6 +89,9 @@ int main(int argc, char **argv)
 
 	ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
+
+	ret = starpu_mpi_comm_register(newcomm);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_comm_register");
 
 	if (rank == 0)
 	{
@@ -147,14 +151,14 @@ int main(int argc, char **argv)
 		starpu_data_acquire(data[2], STARPU_R);
 		int rvalue = *((int *)starpu_variable_get_local_ptr(data[2]));
 		starpu_data_release(data[2]);
-		FPRINTF_MPI(stderr, "sending value %d to %d and receiving from %d\n", rvalue, 1, size-1);
+		FPRINTF_MPI_COMM(stderr, MPI_COMM_WORLD, "sending value %d to %d and receiving from %d\n", rvalue, 1, size-1);
 		ret = starpu_mpi_send(data[2], 1, 44, MPI_COMM_WORLD);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
 		ret = starpu_mpi_recv(data[2], size-1, 44, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
 		starpu_data_acquire(data[2], STARPU_R);
 		int *xx = (int *)starpu_variable_get_local_ptr(data[2]);
-		FPRINTF_MPI(stderr, "Value back is %d\n", *xx);
+		FPRINTF_MPI_COMM(stderr, MPI_COMM_WORLD, "Value back is %d\n", *xx);
 		STARPU_ASSERT_MSG(*xx == rvalue + (2*(size-1)), "Received value %d is incorrect (should be %d)\n", *xx, rvalue + (2*(size-1)));
 		starpu_data_release(data[2]);
 	}
@@ -165,7 +169,7 @@ int main(int argc, char **argv)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
 		starpu_data_acquire(data[2], STARPU_RW);
 		int *xx = (int *)starpu_variable_get_local_ptr(data[2]);
-		FPRINTF_MPI(stderr, "receiving %d from %d and sending %d to %d\n", *xx, rank-1, *xx+2, next);
+		FPRINTF_MPI_COMM(stderr, MPI_COMM_WORLD, "receiving %d from %d and sending %d to %d\n", *xx, rank-1, *xx+2, next);
 		*xx = *xx + 2;
 		starpu_data_release(data[2]);
 		ret = starpu_mpi_send(data[2], next, 44, MPI_COMM_WORLD);

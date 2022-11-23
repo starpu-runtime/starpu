@@ -80,12 +80,23 @@ int starpu_mpi_initialize(void) STARPU_DEPRECATED;
 int starpu_mpi_initialize_extended(int *rank, int *world_size) STARPU_DEPRECATED;
 
 /**
+   Call starpu_mpi_shutdown_comm() with the MPI communicator \c MPI_COMM_WORLD
+*/
+int starpu_mpi_shutdown(void);
+
+/**
    Clean the starpumpi library. This must be called after calling any
    \c starpu_mpi functions and before the call to starpu_shutdown(),
    if any. \c MPI_Finalize() will be called if StarPU-MPI has been
    initialized by starpu_mpi_init().
 */
-int starpu_mpi_shutdown(void);
+int starpu_mpi_shutdown_comm(MPI_Comm comm);
+
+/**
+   Register \p comm. The function is automatically called for the
+   communicator given to starpu_mpi_init_comm().
+*/
+int starpu_mpi_comm_register(MPI_Comm comm);
 
 /**
    Retrieve the current amount of communications from the current node
@@ -96,13 +107,17 @@ int starpu_mpi_shutdown(void);
 void starpu_mpi_comm_amounts_retrieve(size_t *comm_amounts);
 
 /**
-   Return in \p size the size of the communicator \p comm
+   Return in \p size the size of the communicator \p comm. The
+   function will fail if starpu_mpi_comm_register() has not been
+   previously called with the given communicator.
 */
 int starpu_mpi_comm_size(MPI_Comm comm, int *size);
 
 /**
    Return in \p rank the rank of the calling process in the
-   communicator \p comm
+   communicator \p comm.  The function will fail if
+   starpu_mpi_comm_register() has not been previously called with the
+   given communicator.
 */
 int starpu_mpi_comm_rank(MPI_Comm comm, int *rank);
 
