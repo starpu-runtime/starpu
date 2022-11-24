@@ -1167,6 +1167,7 @@ static void _starpu_tcpip_common_action_socket(what_t what, const char * whatstr
 				while((res = what(remote_sock->sync_sock, (char*)msg+offset, len-offset)) == -1 && errno == EINTR)
 				;
 				_TCPIP_PRINT("msg after write is %x, res is %d\n", *((int *) (uintptr_t)msg), res);
+				STARPU_ASSERT_MSG(res != 0 && !(res == -1 && errno == ECONNRESET), "TCP/IP Master/Slave noticed that %s (peer %d) has exited unexpectedly", node->kind == STARPU_NODE_TCPIP_SOURCE ? "the master" : "some slave", node->peer_id);
 				STARPU_ASSERT_MSG(res > 0, "TCP/IP Master/Slave cannot %s a msg synchronous with a size of %d Bytes!, the result of %s is %d, the error is %s ", whatstr, len, whatstr, res, strerror(errno));
 				offset+=res;
 			}
@@ -1180,6 +1181,7 @@ static void _starpu_tcpip_common_action_socket(what_t what, const char * whatstr
 				while((res = what(remote_sock->notif_sock, (char*)msg+offset, len-offset)) == -1 && errno == EINTR)
 				;
 				_TCPIP_PRINT("msg after write is %x, res is %d\n", *((int *) (uintptr_t)msg), res);
+				STARPU_ASSERT_MSG(res != 0 && !(res == -1 && errno == ECONNRESET), "TCP/IP Master/Slave noticed that %s (peer %d) has exited unexpectedly", node->kind == STARPU_NODE_TCPIP_SOURCE ? "the master" : "some slave", node->peer_id);
 				STARPU_ASSERT_MSG(res > 0, "TCP/IP Master/Slave cannot %s a msg notification with a size of %d Bytes!, the result of %s is %d, the error is %s ", whatstr, len, whatstr, res, strerror(errno));
 				offset+=res;
 			}
