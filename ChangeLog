@@ -89,6 +89,7 @@ New features:
   * TCP/IP-based master-slave support.
   * Set STARPU_WORKERS_GETBIND to 1 by default, to inherit CPU binding from
     the job scheduler.
+  * Add starpu_{vector,matrix,block,tensor,ndim}_filter_pick_variable.
 
 Small features:
   * New function starpu_mpi_comm_register() to store the size and the
