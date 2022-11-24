@@ -828,6 +828,8 @@ int _starpu_cuda_driver_init(struct _starpu_worker *worker)
 		unsigned memnode = worker->memory_node;
 
 #ifdef STARPU_PROF_TOOL
+		pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_driver_init, devid, worker->workerid, starpu_prof_tool_driver_gpu, memnode, NULL);
+		starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_init(&pi, NULL, NULL);
 		pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_driver_init_start, devid, worker->workerid, starpu_prof_tool_driver_gpu, memnode, NULL);
 		starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_init_start(&pi, NULL, NULL);
 #endif
@@ -2048,6 +2050,9 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker *worker)
 	struct _starpu_worker *worker0 = &worker_set->workers[0];
 	struct starpu_task *tasks[worker_set->nworkers], *task;
 	struct _starpu_job *j;
+#ifdef STARPU_PROF_TOOL
+	struct starpu_prof_tool_info pi;
+#endif
 	int i, res;
 
 	int idle_tasks, idle_transfers;
@@ -2083,6 +2088,10 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker *worker)
 		{
 			STARPU_RMB();
 			_STARPU_TRACE_END_PROGRESS(memnode);
+#ifdef STARPU_PROF_TOOL
+            pi = _starpu_prof_tool_get_info_d(starpu_prof_tool_event_end_transfer, workerid, workerid, starpu_prof_tool_driver_gpu, memnode, worker->nb_buffers_totransfer, worker->nb_buffers_transferred);
+            starpu_prof_tool_callbacks.starpu_prof_tool_event_end_transfer(&pi, NULL, NULL);
+#endif
 			j = _starpu_get_job_associated_to_task(task);
 
 			_starpu_set_local_worker_key(worker);
@@ -2102,6 +2111,10 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker *worker)
 				execute_job_on_cuda(task, worker);
 			}
 			_STARPU_TRACE_START_PROGRESS(memnode);
+#ifdef STARPU_PROF_TOOL
+		pi = _starpu_prof_tool_get_info_d(starpu_prof_tool_event_start_transfer, worker->workerid, workerid, starpu_prof_tool_driver_gpu, memnode, worker->nb_buffers_totransfer, worker->nb_buffers_transferred);
+		starpu_prof_tool_callbacks.starpu_prof_tool_event_start_transfer(&pi, NULL, NULL);
+#endif
 		}
 
 		/* Then test for termination of queued tasks */
@@ -2130,6 +2143,10 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker *worker)
 		else
 #endif /* !STARPU_SIMGRID */
 		{
+#ifdef STARPU_PROF_TOOL
+            pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_transfer, workerid, workerid, starpu_prof_tool_driver_gpu, memnode, NULL);
+            starpu_prof_tool_callbacks.starpu_prof_tool_event_end_transfer(&pi, NULL, NULL);
+#endif
 			_STARPU_TRACE_END_PROGRESS(memnode);
 			/* Asynchronous task completed! */
 			_starpu_set_local_worker_key(worker);
@@ -2223,11 +2240,20 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker *worker)
 		}
 
 		/* Fetch data asynchronously */
+#ifdef STARPU_PROF_TOOL
+		pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_transfer, worker->workerid, worker->workerid, starpu_prof_tool_driver_gpu, memnode, NULL);
+		starpu_prof_tool_callbacks.starpu_prof_tool_event_end_transfer(&pi, NULL, NULL);
+#endif
 		_STARPU_TRACE_END_PROGRESS(memnode);
 		_starpu_set_local_worker_key(worker);
 		res = _starpu_fetch_task_input(task, j, 1);
 		STARPU_ASSERT(res == 0);
 		_STARPU_TRACE_START_PROGRESS(memnode);
+#ifdef STARPU_PROF_TOOL
+		pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_start_transfer, worker->workerid, worker->workerid, starpu_prof_tool_driver_gpu, memnode, NULL);
+		starpu_prof_tool_callbacks.starpu_prof_tool_event_start_transfer(&pi, NULL, NULL);
+#endif
+		_STARPU_TRACE_END_PROGRESS(memnode);
 	}
 
 	return 0;
@@ -2237,18 +2263,32 @@ void *_starpu_cuda_worker(void *_arg)
 {
 	struct _starpu_worker *worker = _arg;
 	struct _starpu_worker_set* worker_set = worker->set;
+#ifdef STARPU_PROF_TOOL
+	struct starpu_prof_tool_info pi;
+#endif
 	unsigned i;
 
 	_starpu_cuda_driver_init(worker);
-	for (i = 0; i < worker_set->nworkers; i++)
+	for (i = 0; i < worker_set->nworkers; i++){
+#ifdef STARPU_PROF_TOOL
+		pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_start_transfer, worker_set->workers[i].workerid, worker_set->workers[i].workerid, starpu_prof_tool_driver_gpu, worker_set->workers[i].memory_node, NULL);
+		starpu_prof_tool_callbacks.starpu_prof_tool_event_start_transfer(&pi, NULL, NULL);
+#endif
 		_STARPU_TRACE_START_PROGRESS(worker_set->workers[i].memory_node);
+   }
 	while (_starpu_machine_is_running())
 	{
 		_starpu_may_pause();
 		_starpu_cuda_driver_run_once(worker);
 	}
-	for (i = 0; i < worker_set->nworkers; i++)
+	for (i = 0; i < worker_set->nworkers; i++){
 		_STARPU_TRACE_END_PROGRESS(worker_set->workers[i].memory_node);
+#ifdef STARPU_PROF_TOOL
+		pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_transfer, worker_set->workers[i].workerid, worker_set->workers[i].workerid, starpu_prof_tool_driver_gpu, worker_set->workers[i].memory_node, NULL);
+		starpu_prof_tool_callbacks.starpu_prof_tool_event_end_transfer(&pi, NULL, NULL);
+#endif
+
+    }
 	_starpu_cuda_driver_deinit(worker);
 
 	return NULL;
