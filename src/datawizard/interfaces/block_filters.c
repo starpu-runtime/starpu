@@ -249,3 +249,50 @@ struct starpu_data_interface_ops *starpu_block_filter_pick_matrix_child_ops(STAR
 {
 	return &starpu_interface_matrix_ops;
 }
+
+
+void starpu_block_filter_pick_variable(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, STARPU_ATTRIBUTE_UNUSED unsigned id, STARPU_ATTRIBUTE_UNUSED unsigned nchunks)
+{
+	struct starpu_block_interface *block_father = (struct starpu_block_interface *) father_interface;
+	/* each chunk becomes a variable */
+	struct starpu_variable_interface *variable_child = (struct starpu_variable_interface *) child_interface;
+
+	uint32_t nx = block_father->nx;
+	uint32_t ny = block_father->ny;
+	uint32_t nz = block_father->nz;
+
+	unsigned ldy = block_father->ldy;
+	unsigned ldz = block_father->ldz;
+
+	size_t elemsize = block_father->elemsize;
+
+	uint32_t* chunk_pos = (uint32_t*)f->filter_arg_ptr;
+	// for(int i=0; i<3; i++)
+	// {
+	// 	printf("pos is %d\n", chunk_pos[i]);
+	// }
+
+	STARPU_ASSERT_MSG((chunk_pos[0] < nx)&&(chunk_pos[1] < ny)&&(chunk_pos[2] < nz), "the chosen variable should be in the block");
+
+	size_t offset = (chunk_pos[2] * ldz + chunk_pos[1] * ldy + chunk_pos[0]) * elemsize;
+
+	STARPU_ASSERT_MSG(block_father->id == STARPU_BLOCK_INTERFACE_ID, "%s can only be applied on a block data", __func__);
+
+	/* update the child's interface */
+	variable_child->id = STARPU_VARIABLE_INTERFACE_ID;
+	variable_child->elemsize = elemsize;
+
+	/* is the information on this node valid ? */
+	if (block_father->dev_handle)
+	{
+		if (block_father->ptr)
+			variable_child->ptr = block_father->ptr + offset;
+		variable_child->dev_handle = block_father->dev_handle;
+		variable_child->offset = block_father->offset + offset;
+	}
+}
+
+struct starpu_data_interface_ops *starpu_block_filter_pick_variable_child_ops(STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, STARPU_ATTRIBUTE_UNUSED unsigned child)
+{
+	return &starpu_interface_variable_ops;
+}

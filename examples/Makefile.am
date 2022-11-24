@@ -220,10 +220,13 @@ STARPU_EXAMPLES +=				\
 	filters/fvector_pick_variable		\
 	filters/ftensor				\
 	filters/ftensor_pick_block		\
+	filters/ftensor_pick_variable		\
 	filters/fblock				\
 	filters/fblock_pick_matrix		\
+	filters/fblock_pick_variable		\
 	filters/fmatrix				\
 	filters/fmatrix_pick_vector		\
+	filters/fmatrix_pick_variable		\
 	filters/fndim				\
 	filters/fndim_pick_ndim			\
 	filters/fndim_5d_pick_tensor		\
@@ -698,6 +701,14 @@ filters_fmatrix_pick_vector_SOURCES +=			\
 	filters/fvector_hip.hip
 endif
 
+filters_fmatrix_pick_variable_SOURCES =			\
+	filters/fmatrix_pick_variable.c			\
+	filters/fmatrix_print.c
+if STARPU_USE_CUDA
+filters_fmatrix_pick_variable_SOURCES +=			\
+	filters/fvariable_cuda.cu
+endif
+
 filters_fblock_pick_matrix_SOURCES =			\
 	filters/fblock_pick_matrix.c			\
 	filters/fblock_print.c			\
@@ -712,6 +723,14 @@ filters_fblock_pick_matrix_SOURCES +=			\
 	filters/fmatrix_hip.hip
 endif
 
+filters_fblock_pick_variable_SOURCES =			\
+	filters/fblock_pick_variable.c			\
+	filters/fblock_print.c
+if STARPU_USE_CUDA
+filters_fblock_pick_variable_SOURCES +=			\
+	filters/fvariable_cuda.cu
+endif
+
 filters_ftensor_pick_block_SOURCES =			\
 	filters/ftensor_pick_block.c			\
 	filters/ftensor_print.c			\
@@ -724,6 +743,14 @@ endif
 if STARPU_USE_HIP
 filters_ftensor_pick_block_SOURCES +=			\
 	filters/fblock_hip.hip
+endif
+
+filters_ftensor_pick_variable_SOURCES =			\
+	filters/ftensor_pick_variable.c			\
+	filters/ftensor_print.c
+if STARPU_USE_CUDA
+filters_ftensor_pick_variable_SOURCES +=			\
+	filters/fvariable_cuda.cu
 endif
 
 filters_fndim_pick_ndim_SOURCES =			\

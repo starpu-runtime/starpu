@@ -58,6 +58,7 @@ by using starpu_vector_filter_block_shadow(). By default, StarPU
 uses the same size for each piece. If different sizes are desired,
 starpu_vector_filter_list() or starpu_vector_filter_list_long() can be used
 instead. To just divide in two pieces, starpu_vector_filter_divide_in_2() can be used.
+In addition, contiguous variables can be picked from a vector by using starpu_vector_filter_pick_variable().
 
 \subsection MatrixDataInterface Matrix Data Interface
 
@@ -76,7 +77,9 @@ starpu_matrix_data_register(&matrix_handle, STARPU_MAIN_RAM, (uintptr_t)matrix, 
 using starpu_matrix_filter_block(), and along the y dimension by using
 starpu_matrix_filter_vertical_block(). They can also be partitioned
 with some overlapping by using starpu_matrix_filter_block_shadow() and
-starpu_matrix_filter_vertical_block_shadow().
+starpu_matrix_filter_vertical_block_shadow(). In addition, contiguous vectors
+can be picked from a matrix along the Y dimension by using starpu_matrix_filter_pick_vector_y().
+Variable can be also picked from a matrix by using starpu_matrix_filter_pick_variable().
 
 \subsection BlockDataInterface Block Data Interface
 
@@ -97,7 +100,10 @@ by using starpu_block_filter_vertical_block(), or along the
 z dimension by using starpu_block_filter_depth_block(). They
 can also be partitioned with some overlapping by using
 starpu_block_filter_block_shadow(), starpu_block_filter_vertical_block_shadow(),
-or starpu_block_filter_depth_block_shadow().
+or starpu_block_filter_depth_block_shadow(). In addition, contiguous matrices
+can be picked from a block along the Z dimension or the Y dimension
+by using starpu_block_filter_pick_matrix_z() or starpu_block_filter_pick_matrix_y().
+Variable can be also picked from a block by using starpu_block_filter_pick_variable().
 
 \subsection TensorDataInterface Tensor Data Interface
 
@@ -112,7 +118,53 @@ block = (float*)malloc(nx*ny*nz*nt*sizeof(float));
 starpu_tensor_data_register(&block_handle, STARPU_MAIN_RAM, (uintptr_t)block, nx, nx*ny, nx*ny*nz, nx, ny, nz, nt, sizeof(float));
 \endcode
 
-Partitioning filters are not implemented yet.
+4D matrices can be partitioned along the x dimension by
+using starpu_tensor_filter_block(), or along the y dimension
+by using starpu_tensor_filter_vertical_block(), or along the
+z dimension by using starpu_tensor_filter_depth_block(), or
+along the t dimension by using starpu_tensor_filter_time_block().
+They can also be partitioned with some overlapping by using
+starpu_tensor_filter_block_shadow(), starpu_tensor_filter_vertical_block_shadow(), starpu_tensor_filter_depth_block_shadow(), or starpu_tensor_filter_time_block_shadow().
+In addition, contiguous blocks can be picked from a block along the T dimension,
+Z dimension or the Y dimension by using starpu_tensor_filter_pick_block_t(),
+starpu_tensor_filter_pick_block_z(), or starpu_tensor_filter_pick_block_y().
+Variable can be also picked from a tensor by using starpu_tensor_filter_pick_variable().
+
+\subsection NdimDataInterface Ndim Data Interface
+
+To register N-dim matrices, one can use the Ndim data interface.
+Here is an example of how to register a 5-dim data to StarPU by using starpu_ndim_data_register().
+
+\code{.c}
+float *arr5d;
+starpu_data_handle_t arr5d_handle;
+starpu_malloc((void **)&arr5d, NX*NY*NZ*NT*NG*sizeof(float));
+
+unsigned nn[5] = {NX, NY, NZ, NT, NG};
+unsigned ldn[5] = {1, NX, NX*NY, NX*NY*NZ, NX*NY*NZ*NT};
+
+starpu_ndim_data_register(&arr5d_handle, STARPU_MAIN_RAM, (uintptr_t)arr5d, ldn, nn, 5, sizeof(float));
+\endcode
+
+N-dim matrices can be partitioned along the given dimension
+by using starpu_ndim_filter_block(). They can also be partitioned
+with some overlapping by using starpu_ndim_filter_block_shadow().
+Taking into account existing data interfaces, there are several
+specialized functions which can partition a 0-dim array, 1-dim array,
+2-dim array, 3-dim array or 4-dim array into variables, vectors,
+matrices, blocks, or tensors by using starpu_ndim_filter_to_variable(),
+starpu_ndim_filter_to_vector(), starpu_ndim_filter_to_matrix(),
+starpu_ndim_filter_to_block(), or starpu_ndim_filter_to_tensor().
+In addition, contiguous (n-1)dim arrays can be picked from a ndim array
+along the given dimension by using starpu_ndim_filter_pick_ndim().
+In specific cases which consider existing data interfaces, contiguous
+variables, vectors, matrices, blocks, or tensors can be picked from a
+1-dim array, 2-dim array, 3-dim array, 4-dim array, or 5-dim array along
+the given dimension by using starpu_ndim_filter_pick_variable(),
+starpu_ndim_filter_pick_vector(), starpu_ndim_filter_pick_matrix(),
+starpu_ndim_filter_pick_block(), or starpu_ndim_filter_pick_tensor().
+Variable can be also picked from a ndim array by using
+starpu_ndim_filter_ndim_pick_variable().
 
 \subsection BCSRDataInterface BCSR Data Interface
 

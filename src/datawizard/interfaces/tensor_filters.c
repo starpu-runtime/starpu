@@ -312,3 +312,51 @@ struct starpu_data_interface_ops *starpu_tensor_filter_pick_block_child_ops(STAR
 {
 	return &starpu_interface_block_ops;
 }
+
+void starpu_tensor_filter_pick_variable(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, STARPU_ATTRIBUTE_UNUSED unsigned id, STARPU_ATTRIBUTE_UNUSED unsigned nchunks)
+{
+	struct starpu_tensor_interface *tensor_father = (struct starpu_tensor_interface *) father_interface;
+	/* each chunk becomes a variable */
+	struct starpu_variable_interface *variable_child = (struct starpu_variable_interface *) child_interface;
+
+	uint32_t nx = tensor_father->nx;
+	uint32_t ny = tensor_father->ny;
+	uint32_t nz = tensor_father->nz;
+	uint32_t nt = tensor_father->nt;
+
+	unsigned ldy = tensor_father->ldy;
+	unsigned ldz = tensor_father->ldz;
+	unsigned ldt = tensor_father->ldt;
+
+	size_t elemsize = tensor_father->elemsize;
+
+	uint32_t* chunk_pos = (uint32_t*)f->filter_arg_ptr;
+	// for(int i=0; i<4; i++)
+	// {
+	// 	printf("pos is %d\n", chunk_pos[i]);
+	// }
+
+	STARPU_ASSERT_MSG((chunk_pos[0] < nx)&&(chunk_pos[1] < ny)&&(chunk_pos[2] < nz)&&(chunk_pos[3] < nt), "the chosen variable should be in the tensor");
+
+	size_t offset = (chunk_pos[3] * ldt + chunk_pos[2] * ldz + chunk_pos[1] * ldy + chunk_pos[0]) * elemsize;
+
+	STARPU_ASSERT_MSG(tensor_father->id == STARPU_TENSOR_INTERFACE_ID, "%s can only be applied on a tensor data", __func__);
+
+	/* update the child's interface */
+	variable_child->id = STARPU_VARIABLE_INTERFACE_ID;
+	variable_child->elemsize = elemsize;
+
+	/* is the information on this node valid ? */
+	if (tensor_father->dev_handle)
+	{
+		if (tensor_father->ptr)
+			variable_child->ptr = tensor_father->ptr + offset;
+		variable_child->dev_handle = tensor_father->dev_handle;
+		variable_child->offset = tensor_father->offset + offset;
+	}
+}
+
+struct starpu_data_interface_ops *starpu_tensor_filter_pick_variable_child_ops(STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, STARPU_ATTRIBUTE_UNUSED unsigned child)
+{
+	return &starpu_interface_variable_ops;
+}

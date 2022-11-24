@@ -435,6 +435,21 @@ void starpu_matrix_filter_pick_vector_y(void *father_interface, void *child_inte
 */
 struct starpu_data_interface_ops *starpu_matrix_filter_pick_vector_child_ops(struct starpu_data_filter *f, unsigned child);
 
+/**
+   Pick \p nparts contiguous variables from a matrix. The starting position
+   is set in <c>starpu_data_filter::filter_arg_ptr</c>.
+
+   <c>starpu_data_filter::get_child_ops</c> needs to be set to
+   starpu_matrix_filter_pick_variable_child_ops. A usage example is
+   available in examples/filters/fmatrix_pick_variable.c
+*/
+void starpu_matrix_filter_pick_variable(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Return the child_ops of the partition obtained with starpu_matrix_filter_pick_variable().
+*/
+struct starpu_data_interface_ops *starpu_matrix_filter_pick_variable_child_ops(struct starpu_data_filter *f, unsigned child);
+
 /** @} */
 
 /**
@@ -604,6 +619,21 @@ void starpu_block_filter_pick_matrix_y(void *father_interface, void *child_inter
 */
 struct starpu_data_interface_ops *starpu_block_filter_pick_matrix_child_ops(struct starpu_data_filter *f, unsigned child);
 
+/**
+   Pick \p nparts contiguous variables from a block. The starting position
+   is set in <c>starpu_data_filter::filter_arg_ptr</c>.
+
+   <c>starpu_data_filter::get_child_ops</c> needs to be set to
+   starpu_block_filter_pick_variable_child_ops. A usage example is
+   available in examples/filters/fblock_pick_variable.c
+*/
+void starpu_block_filter_pick_variable(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Return the child_ops of the partition obtained with starpu_block_filter_pick_variable().
+*/
+struct starpu_data_interface_ops *starpu_block_filter_pick_variable_child_ops(struct starpu_data_filter *f, unsigned child);
+
 /** @} */
 
 /**
@@ -727,6 +757,21 @@ void starpu_tensor_filter_pick_block_y(void *father_interface, void *child_inter
    starpu_tensor_filter_pick_block_z() and starpu_tensor_filter_pick_block_y().
 */
 struct starpu_data_interface_ops *starpu_tensor_filter_pick_block_child_ops(struct starpu_data_filter *f, unsigned child);
+
+/**
+   Pick \p nparts contiguous variables from a tensor. The starting position
+   is set in <c>starpu_data_filter::filter_arg_ptr</c>.
+
+   <c>starpu_data_filter::get_child_ops</c> needs to be set to
+   starpu_tensor_filter_pick_variable_child_ops. A usage example is
+   available in examples/filters/ftensor_pick_variable.c
+*/
+void starpu_tensor_filter_pick_variable(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Return the child_ops of the partition obtained with starpu_tensor_filter_pick_variable().
+*/
+struct starpu_data_interface_ops *starpu_tensor_filter_pick_variable_child_ops(struct starpu_data_filter *f, unsigned child);
 
 /** @} */
 
