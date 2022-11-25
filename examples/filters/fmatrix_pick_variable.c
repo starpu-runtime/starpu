@@ -18,7 +18,7 @@
 #include <math.h>
 
 #define NX    10
-#define NY    20
+#define NY    21
 #define PARTSX 2
 #define PARTSY 3
 
