@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Simon Archipoff
  * Copyright (C) 2016       Uppsala University
@@ -82,7 +82,7 @@ _starpu_fifo_get_exp_len_prev_task_list(struct _starpu_fifo_taskq *fifo_queue, s
 {
 	struct starpu_task_list *list = &fifo_queue->taskq;
 	struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(workerid, task->sched_ctx);
-	double exp_len = 0.0;
+	double exp_len = fifo_queue->pipeline_len;
 	
 	if (list->_head != NULL)
 	{
