@@ -222,6 +222,16 @@ struct starpu_sched_policy *starpu_get_sched_lib_policy(const char *name);
 struct starpu_sched_policy **starpu_get_sched_lib_policies(void);
 
 /**
+   Return the scheduler policy of the default context
+*/
+struct starpu_sched_policy *starpu_sched_get_sched_policy_in_ctx(unsigned sched_ctx_id);
+
+/**
+   Return the scheduler policy of the given context
+*/
+struct starpu_sched_policy *starpu_sched_get_sched_policy(void);
+
+/**
    When there is no available task for a worker, StarPU blocks this
    worker on a condition variable. This function specifies which
    condition variable (and the associated mutex) should be used to

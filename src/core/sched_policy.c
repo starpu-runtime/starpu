@@ -109,6 +109,20 @@ struct starpu_sched_policy *_starpu_get_sched_policy(struct _starpu_sched_ctx *s
 	return sched_ctx->sched_policy;
 }
 
+struct starpu_sched_policy *starpu_sched_get_sched_policy_in_ctx(unsigned sched_ctx_id)
+{
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
+	struct _starpu_sched_ctx *sched_ctx = &config->sched_ctxs[sched_ctx_id];
+	return sched_ctx->sched_policy;
+}
+
+struct starpu_sched_policy *starpu_sched_get_sched_policy(void)
+{
+	unsigned nsched_ctxs = _starpu_get_nsched_ctxs();
+	unsigned sched_ctx_id = nsched_ctxs == 1 ? 0 : starpu_sched_ctx_get_context();
+	return starpu_sched_get_sched_policy_in_ctx(sched_ctx_id);
+}
+
 /*
  *	Methods to initialize the scheduling policy
  */
