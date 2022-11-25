@@ -2417,6 +2417,15 @@ module fstarpu_mod
                         use iso_c_binding, only: c_float
                         real(c_float), value, intent(in) :: nb_sec
                 end subroutine fstarpu_usleep
+
+                ! void starpu_cublas_init(void);
+                subroutine fstarpu_cublas_init () bind(C,name="starpu_cublas_init")
+                end subroutine fstarpu_cublas_init
+
+                ! void starpu_cublas_shutdown(void);
+                subroutine fstarpu_cublas_shutdown () bind(C,name="starpu_cublas_shutdown")
+                end subroutine fstarpu_cublas_shutdown
+
         end interface
 
         contains
