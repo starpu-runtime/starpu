@@ -202,6 +202,7 @@ double starpu_st_fifo_taskq_get_exp_len_prev_task_list(struct starpu_st_fifo_tas
 			{
 				/* the task's place is between prev and current */
 				struct starpu_task *it;
+				*fifo_ntasks = 0;
 				for(it = list->_head; it != current; it = it->next)
 				{
 					exp_len += starpu_task_expected_length(it, perf_arch, nimpl);
