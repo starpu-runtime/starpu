@@ -30,6 +30,9 @@ struct starpu_st_fifo_taskq
 	/** the number of tasks currently in the queue */
 	unsigned ntasks;
 
+	/** the number of tasks already pushed to the worker */
+	unsigned pipeline_ntasks;
+
 	/** the number of tasks currently in the queue corresponding to each priority */
 	unsigned *ntasks_per_priority;
 

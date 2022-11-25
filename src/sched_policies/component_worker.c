@@ -93,7 +93,7 @@ struct _starpu_worker_task_list
 {
 	double exp_start, exp_len, exp_end, pipeline_len;
 	struct _starpu_task_grid *first, *last;
-	unsigned ntasks;
+	unsigned ntasks, pipeline_ntasks;
 	starpu_pthread_mutex_t mutex;
 };
 
@@ -139,6 +139,10 @@ static void _starpu_worker_task_list_finished(struct _starpu_worker_task_list *l
 	if(!isnan(task->predicted))
 		/* The execution is over, remove it from pipelined */
 		l->pipeline_len -= task->predicted;
+	if (!l->pipeline_ntasks)
+		_STARPU_DISP("warning: bogus computation of pipeline_ntasks?\n");
+	else
+		l->pipeline_ntasks--;
 	l->exp_start = STARPU_MAX(starpu_timing_now() + l->pipeline_len, l->exp_start);
 	l->exp_end = l->exp_start + l->exp_len;
 }
@@ -334,6 +338,7 @@ static inline struct starpu_task * _starpu_worker_task_list_pop(struct _starpu_w
 				_starpu_task_grid_unset_left_right_member(t);
 
 			l->ntasks--;
+			l->pipeline_ntasks++;
 
 			return task;
 		}
@@ -520,7 +525,7 @@ static double simple_worker_estimated_load(struct starpu_sched_component * compo
 	STARPU_COMPONENT_MUTEX_UNLOCK(&worker->mutex);
 	struct _starpu_worker_component_data * d = component->data;
 	struct _starpu_worker_task_list * l = d->list;
-	int ntasks_in_fifo = l ? l->ntasks : 0;
+	int ntasks_in_fifo = l ? l->ntasks + l->pipeline_ntasks : 0;
 	return (double) (nb_task + ntasks_in_fifo)
 		/ starpu_worker_get_relative_speedup(
 				starpu_worker_get_perf_archtype(starpu_bitmap_first(&component->workers), component->tree->sched_ctx_id));

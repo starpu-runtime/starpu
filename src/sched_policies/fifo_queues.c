@@ -52,6 +52,7 @@ void starpu_st_fifo_taskq_init(struct starpu_st_fifo_taskq *fifo)
 	/* note that not all mechanisms (eg. the semaphore) have to be used */
 	starpu_task_list_init(&fifo->taskq);
 	fifo->ntasks = 0;
+	fifo->pipeline_ntasks = 0;
 	/* Tell helgrind that it's fine to check for empty fifo in
 	 * pop_task_graph_test_policy without actual mutex (it's just an integer)
 	 */
@@ -202,7 +203,7 @@ double starpu_st_fifo_taskq_get_exp_len_prev_task_list(struct starpu_st_fifo_tas
 			{
 				/* the task's place is between prev and current */
 				struct starpu_task *it;
-				*fifo_ntasks = 0;
+				*fifo_ntasks = fifo_queue->pipeline_ntasks;
 				for(it = list->_head; it != current; it = it->next)
 				{
 					exp_len += starpu_task_expected_length(it, perf_arch, nimpl);
@@ -213,7 +214,7 @@ double starpu_st_fifo_taskq_get_exp_len_prev_task_list(struct starpu_st_fifo_tas
 			{
 				/* the task's place is at the _tail of the list */
 				exp_len = fifo_queue->exp_len;
-				*fifo_ntasks = fifo_queue->ntasks;
+				*fifo_ntasks = fifo_queue->ntasks + fifo_queue->pipeline_ntasks;
 			}
 		}
 	}
