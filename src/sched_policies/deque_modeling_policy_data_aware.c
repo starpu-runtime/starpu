@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Joris Pablo
  * Copyright (C) 2013       Simon Archipoff
@@ -123,6 +123,10 @@ static void _starpu_fifo_task_finished(struct _starpu_fifo_taskq *fifo, struct s
 	if(!isnan(task->predicted))
 		/* The execution is over, remove it from pipelined */
 		fifo->pipeline_len -= task->predicted;
+	if (!fifo->pipeline_ntasks)
+		_STARPU_DISP("warning: bogus computation of pipeline_ntasks?\n");
+	else
+		fifo->pipeline_ntasks--;
 	fifo->exp_start = STARPU_MAX(starpu_timing_now() + fifo->pipeline_len, fifo->exp_start);
 	fifo->exp_end = fifo->exp_start + fifo->exp_len;
 }
@@ -256,6 +260,8 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 #endif //STARPU_USE_SC_HYPERVISOR
 
 	starpu_worker_lock(best_workerid);
+
+	fifo->pipeline_ntasks++;
 
         /* Sometimes workers didn't take the tasks as early as we expected */
 	fifo->exp_start = isnan(fifo->exp_start) ? now + fifo->pipeline_len : STARPU_MAX(fifo->exp_start, now);
@@ -423,7 +429,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 				continue;
 			}
 
-			int fifo_ntasks = fifo->ntasks;
+			int fifo_ntasks = fifo->ntasks + fifo->pipeline_ntasks;
 			double prev_exp_len = fifo->exp_len;
 			/* consider the priority of the task when deciding on which workerid to schedule,
 			   compute the expected_end of the task if it is inserted before other tasks already scheduled */
