@@ -111,7 +111,7 @@ a reserved CPU, subtracted from the CPU workers.
 \anchor STARPU_MAIN_THREAD_CPUID
 \addindex __env__STARPU_MAIN_THREAD_CPUID
 When defined, this make StarPU bind the thread that calls starpu_initialize() to
-the given CPU ID.
+the given CPU ID (using logical numbering).
 </dd>
 
 <dt>STARPU_MAIN_THREAD_COREID</dt>
@@ -119,7 +119,7 @@ the given CPU ID.
 \anchor STARPU_MAIN_THREAD_COREID
 \addindex __env__STARPU_MAIN_THREAD_COREID
 Same as \ref STARPU_MAIN_THREAD_CPUID, but bind the thread that calls
-starpu_initialize() to the given core, instead of the PU (hyperthread).
+starpu_initialize() to the given core (using logical numbering), instead of the PU (hyperthread).
 </dd>
 
 <dt>STARPU_WORKER_TREE</dt>
@@ -621,9 +621,10 @@ Disable asynchronous copies between CPU and HIP devices.
 <dd>
 \anchor STARPU_MPI_THREAD_CPUID
 \addindex __env__STARPU_MPI_THREAD_CPUID
-When defined, this make StarPU bind its MPI thread to the given CPU ID. Setting
-it to -1 (the default value) will use a reserved CPU, subtracted from the CPU
-workers.
+When defined, this make StarPU bind its MPI thread to the given CPU ID,
+subtracted from the CPU workers (unless \ref STARPU_NCPU is defined).
+
+Setting it to -1 (the default value) will let StarPU allocate a CPU.
 </dd>
 
 <dt>STARPU_MPI_THREAD_COREID</dt>

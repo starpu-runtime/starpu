@@ -1212,6 +1212,52 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 
 	_starpu_initialize_workers_bindid(config);
 
+	/* Reserve thread for main() */
+	int main_thread_cpuid = starpu_getenv_number_default("STARPU_MAIN_THREAD_CPUID", -1);
+	int main_thread_coreid = starpu_getenv_number_default("STARPU_MAIN_THREAD_COREID", -1);
+	if (main_thread_cpuid >= 0 && main_thread_coreid >= 0)
+	{
+		_STARPU_DISP("Warning: STARPU_MAIN_THREAD_CPUID and STARPU_MAIN_THREAD_COREID cannot be set at the same time. STARPU_MAIN_THREAD_CPUID will be used.\n");
+	}
+	if (main_thread_cpuid == -1 && main_thread_coreid >= 0)
+		main_thread_cpuid = main_thread_coreid * _starpu_get_nhyperthreads();
+	if (main_thread_coreid == -1 && main_thread_cpuid >= 0)
+		main_thread_coreid = main_thread_cpuid / _starpu_get_nhyperthreads();
+	int main_thread_bind = starpu_getenv_number_default("STARPU_MAIN_THREAD_BIND", 0);
+	int main_thread_activity = STARPU_NONACTIVETHREAD;
+	if (main_thread_bind)
+	{
+		main_thread_activity = STARPU_ACTIVETHREAD;
+		if (main_thread_cpuid == -1)
+			main_thread_cpuid = starpu_get_next_bindid(STARPU_THREAD_ACTIVE, NULL, 0);
+		else
+		{
+			unsigned coreid = main_thread_coreid;
+			unsigned got_cpuid = starpu_get_next_bindid(STARPU_THREAD_ACTIVE, &coreid, 1);
+			if (got_cpuid != (unsigned) main_thread_cpuid)
+				_STARPU_DISP("Warning: Could not reserve requested logical core %d (logical cpu %d) for main, got %d instead\n", main_thread_coreid, main_thread_cpuid, got_cpuid);
+		}
+	}
+	if (main_thread_cpuid >= 0)
+		_starpu_bind_thread_on_cpu(main_thread_cpuid, main_thread_activity, "main");
+
+	/* Reserve thread for MPI */
+	int mpi_thread_cpuid = starpu_getenv_number_default("STARPU_MPI_THREAD_CPUID", -1);
+	int mpi_thread_coreid = starpu_getenv_number_default("STARPU_MPI_THREAD_COREID", -1);
+
+	if (mpi_thread_coreid == -1 && mpi_thread_cpuid >= 0)
+		mpi_thread_coreid = mpi_thread_cpuid / _starpu_get_nhyperthreads();
+	if (mpi_thread_cpuid == -1 && mpi_thread_coreid >= 0)
+		mpi_thread_cpuid = mpi_thread_coreid * _starpu_get_nhyperthreads();
+
+	if (mpi_thread_coreid >= 0)
+	{
+		unsigned coreid = mpi_thread_coreid;
+		unsigned got_cpuid = starpu_get_next_bindid(STARPU_THREAD_ACTIVE, &coreid, 1);
+		if (got_cpuid != (unsigned) mpi_thread_cpuid)
+			_STARPU_DISP("Warning: Could not reserve requested logical core %d (logical cpu %d) for MPI, got %d instead\n", mpi_thread_coreid, mpi_thread_cpuid, got_cpuid);
+	}
+
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	_starpu_init_cuda_config(topology, config);
 #endif
@@ -1347,7 +1393,7 @@ int _starpu_bind_thread_on_cpu(int cpuid STARPU_ATTRIBUTE_UNUSED, int workerid S
 
 			if (workerid == STARPU_ACTIVETHREAD)
 				_STARPU_DISP("and we were told to also bind active thread %s to it.\n", name);
-			else if (previous == STARPU_NONACTIVETHREAD)
+			else if (workerid == STARPU_NONACTIVETHREAD)
 				_STARPU_DISP("and we were told to also bind non-active thread %s to it.\n", name);
 			else
 				_STARPU_DISP("and we were told to also bind worker %d to it.\n", workerid);

@@ -1130,7 +1130,12 @@ int starpu_conf_init(struct starpu_conf *conf)
 	conf->reserve_ncpus = starpu_getenv_number("STARPU_RESERVE_NCPU");
 	int main_thread_bind = starpu_getenv_number_default("STARPU_MAIN_THREAD_BIND", 0);
 	if (main_thread_bind)
-		conf->reserve_ncpus++;
+	{
+		if (conf->reserve_ncpus == -1)
+			conf->reserve_ncpus = 1;
+		else
+			conf->reserve_ncpus++;
+	}
 	conf->ncuda = starpu_getenv_number("STARPU_NCUDA");
 	conf->nhip = starpu_getenv_number("STARPU_NHIP");
 	conf->nopencl = starpu_getenv_number("STARPU_NOPENCL");
@@ -1277,7 +1282,13 @@ void _starpu_conf_check_environment(struct starpu_conf *conf)
 	_starpu_conf_set_value_against_environment("STARPU_RESERVE_NCPU", &conf->reserve_ncpus, conf->precedence_over_environment_variables);
 	int main_thread_bind = starpu_getenv_number_default("STARPU_MAIN_THREAD_BIND", 0);
 	if (main_thread_bind)
-		conf->reserve_ncpus++;
+	{
+		/* Reserve a core for main */
+		if (conf->reserve_ncpus == -1)
+			conf->reserve_ncpus = 1;
+		else
+			conf->reserve_ncpus++;
+	}
 	_starpu_conf_set_value_against_environment("STARPU_NCUDA", &conf->ncuda, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_NHIP", &conf->nhip, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_NOPENCL", &conf->nopencl, conf->precedence_over_environment_variables);
@@ -1878,27 +1889,6 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	/* Tell everybody that we initialized */
 	STARPU_PTHREAD_COND_BROADCAST(&init_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
-
-	int main_thread_cpuid = starpu_getenv_number_default("STARPU_MAIN_THREAD_CPUID", -1);
-	int main_thread_coreid = starpu_getenv_number_default("STARPU_MAIN_THREAD_COREID", -1);
-	if (main_thread_cpuid >= 0 && main_thread_coreid >= 0)
-	{
-		_STARPU_DISP("Warning: STARPU_MAIN_THREAD_CPUID and STARPU_MAIN_THREAD_COREID cannot be set at the same time. STARPU_MAIN_THREAD_CPUID will be used.\n");
-	}
-	if (main_thread_cpuid == -1 && main_thread_coreid >= 0)
-	{
-		main_thread_cpuid = main_thread_coreid * _starpu_get_nhyperthreads();
-	}
-	int main_thread_bind = starpu_getenv_number_default("STARPU_MAIN_THREAD_BIND", 0);
-	int main_thread_activity = STARPU_NONACTIVETHREAD;
-	if (main_thread_bind)
-	{
-		main_thread_activity = STARPU_ACTIVETHREAD;
-		if (main_thread_cpuid == -1)
-			main_thread_cpuid = starpu_get_next_bindid(STARPU_THREAD_ACTIVE, NULL, 0);
-	}
-	if (main_thread_cpuid >= 0)
-		_starpu_bind_thread_on_cpu(main_thread_cpuid, main_thread_activity, "main");
 
 	_STARPU_DEBUG("Initialisation finished\n");
 

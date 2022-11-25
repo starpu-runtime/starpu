@@ -265,7 +265,9 @@ int starpu_mpi_init_conf(int *argc, char ***argv, int initialize_mpi, MPI_Comm c
 	_mpi_backend._starpu_mpi_backend_init(conf);
 
 	/* Reserve a core only if required by the backend and if STARPU_NCPU isn't provided */
-	if (_mpi_backend._starpu_mpi_backend_reserve_core() && conf->ncpus == -1)
+	int mpi_thread_cpuid = starpu_getenv_number_default("STARPU_MPI_THREAD_CPUID", -1);
+	int mpi_thread_coreid = starpu_getenv_number_default("STARPU_MPI_THREAD_COREID", -1);
+	if (mpi_thread_cpuid < 0 && mpi_thread_coreid < 0 && _mpi_backend._starpu_mpi_backend_reserve_core() && conf->ncpus == -1)
 	{
 		/* Reserve a core for our progression thread */
 		if (conf->reserve_ncpus == -1)
