@@ -172,7 +172,7 @@ double starpu_st_fifo_taskq_get_exp_len_prev_task_list(struct starpu_st_fifo_tas
 {
 	struct starpu_task_list *list = &fifo_queue->taskq;
 	struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(workerid, task->sched_ctx);
-	double exp_len = 0.0;
+	double exp_len = fifo_queue->pipeline_len;
 
 	if (list->_head != NULL)
 	{
