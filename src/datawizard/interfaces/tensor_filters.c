@@ -331,7 +331,8 @@ void starpu_tensor_filter_pick_variable(void *father_interface, void *child_inte
 	size_t elemsize = tensor_father->elemsize;
 
 	uint32_t* chunk_pos = (uint32_t*)f->filter_arg_ptr;
-	// for(int i=0; i<4; i++)
+	// int i;
+	// for(i=0; i<4; i++)
 	// {
 	// 	printf("pos is %d\n", chunk_pos[i]);
 	// }

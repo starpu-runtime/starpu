@@ -219,7 +219,8 @@ PyObject* starpupy_buffer_get_memview(struct starpupy_buffer_interface *pybuffer
 				{
 					/*if the index of element in all inner list is 0, we are the first, we have to add this new list to the upper dimension list*/
 					int flag=1;
-					for(int dd= ndim-1; dd>=d+1; dd--)
+					int dd;
+					for(dd=ndim-1; dd>=d+1; dd--)
 					{
 						if(ind[i][dd]!=0)
 							flag=0;

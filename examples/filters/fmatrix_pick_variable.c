@@ -46,7 +46,7 @@ int main(void)
 	int *matrix;
 	int ret, i, j;
 	int factor = 12;
-	
+
 	uint32_t pos[2];
 
 	starpu_data_handle_t handle;
@@ -96,7 +96,7 @@ int main(void)
 		.filter_func = starpu_matrix_filter_block,
 		.nchildren = PARTSX
 	};
-	
+
 	struct starpu_data_filter f_matrix_horiz =
 	{
 		.filter_func = starpu_matrix_filter_vertical_block,
@@ -107,7 +107,8 @@ int main(void)
 
 	starpu_data_handle_t sub_matrix_handle;
 
-	for(int nn=0; nn<=10; nn++)
+	int nn;
+	for(nn=0; nn<=10; nn++)
 	{
 			int indxi = starpu_drand48()*(PARTSX);
 			int indxj = starpu_drand48()*(PARTSY);

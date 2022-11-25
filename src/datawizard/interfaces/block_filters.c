@@ -267,7 +267,8 @@ void starpu_block_filter_pick_variable(void *father_interface, void *child_inter
 	size_t elemsize = block_father->elemsize;
 
 	uint32_t* chunk_pos = (uint32_t*)f->filter_arg_ptr;
-	// for(int i=0; i<3; i++)
+	// int i;
+	// for(i=0; i<3; i++)
 	// {
 	// 	printf("pos is %d\n", chunk_pos[i]);
 	// }

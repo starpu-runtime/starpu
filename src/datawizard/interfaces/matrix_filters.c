@@ -139,7 +139,7 @@ void starpu_matrix_filter_pick_vector_y(void *father_interface, void *child_inte
 
 	uint32_t nx;
 	uint32_t ny;
-	
+
 	/* actual number of elements */
 	nx = matrix_father->nx;
 	ny = matrix_father->ny;
@@ -187,7 +187,7 @@ void starpu_matrix_filter_pick_variable(void *father_interface, void *child_inte
 
 	uint32_t nx;
 	uint32_t ny;
-	
+
 	/* actual number of elements */
 	nx = matrix_father->nx;
 	ny = matrix_father->ny;
@@ -196,7 +196,8 @@ void starpu_matrix_filter_pick_variable(void *father_interface, void *child_inte
 	size_t elemsize = matrix_father->elemsize;
 
 	uint32_t* chunk_pos = (uint32_t*)f->filter_arg_ptr;
-	// for(int i=0; i<2; i++)
+	// int i;
+	// for(i=0; i<2; i++)
 	// {
 	// 	printf("pos is %d\n", chunk_pos[i]);
 	// }

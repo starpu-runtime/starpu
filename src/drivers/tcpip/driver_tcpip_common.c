@@ -190,7 +190,8 @@ static void * _starpu_tcpip_thread_pending()
 			if(!is_running)
 				break;
 
-			for(int i=0; i<n; i++)
+			int i;
+			for(i=0; i<n; i++)
 			{
 				_SELECT_PRINT("pop push loop %d\n", i);
 				_starpu_spin_lock(&ListLock);
@@ -842,21 +843,24 @@ int _starpu_tcpip_common_mp_init()
 			unlink(sink_name.sun_path);
 		}
 
-		for(int i=0; i<=nb_sink; i++)
 		{
-			_TCPIP_PRINT("sock_list[%d] is %d\n", i, tcpip_sock[i].sync_sock);
-		}
-		for(int i=0; i<=nb_sink; i++)
-		{
-			_TCPIP_PRINT("async_sock_list[%d] is %d\n", i, tcpip_sock[i].async_sock);
-		}
-		for(int i=0; i<=nb_sink; i++)
-		{
-			_TCPIP_PRINT("notif_sock_list[%d] is %d\n", i, tcpip_sock[i].notif_sock);
-		}
-		for(int i=0; i<=nb_sink; i++)
-		{
-			_TCPIP_PRINT("local_flag[%d] is %d\n", i, local_flag[i]);
+			int i;
+			for(i=0; i<=nb_sink; i++)
+			{
+				_TCPIP_PRINT("sock_list[%d] is %d\n", i, tcpip_sock[i].sync_sock);
+			}
+			for(i=0; i<=nb_sink; i++)
+			{
+				_TCPIP_PRINT("async_sock_list[%d] is %d\n", i, tcpip_sock[i].async_sock);
+			}
+			for(i=0; i<=nb_sink; i++)
+			{
+				_TCPIP_PRINT("notif_sock_list[%d] is %d\n", i, tcpip_sock[i].notif_sock);
+			}
+			for(i=0; i<=nb_sink; i++)
+			{
+				_TCPIP_PRINT("local_flag[%d] is %d\n", i, local_flag[i]);
+			}
 		}
 
 		setenv("STARPU_SINK", "STARPU_TCPIP_MS", 1);

@@ -58,8 +58,8 @@ __device__ static uint get_smid(void)
 									\
 	int gridDim_sum = blocks.x*blocks.y;				\
 	int startBlock = block_start + (smid - mapping_start) * occupancy; \
-									\
-	for(int blockid_sum = startBlock; blockid_sum < gridDim_sum; blockid_sum +=active_blocks) \
+	int blockid_sum;						\
+	for(blockid_sum = startBlock; blockid_sum < gridDim_sum; blockid_sum +=active_blocks) \
 	{							\
 	blockid.x = blockid_sum % blocks.x;			\
 	blockid.y = blockid_sum / blocks.x;
@@ -74,8 +74,8 @@ __device__ static uint get_smid(void)
 	blockid.y = 0;							\
 	int gridDim_sum = blocks.x;					\
 	int startBlock = (smid-mapping_start) + block_start*(active_blocks/occupancy); \
-									\
-	for(int blockid_sum = startBlock; blockid_sum < gridDim_sum; blockid_sum +=active_blocks) \
+	int blockid_sum;						\
+	for(blockid_sum = startBlock; blockid_sum < gridDim_sum; blockid_sum +=active_blocks) \
 	{							\
 	blockid.x = blockid_sum;
 
@@ -106,15 +106,16 @@ static void buildPartitionedBlockMapping(F cudaFun, int threads, int shmem, int 
 	width = occupancy * nb_SM; // Physical wrapper grid size. Fits GPU exactly
 	active_blocks = occupancy*allocation; // The total number of blocks doing work
 
-	for(int i = 0; i < mapping_start; i++)
+	int i;
+	for(i = 0; i < mapping_start; i++)
 		block_assignment[i] = (unsigned) -1;
 
-	for(int i = mapping_start; i <= mapping_end; i++)
+	for(i = mapping_start; i <= mapping_end; i++)
 	{
 		block_assignment[i] = occupancy - 1;
 	}
 
-	for(int i = mapping_end+1; i < nb_SM; i++)
+	for(i = mapping_end+1; i < nb_SM; i++)
 		block_assignment[i] = (unsigned) -1;
 
 	cudaMemcpyAsync((void*)block_assignment_d,block_assignment,sizeof(block_assignment),cudaMemcpyHostToDevice, current_stream);
