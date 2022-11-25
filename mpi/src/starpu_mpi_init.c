@@ -89,6 +89,8 @@ void _starpu_mpi_do_initialize(struct _starpu_mpi_argc_argv *argc_argv)
 
 	// automatically register the given communicator
 	starpu_mpi_comm_register(argc_argv->comm);
+	if (argc_argv->comm != MPI_COMM_WORLD)
+		starpu_mpi_comm_register(MPI_COMM_WORLD);
 
 	MPI_Comm_rank(argc_argv->comm, &argc_argv->rank);
 	MPI_Comm_size(argc_argv->comm, &argc_argv->world_size);
@@ -365,7 +367,7 @@ int starpu_mpi_comm_size(MPI_Comm comm, int *size)
 #else
 	struct comm_size_entry *entry;
 	HASH_FIND(hh, registered_comms, &comm, sizeof(entry->comm), entry);
-	STARPU_ASSERT_MSG(entry, "Communicator %d has not been registered\n", (int)comm);
+	STARPU_ASSERT_MSG(entry, "Communicator %ld has not been registered\n", (long int)comm);
 	*size = entry->size;
 	return 0;
 #endif
@@ -385,7 +387,7 @@ int starpu_mpi_comm_rank(MPI_Comm comm, int *rank)
 #else
 	struct comm_size_entry *entry;
 	HASH_FIND(hh, registered_comms, &comm, sizeof(entry->comm), entry);
-	STARPU_ASSERT_MSG(entry, "Communicator %d has not been registered\n", (int)comm);
+	STARPU_ASSERT_MSG(entry, "Communicator %ld has not been registered\n", (long int)comm);
 	*rank = entry->rank;
 	return 0;
 #endif
