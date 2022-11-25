@@ -142,7 +142,7 @@ void starpu_copy_element_task_c(void **ro_h, void **dro_h)
 	starpu_data_handle_t dro_handle = *dro_h;
 
 	/* execute the task on any eligible computational ressource */
-	ret = starpu_insert_task(&cl_copy_element,
+	ret = starpu_task_insert(&cl_copy_element,
 				 STARPU_RW,  ro_handle,
 				 STARPU_R,   dro_handle,
 				 0);

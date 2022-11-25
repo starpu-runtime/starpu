@@ -193,11 +193,11 @@ int main(void)
 
 		for (j = 0; j < NTASKS; j++)
 		{
-			starpu_insert_task(&cl_init,
+			starpu_task_insert(&cl_init,
 					   STARPU_R, vector_mn_handle,
 					   STARPU_VALUE, &k, sizeof(int),
 					   0);
-			starpu_insert_task(&cl_final,
+			starpu_task_insert(&cl_final,
 					   STARPU_R, vector_mn_handle,
 					   STARPU_VALUE, &k, sizeof(int),
 					   0);

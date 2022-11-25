@@ -36,8 +36,8 @@
 
 #if defined(STARPU_USE_MPI) && !defined(STARPU_USE_MPI_MASTER_SLAVE)
 #include <starpu_mpi.h>
-#undef starpu_insert_task
-#define starpu_insert_task(...) starpu_mpi_insert_task(MPI_COMM_WORLD, __VA_ARGS__)
+#undef starpu_task_insert
+#define starpu_task_insert(...) starpu_mpi_task_insert(MPI_COMM_WORLD, __VA_ARGS__)
 #endif
 
 /*
@@ -48,7 +48,7 @@ void create_task_memset(unsigned sizex, unsigned sizey, unsigned z)
 {
 	struct block_description *descr = get_block_description(z);
 
-	int ret = starpu_insert_task(&cl_memset,
+	int ret = starpu_task_insert(&cl_memset,
 				     STARPU_VALUE,   &sizex,  sizeof(unsigned),
 				     STARPU_VALUE,   &sizey,  sizeof(unsigned),
 				     STARPU_VALUE,   &z,  sizeof(unsigned),
@@ -73,7 +73,7 @@ void create_task_initlayer(unsigned sizex, unsigned sizey, unsigned z)
 {
 	struct block_description *descr = get_block_description(z);
 
-	int ret = starpu_insert_task(&cl_initlayer,
+	int ret = starpu_task_insert(&cl_initlayer,
 				     STARPU_VALUE,   &sizex,  sizeof(unsigned),
 				     STARPU_VALUE,   &sizey,  sizeof(unsigned),
 				     STARPU_VALUE,   &z,  sizeof(unsigned),
@@ -100,7 +100,7 @@ static void create_task_save_local(unsigned z, int dir)
 	int ret;
 
 	codelet = (dir == -1)?&save_cl_bottom:&save_cl_top;
-	ret = starpu_insert_task(codelet,
+	ret = starpu_task_insert(codelet,
 				 STARPU_VALUE,   &z,  sizeof(unsigned),
 				 STARPU_R,   descr->layers_handle[0],
 				 STARPU_R,   descr->layers_handle[1],
@@ -142,7 +142,7 @@ void create_task_update(unsigned iter, unsigned z, int local_rank)
 	int prio = ((bottom_neighbour->mpi_node != local_rank) || (top_neighbour->mpi_node != local_rank)) ? STARPU_MAX_PRIO :
 		((bottom_neighbour->boundary_blocks[B]->mpi_node != local_rank) || (top_neighbour->boundary_blocks[T]->mpi_node != local_rank)) ? STARPU_MAX_PRIO-1 : STARPU_DEFAULT_PRIO;
 
-	int ret = starpu_insert_task(codelet,
+	int ret = starpu_task_insert(codelet,
 				     STARPU_VALUE,   &z,  sizeof(unsigned),
 				     STARPU_RW,      descr->layers_handle[old_layer],
 				     STARPU_RW,      descr->layers_handle[new_layer],

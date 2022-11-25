@@ -660,7 +660,7 @@ int starpu_mpi_task_insert(MPI_Comm comm, struct starpu_codelet *codelet, ...);
 #endif
 
 /**
-   Call starpu_mpi_task_insert(). Symbol kept for backward compatibility.
+   Identical to starpu_mpi_task_insert(). Symbol kept for backward compatibility.
 */
 int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...);
 #ifdef STARPU_USE_FXT

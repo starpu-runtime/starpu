@@ -1,6 +1,6 @@
 ! StarPU --- Runtime system for heterogeneous multicore architectures.
 !
-! Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+! Copyright (C) 2016-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 !
 ! StarPU is free software; you can redistribute it and/or modify
 ! it under the terms of the GNU Lesser General Public License as published by
@@ -92,7 +92,7 @@ program nf_matrix
         !     . . .
         !     C_NULL_PTR
         !   )/
-        call fstarpu_insert_task((/ cl_mat, FSTARPU_R, dh_ma, FSTARPU_RW, dh_mb, C_NULL_PTR /))
+        call fstarpu_task_insert((/ cl_mat, FSTARPU_R, dh_ma, FSTARPU_RW, dh_mb, C_NULL_PTR /))
 
         ! wait for task completion
         call fstarpu_task_wait_for_all()

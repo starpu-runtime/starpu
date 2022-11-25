@@ -106,7 +106,7 @@ enum starpu_data_access_mode
 				  consistency against reads or
 				  non-commutative writes).
 			       */
-	STARPU_SSEND	 = (1 << 5),		  /**< used in starpu_mpi_insert_task() to
+	STARPU_SSEND	 = (1 << 5),		  /**< used in starpu_mpi_task_insert() to
 				specify the data has to be sent using
 				a synchronous and non-blocking mode
 				(see starpu_mpi_issend())

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -165,24 +165,24 @@ void insert_work_for_one_element(struct element *el)
 	starpu_vector_data_register(&tmp_send, -1, 0, el->tag, sizeof(int));
 
 	//Emulate the work to fill the send buffer
-	starpu_insert_task(&fill_tmp_buffer_cl,
+	starpu_task_insert(&fill_tmp_buffer_cl,
 			   STARPU_W,tmp_send,
 			   0);
 	//Send operation
-	starpu_insert_task(&submitted_order_rw,
+	starpu_task_insert(&submitted_order_rw,
 			   STARPU_RW,el->ensure_submitted_order_send,
 			   STARPU_RW,tmp_send,
 			   0);
 	ret = starpu_mpi_isend_detached(tmp_send,el->foreign_domain,el->tag, MPI_COMM_WORLD, NULL, NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend_detached");
 
-	starpu_insert_task(&submitted_order_rw,
+	starpu_task_insert(&submitted_order_rw,
 			   STARPU_RW,el->ensure_submitted_order_send,
 			   STARPU_RW,tmp_send,
 			   0);
 
 	//Recv operation for current element
-	starpu_insert_task(&submitted_order,
+	starpu_task_insert(&submitted_order,
 			   STARPU_RW,el->ensure_submitted_order_recv,
 			   STARPU_W,tmp_recv,
 			   0);
@@ -190,7 +190,7 @@ void insert_work_for_one_element(struct element *el)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv_detached");
 
 	//Emulate the "reading" of the recv value.
-	starpu_insert_task(&read_ghost_value_cl,
+	starpu_task_insert(&read_ghost_value_cl,
 			   STARPU_R,tmp_recv,
 			   0);
 

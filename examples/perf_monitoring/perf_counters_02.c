@@ -198,7 +198,7 @@ int main(int argc, char **argv)
 		{
 			v = i % NVECTORS;
 			const int niter = NITER;
-			starpu_insert_task(&cl,
+			starpu_task_insert(&cl,
 					STARPU_RW, vector_h[v],
 					STARPU_VALUE, &niter, sizeof(int),
 					0);

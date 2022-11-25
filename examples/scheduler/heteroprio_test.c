@@ -202,17 +202,17 @@ int main(void)
 	int idxTask;
 	for(idxTask = 0; idxTask < nbTasks; ++idxTask)
 	{
-		starpu_insert_task(&codeleteA,
+		starpu_task_insert(&codeleteA,
 				   STARPU_PRIORITY, 0,
 				   (STARPU_RW), handles[(idxTask*2)%nbHandles],
 				   (STARPU_RW), handles[(idxTask*3+1)%nbHandles],
 				   0);
-		starpu_insert_task(&codeleteB,
+		starpu_task_insert(&codeleteB,
 				   STARPU_PRIORITY, 1,
 				   (STARPU_RW), handles[(idxTask*2 +1)%nbHandles],
 				   (STARPU_RW), handles[(idxTask*2)%nbHandles],
 				   0);
-		starpu_insert_task(&codeleteC,
+		starpu_task_insert(&codeleteC,
 				   STARPU_PRIORITY, prio2,
 				   (STARPU_RW), handles[(idxTask)%nbHandles],
 				   (STARPU_RW), handles[(idxTask*idxTask)%nbHandles],

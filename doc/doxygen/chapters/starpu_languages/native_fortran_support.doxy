@@ -156,27 +156,27 @@ the runtime engine and frees all internal StarPU data structures.
 \section NFInsertTask Fortran Flavor of StarPU's Variadic Insert_task
 
 Fortran does not have a construction similar to C variadic functions, on which
-starpu_insert_task() relies at the time of this writing. However, Fortran's variable
+starpu_task_insert() relies at the time of this writing. However, Fortran's variable
 length arrays of <c>c_ptr</c> elements enable to emulate much of the
 convenience of C's variadic functions. This is the approach retained for
-implementing <c>fstarpu_insert_task</c>.
+implementing <c>fstarpu_task_insert</c>.
 
-The general syntax for using <c>fstarpu_insert_task</c> is as follows:
+The general syntax for using <c>fstarpu_task_insert</c> is as follows:
 \code{.f90}
-        call fstarpu_insert_task((/ <codelet ptr>       &
+        call fstarpu_task_insert((/ <codelet ptr>       &
             [, <access mode flags>, <data handle>]*     &
             [, <argument type constant>, <argument>]*   &
             , C_NULL_PTR /))
 \endcode
 
 There is thus a unique array argument <c>(/ ... /)</c> passed to
-<c>fstarpu_insert_task</c> which itself contains the task settings.
+<c>fstarpu_task_insert</c> which itself contains the task settings.
 Each element of the array must be of type <c>type(c_ptr)</c>.
 The last element of the array must be <c>C_NULL_PTR</c>.
 
 Example extracted from nf_vector.f90:
 \code{.f90}
-        call fstarpu_insert_task((/ cl_vec,          &    ! codelet
+        call fstarpu_task_insert((/ cl_vec,          &    ! codelet
             FSTARPU_R, dh_va,                        &    ! a first data handle
             FSTARPU_RW.ior.FSTARPU_LOCALITY, dh_vb,  &    ! a second data handle
             C_NULL_PTR /))                                ! no more args

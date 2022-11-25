@@ -1,6 +1,6 @@
 ! StarPU --- Runtime system for heterogeneous multicore architectures.
 !
-! Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+! Copyright (C) 2016-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 !
 ! StarPU is free software; you can redistribute it and/or modify
 ! it under the terms of the GNU Lesser General Public License as published by
@@ -59,7 +59,7 @@ program nf_dynbuf
         do i=0,nbuffers-1
                 call fstarpu_data_descr_array_set(descrs_var, i, dh_var, FSTARPU_RW)
         end do
-        call fstarpu_insert_task((/ cl_dynbuf_big, &
+        call fstarpu_task_insert((/ cl_dynbuf_big, &
                 FSTARPU_VALUE, c_loc(nbuffers), FSTARPU_SZ_C_INT, &
                 FSTARPU_DATA_MODE_ARRAY, descrs_var, c_loc(nbuffers), &
                 C_NULL_PTR /))

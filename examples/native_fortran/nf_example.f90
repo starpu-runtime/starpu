@@ -1,6 +1,6 @@
 ! StarPU --- Runtime system for heterogeneous multicore architectures.
 !
-! Copyright (C) 2015-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+! Copyright (C) 2015-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 ! Copyright (C) 2015       ONERA
 !
 ! StarPU is free software; you can redistribute it and/or modify
@@ -100,7 +100,7 @@ PROGRAM f90_example
      DO i = 1,Nelt
         elt => mesh%elt(i)
         flops = elt%Ng * ( (elt%Np * numpar%Neq_max * 2) + 1 + elt%Np * numpar%Neq_max)
-        CALL fstarpu_insert_task((/ cl_loop_element,    &
+        CALL fstarpu_task_insert((/ cl_loop_element,    &
                 FSTARPU_VALUE, c_loc(numpar%coeff), FSTARPU_SZ_C_DOUBLE, &
                 FSTARPU_R, elt%ro_h,                 &
                 FSTARPU_RW, elt%dro_h,                &
@@ -117,7 +117,7 @@ PROGRAM f90_example
      ! copy dro to ro for each element
      DO i = 1,Nelt
         elt => mesh%elt(i)
-        CALL fstarpu_insert_task((/ cl_copy_element,    &
+        CALL fstarpu_task_insert((/ cl_copy_element,    &
                 FSTARPU_RW, elt%ro_h,                 &
                 FSTARPU_R, elt%dro_h,                &
                 FSTARPU_PRIORITY, c_loc(max_prio),         &

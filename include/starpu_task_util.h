@@ -474,7 +474,7 @@ int starpu_task_insert(struct starpu_codelet *cl, ...);
 #endif
 
 /**
-   Similar to starpu_task_insert(). Kept to avoid breaking old codes.
+   Identical to starpu_task_insert(). Kept to avoid breaking old codes.
 */
 int starpu_insert_task(struct starpu_codelet *cl, ...);
 #ifdef STARPU_USE_FXT

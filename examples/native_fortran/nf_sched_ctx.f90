@@ -1,6 +1,6 @@
 ! StarPU --- Runtime system for heterogeneous multicore architectures.
 !
-! Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+! Copyright (C) 2016-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 !
 ! StarPU is free software; you can redistribute it and/or modify
 ! it under the terms of the GNU Lesser General Public License as published by
@@ -119,7 +119,7 @@ program nf_sched_ctx
                 ! submit a task on context 1
                 arg_id = 1*1000 + i
                 arg_ctx = ctx1
-                call fstarpu_insert_task((/ cl1, &
+                call fstarpu_task_insert((/ cl1, &
                         FSTARPU_VALUE, c_loc(arg_id), FSTARPU_SZ_C_INT, &
                         FSTARPU_SCHED_CTX, c_loc(arg_ctx), &
                     C_NULL_PTR /))
@@ -129,7 +129,7 @@ program nf_sched_ctx
                 ! now submit a task on context 2
                 arg_id = 2*1000 + i
                 arg_ctx = ctx2
-                call fstarpu_insert_task((/ cl2, &
+                call fstarpu_task_insert((/ cl2, &
                         FSTARPU_VALUE, c_loc(arg_id), FSTARPU_SZ_C_INT, &
                         FSTARPU_SCHED_CTX, c_loc(arg_ctx), &
                     C_NULL_PTR /))
@@ -142,7 +142,7 @@ program nf_sched_ctx
                 ! now submit a task on context 1 again
                 arg_id = 1*10000 + i
                 arg_ctx = ctx1
-                call fstarpu_insert_task((/ cl1, &
+                call fstarpu_task_insert((/ cl1, &
                         FSTARPU_VALUE, c_loc(arg_id), FSTARPU_SZ_C_INT, &
                         FSTARPU_SCHED_CTX, c_loc(arg_ctx), &
                     C_NULL_PTR /))
