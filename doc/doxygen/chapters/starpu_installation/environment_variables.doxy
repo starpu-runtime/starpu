@@ -53,8 +53,7 @@ bound. For instance, if <c>STARPU_WORKERS_CPUID = "0 1 4 5"</c>, the first
 worker will be bound to logical CPU #0, the second CPU worker will be bound to
 logical CPU #1 and so on.  Note that the logical ordering of the CPUs is either
 determined by the OS, or provided by the library <c>hwloc</c> in case it is
-available (in which case it might by provided by the job scheduler, see \ref
-STARPU_WORKERS_GETBIND).
+available.
 Ranges can be provided: for instance, <c>STARPU_WORKERS_CPUID = "1-3
 5"</c> will bind the first three workers on logical CPUs #1, #2, and #3, and the
 fourth worker on logical CPU #5. Unbound ranges can also be provided:
@@ -77,6 +76,9 @@ and the third (resp. second and fourth) workers will be put on CPU #0
 This variable is ignored if the field
 starpu_conf::use_explicit_workers_bindid passed to starpu_init() is
 set.
+
+Setting STARPU_WORKERS_CPUID or STARPU_WORKERS_COREID overrides the binding
+provided by the job scheduler, as described for \ref STARPU_WORKERS_GETBIND.
 </dd>
 
 <dt>STARPU_WORKERS_COREID</dt>

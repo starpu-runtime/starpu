@@ -733,6 +733,11 @@ static void _starpu_initialize_workers_bindid(struct _starpu_machine_config *con
 		_STARPU_DISP("Warning: STARPU_WORKERS_CPUID and STARPU_WORKERS_COREID cannot be set at the same time. STARPU_WORKERS_CPUID will be used.\n");
 	}
 
+	if (topology->nhwpus % topology->nhwworker[STARPU_CPU_WORKER][0])
+	{
+		_STARPU_DISP("Warning: hwloc reported %d logical CPUs for %d cores, this is not homogeneous, will assume %d logical CPUs per core", topology->nhwpus, topology->nhwworker[STARPU_CPU_WORKER][0], nhyperthreads);
+	}
+
 	/* conf->workers_bindid indicates the successive logical PU identifier that
 	 * should be used to bind the workers. It should be either filled
 	 * according to the user's explicit parameters (from starpu_conf) or
@@ -769,7 +774,7 @@ static void _starpu_initialize_workers_bindid(struct _starpu_machine_config *con
 				val = strtol(strval, &endptr, 10);
 				if (endptr != strval)
 				{
-					topology->workers_bindid[i] = (unsigned)((val * scale) % topology->nusedpus) + topology->firstusedpu;
+					topology->workers_bindid[i] = (unsigned)((val * scale) % topology->nhwpus);
 					strval = endptr;
 					if (*strval == '-')
 					{
@@ -783,14 +788,14 @@ static void _starpu_initialize_workers_bindid(struct _starpu_machine_config *con
 						}
 						else
 						{
-							endval = topology->nusedpus / scale - 1;
+							endval = topology->nhwpus / scale - 1;
 							if (*strval)
 								strval++;
 						}
 						for (val++; val <= endval && i < STARPU_NMAXWORKERS-1; val++)
 						{
 							i++;
-							topology->workers_bindid[i] = (unsigned)((val * scale) % topology->nusedpus) + topology->firstusedpu;
+							topology->workers_bindid[i] = (unsigned)((val * scale) % topology->nhwpus);
 						}
 					}
 					if (*strval == ',')
