@@ -162,7 +162,14 @@ int main(void)
 	unsigned i;
 	int ret;
 
-	ret = starpu_init(NULL);
+	struct starpu_conf conf;
+	starpu_conf_init(&conf);
+	starpu_conf_noworker(&conf);
+	conf.ncpus = -1;
+	conf.nmpi_ms = -1;
+	conf.ntcpip_ms = -1;
+
+	ret = starpu_init(&conf);
 	if (ret == -ENODEV)
 		return 77;
 
