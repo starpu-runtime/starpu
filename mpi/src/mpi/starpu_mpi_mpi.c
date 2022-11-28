@@ -390,7 +390,7 @@ static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 
 	_STARPU_MPI_DEBUG(0, "post MPI isend request %p type %s tag %"PRIi64" dst %d data %p datasize %ld ptr %p datatype '%s' count %d registered_datatype %d sync %d\n", req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.node.rank, req->data_handle, starpu_data_get_size(req->data_handle), req->ptr, req->datatype_name, (int)req->count, req->registered_datatype, req->sync);
 
-	_starpu_mpi_comm_amounts_inc(req->node_tag.node.comm, req->node_tag.node.rank, req->datatype, req->count);
+	_starpu_mpi_comm_amounts_inc(req->node_tag.node.comm, req->node, req->node_tag.node.rank, req->datatype, req->count);
 
 	_STARPU_MPI_TRACE_ISEND_SUBMIT_BEGIN(req->node_tag.node.rank, req->node_tag.data_tag, 0);
 

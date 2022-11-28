@@ -22,6 +22,7 @@
 
 /* measure the amount of data transfers between each pair of MPI nodes */
 static size_t *comm_amount;
+static size_t comm_amount_memnode[STARPU_MAXNODES];
 static int world_size;
 static int stats_enabled=0;
 static int nb_coop;
@@ -95,7 +96,7 @@ void _starpu_mpi_comm_amounts_shutdown()
 #endif
 }
 
-void _starpu_mpi_comm_amounts_inc(MPI_Comm comm, unsigned dst, MPI_Datatype datatype, int count)
+void _starpu_mpi_comm_amounts_inc(MPI_Comm comm, unsigned memnode, unsigned dst, MPI_Datatype datatype, int count)
 {
 	int src, size;
 
@@ -105,7 +106,9 @@ void _starpu_mpi_comm_amounts_inc(MPI_Comm comm, unsigned dst, MPI_Datatype data
 	starpu_mpi_comm_rank(comm, &src);
 	MPI_Type_size(datatype, &size);
 
-	_STARPU_MPI_DEBUG(1, "[%d] adding %d to %d\n", src, count*size, dst);
+	_STARPU_MPI_DEBUG(1, "[%d] adding %d to %d, from node %d\n", src, count*size, dst, memnode);
+
+	STARPU_ASSERT(memnode < starpu_memory_nodes_get_count());
 
 #ifdef STARPU_USE_MPI_NMAD
 	/* With NewMadeleine, the send requests are triggered from the workers, so
@@ -114,6 +117,7 @@ void _starpu_mpi_comm_amounts_inc(MPI_Comm comm, unsigned dst, MPI_Datatype data
 #endif
 
 	comm_amount[dst] += count*size;
+	comm_amount_memnode[memnode] += count*size;
 
 	if (((size_t) count*size) > max_sent_size)
 	{
@@ -178,6 +182,14 @@ void _starpu_mpi_comm_amounts_display(FILE *stream, int node)
 			fprintf(stream, "[starpu_comm_stats][%d:%d]\t%f B\t%f MB\t %f B/s\t %f MB/s\n",
 				node, dst, (float)comm_amount[dst], ((float)comm_amount[dst])/(1024*1024),
 				(float)comm_amount[dst]/(float)time, ((float)comm_amount[dst])/(1024*1024)/(float)time);
+	}
+
+	for (dst = 0; dst < starpu_memory_nodes_get_count(); dst++)
+	{
+		if (comm_amount_memnode[dst])
+			fprintf(stream, "[starpu_comm_stats_memnode][%d:%d]\t%f B\t%f MB\t %f B/s\t %f MB/s\n",
+				node, dst, (float)comm_amount_memnode[dst], ((float)comm_amount_memnode[dst])/(1024*1024),
+				(float)comm_amount_memnode[dst]/(float)time, ((float)comm_amount_memnode[dst])/(1024*1024)/(float)time);
 	}
 
 	fprintf(stream, "[starpu_comm_stats][%d] NB_COOP: %d\n", node, nb_coop);
