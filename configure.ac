@@ -4258,12 +4258,15 @@ AC_OUTPUT([
 	packages/starpu-1.1.pc
 	packages/starpu-1.2.pc
 	packages/starpu-1.3.pc
+	packages/starpu-1.4.pc
 	packages/starpu-1.3
+	packages/starpu-1.4
 	mpi/packages/libstarpumpi.pc
 	mpi/packages/starpumpi-1.0.pc
 	mpi/packages/starpumpi-1.1.pc
 	mpi/packages/starpumpi-1.2.pc
 	mpi/packages/starpumpi-1.3.pc
+	mpi/packages/starpumpi-1.4.pc
 	starpufft/Makefile
 	starpufft/src/Makefile
 	starpufft/tests/Makefile
@@ -4272,11 +4275,13 @@ AC_OUTPUT([
 	starpufft/packages/starpufft-1.1.pc
 	starpufft/packages/starpufft-1.2.pc
 	starpufft/packages/starpufft-1.3.pc
+	starpufft/packages/starpufft-1.4.pc
 	starpurm/Makefile
 	starpurm/src/Makefile
 	starpurm/tests/Makefile
 	starpurm/examples/Makefile
 	starpurm/packages/starpurm-1.3.pc
+	starpurm/packages/starpurm-1.4.pc
 	starpu_openmp_llvm/Makefile
 	starpu_openmp_llvm/src/Makefile
 	starpu_openmp_llvm/examples/Makefile

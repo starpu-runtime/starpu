@@ -29,7 +29,7 @@ EXTRA_DIST	=	\
 	dev/starpu_mpi_comm_check.sh
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = packages/libstarpumpi.pc packages/starpumpi-1.0.pc packages/starpumpi-1.1.pc packages/starpumpi-1.2.pc packages/starpumpi-1.3.pc
+pkgconfig_DATA = packages/libstarpumpi.pc packages/starpumpi-1.0.pc packages/starpumpi-1.1.pc packages/starpumpi-1.2.pc packages/starpumpi-1.3.pc packages/starpumpi-1.4.pc
 
 versincludedir = $(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)
 versinclude_HEADERS = 					\

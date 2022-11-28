@@ -1,0 +1,55 @@
+#%Module
+# StarPU --- Runtime system for heterogeneous multicore architectures.
+#
+# Copyright (C) 2022-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+#
+# StarPU is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation; either version 2.1 of the License, or (at
+# your option) any later version.
+#
+# StarPU is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# See the GNU Lesser General Public License in COPYING.LGPL for more details.
+#
+
+proc ModulesHelp { }
+{
+    puts stderr "\t[module-info name] - loads the StarPU @STARPU_EFFECTIVE_VERSION@ environment"
+    puts stderr "\tThe following environment variables are modified:"
+    puts stderr "\t$PATH"
+    puts stderr "\t$LD_LIBRARY_PATH"
+    puts stderr "\t$LIBRARY_PATH"
+    puts stderr "\t$INCLUDE"
+    puts stderr "\t$CPATH"
+    puts stderr "\t$PKG_CONFIG_PATH"
+    puts stderr "\t$MANPATH"
+}
+
+set prefix	@prefix@
+
+conflict starpu
+
+module-whatis   "loads the StarPU @STARPU_EFFECTIVE_VERSION@ environment"
+
+if {![file exists $prefix]}
+{
+    puts stderr "\t[module-info name] Load Error: $prefix does not exist"
+    break
+    exit 1
+}
+
+set exec_prefix	@exec_prefix@
+set libdir	@libdir@
+set datarootdir	@datarootdir@
+
+prepend-path  PATH		@bindir@
+prepend-path  LD_LIBRARY_PATH	@libdir@
+prepend-path  LIBRARY_PATH	@libdir@
+prepend-path  INCLUDE		@includedir@/starpu/@STARPU_EFFECTIVE_VERSION@
+prepend-path  CPATH		@includedir@/starpu/@STARPU_EFFECTIVE_VERSION@
+prepend-path  PKG_CONFIG_PATH	@libdir@/pkgconfig
+prepend-path  MANPATH		@mandir@
+prepend-path  PYTHONPATH	@libdir@/python@PYTHON_VERSION@/site-packages

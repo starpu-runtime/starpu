@@ -232,7 +232,7 @@ $ sudo ldconfig
 so the libraries can be found by the system.
 
 Libtool interface versioning information are included in
-libraries names (<c>libstarpu-1.3.so</c>, <c>libstarpumpi-1.3.so</c> and
-<c>libstarpufft-1.3.so</c>).
+libraries names (<c>libstarpu-1.4.so</c>, <c>libstarpumpi-1.4.so</c> and
+<c>libstarpufft-1.4.so</c>).
 
 */

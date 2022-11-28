@@ -13,19 +13,17 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
-include $(top_srcdir)/starpu-subdirtests.mk
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+pkglibdir=@pkglibdir@
+includedir=@includedir@
+starpu_includedir=${includedir}/starpu/@STARPU_EFFECTIVE_VERSION@
 
-SUBDIRS=src
-
-if STARPU_BUILD_STARPUFFT_EXAMPLES
-if STARPU_BUILD_TESTS
-SUBDIRS += tests
-endif
-endif
-
-versincludedir = $(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)
-versinclude_HEADERS = 				\
-	include/starpufft.h
-
-pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = packages/libstarpufft.pc packages/starpufft-1.0.pc packages/starpufft-1.1.pc packages/starpufft-1.2.pc packages/starpufft-1.3.pc packages/starpufft-1.4.pc
+Name: starpu
+Description: offers support for heterogeneous multicore architecture
+Version: @PACKAGE_VERSION@
+Cflags: -I${starpu_includedir} @STARPU_H_CPPFLAGS@
+Libs: @STARPU_EXPORT_DYNAMIC@ -L${libdir} -lstarpu-@STARPU_EFFECTIVE_VERSION@ @STARPU_EXPORTED_LIBS@ @STARPU_SC_HYPERVISOR@
+Libs.private: @LDFLAGS@ @LIBS@ @LIBSTARPU_LDFLAGS@
+Requires: @HWLOC_REQUIRES@

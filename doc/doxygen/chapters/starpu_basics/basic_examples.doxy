@@ -125,7 +125,7 @@ int main(int argc, char **argv)
 
 \verbatim
 $ make hello_world
-cc $(pkg-config --cflags starpu-1.3) hello_world.c -o hello_world $(pkg-config --libs starpu-1.3)
+cc $(pkg-config --cflags starpu-1.4) hello_world.c -o hello_world $(pkg-config --libs starpu-1.4)
 $ ./hello_world
 Hello world
 \endverbatim
@@ -203,7 +203,7 @@ int main(int argc, char **argv)
 
 \verbatim
 $ make hello_world
-cc $(pkg-config --cflags starpu-1.3) hello_world.c -o hello_world $(pkg-config --libs starpu-1.3)
+cc $(pkg-config --cflags starpu-1.4) hello_world.c -o hello_world $(pkg-config --libs starpu-1.4)
 $ ./hello_world
 Hello world (params = {1, 2.000000} )
 \endverbatim
@@ -254,7 +254,7 @@ int main(int argc, char **argv)
 
 \verbatim
 $ make hello_world
-cc $(pkg-config --cflags starpu-1.3) hello_world.c -o hello_world $(pkg-config --libs starpu-1.3)
+cc $(pkg-config --cflags starpu-1.4) hello_world.c -o hello_world $(pkg-config --libs starpu-1.4)
 $ ./hello_world
 Hello world
 Callback function (arg 42)
@@ -393,7 +393,7 @@ pointer.
 
 \verbatim
 $ make vector_scal
-cc $(pkg-config --cflags starpu-1.3) vector_scal.c -o vector_scal $(pkg-config --libs starpu-1.3)
+cc $(pkg-config --cflags starpu-1.4) vector_scal.c -o vector_scal $(pkg-config --libs starpu-1.4)
 $ ./vector_scal
 0.000000 3.000000 6.000000 9.000000 12.000000
 \endverbatim
@@ -456,8 +456,8 @@ be compiled at run-time when calling the function
 starpu_opencl_load_opencl_from_file().
 
 \verbatim
-CFLAGS  += $(shell pkg-config --cflags starpu-1.3)
-LDLIBS  += $(shell pkg-config --libs starpu-1.3)
+CFLAGS  += $(shell pkg-config --cflags starpu-1.4)
+LDLIBS  += $(shell pkg-config --libs starpu-1.4)
 CC       = gcc
 
 vector_scal: vector_scal.o vector_scal_cpu.o vector_scal_cuda.o vector_scal_opencl.o

@@ -80,7 +80,7 @@ SUBDIRS += eclipse-plugin
 endif
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = packages/libstarpu.pc packages/starpu-1.0.pc packages/starpu-1.1.pc packages/starpu-1.2.pc packages/starpu-1.3.pc
+pkgconfig_DATA = packages/libstarpu.pc packages/starpu-1.0.pc packages/starpu-1.1.pc packages/starpu-1.2.pc packages/starpu-1.3.pc packages/starpu-1.4.pc
 
 versincludedir = $(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)
 versinclude_HEADERS = 				\
@@ -193,7 +193,7 @@ EXTRA_DIST += contrib/gitlab/coverity.sh
 EXTRA_DIST += contrib/gitlab/simgrid.sh
 
 moduledir = ${libdir}/modules
-module_DATA = packages/starpu-1.3
+module_DATA = packages/starpu-1.4
 
 DISTCLEANFILES = STARPU-REVISION
 

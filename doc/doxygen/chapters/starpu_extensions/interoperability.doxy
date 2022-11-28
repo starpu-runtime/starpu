@@ -47,9 +47,9 @@ environment variable is properly positioned, the proper settings may be obtained
 with the following \c Makefile snippet:
 
 \code{Makefile}
-CFLAGS += $(shell pkg-config --cflags starpurm-1.3)
-LDFLAGS+= $(shell pkg-config --libs-only-L starpurm-1.3)
-LDLIBS += $(shell pkg-config --libs-only-l starpurm-1.3)
+CFLAGS += $(shell pkg-config --cflags starpurm-1.4)
+LDFLAGS+= $(shell pkg-config --libs-only-L starpurm-1.4)
+LDLIBS += $(shell pkg-config --libs-only-l starpurm-1.4)
 \endcode
 
 

@@ -141,8 +141,8 @@ The flags required to compile or link against the MPI layer are
 accessible with the following commands:
 
 \verbatim
-$ pkg-config --cflags starpumpi-1.3  # options for the compiler
-$ pkg-config --libs starpumpi-1.3    # options for the linker
+$ pkg-config --cflags starpumpi-1.4  # options for the compiler
+$ pkg-config --libs starpumpi-1.4    # options for the linker
 \endverbatim
 
 \code{.c}
