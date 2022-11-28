@@ -184,12 +184,16 @@ void _starpu_mpi_comm_amounts_display(FILE *stream, int node)
 				(float)comm_amount[dst]/(float)time, ((float)comm_amount[dst])/(1024*1024)/(float)time);
 	}
 
+	char name[32];
 	for (dst = 0; dst < starpu_memory_nodes_get_count(); dst++)
 	{
 		if (comm_amount_memnode[dst])
-			fprintf(stream, "[starpu_comm_stats_memnode][%d:%d]\t%f B\t%f MB\t %f B/s\t %f MB/s\n",
-				node, dst, (float)comm_amount_memnode[dst], ((float)comm_amount_memnode[dst])/(1024*1024),
+		{
+			starpu_memory_node_get_name(dst, name, sizeof(name));
+			fprintf(stream, "[starpu_comm_stats_memnode][%d:%s]\t%f B\t%f MB\t %f B/s\t %f MB/s\n",
+				node, name, (float)comm_amount_memnode[dst], ((float)comm_amount_memnode[dst])/(1024*1024),
 				(float)comm_amount_memnode[dst]/(float)time, ((float)comm_amount_memnode[dst])/(1024*1024)/(float)time);
+		}
 	}
 
 	fprintf(stream, "[starpu_comm_stats][%d] NB_COOP: %d\n", node, nb_coop);
