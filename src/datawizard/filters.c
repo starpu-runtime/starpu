@@ -539,9 +539,27 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 	{
 		starpu_data_handle_t child_handle = starpu_data_get_child(root_handle, child);
 		_starpu_data_clear_implicit(child_handle);
+		free(child_handle->active_readonly_children);
+		free(child_handle->active_readonly_nchildren);
+
 		STARPU_PTHREAD_MUTEX_DESTROY(&child_handle->busy_mutex);
 		STARPU_PTHREAD_COND_DESTROY(&child_handle->busy_cond);
 		STARPU_PTHREAD_MUTEX_DESTROY(&child_handle->sequential_consistency_mutex);
+#ifdef STARPU_BUBBLE
+		STARPU_PTHREAD_MUTEX_DESTROY(&handle->unpartition_mutex);
+#endif
+
+		STARPU_HG_ENABLE_CHECKING(child_handle->post_sync_tasks_cnt);
+		STARPU_HG_ENABLE_CHECKING(child_handle->busy_count);
+
+		_starpu_data_requester_prio_list_deinit(&child_handle->req_list);
+		_starpu_data_requester_prio_list_deinit(&child_handle->reduction_req_list);
+
+		if (child_handle->switch_cl)
+		{
+			free(child_handle->switch_cl->dyn_nodes);
+			free(child_handle->switch_cl);
+		}
 
 		_STARPU_TRACE_HANDLE_DATA_UNREGISTER(child_handle);
 	}
