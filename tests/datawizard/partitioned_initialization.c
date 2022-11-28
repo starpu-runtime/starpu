@@ -83,7 +83,8 @@ int main(void)
 	starpu_data_release(handle);
 
 	/* Read result */
-	starpu_task_insert(&clr, STARPU_R, handle, 0);
+	ret = starpu_task_insert(&clr, STARPU_R, handle, 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
 	/* Clean */
 	starpu_data_partition_clean(handle, NPARTS, handles);

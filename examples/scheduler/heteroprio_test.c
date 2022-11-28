@@ -202,21 +202,24 @@ int main(void)
 	int idxTask;
 	for(idxTask = 0; idxTask < nbTasks; ++idxTask)
 	{
-		starpu_task_insert(&codeleteA,
-				   STARPU_PRIORITY, 0,
-				   (STARPU_RW), handles[(idxTask*2)%nbHandles],
-				   (STARPU_RW), handles[(idxTask*3+1)%nbHandles],
-				   0);
-		starpu_task_insert(&codeleteB,
-				   STARPU_PRIORITY, 1,
-				   (STARPU_RW), handles[(idxTask*2 +1)%nbHandles],
-				   (STARPU_RW), handles[(idxTask*2)%nbHandles],
-				   0);
-		starpu_task_insert(&codeleteC,
-				   STARPU_PRIORITY, prio2,
-				   (STARPU_RW), handles[(idxTask)%nbHandles],
-				   (STARPU_RW), handles[(idxTask*idxTask)%nbHandles],
-				   0);
+		ret = starpu_task_insert(&codeleteA,
+					 STARPU_PRIORITY, 0,
+					 (STARPU_RW), handles[(idxTask*2)%nbHandles],
+					 (STARPU_RW), handles[(idxTask*3+1)%nbHandles],
+					 0);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+		ret = starpu_task_insert(&codeleteB,
+					 STARPU_PRIORITY, 1,
+					 (STARPU_RW), handles[(idxTask*2 +1)%nbHandles],
+					 (STARPU_RW), handles[(idxTask*2)%nbHandles],
+					 0);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+		ret = starpu_task_insert(&codeleteC,
+					 STARPU_PRIORITY, prio2,
+					 (STARPU_RW), handles[(idxTask)%nbHandles],
+					 (STARPU_RW), handles[(idxTask*idxTask)%nbHandles],
+					 0);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	}
 
 	FPRINTF(stderr, "Wait task\n");

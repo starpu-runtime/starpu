@@ -151,24 +151,28 @@ int main(void)
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 
-		starpu_task_insert(&increment_cl,
-				STARPU_RW, handle1,
-				0);
-		starpu_task_insert(&increment_cl,
-				STARPU_RW, handle1,
-				STARPU_RW, handle2,
-				0);
-		starpu_task_insert(&increment_cl,
-				STARPU_RW, handle1,
-				STARPU_RW, handle2,
-				STARPU_RW, handle3,
-				0);
-		starpu_task_insert(&increment_cl,
-				STARPU_RW, handle1,
-				STARPU_RW, handle2,
-				STARPU_RW, handle3,
-				STARPU_RW, handle4,
-				0);
+		ret = starpu_task_insert(&increment_cl,
+					 STARPU_RW, handle1,
+					 0);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+		ret = starpu_task_insert(&increment_cl,
+					 STARPU_RW, handle1,
+					 STARPU_RW, handle2,
+					 0);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+		ret = starpu_task_insert(&increment_cl,
+					 STARPU_RW, handle1,
+					 STARPU_RW, handle2,
+					 STARPU_RW, handle3,
+					 0);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+		ret = starpu_task_insert(&increment_cl,
+					 STARPU_RW, handle1,
+					 STARPU_RW, handle2,
+					 STARPU_RW, handle3,
+					 STARPU_RW, handle4,
+					 0);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	}
 
 	ret = starpu_data_acquire(handle1, STARPU_R);

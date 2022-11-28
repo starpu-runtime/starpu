@@ -193,14 +193,16 @@ int main(void)
 
 		for (j = 0; j < NTASKS; j++)
 		{
-			starpu_task_insert(&cl_init,
-					   STARPU_R, vector_mn_handle,
-					   STARPU_VALUE, &k, sizeof(int),
-					   0);
-			starpu_task_insert(&cl_final,
-					   STARPU_R, vector_mn_handle,
-					   STARPU_VALUE, &k, sizeof(int),
-					   0);
+			ret = starpu_task_insert(&cl_init,
+						 STARPU_R, vector_mn_handle,
+						 STARPU_VALUE, &k, sizeof(int),
+						 0);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+			ret = starpu_task_insert(&cl_final,
+						 STARPU_R, vector_mn_handle,
+						 STARPU_VALUE, &k, sizeof(int),
+						 0);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 		}
 	}
 

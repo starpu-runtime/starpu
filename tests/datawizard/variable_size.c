@@ -318,8 +318,8 @@ int main(void)
 			variable_size_data_register(&handles[x][y], x, y);
 
 			ret = starpu_task_insert(&cl_init, STARPU_W, handles[x][y], 0);
-			if (ret == ENODEV)
-				goto enodev;
+			if (ret == ENODEV) goto enodev;
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 #ifdef STARPU_SIMGRID
 			starpu_sleep(0.0005);
 #endif
@@ -331,7 +331,10 @@ int main(void)
 	for (i = 0; i < N; i++)
 		for (x = i; x < N; x++)
 			for (y = x; y < N; y++)
-				starpu_task_insert(&cl, STARPU_RW, handles[x][y], STARPU_PRIORITY, (2*N-x-y), 0);
+			{
+				ret = starpu_task_insert(&cl, STARPU_RW, handles[x][y], STARPU_PRIORITY, (2*N-x-y), 0);
+				STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+			}
 
 	starpu_task_wait_for_all();
 

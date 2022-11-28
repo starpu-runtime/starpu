@@ -160,9 +160,12 @@ int main(int argc, char **argv)
 	};
 	starpu_data_partition(bcsr_handle, &filter);
 
-	starpu_task_insert(&show_cl, STARPU_R, starpu_data_get_sub_data(bcsr_handle, 1, 0), 0);
-	starpu_task_insert(&show_cl, STARPU_R, starpu_data_get_sub_data(bcsr_handle, 1, 1), 0);
-	starpu_task_insert(&show_cl, STARPU_R, starpu_data_get_sub_data(bcsr_handle, 1, 2), 0);
+	ret = starpu_task_insert(&show_cl, STARPU_R, starpu_data_get_sub_data(bcsr_handle, 1, 0), 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+	ret = starpu_task_insert(&show_cl, STARPU_R, starpu_data_get_sub_data(bcsr_handle, 1, 1), 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+	ret = starpu_task_insert(&show_cl, STARPU_R, starpu_data_get_sub_data(bcsr_handle, 1, 2), 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
 	starpu_data_unpartition(bcsr_handle, STARPU_MAIN_RAM);
 

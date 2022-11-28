@@ -165,34 +165,40 @@ void insert_work_for_one_element(struct element *el)
 	starpu_vector_data_register(&tmp_send, -1, 0, el->tag, sizeof(int));
 
 	//Emulate the work to fill the send buffer
-	starpu_task_insert(&fill_tmp_buffer_cl,
-			   STARPU_W,tmp_send,
-			   0);
+	ret = starpu_task_insert(&fill_tmp_buffer_cl,
+				 STARPU_W,tmp_send,
+				 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+
 	//Send operation
-	starpu_task_insert(&submitted_order_rw,
-			   STARPU_RW,el->ensure_submitted_order_send,
-			   STARPU_RW,tmp_send,
-			   0);
+	ret = starpu_task_insert(&submitted_order_rw,
+				 STARPU_RW,el->ensure_submitted_order_send,
+				 STARPU_RW,tmp_send,
+				 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	ret = starpu_mpi_isend_detached(tmp_send,el->foreign_domain,el->tag, MPI_COMM_WORLD, NULL, NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend_detached");
 
-	starpu_task_insert(&submitted_order_rw,
-			   STARPU_RW,el->ensure_submitted_order_send,
-			   STARPU_RW,tmp_send,
-			   0);
+	ret = starpu_task_insert(&submitted_order_rw,
+				 STARPU_RW,el->ensure_submitted_order_send,
+				 STARPU_RW,tmp_send,
+				 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
 	//Recv operation for current element
-	starpu_task_insert(&submitted_order,
-			   STARPU_RW,el->ensure_submitted_order_recv,
-			   STARPU_W,tmp_recv,
-			   0);
+	ret = starpu_task_insert(&submitted_order,
+				 STARPU_RW,el->ensure_submitted_order_recv,
+				 STARPU_W,tmp_recv,
+				 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	ret = starpu_mpi_irecv_detached(tmp_recv,el->foreign_domain,el->tag, MPI_COMM_WORLD, NULL, NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv_detached");
 
 	//Emulate the "reading" of the recv value.
-	starpu_task_insert(&read_ghost_value_cl,
-			   STARPU_R,tmp_recv,
-			   0);
+	ret = starpu_task_insert(&read_ghost_value_cl,
+				 STARPU_R,tmp_recv,
+				 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
 	starpu_data_unregister_submit(tmp_send);
 	starpu_data_unregister_submit(tmp_recv);

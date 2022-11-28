@@ -103,7 +103,8 @@ void dotest(int rank, int size, char *enabled)
 	{
 		// Calling starpu_mpi_get_data_on_all_nodes_detached() is necessary to make sure all nodes have a valid copy of the data
 		starpu_mpi_get_data_on_all_nodes_detached(MPI_COMM_WORLD, data_handles[i]);
-		starpu_task_insert(&mycodelet2, STARPU_RW, data_handles[i], 0);
+		ret = starpu_task_insert(&mycodelet2, STARPU_RW, data_handles[i], 0);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	}
 
 	starpu_task_wait_for_all();

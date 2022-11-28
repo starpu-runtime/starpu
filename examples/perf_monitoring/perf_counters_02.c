@@ -198,10 +198,11 @@ int main(int argc, char **argv)
 		{
 			v = i % NVECTORS;
 			const int niter = NITER;
-			starpu_task_insert(&cl,
-					STARPU_RW, vector_h[v],
-					STARPU_VALUE, &niter, sizeof(int),
-					0);
+			ret = starpu_task_insert(&cl,
+						 STARPU_RW, vector_h[v],
+						 STARPU_VALUE, &niter, sizeof(int),
+						 0);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 		}
 	}
 
