@@ -104,7 +104,7 @@ int main(int argc, char **argv)
 				ret = starpu_task_insert(&cl_r, STARPU_R, handles[i], STARPU_EXECUTE_ON_WORKER, worker, 0);
 			else
 				ret = starpu_task_insert(&cl_rw, STARPU_RW, handles[i], STARPU_EXECUTE_ON_WORKER, worker, 0);
-			if (ret == ENODEV) goto enodev;
+			if (ret == -ENODEV) goto enodev;
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 

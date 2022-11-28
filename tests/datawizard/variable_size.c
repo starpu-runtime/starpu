@@ -318,7 +318,7 @@ int main(void)
 			variable_size_data_register(&handles[x][y], x, y);
 
 			ret = starpu_task_insert(&cl_init, STARPU_W, handles[x][y], 0);
-			if (ret == ENODEV) goto enodev;
+			if (ret == -ENODEV) goto enodev;
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 #ifdef STARPU_SIMGRID
 			starpu_sleep(0.0005);
