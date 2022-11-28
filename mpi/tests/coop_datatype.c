@@ -39,7 +39,7 @@ void _starpu_my_data_datatype_allocate(unsigned node, MPI_Datatype *mpi_datatype
 	MPI_Aint displacements[2];
 	MPI_Datatype types[2] = {MPI_INT, MPI_CHAR};
 	struct starpu_my_data *myinterface;
-	myinterface = malloc(sizeof(struct starpu_my_data));
+	myinterface = calloc(1, sizeof(struct starpu_my_data));
 
 	MPI_Get_address(myinterface, displacements);
 	MPI_Get_address(&myinterface[0].c, displacements+1);
