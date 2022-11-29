@@ -251,7 +251,7 @@ static void starpu_hdf5_write_internal(struct _starpu_hdf5_work * work)
 	STARPU_ASSERT_MSG(status >= 0, "Error when writing this HDF5 dataset (%s)\n", work->obj_dst->path);
 }
 
-unsigned warned = 0;
+static unsigned warned = 0;
 static void starpu_hdf5_copy_internal(struct _starpu_hdf5_work * work)
 {
 	herr_t status;
