@@ -546,7 +546,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 		STARPU_PTHREAD_COND_DESTROY(&child_handle->busy_cond);
 		STARPU_PTHREAD_MUTEX_DESTROY(&child_handle->sequential_consistency_mutex);
 #ifdef STARPU_BUBBLE
-		STARPU_PTHREAD_MUTEX_DESTROY(&handle->unpartition_mutex);
+		STARPU_PTHREAD_MUTEX_DESTROY(&child_handle->unpartition_mutex);
 #endif
 
 		STARPU_HG_ENABLE_CHECKING(child_handle->post_sync_tasks_cnt);
