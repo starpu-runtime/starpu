@@ -308,7 +308,12 @@ int main(void)
 	setenv("STARPU_DISK_SWAP_BACKEND", "unistd", 0);
 #endif
 
-	ret = starpu_init(NULL);
+	struct starpu_conf conf;
+	starpu_conf_init(&conf);
+	starpu_conf_noworker(&conf);
+	conf.ncpus = -1;
+
+	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
