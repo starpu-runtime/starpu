@@ -506,7 +506,7 @@ int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 				  id == STARPU_BCSR_INTERFACE_ID ||
 				  id == STARPU_COO_INTERFACE_ID,
 				  /* NDIM is not currently supported: would need to transfer the nn and ldn arrays */
-				  "MPI-MS currently cannot work with interface type %d", id);
+				  "Master-Slave currently cannot work with interface type %d", id);
 
 		memcpy((void*) buffer_ptr, interfaces[i], handle->ops->interface_size);
 		/* The sink side has no mean to get the type of each
