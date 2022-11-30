@@ -26,7 +26,7 @@ SUBDIRS =
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
 AM_CFLAGS += $(FXT_CFLAGS) $(NMAD_CFLAGS) $(MPI_SYNC_CLOCKS_CFLAGS)
-AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/src/ -I$(top_builddir)/src -I$(top_builddir)/include -I$(top_srcdir)/mpi/include -I$(top_srcdir)/mpi/src $(STARPU_H_CPPFLAGS)
+AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/src/ -I$(top_builddir)/src -I$(top_builddir)/include -I$(top_srcdir)/mpi/include -I$(top_srcdir)/mpi/src $(STARPU_H_CPPFLAGS) -DBUILDING_STARPU
 LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@ $(STARPU_EXPORTED_LIBS)
 LIBS += $(FXT_LDFLAGS) $(FXT_LIBS)
 LIBS += $(NMAD_LDFLAGS) $(NMAD_LIBS)

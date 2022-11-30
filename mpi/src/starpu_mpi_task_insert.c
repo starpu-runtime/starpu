@@ -24,6 +24,7 @@
 #include <util/starpu_task_insert_utils.h>
 #include <datawizard/coherency.h>
 #include <core/task.h>
+#include <core/workers.h>
 
 #include <starpu_mpi_private.h>
 #include <starpu_mpi_cache.h>
@@ -607,6 +608,38 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 	if (ret < 0)
 		return ret;
 
+	if (do_execute == 1)
+	{
+		va_list varg_list_copy;
+		_STARPU_MPI_DEBUG(100, "Execution of the codelet %p (%s)\n", codelet, codelet?codelet->name:NULL);
+
+		*task = starpu_task_create();
+		(*task)->cl_arg_free = 1;
+		(*task)->callback_arg_free = 1;
+		(*task)->prologue_callback_arg_free = 1;
+		(*task)->prologue_callback_pop_arg_free = 1;
+
+		va_copy(varg_list_copy, varg_list);
+		_starpu_task_insert_create(codelet, *task, varg_list_copy);
+		va_end(varg_list_copy);
+
+		/* Check the type of worker(s) required by the task exist */
+		if (STARPU_UNLIKELY(!_starpu_worker_exists(*task)))
+		{
+			_STARPU_MPI_DEBUG(0, "There is no worker to execute the codelet %p (%s)\n", codelet, codelet?codelet->name:NULL);
+			return -ENODEV;
+		}
+
+		/* In case we require that a task should be explicitely
+		 * executed on a specific worker, we make sure that the worker
+		 * is able to execute this task.  */
+		if (STARPU_UNLIKELY((*task)->execute_on_a_specific_worker && !starpu_combined_worker_can_execute_task((*task)->workerid, *task, 0)))
+		{
+			_STARPU_MPI_DEBUG(0, "The specified worker %d cannot execute the codelet %p (%s)\n", (*task)->workerid, codelet, codelet?codelet->name:NULL);
+			return -ENODEV;
+		}
+	}
+
 	_STARPU_TRACE_TASK_MPI_PRE_START();
 	/* Send and receive data as requested */
 	for(i=0 ; i<nb_data ; i++)
@@ -629,27 +662,7 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 
 	_STARPU_TRACE_TASK_MPI_PRE_END();
 
-	if (do_execute == 0)
-	{
-		return 1;
-	}
-	else
-	{
-		va_list varg_list_copy;
-		_STARPU_MPI_DEBUG(100, "Execution of the codelet %p (%s)\n", codelet, codelet?codelet->name:NULL);
-
-		*task = starpu_task_create();
-		(*task)->cl_arg_free = 1;
-		(*task)->callback_arg_free = 1;
-		(*task)->prologue_callback_arg_free = 1;
-		(*task)->prologue_callback_pop_arg_free = 1;
-
-		va_copy(varg_list_copy, varg_list);
-		_starpu_task_insert_create(codelet, *task, varg_list_copy);
-		va_end(varg_list_copy);
-
-		return 0;
-	}
+	return (do_execute == 0) ? 1 : 0;
 }
 
 int _starpu_mpi_task_postbuild_v(MPI_Comm comm, int xrank, int do_execute, struct starpu_data_descr *descrs, int nb_data, int prio)
@@ -851,7 +864,7 @@ int starpu_mpi_task_exchange_data_before_execution(MPI_Comm comm, struct starpu_
 	}
 	else
 	{
-		_STARPU_MPI_DEBUG(100, "Inconsistent=%d - xrank=%d\n", inconsistent_execute, *xrank);
+		_STARPU_MPI_DEBUG(100, "Inconsistent=%d - xrank=%d\n", inconsistent_execute, params->xrank);
 		params->do_execute = (params->xrank == STARPU_MPI_PER_NODE) || (me == params->xrank);
 	}
 

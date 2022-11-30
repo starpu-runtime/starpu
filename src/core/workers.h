@@ -1328,6 +1328,8 @@ static inline int _starpu_perf_counter_paused(void)
 void _starpu_crash_add_hook(void (*hook_func)(void));
 void _starpu_crash_call_hooks();
 
+uint32_t _starpu_worker_exists(struct starpu_task *task);
+
 /* @}*/
 
 #pragma GCC visibility pop

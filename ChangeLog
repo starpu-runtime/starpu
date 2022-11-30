@@ -140,6 +140,9 @@ Changes:
     needed.
 
 Small changes:
+  * starpu_mpi_task_insert() returns -ENODEV if no worker is available
+    on the node which is to execute the codelet (the other nodes do
+    not return -ENODEV)
   * Add a synthetic energy efficiency testcase.
   * Make reduction methods want the commute flag.
   * Delete old MIC driver code
