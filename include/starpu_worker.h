@@ -318,6 +318,11 @@ void starpu_worker_display_all(FILE *output);
 void starpu_worker_display_names(FILE *output, enum starpu_worker_archtype type);
 
 /**
+   Display on \p output the number of workers of the given \p type.
+*/
+void starpu_worker_display_count(FILE *output, enum starpu_worker_archtype type);
+
+/**
    Return the device id of the worker \p id. The worker should be
    identified with the value returned by the starpu_worker_get_id()
    function. In the case of a CUDA worker, this device identifier is

@@ -35,6 +35,8 @@ static void usage()
 	fprintf(stderr, "\t-i, --info          display the name of the files containing the information\n");
 	fprintf(stderr, "\t-f, --force         force bus sampling and show measures \n");
 	fprintf(stderr, "\t-w, --worker <type> only show workers of the given type\n");
+	fprintf(stderr, "\t-c, --count         only display the number of workers\n");
+	fprintf(stderr, "\t-n, --notopology    do not display the bandwitdh and affinity\n");
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Report bugs to <%s>.\n", PACKAGE_BUGREPORT);
 }
@@ -76,7 +78,7 @@ static void display_all_combined_workers(void)
 		display_combined_worker(nworkers + i);
 }
 
-static void parse_args(int argc, char **argv, int *force, int *info, char **worker_type)
+static void parse_args(int argc, char **argv, int *force, int *info, int *count, int *topology, char **worker_type)
 {
 	int i;
 
@@ -103,9 +105,17 @@ static void parse_args(int argc, char **argv, int *force, int *info, char **work
 			fputs(PROGNAME " (" PACKAGE_NAME ") " PACKAGE_VERSION "\n", stderr);
 			exit(EXIT_FAILURE);
 		}
+		else if (strncmp(argv[i], "--count", 7) == 0 || strncmp(argv[i], "-c", 2) == 0)
+		{
+			*count = 1;
+		}
 		else if (strncmp(argv[i], "--worker", 8) == 0 || strncmp(argv[i], "-w", 2) == 0)
 		{
 			*worker_type = strdup(argv[++i]);
+		}
+		else if (strncmp(argv[i], "--notopology", 12) == 0 || strncmp(argv[i], "-n", 2) == 0)
+		{
+			*topology = 0;
 		}
 		else
 		{
@@ -121,10 +131,12 @@ int main(int argc, char **argv)
 	int ret;
 	int force = 0;
 	int info = 0;
+	int count = 0;
+	int topology = 1;
 	char *worker_type = NULL;
 	struct starpu_conf conf;
 
-	parse_args(argc, argv, &force, &info, &worker_type);
+	parse_args(argc, argv, &force, &info, &count, &topology, &worker_type);
 
 	starpu_conf_init(&conf);
 	if (force)
@@ -151,30 +163,6 @@ int main(int argc, char **argv)
 	gethostname(real_hostname, sizeof(real_hostname));
 	_starpu_gethostname(starpu_hostname, sizeof(starpu_hostname));
 	fprintf(stdout, "Real hostname: %s (StarPU hostname: %s)\n", real_hostname, starpu_hostname);
-
-	if (worker_type)
-	{
-		if (strcmp(worker_type, "CPU") == 0)
-			starpu_worker_display_names(stdout, STARPU_CPU_WORKER);
-		else if (strcmp(worker_type, "CUDA") == 0)
-			starpu_worker_display_names(stdout, STARPU_CUDA_WORKER);
-		else if (strcmp(worker_type, "OpenCL") == 0)
-			starpu_worker_display_names(stdout, STARPU_OPENCL_WORKER);
-		else if (strcmp(worker_type, "HIP") == 0)
-			starpu_worker_display_names(stdout, STARPU_HIP_WORKER);
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-		else if (strcmp(worker_type, "MPI_MS") == 0)
-			starpu_worker_display_names(stdout, STARPU_MPI_MS_WORKER);
-#endif
-#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
-		else if (strcmp(worker_type, "TCPIP_MS") == 0)
-			starpu_worker_display_names(stdout, STARPU_TCPIP_MS_WORKER);
-#endif
-		else
-			fprintf(stderr, "Unknown worker type '%s'\n", worker_type);
-		starpu_shutdown();
-		return 0;
-	}
 
 	const char *env[] =
 	{
@@ -230,29 +218,59 @@ int main(int argc, char **argv)
 	if (message)
 		fprintf(stdout,"\n");
 
-	fprintf(stdout, "StarPU has found :\n");
+	void (*func)(FILE *output, enum starpu_worker_archtype type) = &starpu_worker_display_names;
+	if (count == 1)
+		func = &starpu_worker_display_count;
 
-	starpu_worker_display_names(stdout, STARPU_CPU_WORKER);
-	starpu_worker_display_names(stdout, STARPU_CUDA_WORKER);
-	starpu_worker_display_names(stdout, STARPU_OPENCL_WORKER);
-	starpu_worker_display_names(stdout, STARPU_HIP_WORKER);
+	if (worker_type)
+	{
+		if (strcmp(worker_type, "CPU") == 0)
+			func(stdout, STARPU_CPU_WORKER);
+		else if (strcmp(worker_type, "CUDA") == 0)
+			func(stdout, STARPU_CUDA_WORKER);
+		else if (strcmp(worker_type, "OpenCL") == 0)
+			func(stdout, STARPU_OPENCL_WORKER);
+		else if (strcmp(worker_type, "HIP") == 0)
+			func(stdout, STARPU_HIP_WORKER);
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-	starpu_worker_display_names(stdout, STARPU_MPI_MS_WORKER);
+		else if (strcmp(worker_type, "MPI_MS") == 0)
+			func(stdout, STARPU_MPI_MS_WORKER);
 #endif
 #ifdef STARPU_USE_TCPIP_MASTER_SLAVE
-	starpu_worker_display_names(stdout, STARPU_TCPIP_MS_WORKER);
+		else if (strcmp(worker_type, "TCPIP_MS") == 0)
+			func(stdout, STARPU_TCPIP_MS_WORKER);
+#endif
+		else
+			fprintf(stderr, "Unknown worker type '%s'\n", worker_type);
+	}
+	else
+	{
+		fprintf(stdout, "StarPU has found :\n");
+
+		func(stdout, STARPU_CPU_WORKER);
+		func(stdout, STARPU_CUDA_WORKER);
+		func(stdout, STARPU_OPENCL_WORKER);
+		func(stdout, STARPU_HIP_WORKER);
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+		func(stdout, STARPU_MPI_MS_WORKER);
+#endif
+#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
+		func(stdout, STARPU_TCPIP_MS_WORKER);
 #endif
 
-	display_all_combined_workers();
+		display_all_combined_workers();
+	}
 
 	if (ret != -ENODEV)
 	{
-		fprintf(stdout, "\ntopology ... (hwloc logical indexes)\n");
-		starpu_topology_print(stdout);
+		if (topology == 1)
+		{
+			fprintf(stdout, "\ntopology ... (hwloc logical indexes)\n");
+			starpu_topology_print(stdout);
 
-		fprintf(stdout, "\nbandwidth (MB/s) and latency (us)...\n");
-		starpu_bus_print_bandwidth(stdout);
-
+			fprintf(stdout, "\nbandwidth (MB/s) and latency (us)...\n");
+			starpu_bus_print_bandwidth(stdout);
+		}
 		starpu_shutdown();
 	}
 

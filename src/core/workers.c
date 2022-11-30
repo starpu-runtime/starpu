@@ -2902,6 +2902,21 @@ unsigned starpu_worker_get_sched_ctx_id_stream(unsigned stream_workerid)
 	return w->stream_ctx != NULL ? w->stream_ctx->id : STARPU_NMAX_SCHED_CTXS;
 }
 
+void starpu_worker_display_count(FILE *output, enum starpu_worker_archtype type)
+{
+	int nworkers = starpu_worker_get_count_by_type(type);
+	if (nworkers <= 0)
+	{
+		fprintf(output, "No %s worker\n", starpu_worker_get_type_as_string(type));
+	}
+	else
+	{
+		int ids[nworkers];
+		starpu_worker_get_ids_by_type(type, ids, nworkers);
+		fprintf(output, "%d %s worker%s\n", nworkers, starpu_worker_get_type_as_string(type), nworkers==1?"":"s");
+	}
+}
+
 void starpu_worker_display_names(FILE *output, enum starpu_worker_archtype type)
 {
 	int nworkers = starpu_worker_get_count_by_type(type);
