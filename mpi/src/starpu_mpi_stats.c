@@ -185,14 +185,15 @@ void _starpu_mpi_comm_amounts_display(FILE *stream, int node)
 	}
 
 	char name[32];
-	for (dst = 0; dst < starpu_memory_nodes_get_count(); dst++)
+	unsigned xdst;
+	for (xdst = 0; xdst < starpu_memory_nodes_get_count(); xdst++)
 	{
-		if (comm_amount_memnode[dst])
+		if (comm_amount_memnode[xdst])
 		{
-			starpu_memory_node_get_name(dst, name, sizeof(name));
+			starpu_memory_node_get_name(xdst, name, sizeof(name));
 			fprintf(stream, "[starpu_comm_stats_memnode][%d:%s]\t%f B\t%f MB\t %f B/s\t %f MB/s\n",
-				node, name, (float)comm_amount_memnode[dst], ((float)comm_amount_memnode[dst])/(1024*1024),
-				(float)comm_amount_memnode[dst]/(float)time, ((float)comm_amount_memnode[dst])/(1024*1024)/(float)time);
+				node, name, (float)comm_amount_memnode[xdst], ((float)comm_amount_memnode[xdst])/(1024*1024),
+				(float)comm_amount_memnode[xdst]/(float)time, ((float)comm_amount_memnode[xdst])/(1024*1024)/(float)time);
 		}
 	}
 
