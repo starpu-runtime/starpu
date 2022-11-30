@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2017-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2017-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -20,6 +20,24 @@
    match-leak-kinds: reachable
    ...
    fun:H5E_get_stack
+   ...
+}
+
+{
+   thread-specific value
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   ...
+   fun:H5E__get_stack
+   ...
+}
+
+{
+   thread-specific value
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   ...
+   fun:H5TS_thread_id
    ...
 }
 
