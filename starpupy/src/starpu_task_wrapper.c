@@ -95,7 +95,8 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
-static void STARPU_ATTRIBUTE_NORETURN print_exception(const char *msg, ...) {
+static void STARPU_ATTRIBUTE_NORETURN print_exception(const char *msg, ...)
+{
 	PyObject *type, *value, *traceback;
 	PyErr_Fetch(&type, &value, &traceback);
 	PyObject *str = PyObject_CallMethod(value, "__str__", NULL);
