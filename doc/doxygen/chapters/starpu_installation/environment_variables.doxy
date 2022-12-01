@@ -1853,11 +1853,11 @@ accesses (see \ref ConcurrentDataAccess).
 <dd>
 \anchor STARPU_USE_NUMA
 \addindex __env__STARPU_USE_NUMA
-When defined, NUMA nodes are taking into account by StarPU, i.e. StarPU will
+When defined to 1, NUMA nodes are taking into account by StarPU, i.e. StarPU will
 expose one StarPU memory node per NUMA node, and will thus schedule tasks
 according to data locality, migrated data when appropriate, etc.
 
-When enabled, ::STARPU_MAIN_RAM is associated to the NUMA node associated to the
+::STARPU_MAIN_RAM is then associated to the NUMA node associated to the
 first CPU worker if it exists, the NUMA node associated to the first GPU discovered otherwise.
 If StarPU doesn't find any NUMA node after these steps, ::STARPU_MAIN_RAM is the first NUMA node
 discovered by StarPU.
