@@ -623,20 +623,23 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 		_starpu_task_insert_create(codelet, *task, varg_list_copy);
 		va_end(varg_list_copy);
 
-		/* Check the type of worker(s) required by the task exist */
-		if (STARPU_UNLIKELY(!_starpu_worker_exists(*task)))
+		if ((*task)->cl)
 		{
-			_STARPU_MPI_DEBUG(0, "There is no worker to execute the codelet %p (%s)\n", codelet, codelet?codelet->name:NULL);
-			return -ENODEV;
-		}
+			/* Check the type of worker(s) required by the task exist */
+			if (STARPU_UNLIKELY(!_starpu_worker_exists(*task)))
+			{
+				_STARPU_MPI_DEBUG(0, "There is no worker to execute the codelet %p (%s)\n", codelet, codelet?codelet->name:NULL);
+				return -ENODEV;
+			}
 
-		/* In case we require that a task should be explicitely
-		 * executed on a specific worker, we make sure that the worker
-		 * is able to execute this task.  */
-		if (STARPU_UNLIKELY((*task)->execute_on_a_specific_worker && !starpu_combined_worker_can_execute_task((*task)->workerid, *task, 0)))
-		{
-			_STARPU_MPI_DEBUG(0, "The specified worker %d cannot execute the codelet %p (%s)\n", (*task)->workerid, codelet, codelet?codelet->name:NULL);
-			return -ENODEV;
+			/* In case we require that a task should be explicitely
+			 * executed on a specific worker, we make sure that the worker
+			 * is able to execute this task.  */
+			if (STARPU_UNLIKELY((*task)->execute_on_a_specific_worker && !starpu_combined_worker_can_execute_task((*task)->workerid, *task, 0)))
+			{
+				_STARPU_MPI_DEBUG(0, "The specified worker %d cannot execute the codelet %p (%s)\n", (*task)->workerid, codelet, codelet?codelet->name:NULL);
+				return -ENODEV;
+			}
 		}
 	}
 
