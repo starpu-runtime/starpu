@@ -82,7 +82,7 @@ void rec_bubble_gen_dag(struct starpu_task *t, void *arg)
 	for(i=0 ; i<PARTS ; i++)
 	{
 		int *is_bubble = malloc(sizeof(int));
-		*is_bubble = random() & 1;
+		*is_bubble = rand() & 1;
 		char *name;
 		asprintf(&name, "%s %s", starpu_task_get_name(t), (*is_bubble == 0) ? "T_L2" : "B_L2");
 
@@ -137,7 +137,7 @@ int main(int argv, char **argc)
 	for(i=0 ; i<STEPS ; i++)
 	{
 		int *is_bubble = malloc(sizeof(int));
-		*is_bubble = random() & 1;
+		*is_bubble = rand() & 1;
 
 		char *name;
 		asprintf(&name, "%s %d", (*is_bubble == 0) ? "T_L1" : "B_L1", i);
