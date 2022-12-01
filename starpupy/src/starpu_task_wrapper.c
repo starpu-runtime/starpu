@@ -95,6 +95,19 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
+static void STARPU_ATTRIBUTE_NORETURN print_exception(const char *msg, ...) {
+	PyObject *type, *value, *traceback;
+	PyErr_Fetch(&type, &value, &traceback);
+	PyObject *str = PyObject_CallMethod(value, "__str__", NULL);
+	Py_UCS4 *wstr = PyUnicode_AsUCS4Copy(str);
+	va_list ap;
+	va_start(ap, msg);
+	vfprintf(stderr, msg, ap);
+	va_end(ap);
+	fprintf(stderr, "got exception %ls\n", wstr);
+	STARPU_ASSERT(0);
+}
+
 /*********************Functions passed in task_submit wrapper***********************/
 
 static PyObject *StarpupyError; /*starpupy error exception*/
@@ -296,10 +309,14 @@ void starpupy_codelet_func(void *descr[], void *cl_arg)
 	starpu_codelet_pick_arg(&data, (void**)&func_data, &func_data_size);
 	/*use cloudpickle to load function (maybe only function name), return a new reference*/
 	pFunc=starpu_cloudpickle_loads(func_data, func_data_size);
+	if (!pFunc)
+		print_exception("cloudpickle could not unpack the function from the main interpreter");
 	/*get argList char**/
 	starpu_codelet_pick_arg(&data, (void**)&arg_data, &arg_data_size);
 	/*use cloudpickle to load argList*/
 	argList=starpu_cloudpickle_loads(arg_data, arg_data_size);
+	if (!argList)
+		print_exception("cloudpickle could not unpack the argument list from the main interpreter");
 #else
 	/*get func_py*/
 	starpu_codelet_unpack_arg(&data, &pFunc, sizeof(pFunc));
@@ -1691,31 +1708,7 @@ PyInit_starpupy(void)
 
 	main_thread = pthread_self();
 
-	Py_BEGIN_ALLOW_THREADS;
-	starpu_conf_init(&conf);
-	ret = starpu_init(&conf);
-	Py_END_ALLOW_THREADS;
-	if (ret!=0)
-	{
-		PyErr_Format(StarpupyError, "Unexpected value %d returned for starpu_init", ret);
-		return NULL;
-	}
-
-	if (conf.sched_policy_name && !strcmp(conf.sched_policy_name, "graph_test"))
-	{
-		/* FIXME: should call starpu_do_schedule when appropriate, the graph_test scheduler needs it. */
-		fprintf(stderr,"TODO: The graph_test scheduler needs starpu_do_schedule calls\n");
-		exit(77);
-	}
-
-#ifdef STARPU_STARPUPY_MULTI_INTERPRETER
-	/*generate new interpreter on each worker*/
-	Py_BEGIN_ALLOW_THREADS;
-	starpu_execute_on_each_worker_ex(new_inter, NULL, where_inter, "new_inter");
-	Py_END_ALLOW_THREADS;
-#endif
-
-	/*python asysncio import*/
+	/*python asyncio import*/
 	asyncio_module = PyImport_ImportModule("asyncio");
 	if (asyncio_module == NULL)
 	{
@@ -1766,6 +1759,30 @@ PyInit_starpupy(void)
 	{
 		printf("Fail to create thread\n");
 	}
+
+	Py_BEGIN_ALLOW_THREADS;
+	starpu_conf_init(&conf);
+	ret = starpu_init(&conf);
+	Py_END_ALLOW_THREADS;
+	if (ret!=0)
+	{
+		PyErr_Format(StarpupyError, "Unexpected value %d returned for starpu_init", ret);
+		return NULL;
+	}
+
+	if (conf.sched_policy_name && !strcmp(conf.sched_policy_name, "graph_test"))
+	{
+		/* FIXME: should call starpu_do_schedule when appropriate, the graph_test scheduler needs it. */
+		fprintf(stderr,"TODO: The graph_test scheduler needs starpu_do_schedule calls\n");
+		exit(77);
+	}
+
+#ifdef STARPU_STARPUPY_MULTI_INTERPRETER
+	/*generate new interpreter on each worker*/
+	Py_BEGIN_ALLOW_THREADS;
+	starpu_execute_on_each_worker_ex(new_inter, NULL, where_inter, "new_inter");
+	Py_END_ALLOW_THREADS;
+#endif
 
 	/*module import multi-phase initialization*/
 	return PyModuleDef_Init(&starpupymodule);
