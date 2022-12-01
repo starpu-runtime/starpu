@@ -23,7 +23,9 @@ else:
     numpy_include_dir = []
 
 cppflags = "@STARPU_H_CPPFLAGS@"
-compile_args = cppflags.split(' ')
+am_cflags = "@GLOBAL_AM_CFLAGS@"
+cflags = "@CFLAGS@"
+compile_args = cppflags.split(' ') + am_cflags.split(' ') + cflags.split(' ')
 extra_compile_args = []
 for f in compile_args:
     if f:
