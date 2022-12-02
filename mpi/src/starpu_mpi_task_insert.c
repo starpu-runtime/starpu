@@ -594,7 +594,7 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 	int me, do_execute, xrank, nb_nodes;
 	int ret;
 	int i;
-	struct starpu_data_descr *descrs;
+	struct starpu_data_descr *descrs = NULL;
 	int nb_data;
 	int prio;
 
@@ -607,18 +607,6 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 	ret = _starpu_mpi_task_decode_v(codelet, me, nb_nodes, &xrank, &do_execute, &descrs, &nb_data, &prio, varg_list);
 	if (ret < 0)
 		return ret;
-
-	if (xrank_p)
-		*xrank_p = xrank;
-	if (nb_data_p)
-		*nb_data_p = nb_data;
-	if (prio_p)
-		*prio_p = prio;
-
-	if (descrs_p)
-		*descrs_p = descrs;
-	else
-		free(descrs);
 
 	if (do_execute == 1)
 	{
@@ -641,6 +629,7 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 			if (STARPU_UNLIKELY(!_starpu_worker_exists(*task)))
 			{
 				_STARPU_MPI_DEBUG(0, "There is no worker to execute the codelet %p (%s)\n", codelet, codelet?codelet->name:NULL);
+				free(descrs);
 				return -ENODEV;
 			}
 
@@ -650,6 +639,7 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 			if (STARPU_UNLIKELY((*task)->execute_on_a_specific_worker && !starpu_combined_worker_can_execute_task((*task)->workerid, *task, 0)))
 			{
 				_STARPU_MPI_DEBUG(0, "The specified worker %d cannot execute the codelet %p (%s)\n", (*task)->workerid, codelet, codelet?codelet->name:NULL);
+				free(descrs);
 				return -ENODEV;
 			}
 		}
@@ -662,9 +652,21 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 		_starpu_mpi_exchange_data_before_execution(descrs[i].handle, descrs[i].mode, me, xrank, do_execute, prio, comm);
 	}
 
+	if (xrank_p)
+		*xrank_p = xrank;
+	if (nb_data_p)
+		*nb_data_p = nb_data;
+	if (prio_p)
+		*prio_p = prio;
+
+	if (descrs_p)
+		*descrs_p = descrs;
+	else
+		free(descrs);
+
 	_STARPU_TRACE_TASK_MPI_PRE_END();
 
-	return (do_execute == 0) ? 1 : 0;
+	return do_execute;
 }
 
 int _starpu_mpi_task_postbuild_v(MPI_Comm comm, int xrank, int do_execute, struct starpu_data_descr *descrs, int nb_data, int prio)
@@ -711,7 +713,7 @@ int _starpu_mpi_task_insert_v(MPI_Comm comm, struct starpu_codelet *codelet, va_
 	if (ret < 0)
 		return ret;
 
-	if (ret == 0)
+	if (ret == 1)
 	{
 		do_execute = 1;
 		ret = starpu_task_submit(task);
@@ -732,7 +734,7 @@ int _starpu_mpi_task_insert_v(MPI_Comm comm, struct starpu_codelet *codelet, va_
 	int val = _starpu_mpi_task_postbuild_v(comm, xrank, do_execute, descrs, nb_data, prio);
 	free(descrs);
 
-	if (ret == 0 && pre_submit_hook)
+	if (ret == 1 && pre_submit_hook)
 		pre_submit_hook(task);
 
 	return val;
@@ -773,7 +775,7 @@ struct starpu_task *starpu_mpi_task_build(MPI_Comm comm, struct starpu_codelet *
 	ret = _starpu_mpi_task_build_v(comm, codelet, &task, NULL, NULL, NULL, NULL, varg_list);
 	va_end(varg_list);
 	STARPU_ASSERT(ret >= 0);
-	return (ret > 0) ? NULL : task;
+	return (ret == 1) ? task : NULL;
 }
 
 struct starpu_task *starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, va_list varg_list)
@@ -783,7 +785,7 @@ struct starpu_task *starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet
 
 	ret = _starpu_mpi_task_build_v(comm, codelet, &task, NULL, NULL, NULL, NULL, varg_list);
 	STARPU_ASSERT(ret >= 0);
-	return (ret > 0) ? NULL : task;
+	return (ret == 1) ? task : NULL;
 }
 
 int starpu_mpi_task_post_build(MPI_Comm comm, struct starpu_codelet *codelet, ...)

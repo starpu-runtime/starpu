@@ -62,7 +62,7 @@ int test(int rank, int node, int *before, int *after, int task_insert, int data_
 		if (rank <= 1)
 		{
 			x[i] = before[rank*2+i];
-			FPRINTF_MPI(stderr, "before computation x[%d] = %d\n", i, x[i]);
+			//FPRINTF_MPI(stderr, "before computation x[%d] = %d\n", i, x[i]);
 		}
 		else
 			x[i] = rank*2+i;
@@ -193,7 +193,8 @@ enodev:
 		for(i=0; i<2; i++)
 		{
 			ok = ok && (x[i] == after[rank*2+i]);
-			FPRINTF_MPI(stderr, "after computation x[%d] = %d, should be %d\n", i, x[i], after[rank*2+i]);
+			if (x[i] != after[rank*2+i])
+				FPRINTF_MPI(stderr, "after computation x[%d] = %d, should be %d\n", i, x[i], after[rank*2+i]);
 		}
 		FPRINTF_MPI(stderr, "result is %s\n", ok?"CORRECT":"NOT CORRECT");
 	}
