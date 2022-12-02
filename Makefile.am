@@ -61,9 +61,17 @@ if STARPU_OPENMP_LLVM
 SUBDIRS += starpu_openmp_llvm
 endif
 
-if STARPU_USE_CPU
 if STARPU_BUILD_STARPUPY
+if STARPU_USE_CPU
 SUBDIRS += starpupy
+else
+if STARPU_USE_MPI_MASTER_SLAVE
+SUBDIRS += starpupy
+else
+if STARPU_USE_TCPIP_MASTER_SLAVE
+SUBDIRS += starpupy
+endif
+endif
 endif
 endif
 
