@@ -829,14 +829,14 @@ void starpu_unistd_global_wait_request(void *async_channel)
 		{
 #if defined(HAVE_LIBAIO_H)
 			struct starpu_unistd_aiocb *starpu_aiocb = &event->event.event_aiocb;
-			struct io_event event;
+			struct io_event ev;
 
 			int values = -1;
 			int myerrno = EAGAIN;
 			while(!starpu_aiocb->finished || (values <= 0 && (myerrno == EAGAIN || myerrno == EINTR)))
 			{
 				/* Wait the answer of the request timeout IS NULL */
-				values = io_getevents(starpu_aiocb->base->ctx, 1, 1, &event, NULL);
+				values = io_getevents(starpu_aiocb->base->ctx, 1, 1, &ev, NULL);
 				if (values < 0)
 					myerrno = -values;
 				if (values > 0)
@@ -845,12 +845,14 @@ void starpu_unistd_global_wait_request(void *async_channel)
 					STARPU_PTHREAD_MUTEX_LOCK(&starpu_aiocb->base->mutex);
 
 					struct starpu_unistd_aiocb_link *l = NULL;
-					HASH_FIND_PTR(starpu_aiocb->base->hashtable, &event.obj, l);
+					HASH_FIND_PTR(starpu_aiocb->base->hashtable, &ev.obj, l);
 					STARPU_ASSERT(l != NULL);
 
 					HASH_DEL(starpu_aiocb->base->hashtable, l);
 					STARPU_PTHREAD_MUTEX_UNLOCK(&starpu_aiocb->base->mutex);
-					((struct starpu_unistd_aiocb *) l->starpu_aiocb)->finished = 1;
+					struct starpu_unistd_aiocb *aiocb = l->starpu_aiocb;
+					STARPU_ASSERT_MSG(ev.res == aiocb->len, "Aio request was truncated");
+					aiocb->finished = 1;
 					free(l);
 				}
 			}
@@ -897,7 +899,7 @@ int starpu_unistd_global_test_request(void *async_channel)
 		{
 #if defined(HAVE_LIBAIO_H)
 			struct starpu_unistd_aiocb *starpu_aiocb = &event->event.event_aiocb;
-			struct io_event event;
+			struct io_event ev;
 			struct timespec ts;
 			int ret;
 
@@ -907,7 +909,7 @@ int starpu_unistd_global_test_request(void *async_channel)
 			memset(&ts, 0, sizeof(ts));
 
 			/* Test the answer of the request */
-			ret = io_getevents(starpu_aiocb->base->ctx, 0, 1, &event, &ts);
+			ret = io_getevents(starpu_aiocb->base->ctx, 0, 1, &ev, &ts);
 
 			if (ret == 1)
 			{
@@ -915,12 +917,14 @@ int starpu_unistd_global_test_request(void *async_channel)
 				STARPU_PTHREAD_MUTEX_LOCK(&starpu_aiocb->base->mutex);
 
 				struct starpu_unistd_aiocb_link *l = NULL;
-				HASH_FIND_PTR(starpu_aiocb->base->hashtable, &event.obj, l);
+				HASH_FIND_PTR(starpu_aiocb->base->hashtable, &ev.obj, l);
 				STARPU_ASSERT(l != NULL);
 
 				HASH_DEL(starpu_aiocb->base->hashtable, l);
 				STARPU_PTHREAD_MUTEX_UNLOCK(&starpu_aiocb->base->mutex);
-				((struct starpu_unistd_aiocb *) l->starpu_aiocb)->finished = 1;
+				struct starpu_unistd_aiocb *aiocb = l->starpu_aiocb;
+				STARPU_ASSERT_MSG(ev.res == aiocb->len, "Aio request was truncated");
+				aiocb->finished = 1;
 				free(l);
 
 				if (starpu_aiocb->finished)
