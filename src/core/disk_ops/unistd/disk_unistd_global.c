@@ -294,7 +294,7 @@ int starpu_unistd_global_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, voi
 			nb = pread(fd, buf, bytes_to_write, offset);
 			STARPU_ASSERT_MSG(nb >= 0, "Starpu Disk unistd pread failed: size %lu got errno %d", (unsigned long) size, errno);
 			bytes_to_write -= nb;
-			buf += nb;
+			buf = (char*) buf + nb;
 			offset += nb;
 		}
 	}
@@ -314,7 +314,7 @@ int starpu_unistd_global_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, voi
 			nb = read(fd, buf, bytes_to_write);
 			STARPU_ASSERT_MSG(nb >= 0, "Starpu Disk unistd read failed: offset %lu got errno %d", (unsigned long) offset, errno);
 			bytes_to_write -= nb;
-			buf += nb;
+			buf = (char*) buf + nb;
 			offset += nb;
 		}
 
@@ -440,7 +440,7 @@ int starpu_unistd_global_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, co
 			res = pwrite(fd, buf, bytes_to_write, offset);
 			STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd pwrite failed: offset %lu got errno %d", (unsigned long) offset, errno);
 			bytes_to_write -= res;
-			buf += res;
+			buf = (char*) buf + res;
 			offset += res;
 		}
 	}
@@ -460,7 +460,7 @@ int starpu_unistd_global_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, co
 			res = write(fd, buf, bytes_to_write);
 			STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd write failed: offset %lu got errno %d", (unsigned long) offset, errno);
 			bytes_to_write -= res;
-			buf += res;
+			buf = (char*) buf + res;
 			offset += res;
 		}
 
