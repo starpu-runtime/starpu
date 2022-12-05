@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -285,10 +285,20 @@ int starpu_unistd_global_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, voi
 	struct starpu_unistd_global_obj *tmp = (struct starpu_unistd_global_obj *) obj;
 	starpu_ssize_t nb;
 	int fd = tmp->descriptor;
+	starpu_ssize_t bytes_to_write = size;
 
 #ifdef HAVE_PREAD
 	if (fd >= 0)
-		nb = pread(fd, buf, size, offset);
+	{
+		while (bytes_to_write > 0)
+		{
+			nb = pread(fd, buf, bytes_to_write, offset);
+			STARPU_ASSERT_MSG(nb >= 0, "Starpu Disk unistd pread failed: size %lu got errno %d", (unsigned long) size, errno);
+			bytes_to_write -= nb;
+			buf += nb;
+			offset += nb;
+		}
+	}
 	else
 #endif
 	{
@@ -300,7 +310,14 @@ int starpu_unistd_global_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, voi
 		int res = lseek(fd, offset, SEEK_SET);
 		STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd lseek for read failed: offset %lu got errno %d", (unsigned long) offset, errno);
 
-		nb = read(fd, buf, size);
+		while (bytes_to_write > 0)
+		{
+			nb = read(fd, buf, bytes_to_write);
+			STARPU_ASSERT_MSG(nb >= 0, "Starpu Disk unistd read failed: offset %lu got errno %d", (unsigned long) offset, errno);
+			bytes_to_write -= nb;
+			buf += nb;
+			offset += nb;
+		}
 
 		if (tmp->descriptor >= 0)
 			STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
@@ -309,9 +326,7 @@ int starpu_unistd_global_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, voi
 
 	}
 
-	STARPU_ASSERT_MSG(nb >= 0, "Starpu Disk unistd read failed: size %lu got errno %d", (unsigned long) size, errno);
-
-	return nb;
+	return 0;
 }
 
 #if defined(HAVE_LIBAIO_H)
@@ -414,12 +429,22 @@ int starpu_unistd_global_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj
 int starpu_unistd_global_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const void *buf, off_t offset, size_t size)
 {
 	struct starpu_unistd_global_obj *tmp = (struct starpu_unistd_global_obj *) obj;
-	int res;
+	starpu_ssize_t res;
 	int fd = tmp->descriptor;
+	starpu_ssize_t bytes_to_write = size;
 
 #ifdef HAVE_PWRITE
 	if (fd >= 0)
-		res = pwrite(fd, buf, size, offset);
+	{
+		while (bytes_to_write > 0)
+		{
+			res = pwrite(fd, buf, bytes_to_write, offset);
+			STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd pwrite failed: offset %lu got errno %d", (unsigned long) offset, errno);
+			bytes_to_write -= res;
+			buf += res;
+			offset += res;
+		}
+	}
 	else
 #endif
 	{
@@ -431,7 +456,14 @@ int starpu_unistd_global_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, co
 		res = lseek(fd, offset, SEEK_SET);
 		STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd lseek for write failed: offset %lu got errno %d", (unsigned long) offset, errno);
 
-		res = write(fd, buf, size);
+		while (bytes_to_write > 0)
+		{
+			res = write(fd, buf, bytes_to_write);
+			STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd write failed: offset %lu got errno %d", (unsigned long) offset, errno);
+			bytes_to_write -= res;
+			buf += res;
+			offset += res;
+		}
 
 		if (tmp->descriptor >= 0)
 			STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
@@ -439,7 +471,6 @@ int starpu_unistd_global_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, co
 			_starpu_unistd_reclose(fd);
 	}
 
-	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd write failed: size %lu got errno %d", (unsigned long) size, errno);
 	return 0;
 }
 
@@ -554,6 +585,12 @@ void * starpu_unistd_global_async_full_read (void * base, void * obj, void ** pt
 
 	*size = st.st_size;
 #endif
+#ifdef STARPU_LINUX_SYS
+	/* on Linux, read() (and similar system calls) will transfer at most 0x7ffff000 bytes, see read(2) */
+	if (*size > 0x7ffff000)
+		return NULL;
+#endif
+
 	if (tmp->descriptor < 0)
 		_starpu_unistd_reclose(fd);
 
@@ -565,6 +602,12 @@ void * starpu_unistd_global_async_full_read (void * base, void * obj, void ** pt
 void * starpu_unistd_global_async_full_write (void * base, void * obj, void * ptr, size_t size)
 {
         struct starpu_unistd_global_obj *tmp = (struct starpu_unistd_global_obj *) obj;
+
+#ifdef STARPU_LINUX_SYS
+	/* on Linux, write() (and similar system calls) will transfer at most 0x7ffff000 bytes, see write(2) */
+	if (size > 0x7ffff000)
+		return NULL;
+#endif
 
         /* update file size to realise the next good full_read */
         if(size != tmp->size)
