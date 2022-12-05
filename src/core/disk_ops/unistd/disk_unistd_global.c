@@ -586,6 +586,8 @@ void * starpu_unistd_global_async_full_read (void * base, void * obj, void ** pt
 #endif
 #ifdef STARPU_LINUX_SYS
 	/* on Linux, read() (and similar system calls) will transfer at most 0x7ffff000 bytes, see read(2) */
+	/* FIXME: make starpu_unistd_global_test_request and starpu_unistd_global_wait_request
+	 * resubmit an updated request whenever the request completion is truncated */
 	if (*size > 0x7ffff000)
 		return NULL;
 #endif
@@ -604,6 +606,8 @@ void * starpu_unistd_global_async_full_write (void * base, void * obj, void * pt
 
 #ifdef STARPU_LINUX_SYS
 	/* on Linux, write() (and similar system calls) will transfer at most 0x7ffff000 bytes, see write(2) */
+	/* FIXME: make starpu_unistd_global_test_request and starpu_unistd_global_wait_request
+	 * resubmit an updated request whenever the request completion is truncated */
 	if (size > 0x7ffff000)
 		return NULL;
 #endif
