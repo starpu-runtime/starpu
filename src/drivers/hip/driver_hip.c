@@ -1147,7 +1147,7 @@ int _starpu_hip_driver_run_once(struct _starpu_worker *worker)
 
 			execute_job_on_hip(task, worker);
 #ifdef STARPU_PROF_TOOL
-            pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_transfer, workerid, workerid, starpu_prof_tool_driver_gpu, memnode, NULL);
+            pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_transfer, workerid, workerid, starpu_prof_tool_driver_hip, memnode, NULL);
             starpu_prof_tool_callbacks.starpu_prof_tool_event_end_transfer(&pi, NULL, NULL);
 #endif
 			_STARPU_TRACE_START_PROGRESS(memnode);
@@ -1342,5 +1342,3 @@ struct _starpu_node_ops _starpu_driver_hip_node_ops =
 	.wait_request_completion = _starpu_hip_wait_request_completion,
 	.test_request_completion = _starpu_hip_test_request_completion,
 };
-
-#warning "Compiling HIP"
