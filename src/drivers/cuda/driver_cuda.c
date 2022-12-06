@@ -6,6 +6,7 @@
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2016       Uppsala University
  * Copyright (C) 2021       Federal University of Rio Grande do Sul (UFRGS)
+ * Copyright (C) 2022	    Camille Coti
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -2253,7 +2254,7 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker *worker)
 		pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_start_transfer, worker->workerid, worker->workerid, starpu_prof_tool_driver_gpu, memnode, NULL);
 		starpu_prof_tool_callbacks.starpu_prof_tool_event_start_transfer(&pi, NULL, NULL);
 #endif
-		_STARPU_TRACE_END_PROGRESS(memnode);
+        //	_STARPU_TRACE_END_PROGRESS(memnode);
 	}
 
 	return 0;
