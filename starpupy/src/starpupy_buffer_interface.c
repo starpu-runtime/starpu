@@ -440,7 +440,7 @@ static uint32_t starpupy_buffer_footprint(starpu_data_handle_t handle)
 	return crc;
 }
 
-void pybuffer_display(starpu_data_handle_t handle, FILE *f)
+static void pybuffer_display(starpu_data_handle_t handle, FILE *f)
 {
 	struct starpupy_buffer_interface *pybuffer_interface = (struct starpupy_buffer_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 

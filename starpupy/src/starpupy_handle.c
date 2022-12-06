@@ -355,7 +355,7 @@ PyObject *starpupy_get_object_wrapper(PyObject *self, PyObject *args)
 	return obj;
 }
 
-PyObject *handle_dict_check(PyObject *obj, char* mode, char* op)
+PyObject *starpupy_handle_dict_check(PyObject *obj, char* mode, char* op)
 {
 	/*get handle_dict*/
 	PyObject *handle_dict = PyObject_GetAttrString(starpu_module, "handle_dict");
@@ -501,7 +501,7 @@ PyObject *starpupy_acquire_object_wrapper(PyObject *self, PyObject *args)
 	char* obj_mode = strdup(mode_str);
 
 	/*get the corresponding handle capsule of the obj*/
-	PyObject *handle_cap = handle_dict_check(obj, NULL, "register");
+	PyObject *handle_cap = starpupy_handle_dict_check(obj, NULL, "register");
 
 	/*PyObject *->handle*/
 	starpu_data_handle_t handle = (starpu_data_handle_t) PyCapsule_GetPointer(handle_cap, "Handle");
@@ -599,7 +599,7 @@ PyObject *starpupy_release_object_wrapper(PyObject *self, PyObject *args)
 		return NULL;
 
 	/*get the corresponding handle capsule of the obj*/
-	PyObject *handle_cap = handle_dict_check(obj, NULL, "exception");
+	PyObject *handle_cap = starpupy_handle_dict_check(obj, NULL, "exception");
 
 	if(handle_cap == NULL)
 	{
@@ -693,7 +693,7 @@ PyObject *starpupy_data_unregister_object_wrapper(PyObject *self, PyObject *args
 		return NULL;
 
 	/*get the corresponding handle capsule of the obj*/
-	PyObject *handle_cap = handle_dict_check(obj, NULL, "exception");
+	PyObject *handle_cap = starpupy_handle_dict_check(obj, NULL, "exception");
 	/*get the id of obj*/
 	PyObject *obj_id = PyLong_FromVoidPtr(obj);
 
@@ -776,7 +776,7 @@ PyObject *starpupy_data_unregister_submit_object_wrapper(PyObject *self, PyObjec
 		return NULL;
 
 	/*get the corresponding handle capsule of the obj*/
-	PyObject *handle_cap = handle_dict_check(obj, NULL, "exception");
+	PyObject *handle_cap = starpupy_handle_dict_check(obj, NULL, "exception");
 	/*get the id of obj*/
 	PyObject *obj_id = PyLong_FromVoidPtr(obj);
 

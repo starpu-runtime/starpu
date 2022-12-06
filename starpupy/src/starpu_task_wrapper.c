@@ -124,6 +124,9 @@ static pthread_t main_thread;
 static PyObject *cb_loop = Py_None; /*another event loop besides main running loop*/
 static pthread_t thread_id;
 
+static PyThreadState *orig_thread_states[STARPU_NMAXWORKERS];
+static PyThreadState *new_thread_states[STARPU_NMAXWORKERS];
+
 /*********************************************************************************************/
 
 #ifdef STARPU_STARPUPY_MULTI_INTERPRETER
@@ -131,7 +134,7 @@ static uint32_t where_inter = STARPU_CPU;
 #endif
 
 /* prologue_callback_func*/
-void prologue_cb_func(void *cl_arg)
+void starpupy_prologue_cb_func(void *cl_arg)
 {
 #ifdef STARPU_STARPUPY_MULTI_INTERPRETER
 	PyObject *func_data;
@@ -504,7 +507,7 @@ void starpupy_codelet_func(void *descr[], void *cl_arg)
 }
 
 /*function passed to starpu_task.epilogue_callback_func*/
-void epilogue_cb_func(void *v)
+void starpupy_epilogue_cb_func(void *v)
 {
 	PyObject *fut; /*asyncio.Future*/
 	PyObject *loop; /*asyncio.Eventloop*/
@@ -611,7 +614,7 @@ void epilogue_cb_func(void *v)
 	PyGILState_Release(state);
 }
 
-void cb_func(void *v)
+void starpupy_cb_func(void *v)
 {
 	struct starpu_task *task = starpu_task_get_current();
 
@@ -842,7 +845,7 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 		loop = Py_None;
 		fut = Py_None;
 
-		/* these are decremented in epilogue_cb_func */
+		/* these are decremented in starpupy_epilogue_cb_func */
 		Py_INCREF(loop);
 		Py_INCREF(fut);
 
@@ -888,9 +891,9 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 	}
 	else if(PyObject_IsTrue(ret_fut))
 	{
-		/*get the running Event loop, decremented in epilogue_cb_func*/
+		/*get the running Event loop, decremented in starpupy_epilogue_cb_func*/
 		loop = PyObject_CallMethod(asyncio_module, "get_running_loop", NULL);
-		/*create a asyncio.Future object, decremented in epilogue_cb_func*/
+		/*create a asyncio.Future object, decremented in starpupy_epilogue_cb_func*/
 		fut = PyObject_CallMethod(loop, "create_future", NULL);
 
 		if (fut == NULL)
@@ -930,7 +933,7 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 		loop = Py_None;
 		fut = Py_None;
 
-		/* these are decremented in epilogue_cb_func */
+		/* these are decremented in starpupy_epilogue_cb_func */
 		Py_INCREF(loop);
 		Py_INCREF(fut);
 
@@ -959,7 +962,7 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 
 	/*check whether the option perfmodel is None*/
 	PyObject *perfmodel = PyDict_GetItemString(dict_option, "perfmodel");
-	/*protect borrowed reference, pack in cl_arg, decrement in epilogue_cb_func*/
+	/*protect borrowed reference, pack in cl_arg, decrement in starpupy_epilogue_cb_func*/
 	Py_INCREF(perfmodel);
 
 	/*call the method get_struct*/
@@ -1111,7 +1114,7 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 			else if((PyObject_IsTrue(arg_handle)) && (strcmp(tp_arg, "numpy.ndarray")==0 || strcmp(tp_arg, "bytes")==0 || strcmp(tp_arg, "bytearray")==0 || strcmp(tp_arg, "array.array")==0 || strcmp(tp_arg, "memoryview")==0))
 			{
 				/*get the corresponding handle of the obj, return a new reference, decremented in the end of this else if{}*/
-				PyObject *tmp_cap = handle_dict_check(tmp, tmp_mode, "register");
+				PyObject *tmp_cap = starpupy_handle_dict_check(tmp, tmp_mode, "register");
 
 				/*create the Handle_token object to replace the Handle Capsule*/
 				PyObject *token_obj = PyObject_CallObject(pInstanceToken, NULL);
@@ -1290,9 +1293,9 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 	starpu_codelet_pack_arg_fini(&data, &task->cl_arg, &task->cl_arg_size);
 	task->cl_arg_free = 1;
 
-	task->prologue_callback_func=&prologue_cb_func;
-	task->epilogue_callback_func=&epilogue_cb_func;
-	task->callback_func=&cb_func;
+	task->prologue_callback_func=&starpupy_prologue_cb_func;
+	task->epilogue_callback_func=&starpupy_epilogue_cb_func;
+	task->callback_func=&starpupy_cb_func;
 
 	/*call starpu_task_submit method*/
 	int ret;
@@ -1401,11 +1404,8 @@ static PyObject* starpu_task_nsubmitted_wrapper(PyObject *self, PyObject *args)
 	return Py_BuildValue("i", num_task);
 }
 
-PyThreadState *orig_thread_states[STARPU_NMAXWORKERS];
-PyThreadState *new_thread_states[STARPU_NMAXWORKERS];
-
 /*generate new sub-interpreters*/
-void new_inter(void* arg)
+static void new_inter(void* arg)
 {
 	unsigned workerid = starpu_worker_get_id_check();
 	PyThreadState *new_thread_state;
@@ -1422,7 +1422,7 @@ void new_inter(void* arg)
 }
 
 /*delete sub-interpreters*/
-void del_inter(void* arg)
+static void del_inter(void* arg)
 {
 	unsigned workerid = starpu_worker_get_id_check();
 	PyThreadState *new_thread_state = new_thread_states[workerid];

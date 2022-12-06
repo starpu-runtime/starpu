@@ -21,7 +21,7 @@
 extern PyObject *starpu_module; /*starpu __init__ module*/
 extern PyObject *starpu_dict;  /*starpu __init__ dictionary*/
 
-PyObject *handle_dict_check(PyObject *obj, char* mode, char* op);
+PyObject *starpupy_handle_dict_check(PyObject *obj, char* mode, char* op);
 
 PyObject *starpupy_data_register_wrapper(PyObject *self, PyObject *args);
 PyObject *starpupy_numpy_register_wrapper(PyObject *self, PyObject *args);
