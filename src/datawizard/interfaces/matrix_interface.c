@@ -519,6 +519,8 @@ static void free_matrix_buffer_on_node(void *data_interface, unsigned node)
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *) data_interface;
 
 	starpu_free_on_node(node, matrix_interface->dev_handle, matrix_interface->allocsize);
+	matrix_interface->ptr = 0;
+	matrix_interface->dev_handle = 0;
 }
 
 static void reuse_matrix_buffer_on_node(void *dst_data_interface, const void *cached_interface, unsigned node STARPU_ATTRIBUTE_UNUSED)

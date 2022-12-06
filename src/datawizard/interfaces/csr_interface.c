@@ -343,9 +343,12 @@ static void free_csr_buffer_on_node(void *data_interface, unsigned node)
 	if (nnz)
 	{
 		starpu_free_on_node(node, csr_interface->nzval, nnz*elemsize);
+		csr_interface->nzval = 0;
 		starpu_free_on_node(node, (uintptr_t) csr_interface->colind, nnz*sizeof(uint32_t));
+		csr_interface->colind = NULL;
 	}
 	starpu_free_on_node(node, (uintptr_t) csr_interface->rowptr, (nrow+1)*sizeof(uint32_t));
+	csr_interface->rowptr = NULL;
 }
 
 /* as not all platform easily have a BLAS lib installed ... */

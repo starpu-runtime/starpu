@@ -257,7 +257,9 @@ static starpu_ssize_t allocate_variable_buffer_on_node(void *data_interface_, un
 static void free_variable_buffer_on_node(void *data_interface, unsigned node)
 {
 	struct starpu_variable_interface *variable_interface = (struct starpu_variable_interface *) data_interface;
-	starpu_free_on_node(node, variable_interface->ptr, variable_interface->elemsize);
+	starpu_free_on_node(node, variable_interface->dev_handle, variable_interface->elemsize);
+	variable_interface->ptr = 0;
+	variable_interface->dev_handle = 0;
 }
 
 static int map_variable(void *src_interface, unsigned src_node,

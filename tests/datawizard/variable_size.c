@@ -170,6 +170,7 @@ static void free_variable_size_on_node(void *data_interface, unsigned node)
 	starpu_free_on_node(node, variable_interface->ptr, variable_interface->size);
 	if (node == STARPU_MAIN_RAM)
 		_starpu_simgrid_data_free(variable_interface->size);
+	variable_interface->ptr = 0;
 }
 
 static int variable_size_copy(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data)

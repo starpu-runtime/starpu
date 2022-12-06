@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -143,8 +143,11 @@ free_coo_buffer_on_node(void *data_interface, unsigned node)
 	size_t elemsize = coo_interface->elemsize;
 
 	starpu_free_on_node(node, (uintptr_t) coo_interface->columns, n_values * sizeof(coo_interface->columns[0]));
+	coo_interface->columns = NULL;
 	starpu_free_on_node(node, (uintptr_t) coo_interface->rows, n_values * sizeof(coo_interface->rows[0]));
+	coo_interface->rows = NULL;
 	starpu_free_on_node(node, coo_interface->values, n_values * elemsize);
+	coo_interface->values = 0;
 }
 
 static int

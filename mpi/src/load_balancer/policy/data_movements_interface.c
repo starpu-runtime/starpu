@@ -174,7 +174,9 @@ static void data_movements_free_data_on_node(void *data_interface, unsigned node
 	starpu_ssize_t requested_memory_ranks = dm_interface->size * sizeof(int);
 
 	starpu_free_on_node(node, (uintptr_t) dm_interface->tags, requested_memory_tags);
+	dm_interface->tags = NULL;
 	starpu_free_on_node(node, (uintptr_t) dm_interface->ranks, requested_memory_ranks);
+	dm_interface->ranks = NULL;
 }
 
 static size_t data_movements_get_size(starpu_data_handle_t handle)
