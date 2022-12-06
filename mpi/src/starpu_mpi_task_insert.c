@@ -728,6 +728,8 @@ int _starpu_mpi_task_insert_v(MPI_Comm comm, struct starpu_codelet *codelet, va_
 
 			task->destroy = 0;
 			starpu_task_destroy(task);
+			free(descrs);
+			return -ENODEV;
 		}
 	}
 
@@ -774,8 +776,7 @@ struct starpu_task *starpu_mpi_task_build(MPI_Comm comm, struct starpu_codelet *
 	va_start(varg_list, codelet);
 	ret = _starpu_mpi_task_build_v(comm, codelet, &task, NULL, NULL, NULL, NULL, varg_list);
 	va_end(varg_list);
-	STARPU_ASSERT(ret >= 0);
-	return (ret == 1) ? task : NULL;
+	return (ret == 1 || ret == -ENODEV) ? task : NULL;
 }
 
 struct starpu_task *starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, va_list varg_list)
@@ -784,8 +785,7 @@ struct starpu_task *starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet
 	int ret;
 
 	ret = _starpu_mpi_task_build_v(comm, codelet, &task, NULL, NULL, NULL, NULL, varg_list);
-	STARPU_ASSERT(ret >= 0);
-	return (ret == 1) ? task : NULL;
+	return (ret == 1 || ret == -ENODEV) ? task : NULL;
 }
 
 int starpu_mpi_task_post_build(MPI_Comm comm, struct starpu_codelet *codelet, ...)

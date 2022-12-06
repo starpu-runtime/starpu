@@ -154,6 +154,8 @@ int test(int rank, int node, int *before, int *after, int task_insert, int data_
 								     STARPU_RW, data_handles[0], STARPU_R, data_handles[1],
 								     STARPU_VALUE, &rank, sizeof(rank),
 								     STARPU_EXECUTE_ON_NODE, node, 0);
+					if (ret == -ENODEV)
+						goto enodev;
 					break;
 				}
 				case 1:
@@ -162,6 +164,8 @@ int test(int rank, int node, int *before, int *after, int task_insert, int data_
 								     STARPU_DATA_ARRAY, data_handles, 2,
 								     STARPU_VALUE, &rank, sizeof(rank),
 								     STARPU_EXECUTE_ON_NODE, node, 0);
+					if (ret == -ENODEV)
+						goto enodev;
 					break;
 				}
 				case 2:
@@ -170,6 +174,8 @@ int test(int rank, int node, int *before, int *after, int task_insert, int data_
 								     STARPU_DATA_MODE_ARRAY, descrs, 2,
 								     STARPU_VALUE, &rank, sizeof(rank),
 								     STARPU_EXECUTE_ON_NODE, node, 0);
+					if (ret == -ENODEV)
+						goto enodev;
 					break;
 				}
 			}
