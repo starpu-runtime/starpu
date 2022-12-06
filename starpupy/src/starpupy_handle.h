@@ -20,8 +20,6 @@
 
 extern PyObject *starpu_module; /*starpu __init__ module*/
 extern PyObject *starpu_dict;  /*starpu __init__ dictionary*/
-extern int buf_id;
-extern int obj_id;
 
 PyObject *handle_dict_check(PyObject *obj, char* mode, char* op);
 

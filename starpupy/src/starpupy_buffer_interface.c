@@ -491,7 +491,7 @@ static struct starpu_data_interface_ops interface_pybuffer_ops =
 };
 
 #ifdef STARPU_PYTHON_HAVE_NUMPY
-int starpupy_buffer_numpy_register(starpu_data_handle_t *handleptr, int home_node, int buf_type, char* pybuf, Py_ssize_t nbuf, int ndim, npy_intp* arr_dim, int arr_type, size_t nitem)
+void starpupy_buffer_numpy_register(starpu_data_handle_t *handleptr, int home_node, int buf_type, char* pybuf, Py_ssize_t nbuf, int ndim, npy_intp* arr_dim, int arr_type, size_t nitem)
 {
 	struct starpupy_buffer_interface pybuffer_interface =
 	{
@@ -511,12 +511,10 @@ int starpupy_buffer_numpy_register(starpu_data_handle_t *handleptr, int home_nod
 
 	starpu_data_register(handleptr, home_node, &pybuffer_interface, &interface_pybuffer_ops);
 
-	return interface_pybuffer_ops.interfaceid;
-
 }
 #endif
 
-int starpupy_buffer_bytes_register(starpu_data_handle_t *handleptr, int home_node, int buf_type, char* pybuf, Py_ssize_t nbuf)
+void starpupy_buffer_bytes_register(starpu_data_handle_t *handleptr, int home_node, int buf_type, char* pybuf, Py_ssize_t nbuf)
 {
 
 	struct starpupy_buffer_interface pybuffer_interface =
@@ -533,10 +531,9 @@ int starpupy_buffer_bytes_register(starpu_data_handle_t *handleptr, int home_nod
 
 	starpu_data_register(handleptr, home_node, &pybuffer_interface, &interface_pybuffer_ops);
 
-	return interface_pybuffer_ops.interfaceid;
 }
 
-int starpupy_buffer_array_register(starpu_data_handle_t *handleptr, int home_node, int buf_type, char* pybuf, Py_ssize_t nbuf, char arr_typecode, size_t nitem)
+void starpupy_buffer_array_register(starpu_data_handle_t *handleptr, int home_node, int buf_type, char* pybuf, Py_ssize_t nbuf, char arr_typecode, size_t nitem)
 {
 	struct starpupy_buffer_interface pybuffer_interface =
 	{
@@ -554,10 +551,9 @@ int starpupy_buffer_array_register(starpu_data_handle_t *handleptr, int home_nod
 
 	starpu_data_register(handleptr, home_node, &pybuffer_interface, &interface_pybuffer_ops);
 
-	return interface_pybuffer_ops.interfaceid;
 }
 
-int starpupy_buffer_memview_register(starpu_data_handle_t *handleptr, int home_node, int buf_type, char* pybuf, Py_ssize_t nbuf, char mem_format, size_t nitem, int ndim, int* mem_shape)
+void starpupy_buffer_memview_register(starpu_data_handle_t *handleptr, int home_node, int buf_type, char* pybuf, Py_ssize_t nbuf, char mem_format, size_t nitem, int ndim, int* mem_shape)
 {
 	struct starpupy_buffer_interface pybuffer_interface =
 	{
@@ -577,5 +573,10 @@ int starpupy_buffer_memview_register(starpu_data_handle_t *handleptr, int home_n
 
 	starpu_data_register(handleptr, home_node, &pybuffer_interface, &interface_pybuffer_ops);
 
-	return interface_pybuffer_ops.interfaceid;
+}
+
+int starpupy_check_buffer_interface_id(starpu_data_handle_t handle)
+{
+	int interfaceid = (int)starpu_data_get_interface_id(handle);
+	return interfaceid == interface_pybuffer_ops.interfaceid;
 }

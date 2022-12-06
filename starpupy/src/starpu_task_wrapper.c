@@ -397,13 +397,13 @@ void starpupy_codelet_func(void *descr[], void *cl_arg)
 		if(strcmp(tp, "Handle_token") == 0)
 		{
 			/*if one of arguments is Handle, replace the Handle argument to the object*/
-			if (starpu_data_get_interface_id(task->handles[h_index]) == obj_id)
+			if (STARPUPY_PYOBJ_CHECK(task->handles[h_index]))
 			{
 				PyObject *obj_handle = STARPUPY_GET_PYOBJECT(descr[h_index]);
 				Py_INCREF(obj_handle);
 				PyTuple_SetItem(pArglist, i, obj_handle);
 			}
-			else if (starpu_data_get_interface_id(task->handles[h_index]) == buf_id)
+			else if (STARPUPY_BUF_CHECK(task->handles[h_index]))
 			{
 				PyObject *buf_handle = STARPUPY_BUF_GET_PYOBJECT(descr[h_index]);
 				PyTuple_SetItem(pArglist, i, buf_handle);
@@ -443,7 +443,7 @@ void starpupy_codelet_func(void *descr[], void *cl_arg)
 	/*if return handle*/
 	if(h_flag)
 	{
-		STARPU_ASSERT(starpu_data_get_interface_id(task->handles[0]) == obj_id);
+		STARPU_ASSERT(STARPUPY_PYOBJ_CHECK(task->handles[0]));
 		if (STARPUPY_GET_PYOBJECT(descr[0]) != NULL)
 			Py_DECREF(STARPUPY_GET_PYOBJECT(descr[0]));
 
@@ -1061,7 +1061,7 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 				}
 
 				/*if the function result will be returned in parameter, the first argument will be the handle of return value, but this object should not be the Python object supporting buffer protocol*/
-				if(PyObject_IsTrue(ret_param) && i==0 && starpu_data_get_interface_id(tmp_handle) == buf_id)
+				if(PyObject_IsTrue(ret_param) && i==0 && STARPUPY_BUF_CHECK(tmp_handle))
 				{
 					PyErr_Format(StarpupyError, "Return value as parameter should not be the Python object supporting buffer protocol");
 					return NULL;

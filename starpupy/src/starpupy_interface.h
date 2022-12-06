@@ -23,6 +23,10 @@ struct starpupyobject_interface
 	PyObject *object;
 };
 
-int starpupy_data_register(starpu_data_handle_t *handleptr, unsigned home_node, PyObject *obj);
+void starpupy_data_register(starpu_data_handle_t *handleptr, unsigned home_node, PyObject *obj);
+
+int starpupy_check_pyobject_interface_id(starpu_data_handle_t handle);
+
+#define STARPUPY_PYOBJ_CHECK(handle) (starpupy_check_pyobject_interface_id(handle))
 
 #define STARPUPY_GET_PYOBJECT(interface) (((struct starpupyobject_interface *)(interface))->object)

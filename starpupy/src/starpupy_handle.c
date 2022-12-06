@@ -45,8 +45,6 @@
 
 PyObject *starpu_module; /*starpu __init__ module*/
 PyObject *starpu_dict;  /*starpu __init__ dictionary*/
-int buf_id;
-int obj_id;
 
 /*register buffer protocol PyObject*/
 static PyObject* starpupy_object_register(PyObject *obj, char* mode)
@@ -66,7 +64,7 @@ static PyObject* starpupy_object_register(PyObject *obj, char* mode)
 		PyBytes_AsStringAndSize(obj, &buf_bytes, &nbytes);
 
 		/*register the buffer*/
-		buf_id = starpupy_buffer_bytes_register(&handle, home_node, starpupy_bytes_interface, buf_bytes, nbytes);
+		starpupy_buffer_bytes_register(&handle, home_node, starpupy_bytes_interface, buf_bytes, nbytes);
 	}
 #ifdef STARPU_PYTHON_HAVE_NUMPY
 	/*if the object is a numpy array*/
@@ -82,7 +80,7 @@ static PyObject* starpupy_object_register(PyObject *obj, char* mode)
 			}
 			else
 			{
-				obj_id = starpupy_data_register(&handle, home_node, obj);
+				starpupy_data_register(&handle, home_node, obj);
 			}
 		}
 		/*otherwise treat it as Python object supporting buffer protocol*/
@@ -102,7 +100,7 @@ static PyObject* starpupy_object_register(PyObject *obj, char* mode)
 			PyObject_GetBuffer(obj, view, PyBUF_SIMPLE);
 
 			/*register the buffer*/
-			buf_id = starpupy_buffer_numpy_register(&handle, home_node, starpupy_numpy_interface, view->buf, view->len, ndim, arr_dim, arr_type, nitem);
+			starpupy_buffer_numpy_register(&handle, home_node, starpupy_numpy_interface, view->buf, view->len, ndim, arr_dim, arr_type, nitem);
 
 			PyBuffer_Release(view);
 			free(view);
@@ -117,7 +115,7 @@ static PyObject* starpupy_object_register(PyObject *obj, char* mode)
 		PyObject_GetBuffer(obj, view, PyBUF_SIMPLE);
 
 		/*register the buffer*/
-		buf_id = starpupy_buffer_bytes_register(&handle, home_node, starpupy_bytearray_interface, view->buf, view->len);
+		starpupy_buffer_bytes_register(&handle, home_node, starpupy_bytearray_interface, view->buf, view->len);
 
 		PyBuffer_Release(view);
 		free(view);
@@ -136,7 +134,7 @@ static PyObject* starpupy_object_register(PyObject *obj, char* mode)
 		PyObject_GetBuffer(obj, view, PyBUF_SIMPLE);
 
 		/*register the buffer*/
-		buf_id = starpupy_buffer_array_register(&handle, home_node, starpupy_array_interface, view->buf, view->len, arr_type, view->itemsize);
+		starpupy_buffer_array_register(&handle, home_node, starpupy_array_interface, view->buf, view->len, arr_type, view->itemsize);
 
 		Py_DECREF(PyArrtype);
 		PyBuffer_Release(view);
@@ -170,7 +168,7 @@ static PyObject* starpupy_object_register(PyObject *obj, char* mode)
 		}
 
 		/*register the buffer*/
-		buf_id = starpupy_buffer_memview_register(&handle, home_node, starpupy_memoryview_interface, view->buf, view->len, mem_format, view->itemsize, ndim, mem_shape);
+		starpupy_buffer_memview_register(&handle, home_node, starpupy_memoryview_interface, view->buf, view->len, mem_format, view->itemsize, ndim, mem_shape);
 
 		Py_DECREF(PyFormat);
 		Py_DECREF(PyShape);
@@ -185,7 +183,7 @@ static PyObject* starpupy_object_register(PyObject *obj, char* mode)
 		}
 		else
 		{
-			obj_id = starpupy_data_register(&handle, home_node, obj);
+			starpupy_data_register(&handle, home_node, obj);
 		}
 	}
 
@@ -329,7 +327,7 @@ PyObject *starpupy_get_object_wrapper(PyObject *self, PyObject *args)
 	}
 
 	PyObject *obj = NULL;
-	if (starpu_data_get_interface_id(handle) == obj_id)
+	if (STARPUPY_PYOBJ_CHECK(handle))
 	{
 		struct starpupyobject_interface *pyobject_interface = (struct starpupyobject_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
@@ -337,7 +335,7 @@ PyObject *starpupy_get_object_wrapper(PyObject *self, PyObject *args)
 		Py_INCREF(obj);
 	}
 
-	if (starpu_data_get_interface_id(handle) == buf_id)
+	if (STARPUPY_BUF_CHECK(handle))
 	{
 		struct starpupy_buffer_interface *pybuffer_interface = (struct starpupy_buffer_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
@@ -472,7 +470,7 @@ PyObject *starpupy_acquire_handle_wrapper(PyObject *self, PyObject *args)
 	}
 
 	PyObject *obj = NULL;
-	if (starpu_data_get_interface_id(handle) == obj_id)
+	if (STARPUPY_PYOBJ_CHECK(handle))
 	{
 		struct starpupyobject_interface *pyobject_interface = (struct starpupyobject_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
@@ -480,7 +478,7 @@ PyObject *starpupy_acquire_handle_wrapper(PyObject *self, PyObject *args)
 		Py_INCREF(obj);
 	}
 
-	if (starpu_data_get_interface_id(handle) == buf_id)
+	if (STARPUPY_BUF_CHECK(handle))
 	{
 		struct starpupy_buffer_interface *pybuffer_interface = (struct starpupy_buffer_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
@@ -543,7 +541,7 @@ PyObject *starpupy_acquire_object_wrapper(PyObject *self, PyObject *args)
 	}
 
 	PyObject *obj_get = NULL;
-	if (starpu_data_get_interface_id(handle) == obj_id)
+	if (STARPUPY_PYOBJ_CHECK(handle))
 	{
 		struct starpupyobject_interface *pyobject_interface = (struct starpupyobject_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
@@ -551,7 +549,7 @@ PyObject *starpupy_acquire_object_wrapper(PyObject *self, PyObject *args)
 		Py_INCREF(obj_get);
 	}
 
-	if (starpu_data_get_interface_id(handle) == buf_id)
+	if (STARPUPY_BUF_CHECK(handle))
 	{
 		struct starpupy_buffer_interface *pybuffer_interface = (struct starpupy_buffer_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
@@ -577,7 +575,7 @@ PyObject *starpupy_release_handle_wrapper(PyObject *self, PyObject *args)
 		RETURN_EXCEPT("Handle has already been unregistered");
 	}
 
-	if (buf_id!=starpu_data_get_interface_id(handle))
+	if (!STARPUPY_BUF_CHECK(handle))
 	{
 		RETURN_EXCEPT("Wrong interface is used");
 	}
