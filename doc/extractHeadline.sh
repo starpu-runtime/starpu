@@ -6,7 +6,7 @@ root=$(dirname $0)
     echo "** Full documentation"
     echo "  - [[./starpu.pdf][PDF]] - [[./html/][HTML]]"
     echo "** Parts of the documentation"
-    for doc in doxygen_web_introduction doxygen_web_installation doxygen_web_basics doxygen_web_performances doxygen_web_faq doxygen_web_languages doxygen_web_extensions
+    for doc in doxygen_web_introduction doxygen_web_installation doxygen_web_basics doxygen_web_applications doxygen_web_performances doxygen_web_faq doxygen_web_languages doxygen_web_extensions
     do
 	x=$(echo $doc | sed 's/.*_web_//')
 
