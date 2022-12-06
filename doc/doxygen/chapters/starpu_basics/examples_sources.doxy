@@ -16,7 +16,7 @@
 
 /*! \page ExamplesInStarPUSources Examples in StarPU Sources
 
-We have already seen some examples in chapters \ref BasicExamples and \ref AdvancedExamples.
+We have already seen some examples in chapters \ref BasicExamples.
 A tutorial is also installed in the directory <c>share/doc/starpu/tutorial/</c>.
 
 Many examples are also available in the StarPU sources in the directory

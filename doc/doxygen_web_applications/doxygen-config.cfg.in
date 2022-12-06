@@ -16,14 +16,8 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 INPUT                  = @top_srcdir@/doc/doxygen/chapters/foreword.doxy \
-                      @top_srcdir@/doc/doxygen/chapters/starpu_basics/basics_intro.doxy \
-                      @top_srcdir@/doc/doxygen/chapters/starpu_basics/starpu_applications.doxy \
-                      @top_srcdir@/doc/doxygen/chapters/starpu_basics/basic_examples.doxy \
-                      @top_srcdir@/doc/doxygen/chapters/starpu_basics/scaling_vector_example.doxy \
-                      @top_srcdir@/doc/doxygen/chapters/starpu_basics/tasks.doxy \
-                      @top_srcdir@/doc/doxygen/chapters/starpu_basics/data_management.doxy \
-                      @top_srcdir@/doc/doxygen/chapters/starpu_basics/scheduling.doxy \
-                      @top_srcdir@/doc/doxygen/chapters/starpu_basics/examples_sources.doxy \
+                      @top_srcdir@/doc/doxygen/chapters/starpu_applications/applications_intro.doxy \
+                      @top_srcdir@/doc/doxygen/chapters/starpu_applications/stencil.doxy \
                       @top_srcdir@/doc/doxygen/chapters/fdl_1_3.doxy \
                       @top_srcdir@/doc/doxygen/chapters/files.doxy \
                       @top_srcdir@/doc/doxygen/chapters/api
@@ -40,9 +34,9 @@ IMAGE_PATH             = @top_srcdir@/doc/doxygen/chapters/images
 
 GENERATE_LATEX         = @DOC_GENERATE_LATEX@
 
-HTML_OUTPUT            = html_web_basics
+HTML_OUTPUT            = html_web_applications
 
 @INCLUDE_PATH	       = ../../doc/doxygen/
 
-PROJECT_NAME           = "StarPU Handbook - StarPU Basics"
+PROJECT_NAME           = "StarPU Handbook - StarPU Applications"
 ALIASES                += "intropage{2} = \mainpage"

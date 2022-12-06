@@ -1,0 +1,65 @@
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+
+/*! \page StencilApplication A Stencil Application
+
+We show in this chapter how to easily convert an existing application to use StarPU.
+
+\section StencilOriginal The Original Application
+
+\snippet stencil5.c To be included. You should update doxygen if you see this text.
+
+\section StencilStarPU The StarPU Application
+
+The computation function must be defined through a codelet.
+
+\snippet stencil5_starpu.c starpu_codelet. You should update doxygen if you see this text.
+
+Data must be registered to StarPU.
+
+\snippet stencil5_starpu.c starpu_register. You should update doxygen if you see this text.
+
+Instead of directly calling the function, a StarPU task must be created.
+
+\snippet stencil5_starpu.c starpu_task. You should update doxygen if you see this text.
+
+And finally data must be released from StarPU.
+
+\snippet stencil5_starpu.c starpu_unregister. You should update doxygen if you see this text.
+
+The whole StarPU application looks as follows.
+
+\snippet stencil5_starpu.c To be included. You should update doxygen if you see this text.
+
+\section StencilStarPUMPI The StarPU MPI Application
+
+The initialisation for StarPU-MPI is as follows.
+
+\snippet stencil5_starpu_mpi.c mpi_init. You should update doxygen if you see this text.
+
+An additional call to starpu_mpi_data_register() is necessary.
+
+\snippet stencil5_starpu_mpi.c mpi_register. You should update doxygen if you see this text.
+
+And to insert a task, the function starpu_mpi_task_insert() must be used.
+
+\snippet stencil5_starpu_mpi.c mpi_insert. You should update doxygen if you see this text.
+
+The whole StarPU-MPI application looks as follows.
+
+\snippet stencil5_starpu_mpi.c To be included. You should update doxygen if you see this text.
+
+*/

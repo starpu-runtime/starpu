@@ -137,3 +137,6 @@ INPUT_FILTER           = @top_builddir@/doc/doxygen_dev/doxygen_filter.sh
 #IMAGE_PATH             = @top_srcdir@/doc/doxygen_dev/chapters/images
 
 GENERATE_LATEX         = @DOC_GENERATE_LATEX@
+
+PROJECT_NAME           = "StarPU Internal Handbook"
+HTML_OUTPUT            = html_dev

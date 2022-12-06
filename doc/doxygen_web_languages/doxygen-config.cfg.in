@@ -36,3 +36,10 @@ INPUT_FILTER           = @top_builddir@/doc/doxygen/doxygen_filter.sh
 IMAGE_PATH             = @top_srcdir@/doc/doxygen/chapters/images
 
 GENERATE_LATEX         = @DOC_GENERATE_LATEX@
+
+@INCLUDE_PATH	       = ../../doc/doxygen/
+
+HTML_OUTPUT            = html_web_languages
+
+PROJECT_NAME           = "StarPU Handbook - StarPU Language Bindings"
+ALIASES                += "intropage{2} = \mainpage"

@@ -4321,6 +4321,8 @@ AC_OUTPUT([
 	doc/doxygen_web_installation/doxygen-config.cfg
 	doc/doxygen_web_basics/Makefile
 	doc/doxygen_web_basics/doxygen-config.cfg
+	doc/doxygen_web_applications/Makefile
+	doc/doxygen_web_applications/doxygen-config.cfg
 	doc/doxygen_web_performances/Makefile
 	doc/doxygen_web_performances/doxygen-config.cfg
 	doc/doxygen_web_faq/Makefile
