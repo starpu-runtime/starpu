@@ -362,7 +362,7 @@ PyObject *starpupy_handle_dict_check(PyObject *obj, char* mode, char* op)
 	/*get the arg id*/
 	PyObject *obj_id = PyLong_FromVoidPtr(obj); //XXX in CPython, the pointer of object can be treated as it's id, in other implementation, it may be realised by other ways
 
-	PyObject *handle_obj = NULL;
+	PyObject *handle_obj = Py_None;
 	if (strcmp(op, "register") == 0)
 	{
 		/*check whether the arg is already registed*/
