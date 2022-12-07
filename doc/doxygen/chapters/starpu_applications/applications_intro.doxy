@@ -18,5 +18,8 @@
 
 This part presents how to write a StarPU application from an existing application.
 
+The application presented in the following chapter and some others are
+available in the git repository
+https://gitlab.inria.fr/starpu/starpu-applications
 
 */
