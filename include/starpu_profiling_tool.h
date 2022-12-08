@@ -59,7 +59,8 @@ enum starpu_prof_tool_driver_type
 {
 	starpu_prof_tool_driver_cpu,
 	starpu_prof_tool_driver_gpu,
-	starpu_prof_tool_driver_hip
+	starpu_prof_tool_driver_hip,
+	starpu_prof_tool_driver_ocl
 };
 
 enum starpu_prof_tool_command
