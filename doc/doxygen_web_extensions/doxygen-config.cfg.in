@@ -38,8 +38,8 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters/foreword.doxy \
                       @top_srcdir@/doc/doxygen/chapters/starpu_extensions/simgrid.doxy \
                       @top_srcdir@/doc/doxygen/chapters/fdl_1_3.doxy \
                       @top_srcdir@/doc/doxygen/chapters/files.doxy \
-                      @top_srcdir@/doc/doxygen/chapters/api 
-                      
+                      @top_srcdir@/doc/doxygen/chapters/api
+
 EXAMPLE_PATH           = @top_srcdir@/doc/doxygen \
                              @top_srcdir@/doc/doxygen/chapters \
                              @top_srcdir@/doc/doxygen/chapters/code
@@ -51,3 +51,11 @@ INPUT_FILTER           = @top_builddir@/doc/doxygen/doxygen_filter.sh
 IMAGE_PATH             = @top_srcdir@/doc/doxygen/chapters/images
 
 GENERATE_LATEX         = @DOC_GENERATE_LATEX@
+
+HTML_OUTPUT            = html_web_extensions
+
+@INCLUDE_PATH	       = ../../doc/doxygen/
+
+PROJECT_NAME           = "StarPU Handbook - StarPU Extensions"
+ALIASES                += "intropage{2} = \mainpage"
+

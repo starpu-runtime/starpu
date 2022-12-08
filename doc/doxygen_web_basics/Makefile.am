@@ -31,7 +31,6 @@ chapters =	\
 	../doxygen/chapters/starpu_basics/basics_intro.doxy		\
 	../doxygen/chapters/starpu_basics/starpu_applications.doxy		\
 	../doxygen/chapters/starpu_basics/basic_examples.doxy		\
-	../doxygen/chapters/starpu_basics/advanced_examples.doxy		\
 	../doxygen/chapters/starpu_basics/scaling_vector_example.doxy		\
 	../doxygen/chapters/starpu_basics/tasks.doxy		\
 	../doxygen/chapters/starpu_basics/data_management.doxy		\

@@ -19,49 +19,46 @@
 The documentation chapters include
 
 <ul>
-<li> Part 1: <b> StarPU Installation: </b>
+<li> <b> \ref IntroInstallation</b>
     <ul>
-    <li> \ref IntroInstallation
     <li> \ref BuildingAndInstallingStarPU
     <li> \ref ExecutionConfigurationThroughEnvironmentVariables
     <li> \ref CompilationConfiguration
     </ul>
-<li> Part 2: <b> StarPU Basics: </b>
+<li> <b> \ref IntroBasics </b>
     <ul>
-    <li> \ref IntroBasics
     <li> \ref StarPUApplications
     <li> \ref BasicExamples
-    <li> \ref AdvancedExamples
     <li> \ref FullSourceCodeVectorScal
     <li> \ref TasksInStarPU
     <li> \ref DataManagement
     <li> \ref Scheduling
     <li> \ref ExamplesInStarPUSources
     </ul>
-<li> Part 3: <b> StarPU Performances: </b>
+<li> <b> \ref IntroApplications </b>
+     <ul>
+    <li> \ref StencilApplication
+     </ul>
+<li> <b> \ref IntroPerformances </b>
     <ul>
-    <li> \ref IntroPerformances
     <li> \ref BenchmarkingStarPU
     <li> \ref OnlinePerformanceTools
     <li> \ref OfflinePerformanceTools
     </ul>
-<li> Part 4: <b> StarPU FAQs: </b>
+<li> <b> \ref IntroFAQ </b>
     <ul>
-    <li> \ref IntroFAQ
     <li> \ref CheckListWhenPerformanceAreNotThere
     <li> \ref FrequentlyAskedQuestions
     </ul>
-<li> Part 5: <b> StarPU Language Bindings: </b>
+<li> <b> \ref IntroLanguage </b>
     <ul>
-    <li> \ref IntroLanguage
     <li> \ref NativeFortranSupport
     <li> \ref StarPUJavaInterface
     <li> \ref PythonInterface
     <li> \ref OpenMPRuntimeSupport
     </ul>
-<li> Part 6: <b> StarPU Extensions: </b>
+<li> <b> \ref IntroExtensions </b>
     <ul>
-    <li> \ref IntroExtensions
     <li> \ref DebuggingTools
     <li> \ref AdvancedTasksInStarPU
     <li> \ref AdvancedDataManagement
@@ -82,7 +79,7 @@ The documentation chapters include
     <li> \ref HowToDefineANewSchedulingPolicy
     <li> \ref SimGridSupport
     </ul>
-<li> Part: Appendix
+<li> <b>Appendices</b>
     <ul>
     <li> \ref GNUFreeDocumentationLicense
     <li> \ref ModuleDocumentation

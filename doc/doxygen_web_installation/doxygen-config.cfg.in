@@ -22,8 +22,8 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters/foreword.doxy \
                       @top_srcdir@/doc/doxygen/chapters/starpu_installation/configure_options.doxy \
                       @top_srcdir@/doc/doxygen/chapters/fdl_1_3.doxy \
                       @top_srcdir@/doc/doxygen/chapters/files.doxy \
-                      @top_srcdir@/doc/doxygen/chapters/api 
-                      
+                      @top_srcdir@/doc/doxygen/chapters/api
+
 EXAMPLE_PATH           = @top_srcdir@/doc/doxygen \
                              @top_srcdir@/doc/doxygen/chapters \
                              @top_srcdir@/doc/doxygen/chapters/code
@@ -35,3 +35,10 @@ INPUT_FILTER           = @top_builddir@/doc/doxygen/doxygen_filter.sh
 IMAGE_PATH             = @top_srcdir@/doc/doxygen/chapters/images
 
 GENERATE_LATEX         = @DOC_GENERATE_LATEX@
+
+@INCLUDE_PATH	       = ../../doc/doxygen/
+
+HTML_OUTPUT            = html_web_installation
+
+PROJECT_NAME           = "StarPU Handbook - StarPU Installation"
+ALIASES                += "intropage{2} = \mainpage"

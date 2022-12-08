@@ -291,7 +291,7 @@ static struct starpu_data_interface_ops interface_pyobject_ops =
 	.copy_methods = &pyobject_copy_data_methods_s,
 };
 
-int starpupy_data_register(starpu_data_handle_t *handleptr, unsigned home_node, PyObject *obj)
+void starpupy_data_register(starpu_data_handle_t *handleptr, unsigned home_node, PyObject *obj)
 {
 	struct starpupyobject_interface pyobject_interface =
 	{
@@ -305,5 +305,10 @@ int starpupy_data_register(starpu_data_handle_t *handleptr, unsigned home_node, 
 
 	starpu_data_register(handleptr, home_node, &pyobject_interface, &interface_pyobject_ops);
 
-	return interface_pyobject_ops.interfaceid;
+}
+
+int starpupy_check_pyobject_interface_id(starpu_data_handle_t handle)
+{
+	int interfaceid = (int)starpu_data_get_interface_id(handle);
+	return interfaceid == interface_pyobject_ops.interfaceid;
 }

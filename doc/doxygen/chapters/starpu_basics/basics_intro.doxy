@@ -20,7 +20,7 @@ This part presents the basic knowledge of StarPU. It should be read to understan
 
 <ul>
 <li> You can learn how to create and run your own StarPU applications after reading Chapter \ref StarPUApplications.
-<li> We also explain to you how to implement simple programs that submit tasks to StarPU in Chapter \ref BasicExamples and some complex programs in Chapter \ref AdvancedExamples.
+<li> We also explain to you how to implement simple programs that submit tasks to StarPU in Chapter \ref BasicExamples and some complex programs in Part \ref StarPUApplications.
 <li> A full source code about scaling a vector is shown in Chapter \ref FullSourceCodeVectorScal.
 <li> We introduce the most important and core concepts in StarPU:
     <ul>

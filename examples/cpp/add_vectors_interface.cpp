@@ -541,6 +541,10 @@ static void free_vector_cpp_buffer_on_node(void *data_interface, unsigned node)
 	struct vector_cpp_interface *vector_interface = (struct vector_cpp_interface *) data_interface;
 
 	delete vector_interface->vec;
+
+	vector_interface->vec = NULL;
+	vector_interface->ptr = 0;
+	vector_interface->dev_handle = 0;
 }
 
 static int vector_interface_copy_any_to_any(void *src_interface, unsigned src_node,

@@ -38,12 +38,13 @@ chapters =	\
 	chapters/starpu_basics/basics_intro.doxy		\
 	chapters/starpu_basics/starpu_applications.doxy		\
 	chapters/starpu_basics/basic_examples.doxy		\
-	chapters/starpu_basics/advanced_examples.doxy		\
 	chapters/starpu_basics/scaling_vector_example.doxy		\
 	chapters/starpu_basics/tasks.doxy		\
 	chapters/starpu_basics/data_management.doxy		\
 	chapters/starpu_basics/scheduling.doxy		\
 	chapters/starpu_basics/examples_sources.doxy		\
+	chapters/starpu_applications/applications_intro.doxy		\
+	chapters/starpu_applications/stencil.doxy		\
 	chapters/starpu_performances/performances_intro.doxy		\
 	chapters/starpu_performances/benchmarking_starpu.doxy		\
 	chapters/starpu_performances/online_performance_tools.doxy		\
@@ -90,6 +91,9 @@ chapters =	\
 	chapters/code/disk_copy.c \
 	chapters/code/disk_compute.c \
 	chapters/code/nf_initexit.f90 \
+	chapters/code/stencil5.c	\
+	chapters/code/stencil5_starpu.c	\
+	chapters/code/stencil5_starpu_mpi.c	\
 	chapters/api/fortran_support.doxy \
 	chapters/api/bubble_support.doxy \
 	chapters/api/fft_support.doxy \

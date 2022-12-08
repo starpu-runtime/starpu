@@ -467,13 +467,13 @@ int _starpu_hip_driver_init(struct _starpu_worker *worker)
 
 #ifdef STARPU_PROF_TOOL
 	struct starpu_prof_tool_info pi;
-    pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_driver_init, devid, workerid, starpu_prof_tool_driver_hip, memnode, NULL);
-    starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_init(&pi, NULL, NULL);
-    pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_driver_init_start, devid, workerid, starpu_prof_tool_driver_hip, memnode, NULL);
-    starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_init_start(&pi, NULL, NULL);
+	pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_driver_init, devid, workerid, starpu_prof_tool_driver_hip, memnode, NULL);
+	starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_init(&pi, NULL, NULL);
+	pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_driver_init_start, devid, workerid, starpu_prof_tool_driver_hip, memnode, NULL);
+	starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_init_start(&pi, NULL, NULL);
 #endif
 
-    float size = (float) global_mem[devid] / (1<<30);
+	float size = (float) global_mem[devid] / (1<<30);
 	/* get the device's name */
 	char devname[64];
 	strncpy(devname, props[devid].name, 63);
@@ -487,8 +487,8 @@ int _starpu_hip_driver_init(struct _starpu_worker *worker)
 
 	_STARPU_TRACE_WORKER_INIT_END(workerid);
 #ifdef STARPU_PROF_TOOL
-    pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_driver_init_end, devid, workerid, starpu_prof_tool_driver_hip, 0, NULL);
-    starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_init_end(&pi, NULL, NULL);
+	pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_driver_init_end, devid, workerid, starpu_prof_tool_driver_hip, 0, NULL);
+	starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_init_end(&pi, NULL, NULL);
 #endif
 
 	{
@@ -534,8 +534,8 @@ int _starpu_hip_driver_deinit(struct _starpu_worker *worker)
 	_STARPU_TRACE_WORKER_DEINIT_END(STARPU_HIP_WORKER);
 
 #ifdef STARPU_PROF_TOOL
-    struct starpu_prof_tool_info pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_driver_deinit, workerid, worker->workerid, starpu_prof_tool_driver_hip, memnode, NULL);
-    starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_deinit(&pi, NULL, NULL);
+	struct starpu_prof_tool_info pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_driver_deinit, workerid, worker->workerid, starpu_prof_tool_driver_hip, memnode, NULL);
+	starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_deinit(&pi, NULL, NULL);
 #endif
 	return 0;
 }
@@ -1136,8 +1136,8 @@ int _starpu_hip_driver_run_once(struct _starpu_worker *worker)
 			STARPU_RMB();
 			_STARPU_TRACE_END_PROGRESS(memnode);
 #ifdef STARPU_PROF_TOOL
-            pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_transfer, workerid, workerid, starpu_prof_tool_driver_hip, memnode, NULL);
-            starpu_prof_tool_callbacks.starpu_prof_tool_event_end_transfer(&pi, NULL, NULL);
+			pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_transfer, workerid, workerid, starpu_prof_tool_driver_hip, memnode, NULL);
+			starpu_prof_tool_callbacks.starpu_prof_tool_event_end_transfer(&pi, NULL, NULL);
 #endif
 			j = _starpu_get_job_associated_to_task(task);
 
@@ -1238,8 +1238,8 @@ int _starpu_hip_driver_run_once(struct _starpu_worker *worker)
 	STARPU_ASSERT(res == 0);
 	_STARPU_TRACE_START_PROGRESS(memnode);
 #ifdef STARPU_PROF_TOOL
-		pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_start_transfer, worker->workerid, worker->workerid, starpu_prof_tool_driver_hip, memnode, NULL);
-		starpu_prof_tool_callbacks.starpu_prof_tool_event_start_transfer(&pi, NULL, NULL);
+	pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_start_transfer, worker->workerid, worker->workerid, starpu_prof_tool_driver_hip, memnode, NULL);
+	starpu_prof_tool_callbacks.starpu_prof_tool_event_start_transfer(&pi, NULL, NULL);
 #endif
 
 	return 0;
@@ -1255,8 +1255,8 @@ void *_starpu_hip_worker(void *_arg)
 	_starpu_hip_driver_init(worker);
 	_STARPU_TRACE_START_PROGRESS(worker->memory_node);
 #ifdef STARPU_PROF_TOOL
-		pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_start_transfer, worker->workerid, worker->workerid, starpu_prof_tool_driver_hip, worker->memory_node, NULL);
-		starpu_prof_tool_callbacks.starpu_prof_tool_event_start_transfer(&pi, NULL, NULL);
+	pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_start_transfer, worker->workerid, worker->workerid, starpu_prof_tool_driver_hip, worker->memory_node, NULL);
+	starpu_prof_tool_callbacks.starpu_prof_tool_event_start_transfer(&pi, NULL, NULL);
 #endif
 	while (_starpu_machine_is_running())
 	{
@@ -1265,8 +1265,8 @@ void *_starpu_hip_worker(void *_arg)
 	}
 	_STARPU_TRACE_END_PROGRESS(worker->memory_node);
 #ifdef STARPU_PROF_TOOL
-		pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_transfer, worker->workerid, worker->workerid, starpu_prof_tool_driver_hip, worker->memory_node, NULL);
-		starpu_prof_tool_callbacks.starpu_prof_tool_event_end_transfer(&pi, NULL, NULL);
+	pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_transfer, worker->workerid, worker->workerid, starpu_prof_tool_driver_hip, worker->memory_node, NULL);
+	starpu_prof_tool_callbacks.starpu_prof_tool_event_end_transfer(&pi, NULL, NULL);
 #endif
 	_starpu_hip_driver_deinit(worker);
 

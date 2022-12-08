@@ -193,11 +193,14 @@ static void free_custom_buffer_on_node(void *data_interface, unsigned node)
 	size_t size = custom_interface->nx * custom_interface->ops->cpu_elemsize;
 
 	starpu_free_on_node(node, (uintptr_t) custom_interface->cpu_ptr, size);
+	custom_interface->cpu_ptr = NULL;
 #ifdef STARPU_USE_CUDA
 	starpu_free_on_node(node, (uintptr_t) custom_interface->cuda_ptr, size);
+	custom_interface->cuda_ptr = NULL;
 #endif
 #ifdef STARPU_USE_OPENCL
 	starpu_free_on_node(node, (uintptr_t) custom_interface->opencl_ptr, size);
+	custom_interface->opencl_ptr = NULL;
 #endif
 }
 

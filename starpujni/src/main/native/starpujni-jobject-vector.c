@@ -176,6 +176,7 @@ static void s_jobject_vector_free_data_on_node(void *data_interface, unsigned no
 	struct jobject_vector_interface *vector = data_interface;
 
 	starpu_free_on_node(node, vector->ptr, vector->nx * sizeof(jobject));
+	vector->ptr = 0;
 }
 
 static void *s_jobject_vector_to_pointer(void *data_interface, unsigned node)

@@ -493,6 +493,8 @@ static void free_block_buffer_on_node(void *data_interface, unsigned node)
 	size_t elemsize = block_interface->elemsize;
 
 	starpu_free_on_node(node, block_interface->dev_handle, nx*ny*nz*elemsize);
+	block_interface->ptr = 0;
+	block_interface->dev_handle = 0;
 }
 
 static int map_block(void *src_interface, unsigned src_node,

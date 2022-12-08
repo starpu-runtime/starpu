@@ -568,6 +568,8 @@ static void free_tensor_buffer_on_node(void *data_interface, unsigned node)
 	size_t elemsize = tensor_interface->elemsize;
 
 	starpu_free_on_node(node, tensor_interface->dev_handle, nx*ny*nz*nt*elemsize);
+	tensor_interface->ptr = 0;
+	tensor_interface->dev_handle = 0;
 }
 
 static int map_tensor(void *src_interface, unsigned src_node,

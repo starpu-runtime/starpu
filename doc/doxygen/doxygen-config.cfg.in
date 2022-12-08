@@ -26,12 +26,13 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters/foreword.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_basics/basics_intro.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_basics/starpu_applications.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_basics/basic_examples.doxy \
-			 @top_srcdir@/doc/doxygen/chapters/starpu_basics/advanced_examples.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_basics/scaling_vector_example.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_basics/tasks.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_basics/data_management.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_basics/scheduling.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_basics/examples_sources.doxy \
+			 @top_srcdir@/doc/doxygen/chapters/starpu_applications/applications_intro.doxy \
+			 @top_srcdir@/doc/doxygen/chapters/starpu_applications/stencil.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_performances/performances_intro.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_performances/benchmarking_starpu.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_performances/online_performance_tools.doxy \
@@ -79,3 +80,6 @@ INPUT_FILTER           = @top_builddir@/doc/doxygen/doxygen_filter.sh
 IMAGE_PATH             = @top_srcdir@/doc/doxygen/chapters/images
 
 GENERATE_LATEX         = @DOC_GENERATE_LATEX@
+
+PROJECT_NAME           = "StarPU Handbook"
+ALIASES                += "intropage{2} = \page \1 \2"

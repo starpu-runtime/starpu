@@ -18,8 +18,8 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
-PyObject *dumps; /*cloudpickle.dumps method*/
-PyObject *loads; /*pickle.loads method*/
+static PyObject *dumps; /*cloudpickle.dumps method*/
+static PyObject *loads; /*pickle.loads method*/
 
 /*return the reference of PyBytes which must be kept while using obj_data. See documentation of PyBytes_AsStringAndSize()*/
 static inline PyObject* starpu_cloudpickle_dumps(PyObject *obj, char **obj_data, Py_ssize_t *obj_data_size)

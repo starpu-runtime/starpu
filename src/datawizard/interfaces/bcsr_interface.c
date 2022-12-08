@@ -400,9 +400,12 @@ static void free_bcsr_buffer_on_node(void *data_interface, unsigned node)
 	if (nnz)
 	{
 		starpu_free_on_node(node, bcsr_interface->nzval, nnz*r*c*elemsize);
+		bcsr_interface->nzval = 0;
 		starpu_free_on_node(node, (uintptr_t) bcsr_interface->colind, nnz*sizeof(uint32_t));
+		bcsr_interface->colind = NULL;
 	}
 	starpu_free_on_node(node, (uintptr_t) bcsr_interface->rowptr, (nrow+1)*sizeof(uint32_t));
+	bcsr_interface->rowptr = NULL;
 }
 
 static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data)

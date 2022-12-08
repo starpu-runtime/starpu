@@ -111,6 +111,7 @@ static void STARPU_ATTRIBUTE_NORETURN print_exception(const char *msg, ...)
 
 /*********************Functions passed in task_submit wrapper***********************/
 
+static int active_multi_interpreter = 0; /*active multi-interpreter if define STARPU_STARPUPY_MULTI_INTERPRETER*/ 
 static PyObject *StarpupyError; /*starpupy error exception*/
 static PyObject *asyncio_module; /*python asyncio module*/
 static PyObject *cloudpickle_module; /*cloudpickle module*/
@@ -124,6 +125,9 @@ static pthread_t main_thread;
 static PyObject *cb_loop = Py_None; /*another event loop besides main running loop*/
 static pthread_t thread_id;
 
+static PyThreadState *orig_thread_states[STARPU_NMAXWORKERS];
+static PyThreadState *new_thread_states[STARPU_NMAXWORKERS];
+
 /*********************************************************************************************/
 
 #ifdef STARPU_STARPUPY_MULTI_INTERPRETER
@@ -131,14 +135,11 @@ static uint32_t where_inter = STARPU_CPU;
 #endif
 
 /* prologue_callback_func*/
-void prologue_cb_func(void *cl_arg)
+void starpupy_prologue_cb_func(void *cl_arg)
 {
-#ifdef STARPU_STARPUPY_MULTI_INTERPRETER
 	PyObject *func_data;
 	size_t func_data_size;
-#else
 	PyObject *func_py;
-#endif
 	PyObject *argList;
 	PyObject *fut;
 	PyObject *loop;
@@ -154,13 +155,17 @@ void prologue_cb_func(void *cl_arg)
 	struct starpu_codelet_pack_arg_data data_org;
 	starpu_codelet_unpack_arg_init(&data_org, task->cl_arg, task->cl_arg_size);
 
-#ifdef STARPU_STARPUPY_MULTI_INTERPRETER
-	/*get func_py char**/
-	starpu_codelet_pick_arg(&data_org, (void**)&func_data, &func_data_size);
-#else
-	/*get func_py*/
-	starpu_codelet_unpack_arg(&data_org, &func_py, sizeof(func_py));
-#endif
+	if(active_multi_interpreter)
+	{
+		/*get func_py char**/
+		starpu_codelet_pick_arg(&data_org, (void**)&func_data, &func_data_size);
+	}
+	else
+	{
+		/*get func_py*/
+		starpu_codelet_unpack_arg(&data_org, &func_py, sizeof(func_py));
+	}
+
 	/*get argList*/
 	starpu_codelet_unpack_arg(&data_org, &argList, sizeof(argList));
 	/*get fut*/
@@ -178,9 +183,8 @@ void prologue_cb_func(void *cl_arg)
 
 	/*check if there is Future in argList, if so, get the Future result*/
 	int i;
-#ifndef STARPU_STARPUPY_MULTI_INTERPRETER
 	int fut_flag = 0;
-#endif
+
 	for(i=0; i < PyTuple_Size(argList); i++)
 	{
 		PyObject *obj=PyTuple_GetItem(argList, i);
@@ -189,9 +193,7 @@ void prologue_cb_func(void *cl_arg)
 		const char* tp = Py_TYPE(obj)->tp_name;
 		if(strcmp(tp, "_asyncio.Future") == 0)
 		{
-		#ifndef STARPU_STARPUPY_MULTI_INTERPRETER
 			fut_flag = 1;
-		#endif
 			PyObject *done = PyObject_CallMethod(obj, "done", NULL);
 			/*if the argument is Future and future object is not finished, we will await its result in cb_loop, since the main loop may be occupied to await the final result of function*/
 			if (!PyObject_IsTrue(done))
@@ -228,12 +230,8 @@ void prologue_cb_func(void *cl_arg)
 	}
 
 	int pack_flag = 0;
-#ifdef STARPU_STARPUPY_MULTI_INTERPRETER
-	pack_flag = 1;
-#else
-	if (fut_flag)
+	if(active_multi_interpreter||fut_flag)
 		pack_flag = 1;
-#endif
 
 	/*if the argument is changed in arglist or program runs with multi-interpreter, repack the data*/
 	if(pack_flag == 1)
@@ -242,25 +240,25 @@ void prologue_cb_func(void *cl_arg)
 		struct starpu_codelet_pack_arg_data data;
 		starpu_codelet_pack_arg_init(&data);
 
-#ifdef STARPU_STARPUPY_MULTI_INTERPRETER
-		/*repack func_data*/
-		starpu_codelet_pack_arg(&data, func_data, func_data_size);
-		/*use cloudpickle to dump argList*/
-		Py_ssize_t arg_data_size;
-		char* arg_data;
-		PyObject *arg_bytes = starpu_cloudpickle_dumps(argList, &arg_data, &arg_data_size);
-		starpu_codelet_pack_arg(&data, arg_data, arg_data_size);
-		Py_DECREF(arg_bytes);
-		Py_DECREF(argList);
-#else
-		if (fut_flag)
+		if(active_multi_interpreter)
+		{
+			/*repack func_data*/
+			starpu_codelet_pack_arg(&data, func_data, func_data_size);
+			/*use cloudpickle to dump argList*/
+			Py_ssize_t arg_data_size;
+			char* arg_data;
+			PyObject *arg_bytes = starpu_cloudpickle_dumps(argList, &arg_data, &arg_data_size);
+			starpu_codelet_pack_arg(&data, arg_data, arg_data_size);
+			Py_DECREF(arg_bytes);
+			Py_DECREF(argList);
+		}
+		else if (fut_flag)
 		{
 			/*repack func_py*/
 			starpu_codelet_pack_arg(&data, &func_py, sizeof(func_py));
 			/*repack arglist*/
 			starpu_codelet_pack_arg(&data, &argList, sizeof(argList));
 		}
-#endif
 
 		/*repack fut*/
 		starpu_codelet_pack_arg(&data, &fut, sizeof(fut));
@@ -286,12 +284,6 @@ void prologue_cb_func(void *cl_arg)
 /*function passed to starpu_codelet.cpu_func*/
 void starpupy_codelet_func(void *descr[], void *cl_arg)
 {
-#ifdef STARPU_STARPUPY_MULTI_INTERPRETER
-	char* func_data;
-	size_t func_data_size;
-	char* arg_data;
-	size_t arg_data_size;
-#endif
 	PyObject *func_py; /*the python function passed in*/
 	PyObject *pFunc;
 	PyObject *argList; /*argument list of python function passed in*/
@@ -305,25 +297,32 @@ void starpupy_codelet_func(void *descr[], void *cl_arg)
 	struct starpu_codelet_pack_arg_data data;
 	starpu_codelet_unpack_arg_init(&data, task->cl_arg, task->cl_arg_size);
 
-#ifdef STARPU_STARPUPY_MULTI_INTERPRETER
-	/*get func_py char**/
-	starpu_codelet_pick_arg(&data, (void**)&func_data, &func_data_size);
-	/*use cloudpickle to load function (maybe only function name), return a new reference*/
-	pFunc=starpu_cloudpickle_loads(func_data, func_data_size);
-	if (!pFunc)
-		print_exception("cloudpickle could not unpack the function from the main interpreter");
-	/*get argList char**/
-	starpu_codelet_pick_arg(&data, (void**)&arg_data, &arg_data_size);
-	/*use cloudpickle to load argList*/
-	argList=starpu_cloudpickle_loads(arg_data, arg_data_size);
-	if (!argList)
-		print_exception("cloudpickle could not unpack the argument list from the main interpreter");
-#else
-	/*get func_py*/
-	starpu_codelet_unpack_arg(&data, &pFunc, sizeof(pFunc));
-	/*get argList*/
-	starpu_codelet_unpack_arg(&data, &argList, sizeof(argList));
-#endif
+	if(active_multi_interpreter)
+	{
+		char* func_data;
+		size_t func_data_size;
+		char* arg_data;
+		size_t arg_data_size;
+		/*get func_py char**/
+		starpu_codelet_pick_arg(&data, (void**)&func_data, &func_data_size);
+		/*use cloudpickle to load function (maybe only function name), return a new reference*/
+		pFunc=starpu_cloudpickle_loads(func_data, func_data_size);
+		if (!pFunc)
+			print_exception("cloudpickle could not unpack the function from the main interpreter");
+		/*get argList char**/
+		starpu_codelet_pick_arg(&data, (void**)&arg_data, &arg_data_size);
+		/*use cloudpickle to load argList*/
+		argList=starpu_cloudpickle_loads(arg_data, arg_data_size);
+		if (!argList)
+			print_exception("cloudpickle could not unpack the argument list from the main interpreter");
+	}
+	else
+	{
+		/*get func_py*/
+		starpu_codelet_unpack_arg(&data, &pFunc, sizeof(pFunc));
+		/*get argList*/
+		starpu_codelet_unpack_arg(&data, &argList, sizeof(argList));
+	}
 
 	/*skip fut*/
 	starpu_codelet_unpack_discard_arg(&data);
@@ -343,7 +342,6 @@ void starpupy_codelet_func(void *descr[], void *cl_arg)
 	if (strcmp(tp_func, "str")==0)
 	{
 		/*getattr(sys.modules[__name__], "<functionname>")*/
-// #ifdef STARPU_STARPUPY_MULTI_INTERPRETER
 		/*get sys.modules*/
 		PyObject *sys_modules = PyImport_GetModuleDict();
 		/*protect borrowed reference, decrement after being called by the function*/
@@ -356,21 +354,7 @@ void starpupy_codelet_func(void *descr[], void *cl_arg)
 		func_py=PyObject_GetAttr(sys_modules_name,pFunc);
 		Py_DECREF(sys_modules);
 		Py_DECREF(sys_modules_name);
-// #else
-// 		/*get sys.modules*/
-// 		PyObject *sys_modules_g = PyImport_GetModuleDict();
-// 		/*protect borrowed reference, decrement after being called by the function*/
-// 		Py_INCREF(sys_modules_g);
-// 		/*get sys.modules[__name__]*/
-// 		PyObject *sys_modules_name_g=PyDict_GetItemString(sys_modules_g,"__main__");
-// 		/*protect borrowed reference, decrement after being called by the function*/
-// 		Py_INCREF(sys_modules_name_g);
-// 		/*get function object*/
-// 		func_py=PyObject_GetAttr(sys_modules_name_g,pFunc);
 
-// 		Py_DECREF(sys_modules_g);
-// 		Py_DECREF(sys_modules_name_g);
-// #endif
 		/*decrement the reference obtained from unpack*/
 		Py_DECREF(pFunc);
 	}
@@ -397,13 +381,13 @@ void starpupy_codelet_func(void *descr[], void *cl_arg)
 		if(strcmp(tp, "Handle_token") == 0)
 		{
 			/*if one of arguments is Handle, replace the Handle argument to the object*/
-			if (starpu_data_get_interface_id(task->handles[h_index]) == obj_id)
+			if (STARPUPY_PYOBJ_CHECK(task->handles[h_index]))
 			{
 				PyObject *obj_handle = STARPUPY_GET_PYOBJECT(descr[h_index]);
 				Py_INCREF(obj_handle);
 				PyTuple_SetItem(pArglist, i, obj_handle);
 			}
-			else if (starpu_data_get_interface_id(task->handles[h_index]) == buf_id)
+			else if (STARPUPY_BUF_CHECK(task->handles[h_index]))
 			{
 				PyObject *buf_handle = STARPUPY_BUF_GET_PYOBJECT(descr[h_index]);
 				PyTuple_SetItem(pArglist, i, buf_handle);
@@ -443,7 +427,7 @@ void starpupy_codelet_func(void *descr[], void *cl_arg)
 	/*if return handle*/
 	if(h_flag)
 	{
-		STARPU_ASSERT(starpu_data_get_interface_id(task->handles[0]) == obj_id);
+		STARPU_ASSERT(STARPUPY_PYOBJ_CHECK(task->handles[0]));
 		if (STARPUPY_GET_PYOBJECT(descr[0]) != NULL)
 			Py_DECREF(STARPUPY_GET_PYOBJECT(descr[0]));
 
@@ -468,22 +452,25 @@ void starpupy_codelet_func(void *descr[], void *cl_arg)
 		}
 		else
 		{
-	#ifdef STARPU_STARPUPY_MULTI_INTERPRETER
-			/*else use cloudpickle to dump rv*/
-			Py_ssize_t rv_data_size;
-			char* rv_data;
-			PyObject *rv_bytes = starpu_cloudpickle_dumps(rv, &rv_data, &rv_data_size);
-			starpu_codelet_pack_arg(&data_ret, &rv_data_size, sizeof(rv_data_size));
-			starpu_codelet_pack_arg(&data_ret, rv_data, rv_data_size);
-			Py_DECREF(rv_bytes);
-			Py_DECREF(rv);
-	#else
-			/*if the result is not None type, we set rv_data_size to 1, it does not mean that the data size is 1, but only for determine statements*/
-			size_t rv_data_size=1;
-			starpu_codelet_pack_arg(&data_ret, &rv_data_size, sizeof(rv_data_size));
-			/*pack rv*/
-			starpu_codelet_pack_arg(&data_ret, &rv, sizeof(rv));
-	#endif
+			if(active_multi_interpreter)
+			{
+				/*else use cloudpickle to dump rv*/
+				Py_ssize_t rv_data_size;
+				char* rv_data;
+				PyObject *rv_bytes = starpu_cloudpickle_dumps(rv, &rv_data, &rv_data_size);
+				starpu_codelet_pack_arg(&data_ret, &rv_data_size, sizeof(rv_data_size));
+				starpu_codelet_pack_arg(&data_ret, rv_data, rv_data_size);
+				Py_DECREF(rv_bytes);
+				Py_DECREF(rv);
+			}
+			else
+			{
+				/*if the result is not None type, we set rv_data_size to 1, it does not mean that the data size is 1, but only for determine statements*/
+				size_t rv_data_size=1;
+				starpu_codelet_pack_arg(&data_ret, &rv_data_size, sizeof(rv_data_size));
+				/*pack rv*/
+				starpu_codelet_pack_arg(&data_ret, &rv, sizeof(rv));
+			}
 		}
 
 		/*store the return value in task->cl_ret*/
@@ -504,15 +491,13 @@ void starpupy_codelet_func(void *descr[], void *cl_arg)
 }
 
 /*function passed to starpu_task.epilogue_callback_func*/
-void epilogue_cb_func(void *v)
+void starpupy_epilogue_cb_func(void *v)
 {
 	PyObject *fut; /*asyncio.Future*/
 	PyObject *loop; /*asyncio.Eventloop*/
 	int h_flag;
 	PyObject *perfmodel;
-#ifdef STARPU_STARPUPY_MULTI_INTERPRETER
 	char* rv_data;
-#endif
 	size_t rv_data_size;
 	PyObject *rv; /*return value when using PyObject_CallObject call the function f*/
 
@@ -559,17 +544,17 @@ void epilogue_cb_func(void *v)
 			Py_INCREF(rv);
 		}
 		/*else use cloudpickle to load rv*/
-		else
+		else if(active_multi_interpreter)
 		{
-	#ifdef STARPU_STARPUPY_MULTI_INTERPRETER
 			/*get rv char**/
 			starpu_codelet_pick_arg(&data_ret, (void**)&rv_data, &rv_data_size);
 			/*use cloudpickle to load rv*/
 			rv=starpu_cloudpickle_loads(rv_data, rv_data_size);
-	#else
+		}
+		else
+		{
 			/*unpack rv*/
 			starpu_codelet_unpack_arg(&data_ret, &rv, sizeof(rv));
-	#endif
 		}
 
 		starpu_codelet_unpack_arg_fini(&data_ret);
@@ -611,7 +596,7 @@ void epilogue_cb_func(void *v)
 	PyGILState_Release(state);
 }
 
-void cb_func(void *v)
+void starpupy_cb_func(void *v)
 {
 	struct starpu_task *task = starpu_task_get_current();
 
@@ -770,19 +755,22 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 	struct starpu_codelet_pack_arg_data data;
 	starpu_codelet_pack_arg_init(&data);
 
-#ifdef STARPU_STARPUPY_MULTI_INTERPRETER
-	/*use cloudpickle to dump func_py*/
-	Py_ssize_t func_data_size;
-	char* func_data;
-	PyObject *func_bytes = starpu_cloudpickle_dumps(func_py, &func_data, &func_data_size);
-	starpu_codelet_pack_arg(&data, func_data, func_data_size);
-	Py_DECREF(func_bytes);
-	/*decrement the ref obtained from args passed in*/
-	Py_DECREF(func_py);
-#else
-	/*if there is no multi interpreter only pack func_py*/
-	starpu_codelet_pack_arg(&data, &func_py, sizeof(func_py));
-#endif
+	if(active_multi_interpreter)
+	{
+		/*use cloudpickle to dump func_py*/
+		Py_ssize_t func_data_size;
+		char* func_data;
+		PyObject *func_bytes = starpu_cloudpickle_dumps(func_py, &func_data, &func_data_size);
+		starpu_codelet_pack_arg(&data, func_data, func_data_size);
+		Py_DECREF(func_bytes);
+		/*decrement the ref obtained from args passed in*/
+		Py_DECREF(func_py);
+	}
+	else
+	{
+		/*if there is no multi interpreter only pack func_py*/
+		starpu_codelet_pack_arg(&data, &func_py, sizeof(func_py));
+	}
 
 	PyObject *loop;
 	PyObject *fut;
@@ -842,7 +830,7 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 		loop = Py_None;
 		fut = Py_None;
 
-		/* these are decremented in epilogue_cb_func */
+		/* these are decremented in starpupy_epilogue_cb_func */
 		Py_INCREF(loop);
 		Py_INCREF(fut);
 
@@ -888,9 +876,9 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 	}
 	else if(PyObject_IsTrue(ret_fut))
 	{
-		/*get the running Event loop, decremented in epilogue_cb_func*/
+		/*get the running Event loop, decremented in starpupy_epilogue_cb_func*/
 		loop = PyObject_CallMethod(asyncio_module, "get_running_loop", NULL);
-		/*create a asyncio.Future object, decremented in epilogue_cb_func*/
+		/*create a asyncio.Future object, decremented in starpupy_epilogue_cb_func*/
 		fut = PyObject_CallMethod(loop, "create_future", NULL);
 
 		if (fut == NULL)
@@ -930,7 +918,7 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 		loop = Py_None;
 		fut = Py_None;
 
-		/* these are decremented in epilogue_cb_func */
+		/* these are decremented in starpupy_epilogue_cb_func */
 		Py_INCREF(loop);
 		Py_INCREF(fut);
 
@@ -959,7 +947,7 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 
 	/*check whether the option perfmodel is None*/
 	PyObject *perfmodel = PyDict_GetItemString(dict_option, "perfmodel");
-	/*protect borrowed reference, pack in cl_arg, decrement in epilogue_cb_func*/
+	/*protect borrowed reference, pack in cl_arg, decrement in starpupy_epilogue_cb_func*/
 	Py_INCREF(perfmodel);
 
 	/*call the method get_struct*/
@@ -1061,7 +1049,7 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 				}
 
 				/*if the function result will be returned in parameter, the first argument will be the handle of return value, but this object should not be the Python object supporting buffer protocol*/
-				if(PyObject_IsTrue(ret_param) && i==0 && starpu_data_get_interface_id(tmp_handle) == buf_id)
+				if(PyObject_IsTrue(ret_param) && i==0 && STARPUPY_BUF_CHECK(tmp_handle))
 				{
 					PyErr_Format(StarpupyError, "Return value as parameter should not be the Python object supporting buffer protocol");
 					return NULL;
@@ -1111,7 +1099,7 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 			else if((PyObject_IsTrue(arg_handle)) && (strcmp(tp_arg, "numpy.ndarray")==0 || strcmp(tp_arg, "bytes")==0 || strcmp(tp_arg, "bytearray")==0 || strcmp(tp_arg, "array.array")==0 || strcmp(tp_arg, "memoryview")==0))
 			{
 				/*get the corresponding handle of the obj, return a new reference, decremented in the end of this else if{}*/
-				PyObject *tmp_cap = handle_dict_check(tmp, tmp_mode, "register");
+				PyObject *tmp_cap = starpupy_handle_dict_check(tmp, tmp_mode, "register");
 
 				/*create the Handle_token object to replace the Handle Capsule*/
 				PyObject *token_obj = PyObject_CallObject(pInstanceToken, NULL);
@@ -1290,9 +1278,9 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 	starpu_codelet_pack_arg_fini(&data, &task->cl_arg, &task->cl_arg_size);
 	task->cl_arg_free = 1;
 
-	task->prologue_callback_func=&prologue_cb_func;
-	task->epilogue_callback_func=&epilogue_cb_func;
-	task->callback_func=&cb_func;
+	task->prologue_callback_func=&starpupy_prologue_cb_func;
+	task->epilogue_callback_func=&starpupy_epilogue_cb_func;
+	task->callback_func=&starpupy_cb_func;
 
 	/*call starpu_task_submit method*/
 	int ret;
@@ -1401,11 +1389,8 @@ static PyObject* starpu_task_nsubmitted_wrapper(PyObject *self, PyObject *args)
 	return Py_BuildValue("i", num_task);
 }
 
-PyThreadState *orig_thread_states[STARPU_NMAXWORKERS];
-PyThreadState *new_thread_states[STARPU_NMAXWORKERS];
-
 /*generate new sub-interpreters*/
-void new_inter(void* arg)
+static void new_inter(void* arg)
 {
 	unsigned workerid = starpu_worker_get_id_check();
 	PyThreadState *new_thread_state;
@@ -1422,7 +1407,7 @@ void new_inter(void* arg)
 }
 
 /*delete sub-interpreters*/
-void del_inter(void* arg)
+static void del_inter(void* arg)
 {
 	unsigned workerid = starpu_worker_get_id_check();
 	PyThreadState *new_thread_state = new_thread_states[workerid];
@@ -1779,6 +1764,8 @@ PyInit_starpupy(void)
 	}
 
 #ifdef STARPU_STARPUPY_MULTI_INTERPRETER
+	/*active multi-interpreter*/
+	active_multi_interpreter = 1;
 	/*generate new interpreter on each worker*/
 	Py_BEGIN_ALLOW_THREADS;
 	starpu_execute_on_each_worker_ex(new_inter, NULL, where_inter, "new_inter");

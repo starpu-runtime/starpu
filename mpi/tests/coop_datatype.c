@@ -120,6 +120,8 @@ static void data_free_data_on_node(void *data_interface, unsigned node)
 {
 	struct starpu_my_data_interface *my_data_interface = (struct starpu_my_data_interface *) data_interface;
 	starpu_free_on_node(node, my_data_interface->dev_handle, sizeof(int)+sizeof(char));
+	my_data_interface->ptr = 0;
+	my_data_interface->dev_handle = 0;
 }
 
 static size_t data_get_size(starpu_data_handle_t handle)
