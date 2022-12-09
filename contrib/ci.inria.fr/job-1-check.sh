@@ -118,8 +118,6 @@ day=$(date +%u)
 if test $day -le 5
 then
     CONFIGURE_CHECK="--enable-quick-check"
-    export STARPU_TIMEOUT_ENV=1800
-    export MPIEXEC_TIMEOUT=1800
 #else
     # we do a normal check, a long check takes too long on VM nodes
 fi
