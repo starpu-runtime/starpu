@@ -2360,6 +2360,9 @@ AC_ARG_ENABLE(coverity, [AS_HELP_STRING([--enable-coverity], [enable coverity mo
 			enable_coverity=$enableval, enable_coverity=no)
 AC_MSG_RESULT($enable_coverity)
 AM_CONDITIONAL(STARPU_COVERITY, test x$enable_coverity = xyes)
+if test x$enable_coverity = xyes ; then
+	AC_DEFINE(STARPU_COVERITY, [1], [Define to 1 if you are building with coverity])
+fi
 
 # We would need a PIC-compiled libfxt.a for this to work ; that's usually not available.
 if test x$enable_mpi = xyes -a x$enable_simgrid = xyes -o x$enable_shared = xno -a x$enable_starpupy = xyes ; then
