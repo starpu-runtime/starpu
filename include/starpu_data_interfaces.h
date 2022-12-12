@@ -21,19 +21,12 @@
 
 #ifdef STARPU_USE_CUDA
 /* to use CUDA streams */
-#ifdef STARPU_DONT_INCLUDE_CUDA_HEADERS
-typedef void *starpu_cudaStream_t;
-#else
 #include <cuda_runtime.h>
 typedef cudaStream_t starpu_cudaStream_t;
-#endif
 #endif
 
 #ifdef STARPU_USE_HIP
 /* to use HIP streams */
-#ifdef STARPU_DONT_INCLUDE_HIP_HEADERS
-typedef void *starpu_hipStream_t;
-#else
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wundef"
 #pragma GCC diagnostic ignored "-Wunused-result"
@@ -45,7 +38,6 @@ typedef void *starpu_hipStream_t;
 #include <hip/hip_runtime.h>
 #pragma GCC diagnostic pop
 typedef hipStream_t starpu_hipStream_t;
-#endif
 #endif
 
 #ifdef __cplusplus

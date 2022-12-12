@@ -23,7 +23,7 @@
 #include <errno.h>
 #include <assert.h>
 
-#if defined STARPU_USE_CUDA && !defined STARPU_DONT_INCLUDE_CUDA_HEADERS
+#ifdef STARPU_USE_CUDA
 #include <cuda.h>
 #endif
 

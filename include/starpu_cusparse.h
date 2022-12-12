@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,7 +17,7 @@
 #ifndef __STARPU_CUSPARSE_H__
 #define __STARPU_CUSPARSE_H__
 
-#if defined STARPU_USE_CUDA && !defined STARPU_DONT_INCLUDE_CUDA_HEADERS
+#ifdef STARPU_USE_CUDA
 #include <cusparse.h>
 #endif
 
@@ -43,7 +43,7 @@ void starpu_cusparse_init(void);
 */
 void starpu_cusparse_shutdown(void);
 
-#if defined STARPU_USE_CUDA && !defined STARPU_DONT_INCLUDE_CUDA_HEADERS
+#ifdef STARPU_USE_CUDA
 /**
    Return the CUSPARSE handle to be used to queue CUSPARSE
    kernels. It is properly initialized and configured for multistream by
