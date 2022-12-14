@@ -212,7 +212,7 @@ PyObject* starpupy_data_register_wrapper(PyObject *self, PyObject *args)
 		/*set handle_obj in handle_set*/
 		/*get handle_set*/
 		PyObject *handle_set = PyObject_GetAttrString(starpu_module, "handle_set");
-		
+
 		/*add new handle object in set*/
 		PySet_Add(handle_set, handle_obj);
 
@@ -357,6 +357,7 @@ PyObject *starpupy_get_object_wrapper(PyObject *self, PyObject *args)
 
 PyObject *starpupy_handle_dict_check(PyObject *obj, char* mode, char* op)
 {
+	(void)mode;
 	/*get handle_dict*/
 	PyObject *handle_dict = PyObject_GetAttrString(starpu_module, "handle_dict");
 	/*get the arg id*/
@@ -593,6 +594,7 @@ PyObject *starpupy_release_handle_wrapper(PyObject *self, PyObject *args)
 /*release PyObejct Handle*/
 PyObject *starpupy_release_object_wrapper(PyObject *self, PyObject *args)
 {
+	(void)self;
 	PyObject *obj;
 
 	if (!PyArg_ParseTuple(args, "O", &obj))
@@ -639,7 +641,7 @@ static void starpupy_remove_handle_from_set(PyObject *handle_obj)
 {
 	/*delete object from handle_set*/
 	PyObject *handle_set = PyObject_GetAttrString(starpu_module, "handle_set");
-	
+
 	PySet_Discard(handle_set, handle_obj);
 
 	Py_DECREF(handle_set);

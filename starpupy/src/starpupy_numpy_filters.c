@@ -87,11 +87,11 @@ static void starpupy_numpy_filter(void *father_interface, void *child_interface,
 	{
 		child_nn = chunks_list[id];
 		unsigned chunk_nn = 0;
-		unsigned i = 0;
-		while(i < id)
+		unsigned j = 0;
+		while(j < id)
 		{
-			chunk_nn = chunk_nn + chunks_list[i];
-			i++;
+			chunk_nn = chunk_nn + chunks_list[j];
+			j++;
 		}
 		offset = chunk_nn * ld * elemsize;
 	}
@@ -170,7 +170,7 @@ PyObject* starpu_data_partition_wrapper(PyObject *self, PyObject *args)
 	int dim_len = 0;
 	int nlist = PyList_Size(chunks_list);
 	int nchunks[nparts];
-	
+
 	if(nlist != 0)
 	{
 		if (nlist != nparts)

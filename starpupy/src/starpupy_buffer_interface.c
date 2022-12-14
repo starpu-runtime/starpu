@@ -361,6 +361,7 @@ static void pybuffer_free_data_on_node(void *data_interface, unsigned node)
 
 static void pybuffer_reuse_data_on_node(void *dst_data_interface, const void *cached_interface, unsigned node)
 {
+	(void)node;
 	struct starpupy_buffer_interface *dst_pybuffer_interface = (struct starpupy_buffer_interface *) dst_data_interface;
 	const struct starpupy_buffer_interface *cached_pybuffer_interface = (const struct starpupy_buffer_interface *) cached_interface;
 
@@ -395,6 +396,8 @@ static int pybuffer_pack_data(starpu_data_handle_t handle, unsigned node, void *
 
 static int pybuffer_peek_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
 {
+	(void)count;
+
 	char *data = ptr;
 
 	struct starpupy_buffer_interface *pybuffer_interface = (struct starpupy_buffer_interface *) starpu_data_get_interface_on_node(handle, node);
@@ -457,6 +460,10 @@ static int pybuffer_compare(void *data_interface_a, void *data_interface_b)
 
 static int pybuffer_copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data)
 {
+	(void)async_data;
+	(void)src_node;
+	(void)dst_node;
+
 	struct starpupy_buffer_interface *src = (struct starpupy_buffer_interface *) src_interface;
 	struct starpupy_buffer_interface *dst = (struct starpupy_buffer_interface *) dst_interface;
 

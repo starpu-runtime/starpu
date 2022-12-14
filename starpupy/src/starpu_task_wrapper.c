@@ -111,7 +111,7 @@ static void STARPU_ATTRIBUTE_NORETURN print_exception(const char *msg, ...)
 
 /*********************Functions passed in task_submit wrapper***********************/
 
-static int active_multi_interpreter = 0; /*active multi-interpreter if define STARPU_STARPUPY_MULTI_INTERPRETER*/ 
+static int active_multi_interpreter = 0; /*active multi-interpreter if define STARPU_STARPUPY_MULTI_INTERPRETER*/
 static PyObject *StarpupyError; /*starpupy error exception*/
 static PyObject *asyncio_module; /*python asyncio module*/
 static PyObject *cloudpickle_module; /*cloudpickle module*/
@@ -137,6 +137,7 @@ static uint32_t where_inter = STARPU_CPU;
 /* prologue_callback_func*/
 void starpupy_prologue_cb_func(void *cl_arg)
 {
+	(void)cl_arg;
 	PyObject *func_data;
 	size_t func_data_size;
 	PyObject *func_py;
@@ -284,6 +285,7 @@ void starpupy_prologue_cb_func(void *cl_arg)
 /*function passed to starpu_codelet.cpu_func*/
 void starpupy_codelet_func(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	PyObject *func_py; /*the python function passed in*/
 	PyObject *pFunc;
 	PyObject *argList; /*argument list of python function passed in*/
@@ -493,6 +495,7 @@ void starpupy_codelet_func(void *descr[], void *cl_arg)
 /*function passed to starpu_task.epilogue_callback_func*/
 void starpupy_epilogue_cb_func(void *v)
 {
+	(void)v;
 	PyObject *fut; /*asyncio.Future*/
 	PyObject *loop; /*asyncio.Eventloop*/
 	int h_flag;
@@ -598,6 +601,7 @@ void starpupy_epilogue_cb_func(void *v)
 
 void starpupy_cb_func(void *v)
 {
+	(void)v;
 	struct starpu_task *task = starpu_task_get_current();
 
 	/*deallocate task*/
@@ -628,6 +632,7 @@ static PyObject *PyTask_FromTask(struct starpu_task *task)
 /***********************************************************************************/
 static size_t sizebase (struct starpu_task *task, unsigned nimpl)
 {
+	(void)nimpl;
 	int sb;
 
 	/*Initialize struct starpu_codelet_unpack_arg_data*/
@@ -659,6 +664,7 @@ static size_t sizebase (struct starpu_task *task, unsigned nimpl)
 /*initialization of perfmodel*/
 static PyObject* init_perfmodel(PyObject *self, PyObject *args)
 {
+	(void)self;
 	char *sym;
 
 	if (!PyArg_ParseTuple(args, "s", &sym))
@@ -682,6 +688,7 @@ static PyObject* init_perfmodel(PyObject *self, PyObject *args)
 /*free perfmodel*/
 static PyObject* free_perfmodel(PyObject *self, PyObject *args)
 {
+	(void)self;
 	PyObject *perfmodel;
 	if (!PyArg_ParseTuple(args, "O", &perfmodel))
 		return NULL;
@@ -704,6 +711,7 @@ static PyObject* free_perfmodel(PyObject *self, PyObject *args)
 
 static PyObject* starpu_save_history_based_model_wrapper(PyObject *self, PyObject *args)
 {
+	(void)self;
 	PyObject *perfmodel;
 	if (!PyArg_ParseTuple(args, "O", &perfmodel))
 		return NULL;
@@ -746,6 +754,7 @@ static PyObject* starpu_save_history_based_model_wrapper(PyObject *self, PyObjec
 /*wrapper submit method*/
 static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 {
+	(void)self;
 	/*first argument in args is always the python function passed in*/
 	PyObject *func_py = PyTuple_GetItem(args, 0);
 	/*protect borrowed reference, used in codelet pack, in case multi-interpreter, decremented after cloudpickle_dumps, otherwise decremented in starpupy_codelet_func*/
@@ -1001,10 +1010,10 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 	{
 		/*function has arguments*/
 		argList = PyTuple_New(PyTuple_Size(args)-2);
-		int i;
-		for(i=0; i < PyTuple_Size(args)-2; i++)
+		int j;
+		for(j=0; j<PyTuple_Size(args)-2; j++)
 		{
-			PyObject *tmp=PyTuple_GetItem(args, i+1);
+			PyObject *tmp=PyTuple_GetItem(args, j+1);
 			/*protect borrowed reference, decremented in the end of each conditional branch*/
 			Py_INCREF(tmp);
 
@@ -1034,7 +1043,7 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 			{
 				/*create the Handle_token object to replace the Handle Capsule*/
 				PyObject *token_obj = PyObject_CallObject(pInstanceToken, NULL);
-				PyTuple_SetItem(argList, i, token_obj);
+				PyTuple_SetItem(argList, j, token_obj);
 
 				/*get Handle capsule object, decremented in the end of this if{}*/
 				PyObject *tmp_cap = PyObject_CallMethod(tmp, "get_capsule", NULL);
@@ -1049,7 +1058,7 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 				}
 
 				/*if the function result will be returned in parameter, the first argument will be the handle of return value, but this object should not be the Python object supporting buffer protocol*/
-				if(PyObject_IsTrue(ret_param) && i==0 && STARPUPY_BUF_CHECK(tmp_handle))
+				if(PyObject_IsTrue(ret_param) && j==0 && STARPUPY_BUF_CHECK(tmp_handle))
 				{
 					PyErr_Format(StarpupyError, "Return value as parameter should not be the Python object supporting buffer protocol");
 					return NULL;
@@ -1073,12 +1082,12 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 					func_cl->modes[h_index] = STARPU_RW;
 				}
 				/*access mode is not defined for Handle object, and this object is not the return value*/
-				if(tmp_mode_py == NULL && strcmp(tp_arg, "Handle") == 0 && (!PyObject_IsTrue(ret_param) || (PyObject_IsTrue(ret_param) && i != 0)))
+				if(tmp_mode_py == NULL && strcmp(tp_arg, "Handle") == 0 && (!PyObject_IsTrue(ret_param) || (PyObject_IsTrue(ret_param) && j != 0)))
 				{
 					func_cl->modes[h_index] = STARPU_R;
 				}
 				/*access mode is not defined for Handle object, and this object is the return value*/
-				if(tmp_mode_py == NULL && strcmp(tp_arg, "Handle") == 0 && PyObject_IsTrue(ret_param) && i == 0)
+				if(tmp_mode_py == NULL && strcmp(tp_arg, "Handle") == 0 && PyObject_IsTrue(ret_param) && j == 0)
 				{
 					func_cl->modes[h_index] = STARPU_W;
 				}
@@ -1317,6 +1326,9 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 /*wrapper wait for all method*/
 static PyObject* starpu_task_wait_for_all_wrapper(PyObject *self, PyObject *args)
 {
+	(void)self;
+	(void)args;
+
 	/*call starpu_task_wait_for_all method*/
 	Py_BEGIN_ALLOW_THREADS;
 	starpu_task_wait_for_all();
@@ -1330,6 +1342,9 @@ static PyObject* starpu_task_wait_for_all_wrapper(PyObject *self, PyObject *args
 /*wrapper pause method*/
 static PyObject* starpu_pause_wrapper(PyObject *self, PyObject *args)
 {
+	(void)self;
+	(void)args;
+
 	/*call starpu_pause method*/
 	starpu_pause();
 
@@ -1341,6 +1356,8 @@ static PyObject* starpu_pause_wrapper(PyObject *self, PyObject *args)
 /*wrapper resume method*/
 static PyObject* starpu_resume_wrapper(PyObject *self, PyObject *args)
 {
+	(void)self;
+	(void)args;
 	/*call starpu_resume method*/
 	starpu_resume();
 
@@ -1352,6 +1369,8 @@ static PyObject* starpu_resume_wrapper(PyObject *self, PyObject *args)
 /*wrapper get count cpu method*/
 static PyObject* starpu_cpu_worker_get_count_wrapper(PyObject *self, PyObject *args)
 {
+	(void)self;
+	(void)args;
 	/*call starpu_cpu_worker_get_count method*/
 	int num_cpu=starpu_cpu_worker_get_count();
 
@@ -1362,6 +1381,8 @@ static PyObject* starpu_cpu_worker_get_count_wrapper(PyObject *self, PyObject *a
 /*wrapper get min priority method*/
 static PyObject* starpu_sched_get_min_priority_wrapper(PyObject *self, PyObject *args)
 {
+	(void)self;
+	(void)args;
 	/*call starpu_sched_get_min_priority*/
 	int min_prio=starpu_sched_get_min_priority();
 
@@ -1372,6 +1393,8 @@ static PyObject* starpu_sched_get_min_priority_wrapper(PyObject *self, PyObject 
 /*wrapper get max priority method*/
 static PyObject* starpu_sched_get_max_priority_wrapper(PyObject *self, PyObject *args)
 {
+	(void)self;
+	(void)args;
 	/*call starpu_sched_get_max_priority*/
 	int max_prio=starpu_sched_get_max_priority();
 
@@ -1382,6 +1405,8 @@ static PyObject* starpu_sched_get_max_priority_wrapper(PyObject *self, PyObject 
 /*wrapper get the number of no completed submitted tasks method*/
 static PyObject* starpu_task_nsubmitted_wrapper(PyObject *self, PyObject *args)
 {
+	(void)self;
+	(void)args;
 	/*call starpu_task_nsubmitted*/
 	int num_task=starpu_task_nsubmitted();
 
@@ -1392,6 +1417,7 @@ static PyObject* starpu_task_nsubmitted_wrapper(PyObject *self, PyObject *args)
 /*generate new sub-interpreters*/
 static void new_inter(void* arg)
 {
+	(void)arg;
 	unsigned workerid = starpu_worker_get_id_check();
 	PyThreadState *new_thread_state;
 	PyGILState_STATE state;
@@ -1409,6 +1435,7 @@ static void new_inter(void* arg)
 /*delete sub-interpreters*/
 static void del_inter(void* arg)
 {
+	(void)arg;
 	unsigned workerid = starpu_worker_get_id_check();
 	PyThreadState *new_thread_state = new_thread_states[workerid];
 
@@ -1422,6 +1449,8 @@ static void del_inter(void* arg)
 /*wrapper shutdown method*/
 static PyObject* starpu_shutdown_wrapper(PyObject *self, PyObject *args)
 {
+	(void)self;
+	(void)args;
 	//printf("it's starpu_shutdown function\n");
 	/*unregister the rest of handle in handle_dict*/
 	/*get handle_dict, decrement after using*/
@@ -1542,6 +1571,7 @@ static PyObject* starpu_shutdown_wrapper(PyObject *self, PyObject *args)
 /*set ncpu*/
 static PyObject* starpu_set_ncpu(PyObject *self, PyObject *args)
 {
+	(void)self;
 	int ncpu;
 
 	if (!PyArg_ParseTuple(args, "I", &ncpu))
@@ -1613,7 +1643,7 @@ static PyMethodDef starpupyMethods[] =
 	{"starpupy_data_unpartition", starpu_data_unpartition_wrapper, METH_VARARGS, "handle unpartition sub handles"},
 	{"starpupy_get_partition_size", starpupy_get_partition_size_wrapper, METH_VARARGS, "get the array size from each sub handle"},
 	{"set_ncpu", starpu_set_ncpu, METH_VARARGS,"reinitialize starpu with given number of CPU"},
-	{NULL, NULL}
+	{NULL, NULL,0,NULL}
 };
 
 /*function of slot type Py_mod_exec */
@@ -1646,6 +1676,7 @@ static PyModuleDef_Slot mySlots[] =
 /*deallocation function*/
 static void starpupyFree(void *self)
 {
+	(void)self;
 	//printf("it's the free function\n");
 	Py_DECREF(asyncio_module);
 	Py_DECREF(cloudpickle_module);
@@ -1673,6 +1704,7 @@ static struct PyModuleDef starpupymodule =
 
 static void* set_cb_loop(void* arg)
 {
+	(void)arg;
 	PyGILState_STATE state = PyGILState_Ensure();
 	/*second loop will run until we stop it in starpu_shutdown*/
 	PyObject * cb_loop_run = PyObject_CallMethod(cb_loop, "run_forever", NULL);
