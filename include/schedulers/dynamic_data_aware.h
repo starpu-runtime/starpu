@@ -1,22 +1,23 @@
 #ifndef __dynamic_data_aware_H__
 #define __dynamic_data_aware_H__
 
-#define EVICTION_STRATEGY_DYNAMIC_DATA_AWARE /* 0 we use default dynamic data aware without managing evictions. */
+// 0 by default for all the following global variables
+#define EVICTION_STRATEGY_DYNAMIC_DATA_AWARE /* 0: LRU, 1: special eviction for DARTS */
 //~ #define CHOOSE_BEST_DATA_THRESHOLD /* Jusqu'a où je regarde dans la liste des données pour choisir la meilleure. 0 = infini. */
 //~ #define PERCENTAGE_OF_TASK_DONE_BEFORE_LIFTING_THRESHOLD /* Après ce pourcentage/NGPU je retire le threshold */
 //~ #define NUMBER_OF_TASK_DONE_BEFORE_LIFTING_THRESHOLD /* Après ce chiffre/NGPU je retire le threshold */
 //~ #define FILL_PLANNED_TASK_LIST_THRESHOLD /* Jusqu'a où je rempli la liste des planned task. 0 = infini. Inutile en réalité car cela prends très peu de temps. */
 //~ #define LIFT_THRESHOLD_MODE /* 0 = default, 1 = fix number,  2 = reach certain number of task out, 3 = reach certain number of task out + slow increase, 4 = percentage + slow increase */
 //~ #define CHOOSE_BEST_DATA_TYPE /* 0 = the best one, 1 = the 10 best one, 2 = the 10 best one and I choose among them */
-#define THRESHOLD /* 0 = no threshold, 1 = threshold à 14400 tâches pour une matrice 2D (donc APP == 0) et à 1599 tâches aussi pour matrice 3D (donc APP == 1), 2 = on s'arrete des que on a trouvé 1 donnée qui permet de faire au moins une tache gratuite ou si il y en a pas 1 donnée qui permet de faire au moins 1 tache a 1 d'ere gratuite. 0 par défaut */
-#define APP /* 0 matrice 2D, par défaut. 1 matrice 3D. */
-#define CHOOSE_BEST_DATA_FROM /* Pour savoir où on regarde pour choisir la meilleure donnée. 0 par défaut, on regarde la liste des données pas encore utilisées. 1 on regarde les données en mémoire et à partir des tâches de ces données on cherche une donnée pas encore en mémoire qui permet de faire le plus de tâches gratuite ou 1 from free. */
+#define THRESHOLD /* Pour arrêter de regarder dans la liste des données plus tôt. 0 = no threshold, 1 = threshold à 14400 tâches pour une matrice 2D (donc APP == 0) et à 1599 tâches aussi pour matrice 3D (donc APP == 1), 2 = on s'arrete des que on a trouvé 1 donnée qui permet de faire au moins une tache gratuite ou si il y en a pas 1 donnée qui permet de faire au moins 1 tache a 1 d'ere gratuite. 0 par défaut */
+#define APP /* 0 matrice 2D. 1 matrice 3D. Sur 1 on regarde les tâches à 1 d'être gratuite galement. Pas plus loin. */
+#define CHOOSE_BEST_DATA_FROM /* Pour savoir où on regarde pour choisir la meilleure donnée. 0, on regarde la liste des données pas encore utilisées. 1 on regarde les données en mémoire et à partir des tâches de ces données on cherche une donnée pas encore en mémoire qui permet de faire le plus de tâches gratuite ou 1 from free. */
 #define SIMULATE_MEMORY /* Default 0, means we use starpu_data_is_on_node, 1 we also look at nb of task in planned and pulled task. */
-#define TASK_ORDER /* Default 0, signifie qu'on randomize entièrement la liste des tâches. 1 je ne randomise que les nouvelles tâches entre elle et les met à la fin des listes de taches. 2 je ne randomise pas et met chaque GPU sur un m/NGPU portion différentes pour qu'ils commencent à différent endroit de la liste de tâches. */
-#define DATA_ORDER /* Default 0, signifie qu'on randomize entièrement la liste des données. 1 je ne randomise que les nouvelles données entre elle et les met à la fin des listes de données. 2 je ne randomise pas et met chaque GPU sur un Ndata/NGPU portion différentes pour qu'ils commencent à différent endroit de la liste de données.*/
+#define TASK_ORDER /* 0, signifie qu'on randomize entièrement la liste des tâches. 1 je ne randomise que les nouvelles tâches entre elle et les met à la fin des listes de taches. 2 je ne randomise pas et met chaque GPU sur un m/NGPU portion différentes pour qu'ils commencent à différent endroit de la liste de tâches. */
+#define DATA_ORDER /* 0, signifie qu'on randomize entièrement la liste des données. 1 je ne randomise que les nouvelles données entre elle et les met à la fin des listes de données. 2 je ne randomise pas et met chaque GPU sur un Ndata/NGPU portion différentes pour qu'ils commencent à différent endroit de la liste de données.*/
 //~ #define ERASE_DATA_STRATEGY /* Default 0, veut dire que on erase que du GPU en question, 1 on erase de tous les GPUs. */
 //~ #define DATA_ORDER /* Default 0, 1 means that we do a Z order on the data order in the gpu_data_not_used_yet list. Only works in 3D */
-#define DEPENDANCES /* Utile pour savoir si on fais des points de départs différents dans main task list (on ne le fais pas si il y a des dependances) */
+#define DEPENDANCES /* 0 non, 1 utile pour savoir si on fais des points de départs différents dans main task list (on ne le fais pas si il y a des dependances) */
 
 /* Var globale pour n'appeller qu'une seule fois get_env_number */
 extern int eviction_strategy_dynamic_data_aware;

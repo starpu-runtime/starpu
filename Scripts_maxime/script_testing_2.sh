@@ -1,38 +1,23 @@
 #!/usr/bin/bash
 start=`date +%s`
+
 ulimit -S -s 5000000
-#~ export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
 
 N=0
-
 NGPU=1
-
 ORDO="dmdar"
-
 CM=500
-
 EVICTION=0
-
 READY=1
-
 TH=10
-
 CP=5
-
 HOST="gemini-1-fgcs"
-
 SEED=1
-
 PRINTF=0
-
 BELADY=0
-
 MULTI=0
-
 STEALING=0
-
 NITER=1
-
 NB_TAILLE_TESTE=8
 
 THRESHOLD_DMDAR=4000

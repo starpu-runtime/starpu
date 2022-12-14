@@ -24,6 +24,7 @@
 #include <schedulers/dynamic_data_aware.h>
 #include "helper_mct.h"
 #include <starpu_data_maxime.h> /* pour l'appel de la fonction qui reinit a la nouvelle itération */
+//~ #include "core/sched_policy.h" /* Pour graph_test_policy.c */
 
 /* Var globales déclaré en extern */
 int eviction_strategy_dynamic_data_aware;
@@ -323,9 +324,9 @@ void print_nb_task_in_list_one_data_one_gpu(starpu_data_handle_t d, int current_
 /* Pushing the tasks. Each time a new task enter here, we initialize it. */		
 static int dynamic_data_aware_push_task(struct starpu_sched_component *component, struct starpu_task *task)
 {
-	#ifdef PRINT
-	printf("New task %p (%s) in push_task.\n", task, starpu_task_get_name(task)); fflush(stdout);
-	#endif
+	//~ #ifdef PRINT
+	printf("New task %p (%s, %s, %d, %d) in push_task.\n", task, starpu_task_get_name(task), starpu_task_get_model_name(task), task->workerorder, task->priority); fflush(stdout);
+	//~ #endif
 	
 	#ifdef REFINED_MUTEX
 	STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
@@ -901,9 +902,11 @@ void natural_order_data_not_used_yet()
     }
 }
 
-/* Get a task to put out of pull_task. In multi GPU it allows me to return a task from the right element in the 
- * linked list without having an other GPU comme and ask a task in pull_task. At least I hope it does so.
- */
+/** 
+ * Get a task to return to pull_task. 
+ * In multi GPU it allows me to return a task from the right element in the 
+ * linked list without having another GPU comme and ask a task in pull_task.
+ **/
 struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_gpu, struct starpu_task_list *l)
 {
 	#ifdef PRINT
@@ -999,7 +1002,9 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			#ifdef REFINED_MUTEX
 			STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
 			#endif
-			/* La j'appelle 3D dans les deux cas car j'ai voulu regrouper. */
+			
+			/* La j'appelle 3D dans les deux cas car j'ai regroupé les 2 fonctions en 1 seule. 
+			 * La différence se fais avec la var d'env APP. */
 			dynamic_data_aware_scheduling_3D_matrix(l, current_gpu, &tab_gpu_planned_task[current_gpu - 1]);
 			
 			#ifdef REFINED_MUTEX
@@ -1181,20 +1186,21 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
     STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
     #endif
     
-    /* Nouveau */
 	//~ int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id()); /* Attention le premier GPU vaut 1 et non 0. */
     //~ STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
         
-    /* Nouveau */
     //~ STARPU_PTHREAD_MUTEX_LOCK(&local_mutex[current_gpu - 1]);
     struct starpu_task *task = get_task_to_return_pull_task_dynamic_data_aware(starpu_worker_get_memory_node(starpu_worker_get_id()), &data->main_task_list);
     //~ STARPU_PTHREAD_MUTEX_UNLOCK(&local_mutex[current_gpu - 1]);
     
-    /* Ancienne location du mutex global. */
     #ifdef LINEAR_MUTEX
     STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
     #endif
-
+	
+	if (task != NULL)
+	{
+		printf("Pulled task %p.\n", task);
+	}
     return task;
 }
 
@@ -1221,15 +1227,12 @@ void push_data_not_used_yet_random_spot(starpu_data_handle_t h, struct gpu_plann
     gpu_data_not_used_list_insert_before(g->gpu_data, new_element, ptr);
 }
 
-/* Fill a package's task list following dynamic_data_aware algorithm but with the 3D variant. */
-//~ Chargement
-//~ Si je trouve une donnée qui me donne des taches gratuites je prends et j'ajoute a planned task
-//~ Sinon en chargeant 1 nouvelle donnée, je charge une tache donbt la donnée amene le plus de tache a 1 seul chargement : (si c'est ce cas on créé une liste planned_task_1dtata__to_load)
-//~ Sinon random
-//~ Itération suivante
-//~ (On regarde les données des taches de la liste planned_task_1dtata_to_load, si on trouve 1 donnée la dedans)
-
-//~ Dans un coin de la tete : idée de liste intermédiaire
+/**
+ * Fill a package's task list following dynamic_data_aware algorithm.
+ * Si je trouve une donnée qui me donne des taches gratuites je prends et j'ajoute a planned task.
+ * Sinon en chargeant 1 nouvelle donnée, je charge une tache dont la donnée amène le plus de tache a 1 seul chargement : (si c'est ce cas on créé une liste planned_task_1dtata__to_load).
+ * Sinon random.
+ **/
 void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g)
 {
 	#ifdef PRINT
@@ -2894,7 +2897,7 @@ void add_task_to_pulled_task(int current_gpu, struct starpu_task *task)
 int total_task_done;
 
 struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
-{
+{	
 	/* TODO a suppr */
 	total_task_done = 0;
 	
