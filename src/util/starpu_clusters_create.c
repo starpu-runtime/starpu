@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -118,80 +118,76 @@ struct starpu_cluster_machine *starpu_cluster_machine(hwloc_obj_type_t cluster_l
 {
 	va_list varg_list;
 	int arg_type;
-	struct _starpu_cluster_parameters *params;
 	struct starpu_cluster_machine *machine;
-	_STARPU_CALLOC(machine, 1, sizeof(struct starpu_cluster_machine));
 
+	_STARPU_CALLOC(machine, 1, sizeof(struct starpu_cluster_machine));
 	_STARPU_CALLOC(machine->params, 1, sizeof(struct _starpu_cluster_parameters));
 	machine->id = STARPU_NMAX_SCHED_CTXS;
 	machine->groups = _starpu_cluster_group_list_new();
 	machine->nclusters = 0;
 	machine->ngroups = 0;
 	machine->topology = NULL;
-
 	_starpu_cluster_init_parameters(machine->params);
-	params = machine->params;
 
 	va_start(varg_list, cluster_level);
 	while ((arg_type = va_arg(varg_list, int)) != 0)
 	{
 		if (arg_type == STARPU_CLUSTER_MIN_NB)
 		{
-			params->min_nb = va_arg(varg_list, int);
-			if (params->min_nb <= 0)
+			machine->params->min_nb = va_arg(varg_list, int);
+			if (machine->params->min_nb <= 0)
 				_STARPU_DISP("Caution min number of contexts shouldn't be negative or null\n");
 		}
 		else if (arg_type == STARPU_CLUSTER_MAX_NB)
 		{
-			params->max_nb = va_arg(varg_list, int);
-			if (params->max_nb <= 0)
+			machine->params->max_nb = va_arg(varg_list, int);
+			if (machine->params->max_nb <= 0)
 				_STARPU_DISP("Caution max number of contexts shouldn't be negative or null\n");
 		}
 		else if (arg_type == STARPU_CLUSTER_NB)
 		{
-			params->nb = va_arg(varg_list, int);
-			if (params->nb <= 0)
+			machine->params->nb = va_arg(varg_list, int);
+			if (machine->params->nb <= 0)
 				_STARPU_DISP("Caution number of contexts shouldn't be negative or null\n");
 		}
 		else if (arg_type == STARPU_CLUSTER_POLICY_NAME)
 		{
-			params->sched_policy_name = va_arg(varg_list, char*);
+			machine->params->sched_policy_name = va_arg(varg_list, char*);
 		}
 		else if (arg_type == STARPU_CLUSTER_POLICY_STRUCT)
 		{
-			params->sched_policy_struct = va_arg(varg_list,
-							     struct starpu_sched_policy*);
+			machine->params->sched_policy_struct = va_arg(varg_list, struct starpu_sched_policy*);
 		}
 		else if (arg_type == STARPU_CLUSTER_KEEP_HOMOGENEOUS)
 		{
-			params->keep_homogeneous = va_arg(varg_list, int); /* 0=off, other=on */
+			machine->params->keep_homogeneous = va_arg(varg_list, int); /* 0=off, other=on */
 		}
 		else if (arg_type == STARPU_CLUSTER_PREFERE_MIN)
 		{
-			params->prefere_min = va_arg(varg_list, int); /* 0=off, other=on */
+			machine->params->prefere_min = va_arg(varg_list, int); /* 0=off, other=on */
 		}
 		else if (arg_type == STARPU_CLUSTER_CREATE_FUNC)
 		{
-			params->create_func = va_arg(varg_list, void (*)(void*));
+			machine->params->create_func = va_arg(varg_list, void (*)(void*));
 		}
 		else if (arg_type == STARPU_CLUSTER_CREATE_FUNC_ARG)
 		{
-			params->create_func_arg = va_arg(varg_list, void*);
+			machine->params->create_func_arg = va_arg(varg_list, void*);
 		}
 		else if (arg_type == STARPU_CLUSTER_TYPE)
 		{
-			params->type = va_arg(varg_list, enum starpu_cluster_types);
+			machine->params->type = va_arg(varg_list, enum starpu_cluster_types);
 		}
 		else if (arg_type == STARPU_CLUSTER_AWAKE_WORKERS)
 		{
-			params->awake_workers = va_arg(varg_list, unsigned);
+			machine->params->awake_workers = va_arg(varg_list, unsigned);
 		}
 		else if (arg_type == STARPU_CLUSTER_PARTITION_ONE)
 		{
 			struct _starpu_cluster_group *group = _starpu_cluster_group_new();
 			_starpu_cluster_group_init(group, machine);
 			_starpu_cluster_group_list_push_back(machine->groups, group);
-			params = group->params;
+			machine->params = group->params;
 		}
 		else if (arg_type == STARPU_CLUSTER_NEW)
 		{
@@ -205,7 +201,7 @@ struct starpu_cluster_machine *starpu_cluster_machine(hwloc_obj_type_t cluster_l
 			}
 			_starpu_cluster_init(cluster, group);
 			_starpu_cluster_list_push_back(group->clusters, cluster);
-			params = cluster->params;
+			machine->params = cluster->params;
 		}
 		else if (arg_type == STARPU_CLUSTER_NCORES)
 		{
@@ -257,6 +253,7 @@ int starpu_uncluster_machine(struct starpu_cluster_machine *machine)
 
 	if (machine->id != STARPU_NMAX_SCHED_CTXS)
 		starpu_sched_ctx_delete(machine->id);
+
 	g = _starpu_cluster_group_list_begin(group_list);
 	while (g != _starpu_cluster_group_list_end(group_list))
 	{
@@ -265,6 +262,7 @@ int starpu_uncluster_machine(struct starpu_cluster_machine *machine)
 		_starpu_cluster_group_remove(group_list, tmp);
 	}
 	_starpu_cluster_group_list_delete(group_list);
+
 	if (machine->topology != NULL)
 		hwloc_topology_destroy(machine->topology);
 	free(machine->params);
@@ -377,8 +375,7 @@ int _starpu_cluster_bind(struct _starpu_cluster *cluster)
 				  0);
 }
 
-void _starpu_cluster_group_init(struct _starpu_cluster_group *group,
-				struct starpu_cluster_machine *father)
+void _starpu_cluster_group_init(struct _starpu_cluster_group *group, struct starpu_cluster_machine *father)
 {
 	group->id = 0;
 	group->nclusters = 0;
@@ -389,8 +386,7 @@ void _starpu_cluster_group_init(struct _starpu_cluster_group *group,
 	return;
 }
 
-void _starpu_cluster_init(struct _starpu_cluster *cluster,
-			  struct _starpu_cluster_group *father)
+void _starpu_cluster_init(struct _starpu_cluster *cluster, struct _starpu_cluster_group *father)
 {
 	cluster->id = STARPU_NMAX_SCHED_CTXS;
 	cluster->cpuset = hwloc_bitmap_alloc();
@@ -402,8 +398,7 @@ void _starpu_cluster_init(struct _starpu_cluster *cluster,
 	_starpu_cluster_copy_parameters(father->params, cluster->params);
 }
 
-int _starpu_cluster_remove(struct _starpu_cluster_list *cluster_list,
-			   struct _starpu_cluster *cluster)
+int _starpu_cluster_remove(struct _starpu_cluster_list *cluster_list, struct _starpu_cluster *cluster)
 {
 	if (cluster && cluster->id != STARPU_NMAX_SCHED_CTXS)
 		starpu_sched_ctx_delete(cluster->id);
@@ -414,6 +409,7 @@ int _starpu_cluster_remove(struct _starpu_cluster_list *cluster_list,
 		free(cluster->cores);
 	if (cluster->workerids != NULL)
 		free(cluster->workerids);
+
 	hwloc_bitmap_free(cluster->cpuset);
 	free(cluster->params);
 	_starpu_cluster_list_erase(cluster_list, cluster);
@@ -422,8 +418,7 @@ int _starpu_cluster_remove(struct _starpu_cluster_list *cluster_list,
 	return 0;
 }
 
-int _starpu_cluster_group_remove(struct _starpu_cluster_group_list *group_list,
-				 struct _starpu_cluster_group *group)
+int _starpu_cluster_group_remove(struct _starpu_cluster_group_list *group_list, struct _starpu_cluster_group *group)
 {
 	struct _starpu_cluster_list *cluster_list = group->clusters;
 	struct _starpu_cluster *c = _starpu_cluster_list_begin(cluster_list);
@@ -524,8 +519,7 @@ int _starpu_cluster_analyze_parameters(struct _starpu_cluster_parameters *params
 	return nb_clusters;
 }
 
-int _starpu_cluster_machine(hwloc_obj_type_t cluster_level,
-			     struct starpu_cluster_machine *machine)
+int _starpu_cluster_machine(hwloc_obj_type_t cluster_level, struct starpu_cluster_machine *machine)
 {
 	struct _starpu_cluster_group *g;
 	int ret;
@@ -569,11 +563,10 @@ int _starpu_cluster_machine(hwloc_obj_type_t cluster_level,
 	_starpu_clusters_set_nesting(machine);
 	starpu_sched_ctx_set_context(&machine->id);
 
-	return ret;
+	return 0;
 }
 
-int _starpu_cluster_topology(hwloc_obj_type_t cluster_level,
-			      struct starpu_cluster_machine *machine)
+int _starpu_cluster_topology(hwloc_obj_type_t cluster_level, struct starpu_cluster_machine *machine)
 {
 	int w;
 	hwloc_topology_t topology;
@@ -612,8 +605,7 @@ int _starpu_cluster_topology(hwloc_obj_type_t cluster_level,
 	return 0;
 }
 
-void _starpu_cluster_group(hwloc_obj_type_t cluster_level,
-			   struct starpu_cluster_machine *machine)
+void _starpu_cluster_group(hwloc_obj_type_t cluster_level, struct starpu_cluster_machine *machine)
 {
 	int nb_objects;
 	int i;
