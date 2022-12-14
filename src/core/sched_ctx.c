@@ -538,7 +538,7 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 {
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 
-	STARPU_ASSERT(config->topology.nsched_ctxs < STARPU_NMAX_SCHED_CTXS);
+	STARPU_ASSERT_MSG(config->topology.nsched_ctxs < STARPU_NMAX_SCHED_CTXS, "There is too many sched_ctx %d, only %d are configured", config->topology.nsched_ctxs, STARPU_NMAX_SCHED_CTXS);
 
 	unsigned id = _starpu_get_first_free_sched_ctx(config);
 

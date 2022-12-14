@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -77,6 +77,7 @@ int main(void)
 	/* We regroup resources under each sockets into a cluster. We express a partition
 	 * of one socket to create two internal clusters */
 	clusters = starpu_cluster_machine(HWLOC_OBJ_SOCKET,
+					  STARPU_CLUSTER_POLICY_NAME, "dmdas",
 					  STARPU_CLUSTER_PARTITION_ONE,
 					  STARPU_CLUSTER_NEW,
 //					  STARPU_CLUSTER_TYPE, STARPU_CLUSTER_OPENMP,
@@ -84,6 +85,8 @@ int main(void)
 					  STARPU_CLUSTER_NB, 2,
 					  STARPU_CLUSTER_NCORES, 1,
 					  0);
+	if (clusters == NULL)
+		goto enodev;
 	starpu_cluster_print(clusters);
 
 	/* Data preparation */
@@ -139,6 +142,10 @@ out:
 	starpu_uncluster_machine(clusters);
 
 	starpu_shutdown();
-	return 0;
+	return (ret == -ENODEV) ? 77 : 0 ;
+
+enodev:
+	starpu_shutdown();
+	return 77;
 }
 #endif
