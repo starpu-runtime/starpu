@@ -100,6 +100,8 @@ void _starpu_mpi_do_initialize(struct _starpu_mpi_argc_argv *argc_argv)
 #ifdef MPIX_CUDA_AWARE_SUPPORT
 	if (MPIX_Query_cuda_support())
 		_starpu_mpi_has_cuda = 1;
+	else if (_starpu_mpi_gpudirect > 0)
+		_STARPU_DISP("Warning: MPI GPUDirect requested, but MPIX_Query_cuda_support reports that it is not supported.");
 	_STARPU_DEBUG("MPI has CUDA: %d\n", _starpu_mpi_has_cuda);
 	if (!_starpu_mpi_gpudirect)
 	{
@@ -107,6 +109,8 @@ void _starpu_mpi_do_initialize(struct _starpu_mpi_argc_argv *argc_argv)
 		_starpu_mpi_has_cuda = 0;
 	}
 #else
+	if (_starpu_mpi_gpudirect > 0)
+		_STARPU_DISP("Warning: MPI GPUDirect requested, but the MPIX_Query_cuda_support function is not provided by the MPI Implementation, did you compile it with CUDA support and the Cuda MPI extension?");
 	_STARPU_DEBUG("No CUDA support in MPI\n");
 #endif
 #endif
@@ -155,7 +159,7 @@ int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi, MPI_Comm
 
 	_starpu_mpi_backend_check();
 
-	_starpu_mpi_gpudirect = starpu_getenv_number_default("STARPU_MPI_GPUDIRECT", 1);
+	_starpu_mpi_gpudirect = starpu_getenv_number("STARPU_MPI_GPUDIRECT");
 #ifdef STARPU_SIMGRID
 	/* Call MPI_Init_thread as early as possible, to initialize simgrid
 	 * before working with mutexes etc. */

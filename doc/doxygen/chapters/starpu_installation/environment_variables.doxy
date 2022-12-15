@@ -652,7 +652,8 @@ a separate core. This is for instance useful when running the testsuite on a sin
 \anchor STARPU_MPI_GPUDIRECT
 \addindex __env__STARPU_MPI_GPUDIRECT
 This variable allows to enable (1) MPI GPUDirect support or not (0). The default
-is to enable it.
+(-1) is to enable it if available. If STARPU_MPI_GPUDIRECT is explicitly set to
+1, StarPU-MPI will warn if MPI does not provide the GPUDirect support.
 </dd>
 
 </dl>
