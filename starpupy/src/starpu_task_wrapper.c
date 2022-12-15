@@ -1058,7 +1058,7 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 				}
 
 				/*if the function result will be returned in parameter, the first argument will be the handle of return value, but this object should not be the Python object supporting buffer protocol*/
-				if(PyObject_IsTrue(ret_param) && j==0 && STARPUPY_BUF_CHECK(tmp_handle))
+				if(PyObject_IsTrue(ret_param) && i==0 && STARPUPY_BUF_CHECK(tmp_handle))
 				{
 					PyErr_Format(StarpupyError, "Return value as parameter should not be the Python object supporting buffer protocol");
 					return NULL;
@@ -1112,7 +1112,7 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 
 				/*create the Handle_token object to replace the Handle Capsule*/
 				PyObject *token_obj = PyObject_CallObject(pInstanceToken, NULL);
-				PyTuple_SetItem(argList, i, token_obj);
+				PyTuple_SetItem(argList, j, token_obj);
 
 				/*get Handle*/
 				starpu_data_handle_t tmp_handle = (starpu_data_handle_t) PyCapsule_GetPointer(tmp_cap, "Handle");
@@ -1153,7 +1153,7 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 				//printf("it's the sub handles\n");
 				/*create the Handle_token object to replace the Handle Capsule*/
 				PyObject *token_obj = PyObject_CallObject(pInstanceToken, NULL);
-				PyTuple_SetItem(argList, i, token_obj);
+				PyTuple_SetItem(argList, j, token_obj);
 
 				/*get Handle*/
 				starpu_data_handle_t tmp_handle = (starpu_data_handle_t) PyCapsule_GetPointer(tmp, "Handle");
@@ -1189,7 +1189,7 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 			}
 			else
 			{
-				PyTuple_SetItem(argList, i, tmp);
+				PyTuple_SetItem(argList, j, tmp);
 			}
 
 			if(tmp_mode_py != NULL)
