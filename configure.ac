@@ -339,6 +339,11 @@ if test x$enable_simgrid = xyes ; then
 				  CXXFLAGS="-std=c++11 $CXXFLAGS")
 		;;
 	esac
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[$SIMGRID_INCLUDES
+			   #include <simgrid/s4u/Engine.hpp>]],
+			   [[simgrid::s4u::Engine::on_time_advance_cb([](double delta) { });]]
+			   )],
+			   AC_DEFINE(STARPU_HAVE_S4U_ON_TIME_ADVANCE_CB, [1], [Define this to 1 when s4u::Engine::on_time_advance_cb is available]))
 	AC_LANG_POP([C++])
 	AC_ARG_ENABLE(simgrid-mc, [AS_HELP_STRING([--enable-simgrid-mc],
 				[Enable using Model Checker of simgrid])],

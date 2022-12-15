@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,6 +20,7 @@
 /** @file */
 
 #include <common/utils.h>
+#include <core/simgrid.h>
 
 #pragma GCC visibility push(hidden)
 
@@ -46,18 +47,41 @@ static inline int _starpu_pthread_spin_destroy(starpu_pthread_spinlock_t *lock S
 static inline int _starpu_pthread_spin_lock(starpu_pthread_spinlock_t *lock)
 {
 #ifdef STARPU_SIMGRID
-	while (1)
+	if (STARPU_LIKELY(!lock->taken))
 	{
-		if (STARPU_LIKELY(!lock->taken))
-		{
-			lock->taken = 1;
-			return 0;
-		}
+		lock->taken = 1;
+		return 0;
+	}
+
+#ifdef STARPU_HAVE_S4U_ON_TIME_ADVANCE_CB
+	/* There is contention, count that a bit */
+	starpu_sleep(0.000001);
+	/* And try again */
+	if (STARPU_LIKELY(!lock->taken))
+	{
+		lock->taken = 1;
+		return 0;
+	}
+
+	/* Really no luck, really wait for it */
+	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_simgrid_time_advance_mutex);
+#endif
+	while (lock->taken)
+	{
+#ifdef STARPU_HAVE_S4U_ON_TIME_ADVANCE_CB
+		STARPU_PTHREAD_COND_WAIT(&_starpu_simgrid_time_advance_cond, &_starpu_simgrid_time_advance_mutex);
+#else
 		/* Give hand to another thread, hopefully the one which has the
 		 * spinlock and probably just has also a short-lived mutex. */
 		starpu_sleep(0.000001);
+#endif
 		STARPU_UYIELD();
 	}
+	lock->taken = 1;
+#ifdef STARPU_HAVE_S4U_ON_TIME_ADVANCE_CB
+	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_simgrid_time_advance_mutex);
+#endif
+	return 0;
 #elif defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)
 	if (STARPU_LIKELY(STARPU_VAL_COMPARE_AND_SWAP(&lock->taken, 0, 1) == 0))
 		/* Got it on first try! */

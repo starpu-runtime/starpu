@@ -86,6 +86,7 @@ void _starpu_start_simgrid(int *argc, char **argv);
 
 void _starpu_simgrid_init_early(int *argc, char ***argv);
 void _starpu_simgrid_init(void);
+void _starpu_simgrid_cpp_init(void);
 void _starpu_simgrid_deinit(void);
 void _starpu_simgrid_deinit_late(void);
 void _starpu_simgrid_actor_setup(void);
@@ -118,6 +119,11 @@ int _starpu_mpi_simgrid_init(int argc, char *argv[]);
 
 extern starpu_pthread_queue_t _starpu_simgrid_transfer_queue[STARPU_MAXNODES];
 extern starpu_pthread_queue_t _starpu_simgrid_task_queue[STARPU_NMAXWORKERS];
+
+#ifdef STARPU_HAVE_S4U_ON_TIME_ADVANCE_CB
+extern starpu_pthread_mutex_t _starpu_simgrid_time_advance_mutex;
+extern starpu_pthread_cond_t _starpu_simgrid_time_advance_cond;
+#endif
 
 #define _starpu_simgrid_cuda_malloc_cost() starpu_getenv_number_default("STARPU_SIMGRID_CUDA_MALLOC_COST", 1)
 #define _starpu_simgrid_cuda_queue_cost() starpu_getenv_number_default("STARPU_SIMGRID_CUDA_QUEUE_COST", 1)

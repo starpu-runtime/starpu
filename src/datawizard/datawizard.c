@@ -93,7 +93,6 @@ static int ___starpu_datawizard_progress(unsigned memory_node, unsigned nnodes, 
 	unsigned peer_node;
 
 #ifdef STARPU_SIMGRID
-	/* XXX */
 	starpu_sleep(0.000001);
 #endif
 	STARPU_UYIELD();

@@ -26,6 +26,27 @@
 #endif
 #include <smpi/smpi.h>
 
+#ifdef STARPU_HAVE_S4U_ON_TIME_ADVANCE_CB
+#include <simgrid/s4u/Engine.hpp>
+#endif
+
+#ifdef STARPU_HAVE_S4U_ON_TIME_ADVANCE_CB
+starpu_pthread_mutex_t _starpu_simgrid_time_advance_mutex;
+starpu_pthread_cond_t _starpu_simgrid_time_advance_cond;
+#endif
+
+void _starpu_simgrid_cpp_init(void)
+{
+#ifdef STARPU_HAVE_S4U_ON_TIME_ADVANCE_CB
+	STARPU_PTHREAD_MUTEX_INIT(&_starpu_simgrid_time_advance_mutex, NULL);
+	STARPU_PTHREAD_COND_INIT(&_starpu_simgrid_time_advance_cond, NULL);
+	simgrid::s4u::Engine::on_time_advance_cb([](double)
+	{
+		STARPU_PTHREAD_COND_BROADCAST(&_starpu_simgrid_time_advance_cond);
+	});
+#endif
+}
+
 /* thread_create function which implements inheritence of MPI privatization */
 /* See https://github.com/simgrid/simgrid/issues/139 */
 
