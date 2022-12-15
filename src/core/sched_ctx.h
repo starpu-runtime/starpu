@@ -231,7 +231,7 @@ unsigned _starpu_sched_ctx_last_worker_awake(struct _starpu_worker *worker);
 
 /** If starpu_sched_ctx_set_context() has been called, returns the context
  * id set by its last call, or the id of the initial context */
-unsigned _starpu_sched_ctx_get_current_context();
+unsigned _starpu_sched_ctx_get_current_context() STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
 
 /** verify that some worker can execute a certain task */
 int _starpu_workers_able_to_execute_task(struct starpu_task *task, struct _starpu_sched_ctx *sched_ctx);

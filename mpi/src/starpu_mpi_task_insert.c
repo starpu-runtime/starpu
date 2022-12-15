@@ -625,6 +625,8 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 
 		if ((*task)->cl)
 		{
+			/* we suppose the current context is not going to change between now and the execution of the task */
+			(*task)->sched_ctx = _starpu_sched_ctx_get_current_context();
 			/* Check the type of worker(s) required by the task exist */
 			if (STARPU_UNLIKELY(!_starpu_worker_exists(*task)))
 			{

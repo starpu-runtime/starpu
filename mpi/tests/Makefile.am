@@ -71,6 +71,7 @@ starpu_mpi_TESTS +=				\
 	gather2					\
 	insert_task				\
 	insert_task_block			\
+	insert_task_can_execute			\
 	insert_task_count			\
 	insert_task_dyn_handles			\
 	insert_task_node_choice			\
@@ -183,6 +184,7 @@ noinst_PROGRAMS +=				\
 	insert_task_compute			\
 	insert_task_sent_cache			\
 	insert_task_recv_cache			\
+	insert_task_can_execute			\
 	insert_task_block			\
 	insert_task_owner			\
 	insert_task_owner2			\
