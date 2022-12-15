@@ -1143,6 +1143,27 @@ static void _starpu_mpi_handle_ready_request(struct _starpu_mpi_req *req)
 	_STARPU_MPI_DEBUG(2, "Handling new request %p type %s tag %"PRIi64" src %d data %p ptr %p datatype '%s' count %d registered_datatype %d \n",
 			  req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.node.rank, req->data_handle,
 			  req->ptr, req->datatype_name, (int)req->count, req->registered_datatype);
+
+	/* Set GPU device for current request if GPU Direct is supported */
+	if (_starpu_mpi_has_cuda)
+	{
+		int mem_node = req->node;
+		if (mem_node >= 0)
+		{
+			enum starpu_node_kind node_kind = starpu_node_get_kind (mem_node);
+			switch (node_kind)
+			{
+#ifdef STARPU_USE_CUDA
+			case STARPU_CUDA_RAM:
+				cudaSetDevice(starpu_memory_node_get_devid(mem_node));
+				break;
+#endif
+			default:
+				break;
+			}
+		}
+	}
+
 	req->func(req);
 
 	_STARPU_MPI_LOG_OUT();
