@@ -79,7 +79,7 @@ StarPU is available on https://gitlab.inria.fr/starpu/starpu
 
 The GIT repository access can be checked out with the following command.
 
-    $ git clone git@gitlab.inria.fr:starpu/starpu.git
+    $ git clone https://gitlab.inria.fr/starpu/starpu.git
 
 # Building and Installing
 
