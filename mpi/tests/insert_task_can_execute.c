@@ -75,6 +75,7 @@ int main(int argc, char** argv)
 //	{
 //		std::cout << "Failure!" << std::endl;
 //	}
+	free(data);
 
 	return 0;
 }
