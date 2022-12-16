@@ -59,6 +59,9 @@
 #include <simgrid/cond.h>
 
 /* common/thread.c references these, but doesn't need to have them working anyway */
+starpu_pthread_mutex_t _starpu_simgrid_time_advance_mutex;
+starpu_pthread_cond_t _starpu_simgrid_time_advance_cond;
+
 void _starpu_simgrid_thread_start(int argc, char *argv[])
 {
 }
