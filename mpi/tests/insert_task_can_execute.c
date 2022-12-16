@@ -32,7 +32,9 @@ static struct starpu_codelet codelet =
 	//.can_execute = can_execute,
 	.cpu_funcs = {cpu_fun},
 	.nbuffers = 1,
-	.modes = {STARPU_W}
+	.modes = {STARPU_W},
+	.model = &starpu_perfmodel_nop,
+	.flags = STARPU_CODELET_SIMGRID_EXECUTE,
 };
 
 int main(int argc, char** argv)
