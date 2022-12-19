@@ -23,8 +23,8 @@
 /* Distributed queues using performance modeling to assign tasks */
 
 /* Pour faire des visu python */
-//~ #define PRINT
-//~ #define PRINT_PYTHON
+#define PRINT
+#define PRINT_PYTHON
 
 #include <schedulers/HFP.h>
 
@@ -1130,7 +1130,7 @@ static void _dm_push_task_notify(struct starpu_task *task, int workerid, int per
 {
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct _starpu_fifo_taskq *fifo = &dt->queue_array[workerid];
-
+		
 	/* Compute the expected penality */
 	double predicted = starpu_task_worker_expected_length(task, perf_workerid, STARPU_NMAX_SCHED_CTXS,
 						       starpu_task_get_implementation(task));

@@ -23,6 +23,8 @@
  *	central-queue greedy algorithm proceed.
  *
  *	TODO: let workers starting running tasks before the whole graph is submitted?
+ * 
+ *  Use STARPU_SCHED_GRAPH_TEST_DESCENDANTS to prioritize with descendants or depth
  */
 
 #include <starpu_scheduler.h>
@@ -45,6 +47,9 @@ struct _starpu_graph_test_policy_data
 	unsigned descendants;			/* Whether we use descendants, or depths, for priorities */
 };
 
+/**
+ * Corresponds to an init + create for a classic scheduler.
+ **/
 static void initialize_graph_test_policy(unsigned sched_ctx_id)
 {
 	struct _starpu_graph_test_policy_data *data;
@@ -52,8 +57,8 @@ static void initialize_graph_test_policy(unsigned sched_ctx_id)
 
 	/* there is only a single queue in that trivial design */
 	_starpu_init_fifo(&data->fifo);
-	 _starpu_prio_deque_init(&data->prio_cpu);
-	 _starpu_prio_deque_init(&data->prio_gpu);
+	_starpu_prio_deque_init(&data->prio_cpu);
+	_starpu_prio_deque_init(&data->prio_gpu);
 	starpu_bitmap_init(&data->waiters);
 	data->computed = 0;
 	data->descendants = starpu_get_env_number_default("STARPU_SCHED_GRAPH_TEST_DESCENDANTS", 0);
@@ -150,21 +155,32 @@ static struct _starpu_prio_deque *select_prio(unsigned sched_ctx_id, struct _sta
 
 static void set_priority(void *_data, struct _starpu_graph_node *node)
 {
+	//~ printf("start set_priority.\n");
 	struct _starpu_graph_test_policy_data *data = _data;
 	starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK(&node->mutex);
 	starpu_worker_relax_off();
 	struct _starpu_job *job = node->job;
+		
 	if (job)
 	{
 		if (data->descendants)
+		{
 			job->task->priority = node->descendants;
+			printf("Descendants of job %p (%s): %d\n", job->task, starpu_task_get_name(job->task), job->task->priority);
+		}
 		else
+		{
 			job->task->priority = node->depth;
+			printf("Depth of job %p (%s): %d\n", job->task, starpu_task_get_name(job->task), job->task->priority);
+		}	
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&node->mutex);
 }
 
+/**
+ * Set priorities then schedule tasks accordingly.
+ **/
 static void do_schedule_graph_test_policy(unsigned sched_ctx_id)
 {
 	struct _starpu_graph_test_policy_data *data = (struct _starpu_graph_test_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);

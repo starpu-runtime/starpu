@@ -110,7 +110,7 @@ long long time_total_createtolasttaskfinished;
 #endif
 
 void new_iteration()
-{	
+{
 	/* Printing stats in files. Préciser PRINT_N dans les var d'env. */	
 	#ifdef PRINT
 	printf("############### Itération n°%d ###############\n", iteration_DARTS + 1); fflush(stdout);
@@ -324,9 +324,9 @@ void print_nb_task_in_list_one_data_one_gpu(starpu_data_handle_t d, int current_
 /* Pushing the tasks. Each time a new task enter here, we initialize it. */		
 static int dynamic_data_aware_push_task(struct starpu_sched_component *component, struct starpu_task *task)
 {
-	//~ #ifdef PRINT
-	printf("New task %p (%s, %s, %d, %d) in push_task.\n", task, starpu_task_get_name(task), starpu_task_get_model_name(task), task->workerorder, task->priority); fflush(stdout);
-	//~ #endif
+	#ifdef PRINT
+	printf("New task %p (%s, %d) in push_task.\n", task, starpu_task_get_name(task), task->priority); fflush(stdout);
+	#endif
 	
 	#ifdef REFINED_MUTEX
 	STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
@@ -1197,10 +1197,13 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
     STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
     #endif
 	
+	#ifdef PRINT
 	if (task != NULL)
 	{
 		printf("Pulled task %p.\n", task);
 	}
+	#endif
+	
     return task;
 }
 
@@ -1225,6 +1228,76 @@ void push_data_not_used_yet_random_spot(starpu_data_handle_t h, struct gpu_plann
 		ptr = gpu_data_not_used_list_next(ptr);
     }
     gpu_data_not_used_list_insert_before(g->gpu_data, new_element, ptr);
+}
+
+void update_best_data(int* number_free_task_max, int* task_available_max, starpu_data_handle_t* handle_popped, int* priority_max, int* number_1_from_free_task_max, int* task_available_max_1_from_free, int nb_free_task_candidate, int task_using_data_list_size_candidate, starpu_data_handle_t handle_candidate, int priority_candidate, int number_1_from_free_task_candidate, int* data_choosen_index, int i)
+{
+	/* If we are in a case with free tasks */
+	if (nb_free_task_candidate > *number_free_task_max)
+	{
+		*number_free_task_max = nb_free_task_candidate;
+		*task_available_max = task_using_data_list_size_candidate;
+		*handle_popped = handle_candidate;
+		*priority_max = priority_candidate;
+					
+		#ifdef PRINT_STATS
+		*data_choosen_index = i + 1;
+		#endif
+	}
+	else if (nb_free_task_candidate == *number_free_task_max && *number_free_task_max != 0)
+	{			
+		/* I first tiebreak with priority */
+		if (*priority_max < priority_candidate)
+		{
+			*task_available_max = task_using_data_list_size_candidate;
+			*handle_popped = handle_candidate;
+			*priority_max = priority_candidate;
+		}
+		else if (task_using_data_list_size_candidate > *task_available_max)
+		//~ if (task_using_data_list_size_candidate > *task_available_max)
+		{
+			*task_available_max = task_using_data_list_size_candidate;
+			*handle_popped = handle_candidate;
+			*priority_max = priority_candidate;
+						
+			#ifdef PRINT_STATS
+			*data_choosen_index = i + 1;
+			#endif
+		}
+	}
+	else if (number_1_from_free_task_candidate > *number_1_from_free_task_max)
+	{
+		*number_1_from_free_task_max = number_1_from_free_task_candidate;
+		*task_available_max_1_from_free = task_using_data_list_size_candidate;
+		*handle_popped = handle_candidate;
+		*priority_max = priority_candidate;
+					
+		#ifdef PRINT_STATS
+		*data_choosen_index = i + 1;
+		#endif
+	}
+	/* Si il y a égalité je regarde la priorité d'abord puis celle qui peut faire le plus de tâches globalement. */
+	else if (number_1_from_free_task_candidate == *number_1_from_free_task_max && *number_1_from_free_task_max != 0)
+	{					
+		/* I first tiebreak with priority */
+		if (*priority_max < priority_candidate)
+		{
+			*task_available_max_1_from_free = task_using_data_list_size_candidate;
+			*handle_popped = handle_candidate;
+			*priority_max = priority_candidate;
+		}
+		else if (task_using_data_list_size_candidate > *task_available_max_1_from_free) /* Then glovbal number of tasks remaining */
+		//~ if (task_using_data_list_size_candidate > *task_available_max_1_from_free) /* Then glovbal number of tasks remaining */
+		{
+			*task_available_max_1_from_free = task_using_data_list_size_candidate;
+			*handle_popped = handle_candidate;
+			*priority_max = priority_candidate;
+						
+			#ifdef PRINT_STATS
+			*data_choosen_index = i + 1;
+			#endif
+		}
+	}
 }
 
 /**
@@ -1252,13 +1325,15 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
     int task_available_max = 0;
     int task_available_max_1_from_free = 0;
     
-    /* Le nombre de tâches gratuites où à 1 données d'être gratuite par donnée. */
-    int number_free_task_max = 0;
+    /* Values used to know if the currently selected data is better that the pne already choosen */
+    int number_free_task_max = 0;  /* Number of free task with selected data */
     int temp_number_free_task_max = 0;
-    int number_1_from_free_task_max = 0;
+    int number_1_from_free_task_max = 0;  /* Number of task on from free with selected data */
     int temp_number_1_from_free_task_max = 0;
+    int priority_max = INT_MIN; /* Highest priority of a task using the choosen data that we know will be pushed to planned task. */
+    int temp_priority_max = INT_MIN; /* Highest priority of a task using the choosen data that we know will be pushed to planned task. */
+    starpu_data_handle_t handle_popped = NULL; /* Pointer to choosen best data */
     
-    starpu_data_handle_t handle_popped = NULL;
     struct task_using_data_list *tudl = task_using_data_list_new();
     
 	#ifdef PRINT
@@ -1407,6 +1482,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		{
 			temp_number_free_task_max = 0;
 			temp_number_1_from_free_task_max = 0;
+			temp_priority_max = 0;
 			
 			#ifdef PRINT_STATS
 			nb_data_looked_at++;
@@ -1446,6 +1522,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 							}
 						}
 					}
+					
 					if (data_not_available == 0)
 					{
 						temp_number_free_task_max++;
@@ -1458,55 +1535,82 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 							number_free_task_max = temp_number_free_task_max;
 							goto end_choose_best_data;
 						}
+						
+						/* For the first one I want to forget priority of one from free tasks. */
+						if (temp_number_free_task_max == 1)
+						{
+							temp_priority_max = t->pointer_to_T->priority;
+						}
+						else if (t->pointer_to_T->priority > temp_priority_max)
+						{
+							temp_priority_max = t->pointer_to_T->priority;
+						}
 					}
 					else if (data_not_available == 1)
 					{
 						temp_number_1_from_free_task_max++;
+						
+						/* Getting the max priority */
+						if (t->pointer_to_T->priority > temp_priority_max)
+						{
+							temp_priority_max = t->pointer_to_T->priority;
+						}
 					}
 				}
+				
+				/* Updating the best data if needed */
+				//~ update_best_data(&number_free_task_max, &task_available_max, &handle_popped, &priority_max, &number_1_from_free_task_max, &task_available_max_1_from_free, temp_number_free_task_max, task_using_data_list_size(e->D->sched_data), e->D, temp_priority_max, temp_number_1_from_free_task_max, &data_choosen_index, i);
+
 				if (temp_number_free_task_max > 0)
 				{
 					number_free_task_max = temp_number_free_task_max;
 					task_available_max = task_using_data_list_size(e->D->sched_data);
 					handle_popped = e->D;
+					priority_max = temp_priority_max;
 					
 					#ifdef PRINT_STATS
 					data_choosen_index = i + 1;
 					#endif
-									
-					//~ /* Version où je m'arrête dès que j'ai une tâche gratuite. */
-					//~ if (threshold == 2)
-					//~ {
-						//~ goto end_choose_best_data;
-					//~ }
 				}
 				else if (temp_number_1_from_free_task_max > number_1_from_free_task_max)
 				{
 					number_1_from_free_task_max = temp_number_1_from_free_task_max;
 					task_available_max_1_from_free = task_using_data_list_size(e->D->sched_data);
 					handle_popped = e->D;
+					priority_max = temp_priority_max;
 					
 					#ifdef PRINT_STATS
 					data_choosen_index = i + 1;
 					#endif
 				}
-				/* Si il y a égalité je pop celle qui peut faire le plus de tâches globalement. */
-				/* TODO : est-ce vraiment nécessaire ? Si ca prend du temps autant le retirer */
+				/* Si il y a égalité je regarde la priorité d'abord puis celle qui peut faire le plus de tâches globalement. */
 				else if (temp_number_1_from_free_task_max == number_1_from_free_task_max && number_1_from_free_task_max != 0)
 				{
 					tudl = e->D->sched_data;
-					if (task_using_data_list_size(tudl) > task_available_max_1_from_free)
+					
+					/* I first tiebreak with priority */
+					//~ if (priority_max < temp_priority_max)
+					//~ {
+						//~ task_available_max_1_from_free = task_using_data_list_size(tudl);
+						//~ handle_popped = e->D;
+						//~ priority_max = temp_priority_max;
+					//~ }
+					//~ else if (task_using_data_list_size(tudl) > task_available_max_1_from_free) /* Then glovbal number of tasks remaining */
+					if (task_using_data_list_size(tudl) > task_available_max_1_from_free) /* Then glovbal number of tasks remaining */
 					{
 						task_available_max_1_from_free = task_using_data_list_size(tudl);
 						handle_popped = e->D;
+						priority_max = temp_priority_max;
 						
 						#ifdef PRINT_STATS
 						data_choosen_index = i + 1;
 						#endif
 					}
 				}
+				
 			}
-			else /* La version plus courte similaire à celle dans M2D. */
+			/* number_free_task_max > 0 or 2D case. Only cheking data that gives free tasks. */
+			else
 			{
 				for (t = task_using_data_list_begin(e->D->sched_data); t != task_using_data_list_end(e->D->sched_data); t = task_using_data_list_next(t))
 				{
@@ -1565,40 +1669,54 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 							number_free_task_max = temp_number_free_task_max;
 							goto end_choose_best_data;
 						}
+						
+						if (t->pointer_to_T->priority > temp_priority_max)
+						{
+							temp_priority_max = t->pointer_to_T->priority;
+						}
 					}
 				}
 			
+				/* Update best data if needed */
+				//~ update_best_data(&number_free_task_max, &task_available_max, &handle_popped, &priority_max, &number_1_from_free_task_max, &task_available_max_1_from_free, temp_number_free_task_max, task_using_data_list_size(e->D->sched_data), e->D, temp_priority_max, temp_number_1_from_free_task_max, &data_choosen_index, i);
+				
 				if (temp_number_free_task_max > number_free_task_max)
 				{
 					number_free_task_max = temp_number_free_task_max;
 					task_available_max = task_using_data_list_size(e->D->sched_data);
 					handle_popped = e->D;
+					priority_max = temp_priority_max;
 					
 					#ifdef PRINT_STATS
 					data_choosen_index = i + 1;
 					#endif
-					
-					//~ /* Version où je m'arrête dès que j'ai une tâche gratuite. */
-					//~ if (threshold == 2)
-					//~ {
-						//~ goto end_choose_best_data;
-					//~ }
 				}
 				/* Si il y a égalité je pop celle qui peut faire le plus de tâches globalement. Attention içi ce n'est pas adapté au 3D
 				 * car tu pourrais avoir des tâches qui amène plus de tache a 1 seule donnée d'être free*/
 				else if (temp_number_free_task_max == number_free_task_max && number_free_task_max != 0)
 				{
 					tudl = e->D->sched_data;
+					
+					/* I first tiebreak with priority */
+					//~ if (priority_max < temp_priority_max)
+					//~ {
+						//~ task_available_max = task_using_data_list_size(tudl);
+						//~ handle_popped = e->D;
+						//~ priority_max = temp_priority_max;
+					//~ }
+					//~ else if (task_using_data_list_size(tudl) > task_available_max)
 					if (task_using_data_list_size(tudl) > task_available_max)
 					{
 						task_available_max = task_using_data_list_size(tudl);
 						handle_popped = e->D;
+						priority_max = temp_priority_max;
 						
 						#ifdef PRINT_STATS
 						data_choosen_index = i + 1;
 						#endif
 					}
 				}
+				
 			}
 		}
 	}
@@ -1641,7 +1759,8 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		
 						temp_number_free_task_max = 0;
 						temp_number_1_from_free_task_max = 0;
-				
+						temp_priority_max = 0;
+						
 						if (number_free_task_max == 0 && app != 0)
 						{
 							/* Je regarde le nombre de free ou 1 from free tâche de cette donnée. */
@@ -1680,11 +1799,25 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 										number_free_task_max = temp_number_free_task_max;
 										handle_popped = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k);
 										goto end_choose_best_data;
-									}	
+									}
+									
+									/* For the first one I want to forget priority of one from free tasks. */
+									if (temp_number_free_task_max == 1)
+									{
+										temp_priority_max = t->pointer_to_T->priority;
+									}
+									else if (t->pointer_to_T->priority > temp_priority_max)
+									{
+										temp_priority_max = t->pointer_to_T->priority;
+									}
 								}
 								else if (data_not_available == 1)
 								{
 									temp_number_1_from_free_task_max++;
+									if (t->pointer_to_T->priority > temp_priority_max)
+									{
+										temp_priority_max = t->pointer_to_T->priority;
+									}
 								}
 							}
 							if (temp_number_free_task_max > 0)
@@ -1692,41 +1825,45 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 								number_free_task_max = temp_number_free_task_max;
 								task_available_max = task_using_data_list_size(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->sched_data);
 								handle_popped = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k);
+								priority_max = temp_priority_max;
 								
 								#ifdef PRINT_STATS
 								data_choosen_index = nb_data_looked_at;
 								#endif
-								
-								//~ /* Anciene place du threshold==2 */
-								//~ if (threshold == 2)
-								//~ {
-									//~ printf("ancien go to de th==2 %p.\n", STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k));
-									//~ goto end_choose_best_data;
-								//~ }			
 							}
 							else if (temp_number_1_from_free_task_max > number_1_from_free_task_max)
 							{
 								number_1_from_free_task_max = temp_number_1_from_free_task_max;
 								task_available_max_1_from_free = task_using_data_list_size(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->sched_data);
 								handle_popped = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k);
+								priority_max = temp_priority_max;
 								
 								#ifdef PRINT_STATS
 								data_choosen_index = nb_data_looked_at;
 								#endif
 								
 							}
+							/* Si il y a égalité je regarde la priorité d'abord puis celle qui peut faire le plus de tâches globalement. */
 							else if (temp_number_1_from_free_task_max == number_1_from_free_task_max && number_1_from_free_task_max != 0)
 							{
-								tudl = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->sched_data;
-								if (task_using_data_list_size(tudl) > task_available_max_1_from_free)
+								tudl = e->D->sched_data;
+								
+								/* I first tiebreak with priority */
+								if (priority_max < temp_priority_max)
 								{
 									task_available_max_1_from_free = task_using_data_list_size(tudl);
-									handle_popped = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k);
+									handle_popped = e->D;
+									priority_max = temp_priority_max;
+								}
+								else if (task_using_data_list_size(tudl) > task_available_max_1_from_free) /* Then glovbal number of tasks remaining */
+								{
+									task_available_max_1_from_free = task_using_data_list_size(tudl);
+									handle_popped = e->D;
+									priority_max = temp_priority_max;
 									
 									#ifdef PRINT_STATS
-									data_choosen_index = nb_data_looked_at;
+									data_choosen_index = i + 1;
 									#endif
-									
 								}
 							}
 						}
@@ -1761,14 +1898,20 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 								if (data_available == true)
 								{
 									temp_number_free_task_max++;
-										/* Version où je m'arrête dès que j'ai une tâche gratuite.
-										 * Nouvelle place du threshold == 2. */
-										if (threshold == 2)
-										{
-											handle_popped = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k);
-											number_free_task_max = temp_number_free_task_max;
-											goto end_choose_best_data;
-										}
+									
+									/* Version où je m'arrête dès que j'ai une tâche gratuite.
+									 * Nouvelle place du threshold == 2. */
+									if (threshold == 2)
+									{
+										handle_popped = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k);
+										number_free_task_max = temp_number_free_task_max;
+										goto end_choose_best_data;
+									}
+									
+									if (t->pointer_to_T->priority > temp_priority_max)
+									{
+										temp_priority_max = t->pointer_to_T->priority;
+									}
 								}
 							}
 							if (temp_number_free_task_max > number_free_task_max)
@@ -1776,24 +1919,28 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 								number_free_task_max = temp_number_free_task_max;
 								task_available_max = task_using_data_list_size(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->sched_data);
 								handle_popped = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k);
+								priority_max = temp_priority_max;
 								
 								#ifdef PRINT_STATS
 								data_choosen_index = nb_data_looked_at;
 								#endif
-								
-								//~ /* Version où je m'arrête dès que j'ai une tâche gratuite. */
-								//~ if (threshold == 2)
-								//~ {
-									//~ goto end_choose_best_data;
-								//~ }
 							}
 							else if (temp_number_free_task_max == number_free_task_max && number_free_task_max != 0)
 							{
 								tudl = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->sched_data;
-								if (task_using_data_list_size(tudl) > task_available_max)
+								
+								/* I first tiebreak with priority */
+								if (priority_max < temp_priority_max)
+								{
+									task_available_max = task_using_data_list_size(tudl);
+									handle_popped = e->D;
+									priority_max = temp_priority_max;
+								}
+								else if (task_using_data_list_size(tudl) > task_available_max)
 								{
 									task_available_max = task_using_data_list_size(tudl);
 									handle_popped = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k);
+									priority_max = temp_priority_max;
 									
 									#ifdef PRINT_STATS
 									data_choosen_index = nb_data_looked_at;
@@ -1806,14 +1953,14 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 			}
 		}
 	}	
-	
+		
 	#ifdef PRINT
 	printf("Best data is = %p: %d free tasks and/or %d 1 from free tasks.\n", handle_popped, number_free_task_max, number_1_from_free_task_max); fflush(stdout);
 	#endif
 
 	end_choose_best_data : ;
 		
-	/* TODO : a suppr ce qui n'est pas utile plus tard */
+	/* Look at data conflict. If ther is one I need to re-start the schedule for on of the GPU. */
 	data_conflict[current_gpu - 1] = false;
 	Dopt[current_gpu - 1] = handle_popped;
 	for (i = 0; i < Ngpu; i++)
@@ -1947,14 +2094,14 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 				/* Add it from planned task compteur */
 				increment_planned_task_data(t->pointer_to_T, current_gpu);
 				
-				#ifdef PRINT
+				//~ #ifdef PRINT
 				printf("Pushing free %p in planned_task of GPU %d :", t->pointer_to_T, current_gpu);
 				for (i = 0; i < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T); i++)
 				{
 					printf(" %p", STARPU_TASK_GET_HANDLE(t->pointer_to_T, i));
 				}
 				printf("\n");
-				#endif
+				//~ #endif
 				
 				erase_task_and_data_pointer(t->pointer_to_T, main_task_list);
 				starpu_task_list_push_back(&g->planned_task, t->pointer_to_T);
@@ -1975,12 +2122,13 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		#endif
 	}
 	/* La je change par rapport à 2D, si à la fois free et 1_from_free sont à 0 je renvoie random */   
-	else if (number_1_from_free_task_max != 0 && app != 0) /* On prend une tâche de la donnée 1_from_free, dans l'ordre randomisé de la liste de tâches. */
+	else if (number_1_from_free_task_max != 0 && app != 0) /* On prend une tâche de la donnée 1_from_free, dans l'ordre randomisé de la liste de tâches. 1 seule tâche est ajouté à planned_task. */
 	{
 		#ifdef PRINT_STATS
 		gettimeofday(&time_start_fill_planned_task_list, NULL);
 		nb_1_from_free_choice++;
 		#endif
+		
 		#ifdef PRINT
 		printf("The data adding the most (%d) 1_from_free tasks is %p.\n", number_1_from_free_task_max, handle_popped);
 		#endif
@@ -2015,7 +2163,8 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 					}
 				}
 			}
-			if (data_not_available == 1 || data_not_available == 0) /* C'est la qu'il faut changer si on veut être N from free. */
+			//~ if (data_not_available == 1 || data_not_available == 0) /* C'est la qu'il faut changer si on veut être N from free. */
+			if (data_not_available <= 1) /* Shorter if. */
 			{
 				break;
 			}
@@ -2057,9 +2206,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		
 		increment_planned_task_data(t->pointer_to_T, current_gpu);
 		
-		#ifdef PRINT
+		//~ #ifdef PRINT
 		printf("Pushing 1_from_free task %p in planned_task of GPU %d\n", t->pointer_to_T, current_gpu);
-		#endif
+		//~ #endif
 		
 		erase_task_and_data_pointer(t->pointer_to_T, main_task_list);
 		starpu_task_list_push_back(&g->planned_task, t->pointer_to_T);
@@ -2076,9 +2225,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 	}
 	else /* Sinon random */
 	{
-		#ifdef PRINT
+		//~ #ifdef PRINT
 		printf("Random selection because no data allow to get free or 1 from free tasks.\n"); fflush(stdout);
-		#endif
+		//~ #endif
 		
 		//~ STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
 		goto random;
@@ -3081,6 +3230,10 @@ static void initialize_dynamic_data_aware_center_policy(unsigned sched_ctx_id)
 			STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY |
 			STARPU_SCHED_SIMPLE_FIFOS_BELOW_EXP |
 			STARPU_SCHED_SIMPLE_IMPL, sched_ctx_id);
+	
+	/* To initialize and get prioriies on each tasks (it's the application that set priorities. It reduces my perds ??? why ? It takes time ?? */
+	starpu_sched_ctx_set_min_priority(sched_ctx_id, INT_MIN);
+	starpu_sched_ctx_set_max_priority(sched_ctx_id, INT_MAX);
 }
 
 static void deinitialize_dynamic_data_aware_center_policy(unsigned sched_ctx_id)
@@ -3245,6 +3398,11 @@ void get_task_done(struct starpu_task *task, unsigned sci)
     starpu_sched_component_worker_pre_exec_hook(task, sci);
 }
 
+void get_submit_hook(struct starpu_task *task)
+{
+	printf("Saw submission of task %p prio %d.\n", task, task->priority);
+}
+
 #ifdef PRINT_PYTHON
 /* Version avec print et visualisation */
 struct starpu_sched_policy _starpu_sched_dynamic_data_aware_policy =
@@ -3253,6 +3411,7 @@ struct starpu_sched_policy _starpu_sched_dynamic_data_aware_policy =
 	.deinit_sched = deinitialize_dynamic_data_aware_center_policy,
 	.add_workers = starpu_sched_tree_add_workers,
 	.remove_workers = starpu_sched_tree_remove_workers,
+	//~ .submit_hook = get_submit_hook,
 	/* .do_schedule = starpu_sched_tree_do_schedule, */
 	.push_task = starpu_sched_tree_push_task,
 	/* //~ .pop_task = starpu_sched_tree_pop_task, */
@@ -3274,6 +3433,7 @@ struct starpu_sched_policy _starpu_sched_dynamic_data_aware_policy =
 	.deinit_sched = deinitialize_dynamic_data_aware_center_policy,
 	.add_workers = starpu_sched_tree_add_workers,
 	.remove_workers = starpu_sched_tree_remove_workers,
+	//~ .submit_hook = get_submit_hook,
 	.push_task = starpu_sched_tree_push_task,
 	.pop_task = starpu_sched_tree_pop_task,
 	.pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
