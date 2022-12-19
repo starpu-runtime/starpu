@@ -338,7 +338,6 @@ static inline struct starpu_task * _starpu_worker_task_list_pop(struct _starpu_w
 				_starpu_task_grid_unset_left_right_member(t);
 
 			l->ntasks--;
-			l->pipeline_ntasks++;
 
 			return task;
 		}
@@ -489,6 +488,7 @@ static struct starpu_task * simple_worker_pull_task(struct starpu_sched_componen
 	}
 	if(task)
 	{
+		data->list->pipeline_ntasks++;
 		STARPU_COMPONENT_MUTEX_LOCK(&list->mutex);
 		_starpu_worker_task_list_add(list, task);
 		_starpu_worker_task_list_transfer_started(list, task);
