@@ -140,7 +140,12 @@ make -k check 2>&1 | tee  ../check_$$
 RET=$?
 set +o pipefail
 set -e
-make showsuite
+
+simgrid=$(echo $STARPU_USER_CONFIGURE_OPTIONS | grep simgrid)
+if test -z "$simgrid"
+then
+    make showsuite
+fi
 
 make clean
 
