@@ -19,6 +19,8 @@ check_success()
     if [ $1 -ne 0 ] ; then
 	echo "failure" >&2
         exit $1
+    else
+	( echo PASS: STARPU_SCHED=$sched $basedir/../cholesky/cholesky_tag >&9 ) 2> /dev/null || true
     fi
 }
 

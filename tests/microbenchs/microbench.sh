@@ -43,6 +43,7 @@ run()
 	set -e
 	if test $ret = 0
 	then
+		( echo PASS: STARPU_SCHED=$sched ./microbenchs/$TEST >&9 ) 2> /dev/null || true
 		echo "SUCCESS: STARPU_SCHED=$sched ./microbenchs/$TEST"
 		return 0
 	fi

@@ -37,3 +37,4 @@ else
 TESTS_ENVIRONMENT 	=	$(LAUNCHER_ENV) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN)
 endif
 
+AM_TESTS_FD_REDIRECT = 9>&2
