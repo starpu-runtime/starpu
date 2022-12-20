@@ -2194,6 +2194,11 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker *worker)
 			}
 #endif
 			_STARPU_TRACE_START_PROGRESS(memnode);
+#ifdef STARPU_PROF_TOOL
+            pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_start_transfer, worker->workerid, worker->workerid, starpu_prof_tool_driver_gpu, memnode, NULL);
+            starpu_prof_tool_callbacks.starpu_prof_tool_event_start_transfer(&pi, NULL, NULL);
+#endif
+            
 		}
 
 		if (!worker->pipeline_length || worker->ntasks < worker->pipeline_length)
