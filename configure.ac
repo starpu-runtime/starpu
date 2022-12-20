@@ -381,6 +381,9 @@ AC_ARG_ENABLE(blocking-drivers, [AS_HELP_STRING([--enable-blocking-drivers], [en
 AC_MSG_RESULT($enable_blocking)
 
 if test x$enable_blocking = xno ; then
+	if test x$enable_simgrid = xyes ; then
+		AC_MSG_ERROR([--disable-blocking-drivers cannot be used in simgrid mode])
+	fi
 	AC_DEFINE(STARPU_NON_BLOCKING_DRIVERS, [1], [drivers must progress])
 fi
 
