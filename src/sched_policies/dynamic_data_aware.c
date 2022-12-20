@@ -1482,7 +1482,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		{
 			temp_number_free_task_max = 0;
 			temp_number_1_from_free_task_max = 0;
-			temp_priority_max = 0;
+			temp_priority_max = INT_MIN;
 			
 			#ifdef PRINT_STATS
 			nb_data_looked_at++;
@@ -1759,7 +1759,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		
 						temp_number_free_task_max = 0;
 						temp_number_1_from_free_task_max = 0;
-						temp_priority_max = 0;
+						temp_priority_max = INT_MIN;
 						
 						if (number_free_task_max == 0 && app != 0)
 						{

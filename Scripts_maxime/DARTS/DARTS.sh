@@ -255,4 +255,4 @@ gcc -o cut_datatransfers_raw_out_csv cut_datatransfers_raw_out_csv.c
 #~ mv plot.pdf /home/gonthier/these_gonthier_maxime/Starpu/R/Courbes/Cholesky_dependances/GF_DARTS_gemini-1-fgcs-36_1GPU.pdf
 
 #~ python3 /home/gonthier/these_gonthier_maxime/Code/Plot.py /home/gonthier/these_gonthier_maxime/Starpu/R/Data/Cholesky_dependances/DT_DARTS_gemini-1-fgcs-36_1GPU.csv
-#~ mv plot.pdf /home/gonthier/these_gonthier_maxime/Starpu/R/Courbes/Cholesky_dependances/DT_DARTS_gemini-1-fgcs-36_1GPU
+#~ mv plot.pdf /home/gonthier/these_gonthier_maxime/Starpu/R/Courbes/Cholesky_dependances/DT_DARTS_gemini-1-fgcs-36_1GPU.pdf
