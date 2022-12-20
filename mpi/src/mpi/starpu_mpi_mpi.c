@@ -1155,7 +1155,8 @@ static void _starpu_mpi_handle_ready_request(struct _starpu_mpi_req *req)
 			{
 #ifdef STARPU_USE_CUDA
 			case STARPU_CUDA_RAM:
-				cudaSetDevice(starpu_memory_node_get_devid(mem_node));
+				if (_starpu_mpi_cuda_devid == -1 && starpu_cuda_worker_get_count() > 1)
+					cudaSetDevice(starpu_memory_node_get_devid(mem_node));
 				break;
 #endif
 			default:
