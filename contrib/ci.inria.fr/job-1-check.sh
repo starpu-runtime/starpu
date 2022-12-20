@@ -138,10 +138,12 @@ set +e
 set -o pipefail
 make -k check 2>&1 | tee  ../check_$$
 RET=$?
+
+set +e
+simgrid=$(grep 'simgrid enabled' config.log | grep yes)
 set +o pipefail
 set -e
 
-simgrid=$(echo $STARPU_USER_CONFIGURE_OPTIONS | grep simgrid)
 if test -z "$simgrid"
 then
     make showsuite
