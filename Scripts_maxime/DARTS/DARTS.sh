@@ -1,6 +1,6 @@
 #!/bin/bash
-#	bash Scripts_maxime/DARTS/DARTS.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 6 Cholesky_dependances DARTS gemini-1-fgcs 1
-#	bash Scripts_maxime/DARTS/DARTS.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 6 Cholesky_dependances DATA_TASK_ORDER gemini-1-fgcs 1
+#	bash Scripts_maxime/DARTS/DARTS.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 6 Cholesky_dependances DARTS gemini-1-fgcs-36 1
+#	bash Scripts_maxime/DARTS/DARTS.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 6 Cholesky_dependances DATA_TASK_ORDER gemini-1-fgcs-36 1
 
 #~ # Pour initialiser les fichiers de stats
 #~ echo "N,Nb conflits,Nb conflits critiques" > Output_maxime/Data/DARTS/Nb_conflit_donnee.csv
@@ -43,8 +43,10 @@ if [ $DOSSIER = "Cholesky_dependances" ]
 then
 	if [ $MODEL = "DARTS" ]
 	then
-		echo "N,EAGER,DMDAR,DARTS+ LUF, DARTS + LUF + 3D,DARTS + LUF + TH2,DARTS + LUF + TH2 + 3D,DARTS + LUF + 3D + SM, DARTS + LUF + 3D + FM,DARTS + LUF + 3D + FM + SM,DARTS + LUF + 3D + FM + SM + TH2" > Output_maxime/Legende.txt
-		NB_ALGO_TESTE=10
+		echo "N,EAGER,DMDAR,DMDAS,DARTS + LUF + 3D,DARTS + LUF + 3D + PRIO" > Output_maxime/Legende.txt
+		#~ echo "N,EAGER,DMDAR,DARTS+ LUF, DARTS + LUF + 3D,DARTS + LUF + TH2,DARTS + LUF + TH2 + 3D,DARTS + LUF + 3D + SM, DARTS + LUF + 3D + FM,DARTS + LUF + 3D + FM + SM,DARTS + LUF + 3D + FM + SM + TH2" > Output_maxime/Legende.txt
+		NB_ALGO_TESTE=5
+		#~ NB_ALGO_TESTE=10
 		echo "############## MODULAR EAGER PREFETCHING ##############"
 		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			do 
@@ -59,62 +61,76 @@ then
 			STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_HOSTNAME=${HOST} SEED=$((i)) STARPU_SCHED=dmdar STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS}" ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW}
 			sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS} >> ${FICHIER_RAW_DT}
 		done
-		echo "############## DARTS + LUF ##############"
+		echo "############## DMDAS ##############"
 		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			do 
 			N=$((START_X+i*ECHELLE_X))
-			PRINT_N=$((N)) DEPENDANCES=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_HOSTNAME=${HOST} SEED=$((i)) STARPU_SCHED=dynamic-data-aware STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS}" ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW}
+			STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_HOSTNAME=${HOST} SEED=$((i)) STARPU_SCHED=dmdas STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS}" ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW}
 			sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS} >> ${FICHIER_RAW_DT}
 		done
+		#~ echo "############## DARTS + LUF ##############"
+		#~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			#~ do 
+			#~ N=$((START_X+i*ECHELLE_X))
+			#~ PRIO=0 PRINT_N=$((N)) DEPENDANCES=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_HOSTNAME=${HOST} SEED=$((i)) STARPU_SCHED=dynamic-data-aware STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS}" ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW}
+			#~ sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS} >> ${FICHIER_RAW_DT}
+		#~ done
 		echo "############## DARTS + LUF + 3D ##############"
 		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			do 
 			N=$((START_X+i*ECHELLE_X))
-			PRINT_N=$((N)) DEPENDANCES=1 APP=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_HOSTNAME=${HOST} SEED=$((i)) STARPU_SCHED=dynamic-data-aware STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS}" ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW}
+			PRIO=0 PRINT_N=$((N)) DEPENDANCES=1 APP=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_HOSTNAME=${HOST} SEED=$((i)) STARPU_SCHED=dynamic-data-aware STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS}" ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW}
 			sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS} >> ${FICHIER_RAW_DT}
 		done
-		echo "############## DARTS + LUF + TH2 ##############"
+		echo "############## DARTS + LUF + 3D + PRIO ##############"
 		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			do 
 			N=$((START_X+i*ECHELLE_X))
-			PRINT_N=$((N)) DEPENDANCES=1 THRESHOLD=2 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_HOSTNAME=${HOST} SEED=$((i)) STARPU_SCHED=dynamic-data-aware STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS}" ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW}
+			PRIO=1 PRINT_N=$((N)) DEPENDANCES=1 APP=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_HOSTNAME=${HOST} SEED=$((i)) STARPU_SCHED=dynamic-data-aware STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS}" ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW}
 			sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS} >> ${FICHIER_RAW_DT}
 		done
-		echo "############## DARTS + LUF + TH2 + 3D ##############"
-		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-			do 
-			N=$((START_X+i*ECHELLE_X))
-			PRINT_N=$((N)) DEPENDANCES=1 APP=1 THRESHOLD=2 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_HOSTNAME=${HOST} SEED=$((i)) STARPU_SCHED=dynamic-data-aware STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS}" ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW}
-			sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS} >> ${FICHIER_RAW_DT}
-		done
-		echo "############## DARTS + LUF + 3D + SM ##############"
-		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-			do 
-			N=$((START_X+i*ECHELLE_X))
-			PRINT_N=$((N)) DEPENDANCES=1 SIMULATE_MEMORY=1 APP=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_HOSTNAME=${HOST} SEED=$((i)) STARPU_SCHED=dynamic-data-aware STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS}" ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW}
-			sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS} >> ${FICHIER_RAW_DT}
-		done
-		echo "############## DARTS + LUF + 3D + FM ##############"
-		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-			do 
-			N=$((START_X+i*ECHELLE_X))
-			PRINT_N=$((N)) DEPENDANCES=1 CHOOSE_BEST_DATA_FROM=1 APP=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_HOSTNAME=${HOST} SEED=$((i)) STARPU_SCHED=dynamic-data-aware STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS}" ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW}
-			sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS} >> ${FICHIER_RAW_DT}
-		done
-		echo "############## DARTS + LUF + 3D + FM + SM ##############"
-		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-			do 
-			N=$((START_X+i*ECHELLE_X))
-			PRINT_N=$((N)) DEPENDANCES=1 CHOOSE_BEST_DATA_FROM=1 SIMULATE_MEMORY=1 APP=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_HOSTNAME=${HOST} SEED=$((i)) STARPU_SCHED=dynamic-data-aware STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS}" ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW}
-			sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS} >> ${FICHIER_RAW_DT}
-		done
-		echo "############## DARTS + LUF + 3D + FM + SM + TH2 ##############"
-		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-			do 
-			N=$((START_X+i*ECHELLE_X))
-			PRINT_N=$((N)) DEPENDANCES=1 THRESHOLD=2 CHOOSE_BEST_DATA_FROM=1 SIMULATE_MEMORY=1 APP=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_HOSTNAME=${HOST} SEED=$((i)) STARPU_SCHED=dynamic-data-aware STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS}" ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW}
-			sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS} >> ${FICHIER_RAW_DT}
-		done
+		#~ echo "############## DARTS + LUF + TH2 ##############"
+		#~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			#~ do 
+			#~ N=$((START_X+i*ECHELLE_X))
+			#~ PRINT_N=$((N)) DEPENDANCES=1 THRESHOLD=2 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_HOSTNAME=${HOST} SEED=$((i)) STARPU_SCHED=dynamic-data-aware STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS}" ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW}
+			#~ sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS} >> ${FICHIER_RAW_DT}
+		#~ done
+		#~ echo "############## DARTS + LUF + TH2 + 3D ##############"
+		#~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			#~ do 
+			#~ N=$((START_X+i*ECHELLE_X))
+			#~ PRINT_N=$((N)) DEPENDANCES=1 APP=1 THRESHOLD=2 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_HOSTNAME=${HOST} SEED=$((i)) STARPU_SCHED=dynamic-data-aware STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS}" ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW}
+			#~ sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS} >> ${FICHIER_RAW_DT}
+		#~ done
+		#~ echo "############## DARTS + LUF + 3D + SM ##############"
+		#~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			#~ do 
+			#~ N=$((START_X+i*ECHELLE_X))
+			#~ PRINT_N=$((N)) DEPENDANCES=1 SIMULATE_MEMORY=1 APP=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_HOSTNAME=${HOST} SEED=$((i)) STARPU_SCHED=dynamic-data-aware STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS}" ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW}
+			#~ sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS} >> ${FICHIER_RAW_DT}
+		#~ done
+		#~ echo "############## DARTS + LUF + 3D + FM ##############"
+		#~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			#~ do 
+			#~ N=$((START_X+i*ECHELLE_X))
+			#~ PRINT_N=$((N)) DEPENDANCES=1 CHOOSE_BEST_DATA_FROM=1 APP=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_HOSTNAME=${HOST} SEED=$((i)) STARPU_SCHED=dynamic-data-aware STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS}" ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW}
+			#~ sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS} >> ${FICHIER_RAW_DT}
+		#~ done
+		#~ echo "############## DARTS + LUF + 3D + FM + SM ##############"
+		#~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			#~ do 
+			#~ N=$((START_X+i*ECHELLE_X))
+			#~ PRINT_N=$((N)) DEPENDANCES=1 CHOOSE_BEST_DATA_FROM=1 SIMULATE_MEMORY=1 APP=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_HOSTNAME=${HOST} SEED=$((i)) STARPU_SCHED=dynamic-data-aware STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS}" ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW}
+			#~ sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS} >> ${FICHIER_RAW_DT}
+		#~ done
+		#~ echo "############## DARTS + LUF + 3D + FM + SM + TH2 ##############"
+		#~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			#~ do 
+			#~ N=$((START_X+i*ECHELLE_X))
+			#~ PRINT_N=$((N)) DEPENDANCES=1 THRESHOLD=2 CHOOSE_BEST_DATA_FROM=1 SIMULATE_MEMORY=1 APP=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_HOSTNAME=${HOST} SEED=$((i)) STARPU_SCHED=dynamic-data-aware STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS}" ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW}
+			#~ sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS} >> ${FICHIER_RAW_DT}
+		#~ done
 	fi
 	if [ $MODEL = "DATA_TASK_ORDER" ]
 	then
@@ -229,13 +245,14 @@ fi
 	#~ fi
 #~ fi
 
-# Tracage des GFlops
 gcc -o cut_gflops_raw_out_csv cut_gflops_raw_out_csv.c
 gcc -o cut_datatransfers_raw_out_csv cut_datatransfers_raw_out_csv.c
 ./cut_gflops_raw_out_csv $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_RAW} ${PATH_R}/R/Data/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.csv
 ./cut_datatransfers_raw_out_csv $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X $NGPU ${FICHIER_RAW_DT} ${PATH_R}/R/Data/${DOSSIER}/DT_${MODEL}_${GPU}_${NGPU}GPU.csv
 
-#~ # Plot python
-#~ python3 /home/gonthier/these_gonthier_maxime/Code/Plot.py ${PATH_R}/R/Data/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.csv
-#~ mv ${PATH_STARPU}/starpu/plot.pdf ${PATH_R}/R/Courbes/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.pdf
 
+#~ python3 /home/gonthier/these_gonthier_maxime/Code/Plot.py /home/gonthier/these_gonthier_maxime/Starpu/R/Data/Cholesky_dependances/GF_DARTS_gemini-1-fgcs-36_1GPU.csv
+#~ mv plot.pdf /home/gonthier/these_gonthier_maxime/Starpu/R/Courbes/Cholesky_dependances/GF_DARTS_gemini-1-fgcs-36_1GPU.pdf
+
+#~ python3 /home/gonthier/these_gonthier_maxime/Code/Plot.py /home/gonthier/these_gonthier_maxime/Starpu/R/Data/Cholesky_dependances/DT_DARTS_gemini-1-fgcs-36_1GPU.csv
+#~ mv plot.pdf /home/gonthier/these_gonthier_maxime/Starpu/R/Courbes/Cholesky_dependances/DT_DARTS_gemini-1-fgcs-36_1GPU

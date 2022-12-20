@@ -18,6 +18,7 @@
 //~ #define ERASE_DATA_STRATEGY /* Default 0, veut dire que on erase que du GPU en question, 1 on erase de tous les GPUs. */
 //~ #define DATA_ORDER /* Default 0, 1 means that we do a Z order on the data order in the gpu_data_not_used_yet list. Only works in 3D */
 #define DEPENDANCES /* 0 non, 1 utile pour savoir si on fais des points de départs différents dans main task list (on ne le fais pas si il y a des dependances) */
+#define PRIO /* 0 non, 1 tiebreak data selection with the that have the highest priority task */
 
 /* Var globale pour n'appeller qu'une seule fois get_env_number */
 extern int eviction_strategy_dynamic_data_aware;
@@ -30,10 +31,11 @@ extern int data_order;
 //~ extern int erase_data_strategy;
 //~ extern int data_order;
 extern int dependances;
+extern int prio;
 
-#define PRINT /* A dé-commenter pour afficher les printfs dans le code, les mesures du temps et les écriture dans les fichiers. A pour objectif de remplacer la var d'env PRINTF de HFP. Pour le moment j'ai toujours besoin de PRINTF=1 pour les visualisations par exemple. Attention pour DARTS j'ai besoin de PRINTF=1 et de PRINT pour les visu pour le moment. */
-#define PRINT_STATS /* Stats de temps, de nb d'occurences de certaines fonctions etc... */
-#define PRINT_PYTHON /* Visu python */
+//~ #define PRINT /* A dé-commenter pour afficher les printfs dans le code, les mesures du temps et les écriture dans les fichiers. A pour objectif de remplacer la var d'env PRINTF de HFP. Pour le moment j'ai toujours besoin de PRINTF=1 pour les visualisations par exemple. Attention pour DARTS j'ai besoin de PRINTF=1 et de PRINT pour les visu pour le moment. */
+//~ #define PRINT_STATS /* Stats de temps, de nb d'occurences de certaines fonctions etc... */
+//~ #define PRINT_PYTHON /* Visu python */
 
 /* En cas de conflits de données */
 starpu_data_handle_t *Dopt;
@@ -161,6 +163,7 @@ void natural_order_task_list(struct dynamic_data_aware_sched_data *d);
 void randomize_new_data_not_used_yet();
 void randomize_full_data_not_used_yet();
 void natural_order_data_not_used_yet();
+void update_best_data(int* number_free_task_max, int* task_available_max, starpu_data_handle_t* handle_popped, int* priority_max, int* number_1_from_free_task_max, int* task_available_max_1_from_free, int nb_free_task_candidate, int task_using_data_list_size_candidate, starpu_data_handle_t handle_candidate, int priority_candidate, int number_1_from_free_task_candidate, int* data_choosen_index, int i);
 
 /** Fonctions principales **/
 void initialize_task_data_gpu_single_task(struct starpu_task *task);
