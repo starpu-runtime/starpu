@@ -2090,8 +2090,8 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker *worker)
 			STARPU_RMB();
 			_STARPU_TRACE_END_PROGRESS(memnode);
 #ifdef STARPU_PROF_TOOL
-            pi = _starpu_prof_tool_get_info_d(starpu_prof_tool_event_end_transfer, workerid, workerid, starpu_prof_tool_driver_gpu, memnode, worker->nb_buffers_totransfer, worker->nb_buffers_transferred);
-            starpu_prof_tool_callbacks.starpu_prof_tool_event_end_transfer(&pi, NULL, NULL);
+			pi = _starpu_prof_tool_get_info_d(starpu_prof_tool_event_end_transfer, workerid, workerid, starpu_prof_tool_driver_gpu, memnode, worker->nb_buffers_totransfer, worker->nb_buffers_transferred);
+			starpu_prof_tool_callbacks.starpu_prof_tool_event_end_transfer(&pi, NULL, NULL);
 #endif
 			j = _starpu_get_job_associated_to_task(task);
 
