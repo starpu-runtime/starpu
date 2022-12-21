@@ -721,12 +721,21 @@ void *_starpu_cpu_worker(void *arg)
 
 	_starpu_cpu_driver_init(worker);
 	_STARPU_TRACE_START_PROGRESS(worker->memory_node);
+#ifdef STARPU_PROF_TOOL
+	struct starpu_prof_tool_info pi;
+	pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_start_transfer, worker->workerid, worker->workerid, starpu_prof_tool_driver_cpu, worker->memory_node, NULL);
+	starpu_prof_tool_callbacks.starpu_prof_tool_event_start_transfer(&pi, NULL, NULL);
+#endif
 	while (_starpu_machine_is_running())
 	{
 		_starpu_may_pause();
 		_starpu_cpu_driver_run_once(worker);
 	}
 	_STARPU_TRACE_END_PROGRESS(worker->memory_node);
+#ifdef STARPU_PROF_TOOL
+	pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_transfer, worker->workerid, worker->workerid, starpu_prof_tool_driver_cpu, worker->memory_node, NULL);
+	starpu_prof_tool_callbacks.starpu_prof_tool_event_end_transfer(&pi, NULL, NULL);
+#endif
 	_starpu_cpu_driver_deinit(worker);
 
 	return NULL;
