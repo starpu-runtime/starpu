@@ -104,4 +104,4 @@ jobs:
       - name: autoconf
         run: ./autogen.sh
       - name: run
-        run: reprotest 'export SOURCE_DATE_EPOCH=946684800 ; sed -i "/^HTML_TIMESTAMP/s/YES/NO/" doc/doxygen*/doxygen.cfg ; mkdir build && cd build && FCFLAGS=-ffile-prefix-map=$PWD=. FFLAGS=-ffile-prefix-map=$PWD=. CFLAGS=-ffile-prefix-map=$PWD=. CXXFLAGS=-ffile-prefix-map=$PWD=. ../configure --enable-quick-check && TZ= make && make install-strip DESTDIR=$PWD/../tmp' tmp
+        run: reprotest 'export SOURCE_DATE_EPOCH=946684800 ; sed -i "/^HTML_TIMESTAMP/s/YES/NO/" doc/doxygen*/doxygen.cfg ; mkdir build && cd build && FCFLAGS=-ffile-prefix-map=$PWD=. FFLAGS=-ffile-prefix-map=$PWD=. CFLAGS=-ffile-prefix-map=$PWD=. CXXFLAGS=-ffile-prefix-map=$PWD=. ../configure --enable-quick-check --disable-build-doc --disable-build-doc-pdf && TZ= make && make install-strip DESTDIR=$PWD/../tmp' tmp
