@@ -381,6 +381,7 @@ static starpu_ssize_t pybuffer_allocate_data_on_node(void *data_interface, unsig
 
 static starpu_ssize_t pybuffer_allocate_bytes_data_on_node(void *data_interface, unsigned node)
 {
+	(void)node;
 	struct starpupy_buffer_interface *pybuffer_interface = (struct starpupy_buffer_interface *) data_interface;
 	char* pybuf = pybuffer_interface->py_buffer;
 	Py_ssize_t nbuf = pybuffer_interface->buffer_size;
@@ -410,6 +411,7 @@ static void pybuffer_free_data_on_node(void *data_interface, unsigned node)
 
 static void pybuffer_free_bytes_data_on_node(void *data_interface, unsigned node)
 {
+	(void)node;
 	/*make sure we own the GIL*/
 	PyGILState_STATE state = PyGILState_Ensure();
 
