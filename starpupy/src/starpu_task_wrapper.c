@@ -386,7 +386,6 @@ void starpupy_codelet_func(void *descr[], void *cl_arg)
 			if (STARPUPY_PYOBJ_CHECK(task->handles[h_index]))
 			{
 				PyObject *obj_handle = STARPUPY_GET_PYOBJECT(descr[h_index]);
-				Py_INCREF(obj_handle);
 				PyTuple_SetItem(pArglist, i, obj_handle);
 			}
 			else if (STARPUPY_BUF_CHECK(task->handles[h_index]))
@@ -430,11 +429,8 @@ void starpupy_codelet_func(void *descr[], void *cl_arg)
 	if(h_flag)
 	{
 		STARPU_ASSERT(STARPUPY_PYOBJ_CHECK(task->handles[0]));
-		if (STARPUPY_GET_PYOBJECT(descr[0]) != NULL)
-			Py_DECREF(STARPUPY_GET_PYOBJECT(descr[0]));
-
 		/*pass ref to descr[0]*/
-		STARPUPY_GET_PYOBJECT(descr[0]) = rv;
+		STARPUPY_SET_PYOBJECT(descr[0], rv);
 	}
 	else
 	{
@@ -1488,8 +1484,7 @@ static PyObject* starpu_shutdown_wrapper(PyObject *self, PyObject *args)
 	/*get handle_set, decrement after using*/
 	PyObject *handle_set = PyObject_GetAttrString(starpu_module, "handle_set");
 	/*treat set as an iterator, decrement after using*/
-	PyObject *handle_set_iterator = NULL;
-	handle_set_iterator = PyObject_GetIter(handle_set);
+	PyObject *handle_set_iterator = PyObject_GetIter(handle_set);
 
 	while((handle_obj=PyIter_Next(handle_set_iterator)))
 	{

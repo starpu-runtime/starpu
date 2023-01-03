@@ -26,6 +26,7 @@
 struct starpupy_buffer_interface
 {
 	enum BufType {starpupy_numpy_interface, starpupy_bytes_interface, starpupy_bytearray_interface, starpupy_array_interface, starpupy_memoryview_interface}buffer_type;
+	PyObject* object; /* For bytes, bytearray, array.array, object corresponding py_buffer */
 	char* py_buffer;	/* The buffer actually allocated to store the data */
 	Py_ssize_t buffer_size;	/* The size of py_buffer */
 	int dim_size;		/* For numpy objects, the dimension */
@@ -42,9 +43,9 @@ struct starpupy_buffer_interface
 void starpupy_buffer_numpy_register(starpu_data_handle_t *handleptr, int home_node, int buf_type, char* pybuf, Py_ssize_t nbuf, int ndim, npy_intp* arr_dim, int arr_type, size_t nitem);
 #endif
 
-void starpupy_buffer_bytes_register(starpu_data_handle_t *handleptr, int home_node, int buf_type, char* pybuf, Py_ssize_t nbuf);
+void starpupy_buffer_bytes_register(starpu_data_handle_t *handleptr, int home_node, int buf_type, char* pybuf, Py_ssize_t nbuf, PyObject* obj);
 
-void starpupy_buffer_array_register(starpu_data_handle_t *handleptr, int home_node, int buf_type, char* pybuf, Py_ssize_t nbuf, char arr_typecode, size_t nitem);
+void starpupy_buffer_array_register(starpu_data_handle_t *handleptr, int home_node, int buf_type, char* pybuf, Py_ssize_t nbuf, char arr_typecode, size_t nitem, PyObject* obj);
 
 void starpupy_buffer_memview_register(starpu_data_handle_t *handleptr, int home_node, int buf_type, char* pybuf, Py_ssize_t nbuf, char mem_format, size_t nitem, int ndim, int* mem_shape);
 
@@ -58,6 +59,7 @@ PyObject* starpupy_buffer_get_memview(struct starpupy_buffer_interface *pybuffer
 
 #define STARPUPY_BUF_CHECK(handle) (starpupy_check_buffer_interface_id(handle))
 #define STARPUPY_BUF_GET_TYPE(interface) (((struct starpupy_buffer_interface *)(interface))->buffer_type)
+#define STARPUPY_BUF_GET_OBJ(interface) (Py_INCREF(((struct starpupy_buffer_interface *)(interface))->object), ((struct starpupy_buffer_interface *)(interface))->object)
 #define STARPUPY_BUF_GET_PYBUF(interface) (((struct starpupy_buffer_interface *)(interface))->py_buffer)
 #define STARPUPY_BUF_GET_NBUF(interface) (((struct starpupy_buffer_interface *)(interface))->buffer_size)
 #define STARPUPY_BUF_GET_NDIM(interface) (((struct starpupy_buffer_interface *)(interface))->dim_size)
@@ -77,7 +79,6 @@ PyObject* starpupy_buffer_get_memview(struct starpupy_buffer_interface *pybuffer
 
 #define STARPUPY_BUF_GET_PYOBJECT(interface)\
 	(STARPUPY_BUF_GET_TYPE(interface)==starpupy_numpy_interface ? STARPUPY_BUF_GET_PYNUMPY(interface) \
-	 : STARPUPY_BUF_GET_TYPE(interface)==starpupy_bytes_interface || STARPUPY_BUF_GET_TYPE(interface)==starpupy_bytearray_interface ?  STARPUPY_BUF_GET_PYBYTES(interface) \
-	 : STARPUPY_BUF_GET_TYPE(interface)==starpupy_array_interface ? STARPUPY_BUF_GET_PYARRAY(interface) \
+	 : STARPUPY_BUF_GET_TYPE(interface)==starpupy_bytes_interface || STARPUPY_BUF_GET_TYPE(interface)==starpupy_bytearray_interface || STARPUPY_BUF_GET_TYPE(interface)==starpupy_array_interface ?  STARPUPY_BUF_GET_OBJ(interface) \
 	 : STARPUPY_BUF_GET_TYPE(interface)==starpupy_memoryview_interface ? STARPUPY_BUF_GET_PYMEMVIEW(interface) \
 	 : NULL)

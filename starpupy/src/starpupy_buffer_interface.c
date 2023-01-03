@@ -283,10 +283,20 @@ static void pybuffer_register_data_handle(starpu_data_handle_t handle, int home_
 		struct starpupy_buffer_interface *local_interface = (struct starpupy_buffer_interface *) starpu_data_get_interface_on_node(handle, node);
 		if (node == home_node)
 		{
+			if(pybuffer_interface->object != NULL)
+			{
+				Py_INCREF(pybuffer_interface->object);
+				local_interface->object = pybuffer_interface->object;
+			}
+			else
+			{
+				local_interface->object = NULL;
+			}
 			local_interface->py_buffer = pybuffer_interface->py_buffer;
 		}
 		else
 		{
+			local_interface->object = NULL;
 			local_interface->py_buffer = NULL;
 		}
 		local_interface->buffer_type = pybuffer_interface->buffer_type;
@@ -326,15 +336,33 @@ static void pybuffer_register_data_handle(starpu_data_handle_t handle, int home_
 
 static void pybuffer_unregister_data_handle(starpu_data_handle_t handle)
 {
+	unsigned home_node = starpu_data_get_home_node(handle);
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		struct starpupy_buffer_interface *local_interface = (struct starpupy_buffer_interface *) starpu_data_get_interface_on_node(handle, node);
+		if(node == home_node)
+		{
+			if(local_interface->object!=NULL)
+			{
+				Py_DECREF(local_interface->object);
+				local_interface->object = NULL;
+				local_interface->py_buffer = NULL;
+			}
+		}
+		else
+		{
+			STARPU_ASSERT(local_interface->object == NULL);
+			STARPU_ASSERT(local_interface->py_buffer == NULL);
+		}
+		
 
 #ifdef STARPU_PYTHON_HAVE_NUMPY
 		free(local_interface->array_dim);
+		local_interface->array_dim = NULL;
 #endif
 		free(local_interface->shape);
+		local_interface->shape = NULL;
 	}
 }
 
@@ -351,12 +379,52 @@ static starpu_ssize_t pybuffer_allocate_data_on_node(void *data_interface, unsig
 	return requested_memory;
 }
 
+static starpu_ssize_t pybuffer_allocate_bytes_data_on_node(void *data_interface, unsigned node)
+{
+	struct starpupy_buffer_interface *pybuffer_interface = (struct starpupy_buffer_interface *) data_interface;
+	char* pybuf = pybuffer_interface->py_buffer;
+	Py_ssize_t nbuf = pybuffer_interface->buffer_size;
+
+	STARPU_ASSERT(pybuf == NULL);
+	PyObject *pybt=PyBytes_FromStringAndSize(NULL, nbuf);
+
+	pybuffer_interface->object = pybt;
+
+	pybuffer_interface->py_buffer = PyBytes_AsString(pybt);
+
+	if (!pybuffer_interface->py_buffer)
+		return -ENOMEM;
+
+	return nbuf;
+}
+
 static void pybuffer_free_data_on_node(void *data_interface, unsigned node)
 {
 	struct starpupy_buffer_interface *pybuffer_interface = (struct starpupy_buffer_interface *) data_interface;
 	starpu_ssize_t requested_memory = pybuffer_interface->buffer_size;
 
 	starpu_free_on_node(node, (uintptr_t) pybuffer_interface->py_buffer, requested_memory);
+
+	pybuffer_interface->py_buffer = NULL;
+}
+
+static void pybuffer_free_bytes_data_on_node(void *data_interface, unsigned node)
+{
+	/*make sure we own the GIL*/
+	PyGILState_STATE state = PyGILState_Ensure();
+
+	struct starpupy_buffer_interface *pybuffer_interface = (struct starpupy_buffer_interface *) data_interface;
+
+	if (pybuffer_interface->object != NULL)
+	{
+		Py_DECREF(pybuffer_interface->object);
+	}
+
+	pybuffer_interface->object = NULL;
+	pybuffer_interface->py_buffer = NULL;
+
+	/* release GIL */
+	PyGILState_Release(state);
 }
 
 static void pybuffer_reuse_data_on_node(void *dst_data_interface, const void *cached_interface, unsigned node)
@@ -365,7 +433,43 @@ static void pybuffer_reuse_data_on_node(void *dst_data_interface, const void *ca
 	struct starpupy_buffer_interface *dst_pybuffer_interface = (struct starpupy_buffer_interface *) dst_data_interface;
 	const struct starpupy_buffer_interface *cached_pybuffer_interface = (const struct starpupy_buffer_interface *) cached_interface;
 
+	dst_pybuffer_interface->object = cached_pybuffer_interface->object;
 	dst_pybuffer_interface->py_buffer = cached_pybuffer_interface->py_buffer;
+}
+
+static int pybuffer_map_data(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
+{
+	struct starpupy_buffer_interface *src_pybuf = src_interface;
+	struct starpupy_buffer_interface *dst_pybuf = dst_interface;
+	int ret;
+	uintptr_t mapped;
+
+	mapped = starpu_interface_map((uintptr_t )src_pybuf->py_buffer, 0, src_node, dst_node, (size_t)src_pybuf->buffer_size, &ret);
+	if (mapped)
+	{
+		dst_pybuf->py_buffer = (char*)mapped;
+		return 0;
+	}
+	return ret;
+}
+
+static int pybuffer_unmap_data(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
+{
+	struct starpupy_buffer_interface *src_pybuf = src_interface;
+	struct starpupy_buffer_interface *dst_pybuf = dst_interface;
+
+	int ret = starpu_interface_unmap((uintptr_t)src_pybuf->py_buffer, 0, src_node, (uintptr_t)dst_pybuf->py_buffer, dst_node, (size_t)src_pybuf->buffer_size);
+	dst_pybuf->py_buffer = 0;
+
+	return ret;
+}
+
+static int pybuffer_update_map(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
+{
+	struct starpupy_buffer_interface *src_pybuf = src_interface;
+	struct starpupy_buffer_interface *dst_pybuf = dst_interface;
+
+	return starpu_interface_update_map((uintptr_t)src_pybuf->py_buffer, 0, src_node, (uintptr_t)dst_pybuf->py_buffer, 0, dst_node, (size_t)src_pybuf->buffer_size);
 }
 
 static size_t pybuffer_get_size(starpu_data_handle_t handle)
@@ -483,6 +587,9 @@ static struct starpu_data_interface_ops interface_pybuffer_ops =
 	.allocate_data_on_node = pybuffer_allocate_data_on_node,
 	.free_data_on_node = pybuffer_free_data_on_node,
 	.reuse_data_on_node = pybuffer_reuse_data_on_node,
+	.map_data = pybuffer_map_data,
+	.unmap_data = pybuffer_unmap_data,
+	.update_map = pybuffer_update_map,
 	.get_size = pybuffer_get_size,
 	.interfaceid = STARPU_UNKNOWN_INTERFACE_ID,
 	.interface_size = sizeof(struct starpupy_buffer_interface),
@@ -494,6 +601,30 @@ static struct starpu_data_interface_ops interface_pybuffer_ops =
 	.display = pybuffer_display,
 	.compare = pybuffer_compare,
 	.name = "STARPUPY_BUFFER_INTERFACE",
+	.copy_methods = &pybuffer_copy_data_methods_s,
+};
+
+/* we need another interface for bytes, bytearray, array.array, since we have to copy these objects between processes.
+* some more explanations are here: https://discuss.python.org/t/adding-pybytes-frombuffer-and-similar-for-array-array/21717
+*/
+static struct starpu_data_interface_ops interface_pybuffer_bytes_ops =
+{
+	.register_data_handle = pybuffer_register_data_handle,
+	.unregister_data_handle = pybuffer_unregister_data_handle,
+	.allocate_data_on_node = pybuffer_allocate_bytes_data_on_node,
+	.free_data_on_node = pybuffer_free_bytes_data_on_node,
+	.reuse_data_on_node = pybuffer_reuse_data_on_node,
+	.get_size = pybuffer_get_size,
+	.interfaceid = STARPU_UNKNOWN_INTERFACE_ID,
+	.interface_size = sizeof(struct starpupy_buffer_interface),
+	.footprint = starpupy_buffer_footprint,
+	.pack_data = pybuffer_pack_data,
+	.peek_data = pybuffer_peek_data,
+	.unpack_data = pybuffer_unpack_data,
+	.dontcache = 0,
+	.display = pybuffer_display,
+	.compare = pybuffer_compare,
+	.name = "STARPUPY_BUFFER_BYTES_INTERFACE",
 	.copy_methods = &pybuffer_copy_data_methods_s,
 };
 
@@ -521,29 +652,31 @@ void starpupy_buffer_numpy_register(starpu_data_handle_t *handleptr, int home_no
 }
 #endif
 
-void starpupy_buffer_bytes_register(starpu_data_handle_t *handleptr, int home_node, int buf_type, char* pybuf, Py_ssize_t nbuf)
+void starpupy_buffer_bytes_register(starpu_data_handle_t *handleptr, int home_node, int buf_type, char* pybuf, Py_ssize_t nbuf, PyObject *obj)
 {
 
 	struct starpupy_buffer_interface pybuffer_interface =
 	{
+	 .object = obj,
 	 .buffer_type = buf_type,
 	 .py_buffer = pybuf,
 	 .buffer_size = nbuf
 	};
 
-	if (interface_pybuffer_ops.interfaceid == STARPU_UNKNOWN_INTERFACE_ID)
+	if (interface_pybuffer_bytes_ops.interfaceid == STARPU_UNKNOWN_INTERFACE_ID)
 	{
-		interface_pybuffer_ops.interfaceid = starpu_data_interface_get_next_id();
+		interface_pybuffer_bytes_ops.interfaceid = starpu_data_interface_get_next_id();
 	}
 
-	starpu_data_register(handleptr, home_node, &pybuffer_interface, &interface_pybuffer_ops);
+	starpu_data_register(handleptr, home_node, &pybuffer_interface, &interface_pybuffer_bytes_ops);
 
 }
 
-void starpupy_buffer_array_register(starpu_data_handle_t *handleptr, int home_node, int buf_type, char* pybuf, Py_ssize_t nbuf, char arr_typecode, size_t nitem)
+void starpupy_buffer_array_register(starpu_data_handle_t *handleptr, int home_node, int buf_type, char* pybuf, Py_ssize_t nbuf, char arr_typecode, size_t nitem, PyObject *obj)
 {
 	struct starpupy_buffer_interface pybuffer_interface =
 	{
+	 .object = obj,
 	 .buffer_type = buf_type,
 	 .py_buffer = pybuf,
 	 .buffer_size = nbuf,
@@ -551,12 +684,12 @@ void starpupy_buffer_array_register(starpu_data_handle_t *handleptr, int home_no
 	 .item_size = nitem
 	};
 
-	if (interface_pybuffer_ops.interfaceid == STARPU_UNKNOWN_INTERFACE_ID)
+	if (interface_pybuffer_bytes_ops.interfaceid == STARPU_UNKNOWN_INTERFACE_ID)
 	{
-		interface_pybuffer_ops.interfaceid = starpu_data_interface_get_next_id();
+		interface_pybuffer_bytes_ops.interfaceid = starpu_data_interface_get_next_id();
 	}
 
-	starpu_data_register(handleptr, home_node, &pybuffer_interface, &interface_pybuffer_ops);
+	starpu_data_register(handleptr, home_node, &pybuffer_interface, &interface_pybuffer_bytes_ops);
 
 }
 
@@ -585,5 +718,5 @@ void starpupy_buffer_memview_register(starpu_data_handle_t *handleptr, int home_
 int starpupy_check_buffer_interface_id(starpu_data_handle_t handle)
 {
 	int interfaceid = (int)starpu_data_get_interface_id(handle);
-	return interfaceid == interface_pybuffer_ops.interfaceid;
+	return (interfaceid == interface_pybuffer_ops.interfaceid || interfaceid == interface_pybuffer_bytes_ops.interfaceid);
 }

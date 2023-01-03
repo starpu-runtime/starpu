@@ -244,7 +244,7 @@ res8.unregister()
 res9.unregister()
 res10.unregister()
 
-# ##################################bytes handle############################################
+##################################bytes handle############################################
 print("*************************")
 print("bytes handle:")
 print("*************************")
@@ -262,23 +262,23 @@ bt2_r = bt2_h.acquire(mode='R')
 print("second bytes object is", bt2_r)
 bt2_h.release()
 
-# ret_bt1 = starpu.task_submit(ret_handle=True)(add, bt1_h, bt2_h)
-# print("result of appending two bytes: ", ret_bt1.get())
+ret_bt1 = starpu.task_submit(ret_handle=True)(add, bt1_h, bt2_h)
+print("result of appending two bytes: ", ret_bt1.get())
 
-# def bytes_add(x, y):
-# 	z = bytearray(len(x))
-# 	for i in range (len(x)):
-# 		z[i] = x[i] + y[i]
-# 	return bytes(z)
+def bytes_add(x, y):
+	z = bytearray(len(x))
+	for i in range (len(x)):
+		z[i] = x[i] + y[i]
+	return bytes(z)
 
-# ret_bt2 = starpu.task_submit(ret_handle=True)(bytes_add, bt1_h, bt2_h)
-# print("result of adding two bytes elements: ", ret_bt2.get())
+ret_bt2 = starpu.task_submit(ret_handle=True)(bytes_add, bt1_h, bt2_h)
+print("result of adding two bytes elements: ", ret_bt2.get())
 
 bt1_h.unregister()
 bt2_h.unregister()
 
-#ret_bt1.unregister()
-# ret_bt2.unregister()
+ret_bt1.unregister()
+ret_bt2.unregister()
 
 ####################################bytearray handle#########################################
 print("*************************")
@@ -302,21 +302,21 @@ bta2_r = bta2_h.acquire(mode='R')
 print("second bytearray object is", bta2_r)
 bta2_h.release()
 
-# def bytearray_add(x, y):
-# 	z = bytearray(len(x))
-# 	for i in range (len(x)):
-# 		z[i] = x[i] + y[i]
-# 	return z
+def bytearray_add(x, y):
+	z = bytearray(len(x))
+	for i in range (len(x)):
+		z[i] = x[i] + y[i]
+	return z
 
-# ret_bta1 = starpu.task_submit(ret_handle=True)(bytearray_add, bta1_h, bta2_h)
-# print("result of adding two bytearray elements: ", ret_bta1.get())
+ret_bta1 = starpu.task_submit(ret_handle=True)(bytearray_add, bta1_h, bta2_h)
+print("result of adding two bytearray elements: ", ret_bta1.get())
 
 bta1_h.unregister()
 bta2_h.unregister()
 
-# ret_bta1.unregister()
+ret_bta1.unregister()
 
-# ##################################array.array handle##########################################
+##################################array.array handle##########################################
 print("*************************")
 print("array.array handle:")
 print("*************************")
@@ -326,21 +326,21 @@ arr3 = array.array('f', [4.5, 5.5, 6.5])
 
 arr4 = array.array('u', 'hello')
 
-# def arrarr_add(x, y):
-# 	for i in range (len(x)):
-# 		x[i] = x[i] + y[i]
-# 	#time.sleep(1)
-#	return x
+def arrarr_add(x, y):
+	for i in range (len(x)):
+		x[i] = x[i] + y[i]
+	#time.sleep(1)
+	return x
 
-# def arrarr_multi(x, y):
-# 	for i in range (len(x)):
-# 		x[i] = x[i] * y[i]
-#	return x
+def arrarr_multi(x, y):
+	for i in range (len(x)):
+		x[i] = x[i] * y[i]
+	return x
 
-# def arrarr_scal(x, s):
-# 	for i in range (len(x)):
-# 		x[i] = x[i] * s
-#	return x
+def arrarr_scal(x, s):
+	for i in range (len(x)):
+		x[i] = x[i] * s
+	return x
 
 arr1_h = Handle(arr1)
 arr1_r = arr1_h.acquire(mode='RW')
@@ -366,23 +366,23 @@ arr4_r = arr4_h.acquire(mode='R')
 print("fourth array.array object is", arr4_r)
 arr4_h.release()
 
-# ret_arr1 = starpu.task_submit(ret_handle=True)(arrarr_add, arr1_h, arr2_h)
-# print("result of adding two array.array elements: ", ret_arr1.get())
+ret_arr1 = starpu.task_submit(ret_handle=True)(arrarr_add, arr1_h, arr2_h)
+print("result of adding two array.array elements: ", ret_arr1.get())
 
-# ret_arr2 = starpu.task_submit(ret_handle=True)(arrarr_multi, arr1_h, arr2_h)
-# print("result of multiplying two array.array elements: ", ret_arr2.get())
+ret_arr2 = starpu.task_submit(ret_handle=True)(arrarr_multi, arr1_h, arr2_h)
+print("result of multiplying two array.array elements: ", ret_arr2.get())
 
-# ret_arr3 = starpu.task_submit(ret_handle=True)(arrarr_scal, arr3_h, 2)
-# print("result of multiplying array.array element by a scalar: ", ret_arr3.get())
+ret_arr3 = starpu.task_submit(ret_handle=True)(arrarr_scal, arr3_h, 2)
+print("result of multiplying array.array element by a scalar: ", ret_arr3.get())
 
 arr1_h.unregister()
 arr2_h.unregister()
 arr3_h.unregister()
 arr4_h.unregister()
 
-# ret_arr1.unregister()
-# ret_arr2.unregister()
-# ret_arr3.unregister()
+ret_arr1.unregister()
+ret_arr2.unregister()
+ret_arr3.unregister()
 
 ##################################memoryview handle###########################################
 print("*************************")

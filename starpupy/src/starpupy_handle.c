@@ -64,7 +64,7 @@ static PyObject* starpupy_object_register(PyObject *obj, char* mode)
 		PyBytes_AsStringAndSize(obj, &buf_bytes, &nbytes);
 
 		/*register the buffer*/
-		starpupy_buffer_bytes_register(&handle, home_node, starpupy_bytes_interface, buf_bytes, nbytes);
+		starpupy_buffer_bytes_register(&handle, home_node, starpupy_bytes_interface, buf_bytes, nbytes, obj);
 	}
 #ifdef STARPU_PYTHON_HAVE_NUMPY
 	/*if the object is a numpy array*/
@@ -115,7 +115,7 @@ static PyObject* starpupy_object_register(PyObject *obj, char* mode)
 		PyObject_GetBuffer(obj, view, PyBUF_SIMPLE);
 
 		/*register the buffer*/
-		starpupy_buffer_bytes_register(&handle, home_node, starpupy_bytearray_interface, view->buf, view->len);
+		starpupy_buffer_bytes_register(&handle, home_node, starpupy_bytearray_interface, view->buf, view->len, obj);
 
 		PyBuffer_Release(view);
 		free(view);
@@ -134,7 +134,7 @@ static PyObject* starpupy_object_register(PyObject *obj, char* mode)
 		PyObject_GetBuffer(obj, view, PyBUF_SIMPLE);
 
 		/*register the buffer*/
-		starpupy_buffer_array_register(&handle, home_node, starpupy_array_interface, view->buf, view->len, arr_type, view->itemsize);
+		starpupy_buffer_array_register(&handle, home_node, starpupy_array_interface, view->buf, view->len, arr_type, view->itemsize, obj);
 
 		Py_DECREF(PyArrtype);
 		PyBuffer_Release(view);
@@ -332,7 +332,6 @@ PyObject *starpupy_get_object_wrapper(PyObject *self, PyObject *args)
 		struct starpupyobject_interface *pyobject_interface = (struct starpupyobject_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 		obj = STARPUPY_GET_PYOBJECT(pyobject_interface);
-		Py_INCREF(obj);
 	}
 
 	if (STARPUPY_BUF_CHECK(handle))
@@ -476,7 +475,6 @@ PyObject *starpupy_acquire_handle_wrapper(PyObject *self, PyObject *args)
 		struct starpupyobject_interface *pyobject_interface = (struct starpupyobject_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 		obj = STARPUPY_GET_PYOBJECT(pyobject_interface);
-		Py_INCREF(obj);
 	}
 
 	if (STARPUPY_BUF_CHECK(handle))
@@ -547,7 +545,6 @@ PyObject *starpupy_acquire_object_wrapper(PyObject *self, PyObject *args)
 		struct starpupyobject_interface *pyobject_interface = (struct starpupyobject_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 		obj_get = STARPUPY_GET_PYOBJECT(pyobject_interface);
-		Py_INCREF(obj_get);
 	}
 
 	if (STARPUPY_BUF_CHECK(handle))
@@ -673,7 +670,7 @@ PyObject *starpupy_data_unregister_wrapper(PyObject *self, PyObject *args)
 	starpu_data_unregister(handle);
 	Py_END_ALLOW_THREADS
 
-	PyCapsule_SetPointer(handle_obj, (void*)-1);
+	PyCapsule_SetPointer(handle_cap, (void*)-1);
 
 	starpupy_remove_handle_from_dict(obj_id);
 	starpupy_remove_handle_from_set(handle_obj);
@@ -756,7 +753,7 @@ PyObject *starpupy_data_unregister_submit_wrapper(PyObject *self, PyObject *args
 	starpu_data_unregister_submit(handle);
 	Py_END_ALLOW_THREADS
 
-	PyCapsule_SetPointer(handle_obj, (void*)-1);
+	PyCapsule_SetPointer(handle_cap, (void*)-1);
 
 	starpupy_remove_handle_from_dict(obj_id);
 	starpupy_remove_handle_from_set(handle_obj);

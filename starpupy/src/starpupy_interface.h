@@ -27,6 +27,10 @@ void starpupy_data_register(starpu_data_handle_t *handleptr, unsigned home_node,
 
 int starpupy_check_pyobject_interface_id(starpu_data_handle_t handle);
 
+void starpupy_set_pyobject(struct starpupyobject_interface *pyobject_interface, PyObject *value);
+
 #define STARPUPY_PYOBJ_CHECK(handle) (starpupy_check_pyobject_interface_id(handle))
 
-#define STARPUPY_GET_PYOBJECT(interface) (((struct starpupyobject_interface *)(interface))->object)
+#define STARPUPY_GET_PYOBJECT(interface) (Py_INCREF(((struct starpupyobject_interface *)(interface))->object), ((struct starpupyobject_interface *)(interface))->object)
+
+#define STARPUPY_SET_PYOBJECT(interface, value) (starpupy_set_pyobject(interface, value))

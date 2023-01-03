@@ -25,6 +25,14 @@
 
 #include "starpupy_interface.h"
 
+void starpupy_set_pyobject(struct starpupyobject_interface *pyobject_interface, PyObject *value)
+{
+	if (pyobject_interface->object != NULL)
+		Py_DECREF(pyobject_interface->object);
+
+	pyobject_interface->object = value;
+}
+
 static void pyobject_register_data_handle(starpu_data_handle_t handle, int home_node, void *data_interface)
 {
 	struct starpupyobject_interface *pyobject_interface = (struct starpupyobject_interface *) data_interface;
@@ -292,7 +300,7 @@ static struct starpu_data_interface_ops interface_pyobject_ops =
 	.peek_data = pyobject_peek_data,
 	.unpack_data = pyobject_unpack_data,
 	.get_size = pyobject_get_size,
-	.dontcache = 0,
+	.dontcache = 1,
 	.name = "STARPUPY_OBJECT_INTERFACE",
 	.copy_methods = &pyobject_copy_data_methods_s,
 };
