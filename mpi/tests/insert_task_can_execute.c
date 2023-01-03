@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2022-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2022-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,7 +29,7 @@ int can_execute(unsigned workerid, struct starpu_task* task, unsigned nimpl)
 
 static struct starpu_codelet codelet =
 {
-	//.can_execute = can_execute,
+	.can_execute = can_execute,
 	.cpu_funcs = {cpu_fun},
 	.nbuffers = 1,
 	.modes = {STARPU_W},
@@ -51,11 +51,14 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
+	int rank;
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
+
 	// register a vector of one element
 	float *data = malloc(sizeof(float));
 	data[0] = 55;
 	starpu_data_handle_t handle;
-	starpu_vector_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t) data, 1, sizeof(float));
+	starpu_vector_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t) data, 1, sizeof(data[0]));
 	starpu_mpi_data_register(handle, 0, 0);
 
 	// run the task
@@ -68,16 +71,22 @@ int main(int argc, char** argv)
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 
-//	// check results
-//	if (data[0] == 42)
-//	{
-//		std::cout << "Success!" << std::endl;
-//	}
-//	else
-//	{
-//		std::cout << "Failure!" << std::endl;
-//	}
+	// check results
+	int ret = 0;
+	if (rank == 0)
+	{
+		if (data[0] == 42)
+		{
+			ret = 0;
+			fprintf(stderr, "Success!\n");
+		}
+		else
+		{
+			ret = 1;
+			fprintf(stderr, "Failure!\n");
+		}
+	}
 	free(data);
 
-	return 0;
+	return ret;
 }
