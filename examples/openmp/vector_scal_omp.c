@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -83,14 +83,6 @@ int main(void)
 	unsigned i;
 	int ret;
 
-	starpu_malloc((void **)&vector, NX*sizeof(float));
-
-	for (i = 0; i < NX; i++)
-		vector[i] = (i+1.0f);
-
-	FPRINTF(stderr, "BEFORE: First element was %f\n", vector[0]);
-	FPRINTF(stderr, "BEFORE: Last element was %f\n", vector[NX-1]);
-
 	starpu_conf_init(&conf);
 
 	/* Most OpenMP implementations do not support concurrent parallel
@@ -101,6 +93,14 @@ int main(void)
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+	starpu_malloc((void **)&vector, NX*sizeof(float));
+
+	for (i = 0; i < NX; i++)
+		vector[i] = (i+1.0f);
+
+	FPRINTF(stderr, "BEFORE: First element was %f\n", vector[0]);
+	FPRINTF(stderr, "BEFORE: Last element was %f\n", vector[NX-1]);
 
 	starpu_data_handle_t vector_handle;
 	starpu_vector_data_register(&vector_handle, STARPU_MAIN_RAM, (uintptr_t)vector, NX, sizeof(vector[0]));
@@ -123,13 +123,14 @@ int main(void)
 	}
 
 	starpu_data_unregister(vector_handle);
+
+	FPRINTF(stderr, "AFTER: First element is %f\n", vector[0]);
+	FPRINTF(stderr, "AFTER: Last element is %f\n", vector[NX-1]);
+
 	starpu_free_noflag(vector, NX*sizeof(float));
 
 	/* terminate StarPU, no task can be submitted after */
 	starpu_shutdown();
-
-	FPRINTF(stderr, "AFTER: First element is %f\n", vector[0]);
-	FPRINTF(stderr, "AFTER: Last element is %f\n", vector[NX-1]);
 
 	return 0;
 
