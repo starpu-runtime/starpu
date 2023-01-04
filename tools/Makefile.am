@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2013       Joris Pablo
 # Copyright (C) 2013       Thibaut Lambert
 # Copyright (C) 2017       Erwan Leria
@@ -306,6 +306,7 @@ EXTRA_DIST =				\
 	dev/valgrind/opencl.suppr	\
 	dev/valgrind/openmpi.suppr	\
 	dev/valgrind/openmp.suppr	\
+	dev/valgrind/p11-kit.suppr	\
 	dev/valgrind/padico.suppr	\
 	dev/valgrind/papi.suppr		\
 	dev/valgrind/pthread.suppr	\
