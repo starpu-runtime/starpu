@@ -132,20 +132,21 @@ int _starpu_get_logical_numa_node_worker(unsigned workerid)
 	if (numa_enabled)
 	{
 		struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-		struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config() ;
-		struct _starpu_machine_topology *topology = &config->topology ;
+		struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+		struct _starpu_machine_topology *topology = &config->topology;
 
-		hwloc_obj_t obj;
 		switch(worker->arch)
 		{
 			case STARPU_CPU_WORKER:
-				obj = hwloc_get_obj_by_type(topology->hwtopology, HWLOC_OBJ_PU, worker->bindid) ;
-				break;
+			{
+				hwloc_obj_t obj;
+				obj = hwloc_get_obj_by_type(topology->hwtopology, HWLOC_OBJ_PU, worker->bindid);
+				return numa_get_logical_id(obj);
+			}
 			default:
 				STARPU_ABORT();
 		}
 
-		return numa_get_logical_id(obj);
 	}
 	else
 #endif
@@ -163,20 +164,21 @@ static int _starpu_get_physical_numa_node_worker(unsigned workerid)
 	if (numa_enabled)
 	{
 		struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-		struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config() ;
-		struct _starpu_machine_topology *topology = &config->topology ;
+		struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+		struct _starpu_machine_topology *topology = &config->topology;
 
-		hwloc_obj_t obj;
 		switch(worker->arch)
 		{
 			case STARPU_CPU_WORKER:
-				obj = hwloc_get_obj_by_type(topology->hwtopology, HWLOC_OBJ_PU, worker->bindid) ;
-				break;
+			{
+				hwloc_obj_t obj;
+				obj = hwloc_get_obj_by_type(topology->hwtopology, HWLOC_OBJ_PU, worker->bindid);
+				return numa_get_physical_id(obj);
+			}
 			default:
 				STARPU_ABORT();
 		}
 
-		return numa_get_physical_id(obj);
 	}
 	else
 #endif
@@ -194,14 +196,14 @@ static int _starpu_get_logical_close_numa_node_worker(unsigned workerid)
 	if (numa_enabled)
 	{
 		struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-		struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config() ;
-		struct _starpu_machine_topology *topology = &config->topology ;
+		struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+		struct _starpu_machine_topology *topology = &config->topology;
 
 		hwloc_obj_t obj = NULL;
 		if (starpu_driver_info[worker->arch].get_hwloc_obj)
 			obj = starpu_driver_info[worker->arch].get_hwloc_obj(topology, worker->devid);
 		if (!obj)
-			obj = hwloc_get_obj_by_type(topology->hwtopology, HWLOC_OBJ_PU, worker->bindid) ;
+			obj = hwloc_get_obj_by_type(topology->hwtopology, HWLOC_OBJ_PU, worker->bindid);
 
 		return numa_get_logical_id(obj);
 	}
@@ -997,9 +999,9 @@ unsigned _starpu_topology_get_nhwnumanodes(struct _starpu_machine_config *config
 		numa_enabled = starpu_getenv_number_default("STARPU_USE_NUMA", 0);
 	if (numa_enabled)
 	{
-		struct _starpu_machine_topology *topology = &config->topology ;
-		int nnumanodes = hwloc_get_nbobjs_by_type(topology->hwtopology, HWLOC_OBJ_NUMANODE) ;
-		res = nnumanodes > 0 ? nnumanodes : 1 ;
+		struct _starpu_machine_topology *topology = &config->topology;
+		int nnumanodes = hwloc_get_nbobjs_by_type(topology->hwtopology, HWLOC_OBJ_NUMANODE);
+		res = nnumanodes > 0 ? nnumanodes : 1;
 	}
 	else
 #endif

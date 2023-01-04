@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2019-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -191,6 +191,7 @@ static struct perf_counter_array *_get_counters(const enum starpu_perf_counter_s
 		default:
 			STARPU_ABORT();
 	};
+	return NULL;
 };
 
 /* - */
@@ -356,8 +357,8 @@ void starpu_perf_counter_set_disable_id(struct starpu_perf_counter_set *set, int
 /* - */
 
 struct starpu_perf_counter_listener *starpu_perf_counter_listener_init(struct starpu_perf_counter_set *set,
-		void (*callback)(struct starpu_perf_counter_listener *listener, struct starpu_perf_counter_sample *sample, void *context),
-		void *user_arg)
+								       void (*callback)(struct starpu_perf_counter_listener *listener, struct starpu_perf_counter_sample *sample, void *context),
+								       void *user_arg)
 {
 	struct starpu_perf_counter_listener *listener;
 	_STARPU_MALLOC(listener, sizeof(*listener));
@@ -664,14 +665,14 @@ static struct perf_knob_array *_get_knobs(const enum starpu_perf_knob_scope scop
 		default:
 			STARPU_ABORT();
 	};
+	return NULL;
 };
 
 /* - */
 
-struct starpu_perf_knob_group *_starpu_perf_knob_group_register(
-	enum starpu_perf_knob_scope scope,
-	void (*set_func)(const struct starpu_perf_knob * const knob, void *context, const struct starpu_perf_knob_value * const value),
-	void (*get_func)(const struct starpu_perf_knob * const knob, void *context,       struct starpu_perf_knob_value * const value))
+struct starpu_perf_knob_group *_starpu_perf_knob_group_register(enum starpu_perf_knob_scope scope,
+								void (*set_func)(const struct starpu_perf_knob * const knob, void *context, const struct starpu_perf_knob_value * const value),
+								void (*get_func)(const struct starpu_perf_knob * const knob, void *context, struct starpu_perf_knob_value * const value))
 {
 	STARPU_ASSERT_PERF_KNOB_SCOPE_DEFINED(scope);
 	STARPU_ASSERT(set_func != NULL);
