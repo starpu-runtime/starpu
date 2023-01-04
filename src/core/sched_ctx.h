@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2016       Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -264,7 +264,7 @@ static inline int _starpu_sched_ctx_check_write_locked(unsigned sched_ctx_id)
 
 static inline void _starpu_sched_ctx_lock_write(unsigned sched_ctx_id)
 {
-	STARPU_ASSERT (sched_ctx_id <= STARPU_NMAX_SCHED_CTXS);
+	STARPU_ASSERT(sched_ctx_id <= STARPU_NMAX_SCHED_CTXS);
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	STARPU_HG_DISABLE_CHECKING(sched_ctx->lock_write_owner);
 	STARPU_ASSERT(!starpu_pthread_equal(sched_ctx->lock_write_owner, starpu_pthread_self()));
@@ -275,7 +275,7 @@ static inline void _starpu_sched_ctx_lock_write(unsigned sched_ctx_id)
 
 static inline void _starpu_sched_ctx_unlock_write(unsigned sched_ctx_id)
 {
-	STARPU_ASSERT (sched_ctx_id <= STARPU_NMAX_SCHED_CTXS);
+	STARPU_ASSERT(sched_ctx_id <= STARPU_NMAX_SCHED_CTXS);
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	STARPU_HG_DISABLE_CHECKING(sched_ctx->lock_write_owner);
 	STARPU_ASSERT(starpu_pthread_equal(sched_ctx->lock_write_owner, starpu_pthread_self()));
@@ -286,7 +286,7 @@ static inline void _starpu_sched_ctx_unlock_write(unsigned sched_ctx_id)
 
 static inline void _starpu_sched_ctx_lock_read(unsigned sched_ctx_id)
 {
-	STARPU_ASSERT (sched_ctx_id <= STARPU_NMAX_SCHED_CTXS);
+	STARPU_ASSERT(sched_ctx_id <= STARPU_NMAX_SCHED_CTXS);
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	STARPU_HG_DISABLE_CHECKING(sched_ctx->lock_write_owner);
 	STARPU_ASSERT(!starpu_pthread_equal(sched_ctx->lock_write_owner, starpu_pthread_self()));
@@ -296,7 +296,7 @@ static inline void _starpu_sched_ctx_lock_read(unsigned sched_ctx_id)
 
 static inline void _starpu_sched_ctx_unlock_read(unsigned sched_ctx_id)
 {
-	STARPU_ASSERT (sched_ctx_id <= STARPU_NMAX_SCHED_CTXS);
+	STARPU_ASSERT(sched_ctx_id <= STARPU_NMAX_SCHED_CTXS);
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	STARPU_HG_DISABLE_CHECKING(sched_ctx->lock_write_owner);
 	STARPU_ASSERT(!starpu_pthread_equal(sched_ctx->lock_write_owner, starpu_pthread_self()));
