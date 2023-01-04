@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2016       Uppsala University
@@ -744,7 +744,8 @@ static void _perf_model_add_dir(char *dir, int only_is_valid, char *var)
 			add = 0;
 			_STARPU_MSG("Warning: directory <%s> as set %s does not exist\n", dir, var);
 		}
-		closedir(ddir);
+		else
+			closedir(ddir);
 	}
 
 	if (add == 1)
