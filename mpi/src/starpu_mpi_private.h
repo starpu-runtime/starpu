@@ -221,7 +221,7 @@ struct _starpu_mpi_data
 	unsigned int modified:1; // Whether the data has been modified since the registration.
 
 	/** Array used to store the contributing nodes to this data
-	  * when it is accessed in REDUX mode. */
+	  * when it is accessed in (MPI_)REDUX mode. */
 	char* redux_map;
 
 	/** Rendez-vous data for opportunistic cooperative sends,

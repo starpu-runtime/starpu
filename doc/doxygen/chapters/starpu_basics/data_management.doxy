@@ -473,12 +473,14 @@ leading to yet more relaxed dependencies and more parallelism.
 
 ::STARPU_REDUX can also be passed to starpu_mpi_task_insert() in the MPI
 case. This will however not produce any MPI communication, but just pass
-::STARPU_REDUX to the underlying starpu_task_insert(). It is up to the
-application to call starpu_mpi_redux_data(), which posts tasks which will
-reduce the partial results among MPI nodes into the MPI node which owns the
-data. For instance, some hypothetical application which collects partial results
+::STARPU_REDUX to the underlying starpu_task_insert(). starpu_mpi_redux_data()
+posts tasks which will reduce the partial results among MPI nodes into the MPI 
+node which owns the data. The function can be called by the user to benefit from
+fine-tuning such as priority setting. If the user does not call this function, 
+StarPU wraps up reduction patterns automatically. The following example
+shows a hypothetical application which collects partial results
 into data <c>res</c>, then uses it for other computation, before looping again
-with a new reduction:
+with a new reduction where the wrap-up of the reduction pattern is explicit:
 
 \code{.c}
 for (i = 0; i < 100; i++)
@@ -489,6 +491,18 @@ for (i = 0; i < 100; i++)
     starpu_mpi_task_insert(MPI_COMM_WORLD, &work2, STARPU_RW, B, STARPU_R, res, 0);
 }
 \endcode
+
+starpu_mpi_redux_data() is called automatically in various cases, including
+when a task reading the reduced handle is inserted through starpu_mpi_task_insert(). 
+The previous example could avoid calling starpu_mpi_redux_data(). Default priority (0) 
+is used. The reduction tree arity is decided based on the size of the data to reduce: a 
+flat tree is used with a small data (default to less than 1024 bytes), a binary tree 
+otherwise. If the environment variable \ref STARPU_MPI_REDUX_ARITY_THRESHOLD is setup, the 
+threshold between the size of a small data and a bigger data is modified. If the value is
+setup to be negative, flat trees will always be used. If the value is setup to 0, binary 
+trees are used. Otherwise, the size of the data is compared to the size in the environment 
+variable. Remaining distributed-memory reduction patterns are wrapped-up at the end of an 
+application when calling starpu_mpi_wait_for_all().
 
 \section DataCommute Commute Data Access
 

@@ -164,6 +164,7 @@ int main(int argc, char **argv)
 					       &dot_codelet,
 					       STARPU_R, handles[x],
 					       STARPU_REDUX, dot_handle,
+					       STARPU_EXECUTE_ON_DATA, handles[x],
 					       0);
 		}
 		ret = starpu_mpi_redux_data(MPI_COMM_WORLD, dot_handle);

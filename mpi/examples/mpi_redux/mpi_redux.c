@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -40,9 +40,9 @@ static void cl_cpu_work(void *handles[], void*arg)
 	double *a = (double *)STARPU_VARIABLE_GET_PTR(handles[0]);
 	double *b = (double *)STARPU_VARIABLE_GET_PTR(handles[1]);
 	starpu_sleep(0.01);
-	printf("work_cl (rank:%d,worker:%d) %f =>",starpu_mpi_world_rank(), starpu_worker_get_id(), *a);
+	FPRINTF(stderr, "work_cl (rank:%d,worker:%d) %f =>",starpu_mpi_world_rank(), starpu_worker_get_id(), *a);
 	*a = 3.0 + *a + *b;
-	printf("%f\n",*a);
+	FPRINTF(stderr, "%f\n",*a);
 }
 
 static struct starpu_codelet work_cl =
@@ -66,7 +66,7 @@ static void cl_cpu_task_init(void *handles[], void*arg)
 	(void) arg;
 	double *a = (double *)STARPU_VARIABLE_GET_PTR(handles[0]);
 	starpu_sleep(0.005);
-	printf("init_cl (rank:%d,worker:%d) %d (was %f)\n", starpu_mpi_world_rank(), starpu_worker_get_id(), starpu_mpi_world_rank(),
+	FPRINTF(stderr, "init_cl (rank:%d,worker:%d) %d (was %f)\n", starpu_mpi_world_rank(), starpu_worker_get_id(), starpu_mpi_world_rank(),
 #ifdef STARPU_HAVE_VALGRIND_H
 			RUNNING_ON_VALGRIND ? 0. :
 #endif
@@ -88,7 +88,7 @@ static void cl_cpu_task_red(void *handles[], void*arg)
 	double *ad = (double *)STARPU_VARIABLE_GET_PTR(handles[0]);
 	double *as = (double *)STARPU_VARIABLE_GET_PTR(handles[1]);
 	starpu_sleep(0.01);
-	printf("red_cl (rank:%d,worker:%d) %f ; %f --> %f\n", starpu_mpi_world_rank(), starpu_worker_get_id(), *as, *ad, *as+*ad);
+	FPRINTF(stderr, "red_cl (rank:%d,worker:%d) %f ; %f --> %f\n", starpu_mpi_world_rank(), starpu_worker_get_id(), *as, *ad, *as+*ad);
 	*ad = *ad + *as;
 }
 
@@ -140,7 +140,7 @@ int main(int argc, char *argv[])
 		if (comm_rank == 0)
 		{
 			a = 1.0;
-			printf("init a = %f\n", a);
+			FPRINTF(stderr, "init a = %f\n", a);
 			starpu_variable_data_register(&a_h, STARPU_MAIN_RAM, (uintptr_t)&a, sizeof(double));
 			for (j=0;j<comm_size;j++)
 				starpu_variable_data_register(&b_h[j], -1, 0, sizeof(double));
@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
 		else
 		{
 			b[comm_rank] = 1.0 / (comm_rank + 1.0);
-			printf("init b_%d = %f\n", comm_rank, b[comm_rank]);
+			FPRINTF(stderr, "init b_%d = %f\n", comm_rank, b[comm_rank]);
 			starpu_variable_data_register(&a_h, -1, 0, sizeof(double));
 			for (j=0;j<comm_size;j++)
 			{
@@ -190,10 +190,15 @@ int main(int argc, char *argv[])
 		starpu_mpi_barrier(MPI_COMM_WORLD);
 		if (comm_rank == 0)
 		{
-			double tmp = 0.0;
+			double tmp1 = 0.0;
+			double tmp2 = 0.0;
 			for (work_node = 1; work_node < comm_size ; work_node++)
-				tmp += 1.0 / (work_node + 1.0);
-			printf("computed result ---> %f expected %f\n", a, 1.0 + (comm_size - 1.0)*(comm_size)/2.0 + work_coef*nworkers*((comm_size-1)*3.0 + tmp));
+			{
+				tmp1 += 1.0 / (work_node + 1.0);
+				tmp2 += (nworkers - 1.0)*work_node*i;
+			}
+			FPRINTF(stderr, "computed result ---> %f expected %f\n", a, 
+				1.0 + (comm_size - 1.0)*(comm_size)/2.0 + work_coef*nworkers*((comm_size-1)*3.0 + tmp1) + tmp2);
 		}
 		starpu_data_unregister(a_h);
 		for (work_node=0; work_node < comm_size;work_node++)

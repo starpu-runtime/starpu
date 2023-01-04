@@ -15,14 +15,12 @@
  */
 
 /*
- * This example illustrates how to use the STARPU_MPI_REDUX mode
- * and compare it with the standard STARPU_REDUX.
+ * This example is similar to mpi_redux.c
  *
- * In order to make this comparison salliant, the init codelet is not
- * a task that set the handle to a neutral element but rather depends
- * on the working node.
- * This is not a proper way to use a reduction pattern however it
- * can be analogous to the cost/weight of each contribution.
+ * It iterates over multiple ways to wrap-up reduction patterns : either by
+ * - waiting for all mpi + tasks
+ * - calling mpi_redux yourself
+ * - inserting a reading task on the handle to reduce
  */
 
 #include <stdlib.h>
@@ -34,6 +32,19 @@
 #include "helper.h"
 #include <unistd.h>
 
+static void cl_cpu_read(void *handles[], void*arg)
+{
+	(void) arg;
+	(void) handles;
+}
+
+static struct starpu_codelet read_cl =
+{
+	.cpu_funcs = { cl_cpu_read },
+	.nbuffers = 1,
+	.modes = { STARPU_R },
+	.name = "task_read"
+};
 static void cl_cpu_work(void *handles[], void*arg)
 {
 	(void)arg;
@@ -109,6 +120,13 @@ int main(int argc, char *argv[])
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_ini_conft");
 
 	int nworkers = starpu_cpu_worker_get_count();
+	if (nworkers < 2)
+	{
+		FPRINTF(stderr, "We need at least 2 CPU worker per node.\n");
+		starpu_mpi_shutdown();
+		return STARPU_TEST_SKIPPED;
+	}
+	FPRINTF(stderr, "there are %d workers\n", nworkers);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &comm_size);
 	if (comm_size < 2)
 	{
@@ -122,66 +140,93 @@ int main(int argc, char *argv[])
 	starpu_data_handle_t a_h, b_h[comm_size];
 	double work_coef = 2;
 	enum starpu_data_access_mode task_mode;
-	int arity,j,work_node;
+	int wrapup,i,j,work_node;
 	starpu_mpi_tag_t tag = 0;
-	for (arity = 2 ; arity < comm_size ; arity++)
+	for (wrapup = 0; wrapup <= 2; wrapup ++)
 	{
-		starpu_mpi_barrier(MPI_COMM_WORLD);
-		task_mode = STARPU_MPI_REDUX;
-		if (comm_rank == 0)
+		for (i = 0 ; i < 2 ; i++)
 		{
-			a = 1.0;
-			FPRINTF(stderr, "init a = %f\n", a);
-			starpu_variable_data_register(&a_h, STARPU_MAIN_RAM, (uintptr_t)&a, sizeof(double));
-			for (j=0;j<comm_size;j++)
-				starpu_variable_data_register(&b_h[j], -1, 0, sizeof(double));
-		}
-		else
-		{
-			b[comm_rank] = 1.0 / (comm_rank + 1.0);
-			FPRINTF(stderr, "init b_%d = %f\n", comm_rank, b[comm_rank]);
-			starpu_variable_data_register(&a_h, -1, 0, sizeof(double));
-			for (j=0;j<comm_size;j++)
+			starpu_mpi_barrier(MPI_COMM_WORLD);
+			if (i==0)
+				task_mode = STARPU_MPI_REDUX;
+			else
+				task_mode = STARPU_REDUX;
+			if (comm_rank == 0)
 			{
-				if (j == comm_rank)
-					starpu_variable_data_register(&b_h[j], STARPU_MAIN_RAM, (uintptr_t)&b[j], sizeof(double));
-				else
+				a = 1.0;
+				FPRINTF(stderr, "init a = %f\n", a);
+				starpu_variable_data_register(&a_h, STARPU_MAIN_RAM, (uintptr_t)&a, sizeof(double));
+				for (j=0;j<comm_size;j++)
 					starpu_variable_data_register(&b_h[j], -1, 0, sizeof(double));
 			}
-		}
-		starpu_mpi_data_register(a_h, tag++, 0);
-		for (j=0;j<comm_size;j++)
-			starpu_mpi_data_register(b_h[j], tag++, j);
-
-		starpu_data_set_reduction_methods(a_h, &task_red_cl, &task_init_cl);
-		starpu_fxt_start_profiling();
-		for (work_node=1; work_node < comm_size;work_node++)
-		{
-			for (j=1;j<=work_coef*nworkers;j++)
+			else
 			{
-			    starpu_mpi_task_insert(MPI_COMM_WORLD,
-						   &mpi_work_cl,
-						   task_mode, a_h,
-						   STARPU_R, b_h[work_node],
-						   STARPU_EXECUTE_ON_NODE, work_node,
-						   0);
+				b[comm_rank] = 1.0 / (comm_rank + 1.0);
+				FPRINTF(stderr, "init b_%d = %f\n", comm_rank, b[comm_rank]);
+				starpu_variable_data_register(&a_h, -1, 0, sizeof(double));
+				for (j=0;j<comm_size;j++)
+				{
+					if (j == comm_rank)
+						starpu_variable_data_register(&b_h[j], STARPU_MAIN_RAM, (uintptr_t)&b[j], sizeof(double));
+					else
+						starpu_variable_data_register(&b_h[j], -1, 0, sizeof(double));
+				}
 			}
+			starpu_mpi_data_register(a_h, tag++, 0);
+			for (j=0;j<comm_size;j++)
+				starpu_mpi_data_register(b_h[j], tag++, j);
+
+			starpu_data_set_reduction_methods(a_h, &task_red_cl, &task_init_cl);
+			starpu_fxt_start_profiling();
+			for (work_node=1; work_node < comm_size;work_node++)
+			{
+				for (j=1;j<=work_coef*nworkers;j++)
+				{
+					if (i == 0)
+						starpu_mpi_task_insert(MPI_COMM_WORLD,
+								&mpi_work_cl,
+								task_mode, a_h,
+								STARPU_R, b_h[work_node],
+								STARPU_EXECUTE_ON_NODE, work_node,
+								0);
+					else
+						starpu_mpi_task_insert(MPI_COMM_WORLD,
+								&work_cl,
+								task_mode, a_h,
+								STARPU_R, b_h[work_node],
+								STARPU_EXECUTE_ON_NODE, work_node,
+								0);
+				}
+			}
+			if (wrapup == 0)
+			{
+				ret = starpu_mpi_redux_data(MPI_COMM_WORLD, a_h);
+				STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_redux_data");
+			}
+			else if (wrapup == 1)
+			{
+				starpu_mpi_task_insert(MPI_COMM_WORLD,
+						&read_cl, STARPU_R, a_h, 0);
+			}
+			starpu_mpi_wait_for_all(MPI_COMM_WORLD);
+			starpu_mpi_barrier(MPI_COMM_WORLD);
+			if (comm_rank == 0)
+			{
+				double tmp1 = 0.0;
+				double tmp2 = 0.0;
+				for (work_node = 1; work_node < comm_size ; work_node++)
+				{
+					tmp1 += 1.0 / (work_node + 1.0);
+					tmp2 += (nworkers - 1.0)*work_node*i;
+				}
+				FPRINTF(stderr, "computed result ---> %f expected %f\n", a,
+					1.0 + (comm_size - 1.0)*(comm_size)/2.0 + work_coef*nworkers*((comm_size-1)*3.0 + tmp1) + tmp2);
+			}
+			starpu_data_unregister(a_h);
+			for (work_node=0; work_node < comm_size;work_node++)
+				starpu_data_unregister(b_h[work_node]);
+			starpu_mpi_barrier(MPI_COMM_WORLD);
 		}
-		ret = starpu_mpi_redux_data_tree(MPI_COMM_WORLD, a_h, arity);
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_redux_data_tree");
-		starpu_mpi_wait_for_all(MPI_COMM_WORLD);
-		starpu_mpi_barrier(MPI_COMM_WORLD);
-		if (comm_rank == 0)
-		{
-			double tmp = 0.0;
-			for (work_node = 1; work_node < comm_size ; work_node++)
-				tmp += 1.0 / (work_node + 1.0);
-			FPRINTF(stderr, "computed result ---> %f expected %f\n", a, 1.0 + (comm_size - 1.0)*(comm_size)/2.0 + work_coef*nworkers*((comm_size-1)*3.0 + tmp));
-		}
-		starpu_data_unregister(a_h);
-		for (work_node=0; work_node < comm_size;work_node++)
-			starpu_data_unregister(b_h[work_node]);
-		starpu_mpi_barrier(MPI_COMM_WORLD);
 	}
 	starpu_mpi_shutdown();
 	return 0;

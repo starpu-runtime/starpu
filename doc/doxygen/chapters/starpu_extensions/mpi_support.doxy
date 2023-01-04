@@ -817,18 +817,21 @@ The data can then be used just like per-node above.
 \section MPIMpiRedux Inter-node reduction
 
 One might want to leverage a reduction pattern across several nodes.
-Using \c STARPU_REDUX (see \ref DataReduction), one can obtain such patterns where each
+Using ::STARPU_REDUX (see \ref DataReduction), one can obtain such patterns where each
 core on contributing nodes spawns their own copy to work with. In the case that the
-required reductions are too numerous and expensive, the access mode \c STARPU_MPI_REDUX
+required reductions are too numerous and expensive, the access mode ::STARPU_MPI_REDUX
 tells StarPU to spawn only one contribution per contributing node.
 
-The setup and use of \c STARPU_MPI_REDUX is similar to \c STARPU_REDUX : the initialization and
+The setup and use of ::STARPU_MPI_REDUX is similar to ::STARPU_REDUX : the initialization and
 reduction codelets should be declared through starpu_data_set_reduction_methods() in the
-same fashion as \c STARPU_REDUX. The function starpu_mpi_redux_data() has to be called
-when all tasks contributing to the reduction have been inserted so that the reduction tree
-can be submitted. Tasks contributing to the inter-node reduction should be registered as
-accessing the contribution through \c STARPU_RW|STARPU_COMMUTE mode, as for the
-\c STARPU_REDUX mode, as in the following example.
+same fashion as ::STARPU_REDUX. The function starpu_mpi_redux_data() is automatically called
+either when a task reading the reduced handle is inserted through the MPI layer of StarPU through
+starpu_mpi_insert_task() or when the user waits for all communications and tasks to be executed
+through starpu_mpi_wait_for_all(). The function can be called by the user to fine-tune arguments
+such as the priority of the reduction tasks.
+Tasks contributing to the inter-node reduction should be registered as
+accessing the contribution through ::STARPU_RW|::STARPU_COMMUTE mode, as for the
+::STARPU_REDUX mode, as in the following example.
 
 \code{.c}
 static struct starpu_codelet contrib_cl =
@@ -850,7 +853,7 @@ starpu_mpi_task_insert(MPI_COMM_WORLD, &contrib_cl, STARPU_MPI_REDUX, data, STAR
 
 Note that if the specified node is set to \c -1, the option is ignored.
 
-More examples are available at mpi/examples/mpi_redux/mpi_redux.c and mpi/examples/mpi_redux/mpi_redux_tree.c.
+More examples are available at \c mpi/examples/mpi_redux/mpi_redux.c and \c mpi/examples/mpi_redux/mpi_redux_tree.c.
 
 \section MPIPriorities Priorities
 

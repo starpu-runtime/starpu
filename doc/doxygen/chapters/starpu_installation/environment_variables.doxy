@@ -656,6 +656,20 @@ This variable allows to enable (1) MPI GPUDirect support or not (0). The default
 1, StarPU-MPI will warn if MPI does not provide the GPUDirect support.
 </dd>
 
+<dt>STARPU_MPI_REDUX_ARITY_THRESHOLD</dt>
+<dd>
+\anchor STARPU_MPI_REDUX_ARITY_THRESHOLD
+\addindex __env__STARPU_MPI_REDUX_ARITY_THRESHOLD
+The arity of the automatically-detected reduction trees follows the following
+rule: when the data to be reduced is of small size a flat tree is unrolled
+i.e. all the contributing nodes send their contribution to the root of
+the reduction. When the data to be reduced is of big size, a binary tree is used instead.
+The default threshold between flat and binary tree is 1024 bytes. By setting the environment
+variable with a negative value, all the automatically detected reduction trees will use flat trees.
+If this value is set to 0, then binary trees will always be selected. Otherwise,
+the setup value replaces the default 1024.
+</dd>
+
 </dl>
 
 

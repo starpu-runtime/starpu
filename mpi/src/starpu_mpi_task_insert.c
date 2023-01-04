@@ -21,6 +21,7 @@
 #include <starpu.h>
 #include <starpu_data.h>
 #include <common/utils.h>
+#include <common/uthash.h>
 #include <util/starpu_task_insert_utils.h>
 #include <datawizard/coherency.h>
 #include <core/task.h>
@@ -41,6 +42,17 @@
 	} while (0)
 
 static void (*pre_submit_hook)(struct starpu_task *task) = NULL;
+
+/* reduction wrap-up */
+// entry in the table
+struct _starpu_redux_data_entry
+{
+	UT_hash_handle hh;
+	starpu_data_handle_t data_handle;
+};
+// the table
+static struct _starpu_redux_data_entry *_redux_data = NULL;
+void _starpu_mpi_redux_wrapup_data(starpu_data_handle_t data_handle);
 
 int starpu_mpi_pre_submit_hook_register(void (*f)(struct starpu_task *))
 {
@@ -608,6 +620,33 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 	if (ret < 0)
 		return ret;
 
+	_STARPU_TRACE_TASK_MPI_PRE_START();
+	/* Send and receive data as requested */
+	for(i=0 ; i<nb_data ; i++)
+	{
+                if (descrs[i].handle && descrs[i].handle->mpi_data)
+		{
+			char* redux_map = starpu_mpi_data_get_redux_map(descrs[i].handle);
+			if (redux_map != NULL && descrs[i].mode & STARPU_R && ( descrs[i].mode & ~ STARPU_REDUX || descrs[i].mode & ~ STARPU_MPI_REDUX ))
+			{
+				_starpu_mpi_redux_wrapup_data(descrs[i].handle);
+			}
+		}
+		_starpu_mpi_exchange_data_before_execution(descrs[i].handle, descrs[i].mode, me, xrank, do_execute, prio, comm);
+	}
+
+	if (xrank_p)
+		*xrank_p = xrank;
+	if (nb_data_p)
+		*nb_data_p = nb_data;
+	if (prio_p)
+		*prio_p = prio;
+
+	if (descrs_p)
+		*descrs_p = descrs;
+	else
+		free(descrs);
+
 	if (do_execute == 1)
 	{
 		va_list varg_list_copy;
@@ -647,25 +686,6 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 		}
 	}
 
-	_STARPU_TRACE_TASK_MPI_PRE_START();
-	/* Send and receive data as requested */
-	for(i=0 ; i<nb_data ; i++)
-	{
-		_starpu_mpi_exchange_data_before_execution(descrs[i].handle, descrs[i].mode, me, xrank, do_execute, prio, comm);
-	}
-
-	if (xrank_p)
-		*xrank_p = xrank;
-	if (nb_data_p)
-		*nb_data_p = nb_data;
-	if (prio_p)
-		*prio_p = prio;
-
-	if (descrs_p)
-		*descrs_p = descrs;
-	else
-		free(descrs);
-
 	_STARPU_TRACE_TASK_MPI_PRE_END();
 
 	return do_execute;
@@ -686,8 +706,27 @@ int _starpu_mpi_task_postbuild_v(MPI_Comm comm, int xrank, int do_execute, struc
 			int rrank = starpu_mpi_data_get_rank(descrs[i].handle);
 			int size;
 			starpu_mpi_comm_size(comm, &size);
-			if (mpi_data->redux_map == NULL)
+			if (mpi_data->redux_map == NULL) 
+			{
 				_STARPU_CALLOC(mpi_data->redux_map, size, sizeof(mpi_data->redux_map[0]));
+				struct _starpu_redux_data_entry *entry;
+				_STARPU_MPI_MALLOC(entry, sizeof(*entry));
+				starpu_data_handle_t data_handle = descrs[i].handle;
+				entry->data_handle = data_handle;
+				HASH_ADD_PTR(_redux_data, data_handle, entry);
+			}
+			mpi_data->redux_map [xrank] = 1;
+			mpi_data->redux_map [rrank] = 1;
+			struct _starpu_redux_data_entry *entry;
+			HASH_FIND_PTR(_redux_data, &descrs[i].handle, entry);
+			if (entry == NULL)
+			{
+				_STARPU_CALLOC(mpi_data->redux_map, size, sizeof(mpi_data->redux_map[0]));
+				_STARPU_MPI_MALLOC(entry, sizeof(*entry));
+				starpu_data_handle_t data_handle = descrs[i].handle;
+				entry->data_handle = data_handle;
+				HASH_ADD_PTR(_redux_data, data_handle, entry);
+			}
 			mpi_data->redux_map [xrank] = 1;
 			mpi_data->redux_map [rrank] = 1;
 		}
@@ -917,8 +956,6 @@ void _starpu_mpi_redux_fill_post_sync_jobid(const void * const redux_data_args, 
 	*post_sync_jobid = ((const struct _starpu_mpi_redux_data_args *) redux_data_args)->taskC_jobid;
 }
 
-/* TODO: this should rather be implicitly called by starpu_mpi_task_insert when
- *  * a data previously accessed in (MPI_)REDUX mode gets accessed in R mode. */
 int starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_handle, int prio, int arity)
 {
 	int me, rank, nb_nodes;
@@ -968,6 +1005,7 @@ int starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_han
 	{
 		arity = nb_contrib;
 	}
+	arity = STARPU_MIN(arity,nb_contrib);
 	_STARPU_MPI_DEBUG(5, "There is %d contributors\n", nb_contrib);
 	int contributors[nb_contrib];
 	int reducing_node;
@@ -1074,6 +1112,16 @@ int starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_han
 		current_level++;
 #endif
 	}
+ 	
+	struct _starpu_redux_data_entry *entry;
+	HASH_FIND_PTR(_redux_data, &data_handle, entry);
+	if (entry != NULL) 
+	{
+		HASH_DEL(_redux_data, entry);
+		free(entry);
+	}
+	free(mpi_data->redux_map);
+	mpi_data->redux_map = NULL;
 	return 0;
 }
 
@@ -1112,3 +1160,35 @@ int starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle, 
 	}
 	return starpu_mpi_redux_data_prio_tree(comm, data_handle, prio, nb_contrib);
 }
+
+void _starpu_mpi_redux_wrapup_data(starpu_data_handle_t data_handle) 
+{
+	size_t data_size = starpu_data_get_size(data_handle);
+ 	// Small data => flat tree | binary tree
+	int _starpu_mpi_redux_threshold = starpu_getenv_number_default("STARPU_MPI_REDUX_ARITY_THRESHOLD", 1024);
+	int _starpu_mpi_redux_tree_size = 2;
+	if (_starpu_mpi_redux_threshold < 0 || (_starpu_mpi_redux_threshold > 0 && data_size < (size_t) _starpu_mpi_redux_threshold))
+	{
+		_starpu_mpi_redux_tree_size = STARPU_MAXNODES;
+	}
+	struct _starpu_mpi_data *mpi_data = data_handle->mpi_data;
+	struct _starpu_redux_data_entry *entry;
+
+	HASH_FIND_PTR(_redux_data, &data_handle, entry);
+	if (entry != NULL)
+	{
+		starpu_mpi_redux_data_tree(mpi_data->node_tag.node.comm,data_handle,_starpu_mpi_redux_tree_size);
+	}
+	return;
+}
+
+void _starpu_mpi_redux_wrapup_datas() 
+{
+ 	struct _starpu_redux_data_entry *entry = NULL, *tmp = NULL;
+ 	HASH_ITER(hh, _redux_data, entry, tmp)
+	{
+		_starpu_mpi_redux_wrapup_data(entry->data_handle);
+	}
+ 	return;
+}
+

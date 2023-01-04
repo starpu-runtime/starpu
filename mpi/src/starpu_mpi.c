@@ -22,6 +22,7 @@
 #include <starpu_mpi_private.h>
 #include <starpu_mpi_cache.h>
 #include <starpu_profiling.h>
+#include <starpu_mpi_task_insert.h>
 #include <starpu_mpi_stats.h>
 #include <starpu_mpi_cache.h>
 #include <starpu_mpi_select_node.h>
@@ -645,6 +646,9 @@ void starpu_mpi_data_migrate(MPI_Comm comm, starpu_data_handle_t data, int new_r
 
 int starpu_mpi_wait_for_all(MPI_Comm comm)
 {
+	/* If the user forgets to call mpi_redux_data or insert R tasks on the reduced handles */
+	/* then, we wrap reduction patterns for them. This is typical of benchmarks */
+	_starpu_mpi_redux_wrapup_datas();
 	return _mpi_backend._starpu_mpi_backend_wait_for_all(comm);
 }
 
