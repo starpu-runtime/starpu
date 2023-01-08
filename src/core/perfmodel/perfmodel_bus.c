@@ -1902,7 +1902,7 @@ void starpu_bus_print_bandwidth(FILE *f)
 				if (timing->timing_htod)
 					fprintf(f, "%2d %.0f %.0f\t", timing->numa_id, 1/timing->timing_htod, 1/timing->timing_dtoh);
 				else
-					fprintf(f, "%2u\t", opencl_affinity_matrix[src][numa]);
+					fprintf(f, "%2u\t", opencl_affinity_matrix[src-ncuda][numa]);
 			}
 		}
 #endif
