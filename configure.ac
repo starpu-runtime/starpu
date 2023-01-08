@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2011       Télécom-SudParis
 # Copyright (C) 2013       Thibaut Lambert
 # Copyright (C) 2017       Guillaume Beauchamp
@@ -1744,12 +1744,12 @@ fi
 if test x$enable_cuda = xyes; then
     AC_ARG_ENABLE(cuda0, [AS_HELP_STRING([--enable-cuda0],
 		[Enable the minimal-support CUDA driver (only for testing)])],, [enable_cuda0=no])
-    if test x$enable_cuda0=xyes; then
+    if test x$enable_cuda0 = xyes; then
         AC_DEFINE(STARPU_USE_CUDA0,[1],[Define to 1 if the CUDA0 driver is to be tested])
     fi
     AC_ARG_ENABLE(cuda1, [AS_HELP_STRING([--enable-cuda0],
 		[Enable the small-support CUDA driver (only for testing)])],, [enable_cuda1=no])
-    if test x$enable_cuda1=xyes; then
+    if test x$enable_cuda1 = xyes; then
         AC_DEFINE(STARPU_USE_CUDA1,[1],[Define to 1 if the CUDA1 driver is to be tested])
     fi
 
