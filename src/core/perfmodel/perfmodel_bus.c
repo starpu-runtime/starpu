@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -1462,7 +1462,7 @@ void starpu_bus_print_bandwidth(FILE *f)
 				if (timing->timing_htod)
 					fprintf(f, "%2d %.0f %.0f\t", timing->cpu_id, 1/timing->timing_htod, 1/timing->timing_dtoh);
 				else
-					fprintf(f, "%2d\t", opencl_affinity_matrix[src-1][cpu]);
+					fprintf(f, "%2d\t", opencl_affinity_matrix[src-ncuda-1][cpu]);
 			}
 		}
 #endif
