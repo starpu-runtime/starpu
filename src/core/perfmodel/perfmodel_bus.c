@@ -142,7 +142,9 @@ static double mpi_latency_device_to_device[STARPU_MAXMPIDEVS][STARPU_MAXMPIDEVS]
 
 #ifdef STARPU_HAVE_HWLOC
 static hwloc_topology_t hwtopology;
+#if HAVE_DECL_HWLOC_DISTANCES_OBJ_PAIR_VALUES
 struct hwloc_distances_s *numa_distances;
+#endif
 
 hwloc_topology_t _starpu_perfmodel_get_hwtopology()
 {
@@ -222,6 +224,7 @@ static void set_numa_distance(int dev, unsigned numa, enum starpu_worker_archtyp
 		return;
 	}
 
+#if HAVE_DECL_HWLOC_DISTANCES_OBJ_PAIR_VALUES
 	if (!numa_distances)
 		return;
 
@@ -236,6 +239,7 @@ static void set_numa_distance(int dev, unsigned numa, enum starpu_worker_archtyp
 		_STARPU_DEBUG("got distance G2H %lu H2G %lu\n", (unsigned long) gpu2drive, (unsigned long) drive2gpu);
 		dev_timing_per_cpu->numa_distance = (gpu2drive + drive2gpu) / 2;
 	}
+#endif
 #endif
 }
 
@@ -855,10 +859,12 @@ static void benchmark_all_memory_nodes(void)
 	_starpu_topology_filter(hwtopology);
 	ret = hwloc_topology_load(hwtopology);
 	STARPU_ASSERT_MSG(ret == 0, "Could not load Hwloc topology (%s)\n", strerror(errno));
+#if HAVE_DECL_HWLOC_DISTANCES_OBJ_PAIR_VALUES
 	unsigned n = 1;
 	hwloc_distances_get_by_name(hwtopology, "NUMALatency", &n, &numa_distances, 0);
 	if (!n)
 		numa_distances = NULL;
+#endif
 #endif
 
 #ifdef STARPU_HAVE_HWLOC
