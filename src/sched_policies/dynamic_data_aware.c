@@ -386,7 +386,6 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
     int j = 0;
     
     /* Adding the data not used yet in all the GPU(s). */
-    //~ my_planned_task_control->pointer = my_planned_task_control->first;
     for (i = 0; i < Ngpu; i++)
     {
 		for (j = 0; j < STARPU_TASK_GET_NBUFFERS(task); j++)
@@ -1248,7 +1247,7 @@ void update_best_data(int* number_free_task_max, int* task_available_max, starpu
 	else if (nb_free_task_candidate == *number_free_task_max && *number_free_task_max != 0)
 	{			
 		/* I first tiebreak with priority */
-		if (*priority_max < priority_candidate)
+		if (prio == 1 && *priority_max < priority_candidate)
 		{
 			*task_available_max = task_using_data_list_size_candidate;
 			*handle_popped = handle_candidate;
@@ -1280,7 +1279,7 @@ void update_best_data(int* number_free_task_max, int* task_available_max, starpu
 	else if (number_1_from_free_task_candidate == *number_1_from_free_task_max && *number_1_from_free_task_max != 0)
 	{					
 		/* I first tiebreak with priority */
-		if (*priority_max < priority_candidate)
+		if (prio == 1 && *priority_max < priority_candidate)
 		{
 			*task_available_max_1_from_free = task_using_data_list_size_candidate;
 			*handle_popped = handle_candidate;
@@ -1970,7 +1969,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 
 	end_choose_best_data : ;
 		
-	/* Look at data conflict. If ther is one I need to re-start the schedule for on of the GPU. */
+	/* Look at data conflict. If there is one I need to re-start the schedule for one of the GPU. */
 	data_conflict[current_gpu - 1] = false;
 	Dopt[current_gpu - 1] = handle_popped;
 	for (i = 0; i < Ngpu; i++)
@@ -2026,7 +2025,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		nb_free_choice++;
 		#endif
 	
-		/* I erase the data from the list of data not used. See env var ERASE_DATA_STRATEGY */
+		/* I erase the data from the list of data not used. */
 		if (choose_best_data_from == 0)
 		{
 			//~ if (erase_data_strategy == 0)
@@ -2196,7 +2195,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		}
 		
 		/* Removing the datas from datanotused of the GPU. */		
-		if (choose_best_data_from == 0) /* Que dans le cas où je simule pas la mémoire bien sûr. */
+		if (choose_best_data_from == 0) /* Que dans le cas où je choisis depuis la liste des pas encore utilisées. */
 		{
 			/* J'efface toutes les données qui sont utilisé par la tâche 1_from_free que l'ont va retourner. */
 			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T); i++)
@@ -2602,6 +2601,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
     printf("Min number of task in pulled task = %d from %d data.\n", min_number_task_in_pulled_task, nb_data_on_node); 
 	#endif
 	
+	/* TODO : ce premier if on ne peut jamais entrer dedans normalement. A supprimer. */
     if (min_number_task_in_pulled_task == INT_MAX)
     {		
 		#ifdef PRINT_STATS
@@ -2663,7 +2663,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		returned_handle = belady_on_pulled_task(data_on_node, nb_data_on_node, node, is_prefetch, &tab_gpu_pulled_task[current_gpu - 1]);
     }
     
-    /* Ca devrait pas arriver a enleevr et a tester */
+    /* TODO: Ca devrait pas arriver a enleevr et a tester */
     if (returned_handle == NULL)
     {
 		#ifdef PRINT_STATS
@@ -2784,7 +2784,6 @@ starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int n
 	#ifdef PRINT_STATS
 	gettimeofday(&time_start_belady, NULL);
 	#endif
-	//~ printf("Belady.\n"); g.test++; printf("g.test = %d.\n", g.test);
     int i = 0;
     int j = 0;
     int index_next_use = 0;
@@ -2795,7 +2794,7 @@ starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int n
     //print_pulled_task_one_gpu(g, node);
     for (i = 0; i < nb_data_on_node; i++)
     {
-		if (starpu_data_can_evict(data_tab[i], node, is_prefetch)) /* TODO : il y aurait moyen de remplacer ce can evict juste par une lecture dans un tableau car de toute facon on le fias avant dans victim_selector. */
+		if (starpu_data_can_evict(data_tab[i], node, is_prefetch)) /* TODO : il y aurait moyen de remplacer ce can evict juste par une lecture dans un tableau car de toute facon on le fais avant dans victim_selector. */
 		{
 			index_next_use = 0;
 			for (p = pulled_task_list_begin(g->ptl); p != pulled_task_list_end(g->ptl); p = pulled_task_list_next(p))
@@ -2814,6 +2813,7 @@ starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int n
 					}
 				}
 			}
+			/* TODO: le break nested loop peut etre dans l'accolad suivante non ? */
 			break_nested_for_loop : ;
 		}
     }
@@ -3074,7 +3074,6 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	/* Initialization of global variables. */
 	Ngpu = get_number_GPU();
 	NT_DARTS = 0;
-	NT_DARTS = 0;
 	new_tasks_initialized = false;
 	gpu_memory_initialized = false;
 	
@@ -3242,7 +3241,7 @@ static void initialize_dynamic_data_aware_center_policy(unsigned sched_ctx_id)
 			STARPU_SCHED_SIMPLE_FIFOS_BELOW_EXP |
 			STARPU_SCHED_SIMPLE_IMPL, sched_ctx_id);
 	
-	/* To initialize and get prioriies on each tasks (it's the application that set priorities. It reduces my perds ??? why ? It takes time ?? */
+	/* To initialize and get prioriies on each tasks (it's the application that set priorities. It reduces my perfs ??? why ? It takes time ?? Test with -no prio see  if the perfs stays the same */
 	starpu_sched_ctx_set_min_priority(sched_ctx_id, INT_MIN);
 	starpu_sched_ctx_set_max_priority(sched_ctx_id, INT_MAX);
 }
