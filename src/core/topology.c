@@ -991,25 +991,32 @@ unsigned _starpu_topology_get_nhwpu(struct _starpu_machine_config *config)
 
 unsigned _starpu_topology_get_nhwnumanodes(struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED)
 {
+#if defined(STARPU_HAVE_HWLOC)
 	_starpu_init_topology(config);
 
-	int res;
+	struct _starpu_machine_topology *topology = &config->topology;
+	int nnumanodes = hwloc_get_nbobjs_by_type(topology->hwtopology, HWLOC_OBJ_NUMANODE);
+	unsigned res = nnumanodes > 0 ? nnumanodes : 1;
+
+	STARPU_ASSERT_MSG(res <= STARPU_MAXNUMANODES, "Number of NUMA nodes discovered %d is higher than maximum accepted %d ! Use configure option --enable-maxnumanodes=xxx to increase the maximum value of supported NUMA nodes.\n", res, STARPU_MAXNUMANODES);
+	return res;
+#else
+	return 1;
+#endif
+}
+
+unsigned _starpu_topology_get_nnumanodes(struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED)
+{
+	unsigned res;
 #if defined(STARPU_HAVE_HWLOC)
 	if (numa_enabled == -1)
 		numa_enabled = starpu_getenv_number_default("STARPU_USE_NUMA", 0);
 	if (numa_enabled)
-	{
-		struct _starpu_machine_topology *topology = &config->topology;
-		int nnumanodes = hwloc_get_nbobjs_by_type(topology->hwtopology, HWLOC_OBJ_NUMANODE);
-		res = nnumanodes > 0 ? nnumanodes : 1;
-	}
+		res = _starpu_topology_get_nhwnumanodes(config);
 	else
 #endif
-	{
 		res = 1;
-	}
 
-	STARPU_ASSERT_MSG(res <= STARPU_MAXNUMANODES, "Number of NUMA nodes discovered %d is higher than maximum accepted %d ! Use configure option --enable-maxnumanodes=xxx to increase the maximum value of supported NUMA nodes.\n", res, STARPU_MAXNUMANODES);
 	return res;
 }
 
@@ -1570,8 +1577,8 @@ static size_t _starpu_cpu_get_global_mem_size(int nodeid, struct _starpu_machine
 		limit = starpu_getenv_number("STARPU_LIMIT_CPU_MEM");
 		if (limit != -1 && numa_enabled)
 		{
-			_STARPU_DISP("NUMA is enabled and STARPU_LIMIT_CPU_MEM is set to %luMB. Assuming that it should be distributed over the %d NUMA node(s). You probably want to use STARPU_LIMIT_CPU_NUMA_MEM instead.\n", (long) limit, _starpu_topology_get_nhwnumanodes(config));
-			limit /= _starpu_topology_get_nhwnumanodes(config);
+			_STARPU_DISP("NUMA is enabled and STARPU_LIMIT_CPU_MEM is set to %luMB. Assuming that it should be distributed over the %d NUMA node(s). You probably want to use STARPU_LIMIT_CPU_NUMA_MEM instead.\n", (long) limit, _starpu_topology_get_nnumanodes(config));
+			limit /= _starpu_topology_get_nnumanodes(config);
 		}
 	}
 
@@ -1630,7 +1637,7 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 				/* This shouldn't happen */
 				if (numa_starpu_id == -1 && nb_numa_nodes == STARPU_MAXNUMANODES)
 				{
-					_STARPU_MSG("Warning: %u NUMA nodes available. Only %u enabled. Use configure option --enable-maxnumanodes=xxx to update the maximum value of supported NUMA nodes.\n", _starpu_topology_get_nhwnumanodes(config), STARPU_MAXNUMANODES);
+					_STARPU_MSG("Warning: %u NUMA nodes available. Only %u enabled. Use configure option --enable-maxnumanodes=xxx to update the maximum value of supported NUMA nodes.\n", _starpu_topology_get_nnumanodes(config), STARPU_MAXNUMANODES);
 					STARPU_ABORT();
 				}
 
@@ -1686,7 +1693,7 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 				/* This shouldn't happen */
 				if (numa_starpu_id == -1 && nb_numa_nodes == STARPU_MAXNUMANODES)
 				{
-					_STARPU_MSG("Warning: %u NUMA nodes available. Only %u enabled. Use configure option --enable-maxnumanodes=xxx to update the maximum value of supported NUMA nodes.\n", _starpu_topology_get_nhwnumanodes(config), STARPU_MAXNUMANODES);
+					_STARPU_MSG("Warning: %u NUMA nodes available. Only %u enabled. Use configure option --enable-maxnumanodes=xxx to update the maximum value of supported NUMA nodes.\n", _starpu_topology_get_nnumanodes(config), STARPU_MAXNUMANODES);
 					STARPU_ABORT();
 				}
 
@@ -1724,10 +1731,10 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 	if (numa_enabled)
 		_STARPU_DISP("Finally, take all NUMA nodes available... \n");
 
-	unsigned nnuma = _starpu_topology_get_nhwnumanodes(config);
+	unsigned nnuma = _starpu_topology_get_nnumanodes(config);
 	if (nnuma > STARPU_MAXNUMANODES)
 	{
-		_STARPU_MSG("Warning: %u NUMA nodes available. Only %u enabled. Use configure option --enable-maxnumanodes=xxx to update the maximum value of supported NUMA nodes.\n", _starpu_topology_get_nhwnumanodes(config), STARPU_MAXNUMANODES);
+		_STARPU_MSG("Warning: %u NUMA nodes available. Only %u enabled. Use configure option --enable-maxnumanodes=xxx to update the maximum value of supported NUMA nodes.\n", _starpu_topology_get_nnumanodes(config), STARPU_MAXNUMANODES);
 		nnuma = STARPU_MAXNUMANODES;
 	}
 

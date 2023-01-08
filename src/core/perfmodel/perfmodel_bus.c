@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -236,7 +236,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 #if defined(STARPU_HAVE_HWLOC)
 	if (nnumas > 1)
 	{
-		/* NUMA mode activated */
+		/* different NUMA nodes available */
 		hwloc_obj_t obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NUMANODE, numa);
 		STARPU_ASSERT(obj);
 #if HWLOC_API_VERSION >= 0x00020000
@@ -325,7 +325,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 #if defined(STARPU_HAVE_HWLOC)
 	if (nnumas > 1)
 	{
-		/* NUMA mode activated */
+		/* different NUMA nodes available */
 		hwloc_free(hwtopology, h_buffer, size);
 	}
 	else
@@ -517,7 +517,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_opencl(int dev, 
 #if defined(STARPU_HAVE_HWLOC)
 	if (nnumas > 1)
 	{
-		/* NUMA mode activated */
+		/* different NUMA nodes available */
 		hwloc_obj_t obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NUMANODE, numa);
 		STARPU_ASSERT(obj);
 #if HWLOC_API_VERSION >= 0x00020000
@@ -608,7 +608,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_opencl(int dev, 
 #if defined(STARPU_HAVE_HWLOC)
 	if (nnumas > 1)
 	{
-		/* NUMA mode activated */
+		/* different NUMA nodes available */
 		hwloc_free(hwtopology, h_buffer, size);
 	}
 	else
@@ -700,7 +700,7 @@ static void measure_bandwidth_latency_between_numa(int numa_src, int numa_dst)
 #if defined(STARPU_HAVE_HWLOC)
 	if (nnumas > 1)
 	{
-		/* NUMA mode activated */
+		/* different NUMA nodes available */
 		double start, end, timing;
 		unsigned iter;
 
@@ -1873,14 +1873,14 @@ void starpu_bus_print_bandwidth(FILE *f)
 	{
 		struct dev_timing *timing;
 		struct _starpu_machine_config * config = _starpu_get_machine_config();
-		unsigned config_nnumas = _starpu_topology_get_nhwnumanodes(config);
+		unsigned nnumas = _starpu_topology_get_nhwnumanodes(config);
 		unsigned numa;
 
 #ifdef STARPU_USE_CUDA
 		if (src < ncuda)
 		{
 			fprintf(f, "CUDA_%u\t", src);
-			for (numa = 0; numa < config_nnumas; numa++)
+			for (numa = 0; numa < nnumas; numa++)
 			{
 				timing = &cudadev_timing_per_numa[src*STARPU_MAXNUMANODES+numa];
 				if (timing->timing_htod)
@@ -1896,7 +1896,7 @@ void starpu_bus_print_bandwidth(FILE *f)
 #ifdef STARPU_USE_OPENCL
 		{
 			fprintf(f, "OpenCL%u\t", src-ncuda);
-			for (numa = 0; numa < config_nnumas; numa++)
+			for (numa = 0; numa < nnumas; numa++)
 			{
 				timing = &opencldev_timing_per_numa[(src-ncuda)*STARPU_MAXNUMANODES+numa];
 				if (timing->timing_htod)
