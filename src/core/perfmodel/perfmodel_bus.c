@@ -79,6 +79,7 @@ static void _starpu_bus_force_sampling(int location);
 struct dev_timing
 {
 	int numa_id;
+	int numa_distance;
 	double timing_htod;
 	double latency_htod;
 	double timing_dtoh;
@@ -141,6 +142,7 @@ static double mpi_latency_device_to_device[STARPU_MAXMPIDEVS][STARPU_MAXMPIDEVS]
 
 #ifdef STARPU_HAVE_HWLOC
 static hwloc_topology_t hwtopology;
+struct hwloc_distances_s *numa_distances;
 
 hwloc_topology_t _starpu_perfmodel_get_hwtopology()
 {
@@ -193,15 +195,63 @@ static int find_cpu_from_numa_node(unsigned numa_id)
 
 #ifdef STARPU_USE_CUDA
 
-static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, int numa, int cpu, struct dev_timing *dev_timing_per_cpu)
+static void set_numa_distance(int dev, unsigned numa, enum starpu_worker_archtype arch, struct dev_timing *dev_timing_per_cpu)
+{
+	/* A priori we don't know the distance */
+	dev_timing_per_cpu->numa_distance = -1;
+
+#ifdef STARPU_HAVE_HWLOC
+	if (nnumas <= 1)
+		return;
+
+	if (!starpu_driver_info[arch].get_hwloc_obj)
+		return;
+
+	hwloc_obj_t obj = starpu_driver_info[arch].get_hwloc_obj(hwtopology, dev);
+	if (!obj)
+		return;
+
+	hwloc_obj_t numa_obj = _starpu_numa_get_obj(obj);
+	if (!numa_obj)
+		return;
+
+	if (numa_obj->logical_index == numa)
+	{
+		_STARPU_DEBUG("GPU is on NUMA %d, distance zero\n", numa);
+		dev_timing_per_cpu->numa_distance = 0;
+		return;
+	}
+
+	if (!numa_distances)
+		return;
+
+	hwloc_obj_t drive_numa_obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NUMANODE, numa);
+	hwloc_uint64_t gpu2drive, drive2gpu;
+	if (!drive_numa_obj)
+		return;
+
+	_STARPU_DEBUG("GPU is on NUMA %d vs %d\n", numa_obj->logical_index, numa);
+	if (hwloc_distances_obj_pair_values(numa_distances, numa_obj, drive_numa_obj, &gpu2drive, &drive2gpu) == 0)
+	{
+		_STARPU_DEBUG("got distance G2H %lu H2G %lu\n", (unsigned long) gpu2drive, (unsigned long) drive2gpu);
+		dev_timing_per_cpu->numa_distance = (gpu2drive + drive2gpu) / 2;
+	}
+#endif
+}
+
+static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, unsigned numa, int cpu, struct dev_timing *dev_timing_per_cpu)
 {
 	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID, NULL);
 	size_t size = SIZE;
+	const unsigned timing_numa_index = dev*STARPU_MAXNUMANODES + numa;
 
 	/* Initialize CUDA context on the device */
 	/* We do not need to enable OpenGL interoperability at this point,
 	 * since we cleanly shutdown CUDA before returning. */
 	cudaSetDevice(dev);
+
+	/* Check hwloc location of GPU */
+	set_numa_distance(dev, numa, STARPU_CUDA_WORKER, dev_timing_per_cpu + timing_numa_index);
 
 	/* hack to avoid third party libs to rebind threads */
 	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID, NULL);
@@ -266,7 +316,6 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 	/* hack to avoid third party libs to rebind threads */
 	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID, NULL);
 
-	const unsigned timing_numa_index = dev*STARPU_MAXNUMANODES + numa;
 	unsigned iter;
 	double timing;
 	double start;
@@ -460,13 +509,17 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 #endif
 
 #ifdef STARPU_USE_OPENCL
-static void measure_bandwidth_between_host_and_dev_on_numa_with_opencl(int dev, int numa, int cpu, struct dev_timing *dev_timing_per_cpu)
+static void measure_bandwidth_between_host_and_dev_on_numa_with_opencl(int dev, unsigned numa, int cpu, struct dev_timing *dev_timing_per_cpu)
 {
 	cl_context context;
 	cl_command_queue queue;
 	cl_int err=0;
 	size_t size = SIZE;
 	int not_initialized;
+	const unsigned timing_numa_index = dev*STARPU_MAXNUMANODES + numa;
+
+	/* Check hwloc location of GPU */
+	set_numa_distance(dev, numa, STARPU_OPENCL_WORKER, dev_timing_per_cpu + timing_numa_index);
 
 	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID, NULL);
 
@@ -543,7 +596,6 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_opencl(int dev, 
 	/* hack to avoid third party libs to rebind threads */
 	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID, NULL);
 
-	const unsigned timing_numa_index = dev*STARPU_MAXNUMANODES + numa;
 	unsigned iter;
 	double timing;
 	double start;
@@ -629,6 +681,20 @@ static int compar_dev_timing(const void *left_dev_timing, const void *right_dev_
 	const struct dev_timing *left = (const struct dev_timing *)left_dev_timing;
 	const struct dev_timing *right = (const struct dev_timing *)right_dev_timing;
 
+	if (left->numa_distance == 0 && right->numa_distance != 0)
+		/* We prefer left */
+		return -1;
+
+	if (right->numa_distance == 0 && left->numa_distance != 0)
+		/* We prefer right */
+		return 1;
+
+	if (left->numa_distance >= 0 && right->numa_distance >= 0)
+	{
+		return left->numa_distance > right->numa_distance ? 1 :
+		       left->numa_distance < right->numa_distance ? -1 : 0;
+	}
+
 	double left_dtoh = left->timing_dtoh;
 	double left_htod = left->timing_htod;
 	double right_dtoh = right->timing_dtoh;
@@ -638,7 +704,8 @@ static int compar_dev_timing(const void *left_dev_timing, const void *right_dev_
 	double timing_sum2_right = right_dtoh*right_dtoh + right_htod*right_htod;
 
 	/* it's for a decreasing sorting */
-	return (timing_sum2_left > timing_sum2_right);
+	return timing_sum2_left > timing_sum2_right ? 1 :
+	       timing_sum2_left < timing_sum2_right ? -1 : 0;
 }
 
 static void measure_bandwidth_between_numa_nodes_and_dev(int dev, struct dev_timing *dev_timing_per_numanode, char *type)
@@ -788,6 +855,10 @@ static void benchmark_all_memory_nodes(void)
 	_starpu_topology_filter(hwtopology);
 	ret = hwloc_topology_load(hwtopology);
 	STARPU_ASSERT_MSG(ret == 0, "Could not load Hwloc topology (%s)\n", strerror(errno));
+	unsigned n = 1;
+	hwloc_distances_get_by_name(hwtopology, "NUMALatency", &n, &numa_distances, 0);
+	if (!n)
+		numa_distances = NULL;
 #endif
 
 #ifdef STARPU_HAVE_HWLOC
@@ -1873,14 +1944,14 @@ void starpu_bus_print_bandwidth(FILE *f)
 	{
 		struct dev_timing *timing;
 		struct _starpu_machine_config * config = _starpu_get_machine_config();
-		unsigned nnumas = _starpu_topology_get_nhwnumanodes(config);
+		unsigned nhwnumas = _starpu_topology_get_nhwnumanodes(config);
 		unsigned numa;
 
 #ifdef STARPU_USE_CUDA
 		if (src < ncuda)
 		{
 			fprintf(f, "CUDA_%u\t", src);
-			for (numa = 0; numa < nnumas; numa++)
+			for (numa = 0; numa < nhwnumas; numa++)
 			{
 				timing = &cudadev_timing_per_numa[src*STARPU_MAXNUMANODES+numa];
 				if (timing->timing_htod)
@@ -1896,7 +1967,7 @@ void starpu_bus_print_bandwidth(FILE *f)
 #ifdef STARPU_USE_OPENCL
 		{
 			fprintf(f, "OpenCL%u\t", src-ncuda);
-			for (numa = 0; numa < nnumas; numa++)
+			for (numa = 0; numa < nhwnumas; numa++)
 			{
 				timing = &opencldev_timing_per_numa[(src-ncuda)*STARPU_MAXNUMANODES+numa];
 				if (timing->timing_htod)

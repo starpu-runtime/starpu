@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -48,7 +48,7 @@ void _starpu_opencl_init(void);
 unsigned _starpu_opencl_get_device_count(void);
 #ifdef STARPU_HAVE_HWLOC
 struct _starpu_machine_topology;
-hwloc_obj_t _starpu_opencl_get_hwloc_obj(struct _starpu_machine_topology *topology, int devid);
+hwloc_obj_t _starpu_opencl_get_hwloc_obj(hwloc_topology_t topology, int devid);
 #endif
 void _starpu_init_opencl_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *);
 void _starpu_opencl_init_worker_binding(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg);

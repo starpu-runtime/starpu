@@ -100,6 +100,11 @@ void _starpu_destroy_machine_config(struct _starpu_machine_config *config);
 /** Destroy all resources used to store the topology of the machine. */
 void _starpu_destroy_topology(struct _starpu_machine_config *config);
 
+#ifdef STARPU_HAVE_HWLOC
+/** Return the hwloc object of the NUMA node corresponding to the given hwloc object */
+hwloc_obj_t _starpu_numa_get_obj(hwloc_obj_t obj);
+#endif
+
 /** returns the number of physical cpus */
 unsigned _starpu_topology_get_nhwcpu(struct _starpu_machine_config *config);
 

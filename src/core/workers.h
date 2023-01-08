@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2016       Uppsala University
  *
@@ -530,7 +530,7 @@ struct _starpu_driver_info
 	void (*init_worker_binding)(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg); /**< Setup worker CPU binding */
 	void (*init_worker_memory)(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg); /**< Setup worker memory node */
 #ifdef STARPU_HAVE_HWLOC
-	hwloc_obj_t (*get_hwloc_obj)(struct _starpu_machine_topology *topology, int devid);
+	hwloc_obj_t (*get_hwloc_obj)(hwloc_topology_t topology, int devid);
 					/**< optional: Return the hwloc object corresponding to this device */
 #endif
 };

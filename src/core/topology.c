@@ -86,7 +86,7 @@ unsigned starpu_memory_nodes_get_numa_count(void)
 }
 
 #if defined(STARPU_HAVE_HWLOC)
-static hwloc_obj_t numa_get_obj(hwloc_obj_t obj)
+hwloc_obj_t _starpu_numa_get_obj(hwloc_obj_t obj)
 {
 #if HWLOC_API_VERSION >= 0x00020000
 	while (obj && obj->memory_first_child == NULL)
@@ -109,7 +109,7 @@ static hwloc_obj_t numa_get_obj(hwloc_obj_t obj)
 static int numa_get_logical_id(hwloc_obj_t obj)
 {
 	STARPU_ASSERT(obj);
-	obj = numa_get_obj(obj);
+	obj = _starpu_numa_get_obj(obj);
 	if (!obj)
 		return 0;
 	return obj->logical_index;
@@ -118,7 +118,7 @@ static int numa_get_logical_id(hwloc_obj_t obj)
 static int numa_get_physical_id(hwloc_obj_t obj)
 {
 	STARPU_ASSERT(obj);
-	obj = numa_get_obj(obj);
+	obj = _starpu_numa_get_obj(obj);
 	if (!obj)
 		return 0;
 	return obj->os_index;
@@ -201,7 +201,7 @@ static int _starpu_get_logical_close_numa_node_worker(unsigned workerid)
 
 		hwloc_obj_t obj = NULL;
 		if (starpu_driver_info[worker->arch].get_hwloc_obj)
-			obj = starpu_driver_info[worker->arch].get_hwloc_obj(topology, worker->devid);
+			obj = starpu_driver_info[worker->arch].get_hwloc_obj(topology->hwtopology, worker->devid);
 		if (!obj)
 			obj = hwloc_get_obj_by_type(topology->hwtopology, HWLOC_OBJ_PU, worker->bindid);
 
@@ -1680,11 +1680,11 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 
 			for (j = 0; j < config->topology.ndevices[i]; j++)
 			{
-				hwloc_obj_t obj = starpu_driver_info[i].get_hwloc_obj(&config->topology,
+				hwloc_obj_t obj = starpu_driver_info[i].get_hwloc_obj(config->topology.hwtopology,
 						config->topology.devid[i][j]);
 
 				if (obj)
-					obj = numa_get_obj(obj);
+					obj = _starpu_numa_get_obj(obj);
 				/* Hwloc cannot recognize some devices */
 				if (!obj)
 					continue;
@@ -2048,7 +2048,7 @@ void starpu_topology_print(FILE *output)
 	{
 #ifdef STARPU_HAVE_HWLOC
 		pu_obj = hwloc_get_obj_by_type(topo, HWLOC_OBJ_PU, pu);
-		numa_obj = numa_get_obj(pu_obj);
+		numa_obj = _starpu_numa_get_obj(pu_obj);
 		if (numa_obj != last_numa_obj)
 		{
 			if (numa_obj)

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2016       Uppsala University
@@ -1771,6 +1771,9 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 
 	_hook_func_nb = 0;
 
+	/* Let drivers register themselves */
+	starpu_drivers_preinit();
+
 	_starpu_sched_init();
 	_starpu_job_init();
 	_starpu_graph_init();
@@ -1794,9 +1797,6 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	_starpu_timing_init();
 
 	_starpu_load_bus_performance_files();
-
-	/* Let drivers register themselves */
-	starpu_drivers_preinit();
 
 	/* Note: nothing before here should be allocating anything, in case we
 	 * actually return ENODEV here */

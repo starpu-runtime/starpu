@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010	    Mehdi Juhoor
  * Copyright (C) 2011	    Télécom-SudParis
  * Copyright (C) 2013	    Thibaut Lambert
@@ -1685,12 +1685,12 @@ cl_device_type _starpu_opencl_get_device_type(int devid)
 #endif /* STARPU_USE_OPENCL */
 
 #ifdef STARPU_HAVE_HWLOC
-hwloc_obj_t _starpu_opencl_get_hwloc_obj(struct _starpu_machine_topology *topology, int devid)
+hwloc_obj_t _starpu_opencl_get_hwloc_obj(hwloc_topology_t topology, int devid)
 {
 #if !defined(STARPU_SIMGRID)
 	cl_device_id device;
 	starpu_opencl_get_device(devid, &device);
-	return hwloc_opencl_get_device_osdev(topology->hwtopology, device);
+	return hwloc_opencl_get_device_osdev(topology, device);
 #else
 	return NULL;
 #endif
