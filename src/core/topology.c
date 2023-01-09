@@ -1027,7 +1027,7 @@ static unsigned _starpu_topology_get_core_binding(unsigned *binding, unsigned nb
 	unsigned found = 0;
 	unsigned n;
 
-	if (obj->type == HWLOC_OBJ_CORE)
+	if (nbinding && obj->type == HWLOC_OBJ_CORE)
 	{
 		*binding = obj->logical_index;
 		found++;
