@@ -1210,7 +1210,8 @@ int main(int argc, char **argv)
 			//End If RECURSIVE_MATRIX_LAYOUT == 1
 		}
 		/* This is the random 2D matrix operation we use */
-		else if (random_data_access == 1) {
+		else if (random_data_access == 1)
+		{
 			/* Each task takes as data a random line and a random column from A and B */
 			for (iter = 0; iter < niter; iter++)
 			{
@@ -1284,7 +1285,8 @@ int main(int argc, char **argv)
 				}
 			}	
 		}
-		else {
+		else
+		{
 			/* Normal execution of xgemm */
 			for (iter = 0; iter < niter; iter++)
 			{

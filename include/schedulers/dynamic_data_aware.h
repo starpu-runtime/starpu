@@ -17,7 +17,7 @@
 #define DATA_ORDER /* 0, signifie qu'on randomize entièrement la liste des données. 1 je ne randomise que les nouvelles données entre elle et les met à la fin des listes de données. 2 je ne randomise pas et met chaque GPU sur un Ndata/NGPU portion différentes pour qu'ils commencent à différent endroit de la liste de données.*/
 //~ #define ERASE_DATA_STRATEGY /* Default 0, veut dire que on erase que du GPU en question, 1 on erase de tous les GPUs. */
 //~ #define DATA_ORDER /* Default 0, 1 means that we do a Z order on the data order in the gpu_data_not_used_yet list. Only works in 3D */
-#define DEPENDANCES /* 0 non, 1 utile pour savoir si on fais des points de départs différents dans main task list (on ne le fais pas si il y a des dependances) */
+#define DEPENDANCES /* 0 non, 1 utile pour savoir si on fais des points de départs différents dans main task list (on ne le fais pas si il y a des dependances). Aussi utile pour le push back de données dans datanotusedyet */
 #define PRIO /* 0 non, 1 tiebreak data selection with the that have the highest priority task */
 
 /* Var globale pour n'appeller qu'une seule fois get_env_number */
@@ -33,9 +33,9 @@ extern int data_order;
 extern int dependances;
 extern int prio;
 
-#define PRINT /* A dé-commenter pour afficher les printfs dans le code, les mesures du temps et les écriture dans les fichiers. A pour objectif de remplacer la var d'env PRINTF de HFP. Pour le moment j'ai toujours besoin de PRINTF=1 pour les visualisations par exemple. Attention pour DARTS j'ai besoin de PRINTF=1 et de PRINT pour les visu pour le moment. */
-#define PRINT_STATS /* Stats de temps, de nb d'occurences de certaines fonctions etc... */
-#define PRINT_PYTHON /* Visu python */
+//~ #define PRINT /* A dé-commenter pour afficher les printfs dans le code, les mesures du temps et les écriture dans les fichiers. A pour objectif de remplacer la var d'env PRINTF de HFP. Pour le moment j'ai toujours besoin de PRINTF=1 pour les visualisations par exemple. Attention pour DARTS j'ai besoin de PRINTF=1 et de PRINT pour les visu pour le moment. */
+//~ #define PRINT_STATS /* Stats de temps, de nb d'occurences de certaines fonctions etc... */
+//~ #define PRINT_PYTHON /* Visu python */
 
 /* En cas de conflits de données */
 starpu_data_handle_t *Dopt;

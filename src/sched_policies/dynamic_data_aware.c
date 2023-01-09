@@ -2103,14 +2103,14 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 				/* Add it from planned task compteur */
 				increment_planned_task_data(t->pointer_to_T, current_gpu);
 				
-				//~ #ifdef PRINT
+				#ifdef PRINT
 				printf("Pushing free %p in planned_task of GPU %d :", t->pointer_to_T, current_gpu);
 				for (i = 0; i < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T); i++)
 				{
 					printf(" %p", STARPU_TASK_GET_HANDLE(t->pointer_to_T, i));
 				}
 				printf("\n");
-				//~ #endif
+				#endif
 				
 				erase_task_and_data_pointer(t->pointer_to_T, main_task_list);
 				starpu_task_list_push_back(&g->planned_task, t->pointer_to_T);
@@ -2215,9 +2215,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		
 		increment_planned_task_data(t->pointer_to_T, current_gpu);
 		
-		//~ #ifdef PRINT
+		#ifdef PRINT
 		printf("Pushing 1_from_free task %p in planned_task of GPU %d\n", t->pointer_to_T, current_gpu);
-		//~ #endif
+		#endif
 		
 		erase_task_and_data_pointer(t->pointer_to_T, main_task_list);
 		starpu_task_list_push_back(&g->planned_task, t->pointer_to_T);
@@ -2234,9 +2234,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 	}
 	else /* Sinon random */
 	{
-		//~ #ifdef PRINT
+		#ifdef PRINT
 		printf("Random selection because no data allow to get free or 1 from free tasks.\n"); fflush(stdout);
-		//~ #endif
+		#endif
 		
 		//~ STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
 		goto random;
@@ -3071,6 +3071,8 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	dependances = starpu_get_env_number_default("DEPENDANCES", 0);
 	prio = starpu_get_env_number_default("PRIO", 0);
 	
+	printf("-----\nEVICTION_STRATEGY_DYNAMIC_DATA_AWARE = %d\nTHRESHOLD = %d\nAPP = %d\nCHOOSE_BEST_DATA_FROM = %d\nSIMULATE_MEMORY = %d\nTASK_ORDER = %d\nDATA_ORDER = %d\nDEPENDANCES = %d\nPRIO = %d\n-----\n", eviction_strategy_dynamic_data_aware, threshold, app, choose_best_data_from, simulate_memory, task_order, data_order, dependances, prio);
+	
 	/* Initialization of global variables. */
 	Ngpu = get_number_GPU();
 	NT_DARTS = 0;
@@ -3232,7 +3234,6 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 
 static void initialize_dynamic_data_aware_center_policy(unsigned sched_ctx_id)
 {
-    
 	starpu_sched_component_initialize_simple_scheduler((starpu_sched_component_create_t) starpu_sched_component_dynamic_data_aware_create, NULL,
 			STARPU_SCHED_SIMPLE_DECIDE_MEMNODES |
 			STARPU_SCHED_SIMPLE_DECIDE_ALWAYS  |
@@ -3241,9 +3242,12 @@ static void initialize_dynamic_data_aware_center_policy(unsigned sched_ctx_id)
 			STARPU_SCHED_SIMPLE_FIFOS_BELOW_EXP |
 			STARPU_SCHED_SIMPLE_IMPL, sched_ctx_id);
 	
-	/* To initialize and get prioriies on each tasks (it's the application that set priorities. It reduces my perfs ??? why ? It takes time ?? Test with -no prio see  if the perfs stays the same */
-	starpu_sched_ctx_set_min_priority(sched_ctx_id, INT_MIN);
-	starpu_sched_ctx_set_max_priority(sched_ctx_id, INT_MAX);
+	if (prio != 0)
+	{
+		/* To initialize and get prioriies on each tasks (it's the application that set priorities. It reduces my perfs ? why ? It takes time ? Test with -no prio see if the perfs stays the same */
+		starpu_sched_ctx_set_min_priority(sched_ctx_id, INT_MIN);
+		starpu_sched_ctx_set_max_priority(sched_ctx_id, INT_MAX);
+	}
 }
 
 static void deinitialize_dynamic_data_aware_center_policy(unsigned sched_ctx_id)
