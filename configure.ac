@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2011       Télécom-SudParis
 # Copyright (C) 2013       Thibaut Lambert
 # Copyright (C) 2017       Guillaume Beauchamp
@@ -160,6 +160,9 @@ if test x$enable_simgrid = xyes ; then
 	if test "$simgrid_dir" != "no" ; then
 	   	SIMGRID_CFLAGS="$SIMGRID_CFLAGS -I$simgrid_dir/include"
 	   	SIMGRID_LIBS="$SIMGRID_LIBS -L$simgrid_dir/lib"
+	else
+		PKG_CHECK_VAR([pkg_simgrid_dir], [simgrid], [prefix])
+		simgrid_dir=$pkg_simgrid_dir
 	fi
    	if test -n "$SIMGRID_CFLAGS" ; then
 	   	CFLAGS="$SIMGRID_CFLAGS $CFLAGS"
