@@ -143,7 +143,7 @@ static double mpi_latency_device_to_device[STARPU_MAXMPIDEVS][STARPU_MAXMPIDEVS]
 #ifdef STARPU_HAVE_HWLOC
 static hwloc_topology_t hwtopology;
 #if HAVE_DECL_HWLOC_DISTANCES_OBJ_PAIR_VALUES
-struct hwloc_distances_s *numa_distances;
+static struct hwloc_distances_s *numa_distances;
 #endif
 
 hwloc_topology_t _starpu_perfmodel_get_hwtopology()
