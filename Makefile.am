@@ -142,7 +142,7 @@ versinclude_HEADERS = 				\
 	include/starpu_perf_steering.h		\
 	include/schedulers/starpu_scheduler_toolbox.h
 
-if STARPU_OPENMP
+if STARPU_OPENMP_LLVM
 versinclude_HEADERS += 				\
 	include/omp.h
 endif
