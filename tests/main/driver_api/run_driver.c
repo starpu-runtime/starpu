@@ -110,22 +110,24 @@ out2:
 #ifdef STARPU_USE_CPU
 static int test_cpu(void)
 {
+	int ret;
+	struct starpu_conf conf;
+
+	ret = starpu_conf_init(&conf);
+	if (ret == -EINVAL)
+		return 1;
+
 	struct starpu_driver d =
 	{
 		.type = STARPU_CPU_WORKER,
 		.id.cpu_id = 0
 	};
 
-	int ret;
-	struct starpu_conf conf;
-	ret = starpu_conf_init(&conf);
-	if (ret == -EINVAL)
-		return 1;
 	conf.precedence_over_environment_variables = 1;
-	conf.n_not_launched_drivers = 1;
-	conf.not_launched_drivers = &d;
 	starpu_conf_noworker(&conf);
 	conf.ncpus = 1;
+	conf.not_launched_drivers = &d;
+	conf.n_not_launched_drivers = 1;
 
 	return test_driver(&conf, &d, "CPU", starpu_cpu_worker_get_count, STARPU_CPU);
 }
@@ -134,14 +136,10 @@ static int test_cpu(void)
 #ifdef STARPU_USE_CUDA
 static int test_cuda(void)
 {
-	struct starpu_driver d =
-	{
-		.type = STARPU_CUDA_WORKER,
-		.id.cuda_id = 0
-	};
-
 	int ret;
 	struct starpu_conf conf;
+	int cudaid = 0;
+	char *cudaid_str = getenv("STARPU_WORKERS_CUDAID");
 
 	/* FIXME: starpu_driver would need another field to specify which stream we're driving */
 	if (starpu_getenv_number_default("STARPU_NWORKER_PER_CUDA", 1) != 1 &&
@@ -151,11 +149,18 @@ static int test_cuda(void)
 	ret = starpu_conf_init(&conf);
 	if (ret == -EINVAL)
 		return 1;
+
+	struct starpu_driver d =
+	{
+		.type = STARPU_CUDA_WORKER,
+		.id.cuda_id = cudaid
+	};
+
 	conf.precedence_over_environment_variables = 1;
-	conf.n_not_launched_drivers = 1;
-	conf.not_launched_drivers = &d;
 	starpu_conf_noworker(&conf);
 	conf.ncuda = 1;
+	conf.not_launched_drivers = &d;
+	conf.n_not_launched_drivers = 1;
 
 	return test_driver(&conf, &d, "CUDA", starpu_cuda_worker_get_count, STARPU_CUDA);
 }
@@ -164,22 +169,24 @@ static int test_cuda(void)
 #ifdef STARPU_USE_HIP
 static int test_hip(void)
 {
+	int ret;
+	struct starpu_conf conf;
+
+	ret = starpu_conf_init(&conf);
+	if (ret == -EINVAL)
+		return 1;
+
 	struct starpu_driver d =
 	{
 		.type = STARPU_HIP_WORKER,
 		.id.hip_id = 0
 	};
 
-	int ret;
-	struct starpu_conf conf;
-	ret = starpu_conf_init(&conf);
-	if (ret == -EINVAL)
-		return 1;
 	conf.precedence_over_environment_variables = 1;
-	conf.n_not_launched_drivers = 1;
-	conf.not_launched_drivers = &d;
 	starpu_conf_noworker(&conf);
 	conf.nhip = 1;
+	conf.not_launched_drivers = &d;
+	conf.n_not_launched_drivers = 1;
 
 	return test_driver(&conf, &d, "HIP", starpu_hip_worker_get_count, STARPU_HIP);
 }
@@ -214,22 +221,22 @@ static int test_opencl(void)
 		return STARPU_TEST_SKIPPED;
 	}
 
+	struct starpu_conf conf;
+	ret = starpu_conf_init(&conf);
+	if (ret == -EINVAL)
+		return 1;
+
 	struct starpu_driver d =
 	{
 		.type = STARPU_OPENCL_WORKER,
 		.id.opencl_id = device_id
 	};
 
-	struct starpu_conf conf;
-	ret = starpu_conf_init(&conf);
-	if (ret == -EINVAL)
-		return 1;
 	conf.precedence_over_environment_variables = 1;
-	conf.n_not_launched_drivers = 1;
-	conf.not_launched_drivers = &d;
 	starpu_conf_noworker(&conf);
-	conf.ncpus = 1;
 	conf.nopencl = 1;
+	conf.not_launched_drivers = &d;
+	conf.n_not_launched_drivers = 1;
 
 	return test_driver(&conf, &d, "OpenCL", starpu_opencl_worker_get_count, STARPU_OPENCL);
 }

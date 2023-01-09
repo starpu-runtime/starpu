@@ -140,6 +140,11 @@ static int test_cuda(void)
 {
 	int ret;
 	struct starpu_conf conf;
+	int cudaid = 0;
+	char *cudaid_str = getenv("STARPU_WORKERS_CUDAID");
+
+	if (cudaid_str)
+		cudaid = atoi(cudaid_str);
 
 	ret = starpu_conf_init(&conf);
 	if (ret == -EINVAL)
@@ -148,7 +153,7 @@ static int test_cuda(void)
 	struct starpu_driver d =
 	{
 		.type = STARPU_CUDA_WORKER,
-		.id.cuda_id = 0
+		.id.cuda_id = cudaid
 	};
 
 	conf.precedence_over_environment_variables = 1;
