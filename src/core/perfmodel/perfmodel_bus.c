@@ -191,12 +191,6 @@ static int find_cpu_from_numa_node(unsigned numa_id)
 
 #if (defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)) && !defined(STARPU_SIMGRID)
 
-/* TODO: factorize by using starpu_malloc, and the driver's malloc/free_on_node, copy_data_from/to.
- * Will probably need to introduce a method for cudaDeviceReset,
- * for MPI_Barrier, and for determining which combinations should be measured. */
-
-#ifdef STARPU_USE_CUDA
-
 static void set_numa_distance(int dev, unsigned numa, enum starpu_worker_archtype arch, struct dev_timing *dev_timing_per_cpu)
 {
 	/* A priori we don't know the distance */
@@ -242,6 +236,12 @@ static void set_numa_distance(int dev, unsigned numa, enum starpu_worker_archtyp
 #endif
 #endif
 }
+
+/* TODO: factorize by using starpu_malloc, and the driver's malloc/free_on_node, copy_data_from/to.
+ * Will probably need to introduce a method for cudaDeviceReset,
+ * for MPI_Barrier, and for determining which combinations should be measured. */
+
+#ifdef STARPU_USE_CUDA
 
 static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, unsigned numa, int cpu, struct dev_timing *dev_timing_per_cpu)
 {
