@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2017       Guillaume Beauchamp
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -97,7 +97,7 @@ struct _starpu_mpi_req *_starpu_mpi_request_fill(starpu_data_handle_t data_handl
 	req->sequential_consistency = sequential_consistency;
 	req->count = count;
 
-	_mpi_backend._starpu_mpi_backend_request_fill(req, comm, is_internal_req);
+	_mpi_backend._starpu_mpi_backend_request_fill(req, is_internal_req);
 
 	return req;
 }

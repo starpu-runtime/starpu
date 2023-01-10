@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -75,10 +75,9 @@ void _starpu_mpi_mpi_backend_request_init(struct _starpu_mpi_req *req)
 	//req->backend->envelope = NULL;
 }
 
-void _starpu_mpi_mpi_backend_request_fill(struct _starpu_mpi_req *req, MPI_Comm comm, int is_internal_req)
+void _starpu_mpi_mpi_backend_request_fill(struct _starpu_mpi_req *req, int is_internal_req)
 {
-	_starpu_mpi_comm_register(comm);
-
+	_starpu_mpi_comm_register(req->node_tag.node.comm);
 	req->backend->is_internal_req = is_internal_req;
 	/* For internal requests, we wait for both the request completion and the matching application request completion */
 	req->backend->to_destroy = !is_internal_req;

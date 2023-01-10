@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -60,10 +60,10 @@ void _starpu_mpi_nmad_backend_request_init(struct _starpu_mpi_req *req)
 	_starpu_spin_init(&req->backend->finalized_to_destroy_lock);
 }
 
-void _starpu_mpi_nmad_backend_request_fill(struct _starpu_mpi_req *req, MPI_Comm comm, int is_internal_req STARPU_ATTRIBUTE_UNUSED)
+void _starpu_mpi_nmad_backend_request_fill(struct _starpu_mpi_req *req, int is_internal_req STARPU_ATTRIBUTE_UNUSED)
 {
 	/* this function gives session and gate: */
-	nm_mpi_nmad_dest(&req->backend->session, &req->backend->gate, comm, req->node_tag.node.rank);
+	nm_mpi_nmad_dest(&req->backend->session, &req->backend->gate, req->node_tag.node.comm, req->node_tag.node.rank);
 }
 
 void _starpu_mpi_nmad_backend_request_destroy(struct _starpu_mpi_req *req)
