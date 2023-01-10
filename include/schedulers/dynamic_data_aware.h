@@ -17,7 +17,7 @@
 #define DATA_ORDER /* 0, signifie qu'on randomize entièrement la liste des données. 1 je ne randomise que les nouvelles données entre elle et les met à la fin des listes de données. 2 je ne randomise pas et met chaque GPU sur un Ndata/NGPU portion différentes pour qu'ils commencent à différent endroit de la liste de données.*/
 //~ #define ERASE_DATA_STRATEGY /* Default 0, veut dire que on erase que du GPU en question, 1 on erase de tous les GPUs. */
 //~ #define DATA_ORDER /* Default 0, 1 means that we do a Z order on the data order in the gpu_data_not_used_yet list. Only works in 3D */
-#define DEPENDANCES /* 0 non, 1 utile pour savoir si on fais des points de départs différents dans main task list (on ne le fais pas si il y a des dependances). Aussi utile pour le push back de données dans datanotusedyet */
+#define DEPENDANCES /* 0 non, 1 utile pour savoir si on fais des points de départs différents dans main task list (on ne le fais pas si il y a des dependances). TODO: pas forcément utile à l'avenir à voir si on l'enlève. */
 #define PRIO /* 0 non, 1 tiebreak data selection with the that have the highest priority task */
 
 /* Var globale pour n'appeller qu'une seule fois get_env_number */
@@ -65,9 +65,10 @@ LIST_TYPE(task_using_data,
 struct handle_user_data
 {
 	int last_iteration_DARTS;
-	int *nb_task_in_pulled_task;
-	int *nb_task_in_planned_task;
-	int *last_check_to_choose_from; /* Pour préciser la dernière fois que j'ai regardé cette donnée pour ne pas la regarder deux fois dans choose best data from 1 a une meme itération de recherche de la meilleure donnée. */
+	int* nb_task_in_pulled_task;
+	int* nb_task_in_planned_task;
+	int* last_check_to_choose_from; /* Pour préciser la dernière fois que j'ai regardé cette donnée pour ne pas la regarder deux fois dans choose best data from 1 a une meme itération de recherche de la meilleure donnée. */
+	int* is_present_in_data_not_used_yet; /* Tableau de taille le nombre de GPUs utilisé dans push_task pour savoir si une donnée est présente dans le datanotusedyet d'un GPU. Mise à jour lors de l'utilisation d'une donnée et qu'on l'enlève de la liste et lors du push d'une donnée. Permet de rapidement savoir si la donnée est à ajouter ou non. */
 };
 
 /** In the "packages" of dynamic data aware, each representing a gpu **/
