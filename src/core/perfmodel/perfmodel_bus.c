@@ -942,7 +942,8 @@ static void benchmark_all_memory_nodes(void)
 
 #ifdef STARPU_HAVE_HWLOC
 #if HAVE_DECL_HWLOC_DISTANCES_OBJ_PAIR_VALUES
-	hwloc_distances_release(hwtopology, numa_distances);
+	if (numa_distances)
+		hwloc_distances_release(hwtopology, numa_distances);
 	numa_distances = NULL;
 #endif
 	hwloc_topology_destroy(hwtopology);
