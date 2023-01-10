@@ -21,10 +21,10 @@ make -j 6
 ulimit -S -s 5000000
 export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
 
-#~ N=4
+N=4
 #~ N=5
 #~ N=15
-N=20
+#~ N=20
 #~ N=25
 #~ N=30
 #~ N=45

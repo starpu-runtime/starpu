@@ -325,9 +325,15 @@ void print_nb_task_in_list_one_data_one_gpu(starpu_data_handle_t d, int current_
 /* Pushing the tasks. Each time a new task enter here, we initialize it. */		
 static int dynamic_data_aware_push_task(struct starpu_sched_component *component, struct starpu_task *task)
 {
-	#ifdef PRINT
-	printf("New task %p (%s, %d) in push_task.\n", task, starpu_task_get_name(task), task->priority); fflush(stdout);
-	#endif
+	//~ #ifdef PRINT
+	printf("New task %p (%s, prio: %d) in push_task with data(s):", task, starpu_task_get_name(task), task->priority);
+	int i = 0;
+	for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
+	{
+		printf(" %p", STARPU_TASK_GET_HANDLE(task, i));
+	}
+	printf("\n");
+	//~ #endif
 	
 	#ifdef REFINED_MUTEX
 	STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
