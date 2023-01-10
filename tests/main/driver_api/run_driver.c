@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -140,6 +140,9 @@ static int test_cuda(void)
 	struct starpu_conf conf;
 	int cudaid = 0;
 	char *cudaid_str = getenv("STARPU_WORKERS_CUDAID");
+
+	if (cudaid_str)
+		cudaid = atoi(cudaid_str);
 
 	/* FIXME: starpu_driver would need another field to specify which stream we're driving */
 	if (starpu_getenv_number_default("STARPU_NWORKER_PER_CUDA", 1) != 1 &&
