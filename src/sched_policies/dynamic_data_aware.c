@@ -325,7 +325,7 @@ void print_nb_task_in_list_one_data_one_gpu(starpu_data_handle_t d, int current_
 /* Pushing the tasks. Each time a new task enter here, we initialize it. */		
 static int dynamic_data_aware_push_task(struct starpu_sched_component *component, struct starpu_task *task)
 {
-	//~ #ifdef PRINT
+	#ifdef PRINT
 	printf("New task %p (%s, prio: %d) in push_task with data(s):", task, starpu_task_get_name(task), task->priority);
 	int i = 0;
 	for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
@@ -333,7 +333,7 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 		printf(" %p", STARPU_TASK_GET_HANDLE(task, i));
 	}
 	printf("\n");
-	//~ #endif
+	#endif
 	
 	#ifdef REFINED_MUTEX
 	STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
@@ -2609,7 +2609,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 	
 	/* TODO : ce premier if on ne peut jamais entrer dedans normalement. A supprimer. */
     if (min_number_task_in_pulled_task == INT_MAX)
-    {		
+    {
 		#ifdef PRINT_STATS
 		gettimeofday(&time_end_selector, NULL);
 		time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
@@ -2703,15 +2703,20 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
     /* Enlever de la liste de tache a faire celles qui utilisais cette donnée. Et donc ajouter cette donnée aux données
      * à pop ainsi qu'ajouter la tache dans les données. Also add it to the main task list. */
         
-    /* Suppression de la liste de planned task les tâches utilisant la donnée que l'on s'apprête à évincer. */
-    if (min_number_task_in_pulled_task == 0)
-    {
+    /* Suppression de la liste de planned task les tâches utilisant la donnée que l'on s'apprête à évincer. 
+     * On ne veut pas de ce if car on veut mettre à jour même quand la donnée évincé viens de pulled task. */
+    //~ if (min_number_task_in_pulled_task == 0)
+    //~ {
 		for (task = starpu_task_list_begin(&tab_gpu_planned_task[current_gpu - 1].planned_task); task != starpu_task_list_end(&tab_gpu_planned_task[current_gpu - 1].planned_task); task = starpu_task_list_next(task))
 		{
 			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 			{
 				if (STARPU_TASK_GET_HANDLE(task, i) == returned_handle)
 				{
+					
+					if (min_number_task_in_pulled_task != 0)
+					{ printf("&&&& LA &&&&\n"); }
+					
 					/* Suppression de la liste de tâches à faire */
 					struct pointer_in_task *pt = task->sched_data;
 					starpu_task_list_erase(&tab_gpu_planned_task[current_gpu - 1].planned_task, pt->pointer_to_cell);
@@ -2749,7 +2754,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 				}
 			}
 		}   
-    }
+    //~ }
 	
     /* Placing in a random spot of the data list to use the evicted handle. */
     /* Je ne le fais pas dans le cas ou on choisis depuis la mémoire. */

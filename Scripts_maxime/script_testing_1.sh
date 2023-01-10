@@ -21,12 +21,12 @@ make -j 6
 ulimit -S -s 5000000
 export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
 
-N=4
+#~ N=4
 #~ N=5
 #~ N=15
 #~ N=20
 #~ N=25
-#~ N=30
+N=30
 #~ N=45
 #~ N=55
 #~ N=60
@@ -116,10 +116,11 @@ DATA_ORDER=0
 #~ DATA_ORDER=1
 #~ DATA_ORDER=2
 
-APPLICATION="./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N))"
-#~ APPLICATION="./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 11"
+#~ APPLICATION="./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N))"
+APPLICATION="./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) -no-prio"
+#~ APPLICATION="./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 1"
 
-echo -e "\nN=${N} - NGPU=${NGPU} - SCHEDULER=${ORDO} - STARPU_NTASKS_THRESHOLD=${TH}\n"
+echo -e "\nN=${N} - NGPU=${NGPU} - SCHEDULER=${ORDO} - STARPU_NTASKS_THRESHOLD=${TH} APPLICATION=${APPLICATION}\n"
 
 # DMDAR - Cholesky avec dépendances
 #~ STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_EXPECTED_TRANSFER_TIME_WRITEBACK=1 STARPU_GENERATE_TRACE=$((TRACE)) STARPU_HOSTNAME=${HOST} STARPU_SCHED=${ORDO} STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=0 ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N))
