@@ -322,12 +322,38 @@ void print_nb_task_in_list_one_data_one_gpu(starpu_data_handle_t d, int current_
 
 //~ bool need_to_reinit = true;
 
+bool is_my_task_free(int current_gpu, struct starpu_task *task)
+{
+	struct handle_user_data * hud = NULL;
+	int i = 0;
+	for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
+	{
+		if (simulate_memory == 0)
+		{
+			if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(task, i), current_gpu))
+			{
+				return false;
+			}
+		}
+		else if (simulate_memory == 1)
+		{
+			hud = STARPU_TASK_GET_HANDLE(task, i)->user_data;
+			if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(task, i), current_gpu) && hud->nb_task_in_pulled_task[current_gpu - 1] == 0 && hud->nb_task_in_planned_task[current_gpu - 1] == 0)
+			{
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
 /* Pushing the tasks. Each time a new task enter here, we initialize it. */		
 static int dynamic_data_aware_push_task(struct starpu_sched_component *component, struct starpu_task *task)
 {
+	int i = 0;
+	
 	#ifdef PRINT
 	printf("New task %p (%s, prio: %d) in push_task with data(s):", task, starpu_task_get_name(task), task->priority);
-	int i = 0;
 	for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 	{
 		printf(" %p", STARPU_TASK_GET_HANDLE(task, i));
@@ -355,7 +381,21 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 	gettimeofday(&time_end_initialisation, NULL);
 	time_total_initialisation += (time_end_initialisation.tv_sec - time_start_initialisation.tv_sec)*1000000LL + time_end_initialisation.tv_usec - time_start_initialisation.tv_usec;
 	#endif
-		
+	
+	/* Voir si ca marche apres le init ou si ca devrait le remplacer. 
+	 * Ne pas faire le if else en dessous si la tache est gratuite. */
+	for (i = 0; i < Ngpu; i++)
+	{
+		if (is_my_task_free(i, task))
+		{
+			printf("Task %p is free from push_task\n", task);
+			// push in planned task of gpu i
+			// add data in other GPUS ? In current GPU ? No but do add pointer from data to task and vice versa.
+			// don't push in main task list
+			break;
+		}
+	}
+	
 	/* Pushing the task in sched_list. It's this list that will be randomized
 	 * and put in main_task_list in pull_task.
 	 */
@@ -406,6 +446,12 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 			if (STARPU_TASK_GET_HANDLE(task, j)->user_data != NULL)
 			{
 				struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(task, j)->user_data;
+				
+				//~ if (hud->is_present_in_data_not_used_yet[i] != 0 && hud->is_present_in_data_not_used_yet[i] != 1)
+				//~ {
+					//~ printf("error %d\n", hud->is_present_in_data_not_used_yet[i]); exit(1); 
+				//~ }
+				
 				//~ if (hud->last_iteration_DARTS != iteration_DARTS) /* On est sur une nouvelle itération donc on peut re-init. */
 				if (hud->last_iteration_DARTS != iteration_DARTS || hud->is_present_in_data_not_used_yet[i] == 0) /* On est sur une nouvelle itération où la donnée n'y est plus donc on peut l'ajouter */
 				{

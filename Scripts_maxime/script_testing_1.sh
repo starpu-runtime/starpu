@@ -27,6 +27,7 @@ export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
 #~ N=20
 #~ N=25
 N=30
+#~ N=40
 #~ N=50
 #~ N=55
 #~ N=60
