@@ -69,6 +69,7 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 
 	if (rank == 0)
 	{
+		//~ printf("%p\n", task); fflush(stdout);
 		STARPU_ASSERT(task->status == STARPU_TASK_READY);
 		if (!_starpu_perf_counter_paused() && !j->internal)
 		{
