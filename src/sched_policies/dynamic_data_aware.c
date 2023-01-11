@@ -351,15 +351,17 @@ bool is_my_task_free(int current_gpu, struct starpu_task *task)
 static int dynamic_data_aware_push_task(struct starpu_sched_component *component, struct starpu_task *task)
 {
 	int i = 0;
-	
-	#ifdef PRINT
+	int j = 0;
+	int k = 0;
+		
+	//~ #ifdef PRINT
 	printf("New task %p (%s, prio: %d) in push_task with data(s):", task, starpu_task_get_name(task), task->priority);
 	for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 	{
 		printf(" %p", STARPU_TASK_GET_HANDLE(task, i));
 	}
 	printf("\n");
-	#endif
+	//~ #endif
 	
 	#ifdef REFINED_MUTEX
 	STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
@@ -371,9 +373,63 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 	#ifdef PRINT_STATS
 	gettimeofday(&time_start_initialisation, NULL);
 	#endif
-		
-	new_tasks_initialized = true; 
+	
 	struct dynamic_data_aware_sched_data *data = component->data;
+	
+	/* Voir si ca marche apres le init ou si ca devrait le remplacer. 
+	 * Ne pas faire le if else en dessous si la tache est gratuite. */
+	for (i = 0; i < Ngpu; i++) 
+	{
+		if (is_my_task_free(i + 1, task)) /* +1 cause GPU start at 1, 2, etc ... and you have ram on 0 when checking the memory. */
+		{
+			printf("Task %p is free from push_task\n", task);
+			for (j = 0; j < STARPU_TASK_GET_NBUFFERS(task); j++)
+			{
+				/* Create struct if empty for eviction */
+				if (STARPU_TASK_GET_HANDLE(task, j)->user_data == NULL)
+				{
+					struct handle_user_data* hud = malloc(sizeof(*hud));
+					hud->last_iteration_DARTS = iteration_DARTS;
+					hud->nb_task_in_pulled_task = malloc(Ngpu*sizeof(int));
+					hud->nb_task_in_planned_task = malloc(Ngpu*sizeof(int));
+					hud->last_check_to_choose_from = malloc(Ngpu*sizeof(int));
+					hud->is_present_in_data_not_used_yet = malloc(Ngpu*sizeof(int));
+					for (k = 0; k < Ngpu; k++)
+					{
+						hud->nb_task_in_pulled_task[k] = 0;
+						hud->nb_task_in_planned_task[k] = 0;
+						hud->last_check_to_choose_from[k] = 0;
+						hud->is_present_in_data_not_used_yet[k] = 1;
+					}
+					STARPU_TASK_GET_HANDLE(task, j)->user_data = hud;
+				}
+				else
+				{
+					struct handle_user_data* hud = STARPU_TASK_GET_HANDLE(task, j)->user_data;
+					hud->nb_task_in_planned_task[j] = hud->nb_task_in_planned_task[j] + 1;
+					STARPU_TASK_GET_HANDLE(task, j)->user_data = hud;
+				}
+			}
+			printf("Push front of planned task of GPU %d.\n", i);
+			starpu_task_list_push_front(&tab_gpu_planned_task[i].planned_task, task);
+
+			// push in planned task of gpu i ?
+			// add data in other GPUS ? In current GPU ? No but do add pointer from data to task and vice versa.
+			// don't push in main task list
+			
+			starpu_push_task_end(task);
+			#ifdef REFINED_MUTEX
+			STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
+			#endif
+			#ifdef LINEAR_MUTEX
+			STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
+			#endif	
+			component->can_pull(component);
+			return 0;
+		}
+	}
+	
+	new_tasks_initialized = true; 
 		
 	initialize_task_data_gpu_single_task(task);
 
@@ -382,19 +438,6 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 	time_total_initialisation += (time_end_initialisation.tv_sec - time_start_initialisation.tv_sec)*1000000LL + time_end_initialisation.tv_usec - time_start_initialisation.tv_usec;
 	#endif
 	
-	/* Voir si ca marche apres le init ou si ca devrait le remplacer. 
-	 * Ne pas faire le if else en dessous si la tache est gratuite. */
-	for (i = 0; i < Ngpu; i++)
-	{
-		if (is_my_task_free(i, task))
-		{
-			printf("Task %p is free from push_task\n", task);
-			// push in planned task of gpu i
-			// add data in other GPUS ? In current GPU ? No but do add pointer from data to task and vice versa.
-			// don't push in main task list
-			break;
-		}
-	}
 	
 	/* Pushing the task in sched_list. It's this list that will be randomized
 	 * and put in main_task_list in pull_task.
@@ -2488,7 +2531,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
     time_total_schedule += (time_end_schedule.tv_sec - time_start_schedule.tv_sec)*1000000LL + time_end_schedule.tv_usec - time_start_schedule.tv_usec;
 	#endif
 	
-	/* TODO : besoin de le faire en haut eten bas de la fonction ? */
+	/* TODO : besoin de le faire en haut et en bas de la fonction ? */
 	Dopt[current_gpu - 1] = NULL;
 }
 
@@ -2839,7 +2882,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 			{
 				if (STARPU_TASK_GET_HANDLE(task, i) == returned_handle)
-				{					
+				{				
 					/* Suppression de la liste de tâches à faire */
 					struct pointer_in_task *pt = task->sched_data;
 					starpu_task_list_erase(&tab_gpu_planned_task[current_gpu - 1].planned_task, pt->pointer_to_cell);
@@ -2895,6 +2938,13 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 			
 			push_data_not_used_yet_random_spot(returned_handle, &tab_gpu_planned_task[current_gpu - 1]);				
 		}
+		//~ else /* NEW: checking in other GPUs if the data is still in the not used list. If yes I remove it. */
+		//~ {
+			//~ for (i = 0; i < Ngpu; i++)
+			//~ {
+				//~ &tab_gpu_planned_task[current_gpu - 1]
+			//~ }
+		//~ }
 	}
 	
     #ifdef PRINT_STATS
@@ -3407,9 +3457,9 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 	
 	total_task_done++; /* TODO : utile ? */
 	
-	#ifdef PRINT
+	//~ #ifdef PRINT
 	printf("%dème task done in the post_exec_hook: %p.\n", total_task_done, task); fflush(stdout);
-	#endif
+	//~ #endif
 		
 	/* Je me place sur la liste correspondant au bon gpu. */
 	int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
