@@ -567,10 +567,13 @@ if test x$enable_mpi = xyes ; then
 			#include <mpi-ext.h>
 		]],,)],
 		[AC_DEFINE(STARPU_HAVE_MPI_EXT, [1], [<mpi-ext.h> is available])])
+
+	AC_CHECK_FUNC([MPI_Comm_create_group], [AC_DEFINE([STARPU_HAVE_MPI_COMM_CREATE_GROUP], [1], [Define to 1 if the function MPI_Comm_create_group is available.])])
 	CC=$OLD_CC
 fi
 
 build_mpi_lib=$enable_mpi
+
 
 ###############################################################################
 #                                                                             #

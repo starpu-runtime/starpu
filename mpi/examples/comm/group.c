@@ -19,6 +19,7 @@
 
 int main(int argc, char **argv)
 {
+#ifdef STARPU_HAVE_MPI_COMM_CREATE_GROUP
 	int thread_support;
 
 	if (MPI_Init_thread(&argc, &argv, MPI_THREAD_SERIALIZED, &thread_support) != MPI_SUCCESS)
@@ -126,4 +127,7 @@ int main(int argc, char **argv)
 
 	MPI_Finalize();
 	return 0;
+#else
+	return STARPU_TEST_SKIPPED;
+#endif
 }
