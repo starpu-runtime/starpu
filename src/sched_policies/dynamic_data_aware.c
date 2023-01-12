@@ -352,7 +352,6 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 {
 	int i = 0;
 	int j = 0;
-	//~ int k = 0;
 		
 	#ifdef PRINT
 	printf("New task %p (%s, prio: %d) in push_task with data(s):", task, starpu_task_get_name(task), task->priority);
@@ -437,7 +436,7 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 	/* Pushing the task in sched_list. It's this list that will be randomized
 	 * and put in main_task_list in pull_task.
 	 */
-	if (task_order == 2 && dependances == 1) /* Cas ordre naturel mais avec dépendances. Pas de points de départs différents. */
+	if (task_order == 2 && dependances == 1) /* Cas ordre naturel mais avec dépendances. Pas de points de départs différents. Je met dans le back de la liste de tâches principales. */
 	{
 		starpu_task_list_push_back(&data->main_task_list, task);
 	}
@@ -899,7 +898,6 @@ void randomize_full_task_list(struct dynamic_data_aware_sched_data *d)
  * grâce à l'attribut first_task de la struct planned_task. */
 void natural_order_task_list(struct dynamic_data_aware_sched_data *d)
 {
-	//~ my_planned_task_control->pointer = my_planned_task_control->first;
     int i = 0;
     int j = 0;
     struct starpu_task *task = NULL;
@@ -911,7 +909,6 @@ void natural_order_task_list(struct dynamic_data_aware_sched_data *d)
 			task = starpu_task_list_pop_front(&d->sched_list);
 			tab_gpu_planned_task[j].first_task_to_pop = task;
 			starpu_task_list_push_back(&d->main_task_list, task);
-			//~ my_planned_task_control->pointer = my_planned_task_control->pointer->next;
 			j++;
 		}
 		else
@@ -1305,11 +1302,11 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 		{
 			randomize_new_task_list(data);
 		}
-		else if (dependances == 0) /* TASK_ORDER == 2 et pas de dépendances, ordre naturel avec point de départs différent pour les GPU. */
+		else if (dependances == 0) /* task_order == 2 and no dependances */
 		{
 			natural_order_task_list(data);
 		}
-		/* Si TASK_ORDER == 2 et qu'il y a des dépendances, ordre naturel sans points de départs différents. */
+		
 		/* Ordre des données dans datanotuse de chaque GPU */
 		if (choose_best_data_from != 1) /* Si on regarde dans la mémoire pour choisir les données, il n'y a aucun intérêt à toucher à la liste des données. */
 		{
@@ -1533,18 +1530,16 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		
 		g->first_task = false;
 				
-		if (task_order == 2 && dependances == 0) /* Cas liste des taches et données naturelles */
+		if (task_order == 2 && dependances == 0) /* Cas liste des taches et données naturelles et pas de dpendances donc points de départs différents à l'aide de first_task_to_pop. */
 		{
-			struct starpu_task *task = g->first_task_to_pop;
-			
-			/* New place */
+			struct starpu_task *task = NULL;
+			task = g->first_task_to_pop;
 			g->first_task_to_pop = NULL;
-			
 			if (!starpu_task_list_ismember(main_task_list, task))
 			{
 				goto random;
 			}
-			
+						
 			/* old place, a check que c'était pas important si ca crash. */
 			//~ g->first_task_to_pop = NULL;
 						
@@ -2426,7 +2421,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 			//~ }
 		//~ }
 	
-		random: ;
+		random: ; /* Va pop front main_task_list. Avec les listes de tâches randomisé ça reviens à faire du random. Si task_order == 2 comme on pourrait vouloir le faire avec dépendances, ça permet de garder l'ordre naturel. */
 		
 		/* TODO : a suppr ? */
 		Dopt[current_gpu - 1] = NULL;
@@ -2444,9 +2439,6 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		
 		if (!starpu_task_list_empty(main_task_list))
 		{
-			//~ #ifdef REFINED_MUTEX
-			//~ STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
-			//~ #endif
 			#ifdef PRINT
 			printf("Will pop random for GPU %d.\n", current_gpu); fflush(stdout);
 			#endif
