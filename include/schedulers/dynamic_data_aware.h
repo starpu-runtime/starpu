@@ -168,8 +168,9 @@ bool is_my_task_free(int current_gpu, struct starpu_task *task);
 void check_double_in_data_not_used_yet(struct gpu_planned_task *g, int current_gpu);
 
 /** Fonctions principales **/
-void initialize_task_data_gpu_single_task(struct starpu_task *task, int also_add_data_in_not_used_yet_list);
-//~ void order_z_data_not_used_yet();
+void initialize_task_data_gpu_single_task_v1(struct starpu_task *task, int also_add_data_in_not_used_yet_list);
+void initialize_task_data_gpu_single_task_v3(struct starpu_task *task, int also_add_data_in_not_used_yet_list);
+
 //~ void randomize_data_not_used_yet_single_GPU(struct gpu_planned_task *g);
 struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_gpu, struct starpu_task_list *l);
 void push_data_not_used_yet_random_spot(starpu_data_handle_t h, struct gpu_planned_task *g, int gpu_id);
