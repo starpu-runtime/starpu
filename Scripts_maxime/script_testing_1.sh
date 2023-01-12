@@ -22,14 +22,15 @@ ulimit -S -s 5000000
 export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
 
 #~ N=4
-#~ N=5
+#~ N=8
+#~ N=10
 #~ N=15
-#~ N=25
-N=30
+N=20
+#~ N=30
 #~ N=40
 #~ N=50
 #~ N=55
-#~ N=60
+#~ N=100
 
 NGPU=1
 #~ NGPU=2
@@ -46,6 +47,7 @@ ORDO="dynamic-data-aware" # EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=$((EVICTION))
 #~ ORDO="cuthillmckee"
 #~ ORDO="HFP" # BELADY=$((BELADY)) ORDER_U=1
 
+#~ CM=200
 CM=500
 #~ CM=0 # 0 = infinie
 #~ CM=100
@@ -108,9 +110,9 @@ TRACE=1
 SPARSE=0
 #~ SPARSE=10
 
-#~ TASK_ORDER=0
+TASK_ORDER=0
 #~ TASK_ORDER=1
-TASK_ORDER=2
+#~ TASK_ORDER=2
 
 DATA_ORDER=0
 #~ DATA_ORDER=1

@@ -165,13 +165,14 @@ void randomize_full_data_not_used_yet();
 void natural_order_data_not_used_yet();
 void update_best_data(int* number_free_task_max, int* task_available_max, starpu_data_handle_t* handle_popped, int* priority_max, int* number_1_from_free_task_max, int* task_available_max_1_from_free, int nb_free_task_candidate, int task_using_data_list_size_candidate, starpu_data_handle_t handle_candidate, int priority_candidate, int number_1_from_free_task_candidate, int* data_choosen_index, int i);
 bool is_my_task_free(int current_gpu, struct starpu_task *task);
+void check_double_in_data_not_used_yet(struct gpu_planned_task *g, int current_gpu);
 
 /** Fonctions principales **/
 void initialize_task_data_gpu_single_task(struct starpu_task *task, int also_add_data_in_not_used_yet_list);
 //~ void order_z_data_not_used_yet();
 //~ void randomize_data_not_used_yet_single_GPU(struct gpu_planned_task *g);
 struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_gpu, struct starpu_task_list *l);
-void push_data_not_used_yet_random_spot(starpu_data_handle_t h, struct gpu_planned_task *g);
+void push_data_not_used_yet_random_spot(starpu_data_handle_t h, struct gpu_planned_task *g, int gpu_id);
 //~ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g);
 void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g);
 void dynamic_data_aware_scheduling(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g);

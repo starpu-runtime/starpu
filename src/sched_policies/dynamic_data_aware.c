@@ -32,7 +32,6 @@ int threshold;
 int app;
 int choose_best_data_from;
 int simulate_memory;
-//~ int data_order;
 int task_order;
 int data_order;
 //~ int erase_data_strategy;
@@ -188,7 +187,6 @@ void print_task_list(struct starpu_task_list *l, char *s)
 void print_data_not_used_yet()
 {
     int i = 0;
-    //~ my_planned_task_control->pointer = my_planned_task_control->first;
     
     for (i = 0; i < Ngpu; i++)
     {
@@ -198,9 +196,7 @@ void print_data_not_used_yet()
 			printf(" %p", e->D);
 		}
 		printf("\n");
-		//~ my_planned_task_control->pointer = my_planned_task_control->pointer->next;
     }
-    //~ my_planned_task_control->pointer = my_planned_task_control->first;
 }
 
 void print_planned_task_one_gpu(struct gpu_planned_task *g, int current_gpu)
@@ -284,12 +280,29 @@ void print_pulled_task_one_gpu(struct gpu_pulled_task *g, int current_gpu)
 
 void print_data_not_used_yet_one_gpu(struct gpu_planned_task *g, int current_gpu)
 {
-    printf("Data not used yet are:\n");
+    printf("Data not used yet on GPU %d are:\n", current_gpu);
     for (struct gpu_data_not_used *e = gpu_data_not_used_list_begin(tab_gpu_planned_task[current_gpu].gpu_data); e != gpu_data_not_used_list_end(tab_gpu_planned_task[current_gpu].gpu_data); e = gpu_data_not_used_list_next(e))
     {
 		printf(" %p", e->D);
     }
     printf("\n");
+}
+
+void check_double_in_data_not_used_yet(struct gpu_planned_task *g, int current_gpu)
+{
+	printf("Careful you are using check_double_in_data_not_used_yet it cost time!\n");
+    for (struct gpu_data_not_used *e1 = gpu_data_not_used_list_begin(tab_gpu_planned_task[current_gpu].gpu_data); e1 != gpu_data_not_used_list_end(tab_gpu_planned_task[current_gpu].gpu_data); e1 = gpu_data_not_used_list_next(e1))
+    {
+		for (struct gpu_data_not_used *e2 = gpu_data_not_used_list_next(e1); e2 != gpu_data_not_used_list_end(tab_gpu_planned_task[current_gpu].gpu_data); e2 = gpu_data_not_used_list_next(e2))
+		{
+			if (e1->D == e2->D)
+			{
+				printf("Data %p is in double on GPU %d!\n", e1->D, current_gpu); fflush(stdout);
+				print_data_not_used_yet_one_gpu(&tab_gpu_planned_task[current_gpu], current_gpu); fflush(stdout);
+				exit(1);
+			}
+		}
+	}
 }
 
 void print_task_using_data(starpu_data_handle_t d)
@@ -319,8 +332,6 @@ void print_nb_task_in_list_one_data_one_gpu(starpu_data_handle_t d, int current_
 	printf("Number of task used by %p in the tasks list:", d);
 	printf("pulled_task = %d tasks | planned_tasks = %d tasks.\n", hud->nb_task_in_pulled_task[current_gpu - 1], hud->nb_task_in_planned_task[current_gpu - 1]);
 }
-
-//~ bool need_to_reinit = true;
 
 bool is_my_task_free(int current_gpu, struct starpu_task *task)
 {
@@ -375,6 +386,13 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 	
 	struct dynamic_data_aware_sched_data *data = component->data;
 	
+	#ifdef PRINT
+	for (i = 0; i < Ngpu; i++)
+	{
+		check_double_in_data_not_used_yet(&tab_gpu_planned_task[i], i);
+	}
+	#endif
+	
 	/* Voir si ca marche apres le init ou si ca devrait le remplacer. 
 	 * Ne pas faire le if else en dessous si la tache est gratuite. */
 	for (i = 0; i < Ngpu; i++) 
@@ -393,7 +411,6 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 			
 			/* Test */
 			increment_planned_task_data(task, i + 1);	
-			//~ erase_task_and_data_pointer(task, main_task_list); remplacé par ci dessous
 			struct pointer_in_task *pt = task->sched_data;
 			for (j = 0; j < STARPU_TASK_GET_NBUFFERS(task); j++)
 			{
@@ -465,11 +482,135 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
  * In the case with dependencies I have to check if a data need to be added again even if it's struct is empty.
  */
  // TODO : je peux simplifier la complexité de cetter version avec celle ci-dessous en comentaires mais ca crash en 2GPU matrice 2D et je ne sais pas pourquoi.
-/* Première version où je pars des GPU puis desencdes vers la donnée avec les boucles. */
+//~ /* V1 */
+//~ void initialize_task_data_gpu_single_task(struct starpu_task *task, int also_add_data_in_not_used_yet_list)
+//~ {
+    //~ int i = 0;
+    //~ int j = 0;
+    
+    //~ if (also_add_data_in_not_used_yet_list == 1)
+    //~ {
+		//~ /* Adding the data not used yet in all the GPU(s). */
+		//~ for (i = 0; i < Ngpu; i++)
+		//~ {
+			//~ for (j = 0; j < STARPU_TASK_GET_NBUFFERS(task); j++)
+			//~ {
+				//~ struct gpu_data_not_used *e = gpu_data_not_used_new();
+				//~ e->D = STARPU_TASK_GET_HANDLE(task, j);
+								
+				//~ /* Si la donnée a déjà une structure existante */
+				//~ if (STARPU_TASK_GET_HANDLE(task, j)->user_data != NULL)
+				//~ {					
+					//~ struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(task, j)->user_data;
+					
+					//~ if (hud->last_iteration_DARTS != iteration_DARTS || hud->is_present_in_data_not_used_yet[i] == 0) /* On est sur une nouvelle itération où la donnée n'y est plus donc on peut l'ajouter */
+					//~ {						
+						//~ printf("Will push data %p on GPU %d, is_present = %d.\n", STARPU_TASK_GET_HANDLE(task, j), i, hud->is_present_in_data_not_used_yet[i]);
+						
+						//~ if (data_order == 1)
+						//~ {
+							//~ gpu_data_not_used_list_push_back(tab_gpu_planned_task[i].new_gpu_data, e);
+						//~ }
+						//~ else
+						//~ {
+							//~ gpu_data_not_used_list_push_back(tab_gpu_planned_task[i].gpu_data, e);
+						//~ }
+					//~ }
+				//~ }
+				//~ else
+				//~ {	
+					//~ // printf("Init new data %p.\n", STARPU_TASK_GET_HANDLE(task, j));
+					//~ if (data_order == 1)
+					//~ {
+						//~ gpu_data_not_used_list_push_back(tab_gpu_planned_task[i].new_gpu_data, e);
+					//~ }
+					//~ else
+					//~ {
+						//~ gpu_data_not_used_list_push_back(tab_gpu_planned_task[i].gpu_data, e);
+					//~ }
+				//~ }
+			//~ }
+			//~ // my_planned_task_control->pointer = my_planned_task_control->pointer->next;
+		//~ }
+	//~ }
+    
+    //~ /* Adding the pointer in the task. */
+    //~ struct pointer_in_task *pt = malloc(sizeof(*pt));
+    //~ pt->pointer_to_cell = task;
+    //~ pt->pointer_to_D = malloc(STARPU_TASK_GET_NBUFFERS(task)*sizeof(STARPU_TASK_GET_HANDLE(task, 0)));
+    //~ pt->tud = malloc(STARPU_TASK_GET_NBUFFERS(task)*sizeof(task_using_data_new()));
+	
+    //~ for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
+    //~ {
+		//~ /* Pointer toward the main task list in the handles. */
+		//~ struct task_using_data *e = task_using_data_new();
+		//~ e->pointer_to_T = task;
+		
+		//~ /* Adding the task in the list of task using the data */
+		//~ if (STARPU_TASK_GET_HANDLE(task, i)->sched_data == NULL)
+		//~ {
+			//~ struct task_using_data_list *tl = task_using_data_list_new();
+			//~ task_using_data_list_push_front(tl, e);
+			//~ STARPU_TASK_GET_HANDLE(task, i)->sched_data = tl;
+		//~ }
+		//~ else
+		//~ {
+			//~ task_using_data_list_push_front(STARPU_TASK_GET_HANDLE(task, i)->sched_data, e);
+		//~ }
+		
+		//~ /* Init hud in the data containing a way to track the number of task in 
+		 //~ * planned and pulled_task but also a way to check last iteration_DARTS for this data and last check for CHOOSE_FROM_MEM=1
+		 //~ * so we don't look twice at the same data. */
+		//~ if (STARPU_TASK_GET_HANDLE(task, i)->user_data == NULL)
+		//~ {
+			//~ struct handle_user_data * hud = malloc(sizeof(*hud));
+			//~ hud->last_iteration_DARTS = iteration_DARTS;
+			
+			//~ /* Need to init them with the number of GPU */
+			//~ hud->nb_task_in_pulled_task = malloc(Ngpu*sizeof(int));
+			//~ hud->nb_task_in_planned_task = malloc(Ngpu*sizeof(int));
+			//~ hud->last_check_to_choose_from = malloc(Ngpu*sizeof(int));
+			//~ hud->is_present_in_data_not_used_yet = malloc(Ngpu*sizeof(int));
+			//~ for (j = 0; j < Ngpu; j++)
+			//~ {
+				//~ hud->nb_task_in_pulled_task[j] = 0;
+				//~ hud->nb_task_in_planned_task[j] = 0;
+				//~ hud->last_check_to_choose_from[j] = 0;
+				//~ hud->is_present_in_data_not_used_yet[j] = 1;
+			//~ }
+			
+			//~ STARPU_TASK_GET_HANDLE(task, i)->user_data = hud;
+		//~ }
+		//~ else
+		//~ {
+			//~ struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(task, i)->user_data;
+			//~ if (hud->last_iteration_DARTS != iteration_DARTS || hud->is_present_in_data_not_used_yet[i] == 0) /* Re-init values in hud. */
+			//~ {
+				//~ for (j = 0; j < Ngpu; j++)
+				//~ {
+					//~ hud->nb_task_in_pulled_task[j] = 0;
+					//~ hud->nb_task_in_planned_task[j] = 0;
+					//~ hud->last_check_to_choose_from[j] = 0;
+					//~ hud->is_present_in_data_not_used_yet[j] = 1;
+				//~ }
+				//~ hud->last_iteration_DARTS = iteration_DARTS;
+				//~ STARPU_TASK_GET_HANDLE(task, i)->user_data = hud;
+			//~ }
+		//~ }
+			
+		//~ /* Adding the pointer in the task toward the data. */
+		//~ pt->pointer_to_D[i] = STARPU_TASK_GET_HANDLE(task, i);
+		//~ pt->tud[i] = e;
+    //~ }
+    //~ task->sched_data = pt;
+//~ }
+
+/* V2 */
 void initialize_task_data_gpu_single_task(struct starpu_task *task, int also_add_data_in_not_used_yet_list)
 {
     int i = 0;
     int j = 0;
+    int k = 0;
     
     if (also_add_data_in_not_used_yet_list == 1)
     {
@@ -480,21 +621,36 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task, int also_add
 			{
 				struct gpu_data_not_used *e = gpu_data_not_used_new();
 				e->D = STARPU_TASK_GET_HANDLE(task, j);
-				
+								
 				/* Si la donnée a déjà une structure existante */
 				if (STARPU_TASK_GET_HANDLE(task, j)->user_data != NULL)
-				{
+				{					
 					struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(task, j)->user_data;
 					
-					//~ if (hud->is_present_in_data_not_used_yet[i] != 0 && hud->is_present_in_data_not_used_yet[i] != 1)
-					//~ {
-						//~ printf("error %d\n", hud->is_present_in_data_not_used_yet[i]); exit(1); 
-					//~ }
-					
-					//~ if (hud->last_iteration_DARTS != iteration_DARTS) /* On est sur une nouvelle itération donc on peut re-init. */
 					if (hud->last_iteration_DARTS != iteration_DARTS || hud->is_present_in_data_not_used_yet[i] == 0) /* On est sur une nouvelle itération où la donnée n'y est plus donc on peut l'ajouter */
 					{
-						// printf("Init new data %p.\n", STARPU_TASK_GET_HANDLE(task, j));
+						#ifdef PRINT
+						printf("Will push data %p on GPU %d, is_present = %d.\n", STARPU_TASK_GET_HANDLE(task, j), i, hud->is_present_in_data_not_used_yet[i]); fflush(stdout);
+						#endif
+												
+						if (hud->last_iteration_DARTS != iteration_DARTS)
+						{
+							for (k = 0; k < Ngpu; k++)
+							{
+								hud->nb_task_in_pulled_task[k] = 0;
+								hud->nb_task_in_planned_task[k] = 0;
+								hud->last_check_to_choose_from[k] = 0;
+								hud->is_present_in_data_not_used_yet[k] = 1;
+							}
+						}
+						
+						#ifdef PRINT
+						printf("%p gets 1 at is_present_in_data_not_used_yet, %d = %d ?\n", STARPU_TASK_GET_HANDLE(task, j), hud->last_iteration_DARTS, iteration_DARTS); fflush(stdout);
+						#endif
+						
+						hud->is_present_in_data_not_used_yet[i] = 1;
+						STARPU_TASK_GET_HANDLE(task, j)->user_data = hud;				
+						
 						if (data_order == 1)
 						{
 							gpu_data_not_used_list_push_back(tab_gpu_planned_task[i].new_gpu_data, e);
@@ -507,7 +663,37 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task, int also_add
 				}
 				else
 				{
-					// printf("Init new data %p.\n", STARPU_TASK_GET_HANDLE(task, j));
+					#ifdef PRINT
+					printf("New struct hud for data %p\n", STARPU_TASK_GET_HANDLE(task, j)); fflush(stdout);
+					#endif
+					
+					struct handle_user_data * hud = malloc(sizeof(*hud));
+					hud->last_iteration_DARTS = iteration_DARTS;
+					
+					/* Need to init them with the number of GPU */
+					hud->nb_task_in_pulled_task = malloc(Ngpu*sizeof(int));
+					hud->nb_task_in_planned_task = malloc(Ngpu*sizeof(int));
+					hud->last_check_to_choose_from = malloc(Ngpu*sizeof(int));
+					hud->is_present_in_data_not_used_yet = malloc(Ngpu*sizeof(int));
+					
+					//~ hud->nb_task_in_pulled_task[i] = 0;
+					//~ hud->nb_task_in_planned_task[i] = 0;
+					//~ hud->last_check_to_choose_from[i] = 0;
+					//~ hud->is_present_in_data_not_used_yet[i] = 1;
+					for (k = 0; k < Ngpu; k++)
+					{
+						hud->nb_task_in_pulled_task[k] = 0;
+						hud->nb_task_in_planned_task[k] = 0;
+						hud->last_check_to_choose_from[k] = 0;
+						hud->is_present_in_data_not_used_yet[k] = 1;
+					}
+					
+					#ifdef PRINT
+					printf("%p gets 1 at is_present_in_data_not_used_yet from NULL struct hud\n", STARPU_TASK_GET_HANDLE(task, j)); fflush(stdout);
+					#endif
+										
+					STARPU_TASK_GET_HANDLE(task, j)->user_data = hud;
+					
 					if (data_order == 1)
 					{
 						gpu_data_not_used_list_push_back(tab_gpu_planned_task[i].new_gpu_data, e);
@@ -518,7 +704,6 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task, int also_add
 					}
 				}
 			}
-			// my_planned_task_control->pointer = my_planned_task_control->pointer->next;
 		}
 	}
     
@@ -549,42 +734,42 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task, int also_add
 		/* Init hud in the data containing a way to track the number of task in 
 		 * planned and pulled_task but also a way to check last iteration_DARTS for this data and last check for CHOOSE_FROM_MEM=1
 		 * so we don't look twice at the same data. */
-		if (STARPU_TASK_GET_HANDLE(task, i)->user_data == NULL)
-		{
-			struct handle_user_data * hud = malloc(sizeof(*hud));
-			hud->last_iteration_DARTS = iteration_DARTS;
+		//~ if (STARPU_TASK_GET_HANDLE(task, i)->user_data == NULL)
+		//~ {
+			//~ struct handle_user_data * hud = malloc(sizeof(*hud));
+			//~ hud->last_iteration_DARTS = iteration_DARTS;
 			
-			/* Need to init them with the number of GPU */
-			hud->nb_task_in_pulled_task = malloc(Ngpu*sizeof(int));
-			hud->nb_task_in_planned_task = malloc(Ngpu*sizeof(int));
-			hud->last_check_to_choose_from = malloc(Ngpu*sizeof(int));
-			hud->is_present_in_data_not_used_yet = malloc(Ngpu*sizeof(int));
-			for (j = 0; j < Ngpu; j++)
-			{
-				hud->nb_task_in_pulled_task[j] = 0;
-				hud->nb_task_in_planned_task[j] = 0;
-				hud->last_check_to_choose_from[j] = 0;
-				hud->is_present_in_data_not_used_yet[j] = 1;
-			}
+			//~ /* Need to init them with the number of GPU */
+			//~ hud->nb_task_in_pulled_task = malloc(Ngpu*sizeof(int));
+			//~ hud->nb_task_in_planned_task = malloc(Ngpu*sizeof(int));
+			//~ hud->last_check_to_choose_from = malloc(Ngpu*sizeof(int));
+			//~ hud->is_present_in_data_not_used_yet = malloc(Ngpu*sizeof(int));
+			//~ for (j = 0; j < Ngpu; j++)
+			//~ {
+				//~ hud->nb_task_in_pulled_task[j] = 0;
+				//~ hud->nb_task_in_planned_task[j] = 0;
+				//~ hud->last_check_to_choose_from[j] = 0;
+				//~ hud->is_present_in_data_not_used_yet[j] = 1;
+			//~ }
 			
-			STARPU_TASK_GET_HANDLE(task, i)->user_data = hud;
-		}
-		else
-		{
-			struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(task, i)->user_data;
-			if (hud->last_iteration_DARTS != iteration_DARTS || hud->is_present_in_data_not_used_yet[i] == 0) /* Re-init values in hud. */
-			{
-				for (j = 0; j < Ngpu; j++)
-				{
-					hud->nb_task_in_pulled_task[j] = 0;
-					hud->nb_task_in_planned_task[j] = 0;
-					hud->last_check_to_choose_from[j] = 0;
-					hud->is_present_in_data_not_used_yet[j] = 1;
-				}
-				hud->last_iteration_DARTS = iteration_DARTS;
-				STARPU_TASK_GET_HANDLE(task, i)->user_data = hud;
-			}
-		}
+			//~ STARPU_TASK_GET_HANDLE(task, i)->user_data = hud;
+		//~ }
+		//~ else
+		//~ {
+			//~ struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(task, i)->user_data;
+			//~ if (hud->last_iteration_DARTS != iteration_DARTS || hud->is_present_in_data_not_used_yet[i] == 0) /* Re-init values in hud. */
+			//~ {
+				//~ for (j = 0; j < Ngpu; j++)
+				//~ {
+					//~ hud->nb_task_in_pulled_task[j] = 0;
+					//~ hud->nb_task_in_planned_task[j] = 0;
+					//~ hud->last_check_to_choose_from[j] = 0;
+					//~ hud->is_present_in_data_not_used_yet[j] = 1;
+				//~ }
+				//~ hud->last_iteration_DARTS = iteration_DARTS;
+				//~ STARPU_TASK_GET_HANDLE(task, i)->user_data = hud;
+			//~ }
+		//~ }
 			
 		/* Adding the pointer in the task toward the data. */
 		pt->pointer_to_D[i] = STARPU_TASK_GET_HANDLE(task, i);
@@ -592,6 +777,7 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task, int also_add
     }
     task->sched_data = pt;
 }
+
 //~ /* Nouvelle version où je pars des données. Permet de plus facilement gérer les dépendances et savoir si une donnée dois être ajouté à la liste des données pas encore utilisées */
 //~ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 //~ {
@@ -1322,7 +1508,7 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 			{
 				natural_order_data_not_used_yet();
 			}
-			/* De même si il y a des dépendances et que DATA_ORDEr == 2 on va juste mettre les une après les autres les données. */
+			/* De même si il y a des dépendances et que DATA_ORDER == 2 on va juste mettre les une après les autres les données. */
 		}
 		
 		#ifdef PRINT_STATS
@@ -1363,13 +1549,26 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
     return task;
 }
 
-void push_data_not_used_yet_random_spot(starpu_data_handle_t h, struct gpu_planned_task *g)
+void push_data_not_used_yet_random_spot(starpu_data_handle_t h, struct gpu_planned_task *g, int gpu_id)
 {
 	struct gpu_data_not_used *new_element = gpu_data_not_used_new();
     new_element->D = h;
+    
+    
+    struct handle_user_data * hud = h->user_data;
+    
+    #ifdef PRINT
+    printf("%p gets 1 at is_present_in_data_not_used_yet with random push\n", h); fflush(stdout);
+    #endif
+    
+	hud->is_present_in_data_not_used_yet[gpu_id] = 1;
+	h->user_data = hud;
+	
+    
 	if (gpu_data_not_used_list_empty(g->gpu_data))
 	{
-		gpu_data_not_used_list_push_back(g->gpu_data, new_element); return;
+		gpu_data_not_used_list_push_back(g->gpu_data, new_element);
+		return;
 	}
 
     struct gpu_data_not_used *ptr = gpu_data_not_used_new();
@@ -1554,7 +1753,12 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 							gpu_data_not_used_list_erase(g->gpu_data, e);
 							
 							hud = e->D->user_data;
-							hud->is_present_in_data_not_used_yet[current_gpu]--;
+							
+							#ifdef PRINT
+							printf("%p gets 0 at is_present_in_data_not_used_yet GPU is %d\n", e->D, current_gpu - 1); fflush(stdout);
+							#endif
+							
+							hud->is_present_in_data_not_used_yet[current_gpu - 1] = 0;
 							e->D->user_data = hud;
 						}
 					}
@@ -2187,10 +2391,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 	
 		/* I erase the data from the list of data not used. */
 		if (choose_best_data_from == 0)
-		{
-			//~ if (erase_data_strategy == 0)
-			//~ {
-			
+		{			
 				/* J'efface la données des datanotuse du GPU en question. Il n'y a que celle la a effacé car la tâche est gratuite 
 				 * pour les autres données. Atention dans le cas N_from_free c'est différent. */
 				e = gpu_data_not_used_list_begin(g->gpu_data);
@@ -2202,10 +2403,20 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 				gpu_data_not_used_list_erase(g->gpu_data, e);
 				
 				hud = e->D->user_data;
-				hud->is_present_in_data_not_used_yet[current_gpu]--;
+				
+				#ifdef PRINT
+				printf("%p gets 0 at is_present_in_data_not_used_yet GPU is %d\n", e->D, current_gpu - 1); fflush(stdout);
+				#endif
+				
+				hud->is_present_in_data_not_used_yet[current_gpu - 1] = 0;
 				e->D->user_data = hud;
 		}
-
+		
+		#ifdef PRINT
+		printf("Erased data %p\n", e->D);
+		print_data_not_used_yet_one_gpu(g->gpu_data, current_gpu - 1);
+		#endif
+		
 		#ifdef PRINT
 		printf("The data adding the most free tasks is %p and %d task.\n", handle_popped, number_free_task_max);
 		#endif
@@ -2355,7 +2566,10 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 							gpu_data_not_used_list_erase(g->gpu_data, e);
 							
 							hud = e->D->user_data;
-							hud->is_present_in_data_not_used_yet[current_gpu]--;
+							#ifdef PRINT
+							printf("%p gets 0 at is_present_in_data_not_used_yet GPU is %d\n", e->D, current_gpu - 1); fflush(stdout);
+							#endif
+							hud->is_present_in_data_not_used_yet[current_gpu - 1] = 0;
 							e->D->user_data = hud;
 						}
 					}
@@ -2470,7 +2684,12 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 							gpu_data_not_used_list_erase(g->gpu_data, e);
 							
 							hud = e->D->user_data;
-							hud->is_present_in_data_not_used_yet[current_gpu]--;
+							
+							#ifdef PRINT
+							printf("%p gets 0 at is_present_in_data_not_used_yet GPU is %d\n", e->D, current_gpu - 1); fflush(stdout);
+							#endif
+							
+							hud->is_present_in_data_not_used_yet[current_gpu - 1] = 0;
 							e->D->user_data = hud;
 						}
 					}
@@ -2902,28 +3121,69 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
     //~ }
 	
     /* Placing in a random spot of the data list to use the evicted handle. */
-    /* Je ne le fais pas dans le cas ou on choisis depuis la mémoire. */
+    /* Je ne le fais pas dans le cas ou on choisis depuis la mémoire.
+     * Je ne le fais pas non plus si la donnée ne sert plus à rien.
+     * dans le cas avec dépendances, si elle sert encore, je vérifie sur les autres GPUs
+     * si ils ont unecopie valide de la donnée dans leurs not used yet. Si non je la 
+     * rajoute. */
     if (choose_best_data_from == 0)
     {
-		/* Old version: Si une donnée n'a plus rien à faire je ne la remet pas dans la liste des donnée parmi lesquelles choisir.
-		 * Que dans le cas sans dépendances car avec qui sait ? Je pourrais avoir de nouveles tâches qui l'utilise. */
-		//~ if (!task_using_data_list_empty(returned_handle->sched_data) || dependances != 0)
-		/* Update: Si elle n'a plus rien a faire je ne la remet pas dans la liste. Par contre dans le cas avec dépendances si un push arrive la je la remettrai dans la liste. */
 		if (!task_using_data_list_empty(returned_handle->sched_data))
-		{
-			#ifdef PRINT
-			printf("Pushing back %p.\n", returned_handle); fflush(stdout);
-			#endif
-			
-			push_data_not_used_yet_random_spot(returned_handle, &tab_gpu_planned_task[current_gpu - 1]);				
+		{						
+			if (dependances == 1) /* Checking if other GPUs have this handle in datanotusedtyet. */
+			{
+				struct handle_user_data * hud = returned_handle->user_data;
+				if (hud->is_present_in_data_not_used_yet[current_gpu - 1] == 0)
+				{
+					#ifdef PRINT
+					printf("Pushing %p on GPU %d at random spot.\n", returned_handle, current_gpu - 1); fflush(stdout);
+					#endif
+					
+					push_data_not_used_yet_random_spot(returned_handle, &tab_gpu_planned_task[current_gpu - 1], current_gpu - 1);
+				}
+
+				//~ struct gpu_data_not_used *e = NULL;
+				for (i = 0; i < Ngpu; i++)
+				{
+					if (i != current_gpu - 1)
+					{
+						printf("Checking GPU %d.\n", i);
+
+						/* Version où je check à la main */
+						//~ for (e = gpu_data_not_used_list_begin(tab_gpu_planned_task[i].gpu_data); e != gpu_data_not_used_list_end(tab_gpu_planned_task[i].gpu_data); e = gpu_data_not_used_list_next(e))
+						//~ {
+							//~ if (e->D == returned_handle)
+							//~ {
+								//~ goto data_already_present;
+								//~ break;
+							//~ }
+						//~ }
+						//~ printf("Not there, pusing data %p on GPU %d at random spot\n", returned_handle, i);
+						//~ push_data_not_used_yet_random_spot(returned_handle, &tab_gpu_planned_task[i], i);
+						//~ print_data_not_used_yet_one_gpu(&tab_gpu_planned_task[i], i);
+						//~ data_already_present: ;
+						
+						/* Version où j'utilise is_present_in_data_not_used_yet de la struct de handle_user_data */
+						if (hud->is_present_in_data_not_used_yet[i] == 0)
+						{
+							#ifdef PRINT
+							printf("Not there, pushing data %p on GPU %d at random spot\n", returned_handle, i); fflush(stdout);
+							#endif
+							
+							push_data_not_used_yet_random_spot(returned_handle, &tab_gpu_planned_task[i], i);
+						}
+					}
+				}
+			}
+			else
+			{
+				#ifdef PRINT
+				printf("Pushing %p on GPU %d at random spot.\n", returned_handle, current_gpu - 1); fflush(stdout);
+				#endif
+				
+				push_data_not_used_yet_random_spot(returned_handle, &tab_gpu_planned_task[current_gpu - 1], current_gpu - 1);
+			}	
 		}
-		//~ else /* NEW: checking in other GPUs if the data is still in the not used list. If yes I remove it. */
-		//~ {
-			//~ for (i = 0; i < Ngpu; i++)
-			//~ {
-				//~ &tab_gpu_planned_task[current_gpu - 1]
-			//~ }
-		//~ }
 	}
 	
     #ifdef PRINT_STATS
