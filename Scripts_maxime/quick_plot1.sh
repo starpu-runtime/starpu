@@ -48,15 +48,16 @@ DATA_ORDER=0
 #~ DATA_ORDER=1
 #~ DATA_ORDER=2
 
-algo1="DARTS + LUF + 3D -no-prio"
-algo2="DARTS + LUF + 3D + NATURAL TASK ORDER -no-prio"
-algo3="DARTS + LUF + 3D + NATURAL TASK ORDER + NATURAL DATA ORDER -no-prio"
-algo4="DMDAR"
+algo1="DARTS+LUF+3D -no-prio"
+algo2="DARTS+LUF+3D+NATURAL TASK ORDER -no-prio"
+algo3="DARTS+LUF+3D+NATURAL TASK ORDER+NATURAL DATA ORDER -no-prio"
+algo4="DARTS+LUF+3D+NATURAL TASK ORDER+NATURAL DATA ORDER with prio"
+algo5="DMDAR"
 
-echo "N,${algo1},${algo2},${algo3},${algo4}" > Output_maxime/Legende.txt
+echo "N,${algo1},${algo2},${algo3},${algo4},${algo5}" > Output_maxime/Legende.txt
 
 NB_TAILLE_TESTE=10
-NB_ALGO_TESTE=4
+NB_ALGO_TESTE=5
 
 echo "#### ${algo1} ####"
 for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
@@ -80,6 +81,13 @@ do
 done
 
 echo "#### ${algo4} ####"
+for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+do
+	N=$((START_X+i*ECHELLE_X))
+	TASK_ORDER=2 DATA_ORDER=2 DEPENDANCES=1 PRIO=1 APP=$((APP3D)) SEED=$((N/5)) EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_SCHED_READY=0 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_EXPECTED_TRANSFER_TIME_WRITEBACK=1 STARPU_HOSTNAME=${HOST} STARPU_SCHED=dynamic-data-aware STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW}
+done
+
+echo "#### ${algo5} ####"
 for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 do
 	N=$((START_X+i*ECHELLE_X))
