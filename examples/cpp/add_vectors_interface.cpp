@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -148,8 +148,6 @@ struct vector_cpp_interface
 	enum starpu_data_interface_id id;
 
 	uintptr_t ptr;
-	uintptr_t dev_handle;
-	size_t offset;
 	uint32_t nx;
 	size_t elemsize;
 	std::vector<MY_TYPE>* vec;
@@ -358,15 +356,11 @@ static void register_vector_cpp_handle(starpu_data_handle_t handle, int home_nod
 		if (node == home_node)
 		{
 			local_interface->ptr = vector_interface->ptr;
-                        local_interface->dev_handle = vector_interface->dev_handle;
-                        local_interface->offset = vector_interface->offset;
 			local_interface->vec = vector_interface->vec;
 		}
 		else
 		{
 			local_interface->ptr = 0;
-                        local_interface->dev_handle = 0;
-                        local_interface->offset = 0;
 			local_interface->vec = NULL;
 		}
 
@@ -386,8 +380,6 @@ void vector_cpp_data_register(starpu_data_handle_t *handleptr, int home_node,
 	{
 		.id = STARPU_UNKNOWN_INTERFACE_ID,
 		.ptr = (uintptr_t) &(*vec)[0],
-                .dev_handle = (uintptr_t) &(*vec)[0],
-                .offset = 0,
 		.nx = nx,
 		.elemsize = elemsize,
 		.vec = vec,
@@ -530,8 +522,6 @@ static starpu_ssize_t allocate_vector_cpp_buffer_on_node(void *data_interface_, 
 
 	/* update the data properly in consequence */
 	vector_interface->ptr = (uintptr_t) &((*vec)[0]);
-	vector_interface->dev_handle = (uintptr_t) &((*vec)[0]);
-        vector_interface->offset = 0;
 
 	return allocated_memory;
 }
@@ -544,7 +534,6 @@ static void free_vector_cpp_buffer_on_node(void *data_interface, unsigned node)
 
 	vector_interface->vec = NULL;
 	vector_interface->ptr = 0;
-	vector_interface->dev_handle = 0;
 }
 
 static int vector_interface_copy_any_to_any(void *src_interface, unsigned src_node,
@@ -554,8 +543,8 @@ static int vector_interface_copy_any_to_any(void *src_interface, unsigned src_no
 	struct vector_cpp_interface *dst_vector = (struct vector_cpp_interface *) dst_interface;
 	int ret;
 
-	ret = starpu_interface_copy(src_vector->dev_handle, src_vector->offset, src_node,
-				    dst_vector->dev_handle, dst_vector->offset, dst_node,
+	ret = starpu_interface_copy(src_vector->ptr, 0, src_node,
+				    dst_vector->ptr, 0, dst_node,
 				    src_vector->nx*src_vector->elemsize, async_data);
 
 	return ret;
