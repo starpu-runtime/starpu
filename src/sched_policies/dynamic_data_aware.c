@@ -348,6 +348,10 @@ bool is_my_task_free(int current_gpu, struct starpu_task *task)
 		}
 		else if (simulate_memory == 1)
 		{
+			if (STARPU_TASK_GET_HANDLE(task, i)->user_data == NULL)
+			{
+				return false;
+			}
 			hud = STARPU_TASK_GET_HANDLE(task, i)->user_data;
 			if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(task, i), current_gpu) && hud->nb_task_in_pulled_task[current_gpu - 1] == 0 && hud->nb_task_in_planned_task[current_gpu - 1] == 0)
 			{
