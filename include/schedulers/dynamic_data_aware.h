@@ -164,6 +164,7 @@ void randomize_new_data_not_used_yet();
 void randomize_full_data_not_used_yet();
 void natural_order_data_not_used_yet();
 void update_best_data(int* number_free_task_max, int* task_available_max, starpu_data_handle_t* handle_popped, int* priority_max, int* number_1_from_free_task_max, int* task_available_max_1_from_free, int nb_free_task_candidate, int task_using_data_list_size_candidate, starpu_data_handle_t handle_candidate, int priority_candidate, int number_1_from_free_task_candidate, int* data_choosen_index, int i);
+void update_best_data_single_decision_tree(int* number_free_task_max, int* task_available_max, starpu_data_handle_t* handle_popped, int* priority_max, int* number_1_from_free_task_max, int* task_available_max_1_from_free, int nb_free_task_candidate, int task_using_data_list_size_candidate, starpu_data_handle_t handle_candidate, int priority_candidate, int number_1_from_free_task_candidate, int* data_choosen_index, int i);
 bool is_my_task_free(int current_gpu, struct starpu_task *task);
 void check_double_in_data_not_used_yet(struct gpu_planned_task *g, int current_gpu);
 
