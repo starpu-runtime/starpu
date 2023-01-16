@@ -711,7 +711,8 @@ int _starpu_hip_driver_init(struct _starpu_worker *worker)
 #ifdef STARPU_PROF_TOOL
 		pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_driver_init_end, devid, worker->workerid, starpu_prof_tool_driver_gpu, 0, NULL);
 		starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_init_end(&pi, NULL, NULL);
-#endif	}
+#endif
+	}
 	{
 		char thread_name[16];
 		snprintf(thread_name, sizeof(thread_name), "HIP %u", worker->devid);
