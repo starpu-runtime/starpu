@@ -72,7 +72,10 @@ int nb_1_from_free_task_not_found;
 int number_random_selection;
 int nb_free_choice;
 int nb_1_from_free_choice;
+int nb_data_selection_per_index;
 int nb_task_added_in_planned_task;
+bool data_choice_per_index;
+int nb_data_selection;
 /* Pour la mesure du temps. */
 struct timeval time_start_selector;
 struct timeval time_end_selector;
@@ -117,6 +120,8 @@ void new_iteration()
 	#endif
 		
 	#ifdef PRINT_STATS
+	printf("Nb \"random\" task selection: %d\n", number_random_selection);
+	printf("Nb \"index\" data selection: %d/%d\n", nb_data_selection_per_index, nb_data_selection);
 	if (iteration_DARTS == 11 || starpu_get_env_number_default("PRINT_TIME", 0) == 2) /* PRINT_TIME = 2 pour quand on a 1 seule itération. */
 	{
 		FILE *f_new_iteration = fopen("Output_maxime/Data/DARTS/Nb_conflit_donnee.csv", "a");
@@ -1753,8 +1758,6 @@ void update_best_data(int* number_free_task_max, int* task_available_max, starpu
 	}
 }
 
-//~ 4372.6
-
 void update_best_data_single_decision_tree(int* number_free_task_max, int* task_available_max, starpu_data_handle_t* handle_popped, int* priority_max, int* number_1_from_free_task_max, int* task_available_max_1_from_free, int nb_free_task_candidate, int task_using_data_list_size_candidate, starpu_data_handle_t handle_candidate, int priority_candidate, int number_1_from_free_task_candidate, int* data_choosen_index, int i)
 {
 	/* Il y a bien plus de return que de update. Je met donc les if dans ce sens pour pouvoir gagner en complexité et s'arrêter plus tot. */
@@ -1775,15 +1778,29 @@ void update_best_data_single_decision_tree(int* number_free_task_max, int* task_
 		{
 			if (prio == 1 && *priority_max > priority_candidate)
 			{
+				printf("Worse prio\n");
 				return;
 			}
 			/* Then with number of task in the list of task using this data */
 			else if ((*priority_max == priority_candidate || prio == 0) && task_using_data_list_size_candidate <= *task_available_max)
 			{
+				#ifdef PRINT_STATS
+				if (task_using_data_list_size_candidate == *task_available_max)
+				{
+					data_choice_per_index = true;
+					//~ printf("index selection\n");
+				}
+				#endif
+				
 				return;
 			}
 		}
-	}	
+	}
+	
+	#ifdef PRINT_STATS
+	data_choice_per_index = false;
+	#endif
+	
 	/* Update */
 	*number_free_task_max = nb_free_task_candidate;
 	*task_available_max = task_using_data_list_size_candidate;
@@ -2011,6 +2028,10 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 	
 	#ifdef PRINT_STATS
 	gettimeofday(&time_start_choose_best_data, NULL);
+	#endif
+	
+	#ifdef PRINT_STATS
+	data_choice_per_index = false;
 	#endif
 	
 	//~ STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);	
@@ -2414,6 +2435,14 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 	#endif
 
 	end_choose_best_data : ;
+	
+	#ifdef PRINT_STATS
+	if (data_choice_per_index == true)
+	{
+		nb_data_selection_per_index++;
+	}
+	nb_data_selection++;
+	#endif
 		
 	/* Look at data conflict. If there is one I need to re-start the schedule for one of the GPU. */
 	data_conflict[current_gpu - 1] = false;
@@ -3638,6 +3667,7 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	gettimeofday(&time_start_createtolasttaskfinished, NULL);
 	nb_return_null_after_scheduling = 0;
 	nb_return_task_after_scheduling = 0;
+	nb_data_selection = 0;
 	nb_return_null_because_main_task_list_empty = 0;
 	nb_new_task_initialized = 0;
 	nb_refused_task = 0;
@@ -3655,6 +3685,7 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	number_random_selection = 0;
 	nb_free_choice = 0;
 	nb_1_from_free_choice = 0;
+	nb_data_selection_per_index = 0;
 	nb_task_added_in_planned_task = 0;
 	nb_1_from_free_task_not_found = 0;
 	time_total_selector = 0;
@@ -3668,6 +3699,7 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	time_total_pick_random_task = 0;
 	time_total_least_used_data_planned_task = 0;
 	time_total_createtolasttaskfinished = 0;
+	data_choice_per_index = false;
 	#endif
 	
 	#ifdef PRINT_PYTHON
