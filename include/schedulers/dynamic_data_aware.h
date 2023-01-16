@@ -32,6 +32,7 @@ extern int data_order;
 //~ extern int data_order;
 extern int dependances;
 extern int prio;
+extern struct starpu_perfmodel_arch* perf_arch;
 
 //~ #define PRINT /* A dé-commenter pour afficher les printfs dans le code, les mesures du temps et les écriture dans les fichiers. A pour objectif de remplacer la var d'env PRINTF de HFP. Pour le moment j'ai toujours besoin de PRINTF=1 pour les visualisations par exemple. Attention pour DARTS j'ai besoin de PRINTF=1 et de PRINT pour les visu pour le moment. */
 //~ #define PRINT_STATS /* Stats de temps, de nb d'occurences de certaines fonctions etc... */
@@ -69,6 +70,7 @@ struct handle_user_data
 	int* nb_task_in_planned_task;
 	int* last_check_to_choose_from; /* Pour préciser la dernière fois que j'ai regardé cette donnée pour ne pas la regarder deux fois dans choose best data from 1 a une meme itération de recherche de la meilleure donnée. */
 	int* is_present_in_data_not_used_yet; /* Tableau de taille le nombre de GPUs utilisé dans push_task pour savoir si une donnée est présente dans le datanotusedyet d'un GPU. Mise à jour lors de l'utilisation d'une donnée et qu'on l'enlève de la liste et lors du push d'une donnée. Permet de rapidement savoir si la donnée est à ajouter ou non. */
+	double sum_remaining_task_expected_length; /* Somme des durée prévu des tâche utilisant cette donnée. Utilisé pour tie break a la place de nb de tâches restantes lors du choix de Dopt. Initialized in push task, decreased when adding a task in planned task and increased when removing a task from planned task after an eviction. */
 };
 
 /** In the "packages" of dynamic data aware, each representing a gpu **/
@@ -165,7 +167,8 @@ void randomize_new_data_not_used_yet();
 void randomize_full_data_not_used_yet();
 void natural_order_data_not_used_yet();
 void update_best_data(int* number_free_task_max, int* task_available_max, starpu_data_handle_t* handle_popped, int* priority_max, int* number_1_from_free_task_max, int* task_available_max_1_from_free, int nb_free_task_candidate, int task_using_data_list_size_candidate, starpu_data_handle_t handle_candidate, int priority_candidate, int number_1_from_free_task_candidate, int* data_choosen_index, int i);
-void update_best_data_single_decision_tree(int* number_free_task_max, int* task_available_max, starpu_data_handle_t* handle_popped, int* priority_max, int* number_1_from_free_task_max, int* task_available_max_1_from_free, int nb_free_task_candidate, int task_using_data_list_size_candidate, starpu_data_handle_t handle_candidate, int priority_candidate, int number_1_from_free_task_candidate, int* data_choosen_index, int i);
+//~ void update_best_data_single_decision_tree(int* number_free_task_max, int* task_available_max, starpu_data_handle_t* handle_popped, int* priority_max, int* number_1_from_free_task_max, int* task_available_max_1_from_free, int nb_free_task_candidate, int task_using_data_list_size_candidate, starpu_data_handle_t handle_candidate, int priority_candidate, int number_1_from_free_task_candidate, int* data_choosen_index, int i);
+void update_best_data_single_decision_tree(int* number_free_task_max, double* remaining_expected_length, starpu_data_handle_t* handle_popped, int* priority_max, int* number_1_from_free_task_max, int nb_free_task_candidate, double remaining_expected_length_candidate, starpu_data_handle_t handle_candidate, int priority_candidate, int number_1_from_free_task_candidate, int* data_choosen_index, int i);
 bool is_my_task_free(int current_gpu, struct starpu_task *task);
 void check_double_in_data_not_used_yet(struct gpu_planned_task *g, int current_gpu);
 
