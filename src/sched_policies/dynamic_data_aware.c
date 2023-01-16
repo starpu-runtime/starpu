@@ -524,6 +524,7 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 	else
 	{
 		starpu_task_list_push_front(&data->sched_list, task);
+		NT_DARTS++;
 	}
 	starpu_push_task_end(task);
 		
@@ -1601,9 +1602,7 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 		print_task_list(&data->sched_list, "Main task list");
 		#endif
 		
-		NT_DARTS = starpu_task_list_size(&data->sched_list); /* Nombre de nouvelles tâches */
-		//~ NT_DARTS = starpu_task_list_size(&data->sched_list) + starpu_task_list_size(&data->main_task_list);
-		//~ NT_DARTS = NT_dynamic_outer;
+		//~ NT_DARTS = starpu_task_list_size(&data->sched_list); /* Nombre de nouvelles tâches */
 		
 		#ifdef PRINT
 		printf("NT_DARTS in pull_task = %d.\n", NT_DARTS); fflush(stdout);
@@ -1651,6 +1650,10 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 			}
 			/* De même si il y a des dépendances et que DATA_ORDER == 2 on va juste mettre les une après les autres les données. */
 		}
+		
+		/* Test */
+		NT_DARTS = 0;
+		/* Test */
 		
 		#ifdef PRINT_STATS
 		gettimeofday(&time_end_randomize, NULL);
@@ -3648,7 +3651,7 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	prio = starpu_get_env_number_default("PRIO", 0);
 	free_pushed_task_position = starpu_get_env_number_default("FREE_PUSHED_TASK_POSITION", 0);
 	
-	printf("-----\nEVICTION_STRATEGY_DYNAMIC_DATA_AWARE = %d\nTHRESHOLD = %d\nAPP = %d\nCHOOSE_BEST_DATA_FROM = %d\nSIMULATE_MEMORY = %d\nTASK_ORDER = %d\nDATA_ORDER = %d\nDEPENDANCES = %d\nPRIO = %d\n-----\n", eviction_strategy_dynamic_data_aware, threshold, app, choose_best_data_from, simulate_memory, task_order, data_order, dependances, prio);
+	printf("-----\nEVICTION_STRATEGY_DYNAMIC_DATA_AWARE = %d\nTHRESHOLD = %d\nAPP = %d\nCHOOSE_BEST_DATA_FROM = %d\nSIMULATE_MEMORY = %d\nTASK_ORDER = %d\nDATA_ORDER = %d\nDEPENDANCES = %d\nPRIO = %d\nFREE_PUSHED_TASK_POSITION = %d\n-----\n", eviction_strategy_dynamic_data_aware, threshold, app, choose_best_data_from, simulate_memory, task_order, data_order, dependances, prio, free_pushed_task_position);
 	
 	/* Initialization of global variables. */
 	Ngpu = get_number_GPU();

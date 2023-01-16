@@ -27,14 +27,14 @@ export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
 #~ N=8
 #~ N=10
 #~ N=15
-N=25
+#~ N=25
 #~ N=35
-#~ N=40
+N=40
 #~ N=60
 #~ N=100
 
-#~ NGPU=1
-NGPU=2
+NGPU=1
+#~ NGPU=2
 #~ NGPU=3
 #~ NGPU=4
 
