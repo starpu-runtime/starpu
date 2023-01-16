@@ -27,14 +27,14 @@ export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
 #~ N=8
 #~ N=10
 #~ N=15
-#~ N=20
-#~ N=30
-N=40
-#~ N=50
+N=25
+#~ N=35
+#~ N=40
+#~ N=60
 #~ N=100
 
-NGPU=1
-#~ NGPU=2
+#~ NGPU=1
+NGPU=2
 #~ NGPU=3
 #~ NGPU=4
 
@@ -121,8 +121,8 @@ TASK_ORDER=2
 DATA_ORDER=2
 
 #~ APPLICATION="./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N))"
-#~ APPLICATION="./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) -no-prio"
 APPLICATION="./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) -no-prio"
+#~ APPLICATION="./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) -no-prio -bound"
 #~ APPLICATION="libtool --mode=execute gdb --args ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) -no-prio"
 #~ APPLICATION="./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 1"
 

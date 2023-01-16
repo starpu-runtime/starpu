@@ -1,5 +1,5 @@
-# bash Scripts_maxime/quick_plot1.sh
-# bash Scripts_maxime/quick_plot2.sh
+# bash Scripts_maxime/quick_plot1.sh 1
+# bash Scripts_maxime/quick_plot2.sh 1
 
 make -j 6
 export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
@@ -14,17 +14,11 @@ truncate -s 0 ${FICHIER_RAW}
 truncate -s 0 ${FICHIER_RAW_DT}
 truncate -s 0 ${FICHIER_BUS}
 
-NGPU=1
+NGPU=$1
 
 CM=500
 #~ CM=0 # 0 = infinie
 #~ CM=100
-
-EVICTION=0
-#~ EVICTION=1
-
-READY=0
-#~ READY=1
 
 TH=10
 
@@ -41,19 +35,6 @@ TAILLE_TUILE=960
 #~ APP3D=0
 APP3D=1
 
-SPARSE=0
-#~ SPARSE=10
-
-TASK_ORDER=0
-#~ TASK_ORDER=1
-#~ TASK_ORDER=2
-
-DATA_ORDER=0
-#~ DATA_ORDER=1
-#~ DATA_ORDER=2
-
-NGPU=1
-
 NCOMBINAISONS=4
 if [ NGPU != 1 ]
 then
@@ -67,7 +48,7 @@ algo4="DMDAR"
 
 echo "N,${algo1},${algo2},${algo3},${algo4}" > Output_maxime/Legende.txt
 
-NB_TAILLE_TESTE=10
+NB_TAILLE_TESTE=9
 NB_ALGO_TESTE=4
 
 echo "#### ${algo1} ####"

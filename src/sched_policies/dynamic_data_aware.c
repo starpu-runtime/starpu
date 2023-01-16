@@ -320,13 +320,19 @@ void print_task_using_data(starpu_data_handle_t d)
     printf("\n\n");
 }
 
-void print_data_on_node(starpu_data_handle_t *data_tab, int nb_data_on_node)
+/* Print data loaded on a node */
+void print_data_on_node(unsigned node)
 {
+    starpu_data_handle_t *data_on_node;
+    unsigned nb_data_on_node = 0;
+    int *valid;
+    starpu_data_get_node_data(node, &data_on_node, &valid, &nb_data_on_node);
+
     int i = 0;
-    printf("Data on node are:");
+    printf("Data on node %d are:", node);
     for (i = 0; i < nb_data_on_node; i++)
     {
-		printf(" %p", data_tab[i]);
+		printf(" %p", data_on_node[i]);
     }
     printf("\n");
 }
@@ -420,12 +426,7 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 			{
 				initialize_task_data_gpu_single_task_v1(task, 0);
 			}
-			
-			#ifdef PRINT
-			printf("Push front of planned task of GPU %d.\n", i);
-			#endif
-			
-			/* Test */
+						
 			increment_planned_task_data(task, i + 1);	
 			struct pointer_in_task *pt = task->sched_data;
 			for (j = 0; j < STARPU_TASK_GET_NBUFFERS(task); j++)
@@ -436,11 +437,47 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 					pt->tud[j] = NULL;
 				}
 			}
-			/* Test */
 			
-			starpu_task_list_push_front(&tab_gpu_planned_task[i].planned_task, task);
+			/* Maintenant il faut push cette tâche gratuite dans planned task. On peut le faire au début de la liste ou après la dernière tâche gratuite de planned task. */
+			/* Au début */
+			//~ starpu_task_list_push_front(&tab_gpu_planned_task[i].planned_task, task);
+			/* Après la dernière tâche gratuite de planned task. */
+			struct starpu_task* checked_task = NULL;
+			for (checked_task = starpu_task_list_begin(&tab_gpu_planned_task[i].planned_task); checked_task != starpu_task_list_end(&tab_gpu_planned_task[i].planned_task); checked_task = starpu_task_list_next(checked_task))
+			{
+				//~ printf("Is task %p in planned_task free ?\n", checked_task);
+				//~ print_data_on_node(i + 1);
+				for (j = 0; j < STARPU_TASK_GET_NBUFFERS(checked_task); j++)
+				{
+					//~ printf("%p ?\n", STARPU_TASK_GET_HANDLE(checked_task, j));
+					if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(checked_task, j), i + 1))
+					{
+						starpu_task_list_insert_before(&tab_gpu_planned_task[i].planned_task, task, checked_task);
+						
+						//~ printf("Insert before task %p that doesn't have data %p.\n", checked_task, STARPU_TASK_GET_HANDLE(checked_task, j));
+						//~ print_data_on_node(i + 1);
+						//~ print_planned_task_one_gpu(&tab_gpu_planned_task[i], i + 1);
+						
+						/* End now push task, no push in main task list or GPUs data */		
+						starpu_push_task_end(task);
+						#ifdef REFINED_MUTEX
+						STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
+						#endif
+						#ifdef LINEAR_MUTEX
+						STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
+						#endif	
+						component->can_pull(component);
+						return 0;
+					}
+				}
+			}
 			
-			// push in planned task of gpu i ?
+			/* Else push back */
+			starpu_task_list_push_back(&tab_gpu_planned_task[i].planned_task, task);
+			
+			//~ printf("Insert at the end of planned task.\n");
+			//~ print_planned_task_one_gpu(&tab_gpu_planned_task[i], i + 1);
+			
 			// add data in other GPUS ? In current GPU ? No but do add pointer from data to task and vice versa.
 			
 			/* End now push task, no push in main task list or GPUs data */		
@@ -1369,7 +1406,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 	#ifdef PRINT
 	printf("\nDebut get task to return GPU n°%d.\n", current_gpu); fflush(stdout);
 	#endif
-		
+			
 	//~ STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
 	int i = 0;
     //~ my_planned_task_control->pointer = my_planned_task_control->first;

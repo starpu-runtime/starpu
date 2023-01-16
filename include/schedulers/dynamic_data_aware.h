@@ -33,7 +33,7 @@ extern int dependances;
 extern int prio;
 
 //~ #define PRINT /* A dé-commenter pour afficher les printfs dans le code, les mesures du temps et les écriture dans les fichiers. A pour objectif de remplacer la var d'env PRINTF de HFP. Pour le moment j'ai toujours besoin de PRINTF=1 pour les visualisations par exemple. Attention pour DARTS j'ai besoin de PRINTF=1 et de PRINT pour les visu pour le moment. */
-#define PRINT_STATS /* Stats de temps, de nb d'occurences de certaines fonctions etc... */
+//~ #define PRINT_STATS /* Stats de temps, de nb d'occurences de certaines fonctions etc... */
 //~ #define PRINT_PYTHON /* Visu python */
 
 /* En cas de conflits de données */
@@ -151,7 +151,7 @@ void print_planned_task_all_gpu();
 void print_pulled_task_all_gpu();
 void print_data_not_used_yet_one_gpu(struct gpu_planned_task *g, int current_gpu);
 void print_task_using_data(starpu_data_handle_t d);
-void print_data_on_node(starpu_data_handle_t *data_tab, int nb_data_on_node);
+void print_data_on_node(unsigned node);
 void print_nb_task_in_list_one_data_one_gpu(starpu_data_handle_t d, int current_gpu);
 
 /** Fonctions outils **/
