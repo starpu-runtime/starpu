@@ -1529,17 +1529,17 @@ int _starpu_hip_driver_run_once(struct _starpu_worker *worker)
 
                 /* Fetch data asynchronously */
 #ifdef STARPU_PROF_TOOL
-	pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_transfer, worker->workerid, worker->workerid, starpu_prof_tool_driver_gpu, memnode, NULL);
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_end_transfer(&pi, NULL, NULL);
+		pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_transfer, worker->workerid, worker->workerid, starpu_prof_tool_driver_gpu, memnode, NULL);
+		starpu_prof_tool_callbacks.starpu_prof_tool_event_end_transfer(&pi, NULL, NULL);
 #endif
-	_STARPU_TRACE_END_PROGRESS(memnode);
-	_starpu_set_local_worker_key(worker);
-	res = _starpu_fetch_task_input(task, j, 1);
-	STARPU_ASSERT(res == 0);
-	_STARPU_TRACE_START_PROGRESS(memnode);
+		_STARPU_TRACE_END_PROGRESS(memnode);
+		_starpu_set_local_worker_key(worker);
+		res = _starpu_fetch_task_input(task, j, 1);
+		STARPU_ASSERT(res == 0);
+		_STARPU_TRACE_START_PROGRESS(memnode);
 #ifdef STARPU_PROF_TOOL
-	pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_start_transfer, worker->workerid, worker->workerid, starpu_prof_tool_driver_gpu, memnode, NULL);
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_start_transfer(&pi, NULL, NULL);
+		pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_start_transfer, worker->workerid, worker->workerid, starpu_prof_tool_driver_gpu, memnode, NULL);
+		starpu_prof_tool_callbacks.starpu_prof_tool_event_start_transfer(&pi, NULL, NULL);
 #endif
 	}
 
