@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2013       Simon Archipoff
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -150,17 +150,17 @@ noinst_HEADERS = 						\
 	drivers/mpi/driver_mpi_common.h				\
 	drivers/mpi/driver_mpi_source.h				\
 	drivers/mpi/driver_mpi_sink.h				\
-	drivers/tcpip/driver_tcpip_common.h				\
-	drivers/tcpip/driver_tcpip_common_func.h				\
-	drivers/tcpip/driver_tcpip_source.h				\
-	drivers/tcpip/driver_tcpip_sink.h				\
+	drivers/tcpip/driver_tcpip_common.h			\
+	drivers/tcpip/driver_tcpip_common_func.h		\
+	drivers/tcpip/driver_tcpip_source.h			\
+	drivers/tcpip/driver_tcpip_sink.h			\
 	drivers/disk/driver_disk.h				\
 	debug/traces/starpu_fxt.h				\
+	parallel_worker/starpu_parallel_worker_create.h		\
 	profiling/bound.h					\
 	profiling/profiling.h					\
 	profiling/callbacks.h					\
 	util/openmp_runtime_support.h				\
-	util/starpu_clusters_create.h				\
 	util/starpu_task_insert_utils.h				\
 	util/starpu_data_cpy.h					\
 	sched_policies/prio_deque.h				\
@@ -391,7 +391,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += \
 	sched_policies/hierarchical_heft.c
 if STARPU_HWLOC_HAVE_TOPOLOGY_DUP
 if STARPU_HAVE_OPENMP
-libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += util/starpu_clusters_create.c
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += parallel_worker/starpu_parallel_worker_create.c
 endif
 endif
 endif

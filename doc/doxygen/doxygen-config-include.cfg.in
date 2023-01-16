@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2011       Télécom-SudParis
 # Copyright (C) 2013       Simon Archipoff
 #
@@ -18,7 +18,6 @@
 INPUT                  +=  @top_builddir@/doc/doxygen/starpu_config.h \
 			 @top_srcdir@/include/starpu_bitmap.h \
 			 @top_srcdir@/include/starpu_bound.h \
-	 		 @top_srcdir@/include/starpu_clusters.h \
 			 @top_srcdir@/include/starpu_cusparse.h \
 			 @top_srcdir@/include/starpu_cublas.h \
 			 @top_srcdir@/include/starpu_cublas_v2.h \
@@ -39,6 +38,7 @@ INPUT                  +=  @top_builddir@/doc/doxygen/starpu_config.h \
 			 @top_srcdir@/include/starpu_mod.f90 \
 			 @top_srcdir@/include/starpu_opencl.h \
 			 @top_srcdir@/include/starpu_openmp.h \
+	 		 @top_srcdir@/include/starpu_parallel_worker.h \
 			 @top_srcdir@/include/starpu_perf_monitoring.h \
 			 @top_srcdir@/include/starpu_perf_steering.h \
 			 @top_srcdir@/include/starpu_perfmodel.h \

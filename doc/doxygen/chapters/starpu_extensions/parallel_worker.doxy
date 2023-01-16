@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,12 +14,12 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/*! \page ClusteringAMachine Clustering A Machine
+/*! \page ParallelWorker Creating Parallel Workers On A Machine
 
-\section ClusteringGeneralIdeas General Ideas
+\section ParallelWorkerGeneralIdeas General Ideas
 
-Clusters are a concept introduced in this
-<a href="https://hal.inria.fr/view/index/docid/1181135">paper</a>.
+Parallel workers are a concept introduced in this
+<a href="https://hal.inria.fr/view/index/docid/1181135">paper</a> where they are called clusters.
 
 The granularity problem is tackled by using resource aggregation:
 instead of dynamically splitting tasks, resources are aggregated
@@ -37,48 +37,48 @@ The particularity of such tasks is that we will combine the power of two
 runtime systems: StarPU will manage the DAG parallelism and another
 runtime (e.g. OpenMP) will manage the internal parallelism. The challenge
 is in creating an interface between the two runtime systems so that StarPU
-can regroup cores inside a machine (creating what we call a \b cluster) on
+can regroup cores inside a machine (creating what we call a <b>parallel worker</b>) on
 top of which the parallel tasks (e.g. OpenMP tasks) will be run in a
 contained fashion.
 
-The aim of the cluster API is to facilitate this process automatically.
+The aim of the parallel worker API is to facilitate this process automatically.
 For this purpose, we depend on the \c hwloc tool to detect the
-machine configuration and then partition it into usable clusters.
+machine configuration and then partition it into usable parallel workers.
 
-An example of code running on clusters is available in
-<c>examples/sched_ctx/parallel_tasks_with_cluster_api.c</c>.
+An example of code running on parallel workers is available in
+<c>examples/sched_ctx/parallel_workers.c</c>.
 
-Let's first look at how to create a cluster.
+Let's first look at how to create a parallel worker.
 
-To enable clusters in StarPU, one needs to set the configure option
-\ref enable-cluster "--enable-cluster".
+To enable parallel workers in StarPU, one needs to set the configure option
+\ref enable-parallel-worker "--enable-parallel-worker".
 
-\section CreatingClusters Creating Clusters
+\section CreatingParallel Workers Creating Parallel Workers
 
-Partitioning a machine into clusters with the cluster API is fairly
+Partitioning a machine into parallel workers with the parallel worker API is fairly
 straightforward. The simplest way is to state under which machine
 topology level we wish to regroup all resources. This level is a \c hwloc
 object, of the type <c>hwloc_obj_type_t</c>. More information can be found in the
 <a href="https://www.open-mpi.org/projects/hwloc/doc/v2.0.3/">hwloc
 documentation</a>.
 
-Once a cluster is created, the full machine is represented with an opaque
-structure starpu_cluster_machine. This can be printed to show the
+Once a parallel worker is created, the full machine is represented with an opaque
+structure starpu_parallel_worker_config. This can be printed to show the
 current machine state.
 
 \code{.c}
-struct starpu_cluster_machine *clusters;
-clusters = starpu_cluster_machine(HWLOC_OBJ_SOCKET, 0);
-starpu_cluster_print(clusters);
+struct starpu_parallel_worker_config *parallel_workers;
+parallel_workers = starpu_parallel_worker_init(HWLOC_OBJ_SOCKET, 0);
+starpu_parallel_worker_print(parallel_workers);
 
 /* submit some tasks with OpenMP computations */
 
-starpu_uncluster_machine(clusters);
+starpu_parallel_worker_shutdown(parallel_workers);
 /* we are back to the default StarPU state */
 \endcode
 
 The following graphic is an example of what a particular machine can
-look like once clusterized. The main difference is that we have less
+look like once parallel workers are created. The main difference is that we have less
 worker queues and tasks which will be executed on several resources at
 once. The execution of these tasks will be left to the internal runtime
 system, represented with a dashed box around the resources.
@@ -86,39 +86,39 @@ system, represented with a dashed box around the resources.
 \image latex runtime-par.png "StarPU using parallel tasks" width=0.5\textwidth
 \image html runtime-par.png "StarPU using parallel tasks"
 
-Creating clusters as shown in the example above will create workers able to
-execute OpenMP code by default. The cluster creation function
-starpu_cluster_machine() takes optional parameters after the \c hwloc
+Creating parallel workers as shown in the example above will create workers able to
+execute OpenMP code by default. The parallel worker creation function
+starpu_parallel_worker_init() takes optional parameters after the \c hwloc
 object (always terminated by the value \c 0) which allow parametrizing the
-cluster creation. These parameters can help to create clusters of a
+parallel workers creation. These parameters can help to create parallel workers of a
 type different from OpenMP, or create a more precise partition of the
 machine.
 
-This is explained in Section \ref CreatingCustomClusters.
+This is explained in Section \ref CreatingCustomParallelWorkers.
 
 \section ExampleOfConstrainingOpenMP Example Of Constraining OpenMP
 
-Clusters require being able to constrain the runtime managing the internal
+Parallel workers require being able to constrain the runtime managing the internal
 task parallelism (internal runtime) to the resources set by StarPU. The
 purpose of this is to express how StarPU must communicate with the internal
 runtime to achieve the required cooperation. In the case of OpenMP, StarPU
-will provide an awake thread from the cluster to execute this liaison. It
+will provide an awake thread from the parallel worker to execute this liaison. It
 will then provide on demand the process ids of the other resources supposed
 to be in the region. Finally, thanks to an OpenMP region, we can create the
 required number of threads and bind each of them on the correct region.
 These will then be reused each time we encounter a <c>\#pragma omp
 parallel</c> in the following computations of our program.
 
-The following graphic is an example of what an OpenMP-type cluster looks
-like and how it represented in StarPU. We can see that one StarPU (black)
+The following graphic is an example of what an OpenMP-type parallel worker looks
+like and how it is represented in StarPU. We can see that one StarPU (black)
 thread is awake, and we need to create on the other resources the OpenMP
 threads (in pink).
 
-\image latex parallel_worker2.png "StarPU with an OpenMP cluster" width=0.3\textwidth
-\image html parallel_worker2.png "StarPU with an OpenMP cluster"
+\image latex parallel_worker2.png "StarPU with an OpenMP parallel worker" width=0.3\textwidth
+\image html parallel_worker2.png "StarPU with an OpenMP parallel worker"
 
 Finally, the following code shows how to force OpenMP to cooperate with StarPU
-and create the aforementioned OpenMP threads constrained in the cluster's
+and create the aforementioned OpenMP threads constrained in the parallel worker's
 resources set:
 \code{.c}
 void starpu_openmp_prologue(void * sched_ctx_id)
@@ -131,7 +131,7 @@ void starpu_openmp_prologue(void * sched_ctx_id)
   //we can target only CPU workers
   if (starpu_worker_get_type(workerid) == STARPU_CPU_WORKER)
   {
-    //grab all the ids inside the cluster
+    //grab all the ids inside the parallel worker
     starpu_sched_ctx_get_available_cpuids(sched_ctx, &cpuids, &ncpuids);
     //set the number of threads
     omp_set_num_threads(ncpuids);
@@ -146,38 +146,38 @@ void starpu_openmp_prologue(void * sched_ctx_id)
 }
 \endcode
 
-This function is the default function used when calling starpu_cluster_machine() without extra parameter.
+This function is the default function used when calling starpu_parallel_worker_init() without extra parameter.
 
-Cluster are based on several tools and models already available within
+Parallel workers are based on several tools and models already available within
 StarPU contexts, and merely extend contexts. More on contexts can be
 read in Section \ref SchedulingContexts.
 
-\section CreatingCustomClusters Creating Custom Clusters
+\section CreatingCustomParallelWorkers Creating Custom Parallel Workers
 
-Clusters can be created either with the predefined types provided
+Parallel workers can be created either with the predefined types provided
 within StarPU, or with user-defined functions to bind another runtime
 inside StarPU.
 
-The predefined cluster types provided by StarPU are
-::STARPU_CLUSTER_OPENMP, ::STARPU_CLUSTER_INTEL_OPENMP_MKL and
-::STARPU_CLUSTER_GNU_OPENMP_MKL. The last one is only provided if
+The predefined parallel worker types provided by StarPU are
+::STARPU_PARALLEL_WORKER_OPENMP, ::STARPU_PARALLEL_WORKER_INTEL_OPENMP_MKL and
+::STARPU_PARALLEL_WORKER_GNU_OPENMP_MKL. The last one is only provided if
 StarPU is compiled with the \c MKL library.  It uses MKL functions to
 set the number of threads, which is more reliable when using an OpenMP
 implementation different from the Intel one.
 
-The cluster type is set when calling the function
-starpu_cluster_machine() with the parameter ::STARPU_CLUSTER_TYPE as
-in the example below, which is creating a \c MKL cluster.
+The parallel worker type is set when calling the function
+starpu_parallel_worker_init() with the parameter ::STARPU_PARALLEL_WORKER_TYPE as
+in the example below, which is creating a \c MKL parallel worker.
 
 \code{.c}
-struct starpu_cluster_machine *clusters;
-clusters = starpu_cluster_machine(HWLOC_OBJ_SOCKET,
-                                 STARPU_CLUSTER_TYPE, STARPU_CLUSTER_GNU_OPENMP_MKL,
+struct starpu_parallel_worker_config *parallel_workers;
+parallel_workers = starpu_parallel_worker_init(HWLOC_OBJ_SOCKET,
+                                 STARPU_PARALLEL_WORKER_TYPE, STARPU_PARALLEL_WORKER_GNU_OPENMP_MKL,
                                  0);
 \endcode
 
-Using the default type ::STARPU_CLUSTER_OPENMP is similar to calling
-starpu_cluster_machine() without any extra parameter.
+Using the default type ::STARPU_PARALLEL_WORKER_OPENMP is similar to calling
+starpu_parallel_worker_init() without any extra parameter.
 
 Users can also define their own function.
 
@@ -185,36 +185,36 @@ Users can also define their own function.
 void foo_func(void* foo_arg);
 
 int foo_arg = 0;
-struct starpu_cluster_machine *clusters;
-clusters = starpu_cluster_machine(HWLOC_OBJ_SOCKET,
-                                  STARPU_CLUSTER_CREATE_FUNC, &foo_func,
-                                  STARPU_CLUSTER_CREATE_FUNC_ARG, &foo_arg,
+struct starpu_parallel_worker_config *parallel_workers;
+parallel_workers = starpu_parallel_worker_init(HWLOC_OBJ_SOCKET,
+                                  STARPU_PARALLEL_WORKER_CREATE_FUNC, &foo_func,
+                                  STARPU_PARALLEL_WORKER_CREATE_FUNC_ARG, &foo_arg,
                                   0);
 \endcode
 
-Parameters that can be given to starpu_cluster_machine() are
-::STARPU_CLUSTER_MIN_NB,
-::STARPU_CLUSTER_MAX_NB, ::STARPU_CLUSTER_NB,
-::STARPU_CLUSTER_POLICY_NAME, ::STARPU_CLUSTER_POLICY_STRUCT,
-::STARPU_CLUSTER_KEEP_HOMOGENEOUS, ::STARPU_CLUSTER_PREFERE_MIN,
-::STARPU_CLUSTER_CREATE_FUNC, ::STARPU_CLUSTER_CREATE_FUNC_ARG,
-::STARPU_CLUSTER_TYPE, ::STARPU_CLUSTER_AWAKE_WORKERS,
-::STARPU_CLUSTER_PARTITION_ONE, ::STARPU_CLUSTER_NEW and
-::STARPU_CLUSTER_NCORES.
+Parameters that can be given to starpu_parallel_worker_init() are
+::STARPU_PARALLEL_WORKER_MIN_NB,
+::STARPU_PARALLEL_WORKER_MAX_NB, ::STARPU_PARALLEL_WORKER_NB,
+::STARPU_PARALLEL_WORKER_POLICY_NAME, ::STARPU_PARALLEL_WORKER_POLICY_STRUCT,
+::STARPU_PARALLEL_WORKER_KEEP_HOMOGENEOUS, ::STARPU_PARALLEL_WORKER_PREFERE_MIN,
+::STARPU_PARALLEL_WORKER_CREATE_FUNC, ::STARPU_PARALLEL_WORKER_CREATE_FUNC_ARG,
+::STARPU_PARALLEL_WORKER_TYPE, ::STARPU_PARALLEL_WORKER_AWAKE_WORKERS,
+::STARPU_PARALLEL_WORKER_PARTITION_ONE, ::STARPU_PARALLEL_WORKER_NEW and
+::STARPU_PARALLEL_WORKER_NCORES.
 
 
-\section ClustersWithSchedulingContextsAPI Clusters With Scheduling
+\section ParallelWorkersWithSchedulingContextsAPI Parallel Workers With Scheduling
 
-As previously mentioned, the cluster API is implemented
+As previously mentioned, the parallel worker API is implemented
 on top of \ref SchedulingContexts. Its main addition is to ease the
 creation of a machine CPU partition with no overlapping by using
 \c hwloc, whereas scheduling contexts can use any number of any type
 of resources.
 
-It is therefore possible, but not recommended, to create clusters
+It is therefore possible, but not recommended, to create parallel workers
 using the scheduling contexts API. This can be useful mostly in the
 most complex machine configurations, where users have to dimension
-precisely clusters by hand using their own algorithm.
+precisely parallel workers by hand using their own algorithm.
 
 \code{.c}
 /* the list of resources the context will manage */
@@ -235,20 +235,20 @@ starpu_task_submit(task);
 \endcode
 
 As this example illustrates, creating a context without scheduling
-policy will create a cluster. The interface function between StarPU
+policy will create a parallel worker. The interface function between StarPU
 and the other runtime must be specified through the field
 starpu_task::prologue_callback_pop_func. Such a function can be
 similar to the OpenMP thread team creation one (see above).
 
-Note that the OpenMP mode is the default mode both for clusters and
-contexts. The result of a cluster creation is a woken-up master worker
+Note that the OpenMP mode is the default mode both for parallel workers and
+contexts. The result of a parallel worker creation is a woken-up master worker
 and sleeping "slaves" which allow the master to run tasks on their
 resources.
 
-To create a cluster with woken-up workers, the flag
+To create a parallel worker with woken-up workers, the flag
 ::STARPU_SCHED_CTX_AWAKE_WORKERS must be set when using the scheduling
 context API function starpu_sched_ctx_create(), or the flag
-::STARPU_CLUSTER_AWAKE_WORKERS must be set when using the cluster API
-function starpu_cluster_machine().
+::STARPU_PARALLEL_WORKER_AWAKE_WORKERS must be set when using the parallel worker API
+function starpu_parallel worker_init().
 
 */

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2020       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -561,11 +561,11 @@ Enable LLVM OpenMP Support (\ref OMPLLVM)
 \addindex __configure__--enable-bubble
 Enable Hierarchical dags support (\ref HierarchicalDAGS)
 
-<dt>--enable-cluster</dt>
+<dt>--enable-parallel-worker</dt>
 <dd>
-\anchor enable-cluster
-\addindex __configure__--enable-cluster
-Enable cluster Support (\ref ClusteringAMachine)
+\anchor enable-parallel-worker
+\addindex __configure__--enable-parallel-worker
+Enable parallel worker support (\ref ParallelWorker)
 </dd>
 
 <dt>--enable-eclipse-plugin</dt>

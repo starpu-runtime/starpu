@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,7 +17,7 @@
 #include <starpu.h>
 #include <omp.h>
 
-#if !defined(STARPU_CLUSTER)
+#if !defined(STARPU_PARALLEL_WORKER)
 int main(void)
 {
 	return 77;
@@ -65,7 +65,7 @@ int main(void)
 {
 	int ntasks = NTASKS;
 	int ret, i;
-	struct starpu_cluster_machine *clusters;
+	struct starpu_parallel_worker_config *parallel_workers;
 
 	setenv("STARPU_NMPI_MS","0",1);
 
@@ -74,20 +74,20 @@ int main(void)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	/* We regroup resources under each sockets into a cluster. We express a partition
-	 * of one socket to create two internal clusters */
-	clusters = starpu_cluster_machine(HWLOC_OBJ_SOCKET,
-					  STARPU_CLUSTER_POLICY_NAME, "dmdas",
-					  STARPU_CLUSTER_PARTITION_ONE,
-					  STARPU_CLUSTER_NEW,
-//					  STARPU_CLUSTER_TYPE, STARPU_CLUSTER_OPENMP,
-//					  STARPU_CLUSTER_TYPE, STARPU_CLUSTER_INTEL_OPENMP_MKL,
-					  STARPU_CLUSTER_NB, 2,
-					  STARPU_CLUSTER_NCORES, 1,
+	/* We regroup resources under each sockets into a parallel worker. We express a partition
+	 * of one socket to create two internal parallel workers */
+	parallel_workers = starpu_parallel_worker_init(HWLOC_OBJ_SOCKET,
+						       STARPU_PARALLEL_WORKER_POLICY_NAME, "dmdas",
+						       STARPU_PARALLEL_WORKER_PARTITION_ONE,
+						       STARPU_PARALLEL_WORKER_NEW,
+//						       STARPU_PARALLEL_WORKER_TYPE, STARPU_PARALLEL_WORKER_OPENMP,
+//						       STARPU_PARALLEL_WORKER_TYPE, STARPU_PARALLEL_WORKER_INTEL_OPENMP_MKL,
+						       STARPU_PARALLEL_WORKER_NB, 2,
+						       STARPU_PARALLEL_WORKER_NCORES, 1,
 					  0);
-	if (clusters == NULL)
+	if (parallel_workers == NULL)
 		goto enodev;
-	starpu_cluster_print(clusters);
+	starpu_parallel_worker_print(parallel_workers);
 
 	/* Data preparation */
 	double array1[SIZE];
@@ -139,7 +139,7 @@ out:
 
 	starpu_data_unregister(handle1);
 	starpu_data_unregister(handle2);
-	starpu_uncluster_machine(clusters);
+	starpu_parallel_worker_shutdown(parallel_workers);
 
 	starpu_shutdown();
 	return (ret == -ENODEV) ? 77 : 0 ;

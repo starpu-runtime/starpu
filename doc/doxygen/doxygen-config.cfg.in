@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2011       Télécom-SudParis
 # Copyright (C) 2013       Simon Archipoff
 #
@@ -61,7 +61,7 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters/foreword.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_extensions/max_fpga_support.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_extensions/socl_opencl_extensions.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_extensions/bubble.doxy \
-			 @top_srcdir@/doc/doxygen/chapters/starpu_extensions/clustering_a_machine.doxy \
+			 @top_srcdir@/doc/doxygen/chapters/starpu_extensions/parallel_worker.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_extensions/interoperability.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_extensions/scheduling_policy_definition.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_extensions/simgrid.doxy \

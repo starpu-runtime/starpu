@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -39,7 +39,7 @@ This part explains the advanced concepts of StarPU. It is intended for users who
     <li> StarPU support Field Programmable Gate Array (FPGA) applications exploiting DFE configurations, you can find related usage in Chapter \ref MaxFPGASupport.
     <li> If you want your applications can share entities such as Events, Contexts or Command Queues between several OpenCL implementations, we have an OpenCL implementation based on StarPU described in Chapter \ref SOCLOpenclExtensions.
     <li> We propose a hierarchical tasks model in Chapter\ref HierarchicalDAGS to enable tasks subgraphs at runtime for a more dynamic task graph.
-    <li> You can find how to partition a machine into clusters with the cluster API which depends on the <c>hwloc</c> tool in Chapter \ref ClusteringAMachine.
+    <li> You can find how to partition a machine into parallel workers in Chapter \ref ParallelWorker.
     <li> If you need StarPU to coexist with other parallel software elements without resulting in computing core oversubscription or undersubscription, Chapter \ref InteroperabilitySupport is useful. You can get the information about how to dynamically manage the computing resources allocated to StarPU.
     <li> You can learn how to define a StarPU task scheduling policy in a basic monolithic way, or in a modular way in Chapter \ref HowToDefineANewSchedulingPolicy.
     <li> Chapter \ref SimGridSupport shows you how to simulate execution on an arbitrary platform.

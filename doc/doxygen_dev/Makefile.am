@@ -70,11 +70,11 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/src/drivers/mp_common/mp_common.h	\
 	$(top_srcdir)/src/drivers/mp_common/source_common.h	\
 	$(top_srcdir)/src/drivers/driver_common/driver_common.h	\
+	$(top_srcdir)/src/parallel_worker/starpu_parallel_worker_create.h	\
 	$(top_srcdir)/src/profiling/profiling.h	\
 	$(top_srcdir)/src/profiling/bound.h	\
 	$(top_srcdir)/src/util/starpu_data_cpy.h	\
 	$(top_srcdir)/src/util/openmp_runtime_support.h	\
-	$(top_srcdir)/src/util/starpu_clusters_create.h	\
 	$(top_srcdir)/src/util/starpu_task_insert_utils.h	\
 	$(top_srcdir)/src/common/graph.h	\
 	$(top_srcdir)/src/common/fxt.h	\

@@ -3042,22 +3042,22 @@ AM_CONDITIONAL([STARPU_HAVE_MPIFORT], [test "x$use_mpi_fort" = "xyes"])
 
 ########################################################################
 #                                                                      #
-#                            Cluster support                           #
+#                     Parallel worker support                          #
 #                                                                      #
 ########################################################################
 
-AC_ARG_ENABLE(cluster, [AS_HELP_STRING([--enable-cluster], [build the cluster support])],
-			enable_cluster=$enableval, enable_cluster=no)
+AC_ARG_ENABLE(parallel-worker, [AS_HELP_STRING([--enable-parallel-worker], [build the parallel worker support])],
+			enable_parallel_worker=$enableval, enable_parallel_worker=no)
 
-AC_MSG_CHECKING(for cluster support)
+AC_MSG_CHECKING(for parallel worker support)
 
-if test x$enable_cluster = xyes; then
-	AC_DEFINE(STARPU_CLUSTER, [1], [Define this to enable cluster support])
+if test x$enable_parallel_worker = xyes; then
+	AC_DEFINE(STARPU_PARALLEL_WORKER, [1], [Define this to enable parallel worker support])
 	AC_OPENMP
 fi
 
-AM_CONDITIONAL([STARPU_CLUSTER], [test "x$enable_cluster" = "xyes"])
-AC_MSG_RESULT($enable_cluster)
+AM_CONDITIONAL([STARPU_PARALLEL_WORKER], [test "x$enable_parallel_worker" = "xyes"])
+AC_MSG_RESULT($enable_parallel_worker)
 
 ###############################################################################
 #                                                                             #
@@ -4417,7 +4417,7 @@ AC_MSG_NOTICE([
 	       Multi Python Interpreter enabled:              $starpupy_multi_interpreter
 	       OpenMP runtime support enabled:                $enable_openmp
 	       OpenMP LLVM runtime support enabled:           $enable_openmp_llvm
-	       Cluster support enabled:                       $enable_cluster
+	       Parallel Worker support enabled:               $enable_parallel_worker
 	       SOCL enabled:                                  $build_socl
 	       SOCL test suite:                               $run_socl_check
 	       Scheduler Hypervisor:                          $build_sc_hypervisor

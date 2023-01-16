@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,7 +21,6 @@
 \file starpu.h
 \file starpu_bitmap.h
 \file starpu_bound.h
-\file starpu_clusters.h
 \file starpu_cublas.h
 \file starpu_cublas_v2.h
 \file starpu_cuda.h
@@ -41,6 +40,7 @@
 \file starpu_mod.f90
 \file starpu_opencl.h
 \file starpu_openmp.h
+\file starpu_parallel_worker.h
 \file starpu_perfmodel.h
 \file starpu_perf_monitoring.h
 \file starpu_perf_steering.h

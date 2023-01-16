@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2016       Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -84,9 +84,9 @@ Combined workers are constructed depending on the entire topology of the machine
 \subsection CreatingAContextWithTheDefaultBehavior Creating A Context With The Default Behavior
 
 If <b>no scheduling policy</b> is specified when creating the context,
-it will be used as <b>another type of resource</b>: a cluster. A
-cluster is a context without scheduler (eventually delegated to
-another runtime). For more information, see \ref ClusteringAMachine. It
+it will be used as <b>another type of resource</b>: a parallel worker. A
+parallel worker is a context without scheduler (eventually delegated to
+another runtime). For more information, see \ref ParallelWorker. It
 is therefore <b>mandatory</b> to stipulate a scheduler to use the
 contexts in this traditional way.
 

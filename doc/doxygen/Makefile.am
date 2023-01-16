@@ -73,7 +73,7 @@ chapters =	\
 	chapters/starpu_extensions/max_fpga_support.doxy		\
 	chapters/starpu_extensions/socl_opencl_extensions.doxy		\
 	chapters/starpu_extensions/bubble.doxy		\
-	chapters/starpu_extensions/clustering_a_machine.doxy		\
+	chapters/starpu_extensions/parallel_worker.doxy		\
 	chapters/starpu_extensions/interoperability.doxy		\
 	chapters/starpu_extensions/scheduling_policy_definition.doxy		\
 	chapters/starpu_extensions/simgrid.doxy		\
@@ -158,7 +158,6 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/include/starpu.h			\
 	$(top_srcdir)/include/starpu_bitmap.h		\
 	$(top_srcdir)/include/starpu_bound.h		\
-	$(top_srcdir)/include/starpu_clusters.h		\
 	$(top_srcdir)/include/starpu_cublas.h		\
 	$(top_srcdir)/include/starpu_cublas_v2.h	\
 	$(top_srcdir)/include/starpu_cusparse.h		\
@@ -178,6 +177,7 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/include/starpu_mod.f90		\
 	$(top_srcdir)/include/starpu_opencl.h		\
 	$(top_srcdir)/include/starpu_openmp.h		\
+	$(top_srcdir)/include/starpu_parallel_worker.h	\
 	$(top_srcdir)/include/starpu_perf_monitoring.h	\
 	$(top_srcdir)/include/starpu_perf_steering.h	\
 	$(top_srcdir)/include/starpu_perfmodel.h	\

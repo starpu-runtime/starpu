@@ -40,11 +40,11 @@ chapters =	\
 	../doxygen/chapters/starpu_extensions/tcpip_support.doxy		\
 	../doxygen/chapters/starpu_extensions/transactions.doxy		\
 	../doxygen/chapters/starpu_extensions/fault_tolerance.doxy	\
-	../doxygen/../doxygen/chapters/starpu_extensions/fft_support.doxy		\
+	../doxygen/chapters/starpu_extensions/fft_support.doxy		\
 	../doxygen/chapters/starpu_extensions/max_fpga_support.doxy		\
 	../doxygen/chapters/starpu_extensions/socl_opencl_extensions.doxy		\
 	../doxygen/chapters/starpu_extensions/bubble.doxy		\
-	../doxygen/../doxygen/chapters/starpu_extensions/clustering_a_machine.doxy		\
+	../doxygen/chapters/starpu_extensions/parallel_worker.doxy		\
 	../doxygen/chapters/starpu_extensions/interoperability.doxy		\
 	../doxygen/chapters/starpu_extensions/scheduling_policy_definition.doxy		\
 	../doxygen/chapters/starpu_extensions/simgrid.doxy		\
