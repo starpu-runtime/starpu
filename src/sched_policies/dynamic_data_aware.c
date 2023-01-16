@@ -36,6 +36,7 @@ int task_order;
 int data_order;
 //~ int erase_data_strategy;
 int prio;
+int free_pushed_task_position;
 
 int dependances; /* Utile pour les ordres de données et le push back de données dans datanotusedyet. */
 
@@ -440,44 +441,47 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 			
 			/* Maintenant il faut push cette tâche gratuite dans planned task. On peut le faire au début de la liste ou après la dernière tâche gratuite de planned task. */
 			/* Au début */
-			//~ starpu_task_list_push_front(&tab_gpu_planned_task[i].planned_task, task);
-			/* Après la dernière tâche gratuite de planned task. */
-			struct starpu_task* checked_task = NULL;
-			for (checked_task = starpu_task_list_begin(&tab_gpu_planned_task[i].planned_task); checked_task != starpu_task_list_end(&tab_gpu_planned_task[i].planned_task); checked_task = starpu_task_list_next(checked_task))
+			if (free_pushed_task_position == 0)
 			{
-				//~ printf("Is task %p in planned_task free ?\n", checked_task);
-				//~ print_data_on_node(i + 1);
-				for (j = 0; j < STARPU_TASK_GET_NBUFFERS(checked_task); j++)
+				starpu_task_list_push_front(&tab_gpu_planned_task[i].planned_task, task);
+			}
+			else
+			{
+				/* Après la dernière tâche gratuite de planned task. */
+				struct starpu_task* checked_task = NULL;
+				for (checked_task = starpu_task_list_begin(&tab_gpu_planned_task[i].planned_task); checked_task != starpu_task_list_end(&tab_gpu_planned_task[i].planned_task); checked_task = starpu_task_list_next(checked_task))
 				{
-					//~ printf("%p ?\n", STARPU_TASK_GET_HANDLE(checked_task, j));
-					if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(checked_task, j), i + 1))
+					//~ printf("Is task %p in planned_task free ?\n", checked_task);
+					//~ print_data_on_node(i + 1);
+					for (j = 0; j < STARPU_TASK_GET_NBUFFERS(checked_task); j++)
 					{
-						starpu_task_list_insert_before(&tab_gpu_planned_task[i].planned_task, task, checked_task);
-						
-						//~ printf("Insert before task %p that doesn't have data %p.\n", checked_task, STARPU_TASK_GET_HANDLE(checked_task, j));
-						//~ print_data_on_node(i + 1);
-						//~ print_planned_task_one_gpu(&tab_gpu_planned_task[i], i + 1);
-						
-						/* End now push task, no push in main task list or GPUs data */		
-						starpu_push_task_end(task);
-						#ifdef REFINED_MUTEX
-						STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
-						#endif
-						#ifdef LINEAR_MUTEX
-						STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
-						#endif	
-						component->can_pull(component);
-						return 0;
+						//~ printf("%p ?\n", STARPU_TASK_GET_HANDLE(checked_task, j));
+						if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(checked_task, j), i + 1))
+						{
+							starpu_task_list_insert_before(&tab_gpu_planned_task[i].planned_task, task, checked_task);
+							
+							//~ printf("Insert before task %p that doesn't have data %p.\n", checked_task, STARPU_TASK_GET_HANDLE(checked_task, j));
+							//~ print_data_on_node(i + 1);
+							//~ print_planned_task_one_gpu(&tab_gpu_planned_task[i], i + 1);
+							
+							/* End now push task, no push in main task list or GPUs data */		
+							starpu_push_task_end(task);
+							#ifdef REFINED_MUTEX
+							STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
+							#endif
+							#ifdef LINEAR_MUTEX
+							STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
+							#endif	
+							component->can_pull(component);
+							return 0;
+						}
 					}
 				}
+				
+				/* Else push back */
+				starpu_task_list_push_back(&tab_gpu_planned_task[i].planned_task, task);
 			}
-			
-			/* Else push back */
-			starpu_task_list_push_back(&tab_gpu_planned_task[i].planned_task, task);
-			
-			//~ printf("Insert at the end of planned task.\n");
-			//~ print_planned_task_one_gpu(&tab_gpu_planned_task[i], i + 1);
-			
+						
 			// add data in other GPUS ? In current GPU ? No but do add pointer from data to task and vice versa.
 			
 			/* End now push task, no push in main task list or GPUs data */		
@@ -3642,6 +3646,7 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	data_order = starpu_get_env_number_default("DATA_ORDER", 0);
 	dependances = starpu_get_env_number_default("DEPENDANCES", 0);
 	prio = starpu_get_env_number_default("PRIO", 0);
+	free_pushed_task_position = starpu_get_env_number_default("FREE_PUSHED_TASK_POSITION", 0);
 	
 	printf("-----\nEVICTION_STRATEGY_DYNAMIC_DATA_AWARE = %d\nTHRESHOLD = %d\nAPP = %d\nCHOOSE_BEST_DATA_FROM = %d\nSIMULATE_MEMORY = %d\nTASK_ORDER = %d\nDATA_ORDER = %d\nDEPENDANCES = %d\nPRIO = %d\n-----\n", eviction_strategy_dynamic_data_aware, threshold, app, choose_best_data_from, simulate_memory, task_order, data_order, dependances, prio);
 	

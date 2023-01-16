@@ -18,6 +18,7 @@
 //~ #define ERASE_DATA_STRATEGY /* Default 0, veut dire que on erase que du GPU en question, 1 on erase de tous les GPUs. */
 #define DEPENDANCES /* 0 non, 1 utile pour savoir si on fais des points de départs différents dans main task list (on ne le fais pas si il y a des dependances). TODO: pas forcément utile à l'avenir à voir si on l'enlève. */
 #define PRIO /* 0 non, 1 tiebreak data selection with the that have the highest priority task */
+#define FREE_PUSHED_TASK_POSITION /* To detail where a free task from push_task is pushed in planned_task. 0: at the top of planned task, 1: after the last free task of planned task. */
 
 /* Var globale pour n'appeller qu'une seule fois get_env_number */
 extern int eviction_strategy_dynamic_data_aware;
