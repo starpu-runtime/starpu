@@ -357,7 +357,7 @@ void _starpu_hip_init_worker_binding(struct _starpu_machine_config *config, int 
 			workerarg->bindid = hip_bindid[devid] = hip_globalbindid;
 		}
 		else
-		{	
+		{
 			workerarg->bindid = hip_bindid[devid] = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, preferred_binding, npreferred);
 		}
 	}
@@ -655,7 +655,7 @@ int _starpu_hip_driver_init(struct _starpu_worker *worker)
 
 	/* one more time to avoid hacks from third party lib :) */
 	_starpu_bind_thread_on_cpu(worker0->bindid, worker0->workerid, NULL);
-	
+
 	for (i = 0; i < worker_set->nworkers; i++)
 	{
 		worker = &worker_set->workers[i];
@@ -1378,7 +1378,7 @@ int _starpu_hip_driver_run_once(struct _starpu_worker *worker)
 		worker = &worker_set->workers[i];
 		int workerid = worker->workerid;
 		unsigned memnode = worker->memory_node;
-		
+
 		if (!worker->ntasks)
 			idle_tasks++;
 		if (!worker->task_transferring)
