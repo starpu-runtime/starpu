@@ -391,24 +391,8 @@ void _starpu_hip_init_worker_memory(struct _starpu_machine_config *config, int n
 			_starpu_hip_bus_ids[devid+STARPU_MAXNUMANODES][numa] = _starpu_register_bus(memory_node, numa);
 		}
 
-#ifdef STARPU_SIMGRID
-		const char* hip_memcpy_peer;
-		char name[16];
-		snprintf(name, sizeof(name), "HIP%u", devid);
-		starpu_sg_host_t host = _starpu_simgrid_get_host_by_name(name);
-		STARPU_ASSERT(host);
-		_starpu_simgrid_memory_node_set_host(memory_node, host);
-#  ifdef STARPU_HAVE_SIMGRID_ACTOR_H
-		hip_memcpy_peer = sg_host_get_property_value(host, "memcpy_peer");
-#  else
-		hip_memcpy_peer = MSG_host_get_property_value(host, "memcpy_peer");
-#  endif
-#endif /* SIMGRID */
-
 		if (
-#ifdef STARPU_SIMGRID
-			hip_memcpy_peer && atoll(hip_memcpy_peer)
-#elif defined(STARPU_HAVE_HIP_MEMCPY_PEER)
+#if defined(STARPU_HAVE_HIP_MEMCPY_PEER)
 			1
 #else /* MEMCPY_PEER */
 			0
@@ -425,7 +409,6 @@ void _starpu_hip_init_worker_memory(struct _starpu_machine_config *config, int n
 					unsigned memory_node2 = starpu_worker_get_memory_node(worker2);
 					_starpu_hip_bus_ids[devid2+STARPU_MAXNUMANODES][devid+STARPU_MAXNUMANODES] = _starpu_register_bus(memory_node2, memory_node);
 					_starpu_hip_bus_ids[devid+STARPU_MAXNUMANODES][devid2+STARPU_MAXNUMANODES] = _starpu_register_bus(memory_node, memory_node2);
-#ifndef STARPU_SIMGRID
 #if HAVE_DECL_HWLOC_HIP_GET_DEVICE_OSDEV_BY_INDEX
 					{
 						hwloc_obj_t obj, obj2, ancestor;
@@ -446,7 +429,6 @@ void _starpu_hip_init_worker_memory(struct _starpu_machine_config *config, int n
 							starpu_bus_set_ngpus(_starpu_hip_bus_ids[devid+STARPU_MAXNUMANODES][devid2+STARPU_MAXNUMANODES], data->ngpus);
 						}
 					}
-#endif
 #endif
 				}
 			}
@@ -701,7 +683,7 @@ int _starpu_hip_driver_init(struct _starpu_worker *worker)
 		{
 			/* We need non-blocking drivers, to poll for HIP task
 			 * termination */
-			_STARPU_DISP("Warning: reducing STARPU_HIP_PIPELINE to 0 because blocking drivers are enabled (and simgrid is not enabled)\n");
+			_STARPU_DISP("Warning: reducing STARPU_HIP_PIPELINE to 0 because blocking drivers are enabled (and simgrid is not supported with this driver)\n");
 			worker->pipeline_length = 0;
 		}
 #endif
@@ -1345,9 +1327,7 @@ static void execute_job_on_hip(struct starpu_task *task, struct _starpu_worker *
 	}
 	else /* Synchronous execution */
 	{
-#if !defined(STARPU_SIMGRID)
 		STARPU_ASSERT_MSG(hipStreamQuery(starpu_hip_get_local_stream()) == hipSuccess, "Unless when using the STARPU_HIP_ASYNC flag, HIP codelets have to wait for termination of their kernels on the starpu_hip_get_local_stream() stream");
-#endif
 		finish_job_on_hip(j, worker);
 	}
 }
@@ -1606,7 +1586,7 @@ void *_starpu_hip_worker(void *_arg)
 #ifdef STARPU_HAVE_HWLOC
 hwloc_obj_t _starpu_hip_get_hwloc_obj(hwloc_topology_t topology, int devid)
 {
-#if !defined(STARPU_SIMGRID) && HAVE_DECL_HWLOC_HIP_GET_DEVICE_OSDEV_BY_INDEX
+#if HAVE_DECL_HWLOC_HIP_GET_DEVICE_OSDEV_BY_INDEX
 	return hwloc_hip_get_device_osdev_by_index(topology, devid);
 #else
 	(void)topology;
