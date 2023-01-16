@@ -20,7 +20,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include "starpu_config.h"
 #include <starpu.h>
 #include <starpu_hip.h>
 #include <starpu_profiling.h>
@@ -315,7 +314,7 @@ void _starpu_init_hip_config(struct _starpu_machine_topology *topology, struct _
 		{
 			hwloc_obj_t obj = NULL;
 			if (starpu_driver_info[STARPU_HIP_WORKER].get_hwloc_obj)
-				obj = starpu_driver_info[STARPU_HIP_WORKER].get_hwloc_obj(topology, devid);
+				obj = starpu_driver_info[STARPU_HIP_WORKER].get_hwloc_obj(topology->hwtopology, devid);
 
 			if (obj)
 			{
@@ -619,7 +618,7 @@ int _starpu_hip_driver_init(struct _starpu_worker *worker)
 	_starpu_set_local_worker_key(worker);
 
 #ifdef STARPU_PROF_TOOL
-		struct starpu_prof_tool_info pi;
+	struct starpu_prof_tool_info pi;
 #endif
 
 #ifdef STARPU_USE_FXT
@@ -634,7 +633,6 @@ int _starpu_hip_driver_init(struct _starpu_worker *worker)
 		unsigned memnode = worker->memory_node;
 
 #ifdef STARPU_PROF_TOOL
-		struct starpu_prof_tool_info pi;
 		pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_driver_init, devid, worker->workerid, starpu_prof_tool_driver_gpu, memnode, NULL);
 		starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_init(&pi, NULL, NULL);
 		pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_driver_init_start, devid, worker->workerid, starpu_prof_tool_driver_gpu, memnode, NULL);
@@ -831,7 +829,7 @@ int starpu_hip_copy_async_sync(void *src_ptr, unsigned src_node,
 	int peer_copy = 0;
 	int src_dev = -1, dst_dev = -1;
 #endif
-	hipError_t hipres = 0;
+	hipError_t hipres = hipSuccess;
 
 	if (kind == hipMemcpyDeviceToDevice && src_node != dst_node)
 	{
@@ -900,7 +898,7 @@ int starpu_hip_copy2d_async_sync(void *src_ptr, unsigned src_node,
 				 size_t numblocks, size_t ld_src, size_t ld_dst,
 				 hipStream_t stream, hipMemcpyKind kind)
 {
-	hipError_t hipres = 0;
+	hipError_t hipres = hipSuccess;
 
 	if (kind == hipMemcpyDeviceToDevice && src_node != dst_node)
 	{
