@@ -737,34 +737,63 @@ int _starpu_hip_driver_init(struct _starpu_worker *worker)
 
 int _starpu_hip_driver_deinit(struct _starpu_worker *worker)
 {
+	struct _starpu_worker_set *worker_set = worker->set;
+	int lastdevid = -1;
+	unsigned i;
 	_STARPU_TRACE_WORKER_DEINIT_START;
 
-	unsigned devid = worker->devid;
-	unsigned memnode = worker->memory_node;
+	for (i = 0; i < worker_set->nworkers; i++)
+	{
+		worker = &worker_set->workers[i];
+		unsigned devid = worker->devid;
+		unsigned memnode = worker->memory_node;
+		unsigned usersleft;
+		if ((int) devid == lastdevid)
+			/* Already initialized */
+			continue;
+		lastdevid = devid;
 
-	/* I'm last, deinitialize device */
-	_starpu_datawizard_handle_all_pending_node_data_requests(memnode);
+		STARPU_PTHREAD_MUTEX_LOCK(&hip_device_init_mutex[devid]);
+		usersleft = --hip_device_users[devid];
+		STARPU_PTHREAD_MUTEX_UNLOCK(&hip_device_init_mutex[devid]);
 
-	/* In case there remains some memory that was automatically
-	 * allocated by StarPU, we release it now. Note that data
-	 * coherency is not maintained anymore at that point ! */
-	_starpu_free_all_automatically_allocated_buffers(memnode);
+		if (!usersleft)
+		{
+			/* I'm last, deinitialize device */
+			_starpu_datawizard_handle_all_pending_node_data_requests(memnode);
 
-	_starpu_malloc_shutdown(memnode);
+			/* In case there remains some memory that was automatically
+			 * allocated by StarPU, we release it now. Note that data
+			 * coherency is not maintained anymore at that point ! */
+			_starpu_free_all_automatically_allocated_buffers(memnode);
 
-	deinit_device_context(devid);
+			_starpu_malloc_shutdown(memnode);
 
-	unsigned workerid = worker->workerid;
+			deinit_device_context(devid);
+		}
+		STARPU_PTHREAD_MUTEX_LOCK(&hip_device_init_mutex[devid]);
+		hip_device_init[devid] = UNINITIALIZED;
+		STARPU_PTHREAD_MUTEX_UNLOCK(&hip_device_init_mutex[devid]);
 
-	deinit_worker_context(workerid, worker->devid);
+	}
 
-	worker->worker_is_initialized = 0;
-	_STARPU_TRACE_WORKER_DEINIT_END(STARPU_HIP_WORKER);
+	for (i = 0; i < worker_set->nworkers; i++)
+	{
+		worker = &worker_set->workers[i];
+		unsigned workerid = worker->workerid;
+		unsigned memnode = worker->memory_node;
+
+		deinit_worker_context(workerid, worker->devid);
 
 #ifdef STARPU_PROF_TOOL
-	struct starpu_prof_tool_info pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_driver_deinit, workerid, worker->workerid, starpu_prof_tool_driver_hip, memnode, NULL);
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_deinit(&pi, NULL, NULL);
+		struct starpu_prof_tool_info pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_driver_deinit, workerid, worker->workerid, starpu_prof_tool_driver_hip, memnode, NULL);
+		starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_deinit(&pi, NULL, NULL);
 #endif
+	}
+
+	worker_set->workers[0].worker_is_initialized = 0;
+	_STARPU_TRACE_WORKER_DEINIT_END(STARPU_HIP_WORKER);
+
 	return 0;
 }
 
