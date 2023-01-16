@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -148,5 +148,4 @@ CLEANFILES = $(DOX_TAG) $(DOX_STARPU_CONFIG) \
 
 endif
 
-EXTRA_DIST += doxygen.cfg refman.tex \
-	      $(chapters) $(images)
+EXTRA_DIST += refman.tex $(chapters) $(images)

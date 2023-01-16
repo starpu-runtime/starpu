@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +15,7 @@
 #
 
 DOX_DIR = $(top_builddir)/doc/doxygen_dev
-DOX_CONFIG = $(top_srcdir)/doc/doxygen_dev/doxygen.cfg
+DOX_CONFIG = $(top_srcdir)/doc/doxygen.cfg
 
 DOX_MAIN_DIR = doxygen_dev
 DOX_HTML_DIR = html_dev
