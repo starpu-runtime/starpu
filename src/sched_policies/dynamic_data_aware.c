@@ -114,12 +114,13 @@ struct timeval time_end_createtolasttaskfinished;
 long long time_total_createtolasttaskfinished;
 #endif
 
+/* Fonction appellé directement dans l'application à la fin d'une itération. Je l'ai fais pour Cholesky et GEMM faut le faire pour de futures applications. */
 void new_iteration()
 {
 	/* Printing stats in files. Préciser PRINT_N dans les var d'env. */	
-	#ifdef PRINT
+	//~ #ifdef PRINT
 	printf("############### Itération n°%d ###############\n", iteration_DARTS + 1); fflush(stdout);
-	#endif
+	//~ #endif
 		
 	#ifdef PRINT_STATS
 	printf("Nb \"random\" task selection: %d\n", number_random_selection);

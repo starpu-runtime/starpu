@@ -1357,6 +1357,8 @@ int main(int argc, char **argv)
 				{
 					timing = end - start;
 				}
+				
+				new_iteration(); /* ? */
 			}	
 			/* End of normal execution of 2D matrix. */
 		}

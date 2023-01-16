@@ -616,7 +616,6 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 		unsigned nimpl;
 		unsigned impl_mask;
 		unsigned workerid = workers->get_next(workers, &it);
-		printf("%d\n", workerid);
 		struct _starpu_fifo_taskq *fifo = &dt->queue_array[workerid];
 		struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(workerid, sched_ctx_id);
 		unsigned memory_node = starpu_worker_get_memory_node(workerid);
