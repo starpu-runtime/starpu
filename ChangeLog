@@ -140,7 +140,8 @@ Changes:
   * Function starpu_data_lookup has been removed, it is now up to the
     calling code to manage a ptr-to-handle reverse lookup table when
     needed.
-  * Cluster is renamed in parallel worker
+  * Cluster is renamed in parallel worker but keep the old API as
+    deprecated
 
 Small changes:
   * starpu_mpi_task_insert() returns -ENODEV if no worker is available

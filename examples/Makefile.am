@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2011       Télécom-SudParis
 # Copyright (C) 2016       Uppsala University
 # Copyright (C) 2017       Erwan Leria
@@ -424,7 +424,8 @@ STARPU_EXAMPLES +=				\
 if STARPU_HAVE_HWLOC
 if STARPU_HWLOC_HAVE_TOPOLOGY_DUP
 STARPU_EXAMPLES +=				\
-	sched_ctx/parallel_workers
+	sched_ctx/parallel_workers		\
+	sched_ctx/parallel_workers_oldapi
 endif
 endif
 endif

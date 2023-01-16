@@ -116,9 +116,8 @@ void starpu_gnu_openmp_mkl_prologue(void *arg)
 
 /* Main interface function to create a parallel worker view of the machine.
  * Its job is to capture what the user wants and store it in a standard view. */
-struct starpu_parallel_worker_config *starpu_parallel_worker_init(hwloc_obj_type_t parallel_worker_level, ...)
+struct starpu_parallel_worker_config *_starpu_parallel_worker_init_varg(hwloc_obj_type_t parallel_worker_level, va_list varg_list)
 {
-	va_list varg_list;
 	int arg_type;
 	struct starpu_parallel_worker_config *machine;
 
@@ -131,7 +130,6 @@ struct starpu_parallel_worker_config *starpu_parallel_worker_init(hwloc_obj_type
 	machine->topology = NULL;
 	_starpu_parallel_worker_init_parameters(machine->params);
 
-	va_start(varg_list, parallel_worker_level);
 	while ((arg_type = va_arg(varg_list, int)) != 0)
 	{
 		if (arg_type == STARPU_PARALLEL_WORKER_MIN_NB)
@@ -244,6 +242,16 @@ struct starpu_parallel_worker_config *starpu_parallel_worker_init(hwloc_obj_type
 	}
 
 	return machine;
+}
+
+struct starpu_parallel_worker_config *starpu_parallel_worker_init(hwloc_obj_type_t parallel_worker_level, ...)
+{
+	struct starpu_parallel_worker_config *config;
+	va_list varg_list;
+	va_start(varg_list, parallel_worker_level);
+	config = _starpu_parallel_worker_init_varg(parallel_worker_level, varg_list);
+	va_end(varg_list);
+	return config;
 }
 
 int starpu_parallel_worker_shutdown(struct starpu_parallel_worker_config *machine)
@@ -771,5 +779,38 @@ void _starpu_parallel_worker(struct _starpu_parallel_worker_group *group)
 
 	return;
 }
+
+struct starpu_cluster_machine STARPU_DEPRECATED
+{
+	unsigned id;
+	hwloc_topology_t topology;
+	unsigned nparallel_workers;
+	unsigned ngroups;
+	struct _starpu_parallel_worker_group_list *groups;
+	struct _starpu_parallel_worker_parameters *params;
+};
+
+struct starpu_cluster_machine *starpu_cluster_machine(hwloc_obj_type_t cluster_level, ...)
+{
+	struct starpu_parallel_worker_config *config;
+	va_list varg_list;
+	va_start(varg_list, cluster_level);
+	config = _starpu_parallel_worker_init_varg(cluster_level, varg_list);
+	va_end(varg_list);
+	return (struct starpu_cluster_machine *)config;
+}
+
+int starpu_uncluster_machine(struct starpu_cluster_machine *clusters)
+{
+	struct starpu_parallel_worker_config *c = (struct starpu_parallel_worker_config *)clusters;
+	return starpu_parallel_worker_shutdown(c);
+}
+
+int starpu_cluster_print(struct starpu_cluster_machine *clusters)
+{
+	struct starpu_parallel_worker_config *c = (struct starpu_parallel_worker_config *)clusters;
+	return starpu_parallel_worker_print(c);
+}
+
 
 #endif

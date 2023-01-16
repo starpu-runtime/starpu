@@ -142,6 +142,39 @@ void starpu_openmp_prologue(void *);
 void starpu_gnu_openmp_mkl_prologue(void *);
 #endif /* STARPU_MKL */
 
+#define STARPU_CLUSTER_MIN_NB           STARPU_PARALLEL_WORKER_MIN_NB           /**< @deprecated Use ::STARPU_PARALLEL_WORKER_MIN_NB */
+#define STARPU_CLUSTER_MAX_NB           STARPU_PARALLEL_WORKER_MAX_NB           /**< @deprecated Use ::STARPU_PARALLEL_WORKER_MAX_NB */
+#define STARPU_CLUSTER_NB               STARPU_PARALLEL_WORKER_NB               /**< @deprecated Use ::STARPU_PARALLEL_WORKER_NB */
+#define STARPU_CLUSTER_PREFERE_MIN      STARPU_PARALLEL_WORKER_PREFERE_MIN      /**< @deprecated Use ::STARPU_PARALLEL_WORKER_PREFERE_MIN */
+#define STARPU_CLUSTER_KEEP_HOMOGENEOUS STARPU_PARALLEL_WORKER_KEEP_HOMOGENEOUS /**< @deprecated Use ::STARPU_PARALLEL_WORKER_KEEP_HOMOGENEOUS */
+#define STARPU_CLUSTER_POLICY_NAME      STARPU_PARALLEL_WORKER_POLICY_NAME      /**< @deprecated Use ::STARPU_PARALLEL_WORKER_POLICY_NAME */
+#define STARPU_CLUSTER_POLICY_STRUCT    STARPU_PARALLEL_WORKER_POLICY_STRUCT    /**< @deprecated Use ::STARPU_PARALLEL_WORKER_POLICY_STRUCT */
+#define STARPU_CLUSTER_CREATE_FUNC      STARPU_PARALLEL_WORKER_CREATE_FUNC      /**< @deprecated Use ::STARPU_PARALLEL_WORKER_CREATE_FUNC */
+#define STARPU_CLUSTER_CREATE_FUNC_ARG  STARPU_PARALLEL_WORKER_CREATE_FUNC_ARG  /**< @deprecated Use ::STARPU_PARALLEL_WORKER_CREATE_FUNC_ARG */
+#define STARPU_CLUSTER_TYPE             STARPU_PARALLEL_WORKER_TYPE             /**< @deprecated Use ::STARPU_PARALLEL_WORKER_TYPE */
+#define STARPU_CLUSTER_AWAKE_WORKERS    STARPU_PARALLEL_WORKER_AWAKE_WORKERS    /**< @deprecated Use ::STARPU_PARALLEL_WORKER_AWAKE_WORKERS */
+#define STARPU_CLUSTER_PARTITION_ONE    STARPU_PARALLEL_WORKER_PARTITION_ONE    /**< @deprecated Use ::STARPU_PARALLEL_WORKER_PARTITION_ONE */
+#define STARPU_CLUSTER_NEW              STARPU_PARALLEL_WORKER_NEW              /**< @deprecated Use ::STARPU_PARALLEL_WORKER_NEW */
+#define STARPU_CLUSTER_NCORES           STARPU_PARALLEL_WORKER_NCORES           /**< @deprecated Use ::STARPU_PARALLEL_WORKER_NCORES */
+
+/** @deprecated Use ::starpu_parallel_worker_types */
+enum starpu_cluster_types
+{
+	STARPU_CLUSTER_OPENMP,		 /**< deprecated */
+	STARPU_CLUSTER_INTEL_OPENMP_MKL, /**< deprecated */
+#ifdef STARPU_MKL
+	STARPU_CLUSTER_GNU_OPENMP_MKL,   /**< deprecated */
+#endif
+};
+/** @deprecated Use starpu_parallel_worker_config */
+struct starpu_cluster_machine STARPU_DEPRECATED;
+/** @deprecated Use starpu_parallel_worker_init() */
+struct starpu_cluster_machine *starpu_cluster_machine(hwloc_obj_type_t cluster_level, ...) STARPU_DEPRECATED;
+/** @deprecated Use starpu_parallel_worker_shutdown() */
+int starpu_uncluster_machine(struct starpu_cluster_machine *clusters) STARPU_DEPRECATED;
+/** @deprecated Use starpu_parallel_worker_print() */
+int starpu_cluster_print(struct starpu_cluster_machine *clusters) STARPU_DEPRECATED;
+
 /** @} */
 
 #ifdef __cplusplus
