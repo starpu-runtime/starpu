@@ -17,7 +17,49 @@
 #include "bench_helper.h"
 #include "abstract_sendrecv_bench.h"
 
-void sendrecv_bench(int mpi_rank, starpu_pthread_barrier_t* thread_barrier, int bidir)
+/*
+ *	Memset
+ */
+
+#ifdef STARPU_USE_CUDA
+static void cuda_memset_codelet(void *descr[], void *arg)
+{
+	(void)arg;
+
+	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);
+	unsigned length = STARPU_VECTOR_GET_NX(descr[0]);
+
+	cudaMemsetAsync(buf, 0, length, starpu_cuda_get_local_stream());
+}
+#endif
+
+void cpu_memset_codelet(void *descr[], void *arg)
+{
+	(void)arg;
+
+	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);
+	unsigned length = STARPU_VECTOR_GET_NX(descr[0]);
+
+	memset(buf, 0, length * sizeof(*buf));
+}
+
+static struct starpu_codelet memset_cl =
+{
+	.cpu_funcs = {cpu_memset_codelet},
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = {cuda_memset_codelet},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
+#endif
+#ifdef STARPU_USE_OPENCL
+	.opencl_funcs = {opencl_memset_codelet},
+	.opencl_flags = {STARPU_OPENCL_ASYNC},
+#endif
+	.cpu_funcs_name = {"cpu_memset_codelet"},
+	.nbuffers = 1,
+	.modes = {STARPU_W}
+};
+
+void sendrecv_bench(int mpi_rank, starpu_pthread_barrier_t* thread_barrier, int bidir, int mem_node)
 {
 	uint64_t iterations = LOOPS_DEFAULT;
 	uint64_t s;
@@ -70,29 +112,16 @@ void sendrecv_bench(int mpi_rank, starpu_pthread_barrier_t* thread_barrier, int 
 	global_tstart = starpu_timing_now();
 	for (s = NX_MIN; s <= NX_MAX; s = bench_next_size(s))
 	{
-		enum starpu_worker_archtype worker_type;
-
-		if(starpu_cuda_worker_get_count()>0)
-		{
-			worker_type = STARPU_CUDA_WORKER;
-		}
-		else if (starpu_hip_worker_get_count()>0)
-		{
-			worker_type = STARPU_HIP_WORKER;
-		}
-		else
-		{
-			worker_type = STARPU_CPU_WORKER;
-		}
-
-		int worker_id = starpu_worker_get_by_type(worker_type, 0);
-		int mem_node  = starpu_worker_get_memory_node(worker_id);
-
 		vector_send = starpu_malloc_on_node_flags(mem_node, s, STARPU_MALLOC_PINNED);
 		vector_recv = starpu_malloc_on_node_flags(mem_node, s, STARPU_MALLOC_PINNED);
 
 		starpu_vector_data_register(&handle_send, mem_node, (uintptr_t) vector_send, s, 1);
 		starpu_vector_data_register(&handle_recv, mem_node, (uintptr_t) vector_recv, s, 1);
+
+		ret = starpu_task_insert(&memset_cl, STARPU_W, handle_send, 0);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+		ret = starpu_task_insert(&memset_cl, STARPU_W, handle_recv, 0);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
 		iterations = bench_nb_iterations(iterations, s);
 

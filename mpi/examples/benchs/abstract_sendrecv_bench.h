@@ -17,4 +17,4 @@
 #include <starpu.h>
 
 
-void sendrecv_bench(int mpi_rank, starpu_pthread_barrier_t* thread_barrier, int bidir);
+void sendrecv_bench(int mpi_rank, starpu_pthread_barrier_t* thread_barrier, int bidir, int memnode);

@@ -27,9 +27,10 @@
 static inline void man()
 {
 	fprintf(stderr, "Options:\n");
-	fprintf(stderr, "\t-h --help   display this help\n");
-	fprintf(stderr, "\t-p          pause workers during benchmark\n");
-	fprintf(stderr, "\t--bidir     full-duplex communications\n");
+	fprintf(stderr, "\t-h --help         display this help\n");
+	fprintf(stderr, "\t-p                pause workers during benchmark\n");
+	fprintf(stderr, "\t--bidir           full-duplex communications\n");
+	fprintf(stderr, "\t--memnode-cuda    allocate message buffers on first cuda device\n");
 	exit(EXIT_SUCCESS);
 }
 
@@ -39,6 +40,10 @@ int main(int argc, char **argv)
 	int pause_workers = 0;
 	int i;
 	int bidir = 0;
+	int mem_node = STARPU_MAIN_RAM;
+
+	ret = starpu_mpi_init_conf(&argc, &argv, 1, MPI_COMM_WORLD, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	for (i = 1; i < argc; i++)
 	{
@@ -56,15 +61,27 @@ int main(int argc, char **argv)
 			bidir = 1;
 			printf("Communications will be full-duplex.\n");
 		}
+		else if (strcmp(argv[i], "--memnode-cuda") == 0)
+		{
+			int worker_id = starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0);
+			if(worker_id == -1)
+			{
+				fprintf(stderr,"Error: asked for CUDA memory node allocation, but no cuda worker found.\n");
+				starpu_mpi_shutdown();
+				return STARPU_TEST_SKIPPED;
+			}
+			else
+			{
+				mem_node  = starpu_worker_get_memory_node(worker_id);
+				fprintf(stderr,"Memory will be allocated on the first CUDA worker.\n");
+			}
+		}
 		else
 		{
 			fprintf(stderr,"Unrecognized option %s\n", argv[i]);
 			man();
 		}
 	}
-
-	ret = starpu_mpi_init_conf(&argc, &argv, 1, MPI_COMM_WORLD, NULL);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &worldsize);
@@ -92,7 +109,7 @@ int main(int argc, char **argv)
 		starpu_pause();
 	}
 
-	sendrecv_bench(rank, NULL, bidir);
+	sendrecv_bench(rank, NULL, bidir, mem_node);
 
 	if (pause_workers)
 	{

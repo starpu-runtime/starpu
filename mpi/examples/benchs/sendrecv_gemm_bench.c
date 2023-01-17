@@ -54,7 +54,7 @@ static void* comm_thread_func(void* arg)
 		fprintf(stderr, "[%s] No core was available for the comm thread. You should increase STARPU_RESERVE_NCPU or decrease STARPU_NCPU\n", hostname);
 	}
 
-	sendrecv_bench(mpi_rank, &thread_barrier, /* half-duplex communications */ 0);
+	sendrecv_bench(mpi_rank, &thread_barrier, /* half-duplex communications */ 0, /* allocate MPI buffers on CPU */ STARPU_MAIN_RAM);
 
 	return NULL;
 }
