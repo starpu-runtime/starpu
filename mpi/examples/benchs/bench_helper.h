@@ -18,7 +18,7 @@
 #include <starpu_mpi.h>
 #include "helper.h"
 
-#define NX_MIN 0
+#define NX_MIN 1
 
 #ifdef STARPU_QUICK_CHECK
 	#define MULT_DEFAULT 4

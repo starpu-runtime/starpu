@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -70,13 +70,29 @@ void sendrecv_bench(int mpi_rank, starpu_pthread_barrier_t* thread_barrier, int 
 	global_tstart = starpu_timing_now();
 	for (s = NX_MIN; s <= NX_MAX; s = bench_next_size(s))
 	{
-		vector_send = malloc(s);
-		vector_recv = malloc(s);
-		memset(vector_send, 0, s);
-		memset(vector_recv, 0, s);
+		enum starpu_worker_archtype worker_type;
 
-		starpu_vector_data_register(&handle_send, STARPU_MAIN_RAM, (uintptr_t) vector_send, s, 1);
-		starpu_vector_data_register(&handle_recv, STARPU_MAIN_RAM, (uintptr_t) vector_recv, s, 1);
+		if(starpu_cuda_worker_get_count()>0)
+		{
+			worker_type = STARPU_CUDA_WORKER;
+		}
+		else if (starpu_hip_worker_get_count()>0)
+		{
+			worker_type = STARPU_HIP_WORKER;
+		}
+		else
+		{
+			worker_type = STARPU_CPU_WORKER;
+		}
+
+		int worker_id = starpu_worker_get_by_type(worker_type, 0);
+		int mem_node  = starpu_worker_get_memory_node(worker_id);
+
+		vector_send = starpu_malloc_on_node_flags(mem_node, s, STARPU_MALLOC_PINNED);
+		vector_recv = starpu_malloc_on_node_flags(mem_node, s, STARPU_MALLOC_PINNED);
+
+		starpu_vector_data_register(&handle_send, mem_node, (uintptr_t) vector_send, s, 1);
+		starpu_vector_data_register(&handle_recv, mem_node, (uintptr_t) vector_recv, s, 1);
 
 		iterations = bench_nb_iterations(iterations, s);
 
@@ -163,8 +179,8 @@ void sendrecv_bench(int mpi_rank, starpu_pthread_barrier_t* thread_barrier, int 
 		starpu_data_unregister(handle_recv);
 		starpu_data_unregister(handle_send);
 
-		free(vector_send);
-		free(vector_recv);
+		starpu_free_on_node_flags(mem_node, (void*)vector_send, s, STARPU_MALLOC_PINNED);
+		starpu_free_on_node_flags(mem_node, (void*)vector_recv, s, STARPU_MALLOC_PINNED);
 	}
 	global_tend = starpu_timing_now();
 
