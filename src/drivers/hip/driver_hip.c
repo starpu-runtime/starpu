@@ -437,7 +437,7 @@ void _starpu_hip_init_worker_memory(struct _starpu_machine_config *config, int n
 
 	//This worker can also manage transfers on NUMA nodes
 	for (numa = 0; numa < starpu_memory_nodes_get_numa_count(); numa++)
-			_starpu_worker_drives_memory_node(&workerarg->set->workers[0], numa);
+		_starpu_worker_drives_memory_node(&workerarg->set->workers[0], numa);
 
 	_starpu_worker_drives_memory_node(&workerarg->set->workers[0], memory_node);
 
@@ -1364,8 +1364,6 @@ int _starpu_hip_driver_run_once(struct _starpu_worker *worker)
 	struct starpu_prof_tool_info pi;
 #endif
 	int i, res;
-
-
 	int idle_tasks, idle_transfers;
 
 	/* First poll for completed jobs */
