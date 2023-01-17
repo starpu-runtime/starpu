@@ -851,7 +851,7 @@ void initialize_task_data_gpu_single_task_v3(struct starpu_task *task, int also_
 		else
 		{
 			struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(task, i)->user_data;
-			hud->sum_remaining_task_expected_length += starpu_task_expected_length(task, perf_arch, 0);
+			//~ hud->sum_remaining_task_expected_length += starpu_task_expected_length(task, perf_arch, 0);
 			
 			#ifdef PRINT
 			printf("New task. Expected length in data %p: %f\n", STARPU_TASK_GET_HANDLE(task, i), hud->sum_remaining_task_expected_length);
@@ -860,6 +860,7 @@ void initialize_task_data_gpu_single_task_v3(struct starpu_task *task, int also_
 			if (hud->last_iteration_DARTS != iteration_DARTS)
 			{
 				hud->last_iteration_DARTS = iteration_DARTS;
+				hud->sum_remaining_task_expected_length = starpu_task_expected_length(task, perf_arch, 0);
 				for (j = 0; j < Ngpu; j++)
 				{
 					hud->nb_task_in_pulled_task[j] = 0;
@@ -882,6 +883,7 @@ void initialize_task_data_gpu_single_task_v3(struct starpu_task *task, int also_
 			}
 			else 
 			{
+				hud->sum_remaining_task_expected_length += starpu_task_expected_length(task, perf_arch, 0);
 				for (j = 0; j < Ngpu; j++)
 				{
 					if (hud->is_present_in_data_not_used_yet[j] == 0 && also_add_data_in_not_used_yet_list == 1)
