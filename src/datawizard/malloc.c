@@ -308,7 +308,8 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 				hipres = hipHostMalloc(A, dim, hipHostMallocPortable|hipHostMallocMapped);
 #endif
 
-			if (hipres != hipSuccess){
+			if (hipres != hipSuccess)
+			{
 				hipres = hipHostMalloc(A, dim, hipHostMallocPortable);
 			}
 
