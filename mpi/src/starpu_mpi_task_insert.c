@@ -670,7 +670,6 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 			if (STARPU_UNLIKELY(!_starpu_worker_exists(*task)))
 			{
 				_STARPU_MPI_DEBUG(0, "There is no worker to execute the codelet %p (%s)\n", codelet, codelet?codelet->name:NULL);
-				free(descrs);
 				return -ENODEV;
 			}
 
@@ -680,7 +679,6 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 			if (STARPU_UNLIKELY((*task)->execute_on_a_specific_worker && !starpu_combined_worker_can_execute_task((*task)->workerid, *task, 0)))
 			{
 				_STARPU_MPI_DEBUG(0, "The specified worker %d cannot execute the codelet %p (%s)\n", (*task)->workerid, codelet, codelet?codelet->name:NULL);
-				free(descrs);
 				return -ENODEV;
 			}
 		}
