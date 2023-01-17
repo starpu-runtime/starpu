@@ -44,7 +44,6 @@ void starpu_hipblas_init(void);
    is properly initialized and configured for multistream by
    starpu_cublas_init().
 */
-
 hipblasHandle_t starpu_hipblas_get_local_handle(void);
 
 /**
