@@ -23,7 +23,7 @@
 #ifdef STARPU_QUICK_CHECK
 	#define MULT_DEFAULT 4
 	#define LOOPS_DEFAULT 50
-	#define NX_MAX (64 * 1024) // kB
+	#define NX_MAX (64 * 1) // kB
 #elif !defined(STARPU_LONG_CHECK)
 	#define MULT_DEFAULT 4
 	#define LOOPS_DEFAULT 10000
