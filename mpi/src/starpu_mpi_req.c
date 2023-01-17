@@ -113,4 +113,3 @@ void _starpu_mpi_request_destroy(struct _starpu_mpi_req *req)
 #endif
 	free(req);
 }
-

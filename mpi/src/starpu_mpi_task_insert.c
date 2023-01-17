@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2021       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -706,7 +706,7 @@ int _starpu_mpi_task_postbuild_v(MPI_Comm comm, int xrank, int do_execute, struc
 			int rrank = starpu_mpi_data_get_rank(descrs[i].handle);
 			int size;
 			starpu_mpi_comm_size(comm, &size);
-			if (mpi_data->redux_map == NULL) 
+			if (mpi_data->redux_map == NULL)
 			{
 				_STARPU_CALLOC(mpi_data->redux_map, size, sizeof(mpi_data->redux_map[0]));
 				struct _starpu_redux_data_entry *entry;
@@ -1112,10 +1112,10 @@ int starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_han
 		current_level++;
 #endif
 	}
- 	
+
 	struct _starpu_redux_data_entry *entry;
 	HASH_FIND_PTR(_redux_data, &data_handle, entry);
-	if (entry != NULL) 
+	if (entry != NULL)
 	{
 		HASH_DEL(_redux_data, entry);
 		free(entry);
@@ -1161,7 +1161,7 @@ int starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle, 
 	return starpu_mpi_redux_data_prio_tree(comm, data_handle, prio, nb_contrib);
 }
 
-void _starpu_mpi_redux_wrapup_data(starpu_data_handle_t data_handle) 
+void _starpu_mpi_redux_wrapup_data(starpu_data_handle_t data_handle)
 {
 	size_t data_size = starpu_data_get_size(data_handle);
  	// Small data => flat tree | binary tree
@@ -1182,7 +1182,7 @@ void _starpu_mpi_redux_wrapup_data(starpu_data_handle_t data_handle)
 	return;
 }
 
-void _starpu_mpi_redux_wrapup_datas() 
+void _starpu_mpi_redux_wrapup_datas()
 {
  	struct _starpu_redux_data_entry *entry = NULL, *tmp = NULL;
  	HASH_ITER(hh, _redux_data, entry, tmp)
@@ -1191,4 +1191,3 @@ void _starpu_mpi_redux_wrapup_datas()
 	}
  	return;
 }
-
