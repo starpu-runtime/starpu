@@ -578,6 +578,10 @@ int main(int argc, char **argv)
 	}
 #endif
 
+#ifdef STARPU_QUICK_CHECK
+	niter /= 10;
+#endif
+
 	starpu_fxt_autostart_profiling(0);
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
