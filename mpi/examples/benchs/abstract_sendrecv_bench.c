@@ -50,10 +50,6 @@ static struct starpu_codelet memset_cl =
 	.cuda_funcs = {cuda_memset_codelet},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
-#ifdef STARPU_USE_OPENCL
-	.opencl_funcs = {opencl_memset_codelet},
-	.opencl_flags = {STARPU_OPENCL_ASYNC},
-#endif
 	.cpu_funcs_name = {"cpu_memset_codelet"},
 	.nbuffers = 1,
 	.modes = {STARPU_W}
@@ -112,8 +108,8 @@ void sendrecv_bench(int mpi_rank, starpu_pthread_barrier_t* thread_barrier, int 
 	global_tstart = starpu_timing_now();
 	for (s = NX_MIN; s <= NX_MAX; s = bench_next_size(s))
 	{
-		vector_send = starpu_malloc_on_node_flags(mem_node, s, STARPU_MALLOC_PINNED);
-		vector_recv = starpu_malloc_on_node_flags(mem_node, s, STARPU_MALLOC_PINNED);
+		vector_send = (void *)starpu_malloc_on_node_flags(mem_node, s, STARPU_MALLOC_PINNED);
+		vector_recv = (void *)starpu_malloc_on_node_flags(mem_node, s, STARPU_MALLOC_PINNED);
 
 		starpu_vector_data_register(&handle_send, mem_node, (uintptr_t) vector_send, s, 1);
 		starpu_vector_data_register(&handle_recv, mem_node, (uintptr_t) vector_recv, s, 1);
@@ -208,8 +204,8 @@ void sendrecv_bench(int mpi_rank, starpu_pthread_barrier_t* thread_barrier, int 
 		starpu_data_unregister(handle_recv);
 		starpu_data_unregister(handle_send);
 
-		starpu_free_on_node_flags(mem_node, (void*)vector_send, s, STARPU_MALLOC_PINNED);
-		starpu_free_on_node_flags(mem_node, (void*)vector_recv, s, STARPU_MALLOC_PINNED);
+		starpu_free_on_node_flags(mem_node, (uintptr_t)vector_send, s, STARPU_MALLOC_PINNED);
+		starpu_free_on_node_flags(mem_node, (uintptr_t)vector_recv, s, STARPU_MALLOC_PINNED);
 	}
 	global_tend = starpu_timing_now();
 
