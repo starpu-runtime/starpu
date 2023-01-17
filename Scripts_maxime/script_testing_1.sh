@@ -23,14 +23,15 @@ make -j 6
 ulimit -S -s 5000000
 export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
 
-#~ N=4
+N=4
 #~ N=8
 #~ N=10
 #~ N=15
-#~ N=20
+N=20
 #~ N=25
 #~ N=35
-N=40
+#~ N=30
+#~ N=40
 #~ N=50
 #~ N=100
 
@@ -93,9 +94,9 @@ MULTI=0
 STEALING=0
 #~ STEALING=3
 
-#~ NITER=1
+NITER=1
 #~ NITER=2
-NITER=11
+#~ NITER=11
 
 TAILLE_TUILE=960
 #~ TAILLE_TUILE=1920
@@ -124,8 +125,8 @@ DATA_ORDER=2
 #~ FREE_PUSHED_TASK_POSITION=0
 FREE_PUSHED_TASK_POSITION=1
 
-#~ APPLICATION="./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N))"
-APPLICATION="./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) -no-prio"
+APPLICATION="./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N))"
+#~ APPLICATION="./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) -no-prio"
 #~ APPLICATION="./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) -no-prio -bound"
 #~ APPLICATION="libtool --mode=execute gdb --args ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) -no-prio"
 #~ APPLICATION="./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 11"

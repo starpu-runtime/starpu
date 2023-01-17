@@ -54,8 +54,8 @@ algo10="DMDAR"
 
 echo "N,${algo1},${algo2},${algo3},${algo4},${algo5},${algo6},${algo7},${algo8},${algo9},${algo10}" > Output_maxime/Legende.txt
 
-#~ NB_TAILLE_TESTE=10
-NB_TAILLE_TESTE=8
+NB_TAILLE_TESTE=10
+#~ NB_TAILLE_TESTE=8
 NB_ALGO_TESTE=10
 
 echo "#### ${algo1} ####"
