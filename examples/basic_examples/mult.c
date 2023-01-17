@@ -40,16 +40,16 @@
 static float *A, *B, *C, *Cref;
 static starpu_data_handle_t A_handle, B_handle, C_handle;
 
-static unsigned nslicesx = 10;
-static unsigned nslicesy = 10;
+static unsigned nslicesx = 4;
+static unsigned nslicesy = 4;
 #ifdef STARPU_QUICK_CHECK
+static unsigned xdim = 512;
+static unsigned ydim = 512;
+static unsigned zdim = 256;
+#else
 static unsigned xdim = 1024;
 static unsigned ydim = 1024;
-static unsigned zdim = 1024;
-#else
-static unsigned xdim = 128;
-static unsigned ydim = 128;
-static unsigned zdim = 128;
+static unsigned zdim = 512;
 #endif
 
 extern void hip_mult(void *descr[], void *arg);
