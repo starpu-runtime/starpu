@@ -151,8 +151,8 @@ _starpu_fifo_push_sorted_task(struct _starpu_fifo_taskq *fifo_queue, struct star
 		task->prev = NULL;
 		task->next = NULL;
 	}
-	else if (list->_head->priority == task->priority &&
-		 list->_head->priority == list->_tail->priority)
+	//~ else if (list->_head->priority == task->priority && list->_head->priority == list->_tail->priority)
+	else if (1)
 	{
 		/* They all have the same priority, just put at the end */
 		list->_tail->next = task;
@@ -439,11 +439,12 @@ struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo_taskq 
 			return NULL;
 		}
 
-		int first_task_priority = task->priority;
+		//~ int first_task_priority = task->priority;
 
 		size_t non_ready_best = SIZE_MAX;
 		size_t non_loading_best = SIZE_MAX;
 		size_t non_allocated_best = SIZE_MAX;
+		int task_priority_best = INT_MIN;
 		
 		//~ int count = 1;
 		//~ threshold_dmdar = starpu_get_env_number_default("DMDAR_THRESHOLD", 0);
@@ -453,8 +454,8 @@ struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo_taskq 
 			//~ count++;
 			int priority = current->priority;
 
-			if (priority >= first_task_priority)
-			{
+			//~ if (priority >= first_task_priority)
+			//~ {
 				size_t non_ready, non_loading, non_allocated;
 				_starpu_size_non_ready_buffers(current, workerid, &non_ready, &non_loading, &non_allocated);
 				if (non_ready < non_ready_best)
@@ -462,6 +463,7 @@ struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo_taskq 
 					non_ready_best = non_ready;
 					non_loading_best = non_loading;
 					non_allocated_best = non_allocated;
+					task_priority_best = priority;
 					task = current;
 
 					if (non_ready == 0 && non_allocated == 0)
@@ -473,6 +475,7 @@ struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo_taskq 
 					{
 						non_loading_best = non_loading;
 						non_allocated_best = non_allocated;
+						task_priority_best = priority;
 						task = current;
 					}
 					else if (non_loading == non_loading_best)
@@ -480,11 +483,21 @@ struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo_taskq 
 						if (non_allocated < non_allocated_best)
 						{
 							non_allocated_best = non_allocated;
+							task_priority_best = priority;
 							task = current;
+						}
+						else if (non_allocated == non_allocated_best)
+						{
+							//~ if (priority >= task_priority_best)
+							if (priority > task_priority_best)
+							{
+								task_priority_best = priority;
+								task = current;
+							}
 						}
 					}
 				}
-			}
+			//~ }
 		}
 
 		if(num_priorities != -1)
