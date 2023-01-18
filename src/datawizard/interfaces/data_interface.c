@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -808,7 +808,7 @@ retry_busy:
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&handle->busy_mutex);
 
-	/* Unregister MPI things after having waiting for MPI reqs etc. to settle down */
+	/* Unregister MPI things after having waited for MPI reqs etc. to settle down */
 	if (handle->unregister_hook)
 	{
 		handle->unregister_hook(handle);
