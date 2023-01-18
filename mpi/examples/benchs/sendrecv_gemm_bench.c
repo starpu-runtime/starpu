@@ -118,10 +118,10 @@ void parse_args(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
-#if defined(STARPU_HAVE_UNSETENV)
-	unsetenv("OPENBLAS_NUM_THREADS");
 	// FIXME: when set, the program deadlocks
-#endif
+	if (starpu_getenv("OPENBLAS_NUM_THREADS") != NULL)
+		return STARPU_TEST_SKIPPED;
+
 	double start, end;
 	int ret, worldsize;
 	starpu_pthread_t comm_thread;
