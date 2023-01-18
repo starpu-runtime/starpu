@@ -598,11 +598,11 @@ benchs_sendrecv_bench_SOURCES += benchs/abstract_sendrecv_bench.c
 
 benchs_bcast_bench_SOURCES = benchs/bcast_bench.c
 benchs_bcast_bench_SOURCES += benchs/bench_helper.c
-benchs_bcast_bench_LDADD = $(MPI_SYNC_CLOCKS_LDFLAGS)
+benchs_bcast_bench_LDADD = $(MPI_SYNC_CLOCKS_LIBS)
 benchs_bcast_bench_CFLAGS = $(MPI_SYNC_CLOCKS_CFLAGS)
 
 benchs_recv_wait_finalize_bench_SOURCES = benchs/recv_wait_finalize_bench.c
-benchs_recv_wait_finalize_bench_LDADD = $(MPI_SYNC_CLOCKS_LDFLAGS)
+benchs_recv_wait_finalize_bench_LDADD = $(MPI_SYNC_CLOCKS_LIBS)
 benchs_recv_wait_finalize_bench_CFLAGS = $(MPI_SYNC_CLOCKS_CFLAGS)
 
 benchs_sendrecv_parallel_tasks_bench_SOURCES = benchs/sendrecv_parallel_tasks_bench.c
