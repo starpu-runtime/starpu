@@ -389,7 +389,7 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 	int j = 0;
 		
 	#ifdef PRINT
-	printf("New task %p (%s, prio: %d) in push_task with data(s):", task, starpu_task_get_name(task), task->priority); fflush(stdout);
+	printf("New task %p (%s, prio: %d, length: %f) in push_task with data(s):", task, starpu_task_get_name(task), task->priority, starpu_task_expected_length(task, perf_arch, 0)); fflush(stdout);
 	for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 	{
 		printf(" %p", STARPU_TASK_GET_HANDLE(task, i)); fflush(stdout);

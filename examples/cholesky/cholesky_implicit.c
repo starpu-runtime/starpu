@@ -28,17 +28,30 @@
 #include "../sched_ctx_utils/sched_ctx_utils.h"
 #include <starpu_data_maxime.h> /* Pour l'appel d'une nouvele itération dans le scheduler */
 
+#define PRIORITY_ATTRIBUTION /* 0: default one from StarPU. 1: Bottom level from Christophe Alias */
+int priority_attribution;
+
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_MAGMA)
 #include "magma.h"
 #endif
 
-/* Mes variables */
-int count_do_schedule;
+/* Mes variables. Pour le sans dépendances uniquement. */
+//~ int count_do_schedule;
 
 /* To avegrage on 11 iteration and ignoring the first one. */
 double average_flop;
 int niter;
 int current_iteration;
+
+/* Durée des tâches utilisé pour la priorité */
+/* Pour des tuiles 960*960 */
+double duration_chol_model_11 = 20695.580000; /* POTRF */
+double duration_chol_model_21 = 626.567700; /* TRSM */
+double duration_chol_model_22 = 139.072000; /* SYRK et GEMM */
+//~ /* Pour des tuiles 1920*1920 */
+//~ double duration_chol_model_11 = 46798.300000;
+//~ double duration_chol_model_21 = 1519.698000;
+//~ double duration_chol_model_22 = 1014.999000;
 
 /*
  *	code to bootstrap the factorization
@@ -69,15 +82,27 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	start = starpu_timing_now();  /* Cas dep == 1 */
 	//~ starpu_pause(); /* Version sans dépendances */
 	
+	int priority = 0;
+	
 	/* create all the DAG nodes */
 	for (k = 0; k < nblocks; k++)
 	{
 		int ret;
 		starpu_iteration_push(k);
                 starpu_data_handle_t sdatakk = starpu_data_get_sub_data(dataA, 2, k, k);
-
+				
+				if (priority_attribution == 0) /* Prio de base */
+				{
+					priority = 2*nblocks - 2*k;
+				}
+				else /* Avec prio de bottom levels de Christophe Alias */
+				{
+					priority = 3*nblocks - (duration_chol_model_11 + duration_chol_model_21 + duration_chol_model_22)*k;
+				}
+				
                 ret = starpu_task_insert(&cl11,
-					 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k) : STARPU_MAX_PRIO,
+					 //~ STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k) : STARPU_MAX_PRIO,
+					 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? priority : STARPU_MAX_PRIO,
 					 //~ STARPU_R, sdatakk, /* Version sans dépendances */
 					 STARPU_RW, sdatakk,  /* Cas dep == 1 */
 					 STARPU_CALLBACK, (k == 3*nblocks/4)?callback_turn_spmd_on:NULL,
@@ -390,7 +415,10 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 int main(int argc, char **argv)
 {
 	/* Récup de var d'env */
-	count_do_schedule = starpu_get_env_number_default("COUNT_DO_SCHEDULE", 1);
+	/* Pour le sans dépendances uniquement. */
+	//~ count_do_schedule = starpu_get_env_number_default("COUNT_DO_SCHEDULE", 1);
+	priority_attribution = starpu_get_env_number_default("PRIORITY_ATTRIBUTION", 0);
+	
 	average_flop = 0;
 	niter = 1; /* Pour changer le nombre d'itérations */
 	//~ niter = 2; /* Pour changer le nombre d'itérations */
@@ -426,9 +454,7 @@ int main(int argc, char **argv)
 #endif
 
 	starpu_cublas_init();
-	
-	//~ if (starpu_get_env_number_default("BELADY",0) == 1) { starpu_data_register_victim_selector(belady_victim_selector, NULL); }
-
+						 
 	/* Si on veux plusieurs itérations. */
 	int i = 0;
 	for (i = 0; i < niter; i++)
