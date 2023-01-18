@@ -343,6 +343,7 @@ int main(int argc, char *argv[])
 
 	if (strstr(test_name, "mpi/examples/benchs/sendrecv_gemm_bench"))
 	{
+		// FIXME: when set, the program deadlocks
 		unsetenv("OPENBLAS_NUM_THREADS");
 	}
 
