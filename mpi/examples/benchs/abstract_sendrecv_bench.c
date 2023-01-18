@@ -55,7 +55,7 @@ static struct starpu_codelet memset_cl =
 	.modes = {STARPU_W}
 };
 
-void sendrecv_bench(int mpi_rank, starpu_pthread_barrier_t* thread_barrier, int bidir, int mem_node)
+int sendrecv_bench(int mpi_rank, starpu_pthread_barrier_t* thread_barrier, int bidir, int mem_node)
 {
 	uint64_t iterations = LOOPS_DEFAULT;
 	uint64_t s;
@@ -83,7 +83,7 @@ void sendrecv_bench(int mpi_rank, starpu_pthread_barrier_t* thread_barrier, int 
 		}
 		starpu_resume();
 
-		return;
+		return 0;
 	}
 
 	if (mpi_rank == 0)
@@ -115,8 +115,10 @@ void sendrecv_bench(int mpi_rank, starpu_pthread_barrier_t* thread_barrier, int 
 		starpu_vector_data_register(&handle_recv, mem_node, (uintptr_t) vector_recv, s, 1);
 
 		ret = starpu_task_insert(&memset_cl, STARPU_W, handle_send, 0);
+		if (ret == -ENODEV) return ret;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 		ret = starpu_task_insert(&memset_cl, STARPU_W, handle_recv, 0);
+		if (ret == -ENODEV) return ret;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
 		iterations = bench_nb_iterations(iterations, s);
@@ -215,4 +217,5 @@ void sendrecv_bench(int mpi_rank, starpu_pthread_barrier_t* thread_barrier, int 
 	}
 
 	free(lats);
+	return 0;
 }
