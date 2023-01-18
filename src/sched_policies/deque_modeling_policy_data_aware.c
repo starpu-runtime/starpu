@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Joris Pablo
  * Copyright (C) 2013       Simon Archipoff
@@ -284,31 +284,6 @@ static struct starpu_task *dmda_pop_ready_task(unsigned sched_ctx_id)
 static struct starpu_task *dmda_pop_task(unsigned sched_ctx_id)
 {
 	return _dmda_pop_task(sched_ctx_id, 0);
-}
-
-static struct starpu_task *dmda_pop_every_task(unsigned sched_ctx_id)
-{
-	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-
-	struct starpu_task *new_list, *task;
-
-	unsigned workerid = starpu_worker_get_id_check();
-	struct starpu_st_fifo_taskq *fifo = &dt->queue_array[workerid];
-
-	/* Take the opportunity to update start time */
-	fifo->exp_start = STARPU_MAX(starpu_timing_now(), fifo->exp_start);
-	fifo->exp_end = fifo->exp_start + fifo->exp_len;
-
-	starpu_worker_lock_self();
-	new_list = starpu_st_fifo_taskq_pop_every_task(fifo, workerid);
-	starpu_worker_unlock_self();
-
-	starpu_sched_ctx_list_task_counters_reset(sched_ctx_id, workerid);
-
-	for (task = new_list; task; task = task->next)
-		_starpu_fifo_task_transfer_started(fifo, task, dt->num_priorities);
-
-	return new_list;
 }
 
 static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
@@ -1085,7 +1060,6 @@ struct starpu_sched_policy _starpu_sched_dm_policy =
 	.pop_task = dmda_pop_task,
 	.pre_exec_hook = dmda_pre_exec_hook,
 	.post_exec_hook = dmda_post_exec_hook,
-	.pop_every_task = dmda_pop_every_task,
 	.policy_name = "dm",
 	.policy_description = "performance model",
 	.worker_type = STARPU_WORKER_LIST,
@@ -1104,7 +1078,6 @@ struct starpu_sched_policy _starpu_sched_dmda_policy =
 	.pop_task = dmda_pop_task,
 	.pre_exec_hook = dmda_pre_exec_hook,
 	.post_exec_hook = dmda_post_exec_hook,
-	.pop_every_task = dmda_pop_every_task,
 	.policy_name = "dmda",
 	.policy_description = "data-aware performance model",
 	.worker_type = STARPU_WORKER_LIST,
@@ -1123,7 +1096,6 @@ struct starpu_sched_policy _starpu_sched_dmda_prio_policy =
 	.pop_task = dmda_pop_task,
 	.pre_exec_hook = dmda_pre_exec_hook,
 	.post_exec_hook = dmda_post_exec_hook,
-	.pop_every_task = dmda_pop_every_task,
 	.policy_name = "dmdap",
 	.policy_description = "data-aware performance model (priority)",
 	.worker_type = STARPU_WORKER_LIST,
@@ -1142,7 +1114,6 @@ struct starpu_sched_policy _starpu_sched_dmda_sorted_policy =
 	.pop_task = dmda_pop_ready_task,
 	.pre_exec_hook = dmda_pre_exec_hook,
 	.post_exec_hook = dmda_post_exec_hook,
-	.pop_every_task = dmda_pop_every_task,
 	.policy_name = "dmdas",
 	.policy_description = "data-aware performance model (sorted)",
 	.worker_type = STARPU_WORKER_LIST,
@@ -1161,7 +1132,6 @@ struct starpu_sched_policy _starpu_sched_dmda_sorted_decision_policy =
 	.pop_task = dmda_pop_ready_task,
 	.pre_exec_hook = dmda_pre_exec_hook,
 	.post_exec_hook = dmda_post_exec_hook,
-	.pop_every_task = dmda_pop_every_task,
 	.policy_name = "dmdasd",
 	.policy_description = "data-aware performance model (sorted decision)",
 	.worker_type = STARPU_WORKER_LIST,
@@ -1180,7 +1150,6 @@ struct starpu_sched_policy _starpu_sched_dmda_ready_policy =
 	.pop_task = dmda_pop_ready_task,
 	.pre_exec_hook = dmda_pre_exec_hook,
 	.post_exec_hook = dmda_post_exec_hook,
-	.pop_every_task = dmda_pop_every_task,
 	.policy_name = "dmdar",
 	.policy_description = "data-aware performance model (ready)",
 	.worker_type = STARPU_WORKER_LIST,

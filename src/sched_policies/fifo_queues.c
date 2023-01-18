@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Simon Archipoff
  * Copyright (C) 2016       Uppsala University
@@ -368,59 +368,6 @@ struct starpu_task *starpu_st_fifo_taskq_pop_local_task(struct starpu_st_fifo_ta
 	}
 
 	return task;
-}
-
-struct starpu_task *starpu_st_fifo_taskq_pop_every_task(struct starpu_st_fifo_taskq *fifo_queue, int workerid)
-{
-	unsigned size = fifo_queue->ntasks;
-	struct starpu_task *new_list = NULL;
-
-	if (size > 0)
-	{
-		struct starpu_task_list *old_list = &fifo_queue->taskq;
-		struct starpu_task *new_list_tail = NULL;
-		unsigned new_list_size = 0;
-
-		struct starpu_task *task, *next_task;
-		/* note that this starts at the _head_ of the list, so we put
-		 * elements at the back of the new list */
-		task = starpu_task_list_front(old_list);
-		while (task)
-		{
-			unsigned nimpl;
-			next_task = task->next;
-
-			if (starpu_worker_can_execute_task_first_impl(workerid, task, &nimpl))
-			{
-				/* this elements can be moved into the new list */
-				new_list_size++;
-
-				starpu_task_list_erase(old_list, task);
-
-				if (new_list_tail)
-				{
-					new_list_tail->next = task;
-					task->prev = new_list_tail;
-					task->next = NULL;
-					new_list_tail = task;
-				}
-				else
-				{
-					new_list = task;
-					new_list_tail = task;
-					task->prev = NULL;
-					task->next = NULL;
-				}
-				starpu_task_set_implementation(task, nimpl);
-			}
-
-			task = next_task;
-		}
-
-		fifo_queue->ntasks -= new_list_size;
-	}
-
-	return new_list;
 }
 
 int starpu_st_normalize_prio(int priority, int num_priorities, unsigned sched_ctx_id)

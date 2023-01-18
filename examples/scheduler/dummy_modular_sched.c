@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -198,7 +198,6 @@ static struct starpu_sched_policy dummy_sched_policy =
 	.pop_task = starpu_sched_tree_pop_task,
 	.pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
 	.post_exec_hook = starpu_sched_component_worker_post_exec_hook,
-	.pop_every_task = NULL,
 	.policy_name = "dummy",
 	.policy_description = "dummy modular scheduling strategy",
 	.worker_type = STARPU_WORKER_LIST,

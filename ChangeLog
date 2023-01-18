@@ -142,6 +142,7 @@ Changes:
     needed.
   * Cluster is renamed in parallel worker but keep the old API as
     deprecated
+  * Removed pop_every_task scheduler method, unused since long.
 
 Small changes:
   * starpu_mpi_task_insert() returns -ENODEV if no worker is available

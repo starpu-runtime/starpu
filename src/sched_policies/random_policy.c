@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  * Copyright (C) 2013       Thibaut Lambert
  *
@@ -108,7 +108,6 @@ struct starpu_sched_policy _starpu_sched_random_policy =
 	.pop_task = NULL,
 	.pre_exec_hook = NULL,
 	.post_exec_hook = NULL,
-	.pop_every_task = NULL,
 	.policy_name = "random",
 	.policy_description = "weighted random based on worker overall performance",
 	.worker_type = STARPU_WORKER_LIST,

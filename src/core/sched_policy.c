@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2016       Uppsala University
@@ -1163,24 +1163,6 @@ profiling:
 		_starpu_set_current_task(NULL);
 	}
 
-	return task;
-}
-
-struct starpu_task *_starpu_pop_every_task(struct _starpu_sched_ctx *sched_ctx)
-{
-	struct starpu_task *task = NULL;
-	if(sched_ctx->sched_policy)
-	{
-		STARPU_ASSERT(sched_ctx->sched_policy->pop_every_task);
-
-		/* TODO set profiling info */
-		if(sched_ctx->sched_policy->pop_every_task)
-		{
-			_STARPU_SCHED_BEGIN;
-			task = sched_ctx->sched_policy->pop_every_task(sched_ctx->id);
-			_STARPU_SCHED_END;
-		}
-	}
 	return task;
 }
 

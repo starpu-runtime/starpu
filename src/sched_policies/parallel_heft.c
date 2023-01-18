@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
  *
@@ -604,7 +604,6 @@ struct starpu_sched_policy _starpu_sched_parallel_heft_policy =
 	.pop_task = NULL,
 	.pre_exec_hook = parallel_heft_pre_exec_hook,
 	.post_exec_hook = parallel_heft_post_exec_hook,
-	.pop_every_task = NULL,
 	.policy_name = "pheft",
 	.policy_description = "parallel HEFT",
 	.worker_type = STARPU_WORKER_LIST,

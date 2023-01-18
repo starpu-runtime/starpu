@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Joris Pablo
  * Copyright (C) 2013       Simon Archipoff
@@ -358,7 +358,6 @@ struct starpu_sched_policy my_dm_policy =
 	.pop_task = dmda_pop_task,
 	.pre_exec_hook = dmda_pre_exec_hook,
 	.post_exec_hook = dmda_post_exec_hook,
-	.pop_every_task = NULL,
 	.policy_name = "mydm",
 	.policy_description = "performance model",
 	.worker_type = STARPU_WORKER_LIST,

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2021, 2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -38,7 +38,6 @@ struct starpu_sched_policy _starpu_sched_modular_ws_policy =
 	.pop_task = starpu_sched_tree_pop_task,
 	.pre_exec_hook = NULL,
 	.post_exec_hook = NULL,
-	.pop_every_task = NULL,
 	.policy_name = "modular-ws",
 	.policy_description = "work stealing modular policy",
 	.worker_type = STARPU_WORKER_LIST,

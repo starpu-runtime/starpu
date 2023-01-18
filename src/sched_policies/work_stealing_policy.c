@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -802,7 +802,6 @@ struct starpu_sched_policy _starpu_sched_ws_policy =
 	.push_task_notify = ws_push_task_notify,
 	.pre_exec_hook = NULL,
 	.post_exec_hook = NULL,
-	.pop_every_task = NULL,
 	.policy_name = "ws",
 	.policy_description = "work stealing",
 	.worker_type = STARPU_WORKER_LIST,
@@ -914,7 +913,6 @@ struct starpu_sched_policy _starpu_sched_lws_policy =
 	.push_task_notify = ws_push_task_notify,
 	.pre_exec_hook = NULL,
 	.post_exec_hook = NULL,
-	.pop_every_task = NULL,
 	.policy_name = "lws",
 	.policy_description = "locality work stealing",
 #ifdef STARPU_HAVE_HWLOC

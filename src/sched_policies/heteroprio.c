@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2016       Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -3870,7 +3870,6 @@ struct starpu_sched_policy _starpu_sched_heteroprio_policy =
 	.pop_task = pop_task_heteroprio_policy,
 	.pre_exec_hook = pre_exec_hook_heteroprio_policy,
 	.post_exec_hook = post_exec_hook_heteroprio_policy,
-	.pop_every_task = NULL,
 	.policy_name = "heteroprio",
 	.policy_description = "heteroprio",
 	.worker_type = STARPU_WORKER_LIST,

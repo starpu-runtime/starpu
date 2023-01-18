@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
  *
@@ -363,7 +363,6 @@ struct starpu_sched_policy _starpu_sched_peager_policy =
 	.pop_task = pop_task_peager_policy,
 	.pre_exec_hook = NULL,
 	.post_exec_hook = NULL,
-	.pop_every_task = NULL,
 	.policy_name = "peager",
 	.policy_description = "parallel eager policy",
 	.worker_type = STARPU_WORKER_LIST,

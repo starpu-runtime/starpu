@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2016       Uppsala University
@@ -137,15 +137,6 @@ struct starpu_sched_policy
 	   method to assign tasks to the different workers.
 	*/
 	struct starpu_task *(*pop_task)(unsigned sched_ctx_id);
-
-	/**
-	   Remove all available tasks from the scheduler (tasks are
-	   chained by the means of the field starpu_task::prev and
-	   starpu_task::next). The mutex associated to the worker is
-	   already taken when this method is called. This is currently
-	   not used and can be discarded.
-	*/
-	struct starpu_task *(*pop_every_task)(unsigned sched_ctx_id);
 
 	/**
 	   Optional field. This method is called when a task is

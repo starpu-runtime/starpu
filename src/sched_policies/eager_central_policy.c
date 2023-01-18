@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  * Copyright (C) 2016       Uppsala University
  *
@@ -133,19 +133,6 @@ static int push_task_eager_policy(struct starpu_task *task)
 	return 0;
 }
 
-static struct starpu_task *pop_every_task_eager_policy(unsigned sched_ctx_id)
-{
-	struct _starpu_eager_center_policy_data *data = (struct _starpu_eager_center_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	unsigned workerid = starpu_worker_get_id_check();
-	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
-	struct starpu_task* task = starpu_st_fifo_taskq_pop_every_task(&data->fifo, workerid);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-
-	starpu_sched_ctx_list_task_counters_reset_all(task, sched_ctx_id);
-
-	return task;
-}
-
 static struct starpu_task *pop_task_eager_policy(unsigned sched_ctx_id)
 {
 	struct starpu_task *chosen_task = NULL;
@@ -217,7 +204,6 @@ struct starpu_sched_policy _starpu_sched_eager_policy =
 	.pop_task = pop_task_eager_policy,
 	.pre_exec_hook = NULL,
 	.post_exec_hook = NULL,
-	.pop_every_task = pop_every_task_eager_policy,
 	.policy_name = "eager",
 	.policy_description = "eager policy with a central queue",
 	.worker_type = STARPU_WORKER_LIST,
