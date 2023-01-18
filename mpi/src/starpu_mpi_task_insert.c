@@ -1080,7 +1080,10 @@ int starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_han
 						/* Task A */
 				       	        int ret = starpu_task_insert(&_starpu_mpi_redux_data_synchro_cl,
 									     STARPU_R, data_handle,
-									     STARPU_W, new_handle, 0);
+									     STARPU_W, new_handle,
+									     STARPU_PRIORITY, prio,
+									     STARPU_NAME, "redux_prio_tree_synchro_cl",
+									     0);
 						if (ret)
 							return ret;
 				       	        ret = starpu_mpi_irecv_detached_prio(new_handle, contributors[node], data_tag, prio, comm, NULL, NULL);
@@ -1088,7 +1091,12 @@ int starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_han
 							return ret;
 
 					        /* Task B */
-				       		ret = starpu_task_insert(data_handle->redux_cl, STARPU_RW|STARPU_COMMUTE, data_handle, STARPU_R, new_handle, 0);
+						ret = starpu_task_insert(data_handle->redux_cl,
+						                         STARPU_RW|STARPU_COMMUTE, data_handle,
+									 STARPU_R, new_handle,
+									 STARPU_PRIORITY, prio,
+									 STARPU_NAME, "redux_prio_tree_redux_cl",
+									 0);
 						if (ret)
 							return ret;
 						starpu_data_unregister_submit(new_handle);

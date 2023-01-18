@@ -338,6 +338,7 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 						sync_task->name = "_starpu_sync_task";
 					sync_task->cl = NULL;
 					sync_task->type = post_sync_task->type;
+					sync_task->priority = post_sync_task->priority;
 
 					/* Make this task wait for the previous ones */
 					_starpu_add_sync_task(handle, sync_task, sync_task, post_sync_task);

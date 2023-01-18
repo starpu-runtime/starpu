@@ -171,7 +171,7 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 
 		if ((handle->reduction_refcnt == 0) && (previous_mode == STARPU_REDUX) && (mode != STARPU_REDUX))
 		{
-			_starpu_data_end_reduction_mode(handle);
+			_starpu_data_end_reduction_mode(handle, j->task->priority);
 
 			/* Since we need to perform a mode change, we freeze
 			 * the request if needed. */
@@ -588,7 +588,7 @@ int _starpu_notify_data_dependencies(starpu_data_handle_t handle, enum starpu_da
 		int put_in_list = 1;
 		if ((handle->reduction_refcnt == 0) && (handle->current_mode == STARPU_REDUX) && (r_mode != STARPU_REDUX))
 		{
-			_starpu_data_end_reduction_mode(handle);
+			_starpu_data_end_reduction_mode(handle, r->prio);
 
 			/* Since we need to perform a mode change, we freeze
 			 * the request if needed. */
