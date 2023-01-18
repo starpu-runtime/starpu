@@ -161,8 +161,7 @@ if test x$enable_simgrid = xyes ; then
 	   	SIMGRID_CFLAGS="$SIMGRID_CFLAGS -I$simgrid_dir/include"
 	   	SIMGRID_LIBS="$SIMGRID_LIBS -L$simgrid_dir/lib"
 	else
-		PKG_CHECK_VAR([pkg_simgrid_dir], [simgrid], [prefix])
-		simgrid_dir=$pkg_simgrid_dir
+		simgrid_dir="$(pkg-config --variable=prefix simgrid)"
 	fi
    	if test -n "$SIMGRID_CFLAGS" ; then
 	   	CFLAGS="$SIMGRID_CFLAGS $CFLAGS"
