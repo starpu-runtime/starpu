@@ -120,7 +120,7 @@ int main(int argc, char **argv)
 {
 #if defined(STARPU_HAVE_UNSETENV)
 	unsetenv("OPENBLAS_NUM_THREADS");
-	// when set, the program deadlocks
+	// FIXME: when set, the program deadlocks
 #endif
 	double start, end;
 	int ret, worldsize;
