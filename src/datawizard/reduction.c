@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2021, 2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -161,7 +161,7 @@ void _starpu_data_start_reduction_mode(starpu_data_handle_t handle)
 //#define NO_TREE_REDUCTION
 
 /* Force reduction. The lock should already have been taken.  */
-void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
+void _starpu_data_end_reduction_mode(starpu_data_handle_t handle, int priority)
 {
 	unsigned worker;
 	unsigned node;
@@ -268,6 +268,7 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 					 * and i+step and put the result in replicate i */
 					struct starpu_task *redux_task = starpu_task_create();
 					redux_task->name = "redux_task_between_replicates";
+					redux_task->priority = priority;
 
 					/* Mark these tasks so that StarPU does not block them
 					 * when they try to access the handle (normal tasks are
@@ -330,6 +331,7 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 		{
 			struct starpu_task *redux_task = starpu_task_create();
 			redux_task->name = "redux_task_empty";
+			redux_task->priority = priority;
 
 			/* Mark these tasks so that StarPU does not block them
 			 * when they try to access the handle (normal tasks are
@@ -357,6 +359,7 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 		{
 			struct starpu_task *redux_task = starpu_task_create();
 			redux_task->name = "redux_task_reduction";
+			redux_task->priority = priority;
 
 			/* Mark these tasks so that StarPU does not block them
 			 * when they try to access the handle (normal tasks are
