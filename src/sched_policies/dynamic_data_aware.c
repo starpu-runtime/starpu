@@ -1316,14 +1316,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 	printf("\nDebut get task to return GPU n°%d.\n", current_gpu); fflush(stdout);
 	#endif
 			
-	//~ STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
 	int i = 0;
-    //~ my_planned_task_control->pointer = my_planned_task_control->first;
-    //~ struct gpu_planned_task *temp_pointer = my_planned_task_control->first;
-    //~ for (i = 1; i < current_gpu; i++) /* Parce que le premier GPU vaut 1 et pas 0. */
-    //~ {
-		//~ temp_pointer = temp_pointer->next;
-    //~ }
     
 	//~ print_planned_task_all_gpu(); fflush(stdout);
 	//~ print_pulled_task_all_gpu(); fflush(stdout);
@@ -1427,7 +1420,6 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 				#ifdef PRINT_STATS
 				nb_return_null_after_scheduling++;
 				#endif
-				//~ printf("Return NULL after scheduling call.\n"); fflush(stdout);
 				return NULL;
 			}
 			
@@ -3707,9 +3699,9 @@ static void initialize_dynamic_data_aware_center_policy(unsigned sched_ctx_id)
 	starpu_sched_component_initialize_simple_scheduler((starpu_sched_component_create_t) starpu_sched_component_dynamic_data_aware_create, NULL,
 			STARPU_SCHED_SIMPLE_DECIDE_MEMNODES |
 			STARPU_SCHED_SIMPLE_DECIDE_ALWAYS  |
-			STARPU_SCHED_SIMPLE_FIFOS_BELOW |
+			STARPU_SCHED_SIMPLE_FIFOS_BELOW | /* Ne ré-ordonne plus par prio maintenant */
 			STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY |
-			STARPU_SCHED_SIMPLE_FIFOS_BELOW_EXP |
+			//~ STARPU_SCHED_SIMPLE_FIFOS_BELOW_EXP | /* Pas utile */
 			STARPU_SCHED_SIMPLE_IMPL, sched_ctx_id);
 	
 	perf_arch = starpu_worker_get_perf_archtype(0, sched_ctx_id); /* Getting the perfmodel. Used to get the expected length of a task to tiebreak when choosing Dopt. I put 0 in place of worker id because I assume we are in an homogenous case with only identical GPUs. */
