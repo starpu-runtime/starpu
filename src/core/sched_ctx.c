@@ -1465,6 +1465,7 @@ void _starpu_init_all_sched_ctxs(struct _starpu_machine_config *config)
 	{
 		config->sched_ctxs[i].do_schedule = 0;
 		config->sched_ctxs[i].id = STARPU_NMAX_SCHED_CTXS;
+		STARPU_PTHREAD_RWLOCK_INIT0(&config->sched_ctxs[i].rwlock, NULL);
 	}
 
 	return;
