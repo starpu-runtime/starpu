@@ -28,7 +28,7 @@
 #include "../sched_ctx_utils/sched_ctx_utils.h"
 #include <starpu_data_maxime.h> /* Pour l'appel d'une nouvele itération dans le scheduler */
 
-#define PRIORITY_ATTRIBUTION /* 0: default one from StarPU. 1: Bottom level from Christophe Alias */
+#define PRIORITY_ATTRIBUTION /* 0: default one from StarPU. 1: Bottom level from Christophe Alias. 2: Bottom level from Christophe Alias with times. */
 int priority_attribution;
 
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_MAGMA)
@@ -45,13 +45,14 @@ int current_iteration;
 
 /* Durée des tâches utilisé pour la priorité */
 /* Pour des tuiles 960*960 */
-double duration_chol_model_11 = 20695.580000; /* POTRF */
-double duration_chol_model_21 = 626.567700; /* TRSM */
-double duration_chol_model_22 = 139.072000; /* SYRK et GEMM */
+double T_POTRF = 20695.580000;
+double T_TRSM = 626.567700;
+double T_GEMM = 139.072000;
+double T_SYRK = 139.072000;
 //~ /* Pour des tuiles 1920*1920 */
-//~ double duration_chol_model_11 = 46798.300000;
-//~ double duration_chol_model_21 = 1519.698000;
-//~ double duration_chol_model_22 = 1014.999000;
+//~ double T_POTRF = 46798.300000;
+//~ double T_TRSM = 1519.698000;
+//~ double T_GEMM = 1014.999000;
 
 /*
  *	code to bootstrap the factorization
@@ -95,9 +96,13 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 				{
 					priority = 2*nblocks - 2*k;
 				}
-				else /* Avec prio de bottom levels de Christophe Alias */
+				else if (priority_attribution == 1) /* Avec prio de bottom levels de Christophe Alias */
 				{
-					priority = 3*nblocks - (duration_chol_model_11 + duration_chol_model_21 + duration_chol_model_22)*k;
+					priority = 3*nblocks - 3*k;
+				}
+				else
+				{
+					priority = 3*(T_POTRF + T_TRSM + T_SYRK + T_GEMM) - (T_POTRF + T_TRSM + T_GEMM)*k;
 				}
 				
                 ret = starpu_task_insert(&cl11,
@@ -115,9 +120,23 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		for (m = k+1; m<nblocks; m++)
 		{
                         starpu_data_handle_t sdatamk = starpu_data_get_sub_data(dataA, 2, m, k);
+                        
+                        if (priority_attribution == 0) /* Prio de base */
+						{
+							priority = 2*nblocks - 2*k - m;
+						}
+						else if (priority_attribution == 1)
+						{
+							priority = 3*nblocks - (2*k + m);
+						}
+						else 
+						{
+							priority = 3*(T_POTRF + T_TRSM + T_SYRK + T_GEMM) - ((T_TRSM + T_GEMM)*k+(T_POTRF + T_SYRK - T_GEMM)*m + T_GEMM - T_SYRK);
+						}
 
                         ret = starpu_task_insert(&cl21,
-						 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m) : (m == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
+						 //~ STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m) : (m == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
+						 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? priority : (m == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
 						 STARPU_R, sdatakk,
 						 //~ STARPU_R, sdatamk, /* Version sans dépendances */
 						 STARPU_RW, sdatamk, /* Cas dep == 1 */
@@ -137,8 +156,22 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 				starpu_data_handle_t sdatamk = starpu_data_get_sub_data(dataA, 2, m, k);
 				starpu_data_handle_t sdatamn = starpu_data_get_sub_data(dataA, 2, m, n);
 
+                if (priority_attribution == 0) /* Prio de base */
+				{
+					priority = 2*nblocks - 2*k - m - n;
+				}
+				else if (priority_attribution == 1)
+				{
+					priority = 3*nblocks - (k + n + m);
+				}
+				else
+				{
+					priority = 3*(T_POTRF + T_TRSM + T_SYRK + T_GEMM) - (T_GEMM*k + T_TRSM*n + (T_POTRF + T_SYRK - T_GEMM)*m - T_SYRK + T_GEMM);
+				}
+						
 				ret = starpu_task_insert(&cl22,
-							 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m - n) : ((n == k+1) && (m == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
+							 //~ STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m - n) : ((n == k+1) && (m == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
+							 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? priority : ((n == k+1) && (m == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
 							 STARPU_R, sdatamk,
 							 STARPU_R, sdatank,
 							 cl22.modes[2], sdatamn,
@@ -211,7 +244,8 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 			}
 		}
 		else
-		{		
+		{	
+			//~ printf("GFlop/s: %f (flop: %f / timing: %f)\n", flop/timing/1000.0f, flop, timing); fflush(stdout);	
 			PRINTF("# size\tms\tGFlops");
 			if (bound_p)
 				PRINTF("\tTms\tTGFlops");
