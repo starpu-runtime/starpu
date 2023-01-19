@@ -707,11 +707,6 @@ int _starpu_mpi_task_postbuild_v(MPI_Comm comm, int xrank, int do_execute, struc
 			if (mpi_data->redux_map == NULL)
 			{
 				_STARPU_CALLOC(mpi_data->redux_map, size, sizeof(mpi_data->redux_map[0]));
-				struct _starpu_redux_data_entry *entry;
-				_STARPU_MPI_MALLOC(entry, sizeof(*entry));
-				starpu_data_handle_t data_handle = descrs[i].handle;
-				entry->data_handle = data_handle;
-				HASH_ADD_PTR(_redux_data, data_handle, entry);
 			}
 			mpi_data->redux_map [xrank] = 1;
 			mpi_data->redux_map [rrank] = 1;
@@ -725,8 +720,6 @@ int _starpu_mpi_task_postbuild_v(MPI_Comm comm, int xrank, int do_execute, struc
 				entry->data_handle = data_handle;
 				HASH_ADD_PTR(_redux_data, data_handle, entry);
 			}
-			mpi_data->redux_map [xrank] = 1;
-			mpi_data->redux_map [rrank] = 1;
 		}
 		_starpu_mpi_exchange_data_after_execution(descrs[i].handle, descrs[i].mode, me, xrank, do_execute, prio, comm);
 		_starpu_mpi_clear_data_after_execution(descrs[i].handle, descrs[i].mode, me, do_execute);
@@ -977,6 +970,8 @@ int starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_han
 	}
 	starpu_mpi_comm_rank(comm, &me);
 	starpu_mpi_comm_size(comm, &nb_nodes);
+	struct _starpu_redux_data_entry *entry;
+	HASH_FIND_PTR(_redux_data, &data_handle, entry);
 
 #ifdef STARPU_MPI_VERBOSE
 	int current_level=0;
@@ -997,6 +992,14 @@ int starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_han
 	if (nb_contrib < 2)
 	{
 		_STARPU_MPI_DEBUG(5, "Not enough contributors to create a n-ary reduction tree.\n");
+		/* duplicated at the end of this function */
+		if (entry != NULL)
+		{
+			HASH_DEL(_redux_data, entry);
+			free(entry);
+		}
+		free(mpi_data->redux_map);
+		mpi_data->redux_map = NULL;
 		return 0;
 	}
 	if (arity < 2)
@@ -1119,8 +1122,7 @@ int starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_han
 #endif
 	}
 
-	struct _starpu_redux_data_entry *entry;
-	HASH_FIND_PTR(_redux_data, &data_handle, entry);
+	/* duplicated when not enough contributors */
 	if (entry != NULL)
 	{
 		HASH_DEL(_redux_data, entry);
