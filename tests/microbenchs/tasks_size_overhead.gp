@@ -19,7 +19,7 @@ OUTPUT=tasks_size_overhead.output
 VALS=$(sed -n -e '3p' < $OUTPUT)
 
 PLOTS=""
-for x in $(seq 1 11)
+for x in 1 2 3 4 5 6 7 8 9 10 11
 do
     pos=$((2 * $x + 1))
     double=$((2 * $x))
