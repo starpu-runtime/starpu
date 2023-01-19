@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2012-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2012-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -17,6 +17,7 @@
 check_success()
 {
     if [ $1 -ne 0 ] ; then
+	( echo FAIL: STARPU_SCHED=$sched $basedir/../cholesky/cholesky_tag >&9 ) 2> /dev/null || true
 	echo "failure" >&2
         exit $1
     else
