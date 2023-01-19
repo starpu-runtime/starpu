@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2021, 2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2016       Uppsala University
  * Copyright (C) 2017       Arthur Chevalier
  *
@@ -1457,6 +1457,7 @@ void _starpu_init_all_sched_ctxs(struct _starpu_machine_config *config)
 	{
 		config->sched_ctxs[i].do_schedule = 0;
 		config->sched_ctxs[i].id = STARPU_NMAX_SCHED_CTXS;
+		STARPU_PTHREAD_RWLOCK_INIT(&config->sched_ctxs[i].rwlock, NULL);
 	}
 
 	return;
