@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2021       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -171,7 +171,7 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 
 		if ((handle->reduction_refcnt == 0) && (previous_mode == STARPU_REDUX) && (mode != STARPU_REDUX))
 		{
-			_starpu_data_end_reduction_mode(handle, j->task->priority);
+			_starpu_data_end_reduction_mode(handle, j?j->task->priority:STARPU_DEFAULT_PRIO);
 
 			/* Since we need to perform a mode change, we freeze
 			 * the request if needed. */
