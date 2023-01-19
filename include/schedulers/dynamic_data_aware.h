@@ -146,6 +146,7 @@ extern bool new_tasks_initialized;
 extern int iteration;
 
 /** Fonctions d'affichage **/
+void print_task_info(struct starpu_task* task);
 void print_task_list(struct starpu_task_list *l, char *s);
 void print_data_not_used_yet();
 void print_planned_task_one_gpu(struct gpu_planned_task *g, int current_gpu);
