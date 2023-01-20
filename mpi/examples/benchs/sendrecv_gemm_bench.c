@@ -118,10 +118,6 @@ void parse_args(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
-	// FIXME: when set, the program deadlocks
-	if (starpu_getenv("OPENBLAS_NUM_THREADS") != NULL)
-		return STARPU_TEST_SKIPPED;
-
 	double start, end;
 	int ret, worldsize;
 	starpu_pthread_t comm_thread;
@@ -182,7 +178,6 @@ int main(int argc, char **argv)
 	starpu_resume();
 	starpu_task_wait_for_all();
 	end = starpu_timing_now();
-	starpu_pause(); // Pause not to disturb comm thread if it isn't done
 
 	double timing = end - start;
 	double flops = 2.0*((unsigned long long)matrix_dim) * ((unsigned long long)matrix_dim)*((unsigned long long)matrix_dim);

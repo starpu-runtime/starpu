@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -339,12 +339,6 @@ int main(int argc, char *argv[])
 
 		fprintf(stderr, "[error] '%s' failed to exec. test marked as failed\n", test_name);
 		exit(EXIT_FAILURE);
-	}
-
-	if (strstr(test_name, "mpi/examples/benchs/sendrecv_gemm_bench"))
-	{
-		// FIXME: when set, the program deadlocks
-		unsetenv("OPENBLAS_NUM_THREADS");
 	}
 
 	if (strstr(test_name, "spmv/dw_block_spmv"))
