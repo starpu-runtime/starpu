@@ -1953,6 +1953,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 							
 							hud->is_present_in_data_not_used_yet[current_gpu - 1] = 0;
 							e->D->user_data = hud;
+							
+							gpu_data_not_used_delete(e);
+							break;
 						}
 					}
 				}
@@ -2444,6 +2447,8 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 				
 				hud->is_present_in_data_not_used_yet[current_gpu - 1] = 0;
 				e->D->user_data = hud;
+				
+				gpu_data_not_used_delete(e);
 		}
 		
 		#ifdef PRINT
@@ -2766,6 +2771,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 							
 							hud->is_present_in_data_not_used_yet[current_gpu - 1] = 0;
 							e->D->user_data = hud;
+							
+							gpu_data_not_used_delete(e);
+							break;
 						}
 					}
 				}
@@ -3853,6 +3861,9 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 			#endif
 			
 			pulled_task_list_erase(tab_gpu_pulled_task[current_gpu - 1].ptl, temp);
+			
+			/* New delete */
+			pulled_task_delete(temp);
 		}
     }
     
