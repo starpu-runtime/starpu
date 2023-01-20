@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2021, 2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -56,6 +56,8 @@ struct starpu_codelet mycodelet_args =
         .nbuffers = 2
 };
 
+/* This one cheats by getting the factor through a global variable, which cannot
+ * work in master-slave mode, so we can only run it on a local CPU */
 struct starpu_codelet mycodelet_noargs =
 {
 	.modes = { STARPU_RW, STARPU_RW },
