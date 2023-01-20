@@ -424,12 +424,12 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 	
 	struct dynamic_data_aware_sched_data *data = component->data;
 	
-	//~ #ifdef PRINT
+	#ifdef PRINT
 	for (i = 0; i < Ngpu; i++)
 	{
 		check_double_in_data_not_used_yet(&tab_gpu_planned_task[i], i);
 	}
-	//~ #endif
+	#endif
 	
 	/* Voir si ca marche apres le init ou si ca devrait le remplacer. 
 	 * Ne pas faire le if else en dessous si la tache est gratuite. */
@@ -728,7 +728,7 @@ void initialize_task_data_gpu_single_task_v3(struct starpu_task *task, int also_
 				
 				if (also_add_data_in_not_used_yet_list == 1)
 				{
-					printf("Data is new. Adding %p in data_not_used_yet of GPU %d\n", e->D, j); fflush(stdout);
+					//~ printf("Data is new. Adding %p in data_not_used_yet of GPU %d\n", e->D, j); fflush(stdout);
 					hud->is_present_in_data_not_used_yet[j] = 1;
 					if (data_order == 1)
 					{
@@ -738,7 +738,7 @@ void initialize_task_data_gpu_single_task_v3(struct starpu_task *task, int also_
 					{
 						gpu_data_not_used_list_push_back(tab_gpu_planned_task[j].gpu_data, e);
 					}
-					print_data_not_used_yet();
+					//~ print_data_not_used_yet();
 				}
 			}
 			#ifdef PRINT
@@ -802,7 +802,7 @@ void initialize_task_data_gpu_single_task_v3(struct starpu_task *task, int also_
 						printf("%p gets 1 at is_present_in_data_not_used_yet on GPU %d\n", STARPU_TASK_GET_HANDLE(task, i), j); fflush(stdout);
 						#endif
 						
-						printf("Data already exist but not anymore on this GPU. Adding %p in data_not_used_yet of GPU %d\n", e->D, j); fflush(stdout);
+						//~ printf("Data already exist but not anymore on this GPU. Adding %p in data_not_used_yet of GPU %d\n", e->D, j); fflush(stdout);
 						hud->is_present_in_data_not_used_yet[j] = 1;
 						if (data_order == 1)
 						{
@@ -812,7 +812,7 @@ void initialize_task_data_gpu_single_task_v3(struct starpu_task *task, int also_
 						{
 							gpu_data_not_used_list_push_back(tab_gpu_planned_task[j].gpu_data, e);	
 						}
-						print_data_not_used_yet();
+						//~ print_data_not_used_yet();
 					}
 				}
 				STARPU_TASK_GET_HANDLE(task, i)->user_data = hud;				
@@ -1848,9 +1848,9 @@ void update_best_data_single_decision_tree(int* number_free_task_max, double* re
  **/
 void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g)
 {
-	//~ #ifdef PRINT
+	#ifdef PRINT
 	printf("Début de sched 3D avec GPU %d.\n", current_gpu - 1); fflush(stdout);
-	//~ #endif
+	#endif
 	
 	Dopt[current_gpu - 1] = NULL;
 		
@@ -2435,9 +2435,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 					  e = gpu_data_not_used_list_next(e);
 				}
 				
-				printf("Free task. Erase data %p from GPU %d\n", e->D, current_gpu - 1); fflush(stdout);
+				//~ printf("Free task. Erase data %p from GPU %d\n", e->D, current_gpu - 1); fflush(stdout);
 				gpu_data_not_used_list_erase(g->gpu_data, e);
-				print_data_not_used_yet();
+				//~ print_data_not_used_yet();
 				
 				hud = e->D->user_data;
 				
@@ -2600,7 +2600,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		/* Removing the datas from datanotused of the GPU. */		
 		if (choose_best_data_from == 0) /* Que dans le cas où je choisis depuis la liste des pas encore utilisées. */
 		{
-			print_task_info(best_1_from_free_task);
+			//~ print_task_info(best_1_from_free_task);
 			/* J'efface toutes les données qui sont utilisé par la tâche 1_from_free que l'ont va retourner. */
 			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(best_1_from_free_task); i++)
 			{
@@ -2610,24 +2610,24 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 					for (e1 = gpu_data_not_used_list_begin(g->gpu_data); e1 != gpu_data_not_used_list_end(g->gpu_data); e1 = gpu_data_not_used_list_next(e1))
 					{
 						//~ printf("%p == %p ?\n", e->D, STARPU_TASK_GET_HANDLE(best_1_from_free_task, i)); fflush(stdout);
-						printf("%p == %p ?\n", e1->D, STARPU_TASK_GET_HANDLE(best_1_from_free_task, i)); fflush(stdout);
+						//~ printf("%p == %p ?\n", e1->D, STARPU_TASK_GET_HANDLE(best_1_from_free_task, i)); fflush(stdout);
 						//~ if(e->D == STARPU_TASK_GET_HANDLE(best_1_from_free_task, i))
 						if(e1->D == STARPU_TASK_GET_HANDLE(best_1_from_free_task, i))
 						{
-							printf("1 from free task. Erase data %p from GPU %d\n", e1->D, current_gpu - 1); fflush(stdout);
+							//~ printf("1 from free task. Erase data %p from GPU %d\n", e1->D, current_gpu - 1); fflush(stdout);
 							//~ printf("1 from free task. Erase data %p from GPU %d\n", e->D, current_gpu - 1); fflush(stdout);
 							//~ printf("Printing list I will erase from\n"); fflush(stdout);
 							//~ print_data_not_used_yet_one_gpu(g, current_gpu - 1);
 							//~ g->gpu_data = gpu_data_not_used_list_begin(g->gpu_data);
 							//~ e = e1;
 							//~ gpu_data_not_used_list_erase(g->gpu_data, e);
-							printf("%p\n", e1);
+							//~ printf("%p\n", e1);
 							
 							gpu_data_not_used_list_erase(g->gpu_data, e1);
 							/* TODO:  a chaque erase faire : */
 							
 							//~ remove_cell_from_gpu_data_not_used(g->gpu_data, e1);
-							print_data_not_used_yet();
+							//~ print_data_not_used_yet();
 							
 							//~ hud = e->D->user_data;
 							hud = e1->D->user_data;
@@ -2759,9 +2759,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 					{
 						if(e->D == STARPU_TASK_GET_HANDLE(task, i))
 						{
-							printf("Random. Erase data %p from GPU %d\n", e->D, current_gpu - 1); fflush(stdout);
+							//~ printf("Random. Erase data %p from GPU %d\n", e->D, current_gpu - 1); fflush(stdout);
 							gpu_data_not_used_list_erase(g->gpu_data, e);
-							print_data_not_used_yet();
+							//~ print_data_not_used_yet();
 							
 							hud = e->D->user_data;
 							
@@ -2816,16 +2816,16 @@ void increment_planned_task_data(struct starpu_task *task, int current_gpu)
 {
 	/* Attention aux doubles içi!!! */
 	int i = 0;
-	starpu_data_handle_t last_handle = NULL;
+	//~ starpu_data_handle_t last_handle = NULL;
 	for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 	{	
-		if (last_handle != STARPU_TASK_GET_HANDLE(task, i))
-		{
+		//~ if (last_handle != STARPU_TASK_GET_HANDLE(task, i))
+		//~ {
 			struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(task, i)->user_data;
 			hud->nb_task_in_planned_task[current_gpu - 1] = hud->nb_task_in_planned_task[current_gpu - 1] + 1;
 			STARPU_TASK_GET_HANDLE(task, i)->user_data = hud;
-			last_handle = STARPU_TASK_GET_HANDLE(task, i);
-		}
+			//~ last_handle = STARPU_TASK_GET_HANDLE(task, i);
+		//~ }
 	}
 }
 
@@ -3552,6 +3552,13 @@ void tab_gpu_planned_task_init()
 		struct gpu_data_not_used_list *p = gpu_data_not_used_list_new();
 		tab_gpu_planned_task[i].gpu_data = p;
 		gpu_data_not_used_list_init(tab_gpu_planned_task[i].gpu_data);
+		
+		if (data_order == 1)
+		{
+			struct gpu_data_not_used_list *p = gpu_data_not_used_list_new();
+			tab_gpu_planned_task[i].new_gpu_data = p;
+			gpu_data_not_used_list_init(tab_gpu_planned_task[i].new_gpu_data);
+		}
 
 		tab_gpu_planned_task[i].first_task_to_pop = NULL;
 	}
@@ -3739,7 +3746,7 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	    //~ gpu_pulled_task_insertion();
 	//~ }
 	//~ my_pulled_task_control->first = my_pulled_task_control->pointer;
-	printf("%d GPU(s)\n", Ngpu); fflush(stdout);
+	//~ printf("%d GPU(s)\n", Ngpu); fflush(stdout);
 	tab_gpu_planned_task = malloc(Ngpu*sizeof(struct gpu_planned_task));
 	tab_gpu_planned_task_init();
 	tab_gpu_pulled_task = malloc(Ngpu*sizeof(struct gpu_pulled_task));
