@@ -381,7 +381,7 @@ int _starpu_parallel_worker_bind(struct _starpu_parallel_worker *parallel_worker
 				  STARPU_SCHED_CTX, parallel_worker->id,
 				  STARPU_POSSIBLY_PARALLEL, 1,
 				  STARPU_PROLOGUE_CALLBACK_POP, func,
-				  STARPU_PROLOGUE_CALLBACK_POP_ARG, func_arg,
+				  STARPU_PROLOGUE_CALLBACK_POP_ARG_NFREE, func_arg,
 				  0);
 }
 

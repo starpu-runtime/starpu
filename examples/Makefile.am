@@ -423,9 +423,10 @@ STARPU_EXAMPLES +=				\
 
 if STARPU_HAVE_HWLOC
 if STARPU_HWLOC_HAVE_TOPOLOGY_DUP
-STARPU_EXAMPLES +=				\
-	sched_ctx/parallel_workers		\
-	sched_ctx/parallel_workers_oldapi
+STARPU_EXAMPLES +=					\
+	parallel_workers/parallel_workers		\
+	parallel_workers/parallel_workers_func		\
+	parallel_workers/parallel_workers_oldapi
 endif
 endif
 endif
