@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -349,6 +349,10 @@ environment variable \ref STARPU_MPI_NDETACHED_SEND. In the same fashion, the
 progression thread will poll for termination of existing requests after
 submitting a defined number of requests. This behavior can be tuned with the
 environment variable \ref STARPU_MPI_NREADY_PROCESS.
+
+The function starpu_mpi_issend() allows to perform a synchronous-mode,
+non-blocking send of a data. It can also be specified when using
+starpu_mpi_task_insert() with the parameter ::STARPU_SSEND.
 
 \ref MPIPtpCommunication gives the list of all the
 point to point communications defined in StarPU-MPI.
