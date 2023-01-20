@@ -2816,11 +2816,16 @@ void increment_planned_task_data(struct starpu_task *task, int current_gpu)
 {
 	/* Attention aux doubles içi!!! */
 	int i = 0;
+	starpu_data_handle_t last_handle = NULL;
 	for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
-	{
-		struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(task, i)->user_data;
-		hud->nb_task_in_planned_task[current_gpu - 1] = hud->nb_task_in_planned_task[current_gpu - 1] + 1;
-		STARPU_TASK_GET_HANDLE(task, i)->user_data = hud;
+	{	
+		if (last_handle != STARPU_TASK_GET_HANDLE(task, i))
+		{
+			struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(task, i)->user_data;
+			hud->nb_task_in_planned_task[current_gpu - 1] = hud->nb_task_in_planned_task[current_gpu - 1] + 1;
+			STARPU_TASK_GET_HANDLE(task, i)->user_data = hud;
+			last_handle = STARPU_TASK_GET_HANDLE(task, i);
+		}
 	}
 }
 
