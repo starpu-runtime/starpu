@@ -1085,7 +1085,12 @@ void print_effective_order_in_file (struct starpu_task *task, int index_task)
 		starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, STARPU_TASK_GET_NBUFFERS(task) - 1), 2, tab_coordinates);
 		//~ fprintf(f, "	%d	%d	%d	%ld\n", tab_coordinates[0], tab_coordinates[1], starpu_worker_get_id(), task->iterations[0]);
 		fprintf(f, "	%d	%d	%d	%ld\n", tab_coordinates[0], tab_coordinates[1], current_gpu - 1, task->iterations[0]);
-			
+		
+		if (task->iterations[0] == 1 || task->iterations[0] == 0)
+		{
+			printf("Task %p has coordinates X: %d Y: %d K: %ld GPU: %d \n", task, tab_coordinates[1], tab_coordinates[0], task->iterations[0], current_gpu - 1);
+		}
+		
 		//~ /* J'imprime les coordonnées des données utilisées. Dans le cas ou je veux toutes les coords. */
 		//~ for (i = 0; i <  STARPU_TASK_GET_NBUFFERS(task); i++)
 		//~ {

@@ -309,10 +309,12 @@ void print_data_not_used_yet_one_gpu(struct gpu_planned_task *g, int current_gpu
 {
     printf("Data not used yet on GPU %d are:\n", current_gpu); fflush(stdout);
     //~ for (struct gpu_data_not_used *e = gpu_data_not_used_list_begin(tab_gpu_planned_task[current_gpu].gpu_data); e != gpu_data_not_used_list_end(tab_gpu_planned_task[current_gpu].gpu_data); e = gpu_data_not_used_list_next(e))
+    if (g->gpu_data != NULL)
+    {
     for (struct gpu_data_not_used *e = gpu_data_not_used_list_begin(g->gpu_data); e != gpu_data_not_used_list_end(g->gpu_data); e = gpu_data_not_used_list_next(e))
     {
 		printf(" %p", e->D); fflush(stdout);
-    }
+    }}
     printf("\n"); fflush(stdout);
 }
 
@@ -1487,9 +1489,9 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
  * head of the GPU task list. Else it calls dyanmic_outer_scheuling to fill this package. */
 static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
-	#ifdef PRINT
-	printf("Début de pull_task.\n"); fflush(stdout);
-	#endif
+	//~ #ifdef PRINT
+	//~ printf("Début de pull_task.\n"); fflush(stdout);
+	//~ #endif
 		
 	#ifdef LINEAR_MUTEX
 	STARPU_PTHREAD_MUTEX_LOCK(&linear_mutex);
@@ -1747,9 +1749,9 @@ void update_best_data_single_decision_tree(int* number_free_task_max, double* re
 		}
 		else if (number_1_from_free_task_candidate == *number_1_from_free_task_max)
 		{	
-			#ifdef PRINT
-			printf("Comparing expected lenghts %f and %f from data %p and %p\n", *remaining_expected_length_max, remaining_expected_length_candidate, *handle_popped, handle_candidate);
-			#endif
+			//~ #ifdef PRINT
+			//~ printf("Comparing expected lenghts %f and %f from data %p and %p\n", *remaining_expected_length_max, remaining_expected_length_candidate, *handle_popped, handle_candidate);
+			//~ #endif
 			
 			/* V1 prio then expected lenth */
 			/* Then with priority */
@@ -2130,9 +2132,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 				//~ update_best_data_single_decision_tree(&number_free_task_max, &task_available_max, &handle_popped, &priority_max, &number_1_from_free_task_max, &task_available_max_1_from_free, temp_number_free_task_max, task_using_data_list_size(e->D->sched_data), e->D, temp_priority_max, temp_number_1_from_free_task_max, &data_choosen_index, i);
 				
 				hud = e->D->user_data;
-				#ifdef PRINT
-				printf("Expected length of data %p is %f\n", e->D, hud->sum_remaining_task_expected_length);
-				#endif
+
 				update_best_data_single_decision_tree(&number_free_task_max, &remaining_expected_length_max, &handle_popped, &priority_max, &number_1_from_free_task_max, temp_number_free_task_max, hud->sum_remaining_task_expected_length, e->D, temp_priority_max, temp_number_1_from_free_task_max, &data_choosen_index, i, &best_1_from_free_task, temp_best_1_from_free_task);
 								
 				
@@ -2506,8 +2506,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 					printf(" %p", STARPU_TASK_GET_HANDLE(t->pointer_to_T, i));
 				}
 				printf("\n");
+				print_data_on_node(1);
 				#endif
-				
+								
 				erase_task_and_data_pointer(t->pointer_to_T, main_task_list);
 				starpu_task_list_push_back(&g->planned_task, t->pointer_to_T);
 				
@@ -2841,9 +2842,9 @@ void increment_planned_task_data(struct starpu_task *task, int current_gpu)
 
 void dynamic_data_aware_victim_eviction_failed(starpu_data_handle_t victim, void *component)
 {	
-	#ifdef PRINT
-	printf("Début de victim eviction failed with data %p.\n", victim); fflush(stdout);
-	#endif
+	//~ #ifdef PRINT
+	//~ printf("Début de victim eviction failed with data %p.\n", victim); fflush(stdout);
+	//~ #endif
 	#ifdef REFINED_MUTEX
 	STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
 	#endif
@@ -2885,9 +2886,9 @@ void dynamic_data_aware_victim_eviction_failed(starpu_data_handle_t victim, void
  * Je rentre bcp trop dans cette fonction on perds du temps car le timing avance lui. Résolu en réduisant le threshold et en adaptant aussi CUDA_PIPELINE. */
 starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
 {
-	#ifdef PRINT
-	printf("Début de victim selector.\n"); fflush(stdout);
-	#endif
+	//~ #ifdef PRINT
+	//~ printf("Début de victim selector.\n"); fflush(stdout);
+	//~ #endif
 	#ifdef REFINED_MUTEX
 	STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
 	#endif
@@ -2903,9 +2904,9 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
     int i = 0;
     int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
     
-    #ifdef PRINT
-	printf("Début de victim_selector GPU %d node %d.\n", current_gpu, node); fflush(stdout);
-	#endif
+    //~ #ifdef PRINT
+	//~ printf("Début de victim_selector GPU %d node %d.\n", current_gpu, node); fflush(stdout);
+	//~ #endif
     
     /* Se placer sur le bon GPU pour planned_task */
     //~ struct gpu_planned_task *temp_pointer = my_planned_task_control->first;
@@ -3060,9 +3061,9 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		}
     }
     
-    #ifdef PRINT
-    printf("Min number of task in pulled task = %d from %d data.\n", min_number_task_in_pulled_task, nb_data_on_node); 
-	#endif
+    //~ #ifdef PRINT
+    //~ printf("Min number of task in pulled task = %d from %d data.\n", min_number_task_in_pulled_task, nb_data_on_node); 
+	//~ #endif
 	
 	/* TODO : ce premier if on ne peut jamais entrer dedans normalement. A supprimer. */
     if (min_number_task_in_pulled_task == INT_MAX)
@@ -3203,9 +3204,9 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 						struct handle_user_data* hud = pt->pointer_to_D[i]->user_data;
 						hud->sum_remaining_task_expected_length += starpu_task_expected_length(task, perf_arch, 0);
 						
-						#ifdef PRINT
-						printf("Eviction. Expected length in data %p: %f\n", STARPU_TASK_GET_HANDLE(task, i), hud->sum_remaining_task_expected_length);
-						#endif
+						//~ #ifdef PRINT
+						//~ printf("Eviction of data %p.\n", STARPU_TASK_GET_HANDLE(task, i));
+						//~ #endif
 						
 						pt->pointer_to_D[i]->user_data = hud;
 						
@@ -3235,9 +3236,9 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 				struct handle_user_data * hud = returned_handle->user_data;
 				if (hud->is_present_in_data_not_used_yet[current_gpu - 1] == 0)
 				{
-					#ifdef PRINT
-					printf("Pushing %p on GPU %d at random spot.\n", returned_handle, current_gpu - 1); fflush(stdout);
-					#endif
+					//~ #ifdef PRINT
+					//~ printf("Pushing %p on GPU %d at random spot.\n", returned_handle, current_gpu - 1); fflush(stdout);
+					//~ #endif
 					
 					push_data_not_used_yet_random_spot(returned_handle, &tab_gpu_planned_task[current_gpu - 1], current_gpu - 1);
 				}
@@ -3266,9 +3267,9 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 						/* Version où j'utilise is_present_in_data_not_used_yet de la struct de handle_user_data */
 						if (hud->is_present_in_data_not_used_yet[i] == 0)
 						{
-							#ifdef PRINT
-							printf("Not there, pushing data %p on GPU %d at random spot\n", returned_handle, i); fflush(stdout);
-							#endif
+							//~ #ifdef PRINT
+							//~ printf("Not there, pushing data %p on GPU %d at random spot\n", returned_handle, i); fflush(stdout);
+							//~ #endif
 							
 							push_data_not_used_yet_random_spot(returned_handle, &tab_gpu_planned_task[i], i);
 						}
@@ -3277,9 +3278,9 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 			}
 			else
 			{
-				#ifdef PRINT
-				printf("Pushing %p on GPU %d at random spot.\n", returned_handle, current_gpu - 1); fflush(stdout);
-				#endif
+				//~ #ifdef PRINT
+				//~ printf("Pushing %p on GPU %d at random spot.\n", returned_handle, current_gpu - 1); fflush(stdout);
+				//~ #endif
 				
 				push_data_not_used_yet_random_spot(returned_handle, &tab_gpu_planned_task[current_gpu - 1], current_gpu - 1);
 			}
