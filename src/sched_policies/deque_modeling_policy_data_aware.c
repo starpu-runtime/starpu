@@ -23,8 +23,9 @@
 /* Distributed queues using performance modeling to assign tasks */
 
 /* Pour faire des visu python */
-#define PRINT
-#define PRINT_PYTHON
+//~ #define PRINT
+//~ #define PRINT_PYTHON
+//~ #define PRINT_STATS
 
 #include <schedulers/HFP.h>
 
