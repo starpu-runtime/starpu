@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020-2022 Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2023 Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -173,6 +173,7 @@ static int _pyobject_peek_data(struct starpupyobject_interface *pyobject_interfa
 		exit(1);
 	}
 	PyObject *loads = PyObject_GetAttrString(pickle_module, "loads");
+	/* TODO: should tell python that we want allocation to happen on node \p node */
 	PyObject *obj_bytes_str = PyBytes_FromStringAndSize(data, count);
 	PyObject *obj= PyObject_CallFunctionObjArgs(loads, obj_bytes_str, NULL);
 	if(pyobject_interface->object != NULL)
@@ -256,9 +257,8 @@ static uint32_t starpupy_footprint(starpu_data_handle_t handle)
 	return crc;
 }
 
-static int pyobject_copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data)
+static int pyobject_copy_ram_to_ram(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
 {
-	(void)async_data;
 	(void)src_node;
 	struct starpupyobject_interface *src = (struct starpupyobject_interface *) src_interface;
 	struct starpupyobject_interface *dst = (struct starpupyobject_interface *) dst_interface;
@@ -284,7 +284,7 @@ static int pyobject_copy_any_to_any(void *src_interface, unsigned src_node, void
 
 static const struct starpu_data_copy_methods pyobject_copy_data_methods_s =
 {
-	.any_to_any = pyobject_copy_any_to_any,
+	.ram_to_ram = pyobject_copy_ram_to_ram,
 };
 
 static struct starpu_data_interface_ops interface_pyobject_ops =
