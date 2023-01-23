@@ -3071,7 +3071,7 @@ if test x$starpu_windows = xyes ; then
    enable_openmp_llvm=no
    openmp_llvm_msg="disabled on windows"
 fi
-if test "x$use_mpi_master_slave" = "xyes" ; then
+if test "x$build_master_slave" = "xyes" ; then
    enable_openmp_llvm=no
    openmp_llvm_msg="incompatibility with MPI master slave support"
 fi
