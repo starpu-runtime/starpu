@@ -572,8 +572,6 @@ static int pybuffer_compare(void *data_interface_a, void *data_interface_b)
 
 static int pybuffer_copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data)
 {
-	(void)async_data;
-
 	struct starpupy_buffer_interface *src = (struct starpupy_buffer_interface *) src_interface;
 	struct starpupy_buffer_interface *dst = (struct starpupy_buffer_interface *) dst_interface;
 
@@ -584,9 +582,26 @@ static int pybuffer_copy_any_to_any(void *src_interface, unsigned src_node, void
 	return 0;
 }
 
+static int pybuffer_copy_bytes_ram_to_ram(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
+{
+	struct starpupy_buffer_interface *src = (struct starpupy_buffer_interface *) src_interface;
+	struct starpupy_buffer_interface *dst = (struct starpupy_buffer_interface *) dst_interface;
+
+	starpu_interface_copy((uintptr_t) src->py_buffer, 0, src_node,
+			      (uintptr_t) dst->py_buffer, 0, dst_node,
+			      src->buffer_size, NULL);
+	starpu_interface_data_copy(src_node, dst_node, src->buffer_size);
+	return 0;
+}
+
 static const struct starpu_data_copy_methods pybuffer_copy_data_methods_s =
 {
 	.any_to_any = pybuffer_copy_any_to_any,
+};
+
+static const struct starpu_data_copy_methods pybuffer_bytes_copy_data_methods_s =
+{
+	.ram_to_ram = pybuffer_copy_bytes_ram_to_ram,
 };
 
 static struct starpu_data_interface_ops interface_pybuffer_ops =
@@ -634,7 +649,7 @@ static struct starpu_data_interface_ops interface_pybuffer_bytes_ops =
 	.display = pybuffer_display,
 	.compare = pybuffer_compare,
 	.name = "STARPUPY_BUFFER_BYTES_INTERFACE",
-	.copy_methods = &pybuffer_copy_data_methods_s,
+	.copy_methods = &pybuffer_bytes_copy_data_methods_s,
 };
 
 #ifdef STARPU_PYTHON_HAVE_NUMPY
