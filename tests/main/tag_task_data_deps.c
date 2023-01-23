@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -222,7 +222,7 @@ int main(void)
 
 		ret = starpu_task_submit(taskA);
 		if (ret == -ENODEV)
-			return STARPU_TEST_SKIPPED;
+			goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 		if (loop & 32768)
@@ -230,7 +230,7 @@ int main(void)
 
 		ret = starpu_task_submit(taskB);
 		if (ret == -ENODEV)
-			return STARPU_TEST_SKIPPED;
+			goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 		if (loop & 65536)
@@ -238,7 +238,7 @@ int main(void)
 
 		ret = starpu_task_submit(taskC);
 		if (ret == -ENODEV)
-			return STARPU_TEST_SKIPPED;
+			goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 		ret = starpu_task_wait(taskA);
@@ -252,9 +252,10 @@ int main(void)
 	}
 	while(0);
 
+enodev:
 	starpu_data_unregister(handle1);
 	starpu_data_unregister(handle2);
 	starpu_shutdown();
 
-	return EXIT_SUCCESS;
+	return ret == -ENODEV ? STARPU_TEST_SKIPPED : EXIT_SUCCESS;
 }
