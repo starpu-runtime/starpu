@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -1187,13 +1187,7 @@ starpu.perfmodel_plot(perfmodel="log_arr")
 
 \section MultipleInterpreters Multiple Interpreters
 
-It is possible to use multiple interpreters when running python applications. To do so, you need to call configure with the option \ref enable-python-multi-interpreter "--enable-python-multi-interpreter". It will automatically enable the StarPU Python Interface.
-
-\verbatim
-$ ./configure --enable-python-multi-interpreter
-$ make
-$ make install
-\endverbatim
+It is possible to use multiple interpreters when running python applications. To do so, you need to set the variable \ref STARPUPY_MULTI_INTERPRETER when running a StarPU Python application.
 
 Python interpreters have a Global Interpreter Lock (GIL), which requires that at any time, one and only one thread has the right to execute a task. In other words, GIL makes the multiple interpreters execution of Python actually serial rather than parallel, and the execution of Python program is single-threaded essentially.
 

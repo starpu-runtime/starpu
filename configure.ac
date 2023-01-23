@@ -3873,18 +3873,7 @@ AM_CONDITIONAL(STARPU_BUILD_STARPURM_EXAMPLES, [test x$enable_starpurm_examples 
 # StarPUPy                          #
 #####################################
 
-starpupy_multi_interpreter=no
 starpupy_support=no
-
-AC_ARG_ENABLE(python-multi-interpreter, [AS_HELP_STRING([--enable-python-multi-interpreter], [enable the use of multi python interpreter])], enable_python_multi_interpreter=$enableval, enable_python_multi_interpreter=no)
-
-if test x$enable_python_multi_interpreter = xyes; then
-	starpupy_multi_interpreter=yes
-	enable_starpupy=yes
-	AC_DEFINE(STARPU_STARPUPY_MULTI_INTERPRETER, [1], [enable python multi interpreter])
-fi
-
-AM_CONDITIONAL(STARPU_STARPUPY_MULTI_INTERPRETER, [test x$starpupy_multi_interpreter = xyes])
 
 if test "x$enable_starpupy" != xno
 then
@@ -4411,7 +4400,6 @@ AC_MSG_NOTICE([
 	       FFT Support:                                   $fft_support
 	       Resource Management enabled:                   $starpurm_support
 	       Python Interface enabled:                      $starpupy_support
-	       Multi Python Interpreter enabled:              $starpupy_multi_interpreter
 	       OpenMP runtime support enabled:                $enable_openmp
 	       OpenMP LLVM runtime support enabled:           $enable_openmp_llvm
 	       Parallel Worker support enabled:               $enable_parallel_worker

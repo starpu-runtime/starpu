@@ -111,7 +111,7 @@ static void STARPU_ATTRIBUTE_NORETURN print_exception(const char *msg, ...)
 
 /*********************Functions passed in task_submit wrapper***********************/
 
-static int active_multi_interpreter = 0; /*active multi-interpreter if define STARPU_STARPUPY_MULTI_INTERPRETER*/
+static int active_multi_interpreter = 0; /*active multi-interpreter */
 static PyObject *StarpupyError; /*starpupy error exception*/
 static PyObject *asyncio_module; /*python asyncio module*/
 static PyObject *cloudpickle_module; /*cloudpickle module*/
@@ -130,9 +130,7 @@ static PyThreadState *new_thread_states[STARPU_NMAXWORKERS];
 
 /*********************************************************************************************/
 
-#ifdef STARPU_STARPUPY_MULTI_INTERPRETER
 static uint32_t where_inter = STARPU_CPU;
-#endif
 
 /* prologue_callback_func*/
 void starpupy_prologue_cb_func(void *cl_arg)
@@ -1552,10 +1550,11 @@ static PyObject* starpu_shutdown_wrapper(PyObject *self, PyObject *args)
 	/*call starpu_shutdown method*/
 	Py_BEGIN_ALLOW_THREADS;
 	starpu_task_wait_for_all();
-#ifdef STARPU_STARPUPY_MULTI_INTERPRETER
-	/*delete interpreter on each worker*/
-	starpu_execute_on_each_worker_ex(del_inter, NULL, where_inter, "del_inter");
-#endif
+	if(active_multi_interpreter)
+	{
+		/*delete interpreter on each worker*/
+		starpu_execute_on_each_worker_ex(del_inter, NULL, where_inter, "del_inter");
+	}
 	starpu_shutdown();
 	Py_END_ALLOW_THREADS;
 
@@ -1576,10 +1575,11 @@ static PyObject* starpu_set_ncpu(PyObject *self, PyObject *args)
 	Py_BEGIN_ALLOW_THREADS;
 	starpu_task_wait_for_all();
 
-#ifdef STARPU_STARPUPY_MULTI_INTERPRETER
-	/*delete interpreter on each worker*/
-	starpu_execute_on_each_worker_ex(del_inter, NULL, where_inter, "del_inter");
-#endif
+	if(active_multi_interpreter)
+	{
+		/*delete interpreter on each worker*/
+		starpu_execute_on_each_worker_ex(del_inter, NULL, where_inter, "del_inter");
+	}
 
 	starpu_shutdown();
 
@@ -1595,10 +1595,12 @@ static PyObject* starpu_set_ncpu(PyObject *self, PyObject *args)
 		return NULL;
 	}
 
-#ifdef STARPU_STARPUPY_MULTI_INTERPRETER
-	/*generate new interpreter on each worker*/
-	starpu_execute_on_each_worker_ex(new_inter, NULL, where_inter, "new_inter");
-#endif
+	if (active_multi_interpreter)
+	{
+		/* generate new interpreter on each worker*/
+		starpu_execute_on_each_worker_ex(new_inter, NULL, where_inter, "new_inter");
+	}
+
 	Py_END_ALLOW_THREADS;
 
 	/*return type is void*/
@@ -1774,6 +1776,12 @@ PyInit_starpupy(void)
 		printf("Fail to create thread\n");
 	}
 
+#if defined(STARPU_USE_MPI_MASTER_SLAVE) || defined(STARPU_USE_TCPIP_MASTER_SLAVE)
+	active_multi_interpreter = 1;
+#endif
+	if (starpu_getenv_number_default("STARPUPY_MULTI_INTERPRETER", 0))
+		active_multi_interpreter = 1;
+
 	Py_BEGIN_ALLOW_THREADS;
 	starpu_conf_init(&conf);
 	ret = starpu_init(&conf);
@@ -1791,14 +1799,13 @@ PyInit_starpupy(void)
 		exit(77);
 	}
 
-#ifdef STARPU_STARPUPY_MULTI_INTERPRETER
-	/*active multi-interpreter*/
-	active_multi_interpreter = 1;
-	/*generate new interpreter on each worker*/
-	Py_BEGIN_ALLOW_THREADS;
-	starpu_execute_on_each_worker_ex(new_inter, NULL, where_inter, "new_inter");
-	Py_END_ALLOW_THREADS;
-#endif
+	if (active_multi_interpreter)
+	{
+		/*generate new interpreter on each worker*/
+		Py_BEGIN_ALLOW_THREADS;
+		starpu_execute_on_each_worker_ex(new_inter, NULL, where_inter, "new_inter");
+		Py_END_ALLOW_THREADS;
+	}
 
 	/*module import multi-phase initialization*/
 	return PyModuleDef_Init(&starpupymodule);

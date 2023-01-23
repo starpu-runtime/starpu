@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2016       Uppsala University
  * Copyright (C) 2020,2021  Federal University of Rio Grande do Sul (UFRGS)
  *
@@ -1228,6 +1228,13 @@ When set to 1 (0 is the default), scheduling costs are taken into
 account in SimGrid mode. This provides more accurate SimGrid predictions,
 and allows studying scheduling overhead of the runtime system. However,
 it also makes simulation non-deterministic.
+</dd>
+
+<dt>STARPUPY_MULTI_INTERPRETER</dt>
+<dd>
+\anchor STARPUPY_MULTI_INTERPRETER
+\addindex __env__STARPUPY_MULTI_INTERPRETER
+When set to 1 (the default is 0), multi interpreters are enabled in the StarPU Python interface (\ref MultipleInterpreters).
 </dd>
 
 </dl>
