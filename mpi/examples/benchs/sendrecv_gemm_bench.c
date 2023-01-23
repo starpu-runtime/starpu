@@ -166,6 +166,7 @@ int main(int argc, char **argv)
 	{
 		starpu_mpi_barrier(MPI_COMM_WORLD);
 		STARPU_PTHREAD_BARRIER_WAIT(&thread_barrier);
+		ret = 77;
 		goto enodev;
 	}
 
@@ -194,7 +195,8 @@ enodev:
 
 	starpu_fxt_stop_profiling();
 
-	starpu_resume();
+	if (ret)
+		starpu_resume();
 	starpu_mpi_shutdown();
 
 	return ret;
