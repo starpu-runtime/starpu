@@ -428,7 +428,7 @@ static int copy_cuda_common_async(void *src_interface, unsigned src_node STARPU_
 	cudaError_t status;
 	double start;
 
-	starpu_interface_start_data_copy_async(src_node, dst_node, size, &start);
+	starpu_interface_start_driver_copy_async(src_node, dst_node, &start);
 	switch (kind)
 	{
 		case cudaMemcpyHostToDevice:
