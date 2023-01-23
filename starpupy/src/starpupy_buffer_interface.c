@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020-2022 Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2023 Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -573,13 +573,14 @@ static int pybuffer_compare(void *data_interface_a, void *data_interface_b)
 static int pybuffer_copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data)
 {
 	(void)async_data;
-	(void)src_node;
-	(void)dst_node;
 
 	struct starpupy_buffer_interface *src = (struct starpupy_buffer_interface *) src_interface;
 	struct starpupy_buffer_interface *dst = (struct starpupy_buffer_interface *) dst_interface;
 
-	memcpy(dst->py_buffer, src->py_buffer, src->buffer_size);
+	starpu_interface_copy((uintptr_t) src->py_buffer, 0, src_node,
+			      (uintptr_t) dst->py_buffer, 0, dst_node,
+			      src->buffer_size, async_data);
+	starpu_interface_data_copy(src_node, dst_node, src->buffer_size);
 	return 0;
 }
 
