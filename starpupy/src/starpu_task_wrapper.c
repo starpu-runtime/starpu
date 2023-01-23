@@ -1778,9 +1778,10 @@ PyInit_starpupy(void)
 
 #if defined(STARPU_USE_MPI_MASTER_SLAVE) || defined(STARPU_USE_TCPIP_MASTER_SLAVE)
 	active_multi_interpreter = 1;
-#endif
+#else
 	if (starpu_getenv_number_default("STARPUPY_MULTI_INTERPRETER", 0))
 		active_multi_interpreter = 1;
+#endif
 
 	Py_BEGIN_ALLOW_THREADS;
 	starpu_conf_init(&conf);
