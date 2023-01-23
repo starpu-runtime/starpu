@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2016-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2016-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -34,15 +34,16 @@ else
 STARPU_MPIEXEC			= $(MPIEXEC) $(MPIEXEC_ARGS) -np 4
 endif
 
+export LAUNCHER
 # LAUNCHER should be always put in front of the test loader
 LAUNCHER			=
 # LAUNCHER_ENV should be always put in TESTS_ENVIRONMENT
-LAUNCHER_ENV		=
+LAUNCHER_ENV			=
 
 if STARPU_USE_MPI_MASTER_SLAVE
 # Make tests run through mpiexec
 LAUNCHER 			+= $(STARPU_MPIEXEC)
-LAUNCHER_ENV		+= $(MPI_RUN_ENV) STARPU_NMPIMSTHREADS=4
+LAUNCHER_ENV			+= $(MPI_RUN_ENV) STARPU_NMPIMSTHREADS=4
 endif
 
 if STARPU_USE_TCPIP_MASTER_SLAVE

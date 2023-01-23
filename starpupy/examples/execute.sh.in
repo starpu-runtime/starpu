@@ -54,9 +54,10 @@ PYTHON=@PYTHON@
 # python produces a lot of "possibly lost" false positives
 export STARPU_VALGRIND_OPTIONS="--errors-for-leak-kinds=definite,indirect --show-leak-kinds=definite,indirect"
 
+MPI_LAUNCHER=""
 if test -z "$LAUNCHER"
 then
-    LAUNCHER="mpiexec -np 2"
+    MPI_LAUNCHER="mpiexec -np 2"
 fi
 mpi=""
 gdb=""
@@ -99,9 +100,9 @@ if test "$mpi" == "mpi"
 then
     if test -n "$gdb"
     then
-	MPI_LOADER="$LAUNCHER xterm -sl 10000 -hold -e"
+	MPI_LOADER="$MPI_LAUNCHER xterm -sl 10000 -hold -e"
     else
-	MPI_LOADER="$LAUNCHER"
+	MPI_LOADER="$MPI_LAUNCHER"
     fi
 fi
 

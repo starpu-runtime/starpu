@@ -21,9 +21,9 @@ SUBDIRS =
 
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
-#if STARPU_USE_MPI_MASTER_SLAVE
-#"TESTS_ENVIRONMENT	+=	LOADER_ARGS="--mpirun"
-#endif
+if STARPU_USE_MPI_MASTER_SLAVE
+TESTS_ENVIRONMENT	+=	LOADER_ARGS="--mpirun"
+endif
 
 TESTS	=
 
