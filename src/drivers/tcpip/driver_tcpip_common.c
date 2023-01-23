@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2021-2022-  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2021-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -459,7 +459,9 @@ int _starpu_tcpip_common_mp_init()
 	struct sockaddr_in* sink_addr_list;
 	_STARPU_MALLOC(sink_addr_list, (nb_sink + 1)*sizeof(struct sockaddr_in));
 
+#if _TCPIP_DEBUG
 	char clnt_ip[20];
+#endif
 	/*master part*/
 	if(!host_port)
 	{
