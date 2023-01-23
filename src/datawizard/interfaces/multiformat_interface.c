@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -322,8 +322,8 @@ static void free_multiformat_buffer_on_node(void *data_interface, unsigned node)
 /*
  * Copy methods
  */
-static int copy_ram_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED,
-			   void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED)
+static int copy_ram_to_ram(void *src_interface, unsigned src_node,
+			   void *dst_interface, unsigned dst_node)
 {
 	struct starpu_multiformat_interface *src_multiformat;
 	struct starpu_multiformat_interface *dst_multiformat;
@@ -337,6 +337,7 @@ static int copy_ram_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBU
 
 	size_t size = dst_multiformat->nx * dst_multiformat->ops->cpu_elemsize;
 	memcpy(dst_multiformat->cpu_ptr, src_multiformat->cpu_ptr, size);
+	starpu_interface_data_copy(src_node, dst_node, size);
 
 	return 0;
 }
@@ -398,6 +399,7 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
 		default:
 			STARPU_ABORT();
 	}
+	starpu_interface_data_copy(src_node, dst_node, size);
 
 	return 0;
 }
@@ -424,7 +426,9 @@ static int copy_cuda_common_async(void *src_interface, unsigned src_node STARPU_
 
 	size_t size;
 	cudaError_t status;
+	double start;
 
+	starpu_interface_start_data_copy_async(src_node, dst_node, size, &start);
 	switch (kind)
 	{
 		case cudaMemcpyHostToDevice:
@@ -447,7 +451,7 @@ static int copy_cuda_common_async(void *src_interface, unsigned src_node STARPU_
 		case cudaMemcpyDeviceToHost:
 		{
 			size = src_multiformat->nx * src_multiformat->ops->cuda_elemsize;
-			status = cudaMemcpy(dst_multiformat->cuda_ptr, src_multiformat->cuda_ptr, size, kind);
+			status = cudaMemcpyAsync(dst_multiformat->cuda_ptr, src_multiformat->cuda_ptr, size, kind, stream);
 			if (!status)
 				status = cudaDeviceSynchronize();
 			if (STARPU_UNLIKELY(status))
@@ -466,6 +470,7 @@ static int copy_cuda_common_async(void *src_interface, unsigned src_node STARPU_
 		default:
 			STARPU_ABORT();
 	}
+	starpu_interface_end_driver_copy_async(src_node, dst_node, start);
 
 	return 0;
 }
@@ -601,7 +606,8 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
 	if (STARPU_UNLIKELY(err))
 		STARPU_OPENCL_REPORT_ERROR(err);
 
-	starpu_interface_data_copy(src_node, dst_node, size);
+	if (!event)
+		starpu_interface_data_copy(src_node, dst_node, size);
 	return ret;
 }
 
@@ -641,8 +647,8 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node,
 	if (STARPU_UNLIKELY(err))
 		STARPU_OPENCL_REPORT_ERROR(err);
 
-	starpu_interface_data_copy(src_node, dst_node, size);
-
+	if (!event)
+		starpu_interface_data_copy(src_node, dst_node, size);
 
 	return ret;
 }
