@@ -155,7 +155,6 @@ static struct _starpu_prio_deque *select_prio(unsigned sched_ctx_id, struct _sta
 
 static void set_priority(void *_data, struct _starpu_graph_node *node)
 {
-	//~ printf("start set_priority.\n");
 	struct _starpu_graph_test_policy_data *data = _data;
 	starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK(&node->mutex);

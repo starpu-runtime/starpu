@@ -24,7 +24,7 @@
 #include <schedulers/dynamic_data_aware.h>
 #include "helper_mct.h"
 #include <starpu_data_maxime.h> /* pour l'appel de la fonction qui reinit a la nouvelle itération */
-//~ #include "core/sched_policy.h" /* Pour graph_test_policy.c */
+#include <graph.h> /* Pour compute_descendants */
 
 /* Var globales déclaré en extern */
 int eviction_strategy_dynamic_data_aware;
@@ -117,6 +117,32 @@ long long time_total_createtolasttaskfinished;
 /* TODO : a suppr */
 int total_task_done;
 
+/* GRAPHE */
+static void set_priority(void *_data, struct _starpu_graph_node *node)
+{
+	//~ struct _starpu_graph_test_policy_data *data = _data;
+	//~ struct dynamic_data_aware_sched_data *data = _data;
+	starpu_worker_relax_on();
+	STARPU_PTHREAD_MUTEX_LOCK(&node->mutex);
+	starpu_worker_relax_off();
+	struct _starpu_job *job = node->job;
+
+	if (job)
+	{
+		//~ if (data->descendants)
+		//~ {
+			job->task->priority = node->descendants;
+			printf("Descendants of job %p (%s): %d\n", job->task, starpu_task_get_name(job->task), job->task->priority);
+		//~ }
+		//~ else
+		//~ {
+			//~ job->task->priority = node->depth;
+			//~ printf("Depth of job %p (%s): %d\n", job->task, starpu_task_get_name(job->task), job->task->priority);
+		//~ }	
+	}
+	STARPU_PTHREAD_MUTEX_UNLOCK(&node->mutex);
+}
+
 /* Fonction appellé directement dans l'application à la fin d'une itération. Je l'ai fais pour Cholesky et GEMM faut le faire pour de futures applications. */
 void new_iteration()
 {
@@ -201,7 +227,7 @@ void print_task_list(struct starpu_task_list *l, char *s)
     printf("%s :\n", s); fflush(stdout);
     for (struct starpu_task *task = starpu_task_list_begin(l); task != starpu_task_list_end(l); task = starpu_task_list_next(task))
     {
-		printf("%p:", task); fflush(stdout);
+		printf("%p (prio: %d):", task, task->priority); fflush(stdout);
 		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 		{
 			printf("	%p", STARPU_TASK_GET_HANDLE(task, i)); fflush(stdout);
@@ -409,7 +435,7 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 	for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 	{
 		printf(" %p", STARPU_TASK_GET_HANDLE(task, i)); fflush(stdout);
-	}
+	}	
 	printf("\n"); fflush(stdout);
 	#endif
 	
@@ -1513,6 +1539,11 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 	
     if (new_tasks_initialized == true)
     {
+		/* GRAPHE */
+		_starpu_graph_compute_descendants();
+		_starpu_graph_foreach(set_priority, data);
+		//~ set_priority(data, 1);
+		
 		#ifdef PRINT_STATS
 		nb_new_task_initialized++;
 		#endif
@@ -1585,6 +1616,7 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 		gettimeofday(&time_end_randomize, NULL);
 		time_total_randomize += (time_end_randomize.tv_sec - time_start_randomize.tv_sec)*1000000LL + time_end_randomize.tv_usec - time_start_randomize.tv_usec;
 		#endif
+		
 		#ifdef PRINT		
 		printf("Il y a %d tâches.\n", NT_DARTS);
 		printf("Printing GPU's data list and main task list after randomization (TASK_ORDER = %d, DATA_ORDER = %d):\n", task_order, data_order);
@@ -1592,6 +1624,9 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 		print_task_list(&data->main_task_list, "Main task list"); fflush(stdout);
 		printf("-----\n\n");
 		#endif
+		
+		/* GRAPHE */
+		print_task_list(&data->main_task_list, "Main task list"); fflush(stdout);
     }
     
     #ifdef REFINED_MUTEX
@@ -3798,6 +3833,10 @@ static void initialize_dynamic_data_aware_center_policy(unsigned sched_ctx_id)
 	
 	if (prio != 0)
 	{
+		/* GRAPHE */
+		printf("_starpu_graph_record gets 1\n"); fflush(stdout);
+		_starpu_graph_record = 1;
+		
 		/* To initialize and get prioriies on each tasks (it's the application that set priorities. It reduces my perfs ? why ? It takes time ? Test with -no prio see if the perfs stays the same */
 		starpu_sched_ctx_set_min_priority(sched_ctx_id, INT_MIN);
 		starpu_sched_ctx_set_max_priority(sched_ctx_id, INT_MAX);

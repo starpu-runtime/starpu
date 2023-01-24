@@ -365,6 +365,8 @@ void _starpu_graph_compute_depths(void)
 
 void _starpu_graph_compute_descendants(void)
 {
+	printf("Compute descendants\n"); fflush(stdout);
+	
 	struct _starpu_graph_node *node, *node2, *node3;
 	struct _starpu_graph_node **current_set = NULL, **next_set = NULL, **swap_set;
 	unsigned current_n, next_n, i, j;
