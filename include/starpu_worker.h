@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2016       Uppsala University
  *
@@ -73,6 +73,8 @@ enum starpu_worker_archtype
 	STARPU_NARCH	       = 8,  /**< Number of arch types */
 	STARPU_ANY_WORKER      = 255 /**< any worker, used in the hypervisor */
 };
+
+#define STARPU_UNKNOWN_WORKER      ((enum starpu_worker_archtype)-1) /**< Invalid worker value */
 
 /**
    Structure needed to iterate on the collection
@@ -363,6 +365,12 @@ unsigned starpu_worker_is_slave_somewhere(int workerid);
    Return worker \p type as a string.
 */
 const char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type);
+
+/**
+   Return worker \p type from a string.
+   Returns STARPU_UNKNOWN_WORKER if the string doesn't match a worker type.
+*/
+enum starpu_worker_archtype starpu_worker_get_type_from_string(const char *type);
 
 /**
    Return worker \p type as a string suitable for environment variable names (CPU, CUDA, etc.)

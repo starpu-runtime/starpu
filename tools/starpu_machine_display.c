@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -222,41 +222,22 @@ int main(int argc, char **argv)
 	if (count == 1)
 		func = &starpu_worker_display_count;
 
+	enum starpu_worker_archtype type;
+
 	if (worker_type)
 	{
-		if (strcmp(worker_type, "CPU") == 0)
-			func(stdout, STARPU_CPU_WORKER);
-		else if (strcmp(worker_type, "CUDA") == 0)
-			func(stdout, STARPU_CUDA_WORKER);
-		else if (strcmp(worker_type, "OpenCL") == 0)
-			func(stdout, STARPU_OPENCL_WORKER);
-		else if (strcmp(worker_type, "HIP") == 0)
-			func(stdout, STARPU_HIP_WORKER);
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-		else if (strcmp(worker_type, "MPI_MS") == 0)
-			func(stdout, STARPU_MPI_MS_WORKER);
-#endif
-#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
-		else if (strcmp(worker_type, "TCPIP_MS") == 0)
-			func(stdout, STARPU_TCPIP_MS_WORKER);
-#endif
-		else
+		type = starpu_worker_get_type_from_string(worker_type);
+		if (type == STARPU_UNKNOWN_WORKER)
 			fprintf(stderr, "Unknown worker type '%s'\n", worker_type);
+		else
+			func(stdout, type);
 	}
 	else
 	{
 		fprintf(stdout, "StarPU has found :\n");
 
-		func(stdout, STARPU_CPU_WORKER);
-		func(stdout, STARPU_CUDA_WORKER);
-		func(stdout, STARPU_OPENCL_WORKER);
-		func(stdout, STARPU_HIP_WORKER);
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-		func(stdout, STARPU_MPI_MS_WORKER);
-#endif
-#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
-		func(stdout, STARPU_TCPIP_MS_WORKER);
-#endif
+		for (type = 0; type < STARPU_NARCH; type++)
+			func(stdout, type);
 
 		display_all_combined_workers();
 	}

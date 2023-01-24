@@ -2870,6 +2870,17 @@ const char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type)
 	return ret;
 }
 
+enum starpu_worker_archtype starpu_worker_get_type_from_string(const char *name)
+{
+	enum starpu_worker_archtype type;
+	for (type = 0; type < STARPU_NARCH; type++)
+	{
+		if (!strcmp(name, starpu_driver_info[type].name_upper))
+			return type;
+	}
+	return STARPU_UNKNOWN_WORKER;
+}
+
 const char *starpu_worker_get_type_as_env_var(enum starpu_worker_archtype type)
 {
 	STARPU_ASSERT(type < STARPU_NARCH);
@@ -2919,7 +2930,11 @@ void starpu_worker_display_count(FILE *output, enum starpu_worker_archtype type)
 
 void starpu_worker_display_names(FILE *output, enum starpu_worker_archtype type)
 {
-	int nworkers = starpu_worker_get_count_by_type(type);
+	int nworkers;
+	if (!starpu_driver_info[type].name_upper)
+		return;
+
+	nworkers = starpu_worker_get_count_by_type(type);
 	if (nworkers <= 0)
 	{
 		fprintf(output, "No %s worker\n", starpu_worker_get_type_as_string(type));
