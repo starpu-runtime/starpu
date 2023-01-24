@@ -2,7 +2,7 @@
 
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2021-2022-  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2021-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -87,6 +87,7 @@ done
 trap 'kill -INT $CHILDPIDS' INT
 trap 'kill -QUIT $CHILDPIDS' QUIT
 
+export STARPU_TCPIP_MS_PORT=$((10000 + $$ % 20000))
 #echo "STARPU_TCPIP_MS_SLAVES=$NP $@"
 STARPU_TCPIP_MS_SLAVES=$NP $EXECUTE "$@" &
 CHILDPIDS="$!"

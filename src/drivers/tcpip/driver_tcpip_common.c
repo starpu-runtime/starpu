@@ -471,7 +471,9 @@ int _starpu_tcpip_common_mp_init()
 		struct sockaddr_in source_addr_init;
 		socklen_t source_addr_init_size = sizeof(source_addr_init);
 
-		int init_res = master_init(1, &source_sock_init, &local_sock, &source_addr_init, &source_addr_init_size, &name, htonl(INADDR_ANY), htons(1234), 2*nb_sink);
+		unsigned short port = starpu_getenv_number_default("STARPU_TCPIP_MS_PORT", 1234);
+
+		int init_res = master_init(1, &source_sock_init, &local_sock, &source_addr_init, &source_addr_init_size, &name, htonl(INADDR_ANY), htons(port), 2*nb_sink);
 		if(init_res != 0)
 			return -1;
 
@@ -602,7 +604,10 @@ int _starpu_tcpip_common_mp_init()
 		else
 		{
 			host = strdup(host_port);
-			port = strdup("1234");
+			port = starpu_getenv("STARPU_TCPIP_MS_PORT");
+			if (!port)
+				port = "1234";
+			port = strdup(port);
 		}
 		int source_sock;
 		struct addrinfo *res,*cur;

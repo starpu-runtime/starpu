@@ -555,6 +555,14 @@ Specify (for slaves) the IP address of the master so they can connect to
 it. They will then automatically connect to each other.
 </dd>
 
+<dt>STARPU_TCPIP_MS_PORT</dt>
+<dd>
+\anchor STARPU_TCPIP_MS_PORT
+\addindex __env__STARPU_TCPIP_MS_PORT
+Specify the port of the master, for connexions between slaves and the master.
+The default if unspecified is 1234.
+</dd>
+
 <dt>STARPU_NTCPIPMSTHREADS</dt>
 <dd>
 \anchor STARPU_NTCPIPMSTHREADS
