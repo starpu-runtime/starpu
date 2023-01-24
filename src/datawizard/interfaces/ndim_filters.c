@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -499,7 +499,10 @@ static void _interface_assignment_ndim_to_matrix(void *ndim_interface, void *chi
 	matrix->elemsize = ndarr->elemsize;
 	matrix->ptr = ndarr->ptr;
 	matrix->ld = ndarr->ldn[1];
-	matrix->allocsize = matrix->ld * matrix->ny * matrix->elemsize;
+	if (matrix->ptr)
+		matrix->allocsize = matrix->ld * matrix->ny * matrix->elemsize;
+	else
+		matrix->allocsize = matrix->nx * matrix->ny * matrix->elemsize;
 	matrix->dev_handle = ndarr->dev_handle;
 	matrix->offset = ndarr->offset;
 }
