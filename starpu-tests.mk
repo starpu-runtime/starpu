@@ -46,7 +46,7 @@ LAUNCHER 			+= $(STARPU_MPIEXEC)
 LAUNCHER_ENV			+= $(MPI_RUN_ENV) STARPU_NMPIMSTHREADS=4
 endif
 
-if STARPU_USE_TCPIP_MASTER_SLAVE
+ifeq ($(STARPU_CHECK_TCPIP_MS),1)
 LAUNCHER			+=$(abs_top_builddir)/tools/starpu_tcpipexec -np 2 -nobind -ncpus 1
 # switch off local socket usage
 #LAUNCHER			+=$(abs_top_builddir)/tools/starpu_tcpipexec -np 2 -nobind -ncpus 1 -nolocal
