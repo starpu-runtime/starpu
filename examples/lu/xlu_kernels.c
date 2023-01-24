@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -616,7 +616,8 @@ static struct starpu_perfmodel STARPU_LU(model_getrf_pivot) =
 struct starpu_codelet cl_getrf_pivot =
 {
 	.cpu_funcs = {STARPU_LU(cpu_getrf_pivot)},
-	.cpu_funcs_name = {STRINGIFY(STARPU_LU(cpu_getrf_pivot))},
+	// It uses shared-memory cl_arg
+	//.cpu_funcs_name = {STRINGIFY(STARPU_LU(cpu_getrf_pivot))},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {STARPU_LU(cublas_getrf_pivot)},
 	CAN_EXECUTE
@@ -719,7 +720,8 @@ static struct starpu_perfmodel STARPU_LU(model_pivot) =
 struct starpu_codelet cl_pivot =
 {
 	.cpu_funcs = {STARPU_LU(cpu_pivot)},
-	.cpu_funcs_name = {STRINGIFY(STARPU_LU(cpu_pivot))},
+	// It uses shared-memory cl_arg
+	//.cpu_funcs_name = {STRINGIFY(STARPU_LU(cpu_pivot))},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {STARPU_LU(cublas_pivot)},
 	CAN_EXECUTE
