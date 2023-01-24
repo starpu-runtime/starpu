@@ -27,13 +27,13 @@ export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
 #~ N=8
 #~ N=10
 #~ N=15
-#~ N=20
+N=20
 #~ N=23
 #~ N=25
 #~ N=35
 #~ N=30
 #~ N=40
-N=45
+#~ N=45
 #~ N=50
 #~ N=55
 #~ N=60
@@ -46,10 +46,10 @@ NGPU=2
 #~ NGPU=3
 #~ NGPU=4
 
-#~ ORDO="dynamic-data-aware" # EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=$((EVICTION))
+ORDO="dynamic-data-aware" # EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=$((EVICTION))
 #~ ORDO="lws"
 #~ ORDO="graph_test" # STARPU_SCHED_GRAPH_TEST_DESCENDANTS= 0 ou 1 pour activer les descendants
-ORDO="dmdar"
+#~ ORDO="dmdar"
 #~ ORDO="dmdas"
 #~ ORDO="modular-eager-prefetching"
 #~ ORDO="modular-heft"
@@ -116,8 +116,8 @@ TAILLE_TUILE=960
 #~ APP3D=0
 APP3D=1
 
-TRACE=0
-#~ TRACE=1
+#~ TRACE=0
+TRACE=1
 
 SPARSE=0
 #~ SPARSE=10

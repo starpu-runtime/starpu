@@ -1,3 +1,3 @@
 ./configure --prefix=/home/mgonthier/starpu --enable-maxcudadev=8
 make -j 100
-sudo make install
+make install
