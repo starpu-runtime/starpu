@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013	    Thibaut Lambert
  * Copyright (C) 2021	    Federal University of Rio Grande do Sul (UFRGS)
  *
@@ -450,7 +450,7 @@ int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 	/* If the user didn't give any cl_arg, there is no need to send it */
 	if (cl_arg)
 	{
-		STARPU_ASSERT(cl_arg_size);
+		STARPU_ASSERT_MSG(cl_arg_size, "Execution of tasks on master-slave needs cl_arg_size to be set, to transfer the content of cl_arg");
 		buffer_size += cl_arg_size;
 	}
 
