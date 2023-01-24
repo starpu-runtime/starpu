@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2018       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -423,17 +423,20 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 			ret = -ENOMEM;
 		else
 		{
-		#ifdef STARPU_HAVE_HWLOC
+#ifdef STARPU_HAVE_HWLOC
 			struct _starpu_machine_config *config = _starpu_get_machine_config();
 			hwloc_topology_t hwtopology = config->topology.hwtopology;
 			hwloc_obj_t numa_node_obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NUMANODE, starpu_memory_nodes_numa_id_to_hwloclogid(dst_node));
-			hwloc_bitmap_t nodeset = numa_node_obj->nodeset;
-	#if HWLOC_API_VERSION >= 0x00020000
-			hwloc_set_area_membind(hwtopology, *A, dim, nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_BYNODESET | HWLOC_MEMBIND_NOCPUBIND);
-	#else
-			hwloc_set_area_membind_nodeset(hwtopology, *A, dim, nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_NOCPUBIND);
-	#endif
-		#endif
+			if (numa_node_obj)
+			{
+				hwloc_bitmap_t nodeset = numa_node_obj->nodeset;
+#if HWLOC_API_VERSION >= 0x00020000
+				hwloc_set_area_membind(hwtopology, *A, dim, nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_BYNODESET | HWLOC_MEMBIND_NOCPUBIND);
+#else
+				hwloc_set_area_membind_nodeset(hwtopology, *A, dim, nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_NOCPUBIND);
+#endif
+			}
+#endif
 		}
 	}
 	else
