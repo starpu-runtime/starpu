@@ -3071,10 +3071,6 @@ if test x$starpu_windows = xyes ; then
    enable_openmp_llvm=no
    openmp_llvm_msg="disabled on windows"
 fi
-if test "x$build_master_slave" = "xyes" ; then
-   enable_openmp_llvm=no
-   openmp_llvm_msg="incompatibility with MPI master slave support"
-fi
 if test x$enable_simgrid = xyes ; then
    enable_openmp_llvm=no
    openmp_llvm_msg="incompatibility with Simgrid support"
@@ -3106,10 +3102,6 @@ openmp_msg=""
 if test x$starpu_windows = xyes ; then
    enable_openmp=no
    openmp_msg="disabled on windows"
-fi
-if test "x$build_master_slave" = "xyes" ; then
-   enable_openmp=no
-   openmp_msg="incompatibility with master slave support"
 fi
 if test x$enable_simgrid = xyes ; then
    enable_openmp=no
@@ -3154,16 +3146,6 @@ AC_MSG_CHECKING(for SOCL)
 # in case SOCL was explicitely required, but is not available, this is an error
 if test "x$enable_socl" = "xyes" -a "$have_valid_opencl" = "no" ; then
     AC_MSG_ERROR([SOCL cannot be enabled without OpenCL])
-fi
-
-# MPI Master Slave and SOCL are not compatible
-if test "x$build_master_slave" = "xyes" ; then
-   if test "x$enable_socl" = "xyes" ; then
-      AC_MSG_ERROR([Master-Slave and SOCL can not be used at the same time !])
-   fi
-   if test "x$enable_socl" = "xmaybe" ; then
-     enable_socl=no
-   fi
 fi
 
 # now we enable SOCL if and only if a proper setup is available

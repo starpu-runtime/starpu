@@ -1776,10 +1776,11 @@ PyInit_starpupy(void)
 		printf("Fail to create thread\n");
 	}
 
-#if defined(STARPU_USE_MPI_MASTER_SLAVE) || defined(STARPU_USE_TCPIP_MASTER_SLAVE)
+#if defined(STARPU_USE_MPI_MASTER_SLAVE)
 	active_multi_interpreter = 1;
 #else
-	if (starpu_getenv_number_default("STARPUPY_MULTI_INTERPRETER", 0))
+	if (starpu_getenv_number_default("STARPUPY_MULTI_INTERPRETER", 0)
+		|| starpu_getenv_number("STARPU_TCPIP_MS_SLAVES") > 0)
 		active_multi_interpreter = 1;
 #endif
 

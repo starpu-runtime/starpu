@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -419,7 +419,6 @@ examplebin_SCRIPTS = \
 	microbenchs/tasks_size_overhead.sh
 if !STARPU_SIMGRID
 if !STARPU_USE_MPI_MASTER_SLAVE
-if !STARPU_USE_TCPIP_MASTER_SLAVE
 examplebin_PROGRAMS += \
 	microbenchs/bandwidth
 SHELL_TESTS += \
@@ -427,7 +426,6 @@ SHELL_TESTS += \
 	microbenchs/sync_tasks_data_overhead.sh \
 	microbenchs/async_tasks_data_overhead.sh \
 	microbenchs/tasks_size_overhead_scheds.sh
-endif
 endif
 endif
 
@@ -443,8 +441,6 @@ if STARPU_SIMGRID
 SHELL_TESTS += $(MICROBENCHS:=.sh)
 endif
 
-if !STARPU_USE_MPI_MASTER_SLAVE
-if !STARPU_USE_TCPIP_MASTER_SLAVE
 SHELL_TESTS += \
 	datawizard/locality.sh \
 	microbenchs/bandwidth_scheds.sh
@@ -452,8 +448,6 @@ SHELL_TESTS += \
 if STARPU_USE_FXT
 SHELL_TESTS += \
 	overlap/overlap.sh
-endif
-endif
 endif
 
 ################################

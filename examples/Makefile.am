@@ -163,15 +163,11 @@ TESTS			=	$(SHELL_TESTS) $(STARPU_EXAMPLES)
 
 SHELL_TESTS =
 
-if !STARPU_USE_MPI_MASTER_SLAVE
-if !STARPU_USE_TCPIP_MASTER_SLAVE
 SHELL_TESTS			+=	scheduler/schedulers.sh
 SHELL_TESTS			+=	scheduler/schedulers_context.sh
 if !STARPU_NO_BLAS_LIB
 if STARPU_USE_FXT
 SHELL_TESTS			+=	mult/sgemm.sh
-endif
-endif
 endif
 endif
 
@@ -365,15 +361,9 @@ STARPU_EXAMPLES +=				\
 	transactions/trs_sgemm
 
 
-if !STARPU_USE_MPI_MASTER_SLAVE
-if !STARPU_USE_TCPIP_MASTER_SLAVE
 SHELL_TESTS += \
 	heat/heat.sh				\
 	lu/lu.sh
-
-endif
-endif
-
 endif
 
 if STARPU_SIMGRID

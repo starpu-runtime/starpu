@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2014-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -1007,6 +1007,8 @@ static int omp_initial_thread_setup(void)
 #warning setting nhip to 0 should not be necessary
 #endif
 	omp_starpu_conf.nhip = 0;
+	omp_starpu_conf.nmpi_ms = 0;
+	omp_starpu_conf.ntcpip_ms = 0;
 	/* we are now ready to start StarPU */
 	ret = starpu_init(&omp_starpu_conf);
 	int check = _starpu_omp_environment_check();
@@ -1210,6 +1212,7 @@ int starpu_omp_init(void)
 
 	_starpu_omp_environment_init();
 	_global_state.icvs.cancel_var = _starpu_omp_initial_icv_values->cancel_var;
+	_global_state.environment_valid = -EINVAL; /* in case starpu_init exits (e.g. on a slave) */
 	_global_state.environment_valid = omp_initial_region_setup();
 
 	/* init clock reference for starpu_omp_get_wtick */
