@@ -134,6 +134,7 @@ void starpu_ndim_filter_to_tensor(void *father_interface, void *child_interface,
 		STARPU_ASSERT_MSG(ndim_father->ldn[0]==1, "cannot transfer to a tensor if ldn[0] does not equal to 1");
 
 	struct starpu_ndim_interface ndim_child;
+	memset(&ndim_child, 0, sizeof(ndim_child));
 	_starpu_ndim_filter_block(father_interface, &ndim_child, f, id, nparts, 0);
 
 	_interface_assignment_ndim_to_tensor(&ndim_child, child_interface);
@@ -150,6 +151,7 @@ void starpu_ndim_filter_to_block(void *father_interface, void *child_interface, 
 		STARPU_ASSERT_MSG(ndim_father->ldn[0]==1, "cannot transfer to a block if ldn[0] does not equal to 1");
 
 	struct starpu_ndim_interface ndim_child;
+	memset(&ndim_child, 0, sizeof(ndim_child));
 	_starpu_ndim_filter_block(father_interface, &ndim_child, f, id, nparts, 0);
 
 	_interface_assignment_ndim_to_block(&ndim_child, child_interface);
@@ -166,6 +168,7 @@ void starpu_ndim_filter_to_matrix(void *father_interface, void *child_interface,
 		STARPU_ASSERT_MSG(ndim_father->ldn[0]==1, "cannot transfer to a matrix if ldn[0] does not equal to 1");
 
 	struct starpu_ndim_interface ndim_child;
+	memset(&ndim_child, 0, sizeof(ndim_child));
 	_starpu_ndim_filter_block(father_interface, &ndim_child, f, id, nparts, 0);
 
 	_interface_assignment_ndim_to_matrix(&ndim_child, child_interface);
@@ -182,6 +185,7 @@ void starpu_ndim_filter_to_vector(void *father_interface, void *child_interface,
 		STARPU_ASSERT_MSG(ndim_father->ldn[0]==1, "cannot transfer to a vector if ldn[0] does not equal to 1");
 
 	struct starpu_ndim_interface ndim_child;
+	memset(&ndim_child, 0, sizeof(ndim_child));
 	_starpu_ndim_filter_block(father_interface, &ndim_child, f, id, nparts, 0);
 
 	_interface_assignment_ndim_to_vector(&ndim_child, child_interface);
@@ -294,6 +298,7 @@ void starpu_ndim_filter_5d_pick_tensor(void *father_interface, void *child_inter
 		STARPU_ASSERT_MSG(ndim_father->ldn[0]==1, "cannot pick a tensor if ldn[0] does not equal to 1");
 
 	struct starpu_ndim_interface ndim_child;
+	memset(&ndim_child, 0, sizeof(ndim_child));
 	starpu_ndim_filter_pick_ndim(father_interface, &ndim_child, f, id, nparts);
 
 	_interface_assignment_ndim_to_tensor(&ndim_child, child_interface);
@@ -310,6 +315,7 @@ void starpu_ndim_filter_4d_pick_block(void *father_interface, void *child_interf
 		STARPU_ASSERT_MSG(ndim_father->ldn[0]==1, "cannot pick a block if ldn[0] does not equal to 1");
 
 	struct starpu_ndim_interface ndim_child;
+	memset(&ndim_child, 0, sizeof(ndim_child));
 	starpu_ndim_filter_pick_ndim(father_interface, &ndim_child, f, id, nparts);
 
 	_interface_assignment_ndim_to_block(&ndim_child, child_interface);
@@ -326,6 +332,7 @@ void starpu_ndim_filter_3d_pick_matrix(void *father_interface, void *child_inter
 		STARPU_ASSERT_MSG(ndim_father->ldn[0]==1, "cannot pick a matrix if ldn[0] does not equal to 1");
 
 	struct starpu_ndim_interface ndim_child;
+	memset(&ndim_child, 0, sizeof(ndim_child));
 	starpu_ndim_filter_pick_ndim(father_interface, &ndim_child, f, id, nparts);
 
 	_interface_assignment_ndim_to_matrix(&ndim_child, child_interface);
@@ -342,6 +349,7 @@ void starpu_ndim_filter_2d_pick_vector(void *father_interface, void *child_inter
 		STARPU_ASSERT_MSG(ndim_father->ldn[0]==1, "cannot pick a vector if ldn[0] does not equal to 1");
 
 	struct starpu_ndim_interface ndim_child;
+	memset(&ndim_child, 0, sizeof(ndim_child));
 	starpu_ndim_filter_pick_ndim(father_interface, &ndim_child, f, id, nparts);
 
 	_interface_assignment_ndim_to_vector(&ndim_child, child_interface);
@@ -358,6 +366,7 @@ void starpu_ndim_filter_1d_pick_variable(void *father_interface, void *child_int
 		STARPU_ASSERT_MSG(ndim_father->ldn[0]==1, "cannot pick a variable if ldn[0] does not equal to 1");
 
 	struct starpu_ndim_interface ndim_child;
+	memset(&ndim_child, 0, sizeof(ndim_child));
 	starpu_ndim_filter_pick_ndim(father_interface, &ndim_child, f, id, nparts);
 
 	_interface_assignment_ndim_to_variable(&ndim_child, child_interface);
