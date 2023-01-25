@@ -33,6 +33,8 @@ static void _starpu_ndim_filter_block(void *father_interface, void *child_interf
 	struct starpu_ndim_interface *ndim_father = (struct starpu_ndim_interface *) father_interface;
 	struct starpu_ndim_interface *ndim_child = (struct starpu_ndim_interface *) child_interface;
 
+	STARPU_ASSERT_MSG(ndim_father->id == STARPU_NDIM_INTERFACE_ID, "%s can only be applied on a ndim array data", __func__);
+
 	size_t ndim = ndim_father->ndim;
 	STARPU_ASSERT_MSG(ndim > 0, "ndim %u must be greater than 0!\n", (unsigned) ndim);
 
@@ -40,12 +42,10 @@ static void _starpu_ndim_filter_block(void *father_interface, void *child_interf
 	if (ndim > 1)
 		dim = f->filter_arg;
 
-	unsigned blocksize;
-	uint32_t father_nn = 0;
-	uint32_t ni[ndim];
-
 	STARPU_ASSERT_MSG(dim < ndim, "dim %u must be less than %u!\n", dim, (unsigned) ndim);
 
+	uint32_t father_nn = 0;
+	uint32_t ni[ndim];
 	unsigned i;
 	for (i=0; i<ndim; i++)
 	{
@@ -60,71 +60,56 @@ static void _starpu_ndim_filter_block(void *father_interface, void *child_interf
 		}
 	}
 
-
-	blocksize = ndim_father->ldn[dim];
-
-	size_t elemsize = ndim_father->elemsize;
-
 	STARPU_ASSERT_MSG(nparts <= father_nn, "cannot split %u elements in %u parts", father_nn, nparts);
 
+	unsigned blocksize = ndim_father->ldn[dim];
+	size_t elemsize = ndim_father->elemsize;
 	uint32_t child_nn;
 	size_t offset;
+
 	starpu_filter_nparts_compute_chunk_size_and_offset(father_nn, nparts, elemsize, id, blocksize, &child_nn, &offset);
-
 	child_nn += 2 * shadow_size;
-
-	STARPU_ASSERT_MSG(ndim_father->id == STARPU_NDIM_INTERFACE_ID, "%s can only be applied on a ndim array data", __func__);
 	ndim_child->id = ndim_father->id;
 
-	uint32_t *child_dim;
-	_STARPU_MALLOC(child_dim, ndim*sizeof(uint32_t));
+	_STARPU_MALLOC(ndim_child->nn, ndim*sizeof(uint32_t));
 	for (i=0; i<ndim; i++)
 	{
 		if (i!=dim)
 		{
-			child_dim[i] = ni[i];
+			ndim_child->nn[i] = ni[i];
 		}
 		else
 		{
-			child_dim[i] = child_nn;
+			ndim_child->nn[i] = child_nn;
 		}
 	}
-	ndim_child->nn = child_dim;
 
-	uint32_t *child_ldn;
-	_STARPU_MALLOC(child_ldn, ndim*sizeof(uint32_t));
-	ndim_child->ldn = child_ldn;
-
+	_STARPU_MALLOC(ndim_child->ldn, ndim*sizeof(uint32_t));
 	ndim_child->ndim = ndim;
 	ndim_child->elemsize = elemsize;
+	ndim_child->allocsize = elemsize;
 
 	if (ndim_father->dev_handle)
 	{
-		size_t allocsize = elemsize;
-
 		if (ndim_father->ptr)
 			ndim_child->ptr = ndim_father->ptr + offset;
 		for (i=0; i<ndim; i++)
 		{
-			child_ldn[i] = ndim_father->ldn[i];
+			ndim_child->ldn[i] = ndim_father->ldn[i];
 		}
 
 		if (ndim >= 1)
-			allocsize *= child_ldn[ndim-1] * child_dim[ndim-1];
+			ndim_child->allocsize *= ndim_child->ldn[ndim-1] * ndim_child->nn[ndim-1];
 
 		ndim_child->dev_handle = ndim_father->dev_handle;
 		ndim_child->offset = ndim_father->offset + offset;
-		ndim_child->allocsize = allocsize;
 	}
 	else
 	{
-		size_t allocsize = elemsize;
 		for (i=0; i<ndim; i++)
-			allocsize *= child_dim[i];
-		ndim_child->allocsize = allocsize;
+			ndim_child->allocsize *= ndim_child->nn[i];
 	}
 }
-
 
 void starpu_ndim_filter_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 			      unsigned id, unsigned nparts)
@@ -220,6 +205,9 @@ void starpu_ndim_filter_pick_ndim(void *father_interface, void *child_interface,
 	struct starpu_ndim_interface *ndim_father = (struct starpu_ndim_interface *) father_interface;
 	struct starpu_ndim_interface *ndim_child = (struct starpu_ndim_interface *) child_interface;
 
+	STARPU_ASSERT_MSG(ndim_father->id == STARPU_NDIM_INTERFACE_ID, "%s can only be applied on a ndim array data", __func__);
+	ndim_child->id = STARPU_NDIM_INTERFACE_ID;
+
 	size_t ndim = ndim_father->ndim;
 	STARPU_ASSERT_MSG(ndim > 0, "ndim %u must be greater than 0!\n", (unsigned) ndim);
 
@@ -227,12 +215,10 @@ void starpu_ndim_filter_pick_ndim(void *father_interface, void *child_interface,
 	if (ndim > 1)
 		dim = f->filter_arg;
 
-	unsigned blocksize;
-	uint32_t father_nn = 0;
-	uint32_t ni[ndim];
-
 	STARPU_ASSERT_MSG(dim < ndim, "dim %u must be less than %u!\n", dim, (unsigned) ndim);
 
+	uint32_t father_nn = 0;
+	uint32_t ni[ndim];
 	unsigned i;
 	for (i=0; i<ndim; i++)
 	{
@@ -241,23 +227,17 @@ void starpu_ndim_filter_pick_ndim(void *father_interface, void *child_interface,
 			father_nn = ni[i];
 	}
 
-	blocksize = ndim_father->ldn[dim];
+	STARPU_ASSERT_MSG(nparts <= father_nn, "cannot split %u elements in %u parts", father_nn, nparts);
 
+	unsigned blocksize = ndim_father->ldn[dim];
 	size_t elemsize = ndim_father->elemsize;
-
 	size_t chunk_pos = (size_t)f->filter_arg_ptr;
 
-	STARPU_ASSERT_MSG(nparts <= father_nn, "cannot split %u elements in %u parts", father_nn, nparts);
 	STARPU_ASSERT_MSG((chunk_pos + id) < father_nn, "the chosen sub (n-1)dim array should be in the ndim array");
 
 	size_t offset = (chunk_pos + id) * blocksize * elemsize;
-
-	STARPU_ASSERT_MSG(ndim_father->id == STARPU_NDIM_INTERFACE_ID, "%s can only be applied on a ndim array data", __func__);
-	ndim_child->id = STARPU_NDIM_INTERFACE_ID;
-
 	int j;
-	uint32_t *child_dim;
-	_STARPU_MALLOC(child_dim, (ndim-1)*sizeof(uint32_t));
+	_STARPU_MALLOC(ndim_child->nn, (ndim-1)*sizeof(uint32_t));
 	if (ndim > 1)
 	{
 		j = 0;
@@ -265,25 +245,19 @@ void starpu_ndim_filter_pick_ndim(void *father_interface, void *child_interface,
 		{
 			if (i!=dim)
 			{
-				child_dim[j] = ni[i];
+				ndim_child->nn[j] = ni[i];
 				j++;
 			}
 		}
 	}
-	ndim_child->nn = child_dim;
 
-	uint32_t *child_ldn;
-	_STARPU_MALLOC(child_ldn, (ndim-1)*sizeof(uint32_t));
-	ndim_child->ldn = child_ldn;
-
-
+	_STARPU_MALLOC(ndim_child->ldn, (ndim-1)*sizeof(uint32_t));
 	ndim_child->ndim = ndim-1;
 	ndim_child->elemsize = elemsize;
+	ndim_child->allocsize = elemsize;
 
 	if (ndim_father->dev_handle)
 	{
-		size_t allocsize = elemsize;
-
 		if (ndim_father->ptr)
 			ndim_child->ptr = ndim_father->ptr + offset;
 		if (ndim > 1)
@@ -293,24 +267,21 @@ void starpu_ndim_filter_pick_ndim(void *father_interface, void *child_interface,
 			{
 				if (i!=dim)
 				{
-					child_ldn[j] = ndim_father->ldn[i];
+					ndim_child->ldn[j] = ndim_father->ldn[i];
 					j++;
 				}
 			}
 
-			allocsize *= child_ldn[ndim-2] * child_dim[ndim-2];
+			ndim_child->allocsize *= ndim_child->ldn[ndim-2] * ndim_child->nn[ndim-2];
 		}
 
 		ndim_child->dev_handle = ndim_father->dev_handle;
 		ndim_child->offset = ndim_father->offset + offset;
-		ndim_child->allocsize = allocsize;
 	}
 	else
 	{
-		size_t allocsize = elemsize;
 		for (i=0; i<ndim-1; i++)
-			allocsize *= child_dim[i];
-		ndim_child->allocsize = allocsize;
+			ndim_child->allocsize *= ndim_child->nn[i];
 	}
 }
 
@@ -347,7 +318,7 @@ void starpu_ndim_filter_4d_pick_block(void *father_interface, void *child_interf
 }
 
 void starpu_ndim_filter_3d_pick_matrix(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
-				    unsigned id, unsigned nparts)
+				       unsigned id, unsigned nparts)
 {
 	struct starpu_ndim_interface *ndim_father = (struct starpu_ndim_interface *) father_interface;
 	STARPU_ASSERT_MSG(ndim_father->ndim == 3, "can only be applied on a 3-dim array");
@@ -536,8 +507,9 @@ static void _interface_assignment_ndim_to_variable(void *ndim_interface, void *c
 void starpu_ndim_filter_pick_variable(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, STARPU_ATTRIBUTE_UNUSED unsigned id, STARPU_ATTRIBUTE_UNUSED unsigned nchunks)
 {
 	struct starpu_ndim_interface *ndim_father = (struct starpu_ndim_interface *) father_interface;
-	/* each chunk becomes a variable */
 	struct starpu_variable_interface *variable_child = (struct starpu_variable_interface *) child_interface;
+
+	STARPU_ASSERT_MSG(ndim_father->id == STARPU_NDIM_INTERFACE_ID, "%s can only be applied on a ndim array data", __func__);
 
 	size_t ndim = ndim_father->ndim;
 	STARPU_ASSERT_MSG(ndim > 0, "ndim %u must be greater than 0!\n", (unsigned) ndim);
@@ -566,7 +538,6 @@ void starpu_ndim_filter_pick_variable(void *father_interface, void *child_interf
 	}
 
 	STARPU_ASSERT_MSG(b == 1, "the chosen variable should be in the ndim array");
-	STARPU_ASSERT_MSG(ndim_father->id == STARPU_NDIM_INTERFACE_ID, "%s can only be applied on a ndim array data", __func__);
 
 	/* update the child's interface */
 	variable_child->id = STARPU_VARIABLE_INTERFACE_ID;
