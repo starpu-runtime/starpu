@@ -25,7 +25,6 @@
 #ifdef STARPU_USE_CUDA
 #include <cuda.h>
 #include <cuda_runtime_api.h>
-#include <cublas.h>
 #ifdef STARPU_HAVE_LIBNVIDIA_ML
 #include <nvml.h>
 #endif
@@ -45,6 +44,10 @@ extern int _starpu_cuda_bus_ids[STARPU_MAXCUDADEVS+STARPU_MAXNUMANODES][STARPU_M
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 void _starpu_cuda_discover_devices (struct _starpu_machine_config *);
 void _starpu_init_cuda(void);
+void _starpu_init_cublas_v2_func(void);
+void _starpu_shutdown_cublas_v2_func(void);
+void _starpu_cublas_v2_init(void);
+void _starpu_cublas_v2_shutdown(void);
 void *_starpu_cuda_worker(void *);
 #ifdef STARPU_HAVE_LIBNVIDIA_ML
 nvmlDevice_t _starpu_cuda_get_nvmldev(struct cudaDeviceProp *props);
