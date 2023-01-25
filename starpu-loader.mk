@@ -41,6 +41,9 @@ noinst_PROGRAMS		=
 # - $(STARPU_CHECK_LAUNCHER) $(STARPU_CHECK_LAUNCHER_ARGS) is called by loader
 #
 
+export LAUNCHER
+LAUNCHER_ENV	=
+
 if HAVE_PARALLEL
 # When GNU parallel is available and -j is passed to make, run tests through
 # parallel, using a "starpu" semaphore.
@@ -60,11 +63,18 @@ endif
 
 if STARPU_USE_TCPIP_MASTER_SLAVE
 LAUNCHER			= $(abs_top_srcdir)/tools/starpu_msexec
-MS_LAUNCHER			=$(abs_top_builddir)/tools/starpu_tcpipexec -np 2 -nobind -ncpus 1
+MS_LAUNCHER			= $(abs_top_builddir)/tools/starpu_tcpipexec -np 2 -nobind -ncpus 1
 # switch off local socket usage
-#MS_LAUNCHER			=$(abs_top_builddir)/tools/starpu_tcpipexec -np 2 -nobind -ncpus 1 -nolocal
+#MS_LAUNCHER			= $(abs_top_builddir)/tools/starpu_tcpipexec -np 2 -nobind -ncpus 1 -nolocal
 LAUNCHER_ENV			+= STARPU_RESERVE_NCPU=2
 endif
+
+if STARPU_USE_MPI
+LAUNCHER			= $(STARPU_MPIEXEC)
+LAUNCHER_ENV			+= $(MPI_RUN_ENV)
+endif
+
+LAUNCHER	?=
 
 if STARPU_HAVE_WINDOWS
 LOADER_BIN		=	$(LAUNCHER) $(EXTERNAL)

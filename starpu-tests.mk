@@ -25,12 +25,6 @@ else
 STARPU_MPIEXEC			= $(MPIEXEC) $(MPIEXEC_ARGS) -np 4
 endif
 
-export LAUNCHER
-# LAUNCHER should be always put in front of the test loader
-LAUNCHER			=
-# LAUNCHER_ENV should be always put in TESTS_ENVIRONMENT
-LAUNCHER_ENV			=
-
 showfailed:
 	@! grep "^FAIL " $(TEST_LOGS) /dev/null
 	@! grep -l "ERROR: AddressSanitizer: " $(TEST_LOGS) /dev/null
