@@ -14,6 +14,8 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
+LAUNCHER_ENV	=
+LAUNCHER	=
 include $(top_srcdir)/make/starpu.mk
 
 # These are always defined, both for starpu-mpi and for mpi-ms

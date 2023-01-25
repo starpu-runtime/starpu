@@ -42,7 +42,6 @@ noinst_PROGRAMS		=
 #
 
 export LAUNCHER
-LAUNCHER_ENV	=
 
 if HAVE_PARALLEL
 # When GNU parallel is available and -j is passed to make, run tests through
@@ -56,22 +55,17 @@ endif
 export MS_LAUNCHER
 if STARPU_USE_MPI_MASTER_SLAVE
 # Make tests run through mpiexec
-LAUNCHER			= $(abs_top_srcdir)/tools/starpu_msexec
+LAUNCHER			+= $(abs_top_srcdir)/tools/starpu_msexec
 MS_LAUNCHER 			= $(STARPU_MPIEXEC)
 LAUNCHER_ENV			+= $(MPI_RUN_ENV) STARPU_NMPIMSTHREADS=4
 endif
 
 if STARPU_USE_TCPIP_MASTER_SLAVE
-LAUNCHER			= $(abs_top_srcdir)/tools/starpu_msexec
+LAUNCHER			+= $(abs_top_srcdir)/tools/starpu_msexec
 MS_LAUNCHER			= $(abs_top_builddir)/tools/starpu_tcpipexec -np 2 -nobind -ncpus 1
 # switch off local socket usage
 #MS_LAUNCHER			= $(abs_top_builddir)/tools/starpu_tcpipexec -np 2 -nobind -ncpus 1 -nolocal
 LAUNCHER_ENV			+= STARPU_RESERVE_NCPU=2
-endif
-
-if STARPU_USE_MPI
-LAUNCHER			= $(STARPU_MPIEXEC)
-LAUNCHER_ENV			+= $(MPI_RUN_ENV)
 endif
 
 LAUNCHER	?=

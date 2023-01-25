@@ -21,6 +21,9 @@ CCLD=$(MPICC)
 FC=$(MPIFORT)
 FCLD=$(MPIFORT)
 
+LAUNCHER	+= $(STARPU_MPIEXEC)
+LAUNCHER_ENV	+= $(MPI_RUN_ENV)
+
 include $(top_srcdir)/make/starpu-loader.mk
 if STARPU_SIMGRID
 LOADER_BIN = $(LAUNCHER)
