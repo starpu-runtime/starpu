@@ -18,11 +18,11 @@
 # Usually run program through $MS_LAUNCHER, unless it is a shell script, in
 # which case it is the shell script that will run the program through $MS_LAUNCHER
 
-case "$1" in
-	*.sh)
+case "$2" in
+        *.sh)
 		exec "$@"
 		;;
 	*)
-		exec $(MS_LAUNCHER) "$@"
+		exec $MS_LAUNCHER "$@"
 		;;
 esac
