@@ -27,7 +27,6 @@ void _starpu_cuda_preinit(void);
 #ifdef STARPU_USE_CUDA
 #include <cuda.h>
 #include <cuda_runtime_api.h>
-#include <cublas.h>
 #ifdef STARPU_HAVE_LIBNVIDIA_ML
 #include <nvml.h>
 #endif
@@ -58,6 +57,10 @@ void _starpu_init_cuda_config(struct _starpu_machine_topology *topology, struct 
 void _starpu_cuda_init_worker_binding(struct _starpu_machine_config *config, int no_mp_config, struct _starpu_worker *workerarg);
 void _starpu_cuda_init_worker_memory(struct _starpu_machine_config *config, int no_mp_config, struct _starpu_worker *workerarg);
 void _starpu_init_cuda(void);
+void _starpu_init_cublas_v2_func(void);
+void _starpu_shutdown_cublas_v2_func(void);
+void _starpu_cublas_v2_init(void);
+void _starpu_cublas_v2_shutdown(void);
 void *_starpu_cuda_worker(void *);
 #ifdef STARPU_HAVE_LIBNVIDIA_ML
 nvmlDevice_t _starpu_cuda_get_nvmldev(struct cudaDeviceProp *props);
