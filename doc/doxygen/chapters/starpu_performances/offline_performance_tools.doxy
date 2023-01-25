@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2020,2021  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -341,8 +341,9 @@ in the trace, and states of workers will only show up for that portion.
 
 \section PerformanceOfCodelets Performance Of Codelets
 
-The performance model of codelets (see \ref PerformanceModelExample)
-can be examined by using the tool <c>starpu_perfmodel_display</c>:
+After calibrating performance models of codelets (see \ref
+PerformanceModelExample and \ref PerformanceModelCalibration),
+they can be examined by using the tool <c>starpu_perfmodel_display</c>:
 
 \verbatim
 $ starpu_perfmodel_display -l

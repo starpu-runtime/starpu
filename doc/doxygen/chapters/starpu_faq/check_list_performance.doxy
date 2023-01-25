@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -331,10 +331,12 @@ Most schedulers are based on an estimation of codelet duration on each kind
 of processing unit. For this to be possible, the application programmer needs
 to configure a performance model for the codelets of the application (see
 \ref PerformanceModelExample for instance). History-based performance models
-use on-line calibration.  StarPU will automatically calibrate codelets
+use on-line calibration.  When using a scheduler which requires such performance
+model, StarPU will automatically calibrate codelets
 which have never been calibrated yet, and save the result in
 <c>$STARPU_HOME/.starpu/sampling/codelets</c>.
-The models are indexed by machine name.
+The models are indexed by machine name. They can then be displayed various ways,
+see \ref PerformanceOfCodelets .
 
 By default, StarPU stores separate performance models according to the hostname
 of the system. To avoid having to calibrate performance models for each node
@@ -359,7 +361,9 @@ export STARPU_PERF_MODEL_HOMOGENEOUS_MPI_MS=1
 
 To force continuing calibration,
 use <c>export STARPU_CALIBRATE=1</c> (\ref STARPU_CALIBRATE). This may be necessary if your application
-has not-so-stable performance. StarPU will force calibration (and thus ignore
+has not-so-stable performance. It may also be useful to use
+<c>STARPU_SCHED=eager</c> to get tasks distributed over the various workers.
+StarPU will force calibration (and thus ignore
 the current result) until 10 (<c>_STARPU_CALIBRATION_MINIMUM</c>) measurements have been
 made on each architecture, to avoid bad scheduling decisions just because the
 first measurements were not so good.
