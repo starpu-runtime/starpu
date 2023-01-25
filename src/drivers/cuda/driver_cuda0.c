@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
@@ -46,6 +46,7 @@
 #include <datawizard/datawizard.h>
 #include <core/task.h>
 #include <common/knobs.h>
+#include <cublas.h>
 
 /* Consider a rough 10% overhead cost */
 #define FREE_MARGIN 0.9

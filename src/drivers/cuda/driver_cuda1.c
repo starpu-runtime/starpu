@@ -51,6 +51,7 @@
 #if HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX
 #include <hwloc/cuda.h>
 #endif
+#include <cublas.h>
 
 #if CUDART_VERSION >= 5000
 /* Avoid letting our streams spuriously synchonize with the NULL stream */
