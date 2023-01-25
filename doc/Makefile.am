@@ -14,7 +14,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-include $(top_srcdir)/starpu-notests.mk
+include $(top_srcdir)/make/starpu-notests.mk
 
 SUBDIRS = doxygen
 SUBDIRS += doxygen_dev

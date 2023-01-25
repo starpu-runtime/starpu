@@ -14,7 +14,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-include $(top_srcdir)/starpu.mk
+include $(top_srcdir)/make/starpu.mk
 
 # These are always defined, both for starpu-mpi and for mpi-ms
 # For MPI tests we don't want to oversubscribe the system

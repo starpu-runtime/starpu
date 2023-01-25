@@ -16,8 +16,8 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
-include $(top_srcdir)/starpu-tests.mk
-include $(top_srcdir)/starpu-loader.mk
+include $(top_srcdir)/make/starpu-tests.mk
+include $(top_srcdir)/make/starpu-loader.mk
 SUFFIXES = .hip
 AM_CFLAGS += $(MAGMA_CFLAGS) $(APP_CFLAGS)
 AM_CXXFLAGS += $(MAGMA_CFLAGS) $(APP_CXXFLAGS)

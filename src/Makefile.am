@@ -15,7 +15,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-include $(top_srcdir)/starpu-notests.mk
+include $(top_srcdir)/make/starpu-notests.mk
 
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -DBUILDING_STARPU -DSTARPU_DATADIR='"$(datadir)"'
 AM_CPPFLAGS += $(STARPU_H_CPPFLAGS)
