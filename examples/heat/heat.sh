@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2017-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2017-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -20,23 +20,23 @@ set -e
 
 PREFIX=$(dirname $0)
 
-$STARPU_LAUNCH $PREFIX/heat -shape 0
-$STARPU_LAUNCH $PREFIX/heat -shape 1
+$MS_LAUNCHER $STARPU_LAUNCH $PREFIX/heat -shape 0
+$MS_LAUNCHER $STARPU_LAUNCH $PREFIX/heat -shape 1
 # sometimes lead to pivot being 0
-#$STARPU_LAUNCH $PREFIX/heat -shape 2
+#$MS_LAUNCHER $STARPU_LAUNCH $PREFIX/heat -shape 2
 
-$STARPU_LAUNCH $PREFIX/heat -cg
+$MS_LAUNCHER $STARPU_LAUNCH $PREFIX/heat -cg
 
 # TODO: FIXME
 
 # segfault
-#$STARPU_LAUNCH $PREFIX/heat -v1
+#$MS_LAUNCHER $STARPU_LAUNCH $PREFIX/heat -v1
 
 # (actually the default...)
-$STARPU_LAUNCH $PREFIX/heat -v2
+$MS_LAUNCHER $STARPU_LAUNCH $PREFIX/heat -v2
 
 # hang
-#$STARPU_LAUNCH $PREFIX/heat -v3
+#$MS_LAUNCHER $STARPU_LAUNCH $PREFIX/heat -v3
 
 # hang
-#$STARPU_LAUNCH $PREFIX/heat -v4
+#$MS_LAUNCHER $STARPU_LAUNCH $PREFIX/heat -v4

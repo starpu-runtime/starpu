@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -61,7 +61,7 @@ trace_granularity()
 		for iter in `seq 1 $maxiter`
 		do
 			echo "$iter / $maxiter"
-			 val=`STARPU_NCPUS=8 STARPU_NCUDA=3 STARPU_SCHED="dmda" STARPU_PREFETCH=1 STARPU_CALIBRATE=1 $STARPU_LAUNCH $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null`
+			 val=`STARPU_NCPUS=8 STARPU_NCUDA=3 STARPU_SCHED="dmda" STARPU_PREFETCH=1 STARPU_CALIBRATE=1 $MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null`
 			 echo "$val"
 			 echo "$val" >> $filename
 		done
@@ -102,7 +102,7 @@ trace_granularity_hybrid()
 		for iter in `seq 1 $maxiter`
 		do
 			echo "$iter / $maxiter"
-			 val=`STARPU_SCHED="dmda" STARPU_PREFETCH=1 STARPU_CALIBRATE=1 $STARPU_LAUNCH $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null`
+			 val=`STARPU_SCHED="dmda" STARPU_PREFETCH=1 STARPU_CALIBRATE=1 $MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null`
 			 echo "$val"
 			 echo "$val" >> $filename
 		done
@@ -122,12 +122,12 @@ calibrate_grain()
 
 	OPTIONS="-pin -nblocks $blocks -size $size -v3"
 
-	STARPU_NCUDA=3 STARPU_NCPUS=8 STARPU_CALIBRATE=1 STARPU_SCHED="dm" $STARPU_LAUNCH $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null 
-	STARPU_NCUDA=3 STARPU_NCPUS=8 STARPU_CALIBRATE=1 STARPU_PREFETCH=1 STARPU_SCHED="dmda" $STARPU_LAUNCH $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null
-	STARPU_NCUDA=3 STARPU_NCPUS=8 STARPU_CALIBRATE=1 STARPU_PREFETCH=1 STARPU_SCHED="dmda" $STARPU_LAUNCH $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null
-	STARPU_NCUDA=3 STARPU_NCPUS=8 STARPU_CALIBRATE=1 STARPU_PREFETCH=1 STARPU_SCHED="dmda" $STARPU_LAUNCH $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null
-	STARPU_NCUDA=3 STARPU_NCPUS=8 STARPU_CALIBRATE=1 STARPU_PREFETCH=1 STARPU_SCHED="dmda" $STARPU_LAUNCH $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null
-	STARPU_NCUDA=3 STARPU_NCPUS=8 STARPU_CALIBRATE=1 STARPU_PREFETCH=1 STARPU_SCHED="dmda" $STARPU_LAUNCH $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null
+	STARPU_NCUDA=3 STARPU_NCPUS=8 STARPU_CALIBRATE=1 STARPU_SCHED="dm" $MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null 
+	STARPU_NCUDA=3 STARPU_NCPUS=8 STARPU_CALIBRATE=1 STARPU_PREFETCH=1 STARPU_SCHED="dmda" $MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null
+	STARPU_NCUDA=3 STARPU_NCPUS=8 STARPU_CALIBRATE=1 STARPU_PREFETCH=1 STARPU_SCHED="dmda" $MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null
+	STARPU_NCUDA=3 STARPU_NCPUS=8 STARPU_CALIBRATE=1 STARPU_PREFETCH=1 STARPU_SCHED="dmda" $MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null
+	STARPU_NCUDA=3 STARPU_NCPUS=8 STARPU_CALIBRATE=1 STARPU_PREFETCH=1 STARPU_SCHED="dmda" $MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null
+	STARPU_NCUDA=3 STARPU_NCPUS=8 STARPU_CALIBRATE=1 STARPU_PREFETCH=1 STARPU_SCHED="dmda" $MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null
 }
 
 mkdir -p $TIMINGDIR

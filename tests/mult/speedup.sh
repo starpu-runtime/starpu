@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -38,7 +38,7 @@ do
 		echo "ncpus $cpus size $size"
 
 		filename=$TIMINGDIR/timing.$cpus.$size
-		$STARPU_LAUNCH $ROOTDIR/examples/mult/dw_mult -x $size -y $size -z $size -nblocks 16 2>/dev/null| tee $filename
+		$MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/mult/dw_mult -x $size -y $size -z $size -nblocks 16 2>/dev/null| tee $filename
 
 		echo "$cpus	`cat $TIMINGDIR/timing.$cpus.$size`	`cat  $TIMINGDIR/timing.1.$size`" >> $TIMINGDIR/speedup.$size
 	done

@@ -1,7 +1,7 @@
 #!/bin/sh
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -19,4 +19,4 @@ if test -n "$STARPU_MICROBENCHS_DISABLED" ; then exit 77 ; fi
 
 ROOT=${0%.sh}
 ROOT=$(echo $ROOT | sed 's/tasks_data_overhead/tasks_overhead/')
-exec $STARPU_LAUNCH $ROOT -b 1 "$@"
+exec $MS_LAUNCHER $STARPU_LAUNCH $ROOT -b 1 "$@"

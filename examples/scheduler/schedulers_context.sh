@@ -43,7 +43,7 @@ run()
 {
     sched=$1
     echo "sched_ctx.$sched"
-    STARPU_SCHED=$sched $STARPU_SUB_PARALLEL $STARPU_LAUNCH $basedir/../sched_ctx/sched_ctx
+    STARPU_SCHED=$sched $STARPU_SUB_PARALLEL $MS_LAUNCHER $STARPU_LAUNCH $basedir/../sched_ctx/sched_ctx
     check_success $?
 }
 

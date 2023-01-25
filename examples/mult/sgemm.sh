@@ -1,7 +1,7 @@
 #!/bin/sh -x
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2017-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2017-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2018       Federal University of Rio Grande do Sul (UFRGS)
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -30,7 +30,7 @@ mkdir -p $PREFIX/sgemm.traces
 
 export STARPU_FXT_PREFIX=$PREFIX/sgemm.traces
 
-STARPU_FXT_TRACE=1 STARPU_SCHED=dmdas $PREFIX/sgemm -check
+$MS_LAUNCHER $STARPU_LAUNCH STARPU_FXT_TRACE=1 STARPU_SCHED=dmdas $PREFIX/sgemm -check
 if [ -x $PREFIX/../../tools/starpu_fxt_tool ];
 then
 	$STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_plot -o $STARPU_FXT_PREFIX -s starpu_sgemm_gemm -i $STARPU_FXT_PREFIX/prof_file_${USER}_0

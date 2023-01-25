@@ -1,7 +1,7 @@
 #!/bin/sh -x
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2017-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2017-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2018       Federal University of Rio Grande do Sul (UFRGS)
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -29,7 +29,7 @@ mkdir -p $PREFIX/locality.traces
 test -x $PREFIX/../../tools/starpu_fxt_tool || exit 77
 
 export STARPU_FXT_PREFIX=$PREFIX/locality.traces
-STARPU_FXT_TRACE=1 STARPU_SCHED=modular-eager $STARPU_LAUNCH $PREFIX/locality
+STARPU_FXT_TRACE=1 STARPU_SCHED=modular-eager $MS_LAUNCHER $STARPU_LAUNCH $PREFIX/locality
 $STARPU_LAUNCH $PREFIX/../../tools/starpu_fxt_tool -d $STARPU_FXT_PREFIX -memory-states -label-deps -i $STARPU_FXT_PREFIX/prof_file_${USER}_0
 
 # Check that they are approved by Grenoble :)

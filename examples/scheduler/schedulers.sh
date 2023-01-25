@@ -50,7 +50,7 @@ run()
 {
     sched=$1
     echo "cholesky.$sched"
-    STARPU_SCHED=$sched $STARPU_SUB_PARALLEL $STARPU_LAUNCH $basedir/../cholesky/cholesky_tag -size $(($SIDE*3)) -nblocks 3
+    STARPU_SCHED=$sched $STARPU_SUB_PARALLEL $MS_LAUNCHER $STARPU_LAUNCH $basedir/../cholesky/cholesky_tag -size $(($SIDE*3)) -nblocks 3
     check_success $?
 }
 

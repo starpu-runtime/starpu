@@ -1,7 +1,7 @@
 #!/bin/sh
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2017-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2017-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -32,14 +32,14 @@ else
 	SIDE=160
 fi
 
-$STARPU_LAUNCH $PREFIX/lu_implicit_example_float -size $(($SIDE * 4)) -nblocks 4 -piv
-$STARPU_LAUNCH $PREFIX/lu_implicit_example_float -size $(($SIDE * 4)) -nblocks 4 -no-stride
-$STARPU_LAUNCH $PREFIX/lu_implicit_example_float -size $(($SIDE * 4)) -nblocks 4 -bound
-$STARPU_LAUNCH $PREFIX/lu_implicit_example_float -size $(($SIDE * 2)) -nblocks 2 -bounddeps -directory $STARPU_FXT_PREFIX
-$STARPU_LAUNCH $PREFIX/lu_implicit_example_float -size $(($SIDE * 2)) -nblocks 2 -bound -bounddeps -bounddepsprio -directory $STARPU_FXT_PREFIX
+$MS_LAUNCHER $STARPU_LAUNCH $PREFIX/lu_implicit_example_float -size $(($SIDE * 4)) -nblocks 4 -piv
+$MS_LAUNCHER $STARPU_LAUNCH $PREFIX/lu_implicit_example_float -size $(($SIDE * 4)) -nblocks 4 -no-stride
+$MS_LAUNCHER $STARPU_LAUNCH $PREFIX/lu_implicit_example_float -size $(($SIDE * 4)) -nblocks 4 -bound
+$MS_LAUNCHER $STARPU_LAUNCH $PREFIX/lu_implicit_example_float -size $(($SIDE * 2)) -nblocks 2 -bounddeps -directory $STARPU_FXT_PREFIX
+$MS_LAUNCHER $STARPU_LAUNCH $PREFIX/lu_implicit_example_float -size $(($SIDE * 2)) -nblocks 2 -bound -bounddeps -bounddepsprio -directory $STARPU_FXT_PREFIX
 
-$STARPU_LAUNCH $PREFIX/lu_example_float -size $(($SIDE * 4)) -nblocks 4 -piv
-$STARPU_LAUNCH $PREFIX/lu_example_float -size $(($SIDE * 4)) -nblocks 4 -no-stride
-$STARPU_LAUNCH $PREFIX/lu_example_float -size $(($SIDE * 4)) -nblocks 4 -bound
-$STARPU_LAUNCH $PREFIX/lu_example_float -size $(($SIDE * 2)) -nblocks 2 -bounddeps -directory $PREFIX/lu.traces
-$STARPU_LAUNCH $PREFIX/lu_example_float -size $(($SIDE * 2)) -nblocks 2 -bound -bounddeps -bounddepsprio -directory $STARPU_FXT_PREFIX
+$MS_LAUNCHER $STARPU_LAUNCH $PREFIX/lu_example_float -size $(($SIDE * 4)) -nblocks 4 -piv
+$MS_LAUNCHER $STARPU_LAUNCH $PREFIX/lu_example_float -size $(($SIDE * 4)) -nblocks 4 -no-stride
+$MS_LAUNCHER $STARPU_LAUNCH $PREFIX/lu_example_float -size $(($SIDE * 4)) -nblocks 4 -bound
+$MS_LAUNCHER $STARPU_LAUNCH $PREFIX/lu_example_float -size $(($SIDE * 2)) -nblocks 2 -bounddeps -directory $PREFIX/lu.traces
+$MS_LAUNCHER $STARPU_LAUNCH $PREFIX/lu_example_float -size $(($SIDE * 2)) -nblocks 2 -bound -bounddeps -bounddepsprio -directory $STARPU_FXT_PREFIX

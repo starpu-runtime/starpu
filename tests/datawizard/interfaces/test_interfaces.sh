@@ -1,7 +1,7 @@
 #!/bin/sh
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2019-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2019-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -17,7 +17,7 @@
 
 for i in bcsr block coo csr matrix multiformat ndim tensor variable vector void
 do
-    $STARPU_LAUNCH ./tests/datawizard/interfaces/$i/${i}_interface
+    $MS_LAUNCHER $STARPU_LAUNCH ./tests/datawizard/interfaces/$i/${i}_interface
     ret=$?
     if test "$ret" = "0"
     then

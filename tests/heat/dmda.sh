@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -37,7 +37,7 @@ calibrate_point()
 		export STARPU_SCHED=$strat
 		export STARPU_CALIBRATE=1
 		export STARPU_PREFETCH=$prefetch
-		val=`$STARPU_LAUNCH $ROOTDIR/examples/heat/heat -pin -nblocks $nblocks -size $size -v3 2> /dev/null`
+		val=`$MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat/heat -pin -nblocks $nblocks -size $size -v3 2> /dev/null`
 		echo "$val"
 	done
 
@@ -75,14 +75,14 @@ do
 	export STARPU_SCHED="dm"
 	export STARPU_CALIBRATE=1
 	export STARPU_PREFETCH=1
-	valdm=$($STARPU_LAUNCH $ROOTDIR/examples/heat/heat -pin -size $size -nblocks $nblocks -v3 2> logdm)
+	valdm=$($MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat/heat -pin -size $size -nblocks $nblocks -v3 2> logdm)
 
 	calibrate_point "dmda" $nblocks 1
 
 	export STARPU_SCHED="dmda"
 	export STARPU_CALIBRATE=1
 	export STARPU_PREFETCH=1
-	valdmda=$($STARPU_LAUNCH $ROOTDIR/examples/heat/heat -pin -size $size -nblocks $nblocks -v3 2> logdmda)
+	valdmda=$($MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat/heat -pin -size $size -nblocks $nblocks -v3 2> logdmda)
 	
 	dmmiss=`grep "TOTAL MSI" logdm|sed -e "s/.*miss.*[1-9]* (\(.*\) %)/\1/"`
 	dmtotal=`grep "TOTAL transfers" logdm|sed -e "s/TOTAL transfers \(.*\) MB/\1/"`

@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2011-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -32,7 +32,7 @@ for s in `seq 1 $nsamples`
 do
     echo "$ROOTDIR/examples/$BENCH_NAME $OPTIONS"
     
-    val=`$STARPU_LAUNCH $ROOTDIR/examples/$BENCH_NAME $OPTIONS`
+    val=`$MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/$BENCH_NAME $OPTIONS`
     
     echo "$val"
     

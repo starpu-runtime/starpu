@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2016-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2016-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -68,7 +68,7 @@ run()
 		extra=
 	fi
 
-	STARPU_BACKOFF_MIN=0 STARPU_BACKOFF_MAX=0 STARPU_SCHED=$sched $STARPU_SUB_PARALLEL $STARPU_LAUNCH $DIR/bandwidth $fast $extra "$@" | tee bandwidth-$sched.dat
+	STARPU_BACKOFF_MIN=0 STARPU_BACKOFF_MAX=0 STARPU_SCHED=$sched $STARPU_SUB_PARALLEL $MS_LAUNCHER $STARPU_LAUNCH $DIR/bandwidth $fast $extra "$@" | tee bandwidth-$sched.dat
 	echo "\"bandwidth-$sched.dat\" using 1:3 with linespoints lt $type pt $type title \"$sched\", \\" >> bandwidth.gp
 	echo "\"bandwidth-$sched.dat\" using 1:8 with linespoints lt $type pt $type notitle, \\" >> bandwidth.gp
 }

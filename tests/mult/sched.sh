@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -38,7 +38,7 @@ trace_sched()
 		do
 			echo "$iter / $maxiter"
 			#echo "$ROOTDIR/examples/mult/sgemm $OPTIONS 2> /dev/null"
-			STARPU_NCUDA=1 STARPU_CALIBRATE=1 STARPU_SCHED="$sched" $STARPU_LAUNCH $ROOTDIR/examples/mult/sgemm $OPTIONS 2> /dev/null >> $filename
+			STARPU_NCUDA=1 STARPU_CALIBRATE=1 STARPU_SCHED="$sched" $MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/mult/sgemm $OPTIONS 2> /dev/null >> $filename
 			tail -1 $filename
 		done
 	done

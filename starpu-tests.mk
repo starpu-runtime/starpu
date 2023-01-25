@@ -40,16 +40,19 @@ LAUNCHER			=
 # LAUNCHER_ENV should be always put in TESTS_ENVIRONMENT
 LAUNCHER_ENV			=
 
+export MS_LAUNCHER
 if STARPU_USE_MPI_MASTER_SLAVE
 # Make tests run through mpiexec
-LAUNCHER 			+= $(STARPU_MPIEXEC)
+LAUNCHER			= $(abs_top_srcdir)/tools/starpu_msexec
+MS_LAUNCHER 			= $(STARPU_MPIEXEC)
 LAUNCHER_ENV			+= $(MPI_RUN_ENV) STARPU_NMPIMSTHREADS=4
 endif
 
 if STARPU_USE_TCPIP_MASTER_SLAVE
-LAUNCHER			+=$(abs_top_builddir)/tools/starpu_tcpipexec -np 2 -nobind -ncpus 1
+LAUNCHER			= $(abs_top_srcdir)/tools/starpu_msexec
+MS_LAUNCHER			=$(abs_top_builddir)/tools/starpu_tcpipexec -np 2 -nobind -ncpus 1
 # switch off local socket usage
-#LAUNCHER			+=$(abs_top_builddir)/tools/starpu_tcpipexec -np 2 -nobind -ncpus 1 -nolocal
+#MS_LAUNCHER			=$(abs_top_builddir)/tools/starpu_tcpipexec -np 2 -nobind -ncpus 1 -nolocal
 LAUNCHER_ENV			+= STARPU_RESERVE_NCPU=2
 endif
 

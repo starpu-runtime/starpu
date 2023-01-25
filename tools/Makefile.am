@@ -181,7 +181,7 @@ dist_pkgdata_perfmodels_sampling_codelets_DATA = \
 	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_getrf_atlas.idgraf	\
 	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_trsm_ll_atlas.idgraf	\
 	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_trsm_ru_atlas.idgraf	\
-	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_gemm_atlas.idgraf	\
+	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_gemm_atlas.idgrf	\
 	perfmodels/sampling/codelets/45/starpu_slu_lu_model_getrf_goto.idgraf	\
 	perfmodels/sampling/codelets/45/starpu_slu_lu_model_trsm_ll_goto.idgraf	\
 	perfmodels/sampling/codelets/45/starpu_slu_lu_model_trsm_ru_goto.idgraf	\
@@ -335,7 +335,8 @@ EXTRA_DIST =				\
 	perfs/error_model.gp		\
 	perfs/error_model.sh		\
 	distrib/distrib.r		\
-	distrib/distrib.sh
+	distrib/distrib.sh		\
+	starpu_msexec
 
 CLEANFILES = *.gcno *.gcda *.linkinfo starpu_idle_microsec.log figure/* mlr_*
 

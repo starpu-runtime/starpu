@@ -1,7 +1,7 @@
 #!/bin/sh
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -15,6 +15,6 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 ROOT=${0%.sh}
-$STARPU_LAUNCH $ROOT "$@" > tasks_size_overhead.output
+$MS_LAUNCHER $STARPU_LAUNCH $ROOT "$@" > tasks_size_overhead.output
 $ROOT.gp
 gv tasks_size_overhead.eps
