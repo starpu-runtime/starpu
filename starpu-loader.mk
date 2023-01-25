@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2016-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2016-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -15,6 +15,56 @@
 #
 
 noinst_PROGRAMS		=
+
+#
+# Test loading goes through a lot of launchers:
+#
+# - $(LAUNCHER) is called first, to run the test through starpu_msexec, i.e.
+#   either mpirun or starpu_tcpipexec
+#
+# - $(LOADER), i.e. tests/loader, is then called to implement timeout, running
+#   gdb, etc. But if it detects that the test is a .sh script, it just executes
+#   it
+#
+# - $(STARPU_CHECK_LAUNCHER) $(STARPU_CHECK_LAUNCHER_ARGS) is called by loader
+#   to run the program through e.g. valgrind.sh
+#
+# When the program is a shell script, additionally:
+#
+# - $(STARPU_SUB_PARALLEL) is called to control parallelism (see below)
+#
+# - $(MS_LAUNCHER) is called to run the test through starpu_msexec
+#
+# - $(STARPU_LAUNCH) was set by tests/loader to its own path, to run the program
+#   through it.
+#
+# - $(STARPU_CHECK_LAUNCHER) $(STARPU_CHECK_LAUNCHER_ARGS) is called by loader
+#
+
+if HAVE_PARALLEL
+# When GNU parallel is available and -j is passed to make, run tests through
+# parallel, using a "starpu" semaphore.
+# Also make test shell scripts run its tests through parallel, using a
+# "substarpu" semaphore. This brings some overload, but only one level.
+STARPU_SUB_PARALLEL=$(shell echo $(MAKEFLAGS) | sed -ne 's/.*-j\([0-9]\+\).*/parallel --semaphore --id substarpu --fg --fg-exit -j \1/p')
+export STARPU_SUB_PARALLEL
+endif
+
+export MS_LAUNCHER
+if STARPU_USE_MPI_MASTER_SLAVE
+# Make tests run through mpiexec
+LAUNCHER			= $(abs_top_srcdir)/tools/starpu_msexec
+MS_LAUNCHER 			= $(STARPU_MPIEXEC)
+LAUNCHER_ENV			+= $(MPI_RUN_ENV) STARPU_NMPIMSTHREADS=4
+endif
+
+if STARPU_USE_TCPIP_MASTER_SLAVE
+LAUNCHER			= $(abs_top_srcdir)/tools/starpu_msexec
+MS_LAUNCHER			=$(abs_top_builddir)/tools/starpu_tcpipexec -np 2 -nobind -ncpus 1
+# switch off local socket usage
+#MS_LAUNCHER			=$(abs_top_builddir)/tools/starpu_tcpipexec -np 2 -nobind -ncpus 1 -nolocal
+LAUNCHER_ENV			+= STARPU_RESERVE_NCPU=2
+endif
 
 if STARPU_HAVE_WINDOWS
 LOADER_BIN		=	$(LAUNCHER) $(EXTERNAL)

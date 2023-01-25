@@ -16,15 +16,6 @@
 
 include $(top_srcdir)/starpu.mk
 
-if HAVE_PARALLEL
-# When GNU parallel is available and -j is passed to make, run tests through
-# parallel, using a "starpu" semaphore.
-# Also make test shell scripts run its tests through parallel, using a
-# "substarpu" semaphore. This brings some overload, but only one level.
-STARPU_SUB_PARALLEL=$(shell echo $(MAKEFLAGS) | sed -ne 's/.*-j\([0-9]\+\).*/parallel --semaphore --id substarpu --fg --fg-exit -j \1/p')
-export STARPU_SUB_PARALLEL
-endif
-
 # These are always defined, both for starpu-mpi and for mpi-ms
 # For MPI tests we don't want to oversubscribe the system
 MPI_RUN_ENV			= STARPU_WORKERS_GETBIND=0 STARPU_WORKERS_NOBIND=1 STARPU_NCPU=3
@@ -39,22 +30,6 @@ export LAUNCHER
 LAUNCHER			=
 # LAUNCHER_ENV should be always put in TESTS_ENVIRONMENT
 LAUNCHER_ENV			=
-
-export MS_LAUNCHER
-if STARPU_USE_MPI_MASTER_SLAVE
-# Make tests run through mpiexec
-LAUNCHER			= $(abs_top_srcdir)/tools/starpu_msexec
-MS_LAUNCHER 			= $(STARPU_MPIEXEC)
-LAUNCHER_ENV			+= $(MPI_RUN_ENV) STARPU_NMPIMSTHREADS=4
-endif
-
-if STARPU_USE_TCPIP_MASTER_SLAVE
-LAUNCHER			= $(abs_top_srcdir)/tools/starpu_msexec
-MS_LAUNCHER			=$(abs_top_builddir)/tools/starpu_tcpipexec -np 2 -nobind -ncpus 1
-# switch off local socket usage
-#MS_LAUNCHER			=$(abs_top_builddir)/tools/starpu_tcpipexec -np 2 -nobind -ncpus 1 -nolocal
-LAUNCHER_ENV			+= STARPU_RESERVE_NCPU=2
-endif
 
 showfailed:
 	@! grep "^FAIL " $(TEST_LOGS) /dev/null
