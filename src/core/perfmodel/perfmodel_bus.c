@@ -2427,7 +2427,7 @@ static hwloc_obj_t get_hwloc_cuda_obj(hwloc_topology_t topology, unsigned devid)
 		if (res)
 			return res;
 
-#if defined(STARPU_HAVE_LIBNVIDIA_ML) && !defined(STARPU_USE_CUDA0)
+#if defined(STARPU_HAVE_LIBNVIDIA_ML) && !defined(STARPU_USE_CUDA0) && !defined(STARPU_USE_CUDA1)
 		nvmlDevice_t nvmldev = _starpu_cuda_get_nvmldev(&props);
 
 		if (nvmldev)
@@ -2918,7 +2918,7 @@ static void write_bus_platform_file_content(int version)
 		memset(nvlinkhost, 0, sizeof(nvlinkhost));
 
 		/* TODO: move to drivers */
-#if defined(STARPU_HAVE_LIBNVIDIA_ML) && !defined(STARPU_USE_CUDA0)
+#if defined(STARPU_HAVE_LIBNVIDIA_ML) && !defined(STARPU_USE_CUDA0) && !defined(STARPU_USE_CUDA1)
 		/* First find NVLinks */
 		struct cudaDeviceProp props[ncuda];
 
