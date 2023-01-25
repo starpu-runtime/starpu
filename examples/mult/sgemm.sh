@@ -30,7 +30,7 @@ mkdir -p $PREFIX/sgemm.traces
 
 export STARPU_FXT_PREFIX=$PREFIX/sgemm.traces
 
-$MS_LAUNCHER $STARPU_LAUNCH STARPU_FXT_TRACE=1 STARPU_SCHED=dmdas $PREFIX/sgemm -check
+STARPU_FXT_TRACE=1 STARPU_SCHED=dmdas $MS_LAUNCHER $STARPU_LAUNCH $PREFIX/sgemm -check
 if [ -x $PREFIX/../../tools/starpu_fxt_tool ];
 then
 	$STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_plot -o $STARPU_FXT_PREFIX -s starpu_sgemm_gemm -i $STARPU_FXT_PREFIX/prof_file_${USER}_0

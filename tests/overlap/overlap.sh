@@ -30,7 +30,7 @@ mkdir -p $PREFIX/overlap.traces
 
 export STARPU_FXT_PREFIX=$PREFIX/overlap.traces
 
-$MS_LAUNCHER $STARPU_LAUNCH STARPU_FXT_TRACE=1 STARPU_SCHED=dmdas $PREFIX/overlap
+STARPU_FXT_TRACE=1 STARPU_SCHED=dmdas $MS_LAUNCHER $STARPU_LAUNCH $PREFIX/overlap
 if [ -x $PREFIX/../../tools/starpu_fxt_tool ];
 then
 	$STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_plot -o $STARPU_FXT_PREFIX -s overlap_sleep_1024_24 -i $STARPU_FXT_PREFIX/prof_file_${USER}_0
