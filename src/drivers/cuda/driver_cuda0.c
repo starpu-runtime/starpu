@@ -46,7 +46,9 @@
 #include <datawizard/datawizard.h>
 #include <core/task.h>
 #include <common/knobs.h>
+#ifdef STARPU_USE_CUDA
 #include <cublas.h>
+#endif
 
 /* Consider a rough 10% overhead cost */
 #define FREE_MARGIN 0.9

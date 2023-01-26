@@ -37,7 +37,9 @@
 #ifdef STARPU_HAVE_LIBNVIDIA_ML
 #include <nvml.h>
 #endif
+#ifdef STARPU_USE_CUDA
 #include <cublas.h>
+#endif
 #include <datawizard/memory_manager.h>
 #include <datawizard/memory_nodes.h>
 #include <datawizard/malloc.h>
