@@ -1786,25 +1786,47 @@ void update_best_data_single_decision_tree(int* number_free_task_max, double* re
 	/* Then with number of 1 from free */
 	else if (nb_free_task_candidate == *number_free_task_max)
 	{
-		//~ printf("%d vs %d\n", number_1_from_free_task_candidate, *number_1_from_free_task_max);
-		if (number_1_from_free_task_candidate < *number_1_from_free_task_max)
+		
+		//~ /* V1 1 from free then prio */
+		//~ if (number_1_from_free_task_candidate < *number_1_from_free_task_max)
+		//~ {
+			//~ return;
+		//~ }
+		//~ else if (number_1_from_free_task_candidate == *number_1_from_free_task_max)
+		//~ {				
+			//~ /* Then with priority */
+			//~ if (prio == 1 && *priority_max > priority_candidate)
+			//~ {				
+				//~ return;
+			//~ }
+			//~ /* Then with number of task in the list of task using this data */
+			//~ else if ((*priority_max == priority_candidate || prio == 0) && remaining_expected_length_candidate <= *remaining_expected_length_max)
+			//~ {
+				//~ #ifdef PRINT_STATS
+				//~ if (remaining_expected_length_candidate == *remaining_expected_length_max)
+				//~ {
+					//~ data_choice_per_index = true;
+				//~ }
+				//~ #endif
+				
+				//~ return;
+			//~ }
+		//~ }
+		
+		/* V2 prio then 1 from free */
+		if (prio == 1 && *priority_max > priority_candidate)
 		{
 			return;
 		}
-		else if (number_1_from_free_task_candidate == *number_1_from_free_task_max)
-		{	
-			//~ #ifdef PRINT
-			//~ printf("Comparing expected lenghts %f and %f from data %p and %p\n", *remaining_expected_length_max, remaining_expected_length_candidate, *handle_popped, handle_candidate);
-			//~ #endif
-			
-			/* V1 prio then expected lenth */
-			/* Then with priority */
-			if (prio == 1 && *priority_max > priority_candidate)
+		else if (*priority_max == priority_candidate)
+		{				
+			/* Then with 1 from free */
+			if (number_1_from_free_task_candidate < *number_1_from_free_task_max)
 			{				
 				return;
 			}
 			/* Then with number of task in the list of task using this data */
-			else if ((*priority_max == priority_candidate || prio == 0) && remaining_expected_length_candidate <= *remaining_expected_length_max)
+			else if ((number_1_from_free_task_candidate == *number_1_from_free_task_max) && remaining_expected_length_candidate <= *remaining_expected_length_max)
 			{
 				#ifdef PRINT_STATS
 				if (remaining_expected_length_candidate == *remaining_expected_length_max)
@@ -1815,18 +1837,6 @@ void update_best_data_single_decision_tree(int* number_free_task_max, double* re
 				
 				return;
 			}
-			
-			//~ /* V2 expected lenth then prio */
-			//~ /* Then with number of task in the list of task using this data */
-			//~ if (*remaining_expected_length_max > remaining_expected_length_candidate)
-			//~ {				
-				//~ return;
-			//~ }
-			//~ /* Then with priority */
-			//~ else if (*remaining_expected_length_max == remaining_expected_length_candidate && ((prio == 0) || (prio == 1 && *priority_max >= priority_candidate)))
-			//~ {				
-				//~ return;
-			//~ }
 		}
 	}
 	
