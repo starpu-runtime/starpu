@@ -38,6 +38,10 @@ much bigger than this.
 1ms-ish tasks may be a good start, but will not necessarily scale to many dozens
 of cores, so it's better to try to get 10ms-ish tasks.
 
+It may be useful to dedicate a whole core to the main thread, so it can spend
+its time on submitting tasks, by setting the \ref STARPU_MAIN_THREAD_BIND
+environment variable to 1.
+
 Tasks durations can easily be observed when performance models are defined (see
 \ref PerformanceModelExample) by using the tools <c>starpu_perfmodel_plot</c> or
 <c>starpu_perfmodel_display</c> (see \ref PerformanceOfCodelets)
