@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
  *
@@ -256,6 +256,12 @@ struct starpu_perfmodel
 	   be ignored.
 	*/
 	const char *symbol;
+
+	/**
+	   name of the file storing the performance model. It is non
+	   NULL if the model has been loaded or stored in a file.
+	 */
+	const char *path;
 
 	/**
 	   \private

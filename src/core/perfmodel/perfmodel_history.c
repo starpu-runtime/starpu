@@ -567,6 +567,7 @@ static void check_history_entry(struct starpu_perfmodel_history_entry *entry)
 	STARPU_ASSERT_MSG(isnan(entry->flops)||entry->flops >= 0, "entry=%p, entry->flops=%lf\n", entry, entry->flops);
 	STARPU_ASSERT_MSG(entry->duration >= 0, "entry=%p, entry->duration=%lf\n", entry, entry->duration);
 }
+
 static void dump_history_entry(FILE *f, struct starpu_perfmodel_history_entry *entry)
 {
 	fprintf(f, "%08x\t%-15lu\t%-15e\t%-15e\t%-15e\t%-15e\t%-15e\t%u\n", entry->footprint, (unsigned long) entry->size, entry->flops, entry->mean, entry->deviation, entry->sum, entry->sum2, entry->nsample);
@@ -1174,6 +1175,7 @@ void starpu_perfmodel_init(struct starpu_perfmodel *model)
 		return;
 	}
 
+	model->path = NULL;
 	_STARPU_MALLOC(model->state, sizeof(struct _starpu_perfmodel_state));
 	STARPU_PTHREAD_RWLOCK_INIT(&model->state->model_rwlock, NULL);
 
@@ -1232,6 +1234,7 @@ void starpu_save_history_based_model(struct starpu_perfmodel *model)
 	if (path[0] == '\0')
 		starpu_perfmodel_get_model_path_default_location(model->symbol, path, sizeof(path));
 
+	model->path = strdup(path);
 	_STARPU_DEBUG("Opening performance model file <%s> for model <%s>\n", path, model->symbol);
 
 	/* overwrite existing file, or create it */
@@ -1397,6 +1400,7 @@ void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned s
 			return;
 		}
 
+		model->path = strdup(path);
 		_STARPU_DEBUG("Opening performance model file %s for model %s ...\n", path, model->symbol);
 
 		if (calibrate_flag == 2)
@@ -1444,7 +1448,10 @@ int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *mo
 	_STARPU_DEBUG("get_model_path -> %s\n", path);
 
 	if (path[0] != '\0')
+	{
+		model->path = strdup(path);
 		return starpu_perfmodel_load_file(path, model);
+	}
 	else
 	{
 		const char *dot = strrchr(symbol, '.');
@@ -1507,6 +1514,7 @@ int starpu_perfmodel_unload_model(struct starpu_perfmodel *model)
 int starpu_perfmodel_deinit(struct starpu_perfmodel *model)
 {
 	_starpu_deinitialize_performance_model(model);
+	free(model->path);
 	free(model->state);
 	model->state = NULL;
 
