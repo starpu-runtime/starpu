@@ -696,6 +696,8 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 	config->topology.nusedpus =
 		1;
 #endif
+	if (!starpu_getenv_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_CPU", 1))
+		config->topology.nhwdevices[STARPU_CPU_WORKER] = config->topology.nhwworker[STARPU_CPU_WORKER][0];
 
 	if (config->conf.ncuda != 0)
 		_starpu_cuda_discover_devices(config);

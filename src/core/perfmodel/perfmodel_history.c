@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011	    Télécom-SudParis
  * Copyright (C) 2013	    Thibaut Lambert
  *
@@ -93,7 +93,7 @@ void _starpu_initialize_registered_performance_models(void)
 
 	struct _starpu_machine_config *conf = _starpu_get_machine_config();
 	/* FIXME: just iterate over all archs */
-	unsigned ncores = conf->topology.nhwworker[STARPU_CPU_WORKER][0];
+	unsigned ncores = conf->topology.nhwdevices[STARPU_CPU_WORKER];
 	unsigned ncuda =  conf->topology.nhwdevices[STARPU_CUDA_WORKER];
 	unsigned nopencl = conf->topology.nhwdevices[STARPU_OPENCL_WORKER];
 	enum starpu_worker_archtype archtype;
