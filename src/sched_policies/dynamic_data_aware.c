@@ -37,8 +37,8 @@ int data_order;
 //~ int erase_data_strategy;
 int prio;
 int free_pushed_task_position;
-
 int dependances; /* Utile pour les ordres de données et le push back de données dans datanotusedyet. */
+int graph_descendants;
 
 bool gpu_memory_initialized;
 bool new_tasks_initialized;
@@ -1510,6 +1510,8 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 		}
 }
 
+bool graph_read = false; /* TODO: a suppr si j'utilise pas graph_descendants == 1 */
+
 /* Pull tasks. When it receives new task it will randomize the task list and the GPU data list.
  * If it has no task it return NULL. Else if a task was refused it return it. Else it return the
  * head of the GPU task list. Else it calls dyanmic_outer_scheuling to fill this package. */
@@ -1532,6 +1534,14 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 		//~ gpu_memory_initialized = true;
     //~ }
     
+	/* GRAPHE si je fais une pause dans cholesky */
+	if (graph_descendants == 1 && graph_read == false && new_tasks_initialized == true)
+	{
+		graph_read = true;
+		_starpu_graph_compute_descendants();
+		_starpu_graph_foreach(set_priority, data);
+	}
+    
     /* New tasks from push_task. We need to randomize. */
 	#ifdef REFINED_MUTEX
     STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
@@ -1539,10 +1549,12 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 	
     if (new_tasks_initialized == true)
     {
-		/* GRAPHE */
-		_starpu_graph_compute_descendants();
-		_starpu_graph_foreach(set_priority, data);
-		//~ set_priority(data, 1);
+		/* GRAPHE si je ne fais pas de pause et je veux le faire a chaque nouvel soumission de jobs */
+		if (graph_descendants == 2)
+		{
+			_starpu_graph_compute_descendants();
+			_starpu_graph_foreach(set_priority, data);
+		}
 		
 		#ifdef PRINT_STATS
 		nb_new_task_initialized++;
@@ -1624,9 +1636,6 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 		print_task_list(&data->main_task_list, "Main task list"); fflush(stdout);
 		printf("-----\n\n");
 		#endif
-		
-		/* GRAPHE */
-		print_task_list(&data->main_task_list, "Main task list"); fflush(stdout);
     }
     
     #ifdef REFINED_MUTEX
@@ -3653,8 +3662,9 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	dependances = starpu_get_env_number_default("DEPENDANCES", 0);
 	prio = starpu_get_env_number_default("PRIO", 0);
 	free_pushed_task_position = starpu_get_env_number_default("FREE_PUSHED_TASK_POSITION", 0);
+	graph_descendants = starpu_get_env_number_default("GRAPH_DESCENDANTS", 0);
 	
-	printf("-----\nEVICTION_STRATEGY_DYNAMIC_DATA_AWARE = %d\nTHRESHOLD = %d\nAPP = %d\nCHOOSE_BEST_DATA_FROM = %d\nSIMULATE_MEMORY = %d\nTASK_ORDER = %d\nDATA_ORDER = %d\nDEPENDANCES = %d\nPRIO = %d\nFREE_PUSHED_TASK_POSITION = %d\n-----\n", eviction_strategy_dynamic_data_aware, threshold, app, choose_best_data_from, simulate_memory, task_order, data_order, dependances, prio, free_pushed_task_position);
+	printf("-----\nEVICTION_STRATEGY_DYNAMIC_DATA_AWARE = %d\nTHRESHOLD = %d\nAPP = %d\nCHOOSE_BEST_DATA_FROM = %d\nSIMULATE_MEMORY = %d\nTASK_ORDER = %d\nDATA_ORDER = %d\nDEPENDANCES = %d\nPRIO = %d\nFREE_PUSHED_TASK_POSITION = %d\nGRAPH_DESCENDANTS = %d\n-----\n", eviction_strategy_dynamic_data_aware, threshold, app, choose_best_data_from, simulate_memory, task_order, data_order, dependances, prio, free_pushed_task_position, graph_descendants);
 	
 	/* Initialization of global variables. */
 	Ngpu = get_number_GPU();
@@ -3815,7 +3825,8 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	if (eviction_strategy_dynamic_data_aware == 1) 
 	{
 	    starpu_data_register_victim_selector(dynamic_data_aware_victim_selector, dynamic_data_aware_victim_eviction_failed, component); 
-	}	
+	}
+	
 	return component;
 }
 
@@ -3834,8 +3845,10 @@ static void initialize_dynamic_data_aware_center_policy(unsigned sched_ctx_id)
 	if (prio != 0)
 	{
 		/* GRAPHE */
-		printf("_starpu_graph_record gets 1\n"); fflush(stdout);
-		_starpu_graph_record = 1;
+		if (graph_descendants != 0)
+		{
+			_starpu_graph_record = 1;
+		}
 		
 		/* To initialize and get prioriies on each tasks (it's the application that set priorities. It reduces my perfs ? why ? It takes time ? Test with -no prio see if the perfs stays the same */
 		starpu_sched_ctx_set_min_priority(sched_ctx_id, INT_MIN);

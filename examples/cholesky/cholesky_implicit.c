@@ -30,6 +30,7 @@
 
 #define PRIORITY_ATTRIBUTION /* 0: default one from StarPU. 1: Bottom level from Christophe Alias. 2: Bottom level from Christophe Alias with times. */
 int priority_attribution;
+int graph_descendants;
 
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_MAGMA)
 #include "magma.h"
@@ -43,7 +44,7 @@ double average_flop;
 int niter;
 int current_iteration;
 
-/* Durée des tâches utilisé pour la priorité */
+/* Durée des tâches utilisé pour la priorité bottom level */
 /* Pour des tuiles 960*960 */
 double T_POTRF = 20695.580000;
 double T_TRSM = 626.567700;
@@ -81,9 +82,15 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	starpu_fxt_start_profiling();
 	
 	start = starpu_timing_now();  /* Cas dep == 1 */
-	//~ starpu_pause(); /* Version sans dépendances */
+	
+	if (graph_descendants == 1)
+	{
+		starpu_pause(); /* Version sans dépendances ou pour GRAPH_DESCENDANTS */
+	}
 	
 	int priority = 0;
+	
+	
 	
 	/* create all the DAG nodes */
 	for (k = 0; k < nblocks; k++)
@@ -185,8 +192,12 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		}
 		starpu_iteration_pop();
 	}
-	//~ starpu_resume();
 	
+	if (graph_descendants == 1)
+	{
+		starpu_resume(); /* Version avec dépendances ou GRAPH_DESCENDANTS */
+	}
+		
 	/* Cas dep == 1 */
 	starpu_task_wait_for_all();
 	end = starpu_timing_now();
@@ -452,6 +463,7 @@ int main(int argc, char **argv)
 	/* Pour le sans dépendances uniquement. */
 	//~ count_do_schedule = starpu_get_env_number_default("COUNT_DO_SCHEDULE", 1);
 	priority_attribution = starpu_get_env_number_default("PRIORITY_ATTRIBUTION", 0);
+	graph_descendants = starpu_get_env_number_default("GRAPH_DESCENDANTS", 0);
 	
 	average_flop = 0;
 	niter = 1; /* Pour changer le nombre d'itérations */

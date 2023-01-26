@@ -3,6 +3,8 @@
 
 #include <starpu.h>
 
+#define GRAPH_DESCENDANTS /* 0: No graph, so no pause in the task submitting. 1: With a graph reading descendants in DARTS, use a pause in the task submit.  2: With a graph reading descendants in DARTS, but don't use pause and the graph is read at each new batch of tasks in pull_task. */
+
 /* For DARTS. */
 /** Pour ré-initailiser les structs et data après une itération. **/
 void new_iteration(); /* Déjà init dans memalloc.c */
