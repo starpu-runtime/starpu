@@ -35,6 +35,10 @@ extern "C" {
 */
 void starpu_hipblas_init(void);
 
+#ifndef STARPU_USE_HIP
+typedef void* hipblasHandle_t;
+#endif
+
 /**
    Return the HIPBLAS handle to be used to queue HIPBLAS kernels. It
    is properly initialized and configured for multistream by
