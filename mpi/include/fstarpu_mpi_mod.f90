@@ -1,6 +1,6 @@
 ! StarPU --- Runtime system for heterogeneous multicore architectures.
 !
-! Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+! Copyright (C) 2016-2021, 2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 !
 ! StarPU is free software; you can redistribute it and/or modify
 ! it under the terms of the GNU Lesser General Public License as published by
@@ -434,12 +434,12 @@ module fstarpu_mpi_mod
                         type(c_ptr), value, intent(in) :: starpu_tag
                 end function fstarpu_mpi_recv_array_detached_unlock_tag
 
-                ! void starpu_mpi_comm_amounts_retrieve(size_t *comm_amounts);
-                subroutine fstarpu_mpi_comm_amounts_retrieve (comm_amounts) bind(C,name="starpu_mpi_comm_amounts_retrieve")
+                ! void starpu_mpi_comm_stats_retrieve(size_t *comm_stats);
+                subroutine fstarpu_mpi_comm_stats_retrieve (comm_stats) bind(C,name="starpu_mpi_comm_stats_retrieve")
                         use iso_c_binding
                         implicit none
-                        integer(c_size_t), intent(in) :: comm_amounts(*)
-                end subroutine fstarpu_mpi_comm_amounts_retrieve
+                        integer(c_size_t), intent(in) :: comm_stats(*)
+                end subroutine fstarpu_mpi_comm_stats_retrieve
 
 
                 ! void starpu_mpi_cache_flush(MPI_Comm comm, starpu_data_handle_t data_handle);

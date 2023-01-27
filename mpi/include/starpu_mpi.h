@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2021       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -97,14 +97,6 @@ int starpu_mpi_shutdown_comm(MPI_Comm comm);
    communicator given to starpu_mpi_init_comm().
 */
 int starpu_mpi_comm_register(MPI_Comm comm);
-
-/**
-   Retrieve the current amount of communications from the current node
-   in the array \p comm_amounts which must have a size greater or
-   equal to the world size. Communications statistics must be enabled
-   (see \ref STARPU_MPI_STATS).
-*/
-void starpu_mpi_comm_amounts_retrieve(size_t *comm_amounts);
 
 /**
    Return in \p size the size of the communicator \p comm. The
@@ -931,6 +923,33 @@ void starpu_mpi_coop_sends_data_handle_nb_sends(starpu_data_handle_t data_handle
 /** @} */
 
 /**
+   @name Statistics
+   \anchor MPIStats
+   @{
+*/
+
+/**
+   Disable the aggregation of communications statistics.
+*/
+void starpu_mpi_comm_stats_disable(void);
+
+/**
+   Enable the aggregation of communications statistics.
+*/
+void starpu_mpi_comm_stats_enable(void);
+
+/**
+   Retrieve the current communications statistics from the current node
+   in the array \p comm_stats which must have a size greater or
+   equal to the world size. Communications statistics must have been enabled,
+   either through the function starpu_mpi_comm_stats_enable() or
+   through the environment variable \ref STARPU_MPI_STATS.
+*/
+void starpu_mpi_comm_stats_retrieve(size_t *comm_stats);
+
+/** @} */
+
+/**
    @name Miscellaneous
    \anchor MPIMisc
    @{
@@ -938,16 +957,6 @@ void starpu_mpi_coop_sends_data_handle_nb_sends(starpu_data_handle_t data_handle
 
 int starpu_mpi_pre_submit_hook_register(void (*f)(struct starpu_task *));
 int starpu_mpi_pre_submit_hook_unregister(void);
-
-/**
-   Disable the aggregation of statistics on communications based on \ref STARPU_MPI_STATS.
-*/
-void starpu_mpi_comm_stats_disable(void);
-
-/**
-   Enable the aggregation of statistics on communications based on \ref STARPU_MPI_STATS.
-*/
-void starpu_mpi_comm_stats_enable(void);
 
 /** @} */
 

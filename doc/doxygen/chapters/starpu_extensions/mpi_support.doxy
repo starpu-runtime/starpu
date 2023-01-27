@@ -1099,8 +1099,13 @@ from the received communication cache.
 When the environment variable \ref STARPU_MPI_STATS is set to \c 1,
 StarPU will display at the end of the execution for each node the
 volume and the bandwidth of data sent to all the other nodes.
-
-Here is an example of such a trace.
+Communication statistics can also be enabled and disabled from the
+application by calling the functions starpu_mpi_comm_stats_enable()
+and starpu_mpi_comm_stats_disable(). If communication statictics have
+been enabled, calling the function starpu_mpi_comm_stats_retrieve()
+will give the amout of communications between the calling node and all
+the other nodes. Communication statistics will also be automatically
+displayed at the end of the execution, as examplified below.
 
 \verbatim
 [starpu_comm_stats][3] TOTAL:	476.000000 B	0.000454 MB	 0.000098 B/s	 0.000000 MB/s
@@ -1120,7 +1125,9 @@ Here is an example of such a trace.
 [starpu_comm_stats][0:3]	10.000000 B	0.000217 MB	 0.000047 B/s	 0.000000 MB/s
 \endverbatim
 
-These statistics can be plotted as heatmaps using StarPU tool <c>starpu_mpi_comm_matrix.py</c>, this will produce 2 PDF files, one plot for the bandwidth, and one plot for the data volume.
+These statistics can be plotted as heatmaps using the StarPU tool
+<c>starpu_mpi_comm_matrix.py</c>, this will produce 2 PDF files, one
+plot for the bandwidth, and one plot for the data volume.
 
 \image latex trace_bw_heatmap.png "Bandwidth Heatmap" width=0.5\textwidth
 \image html trace_bw_heatmap.png "Bandwidth Heatmap"

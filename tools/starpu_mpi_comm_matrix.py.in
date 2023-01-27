@@ -3,7 +3,7 @@
 #
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2019-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2019-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -62,8 +62,7 @@ else:
 nodes=0
 file = open(outputfile, "r")
 for line in file.readlines():
-    match = re.search(r'\TOTAL', line)
-    if match:
+    if re.search('TOTAL', line):
         (node,stuff)=line.split(sep="[")[2].split("]")
         if int(node) > nodes:
             nodes=int(node)
@@ -75,14 +74,11 @@ volumes = [[0 for _ in range(nodes)] for _ in range(nodes)]
 bandwidth = [[0 for _ in range(nodes)] for _ in range(nodes)]
 file = open(outputfile, "r")
 for line in file.readlines():
-    match = re.search(r'\[starpu_comm_stats]', line)
-    if match:
-        match = re.search('TOTAL', line)
-        if not match:
-            (head,volB,B,volMB,MB,bwB,B,bwMB,MB) = line.split()
-            (src,dst)=head.split(sep="[")[2].split(sep="]")[0].split(sep=":")
-            volumes[int(src)][int(dst)] = float(volB)
-            bandwidth[int(src)][int(dst)] = float(bwB)
+    if re.search(r'\[starpu_comm_stats]', line) and not re.search('TOTAL', line) and re.search('MB/s', line):
+        (head,volB,B,volMB,MB,bwB,B,bwMB,MB) = line.split()
+        (src,dst)=head.split(sep="[")[2].split(sep="]")[0].split(sep=":")
+        volumes[int(src)][int(dst)] = float(volB)
+        bandwidth[int(src)][int(dst)] = float(bwB)
 file.close()
 
 def write_data(filename, nodes, data):
@@ -103,7 +99,7 @@ def generate_gnuplot_script(filename, datafilename, outputfile, nodes):
     ofile.write("set term %s\n" % outputformat)
     ofile.write("set output \"%s.%s\"\n" % (outputfile, outputext))
     ofile.write("set view map scale 1\nset style data lines\n")
-    ofile.write("set palette model RGB defined ( 0 'white', 100 'black' )\n")
+    ofile.write("set palette gray\n")
     ofile.write("set xtics (%s\"src%d\" %d)\n" % (srctics, nodes-1, nodes-1))
     ofile.write("set ytics (%s\"dst%d\" %d)\n" % (dsttics, nodes-1, nodes-1))
     ofile.write("plot '%s' matrix with image\n" % datafilename)
@@ -113,8 +109,10 @@ def generate_gnuplot_script(filename, datafilename, outputfile, nodes):
 write_data(outputfile+"_volume.data", nodes, volumes)
 generate_gnuplot_script(outputfile+"_volume.gp", outputfile+"_volume.data", outputfile+"_volume_heatmap", nodes)
 os.system("gnuplot " + outputfile+"_volume.gp")
+print("Generated file \"%s.%s\"" % (outputfile+"_volume.data", outputext))
 
 # generate gnuplot bandwidth data and script file
 write_data(outputfile+"_bw.data", nodes, bandwidth)
 generate_gnuplot_script(outputfile+"_bw.gp", outputfile+"_bw.data", outputfile+"_bw_heatmap", nodes)
 os.system("gnuplot " + outputfile+"_bw.gp")
+print("Generated file \"%s.%s\"" % (outputfile+"_bw.data", outputext))

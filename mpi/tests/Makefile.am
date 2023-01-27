@@ -106,7 +106,8 @@ starpu_mpi_TESTS +=				\
 	temporary				\
 	user_defined_datatype			\
 	early_stuff				\
-	star
+	star					\
+	stats
 
 if !STARPU_SIMGRID
 # missing support in simgrid
@@ -200,6 +201,7 @@ noinst_PROGRAMS +=				\
 	user_defined_datatype			\
 	tags_checking				\
 	star					\
+	stats					\
 	sync					\
 	gather					\
 	gather2					\
