@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,10 +16,6 @@
 
 #ifndef __STARPU_HIPBLAS_H__
 #define __STARPU_HIPBLAS_H__
-
-#if defined STARPU_USE_HIP && !defined STARPU_DONT_INCLUDE_HIP_HEADERS
-
-#include <hipblas/hipblas.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -42,7 +38,7 @@ void starpu_hipblas_init(void);
 /**
    Return the HIPBLAS handle to be used to queue HIPBLAS kernels. It
    is properly initialized and configured for multistream by
-   starpu_cublas_init().
+   starpu_hipblas_init().
 */
 hipblasHandle_t starpu_hipblas_get_local_handle(void);
 
@@ -56,8 +52,6 @@ void starpu_hipblas_shutdown(void);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif
 
 #endif /* __STARPU_HIPBLAS_H__ */
