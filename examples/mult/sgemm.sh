@@ -49,7 +49,7 @@ then
 	[ -f $STARPU_FXT_PREFIX/data_trace.gp ]
 
 	$STARPU_LAUNCH $PREFIX/../../tools/starpu_fxt_stats -i $STARPU_FXT_PREFIX/prof_file_${USER}_0
-	$STARPU_LAUNCH $PREFIX/../../tools/starpu_tasks_rec_complete $STARPU_FXT_PREFIX/tasks.rec $STARPU_FXT_PREFIX/tasks2.rec
+	$MS_LAUNCHER $STARPU_LAUNCH $PREFIX/../../tools/starpu_tasks_rec_complete $STARPU_FXT_PREFIX/tasks.rec $STARPU_FXT_PREFIX/tasks2.rec
 	python3 $PREFIX/../../tools/starpu_trace_state_stats.py $STARPU_FXT_PREFIX/trace.rec
 	! type gnuplot || ( $PREFIX/../../tools/starpu_workers_activity -d $STARPU_FXT_PREFIX $STARPU_FXT_PREFIX/activity.data && [ -f $STARPU_FXT_PREFIX/activity.eps ] )
 
@@ -64,11 +64,11 @@ then
 		$STARPU_LAUNCH $PREFIX/../../tools/starpu_replay $STARPU_FXT_PREFIX/tasks.rec
 	fi
 
-	[ ! -x $PREFIX/../../tools/starpu_perfmodel_recdump ] || $STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_recdump $STARPU_FXT_PREFIX/tasks.rec -o $STARPU_FXT_PREFIX/perfs2.rec
+	[ ! -x $PREFIX/../../tools/starpu_perfmodel_recdump ] || $MS_LAUNCHER $STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_recdump $STARPU_FXT_PREFIX/tasks.rec -o $STARPU_FXT_PREFIX/perfs2.rec
 	[ -f $STARPU_FXT_PREFIX/perfs2.rec ]
 fi
 
 [ ! -x $PREFIX/../../tools/starpu_perfmodel_display ] || $STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_display -s starpu_sgemm_gemm
 [ ! -x $PREFIX/../../tools/starpu_perfmodel_display ] || $STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_display -x -s starpu_sgemm_gemm
-[ ! -x $PREFIX/../../tools/starpu_perfmodel_recdump ] || $STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_recdump -o $STARPU_FXT_PREFIX/perfs.rec
+[ ! -x $PREFIX/../../tools/starpu_perfmodel_recdump ] || $MS_LAUNCHER $STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_recdump -o $STARPU_FXT_PREFIX/perfs.rec
 [ -f $STARPU_FXT_PREFIX/perfs.rec ]
