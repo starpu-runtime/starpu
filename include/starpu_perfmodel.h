@@ -261,7 +261,7 @@ struct starpu_perfmodel
 	   name of the file storing the performance model. It is non
 	   NULL if the model has been loaded or stored in a file.
 	 */
-	const char *path;
+	char *path;
 
 	/**
 	   \private
