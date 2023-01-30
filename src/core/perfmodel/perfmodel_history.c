@@ -793,7 +793,7 @@ static int parse_model_file(FILE *f, const char *path, struct starpu_perfmodel *
 	if (ncombs > model->state->ncombs_set)
 	{
 		// The model has more combs than the original number of arch_combs, we need to reallocate
-		_starpu_perfmodel_realloc(model, ncombs+5);
+		_starpu_perfmodel_realloc(model, ncombs);
 	}
 
 	int comb;
@@ -2162,7 +2162,7 @@ static struct starpu_perfmodel_per_arch *_starpu_perfmodel_get_model_per_devices
 
 	// Realloc if necessary
 	if (comb >= model->state->ncombs_set)
-		_starpu_perfmodel_realloc(model, comb+5);
+		_starpu_perfmodel_realloc(model, comb+1);
 
 	// Get the per_arch object
 	if (model->state->per_arch[comb] == NULL)
