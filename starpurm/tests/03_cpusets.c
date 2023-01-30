@@ -28,6 +28,8 @@ static void disp_cpuset(const char * name, hwloc_cpuset_t cpuset)
 
 int main(int argc, char *argv[])
 {
+	(void)argc;
+	(void)argv;
 	starpurm_initialize();
 	int cpu_id = starpurm_get_device_type_id("cpu");
 	const int nb_cpu_units = starpurm_get_nb_devices_by_type(cpu_id);

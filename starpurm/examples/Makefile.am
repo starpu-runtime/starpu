@@ -27,7 +27,6 @@ LIBS += $(HWLOC_LIBS) $(DLB_LIBS)
 
 EXTRA_DIST	=				\
 	chameleon/dgemm.c			\
-	block_test/block_test.c			\
 	cuda_vector_scale/vector_scale.c	\
 	cuda_vector_scale/vs_cuda_kernel.cu
 
@@ -39,5 +38,5 @@ TESTS			=	$(STARPU_EXAMPLES)
 STARPU_EXAMPLES	=	\
 	async_spawn	\
 	spawn		\
-	vector_scale
-
+	vector_scale	\
+	block_test/block_test

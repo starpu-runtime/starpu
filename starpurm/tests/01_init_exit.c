@@ -21,6 +21,8 @@
 
 int main(int argc, char *argv[])
 {
+	(void)argc;
+	(void)argv;
 	starpurm_initialize();
 	starpurm_shutdown();
 	return 0;

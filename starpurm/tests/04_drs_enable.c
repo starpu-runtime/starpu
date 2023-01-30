@@ -21,6 +21,8 @@
 
 int main(int argc, char *argv[])
 {
+	(void)argc;
+	(void)argv;
 	int drs_enabled;
 	starpurm_initialize();
 	drs_enabled = starpurm_drs_enabled_p();
