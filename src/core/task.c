@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2016       Uppsala University
@@ -1107,6 +1107,15 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 
 	if (is_sync)
 	{
+		if (starpu_is_paused())
+		{
+			static int warned;
+			if (!warned)
+			{
+				warned = 1;
+				_STARPU_DISP("[warning]: A task with synchronous=1 was submitted after calling starpu_pause(). We will thus hang until starpu_resume() gets called.\n");
+			}
+		}
 		_starpu_sched_do_schedule(task->sched_ctx);
 		_starpu_wait_job(j);
 		if (task->destroy)
