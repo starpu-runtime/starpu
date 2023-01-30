@@ -132,6 +132,8 @@ Small features:
     starpu_memory_node_get_ids_by_type.
   * Add STARPU_MPI_REDUX_ARITY_THRESHOLD to tune the type of tree used in
     distributed-memory reduction patterns that are automatically detected.
+  * New function starpu_data_set_reduction_methods_with_args() to
+    specify arguments to pass to the reduction and init tasks
 
 Changes:
   * The redux codelet should expose the STARPU_COMMUTE flag, since StarPU

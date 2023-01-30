@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -23,9 +23,12 @@
 #include <drivers/mp_common/source_common.h>
 #include <datawizard/memory_nodes.h>
 
-void starpu_data_set_reduction_methods(starpu_data_handle_t handle,
-				       struct starpu_codelet *redux_cl,
-				       struct starpu_codelet *init_cl)
+void starpu_data_set_reduction_methods(starpu_data_handle_t handle, struct starpu_codelet *redux_cl, struct starpu_codelet *init_cl)
+{
+	starpu_data_set_reduction_methods_with_args(handle, redux_cl, NULL, init_cl, NULL);
+}
+
+void starpu_data_set_reduction_methods_with_args(starpu_data_handle_t handle, struct starpu_codelet *redux_cl, void *redux_cl_arg, struct starpu_codelet *init_cl, void *init_cl_arg)
 {
 	_starpu_spin_lock(&handle->header_lock);
 
@@ -61,11 +64,13 @@ void starpu_data_set_reduction_methods(starpu_data_handle_t handle,
 		/* make sure that the flags are applied to the children as well */
 		starpu_data_handle_t child_handle = starpu_data_get_child(handle, child);
 		if (child_handle->nchildren > 0)
-			starpu_data_set_reduction_methods(child_handle, redux_cl, init_cl);
+			starpu_data_set_reduction_methods_with_args(child_handle, redux_cl, redux_cl_arg, init_cl, init_cl_arg);
 	}
 
 	handle->redux_cl = redux_cl;
 	handle->init_cl = init_cl;
+	handle->redux_cl_arg = redux_cl_arg;
+	handle->init_cl_arg = init_cl_arg;
 
 	_starpu_spin_unlock(&handle->header_lock);
 }
@@ -314,6 +319,7 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle, int priority)
 					j->reduction_task = 1;
 
 					redux_task->cl = handle->redux_cl;
+					redux_task->cl_arg = handle->redux_cl_arg;
 					STARPU_ASSERT(redux_task->cl);
 					if (!(STARPU_CODELET_GET_MODE(redux_task->cl, 0)))
 						STARPU_CODELET_SET_MODE(redux_task->cl, STARPU_RW|STARPU_COMMUTE, 0);
@@ -385,6 +391,7 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle, int priority)
 			j->reduction_task = 1;
 
 			redux_task->cl = handle->init_cl;
+			redux_task->cl_arg = handle->init_cl_arg;
 			STARPU_ASSERT(redux_task->cl);
 
 			if (!(STARPU_CODELET_GET_MODE(redux_task->cl, 0)))

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2021       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -617,6 +617,12 @@ struct starpu_codelet;
    STARPU_RW|STARPU_COMMUTE, and a second contribution handle with STARPU_R).
 */
 void starpu_data_set_reduction_methods(starpu_data_handle_t handle, struct starpu_codelet *redux_cl, struct starpu_codelet *init_cl);
+
+/**
+   Same as starpu_data_set_reduction_methods() but allows to pass
+   arguments to the reduction and init tasks
+ */
+void starpu_data_set_reduction_methods_with_args(starpu_data_handle_t handle, struct starpu_codelet *redux_cl, void *redux_cl_arg, struct starpu_codelet *init_cl, void *init_cl_arg);
 
 struct starpu_data_interface_ops *starpu_data_get_interface_ops(starpu_data_handle_t handle);
 

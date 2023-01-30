@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -296,6 +296,8 @@ struct _starpu_data_state
 	 * reduction (eg. 0 for +=). */
 	struct starpu_codelet *redux_cl;
 	struct starpu_codelet *init_cl;
+	void *redux_cl_arg;
+	void *init_cl_arg;
 
 	/** Are we currently performing a reduction on that handle ? If so the
 	 * reduction_refcnt should be non null until there are pending tasks

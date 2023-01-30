@@ -1,6 +1,6 @@
 ! StarPU --- Runtime system for heterogeneous multicore architectures.
 !
-! Copyright (C) 2016-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+! Copyright (C) 2016-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 !
 ! StarPU is free software; you can redistribute it and/or modify
 ! it under the terms of the GNU Lesser General Public License as published by
@@ -1757,6 +1757,17 @@ module fstarpu_mod
                         type(c_ptr), value, intent(in) :: redux_cl
                         type(c_ptr), value, intent(in) :: init_cl
                 end subroutine fstarpu_data_set_reduction_methods
+
+                ! void starpu_data_set_reduction_methods_with_args(starpu_data_handle_t handle, struct starpu_codelet *redux_cl, void *redux_args, struct starpu_codelet *init_cl, void *init_args)
+                subroutine fstarpu_data_set_reduction_methods_with_args (dh,redux_cl,redux_args,init_cl,init_args) &
+                     bind(C,name="starpu_data_set_reduction_methods_with_args")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: dh
+                        type(c_ptr), value, intent(in) :: redux_cl
+                        type(c_ptr), value, intent(in) :: redux_args
+                        type(c_ptr), value, intent(in) :: init_cl
+                        type(c_ptr), value, intent(in) :: init_args
+                end subroutine fstarpu_data_set_reduction_methods_with_args
 
                 ! struct starpu_data_interface_ops* starpu_data_get_interface_ops(starpu_data_handle_t handle);
 
