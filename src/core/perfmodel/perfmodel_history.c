@@ -526,6 +526,9 @@ static void parse_comb(FILE *f, const char *path, struct starpu_perfmodel *model
 	if(id_comb == -1)
 		id_comb = starpu_perfmodel_arch_comb_add(ndevices, devices);
 
+	if (id_comb >= model->state->ncombs_set)
+		_starpu_perfmodel_realloc(model, id_comb+1);
+
 	model->state->combs[comb] = id_comb;
 	parse_arch(f, path, model, scan_history, id_comb);
 }
