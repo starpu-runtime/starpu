@@ -802,6 +802,7 @@ static void _starpu_initialize_workers_bindid(struct _starpu_machine_config *con
 							topology->workers_bindid[i] = (unsigned)((val * scale) % topology->nhwpus);
 						}
 					}
+					number_of_entries = i+1;
 					if (*strval == ',')
 						strval++;
 				}
