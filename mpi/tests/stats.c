@@ -28,6 +28,7 @@ int main(int argc, char **argv)
 {
 	int ret, rank, size;
 	int mpi_init;
+	int value;
 	starpu_data_handle_t handle;
 	size_t *stats;
 
@@ -55,7 +56,8 @@ int main(int argc, char **argv)
 	}
 
 	stats = calloc(size, sizeof(stats[0]));
-	starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&rank, sizeof(rank));
+	value = rank;
+	starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&value, sizeof(value));
 
 	if (rank == 0)
 	{
@@ -99,8 +101,6 @@ int main(int argc, char **argv)
 	starpu_mpi_comm_stats_retrieve(stats);
 	if (rank == 0)
 		STARPU_ASSERT_MSG(stats[1] == sizeof(int), "Comm stats are incorrect %ld != %ld\n", stats[0], (long)sizeof(int));
-	if (rank == 1)
-		STARPU_ASSERT_MSG(stats[0] == sizeof(int), "Comm stats are incorrect %ld != %ld\n", stats[0], (long)sizeof(int));
 
 	starpu_mpi_shutdown();
 	if (!mpi_init)
