@@ -232,7 +232,7 @@ int main(int argc, char *argv[])
 				int strl = hwloc_bitmap_snprintf(NULL, 0, some_cpu_mask);
 				char str[strl+1];
 				hwloc_bitmap_snprintf(str, strl+1, some_cpu_mask);
-				printf("assigning cpu some_cpu_mask %s to StarPU\n", str);
+				printf("assigning cpu mask %s to StarPU\n", str);
 			}
 			starpurm_withdraw_all_cpus_from_starpu(NULL);
 			starpurm_assign_cpu_mask_to_starpu(NULL, some_cpu_mask);
@@ -249,7 +249,7 @@ int main(int argc, char *argv[])
 				int strl = hwloc_bitmap_snprintf(NULL, 0, some_cpu_mask);
 				char str[strl+1];
 				hwloc_bitmap_snprintf(str, strl+1, some_cpu_mask);
-				printf("withdrawing cpu some_cpu_mask %s from StarPU\n", str);
+				printf("withdrawing cpu mask %s from StarPU\n", str);
 			}
 			starpurm_assign_all_cpus_to_starpu(NULL);
 			starpurm_withdraw_cpu_mask_from_starpu(NULL, some_cpu_mask);
