@@ -1128,14 +1128,6 @@ int starpu_conf_init(struct starpu_conf *conf)
 	if (conf->ncpus == -1)
 		conf->ncpus = starpu_getenv_number("STARPU_NCPUS");
 	conf->reserve_ncpus = starpu_getenv_number("STARPU_RESERVE_NCPU");
-	int main_thread_bind = starpu_getenv_number_default("STARPU_MAIN_THREAD_BIND", 0);
-	if (main_thread_bind)
-	{
-		if (conf->reserve_ncpus == -1)
-			conf->reserve_ncpus = 1;
-		else
-			conf->reserve_ncpus++;
-	}
 	conf->ncuda = starpu_getenv_number("STARPU_NCUDA");
 	conf->nhip = starpu_getenv_number("STARPU_NHIP");
 	conf->nopencl = starpu_getenv_number("STARPU_NOPENCL");
