@@ -19,6 +19,9 @@ include $(top_srcdir)/make/starpu.mk
 recheck:
 	-cat /dev/null
 
+showcheckfailed:
+	@-cat /dev/null
+
 showfailed:
 	@-cat /dev/null
 

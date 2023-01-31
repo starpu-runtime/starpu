@@ -17,7 +17,7 @@
 ACLOCAL_AMFLAGS=-I m4
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
-SUBDIRS = 
+SUBDIRS =
 
 if STARPU_USE_MIN_DGELS
 SUBDIRS += min-dgels
@@ -209,33 +209,7 @@ module_DATA = packages/starpu-1.4
 
 DISTCLEANFILES = STARPU-REVISION
 
-recheck:
-	RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		$(MAKE) -C $$i recheck || RET=1 ; \
-	done ; \
-	exit $$RET
-
-showfailed:
-	@RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		$(MAKE) -s -C $$i showfailed || RET=1 ; \
-	done ; \
-	exit $$RET
-
-showcheck:
-	RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		$(MAKE) -C $$i showcheck || RET=1 ; \
-	done ; \
-	exit $$RET
-
-showsuite:
-	RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		$(MAKE) -C $$i showsuite || RET=1 ; \
-	done ; \
-	exit $$RET
+include ./make/starpu-subdirtests.mk
 
 ctags-local:
 	cd $(top_srcdir) ; $(CTAGS) -R -I LIST_TYPE

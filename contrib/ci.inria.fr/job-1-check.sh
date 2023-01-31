@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2013-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -139,16 +139,7 @@ set -o pipefail
 make -k check 2>&1 | tee  ../check_$$
 RET=$?
 
-set +e
-simgrid=$(grep 'simgrid enabled' config.log | grep yes)
-set +o pipefail
-set -e
-
-if test -z "$simgrid"
-then
-    make showsuite
-fi
-
+make showcheckfailed
 make clean
 
 grep "^FAIL:" ../check_$$ || true

@@ -27,15 +27,23 @@ else
 STARPU_MPIEXEC			= $(MPIEXEC) $(MPIEXEC_ARGS) -np 4
 endif
 
+showcheckfailed:
+	@ for x in $(shell grep -l "^FAIL " $(TEST_LOGS) /dev/null 2>/dev/null) ; do cat $$x ; done
+	@RET=0 ; \
+	for i in $(SUBDIRS) ; do \
+		make -C $$i showcheckfailed || RET=1 ; \
+	done ; \
+	exit $$RET
+
 showfailed:
-	@! grep "^FAIL " $(TEST_LOGS) /dev/null
-	@! grep -l "ERROR: AddressSanitizer: " $(TEST_LOGS) /dev/null
-	@! grep -l "WARNING: AddressSanitizer: " $(TEST_LOGS) /dev/null
-	@! grep -l "ERROR: ThreadSanitizer: " $(TEST_LOGS) /dev/null
-	@! grep -l "WARNING: ThreadSanitizer: " $(TEST_LOGS) /dev/null
-	@! grep -l "ERROR: LeakSanitizer: " $(TEST_LOGS) /dev/null
-	@! grep -l "WARNING: LeakSanitizer: " $(TEST_LOGS) /dev/null
-	@! grep -l " runtime error: " $(TEST_LOGS) /dev/null
+	@! grep "^FAIL " $(TEST_LOGS) /dev/null 2>/dev/null
+	@! grep -l "ERROR: AddressSanitizer: " $(TEST_LOGS) /dev/null 2>/dev/null
+	@! grep -l "WARNING: AddressSanitizer: " $(TEST_LOGS) /dev/null 2>/dev/null
+	@! grep -l "ERROR: ThreadSanitizer: " $(TEST_LOGS) /dev/null 2>/dev/null
+	@! grep -l "WARNING: ThreadSanitizer: " $(TEST_LOGS) /dev/null 2>/dev/null
+	@! grep -l "ERROR: LeakSanitizer: " $(TEST_LOGS) /dev/null 2>/dev/null
+	@! grep -l "WARNING: LeakSanitizer: " $(TEST_LOGS) /dev/null 2>/dev/null
+	@! grep -l " runtime error: " $(TEST_LOGS) /dev/null 2>/dev/null
 	@RET=0 ; \
 	for i in $(SUBDIRS) ; do \
 		make -C $$i showfailed || RET=1 ; \
