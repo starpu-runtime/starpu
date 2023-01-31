@@ -23,6 +23,10 @@
 #include <hipblas/hipblas.h>
 #include <starpu_hipblas.h>
 
+#ifdef STARPU_HIP_PLATFORM_AMD
+#include <rocblas/rocblas.h>
+#endif
+
 static int hipblas_initialized[STARPU_NMAXWORKERS];
 static hipblasHandle_t hipblas_handles[STARPU_NMAXWORKERS];
 static hipblasHandle_t main_handle;
