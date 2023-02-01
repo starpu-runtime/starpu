@@ -1399,9 +1399,11 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			//~ #ifdef PRINT_PYTHON /* Il ne faut pas le faire ici non ? */
 			//~ print_data_to_load_prefetch(task, current_gpu);
 			//~ #endif
+			
 			#ifdef PRINT
 			printf("Return refused task %p.\n", task); fflush(stdout);
 			#endif
+			
 			return task;
 		}
 		
@@ -1429,9 +1431,11 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			#ifdef PRINT_PYTHON
 			print_data_to_load_prefetch(task, current_gpu);
 			#endif
+			
 			#ifdef PRINT
 			printf("Task: %p is getting out of pull_task from planned task not empty on GPU %d\n", task, current_gpu); fflush(stdout);
 			#endif
+			
 			#ifdef REFINED_MUTEX
 			STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
 			#endif
@@ -1477,6 +1481,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 				#ifdef PRINT
 				printf("Return NULL after scheduling call.\n"); fflush(stdout);
 				#endif
+				
 				#ifdef PRINT_STATS
 				nb_return_null_after_scheduling++;
 				#endif
@@ -1487,16 +1492,18 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			#ifdef PRINT_PYTHON
 			print_data_to_load_prefetch(task, current_gpu);
 			#endif
+			
 			#ifdef PRINT
-			printf("Return task %p from the scheduling call.\n", task); fflush(stdout);
+			printf("Return task %p from the scheduling call GPU %d.\n", task, current_gpu); fflush(stdout);
 			#endif
+			
 			#ifdef PRINT_STATS
 			nb_return_task_after_scheduling++;
 			#endif
 			#ifdef REFINED_MUTEX
 			STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
 			#endif
-			//~ printf("Return task %p from the scheduling call.\n", task); fflush(stdout);
+
 			return task;
 		}
 		else
@@ -1504,6 +1511,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			#ifdef PRINT
 			printf("Return NULL because main task list is empty.\n"); fflush(stdout);
 			#endif
+			
 			#ifdef PRINT_STATS
 			nb_return_null_because_main_task_list_empty++;
 			#endif
@@ -1637,7 +1645,7 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 		#ifdef PRINT		
 		printf("Il y a %d tâches.\n", NT_DARTS);
 		printf("Printing GPU's data list and main task list after randomization (TASK_ORDER = %d, DATA_ORDER = %d):\n", task_order, data_order);
-		print_data_not_used_yet();
+		//~ print_data_not_used_yet();
 		print_task_list(&data->main_task_list, "Main task list"); fflush(stdout);
 		printf("-----\n\n");
 		#endif
@@ -2098,7 +2106,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 	#endif
 	
 	//~ STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);	
-		
+	
 	/* Recherche de la meilleure donnée. Je regarde directement pour chaque donnée, le nombre de tâche qu'elle met à 1 donnée d'être possible si j'ai toujours
 	 * 0 à number_free_task_max. */
 	if (choose_best_data_from == 0) /* Le cas de base où je regarde les données pas encore utilisées. */
@@ -2564,13 +2572,12 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 				increment_planned_task_data(t->pointer_to_T, current_gpu);
 				
 				#ifdef PRINT
-				printf("Pushing free %p in planned_task of GPU %d :", t->pointer_to_T, current_gpu);
+				printf("Pushing free %p in planned_task of GPU %d :", t->pointer_to_T, current_gpu); fflush(stdout);
 				for (i = 0; i < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T); i++)
 				{
-					printf(" %p", STARPU_TASK_GET_HANDLE(t->pointer_to_T, i));
+					printf(" %p", STARPU_TASK_GET_HANDLE(t->pointer_to_T, i)); fflush(stdout);
 				}
-				printf("\n");
-				print_data_on_node(1);
+				printf("\n"); fflush(stdout);
 				#endif
 								
 				erase_task_and_data_pointer(t->pointer_to_T, main_task_list);
@@ -2644,6 +2651,18 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		//~ printf("best_1_from_free_task is %p\n", best_1_from_free_task);
 
 		//~ if (t == task_using_data_list_end(handle_popped->sched_data))
+		
+		/* En cas de conflits a cause des mutexs refined */
+		if (!starpu_task_list_ismember(main_task_list, best_1_from_free_task))
+		{
+			//~ printf("++\n");
+			#ifdef REFINED_MUTEX
+			STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
+			#endif
+						
+			goto random;
+		}
+		
 		if (best_1_from_free_task == NULL)
 		{
 			#ifdef PRINT
@@ -2720,8 +2739,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		increment_planned_task_data(best_1_from_free_task, current_gpu);
 		
 		#ifdef PRINT
-		//~ printf("Pushing 1_from_free task %p in planned_task of GPU %d\n", t->pointer_to_T, current_gpu);
-		printf("Pushing 1_from_free task %p in planned_task of GPU %d\n", best_1_from_free_task, current_gpu);
+		printf("Pushing 1_from_free task %p in planned_task of GPU %d\n", best_1_from_free_task, current_gpu); fflush(stdout);
 		#endif
 		
 		//~ erase_task_and_data_pointer(t->pointer_to_T, main_task_list);
@@ -2849,7 +2867,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		increment_planned_task_data(task, current_gpu);
 		
 		#ifdef PRINT
-		printf("For GPU %d, returning head of the randomized main task list: %p.\n", current_gpu, task);
+		printf("For GPU %d, returning head of the randomized main task list: %p.\n", current_gpu, task); fflush(stdout);
 		#endif
 		
 		erase_task_and_data_pointer(task, main_task_list);
