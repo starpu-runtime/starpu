@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -75,7 +75,7 @@ starpu_perfmodel::worker_cost_function to a function which shall return
 the estimated consumption of the task in Joules. Such a function can for instance
 use starpu_task_expected_length() on the task (in µs), multiplied by the
 typical power consumption of the device, e.g. in W, and divided by 1000000. to
-get Joules. A corresponding example is in file <c>tests/perfmodels/regression_based_energy.c</c>.
+get Joules. A corresponding example is in the file <c>tests/perfmodels/regression_based_energy.c</c>.
 
 \subsection MeasuringEnergyandPower Measuring energy and power with StarPU
 
@@ -161,7 +161,7 @@ task->execute_on_a_specific_worker = 1;
 task->workerid = starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0);
 \endcode
 
-A corresponding example is in file <c>tests/errorcheck/invalid_tasks.c</c>.
+A corresponding example is in the file <c>tests/errorcheck/invalid_tasks.c</c>.
 
 or equivalently
 
@@ -180,7 +180,7 @@ task->workerids_len = 2;
 \endcode
 
 One can also specify the order in which tasks must be executed by setting the field
-starpu_task::workerorder. A corresponding example is available in file <c>tests/main/execute_schedule.c</c>. If this field is set to a non-zero value, it
+starpu_task::workerorder. A corresponding example is available in the file <c>tests/main/execute_schedule.c</c>. If this field is set to a non-zero value, it
 provides the per-worker consecutive order in which tasks will be executed,
 starting from 1. For a given of such task, the worker will thus not execute
 it before all the tasks with smaller order value have been executed, notably
@@ -266,7 +266,7 @@ Then, when a task is inserted, <b>the priority of the task will be used to
 select in which bucket is has to be stored</b>.
 So, in the given example, the priority of a task will be between 0 and 4 included.
 However, tasks of priorities 0-1 must provide CPU and CUDA kernels, and
-tasks of priorities 2-4 must provide CPU kernels (at least). The full source code of this example is available in file <c>examples/scheduler/heteroprio_test.c</c>
+tasks of priorities 2-4 must provide CPU kernels (at least). The full source code of this example is available in the file <c>examples/scheduler/heteroprio_test.c</c>
 
 \subsection LAHeteroprio Using locality aware Heteroprio
 

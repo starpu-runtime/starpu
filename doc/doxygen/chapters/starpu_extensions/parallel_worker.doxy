@@ -152,7 +152,7 @@ Parallel workers are based on several tools and models already available within
 StarPU contexts, and merely extend contexts. More on contexts can be
 read in Section \ref SchedulingContexts.
 
-A similar example is available in file <c>examples/sched_ctx/parallel_code.c</c>.
+A similar example is available in the file <c>examples/sched_ctx/parallel_code.c</c>.
 
 \section CreatingCustomParallelWorkers Creating Custom Parallel Workers
 

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -50,7 +50,7 @@ estimation of the workload of the contexts. In this situation, the
 hypervisor may decide what resources the contexts need. However, if no
 information is provided, the hypervisor evaluates the behavior of the
 resources and of the application and makes a guess about the future.
-The hypervisor resizes only the registered contexts. The basic example is available in file <c>sc_hypervisor/examples/sched_ctx_utils/sched_ctx_utils.c</c>.
+The hypervisor resizes only the registered contexts. The basic example is available in the file <c>sc_hypervisor/examples/sched_ctx_utils/sched_ctx_utils.c</c>.
 
 \section InterrogateTheRuntime Interrogate The Runtime
 
@@ -66,7 +66,7 @@ The resizing is triggered either when the application requires it
 (sc_hypervisor_resize_ctxs()) or
 when the initial distribution of resources alters the performance of
 the application (the application is too slow or the resource are idle
-for too long time). A corresponding example is available in file <c>sc_hypervisor/examples/hierarchical_ctxs/resize_hierarchical_ctxs.c</c>. If the environment
+for too long time). A corresponding example is available in the file <c>sc_hypervisor/examples/hierarchical_ctxs/resize_hierarchical_ctxs.c</c>. If the environment
 variable \ref SC_HYPERVISOR_TRIGGER_RESIZE is set to <c>speed</c>,
 the monitored speed of the contexts is compared to a theoretical value
 computed with a linear program, and the resizing is triggered

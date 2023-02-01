@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -157,7 +157,7 @@ starpu_data_invalidate_submit(handle);
 \endcode
 
 the buffers containing the current value will then be freed, and reallocated
-only when another task writes some value to the handle. A basic example is available in file <c>tests/datawizard/data_invalidation.c</c>.
+only when another task writes some value to the handle. A basic example is available in the file <c>tests/datawizard/data_invalidation.c</c>.
 
 \section DataPrefetch Data Prefetch
 
@@ -175,13 +175,13 @@ before submitting tasks, which will thus guide StarPU toward an initial task
 distribution (since StarPU will try to avoid further transfers).
 
 This can be achieved by giving the function starpu_data_prefetch_on_node() the
-handle and the desired target memory node. The corresponding example is available in file <c>tests/microbenchs/prefetch_data_on_node.c</c>. The variant
+handle and the desired target memory node. The corresponding example is available in the file <c>tests/microbenchs/prefetch_data_on_node.c</c>. The variant
 starpu_data_idle_prefetch_on_node() can be used to issue the transfer
 only when the bus is idle.
 
 Conversely, one can advise StarPU that some data will not be useful in the
 close future by calling starpu_data_wont_use(). StarPU will then write its value
-back to its home node, and evict it from GPUs when room is needed. The corresponding example is available in file <c>tests/datawizard/partition_wontuse.c</c>.
+back to its home node, and evict it from GPUs when room is needed. The corresponding example is available in the file <c>tests/datawizard/partition_wontuse.c</c>.
 
 \section ManualPartitioning Manual Partitioning
 

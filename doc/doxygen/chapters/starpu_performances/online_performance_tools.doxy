@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,7 +18,7 @@
 
 \section On-linePerformanceFeedback On-line Performance Feedback
 
-Some examples which apply online performance monitoring are in directory <c>tests/perfmodels/</c>
+Some examples which apply online performance monitoring are in the directory <c>tests/perfmodels/</c>
 
 \subsection EnablingOn-linePerformanceMonitoring Enabling On-line Performance Monitoring
 
@@ -332,7 +332,7 @@ share the models between machines (e.g. for a homogeneous cluster), use
 <c>export STARPU_HOSTNAME=some_global_name</c>. Measurements are only done
 when using a task scheduler which makes use of it, such as
 <c>dmda</c>. Measurements can also be provided explicitly by the application, by
-using the function starpu_perfmodel_update_history(). A corresponding example is in file <c>tests/perfmodels/feed.c</c>.
+using the function starpu_perfmodel_update_history(). A corresponding example is in the file <c>tests/perfmodels/feed.c</c>.
 
 The following is a small code example.
 

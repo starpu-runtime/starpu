@@ -18,7 +18,7 @@
 
 This section presents the StarPU Python Interface. It provides for those used to the Python language a more concise and easy-to-use StarPU interface.
 
-This interface supports most of the main StarPU functionalities. All the functionalities of the C API are not provided, however, new functions especially adapted to Python have been added. Several examples using the Python API are provided in directory <c>starpupy/examples/</c>.
+This interface supports most of the main StarPU functionalities. All the functionalities of the C API are not provided, however, new functions especially adapted to Python have been added. Several examples using the Python API are provided in the directory <c>starpupy/examples/</c>.
 
 \section Installation Installation of the Python Interface
 

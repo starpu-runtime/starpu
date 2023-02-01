@@ -29,7 +29,7 @@ An MPI Insert Task function provides an even more seamless transition to a
 distributed application, by automatically issuing all required data transfers
 according to the task graph and an application-provided distribution.
 
-Some source codes are available in directory <c>mpi/</c>.
+Some source codes are available in the directory <c>mpi/</c>.
 
 \section MPIBuild Building with MPI support
 
@@ -259,7 +259,7 @@ synchronization between MPI reception and emission and the corresponding tasks.
 The only remaining synchronization with starpu_data_acquire() is at
 the beginning and the end.
 
-The full source code is available in file <c>mpi/tests/ring.c</c>.
+The full source code is available in the file <c>mpi/tests/ring.c</c>.
 
 \section MPIInitialization How to Initialize StarPU-MPI
 
@@ -501,7 +501,7 @@ starpu_complex_data_register(&handle, STARPU_MAIN_RAM, real, imaginary, 2);
 ...
 \endcode
 
-A corresponding example is provided in file <c>mpi/examples/user_datatype/my_interface.c</c>.
+A corresponding example is provided in the file <c>mpi/examples/user_datatype/my_interface.c</c>.
 
 It is also possible to use starpu_mpi_datatype_register() to register the
 functions through a handle rather than the interface ID, but note that in that
@@ -539,7 +539,7 @@ locality of the data. Note that the data needs to be registered to MPI
 by calling starpu_mpi_data_register(). This function allows setting
 the distribution information and the MPI tag which should be used when
 communicating the data. It also allows to automatically clear the MPI
-communication cache when unregistering the data. A basic example is in file <c>mpi/tests/insert_task.c</c>.
+communication cache when unregistering the data. A basic example is in the file <c>mpi/tests/insert_task.c</c>.
 
 \code{.c}
 /* Returns the MPI node number where data is */
@@ -611,7 +611,7 @@ steps of the application.
     starpu_task_wait_for_all();
 \endcode
 
-The full source code is available in file <c>mpi/examples/stencil/stencil5.c</c>.
+The full source code is available in the file <c>mpi/examples/stencil/stencil5.c</c>.
 
 I.e. all MPI nodes process the whole task graph, but as mentioned above, for
 each task, only the MPI node which owns the data being written to (here,
@@ -649,7 +649,7 @@ starpu_mpi_task_post_build(MPI_COMM_WORLD, &cl,
                            0);
 \endcode
 
-A full source code using these functions is available in file <c>mpi/tests/insert_task_compute.c</c>.
+A full source code using these functions is available in the file <c>mpi/tests/insert_task_compute.c</c>.
 
 It is also possible to create and submit the task outside of StarPU-MPI functions
 and call the functions
@@ -674,7 +674,7 @@ if (params.do_execute) starpu_task_submit(task);
 starpu_mpi_task_exchange_data_after_execution(MPI_COMM_WORLD, descrs, 2, params);
 \endcode
 
-A full source code using these functions is available in file <c>mpi/tests/mpi_task_submit.c</c>.
+A full source code using these functions is available in the file <c>mpi/tests/mpi_task_submit.c</c>.
 
 \section MPIInsertPruning Pruning MPI Task Insertion
 
@@ -707,7 +707,7 @@ A way to do some of this quite easily can be to just add an <c>if</c> like this:
 
 This permits to drop the cost of function call argument passing and parsing.
 
-A corresponding example is available in file <c>examples/stencil/implicit-stencil-tasks.c</c>.
+A corresponding example is available in the file <c>examples/stencil/implicit-stencil-tasks.c</c>.
 
 If the <c>my_distrib</c> function can be inlined by the compiler, the latter can
 improve the test.
@@ -782,7 +782,7 @@ starpu_mpi_data_register(data1, 43, 1);
 starpu_mpi_task_insert(MPI_COMM_WORLD, &cl, STARPU_W, data, STARPU_R, data0, STARPU_R, data1, 0); /* Executes on node 0 */
 \endcode
 
-The full source code is available in file <c>mpi/tests/temporary.c</c>.
+The full source code is available in the file <c>mpi/tests/temporary.c</c>.
 
 \section MPIPerNodeData Per-node Data
 
@@ -833,7 +833,7 @@ starpu_mpi_data_set_rank(data, STARPU_MPI_PER_NODE);
 
 The data can then be used just like per-node above.
 
-The full source code is available in file <c>mpi/tests/temporary.c</c>.
+The full source code is available in the file <c>mpi/tests/temporary.c</c>.
 
 \section MPIMpiRedux Inter-node reduction
 
@@ -884,7 +884,7 @@ priority parameter, which allows making StarPU-MPI change the order of MPI
 requests before submitting them to MPI. The default priority is \c 0.
 
 When using the starpu_mpi_task_insert() helper, ::STARPU_PRIORITY defines both the
-task priority and the MPI requests priority. A corresponding example is available in file <c>mpi/examples/benchs/recv_wait_finalize_bench.c</c>.
+task priority and the MPI requests priority. A corresponding example is available in the file <c>mpi/examples/benchs/recv_wait_finalize_bench.c</c>.
 
 To test how much MPI priorities have a good effect on performance, you can
 set the environment variable \ref STARPU_MPI_PRIORITIES to \c 0 to disable the use of
@@ -920,7 +920,7 @@ for the data deallocation will be the same, but it will additionally release som
 pressure from the StarPU-MPI cache hash table during task submission.
 
 One can determine whether a piece of data is cached with
-starpu_mpi_cached_receive() and starpu_mpi_cached_send(). A corresponding example is available in file <c>mpi/examples/cache/cache.c</c>.
+starpu_mpi_cached_receive() and starpu_mpi_cached_send(). A corresponding example is available in the file <c>mpi/examples/cache/cache.c</c>.
 
 Functions starpu_mpi_cached_receive_set() and
 starpu_mpi_cached_send_set() are automatically called by
@@ -964,7 +964,7 @@ migrate the data, and register the new location.
     }
 \endcode
 
-The full example is available in file <c>mpi/examples/stencil/stencil5.c</c>.
+The full example is available in the file <c>mpi/examples/stencil/stencil5.c</c>.
 From then on, further tasks submissions will use the new data distribution,
 which will thus change both MPI communications and task assignments.
 
@@ -1261,7 +1261,7 @@ To select another node, use the environment variable \ref
 STARPU_MPI_MASTER_NODE "STARPU_MPI_MASTER_NODE=\<number\>" with
 <c>\<number\></c> being the requested MPI rank node.
 
-A simple example <c>tests/main/insert_task.c</c> can be used to test MPI master salve support.
+A simple example <c>tests/main/insert_task.c</c> can be used to test the MPI master slave support.
 
 \section MPICheckpoint MPI Checkpoint Support
 

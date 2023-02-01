@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -148,13 +148,13 @@ rather than others.
 
 \snippet disk_copy.c To be included. You should update doxygen if you see this text.
 
-The full code is provided in file <c>tests/disk/disk_copy.c</c>
+The full code is provided in the file <c>tests/disk/disk_copy.c</c>
 
 \section ExampleDiskCompute Examples: disk_compute
 
 \snippet disk_compute.c To be included. You should update doxygen if you see this text.
 
-The full code is provided in file <c>tests/disk/disk_compute.c</c>
+The full code is provided in the file <c>tests/disk/disk_compute.c</c>
 
 \section Performances
 

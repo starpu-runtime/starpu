@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2019-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -60,7 +60,7 @@ struct starpu_codelet cl =
 }
 \endverbatim
 
-A basic example is available in file <c>tests/maxfpga/max_fpga_basic_static.c</c>.
+A basic example is available in the file <c>tests/maxfpga/max_fpga_basic_static.c</c>.
 
 \subsection MaxFPGAExample StarPU/Maxeler FPGA Application
 

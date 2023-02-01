@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -77,7 +77,7 @@ The termination of a task can be delayed through the function
 starpu_task_end_dep_add() which specifies the number of calls to the function
 starpu_task_end_dep_release() needed to trigger the task termination. One can
 also use starpu_task_declare_end_deps() or starpu_task_declare_end_deps_array()
-to delay the termination of a task until the termination of other tasks. A simple example is available in file <c>tests/main/task_end_dep.c</c>.
+to delay the termination of a task until the termination of other tasks. A simple example is available in the file <c>tests/main/task_end_dep.c</c>.
 
 \section UsingMultipleImplementationsOfACodelet Using Multiple Implementations Of A Codelet
 
@@ -116,7 +116,7 @@ struct starpu_codelet cl =
 };
 \endcode
 
-The full code of this example is available in file <c>examples/basic_examples/vector_scal.c</c>.
+The full code of this example is available in the file <c>examples/basic_examples/vector_scal.c</c>.
 
 Schedulers which are multi-implementation aware (only <c>dmda</c> and
 <c>pheft</c> for now) will use the performance models of all the
@@ -156,7 +156,7 @@ struct starpu_codelet cl =
 };
 \endcode
 
-A full example is available in file <c>examples/reductions/dot_product.c</c>.
+A full example is available in the file <c>examples/reductions/dot_product.c</c>.
 
 This can be essential e.g. when running on a machine which mixes various models
 of CUDA devices, to take benefit from the new models without crashing on old models.
@@ -346,7 +346,7 @@ be used. When exposed to codelets with a flag ::STARPU_FORKJOIN or
 several CPUs. It will automatically try the various available combined
 worker sizes (making several measurements for each worker size) and
 thus be able to avoid choosing a large combined worker if the codelet
-does not actually scale so much. Examples use parallel-task-aware StarPU scheduler are available in <c>tests/parallel_tasks/parallel_kernels.c</c> and <c>tests/parallel_tasks/parallel_kernels_spmd.c</c>.
+does not actually scale so much. Examples using parallel-task-aware StarPU scheduler are available in <c>tests/parallel_tasks/parallel_kernels.c</c> and <c>tests/parallel_tasks/parallel_kernels_spmd.c</c>.
 
 This is however for now only proof of concept, and has not really been optimized yet.
 
