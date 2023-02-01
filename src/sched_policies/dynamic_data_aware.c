@@ -133,7 +133,11 @@ static void set_priority(void *_data, struct _starpu_graph_node *node)
 		//~ if (data->descendants)
 		//~ {
 			job->task->priority = node->descendants;
+			
+			#ifdef PRINT
 			printf("Descendants of job %p (%s): %d\n", job->task, starpu_task_get_name(job->task), job->task->priority);
+			#endif
+			
 		//~ }
 		//~ else
 		//~ {
