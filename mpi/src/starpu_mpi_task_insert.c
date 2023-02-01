@@ -627,7 +627,7 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
                 if (descrs[i].handle && descrs[i].handle->mpi_data)
 		{
 			char* redux_map = starpu_mpi_data_get_redux_map(descrs[i].handle);
-			if (redux_map != NULL && descrs[i].mode & STARPU_R && ( descrs[i].mode & ~ STARPU_REDUX || descrs[i].mode & ~ STARPU_MPI_REDUX ))
+			if (redux_map != NULL && descrs[i].mode & STARPU_R && descrs[i].mode & ~ STARPU_REDUX && descrs[i].mode & ~ STARPU_MPI_REDUX )
 			{
 				_starpu_mpi_redux_wrapup_data(descrs[i].handle);
 			}
@@ -710,15 +710,27 @@ int _starpu_mpi_task_postbuild_v(MPI_Comm comm, int xrank, int do_execute, struc
 			}
 			mpi_data->redux_map [xrank] = 1;
 			mpi_data->redux_map [rrank] = 1;
-			struct _starpu_redux_data_entry *entry;
-			HASH_FIND_PTR(_redux_data, &descrs[i].handle, entry);
-			if (entry == NULL)
+			int outside_owner = 0;
+			int j;
+			for (j = 0; j < size; j++)
 			{
-				_STARPU_CALLOC(mpi_data->redux_map, size, sizeof(mpi_data->redux_map[0]));
-				_STARPU_MPI_MALLOC(entry, sizeof(*entry));
-				starpu_data_handle_t data_handle = descrs[i].handle;
-				entry->data_handle = data_handle;
-				HASH_ADD_PTR(_redux_data, data_handle, entry);
+				if (mpi_data->redux_map[j] && j != rrank)
+				{
+					outside_owner = 1;
+					break;
+				}
+			}
+			if (outside_owner)
+			{
+				struct _starpu_redux_data_entry *entry;
+				HASH_FIND_PTR(_redux_data, &descrs[i].handle, entry);
+				if (entry == NULL)
+				{
+					_STARPU_MPI_MALLOC(entry, sizeof(*entry));
+					starpu_data_handle_t data_handle = descrs[i].handle;
+					entry->data_handle = data_handle;
+					HASH_ADD_PTR(_redux_data, data_handle, entry);
+				}
 			}
 		}
 		_starpu_mpi_exchange_data_after_execution(descrs[i].handle, descrs[i].mode, me, xrank, do_execute, prio, comm);
@@ -1161,16 +1173,13 @@ int starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle, 
 			nb_contrib++;
 		}
 	}
-	if (nb_contrib < 2)
-	{
-		_STARPU_MPI_DEBUG(5, "Not enough contributors to create a n-ary reduction tree.\n");
-		return 0;
-	}
 	return starpu_mpi_redux_data_prio_tree(comm, data_handle, prio, nb_contrib);
 }
 
 void _starpu_mpi_redux_wrapup_data(starpu_data_handle_t data_handle)
 {
+	// We could check if the handle makes sense but we do not because it helps the programmer using coherent
+	// distributed-memory reduction patterns
 	size_t data_size = starpu_data_get_size(data_handle);
  	// Small data => flat tree | binary tree
 	int _starpu_mpi_redux_threshold = starpu_getenv_number_default("STARPU_MPI_REDUX_ARITY_THRESHOLD", 1024);
