@@ -39,6 +39,7 @@ int prio;
 int free_pushed_task_position;
 int dependances; /* Utile pour les ordres de données et le push back de données dans datanotusedyet. */
 int graph_descendants;
+int dopt_selection_order;
 
 bool gpu_memory_initialized;
 bool new_tasks_initialized;
@@ -1787,55 +1788,60 @@ void update_best_data_single_decision_tree(int* number_free_task_max, double* re
 	else if (nb_free_task_candidate == *number_free_task_max)
 	{
 		
-		//~ /* V1 1 from free then prio */
-		//~ if (number_1_from_free_task_candidate < *number_1_from_free_task_max)
-		//~ {
-			//~ return;
-		//~ }
-		//~ else if (number_1_from_free_task_candidate == *number_1_from_free_task_max)
-		//~ {				
-			//~ /* Then with priority */
-			//~ if (prio == 1 && *priority_max > priority_candidate)
-			//~ {				
-				//~ return;
-			//~ }
-			//~ /* Then with number of task in the list of task using this data */
-			//~ else if ((*priority_max == priority_candidate || prio == 0) && remaining_expected_length_candidate <= *remaining_expected_length_max)
-			//~ {
-				//~ #ifdef PRINT_STATS
-				//~ if (remaining_expected_length_candidate == *remaining_expected_length_max)
-				//~ {
-					//~ data_choice_per_index = true;
-				//~ }
-				//~ #endif
-				
-				//~ return;
-			//~ }
-		//~ }
-		
-		/* V2 prio then 1 from free */
-		if (prio == 1 && *priority_max > priority_candidate)
+		/* V1 1 from free then prio */
+		if  (dopt_selection_order == 0)
 		{
-			return;
-		}
-		else if (*priority_max == priority_candidate)
-		{				
-			/* Then with 1 from free */
 			if (number_1_from_free_task_candidate < *number_1_from_free_task_max)
-			{				
+			{
 				return;
 			}
-			/* Then with number of task in the list of task using this data */
-			else if ((number_1_from_free_task_candidate == *number_1_from_free_task_max) && remaining_expected_length_candidate <= *remaining_expected_length_max)
-			{
-				#ifdef PRINT_STATS
-				if (remaining_expected_length_candidate == *remaining_expected_length_max)
-				{
-					data_choice_per_index = true;
+			else if (number_1_from_free_task_candidate == *number_1_from_free_task_max)
+			{				
+				/* Then with priority */
+				if (prio == 1 && *priority_max > priority_candidate)
+				{				
+					return;
 				}
-				#endif
-				
+				/* Then with time of task in the list of task using this data */
+				else if ((*priority_max == priority_candidate || prio == 0) && remaining_expected_length_candidate <= *remaining_expected_length_max)
+				{
+					#ifdef PRINT_STATS
+					if (remaining_expected_length_candidate == *remaining_expected_length_max)
+					{
+						data_choice_per_index = true;
+					}
+					#endif
+					
+					return;
+				}
+			}
+		}
+		else
+		{
+		/* V2 prio then 1 from free */
+			if (prio == 1 && *priority_max > priority_candidate)
+			{
 				return;
+			}
+			else if (*priority_max == priority_candidate)
+			{				
+				/* Then with 1 from free */
+				if (number_1_from_free_task_candidate < *number_1_from_free_task_max)
+				{				
+					return;
+				}
+				/* Then with time of task in the list of task using this data */
+				else if ((number_1_from_free_task_candidate == *number_1_from_free_task_max) && remaining_expected_length_candidate <= *remaining_expected_length_max)
+				{
+					#ifdef PRINT_STATS
+					if (remaining_expected_length_candidate == *remaining_expected_length_max)
+					{
+						data_choice_per_index = true;
+					}
+					#endif
+					
+					return;
+				}
 			}
 		}
 	}
@@ -3672,9 +3678,10 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	dependances = starpu_get_env_number_default("DEPENDANCES", 0);
 	prio = starpu_get_env_number_default("PRIO", 0);
 	free_pushed_task_position = starpu_get_env_number_default("FREE_PUSHED_TASK_POSITION", 0);
-	graph_descendants = starpu_get_env_number_default("GRAPH_DESCENDANTS", 0);
+	graph_descendants = starpu_get_env_number_default("GRAPH_DESCENDANTS", 0); /* 0 ou 1 ou 2 */
+	dopt_selection_order = starpu_get_env_number_default("DOPT_SELECTION_ORDER", 0);
 	
-	printf("-----\nEVICTION_STRATEGY_DYNAMIC_DATA_AWARE = %d\nTHRESHOLD = %d\nAPP = %d\nCHOOSE_BEST_DATA_FROM = %d\nSIMULATE_MEMORY = %d\nTASK_ORDER = %d\nDATA_ORDER = %d\nDEPENDANCES = %d\nPRIO = %d\nFREE_PUSHED_TASK_POSITION = %d\nGRAPH_DESCENDANTS = %d\n-----\n", eviction_strategy_dynamic_data_aware, threshold, app, choose_best_data_from, simulate_memory, task_order, data_order, dependances, prio, free_pushed_task_position, graph_descendants);
+	printf("-----\nEVICTION_STRATEGY_DYNAMIC_DATA_AWARE = %d\nTHRESHOLD = %d\nAPP = %d\nCHOOSE_BEST_DATA_FROM = %d\nSIMULATE_MEMORY = %d\nTASK_ORDER = %d\nDATA_ORDER = %d\nDEPENDANCES = %d\nPRIO = %d\nFREE_PUSHED_TASK_POSITION = %d\nGRAPH_DESCENDANTS = %d\nDOPT_SELECTION_ORDER = %d\nPRIORITY_ATTRIBUTION = %d\n-----\n", eviction_strategy_dynamic_data_aware, threshold, app, choose_best_data_from, simulate_memory, task_order, data_order, dependances, prio, free_pushed_task_position, graph_descendants, dopt_selection_order, starpu_get_env_number_default("PRIORITY_ATTRIBUTION", 0));
 	
 	/* Initialization of global variables. */
 	Ngpu = get_number_GPU();

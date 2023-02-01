@@ -19,6 +19,10 @@
 #define DEPENDANCES /* 0 non, 1 utile pour savoir si on fais des points de départs différents dans main task list (on ne le fais pas si il y a des dependances). TODO: pas forcément utile à l'avenir à voir si on l'enlève. */
 #define PRIO /* 0 non, 1 tiebreak data selection with the that have the highest priority task */
 #define FREE_PUSHED_TASK_POSITION /* To detail where a free task from push_task is pushed in planned_task. 0: at the top of planned task, 1: after the last free task of planned task. */
+#define DOPT_SELECTION_ORDER /* 0: Nfree N1fromfree Prio Timeremaining, 1: Nfree Prio N1fromfree Timeremaining */
+//~ # Pas dans se fichier mais aussi utilisées: PRIORITY_ATTRIBUTION dans cholesky
+//~ # Pas dans se fichier aussi: GRAPH_DESCENDANTS /* 0: No graph, so no pause in the task submitting. 1: With a graph reading descendants in DARTS, use a pause in the task submit. 2: With a graph reading descendants in DARTS, but don't use pause and the graph is read at each new batch of tasks in pull_task. */ dans starpu_data_maxime.h
+
 
 /* Var globale pour n'appeller qu'une seule fois get_env_number */
 extern int eviction_strategy_dynamic_data_aware;
@@ -32,6 +36,11 @@ extern int data_order;
 //~ extern int data_order;
 extern int dependances;
 extern int prio;
+extern int dopt_selection_order;
+extern int dependances;
+extern int graph_descendants;
+extern int free_pushed_task_position;
+
 extern struct starpu_perfmodel_arch* perf_arch;
 
 //~ #define PRINT /* A dé-commenter pour afficher les printfs dans le code, les mesures du temps et les écriture dans les fichiers. A pour objectif de remplacer la var d'env PRINTF de HFP. Pour le moment j'ai toujours besoin de PRINTF=1 pour les visualisations par exemple. Attention pour DARTS j'ai besoin de PRINTF=1 et de PRINT pour les visu pour le moment. */
