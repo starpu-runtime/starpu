@@ -1,3 +1,4 @@
+//! [To be included. You should update doxygen if you see this text.]
 package fr.labri.hpccloud.starpu.examples;
 
 import fr.labri.hpccloud.starpu.Codelet;
@@ -70,3 +71,4 @@ public class VectorScal
 		StarPU.shutdown();
 	}
 }
+//! [To be included. You should update doxygen if you see this text.]

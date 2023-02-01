@@ -64,6 +64,9 @@ the task completion, and thus permits to enqueue a series of tasks.
 
 All functions are defined in \ref API_FFT_Support.
 
+Some examples illustrating the usage of FFT API are available in
+the directory <c>starpufft/tests</c>.
+
 \section FFTCompilation Compilation
 
 The flags required to compile or link against the FFT library are accessible

@@ -26,11 +26,11 @@ for some data, and dependencies can be specifically expressed.
 
 Setting (or unsetting) sequential consistency can be done at the data
 level by calling starpu_data_set_sequential_consistency_flag() for a
-specific data or starpu_data_set_default_sequential_consistency_flag()
-for all data.
+specific data (a corresponding example is in the file <c>examples/dependency/task_end_dep.c</c>) or starpu_data_set_default_sequential_consistency_flag()
+for all data (a corresponding example is in the file <c>tests/main/subgraph_repeat.c</c>).
 
 Setting (or unsetting) sequential consistency can also be done at task
-level by setting the field starpu_task::sequential_consistency to \c 0.
+level by setting the field starpu_task::sequential_consistency to \c 0, a corresponding example is in the file <c>tests/main/deploop.c</c>.
 
 Sequential consistency can also be set (or unset) for each handle of a
 specific task, this is done by using the field
@@ -53,6 +53,8 @@ ret = starpu_task_insert(&cl,
 free(seq_consistency);
 \endcode
 
+A full code example is available in the file <c>examples/dependency/sequential_consistency.c</c>.
+
 The internal algorithm used by StarPU to set up implicit dependency is
 as follows:
 \code{.c}
@@ -69,13 +71,13 @@ One can explicitly set dependencies between tasks using
 starpu_task_declare_deps() or starpu_task_declare_deps_array(). Dependencies between tasks can be
 expressed through tags associated to a tag with the field
 starpu_task::tag_id and using the function starpu_tag_declare_deps()
-or starpu_tag_declare_deps_array().
+or starpu_tag_declare_deps_array(). The example <c>tests/main/tag_task_data_deps.c</c> shows how to set dependencies between tasks with different functions.
 
 The termination of a task can be delayed through the function
 starpu_task_end_dep_add() which specifies the number of calls to the function
 starpu_task_end_dep_release() needed to trigger the task termination. One can
 also use starpu_task_declare_end_deps() or starpu_task_declare_end_deps_array()
-to delay the termination of a task until the termination of other tasks.
+to delay the termination of a task until the termination of other tasks. A simple example is available in file <c>tests/main/task_end_dep.c</c>.
 
 \section UsingMultipleImplementationsOfACodelet Using Multiple Implementations Of A Codelet
 
@@ -114,6 +116,8 @@ struct starpu_codelet cl =
 };
 \endcode
 
+The full code of this example is available in file <c>examples/basic_examples/vector_scal.c</c>.
+
 Schedulers which are multi-implementation aware (only <c>dmda</c> and
 <c>pheft</c> for now) will use the performance models of all the
 provided implementations, and pick the one which seems to be the fastest.
@@ -151,6 +155,8 @@ struct starpu_codelet cl =
     .modes = { STARPU_RW }
 };
 \endcode
+
+A full example is available in file <c>examples/reductions/dot_product.c</c>.
 
 This can be essential e.g. when running on a machine which mixes various models
 of CUDA devices, to take benefit from the new models without crashing on old models.
@@ -248,6 +254,8 @@ struct starpu_task *tasks[4];
 ret = starpu_task_get_task_succs(task, sizeof(tasks)/sizeof(*tasks), tasks);
 \endcode
 
+And the full example of getting task children is availble in the file <c>tests/main/get_children_tasks.c</c>
+
 \section ParallelTasks Parallel Tasks
 
 StarPU can leverage existing parallel computation libraries by the means of
@@ -321,6 +329,8 @@ static struct starpu_codelet cl =
 }
 \endcode
 
+A full example is available in <c>examples/spmd/vector_scal_spmd.c</c>.
+
 Of course, this trivial example will not really benefit from parallel task
 execution, and was only meant to be simple to understand.  The benefit comes
 when the computation to be done is so that threads have to e.g. exchange
@@ -336,7 +346,7 @@ be used. When exposed to codelets with a flag ::STARPU_FORKJOIN or
 several CPUs. It will automatically try the various available combined
 worker sizes (making several measurements for each worker size) and
 thus be able to avoid choosing a large combined worker if the codelet
-does not actually scale so much.
+does not actually scale so much. Examples use parallel-task-aware StarPU scheduler are available in <c>tests/parallel_tasks/parallel_kernels.c</c> and <c>tests/parallel_tasks/parallel_kernels_spmd.c</c>.
 
 This is however for now only proof of concept, and has not really been optimized yet.
 
@@ -375,7 +385,7 @@ setting the environment variable \ref STARPU_SINGLE_COMBINED_WORKER
 to <c>1</c>. StarPU will then run only one parallel task at a time (but other
 CPU and GPU tasks are not affected and can be run concurrently). The parallel
 task scheduler will however still try varying combined worker
-sizes to look for the most efficient ones.
+sizes to look for the most efficient ones. A full example is available in <c>examples/spmd/vector_scal_spmd.c</c>.
 
 \section SynchronizationTasks Synchronization Tasks
 
@@ -409,6 +419,6 @@ starpu_task_submit(task);
 \endcode
 
 will create a task which simply waits for the value of <c>handle</c> to be
-available for read. This task can then be depended on, etc.
+available for read. This task can then be depended on, etc. A full example is available in <c>examples/filters/fmultiple_manual.c</c>.
 
 */

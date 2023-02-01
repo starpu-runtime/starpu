@@ -42,7 +42,7 @@ be simulated through SimGrid.
 If the application uses <c>gettimeofday()</c> to make its
 performance measurements, the real time will be used, which will be bogus. To
 get the simulated time, it has to use starpu_timing_now() which returns the
-virtual timestamp in us.
+virtual timestamp in us. A basic example is available in <c>tests/main/empty_task.c</c>.
 
 For some technical reason, the application's .c file which contains \c main() has
 to be recompiled with \c starpu_simgrid_wrap.h, which in the SimGrid case will <c># define main()</c>
@@ -66,6 +66,8 @@ provide it. StarPU will not actually run it in SimGrid mode anyway by default
 flags are set in the codelet)
 
 \snippet simgrid.c To be included. You should update doxygen if you see this text.
+
+The full example is available in <c>examples/cholesky/cholesky_kernels.c</c>.
 
 \section Calibration Calibration
 
@@ -233,13 +235,16 @@ however require the application to take care of not trying to access the data,
 and will not work in MPI mode, which performs transfers.
 
 Another way is to pass the \ref STARPU_MALLOC_SIMULATION_FOLDED flag to the
-starpu_malloc_flags() function. This will make it allocate a memory area which
+starpu_malloc_flags() function. 
+A corresponding example is available in <c>examples/mult/xgemm.c </c>
+This will make it allocate a memory area which
 one can read/write, but optimized so that this does not actually consume
 memory. Of course, the values read from such area will be bogus, but this allows
 the application to keep e.g. data load, store, initialization as it is, and also
 work in MPI mode. A more aggressive alternative is to pass also the
 \ref STARPU_MALLOC_SIMULATION_UNIQUE flag (alongside with
-\ref STARPU_MALLOC_SIMULATION_FOLDED) to the starpu_malloc_flags() function.
+\ref STARPU_MALLOC_SIMULATION_FOLDED) to the starpu_malloc_flags() function. 
+A corresponding example is available in <c>examples/cholesky/cholesky_tag.c </c>.
 This will make StarPU reuse the pointers for allocations of the same size
 without calling the folded allocation again, thus decreasing some pressure on
 memory management.

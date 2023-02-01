@@ -148,9 +148,13 @@ rather than others.
 
 \snippet disk_copy.c To be included. You should update doxygen if you see this text.
 
+The full code is provided in file <c>tests/disk/disk_copy.c</c>
+
 \section ExampleDiskCompute Examples: disk_compute
 
 \snippet disk_compute.c To be included. You should update doxygen if you see this text.
+
+The full code is provided in file <c>tests/disk/disk_compute.c</c>
 
 \section Performances
 
@@ -230,5 +234,7 @@ starpu_disk_ops. For instance, the variable #starpu_disk_unistd_ops
 uses read/write functions.
 
 All structures are in \ref API_Out_Of_Core.
+
+Examples are provided in <c>src/core/disk_ops/disk_*.c</c>
 
 */

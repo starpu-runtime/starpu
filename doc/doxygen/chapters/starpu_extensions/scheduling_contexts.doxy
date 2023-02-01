@@ -60,7 +60,7 @@ optional parameters such as the scheduling policy, terminated by a
 to the name of a StarPU predefined policy or the pointer to a custom
 policy. The function returns an identifier of the context created,
 which you will use to indicate the context you want to submit the
-tasks to.
+tasks to. A basic example is available in file <c>examples/sched_ctx/sched_ctx.c</c>.
 
 \code{.c}
 /* the list of resources the context will manage */
@@ -105,6 +105,8 @@ int id_ctx = starpu_sched_ctx_create(workerids, 3, "my_ctx", STARPU_SCHED_CTX_PO
 /* .... */
 \endcode
 
+A full example is available in file <c>examples/sched_ctx/two_cpu_contexts.c</c>.
+
 \section CreatingAGPUContext Creating A Context To Partition a GPU
 
 The contexts can also be used to group a set of SMs of an NVIDIA GPU in order to isolate
@@ -136,6 +138,8 @@ starpu_task_submit_to_ctx(task, big_sched_ctx);
 
 \endcode
 
+A full example is available in file <c>examples/sched_ctx/gpu_partition.c</c>.
+
 \section ModifyingAContext Modifying A Context
 
 A scheduling context can be modified dynamically. The application may
@@ -157,17 +161,19 @@ starpu_sched_ctx_add_workers(workerids, 3, sched_ctx2);
 starpu_sched_ctx_remove_workers(workerids, 3, sched_ctx1);
 \endcode
 
+A corresponding example is available in file <c>examples/sched_ctx/sched_ctx_remove.c</c>.
+
 \section SubmittingTasksToAContext Submitting Tasks To A Context
 The application may submit tasks to several contexts, either
 simultaneously or sequentially. If several threads of submission
 are used, the function starpu_sched_ctx_set_context() may be called just
 before starpu_task_submit(). Thus, StarPU considers that
-the current thread will submit tasks to the corresponding context.
+the current thread will submit tasks to the corresponding context. The corresponding example is available in file <c>examples/sched_ctx/gpu_partition.c</c>.
 
 When the application may not assign a thread of submission to each
 context, the id of the context must be indicated by using the
 function starpu_task_submit_to_ctx() or the field \ref STARPU_SCHED_CTX
-for starpu_task_insert().
+for starpu_task_insert(). The corresponding example is available in file <c>examples/sched_ctx/sched_ctx.c</c>.
 
 \section DeletingAContext Deleting A Context
 
@@ -204,6 +210,8 @@ starpu_sched_ctx_delete(sched_ctx2);
 starpu_sched_ctx_delete(sched_ctx1);
 \endcode
 
+A full example is available in file <c>examples/sched_ctx/sched_ctx.c</c>.
+
 \section EmptyingAContext Emptying A Context
 
 A context may have no resources at the beginning or at a certain
@@ -230,6 +238,8 @@ starpu_sched_ctx_add_workers(procs, nprocs, sched_ctx_id);
 /* and wait for the task termination */
 starpu_task_wait_for_all();
 \endcode
+
+The full example is available in file <c>examples/sched_ctx/sched_ctx_empty.c</c>.
 
 However, if resources are never allocated to the context, the
 application will not terminate. If these tasks have low priority, the

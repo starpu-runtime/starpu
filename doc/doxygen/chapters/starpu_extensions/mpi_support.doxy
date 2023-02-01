@@ -29,6 +29,8 @@ An MPI Insert Task function provides an even more seamless transition to a
 distributed application, by automatically issuing all required data transfers
 according to the task graph and an application-provided distribution.
 
+Some source codes are available in directory <c>mpi/</c>.
+
 \section MPIBuild Building with MPI support
 
 If a <c>mpicc</c> compiler is already in your PATH, StarPU will automatically
@@ -257,6 +259,8 @@ synchronization between MPI reception and emission and the corresponding tasks.
 The only remaining synchronization with starpu_data_acquire() is at
 the beginning and the end.
 
+The full source code is available in file <c>mpi/tests/ring.c</c>.
+
 \section MPIInitialization How to Initialize StarPU-MPI
 
 As seen in the previous example, one has to call starpu_mpi_init_conf() to
@@ -281,8 +285,7 @@ asynchronous communications and the detached communications. The
 classic asynchronous communications (starpu_mpi_isend() and
 starpu_mpi_irecv()) need to be followed by a call to
 starpu_mpi_wait() or to starpu_mpi_test() to wait for or to
-test the completion of the communication. Waiting for or testing the
-completion of detached communications is not possible, this is done
+test the completion of the communication. As shown in the example <c>mpi/tests/async_ring.c</c>. Waiting for or testing the completion of detached communications is not possible, this is done
 internally by StarPU-MPI, on completion, the resources are
 automatically released. This mechanism is similar to the pthread
 detach state attribute, which determines whether a thread will be
@@ -498,6 +501,8 @@ starpu_complex_data_register(&handle, STARPU_MAIN_RAM, real, imaginary, 2);
 ...
 \endcode
 
+A corresponding example is provided in file <c>mpi/examples/user_datatype/my_interface.c</c>.
+
 It is also possible to use starpu_mpi_datatype_register() to register the
 functions through a handle rather than the interface ID, but note that in that
 case it is important to make sure no communication is going to occur before the
@@ -534,7 +539,7 @@ locality of the data. Note that the data needs to be registered to MPI
 by calling starpu_mpi_data_register(). This function allows setting
 the distribution information and the MPI tag which should be used when
 communicating the data. It also allows to automatically clear the MPI
-communication cache when unregistering the data.
+communication cache when unregistering the data. A basic example is in file <c>mpi/tests/insert_task.c</c>.
 
 \code{.c}
 /* Returns the MPI node number where data is */
@@ -606,6 +611,8 @@ steps of the application.
     starpu_task_wait_for_all();
 \endcode
 
+The full source code is available in file <c>mpi/examples/stencil/stencil5.c</c>.
+
 I.e. all MPI nodes process the whole task graph, but as mentioned above, for
 each task, only the MPI node which owns the data being written to (here,
 <c>data_handles[x][y]</c>) will actually run the task. The other MPI nodes will
@@ -613,9 +620,9 @@ automatically send the required data.
 
 To tune the placement of tasks among MPI nodes, one can use
 ::STARPU_EXECUTE_ON_NODE or ::STARPU_EXECUTE_ON_DATA to specify an explicit
-node, or the node of a given data (e.g. one of the parameters), or use
+node (corresponding example can be found in <c>mpi/tests/insert_task_node_choice.c</c>), or the node of a given data (e.g. one of the parameters), or use
 starpu_mpi_node_selection_register_policy() and ::STARPU_NODE_SELECTION_POLICY
-to provide a dynamic policy. The default policy is to execute the task on the
+to provide a dynamic policy (corresponding example can be found in <c>mpi/tests/policy_register.c</c>). The default policy is to execute the task on the
 node which owns a data that require write access; if the task requires several
 data handles with write access, the node executing the task is selected in
 order to minimize the amount of data to transfer between nodes.
@@ -642,6 +649,8 @@ starpu_mpi_task_post_build(MPI_COMM_WORLD, &cl,
                            0);
 \endcode
 
+A full source code using these functions is available in file <c>mpi/tests/insert_task_compute.c</c>.
+
 It is also possible to create and submit the task outside of StarPU-MPI functions
 and call the functions
 starpu_mpi_task_exchange_data_before_execution() and
@@ -664,6 +673,8 @@ if (params.do_execute) starpu_task_submit(task);
 
 starpu_mpi_task_exchange_data_after_execution(MPI_COMM_WORLD, descrs, 2, params);
 \endcode
+
+A full source code using these functions is available in file <c>mpi/tests/mpi_task_submit.c</c>.
 
 \section MPIInsertPruning Pruning MPI Task Insertion
 
@@ -695,6 +706,8 @@ A way to do some of this quite easily can be to just add an <c>if</c> like this:
 \endcode
 
 This permits to drop the cost of function call argument passing and parsing.
+
+A corresponding example is available in file <c>examples/stencil/implicit-stencil-tasks.c</c>.
 
 If the <c>my_distrib</c> function can be inlined by the compiler, the latter can
 improve the test.
@@ -769,6 +782,8 @@ starpu_mpi_data_register(data1, 43, 1);
 starpu_mpi_task_insert(MPI_COMM_WORLD, &cl, STARPU_W, data, STARPU_R, data0, STARPU_R, data1, 0); /* Executes on node 0 */
 \endcode
 
+The full source code is available in file <c>mpi/tests/temporary.c</c>.
+
 \section MPIPerNodeData Per-node Data
 
 Further than temporary data on just one node, one may want per-node data,
@@ -818,6 +833,8 @@ starpu_mpi_data_set_rank(data, STARPU_MPI_PER_NODE);
 
 The data can then be used just like per-node above.
 
+The full source code is available in file <c>mpi/tests/temporary.c</c>.
+
 \section MPIMpiRedux Inter-node reduction
 
 One might want to leverage a reduction pattern across several nodes.
@@ -828,7 +845,8 @@ tells StarPU to spawn only one contribution per contributing node.
 
 The setup and use of ::STARPU_MPI_REDUX is similar to ::STARPU_REDUX : the initialization and
 reduction codelets should be declared through starpu_data_set_reduction_methods() in the
-same fashion as ::STARPU_REDUX. The function starpu_mpi_redux_data() is automatically called
+same fashion as ::STARPU_REDUX. Example <c>mpi/examples/mpi_redux/mpi_redux.c</c> shows how to use the ::STARPU_MPI_REDUX mode 
+and compare it with the standard ::STARPU_REDUX. The function starpu_mpi_redux_data() is automatically called
 either when a task reading the reduced handle is inserted through the MPI layer of StarPU through
 starpu_mpi_insert_task() or when the user waits for all communications and tasks to be executed
 through starpu_mpi_wait_for_all(). The function can be called by the user to fine-tune arguments
@@ -866,7 +884,7 @@ priority parameter, which allows making StarPU-MPI change the order of MPI
 requests before submitting them to MPI. The default priority is \c 0.
 
 When using the starpu_mpi_task_insert() helper, ::STARPU_PRIORITY defines both the
-task priority and the MPI requests priority.
+task priority and the MPI requests priority. A corresponding example is available in file <c>mpi/examples/benchs/recv_wait_finalize_bench.c</c>.
 
 To test how much MPI priorities have a good effect on performance, you can
 set the environment variable \ref STARPU_MPI_PRIORITIES to \c 0 to disable the use of
@@ -902,7 +920,7 @@ for the data deallocation will be the same, but it will additionally release som
 pressure from the StarPU-MPI cache hash table during task submission.
 
 One can determine whether a piece of data is cached with
-starpu_mpi_cached_receive() and starpu_mpi_cached_send().
+starpu_mpi_cached_receive() and starpu_mpi_cached_send(). A corresponding example is available in file <c>mpi/examples/cache/cache.c</c>.
 
 Functions starpu_mpi_cached_receive_set() and
 starpu_mpi_cached_send_set() are automatically called by
@@ -946,6 +964,7 @@ migrate the data, and register the new location.
     }
 \endcode
 
+The full example is available in file <c>mpi/examples/stencil/stencil5.c</c>.
 From then on, further tasks submissions will use the new data distribution,
 which will thus change both MPI communications and task assignments.
 
@@ -969,7 +988,7 @@ latest value on the original home node.
             {
                 int mpi_rank = my_distrib(x, y, size);
                 /* Get back data to original place where the user-provided buffer is.  */
-                starpu_mpi_get_data_on_node_detached(MPI_COMM_WORLD, data_handles[x][y], mpi_rank, NULL, NULL);
+                starpu_mpi_data_migrate(MPI_COMM_WORLD, data_handles[x][y], mpi_rank);
                 /* And unregister it */
                 starpu_data_unregister(data_handles[x][y]);
             }
@@ -1036,6 +1055,8 @@ for(x = 0; x < nblocks ;  x++)
 /* Gather the matrix on main node */
 starpu_mpi_gather_detached(data_handles, nblocks, 0, MPI_COMM_WORLD, NULL, NULL, NULL, NULL);
 \endcode
+
+A corresponding example is available in <c>mpi/tests/mpi_scatter_gather.c</c>.
 
 With NewMadeleine (see \ref Nmad), broadcasts can automatically be detected and
 be optimized by using routing trees. This behavior can be controlled with the
@@ -1239,6 +1260,8 @@ The master node is by default the node with the MPI rank equal to 0.
 To select another node, use the environment variable \ref
 STARPU_MPI_MASTER_NODE "STARPU_MPI_MASTER_NODE=\<number\>" with
 <c>\<number\></c> being the requested MPI rank node.
+
+A simple example <c>tests/main/insert_task.c</c> can be used to test MPI master salve support.
 
 \section MPICheckpoint MPI Checkpoint Support
 

@@ -19,7 +19,7 @@
 \section HelloWorldUsingStarPUAPI Hello World
 
 This section shows how to implement a simple program that submits a task
-to StarPU.
+to StarPU. The full source code for this example is available in the file <c>examples/basic_examples/hello_world.c</c>
 
 \subsection RequiredHeaders Required Headers
 

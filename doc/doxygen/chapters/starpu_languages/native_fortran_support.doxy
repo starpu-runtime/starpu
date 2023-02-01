@@ -141,6 +141,8 @@ is in use.
         call fstarpu_codelet_add_buffer(my_cl, FSTARPU_RW.ior.FSTARPU_LOCALITY)
 \endcode
 
+A basic example is available in <c>examples/native_fortran/nf_vector_scal.f90</c>.
+
 \section NFInitExit Uses, Initialization and Shutdown
 
 The snippet below show an example of minimal StarPU code using the
@@ -182,6 +184,8 @@ Example extracted from nf_vector.f90:
             C_NULL_PTR /))                                ! no more args
 \endcode
 
+The full example is available in <c>examples/native_fortran/nf_vector.f90</c>.
+
 \section NFStructs Functions and Subroutines Expecting Data Structures Arguments
 
 Several StarPU structures that are expected to be passed to the C API,
@@ -215,6 +219,8 @@ structure:
         ! free codelet structure
         call fstarpu_codelet_free(cl_vec)
 \endcode
+
+The full example is available in <c>examples/native_fortran/nf_vector.f90</c>.
 
 \section NFNotes Additional Notes about the Native Fortran Support
 \subsection NFOldFortran Using StarPU with Older Fortran Compilers

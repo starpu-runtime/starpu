@@ -60,6 +60,8 @@ struct starpu_codelet cl =
 }
 \endverbatim
 
+A basic example is available in file <c>tests/maxfpga/max_fpga_basic_static.c</c>.
+
 \subsection MaxFPGAExample StarPU/Maxeler FPGA Application
 
 To give you an idea of the interface that we used to exchange data
@@ -167,7 +169,7 @@ devices, we use the advanced dynamic interface of <em>SLiC</em> in
 
 Test code must include <c>MaxSLiCInterface.h</c> and <c>MaxFile.h</c>.
 The .max file contains the bitstream. The StarPU/FPGA application can
-be written in C, C++, etc.
+be written in C, C++, etc. Some examples are available in the directory <c>tests/maxfpga</c>.
 
 \code{.c}
 #include "StreamFMA.h"

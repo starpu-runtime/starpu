@@ -1,3 +1,4 @@
+//! [To be included. You should update doxygen if you see this text.]
 package fr.labri.hpccloud.starpu.examples;
 
 import fr.labri.hpccloud.starpu.StarPU;
@@ -42,3 +43,4 @@ public class WordCount
 		}
 	}
 }
+//! [To be included. You should update doxygen if you see this text.]

@@ -18,7 +18,7 @@
 
 This section presents the StarPU Python Interface. It provides for those used to the Python language a more concise and easy-to-use StarPU interface.
 
-This interface supports most of the main StarPU functionalities. All the functionalities of the C API are not provided, however, new functions especially adapted to Python have been added.
+This interface supports most of the main StarPU functionalities. All the functionalities of the C API are not provided, however, new functions especially adapted to Python have been added. Several examples using the Python API are provided in directory <c>starpupy/examples/</c>.
 
 \section Installation Installation of the Python Interface
 
@@ -48,6 +48,14 @@ Hello, world!
 ...
 $
 \endverbatim
+
+\section PythonParallelism Python Parallelism
+
+Python interpreters share the Global Interpreter Lock (GIL), which requires that at any time, one and only one thread has the right to execute a task. With the latest version of Python (3.11), if the application is pure Python script, even enable multi-interpreters, the program cannot be executed in parallel. GIL makes the multiple interpreters execution of Python actually serial rather than parallel, and the execution of Python program is single-threaded essentially. 
+
+For the pure Python script, the only way to achieve parallelism is to use the master-slave mechanism (section \ref StarpupyMasterSlave).
+Parallelism may be implemented with multi-interpreters in the future Python version. Details can be found in section \ref MultipleInterpreters.
+Otherwise parallelism can be achieved when external C applications are called or external APIs e.g. BLAS API is used for Numpy objects.
 
 \section ImplementingStarPUInPython Using StarPU in Python
 
@@ -96,7 +104,7 @@ Set the name of the performance model. This name will be used as the filename wh
 
 \subsection ReturningFutureObject Returning Future Object
 
-In order to realize asynchronous frameworks, the <c>task_submit()</c> function returns a Future object. This is an extended use for the Python interface. A Future represents an eventual result of an asynchronous operation. It is an awaitable object, Coroutines can await on Future objects until they either have a result or an exception set, or until they are canceled.
+In order to realize asynchronous frameworks, the <c>task_submit()</c> function returns a Future object. This is an extended use for the Python interface. A Future represents an eventual result of an asynchronous operation. It is an awaitable object, Coroutines can await on Future objects until they either have a result or an exception set, or until they are canceled. Some basic examples are available in script <c>starpupy/examples/starpu_py.py</c>.
 
 This feature needs the \c asyncio module to be imported.
 
@@ -507,7 +515,7 @@ starpu.unregister(b)
 
 \section StarPUPYInterface StarPU Data Interface for Python Objects
 
-StarPU uses data handles to manage a piece of data. A data handle keeps track of replicates of the same data (registered by the application) over various memory nodes. The data management library manages to keep them coherent. That also allows minimizing the data transfers, and avoids copying the object each time. Data handles are managed through specific data interfaces.
+StarPU uses data handles to manage a piece of data. A data handle keeps track of replicates of the same data (registered by the application) over various memory nodes. The data management library manages to keep them coherent. That also allows minimizing the data transfers, and avoids copying the object each time. Data handles are managed through specific data interfaces. Some examples applying this specific interface are available in script <c>starpupy/examples/starpu_py_handle.py</c>.
 
 \subsection PythonObject Interface for Ordinary Python Objects
 
@@ -842,9 +850,11 @@ arr_h.get_partition_size(arr_h_list)
 [60, 40, 100]
 \endverbatim
 
+The full script is available in <c>starpupy/examples/starpu_py_partition.py</c>.
+
 \section Benchmark Benchmark
 
-This benchmark gives a glimpse into how long a task should be (in µs) for the StarPU Python interface overhead to be low enough to keep efficiency. Running <c>tasks_size_overhead.sh</c> generates a plot of the speedup of tasks of various sizes, depending on the number of CPUs being used.
+This benchmark gives a glimpse into how long a task should be (in µs) for the StarPU Python interface overhead to be low enough to keep efficiency. Running <c>starpupy/benchmark/tasks_size_overhead.sh</c> generates a plot of the speedup of tasks of various sizes, depending on the number of CPUs being used.
 
 In the first figure, the return value is a handle object.
 In the second figure, the return value is a future object.
@@ -1038,6 +1048,8 @@ array([ 0,  2,  4,  6,  8, 10, 12, 14, 16, 18])
 
 </ul>
 
+The full script is available in <c>starpupy/examples/starpu_py_parallel.py</c>.
+
 \subsection ParallelParameters Parallel Parameters
 
 The \c starpu.joblib.Parallel class accepts the following parameters:
@@ -1189,7 +1201,9 @@ starpu.perfmodel_plot(perfmodel="log_arr")
 
 It is possible to use multiple interpreters when running python applications. To do so, you need to set the variable \ref STARPUPY_MULTI_INTERPRETER when running a StarPU Python application.
 
-Python interpreters have a Global Interpreter Lock (GIL), which requires that at any time, one and only one thread has the right to execute a task. In other words, GIL makes the multiple interpreters execution of Python actually serial rather than parallel, and the execution of Python program is single-threaded essentially.
+Python interpreters share the Global Interpreter Lock (GIL), which requires that at any time, one and only one thread has the right to execute a task. In other words, GIL makes the multiple interpreters execution of Python actually serial rather than parallel, and the execution of Python program is single-threaded essentially. Therefore, if the application is pure Python script, even with multi-interpreters, the program cannot be executed in parallel, unless an external C application is called.
+
+Fortunately now there is a quite positive development. Python developpers are preparing to implement stop sharing the GIL between interpreters (https://peps.nogil.dev/pep-0684/) or even make GIL optional so that Python code can be run without GIL (https://peps.nogil.dev/pep-0701/), that will facilitate true parallelism with the next Python version.
 
 In order to transfer data between interpreters, the module \c cloudpickle is used to serialize Python objects in contiguous byte array. This mechanism increases the overhead of the StarPU Python interface, as shown in the following plots, to be compared to the plots given in \ref Benchmark.
 

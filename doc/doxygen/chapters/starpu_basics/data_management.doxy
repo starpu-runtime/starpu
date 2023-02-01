@@ -31,8 +31,7 @@ short list below.
 
 A variable is a given-size byte element, typically a scalar. Here is an
 example of how to register a variable data to StarPU by using
-starpu_variable_data_register().
-
+starpu_variable_data_register(). A full code example for variable data interface is available in the file <c>examples/basic_examples/variable.c</c>.
 
 \code{.c}
 float var = 42.0;
@@ -44,7 +43,7 @@ starpu_variable_data_register(&var_handle, STARPU_MAIN_RAM, (uintptr_t)&var, siz
 
 A vector is a fixed number of elements of a given size. Here is an
 example of how to register a vector data to StarPU by using
-starpu_vector_data_register().
+starpu_vector_data_register(). A full code example for vector data interface is available in the file <c>examples/filters/fvector.c</c>.
 
 \code{.c}
 float vector[NX];
@@ -54,17 +53,16 @@ starpu_vector_data_register(&vector_handle, STARPU_MAIN_RAM, (uintptr_t)vector, 
 
 Vectors can be partitioned into pieces by using
 starpu_vector_filter_block(). They can also be partitioned with some overlapping
-by using starpu_vector_filter_block_shadow(). By default, StarPU
-uses the same size for each piece. If different sizes are desired,
+by using starpu_vector_filter_block_shadow(), and the corresponding example is in the file <c>examples/filters/shadow.c</c>. By default, StarPU uses the same size for each piece. If different sizes are desired,
 starpu_vector_filter_list() or starpu_vector_filter_list_long() can be used
 instead. To just divide in two pieces, starpu_vector_filter_divide_in_2() can be used.
-In addition, contiguous variables can be picked from a vector by using starpu_vector_filter_pick_variable().
+In addition, contiguous variables can be picked from a vector by using starpu_vector_filter_pick_variable(), and the corresponding example is in the file <c>examples/filters/fvector_pick_variable.c</c>.
 
 \subsection MatrixDataInterface Matrix Data Interface
 
 To register 2-D matrices with a potential padding, one can use the
 matrix data interface. Here is an example of how to register a matrix
-data to StarPU by using starpu_matrix_data_register().
+data to StarPU by using starpu_matrix_data_register(). A full code example for matrix data interface is available in the file <c>examples/filters/fmatrix.c</c>.
 
 \code{.c}
 float *matrix;
@@ -77,15 +75,15 @@ starpu_matrix_data_register(&matrix_handle, STARPU_MAIN_RAM, (uintptr_t)matrix, 
 using starpu_matrix_filter_block(), and along the y dimension by using
 starpu_matrix_filter_vertical_block(). They can also be partitioned
 with some overlapping by using starpu_matrix_filter_block_shadow() and
-starpu_matrix_filter_vertical_block_shadow(). In addition, contiguous vectors
-can be picked from a matrix along the Y dimension by using starpu_matrix_filter_pick_vector_y().
-Variable can be also picked from a matrix by using starpu_matrix_filter_pick_variable().
+starpu_matrix_filter_vertical_block_shadow(), and the corresponding example is in the file <c>examples/filters/shadow2d.c</c>. In addition, contiguous vectors
+can be picked from a matrix along the Y dimension by using starpu_matrix_filter_pick_vector_y(), and the corresponding example is in the file <c>examples/filters/fmatrix_pick_vector.c</c>.
+Variable can be also picked from a matrix by using starpu_matrix_filter_pick_variable(), and the corresponding example is in the file <c>examples/filters/fmatrix_pick_variable.c</c>.
 
 \subsection BlockDataInterface Block Data Interface
 
 To register 3-D matrices with potential paddings on Y and Z dimensions,
 one can use the block data interface. Here is an example of how to
-register a block data to StarPU by using starpu_block_data_register().
+register a block data to StarPU by using starpu_block_data_register(). A full code example for block data interface is available in the file <c>examples/filters/fblock.c</c>.
 
 \code{.c}
 float *block;
@@ -100,16 +98,16 @@ by using starpu_block_filter_vertical_block(), or along the
 z dimension by using starpu_block_filter_depth_block(). They
 can also be partitioned with some overlapping by using
 starpu_block_filter_block_shadow(), starpu_block_filter_vertical_block_shadow(),
-or starpu_block_filter_depth_block_shadow(). In addition, contiguous matrices
+or starpu_block_filter_depth_block_shadow(), and the corresponding example is in the file <c>examples/filters/shadow3d.c</c>. In addition, contiguous matrices
 can be picked from a block along the Z dimension or the Y dimension
-by using starpu_block_filter_pick_matrix_z() or starpu_block_filter_pick_matrix_y().
-Variable can be also picked from a block by using starpu_block_filter_pick_variable().
+by using starpu_block_filter_pick_matrix_z() or starpu_block_filter_pick_matrix_y(), and the corresponding example is in the file <c>examples/filters/fblock_pick_matrix.c</c>.
+Variable can be also picked from a block by using starpu_block_filter_pick_variable(), and the corresponding example is in the file <c>examples/filters/fblock_pick_variable.c</c>.
 
 \subsection TensorDataInterface Tensor Data Interface
 
 To register 4-D matrices with potential paddings on Y, Z, and T dimensions,
 one can use the tensor data interface. Here is an example of how to
-register a tensor data to StarPU by using starpu_tensor_data_register().
+register a tensor data to StarPU by using starpu_tensor_data_register(). A full code example for tensor data interface is available in the file <c>examples/filters/ftensor.c</c>.
 
 \code{.c}
 float *block;
@@ -124,16 +122,16 @@ by using starpu_tensor_filter_vertical_block(), or along the
 z dimension by using starpu_tensor_filter_depth_block(), or
 along the t dimension by using starpu_tensor_filter_time_block().
 They can also be partitioned with some overlapping by using
-starpu_tensor_filter_block_shadow(), starpu_tensor_filter_vertical_block_shadow(), starpu_tensor_filter_depth_block_shadow(), or starpu_tensor_filter_time_block_shadow().
+starpu_tensor_filter_block_shadow(), starpu_tensor_filter_vertical_block_shadow(), starpu_tensor_filter_depth_block_shadow(), or starpu_tensor_filter_time_block_shadow(), and the corresponding example is in the file <c>examples/filters/shadow4d.c</c>.
 In addition, contiguous blocks can be picked from a block along the T dimension,
 Z dimension or the Y dimension by using starpu_tensor_filter_pick_block_t(),
-starpu_tensor_filter_pick_block_z(), or starpu_tensor_filter_pick_block_y().
-Variable can be also picked from a tensor by using starpu_tensor_filter_pick_variable().
+starpu_tensor_filter_pick_block_z(), or starpu_tensor_filter_pick_block_y(), and the corresponding example is in the file <c>examples/filters/ftensor_pick_block.c</c>.
+Variable can be also picked from a tensor by using starpu_tensor_filter_pick_variable(), and the corresponding example is in the file <c>examples/filters/ftensor_pick_variable.c</c>.
 
 \subsection NdimDataInterface Ndim Data Interface
 
 To register N-dim matrices, one can use the Ndim data interface.
-Here is an example of how to register a 5-dim data to StarPU by using starpu_ndim_data_register().
+Here is an example of how to register a 5-dim data to StarPU by using starpu_ndim_data_register(). A full code example for ndim data interface is available in the file <c>examples/filters/fndim.c</c>.
 
 \code{.c}
 float *arr5d;
@@ -148,23 +146,25 @@ starpu_ndim_data_register(&arr5d_handle, STARPU_MAIN_RAM, (uintptr_t)arr5d, ldn,
 
 N-dim matrices can be partitioned along the given dimension
 by using starpu_ndim_filter_block(). They can also be partitioned
-with some overlapping by using starpu_ndim_filter_block_shadow().
+with some overlapping by using starpu_ndim_filter_block_shadow(), and the corresponding example is in the file <c>examples/filters/shadownd.c</c>.
+
 Taking into account existing data interfaces, there are several
 specialized functions which can partition a 0-dim array, 1-dim array,
 2-dim array, 3-dim array or 4-dim array into variables, vectors,
-matrices, blocks, or tensors by using starpu_ndim_filter_to_variable(),
-starpu_ndim_filter_to_vector(), starpu_ndim_filter_to_matrix(),
-starpu_ndim_filter_to_block(), or starpu_ndim_filter_to_tensor().
+matrices, blocks, or tensors by using starpu_ndim_filter_to_variable()(the corresponding example is in the file <c>examples/filters/fndim_to_variable.c</c>),
+starpu_ndim_filter_to_vector()(the corresponding example is in the file <c>examples/filters/fndim_to_vector.c</c>), starpu_ndim_filter_to_matrix()(the corresponding example is in the file <c>examples/filters/fndim_to_matrix.c</c>),
+starpu_ndim_filter_to_block()(the corresponding example is in the file <c>examples/filters/fndim_to_block.c</c>), or starpu_ndim_filter_to_tensor()(the corresponding example is in the file <c>examples/filters/fndim_to_tensor.c</c>).
+
 In addition, contiguous (n-1)dim arrays can be picked from a ndim array
-along the given dimension by using starpu_ndim_filter_pick_ndim().
+along the given dimension by using starpu_ndim_filter_pick_ndim(), and the corresponding example is in the file <c>examples/filters/fndim_pick_ndim.c</c>.
 In specific cases which consider existing data interfaces, contiguous
 variables, vectors, matrices, blocks, or tensors can be picked from a
 1-dim array, 2-dim array, 3-dim array, 4-dim array, or 5-dim array along
-the given dimension by using starpu_ndim_filter_pick_variable(),
-starpu_ndim_filter_pick_vector(), starpu_ndim_filter_pick_matrix(),
-starpu_ndim_filter_pick_block(), or starpu_ndim_filter_pick_tensor().
+the given dimension by using starpu_ndim_filter_1d_pick_variable()(the corresponding example is in the file <c>examples/filters/fndim_1d_pick_variable.c</c>),
+starpu_ndim_filter_2d_pick_vector()(the corresponding example is in the file <c>examples/filters/fndim_2d_pick_vector.c</c>), starpu_ndim_filter_3d_pick_matrix()(the corresponding example is in the file <c>examples/filters/fndim_3d_pick_matrix.c</c>),
+starpu_ndim_filter_4d_pick_block()(the corresponding example is in the file <c>examples/filters/fndim_4d_pick_block.c</c>), or starpu_ndim_filter_5d_pick_tensor()(the corresponding example is in the file <c>examples/filters/fndim_5d_pick_tensor.c</c>).
 Variable can be also picked from a ndim array by using
-starpu_ndim_filter_ndim_pick_variable().
+starpu_ndim_filter_pick_variable(), and the corresponding example is in the file <c>examples/filters/fndim_pick_variable.c</c>.
 
 \subsection BCSRDataInterface BCSR Data Interface
 
@@ -231,7 +231,7 @@ starpu_bcsr_data_register(&bcsr_handle,
 \endcode
 
 StarPU provides an example on how to deal with such matrices in
-<c>examples/spmv</c>.
+<c>examples/spmv/dw_block_spmv.c</c>.
 
 BCSR data handles can be partitioned into its dense matrix blocks by using
 starpu_bcsr_filter_canonical_block(), or split into other BCSR data handles by
@@ -243,7 +243,7 @@ supported, i.e. along adjacent nnz blocks)
 TODO
 
 CSR data handles can be partitioned into vertical CSR matrices by using
-starpu_csr_filter_vertical_block().
+starpu_csr_filter_vertical_block(), and the corresponding example is available in the file <c>examples/spmv/spmv.c</c>.
 
 \section PartitioningData Partitioning Data
 
@@ -343,10 +343,10 @@ tasks, one can mix using the handles of the partition or the whole data. One
 can even partition recursively and mix using handles at different levels of the
 recursion. Of course, StarPU will have to introduce coherency synchronization.
 
-<c>fmultiple_submit_implicit</c> is a complete example using this technique.
-One can also look at <c>fmultiple_submit_readonly</c> which contains the
+<c>examples/filters/fmultiple_submit_implicit.c</c> is a complete example using this technique.
+One can also look at <c>examples/filters/fmultiple_submit_readonly.c</c> which contains the
 explicit coherency synchronization which are automatically introduced by StarPU
-for <c>fmultiple_submit_implicit</c>.
+for <c>examples/filters/fmultiple_submit_implicit.c</c>.
 
 In short, we first register a matrix and plan the partitioning:
 
@@ -382,6 +382,35 @@ subdomain, then submit MPI sends/receives to update the halos, then submit
 again a task updating the whole subdomain, etc. and StarPU will automatically
 partition/unpartition each time.
 
+\section DataCommute Commute Data Access
+
+By default, the implicit dependencies computed from data access use the
+sequential semantic. Notably, write accesses are always serialized in the order
+of submission. In some applicative cases, the write contributions can actually
+be performed in any order without affecting the eventual result. In this case,
+it is useful to drop the strictly sequential semantic, to improve parallelism
+by allowing StarPU to reorder the write accesses. This can be done by using
+the data access flag ::STARPU_COMMUTE. Accesses without this flag will however
+properly be serialized against accesses with this flag. For instance:
+
+\code{.c}
+    starpu_task_insert(&cl1, STARPU_R, h, STARPU_RW, handle, 0);
+    starpu_task_insert(&cl2, STARPU_R, handle1, STARPU_RW|STARPU_COMMUTE, handle, 0);
+    starpu_task_insert(&cl2, STARPU_R, handle2, STARPU_RW|STARPU_COMMUTE, handle, 0);
+    starpu_task_insert(&cl3, STARPU_R, g, STARPU_RW, handle, 0);
+\endcode
+
+The two tasks running <c>cl2</c> will be able to commute: depending on whether the
+value of <c>handle1</c> or <c>handle2</c> becomes available first, the corresponding task
+running <c>cl2</c> will start first. The task running <c>cl1</c> will however always be run
+before them, and the task running <c>cl3</c> will always be run after them.
+
+<c>tests/datawizard/commute2.c</c> is a complete example using the data access flag.
+ 
+If a lot of tasks use the commute access on the same set of data and a lot of
+them are ready at the same time, it may become interesting to use an arbiter,
+see \ref ConcurrentDataAccess.
+
 \section DataReduction Data Reduction
 
 In various cases, some piece of data is used to accumulate intermediate
@@ -400,7 +429,7 @@ For this to work, the user has to use the function
 starpu_data_set_reduction_methods() to declare how to initialize these
 buffers, and how to assemble partial results.
 
-For instance, <c>cg</c> uses that to optimize its dot product: it first defines
+For instance, <c>examples/cg/cg.c</c> uses that to optimize its dot product: it first defines
 the codelets for initialization and reduction:
 
 \code{.c}
@@ -468,7 +497,7 @@ starpu_data_invalidate_submit() with the parameter <c>dtq_handle</c>,
 which will clear all data from the handle, thus resetting it back to
 the initial status <c>register(NULL)</c>.
 
-The example <c>cg</c> also uses reduction for the blocked gemv kernel,
+The example <c>examples/cg/cg.c</c> also uses reduction for the blocked gemv kernel,
 leading to yet more relaxed dependencies and more parallelism.
 
 ::STARPU_REDUX can also be passed to starpu_mpi_task_insert() in the MPI
@@ -502,34 +531,10 @@ threshold between the size of a small data and a bigger data is modified. If the
 setup to be negative, flat trees will always be used. If the value is setup to 0, binary 
 trees are used. Otherwise, the size of the data is compared to the size in the environment 
 variable. Remaining distributed-memory reduction patterns are wrapped-up at the end of an 
-application when calling starpu_mpi_wait_for_all().
+application when calling starpu_mpi_wait_for_all(). 
 
-\section DataCommute Commute Data Access
-
-By default, the implicit dependencies computed from data access use the
-sequential semantic. Notably, write accesses are always serialized in the order
-of submission. In some applicative cases, the write contributions can actually
-be performed in any order without affecting the eventual result. In this case,
-it is useful to drop the strictly sequential semantic, to improve parallelism
-by allowing StarPU to reorder the write accesses. This can be done by using
-the data access flag ::STARPU_COMMUTE. Accesses without this flag will however
-properly be serialized against accesses with this flag. For instance:
-
-\code{.c}
-    starpu_task_insert(&cl1, STARPU_R, h, STARPU_RW, handle, 0);
-    starpu_task_insert(&cl2, STARPU_R, handle1, STARPU_RW|STARPU_COMMUTE, handle, 0);
-    starpu_task_insert(&cl2, STARPU_R, handle2, STARPU_RW|STARPU_COMMUTE, handle, 0);
-    starpu_task_insert(&cl3, STARPU_R, g, STARPU_RW, handle, 0);
-\endcode
-
-The two tasks running <c>cl2</c> will be able to commute: depending on whether the
-value of <c>handle1</c> or <c>handle2</c> becomes available first, the corresponding task
-running <c>cl2</c> will start first. The task running <c>cl1</c> will however always be run
-before them, and the task running <c>cl3</c> will always be run after them.
-
-If a lot of tasks use the commute access on the same set of data and a lot of
-them are ready at the same time, it may become interesting to use an arbiter,
-see \ref ConcurrentDataAccess.
+More details about MPI reduction are show in section \ref MPIMpiRedux,
+and some examples for MPI data reduction are available in <c>mpi/examples/mpi_redux/</c>.
 
 \section ConcurrentDataAccess Concurrent Data Accesses
 

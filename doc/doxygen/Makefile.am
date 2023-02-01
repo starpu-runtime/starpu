@@ -94,6 +94,8 @@ chapters =	\
 	chapters/code/stencil5.c	\
 	chapters/code/stencil5_starpu.c	\
 	chapters/code/stencil5_starpu_mpi.c	\
+	chapters/code/java_starpu.java	\
+	chapters/code/java_spark.java	\
 	chapters/api/fortran_support.doxy \
 	chapters/api/bubble_support.doxy \
 	chapters/api/fft_support.doxy \

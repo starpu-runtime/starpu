@@ -166,6 +166,8 @@ int vector_bubble()
 }
 \endcode
 
+The full example is available in file <c>bubble/tests/vector/vector.c</c>.
+
 To define a hierarchical task, one needs to define the fields
 starpu_codelet::bubble_func and starpu_codelet::bubble_gen_dag_func.
 
@@ -188,5 +190,7 @@ as parameter the task being checked, and the value specified with
 When executed, the function starpu_codelet::bubble_gen_dag_func will be
 given as parameter the task being turned into a hierarchical task and
 the value specified with ::STARPU_BUBBLE_GEN_DAG_FUNC_ARG.
+
+A corresponding example involving these functions is in <c>bubble/tests/basic/brec.c</c>. And more examples are available in <c>bubble/tests/basic/*.c</c>.
 
 */

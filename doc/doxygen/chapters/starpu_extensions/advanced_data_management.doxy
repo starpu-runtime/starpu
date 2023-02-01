@@ -79,8 +79,8 @@ Important note: one can not change the size of a partitioned data.
 
 When the application allocates data, whenever possible it should use
 the function starpu_malloc(), which will ask CUDA or OpenCL to make
-the allocation itself and pin the corresponding allocated memory, or to use the function
-starpu_memory_pin() to pin memory allocated by other ways, such as local arrays. This
+the allocation itself and pin the corresponding allocated memory (a basic example is in <c>examples/basic_examples/block.c</c>), or to use the function
+starpu_memory_pin() to pin memory allocated by other ways, such as local arrays (a basic example is in <c>examples/basic_examples/vector_scal.c</c>). This
 is needed to permit asynchronous data transfer, i.e. permit data
 transfer to overlap with computations. Otherwise, the trace will show
 that the state <c>DriverCopyAsync</c> takes a lot of time, this is
@@ -88,7 +88,7 @@ because CUDA or OpenCL then reverts to synchronous transfers.
 
 The application can provide its own allocation function by calling
 starpu_malloc_set_hooks(). StarPU will then use them for all data handle
-allocations in the main memory.
+allocations in the main memory. The corresponding example is in <c>examples/basic_examples/hooks.c</c>.
 
 By default, StarPU leaves replicates of data wherever they were used, in case they
 will be re-used by other tasks, thus saving the data transfer time. When some
@@ -103,14 +103,14 @@ starpu_data_set_wt_mask(img_handle, 1<<0);
 \endcode
 
 will for instance request to always automatically transfer a replicate into the
-main memory (node <c>0</c>), as bit <c>0</c> of the write-through bitmask is being set.
+main memory (node <c>0</c>), as bit <c>0</c> of the write-through bitmask is being set. A corresponding example is available in <c>examples/pi/pi.c</c>.
 
 \code{.c}
 starpu_data_set_wt_mask(img_handle, ~0U);
 \endcode
 
 will request to always automatically broadcast the updated data to all memory
-nodes.
+nodes. A corresponding example is available in <c>tests/datawizard/wt_broadcast.c</c>.
 
 Setting the write-through mask to <c>~0U</c> can also be useful to make sure all
 memory nodes always have a copy of the data, so that it is never evicted when
@@ -157,7 +157,7 @@ starpu_data_invalidate_submit(handle);
 \endcode
 
 the buffers containing the current value will then be freed, and reallocated
-only when another task writes some value to the handle.
+only when another task writes some value to the handle. A basic example is available in file <c>tests/datawizard/data_invalidation.c</c>.
 
 \section DataPrefetch Data Prefetch
 
@@ -175,13 +175,13 @@ before submitting tasks, which will thus guide StarPU toward an initial task
 distribution (since StarPU will try to avoid further transfers).
 
 This can be achieved by giving the function starpu_data_prefetch_on_node() the
-handle and the desired target memory node. The variant
+handle and the desired target memory node. The corresponding example is available in file <c>tests/microbenchs/prefetch_data_on_node.c</c>. The variant
 starpu_data_idle_prefetch_on_node() can be used to issue the transfer
 only when the bus is idle.
 
 Conversely, one can advise StarPU that some data will not be useful in the
 close future by calling starpu_data_wont_use(). StarPU will then write its value
-back to its home node, and evict it from GPUs when room is needed.
+back to its home node, and evict it from GPUs when room is needed. The corresponding example is available in file <c>tests/datawizard/partition_wontuse.c</c>.
 
 \section ManualPartitioning Manual Partitioning
 
@@ -189,7 +189,7 @@ Except the partitioning functions described in \ref PartitioningData and \ref As
 one can also handle partitioning by hand, by registering several views on the
 same piece of data. The idea is then to manage the coherency of the various
 views through the common buffer in the main memory.
-<c>fmultiple_manual</c> is a complete example using this technique.
+<c>examples/filters/fmultiple_manual.c</c> is a complete example using this technique.
 
 In short, we first register the same matrix several times:
 
@@ -282,6 +282,8 @@ This means that:
 <li>partitioning filters have to copy over <c>dev_handle</c> without modifying it, set in the child different values of <c>offset</c>, and set <c>ptr</c> accordingly as the sum of <c>dev_handle</c> and <c>offset</c>.</li>
 </ul>
 
+Examples in <c>src/datawizard/interfaces/*_interface.c</c> show how to fill these three fields.
+
 \section DefiningANewDataFilter Defining A New Data Filter
 
 StarPU provides a series of predefined filters in \ref API_Data_Partition, but
@@ -296,7 +298,7 @@ compute the division of pieces of data.
 
 This section proposes an example how to define your own interface, when the
 StarPU-provided interface do not fit your needs. Here we take a dumb example of
-an array of complex numbers represented by two arrays of double values.
+an array of complex numbers represented by two arrays of double values. The full source code is in <c>examples/interface/complex_interface.c</c> and <c>examples/interface/complex_interface.h</c>
 
 Let's thus define a new data interface to manage arrays of complex numbers:
 
@@ -637,7 +639,7 @@ In the example described above, the two pointers stored in the data interface
 are data buffers, which may point into main memory, GPU memory, etc. One may also
 want to store pointers to meta-data for the interface, for instance the list of
 dimensions sizes for the n-dimension matrix interface, but such pointers are to
-be handled completely differently.
+be handled completely differently. More examples are provided in <c>src/datawizard/interfaces/*_interface.c</c>
 
 More precisely, there are two types of pointers:
 
@@ -815,5 +817,7 @@ struct starpu_codelet cl =
     .nodes = {STARPU_SPECIFIC_NODE_LOCAL, STARPU_SPECIFIC_NODE_LOCAL_OR_CPU},
 };
 \endcode
+
+An example for specifying target node is availbale in <c>tests/datawizard/specific_node.c</c>
 
 */

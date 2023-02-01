@@ -27,6 +27,9 @@ inline or as outlined functions.
 
 All functions are defined in \ref API_OpenMP_Runtime_Support.
 
+Several examples supporting OpenMP API are provided in
+StarPU's <c>tests/openmp/</c> directory.
+
 \section OMPImplementation Implementation Details and Specificities
 
 \subsection OMPMainThread Main Thread
@@ -78,6 +81,8 @@ static void omp_destructor(void)
 }
 \endcode
 
+Basic examples are available in files <c>tests/openmp/init_exit_01.c</c> and <c>tests/openmp/init_exit_02.c</c>.
+
 \sa starpu_omp_init()
 \sa starpu_omp_shutdown()
 
@@ -125,6 +130,8 @@ void f(void)
 }
 \endcode
 
+A basic example is available in file <c>tests/openmp/parallel_01.c</c>.
+
 \sa struct starpu_omp_parallel_region_attr
 \sa starpu_omp_parallel_region()
 
@@ -145,12 +152,12 @@ The canonical family of starpu_omp_for() functions provide each instance
 with the first iteration number and the number of iterations (possibly
 zero) to perform. The alternate family of starpu_omp_for_alt() functions
 provide each instance with the (possibly empty) range of iterations to
-perform, including the first and excluding the last.
+perform, including the first and excluding the last. A corresponding example is available in file <c>tests/openmp/parallel_for_01.c</c>.
 
 The family of starpu_omp_ordered() functions enable to implement
 OpenMP's ordered construct, a region with a parallel for loop that is
 guaranteed to be executed in the sequential order of the loop
-iterations.
+iterations. A corresponding example is available in file <c>tests/openmp/parallel_for_ordered_01.c</c>.
 
 \code{.c}
 void for_g(unsigned long long i, unsigned long long nb_i, void *arg)
@@ -210,6 +217,8 @@ void parallel_region_f(void *buffers[], void *args)
 }
 \endcode
 
+A corresponding example is available in file <c>tests/openmp/parallel_sections_01.c</c>.
+
 \sa starpu_omp_sections()
 \sa starpu_omp_sections_combined()
 
@@ -218,7 +227,7 @@ OpenMP <c>single</c> workharing constructs are supported using the set
 of starpu_omp_single() variants. An
 implicit barrier can be enforced or skipped at the end of the
 worksharing construct, according to the value of the <c>nowait</c>
-parameter.
+parameter. A corresponding example is available in file <c>tests/openmp/parallel_single_nowait_01.c</c>.
 
 \code{.c}
 void single_f(void *arg)
@@ -241,7 +250,7 @@ SORS also provides dedicated support for  <c>single</c> sections
 with <c>copyprivate</c> clauses through the
 starpu_omp_single_copyprivate() function variants. The OpenMP
 <c>master</c> directive is supported as well, using the
-starpu_omp_master() function variants.
+starpu_omp_master() function variants. A corresponding example is available in file <c>tests/openmp/parallel_single_copyprivate_01.c</c>.
 
 \sa starpu_omp_master()
 \sa starpu_omp_master_inline()
@@ -310,6 +319,8 @@ void parallel_region_f(void *buffers[], void *args)
 }
 \endcode
 
+A corresponding example is available in file <c>tests/openmp/parallel_01.c</c>.
+
 \sa struct starpu_omp_task_region_attr
 \sa starpu_omp_task_region()
 
@@ -365,6 +376,8 @@ void parallel_region_f(void *buffers[], void *args)
 	starpu_omp_taskwait();
 \endcode
 
+The corresponding example is available in file <c>tests/openmp/taskwait_01.c</c>.
+
 An example of starpu_omp_taskgroup() use, creating a task group of two explicit tasks:
 
 \code{.c}
@@ -398,6 +411,8 @@ void parallel_region_f(void *buffers[], void *args)
 }
 \endcode
 
+The corresponding example is available in file <c>tests/openmp/taskgroup_01.c</c>.
+
 \sa starpu_omp_task_region()
 \sa starpu_omp_taskwait()
 \sa starpu_omp_taskgroup()
@@ -419,7 +434,8 @@ same task, without being released in-between; otherwise, deadlocks may
 result. Codes requiring the possibility to lock multiple times
 recursively should use Nestable Locks (\ref NestableLock). Codes NOT
 requiring the possibility to lock multiple times recursively should use
-Simple Locks as they incur less processing overhead than Nestable Locks.
+Simple Locks as they incur less processing overhead than Nestable Locks. 
+A corresponding example is available in file <c>tests/openmp/parallel_simple_lock_01.c</c>.
 
 \sa starpu_omp_lock_t
 \sa starpu_omp_init_lock()
@@ -441,6 +457,7 @@ possibility to lock multiple times recursively should use Nestable
 Locks. Codes NOT requiring the possibility to lock multiple times
 recursively should use Simple Locks (\ref SimpleLock) instead, as they
 incur less processing overhead than Nestable Locks.
+A corresponding example is available in file <c>tests/openmp/parallel_nested_lock_01.c</c>.
 
 \sa starpu_omp_nest_lock_t
 \sa starpu_omp_init_nest_lock()
@@ -455,7 +472,7 @@ SORS implements support for OpenMP critical sections through the
 family of \ref starpu_omp_critical functions. Critical sections may optionally
 be named. There is a single, common anonymous critical section. Mutual
 exclusion only occur within the scope of single critical section, either
-a named one or the anonymous one.
+a named one or the anonymous one. Corresponding examples are available in files <c>tests/openmp/parallel_critical_01.c</c> and <c>tests/openmp/parallel_critical_inline_01.c</c>.
 
 \sa starpu_omp_critical()
 \sa starpu_omp_critical_inline_begin()
@@ -469,6 +486,7 @@ specification, the starpu_omp_barrier() function waits for every
 implicit task of the parallel region to reach the barrier and every
 explicit task launched by the parallel region to complete, before
 returning.
+A corresponding example is available in file <c>tests/openmp/parallel_barrier_01.c</c>.
 
 \sa starpu_omp_barrier()
 
