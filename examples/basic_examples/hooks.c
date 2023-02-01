@@ -23,38 +23,40 @@ static int check_free = 0;
 
 int malloc_hook(unsigned dst_node, void **A, size_t dim, int flags)
 {
-    int ret = 0;
+	int ret = 0;
 
-    *A = malloc(dim);
+	*A = malloc(dim);
 
-    if (!*A)
-        ret = -ENOMEM;
+	if (!*A)
+		ret = -ENOMEM;
 
-    check_malloc++;
+	check_malloc++;
 
-    return ret;
+	return ret;
 }
 
 int free_hook(unsigned dst_node, void *A, size_t dim, int flags)
 {
-    free(A);
-    check_free++;
+	free(A);
+	check_free++;
 
-    return 0;
+	return 0;
 }
 
 int main(void)
-{   
-    int* vector;
-    int ret;
-    ret = starpu_init(NULL);
+{
+	int* vector;
+	int ret;
 
-    starpu_malloc_set_hooks(malloc_hook, free_hook);
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV) return 77;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-    starpu_malloc((void **)&vector, NX*sizeof(int));
-    starpu_free_noflag(vector, NX*sizeof(int));
+	starpu_malloc_set_hooks(malloc_hook, free_hook);
+	starpu_malloc((void **)&vector, NX*sizeof(int));
+	starpu_free_noflag(vector, NX*sizeof(int));
 
-    STARPU_ASSERT(check_malloc == 1 && check_free == 1);
+	STARPU_ASSERT(check_malloc == 1 && check_free == 1);
 
-    starpu_shutdown();
+	starpu_shutdown();
 }

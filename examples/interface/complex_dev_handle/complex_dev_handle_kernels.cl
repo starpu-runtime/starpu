@@ -21,7 +21,7 @@ __kernel void complex_copy_opencl(__global double *o_real,
 				  __global double *o_imaginary,
 				  __global double *i_real,
 				  __global double *i_imaginary,
-				  unsigned nx) 
+				  unsigned nx)
 {
         const int i = get_global_id(0);
         if (i < nx)
