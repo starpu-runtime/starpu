@@ -73,7 +73,7 @@ int main(void)
 	struct starpu_task *task_specific = starpu_task_create();
 	task_specific->cl = &gpu_only_cl;
 	task_specific->execute_on_a_specific_worker = 1;
-	task_specific->workerid = 0;
+	task_specific->workerid = starpu_worker_get_by_type(STARPU_CPU_WORKER, 0);
 
 	/* Only a CUDA device could execute that task ! */
 	ret = starpu_task_submit(task_specific);

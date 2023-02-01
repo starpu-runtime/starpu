@@ -253,7 +253,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 static int initialize_system(int argc, char **argv, float **A, unsigned pinned)
 {
 	int ret;
-	int flags = STARPU_MALLOC_SIMULATION_FOLDED;
+	int flags = STARPU_MALLOC_SIMULATION_FOLDED|STARPU_MALLOC_SIMULATION_UNIQUE;
 
 #ifdef STARPU_HAVE_MAGMA
 	magma_init();
@@ -325,7 +325,7 @@ static int cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 
 static void shutdown_system(float **matA, unsigned dim, unsigned pinned)
 {
-	int flags = STARPU_MALLOC_SIMULATION_FOLDED;
+	int flags = STARPU_MALLOC_SIMULATION_FOLDED|STARPU_MALLOC_SIMULATION_UNIQUE;
 	if (pinned)
 		flags |= STARPU_MALLOC_PINNED;
 

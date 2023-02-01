@@ -240,7 +240,7 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 
 #ifndef STARPU_SIMGRID
 	unsigned m,n;
-	starpu_malloc_flags((void **)&mat, (size_t)size*size*sizeof(float), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
+	starpu_malloc_flags((void **)&mat, (size_t)size*size*sizeof(float), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED|STARPU_MALLOC_SIMULATION_UNIQUE);
 	for (n = 0; n < size; n++)
 	{
 		for (m = 0; m < size; m++)
@@ -350,7 +350,7 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 	        }
 		free(test_mat);
 	}
-	starpu_free_flags(mat, (size_t)size*size*sizeof(float), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
+	starpu_free_flags(mat, (size_t)size*size*sizeof(float), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED|STARPU_MALLOC_SIMULATION_UNIQUE);
 #endif
 }
 

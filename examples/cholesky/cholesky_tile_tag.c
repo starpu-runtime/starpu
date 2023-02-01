@@ -276,7 +276,7 @@ int main(int argc, char **argv)
 	{
 		if (n <= m)
 		{
-			starpu_malloc_flags((void **)&A[m][n], BLOCKSIZE*BLOCKSIZE*sizeof(float), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
+			starpu_malloc_flags((void **)&A[m][n], BLOCKSIZE*BLOCKSIZE*sizeof(float), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED|STARPU_MALLOC_SIMULATION_UNIQUE);
 			assert(A[m][n]);
 		}
 	}
@@ -323,7 +323,7 @@ int main(int argc, char **argv)
 		if (n <= m)
 		{
 			starpu_data_unregister(A_state[m][n]);
-			starpu_free_flags(A[m][n], BLOCKSIZE*BLOCKSIZE*sizeof(float), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
+			starpu_free_flags(A[m][n], BLOCKSIZE*BLOCKSIZE*sizeof(float), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED|STARPU_MALLOC_SIMULATION_UNIQUE);
 		}
 	}
 
