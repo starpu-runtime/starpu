@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -43,11 +43,12 @@ static char *enum_to_string(int exit_code)
 		case UNTESTED:
 			return "Untested";
 		case NO_DEVICE:
+		case -ENODEV:
 			return "No device available";
 		case TASK_SUBMISSION_FAILURE:
 			return "Task submission failed";
 		default:
-			assert(0);
+			STARPU_ASSERT_MSG(0, "unknown error code %d\n", exit_code);
 	}
 }
 

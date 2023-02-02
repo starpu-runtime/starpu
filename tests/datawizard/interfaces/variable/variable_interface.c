@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -35,9 +35,7 @@ extern void test_variable_opencl_func(void *buffers[], void *args);
 
 struct test_config variable_config =
 {
-#ifdef STARPU_USE_CPU
-	.cpu_func     = test_variable_cpu_func,
-#endif
+	.cpu_func      = test_variable_cpu_func,
 #ifdef STARPU_USE_CUDA
 	.cuda_func    = test_variable_cuda_func,
 #endif
@@ -52,8 +50,7 @@ struct test_config variable_config =
 	.name         = "variable_interface"
 };
 
-void
-test_variable_cpu_func(void *buffers[], void *args)
+void test_variable_cpu_func(void *buffers[], void *args)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
@@ -69,9 +66,7 @@ test_variable_cpu_func(void *buffers[], void *args)
 		*val *= -1;
 }
 
-
-static
-void register_data(void)
+static void register_data(void)
 {
 	variable = 42;
 	variable2 = 12;
@@ -82,8 +77,7 @@ void register_data(void)
 				      (uintptr_t) &variable2, sizeof(variable2));
 }
 
-static
-void unregister_data(void)
+static void unregister_data(void)
 {
 	starpu_data_unregister(variable_handle);
 	starpu_data_unregister(variable2_handle);
@@ -103,12 +97,6 @@ int main(int argc, char **argv)
 	ret = starpu_initialize(&conf, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-
-	if(starpu_cpu_worker_get_count() == 0)
-	{
-		starpu_shutdown();
-		return STARPU_TEST_SKIPPED;
-	}
 
 	register_data();
 

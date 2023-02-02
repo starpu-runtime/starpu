@@ -63,7 +63,7 @@ static void register_data(void)
 	int val = 0;
 	int i, j, k, l;
 	for (l = 0; l < NT; l++)
-	    for (k = 0; k < NZ; k++)
+		for (k = 0; k < NZ; k++)
 			for (j = 0; j < NY; j++)
 				for (i = 0; i < NX; i++)
 					_arr4d[(l*NX*NY*NZ)+(k*NX*NY)+(j*NX)+i] = val++;
@@ -120,7 +120,7 @@ void test_arr4d_cpu_func(void *buffers[], void *args)
 					}
 				}
 			}
-	    }
+		}
 	}
 }
 
@@ -135,12 +135,6 @@ int main(int argc, char **argv)
 	int ret = starpu_initialize(&conf, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-
-	if(starpu_cpu_worker_get_count() == 0)
-	{
-		starpu_shutdown();
-		return STARPU_TEST_SKIPPED;
-	}
 
 	register_data();
 
