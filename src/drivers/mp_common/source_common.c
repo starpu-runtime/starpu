@@ -476,7 +476,7 @@ int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 		buffer_ptr += sizeof(cb_workerid);
 	}
 
-	STARPU_ASSERT(coreid < node->nb_cores);
+	STARPU_ASSERT(coreid < (unsigned)node->nb_cores);
 	*(unsigned *) buffer_ptr = coreid;
 	buffer_ptr += sizeof(coreid);
 
@@ -1019,43 +1019,6 @@ int _starpu_src_common_copy_data_sink_to_sink(uintptr_t src, size_t src_offset, 
 						(void*) (src + src_offset),
 						(void*) (dst + dst_offset),
 						size);
-}
-
-/* 5 functions to determine the executable to run on the device (MPI).
- */
-static void _starpu_src_common_cat_3(char *final, const size_t len, const char *first, const char *second, const char *third)
-{
-	snprintf(final, len, "%s%s%s", first, second, third);
-}
-
-static void _starpu_src_common_cat_2(char *final, const size_t len, const char *first, const char *second)
-{
-	_starpu_src_common_cat_3(final, len, first, second, "");
-}
-
-static void _starpu_src_common_dir_cat(char *final, const size_t len, const char *dir, const char *file)
-{
-	if (file[0] == '/')
-		++file;
-
-	size_t size = strlen(dir);
-	if (dir[size - 1] == '/')
-		_starpu_src_common_cat_2(final, len, dir, file);
-	else
-		_starpu_src_common_cat_3(final, len, dir, "/", file);
-}
-
-static int _starpu_src_common_test_suffixes(char *located_file_name, const size_t len, const char *base, const char **suffixes)
-{
-	unsigned int i;
-	for (i = 0; suffixes[i] != NULL; ++i)
-	{
-		_starpu_src_common_cat_2(located_file_name, len, base, suffixes[i]);
-		if (access(located_file_name, R_OK) == 0)
-			return 0;
-	}
-
-	return 1;
 }
 
 void _starpu_src_common_init_switch_env(unsigned this)
