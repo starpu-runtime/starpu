@@ -210,6 +210,7 @@ STARPU_EXAMPLES +=				\
 	basic_examples/multiformat              \
 	basic_examples/dynamic_handles          \
 	basic_examples/task_insert_color	\
+	basic_examples/ndim			\
 	mlr/mlr					\
 	cpp/incrementer_cpp			\
 	cpp/add_vectors				\
