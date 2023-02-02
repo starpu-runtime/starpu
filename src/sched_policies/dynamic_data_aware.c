@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2022	Maxime Gonthier
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -24,7 +24,7 @@
 #include <schedulers/dynamic_data_aware.h>
 #include "helper_mct.h"
 #include <starpu_data_maxime.h> /* pour l'appel de la fonction qui reinit a la nouvelle itération */
-#include <graph.h> /* Pour compute_descendants */
+#include <common/graph.h> /* Pour compute_descendants */
 
 /* Var globales déclaré en extern */
 int eviction_strategy_dynamic_data_aware;
