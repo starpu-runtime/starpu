@@ -30,6 +30,12 @@
 #include <common/graph.h>
 #include <core/workers.h>
 
+
+#include <schedulers/HFP.h> /* Pour childs de DARTS */
+#include <schedulers/dynamic_data_aware.h> /* Pour childs de DARTS */
+#include "sched_policies/helper_mct.h" /* Pour childs de DARTS */
+
+
 /* Protects the whole task graph except the dropped list */
 static starpu_pthread_rwlock_t graph_lock;
 
@@ -425,6 +431,13 @@ void _starpu_graph_compute_descendants(void)
 					add_node(node3, &next_set, &next_n, &next_alloc, NULL);
 					
 					printf("%p is a child of %p\n", node3->job->task, node->job->task); fflush(stdout);
+					struct pointer_in_task *pt = node->job->task->sched_data;
+					struct child_list *cl = child_list_new();
+					struct child *c = child_new();
+					c->pointer_to_child = node3->job->task;
+					child_list_push_back(cl, c);
+					node->job->task->sched_data = pt;
+					pt->descendant = cl;
 				}
 			}
 			/* Swap next set with current set */

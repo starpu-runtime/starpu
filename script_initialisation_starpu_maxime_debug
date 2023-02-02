@@ -1,4 +1,4 @@
-./configure --enable-simgrid --disable-mpi --with-simgrid-dir=/home/gonthier/simgrid --enable-debug
+./configure --enable-simgrid --disable-mpi --with-simgrid-dir=/home/gonthier/simgrid --enable-debug --enable-fast
 make -j 100
 sudo make install
 echo "INITIALISATION OK"

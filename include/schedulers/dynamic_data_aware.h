@@ -88,6 +88,10 @@ LIST_TYPE(gpu_data_not_used,
 );
 
 /** In a task **/
+LIST_TYPE(child,
+    /* Pointer to the main task list T of childs of task holding this struct */
+    struct starpu_task *pointer_to_child;
+);
 struct pointer_in_task
 {
     /* Pointer to the datas used by the current task */
@@ -95,6 +99,8 @@ struct pointer_in_task
     struct task_using_data **tud;
     struct starpu_task *pointer_to_cell; /* Pointer to the cell in the main task list */
     //~ int state; /* 0 = in the main task list, 1 = in pulled_task */
+    
+    struct child_list* descendant;
 };
 
 /** Planned task. The one in dynamic data aware. One planned task = one GPU. **/

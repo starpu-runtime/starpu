@@ -256,7 +256,9 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		}
 		else
 		{	
+			/* To get flop max */
 			//~ printf("GFlop/s: %f (flop: %f / timing: %f)\n", flop/timing/1000.0f, flop, timing); fflush(stdout);	
+			
 			PRINTF("# size\tms\tGFlops");
 			if (bound_p)
 				PRINTF("\tTms\tTGFlops");
