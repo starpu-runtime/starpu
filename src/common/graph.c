@@ -365,7 +365,7 @@ void _starpu_graph_compute_depths(void)
 
 void _starpu_graph_compute_descendants(void)
 {
-	//~ printf("Compute descendants\n"); fflush(stdout);
+	printf("Compute descendants\n"); fflush(stdout);
 	
 	struct _starpu_graph_node *node, *node2, *node3;
 	struct _starpu_graph_node **current_set = NULL, **next_set = NULL, **swap_set;
@@ -399,6 +399,7 @@ void _starpu_graph_compute_descendants(void)
 		node->graph_n = 1;
 
 		descendants = 0;
+		
 		/* While we have descendants, count their descendants */
 		while (current_n)
 		{
@@ -422,6 +423,8 @@ void _starpu_graph_compute_descendants(void)
 					node3->graph_n = 1;
 					descendants++;
 					add_node(node3, &next_set, &next_n, &next_alloc, NULL);
+					
+					printf("%p is a child of %p\n", node3->job->task, node->job->task); fflush(stdout);
 				}
 			}
 			/* Swap next set with current set */
