@@ -48,12 +48,12 @@ extern struct starpu_perfmodel_arch* perf_arch;
 //~ #define PRINT_PYTHON /* Visu python */
 
 /* En cas de conflits de données */
-starpu_data_handle_t *Dopt;
-bool* data_conflict;
+extern starpu_data_handle_t *Dopt;
+extern bool* data_conflict;
 
 /** Mutex **/
-starpu_pthread_mutex_t refined_mutex; /* Protège main task list et les données. */
-starpu_pthread_mutex_t linear_mutex; /* Mutex qui rend tout linéaire. Utile pour la version du code rendu pour IPDPS ainsi que pour se comparer aux nouveaux mutexs. A utiliser avec les ifdef suivants. */
+extern starpu_pthread_mutex_t refined_mutex; /* Protège main task list et les données. */
+extern starpu_pthread_mutex_t linear_mutex; /* Mutex qui rend tout linéaire. Utile pour la version du code rendu pour IPDPS ainsi que pour se comparer aux nouveaux mutexs. A utiliser avec les ifdef suivants. */
 #define REFINED_MUTEX
 //~ #define LINEAR_MUTEX
 
