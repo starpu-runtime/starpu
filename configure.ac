@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2021, 2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2011       Télécom-SudParis
 # Copyright (C) 2013       Thibaut Lambert
 # Copyright (C) 2017       Guillaume Beauchamp
@@ -2521,11 +2521,11 @@ if test "x$STARPU_DEVEL" != x; then
 	IS_SUPPORTED_FLAG(-Wshadow)
 	IS_SUPPORTED_CFLAG(-Werror=pointer-arith)
 	IS_SUPPORTED_CXXFLAG(-Werror=pointer-arith)
-	IS_SUPPORTED_FLAG(-fno-common)
 	if test x$enable_debug = xyes; then
 		IS_SUPPORTED_FLAG(-fno-optimize-sibling-calls)
 	fi
 fi
+IS_SUPPORTED_FLAG(-fno-common)
 AM_CONDITIONAL([STARPU_DEVEL],[test "x$STARPU_DEVEL" != x])
 
 AC_SUBST(GLOBAL_AM_CFLAGS)
