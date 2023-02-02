@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -860,7 +860,7 @@ int starpu_interface_copy4d(uintptr_t src, size_t src_offset, unsigned src_node,
 			    void *async_data);
 
 /**
-	Copy \p nn[1] * \p nn[2]...* \p nn[ndim-1] blocks of \p nn[0] * \p elemsize bytes from byte
+   Copy \p nn[1] * \p nn[2]...* \p nn[ndim-1] blocks of \p nn[0] * \p elemsize bytes from byte
    offset \p src_offset of \p src on \p src_node to byte offset \p dst_offset of
    \p dst on \p dst_node.
 
@@ -868,7 +868,7 @@ int starpu_interface_copy4d(uintptr_t src, size_t src_offset, unsigned src_node,
    ldn_src[i] * \p elemsize (resp. ld1_dst[i] * \p elemsize) bytes apart
    in the source (resp. destination) interface.
 
-	If the blocks are contiguous, the transfers will be optimized.
+   If the blocks are contiguous, the transfers will be optimized.
 
    This is to be used in the starpu_data_copy_methods::any_to_any copy
    method for Ndim data, which is provided with \p async_data to be passed to
