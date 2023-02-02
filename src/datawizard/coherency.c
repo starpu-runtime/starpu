@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2021, 2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2018       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -413,6 +413,10 @@ static struct _starpu_data_request *_starpu_search_existing_data_request(struct 
 	for (r = replicate->request[node]; r; r = r->next_same_req)
 	{
 		_starpu_spin_checklocked(&r->handle->header_lock);
+
+		if (r->canceled)
+			/* Do not reuse a cancelled request */
+			continue;
 
 		if (starpu_get_env_number_default("DMDAR_FIX", 0) == 1)
 		if (task && r->task && task != r->task)
