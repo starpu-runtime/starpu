@@ -87,11 +87,11 @@ LIST_TYPE(gpu_data_not_used,
     starpu_data_handle_t D; /* The data not used yet by the GPU. */
 );
 
-/** In a task **/
-LIST_TYPE(child,
-    /* Pointer to the main task list T of childs of task holding this struct */
-    struct starpu_task *pointer_to_child;
-);
+//~ /** In a task **/
+//~ LIST_TYPE(child,
+    //~ /* Pointer to the main task list T of childs of task holding this struct */
+    //~ struct starpu_task *pointer_to_child;
+//~ );
 struct pointer_in_task
 {
     /* Pointer to the datas used by the current task */
@@ -100,7 +100,7 @@ struct pointer_in_task
     struct starpu_task *pointer_to_cell; /* Pointer to the cell in the main task list */
     //~ int state; /* 0 = in the main task list, 1 = in pulled_task */
     
-    struct child_list* descendant;
+    //~ struct child_list* descendant;
 };
 
 /** Planned task. The one in dynamic data aware. One planned task = one GPU. **/
@@ -187,6 +187,7 @@ void update_best_data(int* number_free_task_max, int* task_available_max, starpu
 void update_best_data_single_decision_tree(int* number_free_task_max, double* remaining_expected_length, starpu_data_handle_t* handle_popped, int* priority_max, int* number_1_from_free_task_max, int nb_free_task_candidate, double remaining_expected_length_candidate, starpu_data_handle_t handle_candidate, int priority_candidate, int number_1_from_free_task_candidate, int* data_choosen_index, int i, struct starpu_task** best_1_from_free_task, struct starpu_task* best_1_from_free_task_candidate);
 bool is_my_task_free(int current_gpu, struct starpu_task *task);
 void check_double_in_data_not_used_yet(struct gpu_planned_task *g, int current_gpu);
+struct starpu_task* get_highest_priority_task(struct starpu_task_list *l);
 
 /** Fonctions principales **/
 void initialize_task_data_gpu_single_task_v1(struct starpu_task *task, int also_add_data_in_not_used_yet_list);

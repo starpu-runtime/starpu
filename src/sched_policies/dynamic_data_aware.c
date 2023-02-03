@@ -2794,7 +2794,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 			//~ }
 		//~ }
 	
-		random: ; /* Va pop front main_task_list. Avec les listes de tâches randomisé ça reviens à faire du random. Si task_order == 2 comme on pourrait vouloir le faire avec dépendances, ça permet de garder l'ordre naturel. */
+		random: ; /* Va pop front main_task_list. Avec les listes de tâches randomisé ça reviens à faire du random. Si task_order == 2 comme on pourrait vouloir le faire avec dépendances, ça permet de garder l'ordre naturel.  Avec task_order == 2 on va aller chercher la tâche de plus autre priorité dans la liste des tâches prêtes */
 		
 		/* TODO : a suppr ? */
 		Dopt[current_gpu - 1] = NULL;
@@ -2812,11 +2812,18 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		
 		if (!starpu_task_list_empty(main_task_list))
 		{
-			#ifdef PRINT
-			printf("Will pop random for GPU %d.\n", current_gpu); fflush(stdout);
-			#endif
+			if (dependances == 1 && prio == 1) /* La tâches de plus haute prio est renvoyé */
+			{
+				task = get_highest_priority_task(main_task_list);
+			}
+			else /* La tête de la liste est renvoyé */
+			{
+				task = starpu_task_list_pop_front(main_task_list);
+			}
 			
-			task = starpu_task_list_pop_front(main_task_list);
+			#ifdef PRINT
+			printf("\"Random\" task for GPu %d is %p.\n", current_gpu, task); fflush(stdout);
+			#endif
 		}
 		else
 		{
@@ -2891,6 +2898,22 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 	
 	/* TODO : besoin de le faire en haut et en bas de la fonction ? */
 	Dopt[current_gpu - 1] = NULL;
+}
+
+struct starpu_task* get_highest_priority_task(struct starpu_task_list *l)
+{
+	struct starpu_task* t = NULL;
+	int max_priority = INT_MIN;
+	struct starpu_task* highest_priority_task = NULL;
+	for (t = starpu_task_list_begin(l); t != starpu_task_list_end(l); t = starpu_task_list_next(t))
+	{
+		if (t->priority > max_priority)
+		{
+			max_priority = t->priority;
+			highest_priority_task = t;
+		}
+	}
+	return highest_priority_task;
 }
 
 void increment_planned_task_data(struct starpu_task *task, int current_gpu)
