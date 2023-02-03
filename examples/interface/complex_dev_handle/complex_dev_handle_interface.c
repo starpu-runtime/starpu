@@ -295,7 +295,9 @@ void starpu_complex_dev_handle_data_register(starpu_data_handle_t *handleptr, un
 	struct starpu_complex_dev_handle_interface complex_dev_handle =
 	{
 		.ptr_real = ptr_real,
+		.dev_handle_real = ptr_real,
 		.ptr_imaginary = ptr_imaginary,
+		.dev_handle_imaginary = ptr_imaginary,
 		.nx = nx
 	};
 
