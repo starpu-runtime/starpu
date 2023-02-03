@@ -18,15 +18,24 @@
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
 
 __kernel void complex_copy_opencl(__global double *o_real,
+				  unsigned o_real_offset,
 				  __global double *o_imaginary,
+				  unsigned o_imaginary_offset,
 				  __global double *i_real,
+				  unsigned i_real_offset,
 				  __global double *i_imaginary,
+				  unsigned i_imaginary_offset,
 				  unsigned nx)
 {
-        const int i = get_global_id(0);
-        if (i < nx)
+	const int i = get_global_id(0);
+	if (i < nx)
 	{
+		o_real = (__global char*) o_real + o_real_offset;
+		o_imaginary = (__global char*) o_imaginary + o_imaginary_offset;
+		i_real = (__global char*) i_real + i_real_offset;
+		i_imaginary = (__global char*) i_imaginary + i_imaginary_offset;
+
 		o_real[i] = i_real[i];
 		o_imaginary[i] = i_imaginary[i];
-        }
+	}
 }

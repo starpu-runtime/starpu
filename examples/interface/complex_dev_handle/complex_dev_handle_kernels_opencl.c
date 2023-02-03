@@ -31,10 +31,14 @@ void copy_complex_dev_handle_codelet_opencl(void *buffers[], void *_args)
 	/* length of the vector */
 	unsigned n = STARPU_COMPLEX_DEV_HANDLE_GET_NX(buffers[0]);
 	/* OpenCL copy of the vector pointer */
-	cl_mem i_real	   = (cl_mem) STARPU_COMPLEX_DEV_HANDLE_GET_PTR_REAL(buffers[0]);
-	cl_mem i_imaginary = (cl_mem) STARPU_COMPLEX_DEV_HANDLE_GET_PTR_IMAGINARY(buffers[0]);
-	cl_mem o_real	   = (cl_mem) STARPU_COMPLEX_DEV_HANDLE_GET_PTR_REAL(buffers[1]);
-	cl_mem o_imaginary = (cl_mem) STARPU_COMPLEX_DEV_HANDLE_GET_PTR_IMAGINARY(buffers[1]);
+	cl_mem i_real			= (cl_mem) STARPU_COMPLEX_DEV_HANDLE_GET_DEV_HANDLE_REAL(buffers[0]);
+	unsigned i_real_offset		= STARPU_COMPLEX_DEV_HANDLE_GET_OFFSET_REAL(buffers[0]);
+	cl_mem i_imaginary		= (cl_mem) STARPU_COMPLEX_DEV_HANDLE_GET_DEV_HANDLE_IMAGINARY(buffers[0]);
+	unsigned i_imaginary_offset	= STARPU_COMPLEX_DEV_HANDLE_GET_OFFSET_IMAGINARY(buffers[0]);
+	cl_mem o_real			= (cl_mem) STARPU_COMPLEX_DEV_HANDLE_GET_DEV_HANDLE_REAL(buffers[1]);
+	unsigned o_real_offset		= STARPU_COMPLEX_DEV_HANDLE_GET_OFFSET_REAL(buffers[1]);
+	cl_mem o_imaginary		= (cl_mem) STARPU_COMPLEX_DEV_HANDLE_GET_DEV_HANDLE_IMAGINARY(buffers[1]);
+	unsigned o_imaginary_offset	= STARPU_COMPLEX_DEV_HANDLE_GET_OFFSET_IMAGINARY(buffers[1]);
 
 	id = starpu_worker_get_id_check();
 	devid = starpu_worker_get_devid(id);
@@ -44,10 +48,14 @@ void copy_complex_dev_handle_codelet_opencl(void *buffers[], void *_args)
 		STARPU_OPENCL_REPORT_ERROR(err);
 
 	err = clSetKernelArg(kernel, 0, sizeof(o_real), &o_real);
-	err|= clSetKernelArg(kernel, 1, sizeof(o_imaginary), &o_imaginary);
-	err|= clSetKernelArg(kernel, 2, sizeof(i_real), &i_real);
-	err|= clSetKernelArg(kernel, 3, sizeof(i_imaginary), &i_imaginary);
-	err|= clSetKernelArg(kernel, 4, sizeof(n), &n);
+	err|= clSetKernelArg(kernel, 1, sizeof(o_real_offset), &o_real_offset);
+	err|= clSetKernelArg(kernel, 2, sizeof(o_imaginary), &o_imaginary);
+	err|= clSetKernelArg(kernel, 3, sizeof(o_imaginary_offset), &o_imaginary_offset);
+	err|= clSetKernelArg(kernel, 4, sizeof(i_real), &i_real);
+	err|= clSetKernelArg(kernel, 5, sizeof(i_real_offset), &i_real_offset);
+	err|= clSetKernelArg(kernel, 6, sizeof(i_imaginary), &i_imaginary);
+	err|= clSetKernelArg(kernel, 7, sizeof(i_imaginary_offset), &i_imaginary_offset);
+	err|= clSetKernelArg(kernel, 8, sizeof(n), &n);
 	if (err)
 		STARPU_OPENCL_REPORT_ERROR(err);
 
