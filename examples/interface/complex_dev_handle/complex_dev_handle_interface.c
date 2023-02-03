@@ -253,15 +253,15 @@ int copy_any_to_any(void *src_interface, unsigned src_node,
 	struct starpu_complex_dev_handle_interface *dst_complex_dev_handle = dst_interface;
 	int ret = 0;
 
-	if (starpu_interface_copy(src_complex_dev_handle->ptr_real, 0, src_node,
-				    dst_complex_dev_handle->ptr_real, 0, dst_node,
-				     src_complex_dev_handle->nx*sizeof(double),
-				     async_data))
+	if (starpu_interface_copy(src_complex_dev_handle->dev_handle_real, src_complex_dev_handle->offset_real, src_node,
+				  dst_complex_dev_handle->dev_handle_real, dst_complex_dev_handle->offset_real, dst_node,
+				  src_complex_dev_handle->nx*sizeof(double),
+				  async_data))
 		ret = -EAGAIN;
-	if (starpu_interface_copy(src_complex_dev_handle->ptr_imaginary, 0, src_node,
-				    dst_complex_dev_handle->ptr_imaginary, 0, dst_node,
-				     src_complex_dev_handle->nx*sizeof(double),
-				     async_data))
+	if (starpu_interface_copy(src_complex_dev_handle->dev_handle_imaginary, src_complex_dev_handle->offset_imaginary, src_node,
+				  dst_complex_dev_handle->dev_handle_imaginary, dst_complex_dev_handle->offset_imaginary, dst_node,
+				  src_complex_dev_handle->nx*sizeof(double),
+				  async_data))
 		ret = -EAGAIN;
 	return ret;
 }
