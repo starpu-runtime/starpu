@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -64,7 +64,9 @@ struct starpu_data_interface_ops starpu_interface_variable_ops =
 	.peek_data = peek_variable_handle,
 	.unpack_data = unpack_variable_handle,
 	.describe = describe,
-	.name = "STARPU_VARIABLE_INTERFACE"
+	.name = "STARPU_VARIABLE_INTERFACE",
+	.pack_meta = NULL,
+	.unpack_meta = NULL
 };
 
 static void *variable_to_pointer(void *data_interface, unsigned node)

@@ -437,9 +437,25 @@ int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 	uintptr_t buffer_ptr;
 	int buffer_size = 0, arg_size =0;
 	unsigned i;
+	starpu_ssize_t interface_size[nb_interfaces];
+	void *interface_ptr[nb_interfaces];
 
-	buffer_size = sizeof(kernel) + sizeof(coreid) + sizeof(type) + sizeof(detached)
-		+ sizeof(nb_interfaces) + nb_interfaces * sizeof(union _starpu_interface) + sizeof(is_parallel_task);
+	buffer_size = sizeof(kernel) + sizeof(coreid) + sizeof(type) + sizeof(detached) + sizeof(nb_interfaces) + sizeof(is_parallel_task);
+	for (i = 0; i < nb_interfaces; i++)
+	{
+		buffer_size += sizeof(union _starpu_interface);
+
+		starpu_data_handle_t handle = handles[i];
+		if (handle->ops->pack_meta)
+		{
+			handle->ops->pack_meta(interfaces[i], &interface_ptr[i], &interface_size[i]);
+			buffer_size += interface_size[i];
+		}
+		else
+		{
+			buffer_size += sizeof(union _starpu_interface);
+		}
+	}
 
 	/*if the task is parallel*/
 	if(is_parallel_task)
@@ -490,29 +506,38 @@ int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 	 * executed on a sink with a different memory, whereas a codelet is
 	 * executed on the host part for the other accelerators.
 	 * Thus we need to send a copy of each interface on the MP device */
-
 	for (i = 0; i < nb_interfaces; i++)
 	{
 		starpu_data_handle_t handle = handles[i];
 		enum starpu_data_interface_id id = starpu_data_get_interface_id(handle);
-		/* Check that the interface exists in _starpu_interface */
-		STARPU_ASSERT_MSG(id == STARPU_VOID_INTERFACE_ID ||
-				  id == STARPU_VARIABLE_INTERFACE_ID ||
-				  id == STARPU_VECTOR_INTERFACE_ID ||
-				  id == STARPU_MATRIX_INTERFACE_ID ||
-				  id == STARPU_BLOCK_INTERFACE_ID ||
-				  id == STARPU_TENSOR_INTERFACE_ID ||
-				  id == STARPU_CSR_INTERFACE_ID ||
-				  id == STARPU_BCSR_INTERFACE_ID ||
-				  id == STARPU_COO_INTERFACE_ID,
-				  /* NDIM is not currently supported: would need to transfer the nn and ldn arrays */
-				  "Master-Slave currently cannot work with interface type %d", id);
+		memcpy((void*) buffer_ptr, &id, sizeof(id));
+		buffer_ptr += sizeof(id);
+		if (handle->ops->pack_meta)
+		{
+			STARPU_ASSERT_MSG(handle->ops->unpack_meta, "pack_meta defined without unpack_meta for interface %d", id);
+			memcpy((void *) buffer_ptr, interface_ptr[i], interface_size[i]);
+			buffer_ptr += interface_size[i];
+		}
+		else
+		{
+			/* Check that the interface exists in _starpu_interface */
+			STARPU_ASSERT_MSG(id == STARPU_VOID_INTERFACE_ID ||
+					  id == STARPU_VARIABLE_INTERFACE_ID ||
+					  id == STARPU_VECTOR_INTERFACE_ID ||
+					  id == STARPU_MATRIX_INTERFACE_ID ||
+					  id == STARPU_BLOCK_INTERFACE_ID ||
+					  id == STARPU_TENSOR_INTERFACE_ID ||
+					  id == STARPU_CSR_INTERFACE_ID ||
+					  id == STARPU_BCSR_INTERFACE_ID ||
+					  id == STARPU_COO_INTERFACE_ID,
+					  "Master-Slave currently cannot work with interface type %d", id);
 
-		memcpy((void*) buffer_ptr, interfaces[i], handle->ops->interface_size);
-		/* The sink side has no mean to get the type of each
-		 * interface, we use a union to make it generic and permit the
-		 * sink to go through the array */
-		buffer_ptr += sizeof(union _starpu_interface);
+			memcpy((void*) buffer_ptr, interfaces[i], handle->ops->interface_size);
+			/* The sink side has no mean to get the type of each
+			 * interface, we use a union to make it generic and permit the
+			 * sink to go through the array */
+			buffer_ptr += sizeof(union _starpu_interface);
+		}
 	}
 
 	if (cl_arg)

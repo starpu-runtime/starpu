@@ -288,6 +288,8 @@ static struct starpu_data_interface_ops interface_vector_cpp_ops =
 	.pack_data = pack_vector_cpp_handle,
 	.peek_data = peek_vector_cpp_handle,
 	.unpack_data = unpack_vector_cpp_handle,
+	.pack_meta = NULL,
+	.unpack_meta = NULL,
 	.name = (char *) "VECTOR_CPP_INTERFACE"
 };
 #else
@@ -322,6 +324,8 @@ static struct starpu_data_interface_ops interface_vector_cpp_ops =
 	pack_vector_cpp_handle,
 	peek_vector_cpp_handle,
 	unpack_vector_cpp_handle,
+	NULL,
+	NULL,
 	(char *) "VECTOR_CPP_INTERFACE"
 };
 #endif

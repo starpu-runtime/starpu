@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -55,7 +55,9 @@ struct starpu_data_interface_ops starpu_interface_csr_ops =
 	.name = "STARPU_CSR_INTERFACE",
 	.pack_data = pack_data,
 	.peek_data = peek_data,
-	.unpack_data = unpack_data
+	.unpack_data = unpack_data,
+	.pack_meta = NULL,
+	.unpack_meta = NULL
 };
 
 static int csr_pointer_is_inside(void *data_interface, unsigned node, void *ptr)

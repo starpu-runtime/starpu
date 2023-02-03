@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -46,6 +46,8 @@ static int pack_ndim_handle(starpu_data_handle_t handle, unsigned node, void **p
 static int peek_ndim_handle(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
 static int unpack_ndim_handle(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
 static starpu_ssize_t describe(void *data_interface, char *buf, size_t size);
+static int pack_meta_ndim_handle(void *data_interface, void **ptr, starpu_ssize_t *count);
+static int unpack_meta_ndim_handle(void **data_interface, void *ptr, starpu_ssize_t *count);
 
 struct starpu_data_interface_ops starpu_interface_ndim_ops =
 {
@@ -69,6 +71,8 @@ struct starpu_data_interface_ops starpu_interface_ndim_ops =
 	.pack_data = pack_ndim_handle,
 	.peek_data = peek_ndim_handle,
 	.unpack_data = unpack_ndim_handle,
+	.pack_meta = pack_meta_ndim_handle,
+	.unpack_meta = unpack_meta_ndim_handle,
 	.describe = describe,
 	.name = "STARPU_NDIM_INTERFACE",
 	.dontcache = 0
@@ -709,4 +713,59 @@ static starpu_ssize_t describe(void *data_interface, char *buf, size_t size)
 	}
 
 	return n;
+}
+
+#define _pack(dst, src) do { memcpy(dst, &src, sizeof(src)); dst += sizeof(src); } while (0)
+
+static int pack_meta_ndim_handle(void *data_interface, void **ptr, starpu_ssize_t *count)
+{
+	struct starpu_ndim_interface *ndarr = (struct starpu_ndim_interface *) data_interface;
+
+	*count = sizeof(ndarr->ndim) + sizeof(ndarr->offset) + sizeof(ndarr->allocsize) + sizeof(ndarr->elemsize);
+	*count += ndarr->ndim * (sizeof(ndarr->ldn[0]) + sizeof(ndarr->nn[0])) + sizeof(ndarr->ptr) + sizeof(ndarr->dev_handle);
+	_STARPU_CALLOC(*ptr, *count, 1);
+	char *cur = *ptr;
+
+	_pack(cur, ndarr->ndim);
+	_pack(cur, ndarr->offset);
+	_pack(cur, ndarr->allocsize);
+	_pack(cur, ndarr->elemsize);
+	_pack(cur, ndarr->ptr);
+	_pack(cur, ndarr->dev_handle);
+
+	memcpy(cur, ndarr->ldn, ndarr->ndim*sizeof(ndarr->ldn[0]));
+	cur += ndarr->ndim*sizeof(ndarr->ldn[0]);
+
+	memcpy(cur, ndarr->nn, ndarr->ndim*sizeof(ndarr->nn[0]));
+	return 0;
+}
+
+#define _unpack(dst, src) do {	memcpy(&dst, src, sizeof(dst)); src += sizeof(dst); } while(0)
+
+static int unpack_meta_ndim_handle(void **data_interface, void *ptr, starpu_ssize_t *count)
+{
+	_STARPU_CALLOC(*data_interface, 1, sizeof(struct starpu_ndim_interface));
+	struct starpu_ndim_interface *ndarr = (struct starpu_ndim_interface *)(*data_interface);
+	char *cur = ptr;
+
+	ndarr->id = STARPU_NDIM_INTERFACE_ID;
+
+	_unpack(ndarr->ndim, cur);
+	_unpack(ndarr->offset, cur);
+	_unpack(ndarr->allocsize, cur);
+	_unpack(ndarr->elemsize, cur);
+	_unpack(ndarr->ptr, cur);
+	_unpack(ndarr->dev_handle, cur);
+
+	_STARPU_MALLOC(ndarr->ldn, ndarr->ndim*sizeof(ndarr->ldn[0]));
+	memcpy(ndarr->ldn, cur, ndarr->ndim*sizeof(ndarr->ldn[0]));
+	cur += ndarr->ndim*sizeof(ndarr->ldn[0]);
+
+	_STARPU_MALLOC(ndarr->nn, ndarr->ndim*sizeof(ndarr->nn[0]));
+	memcpy(ndarr->nn, cur, ndarr->ndim*sizeof(ndarr->nn[0]));
+
+	*count = sizeof(ndarr->ndim) + sizeof(ndarr->offset) + sizeof(ndarr->allocsize) + sizeof(ndarr->elemsize);
+	*count += ndarr->ndim * (sizeof(ndarr->ldn[0]) + sizeof(ndarr->nn[0])) + sizeof(ndarr->ptr) + sizeof(ndarr->dev_handle);
+
+	return 0;
 }

@@ -618,6 +618,22 @@ struct starpu_data_interface_ops
 	int (*unpack_data)(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
 
 	/**
+	   Pack the interface into a contiguous buffer and set the
+	   size of the newly created buffer in \p count. This function
+	   is used in master slave mode for data interfaces with a
+	   dynamic content.
+	*/
+	int (*pack_meta)(void *data_interface, void **ptr, starpu_ssize_t *count);
+
+	/**
+	   Unpack the interface from the given buffer and set the size
+	   of the unpacked data in \p count. This function
+	   is used in master slave mode for data interfaces with a
+	   dynamic content.
+	*/
+	int (*unpack_meta)(void **data_interface, void *ptr, starpu_ssize_t *count);
+
+	/**
 	   Name of the interface
 	*/
 	char *name;

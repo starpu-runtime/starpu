@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -74,7 +74,9 @@ struct starpu_data_interface_ops starpu_interface_vector_ops =
 	.peek_data = peek_vector_handle,
 	.unpack_data = unpack_vector_handle,
 	.describe = describe,
-	.name = "STARPU_VECTOR_INTERFACE"
+	.name = "STARPU_VECTOR_INTERFACE",
+	.pack_meta = NULL,
+	.unpack_meta = NULL
 };
 
 static void vector_init(void *data_interface)

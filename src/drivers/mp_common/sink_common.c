@@ -842,20 +842,35 @@ void _starpu_sink_common_execute(struct _starpu_mp_node *node, void *arg, int ar
 
 	_STARPU_MALLOC(task->interfaces, task->nb_interfaces * sizeof(*task->interfaces));
 
-#ifdef STARPU_DEVEL
-#warning TODO: use pack/unpack for interfaces which don't implement any_to_any
-#endif
 	/* The function needs an array pointing to each interface it needs
-	 * during execution. As in sink-side there is no mean to know which
-	 * kind of interface to expect, the array is composed of unions of
-	 * interfaces, thus we expect the same size anyway */
+	 * during execution. The interface is first identified by its
+	 * id, which will indicate if this is a basic interface or if
+	 * it needs to be unpacked through unpack_meta
+	 */
 	for (i = 0; i < task->nb_interfaces; i++)
 	{
-		union _starpu_interface * interface;
-		_STARPU_MALLOC(interface, sizeof(union _starpu_interface));
-		memcpy(interface, (void*) arg_ptr, sizeof(union _starpu_interface));
-		task->interfaces[i] = interface;
-		arg_ptr += sizeof(union _starpu_interface);
+		// first extract the interface id
+		enum starpu_data_interface_id id;
+		memcpy(&id, (void *)arg_ptr, sizeof(id));
+		arg_ptr += sizeof(id);
+
+		// and then the interface
+		struct starpu_data_interface_ops *ops = _starpu_data_interface_get_ops(id);
+		if (ops->unpack_meta)
+		{
+			STARPU_ASSERT_MSG(ops->pack_meta, "unpack_meta defined without pack_meta for interface %d", id);
+			starpu_ssize_t count;
+			ops->unpack_meta(&task->interfaces[i], arg_ptr, &count);
+			arg_ptr += count;
+		}
+		else
+		{
+			union _starpu_interface *interface;
+			_STARPU_MALLOC(interface, sizeof(union _starpu_interface));
+			memcpy(interface, (void*) arg_ptr, sizeof(union _starpu_interface));
+			task->interfaces[i] = interface;
+			arg_ptr += sizeof(union _starpu_interface);
+		}
 	}
 
 	/* Was cl_arg sent ? */
