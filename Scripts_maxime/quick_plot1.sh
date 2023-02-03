@@ -26,8 +26,8 @@ TH=10
 
 CP=5
 
-HOST="gemini-1-fgcs-36" # cop coll multi gpus
-#~ HOST="gemini-1-cho_dep" # from grid5k perfs, multiple sizes
+#~ HOST="gemini-1-fgcs-36" # cop coll multi gpus
+HOST="gemini-1-cho_dep" # from grid5k perfs, multiple sizes
 
 SEED=1
 
@@ -37,25 +37,43 @@ TAILLE_TUILE=$2
 
 if [ $((TAILLE_TUILE)) = 960 ]
 then
-	CM=500
+	CM=$((500))
 elif [ $((TAILLE_TUILE)) = 1920 ]
 then
-	CM=1000
+	CM=$((500*4))
 elif [ $((TAILLE_TUILE)) = 3840 ]
 then
-	CM=2000
+	CM=$((500*16))
 else
 	echo "error taille de tuiles"
 	exit
 fi
 
-echo "CM =" ${CM}
+echo "CM =" ${CM} "BLOCK SIZE =" ${TAILLE_TUILE}
 
 NCOMBINAISONS=4
 if [ NGPU != 1 ]
 then
 	NCOMBINAISONS=$((NGPU*2+(NGPU-1)*NGPU+3))
 fi
+
+# Best results is obtained with following parameters so far:
+# EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1
+# THRESHOLD=0
+# APP=1
+# CHOOSE_BEST_DATA_FROM=0 (need to test with 1 in real)
+# SIMULATE_MEMORY=0 (need to test with 1 in real)
+# TASK_ORDER=1-2
+# DATA_ORDER=1-2
+# STARPU_SCHED_READY=1
+# DEPENDANCES=1
+# PRIO=1
+# FREE_PUSHED_TASK_POSITION=1
+# DOPT_SELECTION_ORDER=1
+# PRIORITY_ATTRIBUTION=0
+# GRAPH_DESCENDANTS=0
+# HIGHEST_PRIORITY_TASK_RETURNED_IN_DEFAULT_CASE=0-1
+
 
 # PM = push middle
 # PT = push top
@@ -71,6 +89,7 @@ fi
 # GD0 = natural prio in tasks
 # GD1 = graph descendants prio in tasks with a pause on all tasks
 # GD2 = graph descendants prio in tasks without pause and update in pull task
+# HPT = highest priority task returned in default case
 
 # Prios
 #~ algo1="DMDAR"
@@ -116,27 +135,37 @@ fi
 
 # Perfmodels
 #~ algo1="DMDAR_oldperf"
-algo2="DMDAR_newperf"
+#~ algo2="DMDAR_newperf"
 #~ algo3="DARTS+LUF+3D+NTO+NDO+PM+R+DSP+prio_oldperf"
-algo4="DARTS+LUF+3D+NTO+NDO+PM+R+DSP+prio_newperf"
+#~ algo4="DARTS+LUF+3D+NTO+NDO+PM+R+DSP+prio_newperf"
+
+# Get highest priority task in default case
+#~ algo1="DMDAR"
+#~ algo2="DARTS"
+#~ algo3="DARTS return highest prio task in default case"
+
+# Bottom level
+algo1="DARTS"
+algo2="DARTS bottom level"
 
 #~ echo "N,${algo1},${algo2},${algo3},${algo4},${algo5},${algo6},${algo7},${algo8},${algo9}" > Output_maxime/Legende.txt
 #~ echo "N,${algo1},${algo2},${algo3},${algo4},${algo5},${algo6},${algo7},${algo8},${algo9},${algo10}" > Output_maxime/Legende.txt
 #~ echo "N,${algo1},${algo2},${algo3},${algo4},${algo5},${algo6}" > Output_maxime/Legende.txt
 #~ echo "N,${algo1},${algo2},${algo3},${algo4}" > Output_maxime/Legende.txt
 #~ echo "N,${algo1},${algo2},${algo3}" > Output_maxime/Legende.txt
-echo "N,${algo2},${algo4}" > Output_maxime/Legende.txt
+#~ echo "N,${algo2},${algo4}" > Output_maxime/Legende.txt
+echo "N,${algo1},${algo2}" > Output_maxime/Legende.txt
 
 #~ NB_TAILLE_TESTE=6
-NB_TAILLE_TESTE=10
+#~ NB_TAILLE_TESTE=10
 #~ NB_TAILLE_TESTE=12
-#~ NB_TAILLE_TESTE=14
+NB_TAILLE_TESTE=14
 
 #~ NB_ALGO_TESTE=9
 #~ NB_ALGO_TESTE=10
 #~ NB_ALGO_TESTE=6
-#~ NB_ALGO_TESTE=3
 #~ NB_ALGO_TESTE=4
+#~ NB_ALGO_TESTE=3
 NB_ALGO_TESTE=2
 
 # Prios
@@ -456,28 +485,17 @@ NB_ALGO_TESTE=2
 	#~ sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS} >> ${FICHIER_RAW_DT}
 #~ done
 
-echo "#### ${algo2} ####"
-for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-do
-	N=$((START_X+i*ECHELLE_X))
-	TH_DMDAR=10
-	CP_DMDAR=5
-	STARPU_EXPECTED_TRANSFER_TIME_WRITEBACK_DMDAR=1
-	#~ TH_DMDAR=0
-	#~ CP_DMDAR=0
-	#~ STARPU_EXPECTED_TRANSFER_TIME_WRITEBACK_DMDAR=0
-	#~ if [ $((N)) -gt 40 ] && [ $((NGPU)) -gt 1 ]
-	#~ then
-		#~ echo $((960*N)) "	0	0.0" >> ${FICHIER_RAW}
-		#~ echo "NUMA 0 -> CUDA 0	0.0 GB	462.1480 MB/s	(transfers : 15 - avg 3.5156 MB)" >> ${FICHIER_RAW_DT}
-		#~ echo "CUDA 0 -> NUMA 0	0.0 GB	462.1480 MB/s	(transfers : 15 - avg 3.5156 MB)" >> ${FICHIER_RAW_DT}
-	#~ fi
-	#~ else
-	echo "N=${N} TH${TH_DMDAR} CP${CP_DMDAR} WB${STARPU_EXPECTED_TRANSFER_TIME_WRITEBACK_DMDAR}"
-	STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_HOSTNAME=gemini-1-cho_dep STARPU_SCHED=dmdar STARPU_NTASKS_THRESHOLD=$((TH_DMDAR)) STARPU_CUDA_PIPELINE=$((CP_DMDAR)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS}" STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_EXPECTED_TRANSFER_TIME_WRITEBACK=$((STARPU_EXPECTED_TRANSFER_TIME_WRITEBACK_DMDAR)) STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((TAILLE_TUILE*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW}
-	sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS} >> ${FICHIER_RAW_DT}
-	#~ fi
-done
+#~ echo "#### ${algo2} ####"
+#~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+#~ do
+	#~ N=$((START_X+i*ECHELLE_X))
+	#~ TH_DMDAR=10
+	#~ CP_DMDAR=5
+	#~ STARPU_EXPECTED_TRANSFER_TIME_WRITEBACK_DMDAR=1
+	#~ echo "N=${N} TH${TH_DMDAR} CP${CP_DMDAR} WB${STARPU_EXPECTED_TRANSFER_TIME_WRITEBACK_DMDAR}"
+	#~ STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_HOSTNAME=gemini-1-cho_dep STARPU_SCHED=dmdar STARPU_NTASKS_THRESHOLD=$((TH_DMDAR)) STARPU_CUDA_PIPELINE=$((CP_DMDAR)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS}" STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_EXPECTED_TRANSFER_TIME_WRITEBACK=$((STARPU_EXPECTED_TRANSFER_TIME_WRITEBACK_DMDAR)) STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((TAILLE_TUILE*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW}
+	#~ sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS} >> ${FICHIER_RAW_DT}
+#~ done
 
 #~ echo "#### ${algo3} ####"
 #~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
@@ -487,16 +505,59 @@ done
 	#~ sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS} >> ${FICHIER_RAW_DT}
 #~ done
 
-echo "#### ${algo4} ####"
+#~ echo "#### ${algo4} ####"
+#~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+#~ do
+	#~ N=$((START_X+i*ECHELLE_X))
+	#~ echo "N=${N} TH${TH} CP${CP}"
+	#~ GRAPH_DESCENDANTS=0 DOPT_SELECTION_ORDER=1 STARPU_SCHED_READY=1 PRIORITY_ATTRIBUTION=0 TASK_ORDER=2 DATA_ORDER=2 FREE_PUSHED_TASK_POSITION=1 DEPENDANCES=1 PRIO=1 APP=1 SEED=$((N/5)) EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_HOSTNAME=gemini-1-cho_dep STARPU_SCHED=dynamic-data-aware STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS}" STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((TAILLE_TUILE*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW}
+	#~ sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS} >> ${FICHIER_RAW_DT}
+#~ done
+
+# Highest priority task in default case
+#~ echo "#### ${algo1} ####"
+#~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+#~ do
+	#~ N=$((START_X+i*ECHELLE_X))
+	#~ echo "N=${N}"
+	#~ STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_HOSTNAME=${HOST} SEED=$((N/5)) STARPU_SCHED=dmdar STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS}" STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_EXPECTED_TRANSFER_TIME_WRITEBACK=1 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((TAILLE_TUILE*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW}
+	#~ sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS} >> ${FICHIER_RAW_DT}
+#~ done
+#~ echo "#### ${algo2} ####"
+#~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+#~ do
+	#~ N=$((START_X+i*ECHELLE_X))
+	#~ echo "N=${N}"
+	#~ HIGHEST_PRIORITY_TASK_RETURNED_IN_DEFAULT_CASE=0 GRAPH_DESCENDANTS=0 DOPT_SELECTION_ORDER=1 STARPU_SCHED_READY=1 PRIORITY_ATTRIBUTION=0 TASK_ORDER=2 DATA_ORDER=2 FREE_PUSHED_TASK_POSITION=1 DEPENDANCES=1 PRIO=1 APP=1 SEED=$((N/5)) EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_HOSTNAME=${HOST} STARPU_SCHED=dynamic-data-aware STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS}" STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((TAILLE_TUILE*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW}
+	#~ sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS} >> ${FICHIER_RAW_DT}
+#~ done
+#~ echo "#### ${algo3} ####"
+#~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+#~ do
+	#~ N=$((START_X+i*ECHELLE_X))
+	#~ echo "N=${N}"
+	#~ HIGHEST_PRIORITY_TASK_RETURNED_IN_DEFAULT_CASE=1 GRAPH_DESCENDANTS=0 DOPT_SELECTION_ORDER=1 STARPU_SCHED_READY=1 PRIORITY_ATTRIBUTION=0 TASK_ORDER=2 DATA_ORDER=2 FREE_PUSHED_TASK_POSITION=1 DEPENDANCES=1 PRIO=1 APP=1 SEED=$((N/5)) EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_HOSTNAME=${HOST} STARPU_SCHED=dynamic-data-aware STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS}" STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((TAILLE_TUILE*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW}
+	#~ sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS} >> ${FICHIER_RAW_DT}
+#~ done
+
+# Bottom level
+echo "#### ${algo1} ####"
 for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 do
 	N=$((START_X+i*ECHELLE_X))
-	#~ TH=0
-	#~ CP=0
-	echo "N=${N} TH${TH} CP${CP}"
-	GRAPH_DESCENDANTS=0 DOPT_SELECTION_ORDER=1 STARPU_SCHED_READY=1 PRIORITY_ATTRIBUTION=0 TASK_ORDER=2 DATA_ORDER=2 FREE_PUSHED_TASK_POSITION=1 DEPENDANCES=1 PRIO=1 APP=1 SEED=$((N/5)) EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_HOSTNAME=gemini-1-cho_dep STARPU_SCHED=dynamic-data-aware STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS}" STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((TAILLE_TUILE*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW}
+	echo "N=${N}"
+	HIGHEST_PRIORITY_TASK_RETURNED_IN_DEFAULT_CASE=1 GRAPH_DESCENDANTS=0 DOPT_SELECTION_ORDER=1 STARPU_SCHED_READY=1 PRIORITY_ATTRIBUTION=0 TASK_ORDER=2 DATA_ORDER=2 FREE_PUSHED_TASK_POSITION=1 DEPENDANCES=1 PRIO=1 APP=1 SEED=$((N/5)) EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_HOSTNAME=${HOST} STARPU_SCHED=dynamic-data-aware STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS}" STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((TAILLE_TUILE*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW}
 	sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS} >> ${FICHIER_RAW_DT}
 done
+echo "#### ${algo2} ####"
+for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+do
+	N=$((START_X+i*ECHELLE_X))
+	echo "N=${N}"
+	HIGHEST_PRIORITY_TASK_RETURNED_IN_DEFAULT_CASE=1 GRAPH_DESCENDANTS=0 DOPT_SELECTION_ORDER=1 STARPU_SCHED_READY=1 PRIORITY_ATTRIBUTION=1 TASK_ORDER=2 DATA_ORDER=2 FREE_PUSHED_TASK_POSITION=1 DEPENDANCES=1 PRIO=1 APP=1 SEED=$((N/5)) EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_HOSTNAME=${HOST} STARPU_SCHED=dynamic-data-aware STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS}" STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((TAILLE_TUILE*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW}
+	sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS} >> ${FICHIER_RAW_DT}
+done
+
 
 echo "Converting data"
 gcc -o cut_gflops_raw_out_csv cut_gflops_raw_out_csv.c

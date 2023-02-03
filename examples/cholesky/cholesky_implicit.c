@@ -284,7 +284,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		{
 			double res;
 			starpu_bound_compute(&res, NULL, 0);
-			PRINTF("\t%.0f\t%.1f", res, (flop/res/1000000.0f));
+			PRINTF("\t%.0f\t%.1f\n", res, (flop/res/1000000.0f));
 		}
 	}
 	return 0;

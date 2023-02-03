@@ -22,7 +22,7 @@
 #define DOPT_SELECTION_ORDER /* 0: Nfree N1fromfree Prio Timeremaining, 1: Nfree Prio N1fromfree Timeremaining */
 //~ # Pas dans se fichier mais aussi utilisées: PRIORITY_ATTRIBUTION dans cholesky
 //~ # Pas dans se fichier aussi: GRAPH_DESCENDANTS /* 0: No graph, so no pause in the task submitting. 1: With a graph reading descendants in DARTS, use a pause in the task submit. 2: With a graph reading descendants in DARTS, but don't use pause and the graph is read at each new batch of tasks in pull_task. */ dans starpu_data_maxime.h
-
+#define HIGHEST_PRIORITY_TASK_RETURNED_IN_DEFAULT_CASE /* 0: no, 1: I return the highesth priority task of the list when I didn't found a data giving free or 1 from free task. Only makes sense if TASK_ORDER is set to 2. else you are defeating the purpose of randomization with TASK_ORDEr on 0 or 1. */
 
 /* Var globale pour n'appeller qu'une seule fois get_env_number */
 extern int eviction_strategy_dynamic_data_aware;
@@ -40,6 +40,7 @@ extern int dopt_selection_order;
 extern int dependances;
 extern int graph_descendants;
 extern int free_pushed_task_position;
+extern int highest_priority_task_returned_in_default_case;
 
 extern struct starpu_perfmodel_arch* perf_arch;
 

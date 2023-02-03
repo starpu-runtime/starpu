@@ -47,6 +47,7 @@ int free_pushed_task_position;
 int dependances; /* Utile pour les ordres de données et le push back de données dans datanotusedyet. */
 int graph_descendants;
 int dopt_selection_order;
+int highest_priority_task_returned_in_default_case;
 
 bool gpu_memory_initialized;
 bool new_tasks_initialized;
@@ -433,14 +434,14 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 	int i = 0;
 	int j = 0;
 		
-	#ifdef PRINT
+	//~ #ifdef PRINT
 	printf("New task %p (%s, prio: %d, length: %f) in push_task with data(s):", task, starpu_task_get_name(task), task->priority, starpu_task_expected_length(task, perf_arch, 0)); fflush(stdout);
 	for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 	{
 		printf(" %p", STARPU_TASK_GET_HANDLE(task, i)); fflush(stdout);
 	}	
 	printf("\n"); fflush(stdout);
-	#endif
+	//~ #endif
 	
 	#ifdef REFINED_MUTEX
 	STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
@@ -2812,7 +2813,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		
 		if (!starpu_task_list_empty(main_task_list))
 		{
-			if (dependances == 1 && prio == 1) /* La tâches de plus haute prio est renvoyé */
+			if (highest_priority_task_returned_in_default_case == 1) /* La tâches de plus haute prio est renvoyé */
 			{
 				task = get_highest_priority_task(main_task_list);
 			}
@@ -3723,8 +3724,9 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	free_pushed_task_position = starpu_get_env_number_default("FREE_PUSHED_TASK_POSITION", 0);
 	graph_descendants = starpu_get_env_number_default("GRAPH_DESCENDANTS", 0); /* 0 ou 1 ou 2 */
 	dopt_selection_order = starpu_get_env_number_default("DOPT_SELECTION_ORDER", 0);
+	highest_priority_task_returned_in_default_case = starpu_get_env_number_default("HIGHEST_PRIORITY_TASK_RETURNED_IN_DEFAULT_CASE", 0);
 	
-	printf("-----\nEVICTION_STRATEGY_DYNAMIC_DATA_AWARE = %d\nTHRESHOLD = %d\nAPP = %d\nCHOOSE_BEST_DATA_FROM = %d\nSIMULATE_MEMORY = %d\nTASK_ORDER = %d\nDATA_ORDER = %d\nDEPENDANCES = %d\nPRIO = %d\nFREE_PUSHED_TASK_POSITION = %d\nGRAPH_DESCENDANTS = %d\nDOPT_SELECTION_ORDER = %d\nPRIORITY_ATTRIBUTION = %d\n-----\n", eviction_strategy_dynamic_data_aware, threshold, app, choose_best_data_from, simulate_memory, task_order, data_order, dependances, prio, free_pushed_task_position, graph_descendants, dopt_selection_order, starpu_get_env_number_default("PRIORITY_ATTRIBUTION", 0));
+	printf("-----\nEVICTION_STRATEGY_DYNAMIC_DATA_AWARE = %d\nTHRESHOLD = %d\nAPP = %d\nCHOOSE_BEST_DATA_FROM = %d\nSIMULATE_MEMORY = %d\nTASK_ORDER = %d\nDATA_ORDER = %d\nDEPENDANCES = %d\nPRIO = %d\nFREE_PUSHED_TASK_POSITION = %d\nGRAPH_DESCENDANTS = %d\nDOPT_SELECTION_ORDER = %d\nPRIORITY_ATTRIBUTION = %d\nHIGHEST_PRIORITY_TASK_RETURNED_IN_DEFAULT_CASE = %d\n-----\n", eviction_strategy_dynamic_data_aware, threshold, app, choose_best_data_from, simulate_memory, task_order, data_order, dependances, prio, free_pushed_task_position, graph_descendants, dopt_selection_order, starpu_get_env_number_default("PRIORITY_ATTRIBUTION", 0), highest_priority_task_returned_in_default_case);
 	
 	/* Initialization of global variables. */
 	Ngpu = get_number_GPU();
@@ -3901,6 +3903,7 @@ static void initialize_dynamic_data_aware_center_policy(unsigned sched_ctx_id)
 			STARPU_SCHED_SIMPLE_IMPL, sched_ctx_id);
 	
 	perf_arch = starpu_worker_get_perf_archtype(0, sched_ctx_id); /* Getting the perfmodel. Used to get the expected length of a task to tiebreak when choosing Dopt. I put 0 in place of worker id because I assume we are in an homogenous case with only identical GPUs. */
+	//~ # Pour avoir gpu 1 et récupérer les temps des tâches //~ perf_arch = starpu_worker_get_perf_archtype(1, sched_ctx_id); /* Getting the perfmodel. Used to get the expected length of a task to tiebreak when choosing Dopt. I put 0 in place of worker id because I assume we are in an homogenous case with only identical GPUs. */
 	
 	if (prio != 0)
 	{
