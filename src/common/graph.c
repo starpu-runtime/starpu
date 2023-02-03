@@ -430,14 +430,32 @@ void _starpu_graph_compute_descendants(void)
 					descendants++;
 					add_node(node3, &next_set, &next_n, &next_alloc, NULL);
 					
-					printf("%p is a child of %p\n", node3->job->task, node->job->task); fflush(stdout);
-					struct pointer_in_task *pt = node->job->task->sched_data;
-					struct child_list *cl = child_list_new();
-					struct child *c = child_new();
-					c->pointer_to_child = node3->job->task;
-					child_list_push_back(cl, c);
-					node->job->task->sched_data = pt;
-					pt->descendant = cl;
+					//~ printf("%p is a child of %p\n", node3->job->task, node->job->task); fflush(stdout);
+					//~ struct pointer_in_task *pt = node->job->task->sched_data;
+					//~ printf("Got sched_data\n"); fflush(stdout);
+					//~ struct child_list *cl = NULL;
+					//~ printf("Got child list\n"); fflush(stdout);
+					//~ if (pt->descendant == NULL) /* Il faut initialiser le pt->descendants à NULL avant je pense car la je pointe vers rien et crash à la deuxième tâche. C'est plus un if first en fait car de base la tache existe pas du coté du scheduler et donc ca a pas été initialisé, donc faire un first pour chaque tache ici et commencer par une init puis remplir simplement. C'est consécutif par tache donc on peut faire ca bien. */
+					//~ {
+						//~ cl = child_list_new();
+					//~ }
+					//~ printf("New child\n"); fflush(stdout);
+					//~ struct child *c = child_new();
+					//~ c->pointer_to_child = node3->job->task;
+					//~ if (pt->descendant == NULL)
+					//~ {
+						//~ child_list_push_back(cl, c);
+					//~ }
+					//~ else
+					//~ {
+						//~ child_list_push_back(pt->descendant, c);
+					//~ }
+					//~ if (pt->descendant == NULL)
+					//~ {
+						//~ pt->descendant = cl;
+					//~ }
+					//~ node->job->task->sched_data = pt;
+					//~ printf("Added %p\n", node3->job->task); fflush(stdout);
 				}
 			}
 			/* Swap next set with current set */

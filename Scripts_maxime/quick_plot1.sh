@@ -127,8 +127,8 @@ algo4="DARTS+LUF+3D+NTO+NDO+PM+R+DSP+prio_newperf"
 #~ echo "N,${algo1},${algo2},${algo3}" > Output_maxime/Legende.txt
 echo "N,${algo2},${algo4}" > Output_maxime/Legende.txt
 
-NB_TAILLE_TESTE=6
-#~ NB_TAILLE_TESTE=10
+#~ NB_TAILLE_TESTE=6
+NB_TAILLE_TESTE=10
 #~ NB_TAILLE_TESTE=12
 #~ NB_TAILLE_TESTE=14
 

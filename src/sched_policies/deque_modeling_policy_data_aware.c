@@ -1219,6 +1219,7 @@ static void dmda_push_task_notify(struct starpu_task *task, int workerid, int pe
 
 static void dmda_post_exec_hook(struct starpu_task * task, unsigned sched_ctx_id)
 {
+	//~ printf("dmda_post_exec_hook %p\n", task); fflush(stdout);
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	unsigned workerid = starpu_worker_get_id_check();
 	struct _starpu_fifo_taskq *fifo = &dt->queue_array[workerid];
