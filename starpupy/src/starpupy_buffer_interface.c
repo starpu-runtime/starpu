@@ -16,6 +16,7 @@
 
 #include <stdarg.h>
 #include <starpu.h>
+#include <common/utils.h>
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
@@ -528,6 +529,85 @@ static int pybuffer_unpack_data(starpu_data_handle_t handle, unsigned node, void
 	return 0;
 }
 
+static int pybuffer_meta_size(struct starpupy_buffer_interface *pybuffer_interface)
+{
+	starpu_ssize_t count;
+
+	count = sizeof(pybuffer_interface->buffer_type) +
+	      /* sizeof(pybuffer_interface->object) +    => built on the fly */
+	         sizeof(pybuffer_interface->py_buffer) +
+	         sizeof(pybuffer_interface->buffer_size) +
+	         sizeof(pybuffer_interface->dim_size) +
+	         sizeof(pybuffer_interface->array_type) +
+	         sizeof(pybuffer_interface->item_size) +
+	         sizeof(pybuffer_interface->typecode);
+	count += pybuffer_interface->dim_size * (
+#ifdef STARPU_PYTHON_HAVE_NUMPY
+		 sizeof(pybuffer_interface->array_dim[0]) +
+#endif
+		 sizeof(pybuffer_interface->shape[0]));
+
+	return count;
+}
+
+#define _pack(dst, src) do { memcpy(dst, &src, sizeof(src)); dst += sizeof(src); } while (0)
+static int pybuffer_pack_meta(void *data_interface, void **ptr, starpu_ssize_t *count)
+{
+	struct starpupy_buffer_interface *pybuffer_interface = data_interface;
+	*count = pybuffer_meta_size(pybuffer_interface);
+	_STARPU_CALLOC(*ptr, *count, 1);
+	char *cur = *ptr;
+
+	_pack(cur, pybuffer_interface->buffer_type);
+	_pack(cur, pybuffer_interface->py_buffer);
+	_pack(cur, pybuffer_interface->buffer_size);
+	_pack(cur, pybuffer_interface->dim_size);
+	_pack(cur, pybuffer_interface->array_type);
+	_pack(cur, pybuffer_interface->item_size);
+	_pack(cur, pybuffer_interface->typecode);
+
+#ifdef STARPU_PYTHON_HAVE_NUMPY
+	memcpy(cur, pybuffer_interface->array_dim,
+		pybuffer_interface->dim_size * sizeof(pybuffer_interface->array_dim[0]));
+	cur += pybuffer_interface->dim_size * sizeof(pybuffer_interface->array_dim[0]);
+#endif
+	memcpy(cur, pybuffer_interface->shape,
+		pybuffer_interface->dim_size * sizeof(pybuffer_interface->shape[0]));
+	return 0;
+}
+
+#define _unpack(dst, src) do {	memcpy(&dst, src, sizeof(dst)); src += sizeof(dst); } while(0)
+static int pybuffer_unpack_meta(void **data_interface, void *ptr, starpu_ssize_t *count)
+{
+	_STARPU_CALLOC(*data_interface, 1, sizeof(struct starpupy_buffer_interface));
+	struct starpupy_buffer_interface *pybuffer_interface = (*data_interface);
+	char *cur = ptr;
+
+	_unpack(pybuffer_interface->buffer_type, cur);
+	_unpack(pybuffer_interface->py_buffer, cur);
+	_unpack(pybuffer_interface->buffer_size, cur);
+	_unpack(pybuffer_interface->dim_size, cur);
+	_unpack(pybuffer_interface->array_type, cur);
+	_unpack(pybuffer_interface->item_size, cur);
+	_unpack(pybuffer_interface->typecode, cur);
+
+#ifdef STARPU_PYTHON_HAVE_NUMPY
+	_STARPU_MALLOC(pybuffer_interface->array_dim,
+		pybuffer_interface->dim_size * sizeof(pybuffer_interface->array_dim[0]));
+	memcpy(pybuffer_interface->array_dim, cur,
+		pybuffer_interface->dim_size * sizeof(pybuffer_interface->array_dim[0]));
+	cur += pybuffer_interface->dim_size * sizeof(pybuffer_interface->array_dim[0]);
+#endif
+	_STARPU_MALLOC(pybuffer_interface->shape,
+		pybuffer_interface->dim_size * sizeof(pybuffer_interface->shape[0]));
+	memcpy(pybuffer_interface->shape, cur,
+		pybuffer_interface->dim_size * sizeof(pybuffer_interface->shape[0]));
+
+	*count = pybuffer_meta_size(pybuffer_interface);
+
+	return 0;
+}
+
 static uint32_t starpupy_buffer_footprint(starpu_data_handle_t handle)
 {
 	struct starpupy_buffer_interface *pybuffer_interface = (struct starpupy_buffer_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
@@ -621,6 +701,8 @@ static struct starpu_data_interface_ops interface_pybuffer_ops =
 	.pack_data = pybuffer_pack_data,
 	.peek_data = pybuffer_peek_data,
 	.unpack_data = pybuffer_unpack_data,
+	.pack_meta = pybuffer_pack_meta,
+	.unpack_meta = pybuffer_unpack_meta,
 	.dontcache = 0,
 	.display = pybuffer_display,
 	.compare = pybuffer_compare,

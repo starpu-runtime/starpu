@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020-2022  Universit'e de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2023  Universit'e de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -35,7 +35,7 @@ ver = sys.version_info
 libpython = 'python%s.%s%s' % (ver.major, ver.minor, sys.abiflags)
 
 starpupy = Extension('starpu.starpupy',
-                     include_dirs = ['@STARPU_SRC_DIR@/include', '@STARPU_BUILD_DIR@/include', '@STARPU_SRC_DIR@/starpupy/src'] + numpy_include_dir,
+                     include_dirs = ['@STARPU_SRC_DIR@/include', '@STARPU_BUILD_DIR@/include', '@STARPU_SRC_DIR@/starpupy/src', '@STARPU_SRC_DIR@/src', '@STARPU_BUILD_DIR@/src'] + numpy_include_dir,
                      libraries = ['starpu-@STARPU_EFFECTIVE_VERSION@', libpython],
                      extra_compile_args = extra_compile_args,
                      extra_link_args = ['-shared'],
