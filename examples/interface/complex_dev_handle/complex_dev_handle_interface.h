@@ -31,9 +31,9 @@ struct starpu_complex_dev_handle_interface
     size_t offset_imaginary;
 };
 
-void starpu_complex_dev_handle_data_register(starpu_data_handle_t *handle, unsigned home_node, uintptr_t ptr_real, uintptr_t ptr_imaginary, int nx);
+void starpu_complex_dev_handle_data_register(starpu_data_handle_t *handle, int home_node, uintptr_t ptr_real, uintptr_t ptr_imaginary, int nx);
 
-void starpu_complex_dev_handle_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr_real, uintptr_t ptr_imaginary, uintptr_t dev_handle_real, uintptr_t dev_handle_imaginary, size_t offset_real, size_t offset_imaginary);
+void starpu_complex_dev_handle_ptr_register(starpu_data_handle_t handle, int node, uintptr_t ptr_real, uintptr_t ptr_imaginary, uintptr_t dev_handle_real, uintptr_t dev_handle_imaginary, size_t offset_real, size_t offset_imaginary);
 
 int starpu_complex_dev_handle_get_nx(starpu_data_handle_t handle);
 uintptr_t starpu_complex_dev_handle_get_ptr_real(starpu_data_handle_t handle);

@@ -290,7 +290,7 @@ struct starpu_data_interface_ops interface_complex_dev_handle_ops =
 	.compare = complex_dev_handle_compare
 };
 
-void starpu_complex_dev_handle_data_register(starpu_data_handle_t *handleptr, unsigned home_node, uintptr_t ptr_real, uintptr_t ptr_imaginary, int nx)
+void starpu_complex_dev_handle_data_register(starpu_data_handle_t *handleptr, int home_node, uintptr_t ptr_real, uintptr_t ptr_imaginary, int nx)
 {
 	struct starpu_complex_dev_handle_interface complex_dev_handle =
 	{
@@ -309,7 +309,7 @@ void starpu_complex_dev_handle_data_register(starpu_data_handle_t *handleptr, un
 	starpu_data_register(handleptr, home_node, &complex_dev_handle, &interface_complex_dev_handle_ops);
 }
 
-void starpu_complex_dev_handle_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr_real, uintptr_t ptr_imaginary, uintptr_t dev_handle_real, uintptr_t dev_handle_imaginary, size_t offset_real, size_t offset_imaginary)
+void starpu_complex_dev_handle_ptr_register(starpu_data_handle_t handle, int node, uintptr_t ptr_real, uintptr_t ptr_imaginary, uintptr_t dev_handle_real, uintptr_t dev_handle_imaginary, size_t offset_real, size_t offset_imaginary)
 {
 	struct starpu_complex_dev_handle_interface *complex_dev_handle_interface = starpu_data_get_interface_on_node(handle, node);
 	starpu_data_ptr_register(handle, node);
