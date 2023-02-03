@@ -23,9 +23,7 @@ static starpu_data_handle_t variable_handle;
 static starpu_data_handle_t variable2_handle;
 
 /* Codelets */
-#if defined(STARPU_USE_CPU)
 void test_variable_cpu_func(void *buffers[], void *args);
-#endif
 #ifdef STARPU_USE_CUDA
 extern void test_variable_cuda_func(void *buffers[], void *args);
 #endif
