@@ -715,14 +715,22 @@ static starpu_ssize_t describe(void *data_interface, char *buf, size_t size)
 	return n;
 }
 
+static starpu_ssize_t size_meta_ndim_handle(struct starpu_ndim_interface *ndarr)
+{
+	starpu_ssize_t count;
+	count = sizeof(ndarr->ndim) + sizeof(ndarr->offset) + sizeof(ndarr->allocsize) + sizeof(ndarr->elemsize);
+	count += ndarr->ndim * (sizeof(ndarr->ldn[0]) + sizeof(ndarr->nn[0])) + sizeof(ndarr->ptr) + sizeof(ndarr->dev_handle);
+	return count;
+}
+
+
 #define _pack(dst, src) do { memcpy(dst, &src, sizeof(src)); dst += sizeof(src); } while (0)
 
 static int pack_meta_ndim_handle(void *data_interface, void **ptr, starpu_ssize_t *count)
 {
 	struct starpu_ndim_interface *ndarr = (struct starpu_ndim_interface *) data_interface;
 
-	*count = sizeof(ndarr->ndim) + sizeof(ndarr->offset) + sizeof(ndarr->allocsize) + sizeof(ndarr->elemsize);
-	*count += ndarr->ndim * (sizeof(ndarr->ldn[0]) + sizeof(ndarr->nn[0])) + sizeof(ndarr->ptr) + sizeof(ndarr->dev_handle);
+	*count = size_meta_ndim_handle(ndarr);
 	_STARPU_CALLOC(*ptr, *count, 1);
 	char *cur = *ptr;
 
@@ -764,8 +772,7 @@ static int unpack_meta_ndim_handle(void **data_interface, void *ptr, starpu_ssiz
 	_STARPU_MALLOC(ndarr->nn, ndarr->ndim*sizeof(ndarr->nn[0]));
 	memcpy(ndarr->nn, cur, ndarr->ndim*sizeof(ndarr->nn[0]));
 
-	*count = sizeof(ndarr->ndim) + sizeof(ndarr->offset) + sizeof(ndarr->allocsize) + sizeof(ndarr->elemsize);
-	*count += ndarr->ndim * (sizeof(ndarr->ldn[0]) + sizeof(ndarr->nn[0])) + sizeof(ndarr->ptr) + sizeof(ndarr->dev_handle);
+	*count = size_meta_ndim_handle(ndarr);
 
 	return 0;
 }
