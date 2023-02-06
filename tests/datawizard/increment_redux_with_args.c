@@ -55,6 +55,8 @@ int main(int argc, char **argv)
 		return STARPU_TEST_SKIPPED;
 	}
 
+	increment_load_opencl();
+
 	starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&var, sizeof(unsigned));
 	starpu_data_set_reduction_methods_with_args(handle, &redux_with_args_cl, &value, &neutral_cl, NULL);
 	ret = starpu_task_insert(&increment_redux_cl, STARPU_REDUX, handle, 0);
@@ -68,6 +70,7 @@ int main(int argc, char **argv)
 		goto err;
 	}
 
+	increment_unload_opencl();
 	starpu_shutdown();
 	return EXIT_SUCCESS;
 
