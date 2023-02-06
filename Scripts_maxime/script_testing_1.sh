@@ -18,6 +18,7 @@ start=`date +%s`
 #~ --cfg=contexts/factory:thread pour simgrid
 #~ -bound
 #~ -no-prio
+#~ STARPU_WATCHDOG_TIMEOUT=1000000000 STARPU_WATCHDOG_CRASH=1 
 
 make -j 6
 ulimit -S -s 5000000
@@ -173,8 +174,8 @@ SIMULATE_MEMORY=0
 #~ CHOOSE_BEST_DATA_FROM=0
 CHOOSE_BEST_DATA_FROM=1
 
-APPLICATION="./examples/cholesky/cholesky_implicit -size $((${TAILLE_TUILE}*N)) -nblocks $((N))"
-#~ APPLICATION="libtool --mode=execute gdb --args ./examples/cholesky/cholesky_implicit -size $((TAILLE_TUILE*N)) -nblocks $((N))"
+#~ APPLICATION="./examples/cholesky/cholesky_implicit -size $((${TAILLE_TUILE}*N)) -nblocks $((N))"
+APPLICATION="libtool --mode=execute gdb --args ./examples/cholesky/cholesky_implicit -size $((TAILLE_TUILE*N)) -nblocks $((N))"
 #~ APPLICATION="./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) -no-prio"
 #~ APPLICATION="./examples/cholesky/cholesky_implicit -size $((${TAILLE_TUILE}*N)) -nblocks $((N)) -bound"
 #~ APPLICATION="./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 11"
