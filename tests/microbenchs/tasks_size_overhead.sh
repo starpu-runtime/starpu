@@ -14,6 +14,9 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
+
+if test -n "$STARPU_MICROBENCHS_DISABLED" ; then exit 77 ; fi
+
 ROOT=${0%.sh}
 $MS_LAUNCHER $STARPU_LAUNCH $ROOT "$@" > tasks_size_overhead.output
 $ROOT.gp
