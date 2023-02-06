@@ -434,14 +434,14 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 	int i = 0;
 	int j = 0;
 		
-	#ifdef PRINT
+	//~ #ifdef PRINT
 	printf("New task %p (%s, prio: %d, length: %f) in push_task with data(s):", task, starpu_task_get_name(task), task->priority, starpu_task_expected_length(task, perf_arch, 0)); fflush(stdout);
 	for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 	{
 		printf(" %p", STARPU_TASK_GET_HANDLE(task, i)); fflush(stdout);
 	}	
 	printf("\n"); fflush(stdout);
-	#endif
+	//~ #endif
 	
 	#ifdef REFINED_MUTEX
 	STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
@@ -1364,9 +1364,9 @@ void natural_order_data_not_used_yet()
  **/
 struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_gpu, struct starpu_task_list *l)
 {
-	#ifdef PRINT
+	//~ #ifdef PRINT
 	printf("\nDebut get task to return GPU n°%d.\n", current_gpu); fflush(stdout);
-	#endif
+	//~ #endif
 			
 	int i = 0;
     
@@ -1523,7 +1523,7 @@ bool graph_read = false; /* TODO: a suppr si j'utilise pas graph_descendants == 
 static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
 	//~ #ifdef PRINT
-	//~ printf("Début de pull_task.\n"); fflush(stdout);
+	printf("Début de pull_task.\n"); fflush(stdout);
 	//~ #endif
 		
 	#ifdef LINEAR_MUTEX
@@ -1658,12 +1658,12 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
     STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
     #endif
 	
-	#ifdef PRINT
+	//~ #ifdef PRINT
 	if (task != NULL)
 	{
-		printf("Pulled task %p.\n", task);
+		printf("Pulled task %p on GPU %d.\n", task, starpu_worker_get_memory_node(starpu_worker_get_id()));
 	}
-	#endif
+	//~ #endif
 	
     return task;
 }
@@ -1914,9 +1914,9 @@ void update_best_data_single_decision_tree(int* number_free_task_max, double* re
  **/
 void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g)
 {
-	#ifdef PRINT
+	//~ #ifdef PRINT
 	printf("Début de sched 3D avec GPU %d.\n", current_gpu - 1); fflush(stdout);
-	#endif
+	//~ #endif
 	
 	Dopt[current_gpu - 1] = NULL;
 		
@@ -2953,8 +2953,9 @@ void dynamic_data_aware_victim_eviction_failed(starpu_data_handle_t victim, void
 starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
 {
 	//~ #ifdef PRINT
-	//~ printf("Début de victim selector.\n"); fflush(stdout);
+	printf("Début de victim selector.\n"); fflush(stdout);
 	//~ #endif
+	
 	#ifdef REFINED_MUTEX
 	STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
 	#endif
@@ -3487,9 +3488,10 @@ void erase_task_and_data_pointer (struct starpu_task *task, struct starpu_task_l
 
 static int dynamic_data_aware_can_push(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
-	#ifdef PRINT
+	//~ #ifdef PRINT
 	printf("Début de dynamic_data_aware_can_push.\n"); fflush(stdout);
-	#endif
+	//~ #endif
+	
     //~ struct dynamic_data_aware_sched_data *data = component->data;
     int didwork = 0;
     struct starpu_task *task;
@@ -3535,6 +3537,8 @@ static int dynamic_data_aware_can_push(struct starpu_sched_component *component,
 
 static int dynamic_data_aware_can_pull(struct starpu_sched_component *component)
 {
+	printf("Début de can pull\n"); fflush(stdout);
+	
     return starpu_sched_component_can_pull(component);
 }
 
@@ -3891,9 +3895,9 @@ static void deinitialize_dynamic_data_aware_center_policy(unsigned sched_ctx_id)
 /* Get the task that was last executed. Used to update the task list of pulled task	 */
 void get_task_done(struct starpu_task *task, unsigned sci)
 {
-	#ifdef PRINT
+	//~ #ifdef PRINT
 	printf("Début de get task done.\n"); fflush(stdout);
-	#endif
+	//~ #endif
 	#ifdef LINEAR_MUTEX
 	STARPU_PTHREAD_MUTEX_LOCK(&linear_mutex);
 	#endif
@@ -3903,9 +3907,9 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 	
 	total_task_done++; /* TODO : utile ? */
 	
-	#ifdef PRINT
+	//~ #ifdef PRINT
 	printf("%dème task done in the post_exec_hook: %p.\n", total_task_done, task); fflush(stdout);
-	#endif
+	//~ #endif
 		
 	/* Je me place sur la liste correspondant au bon gpu. */
 	int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
@@ -4032,9 +4036,9 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
 	#endif
 
-	#ifdef PRINT
+	//~ #ifdef PRINT
 	printf("End of get_task_done\n"); fflush(stdout);
-	#endif
+	//~ #endif
 	
     starpu_sched_component_worker_pre_exec_hook(task, sci);
 }
