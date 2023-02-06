@@ -505,19 +505,12 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 				struct starpu_task* checked_task = NULL;
 				for (checked_task = starpu_task_list_begin(&tab_gpu_planned_task[i].planned_task); checked_task != starpu_task_list_end(&tab_gpu_planned_task[i].planned_task); checked_task = starpu_task_list_next(checked_task))
 				{
-					//~ printf("Is task %p in planned_task free ?\n", checked_task);
-					//~ print_data_on_node(i + 1);
 					for (j = 0; j < STARPU_TASK_GET_NBUFFERS(checked_task); j++)
 					{
-						//~ printf("%p ?\n", STARPU_TASK_GET_HANDLE(checked_task, j));
 						if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(checked_task, j), i + 1))
 						{
 							starpu_task_list_insert_before(&tab_gpu_planned_task[i].planned_task, task, checked_task);
-							
-							//~ printf("Insert before task %p that doesn't have data %p.\n", checked_task, STARPU_TASK_GET_HANDLE(checked_task, j));
-							//~ print_data_on_node(i + 1);
-							//~ print_planned_task_one_gpu(&tab_gpu_planned_task[i], i + 1);
-							
+														
 							/* End now push task, no push in main task list or GPUs data */		
 							starpu_push_task_end(task);
 							#ifdef REFINED_MUTEX
@@ -2215,95 +2208,126 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		starpu_data_get_node_data(current_gpu, &data_on_node, &valid, &nb_data_on_node);
 		
 		struct task_using_data *t2 = NULL;
-		//~ int k = 0;
+		int k = 0;
 		
 		/* Je me met sur une donnée de la mémoire. */
 		for (i = 0; i < nb_data_on_node; i++)
 		{
+			#ifdef PRINT
+			printf("On data nb %d/%d from memory\n", i, nb_data_on_node); fflush(stdout);
+			#endif
+			
 			/* Je me met sur une tâche de cette donnée en question. */
 			for (t2 = task_using_data_list_begin(data_on_node[i]->sched_data); t2 != task_using_data_list_end(data_on_node[i]->sched_data); t2 = task_using_data_list_next(t2))
 			{
-				//~ /* Je me met sur une donnée de cette tâche (qui n'est pas celle en mémoire). */
-				//~ for (k = 0; k < STARPU_TASK_GET_NBUFFERS(t2->pointer_to_T); k++)
-				//~ {						
-					//~ hud_last_check = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->user_data;
-					//~ /* Ici il faudrait ne pas regarder 2 fois la même donnée si possible. Ca peut arriver oui. */
-					//~ if (STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k) != data_on_node[i] && hud_last_check->last_check_to_choose_from[current_gpu - 1] != g->number_data_selection)
-					//~ {
-						//~ #ifdef PRINT_STATS
-						//~ nb_data_looked_at++;
-						//~ #endif	
+				#ifdef PRINT
+				printf("On task %p from this data\n", t2); fflush(stdout);
+				#endif
+				
+				/* Je me met sur une donnée de cette tâche (qui n'est pas celle en mémoire). */
+				for (k = 0; k < STARPU_TASK_GET_NBUFFERS(t2->pointer_to_T); k++)
+				{						
+					#ifdef PRINT
+					printf("On data %p from this task\n", STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)); fflush(stdout);
+					#endif
+					
+					hud_last_check = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->user_data;
+					
+					/* Ici il faudrait ne pas regarder 2 fois la même donnée si possible. Ca peut arriver oui. */
+					if (STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k) != data_on_node[i] && hud_last_check->last_check_to_choose_from[current_gpu - 1] != g->number_data_selection)
+					{
+						#ifdef PRINT
+						printf("Data %p is being looked at\n", STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)); fflush(stdout);
+						#endif
 						
-						//~ /* Mise à jour de l'itération pour la donnée pour ne pas la regarder deux fois à cette itération. */
-						//~ hud_last_check->last_check_to_choose_from[current_gpu - 1] = g->number_data_selection;
-						//~ STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->user_data = hud_last_check;
+						#ifdef PRINT_STATS
+						nb_data_looked_at++;
+						#endif	
+						
+						/* Mise à jour de l'itération pour la donnée pour ne pas la regarder deux fois à cette itération. */
+						hud_last_check->last_check_to_choose_from[current_gpu - 1] = g->number_data_selection;
+						STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->user_data = hud_last_check;
 		
-						//~ temp_number_free_task_max = 0;
-						//~ temp_number_1_from_free_task_max = 0;
-						//~ temp_priority_max = INT_MIN;
+						temp_number_free_task_max = 0;
+						temp_number_1_from_free_task_max = 0;
+						temp_priority_max = INT_MIN;
+						temp_best_1_from_free_task = NULL;
 						
-						//~ if (number_free_task_max == 0 && app != 0)
+						#ifdef PRINT_STATS
+						nb_data_looked_at++;
+						#endif
+						
+						//~ if (number_free_task_max == 0 && app != 0) /* Cas où je sépare 2D et 3D pour gagner du temps mais ne permet pas de tie break avec le nombre de 1 from free tâches */
 						//~ {
-							//~ /* Je regarde le nombre de free ou 1 from free tâche de cette donnée. */
-							//~ for (t = task_using_data_list_begin(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->sched_data); t != task_using_data_list_end(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->sched_data); t = task_using_data_list_next(t))
-							//~ {
-								//~ data_not_available = 0; 
-								//~ for (j = 0; j < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T); j++)
-								//~ {
-									//~ if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, j) != STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k))
-									//~ {
-										//~ if (simulate_memory == 0)
-										//~ {
-											//~ if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
-											//~ {
-												//~ data_not_available++;
-											//~ }
-										//~ }
-										//~ else if (simulate_memory == 1)
-										//~ {
-											//~ hud = STARPU_TASK_GET_HANDLE(t->pointer_to_T, j)->user_data;
-											//~ if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu) && hud->nb_task_in_pulled_task[current_gpu - 1] == 0 && hud->nb_task_in_planned_task[current_gpu - 1] == 0)
-											//~ {
-												//~ data_not_available++;
-											//~ }
-										//~ }
-									//~ }
-								//~ }
-								//~ if (data_not_available == 0)
-								//~ {
-									//~ temp_number_free_task_max++;
+							/* Je regarde le nombre de free ou 1 from free tâche de cette donnée. */
+							for (t = task_using_data_list_begin(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->sched_data); t != task_using_data_list_end(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->sched_data); t = task_using_data_list_next(t))
+							{
+								#ifdef PRINT
+								printf("Task %p is using this data\n", t); fflush(stdout);
+								#endif
+								
+								/* I put it at 1 if at least one data is missing. */
+								data_not_available = 0; 
+								
+								for (j = 0; j < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T); j++)
+								{
+									if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, j) != STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k))
+									{
+										if (simulate_memory == 0)
+										{
+											if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
+											{
+												data_not_available++;
+											}
+										}
+										else if (simulate_memory == 1)
+										{
+											hud = STARPU_TASK_GET_HANDLE(t->pointer_to_T, j)->user_data;
+											if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu) && hud->nb_task_in_pulled_task[current_gpu - 1] == 0 && hud->nb_task_in_planned_task[current_gpu - 1] == 0)
+											{
+												data_not_available++;
+											}
+										}
+									}
+								}
+
+								if (data_not_available == 0)
+								{
+									temp_number_free_task_max++;
 									
-									//~ /* Version où je m'arrête dès que j'ai une tâche gratuite.
-									 //~ * Nouvelle place du threshold == 2. */
-									//~ if (threshold == 2)
-									//~ {
-										//~ number_free_task_max = temp_number_free_task_max;
-										//~ handle_popped = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k);
-										//~ goto end_choose_best_data;
-									//~ }
+									/* Version où je m'arrête dès que j'ai une tâche gratuite. */
+									if (threshold == 2)
+									{
+										number_free_task_max = temp_number_free_task_max;
+										handle_popped = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k);
+										goto end_choose_best_data;
+									}
 									
-									//~ /* For the first one I want to forget priority of one from free tasks. */
-									//~ if (temp_number_free_task_max == 1)
-									//~ {
-										//~ temp_priority_max = t->pointer_to_T->priority;
-									//~ }
-									//~ else if (t->pointer_to_T->priority > temp_priority_max)
-									//~ {
-										//~ temp_priority_max = t->pointer_to_T->priority;
-									//~ }
-								//~ }
-								//~ else if (data_not_available == 1)
-								//~ {
-									//~ temp_number_1_from_free_task_max++;
-									//~ if (t->pointer_to_T->priority > temp_priority_max)
-									//~ {
-										//~ temp_priority_max = t->pointer_to_T->priority;
-									//~ }
-								//~ }
-							//~ }
+									/* For the first one I want to forget priority of one from free tasks. */
+									if (temp_number_free_task_max == 1)
+									{
+										temp_priority_max = t->pointer_to_T->priority;
+									}
+									else if (t->pointer_to_T->priority > temp_priority_max)
+									{
+										temp_priority_max = t->pointer_to_T->priority;
+									}
+								}
+								else if (data_not_available == 1)
+								{
+									temp_number_1_from_free_task_max++;
+									
+									if (t->pointer_to_T->priority > temp_priority_max)
+									{
+										temp_priority_max = t->pointer_to_T->priority;
+										temp_best_1_from_free_task = t->pointer_to_T;
+									}
+								}
+							}
 							
-							//~ /* Update best data if needed */
-							//~ update_best_data(&number_free_task_max, &task_available_max, &handle_popped, &priority_max, &number_1_from_free_task_max, &task_available_max_1_from_free, temp_number_free_task_max, task_using_data_list_size(e->D->sched_data), e->D, temp_priority_max, temp_number_1_from_free_task_max, &data_choosen_index, i);
+							/* Update best data if needed */
+							hud = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->user_data;
+							update_best_data_single_decision_tree(&number_free_task_max, &remaining_expected_length_max, &handle_popped, &priority_max, &number_1_from_free_task_max, temp_number_free_task_max, hud->sum_remaining_task_expected_length,  STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k), temp_priority_max, temp_number_1_from_free_task_max, &data_choosen_index, i, &best_1_from_free_task, temp_best_1_from_free_task);
 						//~ }
 						//~ else /* Cas 2D */
 						//~ {
@@ -2356,14 +2380,14 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 							//~ /* Update best data if needed */
 							//~ update_best_data(&number_free_task_max, &task_available_max, &handle_popped, &priority_max, &number_1_from_free_task_max, &task_available_max_1_from_free, temp_number_free_task_max, task_using_data_list_size(e->D->sched_data), e->D, temp_priority_max, temp_number_1_from_free_task_max, &data_choosen_index, i);
 						//~ }
-					//~ }	
-				//~ }
+					}	
+				}
 			}
 		}
 	}	
 		
 	#ifdef PRINT
-	printf("Best data is = %p: %d free tasks and/or %d 1 from free tasks.\n", handle_popped, number_free_task_max, number_1_from_free_task_max); fflush(stdout);
+	printf("Best data is = %p: %d free tasks and %d 1 from free tasks.\n", handle_popped, number_free_task_max, number_1_from_free_task_max); fflush(stdout);
 	#endif
 
 	end_choose_best_data : ;
@@ -2388,6 +2412,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 				#ifdef PRINT
 				printf("Iteration %d. Same data between GPU %d and GPU %d: %p.\n", iteration_DARTS, current_gpu, i + 1, handle_popped); fflush(stdout);
 				#endif
+				
 				#ifdef PRINT_STATS
 				number_data_conflict++;
 				#endif
@@ -2426,7 +2451,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
     #endif
             
     if (number_free_task_max != 0) /* Cas comme dans 2D, je met dans planned_task les tâches gratuites, sauf que j'ai 3 données à check et non 2. */
-    {
+    {		
 		#ifdef PRINT_STATS
 		gettimeofday(&time_start_fill_planned_task_list, NULL);
 		nb_free_choice++;
@@ -2457,13 +2482,13 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 				e->D->user_data = hud;
 				
 				gpu_data_not_used_delete(e);
+				
+				#ifdef PRINT
+				printf("Erased data %p\n", e->D);
+				print_data_not_used_yet_one_gpu(g->gpu_data, current_gpu - 1);
+				#endif
 		}
-		
-		#ifdef PRINT
-		printf("Erased data %p\n", e->D);
-		print_data_not_used_yet_one_gpu(g->gpu_data, current_gpu - 1);
-		#endif
-		
+				
 		#ifdef PRINT
 		printf("The data adding the most free tasks is %p and %d task.\n", handle_popped, number_free_task_max);
 		#endif
@@ -2471,7 +2496,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		#ifdef REFINED_MUTEX
 		STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
 		#endif
-		
+				
 		for (t = task_using_data_list_begin(handle_popped->sched_data); t != task_using_data_list_end(handle_popped->sched_data); t = task_using_data_list_next(t))
 		{
 			data_available = true; 

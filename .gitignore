@@ -716,6 +716,7 @@ Output_maxime/Data/Matrice3D/
 Output_maxime/Data/DARTS/
 CLUTTER_IM_MODULE=xim
 Output_maxime/Data/FGCS
+Output_maxime/tgflops.txt
 Output_maxime/Legende.txt
 cut_datatransfers_raw_out_csv
 Output_maxime/Data/Nb_conflit_donnee_critique.txt
