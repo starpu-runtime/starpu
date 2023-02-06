@@ -356,7 +356,7 @@ static void pybuffer_unregister_data_handle(starpu_data_handle_t handle)
 			STARPU_ASSERT(local_interface->object == NULL);
 			STARPU_ASSERT(local_interface->py_buffer == NULL);
 		}
-		
+
 
 #ifdef STARPU_PYTHON_HAVE_NUMPY
 		free(local_interface->array_dim);
@@ -599,9 +599,9 @@ static int pybuffer_unpack_meta(void **data_interface, void *ptr, starpu_ssize_t
 	cur += pybuffer_interface->dim_size * sizeof(pybuffer_interface->array_dim[0]);
 #endif
 	_STARPU_MALLOC(pybuffer_interface->shape,
-		pybuffer_interface->dim_size * sizeof(pybuffer_interface->shape[0]));
+		       pybuffer_interface->dim_size * sizeof(pybuffer_interface->shape[0]));
 	memcpy(pybuffer_interface->shape, cur,
-		pybuffer_interface->dim_size * sizeof(pybuffer_interface->shape[0]));
+	       pybuffer_interface->dim_size * sizeof(pybuffer_interface->shape[0]));
 
 	*count = pybuffer_meta_size(pybuffer_interface);
 
@@ -739,13 +739,13 @@ void starpupy_buffer_numpy_register(starpu_data_handle_t *handleptr, int home_no
 {
 	struct starpupy_buffer_interface pybuffer_interface =
 	{
-	 .buffer_type = buf_type,
-	 .py_buffer = pybuf,
-	 .buffer_size = nbuf,
-	 .dim_size = ndim,
-	 .array_dim = arr_dim,
-	 .array_type = arr_type,
-	 .item_size = nitem
+		.buffer_type = buf_type,
+		.py_buffer = pybuf,
+		.buffer_size = nbuf,
+		.dim_size = ndim,
+		.array_dim = arr_dim,
+		.array_type = arr_type,
+		.item_size = nitem
 	};
 
 	if (interface_pybuffer_ops.interfaceid == STARPU_UNKNOWN_INTERFACE_ID)
@@ -754,19 +754,17 @@ void starpupy_buffer_numpy_register(starpu_data_handle_t *handleptr, int home_no
 	}
 
 	starpu_data_register(handleptr, home_node, &pybuffer_interface, &interface_pybuffer_ops);
-
 }
 #endif
 
 void starpupy_buffer_bytes_register(starpu_data_handle_t *handleptr, int home_node, int buf_type, char* pybuf, Py_ssize_t nbuf, PyObject *obj)
 {
-
 	struct starpupy_buffer_interface pybuffer_interface =
 	{
-	 .object = obj,
-	 .buffer_type = buf_type,
-	 .py_buffer = pybuf,
-	 .buffer_size = nbuf
+		.object = obj,
+		.buffer_type = buf_type,
+		.py_buffer = pybuf,
+		.buffer_size = nbuf
 	};
 
 	if (interface_pybuffer_bytes_ops.interfaceid == STARPU_UNKNOWN_INTERFACE_ID)
@@ -775,19 +773,18 @@ void starpupy_buffer_bytes_register(starpu_data_handle_t *handleptr, int home_no
 	}
 
 	starpu_data_register(handleptr, home_node, &pybuffer_interface, &interface_pybuffer_bytes_ops);
-
 }
 
 void starpupy_buffer_array_register(starpu_data_handle_t *handleptr, int home_node, int buf_type, char* pybuf, Py_ssize_t nbuf, char arr_typecode, size_t nitem, PyObject *obj)
 {
 	struct starpupy_buffer_interface pybuffer_interface =
 	{
-	 .object = obj,
-	 .buffer_type = buf_type,
-	 .py_buffer = pybuf,
-	 .buffer_size = nbuf,
-	 .typecode = arr_typecode,
-	 .item_size = nitem
+		.object = obj,
+		.buffer_type = buf_type,
+		.py_buffer = pybuf,
+		.buffer_size = nbuf,
+		.typecode = arr_typecode,
+		.item_size = nitem
 	};
 
 	if (interface_pybuffer_bytes_ops.interfaceid == STARPU_UNKNOWN_INTERFACE_ID)
@@ -796,20 +793,19 @@ void starpupy_buffer_array_register(starpu_data_handle_t *handleptr, int home_no
 	}
 
 	starpu_data_register(handleptr, home_node, &pybuffer_interface, &interface_pybuffer_bytes_ops);
-
 }
 
 void starpupy_buffer_memview_register(starpu_data_handle_t *handleptr, int home_node, int buf_type, char* pybuf, Py_ssize_t nbuf, char mem_format, size_t nitem, int ndim, int* mem_shape)
 {
 	struct starpupy_buffer_interface pybuffer_interface =
 	{
-	 .buffer_type = buf_type,
-	 .py_buffer = pybuf,
-	 .buffer_size = nbuf,
-	 .typecode = mem_format,
-	 .item_size = nitem,
-	 .dim_size = ndim,
-	 .shape = mem_shape
+		.buffer_type = buf_type,
+		.py_buffer = pybuf,
+		.buffer_size = nbuf,
+		.typecode = mem_format,
+		.item_size = nitem,
+		.dim_size = ndim,
+		.shape = mem_shape
 	};
 
 	if (interface_pybuffer_ops.interfaceid == STARPU_UNKNOWN_INTERFACE_ID)
@@ -818,7 +814,6 @@ void starpupy_buffer_memview_register(starpu_data_handle_t *handleptr, int home_
 	}
 
 	starpu_data_register(handleptr, home_node, &pybuffer_interface, &interface_pybuffer_ops);
-
 }
 
 int starpupy_check_buffer_interface_id(starpu_data_handle_t handle)
