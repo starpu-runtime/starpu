@@ -34,7 +34,6 @@ static const struct starpu_data_copy_methods ndim_copy_data_methods_s =
 static void register_ndim_handle(starpu_data_handle_t handle, int home_node, void *data_interface);
 static void unregister_ndim_handle(starpu_data_handle_t handle);
 static void *ndim_to_pointer(void *data_interface, unsigned node);
-static int ndim_pointer_is_inside(void *data_interface, unsigned node, void *ptr);
 static starpu_ssize_t allocate_ndim_buffer_on_node(void *data_interface_, unsigned dst_node);
 static void free_ndim_buffer_on_node(void *data_interface, unsigned node);
 static void reuse_ndim_buffer_on_node(void *dst_data_interface, const void *cached_interface, unsigned node);
@@ -55,7 +54,6 @@ struct starpu_data_interface_ops starpu_interface_ndim_ops =
 	.unregister_data_handle = unregister_ndim_handle,
 	.allocate_data_on_node = allocate_ndim_buffer_on_node,
 	.to_pointer = ndim_to_pointer,
-	.pointer_is_inside = ndim_pointer_is_inside,
 	.free_data_on_node = free_ndim_buffer_on_node,
 	.reuse_data_on_node = reuse_ndim_buffer_on_node,
 	.map_data = map_ndim,
@@ -84,35 +82,6 @@ static void *ndim_to_pointer(void *data_interface, unsigned node)
 	struct starpu_ndim_interface *ndim_interface = data_interface;
 
 	return (void*) ndim_interface->ptr;
-}
-
-static int ndim_pointer_is_inside(void *data_interface, unsigned node, void *ptr)
-{
-	(void) node;
-	struct starpu_ndim_interface *ndim_interface = data_interface;
-	size_t ndim = ndim_interface->ndim;
-	uint32_t* ldn = ndim_interface->ldn;
-	uint32_t* nn = ndim_interface->nn;
-	size_t elemsize = ndim_interface->elemsize;
-
-	if ((char*) ptr < (char*) ndim_interface->ptr)
-		return 0;
-
-	size_t offset = ((char*)ptr - (char*)ndim_interface->ptr)/elemsize;
-
-	if(ndim == 0 && offset >= 1)
-		return 0;
-
-	int i;
-	uint32_t d = offset;
-	for (i=ndim-1; i>=0; i--)
-	{
-		if(d/ldn[i] >= nn[i])
-			return 0;
-		d = d % ldn[i];
-	}
-
-	return 1;
 }
 
 static void register_ndim_handle(starpu_data_handle_t handle, int home_node, void *data_interface)

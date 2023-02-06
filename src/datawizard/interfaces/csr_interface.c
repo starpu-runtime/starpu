@@ -28,7 +28,6 @@ static const struct starpu_data_copy_methods csr_copy_data_methods_s =
 };
 
 static void register_csr_handle(starpu_data_handle_t handle, int home_node, void *data_interface);
-static int csr_pointer_is_inside(void *data_interface, unsigned node, void *ptr);
 static starpu_ssize_t allocate_csr_buffer_on_node(void *data_interface_, unsigned dst_node);
 static void free_csr_buffer_on_node(void *data_interface, unsigned node);
 static size_t csr_interface_get_size(starpu_data_handle_t handle);
@@ -51,7 +50,6 @@ struct starpu_data_interface_ops starpu_interface_csr_ops =
 	.footprint = footprint_csr_interface_crc32,
 	.compare = csr_compare,
 	.describe = describe,
-	.pointer_is_inside = csr_pointer_is_inside,
 	.name = "STARPU_CSR_INTERFACE",
 	.pack_data = pack_data,
 	.peek_data = peek_data,
@@ -59,19 +57,6 @@ struct starpu_data_interface_ops starpu_interface_csr_ops =
 	.pack_meta = NULL,
 	.unpack_meta = NULL
 };
-
-static int csr_pointer_is_inside(void *data_interface, unsigned node, void *ptr)
-{
-	(void) node;
-	struct starpu_csr_interface *csr_interface = data_interface;
-
-	return ((char*) ptr >= (char*) csr_interface->nzval &&
-		(char*) ptr < (char*) csr_interface->nzval + csr_interface->nnz*csr_interface->elemsize)
-	    || ((char*) ptr >= (char*) csr_interface->colind &&
-		(char*) ptr < (char*) csr_interface->colind + csr_interface->nnz*sizeof(uint32_t))
-	    || ((char*) ptr >= (char*) csr_interface->rowptr &&
-		(char*) ptr < (char*) csr_interface->rowptr + (csr_interface->nrow+1)*sizeof(uint32_t));
-}
 
 static void register_csr_handle(starpu_data_handle_t handle, int home_node, void *data_interface)
 {

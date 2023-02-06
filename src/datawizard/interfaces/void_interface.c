@@ -31,7 +31,6 @@ static const struct starpu_data_copy_methods void_copy_data_methods_s =
 
 static void register_void_handle(starpu_data_handle_t handle, int home_node, void *data_interface);
 static starpu_ssize_t allocate_void_buffer_on_node(void *data_interface_, unsigned dst_node);
-static int void_pointer_is_inside(void *data_interface, unsigned node, void *ptr);
 static void free_void_buffer_on_node(void *data_interface, unsigned node);
 static size_t void_interface_get_size(starpu_data_handle_t handle);
 static uint32_t footprint_void_interface_crc32(starpu_data_handle_t handle);
@@ -61,16 +60,10 @@ struct starpu_data_interface_ops starpu_interface_void_ops =
 	.peek_data = peek_void_handle,
 	.unpack_data = unpack_void_handle,
 	.describe = describe,
-	.pointer_is_inside = void_pointer_is_inside,
 	.name = "STARPU_VOID_INTERFACE",
 	.pack_meta = NULL,
 	.unpack_meta = NULL
 };
-
-static int void_pointer_is_inside(void *data_interface STARPU_ATTRIBUTE_UNUSED, unsigned node STARPU_ATTRIBUTE_UNUSED, void *ptr STARPU_ATTRIBUTE_UNUSED)
-{
-	return 0;
-}
 
 static void register_void_handle(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED,
 				int home_node STARPU_ATTRIBUTE_UNUSED,

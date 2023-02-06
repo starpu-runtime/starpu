@@ -18,17 +18,6 @@
 
 #include "complex_dev_handle_interface.h"
 
-static int complex_dev_handle_pointer_is_inside(void *data_interface, unsigned node, void *ptr)
-{
-	(void)node;
-	struct starpu_complex_dev_handle_interface *complex_dev_handle_interface = data_interface;
-
-	return ((char*) ptr >= (char*) complex_dev_handle_interface->ptr_real &&
-		(char*) ptr < (char*) (complex_dev_handle_interface->ptr_real + 1))
-	    || ((char*) ptr >= (char*) complex_dev_handle_interface->ptr_imaginary &&
-		(char*) ptr < (char*) (complex_dev_handle_interface->ptr_imaginary + 1));
-}
-
 uintptr_t starpu_complex_dev_handle_get_ptr_real(starpu_data_handle_t handle)
 {
 	struct starpu_complex_dev_handle_interface *complex_dev_handle_interface =
@@ -282,7 +271,6 @@ struct starpu_data_interface_ops interface_complex_dev_handle_ops =
 	.interfaceid = STARPU_UNKNOWN_INTERFACE_ID,
 	.interface_size = sizeof(struct starpu_complex_dev_handle_interface),
 	.to_pointer = NULL,
-	.pointer_is_inside = complex_dev_handle_pointer_is_inside,
 	.pack_data = complex_dev_handle_pack_data,
 	.peek_data = complex_dev_handle_peek_data,
 	.unpack_data = complex_dev_handle_unpack_data,

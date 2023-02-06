@@ -33,7 +33,6 @@ static void vector_init(void *data_interface);
 static void register_vector_handle(starpu_data_handle_t handle, int home_node, void *data_interface);
 static starpu_ssize_t allocate_vector_buffer_on_node(void *data_interface_, unsigned dst_node);
 static void *vector_to_pointer(void *data_interface, unsigned node);
-static int vector_pointer_is_inside(void *data_interface, unsigned node, void *ptr);
 static void free_vector_buffer_on_node(void *data_interface, unsigned node);
 static void reuse_vector_buffer_on_node(void *data_interface, const void *new_data_interface, unsigned node);
 static size_t vector_interface_get_size(starpu_data_handle_t handle);
@@ -54,7 +53,6 @@ struct starpu_data_interface_ops starpu_interface_vector_ops =
 	.register_data_handle = register_vector_handle,
 	.allocate_data_on_node = allocate_vector_buffer_on_node,
 	.to_pointer = vector_to_pointer,
-	.pointer_is_inside = vector_pointer_is_inside,
 	.free_data_on_node = free_vector_buffer_on_node,
 	.reuse_data_on_node = reuse_vector_buffer_on_node,
 	.map_data = map_vector,
@@ -91,15 +89,6 @@ static void *vector_to_pointer(void *data_interface, unsigned node)
 	struct starpu_vector_interface *vector_interface = data_interface;
 
 	return (void*) vector_interface->ptr;
-}
-
-static int vector_pointer_is_inside(void *data_interface, unsigned node, void *ptr)
-{
-	(void) node;
-	struct starpu_vector_interface *vector_interface = data_interface;
-
-	return (char*) ptr >= (char*) vector_interface->ptr &&
-		(char*) ptr < (char*) vector_interface->ptr + vector_interface->nx*vector_interface->elemsize;
 }
 
 static void register_vector_handle(starpu_data_handle_t handle, int home_node, void *data_interface)

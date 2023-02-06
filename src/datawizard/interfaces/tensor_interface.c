@@ -32,7 +32,6 @@ static const struct starpu_data_copy_methods tensor_copy_data_methods_s =
 
 static void register_tensor_handle(starpu_data_handle_t handle, int home_node, void *data_interface);
 static void *tensor_to_pointer(void *data_interface, unsigned node);
-static int tensor_pointer_is_inside(void *data_interface, unsigned node, void *ptr);
 static starpu_ssize_t allocate_tensor_buffer_on_node(void *data_interface_, unsigned dst_node);
 static void free_tensor_buffer_on_node(void *data_interface, unsigned node);
 static size_t tensor_interface_get_size(starpu_data_handle_t handle);
@@ -49,7 +48,6 @@ struct starpu_data_interface_ops starpu_interface_tensor_ops =
 	.register_data_handle = register_tensor_handle,
 	.allocate_data_on_node = allocate_tensor_buffer_on_node,
 	.to_pointer = tensor_to_pointer,
-	.pointer_is_inside = tensor_pointer_is_inside,
 	.free_data_on_node = free_tensor_buffer_on_node,
 	.map_data = map_tensor,
 	.unmap_data = unmap_tensor,
@@ -76,36 +74,6 @@ static void *tensor_to_pointer(void *data_interface, unsigned node)
 	struct starpu_tensor_interface *tensor_interface = data_interface;
 
 	return (void*) tensor_interface->ptr;
-}
-
-static int tensor_pointer_is_inside(void *data_interface, unsigned node, void *ptr)
-{
-	(void) node;
-	struct starpu_tensor_interface *tensor_interface = data_interface;
-	uint32_t ldy = tensor_interface->ldy;
-	uint32_t ldz = tensor_interface->ldz;
-	uint32_t ldt = tensor_interface->ldt;
-	uint32_t nx = tensor_interface->nx;
-	uint32_t ny = tensor_interface->ny;
-	uint32_t nz = tensor_interface->nz;
-	uint32_t nt = tensor_interface->nt;
-	size_t elemsize = tensor_interface->elemsize;
-
-	if ((char*) ptr < (char*) tensor_interface->ptr)
-		return 0;
-
-	size_t offset = ((char*)ptr - (char*)tensor_interface->ptr)/elemsize;
-
-	if(offset/ldt >= nt)
-		return 0;
-	if(offset%ldt/ldz >= nz)
-		return 0;
-	if(offset%ldt%ldz/ldy >= ny)
-		return 0;
-	if(offset%ldt%ldz%ldy >= nx)
-		return 0;
-
-	return 1;
 }
 
 static void register_tensor_handle(starpu_data_handle_t handle, int home_node, void *data_interface)

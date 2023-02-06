@@ -32,7 +32,6 @@ static const struct starpu_data_copy_methods bcsr_copy_data_methods_s =
 
 static void register_bcsr_handle(starpu_data_handle_t handle, int home_node, void *data_interface);
 static void *bcsr_to_pointer(void *data_interface, unsigned node);
-static int bcsr_pointer_is_inside(void *data_interface, unsigned node, void *ptr);
 static starpu_ssize_t allocate_bcsr_buffer_on_node(void *data_interface, unsigned dst_node);
 static void free_bcsr_buffer_on_node(void *data_interface, unsigned node);
 static size_t bcsr_interface_get_size(starpu_data_handle_t handle);
@@ -56,7 +55,6 @@ struct starpu_data_interface_ops starpu_interface_bcsr_ops =
 	.compare = bcsr_compare,
 	.describe = describe,
 	.to_pointer = bcsr_to_pointer,
-	.pointer_is_inside = bcsr_pointer_is_inside,
 	.name = "STARPU_BCSR_INTERFACE",
 	.pack_data = pack_data,
 	.peek_data = peek_data,
@@ -71,19 +69,6 @@ static void *bcsr_to_pointer(void *data_interface, unsigned node)
 	struct starpu_bcsr_interface *bcsr_interface = data_interface;
 
 	return (void*) bcsr_interface->nzval;
-}
-
-static int bcsr_pointer_is_inside(void *data_interface, unsigned node, void *ptr)
-{
-	(void) node;
-	struct starpu_bcsr_interface *bcsr_interface = data_interface;
-
-	return ((char*) ptr >= (char*) bcsr_interface->nzval &&
-		(char*) ptr < (char*) bcsr_interface->nzval + bcsr_interface->nnz*bcsr_interface->r*bcsr_interface->c*bcsr_interface->elemsize)
-	    || ((char*) ptr >= (char*) bcsr_interface->colind &&
-		(char*) ptr < (char*) bcsr_interface->colind + bcsr_interface->nnz*sizeof(uint32_t))
-	    || ((char*) ptr >= (char*) bcsr_interface->rowptr &&
-		(char*) ptr < (char*) bcsr_interface->rowptr + (bcsr_interface->nrow+1)*sizeof(uint32_t));
 }
 
 static void register_bcsr_handle(starpu_data_handle_t handle, int home_node, void *data_interface)

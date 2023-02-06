@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -150,20 +150,6 @@ free_coo_buffer_on_node(void *data_interface, unsigned node)
 	coo_interface->values = 0;
 }
 
-static int
-coo_pointer_is_inside(void *data_interface, unsigned node, void *ptr)
-{
-	struct starpu_coo_interface *coo_interface = (struct starpu_coo_interface *) data_interface;
-	(void) node;
-
-	return ((char*) ptr >= (char*) coo_interface->columns &&
-		(char*) ptr < (char*) coo_interface->columns + coo_interface->n_values * sizeof(coo_interface->columns[0]))
-	    || ((char*) ptr >= (char*) coo_interface->rows &&
-		(char*) ptr < (char*) coo_interface->rows + coo_interface->n_values * sizeof(coo_interface->rows[0]))
-	    || ((char*) ptr >= (char*) coo_interface->values &&
-		(char*) ptr < (char*) coo_interface->values + coo_interface->n_values * coo_interface->elemsize);
-}
-
 static size_t
 coo_interface_get_size(starpu_data_handle_t handle)
 {
@@ -223,7 +209,6 @@ struct starpu_data_interface_ops starpu_interface_coo_ops =
 	.register_data_handle  = register_coo_handle,
 	.allocate_data_on_node = allocate_coo_buffer_on_node,
 	.to_pointer            = NULL,
-	.pointer_is_inside     = coo_pointer_is_inside,
 	.free_data_on_node     = free_coo_buffer_on_node,
 	.copy_methods          = &coo_copy_data_methods,
 	.get_size              = coo_interface_get_size,

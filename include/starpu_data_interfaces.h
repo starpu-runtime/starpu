@@ -485,12 +485,6 @@ struct starpu_data_interface_ops
 	void *(*to_pointer)(void *data_interface, unsigned node);
 
 	/**
-	   Return whether the given \p ptr is within the data for the given interface on the given node.
-	   This method is optional, as it is only used for coherency checks.
-	*/
-	int (*pointer_is_inside)(void *data_interface, unsigned node, void *ptr);
-
-	/**
 	   Return an estimation of the size of data, for performance models and tracing feedback.
 	*/
 	size_t (*get_size)(starpu_data_handle_t handle);
@@ -681,13 +675,6 @@ void starpu_data_register_same(starpu_data_handle_t *handledst, starpu_data_hand
    \p handle is not allocated on that \p node.
 */
 void *starpu_data_handle_to_pointer(starpu_data_handle_t handle, unsigned node);
-
-/**
-   Return whether the given \p ptr is within the data for \p handle on node \p
-   node (1) or not (0). If the handle interface does not support this operation,
-   and thus the result is unknown, -1 is returned.
-*/
-int starpu_data_pointer_is_inside(starpu_data_handle_t handle, unsigned node, void *ptr);
 
 /**
    Return the local pointer associated with \p handle or <c>NULL</c> if

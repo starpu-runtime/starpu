@@ -79,7 +79,6 @@ void data_interface_test_summary_print(FILE *f, struct data_interface_test_summa
 	FPRINTF(f, "\n");
 	FPRINTF(f, "CPU -> CPU          : %s\n", enum_to_string(s->cpu_to_cpu));
 	FPRINTF(f, "to_pointer()        : %s\n", enum_to_string(s->to_pointer));
-	FPRINTF(f, "pointer_is_inside() : %s\n", enum_to_string(s->pointer_is_inside));
 	FPRINTF(f, "compare()           : %s\n", enum_to_string(s->compare));
 	FPRINTF(f, "pack_unpack()       : %s\n", enum_to_string(s->pack));
 }
@@ -110,7 +109,6 @@ static void summary_init(struct data_interface_test_summary *s)
 	s->cpu_to_opencl_async   = UNTESTED;
 	s->opencl_to_cpu_async   = UNTESTED;
 	s->to_pointer            = UNTESTED;
-	s->pointer_is_inside     = UNTESTED;
 	s->pack                  = UNTESTED;
 	s->success               = SUCCESS;
 };
@@ -470,44 +468,6 @@ static void to_pointer(struct data_interface_test_summary *s)
 	set_field(s, &s->to_pointer, s->to_pointer);
 }
 
-static void pointer_is_inside(struct data_interface_test_summary *s)
-{
-	starpu_data_handle_t handle;
-
-	s->pointer_is_inside = UNTESTED;
-	handle = *current_config->handle;
-	if (handle->ops->pointer_is_inside && handle->ops->to_pointer)
-	{
-		unsigned int node;
-		unsigned int tests = 0;
-
-		for (node = 0; node < STARPU_MAXNODES; node++)
-		{
-			if (starpu_node_get_kind(node) != STARPU_CPU_RAM)
-				continue;
-			if (!starpu_data_test_if_allocated_on_node(handle, node))
-				continue;
-
-			void *data_interface = starpu_data_get_interface_on_node(handle, node);
-			void *ptr = handle->ops->to_pointer(data_interface, node);
-			if (ptr != current_config->ptr)
-			{
-				s->pointer_is_inside = FAILURE;
-				break;
-			}
-			if (!starpu_data_pointer_is_inside(handle, node, ptr))
-			{
-				s->pointer_is_inside = FAILURE;
-				break;
-			}
-			tests++;
-		}
-		if (tests > 0)
-			s->pointer_is_inside = SUCCESS;
-	}
-	set_field(s, &s->pointer_is_inside, s->pointer_is_inside);
-}
-
 static void pack_unpack(struct data_interface_test_summary *s)
 {
 	starpu_data_handle_t handle;
@@ -590,7 +550,6 @@ int run_tests(struct test_config *conf, struct data_interface_test_summary *s)
 	ram_to_ram(s);
 	compare(s);
 	to_pointer(s);
-	pointer_is_inside(s);
 
 	pack_unpack(s);
 

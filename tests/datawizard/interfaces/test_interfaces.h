@@ -88,7 +88,6 @@ struct data_interface_test_summary
 	/* Other stuff */
 	int compare;
 	int to_pointer;
-	int pointer_is_inside;
 	int pack;
 };
 

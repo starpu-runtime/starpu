@@ -173,6 +173,7 @@ Small changes:
     now disable their behaviour.
   * Distributed-memory reduction patterns are automatically wrapped-up if the user
     do not call starpu_mpi_redux_data()
+  * Remove starpu_data_pointer_is_inside().
 
 StarPU 1.3.10
 ====================================================================

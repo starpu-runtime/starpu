@@ -72,7 +72,6 @@ static void     register_custom_handle(starpu_data_handle_t handle,
 static starpu_ssize_t  allocate_custom_buffer_on_node(void *data_interface_,
 					       unsigned dst_node);
 static void*    custom_to_pointer(void *data_interface, unsigned node);
-static int      custom_pointer_is_inside(void *data_interface, unsigned node, void *ptr);
 static void     free_custom_buffer_on_node(void *data_interface, unsigned node);
 static size_t   custom_interface_get_size(starpu_data_handle_t handle);
 static uint32_t footprint_custom_interface_crc32(starpu_data_handle_t handle);
@@ -93,7 +92,6 @@ static struct starpu_data_interface_ops interface_custom_ops =
 	.register_data_handle  = register_custom_handle,
 	.allocate_data_on_node = allocate_custom_buffer_on_node,
 	.to_pointer            = custom_to_pointer,
-	.pointer_is_inside     = custom_pointer_is_inside,
 	.free_data_on_node     = free_custom_buffer_on_node,
 	.copy_methods          = &custom_copy_data_methods_s,
 	.get_size              = custom_interface_get_size,
@@ -221,31 +219,6 @@ custom_to_pointer(void *data, unsigned node)
 #ifdef STARPU_USE_OPENCL
 		case STARPU_OPENCL_RAM:
 			return data_interface->opencl_ptr;
-#endif
-		default:
-			assert(0);
-	}
-}
-
-static int
-custom_pointer_is_inside(void *data, unsigned node, void *ptr)
-{
-	struct custom_data_interface *data_interface = data;
-
-	switch(starpu_node_get_kind(node))
-	{
-		case STARPU_CPU_RAM:
-			return (char*) ptr >= (char*) data_interface->cpu_ptr &&
-				(char*) ptr < (char*) data_interface->cpu_ptr + data_interface->nx * data_interface->ops->cpu_elemsize;
-#ifdef STARPU_USE_CUDA
-		case STARPU_CUDA_RAM:
-			return (char*) ptr >= (char*) data_interface->cuda_ptr &&
-				(char*) ptr < (char*) data_interface->cuda_ptr + data_interface->nx * data_interface->ops->cuda_elemsize;
-#endif
-#ifdef STARPU_USE_OPENCL
-		case STARPU_OPENCL_RAM:
-			return (char*) ptr >= (char*) data_interface->opencl_ptr &&
-				(char*) ptr < (char*) data_interface->opencl_ptr + data_interface->nx * data_interface->ops->opencl_elemsize;
 #endif
 		default:
 			assert(0);

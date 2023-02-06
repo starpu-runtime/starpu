@@ -468,20 +468,6 @@ void *starpu_data_handle_to_pointer(starpu_data_handle_t handle, unsigned node)
 	return NULL;
 }
 
-int starpu_data_pointer_is_inside(starpu_data_handle_t handle, unsigned node, void *ptr)
-{
-	/* Check whether the operation is supported and the node has actually
-	 * been allocated.  */
-	if (!starpu_data_test_if_allocated_on_node(handle, node))
-		return 0;
-	if (handle->ops->pointer_is_inside)
-	{
-		return handle->ops->pointer_is_inside(starpu_data_get_interface_on_node(handle, node), node, ptr);
-	}
-	/* Don't know :/ */
-	return -1;
-}
-
 void *starpu_data_get_local_ptr(starpu_data_handle_t handle)
 {
 	return starpu_data_handle_to_pointer(handle, starpu_worker_get_local_memory_node());

@@ -32,7 +32,6 @@ static const struct starpu_data_copy_methods block_copy_data_methods_s =
 
 static void register_block_handle(starpu_data_handle_t handle, int home_node, void *data_interface);
 static void *block_to_pointer(void *data_interface, unsigned node);
-static int block_pointer_is_inside(void *data_interface, unsigned node, void *ptr);
 static starpu_ssize_t allocate_block_buffer_on_node(void *data_interface_, unsigned dst_node);
 static void free_block_buffer_on_node(void *data_interface, unsigned node);
 static size_t block_interface_get_size(starpu_data_handle_t handle);
@@ -49,7 +48,6 @@ struct starpu_data_interface_ops starpu_interface_block_ops =
 	.register_data_handle = register_block_handle,
 	.allocate_data_on_node = allocate_block_buffer_on_node,
 	.to_pointer = block_to_pointer,
-	.pointer_is_inside = block_pointer_is_inside,
 	.free_data_on_node = free_block_buffer_on_node,
 	.map_data = map_block,
 	.unmap_data = unmap_block,
@@ -76,32 +74,6 @@ static void *block_to_pointer(void *data_interface, unsigned node)
 	struct starpu_block_interface *block_interface = data_interface;
 
 	return (void*) block_interface->ptr;
-}
-
-static int block_pointer_is_inside(void *data_interface, unsigned node, void *ptr)
-{
-	(void) node;
-	struct starpu_block_interface *block_interface = data_interface;
-	uint32_t ldy = block_interface->ldy;
-	uint32_t ldz = block_interface->ldz;
-	uint32_t nx = block_interface->nx;
-	uint32_t ny = block_interface->ny;
-	uint32_t nz = block_interface->nz;
-	size_t elemsize = block_interface->elemsize;
-
-	if ((char*) ptr < (char*) block_interface->ptr)
-		return 0;
-
-	size_t offset = ((char*)ptr - (char*)block_interface->ptr)/elemsize;
-
-	if(offset/ldz >= nz)
-		return 0;
-	if(offset%ldz/ldy >= ny)
-		return 0;
-	if(offset%ldz%ldy >= nx)
-		return 0;
-
-	return 1;
 }
 
 static void register_block_handle(starpu_data_handle_t handle, int home_node, void *data_interface)

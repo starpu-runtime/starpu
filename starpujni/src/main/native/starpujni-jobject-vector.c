@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -45,8 +45,6 @@ static void s_jobject_vector_free_data_on_node(void *data_interface, unsigned no
 
 static void *s_jobject_vector_to_pointer(void *data_interface, unsigned node);
 
-static int s_jobject_vector_pointer_is_inside(void *data_interface, unsigned node, void *ptr);
-
 static size_t s_jobject_vector_get_size(starpu_data_handle_t handle);
 
 static uint32_t s_jobject_vector_footprint(starpu_data_handle_t handle);
@@ -75,7 +73,6 @@ static struct starpu_data_interface_ops JOBJECT_VECTOR_INTERFACE_OPS =
 	.copy_methods = &JOBJECT_VECTOR_COPY_METHODS,
 	.handle_to_pointer = s_jobject_vector_handle_to_pointer,
 	.to_pointer = s_jobject_vector_to_pointer,
-	.pointer_is_inside = s_jobject_vector_pointer_is_inside,
 	.get_size = s_jobject_vector_get_size,
 	.footprint = s_jobject_vector_footprint,
 	.alloc_footprint = s_jobject_vector_alloc_footprint,
@@ -185,16 +182,6 @@ static void *s_jobject_vector_to_pointer(void *data_interface, unsigned node)
 	struct jobject_vector_interface *vector = data_interface;
 
 	return (void *) vector->ptr;
-}
-
-static int s_jobject_vector_pointer_is_inside(void *data_interface, unsigned node, void *ptr)
-{
-	(void) node;
-	struct jobject_vector_interface *vector = data_interface;
-
-	return
-		((char *) ptr >= (char *) vector->ptr &&
-		 (char *) ptr < (char *) vector->ptr + vector->nx * sizeof(jobject));
 }
 
 static size_t s_jobject_vector_get_size(starpu_data_handle_t handle)
