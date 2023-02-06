@@ -30,7 +30,7 @@ showcheckfailed:
 showfailed:
 	@RET=0 ; \
 	for i in $(SUBDIRS) ; do \
-		make -C $$i showfailed || RET=1 ; \
+		make -s -C $$i showfailed || RET=1 ; \
 	done ; \
 	exit $$RET
 
