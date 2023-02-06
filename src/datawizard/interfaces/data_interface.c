@@ -123,9 +123,7 @@ struct starpu_data_interface_ops *_starpu_data_interface_get_ops(unsigned interf
 /*
  * Start monitoring a piece of data
  */
-
-static void _starpu_register_new_data(starpu_data_handle_t handle,
-					int home_node, uint32_t wt_mask)
+static void _starpu_register_new_data(starpu_data_handle_t handle, int home_node, uint32_t wt_mask)
 {
 	STARPU_ASSERT(handle);
 
@@ -155,8 +153,7 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 
 	//handle->is_not_important = 0;
 
-	handle->sequential_consistency =
-		starpu_data_get_default_sequential_consistency_flag();
+	handle->sequential_consistency = starpu_data_get_default_sequential_consistency_flag();
 	handle->initialized = home_node != -1;
 	//handle->readonly = 0;
 	handle->ooc = 1;
@@ -203,8 +200,7 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	_starpu_perf_counter_update_max_int32(&maxnregistered, nregistered);
 }
 
-void
-_starpu_data_initialize_per_worker(starpu_data_handle_t handle)
+void _starpu_data_initialize_per_worker(starpu_data_handle_t handle)
 {
 	unsigned worker;
 	unsigned nworkers = starpu_worker_get_count();

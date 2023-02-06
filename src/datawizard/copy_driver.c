@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2021       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -154,7 +154,7 @@ int _starpu_copy_interface_any_to_any(starpu_data_handle_t handle, void *src_int
 		    !copy_methods->any_to_any)
 	{
 		/* this is not associated to a request so it's synchronous */
-		STARPU_ASSERT(copy_methods->any_to_any);
+		STARPU_ASSERT_MSG(copy_methods->any_to_any, "Interface <%s> does not define copy_methods->any_to_any", handle->ops->name);
 		copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
 	}
 	else
