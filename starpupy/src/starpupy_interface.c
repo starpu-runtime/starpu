@@ -312,11 +312,6 @@ void starpupy_data_register(starpu_data_handle_t *handleptr, unsigned home_node,
 	 .object = obj
 	};
 
-	if (interface_pyobject_ops.interfaceid == STARPU_UNKNOWN_INTERFACE_ID)
-	{
-		interface_pyobject_ops.interfaceid = starpu_data_interface_get_next_id();
-	}
-
 	starpu_data_register(handleptr, home_node, &pyobject_interface, &interface_pyobject_ops);
 
 }

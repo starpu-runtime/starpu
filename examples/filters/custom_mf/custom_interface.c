@@ -277,10 +277,6 @@ void custom_data_register(starpu_data_handle_t *handle,
 		.ops = format_ops
 	};
 
-	if (interface_custom_ops.interfaceid == STARPU_UNKNOWN_INTERFACE_ID)
-	{
-		interface_custom_ops.interfaceid = starpu_data_interface_get_next_id();
-	}
 	starpu_data_register(handle, home_node, &custom, &interface_custom_ops);
 }
 

@@ -340,11 +340,6 @@ void starpu_complex_data_register(starpu_data_handle_t *handleptr,
                 .nx = nx
         };
 
-        if (interface_complex_ops.interfaceid == STARPU_UNKNOWN_INTERFACE_ID)
-        {
-                interface_complex_ops.interfaceid = starpu_data_interface_get_next_id();
-        }
-
         starpu_data_register(handleptr, home_node, &complex, &interface_complex_ops);
 }
 \endcode
@@ -407,6 +402,11 @@ static struct starpu_data_interface_ops interface_complex_ops =
         .interface_size = sizeof(struct starpu_complex_interface),
 };
 \endcode
+
+The field starpu_data_interface_ops::interfaceid should be defined to
+::STARPU_UNKNOWN_INTERFACE_ID when defining the interface, its value
+will be updated the first time a data is registered through the new
+data interface.
 
 Convenience functions can be defined to access the different fields of the
 complex interface from a StarPU data handle after a call to starpu_data_acquire():

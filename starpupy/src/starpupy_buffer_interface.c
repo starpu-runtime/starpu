@@ -748,11 +748,6 @@ void starpupy_buffer_numpy_register(starpu_data_handle_t *handleptr, int home_no
 		.item_size = nitem
 	};
 
-	if (interface_pybuffer_ops.interfaceid == STARPU_UNKNOWN_INTERFACE_ID)
-	{
-		interface_pybuffer_ops.interfaceid = starpu_data_interface_get_next_id();
-	}
-
 	starpu_data_register(handleptr, home_node, &pybuffer_interface, &interface_pybuffer_ops);
 }
 #endif
@@ -766,11 +761,6 @@ void starpupy_buffer_bytes_register(starpu_data_handle_t *handleptr, int home_no
 		.py_buffer = pybuf,
 		.buffer_size = nbuf
 	};
-
-	if (interface_pybuffer_bytes_ops.interfaceid == STARPU_UNKNOWN_INTERFACE_ID)
-	{
-		interface_pybuffer_bytes_ops.interfaceid = starpu_data_interface_get_next_id();
-	}
 
 	starpu_data_register(handleptr, home_node, &pybuffer_interface, &interface_pybuffer_bytes_ops);
 }
@@ -787,11 +777,6 @@ void starpupy_buffer_array_register(starpu_data_handle_t *handleptr, int home_no
 		.item_size = nitem
 	};
 
-	if (interface_pybuffer_bytes_ops.interfaceid == STARPU_UNKNOWN_INTERFACE_ID)
-	{
-		interface_pybuffer_bytes_ops.interfaceid = starpu_data_interface_get_next_id();
-	}
-
 	starpu_data_register(handleptr, home_node, &pybuffer_interface, &interface_pybuffer_bytes_ops);
 }
 
@@ -807,11 +792,6 @@ void starpupy_buffer_memview_register(starpu_data_handle_t *handleptr, int home_
 		.dim_size = ndim,
 		.shape = mem_shape
 	};
-
-	if (interface_pybuffer_ops.interfaceid == STARPU_UNKNOWN_INTERFACE_ID)
-	{
-		interface_pybuffer_ops.interfaceid = starpu_data_interface_get_next_id();
-	}
 
 	starpu_data_register(handleptr, home_node, &pybuffer_interface, &interface_pybuffer_ops);
 }

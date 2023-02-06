@@ -111,8 +111,6 @@ void starpujni_jobject_vector_data_register(starpu_data_handle_t *handleptr, int
 		.ptr = 0
 	};
 
-	if (JOBJECT_VECTOR_INTERFACE_OPS.interfaceid == STARPU_UNKNOWN_INTERFACE_ID)
-		JOBJECT_VECTOR_INTERFACE_OPS.interfaceid = STARPUJNI_JOBJECT_VECTOR_INTERFACE_ID;
 	starpu_data_register(handleptr, home_node, &vector, &JOBJECT_VECTOR_INTERFACE_OPS);
 }
 

@@ -289,11 +289,6 @@ void starpu_complex_dev_handle_data_register(starpu_data_handle_t *handleptr, in
 		.nx = nx
 	};
 
-	if (interface_complex_dev_handle_ops.interfaceid == STARPU_UNKNOWN_INTERFACE_ID)
-	{
-		interface_complex_dev_handle_ops.interfaceid = starpu_data_interface_get_next_id();
-	}
-
 	starpu_data_register(handleptr, home_node, &complex_dev_handle, &interface_complex_dev_handle_ops);
 }
 

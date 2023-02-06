@@ -657,6 +657,17 @@ struct starpu_data_interface_ops
 void starpu_data_register(starpu_data_handle_t *handleptr, int home_node, void *data_interface, struct starpu_data_interface_ops *ops);
 
 /**
+   Register the given data interface operations. If the field
+   starpu_data_interface_ops::field is set to
+   ::STARPU_UNKNOWN_INTERFACE_ID, then a new identifier will be set by
+   calling starpu_data_interface_get_next_id().
+   The function is automatically called when registering a piece of
+   data with starpu_data_register(). It is only necessary to call it
+   beforehand for some specific cases (such as the usmaster slave mode).
+*/
+void starpu_data_register_ops(struct starpu_data_interface_ops *ops);
+
+/**
    Register that a buffer for \p handle on \p node will be set. This is typically
    used by starpu_*_ptr_register helpers before setting the interface pointers for
    this node, to tell the core that that is now allocated.

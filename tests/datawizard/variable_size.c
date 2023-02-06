@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2017-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2017-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -92,10 +92,6 @@ static void register_variable_size(starpu_data_handle_t handle, int home_node, v
 
 void variable_size_data_register(starpu_data_handle_t *handleptr, unsigned x, unsigned y)
 {
-	if (starpu_interface_variable_size_ops.interfaceid == STARPU_UNKNOWN_INTERFACE_ID)
-	{
-		starpu_interface_variable_size_ops.interfaceid = starpu_data_interface_get_next_id();
-	}
 	struct variable_size_interface vsinterface =
 	{
 		.id = starpu_interface_variable_size_ops.interfaceid,
