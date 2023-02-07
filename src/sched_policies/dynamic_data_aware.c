@@ -434,14 +434,14 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 	int i = 0;
 	int j = 0;
 		
-	//~ #ifdef PRINT
+	#ifdef PRINT
 	printf("New task %p (%s, prio: %d, length: %f) in push_task with data(s):", task, starpu_task_get_name(task), task->priority, starpu_task_expected_length(task, perf_arch, 0)); fflush(stdout);
 	for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 	{
 		printf(" %p", STARPU_TASK_GET_HANDLE(task, i)); fflush(stdout);
 	}	
 	printf("\n"); fflush(stdout);
-	//~ #endif
+	#endif
 	
 	#ifdef REFINED_MUTEX
 	STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
@@ -1364,9 +1364,9 @@ void natural_order_data_not_used_yet()
  **/
 struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_gpu, struct starpu_task_list *l)
 {
-	//~ #ifdef PRINT
+	#ifdef PRINT
 	printf("\nDebut get task to return GPU n°%d.\n", current_gpu); fflush(stdout);
-	//~ #endif
+	#endif
 			
 	int i = 0;
     
@@ -1392,9 +1392,9 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			//~ print_data_to_load_prefetch(task, current_gpu);
 			//~ #endif
 			
-			//~ #ifdef PRINT
+			#ifdef PRINT
 			printf("Return refused task %p.\n", task); fflush(stdout);
-			//~ #endif
+			#endif
 			
 			return task;
 		}
@@ -1424,9 +1424,9 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			print_data_to_load_prefetch(task, current_gpu);
 			#endif
 			
-			//~ #ifdef PRINT
+			#ifdef PRINT
 			printf("Task: %p is getting out of pull_task from planned task not empty on GPU %d\n", task, current_gpu); fflush(stdout);
-			//~ #endif
+			#endif
 			
 			#ifdef REFINED_MUTEX
 			STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
@@ -1470,9 +1470,9 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 				STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
 				#endif
 				
-				//~ #ifdef PRINT
+				#ifdef PRINT
 				printf("Return NULL after scheduling call.\n"); fflush(stdout);
-				//~ #endif
+				#endif
 				
 				#ifdef PRINT_STATS
 				nb_return_null_after_scheduling++;
@@ -1485,9 +1485,9 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			print_data_to_load_prefetch(task, current_gpu);
 			#endif
 			
-			//~ #ifdef PRINT
+			#ifdef PRINT
 			printf("Return task %p from the scheduling call GPU %d.\n", task, current_gpu); fflush(stdout);
-			//~ #endif
+			#endif
 			
 			#ifdef PRINT_STATS
 			nb_return_task_after_scheduling++;
@@ -1500,9 +1500,9 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 		}
 		else
 		{
-			//~ #ifdef PRINT
+			#ifdef PRINT
 			printf("Return NULL because main task list is empty.\n"); fflush(stdout);
-			//~ #endif
+			#endif
 			
 			#ifdef PRINT_STATS
 			nb_return_null_because_main_task_list_empty++;
@@ -1658,12 +1658,12 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
     STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
     #endif
 	
-	//~ #ifdef PRINT
+	#ifdef PRINT
 	if (task != NULL)
 	{
 		printf("Pulled task %p on GPU %d.\n", task, starpu_worker_get_memory_node(starpu_worker_get_id()));
 	}
-	//~ #endif
+	#endif
 	
     return task;
 }
@@ -1914,9 +1914,9 @@ void update_best_data_single_decision_tree(int* number_free_task_max, double* re
  **/
 void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g)
 {
-	//~ #ifdef PRINT
+	#ifdef PRINT
 	printf("Début de sched 3D avec GPU %d.\n", current_gpu - 1); fflush(stdout);
-	//~ #endif
+	#endif
 	
 	Dopt[current_gpu - 1] = NULL;
 		
@@ -2226,7 +2226,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 				
 				/* Je me met sur une donnée de cette tâche (qui n'est pas celle en mémoire). */
 				for (k = 0; k < STARPU_TASK_GET_NBUFFERS(t2->pointer_to_T); k++)
-				{						
+				{
 					#ifdef PRINT
 					printf("On data %p from this task\n", STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)); fflush(stdout);
 					#endif
@@ -2234,7 +2234,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 					hud_last_check = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->user_data;
 					
 					/* Ici il faudrait ne pas regarder 2 fois la même donnée si possible. Ca peut arriver oui. */
-					if (STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k) != data_on_node[i] && hud_last_check->last_check_to_choose_from[current_gpu - 1] != g->number_data_selection)
+					if (STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k) != data_on_node[i] && hud_last_check->last_check_to_choose_from[current_gpu - 1] != g->number_data_selection && !starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k), current_gpu))
 					{
 						#ifdef PRINT
 						printf("Data %p is being looked at\n", STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)); fflush(stdout);
@@ -2257,8 +2257,8 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 						nb_data_looked_at++;
 						#endif
 						
-						//~ if (number_free_task_max == 0 && app != 0) /* Cas où je sépare 2D et 3D pour gagner du temps mais ne permet pas de tie break avec le nombre de 1 from free tâches */
-						//~ {
+						// if (number_free_task_max == 0 && app != 0) /* Cas où je sépare 2D et 3D pour gagner du temps mais ne permet pas de tie break avec le nombre de 1 from free tâches */
+						// {
 							/* Je regarde le nombre de free ou 1 from free tâche de cette donnée. */
 							for (t = task_using_data_list_begin(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->sched_data); t != task_using_data_list_end(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->sched_data); t = task_using_data_list_next(t))
 							{
@@ -2532,14 +2532,14 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 				/* Add it from planned task compteur */
 				increment_planned_task_data(t->pointer_to_T, current_gpu);
 				
-				//~ #ifdef PRINT
+				#ifdef PRINT
 				printf("Pushing free %p in planned_task of GPU %d :", t->pointer_to_T, current_gpu); fflush(stdout);
 				for (i = 0; i < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T); i++)
 				{
 					printf(" %p", STARPU_TASK_GET_HANDLE(t->pointer_to_T, i)); fflush(stdout);
 				}
 				printf("\n"); fflush(stdout);
-				//~ #endif
+				#endif
 								
 				erase_task_and_data_pointer(t->pointer_to_T, main_task_list);
 				starpu_task_list_push_back(&g->planned_task, t->pointer_to_T);
@@ -2616,7 +2616,6 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		/* En cas de conflits a cause des mutexs refined */
 		if (!starpu_task_list_ismember(main_task_list, best_1_from_free_task))
 		{
-			//~ printf("++\n");
 			#ifdef REFINED_MUTEX
 			STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
 			#endif
@@ -2658,16 +2657,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 						//~ printf("%p == %p ?\n", e1->D, STARPU_TASK_GET_HANDLE(best_1_from_free_task, i)); fflush(stdout);
 						//~ if(e->D == STARPU_TASK_GET_HANDLE(best_1_from_free_task, i))
 						if(e1->D == STARPU_TASK_GET_HANDLE(best_1_from_free_task, i))
-						{
-							//~ printf("1 from free task. Erase data %p from GPU %d\n", e1->D, current_gpu - 1); fflush(stdout);
-							//~ printf("1 from free task. Erase data %p from GPU %d\n", e->D, current_gpu - 1); fflush(stdout);
-							//~ printf("Printing list I will erase from\n"); fflush(stdout);
-							//~ print_data_not_used_yet_one_gpu(g, current_gpu - 1);
-							//~ g->gpu_data = gpu_data_not_used_list_begin(g->gpu_data);
-							//~ e = e1;
-							//~ gpu_data_not_used_list_erase(g->gpu_data, e);
-							//~ printf("%p\n", e1);
-							
+						{							
 							gpu_data_not_used_list_erase(g->gpu_data, e1);
 							/* TODO:  a chaque erase faire : */
 							
@@ -2676,10 +2666,11 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 							
 							//~ hud = e->D->user_data;
 							hud = e1->D->user_data;
+							
 							#ifdef PRINT
-							//~ printf("%p gets 0 at is_present_in_data_not_used_yet GPU is %d\n", e->D, current_gpu - 1); fflush(stdout);
 							printf("%p gets 0 at is_present_in_data_not_used_yet GPU is %d\n", e1->D, current_gpu - 1); fflush(stdout);
 							#endif
+							
 							hud->is_present_in_data_not_used_yet[current_gpu - 1] = 0;
 							//~ e->D->user_data = hud;
 							e1->D->user_data = hud;
@@ -2699,9 +2690,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		//~ increment_planned_task_data(t->pointer_to_T, current_gpu);
 		increment_planned_task_data(best_1_from_free_task, current_gpu);
 		
-		//~ #ifdef PRINT
+		#ifdef PRINT
 		printf("Pushing 1_from_free task %p in planned_task of GPU %d\n", best_1_from_free_task, current_gpu); fflush(stdout);
-		//~ #endif
+		#endif
 		
 		//~ erase_task_and_data_pointer(t->pointer_to_T, main_task_list);
 		erase_task_and_data_pointer(best_1_from_free_task, main_task_list);
@@ -2784,9 +2775,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 				task = starpu_task_list_pop_front(main_task_list);
 			}
 			
-			//~ #ifdef PRINT
+			#ifdef PRINT
 			printf("\"Random\" task for GPU %d is %p.\n", current_gpu, task); fflush(stdout);
-			//~ #endif
+			#endif
 		}
 		else
 		{
@@ -2952,9 +2943,9 @@ void dynamic_data_aware_victim_eviction_failed(starpu_data_handle_t victim, void
  * Je rentre bcp trop dans cette fonction on perds du temps car le timing avance lui. Résolu en réduisant le threshold et en adaptant aussi CUDA_PIPELINE. */
 starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
 {
-	//~ #ifdef PRINT
-	printf("Début de victim selector.\n"); fflush(stdout);
-	//~ #endif
+	#ifdef PRINT
+	printf("Début de victim selector on GPU %d.\n", current_gpu); fflush(stdout);
+	#endif
 	
 	#ifdef REFINED_MUTEX
 	STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
@@ -2970,11 +2961,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 	
     int i = 0;
     int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
-    
-    //~ #ifdef PRINT
-	//~ printf("Début de victim_selector GPU %d node %d.\n", current_gpu, node); fflush(stdout);
-	//~ #endif
-    
+        
     /* Se placer sur le bon GPU pour planned_task */
     //~ struct gpu_planned_task *temp_pointer = my_planned_task_control->first;
     //~ for (i = 1; i < current_gpu; i++)
@@ -3481,16 +3468,15 @@ void erase_task_and_data_pointer (struct starpu_task *task, struct starpu_task_l
 		#endif
 		
 		pt->pointer_to_D[j]->user_data = hud;
-		
     }
     starpu_task_list_erase(l, pt->pointer_to_cell);
 }
 
 static int dynamic_data_aware_can_push(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
-	//~ #ifdef PRINT
+	#ifdef PRINT
 	printf("Début de dynamic_data_aware_can_push.\n"); fflush(stdout);
-	//~ #endif
+	#endif
 	
     //~ struct dynamic_data_aware_sched_data *data = component->data;
     int didwork = 0;
@@ -3537,7 +3523,9 @@ static int dynamic_data_aware_can_push(struct starpu_sched_component *component,
 
 static int dynamic_data_aware_can_pull(struct starpu_sched_component *component)
 {
+	#ifdef PRINT
 	printf("Début de can pull\n"); fflush(stdout);
+	#endif
 	
     return starpu_sched_component_can_pull(component);
 }
@@ -3869,7 +3857,9 @@ static void initialize_dynamic_data_aware_center_policy(unsigned sched_ctx_id)
 			STARPU_SCHED_SIMPLE_IMPL, sched_ctx_id);
 	
 	perf_arch = starpu_worker_get_perf_archtype(0, sched_ctx_id); /* Getting the perfmodel. Used to get the expected length of a task to tiebreak when choosing Dopt. I put 0 in place of worker id because I assume we are in an homogenous case with only identical GPUs. */
-	//~ # Pour avoir gpu 1 et récupérer les temps des tâches //~ perf_arch = starpu_worker_get_perf_archtype(1, sched_ctx_id); /* Getting the perfmodel. Used to get the expected length of a task to tiebreak when choosing Dopt. I put 0 in place of worker id because I assume we are in an homogenous case with only identical GPUs. */
+	
+	/* Pour avoir gpu 1, 2, 3 etc... et récupérer les temps des tâches, décommenter le push task et faire: */
+	//~ perf_arch = starpu_worker_get_perf_archtype(7, sched_ctx_id);
 	
 	if (prio != 0)
 	{
@@ -3895,9 +3885,10 @@ static void deinitialize_dynamic_data_aware_center_policy(unsigned sched_ctx_id)
 /* Get the task that was last executed. Used to update the task list of pulled task	 */
 void get_task_done(struct starpu_task *task, unsigned sci)
 {
-	//~ #ifdef PRINT
+	#ifdef PRINT
 	printf("Début de get task done.\n"); fflush(stdout);
-	//~ #endif
+	#endif
+	
 	#ifdef LINEAR_MUTEX
 	STARPU_PTHREAD_MUTEX_LOCK(&linear_mutex);
 	#endif
@@ -3907,9 +3898,9 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 	
 	total_task_done++; /* TODO : utile ? */
 	
-	//~ #ifdef PRINT
+	#ifdef PRINT
 	printf("%dème task done in the post_exec_hook: %p.\n", total_task_done, task); fflush(stdout);
-	//~ #endif
+	#endif
 		
 	/* Je me place sur la liste correspondant au bon gpu. */
 	int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
@@ -4036,9 +4027,9 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
 	#endif
 
-	//~ #ifdef PRINT
+	#ifdef PRINT
 	printf("End of get_task_done\n"); fflush(stdout);
-	//~ #endif
+	#endif
 	
     starpu_sched_component_worker_pre_exec_hook(task, sci);
 }

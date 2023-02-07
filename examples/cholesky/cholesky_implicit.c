@@ -256,8 +256,8 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		}
 		else
 		{	
-			/* To get flop max */
-			//~ printf("GFlop/s: %f (flop: %f / timing: %f)\n", flop/timing/1000.0f, flop, timing); fflush(stdout);	
+			/* To get flops max */
+			//~ printf("flop: %f\n", flop); fflush(stdout);	
 			
 			PRINTF("# size\tms\tGFlops");
 			if (bound_p)
@@ -351,6 +351,7 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 		for (m = 0; m < size; m++)
 		{
 			mat[m +n*size] = (1.0f/(1.0f+m+n)) + ((m == n)?1.0f*size:0.0f);
+			//~ mat[m +n*size] = (1.0f/(1.0f+m+n)) + ((m == n)?1.0f*2*size:0.0f);
 			/* mat[m +n*size] = ((m == n)?1.0f*size:0.0f); */
 		}
 	}

@@ -29,22 +29,24 @@ export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
 #~ HOST="gemini-1-cho_dep"
 #~ truncate -s 0 Output_maxime/tgflops.txt
 #~ for ((j=1 ; j<=2; j++))
+#~ for ((j=1 ; j<=1; j++))
 #~ for ((j=2 ; j<=2; j++))
+#~ for ((j=4 ; j<=4; j++))
+#~ for ((j=8 ; j<=8; j++))
 #~ do
 	#~ NGPU=$((j))
-	#~ for ((i=1 ; i<=14; i++))
-	#~ for ((i=15 ; i<=20; i++))
+	#~ for ((i=1 ; i<=20; i++))
 	#~ do
 		#~ N=$((i*5))
+		#~ echo "N = "${N} "- "${NGPU} "GPU"
 		#~ STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_HOSTNAME=${HOST} STARPU_SCHED=dmdar STARPU_NTASKS_THRESHOLD=10 STARPU_CUDA_PIPELINE=5 STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_EXPECTED_TRANSFER_TIME_WRITEBACK=1 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((${TAILLE_TUILE}*N)) -nblocks $((N)) -bound | tail -n 1 >> Output_maxime/tgflops.txt
-		#~ STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_HOSTNAME=${HOST} STARPU_SCHED=dmdar STARPU_NTASKS_THRESHOLD=10 STARPU_CUDA_PIPELINE=5 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_EXPECTED_TRANSFER_TIME_WRITEBACK=1 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((${TAILLE_TUILE}*N)) -nblocks $((N)) -bound
 	#~ done
 #~ done
 #~ exit
 
-#~ N=3
+N=3
 #~ N=4
-N=5
+#~ N=5
 #~ N=10
 #~ N=15
 #~ N=20
@@ -53,16 +55,17 @@ N=5
 #~ N=35
 #~ N=40
 #~ N=45
-N=50
+#~ N=50
 #~ N=55
 #~ N=60
-#~ N=65
+N=65
 #~ N=70
 
 NGPU=1
 #~ NGPU=2
 #~ NGPU=3
 #~ NGPU=4
+#~ NGPU=8
 
 ORDO="dynamic-data-aware"
 #~ ORDO="dmdar"
@@ -168,14 +171,14 @@ DOPT_SELECTION_ORDER=1
 #~ HIGHEST_PRIORITY_TASK_RETURNED_IN_DEFAULT_CASE=0
 HIGHEST_PRIORITY_TASK_RETURNED_IN_DEFAULT_CASE=1
 
-SIMULATE_MEMORY=0
-#~ SIMULATE_MEMORY=1
+#~ SIMULATE_MEMORY=0
+SIMULATE_MEMORY=1
 
 #~ CHOOSE_BEST_DATA_FROM=0
 CHOOSE_BEST_DATA_FROM=1
 
 #~ APPLICATION="./examples/cholesky/cholesky_implicit -size $((${TAILLE_TUILE}*N)) -nblocks $((N))"
-APPLICATION="libtool --mode=execute gdb --args ./examples/cholesky/cholesky_implicit -size $((TAILLE_TUILE*N)) -nblocks $((N))"
+APPLICATION="libtool --mode=execute gdb --args ./examples/cholesky/cholesky_implicit -size $((TAILLE_TUILE*N)) -nblocks $((N)) --cfg=contexts/factory:thread"
 #~ APPLICATION="./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) -no-prio"
 #~ APPLICATION="./examples/cholesky/cholesky_implicit -size $((${TAILLE_TUILE}*N)) -nblocks $((N)) -bound"
 #~ APPLICATION="./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 11"
