@@ -2829,9 +2829,7 @@ static void write_bus_platform_file_content(int version)
 	 */
 	double max_bandwidth = 0;
 	double max_bandwidth_numa[nnumas];
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 	unsigned numa;
-#endif
 	for (numa = 0; numa < nnumas; numa++)
 		max_bandwidth_numa[numa] = 0.;
 
