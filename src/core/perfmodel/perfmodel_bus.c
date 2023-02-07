@@ -2911,8 +2911,10 @@ static void write_bus_platform_file_content(int version)
 
 		char nvlink[ncuda][ncuda];
 		char nvlinkhost[ncuda];
+		char nvswitch[ncuda];
 		memset(nvlink, 0, sizeof(nvlink));
 		memset(nvlinkhost, 0, sizeof(nvlinkhost));
+		memset(nvswitch, 0, sizeof(nvswitch));
 
 		/* TODO: move to drivers */
 #if defined(STARPU_HAVE_LIBNVIDIA_ML) && !defined(STARPU_USE_CUDA0) && !defined(STARPU_USE_CUDA1)
@@ -2941,23 +2943,24 @@ static void write_bus_platform_file_content(int version)
 			for (j = 0; j < NVML_NVLINK_MAX_LINKS; j++)
 			{
 				nvmlEnableState_t active;
-				nvmlReturn_t ret;
+				nvmlReturn_t nvmlret;
 				nvmlPciInfo_t pci;
 				unsigned k;
 
-				ret = nvmlDeviceGetNvLinkState(nvmldev, j, &active);
-				if (ret != NVML_SUCCESS)
+				nvmlret = nvmlDeviceGetNvLinkState(nvmldev, j, &active);
+				if (nvmlret != NVML_SUCCESS)
 					continue;
 				if (active != NVML_FEATURE_ENABLED)
 					continue;
-				ret = nvmlDeviceGetNvLinkRemotePciInfo(nvmldev, j, &pci);
-				if (ret != NVML_SUCCESS)
+				nvmlret = nvmlDeviceGetNvLinkRemotePciInfo(nvmldev, j, &pci);
+				if (nvmlret != NVML_SUCCESS)
 					continue;
 
 				hwloc_obj_t obj = hwloc_get_pcidev_by_busid(topology,
 						pci.domain, pci.bus, pci.device, 0);
 				if (obj && obj->type == HWLOC_OBJ_PCI_DEVICE && (obj->attr->pcidev.class_id >> 8 == 0x06))
 				{
+					/* This is a PCI bridge */
 					switch (obj->attr->pcidev.vendor_id)
 					{
 					case 0x1014:
@@ -2966,7 +2969,7 @@ static void write_bus_platform_file_content(int version)
 						nvlinkhost[i] = 1;
 						continue;
 					case 0x10de:
-						/* TODO: NVIDIA NVSwitch */
+						nvswitch[i] = 1;
 						continue;
 					}
 				}
@@ -2982,6 +2985,32 @@ static void write_bus_platform_file_content(int version)
 						nvlink[k][i] = 1;
 						break;
 					}
+				}
+				if (k < ncuda)
+					/* Yes it was another GPU */
+					continue;
+
+				/* No idea what this is */
+				_STARPU_DISP("Warning: NVLink to unknown PCI card %04x:%02x:%02x: %04x", pci.domain, pci.bus, pci.device, pci.pciDeviceId);
+			}
+		}
+
+		for (i = 0; i < ncuda; i++)
+		{
+			unsigned j;
+			for (j = i+1; j < ncuda; j++)
+			{
+				if (nvswitch[i] && nvswitch[j])
+				{
+					static int warned = 0;
+					if (!warned)
+					{
+						warned = 1;
+						/* TODO: follow answers to https://forums.developer.nvidia.com/t/how-to-distinguish-different-nvswitch/241983 */
+						_STARPU_DISP("Warning: NVSwitch not tested yet with several switches, assuming there is only one NVSwitch in the system\n");
+					}
+					nvlink[i][j] = 1;
+					nvlink[j][i] = 1;
 				}
 			}
 		}
