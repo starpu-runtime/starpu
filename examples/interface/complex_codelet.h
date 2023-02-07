@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2021, 2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,7 +20,7 @@
 #ifndef __COMPLEX_CODELET_H
 #define __COMPLEX_CODELET_H
 
-#define _FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
+#define _FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); fflush(ofile); }} while(0)
 
 /* Dumb performance model for simgrid */
 static double complex_cost_function(struct starpu_task *task, unsigned nimpl)
@@ -40,23 +40,22 @@ static struct starpu_perfmodel complex_model =
 void compare_complex_codelet(void *descr[], void *_args)
 {
 	int nx1 = STARPU_COMPLEX_GET_NX(descr[0]);
-	double *real1 = STARPU_COMPLEX_GET_REAL(descr[0]);
-	double *imaginary1 = STARPU_COMPLEX_GET_IMAGINARY(descr[0]);
+	double *ptr1 = (double *)STARPU_COMPLEX_GET_PTR(descr[0]);
 
 	int nx2 = STARPU_COMPLEX_GET_NX(descr[1]);
-	double *real2 = STARPU_COMPLEX_GET_REAL(descr[1]);
-	double *imaginary2 = STARPU_COMPLEX_GET_IMAGINARY(descr[1]);
+	double *ptr2 = (double *)STARPU_COMPLEX_GET_PTR(descr[1]);
+
+	_FPRINTF(stderr, "\n[compare] complexes with %d and %d elements\n", nx1, nx2);
 
 	int *compare;
-
 	starpu_codelet_unpack_args(_args, &compare);
 	*compare = (nx1 == nx2);
 	if (nx1 == nx2)
 	{
 		int i;
-		for(i=0 ; i<nx1 ; i++)
+		for(i=0 ; i<nx1*2 ; i++)
 		{
-			if (real1[i] != real2[i] || imaginary1[i] != imaginary2[i])
+			if (ptr1[i] != ptr2[i])
 			{
 				*compare = 0;
 				break;
@@ -69,7 +68,7 @@ struct starpu_codelet cl_compare =
 {
 	.cpu_funcs = {compare_complex_codelet},
 	/* dereferencing compare won't work on MPI Master Slave */
-	/* .cpu_funcs_name = {"compare_complex_codelet"}, */
+//	.cpu_funcs_name = {"compare_complex_codelet"},
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_R},
 	.name = "cl_compare",
@@ -79,27 +78,23 @@ struct starpu_codelet cl_compare =
 void display_complex_codelet(void *descr[], void *_args)
 {
 	int nx = STARPU_COMPLEX_GET_NX(descr[0]);
-	double *real = STARPU_COMPLEX_GET_REAL(descr[0]);
-	double *imaginary = STARPU_COMPLEX_GET_IMAGINARY(descr[0]);
+	double *real_imaginary = (double *)STARPU_COMPLEX_GET_PTR(descr[0]);
 	int i;
 	char msg[100];
 
 	if (_args)
 		starpu_codelet_unpack_args(_args, &msg);
 
-	_FPRINTF(stderr, "[%s]\n", _args?msg:NULL);
-	for(i=0 ; i<nx ; i++)
+	for(i=0 ; i<2*nx ; i+=2)
 	{
-		_FPRINTF(stderr, "\tComplex[%d] = %3.2f + %3.2f i\n", i, real[i], imaginary[i]);
+		_FPRINTF(stderr, "[%s]\tComplex[%d] = %3.2f + %3.2f i\n", _args?msg:NULL, i, real_imaginary[i], real_imaginary[i+1]);
 	}
-	fflush(stderr);
 }
 
 struct starpu_codelet cl_display =
 {
 	.cpu_funcs = {display_complex_codelet},
-	/* MPI Master Slave does not use pack/unpack yet */
-	/* .cpu_funcs_name = {"display_complex_codelet"}, */
+	.cpu_funcs_name = {"display_complex_codelet"},
 	.nbuffers = 1,
 	.modes = {STARPU_R},
 	.name = "cl_display",

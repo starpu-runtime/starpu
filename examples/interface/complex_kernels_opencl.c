@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,12 +29,12 @@ void copy_complex_codelet_opencl(void *buffers[], void *_args)
 	cl_command_queue queue;
 
 	/* length of the vector */
-	unsigned n = STARPU_COMPLEX_GET_NX(buffers[0]);
+	unsigned n = 2*STARPU_COMPLEX_GET_NX(buffers[0]);
 	/* OpenCL copy of the vector pointer */
-	cl_mem i_real	   = (cl_mem) STARPU_COMPLEX_GET_REAL(buffers[0]);
-	cl_mem i_imaginary = (cl_mem) STARPU_COMPLEX_GET_IMAGINARY(buffers[0]);
-	cl_mem o_real	   = (cl_mem) STARPU_COMPLEX_GET_REAL(buffers[1]);
-	cl_mem o_imaginary = (cl_mem) STARPU_COMPLEX_GET_IMAGINARY(buffers[1]);
+	cl_mem input = (cl_mem) STARPU_COMPLEX_GET_DEV_HANDLE(buffers[0]);
+	unsigned input_offset = STARPU_COMPLEX_GET_OFFSET(buffers[0]);
+	cl_mem output = (cl_mem) STARPU_COMPLEX_GET_DEV_HANDLE(buffers[1]);
+	unsigned output_offset = STARPU_COMPLEX_GET_OFFSET(buffers[1]);
 
 	id = starpu_worker_get_id_check();
 	devid = starpu_worker_get_devid(id);
@@ -43,10 +43,10 @@ void copy_complex_codelet_opencl(void *buffers[], void *_args)
 	if (err != CL_SUCCESS)
 		STARPU_OPENCL_REPORT_ERROR(err);
 
-	err = clSetKernelArg(kernel, 0, sizeof(o_real), &o_real);
-	err|= clSetKernelArg(kernel, 1, sizeof(o_imaginary), &o_imaginary);
-	err|= clSetKernelArg(kernel, 2, sizeof(i_real), &i_real);
-	err|= clSetKernelArg(kernel, 3, sizeof(i_imaginary), &i_imaginary);
+	err = clSetKernelArg(kernel, 0, sizeof(output), &output);
+	err = clSetKernelArg(kernel, 1, sizeof(output_offset), &output_offset);
+	err|= clSetKernelArg(kernel, 2, sizeof(input), &input);
+	err|= clSetKernelArg(kernel, 3, sizeof(input_offset), &input_offset);
 	err|= clSetKernelArg(kernel, 4, sizeof(n), &n);
 	if (err)
 		STARPU_OPENCL_REPORT_ERROR(err);

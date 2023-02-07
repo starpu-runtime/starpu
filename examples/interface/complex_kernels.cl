@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2021, 2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,16 +17,18 @@
 /* Use the "double" type */
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
 
-__kernel void complex_copy_opencl(__global double *o_real,
-				  __global double *o_imaginary,
-				  __global double *i_real,
-				  __global double *i_imaginary,
-				  unsigned nx) 
+__kernel void complex_copy_opencl(__global double *output,
+				  unsigned output_offset,
+				  __global double *input,
+				  unsigned input_offset,
+				  unsigned nx)
 {
         const int i = get_global_id(0);
         if (i < nx)
 	{
-		o_real[i] = i_real[i];
-		o_imaginary[i] = i_imaginary[i];
+		output = (__global char*) output + output_offset;
+		input = (__global char*) input + input_offset;
+
+		output[i] = input[i];
         }
 }

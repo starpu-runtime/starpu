@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021, 2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -182,14 +182,13 @@ int exchange_void(int rank, int detached)
 
 void check_complex(starpu_data_handle_t handle, int i, int rank, int *error)
 {
-	double *real = starpu_complex_get_real(handle);
-	double *imaginary = starpu_complex_get_imaginary(handle);
+	double *ptr = (double *)starpu_complex_get_ptr(handle);
 
 	int other_rank = rank%2 == 0 ? rank+1 : rank-1;
 
-	if ((*real != ((i*other_rank)+12)) || (*imaginary != ((i*other_rank)+45)))
+	if ((ptr[0] != ((i*other_rank)+12)) || (ptr[1] != ((i*other_rank)+45)))
 	{
-		FPRINTF_MPI(stderr, "Incorrect received value: %f != %d || %f != %d\n", *real, ((i*other_rank)+12), *imaginary, ((i*other_rank)+45));
+		FPRINTF_MPI(stderr, "Incorrect received value: %f != %d || %f != %d\n", ptr[0], ((i*other_rank)+12), ptr[1], ((i*other_rank)+45));
 		*error = 1;
 	}
 }
@@ -198,21 +197,24 @@ int exchange_complex(int rank, int detached)
 {
 	int ret, i;
 	starpu_data_handle_t handle[NB];
-	double real[NB];
-	double imaginary[NB];
+	double *ptr[NB];
 
 	FPRINTF_MPI(stderr, "Exchanging complex data with detached=%d\n", detached);
 
-	for(i=0 ; i<NB ; i++)
+	for(i=0 ; i<NB ; i+=1)
 	{
-		real[i] = (i*rank)+12;
-		imaginary[i] = (i*rank)+45;
-		starpu_complex_data_register(&handle[i], STARPU_MAIN_RAM, &real[i], &imaginary[i], 1);
+		ptr[i] = malloc(2*sizeof(double));
+		ptr[i][0] = (i*rank)+12;
+		ptr[i][1] = (i*rank)+45;
+		starpu_complex_data_register(&handle[i], STARPU_MAIN_RAM, (uintptr_t)ptr[i], 1);
 		starpu_mpi_data_register(handle[i], i, rank);
 	}
 	ret = exchange(rank, handle, check_complex, detached);
 	for(i=0 ; i<NB ; i++)
+	{
 		starpu_data_unregister(handle[i]);
+		free(ptr[i]);
+	}
 
 	return ret;
 }

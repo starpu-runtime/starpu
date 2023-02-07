@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,19 +20,16 @@
 
 void copy_complex_codelet_cpu(void *descr[], void *_args)
 {
+	(void)_args;
 	int i;
 	int nx = STARPU_COMPLEX_GET_NX(descr[0]);
 
-	double *i_real = STARPU_COMPLEX_GET_REAL(descr[0]);
-	double *i_imaginary = STARPU_COMPLEX_GET_IMAGINARY(descr[0]);
+	double *input = (double *)STARPU_COMPLEX_GET_PTR(descr[0]);
+	double *output = (double *)STARPU_COMPLEX_GET_PTR(descr[1]);
 
-	double *o_real = STARPU_COMPLEX_GET_REAL(descr[1]);
-	double *o_imaginary = STARPU_COMPLEX_GET_IMAGINARY(descr[1]);
-
-	for(i=0 ; i<nx ; i++)
+	for(i=0 ; i<nx*2 ; i++)
 	{
-		o_real[i] = i_real[i];
-		o_imaginary[i] = i_imaginary[i];
+		output[i] = input[i];
 	}
 
 }
@@ -79,6 +76,7 @@ extern void copy_complex_codelet_opencl(void *buffers[], void *args);
 struct starpu_codelet cl_copy =
 {
 	.cpu_funcs = {copy_complex_codelet_cpu},
+//	.cpu_funcs_name = {"copy_complex_codelet_cpu"},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {copy_complex_codelet_cuda},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
@@ -105,50 +103,42 @@ int main(void)
 	starpu_data_handle_t handle3;
 	starpu_data_handle_t handle4;
 
-	double real = 45.0;
-	double imaginary = 12.0;
-	double copy_real = 78.0;
-	double copy_imaginary = 78.0;
+	double two_real_imaginary[4] = {1.0, 2.0, 3.0, 4.0};
+	double real_imaginary[2] = {45.0, 12.0};
+	double copy_real_imaginary[2] = {78.0, 78.0};
 
 	int compare;
 	int *compare_ptr = &compare;
 
-	starpu_data_handle_t vectorh;
-	struct starpu_vector_interface *vectori;
-	double *vector;
+	starpu_complex_data_register_ops();
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 #ifdef STARPU_USE_OPENCL
-	ret = starpu_opencl_load_opencl_from_file("examples/interface/complex_kernels.cl",
-						  &opencl_program, NULL);
+	ret = starpu_opencl_load_opencl_from_file("examples/interface/complex_kernels.cl", &opencl_program, NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
 #endif
-	starpu_complex_data_register(&handle1, STARPU_MAIN_RAM, &real, &imaginary, 1);
-	starpu_complex_data_register(&handle2, STARPU_MAIN_RAM, &copy_real, &copy_imaginary, 1);
-	/* Create a vector of two complexs.  */
-	starpu_complex_data_register(&handle3, -1, 0, 0, 2);
-	starpu_complex_data_register(&handle4, -1, 0, 0, 1);
 
-	ret = starpu_task_insert(&cl_display, STARPU_VALUE, "handle1", strlen("handle1")+1, STARPU_R, handle1, 0);
+	starpu_complex_data_register(&handle1, STARPU_MAIN_RAM, (uintptr_t)real_imaginary, 1);
+	starpu_complex_data_register(&handle2, STARPU_MAIN_RAM, (uintptr_t)copy_real_imaginary, 1);
+	starpu_complex_data_register(&handle3, STARPU_MAIN_RAM, (uintptr_t)two_real_imaginary, 2);
+	starpu_complex_data_register(&handle4, -1, (uintptr_t)NULL, 1);
+
+	ret = starpu_task_insert(&cl_display, STARPU_VALUE, "handle1", strlen("handle1")+1, STARPU_R, handle1, STARPU_TASK_SYNCHRONOUS, 1, 0);
 	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
-	ret = starpu_task_insert(&cl_display, STARPU_VALUE, "handle2", strlen("handle2")+1, STARPU_R, handle2, 0);
+	ret = starpu_task_insert(&cl_display, STARPU_VALUE, "handle2", strlen("handle2")+1, STARPU_R, handle2, STARPU_TASK_SYNCHRONOUS, 1, 0);
 	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
 	/* Compare two different complexs.  */
-	ret = starpu_task_insert(&cl_compare,
-				 STARPU_R, handle1,
-				 STARPU_R, handle2,
-				 STARPU_VALUE, &compare_ptr, sizeof(compare_ptr),
-				 0);
+	ret = starpu_task_insert(&cl_compare, STARPU_R, handle1, STARPU_R, handle2, STARPU_VALUE, &compare_ptr, sizeof(compare_ptr), STARPU_TASK_SYNCHRONOUS, 1, 0);
 	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
-	starpu_task_wait_for_all();
+
 	if (compare != 0)
 	{
 	     _FPRINTF(stderr, "Complex numbers should NOT be similar\n");
@@ -156,31 +146,22 @@ int main(void)
 	}
 
 	/* Copy one into the other.  */
-	ret = starpu_task_insert(&cl_copy,
-				 STARPU_R, handle1,
-				 STARPU_W, handle2,
-				 0);
+	ret = starpu_task_insert(&cl_copy, STARPU_R, handle1, STARPU_W, handle2, STARPU_TASK_SYNCHRONOUS, 1, 0);
 	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
-	ret = starpu_task_insert(&cl_display, STARPU_VALUE, "handle1", strlen("handle1")+1, STARPU_R, handle1, 0);
+	ret = starpu_task_insert(&cl_display, STARPU_VALUE, "handle1", strlen("handle1")+1, STARPU_R, handle1, STARPU_TASK_SYNCHRONOUS, 1, 0);
 	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
-	ret = starpu_task_insert(&cl_display, STARPU_VALUE, "handle2", strlen("handle2")+1, STARPU_R, handle2, 0);
+	ret = starpu_task_insert(&cl_display, STARPU_VALUE, "handle2", strlen("handle2")+1, STARPU_R, handle2, STARPU_TASK_SYNCHRONOUS, 1, 0);
 	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
 	/* And compare again.  */
-	ret = starpu_task_insert(&cl_compare,
-				 STARPU_R, handle1,
-				 STARPU_R, handle2,
-				 STARPU_VALUE, &compare_ptr, sizeof(compare_ptr),
-				 0);
+	ret = starpu_task_insert(&cl_compare, STARPU_R, handle1, STARPU_R, handle2, STARPU_VALUE, &compare_ptr, sizeof(compare_ptr), STARPU_TASK_SYNCHRONOUS, 1, 0);
 	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
-
-	starpu_task_wait_for_all();
 
 	if (compare != 1)
 	{
@@ -189,9 +170,20 @@ int main(void)
 
 	/* Put another value again */
 	starpu_data_acquire(handle2, STARPU_W);
-	copy_real = 78.0;
-	copy_imaginary = 77.0;
+	copy_real_imaginary[0] = 78.0;
+	copy_real_imaginary[1] = 77.0;
 	starpu_data_release(handle2);
+
+	ret = starpu_task_insert(&cl_display, STARPU_VALUE, "handle2", strlen("handle2")+1, STARPU_R, handle2, STARPU_TASK_SYNCHRONOUS, 1, 0);
+	if (ret == -ENODEV) goto end;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+
+	_FPRINTF(stderr, "\n");
+
+	/* Display handle3.  */
+	ret = starpu_task_insert(&cl_display, STARPU_VALUE, "handle3", strlen("handle3")+1, STARPU_R, handle3, STARPU_TASK_SYNCHRONOUS, 1, 0);
+	if (ret == -ENODEV) goto end;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
 	/* Split it in two pieces (thus one complex each).  */
 	struct starpu_data_filter f =
@@ -202,16 +194,10 @@ int main(void)
 	starpu_data_partition(handle3, &f);
 
 	/* Copy the two complexs into each part */
-	ret = starpu_task_insert(&cl_copy,
-				 STARPU_R, handle1,
-				 STARPU_W, starpu_data_get_sub_data(handle3, 1, 0),
-				 0);
+	ret = starpu_task_insert(&cl_copy, STARPU_R, handle1, STARPU_W, starpu_data_get_sub_data(handle3, 1, 0), STARPU_TASK_SYNCHRONOUS, 1, 0);
 	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
-	ret = starpu_task_insert(&cl_copy,
-				 STARPU_R, handle2,
-				 STARPU_W, starpu_data_get_sub_data(handle3, 1, 1),
-				 0);
+	ret = starpu_task_insert(&cl_copy, STARPU_R, handle2, STARPU_W, starpu_data_get_sub_data(handle3, 1, 1), STARPU_TASK_SYNCHRONOUS, 1, 0);
 	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
@@ -219,53 +205,22 @@ int main(void)
 	starpu_data_unpartition(handle3, STARPU_MAIN_RAM);
 
 	/* Show it.  */
-	ret = starpu_task_insert(&cl_display, STARPU_VALUE, "handle3", strlen("handle3")+1, STARPU_R, handle3, 0);
+	ret = starpu_task_insert(&cl_display, STARPU_VALUE, "handle3", strlen("handle3")+1, STARPU_R, handle3, STARPU_TASK_SYNCHRONOUS, 1, 0);
 	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
-	/* Get the real and imaginary vectors.  */
-	struct starpu_data_filter fcanon =
-	{
-		.filter_func = starpu_complex_filter_canonical,
-		.nchildren = 2,
-		.get_child_ops = starpu_complex_filter_canonical_child_ops,
-	};
-	starpu_data_partition(handle3, &fcanon);
-
-	/* Check the corresponding data.  */
-	vectorh = starpu_data_get_sub_data(handle3, 1, 0);
-	starpu_data_acquire(vectorh, STARPU_R);
-	vectori = starpu_data_get_interface_on_node(vectorh, STARPU_MAIN_RAM);
-	vector = (double*) vectori->ptr;
-	STARPU_ASSERT_MSG(vector[0] == 45., "Bogus value: %f instead of %f", vector[0], 45.);
-	STARPU_ASSERT_MSG(vector[1] == 78., "Bogus value: %f instead of %f", vector[1], 78.);
-	starpu_data_release(vectorh);
-
-	vectorh = starpu_data_get_sub_data(handle3, 1, 1);
-	starpu_data_acquire(vectorh, STARPU_R);
-	vectori = starpu_data_get_interface_on_node(vectorh, STARPU_MAIN_RAM);
-	vector = (double*) vectori->ptr;
-	STARPU_ASSERT_MSG(vector[0] == 12., "Bogus value: %f instead of %f", vector[0], 12.);
-	STARPU_ASSERT_MSG(vector[1] == 77., "Bogus value: %f instead of %f", vector[1], 77.);
-	starpu_data_release(vectorh);
-
-	starpu_data_unpartition(handle3, STARPU_MAIN_RAM);
-
 	/* Use helper starpu_data_cpy */
-	starpu_data_cpy(handle4, handle1, 0, NULL, NULL);
-	ret = starpu_task_insert(&cl_display, STARPU_VALUE, "handle4", strlen("handle4")+1, STARPU_R, handle4, 0);
+	ret = starpu_data_cpy(handle4, handle1, 0, NULL, NULL);
+	if (ret == -ENODEV) goto end;
+	ret = starpu_task_insert(&cl_display, STARPU_VALUE, "handle4", strlen("handle4")+1, STARPU_R, handle4, STARPU_TASK_SYNCHRONOUS, 1, 0);
 	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
 	/* Compare two different complexs.  */
-	ret = starpu_task_insert(&cl_compare,
-				 STARPU_R, handle1,
-				 STARPU_R, handle4,
-				 STARPU_VALUE, &compare_ptr, sizeof(compare_ptr),
-				 0);
+	ret = starpu_task_insert(&cl_compare, STARPU_R, handle1, STARPU_R, handle4, STARPU_VALUE, &compare_ptr, sizeof(compare_ptr), STARPU_TASK_SYNCHRONOUS, 1, 0);
 	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
-	starpu_task_wait_for_all();
+
 	if (compare != 1)
 	{
 	     _FPRINTF(stderr, "Complex numbers should be similar\n");
