@@ -173,8 +173,8 @@ SIMULATE_MEMORY=0
 #~ CHOOSE_BEST_DATA_FROM=0
 CHOOSE_BEST_DATA_FROM=1
 
-APPLICATION="./examples/cholesky/cholesky_implicit -size $((${TAILLE_TUILE}*N)) -nblocks $((N))"
-#~ APPLICATION="libtool --mode=execute gdb --args ./examples/cholesky/cholesky_implicit -size $((TAILLE_TUILE*N)) -nblocks $((N))"
+#~ APPLICATION="./examples/cholesky/cholesky_implicit -size $((${TAILLE_TUILE}*N)) -nblocks $((N))"
+APPLICATION="libtool --mode=execute gdb --args ./examples/cholesky/cholesky_implicit -size $((TAILLE_TUILE*N)) -nblocks $((N))"
 #~ APPLICATION="./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) -no-prio"
 #~ APPLICATION="./examples/cholesky/cholesky_implicit -size $((${TAILLE_TUILE}*N)) -nblocks $((N)) -bound"
 #~ APPLICATION="./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 11"
