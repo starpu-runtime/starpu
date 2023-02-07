@@ -106,6 +106,7 @@ static double numa_timing[STARPU_MAXNUMANODES][STARPU_MAXNUMANODES];
 
 static uint64_t cuda_size[STARPU_MAXCUDADEVS];
 static char cuda_devname[STARPU_MAXCUDADEVS][256];
+static int gpu_numa[STARPU_NARCH][STARPU_NMAXDEVS]; /* hwloc NUMA logical ID */
 #endif
 
 #ifdef STARPU_USE_CUDA
@@ -712,7 +713,7 @@ static int compar_dev_timing(const void *left_dev_timing, const void *right_dev_
 	       timing_sum2_left < timing_sum2_right ? -1 : 0;
 }
 
-static void measure_bandwidth_between_numa_nodes_and_dev(int dev, struct dev_timing *dev_timing_per_numanode, char *type)
+static void measure_bandwidth_between_numa_nodes_and_dev(int dev, struct dev_timing *dev_timing_per_numanode, enum starpu_worker_archtype type)
 {
 	/* We measure the bandwith between each GPU and each NUMA node */
 	unsigned numa_id;
@@ -735,19 +736,28 @@ static void measure_bandwidth_between_numa_nodes_and_dev(int dev, struct dev_tim
 		_STARPU_DISP("with NUMA %d...\n", numa_id);
 
 #ifdef STARPU_USE_CUDA
-		if (strncmp(type, "CUDA", 4) == 0)
+		if (type == STARPU_CUDA_WORKER)
 			measure_bandwidth_between_host_and_dev_on_numa_with_cuda(dev, numa_id, cpu_id, dev_timing_per_numanode);
 #endif
 #ifdef STARPU_USE_OPENCL
-		if (strncmp(type, "OpenCL", 6) == 0)
+		if (type == STARPU_OPENCL_WORKER)
 			measure_bandwidth_between_host_and_dev_on_numa_with_opencl(dev, numa_id, cpu_id, dev_timing_per_numanode);
 #endif
 	}
 }
 
-static void measure_bandwidth_between_host_and_dev(int dev, struct dev_timing *dev_timing_per_numa, char *type)
+static void measure_bandwidth_between_host_and_dev(int dev, struct dev_timing *dev_timing_per_numa, enum starpu_worker_archtype type)
 {
 	measure_bandwidth_between_numa_nodes_and_dev(dev, dev_timing_per_numa, type);
+
+	hwloc_obj_t obj = starpu_driver_info[STARPU_CUDA_WORKER].get_hwloc_obj(hwtopology, dev);
+
+	if (obj)
+		obj = _starpu_numa_get_obj(obj);
+	if (obj)
+		gpu_numa[type][dev] = obj->logical_index;
+	else
+		gpu_numa[type][dev] = -1;
 
 #ifdef STARPU_VERBOSE
 	unsigned numa_id;
@@ -759,7 +769,7 @@ static void measure_bandwidth_between_host_and_dev(int dev, struct dev_timing *d
 
 		double bandwidth_sum2 = bandwidth_dtoh*bandwidth_dtoh + bandwidth_htod*bandwidth_htod;
 
-		_STARPU_DISP("(%10s) BANDWIDTH GPU %d NUMA %u - htod %f - dtoh %f - %f\n", type, dev, numa_id, bandwidth_htod, bandwidth_dtoh, sqrt(bandwidth_sum2));
+		_STARPU_DISP("(%10s) BANDWIDTH GPU %d NUMA %u - htod %f - dtoh %f - %f\n", starpu_worker_get_type_as_string(type), dev, numa_id, bandwidth_htod, bandwidth_dtoh, sqrt(bandwidth_sum2));
 	}
 #endif
 }
@@ -898,7 +908,7 @@ static void benchmark_all_memory_nodes(void)
 	{
 		_STARPU_DISP("CUDA %u...\n", i);
 		/* measure bandwidth between Host and Device i */
-		measure_bandwidth_between_host_and_dev(i, cudadev_timing_per_numa, "CUDA");
+		measure_bandwidth_between_host_and_dev(i, cudadev_timing_per_numa, STARPU_CUDA_WORKER);
 	}
 #ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 	for (i = 0; i < ncuda; i++)
@@ -919,7 +929,7 @@ static void benchmark_all_memory_nodes(void)
 	{
 		_STARPU_DISP("OpenCL %u...\n", i);
 		/* measure bandwith between Host and Device i */
-		measure_bandwidth_between_host_and_dev(i, opencldev_timing_per_numa, "OpenCL");
+		measure_bandwidth_between_host_and_dev(i, opencldev_timing_per_numa, STARPU_OPENCL_WORKER);
 	}
 #endif
 
@@ -2391,9 +2401,9 @@ static int find_platform_path_up(hwloc_obj_t obj1, hwloc_obj_t obj2, double band
 	/* obj2 is not a (sub)child of our parent, we have to go up through the parent */
 	if (parent->type == HWLOC_OBJ_BRIDGE && parent->attr->bridge.upstream_type == HWLOC_OBJ_BRIDGE_HOST)
 	{
-		/* We have to go up to the Host, so obj2 is not in the same PCI
-		 * tree, so we're for for obj1 to Host, and just find the path
-		 * from obj2 to Host too.
+		/* We have to go up to the Interconnect, so obj2 is not in the same PCI
+		 * tree, so we're for for obj1 to Interconnect, and just find the path
+		 * from obj2 to Interconnect too.
 		 */
 		find_platform_backward_path(obj2, bandwidth);
 
@@ -2586,8 +2596,12 @@ static void emit_platform_backward_path(FILE *f, hwloc_obj_t obj)
 
 	if (obj->type == HWLOC_OBJ_BRIDGE && obj->attr->bridge.upstream_type == HWLOC_OBJ_BRIDGE_HOST)
 	{
-		/* Finished, go through host */
-		fprintf(f, "    <link_ctn id=\"Host\"/>\n");
+		/* Finished, go through NUMA */
+		hwloc_obj_t numa = _starpu_numa_get_obj(obj);
+		if (numa)
+			fprintf(f, "    <link_ctn id=\"NUMA%d\"/>\n", numa->logical_index);
+		else
+			fprintf(f, "     <link_ctn id=\"Interconnect\"/>\n");
 		return;
 	}
 
@@ -2608,8 +2622,12 @@ static void emit_platform_forward_path(FILE *f, hwloc_obj_t obj)
 
 	if (obj->type == HWLOC_OBJ_BRIDGE && obj->attr->bridge.upstream_type == HWLOC_OBJ_BRIDGE_HOST)
 	{
-		/* Finished, go through host */
-		fprintf(f, "    <link_ctn id=\"Host\"/>\n");
+		/* Finished, go through NUMA */
+		hwloc_obj_t numa = _starpu_numa_get_obj(obj);
+		if (numa)
+			fprintf(f, "    <link_ctn id=\"NUMA%d\"/>\n", numa->logical_index);
+		else
+			fprintf(f, "     <link_ctn id=\"Interconnect\"/>\n");
 		return;
 	}
 
@@ -2670,12 +2688,21 @@ static int emit_platform_path_up(FILE *f, hwloc_obj_t obj1, hwloc_obj_t obj2)
 	/* obj2 is not a (sub)child of our parent, we have to go up through the parent */
 	if (parent->type == HWLOC_OBJ_BRIDGE && parent->attr->bridge.upstream_type == HWLOC_OBJ_BRIDGE_HOST)
 	{
-		/* We have to go up to the Host, so obj2 is not in the same PCI
-		 * tree, so we're for for obj1 to Host, and just find the path
-		 * from obj2 to Host too.
+		/* We have to go up to the Interconnect, so obj2 is not in the same PCI
+		 * tree, so we're for for obj1 to Interconnect, and just find the path
+		 * from obj2 to Interconnect too.
 		 */
 		emit_platform_backward_path(f, obj2);
-		fprintf(f, "    <link_ctn id=\"Host\"/>\n");
+
+		hwloc_obj_t numa2 = _starpu_numa_get_obj(obj2);
+		hwloc_obj_t numa1 = _starpu_numa_get_obj(obj1);
+
+		if (!numa1 || !numa2 || numa1 != numa2)
+		{
+			fprintf(f, "    <link_ctn id=\"Interconnect\"/>\n");
+			if (numa1)
+				fprintf(f, "    <link_ctn id=\"NUMA%d\"/>\n", numa1->logical_index);
+		}
 
 		emit_pci_link_up(f, parent);
 		emit_pci_link_through(f, parent);
@@ -2801,9 +2828,12 @@ static void write_bus_platform_file_content(int version)
 	 * Compute maximum bandwidth, taken as host bandwidth
 	 */
 	double max_bandwidth = 0;
+	double max_bandwidth_numa[nnumas];
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 	unsigned numa;
 #endif
+	for (numa = 0; numa < nnumas; numa++)
+		max_bandwidth_numa[numa] = 0.;
 
 #ifdef STARPU_USE_CUDA
 	for (i = 0; i < ncuda; i++)
@@ -2814,8 +2844,12 @@ static void write_bus_platform_file_content(int version)
 			double up_bw = 1.0 / cudadev_timing_per_numa[i*STARPU_MAXNUMANODES+numa].timing_htod;
 			if (max_bandwidth < down_bw)
 				max_bandwidth = down_bw;
+			if (max_bandwidth_numa[numa] < down_bw)
+				max_bandwidth_numa[numa] = down_bw;
 			if (max_bandwidth < up_bw)
 				max_bandwidth = up_bw;
+			if (max_bandwidth_numa[numa] < up_bw)
+				max_bandwidth_numa[numa] = up_bw;
 		}
 	}
 #endif
@@ -2828,12 +2862,18 @@ static void write_bus_platform_file_content(int version)
 			double up_bw = 1.0 / opencldev_timing_per_numa[i*STARPU_MAXNUMANODES+numa].timing_htod;
 			if (max_bandwidth < down_bw)
 				max_bandwidth = down_bw;
+			if (max_bandwidth_numa[numa] < down_bw)
+				max_bandwidth_numa[numa] = down_bw;
 			if (max_bandwidth < up_bw)
 				max_bandwidth = up_bw;
+			if (max_bandwidth_numa[numa] < up_bw)
+				max_bandwidth_numa[numa] = up_bw;
 		}
 	}
 #endif
-	fprintf(f, "\n   <link id=\"Host\" bandwidth=\"%f%s\" latency=\"0.000000%s\"/>\n\n", max_bandwidth*1000000, Bps, s);
+	for (numa = 0; numa < nnumas; numa++)
+		fprintf(f, "   <link id=\"NUMA%d\" bandwidth=\"%f%s\" latency=\"0.000000%s\"/>\n", numa, max_bandwidth_numa[numa]*1000000, Bps, s);
+	fprintf(f, "   <link id=\"Interconnect\" bandwidth=\"%f%s\" latency=\"0.000000%s\"/>\n\n", max_bandwidth*1000000, Bps, s);
 
 	/*
 	 * OpenCL links
@@ -3055,8 +3095,14 @@ static void write_bus_platform_file_content(int version)
 					if (!nvlink[i][j])
 					{
 						if (nvlinkhost[i] && nvlinkhost[j])
-							/* TODO: NUMA affinity */
-							fprintf(f, "    <link_ctn id=\"Host\"/>\n");
+						{
+							/* FIXME: if they are directly connected through PCI, is NVLink host preferred? */
+							if (gpu_numa[STARPU_CUDA_WORKER][i] >= 0)
+								fprintf(f, "    <link_ctn id=\"NUMA%d\"/>\n", gpu_numa[STARPU_CUDA_WORKER][i]);
+							fprintf(f, "    <link_ctn id=\"Interconnect\"/>\n");
+							if (gpu_numa[STARPU_CUDA_WORKER][j] >= 0)
+								fprintf(f, "    <link_ctn id=\"NUMA%d\"/>\n", gpu_numa[STARPU_CUDA_WORKER][j]);
+						}
 						else
 							emit_platform_path_up(f,
 									get_hwloc_cuda_obj(topology, i),
@@ -3068,8 +3114,10 @@ static void write_bus_platform_file_content(int version)
 			fprintf(f, "   <route src=\"CUDA%u\" dst=\"RAM\" symmetrical=\"NO\">\n", i);
 			fprintf(f, "    <link_ctn id=\"CUDA%u-RAM\"/>\n", i);
 			if (nvlinkhost[i])
-				/* TODO: NUMA affinity */
-				fprintf(f, "    <link_ctn id=\"Host\"/>\n");
+			{
+				if (gpu_numa[STARPU_CUDA_WORKER][i] >= 0)
+					fprintf(f, "    <link_ctn id=\"NUMA%d\"/>\n", gpu_numa[STARPU_CUDA_WORKER][i]);
+			}
 			else
 				emit_platform_forward_path(f, get_hwloc_cuda_obj(topology, i));
 			fprintf(f, "   </route>\n");
@@ -3077,8 +3125,10 @@ static void write_bus_platform_file_content(int version)
 			fprintf(f, "   <route src=\"RAM\" dst=\"CUDA%u\" symmetrical=\"NO\">\n", i);
 			fprintf(f, "    <link_ctn id=\"RAM-CUDA%u\"/>\n", i);
 			if (nvlinkhost[i])
-				/* TODO: NUMA affinity */
-				fprintf(f, "    <link_ctn id=\"Host\"/>\n");
+			{
+				if (gpu_numa[STARPU_CUDA_WORKER][i] >= 0)
+					fprintf(f, "    <link_ctn id=\"NUMA%d\"/>\n", gpu_numa[STARPU_CUDA_WORKER][i]);
+			}
 			else
 				emit_platform_backward_path(f, get_hwloc_cuda_obj(topology, i));
 			fprintf(f, "   </route>\n");
@@ -3100,11 +3150,11 @@ flat_cuda:
 			snprintf(i_name, sizeof(i_name), "CUDA%u", i);
 			fprintf(f, "   <route src=\"RAM\" dst=\"%s\" symmetrical=\"NO\">\n", i_name);
 			fprintf(f, "      <link_ctn id=\"RAM-%s\"/>\n", i_name);
-			fprintf(f, "      <link_ctn id=\"Host\"/>\n");
+			fprintf(f, "      <link_ctn id=\"Interconnect\"/>\n");
 			fprintf(f, "   </route>\n");
 			fprintf(f, "   <route src=\"%s\" dst=\"RAM\" symmetrical=\"NO\">\n", i_name);
 			fprintf(f, "      <link_ctn id=\"%s-RAM\"/>\n", i_name);
-			fprintf(f, "      <link_ctn id=\"Host\"/>\n");
+			fprintf(f, "      <link_ctn id=\"Interconnect\"/>\n");
 			fprintf(f, "   </route>\n");
 		}
 #ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
@@ -3121,7 +3171,7 @@ flat_cuda:
 				snprintf(j_name, sizeof(j_name), "CUDA%u", j);
 				fprintf(f, "   <route src=\"%s\" dst=\"%s\" symmetrical=\"NO\">\n", i_name, j_name);
 				fprintf(f, "     <link_ctn id=\"%s-%s\"/>\n", i_name, j_name);
-				fprintf(f, "     <link_ctn id=\"Host\"/>\n");
+				fprintf(f, "     <link_ctn id=\"Interconnect\"/>\n");
 				fprintf(f, "   </route>\n");
 			}
 		}
@@ -3141,11 +3191,11 @@ flat_cuda:
 		snprintf(i_name, sizeof(i_name), "OpenCL%u", i);
 		fprintf(f, "   <route src=\"RAM\" dst=\"%s\" symmetrical=\"NO\">\n", i_name);
 		fprintf(f, "     <link_ctn id=\"RAM-%s\"/>\n", i_name);
-		fprintf(f, "     <link_ctn id=\"Host\"/>\n");
+		fprintf(f, "     <link_ctn id=\"Interconnect\"/>\n");
 		fprintf(f, "   </route>\n");
 		fprintf(f, "   <route src=\"%s\" dst=\"RAM\" symmetrical=\"NO\">\n", i_name);
 		fprintf(f, "     <link_ctn id=\"%s-RAM\"/>\n", i_name);
-		fprintf(f, "     <link_ctn id=\"Host\"/>\n");
+		fprintf(f, "     <link_ctn id=\"Interconnect\"/>\n");
 		fprintf(f, "   </route>\n");
 	}
 #endif
