@@ -18,6 +18,7 @@ start=`date +%s`
 #~ --cfg=contexts/factory:thread pour simgrid
 #~ -bound
 #~ -no-prio
+#~ STARPU_WATCHDOG_TIMEOUT=1000000000 STARPU_WATCHDOG_CRASH=1 
 
 make -j 6
 ulimit -S -s 5000000

@@ -1392,9 +1392,9 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			//~ print_data_to_load_prefetch(task, current_gpu);
 			//~ #endif
 			
-			#ifdef PRINT
+			//~ #ifdef PRINT
 			printf("Return refused task %p.\n", task); fflush(stdout);
-			#endif
+			//~ #endif
 			
 			return task;
 		}
@@ -1424,9 +1424,9 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			print_data_to_load_prefetch(task, current_gpu);
 			#endif
 			
-			#ifdef PRINT
+			//~ #ifdef PRINT
 			printf("Task: %p is getting out of pull_task from planned task not empty on GPU %d\n", task, current_gpu); fflush(stdout);
-			#endif
+			//~ #endif
 			
 			#ifdef REFINED_MUTEX
 			STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
@@ -1470,9 +1470,9 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 				STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
 				#endif
 				
-				#ifdef PRINT
+				//~ #ifdef PRINT
 				printf("Return NULL after scheduling call.\n"); fflush(stdout);
-				#endif
+				//~ #endif
 				
 				#ifdef PRINT_STATS
 				nb_return_null_after_scheduling++;
@@ -1485,9 +1485,9 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			print_data_to_load_prefetch(task, current_gpu);
 			#endif
 			
-			#ifdef PRINT
+			//~ #ifdef PRINT
 			printf("Return task %p from the scheduling call GPU %d.\n", task, current_gpu); fflush(stdout);
-			#endif
+			//~ #endif
 			
 			#ifdef PRINT_STATS
 			nb_return_task_after_scheduling++;
@@ -1500,9 +1500,9 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 		}
 		else
 		{
-			#ifdef PRINT
+			//~ #ifdef PRINT
 			printf("Return NULL because main task list is empty.\n"); fflush(stdout);
-			#endif
+			//~ #endif
 			
 			#ifdef PRINT_STATS
 			nb_return_null_because_main_task_list_empty++;
@@ -1522,9 +1522,9 @@ bool graph_read = false; /* TODO: a suppr si j'utilise pas graph_descendants == 
  * head of the GPU task list. Else it calls dyanmic_outer_scheuling to fill this package. */
 static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
-	//~ #ifdef PRINT
+	#ifdef PRINT
 	printf("Début de pull_task.\n"); fflush(stdout);
-	//~ #endif
+	#endif
 		
 	#ifdef LINEAR_MUTEX
 	STARPU_PTHREAD_MUTEX_LOCK(&linear_mutex);
@@ -2327,7 +2327,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 							
 							/* Update best data if needed */
 							hud = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->user_data;
-							update_best_data_single_decision_tree(&number_free_task_max, &remaining_expected_length_max, &handle_popped, &priority_max, &number_1_from_free_task_max, temp_number_free_task_max, hud->sum_remaining_task_expected_length,  STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k), temp_priority_max, temp_number_1_from_free_task_max, &data_choosen_index, i, &best_1_from_free_task, temp_best_1_from_free_task);
+							update_best_data_single_decision_tree(&number_free_task_max, &remaining_expected_length_max, &handle_popped, &priority_max, &number_1_from_free_task_max, temp_number_free_task_max, hud->sum_remaining_task_expected_length, STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k), temp_priority_max, temp_number_1_from_free_task_max, &data_choosen_index, i, &best_1_from_free_task, temp_best_1_from_free_task);
 						//~ }
 						//~ else /* Cas 2D */
 						//~ {
@@ -2532,14 +2532,14 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 				/* Add it from planned task compteur */
 				increment_planned_task_data(t->pointer_to_T, current_gpu);
 				
-				#ifdef PRINT
+				//~ #ifdef PRINT
 				printf("Pushing free %p in planned_task of GPU %d :", t->pointer_to_T, current_gpu); fflush(stdout);
 				for (i = 0; i < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T); i++)
 				{
 					printf(" %p", STARPU_TASK_GET_HANDLE(t->pointer_to_T, i)); fflush(stdout);
 				}
 				printf("\n"); fflush(stdout);
-				#endif
+				//~ #endif
 								
 				erase_task_and_data_pointer(t->pointer_to_T, main_task_list);
 				starpu_task_list_push_back(&g->planned_task, t->pointer_to_T);
@@ -2699,9 +2699,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		//~ increment_planned_task_data(t->pointer_to_T, current_gpu);
 		increment_planned_task_data(best_1_from_free_task, current_gpu);
 		
-		#ifdef PRINT
+		//~ #ifdef PRINT
 		printf("Pushing 1_from_free task %p in planned_task of GPU %d\n", best_1_from_free_task, current_gpu); fflush(stdout);
-		#endif
+		//~ #endif
 		
 		//~ erase_task_and_data_pointer(t->pointer_to_T, main_task_list);
 		erase_task_and_data_pointer(best_1_from_free_task, main_task_list);
@@ -2784,9 +2784,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 				task = starpu_task_list_pop_front(main_task_list);
 			}
 			
-			#ifdef PRINT
-			printf("\"Random\" task for GPu %d is %p.\n", current_gpu, task); fflush(stdout);
-			#endif
+			//~ #ifdef PRINT
+			printf("\"Random\" task for GPU %d is %p.\n", current_gpu, task); fflush(stdout);
+			//~ #endif
 		}
 		else
 		{
