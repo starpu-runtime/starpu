@@ -611,11 +611,11 @@ int main(int argc, char **argv)
 			starpu_bound_start(0, 0);
 
 	        starpu_fxt_start_profiling();
+                start = starpu_timing_now();
 
 		unsigned x, y, z, iter;
 		for (iter = 0; iter < niter; iter++)
 		{
-                        start = starpu_timing_now();
 			if (tiled)
 			{
 				for (x = 0; x < nslicesx; x++)
