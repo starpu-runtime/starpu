@@ -744,6 +744,7 @@ static void measure_bandwidth_between_numa_nodes_and_dev(int dev, struct dev_tim
 			measure_bandwidth_between_host_and_dev_on_numa_with_opencl(dev, numa_id, cpu_id, dev_timing_per_numanode);
 #endif
 	}
+	/* TODO: also measure the available aggregated bandwidth on a NUMA node, and through the interconnect */
 }
 
 static void measure_bandwidth_between_host_and_dev(int dev, struct dev_timing *dev_timing_per_numa, enum starpu_worker_archtype type)
