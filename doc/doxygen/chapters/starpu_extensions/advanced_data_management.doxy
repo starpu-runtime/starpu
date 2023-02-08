@@ -284,6 +284,13 @@ This means that:
 
 Examples in <c>src/datawizard/interfaces/*_interface.c</c> show how to fill these three fields.
 
+To better notice the difference between simple <c>ptr</c> and
+<c>dev_handle</c> + <c>offset</c>, one
+can compare <c>examples/interface/complex_interface.c</c> vs
+<c>examples/interface/complex_dev_handle/complex_dev_handle_interface.c</c> and
+<c>examples/interface/complex_filters.c</c> vs
+<c>examples/interface/complex_dev_handle/complex_dev_handle_filters.c</c>.
+
 \section DefiningANewDataFilter Defining A New Data Filter
 
 StarPU provides a series of predefined filters in \ref API_Data_Partition, but
