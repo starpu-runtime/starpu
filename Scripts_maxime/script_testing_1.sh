@@ -15,7 +15,7 @@ start=`date +%s`
 #~ make -j 6
 #~ Quand on lance la visu python il faut PRINTF=1 PRINT_N=$((N))
 #~ compiler avec --enable-debug puis dans gdb tools/gdbinit
-#~ --cfg=contexts/factory:thread pour simgrid
+#~ --cfg=contexts/factory:thread si j'ai un crash avec simgrid. A mettre après l'appli
 #~ -bound
 #~ -no-prio
 #~ STARPU_WATCHDOG_TIMEOUT=1000000000 STARPU_WATCHDOG_CRASH=1 
