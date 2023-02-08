@@ -35,7 +35,8 @@ TH=10
 CP=5
 
 #~ HOST="gemini-1-fgcs-36" # cop coll multi gpus
-HOST="gemini-1-cho_dep" # from grid5k perfs, multiple sizes
+#~ HOST="gemini-1-cho_dep" # from grid5k perfs, multiple sizes
+HOST="gemini-1-cho_dep_corrected" # from grid5k perfs, multiple sizes corrected links
 
 SEED=1
 
@@ -59,7 +60,7 @@ TAILLE_TUILE=$2
 
 CM=$4
 
-echo "CM =" ${CM} "BLOCK SIZE =" ${TAILLE_TUILE}
+echo "CM =" ${CM} "BLOCK SIZE =" ${TAILLE_TUILE} "HOST =" ${HOST} "NGPU =" ${NGPU}
 
 NCOMBINAISONS=4
 if [ NGPU != 1 ]
@@ -174,13 +175,14 @@ fi
 # Best ones
 algo1="DMDAR"
 algo2="DMDAS"
-algo3="DARTS"
+algo3="LWS"
+algo4="DARTS"
 
 #~ echo "N,${algo1},${algo2},${algo3},${algo4},${algo5},${algo6},${algo7},${algo8},${algo9}" > Output_maxime/Legende.txt
 #~ echo "N,${algo1},${algo2},${algo3},${algo4},${algo5},${algo6},${algo7},${algo8},${algo9},${algo10}" > Output_maxime/Legende.txt
 #~ echo "N,${algo1},${algo2},${algo3},${algo4},${algo5},${algo6}" > Output_maxime/Legende.txt
-#~ echo "N,${algo1},${algo2},${algo3},${algo4}" > Output_maxime/Legende.txt
-echo "N,${algo1},${algo2},${algo3}" > Output_maxime/Legende.txt
+echo "N,${algo1},${algo2},${algo3},${algo4}" > Output_maxime/Legende.txt
+#~ echo "N,${algo1},${algo2},${algo3}" > Output_maxime/Legende.txt
 #~ echo "N,${algo2},${algo4}" > Output_maxime/Legende.txt
 #~ echo "N,${algo1},${algo2}" > Output_maxime/Legende.txt
 
@@ -189,8 +191,8 @@ NB_TAILLE_TESTE=$3
 #~ NB_ALGO_TESTE=9
 #~ NB_ALGO_TESTE=10
 #~ NB_ALGO_TESTE=6
-#~ NB_ALGO_TESTE=4
-NB_ALGO_TESTE=3
+NB_ALGO_TESTE=4
+#~ NB_ALGO_TESTE=3
 #~ NB_ALGO_TESTE=2
 
 # Prios
@@ -677,6 +679,14 @@ do
 	sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS} >> ${FICHIER_RAW_DT}
 done
 echo "#### ${algo3} ####"
+for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+do
+	N=$((START_X+i*ECHELLE_X))
+	echo "N=${N}"
+	STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_HOSTNAME=${HOST} SEED=$((N/5)) STARPU_SCHED=lws STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS}" STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_EXPECTED_TRANSFER_TIME_WRITEBACK=1 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((TAILLE_TUILE*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW}
+	sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS} >> ${FICHIER_RAW_DT}
+done
+echo "#### ${algo4} ####"
 for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 do
 	N=$((START_X+i*ECHELLE_X))

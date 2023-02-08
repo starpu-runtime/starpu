@@ -8,6 +8,15 @@ then
 	exit
 fi
 
+NGPU=$1
+TAILLE_TUILE=$2
+NB_TAILLE_TESTE=$3
+MEMOIRE=$4
+MODEL=$5
+
 echo "Plotting"
-python3 /home/gonthier/these_gonthier_maxime/Code/Plot.py /home/gonthier/these_gonthier_maxime/Starpu/R/Data/quick_plot.csv GF $1 $2 $3 $4 $5
-python3 /home/gonthier/these_gonthier_maxime/Code/Plot.py /home/gonthier/these_gonthier_maxime/Starpu/R/Data/quick_plot_dt.csv DT $1 $2 $3 $4 $5
+mv /home/gonthier/these_gonthier_maxime/Starpu/R/Data/quick_plot.csv /home/gonthier/these_gonthier_maxime/Starpu/R/Data/Cholesky_dependances/GF_${MODEL}_${TAILLE_TUILE}_${NGPU}GPU_${MEMOIRE}Mo.csv
+python3 /home/gonthier/these_gonthier_maxime/Code/Plot.py /home/gonthier/these_gonthier_maxime/Starpu/R/Data/Cholesky_dependances/GF_${MODEL}_${TAILLE_TUILE}_${NGPU}GPU_${MEMOIRE}Mo.csv GF $1 $2 $3 $4 $5
+
+mv /home/gonthier/these_gonthier_maxime/Starpu/R/Data/quick_plot_dt.csv /home/gonthier/these_gonthier_maxime/Starpu/R/Data/Cholesky_dependances/DT_${MODEL}_${TAILLE_TUILE}_${NGPU}GPU_${MEMOIRE}Mo.csv
+python3 /home/gonthier/these_gonthier_maxime/Code/Plot.py /home/gonthier/these_gonthier_maxime/Starpu/R/Data/Cholesky_dependances/DT_${MODEL}_${TAILLE_TUILE}_${NGPU}GPU_${MEMOIRE}Mo.csv DT $1 $2 $3 $4 $5
