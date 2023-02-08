@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -116,6 +116,9 @@ int main(void)
 	starpu_data_handle_t vectorh;
 	struct starpu_vector_interface *vectori;
 	double *vector;
+
+	// When using master-slave MPI mode, it is necessary for the slaves to know about the complex interface
+	starpu_complex_data_register_ops();
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return 77;
@@ -252,7 +255,8 @@ int main(void)
 	starpu_data_unpartition(handle3, STARPU_MAIN_RAM);
 
 	/* Use helper starpu_data_cpy */
-	starpu_data_cpy(handle4, handle1, 0, NULL, NULL);
+	ret = starpu_data_cpy(handle4, handle1, 0, NULL, NULL);
+	if (ret == -ENODEV) goto end;
 	ret = starpu_task_insert(&cl_display, STARPU_VALUE, "handle4", strlen("handle4")+1, STARPU_R, handle4, 0);
 	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");

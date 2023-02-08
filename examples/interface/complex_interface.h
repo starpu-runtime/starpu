@@ -28,6 +28,7 @@ struct starpu_complex_interface
 };
 
 void starpu_complex_data_register(starpu_data_handle_t *handle, int home_node, double *real, double *imaginary, int nx);
+void starpu_complex_data_register_ops();
 
 double *starpu_complex_get_real(starpu_data_handle_t handle);
 double *starpu_complex_get_imaginary(starpu_data_handle_t handle);

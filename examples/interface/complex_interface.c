@@ -176,23 +176,59 @@ static int complex_compare(void *data_interface_a, void *data_interface_b)
 	return (complex_a->nx == complex_b->nx);
 }
 
-int copy_any_to_any(void *src_interface, unsigned src_node,
-		    void *dst_interface, unsigned dst_node,
-		    void *async_data)
+#define _pack(dst, src)   do { memcpy(dst, &src, sizeof(src)); dst += sizeof(src); } while(0)
+#define _unpack(dst, src) do { memcpy(&dst, src, sizeof(dst)); src += sizeof(dst); } while(0)
+
+static starpu_ssize_t complex_size_meta(struct starpu_complex_interface *complex_interface)
+{
+	return sizeof(complex_interface->real) + sizeof(complex_interface->imaginary) + sizeof(complex_interface->nx);
+}
+
+static int complex_pack_meta(void *data_interface, void **ptr, starpu_ssize_t *count)
+{
+ 	struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *) data_interface;
+
+	*count = complex_size_meta(complex_interface);
+	*ptr = calloc(1, *count);
+
+	char *cur = *ptr;
+	_pack(cur, complex_interface->real);
+	_pack(cur, complex_interface->imaginary);
+	_pack(cur, complex_interface->nx);
+
+	return 0;
+}
+
+static int complex_unpack_meta(void **data_interface, void *ptr, starpu_ssize_t *count)
+{
+	*data_interface = calloc(1, sizeof(struct starpu_complex_interface));
+	struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *) (*data_interface);
+	char *cur = ptr;
+
+	_unpack(complex_interface->real, cur);
+	_unpack(complex_interface->imaginary, cur);
+	_unpack(complex_interface->nx, cur);
+
+	*count = complex_size_meta(complex_interface);
+
+	return 0;
+}
+
+int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data)
 {
 	struct starpu_complex_interface *src_complex = src_interface;
 	struct starpu_complex_interface *dst_complex = dst_interface;
 	int ret = 0;
 
 	if (starpu_interface_copy((uintptr_t) src_complex->real, 0, src_node,
-				    (uintptr_t) dst_complex->real, 0, dst_node,
-				     src_complex->nx*sizeof(src_complex->real[0]),
-				     async_data))
+				  (uintptr_t) dst_complex->real, 0, dst_node,
+				  src_complex->nx*sizeof(src_complex->real[0]),
+				  async_data))
 		ret = -EAGAIN;
 	if (starpu_interface_copy((uintptr_t) src_complex->imaginary, 0, src_node,
-				    (uintptr_t) dst_complex->imaginary, 0, dst_node,
-				     src_complex->nx*sizeof(src_complex->imaginary[0]),
-				     async_data))
+				  (uintptr_t) dst_complex->imaginary, 0, dst_node,
+				  src_complex->nx*sizeof(src_complex->imaginary[0]),
+				  async_data))
 		ret = -EAGAIN;
 	return ret;
 }
@@ -217,8 +253,15 @@ struct starpu_data_interface_ops interface_complex_ops =
 	.peek_data = complex_peek_data,
 	.unpack_data = complex_unpack_data,
 	.describe = complex_describe,
-	.compare = complex_compare
+	.compare = complex_compare,
+	.pack_meta = complex_pack_meta,
+	.unpack_meta = complex_unpack_meta,
 };
+
+void starpu_complex_data_register_ops()
+{
+	starpu_data_register_ops(&interface_complex_ops);
+}
 
 void starpu_complex_data_register(starpu_data_handle_t *handleptr, int home_node, double *real, double *imaginary, int nx)
 {
@@ -228,11 +271,6 @@ void starpu_complex_data_register(starpu_data_handle_t *handleptr, int home_node
 		.imaginary = imaginary,
 		.nx = nx
 	};
-
-	if (interface_complex_ops.interfaceid == STARPU_UNKNOWN_INTERFACE_ID)
-	{
-		interface_complex_ops.interfaceid = starpu_data_interface_get_next_id();
-	}
 
 	starpu_data_register(handleptr, home_node, &complex, &interface_complex_ops);
 }
