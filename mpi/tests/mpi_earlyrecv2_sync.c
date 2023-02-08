@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -166,18 +166,19 @@ int exchange_void(int rank)
 
 void check_complex(starpu_data_handle_t handle, int i, int rank, int *error)
 {
-	double *ptr = (double *)starpu_complex_get_ptr(handle);
+	double *real = starpu_complex_get_real(handle);
+	double *imaginary = starpu_complex_get_imaginary(handle);
 
 	int other_rank = rank%2 == 0 ? rank+1 : rank-1;
 
-	if ((ptr[0] != ((i*other_rank)+12)) || (ptr[1] != ((i*other_rank)+45)))
+	if ((*real != ((i*other_rank)+12)) || (*imaginary != ((i*other_rank)+45)))
 	{
-		FPRINTF_MPI(stderr, "Incorrect received value: %f != %d || %f != %d\n", ptr[0], ((i*other_rank)+12), ptr[1], ((i*other_rank)+45));
+		FPRINTF_MPI(stderr, "Incorrect received value: %f != %d || %f != %d\n", *real, ((i*other_rank)+12), *imaginary, ((i*other_rank)+45));
 		*error = 1;
 	}
 	else
 	{
-		FPRINTF_MPI(stderr, "Correct received value: %f == %d || %f == %d\n", ptr[0], ((i*other_rank)+12), ptr[1], ((i*other_rank)+45));
+		FPRINTF_MPI(stderr, "Correct received value: %f == %d || %f == %d\n", *real, ((i*other_rank)+12), *imaginary, ((i*other_rank)+45));
 	}
 }
 
@@ -185,7 +186,8 @@ int exchange_complex(int rank)
 {
 	int ret, i;
 	starpu_data_handle_t handle[NB];
-	double *complex[NB];
+	double real[NB];
+	double imaginary[NB];
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
@@ -196,18 +198,14 @@ int exchange_complex(int rank)
 
 	for(i=0 ; i<NB ; i++)
 	{
-		complex[i] = malloc(2*sizeof(double));
-		complex[i][0] = (i*rank)+12;
-		complex[i][1] = (i*rank)+45;
-		starpu_complex_data_register(&handle[i], STARPU_MAIN_RAM, (uintptr_t)complex[i], 1);
+		real[i] = (i*rank)+12;
+		imaginary[i] = (i*rank)+45;
+		starpu_complex_data_register(&handle[i], STARPU_MAIN_RAM, &real[i], &imaginary[i], 1);
 		starpu_mpi_data_register(handle[i], i, rank);
 	}
 	ret = exchange(rank, handle, check_complex);
 	for(i=0 ; i<NB ; i++)
-	{
 		starpu_data_unregister(handle[i]);
-		free(complex[i]);
-	}
 
 	starpu_mpi_shutdown();
 

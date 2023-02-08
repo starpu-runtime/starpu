@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -62,17 +62,22 @@ int main(int argc, char **argv)
 	starpu_data_handle_t handle;
 	starpu_data_handle_t handle2;
 
-	double complex1[4] = {4.0, 2.0, 7.0, 9.0};
-	double complex2[4] = {14.0, 12.0, 17.0, 19.0};
+	double real[2] = {4.0, 2.0};
+	double imaginary[2] = {7.0, 9.0};
+
+	double real2[2] = {14.0, 12.0};
+	double imaginary2[2] = {17.0, 19.0};
 
 	if (rank == 1)
 	{
-		int i;
-		for(i=0 ; i<1 ; i++) complex1[i] = 0.0;
+		real[0] = 0.0;
+		real[1] = 0.0;
+		imaginary[0] = 0.0;
+		imaginary[1] = 0.0;
 	}
 
-	starpu_complex_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)complex1, 2);
-	starpu_complex_data_register(&handle2, -1, (uintptr_t)complex2, 2);
+	starpu_complex_data_register(&handle, STARPU_MAIN_RAM, real, imaginary, 2);
+	starpu_complex_data_register(&handle2, -1, real2, imaginary2, 2);
 
 	// Ping-pong
 	if (rank == 0)
@@ -105,8 +110,9 @@ int main(int argc, char **argv)
 	if (rank == 0)
 	{
 		starpu_data_handle_t xhandle;
-		double xcomp[2] = {4.0, 8.0};
-		starpu_complex_data_register(&xhandle, STARPU_MAIN_RAM, (uintptr_t)xcomp, 1);
+		double xreal = 4.0;
+		double ximaginary = 8.0;
+		starpu_complex_data_register(&xhandle, STARPU_MAIN_RAM, &xreal, &ximaginary, 1);
 		ret = starpu_mpi_send(xhandle, 1, 30, MPI_COMM_WORLD);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
 		starpu_data_unregister(xhandle);
@@ -115,13 +121,14 @@ int main(int argc, char **argv)
 	{
 		MPI_Status status;
 		starpu_data_handle_t xhandle;
-		double xcomp[2] = {14.0, 18.0};
-		starpu_complex_data_register(&xhandle, STARPU_MAIN_RAM, (uintptr_t)xcomp, 1);
+		double xreal = 14.0;
+		double ximaginary = 18.0;
+		starpu_complex_data_register(&xhandle, STARPU_MAIN_RAM, &xreal, &ximaginary, 1);
 		ret = starpu_mpi_recv(xhandle, 0, 30, MPI_COMM_WORLD, &status);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
 		starpu_data_unregister(xhandle);
-		FPRINTF(stderr, "[received] real %f imaginary %f\n", xcomp[0], xcomp[1]);
-		STARPU_ASSERT_MSG(xcomp[0] == 4 && xcomp[1] == 8, "Incorrect received value\n");
+		FPRINTF(stderr, "[received] real %f imaginary %f\n", xreal, ximaginary);
+		STARPU_ASSERT_MSG(xreal == 4 && ximaginary == 8, "Incorrect received value\n");
 	}
 
 	starpu_task_wait_for_all();

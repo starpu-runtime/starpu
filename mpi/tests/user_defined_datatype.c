@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -96,11 +96,13 @@ int main(int argc, char **argv)
 			starpu_data_handle_t handle_values[ELEMENTS];
 			starpu_data_handle_t handle_vars[ELEMENTS];
 
-			double complex[ELEMENTS][4];
+			double real[ELEMENTS][2];
+			double imaginary[ELEMENTS][2];
 			float foo[ELEMENTS];
 			int values[ELEMENTS];
 
-			double complex_compare[4] = {12.0, 7.0, 45.0, 42.0};
+			double real_compare[2] = {12.0, 45.0};
+			double imaginary_compare[2] = {7.0, 42.0};
 			float foo_compare=42.0;
 			int value_compare=36;
 
@@ -111,9 +113,11 @@ int main(int argc, char **argv)
 				for(i=0 ; i<ELEMENTS; i++)
 				{
 					foo[i] = -1.0;
+					real[i][0] = -1.0;
+					real[i][1] = -1.0;
+					imaginary[i][0] = -1.0;
+					imaginary[i][1] = -1.0;
 					values[i] = -1;
-					int j;
-					for(j=0 ; j<4 ; j++) complex[i][j] = -1.0;
 				}
 			}
 			if (rank == 1)
@@ -121,14 +125,16 @@ int main(int argc, char **argv)
 				for(i=0 ; i<ELEMENTS; i++)
 				{
 					foo[i] = foo_compare;
-					int j;
-					for(j=0 ; j<4 ; j++) complex[i][j] = complex_compare[j];
+					real[i][0] = real_compare[0];
+					real[i][1] = real_compare[1];
+					imaginary[i][0] = imaginary_compare[0];
+					imaginary[i][1] = imaginary_compare[1];
 					values[i] = value_compare;
 				}
 			}
 			for(i=0 ; i<ELEMENTS ; i++)
 			{
-				starpu_complex_data_register(&handle_complex[i], STARPU_MAIN_RAM, (uintptr_t)complex[i], 2);
+				starpu_complex_data_register(&handle_complex[i], STARPU_MAIN_RAM, real[i], imaginary[i], 2);
 				starpu_value_data_register(&handle_values[i], STARPU_MAIN_RAM, &values[i]);
 				starpu_variable_data_register(&handle_vars[i], STARPU_MAIN_RAM, (uintptr_t)&foo[i], sizeof(float));
 			}
@@ -157,10 +163,15 @@ int main(int argc, char **argv)
 					compare = (values[i] == value_compare);
 					FPRINTF_MPI(stderr, "%s. value[%d] = %d %s %d\n", compare==0?"ERROR":"SUCCESS", i, values[i], compare==0?"!=":"==", value_compare);
 
-					for(j=0 ; j<4 ; j++)
+					for(j=0 ; j<2 ; j++)
 					{
-						compare = (complex[i][j] == complex_compare[j]);
-						FPRINTF_MPI(stderr, "%s. real[%d][%d] = %f %s %f\n", compare==0?"ERROR":"SUCCESS", i, j, complex[i][j], compare==0?"!=":"==", complex_compare[j]);
+						compare = (real[i][j] == real_compare[j]);
+						FPRINTF_MPI(stderr, "%s. real[%d][%d] = %f %s %f\n", compare==0?"ERROR":"SUCCESS", i, j, real[i][j], compare==0?"!=":"==", real_compare[j]);
+					}
+					for(j=0 ; j<2 ; j++)
+					{
+						compare = (imaginary[i][j] == imaginary_compare[j]);
+						FPRINTF_MPI(stderr, "%s. imaginary[%d][%d] = %f %s %f\n", compare==0?"ERROR":"SUCCESS", i, j, imaginary[i][j], compare==0?"!=":"==", imaginary_compare[j]);
 					}
 				}
 			}

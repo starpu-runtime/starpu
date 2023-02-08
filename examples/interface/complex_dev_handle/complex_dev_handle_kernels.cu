@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +15,7 @@
  */
 
 #include <starpu.h>
-#include "complex_interface.h"
+#include "complex_dev_handle_interface.h"
 
 static __global__ void complex_copy_cuda(double *o_real, double *o_imaginary, double *i_real, double *i_imaginary, unsigned n)
 {
@@ -28,17 +28,17 @@ static __global__ void complex_copy_cuda(double *o_real, double *o_imaginary, do
 	}
 }
 
-extern "C" void copy_complex_codelet_cuda(void *descr[], void *_args)
+extern "C" void copy_complex_dev_handle_codelet_cuda(void *descr[], void *_args)
 {
 	(void)_args;
 
-	int nx = STARPU_COMPLEX_GET_NX(descr[0]);
+	int nx = STARPU_COMPLEX_DEV_HANDLE_GET_NX(descr[0]);
 
-	double *i_real = STARPU_COMPLEX_GET_REAL(descr[0]);
-	double *i_imaginary = STARPU_COMPLEX_GET_IMAGINARY(descr[0]);
+	double *i_real = (double*)STARPU_COMPLEX_DEV_HANDLE_GET_PTR_REAL(descr[0]);
+	double *i_imaginary = (double*)STARPU_COMPLEX_DEV_HANDLE_GET_PTR_IMAGINARY(descr[0]);
 
-	double *o_real = STARPU_COMPLEX_GET_REAL(descr[1]);
-	double *o_imaginary = STARPU_COMPLEX_GET_IMAGINARY(descr[1]);
+	double *o_real = (double*)STARPU_COMPLEX_DEV_HANDLE_GET_PTR_REAL(descr[1]);
+	double *o_imaginary = (double*)STARPU_COMPLEX_DEV_HANDLE_GET_PTR_IMAGINARY(descr[1]);
 
 	unsigned threads_per_block = 64;
 	unsigned nblocks = (nx + threads_per_block-1) / threads_per_block;

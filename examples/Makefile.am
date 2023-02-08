@@ -67,6 +67,7 @@ EXTRA_DIST = 					\
 	filters/custom_mf/custom_opencl.cl \
 	filters/custom_mf/custom_types.h \
 	interface/complex_kernels.cl \
+	interface/complex_dev_handle/complex_dev_handle_kernels.cl \
 	reductions/dot_product.h	\
 	reductions/dot_product_opencl_kernels.cl	\
 	scheduler/libdummy_sched.sh			\
@@ -144,6 +145,8 @@ noinst_HEADERS = 				\
 	filters/custom_mf/custom_types.h	\
 	interface/complex_interface.h		\
 	interface/complex_codelet.h		\
+	interface/complex_dev_handle/complex_dev_handle_interface.h		\
+	interface/complex_dev_handle/complex_dev_handle_codelet.h		\
 	pi/pi.h					\
 	pi/SobolQRNG/sobol.h			\
 	pi/SobolQRNG/sobol_gold.h		\
@@ -261,6 +264,7 @@ STARPU_EXAMPLES +=				\
 	incrementer/incrementer			\
 	binary/binary				\
 	interface/complex			\
+	interface/complex_dev_handle/complex_dev_handle			\
 	matvecmult/matvecmult			\
 	profiling/profiling			\
 	perf_monitoring/perf_counters_01	\
@@ -1311,6 +1315,22 @@ interface_complex_SOURCES +=\
 	interface/complex_kernels_opencl.c
 nobase_STARPU_OPENCL_DATA_DATA += \
 	interface/complex_kernels.cl
+endif
+
+interface_complex_dev_handle_complex_dev_handle_SOURCES	=	\
+	interface/complex_dev_handle/complex_dev_handle.c		\
+	interface/complex_dev_handle/complex_dev_handle_interface.c	\
+	interface/complex_dev_handle/complex_dev_handle_filters.c
+if STARPU_USE_CUDA
+interface_complex_dev_handle_complex_dev_handle_SOURCES	+=	\
+	interface/complex_dev_handle/complex_dev_handle_kernels.cu
+endif
+
+if STARPU_USE_OPENCL
+interface_complex_dev_handle_complex_dev_handle_SOURCES +=\
+	interface/complex_dev_handle/complex_dev_handle_kernels_opencl.c
+nobase_STARPU_OPENCL_DATA_DATA += \
+	interface/complex_dev_handle/complex_dev_handle_kernels.cl
 endif
 
 ######################
