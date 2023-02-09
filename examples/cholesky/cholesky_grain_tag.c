@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  * Copyright (C) 2013       Thibaut Lambert
  *
@@ -316,7 +316,7 @@ static int initialize_system(int argc, char **argv, float **A, unsigned pinned)
 
 	if (pinned)
 		flags |= STARPU_MALLOC_PINNED;
-	starpu_malloc_flags((void **)A, size_p*size_p*sizeof(float), flags);
+	starpu_malloc_flags((void **)A, (size_t)size_p*size_p*sizeof(float), flags);
 
 	return 0;
 }
@@ -349,7 +349,7 @@ static void shutdown_system(float **matA, unsigned dim, unsigned pinned)
 	if (pinned)
 		flags |= STARPU_MALLOC_PINNED;
 
-	starpu_free_flags(*matA, dim*dim*sizeof(float), flags);
+	starpu_free_flags(*matA, (size_t)dim*dim*sizeof(float), flags);
 
 	starpu_cublas_shutdown();
 	starpu_shutdown();
@@ -367,7 +367,7 @@ int main(int argc, char **argv)
 	if (ret) return ret;
 
 #ifndef STARPU_SIMGRID
-	unsigned m,n;
+	unsigned long long m,n;
 
 	for (n = 0; n < size_p; n++)
 	{
@@ -436,7 +436,7 @@ int main(int argc, char **argv)
 				}
 			}
 		}
-		float *test_mat = malloc(size_p*size_p*sizeof(float));
+		float *test_mat = malloc((size_t)size_p*size_p*sizeof(float));
 		STARPU_ASSERT(test_mat);
 
 		STARPU_SSYRK("L", "N", size_p, size_p, 1.0f,
@@ -471,7 +471,7 @@ int main(int argc, char **argv)
 	                                float err = fabsf(test_mat[m +n*size_p] - orig) / orig;
 	                                if (err > 0.0001)
 					{
-	                                        FPRINTF(stderr, "Error[%u, %u] --> %2.6f != %2.6f (err %2.6f)\n", m, n, test_mat[m +n*size_p], orig, err);
+						FPRINTF(stderr, "Error[%llu, %llu] --> %2.6f != %2.6f (err %2.6f)\n", m, n, test_mat[m +n*size_p], orig, err);
 	                                        assert(0);
 	                                }
 	                        }
