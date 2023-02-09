@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -203,6 +203,8 @@ PyObject* starpupy_data_register_wrapper(PyObject *self, PyObject *args)
 
 	/*register the python object*/
 	PyObject *handle_cap = starpupy_object_register(obj, NULL);
+	if (!handle_cap)
+		return handle_cap;
 
 	const char *tp = Py_TYPE(obj)->tp_name;
 	//printf("the type of object is %s\n", tp);
