@@ -301,7 +301,7 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 				}
 			}
 		}
-		float *test_mat = malloc(size*size*sizeof(float));
+		float *test_mat = malloc((size_t)size*size*sizeof(float));
 		STARPU_ASSERT(test_mat);
 
 		STARPU_SSYRK("L", "N", size, size, 1.0f,
