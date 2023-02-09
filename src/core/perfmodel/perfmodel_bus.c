@@ -751,8 +751,10 @@ static void measure_bandwidth_between_host_and_dev(int dev, struct dev_timing *d
 {
 	measure_bandwidth_between_numa_nodes_and_dev(dev, dev_timing_per_numa, type);
 
-	hwloc_obj_t obj = starpu_driver_info[STARPU_CUDA_WORKER].get_hwloc_obj(hwtopology, dev);
+	hwloc_obj_t obj = NULL;
 
+	if (starpu_driver_info[type].get_hwloc_obj)
+		obj = starpu_driver_info[type].get_hwloc_obj(hwtopology, dev);
 	if (obj)
 		obj = _starpu_numa_get_obj(obj);
 	if (obj)
