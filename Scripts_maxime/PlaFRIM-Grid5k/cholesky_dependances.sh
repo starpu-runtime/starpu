@@ -32,7 +32,7 @@ TAILLE_TUILE=$2
 
 CM=$4
 
-echo "CM =" ${CM} "BLOCK SIZE =" ${TAILLE_TUILE} "HOST =" ${HOST} "NGPU =" ${NGPU}
+echo "CM =" ${CM} "BLOCK SIZE =" ${TAILLE_TUILE} "NGPU =" ${NGPU}
 
 NCOMBINAISONS=4
 if [ NGPU != 1 ]
@@ -104,7 +104,6 @@ do
 done
 
 echo "Converting data"
-gcc -o cut_gflops_raw_out_csv cut_gflops_raw_out_csv.c
-./cut_gflops_raw_out_csv $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_RAW} Output_maxime/Data/Cholesky_dependances/quick_plot.csv
-gcc -o cut_datatransfers_raw_out_csv cut_datatransfers_raw_out_csv.c
-./cut_datatransfers_raw_out_csv $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X $NGPU ${FICHIER_RAW_DT} Output_maxime/Data/Cholesky_dependances/quick_plot_dt.csv
+mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/Data/Cholesky_dependances/quick_plot.csv
+
+mv Output_maxime/GFlops_raw_out_3.txt Output_maxime/Data/Cholesky_dependances/quick_plot_dt.csv
