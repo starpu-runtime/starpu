@@ -190,8 +190,12 @@ void new_iteration()
 	/* Re-init of planned task struct containing datanotused and other things. */
 	//~ int i = 0;
 	//~ free(my_planned_task_control);
+	
+	//printf("New iteration re-init planned task\n"); fflush(stdout);
+
 	free(tab_gpu_planned_task);
 	tab_gpu_planned_task = malloc(Ngpu*sizeof(struct gpu_planned_task));
+	memset(tab_gpu_planned_task, 0, Ngpu*sizeof(struct gpu_planned_task));
 	tab_gpu_planned_task_init();
 	
 	total_task_done = 0;
@@ -492,6 +496,10 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 					pt->tud[j] = NULL;
 				}
 			}
+			
+			#ifdef PRINT	
+			printf("Free task from push %p is put in planned task\n", task); fflush(stdout);
+			#endif
 			
 			/* Maintenant il faut push cette tâche gratuite dans planned task. On peut le faire au début de la liste ou après la dernière tâche gratuite de planned task. */
 			/* Au début */
@@ -1406,6 +1414,10 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 		/* If the package is not empty I can return the head of the task list. */
 		if (!starpu_task_list_empty(&tab_gpu_planned_task[current_gpu - 1].planned_task))
 		{
+			#ifdef PRINT
+			printf("Head is %p\n", starpu_task_list_begin(&tab_gpu_planned_task[current_gpu - 1].planned_task)); fflush(stdout);
+			#endif
+
 			task = starpu_task_list_pop_front(&tab_gpu_planned_task[current_gpu - 1].planned_task);
 
 			/* Remove it from planned task compteur. Could be done in an external function as I use it two times */
@@ -2008,7 +2020,8 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 					{
 						if(e->D == STARPU_TASK_GET_HANDLE(task, i))
 						{
-							printf("First task. Erase data %p from GPU %d\n", e->D, current_gpu - 1); fflush(stdout);
+							//printf("First task. Erase data %p from GPU %d\n", e->D, current_gpu - 1); fflush(stdout);
+							
 							gpu_data_not_used_list_erase(g->gpu_data, e);
 							print_data_not_used_yet();
 							hud = e->D->user_data;
@@ -2826,7 +2839,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		increment_planned_task_data(task, current_gpu);
 		
 		#ifdef PRINT
-		printf("For GPU %d, returning head of the randomized main task list: %p.\n", current_gpu, task); fflush(stdout);
+		printf("For GPU %d, returning head of the randomized main task list in planned_task: %p.\n", current_gpu, task); fflush(stdout);
 		#endif
 		
 		erase_task_and_data_pointer(task, main_task_list);
@@ -3679,8 +3692,10 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	graph_descendants = starpu_get_env_number_default("GRAPH_DESCENDANTS", 0); /* 0 ou 1 ou 2 */
 	dopt_selection_order = starpu_get_env_number_default("DOPT_SELECTION_ORDER", 0);
 	highest_priority_task_returned_in_default_case = starpu_get_env_number_default("HIGHEST_PRIORITY_TASK_RETURNED_IN_DEFAULT_CASE", 0);
-	
+
+	#ifdef PRINT	
 	printf("-----\nEVICTION_STRATEGY_DYNAMIC_DATA_AWARE = %d\nTHRESHOLD = %d\nAPP = %d\nCHOOSE_BEST_DATA_FROM = %d\nSIMULATE_MEMORY = %d\nTASK_ORDER = %d\nDATA_ORDER = %d\nDEPENDANCES = %d\nPRIO = %d\nFREE_PUSHED_TASK_POSITION = %d\nGRAPH_DESCENDANTS = %d\nDOPT_SELECTION_ORDER = %d\nPRIORITY_ATTRIBUTION = %d\nHIGHEST_PRIORITY_TASK_RETURNED_IN_DEFAULT_CASE = %d\n-----\n", eviction_strategy_dynamic_data_aware, threshold, app, choose_best_data_from, simulate_memory, task_order, data_order, dependances, prio, free_pushed_task_position, graph_descendants, dopt_selection_order, starpu_get_env_number_default("PRIORITY_ATTRIBUTION", 0), highest_priority_task_returned_in_default_case);
+	#endif
 	
 	/* Initialization of global variables. */
 	Ngpu = get_number_GPU();

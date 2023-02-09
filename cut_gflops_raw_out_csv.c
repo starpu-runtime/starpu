@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
     fichier_in = fopen(argv[5], "r");
     fichier_out = fopen(argv[6], "w+");
     int ecart_type = 1; /* A bool basically to separate gemm for cholesky for now */
-    
+// printf("1.\n"); fflush(stdout);    
     if (fichier_in != NULL)
     {
 		c = fgetc(fichier_in);
@@ -89,6 +89,7 @@ int main(int argc, char *argv[])
 		c = fgetc(f_legende);
 		while (c != '\n')
 		{
+//			printf(" c = %c\n"); fflush(stdout);
 			fprintf(fichier_out, "%c", c);
 			c = fgetc(f_legende);
 			//~ if (c == '	') { count++; }
@@ -124,6 +125,7 @@ int main(int argc, char *argv[])
 			
 		for (j = 0; j < NOMBRE_DE_TAILLES_DE_MATRICES; j++)
 		{
+//			printf("j = %d\n", j); fflush(stdout);
 			fprintf(fichier_out,"%d",ECHELLE_X*(j+1)+START_X);
 			if (ecart_type == 0)
 			{
@@ -172,7 +174,8 @@ int main(int argc, char *argv[])
 			
 			fprintf(fichier_out,"\n"); 
 			rewind(fichier_in);
-		}	
+		}
+//		printf("2\n");	
 		fclose(fichier_in);
 		fclose(fichier_out);
     }
