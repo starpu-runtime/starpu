@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2021       Federal University of Rio Grande do Sul (UFRGS)
@@ -1086,5 +1086,5 @@ void starpu_filter_nparts_compute_chunk_size_and_offset(unsigned n, unsigned npa
 	 * offset = total * elemsize * blocksize;
 	 */
 	if (offset != NULL)
-		*offset = (id *(n/nparts) + STARPU_MIN(remainder, id)) * blocksize * elemsize;
+		*offset = (id *(n/nparts) + STARPU_MIN(remainder, id)) * (size_t) blocksize * elemsize;
 }
