@@ -1,6 +1,6 @@
-# bash Scripts_maxime/plaFRIM-Grid5k/cholesky_dependances.sh NGPU TAILLE_TUILE NB_TAILLE_TESTE MEMOIRE
+# bash Scripts_maxime/PlaFRIM-Grid5k/cholesky_dependances.sh NGPU TAILLE_TUILE NB_TAILLE_TESTE MEMOIRE
 
-# bash Scripts_maxime/plaFRIM-Grid5k/cholesky_dependances.sh 1 1920 12 2000
+# bash Scripts_maxime/PlaFRIM-Grid5k/cholesky_dependances.sh 1 1920 12 2000
 
 if [ $# != 4 ]
 then
@@ -105,6 +105,6 @@ done
 
 echo "Converting data"
 gcc -o cut_gflops_raw_out_csv cut_gflops_raw_out_csv.c
-./cut_gflops_raw_out_csv $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_RAW} Data/Cholesky_dependances/quick_plot.csv
+./cut_gflops_raw_out_csv $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_RAW} Output_maxime/Data/Cholesky_dependances/quick_plot.csv
 gcc -o cut_datatransfers_raw_out_csv cut_datatransfers_raw_out_csv.c
-./cut_datatransfers_raw_out_csv $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X $NGPU ${FICHIER_RAW_DT} Data/Cholesky_dependances/quick_plot_dt.csv
+./cut_datatransfers_raw_out_csv $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X $NGPU ${FICHIER_RAW_DT} Output_maxime/Data/Cholesky_dependances/quick_plot_dt.csv
