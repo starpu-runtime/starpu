@@ -106,7 +106,7 @@ static double numa_timing[STARPU_MAXNUMANODES][STARPU_MAXNUMANODES];
 
 static uint64_t cuda_size[STARPU_MAXCUDADEVS];
 static char cuda_devname[STARPU_MAXCUDADEVS][256];
-#if defined(STARPU_USA_CUDA) || defined(STARPU_USE_OPENCL)
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 static int gpu_numa[STARPU_NARCH][STARPU_NMAXDEVS]; /* hwloc NUMA logical ID */
 #endif
 #endif
