@@ -713,8 +713,8 @@ int _starpu_hip_driver_init(struct _starpu_worker *worker)
 	STARPU_PTHREAD_MUTEX_LOCK(&worker0->mutex);
 	worker0->status = STATUS_UNKNOWN;
 	worker0->worker_is_initialized = 1;
-	STARPU_PTHREAD_COND_SIGNAL(&worker->ready_cond);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&worker->mutex);
+	STARPU_PTHREAD_COND_SIGNAL(&worker0->ready_cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&worker0->mutex);
 
 	/* tell the main thread that this one is also ready */
 	STARPU_PTHREAD_MUTEX_LOCK(&worker_set->mutex);
