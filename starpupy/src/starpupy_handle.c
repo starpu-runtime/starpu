@@ -203,12 +203,8 @@ PyObject* starpupy_data_register_wrapper(PyObject *self, PyObject *args)
 
 	/*register the python object*/
 	PyObject *handle_cap = starpupy_object_register(obj, NULL);
-	
-	if(handle_cap == NULL)
-	{
-		Py_XDECREF(handle_cap);
-		return NULL;
-	}
+	if (!handle_cap)
+		return handle_cap;
 
 	const char *tp = Py_TYPE(obj)->tp_name;
 	//printf("the type of object is %s\n", tp);

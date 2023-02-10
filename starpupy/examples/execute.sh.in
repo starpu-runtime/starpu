@@ -1,7 +1,7 @@
 #!@REALBASH@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -62,12 +62,14 @@ fi
 mpi=""
 gdb=""
 MPI_LOADER=""
+valgrind=""
 
 read_arg()
 {
     do_shift=0
     if test "$1" == "--valgrind"
     then
+	valgrind="valgrind"
 	export PYTHONMALLOC=malloc
 	LOADER="$LOADER valgrind --track-origins=yes"
 	do_shift=1
@@ -100,7 +102,10 @@ if test "$mpi" == "mpi"
 then
     if test -n "$gdb"
     then
-	MPI_LOADER="$MPI_LAUNCHER xterm -sl 10000 -hold -e"
+	MPI_LOADER="$MPI_LAUNCHER xterm $XTERM_PARAMS -sl 10000 -e"
+    elif test -n "$valgrind"
+    then
+	MPI_LOADER="$MPI_LAUNCHER xterm $XTERM_PARAMS -sl 10000 -hold -e"
     else
 	MPI_LOADER="$MPI_LAUNCHER"
     fi

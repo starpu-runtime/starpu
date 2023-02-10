@@ -33,7 +33,6 @@ TESTS	+=	starpu_py.sh
 TESTS	+=	starpu_py_parallel.sh
 
 if STARPU_STARPUPY_NUMPY
-TESTS	+=	starpu_py_parallel.sh
 TESTS	+=	starpu_py_np.sh
 TESTS	+=	starpu_py_handle.sh
 TESTS	+=	starpu_py_partition.sh

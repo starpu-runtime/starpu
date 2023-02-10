@@ -534,18 +534,18 @@ static int pybuffer_meta_size(struct starpupy_buffer_interface *pybuffer_interfa
 	starpu_ssize_t count;
 
 	count = sizeof(pybuffer_interface->buffer_type) +
-	      /* sizeof(pybuffer_interface->object) +    => built on the fly */
-	         sizeof(pybuffer_interface->py_buffer) +
-	         sizeof(pybuffer_interface->buffer_size) +
-	         sizeof(pybuffer_interface->dim_size) +
-	         sizeof(pybuffer_interface->array_type) +
-	         sizeof(pybuffer_interface->item_size) +
-	         sizeof(pybuffer_interface->typecode);
+		/* sizeof(pybuffer_interface->object) +    => built on the fly */
+		sizeof(pybuffer_interface->py_buffer) +
+		sizeof(pybuffer_interface->buffer_size) +
+		sizeof(pybuffer_interface->dim_size) +
+		sizeof(pybuffer_interface->array_type) +
+		sizeof(pybuffer_interface->item_size) +
+		sizeof(pybuffer_interface->typecode) + 2*sizeof(int);
 	count += pybuffer_interface->dim_size * (
 #ifdef STARPU_PYTHON_HAVE_NUMPY
-		 sizeof(pybuffer_interface->array_dim[0]) +
+		sizeof(pybuffer_interface->array_dim[0]) +
 #endif
-		 sizeof(pybuffer_interface->shape[0]));
+		sizeof(pybuffer_interface->shape[0]));
 
 	return count;
 }
@@ -567,12 +567,20 @@ static int pybuffer_pack_meta(void *data_interface, void **ptr, starpu_ssize_t *
 	_pack(cur, pybuffer_interface->typecode);
 
 #ifdef STARPU_PYTHON_HAVE_NUMPY
-	memcpy(cur, pybuffer_interface->array_dim,
-		pybuffer_interface->dim_size * sizeof(pybuffer_interface->array_dim[0]));
-	cur += pybuffer_interface->dim_size * sizeof(pybuffer_interface->array_dim[0]);
+	int array_dim = pybuffer_interface->array_dim ? 1 : 0;
+	_pack(cur, array_dim);
+	if (pybuffer_interface->array_dim)
+	{
+		memcpy(cur, pybuffer_interface->array_dim,
+		       pybuffer_interface->dim_size * sizeof(pybuffer_interface->array_dim[0]));
+		cur += pybuffer_interface->dim_size * sizeof(pybuffer_interface->array_dim[0]);
+	}
 #endif
-	memcpy(cur, pybuffer_interface->shape,
-		pybuffer_interface->dim_size * sizeof(pybuffer_interface->shape[0]));
+	int shape = pybuffer_interface->shape ? 1 : 0;
+	_pack(cur, shape);
+	if (pybuffer_interface->shape)
+		memcpy(cur, pybuffer_interface->shape,
+		       pybuffer_interface->dim_size * sizeof(pybuffer_interface->shape[0]));
 	return 0;
 }
 
@@ -592,16 +600,30 @@ static int pybuffer_unpack_meta(void **data_interface, void *ptr, starpu_ssize_t
 	_unpack(pybuffer_interface->typecode, cur);
 
 #ifdef STARPU_PYTHON_HAVE_NUMPY
-	_STARPU_MALLOC(pybuffer_interface->array_dim,
-		pybuffer_interface->dim_size * sizeof(pybuffer_interface->array_dim[0]));
-	memcpy(pybuffer_interface->array_dim, cur,
-		pybuffer_interface->dim_size * sizeof(pybuffer_interface->array_dim[0]));
-	cur += pybuffer_interface->dim_size * sizeof(pybuffer_interface->array_dim[0]);
+	int array_dim;
+	_unpack(array_dim, cur);
+	if (array_dim)
+	{
+		_STARPU_MALLOC(pybuffer_interface->array_dim,
+			       pybuffer_interface->dim_size * sizeof(pybuffer_interface->array_dim[0]));
+		memcpy(pybuffer_interface->array_dim, cur,
+		       pybuffer_interface->dim_size * sizeof(pybuffer_interface->array_dim[0]));
+		cur += pybuffer_interface->dim_size * sizeof(pybuffer_interface->array_dim[0]);
+	}
+	else
+		pybuffer_interface->array_dim = NULL;
 #endif
-	_STARPU_MALLOC(pybuffer_interface->shape,
+	int shape;
+	_unpack(shape, cur);
+	if (shape)
+	{
+		_STARPU_MALLOC(pybuffer_interface->shape,
+			       pybuffer_interface->dim_size * sizeof(pybuffer_interface->shape[0]));
+		memcpy(pybuffer_interface->shape, cur,
 		       pybuffer_interface->dim_size * sizeof(pybuffer_interface->shape[0]));
-	memcpy(pybuffer_interface->shape, cur,
-	       pybuffer_interface->dim_size * sizeof(pybuffer_interface->shape[0]));
+	}
+	else
+		pybuffer_interface->shape = NULL;
 
 	*count = pybuffer_meta_size(pybuffer_interface);
 
