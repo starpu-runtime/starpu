@@ -304,7 +304,7 @@ extern "C" {
 		{                                                                                                      \
 			STARPU_DUMP_BACKTRACE();                                                                       \
 			fprintf(stderr, "\n[starpu][%s][assert failure] " msg "\n\n", __starpu_func__, ##__VA_ARGS__); \
-			STARPU_SIMGRID_ASSERT(0 && #x);                                                                      \
+			STARPU_SIMGRID_ASSERT(0 && #x);                                                                \
 			*(int *)NULL = 0;                                                                              \
 		}                                                                                                      \
 	}                                                                                                              \
@@ -316,8 +316,10 @@ extern "C" {
 		{                                                                                                      \
 			STARPU_DUMP_BACKTRACE();                                                                       \
 			fprintf(stderr, "\n[starpu][%s][assert failure] " msg "\n\n", __starpu_func__, ##__VA_ARGS__); \
-			STARPU_SIMGRID_ASSERT(0 && #x);                                                                      \
-			assert(0 && #x);                                                                                     \
+			STARPU_SIMGRID_ASSERT(0 && #x);                                                                \
+			assert(0 && #x);                                                                               \
+			abort();                                                                                       \
+			*(int *)NULL = 0;                                                                              \
 		}                                                                                                      \
 	}                                                                                                              \
 	while (0)
