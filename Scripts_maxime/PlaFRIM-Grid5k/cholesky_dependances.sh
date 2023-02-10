@@ -1,10 +1,11 @@
-# bash Scripts_maxime/PlaFRIM-Grid5k/cholesky_dependances.sh NGPU TAILLE_TUILE NB_TAILLE_TESTE MEMOIRE
+# bash Scripts_maxime/PlaFRIM-Grid5k/cholesky_dependances.sh NGPU TAILLE_TUILE NB_TAILLE_TESTE MEMOIRE MODEL
 
-# bash Scripts_maxime/PlaFRIM-Grid5k/cholesky_dependances.sh 1 1920 12 2000
+# bash Scripts_maxime/PlaFRIM-Grid5k/cholesky_dependances.sh 1 1920 12 2000 best_ones
+# bash Scripts_maxime/PlaFRIM-Grid5k/cholesky_dependances.sh 2 1920 12 2000 best_ones
 
-if [ $# != 4 ]
+if [ $# != 5 ]
 then
-	echo "Arguments must be: bash Scripts_maxime/quick_plot1.sh NGPU TAILLE_TUILE NB_TAILLE_TESTE MEMOIRE"
+	echo "Arguments must be: bash Scripts_maxime/quick_plot1.sh NGPU TAILLE_TUILE NB_TAILLE_TESTE MEMOIRE MODEL"
 	exit
 fi
 
@@ -31,6 +32,7 @@ NITER=1
 TAILLE_TUILE=$2
 
 CM=$4
+MODEL=$5
 
 echo "CM =" ${CM} "BLOCK SIZE =" ${TAILLE_TUILE} "NGPU =" ${NGPU}
 
@@ -104,6 +106,6 @@ do
 done
 
 echo "Converting data"
-mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/Data/Cholesky_dependances/quick_plot.csv
+mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/Data/Cholesky_dependances/GF_${MODEL}_${TAILLE_TUILE}_${NGPU}GPU_${MEMOIRE}Mo.csv
 
-mv Output_maxime/GFlops_raw_out_3.txt Output_maxime/Data/Cholesky_dependances/quick_plot_dt.csv
+mv Output_maxime/GFlops_raw_out_3.txt Output_maxime/Data/Cholesky_dependances/DT_${MODEL}_${TAILLE_TUILE}_${NGPU}GPU_${MEMOIRE}Mo.csv
