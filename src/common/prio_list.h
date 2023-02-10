@@ -578,6 +578,10 @@
 	{ return ENAME##_list_alpha(&(priolist)->list); } \
 	PRIO_LIST_INLINE struct ENAME *ENAME##_prio_list_prev(struct ENAME##_prio_list *priolist STARPU_ATTRIBUTE_UNUSED, const struct ENAME *i) \
 	{ return ENAME##_list_prev(i); } \
+	PRIO_LIST_INLINE struct ENAME *ENAME##_prio_list_prev_highest(struct ENAME##_prio_list *priolist STARPU_ATTRIBUTE_UNUSED, const struct ENAME *i) \
+	{ return ENAME##_list_prev(i); } \
+	PRIO_LIST_INLINE struct ENAME *ENAME##_prio_list_next_lowest(struct ENAME##_prio_list *priolist STARPU_ATTRIBUTE_UNUSED, const struct ENAME *i) \
+	{ return ENAME##_list_next(i); } \
 
 #endif
 
