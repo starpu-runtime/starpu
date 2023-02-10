@@ -437,8 +437,8 @@ int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 	uintptr_t buffer_ptr;
 	int buffer_size = 0, arg_size =0;
 	unsigned i;
-	starpu_ssize_t interface_size[nb_interfaces];
-	void *interface_ptr[nb_interfaces];
+	starpu_ssize_t interface_size[nb_interfaces ? nb_interfaces : 1];
+	void *interface_ptr[nb_interfaces ? nb_interfaces : 1];
 
 	buffer_size = sizeof(kernel) + sizeof(coreid) + sizeof(type) + sizeof(detached) + sizeof(nb_interfaces) + sizeof(is_parallel_task);
 	for (i = 0; i < nb_interfaces; i++)
