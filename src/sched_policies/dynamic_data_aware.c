@@ -150,6 +150,13 @@ static void set_priority(void *_data, struct _starpu_graph_node *node)
 /* Fonction appellé directement dans l'application à la fin d'une itération. Je l'ai fais pour Cholesky et GEMM faut le faire pour de futures applications. */
 void new_iteration()
 {
+	#ifdef REFINED_MUTEX
+	STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
+	#endif
+	#ifdef LINEAR_MUTEX
+	STARPU_PTHREAD_MUTEX_LOCK(&linear_mutex);
+	#endif
+
 	/* Printing stats in files. Préciser PRINT_N dans les var d'env. */	
 	#ifdef PRINT
 	printf("############### Itération n°%d ###############\n", iteration_DARTS + 1); fflush(stdout);
@@ -194,27 +201,21 @@ void new_iteration()
 	//printf("New iteration re-init planned task\n"); fflush(stdout);
 
 	free(tab_gpu_planned_task);
+	/* Re-init */
 	tab_gpu_planned_task = malloc(Ngpu*sizeof(struct gpu_planned_task));
 	memset(tab_gpu_planned_task, 0, Ngpu*sizeof(struct gpu_planned_task));
 	tab_gpu_planned_task_init();
 	
+	//printf("Head of planned task is %p\n", starpu_task_list_begin(&tab_gpu_planned_task[0].planned_task)); fflush(stdout);
+
 	total_task_done = 0;
 	
-	//~ gpu_planned_task_initialisation();
-	//~ for (i = 0; i < Ngpu - 1; i++)
-	//~ {
-		//~ gpu_planned_task_insertion();
-	//~ }
-	//~ my_planned_task_control->first = my_planned_task_control->pointer;
-
-	/* TODO : Utile ? On pourrait free le tableau de pulled_task non ? */
-	//~ free(my_pulled_task_control);
-	//~ gpu_pulled_task_initialisation();
-	//~ for (i = 0; i < Ngpu - 1; i++)
-	//~ {
-		//~ gpu_pulled_task_insertion();
-	//~ }
-	//~ my_pulled_task_control->first = my_pulled_task_control->pointer;
+	#ifdef REFINED_MUTEX
+	STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
+	#endif
+	#ifdef LINEAR_MUTEX
+	STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
+	#endif
 }
 
 void print_task_info(struct starpu_task* task)
@@ -1576,6 +1577,7 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 		#ifdef PRINT_STATS
 		nb_new_task_initialized++;
 		#endif
+		
 		#ifdef PRINT
 		printf("New tasks in pull_task.\n"); fflush(stdout);
 		#endif
