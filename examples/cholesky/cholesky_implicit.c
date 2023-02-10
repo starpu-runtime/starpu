@@ -344,13 +344,13 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 	 */
 
 #ifndef STARPU_SIMGRID
-	unsigned m,n;
+	unsigned long long m,n;
 	starpu_malloc_flags((void **)&mat, (size_t)size*size*sizeof(float), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 	for (n = 0; n < size; n++)
 	{
 		for (m = 0; m < size; m++)
 		{
-			mat[m +n*size] = (1.0f/(1.0f+m+n)) + ((m == n)?1.0f*size:0.0f);
+			mat[m +n*size] = (1.0f/(1.0f+m+n)) + ((m == n)?1.0f*2*size:0.0f);
 			//~ mat[m +n*size] = (1.0f/(1.0f+m+n)) + ((m == n)?1.0f*10*size:0.0f);
 			/* mat[m +n*size] = ((m == n)?1.0f*size:0.0f); */
 		}
@@ -413,7 +413,7 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 				}
 			}
 		}
-		float *test_mat = malloc(size*size*sizeof(float));
+		float *test_mat = malloc((size_t)size*size*sizeof(float));
 		STARPU_ASSERT(test_mat);
 
 		STARPU_SSYRK("L", "N", size, size, 1.0f,
@@ -448,7 +448,7 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 	                                float err = fabsf(test_mat[m +n*size] - orig) / orig;
 	                                if (err > 0.0001)
 					{
-	                                        FPRINTF(stderr, "Error[%u, %u] --> %2.6f != %2.6f (err %2.6f)\n", m, n, test_mat[m +n*size], orig, err);
+	                                        FPRINTF(stderr, "Error[%llu, %llu] --> %2.6f != %2.6f (err %2.6f)\n", m, n, test_mat[m +n*size], orig, err);
 	                                        assert(0);
 	                                }
 	                        }

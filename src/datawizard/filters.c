@@ -1051,7 +1051,7 @@ starpu_filter_nparts_compute_chunk_size_and_offset(unsigned n, unsigned nparts,
 	 * offset = total * elemsize * ld;
 	 */
 	if (offset != NULL)
-		*offset = (id *(n/nparts) + STARPU_MIN(remainder, id)) * ld * elemsize;
+		*offset = (id *(n/nparts) + STARPU_MIN(remainder, id)) *(size_t)ld * elemsize;
 }
 
 void starpu_data_partition_not_automatic(starpu_data_handle_t handle)
