@@ -540,7 +540,10 @@ static int pybuffer_meta_size(struct starpupy_buffer_interface *pybuffer_interfa
 		sizeof(pybuffer_interface->dim_size) +
 		sizeof(pybuffer_interface->array_type) +
 		sizeof(pybuffer_interface->item_size) +
-		sizeof(pybuffer_interface->typecode) + 2*sizeof(int);
+		sizeof(pybuffer_interface->typecode) + sizeof(int);
+#ifdef STARPU_PYTHON_HAVE_NUMPY
+	count += sizeof(int);
+#endif
 	count += pybuffer_interface->dim_size * (
 #ifdef STARPU_PYTHON_HAVE_NUMPY
 		sizeof(pybuffer_interface->array_dim[0]) +
