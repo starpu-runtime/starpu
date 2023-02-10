@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -98,6 +98,12 @@
  *
  * * Return the previous cell of the list
  * struct FOO*	FOO_prio_list_prev(struct FOO_prio_list*, struct FOO*)
+ *
+ * Return the previous cell of the same priority, or the last cell of next highest priority
+ * struct FOO*	FOO_prio_list_prev_highest(struct FOO_prio_list*, struct FOO*)
+ *
+ * Return the next cell of the same priority, or the first cell of next lowest priority
+ * struct FOO*	FOO_prio_list_next_lowest(struct FOO_prio_list*, struct FOO*)
  *
  * PRIO_LIST_TYPE assumes that LIST_TYPE has already been called to create the
  * final structure.
@@ -471,6 +477,32 @@
 		if (!ENAME##_prio_list_get_prev_nonempty_stage(priolist, node, &node, &stage)) \
 			return NULL; \
 		return ENAME##_list_last(&stage->list); \
+	} \
+	PRIO_LIST_INLINE struct ENAME *ENAME##_prio_list_prev_highest(struct ENAME##_prio_list *priolist, const struct ENAME *i) \
+	{ \
+		struct ENAME *next = ENAME##_list_prev(i); \
+		if (next != ENAME##_list_alpha(NULL)) \
+			return next; \
+		struct starpu_rbtree_node *node = starpu_rbtree_lookup(&priolist->tree, i->PRIOFIELD, ENAME##_prio_list_cmp_fn); \
+		assert(node); \
+		struct ENAME##_prio_list_stage *stage; \
+		node = starpu_rbtree_next(node); \
+		if (!ENAME##_prio_list_get_next_nonempty_stage(priolist, node, &node, &stage)) \
+			return NULL; \
+		return ENAME##_list_last(&stage->list); \
+	} \
+	PRIO_LIST_INLINE struct ENAME *ENAME##_prio_list_next_lowest(struct ENAME##_prio_list *priolist, const struct ENAME *i) \
+	{ \
+		struct ENAME *next = ENAME##_list_next(i); \
+		if (next != ENAME##_list_end(NULL)) \
+			return next; \
+		struct starpu_rbtree_node *node = starpu_rbtree_lookup(&priolist->tree, i->PRIOFIELD, ENAME##_prio_list_cmp_fn); \
+		assert(node); \
+		struct ENAME##_prio_list_stage *stage; \
+		node = starpu_rbtree_prev(node); \
+		if (!ENAME##_prio_list_get_prev_nonempty_stage(priolist, node, &node, &stage)) \
+			return NULL; \
+		return ENAME##_list_begin(&stage->list); \
 	} \
 
 #else
