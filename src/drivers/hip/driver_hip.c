@@ -1282,14 +1282,14 @@ static void start_job_on_hip(struct _starpu_job *j, struct _starpu_worker *worke
 	{
 		_STARPU_TRACE_START_EXECUTING();
 #ifdef STARPU_PROF_TOOL
-		pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_start_gpu_exec, worker->devid, worker->workerid, starpu_prof_tool_driver_hip, -1, (void*)func);
+		pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_start_gpu_exec, worker->devid, worker->workerid, starpu_prof_tool_driver_gpu, -1, (void*)func);
 		starpu_prof_tool_callbacks.starpu_prof_tool_event_start_gpu_exec(&pi, NULL, NULL);
 #endif
 
 		func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
 
 #ifdef STARPU_PROF_TOOL
-		pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_gpu_exec, worker->devid, worker->workerid, starpu_prof_tool_driver_hip, -1, (void*)func);
+		pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_gpu_exec, worker->devid, worker->workerid, starpu_prof_tool_driver_gpu, -1, (void*)func);
 		starpu_prof_tool_callbacks.starpu_prof_tool_event_end_gpu_exec(&pi, NULL, NULL);
 #endif
 		_STARPU_TRACE_END_EXECUTING();
