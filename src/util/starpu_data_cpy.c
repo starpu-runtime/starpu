@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -106,6 +106,7 @@ static struct starpu_perfmodel copy_model =
 
 static struct starpu_codelet copy_cl =
 {
+	.where = STARPU_CPU|STARPU_CUDA|STARPU_HIP|STARPU_OPENCL,
 	.cpu_funcs = {common_data_cpy_func},
 	.cuda_funcs = {common_data_cpy_func},
 	.opencl_funcs = {common_data_cpy_func},
@@ -151,13 +152,10 @@ int _starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_h
 	task->synchronous = !asynchronous;
 
 	int ret = _starpu_task_submit_internally(task);
-	if (ret == -ENODEV)
-		return ret;
-	else
-	{
-		STARPU_ASSERT_MSG(!ret, "Task data copy failed with code: %d\n", ret);
-		return 0;
-	}
+	STARPU_ASSERT_MSG(ret != -ENODEV, "Implementation of _starpu_data_cpy is needed for this only available architecture\n");
+	STARPU_ASSERT_MSG(!ret, "Task data copy failed with code: %d\n", ret);
+
+	return 0;
 }
 
 int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle,
