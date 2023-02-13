@@ -1803,7 +1803,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 		STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 		init_count--;
 
-		_starpu_destroy_machine_config(&_starpu_config);
+		_starpu_destroy_machine_config(&_starpu_config, is_a_sink);
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 		if (_starpu_mpi_common_is_mp_initialized())

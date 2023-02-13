@@ -308,7 +308,14 @@ static void _starpu_sink_common_recv_workers(struct _starpu_mp_node * node, void
 	int baseworkerid = *(int *)arg_ptr;
 	arg_ptr += sizeof(baseworkerid);
 
+	/* Clear data we won't use */
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
+	for(i=0; i<config->topology.nworkers; i++)
+	{
+		free(config->workers[i].perf_arch.devices);
+		config->workers[i].perf_arch.devices = NULL;
+	}
+
 	config->topology.nworkers = *(int *)arg_ptr;
 
 	/* Retrieve workers */
@@ -498,6 +505,13 @@ void _starpu_sink_common_worker(void)
 
 	/* Deinitialize the node and release it */
 	_starpu_mp_common_node_destroy(node);
+
+	starpu_perfmodel_free_sampling();
+	_starpu_profiling_terminate();
+	_starpu_perf_knob_exit();
+	_starpu_perf_counter_exit();
+
+	_starpu_destroy_machine_config(&_starpu_config, 1);
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	_starpu_mpi_common_mp_deinit();

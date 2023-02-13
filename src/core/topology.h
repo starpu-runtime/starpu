@@ -95,7 +95,7 @@ unsigned _starpu_get_next_bindid(struct _starpu_machine_config *config, unsigned
 				 unsigned *preferred_binding, unsigned npreferred);
 
 /** Should be called instead of _starpu_destroy_topology when _starpu_build_topology returns a non zero value. */
-void _starpu_destroy_machine_config(struct _starpu_machine_config *config);
+void _starpu_destroy_machine_config(struct _starpu_machine_config *config, int no_mp_config);
 
 /** Destroy all resources used to store the topology of the machine. */
 void _starpu_destroy_topology(struct _starpu_machine_config *config);

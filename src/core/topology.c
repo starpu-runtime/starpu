@@ -1308,11 +1308,12 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 	return 0;
 }
 
-void _starpu_destroy_machine_config(struct _starpu_machine_config *config)
+void _starpu_destroy_machine_config(struct _starpu_machine_config *config, int no_mp_config)
 {
 	_starpu_close_debug_logfile();
 
 	unsigned worker;
+	if (!no_mp_config)
 	for (worker = 0; worker < config->topology.nworkers; worker++)
 	{
 		struct _starpu_worker *workerarg = &config->workers[worker];
@@ -1843,7 +1844,7 @@ static int _starpu_find_pu_driving_numa_up(hwloc_obj_t root, unsigned node)
 }
 #endif
 
-static void _starpu_init_workers_binding_and_memory(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED)
+static void _starpu_init_workers_binding_and_memory(struct _starpu_machine_config *config, int no_mp_config)
 {
 	/* We will store all the busid of the different (src, dst)
 	 * combinations in a matrix which we initialize here. */
@@ -1860,6 +1861,7 @@ static void _starpu_init_workers_binding_and_memory(struct _starpu_machine_confi
 
 	/* First determine the CPU binding */
 	unsigned worker;
+	if (!no_mp_config)
 	for (worker = 0; worker < config->topology.nworkers; worker++)
 	{
 		struct _starpu_worker *workerarg = &config->workers[worker];
@@ -1933,6 +1935,7 @@ static void _starpu_init_workers_binding_and_memory(struct _starpu_machine_confi
 	_starpu_init_numa_bus();
 
 	/* Eventually initialize accelerators memory nodes */
+	if (!no_mp_config)
 	for (worker = 0; worker < config->topology.nworkers; worker++)
 	{
 		struct _starpu_worker *workerarg = &config->workers[worker];
@@ -1947,6 +1950,7 @@ static void _starpu_init_workers_binding_and_memory(struct _starpu_machine_confi
 #if defined(STARPU_HAVE_HWLOC) && !defined(STARPU_SIMGRID)
 	/* If some NUMA nodes don't have drivers, attribute some */
 	unsigned node, nnodes = starpu_memory_nodes_get_count();;
+	if (!no_mp_config)
 	for (node = 0; node < nnodes; node++)
 	{
 		if (starpu_node_get_kind(node) != STARPU_CPU_RAM)
@@ -2025,7 +2029,7 @@ void _starpu_destroy_topology(struct _starpu_machine_config *config STARPU_ATTRI
 	/* cleanup StarPU internal data structures */
 	_starpu_memory_nodes_deinit();
 
-	_starpu_destroy_machine_config(config);
+	_starpu_destroy_machine_config(config, 0);
 
 	_starpu_deinitialize_workers_bindid(config);
 }
