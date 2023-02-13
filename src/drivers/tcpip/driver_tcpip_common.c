@@ -1146,11 +1146,11 @@ static void _starpu_tcpip_common_action_socket(what_t what, const char * whatstr
 		if (is_sender)
 		{
 			char *c = malloc(len);
-			memcpy(c, buf, len);
+			memcpy(c, msg, len);
 			free(c);
 		}
 		else
-			memset(c, 0, len);
+			memset(msg, 0, len);
 #endif
 		/*complete the fields*/
 		req->remote_sock = remote_sock;
