@@ -21,10 +21,11 @@ SUFFIXES = .hip
 CC=$(MPICC)
 CCLD=$(MPICC)
 
-LAUNCHER	+= $(STARPU_MPIEXEC)
-LAUNCHER_ENV	+= $(MPI_RUN_ENV)
-
 include $(top_srcdir)/make/starpu-loader.mk
+
+LAUNCHER	= $(STARPU_MPIEXEC)
+LAUNCHER_ENV	= $(MPI_RUN_ENV)
+
 if STARPU_SIMGRID
 LOADER_BIN = $(LAUNCHER)
 endif
