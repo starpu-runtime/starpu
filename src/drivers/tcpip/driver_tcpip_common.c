@@ -1140,6 +1140,18 @@ static void _starpu_tcpip_common_action_socket(what_t what, const char * whatstr
 		_starpu_tcpip_ms_request_multilist_init_event(req);
 		_starpu_tcpip_ms_request_multilist_init_pending(req);
 
+#ifdef STARPU_SANITIZE_ADDRESS
+		/* Poke data immediately, to get a good backtrace where bogus
+		 * pointers come from */
+		if (is_sender)
+		{
+			char *c = malloc(len);
+			memcpy(c, buf, len);
+			free(c);
+		}
+		else
+			memset(c, 0, len);
+#endif
 		/*complete the fields*/
 		req->remote_sock = remote_sock;
 		req->len = len;
