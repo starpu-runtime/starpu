@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011	    Télécom-SudParis
  * Copyright (C) 2013	    Thibaut Lambert
  *
@@ -728,6 +728,7 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 #ifdef HAVE_MMAP
 /*generate and initialize rbtree map_tree*/
 static struct starpu_rbtree map_tree = STARPU_RBTREE_INITIALIZER;
+static starpu_pthread_mutex_t map_tree_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 
 struct map_allocate_info
 {
@@ -801,14 +802,18 @@ void *_starpu_map_allocate(size_t length, unsigned node)
 
 	starpu_rbtree_node_init(&map_info->map_node);
 
+	STARPU_PTHREAD_MUTEX_LOCK(&map_tree_mutex);
 	starpu_rbtree_insert(&map_tree, &map_info->map_node, map_addr_cmp_insert);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&map_tree_mutex);
 
 	return map_addr;
 }
 
 int _starpu_map_deallocate(void* map_addr, size_t length)
 {
+	STARPU_PTHREAD_MUTEX_LOCK(&map_tree_mutex);
 	struct starpu_rbtree_node * currentNode = starpu_rbtree_lookup(&map_tree, (uintptr_t)map_addr, map_addr_cmp_lookup);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&map_tree_mutex);
 
 	if (currentNode != NULL)
 	{
@@ -820,7 +825,9 @@ int _starpu_map_deallocate(void* map_addr, size_t length)
 			{
 				_STARPU_DISP("warning: cannot unlink file %s: %s\n", map_info->name, strerror(errno));
 			}
+			STARPU_PTHREAD_MUTEX_LOCK(&map_tree_mutex);
 			starpu_rbtree_remove(&map_tree, &map_info->map_node);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&map_tree_mutex);
 			free(map_info);
 		}
 		else
@@ -848,7 +855,9 @@ char* _starpu_get_fdname_from_mapaddr(uintptr_t map_addr, size_t *offset, size_t
 {
 	char* map_name = NULL;
 
+	STARPU_PTHREAD_MUTEX_LOCK(&map_tree_mutex);
 	struct starpu_rbtree_node * currentNode = starpu_rbtree_lookup_nearest(&map_tree, map_addr, map_addr_cmp_lookup, STARPU_RBTREE_LEFT);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&map_tree_mutex);
 
 	if (currentNode != NULL)
 	{
