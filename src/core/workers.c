@@ -1796,7 +1796,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	/* Depending on whether we are a MP sink or not, we must build the
 	 * topology with MP nodes or not. */
 	ret = _starpu_build_topology(&_starpu_config, is_a_sink);
-	/* sink doesn't exit even if no worker discorvered */
+	/* sink doesn't exit even if no worker discovered */
 	if (ret && !is_a_sink)
 	{
 		starpu_perfmodel_free_sampling();
