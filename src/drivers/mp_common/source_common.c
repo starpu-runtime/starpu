@@ -440,7 +440,14 @@ int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 	starpu_ssize_t interface_size[nb_interfaces ? nb_interfaces : 1];
 	void *interface_ptr[nb_interfaces ? nb_interfaces : 1];
 
-	buffer_size = sizeof(kernel) + sizeof(coreid) + sizeof(type) + sizeof(detached) + sizeof(nb_interfaces) + sizeof(is_parallel_task);
+	buffer_size = sizeof(kernel) + sizeof(type) + sizeof(is_parallel_task) + sizeof(coreid) + sizeof(nb_interfaces) + sizeof(detached);
+
+	/*if the task is parallel*/
+	if(is_parallel_task)
+	{
+		buffer_size += sizeof(cb_workerid);
+	}
+
 	for (i = 0; i < nb_interfaces; i++)
 	{
 		buffer_size += sizeof(union _starpu_interface);
@@ -455,12 +462,6 @@ int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 		{
 			buffer_size += sizeof(union _starpu_interface);
 		}
-	}
-
-	/*if the task is parallel*/
-	if(is_parallel_task)
-	{
-		buffer_size += sizeof(cb_workerid);
 	}
 
 	/* If the user didn't give any cl_arg, there is no need to send it */
