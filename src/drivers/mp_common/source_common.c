@@ -516,6 +516,7 @@ int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 		{
 			STARPU_ASSERT_MSG(handle->ops->unpack_meta, "pack_meta defined without unpack_meta for interface %d", id);
 			memcpy((void *) buffer_ptr, interface_ptr[i], interface_size[i]);
+			free(interface_ptr[i]);
 			buffer_ptr += interface_size[i];
 		}
 		else
