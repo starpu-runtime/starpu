@@ -1869,6 +1869,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 		{
 			_starpu_perfmodel_malloc_per_arch(model, comb, STARPU_MAXIMPLEMENTATIONS);
 			_starpu_perfmodel_malloc_per_arch_is_set(model, comb, STARPU_MAXIMPLEMENTATIONS);
+			model->state->nimpls[comb] = 0;
 		}
 
 		struct starpu_perfmodel_per_arch *per_arch_model = &model->state->per_arch[comb][impl];
