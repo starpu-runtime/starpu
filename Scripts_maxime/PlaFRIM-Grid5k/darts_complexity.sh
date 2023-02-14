@@ -1,7 +1,11 @@
+# oarsub -t exotic -p "network_address in ('gemini-1.lyon.grid5000.fr')" -r '2023-02-14 18:00:00' -l walltime=01:00:00 "bash Scripts_maxime/PlaFRIM-Grid5k/all_complexity.sh"
+
 # bash Scripts_maxime/PlaFRIM-Grid5k/darts_complexity.sh NGPU TAILLE_TUILE NB_TAILLE_TESTE MEMOIRE MODEL
 
 # bash Scripts_maxime/PlaFRIM-Grid5k/darts_complexity.sh 1 1920 12 2000 best_ones
 # bash Scripts_maxime/PlaFRIM-Grid5k/darts_complexity.sh 2 1920 12 2000 best_ones
+# bash Scripts_maxime/PlaFRIM-Grid5k/darts_complexity.sh 4 1920 12 2000 best_ones
+# bash Scripts_maxime/PlaFRIM-Grid5k/darts_complexity.sh 8 1920 12 2000 best_ones
 
 if [ $# != 5 ]
 then
