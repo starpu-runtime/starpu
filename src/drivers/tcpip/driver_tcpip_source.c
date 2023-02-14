@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2021-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2021-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -57,7 +57,7 @@ static void __starpu_init_tcpip_config(struct _starpu_machine_topology * topolog
 	int ntcpipcores;
 	ntcpipcores = starpu_getenv_number("STARPU_NTCPIPMSTHREADS");
 
-	_starpu_topology_check_ndevices(&ntcpipcores, nbcores, 0, INT_MAX, "STARPU_NTCPIPMSTHREADS", "TCPIP cores", "");
+	_starpu_topology_check_ndevices(&ntcpipcores, nbcores, 0, INT_MAX, 0, "STARPU_NTCPIPMSTHREADS", "TCPIP cores", "");
 
 	tcpip_worker_set[tcpip_idx].workers = &config->workers[topology->nworkers];
 	tcpip_worker_set[tcpip_idx].nworkers = ntcpipcores;

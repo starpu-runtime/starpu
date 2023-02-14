@@ -61,7 +61,7 @@ int _starpu_get_next_devid(struct _starpu_machine_topology *topology, struct _st
 
 /** Check that \p *ndevices is not larger than \p nhwdevices (unless overflow is 1), and is not larger than \p max.
  * Cap it otherwise, and advise using the configurename ./configure option in the \p max case. */
-void _starpu_topology_check_ndevices(int *ndevices, unsigned nhwdevices, int overflow, unsigned max, const char *nname, const char *dname, const char *configurename);
+void _starpu_topology_check_ndevices(int *ndevices, unsigned nhwdevices, int overflow, unsigned max, unsigned reserved, const char *nname, const char *dname, const char *configurename);
 
 /** Configures the topology according to the desired worker distribution on the device.
  * - homogeneous tells to use devid 0 for the perfmodel (all devices have the same performance)

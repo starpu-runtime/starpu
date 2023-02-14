@@ -287,7 +287,7 @@ void _starpu_init_opencl_config(struct _starpu_machine_topology *topology, struc
 		_starpu_opencl_init();
 		int n = _starpu_opencl_get_device_count();
 
-		_starpu_topology_check_ndevices(&nopencl, n, 0, STARPU_MAXOPENCLDEVS, "nopencl", "OpenCL", "maxopencldev");
+		_starpu_topology_check_ndevices(&nopencl, n, 0, STARPU_MAXOPENCLDEVS, 0, "nopencl", "OpenCL", "maxopencldev");
 	}
 
 	topology->ndevices[STARPU_OPENCL_WORKER] = nopencl;

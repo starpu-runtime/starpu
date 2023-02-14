@@ -1096,7 +1096,7 @@ void _starpu_topology_filter(hwloc_topology_t topology)
 }
 #endif
 
-void _starpu_topology_check_ndevices(int *ndevices, unsigned nhwdevices, int overflow, unsigned max, const char *nname, const char *dname, const char *configurename)
+void _starpu_topology_check_ndevices(int *ndevices, unsigned nhwdevices, int overflow, unsigned max, unsigned reserved, const char *nname, const char *dname, const char *configurename)
 {
 	if (!*ndevices)
 		return;
@@ -1106,7 +1106,22 @@ void _starpu_topology_check_ndevices(int *ndevices, unsigned nhwdevices, int ove
 	if (*ndevices == -1)
 	{
 		/* Nothing was specified, so let's choose ! */
-		STARPU_ASSERT_MSG(nhwdevices <= max, "Oops, driver reported more than its own maximum");
+
+		if (nhwdevices < reserved)
+		{
+			_STARPU_DISP("Warning: %u %s devices were requested to be reserved, but only %d were available,\n", reserved, dname, nhwdevices);
+			nhwdevices = 0;
+		}
+		else
+		{
+			nhwdevices -= reserved;
+		}
+
+		if (nhwdevices > max)
+		{
+			_STARPU_MSG("# Warning: %u %s devices available. Only %u enabled. Use configure option --enable-%s=xxx to update the maximum value of supported %s devices.\n", nhwdevices, dname, max, configurename, dname);
+			nhwdevices = max;
+		}
 		*ndevices = nhwdevices;
 	}
 	else
@@ -1117,6 +1132,15 @@ void _starpu_topology_check_ndevices(int *ndevices, unsigned nhwdevices, int ove
 			_STARPU_DISP("Warning: %d %s devices requested. Only %d available.\n", *ndevices, dname, nhwdevices);
 			*ndevices = nhwdevices;
 		}
+
+		if (*ndevices < (int) reserved)
+		{
+			_STARPU_DISP("Warning: %u %s devices were requested to be reserved, but only %d were configured,\n", reserved, dname, *ndevices);
+			*ndevices = 0;
+		}
+		else
+			*ndevices -= reserved;
+
 		/* Let's make sure this value is OK. */
 		if (*ndevices > (int) max)
 		{

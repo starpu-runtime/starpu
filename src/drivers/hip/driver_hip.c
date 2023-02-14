@@ -220,7 +220,7 @@ void _starpu_init_hip_config(struct _starpu_machine_topology *topology, struct _
 		_starpu_init_hip();
 		int nb_devices = _starpu_get_hip_device_count();
 
-		_starpu_topology_check_ndevices(&nhip, nb_devices, 0, STARPU_MAXHIPDEVS, "nhip", "HIP", "maxhipdev");
+		_starpu_topology_check_ndevices(&nhip, nb_devices, 0, STARPU_MAXHIPDEVS, 0, "nhip", "HIP", "maxhipdev");
 	}
 
 	int nworker_per_hip = starpu_get_env_number_default("STARPU_NWORKER_PER_HIP", 1);

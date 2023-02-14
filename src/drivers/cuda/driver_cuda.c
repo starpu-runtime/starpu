@@ -274,7 +274,7 @@ void _starpu_init_cuda_config(struct _starpu_machine_topology *topology, struct 
 		_starpu_init_cuda();
 		int nb_devices = _starpu_get_cuda_device_count();
 
-		_starpu_topology_check_ndevices(&ncuda, nb_devices, 0, STARPU_MAXCUDADEVS, "ncuda", "CUDA", "maxcudadev");
+		_starpu_topology_check_ndevices(&ncuda, nb_devices, 0, STARPU_MAXCUDADEVS, 0, "ncuda", "CUDA", "maxcudadev");
 	}
 
 	int nworker_per_cuda = starpu_getenv_number_default("STARPU_NWORKER_PER_CUDA", 1);

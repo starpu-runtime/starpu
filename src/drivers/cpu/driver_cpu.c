@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
@@ -116,27 +116,7 @@ void _starpu_init_cpu_config(struct _starpu_machine_topology *topology, struct _
 		int nth_per_core = starpu_getenv_number_default("STARPU_NTHREADS_PER_CORE", 1);
 		avail_cpus *= nth_per_core;
 
-		if (avail_cpus > STARPU_MAXCPUS)
-		{
-			_STARPU_MSG("# Warning: %ld CPU cores available. Only %d enabled. Use configure option --enable-maxcpus=xxx to update the maximum value of supported CPU cores.\n", avail_cpus, STARPU_MAXCPUS);
-			avail_cpus = STARPU_MAXCPUS;
-		}
-
-		_starpu_topology_check_ndevices(&ncpu, avail_cpus, 1, STARPU_MAXCPUS, "ncpus", "CPU cores", "maxcpus");
-
-		if (config->conf.reserve_ncpus > 0)
-		{
-			if (ncpu < config->conf.reserve_ncpus)
-			{
-				_STARPU_DISP("Warning: %d CPU cores were requested to be reserved, but only %d were available,\n", config->conf.reserve_ncpus, ncpu);
-				ncpu = 0;
-			}
-			else
-			{
-				ncpu -= config->conf.reserve_ncpus;
-			}
-		}
-
+		_starpu_topology_check_ndevices(&ncpu, avail_cpus, 1, STARPU_MAXCPUS, config->conf.reserve_ncpus, "ncpus", "CPU cores", "maxcpus");
 	}
 
 	topology->ndevices[STARPU_CPU_WORKER] = 1;
