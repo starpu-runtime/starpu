@@ -48,8 +48,14 @@ int main(int argc, char *argv[])
 		{
 			fprintf(fichier_out, "%c", c);
 			c = fgetc(f_legende);
-			//~ if (c == '	') { count++; }
 		}
+		
+		/* Cas ou je plot tout avec numa cuda et cuda cuda en plus */
+		for (i = 0; i < NOMBRE_ALGO_TESTE*2; i++)
+		{
+			fprintf(fichier_out, ",%d", i);
+		}
+		
 		fprintf(fichier_out, "\n");
 		fclose(f_legende);
 		
@@ -93,6 +99,7 @@ int main(int argc, char *argv[])
 			
 			float NUMA_CUDA [NOMBRE_ALGO_TESTE][NOMBRE_DE_TAILLES_DE_MATRICES];
 			float CUDA_CUDA [NOMBRE_ALGO_TESTE][NOMBRE_DE_TAILLES_DE_MATRICES];
+			float CUDA_NUMA [NOMBRE_ALGO_TESTE][NOMBRE_DE_TAILLES_DE_MATRICES];
 			float TOTAL [NOMBRE_ALGO_TESTE][NOMBRE_DE_TAILLES_DE_MATRICES];
 			int l = 0; int m = 0;
 			for (i = 0; i < NOMBRE_ALGO_TESTE; i++)
@@ -101,6 +108,7 @@ int main(int argc, char *argv[])
 				{
 					NUMA_CUDA[i][j] = 0;
 					CUDA_CUDA[i][j] = 0;
+					CUDA_NUMA[i][j] = 0;
 					TOTAL[i][j] = 0;
 				}
 			}
@@ -116,13 +124,19 @@ int main(int argc, char *argv[])
 					
 						if (strcmp(str1, "NUMA") == 0)
 						{
-							//~ printf("+= %f\n", atof(str6));
+							//~ printf("+= %f at NUMA CUDA\n", atof(str6));
 							NUMA_CUDA[i][l] += atof(str6);
 						}
 						else if (strcmp(str1, "CUDA") == 0 && strcmp(str4, "CUDA") == 0)
 						{
+							//~ printf("+= %f at CUDA CUDA\n", atof(str6));
 							CUDA_CUDA[i][l] += atof(str6);
 						}
+						//~ else if (strcmp(str1, "CUDA") == 0 && strcmp(str4, "NUMA") == 0)
+						//~ {
+							//~ printf("+= %f at CUDA NUMA\n", atof(str6));
+							//~ CUDA_NUMA[i][l] += atof(str6);
+						//~ }
 						
 						/* Skip to next line */
 						for (k = 0; k < 10; k++) 
@@ -138,7 +152,7 @@ int main(int argc, char *argv[])
 			{
 				for (j = 0; j < NOMBRE_DE_TAILLES_DE_MATRICES; j++)
 				{
-					TOTAL[i][j] += NUMA_CUDA[i][j] + CUDA_CUDA[i][j];
+					TOTAL[i][j] += NUMA_CUDA[i][j] + CUDA_CUDA[i][j] + CUDA_NUMA[i][j];
 				}
 			}
 			//~ for (i = 0; i < NOMBRE_ALGO_TESTE; i++)
@@ -149,42 +163,38 @@ int main(int argc, char *argv[])
 			//~ }
 			
 			/* Printing in the file (la version normale) */
-			//~ for (i = 0; i < NOMBRE_DE_TAILLES_DE_MATRICES; i++) 
-			//~ {
-				//~ fprintf(fichier_out, "%d", ECHELLE_X*(i+1)+START_X);
-				//~ for (j = 0; j < NOMBRE_ALGO_TESTE; j++) 
-				//~ {
-					//~ fprintf(fichier_out, "	%f", NUMA_CUDA[j][i]);
-				//~ }
-				//~ for (j = 0; j < NOMBRE_ALGO_TESTE; j++) 
-				//~ {
-					//~ fprintf(fichier_out, "	%f", CUDA_CUDA[j][i]);
-				//~ }
-				//~ for (j = 0; j < NOMBRE_ALGO_TESTE; j++) 
-				//~ {
-					//~ fprintf(fichier_out, "	%f", TOTAL[j][i]);
-				//~ }
-				//~ fprintf(fichier_out, "\n");
-			//~ }
-			
-			/* Printing in the file (la version que cumuls) */
 			for (i = 0; i < NOMBRE_DE_TAILLES_DE_MATRICES; i++) 
 			{
 				fprintf(fichier_out, "%d", ECHELLE_X*(i+1)+START_X);
+				for (j = 0; j < NOMBRE_ALGO_TESTE; j++) 
+				{
+					fprintf(fichier_out, ",%f", NUMA_CUDA[j][i]);
+				}
+				for (j = 0; j < NOMBRE_ALGO_TESTE; j++) 
+				{
+					fprintf(fichier_out, ",%f", CUDA_CUDA[j][i]);
+				}
 				//~ for (j = 0; j < NOMBRE_ALGO_TESTE; j++) 
 				//~ {
-					//~ fprintf(fichier_out, "	%f", NUMA_CUDA[j][i]);
-				//~ }
-				//~ for (j = 0; j < NOMBRE_ALGO_TESTE; j++) 
-				//~ {
-					//~ fprintf(fichier_out, "	%f", CUDA_CUDA[j][i]);
-				//~ }
+					//~ fprintf(fichier_out, ",%f", CUDA_NUMA[j][i]);
+				//~ } 
 				for (j = 0; j < NOMBRE_ALGO_TESTE; j++) 
 				{
 					fprintf(fichier_out, ",%f", TOTAL[j][i]);
 				}
 				fprintf(fichier_out, "\n");
 			}
+			
+			/* Printing in the file (la version que cumuls) */
+			//~ for (i = 0; i < NOMBRE_DE_TAILLES_DE_MATRICES; i++) 
+			//~ {
+				//~ fprintf(fichier_out, "%d", ECHELLE_X*(i+1)+START_X);
+				//~ for (j = 0; j < NOMBRE_ALGO_TESTE; j++) 
+				//~ {
+					//~ fprintf(fichier_out, ",%f", TOTAL[j][i]);
+				//~ }
+				//~ fprintf(fichier_out, "\n");
+			//~ }
 			
 			fclose(fichier_in);
 			fclose(fichier_out);

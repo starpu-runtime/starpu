@@ -1,5 +1,3 @@
 ./configure --enable-simgrid --disable-mpi --with-simgrid-dir=/home/gonthier/simgrid --enable-maxcudadev=8
 make -j 100
-sudo make install
-echo "INITIALISATION OK"
 export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling

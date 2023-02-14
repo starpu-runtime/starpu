@@ -1,9 +1,8 @@
 # bash Scripts_maxime/quick_plot1.sh NGPU TAILLE_TUILE NB_TAILLE_TESTE MEMOIRE
 
-# bash Scripts_maxime/quick_plot1.sh 1 960 12
-# bash Scripts_maxime/quick_plot1.sh 1 1920 12
-# bash Scripts_maxime/quick_plot1.sh 1 2880 12 
-# bash Scripts_maxime/quick_plot2.sh 1 960 12
+# bash Scripts_maxime/quick_plot1.sh 1 960 12 500
+# bash Scripts_maxime/quick_plot1.sh 1 1920 12 2000
+# bash Scripts_maxime/quick_plot1.sh 1 3840 12 8000
 
 if [ $# != 4 ]
 then
