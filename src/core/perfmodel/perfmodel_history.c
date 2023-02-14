@@ -1452,7 +1452,6 @@ int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *mo
 
 	if (path[0] != '\0')
 	{
-		model->path = strdup(path);
 		return starpu_perfmodel_load_file(path, model);
 	}
 	else
@@ -1485,6 +1484,7 @@ int starpu_perfmodel_load_file(const char *filename, struct starpu_perfmodel *mo
 	STARPU_ASSERT(f);
 
 	starpu_perfmodel_init(model);
+	model->path = strdup(filename);
 
 	locked = _starpu_frdlock(f) == 0;
 	ret = parse_model_file(f, filename, model, 1);
