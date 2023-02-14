@@ -450,7 +450,7 @@ int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 
 	for (i = 0; i < nb_interfaces; i++)
 	{
-		buffer_size += sizeof(union _starpu_interface);
+		buffer_size += sizeof(enum starpu_data_interface_id);
 
 		starpu_data_handle_t handle = handles[i];
 		if (handle->ops->pack_meta)
