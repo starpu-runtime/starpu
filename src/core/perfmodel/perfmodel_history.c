@@ -1613,15 +1613,18 @@ double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel *model
 {
 	int comb;
 	double exp = NAN;
-	size_t size;
+	size_t size = 0;
 	struct starpu_perfmodel_regression_model *regmodel = NULL;
 
 	comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
+	if (comb == -1)
+		goto docal;
 
 	STARPU_PTHREAD_RWLOCK_RDLOCK(&model->state->model_rwlock);
 	size = __starpu_job_get_data_size(model, arch, nimpl, j);
 
-	if (comb == -1 || model->state->per_arch[comb] == NULL)
+	if (comb >= model->state->ncombs_set
+		|| model->state->per_arch[comb] == NULL)
 	{
 		// The model has not been executed on this combination
 		STARPU_PTHREAD_RWLOCK_UNLOCK(&model->state->model_rwlock);
@@ -1653,16 +1656,19 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 {
 	int comb;
 	double exp = NAN;
-	size_t size;
+	size_t size = 0;
 	struct starpu_perfmodel_regression_model *regmodel;
 	struct starpu_perfmodel_history_table *entry = NULL;
 
 	comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
+	if (comb == -1)
+		goto docal;
 
 	STARPU_PTHREAD_RWLOCK_RDLOCK(&model->state->model_rwlock);
 	size = __starpu_job_get_data_size(model, arch, nimpl, j);
 
-	if (comb == -1 || model->state->per_arch[comb] == NULL)
+	if (comb >= model->state->ncombs_set
+		|| model->state->per_arch[comb] == NULL)
 	{
 		// The model has not been executed on this combination
 		STARPU_PTHREAD_RWLOCK_UNLOCK(&model->state->model_rwlock);
@@ -1720,7 +1726,8 @@ double _starpu_multiple_regression_based_job_expected_perf(struct starpu_perfmod
 		goto docal;
 
 	STARPU_PTHREAD_RWLOCK_RDLOCK(&model->state->model_rwlock);
-	if (model->state->per_arch[comb] == NULL)
+	if (comb >= model->state->ncombs_set ||
+	    model->state->per_arch[comb] == NULL)
 	{
 		// The model has not been executed on this combination
 		STARPU_PTHREAD_RWLOCK_UNLOCK(&model->state->model_rwlock);
@@ -1782,7 +1789,8 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, s
 		goto docal;
 
 	STARPU_PTHREAD_RWLOCK_RDLOCK(&model->state->model_rwlock);
-	if (model->state->per_arch[comb] == NULL)
+	if (comb >= model->state->ncombs_set ||
+	    model->state->per_arch[comb] == NULL)
 	{
 		// The model has not been executed on this combination
 		STARPU_PTHREAD_RWLOCK_UNLOCK(&model->state->model_rwlock);
@@ -2141,7 +2149,8 @@ struct starpu_perfmodel_per_arch *starpu_perfmodel_get_model_per_arch(struct sta
 	if (comb == -1)
 		return NULL;
 
-	if (!model->state->per_arch[comb])
+	if (comb >= model->state->ncombs_set ||
+	    !model->state->per_arch[comb])
 		return NULL;
 
 	return &model->state->per_arch[comb][impl];
