@@ -1096,7 +1096,7 @@ void _starpu_topology_filter(hwloc_topology_t topology)
 }
 #endif
 
-void _starpu_topology_check_ndevices(int *ndevices, unsigned nhwdevices, int overflow, unsigned max, unsigned reserved, const char *nname, const char *dname, const char *configurename)
+void _starpu_topology_check_ndevices(int *ndevices, unsigned nhwdevices, int overflow, unsigned max, int reserved, const char *nname, const char *dname, const char *configurename)
 {
 	if (!*ndevices)
 		return;
@@ -1107,14 +1107,17 @@ void _starpu_topology_check_ndevices(int *ndevices, unsigned nhwdevices, int ove
 	{
 		/* Nothing was specified, so let's choose ! */
 
-		if (nhwdevices < reserved)
+		if (reserved > 0)
 		{
-			_STARPU_DISP("Warning: %u %s devices were requested to be reserved, but only %d were available,\n", reserved, dname, nhwdevices);
-			nhwdevices = 0;
-		}
-		else
-		{
-			nhwdevices -= reserved;
+			if (nhwdevices < reserved)
+			{
+				_STARPU_DISP("Warning: %u %s devices were requested to be reserved, but only %d were available,\n", reserved, dname, nhwdevices);
+				nhwdevices = 0;
+			}
+			else
+			{
+				nhwdevices -= reserved;
+			}
 		}
 
 		if (nhwdevices > max)
@@ -1133,13 +1136,16 @@ void _starpu_topology_check_ndevices(int *ndevices, unsigned nhwdevices, int ove
 			*ndevices = nhwdevices;
 		}
 
-		if (*ndevices < (int) reserved)
+		if (reserved > 0)
 		{
-			_STARPU_DISP("Warning: %u %s devices were requested to be reserved, but only %d were configured,\n", reserved, dname, *ndevices);
-			*ndevices = 0;
+			if (*ndevices < (int) reserved)
+			{
+				_STARPU_DISP("Warning: %u %s devices were requested to be reserved, but only %d were configured,\n", reserved, dname, *ndevices);
+				*ndevices = 0;
+			}
+			else
+				*ndevices -= reserved;
 		}
-		else
-			*ndevices -= reserved;
 
 		/* Let's make sure this value is OK. */
 		if (*ndevices > (int) max)
