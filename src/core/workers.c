@@ -43,6 +43,7 @@
 #include <datawizard/memory_nodes.h>
 #include <common/knobs.h>
 #include <drivers/mp_common/sink_common.h>
+#include <drivers/mp_common/source_common.h>
 #include <drivers/mpi/driver_mpi_common.h>
 #include <drivers/tcpip/driver_tcpip_common.h>
 
@@ -2227,6 +2228,7 @@ void starpu_shutdown(void)
 	if (_starpu_tcpip_common_is_mp_initialized())
 		_starpu_tcpip_common_mp_deinit();
 #endif
+	_starpu_src_common_deinit();
 	_starpu_print_idle_time();
 	_STARPU_DEBUG("Shutdown finished\n");
 

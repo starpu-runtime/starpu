@@ -72,6 +72,23 @@ static unsigned mp_node_memory_node(struct _starpu_mp_node *node)
 	return starpu_worker_get_memory_node(node->baseworkerid);
 }
 
+void _starpu_src_common_deinit(void)
+{
+	enum starpu_worker_archtype arch;
+
+	for (arch = 0; arch < STARPU_NARCH; arch++)
+	{
+		struct _starpu_sink_kernel *entry, *tmp;
+
+		HASH_ITER(hh, kernels[arch], entry, tmp)
+		{
+			HASH_DEL(kernels[arch], entry);
+			free(entry->name);
+			free(entry);
+		}
+	}
+}
+
 /* Finalize the execution of a task by a worker*/
 static int _starpu_src_common_finalize_job(struct _starpu_job *j, struct _starpu_worker *worker)
 {
