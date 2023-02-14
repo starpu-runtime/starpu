@@ -1364,6 +1364,8 @@ void _starpu_deinitialize_registered_performance_models(void)
 		_starpu_deinitialize_performance_model(model);
 		STARPU_PTHREAD_RWLOCK_UNLOCK(&model->state->model_rwlock);
 
+		free(node->model->path);
+		node->model->path = NULL;
 		free(node->model->state);
 		node->model->state = NULL;
 
