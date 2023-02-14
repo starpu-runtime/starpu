@@ -552,6 +552,8 @@ int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 					  "Master-Slave currently cannot work with interface type %d", id);
 
 			memcpy((void*) buffer_ptr, interfaces[i], handle->ops->interface_size);
+			STARPU_ASSERT(handle->ops->interface_size <= sizeof(union _starpu_interface));
+			memset((char*) buffer_ptr + handle->ops->interface_size, 0, sizeof(union _starpu_interface) - handle->ops->interface_size);
 			/* The sink side has no mean to get the type of each
 			 * interface, we use a union to make it generic and permit the
 			 * sink to go through the array */
