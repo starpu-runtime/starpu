@@ -372,3 +372,14 @@
    fun:pthread_create@@GLIBC_2.34
    ...
 }
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   ...
+   fun:allocate_dtv_entry
+   fun:allocate_and_init
+   fun:tls_get_addr_tail
+   fun:__tls_get_addr
+   ...
+}
