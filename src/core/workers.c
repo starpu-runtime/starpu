@@ -2228,7 +2228,9 @@ void starpu_shutdown(void)
 	if (_starpu_tcpip_common_is_mp_initialized())
 		_starpu_tcpip_common_mp_deinit();
 #endif
+#ifdef STARPU_USE_MP
 	_starpu_src_common_deinit();
+#endif
 	_starpu_print_idle_time();
 	_STARPU_DEBUG("Shutdown finished\n");
 
