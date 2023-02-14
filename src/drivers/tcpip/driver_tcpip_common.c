@@ -891,6 +891,9 @@ void _starpu_tcpip_common_mp_deinit()
 		int i;
 		for (i=0; i<nb_sink; i++)
 		{
+			if (tcpip_sock[i].sync_sock == -1)
+				/* Ourself */
+				continue;
 			close(tcpip_sock[i].sync_sock);
 			close(tcpip_sock[i].async_sock);
 			close(tcpip_sock[i].notif_sock);
