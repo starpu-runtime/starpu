@@ -82,20 +82,26 @@ int main(int argc, char *argv[])
 		}
 		rewind(fichier_in);
 		
+		/* fausse legende en place holder */
+		fprintf(fichier_out, "N,");
+		for (i = 0; i < NOMBRE_ALGO_TESTE-1; i++)
+		{
+			fprintf(fichier_out, "place_holder_%d,", i);
+		}
+		fprintf(fichier_out, "place_holder_%d\n", i);
 		
 		/* Lit le fichier legende.txt pour l'imprimr. Ce fichier est rempli dans le script de lancement. */
-		FILE* f_legende = NULL;
-		f_legende = fopen("Output_maxime/Legende.txt", "r");
-		c = fgetc(f_legende);
-		while (c != '\n')
-		{
-//			printf(" c = %c\n"); fflush(stdout);
-			fprintf(fichier_out, "%c", c);
-			c = fgetc(f_legende);
-			//~ if (c == '	') { count++; }
-		}
-		fprintf(fichier_out, "\n");
-		fclose(f_legende);
+		//~ FILE* f_legende = NULL;
+		//~ f_legende = fopen("Output_maxime/Legende.txt", "r");
+		//~ c = fgetc(f_legende);
+		//~ while (c != '\n')
+		//~ {
+			//~ fprintf(fichier_out, "%c", c);
+			//~ c = fgetc(f_legende);
+		//~ }
+		//~ fprintf(fichier_out, "\n");
+		//~ fclose(f_legende);
+		
 		//~ if (NGPU == 1)
 		//~ {
 			//~ fprintf(fichier_out,"N,EAGER,DMDAR,DARTS,DARTS+LUF,DARTS+LUF+R,DARTS+LUF+TH2,DARTS+LUF+TH2+FM,DARTS+LUF+TH2+FM+SM,DARTS+LUF+TH2+FM+SM+NO1,DARTS+LUF+TH2+FM+SM+NO2,DARTS+LUF+TH2+FM+SM+NO2+R,DARTS+3D,DARTS+3D+LUF,DARTS+3D+LUF+R,DARTS+3D+LUF+TH2,DARTS+3D+LUF+TH2+FM,DARTS+3D+LUF+TH2+FM+NO1,DARTS+3D+LUF+TH2+FM+NO2,DARTS+3D+LUF+TH2+FM+SM,DARTS+3D+LUF+TH2+FM+SM+NO2,DARTS+3D+LUF+TH2+FM+SM+NO2+R\n");

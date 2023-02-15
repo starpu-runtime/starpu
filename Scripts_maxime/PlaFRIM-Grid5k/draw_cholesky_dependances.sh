@@ -1,13 +1,18 @@
 # bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh NGPU TAILLE_TUILE NB_TAILLE_TESTE MEMOIRE MODEL
 
-# bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 1 1920 12 2000 best_ones
-# bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 2 1920 12 2000 best_ones
-# bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 4 1920 12 2000 best_ones
-# bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 8 1920 12 2000 best_ones
+# bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 1 1920 12 2000 best_ones 4
+# bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 2 1920 12 2000 best_ones 4
+# bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 4 1920 12 2000 best_ones 4
+# bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 8 1920 12 2000 best_ones 4
 
-if [ $# != 5 ]
+# bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 1 1920 12 2000 highest_prio_default_case 2
+# bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 2 1920 12 2000 highest_prio_default_case 2
+# bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 4 1920 12 2000 highest_prio_default_case 2
+# bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 8 1920 12 2000 highest_prio_default_case 2
+
+if [ $# != 6 ]
 then
-	echo "Arguments must be: bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh NGPU TAILLE_TUILE NB_TAILLE_TESTE MEMOIRE MODEL"
+	echo "Arguments must be: bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh NGPU TAILLE_TUILE NB_TAILLE_TESTE MEMOIRE MODEL NB_ALGO_TESTE"
 	exit
 fi
 
@@ -17,7 +22,7 @@ NB_TAILLE_TESTE=$3
 MEMOIRE=$4
 MODEL=$5
 
-NB_ALGO_TESTE=4
+NB_ALGO_TESTE=$6
 ECHELLE_X=5
 START_X=0
 
