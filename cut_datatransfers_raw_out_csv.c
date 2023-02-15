@@ -40,24 +40,36 @@ int main(int argc, char *argv[])
     if (fichier_in != NULL)
     {
 		
-		/* Lit le fichier legende.txt pour l'imprimr. Ce fichier est rempli dans le script de lancement. */
-		FILE* f_legende = NULL;
-		f_legende = fopen("Output_maxime/Legende.txt", "r");
-		c = fgetc(f_legende);
-		while (c != '\n')
+		fprintf(fichier_out, "N,");
+		for (i = 0; i < NOMBRE_ALGO_TESTE-1; i++)
 		{
-			fprintf(fichier_out, "%c", c);
-			c = fgetc(f_legende);
+			fprintf(fichier_out, "place_holder_%d,", i);
 		}
-		
+		fprintf(fichier_out, "place_holder_%d", i);
 		/* Cas ou je plot tout avec numa cuda et cuda cuda en plus */
 		for (i = 0; i < NOMBRE_ALGO_TESTE*2; i++)
 		{
 			fprintf(fichier_out, ",%d", i);
 		}
-		
 		fprintf(fichier_out, "\n");
-		fclose(f_legende);
+
+		//~ /* Lit le fichier legende.txt pour l'imprimr. Ce fichier est rempli dans le script de lancement. */
+		//~ FILE* f_legende = NULL;
+		//~ f_legende = fopen("Output_maxime/Legende.txt", "r");
+		//~ c = fgetc(f_legende);
+		//~ while (c != '\n')
+		//~ {
+			//~ fprintf(fichier_out, "%c", c);
+			//~ c = fgetc(f_legende);
+		//~ }
+		//~ /* Cas ou je plot tout avec numa cuda et cuda cuda en plus */
+		//~ for (i = 0; i < NOMBRE_ALGO_TESTE*2; i++)
+		//~ {
+			//~ fprintf(fichier_out, ",%d", i);
+		//~ }
+		//~ fprintf(fichier_out, "\n");
+		//~ fclose(f_legende);
+		
 		
 		//~ if (NGPU == 1) 
 		//~ {
