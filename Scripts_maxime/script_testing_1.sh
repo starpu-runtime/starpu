@@ -22,27 +22,40 @@ start=`date +%s`
 
 make -j 6
 ulimit -S -s 5000000
-export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
+# export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
 
-#~ TAILLE_TUILE=1920
+# TAILLE_TUILE=1920
+TAILLE_TUILE=2880
 #~ TAILLE_TUILE=3840
 #~ HOST="gemini-1-cho_dep"
-#~ truncate -s 0 Output_maxime/tgflops.txt
-#~ for ((j=1 ; j<=2; j++))
-#~ for ((j=1 ; j<=1; j++))
+truncate -s 0 Output_maxime/tgflops.txt
+for ((j=1 ; j<=1; j++))
+# for ((j=1 ; j<=4; j++))
 #~ for ((j=2 ; j<=2; j++))
 #~ for ((j=4 ; j<=4; j++))
 #~ for ((j=8 ; j<=8; j++))
-#~ do
-	#~ NGPU=$((j))
-	#~ for ((i=1 ; i<=20; i++))
-	#~ do
-		#~ N=$((i*5))
-		#~ echo "N = "${N} "- "${NGPU} "GPU"
-		#~ STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_HOSTNAME=${HOST} STARPU_SCHED=dmdar STARPU_NTASKS_THRESHOLD=10 STARPU_CUDA_PIPELINE=5 STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_EXPECTED_TRANSFER_TIME_WRITEBACK=1 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((${TAILLE_TUILE}*N)) -nblocks $((N)) -bound | tail -n 1 >> Output_maxime/tgflops.txt
-	#~ done
-#~ done
-#~ exit
+do
+	if [ $((j)) == 1 ]
+	then
+		NGPU=1
+	elif [ $((j)) == 2 ]
+	then
+		NGPU=2
+	elif [ $((j)) == 3 ]
+	then
+		NGPU=4
+	elif [ $((j)) == 4 ]
+	then
+		NGPU = 8
+	fi
+	for ((i=1 ; i<=20; i++))
+	do
+		N=$((i*5))
+		echo "N = "${N} "- "${NGPU} "GPU - " ${TAILLE_TUILE}
+		STARPU_SCHED=dmdar STARPU_NTASKS_THRESHOLD=10 STARPU_CUDA_PIPELINE=5 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_EXPECTED_TRANSFER_TIME_WRITEBACK=1 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((${TAILLE_TUILE}*N)) -nblocks $((N)) | tail -n 3 >> Output_maxime/tgflops.txt
+	done
+done
+exit
 
 #~ N=3
 #~ N=4
