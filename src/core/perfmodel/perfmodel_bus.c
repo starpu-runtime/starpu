@@ -753,6 +753,7 @@ static void measure_bandwidth_between_host_and_dev(int dev, struct dev_timing *d
 {
 	measure_bandwidth_between_numa_nodes_and_dev(dev, dev_timing_per_numa, type);
 
+#if defined(STARPU_HAVE_HWLOC)
 	hwloc_obj_t obj = NULL;
 
 	if (starpu_driver_info[type].get_hwloc_obj)
@@ -762,6 +763,7 @@ static void measure_bandwidth_between_host_and_dev(int dev, struct dev_timing *d
 	if (obj)
 		gpu_numa[type][dev] = obj->logical_index;
 	else
+#endif
 		gpu_numa[type][dev] = -1;
 
 #ifdef STARPU_VERBOSE
