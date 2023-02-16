@@ -128,7 +128,7 @@ static unsigned opencl_affinity_matrix[STARPU_MAXOPENCLDEVS][STARPU_MAXNUMANODES
 static double cudadev_timing_dtod[STARPU_MAXNODES][STARPU_MAXNODES] = {{0.0}};
 static double cudadev_latency_dtod[STARPU_MAXNODES][STARPU_MAXNODES] = {{0.0}};
 #endif
-static struct dev_timing cudadev_timing_per_numa[STARPU_MAXCUDADEVS*STARPU_MAXNUMANODES];
+static struct dev_timing cudadev_timing_per_numa[STARPU_NMAXDEVS][STARPU_MAXNUMANODES];
 static char cudadev_direct[STARPU_MAXNODES][STARPU_MAXNODES];
 #endif
 
@@ -136,7 +136,7 @@ static uint64_t opencl_size[STARPU_MAXOPENCLDEVS];
 static char opencl_devname[STARPU_MAXOPENCLDEVS][64];
 
 #ifdef STARPU_USE_OPENCL
-static struct dev_timing opencldev_timing_per_numa[STARPU_MAXOPENCLDEVS*STARPU_MAXNUMANODES];
+static struct dev_timing opencldev_timing_per_numa[STARPU_NMAXDEVS][STARPU_MAXNUMANODES];
 #endif
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
@@ -714,17 +714,14 @@ static int compar_dev_timing(const void *left_dev_timing, const void *right_dev_
 	       timing_sum2_left < timing_sum2_right ? -1 : 0;
 }
 
-static void measure_bandwidth_between_host_and_dev(int dev, struct dev_timing *dev_timing_per_numa, enum starpu_worker_archtype type)
+static void measure_bandwidth_between_host_and_dev(int dev, struct dev_timing dev_timing_per_numa[STARPU_NMAXDEVS][STARPU_MAXNUMANODES], enum starpu_worker_archtype type)
 {
 	/* We measure the bandwith between each GPU and each NUMA node */
 	unsigned numa_id;
 	for (numa_id = 0; numa_id < nnumas; numa_id++)
 	{
-		/* Store results by starpu id */
-		const unsigned timing_numa_index = dev*STARPU_MAXNUMANODES + numa_id;
-
 		/* Store STARPU_memnode for later */
-		dev_timing_per_numa[timing_numa_index].numa_id = numa_id;
+		dev_timing_per_numa[dev][numa_id].numa_id = numa_id;
 
 		/* Chose one CPU connected to this NUMA node */
 		int cpu_id = 0;
@@ -737,15 +734,15 @@ static void measure_bandwidth_between_host_and_dev(int dev, struct dev_timing *d
 		_STARPU_DISP("with NUMA %d...\n", numa_id);
 
 		/* Check hwloc location of GPU */
-		set_numa_distance(dev, numa_id, type, dev_timing_per_numa + timing_numa_index);
+		set_numa_distance(dev, numa_id, type, &dev_timing_per_numa[dev][numa_id]);
 
 #ifdef STARPU_USE_CUDA
 		if (type == STARPU_CUDA_WORKER)
-			measure_bandwidth_between_host_and_dev_on_numa_with_cuda(dev, numa_id, cpu_id, dev_timing_per_numa + timing_numa_index);
+			measure_bandwidth_between_host_and_dev_on_numa_with_cuda(dev, numa_id, cpu_id, &dev_timing_per_numa[dev][numa_id]);
 #endif
 #ifdef STARPU_USE_OPENCL
 		if (type == STARPU_OPENCL_WORKER)
-			measure_bandwidth_between_host_and_dev_on_numa_with_opencl(dev, numa_id, cpu_id, dev_timing_per_numa + timing_numa_index);
+			measure_bandwidth_between_host_and_dev_on_numa_with_opencl(dev, numa_id, cpu_id, &dev_timing_per_numa[dev][numa_id]);
 #endif
 	}
 	/* TODO: also measure the available aggregated bandwidth on a NUMA node, and through the interconnect */
@@ -766,9 +763,8 @@ static void measure_bandwidth_between_host_and_dev(int dev, struct dev_timing *d
 #ifdef STARPU_VERBOSE
 	for (numa_id = 0; numa_id < nnumas; numa_id++)
 	{
-		const unsigned timing_numa_index = dev*STARPU_MAXNUMANODES + numa_id;
-		double bandwidth_dtoh = dev_timing_per_numa[timing_numa_index].timing_dtoh;
-		double bandwidth_htod = dev_timing_per_numa[timing_numa_index].timing_htod;
+		double bandwidth_dtoh = dev_timing_per_numa[dev][numa_id].timing_dtoh;
+		double bandwidth_htod = dev_timing_per_numa[dev][numa_id].timing_htod;
 
 		double bandwidth_sum2 = bandwidth_dtoh*bandwidth_dtoh + bandwidth_htod*bandwidth_htod;
 
@@ -1104,18 +1100,18 @@ static void write_bus_affinity_file_content(void)
 #ifdef STARPU_USE_CUDA
 	{
 		/* Use an other array to sort bandwidth */
-		struct dev_timing cudadev_timing_per_numa_sorted[STARPU_MAXCUDADEVS*STARPU_MAXNUMANODES];
-		memcpy(cudadev_timing_per_numa_sorted, cudadev_timing_per_numa, STARPU_MAXCUDADEVS*STARPU_MAXNUMANODES*sizeof(struct dev_timing));
+		struct dev_timing cudadev_timing_per_numa_sorted[STARPU_NMAXDEVS][STARPU_MAXNUMANODES];
+		memcpy(cudadev_timing_per_numa_sorted, cudadev_timing_per_numa, sizeof(cudadev_timing_per_numa));
 
 		for (gpu = 0; gpu < ncuda; gpu++)
 		{
 			fprintf(f, "%u\t", gpu);
 
-			qsort(&(cudadev_timing_per_numa_sorted[gpu*STARPU_MAXNUMANODES]), nnumas, sizeof(struct dev_timing), compar_dev_timing);
+			qsort(cudadev_timing_per_numa_sorted[gpu], nnumas, sizeof(struct dev_timing), compar_dev_timing);
 
 			for (numa = 0; numa < nnumas; numa++)
 			{
-				fprintf(f, "%d\t", cudadev_timing_per_numa_sorted[gpu*STARPU_MAXNUMANODES+numa].numa_id);
+				fprintf(f, "%d\t", cudadev_timing_per_numa_sorted[gpu][numa].numa_id);
 			}
 
 			fprintf(f, "\n");
@@ -1125,18 +1121,18 @@ static void write_bus_affinity_file_content(void)
 #ifdef STARPU_USE_OPENCL
 	{
 		/* Use an other array to sort bandwidth */
-		struct dev_timing opencldev_timing_per_numa_sorted[STARPU_MAXOPENCLDEVS*STARPU_MAXNUMANODES];
-		memcpy(opencldev_timing_per_numa_sorted, opencldev_timing_per_numa, STARPU_MAXOPENCLDEVS*STARPU_MAXNUMANODES*sizeof(struct dev_timing));
+		struct dev_timing opencldev_timing_per_numa_sorted[STARPU_NMAXDEVS][STARPU_MAXNUMANODES];
+		memcpy(opencldev_timing_per_numa_sorted, opencldev_timing_per_numa, sizeof(opencldev_timing_per_numa));
 
 		for (gpu = 0; gpu < nopencl; gpu++)
 		{
 			fprintf(f, "%u\t", gpu);
 
-			qsort(&(opencldev_timing_per_numa_sorted[gpu*STARPU_MAXNUMANODES]), nnumas, sizeof(struct dev_timing), compar_dev_timing);
+			qsort(opencldev_timing_per_numa_sorted[gpu], nnumas, sizeof(struct dev_timing), compar_dev_timing);
 
 			for (numa = 0; numa < nnumas; numa++)
 			{
-				fprintf(f, "%d\t", opencldev_timing_per_numa_sorted[gpu*STARPU_MAXNUMANODES+numa].numa_id);
+				fprintf(f, "%d\t", opencldev_timing_per_numa_sorted[gpu][numa].numa_id);
 			}
 
 			fprintf(f, "\n");
@@ -1392,18 +1388,18 @@ static double search_bus_best_latency(int src, enum starpu_worker_archtype type,
 		if (type == STARPU_CUDA_WORKER)
 		{
 			if (htod)
-				actual = cudadev_timing_per_numa[src*STARPU_MAXNUMANODES+numa].latency_htod;
+				actual = cudadev_timing_per_numa[src][numa].latency_htod;
 			else
-				actual = cudadev_timing_per_numa[src*STARPU_MAXNUMANODES+numa].latency_dtoh;
+				actual = cudadev_timing_per_numa[src][numa].latency_dtoh;
 		}
 #endif
 #ifdef STARPU_USE_OPENCL
 		if (type == STARPU_OPENCL_WORKER)
 		{
 			if (htod)
-				actual = opencldev_timing_per_numa[src*STARPU_MAXNUMANODES+numa].latency_htod;
+				actual = opencldev_timing_per_numa[src][numa].latency_htod;
 			else
-				actual = opencldev_timing_per_numa[src*STARPU_MAXNUMANODES+numa].latency_dtoh;
+				actual = opencldev_timing_per_numa[src][numa].latency_dtoh;
 		}
 #endif
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
@@ -1508,9 +1504,9 @@ static void write_bus_latency_file_content(void)
 				{
 					/* Check if it's CUDA <-> NUMA link */
 					if (src >=b_low && src < b_up && dst >= numa_low && dst < numa_up)
-						latency += cudadev_timing_per_numa[(src-b_low)*STARPU_MAXNUMANODES+dst-numa_low].latency_dtoh;
+						latency += cudadev_timing_per_numa[(src-b_low)][dst-numa_low].latency_dtoh;
 					if (dst >= b_low && dst < b_up && src >= numa_low && dst < numa_up)
-						latency += cudadev_timing_per_numa[(dst-b_low)*STARPU_MAXNUMANODES+src-numa_low].latency_htod;
+						latency += cudadev_timing_per_numa[(dst-b_low)][src-numa_low].latency_htod;
 					/* To other devices, take the best latency */
 					if (src >= b_low && src < b_up && !(dst >= numa_low && dst < numa_up))
 						latency += search_bus_best_latency(src-b_low, STARPU_CUDA_WORKER, 0);
@@ -1524,9 +1520,9 @@ static void write_bus_latency_file_content(void)
 				b_up += nopencl;
 				/* Check if it's OpenCL <-> NUMA link */
 				if (src >= b_low && src < b_up && dst >= numa_low && dst < numa_up)
-					latency += opencldev_timing_per_numa[(src-b_low)*STARPU_MAXNUMANODES+dst-numa_low].latency_dtoh;
+					latency += opencldev_timing_per_numa[(src-b_low)][dst-numa_low].latency_dtoh;
 				if (dst >= b_low && dst < b_up && src >= numa_low && dst < numa_up)
-					latency += opencldev_timing_per_numa[(dst-b_low)*STARPU_MAXNUMANODES+src-numa_low].latency_htod;
+					latency += opencldev_timing_per_numa[(dst-b_low)][src-numa_low].latency_htod;
 				/* To other devices, take the best latency */
 				if (src >= b_low && src < b_up && !(dst >= numa_low && dst < numa_up))
 						latency += search_bus_best_latency(src-b_low, STARPU_OPENCL_WORKER, 0);
@@ -1764,18 +1760,18 @@ static double search_bus_best_timing(int src, char * type, int htod)
 		if (strncmp(type, "CUDA", 4) == 0)
 		{
 			if (htod)
-				actual = cudadev_timing_per_numa[src*STARPU_MAXNUMANODES+numa].timing_htod;
+				actual = cudadev_timing_per_numa[src][numa].timing_htod;
 			else
-				actual = cudadev_timing_per_numa[src*STARPU_MAXNUMANODES+numa].timing_dtoh;
+				actual = cudadev_timing_per_numa[src][numa].timing_dtoh;
 		}
 #endif
 #ifdef STARPU_USE_OPENCL
 		if (strncmp(type, "OpenCL", 6) == 0)
 		{
 			if (htod)
-				actual = opencldev_timing_per_numa[src*STARPU_MAXNUMANODES+numa].timing_htod;
+				actual = opencldev_timing_per_numa[src][numa].timing_htod;
 			else
-				actual = opencldev_timing_per_numa[src*STARPU_MAXNUMANODES+numa].timing_dtoh;
+				actual = opencldev_timing_per_numa[src][numa].timing_dtoh;
 		}
 #endif
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
@@ -1871,9 +1867,9 @@ static void write_bus_bandwidth_file_content(void)
 				{
 					/* Check if it's CUDA <-> NUMA link */
 					if (src >= b_low && src < b_up && dst >= numa_low && dst < numa_up)
-						slowness += cudadev_timing_per_numa[(src-b_low)*STARPU_MAXNUMANODES+dst-numa_low].timing_dtoh;
+						slowness += cudadev_timing_per_numa[(src-b_low)][dst-numa_low].timing_dtoh;
 					if (dst >= b_low && dst < b_up && src >= numa_low && src < numa_up)
-						slowness += cudadev_timing_per_numa[(dst-b_low)*STARPU_MAXNUMANODES+src-numa_low].timing_htod;
+						slowness += cudadev_timing_per_numa[(dst-b_low)][src-numa_low].timing_htod;
 					/* To other devices, take the best slowness */
 					if (src >= b_low && src < b_up && !(dst >= numa_low && dst < numa_up))
 						slowness += search_bus_best_timing(src-b_low, "CUDA", 0);
@@ -1886,9 +1882,9 @@ static void write_bus_bandwidth_file_content(void)
 				b_up += nopencl;
 				  /* Check if it's OpenCL <-> NUMA link */
 				if (src >= b_low && src < b_up && dst >= numa_low && dst < numa_up)
-					slowness += opencldev_timing_per_numa[(src-b_low)*STARPU_MAXNUMANODES+dst-numa_low].timing_dtoh;
+					slowness += opencldev_timing_per_numa[(src-b_low)][dst-numa_low].timing_dtoh;
 				if (dst >= b_low && dst < b_up && src >= numa_low && src < numa_up)
-					slowness += opencldev_timing_per_numa[(dst-b_low)*STARPU_MAXNUMANODES+src-numa_low].timing_htod;
+					slowness += opencldev_timing_per_numa[(dst-b_low)][src-numa_low].timing_htod;
 				/* To other devices, take the best slowness */
 				if (src >= b_low && src < b_up && !(dst >= numa_low && dst < numa_up))
 					slowness += search_bus_best_timing(src-b_low, "OpenCL", 0);
@@ -2039,7 +2035,7 @@ void starpu_bus_print_bandwidth(FILE *f)
 			fprintf(f, "CUDA_%u\t", src);
 			for (numa = 0; numa < nhwnumas; numa++)
 			{
-				timing = &cudadev_timing_per_numa[src*STARPU_MAXNUMANODES+numa];
+				timing = &cudadev_timing_per_numa[src][numa];
 				if (timing->timing_htod)
 					fprintf(f, "%2d %.0f %.0f\t", timing->numa_id, 1/timing->timing_htod, 1/timing->timing_dtoh);
 				else
@@ -2055,7 +2051,7 @@ void starpu_bus_print_bandwidth(FILE *f)
 			fprintf(f, "OpenCL%u\t", src-ncuda);
 			for (numa = 0; numa < nhwnumas; numa++)
 			{
-				timing = &opencldev_timing_per_numa[(src-ncuda)*STARPU_MAXNUMANODES+numa];
+				timing = &opencldev_timing_per_numa[(src-ncuda)][numa];
 				if (timing->timing_htod)
 					fprintf(f, "%2d %.0f %.0f\t", timing->numa_id, 1/timing->timing_htod, 1/timing->timing_dtoh);
 				else
@@ -2913,8 +2909,8 @@ static void write_bus_platform_file_content(int version)
 	{
 		for (numa = 0; numa < nnumas; numa++)
 		{
-			double down_bw = 1.0 / cudadev_timing_per_numa[i*STARPU_MAXNUMANODES+numa].timing_dtoh;
-			double up_bw = 1.0 / cudadev_timing_per_numa[i*STARPU_MAXNUMANODES+numa].timing_htod;
+			double down_bw = 1.0 / cudadev_timing_per_numa[i][numa].timing_dtoh;
+			double up_bw = 1.0 / cudadev_timing_per_numa[i][numa].timing_htod;
 			if (max_bandwidth < down_bw)
 				max_bandwidth = down_bw;
 			if (max_bandwidth_numa[numa] < down_bw)
@@ -2931,8 +2927,8 @@ static void write_bus_platform_file_content(int version)
 	{
 		for (numa = 0; numa < nnumas; numa++)
 		{
-			double down_bw = 1.0 / opencldev_timing_per_numa[i*STARPU_MAXNUMANODES+numa].timing_dtoh;
-			double up_bw = 1.0 / opencldev_timing_per_numa[i*STARPU_MAXNUMANODES+numa].timing_htod;
+			double down_bw = 1.0 / opencldev_timing_per_numa[i][numa].timing_dtoh;
+			double up_bw = 1.0 / opencldev_timing_per_numa[i][numa].timing_htod;
 			if (max_bandwidth < down_bw)
 				max_bandwidth = down_bw;
 			if (max_bandwidth_numa[numa] < down_bw)
