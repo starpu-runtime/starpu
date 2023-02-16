@@ -134,16 +134,6 @@ static char cudadev_direct[STARPU_MAXNODES][STARPU_MAXNODES];
 
 static uint64_t opencl_size[STARPU_MAXOPENCLDEVS];
 static char opencl_devname[STARPU_MAXOPENCLDEVS][64];
-
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-static double mpi_time_device_to_device[STARPU_MAXMPIDEVS][STARPU_MAXMPIDEVS] = {{0.0}};
-static double mpi_latency_device_to_device[STARPU_MAXMPIDEVS][STARPU_MAXMPIDEVS] = {{0.0}};
-#endif
-
-#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
-static double tcpip_time_device_to_device[STARPU_MAXTCPIPDEVS][STARPU_MAXTCPIPDEVS] = {{0.0}};
-static double tcpip_latency_device_to_device[STARPU_MAXTCPIPDEVS][STARPU_MAXTCPIPDEVS] = {{0.0}};
-#endif
 #endif
 
 #ifdef STARPU_HAVE_HWLOC
@@ -928,12 +918,51 @@ static void benchmark_all_memory_nodes(void)
 	}
 #endif
 
+
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
+	double mpi_time_device_to_device[STARPU_MAXMPIDEVS][STARPU_MAXMPIDEVS] = {{0.0}};
+	double mpi_latency_device_to_device[STARPU_MAXMPIDEVS][STARPU_MAXMPIDEVS] = {{0.0}};
+	/* FIXME: rather make _starpu_mpi_common_measure_bandwidth_latency directly fill timing_per_numa */
 	_starpu_mpi_common_measure_bandwidth_latency(mpi_time_device_to_device, mpi_latency_device_to_device);
+	for (i = 0; i < nmpi_ms; i++)
+	{
+		for (j = 0; j < nnumas; j++)
+		{
+			timing_per_numa[STARPU_MPI_MS_RAM][i][j].numa_id = j;
+			timing_per_numa[STARPU_MPI_MS_RAM][i][j].numa_distance = -1;
+			timing_per_numa[STARPU_MPI_MS_RAM][i][j].timing_htod = mpi_time_device_to_device[0][i+1];
+			timing_per_numa[STARPU_MPI_MS_RAM][i][j].latency_htod = mpi_latency_device_to_device[0][i+1];
+			timing_per_numa[STARPU_MPI_MS_RAM][i][j].timing_dtoh = mpi_time_device_to_device[i+1][0];
+			timing_per_numa[STARPU_MPI_MS_RAM][i][j].latency_dtoh = mpi_latency_device_to_device[i+1][0];
+		}
+		for (j = 0; j < nmpi_ms; j++)
+		{
+			timing_dtod[STARPU_MPI_MS_RAM][i][j] = mpi_time_device_to_device[i+1][j+1];
+		}
+	}
 #endif /* STARPU_USE_MPI_MASTER_SLAVE */
 
 #ifdef STARPU_USE_TCPIP_MASTER_SLAVE
+	double tcpip_time_device_to_device[STARPU_MAXTCPIPDEVS][STARPU_MAXTCPIPDEVS] = {{0.0}};
+	double tcpip_latency_device_to_device[STARPU_MAXTCPIPDEVS][STARPU_MAXTCPIPDEVS] = {{0.0}};
+	/* FIXME: rather make _starpu_mpi_common_measure_bandwidth_latency directly fill timing_per_numa */
 	_starpu_tcpip_common_measure_bandwidth_latency(tcpip_time_device_to_device, tcpip_latency_device_to_device);
+	for (i = 0; i < ntcpip_ms; i++)
+	{
+		for (j = 0; j < nnumas; j++)
+		{
+			timing_per_numa[STARPU_TCPIP_MS_RAM][i][j].numa_id = j;
+			timing_per_numa[STARPU_TCPIP_MS_RAM][i][j].numa_distance = -1;
+			timing_per_numa[STARPU_TCPIP_MS_RAM][i][j].timing_htod = tcpip_time_device_to_device[0][i+1];
+			timing_per_numa[STARPU_TCPIP_MS_RAM][i][j].latency_htod = tcpip_latency_device_to_device[0][i+1];
+			timing_per_numa[STARPU_TCPIP_MS_RAM][i][j].timing_dtoh = tcpip_time_device_to_device[i+1][0];
+			timing_per_numa[STARPU_TCPIP_MS_RAM][i][j].latency_dtoh = tcpip_latency_device_to_device[i+1][0];
+		}
+		for (j = 0; j < ntcpip_ms; j++)
+		{
+			timing_dtod[STARPU_TCPIP_MS_RAM][i][j] = tcpip_time_device_to_device[i+1][j+1];
+		}
+	}
 #endif /* STARPU_USE_TCPIP_MASTER_SLAVE */
 
 #ifdef STARPU_HAVE_HWLOC
@@ -1493,6 +1522,7 @@ static void write_bus_latency_file_content(void)
 #ifdef STARPU_USE_CUDA
 				b_up += ncuda;
 #ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
+				/* Check if it's direct CUDA-CUDA transfer */
 				if (src >= b_low && src < b_up && dst >= b_low && dst < b_up)
 					latency += latency_dtod[STARPU_CUDA_RAM][src-b_low][dst-b_low];
 				else
@@ -1529,48 +1559,42 @@ static void write_bus_latency_file_content(void)
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 				b_up += nmpi_ms;
-				/* Modify MPI src and MPI dst if they contain the master node or not
-				 * Because, we only take care about slaves */
-				int mpi_master = _starpu_mpi_common_get_src_node();
-
-				int mpi_src = src - b_low;
-				mpi_src = (mpi_master <= mpi_src) ? mpi_src+1 : mpi_src;
-
-				int mpi_dst = dst - b_low;
-				mpi_dst = (mpi_master <= mpi_dst) ? mpi_dst+1 : mpi_dst;
-
+				/* Check if it's direct MPI-MPI transfer */
 				if (src >= b_low && src < b_up && dst >= b_low && dst < b_up)
-					latency += mpi_latency_device_to_device[mpi_src][mpi_dst];
+					latency += latency_dtod[STARPU_MPI_MS_RAM][src-b_low][dst-b_low];
 				else
 				{
-					if (src >= b_low && src < b_up)
-						latency += mpi_latency_device_to_device[mpi_src][mpi_master];
-					if (dst >= b_low && dst < b_up)
-						latency += mpi_latency_device_to_device[mpi_master][mpi_dst];
+					/* Check if it's MPI <-> NUMA link */
+					if (src >= b_low && src < b_up && dst >= numa_low && dst < numa_up)
+						latency += timing_per_numa[STARPU_MPI_MS_RAM][(src-b_low)][dst-numa_low].latency_dtoh;
+					if (dst >= b_low && dst < b_up && src >= numa_low && dst < numa_up)
+						latency += timing_per_numa[STARPU_MPI_MS_RAM][(dst-b_low)][src-numa_low].latency_htod;
+					/* To other devices, take the best latency */
+					if (src >= b_low && src < b_up && !(dst >= numa_low && dst < numa_up))
+							latency += search_bus_best_latency(src-b_low, STARPU_MPI_MS_RAM, 0);
+					if (dst >= b_low && dst < b_up && !(src >= numa_low && dst < numa_up))
+							latency += search_bus_best_latency(dst-b_low, STARPU_MPI_MS_RAM, 1);
 				}
 				b_low += nmpi_ms;
 #endif
 
 #ifdef STARPU_USE_TCPIP_MASTER_SLAVE
 				b_up += ntcpip_ms;
-				/* Modify TCPIP src and TCPIP dst if they contain the master node or not
-				 * Because, we only take care about slaves */
-				int tcpip_master = _starpu_tcpip_common_get_src_node();
-
-				int tcpip_src = src - b_low;
-				tcpip_src = (tcpip_master <= tcpip_src) ? tcpip_src+1 : tcpip_src;
-
-				int tcpip_dst = dst - b_low;
-				tcpip_dst = (tcpip_master <= tcpip_dst) ? tcpip_dst+1 : tcpip_dst;
-
+				/* Check if it's direct TCPIP-TCPIP transfer */
 				if (src >= b_low && src < b_up && dst >= b_low && dst < b_up)
-					latency += tcpip_latency_device_to_device[tcpip_src][tcpip_dst];
+					latency += latency_dtod[STARPU_TCPIP_MS_RAM][src-b_low][dst-b_low];
 				else
 				{
-					if (src >= b_low && src < b_up)
-						latency += tcpip_latency_device_to_device[tcpip_src][tcpip_master];
-					if (dst >= b_low && dst < b_up)
-						latency += tcpip_latency_device_to_device[tcpip_master][tcpip_dst];
+					/* Check if it's TCPIP <-> NUMA link */
+					if (src >= b_low && src < b_up && dst >= numa_low && dst < numa_up)
+						latency += timing_per_numa[STARPU_TCPIP_MS_RAM][(src-b_low)][dst-numa_low].latency_dtoh;
+					if (dst >= b_low && dst < b_up && src >= numa_low && dst < numa_up)
+						latency += timing_per_numa[STARPU_TCPIP_MS_RAM][(dst-b_low)][src-numa_low].latency_htod;
+					/* To other devices, take the best latency */
+					if (src >= b_low && src < b_up && !(dst >= numa_low && dst < numa_up))
+							latency += search_bus_best_latency(src-b_low, STARPU_TCPIP_MS_RAM, 0);
+					if (dst >= b_low && dst < b_up && !(src >= numa_low && dst < numa_up))
+							latency += search_bus_best_latency(dst-b_low, STARPU_TCPIP_MS_RAM, 1);
 				}
 				b_low += ntcpip_ms;
 #endif
@@ -1855,8 +1879,8 @@ static void write_bus_bandwidth_file_content(void)
 #ifdef STARPU_USE_CUDA
 				b_up += ncuda;
 #ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
+				/* Check if it's direct CUDA-CUDA transfer */
 				if (src >= b_low && src < b_up && dst >= b_low && dst < b_up)
-					/* Direct GPU-GPU transfert */
 					slowness += timing_dtod[STARPU_CUDA_RAM][src-b_low][dst-b_low];
 				else
 #endif
@@ -1891,51 +1915,43 @@ static void write_bus_bandwidth_file_content(void)
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 				b_up += nmpi_ms;
-				/* Modify MPI src and MPI dst if they contain the master node or not
-				 * Because, we only take care about slaves */
-				int mpi_master = _starpu_mpi_common_get_src_node();
-
-				int mpi_src = src - b_low;
-				mpi_src = (mpi_master <= mpi_src) ? mpi_src+1 : mpi_src;
-
-				int mpi_dst = dst - b_low;
-				mpi_dst = (mpi_master <= mpi_dst) ? mpi_dst+1 : mpi_dst;
-
+				/* Check if it's direct MPI-MPI transfer */
 				if (src >= b_low && src < b_up && dst >= b_low && dst < b_up)
-					slowness += mpi_time_device_to_device[mpi_src][mpi_dst];
+					slowness += timing_dtod[STARPU_MPI_MS_RAM][src-b_low][dst-b_low];
 				else
 				{
-					if (src >= b_low && src < b_up)
-						slowness += mpi_time_device_to_device[mpi_src][mpi_master];
-					if (dst >= b_low && dst < b_up)
-						slowness += mpi_time_device_to_device[mpi_master][mpi_dst];
+					/* Check if it's MPI_MS <-> NUMA link */
+					if (src >= b_low && src < b_up && dst >= numa_low && dst < numa_up)
+						slowness += timing_per_numa[STARPU_MPI_MS_RAM][(src-b_low)][dst-numa_low].timing_dtoh;
+					if (dst >= b_low && dst < b_up && src >= numa_low && src < numa_up)
+						slowness += timing_per_numa[STARPU_MPI_MS_RAM][(dst-b_low)][src-numa_low].timing_htod;
+					/* To other devices, take the best slowness */
+					if (src >= b_low && src < b_up && !(dst >= numa_low && dst < numa_up))
+						slowness += search_bus_best_timing(src-b_low, STARPU_MPI_MS_RAM, 0);
+					if (dst >= b_low && dst < b_up && !(src >= numa_low && src < numa_up))
+						slowness += search_bus_best_timing(dst-b_low, STARPU_MPI_MS_RAM, 1);
 				}
-
 				b_low += nmpi_ms;
 #endif
 
 #ifdef STARPU_USE_TCPIP_MASTER_SLAVE
 				b_up += ntcpip_ms;
-				/* Modify TCPIP src and TCPIP dst if they contain the master node or not
-				 * Because, we only take care about slaves */
-				int tcpip_master = _starpu_tcpip_common_get_src_node();
-
-				int tcpip_src = src - b_low;
-				tcpip_src = (tcpip_master <= tcpip_src) ? tcpip_src+1 : tcpip_src;
-
-				int tcpip_dst = dst - b_low;
-				tcpip_dst = (tcpip_master <= tcpip_dst) ? tcpip_dst+1 : tcpip_dst;
-
+				/* Check if it's direct TCPIP-TCPIP transfer */
 				if (src >= b_low && src < b_up && dst >= b_low && dst < b_up)
-					slowness += tcpip_time_device_to_device[tcpip_src][tcpip_dst];
+					slowness += timing_dtod[STARPU_TCPIP_MS_RAM][src-b_low][dst-b_low];
 				else
 				{
-					if (src >= b_low && src < b_up)
-						slowness += tcpip_time_device_to_device[tcpip_src][tcpip_master];
-					if (dst >= b_low && dst < b_up)
-						slowness += tcpip_time_device_to_device[tcpip_master][tcpip_dst];
+					/* Check if it's TCPIP_MS <-> NUMA link */
+					if (src >= b_low && src < b_up && dst >= numa_low && dst < numa_up)
+						slowness += timing_per_numa[STARPU_TCPIP_MS_RAM][(src-b_low)][dst-numa_low].timing_dtoh;
+					if (dst >= b_low && dst < b_up && src >= numa_low && src < numa_up)
+						slowness += timing_per_numa[STARPU_TCPIP_MS_RAM][(dst-b_low)][src-numa_low].timing_htod;
+					/* To other devices, take the best slowness */
+					if (src >= b_low && src < b_up && !(dst >= numa_low && dst < numa_up))
+						slowness += search_bus_best_timing(src-b_low, STARPU_TCPIP_MS_RAM, 0);
+					if (dst >= b_low && dst < b_up && !(src >= numa_low && src < numa_up))
+						slowness += search_bus_best_timing(dst-b_low, STARPU_TCPIP_MS_RAM, 1);
 				}
-
 				b_low += ntcpip_ms;
 #endif
 
