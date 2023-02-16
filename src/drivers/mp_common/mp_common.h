@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013	    Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -127,10 +127,10 @@ struct _starpu_mp_transfer_command
 
 struct _starpu_mp_transfer_command_to_device
 {
-	int devid;
 	size_t size;
 	void *addr;
 	void *event;
+	int devid;
 };
 
 struct _starpu_mp_transfer_map_command
