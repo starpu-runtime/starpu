@@ -788,7 +788,7 @@ static void measure_bandwidth_between_host_and_dev(int dev, struct dev_timing *d
 #endif /* defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) */
 
 #if !defined(STARPU_SIMGRID)
-static void measure_bandwidth_latency_between_numa(int numa_src, int numa_dst)
+static void measure_bandwidth_latency_between_numa(int numa_src, int numa_dst, double *timing_nton, double *latency_nton)
 {
 #if defined(STARPU_HAVE_HWLOC)
 	if (nnumas > 1)
@@ -834,7 +834,7 @@ static void measure_bandwidth_latency_between_numa(int numa_src, int numa_dst)
 		end = starpu_timing_now();
 		timing = end - start;
 
-		numa_timing[numa_src][numa_dst] = timing/NITER/SIZE;
+		*timing_nton = timing/NITER/SIZE;
 
 		start = starpu_timing_now();
 		for (iter = 0; iter < NITER; iter++)
@@ -844,7 +844,7 @@ static void measure_bandwidth_latency_between_numa(int numa_src, int numa_dst)
 		end = starpu_timing_now();
 		timing = end - start;
 
-		numa_latency[numa_src][numa_dst] = timing/NITER;
+		*latency_nton = timing/NITER;
 
 		hwloc_free(hwtopology, h_buffer, SIZE);
 		hwloc_free(hwtopology, d_buffer, SIZE);
@@ -911,7 +911,7 @@ static void benchmark_all_memory_nodes(void)
 			if (i != j)
 			{
 				_STARPU_DISP("NUMA %d -> %d...\n", i, j);
-				measure_bandwidth_latency_between_numa(i, j);
+				measure_bandwidth_latency_between_numa(i, j, &numa_timing[i][j], &numa_latency[i][j]);
 			}
 
 #ifdef STARPU_USE_CUDA
