@@ -113,14 +113,8 @@ static int gpu_numa[STARPU_NRAM][STARPU_NMAXDEVS]; /* hwloc NUMA logical ID */
 #endif
 #endif
 
-#ifdef STARPU_USE_CUDA
 /* preference order of NUMA nodes (logical indexes) */
-static unsigned cuda_affinity_matrix[STARPU_MAXCUDADEVS][STARPU_MAXNUMANODES];
-#endif
-#ifdef STARPU_USE_OPENCL
-/* preference order of NUMA nodes (logical indexes) */
-static unsigned opencl_affinity_matrix[STARPU_MAXOPENCLDEVS][STARPU_MAXNUMANODES];
-#endif
+static unsigned affinity_matrix[STARPU_NRAM][STARPU_NMAXDEVS][STARPU_MAXNUMANODES];
 
 #ifndef STARPU_SIMGRID
 static double timing_dtod[STARPU_NRAM][STARPU_NMAXDEVS][STARPU_NMAXDEVS];
@@ -1048,7 +1042,7 @@ static void load_bus_affinity_file_content(void)
 		unsigned numa;
 		for (numa = 0; numa < nnumas; numa++)
 		{
-			ret = fscanf(f, "%u\t", &cuda_affinity_matrix[gpu][numa]);
+			ret = fscanf(f, "%u\t", &affinity_matrix[STARPU_CUDA_RAM][gpu][numa]);
 			STARPU_ASSERT_MSG(ret == 1, "Error when reading from file '%s'", path);
 		}
 
@@ -1072,7 +1066,7 @@ static void load_bus_affinity_file_content(void)
 		unsigned numa;
 		for (numa = 0; numa < nnumas; numa++)
 		{
-			ret = fscanf(f, "%u\t", &opencl_affinity_matrix[gpu][numa]);
+			ret = fscanf(f, "%u\t", &affinity_matrix[STARPU_OPENCL_RAM][gpu][numa]);
 			STARPU_ASSERT_MSG(ret == 1, "Error when reading from file '%s'", path);
 		}
 
@@ -1242,14 +1236,14 @@ static void load_bus_affinity_file(void)
 #ifdef STARPU_USE_CUDA
 unsigned *_starpu_get_cuda_affinity_vector(unsigned gpuid)
 {
-	return cuda_affinity_matrix[gpuid];
+	return affinity_matrix[STARPU_CUDA_RAM][gpuid];
 }
 #endif /* STARPU_USE_CUDA */
 
 #ifdef STARPU_USE_OPENCL
 unsigned *_starpu_get_opencl_affinity_vector(unsigned gpuid)
 {
-	return opencl_affinity_matrix[gpuid];
+	return affinity_matrix[STARPU_OPENCL_RAM][gpuid];
 }
 #endif /* STARPU_USE_OPENCL */
 
@@ -1269,7 +1263,7 @@ void starpu_bus_print_affinity(FILE *f)
 		fprintf(f, "%u\t", gpu);
 		for (numa = 0; numa < nnumas; numa++)
 		{
-			fprintf(f, "%u\t", cuda_affinity_matrix[gpu][numa]);
+			fprintf(f, "%u\t", affinity_matrix[STARPU_CUDA_RAM][gpu][numa]);
 		}
 		fprintf(f, "\n");
 	}
@@ -1281,7 +1275,7 @@ void starpu_bus_print_affinity(FILE *f)
 		fprintf(f, "%u\t", gpu);
 		for (numa = 0; numa < nnumas; numa++)
 		{
-			fprintf(f, "%u\t", opencl_affinity_matrix[gpu][numa]);
+			fprintf(f, "%u\t", affinity_matrix[STARPU_OPENCL_RAM][gpu][numa]);
 		}
 		fprintf(f, "\n");
 	}
@@ -2051,7 +2045,7 @@ void starpu_bus_print_bandwidth(FILE *f)
 				if (timing->timing_htod)
 					fprintf(f, "%2d %.0f %.0f\t", timing->numa_id, 1/timing->timing_htod, 1/timing->timing_dtoh);
 				else
-					fprintf(f, "%2u\t", cuda_affinity_matrix[src][numa]);
+					fprintf(f, "%2u\t", affinity_matrix[STARPU_CUDA_RAM][src][numa]);
 			}
 		}
 #ifdef STARPU_USE_OPENCL
@@ -2067,7 +2061,7 @@ void starpu_bus_print_bandwidth(FILE *f)
 				if (timing->timing_htod)
 					fprintf(f, "%2d %.0f %.0f\t", timing->numa_id, 1/timing->timing_htod, 1/timing->timing_dtoh);
 				else
-					fprintf(f, "%2u\t", opencl_affinity_matrix[src-ncuda][numa]);
+					fprintf(f, "%2u\t", affinity_matrix[STARPU_OPENCL_RAM][src-ncuda][numa]);
 			}
 		}
 #endif
