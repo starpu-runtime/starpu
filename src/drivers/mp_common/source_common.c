@@ -822,7 +822,7 @@ void _starpu_src_common_unmap(unsigned dst_node, uintptr_t addr, size_t size)
 	(void) size;
 	struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(dst_node);
 
-	struct _starpu_mp_transfer_unmap_command unmap_cmd = {addr, size};
+	struct _starpu_mp_transfer_unmap_command unmap_cmd = {.addr = addr, .size = size};
 
 	STARPU_PTHREAD_MUTEX_LOCK(&mp_node->connection_mutex);
 	_starpu_mp_common_send_command(mp_node, STARPU_MP_COMMAND_UNMAP, &unmap_cmd, sizeof(unmap_cmd));
@@ -834,7 +834,7 @@ void _starpu_src_common_unmap(unsigned dst_node, uintptr_t addr, size_t size)
  */
 int _starpu_src_common_copy_host_to_sink_sync(struct _starpu_mp_node *mp_node, void *src, void *dst, size_t size)
 {
-	struct _starpu_mp_transfer_command cmd = {size, dst, NULL};
+	struct _starpu_mp_transfer_command cmd = {.size = size, .addr = dst, .event = NULL};
 
 	STARPU_PTHREAD_MUTEX_LOCK(&mp_node->connection_mutex);
 
@@ -852,7 +852,7 @@ int _starpu_src_common_copy_host_to_sink_sync(struct _starpu_mp_node *mp_node, v
  */
 int _starpu_src_common_copy_host_to_sink_async(struct _starpu_mp_node *mp_node, void *src, void *dst, size_t size, void * event)
 {
-	struct _starpu_mp_transfer_command cmd = {size, dst, event};
+	struct _starpu_mp_transfer_command cmd = {.size = size, .addr = dst, .event = event};
 
 	STARPU_PTHREAD_MUTEX_LOCK(&mp_node->connection_mutex);
 
@@ -896,7 +896,7 @@ int _starpu_src_common_copy_sink_to_host_sync(struct _starpu_mp_node *mp_node, v
 	enum _starpu_mp_command answer;
 	void *arg;
 	int arg_size;
-	struct _starpu_mp_transfer_command cmd = {size, src, NULL};
+	struct _starpu_mp_transfer_command cmd = {.size = size, .addr = src, .event = NULL};
 
 	STARPU_PTHREAD_MUTEX_LOCK(&mp_node->connection_mutex);
 
@@ -918,7 +918,7 @@ int _starpu_src_common_copy_sink_to_host_sync(struct _starpu_mp_node *mp_node, v
  */
 int _starpu_src_common_copy_sink_to_host_async(struct _starpu_mp_node *mp_node, void *src, void *dst, size_t size, void * event)
 {
-	struct _starpu_mp_transfer_command cmd = {size, src, event};
+	struct _starpu_mp_transfer_command cmd = {.size = size, .addr = src, .event = event};
 
 	STARPU_PTHREAD_MUTEX_LOCK(&mp_node->connection_mutex);
 
@@ -964,7 +964,7 @@ int _starpu_src_common_copy_sink_to_sink_sync(struct _starpu_mp_node *src_node, 
 	void *arg;
 	int arg_size;
 
-	struct _starpu_mp_transfer_command_to_device cmd = {dst_node->peer_id, size, src, NULL};
+	struct _starpu_mp_transfer_command_to_device cmd = {.devid = dst_node->peer_id, .size = size, .addr = src, .event = NULL};
 
 	/* lock the node with the little peer_id first to prevent deadlock */
 	if (src_node->peer_id > dst_node->peer_id)
@@ -1008,7 +1008,7 @@ int _starpu_src_common_copy_sink_to_sink_sync(struct _starpu_mp_node *src_node, 
  */
 int _starpu_src_common_copy_sink_to_sink_async(struct _starpu_mp_node *src_node, struct _starpu_mp_node *dst_node, void *src, void *dst, size_t size, void * event)
 {
-	struct _starpu_mp_transfer_command_to_device cmd = {dst_node->peer_id, size, src, event};
+	struct _starpu_mp_transfer_command_to_device cmd = {.devid = dst_node->peer_id, .size = size, .addr = src, .event = event};
 
 	/* lock the node with the little peer_id first to prevent deadlock */
 	if (src_node->peer_id > dst_node->peer_id)
