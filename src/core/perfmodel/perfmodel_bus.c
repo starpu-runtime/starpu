@@ -263,9 +263,6 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, un
 	 * since we cleanly shutdown CUDA before returning. */
 	cudaSetDevice(dev);
 
-	/* Check hwloc location of GPU */
-	set_numa_distance(dev, numa, STARPU_CUDA_WORKER, dev_timing_per_cpu);
-
 	/* hack to avoid third party libs to rebind threads */
 	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID, NULL);
 
@@ -530,9 +527,6 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_opencl(int dev, 
 	size_t size = SIZE;
 	int not_initialized;
 
-	/* Check hwloc location of GPU */
-	set_numa_distance(dev, numa, STARPU_OPENCL_WORKER, dev_timing_per_cpu);
-
 	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID, NULL);
 
 	/* Is the context already initialised ? */
@@ -741,6 +735,9 @@ static void measure_bandwidth_between_numa_nodes_and_dev(int dev, struct dev_tim
 			continue;
 
 		_STARPU_DISP("with NUMA %d...\n", numa_id);
+
+		/* Check hwloc location of GPU */
+		set_numa_distance(dev, numa_id, type, dev_timing_per_numanode + timing_numa_index);
 
 #ifdef STARPU_USE_CUDA
 		if (type == STARPU_CUDA_WORKER)
