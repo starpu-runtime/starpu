@@ -714,7 +714,7 @@ static int compar_dev_timing(const void *left_dev_timing, const void *right_dev_
 	       timing_sum2_left < timing_sum2_right ? -1 : 0;
 }
 
-static void measure_bandwidth_between_numa_nodes_and_dev(int dev, struct dev_timing *dev_timing_per_numanode, enum starpu_worker_archtype type)
+static void measure_bandwidth_between_host_and_dev(int dev, struct dev_timing *dev_timing_per_numa, enum starpu_worker_archtype type)
 {
 	/* We measure the bandwith between each GPU and each NUMA node */
 	unsigned numa_id;
@@ -724,7 +724,7 @@ static void measure_bandwidth_between_numa_nodes_and_dev(int dev, struct dev_tim
 		const unsigned timing_numa_index = dev*STARPU_MAXNUMANODES + numa_id;
 
 		/* Store STARPU_memnode for later */
-		dev_timing_per_numanode[timing_numa_index].numa_id = numa_id;
+		dev_timing_per_numa[timing_numa_index].numa_id = numa_id;
 
 		/* Chose one CPU connected to this NUMA node */
 		int cpu_id = 0;
@@ -737,23 +737,18 @@ static void measure_bandwidth_between_numa_nodes_and_dev(int dev, struct dev_tim
 		_STARPU_DISP("with NUMA %d...\n", numa_id);
 
 		/* Check hwloc location of GPU */
-		set_numa_distance(dev, numa_id, type, dev_timing_per_numanode + timing_numa_index);
+		set_numa_distance(dev, numa_id, type, dev_timing_per_numa + timing_numa_index);
 
 #ifdef STARPU_USE_CUDA
 		if (type == STARPU_CUDA_WORKER)
-			measure_bandwidth_between_host_and_dev_on_numa_with_cuda(dev, numa_id, cpu_id, dev_timing_per_numanode + timing_numa_index);
+			measure_bandwidth_between_host_and_dev_on_numa_with_cuda(dev, numa_id, cpu_id, dev_timing_per_numa + timing_numa_index);
 #endif
 #ifdef STARPU_USE_OPENCL
 		if (type == STARPU_OPENCL_WORKER)
-			measure_bandwidth_between_host_and_dev_on_numa_with_opencl(dev, numa_id, cpu_id, dev_timing_per_numanode + timing_numa_index);
+			measure_bandwidth_between_host_and_dev_on_numa_with_opencl(dev, numa_id, cpu_id, dev_timing_per_numa + timing_numa_index);
 #endif
 	}
 	/* TODO: also measure the available aggregated bandwidth on a NUMA node, and through the interconnect */
-}
-
-static void measure_bandwidth_between_host_and_dev(int dev, struct dev_timing *dev_timing_per_numa, enum starpu_worker_archtype type)
-{
-	measure_bandwidth_between_numa_nodes_and_dev(dev, dev_timing_per_numa, type);
 
 #if defined(STARPU_HAVE_HWLOC)
 	hwloc_obj_t obj = NULL;
@@ -769,7 +764,6 @@ static void measure_bandwidth_between_host_and_dev(int dev, struct dev_timing *d
 		gpu_numa[type][dev] = -1;
 
 #ifdef STARPU_VERBOSE
-	unsigned numa_id;
 	for (numa_id = 0; numa_id < nnumas; numa_id++)
 	{
 		const unsigned timing_numa_index = dev*STARPU_MAXNUMANODES + numa_id;
@@ -1385,7 +1379,7 @@ static int load_bus_latency_file_content(void)
 }
 
 #if !defined(STARPU_SIMGRID) && (defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL))
-static double search_bus_best_latency(int src, char * type, int htod)
+static double search_bus_best_latency(int src, enum starpu_worker_archtype type, int htod)
 {
 	/* Search the best latency for this node */
 	double best = 0.0;
@@ -1395,7 +1389,7 @@ static double search_bus_best_latency(int src, char * type, int htod)
 	for (numa = 0; numa < nnumas; numa++)
 	{
 #ifdef STARPU_USE_CUDA
-		if (strncmp(type, "CUDA", 4) == 0)
+		if (type == STARPU_CUDA_WORKER)
 		{
 			if (htod)
 				actual = cudadev_timing_per_numa[src*STARPU_MAXNUMANODES+numa].latency_htod;
@@ -1404,7 +1398,7 @@ static double search_bus_best_latency(int src, char * type, int htod)
 		}
 #endif
 #ifdef STARPU_USE_OPENCL
-		if (strncmp(type, "OpenCL", 6) == 0)
+		if (type == STARPU_OPENCL_WORKER)
 		{
 			if (htod)
 				actual = opencldev_timing_per_numa[src*STARPU_MAXNUMANODES+numa].latency_htod;
@@ -1519,9 +1513,9 @@ static void write_bus_latency_file_content(void)
 						latency += cudadev_timing_per_numa[(dst-b_low)*STARPU_MAXNUMANODES+src-numa_low].latency_htod;
 					/* To other devices, take the best latency */
 					if (src >= b_low && src < b_up && !(dst >= numa_low && dst < numa_up))
-						latency += search_bus_best_latency(src-b_low, "CUDA", 0);
+						latency += search_bus_best_latency(src-b_low, STARPU_CUDA_WORKER, 0);
 					if (dst >= b_low && dst < b_up && !(src >= numa_low && dst < numa_up))
-						latency += search_bus_best_latency(dst-b_low, "CUDA", 1);
+						latency += search_bus_best_latency(dst-b_low, STARPU_CUDA_WORKER, 1);
 				}
 				b_low += ncuda;
 #endif
@@ -1535,9 +1529,9 @@ static void write_bus_latency_file_content(void)
 					latency += opencldev_timing_per_numa[(dst-b_low)*STARPU_MAXNUMANODES+src-numa_low].latency_htod;
 				/* To other devices, take the best latency */
 				if (src >= b_low && src < b_up && !(dst >= numa_low && dst < numa_up))
-						latency += search_bus_best_latency(src-b_low, "OpenCL", 0);
+						latency += search_bus_best_latency(src-b_low, STARPU_OPENCL_WORKER, 0);
 				if (dst >= b_low && dst < b_up && !(src >= numa_low && dst < numa_up))
-						latency += search_bus_best_latency(dst-b_low, "OpenCL", 1);
+						latency += search_bus_best_latency(dst-b_low, STARPU_OPENCL_WORKER, 1);
 				b_low += nopencl;
 #endif
 
@@ -2966,11 +2960,11 @@ static void write_bus_platform_file_content(int version)
 		fprintf(f, "   <link id=\"RAM-%s\" bandwidth=\"%f%s\" latency=\"%f%s\"/>\n",
 				i_name,
 				1000000 / search_bus_best_timing(i, "OpenCL", 1), Bps,
-				search_bus_best_latency(i, "OpenCL", 1)/1000000., s);
+				search_bus_best_latency(i, STARPU_OPENCL_WORKER, 1)/1000000., s);
 		fprintf(f, "   <link id=\"%s-RAM\" bandwidth=\"%f%s\" latency=\"%f%s\"/>\n",
 				i_name,
 				1000000 / search_bus_best_timing(i, "OpenCL", 0), Bps,
-				search_bus_best_latency(i, "OpenCL", 0)/1000000., s);
+				search_bus_best_latency(i, STARPU_OPENCL_WORKER, 0)/1000000., s);
 	}
 	fprintf(f, "\n");
 #endif
@@ -2988,11 +2982,11 @@ static void write_bus_platform_file_content(int version)
 		fprintf(f, "   <link id=\"RAM-%s\" bandwidth=\"%f%s\" latency=\"%f%s\"/>\n",
 				i_name,
 				1000000. / search_bus_best_timing(i, "CUDA", 1), Bps,
-				search_bus_best_latency(i, "CUDA", 1)/1000000., s);
+				search_bus_best_latency(i, STARPU_CUDA_WORKER, 1)/1000000., s);
 		fprintf(f, "   <link id=\"%s-RAM\" bandwidth=\"%f%s\" latency=\"%f%s\"/>\n",
 				i_name,
 				1000000. / search_bus_best_timing(i, "CUDA", 0), Bps,
-				search_bus_best_latency(i, "CUDA", 0)/1000000., s);
+				search_bus_best_latency(i, STARPU_CUDA_WORKER, 0)/1000000., s);
 	}
 	fprintf(f, "\n");
 #ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
