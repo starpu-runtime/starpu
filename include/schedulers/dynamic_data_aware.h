@@ -19,12 +19,22 @@
 #define DEPENDANCES /* 0 non, 1 utile pour savoir si on fais des points de départs différents dans main task list (on ne le fais pas si il y a des dependances). TODO: pas forcément utile à l'avenir à voir si on l'enlève. */
 #define PRIO /* 0 non, 1 tiebreak data selection with the that have the highest priority task */
 #define FREE_PUSHED_TASK_POSITION /* To detail where a free task from push_task is pushed in planned_task. 0: at the top of planned task, 1: after the last free task of planned task. */
-#define DOPT_SELECTION_ORDER /* 0: Nfree N1fromfree Prio Timeremaining, 1: Nfree Prio N1fromfree Timeremaining */
+#define DOPT_SELECTION_ORDER /* In which order do I tiebreak when choosing the optimal data: 
+* 0: Nfree N1fromfree Prio Timeremaining
+* 1: Nfree Prio N1fromfree Timeremaining 
+* 2: TransferTime NFree Prio N1FromFree TimeRemaining 
+* 3: NFree TransferTime Prio N1FromFree TimeRemaining 
+* 4: NFree Prio TransferTime N1FromFree TimeRemaining 
+* 5: NFree Prio N1FromFree TransferTime TimeRemaining 
+* 6: NFree Prio N1FromFree TimeRemaining TransferTime
+**/
+#define HIGHEST_PRIORITY_TASK_RETURNED_IN_DEFAULT_CASE /* 0: no, 1: I return the highesth priority task of the list when I didn't found a data giving free or 1 from free task. Only makes sense if TASK_ORDER is set to 2. else you are defeating the purpose of randomization with TASK_ORDEr on 0 or 1. */
+#define CAN_A_DATA_BE_IN_MEM_AND_IN_NOT_USED_YET /* 0: no, 1 : yes */
 //~ # Pas dans se fichier mais aussi utilisées: PRIORITY_ATTRIBUTION dans cholesky
 //~ # Pas dans se fichier aussi: GRAPH_DESCENDANTS /* 0: No graph, so no pause in the task submitting. 1: With a graph reading descendants in DARTS, use a pause in the task submit. 2: With a graph reading descendants in DARTS, but don't use pause and the graph is read at each new batch of tasks in pull_task. */ dans starpu_data_maxime.h
-#define HIGHEST_PRIORITY_TASK_RETURNED_IN_DEFAULT_CASE /* 0: no, 1: I return the highesth priority task of the list when I didn't found a data giving free or 1 from free task. Only makes sense if TASK_ORDER is set to 2. else you are defeating the purpose of randomization with TASK_ORDEr on 0 or 1. */
 
 /* Var globale pour n'appeller qu'une seule fois get_env_number */
+extern int can_a_data_be_in_mem_and_in_not_used_yet;
 extern int eviction_strategy_dynamic_data_aware;
 extern int threshold;
 extern int app;
@@ -185,7 +195,7 @@ void randomize_full_data_not_used_yet();
 void natural_order_data_not_used_yet();
 void update_best_data(int* number_free_task_max, int* task_available_max, starpu_data_handle_t* handle_popped, int* priority_max, int* number_1_from_free_task_max, int* task_available_max_1_from_free, int nb_free_task_candidate, int task_using_data_list_size_candidate, starpu_data_handle_t handle_candidate, int priority_candidate, int number_1_from_free_task_candidate, int* data_choosen_index, int i);
 //~ void update_best_data_single_decision_tree(int* number_free_task_max, int* task_available_max, starpu_data_handle_t* handle_popped, int* priority_max, int* number_1_from_free_task_max, int* task_available_max_1_from_free, int nb_free_task_candidate, int task_using_data_list_size_candidate, starpu_data_handle_t handle_candidate, int priority_candidate, int number_1_from_free_task_candidate, int* data_choosen_index, int i);
-void update_best_data_single_decision_tree(int* number_free_task_max, double* remaining_expected_length, starpu_data_handle_t* handle_popped, int* priority_max, int* number_1_from_free_task_max, int nb_free_task_candidate, double remaining_expected_length_candidate, starpu_data_handle_t handle_candidate, int priority_candidate, int number_1_from_free_task_candidate, int* data_choosen_index, int i, struct starpu_task** best_1_from_free_task, struct starpu_task* best_1_from_free_task_candidate);
+void update_best_data_single_decision_tree(int* number_free_task_max, double* remaining_expected_length, starpu_data_handle_t* handle_popped, int* priority_max, int* number_1_from_free_task_max, int nb_free_task_candidate, double remaining_expected_length_candidate, starpu_data_handle_t handle_candidate, int priority_candidate, int number_1_from_free_task_candidate, int* data_choosen_index, int i, struct starpu_task** best_1_from_free_task, struct starpu_task* best_1_from_free_task_candidate, double transfer_min_candidate, double* transfer_min);
 bool is_my_task_free(int current_gpu, struct starpu_task *task);
 void check_double_in_data_not_used_yet(struct gpu_planned_task *g, int current_gpu);
 struct starpu_task* get_highest_priority_task(struct starpu_task_list *l);

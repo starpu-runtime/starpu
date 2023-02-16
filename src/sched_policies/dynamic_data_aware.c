@@ -34,6 +34,7 @@ starpu_pthread_mutex_t refined_mutex; /* Protège main task list et les données
 starpu_pthread_mutex_t linear_mutex; /* Mutex qui rend tout linéaire. Utile pour la version du code rendu pour IPDPS ainsi que pour se comparer aux nouveaux mutexs. A utiliser avec les ifdef suivants. */
 
 /* Var globales déclaré en extern */
+int can_a_data_be_in_mem_and_in_not_used_yet;
 int eviction_strategy_dynamic_data_aware;
 int threshold;
 int app;
@@ -441,35 +442,35 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 		
 	#ifdef PRINT
 	unsigned sched_ctx_id = 0;
+	//~ perf_arch = starpu_worker_get_perf_archtype(0, sched_ctx_id);
+	//~ printf("New task %p (%s, prio: %d, length: %f) in push_task with data(s):", task, starpu_task_get_name(task), task->priority, starpu_task_expected_length(task, perf_arch, 0)); fflush(stdout);
+	
+	//~ printf("\n"); fflush(stdout);
+	//~ perf_arch = starpu_worker_get_perf_archtype(1, sched_ctx_id);
+	//~ printf("New task %p (%s, prio: %d, length: %f) in push_task with data(s):", task, starpu_task_get_name(task), task->priority, starpu_task_expected_length(task, perf_arch, 0)); fflush(stdout);
+	
+	//~ printf("\n"); fflush(stdout);
+	//~ perf_arch = starpu_worker_get_perf_archtype(2, sched_ctx_id);
+	//~ printf("New task %p (%s, prio: %d, length: %f) in push_task with data(s):", task, starpu_task_get_name(task), task->priority, starpu_task_expected_length(task, perf_arch, 0)); fflush(stdout);
+	
+	//~ printf("\n"); fflush(stdout);
+	//~ perf_arch = starpu_worker_get_perf_archtype(3, sched_ctx_id);
+	//~ printf("New task %p (%s, prio: %d, length: %f) in push_task with data(s):", task, starpu_task_get_name(task), task->priority, starpu_task_expected_length(task, perf_arch, 0)); fflush(stdout);
+	
+	//~ printf("\n"); fflush(stdout);
+	//~ perf_arch = starpu_worker_get_perf_archtype(4, sched_ctx_id);
+	//~ printf("New task %p (%s, prio: %d, length: %f) in push_task with data(s):", task, starpu_task_get_name(task), task->priority, starpu_task_expected_length(task, perf_arch, 0)); fflush(stdout);
+	
+	//~ printf("\n"); fflush(stdout);
+	//~ perf_arch = starpu_worker_get_perf_archtype(5, sched_ctx_id);
+	//~ printf("New task %p (%s, prio: %d, length: %f) in push_task with data(s):", task, starpu_task_get_name(task), task->priority, starpu_task_expected_length(task, perf_arch, 0)); fflush(stdout);
+	
+	//~ printf("\n"); fflush(stdout);
+	//~ perf_arch = starpu_worker_get_perf_archtype(6, sched_ctx_id);
+	//~ printf("New task %p (%s, prio: %d, length: %f) in push_task with data(s):", task, starpu_task_get_name(task), task->priority, starpu_task_expected_length(task, perf_arch, 0)); fflush(stdout);
+	
+	printf("\n"); fflush(stdout);
 	perf_arch = starpu_worker_get_perf_archtype(0, sched_ctx_id);
-	printf("New task %p (%s, prio: %d, length: %f) in push_task with data(s):", task, starpu_task_get_name(task), task->priority, starpu_task_expected_length(task, perf_arch, 0)); fflush(stdout);
-	
-	printf("\n"); fflush(stdout);
-	perf_arch = starpu_worker_get_perf_archtype(1, sched_ctx_id);
-	printf("New task %p (%s, prio: %d, length: %f) in push_task with data(s):", task, starpu_task_get_name(task), task->priority, starpu_task_expected_length(task, perf_arch, 0)); fflush(stdout);
-	
-	printf("\n"); fflush(stdout);
-	perf_arch = starpu_worker_get_perf_archtype(2, sched_ctx_id);
-	printf("New task %p (%s, prio: %d, length: %f) in push_task with data(s):", task, starpu_task_get_name(task), task->priority, starpu_task_expected_length(task, perf_arch, 0)); fflush(stdout);
-	
-	printf("\n"); fflush(stdout);
-	perf_arch = starpu_worker_get_perf_archtype(3, sched_ctx_id);
-	printf("New task %p (%s, prio: %d, length: %f) in push_task with data(s):", task, starpu_task_get_name(task), task->priority, starpu_task_expected_length(task, perf_arch, 0)); fflush(stdout);
-	
-	printf("\n"); fflush(stdout);
-	perf_arch = starpu_worker_get_perf_archtype(4, sched_ctx_id);
-	printf("New task %p (%s, prio: %d, length: %f) in push_task with data(s):", task, starpu_task_get_name(task), task->priority, starpu_task_expected_length(task, perf_arch, 0)); fflush(stdout);
-	
-	printf("\n"); fflush(stdout);
-	perf_arch = starpu_worker_get_perf_archtype(5, sched_ctx_id);
-	printf("New task %p (%s, prio: %d, length: %f) in push_task with data(s):", task, starpu_task_get_name(task), task->priority, starpu_task_expected_length(task, perf_arch, 0)); fflush(stdout);
-	
-	printf("\n"); fflush(stdout);
-	perf_arch = starpu_worker_get_perf_archtype(6, sched_ctx_id);
-	printf("New task %p (%s, prio: %d, length: %f) in push_task with data(s):", task, starpu_task_get_name(task), task->priority, starpu_task_expected_length(task, perf_arch, 0)); fflush(stdout);
-	
-	printf("\n"); fflush(stdout);
-	perf_arch = starpu_worker_get_perf_archtype(7, sched_ctx_id);
 	printf("New task %p (%s, prio: %d, length: %f) in push_task with data(s):", task, starpu_task_get_name(task), task->priority, starpu_task_expected_length(task, perf_arch, 0)); fflush(stdout);
 	for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 	{
@@ -790,9 +791,10 @@ void initialize_task_data_gpu_single_task_v3(struct starpu_task *task, int also_
 				hud->last_check_to_choose_from[j] = 0;
 				hud->is_present_in_data_not_used_yet[j] = 0;
 				
-				if (also_add_data_in_not_used_yet_list == 1)
+				//~ if (also_add_data_in_not_used_yet_list == 1)
+				if (also_add_data_in_not_used_yet_list == 1 && (can_a_data_be_in_mem_and_in_not_used_yet == 1 || !starpu_data_is_on_node(e->D, j+1)))
 				{
-					//~ printf("Data is new. Adding %p in data_not_used_yet of GPU %d\n", e->D, j); fflush(stdout);
+					//~ printf("Data is new. Adding %p in data_not_used_yet of GPU %d\n", e->D, j+1); fflush(stdout);
 					hud->is_present_in_data_not_used_yet[j] = 1;
 					if (data_order == 1)
 					{
@@ -834,9 +836,11 @@ void initialize_task_data_gpu_single_task_v3(struct starpu_task *task, int also_
 					hud->last_check_to_choose_from[j] = 0;
 					hud->is_present_in_data_not_used_yet[j] = 0;
 					
-					if (also_add_data_in_not_used_yet_list == 1)
+					//~ printf("is %p on node of gû %d ?: %d\n", e->D, j+1, starpu_data_is_on_node(e->D, j+1)); fflush(stdout);
+					//~ if (also_add_data_in_not_used_yet_list == 1)
+					if (also_add_data_in_not_used_yet_list == 1 && (can_a_data_be_in_mem_and_in_not_used_yet == 1 || !starpu_data_is_on_node(e->D, j+1)))
 					{
-						printf("New iteration. Adding %p in data_not_used_yet of GPU %d\n", e->D, j); fflush(stdout);
+						//~ printf("New iteration. Adding %p in data_not_used_yet of GPU %d\n", e->D, j+1); fflush(stdout);
 						hud->is_present_in_data_not_used_yet[j] = 1;
 						if (data_order == 1)
 						{
@@ -860,13 +864,15 @@ void initialize_task_data_gpu_single_task_v3(struct starpu_task *task, int also_
 					struct gpu_data_not_used *e = gpu_data_not_used_new();
 					e->D = STARPU_TASK_GET_HANDLE(task, i);
 				
-					if (hud->is_present_in_data_not_used_yet[j] == 0 && also_add_data_in_not_used_yet_list == 1)
+					//~ if (hud->is_present_in_data_not_used_yet[j] == 0 && also_add_data_in_not_used_yet_list == 1)
+					if (hud->is_present_in_data_not_used_yet[j] == 0 && also_add_data_in_not_used_yet_list == 1 && (can_a_data_be_in_mem_and_in_not_used_yet == 1 || !starpu_data_is_on_node(e->D, j+1)))
 					{							
 						#ifdef PRINT
 						printf("%p gets 1 at is_present_in_data_not_used_yet on GPU %d\n", STARPU_TASK_GET_HANDLE(task, i), j); fflush(stdout);
 						#endif
 						
-						//~ printf("Data already exist but not anymore on this GPU. Adding %p in data_not_used_yet of GPU %d\n", e->D, j); fflush(stdout);
+						//~ printf("Data already exist but not anymore on this GPU. Adding %p in data_not_used_yet of GPU %d\n", e->D, j+1); fflush(stdout);
+						
 						hud->is_present_in_data_not_used_yet[j] = 1;
 						if (data_order == 1)
 						{
@@ -1824,20 +1830,103 @@ void update_best_data(int* number_free_task_max, int* task_available_max, starpu
 
 /* The call is: update_best_data_single_decision_tree(&number_free_task_max, &task_available_max, &handle_popped, &priority_max, &number_1_from_free_task_max, &task_available_max_1_from_free, temp_number_free_task_max, task_using_data_list_size(e->D->sched_data), e->D, temp_priority_max, temp_number_1_from_free_task_max, &data_choosen_index, i); */
 //~ void update_best_data_single_decision_tree(int* number_free_task_max, int* task_available_max, starpu_data_handle_t* handle_popped, int* priority_max, int* number_1_from_free_task_max, int* task_available_max_1_from_free, int nb_free_task_candidate, int task_using_data_list_size_candidate, starpu_data_handle_t handle_candidate, int priority_candidate, int number_1_from_free_task_candidate, int* data_choosen_index, int i)
-void update_best_data_single_decision_tree(int* number_free_task_max, double* remaining_expected_length_max, starpu_data_handle_t* handle_popped, int* priority_max, int* number_1_from_free_task_max, int nb_free_task_candidate, double remaining_expected_length_candidate, starpu_data_handle_t handle_candidate, int priority_candidate, int number_1_from_free_task_candidate, int* data_choosen_index, int i, struct starpu_task** best_1_from_free_task, struct starpu_task* best_1_from_free_task_candidate)
+void update_best_data_single_decision_tree(int* number_free_task_max, double* remaining_expected_length_max, starpu_data_handle_t* handle_popped, int* priority_max, int* number_1_from_free_task_max, int nb_free_task_candidate, double remaining_expected_length_candidate, starpu_data_handle_t handle_candidate, int priority_candidate, int number_1_from_free_task_candidate, int* data_choosen_index, int i, struct starpu_task** best_1_from_free_task, struct starpu_task* best_1_from_free_task_candidate, double transfer_min_candidate, double* transfer_min)
 {
-	/* Il y a bien plus de return que de update. Je met donc les if dans ce sens pour pouvoir gagner en complexité et s'arrêter plus tot. */
-	/* First tiebreak with most free task */
-	if (nb_free_task_candidate < *number_free_task_max)
-	{
-		return;
-	}
-	/* Then with number of 1 from free */
-	else if (nb_free_task_candidate == *number_free_task_max)
-	{
+	/* Avant modif */
+	//~ /* Il y a bien plus de return que de update. Je met donc les if dans ce sens pour pouvoir gagner en complexité et s'arrêter plus tot. */
+	//~ /* First tiebreak with most free task */
+	//~ if (nb_free_task_candidate < *number_free_task_max)
+	//~ {
+		//~ return;
+	//~ }
+	//~ /* Then with number of 1 from free */
+	//~ else if (nb_free_task_candidate == *number_free_task_max)
+	//~ {
+		//~ /* V1 1 from free then prio */
+		//~ if  (dopt_selection_order == 0)
+		//~ {
+			//~ if (number_1_from_free_task_candidate < *number_1_from_free_task_max)
+			//~ {
+				//~ return;
+			//~ }
+			//~ else if (number_1_from_free_task_candidate == *number_1_from_free_task_max)
+			//~ {				
+				//~ /* Then with priority */
+				//~ if (prio == 1 && *priority_max > priority_candidate)
+				//~ {				
+					//~ return;
+				//~ }
+				//~ /* Then with time of task in the list of task using this data */
+				//~ else if ((*priority_max == priority_candidate || prio == 0) && remaining_expected_length_candidate <= *remaining_expected_length_max)
+				//~ {
+					//~ #ifdef PRINT_STATS
+					//~ if (remaining_expected_length_candidate == *remaining_expected_length_max)
+					//~ {
+						//~ data_choice_per_index = true;
+					//~ }
+					//~ #endif
+					
+					//~ return;
+				//~ }
+			//~ }
+		//~ }
+		//~ else
+		//~ {
+		//~ /* V2 prio then 1 from free */
+			//~ if (prio == 1 && *priority_max > priority_candidate)
+			//~ {
+				//~ return;
+			//~ }
+			//~ else if (*priority_max == priority_candidate)
+			//~ {				
+				//~ /* Then with 1 from free */
+				//~ if (number_1_from_free_task_candidate < *number_1_from_free_task_max)
+				//~ {				
+					//~ return;
+				//~ }
+				//~ /* Then with time of task in the list of task using this data */
+				//~ else if ((number_1_from_free_task_candidate == *number_1_from_free_task_max) && remaining_expected_length_candidate <= *remaining_expected_length_max)
+				//~ {
+					//~ #ifdef PRINT_STATS
+					//~ if (remaining_expected_length_candidate == *remaining_expected_length_max)
+					//~ {
+						//~ data_choice_per_index = true;
+					//~ }
+					//~ #endif
+					
+					//~ return;
+				//~ }
+			//~ }
+		//~ }
+	//~ }
+	
+	//~ #ifdef PRINT_STATS
+	//~ data_choice_per_index = false;
+	//~ #endif
+	
+	//~ /* Update */
+	//~ *number_free_task_max = nb_free_task_candidate;
+	//~ *remaining_expected_length_max = remaining_expected_length_candidate;
+	//~ *number_1_from_free_task_max = number_1_from_free_task_candidate;
+	//~ *handle_popped = handle_candidate;
+	//~ *priority_max = priority_candidate;
+	//~ *best_1_from_free_task = best_1_from_free_task_candidate;
 		
-		/* V1 1 from free then prio */
-		if  (dopt_selection_order == 0)
+	//~ #ifdef PRINT_STATS
+	//~ *data_choosen_index = i + 1;
+	//~ #endif
+	
+	/* Après modif */
+	/* Il y a bien plus de return que de update. Je met donc les if dans ce sens pour pouvoir gagner en complexité et s'arrêter plus tot. */
+	if (dopt_selection_order == 0)
+	{
+		/* First tiebreak with most free task */
+		if (nb_free_task_candidate < *number_free_task_max)
+		{
+			return;
+		}
+		/* Then with number of 1 from free */
+		else if (nb_free_task_candidate == *number_free_task_max)
 		{
 			if (number_1_from_free_task_candidate < *number_1_from_free_task_max)
 			{
@@ -1859,26 +1948,29 @@ void update_best_data_single_decision_tree(int* number_free_task_max, double* re
 						data_choice_per_index = true;
 					}
 					#endif
-					
 					return;
 				}
 			}
 		}
-		else
+	}
+	else if (dopt_selection_order == 1)
+	{
+		if (nb_free_task_candidate < *number_free_task_max)
 		{
-		/* V2 prio then 1 from free */
+			return;
+		}
+		else if (nb_free_task_candidate == *number_free_task_max)
+		{
 			if (prio == 1 && *priority_max > priority_candidate)
 			{
 				return;
 			}
 			else if (*priority_max == priority_candidate)
 			{				
-				/* Then with 1 from free */
 				if (number_1_from_free_task_candidate < *number_1_from_free_task_max)
 				{				
 					return;
 				}
-				/* Then with time of task in the list of task using this data */
 				else if ((number_1_from_free_task_candidate == *number_1_from_free_task_max) && remaining_expected_length_candidate <= *remaining_expected_length_max)
 				{
 					#ifdef PRINT_STATS
@@ -1887,8 +1979,197 @@ void update_best_data_single_decision_tree(int* number_free_task_max, double* re
 						data_choice_per_index = true;
 					}
 					#endif
-					
 					return;
+				}
+			}
+		}
+	}
+	else if (dopt_selection_order == 2)
+	{
+		if (transfer_min_candidate > *transfer_min)
+		{
+			return;
+		}
+		else if (transfer_min_candidate == *transfer_min)
+		{
+			if (nb_free_task_candidate < *number_free_task_max)
+			{
+				return;
+			}
+			else if (nb_free_task_candidate == *number_free_task_max)
+			{
+				if (prio == 1 && *priority_max > priority_candidate)
+				{
+					return;
+				}
+				else if (*priority_max == priority_candidate)
+				{				
+					if (number_1_from_free_task_candidate < *number_1_from_free_task_max)
+					{				
+						return;
+					}
+					else if ((number_1_from_free_task_candidate == *number_1_from_free_task_max) && remaining_expected_length_candidate <= *remaining_expected_length_max)
+					{
+						#ifdef PRINT_STATS
+						if (remaining_expected_length_candidate == *remaining_expected_length_max)
+						{
+							data_choice_per_index = true;
+						}
+						#endif
+						return;
+					}
+				}
+			}
+		}
+	}
+	else if (dopt_selection_order == 3)
+	{
+		if (nb_free_task_candidate < *number_free_task_max)
+		{
+			return;
+		}
+		else if (nb_free_task_candidate == *number_free_task_max)
+		{
+			if (transfer_min_candidate > *transfer_min)
+			{
+				return;
+			}
+			else if (transfer_min_candidate == *transfer_min)
+			{
+				if (prio == 1 && *priority_max > priority_candidate)
+				{
+					return;
+				}
+				else if (*priority_max == priority_candidate)
+				{				
+					if (number_1_from_free_task_candidate < *number_1_from_free_task_max)
+					{				
+						return;
+					}
+					else if ((number_1_from_free_task_candidate == *number_1_from_free_task_max) && remaining_expected_length_candidate <= *remaining_expected_length_max)
+					{
+						#ifdef PRINT_STATS
+						if (remaining_expected_length_candidate == *remaining_expected_length_max)
+						{
+							data_choice_per_index = true;
+						}
+						#endif
+						return;
+					}
+				}
+			}
+		}
+	}
+	else if (dopt_selection_order == 4)
+	{
+		if (nb_free_task_candidate < *number_free_task_max)
+		{
+			return;
+		}
+		else if (nb_free_task_candidate == *number_free_task_max)
+		{
+			if (prio == 1 && *priority_max > priority_candidate)
+			{
+				return;
+			}
+			else if (*priority_max == priority_candidate)
+			{
+				if (transfer_min_candidate > *transfer_min)
+				{
+					return;
+				}
+				else if (transfer_min_candidate == *transfer_min)
+				{				
+					if (number_1_from_free_task_candidate < *number_1_from_free_task_max)
+					{				
+						return;
+					}
+					else if ((number_1_from_free_task_candidate == *number_1_from_free_task_max) && remaining_expected_length_candidate <= *remaining_expected_length_max)
+					{
+						#ifdef PRINT_STATS
+						if (remaining_expected_length_candidate == *remaining_expected_length_max)
+						{
+							data_choice_per_index = true;
+						}
+						#endif
+						return;
+					}
+				}
+			}
+		}
+	}
+	else if (dopt_selection_order == 5)
+	{
+		if (nb_free_task_candidate < *number_free_task_max)
+		{
+			return;
+		}
+		else if (nb_free_task_candidate == *number_free_task_max)
+		{
+			if (prio == 1 && *priority_max > priority_candidate)
+			{
+				return;
+			}
+			else if (*priority_max == priority_candidate)
+			{
+				if (number_1_from_free_task_candidate < *number_1_from_free_task_max)
+				{
+					return;
+				}
+				else if (number_1_from_free_task_candidate == *number_1_from_free_task_max)
+				{				
+					if (transfer_min_candidate > *transfer_min)
+					{				
+						return;
+					}
+					else if ((transfer_min_candidate == *transfer_min) && remaining_expected_length_candidate <= *remaining_expected_length_max)
+					{
+						#ifdef PRINT_STATS
+						if (remaining_expected_length_candidate == *remaining_expected_length_max)
+						{
+							data_choice_per_index = true;
+						}
+						#endif
+						return;
+					}
+				}
+			}
+		}
+	}
+	else if (dopt_selection_order == 6)
+	{
+		if (nb_free_task_candidate < *number_free_task_max)
+		{
+			return;
+		}
+		else if (nb_free_task_candidate == *number_free_task_max)
+		{
+			if (prio == 1 && *priority_max > priority_candidate)
+			{
+				return;
+			}
+			else if (*priority_max == priority_candidate)
+			{
+				if (number_1_from_free_task_candidate < *number_1_from_free_task_max)
+				{
+					return;
+				}
+				else if (number_1_from_free_task_candidate == *number_1_from_free_task_max)
+				{				
+					if (remaining_expected_length_candidate < *remaining_expected_length_max)
+					{				
+						return;
+					}
+					else if ((remaining_expected_length_candidate == *remaining_expected_length_max) && transfer_min_candidate >= *transfer_min)
+					{
+						#ifdef PRINT_STATS
+						if (transfer_min_candidate == *transfer_min)
+						{
+							data_choice_per_index = true;
+						}
+						#endif
+						return;
+					}
 				}
 			}
 		}
@@ -1897,57 +2178,21 @@ void update_best_data_single_decision_tree(int* number_free_task_max, double* re
 	#ifdef PRINT_STATS
 	data_choice_per_index = false;
 	#endif
+	
+	//~ printf("Update on transfer times %f %f\n", transfer_min_candidate, *transfer_min); fflush(stdout);
+	
 	/* Update */
 	*number_free_task_max = nb_free_task_candidate;
-	//~ *task_available_max = task_using_data_list_size_candidate;
 	*remaining_expected_length_max = remaining_expected_length_candidate;
 	*number_1_from_free_task_max = number_1_from_free_task_candidate;
 	*handle_popped = handle_candidate;
 	*priority_max = priority_candidate;
 	*best_1_from_free_task = best_1_from_free_task_candidate;
-		
+	*transfer_min = transfer_min_candidate;
+	
 	#ifdef PRINT_STATS
 	*data_choosen_index = i + 1;
 	#endif
-	
-	//~ /* First tiebreak with most free task */
-	//~ if (nb_free_task_candidate > *number_free_task_max)
-	//~ {
-		//~ goto update;
-	//~ }
-	//~ /* Then with number of 1 from free */
-	//~ else if (nb_free_task_candidate == *number_free_task_max)
-	//~ {
-		//~ if (number_1_from_free_task_candidate > *number_1_from_free_task_max)
-		//~ {
-			//~ goto update;
-		//~ }
-		//~ /* Then with priority */
-		//~ else if (number_1_from_free_task_candidate == *number_1_from_free_task_max)
-		//~ {
-			//~ if (prio == 1 && *priority_max < priority_candidate)
-			//~ {
-				//~ goto update;
-			//~ }
-			//~ /* Then with number of task in the list of task using this data */
-			//~ else if ((*priority_max == priority_candidate || prio == 0) && task_using_data_list_size_candidate > *task_available_max)
-			//~ {
-				//~ goto update;
-			//~ }
-		//~ }
-	//~ }
-	//~ return;
-	
-	//~ update: ;
-	//~ *number_free_task_max = nb_free_task_candidate;
-	//~ *task_available_max = task_using_data_list_size_candidate;
-	//~ *number_1_from_free_task_max = number_1_from_free_task_candidate;
-	//~ *handle_popped = handle_candidate;
-	//~ *priority_max = priority_candidate;
-					
-	//~ #ifdef PRINT_STATS
-	//~ *data_choosen_index = i + 1;
-	//~ #endif
 }
 
 /**
@@ -1987,6 +2232,11 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
     int temp_number_1_from_free_task_max = 0;
     int priority_max = INT_MIN; /* Highest priority of a task using the choosen data that we know will be pushed to planned task. */
     int temp_priority_max = INT_MIN; /* Highest priority of a task using the choosen data that we know will be pushed to planned task. */
+    
+    /* To ty and use starpu_data_expected_transfer_time */
+    double transfer_time_min = DBL_MAX; 
+    double temp_transfer_time_min = DBL_MAX; 
+    
     starpu_data_handle_t handle_popped = NULL; /* Pointer to choosen best data */
     
     struct handle_user_data * hud = NULL;
@@ -2220,6 +2470,8 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 						{
 							temp_priority_max = t->pointer_to_T->priority;
 						}
+						
+						
 					}
 					else if (data_not_available == 1)
 					{
@@ -2234,9 +2486,13 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 					}
 				}
 				
+				//~ printf("Current gpu: %d: data %p of size %ld takes %f to be transferred. Is data on the node?: %d\n", current_gpu, e->D, starpu_data_get_size(e->D), starpu_data_expected_transfer_time(e->D, current_gpu ,STARPU_R), starpu_data_is_on_node(e->D, current_gpu)); fflush(stdout);
+				
+				temp_transfer_time_min = starpu_data_expected_transfer_time(e->D, current_gpu ,STARPU_R);
+				
 				/* Checking if current data is better */				
 				hud = e->D->user_data;
-				update_best_data_single_decision_tree(&number_free_task_max, &remaining_expected_length_max, &handle_popped, &priority_max, &number_1_from_free_task_max, temp_number_free_task_max, hud->sum_remaining_task_expected_length, e->D, temp_priority_max, temp_number_1_from_free_task_max, &data_choosen_index, i, &best_1_from_free_task, temp_best_1_from_free_task);
+				update_best_data_single_decision_tree(&number_free_task_max, &remaining_expected_length_max, &handle_popped, &priority_max, &number_1_from_free_task_max, temp_number_free_task_max, hud->sum_remaining_task_expected_length, e->D, temp_priority_max, temp_number_1_from_free_task_max, &data_choosen_index, i, &best_1_from_free_task, temp_best_1_from_free_task, temp_transfer_time_min, &transfer_time_min);
 			}
 		}
 	}
@@ -2372,9 +2628,11 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 								}
 							}
 							
+							temp_transfer_time_min = starpu_data_expected_transfer_time(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k), current_gpu ,STARPU_R);
+							
 							/* Update best data if needed */
 							hud = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->user_data;
-							update_best_data_single_decision_tree(&number_free_task_max, &remaining_expected_length_max, &handle_popped, &priority_max, &number_1_from_free_task_max, temp_number_free_task_max, hud->sum_remaining_task_expected_length, STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k), temp_priority_max, temp_number_1_from_free_task_max, &data_choosen_index, i, &best_1_from_free_task, temp_best_1_from_free_task);
+							update_best_data_single_decision_tree(&number_free_task_max, &remaining_expected_length_max, &handle_popped, &priority_max, &number_1_from_free_task_max, temp_number_free_task_max, hud->sum_remaining_task_expected_length, STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k), temp_priority_max, temp_number_1_from_free_task_max, &data_choosen_index, i, &best_1_from_free_task, temp_best_1_from_free_task, temp_transfer_time_min, &transfer_time_min);
 						//~ }
 						//~ else /* Cas 2D */
 						//~ {
@@ -2515,7 +2773,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 					  e = gpu_data_not_used_list_next(e);
 				}
 				
-				//~ printf("Free task. Erase data %p from GPU %d\n", e->D, current_gpu - 1); fflush(stdout);
+				//~ printf("Free task. Remove data %p from GPU %d\n", e->D, current_gpu); fflush(stdout);
 				gpu_data_not_used_list_erase(g->gpu_data, e);
 				//~ print_data_not_used_yet();
 				
@@ -2621,45 +2879,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		#ifdef REFINED_MUTEX
 		STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
 		#endif
-				
-		/* OLD: Je vais regarder si la tâche est bien 1 from free. */
-		//~ for (t = task_using_data_list_begin(handle_popped->sched_data); t != task_using_data_list_end(handle_popped->sched_data); t = task_using_data_list_next(t))
-		//~ {
-			//~ /* Finding just one task that is one from free with the choosen data. */
-			//~ data_not_available = 0; 
-			//~ for (j = 0; j < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T); j++)
-			//~ {
-				//~ if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, j) != handle_popped)
-				//~ {
-					//~ if (simulate_memory == 0)
-					//~ {
-						//~ if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
-						//~ {
-							//~ data_not_available++;
-						//~ }
-					//~ }
-					//~ else if (simulate_memory == 1)
-					//~ {
-						//~ hud = STARPU_TASK_GET_HANDLE(t->pointer_to_T, j)->user_data;
-						//~ if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu) && hud->nb_task_in_pulled_task[current_gpu - 1] == 0 && hud->nb_task_in_planned_task[current_gpu - 1] == 0)
-						//~ {
-							//~ data_not_available++;
-						//~ }
-					//~ }
-				//~ }
-			//~ }
-			//~ if (data_not_available <= 1)
-			//~ {
-				//~ break;
-			//~ }
-		//~ }
-		
-		/* NEW */
-		//~ t = best_1_from_free_task->pointer_to_T;
-		//~ printf("best_1_from_free_task is %p\n", best_1_from_free_task);
-
-		//~ if (t == task_using_data_list_end(handle_popped->sched_data))
-		
+								
 		/* En cas de conflits a cause des mutexs refined */
 		if (!starpu_task_list_ismember(main_task_list, best_1_from_free_task))
 		{
@@ -2704,7 +2924,8 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 						//~ printf("%p == %p ?\n", e1->D, STARPU_TASK_GET_HANDLE(best_1_from_free_task, i)); fflush(stdout);
 						//~ if(e->D == STARPU_TASK_GET_HANDLE(best_1_from_free_task, i))
 						if(e1->D == STARPU_TASK_GET_HANDLE(best_1_from_free_task, i))
-						{							
+						{		
+							//~ printf("1 from free. Remove %p from data list of GPU %d\n", e1->D, current_gpu); fflush(stdout);
 							gpu_data_not_used_list_erase(g->gpu_data, e1);
 							/* TODO:  a chaque erase faire : */
 							
@@ -2848,7 +3069,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 					{
 						if(e->D == STARPU_TASK_GET_HANDLE(task, i))
 						{
-							//~ printf("Random. Erase data %p from GPU %d\n", e->D, current_gpu - 1); fflush(stdout);
+							//~ printf("Random. Remove data %p from GPU %d\n", e->D, current_gpu); fflush(stdout);
 							gpu_data_not_used_list_erase(g->gpu_data, e);
 							//~ print_data_not_used_yet();
 							
@@ -3337,52 +3558,24 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 				struct handle_user_data * hud = returned_handle->user_data;
 				if (hud->is_present_in_data_not_used_yet[current_gpu - 1] == 0)
 				{
-					//~ #ifdef PRINT
-					//~ printf("Pushing %p on GPU %d at random spot.\n", returned_handle, current_gpu - 1); fflush(stdout);
-					//~ #endif
-					
 					push_data_not_used_yet_random_spot(returned_handle, &tab_gpu_planned_task[current_gpu - 1], current_gpu - 1);
 				}
 
-				//~ struct gpu_data_not_used *e = NULL;
 				for (i = 0; i < Ngpu; i++)
 				{
 					if (i != current_gpu - 1)
-					{
-						//~ printf("Checking GPU %d.\n", i);
-
-						/* Version où je check à la main */
-						//~ for (e = gpu_data_not_used_list_begin(tab_gpu_planned_task[i].gpu_data); e != gpu_data_not_used_list_end(tab_gpu_planned_task[i].gpu_data); e = gpu_data_not_used_list_next(e))
-						//~ {
-							//~ if (e->D == returned_handle)
-							//~ {
-								//~ goto data_already_present;
-								//~ break;
-							//~ }
-						//~ }
-						//~ printf("Not there, pusing data %p on GPU %d at random spot\n", returned_handle, i);
-						//~ push_data_not_used_yet_random_spot(returned_handle, &tab_gpu_planned_task[i], i);
-						//~ print_data_not_used_yet_one_gpu(&tab_gpu_planned_task[i], i);
-						//~ data_already_present: ;
-						
+					{						
 						/* Version où j'utilise is_present_in_data_not_used_yet de la struct de handle_user_data */
-						if (hud->is_present_in_data_not_used_yet[i] == 0)
-						{
-							//~ #ifdef PRINT
-							//~ printf("Not there, pushing data %p on GPU %d at random spot\n", returned_handle, i); fflush(stdout);
-							//~ #endif
-							
+						//~ if (hud->is_present_in_data_not_used_yet[i] == 0)
+						if (hud->is_present_in_data_not_used_yet[i] == 0 && (can_a_data_be_in_mem_and_in_not_used_yet == 1 || !starpu_data_is_on_node(returned_handle, i+1)))
+						{							
 							push_data_not_used_yet_random_spot(returned_handle, &tab_gpu_planned_task[i], i);
 						}
 					}
 				}
 			}
 			else
-			{
-				//~ #ifdef PRINT
-				//~ printf("Pushing %p on GPU %d at random spot.\n", returned_handle, current_gpu - 1); fflush(stdout);
-				//~ #endif
-				
+			{				
 				push_data_not_used_yet_random_spot(returned_handle, &tab_gpu_planned_task[current_gpu - 1], current_gpu - 1);
 			}
 		}
@@ -3726,6 +3919,7 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	graph_descendants = starpu_get_env_number_default("GRAPH_DESCENDANTS", 0); /* 0 ou 1 ou 2 */
 	dopt_selection_order = starpu_get_env_number_default("DOPT_SELECTION_ORDER", 0);
 	highest_priority_task_returned_in_default_case = starpu_get_env_number_default("HIGHEST_PRIORITY_TASK_RETURNED_IN_DEFAULT_CASE", 0);
+	can_a_data_be_in_mem_and_in_not_used_yet = starpu_get_env_number_default("CAN_A_DATA_BE_IN_MEM_AND_IN_NOT_USED_YET", 0);
 
 	#ifdef PRINT	
 	printf("-----\nEVICTION_STRATEGY_DYNAMIC_DATA_AWARE = %d\nTHRESHOLD = %d\nAPP = %d\nCHOOSE_BEST_DATA_FROM = %d\nSIMULATE_MEMORY = %d\nTASK_ORDER = %d\nDATA_ORDER = %d\nDEPENDANCES = %d\nPRIO = %d\nFREE_PUSHED_TASK_POSITION = %d\nGRAPH_DESCENDANTS = %d\nDOPT_SELECTION_ORDER = %d\nPRIORITY_ATTRIBUTION = %d\nHIGHEST_PRIORITY_TASK_RETURNED_IN_DEFAULT_CASE = %d\n-----\n", eviction_strategy_dynamic_data_aware, threshold, app, choose_best_data_from, simulate_memory, task_order, data_order, dependances, prio, free_pushed_task_position, graph_descendants, dopt_selection_order, starpu_get_env_number_default("PRIORITY_ATTRIBUTION", 0), highest_priority_task_returned_in_default_case);
