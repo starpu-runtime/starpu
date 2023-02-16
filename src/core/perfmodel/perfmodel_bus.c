@@ -37,6 +37,7 @@
 #include <core/topology.h>
 #include <common/utils.h>
 #include <drivers/mpi/driver_mpi_common.h>
+#include <drivers/tcpip/driver_tcpip_common.h>
 #include <datawizard/memory_nodes.h>
 
 #ifdef STARPU_USE_OPENCL
@@ -98,6 +99,7 @@ static unsigned ncuda = 0;
 static unsigned nopencl = 0;
 #ifndef STARPU_SIMGRID
 static unsigned nmpi_ms = 0;
+static unsigned ntcpip_ms = 0;
 
 /* Benchmarking the performance of the bus */
 
@@ -140,6 +142,11 @@ static struct dev_timing opencldev_timing_per_numa[STARPU_MAXOPENCLDEVS*STARPU_M
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 static double mpi_time_device_to_device[STARPU_MAXMPIDEVS][STARPU_MAXMPIDEVS] = {{0.0}};
 static double mpi_latency_device_to_device[STARPU_MAXMPIDEVS][STARPU_MAXMPIDEVS] = {{0.0}};
+#endif
+
+#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
+static double tcpip_time_device_to_device[STARPU_MAXTCPIPDEVS][STARPU_MAXTCPIPDEVS] = {{0.0}};
+static double tcpip_latency_device_to_device[STARPU_MAXTCPIPDEVS][STARPU_MAXTCPIPDEVS] = {{0.0}};
 #endif
 #endif
 
@@ -944,6 +951,10 @@ static void benchmark_all_memory_nodes(void)
 	_starpu_mpi_common_measure_bandwidth_latency(mpi_time_device_to_device, mpi_latency_device_to_device);
 #endif /* STARPU_USE_MPI_MASTER_SLAVE */
 
+#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
+	_starpu_tcpip_common_measure_bandwidth_latency(tcpip_time_device_to_device, tcpip_latency_device_to_device);
+#endif /* STARPU_USE_TCPIP_MASTER_SLAVE */
+
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_set_cpubind(hwtopology, former_cpuset, HWLOC_CPUBIND_THREAD);
 	hwloc_bitmap_free(former_cpuset);
@@ -1461,6 +1472,9 @@ static void write_bus_latency_file_content(void)
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	maxnode += nmpi_ms;
 #endif
+#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
+	maxnode += ntcpip_ms;
+#endif
 	for (src = 0; src < STARPU_MAXNODES; src++)
 	{
 		for (dst = 0; dst < STARPU_MAXNODES; dst++)
@@ -1531,6 +1545,7 @@ static void write_bus_latency_file_content(void)
 						latency += search_bus_best_latency(dst-b_low, "OpenCL", 1);
 				b_low += nopencl;
 #endif
+
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 				b_up += nmpi_ms;
 				/* Modify MPI src and MPI dst if they contain the master node or not
@@ -1553,6 +1568,30 @@ static void write_bus_latency_file_content(void)
 						latency += mpi_latency_device_to_device[mpi_master][mpi_dst];
 				}
 				b_low += nmpi_ms;
+#endif
+
+#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
+				b_up += ntcpip_ms;
+				/* Modify TCPIP src and TCPIP dst if they contain the master node or not
+				 * Because, we only take care about slaves */
+				int tcpip_master = _starpu_tcpip_common_get_src_node();
+
+				int tcpip_src = src - b_low;
+				tcpip_src = (tcpip_master <= tcpip_src) ? tcpip_src+1 : tcpip_src;
+
+				int tcpip_dst = dst - b_low;
+				tcpip_dst = (tcpip_master <= tcpip_dst) ? tcpip_dst+1 : tcpip_dst;
+
+				if (src >= b_low && src < b_up && dst >= b_low && dst < b_up)
+					latency += tcpip_latency_device_to_device[tcpip_src][tcpip_dst];
+				else
+				{
+					if (src >= b_low && src < b_up)
+						latency += tcpip_latency_device_to_device[tcpip_src][tcpip_master];
+					if (dst >= b_low && dst < b_up)
+						latency += tcpip_latency_device_to_device[tcpip_master][tcpip_dst];
+				}
+				b_low += ntcpip_ms;
 #endif
 			}
 
@@ -1799,6 +1838,9 @@ static void write_bus_bandwidth_file_content(void)
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	maxnode += nmpi_ms;
 #endif
+#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
+	maxnode += ntcpip_ms;
+#endif
 	for (src = 0; src < STARPU_MAXNODES; src++)
 	{
 		for (dst = 0; dst < STARPU_MAXNODES; dst++)
@@ -1865,6 +1907,7 @@ static void write_bus_bandwidth_file_content(void)
 					slowness += search_bus_best_timing(dst-b_low, "OpenCL", 1);
 				b_low += nopencl;
 #endif
+
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 				b_up += nmpi_ms;
 				/* Modify MPI src and MPI dst if they contain the master node or not
@@ -1889,6 +1932,32 @@ static void write_bus_bandwidth_file_content(void)
 
 				b_low += nmpi_ms;
 #endif
+
+#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
+				b_up += ntcpip_ms;
+				/* Modify TCPIP src and TCPIP dst if they contain the master node or not
+				 * Because, we only take care about slaves */
+				int tcpip_master = _starpu_tcpip_common_get_src_node();
+
+				int tcpip_src = src - b_low;
+				tcpip_src = (tcpip_master <= tcpip_src) ? tcpip_src+1 : tcpip_src;
+
+				int tcpip_dst = dst - b_low;
+				tcpip_dst = (tcpip_master <= tcpip_dst) ? tcpip_dst+1 : tcpip_dst;
+
+				if (src >= b_low && src < b_up && dst >= b_low && dst < b_up)
+					slowness += tcpip_time_device_to_device[tcpip_src][tcpip_dst];
+				else
+				{
+					if (src >= b_low && src < b_up)
+						slowness += tcpip_time_device_to_device[tcpip_src][tcpip_master];
+					if (dst >= b_low && dst < b_up)
+						slowness += tcpip_time_device_to_device[tcpip_master][tcpip_dst];
+				}
+
+				b_low += ntcpip_ms;
+#endif
+
 				bandwidth = 1.0/slowness;
 			}
 			else
@@ -2124,7 +2193,7 @@ static void check_bus_config_file(void)
 	{
 		FILE *f;
 		int ret;
-		unsigned read_cuda = -1, read_opencl = -1, read_mpi_ms = -1;
+		unsigned read_cuda = -1, read_opencl = -1, read_mpi_ms = -1, read_tcpip_ms;
 		unsigned read_cpus = -1, read_numa = -1;
 		int locked;
 
@@ -2157,6 +2226,11 @@ static void check_bus_config_file(void)
 			read_mpi_ms = 0;
 		_starpu_drop_comments(f);
 
+		ret = fscanf(f, "%u\t", &read_tcpip_ms);
+		if (ret == 0)
+			read_tcpip_ms = 0;
+		_starpu_drop_comments(f);
+
 		if (locked)
 			_starpu_frdunlock(f);
 		fclose(f);
@@ -2173,6 +2247,9 @@ static void check_bus_config_file(void)
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 		nmpi_ms = _starpu_mpi_src_get_device_count();
 #endif /* STARPU_USE_MPI_MASTER_SLAVE */
+#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
+		ntcpip_ms = _starpu_tcpip_src_get_device_count();
+#endif /* STARPU_USE_TCPIP_MASTER_SLAVE */
 
 		// Checking if both configurations match
 		compare_value_and_recalibrate("CPUS", read_cpus, ncpus);
@@ -2180,6 +2257,7 @@ static void check_bus_config_file(void)
 		compare_value_and_recalibrate("CUDA", read_cuda, ncuda);
 		compare_value_and_recalibrate("OpenCL", read_opencl, nopencl);
 		compare_value_and_recalibrate("MPI Master-Slave", read_mpi_ms, nmpi_ms);
+		compare_value_and_recalibrate("TCPIP Master-Slave", read_tcpip_ms, ntcpip_ms);
 	}
 }
 
@@ -2206,6 +2284,7 @@ static void write_bus_config_file_content(void)
 	fprintf(f, "%u # Number of CUDA devices\n", ncuda);
 	fprintf(f, "%u # Number of OpenCL devices\n", nopencl);
 	fprintf(f, "%u # Number of MPI devices\n", nmpi_ms);
+	fprintf(f, "%u # Number of TCPIP devices\n", ntcpip_ms);
 
 	if (locked)
 		_starpu_fwrunlock(f);
@@ -3285,6 +3364,9 @@ void _starpu_load_bus_performance_files(void)
 #endif
 #if defined(STARPU_USE_MPI_MASTER_SLAVE)
 	nmpi_ms = _starpu_mpi_src_get_device_count();
+#endif
+#if defined(STARPU_USE_TCPIP_MASTER_SLAVE)
+	ntcpip_ms = _starpu_tcpip_src_get_device_count();
 #endif
 
 #ifndef STARPU_SIMGRID

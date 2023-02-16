@@ -1333,14 +1333,14 @@ void _starpu_tcpip_common_barrier(void)
 		{
 			//_TCPIP_PRINT("slave socket in sock list is %d\n", sock_list[i]);
 			ret=read(tcpip_sock[i].sync_sock, &buf, 1);
-			printf("ret2 is %d\n", ret);
+			//printf("ret2 is %d\n", ret);
 			STARPU_ASSERT_MSG(ret > 0, "Cannot read from slave!");
 		}
 
 		for(i=1; i<nb_sink+1; i++)
 		{
 			ret=write(tcpip_sock[i].sync_sock, &buf, 1);
-			printf("ret3 is %d\n", ret);
+			//printf("ret3 is %d\n", ret);
 			STARPU_ASSERT_MSG(ret > 0, "Cannot write to slave!");
 		}
 
@@ -1350,10 +1350,10 @@ void _starpu_tcpip_common_barrier(void)
 	{
 		//_TCPIP_PRINT("master socket in sock list is %d\n", sock_list[0]);
 		ret=write(tcpip_sock[0].sync_sock, &buf, 1);
-		printf("ret1 is %d\n", ret);
+		//printf("ret1 is %d\n", ret);
 		STARPU_ASSERT_MSG(ret > 0, "Cannot write to master!");
 		ret=read(tcpip_sock[0].sync_sock, &buf, 1);
-		printf("ret4 is %d\n", ret);
+		//printf("ret4 is %d\n", ret);
 		STARPU_ASSERT_MSG(ret > 0, "Cannot read from master!");
 	}
 	_TCPIP_PRINT("finish common barrier\n");
@@ -1371,6 +1371,8 @@ void _starpu_tcpip_common_measure_bandwidth_latency(double timing_dtod[STARPU_MA
 	_STARPU_MALLOC(buf, SIZE_BANDWIDTH);
 	memset(buf, 0, SIZE_BANDWIDTH);
 
+	_starpu_tcpip_common_mp_init();
+
 	int sender, receiver;
 	for(sender = 0; sender < nb_sink+1; sender++)
 	{
@@ -1379,6 +1381,9 @@ void _starpu_tcpip_common_measure_bandwidth_latency(double timing_dtod[STARPU_MA
 			//Node can't be a sender and a receiver
 			if(sender == receiver)
 				continue;
+
+			if (!index_sink)
+				_STARPU_DISP("measuring from %d to %d\n", sender, receiver);
 
 			_starpu_tcpip_common_barrier();
 
@@ -1394,8 +1399,9 @@ void _starpu_tcpip_common_measure_bandwidth_latency(double timing_dtod[STARPU_MA
 				for (iter = 0; iter < NITER; iter++)
 				{
 					ret = write(tcpip_sock[receiver].sync_sock, buf, SIZE_BANDWIDTH);
+					STARPU_ASSERT_MSG(ret == SIZE_BANDWIDTH, "short write!");
 					STARPU_ASSERT_MSG(ret > 0, "Bandwidth of TCP/IP Master/Slave cannot be measured !");
-					ret = read(tcpip_sock[sender].sync_sock, buf, 1);
+					ret = read(tcpip_sock[receiver].sync_sock, buf, 1);
 					STARPU_ASSERT_MSG(ret > 0, "Bandwidth of TCP/IP Master/Slave cannot be measured !");
 				}
 				end = starpu_timing_now();
@@ -1407,7 +1413,7 @@ void _starpu_tcpip_common_measure_bandwidth_latency(double timing_dtod[STARPU_MA
 				{
 					ret = write(tcpip_sock[receiver].sync_sock, buf, 1);
 					STARPU_ASSERT_MSG(ret > 0, "Bandwidth of TCP/IP Master/Slave cannot be measured !");
-					ret = read(tcpip_sock[sender].sync_sock, buf, 1);
+					ret = read(tcpip_sock[receiver].sync_sock, buf, 1);
 					STARPU_ASSERT_MSG(ret > 0, "Bandwidth of TCP/IP Master/Slave cannot be measured !");
 				}
 				end = starpu_timing_now();
@@ -1423,9 +1429,14 @@ void _starpu_tcpip_common_measure_bandwidth_latency(double timing_dtod[STARPU_MA
 				/* measure bandwidth sender to receiver*/
 				for (iter = 0; iter < NITER; iter++)
 				{
-					ret = read(tcpip_sock[sender].sync_sock, buf, SIZE_BANDWIDTH);
-					STARPU_ASSERT_MSG(ret > 0, "Bandwidth of TCP/IP Master/Slave cannot be measured !");
-					ret = write(tcpip_sock[receiver].sync_sock, buf, 1);
+					size_t pending = SIZE_BANDWIDTH;
+					while (pending)
+					{
+						ret = read(tcpip_sock[sender].sync_sock, buf, SIZE_BANDWIDTH);
+						STARPU_ASSERT_MSG(ret > 0, "Bandwidth of TCP/IP Master/Slave cannot be measured !");
+						pending -= ret;
+					}
+					ret = write(tcpip_sock[sender].sync_sock, buf, 1);
 					STARPU_ASSERT_MSG(ret > 0, "Bandwidth of TCP/IP Master/Slave cannot be measured !");
 				}
 
@@ -1434,7 +1445,7 @@ void _starpu_tcpip_common_measure_bandwidth_latency(double timing_dtod[STARPU_MA
 				{
 					ret = read(tcpip_sock[sender].sync_sock, buf, 1);
 					STARPU_ASSERT_MSG(ret > 0, "Bandwidth of TCP/IP Master/Slave cannot be measured !");
-					ret = write(tcpip_sock[receiver].sync_sock, buf, 1);
+					ret = write(tcpip_sock[sender].sync_sock, buf, 1);
 					STARPU_ASSERT_MSG(ret > 0, "Bandwidth of TCP/IP Master/Slave cannot be measured !");
 				}
 			}
@@ -1442,24 +1453,35 @@ void _starpu_tcpip_common_measure_bandwidth_latency(double timing_dtod[STARPU_MA
 
 		/* When a sender finished its work, it has to send its results to the master */
 
-		/* Sender doesn't need to send to itself its data */
+		/* Master doesn't need to send to itself its data */
 		if (sender == 0)
-			continue;
+			goto print;
 
 		/* if we are the sender, we send the data */
 		if (sender == index_sink)
 		{
-			write(tcpip_sock[0].sync_sock, timing_dtod[sender], sizeof(timing_dtod[sender])*STARPU_MAXMPIDEVS);
-			write(tcpip_sock[0].sync_sock, latency_dtod[sender], sizeof(latency_dtod[sender])*STARPU_MAXMPIDEVS);
+			write(tcpip_sock[0].sync_sock, timing_dtod[sender], sizeof(timing_dtod[sender]));
+			write(tcpip_sock[0].sync_sock, latency_dtod[sender], sizeof(latency_dtod[sender]));
 		}
 
 		/* the master node receives the data */
 		if (index_sink == 0)
 		{
-			read(tcpip_sock[sender].sync_sock, timing_dtod[sender], sizeof(timing_dtod[sender])*STARPU_MAXMPIDEVS);
-			read(tcpip_sock[sender].sync_sock, latency_dtod[sender], sizeof(latency_dtod[sender])*STARPU_MAXMPIDEVS);
+			read(tcpip_sock[sender].sync_sock, timing_dtod[sender], sizeof(timing_dtod[sender]));
+			read(tcpip_sock[sender].sync_sock, latency_dtod[sender], sizeof(latency_dtod[sender]));
 		}
 
+print:
+		if (index_sink == 0)
+		{
+			for(receiver = 0; receiver < nb_sink+1; receiver++)
+			{
+				if(sender == receiver)
+					continue;
+
+				_STARPU_DISP("BANDWIDTH %d -> %d %fMB/s %fus\n", sender, receiver, 1/timing_dtod[sender][receiver], latency_dtod[sender][receiver]);
+			}
+		}
 	}
 	free(buf);
 }

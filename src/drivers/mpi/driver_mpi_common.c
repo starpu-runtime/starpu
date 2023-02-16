@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -507,6 +507,9 @@ void _starpu_mpi_common_measure_bandwidth_latency(double timing_dtod[STARPU_MAXM
 			if(sender == receiver)
 				continue;
 
+			if (src_node_id == id_proc)
+				_STARPU_DISP("measuring from %d to %d\n", sender, receiver);
+
 			ret = MPI_Barrier(MPI_COMM_WORLD);
 			STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Barrier failed");
 
@@ -557,7 +560,7 @@ void _starpu_mpi_common_measure_bandwidth_latency(double timing_dtod[STARPU_MAXM
 
 		/* Sender doesn't need to send to itself its data */
 		if (sender == src_node_id)
-			continue;
+			goto print;
 
 		/* if we are the sender, we send the data */
 		if (sender == id_proc)
@@ -573,6 +576,18 @@ void _starpu_mpi_common_measure_bandwidth_latency(double timing_dtod[STARPU_MAXM
 			MPI_Recv(latency_dtod[sender], STARPU_MAXMPIDEVS, MPI_DOUBLE, sender, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		}
 
+
+print:
+		if (src_node_id == id_proc)
+		{
+			for(receiver = 0; receiver < nb_proc; receiver++)
+			{
+				if(sender == receiver)
+					continue;
+
+				_STARPU_DISP("BANDWIDTH %d -> %d %fMB/s %fus\n", sender, receiver, 1/timing_dtod[sender][receiver], latency_dtod[sender][receiver]);
+			}
+		}
 	}
 	free(buf);
 }

@@ -746,7 +746,10 @@ static void _starpu_sink_common_execute_kernel(struct _starpu_mp_node *node, int
 	/*free the task*/
 	unsigned i;
 	for (i = 0; i < task->nb_interfaces; i++)
+	{
+		/* TODO: clean_meta */
 		free(task->interfaces[i]);
+	}
 	free(task->interfaces);
 	if (task->cl_arg != NULL)
 		free(task->cl_arg);
