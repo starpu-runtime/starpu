@@ -585,7 +585,7 @@ print:
 				if(sender == receiver)
 					continue;
 
-				_STARPU_DISP("BANDWIDTH %d -> %d %fMB/s %fus\n", sender, receiver, 1/timing_dtod[sender][receiver], latency_dtod[sender][receiver]);
+				_STARPU_DISP("BANDWIDTH %d -> %d %.0fMB/s %.2fus\n", sender, receiver, 1/timing_dtod[sender][receiver], latency_dtod[sender][receiver]);
 			}
 		}
 	}

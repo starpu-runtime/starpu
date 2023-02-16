@@ -257,7 +257,6 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, un
 {
 	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID, NULL);
 	size_t size = SIZE;
-	const unsigned timing_numa_index = dev*STARPU_MAXNUMANODES + numa;
 
 	/* Initialize CUDA context on the device */
 	/* We do not need to enable OpenGL interoperability at this point,
@@ -265,7 +264,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, un
 	cudaSetDevice(dev);
 
 	/* Check hwloc location of GPU */
-	set_numa_distance(dev, numa, STARPU_CUDA_WORKER, dev_timing_per_cpu + timing_numa_index);
+	set_numa_distance(dev, numa, STARPU_CUDA_WORKER, dev_timing_per_cpu);
 
 	/* hack to avoid third party libs to rebind threads */
 	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID, NULL);
@@ -345,7 +344,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, un
 	end = starpu_timing_now();
 	timing = end - start;
 
-	dev_timing_per_cpu[timing_numa_index].timing_htod = timing/NITER/size;
+	dev_timing_per_cpu->timing_htod = timing/NITER/size;
 
 	/* Measure download bandwidth */
 	start = starpu_timing_now();
@@ -357,7 +356,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, un
 	end = starpu_timing_now();
 	timing = end - start;
 
-	dev_timing_per_cpu[timing_numa_index].timing_dtoh = timing/NITER/size;
+	dev_timing_per_cpu->timing_dtoh = timing/NITER/size;
 
 	/* Measure upload latency */
 	start = starpu_timing_now();
@@ -369,7 +368,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, un
 	end = starpu_timing_now();
 	timing = end - start;
 
-	dev_timing_per_cpu[timing_numa_index].latency_htod = timing/NITER;
+	dev_timing_per_cpu->latency_htod = timing/NITER;
 
 	/* Measure download latency */
 	start = starpu_timing_now();
@@ -381,7 +380,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, un
 	end = starpu_timing_now();
 	timing = end - start;
 
-	dev_timing_per_cpu[timing_numa_index].latency_dtoh = timing/NITER;
+	dev_timing_per_cpu->latency_dtoh = timing/NITER;
 
 	/* Free buffers */
 	cudaHostUnregister(h_buffer);
@@ -407,7 +406,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, un
 }
 
 #ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
-static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
+static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst, double *timing_dtod, double *latency_dtod)
 {
 	size_t size = SIZE;
 	int can;
@@ -494,7 +493,7 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 	end = starpu_timing_now();
 	timing = end - start;
 
-	cudadev_timing_dtod[src][dst] = timing/NITER/size;
+	*timing_dtod = timing/NITER/size;
 
 	/* Measure upload latency */
 	start = starpu_timing_now();
@@ -506,7 +505,7 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 	end = starpu_timing_now();
 	timing = end - start;
 
-	cudadev_latency_dtod[src][dst] = timing/NITER;
+	*latency_dtod = timing/NITER;
 
 	/* Free buffers */
 	cudaFree(d_buffer);
@@ -530,10 +529,9 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_opencl(int dev, 
 	cl_int err=0;
 	size_t size = SIZE;
 	int not_initialized;
-	const unsigned timing_numa_index = dev*STARPU_MAXNUMANODES + numa;
 
 	/* Check hwloc location of GPU */
-	set_numa_distance(dev, numa, STARPU_OPENCL_WORKER, dev_timing_per_cpu + timing_numa_index);
+	set_numa_distance(dev, numa, STARPU_OPENCL_WORKER, dev_timing_per_cpu);
 
 	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID, NULL);
 
@@ -626,7 +624,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_opencl(int dev, 
 	end = starpu_timing_now();
 	timing = end - start;
 
-	dev_timing_per_cpu[timing_numa_index].timing_htod = timing/NITER/size;
+	dev_timing_per_cpu->timing_htod = timing/NITER/size;
 
 	/* Measure download bandwidth */
 	start = starpu_timing_now();
@@ -639,7 +637,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_opencl(int dev, 
 	end = starpu_timing_now();
 	timing = end - start;
 
-	dev_timing_per_cpu[timing_numa_index].timing_dtoh = timing/NITER/size;
+	dev_timing_per_cpu->timing_dtoh = timing/NITER/size;
 
 	/* Measure upload latency */
 	start = starpu_timing_now();
@@ -652,7 +650,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_opencl(int dev, 
 	end = starpu_timing_now();
 	timing = end - start;
 
-	dev_timing_per_cpu[timing_numa_index].latency_htod = timing/NITER;
+	dev_timing_per_cpu->latency_htod = timing/NITER;
 
 	/* Measure download latency */
 	start = starpu_timing_now();
@@ -665,7 +663,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_opencl(int dev, 
 	end = starpu_timing_now();
 	timing = end - start;
 
-	dev_timing_per_cpu[timing_numa_index].latency_dtoh = timing/NITER;
+	dev_timing_per_cpu->latency_dtoh = timing/NITER;
 
 	/* Free buffers */
 	err = clReleaseMemObject(d_buffer);
@@ -746,11 +744,11 @@ static void measure_bandwidth_between_numa_nodes_and_dev(int dev, struct dev_tim
 
 #ifdef STARPU_USE_CUDA
 		if (type == STARPU_CUDA_WORKER)
-			measure_bandwidth_between_host_and_dev_on_numa_with_cuda(dev, numa_id, cpu_id, dev_timing_per_numanode);
+			measure_bandwidth_between_host_and_dev_on_numa_with_cuda(dev, numa_id, cpu_id, dev_timing_per_numanode + timing_numa_index);
 #endif
 #ifdef STARPU_USE_OPENCL
 		if (type == STARPU_OPENCL_WORKER)
-			measure_bandwidth_between_host_and_dev_on_numa_with_opencl(dev, numa_id, cpu_id, dev_timing_per_numanode);
+			measure_bandwidth_between_host_and_dev_on_numa_with_opencl(dev, numa_id, cpu_id, dev_timing_per_numanode + timing_numa_index);
 #endif
 	}
 	/* TODO: also measure the available aggregated bandwidth on a NUMA node, and through the interconnect */
@@ -783,7 +781,7 @@ static void measure_bandwidth_between_host_and_dev(int dev, struct dev_timing *d
 
 		double bandwidth_sum2 = bandwidth_dtoh*bandwidth_dtoh + bandwidth_htod*bandwidth_htod;
 
-		_STARPU_DISP("(%10s) BANDWIDTH GPU %d NUMA %u - htod %f - dtoh %f - %f\n", starpu_worker_get_type_as_string(type), dev, numa_id, bandwidth_htod, bandwidth_dtoh, sqrt(bandwidth_sum2));
+		_STARPU_DISP("(%10s) BANDWIDTH GPU %d NUMA %u - htod %.0fMB/s - dtoh %.0fMB/s - %.0fMB/s\n", starpu_worker_get_type_as_string(type), dev, numa_id, 1/bandwidth_htod, 1/bandwidth_dtoh, 1/sqrt(bandwidth_sum2));
 	}
 #endif
 }
@@ -932,7 +930,7 @@ static void benchmark_all_memory_nodes(void)
 			{
 				_STARPU_DISP("CUDA %u -> %u...\n", i, j);
 				/* measure bandwidth between Host and Device i */
-				measure_bandwidth_between_dev_and_dev_cuda(i, j);
+				measure_bandwidth_between_dev_and_dev_cuda(i, j, &cudadev_timing_dtod[i][j], &cudadev_latency_dtod[i][j]);
 			}
 	}
 #endif
