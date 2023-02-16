@@ -1747,7 +1747,7 @@ static int load_bus_bandwidth_file_content(void)
 }
 
 #if !defined(STARPU_SIMGRID) && (defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL))
-static double search_bus_best_timing(int src, char * type, int htod)
+static double search_bus_best_timing(int src, enum starpu_node_kind type, int htod)
 {
 	/* Search the best latency for this node */
 	double best = 0.0;
@@ -1757,7 +1757,7 @@ static double search_bus_best_timing(int src, char * type, int htod)
 	for (numa = 0; numa < nnumas; numa++)
 	{
 #ifdef STARPU_USE_CUDA
-		if (strncmp(type, "CUDA", 4) == 0)
+		if (type == STARPU_CUDA_RAM)
 		{
 			if (htod)
 				actual = cudadev_timing_per_numa[src][numa].timing_htod;
@@ -1766,7 +1766,7 @@ static double search_bus_best_timing(int src, char * type, int htod)
 		}
 #endif
 #ifdef STARPU_USE_OPENCL
-		if (strncmp(type, "OpenCL", 6) == 0)
+		if (type == STARPU_OPENCL_RAM)
 		{
 			if (htod)
 				actual = opencldev_timing_per_numa[src][numa].timing_htod;
@@ -1872,9 +1872,9 @@ static void write_bus_bandwidth_file_content(void)
 						slowness += cudadev_timing_per_numa[(dst-b_low)][src-numa_low].timing_htod;
 					/* To other devices, take the best slowness */
 					if (src >= b_low && src < b_up && !(dst >= numa_low && dst < numa_up))
-						slowness += search_bus_best_timing(src-b_low, "CUDA", 0);
+						slowness += search_bus_best_timing(src-b_low, STARPU_CUDA_RAM, 0);
 					if (dst >= b_low && dst < b_up && !(src >= numa_low && src < numa_up))
-						slowness += search_bus_best_timing(dst-b_low, "CUDA", 1);
+						slowness += search_bus_best_timing(dst-b_low, STARPU_CUDA_RAM, 1);
 				}
 				b_low += ncuda;
 #endif
@@ -1887,9 +1887,9 @@ static void write_bus_bandwidth_file_content(void)
 					slowness += opencldev_timing_per_numa[(dst-b_low)][src-numa_low].timing_htod;
 				/* To other devices, take the best slowness */
 				if (src >= b_low && src < b_up && !(dst >= numa_low && dst < numa_up))
-					slowness += search_bus_best_timing(src-b_low, "OpenCL", 0);
+					slowness += search_bus_best_timing(src-b_low, STARPU_OPENCL_RAM, 0);
 				if (dst >= b_low && dst < b_up && !(src >= numa_low && src < numa_up))
-					slowness += search_bus_best_timing(dst-b_low, "OpenCL", 1);
+					slowness += search_bus_best_timing(dst-b_low, STARPU_OPENCL_RAM, 1);
 				b_low += nopencl;
 #endif
 
@@ -2955,11 +2955,11 @@ static void write_bus_platform_file_content(int version)
 		snprintf(i_name, sizeof(i_name), "OpenCL%u", i);
 		fprintf(f, "   <link id=\"RAM-%s\" bandwidth=\"%f%s\" latency=\"%f%s\"/>\n",
 				i_name,
-				1000000 / search_bus_best_timing(i, "OpenCL", 1), Bps,
+				1000000 / search_bus_best_timing(i, STARPU_OPENCL_RAM, 1), Bps,
 				search_bus_best_latency(i, STARPU_OPENCL_RAM, 1)/1000000., s);
 		fprintf(f, "   <link id=\"%s-RAM\" bandwidth=\"%f%s\" latency=\"%f%s\"/>\n",
 				i_name,
-				1000000 / search_bus_best_timing(i, "OpenCL", 0), Bps,
+				1000000 / search_bus_best_timing(i, STARPU_OPENCL_RAM, 0), Bps,
 				search_bus_best_latency(i, STARPU_OPENCL_RAM, 0)/1000000., s);
 	}
 	fprintf(f, "\n");
@@ -2977,11 +2977,11 @@ static void write_bus_platform_file_content(int version)
 		snprintf(i_name, sizeof(i_name), "CUDA%u", i);
 		fprintf(f, "   <link id=\"RAM-%s\" bandwidth=\"%f%s\" latency=\"%f%s\"/>\n",
 				i_name,
-				1000000. / search_bus_best_timing(i, "CUDA", 1), Bps,
+				1000000. / search_bus_best_timing(i, STARPU_CUDA_RAM, 1), Bps,
 				search_bus_best_latency(i, STARPU_CUDA_RAM, 1)/1000000., s);
 		fprintf(f, "   <link id=\"%s-RAM\" bandwidth=\"%f%s\" latency=\"%f%s\"/>\n",
 				i_name,
-				1000000. / search_bus_best_timing(i, "CUDA", 0), Bps,
+				1000000. / search_bus_best_timing(i, STARPU_CUDA_RAM, 0), Bps,
 				search_bus_best_latency(i, STARPU_CUDA_RAM, 0)/1000000., s);
 	}
 	fprintf(f, "\n");
@@ -3143,8 +3143,8 @@ static void write_bus_platform_file_content(int version)
 			/* Record RAM/CUDA bandwidths */
 			if (!nvlinkhost[i])
 			{
-				find_platform_forward_path(get_hwloc_cuda_obj(topology, i), 1000000. / search_bus_best_timing(i, "CUDA", 0));
-				find_platform_backward_path(get_hwloc_cuda_obj(topology, i), 1000000. / search_bus_best_timing(i, "CUDA", 1));
+				find_platform_forward_path(get_hwloc_cuda_obj(topology, i), 1000000. / search_bus_best_timing(i, STARPU_CUDA_RAM, 0));
+				find_platform_backward_path(get_hwloc_cuda_obj(topology, i), 1000000. / search_bus_best_timing(i, STARPU_CUDA_RAM, 1));
 			}
 		}
 
