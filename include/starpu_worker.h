@@ -43,15 +43,16 @@ extern "C" {
 enum starpu_node_kind
 {
 	STARPU_UNUSED	    = 0,
-	STARPU_CPU_RAM	    = 1,
-	STARPU_CUDA_RAM	    = 2,
-	STARPU_OPENCL_RAM   = 3,
-	STARPU_MAX_FPGA_RAM = 4,
-	STARPU_DISK_RAM	    = 5,
-	STARPU_MPI_MS_RAM   = 6,
-	STARPU_TCPIP_MS_RAM = 7,
-	STARPU_HIP_RAM	    = 8,
-	STARPU_MAX_RAM	    = 8
+	STARPU_CPU_RAM	    = 1,  /**< CPU core */
+	STARPU_CUDA_RAM	    = 2,  /**< NVIDIA CUDA device */
+	STARPU_OPENCL_RAM   = 3,  /**< OpenCL device */
+	STARPU_MAX_FPGA_RAM = 4,  /**< Maxeler FPGA device */
+	STARPU_DISK_RAM	    = 5,  /**< Disk memory */
+	STARPU_MPI_MS_RAM   = 6,  /**< MPI Slave device */
+	STARPU_TCPIP_MS_RAM = 7,  /**< TCPIP Slave device */
+	STARPU_HIP_RAM	    = 8,  /**< NVIDIA/AMD HIP device */
+	STARPU_MAX_RAM	    = 8,  /**< Maximum value of memory types */
+	STARPU_NRAM	    = 9,  /**< Number of memory types */
 };
 
 /**
