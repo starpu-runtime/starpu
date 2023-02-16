@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -131,10 +131,14 @@ struct _starpu_node_ops
 	/** Test whether asynchronous request \p async_channel has completed.  */
 	unsigned (*test_request_completion)(struct _starpu_async_channel *async_channel);
 
-	/** Return whether inter-device transfers are possible. If this returns 0,
-	 * copy_interface_to will always be called with CPU RAM as either source
-	 * or destination. If this returns 1, copy_interface_to may be called with
-	 * both source and destination in device memory.
+	/** Return whether inter-device transfers are possible between \p node and \p handling_node.
+	 * If this returns 0, copy_interface_to will always be called with
+	 * CPU RAM as either source or destination. If this returns 1,
+	 * copy_interface_to may be called with both source and destination in
+	 * device memory.
+	 *
+	 * \p handling_node is the node that will initiate the transfer. This
+	 * allows to prefer starting from the driver itself.
 	 */
 	int (*is_direct_access_supported)(unsigned node, unsigned handling_node);
 
