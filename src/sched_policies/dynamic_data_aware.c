@@ -2488,7 +2488,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 				
 				//~ printf("Current gpu: %d: data %p of size %ld takes %f to be transferred. Is data on the node?: %d\n", current_gpu, e->D, starpu_data_get_size(e->D), starpu_data_expected_transfer_time(e->D, current_gpu ,STARPU_R), starpu_data_is_on_node(e->D, current_gpu)); fflush(stdout);
 				
-				temp_transfer_time_min = starpu_data_expected_transfer_time(e->D, current_gpu ,STARPU_R);
+				temp_transfer_time_min = starpu_data_expected_transfer_time(e->D, current_gpu, STARPU_R);
 				
 				/* Checking if current data is better */				
 				hud = e->D->user_data;

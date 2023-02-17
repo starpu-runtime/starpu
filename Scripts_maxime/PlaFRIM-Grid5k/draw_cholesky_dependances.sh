@@ -10,6 +10,8 @@
 # bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 4 1920 12 2000 highest_prio_default_case 2
 # bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 8 1920 12 2000 highest_prio_default_case 2
 
+# bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 1 1920 12 2000 opti 4
+
 if [ $# != 6 ]
 then
 	echo "Arguments must be: bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh NGPU TAILLE_TUILE NB_TAILLE_TESTE MEMOIRE MODEL NB_ALGO_TESTE"
