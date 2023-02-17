@@ -257,7 +257,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		else
 		{	
 			/* To get flops max */
-			//~ printf("flop: %f\n", flop); fflush(stdout);	
+			printf("flop: %f\n", flop); fflush(stdout);	
 			
 			PRINTF("# size\tms\tGFlops");
 			if (bound_p)
