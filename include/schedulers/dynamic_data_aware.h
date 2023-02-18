@@ -32,6 +32,8 @@
 #define CAN_A_DATA_BE_IN_MEM_AND_IN_NOT_USED_YET /* 0: no, 1 : yes */
 //~ # Pas dans se fichier mais aussi utilisées: PRIORITY_ATTRIBUTION dans cholesky
 //~ # Pas dans se fichier aussi: GRAPH_DESCENDANTS /* 0: No graph, so no pause in the task submitting. 1: With a graph reading descendants in DARTS, use a pause in the task submit. 2: With a graph reading descendants in DARTS, but don't use pause and the graph is read at each new batch of tasks in pull_task. */ dans starpu_data_maxime.h
+#define PUSH_FREE_TASK_ON_GPU_WITH_LEAST_TASK_IN_PLANNED_TASK /* 0: no, 1: yes */
+
 
 /* Var globale pour n'appeller qu'une seule fois get_env_number */
 extern int can_a_data_be_in_mem_and_in_not_used_yet;
@@ -51,6 +53,7 @@ extern int dependances;
 extern int graph_descendants;
 extern int free_pushed_task_position;
 extern int highest_priority_task_returned_in_default_case;
+extern int push_free_task_on_gpu_with_least_task_in_planned_task;
 
 extern struct starpu_perfmodel_arch* perf_arch;
 
@@ -187,6 +190,8 @@ void print_nb_task_in_list_one_data_one_gpu(starpu_data_handle_t d, int current_
 /** Fonctions outils **/
 void mergeSort(int *arr, int l, int r, struct starpu_task **task_tab);
 void merge(int arr[], int l, int m, int r, struct starpu_task **task_tab);
+void mergeSort_tab_of_int(int *arr, int l, int r, int* tab_of_int);
+void merge_tab_of_int(int arr[], int l, int m, int r, int* tab_of_int);
 void randomize_new_task_list(struct dynamic_data_aware_sched_data *d);
 void randomize_full_task_list(struct dynamic_data_aware_sched_data *d);
 void natural_order_task_list(struct dynamic_data_aware_sched_data *d);
@@ -199,6 +204,7 @@ void update_best_data_single_decision_tree(int* number_free_task_max, double* re
 bool is_my_task_free(int current_gpu, struct starpu_task *task);
 void check_double_in_data_not_used_yet(struct gpu_planned_task *g, int current_gpu);
 struct starpu_task* get_highest_priority_task(struct starpu_task_list *l);
+
 
 /** Fonctions principales **/
 void initialize_task_data_gpu_single_task_v1(struct starpu_task *task, int also_add_data_in_not_used_yet_list);

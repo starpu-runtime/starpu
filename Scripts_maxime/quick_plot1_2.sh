@@ -3,16 +3,21 @@
 # bash Scripts_maxime/quick_plot1_2.sh 4 1920 12 2000 best_ones
 # bash Scripts_maxime/quick_plot1_2.sh 8 1920 12 2000 best_ones
 
+# bash Scripts_maxime/quick_plot1_2.sh 1 1920 12 2000 DataInMemAndNotUsedYet
+# bash Scripts_maxime/quick_plot1_2.sh 2 1920 12 2000 DataInMemAndNotUsedYet
+# bash Scripts_maxime/quick_plot1_2.sh 4 1920 12 2000 DataInMemAndNotUsedYet
+# bash Scripts_maxime/quick_plot1_2.sh 8 1920 12 2000 DataInMemAndNotUsedYet
+
 # bash Scripts_maxime/quick_plot1_2.sh 1 1920 12 2000 TransferTimeOrder
 # bash Scripts_maxime/quick_plot1_2.sh 2 1920 12 2000 TransferTimeOrder
 # bash Scripts_maxime/quick_plot1_2.sh 4 1920 12 2000 TransferTimeOrder
 # bash Scripts_maxime/quick_plot1_2.sh 8 1920 12 2000 TransferTimeOrder
 # bash Scripts_maxime/quick_plot1_2.sh 8 1920 18 2000 TransferTimeOrder
 
-# bash Scripts_maxime/quick_plot1_2.sh 1 1920 12 2000 DataInMemAndNotUsedYet
-# bash Scripts_maxime/quick_plot1_2.sh 2 1920 12 2000 DataInMemAndNotUsedYet
-# bash Scripts_maxime/quick_plot1_2.sh 4 1920 12 2000 DataInMemAndNotUsedYet
-# bash Scripts_maxime/quick_plot1_2.sh 8 1920 12 2000 DataInMemAndNotUsedYet
+# bash Scripts_maxime/quick_plot1_2.sh 1 1920 12 2000 GpuChoiceFreeTask
+# bash Scripts_maxime/quick_plot1_2.sh 2 1920 12 2000 GpuChoiceFreeTask
+# bash Scripts_maxime/quick_plot1_2.sh 4 1920 12 2000 GpuChoiceFreeTask
+# bash Scripts_maxime/quick_plot1_2.sh 8 1920 12 2000 GpuChoiceFreeTask
 
 NGPU=$1
 TAILLE_TUILE=$2
