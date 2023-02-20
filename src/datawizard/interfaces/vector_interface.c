@@ -74,7 +74,8 @@ struct starpu_data_interface_ops starpu_interface_vector_ops =
 	.describe = describe,
 	.name = "STARPU_VECTOR_INTERFACE",
 	.pack_meta = NULL,
-	.unpack_meta = NULL
+	.unpack_meta = NULL,
+	.free_meta = NULL
 };
 
 static void vector_init(void *data_interface)

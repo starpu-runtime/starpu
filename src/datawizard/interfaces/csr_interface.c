@@ -55,7 +55,8 @@ struct starpu_data_interface_ops starpu_interface_csr_ops =
 	.peek_data = peek_data,
 	.unpack_data = unpack_data,
 	.pack_meta = NULL,
-	.unpack_meta = NULL
+	.unpack_meta = NULL,
+	.free_meta = NULL
 };
 
 static void register_csr_handle(starpu_data_handle_t handle, int home_node, void *data_interface)

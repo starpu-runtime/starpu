@@ -74,7 +74,8 @@ struct starpu_data_interface_ops starpu_interface_matrix_ops =
 	.describe = describe,
 	.name = "STARPU_MATRIX_INTERFACE",
 	.pack_meta = NULL,
-	.unpack_meta = NULL
+	.unpack_meta = NULL,
+	.free_meta = NULL
 };
 
 static void matrix_init(void *data_interface)

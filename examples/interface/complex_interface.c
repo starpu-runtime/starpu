@@ -256,6 +256,7 @@ struct starpu_data_interface_ops interface_complex_ops =
 	.compare = complex_compare,
 	.pack_meta = complex_pack_meta,
 	.unpack_meta = complex_unpack_meta,
+	.free_meta = NULL
 };
 
 void starpu_complex_data_register_ops()

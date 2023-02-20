@@ -633,6 +633,20 @@ static int pybuffer_unpack_meta(void **data_interface, void *ptr, starpu_ssize_t
 	return 0;
 }
 
+static int pybuffer_free_meta(void *data_interface)
+{
+	struct starpupy_buffer_interface *pybuffer_interface = data_interface;
+
+#ifdef STARPU_PYTHON_HAVE_NUMPY
+	free(pybuffer_interface->array_dim);
+	pybuffer_interface->array_dim = NULL;
+#endif
+	free(pybuffer_interface->shape);
+	pybuffer_interface->shape = NULL;
+
+	return 0;
+}
+
 static uint32_t starpupy_buffer_footprint(starpu_data_handle_t handle)
 {
 	struct starpupy_buffer_interface *pybuffer_interface = (struct starpupy_buffer_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
@@ -728,6 +742,7 @@ static struct starpu_data_interface_ops interface_pybuffer_ops =
 	.unpack_data = pybuffer_unpack_data,
 	.pack_meta = pybuffer_pack_meta,
 	.unpack_meta = pybuffer_unpack_meta,
+	.free_meta = pybuffer_free_meta,
 	.dontcache = 0,
 	.display = pybuffer_display,
 	.compare = pybuffer_compare,

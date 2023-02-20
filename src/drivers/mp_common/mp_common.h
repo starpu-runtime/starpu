@@ -161,6 +161,7 @@ LIST_TYPE(mp_message,
 struct mp_task
 {
 	void (*kernel)(void **, void *);
+	enum starpu_data_interface_id *ids;
 	void **interfaces;
 	unsigned nb_interfaces;
 	void *cl_arg;

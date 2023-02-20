@@ -62,7 +62,8 @@ struct starpu_data_interface_ops starpu_interface_void_ops =
 	.describe = describe,
 	.name = "STARPU_VOID_INTERFACE",
 	.pack_meta = NULL,
-	.unpack_meta = NULL
+	.unpack_meta = NULL,
+	.free_meta = NULL
 };
 
 static void register_void_handle(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED,

@@ -747,10 +747,15 @@ static void _starpu_sink_common_execute_kernel(struct _starpu_mp_node *node, int
 	unsigned i;
 	for (i = 0; i < task->nb_interfaces; i++)
 	{
-		/* TODO: clean_meta */
+		struct starpu_data_interface_ops *ops = _starpu_data_interface_get_ops(task->ids[i]);
+		if (ops->free_meta)
+		{
+			ops->free_meta(task->interfaces[i]);
+		}
 		free(task->interfaces[i]);
 	}
 	free(task->interfaces);
+	free(task->ids);
 	if (task->cl_arg != NULL)
 		free(task->cl_arg);
 	free(task);
@@ -858,6 +863,7 @@ void _starpu_sink_common_execute(struct _starpu_mp_node *node, void *arg, int ar
 	arg_ptr += sizeof(task->detached);
 
 	_STARPU_MALLOC(task->interfaces, task->nb_interfaces * sizeof(*task->interfaces));
+	_STARPU_MALLOC(task->ids, task->nb_interfaces * sizeof(*task->ids));
 
 	/* The function needs an array pointing to each interface it needs
 	 * during execution. The interface is first identified by its
@@ -867,15 +873,14 @@ void _starpu_sink_common_execute(struct _starpu_mp_node *node, void *arg, int ar
 	for (i = 0; i < task->nb_interfaces; i++)
 	{
 		// first extract the interface id
-		enum starpu_data_interface_id id;
-		memcpy(&id, (void *)arg_ptr, sizeof(id));
-		arg_ptr += sizeof(id);
+		memcpy(&(task->ids[i]), (void *)arg_ptr, sizeof(task->ids[i]));
+		arg_ptr += sizeof(task->ids[i]);
 
 		// and then the interface
-		struct starpu_data_interface_ops *ops = _starpu_data_interface_get_ops(id);
+		struct starpu_data_interface_ops *ops = _starpu_data_interface_get_ops(task->ids[i]);
 		if (ops->unpack_meta)
 		{
-			STARPU_ASSERT_MSG(ops->pack_meta, "unpack_meta defined without pack_meta for interface %d", id);
+			STARPU_ASSERT_MSG(ops->pack_meta, "unpack_meta defined without pack_meta for interface %d", task->ids[i]);
 			starpu_ssize_t count;
 			ops->unpack_meta(&task->interfaces[i], arg_ptr, &count);
 			arg_ptr += count;

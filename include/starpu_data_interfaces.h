@@ -628,6 +628,11 @@ struct starpu_data_interface_ops
 	int (*unpack_meta)(void **data_interface, void *ptr, starpu_ssize_t *count);
 
 	/**
+	   Free the allocated memory by a previous call to unpack_meta()
+	*/
+	int (*free_meta)(void *data_interface);
+
+	/**
 	   Name of the interface
 	*/
 	char *name;

@@ -65,7 +65,8 @@ struct starpu_data_interface_ops starpu_interface_block_ops =
 	.describe = describe,
 	.name = "STARPU_BLOCK_INTERFACE",
 	.pack_meta = NULL,
-	.unpack_meta = NULL
+	.unpack_meta = NULL,
+	.free_meta = NULL
 };
 
 static void *block_to_pointer(void *data_interface, unsigned node)

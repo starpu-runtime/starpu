@@ -60,7 +60,8 @@ struct starpu_data_interface_ops starpu_interface_bcsr_ops =
 	.peek_data = peek_data,
 	.unpack_data = unpack_data,
 	.pack_meta = NULL,
-	.unpack_meta = NULL
+	.unpack_meta = NULL,
+	.free_meta = NULL
 };
 
 static void *bcsr_to_pointer(void *data_interface, unsigned node)

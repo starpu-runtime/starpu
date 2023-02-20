@@ -47,6 +47,7 @@ static int unpack_ndim_handle(starpu_data_handle_t handle, unsigned node, void *
 static starpu_ssize_t describe(void *data_interface, char *buf, size_t size);
 static int pack_meta_ndim_handle(void *data_interface, void **ptr, starpu_ssize_t *count);
 static int unpack_meta_ndim_handle(void **data_interface, void *ptr, starpu_ssize_t *count);
+static int free_meta_ndim_handle(void *data_interface);
 
 struct starpu_data_interface_ops starpu_interface_ndim_ops =
 {
@@ -71,6 +72,7 @@ struct starpu_data_interface_ops starpu_interface_ndim_ops =
 	.unpack_data = unpack_ndim_handle,
 	.pack_meta = pack_meta_ndim_handle,
 	.unpack_meta = unpack_meta_ndim_handle,
+	.free_meta = free_meta_ndim_handle,
 	.describe = describe,
 	.name = "STARPU_NDIM_INTERFACE",
 	.dontcache = 0
@@ -743,5 +745,15 @@ static int unpack_meta_ndim_handle(void **data_interface, void *ptr, starpu_ssiz
 
 	*count = size_meta_ndim_handle(ndarr);
 
+	return 0;
+}
+
+static int free_meta_ndim_handle(void *data_interface)
+{
+	struct starpu_ndim_interface *ndarr = (struct starpu_ndim_interface *) data_interface;
+	free(ndarr->ldn);
+	ndarr->ldn = NULL;
+	free(ndarr->nn);
+	ndarr->nn = NULL;
 	return 0;
 }

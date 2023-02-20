@@ -64,7 +64,8 @@ struct starpu_data_interface_ops starpu_interface_variable_ops =
 	.describe = describe,
 	.name = "STARPU_VARIABLE_INTERFACE",
 	.pack_meta = NULL,
-	.unpack_meta = NULL
+	.unpack_meta = NULL,
+	.free_meta = NULL
 };
 
 static void *variable_to_pointer(void *data_interface, unsigned node)
