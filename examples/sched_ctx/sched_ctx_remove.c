@@ -100,8 +100,8 @@ int main(void)
 	nprocs1 = starpu_cpu_worker_get_count();
 	starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, procs1, nprocs1);
 #endif
-	// if there is no cpu, skip
-	if (nprocs1 == 0) goto enodev;
+	// if there is not enough cpu, skip
+	if (nprocs1 <= 1) goto enodev;
 
 #ifdef STARPU_USE_CUDA
 	nprocs2 = starpu_cuda_worker_get_count();
@@ -170,5 +170,5 @@ int main(void)
 
 enodev:
 	starpu_shutdown();
-	return nprocs1 == 0 ? 77 : 0;
+	return nprocs1 <= 1 ? 77 : 0;
 }
