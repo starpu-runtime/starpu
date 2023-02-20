@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013	    Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -534,6 +534,7 @@ void _starpu_sink_launch_workers(struct _starpu_mp_node *node)
 		arg->node = node;
 
 		STARPU_PTHREAD_CREATE(&thread, &attr, _starpu_sink_thread, arg);
+		starpu_pthread_attr_destroy(&attr);
 		((starpu_pthread_t *)node->thread_table)[i] = thread;
 
 	}
