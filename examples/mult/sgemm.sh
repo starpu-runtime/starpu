@@ -43,7 +43,9 @@ then
 	! type pj_dump || pj_dump -e 0 < $STARPU_FXT_PREFIX/paje.trace
 
 	$PREFIX/../../tools/starpu_codelet_profile $STARPU_FXT_PREFIX/distrib.data starpu_sgemm_gemm
-	[ -f $STARPU_FXT_PREFIX/distrib.data.gp -a \( -f $STARPU_FXT_PREFIX/distrib.data.0 -o -f $STARPU_FXT_PREFIX/distrib.data.1 -o -f $STARPU_FXT_PREFIX/distrib.data.2 -o -f $STARPU_FXT_PREFIX/distrib.data.3 -o -f $STARPU_FXT_PREFIX/distrib.data.4 -o -f $STARPU_FXT_PREFIX/distrib.data.5 -o -f $STARPU_FXT_PREFIX/distrib.data.6 \) ]
+	[ -f $STARPU_FXT_PREFIX/distrib.data.gp ]
+	data=`ls $STARPU_FXT_PREFIX/distrib.data.[0-9]*`
+	[ -n "$data" ]
 
 	$STARPU_LAUNCH $PREFIX/../../tools/starpu_fxt_data_trace -d $STARPU_FXT_PREFIX $STARPU_FXT_PREFIX/prof_file_${USER}_0 starpu_sgemm_gemm
 	[ -f $STARPU_FXT_PREFIX/data_trace.gp ]
