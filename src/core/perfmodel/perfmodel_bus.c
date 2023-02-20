@@ -661,39 +661,6 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_opencl(int dev, 
 }
 #endif
 
-/* NB: we want to sort the bandwidth by DECREASING order */
-static int compar_dev_timing(const void *left_dev_timing, const void *right_dev_timing)
-{
-	const struct dev_timing *left = (const struct dev_timing *)left_dev_timing;
-	const struct dev_timing *right = (const struct dev_timing *)right_dev_timing;
-
-	if (left->numa_distance == 0 && right->numa_distance != 0)
-		/* We prefer left */
-		return -1;
-
-	if (right->numa_distance == 0 && left->numa_distance != 0)
-		/* We prefer right */
-		return 1;
-
-	if (left->numa_distance >= 0 && right->numa_distance >= 0)
-	{
-		return left->numa_distance > right->numa_distance ? 1 :
-		       left->numa_distance < right->numa_distance ? -1 : 0;
-	}
-
-	double left_dtoh = left->timing_dtoh;
-	double left_htod = left->timing_htod;
-	double right_dtoh = right->timing_dtoh;
-	double right_htod = right->timing_htod;
-
-	double timing_sum2_left = left_dtoh*left_dtoh + left_htod*left_htod;
-	double timing_sum2_right = right_dtoh*right_dtoh + right_htod*right_htod;
-
-	/* it's for a decreasing sorting */
-	return timing_sum2_left > timing_sum2_right ? 1 :
-	       timing_sum2_left < timing_sum2_right ? -1 : 0;
-}
-
 static void measure_bandwidth_between_host_and_dev(int dev, struct dev_timing dev_timing_per_numa[STARPU_NMAXDEVS][STARPU_MAXNUMANODES], enum starpu_node_kind type)
 {
 	/* We measure the bandwith between each GPU and each NUMA node */
@@ -1060,6 +1027,39 @@ static void load_bus_affinity_file_content(void)
 		_starpu_frdunlock(f);
 
 	fclose(f);
+}
+
+/* NB: we want to sort the bandwidth by DECREASING order */
+static int compar_dev_timing(const void *left_dev_timing, const void *right_dev_timing)
+{
+	const struct dev_timing *left = (const struct dev_timing *)left_dev_timing;
+	const struct dev_timing *right = (const struct dev_timing *)right_dev_timing;
+
+	if (left->numa_distance == 0 && right->numa_distance != 0)
+		/* We prefer left */
+		return -1;
+
+	if (right->numa_distance == 0 && left->numa_distance != 0)
+		/* We prefer right */
+		return 1;
+
+	if (left->numa_distance >= 0 && right->numa_distance >= 0)
+	{
+		return left->numa_distance > right->numa_distance ? 1 :
+		       left->numa_distance < right->numa_distance ? -1 : 0;
+	}
+
+	double left_dtoh = left->timing_dtoh;
+	double left_htod = left->timing_htod;
+	double right_dtoh = right->timing_dtoh;
+	double right_htod = right->timing_htod;
+
+	double timing_sum2_left = left_dtoh*left_dtoh + left_htod*left_htod;
+	double timing_sum2_right = right_dtoh*right_dtoh + right_htod*right_htod;
+
+	/* it's for a decreasing sorting */
+	return timing_sum2_left > timing_sum2_right ? 1 :
+	       timing_sum2_left < timing_sum2_right ? -1 : 0;
 }
 
 static void write_bus_affinity_file_content(void)
