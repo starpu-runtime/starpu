@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2012-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2012-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -135,4 +135,17 @@
    fun:omp_constructor
    fun:__libc_csu_init
    fun:(below main)
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:hwloc_topology_init
+   fun:_starpu_init_topology
+   fun:_starpu_topology_get_nhwnumanodes
+   fun:_starpu_load_bus_performance_files
+   fun:starpu_initialize
+   fun:starpu_init
+   fun:main
 }
