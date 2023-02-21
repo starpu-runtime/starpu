@@ -2410,14 +2410,17 @@ fi
 AC_ARG_ENABLE(fxt, [AS_HELP_STRING([--disable-fxt],
 		[disable FxT trace mechanisms])],, [enable_fxt=$default_enable_fxt])
 AC_ARG_WITH(fxt,
-	[AS_HELP_STRING([--with-fxt=<path>],
-	[specify FxT installation directory])],
+	[AS_HELP_STRING([--with-fxt=<path>], [specify FxT installation directory])],
 	[
-		fxt_dir="$withval"
-		use_fxt_from_system=no
-		# in case this was not explicit yet
-		enable_fxt=yes
-		AC_SUBST(FXTDIR, $fxt_dir)
+		if test x$withval = xno ; then
+			enable_fxt=no
+		else
+			fxt_dir="$withval"
+			use_fxt_from_system=no
+			# in case this was not explicit yet
+			enable_fxt=yes
+			AC_SUBST(FXTDIR, $fxt_dir)
+		fi
 	],
 	[
 		use_fxt_from_system=yes
