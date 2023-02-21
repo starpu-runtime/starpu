@@ -2565,7 +2565,8 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 			/* Ne doit pas arriver normalement mais arrive quand un push se fais just avant qu'une tâche utilisant la donnée sois executé. Du coup je l'enlève et pass à la donnée suivante. */
 			if (can_a_data_be_in_mem_and_in_not_used_yet == 0 && temp_transfer_time_min == 0)
 			{
-				//~ printf("%f for data %p\n", temp_transfer_time_min, e->D); fflush(stdout);
+				print_data_not_used_yet(g, 1);
+				printf("%f for data %p\n", temp_transfer_time_min, e->D); fflush(stdout);
 				
 				if (gpu_data_not_used_list_next(e) != gpu_data_not_used_list_end(g->gpu_data))
 				{
@@ -2576,15 +2577,15 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 				}
 				else
 				{
-					//~ printf("last one will break\n"); fflush(stdout);
+					printf("last one will break\n"); fflush(stdout);
 					gpu_data_not_used_list_erase(g->gpu_data, e);
 					//~ print_data_not_used_yet(g, 1);
 					break;
 				}
-				//~ printf("After erase:\n"); fflush(stdout);
-				//~ print_data_not_used_yet(g, 1);
+				printf("After erase:\n"); fflush(stdout);
+				print_data_not_used_yet(g, 1);
 			}
-			
+			//~ printf("Looking at data %p\n", e->D); fflush(stdout);
 			//~ printf("transfer time %f\n", temp_transfer_time_min); fflush(stdout);
 				
 			temp_number_free_task_max = 0;
@@ -2874,9 +2875,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		}
 	}	
 		
-	#ifdef PRINT
-	printf("Best data is = %p: %d free tasks and %d 1 from free tasks.\n", handle_popped, number_free_task_max, number_1_from_free_task_max); fflush(stdout);
-	#endif
+	//~ #ifdef PRINT
+	printf("Best data is = %p: %d free tasks and %d 1 from free tasks. Transfer time %f\n", handle_popped, number_free_task_max, number_1_from_free_task_max, transfer_time_min); fflush(stdout);
+	//~ #endif
 
 	end_choose_best_data : ;
 	
