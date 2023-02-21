@@ -123,6 +123,7 @@ $(DOX_DIR)/$(DOX_PDF): $(DOX_TAG) refman.tex $(images)
 	@echo $(PDFLATEX) $(DOX_LATEX_DIR)/refman.tex
 	@cd $(DOX_LATEX_DIR) ;\
 	rm -f *.aux *.toc *.idx *.ind *.ilg *.log *.out ;\
+        for f in group__API__* ; do sed -i '1 i \\\clearpage' $$f ; done ;\
 	if test -f ExecutionConfigurationThroughEnvironmentVariables.tex ; then $(SED) -i -e 's/__env__/\\_Environment Variables!/' -e 's/\\-\\_\\-\\-\\_\\-env\\-\\_\\-\\-\\_\\-//' ExecutionConfigurationThroughEnvironmentVariables.tex ; fi ;\
 	if test -f CompilationConfiguration.tex ; then $(SED) -i -e 's/__configure__/\\_Configure Options!/' -e 's/\\-\\_\\-\\-\\_\\-configure\\-\\_\\-\\-\\_\\-//' CompilationConfiguration.tex ; fi ;\
 	if test -f DocOrganization.tex ; then $(SED) -i s'/\\item Module\\.Documentation/\\item \\hyperlink{ModuleDocumentation}{Module Documentation}/' DocOrganization.tex ; fi ;\
