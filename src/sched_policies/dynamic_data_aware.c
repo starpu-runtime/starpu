@@ -2619,7 +2619,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		
 		for (e = gpu_data_not_used_list_begin(g->gpu_data); e != gpu_data_not_used_list_end(g->gpu_data) && i != choose_best_data_threshold; e = gpu_data_not_used_list_next(e), i++)
 		{
-			temp_transfer_time_min = starpu_data_expected_transfer_time(e->D, current_gpu ,STARPU_R);
+			temp_transfer_time_min = starpu_data_expected_transfer_time(e->D, current_gpu, STARPU_R);
 			
 			#ifdef PRINT
 			printf("Temp transfer time is %f\n", temp_transfer_time_min); fflush(stdout);
