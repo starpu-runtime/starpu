@@ -406,30 +406,22 @@ void print_nb_task_in_list_one_data_one_gpu(starpu_data_handle_t d, int current_
 	printf("pulled_task = %d tasks | planned_tasks = %d tasks.\n", hud->nb_task_in_pulled_task[current_gpu - 1], hud->nb_task_in_planned_task[current_gpu - 1]);
 }
 
+/* Looking if the task can freely be computed by looking at the memory and the data associated from free task in planned task */
 bool is_my_task_free(int current_gpu, struct starpu_task *task)
 {
 	struct handle_user_data * hud = NULL;
 	int i = 0;
 	for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 	{
-		if (simulate_memory == 0)
+		if (STARPU_TASK_GET_HANDLE(task, i)->user_data == NULL)
 		{
-			if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(task, i), current_gpu))
-			{
-				return false;
-			}
+			return false;
 		}
-		else if (simulate_memory == 1)
+		hud = STARPU_TASK_GET_HANDLE(task, i)->user_data;
+		if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(task, i), current_gpu) && hud->nb_task_in_planned_task[current_gpu - 1] == 0)
+		//~ if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(task, i), current_gpu) && hud->nb_task_in_planned_task[current_gpu - 1] == 0 && hud->nb_task_in_pulled_task[current_gpu - 1] == 0)
 		{
-			if (STARPU_TASK_GET_HANDLE(task, i)->user_data == NULL)
-			{
-				return false;
-			}
-			hud = STARPU_TASK_GET_HANDLE(task, i)->user_data;
-			if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(task, i), current_gpu) && hud->nb_task_in_pulled_task[current_gpu - 1] == 0 && hud->nb_task_in_planned_task[current_gpu - 1] == 0)
-			{
-				return false;
-			}
+			return false;
 		}
 	}
 	return true;
@@ -2546,7 +2538,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 	//~ STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);	
 
 	/* Test remove those with transfer time of 0 */
-    struct gpu_data_not_used *e2 = NULL;
+    //~ struct gpu_data_not_used *e2 = NULL;
 
 	/* Recherche de la meilleure donnée. Je regarde directement pour chaque donnée, le nombre de tâche qu'elle met à 1 donnée d'être possible si j'ai toujours
 	 * 0 à number_free_task_max. */
@@ -2560,33 +2552,34 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		
 		for (e = gpu_data_not_used_list_begin(g->gpu_data); e != gpu_data_not_used_list_end(g->gpu_data) && i != choose_best_data_threshold; e = gpu_data_not_used_list_next(e), i++)
 		{
-			//~ printf("Looking at data %p\n", e->D); fflush(stdout);
 			temp_transfer_time_min = starpu_data_expected_transfer_time(e->D, current_gpu ,STARPU_R);
-			/* Ne doit pas arriver normalement mais arrive quand un push se fais just avant qu'une tâche utilisant la donnée sois executé. Du coup je l'enlève et pass à la donnée suivante. */
-			if (can_a_data_be_in_mem_and_in_not_used_yet == 0 && temp_transfer_time_min == 0)
-			{
-				print_data_not_used_yet(g, 1);
-				printf("%f for data %p\n", temp_transfer_time_min, e->D); fflush(stdout);
+			
+			#ifdef PRINT
+			printf("Temp transfer time is %f\n", temp_transfer_time_min); fflush(stdout);
+			#endif
+			
+			/* Enlever des datanotusedyet une donnée dont le temps de transfer est 0. Ne doit pas arriver normalement mais arrive quand un push se fais just avant qu'une tâche utilisant la donnée sois executé. Du coup je l'enlève et pass à la donnée suivante. */
+			//~ if (can_a_data_be_in_mem_and_in_not_used_yet == 0 && temp_transfer_time_min == 0)
+			//~ {
+				//~ print_data_not_used_yet(g, 1);
+				//~ printf("%f for data %p\n", temp_transfer_time_min, e->D); fflush(stdout);
 				
-				if (gpu_data_not_used_list_next(e) != gpu_data_not_used_list_end(g->gpu_data))
-				{
-					e2 = e;
-					e = gpu_data_not_used_list_next(e);
-					gpu_data_not_used_list_erase(g->gpu_data, e2);
-					temp_transfer_time_min = starpu_data_expected_transfer_time(e->D, current_gpu ,STARPU_R);
-				}
-				else
-				{
-					printf("last one will break\n"); fflush(stdout);
-					gpu_data_not_used_list_erase(g->gpu_data, e);
-					//~ print_data_not_used_yet(g, 1);
-					break;
-				}
-				printf("After erase:\n"); fflush(stdout);
-				print_data_not_used_yet(g, 1);
-			}
-			//~ printf("Looking at data %p\n", e->D); fflush(stdout);
-			//~ printf("transfer time %f\n", temp_transfer_time_min); fflush(stdout);
+				//~ if (gpu_data_not_used_list_next(e) != gpu_data_not_used_list_end(g->gpu_data))
+				//~ {
+					//~ e2 = e;
+					//~ e = gpu_data_not_used_list_next(e);
+					//~ gpu_data_not_used_list_erase(g->gpu_data, e2);
+					//~ temp_transfer_time_min = starpu_data_expected_transfer_time(e->D, current_gpu ,STARPU_R);
+				//~ }
+				//~ else
+				//~ {
+					//~ printf("last one will break\n"); fflush(stdout);
+					//~ gpu_data_not_used_list_erase(g->gpu_data, e);
+					//~ break;
+				//~ }
+				//~ printf("After erase:\n"); fflush(stdout);
+				//~ print_data_not_used_yet(g, 1);
+			//~ }
 				
 			temp_number_free_task_max = 0;
 			temp_number_1_from_free_task_max = 0;
@@ -2875,9 +2868,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		}
 	}	
 		
-	//~ #ifdef PRINT
+	#ifdef PRINT
 	printf("Best data is = %p: %d free tasks and %d 1 from free tasks. Transfer time %f\n", handle_popped, number_free_task_max, number_1_from_free_task_max, transfer_time_min); fflush(stdout);
-	//~ #endif
+	#endif
 
 	end_choose_best_data : ;
 	

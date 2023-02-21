@@ -27,6 +27,7 @@
 * 4: NFree Prio TransferTime N1FromFree TimeRemaining 
 * 5: NFree Prio N1FromFree TransferTime TimeRemaining 
 * 6: NFree Prio N1FromFree TimeRemaining TransferTime
+* 7: Ratio_Transfer/Free_Task_Time NFree Prio N1FromFree TimeRemaining
 **/
 #define HIGHEST_PRIORITY_TASK_RETURNED_IN_DEFAULT_CASE /* 0: no, 1: I return the highesth priority task of the list when I didn't found a data giving free or 1 from free task. Only makes sense if TASK_ORDER is set to 2. else you are defeating the purpose of randomization with TASK_ORDEr on 0 or 1. */
 #define CAN_A_DATA_BE_IN_MEM_AND_IN_NOT_USED_YET /* 0: no, 1 : yes */
