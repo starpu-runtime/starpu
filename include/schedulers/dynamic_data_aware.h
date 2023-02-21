@@ -28,7 +28,7 @@
 * 5: NFree Prio N1FromFree TransferTime TimeRemaining 
 * 6: NFree Prio N1FromFree TimeRemaining TransferTime
 * 7: Ratio_Transfer/Free_Task_Time NFree Prio N1FromFree TimeRemaining
-**/
+*/
 #define HIGHEST_PRIORITY_TASK_RETURNED_IN_DEFAULT_CASE /* 0: no, 1: I return the highesth priority task of the list when I didn't found a data giving free or 1 from free task. Only makes sense if TASK_ORDER is set to 2. else you are defeating the purpose of randomization with TASK_ORDEr on 0 or 1. */
 #define CAN_A_DATA_BE_IN_MEM_AND_IN_NOT_USED_YET /* 0: no, 1 : yes */
 //~ # Pas dans se fichier mais aussi utilisées: PRIORITY_ATTRIBUTION dans cholesky
@@ -201,7 +201,7 @@ void randomize_full_data_not_used_yet();
 void natural_order_data_not_used_yet();
 void update_best_data(int* number_free_task_max, int* task_available_max, starpu_data_handle_t* handle_popped, int* priority_max, int* number_1_from_free_task_max, int* task_available_max_1_from_free, int nb_free_task_candidate, int task_using_data_list_size_candidate, starpu_data_handle_t handle_candidate, int priority_candidate, int number_1_from_free_task_candidate, int* data_choosen_index, int i);
 //~ void update_best_data_single_decision_tree(int* number_free_task_max, int* task_available_max, starpu_data_handle_t* handle_popped, int* priority_max, int* number_1_from_free_task_max, int* task_available_max_1_from_free, int nb_free_task_candidate, int task_using_data_list_size_candidate, starpu_data_handle_t handle_candidate, int priority_candidate, int number_1_from_free_task_candidate, int* data_choosen_index, int i);
-void update_best_data_single_decision_tree(int* number_free_task_max, double* remaining_expected_length, starpu_data_handle_t* handle_popped, int* priority_max, int* number_1_from_free_task_max, int nb_free_task_candidate, double remaining_expected_length_candidate, starpu_data_handle_t handle_candidate, int priority_candidate, int number_1_from_free_task_candidate, int* data_choosen_index, int i, struct starpu_task** best_1_from_free_task, struct starpu_task* best_1_from_free_task_candidate, double transfer_min_candidate, double* transfer_min);
+void update_best_data_single_decision_tree(int* number_free_task_max, double* remaining_expected_length, starpu_data_handle_t* handle_popped, int* priority_max, int* number_1_from_free_task_max, int nb_free_task_candidate, double remaining_expected_length_candidate, starpu_data_handle_t handle_candidate, int priority_candidate, int number_1_from_free_task_candidate, int* data_choosen_index, int i, struct starpu_task** best_1_from_free_task, struct starpu_task* best_1_from_free_task_candidate, double transfer_min_candidate, double* transfer_min, double temp_length_free_tasks_max, double* ratio_transfertime_freetask_min);
 bool is_my_task_free(int current_gpu, struct starpu_task *task);
 void check_double_in_data_not_used_yet(struct gpu_planned_task *g, int current_gpu);
 struct starpu_task* get_highest_priority_task(struct starpu_task_list *l);

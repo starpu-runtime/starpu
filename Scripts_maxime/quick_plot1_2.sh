@@ -18,6 +18,11 @@
 #~ bash Scripts_maxime/quick_plot1_2.sh 4 1920 12 2000 TransferTimeOrder
 #~ bash Scripts_maxime/quick_plot1_2.sh 8 1920 12 2000 TransferTimeOrder
 
+#~ bash Scripts_maxime/quick_plot1_2.sh 1 1920 12 2000 TransferRatio
+#~ bash Scripts_maxime/quick_plot1_2.sh 2 1920 12 2000 TransferRatio
+#~ bash Scripts_maxime/quick_plot1_2.sh 4 1920 12 2000 TransferRatio
+#~ bash Scripts_maxime/quick_plot1_2.sh 8 1920 12 2000 TransferRatio
+
 NGPU=$1
 TAILLE_TUILE=$2
 NB_TAILLE_TESTE=$3

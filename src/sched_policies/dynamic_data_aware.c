@@ -1974,8 +1974,10 @@ void update_best_data(int* number_free_task_max, int* task_available_max, starpu
 
 /* The call is: update_best_data_single_decision_tree(&number_free_task_max, &task_available_max, &handle_popped, &priority_max, &number_1_from_free_task_max, &task_available_max_1_from_free, temp_number_free_task_max, task_using_data_list_size(e->D->sched_data), e->D, temp_priority_max, temp_number_1_from_free_task_max, &data_choosen_index, i); */
 //~ void update_best_data_single_decision_tree(int* number_free_task_max, int* task_available_max, starpu_data_handle_t* handle_popped, int* priority_max, int* number_1_from_free_task_max, int* task_available_max_1_from_free, int nb_free_task_candidate, int task_using_data_list_size_candidate, starpu_data_handle_t handle_candidate, int priority_candidate, int number_1_from_free_task_candidate, int* data_choosen_index, int i)
-void update_best_data_single_decision_tree(int* number_free_task_max, double* remaining_expected_length_max, starpu_data_handle_t* handle_popped, int* priority_max, int* number_1_from_free_task_max, int nb_free_task_candidate, double remaining_expected_length_candidate, starpu_data_handle_t handle_candidate, int priority_candidate, int number_1_from_free_task_candidate, int* data_choosen_index, int i, struct starpu_task** best_1_from_free_task, struct starpu_task* best_1_from_free_task_candidate, double transfer_min_candidate, double* transfer_min)
+void update_best_data_single_decision_tree(int* number_free_task_max, double* remaining_expected_length_max, starpu_data_handle_t* handle_popped, int* priority_max, int* number_1_from_free_task_max, int nb_free_task_candidate, double remaining_expected_length_candidate, starpu_data_handle_t handle_candidate, int priority_candidate, int number_1_from_free_task_candidate, int* data_choosen_index, int i, struct starpu_task** best_1_from_free_task, struct starpu_task* best_1_from_free_task_candidate, double transfer_min_candidate, double* transfer_min, double temp_length_free_tasks_max, double* ratio_transfertime_freetask_min)
 {
+	double ratio_transfertime_freetask_candidate = 0;
+	
 	/* Avant modif */
 	//~ /* Il y a bien plus de return que de update. Je met donc les if dans ce sens pour pouvoir gagner en complexité et s'arrêter plus tot. */
 	//~ /* First tiebreak with most free task */
@@ -2318,13 +2320,73 @@ void update_best_data_single_decision_tree(int* number_free_task_max, double* re
 			}
 		}
 	}
+	else if (dopt_selection_order == 7)
+	{
+		//~ if (number_1_from_free_task_candidate > 0)
+		//~ {
+			//~ printf("Making a choice. Nfree is %d N1fromfree is %d\n", nb_free_task_candidate, number_1_from_free_task_candidate); fflush(stdout);
+			//~ printf("%f / %f = %f\n", transfer_min_candidate, temp_length_free_tasks_max, transfer_min_candidate/temp_length_free_tasks_max);
+		//~ }
+		if (temp_length_free_tasks_max == 0)
+		{
+			ratio_transfertime_freetask_candidate = DBL_MAX;
+		}
+		else
+		{
+			ratio_transfertime_freetask_candidate = transfer_min_candidate/temp_length_free_tasks_max;
+		}
+
+		//~ if (number_1_from_free_task_candidate > 0)
+		//~ {
+			//~ printf("Comparing %f and %f\n", ratio_transfertime_freetask_candidate, *ratio_transfertime_freetask_min);fflush(stdout);
+		//~ }
+		if (ratio_transfertime_freetask_candidate > *ratio_transfertime_freetask_min)
+		{
+			return;
+		}
+		else if (ratio_transfertime_freetask_candidate == *ratio_transfertime_freetask_min)
+		{
+			if (nb_free_task_candidate < *number_free_task_max)
+			{
+				return;
+			}
+			else if (nb_free_task_candidate == *number_free_task_max)
+			{
+				if (prio == 1 && *priority_max > priority_candidate)
+				{
+					return;
+				}
+				else if (*priority_max == priority_candidate)
+				{
+					if (number_1_from_free_task_candidate < *number_1_from_free_task_max)
+					{
+						return;
+					}
+					else if ((number_1_from_free_task_candidate == *number_1_from_free_task_max) && remaining_expected_length_candidate <= *remaining_expected_length_max)
+					{
+						#ifdef PRINT_STATS
+						if (remaining_expected_length_candidate == *remaining_expected_length_max)
+						{
+							data_choice_per_index = true;
+						}
+						#endif
+							
+						return;
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		printf("Wrong value for DOPT_SELECTION_ORDER\n"); fflush(stdout);
+		exit(EXIT_FAILURE);
+	}
 	
 	#ifdef PRINT_STATS
 	data_choice_per_index = false;
 	#endif
-	
-	//~ printf("Update on transfer times %f %f\n", transfer_min_candidate, *transfer_min); fflush(stdout);
-	
+		
 	/* Update */
 	*number_free_task_max = nb_free_task_candidate;
 	*remaining_expected_length_max = remaining_expected_length_candidate;
@@ -2333,6 +2395,7 @@ void update_best_data_single_decision_tree(int* number_free_task_max, double* re
 	*priority_max = priority_candidate;
 	*best_1_from_free_task = best_1_from_free_task_candidate;
 	*transfer_min = transfer_min_candidate;
+	*ratio_transfertime_freetask_min = ratio_transfertime_freetask_candidate;
 	
 	#ifdef PRINT_STATS
 	*data_choosen_index = i + 1;
@@ -2380,6 +2443,10 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
     /* To ty and use starpu_data_expected_transfer_time */
     double transfer_time_min = DBL_MAX; 
     double temp_transfer_time_min = DBL_MAX; 
+    
+    /* For the case where DOPT_SELECTION_OERDER >= 7. In this case I look at the transfertime/timeoffree task. thus I need to keep track of the length of the free tasks. */
+    double ratio_transfertime_freetask_min = DBL_MAX;
+    double temp_length_free_tasks_max = 0;
     
     starpu_data_handle_t handle_popped = NULL; /* Pointer to choosen best data */
     
@@ -2585,6 +2652,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 			temp_number_1_from_free_task_max = 0;
 			temp_priority_max = INT_MIN;
 			temp_best_1_from_free_task = NULL;
+			temp_length_free_tasks_max = 0;
 			
 			#ifdef PRINT_STATS
 			nb_data_looked_at++;
@@ -2648,7 +2716,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 							temp_priority_max = t->pointer_to_T->priority;
 						}
 						
-						
+						temp_length_free_tasks_max += starpu_task_expected_length(t->pointer_to_T, perf_arch, 0);
 					}
 					else if (data_not_available == 1)
 					{
@@ -2665,11 +2733,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 				
 				//~ printf("Current gpu: %d: data %p of size %ld takes %f to be transferred. Is data on the node?: %d\n", current_gpu, e->D, starpu_data_get_size(e->D), starpu_data_expected_transfer_time(e->D, current_gpu ,STARPU_R), starpu_data_is_on_node(e->D, current_gpu)); fflush(stdout);
 				
-				
-				
 				/* Checking if current data is better */				
 				hud = e->D->user_data;
-				update_best_data_single_decision_tree(&number_free_task_max, &remaining_expected_length_max, &handle_popped, &priority_max, &number_1_from_free_task_max, temp_number_free_task_max, hud->sum_remaining_task_expected_length, e->D, temp_priority_max, temp_number_1_from_free_task_max, &data_choosen_index, i, &best_1_from_free_task, temp_best_1_from_free_task, temp_transfer_time_min, &transfer_time_min);
+				update_best_data_single_decision_tree(&number_free_task_max, &remaining_expected_length_max, &handle_popped, &priority_max, &number_1_from_free_task_max, temp_number_free_task_max, hud->sum_remaining_task_expected_length, e->D, temp_priority_max, temp_number_1_from_free_task_max, &data_choosen_index, i, &best_1_from_free_task, temp_best_1_from_free_task, temp_transfer_time_min, &transfer_time_min, temp_length_free_tasks_max, &ratio_transfertime_freetask_min);
 			}
 		}
 	}
@@ -2732,6 +2798,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 						temp_number_1_from_free_task_max = 0;
 						temp_priority_max = INT_MIN;
 						temp_best_1_from_free_task = NULL;
+						temp_length_free_tasks_max = 0;
 						
 						#ifdef PRINT_STATS
 						nb_data_looked_at++;
@@ -2792,6 +2859,8 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 									{
 										temp_priority_max = t->pointer_to_T->priority;
 									}
+									
+									temp_length_free_tasks_max += starpu_task_expected_length(t->pointer_to_T, perf_arch, 0);
 								}
 								else if (data_not_available == 1)
 								{
@@ -2809,7 +2878,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 							
 							/* Update best data if needed */
 							hud = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->user_data;
-							update_best_data_single_decision_tree(&number_free_task_max, &remaining_expected_length_max, &handle_popped, &priority_max, &number_1_from_free_task_max, temp_number_free_task_max, hud->sum_remaining_task_expected_length, STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k), temp_priority_max, temp_number_1_from_free_task_max, &data_choosen_index, i, &best_1_from_free_task, temp_best_1_from_free_task, temp_transfer_time_min, &transfer_time_min);
+							update_best_data_single_decision_tree(&number_free_task_max, &remaining_expected_length_max, &handle_popped, &priority_max, &number_1_from_free_task_max, temp_number_free_task_max, hud->sum_remaining_task_expected_length, STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k), temp_priority_max, temp_number_1_from_free_task_max, &data_choosen_index, i, &best_1_from_free_task, temp_best_1_from_free_task, temp_transfer_time_min, &transfer_time_min, temp_length_free_tasks_max, &ratio_transfertime_freetask_min);
 						//~ }
 						//~ else /* Cas 2D */
 						//~ {
