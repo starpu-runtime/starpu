@@ -136,16 +136,3 @@
    fun:__libc_csu_init
    fun:(below main)
 }
-{
-   <insert_a_suppression_name_here>
-   Memcheck:Leak
-   match-leak-kinds: reachable
-   fun:malloc
-   fun:hwloc_topology_init
-   fun:_starpu_init_topology
-   fun:_starpu_topology_get_nhwnumanodes
-   fun:_starpu_load_bus_performance_files
-   fun:starpu_initialize
-   fun:starpu_init
-   fun:main
-}
