@@ -92,31 +92,25 @@ void _starpu_initialize_registered_performance_models(void)
 	starpu_perfmodel_initialize();
 
 	struct _starpu_machine_config *conf = _starpu_get_machine_config();
-	/* FIXME: just iterate over all archs */
-	unsigned ncores = conf->topology.nhwdevices[STARPU_CPU_WORKER];
-	unsigned ncuda =  conf->topology.nhwdevices[STARPU_CUDA_WORKER];
-	unsigned nopencl = conf->topology.nhwdevices[STARPU_OPENCL_WORKER];
+	unsigned ndevices = 0;
 	enum starpu_worker_archtype archtype;
-#if STARPU_MAXMPIDEVS > 0 || STARPU_MAXTCPIPDEVS > 0
-	unsigned i;
-#endif
-	unsigned nmpi = 0;
-	unsigned ntcpip = 0;
-#if STARPU_MAXMPIDEVS > 0
-	STARPU_ASSERT(conf->topology.nhwdevices[STARPU_MPI_MS_WORKER] < STARPU_NMAXDEVS);
-	for(i = 0; i < conf->topology.nhwdevices[STARPU_MPI_MS_WORKER]; i++)
-		nmpi += conf->topology.nhwworker[STARPU_MPI_MS_WORKER][i];
-#endif
-#if STARPU_MAXTCPIPDEVS > 0
-	for(i = 0; i < conf->topology.nhwdevices[STARPU_TCPIP_MS_WORKER]; i++)
+	for (archtype = 0; archtype < STARPU_NARCH; ++archtype)
 	{
-		ntcpip += conf->topology.nhwworker[STARPU_TCPIP_MS_WORKER][i];
+		if(archtype != STARPU_MPI_MS_WORKER && archtype != STARPU_TCPIP_MS_WORKER)
+		{
+			ndevices += conf->topology.nhwdevices[archtype];
+		}
+		else
+		{
+			unsigned i;
+			for(i = 0; i < conf->topology.nhwdevices[archtype]; i++)
+				ndevices += conf->topology.nhwworker[archtype][i];
+		}
 	}
-#endif
 
-	// We used to allocate 2**(ncores + ncuda + nopencl + nmpi + ntcpip), this is too big
-	// We now allocate only 2*(ncores + ncuda + nopencl + nmpi + ntcpip), and reallocate when necessary in starpu_perfmodel_arch_comb_add
-	nb_arch_combs = 2 * (ncores + ncuda + nopencl + nmpi + ntcpip);
+	// We used to allocate 2**ndevices, this is too big
+	// We now allocate only 2*ndevices, and reallocate when necessary in starpu_perfmodel_arch_comb_add
+	nb_arch_combs = 2*ndevices;
 	_STARPU_MALLOC(arch_combs, nb_arch_combs*sizeof(struct starpu_perfmodel_arch*));
 	current_arch_comb = 0;
 	historymaxerror = starpu_getenv_number_default("STARPU_HISTORY_MAX_ERROR", STARPU_HISTORYMAXERROR);
@@ -952,8 +946,12 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 		{
 			fprintf(f, "####################\n");
 			fprintf(f, "# DEV_%d\n", dev);
-			fprintf(f, "# device type (CPU - %d, CUDA - %d, OPENCL - %d, MPI_MS - %d, TCPIP_MS - %d)\n",
-				STARPU_CPU_WORKER, STARPU_CUDA_WORKER, STARPU_OPENCL_WORKER, STARPU_MPI_MS_WORKER, STARPU_TCPIP_MS_WORKER);
+			fprintf(f, "# device type (");
+			enum starpu_worker_archtype type;
+			for (type = 0; type < STARPU_NARCH-1; ++type)
+				if (type != 3) /* ignore old SCC driver */
+					fprintf(f, "%s - %d, ", starpu_worker_get_type_as_string(type), type);
+			fprintf(f, "%s - %d)\n", starpu_worker_get_type_as_string(type), type);
 			fprintf(f, "%u\n", arch_combs[comb]->devices[dev].type);
 
 			fprintf(f, "####################\n");

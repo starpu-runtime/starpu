@@ -382,6 +382,24 @@ void starpu_interface_start_driver_copy_async(unsigned src_node, unsigned dst_no
 	_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
 }
 
+void starpu_interface_start_driver_copy_async_devid(int src_dev, enum starpu_node_kind src_kind,
+						    int dst_dev, enum starpu_node_kind dst_kind,
+						    double *start)
+{
+	unsigned src_node, dst_node;
+#ifdef STARPU_USE_FXT
+	src_node = starpu_memory_devid_find_node(src_dev, src_kind);
+	dst_node = starpu_memory_devid_find_node(dst_dev, dst_kind);
+#else
+	(void)src_dev;
+	(void)dst_dev;
+	(void)src_kind;
+	(void)dst_kind;
+#endif
+	*start = starpu_timing_now();
+	_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+}
+
 void starpu_interface_end_driver_copy_async(unsigned src_node, unsigned dst_node, double start)
 {
 	double end = starpu_timing_now();
@@ -394,6 +412,45 @@ void starpu_interface_end_driver_copy_async(unsigned src_node, unsigned dst_node
 		{
 			char src_name[16], dst_name[16];
 			warned = 1;
+			starpu_memory_node_get_name(src_node, src_name, sizeof(src_name));
+			starpu_memory_node_get_name(dst_node, dst_name, sizeof(dst_name));
+
+			_STARPU_DISP("Warning: the submission of asynchronous transfer from %s to %s took a very long time (%f ms)\nFor proper asynchronous transfer overlapping, data registered to StarPU must be allocated with starpu_malloc() or pinned with starpu_memory_pin()\n", src_name, dst_name, elapsed / 1000.);
+		}
+	}
+	_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+}
+
+void starpu_interface_end_driver_copy_async_devid(int src_dev, enum starpu_node_kind src_kind,
+						  int dst_dev, enum starpu_node_kind dst_kind,
+						  double start)
+{
+	double end = starpu_timing_now();
+
+	unsigned src_node, dst_node;
+#ifdef STARPU_USE_FXT
+	src_node = starpu_memory_devid_find_node(src_dev, src_kind);
+	dst_node = starpu_memory_devid_find_node(dst_dev, dst_kind);
+#else
+	(void)src_dev;
+	(void)dst_dev;
+	(void)src_kind;
+	(void)dst_kind;
+#endif
+
+	double elapsed = end - start;
+	if (elapsed > 300)
+	{
+		static int warned = 0;
+		STARPU_HG_DISABLE_CHECKING(warned);
+		if (!warned)
+		{
+			char src_name[16], dst_name[16];
+			warned = 1;
+#ifndef STARPU_USE_FXT
+			src_node = starpu_memory_devid_find_node(src_dev, src_kind);
+			dst_node = starpu_memory_devid_find_node(dst_dev, dst_kind);
+#endif
 			starpu_memory_node_get_name(src_node, src_name, sizeof(src_name));
 			starpu_memory_node_get_name(dst_node, dst_name, sizeof(dst_name));
 
@@ -417,18 +474,20 @@ int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, u
 	enum starpu_node_kind dst_kind = starpu_node_get_kind(dst_node);
 	const struct _starpu_node_ops *src_node_ops = _starpu_memory_node_get_node_ops(src_node);
 	const struct _starpu_node_ops *dst_node_ops = _starpu_memory_node_get_node_ops(dst_node);
+	int src_devid = starpu_memory_node_get_devid(src_node);
+	int dst_devid = starpu_memory_node_get_devid(dst_node);
 
 	if (src_node_ops && src_node_ops->copy_data_to[dst_kind])
 	{
-		return src_node_ops->copy_data_to[dst_kind](src, src_offset, src_node,
-							     dst, dst_offset, dst_node,
+		return src_node_ops->copy_data_to[dst_kind](src, src_offset, src_devid,
+							     dst, dst_offset, dst_devid,
 							     size,
 							     async_channel);
 	}
 	else if (dst_node_ops && dst_node_ops->copy_data_from[src_kind])
 	{
-		return dst_node_ops->copy_data_from[src_kind](src, src_offset, src_node,
-							     dst, dst_offset, dst_node,
+		return dst_node_ops->copy_data_from[src_kind](src, src_offset, src_devid,
+							     dst, dst_offset, dst_devid,
 							     size,
 							     async_channel);
 	}
@@ -452,6 +511,8 @@ int starpu_interface_copy2d(uintptr_t src, size_t src_offset, unsigned src_node,
 	enum starpu_node_kind dst_kind = starpu_node_get_kind(dst_node);
 	const struct _starpu_node_ops *src_node_ops = _starpu_memory_node_get_node_ops(src_node);
 	const struct _starpu_node_ops *dst_node_ops = _starpu_memory_node_get_node_ops(dst_node);
+	int src_devid = starpu_memory_node_get_devid(src_node);
+	int dst_devid = starpu_memory_node_get_devid(dst_node);
 
 	STARPU_ASSERT_MSG(ld_src >= blocksize, "block size %lu is bigger than ld %lu in source", (unsigned long) blocksize, (unsigned long) ld_src);
 	STARPU_ASSERT_MSG(ld_dst >= blocksize, "block size %lu is bigger than ld %lu in destination", (unsigned long) blocksize, (unsigned long) ld_dst);
@@ -464,16 +525,16 @@ int starpu_interface_copy2d(uintptr_t src, size_t src_offset, unsigned src_node,
 
 	if (src_node_ops && src_node_ops->copy2d_data_to[dst_kind])
 		/* Hardware-optimized non-contiguous case */
-		return src_node_ops->copy2d_data_to[dst_kind](src, src_offset, src_node,
-							     dst, dst_offset, dst_node,
+		return src_node_ops->copy2d_data_to[dst_kind](src, src_offset, src_devid,
+							     dst, dst_offset, dst_devid,
 							     blocksize,
 							     numblocks, ld_src, ld_dst,
 							     async_channel);
 
 	if (dst_node_ops && dst_node_ops->copy2d_data_from[src_kind])
 		/* Hardware-optimized non-contiguous case */
-		return dst_node_ops->copy2d_data_from[src_kind](src, src_offset, src_node,
-							     dst, dst_offset, dst_node,
+		return dst_node_ops->copy2d_data_from[src_kind](src, src_offset, src_devid,
+							     dst, dst_offset, dst_devid,
 							     blocksize,
 							     numblocks, ld_src, ld_dst,
 							     async_channel);

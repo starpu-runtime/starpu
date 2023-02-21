@@ -47,9 +47,9 @@ struct disk_register
 	int flag;
 };
 
-static int add_disk_in_list(unsigned node, struct starpu_disk_ops *func, void *base);
+static int add_disk_in_list(int devid, struct starpu_disk_ops *func, void *base);
 
-static struct disk_register *disk_register_list[STARPU_MAXNODES];
+static struct disk_register *disk_register_list[STARPU_NMAXDEVS];
 static int disk_number = 0;
 
 int starpu_disk_swap_node = -1;
@@ -76,7 +76,8 @@ int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, starpu_s
 {
 	STARPU_ASSERT_MSG(size < 0 || size >= STARPU_DISK_SIZE_MIN, "Minimum disk size is %d Bytes ! (Here %d) \n", (int) STARPU_DISK_SIZE_MIN, (int) size);
 	/* register disk */
-	unsigned disk_memnode = _starpu_memory_node_register(STARPU_DISK_RAM, 0);
+	int disk_device = STARPU_ATOMIC_ADD(&disk_number, 1) - 1;
+	unsigned disk_memnode = _starpu_memory_node_register(STARPU_DISK_RAM, disk_device);
 
 	/* Connect the disk memory node to all numa memory nodes */
 	int nb_numa_nodes = starpu_memory_nodes_get_numa_count();
@@ -119,19 +120,22 @@ int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, starpu_s
 	if (func->copy != NULL)
 	{
 		int disk;
-		for (disk = 0; disk < STARPU_MAXNODES; disk++)
+		for (disk = 0; disk < STARPU_NMAXDEVS; disk++)
+		{
 			if (disk_register_list[disk] != NULL && disk_register_list[disk]->functions->copy != NULL && disk_register_list[disk]->functions->copy == func->copy)
 			{
-				_starpu_register_bus(disk_memnode, disk);
-				_starpu_register_bus(disk, disk_memnode);
+				unsigned node = starpu_memory_devid_find_node(disk, STARPU_DISK_RAM);
+				_starpu_register_bus(disk_memnode, node);
+				_starpu_register_bus(node, disk_memnode);
 			}
+		}
 	}
 
 	/* connect disk */
 	void *base = func->plug(parameter, size);
 
 	/* remember it */
-	int n STARPU_ATTRIBUTE_UNUSED = add_disk_in_list(disk_memnode, func, base);
+	int n STARPU_ATTRIBUTE_UNUSED = add_disk_in_list(disk_device, func, base);
 
 #ifdef STARPU_SIMGRID
 	char name[16];
@@ -158,20 +162,21 @@ void _starpu_disk_unregister(void)
 	int i;
 
 	/* search disk and delete it */
-	for (i = 0; i < STARPU_MAXNODES; ++i)
+	for (i = 0; i < STARPU_NMAXDEVS; ++i)
 	{
 		if (disk_register_list[i] == NULL)
 			continue;
 
 		_starpu_set_disk_flag(i, STARPU_DISK_NO_RECLAIM);
-		_starpu_free_all_automatically_allocated_buffers(i);
+		unsigned node = starpu_memory_devid_find_node(i, STARPU_DISK_RAM);
+		_starpu_free_all_automatically_allocated_buffers(node);
 
 		/* don't forget to unplug */
 		disk_register_list[i]->functions->unplug(disk_register_list[i]->base);
 		free(disk_register_list[i]);
 		disk_register_list[i] = NULL;
 
-		disk_number--;
+		STARPU_ATOMIC_ADD(&disk_number, -1);
 	}
 
 	/* no disk in the list -> delete the list */
@@ -181,33 +186,35 @@ void _starpu_disk_unregister(void)
 
 /* interface between user and disk memory */
 
-void *_starpu_disk_alloc(unsigned node, size_t size)
+void *_starpu_disk_alloc(int devid, size_t size)
 {
-	return disk_register_list[node]->functions->alloc(disk_register_list[node]->base, size);
+	return disk_register_list[devid]->functions->alloc(disk_register_list[devid]->base, size);
 }
 
-void _starpu_disk_free(unsigned node, void *obj, size_t size)
+void _starpu_disk_free(int devid, void *obj, size_t size)
 {
-	disk_register_list[node]->functions->free(disk_register_list[node]->base, obj, size);
+	disk_register_list[devid]->functions->free(disk_register_list[devid]->base, obj, size);
 }
 
-/* src_node == disk node and dst_node == STARPU_MAIN_RAM */
-int _starpu_disk_read(unsigned src_node, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size, struct _starpu_async_channel *channel)
+/* src_dev == disk dev and dst_dev == STARPU_MAIN_RAM */
+int _starpu_disk_read(int src_dev, int dst_dev STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size, struct _starpu_async_channel *channel)
 {
 	void *event = NULL;
 
 	if (channel != NULL)
 	{
-		if (disk_register_list[src_node]->functions->async_read == NULL)
+		if (disk_register_list[src_dev]->functions->async_read == NULL)
 			channel = NULL;
 		else
 		{
 			double start;
+			unsigned src_node = starpu_memory_devid_find_node(src_dev, STARPU_DISK_RAM);
 			_starpu_disk_get_event(&channel->event)->memory_node = src_node;
 
-			starpu_interface_start_driver_copy_async(src_node, dst_node, &start);
-			event = disk_register_list[src_node]->functions->async_read(disk_register_list[src_node]->base, obj, buf, offset, size);
-			starpu_interface_end_driver_copy_async(src_node, dst_node, start);
+			starpu_interface_start_driver_copy_async_devid(src_dev, STARPU_DISK_RAM, dst_dev, STARPU_CPU_RAM, &start);
+
+			event = disk_register_list[src_dev]->functions->async_read(disk_register_list[src_dev]->base, obj, buf, offset, size);
+			starpu_interface_end_driver_copy_async_devid(src_dev, STARPU_DISK_RAM, dst_dev, STARPU_CPU_RAM, start);
 
 			add_async_event(channel, event);
 		}
@@ -215,29 +222,30 @@ int _starpu_disk_read(unsigned src_node, unsigned dst_node STARPU_ATTRIBUTE_UNUS
 	/* asynchronous request failed or synchronous request is asked */
 	if (channel == NULL || !event)
 	{
-		disk_register_list[src_node]->functions->read(disk_register_list[src_node]->base, obj, buf, offset, size);
+		disk_register_list[src_dev]->functions->read(disk_register_list[src_dev]->base, obj, buf, offset, size);
 		return 0;
 	}
 	return -EAGAIN;
 }
 
-/* src_node == STARPU_MAIN_RAM and dst_node == disk node */
-int _starpu_disk_write(unsigned src_node STARPU_ATTRIBUTE_UNUSED, unsigned dst_node, void *obj, void *buf, off_t offset, size_t size, struct _starpu_async_channel *channel)
+/* src_dev == STARPU_MAIN_RAM and dst_dev == disk dev */
+int _starpu_disk_write(int src_dev STARPU_ATTRIBUTE_UNUSED, int dst_dev, void *obj, void *buf, off_t offset, size_t size, struct _starpu_async_channel *channel)
 {
 	void *event = NULL;
 
 	if (channel != NULL)
 	{
-		if (disk_register_list[dst_node]->functions->async_write == NULL)
+		if (disk_register_list[dst_dev]->functions->async_write == NULL)
 			channel = NULL;
 		else
 		{
 			double start;
+			unsigned dst_node = starpu_memory_devid_find_node(dst_dev, STARPU_DISK_RAM);
 			_starpu_disk_get_event(&channel->event)->memory_node = dst_node;
 
-			starpu_interface_start_driver_copy_async(src_node, dst_node, &start);
-			event = disk_register_list[dst_node]->functions->async_write(disk_register_list[dst_node]->base, obj, buf, offset, size);
-			starpu_interface_end_driver_copy_async(src_node, dst_node, start);
+			starpu_interface_start_driver_copy_async_devid(src_dev, STARPU_CPU_RAM, dst_dev, STARPU_DISK_RAM, &start);
+			event = disk_register_list[dst_dev]->functions->async_write(disk_register_list[dst_dev]->base, obj, buf, offset, size);
+			starpu_interface_end_driver_copy_async_devid(src_dev, STARPU_CPU_RAM, dst_dev, STARPU_DISK_RAM, start);
 
 			add_async_event(channel, event);
 		}
@@ -245,23 +253,24 @@ int _starpu_disk_write(unsigned src_node STARPU_ATTRIBUTE_UNUSED, unsigned dst_n
 	/* asynchronous request failed or synchronous request is asked */
 	if (channel == NULL || !event)
 	{
-		disk_register_list[dst_node]->functions->write(disk_register_list[dst_node]->base, obj, buf, offset, size);
+		disk_register_list[dst_dev]->functions->write(disk_register_list[dst_dev]->base, obj, buf, offset, size);
 		return 0;
 	}
 	return -EAGAIN;
 }
 
-int _starpu_disk_copy(unsigned node_src, void *obj_src, off_t offset_src, unsigned node_dst, void *obj_dst, off_t offset_dst, size_t size, struct _starpu_async_channel *channel)
+int _starpu_disk_copy(int src_dev, void *obj_src, off_t offset_src, int dst_dev, void *obj_dst, off_t offset_dst, size_t size, struct _starpu_async_channel *channel)
 {
 	/* both nodes have same copy function */
 	void * event = NULL;
 
 	if (channel)
 	{
-		_starpu_disk_get_event(&channel->event)->memory_node = node_src;
-		event = disk_register_list[node_src]->functions->copy(disk_register_list[node_src]->base,
+		unsigned src_node = starpu_memory_devid_find_node(src_dev, STARPU_DISK_RAM);
+		_starpu_disk_get_event(&channel->event)->memory_node = src_node;
+		event = disk_register_list[src_dev]->functions->copy(disk_register_list[src_dev]->base,
 								      obj_src, offset_src,
-								      disk_register_list[node_dst]->base,
+								      disk_register_list[dst_dev]->base,
 								      obj_dst, offset_dst, size);
 		add_async_event(channel, event);
 	}
@@ -270,16 +279,16 @@ int _starpu_disk_copy(unsigned node_src, void *obj_src, off_t offset_src, unsign
 	if (!event)
 	{
 		if (channel || starpu_asynchronous_copy_disabled())
-			disk_register_list[node_src]->functions->copy = NULL;
+			disk_register_list[src_dev]->functions->copy = NULL;
 
 		/* perform a read, and after a write... */
 		void * ptr;
 		int ret = _starpu_malloc_flags_on_node(STARPU_MAIN_RAM, &ptr, size, 0);
 		STARPU_ASSERT_MSG(ret == 0, "Cannot allocate %zu bytes to perform disk to disk operation", size);
 
-		ret = _starpu_disk_read(node_src, STARPU_MAIN_RAM, obj_src, ptr, offset_src, size, NULL);
+		ret = _starpu_disk_read(src_dev, 0, obj_src, ptr, offset_src, size, NULL);
 		STARPU_ASSERT_MSG(ret == 0, "Cannot read %zu bytes to perform disk to disk copy", size);
-		ret = _starpu_disk_write(STARPU_MAIN_RAM, node_dst, obj_dst, ptr, offset_dst, size, NULL);
+		ret = _starpu_disk_write(0, dst_dev, obj_dst, ptr, offset_dst, size, NULL);
 		STARPU_ASSERT_MSG(ret == 0, "Cannot write %zu bytes to perform disk to disk copy", size);
 
 		_starpu_free_flags_on_node(STARPU_MAIN_RAM, ptr, size, 0);
@@ -291,22 +300,25 @@ int _starpu_disk_copy(unsigned node_src, void *obj_src, off_t offset_src, unsign
 	return -EAGAIN;
 }
 
-int _starpu_disk_full_read(unsigned src_node, unsigned dst_node, void *obj, void **ptr, size_t *size, struct _starpu_async_channel *channel)
+/* src_dev == disk dev and dst_dev == STARPU_CPU_RAM */
+int _starpu_disk_full_read(int src_dev, int dst_dev, void *obj, void **ptr, size_t *size, struct _starpu_async_channel *channel)
 {
 	void *event = NULL;
+	unsigned dst_node = starpu_memory_devid_find_node(dst_dev, STARPU_CPU_RAM);
 
 	if (channel != NULL)
 	{
-		if (disk_register_list[src_node]->functions->async_full_read == NULL)
+		if (disk_register_list[src_dev]->functions->async_full_read == NULL)
 			channel = NULL;
 		else
 		{
 			double start;
+			unsigned src_node = starpu_memory_devid_find_node(src_dev, STARPU_DISK_RAM);
 			_starpu_disk_get_event(&channel->event)->memory_node = src_node;
 
-			starpu_interface_start_driver_copy_async(src_node, dst_node, &start);
-			event = disk_register_list[src_node]->functions->async_full_read(disk_register_list[src_node]->base, obj, ptr, size, dst_node);
-			starpu_interface_end_driver_copy_async(src_node, dst_node, start);
+			starpu_interface_start_driver_copy_async_devid(src_dev, STARPU_DISK_RAM, dst_dev, STARPU_CPU_RAM, &start);
+			event = disk_register_list[src_dev]->functions->async_full_read(disk_register_list[src_dev]->base, obj, ptr, size, dst_node);
+			starpu_interface_end_driver_copy_async_devid(src_dev, STARPU_DISK_RAM, dst_dev, STARPU_CPU_RAM, start);
 
 			add_async_event(channel, event);
 		}
@@ -314,28 +326,30 @@ int _starpu_disk_full_read(unsigned src_node, unsigned dst_node, void *obj, void
 	/* asynchronous request failed or synchronous request is asked */
 	if (channel == NULL || !event)
 	{
-		disk_register_list[src_node]->functions->full_read(disk_register_list[src_node]->base, obj, ptr, size, dst_node);
+		disk_register_list[src_dev]->functions->full_read(disk_register_list[src_dev]->base, obj, ptr, size, dst_node);
 		return 0;
 	}
 	return -EAGAIN;
 }
 
-int _starpu_disk_full_write(unsigned src_node STARPU_ATTRIBUTE_UNUSED, unsigned dst_node, void *obj, void *ptr, size_t size, struct _starpu_async_channel *channel)
+/* src_dev == STARPU_CPU_RAM and dst_dev == disk dev */
+int _starpu_disk_full_write(int src_dev STARPU_ATTRIBUTE_UNUSED, int dst_dev, void *obj, void *ptr, size_t size, struct _starpu_async_channel *channel)
 {
 	void *event = NULL;
 
 	if (channel != NULL)
 	{
-		if (disk_register_list[dst_node]->functions->async_full_write == NULL)
+		if (disk_register_list[dst_dev]->functions->async_full_write == NULL)
 			channel = NULL;
 		else
 		{
 			double start;
+			unsigned dst_node = starpu_memory_devid_find_node(dst_dev, STARPU_DISK_RAM);
 			_starpu_disk_get_event(&channel->event)->memory_node = dst_node;
 
-			starpu_interface_start_driver_copy_async(src_node, dst_node, &start);
-			event = disk_register_list[dst_node]->functions->async_full_write(disk_register_list[dst_node]->base, obj, ptr, size);
-			starpu_interface_end_driver_copy_async(src_node, dst_node, start);
+			starpu_interface_start_driver_copy_async_devid(src_dev, STARPU_CPU_RAM, dst_dev, STARPU_DISK_RAM, &start);
+			event = disk_register_list[dst_dev]->functions->async_full_write(disk_register_list[dst_dev]->base, obj, ptr, size);
+			starpu_interface_end_driver_copy_async_devid(src_dev, STARPU_CPU_RAM, dst_dev, STARPU_DISK_RAM, start);
 
 			add_async_event(channel, event);
 		}
@@ -343,7 +357,7 @@ int _starpu_disk_full_write(unsigned src_node STARPU_ATTRIBUTE_UNUSED, unsigned 
 	/* asynchronous request failed or synchronous request is asked */
 	if (channel == NULL || !event)
 	{
-		disk_register_list[dst_node]->functions->full_write(disk_register_list[dst_node]->base, obj, ptr, size);
+		disk_register_list[dst_dev]->functions->full_write(disk_register_list[dst_dev]->base, obj, ptr, size);
 		return 0;
 	}
 	return -EAGAIN;
@@ -351,18 +365,21 @@ int _starpu_disk_full_write(unsigned src_node STARPU_ATTRIBUTE_UNUSED, unsigned 
 
 void *starpu_disk_open(unsigned node, void *pos, size_t size)
 {
-	return disk_register_list[node]->functions->open(disk_register_list[node]->base, pos, size);
+	int devid = starpu_memory_node_get_devid(node);
+	return disk_register_list[devid]->functions->open(disk_register_list[devid]->base, pos, size);
 }
 
 void starpu_disk_close(unsigned node, void *obj, size_t size)
 {
-	disk_register_list[node]->functions->close(disk_register_list[node]->base, obj, size);
+	int devid = starpu_memory_node_get_devid(node);
+	disk_register_list[devid]->functions->close(disk_register_list[devid]->base, obj, size);
 }
 
 void starpu_disk_wait_request(struct _starpu_async_channel *async_channel)
 {
 	struct _starpu_disk_event *disk_event = _starpu_disk_get_event(&async_channel->event);
 	unsigned node = disk_event->memory_node;
+	int devid = starpu_memory_node_get_devid(node);
 
 	if (disk_event->requests != NULL && !_starpu_disk_backend_event_list_empty(disk_event->requests))
 	{
@@ -374,9 +391,9 @@ void starpu_disk_wait_request(struct _starpu_async_channel *async_channel)
 		{
 			next = _starpu_disk_backend_event_list_next(event);
 
-			disk_register_list[node]->functions->wait_request(event->backend_event);
+			disk_register_list[devid]->functions->wait_request(event->backend_event);
 
-			disk_register_list[node]->functions->free_request(event->backend_event);
+			disk_register_list[devid]->functions->free_request(event->backend_event);
 
 			_starpu_disk_backend_event_list_erase(disk_event->requests, event);
 
@@ -395,6 +412,7 @@ int starpu_disk_test_request(struct _starpu_async_channel *async_channel)
 {
 	struct _starpu_disk_event *disk_event = _starpu_disk_get_event(&async_channel->event);
 	unsigned node = disk_event->memory_node;
+	int devid = starpu_memory_node_get_devid(node);
 
 	if (disk_event->requests != NULL && !_starpu_disk_backend_event_list_empty(disk_event->requests))
 	{
@@ -406,11 +424,11 @@ int starpu_disk_test_request(struct _starpu_async_channel *async_channel)
 		{
 			next = _starpu_disk_backend_event_list_next(event);
 
-			int res = disk_register_list[node]->functions->test_request(event->backend_event);
+			int res = disk_register_list[devid]->functions->test_request(event->backend_event);
 
 				if (res)
 				{
-					disk_register_list[node]->functions->free_request(event->backend_event);
+					disk_register_list[devid]->functions->free_request(event->backend_event);
 
 					_starpu_disk_backend_event_list_erase(disk_event->requests, event);
 
@@ -443,38 +461,34 @@ void starpu_disk_free_request(struct _starpu_async_channel *async_channe STARPU_
 */
 }
 
-static int add_disk_in_list(unsigned node,  struct starpu_disk_ops *func, void *base)
+static int add_disk_in_list(int devid,  struct starpu_disk_ops *func, void *base)
 {
-	int n;
 	struct disk_register *dr;
 	_STARPU_MALLOC(dr, sizeof(struct disk_register));
 	dr->base = base;
 	dr->flag = STARPU_DISK_ALL;
 	dr->functions = func;
-	n = disk_number++;
-	disk_register_list[node] = dr;
-	return n;
+	disk_register_list[devid] = dr;
+	return devid;
 }
 
-int _starpu_disk_can_copy(unsigned node1, unsigned node2)
+int _starpu_disk_can_copy(int devid1, int devid2)
 {
-	STARPU_ASSERT(starpu_node_get_kind(node1) == STARPU_DISK_RAM && starpu_node_get_kind(node2) == STARPU_DISK_RAM);
-
-	if (disk_register_list[node1]->functions == disk_register_list[node2]->functions)
+	if (disk_register_list[devid1]->functions == disk_register_list[devid2]->functions)
 		/* they must have a copy function */
-		if (disk_register_list[node1]->functions->copy != NULL)
+		if (disk_register_list[devid1]->functions->copy != NULL)
 			return 1;
 	return 0;
 }
 
-void _starpu_set_disk_flag(unsigned node, int flag)
+void _starpu_set_disk_flag(int devid, int flag)
 {
-	disk_register_list[node]->flag = flag;
+	disk_register_list[devid]->flag = flag;
 }
 
-int _starpu_get_disk_flag(unsigned node)
+int _starpu_get_disk_flag(int devid)
 {
-	return disk_register_list[node]->flag;
+	return disk_register_list[devid]->flag;
 }
 
 void _starpu_swap_init(void)

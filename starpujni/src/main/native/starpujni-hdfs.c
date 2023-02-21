@@ -37,11 +37,11 @@ extern void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write,
 						    double latency_write,
 						    double latency_read, unsigned node,
 						    const char *name);
-extern void _starpu_disk_free(unsigned node, void *obj, size_t size);
-extern int _starpu_disk_write(unsigned src_node, unsigned dst_node, void *obj, void *buf,
+extern void _starpu_disk_free(int devid, void *obj, size_t size);
+extern int _starpu_disk_write(int src_dev, int dst_dev, void *obj, void *buf,
 			      off_t offset, size_t size,
 			      struct _starpu_async_channel *async_channel);
-extern void *_starpu_disk_alloc(unsigned node, size_t size);
+extern void *_starpu_disk_alloc(int devid, size_t size);
 
 #define NITER _starpu_calibration_minimum
 
@@ -146,7 +146,8 @@ static int s_starpujni_disk_bandwidth(unsigned node, void *base)
 	STARPU_ASSERT(buf != NULL);
 
 	/* allocate memory */
-	void *mem = _starpu_disk_alloc(node, STARPU_DISK_SIZE_MIN);
+	int devid = starpu_memory_node_get_devid(node);
+	void *mem = _starpu_disk_alloc(devid, STARPU_DISK_SIZE_MIN);
 	/* fail to alloc */
 	if (mem == NULL)
 		return 0;
@@ -158,7 +159,7 @@ static int s_starpujni_disk_bandwidth(unsigned node, void *base)
 	start = starpu_timing_now();
 	for (iter = 0; iter < NITER; ++iter)
 	{
-		_starpu_disk_write(STARPU_MAIN_RAM, node, mem, buf, 0, STARPU_DISK_SIZE_MIN, NULL);
+		_starpu_disk_write(0, devid, mem, buf, 0, STARPU_DISK_SIZE_MIN, NULL);
 	}
 	end = starpu_timing_now();
 	timing_slowness = end - start;
@@ -176,14 +177,14 @@ static int s_starpujni_disk_bandwidth(unsigned node, void *base)
 	start = starpu_timing_now();
 	for (iter = 0; iter < NITER; ++iter)
 	{
-		_starpu_disk_write(STARPU_MAIN_RAM, node, mem, buf,
+		_starpu_disk_write(0, devid, mem, buf,
 				    rand() %(STARPU_DISK_SIZE_MIN - 1), 1, NULL);
 	}
 	end = starpu_timing_now();
 	E("latency measure");
 	timing_latency = end - start;
 
-	_starpu_disk_free(node, mem, STARPU_DISK_SIZE_MIN);
+	_starpu_disk_free(devid, mem, STARPU_DISK_SIZE_MIN);
 	starpu_free_flags(buf, sizeof(char), 0);
 
 	_starpu_save_bandwidth_and_latency_disk((NITER / timing_slowness) * STARPU_DISK_SIZE_MIN,

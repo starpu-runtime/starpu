@@ -357,10 +357,9 @@ int _starpu_max_fpga_driver_deinit(struct _starpu_worker *fpga_worker)
 	return 0;
 }
 
-static uintptr_t _starpu_max_fpga_allocate_memory(unsigned dst_node, size_t size, int flags)
+static uintptr_t _starpu_max_fpga_allocate_memory(int devid, size_t size, int flags)
 {
 	(void) flags;
-	unsigned devid = starpu_memory_node_get_devid(dst_node);
 
 	fpga_mem addr, next_addr;
 	addr = current_address[devid];
@@ -712,10 +711,8 @@ struct _starpu_node_ops _starpu_driver_max_fpga_node_ops =
 {
 	.name = "fpga driver",
 
-	.malloc_on_node = _starpu_max_fpga_allocate_memory,
-	.free_on_node = NULL,
-
-	.is_direct_access_supported = NULL,
+	.malloc_on_device = _starpu_max_fpga_allocate_memory,
+	.free_on_device = NULL,
 
 	//.copy_data_to[STARPU_CPU_RAM] = _starpu_max_fpga_copy_data_from_fpga_to_cpu,
 	//.copy_data_to[STARPU_MAX_FPGA_RAM] = _starpu_max_fpga_copy_data_from_fpga_to_fpga,
@@ -728,7 +725,4 @@ struct _starpu_node_ops _starpu_driver_max_fpga_node_ops =
 
 	//.copy_interface_from[STARPU_CPU_RAM] = _starpu_max_fpga_copy_interface_from_cpu_to_fpga,
 	//.copy_interface_from[STARPU_MAX_FPGA_RAM] = _starpu_max_fpga_copy_interface_from_fpga_to_fpga,
-
-	.wait_request_completion = NULL,
-	.test_request_completion = NULL,
 };

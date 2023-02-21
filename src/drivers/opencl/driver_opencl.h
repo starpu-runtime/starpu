@@ -98,13 +98,18 @@ int _starpu_opencl_copy_interface_from_opencl_to_opencl(starpu_data_handle_t han
 int _starpu_opencl_copy_interface_from_opencl_to_cpu(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req);
 int _starpu_opencl_copy_interface_from_cpu_to_opencl(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req);
 
-int _starpu_opencl_copy_data_from_opencl_to_cpu(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel);
-int _starpu_opencl_copy_data_from_opencl_to_opencl(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel);
-int _starpu_opencl_copy_data_from_cpu_to_opencl(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel);
+int _starpu_opencl_copy_data_from_opencl_to_cpu(uintptr_t src, size_t src_offset, int src_devid, uintptr_t dst, size_t dst_offset, int dst_devid, size_t size, struct _starpu_async_channel *async_channel);
+int _starpu_opencl_copy_data_from_opencl_to_opencl(uintptr_t src, size_t src_offset, int src_devid, uintptr_t dst, size_t dst_offset, int dst_devid, size_t size, struct _starpu_async_channel *async_channel);
+int _starpu_opencl_copy_data_from_cpu_to_opencl(uintptr_t src, size_t src_offset, int src_devid, uintptr_t dst, size_t dst_offset, int dst_devid, size_t size, struct _starpu_async_channel *async_channel);
 
-int _starpu_opencl_is_direct_access_supported(unsigned node, unsigned handling_node);
-uintptr_t _starpu_opencl_malloc_on_node(unsigned dst_node, size_t size, int flags);
-void _starpu_opencl_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, int flags);
+uintptr_t _starpu_opencl_malloc_on_device(int dst_devid, size_t size, int flags);
+void _starpu_opencl_free_on_device(int dst_devid, uintptr_t addr, size_t size, int flags);
+void _starpu_opencl_device_name(int devid, char *name, size_t size);
+size_t _starpu_opencl_total_memory(int devid);
+size_t _starpu_opencl_max_memory(int devid);
+void _starpu_opencl_init_device_context(int devid);
+void _starpu_opencl_reset_device(int devid);
+int _starpu_opencl_peer_access(int devid, int peer_devid);
 
 #pragma GCC visibility pop
 

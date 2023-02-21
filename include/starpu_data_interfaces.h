@@ -17,7 +17,7 @@
 #ifndef __STARPU_DATA_INTERFACES_H__
 #define __STARPU_DATA_INTERFACES_H__
 
-#include <starpu.h>
+#include <starpu_data.h>
 
 #ifdef STARPU_USE_CUDA
 /* to use CUDA streams */
@@ -38,6 +38,15 @@ typedef cudaStream_t starpu_cudaStream_t;
 #include <hip/hip_runtime.h>
 #pragma GCC diagnostic pop
 typedef hipStream_t starpu_hipStream_t;
+#endif
+
+#ifdef STARPU_USE_OPENCL
+#define CL_TARGET_OPENCL_VERSION 100
+#ifdef __APPLE__
+#include <OpenCL/cl.h>
+#else
+#include <CL/cl.h>
+#endif
 #endif
 
 #ifdef __cplusplus
@@ -91,6 +100,24 @@ extern "C" {
 
    @{
 */
+
+/**
+  Memory node Type
+*/
+enum starpu_node_kind
+{
+	STARPU_UNUSED	    = 0,
+	STARPU_CPU_RAM	    = 1,  /**< CPU core */
+	STARPU_CUDA_RAM	    = 2,  /**< NVIDIA CUDA device */
+	STARPU_OPENCL_RAM   = 3,  /**< OpenCL device */
+	STARPU_MAX_FPGA_RAM = 4,  /**< Maxeler FPGA device */
+	STARPU_DISK_RAM	    = 5,  /**< Disk memory */
+	STARPU_MPI_MS_RAM   = 6,  /**< MPI Slave device */
+	STARPU_TCPIP_MS_RAM = 7,  /**< TCPIP Slave device */
+	STARPU_HIP_RAM	    = 8,  /**< NVIDIA/AMD HIP device */
+	STARPU_MAX_RAM	    = 8,  /**< Maximum value of memory types */
+	STARPU_NRAM	    = 9,  /**< Number of memory types */
+};
 
 /**
    Define the per-interface methods. If the
@@ -990,13 +1017,29 @@ int starpu_interface_copynd(uintptr_t src, size_t src_offset, unsigned src_node,
 
    See \ref DefiningANewDataInterface_copy for more details.
 */
+
 void starpu_interface_start_driver_copy_async(unsigned src_node, unsigned dst_node, double *start);
+
+/**
+   This is like starpu_interface_start_driver_copy_async except it takes a device id and its
+   kind instead of a node id.
+*/
+void starpu_interface_start_driver_copy_async_devid(int src_dev, enum starpu_node_kind src_kind,
+						    int dst_dev, enum starpu_node_kind dst_kind,
+						    double *start);
 
 /**
    See starpu_interface_start_driver_copy_async().
    See \ref DefiningANewDataInterface_copy for more details.
 */
 void starpu_interface_end_driver_copy_async(unsigned src_node, unsigned dst_node, double start);
+
+/**
+   See starpu_interface_start_driver_copy_async_devid().
+*/
+void starpu_interface_end_driver_copy_async_devid(int src_dev, enum starpu_node_kind src_kind,
+						  int dst_dev, enum starpu_node_kind dst_kind,
+						  double start);
 
 /**
    Record in offline execution traces the copy of \p size bytes from

@@ -34,18 +34,18 @@ extern "C"
 #pragma GCC visibility push(hidden)
 
 /** interface to manipulate memory disk */
-void * _starpu_disk_alloc (unsigned node, size_t size) STARPU_ATTRIBUTE_MALLOC;
+void * _starpu_disk_alloc (int devid, size_t size) STARPU_ATTRIBUTE_MALLOC;
 
-void _starpu_disk_free (unsigned node, void *obj, size_t size);
-/** src_node is a disk node, dst_node is for the moment the STARPU_MAIN_RAM */
-int _starpu_disk_read(unsigned src_node, unsigned dst_node, void *obj, void *buf, off_t offset, size_t size, struct _starpu_async_channel * async_channel);
-/** src_node is for the moment the STARU_MAIN_RAM, dst_node is a disk node */
-int _starpu_disk_write(unsigned src_node, unsigned dst_node, void *obj, void *buf, off_t offset, size_t size, struct _starpu_async_channel * async_channel);
+void _starpu_disk_free (int devid, void *obj, size_t size);
+/** src_dev is a disk device, dst_dev is for the moment the STARPU_MAIN_RAM */
+int _starpu_disk_read(int src_dev, int dst_dev, void *obj, void *buf, off_t offset, size_t size, struct _starpu_async_channel * async_channel);
+/** src_dev is for the moment the STARU_MAIN_RAM, dst_dev is a disk device */
+int _starpu_disk_write(int src_dev, int dst_dev, void *obj, void *buf, off_t offset, size_t size, struct _starpu_async_channel * async_channel);
 
-int _starpu_disk_full_read(unsigned src_node, unsigned dst_node, void * obj, void ** ptr, size_t * size, struct _starpu_async_channel * async_channel);
-int _starpu_disk_full_write(unsigned src_node, unsigned dst_node, void * obj, void * ptr, size_t size, struct _starpu_async_channel * async_channel);
+int _starpu_disk_full_read(int src_dev, int dst_dev, void * obj, void ** ptr, size_t * size, struct _starpu_async_channel * async_channel);
+int _starpu_disk_full_write(int src_dev, int dst_dev, void * obj, void * ptr, size_t size, struct _starpu_async_channel * async_channel);
 
-int _starpu_disk_copy(unsigned node_src, void* obj_src, off_t offset_src, unsigned node_dst, void* obj_dst, off_t offset_dst, size_t size, struct _starpu_async_channel * async_channel);
+int _starpu_disk_copy(int dev_src, void* obj_src, off_t offset_src, int dev_dst, void* obj_dst, off_t offset_dst, size_t size, struct _starpu_async_channel * async_channel);
 
 /** force the request to compute */
 void starpu_disk_wait_request(struct _starpu_async_channel *async_channel);
@@ -54,11 +54,11 @@ int starpu_disk_test_request(struct _starpu_async_channel *async_channel);
 void starpu_disk_free_request(struct _starpu_async_channel *async_channel);
 
 /** interface to compare memory disk */
-int _starpu_disk_can_copy(unsigned node1, unsigned node2);
+int _starpu_disk_can_copy(int devid1, int devid2);
 
 /** change disk flag */
-void _starpu_set_disk_flag(unsigned node, int flag);
-int _starpu_get_disk_flag(unsigned node);
+void _starpu_set_disk_flag(int devid, int flag);
+int _starpu_get_disk_flag(int devid);
 
 /** unregister disk */
 void _starpu_disk_unregister(void);

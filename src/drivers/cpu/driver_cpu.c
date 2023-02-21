@@ -223,9 +223,10 @@ int _starpu_cpu_driver_deinit(struct _starpu_worker *cpu_worker)
 }
 #endif /* STARPU_USE_CPU */
 
-uintptr_t _starpu_cpu_malloc_on_node(unsigned dst_node, size_t size, int flags)
+uintptr_t _starpu_cpu_malloc_on_device(int dst_dev, size_t size, int flags)
 {
 	uintptr_t addr = 0;
+	unsigned dst_node = starpu_memory_devid_find_node(dst_dev, STARPU_CPU_RAM);
 	_starpu_malloc_flags_on_node(dst_node, (void**) &addr, size,
 #if defined(STARPU_USE_CUDA) && !defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
 				     /* without memcpy_peer, we can not
@@ -241,8 +242,9 @@ uintptr_t _starpu_cpu_malloc_on_node(unsigned dst_node, size_t size, int flags)
 	return addr;
 }
 
-void _starpu_cpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, int flags)
+void _starpu_cpu_free_on_device(int dst_dev, uintptr_t addr, size_t size, int flags)
 {
+	unsigned dst_node = starpu_memory_devid_find_node(dst_dev, STARPU_CPU_RAM);
 	_starpu_free_flags_on_node(dst_node, (void*)addr, size,
 #if defined(STARPU_USE_CUDA) && !defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
 				   flags & ~STARPU_MALLOC_PINNED
@@ -270,13 +272,11 @@ int _starpu_cpu_copy_interface(starpu_data_handle_t handle, void *src_interface,
 	return ret;
 }
 
-int _starpu_cpu_copy_data(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
+int _starpu_cpu_copy_data(uintptr_t src, size_t src_offset, int src_dev, uintptr_t dst, size_t dst_offset, int dst_dev, size_t size, struct _starpu_async_channel *async_channel)
 {
-	int src_kind = starpu_node_get_kind(src_node);
-	int dst_kind = starpu_node_get_kind(dst_node);
-	STARPU_ASSERT(src_kind == STARPU_CPU_RAM && dst_kind == STARPU_CPU_RAM);
-
 	(void) async_channel;
+	(void) src_dev;
+	(void) dst_dev;
 
 	memcpy((void *) (dst + dst_offset), (void *) (src + src_offset), size);
 	return 0;
@@ -755,8 +755,8 @@ struct _starpu_node_ops _starpu_driver_cpu_node_ops =
 {
 	.name = "cpu driver",
 
-	.malloc_on_node = _starpu_cpu_malloc_on_node,
-	.free_on_node = _starpu_cpu_free_on_node,
+	.malloc_on_device = _starpu_cpu_malloc_on_device,
+	.free_on_device = _starpu_cpu_free_on_device,
 
 	.is_direct_access_supported = _starpu_cpu_is_direct_access_supported,
 

@@ -365,7 +365,8 @@ static int get_stdio_bandwidth_between_disk_and_main_ram(unsigned node, void *ba
 	STARPU_ASSERT(buf != NULL);
 
 	/* allocate memory */
-	void *mem = _starpu_disk_alloc(node, STARPU_DISK_SIZE_MIN);
+	int devid = starpu_memory_node_get_devid(node);
+	void *mem = _starpu_disk_alloc(devid, STARPU_DISK_SIZE_MIN);
 	/* fail to alloc */
 	if (mem == NULL)
 		return 0;
@@ -379,7 +380,7 @@ static int get_stdio_bandwidth_between_disk_and_main_ram(unsigned node, void *ba
 	{
 		FILE *f = tmp->file;
 
-		_starpu_disk_write(STARPU_MAIN_RAM, node, mem, buf, 0, STARPU_DISK_SIZE_MIN, NULL);
+		_starpu_disk_write(0, devid, mem, buf, 0, STARPU_DISK_SIZE_MIN, NULL);
 
 		if (!f)
 			f = _starpu_stdio_reopen(tmp);
@@ -415,7 +416,7 @@ static int get_stdio_bandwidth_between_disk_and_main_ram(unsigned node, void *ba
 	{
 		FILE *f = tmp->file;
 
-		_starpu_disk_write(STARPU_MAIN_RAM, node, mem, buf, rand() % (STARPU_DISK_SIZE_MIN -1) , 1, NULL);
+		_starpu_disk_write(0, devid, mem, buf, rand() % (STARPU_DISK_SIZE_MIN -1) , 1, NULL);
 
 		if (!f)
 			f = _starpu_stdio_reopen(tmp);
@@ -436,7 +437,7 @@ static int get_stdio_bandwidth_between_disk_and_main_ram(unsigned node, void *ba
 	end = starpu_timing_now();
 	timing_latency = end - start;
 
-	_starpu_disk_free(node, mem, STARPU_DISK_SIZE_MIN);
+	_starpu_disk_free(devid, mem, STARPU_DISK_SIZE_MIN);
 	starpu_free_flags(buf, sizeof(char), 0);
 
 	_starpu_save_bandwidth_and_latency_disk((NITER/timing_slowness)*STARPU_DISK_SIZE_MIN, (NITER/timing_slowness)*STARPU_DISK_SIZE_MIN,

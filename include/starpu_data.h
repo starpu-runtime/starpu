@@ -18,7 +18,7 @@
 #ifndef __STARPU_DATA_H__
 #define __STARPU_DATA_H__
 
-#include <starpu.h>
+#include <starpu_util.h>
 
 #ifdef __cplusplus
 extern "C" {

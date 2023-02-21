@@ -225,6 +225,19 @@ int starpu_memory_node_get_devid(unsigned node)
 	return _starpu_descr.devid[node];
 }
 
+unsigned starpu_memory_devid_find_node(int devid, enum starpu_node_kind kind)
+{
+	unsigned nnodes = _starpu_memory_nodes_get_count();
+	unsigned id;
+
+	for (id = 0; id < nnodes; id++)
+	{
+		if (_starpu_descr.devid[id] == devid && _starpu_descr.nodes[id]  == kind)
+			return id;
+	}
+	STARPU_ABORT_MSG("can't find node of kind %d and devid %u", kind, devid);
+}
+
 enum starpu_worker_archtype starpu_memory_node_get_worker_archtype(enum starpu_node_kind node_kind)
 {
 	enum starpu_worker_archtype archtype = starpu_memory_driver_info[node_kind].worker_archtype;

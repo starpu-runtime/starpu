@@ -104,12 +104,7 @@ int _starpu_set_default_perf_model_bus();
 void _starpu_set_calibrate_flag(unsigned val);
 unsigned _starpu_get_calibrate_flag(void);
 
-#if defined(STARPU_USE_CUDA)
-unsigned *_starpu_get_cuda_affinity_vector(unsigned gpuid);
-#endif
-#if defined(STARPU_USE_OPENCL)
-unsigned *_starpu_get_opencl_affinity_vector(unsigned gpuid);
-#endif
+unsigned *_starpu_get_affinity_vector_by_kind(unsigned gpuid, enum starpu_node_kind kind);
 
 void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double bandwidth_read, double latency_write, double latency_read, unsigned node, const char *name);
 

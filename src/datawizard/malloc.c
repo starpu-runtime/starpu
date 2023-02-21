@@ -770,10 +770,13 @@ static uintptr_t _starpu_malloc_on_node(unsigned dst_node, size_t size, int flag
 	}
 
 	const struct _starpu_node_ops *node_ops = _starpu_memory_node_get_node_ops(dst_node);
-	if (node_ops && node_ops->malloc_on_node)
-		addr = node_ops->malloc_on_node(dst_node, size, flags & ~STARPU_MALLOC_COUNT);
+	if (node_ops && node_ops->malloc_on_device)
+	{
+		int devid = starpu_memory_node_get_devid(dst_node);
+		addr = node_ops->malloc_on_device(devid, size, flags & ~STARPU_MALLOC_COUNT);
+	}
 	else
-		STARPU_ABORT_MSG("No malloc_on_node function defined for node %s\n", _starpu_node_get_prefix(starpu_node_get_kind(dst_node)));
+		STARPU_ABORT_MSG("No malloc_on_device function defined for node %s\n", _starpu_node_get_prefix(starpu_node_get_kind(dst_node)));
 
 	if (addr == 0)
 	{
@@ -794,10 +797,13 @@ void _starpu_free_on_node_flags(unsigned dst_node, uintptr_t addr, size_t size, 
 		size = 1;
 
 	const struct _starpu_node_ops *node_ops = _starpu_memory_node_get_node_ops(dst_node);
-	if (node_ops && node_ops->free_on_node)
-		node_ops->free_on_node(dst_node, addr, size, flags);
+	if (node_ops && node_ops->free_on_device)
+	{
+		int devid = starpu_memory_node_get_devid(dst_node);
+		node_ops->free_on_device(devid, addr, size, flags);
+	}
 	else
-		STARPU_ABORT_MSG("No free_on_node function defined for node %s\n", _starpu_node_get_prefix(starpu_node_get_kind(dst_node)));
+		STARPU_ABORT_MSG("No free_on_device function defined for node %s\n", _starpu_node_get_prefix(starpu_node_get_kind(dst_node)));
 
 	if (count)
 		starpu_memory_deallocate(dst_node, size);

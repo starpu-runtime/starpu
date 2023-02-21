@@ -697,18 +697,23 @@ void(* _starpu_src_common_get_cpu_func_from_job(const struct _starpu_mp_node *no
 	return (void (*)(void))kernel;
 }
 
-struct _starpu_mp_node *_starpu_src_common_get_mp_node_from_memory_node(int memory_node)
+struct _starpu_mp_node *_starpu_src_common_get_mp_node_from_devid(enum starpu_worker_archtype archtype, int devid)
 {
-	int devid = starpu_memory_node_get_devid(memory_node);
-	enum starpu_worker_archtype archtype = starpu_memory_node_get_worker_archtype(starpu_node_get_kind(memory_node));
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-	STARPU_ASSERT_MSG(devid >= 0 && devid < STARPU_MAXMPIDEVS, "bogus devid %d for memory node %d\n", devid, memory_node);
+	STARPU_ASSERT_MSG(devid >= 0 && devid < STARPU_MAXMPIDEVS, "bogus devid %d for device %d\n", devid, devid);
 #endif
 #ifdef STARPU_USE_TCPIP_MASTER_SLAVE
-	STARPU_ASSERT_MSG(devid >= 0 && devid < STARPU_MAXTCPIPDEVS, "bogus devid %d for memory node %d\n", devid, memory_node);
+	STARPU_ASSERT_MSG(devid >= 0 && devid < STARPU_MAXTCPIPDEVS, "bogus devid %d for device %d\n", devid, devid);
 #endif
 
 	return _starpu_src_nodes[archtype][devid];
+}
+
+struct _starpu_mp_node *_starpu_src_common_get_mp_node_from_memory_node(int memory_node)
+{
+	return _starpu_src_common_get_mp_node_from_devid(
+			starpu_memory_node_get_worker_archtype(starpu_node_get_kind(memory_node)),
+			starpu_memory_node_get_devid(memory_node));
 }
 
 /* Send a request to the sink linked to the MP_NODE to allocate SIZE bytes on
@@ -717,10 +722,10 @@ struct _starpu_mp_node *_starpu_src_common_get_mp_node_from_memory_node(int memo
  * allocated area ;
  * else it returns 1 if the allocation fail.
  */
-uintptr_t _starpu_src_common_allocate(unsigned dst_node, size_t size, int flags)
+uintptr_t _starpu_src_common_allocate(enum starpu_worker_archtype archtype, int devid, size_t size, int flags)
 {
 	(void) flags;
-	struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(dst_node);
+	struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_devid(archtype, devid);
 	enum _starpu_mp_command answer;
 	void *arg;
 	int arg_size;
@@ -751,11 +756,11 @@ uintptr_t _starpu_src_common_allocate(unsigned dst_node, size_t size, int flags)
 /* Send a request to the sink linked to the MP_NODE to deallocate the memory
  * area pointed by ADDR.
  */
-void _starpu_src_common_free(unsigned dst_node, uintptr_t addr, size_t size, int flags)
+void _starpu_src_common_free(enum starpu_worker_archtype archtype, int devid, uintptr_t addr, size_t size, int flags)
 {
 	(void) flags;
 	(void) size;
-	struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(dst_node);
+	struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_devid(archtype, devid);
 	STARPU_PTHREAD_MUTEX_LOCK(&mp_node->connection_mutex);
 	_starpu_mp_common_send_command(mp_node, STARPU_MP_COMMAND_FREE, &addr, sizeof(addr));
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mp_node->connection_mutex);
@@ -832,7 +837,7 @@ void _starpu_src_common_unmap(unsigned dst_node, uintptr_t addr, size_t size)
 /* Send SIZE bytes pointed by SRC to DST on the sink linked to the MP_NODE with a
  * synchronous mode.
  */
-int _starpu_src_common_copy_host_to_sink_sync(struct _starpu_mp_node *mp_node, void *src, void *dst, size_t size)
+static int _starpu_src_common_copy_host_to_sink_sync(struct _starpu_mp_node *mp_node, void *src, void *dst, size_t size)
 {
 	struct _starpu_mp_transfer_command cmd = {.size = size, .addr = dst, .event = NULL};
 
@@ -850,7 +855,7 @@ int _starpu_src_common_copy_host_to_sink_sync(struct _starpu_mp_node *mp_node, v
 /* Send SIZE bytes pointed by SRC to DST on the sink linked to the MP_NODE with an
  * asynchronous mode.
  */
-int _starpu_src_common_copy_host_to_sink_async(struct _starpu_mp_node *mp_node, void *src, void *dst, size_t size, void * event)
+static int _starpu_src_common_copy_host_to_sink_async(struct _starpu_mp_node *mp_node, void *src, void *dst, size_t size, void * event)
 {
 	struct _starpu_mp_transfer_command cmd = {.size = size, .addr = dst, .event = event};
 
@@ -871,10 +876,12 @@ int _starpu_src_common_copy_host_to_sink_async(struct _starpu_mp_node *mp_node, 
 	return -EAGAIN;
 }
 
-int _starpu_src_common_copy_data_host_to_sink(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
+int _starpu_src_common_copy_data_host_to_sink(uintptr_t src, size_t src_offset, int src_devid,
+					      uintptr_t dst, size_t dst_offset, enum starpu_worker_archtype dst_archtype, int dst_devid,
+					      size_t size, struct _starpu_async_channel *async_channel)
 {
-	(void) src_node;
-	struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(dst_node);
+	(void) src_devid;
+	struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_devid(dst_archtype, dst_devid);
 
 	if (async_channel)
 		return _starpu_src_common_copy_host_to_sink_async(mp_node,
@@ -891,7 +898,7 @@ int _starpu_src_common_copy_data_host_to_sink(uintptr_t src, size_t src_offset, 
 /* Receive SIZE bytes pointed by SRC on the sink linked to the MP_NODE and store them in DST
  * with a synchronous mode.
  */
-int _starpu_src_common_copy_sink_to_host_sync(struct _starpu_mp_node *mp_node, void *src, void *dst, size_t size)
+static int _starpu_src_common_copy_sink_to_host_sync(struct _starpu_mp_node *mp_node, void *src, void *dst, size_t size)
 {
 	enum _starpu_mp_command answer;
 	void *arg;
@@ -916,7 +923,7 @@ int _starpu_src_common_copy_sink_to_host_sync(struct _starpu_mp_node *mp_node, v
 /* Receive SIZE bytes pointed by SRC on the sink linked to the MP_NODE and store them in DST
  * with an asynchronous mode.
  */
-int _starpu_src_common_copy_sink_to_host_async(struct _starpu_mp_node *mp_node, void *src, void *dst, size_t size, void * event)
+static int _starpu_src_common_copy_sink_to_host_async(struct _starpu_mp_node *mp_node, void *src, void *dst, size_t size, void * event)
 {
 	struct _starpu_mp_transfer_command cmd = {.size = size, .addr = src, .event = event};
 
@@ -937,10 +944,12 @@ int _starpu_src_common_copy_sink_to_host_async(struct _starpu_mp_node *mp_node, 
 	return -EAGAIN;
 }
 
-int _starpu_src_common_copy_data_sink_to_host(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
+int _starpu_src_common_copy_data_sink_to_host(uintptr_t src, size_t src_offset, enum starpu_worker_archtype src_archtype, int src_devid,
+					      uintptr_t dst, size_t dst_offset, int dst_devid,
+					      size_t size, struct _starpu_async_channel *async_channel)
 {
-	(void) dst_node;
-	struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(src_node);
+	(void) dst_devid;
+	struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_devid(src_archtype, src_devid);
 
 	if (async_channel)
 		return _starpu_src_common_copy_sink_to_host_async(mp_node,
@@ -958,7 +967,7 @@ int _starpu_src_common_copy_data_sink_to_host(uintptr_t src, size_t src_offset, 
  * to the sink linked to DST_NODE. The latter store them in DST with a synchronous
  * mode.
  */
-int _starpu_src_common_copy_sink_to_sink_sync(struct _starpu_mp_node *src_node, struct _starpu_mp_node *dst_node, void *src, void *dst, size_t size)
+static int _starpu_src_common_copy_sink_to_sink_sync(struct _starpu_mp_node *src_node, struct _starpu_mp_node *dst_node, void *src, void *dst, size_t size)
 {
 	enum _starpu_mp_command answer;
 	void *arg;
@@ -1006,7 +1015,7 @@ int _starpu_src_common_copy_sink_to_sink_sync(struct _starpu_mp_node *src_node, 
  * to the sink linked to DST_NODE. The latter store them in DST with an asynchronous
  * mode.
  */
-int _starpu_src_common_copy_sink_to_sink_async(struct _starpu_mp_node *src_node, struct _starpu_mp_node *dst_node, void *src, void *dst, size_t size, void * event)
+static int _starpu_src_common_copy_sink_to_sink_async(struct _starpu_mp_node *src_node, struct _starpu_mp_node *dst_node, void *src, void *dst, size_t size, void * event)
 {
 	struct _starpu_mp_transfer_command_to_device cmd = {.devid = dst_node->peer_id, .size = size, .addr = src, .event = event};
 
@@ -1049,19 +1058,21 @@ int _starpu_src_common_copy_sink_to_sink_async(struct _starpu_mp_node *src_node,
 	return -EAGAIN;
 }
 
-int _starpu_src_common_copy_data_sink_to_sink(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
+int _starpu_src_common_copy_data_sink_to_sink(uintptr_t src, size_t src_offset, enum starpu_worker_archtype src_archtype, int src_devid,
+					      uintptr_t dst, size_t dst_offset, enum starpu_worker_archtype dst_archtype, int dst_devid,
+					      size_t size, struct _starpu_async_channel *async_channel)
 {
 	if (async_channel)
 		return _starpu_src_common_copy_sink_to_sink_async(
-						_starpu_src_common_get_mp_node_from_memory_node(src_node),
-						_starpu_src_common_get_mp_node_from_memory_node(dst_node),
+						_starpu_src_common_get_mp_node_from_devid(src_archtype, src_devid),
+						_starpu_src_common_get_mp_node_from_devid(dst_archtype, dst_devid),
 						(void*) (src + src_offset),
 						(void*) (dst + dst_offset),
 						size, async_channel);
 	else
 		return _starpu_src_common_copy_sink_to_sink_sync(
-						_starpu_src_common_get_mp_node_from_memory_node(src_node),
-						_starpu_src_common_get_mp_node_from_memory_node(dst_node),
+						_starpu_src_common_get_mp_node_from_devid(src_archtype, src_devid),
+						_starpu_src_common_get_mp_node_from_devid(dst_archtype, dst_devid),
 						(void*) (src + src_offset),
 						(void*) (dst + dst_offset),
 						size);

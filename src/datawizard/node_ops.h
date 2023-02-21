@@ -41,21 +41,21 @@ typedef int (*copy_interface_func_t)(starpu_data_handle_t handle, void *src_inte
 				struct _starpu_data_request *req);
 
 /** Request copying \p ssize bytes of data from \p src_ptr (plus offset \p src_offset)
- * in node \p src_node to \p dst_ptr (plus offset \p dst_offset) in node \p dst_node.
+ * in device \p src_devid to \p dst_ptr (plus offset \p dst_offset) in device \p dst_devid.
  *
  * If \p async_channel is non-NULL, this can be used to start an asynchronous copy, in
  * which case -EAGAIN should be returned. Otherwise, 0 should be returned.
  */
-typedef int (*copy_data_t)(uintptr_t src_ptr, size_t src_offset, unsigned src_node,
-				uintptr_t dst_ptr, size_t dst_offset, unsigned dst_node,
+typedef int (*copy_data_t)(uintptr_t src_ptr, size_t src_offset, int src_devid,
+				uintptr_t dst_ptr, size_t dst_offset, int dst_devid,
 				size_t ssize, struct _starpu_async_channel *async_channel);
 
 /** This is like copy_data_t, except that there are \p numblocks blocks of size
  * \p blocksize bytes to be transferred. On the source, their respective starts are \p
  * ld_src bytes apart, and on the destination their respective starts have to be
  * \p ld_dst bytes apart. (leading dimension) */
-typedef int (*copy2d_data_t)(uintptr_t src_ptr, size_t src_offset, unsigned src_node,
-				uintptr_t dst_ptr, size_t dst_offset, unsigned dst_node,
+typedef int (*copy2d_data_t)(uintptr_t src_ptr, size_t src_offset, int src_devid,
+				uintptr_t dst_ptr, size_t dst_offset, int dst_devid,
 				size_t blocksize,
 				size_t numblocks, size_t ld_src, size_t ld_dst,
 				struct _starpu_async_channel *async_channel);
@@ -69,8 +69,8 @@ typedef int (*copy2d_data_t)(uintptr_t src_ptr, size_t src_offset, unsigned src_
  * bytes. On the source, their respective starts are \p ld1_src bytes apart, and
  * on the destination their respective starts have to be \p ld1_dst bytes apart.
  */
-typedef int (*copy3d_data_t)(uintptr_t src_ptr, size_t src_offset, unsigned src_node,
-				uintptr_t dst_ptr, size_t dst_offset, unsigned dst_node,
+typedef int (*copy3d_data_t)(uintptr_t src_ptr, size_t src_offset, int src_devid,
+				uintptr_t dst_ptr, size_t dst_offset, int dst_devid,
 				size_t blocksize,
 				size_t numblocks_1, size_t ld1_src, size_t ld1_dst,
 				size_t numblocks_2, size_t ld2_src, size_t ld2_dst,
@@ -131,7 +131,7 @@ struct _starpu_node_ops
 	/** Test whether asynchronous request \p async_channel has completed.  */
 	unsigned (*test_request_completion)(struct _starpu_async_channel *async_channel);
 
-	/** Return whether inter-device transfers are possible between \p node and \p handling_node.
+	/** Return whether inter-device transfers are possible between \p devid and \p handling_devid.
 	 * If this returns 0, copy_interface_to will always be called with
 	 * CPU RAM as either source or destination. If this returns 1,
 	 * copy_interface_to may be called with both source and destination in
@@ -142,12 +142,12 @@ struct _starpu_node_ops
 	 */
 	int (*is_direct_access_supported)(unsigned node, unsigned handling_node);
 
-	/** Allocate \p size bytes of data on node \p dst_node.
+	/** Allocate \p size bytes of data on device \p devid.
 	 * \p flags can contain STARPU_MALLOC_* flags, only useful for CPU memory  */
-	uintptr_t (*malloc_on_node)(unsigned dst_node, size_t size, int flags);
+	uintptr_t (*malloc_on_device)(int devid, size_t size, int flags);
 	/** Free data \p addr, which was a previous allocation of \p size bytes
-	 * of data on node \p dst_node with flags \p flags*/
-	void (*free_on_node)(unsigned dst_node, uintptr_t addr, size_t size, int flags);
+	 * of data on device \p devid with flags \p flags*/
+	void (*free_on_device)(int devid, uintptr_t addr, size_t size, int flags);
 
 	/** Map data a piece of data to this type of node from another type of node.
 	 * This method is optional */
@@ -164,6 +164,30 @@ struct _starpu_node_ops
 
 	/** Name of the type of memory, for debugging */
 	char *name;
+
+	/** Name of the device **/
+	void (*device_name)(int devid, char *name, size_t size);
+
+	/** Total amount of memory on the device **/
+	size_t (*total_memory)(int devid);
+
+	/** Maximum amount of allocatable memory on the device **/
+	size_t (*max_memory)(int devid);
+
+	/** Set current device **/
+	void (*set_device)(int devid);
+
+	/** Initialize device context and set as current device **/
+	void (*init_device)(int devid);
+
+	/** Reset device **/
+	void (*reset_device)(int devid);
+
+	/**
+	 * \p Try to enable peer access between \p devid and \p peer_devid.
+	 * Returns whether it has suceeded
+	 */
+	int (*try_enable_peer_access)(int devid, int peer_devid);
 };
 
 const char* _starpu_node_get_prefix(enum starpu_node_kind kind);

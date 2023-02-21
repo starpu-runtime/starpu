@@ -21,6 +21,7 @@
 
 #include <stdlib.h>
 #include <starpu_config.h>
+#include <starpu_data_interfaces.h>
 #include <starpu_thread.h>
 #include <starpu_task.h>
 
@@ -38,27 +39,9 @@ extern "C" {
 */
 
 /**
-  Memory node Type
-*/
-enum starpu_node_kind
-{
-	STARPU_UNUSED	    = 0,
-	STARPU_CPU_RAM	    = 1,  /**< CPU core */
-	STARPU_CUDA_RAM	    = 2,  /**< NVIDIA CUDA device */
-	STARPU_OPENCL_RAM   = 3,  /**< OpenCL device */
-	STARPU_MAX_FPGA_RAM = 4,  /**< Maxeler FPGA device */
-	STARPU_DISK_RAM	    = 5,  /**< Disk memory */
-	STARPU_MPI_MS_RAM   = 6,  /**< MPI Slave device */
-	STARPU_TCPIP_MS_RAM = 7,  /**< TCPIP Slave device */
-	STARPU_HIP_RAM	    = 8,  /**< NVIDIA/AMD HIP device */
-	STARPU_MAX_RAM	    = 8,  /**< Maximum value of memory types */
-	STARPU_NRAM	    = 9,  /**< Number of memory types */
-};
-
-/**
    Worker Architecture Type
 
-   The value 4 which was used by the driver SCC is no longer used as
+   The value 3 which was used by the driver SCC is no longer used as
    renumbering workers would make unusable old performance model
    files.
 */
@@ -465,7 +448,13 @@ hwloc_obj_t starpu_worker_get_hwloc_obj(int workerid);
 int starpu_memory_node_get_devid(unsigned node);
 
 /**
-   Return the memory node associated to the current worker.
+   Find the memory node associated to the device identified by /p devid and
+   /p kind
+*/
+unsigned starpu_memory_devid_find_node(int devid, enum starpu_node_kind kind);
+
+/**
+   Return the memory node associated to the current worker
    See \ref TopologyWorkers for more details.
 */
 unsigned starpu_worker_get_local_memory_node(void);

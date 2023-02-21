@@ -17,6 +17,7 @@
 #ifndef __STARPU_OPENCL_H__
 #define __STARPU_OPENCL_H__
 
+#include <starpu_data_interfaces.h>
 #include <starpu_config.h>
 #ifdef STARPU_USE_OPENCL
 #ifndef CL_TARGET_OPENCL_VERSION
@@ -304,6 +305,12 @@ cl_int starpu_opencl_allocate_memory(int devid, cl_mem *addr, size_t size, cl_me
 cl_int starpu_opencl_copy_ram_to_opencl(void *ptr, unsigned src_node, cl_mem buffer, unsigned dst_node, size_t size, size_t offset, cl_event *event, int *ret);
 
 /**
+   This is like starpu_opencl_copy_ram_to_opencl except it takes a device id
+   instead of a node id.
+*/
+cl_int starpu_opencl_copy_ram_to_opencl_devid(void *ptr, int src_devid, cl_mem buffer, int dst_devid, size_t size, size_t offset, cl_event *event, int *ret);
+
+/**
    Copy \p size bytes asynchronously from the given \p buffer on OpenCL
    \p src_node to the given \p ptr on RAM \p dst_node. \p offset is the
    offset, in bytes, in \p buffer. if \p event is <c>NULL</c>, the copy
@@ -317,6 +324,12 @@ cl_int starpu_opencl_copy_ram_to_opencl(void *ptr, unsigned src_node, cl_mem buf
    See \ref DefiningANewDataInterface_copy for more details.
 */
 cl_int starpu_opencl_copy_opencl_to_ram(cl_mem buffer, unsigned src_node, void *ptr, unsigned dst_node, size_t size, size_t offset, cl_event *event, int *ret);
+
+/**
+   This is like starpu_opencl_copy_opencl_to_ram except it takes a device id
+   instead of a node id.
+*/
+cl_int starpu_opencl_copy_opencl_to_ram_devid(cl_mem buffer, int src_devid, void *ptr, int dst_devid, size_t size, size_t offset, cl_event *event, int *ret);
 
 /**
    Copy \p size bytes asynchronously from byte offset \p src_offset of \p
@@ -334,6 +347,12 @@ cl_int starpu_opencl_copy_opencl_to_ram(cl_mem buffer, unsigned src_node, void *
 cl_int starpu_opencl_copy_opencl_to_opencl(cl_mem src, unsigned src_node, size_t src_offset, cl_mem dst, unsigned dst_node, size_t dst_offset, size_t size, cl_event *event, int *ret);
 
 /**
+   This is like starpu_opencl_copy_opencl_to_opencl except it takes a device id
+   instead of a node id.
+*/
+cl_int starpu_opencl_copy_opencl_to_opencl_devid(cl_mem src, int src_devid, size_t src_offset, cl_mem dst, int dst_devid, size_t dst_offset, size_t size, cl_event *event, int *ret);
+
+/**
    Copy \p size bytes from byte offset \p src_offset of \p src on \p
    src_node to byte offset \p dst_offset of \p dst on \p dst_node. if \p
    event is <c>NULL</c>, the copy is synchronous, i.e. the queue is
@@ -345,6 +364,12 @@ cl_int starpu_opencl_copy_opencl_to_opencl(cl_mem src, unsigned src_node, size_t
    See \ref DefiningANewDataInterface_copy for more details.
 */
 cl_int starpu_opencl_copy_async_sync(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, cl_event *event);
+
+/**
+   This is like starpu_opencl_copy_async_sync except it takes a device id and
+   its kind instead of a node id.
+*/
+cl_int starpu_opencl_copy_async_sync_devid(uintptr_t src, size_t src_offset, int src_devid, enum starpu_node_kind src_kind, uintptr_t dst, size_t dst_offset, int dst_devid, enum starpu_node_kind dst_kind, size_t size, cl_event *event);
 
 /** @} */
 

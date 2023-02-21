@@ -51,8 +51,8 @@ starpu_cpu_func_t _starpu_src_common_get_cpu_func_from_codelet(struct starpu_cod
 void(* _starpu_src_common_get_cpu_func_from_job(const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, struct _starpu_job *j))(void);
 
 struct _starpu_mp_node *_starpu_src_common_get_mp_node_from_memory_node(int memory_node);
-uintptr_t _starpu_src_common_allocate(unsigned dst_node, size_t size, int flags);
-void _starpu_src_common_free(unsigned dst_node, uintptr_t addr, size_t size, int flags);
+uintptr_t _starpu_src_common_allocate(enum starpu_worker_archtype archtype, int devid, size_t size, int flags);
+void _starpu_src_common_free(enum starpu_worker_archtype archtype, int devid, uintptr_t addr, size_t size, int flags);
 
 uintptr_t _starpu_src_common_map(unsigned dst_node, uintptr_t addr, size_t size);
 void _starpu_src_common_unmap(unsigned dst_node, uintptr_t addr, size_t size);
@@ -66,21 +66,15 @@ int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 				      unsigned nb_interfaces,
 				      void *cl_arg, size_t cl_arg_size, int detached);
 
-int _starpu_src_common_copy_host_to_sink_sync(struct _starpu_mp_node *mp_node, void *src, void *dst, size_t size);
-
-int _starpu_src_common_copy_sink_to_host_sync(struct _starpu_mp_node *mp_node, void *src, void *dst, size_t size);
-
-int _starpu_src_common_copy_sink_to_sink_sync(struct _starpu_mp_node *src_node, struct _starpu_mp_node *dst_node, void *src, void *dst, size_t size);
-
-int _starpu_src_common_copy_host_to_sink_async(struct _starpu_mp_node *mp_node, void *src, void *dst, size_t size, void *event);
-
-int _starpu_src_common_copy_sink_to_host_async(struct _starpu_mp_node *mp_node, void *src, void *dst, size_t size, void *event);
-
-int _starpu_src_common_copy_sink_to_sink_async(struct _starpu_mp_node *src_node, struct _starpu_mp_node *dst_node, void *src, void *dst, size_t size, void *event);
-
-int _starpu_src_common_copy_data_host_to_sink(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel);
-int _starpu_src_common_copy_data_sink_to_host(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel);
-int _starpu_src_common_copy_data_sink_to_sink(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel);
+int _starpu_src_common_copy_data_host_to_sink(uintptr_t src, size_t src_offset, int src_devid,
+					      uintptr_t dst, size_t dst_offset, enum starpu_worker_archtype dst_archtype, int dst_devid,
+					      size_t size, struct _starpu_async_channel *async_channel);
+int _starpu_src_common_copy_data_sink_to_host(uintptr_t src, size_t src_offset, enum starpu_worker_archtype src_archtype, int src_devid,
+					      uintptr_t dst, size_t dst_offset, int dst_devid,
+					      size_t size, struct _starpu_async_channel *async_channel);
+int _starpu_src_common_copy_data_sink_to_sink(uintptr_t src, size_t src_offset, enum starpu_worker_archtype src_archtype, int src_devid,
+					      uintptr_t dst, size_t dst_offset, enum starpu_worker_archtype dst_archtype, int dst_devid,
+					      size_t size, struct _starpu_async_channel *async_channel);
 
 void _starpu_src_common_init_switch_env(unsigned this);
 void _starpu_src_common_workers_set(struct _starpu_worker_set * worker_set, int ndevices, struct _starpu_mp_node ** mp_node);

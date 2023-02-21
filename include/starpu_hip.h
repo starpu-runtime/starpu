@@ -16,6 +16,7 @@
 #ifndef __STARPU_HIP_H__
 #define __STARPU_HIP_H__
 
+#include <starpu_data_interfaces.h>
 #include <starpu_config.h>
 
 #ifdef STARPU_USE_HIP
@@ -93,6 +94,14 @@ const struct hipDeviceProp_t *starpu_hip_get_device_properties(unsigned workerid
 int starpu_hip_copy_async_sync(void *src_ptr, unsigned src_node, void *dst_ptr, unsigned dst_node, size_t ssize, hipStream_t stream, hipMemcpyKind kind);
 
 /**
+   This is like starpu_hip_copy_async_sync except it takes a device id and its
+   kind instead of a node id.
+*/
+int starpu_hip_copy_async_sync_devid(void *src_ptr, int src_dev, enum starpu_node_kind src_kind,
+				     void *dst_ptr, int dst_dev, enum starpu_node_kind dst_kind,
+				     size_t ssize, hipStream_t stream, hipMemcpyKind kind);
+
+/**
    Copy \p numblocks blocks of \p blocksize bytes from the pointer \p src_ptr on
    \p src_node to the pointer \p dst_ptr on \p dst_node.
 
@@ -112,6 +121,16 @@ int starpu_hip_copy2d_async_sync(void *src_ptr, unsigned src_node,
 				 hipStream_t stream, hipMemcpyKind kind);
 
 /**
+   This is like starpu_hip_copy2d_async_sync except it takes a device id and its
+   kind instead of a node id.
+*/
+int starpu_hip_copy2d_async_sync_devid(void *src_ptr, int src_dev, enum starpu_node_kind src_kind,
+				       void *dst_ptr, int dst_dev, enum starpu_node_kind dst_kind,
+				       size_t blocksize,
+				       size_t numblocks, size_t ld_src, size_t ld_dst,
+				       hipStream_t stream, hipMemcpyKind kind);
+
+/**
    Copy \p numblocks_1 * \p numblocks_2 blocks of \p blocksize bytes from the
    pointer \p src_ptr on \p src_node to the pointer \p dst_ptr on \p dst_node.
 
@@ -125,11 +144,23 @@ int starpu_hip_copy2d_async_sync(void *src_ptr, unsigned src_node,
    asynchronous launch was successful. It returns 0 if the synchronous copy was
    successful, or fails otherwise.
 */
-int starpu_hip_copy3d_async_sync(void *src_ptr, unsigned src_node, void *dst_ptr, unsigned dst_node,
+int starpu_hip_copy3d_async_sync(void *src_ptr, unsigned src_node,
+				 void *dst_ptr, unsigned dst_node,
 				 size_t blocksize,
 				 size_t numblocks_1, size_t ld1_src, size_t ld1_dst,
 				 size_t numblocks_2, size_t ld2_src, size_t ld2_dst,
 				 hipStream_t stream, hipMemcpyKind kind);
+
+/**
+   This is like starpu_hip_copy3d_async_sync except it takes a device id and
+   its kind instead of a node id.
+*/
+int starpu_hip_copy3d_async_sync_devid(void *src_ptr, int src_dev, enum starpu_node_kind src_kind,
+				       void *dst_ptr, int dst_dev, enum starpu_node_kind dst_kind,
+				       size_t blocksize,
+				       size_t numblocks_1, size_t ld1_src, size_t ld1_dst,
+				       size_t numblocks_2, size_t ld2_src, size_t ld2_dst,
+				       hipStream_t stream, hipMemcpyKind kind);
 
 /**
    Call <c>hipSetDevice(\p devid)</c>.
