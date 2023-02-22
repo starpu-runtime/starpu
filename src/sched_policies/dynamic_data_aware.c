@@ -2589,7 +2589,11 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 				choose_best_data_threshold = 110;
 			}
 		}
-		else if (NT_DARTS > 1599) /* Pour que ca se déclanche au 4ème point en 3D */
+		else if (NT_DARTS > 1599 && dependances == 0) /* Pour que ca se déclanche au 4ème point en 3D. Spécifisue à 3D (gemm) */
+		{
+			choose_best_data_threshold = 200;
+		}
+		else if (dependances == 1) /* Pour cholesky */
 		{
 			choose_best_data_threshold = 200;
 		}
@@ -2712,8 +2716,11 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 						 * Nouvelle place du threshold == 2. TODO: mettre un ifdef */
 						if (threshold == 2)
 						{
-							handle_popped = e->D;
-							number_free_task_max = temp_number_free_task_max;
+							hud = e->D->user_data;
+							update_best_data_single_decision_tree(&number_free_task_max, &remaining_expected_length_max, &handle_popped, &priority_max, &number_1_from_free_task_max, temp_number_free_task_max, hud->sum_remaining_task_expected_length, e->D, temp_priority_max, temp_number_1_from_free_task_max, &data_choosen_index, i, &best_1_from_free_task, temp_best_1_from_free_task, temp_transfer_time_min, &transfer_time_min, temp_length_free_tasks_max, &ratio_transfertime_freetask_min);
+							
+							//~ handle_popped = e->D;
+							//~ number_free_task_max = temp_number_free_task_max;
 							goto end_choose_best_data;
 						}
 						
@@ -2856,8 +2863,11 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 									/* Version où je m'arrête dès que j'ai une tâche gratuite. */
 									if (threshold == 2)
 									{
-										number_free_task_max = temp_number_free_task_max;
-										handle_popped = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k);
+										hud = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->user_data;
+										update_best_data_single_decision_tree(&number_free_task_max, &remaining_expected_length_max, &handle_popped, &priority_max, &number_1_from_free_task_max, temp_number_free_task_max, hud->sum_remaining_task_expected_length, STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k), temp_priority_max, temp_number_1_from_free_task_max, &data_choosen_index, i, &best_1_from_free_task, temp_best_1_from_free_task, temp_transfer_time_min, &transfer_time_min, temp_length_free_tasks_max, &ratio_transfertime_freetask_min);
+										
+										//~ number_free_task_max = temp_number_free_task_max;
+										//~ handle_popped = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k);
 										goto end_choose_best_data;
 									}
 									
@@ -2947,6 +2957,8 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 			}
 		}
 	}	
+		
+	//~ printf("nb_data_looked_at = %d\n", nb_data_looked_at); fflush(stdout);	
 		
 	#ifdef PRINT
 	printf("Best data is = %p: %d free tasks and %d 1 from free tasks. Transfer time %f\n", handle_popped, number_free_task_max, number_1_from_free_task_max, transfer_time_min); fflush(stdout);
