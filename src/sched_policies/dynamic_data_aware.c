@@ -3544,7 +3544,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
     starpu_data_handle_t returned_handle = STARPU_DATA_NO_VICTIM;
     starpu_data_get_node_data(node, &data_on_node, &valid, &nb_data_on_node);
       
-   	/* Checking if all task are truly valid. TODO : a garder dans le cas avec dependances ? */
+   	/* Checking if all data are truly valid. TODO : a garder dans le cas avec dependances ? */
 	//~ for (i = 0; i < nb_data_on_node; i++)
 	//~ {
 		//~ if (valid[i] == 0 && starpu_data_can_evict(data_on_node[i], node, is_prefetch))
