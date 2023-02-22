@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021, 2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,7 +20,7 @@
 #include <starpu_cuda.h>
 #include <core/workers.h>
 
-#ifdef HAVE_LIBCUSPARSE
+#ifdef STARPU_HAVE_LIBCUSPARSE
 #include <cusparse.h>
 
 static cusparseHandle_t cusparse_handles[STARPU_NMAXWORKERS];
@@ -44,7 +44,7 @@ static void shutdown_cusparse_func(void *args STARPU_ATTRIBUTE_UNUSED)
 
 void starpu_cusparse_init(void)
 {
-#ifdef HAVE_LIBCUSPARSE
+#ifdef STARPU_HAVE_LIBCUSPARSE
 	starpu_execute_on_each_worker(init_cusparse_func, NULL, STARPU_CUDA);
 
 	if (cusparseCreate(&main_handle) != CUSPARSE_STATUS_SUCCESS)
@@ -54,7 +54,7 @@ void starpu_cusparse_init(void)
 
 void starpu_cusparse_shutdown(void)
 {
-#ifdef HAVE_LIBCUSPARSE
+#ifdef STARPU_HAVE_LIBCUSPARSE
 	starpu_execute_on_each_worker(shutdown_cusparse_func, NULL, STARPU_CUDA);
 
 	if (main_handle)
@@ -62,7 +62,7 @@ void starpu_cusparse_shutdown(void)
 #endif
 }
 
-#ifdef HAVE_LIBCUSPARSE
+#ifdef STARPU_HAVE_LIBCUSPARSE
 cusparseHandle_t starpu_cusparse_get_local_handle(void)
 {
 	int workerid = starpu_worker_get_id();
