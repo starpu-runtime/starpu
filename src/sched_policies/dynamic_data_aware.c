@@ -50,6 +50,7 @@ int graph_descendants;
 int dopt_selection_order;
 int highest_priority_task_returned_in_default_case;
 int push_free_task_on_gpu_with_least_task_in_planned_task;
+int round_robin_free_task;
 
 bool gpu_memory_initialized;
 bool new_tasks_initialized;
@@ -499,6 +500,8 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 	#endif
 	
 	int gpu_looked_at = 0;
+	
+	/* Pas besoin de ces 2 variables si dessous si on n'utilise pas push_free_task_on_gpu_with_least_task_in_planned_task == 1 */
 	int* sorted_gpu_list_by_nb_task_in_planned_task = NULL;
 	int* planned_task_sizes = NULL;
 	
@@ -518,38 +521,38 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 			{
 				planned_task_sizes[i] = starpu_task_list_size(&tab_gpu_planned_task[i].planned_task);
 			}
-		}
-		//~ printf("Avant\n"); fflush(stdout);
-		//~ for (i =0; i < Ngpu; i++)
-		//~ {
-			//~ printf(" %d (%d)", sorted_gpu_list_by_nb_task_in_planned_task[i] + 1, planned_task_sizes[i]); fflush(stdout);
-		//~ }
-		//~ printf("\n"); fflush(stdout);
-		
+		}		
 		mergeSort_tab_of_int(planned_task_sizes, 0, Ngpu - 1, sorted_gpu_list_by_nb_task_in_planned_task);		
-		
-		//~ printf("Après\n"); fflush(stdout);
-		//~ for (i =0; i < Ngpu; i++)
-		//~ {
-			//~ printf(" %d (%d)", sorted_gpu_list_by_nb_task_in_planned_task[i] + 1, planned_task_sizes[i]); fflush(stdout);
-		//~ }
-		//~ printf("\n"); fflush(stdout);
 	}
+		
+	if (push_free_task_on_gpu_with_least_task_in_planned_task == 2)
+	{
+		round_robin_free_task++;
+	}
+	
 	for (i = 0; i < Ngpu; i++) 
 	{
 		if (push_free_task_on_gpu_with_least_task_in_planned_task == 1)
 		{
 			gpu_looked_at = sorted_gpu_list_by_nb_task_in_planned_task[i] + 1;
 		}
+		else if (push_free_task_on_gpu_with_least_task_in_planned_task == 2)
+		{
+			gpu_looked_at = (i + round_robin_free_task)%Ngpu + 1;
+		}
 		else
 		{
 			gpu_looked_at = i + 1; /* +1 cause GPU start at 1, 2, etc ... and you have ram on 0 when checking the memory. Du coup normale de retrouver des i - 1 plus bas. */
 		}
-		//~ printf("gpu lokke at is %d\n", gpu_looked_at); fflush(stdout);
+		
+		#ifdef PRINT
+		printf("gpu_looked_at = %d\n", gpu_looked_at); fflush(stdout);
+		#endif
+		
 		if (is_my_task_free(gpu_looked_at, task))
 		{
 			#ifdef PRINT
-			printf("Task %p is free from push_task\n", task);
+			printf("Task %p is free from push_task\n", task); fflush(stdout);
 			#endif
 			
 			if (dependances == 1)
@@ -4185,6 +4188,7 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	NT_DARTS = 0;
 	new_tasks_initialized = false;
 	gpu_memory_initialized = false;
+	round_robin_free_task = -1; /* Start at -1 because I ++ it at the beggining and not the end of push_task. Thus to start at 0 on the first task you need to init it at -1. If I init it at 0 I would have to ++ before returning, but there are 3 return in push task, it would duplicate the code. */
 	
 	int i = 0;
 

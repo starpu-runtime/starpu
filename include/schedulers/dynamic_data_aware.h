@@ -33,7 +33,7 @@
 #define CAN_A_DATA_BE_IN_MEM_AND_IN_NOT_USED_YET /* 0: no, 1 : yes */
 //~ # Pas dans se fichier mais aussi utilisées: PRIORITY_ATTRIBUTION dans cholesky
 //~ # Pas dans se fichier aussi: GRAPH_DESCENDANTS /* 0: No graph, so no pause in the task submitting. 1: With a graph reading descendants in DARTS, use a pause in the task submit. 2: With a graph reading descendants in DARTS, but don't use pause and the graph is read at each new batch of tasks in pull_task. */ dans starpu_data_maxime.h
-#define PUSH_FREE_TASK_ON_GPU_WITH_LEAST_TASK_IN_PLANNED_TASK /* 0: no, 1: yes */
+#define PUSH_FREE_TASK_ON_GPU_WITH_LEAST_TASK_IN_PLANNED_TASK /* 0: no, 1: yes, 2: round robin */
 
 
 /* Var globale pour n'appeller qu'une seule fois get_env_number */
@@ -55,6 +55,7 @@ extern int graph_descendants;
 extern int free_pushed_task_position;
 extern int highest_priority_task_returned_in_default_case;
 extern int push_free_task_on_gpu_with_least_task_in_planned_task;
+extern int round_robin_free_task; /* For PUSH_FREE_TASK_ON_GPU_WITH_LEAST_TASK_IN_PLANNED_TASK == 2 */
 
 extern struct starpu_perfmodel_arch* perf_arch;
 
