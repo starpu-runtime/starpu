@@ -841,7 +841,7 @@ void _starpu_sink_common_execute(struct _starpu_mp_node *node, void *arg, int ar
 	uintptr_t arg_ptr = (uintptr_t) arg;
 	struct mp_task *task;
 
-	_STARPU_MALLOC(task, sizeof(struct mp_task));
+	_STARPU_CALLOC(task, 1, sizeof(struct mp_task));
 	task->kernel = *(void(**)(void **, void *)) arg_ptr;
 	arg_ptr += sizeof(task->kernel);
 
@@ -888,7 +888,7 @@ void _starpu_sink_common_execute(struct _starpu_mp_node *node, void *arg, int ar
 		{
 			STARPU_ASSERT_MSG(ops->pack_meta, "unpack_meta defined without pack_meta for interface %d", task->ids[i]);
 			starpu_ssize_t count;
-			ops->unpack_meta(&task->interfaces[i], arg_ptr, &count);
+			ops->unpack_meta(&task->interfaces[i], (void*) arg_ptr, &count);
 			arg_ptr += count;
 		}
 		else
