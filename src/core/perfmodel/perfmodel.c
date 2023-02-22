@@ -448,7 +448,9 @@ double starpu_data_expected_transfer_time(starpu_data_handle_t handle, unsigned 
 
 	double duration = 0.;
 
+	_starpu_spin_lock(&handle->header_lock);
 	int src_node = _starpu_select_src_node(handle, memory_node);
+	_starpu_spin_unlock(&handle->header_lock);
 	if (src_node >= 0)
 	{
 		duration += _starpu_data_expected_transfer_time(handle, src_node, memory_node, mode, size);
