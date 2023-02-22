@@ -93,6 +93,7 @@ New features:
   * New operator for data interfaces pack_meta(), unpack_meta() and
     free_meta() which are used in master slave mode for data
     interfaces with a dynamic content.
+  * Add CUSOLVER support.
 
 Small features:
   * New function starpu_mpi_comm_register() to store the size and the

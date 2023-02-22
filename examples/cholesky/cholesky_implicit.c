@@ -31,6 +31,8 @@
 #include "magma.h"
 #endif
 
+#include "starpu_cusolver.h"
+
 /*
  *	code to bootstrap the factorization
  *	and construct the DAG
@@ -69,6 +71,9 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		ret = starpu_task_insert(&cl_potrf,
 					 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k) : STARPU_MAX_PRIO,
 					 STARPU_RW, sdatakk,
+#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+					 STARPU_SCRATCH, scratch,
+#endif
 					 STARPU_CALLBACK, (k == 3*nblocks/4)?callback_turn_spmd_on:NULL,
 					 STARPU_FLOPS, (double) FLOPS_SPOTRF(nn),
 					 STARPU_NAME, "POTRF",
@@ -212,7 +217,11 @@ static int cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 			starpu_data_set_coordinates(data, 2, m, n);
 		}
 
+	cholesky_kernel_init(size / nblocks);
+
 	int ret = _cholesky(dataA, nblocks);
+
+	cholesky_kernel_fini();
 
 	starpu_data_unpartition(dataA, STARPU_MAIN_RAM);
 	starpu_data_unregister(dataA);
@@ -381,6 +390,7 @@ int main(int argc, char **argv)
 #endif
 
 	starpu_cublas_init();
+	starpu_cusolver_init();
 
 	if(with_ctxs_p)
 	{
@@ -396,6 +406,7 @@ int main(int argc, char **argv)
 	else
 		execute_cholesky(size_p, nblocks_p);
 
+	starpu_cusolver_shutdown();
 	starpu_cublas_shutdown();
 	starpu_shutdown();
 

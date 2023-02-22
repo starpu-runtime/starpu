@@ -140,6 +140,15 @@ Similarly, calling starpu_cusparse_init() makes StarPU create CUSPARSE handles
 on each CUDA device, starpu_cusparse_get_local_handle() can then be used to
 queue CUSPARSE kernels with the proper configuration.
 
+Similarly, calling starpu_cusolver_init() makes StarPU create CUSOLVER handles
+on each CUDA device, starpu_cusolverDn_get_local_handle(), starpu_cusolverSp_get_local_handle(),
+starpu_cusolverRf_get_local_handle(), can then be used to
+queue CUSOLVER kernels with the proper configuration.
+starpu_cusolver_shutdown() can be used to clear these handles.
+It is useful to use a STARPU_SCRATCH:: buffer
+whose size was set to the amount returned by \c cusolver*Spotrf_bufferSize . An example can be seen
+in \c examples/cholesky
+
 If the kernel can be made to only use this local stream or other self-allocated
 streams, i.e. the whole kernel submission can be made asynchronous, then
 one should enable asynchronous execution of the kernel.  This means setting

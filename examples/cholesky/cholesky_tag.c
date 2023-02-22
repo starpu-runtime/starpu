@@ -32,6 +32,8 @@
 #include "magma.h"
 #endif
 
+#include <starpu_cusolver.h>
+
 /*
  *	Some useful functions
  */
@@ -60,6 +62,11 @@ static struct starpu_task * create_task_potrf(starpu_data_handle_t dataA, unsign
 
 	/* which sub-data is manipulated ? */
 	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, k);
+
+#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+	/* Temporary data to save libcusolver from allocating/deallocating memory */
+	task->handles[1] = scratch;
+#endif
 
 	/* this is an important task */
 	if (!noprio_p)
@@ -281,6 +288,7 @@ static int initialize_system(int argc, char **argv, float **A, unsigned pinned)
 #endif
 
 	starpu_cublas_init();
+	starpu_cusolver_init();
 
 	if (pinned)
 		flags |= STARPU_MALLOC_PINNED;
@@ -317,7 +325,11 @@ static int cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 
 	starpu_data_map_filters(dataA, 2, &f, &f2);
 
+	cholesky_kernel_init(size / nblocks);
+
 	ret = _cholesky(dataA, nblocks);
+
+	cholesky_kernel_fini();
 
 	starpu_data_unregister(dataA);
 	return ret;
@@ -331,6 +343,7 @@ static void shutdown_system(float **matA, unsigned dim, unsigned pinned)
 
 	starpu_free_flags(*matA, (size_t)dim*dim*sizeof(float), flags);
 
+	starpu_cusolver_shutdown();
 	starpu_cublas_shutdown();
 	starpu_shutdown();
 }

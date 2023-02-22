@@ -1635,9 +1635,14 @@ if test x$enable_cuda = xyes; then
 	AC_CHECK_HEADERS([cuda_gl_interop.h])
 
 	AC_CHECK_LIB([cusparse], [cusparseCreate],
-		     [AC_DEFINE([HAVE_LIBCUSPARSE], [1], [Define to 1 if you have the cusparse library])
+		     [AC_DEFINE([STARPU_HAVE_LIBCUSPARSE], [1], [Define to 1 if you have the cusparse library])
 		      STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcusparse"])
 	AC_CHECK_DECLS([cusparseSetStream], [], [], [[#include <cusparse.h>]])
+
+	# we also check that CuSolver is available
+	AC_CHECK_LIB([cusolver],[cusolverDnCreate],
+		     [AC_DEFINE([STARPU_HAVE_LIBCUSOLVER], [1], [Define to 1 if you have the cusolver library])
+		      STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcusolver"])
 
 	LIBS="${LIBS} -lnvidia-ml"
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM(

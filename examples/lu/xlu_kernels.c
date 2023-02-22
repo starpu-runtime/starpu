@@ -379,6 +379,7 @@ static inline void STARPU_LU(common_getrf)(void *descr[], int s, void *_args)
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
+			/* TODO: use cusolver */
 			handle = starpu_cublas_get_local_handle();
 			stream = starpu_cuda_get_local_stream();
 			for (z = 0; z < nx; z++)

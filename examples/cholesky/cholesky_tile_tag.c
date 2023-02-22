@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -29,6 +29,8 @@
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_MAGMA)
 #include "magma.h"
 #endif
+
+#include "starpu_cusolver.h"
 
 /* A [ m ] [ n ] */
 float *A[NMAXBLOCKS][NMAXBLOCKS];
@@ -63,6 +65,11 @@ static struct starpu_task * create_task_potrf(unsigned k, unsigned nblocks)
 
 	/* which sub-data is manipulated ? */
 	task->handles[0] = A_state[k][k];
+
+#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+	/* Temporary data to save libcusolver from allocating/deallocating memory */
+	task->handles[1] = scratch;
+#endif
 
 	/* this is an important task */
 	task->priority = STARPU_MAX_PRIO;
@@ -270,6 +277,7 @@ int main(int argc, char **argv)
 	starpu_data_set_default_sequential_consistency_flag(0);
 
 	starpu_cublas_init();
+	starpu_cusolver_init();
 
 	for (m = 0; m < nblocks_p; m++)
 	for (n = 0; n < nblocks_p; n++)
@@ -315,7 +323,11 @@ int main(int argc, char **argv)
 		}
 	}
 
+	cholesky_kernel_init(BLOCKSIZE);
+
 	ret = cholesky_no_stride();
+
+	cholesky_kernel_fini();
 
 	for (m = 0; m < nblocks_p; m++)
 	for (n = 0; n < nblocks_p; n++)
@@ -327,6 +339,7 @@ int main(int argc, char **argv)
 		}
 	}
 
+	starpu_cusolver_shutdown();
 	starpu_cublas_shutdown();
 
 	starpu_shutdown();

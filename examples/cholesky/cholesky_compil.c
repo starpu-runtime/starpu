@@ -33,6 +33,8 @@
 #include "magma.h"
 #endif
 
+#include "starpu_cusolver.h"
+
 /*
  *	code to bootstrap the factorization
  *	and construct the DAG
@@ -66,10 +68,17 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 
 #define A(i,j) starpu_data_get_sub_data(dataA, 2, i, j)
 
+#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+#define PASS_scratch STARPU_SCRATCH, scratch,
+#else
+#define PASS_scratch
+#endif
+
 #define _POTRF(cl, A, prio, name) do { \
 		int ret = starpu_task_insert(cl, \
 					 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int) (prio) : (int) STARPU_MAX_PRIO, \
 					 STARPU_RW, A, \
+					 PASS_scratch \
 					 STARPU_FLOPS, (double) FLOPS_SPOTRF(nn), \
 					 STARPU_NAME, name, \
 					 0); \
@@ -201,6 +210,7 @@ static int cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 	/* monitor and partition the A matrix into blocks :
 	 * one block is now determined by 2 unsigned (m,n) */
 	starpu_matrix_data_register(&dataA, STARPU_MAIN_RAM, (uintptr_t)matA, ld, size, size, sizeof(float));
+	starpu_data_set_name(dataA, "A");
 
 	/* Split into blocks of complete rows first */
 	struct starpu_data_filter f =
@@ -223,10 +233,15 @@ static int cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 		for (n = 0; n < nblocks; n++)
 		{
 			starpu_data_handle_t data = starpu_data_get_sub_data(dataA, 2, m, n);
+			starpu_data_set_name(data, "subA");
 			starpu_data_set_coordinates(data, 2, m, n);
 		}
 
+	cholesky_kernel_init(size / nblocks);
+
 	int ret = _cholesky(dataA, nblocks);
+
+	cholesky_kernel_fini();
 
 	starpu_data_unpartition(dataA, STARPU_MAIN_RAM);
 	starpu_data_unregister(dataA);
@@ -237,6 +252,14 @@ static int cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 static void execute_cholesky(unsigned size, unsigned nblocks)
 {
 	float *mat = NULL;
+
+	/*
+	 * create a simple definite positive symetric matrix example
+	 *
+	 *	Hilbert matrix : h(i,j) = 1/(i+j+1)
+	 *
+	 * and make it better conditioned by adding one on the diagonal.
+	 */
 
 #ifndef STARPU_SIMGRID
 	unsigned long long m,n;
@@ -356,11 +379,6 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 
 int main(int argc, char **argv)
 {
-	/* create a simple definite positive symetric matrix example
-	 *
-	 *	Hilbert matrix : h(i,j) = 1/(i+j+1)
-	 * */
-
 #ifdef STARPU_HAVE_MAGMA
 	magma_init();
 #endif
@@ -392,6 +410,7 @@ int main(int argc, char **argv)
 #endif
 
 	starpu_cublas_init();
+	starpu_cusolver_init();
 
 	if(with_ctxs_p)
 	{
@@ -407,6 +426,7 @@ int main(int argc, char **argv)
 	else
 		execute_cholesky(size_p, nblocks_p);
 
+	starpu_cusolver_shutdown();
 	starpu_cublas_shutdown();
 	starpu_shutdown();
 
