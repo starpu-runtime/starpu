@@ -289,7 +289,7 @@ static inline void chol_common_codelet_update_potrf(void *descr[], int s, void *
 				sstatus = cusolverDnSpotrf(starpu_cusolverDn_get_local_handle(), CUBLAS_FILL_MODE_LOWER, nx, sub11, ld, workspace, Lwork, NULL);
 				STARPU_ASSERT(sstatus == CUSOLVER_STATUS_SUCCESS);
 			}
-#elif STARPU_HAVE_MAGMA
+#elif defined(STARPU_HAVE_MAGMA)
 			{
 			int ret;
 			int info;
