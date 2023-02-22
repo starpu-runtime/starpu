@@ -239,7 +239,7 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 	{
 		for (m = 0; m < size; m++)
 		{
-			mat[m +n*size] = (1.0f/(1.0f+m+n)) + ((m == n)?1.0f*2*size:0.0f);
+			mat[m +n*size] = (1.0f/(1.0f+m+n)) + ((m == n)?1.0f*size:0.0f);
 			/* mat[m +n*size] = ((m == n)?1.0f*size:0.0f); */
 		}
 	}
