@@ -468,7 +468,7 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 	//~ perf_arch = starpu_worker_get_perf_archtype(6, sched_ctx_id);
 	//~ printf("New task %p (%s, prio: %d, length: %f) in push_task with data(s):", task, starpu_task_get_name(task), task->priority, starpu_task_expected_length(task, perf_arch, 0)); fflush(stdout);
 	
-	printf("\n"); fflush(stdout);
+	//printf("\n"); fflush(stdout);
 	perf_arch = starpu_worker_get_perf_archtype(0, sched_ctx_id);
 	printf("New task %p (%s, prio: %d, length: %f) in push_task with data(s):", task, starpu_task_get_name(task), task->priority, starpu_task_expected_length(task, perf_arch, 0)); fflush(stdout);
 	for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
@@ -2619,7 +2619,15 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		
 		for (e = gpu_data_not_used_list_begin(g->gpu_data); e != gpu_data_not_used_list_end(g->gpu_data) && i != choose_best_data_threshold; e = gpu_data_not_used_list_next(e), i++)
 		{
-			temp_transfer_time_min = starpu_data_expected_transfer_time(e->D, current_gpu, STARPU_R);
+			/*if (starpu_data_is_on_node(e->D, current_gpu))
+					{
+					temp_transfer_time_min= 0;
+					}
+					else
+					{ */
+			//printf("Expected on data %p\n", e->D); fflush(stdout); 
+			temp_transfer_time_min = starpu_data_expected_transfer_time(e->D, current_gpu, STARPU_R); 
+			//}
 			
 			#ifdef PRINT
 			printf("Temp transfer time is %f\n", temp_transfer_time_min); fflush(stdout);

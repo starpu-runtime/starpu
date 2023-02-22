@@ -51,6 +51,7 @@ int _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)
 
 	for (node = 0; node < nnodes; node++)
 	{
+		//printf("Checking on node %d\n", node); fflush(stdout);
 		if (handle->per_node[node].state != STARPU_INVALID)
 		{
 			/* we found a copy ! */
