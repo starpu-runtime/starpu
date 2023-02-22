@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -27,6 +27,7 @@
 #if defined(STARPU_USE_CUDA)
 #include <cublas.h>
 #include <starpu_cublas_v2.h>
+#include "starpu_cusolver.h"
 #if defined(STARPU_HAVE_MAGMA)
 #include "magma.h"
 #include "magma_lapack.h"
@@ -41,6 +42,8 @@
 static const float p1 =  1.0;
 static const float m1 = -1.0;
 #endif
+
+starpu_data_handle_t scratch = NULL;
 
 static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, void *_args)
 {
@@ -214,7 +217,16 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, void *_a
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
-#ifdef STARPU_HAVE_MAGMA
+#ifdef STARPU_HAVE_LIBCUSOLVER
+			{
+				cusolverStatus_t sstatus;
+				float *workspace = (float *)STARPU_VARIABLE_GET_PTR(descr[1]);
+				int Lwork = STARPU_VARIABLE_GET_ELEMSIZE(descr[1]);
+
+				sstatus = cusolverDnSpotrf(starpu_cusolverDn_get_local_handle(), CUBLAS_FILL_MODE_LOWER, nx, sub11, ld, workspace, Lwork, NULL);
+				STARPU_ASSERT(sstatus == CUSOLVER_STATUS_SUCCESS);
+			}
+#elif STARPU_HAVE_MAGMA
 			{
 			int ret;
 			int info;
@@ -310,12 +322,23 @@ struct starpu_codelet cl11 =
 	.cpu_funcs_name = {"chol_cpu_codelet_update_u11"},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {chol_cublas_codelet_update_u11},
+#  if defined(STARPU_HAVE_LIBCUSOLVER)
+	.cuda_flags = {STARPU_CUDA_ASYNC},
+#  endif
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
 #endif
+#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+	.nbuffers = 2,
+#else
 	.nbuffers = 1,
-	//~ .modes = { STARPU_R }, /* Version sans dépendances */
-	.modes = { STARPU_RW },  /* Cas dep == 1 */
+#endif
+	//~ .modes = { STARPU_R /* Version sans dépendances */
+	.modes = { STARPU_RW  /* Cas dep == 1 */
+#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+		, STARPU_SCRATCH
+#endif
+	},
 	.model = &chol_model_11,
 	.color = 0xffff00,
 };
@@ -361,12 +384,23 @@ struct starpu_codelet cl11_gpu =
 {
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {chol_cublas_codelet_update_u11},
+#  if defined(STARPU_HAVE_LIBCUSOLVER)
+	.cuda_flags = {STARPU_CUDA_ASYNC},
+#  endif
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
 #endif
+#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+	.nbuffers = 2,
+#else
 	.nbuffers = 1,
-	//~ .modes = { STARPU_R }, /* Version sans dépendances */
-	.modes = { STARPU_RW },  /* Cas dep == 1 */
+#endif
+	//~ .modes = { STARPU_R /* Version sans dépendances */
+	.modes = { STARPU_RW  /* Cas dep == 1 */
+#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+		, STARPU_SCRATCH
+#endif
+	},
 	.model = &chol_model_11,
 	.color = 0xffff00,
 };
@@ -406,9 +440,17 @@ struct starpu_codelet cl11_cpu =
 	.type = STARPU_SEQ,
 	.cpu_funcs = {chol_cpu_codelet_update_u11},
 	.cpu_funcs_name = {"chol_cpu_codelet_update_u11"},
+#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+	.nbuffers = 2,
+#else
 	.nbuffers = 1,
-	//~ .modes = { STARPU_R }, /* Version sans dépendances */
-	.modes = { STARPU_RW },  /* Cas dep == 1 */
+#endif
+	//~ .modes = { STARPU_R /* Version sans dépendances */
+	.modes = { STARPU_RW  /* Cas dep == 1 */
+#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+		, STARPU_SCRATCH
+#endif
+	},
 	.model = &chol_model_11,
 	.color = 0xffff00,
 };
@@ -438,3 +480,18 @@ struct starpu_codelet cl22_cpu =
 	.color = 0x00ff00,
 };
 
+void cholesky_kernel_init(int nb)
+{
+#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+	int Lwork;
+	cusolverDnSpotrf_bufferSize(starpu_cusolverDn_get_local_handle(), CUBLAS_FILL_MODE_LOWER, nb, NULL, nb, &Lwork);
+	starpu_variable_data_register(&scratch, -1, 0, Lwork);
+#endif
+}
+
+void cholesky_kernel_fini(void)
+{
+#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+	starpu_data_unregister(scratch);
+#endif
+}

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021, 2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  * Copyright (C) 2013       Thibaut Lambert
  *
@@ -35,6 +35,8 @@ int graph_descendants;
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_MAGMA)
 #include "magma.h"
 #endif
+
+#include "starpu_cusolver.h"
 
 /* Mes variables. Pour le sans dépendances uniquement. */
 //~ int count_do_schedule;
@@ -117,6 +119,9 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 					 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? priority : STARPU_MAX_PRIO,
 					 //~ STARPU_R, sdatakk, /* Version sans dépendances */
 					 STARPU_RW, sdatakk,  /* Cas dep == 1 */
+#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+					 STARPU_SCRATCH, scratch,
+#endif
 					 STARPU_CALLBACK, (k == 3*nblocks/4)?callback_turn_spmd_on:NULL,
 					 STARPU_FLOPS, (double) FLOPS_SPOTRF(nn),
 					 STARPU_TAG_ONLY, TAG11(k),
@@ -323,7 +328,11 @@ static int cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 			starpu_data_set_coordinates(data, 2, m, n); /* Les coordonnées pour visualisation */
 		}
 
+	cholesky_kernel_init(size / nblocks);
+
 	int ret = _cholesky(dataA, nblocks);
+
+	cholesky_kernel_fini();
 
 	starpu_data_unpartition(dataA, STARPU_MAIN_RAM);
 	starpu_data_unregister(dataA);
@@ -503,7 +512,9 @@ int main(int argc, char **argv)
 #endif
 
 	starpu_cublas_init();
-						 
+	starpu_cusolver_init();
+
+
 	/* Si on veux plusieurs itérations. */
 	int i = 0;
 	for (i = 0; i < niter; i++)
@@ -527,6 +538,7 @@ int main(int argc, char **argv)
 		new_iteration(); /* Cas dep == 1 */
 	}
 
+	starpu_cusolver_shutdown();
 	starpu_cublas_shutdown();
 	starpu_shutdown();
 

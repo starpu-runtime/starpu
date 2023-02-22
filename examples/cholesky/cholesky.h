@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -173,6 +173,11 @@ extern struct starpu_codelet cl22_gpu;
 extern struct starpu_codelet cl11_cpu;
 extern struct starpu_codelet cl21_cpu;
 extern struct starpu_codelet cl22_cpu;
+
+extern starpu_data_handle_t scratch;
+
+void cholesky_kernel_init(int nb);
+void cholesky_kernel_fini(void);
 
 void chol_cpu_codelet_update_u11(void **, void *);
 void chol_cpu_codelet_update_u21(void **, void *);

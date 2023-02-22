@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2021, 2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2015       Mathieu Lirzin
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -27,7 +27,9 @@ void _starpu_cuda_preinit(void);
 #ifdef STARPU_USE_CUDA
 #include <cuda.h>
 #include <cuda_runtime_api.h>
-#include <cublas.h>
+#ifdef STARPU_HAVE_LIBNVIDIA_ML
+#include <nvml.h>
+#endif
 #endif
 
 #include <starpu.h>
@@ -44,6 +46,10 @@ extern int _starpu_cuda_bus_ids[STARPU_MAXCUDADEVS+STARPU_MAXNUMANODES][STARPU_M
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 void _starpu_cuda_discover_devices (struct _starpu_machine_config *);
 void _starpu_init_cuda(void);
+void _starpu_init_cublas_v2_func(void);
+void _starpu_shutdown_cublas_v2_func(void);
+void _starpu_cublas_v2_init(void);
+void _starpu_cublas_v2_shutdown(void);
 void *_starpu_cuda_worker(void *);
 #else
 #  define _starpu_cuda_discover_devices(config) ((void) config)

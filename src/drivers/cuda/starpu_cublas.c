@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021, 2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,13 +20,15 @@
 #include <core/workers.h>
 
 #ifdef STARPU_USE_CUDA
+#include <drivers/cuda/driver_cuda.h>
 #include <cublas.h>
-#include <starpu_cublas_v2.h>
+
+//#ifdef CUBLAS_V2_H_
+//#error oops
+//#endif
 
 static int cublas_initialized[STARPU_NMAXWORKERS];
-static cublasHandle_t cublas_handles[STARPU_NMAXWORKERS];
-static cublasHandle_t main_handle;
-static starpu_pthread_mutex_t mutex;
+static starpu_pthread_mutex_t mutex[STARPU_MAXCUDADEVS];
 
 static unsigned get_idx(void)
 {
@@ -55,8 +57,7 @@ static void init_cublas_func(void *args STARPU_ATTRIBUTE_UNUSED)
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
-	cublasCreate(&cublas_handles[starpu_worker_get_id_check()]);
-	cublasSetStream(cublas_handles[starpu_worker_get_id_check()], starpu_cuda_get_local_stream());
+	_starpu_init_cublas_v2_func();
 }
 
 static void set_cublas_stream_func(void *args STARPU_ATTRIBUTE_UNUSED)
@@ -72,7 +73,7 @@ static void shutdown_cublas_func(void *args STARPU_ATTRIBUTE_UNUSED)
 		cublasShutdown();
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
-	cublasDestroy(cublas_handles[starpu_worker_get_id_check()]);
+	_starpu_shutdown_cublas_v2_func();
 }
 #endif
 
@@ -82,8 +83,7 @@ void starpu_cublas_init(void)
 	starpu_execute_on_each_worker(init_cublas_func, NULL, STARPU_CUDA);
 	starpu_execute_on_each_worker(set_cublas_stream_func, NULL, STARPU_CUDA);
 
-	if (cublasCreate(&main_handle) != CUBLAS_STATUS_SUCCESS)
-		main_handle = NULL;
+	_starpu_cublas_v2_init();
 #endif
 }
 
@@ -92,8 +92,7 @@ void starpu_cublas_shutdown(void)
 #ifdef STARPU_USE_CUDA
 	starpu_execute_on_each_worker(shutdown_cublas_func, NULL, STARPU_CUDA);
 
-	if (main_handle)
-		cublasDestroy(main_handle);
+	_starpu_cublas_v2_shutdown();
 #endif
 }
 
@@ -108,14 +107,3 @@ void starpu_cublas_set_stream(void)
 		cublasSetKernelStream(starpu_cuda_get_local_stream());
 #endif
 }
-
-#ifdef STARPU_USE_CUDA
-cublasHandle_t starpu_cublas_get_local_handle(void)
-{
-	int workerid = starpu_worker_get_id();
-	if (workerid >= 0)
-		return cublas_handles[workerid];
-	else
-		return main_handle;
-}
-#endif
