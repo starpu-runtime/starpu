@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2021, 2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2016       Uppsala University
@@ -296,7 +296,9 @@ double starpu_data_expected_transfer_time(starpu_data_handle_t handle, unsigned 
 	if (size == 0)
 		return 0.0;
 
+	_starpu_spin_lock(&handle->header_lock);
 	int src_node = _starpu_select_src_node(handle, memory_node);
+	_starpu_spin_unlock(&handle->header_lock);
 	if (src_node < 0)
 		/* Will just create it in place. Ideally we should take the
 		 * time to create it into account */
