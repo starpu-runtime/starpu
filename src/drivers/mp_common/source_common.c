@@ -549,7 +549,7 @@ int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 					  id == STARPU_CSR_INTERFACE_ID ||
 					  id == STARPU_BCSR_INTERFACE_ID ||
 					  id == STARPU_COO_INTERFACE_ID,
-					  "Master-Slave currently cannot work with interface type %d", id);
+					  "Master-Slave currently cannot work with interface type %d (%s)", id, handle->ops->name);
 
 			memcpy((void*) buffer_ptr, interfaces[i], handle->ops->interface_size);
 			STARPU_ASSERT(handle->ops->interface_size <= sizeof(union _starpu_interface));
