@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -127,8 +127,6 @@ static int create_task_trsm_ll(starpu_data_handle_t *dataAp, unsigned nblocks, u
 	task->cl = &cl_trsm_ll;
 	task->color = 0x8080ff;
 
-	task->cl_arg = (void *)(uintptr_t)(task->tag_id);
-
 	/* which sub-data is manipulated ? */
 	task->handles[0] = get_block(dataAp, nblocks, k, k);
 	task->handles[1] = get_block(dataAp, nblocks, j, k);
@@ -175,8 +173,6 @@ static int create_task_trsm_ru(starpu_data_handle_t *dataAp, unsigned nblocks, u
 		task->priority = STARPU_MAX_PRIO;
 	}
 
-	task->cl_arg = (void *)(uintptr_t)(task->tag_id);
-
 	/* enforce dependencies ... */
 	starpu_tag_declare_deps(TAG_TRSM_RU(k, i), 1, PIVOT(k, i));
 
@@ -196,8 +192,6 @@ static int create_task_gemm(starpu_data_handle_t *dataAp, unsigned nblocks, unsi
 
 	task->cl = &cl_gemm;
 	task->color = 0x00ff00;
-
-	task->cl_arg = (void *)(uintptr_t)(task->tag_id);
 
 	/* which sub-data is manipulated ? */
 	task->handles[0] = get_block(dataAp, nblocks, k, i); /* produced by TAG_TRSM_RU(k, i) */
