@@ -450,7 +450,14 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 	printf("New task %p (%s, prio: %d, length: %f) in push_task with data(s):", task, starpu_task_get_name(task), task->priority, starpu_task_expected_length(task, perf_arch, 0)); fflush(stdout);
 	for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 	{
-		printf(" %p %d", STARPU_TASK_GET_HANDLE(task, i), STARPU_TASK_GET_MODE(task, i)); fflush(stdout);
+		if (STARPU_NOFOOTPRINT == STARPU_TASK_GET_MODE(task, i) || STARPU_SCRATCH == STARPU_TASK_GET_MODE(task, i))
+		{
+			printf(" %p mode is STARPU_NOFOOTPRINT or STARPU_SCRATCH", STARPU_TASK_GET_HANDLE(task, i)); fflush(stdout);
+		}
+		else
+		{
+			printf(" %p mode is R, RW or W", STARPU_TASK_GET_HANDLE(task, i)); fflush(stdout);
+		}
 	}	
 	printf("\n"); fflush(stdout);
 	//#endif

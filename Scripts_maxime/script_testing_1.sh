@@ -80,8 +80,8 @@ NGPU=1
 #~ NGPU=4
 #~ NGPU=8
 
-#~ ORDO="dynamic-data-aware"
-ORDO="dmdar"
+ORDO="dynamic-data-aware"
+#~ ORDO="dmdar"
 #~ ORDO="lws"
 #~ ORDO="graph_test" # STARPU_SCHED_GRAPH_TEST_DESCENDANTS= 0 ou 1 pour activer les descendants
 #~ ORDO="dmdas"
@@ -204,9 +204,9 @@ CAN_A_DATA_BE_IN_MEM_AND_IN_NOT_USED_YET=0
 #~ PUSH_FREE_TASK_ON_GPU_WITH_LEAST_TASK_IN_PLANNED_TASK=1
 PUSH_FREE_TASK_ON_GPU_WITH_LEAST_TASK_IN_PLANNED_TASK=2
 
-#~ THRESHOLD=0
+THRESHOLD=0
 #~ THRESHOLD=1
-THRESHOLD=2
+#~ THRESHOLD=2
 
 APPLICATION="./examples/cholesky/cholesky_implicit -size $((${TAILLE_TUILE}*N)) -nblocks $((N))"
 #~ APPLICATION="./examples/cholesky/cholesky_implicit -size $((${TAILLE_TUILE}*N)) -nblocks $((N)) -check"
