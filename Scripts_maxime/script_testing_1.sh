@@ -58,7 +58,7 @@ export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
 #~ exit
 
 #~ N=3
-#~ N=4
+N=4
 #~ N=5
 #~ N=10
 #~ N=15
@@ -70,7 +70,7 @@ export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
 #~ N=45
 #~ N=50
 #~ N=55
-N=60 # nb_data_looked_at between 1300 and 1500 each time
+#~ N=60 # nb_data_looked_at between 1300 and 1500 each time
 #~ N=65
 #~ N=70
 
@@ -80,8 +80,8 @@ NGPU=1
 #~ NGPU=4
 #~ NGPU=8
 
-ORDO="dynamic-data-aware"
-#~ ORDO="dmdar"
+#~ ORDO="dynamic-data-aware"
+ORDO="dmdar"
 #~ ORDO="lws"
 #~ ORDO="graph_test" # STARPU_SCHED_GRAPH_TEST_DESCENDANTS= 0 ou 1 pour activer les descendants
 #~ ORDO="dmdas"
