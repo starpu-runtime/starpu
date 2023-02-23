@@ -336,7 +336,7 @@ struct starpu_codelet cl11 =
 	//~ .modes = { STARPU_R /* Version sans dépendances */
 	.modes = { STARPU_RW  /* Cas dep == 1 */
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
-		, STARPU_SCRATCH
+		, STARPU_SCRATCH | STARPU_NOFOOTPRINT
 #endif
 	},
 	.model = &chol_model_11,
@@ -398,7 +398,7 @@ struct starpu_codelet cl11_gpu =
 	//~ .modes = { STARPU_R /* Version sans dépendances */
 	.modes = { STARPU_RW  /* Cas dep == 1 */
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
-		, STARPU_SCRATCH
+		, STARPU_SCRATCH | STARPU_NOFOOTPRINT
 #endif
 	},
 	.model = &chol_model_11,
@@ -448,7 +448,7 @@ struct starpu_codelet cl11_cpu =
 	//~ .modes = { STARPU_R /* Version sans dépendances */
 	.modes = { STARPU_RW  /* Cas dep == 1 */
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
-		, STARPU_SCRATCH
+		, STARPU_SCRATCH | STARPU_NOFOOTPRINT
 #endif
 	},
 	.model = &chol_model_11,
@@ -486,6 +486,7 @@ void cholesky_kernel_init(int nb)
 	int Lwork;
 	cusolverDnSpotrf_bufferSize(starpu_cusolverDn_get_local_handle(), CUBLAS_FILL_MODE_LOWER, nb, NULL, nb, &Lwork);
 	starpu_variable_data_register(&scratch, -1, 0, Lwork);
+	fprintf(stderr,"Lwork %d\n", Lwork);
 #endif
 }
 
