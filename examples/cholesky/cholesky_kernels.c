@@ -559,7 +559,6 @@ void cholesky_kernel_init(int nb)
 	int Lwork;
 	cusolverDnSpotrf_bufferSize(starpu_cusolverDn_get_local_handle(), CUBLAS_FILL_MODE_LOWER, nb, NULL, nb, &Lwork);
 	starpu_variable_data_register(&scratch, -1, 0, Lwork);
-	fprintf(stderr,"Lwork %d\n", Lwork);
 #endif
 }
 
