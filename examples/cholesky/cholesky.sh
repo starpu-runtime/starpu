@@ -49,6 +49,9 @@ for STARPU_SCHED in $STARPU_SCHEDS ; do
 done
 echo
 
+$MS_LAUNCHER $STARPU_LAUNCH ${ROOT}_implicit -size $((10 * 960)) -nblocks 10 -check
+[ $? = 0 ] || exit 1
+
 for size in `seq 2 $INCR $STOP` ; do
 	echo -n "$((size * 960))"
 	for STARPU_SCHED in $STARPU_SCHEDS
