@@ -440,7 +440,7 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 	int i = 0;
 	int j = 0;
 		
-	#ifdef PRINT
+	//#ifdef PRINT
 	unsigned sched_ctx_id = 0;
 	//~ perf_arch = starpu_worker_get_perf_archtype(0, sched_ctx_id);
 	//~ printf("New task %p (%s, prio: %d, length: %f) in push_task with data(s):", task, starpu_task_get_name(task), task->priority, starpu_task_expected_length(task, perf_arch, 0)); fflush(stdout);
@@ -474,10 +474,10 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 	printf("New task %p (%s, prio: %d, length: %f) in push_task with data(s):", task, starpu_task_get_name(task), task->priority, starpu_task_expected_length(task, perf_arch, 0)); fflush(stdout);
 	for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 	{
-		printf(" %p", STARPU_TASK_GET_HANDLE(task, i)); fflush(stdout);
+	 printf(" %p %s", STARPU_TASK_GET_HANDLE(task, i), STARPU_TASK_GET_MODE(task, i)); fflush(stdout);
 	}	
 	printf("\n"); fflush(stdout);
-	#endif
+	//#endif
 	
 	#ifdef REFINED_MUTEX
 	STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
