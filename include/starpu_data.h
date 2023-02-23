@@ -118,9 +118,9 @@ enum starpu_data_access_mode
 				    MPI layer however, the access mode needs
 				    to be STARPU_MPI_REDUX. */
 
-	STARPU_NOFOOTPRINT = (1 << 10), /**< Ignore this data for the footprint computation */
+	STARPU_NOFOOTPRINT = (1 << 8), /**< Ignore this data for the footprint computation */
 
-	STARPU_ACCESS_MODE_MAX=(1<<8) /** The purpose of ACCESS_MODE_MAX is to
+	STARPU_ACCESS_MODE_MAX=(1<<9) /** The purpose of ACCESS_MODE_MAX is to
 					be the maximum of this enum. */
 };
 
