@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -178,7 +178,7 @@ void starpu_task_insert_data_process_arg(struct starpu_codelet *cl, struct starp
 	starpu_task_insert_data_make_room(cl, task, allocated_buffers, *current_buffer, 1);
 	STARPU_TASK_SET_HANDLE(task, handle, *current_buffer);
 
-	enum starpu_data_access_mode arg_mode = (enum starpu_data_access_mode) arg_type & ~STARPU_SSEND;
+	enum starpu_data_access_mode arg_mode = (enum starpu_data_access_mode) arg_type & ~STARPU_SSEND & ~STARPU_NOFOOTPRINT;
 
 	/* MPI_REDUX should be interpreted as RW|COMMUTE by the "ground" StarPU layer.*/
 	if (arg_mode & STARPU_MPI_REDUX)
@@ -191,7 +191,7 @@ void starpu_task_insert_data_process_arg(struct starpu_codelet *cl, struct starp
 	}
 	else if (STARPU_CODELET_GET_MODE(cl, *current_buffer))
 	{
-		STARPU_ASSERT_MSG(STARPU_CODELET_GET_MODE(cl, *current_buffer) == arg_mode,
+		STARPU_ASSERT_MSG((STARPU_CODELET_GET_MODE(cl, *current_buffer) & ~STARPU_NOFOOTPRINT) == arg_mode,
 				  "The codelet <%s> defines the access mode %d for the buffer %d which is different from the mode %d given to starpu_task_insert\n",
 				  _starpu_codelet_get_name(cl), STARPU_CODELET_GET_MODE(cl, *current_buffer),
 				  *current_buffer, arg_mode);

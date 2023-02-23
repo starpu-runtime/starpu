@@ -399,7 +399,7 @@ struct starpu_codelet cl_potrf =
 #endif
 	.modes = { STARPU_RW
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
-		, STARPU_SCRATCH
+		, STARPU_SCRATCH | STARPU_NOFOOTPRINT
 #endif
 	},
 	.model = &chol_model_potrf,
@@ -476,7 +476,7 @@ struct starpu_codelet cl_potrf_gpu =
 #endif
 	.modes = { STARPU_RW
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
-		, STARPU_SCRATCH
+		, STARPU_SCRATCH | STARPU_NOFOOTPRINT
 #endif
 	},
 	.model = &chol_model_potrf,
@@ -523,7 +523,7 @@ struct starpu_codelet cl_potrf_cpu =
 #endif
 	.modes = { STARPU_RW
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
-		, STARPU_SCRATCH
+		, STARPU_SCRATCH | STARPU_NOFOOTPRINT
 #endif
 	},
 	.model = &chol_model_potrf,
@@ -559,6 +559,7 @@ void cholesky_kernel_init(int nb)
 	int Lwork;
 	cusolverDnSpotrf_bufferSize(starpu_cusolverDn_get_local_handle(), CUBLAS_FILL_MODE_LOWER, nb, NULL, nb, &Lwork);
 	starpu_variable_data_register(&scratch, -1, 0, Lwork);
+	fprintf(stderr,"Lwork %d\n", Lwork);
 #endif
 }
 

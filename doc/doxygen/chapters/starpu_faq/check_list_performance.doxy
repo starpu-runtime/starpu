@@ -145,7 +145,7 @@ on each CUDA device, starpu_cusolverDn_get_local_handle(), starpu_cusolverSp_get
 starpu_cusolverRf_get_local_handle(), can then be used to
 queue CUSOLVER kernels with the proper configuration.
 starpu_cusolver_shutdown() can be used to clear these handles.
-It is useful to use a STARPU_SCRATCH:: buffer
+It is useful to use a ::STARPU_SCRATCH buffer
 whose size was set to the amount returned by \c cusolver*Spotrf_bufferSize . An example can be seen
 in \c examples/cholesky
 

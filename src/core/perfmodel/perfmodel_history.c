@@ -275,6 +275,9 @@ static size_t __starpu_job_get_data_size(struct starpu_perfmodel *model, struct 
 		for (buffer = 0; buffer < nbuffers; buffer++)
 		{
 			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, buffer);
+			enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, buffer);
+			if (mode & STARPU_NOFOOTPRINT)
+				continue;
 			size += _starpu_data_get_size(handle);
 		}
 		return size;

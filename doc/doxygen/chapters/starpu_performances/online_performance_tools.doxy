@@ -474,7 +474,8 @@ For ::STARPU_HISTORY_BASED, ::STARPU_REGRESSION_BASED, and
 and output) are used as an index by default. ::STARPU_HISTORY_BASED uses a CRC
 hash of the dimensions as an index to distinguish histories, and
 ::STARPU_REGRESSION_BASED and ::STARPU_NL_REGRESSION_BASED use the total
-size as an index for the regression.
+size as an index for the regression. (Data marked with ::STARPU_NOFOOTPRINT are
+not taken into account).
 
 The starpu_perfmodel::size_base and starpu_perfmodel::footprint fields however
 permit the application to override that, when for instance some of the data

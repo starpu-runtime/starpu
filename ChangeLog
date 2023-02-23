@@ -94,6 +94,7 @@ New features:
     free_meta() which are used in master slave mode for data
     interfaces with a dynamic content.
   * Add CUSOLVER support.
+  * Add STARPU_NOFOOTPRINT data access flag.
 
 Small features:
   * New function starpu_mpi_comm_register() to store the size and the

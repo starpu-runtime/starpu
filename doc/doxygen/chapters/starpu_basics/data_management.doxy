@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -628,5 +628,9 @@ StarPU will notice that it can free such buffers easily, since the content does
 not matter.
 
 The example <c>examples/pi</c> uses scratches for some temporary buffer.
+
+It may be useful to additionally use the STARPU_NOFOOTPRINT flag, when this
+buffer may have various size depending e.g. on specific CUDA versions or
+devices, to make it simpler to use performance models for simulated execution.
 
 */

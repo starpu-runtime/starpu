@@ -31,6 +31,7 @@ static const intptr_t fstarpu_mpi_redux	= STARPU_MPI_REDUX;
 static const intptr_t fstarpu_commute	= STARPU_COMMUTE;
 static const intptr_t fstarpu_ssend	= STARPU_SSEND;
 static const intptr_t fstarpu_locality	= STARPU_LOCALITY;
+static const intptr_t fstarpu_nofootprint	= STARPU_NOFOOTPRINT;
 
 static const intptr_t fstarpu_data_array	= STARPU_DATA_ARRAY;
 static const intptr_t fstarpu_data_mode_array	= STARPU_DATA_MODE_ARRAY;
@@ -130,6 +131,7 @@ intptr_t fstarpu_get_constant(char *s)
 	else if	(!strcmp(s, "FSTARPU_COMMUTE"))	{ return fstarpu_commute; }
 	else if	(!strcmp(s, "FSTARPU_SSEND"))	{ return fstarpu_ssend; }
 	else if	(!strcmp(s, "FSTARPU_LOCALITY"))	{ return fstarpu_locality; }
+	else if	(!strcmp(s, "FSTARPU_NOFOOTPRINT"))	{ return fstarpu_nofootprint; }
 
 
 	else if	(!strcmp(s, "FSTARPU_DATA_ARRAY"))	{ return fstarpu_data_array; }
