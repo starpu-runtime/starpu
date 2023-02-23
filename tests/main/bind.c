@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2019-2021, 2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -51,8 +51,8 @@ int main(void)
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	/* Make sure StarPU uses two core less */
-	STARPU_ASSERT_MSG(starpu_worker_get_count_by_type(STARPU_CPU_WORKER) == ncpus-2, "Expected %d CPUs, got %d\n", ncpus-2, starpu_worker_get_count_by_type(STARPU_CPU_WORKER));
+	/* Make sure StarPU uses two core less, (or we had hit maxcpus anyway...) */
+	STARPU_ASSERT_MSG(ncpus == STARPU_MAXCPUS || starpu_worker_get_count_by_type(STARPU_CPU_WORKER) == ncpus-2, "Expected %d CPUs, got %d\n", ncpus-2, starpu_worker_get_count_by_type(STARPU_CPU_WORKER));
 	FPRINTF(stderr, "CPUS: %d as expected\n", starpu_worker_get_count_by_type(STARPU_CPU_WORKER));
 
 	/* Check we can grab a whole core */
