@@ -28,7 +28,7 @@
 #####
 # Model for cuda0_impl0 (Comb1)
 #	number	of	entries
-2
+1
 #	sumlnx	sumlnx2	sumlny	sumlnxlny	alpha	beta	n	minx	maxx
 0.000000e+00	0.000000e+00	0.000000e+00	0.000000e+00	nan	nan	0	0	0
 #	a	b	c
@@ -36,7 +36,6 @@ nan	nan	nan
 # not multiple-regression-base
 0
 #	hash	size	flops	mean	(us)	dev	(us)	sum	sum2	n
-617e5fe6	3686432	2.953730e+08   	1.701016e+05	7.229737e+03	4.082438e+06	6.956835e+11	24
 617e5fe6	3686400	2.953730e+08   	1.701016e+05	7.229737e+03	4.082438e+06	6.956835e+11	24
 
 ####################
@@ -61,7 +60,7 @@ nan	nan	nan
 #####
 # Model for cuda1_impl0 (Comb2)
 #	number	of	entries
-2
+1
 #	sumlnx	sumlnx2	sumlny	sumlnxlny	alpha	beta	n	minx	maxx
 0.000000e+00	0.000000e+00	0.000000e+00	0.000000e+00	nan	nan	0	0	0
 #	a	b	c
@@ -69,7 +68,6 @@ nan	nan	nan
 # not multiple-regression-base
 0
 #	hash	size	flops	mean	(us)	dev	(us)	sum	sum2	n
-617e5fe6	3686432	2.953730e+08   	1.188776e+05	9.331204e+02	2.113643e+08	2.512803e+13	1778
 617e5fe6	3686400	2.953730e+08   	1.188776e+05	9.331204e+02	2.113643e+08	2.512803e+13	1778
 
 ####################
@@ -94,7 +92,7 @@ nan	nan	nan
 #####
 # Model for cuda2_impl0 (Comb3)
 #	number	of	entries
-2
+1
 #	sumlnx	sumlnx2	sumlny	sumlnxlny	alpha	beta	n	minx	maxx
 0.000000e+00	0.000000e+00	0.000000e+00	0.000000e+00	nan	nan	0	0	0
 #	a	b	c
@@ -102,6 +100,5 @@ nan	nan	nan
 # not multiple-regression-base
 0
 #	hash	size	flops	mean	(us)	dev	(us)	sum	sum2	n
-617e5fe6	3686432	2.953730e+08   	1.205438e+05	2.044578e+03	2.189075e+08	2.639552e+13	1816
 617e5fe6	3686400	2.953730e+08   	1.205438e+05	2.044578e+03	2.189075e+08	2.639552e+13	1816
 

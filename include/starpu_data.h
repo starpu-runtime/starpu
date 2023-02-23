@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021, 2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -117,6 +117,9 @@ enum starpu_data_access_mode
 			            When inserting these tasks through the
 				    MPI layer however, the access mode needs
 				    to be STARPU_MPI_REDUX. */
+
+	STARPU_NOFOOTPRINT = (1 << 10), /**< Ignore this data for the footprint computation */
+
 	STARPU_ACCESS_MODE_MAX=(1<<8) /** The purpose of ACCESS_MODE_MAX is to
 					be the maximum of this enum. */
 };
