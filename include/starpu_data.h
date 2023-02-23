@@ -139,7 +139,7 @@ enum starpu_data_access_mode
 
 	STARPU_UNMAP = (1 << 9), /**< Request unmapping the destination replicate */
 
-	STARPU_NOFOOTPRINT = (1 << 10), /**< Ignore this data for the footprint computation */
+	STARPU_NOFOOTPRINT = (1 << 10), /**< Ignore this data for the footprint computation. See \ref ScratchData */
 
 	STARPU_ACCESS_MODE_MAX = (1 << 11) /**< The purpose of ::STARPU_ACCESS_MODE_MAX is to
 					be the maximum of this enum. */
