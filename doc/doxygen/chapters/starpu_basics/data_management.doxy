@@ -629,7 +629,7 @@ not matter.
 
 The example <c>examples/pi</c> uses scratches for some temporary buffer.
 
-It may be useful to additionally use the STARPU_NOFOOTPRINT flag, when this
+It may be useful to additionally use the ::STARPU_NOFOOTPRINT flag, when this
 buffer may have various size depending e.g. on specific CUDA versions or
 devices, to make it simpler to use performance models for simulated
 execution. See for instance <c>examples/cholesky/cholesky_kernels.c</c>
