@@ -206,7 +206,7 @@ void update_best_data_single_decision_tree(int* number_free_task_max, double* re
 bool is_my_task_free(int current_gpu, struct starpu_task *task);
 void check_double_in_data_not_used_yet(struct gpu_planned_task *g, int current_gpu);
 struct starpu_task* get_highest_priority_task(struct starpu_task_list *l);
-
+int get_nbuffer_without_scratch(struct starpu_task* t);
 
 /** Fonctions principales **/
 void initialize_task_data_gpu_single_task_v1(struct starpu_task *task, int also_add_data_in_not_used_yet_list);
