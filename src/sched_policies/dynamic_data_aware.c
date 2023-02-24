@@ -441,7 +441,7 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 	int j = 0;
 		
 	//#ifdef PRINT
-	unsigned sched_ctx_id = 0;
+	//~ unsigned sched_ctx_id = 0;
 	/* To get time of a task depending on the GPU */
 	//~ perf_arch = starpu_worker_get_perf_archtype(0, sched_ctx_id);
 	//~ printf("New task %p (%s, prio: %d, length: %f) in push_task with data(s):", task, starpu_task_get_name(task), task->priority, starpu_task_expected_length(task, perf_arch, 0)); fflush(stdout);
