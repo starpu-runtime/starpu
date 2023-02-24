@@ -455,6 +455,14 @@ bool is_my_task_free(int current_gpu, struct starpu_task *task)
 //~ {
   //~ return ( *(int*)first - *(int*)second );
 //~ }
+//
+
+
+
+starpu_data_handle_t scratch_handle;
+
+
+
 
 /* Pushing the tasks. Each time a new task enter here, we initialize it. */		
 static int dynamic_data_aware_push_task(struct starpu_sched_component *component, struct starpu_task *task)
@@ -474,7 +482,8 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 	{
 		if (STARPU_TASK_GET_MODE(task, i) & STARPU_NOFOOTPRINT)
 		{
-			printf(" %p mode is STARPU_NOFOOTPRINT or STARPU_SCRATCH", STARPU_TASK_GET_HANDLE(task, i)); fflush(stdout);
+			scratch_handle = STARPU_TASK_GET_HANDLE(task, i);
+			printf(" %p mode is STARPU_NOFOOTPRINT or STARPU_SCRATCH\n", STARPU_TASK_GET_HANDLE(task, i)); fflush(stdout);
 		}
 		else
 		{
@@ -3591,6 +3600,8 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
     starpu_data_handle_t returned_handle = STARPU_DATA_NO_VICTIM;
     starpu_data_get_node_data(node, &data_on_node, &valid, &nb_data_on_node);
       
+	/* Cas avec SCRATCH data de cusolver. Si j'en vois une je l'évince directement */
+
    	/* Checking if all data are truly valid. TODO : a garder dans le cas avec dependances ? */
 	//~ for (i = 0; i < nb_data_on_node; i++)
 	//~ {
@@ -3642,7 +3653,14 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
     {
 		if (starpu_data_can_evict(data_on_node[i], node, is_prefetch))
 		{
+			//printf("%d\n", data_on_node[i]->current_mode); fflush(stdout); 
+			/* Cas avec données SCRATCH de cusolver. Si je vois une tel donnée je l'évince */
+			if (data_on_node[i]->current_mode == STARPU_SCRATCH) continue;
+
 			hud = data_on_node[i]->user_data;
+			printf("data %p\n", data_on_node[i]); fflush(stdout);
+			//printf("current gpu %d\n", current_gpu); fflush(stdout);
+			//printf("nb task in pulled %d\n", hud->nb_task_in_pulled_task[current_gpu - 1]); fflush(stdout);
 			nb_task_in_pulled_task[i] = hud->nb_task_in_pulled_task[current_gpu - 1];
 			
 			#ifdef PRINT
@@ -3911,6 +3929,7 @@ starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int n
     {
 		if (starpu_data_can_evict(data_tab[i], node, is_prefetch)) /* TODO : il y aurait moyen de remplacer ce can evict juste par une lecture dans un tableau car de toute facon on le fais avant dans victim_selector. */
 		{
+			if (data_tab[i]->current_mode == STARPU_SCRATCH) continue;
 			index_next_use = 0;
 			for (p = pulled_task_list_begin(g->ptl); p != pulled_task_list_end(g->ptl); p = pulled_task_list_next(p))
 			{
@@ -3957,6 +3976,7 @@ starpu_data_handle_t least_used_data_on_planned_task(starpu_data_handle_t *data_
     
     for (i = 0; i < nb_data_on_node; i++)
     {
+		if (data_tab[i]->current_mode == STARPU_SCRATCH) continue;
 		if (nb_task_in_pulled_task[i] == 0)
 		{
 			hud = data_tab[i]->user_data;
