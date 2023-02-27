@@ -415,6 +415,7 @@ void print_data_on_node(unsigned node)
     printf("Data on node %d are:", node);
     for (i = 0; i < nb_data_on_node; i++)
     {
+		if (data_on_node[i]->current_mode == STARPU_SCRATCH) continue;
 		printf(" %p", data_on_node[i]);
     }
     printf("\n");
@@ -2803,6 +2804,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		/* Je me met sur une donnée de la mémoire. */
 		for (i = 0; i < nb_data_on_node; i++)
 		{
+			if (data_on_node[i]->current_mode == STARPU_SCRATCH) continue;
 			#ifdef PRINT
 			printf("On data nb %d/%d from memory\n", i, nb_data_on_node); fflush(stdout);
 			#endif
