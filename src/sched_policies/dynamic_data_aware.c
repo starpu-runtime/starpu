@@ -3660,7 +3660,6 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 			if (data_on_node[i]->current_mode == STARPU_SCRATCH) continue;
 
 			hud = data_on_node[i]->user_data;
-			printf("data %p\n", data_on_node[i]); fflush(stdout);
 			//printf("current gpu %d\n", current_gpu); fflush(stdout);
 			//printf("nb task in pulled %d\n", hud->nb_task_in_pulled_task[current_gpu - 1]); fflush(stdout);
 			nb_task_in_pulled_task[i] = hud->nb_task_in_pulled_task[current_gpu - 1];

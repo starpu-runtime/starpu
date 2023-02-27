@@ -28,7 +28,7 @@
 #include "../sched_ctx_utils/sched_ctx_utils.h"
 #include <starpu_data_maxime.h> /* Pour l'appel d'une nouvele itération dans le scheduler */
 
-#define PRIORITY_ATTRIBUTION /* 0: default one from StarPU. 1: Bottom level from Christophe Alias. 2: Bottom level from Christophe Alias with times. */
+#define PRIORITY_ATTRIBUTION /* 0: default one from StarPU. 1: Bottom level from Christophe Alias. 2: Bottom level from Christophe Alias with times. 3: Prios from PaRSEC */
 int priority_attribution;
 int graph_descendants;
 
@@ -111,9 +111,13 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 				{
 					priority = 3*nblocks - 3*k;
 				}
-				else
+				else if (priority_attribution == 2) /* Bottom level avec les temps */
 				{
 					priority = 3*(T_POTRF + T_TRSM + T_SYRK + T_GEMM) - (T_POTRF + T_TRSM + T_GEMM)*k;
+				}
+				else /* Prio de parsec */
+				{
+					priority = pow((nblocks-k),3);
 				}
 				
                 ret = starpu_task_insert(&cl11,
@@ -143,9 +147,13 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 						{
 							priority = 3*nblocks - (2*k + m);
 						}
-						else 
+						else if (priority_attribution == 2)
 						{
 							priority = 3*(T_POTRF + T_TRSM + T_SYRK + T_GEMM) - ((T_TRSM + T_GEMM)*k+(T_POTRF + T_SYRK - T_GEMM)*m + T_GEMM - T_SYRK);
+						}
+						else /* Prio de parsec */
+						{
+							priority = pow((nblocks-m),3) + 3*(m-k)*(2*nblocks-k-m-1);
 						}
 
                         ret = starpu_task_insert(&cl21,
@@ -164,7 +172,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 
 		for (n = k+1; n<nblocks; n++)
 		{
-                        starpu_data_handle_t sdatank = starpu_data_get_sub_data(dataA, 2, n, k);
+            starpu_data_handle_t sdatank = starpu_data_get_sub_data(dataA, 2, n, k);
 			for (m = n; m<nblocks; m++)
 			{
 				starpu_data_handle_t sdatamk = starpu_data_get_sub_data(dataA, 2, m, k);
@@ -178,9 +186,20 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 				{
 					priority = 3*nblocks - (k + n + m);
 				}
-				else
+				else if (priority_attribution == 2)
 				{
 					priority = 3*(T_POTRF + T_TRSM + T_SYRK + T_GEMM) - (T_GEMM*k + T_TRSM*n + (T_POTRF + T_SYRK - T_GEMM)*m - T_SYRK + T_GEMM);
+				}
+				else /* Prio de parsec */
+				{
+					if (n == m) /* SYRK has different prio in PaRSEC */
+					{ 
+						priority = pow((nblocks-m),3) + 3*(m-k);
+					}
+					else
+					{
+						priority = pow((nblocks-m),3) + 3*(m-n)*(2*nblocks-m-n-3) + 6*(m-k);
+					}
 				}
 						
 				ret = starpu_task_insert(&cl22,
