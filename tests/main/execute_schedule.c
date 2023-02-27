@@ -71,7 +71,7 @@ static struct starpu_codelet cl =
 int main(int argc, char **argv)
 {
 	int ret;
-	struct starpu_task *dep_task[N];
+	struct starpu_task *dep_task[N] = { NULL };
 	int *t[N];
 	starpu_data_handle_t h[N];
 
@@ -111,7 +111,11 @@ int main(int argc, char **argv)
 			starpu_task_declare_deps_array(task, 1, &dep_task[n]);
 
 			ret = starpu_task_submit(task);
-			if (ret == -ENODEV) goto enodev;
+			if (ret == -ENODEV) {
+				task->destroy = 0;
+				starpu_task_destroy(task);
+				goto enodev;
+			}
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 
@@ -139,6 +143,11 @@ int main(int argc, char **argv)
 enodev:
 	for (n = 0; n < N; n++)
 	{
+		if (dep_task[n])
+		{
+			dep_task[n]->destroy = 0;
+			starpu_task_destroy(dep_task[n]);
+		}
 		starpu_data_unregister(h[n]);
 		free(t[n]);
 	}
