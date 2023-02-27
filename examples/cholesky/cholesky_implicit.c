@@ -62,6 +62,8 @@ double T_SYRK = 139.072000;
  *	and construct the DAG
  */
 
+//#undef STARPU_HAVE_LIBCUSOLVER
+
 static void callback_turn_spmd_on(void *arg)
 {
 	(void)arg;
@@ -92,9 +94,9 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	
 	int priority = 0;
 	
-//	#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER) 
-//	printf("STARPU_HAVE_LIBCUSOLVER\n"); fflush(stdout);
-//	#endif	
+	//#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER) 
+	//printf("STARPU_HAVE_LIBCUSOLVER\n"); fflush(stdout);
+	//#endif	
 	
 	/* create all the DAG nodes */
 	for (k = 0; k < nblocks; k++)

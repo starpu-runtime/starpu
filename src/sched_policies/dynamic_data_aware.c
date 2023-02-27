@@ -3657,7 +3657,11 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		{
 			//printf("%d\n", data_on_node[i]->current_mode); fflush(stdout); 
 			/* Cas avec données SCRATCH de cusolver. Si je vois une tel donnée je l'évince */
-			if (data_on_node[i]->current_mode == STARPU_SCRATCH) continue;
+			if (data_on_node[i]->current_mode == STARPU_SCRATCH)
+			{
+				//printf("scratch\n"); fflush(stdout);
+				continue;
+			}
 
 			hud = data_on_node[i]->user_data;
 			//printf("current gpu %d\n", current_gpu); fflush(stdout);
@@ -3936,7 +3940,11 @@ starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int n
 			{
 				for (j = 0; j < STARPU_TASK_GET_NBUFFERS(p->pointer_to_pulled_task); j++)
 				{
-					if (STARPU_TASK_GET_MODE(p->pointer_to_pulled_task, j) & STARPU_NOFOOTPRINT) continue;	
+					if (STARPU_TASK_GET_MODE(p->pointer_to_pulled_task, j) & STARPU_NOFOOTPRINT) 
+					{
+						//printf("scratch\n"); fflush(stdout);
+						continue;	
+					}
 					index_next_use++;
 					if (STARPU_TASK_GET_HANDLE(p->pointer_to_pulled_task, j) == data_tab[i])
 					{

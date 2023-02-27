@@ -45,6 +45,8 @@ static const float m1 = -1.0;
 
 starpu_data_handle_t scratch = NULL;
 
+//#undef STARPU_HAVE_LIBCUSOLVER
+
 static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, void *_args)
 {
 	(void)_args;
