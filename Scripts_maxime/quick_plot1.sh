@@ -66,7 +66,7 @@ fi
 # DEPENDANCES=1
 # PRIO=1
 # FREE_PUSHED_TASK_POSITION=1
-# DOPT_SELECTION_ORDER=1 if I don't consider transfer time, else it's 4 if it works as intented or 7 for the ratio
+# DOPT_SELECTION_ORDER=1 if I don't consider transfer time, else it's 4 or 7 for the ratio
 # PRIORITY_ATTRIBUTION=1 (1 is bottom level)
 # GRAPH_DESCENDANTS=0
 # HIGHEST_PRIORITY_TASK_RETURNED_IN_DEFAULT_CASE=1
