@@ -111,7 +111,8 @@ int main(int argc, char **argv)
 			starpu_task_declare_deps_array(task, 1, &dep_task[n]);
 
 			ret = starpu_task_submit(task);
-			if (ret == -ENODEV) {
+			if (ret == -ENODEV)
+			{
 				task->destroy = 0;
 				starpu_task_destroy(task);
 				goto enodev;
