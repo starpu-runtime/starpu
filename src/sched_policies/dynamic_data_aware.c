@@ -3055,7 +3055,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
     #endif
             
     if (number_free_task_max != 0) /* Cas comme dans 2D, je met dans planned_task les tâches gratuites, sauf que j'ai 3 données à check et non 2. */
-    {		
+    {
 		#ifdef PRINT_STATS
 		gettimeofday(&time_start_fill_planned_task_list, NULL);
 		nb_free_choice++;
@@ -3552,7 +3552,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
 		#endif
 		
-		/* TODO : pas vraiment une solution ces deux boucles non ? Est-ce vraiment utile ? J'ai pas l'impression. */
+		/* TODO : pas vraiment une solution ces deux boucles non ? Est-ce vraiment utile ? J'ai pas l'impression. Je pense que j'ai besoin que de la 2ème */
 		if (!starpu_data_is_on_node(temp_handle, node))
 		{ 			
 			#ifdef PRINT
@@ -3659,7 +3659,6 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 			/* Cas avec données SCRATCH de cusolver. Si je vois une tel donnée je l'évince */
 			if (data_on_node[i]->current_mode == STARPU_SCRATCH)
 			{
-				//printf("scratch\n"); fflush(stdout);
 				continue;
 			}
 
@@ -3932,9 +3931,9 @@ starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int n
     //print_pulled_task_one_gpu(g, node);
     for (i = 0; i < nb_data_on_node; i++)
     {
+		if (data_tab[i]->current_mode == STARPU_SCRATCH) continue;
 		if (starpu_data_can_evict(data_tab[i], node, is_prefetch)) /* TODO : il y aurait moyen de remplacer ce can evict juste par une lecture dans un tableau car de toute facon on le fais avant dans victim_selector. */
 		{
-			if (data_tab[i]->current_mode == STARPU_SCRATCH) continue;
 			index_next_use = 0;
 			for (p = pulled_task_list_begin(g->ptl); p != pulled_task_list_end(g->ptl); p = pulled_task_list_next(p))
 			{
