@@ -62,6 +62,11 @@
 #undef STARPU_USE_CUDA0
 
 /**
+   Defined when StarPU is testing the CUDA1 driver.
+*/
+#undef STARPU_USE_CUDA1
+
+/**
    Defined when StarPU has been installed with
    HIP support. It should be used in your code to detect the
    availability of HIP.
