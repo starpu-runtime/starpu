@@ -1902,10 +1902,11 @@ static int mpi_check_recalibrate(int my_recalibrate)
 }
 #endif
 
-static void compare_value_and_recalibrate(const char * msg, unsigned val_file, unsigned val_detected)
+static void compare_value_and_recalibrate(enum starpu_node_kind type, const char * msg, unsigned val_file, unsigned val_detected)
 {
 	int recalibrate = 0;
-	if (val_file != val_detected)
+	if (val_file != val_detected &&
+		!((type == STARPU_MPI_MS_RAM || type == STARPU_TCPIP_MS_RAM) && !val_detected))
 		recalibrate = 1;
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
@@ -2015,10 +2016,10 @@ static void check_bus_config_file(void)
 #endif /* STARPU_USE_TCPIP_MASTER_SLAVE */
 
 		// Checking if both configurations match
-		compare_value_and_recalibrate("CPUS", read_cpus, ncpus);
+		compare_value_and_recalibrate(STARPU_CPU_RAM, "CPUS", read_cpus, ncpus);
 		for (type = STARPU_CPU_RAM; type < STARPU_NRAM; type++)
 		{
-			compare_value_and_recalibrate(
+			compare_value_and_recalibrate(type,
 				starpu_memory_driver_info[type].name_upper, n_read[type], nmem[type]);
 		}
 	}
