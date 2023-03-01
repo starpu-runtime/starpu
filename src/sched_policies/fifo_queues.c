@@ -386,13 +386,16 @@ void starpu_st_non_ready_buffers_size(struct starpu_task *task, unsigned worker,
 	for (index = 0; index < nbuffers; index++)
 	{
 		starpu_data_handle_t handle;
+		enum starpu_data_access_mode mode;
 		int buffer_node = _starpu_task_data_get_node_on_worker(task, index, worker);
 		if (buffer_node < 0)
 			continue;
-		enum starpu_data_access_mode mode;
 
 		handle = STARPU_TASK_GET_HANDLE(task, index);
 		mode = STARPU_TASK_GET_MODE(task, index);
+
+		if ((mode & STARPU_SCRATCH) || (mode & STARPU_REDUX))
+			continue;
 
 		int is_allocated, is_valid, is_loading;
 		starpu_data_query_status2(handle, buffer_node, &is_allocated, &is_valid, &is_loading, NULL);
@@ -422,11 +425,16 @@ int starpu_st_non_ready_buffers_count(struct starpu_task *task, unsigned worker)
 	for (index = 0; index < nbuffers; index++)
 	{
 		starpu_data_handle_t handle;
+		enum starpu_data_access_mode mode;
 		int buffer_node = _starpu_task_data_get_node_on_worker(task, index, worker);
 		if (buffer_node < 0)
 			continue;
 
 		handle = STARPU_TASK_GET_HANDLE(task, index);
+		mode = STARPU_TASK_GET_MODE(task, index);
+
+		if ((mode & STARPU_SCRATCH) || (mode & STARPU_REDUX))
+			continue;
 
 		int is_valid;
 		starpu_data_query_status(handle, buffer_node, NULL, &is_valid, NULL);
