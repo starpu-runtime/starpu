@@ -807,8 +807,8 @@ void initialize_task_data_gpu_single_task_v1(struct starpu_task *task, int also_
 			hud->last_check_to_choose_from = malloc(Ngpu*sizeof(int));
 			hud->is_present_in_data_not_used_yet = malloc(Ngpu*sizeof(int));
 			
-			if (strcmp(starpu_task_get_name(task), "chol_model_11") == 0) { hud->sum_remaining_task_expected_length = 54522.530000; }
-			else hud->sum_remaining_task_expected_length = starpu_task_expected_length(task, perf_arch, 0);
+//			if (strcmp(starpu_task_get_name(task), "chol_model_11") == 0) { hud->sum_remaining_task_expected_length = 54522.530000; }
+			hud->sum_remaining_task_expected_length = starpu_task_expected_length(task, perf_arch, 0);
 			
 			for (j = 0; j < Ngpu; j++)
 			{
@@ -866,8 +866,8 @@ void initialize_task_data_gpu_single_task_v3(struct starpu_task *task, int also_
 			hud->last_check_to_choose_from = malloc(Ngpu*sizeof(int));
 			hud->is_present_in_data_not_used_yet = malloc(Ngpu*sizeof(int));
 
-			if (strcmp(starpu_task_get_name(task), "chol_model_11") == 0) { hud->sum_remaining_task_expected_length = 54522.530000; }
-			else hud->sum_remaining_task_expected_length = starpu_task_expected_length(task, perf_arch, 0);
+//			if (strcmp(starpu_task_get_name(task), "chol_model_11") == 0) { hud->sum_remaining_task_expected_length = 54522.530000; }
+			hud->sum_remaining_task_expected_length = starpu_task_expected_length(task, perf_arch, 0);
 			
 			#ifdef PRINT
 			printf("Data is new. Expected length in data %p: %f\n", STARPU_TASK_GET_HANDLE(task, i), hud->sum_remaining_task_expected_length);
@@ -917,8 +917,8 @@ void initialize_task_data_gpu_single_task_v3(struct starpu_task *task, int also_
 			{
 				hud->last_iteration_DARTS = iteration_DARTS;
 				
-				if (strcmp(starpu_task_get_name(task), "chol_model_11") == 0) hud->sum_remaining_task_expected_length = 54522.530000;
-				else hud->sum_remaining_task_expected_length = starpu_task_expected_length(task, perf_arch, 0);
+//				if (strcmp(starpu_task_get_name(task), "chol_model_11") == 0) hud->sum_remaining_task_expected_length = 54522.530000;
+				hud->sum_remaining_task_expected_length = starpu_task_expected_length(task, perf_arch, 0);
 				
 				for (j = 0; j < Ngpu; j++)
 				{
@@ -952,8 +952,8 @@ void initialize_task_data_gpu_single_task_v3(struct starpu_task *task, int also_
 			else 
 			{
 				
-				if (strcmp(starpu_task_get_name(task), "chol_model_11") == 0) hud->sum_remaining_task_expected_length += 54522.530000;
-				else hud->sum_remaining_task_expected_length += starpu_task_expected_length(task, perf_arch, 0);
+//				if (strcmp(starpu_task_get_name(task), "chol_model_11") == 0) hud->sum_remaining_task_expected_length += 54522.530000;
+				hud->sum_remaining_task_expected_length += starpu_task_expected_length(task, perf_arch, 0);
 			
 				for (j = 0; j < Ngpu; j++)
 				{
@@ -2556,7 +2556,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 					{
 						if(e->D == STARPU_TASK_GET_HANDLE(task, i))
 						{
-							printf("First task. Erase data %p from GPU %d\n", e->D, current_gpu - 1); fflush(stdout);
+							//printf("First task. Erase data %p from GPU %d\n", e->D, current_gpu - 1); fflush(stdout);
 							gpu_data_not_used_list_erase(g->gpu_data, e);
 							//~ print_data_not_used_yet();
 							hud = e->D->user_data;
@@ -3860,8 +3860,8 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 						/* Increase expected length of task using this data */
 						struct handle_user_data* hud = pt->pointer_to_D[i]->user_data;
 						
-						if (strcmp(starpu_task_get_name(task), "chol_model_11") == 0) hud->sum_remaining_task_expected_length += 54522.530000;
-						else hud->sum_remaining_task_expected_length += starpu_task_expected_length(task, perf_arch, 0);
+						//if (strcmp(starpu_task_get_name(task), "chol_model_11") == 0) hud->sum_remaining_task_expected_length += 54522.530000;
+						hud->sum_remaining_task_expected_length += starpu_task_expected_length(task, perf_arch, 0);
 						
 						#ifdef PRINT
 						printf("Eviction of data %p.\n", STARPU_TASK_GET_HANDLE(task, i));
@@ -4047,8 +4047,8 @@ void erase_task_and_data_pointer (struct starpu_task *task, struct starpu_task_l
 		/* Reduce expected length of task using this data */
 		struct handle_user_data* hud = pt->pointer_to_D[j]->user_data;
 		
-		if (strcmp(starpu_task_get_name(task), "chol_model_11") == 0) hud->sum_remaining_task_expected_length -= 54522.530000;
-		else hud->sum_remaining_task_expected_length -= starpu_task_expected_length(task, perf_arch, 0);
+//		if (strcmp(starpu_task_get_name(task), "chol_model_11") == 0) hud->sum_remaining_task_expected_length -= 54522.530000;
+		hud->sum_remaining_task_expected_length -= starpu_task_expected_length(task, perf_arch, 0);
 		
 		#ifdef PRINT
 		printf("Adding in planned task. Expected length in data %p: %f\n", STARPU_TASK_GET_HANDLE(task, j), hud->sum_remaining_task_expected_length);
