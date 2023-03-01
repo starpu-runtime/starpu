@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Simon Archipoff
  * Copyright (C) 2016       Uppsala University
@@ -358,11 +358,14 @@ size_t _starpu_size_non_ready_buffers(struct starpu_task *task, unsigned worker)
 	for (index = 0; index < nbuffers; index++)
 	{
 		starpu_data_handle_t handle;
-		unsigned buffer_node = _starpu_task_data_get_node_on_worker(task, index, worker);
 		enum starpu_data_access_mode mode;
+		unsigned buffer_node = _starpu_task_data_get_node_on_worker(task, index, worker);
 
 		handle = STARPU_TASK_GET_HANDLE(task, index);
 		mode = STARPU_TASK_GET_MODE(task, index);
+
+		if ((mode & STARPU_SCRATCH) || (mode & STARPU_REDUX))
+			continue;
 
 		int is_valid;
 		starpu_data_query_status(handle, buffer_node, NULL, &is_valid, NULL);
@@ -383,9 +386,14 @@ int _starpu_count_non_ready_buffers(struct starpu_task *task, unsigned worker)
 	for (index = 0; index < nbuffers; index++)
 	{
 		starpu_data_handle_t handle;
+		enum starpu_data_access_mode mode;
 		unsigned buffer_node = _starpu_task_data_get_node_on_worker(task, index, worker);
 
 		handle = STARPU_TASK_GET_HANDLE(task, index);
+		mode = STARPU_TASK_GET_MODE(task, index);
+
+		if ((mode & STARPU_SCRATCH) || (mode & STARPU_REDUX))
+			continue;
 
 		int is_valid;
 		starpu_data_query_status(handle, buffer_node, NULL, &is_valid, NULL);
