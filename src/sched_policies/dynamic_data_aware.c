@@ -435,7 +435,6 @@ bool is_my_task_free(int current_gpu, struct starpu_task *task)
 	int i = 0;
 	for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 	{
-
 		if (STARPU_TASK_GET_MODE(task, i) & STARPU_NOFOOTPRINT) continue;	
 		if (STARPU_TASK_GET_HANDLE(task, i)->user_data == NULL)
 		{
@@ -460,7 +459,7 @@ bool is_my_task_free(int current_gpu, struct starpu_task *task)
 
 
 
-starpu_data_handle_t scratch_handle;
+//~ starpu_data_handle_t scratch_handle;
 
 
 
@@ -471,7 +470,7 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 	int i = 0;
 	int j = 0;
 		
-	#ifdef PRINT
+	//~ #ifdef PRINT
 	//~ unsigned sched_ctx_id = 0;
 	/* To get time of a task depending on the GPU */
 	//~ perf_arch = starpu_worker_get_perf_archtype(0, sched_ctx_id);
@@ -482,7 +481,7 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 	{
 		if (STARPU_TASK_GET_MODE(task, i) & STARPU_NOFOOTPRINT)
 		{
-			scratch_handle = STARPU_TASK_GET_HANDLE(task, i);
+			//~ scratch_handle = STARPU_TASK_GET_HANDLE(task, i);
 			printf(" %p mode is STARPU_NOFOOTPRINT or STARPU_SCRATCH\n", STARPU_TASK_GET_HANDLE(task, i)); fflush(stdout);
 		}
 		else
@@ -491,7 +490,7 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 		}
 	}	
 	printf("\n"); fflush(stdout);
-	#endif
+	//~ #endif
 	
 	#ifdef REFINED_MUTEX
 	STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
@@ -582,7 +581,6 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 			struct pointer_in_task *pt = task->sched_data;
 			for (j = 0; j < STARPU_TASK_GET_NBUFFERS(task); j++)
 			{
-
 				if (STARPU_TASK_GET_MODE(task, j) & STARPU_NOFOOTPRINT) continue;	
 				if (pt->tud[j] != NULL) 
 				{
@@ -3662,15 +3660,9 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
     struct handle_user_data *hud = malloc(sizeof(hud));
     for (i = 0; i < nb_data_on_node; i++)
     {
+		if (data_on_node[i]->current_mode == STARPU_SCRATCH) continue;
 		if (starpu_data_can_evict(data_on_node[i], node, is_prefetch))
 		{
-			//printf("%d\n", data_on_node[i]->current_mode); fflush(stdout); 
-			/* Cas avec données SCRATCH de cusolver. Si je vois une tel donnée je l'évince */
-			if (data_on_node[i]->current_mode == STARPU_SCRATCH)
-			{
-				continue;
-			}
-
 			hud = data_on_node[i]->user_data;
 			//printf("current gpu %d\n", current_gpu); fflush(stdout);
 			//printf("nb task in pulled %d\n", hud->nb_task_in_pulled_task[current_gpu - 1]); fflush(stdout);
