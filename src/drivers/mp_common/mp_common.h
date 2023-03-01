@@ -131,6 +131,7 @@ struct _starpu_mp_transfer_command_to_device
 	void *addr;
 	void *event;
 	int devid;
+	char end[];	/* Keep last to compute non-padded size */
 };
 
 struct _starpu_mp_transfer_map_command

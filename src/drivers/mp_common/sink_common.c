@@ -216,7 +216,7 @@ static void _starpu_sink_common_copy_to_host_async(struct _starpu_mp_node *mp_no
 
 static void _starpu_sink_common_copy_from_sink_sync(const struct _starpu_mp_node *mp_node, void *arg, int arg_size)
 {
-	STARPU_ASSERT(arg_size == sizeof(struct _starpu_mp_transfer_command_to_device));
+	STARPU_ASSERT(arg_size == offsetof(struct _starpu_mp_transfer_command_to_device, end));
 
 	struct _starpu_mp_transfer_command_to_device *cmd = (struct _starpu_mp_transfer_command_to_device *)arg;
 
@@ -226,7 +226,7 @@ static void _starpu_sink_common_copy_from_sink_sync(const struct _starpu_mp_node
 
 static void _starpu_sink_common_copy_from_sink_async(struct _starpu_mp_node *mp_node, void *arg, int arg_size)
 {
-	STARPU_ASSERT(arg_size == sizeof(struct _starpu_mp_transfer_command_to_device));
+	STARPU_ASSERT(arg_size == offsetof(struct _starpu_mp_transfer_command_to_device, end));
 
 	struct _starpu_mp_transfer_command_to_device *cmd = (struct _starpu_mp_transfer_command_to_device *)arg;
 
@@ -252,7 +252,7 @@ static void _starpu_sink_common_copy_from_sink_async(struct _starpu_mp_node *mp_
 
 static void _starpu_sink_common_copy_to_sink_sync(const struct _starpu_mp_node *mp_node, void *arg, int arg_size)
 {
-	STARPU_ASSERT(arg_size == sizeof(struct _starpu_mp_transfer_command_to_device));
+	STARPU_ASSERT(arg_size == offsetof(struct _starpu_mp_transfer_command_to_device, end));
 
 	struct _starpu_mp_transfer_command_to_device *cmd = (struct _starpu_mp_transfer_command_to_device *)arg;
 
@@ -261,7 +261,7 @@ static void _starpu_sink_common_copy_to_sink_sync(const struct _starpu_mp_node *
 
 static void _starpu_sink_common_copy_to_sink_async(struct _starpu_mp_node *mp_node, void *arg, int arg_size)
 {
-	STARPU_ASSERT(arg_size == sizeof(struct _starpu_mp_transfer_command_to_device));
+	STARPU_ASSERT(arg_size == offsetof(struct _starpu_mp_transfer_command_to_device, end));
 
 	struct _starpu_mp_transfer_command_to_device *cmd = (struct _starpu_mp_transfer_command_to_device *)arg;
 

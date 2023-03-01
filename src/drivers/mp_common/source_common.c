@@ -979,7 +979,7 @@ int _starpu_src_common_copy_sink_to_sink_sync(struct _starpu_mp_node *src_node, 
 	}
 
 	/* Tell source to send data to dest. */
-	_starpu_mp_common_send_command(src_node, STARPU_MP_COMMAND_SEND_TO_SINK, &cmd, sizeof(cmd));
+	_starpu_mp_common_send_command(src_node, STARPU_MP_COMMAND_SEND_TO_SINK, &cmd, offsetof(struct _starpu_mp_transfer_command_to_device, end));
 
 	/* Release the source as fast as possible */
 	STARPU_PTHREAD_MUTEX_UNLOCK(&src_node->connection_mutex);
@@ -989,7 +989,7 @@ int _starpu_src_common_copy_sink_to_sink_sync(struct _starpu_mp_node *src_node, 
 	cmd.addr = dst;
 
 	/* Tell dest to receive data from source. */
-	_starpu_mp_common_send_command(dst_node, STARPU_MP_COMMAND_RECV_FROM_SINK, &cmd, sizeof(cmd));
+	_starpu_mp_common_send_command(dst_node, STARPU_MP_COMMAND_RECV_FROM_SINK, &cmd, offsetof(struct _starpu_mp_transfer_command_to_device, end));
 
 	/* Wait for answer from dest to know wether transfer is finished. */
 	answer = _starpu_src_common_wait_command_sync(dst_node, &arg, &arg_size);
@@ -1033,7 +1033,7 @@ int _starpu_src_common_copy_sink_to_sink_async(struct _starpu_mp_node *src_node,
 	async_channel->starpu_mp_common_finished_sender++;
 
 	/* Tell source to send data to dest. */
-	_starpu_mp_common_send_command(src_node, STARPU_MP_COMMAND_SEND_TO_SINK_ASYNC, &cmd, sizeof(cmd));
+	_starpu_mp_common_send_command(src_node, STARPU_MP_COMMAND_SEND_TO_SINK_ASYNC, &cmd, offsetof(struct _starpu_mp_transfer_command_to_device, end));
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&src_node->connection_mutex);
 
@@ -1042,7 +1042,7 @@ int _starpu_src_common_copy_sink_to_sink_async(struct _starpu_mp_node *src_node,
 	cmd.addr = dst;
 
 	/* Tell dest to receive data from source. */
-	_starpu_mp_common_send_command(dst_node, STARPU_MP_COMMAND_RECV_FROM_SINK_ASYNC, &cmd, sizeof(cmd));
+	_starpu_mp_common_send_command(dst_node, STARPU_MP_COMMAND_RECV_FROM_SINK_ASYNC, &cmd, offsetof(struct _starpu_mp_transfer_command_to_device, end));
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&dst_node->connection_mutex);
 
