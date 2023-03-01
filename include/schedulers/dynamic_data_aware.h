@@ -35,6 +35,10 @@
 //~ # Pas dans se fichier aussi: GRAPH_DESCENDANTS /* 0: No graph, so no pause in the task submitting. 1: With a graph reading descendants in DARTS, use a pause in the task submit. 2: With a graph reading descendants in DARTS, but don't use pause and the graph is read at each new batch of tasks in pull_task. */ dans starpu_data_maxime.h
 #define PUSH_FREE_TASK_ON_GPU_WITH_LEAST_TASK_IN_PLANNED_TASK /* 0: no, 1: yes, 2: round robin */
 
+/** If a data is a redux or a scratch it's only used to optimize a computation and 
+ * does not contain any valuable information. Thus we ignore it. **/
+#define STARPU_IGNORE_UTILITIES_HANDLES(task, index) if ((STARPU_TASK_GET_MODE(task, index) & STARPU_SCRATCH) || (STARPU_TASK_GET_MODE(task, index) & STARPU_REDUX)) { continue; }
+#define STARPU_IGNORE_UTILITIES_HANDLES_FROM_DATA(handle) if ((handle->current_mode == STARPU_SCRATCH) || (handle->current_mode == STARPU_REDUX)) { continue; }
 
 /* Var globale pour n'appeller qu'une seule fois get_env_number */
 extern int can_a_data_be_in_mem_and_in_not_used_yet;
