@@ -1742,6 +1742,19 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	}
 	_starpu_conf_check_environment(&_starpu_config.conf);
 
+	if (is_a_sink && _starpu_config.conf.nmpi_ms == 0 &&
+		_starpu_config.conf.ntcpip_ms == 0)
+	{
+		/* MS was explicitly disabled, abort sinks and leave source alone */
+		STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
+		init_count--;
+		initialized = UNINITIALIZED;
+		/* Let somebody else try to do it */
+		STARPU_PTHREAD_COND_SIGNAL(&init_cond);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
+		return -ENODEV;
+	}
+
 	/* Make a copy of arrays */
 	if (_starpu_config.conf.sched_policy_name)
 		_starpu_config.conf.sched_policy_name = strdup(_starpu_config.conf.sched_policy_name);
