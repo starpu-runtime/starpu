@@ -2016,7 +2016,7 @@ static void check_bus_config_file(void)
 
 		// Checking if both configurations match
 		compare_value_and_recalibrate("CPUS", read_cpus, ncpus);
-		for (type = STARPU_CPU_RAM; ok && type < STARPU_NRAM; type++)
+		for (type = STARPU_CPU_RAM; type < STARPU_NRAM; type++)
 		{
 			compare_value_and_recalibrate(
 				starpu_memory_driver_info[type].name_upper, n_read[type], nmem[type]);
