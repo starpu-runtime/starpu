@@ -180,6 +180,10 @@ elif [ ${MODEL} == "opti" ]; then
 	done
 fi
 
+if [ $((CM)) == 0 ]; then
+	CM=32000
+fi
+
 echo "Converting data"
 mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/Data/Cholesky_dependances/GF_${MODEL}_${TAILLE_TUILE}_${NGPU}GPU_${CM}Mo.csv
 
