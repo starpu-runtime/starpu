@@ -1746,6 +1746,16 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 		_starpu_config.conf.ntcpip_ms == 0)
 	{
 		/* MS was explicitly disabled, abort sinks and leave source alone */
+
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+		if (_starpu_mpi_common_is_mp_initialized())
+			_starpu_mpi_common_mp_deinit();
+#endif
+#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
+		if (_starpu_tcpip_common_is_mp_initialized())
+			_starpu_tcpip_common_mp_deinit();
+#endif
+
 		STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 		init_count--;
 		initialized = UNINITIALIZED;
