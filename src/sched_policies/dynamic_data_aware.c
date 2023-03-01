@@ -158,9 +158,9 @@ static void set_priority(void *_data, struct _starpu_graph_node *node)
 	{
 		job->task->priority = node->descendants;
 
-		//~ #ifdef PRINT
+		#ifdef PRINT
 		printf("Descendants of job %p (%s): %d\n", job->task, starpu_task_get_name(job->task), job->task->priority);
-		//~ #endif		
+		#endif		
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&node->mutex);
 }
@@ -483,11 +483,11 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 		if (STARPU_TASK_GET_MODE(task, i) & STARPU_NOFOOTPRINT)
 		{
 			scratch_handle = STARPU_TASK_GET_HANDLE(task, i);
-			printf(" %p mode is STARPU_NOFOOTPRINT or STARPU_SCRATCH\n", STARPU_TASK_GET_HANDLE(task, i)); fflush(stdout);
+			printf(" %p mode is NOFOOTPRINT", STARPU_TASK_GET_HANDLE(task, i)); fflush(stdout);
 		}
 		else
 		{
-			printf(" %p mode is R, RW or W", STARPU_TASK_GET_HANDLE(task, i)); fflush(stdout);
+			printf(" %p mode is R-RW-W", STARPU_TASK_GET_HANDLE(task, i)); fflush(stdout);
 		}
 	}	
 	printf("\n"); fflush(stdout);
@@ -564,6 +564,8 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 		#endif
 		
 		if (is_my_task_free(gpu_looked_at, task))
+	
+	//	if (is_my_task_free(gpu_looked_at, task) || strcmp(starpu_task_get_name(task), "chol_model_11") == 0)
 		{
 			#ifdef PRINT
 			printf("Task %p is free from push_task\n", task); fflush(stdout);
@@ -805,7 +807,7 @@ void initialize_task_data_gpu_single_task_v1(struct starpu_task *task, int also_
 			hud->last_check_to_choose_from = malloc(Ngpu*sizeof(int));
 			hud->is_present_in_data_not_used_yet = malloc(Ngpu*sizeof(int));
 			
-			if (strcmp(starpu_task_get_name(task), "chol_model_11") == 0) hud->sum_remaining_task_expected_length = 54522.530000;
+			if (strcmp(starpu_task_get_name(task), "chol_model_11") == 0) { hud->sum_remaining_task_expected_length = 54522.530000; }
 			else hud->sum_remaining_task_expected_length = starpu_task_expected_length(task, perf_arch, 0);
 			
 			for (j = 0; j < Ngpu; j++)
@@ -864,7 +866,7 @@ void initialize_task_data_gpu_single_task_v3(struct starpu_task *task, int also_
 			hud->last_check_to_choose_from = malloc(Ngpu*sizeof(int));
 			hud->is_present_in_data_not_used_yet = malloc(Ngpu*sizeof(int));
 
-			if (strcmp(starpu_task_get_name(task), "chol_model_11") == 0) hud->sum_remaining_task_expected_length = 54522.530000;
+			if (strcmp(starpu_task_get_name(task), "chol_model_11") == 0) { hud->sum_remaining_task_expected_length = 54522.530000; }
 			else hud->sum_remaining_task_expected_length = starpu_task_expected_length(task, perf_arch, 0);
 			
 			#ifdef PRINT
@@ -884,7 +886,7 @@ void initialize_task_data_gpu_single_task_v3(struct starpu_task *task, int also_
 				//~ if (also_add_data_in_not_used_yet_list == 1)
 				if (also_add_data_in_not_used_yet_list == 1 && (can_a_data_be_in_mem_and_in_not_used_yet == 1 || !starpu_data_is_on_node(e->D, j+1)))
 				{
-					//~ printf("Data is new. Adding %p in data_not_used_yet of GPU %d\n", e->D, j+1); fflush(stdout);
+					//printf("Data is new. Adding %p in data_not_used_yet of GPU %d\n", e->D, j+1); fflush(stdout);
 					hud->is_present_in_data_not_used_yet[j] = 1;
 					if (data_order == 1)
 					{
@@ -993,6 +995,7 @@ void initialize_task_data_gpu_single_task_v3(struct starpu_task *task, int also_
 	
     for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
     {
+	    //	printf("i = %d\n", i); fflush(stdout);
 		if (STARPU_TASK_GET_MODE(task, i) & STARPU_NOFOOTPRINT) continue;	
 		/* Pointer toward the main task list in the handles. */
 		struct task_using_data *e = task_using_data_new();
@@ -1009,7 +1012,9 @@ void initialize_task_data_gpu_single_task_v3(struct starpu_task *task, int also_
 		{
 			task_using_data_list_push_front(STARPU_TASK_GET_HANDLE(task, i)->sched_data, e);
 		}
-					
+		
+		//printf("Adding in tab at position %d out of %d\n", i, get_nbuffer_without_scratch(task) - 1); fflush(stdout);
+
 		/* Adding the pointer in the task toward the data. */
 		pt->pointer_to_D[i] = STARPU_TASK_GET_HANDLE(task, i);
 		pt->tud[i] = e;
@@ -1654,7 +1659,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			#endif
 			
 			#ifdef PRINT
-			printf("Task: %p is getting out of pull_task from planned task not empty on GPU %d\n", task, current_gpu); fflush(stdout);
+			printf("Task: %p is getting out of pull_task from planned task not empty on GPU %d. It's task number %d\n", task, current_gpu, total_task_done); fflush(stdout);
 			#endif
 			
 			#ifdef REFINED_MUTEX
@@ -2551,7 +2556,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 					{
 						if(e->D == STARPU_TASK_GET_HANDLE(task, i))
 						{
-							//~ printf("First task. Erase data %p from GPU %d\n", e->D, current_gpu - 1); fflush(stdout);
+							printf("First task. Erase data %p from GPU %d\n", e->D, current_gpu - 1); fflush(stdout);
 							gpu_data_not_used_list_erase(g->gpu_data, e);
 							//~ print_data_not_used_yet();
 							hud = e->D->user_data;
@@ -2577,9 +2582,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 			/* Add it from planned task compteur */			
 			increment_planned_task_data(task, current_gpu);
 			
-			#ifdef PRINT
+		//	#ifdef PRINT
 			printf("Returning first task of GPU n°%d in natural order: %p.\n", current_gpu, task);
-			#endif
+		//	#endif
 			
 			erase_task_and_data_pointer(task, main_task_list);
 			starpu_task_list_push_back(&g->planned_task, task);
@@ -2661,6 +2666,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		
 		for (e = gpu_data_not_used_list_begin(g->gpu_data); e != gpu_data_not_used_list_end(g->gpu_data) && i != choose_best_data_threshold; e = gpu_data_not_used_list_next(e), i++)
 		{
+			//printf("Looking at data %p\n", e->D); fflush(stdout);
 			/*if (starpu_data_is_on_node(e->D, current_gpu))
 					{
 					temp_transfer_time_min= 0;
@@ -2714,6 +2720,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 			//~ {
 			if (e->D->sched_data != NULL)
 			{
+				//printf("sched data notnull\n"); fflush(stdout);
 				for (t = task_using_data_list_begin(e->D->sched_data); t != task_using_data_list_end(e->D->sched_data); t = task_using_data_list_next(t))
 				{
 					/* I put it at false if at least one data is missing. */
@@ -2743,6 +2750,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 							}
 						}
 					}
+				//	printf("%d data not avail for task %p\n", data_not_available, t->pointer_to_T); fflush(stdout);
 					
 					if (data_not_available == 0)
 					{
@@ -2785,7 +2793,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 					}
 				}
 				
-				//~ printf("Current gpu: %d: data %p of size %ld takes %f to be transferred. Is data on the node?: %d\n", current_gpu, e->D, starpu_data_get_size(e->D), starpu_data_expected_transfer_time(e->D, current_gpu ,STARPU_R), starpu_data_is_on_node(e->D, current_gpu)); fflush(stdout);
+				//printf("Current gpu: %d: data %p of size %ld takes %f to be transferred. Is data on the node?: %d\n", current_gpu, e->D, starpu_data_get_size(e->D), starpu_data_expected_transfer_time(e->D, current_gpu ,STARPU_R), starpu_data_is_on_node(e->D, current_gpu)); fflush(stdout);
 				
 				/* Checking if current data is better */				
 				hud = e->D->user_data;
@@ -3524,9 +3532,9 @@ void dynamic_data_aware_victim_eviction_failed(starpu_data_handle_t victim, void
  * Je rentre bcp trop dans cette fonction on perds du temps car le timing avance lui. Résolu en réduisant le threshold et en adaptant aussi CUDA_PIPELINE. */
 starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
 {
-	#ifdef PRINT
-	printf("Début de victim selector on GPU %d.\n", current_gpu); fflush(stdout);
-	#endif
+	//#ifdef PRINT
+	//printf("Début de victim selector on GPU %d.\n", current_gpu); fflush(stdout);
+	//#endif
 	
 	#ifdef REFINED_MUTEX
 	STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
@@ -3664,10 +3672,11 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
     {
 		if (starpu_data_can_evict(data_on_node[i], node, is_prefetch))
 		{
-			//printf("%d\n", data_on_node[i]->current_mode); fflush(stdout); 
+			//printf("%p on node has a size of %lu\n", data_on_node[i], starpu_data_get_size(data_on_node[i])); fflush(stdout); 
 			/* Cas avec données SCRATCH de cusolver. Si je vois une tel donnée je l'évince */
 			if (data_on_node[i]->current_mode == STARPU_SCRATCH)
 			{
+				//printf("Continue\n"); fflush(stdout);
 				continue;
 			}
 
@@ -3719,9 +3728,9 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
 		victim_selector_return_no_victim++;
 		#endif
-		#ifdef PRINT
+	//	#ifdef PRINT
 		printf("Evict NO_VICTIM because min_number_task_in_pulled_task == INT_MAX.\n"); fflush(stdout);
-		#endif
+	//	#endif
 		
 		#ifdef REFINED_MUTEX
 		STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
@@ -3751,9 +3760,9 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 			time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
 			victim_selector_return_no_victim++;
 			#endif
-			#ifdef PRINT
+	//		#ifdef PRINT
 			printf("Evict NO_VICTIM because is_prefetch >= 1.\n"); fflush(stdout);
-			#endif
+	//		#endif
 			
 			#ifdef REFINED_MUTEX
 			STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
@@ -3781,9 +3790,9 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
 		victim_selector_return_no_victim++;
 		#endif
-		#ifdef PRINT
-		printf("Evict NO_VICTIM because returned_handle == NULL.\n"); fflush(stdout);
-		#endif
+	//	#ifdef PRINT
+//		printf("Evict NO_VICTIM because returned_handle == NULL.\n"); fflush(stdout);
+	//	#endif
 		
 		#ifdef REFINED_MUTEX
 		STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
@@ -3825,10 +3834,10 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 					pt->pointer_to_cell = task;
 					pt->pointer_to_D = malloc(get_nbuffer_without_scratch(task)*sizeof(STARPU_TASK_GET_HANDLE(task, 0)));
 					pt->tud = malloc(get_nbuffer_without_scratch(task)*sizeof(task_using_data_new()));
-						
+					//printf("nbuffer without scratch is %d\n", get_nbuffer_without_scratch(task)); fflush(stdout);		
 					for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 					{
-						if (STARPU_TASK_GET_MODE(task, i) & STARPU_NOFOOTPRINT) continue;	
+						if (STARPU_TASK_GET_MODE(task, i) & STARPU_NOFOOTPRINT) continue;
 						/* Pointer toward the main task list in the handles. */
 						struct task_using_data *e = task_using_data_new();
 						e->pointer_to_T = task;
@@ -3854,15 +3863,15 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 						if (strcmp(starpu_task_get_name(task), "chol_model_11") == 0) hud->sum_remaining_task_expected_length += 54522.530000;
 						else hud->sum_remaining_task_expected_length += starpu_task_expected_length(task, perf_arch, 0);
 						
-						//~ #ifdef PRINT
-						//~ printf("Eviction of data %p.\n", STARPU_TASK_GET_HANDLE(task, i));
-						//~ #endif
+						#ifdef PRINT
+						printf("Eviction of data %p.\n", STARPU_TASK_GET_HANDLE(task, i));
+						#endif
 						
 						pt->pointer_to_D[i]->user_data = hud;
 						
 					}	
 					task->sched_data = pt;
-						
+					//printf("Pushing back task %p\n", task); fflush(stdout);	
 					/* Ajout a la liste de tâches principales ces mêmes tâches. */
 					starpu_task_list_push_back(&data->main_task_list, task);
 					break;
