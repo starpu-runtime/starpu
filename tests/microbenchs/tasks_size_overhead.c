@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -206,7 +206,8 @@ int main(int argc, char **argv)
 	for (buffer = 0; buffer < total_nbuffers; buffer++)
 		buffers[buffer] = (float *) calloc(16, sizeof(float));
 
-	tasks = (struct starpu_task *) calloc(1, ntasks*maxcpus*sizeof(struct starpu_task));
+	if (!starpu_getenv("STARPU_SINK"))
+		tasks = (struct starpu_task *) calloc(1, ntasks*maxcpus*sizeof(struct starpu_task));
 
 	/* Emit headers and compute raw tasks speed */
 	FPRINTF(stdout, "# tasks : %u buffers : %u total_nbuffers : %u\n", ntasks, nbuffers, total_nbuffers);
