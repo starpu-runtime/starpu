@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2021-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2021-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -51,29 +51,14 @@ build:
   script:
     - ./contrib/gitlab/deploy.sh
 
-check_linux_debian10:
+checks:
   extends: .check_template
+  parallel:
+    matrix:
+      - NODE: [debian10, debian8amd64, ubuntu1604, ubuntu1804, centos72amd64]
   tags:
     - starpu
-    - debian10
-
-check_linux_debian8:
-  extends: .check_template
-  tags:
-    - starpu
-    - debian8amd64
-
-check_linux_ubuntu1604:
-  extends: .check_template
-  tags:
-    - starpu
-    - ubuntu1604
-
-check_linux_centos72amd64:
-  extends: .check_template
-  tags:
-    - starpu
-    - centos72amd64
+    - ${NODE}
 
 check_simgrid:
   extends: .check_template
