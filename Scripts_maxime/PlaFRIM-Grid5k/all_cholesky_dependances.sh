@@ -1,5 +1,7 @@
 # bash Scripts_maxime/PlaFRIM-Grid5k/all_cholesky_dependances.sh
 
+# oarsub -t exotic -p "network_address in ('gemini-1.lyon.grid5000.fr')" -r '2023-03-02 00:55:00' -l walltime=08:00:00 "bash Scripts_maxime/PlaFRIM-Grid5k/all_cholesky_dependances.sh"
+
 # Opti
 #bash Scripts_maxime/PlaFRIM-Grid5k/cholesky_dependances.sh 1 1920 12 2000 opti
 #bash Scripts_maxime/PlaFRIM-Grid5k/cholesky_dependances.sh 2 1920 12 2000 opti

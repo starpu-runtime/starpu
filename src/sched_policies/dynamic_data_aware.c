@@ -90,6 +90,7 @@ int nb_data_selection_per_index;
 int nb_task_added_in_planned_task;
 bool data_choice_per_index;
 int nb_data_selection;
+
 /* Pour la mesure du temps. */
 struct timeval time_start_selector;
 struct timeval time_end_selector;

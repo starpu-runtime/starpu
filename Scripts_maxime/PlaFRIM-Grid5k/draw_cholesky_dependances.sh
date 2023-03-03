@@ -10,11 +10,20 @@
 # bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 4 1920 12 2000 highest_prio_default_case 2
 # bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 8 1920 12 2000 highest_prio_default_case 2
 
-# A plot
-# bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 1 1920 12 2000 opti 8
-# bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 2 1920 12 2000 opti 8
-# bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 4 1920 12 2000 opti 8
-# bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 8 1920 12 2000 opti 8
+#~ bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 1 1920 12 2000 opti 8
+#~ bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 2 1920 12 2000 opti 8
+#~ bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 4 1920 12 2000 opti 8
+#~ bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 8 1920 12 2000 opti 8
+#~ bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 1 2880 12 4500 opti 8
+#~ bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 2 2880 12 4500 opti 8
+#~ bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 4 2880 12 4500 opti 8
+#~ bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 8 2880 12 4500 opti 8
+#~ bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 1 3840 12 8000 opti 8
+#~ bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 2 3840 12 8000 opti 8
+
+#~ bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 1 1920 12 32000 opti 8
+#~ bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 4 1920 12 32000 opti 8
+#~ bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 1 2880 12 32000 opti 8
 
 if [ $# != 6 ]
 then

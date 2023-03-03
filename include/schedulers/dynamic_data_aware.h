@@ -63,7 +63,7 @@ extern int round_robin_free_task; /* For PUSH_FREE_TASK_ON_GPU_WITH_LEAST_TASK_I
 
 extern struct starpu_perfmodel_arch* perf_arch;
 
-//#define PRINT /* A dé-commenter pour afficher les printfs dans le code, les mesures du temps et les écriture dans les fichiers. A pour objectif de remplacer la var d'env PRINTF de HFP. Pour le moment j'ai toujours besoin de PRINTF=1 pour les visualisations par exemple. Attention pour DARTS j'ai besoin de PRINTF=1 et de PRINT pour les visu pour le moment. */
+//~ #define PRINT /* A dé-commenter pour afficher les printfs dans le code, les mesures du temps et les écriture dans les fichiers. A pour objectif de remplacer la var d'env PRINTF de HFP. Pour le moment j'ai toujours besoin de PRINTF=1 pour les visualisations par exemple. Attention pour DARTS j'ai besoin de PRINTF=1 et de PRINT pour les visu pour le moment. */
 //~ #define PRINT_STATS /* Stats de temps, de nb d'occurences de certaines fonctions etc... */
 //~ #define PRINT_PYTHON /* Visu python */
 
