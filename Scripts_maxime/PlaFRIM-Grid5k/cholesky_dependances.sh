@@ -73,13 +73,21 @@ NB_TAILLE_TESTE=$3
 PRIORITY_ATTRIBUTION=1
 
 if [ ${MODEL} == "best_ones" ]; then
-	NB_ALGO_TESTE=5
+	NB_ALGO_TESTE=6
 	# Best ones
 	algo1="DMDAR"
 	algo2="DMDAS"
 	algo3="LWS"
 	algo4="DARTS"
 	algo5="DARTS"
+	echo "#### eager ####"
+	for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+	do
+		N=$((START_X+i*ECHELLE_X))
+		echo "N=${N}"
+		PRIORITY_ATTRIBUTION=$((PRIORITY_ATTRIBUTION)) STARPU_LIMIT_CUDA_MEM=$((CM)) SEED=$((N/5)) STARPU_SCHED=modular-eager-prefetching STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS}" STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_EXPECTED_TRANSFER_TIME_WRITEBACK=1 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((TAILLE_TUILE*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW}
+		sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS} >> ${FICHIER_RAW_DT}
+	done
 	echo "#### ${algo1} ####"
 	for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 	do
