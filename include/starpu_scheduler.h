@@ -461,6 +461,14 @@ void starpu_task_notify_ready_soon_register(starpu_notify_ready_soon_func f, voi
 */
 void starpu_sched_ctx_worker_shares_tasks_lists(int workerid, int sched_ctx_id);
 
+/**
+   The scheduling policy should call this when it makes a scheduling decision
+   for a task. This will possibly stop execution at this point, and then the
+   programmer can inspect local variables etc. to determine why this scheduling
+   decision was done.
+
+   See \ref ::STARPU_TASK_BREAK_ON_SCHED
+ */
 void starpu_sched_task_break(struct starpu_task *task);
 
 /**
