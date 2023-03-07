@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -53,6 +53,8 @@ int _starpu_barrier_counter_increment(struct _starpu_barrier_counter *barrier_c,
 int _starpu_barrier_counter_check(struct _starpu_barrier_counter *barrier_c);
 
 int _starpu_barrier_counter_get_reached_start(struct _starpu_barrier_counter *barrier_c);
+
+int _starpu_barrier_counter_get_reached_exit(struct _starpu_barrier_counter *barrier_c);
 
 double _starpu_barrier_counter_get_reached_flops(struct _starpu_barrier_counter *barrier_c);
 
