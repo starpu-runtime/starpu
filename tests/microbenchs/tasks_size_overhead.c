@@ -246,7 +246,7 @@ int main(int argc, char **argv)
 
 		conf.ncpus = ncpus;
 		ret = starpu_init(&conf);
-		if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
+		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 		for (buffer = 0; buffer < total_nbuffers; buffer++)
@@ -329,6 +329,8 @@ int main(int argc, char **argv)
 	}
 
 	free(tasks);
+	for (buffer = 0; buffer < total_nbuffers; buffer++)
+		free(buffers[buffer]);
 	return EXIT_SUCCESS;
 
 enodev:
@@ -336,7 +338,8 @@ enodev:
 	/* yes, we do not perform the computation but we did detect that no one
 	 * could perform the kernel, so this is not an error from StarPU */
 error:
-	starpu_shutdown();
 	free(tasks);
+	for (buffer = 0; buffer < total_nbuffers; buffer++)
+		free(buffers[buffer]);
 	return STARPU_TEST_SKIPPED;
 }
