@@ -1513,7 +1513,7 @@ void _starpu_decrement_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
 #endif
 
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-	int reached = _starpu_barrier_counter_get_reached_start(&sched_ctx->tasks_barrier);
+	int reached = _starpu_barrier_counter_get_reached_exit(&sched_ctx->tasks_barrier);
 	int finished = reached == 1;
 
 	/* when finished decrementing the tasks if the user signaled he will not submit tasks anymore
