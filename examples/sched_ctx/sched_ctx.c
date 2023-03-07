@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -138,10 +138,7 @@ int main(void)
 	/* tell starpu when you finished submitting tasks to this context
 	   in order to allow moving resources from this context to the inheritor one
 	   when its corresponding tasks finished executing */
-#ifdef STARPU_DEVEL
-#warning FIXME: uncommnent the call starpu_sched_ctx_finished_submit
-#endif
-	//starpu_sched_ctx_finished_submit(sched_ctx1);
+	starpu_sched_ctx_finished_submit(sched_ctx1);
 
 	for (i = 0; i < ntasks/2; i++)
 	{
@@ -155,18 +152,12 @@ int main(void)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
-#ifdef STARPU_DEVEL
-#warning FIXME: uncommnent the call starpu_sched_ctx_finished_submit
-#endif
-	//starpu_sched_ctx_finished_submit(sched_ctx2);
+	starpu_sched_ctx_finished_submit(sched_ctx2);
 
 	/* wait for all tasks at the end*/
 	starpu_task_wait_for_all();
 
-#ifdef STARPU_DEVEL
-#warning FIXME: uncommnent the call starpu_sched_ctx_add_workers
-#endif
-	//starpu_sched_ctx_add_workers(procs1, nprocs1, sched_ctx2);
+	starpu_sched_ctx_add_workers(procs1, nprocs1, sched_ctx2);
 	starpu_sched_ctx_delete(sched_ctx1);
 	starpu_sched_ctx_delete(sched_ctx2);
 	printf("tasks executed %d out of %d\n", tasks_executed, ntasks);
