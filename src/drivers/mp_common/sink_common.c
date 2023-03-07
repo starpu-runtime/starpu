@@ -513,6 +513,7 @@ void _starpu_sink_common_worker(void)
 
 	_starpu_destroy_machine_config(&_starpu_config, 1);
 
+	free((char*) _starpu_config.conf.sched_policy_name);
 	if (_starpu_config.conf.n_cuda_opengl_interoperability)
 		free(_starpu_config.conf.cuda_opengl_interoperability);
 	if (_starpu_config.conf.n_not_launched_drivers)
