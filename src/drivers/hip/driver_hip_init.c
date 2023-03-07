@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -27,7 +27,7 @@ static struct _starpu_driver_info driver_info =
 #if defined(STARPU_USE_HIP)
 	.driver_ops = &_starpu_driver_hip_ops,
 	.run_worker = _starpu_hip_worker,
-#if defined(STARPU_HAVE_HWLOC) && !defined(STARPU_USE_HIP)
+#if defined(STARPU_HAVE_HWLOC)
 	.get_hwloc_obj = _starpu_hip_get_hwloc_obj,
 #endif
 	.init_worker_binding = _starpu_hip_init_worker_binding,
