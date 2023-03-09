@@ -190,10 +190,10 @@ static void set_numa_distance(int dev, unsigned numa, enum starpu_node_kind arch
 	if (nnumas <= 1)
 		return;
 
-	if (!starpu_driver_info[arch].get_hwloc_obj)
+	if (!starpu_driver_info[starpu_memory_node_get_worker_archtype(arch)].get_hwloc_obj)
 		return;
 
-	hwloc_obj_t obj = starpu_driver_info[arch].get_hwloc_obj(hwtopology, dev);
+	hwloc_obj_t obj = starpu_driver_info[starpu_memory_node_get_worker_archtype(arch)].get_hwloc_obj(hwtopology, dev);
 	if (!obj)
 		return;
 
@@ -697,8 +697,8 @@ static void measure_bandwidth_between_host_and_dev(int dev, struct dev_timing de
 #if defined(STARPU_HAVE_HWLOC)
 	hwloc_obj_t obj = NULL;
 
-	if (starpu_driver_info[type].get_hwloc_obj)
-		obj = starpu_driver_info[type].get_hwloc_obj(hwtopology, dev);
+	if (starpu_driver_info[starpu_memory_node_get_worker_archtype(type)].get_hwloc_obj)
+		obj = starpu_driver_info[starpu_memory_node_get_worker_archtype(type)].get_hwloc_obj(hwtopology, dev);
 	if (obj)
 		obj = _starpu_numa_get_obj(obj);
 	if (obj)
