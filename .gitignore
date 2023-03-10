@@ -719,6 +719,7 @@ Output_maxime/Data/FGCS
 Output_maxime/tgflops.txt
 Output_maxime/Data/Cholesky_dependances
 examples/QR/qr_without_dependancies
+Output_maxime/Data/LU/
 Output_maxime/Legende.txt
 cut_datatransfers_raw_out_csv
 Output_maxime/Data/Nb_conflit_donnee_critique.txt

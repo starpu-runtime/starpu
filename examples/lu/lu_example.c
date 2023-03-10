@@ -30,6 +30,8 @@
 #include <valgrind/valgrind.h>
 #endif
 
+#include "starpu_cusolver.h"
+
 static unsigned long size = 0;
 static unsigned nblocks = 0;
 static unsigned check = 0;
@@ -333,6 +335,8 @@ int main(int argc, char **argv)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
+	starpu_cusolver_init();
+	
 	int power = starpu_cpu_worker_get_count() + 32 * starpu_cuda_worker_get_count();
 	int power_cbrt = cbrt(power);
 #ifndef STARPU_LONG_CHECK
@@ -466,6 +470,7 @@ int main(int argc, char **argv)
 	starpu_free_flags(A, (size_t)size*size*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 #endif
 
+	starpu_cusolver_shutdown();
 	starpu_cublas_shutdown();
 
 	starpu_shutdown();

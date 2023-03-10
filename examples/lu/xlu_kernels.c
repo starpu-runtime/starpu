@@ -20,6 +20,8 @@
 #include <math.h>
 #include <complex.h>
 
+#include "starpu_cusolver.h"
+
 #ifdef STARPU_USE_CUDA
 #include <cublas.h>
 #include <starpu_cublas_v2.h>
@@ -381,6 +383,16 @@ static inline void STARPU_LU(common_u11)(void *descr[], int s, void *_args)
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
+#ifdef STARPU_HAVE_LIBCUSOLVER
+			{
+				cusolverStatus_t sstatus;
+				float *workspace = (float *)STARPU_VARIABLE_GET_PTR(descr[1]);
+				int Lwork = STARPU_VARIABLE_GET_ELEMSIZE(descr[1]);
+
+				sstatus = cusolverDnSgotrf(starpu_cusolverDn_get_local_handle(), CUBLAS_FILL_MODE_LOWER, nx, sub11, ld, workspace, Lwork, NULL);
+				STARPU_ASSERT(sstatus == CUSOLVER_STATUS_SUCCESS);
+			}
+#endif
 			/* TODO: use cusolver */
 			handle = starpu_cublas_get_local_handle();
 			stream = starpu_cuda_get_local_stream();
@@ -452,11 +464,22 @@ struct starpu_codelet cl11 =
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {STARPU_LU(cublas_u11)},
 	CAN_EXECUTE
+#  if defined(STARPU_HAVE_LIBCUSOLVER)
+	.cuda_flags = {STARPU_CUDA_ASYNC},
+#  endif
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
 #endif
+#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+	.nbuffers = 2,
+#else
 	.nbuffers = 1,
-	.modes = {STARPU_RW},
+#endif
+	.modes = { STARPU_RW
+#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+		, STARPU_SCRATCH | STARPU_NOFOOTPRINT
+#endif
+	},
 	.model = &STARPU_LU(model_11)
 };
 
