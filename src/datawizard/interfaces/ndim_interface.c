@@ -135,13 +135,27 @@ static void register_ndim_handle(starpu_data_handle_t handle, int home_node, voi
 
 static void unregister_ndim_handle(starpu_data_handle_t handle)
 {
+	unsigned home_node = starpu_data_get_home_node(handle);
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		struct starpu_ndim_interface *local_interface = (struct starpu_ndim_interface *) starpu_data_get_interface_on_node(handle, node);
 
+		if (node == home_node)
+		{
+			local_interface->ptr = 0;
+			local_interface->dev_handle = 0;
+		}
+		else
+		{
+			STARPU_ASSERT(local_interface->ptr == 0);
+			STARPU_ASSERT(local_interface->dev_handle == 0);
+		}
+
 		free(local_interface->nn);
+		local_interface->nn = NULL;
 		free(local_interface->ldn);
+		local_interface->ldn = NULL;
 	}
 }
 
