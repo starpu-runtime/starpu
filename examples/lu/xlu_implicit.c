@@ -186,6 +186,7 @@ static int dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks, uns
 
 int STARPU_LU(lu_decomposition)(TYPE *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned no_prio)
 {
+	printf("LU\n"); fflush(stdout);
 	starpu_data_handle_t dataA;
 
 	/* monitor and partition the A matrix into blocks :
