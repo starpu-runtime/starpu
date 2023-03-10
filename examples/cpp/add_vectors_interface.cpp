@@ -261,6 +261,7 @@ static struct starpu_data_interface_ops interface_vector_cpp_ops =
 	.unregister_data_handle = NULL,
 	.allocate_data_on_node = allocate_vector_cpp_buffer_on_node,
 	.free_data_on_node = free_vector_cpp_buffer_on_node,
+	.cache_data_on_node = NULL,
 	.reuse_data_on_node = NULL,
 	.map_data = NULL,
 	.unmap_data = NULL,

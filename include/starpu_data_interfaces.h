@@ -415,6 +415,31 @@ struct starpu_data_interface_ops
 	void (*free_data_on_node)(void *data_interface, unsigned node);
 
 	/**
+	   Cache the buffers from the given node to a caching interface.
+
+	   This method is optional, mostly useful when also making
+	   starpu_data_interface_ops::unregister_data_handle check that pointers are NULL.
+
+	   \p src_interface is an interface that has already has buffers
+	   allocated, but which we don't need any more. \p cached_interface
+	   is a new interface into which the buffer pointers should be
+	   transferred, for later reuse when allocating data of the same kind.
+
+	   Usually we can just memcpy over the set of pointers and descriptions
+	   (this is what StarPU does when this method is not implemented), but
+	   if unregister_data_handle checks that pointers are NULL, we need to
+	   additionally clear the pointers in \p src_interface. Also,
+	   it is not useful to copy the whole interface, only the
+	   pointers need to be copied (essentially the pointers that
+	   starpu_data_interface_ops::reuse_data_on_node will then transfer into
+	   a new handle interface)
+
+	   When this method is not defined, StarPU will just copy the \p
+	   cached_interface into \p src_interface.
+	*/
+	void (*cache_data_on_node)(void *cached_interface, void *src_interface, unsigned node);
+
+	/**
 	   Reuse on the given node the buffers of the provided interface
 
 	   This method is optional, mostly useful when also defining

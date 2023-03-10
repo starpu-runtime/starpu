@@ -34,6 +34,7 @@ static void register_vector_handle(starpu_data_handle_t handle, int home_node, v
 static starpu_ssize_t allocate_vector_buffer_on_node(void *data_interface_, unsigned dst_node);
 static void *vector_to_pointer(void *data_interface, unsigned node);
 static void free_vector_buffer_on_node(void *data_interface, unsigned node);
+static void cache_vector_buffer_on_node(void *new_data_interface, void *data_interface, unsigned node);
 static void reuse_vector_buffer_on_node(void *data_interface, const void *new_data_interface, unsigned node);
 static size_t vector_interface_get_size(starpu_data_handle_t handle);
 static size_t vector_interface_get_alloc_size(starpu_data_handle_t handle);
@@ -54,6 +55,7 @@ struct starpu_data_interface_ops starpu_interface_vector_ops =
 	.allocate_data_on_node = allocate_vector_buffer_on_node,
 	.to_pointer = vector_to_pointer,
 	.free_data_on_node = free_vector_buffer_on_node,
+	.cache_data_on_node = cache_vector_buffer_on_node,
 	.reuse_data_on_node = reuse_vector_buffer_on_node,
 	.map_data = map_vector,
 	.unmap_data = unmap_vector,
@@ -362,6 +364,19 @@ static void free_vector_buffer_on_node(void *data_interface, unsigned node)
 	starpu_free_on_node(node, vector_interface->dev_handle, vector_interface->allocsize);
 	vector_interface->ptr = 0;
 	vector_interface->dev_handle = 0;
+}
+
+static void cache_vector_buffer_on_node(void *new_data_interface, void *data_interface, unsigned node STARPU_ATTRIBUTE_UNUSED)
+{
+	struct starpu_vector_interface *new_vector_interface = new_data_interface;
+	struct starpu_vector_interface *vector_interface = data_interface;
+
+	new_vector_interface->ptr = vector_interface->ptr;
+	vector_interface->ptr = 0;
+	new_vector_interface->dev_handle = vector_interface->dev_handle;
+	vector_interface->dev_handle = 0;
+	/* TODO: isn't offset supposed to be 0 anyway? */
+	new_vector_interface->offset = vector_interface->offset;
 }
 
 static void reuse_vector_buffer_on_node(void *data_interface, const void *new_data_interface, unsigned node STARPU_ATTRIBUTE_UNUSED)
