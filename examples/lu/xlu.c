@@ -50,7 +50,7 @@ static struct starpu_task *create_task_11(starpu_data_handle_t dataA, unsigned k
 	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, k);
 	
 	#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
-	//~ task->handles[1] = STARPU_SCRATCH, scratch,
+	task->handles[1] = STARPU_SCRATCH;
 	#endif
 
 	/* this is an important task */
