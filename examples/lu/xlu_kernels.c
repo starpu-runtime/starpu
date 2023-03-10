@@ -20,11 +20,10 @@
 #include <math.h>
 #include <complex.h>
 
-#include "starpu_cusolver.h"
-
 #ifdef STARPU_USE_CUDA
 #include <cublas.h>
 #include <starpu_cublas_v2.h>
+#include "starpu_cusolver.h"
 #endif
 
 #define str(s) #s
@@ -35,6 +34,8 @@
 static const TYPE p1 =  1.0f;
 static const TYPE m1 = -1.0f;
 #endif
+
+starpu_data_handle_t scratch = NULL;
 
 /*
  *   U22
@@ -383,6 +384,7 @@ static inline void STARPU_LU(common_u11)(void *descr[], int s, void *_args)
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
+				/* TODO: use cusolver */
 #ifdef STARPU_HAVE_LIBCUSOLVER
 			{
 				cusolverStatus_t sstatus;
@@ -393,7 +395,6 @@ static inline void STARPU_LU(common_u11)(void *descr[], int s, void *_args)
 				STARPU_ASSERT(sstatus == CUSOLVER_STATUS_SUCCESS);
 			}
 #endif
-			/* TODO: use cusolver */
 			handle = starpu_cublas_get_local_handle();
 			stream = starpu_cuda_get_local_stream();
 			for (z = 0; z < nx; z++)
@@ -757,3 +758,19 @@ struct starpu_codelet cl_pivot =
 	.modes = {STARPU_RW},
 	.model = &STARPU_LU(model_pivot)
 };
+
+void lu_kernel_init(int nb)
+{
+#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+	int Lwork;
+	cusolverDnSpotrf_bufferSize(starpu_cusolverDn_get_local_handle(), CUBLAS_FILL_MODE_LOWER, nb, NULL, nb, &Lwork);
+	starpu_variable_data_register(&scratch, -1, 0, Lwork);
+#endif
+}
+
+void lu_kernel_fini(void)
+{
+#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+	starpu_data_unregister(scratch);
+#endif
+}
