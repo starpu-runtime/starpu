@@ -113,6 +113,11 @@ extern unsigned bound;
 extern unsigned bounddeps;
 extern unsigned boundprio;
 
+extern starpu_data_handle_t scratch;
+void lu_kernel_init(int nb);
+void lu_kernel_fini(void);
+
+
 struct piv_s
 {
 	unsigned *piv; /* complete pivot array */

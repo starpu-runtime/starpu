@@ -300,7 +300,11 @@ int STARPU_LU(lu_decomposition)(TYPE *matA, unsigned size, unsigned ld, unsigned
 
 	starpu_data_map_filters(dataA, 2, &f, &f2);
 
+	lu_kernel_init(size / nblocks);
+
 	int ret = dw_codelet_facto_v3(dataA, nblocks, no_prio);
+
+	lu_kernel_fini();
 
 	/* gather all the data */
 	starpu_data_unpartition(dataA, STARPU_MAIN_RAM);
