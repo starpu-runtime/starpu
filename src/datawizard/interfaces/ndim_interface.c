@@ -36,6 +36,7 @@ static void unregister_ndim_handle(starpu_data_handle_t handle);
 static void *ndim_to_pointer(void *data_interface, unsigned node);
 static starpu_ssize_t allocate_ndim_buffer_on_node(void *data_interface_, unsigned dst_node);
 static void free_ndim_buffer_on_node(void *data_interface, unsigned node);
+static void cache_ndim_buffer_on_node(void *cached_interface, void *src_data_interface, unsigned node);
 static void reuse_ndim_buffer_on_node(void *dst_data_interface, const void *cached_interface, unsigned node);
 static size_t ndim_interface_get_size(starpu_data_handle_t handle);
 static uint32_t footprint_ndim_interface_crc32(starpu_data_handle_t handle);
@@ -56,6 +57,7 @@ struct starpu_data_interface_ops starpu_interface_ndim_ops =
 	.allocate_data_on_node = allocate_ndim_buffer_on_node,
 	.to_pointer = ndim_to_pointer,
 	.free_data_on_node = free_ndim_buffer_on_node,
+	.cache_data_on_node = cache_ndim_buffer_on_node,
 	.reuse_data_on_node = reuse_ndim_buffer_on_node,
 	.map_data = map_ndim,
 	.unmap_data = unmap_ndim,
@@ -578,6 +580,19 @@ static void free_ndim_buffer_on_node(void *data_interface, unsigned node)
 	ndim_interface->dev_handle = 0;
 }
 
+static void cache_ndim_buffer_on_node(void *cached_interface, void *src_data_interface, unsigned node STARPU_ATTRIBUTE_UNUSED)
+{
+	struct starpu_ndim_interface *cached_ndarr = (struct starpu_ndim_interface *) cached_interface;
+	struct starpu_ndim_interface *src_ndarr = (struct starpu_ndim_interface *) src_data_interface;
+
+	cached_ndarr->ptr = src_ndarr->ptr;
+	src_ndarr->ptr = 0;
+	cached_ndarr->dev_handle = src_ndarr->dev_handle;
+	src_ndarr->dev_handle = 0;
+	/* TODO: isn't offset supposed to be 0 anyway? */
+	cached_ndarr->offset = src_ndarr->offset;
+}
+
 static void reuse_ndim_buffer_on_node(void *dst_data_interface, const void *cached_interface, unsigned node STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_ndim_interface *dst_ndarr = (struct starpu_ndim_interface *) dst_data_interface;
@@ -585,6 +600,7 @@ static void reuse_ndim_buffer_on_node(void *dst_data_interface, const void *cach
 
 	dst_ndarr->ptr = cached_ndarr->ptr;
 	dst_ndarr->dev_handle = cached_ndarr->dev_handle;
+	/* TODO: isn't offset supposed to be 0 anyway? */
 	dst_ndarr->offset = cached_ndarr->offset;
 
 	set_trivial_ndim_ld(dst_ndarr);

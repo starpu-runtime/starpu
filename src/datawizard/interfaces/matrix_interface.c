@@ -34,6 +34,7 @@ static void register_matrix_handle(starpu_data_handle_t handle, int home_node, v
 static void *matrix_to_pointer(void *data_interface, unsigned node);
 static starpu_ssize_t allocate_matrix_buffer_on_node(void *data_interface_, unsigned dst_node);
 static void free_matrix_buffer_on_node(void *data_interface, unsigned node);
+static void cache_matrix_buffer_on_node(void *cached_interface, void *src_data_interface, unsigned node);
 static void reuse_matrix_buffer_on_node(void *dst_data_interface, const void *cached_interface, unsigned node);
 static size_t matrix_interface_get_size(starpu_data_handle_t handle);
 static size_t matrix_interface_get_alloc_size(starpu_data_handle_t handle);
@@ -54,6 +55,7 @@ struct starpu_data_interface_ops starpu_interface_matrix_ops =
 	.allocate_data_on_node = allocate_matrix_buffer_on_node,
 	.to_pointer = matrix_to_pointer,
 	.free_data_on_node = free_matrix_buffer_on_node,
+	.cache_data_on_node = cache_matrix_buffer_on_node,
 	.reuse_data_on_node = reuse_matrix_buffer_on_node,
 	.map_data = map_matrix,
 	.unmap_data = unmap_matrix,
@@ -501,6 +503,19 @@ static void free_matrix_buffer_on_node(void *data_interface, unsigned node)
 	matrix_interface->dev_handle = 0;
 }
 
+static void cache_matrix_buffer_on_node(void *cached_interface, void *src_data_interface, unsigned node STARPU_ATTRIBUTE_UNUSED)
+{
+	struct starpu_matrix_interface *cached_matrix_interface = cached_interface;
+	struct starpu_matrix_interface *src_matrix_interface = src_data_interface;
+
+	cached_matrix_interface->ptr = src_matrix_interface->ptr;
+	src_matrix_interface->ptr = 0;
+	cached_matrix_interface->dev_handle = src_matrix_interface->dev_handle;
+	src_matrix_interface->dev_handle = 0;
+	/* TODO: isn't offset supposed to be 0 anyway? */
+	cached_matrix_interface->offset = src_matrix_interface->offset;
+}
+
 static void reuse_matrix_buffer_on_node(void *dst_data_interface, const void *cached_interface, unsigned node STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_matrix_interface *dst_matrix_interface = dst_data_interface;
@@ -508,6 +523,7 @@ static void reuse_matrix_buffer_on_node(void *dst_data_interface, const void *ca
 
 	dst_matrix_interface->ptr = cached_matrix_interface->ptr;
 	dst_matrix_interface->dev_handle = cached_matrix_interface->dev_handle;
+	/* TODO: isn't offset supposed to be 0 anyway? */
 	dst_matrix_interface->offset = cached_matrix_interface->offset;
 	dst_matrix_interface->ld = dst_matrix_interface->nx; // by default
 }

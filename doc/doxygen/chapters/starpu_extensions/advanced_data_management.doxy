@@ -33,7 +33,8 @@ of the default NX*NY*ELEMSIZE. To support this, the data interface
 has to implement the functions starpu_data_interface_ops::alloc_footprint,
 starpu_data_interface_ops::alloc_compare, and
 starpu_data_interface_ops::reuse_data_on_node for proper StarPU allocation
-management.
+management. It might be useful to implement
+starpu_data_interface_ops::cache_data_on_node, otherwise StarPU will just memcpy.
 
 A more involved case is changing the amount of allocated data.
 The task implementation can just reallocate the buffer during its execution, and
@@ -680,6 +681,9 @@ deallocate the meta-data pointers
 the data pointers on the given node.
 <li>The starpu_data_interface_ops::free_data_on_node method has to deallocate
 the data pointers on the given node.
+<li>The starpu_data_interface_ops::cache_data_on_node transfers the data
+pointers from a source interface to a cached interface. This can notably take
+the opportunity to clear pointers in the source interface.
 <li>The starpu_data_interface_ops::reuse_data_on_node transfers the data
 pointers from a cached interface to the destination interface.
 <li>The starpu_data_interface_ops::map_data has to map the data pointers on the
@@ -710,6 +714,11 @@ and cannot be used by starpu_data_interface_ops::free_data_on_node to e.g.
 compute the size to be deallocated. For instance, the n-dimension matrix
 interface uses an additional scalar allocsize field to store the allocation
 size, thus still available even when the interface is in the allocation cache.
+
+Note: if starpu_data_interface_ops::unregister_data_handle is
+implemented and checks that pointers are NULL,
+starpu_data_interface_ops::cache_data_on_node needs to be implemented to clear
+the pointers when caching the allocation.
 
 \section TheMultiformatInterface The Multiformat Interface
 

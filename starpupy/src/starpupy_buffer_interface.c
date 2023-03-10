@@ -436,6 +436,18 @@ static void pybuffer_free_bytes_data_on_node(void *data_interface, unsigned node
 	PyGILState_Release(state);
 }
 
+static void pybuffer_cache_data_on_node(void *cached_interface, void *src_data_interface, unsigned node)
+{
+	(void)node;
+	struct starpupy_buffer_interface *cached_pybuffer_interface = (struct starpupy_buffer_interface *) cached_interface;
+	struct starpupy_buffer_interface *src_pybuffer_interface = (struct starpupy_buffer_interface *) src_data_interface;
+
+	cached_pybuffer_interface->object = src_pybuffer_interface->object;
+	src_pybuffer_interface->object = NULL;
+	cached_pybuffer_interface->py_buffer = src_pybuffer_interface->py_buffer;
+	src_pybuffer_interface->py_buffer = NULL;
+}
+
 static void pybuffer_reuse_data_on_node(void *dst_data_interface, const void *cached_interface, unsigned node)
 {
 	(void)node;
@@ -729,6 +741,7 @@ static struct starpu_data_interface_ops interface_pybuffer_ops =
 	.unregister_data_handle = pybuffer_unregister_data_handle,
 	.allocate_data_on_node = pybuffer_allocate_data_on_node,
 	.free_data_on_node = pybuffer_free_data_on_node,
+	.cache_data_on_node = pybuffer_cache_data_on_node,
 	.reuse_data_on_node = pybuffer_reuse_data_on_node,
 	.map_data = pybuffer_map_data,
 	.unmap_data = pybuffer_unmap_data,
@@ -759,6 +772,7 @@ static struct starpu_data_interface_ops interface_pybuffer_bytes_ops =
 	.unregister_data_handle = pybuffer_unregister_data_handle,
 	.allocate_data_on_node = pybuffer_allocate_bytes_data_on_node,
 	.free_data_on_node = pybuffer_free_bytes_data_on_node,
+	.cache_data_on_node = pybuffer_cache_data_on_node,
 	.reuse_data_on_node = pybuffer_reuse_data_on_node,
 	.get_size = pybuffer_get_size,
 	.interfaceid = STARPU_UNKNOWN_INTERFACE_ID,
