@@ -589,6 +589,7 @@ static void cache_ndim_buffer_on_node(void *cached_interface, void *src_data_int
 	src_ndarr->ptr = 0;
 	cached_ndarr->dev_handle = src_ndarr->dev_handle;
 	src_ndarr->dev_handle = 0;
+	cached_ndarr->allocsize = src_ndarr->allocsize;
 	/* TODO: isn't offset supposed to be 0 anyway? */
 	cached_ndarr->offset = src_ndarr->offset;
 }
