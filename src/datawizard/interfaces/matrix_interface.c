@@ -512,6 +512,7 @@ static void cache_matrix_buffer_on_node(void *cached_interface, void *src_data_i
 	src_matrix_interface->ptr = 0;
 	cached_matrix_interface->dev_handle = src_matrix_interface->dev_handle;
 	src_matrix_interface->dev_handle = 0;
+	cached_matrix_interface->allocsize = src_matrix_interface->allocsize;
 	/* TODO: isn't offset supposed to be 0 anyway? */
 	cached_matrix_interface->offset = src_matrix_interface->offset;
 }

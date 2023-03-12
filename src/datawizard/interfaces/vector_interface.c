@@ -375,6 +375,7 @@ static void cache_vector_buffer_on_node(void *new_data_interface, void *data_int
 	vector_interface->ptr = 0;
 	new_vector_interface->dev_handle = vector_interface->dev_handle;
 	vector_interface->dev_handle = 0;
+	new_vector_interface->allocsize = vector_interface->allocsize;
 	/* TODO: isn't offset supposed to be 0 anyway? */
 	new_vector_interface->offset = vector_interface->offset;
 }
