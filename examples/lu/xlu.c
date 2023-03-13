@@ -25,6 +25,11 @@
  *	Construct the DAG
  */
 
+//starpu_data_handle_t scratch = NULL;
+
+int niter;
+int current_iteration;
+
 static struct starpu_task *create_task(starpu_tag_t id)
 {
 	struct starpu_task *task = starpu_task_create();
@@ -50,7 +55,7 @@ static struct starpu_task *create_task_11(starpu_data_handle_t dataA, unsigned k
 	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, k);
 	
 	#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
-	task->handles[1] = STARPU_SCRATCH;
+	task->handles[1] = scratch;
 	#endif
 
 	/* this is an important task */
@@ -243,11 +248,15 @@ static int dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks, uns
 	/* stall the application until the end of computations */
 	starpu_tag_wait(TAG11(nblocks-1));
 
+	//starpu_task_wait_for_all();
 	end = starpu_timing_now();
 
 	if (bound)
 		starpu_bound_stop();
 
+
+	//if (current_iteration != 0)
+	//{
 	double timing = end - start;
 	unsigned n = starpu_matrix_get_nx(dataA);
 	double flop = (2.0f*n*n*n)/3.0f;
@@ -264,6 +273,7 @@ static int dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks, uns
 		PRINTF("\t%.0f\t%.1f", min, flop/min/1000000.0f);
 	}
 	PRINTF("\n");
+	//}
 
 	return 0;
 }
@@ -295,8 +305,16 @@ int STARPU_LU(lu_decomposition)(TYPE *matA, unsigned size, unsigned ld, unsigned
 	starpu_data_map_filters(dataA, 2, &f, &f2);
 
 	lu_kernel_init(size / nblocks);
-
-	int ret = dw_codelet_facto_v3(dataA, nblocks, no_prio);
+	
+	/*niter = 2;
+	current_iteration = 0;
+	int i = 0;
+	int ret = 0;
+	for (i = 0; i < niter; i++)
+	{ */
+		int ret = dw_codelet_facto_v3(dataA, nblocks, no_prio);
+		//current_iteration++;
+	//}
 
 	lu_kernel_fini();
 

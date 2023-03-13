@@ -414,7 +414,7 @@ int main(int argc, char **argv)
 	}
 	else
 #endif
-	{
+	{	
 		ret = STARPU_LU(lu_decomposition)(A, size, size, nblocks, no_prio);
 	}
 
