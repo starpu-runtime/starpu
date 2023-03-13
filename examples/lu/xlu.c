@@ -39,7 +39,6 @@ static struct starpu_task *create_task(starpu_tag_t id)
 static struct starpu_task *create_task_11(starpu_data_handle_t dataA, unsigned k, unsigned no_prio, int nblocks)
 {
 /*	printf("task 11 k = %d TAG = %llx\n", k, (TAG11(k))); */
-	//~ printf("Task 11\n"); fflush(stdout);
 	
 	struct starpu_task *task = create_task(TAG11(k));
 
@@ -58,7 +57,6 @@ static struct starpu_task *create_task_11(starpu_data_handle_t dataA, unsigned k
 	{
 		//~ task->priority = STARPU_MAX_PRIO; /* Ancienne prio */
 		task->priority = 3*nblocks - 3*k; /* Replacing old prio with prio BL */
-		//~ printf("%d\n", task->priority);
 	}
 		
 	/* enforce dependencies ... */
