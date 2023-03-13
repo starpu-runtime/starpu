@@ -87,6 +87,8 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	
 	start = starpu_timing_now();  /* Cas dep == 1 */
 	
+	starpu_fxt_trace_user_event_string("Timing Now");
+
 	if (graph_descendants == 1)
 	{
 		starpu_pause(); /* Version sans dépendances ou pour GRAPH_DESCENDANTS */
@@ -226,6 +228,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		starpu_resume(); /* Version avec dépendances ou GRAPH_DESCENDANTS */
 	}
 		
+	starpu_fxt_trace_user_event_string("Before Wait For All");
 	/* Cas dep == 1 */
 	starpu_task_wait_for_all();
 	end = starpu_timing_now();
@@ -285,7 +288,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		else
 		{	
 			/* To get flops max */
-			//~ printf("flop: %f\n", flop); fflush(stdout);	
+	//		printf("flop: %f\n", flop); fflush(stdout);	
 			
 			PRINTF("# size\tms\tGFlops");
 			if (bound_p)
@@ -501,8 +504,8 @@ int main(int argc, char **argv)
 	graph_descendants = starpu_get_env_number_default("GRAPH_DESCENDANTS", 0);
 	
 	average_flop = 0;
-	niter = 1; /* Pour changer le nombre d'itérations */
-	//~ niter = 2; /* Pour changer le nombre d'itérations */
+	//niter = 1; /* Pour changer le nombre d'itérations */
+	niter = 2; /* Pour changer le nombre d'itérations */
 	//~ niter = 4; /* Pour changer le nombre d'itérations */
 	//~ niter = 11; /* Pour changer le nombre d'itérations */
 	current_iteration = 1;
