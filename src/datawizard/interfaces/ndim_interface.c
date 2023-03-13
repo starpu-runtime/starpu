@@ -590,8 +590,7 @@ static void cache_ndim_buffer_on_node(void *cached_interface, void *src_data_int
 	cached_ndarr->dev_handle = src_ndarr->dev_handle;
 	src_ndarr->dev_handle = 0;
 	cached_ndarr->allocsize = src_ndarr->allocsize;
-	/* TODO: isn't offset supposed to be 0 anyway? */
-	cached_ndarr->offset = src_ndarr->offset;
+	STARPU_ASSERT(src_ndarr->offset == 0);
 }
 
 static void reuse_ndim_buffer_on_node(void *dst_data_interface, const void *cached_interface, unsigned node STARPU_ATTRIBUTE_UNUSED)
@@ -601,8 +600,7 @@ static void reuse_ndim_buffer_on_node(void *dst_data_interface, const void *cach
 
 	dst_ndarr->ptr = cached_ndarr->ptr;
 	dst_ndarr->dev_handle = cached_ndarr->dev_handle;
-	/* TODO: isn't offset supposed to be 0 anyway? */
-	dst_ndarr->offset = cached_ndarr->offset;
+	dst_ndarr->offset = 0;
 
 	set_trivial_ndim_ld(dst_ndarr);
 }

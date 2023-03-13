@@ -376,8 +376,7 @@ static void cache_vector_buffer_on_node(void *new_data_interface, void *data_int
 	new_vector_interface->dev_handle = vector_interface->dev_handle;
 	vector_interface->dev_handle = 0;
 	new_vector_interface->allocsize = vector_interface->allocsize;
-	/* TODO: isn't offset supposed to be 0 anyway? */
-	new_vector_interface->offset = vector_interface->offset;
+	STARPU_ASSERT(vector_interface->offset == 0);
 }
 
 static void reuse_vector_buffer_on_node(void *data_interface, const void *new_data_interface, unsigned node STARPU_ATTRIBUTE_UNUSED)
@@ -387,7 +386,7 @@ static void reuse_vector_buffer_on_node(void *data_interface, const void *new_da
 
 	vector_interface->ptr = new_vector_interface->ptr;
 	vector_interface->dev_handle = new_vector_interface->dev_handle;
-	vector_interface->offset = new_vector_interface->offset;
+	vector_interface->offset = 0;
 }
 
 static int map_vector(void *src_interface, unsigned src_node,

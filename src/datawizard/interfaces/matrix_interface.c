@@ -513,8 +513,7 @@ static void cache_matrix_buffer_on_node(void *cached_interface, void *src_data_i
 	cached_matrix_interface->dev_handle = src_matrix_interface->dev_handle;
 	src_matrix_interface->dev_handle = 0;
 	cached_matrix_interface->allocsize = src_matrix_interface->allocsize;
-	/* TODO: isn't offset supposed to be 0 anyway? */
-	cached_matrix_interface->offset = src_matrix_interface->offset;
+	STARPU_ASSERT(src_matrix_interface->offset == 0);
 }
 
 static void reuse_matrix_buffer_on_node(void *dst_data_interface, const void *cached_interface, unsigned node STARPU_ATTRIBUTE_UNUSED)
@@ -524,8 +523,7 @@ static void reuse_matrix_buffer_on_node(void *dst_data_interface, const void *ca
 
 	dst_matrix_interface->ptr = cached_matrix_interface->ptr;
 	dst_matrix_interface->dev_handle = cached_matrix_interface->dev_handle;
-	/* TODO: isn't offset supposed to be 0 anyway? */
-	dst_matrix_interface->offset = cached_matrix_interface->offset;
+	dst_matrix_interface->offset = 0;
 	dst_matrix_interface->ld = dst_matrix_interface->nx; // by default
 }
 
