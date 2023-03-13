@@ -90,9 +90,7 @@ static int create_task_12(starpu_data_handle_t dataA, unsigned k, unsigned j, un
 	if (!no_prio)
 	{
 		//~ task->priority = STARPU_MAX_PRIO;
-		//~ task->priority = 3*nblocks - (k + n + m); /* Replacing old prio with prio BL */
-		task->priority = 3*nblocks - (k + j); /* Replacing old prio with prio BL */
-		//~ printf("%d\n", task->priority);
+		task->priority = 3*nblocks - (2*k + j); /* Replacing old prio with prio BL. "m" is "j" here */
 	}
 
 	/* enforce dependencies ... */
@@ -112,7 +110,6 @@ static int create_task_12(starpu_data_handle_t dataA, unsigned k, unsigned j, un
 
 static int create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned no_prio, int nblocks)
 {
-	//~ printf("Task 21\n"); fflush(stdout);
 	int ret;
 	struct starpu_task *task = create_task(TAG21(k, i));
 
@@ -128,7 +125,6 @@ static int create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned i, un
 	{
 		//~ task->priority = STARPU_MAX_PRIO;
 		task->priority = 3*nblocks - (2*k + i); /* Replacing old prio with prio BL. "m" is "i" here */
-		//~ printf("%d\n", task->priority);
 	}
 
 	/* enforce dependencies ... */
@@ -148,7 +144,6 @@ static int create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned i, un
 
 static int create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned j, unsigned no_prio, int nblocks)
 {
-	//~ printf("Task 22\n"); fflush(stdout);
 	int ret;
 
 /*	printf("task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22(k,i,j)); */
@@ -168,7 +163,6 @@ static int create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, un
 	{
 		//~ task->priority = STARPU_MAX_PRIO;
 		task->priority = 3*nblocks - (k + i + j); /* Replacing old prio with prio BL. "m" is "j" and "n" is "i" */
-		//~ printf("%d\n", task->priority);
 	}
 
 	/* enforce dependencies ... */

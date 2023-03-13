@@ -389,9 +389,9 @@ static inline void STARPU_LU(common_u11)(void *descr[], int s, void *_args)
 			{
 				cusolverStatus_t sstatus;
 				float *workspace = (float *)STARPU_VARIABLE_GET_PTR(descr[1]);
-				int Lwork = STARPU_VARIABLE_GET_ELEMSIZE(descr[1]);
+				//~ int Lwork = STARPU_VARIABLE_GET_ELEMSIZE(descr[1]);
 
-				sstatus = cusolverDnSgetrf(starpu_cusolverDn_get_local_handle(), CUBLAS_FILL_MODE_LOWER, nx, sub11, ld, workspace, Lwork, NULL);
+				sstatus = cusolverDnSgetrf(starpu_cusolverDn_get_local_handle(), nx, nx, sub11, ld, workspace, NULL, NULL);
 				STARPU_ASSERT(sstatus == CUSOLVER_STATUS_SUCCESS);
 			}
 #endif
@@ -763,7 +763,7 @@ void lu_kernel_init(int nb)
 {
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
 	int Lwork;
-	cusolverDnSgetrf_bufferSize(starpu_cusolverDn_get_local_handle(), CUBLAS_FILL_MODE_LOWER, nb, NULL, nb, &Lwork);
+	cusolverDnSgetrf_bufferSize(starpu_cusolverDn_get_local_handle(), nb, nb, NULL, nb, &Lwork);
 	starpu_variable_data_register(&scratch, -1, 0, Lwork);
 #endif
 }

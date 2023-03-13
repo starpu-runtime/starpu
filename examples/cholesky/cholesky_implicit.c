@@ -87,7 +87,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	
 	start = starpu_timing_now();  /* Cas dep == 1 */
 	
-	starpu_fxt_trace_user_event_string("Timing Now");
+	//~ starpu_fxt_trace_user_event_string("Timing Now");
 
 	if (graph_descendants == 1)
 	{
@@ -228,7 +228,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		starpu_resume(); /* Version avec dépendances ou GRAPH_DESCENDANTS */
 	}
 		
-	starpu_fxt_trace_user_event_string("Before Wait For All");
+	//~ starpu_fxt_trace_user_event_string("Before Wait For All");
 	/* Cas dep == 1 */
 	starpu_task_wait_for_all();
 	end = starpu_timing_now();
