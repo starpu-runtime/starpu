@@ -43,6 +43,9 @@ int graph_descendants;
 
 /* To avegrage on 11 iteration and ignoring the first one. */
 double average_flop;
+double timing_total;
+double timing_square;
+double flop_total;
 int niter;
 int current_iteration;
 
@@ -271,18 +274,24 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 			if (current_iteration != 1)
 			{
 				average_flop += flop/timing/1000.0f;
+				timing_total += end - start;
+				flop_total += flop;
+				timing_square += (end-start) * (end-start);
 			}
 			if (current_iteration == niter)
 			{
 				average_flop = average_flop/(niter - 1);
+				
+				double average = timing_total/(niter - 1);
+				double deviation = sqrt(fabs(timing_square / (niter - 1) - average*average));
 			
-				PRINTF("# size\tms\tGFlops");
+				PRINTF("# size\tms\tGFlops\tDeviance");
 				if (bound_p)
 					PRINTF("\tTms\tTGFlops");
 				PRINTF("\n");
 
 				//~ PRINTF("%lu\t%.0f\t%.1f", nx, timing/1000, (flop/timing/1000.0f));
-				PRINTF("%lu\t%.0f\t%.1f", nx, timing/1000, average_flop);
+				PRINTF("%lu\t%.0f\t%.1f\t%.1f", nx, timing/1000, average_flop, flop/(niter-1)/(average*average)*deviation/1000.0);
 				PRINTF("\n");
 			}
 		}
@@ -508,6 +517,9 @@ int main(int argc, char **argv)
 	//niter = 1; /* Pour changer le nombre d'itérations */
 	niter = 11;
 	current_iteration = 1;
+	timing_total = 0;
+	flop_total = 0;
+	timing_square = 0;
 	
 #ifdef STARPU_HAVE_MAGMA
 	magma_init();
