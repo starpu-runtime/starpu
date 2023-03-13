@@ -469,12 +469,34 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 	int i = 0;
 	int j = 0;
 				
+/*	
+	unsigned sched_ctx_id = 0;
+	perf_arch = starpu_worker_get_perf_archtype(0, sched_ctx_id);
+	printf("New task %s, length: %f\n", starpu_task_get_name(task), starpu_task_expected_length(task, perf_arch, 0)); fflush(stdout);
+	
+	perf_arch = starpu_worker_get_perf_archtype(1, sched_ctx_id);
+	printf("New task %s, length: %f\n", starpu_task_get_name(task), starpu_task_expected_length(task, perf_arch, 0)); fflush(stdout);
+		
+	perf_arch = starpu_worker_get_perf_archtype(2, sched_ctx_id);
+	printf("New task %s, length: %f\n", starpu_task_get_name(task), starpu_task_expected_length(task, perf_arch, 0)); fflush(stdout);
+	
+	perf_arch = starpu_worker_get_perf_archtype(3, sched_ctx_id);
+	printf("New task %s, length: %f\n", starpu_task_get_name(task), starpu_task_expected_length(task, perf_arch, 0)); fflush(stdout);
+	
+	perf_arch = starpu_worker_get_perf_archtype(4, sched_ctx_id);
+	printf("New task %s, length: %f\n", starpu_task_get_name(task), starpu_task_expected_length(task, perf_arch, 0)); fflush(stdout);
+	
+	perf_arch = starpu_worker_get_perf_archtype(5, sched_ctx_id);
+	printf("New task %s, length: %f\n", starpu_task_get_name(task), starpu_task_expected_length(task, perf_arch, 0)); fflush(stdout);
+	
+	perf_arch = starpu_worker_get_perf_archtype(6, sched_ctx_id);
+	printf("New task %s, length: %f\n", starpu_task_get_name(task), starpu_task_expected_length(task, perf_arch, 0)); fflush(stdout);
+	
+	perf_arch = starpu_worker_get_perf_archtype(7, sched_ctx_id);
+	printf("New task %s, length: %f\n", starpu_task_get_name(task), starpu_task_expected_length(task, perf_arch, 0)); fflush(stdout);
+*/	
+
 	#ifdef PRINT
-	//~ unsigned sched_ctx_id = 0;
-	/* To get time of a task depending on the GPU */
-	//~ perf_arch = starpu_worker_get_perf_archtype(0, sched_ctx_id);
-	//~ printf("New task %p (%s, prio: %d, length: %f) in push_task with data(s):", task, starpu_task_get_name(task), task->priority, starpu_task_expected_length(task, perf_arch, 0)); fflush(stdout);
-	//~ printf("\n"); fflush(stdout);
 	printf("New task %p (%s, prio: %d, length: %f) in push_task with data(s):", task, starpu_task_get_name(task), task->priority, starpu_task_expected_length(task, perf_arch, 0)); fflush(stdout);
 	for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 	{
