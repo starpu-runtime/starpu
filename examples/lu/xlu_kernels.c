@@ -389,8 +389,6 @@ static inline void STARPU_LU(common_u11)(void *descr[], int s, void *_args)
 			{
 				cusolverStatus_t sstatus;
 				float *workspace = (float *)STARPU_VARIABLE_GET_PTR(descr[1]);
-				//~ int Lwork = STARPU_VARIABLE_GET_ELEMSIZE(descr[1]);
-
 				sstatus = cusolverDnSgetrf(starpu_cusolverDn_get_local_handle(), nx, nx, sub11, ld, workspace, NULL, NULL);
 				STARPU_ASSERT(sstatus == CUSOLVER_STATUS_SUCCESS);
 			}
