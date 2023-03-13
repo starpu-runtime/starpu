@@ -420,7 +420,7 @@ struct starpu_data_interface_ops
 	   This method is optional, mostly useful when also making
 	   starpu_data_interface_ops::unregister_data_handle check that pointers are NULL.
 
-	   \p src_interface is an interface that has already has buffers
+	   \p src_interface is an interface that already has buffers
 	   allocated, but which we don't need any more. \p cached_interface
 	   is a new interface into which the buffer pointers should be
 	   transferred, for later reuse when allocating data of the same kind.
