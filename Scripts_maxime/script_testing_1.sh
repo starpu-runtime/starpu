@@ -73,14 +73,14 @@ export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
 
 #~ N=3
 #~ N=4
-N=5
+#~ N=5
 #~ N=10
 #~ N=15
 #~ N=20
 #~ N=25
 #~ N=30
 #~ N=35
-#~ N=40
+N=40
 #~ N=45
 #~ N=50
 #~ N=55
@@ -89,12 +89,12 @@ N=5
 #~ N=70
 
 #~ NGPU=1
-NGPU=2
-#~ NGPU=4
+#~ NGPU=2
+NGPU=4
 #~ NGPU=8
 
-ORDO="dynamic-data-aware"
-#~ ORDO="dmdar"
+#~ ORDO="dynamic-data-aware"
+ORDO="dmdar"
 #~ ORDO="lws"
 #~ ORDO="graph_test" # STARPU_SCHED_GRAPH_TEST_DESCENDANTS= 0 ou 1 pour activer les descendants
 #~ ORDO="dmdas"
@@ -129,7 +129,8 @@ CP=5 # CUDA_PIPELINE
 #~ HOST="gemini-1-fgcs"
 #~ HOST="gemini-1-fgcs-36"
 #~ HOST="gemini-1-cho_dep"
-HOST="gemini-1-cho_dep_corrected"
+#~ HOST="gemini-1-cho_dep_corrected"
+HOST="gemini-1-lu_sans_cusolver"
 
 SEED=1
 
@@ -228,9 +229,10 @@ THRESHOLD=0
 #~ APPLICATION="./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) -no-prio"
 #~ APPLICATION="./examples/cholesky/cholesky_implicit -size $((${TAILLE_TUILE}*N)) -nblocks $((N)) -bound"
 #~ APPLICATION="./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 11"
-APPLICATION="./examples/lu/lu_example_double -size $((${TAILLE_TUILE}*N)) -nblocks $((N))"
+#~ APPLICATION="./examples/lu/lu_example_double -size $((${TAILLE_TUILE}*N)) -nblocks $((N))"
+APPLICATION="./examples/lu/lu_example_double -size $((${TAILLE_TUILE}*N)) -nblocks $((N)) -bound"
 
-echo -e "\nN=${N} - NGPU=${NGPU} - TAILLE_TUILE=${TAILLE_TUILE} - SCHEDULER=${ORDO} - STARPU_NTASKS_THRESHOLD=${TH} - STARPU_CUDA_PIPELINE=${CP} - HOST=${HOST} - APPLICATION=${APPLICATION}\n"
+echo -e "\nN=${N} - NGPU=${NGPU} - TAILLE_TUILE=${TAILLE_TUILE} - SCHEDULER=${ORDO} - STARPU_NTASKS_THRESHOLD=${TH} - STARPU_CUDA_PIPELINE=${CP} - HOST=${HOST} - APPLICATION=${APPLICATION} CUDA_MEM=${CM}\n"
 
 # DMDAR - Cholesky avec dépendances
 PRIORITY_ATTRIBUTION=$((PRIORITY_ATTRIBUTION)) STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_HOSTNAME=${HOST} STARPU_SCHED=${ORDO} STARPU_NTASKS_THRESHOLD=10 STARPU_CUDA_PIPELINE=5 STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_EXPECTED_TRANSFER_TIME_WRITEBACK=1 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 ${APPLICATION}

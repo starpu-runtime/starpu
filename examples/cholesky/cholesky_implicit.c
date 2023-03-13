@@ -281,7 +281,8 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 					PRINTF("\tTms\tTGFlops");
 				PRINTF("\n");
 
-				PRINTF("%lu\t%.0f\t%.1f", nx, timing/1000, (flop/timing/1000.0f));
+				//~ PRINTF("%lu\t%.0f\t%.1f", nx, timing/1000, (flop/timing/1000.0f));
+				PRINTF("%lu\t%.0f\t%.1f", nx, timing/1000, average_flop);
 				PRINTF("\n");
 			}
 		}
@@ -505,9 +506,7 @@ int main(int argc, char **argv)
 	
 	average_flop = 0;
 	//niter = 1; /* Pour changer le nombre d'itérations */
-	niter = 2; /* Pour changer le nombre d'itérations */
-	//~ niter = 4; /* Pour changer le nombre d'itérations */
-	//~ niter = 11; /* Pour changer le nombre d'itérations */
+	niter = 11;
 	current_iteration = 1;
 	
 #ifdef STARPU_HAVE_MAGMA
