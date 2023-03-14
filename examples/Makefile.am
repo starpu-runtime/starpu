@@ -345,6 +345,12 @@ STARPU_EXAMPLES +=				\
 	mult/dgemm
 endif
 
+if STARPU_USE_HIPBLAS
+STARPU_EXAMPLES +=				\
+	mult/sgemm 				\
+	mult/dgemm
+endif
+
 if !STARPU_NO_BLAS_LIB
 STARPU_EXAMPLES +=				\
 	mult/sgemm 				\

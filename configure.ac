@@ -1861,13 +1861,26 @@ fi
 if test x$have_valid_hip = xyes; then
     SAVED_CPPFLAGS="$CPPFLAGS"
     CPPFLAGS="${CPPFLAGS} $STARPU_HIP_CPPFLAGS"
-    AC_CHECK_HEADER([hip/hip_runtime.h],[have_valid_hip=yes],[have_valid_hip=no])
-    AC_CHECK_HEADER([hip/hip_runtime_api.h],[have_valid_hip=yes],[have_valid_hip=no])
-    AC_CHECK_HEADER([hipblas/hipblas.h],[have_valid_hip=yes],[have_valid_hip=no])
-    AC_CHECK_HEADER([rocblas/rocblas.h],[have_valid_hip=yes],[have_valid_hip=no])
-    AC_HAVE_LIBRARY([hipblas],[have_valid_hip=yes],[have_valid_hip=no])
-    AC_HAVE_LIBRARY([rocblas],[have_valid_hip=yes],[have_valid_hip=no])
-    #unset ac_cv_lib_cublas_main
+    AC_CHECK_HEADERS([hip/hip_runtime.h hip/hip_runtime_api.h],[have_valid_hip=yes],[have_valid_hip=no])
+    AC_CHECK_HEADER([hipblas/hipblas.h],[have_valid_hipblas=yes],[have_valid_hipblas=no])
+    if test x$have_valid_hipblas = xyes; then
+        AC_HAVE_LIBRARY([hipblas],[have_valid_hipblas=yes],[have_valid_hipblas=no])
+    fi
+    if test "$HIP_PLATFORM" = "amd"; then
+        if test x$have_valid_hipblas = xyes; then
+            AC_CHECK_HEADERS([rocblas/rocblas.h],[have_valid_hipblas=yes],[have_valid_hipblas=no])
+        fi
+        if test x$have_valid_hipblas = xyes; then
+            AC_HAVE_LIBRARY([rocblas],[have_valid_hipblas=yes],[have_valid_hipblas=no])
+        fi
+    fi
+    AM_CONDITIONAL(STARPU_USE_HIPBLAS, test x$have_valid_hipblas = xyes)
+    if test x$have_valid_hipblas = xyes; then
+        AC_DEFINE([STARPU_USE_HIPBLAS], [1], [HIPBLAS support is enabled])
+        STARPU_HIP_LDFLAGS="-lhipblas"
+    else
+        AC_MSG_WARN(['hipblas' not found, disabling HIP examples])
+    fi
     CPPFLAGS="${SAVED_CPPFLAGS}"
 fi
 
@@ -1921,10 +1934,10 @@ enable_hip=$have_valid_hip
 if test "x$enable_hip" = xyes; then
         AC_DEFINE(STARPU_USE_HIP,[1],[Define to 1 if the HIP driver is to be tested])
         if test "$HIP_PLATFORM" = "nvidia"; then
-                STARPU_HIP_LDFLAGS="-L$HIP_LIB_DIR -lhipblas -lcuda -lcudart -lcublas"
+                STARPU_HIP_LDFLAGS="$STARPU_HIP_LDFLAGS -L$HIP_LIB_DIR -lcuda -lcudart -lcublas -lstdc++"
         fi
         if test "$HIP_PLATFORM" = "amd"; then
-	        STARPU_HIP_LDFLAGS="-L$HIP_LIB_DIR -lamdhip64 -lstdc++ -lhipblas"
+	        STARPU_HIP_LDFLAGS="$STARPU_HIP_LDFLAGS -L$HIP_LIB_DIR -lamdhip64 -lstdc++"
         fi
 
         AC_ARG_ENABLE(hip_memcpy_peer, [AS_HELP_STRING([--disable-hip-memcpy-peer], [if you want to disable peer transfers when using hip])],, [enable_hip_memcpy_peer=$enable_hip])
