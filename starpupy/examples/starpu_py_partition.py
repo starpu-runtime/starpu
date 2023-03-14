@@ -63,7 +63,7 @@ def add(a,b):
 	np.add(a,b,out=a)
 
 for i in range(split_num):
-	starpu.task_submit(ret_handle=True,ret_fut=False)(add, arr_h_list[i], arr_h_list[i])
+	starpu.task_submit(ret_handle=False,ret_fut=False)(add, arr_h_list[i], arr_h_list[i])
 
 # async def main():
 # 	for i in range(split_num):
