@@ -25,11 +25,6 @@
  *	Construct the DAG
  */
 
-//starpu_data_handle_t scratch = NULL;
-
-int niter;
-int current_iteration;
-
 static struct starpu_task *create_task(starpu_tag_t id)
 {
 	struct starpu_task *task = starpu_task_create();

@@ -334,8 +334,6 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-
-	starpu_cusolver_init();
 	
 	int power = starpu_cpu_worker_get_count() + 32 * starpu_cuda_worker_get_count();
 	int power_cbrt = cbrt(power);
@@ -365,7 +363,11 @@ int main(int argc, char **argv)
 #endif
 
 	starpu_cublas_init();
+	starpu_cusolver_init();
 
+	int niter = 2;
+	int i = 0;
+	
 	init_matrix();
 
 #ifndef STARPU_SIMGRID
@@ -377,7 +379,7 @@ int main(int argc, char **argv)
 
 	if (profile)
 		starpu_profiling_status_set(STARPU_PROFILING_ENABLE);
-
+	
 	/* Factorize the matrix (in place) */
 	if (pivot)
 	{
@@ -414,7 +416,7 @@ int main(int argc, char **argv)
 	}
 	else
 #endif
-	{	
+	{
 		ret = STARPU_LU(lu_decomposition)(A, size, size, nblocks, no_prio);
 	}
 

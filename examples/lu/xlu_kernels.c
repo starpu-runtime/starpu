@@ -463,9 +463,9 @@ struct starpu_codelet cl11 =
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {STARPU_LU(cublas_u11)},
 	CAN_EXECUTE
-#  if defined(STARPU_HAVE_LIBCUSOLVER)
+#if defined(STARPU_HAVE_LIBCUSOLVER)
 	.cuda_flags = {STARPU_CUDA_ASYNC},
-#  endif
+#endif
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
 #endif
@@ -645,11 +645,22 @@ struct starpu_codelet cl11_pivot =
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {STARPU_LU(cublas_u11_pivot)},
 	CAN_EXECUTE
+#if defined(STARPU_HAVE_LIBCUSOLVER)
+	.cuda_flags = {STARPU_CUDA_ASYNC},
+#endif
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
 #endif
+#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+	.nbuffers = 2,
+#else
 	.nbuffers = 1,
-	.modes = {STARPU_RW},
+#endif
+	.modes = {STARPU_RW
+#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+		, STARPU_SCRATCH | STARPU_NOFOOTPRINT
+#endif
+},
 	.model = &STARPU_LU(model_11_pivot)
 };
 
