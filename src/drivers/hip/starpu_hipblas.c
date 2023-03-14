@@ -27,6 +27,11 @@
 #include <rocblas/rocblas.h>
 #endif
 
+#ifdef STARPU_HIP_PLATFORM_NVIDIA
+#include <cublas.h>
+#endif
+
+#ifdef STARPU_USE_HIPBLAS
 static int hipblas_initialized[STARPU_NMAXWORKERS];
 static hipblasHandle_t hipblas_handles[STARPU_NMAXWORKERS];
 static hipblasHandle_t main_handle;
@@ -86,10 +91,11 @@ static void shutdown_hipblas_func(void *args STARPU_ATTRIBUTE_UNUSED)
 	hipblasDestroy(hipblas_handles[starpu_worker_get_id_check()]);
 }
 #endif
+#endif /* STARPU_USE_HIPBLAS */
 
 void starpu_hipblas_init(void)
 {
-#ifdef STARPU_USE_HIP
+#ifdef STARPU_USE_HIPBLAS
 	starpu_execute_on_each_worker(init_hipblas_func, NULL, STARPU_HIP);
 
 	if (hipblasCreate(&main_handle) != HIPBLAS_STATUS_SUCCESS)
@@ -99,7 +105,7 @@ void starpu_hipblas_init(void)
 
 void starpu_hipblas_shutdown(void)
 {
-#ifdef STARPU_USE_HIP
+#ifdef STARPU_USE_HIPBLAS
 	starpu_execute_on_each_worker(shutdown_hipblas_func, NULL, STARPU_HIP);
 
 	if (main_handle)
@@ -109,7 +115,7 @@ void starpu_hipblas_shutdown(void)
 
 void starpu_hipblas_set_stream(void)
 {
-#ifdef STARPU_USE_HIP
+#ifdef STARPU_USE_HIPBLAS
 	unsigned workerid = starpu_worker_get_id_check();
 	int devnum = starpu_worker_get_devnum(workerid);
 	if (!_starpu_get_machine_config()->topology.hip_th_per_dev ||
@@ -119,7 +125,7 @@ void starpu_hipblas_set_stream(void)
 #endif
 }
 
-#ifdef STARPU_USE_HIP
+#ifdef STARPU_USE_HIPBLAS
 hipblasHandle_t starpu_hipblas_get_local_handle(void)
 {
 	int workerid = starpu_worker_get_id();

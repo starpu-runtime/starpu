@@ -1629,6 +1629,7 @@ hwloc_obj_t _starpu_hip_get_hwloc_obj(hwloc_topology_t topology, int devid)
 
 void starpu_hipblas_report_error(const char *func, const char *file, int line, int status)
 {
+#ifdef STARPU_USE_HIPBLAS
         char *errormsg;
         switch (status)
         {
@@ -1658,6 +1659,7 @@ void starpu_hipblas_report_error(const char *func, const char *file, int line, i
                         break;
         }
         _STARPU_MSG("oops in %s (%s:%d)... %d: %s \n", func, file, line, status, errormsg);
+#endif
         STARPU_ABORT();
 }
 
