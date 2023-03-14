@@ -28,6 +28,10 @@
 #define CUBLAS_SWAP	cublasDswap
 #define CUBLAS_IAMAX	cublasIdamax
 
+
+#define CUSOLVER_GETRF  cusolverDnDgetrf
+
+#define CUSOLVER_GETRF_BUFFERSIZE cusolverDnDgetrf_bufferSize
 #define CPU_GEMM	STARPU_DGEMM
 #define CPU_TRSM	STARPU_DTRSM
 #define CPU_SCAL	STARPU_DSCAL

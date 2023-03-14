@@ -32,6 +32,9 @@
 
 #include "starpu_cusolver.h"
 
+int niter;
+int current_iteration;
+
 static unsigned long size = 0;
 static unsigned nblocks = 0;
 static unsigned check = 0;
@@ -364,10 +367,12 @@ int main(int argc, char **argv)
 
 	starpu_cublas_init();
 	starpu_cusolver_init();
-
-	int niter = 2;
-	int i = 0;
 	
+	current_iteration = 1;
+	niter = 11;
+	int i = 0;
+	for (i = 0; i < niter; i++)
+	{	
 	init_matrix();
 
 #ifndef STARPU_SIMGRID
@@ -471,7 +476,8 @@ int main(int argc, char **argv)
 #ifndef STARPU_SIMGRID
 	starpu_free_flags(A, (size_t)size*size*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 #endif
-
+	current_iteration++;
+	}
 	starpu_cusolver_shutdown();
 	starpu_cublas_shutdown();
 
