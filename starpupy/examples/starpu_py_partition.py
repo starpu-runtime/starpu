@@ -62,10 +62,8 @@ def show(x):
 def add(a,b):
 	np.add(a,b,out=a)
 
-res_list = []
 for i in range(split_num):
-	res=starpu.task_submit(ret_handle=True)(add, arr_h_list[i], arr_h_list[i])
-	res_list.append(res)
+	starpu.task_submit(ret_handle=True,ret_fut=False)(add, arr_h_list[i], arr_h_list[i])
 
 # async def main():
 # 	for i in range(split_num):
@@ -80,8 +78,5 @@ arr_h.release()
 arr_h.unpartition(arr_h_list, split_num)
 
 arr_h.unregister()
-
-for i in range(split_num):
-	res_list[i].unregister()
 
 starpupy.shutdown()
