@@ -33,19 +33,7 @@ usage()
     exit 0
 }
 
-if [ "$1" = "-v" ] || [ "$1" = "--version" ]
-then
-    echo "$PROGNAME (@PACKAGE_NAME@) @PACKAGE_VERSION@"
-    exit 0
-fi
-
-if [ "$1" = "-h" ] || [ "$1" = "--help" ] || [ "x"$1 = "x" ]
-then
-    usage
-fi
-
-exampledir=@STARPU_SRC_DIR@/starpupy/examples
-
+starpupy_path=@STARPU_SRC_DIR@/starpupy
 modpath=@STARPU_BUILD_DIR@/src/.libs${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
 pypath=@STARPU_BUILD_DIR@/starpupy/src/build:$PYTHONPATH
 
@@ -64,39 +52,43 @@ gdb=""
 MPI_LOADER=""
 valgrind=""
 
-read_arg()
-{
-    do_shift=0
-    if test "$1" == "--valgrind"
+EXEC_ARGS=""
+
+for x in $LOADER_ARGS $*
+do
+    if [ "$x" = "-v" ] || [ "$x" = "--version" ]
+    then
+	echo "$PROGNAME (@PACKAGE_NAME@) @PACKAGE_VERSION@"
+	exit 0
+    fi
+
+    if [ "$x" = "-h" ] || [ "$x" = "--help" ]
+    then
+	usage
+	exit 0
+    fi
+
+    if test "$x" == "--valgrind"
     then
 	valgrind="valgrind"
 	export PYTHONMALLOC=malloc
 	LOADER="$LOADER valgrind --track-origins=yes"
-	do_shift=1
-    elif test "$1" == "--gdb"
+    elif test "$x" == "--gdb"
     then
 	gdb="gdb"
 	LOADER="gdb --args"
-	do_shift=1
-    elif test "$1" == "--mpirun"
+    elif test "$x" == "--mpirun"
     then
 	mpi="mpi"
-	do_shift=1
+    else
+	EXEC_ARGS="$EXEC_ARGS $x"
     fi
-}
+done
 
-for x in $*
-do
-    read_arg $x
-    if test $do_shift == 1
-    then
-	shift
-    fi
-done
-for x in $LOADER_ARGS
-do
-    read_arg $x
-done
+if test "$EXEC_ARGS" == ""
+then
+    usage
+fi
 
 if test "$mpi" == "mpi"
 then
@@ -111,21 +103,23 @@ then
     fi
 fi
 
+# set arguments with the cleaned list
+set -- $EXEC_ARGS
+
 examplefile=$1
 if test -f $examplefile
 then
     pythonscript=$examplefile
-elif test -f $exampledir/$examplefile
+elif test -f $starpupy_path/$examplefile
 then
-    pythonscript=$exampledir/$examplefile
+    pythonscript=$starpupy_path/$examplefile
 else
-    echo "Error. Python script $examplefile not found in current directory or in $exampledir"
+    echo "Error. Python script $examplefile not found in current directory or in $starpupy_path"
     exit 1
 fi
 shift
 
 set -x
-
 if [ -n "$STARPU_LD_PRELOAD" ]
 then
     export LD_PRELOAD=$STARPU_LD_PRELOAD${LD_PRELOAD:+:$LD_PRELOAD}

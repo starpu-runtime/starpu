@@ -4156,8 +4156,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x tools/starpu_tcpipexec
   chmod +x doc/doxygen/doxygen_filter.sh
   chmod +x doc/doxygen_dev/doxygen_filter.sh
-  chmod +x starpupy/examples/execute.sh
-  chmod +x starpupy/benchmark/execute.sh
+  chmod +x starpupy/execute.sh
   chmod +x julia/examples/execute.sh
   for x in \
     tests/microbenchs/tasks_data_overhead.sh \
@@ -4221,6 +4220,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
     starpupy/examples/starpu_py_np.sh \
     starpupy/examples/starpu_py_parallel.sh \
     starpupy/examples/starpu_py_partition.sh \
+    starpupy/examples/starpu_py_numpy.sh \
   ; do
       test -e $x || ( mkdir -p $(dirname $x) && ln -sf $ac_abs_top_srcdir/$x $(dirname $x) )
   done
@@ -4312,9 +4312,8 @@ AC_OUTPUT([
 	starpupy/Makefile
 	starpupy/src/Makefile
 	starpupy/examples/Makefile
-	starpupy/examples/execute.sh
+	starpupy/execute.sh
 	starpupy/benchmark/Makefile
-	starpupy/benchmark/execute.sh
 	examples/Makefile
 	examples/stencil/Makefile
 	tests/Makefile
