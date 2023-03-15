@@ -117,6 +117,13 @@ extern starpu_data_handle_t scratch;
 void lu_kernel_init(int nb);
 void lu_kernel_fini(void);
 
+/* To run 11 iterations and only plot the mean of the last 10 and the deviance */
+extern int current_iteration;
+extern int niter;
+extern double average_flop;
+extern double timing_total;
+extern double flop_total;
+extern double timing_square;
 
 struct piv_s
 {

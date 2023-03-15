@@ -388,11 +388,12 @@ static inline void STARPU_LU(common_u11)(void *descr[], int s, void *_args)
 #ifdef STARPU_HAVE_LIBCUSOLVER
 			{
 				cusolverStatus_t sstatus;
-				float *workspace = (float *)STARPU_VARIABLE_GET_PTR(descr[1]);
-				sstatus = cusolverDnSgetrf(starpu_cusolverDn_get_local_handle(), nx, nx, sub11, ld, workspace, NULL, NULL);
+				TYPE *workspace = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[1]);
+				
+				sstatus = CUSOLVER_GETRF(starpu_cusolverDn_get_local_handle(), nx, nx, sub11, ld, workspace, NULL, NULL);
 				STARPU_ASSERT(sstatus == CUSOLVER_STATUS_SUCCESS);
 			}
-#endif
+#else
 			handle = starpu_cublas_get_local_handle();
 			stream = starpu_cuda_get_local_stream();
 			for (z = 0; z < nx; z++)
@@ -421,7 +422,7 @@ static inline void STARPU_LU(common_u11)(void *descr[], int s, void *_args)
 			}
 
 			cudaStreamSynchronize(stream);
-
+#endif
 			break;
 #endif
 		default:
@@ -656,11 +657,11 @@ struct starpu_codelet cl11_pivot =
 #else
 	.nbuffers = 1,
 #endif
-	.modes = {STARPU_RW
+	.modes = { STARPU_RW
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
 		, STARPU_SCRATCH | STARPU_NOFOOTPRINT
 #endif
-},
+	},
 	.model = &STARPU_LU(model_11_pivot)
 };
 
@@ -772,7 +773,7 @@ void lu_kernel_init(int nb)
 {
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
 	int Lwork;
-	cusolverDnSgetrf_bufferSize(starpu_cusolverDn_get_local_handle(), nb, nb, NULL, nb, &Lwork);
+	CUSOLVER_GETRF_BUFFERSIZE(starpu_cusolverDn_get_local_handle(), nb, nb, NULL, nb, &Lwork);
 	starpu_variable_data_register(&scratch, -1, 0, Lwork);
 #endif
 }
