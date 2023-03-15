@@ -33,6 +33,7 @@ TESTS	+=	starpu_py.sh
 TESTS	+=	starpu_py_parallel.sh
 
 if STARPU_STARPUPY_NUMPY
+TESTS	+=	starpu_py_numpy.sh
 TESTS	+=	starpu_py_np.sh
 TESTS	+=	starpu_py_handle.sh
 TESTS	+=	starpu_py_partition.sh
@@ -44,17 +45,20 @@ EXTRA_DIST	=		\
 	starpu_py_parallel.sh	\
 	starpu_py.py		\
 	starpu_py.sh		\
-	starpu_py_handle.py		\
-	starpu_py_handle.sh		\
+	starpu_py_handle.py	\
+	starpu_py_handle.sh	\
 	starpu_py_np.py		\
-	starpu_py_np.sh     \
-	starpu_py_partition.py		\
-	starpu_py_partition.sh
+	starpu_py_np.sh     	\
+	starpu_py_partition.py	\
+	starpu_py_partition.sh	\
+	starpu_py_numpy.sh	\
+	starpu_py_numpy.py
 
 python_sourcesdir = $(libdir)/starpu/python
 dist_python_sources_DATA	=	\
-	starpu_py_parallel.py	\
-	starpu_py.py   \
-	starpu_py_handle.py	   \
-	starpu_py_np.py   \
-	starpu_py_partition.py
+	starpu_py_parallel.py		\
+	starpu_py.py   			\
+	starpu_py_handle.py	  	\
+	starpu_py_np.py   		\
+	starpu_py_partition.py		\
+	starpu_py_numpy.py
