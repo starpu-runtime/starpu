@@ -51,7 +51,7 @@ $
 
 \section PythonParallelism Python Parallelism
 
-Python interpreters share the Global Interpreter Lock (GIL), which requires that at any time, one and only one thread has the right to execute a task. With the latest version of Python (3.11), if the application is pure Python script, even enable multi-interpreters, the program cannot be executed in parallel. GIL makes the multiple interpreters execution of Python actually serial rather than parallel, and the execution of Python program is single-threaded essentially. 
+Python interpreters share the Global Interpreter Lock (GIL), which requires that at any time, one and only one thread has the right to execute a task. With the latest version of Python (3.11), if the application is pure Python script, even enable multi-interpreters, the program cannot be executed in parallel. GIL makes the multiple interpreters execution of Python actually serial rather than parallel, and the execution of Python program is single-threaded essentially.
 
 For the pure Python script, the only way to achieve parallelism is to use the master-slave mechanism (section \ref StarpupyMasterSlave).
 Parallelism may be implemented with multi-interpreters in the future Python version. Details can be found in section \ref MultipleInterpreters.
@@ -64,6 +64,17 @@ The StarPU module should be imported in any Python code wanting to use the StarP
 \code{.py}
 import starpu
 \endcode
+
+Before using any StarPU functionnality, it is necessary to call \c starpu.init(). The function \c starpu.shutdown() should be called after all StarPU functions have been called.
+
+\code{.py}
+import starpu
+
+starpu.init()
+# ...
+starpu.shutdown()
+\endcode
+
 
 \subsection SubmittingTasks Submitting Tasks
 
@@ -112,6 +123,8 @@ This feature needs the \c asyncio module to be imported.
 import starpu
 import asyncio
 
+starpu.init()
+
 def add(a, b):
     return a+b
 
@@ -121,6 +134,8 @@ async def main():
     print("The result of function is", res)
 
 asyncio.run(main())
+
+starpu.shutdown()
 \endcode
 
 Execution:
@@ -138,6 +153,9 @@ $ python3 -m asyncio
 
 \code{.py}
 import starpu
+
+starpu.init()
+
 def add(a, b):
 	print("The result is ready!")
 	return a+b
@@ -214,6 +232,8 @@ import asyncio
 import starpu
 import time
 
+starpu.init()
+
 def add(a, b):
 	time.sleep(10)
 	print("The first result is ready!")
@@ -248,8 +268,11 @@ The Python buffer protocol is a framework in which Python objects can expose raw
 \code{.py}
 import asyncio
 import starpu
-import numpy as np
 import time
+import numpy as np
+
+starpu.init()
+
 def add(a,b):
 	c = np.zeros(np.size(a))
 	for i in range(np.size(a)):
@@ -374,8 +397,11 @@ Once the access mode of one argument is set to at least \c W, it may be modified
 \code{.py}
 import asyncio
 import starpu
-import numpy as np
 import time
+import numpy as np
+
+starpu.init()
+
 a = np.array([1, 2, 3, 4, 5, 6])
 e = np.array([0, 0, 0, 0, 0, 0, 0])
 @starpu.access(a="R", b="W")
@@ -422,8 +448,11 @@ In order to complete the addition operation example, execution steps are:
 \code{.py}
 import asyncio
 import starpu
-import numpy as np
 import time
+import numpy as np
+
+starpu.init()
+
 @starpu.access(a="RW", b="R")
 def add(a,b):
 	time.sleep(10)
@@ -475,6 +504,9 @@ import asyncio
 import starpu
 import numpy as np
 import time
+
+starpu.init()
+
 @starpu.access(a="RW")
 def add(a,b):
 	print("This is the addition function")
@@ -526,6 +558,9 @@ In addition to returning a Future object, it is also possible to return a StarPU
 \code{.py}
 import starpu
 from starpu import Handle
+
+starpu.init()
+
 def add(x, y):
    return x + y
 
@@ -563,9 +598,12 @@ x and x1 are two different Handle objects.
 This StarPU data interface can also be used to manage Python objects supporting buffer protocol, i.e \c numpy array, bytes, bytearray, array.array and memoryview object.
 
 \code{.py}
+import numpy as np
 import starpu
 from starpu import Handle
-import numpy as np
+
+starpu.init()
+
 def add(a,b):
    for i in range(np.size(a)):
       a[i] = a[i] + b[i]
@@ -662,9 +700,12 @@ The method <c>Handle::unregister()</c> to unregister the Python object handle fr
 The previous example can be coded as follows:
 
 \code{.py}
+import numpy as np
 import starpu
 from starpu import Handle
-import numpy as np
+
+starpu.init()
+
 @starpu.access(a="RW", b="R")
 def add(a,b):
    for i in range(np.size(a)):
@@ -703,10 +744,12 @@ We can register an empty \c numpy array by calling <c>HandleNumpy(size, type)</c
 You will find below an example which defines the function \c assign taking two arrays as parameters, the second one being an empty array which will be assigned the values of the first array.
 
 \code{.py}
+import numpy as np
 import starpu
 from starpu import Handle
 from starpu import HandleNumpy
-import numpy as np
+
+starpu.init()
 
 @starpu.access(b="W")
 def assign(a,b):
@@ -764,9 +807,11 @@ When the sub-handles are no longer needed, the method <c>Handle::unpartition(han
 Here is an example to use these methods.
 
 \code{.py}
+import numpy as np
 import starpu
 from starpu import Handle
-import numpy as np
+
+starpu.init()
 
 @starpu.access(a="RW", b="R")
 def add(a,b):
@@ -899,6 +944,8 @@ In order to spread it over several CPUs, you need to import the \c starpu.joblib
 \code{.py}
 import starpu.joblib
 from math import log10
+
+starpu.init()
 starpu.joblib.Parallel(n_jobs=2)(starpu.joblib.delayed(log10)(10**i)for i in range(10))
 \endcode
 
@@ -911,6 +958,7 @@ It is also possible to first create an object of the \c Parallel class, and then
 \code{.py}
 import starpu.joblib
 from math import log10
+starpu.init()
 parallel=starpu.joblib.Parallel(n_jobs=2)
 parallel(starpu.joblib.delayed(log10)(10**i)for i in range(10))
 \endcode
@@ -925,6 +973,8 @@ Instead of a generator expression, a list of functions can also be submitted as 
 
 \code{.py}
 import starpu.joblib
+
+starpu.init()
 
 #generate a list to store functions
 g_func=[]
@@ -978,6 +1028,8 @@ The function can also take array parameters.
 import starpu.joblib
 import numpy as np
 
+starpu.init()
+
 def multi_array(a, b):
 	for i in range(len(a)):
 		a[i] = a[i]*b[i]
@@ -1025,6 +1077,9 @@ Here an example mixing scalar objects and \c numpy arrays or generator expressio
 \code{.py}
 import starpu.joblib
 import numpy as np
+
+starpu.init()
+
 def scal(a, t):
     for i in range(len(t)):
 	t[i] = t[i]*a
@@ -1063,6 +1118,7 @@ A string with the value <c>"normal"</c> or <c>"future"</c>. With the <c>"normal"
 import starpu
 import asyncio
 from math import log10
+starpu.init()
 fut = starpu.joblib.Parallel(mode="future", n_jobs=3, end_msg="The result is ready!")(starpu.joblib.delayed(log10)(10**i)for i in range(10))
 The result is ready! <_GatheringFuture finished result=[[0.0, 1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]>
 await fut
@@ -1100,6 +1156,8 @@ We compare the performances of the two methods for passing arguments to \c the s
 import starpu.joblib
 import numpy as np
 import time
+
+starpu.init()
 
 N=1000000
 

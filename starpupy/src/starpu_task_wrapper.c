@@ -381,15 +381,19 @@ void starpupy_codelet_func(void *descr[], void *cl_arg)
 		if(strcmp(tp, "Handle_token") == 0)
 		{
 			/*if one of arguments is Handle, replace the Handle argument to the object*/
-			if (STARPUPY_PYOBJ_CHECK(task->handles[h_index]))
+			if ((task->handles[h_index] && STARPUPY_PYOBJ_CHECK(task->handles[h_index])) || STARPUPY_PYOBJ_CHECK_INTERFACE(descr[h_index]))
 			{
 				PyObject *obj_handle = STARPUPY_GET_PYOBJECT(descr[h_index]);
 				PyTuple_SetItem(pArglist, i, obj_handle);
 			}
-			else if (STARPUPY_BUF_CHECK(task->handles[h_index]))
+			else if ((task->handles[h_index] && STARPUPY_BUF_CHECK(task->handles[h_index])) || STARPUPY_BUF_CHECK_INTERFACE(descr[h_index]))
 			{
 				PyObject *buf_handle = STARPUPY_BUF_GET_PYOBJECT(descr[h_index]);
 				PyTuple_SetItem(pArglist, i, buf_handle);
+			}
+			else
+			{
+				STARPU_ASSERT_MSG(0, "unexpected object %d\n", ((struct starpupyobject_interface *)(descr[h_index]))->id);
 			}
 
 			h_index++;
@@ -848,10 +852,11 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 		PyObject *pInstanceHandle = PyInstanceMethod_New(Handle_class);
 
 		/*create a Null Handle object, decremented in the end of this if{}*/
-		PyObject *handle_arg = PyTuple_New(1);
+		PyObject *handle_arg = PyTuple_New(2);
 		/*Py_None is used for PyTuple_SetItem(handle_arg), once handle_arg is decremented, Py_None is decremented as well*/
 		Py_INCREF(Py_None);
 		PyTuple_SetItem(handle_arg, 0, Py_None);
+		PyTuple_SetItem(handle_arg, 1, Py_True);
 
 		/*r_handle_obj will be the return value of this function starpu_task_submit_wrapper*/
 		r_handle_obj = PyObject_CallObject(pInstanceHandle,handle_arg);
@@ -924,7 +929,6 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 		/* these are decremented in starpupy_epilogue_cb_func */
 		Py_INCREF(loop);
 		Py_INCREF(fut);
-
 	}
 
 	/*check the arguments of python function passed in*/
@@ -1360,16 +1364,22 @@ static PyObject* starpu_resume_wrapper(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
-/*wrapper get count cpu method*/
-static PyObject* starpu_cpu_worker_get_count_wrapper(PyObject *self, PyObject *args)
+/*wrapper worker_get_count_by_type method*/
+static PyObject* starpu_worker_get_count_by_type_wrapper(PyObject *self, PyObject *args)
 {
 	(void)self;
-	(void)args;
-	/*call starpu_cpu_worker_get_count method*/
-	int num_cpu=starpu_cpu_worker_get_count();
+	int type;
+
+	if (!PyArg_ParseTuple(args, "I", &type))
+		return NULL;
+
+	if (!((type >= STARPU_CPU_WORKER && type <= STARPU_NARCH) || type == STARPU_ANY_WORKER))
+		RETURN_EXCEPT("Parameter %d invalid", type);
+
+	int num_worker=starpu_worker_get_count_by_type(type);
 
 	/*return type is unsigned*/
-	return Py_BuildValue("I", num_cpu);
+	return Py_BuildValue("I", num_worker);
 }
 
 /*wrapper get min priority method*/
@@ -1439,6 +1449,57 @@ static void del_inter(void* arg)
 
 	PyThreadState_Swap(orig_thread_states[workerid]);
 	PyGILState_Release(PyGILState_UNLOCKED);
+}
+
+void _starpupy_data_register_ops(void)
+{
+	_starpupy_interface_pyobject_ops.interfaceid = starpu_data_interface_get_next_id();
+	_starpupy_interface_pybuffer_ops.interfaceid = starpu_data_interface_get_next_id();
+	_starpupy_interface_pybuffer_bytes_ops.interfaceid = starpu_data_interface_get_next_id();
+	starpu_data_register_ops(&_starpupy_interface_pyobject_ops);
+	starpu_data_register_ops(&_starpupy_interface_pybuffer_ops);
+	starpu_data_register_ops(&_starpupy_interface_pybuffer_bytes_ops);
+}
+
+/*wrapper init method*/
+static PyObject* starpu_init_wrapper(PyObject *self, PyObject *args)
+{
+	(void)self;
+	(void)args;
+
+	/*starpu initialization*/
+	int ret;
+
+	_starpupy_data_register_ops();
+	struct starpu_conf conf;
+	Py_BEGIN_ALLOW_THREADS;
+	starpu_conf_init(&conf);
+	ret = starpu_init(&conf);
+	Py_END_ALLOW_THREADS;
+	if (ret!=0)
+	{
+		PyErr_Format(StarpupyError, "Unexpected value %d returned for starpu_init", ret);
+		return NULL;
+	}
+
+	if (conf.sched_policy_name && !strcmp(conf.sched_policy_name, "graph_test"))
+	{
+		/* FIXME: should call starpu_do_schedule when appropriate, the graph_test scheduler needs it. */
+		fprintf(stderr,"TODO: The graph_test scheduler needs starpu_do_schedule calls\n");
+		exit(77);
+	}
+
+	if (active_multi_interpreter)
+	{
+		/*generate new interpreter on each worker*/
+		Py_BEGIN_ALLOW_THREADS;
+		starpu_execute_on_each_worker_ex(new_inter, NULL, where_inter, "new_inter");
+		Py_END_ALLOW_THREADS;
+	}
+
+	/*return type is void*/
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
 /*wrapper shutdown method*/
@@ -1614,11 +1675,11 @@ static PyObject* starpu_set_ncpu(PyObject *self, PyObject *args)
 /*method table*/
 static PyMethodDef starpupyMethods[] =
 {
+	{"init", starpu_init_wrapper, METH_VARARGS, "initialize StarPU"}, /* init method*/
 	{"_task_submit", starpu_task_submit_wrapper, METH_VARARGS, "submit the task"}, /*submit method*/
 	{"task_wait_for_all", starpu_task_wait_for_all_wrapper, METH_VARARGS, "wait the task"}, /*wait for all method*/
 	{"pause", starpu_pause_wrapper, METH_VARARGS, "suspend the processing of new tasks by workers"}, /*pause method*/
 	{"resume", starpu_resume_wrapper, METH_VARARGS, "resume the workers polling for new tasks"}, /*resume method*/
-	{"cpu_worker_get_count", starpu_cpu_worker_get_count_wrapper, METH_VARARGS, "return the number of CPUs controlled by StarPU"}, /*get count cpu method*/
 	{"init_perfmodel", init_perfmodel, METH_VARARGS, "initialize struct starpu_perfmodel"}, /*initialize perfmodel*/
 	{"free_perfmodel", free_perfmodel, METH_VARARGS, "free struct starpu_perfmodel"}, /*free perfmodel*/
 	{"save_history_based_model", starpu_save_history_based_model_wrapper, METH_VARARGS, "save the performance model"}, /*save the performance model*/
@@ -1641,6 +1702,7 @@ static PyMethodDef starpupyMethods[] =
 	{"starpupy_data_unpartition", starpu_data_unpartition_wrapper, METH_VARARGS, "handle unpartition sub handles"},
 	{"starpupy_get_partition_size", starpupy_get_partition_size_wrapper, METH_VARARGS, "get the array size from each sub handle"},
 	{"set_ncpu", starpu_set_ncpu, METH_VARARGS,"reinitialize starpu with given number of CPU"},
+	{"worker_get_count_by_type", starpu_worker_get_count_by_type_wrapper, METH_VARARGS, "get the number of workers for a given type"},
 	{NULL, NULL,0,NULL}
 };
 
@@ -1712,15 +1774,11 @@ static void* set_cb_loop(void* arg)
 }
 
 /*initialization function*/
-PyMODINIT_FUNC
-PyInit_starpupy(void)
+PyMODINIT_FUNC PyInit_starpupy(void)
 {
 #if PY_MAJOR_VERSION < 3 || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 9)
 	PyEval_InitThreads();
 #endif
-	/*starpu initialization*/
-	int ret;
-	struct starpu_conf conf;
 
 	main_thread = pthread_self();
 
@@ -1783,31 +1841,6 @@ PyInit_starpupy(void)
 		|| starpu_getenv_number("STARPU_TCPIP_MS_SLAVES") > 0)
 		active_multi_interpreter = 1;
 #endif
-
-	Py_BEGIN_ALLOW_THREADS;
-	starpu_conf_init(&conf);
-	ret = starpu_init(&conf);
-	Py_END_ALLOW_THREADS;
-	if (ret!=0)
-	{
-		PyErr_Format(StarpupyError, "Unexpected value %d returned for starpu_init", ret);
-		return NULL;
-	}
-
-	if (conf.sched_policy_name && !strcmp(conf.sched_policy_name, "graph_test"))
-	{
-		/* FIXME: should call starpu_do_schedule when appropriate, the graph_test scheduler needs it. */
-		fprintf(stderr,"TODO: The graph_test scheduler needs starpu_do_schedule calls\n");
-		exit(77);
-	}
-
-	if (active_multi_interpreter)
-	{
-		/*generate new interpreter on each worker*/
-		Py_BEGIN_ALLOW_THREADS;
-		starpu_execute_on_each_worker_ex(new_inter, NULL, where_inter, "new_inter");
-		Py_END_ALLOW_THREADS;
-	}
 
 	/*module import multi-phase initialization*/
 	return PyModuleDef_Init(&starpupymodule);

@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020-2022  Universit'e de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2023  Universit'e de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -34,7 +34,7 @@ import inspect
 import threading
 
 loop = asyncio.get_event_loop()
-if (loop.is_running()):	
+if (loop.is_running()):
 	try:
 		import nest_asyncio
 		nest_asyncio.apply()
@@ -49,10 +49,10 @@ _backend = threading.local()
 
 # get the number of CPUs controlled by StarPU
 def cpu_count():
-	n_cpus=starpupy.cpu_worker_get_count()
+	n_cpus=starpupy.worker_get_count_by_type(starpu.STARPU_CPU_WORKER)
 	return n_cpus
 
-# split a list ls into n_block numbers of sub-lists 
+# split a list ls into n_block numbers of sub-lists
 def partition(ls, n_block):
 	if len(ls)>=n_block:
 		# there are n1 sub-lists which contain q1 elements, and (n_block-n1) sublists which contain q2 elements (n1 can be 0)
@@ -286,7 +286,7 @@ class Parallel(object):
 			#loop = asyncio.get_event_loop()
 			if(loop.is_running() and not has_nest):
 				raise starpupy.error("Can't find \'nest_asyncio\' module (consider running \"pip3 install nest_asyncio\" or try to remove \"-m asyncio\" when starting Python interpreter)")
-			
+
 			results = loop.run_until_complete(asy_main())
 			retVal = results
 		# the mode future, user needs to use asyncio module and await the Future result in main function

@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020-2022  Universit'e de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2023  Universit'e de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -33,9 +33,10 @@ async def wait_for_fut(fut):
 #class handle
 class Handle(object):
 
-	def __init__(self, obj):
+	def __init__(self, obj, retval=False):
 		self.obj=obj
 		self.obj_id=id(self.obj)
+		self.retval=retval
 		self.handle_cap=starpupy.starpupy_data_register(self.obj, self)
 
 	def get_capsule(self):
@@ -43,6 +44,9 @@ class Handle(object):
 
 	def get_obj_id(self):
 		return self.obj_id
+
+	def get_retval(self):
+		return self.retval
 
 	# get PyObject
 	def get(self):
@@ -82,8 +86,9 @@ def new_empty_numpy(shape, dtype):
 #class handle
 class HandleNumpy(Handle):
 	if has_numpy:
-		def __init__(self, shape, dtype=np.dtype('float64')):
+		def __init__(self, shape, dtype=np.dtype('float64'), retval=False):
 			self.dtype=dtype
+			self.retval=retval
 			self.obj=new_empty_numpy(shape, self.dtype)
 			self.obj_id=id(self.obj)
 			self.handle_cap=starpupy.starpupy_data_register(self.obj, self)

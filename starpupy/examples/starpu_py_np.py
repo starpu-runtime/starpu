@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020-2022  Universit'e de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2023  Universit'e de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -13,16 +13,18 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
-import starpu
-from starpu import starpupy
-import asyncio
+
 try:
     import numpy as np
 except ModuleNotFoundError as e:
 	print("Can't find \"Python3 NumPy\" module (consider running \"pip3 install numpy\" or refer to https://numpy.org/install/)")
-	starpupy.shutdown()
 	exit(77)
 
+import starpu
+from starpu import starpupy
+import asyncio
+
+starpu.init()
 
 ###############################################################################
 
@@ -85,4 +87,4 @@ except starpupy.error as e:
         starpupy.shutdown()
         exit(77)
 
-starpupy.shutdown()
+starpu.shutdown()

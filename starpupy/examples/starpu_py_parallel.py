@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020-2022  Universit'e de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2023  Universit'e de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -13,6 +13,13 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
+
+try:
+    import numpy as np
+except ModuleNotFoundError as e:
+	print("Can't find \"Python3 NumPy\" module (consider running \"pip3 install numpy\" or refer to https://numpy.org/install/)")
+	exit(77)
+
 import starpu
 import starpu.joblib
 from starpu import starpupy
@@ -20,13 +27,9 @@ import time
 import asyncio
 from math import sqrt
 from math import log10
-try:
-    import numpy as np
-except ModuleNotFoundError as e:
-	print("Can't find \"Python3 NumPy\" module (consider running \"pip3 install numpy\" or refer to https://numpy.org/install/)")
-	starpupy.shutdown()
-	exit(77)
 import sys
+
+starpu.init()
 
 #generate a list to store functions
 g_func=[]
@@ -370,7 +373,7 @@ async def main():
 try:
         asyncio.run(main())
 except starpupy.error as e:
-        starpupy.shutdown()
+        starpu.shutdown()
         exit(77)
 
 starpu.perfmodel_plot(perfmodel="sqrt",view=displayPlot)
@@ -385,4 +388,4 @@ starpu.perfmodel_plot(perfmodel="func",view=displayPlot)
 starpu.perfmodel_plot(perfmodel="log_list",view=displayPlot)
 starpu.perfmodel_plot(perfmodel="log_arr",view=displayPlot)
 
-starpupy.shutdown()
+starpu.shutdown()

@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020-2022  Universit'e de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2023  Universit'e de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -19,6 +19,17 @@ from starpu import starpupy
 import os
 import inspect
 import array
+
+# define the different architecture
+STARPU_CPU_WORKER = 0
+STARPU_CUDA_WORKER = 1
+STARPU_OPENCL_WORKER = 2
+STARPU_MAX_FPGA_WORKER = 4
+STARPU_MPI_MS_WORKER = 5
+STARPU_TCPIP_MS_WORKER = 6
+STARPU_HIP_WORKER = 7
+STARPU_NARCH = 8
+STARPU_ANY_WORKER = 255
 
 #class perfmodel
 class Perfmodel(object):
@@ -94,3 +105,9 @@ def unregister(obj):
 # acquire object
 def unregister_submit(obj):
 	return starpupy.starpupy_data_unregister_submit_object(obj)
+
+def init():
+        return starpupy.init()
+
+def shutdown():
+        return starpupy.shutdown()

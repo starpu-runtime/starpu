@@ -27,33 +27,24 @@
 
 #include "starpupy_handle.h"
 
-#define RETURN_EXCEPT(...) do{ \
-		PyObject *starpupy_err = PyObject_GetAttrString(self, "error"); \
-		PyErr_Format(starpupy_err, __VA_ARGS__);		\
-		Py_DECREF(starpupy_err); \
-		return NULL;\
-}while(0)
-
-#define RETURN_EXCEPTION(...) do{ \
-		PyObject *starpupy_module = PyObject_GetAttrString(starpu_module, "starpupy"); \
-		PyObject *starpupy_err = PyObject_GetAttrString(starpupy_module, "error"); \
-		PyErr_Format(starpupy_err, __VA_ARGS__); \
-		Py_DECREF(starpupy_module); \
-		Py_DECREF(starpupy_err); \
-		return NULL;\
-}while(0)
-
 PyObject *starpu_module; /*starpu __init__ module*/
 PyObject *starpu_dict;  /*starpu __init__ dictionary*/
 
 /*register buffer protocol PyObject*/
-static PyObject* starpupy_object_register(PyObject *obj, char* mode)
+static PyObject* starpupy_object_register(PyObject *obj, PyObject *retval, char* mode)
 {
 	starpu_data_handle_t handle;
 	int home_node = 0;
 
 	const char *tp = Py_TYPE(obj)->tp_name;
 	//printf("the type of object is %s\n", tp);
+
+	/*if we are in master slave mode and the object is not a numpy array and a return value, it cannot work */
+	if ((starpu_tcpip_ms_worker_get_count() >= 1 || starpu_mpi_ms_worker_get_count() >= 1) && strcmp(tp, "numpy.ndarray") != 0 && !PyObject_IsTrue(retval))
+	{
+		RETURN_EXCEPTION("in master-slave mode, data handles are supported only for numpy arrays for now");
+	}
+
 	/*if the object is bytes*/
 	if (strcmp(tp, "bytes")==0)
 	{
@@ -201,8 +192,10 @@ PyObject* starpupy_data_register_wrapper(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "OO", &obj, &handle_obj))
 		return NULL;
 
+	PyObject *retval = PyObject_CallMethod(handle_obj, "get_retval", NULL);
+
 	/*register the python object*/
-	PyObject *handle_cap = starpupy_object_register(obj, NULL);
+	PyObject *handle_cap = starpupy_object_register(obj, retval, NULL);
 	if (!handle_cap)
 		return handle_cap;
 
