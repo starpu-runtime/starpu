@@ -26,6 +26,8 @@
 #include "xlu.h"
 #include "xlu_kernels.h"
 
+#include <starpu_data_maxime.h>
+
 #ifdef STARPU_HAVE_VALGRIND_H
 #include <valgrind/valgrind.h>
 #endif
@@ -369,7 +371,8 @@ int main(int argc, char **argv)
 	starpu_cusolver_init();
 	
 	current_iteration = 1;
-	niter = 11;
+	niter = 2;
+	//niter = 11;
 	int i = 0;
 	for (i = 0; i < niter; i++)
 	{	
@@ -477,7 +480,9 @@ int main(int argc, char **argv)
 	starpu_free_flags(A, (size_t)size*size*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 #endif
 	current_iteration++;
-	}
+	new_iteration();
+	} /* Fin de la boucle des itérations */
+	
 	starpu_cusolver_shutdown();
 	starpu_cublas_shutdown();
 
