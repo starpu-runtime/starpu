@@ -298,7 +298,7 @@ int STARPU_LU(lu_decomposition)(TYPE *matA, unsigned size, unsigned ld, unsigned
 	starpu_data_map_filters(dataA, 2, &f, &f2);
 
 	lu_kernel_init(size / nblocks);
-	printf("kernel init\n"); fflush(stdout);
+	//~ printf("kernel init\n"); fflush(stdout);
 
 	/*niter = 2;
 	current_iteration = 0;
@@ -310,7 +310,7 @@ int STARPU_LU(lu_decomposition)(TYPE *matA, unsigned size, unsigned ld, unsigned
 		//current_iteration++;
 	//}
 
-	printf("kernel fini\n"); fflush(stdout);
+	//~ printf("kernel fini\n"); fflush(stdout);
 	lu_kernel_fini();
 
 	/* gather all the data */
