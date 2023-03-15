@@ -8,18 +8,18 @@ truncate -s 0 ${FICHIER_RAW}
 
 NB_TAILLE_TESTE=12
 
-for ((i1=1 ; i1<=((3)); i1++))
+for ((i1=1 ; i1<=3; i1++))
 do
-	if [ i1 == 1 ]; then TAILLE_TUILE=1920
-	elif [ i1 == 2 ]; then TAILLE_TUILE=2880
-	elif [ i1 == 3 ]; then TAILLE_TUILE=3840
+	if [ $((i1)) == 1 ]; then TAILLE_TUILE=1920
+	elif [ $((i1)) == 2 ]; then TAILLE_TUILE=2880
+	elif [ $((i1)) == 3 ]; then TAILLE_TUILE=3840
 	fi
-	for ((i2=1 ; i2<=((4)); i2++))
+	for ((i2=1 ; i2<=4; i2++))
 	do
-		if [ i2 == 1 ]; then NGPU=1
-		elif [ i2 == 2 ]; then NGPU=2
-		elif [ i2 == 3 ]; then NGPU=4
-		elif [ i2 == 4 ]; then NGPU=8
+		if [ $((i2)) == 1 ]; then NGPU=1
+		elif [ $((i2)) == 2 ]; then NGPU=2
+		elif [ $((i2)) == 3 ]; then NGPU=4
+		elif [ $((i2)) == 4 ]; then NGPU=8
 		fi
 		for ((i3=1 ; i3<=(($NB_TAILLE_TESTE)); i3++))
 		do

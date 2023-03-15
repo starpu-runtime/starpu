@@ -88,13 +88,13 @@ N=30
 #~ N=65
 #~ N=70
 
-#~ NGPU=1
+NGPU=1
 #~ NGPU=2
-NGPU=4
+#~ NGPU=4
 #~ NGPU=8
 
-#~ ORDO="dynamic-data-aware"
-ORDO="dmdar"
+ORDO="dynamic-data-aware"
+#~ ORDO="dmdar"
 #~ ORDO="lws"
 #~ ORDO="graph_test" # STARPU_SCHED_GRAPH_TEST_DESCENDANTS= 0 ou 1 pour activer les descendants
 #~ ORDO="dmdas"
