@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020-2022  Universit'e de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2023  Universit'e de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -13,21 +13,28 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
-import starpu
-from starpu import starpupy
-from starpu import Handle
-from starpu import HandleNumpy
+
 try:
     import numpy as np
 except ModuleNotFoundError as e:
 	print("Can't find \"Python3 NumPy\" module (consider running \"pip3 install numpy\" or refer to https://numpy.org/install/)")
-	starpupy.shutdown()
 	exit(77)
+
+import starpu
+from starpu import starpupy
+from starpu import Handle
+from starpu import HandleNumpy
 import asyncio
 import time
 import array
 import struct
 
+starpu.init()
+
+if starpupy.worker_get_count_by_type(starpu.STARPU_MPI_MS_WORKER) >= 1 or starpupy.worker_get_count_by_type(starpu.STARPU_TCPIP_MS_WORKER) >= 1:
+	print("This program does not work in MS mode")
+	starpu.shutdown()
+	exit(77)
 
 def show(x, y):
     print("Function printing:", x, y)
@@ -73,7 +80,7 @@ print("return value of task_submit is:", ret_n)
 assert ret.get() == x+y
 
 x_h.unregister()
-y_h.unregister() 
+y_h.unregister()
 
 ret_h1.unregister()
 ret_h2.unregister()
@@ -558,4 +565,4 @@ res15.unregister()
 
 #########################
 
-starpupy.shutdown()
+starpu.shutdown()

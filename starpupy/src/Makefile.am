@@ -24,14 +24,20 @@ PYTHON_PY_BUILD	=	$(addprefix $(top_builddir)/starpupy/src/starpu/,$(notdir $(PY
 PYTHON_C_SRC	=	$(wildcard $(top_srcdir)/starpupy/src/*c)
 PYTHON_C_BUILD	=	$(addprefix $(top_builddir)/starpupy/src/starpu/,$(notdir $(PYTHON_C_SRC)))
 
+PYTHON_H_SRC	=	$(wildcard $(top_srcdir)/starpupy/src/*h)
+PYTHON_H_BUILD	=	$(addprefix $(top_builddir)/starpupy/src/starpu/,$(notdir $(PYTHON_H_SRC)))
+
 $(top_builddir)/starpupy/src/starpu/%.py: $(abs_top_srcdir)/starpupy/src/%.py
 	$(MKDIR_P) starpu
 	$(V_ln) $(LN_S) $< $@
 $(top_builddir)/starpupy/src/starpu/%.c: $(abs_top_srcdir)/starpupy/src/%.c
 	@$(MKDIR_P) starpu
 	$(V_ln) $(LN_S) $< $@
+$(top_builddir)/starpupy/src/starpu/%.h: $(abs_top_srcdir)/starpupy/src/%.h
+	@$(MKDIR_P) starpu
+	$(V_ln) $(LN_S) $< $@
 
-all: $(PYTHON_PY_BUILD) $(PYTHON_C_BUILD)
+all: $(PYTHON_PY_BUILD) $(PYTHON_C_BUILD) $(PYTHON_H_BUILD)
 	LDFLAGS=$${LDFLAGS/-no-pie/} $(PYTHON) setup.py build $(PYTHON_SETUP_OPTIONS)
 
 # FIXME and enable
@@ -70,19 +76,20 @@ uninstall-local:
 	rm -rf $(prefix)/lib/python$(PYTHON_VERSION)/site-packages/starpu*
 	rm -rf $(prefix)/lib/python$(PYTHON_VERSION)/site-packages/tmp/starpu*
 
-EXTRA_DIST	=		\
-	delay.py		\
-	__init__.py	\
-	intermedia.py	\
-	joblib.py	\
-	handle_access.py \
-	starpu_task_wrapper.c 	\
-	starpupy_cloudpickle.h    \
-	starpupy_interface.c 	\
-	starpupy_interface.h    \
+EXTRA_DIST	=			\
+	delay.py			\
+	__init__.py			\
+	intermedia.py			\
+	joblib.py			\
+	handle_access.py 		\
+	starpu_task_wrapper.c 		\
+	starpupy_cloudpickle.h  	\
+	starpupy_interface.c 		\
+	starpupy_interface.h    	\
 	starpupy_buffer_interface.c 	\
 	starpupy_buffer_interface.h     \
 	starpupy_numpy_filters.c 	\
-	starpupy_numpy_filters.h    \
-	starpupy_handle.c 	\
-	starpupy_handle.h
+	starpupy_numpy_filters.h    	\
+	starpupy_handle.c 		\
+	starpupy_handle.h		\
+	starpupy_private.h

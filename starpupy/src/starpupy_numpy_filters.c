@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020-2022 Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2023 Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -26,19 +26,14 @@
 #include "starpupy_buffer_interface.h"
 #include "starpupy_numpy_filters.h"
 
-#define RETURN_EXCEPT(...) do{ \
-		PyObject *starpupy_err = PyObject_GetAttrString(self, "error"); \
-		PyErr_Format(starpupy_err, __VA_ARGS__);		\
-		Py_DECREF(starpupy_err); \
-		return NULL;\
-}while(0)
-
 static void starpupy_numpy_filter(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
 {
 	struct starpupy_buffer_interface *buffer_father = (struct starpupy_buffer_interface *) father_interface;
 	struct starpupy_buffer_interface *buffer_child = (struct starpupy_buffer_interface *) child_interface;
 
 	size_t elemsize = buffer_father->item_size;
+
+	STARPU_ASSERT_MSG(buffer_father->id == _starpupy_interface_pybuffer_ops.interfaceid, "%s can only be applied on a vector data", __func__);
 
 	/*get the ndim*/
 	int ndim = buffer_father->dim_size;
@@ -120,6 +115,7 @@ static void starpupy_numpy_filter(void *father_interface, void *child_interface,
 	}
 	buffer_child->array_dim = child_dim;
 #endif
+	buffer_child->id = buffer_father->id;
 	buffer_child->buffer_type = buffer_father->buffer_type;
 	buffer_child->dim_size = ndim;
 	buffer_child->array_type = buffer_father->array_type;

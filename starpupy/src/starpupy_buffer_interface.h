@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020-2022 Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2023 Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,8 +23,14 @@
 #include <numpy/arrayobject.h>
 #endif
 
+#include <starpupy_private.h>
+
+extern struct starpu_data_interface_ops _starpupy_interface_pybuffer_ops;
+extern struct starpu_data_interface_ops _starpupy_interface_pybuffer_bytes_ops;
+
 struct starpupy_buffer_interface
 {
+	int id; /**< Identifier of the interface */
 	enum BufType {starpupy_numpy_interface, starpupy_bytes_interface, starpupy_bytearray_interface, starpupy_array_interface, starpupy_memoryview_interface}buffer_type;
 	PyObject* object; /* For bytes, bytearray, array.array, object corresponding py_buffer */
 	char* py_buffer;	/* The buffer actually allocated to store the data */
@@ -58,6 +64,8 @@ PyObject* starpupy_buffer_get_arrarr(struct starpupy_buffer_interface *pybuffer_
 PyObject* starpupy_buffer_get_memview(struct starpupy_buffer_interface *pybuffer_interface);
 
 #define STARPUPY_BUF_CHECK(handle) (starpupy_check_buffer_interface_id(handle))
+#define STARPUPY_BUF_CHECK_INTERFACE(interface) (((struct starpupy_buffer_interface *)(interface))->id == _starpupy_interface_pybuffer_ops.interfaceid)
+
 #define STARPUPY_BUF_GET_TYPE(interface) (((struct starpupy_buffer_interface *)(interface))->buffer_type)
 #define STARPUPY_BUF_GET_OBJ(interface) (Py_INCREF(((struct starpupy_buffer_interface *)(interface))->object), ((struct starpupy_buffer_interface *)(interface))->object)
 #define STARPUPY_BUF_GET_PYBUF(interface) (((struct starpupy_buffer_interface *)(interface))->py_buffer)

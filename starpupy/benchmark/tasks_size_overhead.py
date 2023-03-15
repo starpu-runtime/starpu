@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2021-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -24,7 +24,7 @@ import cProfile
 import sys
 
 mincpus = 1
-maxcpus = starpupy.cpu_worker_get_count()
+maxcpus = starpupy.worker_get_count_by_type(starpu.STARPU_CPU_WORKER)
 cpustep = 1
 
 mintime = 128

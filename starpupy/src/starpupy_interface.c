@@ -42,6 +42,7 @@ static void pyobject_register_data_handle(starpu_data_handle_t handle, int home_
 	{
 		struct starpupyobject_interface *local_interface = (struct starpupyobject_interface *) starpu_data_get_interface_on_node(handle, node);
 
+		local_interface->id = pyobject_interface->id;
 		if (node == home_node)
 		{
 			Py_INCREF(pyobject_interface->object);
@@ -97,7 +98,7 @@ static size_t pyobject_get_size(starpu_data_handle_t handle)
 #warning this operation is needed for fxt tracing when calling starpu_data_register(), using the cloudpickle as below does not seem to work
 #endif
 	(void)handle;
-	return sizeof(void *);
+	return sizeof(struct starpupyobject_interface);
 }
 
 /*return the reference of PyBytes which must be kept while using obj_data. See documentation of PyBytes_AsStringAndSize()*/
@@ -179,6 +180,7 @@ static int _pyobject_peek_data(struct starpupyobject_interface *pyobject_interfa
 	if(pyobject_interface->object != NULL)
 		Py_DECREF(pyobject_interface->object);
 	pyobject_interface->object = obj;
+	pyobject_interface->id = _starpupy_interface_pyobject_ops.interfaceid;
 
 	Py_DECREF(pickle_module);
 	Py_DECREF(loads);
@@ -287,7 +289,7 @@ static const struct starpu_data_copy_methods pyobject_copy_data_methods_s =
 	.ram_to_ram = pyobject_copy_ram_to_ram,
 };
 
-static struct starpu_data_interface_ops interface_pyobject_ops =
+struct starpu_data_interface_ops _starpupy_interface_pyobject_ops =
 {
 	.register_data_handle = pyobject_register_data_handle,
 	.unregister_data_handle = pyobject_unregister_data_handle,
@@ -307,17 +309,19 @@ static struct starpu_data_interface_ops interface_pyobject_ops =
 
 void starpupy_data_register(starpu_data_handle_t *handleptr, unsigned home_node, PyObject *obj)
 {
+	assert(_starpupy_interface_pyobject_ops.interfaceid != STARPU_UNKNOWN_INTERFACE_ID);
 	struct starpupyobject_interface pyobject_interface =
 	{
-	 .object = obj
+		.id = _starpupy_interface_pyobject_ops.interfaceid,
+		.object = obj
 	};
 
-	starpu_data_register(handleptr, home_node, &pyobject_interface, &interface_pyobject_ops);
+	starpu_data_register(handleptr, home_node, &pyobject_interface, &_starpupy_interface_pyobject_ops);
 
 }
 
 int starpupy_check_pyobject_interface_id(starpu_data_handle_t handle)
 {
 	int interfaceid = (int)starpu_data_get_interface_id(handle);
-	return interfaceid == interface_pyobject_ops.interfaceid;
+	return interfaceid == _starpupy_interface_pyobject_ops.interfaceid;
 }

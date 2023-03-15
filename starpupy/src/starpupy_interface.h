@@ -17,9 +17,13 @@
 #include <starpu.h>
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
+#include <starpupy_private.h>
+
+extern struct starpu_data_interface_ops _starpupy_interface_pyobject_ops;
 
 struct starpupyobject_interface
 {
+	int id; /**< Identifier of the interface */
 	PyObject *object;
 };
 
@@ -31,6 +35,7 @@ int starpupy_check_pyobject_interface_id(starpu_data_handle_t handle);
 void starpupy_set_pyobject(struct starpupyobject_interface *pyobject_interface, PyObject *value);
 
 #define STARPUPY_PYOBJ_CHECK(handle) (starpupy_check_pyobject_interface_id(handle))
+#define STARPUPY_PYOBJ_CHECK_INTERFACE(interface) (((struct starpupyobject_interface *)(interface))->id == _starpupy_interface_pyobject_ops.interfaceid)
 
 #define STARPUPY_GET_PYOBJECT(interface) (Py_INCREF(((struct starpupyobject_interface *)(interface))->object), ((struct starpupyobject_interface *)(interface))->object)
 

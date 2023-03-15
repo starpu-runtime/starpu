@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020-2022  Universite de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2023  Universite de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -19,6 +19,7 @@ from starpu import starpupy
 import time
 import asyncio
 
+starpu.init()
 
 ############################################################################
 #function no input no output print hello world
@@ -146,8 +147,8 @@ try:
         asyncio.run(main())
 except starpupy.error as e:
         print("No worker to execute the job")
-        starpupy.shutdown()
+        starpu.shutdown()
         exit(77)
 
-starpupy.shutdown()
+starpu.shutdown()
 #starpu.task_wait_for_all()
