@@ -4,9 +4,9 @@
 
 # Best ones
 bash Scripts_maxime/PlaFRIM-Grid5k/lu.sh 1 1920 12 2000 best_ones
-bash Scripts_maxime/PlaFRIM-Grid5k/lu.sh 2 1920 12 2000 best_ones
-bash Scripts_maxime/PlaFRIM-Grid5k/lu.sh 4 1920 12 2000 best_ones
-bash Scripts_maxime/PlaFRIM-Grid5k/lu.sh 8 1920 12 2000 best_ones
+#bash Scripts_maxime/PlaFRIM-Grid5k/lu.sh 2 1920 12 2000 best_ones
+#bash Scripts_maxime/PlaFRIM-Grid5k/lu.sh 4 1920 12 2000 best_ones
+#bash Scripts_maxime/PlaFRIM-Grid5k/lu.sh 8 1920 12 2000 best_ones
 
 # Best ones sans limit de mem
 #~ bash Scripts_maxime/PlaFRIM-Grid5k/lu.sh 1 1920 12 0 best_ones
