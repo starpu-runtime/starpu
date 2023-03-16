@@ -780,17 +780,21 @@ static void _starpu_initialize_workers_bindid(struct _starpu_machine_config *con
 				{
 					if (scale)
 					{
+#if defined(STARPU_HAVE_HWLOC)
 						if (config->topology.log_coreset &&
 							!hwloc_bitmap_isset(config->topology.log_coreset, val))
 							_STARPU_DISP("Warning: logical core id %ld is not in the CPU binding provided by the OS\n", val);
+#endif
 						if (val * scale >= topology->nhwpus)
 							_STARPU_DISP("Warning: logical core id %ld is beyond the number of cores (%d), will wrap around it\n", val, topology->nhwpus / scale);
 					}
 					else
 					{
+#if defined(STARPU_HAVE_HWLOC)
 						if (config->topology.log_cpuset &&
 							!hwloc_bitmap_isset(config->topology.log_cpuset, val))
 							_STARPU_DISP("Warning: logical CPU id %ld is not in the CPU binding provided by the OS\n", val);
+#endif
 						if (val >= topology->nhwpus)
 							_STARPU_DISP("Warning: logical CPU id %ld is beyond the number of CPUs (%d), will wrap around it\n", val, topology->nhwpus);
 					}
