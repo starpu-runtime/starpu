@@ -667,8 +667,8 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 		} while(0);
 
 		hwloc_bitmap_free(cpuset);
-		hwloc_bitmap_free(log_cpuset);
-		hwloc_bitmap_free(log_coreset);
+		topology->log_cpuset = log_cpuset;
+		topology->log_coreset = log_coreset;
 	}
 
 #elif defined(HAVE_SYSCONF)
@@ -778,6 +778,22 @@ static void _starpu_initialize_workers_bindid(struct _starpu_machine_config *con
 				val = strtol(strval, &endptr, 10);
 				if (endptr != strval)
 				{
+					if (scale)
+					{
+						if (config->topology.log_coreset &&
+							!hwloc_bitmap_isset(config->topology.log_coreset, val))
+							_STARPU_DISP("Warning: logical core id %ld is not in the CPU binding provided by the OS\n", val);
+						if (val * scale >= topology->nhwpus)
+							_STARPU_DISP("Warning: logical core id %ld is beyond the number of cores (%d), will wrap around it\n", val, topology->nhwpus / scale);
+					}
+					else
+					{
+						if (config->topology.log_cpuset &&
+							!hwloc_bitmap_isset(config->topology.log_cpuset, val))
+							_STARPU_DISP("Warning: logical CPU id %ld is not in the CPU binding provided by the OS\n", val);
+						if (val >= topology->nhwpus)
+							_STARPU_DISP("Warning: logical CPU id %ld is beyond the number of CPUs (%d), will wrap around it\n", val, topology->nhwpus);
+					}
 					topology->workers_bindid[i] = (unsigned)((val * scale) % topology->nhwpus);
 					strval = endptr;
 					if (*strval == '-')
@@ -1384,6 +1400,8 @@ void _starpu_destroy_machine_config(struct _starpu_machine_config *config, int n
 
 #ifdef STARPU_HAVE_HWLOC
 	_starpu_deallocate_topology_userdata(hwloc_get_root_obj(config->topology.hwtopology));
+	hwloc_bitmap_free(config->topology.log_cpuset);
+	hwloc_bitmap_free(config->topology.log_coreset);
 	hwloc_topology_destroy(config->topology.hwtopology);
 #endif
 
