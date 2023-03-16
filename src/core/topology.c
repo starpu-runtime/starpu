@@ -778,7 +778,7 @@ static void _starpu_initialize_workers_bindid(struct _starpu_machine_config *con
 				val = strtol(strval, &endptr, 10);
 				if (endptr != strval)
 				{
-					if (scale)
+					if (scale > 1)
 					{
 #if defined(STARPU_HAVE_HWLOC)
 						if (config->topology.log_coreset &&
