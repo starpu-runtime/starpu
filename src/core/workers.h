@@ -361,6 +361,8 @@ struct _starpu_machine_topology
 #ifdef STARPU_HAVE_HWLOC
 	/** Topology as detected by hwloc. */
 	hwloc_topology_t hwtopology;
+	hwloc_bitmap_t log_cpuset;
+	hwloc_bitmap_t log_coreset;
 #endif
 	/** custom hwloc tree*/
 	struct starpu_tree *tree;
