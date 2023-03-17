@@ -97,7 +97,9 @@ static void starpupy_numpy_filter(void *father_interface, void *child_interface,
 
 	child_narr = narr/nn*child_nn;
 
-	buffer_child->py_buffer = buffer_father->py_buffer + offset;
+	if(buffer_father->py_buffer)
+		buffer_child->py_buffer = buffer_father->py_buffer + offset;
+	
 	buffer_child->buffer_size = child_narr * elemsize;
 
 	npy_intp *child_dim;
