@@ -28,7 +28,11 @@ import time
 import array
 import struct
 
-starpu.init()
+try:
+        starpu.init()
+except Exception as e:
+        print(e)
+        exit(77)
 
 # 1-dimension
 # arr = np.arange(20)

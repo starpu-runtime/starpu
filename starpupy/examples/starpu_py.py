@@ -19,7 +19,11 @@ from starpu import starpupy
 import time
 import asyncio
 
-starpu.init()
+try:
+        starpu.init()
+except Exception as e:
+        print(e)
+        exit(77)
 
 ############################################################################
 #function no input no output print hello world

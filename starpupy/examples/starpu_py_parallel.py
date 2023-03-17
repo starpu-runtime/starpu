@@ -29,7 +29,11 @@ from math import sqrt
 from math import log10
 import sys
 
-starpu.init()
+try:
+        starpu.init()
+except Exception as e:
+        print(e)
+        exit(77)
 
 #generate a list to store functions
 g_func=[]

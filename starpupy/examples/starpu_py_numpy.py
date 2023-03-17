@@ -24,7 +24,11 @@ import starpu
 from starpu import Handle
 import asyncio
 
-starpu.init()
+try:
+        starpu.init()
+except Exception as e:
+        print(e)
+        exit(77)
 
 @starpu.access(a="RW",b="R")
 def arr_add(a,b):
