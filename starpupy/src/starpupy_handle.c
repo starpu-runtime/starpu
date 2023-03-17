@@ -13,6 +13,8 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
+
+#undef NDEBUG
 #include <starpu.h>
 #include "starpupy_interface.h"
 #include "starpupy_buffer_interface.h"

@@ -14,6 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#undef NDEBUG
 #include <starpu.h>
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
