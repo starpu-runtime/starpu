@@ -29,7 +29,11 @@ import time
 import array
 import struct
 
-starpu.init()
+try:
+        starpu.init()
+except Exception as e:
+        print(e)
+        exit(77)
 
 if starpupy.worker_get_count_by_type(starpu.STARPU_MPI_MS_WORKER) >= 1 or starpupy.worker_get_count_by_type(starpu.STARPU_TCPIP_MS_WORKER) >= 1:
 	print("This program does not work in MS mode")

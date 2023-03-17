@@ -24,7 +24,11 @@ import starpu
 from starpu import starpupy
 import asyncio
 
-starpu.init()
+try:
+        starpu.init()
+except Exception as e:
+        print(e)
+        exit(77)
 
 ###############################################################################
 
