@@ -14,6 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#undef NDEBUG
 #include <stdarg.h>
 #include <starpu.h>
 #include <common/utils.h>
