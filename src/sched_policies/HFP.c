@@ -3592,6 +3592,11 @@ int get_number_GPU()
 			return_value++;
 		} 
 	}
+
+	if (return_value == 0) /* We are not using GPUs so we are in an out-of-core case using CPUs. Need to return 1. If I want to deal with GPUs AND CPUs we need to adpt this function to return NGPU + 1 */
+	{
+		return 1;
+	}
 	return return_value;
 }
 
