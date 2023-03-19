@@ -55,18 +55,20 @@ For CUDA devices, on-line task consumption measurement is supported on V100
 cards and beyond. This however only works for quite long tasks, since the
 measurement granularity is about 10ms.
 
-Applications can however provide explicit measurements by using the function
-starpu_perfmodel_update_history() (exemplified in \ref PerformanceModelExample
-with the performance model <c>energy_model</c>). Fine-grain measurement
-is often not feasible with the feedback provided by the hardware, so the
-user can for instance run a given task a thousand times, measure the global
-consumption for that series of tasks, divide it by a thousand, repeat for
-varying kinds of tasks and task sizes, and eventually feed StarPU with these
-manual measurements through starpu_perfmodel_update_history().  For instance,
-for CUDA devices, <c>nvidia-smi -q -d POWER</c> can be used to get the current
+Applications can however provide explicit measurements by feeding the energy
+performance model by hand.
+Fine-grain measurement is often not feasible with the feedback provided by
+the hardware, so the user can for instance run a given task a thousand times,
+measure the global consumption for that series of tasks, divide it by a
+thousand, repeat for varying kinds of tasks and task sizes, and eventually feed
+StarPU with these manual measurements. For CUDA devices starting with V100,
+the starpu_energy_start() and starpu_energy_stop()
+helpers, described in \ref MeasuringEnergyandPower below, make it easy. 
+For older models, one can use <c>nvidia-smi -q -d POWER</c> to get the current
 consumption in Watt. Multiplying this value by the average duration of a
 single task gives the consumption of the task in Joules, which can be given to
-starpu_perfmodel_update_history().
+starpu_perfmodel_update_history(). (exemplified in \ref PerformanceModelExample
+with the performance model <c>energy_model</c>).
 
 Another way to provide the energy performance is to define a
 perfmodel with starpu_perfmodel::type ::STARPU_PER_ARCH or
