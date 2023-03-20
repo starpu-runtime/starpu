@@ -324,6 +324,8 @@ When the sub-data is not of the same type as the original data, the field
 starpu_data_filter::get_child_ops needs to be set appropriately for StarPU
 to know which type should be used.
 
+starpu_data_unpartition() should be called in the end to collect back the sub-pieces of data into the original piece of data.
+
 StarPU provides various interfaces and filters for matrices, vectors, etc.,
 but applications can also write their own data interfaces and filters, see
 <c>examples/interface</c> and <c>examples/filters/custom_mf</c> for an example,
@@ -427,7 +429,7 @@ buffer.
 
 For this to work, the user has to use the function
 starpu_data_set_reduction_methods() to declare how to initialize these
-buffers, and how to assemble partial results.
+buffers, and how to assemble partial results. Or use the function starpu_data_set_reduction_methods_with_args() to pass arguments to the reduction and init tasks.
 
 For instance, <c>examples/cg/cg.c</c> uses that to optimize its dot product: it first defines
 the codelets for initialization and reduction:
@@ -550,9 +552,9 @@ by data handle pointer value order.
 When sequential ordering is disabled or the flag ::STARPU_COMMUTE is used, there
 may be a lot of concurrent accesses to the same data, and the Dijkstra solution
 gets only poor parallelism, typically in some pathological cases which do happen
-in various applications. In this case, one can use a data access arbiter, which
+in various applications. In this case, one can use a data access arbiter starpu_arbiter, which
 implements the classical centralized solution for the Dining Philosophers
-problem. This is more expensive in terms of overhead since it is centralized,
+problem. One can call starpu_arbiter_create() to create a data access arbiter, and starpu_data_assign_arbiter() to make access to handle managed by arbiter. Once the application no longer needs the arbiter, one can call starpu_arbiter_destroy() to destroy the arbiter after all data assigned to the arbiter have been unregistered. This is more expensive in terms of overhead since it is centralized,
 but it opportunistically gets a lot of parallelism. The centralization can also
 be avoided by using several arbiters, thus separating sets of data for which
 arbitration will be done.  If a task accesses data from different arbiters, it

@@ -941,7 +941,7 @@ void starpu_data_unpartition_readonly_submit(starpu_data_handle_t initial_handle
 }
 
 /* Unpartition everything below ancestor */
-void starpu_data_unpartition_submit_r(starpu_data_handle_t ancestor, int gathering_node)
+static void starpu_data_unpartition_submit_r(starpu_data_handle_t ancestor, int gathering_node)
 {
 	unsigned i, j, nsiblings;
 	if (!ancestor->partitioned)

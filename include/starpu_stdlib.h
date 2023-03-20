@@ -125,6 +125,7 @@ void starpu_malloc_set_align(size_t align);
    can be asynchronous, and thus permit data transfer and computation
    overlapping. The allocated buffer must be freed thanks to the
    starpu_free_noflag() function.
+   See \ref DataManagementAllocation for more details.
 */
 int starpu_malloc(void **A, size_t dim);
 
@@ -139,6 +140,7 @@ int starpu_free(void *A) STARPU_DEPRECATED;
 /**
    Perform a memory allocation based on the constraints defined by the
    given flag.
+   See \ref HowToLimitMemoryPerNode for more details.
 */
 int starpu_malloc_flags(void **A, size_t dim, int flags);
 
@@ -172,6 +174,7 @@ typedef int (*starpu_free_hook)(unsigned dst_node, void *A, size_t dim, int flag
    convert it to an hwloc logical id with
    starpu_memory_nodes_numa_id_to_hwloclogid() or to an OS NUMA number
    with starpu_memory_nodes_numa_devid_to_id().
+   See \ref DataManagementAllocation for more details.
 */
 void starpu_malloc_set_hooks(starpu_malloc_hook malloc_hook, starpu_free_hook free_hook);
 
@@ -180,6 +183,7 @@ void starpu_malloc_set_hooks(starpu_malloc_hook malloc_hook, starpu_free_hook fr
    asynchronously with DMAs. The memory must be unpinned with
    starpu_memory_unpin() before being freed. Return 0 on success, -1
    on error.
+   See \ref DataManagementAllocation for more details.
 */
 int starpu_memory_pin(void *addr, size_t size);
 
@@ -193,6 +197,7 @@ int starpu_memory_unpin(void *addr, size_t size);
    If a memory limit is defined on the given node (see Section \ref
    HowToLimitMemoryPerNode), return the amount of total memory on the
    node. Otherwise return -1.
+   See \ref HowToLimitMemoryPerNode for more details.
 */
 starpu_ssize_t starpu_memory_get_total(unsigned node);
 
@@ -200,6 +205,7 @@ starpu_ssize_t starpu_memory_get_total(unsigned node);
    If a memory limit is defined on the given node (see Section \ref
    HowToLimitMemoryPerNode), return the amount of available memory on
    the node. Otherwise return -1.
+   See \ref HowToLimitMemoryPerNode for more details.
 */
 starpu_ssize_t starpu_memory_get_available(unsigned node);
 
@@ -236,6 +242,7 @@ size_t starpu_memory_get_used_all_nodes(void);
    By default, return <c>-ENOMEM</c> if there is not enough room on
    the given node. \p flags can be either ::STARPU_MEMORY_WAIT or
    ::STARPU_MEMORY_OVERFLOW to change this.
+   See \ref HowToLimitMemoryPerNode for more details.
 */
 int starpu_memory_allocate(unsigned node, size_t size, int flags);
 
@@ -249,6 +256,7 @@ int starpu_memory_allocate(unsigned node, size_t size, int flags);
    starpu_memory_allocate() can be followed by several calls to
    starpu_memory_deallocate() to declare the deallocation piece by
    piece.
+   See \ref HowToLimitMemoryPerNode for more details.
 */
 void starpu_memory_deallocate(unsigned node, size_t size);
 
@@ -261,6 +269,7 @@ void starpu_memory_deallocate(unsigned node, size_t size);
    To atomically wait for some amount of memory and reserve it,
    starpu_memory_allocate() should be used with the
    ::STARPU_MEMORY_WAIT flag.
+   See \ref HowToLimitMemoryPerNode for more details.
 */
 void starpu_memory_wait_available(unsigned node, size_t size);
 

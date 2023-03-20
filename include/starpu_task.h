@@ -1627,6 +1627,7 @@ struct starpu_task
    starpu_task_init() must be deinitialized explicitly with
    starpu_task_clean(). Tasks can also be initialized statically,
    using ::STARPU_TASK_INITIALIZER.
+   See \ref PerformanceModelCalibration for more details.
 */
 void starpu_task_init(struct starpu_task *task);
 
@@ -1640,6 +1641,7 @@ void starpu_task_init(struct starpu_task *task);
    only after explicitly waiting for the task or after
    starpu_shutdown() (waiting for the callback is not enough, since
    StarPU still manipulates the task after calling the callback).
+   See \ref PerformanceModelCalibration for more details.
 */
 void starpu_task_clean(struct starpu_task *task);
 
@@ -1652,6 +1654,7 @@ void starpu_task_clean(struct starpu_task *task);
    dependencies make it wait) and thus freed at any time. If the field
    starpu_task::destroy is explicitly unset, the resources used by the
    task have to be freed by calling starpu_task_destroy().
+   See \ref SubmittingATask for more details.
 */
 struct starpu_task *starpu_task_create(void) STARPU_ATTRIBUTE_MALLOC;
 
@@ -1672,6 +1675,7 @@ struct starpu_task *starpu_task_create_sync(starpu_data_handle_t handle, enum st
    is set, which is the default for tasks created by
    starpu_task_create(). Calling this function on a statically
    allocated task results in an undefined behaviour.
+   See \ref Per-taskFeedback and \ref PerformanceModelExample for more details.
 */
 void starpu_task_destroy(struct starpu_task *task);
 
@@ -1699,6 +1703,7 @@ void starpu_task_set_destroy(struct starpu_task *task);
    implemented for CUDA devices). starpu_task_submit() can be called
    from anywhere, including codelet functions and callbacks, provided
    that the field starpu_task::synchronous is set to 0.
+   See \ref SubmittingATask for more details.
 */
 int starpu_task_submit(struct starpu_task *task) STARPU_WARN_UNUSED_RESULT;
 
@@ -1718,6 +1723,7 @@ static inline int starpu_task_submit_line(struct starpu_task *task, const char *
    This can only be called on behalf of another task which has already taken the
    proper dependencies, e.g. this task is just an attempt of doing the actual
    computation of that task.
+   See \ref TaskRetry for more details.
 */
 int starpu_task_submit_nodeps(struct starpu_task *task) STARPU_WARN_UNUSED_RESULT;
 
@@ -1725,6 +1731,7 @@ int starpu_task_submit_nodeps(struct starpu_task *task) STARPU_WARN_UNUSED_RESUL
    Submit \p task to the context \p sched_ctx_id. By default,
    starpu_task_submit() submits the task to a global context that is
    created automatically by StarPU.
+   See \¶ef SubmittingTasksToAContext for more details.
 */
 int starpu_task_submit_to_ctx(struct starpu_task *task, unsigned sched_ctx_id);
 
@@ -1739,6 +1746,7 @@ int starpu_task_finished(struct starpu_task *task) STARPU_WARN_UNUSED_RESULT;
    for synchronous or detached tasks. Upon successful completion, this
    function returns 0. Otherwise, <c>-EINVAL</c> indicates that the
    specified task was either synchronous or detached.
+   See \ref SubmittingATask for more details.
 */
 int starpu_task_wait(struct starpu_task *task) STARPU_WARN_UNUSED_RESULT;
 
@@ -1753,6 +1761,7 @@ int starpu_task_wait_array(struct starpu_task **tasks, unsigned nb_tasks) STARPU
    Block until all the tasks that were submitted (to the current
    context or the global one if there is no current context) are
    terminated. It does not destroy these tasks.
+   See \ref SubmittingATask for more details.
 */
 int starpu_task_wait_for_all(void);
 
@@ -1760,6 +1769,7 @@ int starpu_task_wait_for_all(void);
    Block until there are \p n submitted tasks left (to the current
    context or the global one if there is no current context) to be
    executed. It does not destroy these tasks.
+   See \ref HowtoReuseMemory for more details.
 */
 int starpu_task_wait_for_n_submitted(unsigned n);
 
@@ -1804,6 +1814,8 @@ int starpu_task_nsubmitted(void);
    Nested calls to starpu_iteration_push() and starpu_iteration_pop()
    are allowed, to describe a loop nest for instance, provided that
    they match properly.
+
+   See \ref CreatingAGanttDiagram for more details.
 */
 void starpu_iteration_push(unsigned long iteration);
 
@@ -1811,15 +1823,19 @@ void starpu_iteration_push(unsigned long iteration);
    Drop the iteration number for submitted tasks. This must match a
    previous call to starpu_iteration_push(), and is typically called
    at the end of a task submission loop.
+   See \ref CreatingAGanttDiagram for more details.
 */
 void starpu_iteration_pop(void);
-
+/**
+	See \ref GraphScheduling for more details.
+*/
 void starpu_do_schedule(void);
 
 /**
    Initialize \p cl with default values. Codelets should preferably be
    initialized statically as shown in \ref DefiningACodelet. However
    such a initialisation is not always possible, e.g. when using C++.
+   See \ref DefiningACodelet for more details.
 */
 void starpu_codelet_init(struct starpu_codelet *cl);
 
@@ -1832,6 +1848,7 @@ void starpu_codelet_display_stats(struct starpu_codelet *cl);
    Return the task currently executed by the worker, or <c>NULL</c> if
    it is called either from a thread that is not a task or simply
    because there is no task being executed at the moment.
+   See \ref Per-taskFeedback for more details.
 */
 struct starpu_task *starpu_task_get_current(void);
 
@@ -1896,6 +1913,8 @@ void starpu_create_callback_task(void (*callback)(void *), void *callback_arg);
    task, and either confirm success, or resubmit another attempt.
    If it is not set, the default implementation is to just resubmit a new
    try-task.
+
+   See \ref TaskRetry for more details.
  */
 void starpu_task_ft_prologue(void *check_ft);
 
@@ -1930,6 +1949,7 @@ void starpu_task_ft_failed(struct starpu_task *task);
 /**
    Notify that the try-task was successful and thus the meta-task was
    successful.
+   See \ref TaskRetry for more details.
  */
 void starpu_task_ft_success(struct starpu_task *meta_task);
 
@@ -1949,6 +1969,7 @@ char *starpu_task_status_get_as_string(enum starpu_task_status status);
    time, this allows to control the task submission flow. The value
    can also be specified with the environment variable \ref
    STARPU_LIMIT_MIN_SUBMITTED_TASKS.
+   See \ref HowToReduceTheMemoryFootprintOfInternalDataStructures for more details.
 */
 void starpu_set_limit_min_submitted_tasks(int limit_min);
 
@@ -1957,6 +1978,7 @@ void starpu_set_limit_min_submitted_tasks(int limit_min);
    time, this allows to control the task submission flow. The value
    can also be specified with the environment variable \ref
    STARPU_LIMIT_MAX_SUBMITTED_TASKS.
+   See \ref HowToReduceTheMemoryFootprintOfInternalDataStructures for more details.
 */
 void starpu_set_limit_max_submitted_tasks(int limit_min);
 
@@ -1972,16 +1994,19 @@ void starpu_set_limit_max_submitted_tasks(int limit_min);
 
    @return A pointer to an initializes <c>struct starpu_transaction</c>
    or \c NULL if submitting the transaction begin task failed with \c ENODEV.
+   See \ref TransactionsCreation for more details.
  */
 struct starpu_transaction *starpu_transaction_open(int (*do_start_func)(void *buffer, void *arg), void *do_start_arg);
 
 /**
    Function to mark the end of the current transaction epoch and start a new epoch.
+   See \ref TransactionsEpochNext for more details.
  */
 void starpu_transaction_next_epoch(struct starpu_transaction *p_trs, void *do_start_arg);
 
 /**
    Function to mark the end of the last transaction epoch and free the transation object.
+   See \ref TransactionsClosing for more details.
  */
 void starpu_transaction_close(struct starpu_transaction *p_trs);
 

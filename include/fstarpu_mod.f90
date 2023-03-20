@@ -378,13 +378,6 @@ module fstarpu_mod
                         integer(c_int), value, intent(in) :: id
                 end function fstarpu_worker_get_devid
 
-                ! int starpu_worker_get_mp_nodeid(int id);
-                function fstarpu_worker_get_mp_nodeid(id) bind(C,name="starpu_worker_get_mp_nodeid")
-                        use iso_c_binding, only: c_int
-                        integer(c_int)              :: fstarpu_worker_get_mp_nodeid
-                        integer(c_int), value, intent(in) :: id
-                end function fstarpu_worker_get_mp_nodeid
-
                 ! struct starpu_tree* starpu_workers_get_tree(void);
                 ! unsigned starpu_worker_get_sched_ctx_list(int worker, unsigned **sched_ctx);
 

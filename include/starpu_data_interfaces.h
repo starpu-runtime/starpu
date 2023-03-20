@@ -98,6 +98,8 @@ extern "C" {
    used by default if no specific method is provided. It can still be
    useful to provide more specific method in case of e.g. available
    particular CUDA, HIP or OpenCL support.
+
+   See \ref DefiningANewDataInterface_copy for more details.
 */
 struct starpu_data_copy_methods
 {
@@ -378,6 +380,8 @@ struct starpu_data_interface_ops
 	   was filled with the application's pointers.
 
 	   This method is mandatory.
+
+	   See \ref DefiningANewDataInterface_registration for more details.
 	*/
 	void (*register_data_handle)(starpu_data_handle_t handle, int home_node, void *data_interface);
 
@@ -389,6 +393,8 @@ struct starpu_data_interface_ops
 
 	   At this point, free_data_on_node has been already called on each of them.
 	   This just clears anything that would still be left.
+
+	   See \ref DefiningANewDataInterface_registration for more details.
 	*/
 	void (*unregister_data_handle)(starpu_data_handle_t handle);
 
@@ -404,6 +410,8 @@ struct starpu_data_interface_ops
 	   GPU pointer, a disk descriptor, etc.
 
 	   This method is mandatory to be able to support memory nodes.
+
+	   See \ref DefiningANewDataInterface_pointers for more details.
 	*/
 	starpu_ssize_t (*allocate_data_on_node)(void *data_interface, unsigned node);
 
@@ -411,6 +419,8 @@ struct starpu_data_interface_ops
 	   Free data of the interface on a given node.
 
 	   This method is mandatory to be able to support memory nodes.
+
+	   See \ref DefiningANewDataInterface_pointers for more details.
 	*/
 	void (*free_data_on_node)(void *data_interface, unsigned node);
 
@@ -436,6 +446,8 @@ struct starpu_data_interface_ops
 
 	   When this method is not defined, StarPU will just copy the \p
 	   cached_interface into \p src_interface.
+
+	   See \ref VariableSizeDataInterface and \ref DefiningANewDataInterface_pointers for more details.
 	*/
 	void (*cache_data_on_node)(void *cached_interface, void *src_interface, unsigned node);
 
@@ -456,21 +468,29 @@ struct starpu_data_interface_ops
 
 	   reuse_data_on_node should thus copy over pointers, and define fields
 	   that are usually set by allocate_data_on_node (e.g. ld).
+
+	   See \ref VariableSizeDataInterface and \ref DefiningANewDataInterface_pointers for more details.
 	*/
 	void (*reuse_data_on_node)(void *dst_data_interface, const void *cached_interface, unsigned node);
 
 	/**
 	   Map data from a source to a destination.
+	   Define function starpu_interface_map() to set this field.
+	   See \ref DefiningANewDataInterface_pointers for more details.
 	*/
 	int (*map_data)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 
 	/**
 	   Unmap data from a source to a destination.
+	   Define function starpu_interface_unmap() to set this field.
+	   See \ref DefiningANewDataInterface_pointers for more details.
 	*/
 	int (*unmap_data)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 
 	/**
 	   Update map data from a source to a destination.
+	   Define function starpu_interface_update_map() to set this field.
+	   See \ref DefiningANewDataInterface_pointers for more details.
 	*/
 	int (*update_map)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 
@@ -683,6 +703,8 @@ struct starpu_data_interface_ops
    vector or matrix) which can be registered by the means of helper
    functions (e.g. starpu_vector_data_register() or
    starpu_matrix_data_register()).
+
+   See \ref DefiningANewDataInterface_registration for more details.
 */
 void starpu_data_register(starpu_data_handle_t *handleptr, int home_node, void *data_interface, struct starpu_data_interface_ops *ops);
 
@@ -701,12 +723,14 @@ void starpu_data_register_ops(struct starpu_data_interface_ops *ops);
    Register that a buffer for \p handle on \p node will be set. This is typically
    used by starpu_*_ptr_register helpers before setting the interface pointers for
    this node, to tell the core that that is now allocated.
+   See \ref DefiningANewDataInterface_pointers for more details.
 */
 void starpu_data_ptr_register(starpu_data_handle_t handle, unsigned node);
 
 /**
    Register a new piece of data into the handle \p handledst with the
    same interface as the handle \p handlesrc.
+   See \ref DataHandlesHelpers for more details.
 */
 void starpu_data_register_same(starpu_data_handle_t *handledst, starpu_data_handle_t handlesrc);
 
@@ -725,6 +749,7 @@ void *starpu_data_get_local_ptr(starpu_data_handle_t handle);
 
 /**
    Return the interface associated with \p handle on \p memory_node.
+   See \ref DefiningANewDataInterface_pack for more details.
 */
 void *starpu_data_get_interface_on_node(starpu_data_handle_t handle, unsigned memory_node);
 
@@ -817,6 +842,8 @@ int starpu_data_interface_get_next_id(void);
    the starpu_data_copy_methods::any_to_any copy method, which is provided with \p async_data to
    be passed to starpu_interface_copy(). this returns <c>-EAGAIN</c> if the
    transfer is still ongoing, or 0 if the transfer is already completed.
+
+   See \ref DefiningANewDataInterface_copy for more details.
 */
 int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node,
 			  uintptr_t dst, size_t dst_offset, unsigned dst_node,
@@ -951,6 +978,8 @@ void starpu_interface_data_copy(unsigned src_node, unsigned dst_node, size_t siz
    Allocate \p size bytes on node \p dst_node with the given allocation \p flags. This returns 0 if
    allocation failed, the allocation method should then return <c>-ENOMEM</c> as
    allocated size. Deallocation must be done with starpu_free_on_node_flags().
+
+   See \ref VariableSizeDataInterface for more details.
 */
 uintptr_t starpu_malloc_on_node_flags(unsigned dst_node, size_t size, int flags);
 
@@ -958,18 +987,24 @@ uintptr_t starpu_malloc_on_node_flags(unsigned dst_node, size_t size, int flags)
    Allocate \p size bytes on node \p dst_node with the default allocation flags. This returns 0 if
    allocation failed, the allocation method should then return <c>-ENOMEM</c> as
    allocated size. Deallocation must be done with starpu_free_on_node().
+
+   See \ref DefiningANewDataInterface_allocation for more details.
 */
 uintptr_t starpu_malloc_on_node(unsigned dst_node, size_t size);
 
 /**
    Free \p addr of \p size bytes on node \p dst_node which was previously allocated
    with starpu_malloc_on_node_flags() with the given allocation \p flags.
+
+   See \ref VariableSizeDataInterface for more details.
 */
 void starpu_free_on_node_flags(unsigned dst_node, uintptr_t addr, size_t size, int flags);
 
 /**
    Free \p addr of \p size bytes on node \p dst_node which was previously allocated
    with starpu_malloc_on_node().
+
+   See \ref DefiningANewDataInterface_allocation for more details.
 */
 void starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size);
 
@@ -986,8 +1021,20 @@ void starpu_malloc_on_node_set_default_flags(unsigned node, int flags);
    @{
 */
 
+/**
+   Used to set starpu_data_interface_ops::map_data.
+   See \ref DefiningANewDataInterface_pointers for more details.
+*/
 uintptr_t starpu_interface_map(uintptr_t src, size_t src_offset, unsigned src_node, unsigned dst_node, size_t size, int *ret);
+/**
+   Used to set starpu_data_interface_ops::unmap_data.
+   See \ref DefiningANewDataInterface_pointers for more details.
+*/
 int starpu_interface_unmap(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, unsigned dst_node, size_t size);
+/**
+   Used to set starpu_data_interface_ops::update_map.
+   See \ref DefiningANewDataInterface_pointers for more details.
+*/
 int starpu_interface_update_map(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size);
 
 /** @} */
@@ -1031,12 +1078,16 @@ struct starpu_matrix_interface
    matrix = (float*)malloc(width * height * sizeof(float));
    starpu_matrix_data_register(&matrix_handle, STARPU_MAIN_RAM, (uintptr_t)matrix, width, width, height, sizeof(float));
    \endcode
+
+   See \ref MatrixDataInterface for more details.
 */
 void starpu_matrix_data_register(starpu_data_handle_t *handle, int home_node, uintptr_t ptr, uint32_t ld, uint32_t nx, uint32_t ny, size_t elemsize);
 
 /**
    Similar to starpu_matrix_data_register, but additionally specifies which
    allocation size should be used instead of the initial nx*ny*elemsize.
+
+   See \ref VariableSizeDataInterface for more details.
 */
 void starpu_matrix_data_register_allocsize(starpu_data_handle_t *handle, int home_node, uintptr_t ptr, uint32_t ld, uint32_t nx, uint32_t ny, size_t elemsize, size_t allocsize);
 
@@ -1333,6 +1384,8 @@ struct starpu_block_interface
    block = (float*)malloc(nx*ny*nz*sizeof(float));
    starpu_block_data_register(&block_handle, STARPU_MAIN_RAM, (uintptr_t)block, nx, nx*ny, nx, ny, nz, sizeof(float));
    \endcode
+
+   See \ref BlockDataInterface for more details.
 */
 void starpu_block_data_register(starpu_data_handle_t *handle, int home_node, uintptr_t ptr, uint32_t ldy, uint32_t ldz, uint32_t nx, uint32_t ny, uint32_t nz, size_t elemsize);
 
@@ -1525,6 +1578,8 @@ struct starpu_tensor_interface
    tensor = (float*)malloc(nx*ny*nz*nt*sizeof(float));
    starpu_tensor_data_register(&tensor_handle, STARPU_MAIN_RAM, (uintptr_t)tensor, nx, nx*ny, nx*ny*nz, nx, ny, nz, nt, sizeof(float));
    \endcode
+
+   See \ref TensorDataInterface for more details.
 */
 void starpu_tensor_data_register(starpu_data_handle_t *handle, int home_node, uintptr_t ptr, uint32_t ldy, uint32_t ldz, uint32_t ldt, uint32_t nx, uint32_t ny, uint32_t nz, uint32_t nt, size_t elemsize);
 
@@ -1749,6 +1804,8 @@ struct starpu_ndim_interface
    ndim_arr = (float*)malloc(arrsize*sizeof(float));
    starpu_ndim_data_register(&ndim_handle, STARPU_MAIN_RAM, (uintptr_t)ndim_arr, ldn, nn, ndim, sizeof(float));
    \endcode
+
+   See \ref NdimDataInterface for more details.
 */
 void starpu_ndim_data_register(starpu_data_handle_t *handleptr, int home_node, uintptr_t ptr, uint32_t *ldn, uint32_t *nn, size_t ndim, size_t elemsize);
 /**
@@ -1908,11 +1965,13 @@ struct starpu_vector_interface
    starpu_data_handle_t vector_handle;
    starpu_vector_data_register(&vector_handle, STARPU_MAIN_RAM, (uintptr_t)vector, NX, sizeof(vector[0]));
    \endcode
+
+   See \ref VectorDataInterface for more details.
  */
 void starpu_vector_data_register(starpu_data_handle_t *handle, int home_node, uintptr_t ptr, uint32_t nx, size_t elemsize);
 
 /**
-   Similar to starpu_matrix_data_register, but additionally specifies which
+   Similar to starpu_vector_data_register, but additionally specifies which
    allocation size should be used instead of the initial nx*elemsize.
 */
 void starpu_vector_data_register_allocsize(starpu_data_handle_t *handle, int home_node, uintptr_t ptr, uint32_t nx, size_t elemsize, size_t allocsize);
@@ -2065,6 +2124,8 @@ struct starpu_variable_interface
    starpu_data_handle_t var_handle;
    starpu_variable_data_register(&var_handle, STARPU_MAIN_RAM, (uintptr_t)&var, sizeof(var));
    \endcode
+
+   See \ref VariableDataInterface for more details.
 */
 void starpu_variable_data_register(starpu_data_handle_t *handle, int home_node, uintptr_t ptr, size_t size);
 
@@ -2408,6 +2469,8 @@ struct starpu_bcsr_interface
 			  C,
 			  sizeof(nzval[0]));
    \endcode
+
+   See \ref BCSRDataInterface for more details.
 */
 void starpu_bcsr_data_register(starpu_data_handle_t *handle, int home_node, uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, uint32_t r, uint32_t c, size_t elemsize);
 

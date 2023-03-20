@@ -70,7 +70,7 @@ struct starpu_codelet cl =
 
 \subsection SubmittingATask Submitting A Task
 
-Before submitting any tasks to StarPU, starpu_init() must be called. The
+Before submitting any tasks to StarPU, starpu_init() must be called, or starpu_initialize() must be called by giving arguments of application.  The
 <c>NULL</c> argument specifies that we use the default configuration.
 Tasks can then be submitted until the termination of StarPU -- done by a
 call to starpu_shutdown().

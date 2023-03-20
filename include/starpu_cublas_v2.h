@@ -33,7 +33,7 @@ extern "C" {
 /**
    Return the CUBLAS handle to be used to queue CUBLAS kernels. It
    is properly initialized and configured for multistream by
-   starpu_cublas_init().
+   starpu_cublas_init(). See \ref CUDA-specificOptimizations for more details.
 */
 cublasHandle_t starpu_cublas_get_local_handle(void);
 

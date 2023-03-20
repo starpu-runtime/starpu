@@ -202,40 +202,48 @@ struct starpu_sched_tree
 	starpu_pthread_mutex_t lock;
 };
 
-void starpu_initialize_prio_center_policy(unsigned sched_ctx_id);
-
 /**
    @name Scheduling Tree API
    @{
 */
 
 /**
-   create a empty initialized starpu_sched_tree
+   create a empty initialized starpu_sched_tree.
+   See \ref ImplementAModularizedScheduler for more details.
 */
 struct starpu_sched_tree *starpu_sched_tree_create(unsigned sched_ctx_id) STARPU_ATTRIBUTE_MALLOC;
 /**
    destroy tree and free all non shared component in it.
+   See \ref ImplementAModularizedScheduler for more details.
 */
 void starpu_sched_tree_destroy(struct starpu_sched_tree *tree);
 /**
    calls starpu_sched_tree_destroy, ready for use for starpu_sched_policy::deinit_sched field.
+   See \ref ImplementAModularizedScheduler for more details.
  */
 void starpu_sched_tree_deinitialize(unsigned sched_ctx_id);
+/**
+   See \ref ImplementAModularizedScheduler for more details.
+ */
 struct starpu_sched_tree *starpu_sched_tree_get(unsigned sched_ctx_id);
 /**
    recursively set all starpu_sched_component::workers, do not take into account shared parts (except workers).
+	See \ref ImplementAModularizedScheduler for more details.
 */
 void starpu_sched_tree_update_workers(struct starpu_sched_tree *t);
 /**
    recursively set all starpu_sched_component::workers_in_ctx, do not take into account shared parts (except workers)
+	See \ref ImplementAModularizedScheduler for more details.
 */
 void starpu_sched_tree_update_workers_in_ctx(struct starpu_sched_tree *t);
 /**
-   compatibility with starpu_sched_policy interface
+   compatibility with starpu_sched_policy interface.
+   See \ref ImplementAModularizedScheduler for more details.
 */
 int starpu_sched_tree_push_task(struct starpu_task *task);
 /**
-   compatibility with starpu_sched_policy interface
+   compatibility with starpu_sched_policy interface.
+   See \ref ImplementAModularizedScheduler for more details.
 */
 struct starpu_task *starpu_sched_tree_pop_task(unsigned sched_ctx);
 
@@ -647,7 +655,8 @@ int starpu_sched_component_is_userchoice(struct starpu_sched_component *componen
 struct starpu_sched_component_composed_recipe;
 
 /**
-   return an empty recipe for a composed component, it should not be used without modification
+   return an empty recipe for a composed component, it should not be used without modification.
+   See \ref ImplementAModularizedScheduler for more details.
 */
 struct starpu_sched_component_composed_recipe *starpu_sched_component_composed_recipe_create(void) STARPU_ATTRIBUTE_MALLOC;
 
@@ -812,6 +821,7 @@ struct starpu_sched_tree *starpu_sched_component_make_scheduler(unsigned sched_c
    is described by \p flags. The different STARPU_SCHED_SIMPL_DECIDE_* flags are
    mutually exclusive. \p data is passed to the \p create_decision_component
    function when creating the decision component.
+   See \ref ImplementAModularizedScheduler for more details.
 */
 void starpu_sched_component_initialize_simple_scheduler(starpu_sched_component_create_t create_decision_component, void *data, unsigned flags, unsigned sched_ctx_id);
 

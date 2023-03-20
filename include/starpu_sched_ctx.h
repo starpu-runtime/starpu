@@ -133,6 +133,7 @@ extern "C" {
    to a custom user data structure, to be retrieved by \ref starpu_sched_ctx_get_user_data().
    </li>
    </ul>
+   See \ref CreatingAContext for more details.
 */
 unsigned starpu_sched_ctx_create(int *workerids_ctx, int nworkers_ctx, const char *sched_ctx_name, ...);
 
@@ -152,6 +153,7 @@ void starpu_sched_ctx_register_close_callback(unsigned sched_ctx_id, void (*clos
    Add dynamically the workers in \p workerids_ctx to the context \p
    sched_ctx_id. The last argument cannot be greater than
    ::STARPU_NMAX_SCHED_CTXS.
+   See \ref ModifyingAContext for more details.
 */
 void starpu_sched_ctx_add_workers(int *workerids_ctx, unsigned nworkers_ctx, unsigned sched_ctx_id);
 
@@ -159,6 +161,7 @@ void starpu_sched_ctx_add_workers(int *workerids_ctx, unsigned nworkers_ctx, uns
    Remove the workers in \p workerids_ctx from the context
    \p sched_ctx_id. The last argument cannot be greater than
    ::STARPU_NMAX_SCHED_CTXS.
+   See \ref ModifyingAContext for more details.
 */
 void starpu_sched_ctx_remove_workers(int *workerids_ctx, unsigned nworkers_ctx, unsigned sched_ctx_id);
 
@@ -171,6 +174,7 @@ void starpu_sched_ctx_display_workers(unsigned sched_ctx_id, FILE *f);
 /**
    Delete scheduling context \p sched_ctx_id and transfer remaining
    workers to the inheritor scheduling context.
+   See \ref DeletingAContext for more details.
 */
 void starpu_sched_ctx_delete(unsigned sched_ctx_id);
 
@@ -178,6 +182,7 @@ void starpu_sched_ctx_delete(unsigned sched_ctx_id);
    Indicate that the context \p inheritor will inherit the resources
    of the context \p sched_ctx_id when \p sched_ctx_id will be
    deleted.
+   See \ref DeletingAContext for more details.
 */
 void starpu_sched_ctx_set_inheritor(unsigned sched_ctx_id, unsigned inheritor);
 
@@ -187,7 +192,8 @@ unsigned starpu_sched_ctx_get_hierarchy_level(unsigned sched_ctx_id);
 
 /**
    Set the scheduling context the subsequent tasks will be submitted
-   to
+   to.
+   See \ref SubmittingTasksToAContext and \ref TmpCTXS for more details.
 */
 void starpu_sched_ctx_set_context(unsigned *sched_ctx_id);
 
@@ -200,7 +206,8 @@ unsigned starpu_sched_ctx_get_context(void);
 
 /**
    Stop submitting tasks from the empty context list until the next
-   time the context has time to check the empty context list
+   time the context has time to check the empty context list.
+   See \ref EmptyingAContext for more details.
 */
 void starpu_sched_ctx_stop_task_submission(void);
 
@@ -208,6 +215,7 @@ void starpu_sched_ctx_stop_task_submission(void);
    Indicate starpu that the application finished submitting to this
    context in order to move the workers to the inheritor as soon as
    possible.
+   See \ref DeletingAContext for more details.
 */
 void starpu_sched_ctx_finished_submit(unsigned sched_ctx_id);
 
@@ -256,6 +264,8 @@ unsigned starpu_sched_ctx_worker_get_id(unsigned sched_ctx_id);
 
 unsigned starpu_sched_ctx_get_ctx_for_task(struct starpu_task *task);
 
+unsigned starpu_worker_get_sched_ctx_id_stream(unsigned stream_workerid);
+
 /**
    Check if a worker is shared between several contexts
 */
@@ -271,13 +281,15 @@ void starpu_sched_ctx_set_user_data(unsigned sched_ctx_id, void *user_data);
 /**
    Allocate the scheduling policy data (private information of the
    scheduler like queues, variables, additional condition variables)
-   the context
+   the context.
+   See \ref DefiningANewBasicSchedulingPolicy for more details.
 */
 void starpu_sched_ctx_set_policy_data(unsigned sched_ctx_id, void *policy_data);
 
 /**
    Return the scheduling policy data (private information of the
    scheduler) of the contexts previously assigned to.
+   See \ref DefiningANewBasicSchedulingPolicy for more details.
 */
 void *starpu_sched_ctx_get_policy_data(unsigned sched_ctx_id);
 

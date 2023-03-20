@@ -59,6 +59,7 @@ chapters =	\
 	chapters/starpu_languages/openmp_runtime_support.doxy		\
 	chapters/starpu_extensions/extensions_intro.doxy		\
 	chapters/starpu_extensions/debugging_tools.doxy		\
+	chapters/starpu_extensions/configuration_and_initialization.doxy		\
 	chapters/starpu_extensions/advanced_tasks.doxy		\
 	chapters/starpu_extensions/advanced_data_management.doxy		\
 	chapters/starpu_extensions/advanced_scheduling.doxy		\

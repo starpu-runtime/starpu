@@ -224,11 +224,11 @@ extern "C" {
 */
 
 /**
-   Initialize StarPU and its OpenMP Runtime support.
+   Initialize StarPU and its OpenMP Runtime support. See \ref OMPInitExit for more details.
 */
 extern int starpu_omp_init(void) __STARPU_OMP_NOTHROW;
 /**
-   Shutdown StarPU and its OpenMP Runtime support.
+   Shutdown StarPU and its OpenMP Runtime support. See \ref OMPInitExit for more details.
 */
 extern void starpu_omp_shutdown(void) __STARPU_OMP_NOTHROW;
 
@@ -247,6 +247,7 @@ extern void starpu_omp_shutdown(void) __STARPU_OMP_NOTHROW;
    generated parallel region is nested within the generating parallel region.
 
    This function can be used to implement <c>\#pragma omp parallel</c>.
+   See \ref OMPParallel for more details.
 */
 extern void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *attr) __STARPU_OMP_NOTHROW;
 
@@ -257,6 +258,7 @@ extern void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_a
    f is the function to be called. \p arg is an argument passed to function \p f.
 
    This function can be used to implement <c>\#pragma omp master</c>.
+   See \ref OMPSingle for more details.
 */
 extern void starpu_omp_master(void (*f)(void *arg), void *arg) __STARPU_OMP_NOTHROW;
 
@@ -285,6 +287,7 @@ extern int starpu_omp_master_inline(void) __STARPU_OMP_NOTHROW;
    completed its execution.
 
    This function can be used to implement <c>\#pragma omp barrier</c>.
+   See \ref OMPBarrier for more details.
 */
 extern void starpu_omp_barrier(void) __STARPU_OMP_NOTHROW;
 
@@ -298,6 +301,8 @@ extern void starpu_omp_barrier(void) __STARPU_OMP_NOTHROW;
 
    This function can be used to implement <c>\#pragma omp
    critical</c>.
+
+   See \ref OMPCritical for more details.
 */
 extern void starpu_omp_critical(void (*f)(void *arg), void *arg, const char *name) __STARPU_OMP_NOTHROW;
 
@@ -339,6 +344,7 @@ extern void starpu_omp_critical_inline_end(const char *name) __STARPU_OMP_NOTHRO
    (<c>nowait==0</c>) or not (<c>nowait==!0</c>).
 
    This function can be used to implement <c>\#pragma omp single</c>.
+   See \ref OMPSingle for more details.
 */
 extern void starpu_omp_single(void (*f)(void *arg), void *arg, int nowait) __STARPU_OMP_NOTHROW;
 
@@ -365,6 +371,8 @@ extern int starpu_omp_single_inline(void) __STARPU_OMP_NOTHROW;
    \sa starpu_omp_single_copyprivate_inline
    \sa starpu_omp_single_copyprivate_inline_begin
    \sa starpu_omp_single_copyprivate_inline_end
+
+   See \ref OMPSingle for more details.
 */
 extern void starpu_omp_single_copyprivate(void (*f)(void *arg, void *data, unsigned long long data_size), void *arg, void *data, unsigned long long data_size) __STARPU_OMP_NOTHROW;
 
@@ -413,6 +421,7 @@ extern void starpu_omp_single_copyprivate_inline_end(void) __STARPU_OMP_NOTHROW;
    returning, \p arg, the free \p arg argument.
 
    This function can be used to implement <c>\#pragma omp for</c>.
+   See \ref OMPFor for more details.
 */
 extern void starpu_omp_for(void (*f)(unsigned long long _first_i, unsigned long long _nb_i, void *arg), void *arg, unsigned long long nb_iterations, unsigned long long chunk, int schedule, int ordered, int nowait) __STARPU_OMP_NOTHROW;
 
@@ -467,6 +476,8 @@ extern int starpu_omp_for_inline_next(unsigned long long nb_iterations, unsigned
    This function can be used to implement <c>\#pragma omp for</c>.
 
    \sa starpu_omp_for
+
+   See \ref OMPFor for more details.
 */
 extern void starpu_omp_for_alt(void (*f)(unsigned long long _begin_i, unsigned long long _end_i, void *arg), void *arg, unsigned long long nb_iterations, unsigned long long chunk, int schedule, int ordered, int nowait) __STARPU_OMP_NOTHROW;
 
@@ -501,6 +512,8 @@ extern int starpu_omp_for_inline_next_alt(unsigned long long nb_iterations, unsi
    an argument passed to function \p f.
 
    This function can be used to implement <c>\#pragma omp ordered</c>.
+
+   See \ref OMPFor for more details.
 */
 extern void starpu_omp_ordered(void (*f)(void *arg), void *arg) __STARPU_OMP_NOTHROW;
 
@@ -530,6 +543,8 @@ extern void starpu_omp_ordered_inline_end(void) __STARPU_OMP_NOTHROW;
    the execution of all the sections (<c>nowait==0</c>) or not (<c>nowait==!0</c>).
 
    This function can be used to implement <c>\#pragma omp sections</c> and <c>\#pragma omp section</c>.
+
+   See \ref OMPSections for more details.
  */
 extern void starpu_omp_sections(unsigned long long nb_sections, void (**section_f)(void *arg), void **section_arg, int nowait) __STARPU_OMP_NOTHROW;
 
@@ -563,6 +578,8 @@ extern void starpu_omp_sections_combined(unsigned long long nb_sections, void (*
    \p attr specifies the attributes for the generated task region.
 
    This function can be used to implement <c>\#pragma omp task</c>.
+
+   See \ref OMPTaskExplicit for more details.
  */
 extern void starpu_omp_task_region(const struct starpu_omp_task_region_attr *attr) __STARPU_OMP_NOTHROW;
 
@@ -572,6 +589,8 @@ extern void starpu_omp_task_region(const struct starpu_omp_task_region_attr *att
    task.
 
    This function can be used to implement <c>\#pragma omp taskwait</c>.
+
+   See \ref OMPTaskSyncs for more details.
  */
 extern void starpu_omp_taskwait(void) __STARPU_OMP_NOTHROW;
 
@@ -583,6 +602,8 @@ extern void starpu_omp_taskwait(void) __STARPU_OMP_NOTHROW;
 
    \sa starpu_omp_taskgroup_inline_begin
    \sa starpu_omp_taskgroup_inline_end
+
+   See \ref OMPTaskSyncs for more details.
  */
 extern void starpu_omp_taskgroup(void (*f)(void *arg), void *arg) __STARPU_OMP_NOTHROW;
 
@@ -750,6 +771,8 @@ extern int starpu_omp_get_cancellation(void) __STARPU_OMP_NOTHROW;
    in accordance with the OpenMP specification.
 
    \sa starpu_omp_get_schedule
+
+   See \ref OMPFor for more details.
  */
 extern void starpu_omp_set_schedule(enum starpu_omp_sched_value kind, int modifier) __STARPU_OMP_NOTHROW;
 
@@ -1097,6 +1120,7 @@ extern double starpu_omp_get_wtick(void) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_vector_annotate(starpu_data_handle_t handle, uint32_t slice_base) __STARPU_OMP_NOTHROW;
 
 /**
+   Only use internally by StarPU.
  */
 extern struct starpu_arbiter *starpu_omp_get_default_arbiter(void) __STARPU_OMP_NOTHROW;
 
@@ -1105,6 +1129,8 @@ extern struct starpu_arbiter *starpu_omp_get_default_arbiter(void) __STARPU_OMP_
 
    \sa starpu_omp_handle_unregister
    \sa starpu_omp_data_lookup
+
+   See \ref OMPDataDependencies for more details.
  */
 extern void starpu_omp_handle_register(starpu_data_handle_t handle) __STARPU_OMP_NOTHROW;
 
@@ -1113,6 +1139,8 @@ extern void starpu_omp_handle_register(starpu_data_handle_t handle) __STARPU_OMP
 
    \sa starpu_omp_handle_register
    \sa starpu_omp_data_lookup
+
+   See \ref OMPDataDependencies for more details.
  */
 extern void starpu_omp_handle_unregister(starpu_data_handle_t handle) __STARPU_OMP_NOTHROW;
 
@@ -1120,6 +1148,8 @@ extern void starpu_omp_handle_unregister(starpu_data_handle_t handle) __STARPU_O
    Return the handle corresponding to the data pointed to by the \p ptr host pointer.
 
    \return the handle or \c NULL if not found.
+
+   See \ref OMPDataDependencies for more details.
 */
 extern starpu_data_handle_t starpu_omp_data_lookup(const void *ptr) __STARPU_OMP_NOTHROW;
 

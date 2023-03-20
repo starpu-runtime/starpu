@@ -38,11 +38,12 @@ extern "C" {
 /**
    Pre-initialize drivers
    So as to register information on device types, memory types, etc.
+   Only use internally by StarPU.
 */
 void starpu_drivers_preinit(void);
 
 /**
-   structure for designating a given driver
+   structure for designating a given driver. See \ref UsingTheDriverAPI for more details.
 */
 struct starpu_driver
 {
@@ -74,6 +75,8 @@ struct starpu_driver
    This is the same as using the following functions: calling
    starpu_driver_init(), then calling starpu_driver_run_once() in a loop,
    and finally starpu_driver_deinit().
+
+   See \ref UsingTheDriverAPI for more details.
 */
 int starpu_driver_run(struct starpu_driver *d);
 
@@ -85,18 +88,21 @@ void starpu_drivers_request_termination(void);
 /**
    Initialize the given driver. Return 0 on success, <c>-EINVAL</c>
    if starpu_driver::type is not a valid ::starpu_worker_archtype.
+   See \ref UsingTheDriverAPI for more details.
 */
 int starpu_driver_init(struct starpu_driver *d);
 
 /**
    Run the driver once, then return 0 on success, <c>-EINVAL</c> if
    starpu_driver::type is not a valid ::starpu_worker_archtype.
+   See \ref UsingTheDriverAPI for more details.
 */
 int starpu_driver_run_once(struct starpu_driver *d);
 
 /**
    Deinitialize the given driver. Return 0 on success, <c>-EINVAL</c> if
    starpu_driver::type is not a valid ::starpu_worker_archtype.
+   See \ref UsingTheDriverAPI for more details.
 */
 int starpu_driver_deinit(struct starpu_driver *d);
 

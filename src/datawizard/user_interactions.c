@@ -283,7 +283,7 @@ int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_dat
 	return 0;
 }
 
-int starpu_data_acquire_on_node_cb_sequential_consistency_quick(starpu_data_handle_t handle, int node,
+static int starpu_data_acquire_on_node_cb_sequential_consistency_quick(starpu_data_handle_t handle, int node,
 								enum starpu_data_access_mode mode, void (*callback)(void *), void *arg,
 								int sequential_consistency, int quick)
 {

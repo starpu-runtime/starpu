@@ -45,7 +45,8 @@ struct starpu_max_load
 };
 
 /**
-   Maxeler engine of the current worker
+   Maxeler engine of the current worker.
+   See \ref MaxFPGAExample for more details.
  */
 max_engine_t *starpu_max_fpga_get_local_engine(void);
 

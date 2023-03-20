@@ -39,7 +39,7 @@ struct _starpu_data_state;
    it is associated to a ::starpu_data_handle_t which keeps track of
    the state of the piece of data over the entire machine, so that we
    can maintain data consistency and locate data replicates for
-   instance.
+   instance. See \ref DataInterface for more details.
 */
 typedef struct _starpu_data_state *starpu_data_handle_t;
 
@@ -81,6 +81,8 @@ enum starpu_data_access_mode
 				  <c>NULL</c> pointer, since the value
 				  of the provided buffer is simply
 				  ignored for now.
+
+              See \ref ScratchData for more details.
 			       */
 	STARPU_REDUX	 = (1 << 3),		  /**< Reduction mode.
 				  StarPU will allocate on the fly a per-worker
@@ -105,6 +107,8 @@ enum starpu_data_access_mode
 				  (but still require sequential
 				  consistency against reads or
 				  non-commutative writes).
+
+              See \ref DataCommute for more details.
 			       */
 	STARPU_SSEND	 = (1 << 5),		  /**< used in starpu_mpi_task_insert() to
 				specify the data has to be sent using
@@ -122,6 +126,8 @@ enum starpu_data_access_mode
 				   the
 				   src/sched_policies/work_stealing_policy.c
 				   source code.
+
+               TODO add extended description in documentation.
 				*/
 	STARPU_MPI_REDUX = (1 << 7),		  /**< Inter-node reduction only.
 				   This is similar to ::STARPU_REDUX, except that
@@ -135,9 +141,9 @@ enum starpu_data_access_mode
 				   */
 
 	STARPU_NOPLAN = (1 << 8), /**< Disable automatic submission of asynchronous
-				    partitioning/unpartitioning */
+				    partitioning/unpartitioning, only use internally by StarPU */
 
-	STARPU_UNMAP = (1 << 9), /**< Request unmapping the destination replicate */
+	STARPU_UNMAP = (1 << 9), /**< Request unmapping the destination replicate, only use internally by StarPU */
 
 	STARPU_NOFOOTPRINT = (1 << 10), /**< Ignore this data for the footprint computation. See \ref ScratchData */
 
@@ -149,20 +155,21 @@ struct starpu_data_interface_ops;
 
 /**
    Set the name of the data, to be shown in various profiling tools.
+   See \ref CreatingAGanttDiagram for more details.
 */
 void starpu_data_set_name(starpu_data_handle_t handle, const char *name);
 
 /**
    Set the coordinates of the data, to be shown in various profiling
    tools. \p dimensions is the size of the \p dims array. This can be
-   for instance the tile coordinates within a big matrix.
+   for instance the tile coordinates within a big matrix. See \ref CreatingAGanttDiagram for more details.
 */
 void starpu_data_set_coordinates_array(starpu_data_handle_t handle, unsigned dimensions, int dims[]);
 
 /**
    Set the coordinates of the data, to be shown in various profiling
    tools. \p dimensions is the number of subsequent \c int parameters.
-   This can be for instance the tile coordinates within a big matrix.
+   This can be for instance the tile coordinates within a big matrix. See \ref CreatingAGanttDiagram for more details.
 */
 void starpu_data_set_coordinates(starpu_data_handle_t handle, unsigned dimensions, ...);
 
@@ -171,6 +178,7 @@ void starpu_data_set_coordinates(starpu_data_handle_t handle, unsigned dimension
    starpu_data_set_coordinates_array() or starpu_data_set_coordinates()
    \p dimensions is the size of the \p dims array.
    This returns the actual number of returned coordinates.
+   See \ref CreatingAGanttDiagram for more details.
 */
 unsigned starpu_data_get_coordinates_array(starpu_data_handle_t handle, unsigned dimensions, int dims[]);
 
@@ -182,14 +190,15 @@ unsigned starpu_data_get_coordinates_array(starpu_data_handle_t handle, unsigned
    initially registered. Using a data handle that has been
    unregistered from StarPU results in an undefined behaviour. In case
    we do not need to update the value of the data in the home node, we
-   can use the function starpu_data_unregister_no_coherency() instead.
+   can use the function starpu_data_unregister_no_coherency() instead. 
+   See \ref TaskSubmission for more details.
 */
 void starpu_data_unregister(starpu_data_handle_t handle);
 
 /**
     Similar to starpu_data_unregister(), except that StarPU does not
     put back a valid copy into the home node, in the buffer that was
-    initially registered.
+    initially registered. See \ref DataManagementAllocation for more details.
 */
 void starpu_data_unregister_no_coherency(starpu_data_handle_t handle);
 
@@ -201,7 +210,7 @@ void starpu_data_unregister_no_coherency(starpu_data_handle_t handle);
    comes from the registration of a non-NULL application home buffer, since the
    moment when the unregistration will happen is unknown to the
    application. Only calling starpu_shutdown() allows to be sure that the data
-   was really unregistered.
+   was really unregistered. See \ref TemporaryData for more details.
 */
 void starpu_data_unregister_submit(starpu_data_handle_t handle);
 
@@ -209,13 +218,13 @@ void starpu_data_unregister_submit(starpu_data_handle_t handle);
    Destroy all replicates of the data \p handle immediately. After
    data invalidation, the first access to \p handle must be performed
    in ::STARPU_W mode. Accessing an invalidated data in ::STARPU_R
-   mode results in undefined behaviour.
+   mode results in undefined behaviour. See \ref DataManagementAllocation for more details.
 */
 void starpu_data_invalidate(starpu_data_handle_t handle);
 
 /**
    Submit invalidation of the data \p handle after completion of
-   previously submitted tasks.
+   previously submitted tasks. See \ref DataReduction for more details.
 */
 void starpu_data_invalidate_submit(starpu_data_handle_t handle);
 
@@ -262,7 +271,7 @@ void starpu_data_advise_as_important(starpu_data_handle_t handle, unsigned is_im
    starpu_data_acquire() is a blocking call, so that it cannot be
    called from tasks or from their callbacks (in that case,
    starpu_data_acquire() returns <c>-EDEADLK</c>). Upon successful
-   completion, this function returns 0.
+   completion, this function returns 0. See \ref DataAccess for more details.
 */
 int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_data_access_mode mode);
 
@@ -270,7 +279,7 @@ int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_data_access_mod
    Similar to starpu_data_acquire(), except that the data will be
    available on the given memory node instead of main memory.
    ::STARPU_ACQUIRE_NO_NODE and ::STARPU_ACQUIRE_NO_NODE_LOCK_ALL can
-   be used instead of an explicit node number.
+   be used instead of an explicit node number. See \ref DataAccess for more details.
 */
 int starpu_data_acquire_on_node(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode);
 
@@ -284,7 +293,7 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, int node, enum star
    dependencies are also enforced by starpu_data_acquire_cb() in case they
    are not disabled. Contrary to starpu_data_acquire(), this function is
    non-blocking and may be called from task callbacks. Upon successful
-   completion, this function returns 0.
+   completion, this function returns 0. See \ref DataAccess for more details.
 */
 int starpu_data_acquire_cb(starpu_data_handle_t handle, enum starpu_data_access_mode mode, void (*callback)(void *), void *arg);
 
@@ -293,7 +302,7 @@ int starpu_data_acquire_cb(starpu_data_handle_t handle, enum starpu_data_access_
    data will be available on the given memory node instead of main
    memory.
    ::STARPU_ACQUIRE_NO_NODE and ::STARPU_ACQUIRE_NO_NODE_LOCK_ALL can be
-   used instead of an explicit node number.
+   used instead of an explicit node number. See \ref DataAccess for more details.
 */
 int starpu_data_acquire_on_node_cb(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode, void (*callback)(void *), void *arg);
 
@@ -309,7 +318,7 @@ int starpu_data_acquire_on_node_cb(starpu_data_handle_t handle, int node, enum s
    are not disabled specifically for the given \p handle or by the parameter \p sequential_consistency.
    Similarly to starpu_data_acquire_cb(), this function is
    non-blocking and may be called from task callbacks. Upon successful
-   completion, this function returns 0.
+   completion, this function returns 0. See \ref DataAccess for more details.
 */
 int starpu_data_acquire_cb_sequential_consistency(starpu_data_handle_t handle, enum starpu_data_access_mode mode, void (*callback)(void *), void *arg, int sequential_consistency);
 
@@ -318,11 +327,9 @@ int starpu_data_acquire_cb_sequential_consistency(starpu_data_handle_t handle, e
    data will be available on the given memory node instead of main
    memory.
    ::STARPU_ACQUIRE_NO_NODE and ::STARPU_ACQUIRE_NO_NODE_LOCK_ALL can be used instead of an
-   explicit node number.
+   explicit node number. See \ref DataAccess for more details.
 */
 int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode, void (*callback)(void *), void *arg, int sequential_consistency);
-
-int starpu_data_acquire_on_node_cb_sequential_consistency_quick(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode, void (*callback)(void *), void *arg, int sequential_consistency, int quick);
 
 /**
    Similar to starpu_data_acquire_on_node_cb_sequential_consistency(),
@@ -346,7 +353,7 @@ int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_dat
    returns 0. StarPU will have ensured that the application will get an up-to-date
    copy of \p handle in main memory located where the data was originally
    registered. starpu_data_release() must be called once the application no longer
-   needs to access the piece of data.
+   needs to access the piece of data. See \ref DataAccess for more details.
 */
 int starpu_data_acquire_try(starpu_data_handle_t handle, enum starpu_data_access_mode mode);
 
@@ -355,7 +362,7 @@ int starpu_data_acquire_try(starpu_data_handle_t handle, enum starpu_data_access
    data will be available on the given memory node instead of main
    memory.
    ::STARPU_ACQUIRE_NO_NODE and ::STARPU_ACQUIRE_NO_NODE_LOCK_ALL can be used instead of an
-   explicit node number.
+   explicit node number. See \ref DataAccess for more details.
 */
 int starpu_data_acquire_on_node_try(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode);
 
@@ -385,7 +392,7 @@ int starpu_data_acquire_on_node_try(starpu_data_handle_t handle, int node, enum 
 /**
    Release the piece of data acquired by the
    application either by starpu_data_acquire() or by
-   starpu_data_acquire_cb().
+   starpu_data_acquire_cb(). See \ref DataAccess for more details.
 */
 void starpu_data_release(starpu_data_handle_t handle);
 
@@ -393,7 +400,7 @@ void starpu_data_release(starpu_data_handle_t handle);
    Similar to starpu_data_release(), except that the data
    was made available on the given memory \p node instead of main memory.
    The \p node parameter must be exactly the same as the corresponding \c
-   starpu_data_acquire_on_node* call.
+   starpu_data_acquire_on_node* call. See \ref DataAccess for more details.
 */
 void starpu_data_release_on_node(starpu_data_handle_t handle, int node);
 
@@ -403,7 +410,7 @@ void starpu_data_release_on_node(starpu_data_handle_t handle, int node);
    acquisition down to \p down_to_mode. For now, only releasing from STARPU_RW
    or STARPU_W acquisition down to STARPU_R is supported, or down to the same
    acquisition.  STARPU_NONE can also be passed as \p down_to_mode, in which
-   case this is equivalent to calling starpu_data_release().
+   case this is equivalent to calling starpu_data_release(). See \ref DataAccess for more details.
 */
 void starpu_data_release_to(starpu_data_handle_t handle, enum starpu_data_access_mode down_to_mode);
 
@@ -411,7 +418,7 @@ void starpu_data_release_to(starpu_data_handle_t handle, enum starpu_data_access
    Similar to starpu_data_release_to(), except that the data
    was made available on the given memory \p node instead of main memory.
    The \p node parameter must be exactly the same as the corresponding \c
-   starpu_data_acquire_on_node* call.
+   starpu_data_acquire_on_node* call. See \ref DataAccess for more details.
 */
 void starpu_data_release_to_on_node(starpu_data_handle_t handle, enum starpu_data_access_mode down_to_mode, int node);
 
@@ -431,19 +438,21 @@ typedef struct starpu_arbiter *starpu_arbiter_t;
 starpu_arbiter_t starpu_arbiter_create(void) STARPU_ATTRIBUTE_MALLOC;
 
 /**
-   Make access to \p handle managed by \p arbiter
+   Make access to \p handle managed by \p arbiter, see \ref
+   ConcurrentDataAccess for the details.
 */
 void starpu_data_assign_arbiter(starpu_data_handle_t handle, starpu_arbiter_t arbiter);
 
 /**
-   Destroy the \p arbiter . This must only be called after all data
-   assigned to it have been unregistered.
+   Destroy the \p arbiter. This must only be called after all data
+   assigned to it have been unregistered. See \ref
+   ConcurrentDataAccess for the details.
 */
 void starpu_arbiter_destroy(starpu_arbiter_t arbiter);
 
 /**
    Explicitly ask StarPU to allocate room for a piece of data on
-   the specified memory \p node.
+   the specified memory \p node. See \ref DataPrefetch for more details.
 */
 int starpu_data_request_allocation(starpu_data_handle_t handle, unsigned node);
 
@@ -474,7 +483,7 @@ enum starpu_is_prefetch
    block until the transfer is achieved, else the call will return immediately,
    after having just queued the request. In the latter case, the request will
    asynchronously wait for the completion of any task writing on the
-   data.
+   data. See \ref DataPrefetch for more details.
 */
 int starpu_data_fetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async);
 
@@ -485,10 +494,13 @@ int starpu_data_fetch_on_node(starpu_data_handle_t handle, unsigned node, unsign
    block until the transfer is achieved, else the call will return immediately,
    after having just queued the request. In the latter case, the request will
    asynchronously wait for the completion of any task writing on the
-   data.
+   data. See \ref DataPrefetch for more details.
 */
 int starpu_data_prefetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async);
 
+/**
+   See \ref DataPrefetch for more details.
+ */
 int starpu_data_prefetch_on_node_prio(starpu_data_handle_t handle, unsigned node, unsigned async, int prio);
 
 /**
@@ -497,14 +509,18 @@ int starpu_data_prefetch_on_node_prio(starpu_data_handle_t handle, unsigned node
    available there for tasks, but only when the bus is really idle. If \p async is 0, the call will
    block until the transfer is achieved, else the call will return immediately,
    after having just queued the request. In the latter case, the request will
-   asynchronously wait for the completion of any task writing on the data.
+   asynchronously wait for the completion of any task writing on the data. See \ref DataPrefetch for more details.
 */
 int starpu_data_idle_prefetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async);
+
+/**
+   See \ref DataPrefetch for more details.
+ */
 int starpu_data_idle_prefetch_on_node_prio(starpu_data_handle_t handle, unsigned node, unsigned async, int prio);
 
 /**
    Check whether a valid copy of \p handle is currently available on
-   memory node \p node (or a transfer request for getting so is ongoing).
+   memory node \p node (or a transfer request for getting so is ongoing). See \ref SchedulingHelpers for more details.
 */
 unsigned starpu_data_is_on_node(starpu_data_handle_t handle, unsigned node);
 
@@ -512,7 +528,7 @@ unsigned starpu_data_is_on_node(starpu_data_handle_t handle, unsigned node);
    Advise StarPU that \p handle will not be used in the close future, and is
    thus a good candidate for eviction from GPUs. StarPU will thus write its value
    back to its home node when the bus is idle, and select this data in priority
-   for eviction when memory gets low.
+   for eviction when memory gets low. See \ref DataPrefetch for more details.
 */
 void starpu_data_wont_use(starpu_data_handle_t handle);
 
@@ -522,6 +538,8 @@ void starpu_data_wont_use(starpu_data_handle_t handle);
    This may however fail if e.g. some task is still working on it.
 
    If the eviction was successful, 0 is returned ; -1 is returned otherwise.
+
+   See \ref DataPrefetch for more details.
 */
 int starpu_data_evict_from_node(starpu_data_handle_t handle, unsigned node);
 
@@ -532,7 +550,7 @@ int starpu_data_evict_from_node(starpu_data_handle_t handle, unsigned node);
    evicted from these nodes when memory gets scarse. When the data is
    modified, it is automatically transfered into those memory nodes. For
    instance a <c>1<<0</c> write-through mask means that the CUDA workers
-   will commit their changes in main memory (node 0).
+   will commit their changes in main memory (node 0). See \ref DataManagementAllocation for more details.
 */
 void starpu_data_set_wt_mask(starpu_data_handle_t handle, uint32_t wt_mask);
 
@@ -554,17 +572,18 @@ void starpu_data_set_wt_mask(starpu_data_handle_t handle, uint32_t wt_mask);
    Set the data consistency mode associated to a data handle. The
    consistency mode set using this function has the priority over the
    default mode which can be set with
-   starpu_data_set_default_sequential_consistency_flag().
+   starpu_data_set_default_sequential_consistency_flag(). 
+   See \ref SequentialConsistency and \ref DataManagementAllocation for more details.
 */
 void starpu_data_set_sequential_consistency_flag(starpu_data_handle_t handle, unsigned flag);
 
 /**
-   Get the data consistency mode associated to the data handle \p handle
+   Get the data consistency mode associated to the data handle \p handle. See \ref SequentialConsistency for more details.
 */
 unsigned starpu_data_get_sequential_consistency_flag(starpu_data_handle_t handle);
 
 /**
-   Return the default sequential consistency flag
+   Return the default sequential consistency flag. See \ref SequentialConsistency for more details.
 */
 unsigned starpu_data_get_default_sequential_consistency_flag(void);
 
@@ -575,7 +594,7 @@ unsigned starpu_data_get_default_sequential_consistency_flag(void);
    disabled. By default, StarPU enables sequential data consistency. It
    is also possible to select the data consistency mode of a specific
    data handle with the function
-   starpu_data_set_sequential_consistency_flag().
+   starpu_data_set_sequential_consistency_flag(). See \ref SequentialConsistency for more details.
 */
 void starpu_data_set_default_sequential_consistency_flag(unsigned flag);
 
@@ -583,12 +602,12 @@ void starpu_data_set_default_sequential_consistency_flag(unsigned flag);
 
 /**
    Set whether this data should be elligible to be evicted to disk
-   storage (1) or not (0). The default is 1.
+   storage (1) or not (0). The default is 1. See \ref OOCDataRegistration for more details.
 */
 void starpu_data_set_ooc_flag(starpu_data_handle_t handle, unsigned flag);
 /**
    Get whether this data was set to be elligible to be evicted to disk
-   storage (1) or not (0).
+   storage (1) or not (0). See \ref OOCDataRegistration for more details.
 */
 unsigned starpu_data_get_ooc_flag(starpu_data_handle_t handle);
 
@@ -600,11 +619,12 @@ unsigned starpu_data_get_ooc_flag(starpu_data_handle_t handle);
    \p is_loading tells whether the actual value is getting loaded there.
    \p is_requested tells whether the actual value is requested to be loaded
    there by some fetch/prefetch/idlefetch request.
+   See \ref DataPrefetch for more details.
 */
 void starpu_data_query_status2(starpu_data_handle_t handle, int memory_node, int *is_allocated, int *is_valid, int *is_loading, int *is_requested);
 
 /**
-   Same as starpu_data_query_status2(), but without the is_loading parameter.
+   Same as starpu_data_query_status2(), but without the is_loading parameter. See \ref DataPrefetch for more details.
 */
 void starpu_data_query_status(starpu_data_handle_t handle, int memory_node, int *is_allocated, int *is_valid, int *is_requested);
 
@@ -616,7 +636,8 @@ struct starpu_codelet;
    the codelet \p init_cl (which has to take one handle with STARPU_W), and
    reduction between per-worker buffers will be done with the codelet \p
    redux_cl (which has to take a first accumulation handle with
-   STARPU_RW|STARPU_COMMUTE, and a second contribution handle with STARPU_R).
+   STARPU_RW|STARPU_COMMUTE, and a second contribution handle with STARPU_R). 
+   See \ref DataReduction and \ref TemporaryData for more details.
 */
 void starpu_data_set_reduction_methods(starpu_data_handle_t handle, struct starpu_codelet *redux_cl, struct starpu_codelet *init_cl);
 
@@ -628,9 +649,19 @@ void starpu_data_set_reduction_methods_with_args(starpu_data_handle_t handle, st
 
 struct starpu_data_interface_ops *starpu_data_get_interface_ops(starpu_data_handle_t handle);
 
+/**
+   See \ref DataPrefetch for more details.
+*/
 unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle_t handle, unsigned memory_node);
+
+/**
+   See \ref DataPrefetch for more details.
+*/
 unsigned starpu_data_test_if_mapped_on_node(starpu_data_handle_t handle, unsigned memory_node);
 
+/**
+   See \ref DataPrefetch for more details.
+*/
 void starpu_memchunk_tidy(unsigned memory_node);
 
 /**
@@ -638,11 +669,13 @@ void starpu_memchunk_tidy(unsigned memory_node);
    then be retrieved with starpu_data_get_user_data(). \p user_data can be any
    application-defined value, for instance a pointer to an object-oriented
    container for the data.
+   See \ref DataHandlesHelpers for more details.
 */
 void starpu_data_set_user_data(starpu_data_handle_t handle, void *user_data);
 
 /**
    Retrieve the field \c user_data previously set for the \p handle.
+   See \ref DataHandlesHelpers for more details.
 */
 void *starpu_data_get_user_data(starpu_data_handle_t handle);
 
@@ -650,16 +683,18 @@ void *starpu_data_get_user_data(starpu_data_handle_t handle);
    Set the field \c sched_data for the \p handle to \p sched_data . It can
    then be retrieved with starpu_data_get_sched_data(). \p sched_data can be any
    scheduler-defined value.
+   See \ref DataHandlesHelpers for more details.
 */
 void starpu_data_set_sched_data(starpu_data_handle_t handle, void *sched_data);
 
 /**
    Retrieve the field \c sched_data previously set for the \p handle.
+   See \ref DataHandlesHelpers for more details.
 */
 void *starpu_data_get_sched_data(starpu_data_handle_t handle);
 
 /**
-  Check whether data \p handle can be evicted now from node \p node
+  Check whether data \p handle can be evicted now from node \p node. See \ref DataPrefetch for more details.
 */
 int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node, enum starpu_is_prefetch is_prefetch);
 

@@ -203,12 +203,14 @@ struct starpu_sched_policy **starpu_sched_get_predefined_policies(void);
 /**
    Allow an external library to return a scheduling policy to be
    loaded dynamically.
+   See \ref UsingaNewSchedulingPolicy for more details.
  */
 struct starpu_sched_policy *starpu_get_sched_lib_policy(const char *name);
 
 /**
    Allow an external library to return a list of scheduling policies to be
    loaded dynamically.
+   See \ref UsingaNewSchedulingPolicy for more details.
  */
 struct starpu_sched_policy **starpu_get_sched_lib_policies(void);
 
@@ -308,6 +310,7 @@ int starpu_worker_can_execute_task_first_impl(unsigned workerid, struct starpu_t
    queue so that it is not always necessary to create its own queue
    when the local queue is sufficient. \p back is ignored: the task priority is
    used to order tasks in this queue.
+   See \ref DefiningANewBasicSchedulingPolicy for more details.
 */
 int starpu_push_local_task(int workerid, struct starpu_task *task, int back);
 
@@ -318,7 +321,8 @@ int starpu_push_local_task(int workerid, struct starpu_task *task, int back);
 int starpu_push_task_end(struct starpu_task *task);
 
 /**
-   Whether \ref STARPU_PREFETCH was set
+   Whether \ref STARPU_PREFETCH was set.
+   See \ref SchedulingHelpers for more details.
 */
 int starpu_get_prefetch_flag(void);
 
@@ -347,46 +351,54 @@ int starpu_idle_prefetch_task_input_on_node(struct starpu_task *task, unsigned n
 
 /**
    Prefetch data for a given p task on a given p worker with a given
-   priority
+   priority.
+   See \ref SchedulingHelpers for more details.
 */
 int starpu_prefetch_task_input_for_prio(struct starpu_task *task, unsigned worker, int prio);
 
 /**
-   Prefetch data for a given p task on a given p worker
+   Prefetch data for a given p task on a given p worker.
+   See \ref SchedulingHelpers for more details.
 */
 int starpu_prefetch_task_input_for(struct starpu_task *task, unsigned worker);
 
 /**
    Prefetch data for a given p task on a given p worker when the bus
-   is idle with a given priority
+   is idle with a given priority.
+   See \ref SchedulingHelpers for more details.
 */
 int starpu_idle_prefetch_task_input_for_prio(struct starpu_task *task, unsigned worker, int prio);
 
 /**
    Prefetch data for a given p task on a given p worker when the bus
-   is idle
+   is idle.
+   See \ref SchedulingHelpers for more details.
 */
 int starpu_idle_prefetch_task_input_for(struct starpu_task *task, unsigned worker);
 
 /**
    Return the footprint for a given task, taking into account
    user-provided perfmodel footprint or size_base functions.
+   See \ref PerformanceModelExample for more details.
 */
 uint32_t starpu_task_footprint(struct starpu_perfmodel *model, struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl);
 
 /**
    Return the raw footprint for the data of a given task (without
    taking into account user-provided functions).
+   See \ref PerformanceModelExample for more details.
 */
 uint32_t starpu_task_data_footprint(struct starpu_task *task);
 
 /**
-   Return expected task duration in micro-seconds on a given architecture \p arch using given implementation \p nimpl
+   Return expected task duration in micro-seconds on a given architecture \p arch using given implementation \p nimpl.
+   See \ref SchedulingHelpers for more details.
 */
 double starpu_task_expected_length(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl);
 
 /**
    Same as starpu_task_expected_length() but for a precise worker.
+   See \ref SchedulingHelpers for more details.
 */
 double starpu_task_worker_expected_length(struct starpu_task *task, unsigned workerid, unsigned sched_ctx_id, unsigned nimpl);
 
@@ -395,6 +407,7 @@ double starpu_task_worker_expected_length(struct starpu_task *task, unsigned wor
    Note: this is not just the average of the durations using the number of
    processing units as coefficients, but their efficiency at processing the
    task, thus the harmonic average of the durations.
+   See \ref SchedulingHelpers for more details.
 */
 double starpu_task_expected_length_average(struct starpu_task *task, unsigned sched_ctx_id);
 
@@ -413,6 +426,7 @@ double starpu_task_expected_data_transfer_time(unsigned memory_node, struct star
 /**
    Return expected data transfer time in micro-seconds for the given
    \p worker.
+   See \ref SchedulingHelpers for more details.
 */
 double starpu_task_expected_data_transfer_time_for(struct starpu_task *task, unsigned worker);
 
@@ -423,7 +437,8 @@ double starpu_task_expected_data_transfer_time_for(struct starpu_task *task, uns
 double starpu_data_expected_transfer_time(starpu_data_handle_t handle, unsigned memory_node, enum starpu_data_access_mode mode);
 
 /**
-   Return expected energy use in J
+   Return expected energy use in J.
+   See \ref SchedulingHelpers for more details.
 */
 double starpu_task_expected_energy(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl);
 
@@ -437,6 +452,7 @@ double starpu_task_worker_expected_energy(struct starpu_task *task, unsigned wor
    Note: this is not just the average of the energy uses using the number of
    processing units as coefficients, but their efficiency at processing the
    task, thus the harmonic average of the energy uses.
+   See \ref SchedulingHelpers for more details.
 */
 double starpu_task_expected_energy_average(struct starpu_task *task, unsigned sched_ctx_id);
 
@@ -502,6 +518,7 @@ int starpu_wake_worker_locked(int workerid);
    Light version of starpu_wake_worker_relax() which, when possible,
    speculatively set keep_awake on the target worker without waiting
    for the worker to enter the relax state.
+   See \ref DefiningANewBasicSchedulingPolicy for more details.
 */
 int starpu_wake_worker_relax_light(int workerid);
 

@@ -67,12 +67,13 @@ void starpu_cuda_report_error(const char *func, const char *file, int line, cuda
    create its own streams. Synchronizing with
    <c>cudaDeviceSynchronize()</c> is allowed, but will reduce the
    likelihood of having all transfers overlapped.
+   See \ref CUDA-specificOptimizations for more details.
 */
 cudaStream_t starpu_cuda_get_local_stream(void);
 
 /**
    Return a pointer to device properties for worker \p workerid
-   (assumed to be a CUDA worker).
+   (assumed to be a CUDA worker). See \ref EnablingImplementationAccordingToCapabilities for more details.
 */
 const struct cudaDeviceProp *starpu_cuda_get_device_properties(unsigned workerid);
 

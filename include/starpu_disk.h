@@ -27,7 +27,7 @@
 */
 
 /**
-   Set of functions to manipulate datas on disk.
+   Set of functions to manipulate datas on disk. See \ref DiskFunctions for more details.
 */
 struct starpu_disk_ops
 {
@@ -179,7 +179,7 @@ extern struct starpu_disk_ops starpu_disk_unistd_o_direct_ops;
 extern struct starpu_disk_ops starpu_disk_leveldb_ops;
 
 /**
-   Close an existing data opened with starpu_disk_open().
+   Close an existing data opened with starpu_disk_open(). See \ref OutOfCore_Introduction for more details.
 */
 void starpu_disk_close(unsigned node, void *obj, size_t size);
 
@@ -187,7 +187,7 @@ void starpu_disk_close(unsigned node, void *obj, size_t size);
    Open an existing file memory in a disk node. \p size is the size of
    the file. \p pos is the specific position dependent on the backend,
    given to the \c open  method of the disk operations. Return an
-   opaque object pointer.
+   opaque object pointer. See \ref OutOfCore_Introduction for more details.
 */
 void *starpu_disk_open(unsigned node, void *pos, size_t size);
 
@@ -200,6 +200,8 @@ void *starpu_disk_open(unsigned node, void *pos, size_t size);
    FAIL: return an error code. <br />
    \p size must be at least \ref STARPU_DISK_SIZE_MIN bytes ! \p size
    being negative means infinite size.
+
+   See \ref OutOfCore_Introduction for more details.
 */
 int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, starpu_ssize_t size);
 
