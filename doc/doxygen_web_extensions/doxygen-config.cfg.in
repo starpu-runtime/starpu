@@ -18,6 +18,7 @@
 INPUT                  = @top_srcdir@/doc/doxygen/chapters/foreword.doxy \
                       @top_srcdir@/doc/doxygen/chapters/starpu_extensions/extensions_intro.doxy \
                       @top_srcdir@/doc/doxygen/chapters/starpu_extensions/debugging_tools.doxy \
+                      @top_srcdir@/doc/doxygen/chapters/starpu_extensions/configuration_and_initialization.doxy \
                       @top_srcdir@/doc/doxygen/chapters/starpu_extensions/advanced_tasks.doxy \
                       @top_srcdir@/doc/doxygen/chapters/starpu_extensions/advanced_data_management.doxy \
                       @top_srcdir@/doc/doxygen/chapters/starpu_extensions/advanced_scheduling.doxy \
