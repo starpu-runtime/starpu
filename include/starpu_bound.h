@@ -32,11 +32,15 @@ extern "C" {
 /**
    Start recording tasks (resets stats). \p deps tells whether
    dependencies should be recorded too (this is quite expensive)
+
+   See \ref TheoreticalLowerBoundOnExecutionTimeExample for more details.
 */
 void starpu_bound_start(int deps, int prio);
 
 /**
    Stop recording tasks
+
+   See \ref TheoreticalLowerBoundOnExecutionTimeExample for more details.
 */
 void starpu_bound_stop(void);
 
@@ -48,19 +52,27 @@ void starpu_bound_print_dot(FILE *output);
 /**
    Get theoretical upper bound (in ms) (needs glpk support detected by
    configure script). It returns 0 if some performance models are not
-   calibrated.
+   calibrated. \p integer permits to choose between integer solving
+   (which takes a long time but is correct), and relaxed solving
+   (which provides an approximate solution).
+
+   See \ref TheoreticalLowerBoundOnExecutionTimeExample for more details.
 */
 void starpu_bound_compute(double *res, double *integer_res, int integer);
 
 /**
    Emit the Linear Programming system on \p output for the recorded
    tasks, in the lp format
+
+   See \ref TheoreticalLowerBoundOnExecutionTimeExample for more details.
 */
 void starpu_bound_print_lp(FILE *output);
 
 /**
    Emit the Linear Programming system on \p output for the recorded
    tasks, in the mps format
+
+   See \ref TheoreticalLowerBoundOnExecutionTimeExample for more details.
 */
 void starpu_bound_print_mps(FILE *output);
 

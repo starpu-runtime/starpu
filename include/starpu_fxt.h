@@ -123,6 +123,7 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options);
    starpu_fxt_start_profiling() is called. \p autostart should be 1 to do so, or 0 to
    prevent it.
    This function has to be called before starpu_init().
+   See \ref LimitingScopeTrace for more details.
 */
 void starpu_fxt_autostart_profiling(int autostart);
 
@@ -132,6 +133,7 @@ void starpu_fxt_autostart_profiling(int autostart);
    starpu_fxt_stop_profiling(), in which case
    starpu_fxt_start_profiling() should be called to resume recording
    events.
+   See \ref LimitingScopeTrace for more details.
 */
 void starpu_fxt_start_profiling(void);
 
@@ -140,6 +142,7 @@ void starpu_fxt_start_profiling(void);
    starpu_shutdown(). starpu_fxt_stop_profiling() can however be used to
    stop it earlier. starpu_fxt_start_profiling() can then be called to
    start recording it again, etc.
+   See \ref LimitingScopeTrace for more details.
 */
 void starpu_fxt_stop_profiling(void);
 
@@ -158,6 +161,7 @@ void starpu_fxt_trace_user_event(unsigned long code);
 
 /**
    Add a string event in the execution trace if FxT is enabled.
+   See \ref CreatingAGanttDiagram for more details.
 */
 void starpu_fxt_trace_user_event_string(const char *s);
 

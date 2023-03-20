@@ -618,6 +618,8 @@ int starpu_conf_init(struct starpu_conf *conf);
    starpu_conf_noworker(&conf);<br/>
    conf.ncpus = -1;
    </c>
+
+   See \ref ConfigurationAndInitialization for more details.
 */
 int starpu_conf_noworker(struct starpu_conf *conf);
 
@@ -628,7 +630,7 @@ int starpu_conf_noworker(struct starpu_conf *conf);
    non-<c>NULL</c> \p conf. Default configuration is used if \p conf
    is <c>NULL</c>. Upon successful completion, this function returns
    0. Otherwise, <c>-ENODEV</c> indicates that no worker was available
-   (and thus StarPU was not initialized).
+   (and thus StarPU was not initialized). See \ref SubmittingATask for more details.
 */
 int starpu_init(struct starpu_conf *conf) STARPU_WARN_UNUSED_RESULT;
 
@@ -637,17 +639,17 @@ int starpu_init(struct starpu_conf *conf) STARPU_WARN_UNUSED_RESULT;
    defined by the application, which is necessary when running in
    Simgrid mode or MPI Master Slave mode.
    Do not call starpu_init() and starpu_initialize() in the same
-   program.
+   program. See \ref SubmittingATask for more details.
 */
 int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv);
 
 /**
-   Return 1 if StarPU is already initialized.
+   Return 1 if StarPU is already initialized. See \ref ConfigurationAndInitialization for more details.
 */
 int starpu_is_initialized(void);
 
 /**
-   Wait for starpu_init() call to finish.
+   Wait for starpu_init() call to finish. See \ref ConfigurationAndInitialization for more details.
 */
 void starpu_wait_initialized(void);
 
@@ -655,7 +657,7 @@ void starpu_wait_initialized(void);
    StarPU termination method, must be called at the end of the
    application: statistics and other post-mortem debugging information
    are not guaranteed to be available until this method has been
-   called.
+   called. See \ref SubmittingATask for more details.
 */
 void starpu_shutdown(void);
 
@@ -664,14 +666,14 @@ void starpu_shutdown(void);
    program where StarPU is used during only a part of the execution.
    Without this call, the workers continue to poll for new tasks in a
    tight loop, wasting CPU time. The symmetric call to starpu_resume()
-   should be used to unfreeze the workers.
+   should be used to unfreeze the workers. See \ref KernelThreadsStartedByStarPU and \ref PauseResume for more details.
 */
 void starpu_pause(void);
 
 /**
    Symmetrical call to starpu_pause(), used to resume the workers
    polling for new tasks. This would be typically called only once
-   having submitted all tasks.
+   having submitted all tasks. See \ref KernelThreadsStartedByStarPU and \ref PauseResume for more details.
 */
 void starpu_resume(void);
 
@@ -694,7 +696,8 @@ int starpu_is_paused(void);
    ::STARPU_THREAD_ACTIVE or 0. When \p npreferred is set to non-zero,
    \p preferred is an array of size \p npreferred in which a
    preference of PU binding IDs can be set. By default StarPU will
-   return the first PU available for binding.
+   return the first PU available for binding. 
+   See \ref KernelThreadsStartedByStarPU and \ref cpuWorkers for more details.
 */
 unsigned starpu_get_next_bindid(unsigned flags, unsigned *preferred, unsigned npreferred);
 
@@ -708,6 +711,8 @@ unsigned starpu_get_next_bindid(unsigned flags, unsigned *preferred, unsigned np
 
    \p name should be set to a unique string so that different calls
    with the same name for the same \p cpuid does not produce a warning.
+
+   See \ref KernelThreadsStartedByStarPU and \ref cpuWorkers for more details.
 */
 int starpu_bind_thread_on(int cpuid, unsigned flags, const char *name);
 

@@ -44,6 +44,8 @@ chapters =	\
 	../doxygen/chapters/code/vector_scal_cuda.c \
 	../doxygen/chapters/code/vector_scal_opencl.c \
 	../doxygen/chapters/code/vector_scal_opencl_codelet.cl \
+	../doxygen/chapters/code/java_starpu.java	\
+	../doxygen/chapters/code/java_spark.java	\
 	../doxygen/chapters/code/disk_copy.c \
 	../doxygen/chapters/code/disk_compute.c \
 	../doxygen/chapters/code/nf_initexit.f90

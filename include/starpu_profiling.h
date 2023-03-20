@@ -184,11 +184,13 @@ struct starpu_profiling_bus_info
 /**
    Reset performance counters and enable profiling if the
    environment variable \ref STARPU_PROFILING is set to a positive value.
+   See \ref EnablingOn-linePerformanceMonitoring for more details.
 */
 void starpu_profiling_init(void);
 
 /**
    Set the ID used for profiling trace filename. Has to be called before starpu_init().
+   See \ref TraceMpi for more details.
 */
 void starpu_profiling_set_id(int new_id);
 
@@ -201,12 +203,14 @@ void starpu_profiling_set_id(int new_id);
    starpu_profiling_task_info containing information about the execution
    of the task. Negative return values indicate an error, otherwise the
    previous status is returned.
+   See \ref EnablingOn-linePerformanceMonitoring for more details.
 */
 int starpu_profiling_status_set(int status);
 
 /**
    Return the current profiling status or a negative value in case
    there was an error.
+   See \ref EnablingOn-linePerformanceMonitoring for more details.
 */
 int starpu_profiling_status_get(void);
 
@@ -231,36 +235,54 @@ extern int _starpu_profiling;
    worker_info is <c>NULL</c>, only reset the counters associated to worker
    \p workerid. Upon successful completion, this function returns 0.
    Otherwise, a negative value is returned.
+   See \ref Per-workerFeedback for more details.
 */
 int starpu_profiling_worker_get_info(int workerid, struct starpu_profiling_worker_info *worker_info);
 
 /**
-   Return the number of buses in the machine
+   Return the number of buses in the machine.
+   See \ref HardwareTopology for more details.
 */
 int starpu_bus_get_count(void);
 
 /**
-   Return the identifier of the bus between \p src and \p dst
+   Return the identifier of the bus between \p src and \p dst.
+   See \ref HardwareTopology for more details.
 */
 int starpu_bus_get_id(int src, int dst);
 
 /**
-   Return the source point of bus \p busid
+   Return the source point of bus \p busid.
+   See \ref HardwareTopology for more details.
 */
 int starpu_bus_get_src(int busid);
 
 /**
-   Return the destination point of bus \p busid
+   Return the destination point of bus \p busid.
+   See \ref HardwareTopology for more details.
 */
 int starpu_bus_get_dst(int busid);
+/**
+   See \ref HardwareTopology for more details.
+*/
 void starpu_bus_set_direct(int busid, int direct);
+/**
+   See \ref HardwareTopology for more details.
+*/
 int starpu_bus_get_direct(int busid);
+/**
+   See \ref HardwareTopology for more details.
+*/
 void starpu_bus_set_ngpus(int busid, int ngpus);
+/**
+   See \ref HardwareTopology for more details.
+*/
 int starpu_bus_get_ngpus(int busid);
 
 /**
    See _starpu_profiling_bus_helper_display_summary in src/profiling/profiling_helpers.c for a usage example.
    Note that calling starpu_bus_get_profiling_info() resets the counters to zero.
+   See \ref FeedBackFigures for more details.
 */
 int starpu_bus_get_profiling_info(int busid, struct starpu_profiling_bus_info *bus_info);
 
@@ -323,11 +345,13 @@ static __starpu_inline void starpu_timespec_sub(const struct timespec *a,
 
 /**
    Return the time elapsed between \p start and \p end in microseconds.
+   See \ref Per-taskFeedback for more details.
 */
 double starpu_timing_timespec_delay_us(struct timespec *start, struct timespec *end);
 
 /**
-   Convert the given timespec \p ts into microseconds
+   Convert the given timespec \p ts into microseconds.
+   See \ref Per-taskFeedback for more details.
 */
 double starpu_timing_timespec_to_us(struct timespec *ts);
 
@@ -335,6 +359,7 @@ double starpu_timing_timespec_to_us(struct timespec *ts);
    Display statistics about the bus on \c stderr. if the environment
    variable \ref STARPU_BUS_STATS is defined. The function is called
    automatically by starpu_shutdown().
+   See \ref DataStatistics for more details.
 */
 void starpu_profiling_bus_helper_display_summary(void);
 
@@ -342,6 +367,7 @@ void starpu_profiling_bus_helper_display_summary(void);
    Display statistic about the workers on \c stderr if the
    environment variable \ref STARPU_WORKER_STATS is defined. The function is
    called automatically by starpu_shutdown().
+   See \ref DataStatistics for more details.
 */
 void starpu_profiling_worker_helper_display_summary(void);
 
@@ -350,6 +376,7 @@ void starpu_profiling_worker_helper_display_summary(void);
    within StarPU. StarPU must have been configured with the configure
    option \ref enable-memory-stats "--enable-memory-stats" (see \ref
    MemoryFeedback).
+   See \ref MemoryFeedback for more details.
 */
 void starpu_data_display_memory_stats(void);
 

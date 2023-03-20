@@ -325,6 +325,8 @@ int starpu_perfmodel_deinit(struct starpu_perfmodel *model);
 
    - \p workerid is the worker on which calibration is to be performed (in the case of GPUs, use -1 for CPUs)
    - \p archi is the type of architecture on which calibration will be run
+
+   See \ref MeasuringEnergyandPower for more details.
 */
 int starpu_energy_start(int workerid, enum starpu_worker_archtype archi);
 
@@ -337,6 +339,8 @@ int starpu_energy_start(int workerid, enum starpu_worker_archtype archi);
    - \p ntasks is the number of tasks run during calibration
    - \p workerid is the worker on which calibration was performed (in the case of GPUs, use -1 for CPUs)
    - \p archi is the type of architecture on which calibration was run
+
+   See \ref MeasuringEnergyandPower for more details.
 */
 int starpu_energy_stop(struct starpu_perfmodel *model, struct starpu_task *task, unsigned nimpl, unsigned ntasks, int workerid, enum starpu_worker_archtype archi);
 
@@ -375,6 +379,7 @@ void starpu_perfmodel_get_model_path(const char *symbol, char *path, size_t maxl
 
 /**
   Dump performance model \p model to output stream \p output, in XML format.
+  See \ref PerformanceModelExample for more details.
 */
 void starpu_perfmodel_dump_xml(FILE *output, struct starpu_perfmodel *model);
 
@@ -450,6 +455,8 @@ int starpu_perfmodel_list_combs(FILE *output, struct starpu_perfmodel *model);
 
    You can also call starpu_perfmodel_update_history_n() to directly provide an
    average performed on several tasks.
+
+   See \ref PerformanceModelCalibration for more details.
 */
 void starpu_perfmodel_update_history(struct starpu_perfmodel *model, struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned cpuid, unsigned nimpl, double measured);
 
@@ -482,17 +489,20 @@ void starpu_bus_print_affinity(FILE *f);
 void starpu_bus_print_filenames(FILE *f);
 
 /**
-   Return the bandwidth of data transfer between two memory nodes
+   Return the bandwidth of data transfer between two memory nodes.
+   See \ref SchedulingHelpers for more details.
 */
 double starpu_transfer_bandwidth(unsigned src_node, unsigned dst_node);
 
 /**
-   Return the latency of data transfer between two memory nodes
+   Return the latency of data transfer between two memory nodes.
+   See \ref SchedulingHelpers for more details.
 */
 double starpu_transfer_latency(unsigned src_node, unsigned dst_node);
 
 /**
    Return the estimated time to transfer a given size between two memory nodes.
+   See \ref SchedulingHelpers for more details.
 */
 double starpu_transfer_predict(unsigned src_node, unsigned dst_node, size_t size);
 

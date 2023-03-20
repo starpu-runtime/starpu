@@ -54,7 +54,7 @@ starpu_transfer_predict(), ...
 The successors of a task can be obtained with starpu_task_get_task_succs().
 One can also directly test the presence of a data handle with starpu_data_is_on_node().
 Prefetches can be triggered by calling either starpu_prefetch_task_input_for(),
-starpu_idle_prefetch_task_input(), starpu_prefetch_task_input_for_prio(), or
+starpu_idle_prefetch_task_input_for(), starpu_prefetch_task_input_for_prio(), or
 starpu_idle_prefetch_task_input_for_prio(). The <c>_prio</c> versions allow
 specifying a priority for the transfer (instead of taking the task priority by
 default). These prefetches are only processed when there are no fetch data
@@ -143,7 +143,8 @@ the data structures of a given worker. It is acquired around scheduler methods,
 so that the scheduler does not need any additional mutex to protect its per-worker data.
 
 In case the scheduler wants to access another scheduler's data, it should use
-starpu_worker_lock() and starpu_worker_unlock().
+starpu_worker_lock() and starpu_worker_unlock(), or use starpu_worker_trylock() which will not block if the lock is not immediately available,
+or use starpu_worker_lock_self() and starpu_worker_unlock_self() to acquire and to release a lock on the worker associated with the current thread.
 
 Calling \code{.c}starpu_worker_lock(B)\endcode from a worker \c A will however thus make
 worker \c A wait for worker \c B to complete its scheduling method. That may be
@@ -363,20 +364,13 @@ static void initialize_eager_prefetching_center_policy(unsigned sched_ctx_id)
     sched_ctx_id);
 }
 
-/* Properly destroy the Scheduling Tree and all its Components */
-static void deinitialize_eager_prefetching_center_policy(unsigned sched_ctx_id)
-{
-  struct starpu_sched_tree * tree = (struct starpu_sched_tree*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-  starpu_sched_tree_destroy(tree);
-}
-
 /* Initializing the starpu_sched_policy struct associated to the Modularized
  * Scheduler : only the init_sched and deinit_sched needs to be defined to
  * implement a Modularized Scheduler */
 struct starpu_sched_policy _starpu_sched_tree_eager_prefetching_policy =
 {
   .init_sched = initialize_eager_prefetching_center_policy,
-  .deinit_sched = deinitialize_eager_prefetching_center_policy,
+  .deinit_sched = starpu_sched_tree_deinitialize,
   .add_workers = starpu_sched_tree_add_workers,
   .remove_workers = starpu_sched_tree_remove_workers,
   .push_task = starpu_sched_tree_push_task,
@@ -395,6 +389,8 @@ often, a modular scheduler can be implemented that way.
 
 A modular scheduler can also be constructed hierarchically with
 starpu_sched_component_composed_recipe_create().
+
+To retrieve the current scheduling tree of a task, starpu_sched_tree_get() can be called.
 
 That modular scheduler can also be built by hand in the following way:
 
@@ -480,6 +476,8 @@ struct starpu_sched_policy _starpu_sched_tree_eager_prefetching_policy =
   .policy_description = "eager with prefetching tree policy"
 };
 \endcode
+
+Instead of calling starpu_sched_tree_update_workers(), one can call starpu_sched_tree_update_workers_in_ctx() to update the set of workers that are available to execute tasks in a given scheduling tree within a specific StarPU context.
 
 Other modular scheduler examples can be seen in <c>src/sched_policies/modular_*.c</c>
 

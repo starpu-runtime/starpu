@@ -467,6 +467,8 @@ struct starpu_task *starpu_task_build(struct starpu_codelet *cl, ...);
    Parameters to be passed to the codelet implementation are defined
    through the type ::STARPU_VALUE. The function
    starpu_codelet_unpack_args() must be called within the codelet implementation to retrieve them.
+   
+   See \ref InsertTaskUtility for more details.
 */
 int starpu_task_insert(struct starpu_codelet *cl, ...);
 #ifdef STARPU_USE_FXT
@@ -523,6 +525,8 @@ void starpu_task_insert_data_process_mode_array_arg(struct starpu_codelet *cl, s
    Instead of calling starpu_codelet_pack_args(), one can also call
    starpu_codelet_pack_arg_init(), then starpu_codelet_pack_arg() for
    each data, then starpu_codelet_pack_arg_fini().
+
+   See \ref InsertTaskUtility for more details.
 */
 void starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, ...);
 
@@ -569,6 +573,7 @@ void starpu_codelet_pack_arg_fini(struct starpu_codelet_pack_arg_data *state, vo
    task automatically created using the function starpu_task_insert(). If
    any parameter's value is 0, unpacking will stop there and ignore the remaining
    parameters.
+   See \ref InsertTaskUtility for more details.
 */
 void starpu_codelet_unpack_args(void *cl_arg, ...);
 

@@ -126,7 +126,7 @@ int starpu_opencl_set_kernel_args(cl_int *err, cl_kernel *kernel, ...);
    file is found, \p located_file_name is the full name of the file as it
    has been located on the system, \p located_dir_name the directory
    where it has been located. Otherwise, they are both set to the empty
-   string.
+   string. See \ref MiscellaneousAndDebug for more details.
 */
 void starpu_opencl_load_program_source(const char *source_file_name, char *located_file_name, char *located_dir_name, char *opencl_program_source);
 
@@ -210,7 +210,7 @@ int starpu_opencl_release_kernel(cl_kernel kernel);
    After termination of the kernels, the OpenCL codelet should call this
    function with the event returned by \c clEnqueueNDRangeKernel(), to
    let StarPU collect statistics about the kernel execution (used cycles,
-   consumed energy).
+   consumed energy). See \ref OpenCL-specificOptimizations for more details.
 */
 int starpu_opencl_collect_stats(cl_event event);
 

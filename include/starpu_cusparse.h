@@ -33,7 +33,7 @@ extern "C" {
 /**
    Initialize CUSPARSE on every CUDA device
    controlled by StarPU. This call blocks until CUSPARSE has been properly
-   initialized on every device.
+   initialized on every device. See \ref CUDA-specificOptimizations for more details.
 */
 void starpu_cusparse_init(void);
 
@@ -47,7 +47,7 @@ void starpu_cusparse_shutdown(void);
 /**
    Return the CUSPARSE handle to be used to queue CUSPARSE
    kernels. It is properly initialized and configured for multistream by
-   starpu_cusparse_init().
+   starpu_cusparse_init(). See \ref CUDA-specificOptimizations for more details.
 */
 cusparseHandle_t starpu_cusparse_get_local_handle(void);
 #endif

@@ -176,6 +176,7 @@ static __starpu_inline float starpu_get_env_float_default(const char *str, float
    blocks until \p func has been executed on every appropriate
    processing units, and thus may not be called from a callback
    function for instance.
+   See \ref HowToInitializeAComputationLibraryOnceForEachWorkerfor more details.
 */
 void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t where);
 
@@ -194,7 +195,7 @@ void starpu_execute_on_each_worker_ex(void (*func)(void *), void *arg, uint32_t 
 void starpu_execute_on_specific_workers(void (*func)(void *), void *arg, unsigned num_workers, unsigned *workers, const char *name);
 
 /**
-   Return the current date in micro-seconds.
+   Return the current date in micro-seconds. See \ref Preparing for more details.
 */
 double starpu_timing_now(void);
 
@@ -237,18 +238,21 @@ int starpu_data_dup_ro(starpu_data_handle_t *dst_handle, starpu_data_handle_t sr
    the machine.<br>
    Use the environment variable \ref STARPU_DISPLAY_BINDINGS to automatically
    call this function at the beginning of the execution of StarPU.
+   See \ref MiscellaneousAndDebug for more details.
 */
 void starpu_display_bindings(void);
 
 /**
    If \c hwloc is used, convert the given \p logical_index of a PU to the OS
    index of this PU. If \c hwloc is not used, return \p logical_index.
+   See \ref HardwareTopology for more details.
 */
 int starpu_get_pu_os_index(unsigned logical_index);
 
 /**
    Return a bitmap representing logical indexes of NUMA nodes where the buffer
    targeted by \p ptr is allocated. An error is notified by a negative result.
+   See \ref HardwareTopology for more details.
 */
 long starpu_get_memory_location_bitmap(void *ptr, size_t size);
 
@@ -256,6 +260,7 @@ long starpu_get_memory_location_bitmap(void *ptr, size_t size);
 /**
    Get the hwloc topology used by StarPU. One can use this pointer to get
    information about topology, but not to change settings related to topology.
+   See \ref HardwareTopology for more details.
 */
 hwloc_topology_t starpu_get_hwloc_topology(void);
 #endif

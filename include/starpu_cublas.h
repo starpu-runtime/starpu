@@ -31,7 +31,7 @@ extern "C" {
    CUBLAS library must be initialized prior to any CUBLAS call. Calling
    starpu_cublas_init() will initialize CUBLAS on every CUDA device
    controlled by StarPU. This call blocks until CUBLAS has been properly
-   initialized on every device.
+   initialized on every device. See \ref CUDA-specificOptimizations for more details.
 */
 void starpu_cublas_init(void);
 

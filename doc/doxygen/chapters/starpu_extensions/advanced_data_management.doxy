@@ -151,7 +151,22 @@ starpu_data_unregister_submit(handle);
 actual unregistration will be done after all tasks working on the handle
 terminate.
 
+One can also unregister the data handle by calling:
+
+\code{.c}
+starpu_data_unregister_no_coherency(handle);
+\endcode
+
+Different from starpu_data_unregister(), a valid copy of the data is not 
+put back into the home node in the buffer that was initially registered.
+
 If the handle is to be reused, instead of unregistering it, it can simply be invalidated:
+
+\code{.c}
+starpu_data_invalidate(handle);
+\endcode
+
+or if the data transfer is asynchronous:
 
 \code{.c}
 starpu_data_invalidate_submit(handle);
@@ -159,6 +174,14 @@ starpu_data_invalidate_submit(handle);
 
 the buffers containing the current value will then be freed, and reallocated
 only when another task writes some value to the handle. A basic example is available in the file <c>tests/datawizard/data_invalidation.c</c>.
+
+\section DataAccess Data Access
+
+To access registered data outside tasks we can call the function starpu_data_acquire(). The access mode can be read-only mode ::STARPU_R, write-only mode ::STARPU_W, and read-write mode ::STARPU_RW. We will get an up-to-date copy of handle in memory located where the data was originally registered. The application can also call starpu_data_acquire_try() instead of starpu_data_acquire() to acquire the data, but if previously-submitted tasks have not completed when we ask to acquire the data, the program will crash. starpu_data_release() must be called once the application no longer needs to access the piece of data. Or call starpu_data_release_to() to partly release the piece of data acquired.
+We can also access registered data from a given memory node by calling the function starpu_data_acquire_on_node(), or calling starpu_data_acquire_on_node_try() if all previously-submitted tasks have completed. Correspondingly, starpu_data_release_on_node() must be called once the application no longer needs to access the piece of data and the node parameter must be exactly the same as the corresponding starpu_data_acquire_on_node() call. Or call starpu_data_release_to_on_node() to partly release the piece of data acquired.
+
+The application may access the requested data asynchronous during the execution of callback by calling starpu_data_acquire_cb(), and by calling starpu_data_acquire_cb_sequential_consistency() with the possibility of enabling or disabling data dependencies. The callback function must call starpu_data_release() once the application no longer needs to access the piece of data. Or call starpu_data_release_to() to partly release the piece of data acquired.
+The application can also access registered data from a given memory node instead of main memory by calling the function starpu_data_acquire_on_node_cb(), and by calling starpu_data_acquire_on_node_cb_sequential_consistency() with the possibility of enabling or disabling data dependencies. starpu_data_release_on_node() must be called once the application no longer needs to access the piece of data. Or call starpu_data_release_to_on_node() to partly release the piece of data acquired.
 
 \section DataPrefetch Data Prefetch
 
@@ -178,11 +201,15 @@ distribution (since StarPU will try to avoid further transfers).
 This can be achieved by giving the function starpu_data_prefetch_on_node() the
 handle and the desired target memory node. The corresponding example is available in the file <c>tests/microbenchs/prefetch_data_on_node.c</c>. The variant
 starpu_data_idle_prefetch_on_node() can be used to issue the transfer
-only when the bus is idle.
+only when the bus is idle. One can also call starpu_data_request_allocation() for the allocation of a piece of data on the specified memory node. We can know whether the allocation is done on the specified memory node by using starpu_data_test_if_allocated_on_node(). We can also know whether the map is done on the specified memory node by using starpu_data_test_if_mapped_on_node().
+
+If we want higher priority to request data to be replicated to a given node as soon as possible, so that it is available there for tasks, we can call starpu_data_fetch_on_node(). We can call starpu_data_prefetch_on_node_prio() to have a priority than starpu_data_prefetch_on_node(). And call starpu_data_idle_prefetch_on_node_prio() to have a bit higher priority than starpu_data_idle_prefetch_on_node().
 
 Conversely, one can advise StarPU that some data will not be useful in the
 close future by calling starpu_data_wont_use(). StarPU will then write its value
-back to its home node, and evict it from GPUs when room is needed. The corresponding example is available in the file <c>tests/datawizard/partition_wontuse.c</c>.
+back to its home node, and evict it from GPUs when room is needed. The corresponding example is available in the file <c>tests/datawizard/partition_wontuse.c</c>. One can also advise StarPU to evict data from the memory node directly by calling starpu_data_evict_from_node(), but it may fail if e.g. some tasks are still working on the memory node. To avoid failure one can call starpu_data_can_evict() to check whether data can be evicted from the memory node. Anyway it is more recommended to use starpu_data_wont_use().
+
+One can query the status of handle on the specified memory node by calling starpu_data_query_status2() or starpu_data_query_status(). One can call starpu_memchunk_tidy() to tidy the available memory on the specified memory node periodically.
 
 \section ManualPartitioning Manual Partitioning
 
@@ -248,6 +275,12 @@ them.
 
 And now we can start using vertical slices, etc.
 
+\section DataHandlesHelpers Data handles helpers
+
+Functions starpu_data_set_user_data() and starpu_data_get_user_data() are used to associate user-defined data with a specific data handle. One can set or retrieve the field user_data of the data handle by calling these two functions respectively. Similarly, functions starpu_data_set_sched_data() and starpu_data_get_sched_data() are used to associate scheduling-related data with a specific data handle. One can set or retrieve the field sched_data of the data handle by calling these two functions respectively.
+
+One can call starpu_data_register_same() to register a new piece of data into a data handle with the same interface as the specified data handle.
+
 \section DataPointers Handles data buffer pointers
 
 A simple understanding of StarPU handles is that it's a collection of buffers on
@@ -283,7 +316,7 @@ This means that:
 <li>partitioning filters have to copy over <c>dev_handle</c> without modifying it, set in the child different values of <c>offset</c>, and set <c>ptr</c> accordingly as the sum of <c>dev_handle</c> and <c>offset</c>.</li>
 </ul>
 
-Examples in <c>src/datawizard/interfaces/*_interface.c</c> show how to fill these three fields.
+Examples in the directory <c>examples/interface/complex_dev_handle/</c> show how to generate and implement an interface supporting OpenCL.
 
 To better notice the difference between simple <c>ptr</c> and
 <c>dev_handle</c> + <c>offset</c>, one
@@ -674,7 +707,7 @@ the meta-data pointers. If the user provided a buffer for the initial value
 of the handle, starpu_data_interface_ops::register_data_handle sets the data
 pointers of the home_node interface to that buffer.
 <li>The interface can additionally provide a \c ptr_register helper to set the
-data pointer of a given node.
+data pointer of a given node. One can call starpu_data_ptr_register() to realise.
 <li>The starpu_data_interface_ops::unregister_data_handle method has to
 deallocate the meta-data pointers
 <li>The starpu_data_interface_ops::allocate_data_on_node method has to allocate
@@ -687,9 +720,11 @@ the opportunity to clear pointers in the source interface.
 <li>The starpu_data_interface_ops::reuse_data_on_node transfers the data
 pointers from a cached interface to the destination interface.
 <li>The starpu_data_interface_ops::map_data has to map the data pointers on the
-given node.
+given node. One should define function starpu_interface_map() to set this field.
 <li>The starpu_data_interface_ops::unmap_data has to unmap the data pointers on
-the given node.
+the given node. One should define function starpu_interface_unmap() to set this field.
+<li>The starpu_data_interface_ops::update_map has to update the data pointers on
+the given node. One should define function starpu_interface_update_map() to set this field.
 <li>The filtering functions have to allocate the meta-data pointers for the
 child interface, and when the parent interface has data pointers, it has to set
 the child data pointers to point into the parent data buffers.

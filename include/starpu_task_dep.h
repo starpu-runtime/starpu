@@ -42,6 +42,7 @@ extern "C" {
    is possible to call starpu_task_declare_deps_array() several times
    on the same task, in this case, the dependencies are added. It is
    possible to have redundancy in the task dependencies.
+   See \ref TasksAndTagsDependencies for more details.
 */
 void starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[]);
 
@@ -51,6 +52,7 @@ void starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, st
    tasks are passed after \p ndeps, which indicates how many tasks \p
    task shall be made to depend on. If \p ndeps is 0, no dependency is
    added.
+   See \ref TasksAndTagsDependencies for more details.
 */
 void starpu_task_declare_deps(struct starpu_task *task, unsigned ndeps, ...);
 
@@ -69,6 +71,7 @@ void starpu_task_declare_deps(struct starpu_task *task, unsigned ndeps, ...);
    times on the same task, in this case, the dependencies are added.
    It is currently not implemented to have redundancy in the task
    dependencies.
+   See \ref TasksAndTagsDependencies for more details.
 */
 void starpu_task_declare_end_deps_array(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[]);
 
@@ -78,6 +81,7 @@ void starpu_task_declare_end_deps_array(struct starpu_task *task, unsigned ndeps
    the tasks are passed after \p ndeps, which indicates how many tasks
    \p task 's termination shall be made to depend on. If \p ndeps is
    0, no dependency is added.
+   See \ref TasksAndTagsDependencies for more details.
 */
 void starpu_task_declare_end_deps(struct starpu_task *task, unsigned ndeps, ...);
 
@@ -90,6 +94,7 @@ void starpu_task_declare_end_deps(struct starpu_task *task, unsigned ndeps, ...)
    can only be called if \p task has not completed yet, otherwise the
    results are undefined. The result may also be outdated if some
    additional dependency has been added in the meanwhile.
+   See \ref GettingTaskChildren for more details.
 */
 int starpu_task_get_task_succs(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[]);
 
@@ -104,12 +109,14 @@ int starpu_task_get_task_scheduled_succs(struct starpu_task *task, unsigned ndep
    Add \p nb_deps end dependencies to the task \p t. This means the
    task will not terminate until the required number of calls to the
    function starpu_task_end_dep_release() has been made.
+   See \ref TasksAndTagsDependencies for more details.
 */
 void starpu_task_end_dep_add(struct starpu_task *t, int nb_deps);
 
 /**
    Unlock 1 end dependency to the task \p t. This function must be
    called after starpu_task_end_dep_add().
+   See \ref TasksAndTagsDependencies for more details.
 */
 void starpu_task_end_dep_release(struct starpu_task *t);
 
@@ -146,6 +153,8 @@ typedef uint64_t starpu_tag_t;
    //  Tag 0x1 depends on tags 0x32 and 0x52
    starpu_tag_declare_deps((starpu_tag_t)0x1, 2, (starpu_tag_t)0x32, (starpu_tag_t)0x52);
    \endcode
+
+   See \ref TasksAndTagsDependencies for more details.
 */
 void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);
 
@@ -159,6 +168,8 @@ void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);
    starpu_tag_t tag_array[2] = {0x32, 0x52};
    starpu_tag_declare_deps_array((starpu_tag_t)0x1, 2, tag_array);
    \endcode
+
+   See \ref TasksAndTagsDependencies for more details.
 */
 void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t *array);
 

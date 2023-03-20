@@ -53,7 +53,9 @@ The structure starpu_profiling_task_info indicates the date when the
 task was submitted (starpu_profiling_task_info::submit_time), started
 (starpu_profiling_task_info::start_time), and terminated
 (starpu_profiling_task_info::end_time), relative to the initialization
-of StarPU with starpu_init(). It also specifies the identifier of the worker
+of StarPU with starpu_init(). User can call starpu_timing_timespec_delay_us() 
+to calculate the time elapsed between start time and end time in microseconds. 
+It also specifies the identifier of the worker
 that has executed the task (starpu_profiling_task_info::workerid).
 These dates are stored as <c>timespec</c> structures which the user may convert
 into micro-seconds using the helper function
@@ -547,29 +549,34 @@ The performance monitoring framework is built on a series of concepts and items,
 \subsubsection PerfMonCountCounter Performance Counter
 
 The performance counter entity is the fundamental object of the framework, representing one piece of performance metrics, such as for instance the total number of tasks submitted so far, that is exported by StarPU and can be collected through the framework at runtime. A performance counter has a type and belongs to a scope. A performance counter is designated by a unique name and unique ID integer.
+We can start or stop collecting performance counter values by using:
+
+Function Name                        |Function Definition
+-------------------------------------|-------------------------------------------
+starpu_perf_counter_collection_start |Start collecting performance counter values
+starpu_perf_counter_collection_stop  |Stop collecting performance counter values
 
 \subsubsection PerfMonCountCounterType Performance Counter Type
 
 A performance counter has a type. A type is designated by a unique name and unique ID number. Currently, supported types include:
 
-\verbatim
-Type Name	Type Definition
-"int32"	32-bit signed integers
-"int64"	64-bit signed integers
-"float"	32-bit single-precision floating point
-"double"	64-bit double-precision floating point
-\endverbatim
+Type Name|Type Definition
+---------|--------------------------------------
+"int32"  |32-bit signed integers
+"int64"  |64-bit signed integers
+"float"  |32-bit single-precision floating point
+"double" |64-bit double-precision floating point
+
 
 \subsubsection PerfMonCountCounterScope Performance Counter Scope
 
 A performance counter belongs to a scope. The scope of a counter defines the context considered for computing the corresponding performance counter. A scope is designated with a unique name and unique ID number. Currently, defined scopes include:
 
-\verbatim
-Scope Name	Scope Definition
-"global"	Counter is global to the StarPU instance
-"per_worker"	Counter is within the scope of a thread worker
-"per_codelet"	Counter is within the scope of a task codelet
-\endverbatim
+Scope Name   |Scope Definition
+-------------|----------------------------------------------
+"global"     |Counter is global to the StarPU instance
+"per_worker" |Counter is within the scope of a thread worker
+"per_codelet"|Counter is within the scope of a task codelet
 
 \subsubsection PerfMonCountCounterSet Performance Counter Set
 
@@ -589,73 +596,67 @@ The API of the performance monitoring framework is defined in the "starpu_perf_m
 
 \subsubsection PerfMonCountCounterScopeRoutines Scope Related Routines
 
-\verbatim
-Function Name	Function Definition
-starpu_perf_counter_scope_name_to_id	Translate scope name constant string to scope id
-starpu_perf_counter_scope_id_to_name	Translate scope id to scope name constant string
-\endverbatim
+Function Name	                     |Function Definition
+-------------------------------------|------------------------------------------------
+starpu_perf_counter_scope_name_to_id |Translate scope name constant string to scope id
+starpu_perf_counter_scope_id_to_name |Translate scope id to scope name constant string
+
 
 \subsubsection PerfMonCountCounterTypeRoutines Type Related Routines
 
-\verbatim
-Function Name	Function Definition
-starpu_perf_counter_type_name_to_id	Translate type name constant string to type id
-starpu_perf_counter_type_id_to_name	Translate type id to type name constant string
-\endverbatim
-
+Function Name	                    |Function Definition
+------------------------------------|----------------------------------------------
+starpu_perf_counter_type_name_to_id |Translate type name constant string to type id
+starpu_perf_counter_type_id_to_name |Translate type id to type name constant string
 
 \subsubsection PerfMonCountCounterCounterRoutines Counter Related Routines
 
-\verbatim
-Function Name	Function Definition
-starpu_perf_counter_nb	Return the number of performance counters for the given scope
-starpu_perf_counter_name_to_id	Translate a performance counter name to its id
-starpu_perf_counter_nth_to_id	Translate a performance counter rank in its scope to its counter id
-starpu_perf_counter_id_to_name	Translate a counter id to its name constant string
-starpu_perf_counter_get_type_id	Return the counter's type id
-starpu_perf_counter_get_help_string	Return the counter's help string
-starpu_perf_counter_list_avail	Display the list of counters defined in the given scope
-starpu_perf_counter_list_all_avail	Display the list of counters defined in all scopes
-\endverbatim
+Function Name	                    |Function Definition
+------------------------------------|-------------------------------------------------------------------
+starpu_perf_counter_nb	            |Return the number of performance counters for the given scope
+starpu_perf_counter_name_to_id	    |Translate a performance counter name to its id
+starpu_perf_counter_nth_to_id	    |Translate a performance counter rank in its scope to its counter id
+starpu_perf_counter_id_to_name	    |Translate a counter id to its name constant string
+starpu_perf_counter_get_type_id     |Return the counter's type id
+starpu_perf_counter_get_help_string |Return the counter's help string
+starpu_perf_counter_list_avail	    |Display the list of counters defined in the given scope
+starpu_perf_counter_list_all_avail  |Display the list of counters defined in all scopes
 
 
 \subsubsection PerfMonCountCounterCounterSetRoutines Counter Set Related Routines
 
-\verbatim
-Function Name	Function Definition
-starpu_perf_counter_set_alloc	Allocate a new performance counter set
-starpu_perf_counter_set_free	Free a performance counter set
-starpu_perf_counter_set_enable_id	Enable a given counter in the set
-starpu_perf_counter_set_disable_id	Disable a given counter in the set
-\endverbatim
+Function Name	                   |Function Definition
+-----------------------------------|--------------------------------------
+starpu_perf_counter_set_alloc	   |Allocate a new performance counter set
+starpu_perf_counter_set_free	   |Free a performance counter set
+starpu_perf_counter_set_enable_id  |Enable a given counter in the set
+starpu_perf_counter_set_disable_id |Disable a given counter in the set
 
 
 \subsubsection PerfMonCountCounterListenerRoutines Listener Related Routines
 
-\verbatim
-Function Name	Function Definition
-starpu_perf_counter_listener_init	Initialize a new performance counter listener
-starpu_perf_counter_listener_exit	End a performance counter listener
-starpu_perf_counter_set_global_listener	Set a listener for the global scope
-starpu_perf_counter_set_per_worker_listener	Set a listener for the per_worker scope on a given worker
-starpu_perf_counter_set_all_per_worker_listeners	Set a common listener for all workers
-starpu_perf_counter_set_per_codelet_listener	Set a per_codelet listener for a codelet
-starpu_perf_counter_unset_global_listener	Unset the global listener
-starpu_perf_counter_unset_per_worker_listener	Unset the per_worker listener
-starpu_perf_counter_unset_all_per_worker_listeners	Unset all per_worker listeners
-starpu_perf_counter_unset_per_codelet_listener	Unset a per_codelet listener
-\endverbatim
+Function Name	                                   |Function Definition
+---------------------------------------------------|---------------------------------------------------------
+starpu_perf_counter_listener_init                  |Initialize a new performance counter listener
+starpu_perf_counter_listener_exit	           |End a performance counter listener
+starpu_perf_counter_set_global_listener	           |Set a listener for the global scope
+starpu_perf_counter_set_per_worker_listener	   |Set a listener for the per_worker scope on a given worker
+starpu_perf_counter_set_all_per_worker_listeners   |Set a common listener for all workers
+starpu_perf_counter_set_per_codelet_listener	   |Set a per_codelet listener for a codelet
+starpu_perf_counter_unset_global_listener	   |Unset the global listener
+starpu_perf_counter_unset_per_worker_listener	   |Unset the per_worker listener
+starpu_perf_counter_unset_all_per_worker_listeners |Unset all per_worker listeners
+starpu_perf_counter_unset_per_codelet_listener	   |Unset a per_codelet listener
 
 
 \subsubsection PerfMonCountCounterSampleRoutines Sample Related Routines
 
-\verbatim
-Function Name	Function Definition
-starpu_perf_counter_sample_get_int32_value	Read an int32 counter value from a sample
-starpu_perf_counter_sample_get_int64_value	Read an int64 counter value from a sample
-starpu_perf_counter_sample_get_float_value	Read a float counter value from a sample
-starpu_perf_counter_sample_get_double_value	Read a double counter value from a sample
-\endverbatim
+Function Name	                            |Function Definition
+--------------------------------------------|------------------------------------------
+starpu_perf_counter_sample_get_int32_value  |Read an int32 counter value from a sample
+starpu_perf_counter_sample_get_int64_value  |Read an int64 counter value from a sample
+starpu_perf_counter_sample_get_float_value  |Read a float counter value from a sample
+starpu_perf_counter_sample_get_double_value |Read a double counter value from a sample
 
 \subsection PerfMonCountCounterImplementation Implementation Details
 
@@ -693,33 +694,31 @@ The performance monitoring framework features a comprehensive set of runtime che
 
 \subsubsection PerfMonCountCounterExportedGlobal Global Scope
 
-\verbatim
-Counter Name	Counter Definition
-starpu.task.g_total_submitted	Total number of tasks submitted
-starpu.task.g_peak_submitted	Maximum number of tasks submitted, waiting for dependencies resolution at any time
-starpu.task.g_peak_ready	Maximum number of tasks ready for execution, waiting for an execution slot at any time
-\endverbatim
+Counter Name	              |Counter Definition
+------------------------------|--------------------------------------------------------------------------------------
+starpu.task.g_total_submitted |Total number of tasks submitted
+starpu.task.g_peak_submitted  |Maximum number of tasks submitted, waiting for dependencies resolution at any time
+starpu.task.g_peak_ready      |Maximum number of tasks ready for execution, waiting for an execution slot at any time
+
 
 
 \subsubsection PerfMonCountCounterExportedPerWorker Per-worker Scope
 
-\verbatim
-Counter Name	Counter Definition
-starpu.task.w_total_executed	Total number of tasks executed on a given worker
-starpu.task.w_cumul_execution_time	Cumulated execution time of tasks executed on a given worker
-\endverbatim
+Counter Name	                   |Counter Definition
+-----------------------------------|------------------------------------------------------------
+starpu.task.w_total_executed	   |Total number of tasks executed on a given worker
+starpu.task.w_cumul_execution_time |Cumulated execution time of tasks executed on a given worker
 
 
 \subsubsection PerfMonCountCounterExportedPerCodelet Per-Codelet Scope
 
-\verbatim
-Counter Name	Counter Definition
-starpu.task.c_total_submitted	Total number of submitted tasks for a given codelet
-starpu.task.c_peak_submitted     	Maximum number of submitted tasks for a given codelet waiting for dependencies resolution at any time
-starpu.task.c_peak_ready      	Maximum number of ready tasks for a given codelet waiting for an execution slot at any time
-starpu.task.c_total_executed      	Total number of executed tasks for a given codelet
-starpu.task.c_cumul_execution_time	Cumulated execution time of tasks for a given codelet
-\endverbatim
+Counter Name	                   |Counter Definition
+-----------------------------------|-----------------------------------------------------------------------------------------------------
+starpu.task.c_total_submitted	   |Total number of submitted tasks for a given codelet
+starpu.task.c_peak_submitted       |Maximum number of submitted tasks for a given codelet waiting for dependencies resolution at any time
+starpu.task.c_peak_ready      	   |Maximum number of ready tasks for a given codelet waiting for an execution slot at any time
+starpu.task.c_total_executed       |Total number of executed tasks for a given codelet
+starpu.task.c_cumul_execution_time |Cumulated execution time of tasks for a given codelet
 
 \subsection PerfMonCountCounterSequence Sequence of operations
 
@@ -729,48 +728,48 @@ This section presents a typical sequence of operations to interface an external 
 
 StarPU must first be initialized, by a call to starpu_init(), for performance counters to become available, since each module of StarPU registers the performance counters it exports during that initialization phase.
 
-\verbatim
+\code{.c}
 int ret = starpu_init(NULL);
-\endverbatim
+\endcode
 
 
 <b>Step 1: Allocate a counter set</b>
 
 A counter set has to be allocated on the per-worker scope. The per-worker scope id can be obtained by name, or with the pre-defined enum value starpu_perf_counter_scope_per_worker.
 
-\verbatim
+\code{.c}
 enum starpu_perf_counter_scope w_scope = starpu_perf_counter_scope_per_worker;
 struct starpu_perf_counter_set *w_set = starpu_perf_counter_set_alloc(w_scope);
-\endverbatim
+\endcode
 
 
 <b>Step 2: Get the counter IDs</b>
 Each performance counter has a unique ID used to refer to it in subsequent calls to the performance monitoring framework.
 
-\verbatim
+\code{.c}
 int id_w_total_executed = starpu_perf_counter_name_to_id(w_scope,
                                                      "starpu.task.w_total_executed");
 
 int id_w_cumul_execution_time = starpu_perf_counter_name_to_id(w_scope,
                                                "starpu.task.w_cumul_execution_time");
-\endverbatim
+\endcode
 
 
 <b>Step 3: Enable the counters in the counter set</b>
 
 This step indicates which counters will be collected into performance monitoring samples for the listeners referring to this counter set.
 
-\verbatim
+\code{.c}
 starpu_perf_counter_set_enable_id(w_set, id_w_total_executed);
 starpu_perf_counter_set_enable_id(w_set, id_w_cumul_execution_time);
-\endverbatim
+\endcode
 
 
 <b>Step 4: Write a listener callback</b>
 
 This callback will be triggered when a sample becomes available. Upon execution, it reads the values for the two counters from the sample and displays these values, for the sake of the example.
 
-\verbatim
+\code{.c}
 void w_listener_cb(struct starpu_perf_counter_listener *listener,
                    struct starpu_perf_counter_sample   *sample,
                    void *context)
@@ -786,25 +785,25 @@ void w_listener_cb(struct starpu_perf_counter_listener *listener,
                                  w_total_executed,
                                  w_cumul_execution_time);
 }
-\endverbatim
+\endcode
 
 
 <b>Step 5: Initialize the listener</b>
 
 This step allocates the listener structure and prepares it to listen to the selected set of per-worker counters. However, it is not actually active until Step 6, once it is attached to one or more worker.
 
-\verbatim
+\code{.c}
 struct starpu_perf_counter_listener * w_listener =
                        starpu_perf_counter_listener_init(w_set, w_listener_cb, NULL);
-\endverbatim
+\endcode
 
 
 <b>Step 6: Set the listener on all workers</b>
 This step actually makes the listener active, in this case on every StarPU worker thread.
 
-\verbatim
+\code{.c}
 starpu_perf_counter_set_all_per_worker_listeners(w_listener);
-\endverbatim
+\endcode
 
 
 After this step, any task assigned to a worker will be counted in that worker selected performance counters, and reported to the listener.
@@ -829,13 +828,12 @@ The performance steering knob entity designates one runtime-actionable knob expo
 
 A performance steering knob has a type. A type is designated by a unique name and unique ID number. Currently, supported types include:
 
-\verbatim
-Type Name	Type Definition
-"int32"	32-bit signed integers
-"int64"	64-bit signed integers
-"float"	32-bit single precision floating point
-"double"	64-bit double precision floating point
-\endverbatim
+Type Name |Type Definition
+----------|--------------------------------------
+"int32"	  |32-bit signed integers
+"int64"	  |64-bit signed integers
+"float"	  |32-bit single precision floating point
+"double"  |64-bit double precision floating point
 
 On/Off knobs are defined as "int32" type, with value 0 for Off and value !0 for On, unless otherwise specified.
 
@@ -843,13 +841,11 @@ On/Off knobs are defined as "int32" type, with value 0 for Off and value !0 for 
 
 A performance steering knob belongs to a scope. The scope of a knob defines the context considered for computing the corresponding knob. A scope is designated with a unique name and unique ID number. Currently, defined scopes include:
 
-\verbatim
-Scope Name	Scope Definition
-"global"	Knob is global to the StarPU instance
-"per_worker"	Knob is within the scope of a thread worker
-"per_scheduler"	Knob is within the scope of a scheduling policy instance
-\endverbatim
-
+Scope Name	|Scope Definition
+----------------|--------------------------------------------------------
+"global"	|Knob is global to the StarPU instance
+"per_worker"	|Knob is within the scope of a thread worker
+"per_scheduler" |Knob is within the scope of a scheduling policy instance
 
 \subsubsection PerfKnobsEntitiesKnobGroup Knob Group
 
@@ -859,37 +855,34 @@ The notion of Performance Steering Knob Group is currently internal to StarPU. I
 
 \subsubsection PerfKnobsAPIScope Scope Related Routines
 
-\verbatim
-Function Name	Function Definition
-starpu_perf_knob_scope_name_to_id	Translate scope name constant string to scope id
-starpu_perf_knob_scope_id_to_name	Translate scope id to scope name constant string
-\endverbatim
+Function Name	                  |Function Definition
+----------------------------------|------------------------------------------------
+starpu_perf_knob_scope_name_to_id |Translate scope name constant string to scope id
+starpu_perf_knob_scope_id_to_name |Translate scope id to scope name constant string
 
 
 \subsubsection PerfKnobsAPIType Type Related Routines
 
-\verbatim
-Function Name	Function Definition
-starpu_perf_knob_type_name_to_id	Translate type name constant string to type id
-starpu_perf_knob_type_id_to_name	Translate type id to type name constant string
-\endverbatim
+Function Name	                 |Function Definition
+---------------------------------|----------------------------------------------
+starpu_perf_knob_type_name_to_id |Translate type name constant string to type id
+starpu_perf_knob_type_id_to_name |Translate type id to type name constant string
 
 
 \subsubsection PerfKnobsAPISteer Performance Steering Knob Related Routines
 
-\verbatim
-Function Name	Function Definition
-starpu_perf_knob_nb	Return the number of performance steering knobs for the given scope
-starpu_perf_knob_name_to_id	Translate a performance knob name to its id
-starpu_perf_knob_nth_to_id	Translate a performance knob rank in its scope to its knob id
-starpu_perf_knob_id_to_name	Translate a knob id to its name constant string
-starpu_perf_knob_get_type_id	Return the knob's type id
-starpu_perf_knob_get_help_string	Return the knob's help string
-starpu_perf_knob_list_avail	Display the list of knobs defined in the given scope
-starpu_perf_knob_list_all_avail	Display the list of knobs defined in all scopes
-starpu_perf_knob_get_<SCOPE>_<TYPE>_value	Get knob value for given scope and type
-starpu_perf_knob_set_<SCOPE>_<TYPE>_value	Set knob value for given scope and type
-\endverbatim
+Function Name	                          |Function Definition
+------------------------------------------|-------------------------------------------------------------------
+starpu_perf_knob_nb	                  |Return the number of performance steering knobs for the given scope
+starpu_perf_knob_name_to_id	          |Translate a performance knob name to its id
+starpu_perf_knob_nth_to_id	          |Translate a performance knob rank in its scope to its knob id
+starpu_perf_knob_id_to_name	          |Translate a knob id to its name constant string
+starpu_perf_knob_get_type_id	          |Return the knob's type id
+starpu_perf_knob_get_help_string	  |Return the knob's help string
+starpu_perf_knob_list_avail	          |Display the list of knobs defined in the given scope
+starpu_perf_knob_list_all_avail	          |Display the list of knobs defined in all scopes
+starpu_perf_knob_get_<SCOPE>_<TYPE>_value |Get knob value for given scope and type
+starpu_perf_knob_set_<SCOPE>_<TYPE>_value |Set knob value for given scope and type
 
 \subsection PerfKnobsImpl Implementation Details
 
@@ -903,35 +896,30 @@ The framework is designed to be easily extensible. At StarPU initialization time
 
 \subsubsection PerfKnobsExportedGlobal Global Scope
 
-\verbatim
-Knob Name	Knob Definition
-starpu.global.g_calibrate_knob
-	Enable/disable the calibration of performance models
-starpu.global.g_enable_catch_signal_knob	Enable/disable the catching of UNIX signals
-\endverbatim
+Knob Name	                         |Knob Definition
+-----------------------------------------|----------------------------------------------------
+starpu.global.g_calibrate_knob           |Enable/disable the calibration of performance models
+starpu.global.g_enable_catch_signal_knob |Enable/disable the catching of UNIX signals
 
 
 \subsubsection PerfKnobsExportedPerWorker Per-worker Scope
 
-\verbatim
-Knob Name	Knob Definition
-starpu.worker.w_bind_to_pu_knob	Change the processing unit to which a worker thread is bound
-starpu.worker.w_enable_worker_knob	Disable/re-enable a worker thread to be selected
-for task execution
-\endverbatim
+Knob Name	                   |Knob Definition
+-----------------------------------|------------------------------------------------------------
+starpu.worker.w_bind_to_pu_knob	   |Change the processing unit to which a worker thread is bound
+starpu.worker.w_enable_worker_knob |Disable/re-enable a worker thread to be selected for task execution
 
 
 \subsubsection PerfKnobsExportedPerScheduler Per-Scheduler Scope
 
-\verbatim
-Knob Name	Knob Definition
-starpu.task.s_max_priority_cap_knob 	Set a capping maximum priority value for subsequently submitted tasks
-starpu.task.s_min_priority_cap_knob	Set a capping minimum priority value for subsequently submitted tasks
-starpu.dmda.s_alpha_knob 	Scaling factor for the Alpha constant for Deque Model schedulers to alter the weight of the estimated task execution time
-starpu.dmda.s_beta_knob 	Scaling factor for the Beta constant for Deque Model schedulers to alter the weight of the estimated data transfer time for the task's input(s)
-starpu.dmda.s_gamma_knob	Scaling factor for the Gamma constant for Deque Model schedulers to alter the weight of the estimated power consumption of the task
-starpu.dmda.s_idle_power_knob	Scaling factor for the baseline Idle power consumption estimation of the corresponding processing unit
-\endverbatim
+Knob Name	                    |Knob Definition
+------------------------------------|----------------
+starpu.task.s_max_priority_cap_knob |Set a capping maximum priority value for subsequently submitted tasks
+starpu.task.s_min_priority_cap_knob |Set a capping minimum priority value for subsequently submitted tasks
+starpu.dmda.s_alpha_knob 	    |Scaling factor for the Alpha constant for Deque Model schedulers to alter the weight of the estimated task execution time
+starpu.dmda.s_beta_knob 	    |Scaling factor for the Beta constant for Deque Model schedulers to alter the weight of the estimated data transfer time for the task's input(s)
+starpu.dmda.s_gamma_knob	    |Scaling factor for the Gamma constant for Deque Model schedulers to alter the weight of the estimated power consumption of the task
+starpu.dmda.s_idle_power_knob	    |Scaling factor for the baseline Idle power consumption estimation of the corresponding processing unit
 
 
 \subsection PerfKnobsSequence Sequence of operations

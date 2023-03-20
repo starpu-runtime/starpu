@@ -121,7 +121,8 @@ enum starpu_parallel_worker_types
 struct starpu_parallel_worker_config;
 
 /**
-   Create parallel_workers on the machine with the given parameters
+   Create parallel_workers on the machine with the given parameters.
+   See \ref CreatingParallel for more details.
  */
 struct starpu_parallel_worker_config *starpu_parallel_worker_init(hwloc_obj_type_t parallel_worker_level, ...);
 
@@ -131,7 +132,8 @@ struct starpu_parallel_worker_config *starpu_parallel_worker_init(hwloc_obj_type
 int starpu_parallel_worker_shutdown(struct starpu_parallel_worker_config *parallel_workers);
 
 /**
-   Print the given parallel_workers configuration
+   Print the given parallel_workers configuration.
+   See \ref CreatingParallel for more details.
  */
 int starpu_parallel_worker_print(struct starpu_parallel_worker_config *parallel_workers);
 

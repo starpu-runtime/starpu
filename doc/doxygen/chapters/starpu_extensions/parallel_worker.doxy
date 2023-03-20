@@ -96,6 +96,8 @@ machine.
 
 This is explained in Section \ref CreatingCustomParallelWorkers.
 
+Before starpu_shutdown(), we call starpu_parallel_worker_shutdown() to delete the parallel worker configuration.
+
 \section ExampleOfConstrainingOpenMP Example Of Constraining OpenMP
 
 Parallel workers require being able to constrain the runtime managing the internal

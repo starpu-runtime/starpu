@@ -28,6 +28,7 @@ Setting (or unsetting) sequential consistency can be done at the data
 level by calling starpu_data_set_sequential_consistency_flag() for a
 specific data (a corresponding example is in the file <c>examples/dependency/task_end_dep.c</c>) or starpu_data_set_default_sequential_consistency_flag()
 for all data (a corresponding example is in the file <c>tests/main/subgraph_repeat.c</c>).
+The sequential consistency mode can also be gotten by calling starpu_data_get_sequential_consistency_flag() for a specific data or get the default sequential consistency flag by calling starpu_data_get_default_sequential_consistency_flag().
 
 Setting (or unsetting) sequential consistency can also be done at task
 level by setting the field starpu_task::sequential_consistency to \c 0, a corresponding example is in the file <c>tests/main/deploop.c</c>.

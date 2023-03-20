@@ -18,7 +18,7 @@
 #include <starpu_scheduler.h>
 #include <limits.h>
 
-void starpu_initialize_prio_center_policy(unsigned sched_ctx_id)
+static void starpu_initialize_prio_center_policy(unsigned sched_ctx_id)
 {
 	starpu_sched_component_initialize_simple_scheduler((starpu_sched_component_create_t) starpu_sched_component_eager_create, NULL,
 			STARPU_SCHED_SIMPLE_DECIDE_WORKERS |

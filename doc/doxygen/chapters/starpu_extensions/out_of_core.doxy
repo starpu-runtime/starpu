@@ -42,7 +42,7 @@ The user can also use starpu_disk_open() to explicitly open an object within the
 disk, e.g. a file name in the \c stdio or \c unistd cases, or a database key in the
 \c leveldb case, and then use <c>starpu_*_register</c> functions to turn it into a StarPU
 data handle. StarPU will then use this file as an external source of data, and
-automatically read and write data as appropriate.
+automatically read and write data as appropriate. In the end use starpu_disk_close() to close an existing object.
 
 In any case, the user also needs to set \ref STARPU_LIMIT_CPU_MEM to the amount of
 data that StarPU will be allowed to afford. By default, StarPU will use the
@@ -127,7 +127,7 @@ sense.
 
 By default, StarPU will try to push any data handle to the disk.
 To specify whether a given handle should be pushed to the disk,
-starpu_data_set_ooc_flag() should be used.
+starpu_data_set_ooc_flag() should be used. To get to know whether a given handle should be pushed to the disk, starpu_data_get_ooc_flag() should be used.
 
 \section OOCWontUse Using Wont Use
 
