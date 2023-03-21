@@ -1106,11 +1106,16 @@ int starpu_data_evict_from_node(starpu_data_handle_t handle, unsigned node)
 	struct _starpu_mem_chunk *mc = replicate->mc;
 	int ret = -1;
 
-	if (!mc)
+	if (!mc) {
+		_starpu_spin_unlock(&handle->header_lock);
 		/* Nothing there */
 		goto out;
+	}
 
 	_starpu_spin_lock(&_starpu_get_node_struct(node)->mc_lock);
+	/* Now we got the mc, we can unlock the header to let
+	 * try_to_throw_mem_chunk reacquire it */
+	_starpu_spin_unlock(&handle->header_lock);
 	if (mc->remove_notify)
 		/* Somebody already working here */
 		goto out_mc;
@@ -1120,7 +1125,6 @@ int starpu_data_evict_from_node(starpu_data_handle_t handle, unsigned node)
 out_mc:
 	_starpu_spin_unlock(&_starpu_get_node_struct(node)->mc_lock);
 out:
-	_starpu_spin_unlock(&handle->header_lock);
 	return ret;
 }
 
