@@ -199,6 +199,7 @@ static void create_matrix()
 
 static void init_matrix(int rank)
 {
+
 	/* Allocate a grid of data handles, not all of them have to be allocated later on */
 	dataA_handles = calloc(nblocks*nblocks, sizeof(starpu_data_handle_t));
 	disk_objs = calloc(nblocks*nblocks, sizeof(*disk_objs));
@@ -208,6 +209,9 @@ static void init_matrix(int rank)
 
 	char filename[sizeof(nblocks)*3 + 1 + sizeof(nblocks)*3 + 1];
 
+
+
+	
 	/* Allocate all the blocks that belong to this mpi node */
 	unsigned i,j;
 	for (j = 0; j < nblocks; j++)
@@ -255,6 +259,25 @@ static void init_matrix(int rank)
 			}
 			starpu_data_set_coordinates(*handleptr, 2, j, i);
 			starpu_mpi_data_register(*handleptr, j+i*nblocks, block_rank);
+	
+	/* Flushing the node's memory before starting for out-of-core computations */
+	starpu_data_handle_t *data_on_node;
+    	unsigned nb_data_on_node = 0;
+    	int *valid;
+	int iterator = 0;
+	int node = 0;
+    	starpu_data_get_node_data(node, &data_on_node, &valid, &nb_data_on_node);
+	for (iterator = 0; iterator < nb_data_on_node; iterator++)
+	{
+		int ret = starpu_data_evict_from_node(data_on_node[iterator], node);
+		if (ret == -1)
+		{
+			printf("Error ret == -1 when evicting initialized data\n"); fflush(stdout);
+		}
+	}
+	free(data_on_node);
+	free(valid);
+	/* End of RAM flush */
 		}
 	}
 
@@ -322,10 +345,12 @@ int main(int argc, char **argv)
 	 * 	Problem Init
 	 */
 
+
 	if (rank == 0)
 		create_matrix();
 
 	starpu_mpi_barrier(MPI_COMM_WORLD);
+
 
 	init_matrix(rank);
 
@@ -334,6 +359,7 @@ int main(int argc, char **argv)
 
 	TYPE *a_r = NULL;
 //	STARPU_PLU(display_data_content)(a_r, size);
+
 
 	if (check)
 	{
