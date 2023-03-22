@@ -442,7 +442,10 @@ struct starpu_data_interface_ops
 	   it is not useful to copy the whole interface, only the
 	   pointers need to be copied (essentially the pointers that
 	   starpu_data_interface_ops::reuse_data_on_node will then transfer into
-	   a new handle interface)
+	   a new handle interface), as well as the properties
+	   that starpu_data_interface_ops::compare (or
+	   starpu_data_interface_ops::alloc_compare if defined) needs for
+	   comparing interfaces for caching compatibility.
 
 	   When this method is not defined, StarPU will just copy the \p
 	   cached_interface into \p src_interface.
