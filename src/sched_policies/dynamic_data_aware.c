@@ -497,7 +497,7 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 	printf("New task %s, length: %f\n", starpu_task_get_name(task), starpu_task_expected_length(task, perf_arch, 0)); fflush(stdout);
 */	
 
-	//#ifdef PRINT
+	#ifdef PRINT
 	printf("New task %p (%s, prio: %d, length: %f) in push_task with data(s):", task, starpu_task_get_name(task), task->priority, starpu_task_expected_length(task, perf_arch, 0)); fflush(stdout);
 	for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 	{
@@ -515,7 +515,7 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 		}
 	}	
 	printf("\n"); fflush(stdout);
-	//#endif
+	#endif
 	
 	#ifdef REFINED_MUTEX
 	STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
@@ -900,7 +900,6 @@ void initialize_task_data_gpu_single_task_v3(struct starpu_task *task, int also_
 				struct gpu_data_not_used *e = gpu_data_not_used_new();
 				e->D = STARPU_TASK_GET_HANDLE(task, i);
 		
-				printf("Init data %p on tile %d\n", e->D, j); fflush(stdout);
 				hud->nb_task_in_pulled_task[j] = 0;
 				hud->nb_task_in_planned_task[j] = 0;
 				hud->last_check_to_choose_from[j] = 0;
@@ -3701,7 +3700,6 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
     int min_number_task_in_pulled_task = INT_MAX;
     int nb_task_in_pulled_task[nb_data_on_node];
     
-    printf("nb data on node: %d\n", nb_data_on_node); fflush(stdout);
     for (i = 0; i < nb_data_on_node; i++)
     {
 		nb_task_in_pulled_task[i] = 0;
@@ -3718,9 +3716,9 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		STARPU_IGNORE_UTILITIES_HANDLES_FROM_DATA(data_on_node[i]);
 		if (starpu_data_can_evict(data_on_node[i], node, is_prefetch))
 		{
+
 			hud = data_on_node[i]->user_data;
 			
-			printf("current gpu %d, i = %d, data = %p\n", current_gpu, i, data_on_node[i]); fflush(stdout);
 			//printf("nb task in pulled %d\n", hud->nb_task_in_pulled_task[current_gpu - 1]); fflush(stdout);
 			
 			nb_task_in_pulled_task[i] = hud->nb_task_in_pulled_task[current_gpu - 1];
@@ -3768,9 +3766,9 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
 		victim_selector_return_no_victim++;
 		#endif
-	//	#ifdef PRINT
+		#ifdef PRINT
 		printf("Evict NO_VICTIM because min_number_task_in_pulled_task == INT_MAX.\n"); fflush(stdout);
-	//	#endif
+		#endif
 		
 		#ifdef REFINED_MUTEX
 		STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
@@ -3800,9 +3798,9 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 			time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
 			victim_selector_return_no_victim++;
 			#endif
-	//		#ifdef PRINT
+			#ifdef PRINT
 			printf("Evict NO_VICTIM because is_prefetch >= 1.\n"); fflush(stdout);
-	//		#endif
+			#endif
 			
 			#ifdef REFINED_MUTEX
 			STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
@@ -4476,7 +4474,7 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	{
 	    starpu_data_register_victim_selector(dynamic_data_aware_victim_selector, dynamic_data_aware_victim_eviction_failed, component); 
 	}
-	
+
 	return component;
 }
 
