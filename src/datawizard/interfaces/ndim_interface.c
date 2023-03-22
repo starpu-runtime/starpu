@@ -41,6 +41,7 @@ static void reuse_ndim_buffer_on_node(void *dst_data_interface, const void *cach
 static size_t ndim_interface_get_size(starpu_data_handle_t handle);
 static uint32_t footprint_ndim_interface_crc32(starpu_data_handle_t handle);
 static int ndim_compare(void *data_interface_a, void *data_interface_b);
+static int ndim_alloc_compare(void *data_interface_a, void *data_interface_b);
 static void display_ndim_interface(starpu_data_handle_t handle, FILE *f);
 static int pack_ndim_handle(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count);
 static int peek_ndim_handle(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
@@ -66,6 +67,7 @@ struct starpu_data_interface_ops starpu_interface_ndim_ops =
 	.get_size = ndim_interface_get_size,
 	.footprint = footprint_ndim_interface_crc32,
 	.compare = ndim_compare,
+	.alloc_compare = ndim_alloc_compare,
 	.interfaceid = STARPU_NDIM_INTERFACE_ID,
 	.interface_size = sizeof(struct starpu_ndim_interface),
 	.display = display_ndim_interface,
@@ -261,6 +263,14 @@ static int ndim_compare(void *data_interface_a, void *data_interface_b)
 	}
 
 	return 1;
+}
+
+static int ndim_alloc_compare(void *data_interface_a, void *data_interface_b)
+{
+	struct starpu_ndim_interface *ndim_a = (struct starpu_ndim_interface *) data_interface_a;
+	struct starpu_ndim_interface *ndim_b = (struct starpu_ndim_interface *) data_interface_b;
+
+	return ndim_a->allocsize == ndim_b->allocsize;
 }
 
 static void display_ndim_interface(starpu_data_handle_t handle, FILE *f)
