@@ -716,7 +716,10 @@ the data pointers on the given node.
 the data pointers on the given node.
 <li>The starpu_data_interface_ops::cache_data_on_node transfers the data
 pointers from a source interface to a cached interface. This can notably take
-the opportunity to clear pointers in the source interface.
+the opportunity to clear pointers in the source interface. This also needs to
+copy the properties that starpu_data_interface_ops::compare (or
+starpu_data_interface_ops::alloc_compare if defined) needs for comparing
+interfaces for caching compatibility.
 <li>The starpu_data_interface_ops::reuse_data_on_node transfers the data
 pointers from a cached interface to the destination interface.
 <li>The starpu_data_interface_ops::map_data has to map the data pointers on the
