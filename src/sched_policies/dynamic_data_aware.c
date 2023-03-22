@@ -2287,9 +2287,9 @@ void update_best_data_single_decision_tree(int* number_free_task_max, double* re
 					return;
 				}
 				else if (transfer_min_candidate == *transfer_min)
-				{				
+				{			
 					if (number_1_from_free_task_candidate < *number_1_from_free_task_max)
-					{				
+					{
 						return;
 					}
 					else if ((number_1_from_free_task_candidate == *number_1_from_free_task_max) && remaining_expected_length_candidate <= *remaining_expected_length_max)
