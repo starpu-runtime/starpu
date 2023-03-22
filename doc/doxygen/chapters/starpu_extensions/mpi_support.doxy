@@ -1265,7 +1265,11 @@ A simple example <c>tests/main/insert_task.c</c> can be used to test the MPI mas
 
 \section MPICheckpoint MPI Checkpoint Support
 
-StarPU provides a checkpoint mechanism. To enable it, you should use
+StarPU provides an experimental checkpoint mechanism. It is for now only a proof
+of concept to see what the checkpointing cost is, since the restart part has not
+been integrated yet.
+
+To enable checkpointing, you should use
 the \c configure option \ref enable-mpi-ft "--enable-mpi-ft". The
 application in the directory \c mpi/examples/matrix_decomposition
 shows how to enable checkpoints. The API documentation is available in
