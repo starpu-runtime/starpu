@@ -448,6 +448,7 @@ static void pybuffer_cache_data_on_node(void *cached_interface, void *src_data_i
 	src_pybuffer_interface->object = NULL;
 	cached_pybuffer_interface->py_buffer = src_pybuffer_interface->py_buffer;
 	src_pybuffer_interface->py_buffer = NULL;
+	cached_pybuffer_interface->buffer_size = src_pybuffer_interface->buffer_size;
 }
 
 static void pybuffer_reuse_data_on_node(void *dst_data_interface, const void *cached_interface, unsigned node)
@@ -702,7 +703,16 @@ static int pybuffer_compare(void *data_interface_a, void *data_interface_b)
 	struct starpupy_buffer_interface *a = (struct starpupy_buffer_interface *) data_interface_a;
 	struct starpupy_buffer_interface *b = (struct starpupy_buffer_interface *) data_interface_b;
 
+	/* FIXME: compare content of shape or array_dim */
 	return ((a->array_type == b->array_type) && (a->item_size == b->item_size) && (a->dim_size == b->dim_size));
+}
+
+static int pybuffer_alloc_compare(void *data_interface_a, void *data_interface_b)
+{
+	struct starpupy_buffer_interface *a = (struct starpupy_buffer_interface *) data_interface_a;
+	struct starpupy_buffer_interface *b = (struct starpupy_buffer_interface *) data_interface_b;
+
+	return a->buffer_size == b->buffer_size;
 }
 
 static int pybuffer_copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data)
@@ -763,6 +773,7 @@ struct starpu_data_interface_ops _starpupy_interface_pybuffer_ops =
 	.dontcache = 0,
 	.display = pybuffer_display,
 	.compare = pybuffer_compare,
+	.alloc_compare = pybuffer_alloc_compare,
 	.name = "STARPUPY_BUFFER_INTERFACE",
 	.copy_methods = &pybuffer_copy_data_methods_s,
 };
@@ -788,6 +799,7 @@ struct starpu_data_interface_ops _starpupy_interface_pybuffer_bytes_ops =
 	.dontcache = 0,
 	.display = pybuffer_display,
 	.compare = pybuffer_compare,
+	.alloc_compare = pybuffer_alloc_compare,
 	.name = "STARPUPY_BUFFER_BYTES_INTERFACE",
 	.copy_methods = &pybuffer_bytes_copy_data_methods_s,
 };
