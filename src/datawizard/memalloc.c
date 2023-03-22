@@ -822,18 +822,6 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 	    unlock_all_subtree(handle);
 	}
 
-	//~ if (freed == 0)
-	//~ {
-		//~ #ifdef PRINT
-	    //~ printf("Echec eviction de %p dans try_to_throw_mem_chunk, calling victim eviction failed.\n", handle);
-	    //~ #endif
-	    //~ if (eviction_strategy_dynamic_data_aware_memalloc == 1) 
-	    //~ {
-			//~ _STARPU_SCHED_BEGIN;
-			//~ victim_eviction_failed(handle, data_victim_selector);
-			//~ _STARPU_SCHED_END;
-	    //~ }
-	//~ }
 	return freed;
 }
 
@@ -1343,24 +1331,29 @@ int starpu_data_evict_from_node(starpu_data_handle_t handle, unsigned node)
 
 	_starpu_spin_lock(&handle->header_lock);
 
+	
 	struct _starpu_mem_chunk *mc = replicate->mc;
 	int ret = -1;
 
-	if (!mc)
+	if (!mc) {
 		/* Nothing there */
-		goto out;
+		_starpu_spin_unlock(&handle->header_lock);
+		goto out; }
 
 	_starpu_spin_lock(&mc_lock[node]);
-	if (mc->remove_notify)
+
+	_starpu_spin_unlock(&handle->header_lock); /* Adding an unlock to allow data to be evicted from the RAM right after their initilization */
+
+	if (mc->remove_notify) {
 		/* Somebody already working here */
-		goto out_mc;
-	if (try_to_throw_mem_chunk(mc, node, NULL, 0, STARPU_FETCH) == 0)
-		goto out_mc;
+		goto out_mc; }
+	if (try_to_throw_mem_chunk(mc, node, NULL, 0, STARPU_FETCH) == 0) {
+		goto out_mc; }
 	ret = 0;
 out_mc:
 	_starpu_spin_unlock(&mc_lock[node]);
 out:
-	_starpu_spin_unlock(&handle->header_lock);
+	//_starpu_spin_unlock(&handle->header_lock);
 	return ret;
 }
 
@@ -2143,9 +2136,8 @@ choose_target(starpu_data_handle_t handle, unsigned node)
 		/* handle->home_node == -1 */
 		/* no place for datas in RAM, we push on disk */
 		if (starpu_node_get_kind(node) == STARPU_CPU_RAM)
-		{
 			target = get_better_disk_can_accept_size(handle, node);
-		} else {
+		else {
 		/* node != 0 */
 		/* try to push data to RAM if we can before to push on disk*/
 			unsigned i;
