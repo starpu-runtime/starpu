@@ -1106,7 +1106,8 @@ int starpu_data_evict_from_node(starpu_data_handle_t handle, unsigned node)
 	struct _starpu_mem_chunk *mc = replicate->mc;
 	int ret = -1;
 
-	if (!mc) {
+	if (!mc)
+	{
 		_starpu_spin_unlock(&handle->header_lock);
 		/* Nothing there */
 		goto out;
