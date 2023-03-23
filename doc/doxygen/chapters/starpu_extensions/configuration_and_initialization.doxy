@@ -26,8 +26,12 @@ CPUs that can be used by StarPU.
 Compilation options are used to set specific parameters during the
 compilation process, such as the optimization level, architecture
 type, and debugging options.
-These options can be set using flags such as NPUSCONF, which is used
-to specify the number of CPUs that StarPU should use for computations.
+
+These options can also be set with the different fields of the
+::starpu_conf parameter given to starpu_init(), such as
+starpu_conf::ncpus, which is used to specify the number of CPUs that
+StarPU should use for computations.
+
 Finally, environment variables are used to set runtime parameters and
 control the behavior of the StarPU library.
 For example, the \ref STARPU_NCPUS environment variable can be used to
