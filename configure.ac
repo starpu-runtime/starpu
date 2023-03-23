@@ -689,7 +689,7 @@ AC_ARG_ENABLE(tcpip-master-slave, [AS_HELP_STRING([--enable-tcpip-master-slave],
               build_tcpip_master_slave=no)
 
 if test x$build_tcpip_master_slave = xyes; then
-    AC_CHECK_LIB([dl], [dlsym])
+	AC_CHECK_LIB([dl], [dlsym])
     AC_DEFINE(STARPU_USE_TCPIP_MASTER_SLAVE, [1], [TCPIP Master Slave support is enabled])
 fi
 
@@ -3164,14 +3164,6 @@ fi
 if test x$have_valid_ucontext = xno ; then
   enable_openmp=no
   openmp_msg="ucontext.h unavailable"
-fi
-if test x$build_mpi_master_slave = xyes ; then
-   enable_openmp=no
-   openmp_msg="incompatibility with MPI Master Slave support"
-fi
-if test x$build_tcpip_master_slave = xyes ; then
-   enable_openmp=no
-   openmp_msg="incompatibility with TCP/IP Master Slave support"
 fi
 
 if test x$enable_openmp = xyes; then
