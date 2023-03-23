@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -90,31 +90,36 @@ static void shutdown_hipblas_func(void *args STARPU_ATTRIBUTE_UNUSED)
 
 	hipblasDestroy(hipblas_handles[starpu_worker_get_id_check()]);
 }
-#endif
 #endif /* STARPU_USE_HIPBLAS */
+#endif /* STARPU_USE_HIP */
 
 void starpu_hipblas_init(void)
 {
+#ifdef STARPU_USE_HIP
 #ifdef STARPU_USE_HIPBLAS
 	starpu_execute_on_each_worker(init_hipblas_func, NULL, STARPU_HIP);
 
 	if (hipblasCreate(&main_handle) != HIPBLAS_STATUS_SUCCESS)
 		main_handle = NULL;
 #endif
+#endif
 }
 
 void starpu_hipblas_shutdown(void)
 {
+#ifdef STARPU_USE_HIP
 #ifdef STARPU_USE_HIPBLAS
 	starpu_execute_on_each_worker(shutdown_hipblas_func, NULL, STARPU_HIP);
 
 	if (main_handle)
 		hipblasDestroy(main_handle);
 #endif
+#endif
 }
 
 void starpu_hipblas_set_stream(void)
 {
+#ifdef STARPU_USE_HIP
 #ifdef STARPU_USE_HIPBLAS
 	unsigned workerid = starpu_worker_get_id_check();
 	int devnum = starpu_worker_get_devnum(workerid);
@@ -123,8 +128,10 @@ void starpu_hipblas_set_stream(void)
 		 _starpu_get_machine_config()->topology.nworker[STARPU_HIP_WORKER][devnum] > 1))
 		hipblasSetStream(hipblas_handles[starpu_worker_get_id_check()], starpu_hip_get_local_stream());
 #endif
+#endif
 }
 
+#ifdef STARPU_USE_HIP
 #ifdef STARPU_USE_HIPBLAS
 hipblasHandle_t starpu_hipblas_get_local_handle(void)
 {
@@ -134,4 +141,5 @@ hipblasHandle_t starpu_hipblas_get_local_handle(void)
 	else
 		return main_handle;
 }
+#endif
 #endif
