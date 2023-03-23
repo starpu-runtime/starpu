@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -54,7 +54,7 @@ static inline void STARPU_PLU(common_gemm)(void *descr[], int s, void *_args)
 #endif
 
 #ifdef STARPU_USE_CUDA
-	cublasStatus status;
+	cublasStatus_t status;
 #endif
 
 	switch (s)
@@ -169,7 +169,7 @@ static inline void STARPU_PLU(common_trsmll)(void *descr[], int s, void *_args)
 #endif
 
 #ifdef STARPU_USE_CUDA
-	cublasStatus status;
+	cublasStatus_t status;
 #endif
 
 	/* solve L11 U12 = A12 (find U12) */
@@ -282,7 +282,7 @@ static inline void STARPU_PLU(common_trsmru)(void *descr[], int s, void *_args)
 #endif
 
 #ifdef STARPU_USE_CUDA
-	cublasStatus status;
+	cublasStatus_t status;
 #endif
 
 	switch (s)
@@ -376,7 +376,7 @@ static inline void STARPU_PLU(common_getrf)(void *descr[], int s, void *_args)
 	unsigned long z;
 
 #ifdef STARPU_USE_CUDA
-	cublasStatus status;
+	cublasStatus_t status;
 	cublasHandle_t handle;
 	cudaStream_t stream;
 #endif
