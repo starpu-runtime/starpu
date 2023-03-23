@@ -97,7 +97,7 @@ static unsigned nmem[STARPU_NRAM];
 #define nnumas (nmem[STARPU_CPU_RAM])
 #define ncuda (nmem[STARPU_CUDA_RAM])
 #define nopencl (nmem[STARPU_OPENCL_RAM])
-#define nmpi_ms (nmem[STARPU_MPI_MS_RAM])
+#define nmpims (nmem[STARPU_MPI_MS_RAM])
 #define ntcpip_ms (nmem[STARPU_TCPIP_MS_RAM])
 
 #ifndef STARPU_SIMGRID
@@ -885,7 +885,7 @@ static void benchmark_all_memory_nodes(void)
 	double mpi_latency_device_to_device[STARPU_MAXMPIDEVS][STARPU_MAXMPIDEVS] = {{0.0}};
 	/* FIXME: rather make _starpu_mpi_common_measure_bandwidth_latency directly fill timing_per_numa */
 	_starpu_mpi_common_measure_bandwidth_latency(mpi_time_device_to_device, mpi_latency_device_to_device);
-	for (i = 0; i < nmpi_ms; i++)
+	for (i = 0; i < nmpims; i++)
 	{
 		for (j = 0; j < nnumas; j++)
 		{
@@ -896,7 +896,7 @@ static void benchmark_all_memory_nodes(void)
 			timing_per_numa[STARPU_MPI_MS_RAM][i][j].timing_dtoh = mpi_time_device_to_device[i+1][0];
 			timing_per_numa[STARPU_MPI_MS_RAM][i][j].latency_dtoh = mpi_latency_device_to_device[i+1][0];
 		}
-		for (j = 0; j < nmpi_ms; j++)
+		for (j = 0; j < nmpims; j++)
 		{
 			timing_dtod[STARPU_MPI_MS_RAM][i][j] = mpi_time_device_to_device[i+1][j+1];
 		}
@@ -1911,7 +1911,8 @@ static void compare_value_and_recalibrate(enum starpu_node_kind type, const char
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	//Send to each other to know if we had to recalibrate because someone cannot have the correct value in the config file
-	recalibrate = mpi_check_recalibrate(recalibrate);
+	if (_starpu_config.conf.nmpi_ms != 0)
+		recalibrate = mpi_check_recalibrate(recalibrate);
 #endif
 
 	if (recalibrate)
@@ -1943,8 +1944,9 @@ static void check_bus_config_file(void)
 		recalibrate = 1;
 
 #if defined(STARPU_USE_MPI_MASTER_SLAVE)
-	//Send to each other to know if we had to recalibrate because someone cannot have the config file
-	recalibrate = mpi_check_recalibrate(recalibrate);
+	if (_starpu_config.conf.nmpi_ms != 0)
+		//Send to each other to know if we had to recalibrate because someone cannot have the config file
+		recalibrate = mpi_check_recalibrate(recalibrate);
 #endif
 
 	if (recalibrate)
@@ -2009,7 +2011,7 @@ static void check_bus_config_file(void)
 		nopencl = _starpu_opencl_get_device_count();
 #endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-		nmpi_ms = _starpu_mpi_src_get_device_count();
+		nmpims = _starpu_mpi_src_get_device_count();
 #endif /* STARPU_USE_MPI_MASTER_SLAVE */
 #ifdef STARPU_USE_TCPIP_MASTER_SLAVE
 		ntcpip_ms = _starpu_tcpip_src_get_device_count();
@@ -3128,7 +3130,7 @@ void _starpu_load_bus_performance_files(void)
 	nopencl = _starpu_opencl_get_device_count();
 #endif
 #if defined(STARPU_USE_MPI_MASTER_SLAVE)
-	nmpi_ms = _starpu_mpi_src_get_device_count();
+	nmpims = _starpu_mpi_src_get_device_count();
 #endif
 #if defined(STARPU_USE_TCPIP_MASTER_SLAVE)
 	ntcpip_ms = _starpu_tcpip_src_get_device_count();
@@ -3140,7 +3142,8 @@ void _starpu_load_bus_performance_files(void)
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	/* be sure that master wrote the perf files */
-	_starpu_mpi_common_barrier();
+	if (_starpu_config.conf.nmpi_ms != 0)
+		_starpu_mpi_common_barrier();
 #endif
 
 #ifndef STARPU_SIMGRID
