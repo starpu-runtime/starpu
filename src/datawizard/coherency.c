@@ -1100,7 +1100,7 @@ static struct _starpu_data_replicate *get_replicate(starpu_data_handle_t handle,
 	if (mode & (STARPU_SCRATCH|STARPU_REDUX))
 	{
 		STARPU_ASSERT(workerid >= 0);
-		if (!handle->per_worker)
+		if (STARPU_RUNNING_ON_VALGRIND || !handle->per_worker)
 		{
 			_starpu_spin_lock(&handle->header_lock);
 			if (!handle->per_worker)
