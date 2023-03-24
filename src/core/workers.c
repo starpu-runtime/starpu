@@ -986,7 +986,8 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 			if (worker_set)
 			{
 				worker_thread = &worker_set->worker_thread;
-				worker_set->set_is_initialized = 0;
+				if (!driver_worker_set || driver_worker_set == worker_set)
+					worker_set->set_is_initialized = 0;
 				worker_set->wait_for_set_initialization = !driver_worker_set || driver_worker_set == worker_set;
 			}
 			else
