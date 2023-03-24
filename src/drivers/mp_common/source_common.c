@@ -1248,11 +1248,19 @@ void _starpu_src_common_workers_set(struct _starpu_worker_set * worker_set, int 
 	for (device = 0; device < ndevices; device++)
 	{
 		struct _starpu_worker_set * device_worker_set = &worker_set[device];
-		struct _starpu_worker *baseworker = &device_worker_set->workers[0];
+		struct _starpu_worker *worker0 = &device_worker_set->workers[0];
+
+		STARPU_PTHREAD_MUTEX_LOCK(&worker0->mutex);
+		worker0->status = STATUS_UNKNOWN;
+		STARPU_PTHREAD_MUTEX_UNLOCK(&worker0->mutex);
+	}
+
+	for (device = 0; device < ndevices; device++)
+	{
+		struct _starpu_worker_set * device_worker_set = &worker_set[device];
 
 		/* tell the main thread that this one is ready */
 		STARPU_PTHREAD_MUTEX_LOCK(&device_worker_set->mutex);
-		baseworker->status = STATUS_UNKNOWN;
 		device_worker_set->set_is_initialized = 1;
 		STARPU_PTHREAD_COND_SIGNAL(&device_worker_set->ready_cond);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&device_worker_set->mutex);
