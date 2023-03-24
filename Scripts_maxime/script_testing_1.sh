@@ -223,10 +223,10 @@ THRESHOLD=0
 #~ THRESHOLD=1
 #~ THRESHOLD=2
 
-APPLICATION="./examples/cholesky/cholesky_implicit -size $((${TAILLE_TUILE}*N)) -nblocks $((N))"
+#~ APPLICATION="./examples/cholesky/cholesky_implicit -size $((${TAILLE_TUILE}*N)) -nblocks $((N))"
 #~ APPLICATION="./examples/cholesky/cholesky_implicit -size $((${TAILLE_TUILE}*N)) -nblocks $((N)) -check"
 #~ APPLICATION="libtool --mode=execute gdb --args ./examples/cholesky/cholesky_implicit -size $((TAILLE_TUILE*N)) -nblocks $((N)) --cfg=contexts/factory:thread"
-#~ APPLICATION="./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) -no-prio"
+APPLICATION="./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) -no-prio"
 #~ APPLICATION="./examples/cholesky/cholesky_implicit -size $((${TAILLE_TUILE}*N)) -nblocks $((N)) -bound"
 #~ APPLICATION="./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 11"
 #~ APPLICATION="./examples/lu/lu_example_double -size $((${TAILLE_TUILE}*N)) -nblocks $((N))"

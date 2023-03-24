@@ -4,11 +4,16 @@
 
 # bash script_initialisation_starpu_maxime_sans_simgrid_grid5k
 
+# no_prio
+bash Scripts_maxime/PlaFRIM-Grid5k/cholesky_dependances.sh 1 1920 12 2000 no_prio
+bash Scripts_maxime/PlaFRIM-Grid5k/cholesky_dependances.sh 4 1920 12 2000 no_prio
+bash Scripts_maxime/PlaFRIM-Grid5k/cholesky_dependances.sh 8 1920 12 2000 no_prio
+
 # Best ones
-#bash Scripts_maxime/PlaFRIM-Grid5k/cholesky_dependances.sh 1 1920 12 2000 best_ones
+bash Scripts_maxime/PlaFRIM-Grid5k/cholesky_dependances.sh 1 1920 12 2000 best_ones
 #bash Scripts_maxime/PlaFRIM-Grid5k/cholesky_dependances.sh 2 1920 12 2000 best_ones
-#bash Scripts_maxime/PlaFRIM-Grid5k/cholesky_dependances.sh 4 1920 12 2000 best_ones
-#bash Scripts_maxime/PlaFRIM-Grid5k/cholesky_dependances.sh 8 1920 15 2000 best_ones
+bash Scripts_maxime/PlaFRIM-Grid5k/cholesky_dependances.sh 4 1920 12 2000 best_ones
+bash Scripts_maxime/PlaFRIM-Grid5k/cholesky_dependances.sh 8 1920 15 2000 best_ones
 
 # Sans limit de mem
 #bash Scripts_maxime/PlaFRIM-Grid5k/cholesky_dependances.sh 1 1920 12 0 best_ones
@@ -17,7 +22,21 @@ bash Scripts_maxime/PlaFRIM-Grid5k/cholesky_dependances.sh 4 1920 12 0 best_ones
 bash Scripts_maxime/PlaFRIM-Grid5k/cholesky_dependances.sh 8 1920 15 0 best_ones
 
 # A enlever
-#bash Scripts_maxime/PlaFRIM-Grid5k/all_lu.sh
+# Best ones LU
+#bash Scripts_maxime/PlaFRIM-Grid5k/lu.sh 1 1920 7 2000 best_ones
+#bash Scripts_maxime/PlaFRIM-Grid5k/lu.sh 2 1920 7 2000 best_ones
+bash Scripts_maxime/PlaFRIM-Grid5k/lu.sh 4 1920 7 2000 best_ones
+#bash Scripts_maxime/PlaFRIM-Grid5k/lu.sh 8 1920 10 2000 best_ones
+
+# Best ones sans limit de mem LU
+bash Scripts_maxime/PlaFRIM-Grid5k/lu.sh 1 1920 10 0 best_ones
+#bash Scripts_maxime/PlaFRIM-Grid5k/lu.sh 2 1920 7 0 best_ones
+#bash Scripts_maxime/PlaFRIM-Grid5k/lu.sh 4 1920 7 0 best_ones
+#bash Scripts_maxime/PlaFRIM-Grid5k/lu.sh 8 1920 7 0 best_ones
+
+
+
+
 
 #bash Scripts_maxime/PlaFRIM-Grid5k/cholesky_dependances.sh 1 2880 12 4500 best_ones
 #bash Scripts_maxime/PlaFRIM-Grid5k/cholesky_dependances.sh 2 2880 12 4500 best_ones
