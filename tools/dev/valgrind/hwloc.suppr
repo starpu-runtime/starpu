@@ -136,3 +136,10 @@
    fun:__libc_csu_init
    fun:(below main)
 }
+
+{
+   <insert_a_suppression_name_here>
+   Helgrind:Race
+   fun:hwloc_linux_set_area_membind
+   ...
+}
