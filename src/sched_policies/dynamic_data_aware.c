@@ -4521,9 +4521,9 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 	#ifdef LINEAR_MUTEX
 	STARPU_PTHREAD_MUTEX_LOCK(&linear_mutex);
 	#endif
-	//~ #ifdef REFINED_MUTEX
-	//~ STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
-	//~ #endif
+//	#ifdef REFINED_MUTEX
+//	STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
+//	#endif
 	
 	total_task_done++; /* TODO : utile ? */
 	
@@ -4564,6 +4564,9 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 	}
 	
 	    
+	//	#ifdef REFINED_MUTEX
+	//	STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
+	//	#endif
     struct pulled_task *temp = NULL;
     int trouve = 0;
 	
@@ -4571,12 +4574,15 @@ void get_task_done(struct starpu_task *task, unsigned sci)
     if (!pulled_task_list_empty(tab_gpu_pulled_task[current_gpu - 1].ptl))
     {
 		for (temp = pulled_task_list_begin(tab_gpu_pulled_task[current_gpu - 1].ptl); temp != pulled_task_list_end(tab_gpu_pulled_task[current_gpu - 1].ptl); temp = pulled_task_list_next(temp))
-		{	
+		{
+			//printf("Task is %p, current_gpu=%d\n", task, current_gpu - 1); fflush(stdout);
+		//	if (temp == NULL) { break; }
 			if (temp->pointer_to_pulled_task == task)
 			{
 				trouve = 1;
 				break;
 			}
+		//	printf("Next\n"); fflush(stdout);
 		}
 		if (trouve == 1)
 		{
@@ -4587,13 +4593,16 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 			pulled_task_list_erase(tab_gpu_pulled_task[current_gpu - 1].ptl, temp);
 			
 			/* New delete */
-			pulled_task_delete(temp);
+			if (cpu_only == 0)
+			{
+				pulled_task_delete(temp);
+			}
 		}
     }
     
-    //~ #ifdef REFINED_MUTEX /* TODO suppr ce mutex ? */
-    //~ STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
-    //~ #endif
+  // #ifdef REFINED_MUTEX /* TODO suppr ce mutex ? */
+   //STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
+ //  #endif
     
     //~ number_task_out_DARTS_2++; /* TODO utile cela ? */
     /* Reset pour prochaine itération, a modifier */
