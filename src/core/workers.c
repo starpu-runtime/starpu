@@ -833,6 +833,7 @@ void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu_machin
 #endif
 	workerarg->task_transferring = NULL;
 	workerarg->nb_buffers_transferred = 0;
+	STARPU_HG_DISABLE_CHECKING(workerarg->nb_buffers_transferred);
 	workerarg->nb_buffers_totransfer = 0;
 
 	workerarg->first_task = 0;
