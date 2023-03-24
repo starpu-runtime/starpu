@@ -446,6 +446,7 @@ int _starpu_tcpip_common_mp_init()
 	/*initialize the thread*/
 	_starpu_tcpip_ms_request_multilist_head_init_thread(&thread_list);
 
+	STARPU_HG_DISABLE_CHECKING(is_running);
 	is_running = 1;
 	starpu_sem_init(&sem_thread_finished, 0, 0);
 	STARPU_PTHREAD_CREATE(&thread_pending, NULL, _starpu_tcpip_thread_pending, NULL);

@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2015-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2015-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -62,6 +62,7 @@ race:^_starpu_kill_all_workers$
 race:^starpu_pause$
 race:^_starpu_may_pause$
 race:^starpu_resume$
+race:^is_running$
 
 # worker_is_initialized is not actually racy since deinit happens only after main set running to 0
 race:^_starpu_opencl_driver_deinit$
