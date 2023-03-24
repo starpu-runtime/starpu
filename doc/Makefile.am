@@ -51,6 +51,7 @@ EXTRA_DIST =	\
 	title.tex \
 	sectionNumbering.py \
 	extractHeadline.sh \
+	fixLinks.sh \
 	doxygen.cfg
 
 txtdir = ${docdir}/tutorial
@@ -63,4 +64,7 @@ all-local: README.org
 DISTCLEANFILES = README.org
 README.org:
 	$(top_srcdir)/doc/extractHeadline.sh
+	$(top_srcdir)/doc/fixLinks.sh $(top_builddir)/doc
+
+
 
