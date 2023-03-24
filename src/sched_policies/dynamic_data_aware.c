@@ -591,9 +591,9 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 	
 	//	if (is_my_task_free(gpu_looked_at, task) || strcmp(starpu_task_get_name(task), "chol_model_11") == 0)
 		{
-	//		#ifdef PRINT
+			#ifdef PRINT
 			printf("Task %p is free from push_task\n", task); fflush(stdout);
-	//		#endif
+			#endif
 			
 			if (dependances == 1)
 			{
@@ -1654,12 +1654,11 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 		/* If the package is not empty I can return the head of the task list. */
 		if (!starpu_task_list_empty(&tab_gpu_planned_task[current_gpu - 1].planned_task))
 		{
-		//	#ifdef PRINT
+			#ifdef PRINT
 			printf("Head is %p\n", starpu_task_list_begin(&tab_gpu_planned_task[current_gpu - 1].planned_task)); fflush(stdout);
-		//	#endif
+			#endif
 
 			task = starpu_task_list_pop_front(&tab_gpu_planned_task[current_gpu - 1].planned_task);
-			printf("Popped task from planned task\n"); fflush(stdout);
 			/* Remove it from planned task compteur. Could be done in an external function as I use it two times */
 			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 			{
@@ -1668,19 +1667,17 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 				hud->nb_task_in_planned_task[current_gpu - 1] = hud->nb_task_in_planned_task[current_gpu - 1] - 1;				
 				STARPU_TASK_GET_HANDLE(task, i)->user_data = hud;
 			}
-			printf("1.\n"); fflush(stdout);
 			/* Fonction qui ajoute la tâche à pulled_task. Elle est aussi dans le else if en dessous. */
 			add_task_to_pulled_task(current_gpu, task);
 				
-			printf("2.\n"); fflush(stdout);
 			/* For visualisation in python. */
 			#ifdef PRINT_PYTHON
 			print_data_to_load_prefetch(task, current_gpu);
 			#endif
 			
-		//	#ifdef PRINT
+			#ifdef PRINT
 			printf("Task: %p is getting out of pull_task from planned task not empty on GPU %d. It's task number %d\n", task, current_gpu, total_task_done); fflush(stdout);
-		//	#endif
+			#endif
 			
 			#ifdef REFINED_MUTEX
 			STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);

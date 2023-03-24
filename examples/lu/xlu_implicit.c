@@ -18,6 +18,7 @@
 /* LU StarPU implementation using implicit task dependencies. */
 
 #include "xlu.h"
+#include "math.h"
 #include "xlu_kernels.h"
 #include "starpu_cusolver.h"
 

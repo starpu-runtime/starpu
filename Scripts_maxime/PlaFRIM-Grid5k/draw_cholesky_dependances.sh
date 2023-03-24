@@ -51,18 +51,32 @@ DOSSIER=$8
 ECHELLE_X=$4
 START_X=0
 
-scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/Data/${DOSSIER}/GF_${MODEL}_${TAILLE_TUILE}_${NGPU}GPU_${MEMOIRE}Mo.csv /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/
+if [ ${DOSSIER} != "out_of_core_lu" ]; then
+	scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/Data/${DOSSIER}/GF_${MODEL}_${TAILLE_TUILE}_${NGPU}GPU_${MEMOIRE}Mo.csv /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/
 
-scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/Data/${DOSSIER}/DT_${MODEL}_${TAILLE_TUILE}_${NGPU}GPU_${MEMOIRE}Mo.csv /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/
-
-
-gcc -o cut_gflops_raw_out_csv cut_gflops_raw_out_csv.c
-./cut_gflops_raw_out_csv $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/GF_${MODEL}_${TAILLE_TUILE}_${NGPU}GPU_${MEMOIRE}Mo.csv /home/gonthier/these_gonthier_maxime/Starpu/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${TAILLE_TUILE}_${NGPU}GPU_${MEMOIRE}Mo.csv
-
-gcc -o cut_datatransfers_raw_out_csv cut_datatransfers_raw_out_csv.c
-./cut_datatransfers_raw_out_csv $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X $NGPU /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/DT_${MODEL}_${TAILLE_TUILE}_${NGPU}GPU_${MEMOIRE}Mo.csv /home/gonthier/these_gonthier_maxime/Starpu/R/Data/PlaFRIM-Grid5k/${DOSSIER}/DT_${MODEL}_${TAILLE_TUILE}_${NGPU}GPU_${MEMOIRE}Mo.csv
+	scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/Data/${DOSSIER}/DT_${MODEL}_${TAILLE_TUILE}_${NGPU}GPU_${MEMOIRE}Mo.csv /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/
 
 
-python3 /home/gonthier/these_gonthier_maxime/Code/Plot.py /home/gonthier/these_gonthier_maxime/Starpu/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${TAILLE_TUILE}_${NGPU}GPU_${MEMOIRE}Mo.csv GF_PlaFRIM-Grid5k $1 $2 $3 $5 $6 $8
+	gcc -o cut_gflops_raw_out_csv cut_gflops_raw_out_csv.c
+	./cut_gflops_raw_out_csv $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/GF_${MODEL}_${TAILLE_TUILE}_${NGPU}GPU_${MEMOIRE}Mo.csv /home/gonthier/these_gonthier_maxime/Starpu/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${TAILLE_TUILE}_${NGPU}GPU_${MEMOIRE}Mo.csv
 
-python3 /home/gonthier/these_gonthier_maxime/Code/Plot.py /home/gonthier/these_gonthier_maxime/Starpu/R/Data/PlaFRIM-Grid5k/${DOSSIER}/DT_${MODEL}_${TAILLE_TUILE}_${NGPU}GPU_${MEMOIRE}Mo.csv DT_PlaFRIM-Grid5k $1 $2 $3 $5 $6 $8
+	gcc -o cut_datatransfers_raw_out_csv cut_datatransfers_raw_out_csv.c
+	./cut_datatransfers_raw_out_csv $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X $NGPU /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/DT_${MODEL}_${TAILLE_TUILE}_${NGPU}GPU_${MEMOIRE}Mo.csv /home/gonthier/these_gonthier_maxime/Starpu/R/Data/PlaFRIM-Grid5k/${DOSSIER}/DT_${MODEL}_${TAILLE_TUILE}_${NGPU}GPU_${MEMOIRE}Mo.csv
+
+
+	python3 /home/gonthier/these_gonthier_maxime/Code/Plot.py /home/gonthier/these_gonthier_maxime/Starpu/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${TAILLE_TUILE}_${NGPU}GPU_${MEMOIRE}Mo.csv GF_PlaFRIM-Grid5k $1 $2 $3 $5 $6 $8
+
+	python3 /home/gonthier/these_gonthier_maxime/Code/Plot.py /home/gonthier/these_gonthier_maxime/Starpu/R/Data/PlaFRIM-Grid5k/${DOSSIER}/DT_${MODEL}_${TAILLE_TUILE}_${NGPU}GPU_${MEMOIRE}Mo.csv DT_PlaFRIM-Grid5k $1 $2 $3 $5 $6 $8
+else
+	SCHEDULER="modular-eager-prefetching"
+	
+	scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/Data/${DOSSIER}/GF_${TAILLE_TUILE}_${MEMOIRE}Mo_${SCHEDULER}.csv /home/gonthier/these_gonthier_maxime/Starpu/R/Data/PlaFRIM-Grid5k/${DOSSIER}/
+	scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/Data/${DOSSIER}/DT_${TAILLE_TUILE}_${MEMOIRE}Mo_${SCHEDULER}.csv /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/
+	
+	gcc -o cut_datatransfers_raw_out_csv cut_datatransfers_raw_out_csv.c
+	./cut_datatransfers_raw_out_csv $NB_TAILLE_TESTE 1 $ECHELLE_X $START_X $NGPU /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/DT_${TAILLE_TUILE}_${MEMOIRE}Mo_${SCHEDULER}.csv /home/gonthier/these_gonthier_maxime/Starpu/R/Data/PlaFRIM-Grid5k/${DOSSIER}/DT_${TAILLE_TUILE}_${MEMOIRE}Mo_${SCHEDULER}.csv
+
+	python3 /home/gonthier/these_gonthier_maxime/Code/Plot.py /home/gonthier/these_gonthier_maxime/Starpu/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${TAILLE_TUILE}_${MEMOIRE}Mo_${SCHEDULER}.csv GF_PlaFRIM-Grid5k $1 $2 $3 $5 $6 $8
+
+	python3 /home/gonthier/these_gonthier_maxime/Code/Plot.py /home/gonthier/these_gonthier_maxime/Starpu/R/Data/PlaFRIM-Grid5k/${DOSSIER}/DT_${TAILLE_TUILE}_${MEMOIRE}Mo_${SCHEDULER}.csv DT_PlaFRIM-Grid5k $1 $2 $3 $5 $6 $8
+fi

@@ -1,7 +1,7 @@
-bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 1 1920 12 5 2000 best_ones 4 Cholesky_dependances
+#~ bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 1 1920 12 5 2000 best_ones 4 Cholesky_dependances
 #~ bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 2 1920 12 5 2000 best_ones 4 Cholesky_dependances
-bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 4 1920 12 5 2000 best_ones 4 Cholesky_dependances
-#~ bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 8 1920 15 5 2000 best_ones 4 Cholesky_dependances
+#~ bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 4 1920 12 5 2000 best_ones 4 Cholesky_dependances
+bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 8 1920 15 5 2000 best_ones 4 Cholesky_dependances
 
 #~ bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 1 1920 12 5 32000 best_ones 4 Cholesky_dependances
 #~ bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 2 1920 12 5 32000 best_ones 4 Cholesky_dependances
@@ -18,6 +18,8 @@ bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 4 1920 12 5 2000
 #~ bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 2 1920 7 6 32000 best_ones 4 LU
 #~ bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 4 1920 7 6 32000 best_ones 4 LU
 #~ bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 8 1920 7 6 32000 best_ones 4 LU
+
+#~ bash Scripts_maxime/PlaFRIM-Grid5k/draw_cholesky_dependances.sh 1 4096 5 2 1000 best_ones 4 out_of_core_lu
 
 # CHO
 #~ mgonthier@gemini-1:~$ mpiexec -n 1 dplasma/builddir/tests/testing_spotrf -t 1920 -T 1920 -N $((1920*65)) -g 8 --nruns 11 --scheduler=AP

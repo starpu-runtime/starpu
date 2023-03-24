@@ -513,8 +513,6 @@ int main(int argc, char **argv)
 	graph_descendants = starpu_get_env_number_default("GRAPH_DESCENDANTS", 0);
 	
 	average_flop = 0;
-	//niter = 1; /* Pour changer le nombre d'itérations */
-	//niter = 2;
 	niter = 11;
 	current_iteration = 1;
 	timing_total = 0;
