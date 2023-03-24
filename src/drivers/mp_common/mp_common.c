@@ -342,6 +342,7 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 	if(node->kind == STARPU_NODE_MPI_SINK || node->kind == STARPU_NODE_TCPIP_SINK)
 	{
 		int i;
+		STARPU_HG_DISABLE_CHECKING(node->is_running);
 		node->is_running = 1;
 		_STARPU_MALLOC(node->run_table, sizeof(struct mp_task *)*node->nb_cores);
 		_STARPU_MALLOC(node->run_table_detached, sizeof(struct mp_task *)*node->nb_cores);
