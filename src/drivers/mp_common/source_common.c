@@ -1243,6 +1243,12 @@ void _starpu_src_common_workers_set(struct _starpu_worker_set * worker_set, int 
 		unsigned baseworkerid = baseworker - config->workers;
 
 		_starpu_src_common_send_workers(mp_node[device], baseworkerid, worker_set[device].nworkers);
+	}
+
+	for (device = 0; device < ndevices; device++)
+	{
+		struct _starpu_worker_set * device_worker_set = &worker_set[device];
+		struct _starpu_worker *baseworker = &device_worker_set->workers[0];
 
 		/* tell the main thread that this one is ready */
 		STARPU_PTHREAD_MUTEX_LOCK(&device_worker_set->mutex);
