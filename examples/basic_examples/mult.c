@@ -374,13 +374,13 @@ void check_result(float* C_gpu, float* C_ref, uint32_t ldC)
 		{
 			if(C_gpu[j + i*ldC]-C_ref[j + i*ldC] > 1e-6*C_ref[j + i*ldC])
 			{
-				printf("| Cref[%u,%u]=%f - Cgpu[%u,%u]=%f | Error in the computation of C on GPU: the difference between the two is bigger than 1e-6 * the reference"
+				printf("| Cref[%u,%u]=%f - Cgpu[%u,%u]=%f | Error in the computation of C: the difference between the two is bigger than 1e-6 * the reference"
 				       , i, j, C_ref[j + i*ldC], i, j, C_gpu[j + i*ldC]);
 				exit(1);
 			}
 		}
 	}
-	printf("SUCCESSFUL COMPUTATION ON GPU\n");
+	printf("SUCCESSFUL COMPUTATION\n");
 }
 
 int main(void)
