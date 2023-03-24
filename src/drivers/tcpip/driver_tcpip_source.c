@@ -305,20 +305,6 @@ void *_starpu_tcpip_src_worker(void *arg)
 		_starpu_src_common_init_switch_env(workersetnum);
 	}  /* for */
 
-	/* set the worker zero for the main thread */
-	for (workersetnum = 0; workersetnum < nbsinknodes; workersetnum++)
-	{
-		struct _starpu_worker_set * worker_set = &worker_set_tcpip[workersetnum];
-		struct _starpu_worker *baseworker = &worker_set->workers[0];
-
-		/* tell the main thread that this one is ready */
-		STARPU_PTHREAD_MUTEX_LOCK(&worker_set->mutex);
-		baseworker->status = STATUS_UNKNOWN;
-		worker_set->set_is_initialized = 1;
-		STARPU_PTHREAD_COND_SIGNAL(&worker_set->ready_cond);
-		STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);
-	}
-
 	_starpu_src_common_workers_set(worker_set_tcpip, nbsinknodes, &_starpu_src_nodes[STARPU_TCPIP_MS_WORKER][worker_set_tcpip->workers[0].devid]);
 
 	return NULL;
