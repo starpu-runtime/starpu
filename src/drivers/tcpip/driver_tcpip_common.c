@@ -1163,6 +1163,7 @@ static void _starpu_tcpip_common_action_socket(what_t what, const char * whatstr
 		req->len = len;
 		req->buf = msg;
 		req->flag_completed = 0;
+		STARPU_HG_DISABLE_CHECKING(req->flag_completed);
 		starpu_sem_init(&req->sem_wait_request, 0, 0);
 		req->is_sender = is_sender;
 		req->offset = 0;
@@ -1270,6 +1271,7 @@ static unsigned int _starpu_tcpip_common_action_completion(int wait, struct _sta
 			{
 				starpu_sem_wait(&req->sem_wait_request);
 				_starpu_tcpip_ms_request_multilist_erase_event(tcpip_ms_event->requests, req);
+				STARPU_HG_ENABLE_CHECKING(req->flag_completed);
 				free(req);
 
 				if (tcpip_ms_event->is_sender)
