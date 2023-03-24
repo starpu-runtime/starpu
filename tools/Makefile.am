@@ -329,7 +329,7 @@ EXTRA_DIST =				\
 	msvc/starpu.sln			\
 	msvc/starpu/starpu.vcxproj	\
 	release/Makefile		\
-	release/README			\
+	release/README.md		\
 	patch-ayudame			\
 	perfs/bench_sgemm.sh		\
 	perfs/error_model.gp		\
