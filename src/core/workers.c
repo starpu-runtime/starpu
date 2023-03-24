@@ -1566,15 +1566,6 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 			    * used, we cannot be a sink. */
 	unsigned worker;
 
-	int rc = _starpu_prof_tool_try_load();
-	(void) rc; /* unused for now */
-
-#ifdef STARPU_PROF_TOOL
-	struct starpu_prof_tool_info pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_init_begin, 0, 0, starpu_prof_tool_driver_cpu, -1, NULL);
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_init(&pi, NULL, NULL);
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_init_begin(&pi, NULL, NULL);
-#endif
-
 #if !defined(STARPU_SIMGRID) && !defined(STARPU_USE_MP)
 	(void)argc;
 	(void)argv;
@@ -1602,6 +1593,15 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	/* initialized == UNINITIALIZED */
 	initialized = CHANGING;
 	STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
+
+	int rc = _starpu_prof_tool_try_load();
+	(void) rc; /* unused for now */
+
+#ifdef STARPU_PROF_TOOL
+	struct starpu_prof_tool_info pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_init_begin, 0, 0, starpu_prof_tool_driver_cpu, -1, NULL);
+	starpu_prof_tool_callbacks.starpu_prof_tool_event_init(&pi, NULL, NULL);
+	starpu_prof_tool_callbacks.starpu_prof_tool_event_init_begin(&pi, NULL, NULL);
+#endif
 
 #ifdef STARPU_USE_MP
 	_starpu_set_argc_argv(argc, argv);
