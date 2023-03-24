@@ -1020,12 +1020,14 @@ void _starpu_tcpip_common_wait(const struct _starpu_mp_node *mp_node)
 	sigset_t sigmask;
 	sigemptyset(&sigmask);
 
+	STARPU_PTHREAD_MUTEX_LOCK(&mp_node->message_queue_mutex);
 	if(!mp_message_list_empty(&mp_node->message_queue) || !_starpu_mp_event_list_empty(&mp_node->event_queue))
 	{
 		FD_SET(fd_notif, &writes);
 		if(fd_notif > fd_max)
 			fd_max = fd_notif;
 	}
+	STARPU_PTHREAD_MUTEX_UNLOCK(&mp_node->message_queue_mutex);
 
 	res = pselect(fd_max+1, &reads, &writes, NULL, NULL, &sigmask);
 	if(res < 0)
