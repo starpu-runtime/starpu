@@ -1570,8 +1570,6 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	(void)argc;
 	(void)argv;
 #endif
-	/* This initializes _starpu_silent, thus needs to be early */
-	_starpu_util_init();
 
 	STARPU_HG_DISABLE_CHECKING(_starpu_worker_parallel_blocks);
 #ifdef STARPU_SIMGRID
@@ -1593,6 +1591,9 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	/* initialized == UNINITIALIZED */
 	initialized = CHANGING;
 	STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
+
+	/* This initializes _starpu_silent, thus needs to be early */
+	_starpu_util_init();
 
 	int rc = _starpu_prof_tool_try_load();
 	(void) rc; /* unused for now */
