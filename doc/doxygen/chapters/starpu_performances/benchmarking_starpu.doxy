@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -78,6 +78,6 @@ Performance models are available for <c>cholesky_*</c>, <c>lu_*</c>, <c>*gemm</c
 320, 640, or 960 (plus 1440 for sirocco), and for <c>stencil</c> with block size 128x128x128, 192x192x192, and
 256x256x256.
 
-Read the chapter \ref SimGridSupport for more information on the SimGrid support.
+Read Chapter \ref SimGridSupport for more information on the SimGrid support.
 
 */

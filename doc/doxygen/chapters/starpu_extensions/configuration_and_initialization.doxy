@@ -14,10 +14,11 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/*! \page ConfigurationAndInitialization Configuration and initialization
+/*! \page ConfigurationAndInitialization Configuration and Initialization
 
 This section explains the relationship between configure options,
 compilation options and environment variables.
+
 In StarPU, the configure options are used during the installation
 process to enable or disable specific features and libraries.
 These options are set using flags such as \ref enable-maxcpus

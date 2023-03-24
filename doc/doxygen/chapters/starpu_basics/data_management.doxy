@@ -408,7 +408,7 @@ running <c>cl2</c> will start first. The task running <c>cl1</c> will however al
 before them, and the task running <c>cl3</c> will always be run after them.
 
 <c>tests/datawizard/commute2.c</c> is a complete example using the data access flag.
- 
+
 If a lot of tasks use the commute access on the same set of data and a lot of
 them are ready at the same time, it may become interesting to use an arbiter,
 see \ref ConcurrentDataAccess.
@@ -505,9 +505,9 @@ leading to yet more relaxed dependencies and more parallelism.
 ::STARPU_REDUX can also be passed to starpu_mpi_task_insert() in the MPI
 case. This will however not produce any MPI communication, but just pass
 ::STARPU_REDUX to the underlying starpu_task_insert(). starpu_mpi_redux_data()
-posts tasks which will reduce the partial results among MPI nodes into the MPI 
+posts tasks which will reduce the partial results among MPI nodes into the MPI
 node which owns the data. The function can be called by the user to benefit from
-fine-tuning such as priority setting. If the user does not call this function, 
+fine-tuning such as priority setting. If the user does not call this function,
 StarPU wraps up reduction patterns automatically. The following example
 shows a hypothetical application which collects partial results
 into data <c>res</c>, then uses it for other computation, before looping again
@@ -524,18 +524,18 @@ for (i = 0; i < 100; i++)
 \endcode
 
 starpu_mpi_redux_data() is called automatically in various cases, including
-when a task reading the reduced handle is inserted through starpu_mpi_task_insert(). 
-The previous example could avoid calling starpu_mpi_redux_data(). Default priority (0) 
-is used. The reduction tree arity is decided based on the size of the data to reduce: a 
-flat tree is used with a small data (default to less than 1024 bytes), a binary tree 
-otherwise. If the environment variable \ref STARPU_MPI_REDUX_ARITY_THRESHOLD is setup, the 
+when a task reading the reduced handle is inserted through starpu_mpi_task_insert().
+The previous example could avoid calling starpu_mpi_redux_data(). Default priority (0)
+is used. The reduction tree arity is decided based on the size of the data to reduce: a
+flat tree is used with a small data (default to less than 1024 bytes), a binary tree
+otherwise. If the environment variable \ref STARPU_MPI_REDUX_ARITY_THRESHOLD is setup, the
 threshold between the size of a small data and a bigger data is modified. If the value is
-setup to be negative, flat trees will always be used. If the value is setup to 0, binary 
-trees are used. Otherwise, the size of the data is compared to the size in the environment 
-variable. Remaining distributed-memory reduction patterns are wrapped-up at the end of an 
-application when calling starpu_mpi_wait_for_all(). 
+setup to be negative, flat trees will always be used. If the value is setup to 0, binary
+trees are used. Otherwise, the size of the data is compared to the size in the environment
+variable. Remaining distributed-memory reduction patterns are wrapped-up at the end of an
+application when calling starpu_mpi_wait_for_all().
 
-More details about MPI reduction are show in section \ref MPIMpiRedux,
+More details about MPI reduction are show in Section \ref MPIMpiRedux,
 and some examples for MPI data reduction are available in <c>mpi/examples/mpi_redux/</c>.
 
 \section ConcurrentDataAccess Concurrent Data Accesses

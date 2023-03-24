@@ -53,8 +53,8 @@ $
 
 Python interpreters share the Global Interpreter Lock (GIL), which requires that at any time, one and only one thread has the right to execute a task. With the latest version of Python (3.11), if the application is pure Python script, even enable multi-interpreters, the program cannot be executed in parallel. GIL makes the multiple interpreters execution of Python actually serial rather than parallel, and the execution of Python program is single-threaded essentially.
 
-For the pure Python script, the only way to achieve parallelism is to use the master-slave mechanism (section \ref StarpupyMasterSlave).
-Parallelism may be implemented with multi-interpreters in the future Python version. Details can be found in section \ref MultipleInterpreters.
+For the pure Python script, the only way to achieve parallelism is to use the master-slave mechanism (Section \ref StarpupyMasterSlave).
+Parallelism may be implemented with multi-interpreters in the future Python version. Details can be found in Section \ref MultipleInterpreters.
 Otherwise parallelism can be achieved when external C applications are called or external APIs e.g. BLAS API is used for Numpy objects.
 
 \section ImplementingStarPUInPython Using StarPU in Python
@@ -635,7 +635,7 @@ You will get an error message:
 starpupy.error: Should not register the same mutable python object once more.
 \endverbatim
 
-You may refer the section \ref SubmitPythonBuffer, and realize that StarPU Python interface uses data handles to manage Python objects supporting buffer protocol by default. These objects are usually relatively large, such as a big NumPy matrix. We want to avoid multiple copies and transfers of this data over various memory nodes, so we set the default \c starpu.task_submit() option \c arg_handle to \c True for users to allow their applications to get the most optimization. To deactivate the use of this data interface, you need to set the option \c arg_handle to \c False.
+You may refer to Section \ref SubmitPythonBuffer, and realize that StarPU Python interface uses data handles to manage Python objects supporting buffer protocol by default. These objects are usually relatively large, such as a big NumPy matrix. We want to avoid multiple copies and transfers of this data over various memory nodes, so we set the default \c starpu.task_submit() option \c arg_handle to \c True for users to allow their applications to get the most optimization. To deactivate the use of this data interface, you need to set the option \c arg_handle to \c False.
 
 Since we use data handles by default, registration is implemented in the step of task submission. Therefore, you should be careful not to register again the same object after the task submission, like this:
 
@@ -681,7 +681,7 @@ We can see that the custom function is not as efficient as the \c numpy function
 
 \subsubsection Methods Methods
 
-As in section \ref MethodsAcquireRelease, the \c Handle class defines methods to provide an acquire and release mechanism.
+As in Section \ref MethodsAcquireRelease, the \c Handle class defines methods to provide an acquire and release mechanism.
 
 <ul>
 <li>
