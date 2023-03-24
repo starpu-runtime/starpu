@@ -2,19 +2,21 @@
 
 make -j 6
 START_X=0
-ECHELLE_X=5
-FICHIER_RAW=Output_maxime/GFlops_raw_out_1.txt
+#ECHELLE_X=5
+ECHELLE_X=6
+FICHIER_RAW=Output_maxime/bound_raw.txt
 truncate -s 0 ${FICHIER_RAW}
 
-NB_TAILLE_TESTE=12
+#NB_TAILLE_TESTE=12
+NB_TAILLE_TESTE=7
 
-for ((i1=1 ; i1<=3; i1++))
+for ((i1=1 ; i1<=1; i1++))
 do
 	if [ $((i1)) == 1 ]; then TAILLE_TUILE=1920
 	elif [ $((i1)) == 2 ]; then TAILLE_TUILE=2880
 	elif [ $((i1)) == 3 ]; then TAILLE_TUILE=3840
 	fi
-	for ((i2=1 ; i2<=4; i2++))
+	for ((i2=2 ; i2<=4; i2++))
 	do
 		if [ $((i2)) == 1 ]; then NGPU=1
 		elif [ $((i2)) == 2 ]; then NGPU=2
@@ -25,7 +27,8 @@ do
 		do
 			N=$((START_X+i3*ECHELLE_X))
 			echo ${TAILLE_TUILE} ${NGPU} ${N}
-			PRIORITY_ATTRIBUTION=1 STARPU_SCHED=dmdar STARPU_NTASKS_THRESHOLD=$((10)) STARPU_CUDA_PIPELINE=$((5)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((TAILLE_TUILE*N)) -nblocks $((N)) -bound | tail -n 4 >> ${FICHIER_RAW}
+			#PRIORITY_ATTRIBUTION=1 STARPU_SCHED=dmdar STARPU_NTASKS_THRESHOLD=$((10)) STARPU_CUDA_PIPELINE=$((5)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((TAILLE_TUILE*N)) -nblocks $((N)) -bound | tail -n 4 >> ${FICHIER_RAW}
+			SEED=$((N/5)) STARPU_SCHED=dmdar STARPU_NTASKS_THRESHOLD=$((10)) STARPU_CUDA_PIPELINE=$((5)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/lu/lu_implicit_example_double -size $((TAILLE_TUILE*N)) -nblocks $((N)) -bound | tail -n 4 >> ${FICHIER_RAW}
 		done
 	done
 done

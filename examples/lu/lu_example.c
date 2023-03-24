@@ -371,8 +371,7 @@ int main(int argc, char **argv)
 	starpu_cusolver_init();
 	
 	current_iteration = 1;
-	niter = 2;
-	//niter = 11;
+	niter = 11;
 	int i = 0;
 	for (i = 0; i < niter; i++)
 	{	

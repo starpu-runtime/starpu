@@ -191,7 +191,7 @@ static int dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks, uns
 	unsigned n = starpu_matrix_get_nx(dataA);
 	double flop = (2.0f*n*n*n)/3.0f;
 	double timing = end - start;
-//	printf("iteration: %d, GFlop: %.1f\n", current_iteration, flop/timing/1000.0f); fflush(stdout);
+//	printf("iteration: %d, Flop:%f - GFlop: %.1f\n", current_iteration, flop, flop/timing/1000.0f); fflush(stdout);
 	if (current_iteration != 1 || niter == 1)
 	{
 		average_flop += flop/timing/1000.0f;

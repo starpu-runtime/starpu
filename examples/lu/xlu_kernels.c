@@ -18,6 +18,7 @@
 
 #include "xlu.h"
 #include <math.h>
+
 #include <complex.h>
 
 #ifdef STARPU_USE_CUDA
