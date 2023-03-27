@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -52,7 +52,9 @@ void print_tensor_data(starpu_data_handle_t tensor_handle)
 	unsigned ldz = starpu_tensor_get_local_ldz(tensor_handle);
 	unsigned ldt = starpu_tensor_get_local_ldt(tensor_handle);
 
+	starpu_data_acquire(tensor_handle, STARPU_R);
 	print_tensor(tensor, nx, ny, nz, nt, ldy, ldz, ldt);
+	starpu_data_release(tensor_handle);
 }
 
 void print_4dim_data(starpu_data_handle_t ndim_handle)
@@ -61,7 +63,9 @@ void print_4dim_data(starpu_data_handle_t ndim_handle)
 	unsigned *nn = starpu_ndim_get_nn(ndim_handle);
 	unsigned *ldn = starpu_ndim_get_local_ldn(ndim_handle);
 
+	starpu_data_acquire(ndim_handle, STARPU_R);
 	print_tensor(arr4d, nn[0], nn[1], nn[2], nn[3], ldn[1], ldn[2], ldn[3]);
+	starpu_data_release(ndim_handle);
 }
 
 void generate_tensor_data(int *tensor, int nx, int ny, int nz, int nt, unsigned ldy, unsigned ldz, unsigned ldt)
