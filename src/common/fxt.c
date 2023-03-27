@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -296,6 +296,7 @@ void _starpu_fxt_init_profiling(uint64_t trace_buffer_size)
 	_starpu_written = 0;
 	_starpu_profile_set_tracefile();
 
+	STARPU_HG_DISABLE_CHECKING(fut_active);
 
 #ifdef HAVE_FUT_SET_FILENAME
 	fut_set_filename(_starpu_prof_file_user);
