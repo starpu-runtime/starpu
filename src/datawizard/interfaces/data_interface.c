@@ -568,14 +568,17 @@ void _starpu_check_if_valid_and_fetch_data_on_node(starpu_data_handle_t handle, 
 	unsigned nnodes = starpu_memory_nodes_get_count();
 	int valid = 0;
 
+	_starpu_spin_lock(&handle->header_lock);
 	for (node = 0; node < nnodes; node++)
 	{
 		if (handle->per_node[node].state != STARPU_INVALID)
 		{
 			/* we found a copy ! */
 			valid = 1;
+			break;
 		}
 	}
+	_starpu_spin_unlock(&handle->header_lock);
 	if (valid)
 	{
 		int ret = _starpu_fetch_data_on_node(handle, handle->home_node, replicate, STARPU_R, 0, NULL, STARPU_FETCH, 0, NULL, NULL, 0, origin);
