@@ -51,6 +51,10 @@ static char *path = "./starpu-ooc-files";
 static unsigned numa = 0;
 #endif
 
+unsigned bound = 0;
+unsigned bounddeps = 0;
+unsigned boundprio = 0;
+
 static size_t allocated_memory = 0;
 
 static starpu_data_handle_t *dataA_handles;
@@ -112,10 +116,27 @@ static void parse_args(int argc, char **argv)
 		{
 			path = argv[++i];
 		}
+		
+		if (strcmp(argv[i], "-bound") == 0)
+		{
+			bound = 1;
+		}
+		if (strcmp(argv[i], "-bounddeps") == 0)
+		{
+			bound = 1;
+			bounddeps = 1;
+		}
+		if (strcmp(argv[i], "-bounddepsprio") == 0)
+		{
+			bound = 1;
+			bounddeps = 1;
+			boundprio = 1;
+		}
 
 		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "-help") == 0 || strcmp(argv[i], "--help") == 0)
 		{
-			fprintf(stderr,"usage: %s [-size n] [-nblocks b] [-check] [-display] [-numa] [-p p] [-q q] [-path PATH]\n", argv[0]);
+			//~ fprintf(stderr,"usage: %s [-size n] [-nblocks b] [-check] [-display] [-numa] [-p p] [-q q] [-path PATH]\n", argv[0]);
+			fprintf(stderr,"usage: %s [-size n] [-nblocks b] [-check] [-display] [-numa] [-p p] [-q q] [-path PATH] [-bound] [-bounddeps] [-bounddepsprio]\n", argv[0]);
 			fprintf(stderr,"\np * q must be equal to the number of MPI nodes\n");
 			exit(0);
 		}
@@ -389,7 +410,13 @@ int main(int argc, char **argv)
 		free(y);
 	}
 
+	if (bound)
+		starpu_bound_start(bounddeps, boundprio);
+	
 	double timing = STARPU_PLU(plu_main)(nblocks, rank, world_size, no_prio);
+
+	if (bound)
+		starpu_bound_stop();
 
 	/*
 	 * 	Report performance
@@ -405,8 +432,16 @@ int main(int argc, char **argv)
 	
 		/* Addition so I can parse results like other applications */
 		printf("# size\tms\tGFlops"); fflush(stdout);
+		if (bound)
+			PRINTF("\tTms\tTGFlops");
 		printf("\n"); fflush(stdout);
 		printf("%u\t%.0f\t%2.2f", n, timing/1000, (flop/timing/1000.0f)); fflush(stdout);
+		if (bound)
+		{
+			double min;
+			starpu_bound_compute(&min, NULL, 0);
+			PRINTF("\t%.0f\t%.1f", min, flop/min/1000000.0f);
+		}
 		printf("\n"); fflush(stdout);
 	}
 
