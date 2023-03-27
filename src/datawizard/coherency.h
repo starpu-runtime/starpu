@@ -226,6 +226,10 @@ struct _starpu_data_state
 	unsigned is_not_important:1;
 	/** Can the data be pushed to the disk? */
 	unsigned ooc:1;
+	/** Does StarPU have to enforce some implicit data-dependencies ? */
+	unsigned sequential_consistency:1;
+	/** Whether we shall not ever write to this handle, thus allowing various optimizations */
+	unsigned readonly:1;
 
 	/** where is the data home, i.e. which node it was registered from ? -1 if none yet */
 	int home_node;
@@ -245,13 +249,9 @@ struct _starpu_data_state
 
 	/* The following bitfields are set from the application submission thread */
 
-	/** Does StarPU have to enforce some implicit data-dependencies ? */
-	unsigned sequential_consistency:1;
 	/** Is the data initialized, or a task is already submitted to initialize it
 	 * This is submission-time initialization state. */
 	unsigned initialized:1;
-	/** Whether we shall not ever write to this handle, thus allowing various optimizations */
-	unsigned readonly:1;
 
 #ifdef STARPU_OPENMP
 	unsigned removed_from_context_hash:1;
