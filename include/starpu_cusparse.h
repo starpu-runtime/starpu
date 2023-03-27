@@ -39,7 +39,7 @@ void starpu_cusparse_init(void);
 
 /**
    Synchronously deinitialize the CUSPARSE library on
-   every CUDA device.
+   every CUDA device. See \ref CUDA-specificOptimizations for more details.
 */
 void starpu_cusparse_shutdown(void);
 

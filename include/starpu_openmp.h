@@ -270,6 +270,7 @@ extern void starpu_omp_master(void (*f)(void *arg), void *arg) __STARPU_OMP_NOTH
    outlining.
    \return <c>!0</c> if called by the region's master thread.
    \return <c>0</c> if not called by the region's master thread.
+   See \ref OMPSingle for more details.
 */
 extern int starpu_omp_master_inline(void) __STARPU_OMP_NOTHROW;
 
@@ -314,6 +315,8 @@ extern void starpu_omp_critical(void (*f)(void *arg), void *arg, const char *nam
 
    This function together with #starpu_omp_critical_inline_end can be used to
    implement <c>\#pragma omp critical</c> without code outlining.
+
+   See \ref OMPCritical for more details.
 */
 extern void starpu_omp_critical_inline_begin(const char *name) __STARPU_OMP_NOTHROW;
 
@@ -325,6 +328,8 @@ extern void starpu_omp_critical_inline_begin(const char *name) __STARPU_OMP_NOTH
 
    This function together with #starpu_omp_critical_inline_begin can be used to
    implement <c>\#pragma omp critical</c> without code outlining.
+
+   See \ref OMPCritical for more details.
 */
 extern void starpu_omp_critical_inline_end(const char *name) __STARPU_OMP_NOTHROW;
 
@@ -357,6 +362,7 @@ extern void starpu_omp_single(void (*f)(void *arg), void *arg, int nowait) __STA
    outlining.
    \return <c>!0</c> if the calling thread has won the election.
    \return <c>0</c> if the calling thread has lost the election.
+   See \ref OMPSingle for more details.
 */
 extern int starpu_omp_single_inline(void) __STARPU_OMP_NOTHROW;
 
@@ -385,6 +391,8 @@ extern void starpu_omp_single_copyprivate(void (*f)(void *arg, void *data, unsig
 
    \sa starpu_omp_single_copyprivate_inline
    \sa starpu_omp_single_copyprivate_inline_end
+
+   See \ref OMPSingle for more details.
 */
 extern void *starpu_omp_single_copyprivate_inline_begin(void *data) __STARPU_OMP_NOTHROW;
 
@@ -399,6 +407,8 @@ extern void *starpu_omp_single_copyprivate_inline_begin(void *data) __STARPU_OMP
 
    \sa starpu_omp_single_copyprivate_inline
    \sa starpu_omp_single_copyprivate_inline_begin
+
+   See \ref OMPSingle for more details.
 */
 extern void starpu_omp_single_copyprivate_inline_end(void) __STARPU_OMP_NOTHROW;
 
@@ -442,6 +452,8 @@ extern void starpu_omp_for(void (*f)(unsigned long long _first_i, unsigned long 
    the parallel region.
 
    \sa starpu_omp_for
+
+   See \ref OMPFor for more details.
 */
 extern int starpu_omp_for_inline_first(unsigned long long nb_iterations, unsigned long long chunk, int schedule, int ordered, unsigned long long *_first_i, unsigned long long *_nb_i) __STARPU_OMP_NOTHROW;
 
@@ -462,6 +474,8 @@ extern int starpu_omp_for_inline_first(unsigned long long nb_iterations, unsigne
    threads of the parallel region.
 
    \sa starpu_omp_for
+
+   See \ref OMPFor for more details.
 */
 extern int starpu_omp_for_inline_next(unsigned long long nb_iterations, unsigned long long chunk, int schedule, int ordered, unsigned long long *_first_i, unsigned long long *_nb_i) __STARPU_OMP_NOTHROW;
 
@@ -490,6 +504,8 @@ extern void starpu_omp_for_alt(void (*f)(unsigned long long _begin_i, unsigned l
    \sa starpu_omp_for
    \sa starpu_omp_for_alt
    \sa starpu_omp_for_inline_first
+
+   See \ref OMPFor for more details.
 */
 extern int starpu_omp_for_inline_first_alt(unsigned long long nb_iterations, unsigned long long chunk, int schedule, int ordered, unsigned long long *_begin_i, unsigned long long *_end_i) __STARPU_OMP_NOTHROW;
 
@@ -502,6 +518,8 @@ extern int starpu_omp_for_inline_first_alt(unsigned long long nb_iterations, uns
    \sa starpu_omp_for
    \sa starpu_omp_for_alt
    \sa starpu_omp_for_inline_next
+
+   See \ref OMPFor for more details.
 */
 extern int starpu_omp_for_inline_next_alt(unsigned long long nb_iterations, unsigned long long chunk, int schedule, int ordered, unsigned long long *_begin_i, unsigned long long *_end_i) __STARPU_OMP_NOTHROW;
 
@@ -523,6 +541,8 @@ extern void starpu_omp_ordered(void (*f)(void *arg), void *arg) __STARPU_OMP_NOT
 
    This function together with #starpu_omp_ordered_inline_end can be used to
    implement <c>\#pragma omp ordered</c> without code code outlining.
+
+   See \ref OMPFor for more details.
 */
 extern void starpu_omp_ordered_inline_begin(void) __STARPU_OMP_NOTHROW;
 
@@ -531,6 +551,8 @@ extern void starpu_omp_ordered_inline_begin(void) __STARPU_OMP_NOTHROW;
 
    This function together with #starpu_omp_ordered_inline_begin can be used to
    implement <c>\#pragma omp ordered</c> without code code outlining.
+
+   See \ref OMPFor for more details.
 */
 extern void starpu_omp_ordered_inline_end(void) __STARPU_OMP_NOTHROW;
 
@@ -561,6 +583,8 @@ extern void starpu_omp_sections(unsigned long long nb_sections, void (**section_
    This function can be used to implement <c>\#pragma omp sections</c> and <c>\#pragma omp section</c>.
 
    \sa starpu_omp_sections
+
+   See \ref OMPSections for more details.
  */
 extern void starpu_omp_sections_combined(unsigned long long nb_sections, void (*section_f)(unsigned long long section_num, void *arg), void *section_arg, int nowait) __STARPU_OMP_NOTHROW;
 
@@ -615,6 +639,8 @@ extern void starpu_omp_taskgroup(void (*f)(void *arg), void *arg) __STARPU_OMP_N
 
    \sa starpu_omp_taskgroup
    \sa starpu_omp_taskgroup_inline_end
+
+   See \ref OMPTaskSyncs for more details.
  */
 extern void starpu_omp_taskgroup_inline_begin(void) __STARPU_OMP_NOTHROW;
 
@@ -626,6 +652,8 @@ extern void starpu_omp_taskgroup_inline_begin(void) __STARPU_OMP_NOTHROW;
 
    \sa starpu_omp_taskgroup
    \sa starpu_omp_taskgroup_inline_begin
+
+   See \ref OMPTaskSyncs for more details.
  */
 extern void starpu_omp_taskgroup_inline_end(void) __STARPU_OMP_NOTHROW;
 
@@ -652,6 +680,8 @@ extern void starpu_omp_taskloop_inline_end(const struct starpu_omp_task_region_a
    \sa starpu_omp_get_thread_num
    \sa starpu_omp_get_max_threads
    \sa starpu_omp_get_num_procs
+
+   See \ref OMPStandard for more details.
 */
 extern void starpu_omp_set_num_threads(int threads) __STARPU_OMP_NOTHROW;
 
@@ -664,6 +694,8 @@ extern void starpu_omp_set_num_threads(int threads) __STARPU_OMP_NOTHROW;
    \sa starpu_omp_get_thread_num
    \sa starpu_omp_get_max_threads
    \sa starpu_omp_get_num_procs
+
+   See \ref OMPStandard for more details.
  */
 extern int starpu_omp_get_num_threads(void) __STARPU_OMP_NOTHROW;
 
@@ -677,6 +709,8 @@ extern int starpu_omp_get_num_threads(void) __STARPU_OMP_NOTHROW;
    \sa starpu_omp_get_num_threads
    \sa starpu_omp_get_max_threads
    \sa starpu_omp_get_num_procs
+
+   See \ref OMPStandard for more details.
  */
 extern int starpu_omp_get_thread_num(void) __STARPU_OMP_NOTHROW;
 
@@ -690,6 +724,8 @@ extern int starpu_omp_get_thread_num(void) __STARPU_OMP_NOTHROW;
    \sa starpu_omp_get_num_threads
    \sa starpu_omp_get_thread_num
    \sa starpu_omp_get_num_procs
+
+   See \ref OMPStandard for more details.
  */
 extern int starpu_omp_get_max_threads(void) __STARPU_OMP_NOTHROW;
 
@@ -702,6 +738,8 @@ extern int starpu_omp_get_max_threads(void) __STARPU_OMP_NOTHROW;
    \sa starpu_omp_get_num_threads
    \sa starpu_omp_get_thread_num
    \sa starpu_omp_get_max_threads
+
+   See \ref OMPStandard for more details.
 */
 extern int starpu_omp_get_num_procs(void) __STARPU_OMP_NOTHROW;
 
@@ -710,6 +748,8 @@ extern int starpu_omp_get_num_procs(void) __STARPU_OMP_NOTHROW;
 
    \return <c>!0</c> if called from a parallel region scope.
    \return <c>0</c> otherwise.
+
+   See \ref OMPStandard for more details.
 */
 extern int starpu_omp_in_parallel(void) __STARPU_OMP_NOTHROW;
 
@@ -719,6 +759,8 @@ extern int starpu_omp_in_parallel(void) __STARPU_OMP_NOTHROW;
    Note: The StarPU OpenMP runtime support currently ignores the argument of this function.
 
    \sa starpu_omp_get_dynamic
+
+   See \ref OMPStandard for more details.
 */
 extern void starpu_omp_set_dynamic(int dynamic_threads) __STARPU_OMP_NOTHROW;
 
@@ -729,6 +771,8 @@ extern void starpu_omp_set_dynamic(int dynamic_threads) __STARPU_OMP_NOTHROW;
    \return <c>0</c> otherwise.
 
    \sa starpu_omp_set_dynamic
+
+   See \ref OMPStandard for more details.
 */
 extern int starpu_omp_get_dynamic(void) __STARPU_OMP_NOTHROW;
 
@@ -742,6 +786,8 @@ extern int starpu_omp_get_dynamic(void) __STARPU_OMP_NOTHROW;
    \sa starpu_omp_set_max_active_levels
    \sa starpu_omp_get_level
    \sa starpu_omp_get_active_level
+
+   See \ref OMPStandard for more details.
 */
 extern void starpu_omp_set_nested(int nested) __STARPU_OMP_NOTHROW;
 
@@ -756,11 +802,15 @@ extern void starpu_omp_set_nested(int nested) __STARPU_OMP_NOTHROW;
    \sa starpu_omp_set_max_active_levels
    \sa starpu_omp_get_level
    \sa starpu_omp_get_active_level
+
+   See \ref OMPStandard for more details.
 */
 extern int starpu_omp_get_nested(void) __STARPU_OMP_NOTHROW;
 
 /**
    Return the state of the cancel ICVS var.
+
+   See \ref OMPStandard for more details.
  */
 extern int starpu_omp_get_cancellation(void) __STARPU_OMP_NOTHROW;
 
@@ -782,6 +832,8 @@ extern void starpu_omp_set_schedule(enum starpu_omp_sched_value kind, int modifi
    \return the kind and the modifier of the current default loop scheduler.
 
    \sa starpu_omp_set_schedule
+
+   See \ref OMPStandard for more details.
 */
 extern void starpu_omp_get_schedule(enum starpu_omp_sched_value *kind, int *modifier) __STARPU_OMP_NOTHROW;
 
@@ -789,6 +841,8 @@ extern void starpu_omp_get_schedule(enum starpu_omp_sched_value *kind, int *modi
    Return the number of StarPU CPU workers.
 
    \return the number of StarPU CPU workers.
+
+   See \ref OMPStandard for more details.
 */
 extern int starpu_omp_get_thread_limit(void) __STARPU_OMP_NOTHROW;
 
@@ -802,6 +856,8 @@ extern int starpu_omp_get_thread_limit(void) __STARPU_OMP_NOTHROW;
    \sa starpu_omp_get_max_active_levels
    \sa starpu_omp_get_level
    \sa starpu_omp_get_active_level
+
+   See \ref OMPStandard for more details.
 */
 extern void starpu_omp_set_max_active_levels(int max_levels) __STARPU_OMP_NOTHROW;
 
@@ -815,6 +871,8 @@ extern void starpu_omp_set_max_active_levels(int max_levels) __STARPU_OMP_NOTHRO
    \sa starpu_omp_set_max_active_levels
    \sa starpu_omp_get_level
    \sa starpu_omp_get_active_level
+
+   See \ref OMPStandard for more details.
 */
 extern int starpu_omp_get_max_active_levels(void) __STARPU_OMP_NOTHROW;
 
@@ -828,6 +886,8 @@ extern int starpu_omp_get_max_active_levels(void) __STARPU_OMP_NOTHROW;
    \sa starpu_omp_get_max_active_levels
    \sa starpu_omp_set_max_active_levels
    \sa starpu_omp_get_active_level
+
+   See \ref OMPStandard for more details.
 */
 extern int starpu_omp_get_level(void) __STARPU_OMP_NOTHROW;
 
@@ -835,6 +895,8 @@ extern int starpu_omp_get_level(void) __STARPU_OMP_NOTHROW;
    Return the number of the ancestor of the current parallel section.
 
    \return the number of the ancestor of the current parallel section.
+
+   See \ref OMPStandard for more details.
 */
 extern int starpu_omp_get_ancestor_thread_num(int level) __STARPU_OMP_NOTHROW;
 
@@ -842,6 +904,8 @@ extern int starpu_omp_get_ancestor_thread_num(int level) __STARPU_OMP_NOTHROW;
    Return the size of the team of the current parallel section.
 
    \return the size of the team of the current parallel section.
+
+   See \ref OMPStandard for more details.
 */
 extern int starpu_omp_get_team_size(int level) __STARPU_OMP_NOTHROW;
 
@@ -855,6 +919,8 @@ extern int starpu_omp_get_team_size(int level) __STARPU_OMP_NOTHROW;
    \sa starpu_omp_get_max_active_levels
    \sa starpu_omp_set_max_active_levels
    \sa starpu_omp_get_level
+
+   See \ref OMPStandard for more details.
 */
 extern int starpu_omp_get_active_level(void) __STARPU_OMP_NOTHROW;
 
@@ -863,6 +929,8 @@ extern int starpu_omp_get_active_level(void) __STARPU_OMP_NOTHROW;
 
    \return <c>!0</c> if called from a final task.
    \return <c>0</c> otherwise.
+
+   See \ref OMPStandard for more details.
 */
 extern int starpu_omp_in_final(void) __STARPU_OMP_NOTHROW;
 
@@ -870,19 +938,63 @@ extern int starpu_omp_in_final(void) __STARPU_OMP_NOTHROW;
    Return the proc_bind setting of the current parallel region.
 
    \return the proc_bind setting of the current parallel region.
+
+   See \ref OMPStandard for more details.
 */
 extern enum starpu_omp_proc_bind_value starpu_omp_get_proc_bind(void) __STARPU_OMP_NOTHROW;
 
+/**
+   Return the number of places available to the execution environment in the place list.
+
+   \return the number of places available to the execution environment in the place list.
+
+   See \ref OMPStandard for more details.
+*/
 extern int starpu_omp_get_num_places(void) __STARPU_OMP_NOTHROW;
 
+/**
+   Return the number of processors available to the execution environment in the specified place.
+
+   \return the number of processors available to the execution environment in the specified place.
+
+   See \ref OMPStandard for more details.
+*/
 extern int starpu_omp_get_place_num_procs(int place_num) __STARPU_OMP_NOTHROW;
 
+/**
+   Return the numerical identifiers of the processors available to the execution environment in the specified place.
+
+   \return the numerical identifiers of the processors available to the execution environment in the specified place.
+
+   See \ref OMPStandard for more details.
+*/
 extern void starpu_omp_get_place_proc_ids(int place_num, int *ids) __STARPU_OMP_NOTHROW;
 
+/**
+   Return the place number of the place to which the encountering thread is bound.
+
+   \return the place number of the place to which the encountering thread is bound.
+
+   See \ref OMPStandard for more details.
+*/
 extern int starpu_omp_get_place_num(void) __STARPU_OMP_NOTHROW;
 
+/**
+   Return the number of places in the place partition of the innermost implicit task.
+
+   \return the number of places in the place partition of the innermost implicit task.
+
+   See \ref OMPStandard for more details.
+*/
 extern int starpu_omp_get_partition_num_places(void) __STARPU_OMP_NOTHROW;
 
+/**
+   Return the list of place numbers corresponding to the places in the place-partition-var ICV of the innermost implicit task.
+
+   \return the list of place numbers corresponding to the places in the place-partition-var ICV of the innermost implicit task.
+
+   See \ref OMPStandard for more details.
+*/
 extern void starpu_omp_get_partition_place_nums(int *place_nums) __STARPU_OMP_NOTHROW;
 
 /**
@@ -892,6 +1004,8 @@ extern void starpu_omp_get_partition_place_nums(int *place_nums) __STARPU_OMP_NO
 
    \sa starpu_omp_get_default_device
    \sa starpu_omp_is_initial_device
+
+   See \ref OMPStandard for more details.
 */
 extern void starpu_omp_set_default_device(int device_num) __STARPU_OMP_NOTHROW;
 
@@ -902,6 +1016,8 @@ extern void starpu_omp_set_default_device(int device_num) __STARPU_OMP_NOTHROW;
 
    \sa starpu_omp_set_default_device
    \sa starpu_omp_is_initial_device
+
+   See \ref OMPStandard for more details.
  */
 extern int starpu_omp_get_default_device(void) __STARPU_OMP_NOTHROW;
 
@@ -909,6 +1025,8 @@ extern int starpu_omp_get_default_device(void) __STARPU_OMP_NOTHROW;
    Return the number of the devices.
 
    \return the number of the devices.
+
+   See \ref OMPStandard for more details.
 */
 extern int starpu_omp_get_num_devices(void) __STARPU_OMP_NOTHROW;
 
@@ -918,6 +1036,8 @@ extern int starpu_omp_get_num_devices(void) __STARPU_OMP_NOTHROW;
    \return the number of teams in the current teams region.
 
    \sa starpu_omp_get_num_teams
+
+   See \ref OMPStandard for more details.
 */
 extern int starpu_omp_get_num_teams(void) __STARPU_OMP_NOTHROW;
 
@@ -927,16 +1047,25 @@ extern int starpu_omp_get_num_teams(void) __STARPU_OMP_NOTHROW;
    \return the team number of the calling thread.
 
    \sa starpu_omp_get_num_teams
+
+   See \ref OMPStandard for more details.
 */
 extern int starpu_omp_get_team_num(void) __STARPU_OMP_NOTHROW;
 
 /**
    Check whether the current device is the initial device or not.
+
+   See \ref OMPStandard for more details.
 */
 extern int starpu_omp_is_initial_device(void) __STARPU_OMP_NOTHROW;
 
 /**
- */
+   Return a device number that represents the host device.
+
+   \return a device number that represents the host device.
+
+   See \ref OMPStandard for more details.
+*/
 extern int starpu_omp_get_initial_device(void) __STARPU_OMP_NOTHROW;
 
 /**
@@ -948,6 +1077,8 @@ extern int starpu_omp_get_initial_device(void) __STARPU_OMP_NOTHROW;
 
    \sa starpu_omp_set_default_device
    \sa starpu_omp_get_default_device
+
+   See \ref OMPStandard for more details.
 */
 extern int starpu_omp_get_max_task_priority(void) __STARPU_OMP_NOTHROW;
 
@@ -958,6 +1089,8 @@ extern int starpu_omp_get_max_task_priority(void) __STARPU_OMP_NOTHROW;
    \sa starpu_omp_set_lock
    \sa starpu_omp_unset_lock
    \sa starpu_omp_test_lock
+
+   See \ref OMPSimpleLock for more details.
 */
 extern void starpu_omp_init_lock(starpu_omp_lock_t *lock) __STARPU_OMP_NOTHROW;
 
@@ -968,6 +1101,8 @@ extern void starpu_omp_init_lock(starpu_omp_lock_t *lock) __STARPU_OMP_NOTHROW;
    \sa starpu_omp_set_lock
    \sa starpu_omp_unset_lock
    \sa starpu_omp_test_lock
+
+   See \ref OMPSimpleLock for more details.
 */
 extern void starpu_omp_destroy_lock(starpu_omp_lock_t *lock) __STARPU_OMP_NOTHROW;
 
@@ -979,6 +1114,8 @@ extern void starpu_omp_destroy_lock(starpu_omp_lock_t *lock) __STARPU_OMP_NOTHRO
    \sa starpu_omp_destroy_lock
    \sa starpu_omp_unset_lock
    \sa starpu_omp_test_lock
+
+   See \ref OMPSimpleLock for more details.
 */
 extern void starpu_omp_set_lock(starpu_omp_lock_t *lock) __STARPU_OMP_NOTHROW;
 
@@ -990,6 +1127,8 @@ extern void starpu_omp_set_lock(starpu_omp_lock_t *lock) __STARPU_OMP_NOTHROW;
    \sa starpu_omp_destroy_lock
    \sa starpu_omp_set_lock
    \sa starpu_omp_test_lock
+
+   See \ref OMPSimpleLock for more details.
 */
 extern void starpu_omp_unset_lock(starpu_omp_lock_t *lock) __STARPU_OMP_NOTHROW;
 
@@ -1004,6 +1143,8 @@ extern void starpu_omp_unset_lock(starpu_omp_lock_t *lock) __STARPU_OMP_NOTHROW;
    \sa starpu_omp_destroy_lock
    \sa starpu_omp_set_lock
    \sa starpu_omp_unset_lock
+
+   See \ref OMPSimpleLock for more details.
 */
 extern int starpu_omp_test_lock(starpu_omp_lock_t *lock) __STARPU_OMP_NOTHROW;
 
@@ -1014,6 +1155,8 @@ extern int starpu_omp_test_lock(starpu_omp_lock_t *lock) __STARPU_OMP_NOTHROW;
    \sa starpu_omp_set_nest_lock
    \sa starpu_omp_unset_nest_lock
    \sa starpu_omp_test_nest_lock
+
+   See \ref OMPNestableLock for more details.
 */
 extern void starpu_omp_init_nest_lock(starpu_omp_nest_lock_t *lock) __STARPU_OMP_NOTHROW;
 
@@ -1024,6 +1167,8 @@ extern void starpu_omp_init_nest_lock(starpu_omp_nest_lock_t *lock) __STARPU_OMP
    \sa starpu_omp_set_nest_lock
    \sa starpu_omp_unset_nest_lock
    \sa starpu_omp_test_nest_lock
+
+   See \ref OMPNestableLock for more details.
 */
 extern void starpu_omp_destroy_nest_lock(starpu_omp_nest_lock_t *lock) __STARPU_OMP_NOTHROW;
 
@@ -1038,6 +1183,8 @@ extern void starpu_omp_destroy_nest_lock(starpu_omp_nest_lock_t *lock) __STARPU_
    \sa starpu_omp_destroy_nest_lock
    \sa starpu_omp_unset_nest_lock
    \sa starpu_omp_test_nest_lock
+
+   See \ref OMPNestableLock for more details.
 */
 extern void starpu_omp_set_nest_lock(starpu_omp_nest_lock_t *lock) __STARPU_OMP_NOTHROW;
 
@@ -1054,6 +1201,8 @@ extern void starpu_omp_set_nest_lock(starpu_omp_nest_lock_t *lock) __STARPU_OMP_
    \sa starpu_omp_destroy_nest_lock
    \sa starpu_omp_set_nest_lock
    \sa starpu_omp_test_nest_lock
+
+   See \ref OMPNestableLock for more details.
 */
 extern void starpu_omp_unset_nest_lock(starpu_omp_nest_lock_t *lock) __STARPU_OMP_NOTHROW;
 
@@ -1071,6 +1220,8 @@ extern void starpu_omp_unset_nest_lock(starpu_omp_nest_lock_t *lock) __STARPU_OM
    \sa starpu_omp_destroy_nest_lock
    \sa starpu_omp_set_nest_lock
    \sa starpu_omp_unset_nest_lock
+
+   See \ref OMPNestableLock for more details.
 */
 extern int starpu_omp_test_nest_lock(starpu_omp_nest_lock_t *lock) __STARPU_OMP_NOTHROW;
 
@@ -1097,6 +1248,8 @@ extern void starpu_omp_atomic_fallback_inline_end(void) __STARPU_OMP_NOTHROW;
    \return the elapsed wallclock time in seconds.
 
    \sa starpu_omp_get_wtick
+
+   See \ref OMPStandard for more details.
 */
 extern double starpu_omp_get_wtime(void) __STARPU_OMP_NOTHROW;
 
@@ -1106,6 +1259,8 @@ extern double starpu_omp_get_wtime(void) __STARPU_OMP_NOTHROW;
    \return the precision of the time used by \p starpu_omp_get_wtime().
 
    \sa starpu_omp_get_wtime
+
+   See \ref OMPStandard for more details.
 */
 extern double starpu_omp_get_wtick(void) __STARPU_OMP_NOTHROW;
 

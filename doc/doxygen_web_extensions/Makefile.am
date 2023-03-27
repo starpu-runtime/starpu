@@ -36,6 +36,8 @@ chapters =	\
 	../doxygen/chapters/starpu_extensions/advanced_scheduling.doxy		\
 	../doxygen/chapters/starpu_extensions/scheduling_contexts.doxy		\
 	../doxygen/chapters/starpu_extensions/scheduling_context_hypervisor.doxy		\
+	../doxygen/chapters/starpu_extensions/cuda_support.doxy		\
+	../doxygen/chapters/starpu_extensions/opencl_support.doxy		\
 	../doxygen/chapters/starpu_extensions/out_of_core.doxy		\
 	../doxygen/chapters/starpu_extensions/mpi_support.doxy		\
 	../doxygen/chapters/starpu_extensions/tcpip_support.doxy		\

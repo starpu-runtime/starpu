@@ -29,7 +29,8 @@ then use these values instead of the whole allocated size. The values of course
 need to be set within the original allocation. To reserve room for increasing
 the NX/NY values, one can use starpu_matrix_data_register_allocsize() instead of
 starpu_matrix_data_register(), to specify the allocation size to be used instead
-of the default NX*NY*ELEMSIZE. To support this, the data interface
+of the default NX*NY*ELEMSIZE. It is also available for a vector by using starpu_vector_data_register_allocsize() 
+to specify the allocation size to be used instead of the default NX*ELEMSIZE. To support this, the data interface
 has to implement the functions starpu_data_interface_ops::alloc_footprint,
 starpu_data_interface_ops::alloc_compare, and
 starpu_data_interface_ops::reuse_data_on_node for proper StarPU allocation
@@ -279,7 +280,15 @@ And now we can start using vertical slices, etc.
 
 Functions starpu_data_set_user_data() and starpu_data_get_user_data() are used to associate user-defined data with a specific data handle. One can set or retrieve the field user_data of the data handle by calling these two functions respectively. Similarly, functions starpu_data_set_sched_data() and starpu_data_get_sched_data() are used to associate scheduling-related data with a specific data handle. One can set or retrieve the field sched_data of the data handle by calling these two functions respectively.
 
-One can call starpu_data_register_same() to register a new piece of data into a data handle with the same interface as the specified data handle.
+One can call starpu_data_register_same() to register a new piece of data into a data handle with the same interface as the specified data handle. If necessary, one can register a void interface by using starpu_void_data_register(). There is no data really associated to this interface, but it may be used as a synchronization mechanism.
+
+One can call starpu_data_cpy() or starpu_data_cpy_priority() to copy data from one memory location to another memory location, but the latter one allows the application to specify a priority value for the copy operation. The higher the priority value, the sonner the copy operation will be scheduled and executed. One can also call starpu_data_dup_ro() function for duplicating, but this function only creates a new read-only data block that is an exact copy of the original data block. The new data block can be used independently of the original data block for read-only access.
+
+starpu_data_pack_node() and starpu_data_pack() are functions that are used to pack a data item into a binary buffer on a node or on local memory node. starpu_data_peek_node() and starpu_data_peek() are functions that allow you to read in handle's node or local node replicate the data located at the given pointer. starpu_data_unpack_node() and starpu_data_unpack() are functions that are used to unpack a data item from a binary buffer on a node or on local memory node.
+
+StarPU provides several functions for querying the size and memory allocation of variable size data items, such as: starpu_data_get_size() is a function that returns the size of a data associated with handle in bytes. This is the size of the actual data stored in memory. starpu_data_get_alloc_size() is a function that returns the amount of memory that has been allocated for a data associated with handle in anticipation. This may be larger than the actual size of the data item, due to alignment requirements or other implementation details. starpu_data_get_max_size() is a function that returns the maximum size of a handle data that can be allocated by StarPU.
+
+One can call starpu_data_get_home_node() to retrieve the identifier of the node on which the data handle is originally stored. One can call starpu_data_print() to print basic informations about the data handle and the node to the specified file.
 
 \section DataPointers Handles data buffer pointers
 
@@ -315,6 +324,8 @@ This means that:
 <li>allocation methods of data interfaces have to store the value returned by starpu_malloc_on_node() in <c>dev_handle</c> and <c>ptr</c>, and set <c>offset</c> to 0.</li>
 <li>partitioning filters have to copy over <c>dev_handle</c> without modifying it, set in the child different values of <c>offset</c>, and set <c>ptr</c> accordingly as the sum of <c>dev_handle</c> and <c>offset</c>.</li>
 </ul>
+
+We can call starpu_data_handle_to_pointer() to get <c>ptr</c> associated with the data handle, or call starpu_data_get_local_ptr() to get the local pointer associated with the data handle.
 
 Examples in the directory <c>examples/interface/complex_dev_handle/</c> show how to generate and implement an interface supporting OpenCL.
 
@@ -499,6 +510,9 @@ void display_complex_codelet(void *descr[], void *_args)
 The whole code for this complex data interface is available in the
 directory <c>examples/interface/</c>.
 
+\subsection DefiningANewDataInterface_footprint Data footprint
+
+We need to pass a custom footprint function to the method starpu_data_interface_ops::footprint which computes data size footprint. StarPU provides several functions to compute different type of value: starpu_hash_crc32c_be_n() is used to compute the CRC of a byte buffer, starpu_hash_crc32c_be_ptr() is used to compute the CRC of a pointer value, starpu_hash_crc32c_be() is used to compute the CRC of a 32bit number, starpu_hash_crc32c_string() is used to compute the CRC of a string.
 
 \subsection DefiningANewDataInterface_allocation Data allocation
 
@@ -553,6 +567,8 @@ static void complex_free_data_on_node(void *data_interface, unsigned node)
 }
 \endcode
 
+We can call starpu_opencl_allocate_memory() to allocate memory on an OpenCL device.
+
 We have not made anything particular for GPUs or whatsoever: it is
 starpu_free_on_node() which knows how to actually make the allocation, and
 returns the resulting pointer, be it in main memory, in GPU memory, etc.
@@ -591,7 +607,11 @@ We here again have no idea what is main memory or GPU memory, or even if the
 copy is synchronous or asynchronous: we just call starpu_interface_copy()
 according to the interface, passing it the pointers, and checking whether it
 returned \c -EAGAIN, which means the copy is asynchronous, and StarPU will
-appropriately wait for it thanks to the pointer \c async_data.
+appropriately wait for it thanks to the pointer \c async_data. This copy method is also available for 2D matrices starpu_interface_copy2d(), 3D matrices starpu_interface_copy3d(), 4D matrices starpu_interface_copy4d() and N-dim matrices starpu_interface_copynd().
+
+starpu_interface_copy() will also manage copies between other devices such as CUDA devices, OpenCL devices, etc. But if necessary, we may manage these copies by ourselves as well.
+StarPU provides three functions starpu_cuda_copy_async_sync(), starpu_cuda_copy2d_async_sync() and starpu_cuda_copy3d_async_sync() that enable copying of 1D, 2D or 3D data between main memory and CUDA device memories. They first try to copy the data asynchronous, if fail or \c stream is \c NULL then copy the data synchronously.
+StarPU also provides several functions that are used to transfer data between RAM and OpenCL devices. starpu_opencl_copy_ram_to_opencl() copies data from RAM to an OpenCL device. starpu_opencl_copy_opencl_to_ram() copies data from an OpenCL device to RAM. starpu_opencl_copy_opencl_to_opencl() copies data between two OpenCL devices. starpu_opencl_copy_async_sync() copies data between two devices. If \c event is \c NULL, the copy is synchronous, and checking whether \c ret is set to \c -EAGAIN, which means the copy is asynchronous.
 
 This copy method is referenced in a structure \ref starpu_data_copy_methods
 
@@ -606,6 +626,10 @@ which was referenced in the structure \ref starpu_data_interface_ops above.
 
 Other fields of \ref starpu_data_copy_methods allow providing optimized
 variants, notably for the case of 2D or 3D matrix tiles with non-trivial ld.
+
+We can call starpu_interface_data_copy() to record in offline execution traces the copy.
+
+When an asynchonous implementation of the data transfer is implemented, we can call starpu_interface_start_driver_copy_async() and starpu_interface_end_driver_copy_async() to initiate and complete asynchronous data transfers between main memory and GPU memory.
 
 \subsection DefiningANewDataInterface_pack Data pack/peek/unpack
 
@@ -757,6 +781,11 @@ Note: if starpu_data_interface_ops::unregister_data_handle is
 implemented and checks that pointers are NULL,
 starpu_data_interface_ops::cache_data_on_node needs to be implemented to clear
 the pointers when caching the allocation.
+
+\subsection DefiningANewDataInterface_helpers Helpers
+
+We can get the unique identifier of the interface associated with the data handle by calling starpu_data_get_interface_id(), and get the next available identifier for a newly created data interface by calling starpu_data_interface_get_next_id().
+
 
 \section TheMultiformatInterface The Multiformat Interface
 

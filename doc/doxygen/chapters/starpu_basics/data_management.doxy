@@ -56,7 +56,7 @@ starpu_vector_filter_block(). They can also be partitioned with some overlapping
 by using starpu_vector_filter_block_shadow(), and the corresponding example is in the file <c>examples/filters/shadow.c</c>. By default, StarPU uses the same size for each piece. If different sizes are desired,
 starpu_vector_filter_list() or starpu_vector_filter_list_long() can be used
 instead. To just divide in two pieces, starpu_vector_filter_divide_in_2() can be used.
-In addition, contiguous variables can be picked from a vector by using starpu_vector_filter_pick_variable(), and the corresponding example is in the file <c>examples/filters/fvector_pick_variable.c</c>.
+In addition, contiguous variables can be picked from a vector by using starpu_vector_filter_pick_variable(), and starpu_data_filter::get_child_ops needs to be set to \c starpu_vector_filter_pick_variable_child_ops. The corresponding example is in the file <c>examples/filters/fvector_pick_variable.c</c>.
 
 \subsection MatrixDataInterface Matrix Data Interface
 
@@ -76,8 +76,8 @@ using starpu_matrix_filter_block(), and along the y dimension by using
 starpu_matrix_filter_vertical_block(). They can also be partitioned
 with some overlapping by using starpu_matrix_filter_block_shadow() and
 starpu_matrix_filter_vertical_block_shadow(), and the corresponding example is in the file <c>examples/filters/shadow2d.c</c>. In addition, contiguous vectors
-can be picked from a matrix along the Y dimension by using starpu_matrix_filter_pick_vector_y(), and the corresponding example is in the file <c>examples/filters/fmatrix_pick_vector.c</c>.
-Variable can be also picked from a matrix by using starpu_matrix_filter_pick_variable(), and the corresponding example is in the file <c>examples/filters/fmatrix_pick_variable.c</c>.
+can be picked from a matrix along the Y dimension by using starpu_matrix_filter_pick_vector_y(), and starpu_data_filter::get_child_ops needs to be set to \c starpu_matrix_filter_pick_vector_child_ops. The corresponding example is in the file <c>examples/filters/fmatrix_pick_vector.c</c>.
+Variable can be also picked from a matrix by using starpu_matrix_filter_pick_variable(), and starpu_data_filter::get_child_ops needs to be set to \c starpu_matrix_filter_pick_variable_child_ops. The corresponding example is in the file <c>examples/filters/fmatrix_pick_variable.c</c>.
 
 \subsection BlockDataInterface Block Data Interface
 
@@ -100,8 +100,8 @@ can also be partitioned with some overlapping by using
 starpu_block_filter_block_shadow(), starpu_block_filter_vertical_block_shadow(),
 or starpu_block_filter_depth_block_shadow(), and the corresponding example is in the file <c>examples/filters/shadow3d.c</c>. In addition, contiguous matrices
 can be picked from a block along the Z dimension or the Y dimension
-by using starpu_block_filter_pick_matrix_z() or starpu_block_filter_pick_matrix_y(), and the corresponding example is in the file <c>examples/filters/fblock_pick_matrix.c</c>.
-Variable can be also picked from a block by using starpu_block_filter_pick_variable(), and the corresponding example is in the file <c>examples/filters/fblock_pick_variable.c</c>.
+by using starpu_block_filter_pick_matrix_z() or starpu_block_filter_pick_matrix_y(), and starpu_data_filter::get_child_ops needs to be set to \c starpu_block_filter_pick_matrix_child_ops. The corresponding example is in the file <c>examples/filters/fblock_pick_matrix.c</c>.
+Variable can be also picked from a block by using starpu_block_filter_pick_variable(), and starpu_data_filter::get_child_ops needs to be set to \c starpu_block_filter_pick_variable_child_ops. The corresponding example is in the file <c>examples/filters/fblock_pick_variable.c</c>.
 
 \subsection TensorDataInterface Tensor Data Interface
 
@@ -125,8 +125,8 @@ They can also be partitioned with some overlapping by using
 starpu_tensor_filter_block_shadow(), starpu_tensor_filter_vertical_block_shadow(), starpu_tensor_filter_depth_block_shadow(), or starpu_tensor_filter_time_block_shadow(), and the corresponding example is in the file <c>examples/filters/shadow4d.c</c>.
 In addition, contiguous blocks can be picked from a block along the T dimension,
 Z dimension or the Y dimension by using starpu_tensor_filter_pick_block_t(),
-starpu_tensor_filter_pick_block_z(), or starpu_tensor_filter_pick_block_y(), and the corresponding example is in the file <c>examples/filters/ftensor_pick_block.c</c>.
-Variable can be also picked from a tensor by using starpu_tensor_filter_pick_variable(), and the corresponding example is in the file <c>examples/filters/ftensor_pick_variable.c</c>.
+starpu_tensor_filter_pick_block_z(), or starpu_tensor_filter_pick_block_y(), and starpu_data_filter::get_child_ops needs to be set to \c starpu_tensor_filter_pick_block_child_ops. The corresponding example is in the file <c>examples/filters/ftensor_pick_block.c</c>.
+Variable can be also picked from a tensor by using starpu_tensor_filter_pick_variable(), and starpu_data_filter::get_child_ops needs to be set to \c starpu_tensor_filter_pick_variable_child_ops. The corresponding example is in the file <c>examples/filters/ftensor_pick_variable.c</c>.
 
 \subsection NdimDataInterface Ndim Data Interface
 
@@ -154,6 +154,7 @@ specialized functions which can partition a 0-dim array, 1-dim array,
 matrices, blocks, or tensors by using starpu_ndim_filter_to_variable()(the corresponding example is in the file <c>examples/filters/fndim_to_variable.c</c>),
 starpu_ndim_filter_to_vector()(the corresponding example is in the file <c>examples/filters/fndim_to_vector.c</c>), starpu_ndim_filter_to_matrix()(the corresponding example is in the file <c>examples/filters/fndim_to_matrix.c</c>),
 starpu_ndim_filter_to_block()(the corresponding example is in the file <c>examples/filters/fndim_to_block.c</c>), or starpu_ndim_filter_to_tensor()(the corresponding example is in the file <c>examples/filters/fndim_to_tensor.c</c>).
+And starpu_data_filter::get_child_ops needs to be set to \c starpu_ndim_filter_to_variable_child_ops, \c starpu_ndim_filter_to_vector_child_ops, \c starpu_ndim_filter_to_matrix_child_ops, \c starpu_ndim_filter_to_block_child_ops, or \c starpu_ndim_filter_to_tensor_child_ops respectively.
 
 In addition, contiguous (n-1)dim arrays can be picked from a ndim array
 along the given dimension by using starpu_ndim_filter_pick_ndim(), and the corresponding example is in the file <c>examples/filters/fndim_pick_ndim.c</c>.
@@ -162,9 +163,9 @@ variables, vectors, matrices, blocks, or tensors can be picked from a
 1-dim array, 2-dim array, 3-dim array, 4-dim array, or 5-dim array along
 the given dimension by using starpu_ndim_filter_1d_pick_variable()(the corresponding example is in the file <c>examples/filters/fndim_1d_pick_variable.c</c>),
 starpu_ndim_filter_2d_pick_vector()(the corresponding example is in the file <c>examples/filters/fndim_2d_pick_vector.c</c>), starpu_ndim_filter_3d_pick_matrix()(the corresponding example is in the file <c>examples/filters/fndim_3d_pick_matrix.c</c>),
-starpu_ndim_filter_4d_pick_block()(the corresponding example is in the file <c>examples/filters/fndim_4d_pick_block.c</c>), or starpu_ndim_filter_5d_pick_tensor()(the corresponding example is in the file <c>examples/filters/fndim_5d_pick_tensor.c</c>).
+starpu_ndim_filter_4d_pick_block()(the corresponding example is in the file <c>examples/filters/fndim_4d_pick_block.c</c>), or starpu_ndim_filter_5d_pick_tensor()(the corresponding example is in the file <c>examples/filters/fndim_5d_pick_tensor.c</c>). And starpu_data_filter::get_child_ops needs to be set to \c starpu_ndim_filter_pick_variable_child_ops, \c starpu_ndim_filter_pick_vector_child_ops, \c starpu_ndim_filter_pick_matrix_child_ops, \c starpu_ndim_filter_pick_block_child_ops, or \c starpu_ndim_filter_pick_tensor_child_ops respectively.
 Variable can be also picked from a ndim array by using
-starpu_ndim_filter_pick_variable(), and the corresponding example is in the file <c>examples/filters/fndim_pick_variable.c</c>.
+starpu_ndim_filter_pick_variable(), and starpu_data_filter::get_child_ops needs to be set to \c starpu_ndim_filter_pick_variable_child_ops. The corresponding example is in the file <c>examples/filters/fndim_pick_variable.c</c>.
 
 \subsection BCSRDataInterface BCSR Data Interface
 
@@ -236,14 +237,22 @@ StarPU provides an example on how to deal with such matrices in
 BCSR data handles can be partitioned into its dense matrix blocks by using
 starpu_bcsr_filter_canonical_block(), or split into other BCSR data handles by
 using starpu_bcsr_filter_vertical_block() (but only split along the leading dimension is
-supported, i.e. along adjacent nnz blocks)
+supported, i.e. along adjacent nnz blocks). starpu_data_filter::get_child_ops needs to be set to \c starpu_bcsr_filter_canonical_block_child_ops() and starpu_data_filter::get_nchildren set to starpu_bcsr_filter_canonical_block_get_nchildren(). A corresponding example is available in <c>tests/datawizard/bcsr.c</c>.
 
 \subsection CSRDataInterface CSR Data Interface
 
 TODO
 
+To register a Compressed Sparse Row Representation (CSR) sparse matrix, one can use the
+CSR data interface. A full code example for CSR data interface is available in the file <c>mpi/tests/datatypes.c</c> to show how to register a COO matrix data to StarPU by using starpu_csr_data_register().
+
 CSR data handles can be partitioned into vertical CSR matrices by using
 starpu_csr_filter_vertical_block(), and the corresponding example is available in the file <c>examples/spmv/spmv.c</c>.
+
+\subsection COODataInterface COO Data Interface
+
+To register 2-D matrices given in the coordinate format (COO), one can use the
+COO data interface. A full code example for COO data interface is available in the file <c>tests/datawizard/interfaces/coo/coo_interface.c</c> to show how to register a COO matrix data to StarPU by using starpu_coo_data_register().
 
 \section PartitioningData Partitioning Data
 
@@ -267,8 +276,7 @@ struct starpu_data_filter f =
 starpu_data_partition(handle, &f);
 \endcode
 
-The task submission then uses the function starpu_data_get_sub_data()
-to retrieve the sub-handles to be passed as tasks parameters.
+The handle of a sub-data block of a composite data block can be reteieved by calling starpu_data_get_child(). Or the task submission first retrieves the number of sub-data blocks in a composite data block by calling starpu_data_get_nb_children() and then uses the function starpu_data_get_sub_data() or starpu_data_vget_sub_data() to retrieve the sub-handles to be passed as tasks parameters.
 
 \code{.c}
 /* Submit a task on each sub-vector */
@@ -288,7 +296,7 @@ for (i=0; i<starpu_data_get_nb_children(handle); i++)
 }
 \endcode
 
-Partitioning can be applied several times, see
+Partitioning can be applied several times by using starpu_data_map_filters() or starpu_data_vmap_filters() or starpu_data_map_filters_parray() or starpu_data_map_filters_array(), see
 <c>examples/basic_examples/mult.c</c> and <c>examples/filters/</c>.
 
 Wherever the whole piece of data is already available, the partitioning will
@@ -366,7 +374,9 @@ starpu_data_partition_plan() returns the handles for the partition in <c>vert_ha
 
 One can then submit tasks working on the main handle, and tasks working on the handles
 <c>vert_handle</c>. Between using the main handle and the handles <c>vert_handle</c>, StarPU will automatically call starpu_data_partition_submit() and
-starpu_data_unpartition_submit().
+starpu_data_unpartition_submit(). Or call starpu_data_partition_submit_sequential_consistency() and starpu_data_unpartition_submit_sequential_consistency() to specify the coherency to be used for the main handle, or call starpu_data_unpartition_submit_sequential_consistency_cb() to specify a callback function for the unpartitiong task. One can also call starpu_data_partition_readonly_submit() and starpu_data_unpartition_readonly_submit() which do not guarantee coherency if the application attempts to write to the main handle or any of its sub-handles while a task is still running. However, in read-only case we can also call starpu_data_partition_readonly_submit_sequential_consistency() to specify the coherency to be used for the main handle, or call starpu_data_partition_readwrite_upgrade_submit() to upgrade the partitioning of a data handle from read-only to read-write mode for a specific sub-handle.
+
+After the task has completed using the data partition, starpu_data_partition_clean() or starpu_data_partition_clean_node() is used to clean up a data partition on the local node or on a specific node.
 
 All this code is asynchronous, just submitting which tasks, partitioning and
 unpartitioning will be done at runtime.

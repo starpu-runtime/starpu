@@ -50,6 +50,10 @@ extern "C" {
 
 extern int _starpu_silent;
 
+/**
+   Retrieve the value of an environment variable.
+   See \ref ExecutionConfigurationThroughEnvironmentVariables for more details.
+ */
 char *starpu_getenv(const char *str);
 
 /**
@@ -61,6 +65,7 @@ char *starpu_getenv(const char *str);
    If the environment variable \c str is defined and its value is contained in the array \c strings, return the array position.
    Raise an error if the environment variable \c str is defined with a value not in \c strings
    Return \c defvalue if the environment variable \c str is not defined.
+   See \ref ExecutionConfigurationThroughEnvironmentVariables for more details.
  */
 int starpu_get_env_string_var_default(const char *str, const char *strings[], int defvalue);
 
@@ -73,6 +78,7 @@ int starpu_get_env_string_var_default(const char *str, const char *strings[], in
    If the environment variable \c str is defined with a well-defined size value, return the value as a size in bytes. Expected size qualifiers are b, B, k, K, m, M, g, G. The default qualifier is K.
    If the environment variable \c str is not defined or is empty, return \c defval
    Raise an error if the value of the environment variable \c str is not well-defined.
+   See \ref ExecutionConfigurationThroughEnvironmentVariables for more details.
  */
 int starpu_get_env_size_default(const char *str, int defval);
 
@@ -176,13 +182,14 @@ static __starpu_inline float starpu_get_env_float_default(const char *str, float
    blocks until \p func has been executed on every appropriate
    processing units, and thus may not be called from a callback
    function for instance.
-   See \ref HowToInitializeAComputationLibraryOnceForEachWorkerfor more details.
+   See \ref HowToInitializeAComputationLibraryOnceForEachWorker for more details.
 */
 void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t where);
 
 /**
    Same as starpu_execute_on_each_worker(), except that the task name
    is specified in the argument \p name.
+   See \ref HowToInitializeAComputationLibraryOnceForEachWorker for more details.
 */
 void starpu_execute_on_each_worker_ex(void (*func)(void *), void *arg, uint32_t where, const char *name);
 
@@ -191,6 +198,7 @@ void starpu_execute_on_each_worker_ex(void (*func)(void *), void *arg, uint32_t 
    num_workers indicates the number of workers in this array.  This
    function is synchronous, but the different workers may execute the
    function in parallel.
+   See \ref HowToInitializeAComputationLibraryOnceForEachWorker for more details.
 */
 void starpu_execute_on_specific_workers(void (*func)(void *), void *arg, unsigned num_workers, unsigned *workers, const char *name);
 
@@ -208,6 +216,7 @@ double starpu_timing_now(void);
    \p callback_func is not <c>NULL</c>, this callback function is executed after
    the handle has been copied, and it is given the pointer \p
    callback_arg as argument.
+   See \ref DataHandlesHelpers for more details.
 */
 int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle, int asynchronous, void (*callback_func)(void *), void *callback_arg);
 
@@ -215,6 +224,7 @@ int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_ha
    Like starpu_data_cpy(), copy the content of \p src_handle into \p dst_handle,
    but additionally take a \p priority parameter to sort it among the whole task
    graph.
+   See \ref DataHandlesHelpers for more details.
 */
 int starpu_data_cpy_priority(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle, int asynchronous, void (*callback_func)(void *), void *callback_arg, int priority);
 
@@ -230,6 +240,7 @@ int starpu_data_cpy_priority(starpu_data_handle_t dst_handle, starpu_data_handle
    \p callback_func is not <c>NULL</c>, this callback function is executed after
    the handle has been copied, and it is given the pointer \p
    callback_arg as argument.
+   See \ref DataHandlesHelpers for more details.
 */
 int starpu_data_dup_ro(starpu_data_handle_t *dst_handle, starpu_data_handle_t src_handle, int asynchronous);
 

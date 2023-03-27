@@ -39,6 +39,7 @@ extern "C" {
 
 /**
    Report a CUBLAS error.
+   See \ref CUDASupport for more details.
 */
 void starpu_cublas_report_error(const char *func, const char *file, int line, int status);
 
@@ -49,6 +50,7 @@ void starpu_cublas_report_error(const char *func, const char *file, int line, in
 
 /**
    Report a CUDA error.
+   See \ref CUDASupport for more details.
 */
 void starpu_cuda_report_error(const char *func, const char *file, int line, cudaError_t status);
 
@@ -85,6 +87,8 @@ const struct cudaDeviceProp *starpu_cuda_get_device_properties(unsigned workerid
    data synchronously. The function returns <c>-EAGAIN</c> if the
    asynchronous launch was successfull. It returns 0 if the synchronous
    copy was successful, or fails otherwise.
+
+   See \ref CUDASupport for more details.
 */
 int starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node, void *dst_ptr, unsigned dst_node, size_t ssize, cudaStream_t stream, enum cudaMemcpyKind kind);
 
@@ -100,6 +104,8 @@ int starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node, void *dst_ptr,
    it copies the data synchronously. The function returns <c>-EAGAIN</c> if the
    asynchronous launch was successfull. It returns 0 if the synchronous copy was
    successful, or fails otherwise.
+
+   See \ref CUDASupport for more details.
 */
 int starpu_cuda_copy2d_async_sync(void *src_ptr, unsigned src_node, void *dst_ptr, unsigned dst_node,
 				  size_t blocksize,
@@ -119,6 +125,8 @@ int starpu_cuda_copy2d_async_sync(void *src_ptr, unsigned src_node, void *dst_pt
    it copies the data synchronously. The function returns <c>-EAGAIN</c> if the
    asynchronous launch was successfull. It returns 0 if the synchronous copy was
    successful, or fails otherwise.
+
+   See \ref CUDASupport for more details.
 */
 int starpu_cuda_copy3d_async_sync(void *src_ptr, unsigned src_node, void *dst_ptr, unsigned dst_node,
 				  size_t blocksize,
@@ -130,12 +138,15 @@ int starpu_cuda_copy3d_async_sync(void *src_ptr, unsigned src_node, void *dst_pt
    Call <c>cudaSetDevice(\p devid)</c> or <c>cudaGLSetGLDevice(\p devid)</c>,
    according to whether \p devid is among the field
    starpu_conf::cuda_opengl_interoperability.
+
+   See \ref CUDASupport for more details.
 */
 void starpu_cuda_set_device(unsigned devid);
 
 #ifdef STARPU_HAVE_LIBNVIDIA_ML
 /**
   Return the nvml device for a CUDA device
+  See \ref CUDASupport for more details.
 */
 nvmlDevice_t starpu_cuda_get_nvmldev(unsigned devid);
 #endif

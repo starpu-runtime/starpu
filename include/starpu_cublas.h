@@ -42,12 +42,14 @@ void starpu_cublas_init(void);
    per CUDA worker, this function does not do anything since the
    CUBLAS stream does not change, and is set once by
    starpu_cublas_init().
+   See \ref CUDA-specificOptimizations for more details.
 */
 void starpu_cublas_set_stream(void);
 
 /**
    Synchronously deinitialize the CUBLAS library on
    every CUDA device.
+   See \ref CUDA-specificOptimizations for more details.
 */
 void starpu_cublas_shutdown(void);
 

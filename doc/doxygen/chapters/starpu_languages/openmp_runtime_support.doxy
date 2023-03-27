@@ -508,5 +508,47 @@ One just needs to compile an OpenMP application with <c>clang</c> and
 to execute it the StarPU OpenMP LLVM support library file instead of
 the default <c>libomp.so</c>.
 
+\section OMPStandard OpenMP Standard Functions in StarPU
+
+StarPU provides severals functions which are very similar to their OpenMP counterparts but are adapted to the StarPU runtime system. These functions are:
+
+\li starpu_omp_set_num_threads()
+\li starpu_omp_get_num_threads()
+\li starpu_omp_get_thread_num()
+\li starpu_omp_get_max_threads()
+\li starpu_omp_get_num_procs() which is used to get the number of available StarPU CPU workers.
+\li starpu_omp_in_parallel()
+\li starpu_omp_set_dynamic()
+\li starpu_omp_get_dynamic()
+\li starpu_omp_set_nested()
+\li starpu_omp_get_nested()
+\li starpu_omp_get_cancellation()
+\li starpu_omp_set_schedule()
+\li starpu_omp_get_schedule()
+\li starpu_omp_get_thread_limit()
+\li starpu_omp_set_max_active_levels()
+\li starpu_omp_get_max_active_levels()
+\li starpu_omp_get_level()
+\li starpu_omp_get_ancestor_thread_num()
+\li starpu_omp_get_team_size()
+\li starpu_omp_get_active_level()
+\li starpu_omp_in_final()
+\li starpu_omp_get_proc_bind()
+\li starpu_omp_get_num_places()
+\li starpu_omp_get_place_num_procs()
+\li starpu_omp_get_place_proc_ids()
+\li starpu_omp_get_place_num()
+\li starpu_omp_get_partition_num_places()
+\li starpu_omp_get_partition_place_nums()
+\li starpu_omp_set_default_device()
+\li starpu_omp_get_default_device()
+\li starpu_omp_get_num_devices()
+\li starpu_omp_get_num_teams()
+\li starpu_omp_get_team_num()
+\li starpu_omp_is_initial_device()
+\li starpu_omp_get_initial_device()
+\li starpu_omp_get_max_task_priority()
+\li starpu_omp_get_wtime()
+\li starpu_omp_get_wtick()
 
 */

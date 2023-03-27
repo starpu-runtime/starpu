@@ -63,7 +63,7 @@ We call starpu_worker_get_id() to retrieve the worker ID associated with the cur
 
 This however is not sufficient for FFT on CUDA: initialization has
 to be done from the workers themselves.  This can be done thanks to
-starpu_execute_on_each_worker().  For instance, <c>libstarpufft</c> does the following.
+starpu_execute_on_each_worker() or starpu_execute_on_each_worker_ex() with a specified task name, or starpu_execute_on_specific_workers() with specified workers. For instance, <c>libstarpufft</c> does the following.
 
 \code{.c}
 static void fft_plan_gpu(void *args)
@@ -241,7 +241,7 @@ security.models.extensions.user_set_cpu_affinity=1
 Yes, this is on purpose.
 
 By default, StarPU uses active polling on task queues to minimize wake-up
-latency for better overall performance.
+latency for better overall performance. We can call starpu_is_paused() to check whether the task processing by workers has been paused or not.
 
 If eating CPU time is a problem (e.g. application running on a desktop),
 pass option \ref enable-blocking-drivers "--enable-blocking-drivers" to

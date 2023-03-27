@@ -741,12 +741,14 @@ void starpu_data_register_same(starpu_data_handle_t *handledst, starpu_data_hand
    Return the pointer associated with \p handle on node \p node or <c>NULL</c>
    if handle’s interface does not support this operation or data for this
    \p handle is not allocated on that \p node.
+   See \ref DataPointers for more details.
 */
 void *starpu_data_handle_to_pointer(starpu_data_handle_t handle, unsigned node);
 
 /**
    Return the local pointer associated with \p handle or <c>NULL</c> if
    \p handle’s interface does not have any data allocated locally.
+   See \ref DataPointers for more details.
 */
 void *starpu_data_get_local_ptr(starpu_data_handle_t handle);
 
@@ -759,6 +761,7 @@ void *starpu_data_get_interface_on_node(starpu_data_handle_t handle, unsigned me
 /**
    Return the unique identifier of the interface associated with
    the given \p handle.
+   See \ref DefiningANewDataInterface_helpers for more details.
 */
 enum starpu_data_interface_id starpu_data_get_interface_id(starpu_data_handle_t handle);
 
@@ -771,11 +774,13 @@ enum starpu_data_interface_id starpu_data_get_interface_id(starpu_data_handle_t 
    function should not copy the data in the buffer but just set \p count to
    the size of the buffer which would have been allocated. The special
    value -1 indicates the size is yet unknown.
+   See \ref DataHandlesHelpers for more details.
 */
 int starpu_data_pack_node(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count);
 
 /**
    Like starpu_data_pack_node(), but for the local memory node.
+   See \ref DataHandlesHelpers for more details.
 */
 int starpu_data_pack(starpu_data_handle_t handle, void **ptr, starpu_ssize_t *count);
 
@@ -784,6 +789,7 @@ int starpu_data_pack(starpu_data_handle_t handle, void **ptr, starpu_ssize_t *co
    of size \p count as described by the interface of the data. The interface
    registered at \p handle must define a peeking operation (see
    starpu_data_interface_ops).
+   See \ref DataHandlesHelpers for more details.
 */
 int starpu_data_peek_node(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
 
@@ -792,6 +798,7 @@ int starpu_data_peek_node(starpu_data_handle_t handle, unsigned node, void *ptr,
    of size \p count as described by the interface of the data. The interface
    registered at \p handle must define a peeking operation (see
    starpu_data_interface_ops).
+   See \ref DataHandlesHelpers for more details.
 */
 int starpu_data_peek(starpu_data_handle_t handle, void *ptr, size_t count);
 
@@ -800,6 +807,7 @@ int starpu_data_peek(starpu_data_handle_t handle, void *ptr, size_t count);
    on node \p node as described by the interface of the data. The interface
    registered at \p handle must define an unpacking operation (see
    starpu_data_interface_ops).
+   See \ref DataHandlesHelpers for more details.
 */
 int starpu_data_unpack_node(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
 
@@ -808,28 +816,36 @@ int starpu_data_unpack_node(starpu_data_handle_t handle, unsigned node, void *pt
    described by the interface of the data. The interface registered at
    \p handle must define a unpacking operation (see
    starpu_data_interface_ops).
+   See \ref DataHandlesHelpers for more details.
 */
 int starpu_data_unpack(starpu_data_handle_t handle, void *ptr, size_t count);
 
 /**
    Return the size of the data associated with \p handle.
+   See \ref DataHandlesHelpers for more details.
 */
 size_t starpu_data_get_size(starpu_data_handle_t handle);
 
 /**
    Return the size of the allocated data associated with \p handle.
+   See \ref DataHandlesHelpers for more details.
 */
 size_t starpu_data_get_alloc_size(starpu_data_handle_t handle);
 
 /**
    Return the maximum size that the \p handle data may need to increase to.
+   See \ref DataHandlesHelpers for more details.
 */
 starpu_ssize_t starpu_data_get_max_size(starpu_data_handle_t handle);
 
+/**
+   See \ref DataHandlesHelpers for more details.
+*/
 int starpu_data_get_home_node(starpu_data_handle_t handle);
 
 /**
-   Print basic informations on \p handle on \p node
+   Print basic informations on \p handle on \p node.
+   See \ref DataHandlesHelpers for more details.
  */
 void starpu_data_print(starpu_data_handle_t handle, unsigned node, FILE *stream);
 
@@ -867,6 +883,8 @@ int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node,
    method for 2D data, which is provided with \p async_data to be passed to
    starpu_interface_copy(). this returns <c>-EAGAIN</c> if the transfer is still
    ongoing, or 0 if the transfer is already completed.
+
+   See \ref DefiningANewDataInterface_copy for more details.
 */
 int starpu_interface_copy2d(uintptr_t src, size_t src_offset, unsigned src_node,
 			    uintptr_t dst, size_t dst_offset, unsigned dst_node,
@@ -893,6 +911,8 @@ int starpu_interface_copy2d(uintptr_t src, size_t src_offset, unsigned src_node,
    method for 3D data, which is provided with \p async_data to be passed to
    starpu_interface_copy(). this returns <c>-EAGAIN</c> if the transfer is still
    ongoing, or 0 if the transfer is already completed.
+
+   See \ref DefiningANewDataInterface_copy for more details.
 */
 int starpu_interface_copy3d(uintptr_t src, size_t src_offset, unsigned src_node,
 			    uintptr_t dst, size_t dst_offset, unsigned dst_node,
@@ -924,6 +944,8 @@ int starpu_interface_copy3d(uintptr_t src, size_t src_offset, unsigned src_node,
    method for 4D data, which is provided with \p async_data to be passed to
    starpu_interface_copy(). this returns <c>-EAGAIN</c> if the transfer is still
    ongoing, or 0 if the transfer is already completed.
+
+   See \ref DefiningANewDataInterface_copy for more details.
 */
 int starpu_interface_copy4d(uintptr_t src, size_t src_offset, unsigned src_node,
 			    uintptr_t dst, size_t dst_offset, unsigned dst_node,
@@ -948,6 +970,8 @@ int starpu_interface_copy4d(uintptr_t src, size_t src_offset, unsigned src_node,
    method for Ndim data, which is provided with \p async_data to be passed to
    starpu_interface_copy(). this returns <c>-EAGAIN</c> if the transfer is still
    ongoing, or 0 if the transfer is already completed.
+
+   See \ref DefiningANewDataInterface_copy for more details.
 */
 int starpu_interface_copynd(uintptr_t src, size_t src_offset, unsigned src_node,
 			    uintptr_t dst, size_t dst_offset, unsigned dst_node,
@@ -963,17 +987,21 @@ int starpu_interface_copynd(uintptr_t src, size_t src_offset, unsigned src_node,
    execution traces, and the timing of the submission is checked. \p start must
    point to a variable whose value will be passed unchanged to
    starpu_interface_end_driver_copy_async().
+
+   See \ref DefiningANewDataInterface_copy for more details.
 */
 void starpu_interface_start_driver_copy_async(unsigned src_node, unsigned dst_node, double *start);
 
 /**
    See starpu_interface_start_driver_copy_async().
+   See \ref DefiningANewDataInterface_copy for more details.
 */
 void starpu_interface_end_driver_copy_async(unsigned src_node, unsigned dst_node, double start);
 
 /**
    Record in offline execution traces the copy of \p size bytes from
-   node \p src_node to node \p dst_node
+   node \p src_node to node \p dst_node.
+   See \ref DefiningANewDataInterface_copy for more details.
  */
 void starpu_interface_data_copy(unsigned src_node, unsigned dst_node, size_t size);
 
@@ -1014,6 +1042,7 @@ void starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size);
 /**
    Define the default flags for allocations performed by starpu_malloc_on_node() and
    starpu_free_on_node(). The default is \ref STARPU_MALLOC_PINNED | \ref STARPU_MALLOC_COUNT.
+	See \ref HowToLimitMemoryPerNode for more details.
 */
 void starpu_malloc_on_node_set_default_flags(unsigned node, int flags);
 
@@ -1283,6 +1312,7 @@ struct starpu_coo_interface
    Register the \p nx x \p ny 2D matrix given in the COO format, using the
    \p columns, \p rows, \p values arrays, which must have \p n_values elements of
    size \p elemsize. Initialize \p handleptr.
+   See \ref COODataInterface for more details.
 */
 void starpu_coo_data_register(starpu_data_handle_t *handleptr, int home_node, uint32_t nx, uint32_t ny, uint32_t n_values, uint32_t *columns, uint32_t *rows, uintptr_t values, size_t elemsize);
 
@@ -1976,6 +2006,7 @@ void starpu_vector_data_register(starpu_data_handle_t *handle, int home_node, ui
 /**
    Similar to starpu_vector_data_register, but additionally specifies which
    allocation size should be used instead of the initial nx*elemsize.
+   See \ref VariableSizeDataInterface for more details.
 */
 void starpu_vector_data_register_allocsize(starpu_data_handle_t *handle, int home_node, uintptr_t ptr, uint32_t nx, size_t elemsize, size_t allocsize);
 
@@ -2210,6 +2241,7 @@ extern struct starpu_data_interface_ops starpu_interface_void_ops;
    by the application internally: this makes it possible to forbid the
    concurrent execution of different tasks accessing the same <c>void</c>
    data in read-write concurrently.
+   See \ref DataHandlesHelpers for more details.
  */
 void starpu_void_data_register(starpu_data_handle_t *handle);
 
@@ -2245,6 +2277,7 @@ struct starpu_csr_interface
 
 /**
    Register a CSR (Compressed Sparse Row Representation) sparse matrix.
+   See \ref CSRDataInterface for more details.
  */
 void starpu_csr_data_register(starpu_data_handle_t *handle, int home_node, uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, size_t elemsize);
 
@@ -2647,6 +2680,7 @@ struct starpu_multiformat_interface
    when working on a CPU, and a structure of arrays when working on a
    GPU. \p nobjects is the number of elements in the data. \p format_ops
    describes the format.
+   See \ref TheMultiformatInterface for more details.
 */
 void starpu_multiformat_data_register(starpu_data_handle_t *handle, int home_node, void *ptr, uint32_t nobjects, struct starpu_multiformat_data_interface_ops *format_ops);
 
