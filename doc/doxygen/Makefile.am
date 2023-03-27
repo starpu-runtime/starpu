@@ -65,6 +65,8 @@ chapters =	\
 	chapters/starpu_extensions/advanced_scheduling.doxy		\
 	chapters/starpu_extensions/scheduling_contexts.doxy		\
 	chapters/starpu_extensions/scheduling_context_hypervisor.doxy		\
+	chapters/starpu_extensions/cuda_support.doxy		\
+	chapters/starpu_extensions/opencl_support.doxy		\
 	chapters/starpu_extensions/out_of_core.doxy		\
 	chapters/starpu_extensions/mpi_support.doxy		\
 	chapters/starpu_extensions/tcpip_support.doxy		\

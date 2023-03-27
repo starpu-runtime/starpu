@@ -1,0 +1,25 @@
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+
+/*! \page CUDASupport CUDA Support
+
+StarPU sets the current CUDA device by calling starpu_cuda_set_device() which takes an integer argument representing the device number, and sets the current device to the specified device number. By setting the current device, applications can select which CUDA device to use for their computations, enabling efficient management of multiple CUDA devices in a system.
+
+We can call starpu_cuda_get_nvmldev() to get identifier of the NVML device associated with a given CUDA device.
+
+Two functions starpu_cuda_report_error() and starpu_cublas_report_error() are useful for debugging and troubleshooting, as they provide detailed information about the error that occurr during CUDA or CUBLAS execution.
+
+*/

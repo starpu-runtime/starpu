@@ -679,6 +679,7 @@ void starpu_resume(void);
 
 /**
    Return !0 if task processing by workers is currently paused, 0 otherwise.
+   See \ref StarPUEatsCPUs for more details.
  */
 int starpu_is_paused(void);
 
@@ -718,48 +719,56 @@ int starpu_bind_thread_on(int cpuid, unsigned flags, const char *name);
 
 /**
    Print a description of the topology on \p f.
+   See \ref ConfigurationAndInitialization for more details.
 */
 void starpu_topology_print(FILE *f);
 
 /**
    Return 1 if asynchronous data transfers between CPU and
    accelerators are disabled.
+   See \ref Basic for more details.
 */
 int starpu_asynchronous_copy_disabled(void);
 
 /**
    Return 1 if asynchronous data transfers between CPU and CUDA
    accelerators are disabled.
+   See \ref cudaWorkers for more details.
 */
 int starpu_asynchronous_cuda_copy_disabled(void);
 
 /**
    Return 1 if asynchronous data transfers between CPU and HIP
    accelerators are disabled.
+   See \ref hipWorkers for more details.
 */
 int starpu_asynchronous_hip_copy_disabled(void);
 
 /**
    Return 1 if asynchronous data transfers between CPU and OpenCL
    accelerators are disabled.
+   See \ref openclWorkers for more details.
 */
 int starpu_asynchronous_opencl_copy_disabled(void);
 
 /**
    Return 1 if asynchronous data transfers between CPU and Maxeler FPGA
    devices are disabled.
+   See \ref maxfpgaWorkers for more details.
 */
 int starpu_asynchronous_max_fpga_copy_disabled(void);
 
 /**
    Return 1 if asynchronous data transfers between CPU and MPI Slave
    devices are disabled.
+   See \ref mpimsWorkers for more details.
 */
 int starpu_asynchronous_mpi_ms_copy_disabled(void);
 
 /**
    Return 1 if asynchronous data transfers between CPU and TCP/IP Slave
    devices are disabled.
+   See \ref tcpipmsWorkers for more details.
 */
 int starpu_asynchronous_tcpip_ms_copy_disabled(void);
 
@@ -772,12 +781,14 @@ int starpu_asynchronous_copy_disabled_for(enum starpu_node_kind kind);
 /**
    Return 1 if memory mapping support between memory nodes is
    enabled.
+   See \ref Basic for more details.
 */
 int starpu_map_enabled(void);
 
 /**
    Call starpu_profiling_bus_helper_display_summary() and
-   starpu_profiling_worker_helper_display_summary()
+   starpu_profiling_worker_helper_display_summary().
+   See \ref DataStatistics for more details.
 */
 void starpu_display_stats(void);
 
@@ -791,6 +802,7 @@ void starpu_display_stats(void);
 /**
    Return as 3 integers the version of StarPU used when running the
    application.
+   See \ref ConfigurationAndInitialization for more details.
 */
 void starpu_get_version(int *major, int *minor, int *release);
 

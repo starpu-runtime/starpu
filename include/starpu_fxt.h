@@ -156,6 +156,7 @@ int starpu_fxt_is_enabled(void);
 
 /**
    Add an event in the execution trace if FxT is enabled.
+   See \ref CreatingAGanttDiagram for more details.
 */
 void starpu_fxt_trace_user_event(unsigned long code);
 

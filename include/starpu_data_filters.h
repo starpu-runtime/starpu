@@ -140,11 +140,13 @@ void starpu_data_unpartition(starpu_data_handle_t root_data, unsigned gathering_
 /**
    Return the \p i -th child of the given \p handle, which must have
    been partitionned beforehand.
+   See \ref PartitioningData for more details.
 */
 starpu_data_handle_t starpu_data_get_child(starpu_data_handle_t handle, unsigned i);
 
 /**
    Return the number of children \p handle has been partitioned into.
+   See \ref PartitioningData for more details.
 */
 int starpu_data_get_nb_children(starpu_data_handle_t handle);
 
@@ -169,6 +171,7 @@ starpu_data_handle_t starpu_data_get_sub_data(starpu_data_handle_t root_data, un
 /**
    Similar to starpu_data_get_sub_data() but use a \c va_list for the
    parameter list.
+   See \ref PartitioningData for more details.
 */
 starpu_data_handle_t starpu_data_vget_sub_data(starpu_data_handle_t root_data, unsigned depth, va_list pa);
 
@@ -176,6 +179,7 @@ starpu_data_handle_t starpu_data_vget_sub_data(starpu_data_handle_t root_data, u
    Apply \p nfilters filters to the handle designated by \p
    root_handle recursively. \p nfilters pointers to variables of the
    type starpu_data_filter should be given.
+   See \ref PartitioningData for more details.
 */
 void starpu_data_map_filters(starpu_data_handle_t root_data, unsigned nfilters, ...);
 
@@ -183,6 +187,7 @@ void starpu_data_map_filters(starpu_data_handle_t root_data, unsigned nfilters, 
    Apply \p nfilters filters to the handle designated by
    \p root_handle recursively. Use a \p va_list of pointers to
    variables of the type starpu_data_filter.
+   See \ref PartitioningData for more details.
 */
 void starpu_data_vmap_filters(starpu_data_handle_t root_data, unsigned nfilters, va_list pa);
 
@@ -190,6 +195,7 @@ void starpu_data_vmap_filters(starpu_data_handle_t root_data, unsigned nfilters,
    Apply \p nfilters filters to the handle designated by \p
    root_handle recursively. The pointer of the filter list \p filters
    of the type starpu_data_filter should be given.
+   See \ref PartitioningData for more details.
 */
 void starpu_data_map_filters_parray(starpu_data_handle_t root_handle, int nfilters, struct starpu_data_filter **filters);
 
@@ -197,6 +203,7 @@ void starpu_data_map_filters_parray(starpu_data_handle_t root_handle, int nfilte
    Apply \p nfilters filters to the handle designated by \p
    root_handle recursively. The list of filter \p filters
    of the type starpu_data_filter should be given.
+   See \ref PartitioningData for more details.
 */
 void starpu_data_map_filters_array(starpu_data_handle_t root_handle, int nfilters, struct starpu_data_filter *filters);
 
@@ -260,12 +267,14 @@ void starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned 
    call starpu_data_partition_readwrite_upgrade_submit(), which will correctly add
    dependencies between the reads on the \p initial_handle and the writes to be
    submitted.
+   See \ref AsynchronousPartitioning for more details.
 */
 void starpu_data_partition_readonly_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children);
 
 /**
- * Similar to starpu_data_partition_readonly_submit(), but allow to
- * specify the the coherency to be used for the main data \p initial_handle
+   Similar to starpu_data_partition_readonly_submit(), but allow to
+   specify the coherency to be used for the main data \p initial_handle.
+   See \ref AsynchronousPartitioning for more details.
  */
 void starpu_data_partition_readonly_submit_sequential_consistency(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int sequential_consistency);
 
@@ -274,6 +283,7 @@ void starpu_data_partition_readonly_submit_sequential_consistency(starpu_data_ha
    in readonly mode through starpu_data_partition_readonly_submit(), and will upgrade
    that partitioning into read-write mode for the \p children, by invalidating \p
    initial_handle, and adding the necessary dependencies.
+   See \ref AsynchronousPartitioning for more details.
 */
 void starpu_data_partition_readwrite_upgrade_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children);
 
@@ -293,6 +303,7 @@ void starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsigne
    them, since the coherency is otherwise not guaranteed.  This thus allows to
    submit various tasks which concurrently read from various
    partitions of the data.
+   See \ref AsynchronousPartitioning for more details.
 */
 void starpu_data_unpartition_readonly_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gathering_node);
 
@@ -301,18 +312,21 @@ void starpu_data_unpartition_readonly_submit(starpu_data_handle_t initial_handle
    \p children with starpu_data_partition_plan(). This will notably
    submit an unregister all the \p children, which can thus not be
    used any more afterwards.
+   See \ref AsynchronousPartitioning for more details.
 */
 void starpu_data_partition_clean(starpu_data_handle_t root_data, unsigned nparts, starpu_data_handle_t *children);
 
 /**
    Similar to starpu_data_partition_clean() but the root data will be
-   gathered on the given node
+   gathered on the given node.
+   See \ref AsynchronousPartitioning for more details.
 */
 void starpu_data_partition_clean_node(starpu_data_handle_t root_data, unsigned nparts, starpu_data_handle_t *children, int gather_node);
 
 /**
    Similar to starpu_data_unpartition_submit_sequential_consistency()
-   but allow to specify a callback function for the unpartitiong task
+   but allow to specify a callback function for the unpartitiong task.
+   See \ref AsynchronousPartitioning for more details.
 */
 void starpu_data_unpartition_submit_sequential_consistency_cb(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node, int sequential_consistency, void (*callback_func)(void *), void *callback_arg);
 
@@ -320,6 +334,7 @@ void starpu_data_unpartition_submit_sequential_consistency_cb(starpu_data_handle
    Similar to starpu_data_partition_submit() but also allow to specify
    the coherency to be used for the main data \p initial_handle
    through the parameter \p sequential_consistency.
+   See \ref AsynchronousPartitioning for more details.
 */
 void starpu_data_partition_submit_sequential_consistency(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int sequential_consistency);
 
@@ -327,6 +342,7 @@ void starpu_data_partition_submit_sequential_consistency(starpu_data_handle_t in
    Similar to starpu_data_unpartition_submit() but also allow to specify
    the coherency to be used for the main data \p initial_handle
    through the parameter \p sequential_consistency.
+   See \ref AsynchronousPartitioning for more details.
 */
 void starpu_data_unpartition_submit_sequential_consistency(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gathering_node, int sequential_consistency);
 
@@ -352,10 +368,12 @@ void starpu_bcsr_filter_canonical_block(void *father_interface, void *child_inte
 
 /**
    Return the number of children obtained with starpu_bcsr_filter_canonical_block().
+   See \ref BCSRDataInterface for more details.
 */
 unsigned starpu_bcsr_filter_canonical_block_get_nchildren(struct starpu_data_filter *f, starpu_data_handle_t handle);
 /**
    Return the child_ops of the partition obtained with starpu_bcsr_filter_canonical_block().
+   See \ref BCSRDataInterface for more details.
 */
 struct starpu_data_interface_ops *starpu_bcsr_filter_canonical_block_child_ops(struct starpu_data_filter *f, unsigned child);
 
@@ -458,6 +476,7 @@ void starpu_matrix_filter_pick_vector_y(void *father_interface, void *child_inte
 
 /**
    Return the child_ops of the partition obtained with starpu_matrix_filter_pick_vector_y().
+   See \ref MatrixDataInterface for more details.
 */
 struct starpu_data_interface_ops *starpu_matrix_filter_pick_vector_child_ops(struct starpu_data_filter *f, unsigned child);
 
@@ -475,6 +494,7 @@ void starpu_matrix_filter_pick_variable(void *father_interface, void *child_inte
 
 /**
    Return the child_ops of the partition obtained with starpu_matrix_filter_pick_variable().
+   See \ref MatrixDataInterface for more details.
 */
 struct starpu_data_interface_ops *starpu_matrix_filter_pick_variable_child_ops(struct starpu_data_filter *f, unsigned child);
 
@@ -559,6 +579,7 @@ void starpu_vector_filter_pick_variable(void *father_interface, void *child_inte
 
 /**
    Return the child_ops of the partition obtained with starpu_vector_filter_pick_variable().
+   See \ref VectorDataInterface for more details.
 */
 struct starpu_data_interface_ops *starpu_vector_filter_pick_variable_child_ops(struct starpu_data_filter *f, unsigned child);
 
@@ -672,6 +693,7 @@ void starpu_block_filter_pick_matrix_y(void *father_interface, void *child_inter
 /**
    Return the child_ops of the partition obtained with starpu_block_filter_pick_matrix_z()
    and starpu_block_filter_pick_matrix_y().
+   See \ref BlockDataInterface for more details.
 */
 struct starpu_data_interface_ops *starpu_block_filter_pick_matrix_child_ops(struct starpu_data_filter *f, unsigned child);
 
@@ -689,6 +711,7 @@ void starpu_block_filter_pick_variable(void *father_interface, void *child_inter
 
 /**
    Return the child_ops of the partition obtained with starpu_block_filter_pick_variable().
+   See \ref BlockDataInterface for more details.
 */
 struct starpu_data_interface_ops *starpu_block_filter_pick_variable_child_ops(struct starpu_data_filter *f, unsigned child);
 
@@ -835,6 +858,7 @@ void starpu_tensor_filter_pick_block_y(void *father_interface, void *child_inter
 /**
    Return the child_ops of the partition obtained with starpu_tensor_filter_pick_block_t(),
    starpu_tensor_filter_pick_block_z() and starpu_tensor_filter_pick_block_y().
+   See \ref TensorDataInterface for more details.
 */
 struct starpu_data_interface_ops *starpu_tensor_filter_pick_block_child_ops(struct starpu_data_filter *f, unsigned child);
 
@@ -852,6 +876,7 @@ void starpu_tensor_filter_pick_variable(void *father_interface, void *child_inte
 
 /**
    Return the child_ops of the partition obtained with starpu_tensor_filter_pick_variable().
+   See \ref TensorDataInterface for more details.
 */
 struct starpu_data_interface_ops *starpu_tensor_filter_pick_variable_child_ops(struct starpu_data_filter *f, unsigned child);
 
@@ -1034,51 +1059,61 @@ void starpu_ndim_filter_pick_variable(void *father_interface, void *child_interf
 
 /**
    Return the child_ops of the partition obtained with starpu_ndim_filter_pick_tensor().
+   See \ref NdimDataInterface for more details.
 */
 struct starpu_data_interface_ops *starpu_ndim_filter_pick_tensor_child_ops(struct starpu_data_filter *f, unsigned child);
 
 /**
    Return the child_ops of the partition obtained with starpu_ndim_filter_pick_block().
+   See \ref NdimDataInterface for more details.
 */
 struct starpu_data_interface_ops *starpu_ndim_filter_pick_block_child_ops(struct starpu_data_filter *f, unsigned child);
 
 /**
    Return the child_ops of the partition obtained with starpu_ndim_filter_pick_matrix().
+   See \ref NdimDataInterface for more details.
 */
 struct starpu_data_interface_ops *starpu_ndim_filter_pick_matrix_child_ops(struct starpu_data_filter *f, unsigned child);
 
 /**
    Return the child_ops of the partition obtained with starpu_ndim_filter_pick_vector().
+   See \ref NdimDataInterface for more details.
 */
 struct starpu_data_interface_ops *starpu_ndim_filter_pick_vector_child_ops(struct starpu_data_filter *f, unsigned child);
 
 /**
    Return the child_ops of the partition obtained with starpu_ndim_filter_pick_variable().
+   See \ref NdimDataInterface for more details.
 */
 struct starpu_data_interface_ops *starpu_ndim_filter_pick_variable_child_ops(struct starpu_data_filter *f, unsigned child);
 
 /**
    Return the child_ops of the partition obtained with starpu_ndim_filter_to_tensor().
+   See \ref NdimDataInterface for more details.
 */
 struct starpu_data_interface_ops *starpu_ndim_filter_to_tensor_child_ops(struct starpu_data_filter *f, unsigned child);
 
 /**
    Return the child_ops of the partition obtained with starpu_ndim_filter_to_block().
+   See \ref NdimDataInterface for more details.
 */
 struct starpu_data_interface_ops *starpu_ndim_filter_to_block_child_ops(struct starpu_data_filter *f, unsigned child);
 
 /**
    Return the child_ops of the partition obtained with starpu_ndim_filter_to_matrix().
+   See \ref NdimDataInterface for more details.
 */
 struct starpu_data_interface_ops *starpu_ndim_filter_to_matrix_child_ops(struct starpu_data_filter *f, unsigned child);
 
 /**
    Return the child_ops of the partition obtained with starpu_ndim_filter_to_vector().
+   See \ref NdimDataInterface for more details.
 */
 struct starpu_data_interface_ops *starpu_ndim_filter_to_vector_child_ops(struct starpu_data_filter *f, unsigned child);
 
 /**
    Return the child_ops of the partition obtained with starpu_ndim_filter_to_variable().
+   See \ref NdimDataInterface for more details.
 */
 struct starpu_data_interface_ops *starpu_ndim_filter_to_variable_child_ops(struct starpu_data_filter *f, unsigned child);
 
@@ -1087,6 +1122,7 @@ struct starpu_data_interface_ops *starpu_ndim_filter_to_variable_child_ops(struc
    part currently considered, determines the \p chunk_size and the \p offset, taking
    into account the size of the elements stored in the data structure \p elemsize
    and \p blocksize, which is most often 1.
+   See \ref DefiningANewDataFilter for more details.
  */
 void starpu_filter_nparts_compute_chunk_size_and_offset(unsigned n, unsigned nparts,
 							size_t elemsize, unsigned id,

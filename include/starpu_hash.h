@@ -34,6 +34,7 @@ extern "C" {
    <em>current state</em>. The return value should be considered as the new
    <em>current state</em> for future CRC computation. This is used for computing
    data size footprint.
+   See \ref DefiningANewDataInterface_footprint for more details.
 */
 uint32_t starpu_hash_crc32c_be_n(const void *input, size_t n, uint32_t inputcrc);
 
@@ -42,6 +43,7 @@ uint32_t starpu_hash_crc32c_be_n(const void *input, size_t n, uint32_t inputcrc)
    <em>current state</em>. The return value should be considered as the new
    <em>current state</em> for future CRC computation. This is used for computing
    data size footprint.
+   See \ref DefiningANewDataInterface_footprint for more details.
 */
 uint32_t starpu_hash_crc32c_be_ptr(void *input, uint32_t inputcrc);
 
@@ -49,7 +51,8 @@ uint32_t starpu_hash_crc32c_be_ptr(void *input, uint32_t inputcrc);
    Compute the CRC of a 32bit number seeded by the \p inputcrc
    <em>current state</em>. The return value should be considered as the new
    <em>current state</em> for future CRC computation. This is used for computing
-   data size footprint. See \ref PerformanceModelExample for more details.
+   data size footprint.
+   See \ref DefiningANewDataInterface_footprint for more details.
 */
 uint32_t starpu_hash_crc32c_be(uint32_t input, uint32_t inputcrc);
 
@@ -58,6 +61,7 @@ uint32_t starpu_hash_crc32c_be(uint32_t input, uint32_t inputcrc);
    state</em>. The return value should be considered as the new <em>current
    state</em> for future CRC computation. This is used for computing data
    size footprint.
+   See \ref DefiningANewDataInterface_footprint for more details.
 */
 uint32_t starpu_hash_crc32c_string(const char *str, uint32_t inputcrc);
 

@@ -82,6 +82,7 @@ int starpu_driver_run(struct starpu_driver *d);
 
 /**
    Notify all running drivers that they should terminate.
+   See \ref UsingTheDriverAPI for more details.
 */
 void starpu_drivers_request_termination(void);
 

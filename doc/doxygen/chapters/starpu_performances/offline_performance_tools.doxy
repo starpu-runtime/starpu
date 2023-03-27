@@ -181,7 +181,7 @@ starpu_task_insert(). The value of the tag will then show up in the
 trace.
 
 One can also introduce user-defined events in the diagram thanks to the
-starpu_fxt_trace_user_event_string() function.
+starpu_fxt_trace_user_event() or starpu_fxt_trace_user_event_string() function.
 
 One can also set the iteration number, by just calling starpu_iteration_push()
 at the beginning of submission loops and starpu_iteration_pop() at the end of
@@ -710,10 +710,7 @@ near to the bound computed with dependencies enabled (which takes a huge lot
 more time to compute), and thus provides a good-enough estimation of the ideal
 execution time.
 
-\ref TheoreticalLowerBoundOnExecutionTimeExample provides an example on how to
-use this.
-
-\section TheoreticalLowerBoundOnExecutionTimeExample Theoretical Lower Bound On Execution Time Example
+Then there is an example to show how to use this.
 
 For kernels with history-based performance models (and provided that
 they are completely calibrated), StarPU can very easily provide a
@@ -723,13 +720,13 @@ submitting tasks, call the function starpu_bound_start(), and after
 complete execution, call starpu_bound_stop().
 starpu_bound_print_lp() or starpu_bound_print_mps() can then be used
 to output a Linear Programming problem corresponding to the schedule
-of your tasks. Run it through <c>lp_solve</c> or any other linear
+of your tasks. Or starpu_bound_print_dot() can be used to print a task dependency graph in the DOT format. Run it through <c>lp_solve</c> or any other linear
 programming solver, and that will give you a lower bound for the total
 execution time of your tasks. If StarPU was compiled with the library
 <c>glpk</c> installed, starpu_bound_compute() can be used to solve it
 immediately and get the optimized minimum, in ms. Its parameter
 <c>integer</c> allows deciding whether integer resolution should be
-computed and returned
+computed and returned. Besides to solve it immediately and get the optimized minimum starpu_bound_print() can also print the statistics of actual execution and theoretical upper bound.
 
 The <c>deps</c> parameter tells StarPU whether to take tasks, implicit
 data, and tag dependencies into account. Tags released in a callback
@@ -1090,7 +1087,7 @@ environment variable \ref STARPU_STATS to <c>0</c>. If the environment variable
 \ref STARPU_BUS_STATS is defined, you can call starpu_profiling_bus_helper_display_summary() 
 to display statistics about the bus. If the environment variable 
 \ref STARPU_WORKER_STATS is defined, you can call starpu_profiling_worker_helper_display_summary() 
-to display statistics about the workers. 
+to display statistics about the workers. You can also call starpu_display_stats() which call both starpu_profiling_bus_helper_display_summary() and starpu_profiling_worker_helper_display_summary() at the same time.
 
 \verbatim
 $ ./examples/cholesky/cholesky_tag

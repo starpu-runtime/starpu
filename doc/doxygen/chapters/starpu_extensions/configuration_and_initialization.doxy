@@ -47,4 +47,8 @@ We can check whether StarPU is already initialized by calling
 starpu_is_initialized(), and call starpu_wait_initialized() to wait
 for the initialization to be finished.
 
+There are some functions are useful for debugging purposes or for understanding the underlying architecture of the system, such as starpu_topology_print() is used to print the current topology of the system.
+
+We can get the version of StarPU used when running the application by calling starpu_get_version().
+
 */

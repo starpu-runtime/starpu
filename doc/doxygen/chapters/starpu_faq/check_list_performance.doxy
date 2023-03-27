@@ -130,15 +130,14 @@ asynchronous and need such explicit synchronization! Use \c cudaMemcpyAsync() an
 \c cudaMemsetAsync() instead.
 
 Calling starpu_cublas_init() will ensure StarPU to properly call the
-CUBLAS library functions. Some libraries like Magma may however change the current stream of CUBLAS v1,
-one then has to call <c>cublasSetKernelStream(</c>starpu_cuda_get_local_stream()<c>)</c> at
+CUBLAS library functions, and starpu_cublas_shutdown() will synchronously deinitialize the CUBLAS library on every CUDA device. Some libraries like Magma may however change the current stream of CUBLAS v1, one then has to call starpu_cublas_set_stream() at
 the beginning of the codelet to make sure that CUBLAS is really using the proper
 stream. When using CUBLAS v2, starpu_cublas_get_local_handle() can be called to queue CUBLAS
 kernels with the proper configuration.
 
 Similarly, calling starpu_cusparse_init() makes StarPU create CUSPARSE handles
 on each CUDA device, starpu_cusparse_get_local_handle() can then be used to
-queue CUSPARSE kernels with the proper configuration.
+queue CUSPARSE kernels with the proper configuration. starpu_cusparse_shutdown() will synchronously deinitialize the CUSPARSE library on every CUDA device.
 
 Similarly, calling starpu_cusolver_init() makes StarPU create CUSOLVER handles
 on each CUDA device, starpu_cusolverDn_get_local_handle(), starpu_cusolverSp_get_local_handle(),
@@ -252,6 +251,7 @@ can be used to account freed memory back. Those can for instance be used by data
 interfaces with dynamic data buffers: instead of using starpu_malloc_on_node(),
 they would dynamically allocate data with \c malloc()/\c realloc(), and notify StarPU of
 the delta by calling starpu_memory_allocate() and starpu_memory_deallocate().
+By default, the memory management system uses a set of default flags for each node when allocating memory. starpu_malloc_on_node_set_default_flags() can be used to modify these default flags on a specific node.
 
 starpu_memory_get_total() and starpu_memory_get_available()
 can be used to get an estimation of how much memory is available.

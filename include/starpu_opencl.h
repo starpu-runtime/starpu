@@ -56,28 +56,33 @@ struct starpu_opencl_program
 /**
    Return the OpenCL context of the device designated by \p devid
    in \p context.
+   See \ref OpenCLSupport for more details.
 */
 void starpu_opencl_get_context(int devid, cl_context *context);
 
 /**
    Return the cl_device_id corresponding to \p devid in \p device.
+   See \ref OpenCLSupport for more details.
 */
 void starpu_opencl_get_device(int devid, cl_device_id *device);
 
 /**
    Return the command queue of the device designated by \p devid
    into \p queue.
+   See \ref OpenCLSupport for more details.
 */
 void starpu_opencl_get_queue(int devid, cl_command_queue *queue);
 
 /**
    Return the context of the current worker.
+   See \ref OpenCLSupport for more details.
 */
 void starpu_opencl_get_current_context(cl_context *context);
 
 /**
    Return the computation kernel command queue of the current
    worker.
+   See \ref OpenCLSupport for more details.
 */
 void starpu_opencl_get_current_queue(cl_command_queue *queue);
 
@@ -98,6 +103,8 @@ void starpu_opencl_get_current_queue(cl_command_queue *queue);
    n = starpu_opencl_set_kernel_args(&err, 2, &kernel, sizeof(foo), &foo, sizeof(bar), &bar, 0);
    if (n != 2) fprintf(stderr, "Error : %d\n", err);
    \endcode
+
+   See \ref OpenCLSupport for more details.
 */
 int starpu_opencl_set_kernel_args(cl_int *err, cl_kernel *kernel, ...);
 
@@ -126,7 +133,7 @@ int starpu_opencl_set_kernel_args(cl_int *err, cl_kernel *kernel, ...);
    file is found, \p located_file_name is the full name of the file as it
    has been located on the system, \p located_dir_name the directory
    where it has been located. Otherwise, they are both set to the empty
-   string. See \ref MiscellaneousAndDebug for more details.
+   string. See \ref OpenCLSupport for more details.
 */
 void starpu_opencl_load_program_source(const char *source_file_name, char *located_file_name, char *located_dir_name, char *opencl_program_source);
 
@@ -134,6 +141,7 @@ void starpu_opencl_load_program_source(const char *source_file_name, char *locat
    Similar to function starpu_opencl_load_program_source() but
    allocate the buffers \p located_file_name, \p located_dir_name and
    \p opencl_program_source.
+   See \ref OpenCLSupport for more details.
 */
 void starpu_opencl_load_program_source_malloc(const char *source_file_name, char **located_file_name, char **located_dir_name, char **opencl_program_source);
 
@@ -144,6 +152,7 @@ void starpu_opencl_load_program_source_malloc(const char *source_file_name, char
    \p source_file_name. The compilation is done for every OpenCL device,
    and the filename is suffixed with the vendor id and the device id of
    the OpenCL device.
+   See \ref OpenCLSupport for more details.
 */
 int starpu_opencl_compile_opencl_from_file(const char *source_file_name, const char *build_options);
 
@@ -154,6 +163,7 @@ int starpu_opencl_compile_opencl_from_file(const char *source_file_name, const c
    file_name. The compilation is done for every OpenCL device, and the
    filename is suffixed with the vendor id and the device id of the
    OpenCL device.
+   See \ref OpenCLSupport for more details.
 */
 int starpu_opencl_compile_opencl_from_string(const char *opencl_program_source, const char *file_name, const char *build_options);
 
@@ -162,20 +172,24 @@ int starpu_opencl_compile_opencl_from_string(const char *opencl_program_source, 
    For every OpenCL device, the binary OpenCL kernel will be loaded from
    the file
    <c>$STARPU_HOME/.starpu/opencl/\<kernel_id\>.\<device_type\>.vendor_id_\<vendor_id\>_device_id_\<device_id\></c>.
+   See \ref OpenCLSupport for more details.
 */
 int starpu_opencl_load_binary_opencl(const char *kernel_id, struct starpu_opencl_program *opencl_programs);
 
 /**
    Compile an OpenCL source code stored in a file.
+   See \ref OpenCLSupport for more details.
 */
 int starpu_opencl_load_opencl_from_file(const char *source_file_name, struct starpu_opencl_program *opencl_programs, const char *build_options);
 /**
    Compile an OpenCL source code stored in a string.
+   See \ref OpenCLSupport for more details.
  */
 int starpu_opencl_load_opencl_from_string(const char *opencl_program_source, struct starpu_opencl_program *opencl_programs, const char *build_options);
 
 /**
    Unload an OpenCL compiled code.
+   See \ref OpenCLSupport for more details.
 */
 int starpu_opencl_unload_opencl(struct starpu_opencl_program *opencl_programs);
 
@@ -190,11 +204,13 @@ int starpu_opencl_unload_opencl(struct starpu_opencl_program *opencl_programs);
    Create a kernel \p kernel for device \p devid, on its computation
    command queue returned in \p queue, using program \p opencl_programs
    and name \p kernel_name.
+   See \ref OpenCLSupport for more details.
 */
 int starpu_opencl_load_kernel(cl_kernel *kernel, cl_command_queue *queue, struct starpu_opencl_program *opencl_programs, const char *kernel_name, int devid);
 
 /**
    Release the given \p kernel, to be called after kernel execution.
+   See \ref OpenCLSupport for more details.
 */
 int starpu_opencl_release_kernel(cl_kernel kernel);
 
@@ -224,6 +240,7 @@ int starpu_opencl_collect_stats(cl_event event);
 /**
    Return the error message in English corresponding to \p status, an OpenCL
    error code.
+   See \ref OpenCLSupport for more details.
 */
 const char *starpu_opencl_error_string(cl_int status);
 
@@ -231,6 +248,7 @@ const char *starpu_opencl_error_string(cl_int status);
    Given a valid error status, print the corresponding error message on
    \c stdout, along with the function name \p func, the filename
    \p file, the line number \p line and the message \p msg.
+   See \ref OpenCLSupport for more details.
 */
 void starpu_opencl_display_error(const char *func, const char *file, int line, const char *msg, cl_int status);
 
@@ -266,6 +284,7 @@ static __starpu_inline void starpu_opencl_report_error(const char *func, const c
 /**
    Allocate \p size bytes of memory, stored in \p addr. \p flags must be a valid
    combination of \c cl_mem_flags values.
+   See \ref DefiningANewDataInterface_allocation for more details.
 */
 cl_int starpu_opencl_allocate_memory(int devid, cl_mem *addr, size_t size, cl_mem_flags flags);
 
@@ -280,6 +299,7 @@ cl_int starpu_opencl_allocate_memory(int devid, cl_mem *addr, size_t size, cl_me
    The integer pointed to by \p ret is set to <c>-EAGAIN</c> if the
    asynchronous launch was successful, or to 0 if \p event was
    <c>NULL</c>.
+   See \ref DefiningANewDataInterface_copy for more details.
 */
 cl_int starpu_opencl_copy_ram_to_opencl(void *ptr, unsigned src_node, cl_mem buffer, unsigned dst_node, size_t size, size_t offset, cl_event *event, int *ret);
 
@@ -294,6 +314,7 @@ cl_int starpu_opencl_copy_ram_to_opencl(void *ptr, unsigned src_node, cl_mem buf
    The integer pointed to by \p ret is set to <c>-EAGAIN</c> if the
    asynchronous launch was successful, or to 0 if \p event was
    <c>NULL</c>.
+   See \ref DefiningANewDataInterface_copy for more details.
 */
 cl_int starpu_opencl_copy_opencl_to_ram(cl_mem buffer, unsigned src_node, void *ptr, unsigned dst_node, size_t size, size_t offset, cl_event *event, int *ret);
 
@@ -308,6 +329,7 @@ cl_int starpu_opencl_copy_opencl_to_ram(cl_mem buffer, unsigned src_node, void *
    The integer pointed to by \p ret is set to <c>-EAGAIN</c> if the
    asynchronous launch was successful, or to 0 if \p event was
    <c>NULL</c>.
+   See \ref DefiningANewDataInterface_copy for more details.
 */
 cl_int starpu_opencl_copy_opencl_to_opencl(cl_mem src, unsigned src_node, size_t src_offset, cl_mem dst, unsigned dst_node, size_t dst_offset, size_t size, cl_event *event, int *ret);
 
@@ -320,6 +342,7 @@ cl_int starpu_opencl_copy_opencl_to_opencl(cl_mem src, unsigned src_node, size_t
    function returns <c>-EAGAIN</c> if the asynchronous launch was
    successfull. It returns 0 if the synchronous copy was successful, or
    fails otherwise.
+   See \ref DefiningANewDataInterface_copy for more details.
 */
 cl_int starpu_opencl_copy_async_sync(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, cl_event *event);
 

@@ -19,7 +19,7 @@
 /*! \page ExecutionConfigurationThroughEnvironmentVariables Execution Configuration Through Environment Variables
 
 The behavior of the StarPU library and tools may be tuned thanks to
-the following environment variables.
+the following environment variables. The function starpu_getenv() allows you to retrieve the value of an environment variable used by StarPU. The function starpu_get_env_string_var_default() allows you to retrieve the value of an environment variable used by StarPU as a string, or a default value if the environment variable is not set. The function allows you to retrieve the value of an environment variable used by StarPU as a size in bytes, or a default value if the environment variable is not set.
 
 \section EnvConfiguringWorkers Configuring Workers
 
@@ -185,7 +185,7 @@ workers.
 Disable asynchronous copies between CPU and GPU devices.
 The AMD implementation of OpenCL is known to
 fail when copying data asynchronously. When using this implementation,
-it is therefore necessary to disable asynchronous data transfers.
+it is therefore necessary to disable asynchronous data transfers. One can call starpu_asynchronous_copy_disabled() to check whether asynchronous data transfers between CPU and accelerators are disabled.
 
 See also \ref STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY and \ref
 STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY.
@@ -234,7 +234,7 @@ Defined internally by StarPU when running in master slave mode.
 \anchor STARPU_ENABLE_MAP
 \addindex __env__STARPU_ENABLE_MAP
 Disable (0) or Enable (1) support for memory mapping between memory nodes.  The
-default is Disable.
+default is Disable. One can call starpu_map_enabled() to check whether memory mapping support between memory nodes is enabled.
 </dd>
 
 <dt>STARPU_DATA_LOCALITY_ENFORCE</dt>
@@ -353,7 +353,7 @@ is set.
 <dd>
 \anchor STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY
 \addindex __env__STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY
-Disable asynchronous copies between CPU and CUDA devices.
+Disable asynchronous copies between CPU and CUDA devices. One can call starpu_asynchronous_cuda_copy_disabled() to check whether asynchronous data transfers between CPU and CUDA accelerators are disabled.
 
 See also \ref STARPU_DISABLE_ASYNCHRONOUS_COPY and \ref
 STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY.
@@ -450,7 +450,7 @@ to 1, the OpenCL driver will ONLY enable CPU devices.
 Disable asynchronous copies between CPU and OpenCL devices.
 The AMD implementation of OpenCL is known to
 fail when copying data asynchronously. When using this implementation,
-it is therefore necessary to disable asynchronous data transfers.
+it is therefore necessary to disable asynchronous data transfers. One can call starpu_asynchronous_opencl_copy_disabled() to check whether asynchronous data transfers between CPU and OpenCL accelerators are disabled.
 
 See also \ref STARPU_DISABLE_ASYNCHRONOUS_COPY and \ref
 STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY.
@@ -485,7 +485,7 @@ the one reported by the Maxeler stack).
 <dd>
 \anchor STARPU_DISABLE_ASYNCHRONOUS_MAX_FPGA_COPY
 \addindex __env__STARPU_DISABLE_ASYNCHRONOUS_MAX_FPGA_COPY
-Disable asynchronous copies between CPU and Maxeler FPGA devices.
+Disable asynchronous copies between CPU and Maxeler FPGA devices. One can call starpu_asynchronous_max_fpga_copy_disabled() to check whether asynchronous data transfers between CPU and Maxeler FPGA devices are disabled.
 </dd>
 
 \subsection mpimsWorkers MPI Master Slave Workers
@@ -523,7 +523,7 @@ This variable allows to chose which MPI node (with the MPI ID) will be the maste
 <dd>
 \anchor STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY
 \addindex __env__STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY
-Disable asynchronous copies between CPU and MPI Slave devices.
+Disable asynchronous copies between CPU and MPI Slave devices. One can call starpu_asynchronous_mpi_ms_copy_disabled() to check whether asynchronous data transfers between CPU and MPI Slave devices are disabled.
 </dd>
 
 </dl>
@@ -582,7 +582,7 @@ driver all slaves. The default is 0.
 <dd>
 \anchor STARPU_DISABLE_ASYNCHRONOUS_TCPIP_MS_COPY
 \addindex __env__STARPU_DISABLE_ASYNCHRONOUS_TCPIP_MS_COPY
-Disable asynchronous copies between CPU and TCP/IP Slave devices.
+Disable asynchronous copies between CPU and TCP/IP Slave devices. One can call starpu_asynchronous_tcpip_ms_copy_disabled() to check whether asynchronous data transfers between CPU and TCP/IP Slave devices are disabled.
 </dd>
 
 </dl>
@@ -620,7 +620,7 @@ is set.
 <dd>
 \anchor STARPU_DISABLE_ASYNCHRONOUS_HIP_COPY
 \addindex __env__STARPU_DISABLE_ASYNCHRONOUS_HIP_COPY
-Disable asynchronous copies between CPU and HIP devices.
+Disable asynchronous copies between CPU and HIP devices. One can call starpu_asynchronous_hip_copy_disabled() to check whether asynchronous data transfers between CPU and HIP accelerators are disabled.
 </dd>
 
 </dl>
