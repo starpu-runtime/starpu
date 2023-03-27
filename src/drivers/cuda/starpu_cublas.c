@@ -52,7 +52,7 @@ static void init_cublas_func(void *args STARPU_ATTRIBUTE_UNUSED)
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex[devid]);
 	if (!(cublas_initialized[idx]++))
 	{
-		cublasStatus cublasst = cublasInit();
+		cublasStatus_t cublasst = cublasInit();
 		if (STARPU_UNLIKELY(cublasst))
 			STARPU_CUBLAS_REPORT_ERROR(cublasst);
 	}
