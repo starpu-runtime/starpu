@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -46,7 +46,9 @@ void print_block_data(starpu_data_handle_t block_handle)
 	unsigned ldy = starpu_block_get_local_ldy(block_handle);
 	unsigned ldz = starpu_block_get_local_ldz(block_handle);
 
+	starpu_data_acquire(block_handle, STARPU_R);
 	print_block(block, nx, ny, nz, ldy, ldz);
+	starpu_data_release(block_handle);
 }
 
 void print_3dim_data(starpu_data_handle_t ndim_handle)
@@ -55,7 +57,9 @@ void print_3dim_data(starpu_data_handle_t ndim_handle)
 	unsigned *nn = starpu_ndim_get_nn(ndim_handle);
 	unsigned *ldn = starpu_ndim_get_local_ldn(ndim_handle);
 
+	starpu_data_acquire(ndim_handle, STARPU_R);
 	print_block(arr3d, nn[0], nn[1], nn[2], ldn[1], ldn[2]);
+	starpu_data_release(ndim_handle);
 }
 
 void generate_block_data(int *block, int nx, int ny, int nz, unsigned ldy, unsigned ldz)
