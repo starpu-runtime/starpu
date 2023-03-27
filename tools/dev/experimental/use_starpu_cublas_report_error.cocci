@@ -30,7 +30,7 @@ virtual report
 // 		STARPU_ABORT();
 //
 @starpu_abort@
-cublasStatus status;
+cublasStatus_t status;
 position p;
 @@
 status = cublasGetError();
@@ -53,7 +53,7 @@ p << starpu_abort.p;
 coccilib.org.print_todo(p[0], "Use STARPU_CUBLAS_REPORT_ERROR() instead of STARPU_ABORT().")
 
 @depends on starpu_abort && patch@
-cublasStatus starpu_abort.status;
+cublasStatus_t starpu_abort.status;
 position starpu_abort.p;
 @@
 - STARPU_ABORT@p();
@@ -71,7 +71,7 @@ coccilib.report.print_report(p[0], "Use STARPU_CUBLAS_REPORT_ERROR() instead of 
 // 	status = cublasGetError();
 // 	STARPU_ASSERT(!status);
 @starpu_assert@
-cublasStatus status;
+cublasStatus_t status;
 position p;
 @@
 status = cublasGetError();
@@ -90,7 +90,7 @@ coccilib.org.print_todo(p[0], "Use STARPU_CUBLAS_REPORT_ERROR() instead of STARP
 
 @depends on starpu_assert && patch@
 position starpu_assert.p;
-cublasStatus starpu_assert.status;
+cublasStatus_t starpu_assert.status;
 @@
 - STARPU_ASSERT@p(!status);
 + if (STARPU_UNLIKELY(status != CUBLAS_STATUS_SUCCESS))

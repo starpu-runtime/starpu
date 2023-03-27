@@ -24,7 +24,6 @@
 #endif
 
 #ifdef STARPU_USE_CUDA
-#include <cublas.h>
 #include <starpu_cublas_v2.h>
 static const float p1 =  1.0;
 static const float m1 = -1.0;
@@ -132,7 +131,7 @@ static inline void dw_common_cpu_codelet_update_gemm(void *descr[], int s, void 
 	unsigned ld22 = STARPU_MATRIX_GET_LD(descr[2]);
 
 #ifdef STARPU_USE_CUDA
-	cublasStatus status;
+	cublasStatus_t status;
 #endif
 
 	switch (s)
@@ -198,7 +197,7 @@ static inline void dw_common_codelet_update_trsm_ll(void *descr[], int s, void *
 	unsigned ny12 = STARPU_MATRIX_GET_NY(descr[1]);
 
 #ifdef STARPU_USE_CUDA
-	cublasStatus status;
+	cublasStatus_t status;
 #endif
 
 	/* solve L11 U12 = A12 (find U12) */
@@ -263,7 +262,7 @@ static inline void dw_common_codelet_update_trsm_ru(void *descr[], int s, void *
 	unsigned ny21 = STARPU_MATRIX_GET_NY(descr[1]);
 
 #ifdef STARPU_USE_CUDA
-	cublasStatus status;
+	cublasStatus_t status;
 #endif
 
 	switch (s)
