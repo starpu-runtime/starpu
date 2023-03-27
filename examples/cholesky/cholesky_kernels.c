@@ -22,7 +22,6 @@
 #include "cholesky.h"
 #include "../common/blas.h"
 #if defined(STARPU_USE_CUDA)
-#include <cublas.h>
 #include <starpu_cublas_v2.h>
 #include "starpu_cusolver.h"
 #if defined(STARPU_HAVE_MAGMA)
@@ -197,7 +196,7 @@ static inline void chol_common_codelet_update_trsm(void *descr[], int s, void *_
 	unsigned ny21 = STARPU_MATRIX_GET_NX(descr[1]);
 
 #ifdef STARPU_USE_CUDA
-	cublasStatus status;
+	cublasStatus_t status;
 #endif
 
 	switch (s)
