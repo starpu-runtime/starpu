@@ -981,23 +981,34 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 		/* For worker sets, we only start a thread for the first worker.  */
 		if (!worker_set || worker_set->workers == workerarg)
 		{
-			starpu_pthread_t *worker_thread;
-			struct starpu_driver driver;
-
 			if (worker_set)
 			{
-				worker_thread = &worker_set->worker_thread;
 				if (!driver_worker_set || driver_worker_set == worker_set)
 					worker_set->set_is_initialized = 0;
 				worker_set->wait_for_set_initialization = !driver_worker_set || driver_worker_set == worker_set;
 			}
-			else
-			{
-				worker_thread = &workerarg->worker_thread;
-			}
 
 			workerarg->driver_ops = starpu_driver_info[workerarg->arch].driver_ops;
 			workerarg->wait_for_worker_initialization = starpu_driver_info[workerarg->arch].wait_for_worker_initialization;
+		}
+	}
+
+	for (worker = 0; worker < nworkers; worker++)
+	{
+		struct _starpu_worker *workerarg = &pconfig->workers[worker];
+		struct _starpu_worker_set *worker_set = workerarg->set;
+		struct _starpu_worker_set *driver_worker_set = workerarg->driver_worker_set;
+
+		/* For worker sets, we only start a thread for the first worker.  */
+		if (!worker_set || worker_set->workers == workerarg)
+		{
+			starpu_pthread_t *worker_thread;
+			struct starpu_driver driver;
+
+			if (worker_set)
+				worker_thread = &worker_set->worker_thread;
+			else
+				worker_thread = &workerarg->worker_thread;
 
 			if (workerarg->driver_ops)
 			{
