@@ -170,6 +170,8 @@ struct gpu_pulled_task
 //~ };
 extern struct gpu_pulled_task *tab_gpu_pulled_task;
 
+extern int* memory_nodes; /* memory node associated to each GPU or CPU */
+
 /** Variables globales et reset **/
 extern bool gpu_memory_initialized;
 extern bool new_tasks_initialized;
