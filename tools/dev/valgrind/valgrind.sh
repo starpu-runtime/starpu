@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2016-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2016-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -33,7 +33,7 @@ then
     XML_FILE=$(mktemp -p ${DIRNAME}/../../../valgrind starpu-valgrind_XXXXXXXXXX.xml)
     RUN="valgrind --track-origins=yes --show-reachable=yes --leak-check=full --errors-for-leak-kinds=all --show-leak-kinds=all --xml=yes --xml-file=${XML_FILE} $STARPU_VALGRIND_OPTIONS"
 else
-    RUN="valgrind --tool=$EXEC --error-exitcode=42 $STARPU_VALGRIND_OPTIONS"
+    RUN="valgrind --tool=$EXEC --error-exitcode=42"
 fi
 SUPPRESSIONS=$(for f in $(dirname $0)/*.suppr /usr/share/hwloc/hwloc-valgrind.supp; do if test -f $f ; then echo "--suppressions=$f" ; fi ; done)
 
