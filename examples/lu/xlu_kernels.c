@@ -21,7 +21,6 @@
 #include <complex.h>
 
 #ifdef STARPU_USE_CUDA
-#include <cublas.h>
 #include <starpu_cublas_v2.h>
 #endif
 
@@ -54,7 +53,7 @@ static inline void STARPU_LU(common_gemm)(void *descr[], int s, void *_args)
 	unsigned ld22 = STARPU_MATRIX_GET_LD(descr[2]);
 
 #ifdef STARPU_USE_CUDA
-	cublasStatus status;
+	cublasStatus_t status;
 #endif
 
 	switch (s)
@@ -179,7 +178,7 @@ static inline void STARPU_LU(common_trsmll)(void *descr[], int s, void *_args)
 	unsigned ny12 = STARPU_MATRIX_GET_NY(descr[1]);
 
 #ifdef STARPU_USE_CUDA
-	cublasStatus status;
+	cublasStatus_t status;
 #endif
 
 	/* solve L11 U12 = A12 (find U12) */
@@ -269,7 +268,7 @@ static inline void STARPU_LU(common_trsmru)(void *descr[], int s, void *_args)
 	unsigned ny21 = STARPU_MATRIX_GET_NY(descr[1]);
 
 #ifdef STARPU_USE_CUDA
-	cublasStatus status;
+	cublasStatus_t status;
 #endif
 
 	switch (s)
@@ -355,7 +354,7 @@ static inline void STARPU_LU(common_getrf)(void *descr[], int s, void *_args)
 	unsigned long z;
 
 #ifdef STARPU_USE_CUDA
-	cublasStatus status;
+	cublasStatus_t status;
 	cublasHandle_t handle;
 	cudaStream_t stream;
 #endif
@@ -479,7 +478,7 @@ static inline void STARPU_LU(common_getrf_pivot)(void *descr[],
 	unsigned first = piv->first;
 
 #ifdef STARPU_USE_CUDA
-	cublasStatus status;
+	cublasStatus_t status;
 	cublasHandle_t handle;
 	cudaStream_t stream;
 #endif
@@ -650,7 +649,7 @@ static inline void STARPU_LU(common_pivot)(void *descr[],
 	unsigned first = piv->first;
 
 #ifdef STARPU_USE_CUDA
-	cublasStatus status;
+	cublasStatus_t status;
 	cublasHandle_t handle;
 #endif
 
