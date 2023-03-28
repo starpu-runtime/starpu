@@ -15,8 +15,7 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
-INPUT                  = @top_srcdir@/doc/doxygen/chapters/foreword.doxy \
-                      @top_srcdir@/doc/doxygen/chapters/starpu_extensions/extensions_intro.doxy \
+INPUT                  = @top_srcdir@/doc/doxygen/chapters/starpu_extensions/extensions_intro.doxy \
                       @top_srcdir@/doc/doxygen/chapters/starpu_extensions/debugging_tools.doxy \
                       @top_srcdir@/doc/doxygen/chapters/starpu_extensions/configuration_and_initialization.doxy \
                       @top_srcdir@/doc/doxygen/chapters/starpu_extensions/advanced_tasks.doxy \
@@ -61,4 +60,6 @@ HTML_OUTPUT            = html_web_extensions
 
 PROJECT_NAME           = "StarPU Handbook - StarPU Extensions"
 ALIASES                += "intropage{2} = \mainpage"
+ALIASES		       += "webforeword = \htmlonly <h1><a class='anchor' id='Foreword'></a>Foreword</h1> \endhtmlonly \htmlinclude version.html \htmlinclude foreword.html"
+ALIASES		       += "foreword = "
 

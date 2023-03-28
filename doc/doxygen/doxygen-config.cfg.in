@@ -15,8 +15,7 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
-INPUT                  = @top_srcdir@/doc/doxygen/chapters/foreword.doxy \
-			 @top_srcdir@/doc/doxygen/chapters/starpu_introduction/introduction_intro.doxy \
+INPUT                  = @top_srcdir@/doc/doxygen/chapters/starpu_introduction/introduction_intro.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_introduction/doc_organization.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_introduction/glossary.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_installation/installation_intro.doxy \
@@ -86,3 +85,5 @@ GENERATE_LATEX         = @DOC_GENERATE_LATEX@
 
 PROJECT_NAME           = "StarPU Handbook"
 ALIASES                += "intropage{2} = \page \1 \2"
+ALIASES		       += "foreword = \htmlonly <h1><a class='anchor' id='Foreword'></a>Foreword</h1> \endhtmlonly \htmlinclude version.html \htmlinclude foreword.html"
+ALIASES		       += "webforeword = "

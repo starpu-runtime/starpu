@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2011       Télécom-SudParis
 # Copyright (C) 2013       Simon Archipoff
 #
@@ -15,8 +15,7 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
-INPUT                  = @top_srcdir@/doc/doxygen/chapters/foreword.doxy \
-                      @top_srcdir@/doc/doxygen/chapters/starpu_applications/applications_intro.doxy \
+INPUT                  = @top_srcdir@/doc/doxygen/chapters/starpu_applications/applications_intro.doxy \
                       @top_srcdir@/doc/doxygen/chapters/starpu_applications/stencil.doxy \
                       @top_srcdir@/doc/doxygen/chapters/fdl_1_3.doxy \
                       @top_srcdir@/doc/doxygen/chapters/files.doxy \
@@ -40,3 +39,5 @@ HTML_OUTPUT            = html_web_applications
 
 PROJECT_NAME           = "StarPU Handbook - StarPU Applications"
 ALIASES                += "intropage{2} = \mainpage"
+ALIASES		       += "webforeword = \htmlonly <h1><a class='anchor' id='Foreword'></a>Foreword</h1> \endhtmlonly \htmlinclude version.html \htmlinclude foreword.html"
+ALIASES		       += "foreword = "
