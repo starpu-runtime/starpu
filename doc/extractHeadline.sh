@@ -27,7 +27,7 @@ root=$(dirname $0)
 
 	if test -f $root/doxygen/chapters/starpu_$x/${x}_intro.doxy
 	then
-	    headline=$(grep -A2 intropage $root/doxygen/chapters/starpu_$x/${x}_intro.doxy | tail -1)
+	    headline=$(grep -A6 intropage $root/doxygen/chapters/starpu_$x/${x}_intro.doxy | tail -1)
 	    echo "- $x"
 	    if test -n "$headline"
 	    then
