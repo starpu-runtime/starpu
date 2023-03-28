@@ -16,6 +16,10 @@
 
 /*! \intropage{IntroExtensions, --------- StarPU Extensions ---------}
 
+\webforeword
+
+\section Organization Organization
+
 This part explains the advanced concepts of StarPU. It is intended for users whose applications need more than basic task submission.
 
 <ul>
