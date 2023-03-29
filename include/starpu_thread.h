@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -93,6 +93,7 @@ int starpu_pthread_create_on(const char *name, starpu_pthread_t *thread, const s
 int starpu_pthread_create(starpu_pthread_t *thread, const starpu_pthread_attr_t *attr, void *(*start_routine)(void *), void *arg);
 starpu_pthread_t _starpu_simgrid_actor_create(const char *name, xbt_main_func_t code, starpu_sg_host_t host, int argc, char *argv[]);
 int starpu_pthread_join(starpu_pthread_t thread, void **retval);
+int starpu_pthread_detach(starpu_pthread_t thread);
 int starpu_pthread_exit(void *retval) STARPU_ATTRIBUTE_NORETURN;
 int starpu_pthread_attr_init(starpu_pthread_attr_t *attr);
 int starpu_pthread_attr_destroy(starpu_pthread_attr_t *attr);
@@ -109,6 +110,7 @@ typedef pthread_attr_t starpu_pthread_attr_t;
 #define starpu_pthread_create						  pthread_create
 #define starpu_pthread_create_on(name, thread, attr, routine, arg, where) starpu_pthread_create(thread, attr, routine, arg)
 #define starpu_pthread_join						  pthread_join
+#define starpu_pthread_detach						  pthread_detach
 #define starpu_pthread_exit						  pthread_exit
 #define starpu_pthread_attr_init					  pthread_attr_init
 #define starpu_pthread_attr_destroy					  pthread_attr_destroy
