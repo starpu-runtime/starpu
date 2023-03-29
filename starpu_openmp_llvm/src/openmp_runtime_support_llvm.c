@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2018-2022 Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2018-2023 Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -506,12 +506,12 @@ kmp_int32 __kmpc_omp_task_with_deps(ident_t *loc_ref, kmp_int32 gtid,
 			if (dep_list[i].len == 1)
 			{
 				starpu_variable_data_register(&handles[current_buffer], STARPU_MAIN_RAM, (uintptr_t)dep_list[i].base_addr, sizeof(kmp_intptr_t));
-				starpu_omp_handle_register(handles[current_buffer], dep_list[i].base_addr);
+				starpu_omp_handle_register(handles[current_buffer]);
 			}
 			else
 			{
 				starpu_vector_data_register(&handles[current_buffer], STARPU_MAIN_RAM, (uintptr_t)dep_list[i].base_addr, dep_list[i].len, dep_list[i].elem_size);
-				starpu_omp_handle_register(handles[current_buffer], dep_list[i].base_addr);
+				starpu_omp_handle_register(handles[current_buffer]);
 			}
 		}
 		current_buffer++;
@@ -540,12 +540,12 @@ kmp_int32 __kmpc_omp_task_with_deps(ident_t *loc_ref, kmp_int32 gtid,
 			if (dep_list[i].len == 1)
 			{
 				starpu_variable_data_register(&handles[current_buffer], STARPU_MAIN_RAM, (uintptr_t)dep_list[i].base_addr, sizeof(kmp_intptr_t));
-				starpu_omp_handle_register(handles[current_buffer], dep_list[i].base_addr);
+				starpu_omp_handle_register(handles[current_buffer]);
 			}
 			else
 			{
 				starpu_vector_data_register(&handles[current_buffer], STARPU_MAIN_RAM, (uintptr_t)dep_list[i].base_addr, dep_list[i].len, dep_list[i].elem_size);
-				starpu_omp_handle_register(handles[current_buffer], dep_list[i].base_addr);
+				starpu_omp_handle_register(handles[current_buffer]);
 			}
 		}
 		current_buffer++;
