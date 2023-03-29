@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2017       Guillaume Beauchamp
  * Copyright (C) 2021       Federal University of Rio Grande do Sul (UFRGS)
  *
@@ -340,6 +340,9 @@ static void _starpu_mpi_simgrid_wait_req_func(void* arg)
 {
 	struct _starpu_simgrid_mpi_req *sim_req = arg;
 	int ret;
+
+	starpu_pthread_detach(starpu_pthread_self());
+
 	STARPU_PTHREAD_MUTEX_LOCK(&wait_counter_mutex);
 	wait_counter++;
 	STARPU_PTHREAD_MUTEX_UNLOCK(&wait_counter_mutex);
