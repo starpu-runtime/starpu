@@ -602,6 +602,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	_starpu_mpi_cache_init(argc_argv->comm);
 	_starpu_mpi_select_node_init();
 	_starpu_mpi_datatype_init();
+	_starpu_mpi_tags_init();
 
 #ifdef STARPU_USE_FXT
 	_starpu_mpi_fxt_init(argc_argv);

@@ -114,6 +114,7 @@ libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
 	starpu_mpi_fortran.c				\
 	starpu_mpi_task_insert_fortran.c		\
 	starpu_mpi_init.c				\
+	starpu_mpi_tags.c				\
 	nmad/starpu_mpi_nmad_coop.c			\
 	nmad/starpu_mpi_nmad_unknown_datatype.c		\
 	nmad/starpu_mpi_nmad.c				\

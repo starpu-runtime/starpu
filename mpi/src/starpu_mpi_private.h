@@ -348,6 +348,9 @@ int _starpu_mpi_choose_node(starpu_data_handle_t data_handle, enum starpu_data_a
 
 void _starpu_mpi_data_flush(starpu_data_handle_t data_handle);
 
+/** To be called at initialization to set up the tags upper bound */
+void _starpu_mpi_tags_init(void);
+
 struct _starpu_mpi_argc_argv
 {
 	int initialize_mpi;

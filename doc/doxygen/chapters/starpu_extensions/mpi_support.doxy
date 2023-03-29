@@ -568,47 +568,47 @@ One can note an optimization here (the <c>else if</c> test): we only register
 data which will be needed by the tasks that we will execute.
 
 \code{.c}
-    unsigned matrix[X][Y];
-    starpu_data_handle_t data_handles[X][Y];
+unsigned matrix[X][Y];
+starpu_data_handle_t data_handles[X][Y];
 
-    for(x = 0; x < X; x++)
+for(x = 0; x < X; x++)
+{
+    for (y = 0; y < Y; y++)
     {
-        for (y = 0; y < Y; y++)
+        int mpi_rank = my_distrib(x, y, size);
+        if (mpi_rank == my_rank)
+            /* Owning data */
+            starpu_variable_data_register(&data_handles[x][y], STARPU_MAIN_RAM, (uintptr_t)&(matrix[x][y]), sizeof(unsigned));
+        else if (my_rank == my_distrib(x+1, y, size) || my_rank == my_distrib(x-1, y, size)
+              || my_rank == my_distrib(x, y+1, size) || my_rank == my_distrib(x, y-1, size))
+            /* I don't own this index, but will need it for my computations */
+            starpu_variable_data_register(&data_handles[x][y], -1, (uintptr_t)NULL, sizeof(unsigned));
+        else
+            /* I know it's useless to allocate anything for this */
+            data_handles[x][y] = NULL;
+        if (data_handles[x][y])
         {
-            int mpi_rank = my_distrib(x, y, size);
-            if (mpi_rank == my_rank)
-                /* Owning data */
-                starpu_variable_data_register(&data_handles[x][y], STARPU_MAIN_RAM, (uintptr_t)&(matrix[x][y]), sizeof(unsigned));
-            else if (my_rank == my_distrib(x+1, y, size) || my_rank == my_distrib(x-1, y, size)
-                  || my_rank == my_distrib(x, y+1, size) || my_rank == my_distrib(x, y-1, size))
-                /* I don't own this index, but will need it for my computations */
-                starpu_variable_data_register(&data_handles[x][y], -1, (uintptr_t)NULL, sizeof(unsigned));
-            else
-                /* I know it's useless to allocate anything for this */
-                data_handles[x][y] = NULL;
-            if (data_handles[x][y])
-            {
-                starpu_mpi_data_register(data_handles[x][y], x*X+y, mpi_rank);
-            }
+            starpu_mpi_data_register(data_handles[x][y], x*X+y, mpi_rank);
         }
     }
+}
 \endcode
 
 Now starpu_mpi_task_insert() can be called for the different
 steps of the application.
 
 \code{.c}
-    for(loop=0 ; loop<niter; loop++)
-        for (x = 1; x < X-1; x++)
-            for (y = 1; y < Y-1; y++)
-                starpu_mpi_task_insert(MPI_COMM_WORLD, &stencil5_cl,
-                                       STARPU_RW, data_handles[x][y],
-                                       STARPU_R, data_handles[x-1][y],
-                                       STARPU_R, data_handles[x+1][y],
-                                       STARPU_R, data_handles[x][y-1],
-                                       STARPU_R, data_handles[x][y+1],
-                                       0);
-    starpu_task_wait_for_all();
+for(loop=0 ; loop<niter; loop++)
+    for (x = 1; x < X-1; x++)
+        for (y = 1; y < Y-1; y++)
+            starpu_mpi_task_insert(MPI_COMM_WORLD, &stencil5_cl,
+                                   STARPU_RW, data_handles[x][y],
+                                   STARPU_R, data_handles[x-1][y],
+                                   STARPU_R, data_handles[x+1][y],
+                                   STARPU_R, data_handles[x][y-1],
+                                   STARPU_R, data_handles[x][y+1],
+                                   0);
+starpu_task_wait_for_all();
 \endcode
 
 The full source code is available in the file <c>mpi/examples/stencil/stencil5.c</c>.
@@ -675,6 +675,49 @@ starpu_mpi_task_exchange_data_after_execution(MPI_COMM_WORLD, descrs, 2, params)
 \endcode
 
 A full source code using these functions is available in the file <c>mpi/tests/mpi_task_submit.c</c>.
+
+If many data handles must be registered with unique tag ids, or if
+multiple applications are concurrently submitting tasks to StarPU, it
+is then difficult to keep the uniqueness of the tags for each piece of
+data.
+StarPU provides a tag management system to allocate/free a unique
+range of tags when registering the data to prevent conflict from one
+application to another. The previous code then becomes:
+
+\code{.c}
+unsigned matrix[X][Y];
+starpu_data_handle_t data_handles[X][Y];
+int64_t mintag = starpu_mpi_tags_allocate(X*Y);
+
+for(x = 0; x < X; x++)
+{
+    for (y = 0; y < Y; y++)
+    {
+	    ...
+        if (data_handles[x][y])
+        {
+            starpu_mpi_data_register(data_handles[x][y], mintag + y*Y+x, mpi_rank);
+        }
+    }
+}
+\endcode
+
+Then, when all these pieces of data have been unregistered, you may
+free the range of tags by calling:
+\code{.c}
+starpu_mpi_tags_free(mintag);
+\endcode
+
+where <c>mintag</c> was the value returned by starpu_mpi_tags_allocate().
+
+Note that both these functions should be called by all nodes involved
+in the computations in the exact same order and with the same
+parameters to keep the tags synchronized between all nodes.
+
+Also note that StarPU will not check if a tag given to
+starpu_mpi_data_register() has been previously registered, this
+functionality only aims to prevent different parts of an application
+to use the same data tags.
 
 \section MPIInsertPruning Pruning MPI Task Insertion
 
