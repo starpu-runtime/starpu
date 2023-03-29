@@ -3129,6 +3129,10 @@ if test x$enable_simgrid = xyes ; then
    enable_openmp_llvm=no
    openmp_llvm_msg="incompatibility with Simgrid support"
 fi
+if test x$PROG_CLANG = x ; then
+   enable_openmp_llvm=no
+   openmp_llvm_msg="missing clang"
+fi
 
 if test x$enable_openmp_llvm = xyes; then
 	AC_DEFINE(STARPU_OPENMP_LLVM, [1], [Define this to enable LLVM OpenMP runtime support])
