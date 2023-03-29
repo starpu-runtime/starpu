@@ -1295,6 +1295,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	_starpu_mpi_select_node_init();
 	_starpu_mpi_tag_init();
 	_starpu_mpi_comm_init(argc_argv->comm);
+	_starpu_mpi_tags_init();
 
 	_starpu_mpi_early_request_init();
 	_starpu_mpi_early_data_init();

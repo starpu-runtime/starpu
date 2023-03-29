@@ -20,6 +20,10 @@ StarPU 1.5.0
 StarPU 1.4.1
 ==============================================
 
+Small features:
+  * Add starpu_mpi_tags_{allocate,free} functions to manage mpi data
+    tags in distributed memory.
+  
 Changes:
   * Fix StarPUPY when not using asyncio: we can use concurrent.futures
     instead.

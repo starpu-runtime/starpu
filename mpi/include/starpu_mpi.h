@@ -960,6 +960,40 @@ int starpu_mpi_pre_submit_hook_unregister(void);
 
 /** @} */
 
+/**
+   @name Data Tags Management
+   \anchor MPITags
+   @{
+*/
+
+/**
+   Book a range of unique tags of size \p nbtags to be used to register
+   StarPU data handles.
+   This function returns the minimal tag value available \c mintag to
+   allow the registration of data with tags in the continuous range [[
+   \c mintag, \c mintag + \p nbtags ]]
+
+   Note that this function must be called by all MPI processes
+   involved in the computations with the same parameters and in the
+   exact same order to make sure the tags are identical from one node
+   to another.
+*/
+int64_t starpu_mpi_tags_allocate(int64_t nbtags);
+
+/**
+   Release the range of tags starting by the given \p mintag value. The
+   mintag value must be a value obtained through a call to
+   starpu_mpi_tags_allocate().
+
+   Note that this function must be called by all MPI processes
+   involved in the computations with the same parameters and in the
+   exact same order to make sure the tags are identical from one node
+   to anothe as for starpu_mpi_tags_allocate().
+*/
+void starpu_mpi_tags_free(int64_t mintag);
+
+/** @} */
+
 #ifdef __cplusplus
 }
 #endif

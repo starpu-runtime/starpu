@@ -134,6 +134,7 @@ starpu_mpi_TESTS +=				\
 	insert_task_sent_cache			\
 	insert_task_recv_cache			\
 	insert_task_seq				\
+	tags_allocate				\
 	tags_checking				\
 	sync					\
 	coop 					\
@@ -211,6 +212,7 @@ noinst_PROGRAMS +=				\
 	mpi_scatter_gather			\
 	mpi_reduction				\
 	user_defined_datatype			\
+	tags_allocate				\
 	tags_checking				\
 	star					\
 	stats					\
