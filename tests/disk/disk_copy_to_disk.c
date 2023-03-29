@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2017-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2017-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -118,6 +118,7 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 	/* And now, you want to use your datas in StarPU */
 	/* Open the file ON the disk */
 	void * data = starpu_disk_open(disk_src, (void *) name_file_start, NX*sizeof(int));
+	STARPU_ASSERT(data);
 
 	starpu_data_handle_t vector_handleA;
 	starpu_vector_data_register(&vector_handleA, disk_src, (uintptr_t) data, NX, sizeof(int));
