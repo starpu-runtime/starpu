@@ -66,7 +66,6 @@ static int index_sink = 0;
 int _starpu_tcpip_common_multiple_thread;
 
 static int is_running;
-static starpu_sem_t sem_thread_finished;
 
 static struct _starpu_spinlock ListLock;
 
@@ -410,7 +409,6 @@ static void * _starpu_tcpip_thread_pending()
 	}
 	/*all hash tables should be deleted*/
 	STARPU_ASSERT(pending_tables == NULL);
-	starpu_sem_post(&sem_thread_finished);
 
 	return 0;
 }
@@ -448,7 +446,6 @@ int _starpu_tcpip_common_mp_init()
 
 	STARPU_HG_DISABLE_CHECKING(is_running);
 	is_running = 1;
-	starpu_sem_init(&sem_thread_finished, 0, 0);
 	STARPU_PTHREAD_CREATE(&thread_pending, NULL, _starpu_tcpip_thread_pending, NULL);
 
 	/*get host info*/
@@ -886,7 +883,7 @@ void _starpu_tcpip_common_mp_deinit()
 	is_running = 0;
 	char buf = 0;
 	write(thread_pipe[1], &buf, 1);
-	starpu_sem_wait(&sem_thread_finished);
+	STARPU_PTHREAD_JOIN(thread_pending, NULL);
 	if (!extern_initialized)
 	{
 		int i;
