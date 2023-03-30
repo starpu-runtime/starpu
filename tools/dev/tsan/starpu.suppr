@@ -63,6 +63,7 @@ race:^starpu_pause$
 race:^_starpu_may_pause$
 race:^starpu_resume$
 race:^is_running$
+race:^_starpu_sink_deinit$
 
 # worker_is_initialized is not actually racy since deinit happens only after main set running to 0
 race:^_starpu_opencl_driver_deinit$
