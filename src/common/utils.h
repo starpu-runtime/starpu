@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -123,6 +123,11 @@
 
 /* TODO: cache */
 #if defined(STARPU_USE_MPI)
+
+#if !defined HOST_NAME_MAX
+#define HOST_NAME_MAX 256
+#endif
+
 #define _STARPU_MSG(fmt, ...) do { char _msghost[HOST_NAME_MAX]; gethostname(_msghost, HOST_NAME_MAX); fprintf(stderr, STARPU_DEBUG_PREFIX"[%s][%s] " fmt, _msghost, __starpu_func__, ## __VA_ARGS__); } while(0)
 #define _STARPU_DISP(fmt, ...) do { if (!_starpu_silent) { char _disphost[HOST_NAME_MAX]; gethostname(_disphost, HOST_NAME_MAX); fprintf(stderr, STARPU_DEBUG_PREFIX"[%s][%s] " fmt, _disphost, __starpu_func__, ## __VA_ARGS__); }} while(0)
 #define _STARPU_ERROR(fmt, ...)						\
