@@ -113,7 +113,7 @@ struct _cl_context
 {
 	CL_ENTITY;
 
-	void (*pfn_notify)(const char *, const void *, size_t, void *);
+	void (CL_CALLBACK *pfn_notify)(const char *, const void *, size_t, void *);
 	void *user_data;
 
 	/* Associated devices */
@@ -330,14 +330,14 @@ extern CL_API_ENTRY cl_context CL_API_CALL
 soclCreateContext(const cl_context_properties * /* properties */,
 		  cl_uint                       /* num_devices */,
 		  const cl_device_id *          /* devices */,
-		  void (*pfn_notify)(const char *, const void *, size_t, void *) /* pfn_notify */,
+		  void (CL_CALLBACK *pfn_notify)(const char *, const void *, size_t, void *) /* pfn_notify */,
 		  void *                        /* user_data */,
 		  cl_int *                      /* errcode_ret */) CL_API_SUFFIX__VERSION_1_0;
 
 extern CL_API_ENTRY cl_context CL_API_CALL
 soclCreateContextFromType(const cl_context_properties * /* properties */,
 			  cl_device_type                /* device_type */,
-			  void (*pfn_notify)(const char *, const void *, size_t, void *) /* pfn_notify */,
+			  void (CL_CALLBACK *pfn_notify)(const char *, const void *, size_t, void *) /* pfn_notify */,
 			  void *                        /* user_data */,
 			  cl_int *                      /* errcode_ret */) CL_API_SUFFIX__VERSION_1_0;
 
@@ -487,7 +487,7 @@ soclBuildProgram(cl_program           /* program */,
 		 cl_uint              /* num_devices */,
 		 const cl_device_id * /* device_list */,
 		 const char *         /* options */,
-		 void (*pfn_notify)(cl_program /* program */, void * /* user_data */),
+		 void (CL_CALLBACK *pfn_notify)(cl_program /* program */, void * /* user_data */),
 		 void *               /* user_data */) CL_API_SUFFIX__VERSION_1_0;
 
 extern CL_API_ENTRY cl_int CL_API_CALL
