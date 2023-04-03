@@ -19,6 +19,13 @@ root=$(dirname $0)
 root_src=$root
 root_build=$1
 
+files=$(find $root_build -name "*html")
+if test "$files" == ""
+then
+    # there is no html files to process
+    exit
+fi
+
 for d in $root_src/doxygen/chapters/starpu_*
 do
     for f in $(find $d -name "*.doxy")
