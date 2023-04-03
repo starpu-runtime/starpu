@@ -238,7 +238,7 @@ int main(int argc, char *argv[])
 	char *launcher_args;
 	char *libtool;
 	char *cflags;
-	const char *top_builddir = getenv ("top_builddir");
+	const char *top_builddir = getenv("top_builddir");
 	struct sigaction sa;
 	int   ret;
 	struct timeval start;
@@ -333,11 +333,22 @@ int main(int argc, char *argv[])
                 /* This is a shell script, don't run ourself on bash, but make
                  * the script call us for each program invocation */
 
-		setenv("STARPU_LAUNCH", argv[0], 1);
+		char *launch = NULL;
+		if (top_builddir == NULL)
+			// this may fail if .libs is in the directory path
+			setenv("STARPU_LAUNCH", argv[0], 1);
+		else
+		{
+			launch = malloc(strlen(top_builddir) + strlen("/tests/loader") + 1);
+			strcpy(launch, top_builddir);
+			strcat(launch, "/tests/loader");
+			setenv("STARPU_LAUNCH", launch, 1);
+		}
 
 		execvp(test_name, argv+x-1);
 
 		fprintf(stderr, "[error] '%s' failed to exec. test marked as failed\n", test_name);
+		free(launch);
 		exit(EXIT_FAILURE);
 	}
 
