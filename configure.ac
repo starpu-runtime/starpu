@@ -4010,6 +4010,9 @@ if test -d "$srcdir/doc/doxygen/html" ; then
    def_enable_build_doc="no"
    available_doc="yes"
 fi
+if test "$starpu_darwin" = "yes" ; then
+   def_enable_build_doc="no"
+fi
 
 AC_ARG_ENABLE(build-doc, [AS_HELP_STRING([--disable-build-doc],
 			[disable building of documentation])],
