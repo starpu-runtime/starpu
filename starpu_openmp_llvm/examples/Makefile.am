@@ -15,7 +15,6 @@
 #
 
 include $(top_srcdir)/make/starpu-tests.mk
-include $(top_srcdir)/make/starpu-loader.mk
 
 LAUNCHER_ENV += OMP_NUM_THREADS=4
 
