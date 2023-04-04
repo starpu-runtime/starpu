@@ -193,10 +193,10 @@ int main(int argc, char **argv)
 		cpustep *= 4;
 	}
 
-	if (cpustep == 0)
-		cpustep = 1;
 	if (cpustep >= maxcpus/2)
 		cpustep = maxcpus/2;
+	if (cpustep == 0)
+		cpustep = 1;
 
 	parse_args(argc, argv);
 
