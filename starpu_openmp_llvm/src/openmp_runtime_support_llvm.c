@@ -53,6 +53,9 @@ typedef union kmp_cmplrdata
 	/* future data */
 } kmp_cmplrdata_t;
 
+// the LLVM support was first implemented with a compiler supporting variants, however as most compilers do not enable variants, we disable the feature
+// by default, variants are not enabled, it is not possible to enable them with configure.ac as we do not want users to enable it by mistake
+#ifdef _STARPU_OPENMP_LLVM_VARIANT
 typedef void *(*kmp_variant_entry_t)(void *, ...);
 
 typedef enum kmp_variant_kind
@@ -67,6 +70,7 @@ typedef struct kmp_variant
 	kmp_variant_entry_t fn;
 	kmp_variant_kind_t kind;
 } kmp_variant_t;
+#endif
 
 typedef struct kmp_task
 { /* GEH: Shouldn't this be aligned somehow? */
@@ -76,8 +80,10 @@ typedef struct kmp_task
 	kmp_cmplrdata_t data1; /* Two known optional additions: destructors and priority */
 	kmp_cmplrdata_t data2; /* Process destructors first, priority second */
 	/* future data */
+#ifdef _STARPU_OPENMP_LLVM_VARIANT
 	kmp_variant_t *variants;
 	kmp_int32 nvariants;
+#endif
 } kmp_task_t;
 
 struct s_microtask_wrap
@@ -338,8 +344,10 @@ kmp_task_t *__kmpc_omp_task_alloc(ident_t *loc_ref, kmp_int32 gtid,
 	task->shareds = shared;
 	task->routine = task_entry;
 	task->part_id = 0;
+#ifdef _STARPU_OPENMP_LLVM_VARIANT
 	task->variants = 0;
 	task->nvariants = 0;
+#endif
 	return task;
 }
 
@@ -382,6 +390,7 @@ static void task_call_variants(void (*fn)(void*, ...), void *buffers[], void *ar
 }
 #undef GETDEP
 
+#ifdef _STARPU_OPENMP_LLVM_VARIANT
 static void task_call_cpu(void *buffers[], void *args)
 {
 	void **arg_ptrs = args;
@@ -393,6 +402,7 @@ static void task_call_cuda(void *buffers[], void *args)
 	void **arg_ptrs = args;
 	task_call_variants((void (*)(void *, ...))arg_ptrs[3], buffers, args);
 }
+#endif
 
 /*TODO: wrapper void *(buffers[], nbuffer) { push push call }*/
 
@@ -404,8 +414,10 @@ kmp_task_t *__kmpc_omp_task_alloc_variants(ident_t *loc_ref, kmp_int32 gtid,
 					   kmp_int32 nvariants)
 {
 	kmp_task_t *task = __kmpc_omp_task_alloc(loc_ref, gtid, flags, sizeof_kmp_task_t, sizeof_shareds, task_entry);
+#ifdef _STARPU_OPENMP_LLVM_VARIANT
 	task->nvariants = nvariants;
 	_STARPU_MALLOC(task->variants, nvariants * sizeof(kmp_variant_t));
+#endif
 	return task;
 }
 
@@ -443,11 +455,14 @@ kmp_int32 __kmpc_omp_task_with_deps(ident_t *loc_ref, kmp_int32 gtid,
 	arg_ptrs[0] = new_task;
 	arg_ptrs[1] = ndeps + ndeps_noalias;
 
+#ifdef _STARPU_OPENMP_LLVM_VARIANT
 	if (new_task->nvariants == 0)
+#endif
 	{
 		attr->cl.cpu_funcs[0]  = task_call;
 		attr->cl.where         = STARPU_CPU;
 	}
+#ifdef _STARPU_OPENMP_LLVM_VARIANT
 	else
 	{
 		for (int i = 0; i < new_task->nvariants; ++i)
@@ -470,6 +485,7 @@ kmp_int32 __kmpc_omp_task_with_deps(ident_t *loc_ref, kmp_int32 gtid,
 			}
 		}
 	}
+#endif
 
 	attr->cl_arg_size     = (4)*sizeof(void *);
 	attr->cl_arg_free     = 1;
