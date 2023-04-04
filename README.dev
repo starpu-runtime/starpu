@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -106,6 +106,36 @@ Error handling
   --enable-fast.
 
 	STARPU_ASSERT(j->terminated != 0)
+
+* Use STARPU_ASSERT_MSG() to run checks that might not succeed, and notably due
+  to application programming error. The additional message parameter should
+  guide the programmer into fixing their error.
+
+
+
+Documentation
+-------------
+
+When adding a feature, we want four kinds of documentation:
+
+* Announcing the feature in ChangeLog.
+
+* At least one working example in examples/, or at least a working test in
+  tests/. Ideally enough examples and tests to cover all the various features.
+
+* A section in the Doxygen documentation, that explains in which case the
+  feature is useful and how to use it, and points to the abovementioned
+  example/test.
+
+  It should cover all aspects of the feature, so programmers don't have to look
+  into the .h file or reference documentation to discover features. It however
+  does not need to dive into all details, that can be provided in the next
+  documentation.
+
+* Doxygen comments along the declarations in the .h file. These should document
+  each macro, enum, function, function parameter, flag, etc. And refer to the
+  abovementioned section so that somebody who finds some function/macro/etc. can
+  easily know what that is all about.
 
 
 
