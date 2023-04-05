@@ -555,8 +555,9 @@ struct starpu_codelet cl_gemm_cpu =
 void cholesky_kernel_init(int nb)
 {
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
-	int Lwork;
-	cusolverDnSpotrf_bufferSize(starpu_cusolverDn_get_local_handle(), CUBLAS_FILL_MODE_LOWER, nb, NULL, nb, &Lwork);
+	int Lwork = 0;
+	if (starpu_cuda_worker_get_count())
+		cusolverDnSpotrf_bufferSize(starpu_cusolverDn_get_local_handle(), CUBLAS_FILL_MODE_LOWER, nb, NULL, nb, &Lwork);
 	starpu_variable_data_register(&scratch, -1, 0, Lwork);
 #endif
 }
