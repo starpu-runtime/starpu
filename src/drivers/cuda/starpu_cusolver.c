@@ -55,6 +55,8 @@ static void shutdown_cusolver_func(void *args STARPU_ATTRIBUTE_UNUSED)
 void starpu_cusolver_init(void)
 {
 #ifdef STARPU_HAVE_LIBCUSOLVER
+	if (!starpu_cuda_worker_get_count())
+		return;
 	starpu_execute_on_each_worker(init_cusolver_func, NULL, STARPU_CUDA);
 
 	if (cusolverDnCreate(&mainDn_handle) != CUSOLVER_STATUS_SUCCESS)
@@ -69,6 +71,8 @@ void starpu_cusolver_init(void)
 void starpu_cusolver_shutdown(void)
 {
 #ifdef STARPU_HAVE_LIBCUSOLVER
+	if (!starpu_cuda_worker_get_count())
+		return;
 	starpu_execute_on_each_worker(shutdown_cusolver_func, NULL, STARPU_CUDA);
 
 	if (mainDn_handle)
@@ -83,6 +87,8 @@ void starpu_cusolver_shutdown(void)
 #ifdef STARPU_HAVE_LIBCUSOLVER
 cusolverDnHandle_t starpu_cusolverDn_get_local_handle(void)
 {
+	if (!starpu_cuda_worker_get_count())
+		return NULL;
 	int workerid = starpu_worker_get_id();
 	if (workerid >= 0)
 		return cusolverDn_handles[workerid];
@@ -92,6 +98,8 @@ cusolverDnHandle_t starpu_cusolverDn_get_local_handle(void)
 
 cusolverSpHandle_t starpu_cusolverSp_get_local_handle(void)
 {
+	if (!starpu_cuda_worker_get_count())
+		return NULL;
 	int workerid = starpu_worker_get_id();
 	if (workerid >= 0)
 		return cusolverSp_handles[workerid];
@@ -101,6 +109,8 @@ cusolverSpHandle_t starpu_cusolverSp_get_local_handle(void)
 
 cusolverRfHandle_t starpu_cusolverRf_get_local_handle(void)
 {
+	if (!starpu_cuda_worker_get_count())
+		return NULL;
 	int workerid = starpu_worker_get_id();
 	if (workerid >= 0)
 		return cusolverRf_handles[workerid];

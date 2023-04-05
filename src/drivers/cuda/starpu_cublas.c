@@ -82,6 +82,8 @@ static void shutdown_cublas_func(void *args STARPU_ATTRIBUTE_UNUSED)
 void starpu_cublas_init(void)
 {
 #ifdef STARPU_USE_CUDA
+	if (!starpu_cuda_worker_get_count())
+		return;
 	unsigned i;
 	for (i = 0; i < STARPU_MAXCUDADEVS; i++)
 		STARPU_PTHREAD_MUTEX_INIT0(&mutex[i], NULL);
@@ -96,6 +98,8 @@ void starpu_cublas_init(void)
 void starpu_cublas_shutdown(void)
 {
 #ifdef STARPU_USE_CUDA
+	if (!starpu_cuda_worker_get_count())
+		return;
 	starpu_execute_on_each_worker(shutdown_cublas_func, NULL, STARPU_CUDA);
 
 	_starpu_cublas_v2_shutdown();
@@ -105,6 +109,8 @@ void starpu_cublas_shutdown(void)
 void starpu_cublas_set_stream(void)
 {
 #ifdef STARPU_USE_CUDA
+	if (!starpu_cuda_worker_get_count())
+		return;
 	unsigned workerid = starpu_worker_get_id_check();
 	int devnum = starpu_worker_get_devnum(workerid);
 	if (!_starpu_get_machine_config()->topology.cuda_th_per_dev ||
