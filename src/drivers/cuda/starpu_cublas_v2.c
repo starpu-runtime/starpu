@@ -55,6 +55,9 @@ void _starpu_cublas_v2_shutdown(void)
 
 cublasHandle_t starpu_cublas_get_local_handle(void)
 {
+	if (!starpu_cuda_worker_get_count())
+		return NULL;
+
 	int workerid = starpu_worker_get_id();
 	if (workerid >= 0)
 		return cublas_handles[workerid];

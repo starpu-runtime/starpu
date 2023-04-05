@@ -45,6 +45,8 @@ static void shutdown_cusparse_func(void *args STARPU_ATTRIBUTE_UNUSED)
 void starpu_cusparse_init(void)
 {
 #ifdef STARPU_HAVE_LIBCUSPARSE
+	if (!starpu_cuda_worker_get_count())
+		return;
 	starpu_execute_on_each_worker(init_cusparse_func, NULL, STARPU_CUDA);
 
 	if (cusparseCreate(&main_handle) != CUSPARSE_STATUS_SUCCESS)
@@ -55,6 +57,8 @@ void starpu_cusparse_init(void)
 void starpu_cusparse_shutdown(void)
 {
 #ifdef STARPU_HAVE_LIBCUSPARSE
+	if (!starpu_cuda_worker_get_count())
+		return;
 	starpu_execute_on_each_worker(shutdown_cusparse_func, NULL, STARPU_CUDA);
 
 	if (main_handle)
@@ -65,6 +69,8 @@ void starpu_cusparse_shutdown(void)
 #ifdef STARPU_HAVE_LIBCUSPARSE
 cusparseHandle_t starpu_cusparse_get_local_handle(void)
 {
+	if (!starpu_cuda_worker_get_count())
+		return NULL;
 	int workerid = starpu_worker_get_id();
 	if (workerid >= 0)
 		return cusparse_handles[workerid];
