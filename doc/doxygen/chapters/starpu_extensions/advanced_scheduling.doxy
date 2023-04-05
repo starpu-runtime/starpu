@@ -79,6 +79,8 @@ use starpu_task_expected_length() on the task (in µs), multiplied by the
 typical power consumption of the device, e.g. in W, and divided by 1000000. to
 get Joules. A corresponding example is in the file <c>tests/perfmodels/regression_based_energy.c</c>.
 
+There are other functions in StarPU that are used to measure the energy consumed by the system during execution. The starpu_energy_use() function declares that there are the energy consumptions of the task, while the starpu_energy_used() function returns the total energy consumed since the start of measurement.
+
 \subsection MeasuringEnergyandPower Measuring energy and power with StarPU
 
 We have extended the performance model of StarPU to measure energy and power values of CPUs. These values are measured using the existing Performance API (PAPI) analysis library. PAPI provides the tool designer and application engineer with a consistent interface and methodology for use of the performance counter hardware found in most major microprocessors. PAPI enables software engineers to see, in near real time, the relation between software performance and processor events.

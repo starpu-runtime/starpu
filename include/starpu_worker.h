@@ -261,6 +261,9 @@ unsigned starpu_worker_get_id_check(void);
 */
 int starpu_worker_get_bindid(int workerid);
 
+/**
+   See \ref SchedulingHelpers for more details.
+*/
 void starpu_sched_find_all_worker_combinations(void);
 
 /**
@@ -315,7 +318,8 @@ int starpu_worker_get_by_type(enum starpu_worker_archtype type, int num);
 int starpu_worker_get_by_devid(enum starpu_worker_archtype type, int devid);
 
 /**
-   Return true if worker type can execute this task
+   Return true if worker type can execute this task.
+   See \ref SchedulingHelpers for more details.
 */
 unsigned starpu_worker_type_can_execute_task(enum starpu_worker_archtype worker_type, const struct starpu_task *task);
 
@@ -388,14 +392,20 @@ unsigned starpu_worker_get_sched_ctx_list(int worker, unsigned **sched_ctx);
 
    Note: the returned date should be used with caution since the task might very
    well end just after this function returns.
+
+   See \ref Per-taskFeedback for more details.
  */
 void starpu_worker_get_current_task_exp_end(unsigned workerid, struct timespec *date);
 
 /**
    Return whether worker \p workerid is currently blocked in a parallel task.
+   See \ref SchedulingHelpers for more details.
  */
 unsigned starpu_worker_is_blocked_in_parallel(int workerid);
 
+/**
+   See \ref SchedulingHelpers for more details.
+ */
 unsigned starpu_worker_is_slave_somewhere(int workerid);
 
 /**
@@ -581,6 +591,7 @@ void starpu_worker_relax_off(void);
 /**
    Return \c !0 if the current worker \c state_relax_refcnt!=0 and \c
    0 otherwise.
+   See \ref DefiningANewBasicSchedulingPolicy for more details.
 */
 int starpu_worker_get_relax_state(void);
 
@@ -626,6 +637,7 @@ void starpu_worker_unlock_self(void);
    If StarPU was compiled with blocking drivers support and worker
    callbacks support enabled, allow to specify an external resource
    manager callback to be notified about workers going to sleep.
+   See \ref SchedulingHelpers for more details.
 */
 void starpu_worker_set_going_to_sleep_callback(void (*callback)(unsigned workerid));
 
@@ -633,6 +645,7 @@ void starpu_worker_set_going_to_sleep_callback(void (*callback)(unsigned workeri
    If StarPU was compiled with blocking drivers support and worker
    callbacks support enabled, allow to specify an external resource
    manager callback to be notified about workers waking-up.
+   See \ref SchedulingHelpers for more details.
 */
 void starpu_worker_set_waking_up_callback(void (*callback)(unsigned workerid));
 #endif
@@ -648,12 +661,17 @@ void starpu_worker_set_waking_up_callback(void (*callback)(unsigned workerid));
 
 /**
    Return the number of different combined workers.
+   See \ref SchedulingHelpers for more details.
 */
 unsigned starpu_combined_worker_get_count(void);
+/**
+   See \ref SchedulingHelpers for more details.
+*/
 unsigned starpu_worker_is_combined_worker(int id);
 
 /**
    Return the identifier of the current combined worker.
+   See \ref SchedulingHelpers for more details.
 */
 int starpu_combined_worker_get_id(void);
 
@@ -675,24 +693,28 @@ int starpu_combined_worker_get_size(void);
 int starpu_combined_worker_get_rank(void);
 
 /**
-   Register a new combined worker and get its identifier
+   Register a new combined worker and get its identifier.
+   See \ref SchedulingHelpers for more details.
 */
 int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[]);
 
 /**
-   Get the description of a combined worker
+   Get the description of a combined worker.
+   See \ref SchedulingHelpers for more details.
 */
 int starpu_combined_worker_get_description(int workerid, int *worker_size, int **combined_workerid);
 
 /**
    Variant of starpu_worker_can_execute_task() compatible with
-   combined workers
+   combined workers.
+   See \ref DefiningANewBasicSchedulingPolicy for more details.
 */
 int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl);
 
 /**
    Initialise the barrier for the parallel task, and dispatch the task
    between the different workers of the given combined worker.
+   See \ref SchedulingHelpers for more details.
  */
 void starpu_parallel_task_barrier_init(struct starpu_task *task, int workerid);
 
@@ -700,6 +722,7 @@ void starpu_parallel_task_barrier_init(struct starpu_task *task, int workerid);
    Initialise the barrier for the parallel task, to be pushed to \p
    worker_size workers (without having to explicit a given combined
    worker).
+   See \ref SchedulingHelpers for more details.
 */
 void starpu_parallel_task_barrier_init_n(struct starpu_task *task, int worker_size);
 

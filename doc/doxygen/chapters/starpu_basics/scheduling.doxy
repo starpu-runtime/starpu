@@ -36,7 +36,7 @@ because it provides correct load balance and locality even if the application co
 not have performance models. Other non-modelling scheduling policies can be
 selected among the list below, thanks to the environment variable \ref
 STARPU_SCHED. For instance, <c>export STARPU_SCHED=dmda</c> . Use <c>help</c> to
-get the list of available schedulers.
+get the list of available schedulers. Use the function starpu_sched_get_predefined_policies() to retrieve the NULL-terminated array of all predefined scheduling policies that are available in StarPU. Use starpu_sched_get_sched_policy_in_ctx() or starpu_sched_get_sched_policy() to retrieve the scheduling policy of a task within a specific context or a default context, respectively.
 
 
 \subsection NonPerformanceModelingPolicies Non Performance Modelling Policies

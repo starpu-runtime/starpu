@@ -197,6 +197,7 @@ struct starpu_sched_policy
 /**
    Return an <c>NULL</c>-terminated array of all the predefined
    scheduling policies.
+   See \ref TaskSchedulingPolicy for more details.
 */
 struct starpu_sched_policy **starpu_sched_get_predefined_policies(void);
 
@@ -215,12 +216,14 @@ struct starpu_sched_policy *starpu_get_sched_lib_policy(const char *name);
 struct starpu_sched_policy **starpu_get_sched_lib_policies(void);
 
 /**
-   Return the scheduler policy of the default context
+   Return the scheduler policy of the default context.
+   See \ref TaskSchedulingPolicy for more details.
 */
 struct starpu_sched_policy *starpu_sched_get_sched_policy_in_ctx(unsigned sched_ctx_id);
 
 /**
-   Return the scheduler policy of the given context
+   Return the scheduler policy of the given context.
+   See \ref TaskSchedulingPolicy for more details.
 */
 struct starpu_sched_policy *starpu_sched_get_sched_policy(void);
 
@@ -235,19 +238,25 @@ struct starpu_sched_policy *starpu_sched_get_sched_policy(void);
 */
 void starpu_worker_get_sched_condition(int workerid, starpu_pthread_mutex_t **sched_mutex, starpu_pthread_cond_t **sched_cond);
 
+/**
+   Return the job identifier associated with the task.
+   See \ref TraceSchedTaskDetails for more details.
+*/
 unsigned long starpu_task_get_job_id(struct starpu_task *task);
 
 /**
    TODO: check if this is correct
    Return the current minimum priority level supported by the scheduling
-   policy
+   policy.
+   See \ref DefiningANewBasicSchedulingPolicy for more details.
 */
 int starpu_sched_get_min_priority(void);
 
 /**
    TODO: check if this is correct
    Return the current maximum priority level supported by the
-   scheduling policy
+   scheduling policy.
+   See \ref DefiningANewBasicSchedulingPolicy for more details.
 */
 int starpu_sched_get_max_priority(void);
 
@@ -260,6 +269,7 @@ int starpu_sched_get_max_priority(void);
    starpu_sched_get_min_priority(). This function should only be
    called from the initialization method of the scheduling policy, and
    should not be used directly from the application.
+   See \ref DefiningANewBasicSchedulingPolicy for more details.
 */
 int starpu_sched_set_min_priority(int min_prio);
 
@@ -271,6 +281,7 @@ int starpu_sched_set_min_priority(int min_prio);
    starpu_sched_get_max_priority(). This function should only be
    called from the initialization method of the scheduling policy, and
    should not be used directly from the application.
+   See \ref DefiningANewBasicSchedulingPolicy for more details.
 */
 int starpu_sched_set_max_priority(int max_prio);
 
@@ -278,6 +289,7 @@ int starpu_sched_set_max_priority(int max_prio);
    Check if the worker specified by workerid can execute the codelet.
    Schedulers need to call it before assigning a task to a worker,
    otherwise the task may fail to execute.
+   See \ref DefiningANewBasicSchedulingPolicy for more details.
 */
 int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl);
 
@@ -290,6 +302,7 @@ int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, 
    starpu_worker_can_execute_task() for each and every implementation.
    It can also be used with <c>impl_mask == NULL</c> to check for at
    least one implementation without determining which.
+   See \ref DefiningANewBasicSchedulingPolicy for more details.
 */
 int starpu_worker_can_execute_task_impl(unsigned workerid, struct starpu_task *task, unsigned *impl_mask);
 
@@ -302,6 +315,7 @@ int starpu_worker_can_execute_task_impl(unsigned workerid, struct starpu_task *t
    each and every implementation. It can also be used with
    <c>impl_mask == NULL</c> to check for at least one implementation
    without determining which.
+   See \ref DefiningANewBasicSchedulingPolicy for more details.
 */
 int starpu_worker_can_execute_task_first_impl(unsigned workerid, struct starpu_task *task, unsigned *nimpl);
 
@@ -317,6 +331,7 @@ int starpu_push_local_task(int workerid, struct starpu_task *task, int back);
 /**
    Must be called by a scheduler to notify that the given
    task has just been pushed.
+   See \ref DefiningANewBasicSchedulingPolicy for more details.
 */
 int starpu_push_task_end(struct starpu_task *task);
 
@@ -328,24 +343,28 @@ int starpu_get_prefetch_flag(void);
 
 /**
    Prefetch data for a given p task on a given p node with a given
-   priority
+   priority.
+   See \ref SchedulingHelpers for more details.
 */
 int starpu_prefetch_task_input_on_node_prio(struct starpu_task *task, unsigned node, int prio);
 
 /**
-   Prefetch data for a given p task on a given p node
+   Prefetch data for a given p task on a given p node.
+   See \ref SchedulingHelpers for more details.
 */
 int starpu_prefetch_task_input_on_node(struct starpu_task *task, unsigned node);
 
 /**
    Prefetch data for a given p task on a given p node when the bus is
-   idle with a given priority
+   idle with a given priority.
+   See \ref SchedulingHelpers for more details.
 */
 int starpu_idle_prefetch_task_input_on_node_prio(struct starpu_task *task, unsigned node, int prio);
 
 /**
    Prefetch data for a given p task on a given p node when the bus is
-   idle
+   idle.
+   See \ref SchedulingHelpers for more details.
 */
 int starpu_idle_prefetch_task_input_on_node(struct starpu_task *task, unsigned node);
 
@@ -412,7 +431,8 @@ double starpu_task_worker_expected_length(struct starpu_task *task, unsigned wor
 double starpu_task_expected_length_average(struct starpu_task *task, unsigned sched_ctx_id);
 
 /**
-   Return an estimated speedup factor relative to CPU speed
+   Return an estimated speedup factor relative to CPU speed.
+   See \ref SchedulingHelpers for more details.
 */
 double starpu_worker_get_relative_speedup(struct starpu_perfmodel_arch *perf_arch);
 
@@ -420,6 +440,7 @@ double starpu_worker_get_relative_speedup(struct starpu_perfmodel_arch *perf_arc
    Return expected data transfer time in micro-seconds for the given \p
    memory_node. Prefer using starpu_task_expected_data_transfer_time_for() which is
    more precise.
+   See \ref SchedulingHelpers for more details.
 */
 double starpu_task_expected_data_transfer_time(unsigned memory_node, struct starpu_task *task);
 
@@ -432,7 +453,8 @@ double starpu_task_expected_data_transfer_time_for(struct starpu_task *task, uns
 
 /**
    Predict the transfer time (in micro-seconds) to move \p handle to a
-   memory node
+   memory node.
+   See \ref SchedulingHelpers for more details.
 */
 double starpu_data_expected_transfer_time(starpu_data_handle_t handle, unsigned memory_node, enum starpu_data_access_mode mode);
 
@@ -443,7 +465,8 @@ double starpu_data_expected_transfer_time(starpu_data_handle_t handle, unsigned 
 double starpu_task_expected_energy(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl);
 
 /**
-   Same as starpu_task_expected_energy but for a precise worker
+   Same as starpu_task_expected_energy but for a precise worker.
+   See \ref SchedulingHelpers for more details.
 */
 double starpu_task_worker_expected_energy(struct starpu_task *task, unsigned workerid, unsigned sched_ctx_id, unsigned nimpl);
 
@@ -457,7 +480,8 @@ double starpu_task_worker_expected_energy(struct starpu_task *task, unsigned wor
 double starpu_task_expected_energy_average(struct starpu_task *task, unsigned sched_ctx_id);
 
 /**
-   Return expected conversion time in ms (multiformat interface only)
+   Return expected conversion time in ms (multiformat interface only).
+   See \ref SchedulingHelpers for more details.
 */
 double starpu_task_expected_conversion_time(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl);
 
@@ -467,13 +491,15 @@ typedef void (*starpu_notify_ready_soon_func)(void *data, struct starpu_task *ta
    Register a callback to be called when it is determined when a task
    will be ready an estimated amount of time from now, because its
    last dependency has just started and we know how long it will take.
+   See \ref SchedulingHelpers for more details.
 */
 void starpu_task_notify_ready_soon_register(starpu_notify_ready_soon_func f, void *data);
 
 /**
    The scheduling policies indicates if the worker may pop tasks from
    the list of other workers or if there is a central list with task
-   for all the workers
+   for all the workers.
+   See \ref DefiningANewBasicSchedulingPolicy for more details.
 */
 void starpu_sched_ctx_worker_shares_tasks_lists(int workerid, int sched_ctx_id);
 
@@ -484,6 +510,7 @@ void starpu_sched_ctx_worker_shares_tasks_lists(int workerid, int sched_ctx_id);
    decision was done.
 
    See \ref ::STARPU_TASK_BREAK_ON_SCHED
+   See \ref DefiningANewBasicSchedulingPolicy for more details.
  */
 void starpu_sched_task_break(struct starpu_task *task);
 
@@ -498,6 +525,7 @@ void starpu_sched_task_break(struct starpu_task *task);
    workerid has been woken up or its state_keep_awake flag has been
    set to \c 1, and \c 0 otherwise (if \p workerid was not in the
    STATE_SLEEPING or in the STATE_SCHEDULING).
+   See \ref DefiningANewBasicSchedulingPolicy for more details.
 */
 int starpu_wake_worker_relax(int workerid);
 
@@ -505,12 +533,14 @@ int starpu_wake_worker_relax(int workerid);
    Must be called to wake up a worker that is sleeping on the cond.
    Return 0 whenever the worker is not in a sleeping state or has the
    state_keep_awake flag on.
+   See \ref DefiningANewBasicSchedulingPolicy for more details.
 */
 int starpu_wake_worker_no_relax(int workerid);
 
 /**
    Version of starpu_wake_worker_no_relax() which assumes that the
    sched mutex is locked
+   See \ref DefiningANewBasicSchedulingPolicy for more details.
 */
 int starpu_wake_worker_locked(int workerid);
 

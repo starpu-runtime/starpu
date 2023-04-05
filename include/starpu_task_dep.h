@@ -102,6 +102,7 @@ int starpu_task_get_task_succs(struct starpu_task *task, unsigned ndeps, struct 
    Behave like starpu_task_get_task_succs(), except that it only
    reports tasks which will go through the scheduler, thus avoiding
    tasks with not codelet, or with explicit placement.
+   See \ref GettingTaskChildren for more details.
 */
 int starpu_task_get_task_scheduled_succs(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[]);
 
@@ -182,12 +183,14 @@ void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t
    still possible to synchronize with a tag associated to a task for
    which the strucuture starpu_task was freed (e.g. if the field
    starpu_task::destroy was enabled).
+   See \ref WaitingForTasks for more details.
 */
 int starpu_tag_wait(starpu_tag_t id);
 
 /**
    Similar to starpu_tag_wait() except that it blocks until all the \p
    ntags tags contained in the array \p id are terminated.
+   See \ref WaitingForTasks for more details.
 */
 int starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id);
 
@@ -197,6 +200,7 @@ int starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id);
    starpu_tag_notify_from_apps() again will not notify the successors.
    After that, the next call to starpu_tag_notify_from_apps() will
    notify the successors.
+   See \ref TasksAndTagsDependencies for more details.
 */
 void starpu_tag_restart(starpu_tag_t id);
 
@@ -204,6 +208,7 @@ void starpu_tag_restart(starpu_tag_t id);
    Release the resources associated to tag \p id. It can be called
    once the corresponding task has been executed and when there is no
    other tag that depend on this tag anymore.
+   See \ref TasksAndTagsDependencies for more details.
 */
 void starpu_tag_remove(starpu_tag_t id);
 
@@ -217,6 +222,7 @@ void starpu_tag_remove(starpu_tag_t id);
    same tag, notification will be done only on first call, thus
    implementing "OR" dependencies, until the tag is restarted using
    starpu_tag_restart().
+   See \ref TasksAndTagsDependencies for more details.
 */
 void starpu_tag_notify_from_apps(starpu_tag_t id);
 
@@ -224,11 +230,13 @@ void starpu_tag_notify_from_apps(starpu_tag_t id);
    Atomically call starpu_tag_notify_from_apps() and starpu_tag_restart() on tag
    \p id.
    This is useful with cyclic graphs, when we want to safely trigger its startup.
+   See \ref TasksAndTagsDependencies for more details.
 */
 void starpu_tag_notify_restart_from_apps(starpu_tag_t id);
 
 /**
-   Return the task associated to the tag \p id
+   Return the task associated to the tag \p id.
+   See \ref TasksAndTagsDependencies for more details.
  */
 struct starpu_task *starpu_tag_get_task(starpu_tag_t id);
 

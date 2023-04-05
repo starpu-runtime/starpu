@@ -58,22 +58,23 @@ chapters =	\
 	chapters/starpu_languages/python.doxy		\
 	chapters/starpu_languages/openmp_runtime_support.doxy		\
 	chapters/starpu_extensions/extensions_intro.doxy		\
-	chapters/starpu_extensions/debugging_tools.doxy		\
 	chapters/starpu_extensions/configuration_and_initialization.doxy		\
 	chapters/starpu_extensions/advanced_tasks.doxy		\
 	chapters/starpu_extensions/advanced_data_management.doxy		\
+	chapters/starpu_extensions/helpers.doxy		\
+	chapters/starpu_extensions/debugging_tools.doxy		\
 	chapters/starpu_extensions/advanced_scheduling.doxy		\
 	chapters/starpu_extensions/scheduling_contexts.doxy		\
 	chapters/starpu_extensions/scheduling_context_hypervisor.doxy		\
 	chapters/starpu_extensions/cuda_support.doxy		\
 	chapters/starpu_extensions/opencl_support.doxy		\
+	chapters/starpu_extensions/max_fpga_support.doxy		\
 	chapters/starpu_extensions/out_of_core.doxy		\
 	chapters/starpu_extensions/mpi_support.doxy		\
 	chapters/starpu_extensions/tcpip_support.doxy		\
 	chapters/starpu_extensions/transactions.doxy		\
 	chapters/starpu_extensions/fault_tolerance.doxy	\
 	chapters/starpu_extensions/fft_support.doxy		\
-	chapters/starpu_extensions/max_fpga_support.doxy		\
 	chapters/starpu_extensions/socl_opencl_extensions.doxy		\
 	chapters/starpu_extensions/bubble.doxy		\
 	chapters/starpu_extensions/parallel_worker.doxy		\

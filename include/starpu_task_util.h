@@ -413,6 +413,7 @@ extern "C" {
    starpu_task_insert().
    If some arguments of type ::STARPU_VALUE are given, the parameter
    starpu_task::cl_arg_free will be set to 1.
+   See \ref Helpers for more details.
 */
 int starpu_task_set(struct starpu_task *task, struct starpu_codelet *cl, ...);
 #ifdef STARPU_USE_FXT
@@ -426,6 +427,7 @@ int starpu_task_set(struct starpu_task *task, struct starpu_codelet *cl, ...);
    starpu_task_insert().
    If some arguments of type ::STARPU_VALUE are given, the parameter
    starpu_task::cl_arg_free will be set to 1.
+   See \ref Helpers for more details.
 */
 struct starpu_task *starpu_task_build(struct starpu_codelet *cl, ...);
 #ifdef STARPU_USE_FXT
@@ -494,6 +496,7 @@ int starpu_insert_task(struct starpu_codelet *cl, ...);
    make room by calling this function, then store handles with
    STARPU_TASK_SET_HANDLE(), make room again with this function, store
    yet more handles, etc.
+   See \ref Helpers for more details.
 */
 void starpu_task_insert_data_make_room(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_buffers, int current_buffer, int room);
 
@@ -501,12 +504,14 @@ void starpu_task_insert_data_make_room(struct starpu_codelet *cl, struct starpu_
    Store data handle \p handle into task \p task with mode \p
    arg_type, updating \p *allocated_buffers and \p *current_buffer
    accordingly.
+   See \ref Helpers for more details.
 */
 void starpu_task_insert_data_process_arg(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_buffers, int *current_buffer, int arg_type, starpu_data_handle_t handle);
 
 /**
    Store \p nb_handles data handles \p handles into task \p task,
    updating \p *allocated_buffers and \p *current_buffer accordingly.
+   See \ref Helpers for more details.
 */
 void starpu_task_insert_data_process_array_arg(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_buffers, int *current_buffer, int nb_handles, starpu_data_handle_t *handles);
 
@@ -514,6 +519,7 @@ void starpu_task_insert_data_process_array_arg(struct starpu_codelet *cl, struct
    Store \p nb_descrs data handles described by \p descrs into task \p
    task, updating \p *allocated_buffers and \p *current_buffer
    accordingly.
+   See \ref Helpers for more details.
 */
 void starpu_task_insert_data_process_mode_array_arg(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_buffers, int *current_buffer, int nb_descrs, struct starpu_data_descr *descrs);
 
@@ -549,6 +555,7 @@ struct starpu_codelet_pack_arg_data
    Initialize struct starpu_codelet_pack_arg before calling
    starpu_codelet_pack_arg() and starpu_codelet_pack_arg_fini(). This
    will simply initialize the content of the structure.
+   See \ref InsertTaskUtility for more details.
 */
 void starpu_codelet_pack_arg_init(struct starpu_codelet_pack_arg_data *state);
 
@@ -559,12 +566,14 @@ void starpu_codelet_pack_arg_init(struct starpu_codelet_pack_arg_data *state);
    starpu_codelet_pack_arg() calls performed,
    starpu_codelet_pack_arg_fini() has to be used to get the \p cl_arg
    and \p cl_arg_size to be put in the task.
+   See \ref InsertTaskUtility for more details.
 */
 void starpu_codelet_pack_arg(struct starpu_codelet_pack_arg_data *state, const void *ptr, size_t ptr_size);
 
 /**
    Finish packing data, after calling starpu_codelet_pack_arg_init()
    once and starpu_codelet_pack_arg() several times.
+   See \ref InsertTaskUtility for more details.
 */
 void starpu_codelet_pack_arg_fini(struct starpu_codelet_pack_arg_data *state, void **cl_arg, size_t *cl_arg_size);
 
@@ -580,12 +589,14 @@ void starpu_codelet_unpack_args(void *cl_arg, ...);
 /**
    Initialize \p state with \p cl_arg and \p cl_arg_size. This has to
    be called before calling starpu_codelet_unpack_arg().
+   See \ref InsertTaskUtility for more details.
 */
 void starpu_codelet_unpack_arg_init(struct starpu_codelet_pack_arg_data *state, void *cl_arg, size_t cl_arg_size);
 
 /**
    Unpack the next argument of size \p size from \p state into \p ptr with a copy.
    \p state has to be initialized before with starpu_codelet_unpack_arg_init().
+   See \ref InsertTaskUtility for more details.
 */
 void starpu_codelet_unpack_arg(struct starpu_codelet_pack_arg_data *state, void *ptr, size_t size);
 
@@ -595,6 +606,7 @@ void starpu_codelet_unpack_arg(struct starpu_codelet_pack_arg_data *state, void 
    the argument.
    The size of the argument is returned in \p size.
    \p has to be initialized before with starpu_codelet_unpack_arg_init().
+   See \ref InsertTaskUtility for more details.
 */
 void starpu_codelet_dup_arg(struct starpu_codelet_pack_arg_data *state, void **ptr, size_t *size);
 
@@ -603,6 +615,7 @@ void starpu_codelet_dup_arg(struct starpu_codelet_pack_arg_data *state, void **p
    \p ptr will be a pointer to the memory of the argument.
    The size of the argument is returned in \p size.
    \p has to be initialized before with starpu_codelet_unpack_arg_init().
+   See \ref InsertTaskUtility for more details.
 */
 void starpu_codelet_pick_arg(struct starpu_codelet_pack_arg_data *state, void **ptr, size_t *size);
 
@@ -610,11 +623,13 @@ void starpu_codelet_pick_arg(struct starpu_codelet_pack_arg_data *state, void **
    Finish unpacking data, after calling starpu_codelet_unpack_arg_init()
    once and starpu_codelet_unpack_arg() or starpu_codelet_dup_arg() or
    starpu_codelet_pick_arg() several times.
+   See \ref InsertTaskUtility for more details.
 */
 void starpu_codelet_unpack_arg_fini(struct starpu_codelet_pack_arg_data *state);
 
 /**
    Call this function during unpacking to skip saving the argument in ptr.
+   See \ref InsertTaskUtility for more details.
 */
 void starpu_codelet_unpack_discard_arg(struct starpu_codelet_pack_arg_data *state);
 
@@ -623,6 +638,7 @@ void starpu_codelet_unpack_discard_arg(struct starpu_codelet_pack_arg_data *stat
    copy the part of \p cl_arg that has not been read in \p buffer
    which can then be used in a later call to one of the unpack
    functions.
+   See \ref InsertTaskUtility for more details.
 */
 void starpu_codelet_unpack_args_and_copyleft(void *cl_arg, void *buffer, size_t buffer_size, ...);
 

@@ -115,6 +115,7 @@ extern "C" {
    align must be a power of two. This is for instance called
    automatically by the OpenCL driver to specify its own alignment
    constraints.
+   See \ref DataManagementAllocation for more details.
 */
 void starpu_malloc_set_align(size_t align);
 
@@ -134,6 +135,7 @@ int starpu_malloc(void **A, size_t dim);
    Free memory which has previously been allocated with
    starpu_malloc(). This function is deprecated, one should use
    starpu_free_noflag().
+   See \ref DataManagementAllocation for more details.
 */
 int starpu_free(void *A) STARPU_DEPRECATED;
 
@@ -148,12 +150,14 @@ int starpu_malloc_flags(void **A, size_t dim, int flags);
    Free memory by specifying its size. The given flags should be
    consistent with the ones given to starpu_malloc_flags() when
    allocating the memory.
+   See \ref HowToLimitMemoryPerNode for more details.
 */
 int starpu_free_flags(void *A, size_t dim, int flags);
 
 /**
    Free memory by specifying its size. Should be used for memory
    allocated with starpu_malloc().
+   See \ref DataManagementAllocation for more details.
 */
 int starpu_free_noflag(void *A, size_t dim);
 
@@ -190,6 +194,7 @@ int starpu_memory_pin(void *addr, size_t size);
 /**
    Unpin the given memory area previously pinned with
    starpu_memory_pin(). Return 0 on success, -1 on error.
+   See \ref DataManagementAllocation for more details.
 */
 int starpu_memory_unpin(void *addr, size_t size);
 
@@ -211,24 +216,26 @@ starpu_ssize_t starpu_memory_get_available(unsigned node);
 
 /**
    Return the amount of used memory on the node.
+   See \ref DataManagementAllocation for more details.
 */
 size_t starpu_memory_get_used(unsigned node);
 
 /**
    Return the amount of total memory on all memory nodes for whose a
-   memory limit is defined (see Section \ref HowToLimitMemoryPerNode).
+   memory limit is defined (see Section \ref DataManagementAllocation).
 */
 starpu_ssize_t starpu_memory_get_total_all_nodes(void);
 
 /**
    Return the amount of available memory on all memory nodes for whose
    a memory limit is defined (see Section \ref
-   HowToLimitMemoryPerNode).
+   DataManagementAllocation).
 */
 starpu_ssize_t starpu_memory_get_available_all_nodes(void);
 
 /**
    Return the amount of used memory on all memory nodes.
+   See \ref DataManagementAllocation for more details.
 */
 size_t starpu_memory_get_used_all_nodes(void);
 
@@ -279,12 +286,14 @@ void starpu_memory_wait_available(unsigned node, size_t size);
    sleeping, and when StarPU is compiled in SimGrid mode it does not
    really sleep but just makes SimGrid record that the thread has
    taken some time to sleep.
+   See \ref Helpers for more details.
 */
 void starpu_sleep(float nb_sec);
 
 /**
    Sleep for the given \p nb_micro_sec micro-seconds.
    In simgrid mode, this only sleeps within virtual time.
+   See \ref Helpers for more details.
   */
 void starpu_usleep(float nb_micro_sec);
 
@@ -292,6 +301,7 @@ void starpu_usleep(float nb_micro_sec);
    Account for \p joules J being used.
    This is support in simgrid mode, to record how much energy was used, and will
    show up in further call to starpu_energy_used().
+   See \ref Energy-basedScheduling fore more details.
   */
 void starpu_energy_use(float joules);
 
@@ -299,6 +309,7 @@ void starpu_energy_use(float joules);
    Return the amount of energy having been used in J.
    This account the amounts passed to starpu_energy_use(), but also the static
    energy use set by the \ref STARPU_IDLE_POWER environment variable.
+   See \ref Energy-basedScheduling fore more details.
   */
 double starpu_energy_used(void);
 

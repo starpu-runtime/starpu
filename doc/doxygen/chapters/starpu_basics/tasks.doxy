@@ -193,6 +193,25 @@ int ret = starpu_task_submit(task);
 
 In the example file <c>tests/main/insert_task_value.c</c>, we use these two ways to create and submit tasks.
 
+Instead of calling starpu_codelet_pack_args(), one can also call starpu_codelet_pack_arg_init(), then starpu_codelet_pack_arg() for each data, then starpu_codelet_pack_arg_fini() as follow:
+
+\code{.c}
+struct starpu_task *task = starpu_task_create();
+task->cl = &mycodelet;
+task->handles[0] = data_handles[0];
+task->handles[1] = data_handles[1];
+
+struct starpu_codelet_pack_arg_data state;
+starpu_codelet_pack_arg_init(&state);
+starpu_codelet_pack_arg(&state, &ifactor, sizeof(ifactor));
+starpu_codelet_pack_arg(&state, &ffactor, sizeof(ffactor));
+starpu_codelet_pack_arg_fini(&state, &task->cl_arg, &task->cl_arg_size);
+
+int ret = starpu_task_submit(task);
+\endcode
+
+A full code example is in file <c>tests/main/pack.c</c>.
+
 Here a similar call using ::STARPU_DATA_ARRAY.
 
 \code{.c}
@@ -260,5 +279,62 @@ void func_cpu(void *descr[], void *_args)
         starpu_codelet_unpack_args(buffer, &ffactor);
 }
 \endcode
+
+Instead of calling starpu_codelet_unpack_args(), one can also call starpu_codelet_unpack_arg_init(), then starpu_codelet_pack_arg() or starpu_codelet_dup_arg() or starpu_codelet_pick_arg() for each data, then starpu_codelet_unpack_arg_fini() as follow:
+
+\code{.c}
+void func_cpu(void *descr[], void *_args)
+{
+        int ifactor;
+        float ffactor;
+
+        size_t size = sizeof(int) + 2*sizeof(size_t) + sizeof(int) + sizeof(float);
+        struct starpu_codelet_pack_arg_data state;
+        starpu_codelet_unpack_arg_init(&state, _args, size);
+        starpu_codelet_unpack_arg(&state, (void**)&ifactor, sizeof(ifactor));
+        starpu_codelet_unpack_arg(&state, (void**)&ffactor, sizeof(ffactor));
+        starpu_codelet_unpack_arg_fini(&state);
+}
+\endcode
+
+\code{.c}
+void func_cpu(void *descr[], void *_args)
+{
+        int *ifactor;
+        float *ffactor;
+        size_t size;
+
+        size_t psize = sizeof(int) + 2*sizeof(size_t) + sizeof(int) + sizeof(float);
+        struct starpu_codelet_pack_arg_data state;
+        starpu_codelet_unpack_arg_init(&state, _args, psize);
+        starpu_codelet_dup_arg(&state, (void**)&ifactor, &size);
+        assert(size == sizeof(*ifactor));
+        starpu_codelet_dup_arg(&state, (void**)&ffactor, &size);
+        assert(size == sizeof(*ffactor));
+        starpu_codelet_unpack_arg_fini(&state);
+}
+\endcode
+
+\code{.c}
+void func_cpu(void *descr[], void *_args)
+{
+        int *ifactor;
+        float *ffactor;
+        size_t size;
+
+        size_t psize = sizeof(int) + 2*sizeof(size_t) + sizeof(int) + sizeof(float);
+        struct starpu_codelet_pack_arg_data state;
+        starpu_codelet_unpack_arg_init(&state, _args, psize);
+        starpu_codelet_pick_arg(&state, (void**)&ifactor, &size);
+        assert(size == sizeof(*ifactor));
+        starpu_codelet_pick_arg(&state, (void**)&ffactor, &size);
+        assert(size == sizeof(*ffactor));
+        starpu_codelet_unpack_arg_fini(&state);
+}
+\endcode
+
+During unpacking one can also call the function starpu_codelet_unpack_discard_arg() to skip saving the argument in pointer.
+
+A full code example is in file <c>tests/main/pack.c</c>.
 
 */

@@ -96,6 +96,10 @@ StarPU does everything (schedule tasks, transfer memory, etc.) except actually
 calling the application-provided kernel functions, i.e. the computation will not
 happen. This permits to quickly check that the task scheme is working properly.
 
+\section WatchdogSupport Watchdog Support
+
+starpu_task_watchdog_set_hook() is used to set a callback function "watchdog hook" that will be called when there is no task completed during an expected time. The purpose of the watchdog hook is to allow the application to get the state for debugging. 
+
 \section UsingTheTemanejoTaskDebugger Using The Temanejo Task Debugger
 
 StarPU can connect to Temanejo >= 1.0rc2 (see
