@@ -1121,6 +1121,9 @@ struct starpu_task
 	   Note that starpu_task_wait_for_all() will not free any task.
 
 	   With starpu_task_insert() and alike this is set to 1.
+
+	   Calling starpu_task_set_destroy() can be used to set this field to 1 after submission.
+	   Indeed this function will manage concurrency against the termination of the task.
 	*/
 	unsigned destroy : 1;
 
@@ -1251,6 +1254,8 @@ struct starpu_task
 
 	/**
 	   Current state of the task.
+
+	   Call starpu_task_status_get_as_string() to get the status as a string.
 
 	   Set by StarPU.
 	*/
@@ -1665,6 +1670,7 @@ struct starpu_task *starpu_task_create(void) STARPU_ATTRIBUTE_MALLOC;
    submitting this task. One can then use starpu_task_declare_deps_array() or
    starpu_task_end_dep_add()/starpu_task_end_dep_release() to add dependencies
    against this task before submitting it.
+   See \ref SynchronizationTasks for more details.
  */
 struct starpu_task *starpu_task_create_sync(starpu_data_handle_t handle, enum starpu_data_access_mode mode) STARPU_ATTRIBUTE_MALLOC;
 
@@ -1684,6 +1690,7 @@ void starpu_task_destroy(struct starpu_task *task);
    over. This is equivalent to having set task->destroy = 1 before submission,
    the difference is that this can be called after submission and properly deals
    with concurrency with the task execution.
+   See \ref WaitingForTasks for more details.
 */
 void starpu_task_set_destroy(struct starpu_task *task);
 
@@ -1731,12 +1738,13 @@ int starpu_task_submit_nodeps(struct starpu_task *task) STARPU_WARN_UNUSED_RESUL
    Submit \p task to the context \p sched_ctx_id. By default,
    starpu_task_submit() submits the task to a global context that is
    created automatically by StarPU.
-   See \¶ef SubmittingTasksToAContext for more details.
+   See \ref SubmittingTasksToAContext for more details.
 */
 int starpu_task_submit_to_ctx(struct starpu_task *task, unsigned sched_ctx_id);
 
 /**
-   Return 1 if \p task is terminated
+   Return 1 if \p task is terminated.
+   See \ref WaitingForTasks for more details.
 */
 int starpu_task_finished(struct starpu_task *task) STARPU_WARN_UNUSED_RESULT;
 
@@ -1754,6 +1762,7 @@ int starpu_task_wait(struct starpu_task *task) STARPU_WARN_UNUSED_RESULT;
    Allow to wait for an array of tasks. Upon successful completion,
    this function returns 0. Otherwise, <c>-EINVAL</c> indicates that
    one of the tasks was either synchronous or detached.
+   See \ref WaitingForTasks for more details.
 */
 int starpu_task_wait_array(struct starpu_task **tasks, unsigned nb_tasks) STARPU_WARN_UNUSED_RESULT;
 
@@ -1776,6 +1785,7 @@ int starpu_task_wait_for_n_submitted(unsigned n);
 /**
    Wait until all the tasks that were already submitted to the context
    \p sched_ctx_id have been terminated.
+   See \ref WaitingForTasks for more details.
 */
 int starpu_task_wait_for_all_in_ctx(unsigned sched_ctx_id);
 
@@ -1783,11 +1793,13 @@ int starpu_task_wait_for_all_in_ctx(unsigned sched_ctx_id);
    Wait until there are \p n tasks submitted left to be
    executed that were already submitted to the context \p
    sched_ctx_id.
+   See \ref WaitingForTasks for more details.
 */
 int starpu_task_wait_for_n_submitted_in_ctx(unsigned sched_ctx_id, unsigned n);
 
 /**
    Wait until there is no more ready task.
+   See \ref WaitingForTasks for more details.
 */
 int starpu_task_wait_for_no_ready(void);
 
@@ -1795,11 +1807,13 @@ int starpu_task_wait_for_no_ready(void);
    Return the number of submitted tasks which are ready for execution
    are already executing. It thus does not include tasks waiting for
    dependencies.
+   See \ref WaitingForTasks for more details.
 */
 int starpu_task_nready(void);
 
 /**
    Return the number of submitted tasks which have not completed yet.
+   See \ref WaitingForTasks for more details.
 */
 int starpu_task_nsubmitted(void);
 
@@ -1841,6 +1855,7 @@ void starpu_codelet_init(struct starpu_codelet *cl);
 
 /**
    Output on \c stderr some statistics on the codelet \p cl.
+   See \ref Per-codeletFeedback for more details.
 */
 void starpu_codelet_display_stats(struct starpu_codelet *cl);
 
@@ -1861,45 +1876,54 @@ struct starpu_task *starpu_task_get_current(void);
    Usually, the returned memory node number is simply the memory node
    for the current worker. That may however be different when using
    e.g. starpu_codelet::specific_nodes.
+
+   See \ref SpecifyingATargetNode for more details.
 */
 int starpu_task_get_current_data_node(unsigned i);
 
 /**
    Return the name of the performance model of \p task.
+   See \ref PerformanceModelExample for more details.
 */
 const char *starpu_task_get_model_name(struct starpu_task *task);
 
 /**
    Return the name of \p task, i.e. either its starpu_task::name
    field, or the name of the corresponding performance model.
+   See \ref TraceTaskDetails for more details.
 */
 const char *starpu_task_get_name(struct starpu_task *task);
 
 /**
    Allocate a task structure which is the exact duplicate of \p task.
+   See \ref Helpers for more details.
 */
 struct starpu_task *starpu_task_dup(struct starpu_task *task);
 
 /**
    This function should be called by schedulers to specify the
    codelet implementation to be executed when executing \p task.
+   See \ref SchedulingHelpers for more details.
 */
 void starpu_task_set_implementation(struct starpu_task *task, unsigned impl);
 
 /**
    Return the codelet implementation to be executed
    when executing \p task.
+   See \ref SchedulingHelpers for more details.
 */
 unsigned starpu_task_get_implementation(struct starpu_task *task);
 
 /**
    Create and submit an empty task that unlocks a tag once all its
    dependencies are fulfilled.
+   See \ref SynchronizationTasks for more details.
  */
 void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t *deps, void (*callback)(void *), void *callback_arg);
 
 /**
-   Create and submit an empty task with the given callback
+   Create and submit an empty task with the given callback.
+   See \ref SynchronizationTasks for more details.
  */
 void starpu_create_callback_task(void (*callback)(void *), void *callback_arg);
 
@@ -1931,6 +1955,8 @@ void starpu_task_ft_prologue(void *check_ft);
 
    The try-task is returned, and can be modified (e.g. to change scheduling
    parameters) before being submitted with starpu_task_submit_nodeps().
+
+   See \ref TaskRetry for more details.
  */
 struct starpu_task *starpu_task_ft_create_retry(const struct starpu_task *meta_task, const struct starpu_task *template_task, void (*check_ft)(void *));
 
@@ -1955,7 +1981,8 @@ void starpu_task_ft_success(struct starpu_task *meta_task);
 
 /**
    Set the function to call when the watchdog detects that StarPU has
-   not finished any task for STARPU_WATCHDOG_TIMEOUT seconds
+   not finished any task for STARPU_WATCHDOG_TIMEOUT seconds.
+   See \ref WatchdogSupport for more details.
 */
 void starpu_task_watchdog_set_hook(void (*hook)(void *), void *hook_arg);
 

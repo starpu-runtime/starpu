@@ -242,7 +242,7 @@ performed explicitly with the flag \ref STARPU_MALLOC_COUNT, i.e. by calling
 starpu_malloc_flags(STARPU_MALLOC_COUNT)
 \endcode
 
-are taken into account.  If the
+are taken into account. And starpu_free_flags() can be called to free the memory that was previously allocated with starpu_malloc_flags(). If the
 application wants to make StarPU aware of its own allocations, so that StarPU
 knows precisely how much data is allocated, and thus when to evict allocation
 caches or data out to the disk, starpu_memory_allocate() can be used to

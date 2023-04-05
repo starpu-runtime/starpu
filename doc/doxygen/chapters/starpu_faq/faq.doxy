@@ -138,6 +138,24 @@ if (ret != 0)
     error();
 \endcode
 
+same as:
+
+\code{.c}
+int ret;
+struct starpu_driver =
+{
+    .type = STARPU_CUDA_WORKER,
+    .id.cuda_id = 0
+};
+
+ret = starpu_driver_run(&d);
+if (ret != 0)
+    error();
+
+\endcode
+
+The function starpu_driver_run() initializes the given driver, run it until starpu_drivers_request_termination() is called.
+
 To add a new kind of device to the structure starpu_driver, one needs to:
 <ol>
 <li> Add a member to the union starpu_driver::id
@@ -146,7 +164,7 @@ To add a new kind of device to the structure starpu_driver, one needs to:
 make sure the driver is not always launched.
 </li>
 <li> Modify the function starpu_driver_run() so that it can handle
-another kind of architecture.
+another kind of architecture. The function starpu_driver_run() is equal to call starpu_driver_init(), then to call starpu_driver_run_once() in a loop, and finally to call starpu_driver_deinit().
 </li>
 <li> Write the new function <c>_starpu_run_foobar()</c> in the
 corresponding driver.

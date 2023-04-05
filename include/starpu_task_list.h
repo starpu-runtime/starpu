@@ -45,83 +45,100 @@ struct starpu_task_list
 #endif
 
 /**
-   Initialize a list structure
+   Initialize a list structure.
+   See \ref SchedulingHelpers for more details.
 */
 STARPU_TASK_LIST_INLINE
 void starpu_task_list_init(struct starpu_task_list *list);
 
 /**
-   Push \p task at the front of \p list
+   Push \p task at the front of \p list.
+   See \ref SchedulingHelpers for more details.
 */
 STARPU_TASK_LIST_INLINE
 void starpu_task_list_push_front(struct starpu_task_list *list, struct starpu_task *task);
 
 /**
-   Push \p task at the back of \p list
+   Push \p task at the back of \p list.
+   See \ref SchedulingHelpers for more details.
 */
 STARPU_TASK_LIST_INLINE
 void starpu_task_list_push_back(struct starpu_task_list *list, struct starpu_task *task);
 
 /**
-   Get the front of \p list (without removing it)
+   Get the front of \p list (without removing it).
+   See \ref SchedulingHelpers for more details.
 */
 STARPU_TASK_LIST_INLINE
 struct starpu_task *starpu_task_list_front(const struct starpu_task_list *list);
 
 /**
-   Get the back of \p list (without removing it)
+   Get the back of \p list (without removing it).
+   See \ref SchedulingHelpers for more details.
 */
 STARPU_TASK_LIST_INLINE
 struct starpu_task *starpu_task_list_back(const struct starpu_task_list *list);
 
 /**
-   Test if \p list is empty
+   Test if \p list is empty.
+   See \ref SchedulingHelpers for more details.
 */
 STARPU_TASK_LIST_INLINE
 int starpu_task_list_empty(const struct starpu_task_list *list);
 
 /**
-   Remove \p task from \p list
+   Remove \p task from \p list.
+   See \ref SchedulingHelpers for more details.
 */
 STARPU_TASK_LIST_INLINE
 void starpu_task_list_erase(struct starpu_task_list *list, struct starpu_task *task);
 
 /**
-   Remove the element at the front of \p list
+   Remove the element at the front of \p list.
+   See \ref SchedulingHelpers for more details.
 */
 STARPU_TASK_LIST_INLINE
 struct starpu_task *starpu_task_list_pop_front(struct starpu_task_list *list);
 
 /**
-   Remove the element at the back of \p list
+   Remove the element at the back of \p list.
+   See \ref SchedulingHelpers for more details.
 */
 STARPU_TASK_LIST_INLINE
 struct starpu_task *starpu_task_list_pop_back(struct starpu_task_list *list);
 
 /**
    Get the first task of \p list.
+   See \ref SchedulingHelpers for more details.
 */
 STARPU_TASK_LIST_INLINE
 struct starpu_task *starpu_task_list_begin(const struct starpu_task_list *list);
 
 /**
    Get the end of \p list.
+   See \ref SchedulingHelpers for more details.
 */
 STARPU_TASK_LIST_INLINE
 struct starpu_task *starpu_task_list_end(const struct starpu_task_list *list STARPU_ATTRIBUTE_UNUSED);
 
 /**
    Get the next task of \p list. This is not erase-safe.
+   See \ref SchedulingHelpers for more details.
 */
 STARPU_TASK_LIST_INLINE
 struct starpu_task *starpu_task_list_next(const struct starpu_task *task);
 
 /**
    Test whether the given task \p look is contained in the \p list.
+   See \ref SchedulingHelpers for more details.
 */
 STARPU_TASK_LIST_INLINE
 int starpu_task_list_ismember(const struct starpu_task_list *list, const struct starpu_task *look);
 
+/**
+   Move list from one head \p lsrc to another \p ldst.
+   See \ref SchedulingHelpers for more details.
+*/
 STARPU_TASK_LIST_INLINE
 void starpu_task_list_move(struct starpu_task_list *ldst, struct starpu_task_list *lsrc);
 

@@ -59,7 +59,7 @@ It also specifies the identifier of the worker
 that has executed the task (starpu_profiling_task_info::workerid).
 These dates are stored as <c>timespec</c> structures which the user may convert
 into micro-seconds using the helper function
-starpu_timing_timespec_to_us().
+starpu_timing_timespec_to_us(). User can call starpu_worker_get_current_task_exp_end() to get the date when the current task is expected to be finished.
 
 It is worth noting that the application may directly access this structure from
 the callback executed at the end of the task. The structure starpu_task
@@ -72,6 +72,7 @@ The field starpu_codelet::per_worker_stats is
 an array of counters. The <c>i</c>-th entry of the array is incremented every time a
 task implementing the codelet is executed on the <c>i</c>-th worker.
 This array is not reinitialized when profiling is enabled or disabled.
+The function starpu_codelet_display_stats() can be used to display the execution statistics of a specific codelet.
 
 \subsection Per-workerFeedback Per-worker Feedback
 
@@ -310,7 +311,7 @@ a performance model, by defining a structure starpu_perfmodel and
 providing its address in the field starpu_codelet::model. The fields
 starpu_perfmodel::symbol and starpu_perfmodel::type are mandatory, to
 give a name to the model, and the type of the model, since there are
-several kinds of performance models. For compatibility, make sure to
+several kinds of performance models. Then starpu_task_get_model_name() can be called to retrieve the name of the performance model associated with a task. For compatibility, make sure to
 initialize the whole structure to zero, either by using explicit
 memset(), or by letting the compiler implicitly do it as exemplified
 below.

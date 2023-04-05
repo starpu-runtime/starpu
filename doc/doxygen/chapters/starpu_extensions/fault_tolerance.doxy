@@ -30,7 +30,8 @@ call starpu_task_failed() to notify StarPU of the failure.
 the principle is that when submitting the task, one sets its prologue callback
 to starpu_task_ft_prologue(). That prologue will turn the task into a meta
 task, which will manage the repeated submission of try-tasks to perform the
-computation until one of the computations succeeds.
+computation until one of the computations succeeds. One can create a try-task for the meta task 
+by using starpu_task_ft_create_retry().
 
 By default, try-tasks will be just retried until one of them succeeds (i.e. the
 task implementation does not call starpu_task_failed()). One can change the

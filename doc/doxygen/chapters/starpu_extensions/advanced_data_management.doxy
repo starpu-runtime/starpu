@@ -86,11 +86,15 @@ starpu_memory_pin() to pin memory allocated by other ways, such as local arrays 
 is needed to permit asynchronous data transfer, i.e. permit data
 transfer to overlap with computations. Otherwise, the trace will show
 that the state <c>DriverCopyAsync</c> takes a lot of time, this is
-because CUDA or OpenCL then reverts to synchronous transfers.
+because CUDA or OpenCL then reverts to synchronous transfers. Before shutting down StarPU, the application should deallocate any memory that has previously been allocated with starpu_malloc(), by calling either starpu_free() or starpu_free_noflag() which is more recommanded. If the application has pinned memory using starpu_memory_pin(), it should unpin the memory using starpu_memory_unpin() before freeing the memory.
+
+If an application requires a specific alignment constraint for memory allocations made with starpu_malloc(), it can use the starpu_malloc_set_align() function to set the alignment requirement.
 
 The application can provide its own allocation function by calling
 starpu_malloc_set_hooks(). StarPU will then use them for all data handle
 allocations in the main memory. The corresponding example is in <c>examples/basic_examples/hooks.c</c>.
+
+StarPU provides several functions to monitor the memory usage and availability on the system. The application can use the starpu_memory_get_used() function to monitor its own memory usage on a node, and the starpu_memory_get_total_all_nodes() function to monitor the amount of total memory on all memory nodes, and the starpu_memory_get_available_all_nodes() function to monitor the amount of available memory on all memory nodes. Additionally, the starpu_memory_get_used_all_nodes() function can be used to monitor the amount of used memory on all memory nodes.
 
 By default, StarPU leaves replicates of data wherever they were used, in case they
 will be re-used by other tasks, thus saving the data transfer time. When some
@@ -842,6 +846,8 @@ starpu_codelet::nbuffers is greater than \ref STARPU_NMAXBUFS) with the node num
 where data should be copied to, or ::STARPU_SPECIFIC_NODE_LOCAL to let
 StarPU copy it to the memory node where the task will be executed.
 
+The function starpu_task_get_current_data_node() can be used to retrieve the memory node associated with the current task being executed.
+
 ::STARPU_SPECIFIC_NODE_CPU can also be used to request data to be
 put in CPU-accessible memory (and let StarPU choose the NUMA node).
 ::STARPU_SPECIFIC_NODE_FAST and ::STARPU_SPECIFIC_NODE_SLOW can also be
@@ -901,6 +907,6 @@ struct starpu_codelet cl =
 };
 \endcode
 
-An example for specifying target node is availbale in <c>tests/datawizard/specific_node.c</c>
+An example for specifying target node is availbale in <c>tests/datawizard/specific_node.c</c>.
 
 */

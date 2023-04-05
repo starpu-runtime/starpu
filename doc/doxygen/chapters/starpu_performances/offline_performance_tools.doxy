@@ -242,13 +242,15 @@ Another possibility is to obtain the performance models as an auxiliary <c>perfm
 $ starpu_perfmodel_recdump tasks.rec -o perfmodel.rec
 \endverbatim
 
+One can also simply call starpu_task_get_name() to get the name of a task.
+
 \subsubsection TraceSchedTaskDetails Getting Scheduling Task Details
 
 The file, <c>sched_tasks.rec</c>, created in the current directory,
 and in the recutils format, gives information about the tasks
 scheduling, and lists the push and pop actions of the scheduler. For
 each action, it gives the timestamp, the job priority and the job id.
-Each action is separated from the next one by empty lines.
+Each action is separated from the next one by empty lines. The job id associated with the task can be retrieved by calling starpu_task_get_job_id().
 
 \subsubsection MonitoringActivity Monitoring Activity
 

@@ -80,6 +80,22 @@ starpu_task_end_dep_release() needed to trigger the task termination. One can
 also use starpu_task_declare_end_deps() or starpu_task_declare_end_deps_array()
 to delay the termination of a task until the termination of other tasks. A simple example is available in the file <c>tests/main/task_end_dep.c</c>.
 
+starpu_tag_notify_from_apps() can be used to explicitly unlock a specific tag, but if it is called several times on the same tag, notification will be done only on first call. However, one can call starpu_tag_restart() to clear the already notified status of a tag which is not associated with a task, and then calling starpu_tag_notify_from_apps() again will notify the successors. Alternatively, starpu_tag_notify_restart_from_apps() can be used to atomically call both starpu_tag_notify_from_apps() and starpu_tag_restart() on a specific tag.
+
+To get the task associated to a specific tag, one can call starpu_tag_get_task(). Once the corresponding task has been executed and when there is no other tag that depend on this tag anymore, one can call starpu_tag_remove() to release the resources associated to the specific tag.
+
+\subsection WaitingForTasks Waiting For Tasks
+
+StarPU provides several advanced functions to wait for termination of tasks. starpu_task_wait_array() is a function that waits for an array of tasks to complete their execution. starpu_task_wait_for_all_in_ctx() is a function that waits for all tasks in a specific context to complete their execution. starpu_task_wait_for_n_submitted_in_ctx() is a function that waits for a specified number of tasks to be submitted to a specific context. starpu_task_wait_for_no_ready() is a function that waits for all tasks to become unready, which means that they are either completed or blocked on a data dependency. In order to successfully call these functions to wait for termination of tasks, starpu_task::detach should be set to 0 before task submission.
+
+The function starpu_task_nready() returns the number of tasks that are ready to execute, which means that all their data dependencies are satisfied and they are waiting to be scheduled, while the function starpu_task_nsubmitted() returns the number of tasks that have been submitted and not completed yet. 
+
+The function starpu_task_finished() can be used to determine whether a specific task has completed its execution.
+
+starpu_tag_wait() and starpu_tag_wait_array() are two blocking functions that can be used to wait for tasks with specific tags to complete their execution. The former one waits for a specified task to complete while the latter one waits for a group of tasks to complete.
+
+If task is created by using starpu_task_create(), the field starpu_task::destroy is set to 1 by default, which means that the task structure will be automatically freed after termination. On the other hand, if the task is initialized by using starpu_task_init(), the field starpu_task::destroy is set to 0 by default, which means that the task structure will not be freed until starpu_task_destroy() is called explicitly. Otherwise, we can manually set starpu_task::destroy to 1 before submission or call starpu_task_set_destroy() after submission to activate the automatic freeing of the task structure.
+
 \section UsingMultipleImplementationsOfACodelet Using Multiple Implementations Of A Codelet
 
 One may want to write multiple implementations of a codelet for a single type of
@@ -248,7 +264,7 @@ not able to try the different variants.
 
 It may be interesting to get the list of tasks which depend on a given task,
 notably when using implicit dependencies, since this list is computed by StarPU.
-starpu_task_get_task_succs() provides it. For instance:
+starpu_task_get_task_succs() or starpu_task_get_task_scheduled_succs() provides it. For instance:
 
 \code{.c}
 struct starpu_task *tasks[4];
@@ -421,5 +437,7 @@ starpu_task_submit(task);
 
 will create a task which simply waits for the value of <c>handle</c> to be
 available for read. This task can then be depended on, etc. A full example is available in <c>examples/filters/fmultiple_manual.c</c>.
+
+StarPU provides starpu_task_create_sync() to create a new synchronization task, the same as the previous example but without submitting the task. The function starpu_create_sync_task() is also used to create a new synchronization task and submit it, which is a task that waits for specific tags and calls the specified callback function when the task is finished. The function starpu_create_callback_task() can create and submit a synchronization task, which is a task that completes immediately and calls the specified callback function right after.
 
 */
