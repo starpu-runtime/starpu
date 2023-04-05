@@ -85,8 +85,15 @@ int main(void)
 #ifdef STARPU_QUICK_CHECK
 	return STARPU_TEST_SKIPPED;
 #endif
+	struct starpu_conf conf;
 
-	ret = starpu_init(NULL);
+	starpu_conf_init(&conf);
+	starpu_conf_noworker(&conf);
+	conf.ncpus = -1;
+	conf.nmpi_ms = -1;
+	conf.ntcpip_ms = -1;
+
+	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
