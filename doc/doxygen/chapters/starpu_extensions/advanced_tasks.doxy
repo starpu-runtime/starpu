@@ -84,9 +84,22 @@ starpu_tag_notify_from_apps() can be used to explicitly unlock a specific tag, b
 
 To get the task associated to a specific tag, one can call starpu_tag_get_task(). Once the corresponding task has been executed and when there is no other tag that depend on this tag anymore, one can call starpu_tag_remove() to release the resources associated to the specific tag.
 
-\subsection WaitingForTasks Waiting For Tasks
+\section WaitingForTasks Waiting For Tasks
 
-StarPU provides several advanced functions to wait for termination of tasks. starpu_task_wait_array() is a function that waits for an array of tasks to complete their execution. starpu_task_wait_for_all_in_ctx() is a function that waits for all tasks in a specific context to complete their execution. starpu_task_wait_for_n_submitted_in_ctx() is a function that waits for a specified number of tasks to be submitted to a specific context. starpu_task_wait_for_no_ready() is a function that waits for all tasks to become unready, which means that they are either completed or blocked on a data dependency. In order to successfully call these functions to wait for termination of tasks, starpu_task::detach should be set to 0 before task submission.
+StarPU provides several advanced functions to wait for termination of tasks.
+One can wait for some explicit tasks, or for some tag attached to some tasks, or
+for some data results.
+
+starpu_task_wait_array() is a function that waits for an array of tasks
+to complete their execution. starpu_task_wait_for_all_in_ctx() is a
+function that waits for all tasks in a specific context to complete their
+execution. starpu_task_wait_for_n_submitted_in_ctx() is a function that
+waits for a specified number of tasks to be submitted to a specific context.
+starpu_task_wait_for_no_ready() is a function that waits for all tasks to
+become unready, which means that they are either completed or blocked on a
+data dependency. In order to successfully call these functions to wait for
+termination of tasks, starpu_task::detach should be set to 0 before task
+submission.
 
 The function starpu_task_nready() returns the number of tasks that are ready to execute, which means that all their data dependencies are satisfied and they are waiting to be scheduled, while the function starpu_task_nsubmitted() returns the number of tasks that have been submitted and not completed yet. 
 
@@ -94,7 +107,25 @@ The function starpu_task_finished() can be used to determine whether a specific 
 
 starpu_tag_wait() and starpu_tag_wait_array() are two blocking functions that can be used to wait for tasks with specific tags to complete their execution. The former one waits for a specified task to complete while the latter one waits for a group of tasks to complete.
 
-If task is created by using starpu_task_create(), the field starpu_task::destroy is set to 1 by default, which means that the task structure will be automatically freed after termination. On the other hand, if the task is initialized by using starpu_task_init(), the field starpu_task::destroy is set to 0 by default, which means that the task structure will not be freed until starpu_task_destroy() is called explicitly. Otherwise, we can manually set starpu_task::destroy to 1 before submission or call starpu_task_set_destroy() after submission to activate the automatic freeing of the task structure.
+When using e.g. starup_task_insert(), it may be more convenient to wait for the
+<em>result</em> of a task rather than waiting for a given task explicitly. That
+can be done thanks to starpu_data_acquire() or starpu_data_acquire_cb()
+that wait for the result to be available in the home node of the data. That
+will thus wait for all the tasks that lead to that result. One can also
+use starpu_data_acquire_on_node() and give it ::STARPU_ACQUIRE_NO_NODE to
+tell to just wait for tasks to complete, but not wait for the data to be
+available in the home node. One can also use starpu_data_acquire_try() or
+starpu_data_acquire_on_node_try() to just test for the termination.
+
+If a task is created by using starpu_task_create() or starpu_task_insert(),
+the field starpu_task::destroy is set to 1 by default, which means that the
+task structure will be automatically freed after termination. On the other
+hand, if the task is initialized by using starpu_task_init(), the field
+starpu_task::destroy is set to 0 by default, which means that the task structure
+will not be freed until starpu_task_destroy() is called explicitly. Otherwise,
+we can manually set starpu_task::destroy to 1 before submission or call
+starpu_task_set_destroy() after submission to activate the automatic freeing of
+the task structure.
 
 \section UsingMultipleImplementationsOfACodelet Using Multiple Implementations Of A Codelet
 
