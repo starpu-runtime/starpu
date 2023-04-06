@@ -78,10 +78,17 @@ static inline void do_test(char* cache_enabled)
 	int ret, rank, worldsize, i;
 	int* data;
 	starpu_data_handle_t* handles;
+	struct starpu_conf conf;
 
 	setenv("STARPU_MPI_CACHE", cache_enabled, 1);
 
-	ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, NULL);
+	starpu_conf_init(&conf);
+	starpu_conf_noworker(&conf);
+	conf.ncpus = -1;
+	conf.nmpi_ms = -1;
+	conf.ntcpip_ms = -1;
+
+	ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, &conf);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);

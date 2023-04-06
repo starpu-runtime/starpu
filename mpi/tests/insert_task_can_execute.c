@@ -39,7 +39,15 @@ static struct starpu_codelet codelet =
 
 int main(int argc, char** argv)
 {
-	if (starpu_init(NULL))
+	struct starpu_conf conf;
+
+	starpu_conf_init(&conf);
+	starpu_conf_noworker(&conf);
+	conf.ncpus = -1;
+	conf.nmpi_ms = -1;
+	conf.ntcpip_ms = -1;
+
+	if (starpu_init(&conf))
 	{
 		fprintf(stderr, "Error initializing StarPU\n");
 		return 1;

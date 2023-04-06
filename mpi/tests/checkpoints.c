@@ -42,6 +42,7 @@ int pseudotest_checkpoint_template_register(int argc, char* argv[])
 
 	int array[ARRAY_SIZE];
 	int ret;
+	struct starpu_conf conf;
 
 	//init array
 	for (int i=0 ; i<ARRAY_SIZE ; i++)
@@ -56,7 +57,14 @@ int pseudotest_checkpoint_template_register(int argc, char* argv[])
 	FPRINTF(stderr, "Go\n");
 
 	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
-	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, NULL);
+
+	starpu_conf_init(&conf);
+	starpu_conf_noworker(&conf);
+	conf.ncpus = -1;
+	conf.nmpi_ms = -1;
+	conf.ntcpip_ms = -1;
+
+	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, &conf);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	FPRINTF_MPI(stderr, "Init ok - my rnk %d - size %d\n", me, nb_nodes);
@@ -98,10 +106,17 @@ int test_checkpoint_submit(int argc, char* argv[])
 	int val0 = 0;
 	int val1 = 0;
 	int stage = 10;
+	struct starpu_conf conf;
 
 	FPRINTF(stderr, "Go\n");
 
-	ret = starpu_mpi_init_conf(&argc, &argv, 1, MPI_COMM_WORLD, NULL);
+	starpu_conf_init(&conf);
+	starpu_conf_noworker(&conf);
+	conf.ncpus = -1;
+	conf.nmpi_ms = -1;
+	conf.ntcpip_ms = -1;
+
+	ret = starpu_mpi_init_conf(&argc, &argv, 1, MPI_COMM_WORLD, &conf);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &nb_nodes);
