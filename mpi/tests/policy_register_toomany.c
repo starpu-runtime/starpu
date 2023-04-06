@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -31,6 +31,7 @@ int main(int argc, char **argv)
 {
 	int ret;
 	int i;
+	struct starpu_conf conf;
 
 #ifdef STARPU_HAVE_VALGRIND_H
 	if (RUNNING_ON_VALGRIND)
@@ -39,7 +40,13 @@ int main(int argc, char **argv)
 
 	disable_coredump();
 
-	ret = starpu_mpi_init_conf(&argc, &argv, 1, MPI_COMM_WORLD, NULL);
+	starpu_conf_init(&conf);
+	starpu_conf_noworker(&conf);
+	conf.ncpus = -1;
+	conf.nmpi_ms = -1;
+	conf.ntcpip_ms = -1;
+
+	ret = starpu_mpi_init_conf(&argc, &argv, 1, MPI_COMM_WORLD, &conf);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	for(i=0 ; i<_STARPU_MPI_NODE_SELECTION_MAX_POLICY+1 ; i++)

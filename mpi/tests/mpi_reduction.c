@@ -80,6 +80,7 @@ int main(int argc, char **argv)
 	long int dot, sum=0;
 	starpu_data_handle_t *handles;
 	starpu_data_handle_t dot_handle;
+	struct starpu_conf conf;
 	int ret;
 
 	int nb_elements, step, loops;
@@ -90,8 +91,15 @@ int main(int argc, char **argv)
 	if (starpu_getenv_number_default("STARPU_GLOBAL_ARBITER", 0) > 0)
 		return STARPU_TEST_SKIPPED;
 
-	ret = starpu_mpi_init_conf(&argc, &argv, 1, MPI_COMM_WORLD, NULL);
+	starpu_conf_init(&conf);
+	starpu_conf_noworker(&conf);
+	conf.ncpus = -1;
+	conf.nmpi_ms = -1;
+	conf.ntcpip_ms = -1;
+
+	ret = starpu_mpi_init_conf(&argc, &argv, 1, MPI_COMM_WORLD, &conf);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
+
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &my_rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
 

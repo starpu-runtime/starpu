@@ -55,10 +55,17 @@ void test_cache(int rank, char *enabled, size_t *comm_amount)
 	int ret;
 	unsigned *v[2];
 	starpu_data_handle_t data_handles[2];
+	struct starpu_conf conf;
 
 	setenv("STARPU_MPI_CACHE", enabled, 1);
 
-	ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, NULL);
+	starpu_conf_init(&conf);
+	starpu_conf_noworker(&conf);
+	conf.ncpus = -1;
+	conf.nmpi_ms = -1;
+	conf.ntcpip_ms = -1;
+
+	ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, &conf);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	starpu_mpi_coop_sends_set_use(0); // disable coop_sends to avoid having wrong results when cache is disabled

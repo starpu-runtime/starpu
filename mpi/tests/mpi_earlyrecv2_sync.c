@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -114,8 +114,15 @@ int exchange_variable(int rank)
 	int ret, i;
 	starpu_data_handle_t tab_handle[NB];
 	int value[NB];
+	struct starpu_conf conf;
 
-	ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, NULL);
+	starpu_conf_init(&conf);
+	starpu_conf_noworker(&conf);
+	conf.ncpus = -1;
+	conf.nmpi_ms = -1;
+	conf.ntcpip_ms = -1;
+
+	ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, &conf);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	FPRINTF_MPI(stderr, "Exchanging variable data\n");
@@ -139,11 +146,18 @@ int exchange_void(int rank)
 {
 	int ret, i;
 	starpu_data_handle_t tab_handle[NB];
+	struct starpu_conf conf;
 
 	// This test is not run with valgrind as valgrind falsely detects error when exchanging NULL pointers
 	STARPU_SKIP_IF_VALGRIND_RETURN_ZERO;
 
-	ret = starpu_init(NULL);
+	starpu_conf_init(&conf);
+	starpu_conf_noworker(&conf);
+	conf.ncpus = -1;
+	conf.nmpi_ms = -1;
+	conf.ntcpip_ms = -1;
+
+	ret = starpu_init(&conf);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 	ret = starpu_mpi_init(NULL, NULL, 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
@@ -188,8 +202,15 @@ int exchange_complex(int rank)
 	starpu_data_handle_t handle[NB];
 	double real[NB];
 	double imaginary[NB];
+	struct starpu_conf conf;
 
-	ret = starpu_init(NULL);
+	starpu_conf_init(&conf);
+	starpu_conf_noworker(&conf);
+	conf.ncpus = -1;
+	conf.nmpi_ms = -1;
+	conf.ntcpip_ms = -1;
+
+	ret = starpu_init(&conf);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 	ret = starpu_mpi_init(NULL, NULL, 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
