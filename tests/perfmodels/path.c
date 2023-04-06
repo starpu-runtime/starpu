@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2022-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2022-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -56,6 +56,7 @@ int do_test(const char *test_name, const char *bus_dir, const char *codelet_dir,
 {
 	int ret;
 	char hostname[10];
+        struct starpu_conf conf;
 
 	FPRINTF(stderr, "\nTesting %s with <%s> and <%s>\n", test_name, bus_dir, codelet_dir);
 
@@ -63,7 +64,13 @@ int do_test(const char *test_name, const char *bus_dir, const char *codelet_dir,
 	randomstring(hostname, 10);
 	setenv("STARPU_HOSTNAME", hostname, 1);
 
-	ret = starpu_init(NULL);
+        starpu_conf_init(&conf);
+        starpu_conf_noworker(&conf);
+        conf.ncpus = -1;
+        conf.nmpi_ms = -1;
+        conf.ntcpip_ms = -1;
+
+	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
