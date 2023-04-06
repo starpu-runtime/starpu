@@ -661,7 +661,7 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 			}
 
 			if (weight == 1 || hwloc_bitmap_weight(log_coreset) == 1)
-				_STARPU_DISP("Warning: the current CPU binding set contains only one CPU, maybe you need to tell your job scheduler to bind on all allocated cores (e.g. --exclusive --ntasks-per-node=1 or --cpus-per-task for Slurm), or you can use STARPU_WORKERS_GETBIND=0 to bypass it\n");
+				_STARPU_DISP("Warning: the current CPU binding set contains only one CPU, maybe you need to tell your job scheduler to bind on all allocated cores (e.g. --exclusive --ntasks-per-node=1 or --cpus-per-task for Slurm, or --bind-to board for openmpi), or you can use STARPU_WORKERS_GETBIND=0 to bypass it, but make sure you are not oversubscribing the machine\n");
 			topology->nusedpus = weight;
 			topology->firstusedpu = first;
 		} while(0);
