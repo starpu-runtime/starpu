@@ -151,49 +151,143 @@ ViTE, use the following command:
 $ vite paje.trace
 \endverbatim
 
-Tasks can be assigned a name (instead of the default \c unknown) by
-filling the optional starpu_codelet::name, or assigning them a
-performance model. The name can also be set with the field
-starpu_task::name or by using \ref STARPU_NAME when calling
-starpu_task_insert().
+Once the file is opened in ViTE interface, we will see the figure as shown below:
 
-Tasks are assigned default colors based on the worker which executed
-them (green for CPUs, yellow/orange/red for CUDAs, blue for OpenCLs, ...).
-To use a different color for every type of task,
-one can specify the option <c>-c</c> to <c>starpu_fxt_tool</c> or in
-\ref STARPU_GENERATE_TRACE_OPTIONS. Tasks can also be given a specific
-color by setting the field starpu_codelet::color or the
-starpu_task::color. Colors are expressed with the following format
-\c 0xRRGGBB (e.g. \c 0xFF0000 for red). See
-<c>basic_examples/task_insert_color</c> for examples on how to assign
-colors.
+\image html vite_open.png width=60%
+\image latex vite_open.png "" width=\textwidth
 
-To get statistics on the time spend in runtime overhead, one can use the
+We can then click the "No arrows" button in task bar of ViTE interface, to better observe the Gantt diagram that illustrates the start and end dates of the different tasks or activities of a program.
+
+In the Gantt diagram, the variable such as devices (CPU or GPU) are displayed on the left side. Each task is represented by a horizontal bar that spans the duration of the task. The bars are arranged along a timeline axis on the top of the Gantt diagram that represents the overall duration of the program in millisecond. The position of the bar along the timeline shows when the task is scheduled to begin and end. We can see some long red bars at the beginning and end of the entire timeline, which represent that the unit is idle. There are no tasks at the moment, and it is currently waiting or in a sleeping state.
+
+\image html vite_no_arrow.png width=60%
+\image latex vite_no_arrow.png "" width=\textwidth
+
+Then as shown in the following figure, press and hold the left mouse button to select the area you want to zoom in on. Release the button to view the selected area, and we can repeat the zoom action multiple times. Right-clicking anywhere on the Gantt diagram can restore the previous zoom action.
+
+\image html vite_zoom.png width=60%
+\image latex vite_zoom.png "" width=\textwidth
+
+This zoom result is:
+
+\image html vite_zoom_result.png width=60%
+\image latex vite_zoom_result.png "" width=\textwidth
+
+Press and hold the left mouse button inside the top blue bar to select horizontally, which will horizontally zoom in on all Gantt diagrams within the selected time range.
+
+\image html vite_zoom_horiz.png width=60%
+\image latex vite_zoom_horiz.png "" width=\textwidth
+
+This zoom result is:
+
+\image html vite_zoom_horiz_result.png width=60%
+\image latex vite_zoom_horiz_result.png "" width=\textwidth
+
+After zooming in, we can observe numerous blocks of varying colors, each block representing a task. Blocks of diverse colors signify different types of tasks. When we double-click on any block, a pop-up window will show related status about that task, such as its type and which worker (CPU/GPU) it belongs to, etc.
+
+\image html vite_task_state.png width=60%
+\image latex vite_task_state.png "" width=\textwidth 
+
+The state information displayed in the pop-up window can be:
+
+\li <b>Value</b>: refers to a type of task, which can be assigned as a task name (instead of the default \c unknown) by filling the optional starpu_codelet::name, or assigning them a performance model. The name can also be set with the field starpu_task::name or by using \ref STARPU_NAME when calling starpu_task_insert()
+\li <b>Container</b>: refers to a specific worker where the computation was performed, could be CPU or CUDA
+\li <b>Type</b>: indicates that the type of this block, most often "Worker State"
+\li <b>Date</b>: represents a range of dates during which the computation was performed
+\li <b>Duration</b>: represents the duration of the computation
+\li <b>Footprint</b>: refers to the data footprint of the task
+\li <b>GFlop</b>: represents the number of Gflop performed during the computation
+\li <b>Iteration</b>: refers to the iteration number of the computation, as set by starpu_iteration_push() at the beginning of submission loops and starpu_iteration_pop() at the end of submission loops
+\li <b>JobId</b>: represents a unique identifier for the specific task
+\li <b>NumaNodes</b>: refers to the NUMA node where the data is stored, the environment variable \ref STARPU_FXT_EVENTS needs to contain \ref TASK_VERBOSE_EXTRA, otherwise it will be -1
+\li <b>Params</b>: represents parameters or input/output types and sizes, possibly indicating the dimensions of the matrices
+\li <b>Size</b>: represents the size of the data being operated on in bytes
+\li <b>Subiteration</b>: represents a sub-iteration number if the computation was part of a larger iteration or loop, as set by starpu_iteration_push()
+\li <b>SubmitOrder</b>: represents the order in which the task was submitted
+\li <b>Tag</b>: represents a unique identifier for the task, which can be set either through starpu_task::tag_id or by using \ref STARPU_TAG_ONLY when calling starpu_task_insert()
+\li <b>X</b>: represents an X-coordinate index of the first data written by the task, which was set by starpu_data_set_coordinates() or
+starpu_data_set_coordinates_array() function. We can also get the coordinates of the data with starpu_data_get_coordinates_array() function
+\li <b>Y</b>: represents an Y-coordinate index of the first data written by the task, which was set by starpu_data_set_coordinates() or
+starpu_data_set_coordinates_array() function. We can also get the coordinates of the data with starpu_data_get_coordinates_array() function
+\li <b>Color</b>: represents the color RGB value associated with the task. Tasks are assigned default colors based on the worker which executed them (green for CPUs, yellow/orange/red for CUDAs, blue for OpenCLs, ...). To use a different color for every type of task, we can specify the option <c>-c</c> to <c>starpu_fxt_tool</c> or in \ref STARPU_GENERATE_TRACE_OPTIONS. Tasks can also be given a specific color by setting the field starpu_codelet::color or the starpu_task::color. When we call starpu_task_insert(), we can use ::STARPU_TASK_COLOR to set the color. Colors are expressed with the following format \c 0xRRGGBB (e.g. \c 0xFF0000 for red). See <c>basic_examples/task_insert_color</c> for examples on how to assign colors
+
+In the shown figure, the set of color as following:
+\li Dark green represents GEMM
+\li Light green represents SYRK
+\li Blue represents TRSM
+\li Red indicates that the unit is idle, there are no tasks at the moment, it is currently waiting or in a sleeping state
+\li Magenta represents FetchingInput
+
+To modify the colors in Vite interface, select "Preferences" then "Settings" in the options bar, and then choose "States" in the newly opened window to select different colors for different operations, as shown in the figure below:
+
+\image html vite_preferences.png width=60%
+\image latex vite_preferences.png "" width=\textwidth 
+
+We can see that there is a curve below task blocks, which represents the corresponding <c>GFlop/s</c>. Double-clicking near the curve will display the current <c>GFlop/s</c> information in a pop-up window (as shown in the figure). If we only click on the curve, we can read the <c>GFlop/s</c> values of all the curves at the same time.
+
+\image html vite_gflops.png width=60%
+\image latex vite_gflops.png "" width=\textwidth
+
+For GPUs, there are three additional curves above the task blocks that can be double-clicked to open a pop-up window to view information. Let's zoom in on the three curves during the entire execution process as illustrated in the figure:
+
+\image html vite_gpu_memory_select.png width=60%
+\image latex vite_gpu_memory_select.png "" width=\textwidth
+
+As shown in the figure below, the top curve represents the amount of GPU-managed memory in MBytes, while the bottom two curves represent the information transfer between tasks on the CPU and GPU, and between tasks on different GPUs. They respectively indicate the incoming and outgoing data transfer bandwidth.
+By looking at the memory curve, we can observe that the memory usage kept increasing at first, but due to the reutilization of the allocations by StarPU, the curve gradually became stable later on.
+
+\image html vite_gpu_memory.png width=60%
+\image latex vite_gpu_memory.png "" width=\textwidth
+
+Above these three curves, we can see some blocks which represent driver copy (see in the figure below) which is making a memory copy. The light green blocks represent the actual copies, the dark green blocks represent asynchronous copy submissions, and the burgundy blocks represent allocating and freeing. Double-clicking on a block allows us to view relevant information in the pop-up window. 
+
+\image html vite_gpu_curves.png width=60%
+\image latex vite_gpu_curves.png "" width=\textwidth
+
+Below the GPU task blocks and <c>GFlops</c> curve (see in the figure above), we can see some other blocks that represent the CPU waiting for the GPU to complete the task. During time, CPU can do variable actions which are represented by blocks of different colors, such as: 
+
+\li Dark green represents <c>progressing</c>, it keeps polling for task or data transfer completion 
+\li Brown-yellow represents <c>scheduling</c>
+\li Burgundy represents <c>submitting task</c>
+\li Lake blue represents <c>executing</c>, it is executing the application codelet function
+\li Dark bleu represents <c>callback</c>
+\li Chestnut represents <c>overhead</c>
+
+and we can always double-click on the block to view relevant information in the pop-up window.
+
+We can horizontally zoom in on a section of the Gantt diagram, and deselect the "No arrows" option. This will allow us to see a complete process of data transfer, as shown in the following figure:
+
+\image html vite_trans_arrow.png width=60%
+\image latex vite_trans_arrow.png "" width=\textwidth
+
+In the above figure, we can see a long segment of magenta color in CUDA2_0 task blocks. At the same time, we can see that there are numerous transfers between other workers during this time period. This indicates that CUDA2_0 is waiting for the completion of other transfers.
+
+At the top of the entire Gantt diagram, there are three curves that represent the information of the scheduler. Let's zoom in on the three curves during the entire execution process as illustrated in the figure:
+
+\image html vite_top_curve_select.png width=60%
+\image latex vite_top_curve_select.png "" width=\textwidth
+
+As shown in the figure below, from top to bottom, they respectively indicate the number of submitted uncompleted tasks, the number of ready tasks, and the total <c>GFlop/s</c> for this moment. By double-clicking on the curves, we can view relevant information in the pop-up window.
+
+\image html vite_top_curve.png width=60%
+\image latex vite_top_curve.png "" width=\textwidth
+
+At the very bottom of the entire Gantt diagram, we will see a red bar, which represents the main thread waiting for tasks. In front of the red bar (see the figure below), there are some dark red bars, which represent the main thread submitting tasks.
+
+\image html vite_bottom_curve.png width=60%
+\image latex vite_bottom_curve.png "" width=\textwidth
+
+Below these red bars, we can see some white vertical lines with small circles on top, which represent events. The default events can be either task push or task pop or task wait for all. The application can inject its own events at any desired moment with the function starpu_fxt_trace_user_event() or starpu_fxt_trace_user_event_string(). Similarly, double-clicking on the white bars allows you to see relevant information in the pop-up window.
+
+To get statistics on the time spend in runtime overhead, we can use the
 statistics plugin of ViTE. In Preferences, select Plugins. In "States Type",
 select "Worker State". Then click on "Reload" to update the histogram. The red
 "Idle" percentages are due to lack of parallelism, while the brown "Overhead"
 and "Scheduling" percentages are due to the overhead of the runtime and of the
 scheduler.
 
-To identify tasks precisely, the application can also set the field
-starpu_task::tag_id or setting \ref STARPU_TAG_ONLY when calling
-starpu_task_insert(). The value of the tag will then show up in the
-trace.
-
-One can also introduce user-defined events in the diagram thanks to the
-starpu_fxt_trace_user_event() or starpu_fxt_trace_user_event_string() function.
-
-One can also set the iteration number, by just calling starpu_iteration_push()
-at the beginning of submission loops and starpu_iteration_pop() at the end of
-submission loops. These iteration numbers will show up in traces for all tasks
-submitted from there.
-
-One can set a name for a data handle by calling starpu_data_set_name().
-
-Coordinates can also be given to data with the starpu_data_set_coordinates() or
-starpu_data_set_coordinates_array() function. In the trace, tasks will then be
-assigned the coordinates of the first data they write to. One can also get the 
-coordinates of the data with starpu_data_get_coordinates_array() function.
+\image html vite_worker_state.png width=60%
+\image latex vite_worker_state.png "" width=\textwidth
 
 Traces can also be inspected by hand by using the tool <c>fxt_print</c>, for instance:
 
