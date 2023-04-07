@@ -55,9 +55,8 @@ checks:
   extends: .check_template
   parallel:
     matrix:
-      - NODE: [debian10, debian8amd64, ubuntu1604, ubuntu1804, centos72amd64]
+      - NODE: [debian10, debian8amd64, ubuntu1604, ubuntu1804, centos72amd64, macosx]
   tags:
-    - starpu
     - ${NODE}
 
 check_simgrid:
