@@ -1188,6 +1188,8 @@ fi
 AM_CONDITIONAL(STARPU_HAVE_HDF5, test "x$enable_hdf5" = "xyes")
 
 
+AC_CHECK_LIB([atomic], [exit])
+
 # This defines HAVE_SYNC_VAL_COMPARE_AND_SWAP
 STARPU_CHECK_SYNC_VAL_COMPARE_AND_SWAP
 
