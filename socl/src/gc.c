@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2012       Vincent Danjean
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -114,7 +114,7 @@ int gc_entity_release_ex(entity e, const char * DEBUG_PARAM(caller))
 	DEBUG_MSG("[%s] Decrementing refcount of %s %p to ", caller, e->name, (void *)e);
 
 	/* Decrement reference count */
-	int refs = __sync_sub_and_fetch(&e->refs, 1);
+	int refs = STARPU_ATOMIC_ADD(&e->refs, -1);
 
 	DEBUG_MSG_NOHEAD("%d\n", refs);
 
@@ -187,7 +187,7 @@ void gc_entity_retain_ex(void *arg, const char * DEBUG_PARAM(caller))
 #ifdef DEBUG
 	int refs =
 #endif
-		__sync_add_and_fetch(&e->refs, 1);
+		STARPU_ATOMIC_ADD(&e->refs, 1);
 
 	DEBUG_MSG("[%s] Incrementing refcount of %s %p to %d\n", caller, e->name, e, refs);
 }
