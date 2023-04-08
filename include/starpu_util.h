@@ -725,10 +725,12 @@ static __starpu_inline int starpu_bool_compare_and_swap64(uint64_t *ptr, uint64_
 static __starpu_inline int starpu_val_compare_and_swap64(uint64_t *ptr, uint64_t old, uint64_t value)
 {
 	uint64_t expected = old;
-	__atomic_compare_exchange_n(ptr, &expected, value, 0, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
-	return expected;
+	if (__atomic_compare_exchange_n(ptr, &expected, value, 0, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST))
+		return old;
+	else
+		return expected;
 }
-#define STARPU_VAL_COMPARE_AND_SWAP64(ptr, old, value) starpu_bool_compare_and_swap64((ptr), (old), (value))
+#define STARPU_VAL_COMPARE_AND_SWAP64(ptr, old, value) starpu_val_compare_and_swap64((ptr), (old), (value))
 #elif defined(STARPU_HAVE_SYNC_VAL_COMPARE_AND_SWAP)
 #define STARPU_VAL_COMPARE_AND_SWAP64(ptr, old, value) (__sync_val_compare_and_swap((ptr), (old), (value)))
 #else
