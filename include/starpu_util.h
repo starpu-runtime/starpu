@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2021, 2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -619,7 +619,11 @@ static __starpu_inline uint64_t _starpu_xchg64(uint64_t *ptr, uint64_t next)
 	}
 
 /* Returns the new value */
-#ifdef STARPU_HAVE_SYNC_FETCH_AND_ADD
+#ifdef STARPU_HAVE_ATOMIC_FETCH_ADD
+#define STARPU_ATOMIC_ADD(ptr, value)	(__atomic_fetch_add((ptr), (value), __ATOMIC_SEQ_CST) + (value))
+#define STARPU_ATOMIC_ADDL(ptr, value)	(__atomic_fetch_add((ptr), (value), __ATOMIC_SEQ_CST) + (value))
+#define STARPU_ATOMIC_ADD64(ptr, value)	(__atomic_fetch_add((ptr), (value), __ATOMIC_SEQ_CST) + (value))
+#elif defined(STARPU_HAVE_SYNC_FETCH_AND_ADD)
 #define STARPU_ATOMIC_ADD(ptr, value)	(__sync_fetch_and_add((ptr), (value)) + (value))
 #define STARPU_ATOMIC_ADDL(ptr, value)	(__sync_fetch_and_add((ptr), (value)) + (value))
 #define STARPU_ATOMIC_ADD64(ptr, value) (__sync_fetch_and_add((ptr), (value)) + (value))
@@ -638,7 +642,11 @@ STARPU_ATOMIC_SOMETHING64(add, old + value)
 #endif
 #endif
 
-#ifdef STARPU_HAVE_SYNC_FETCH_AND_OR
+#ifdef STARPU_HAVE_ATOMIC_FETCH_OR
+#define STARPU_ATOMIC_OR(ptr, value)	(__atomic_fetch_or((ptr), (value), __ATOMIC_SEQ_CST) + (value))
+#define STARPU_ATOMIC_ORL(ptr, value)	(__atomic_fetch_or((ptr), (value), __ATOMIC_SEQ_CST) + (value))
+#define STARPU_ATOMIC_OR64(ptr, value)	(__atomic_fetch_or((ptr), (value), __ATOMIC_SEQ_CST) + (value))
+#elif defined(STARPU_HAVE_SYNC_FETCH_AND_OR)
 #define STARPU_ATOMIC_OR(ptr, value)   (__sync_fetch_and_or((ptr), (value)))
 #define STARPU_ATOMIC_ORL(ptr, value)  (__sync_fetch_and_or((ptr), (value)))
 #define STARPU_ATOMIC_OR64(ptr, value) (__sync_fetch_and_or((ptr), (value)))
@@ -660,15 +668,30 @@ STARPU_ATOMIC_SOMETHING64(or, old | value)
 /* Try to replace `old' with `value' at `ptr'. Returns true iff the swap was successful. */
 #ifdef STARPU_HAVE_SYNC_BOOL_COMPARE_AND_SWAP
 #define STARPU_BOOL_COMPARE_AND_SWAP(ptr, old, value)	(__sync_bool_compare_and_swap((ptr), (old), (value)))
-#define STARPU_BOOL_COMPARE_AND_SWAP32(ptr, old, value) STARPU_BOOL_COMPARE_AND_SWAP(ptr, old, value)
-#define STARPU_BOOL_COMPARE_AND_SWAP64(ptr, old, value) STARPU_BOOL_COMPARE_AND_SWAP(ptr, old, value)
 #else
 #ifdef STARPU_HAVE_CMPXCHG
 #define STARPU_BOOL_COMPARE_AND_SWAP(ptr, old, value) (_starpu_cmpxchg((ptr), (old), (value)) == (old))
 #endif
+#endif
+
+#ifdef STARPU_HAVE_SYNC_BOOL_COMPARE_AND_SWAP
+#define STARPU_BOOL_COMPARE_AND_SWAP32(ptr, old, value) (__sync_bool_compare_and_swap((ptr), (old), (value)))
+#else
 #ifdef STARPU_HAVE_CMPXCHG32
 #define STARPU_BOOL_COMPARE_AND_SWAP32(ptr, old, value) (_starpu_cmpxchg32((ptr), (old), (value)) == (old))
 #endif
+#endif
+
+#if defined(STARPU_HAVE_ATOMIC_EXCHANGE_N)
+static __starpu_inline int starpu_bool_compare_and_swap64(uint64_t *ptr, uint64_t old, uint64_t value)
+{
+	uint64_t expected = old;
+	return __atomic_compare_exchange_n(ptr, &expected, value, 0, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
+}
+#define STARPU_BOOL_COMPARE_AND_SWAP64(ptr, old, value) starpu_bool_compare_and_swap64((ptr), (old), (value))
+#elif defined(STARPU_HAVE_SYNC_BOOL_COMPARE_AND_SWAP)
+#define STARPU_BOOL_COMPARE_AND_SWAP64(ptr, old, value) (__sync_bool_compare_and_swap((ptr), (old), (value)))
+#else
 #ifdef STARPU_HAVE_CMPXCHG64
 #define STARPU_BOOL_COMPARE_AND_SWAP64(ptr, old, value) (_starpu_cmpxchg64((ptr), (old), (value)) == (old))
 #endif
@@ -683,15 +706,31 @@ STARPU_ATOMIC_SOMETHING64(or, old | value)
 /* Try to replace `old' with `value' at `ptr'. Returns the value actually seen at `ptr'. */
 #ifdef STARPU_HAVE_SYNC_VAL_COMPARE_AND_SWAP
 #define STARPU_VAL_COMPARE_AND_SWAP(ptr, old, value)   (__sync_val_compare_and_swap((ptr), (old), (value)))
-#define STARPU_VAL_COMPARE_AND_SWAP32(ptr, old, value) STARPU_VAL_COMPARE_AND_SWAP(ptr, old, value)
-#define STARPU_VAL_COMPARE_AND_SWAP64(ptr, old, value) STARPU_VAL_COMPARE_AND_SWAP(ptr, old, value)
 #else
 #ifdef STARPU_HAVE_CMPXCHG
 #define STARPU_VAL_COMPARE_AND_SWAP(ptr, old, value) (_starpu_cmpxchg((ptr), (old), (value)))
 #endif
+#endif
+
+#ifdef STARPU_HAVE_SYNC_VAL_COMPARE_AND_SWAP
+#define STARPU_VAL_COMPARE_AND_SWAP32(ptr, old, value) (__sync_val_compare_and_swap((ptr), (old), (value)))
+#else
 #ifdef STARPU_HAVE_CMPXCHG32
 #define STARPU_VAL_COMPARE_AND_SWAP32(ptr, old, value) (_starpu_cmpxchg32((ptr), (old), (value)))
 #endif
+#endif
+
+#ifdef STARPU_HAVE_ATOMIC_EXCHANGE_N
+static __starpu_inline int starpu_val_compare_and_swap64(uint64_t *ptr, uint64_t old, uint64_t value)
+{
+	uint64_t expected = old;
+	__atomic_compare_exchange_n(ptr, &expected, value, 0, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
+	return expected;
+}
+#define STARPU_VAL_COMPARE_AND_SWAP64(ptr, old, value) starpu_bool_compare_and_swap64((ptr), (old), (value))
+#elif defined(STARPU_HAVE_SYNC_VAL_COMPARE_AND_SWAP)
+#define STARPU_VAL_COMPARE_AND_SWAP64(ptr, old, value) (__sync_val_compare_and_swap((ptr), (old), (value)))
+#else
 #ifdef STARPU_HAVE_CMPXCHG64
 #define STARPU_VAL_COMPARE_AND_SWAP64(ptr, old, value) (_starpu_cmpxchg64((ptr), (old), (value)))
 #endif
