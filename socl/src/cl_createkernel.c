@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2021, 2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -40,7 +40,7 @@ static void soclCreateKernel_task(void *data)
 	}
 
 	/* One worker creates argument structures */
-	if (__sync_bool_compare_and_swap(&k->num_args, 0, 666))
+	if (STARPU_BOOL_COMPARE_AND_SWAP(&k->num_args, 0, 666))
 	{
 		unsigned int i;
 		cl_uint num_args;
