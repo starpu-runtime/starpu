@@ -642,10 +642,11 @@ STARPU_ATOMIC_SOMETHING64(add, old + value)
 #endif
 #endif
 
+/* Returns the *old* value */
 #ifdef STARPU_HAVE_ATOMIC_FETCH_OR
-#define STARPU_ATOMIC_OR(ptr, value)	(__atomic_fetch_or((ptr), (value), __ATOMIC_SEQ_CST) + (value))
-#define STARPU_ATOMIC_ORL(ptr, value)	(__atomic_fetch_or((ptr), (value), __ATOMIC_SEQ_CST) + (value))
-#define STARPU_ATOMIC_OR64(ptr, value)	(__atomic_fetch_or((ptr), (value), __ATOMIC_SEQ_CST) + (value))
+#define STARPU_ATOMIC_OR(ptr, value)	(__atomic_fetch_or((ptr), (value), __ATOMIC_SEQ_CST))
+#define STARPU_ATOMIC_ORL(ptr, value)	(__atomic_fetch_or((ptr), (value), __ATOMIC_SEQ_CST))
+#define STARPU_ATOMIC_OR64(ptr, value)	(__atomic_fetch_or((ptr), (value), __ATOMIC_SEQ_CST))
 #elif defined(STARPU_HAVE_SYNC_FETCH_AND_OR)
 #define STARPU_ATOMIC_OR(ptr, value)   (__sync_fetch_and_or((ptr), (value)))
 #define STARPU_ATOMIC_ORL(ptr, value)  (__sync_fetch_and_or((ptr), (value)))
