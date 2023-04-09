@@ -683,7 +683,7 @@ STARPU_ATOMIC_SOMETHING64(or, old | value)
 #endif
 #endif
 
-#if defined(STARPU_HAVE_ATOMIC_EXCHANGE_N)
+#if defined(STARPU_HAVE_ATOMIC_EXCHANGE_N) && defined(__GNUC__)
 static __starpu_inline int starpu_bool_compare_and_swap64(uint64_t *ptr, uint64_t old, uint64_t value)
 {
 	uint64_t expected = old;
@@ -721,7 +721,7 @@ static __starpu_inline int starpu_bool_compare_and_swap64(uint64_t *ptr, uint64_
 #endif
 #endif
 
-#ifdef STARPU_HAVE_ATOMIC_EXCHANGE_N
+#if defined(STARPU_HAVE_ATOMIC_EXCHANGE_N) && defined(__GNUC__)
 static __starpu_inline int starpu_val_compare_and_swap64(uint64_t *ptr, uint64_t old, uint64_t value)
 {
 	uint64_t expected = old;
