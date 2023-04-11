@@ -1188,7 +1188,9 @@ fi
 AM_CONDITIONAL(STARPU_HAVE_HDF5, test "x$enable_hdf5" = "xyes")
 
 
-AC_CHECK_LIB([atomic], [exit])
+# This is needed on some 32bit platforms for 64bit STARPU_ATOMIC_ADD and STARPU_*_COMPARE_AND_SWAP
+AC_CHECK_LIB([atomic], [exit], [ATOMIC_LDFLAGS=-latomic])
+AC_SUBST(ATOMIC_LDFLAGS)
 
 # This defines HAVE_SYNC_VAL_COMPARE_AND_SWAP
 STARPU_CHECK_SYNC_VAL_COMPARE_AND_SWAP
