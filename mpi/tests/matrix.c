@@ -50,6 +50,9 @@ int main(int argc, char **argv)
 	starpu_data_handle_t data_X[N];
 	starpu_data_handle_t data_Y;
 	struct starpu_conf conf;
+	int mpi_init;
+
+	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
 
 	starpu_conf_init(&conf);
 	starpu_conf_noworker(&conf);
@@ -57,7 +60,7 @@ int main(int argc, char **argv)
 	conf.nmpi_ms = -1;
 	conf.ntcpip_ms = -1;
 
-	ret = starpu_mpi_init_conf(&argc, &argv, 1, MPI_COMM_WORLD, &conf);
+	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, &conf);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
@@ -67,6 +70,8 @@ int main(int argc, char **argv)
 		if (rank == 0)
 			FPRINTF(stderr, "We need at least 1 CPU worker.\n");
 		starpu_mpi_shutdown();
+		if (!mpi_init)
+			MPI_Finalize();
 		return rank == 0 ? STARPU_TEST_SKIPPED : 0;
 	}
 
@@ -135,6 +140,8 @@ int main(int argc, char **argv)
 	starpu_data_unregister(data_Y);
 
 	starpu_mpi_shutdown();
+	if (!mpi_init)
+		MPI_Finalize();
 
 	FPRINTF(stdout, "[%d] Y=%u\n", rank, Y);
 

@@ -53,6 +53,9 @@ int main(int argc, char **argv)
 	unsigned matrix[X][Y];
 	starpu_data_handle_t data_handles[X][Y];
 	struct starpu_conf conf;
+	int mpi_init;
+
+	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
 
 	starpu_conf_init(&conf);
 	starpu_conf_noworker(&conf);
@@ -60,7 +63,7 @@ int main(int argc, char **argv)
 	conf.nmpi_ms = -1;
 	conf.ntcpip_ms = -1;
 
-	ret = starpu_mpi_init_conf(&argc, &argv, 1, MPI_COMM_WORLD, &conf);
+	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, &conf);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
@@ -134,7 +137,11 @@ enodev:
 				starpu_data_unregister(data_handles[x][y]);
 		}
 	}
+
 	starpu_mpi_shutdown();
+
+	if (!mpi_init)
+		MPI_Finalize();
 
 #if 0
 	for(x = 0; x < X; x++)

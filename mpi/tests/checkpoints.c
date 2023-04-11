@@ -95,6 +95,8 @@ int pseudotest_checkpoint_template_register(int argc, char* argv[])
 	starpu_mpi_checkpoint_template_print(cp_template1);
 
 	starpu_shutdown();
+	if (!mpi_init)
+		MPI_Finalize();
 	return 0;
 }
 
@@ -107,6 +109,9 @@ int test_checkpoint_submit(int argc, char* argv[])
 	int val1 = 0;
 	int stage = 10;
 	struct starpu_conf conf;
+	int mpi_init;
+
+	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
 
 	FPRINTF(stderr, "Go\n");
 
@@ -116,7 +121,7 @@ int test_checkpoint_submit(int argc, char* argv[])
 	conf.nmpi_ms = -1;
 	conf.ntcpip_ms = -1;
 
-	ret = starpu_mpi_init_conf(&argc, &argv, 1, MPI_COMM_WORLD, &conf);
+	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, &conf);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &nb_nodes);
@@ -182,7 +187,11 @@ int test_checkpoint_submit(int argc, char* argv[])
 	fprintf(stderr, "\n\n");
 	starpu_mpi_wait_for_all(MPI_COMM_WORLD);
 	FPRINTF_MPI(stderr, "Bye!\n");
+
 	starpu_mpi_shutdown();
+
+	if (!mpi_init)
+		MPI_Finalize();
 
 	return 0;
 }

@@ -84,6 +84,7 @@ int main(int argc, char **argv)
 	int ret;
 
 	int nb_elements, step, loops;
+	int mpi_init;
 
 	STARPU_SKIP_IF_VALGRIND_RETURN_SKIP;
 
@@ -91,13 +92,15 @@ int main(int argc, char **argv)
 	if (starpu_getenv_number_default("STARPU_GLOBAL_ARBITER", 0) > 0)
 		return STARPU_TEST_SKIPPED;
 
+	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
+
 	starpu_conf_init(&conf);
 	starpu_conf_noworker(&conf);
 	conf.ncpus = -1;
 	conf.nmpi_ms = -1;
 	conf.ntcpip_ms = -1;
 
-	ret = starpu_mpi_init_conf(&argc, &argv, 1, MPI_COMM_WORLD, &conf);
+	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, &conf);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &my_rank);
@@ -108,6 +111,8 @@ int main(int argc, char **argv)
 		if (my_rank == 0)
 			FPRINTF(stderr, "We need at least 1 CPU worker.\n");
 		starpu_mpi_shutdown();
+		if (!mpi_init)
+			MPI_Finalize();
 		return my_rank == 0 ? STARPU_TEST_SKIPPED : 0;
 	}
 
@@ -193,6 +198,8 @@ int main(int argc, char **argv)
 	free(handles);
 
 	starpu_mpi_shutdown();
+	if (!mpi_init)
+		MPI_Finalize();
 
 	if (my_rank == 0)
 	{
