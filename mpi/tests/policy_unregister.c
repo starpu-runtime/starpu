@@ -21,6 +21,7 @@ int main(int argc, char **argv)
 {
 	int ret;
 	struct starpu_conf conf;
+	int mpi_init;
 
 #ifdef STARPU_HAVE_VALGRIND_H
 	if (RUNNING_ON_VALGRIND)
@@ -29,18 +30,22 @@ int main(int argc, char **argv)
 
 	disable_coredump();
 
+	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
+
 	starpu_conf_init(&conf);
 	starpu_conf_noworker(&conf);
 	conf.ncpus = -1;
 	conf.nmpi_ms = -1;
 	conf.ntcpip_ms = -1;
 
-	ret = starpu_mpi_init_conf(&argc, &argv, 1, MPI_COMM_WORLD, &conf);
+	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, &conf);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	starpu_mpi_node_selection_unregister_policy(STARPU_MPI_NODE_SELECTION_MOST_R_DATA);
 
 	starpu_mpi_shutdown();
+	if (!mpi_init)
+		MPI_Finalize();
 
 	return 0;
 }

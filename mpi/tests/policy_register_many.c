@@ -32,6 +32,9 @@ int main(int argc, char **argv)
 	int ret;
 	int i, policy;
 	struct starpu_conf conf;
+	int mpi_init;
+
+	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
 
 	starpu_conf_init(&conf);
 	starpu_conf_noworker(&conf);
@@ -39,7 +42,7 @@ int main(int argc, char **argv)
 	conf.nmpi_ms = -1;
 	conf.ntcpip_ms = -1;
 
-	ret = starpu_mpi_init_conf(&argc, &argv, 1, MPI_COMM_WORLD, &conf);
+	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, &conf);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	for(i=0 ; i<_STARPU_MPI_NODE_SELECTION_MAX_POLICY-1 ; i++)
@@ -53,6 +56,8 @@ int main(int argc, char **argv)
 	STARPU_ASSERT(policy==_STARPU_MPI_NODE_SELECTION_MAX_POLICY-2);
 
 	starpu_mpi_shutdown();
+	if (!mpi_init)
+		MPI_Finalize();
 
 	return 0;
 }

@@ -69,8 +69,11 @@ int main(int argc, char **argv)
 	int ret, rank, size;
 	int token = 42;
 	starpu_data_handle_t token_handle;
+	int mpi_init;
 
-	ret = starpu_mpi_init_conf(&argc, &argv, 1, MPI_COMM_WORLD, NULL);
+	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
+
+	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
@@ -86,6 +89,8 @@ int main(int argc, char **argv)
 				FPRINTF(stderr, "We need at least 1 CPU or CUDA or HIP worker.\n");
 		}
 		starpu_mpi_shutdown();
+		if (!mpi_init)
+			MPI_Finalize();
 		return rank == 0 ? STARPU_TEST_SKIPPED : 0;
 	}
 
@@ -132,7 +137,10 @@ int main(int argc, char **argv)
 	starpu_task_wait_for_all();
 
 	starpu_data_unregister(token_handle);
+
 	starpu_mpi_shutdown();
+	if (!mpi_init)
+		MPI_Finalize();
 
 #ifndef STARPU_SIMGRID
 	if (rank == last_rank)
