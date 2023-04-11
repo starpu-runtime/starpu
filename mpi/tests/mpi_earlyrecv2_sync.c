@@ -20,7 +20,7 @@
 #include <interface/complex_interface.h>
 
 #ifdef STARPU_QUICK_CHECK
-#  define NB 2
+#  define NB 3
 #else
 #  define NB 10
 #endif
@@ -161,9 +161,7 @@ int exchange_void(int rank)
 	conf.nmpi_ms = -1;
 	conf.ntcpip_ms = -1;
 
-	ret = starpu_init(&conf);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_init(NULL, NULL, 0);
+	ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, &conf);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
 	FPRINTF_MPI(stderr, "Exchanging void data\n");
@@ -214,9 +212,7 @@ int exchange_complex(int rank)
 	conf.nmpi_ms = -1;
 	conf.ntcpip_ms = -1;
 
-	ret = starpu_init(&conf);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_mpi_init(NULL, NULL, 0);
+	ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, &conf);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
 	FPRINTF_MPI(stderr, "Exchanging complex data\n");
