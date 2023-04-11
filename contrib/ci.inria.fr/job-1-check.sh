@@ -112,7 +112,7 @@ fi
 
 export STARPU_TIMEOUT_ENV=3600
 export MPIEXEC_TIMEOUT=3600
-CONFIGURE_OPTIONS="--enable-debug --enable-verbose --enable-mpi-check=maybe --disable-build-doc $ARGS"
+CONFIGURE_OPTIONS="--enable-debug --enable-verbose --disable-build-examples --enable-mpi-check=maybe --disable-build-doc $ARGS"
 CONFIGURE_CHECK=""
 day=$(date +%u)
 if test $day -le 5
