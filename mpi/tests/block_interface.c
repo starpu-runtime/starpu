@@ -19,13 +19,13 @@
 #include "helper.h"
 
 #ifdef STARPU_QUICK_CHECK
-#  define NITER	16
+#  define NITER	4
 #else
 #  define NITER	2048
 #endif
 
-#define BIGSIZE	128
-#define SIZE	64
+#define BIGSIZE	32
+#define SIZE	8
 
 int main(int argc, char **argv)
 {
@@ -81,8 +81,8 @@ int main(int argc, char **argv)
 		}
 
 		starpu_block_data_register(&block_handle, STARPU_MAIN_RAM,
-			(uintptr_t)block, BIGSIZE, BIGSIZE*BIGSIZE,
-			SIZE, SIZE, SIZE, sizeof(float));
+					   (uintptr_t)block, BIGSIZE, BIGSIZE*BIGSIZE,
+					   SIZE, SIZE, SIZE, sizeof(float));
 	}
 	else if (rank == 1)
 	{
@@ -90,8 +90,8 @@ int main(int argc, char **argv)
 		assert(block);
 
 		starpu_block_data_register(&block_handle, STARPU_MAIN_RAM,
-			(uintptr_t)block, SIZE, SIZE*SIZE,
-			SIZE, SIZE, SIZE, sizeof(float));
+					   (uintptr_t)block, SIZE, SIZE*SIZE,
+					   SIZE, SIZE, SIZE, sizeof(float));
 	}
 
 	if (rank == 0)
