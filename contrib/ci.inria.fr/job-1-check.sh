@@ -110,6 +110,7 @@ then
     ARGS="--with-mpiexec-args=-oversubscribe"
 fi
 
+export STARPU_MICROBENCHS_DISABLED=1
 export STARPU_TIMEOUT_ENV=3600
 export MPIEXEC_TIMEOUT=3600
 CONFIGURE_OPTIONS="--enable-debug --enable-verbose --disable-build-examples --enable-mpi-check=maybe --disable-build-doc $ARGS"
