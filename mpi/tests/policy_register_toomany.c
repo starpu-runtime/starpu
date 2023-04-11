@@ -49,7 +49,7 @@ int main(int argc, char **argv)
 	conf.nmpi_ms = -1;
 	conf.ntcpip_ms = -1;
 
-	ret = starpu_mpi_init_conf(&argc, &argv, mip_init, MPI_COMM_WORLD, &conf);
+	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, &conf);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	for(i=0 ; i<_STARPU_MPI_NODE_SELECTION_MAX_POLICY+1 ; i++)
