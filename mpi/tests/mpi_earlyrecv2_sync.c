@@ -19,7 +19,11 @@
 #include <unistd.h>
 #include <interface/complex_interface.h>
 
-#define NB 6
+#ifdef STARPU_QUICK_CHECK
+#  define NB 2
+#else
+#  define NB 10
+#endif
 
 typedef void (*check_func)(starpu_data_handle_t handle, int i, int rank, int *error);
 

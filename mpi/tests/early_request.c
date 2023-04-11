@@ -19,7 +19,11 @@
 #include "helper.h"
 
 #define NUM_EL 5
-#define NUM_LOOPS 10
+#ifdef STARPU_QUICK_CHECK
+#  define NUM_LOOPS 2
+#else
+#  define NUM_LOOPS 10
+#endif
 
 /*
  * This testcase written by J-M Couteyen allows to test that several
@@ -31,7 +35,7 @@
  * different sizes (in order to catch error more easily).
  * The communications are independent between the elements (each one
  * as its proper tag), but must occur in the submitted order for an
- * element taken independtly.
+ * element taken independently.
 */
 
 struct element
