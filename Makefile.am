@@ -176,7 +176,7 @@ all-local:
 # we count the number of files which include unistd.h
 # we count the number of files which properly include unistd.h i.e by first detecting if it's available
 # and then we check both numbers are the same ...a
-	UNISTD_ALL_LINES=$(shell $(GREP) -B1 -rs "^#include <unistd.h>" $(srcdir)/src/ $(srcdir)/include/ $(srcdir)/mpi/src $(srcdir)/mpi/include  |$(GREP) -v dolib|$(GREP) -v -e "--" | tr '\012' '@' | $(SED) 's/unistd.h>@/unistd.h>\n/g' | wc -l | tr -d ' ') ;\
+	@UNISTD_ALL_LINES=$(shell $(GREP) -B1 -rs "^#include <unistd.h>" $(srcdir)/src/ $(srcdir)/include/ $(srcdir)/mpi/src $(srcdir)/mpi/include  |$(GREP) -v dolib|$(GREP) -v -e "--" | tr '\012' '@' | $(SED) 's/unistd.h>@/unistd.h>\n/g' | wc -l | tr -d ' ') ;\
 	UNISTD_CORRECT_LINES=$(shell $(GREP) -B1 -rs "^#include <unistd.h>" $(srcdir)/src/ $(srcdir)/include/ $(srcdir)/mpi/src $(srcdir)/mpi/include  |$(GREP) -v dolib|$(GREP) -v -e "--" | tr '\012' '@' | $(SED) 's/unistd.h>@/unistd.h>\n/g' | $(GREP) '#ifdef .*HAVE_UNISTD_H.*:#include <unistd.h>' | wc -l | tr -d ' ') ;\
 	if test $$UNISTD_ALL_LINES -ne $$UNISTD_CORRECT_LINES ; \
 	then \
