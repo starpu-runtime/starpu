@@ -15,6 +15,7 @@
  */
 
 #include <starpu_mpi.h>
+#include "helper.h"
 
 void cpu_fun(void* buffers[], void* args)
 {
@@ -40,6 +41,11 @@ static struct starpu_codelet codelet =
 int main(int argc, char** argv)
 {
 	struct starpu_conf conf;
+	int mpi_init;
+	int rank;
+	int ret;
+
+	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
 
 	starpu_conf_init(&conf);
 	starpu_conf_noworker(&conf);
@@ -47,19 +53,9 @@ int main(int argc, char** argv)
 	conf.nmpi_ms = -1;
 	conf.ntcpip_ms = -1;
 
-	if (starpu_init(&conf))
-	{
-		fprintf(stderr, "Error initializing StarPU\n");
-		return 1;
-	}
+	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, &conf);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
-	if (starpu_mpi_init(&argc, &argv, 1))
-	{
-		fprintf(stderr, "Error initializing StarPU MPI\n");
-		return 1;
-	}
-
-	int rank;
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 
 	// register a vector of one element
@@ -75,12 +71,8 @@ int main(int argc, char** argv)
 	// gather the result
 	starpu_data_unregister(handle);
 
-	// shutdown starpu
-	starpu_mpi_shutdown();
-	starpu_shutdown();
-
 	// check results
-	int ret = 0;
+	ret = 0;
 	if (rank == 0)
 	{
 		if (data[0] == 42)
@@ -95,6 +87,12 @@ int main(int argc, char** argv)
 		}
 	}
 	free(data);
+
+	// shutdown starpu
+	starpu_mpi_shutdown();
+
+	if (!mpi_init)
+		MPI_Finalize();
 
 	return ret;
 }

@@ -19,11 +19,7 @@
 #include <unistd.h>
 #include <interface/complex_interface.h>
 
-#ifdef STARPU_QUICK_CHECK
-#  define NB 3
-#else
-#  define NB 10
-#endif
+#define NB 6
 
 typedef void (*check_func)(starpu_data_handle_t handle, int i, int rank, int *error);
 
@@ -40,10 +36,10 @@ int exchange(int rank, starpu_data_handle_t *handles, check_func func)
 	{
 		ret = starpu_mpi_issend(handles[0], &req[0], other_rank, 0, MPI_COMM_WORLD);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_issend");
-		ret = starpu_mpi_isend(handles[NB-1], &req[NB-1], other_rank, NB-1, MPI_COMM_WORLD);
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend");
 		ret = starpu_mpi_issend(handles[NB-2], &req[NB-2], other_rank, NB-2, MPI_COMM_WORLD);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_issend");
+		ret = starpu_mpi_isend(handles[NB-1], &req[NB-1], other_rank, NB-1, MPI_COMM_WORLD);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend");
 
 		for(i=1 ; i<NB-2 ; i++)
 		{
@@ -68,15 +64,24 @@ int exchange(int rank, starpu_data_handle_t *handles, check_func func)
 	}
 	else
 	{
-		ret = starpu_mpi_irecv(handles[0], &req[0], other_rank, 0, MPI_COMM_WORLD);
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv");
-		STARPU_ASSERT(req[0] != NULL);
-		ret = starpu_mpi_irecv(handles[1], &req[1], other_rank, 1, MPI_COMM_WORLD);
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv");
-		STARPU_ASSERT(req[1] != NULL);
+		for(i=0 ; i<2 ; i++)
+		{
+			ret = starpu_mpi_irecv(handles[i], &req[i], other_rank, i, MPI_COMM_WORLD);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv");
+			STARPU_ASSERT(req[i] != NULL);
+		}
 
-		// We sleep to make sure that the data for the tag 8 and the tag 9 will be received before the recv are posted
-		starpu_sleep(2);
+		// We first wait for the first 2 requests to make sure
+		// the following data are internally received before
+		// their recv is posted
+		for(i=0 ; i<2 ; i++)
+		{
+			ret = starpu_mpi_wait(&req[i], MPI_STATUS_IGNORE);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_wait");
+			if (func)
+				func(handles[i], i, rank, &ret);
+		}
+
 		for(i=2 ; i<NB ; i++)
 		{
 			ret = starpu_mpi_irecv(handles[i], &req[i], other_rank, i, MPI_COMM_WORLD);
@@ -84,7 +89,7 @@ int exchange(int rank, starpu_data_handle_t *handles, check_func func)
 			STARPU_ASSERT(req[i] != NULL);
 		}
 
-		for(i=0 ; i<NB ; i++)
+		for(i=2 ; i<NB ; i++)
 		{
 			ret = starpu_mpi_wait(&req[i], MPI_STATUS_IGNORE);
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_wait");
@@ -101,14 +106,14 @@ void check_variable(starpu_data_handle_t handle, int i, int rank, int *error)
 
 	starpu_data_acquire_on_node(handle, starpu_worker_get_local_memory_node(), STARPU_R);
 	int *rvalue = (int *)starpu_data_get_local_ptr(handle);
-	if (*rvalue != i*other_rank)
+	if (*rvalue != (i+1)*(other_rank+1))
 	{
-		FPRINTF_MPI(stderr, "Incorrect received value: %d != %d\n", *rvalue, i*other_rank);
+		FPRINTF_MPI(stderr, "Incorrect received value: %d != %d\n", *rvalue, (i+1)*(other_rank+1));
 		*error = 1;
 	}
 	else
 	{
-		FPRINTF_MPI(stderr, "Correct received value: %d == %d\n", *rvalue, i*other_rank);
+		FPRINTF_MPI(stderr, "Correct received value: %d == %d\n", *rvalue, (i+1)*(other_rank+1));
 	}
 	starpu_data_release(handle);
 }
@@ -133,7 +138,7 @@ int exchange_variable(int rank)
 
 	for(i=0 ; i<NB ; i++)
 	{
-		value[i]=i*rank;
+		value[i]=(i+1)*(rank+1);
 		starpu_variable_data_register(&tab_handle[i], STARPU_MAIN_RAM, (uintptr_t)&value[i], sizeof(int));
 		starpu_mpi_data_register(tab_handle[i], i, rank);
 	}
@@ -189,12 +194,12 @@ void check_complex(starpu_data_handle_t handle, int i, int rank, int *error)
 
 	if ((*real != ((i*other_rank)+12)) || (*imaginary != ((i*other_rank)+45)))
 	{
-		FPRINTF_MPI(stderr, "Incorrect received value: %f != %d || %f != %d\n", *real, ((i*other_rank)+12), *imaginary, ((i*other_rank)+45));
+		FPRINTF_MPI(stderr, "Incorrect received value: %f != %f || %f != %f\n", *real, (double)((i*other_rank)+12), *imaginary, (double)((i*other_rank)+45));
 		*error = 1;
 	}
 	else
 	{
-		FPRINTF_MPI(stderr, "Correct received value: %f == %d || %f == %d\n", *real, ((i*other_rank)+12), *imaginary, ((i*other_rank)+45));
+		FPRINTF_MPI(stderr, "Correct received value: %f == %f && %f == %f\n", *real, (double)((i*other_rank)+12), *imaginary, (double)((i*other_rank)+45));
 	}
 }
 
