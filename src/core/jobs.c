@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
  *
@@ -165,7 +165,7 @@ struct _starpu_job* _starpu_get_job_associated_to_task_slow(struct starpu_task *
 
 	/* Saw _STARPU_JOB_SETTING, somebody is doing it, wait for it.
 	 * This is rare enough that busy-reading is fine enough. */
-	while ((job = task->starpu_private) == _STARPU_JOB_SETTING)
+	while ((job = *(struct _starpu_job *volatile*) &task->starpu_private) == _STARPU_JOB_SETTING)
 	{
 		STARPU_UYIELD();
 		STARPU_SYNCHRONIZE();
