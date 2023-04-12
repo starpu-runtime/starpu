@@ -80,7 +80,10 @@ int main(int argc, char **argv)
 	if (worldsize < 4)
 	{
 		fprintf(stderr, "This program needs at least 4 nodes\n");
-		ret = 77;
+		starpu_mpi_shutdown();
+		if (!mpi_init)
+			MPI_Finalize();
+		return my_rank == 0 ? STARPU_TEST_SKIPPED : 0;
 	}
 	else
 	{
