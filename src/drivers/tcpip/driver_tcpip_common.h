@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2021-2022-  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2021-2023-  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -56,7 +56,7 @@ int _starpu_tcpip_common_is_mp_initialized();
 int _starpu_tcpip_common_recv_is_ready(const struct _starpu_mp_node *mp_node);
 int _starpu_tcpip_common_notif_recv_is_ready(const struct _starpu_mp_node *mp_node);
 int _starpu_tcpip_common_notif_send_is_ready(const struct _starpu_mp_node *mp_node);
-void _starpu_tcpip_common_wait(const struct _starpu_mp_node *mp_node);
+void _starpu_tcpip_common_wait(struct _starpu_mp_node *mp_node);
 void _starpu_tcpip_common_signal(const struct _starpu_mp_node *mp_node);
 
 void _starpu_tcpip_common_mp_initialize_src_sink(struct _starpu_mp_node *node);

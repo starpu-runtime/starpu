@@ -998,7 +998,7 @@ int _starpu_tcpip_common_notif_send_is_ready(const struct _starpu_mp_node *mp_no
 	return res;
 }
 
-void _starpu_tcpip_common_wait(const struct _starpu_mp_node *mp_node)
+void _starpu_tcpip_common_wait(struct _starpu_mp_node *mp_node)
 {
 	fd_set reads;
 	fd_set writes;
