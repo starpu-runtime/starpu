@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -55,7 +55,7 @@ struct _starpu_job *_starpu_get_job_associated_to_task_slow(struct starpu_task *
 static inline struct _starpu_job *_starpu_get_job_associated_to_task(struct starpu_task *task)
 {
 	STARPU_ASSERT(task);
-	struct _starpu_job *job = (struct _starpu_job *) task->starpu_private;
+	struct _starpu_job *job = *(struct _starpu_job * volatile *) &task->starpu_private;
 
 	if (STARPU_LIKELY(job != _STARPU_JOB_UNSET && job != _STARPU_JOB_SETTING))
 	{
