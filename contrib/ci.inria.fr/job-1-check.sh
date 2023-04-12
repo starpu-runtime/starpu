@@ -88,6 +88,8 @@ suname=$(uname)
 if test "$suname" = "Darwin"
 then
     STARPU_CONFIGURE_OPTIONS="--without-hwloc"
+    # the VM macos is very slow
+    export STARPU_MPI_NP=2
 fi
 if test "$suname" = "OpenBSD"
 then
