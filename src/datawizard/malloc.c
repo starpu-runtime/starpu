@@ -644,25 +644,18 @@ int _starpu_free_flags_on_node(unsigned dst_node, void *A, size_t dim, int flags
 #endif /* STARPU_HAVE_CUDA_MEMCPY_PEER */
 #endif /* STARPU_USE_CUDA */
 		}
-		if (_starpu_can_submit_cuda_task())
+		if (_starpu_can_submit_hip_task())
 		{
 #ifdef STARPU_USE_HIP
-			if (!starpu_is_initialized())
-			{
-				/* This is especially useful when starpu_free is called even
-				 * though starpu_shutdown has already
-				 * been called, so we will not be able to submit a task. */
-				hipError_t hipres;
-#if 0 //defined(STARPU_USE_HIP_MAP) && defined(STARPU_HAVE_HIP_MNGMEM)
-				/* FIXME: check if devices actually support hipMallocManaged or fallback to hipHostAlloc() */
-				hipres = hipFree(A);
-#else
-				hipres = hipHostFree(A);
-#endif
-				if (STARPU_UNLIKELY(hipres))
-					STARPU_HIP_REPORT_ERROR(hipres);
-				goto out;
-			}
+			/* TODO: submit task */
+			/* This is especially useful when starpu_free is called even
+			 * though starpu_shutdown has already
+			 * been called, so we will not be able to submit a task. */
+			hipError_t hipres;
+			hipres = hipHostFree(A);
+			if (STARPU_UNLIKELY(hipres))
+				STARPU_HIP_REPORT_ERROR(hipres);
+			goto out;
 #endif /* STARPU_USE_HIP */
 #endif /* STARPU_SIMGRID */
 		}
