@@ -71,7 +71,7 @@ then
     lasthour=0
 fi
 
-find $basename -exec touch -d ${today}T${lasthour}:0:0 {} \; || true
+(find $basename -exec touch -d ${today}T${lasthour}:0:0 {} \; || true ) >/dev/null 2>&1
 cd $basename
 
 if test -f ./contrib/specific_env.sh
