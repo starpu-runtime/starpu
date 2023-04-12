@@ -18,13 +18,14 @@ LAUNCHER_ENV	=
 LAUNCHER	=
 include $(top_srcdir)/make/starpu.mk
 
+STARPU_MPI_NP ?= 4
 # These are always defined, both for starpu-mpi and for mpi-ms
 # For MPI tests we don't want to oversubscribe the system
 MPI_RUN_ENV			= STARPU_WORKERS_GETBIND=0 STARPU_WORKERS_NOBIND=1 STARPU_NCPU=3
 if STARPU_SIMGRID
-STARPU_MPIEXEC			= $(abs_top_builddir)/tools/starpu_smpirun -np 4 -platform $(abs_top_srcdir)/tools/perfmodels/cluster.xml -hostfile $(abs_top_srcdir)/tools/perfmodels/hostfile
+STARPU_MPIEXEC			= $(abs_top_builddir)/tools/starpu_smpirun -np $(STARPU_MPI_NP) -platform $(abs_top_srcdir)/tools/perfmodels/cluster.xml -hostfile $(abs_top_srcdir)/tools/perfmodels/hostfile
 else
-STARPU_MPIEXEC			= $(MPIEXEC) $(MPIEXEC_ARGS) -np 4
+STARPU_MPIEXEC			= $(MPIEXEC) $(MPIEXEC_ARGS) -np $(STARPU_MPI_NP)
 endif
 
 showcheckfailed:
