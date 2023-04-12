@@ -27,6 +27,20 @@ AC_DEFUN([STARPU_CHECK_SYNC_VAL_COMPARE_AND_SWAP], [
 	      [Define to 1 if the target supports __sync_val_compare_and_swap])
   fi])
 
+# Check whether the target supports 64bit __sync_val_compare_and_swap.
+AC_DEFUN([STARPU_CHECK_SYNC_VAL_COMPARE_AND_SWAP_8], [
+  AC_CACHE_CHECK([whether the target supports __sync_val_compare_and_swap_8],
+		 ac_cv_have_sync_val_compare_and_swap_8, [
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <stdint.h>
+                                   int64_t foo, bar;],
+			[bar = __sync_val_compare_and_swap(&foo, 0, 1);])],
+			[ac_cv_have_sync_val_compare_and_swap_8=yes],
+			[ac_cv_have_sync_val_compare_and_swap_8=no])])
+  if test $ac_cv_have_sync_val_compare_and_swap_8 = yes; then
+    AC_DEFINE(STARPU_HAVE_SYNC_VAL_COMPARE_AND_SWAP_8, 1,
+	      [Define to 1 if the target supports __sync_val_compare_and_swap_8])
+  fi])
+
 # Check whether the target supports __sync_bool_compare_and_swap.
 AC_DEFUN([STARPU_CHECK_SYNC_BOOL_COMPARE_AND_SWAP], [
   AC_CACHE_CHECK([whether the target supports __sync_bool_compare_and_swap],
@@ -38,6 +52,20 @@ AC_DEFUN([STARPU_CHECK_SYNC_BOOL_COMPARE_AND_SWAP], [
   if test $ac_cv_have_sync_bool_compare_and_swap = yes; then
     AC_DEFINE(STARPU_HAVE_SYNC_BOOL_COMPARE_AND_SWAP, 1,
 	      [Define to 1 if the target supports __sync_bool_compare_and_swap])
+  fi])
+
+# Check whether the target supports __sync_bool_compare_and_swap_8.
+AC_DEFUN([STARPU_CHECK_SYNC_BOOL_COMPARE_AND_SWAP_8], [
+  AC_CACHE_CHECK([whether the target supports __sync_bool_compare_and_swap_8],
+		 ac_cv_have_sync_bool_compare_and_swap_8, [
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <stdint.h>
+                                   int64_t foo, bar;],
+			[bar = __sync_bool_compare_and_swap(&foo, 0, 1);])],
+			[ac_cv_have_sync_bool_compare_and_swap_8=yes],
+			[ac_cv_have_sync_bool_compare_and_swap_8=no])])
+  if test $ac_cv_have_sync_bool_compare_and_swap_8 = yes; then
+    AC_DEFINE(STARPU_HAVE_SYNC_BOOL_COMPARE_AND_SWAP_8, 1,
+	      [Define to 1 if the target supports __sync_bool_compare_and_swap_8])
   fi])
 
 # Check whether the target supports __sync_fetch_and_add.
@@ -53,6 +81,20 @@ AC_DEFUN([STARPU_CHECK_SYNC_FETCH_AND_ADD], [
 	      [Define to 1 if the target supports __sync_fetch_and_add])
   fi])
 
+# Check whether the target supports __sync_fetch_and_add_8.
+AC_DEFUN([STARPU_CHECK_SYNC_FETCH_AND_ADD_8], [
+  AC_CACHE_CHECK([whether the target supports __sync_fetch_and_add_8],
+		 ac_cv_have_sync_fetch_and_add_8, [
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <stdint.h>
+                                   int64_t foo, bar;],
+			[bar = __sync_fetch_and_add(&foo, 1);])],
+			[ac_cv_have_sync_fetch_and_add_8=yes],
+			[ac_cv_have_sync_fetch_and_add_8=no])])
+  if test $ac_cv_have_sync_fetch_and_add_8 = yes; then
+    AC_DEFINE(STARPU_HAVE_SYNC_FETCH_AND_ADD_8, 1,
+	      [Define to 1 if the target supports __sync_fetch_and_add_8])
+  fi])
+
 # Check whether the target supports __sync_fetch_and_or.
 AC_DEFUN([STARPU_CHECK_SYNC_FETCH_AND_OR], [
   AC_CACHE_CHECK([whether the target supports __sync_fetch_and_or],
@@ -64,6 +106,20 @@ AC_DEFUN([STARPU_CHECK_SYNC_FETCH_AND_OR], [
   if test $ac_cv_have_sync_fetch_and_or = yes; then
     AC_DEFINE(STARPU_HAVE_SYNC_FETCH_AND_OR, 1,
 	      [Define to 1 if the target supports __sync_fetch_and_or])
+  fi])
+
+# Check whether the target supports __sync_fetch_and_or_8.
+AC_DEFUN([STARPU_CHECK_SYNC_FETCH_AND_OR_8], [
+  AC_CACHE_CHECK([whether the target supports __sync_fetch_and_or_8],
+		 ac_cv_have_sync_fetch_and_or_8, [
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <stdint.h>
+                                   int64_t foo, bar;],
+			[bar = __sync_fetch_and_or(&foo, 1);])],
+			[ac_cv_have_sync_fetch_and_or_8=yes],
+			[ac_cv_have_sync_fetch_and_or_8=no])])
+  if test $ac_cv_have_sync_fetch_and_or_8 = yes; then
+    AC_DEFINE(STARPU_HAVE_SYNC_FETCH_AND_OR_8, 1,
+	      [Define to 1 if the target supports __sync_fetch_and_or_8])
   fi])
 
 # Check whether the target supports __sync_lock_test_and_set.
@@ -92,6 +148,20 @@ AC_DEFUN([STARPU_CHECK_ATOMIC_COMPARE_EXCHANGE_N], [
 	      [Define to 1 if the target supports __atomic_compare_exchange_n])
   fi])
 
+# Check whether the target supports __atomic_compare_exchange_n_8.
+AC_DEFUN([STARPU_CHECK_ATOMIC_COMPARE_EXCHANGE_N_8], [
+  AC_CACHE_CHECK([whether the target supports __atomic_compare_exchange_n_8],
+		 ac_cv_have_atomic_compare_exchange_n_8, [
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <stdint.h>
+                                   int64_t foo, bar, baz;],
+			[baz = __atomic_compare_exchange_n(&foo, &bar, 1, 0, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);])],
+			[ac_cv_have_atomic_compare_exchange_n_8=yes],
+			[ac_cv_have_atomic_compare_exchange_n_8=no])])
+  if test $ac_cv_have_atomic_compare_exchange_n_8 = yes; then
+    AC_DEFINE(STARPU_HAVE_ATOMIC_COMPARE_EXCHANGE_N_8, 1,
+	      [Define to 1 if the target supports __atomic_compare_exchange_n_8])
+  fi])
+
 # Check whether the target supports __atomic_exchange_n.
 AC_DEFUN([STARPU_CHECK_ATOMIC_EXCHANGE_N], [
   AC_CACHE_CHECK([whether the target supports __atomic_exchange_n],
@@ -103,6 +173,20 @@ AC_DEFUN([STARPU_CHECK_ATOMIC_EXCHANGE_N], [
   if test $ac_cv_have_atomic_exchange_n = yes; then
     AC_DEFINE(STARPU_HAVE_ATOMIC_EXCHANGE_N, 1,
 	      [Define to 1 if the target supports __atomic_exchange_n])
+  fi])
+
+# Check whether the target supports __atomic_exchange_n_8.
+AC_DEFUN([STARPU_CHECK_ATOMIC_EXCHANGE_N_8], [
+  AC_CACHE_CHECK([whether the target supports __atomic_exchange_n_8],
+		 ac_cv_have_atomic_exchange_n_8, [
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <stdint.h>
+                                   int64_t foo, bar;],
+			[bar = __atomic_exchange_n(&foo, 1, __ATOMIC_SEQ_CST);])],
+			[ac_cv_have_atomic_exchange_n_8=yes],
+			[ac_cv_have_atomic_exchange_n_8=no])])
+  if test $ac_cv_have_atomic_exchange_n_8 = yes; then
+    AC_DEFINE(STARPU_HAVE_ATOMIC_EXCHANGE_N_8, 1,
+	      [Define to 1 if the target supports __atomic_exchange_n_8])
   fi])
 
 # Check whether the target supports __atomic_fetch_add.
@@ -118,6 +202,20 @@ AC_DEFUN([STARPU_CHECK_ATOMIC_FETCH_ADD], [
 	      [Define to 1 if the target supports __atomic_fetch_add])
   fi])
 
+# Check whether the target supports __atomic_fetch_add_8.
+AC_DEFUN([STARPU_CHECK_ATOMIC_FETCH_ADD_8], [
+  AC_CACHE_CHECK([whether the target supports __atomic_fetch_add_8],
+		 ac_cv_have_atomic_fetch_add_8, [
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <stdint.h>
+                                   int64_t foo, bar;],
+			[bar = __atomic_fetch_add(&foo, 1, __ATOMIC_SEQ_CST);])],
+			[ac_cv_have_atomic_fetch_add_8=yes],
+			[ac_cv_have_atomic_fetch_add_8=no])])
+  if test $ac_cv_have_atomic_fetch_add_8 = yes; then
+    AC_DEFINE(STARPU_HAVE_ATOMIC_FETCH_ADD_8, 1,
+	      [Define to 1 if the target supports __atomic_fetch_add_8])
+  fi])
+
 # Check whether the target supports __atomic_fetch_or.
 AC_DEFUN([STARPU_CHECK_ATOMIC_FETCH_OR], [
   AC_CACHE_CHECK([whether the target supports __atomic_fetch_or],
@@ -129,6 +227,20 @@ AC_DEFUN([STARPU_CHECK_ATOMIC_FETCH_OR], [
   if test $ac_cv_have_atomic_fetch_or = yes; then
     AC_DEFINE(STARPU_HAVE_ATOMIC_FETCH_OR, 1,
 	      [Define to 1 if the target supports __atomic_fetch_or])
+  fi])
+
+# Check whether the target supports __atomic_fetch_or_8.
+AC_DEFUN([STARPU_CHECK_ATOMIC_FETCH_OR_8], [
+  AC_CACHE_CHECK([whether the target supports __atomic_fetch_or_8],
+		 ac_cv_have_atomic_fetch_or_8, [
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <stdint.h>
+                                   int64_t foo, bar;],
+			[bar = __atomic_fetch_or(&foo, 1, __ATOMIC_SEQ_CST);])],
+			[ac_cv_have_atomic_fetch_or_8=yes],
+			[ac_cv_have_atomic_fetch_or_8=no])])
+  if test $ac_cv_have_atomic_fetch_or_8 = yes; then
+    AC_DEFINE(STARPU_HAVE_ATOMIC_FETCH_OR_8, 1,
+	      [Define to 1 if the target supports __atomic_fetch_or_8])
   fi])
 
 # Check whether the target supports __atomic_test_and_set.

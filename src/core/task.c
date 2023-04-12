@@ -50,11 +50,11 @@ static int __g_peak_submitted;
 static int __g_peak_ready;
 
 /* global counter variables */
-int64_t _starpu_task__g_total_submitted__value;
-int64_t _starpu_task__g_peak_submitted__value;
-int64_t _starpu_task__g_current_submitted__value;
-int64_t _starpu_task__g_peak_ready__value;
-int64_t _starpu_task__g_current_ready__value;
+starpu_perf_counter_int64_t _starpu_task__g_total_submitted__value;
+starpu_perf_counter_int64_t _starpu_task__g_peak_submitted__value;
+starpu_perf_counter_int64_t _starpu_task__g_current_submitted__value;
+starpu_perf_counter_int64_t _starpu_task__g_peak_ready__value;
+starpu_perf_counter_int64_t _starpu_task__g_current_ready__value;
 
 /* per-worker counters */
 static int __w_total_executed;
@@ -992,8 +992,8 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 		;
 	if (!_starpu_perf_counter_paused() && !j->internal && !continuation)
 	{
-		(void) STARPU_ATOMIC_ADD64(&_starpu_task__g_total_submitted__value, 1);
-		int64_t value = STARPU_ATOMIC_ADD64(&_starpu_task__g_current_submitted__value, 1);
+		(void) STARPU_PERF_COUNTER_ADD64(&_starpu_task__g_total_submitted__value, 1);
+		int64_t value = STARPU_PERF_COUNTER_ADD64(&_starpu_task__g_current_submitted__value, 1);
 		_starpu_perf_counter_update_max_int64(&_starpu_task__g_peak_submitted__value, value);
 		_starpu_perf_counter_update_global_sample();
 
@@ -1001,8 +1001,8 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 		{
 			struct starpu_perf_counter_sample_cl_values * const pcv = task->cl->perf_counter_values;
 
-			(void) STARPU_ATOMIC_ADD64(&pcv->task.total_submitted, 1);
-			value = STARPU_ATOMIC_ADD64(&pcv->task.current_submitted, 1);
+			(void) STARPU_PERF_COUNTER_ADD64(&pcv->task.total_submitted, 1);
+			value = STARPU_PERF_COUNTER_ADD64(&pcv->task.current_submitted, 1);
 			_starpu_perf_counter_update_max_int64(&pcv->task.peak_submitted, value);
 			_starpu_perf_counter_update_per_codelet_sample(task->cl);
 		}
