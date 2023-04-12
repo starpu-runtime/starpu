@@ -699,7 +699,7 @@ static __starpu_inline int starpu_bool_compare_and_swap64(uint64_t *ptr, uint64_
 #endif
 
 #if UINTPTR_MAX == UINT64_MAX
-#define STARPU_BOOL_COMPARE_AND_SWAP_PTR(ptr, old, value) STARPU_BOOL_COMPARE_AND_SWAP64(ptr, old, value)
+#define STARPU_BOOL_COMPARE_AND_SWAP_PTR(ptr, old, value) STARPU_BOOL_COMPARE_AND_SWAP64((uint64_t*) (ptr), (uint64_t) (old), (uint64_t) (value))
 #else
 #define STARPU_BOOL_COMPARE_AND_SWAP_PTR(ptr, old, value) STARPU_BOOL_COMPARE_AND_SWAP32(ptr, old, value)
 #endif
@@ -740,7 +740,7 @@ static __starpu_inline uint64_t starpu_val_compare_and_swap64(uint64_t *ptr, uin
 #endif
 
 #if UINTPTR_MAX == UINT64_MAX
-#define STARPU_VAL_COMPARE_AND_SWAP_PTR(ptr, old, value) STARPU_VAL_COMPARE_AND_SWAP64(ptr, old, value)
+#define STARPU_VAL_COMPARE_AND_SWAP_PTR(ptr, old, value) ((void*)STARPU_VAL_COMPARE_AND_SWAP64((uint64_t*) (ptr), (uint64_t) (old), (uint64_t) (value)))
 #else
 #define STARPU_VAL_COMPARE_AND_SWAP_PTR(ptr, old, value) STARPU_VAL_COMPARE_AND_SWAP32(ptr, old, value)
 #endif
