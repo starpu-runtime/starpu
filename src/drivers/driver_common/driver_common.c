@@ -78,11 +78,11 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 		STARPU_ASSERT(task->status == STARPU_TASK_READY);
 		if (!_starpu_perf_counter_paused() && !j->internal)
 		{
-			(void)STARPU_ATOMIC_ADD64(& _starpu_task__g_current_ready__value, -1);
+			(void)STARPU_PERF_COUNTER_ADD64(& _starpu_task__g_current_ready__value, -1);
 			if (task->cl && task->cl->perf_counter_values)
 			{
 				struct starpu_perf_counter_sample_cl_values * const pcv = task->cl->perf_counter_values;
-				(void)STARPU_ATOMIC_ADD64(&pcv->task.current_ready, -1);
+				(void)STARPU_PERF_COUNTER_ADD64(&pcv->task.current_ready, -1);
 			}
 		}
 		task->status = STARPU_TASK_RUNNING;
@@ -247,7 +247,7 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 			if (cl->perf_counter_values)
 			{
 				struct starpu_perf_counter_sample_cl_values * const pcv = cl->perf_counter_values;
-				(void)STARPU_ATOMIC_ADD64(&pcv->task.total_executed, 1);
+				(void)STARPU_PERF_COUNTER_ADD64(&pcv->task.total_executed, 1);
 				_starpu_perf_counter_update_acc_double(&pcv->task.cumul_execution_time, measured);
 				_starpu_perf_counter_update_per_codelet_sample(cl);
 			}

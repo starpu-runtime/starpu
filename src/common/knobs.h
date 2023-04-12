@@ -43,6 +43,10 @@
 
 #define _STARPU_PERF_COUNTER_ID_SCOPE_BITS 4
 
+#if defined(STARPU_VAL_COMPARE_AND_SWAP64) && defined (STARPU_ATOMIC_ADD64)
+#define STARPU_PERF_COUNTER_64
+#endif
+
 struct starpu_perf_counter_sample;
 struct _starpu_worker;
 
@@ -64,6 +68,9 @@ static inline void _starpu_perf_counter_update_##OPNAME##_##TYPENAME(TYPE *ptr, 
 	} \
 }
 
+#ifdef STARPU_PERF_COUNTER_64
+typedef int64_t starpu_perf_counter_int64_t;
+typedef double starpu_perf_counter_double;
 #define __STARPU_PERF_COUNTER_UPDATE_64BIT(OPNAME,OP,TYPENAME,TYPE) \
 static inline void _starpu_perf_counter_update_##OPNAME##_##TYPENAME(TYPE *ptr, TYPE value) \
 { \
@@ -81,38 +88,49 @@ static inline void _starpu_perf_counter_update_##OPNAME##_##TYPENAME(TYPE *ptr, 
 		raw_old = raw_old_check; \
 	} \
 }
+#else
+/* No native 64bit atomic operation, revert to lower precision */
+typedef int32_t starpu_perf_counter_int64_t;
+typedef float starpu_perf_counter_double;
+#define __STARPU_PERF_COUNTER_UPDATE_64BIT(OPNAME,OP,TYPENAME,TYPE) \
+        __STARPU_PERF_COUNTER_UPDATE_32BIT(OPNAME,OP,TYPENAME,TYPE)
+#endif
 
 /* Atomic max */
 __STARPU_PERF_COUNTER_UPDATE_32BIT(max,>=,int32,int32_t);
 __STARPU_PERF_COUNTER_UPDATE_32BIT(max,>=,float,float);
-__STARPU_PERF_COUNTER_UPDATE_64BIT(max,>=,int64,int64_t);
-__STARPU_PERF_COUNTER_UPDATE_64BIT(max,>=,double,double);
+__STARPU_PERF_COUNTER_UPDATE_64BIT(max,>=,int64,starpu_perf_counter_int64_t);
+__STARPU_PERF_COUNTER_UPDATE_64BIT(max,>=,double,starpu_perf_counter_double);
 
 /* Atomic min */
 __STARPU_PERF_COUNTER_UPDATE_32BIT(min,<=,int32,int32_t);
 __STARPU_PERF_COUNTER_UPDATE_32BIT(min,<=,float,float);
-__STARPU_PERF_COUNTER_UPDATE_64BIT(min,<=,int64,int64_t);
-__STARPU_PERF_COUNTER_UPDATE_64BIT(min,<=,double,double);
+__STARPU_PERF_COUNTER_UPDATE_64BIT(min,<=,int64,starpu_perf_counter_int64_t);
+__STARPU_PERF_COUNTER_UPDATE_64BIT(min,<=,double,starpu_perf_counter_double);
 
 #undef __STARPU_PERF_COUNTER_UPDATE_32BIT
 #undef __STARPU_PERF_COUNTER_UPDATE_64BIT
 
 /** Floating point atomic accumulate */
-static inline void _starpu_perf_counter_update_acc_float(float *ptr, float acc_value)
-{
-	STARPU_ASSERT(sizeof(float) == sizeof(uint32_t));
-	typedef uint32_t __attribute__((__may_alias__)) alias_uint32_t;
-	typedef float    __attribute__((__may_alias__)) alias_float;
-	uint32_t raw_old = *(uint32_t *)ptr;
-	while (1)
-	{
-		float value = acc_value + *(alias_float*)&raw_old;
-		uint32_t raw_old_check = STARPU_VAL_COMPARE_AND_SWAP32((uint32_t *)ptr, raw_old, *(alias_uint32_t*)&value);
-		if (raw_old_check == raw_old)
-			break;
-		raw_old = raw_old_check;
-	}
+#define __STARPU_PERF_COUNTER_UPDATE_ACC_FLOAT(TYPENAME, TYPE) \
+static inline void _starpu_perf_counter_update_acc_##TYPENAME(TYPE *ptr, TYPE acc_value) \
+{ \
+	STARPU_ASSERT(sizeof(TYPE) == sizeof(uint32_t)); \
+	typedef uint32_t __attribute__((__may_alias__)) alias_uint32_t; \
+	typedef TYPE    __attribute__((__may_alias__)) alias_float; \
+	uint32_t raw_old = *(uint32_t *)ptr; \
+	while (1) \
+	{ \
+		TYPE value = acc_value + *(alias_float*)&raw_old; \
+		uint32_t raw_old_check = STARPU_VAL_COMPARE_AND_SWAP32((uint32_t *)ptr, raw_old, *(alias_uint32_t*)&value); \
+		if (raw_old_check == raw_old) \
+			break; \
+		raw_old = raw_old_check; \
+	} \
 }
+
+__STARPU_PERF_COUNTER_UPDATE_ACC_FLOAT(float, float);
+#ifdef STARPU_PERF_COUNTER_64
 static inline void _starpu_perf_counter_update_acc_double(double *ptr, double acc_value)
 {
 	STARPU_ASSERT(sizeof(double) == sizeof(uint64_t));
@@ -128,6 +146,15 @@ static inline void _starpu_perf_counter_update_acc_double(double *ptr, double ac
 		raw_old = raw_old_check;
 	}
 }
+#else
+__STARPU_PERF_COUNTER_UPDATE_ACC_FLOAT(double, starpu_perf_counter_double);
+#endif
+
+#ifdef STARPU_ATOMIC_ADD64
+#define STARPU_PERF_COUNTER_ADD64(ptr, val) STARPU_ATOMIC_ADD64((ptr), (val))
+#else
+#define STARPU_PERF_COUNTER_ADD64(ptr, val) STARPU_ATOMIC_ADD((ptr), (val))
+#endif
 
 struct starpu_perf_counter
 {
@@ -147,9 +174,9 @@ struct starpu_perf_counter_set
 union starpu_perf_counter_value
 {
 	int32_t int32_val;
-	int64_t int64_val;
+	starpu_perf_counter_int64_t int64_val;
 	float float_val;
-	double double_val;
+	starpu_perf_counter_double double_val;
 };
 
 struct starpu_perf_counter_listener
@@ -171,13 +198,13 @@ struct starpu_perf_counter_sample_cl_values
 {
 	struct
 	{
-		int64_t total_submitted;
-		int64_t peak_submitted;
-		int64_t current_submitted;
-		int64_t peak_ready;
-		int64_t current_ready;
-		int64_t total_executed;
-		double cumul_execution_time;
+		starpu_perf_counter_int64_t total_submitted;
+		starpu_perf_counter_int64_t peak_submitted;
+		starpu_perf_counter_int64_t current_submitted;
+		starpu_perf_counter_int64_t peak_ready;
+		starpu_perf_counter_int64_t current_ready;
+		starpu_perf_counter_int64_t total_executed;
+		starpu_perf_counter_double cumul_execution_time;
 	} task;
 };
 
@@ -234,9 +261,9 @@ static inline void _starpu_perf_counter_sample_set_##STRING##_value(struct starp
 }
 
 __STARPU_PERF_COUNTER_SAMPLE_SET_TYPED_VALUE(int32, int32_t);
-__STARPU_PERF_COUNTER_SAMPLE_SET_TYPED_VALUE(int64, int64_t);
+__STARPU_PERF_COUNTER_SAMPLE_SET_TYPED_VALUE(int64, starpu_perf_counter_int64_t);
 __STARPU_PERF_COUNTER_SAMPLE_SET_TYPED_VALUE(float, float);
-__STARPU_PERF_COUNTER_SAMPLE_SET_TYPED_VALUE(double, double);
+__STARPU_PERF_COUNTER_SAMPLE_SET_TYPED_VALUE(double, starpu_perf_counter_double);
 
 #undef __STARPU_PERF_COUNTER_SAMPLE_SET_TYPED_VALUE
 
@@ -250,11 +277,11 @@ __STARPU_PERF_COUNTER_SAMPLE_SET_TYPED_VALUE(double, double);
 	while (0)
 
 /* global counter variables */
-extern int64_t _starpu_task__g_total_submitted__value;
-extern int64_t _starpu_task__g_peak_submitted__value;
-extern int64_t _starpu_task__g_current_submitted__value;
-extern int64_t _starpu_task__g_peak_ready__value;
-extern int64_t _starpu_task__g_current_ready__value;
+extern starpu_perf_counter_int64_t _starpu_task__g_total_submitted__value;
+extern starpu_perf_counter_int64_t _starpu_task__g_peak_submitted__value;
+extern starpu_perf_counter_int64_t _starpu_task__g_current_submitted__value;
+extern starpu_perf_counter_int64_t _starpu_task__g_peak_ready__value;
+extern starpu_perf_counter_int64_t _starpu_task__g_current_ready__value;
 
 /* performance counter registration routines per modules */
 void _starpu__task_c__register_counters(void);	/* module: task.c */
@@ -286,9 +313,9 @@ struct starpu_perf_knob_value
 	union
 	{
 		int32_t val_int32_t;
-		int64_t val_int64_t;
+		starpu_perf_counter_int64_t val_int64_t;
 		float   val_float;
-		double  val_double;
+		starpu_perf_counter_double  val_double;
 	};
 };
 
