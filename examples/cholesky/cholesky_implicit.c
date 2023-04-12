@@ -55,10 +55,6 @@ double T_POTRF = 20695.580000;
 double T_TRSM = 626.567700;
 double T_GEMM = 139.072000;
 double T_SYRK = 139.072000;
-//~ /* Pour des tuiles 1920*1920 */
-//~ double T_POTRF = 46798.300000;
-//~ double T_TRSM = 1519.698000;
-//~ double T_GEMM = 1014.999000;
 
 /*
  *	code to bootstrap the factorization

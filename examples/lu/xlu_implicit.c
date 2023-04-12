@@ -22,8 +22,6 @@
 #include "xlu_kernels.h"
 #include "starpu_cusolver.h"
 
-//int current_iteration;
-//int niter;
 double average_flop;
 double timing_total;
 double flop_total;

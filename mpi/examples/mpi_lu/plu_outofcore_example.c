@@ -27,7 +27,6 @@
 #include <sys/stat.h>
 
 #include "pxlu.h"
-//#include "pxlu_kernels.h"
 
 #ifdef STARPU_HAVE_LIBNUMA
 #include <numaif.h>
