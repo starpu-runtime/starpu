@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -84,7 +84,9 @@ int main(void)
 		starpu_data_handle_t sub_handle = starpu_data_get_sub_data(handle, 1, i);
 		FPRINTF(stderr, "Sub Variable %d: \n", i);
 		int *variable = (int *)starpu_variable_get_local_ptr(sub_handle);
+		starpu_data_acquire(sub_handle, STARPU_R);
 		FPRINTF(stderr, "%5d ", *variable);
+		starpu_data_release(sub_handle);
 		FPRINTF(stderr,"\n");
 
 		struct starpu_task *task = starpu_task_create();
@@ -101,7 +103,9 @@ int main(void)
 
 		/* Print result variable */
 		FPRINTF(stderr,"OUT Variable %d: \n", i);
+		starpu_data_acquire(sub_handle, STARPU_R);
 		FPRINTF(stderr, "%5d ", *variable);
+		starpu_data_release(sub_handle);
 		FPRINTF(stderr,"\n");
 	}
 

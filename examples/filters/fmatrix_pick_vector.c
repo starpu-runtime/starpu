@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -92,7 +92,9 @@ int main(void)
 		FPRINTF(stderr, "Sub Vector %d: \n", i);
 		int *vector = (int *)starpu_vector_get_local_ptr(vector_handle);
 		int nx = starpu_vector_get_nx(vector_handle);
+		starpu_data_acquire(vector_handle, STARPU_R);
 		for(j=0 ; j<nx ; j++) FPRINTF(stderr, "%5d ", vector[j]);
+		starpu_data_release(vector_handle);
 		FPRINTF(stderr,"\n");
 
 		/* Submit a task on each sub-vector */
@@ -111,7 +113,9 @@ int main(void)
 
 		/* Print result vector */
 		FPRINTF(stderr,"OUT Vector %d: \n", i);
+		starpu_data_acquire(vector_handle, STARPU_R);
 		for(j=0 ; j<nx ; j++) FPRINTF(stderr, "%5d ", vector[j]);
+		starpu_data_release(vector_handle);
 		FPRINTF(stderr,"\n");
 	}
 

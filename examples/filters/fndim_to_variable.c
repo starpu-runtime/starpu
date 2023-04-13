@@ -77,7 +77,9 @@ int main(void)
 		starpu_data_handle_t variable_handle = starpu_data_get_sub_data(handle, 1, i);
 		FPRINTF(stderr, "Sub variable %d: \n", i);
 		int *variable = (int *)starpu_variable_get_local_ptr(variable_handle);
+		starpu_data_acquire(variable_handle, STARPU_R);
 		FPRINTF(stderr, "%5d ", *variable);
+		starpu_data_release(variable_handle);
 		FPRINTF(stderr,"\n");
 
 		struct starpu_task *task = starpu_task_create();
@@ -94,7 +96,9 @@ int main(void)
 
 		/* Print result variable */
 		FPRINTF(stderr,"OUT Variable %d: \n", i);
+		starpu_data_acquire(variable_handle, STARPU_R);
 		FPRINTF(stderr, "%5d ", *variable);
+		starpu_data_release(variable_handle);
 		FPRINTF(stderr,"\n");
 	}
 
