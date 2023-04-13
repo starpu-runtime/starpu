@@ -116,7 +116,7 @@ int main(void)
 			FPRINTF(stderr, "sub Matrix: \n");
 			print_matrix_data(sub_matrix_handle);
 
-			starpu_data_handle_t var_handle[1];
+			starpu_data_handle_t var_handle;
 
 			pos[0] = starpu_drand48()*(NX/PARTSX);
 			pos[1] = starpu_drand48()*(NY/PARTSY);
@@ -130,20 +130,20 @@ int main(void)
 				/* the children use a variable interface*/
 				.get_child_ops = starpu_matrix_filter_pick_variable_child_ops
 			};
-			starpu_data_partition_plan(sub_matrix_handle, &f_var, var_handle);
+			starpu_data_partition_plan(sub_matrix_handle, &f_var, &var_handle);
 
 			FPRINTF(stderr, "Sub Variable:\n");
-			int *variable = (int *)starpu_variable_get_local_ptr(var_handle[0]);
-			starpu_data_acquire(var_handle[0], STARPU_R);
+			int *variable = (int *)starpu_variable_get_local_ptr(var_handle);
+			starpu_data_acquire(var_handle, STARPU_R);
 			FPRINTF(stderr, "%5d ", *variable);
-			starpu_data_release(var_handle[0]);
+			starpu_data_release(var_handle);
 			FPRINTF(stderr,"\n");
 
 			/* Submit the task */
 			struct starpu_task *task = starpu_task_create();
 
 			FPRINTF(stderr,"Dealing with sub-variable\n");
-			task->handles[0] = var_handle[0];
+			task->handles[0] = var_handle;
 
 			if(starpu_drand48()>=0.2)
 				task->cl = &cl_r;
@@ -160,12 +160,12 @@ int main(void)
 
 			/* Print result variable */
 			FPRINTF(stderr,"OUT Variable:\n");
-			starpu_data_acquire(var_handle[0], STARPU_R);
+			starpu_data_acquire(var_handle, STARPU_R);
 			FPRINTF(stderr, "%5d ", *variable);
-			starpu_data_release(var_handle[0]);
+			starpu_data_release(var_handle);
 			FPRINTF(stderr,"\n");
 
-			starpu_data_partition_clean(sub_matrix_handle, 1, var_handle);
+			starpu_data_partition_clean(sub_matrix_handle, 1, &var_handle);
 	}
 
 	/* Unpartition the data, unregister it from StarPU and shutdown */
