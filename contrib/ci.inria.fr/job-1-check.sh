@@ -74,9 +74,9 @@ fi
 (find $basename -exec touch -d ${today}T${lasthour}:0:0 {} \; || true ) >/dev/null 2>&1
 cd $basename
 
-if test -f ./contrib/specific_env.sh
+if test -f $HOME/starpu_specific_env.sh
 then
-    . ./contrib/specific_env.sh
+    . $HOME/starpu_specific_env.sh
 fi
 
 BUILD=./build_$$
