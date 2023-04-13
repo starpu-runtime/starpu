@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -186,12 +186,14 @@ void starpu_matrix_filter_pick_variable(void *father_interface, void *child_inte
 	unsigned blocksize;
 
 	uint32_t nx;
+	uint32_t ld;
 	uint32_t ny;
 
 	/* actual number of elements */
 	nx = matrix_father->nx;
+	ld = matrix_father->ld;
 	ny = matrix_father->ny;
-	blocksize = nx;
+	blocksize = ld;
 
 	size_t elemsize = matrix_father->elemsize;
 
