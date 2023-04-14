@@ -64,22 +64,39 @@ LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@ ../src/libstarpumpi-@STARPU_EFFECTI
 starpu_mpi_TESTS =
 
 starpu_mpi_TESTS +=				\
-	broadcast				\
 	callback				\
 	driver					\
+	early_stuff				\
+	insert_task_block			\
+	insert_task_can_execute			\
+	insert_task_tags			\
+	multiple_send				\
+	policy_register				\
+	policy_register_many			\
+	policy_selection			\
+	star					\
+	stats					\
+	user_defined_datatype
+
+if !STARPU_SIMGRID
+starpu_mpi_TESTS +=				\
+	attr					\
+	ndim_interface
+endif
+
+if !STARPU_MPI_MINIMAL_TESTS
+starpu_mpi_TESTS +=				\
+	broadcast				\
 	early_request				\
 	gather					\
 	gather2					\
 	insert_task				\
-	insert_task_block			\
-	insert_task_can_execute			\
 	insert_task_count			\
 	insert_task_dyn_handles			\
 	insert_task_node_choice			\
 	insert_task_owner			\
 	insert_task_owner2			\
 	insert_task_owner_data			\
-	insert_task_tags			\
 	matrix					\
 	matrix2					\
 	mpi_barrier				\
@@ -93,27 +110,20 @@ starpu_mpi_TESTS +=				\
 	mpi_redux				\
 	mpi_scatter_gather			\
 	mpi_test				\
-	multiple_send				\
 	pingpong				\
-	policy_register				\
-	policy_register_many			\
-	policy_selection			\
 	policy_selection2			\
 	ring					\
 	ring_async				\
 	ring_async_implicit			\
 	ring_sync				\
 	ring_sync_detached			\
-	temporary				\
-	user_defined_datatype			\
-	early_stuff				\
-	star					\
-	stats
+	temporary
+endif
 
+if !STARPU_MPI_MINIMAL_TESTS
 if !STARPU_SIMGRID
 # missing support in simgrid
 starpu_mpi_TESTS +=				\
-	attr					\
 	display_bindings			\
 	mpi_earlyrecv2				\
 	mpi_earlyrecv2_sync			\
@@ -144,6 +154,7 @@ starpu_mpi_TESTS +=				\
 if STARPU_USE_MPI_MPI
 starpu_mpi_TESTS +=				\
 	load_balancer
+endif
 endif
 
 # Expected to fail

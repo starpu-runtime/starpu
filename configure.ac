@@ -573,6 +573,13 @@ fi
 
 build_mpi_lib=$enable_mpi
 
+AC_ARG_ENABLE(mpi-minimal-tests, [AS_HELP_STRING([--enable-mpi-minimal-tests],
+                              [Only enable a subset of MPI tests])],
+            [enable_mpi_minimal_tests=$enableval],
+            [enable_mpi_minimal_tests=no])
+
+AM_CONDITIONAL([STARPU_MPI_MINIMAL_TESTS], [test x$enable_mpi_minimal_tests = xyes])
+
 
 ###############################################################################
 #                                                                             #
