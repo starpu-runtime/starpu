@@ -21,6 +21,7 @@ from .handle_access import *
 from .intermedia import *
 
 import asyncio
+import concurrent.futures
 try:
     import numpy as np
     has_numpy=True
@@ -29,6 +30,12 @@ except:
 
 async def wait_for_fut(fut):
 	return await fut
+
+async def asyncio_wait_for_fut(fut):
+	return await fut
+
+def concurrent_futures_wait_for_fut(fut):
+	return fut.result()
 
 #class handle
 class Handle(object):

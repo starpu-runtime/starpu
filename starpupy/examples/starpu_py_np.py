@@ -30,6 +30,9 @@ except Exception as e:
         print(e)
         exit(77)
 
+def await_fut(fut):
+    return fut.result()
+
 ###############################################################################
 
 def scal(x, t):
@@ -60,27 +63,27 @@ d = np.array([[2, 2], [2, 2]])
 
 async def main():
     fut1 = starpu.task_submit()(scal, 2, t)
-    res1 = await fut1
+    res1 = await(fut1)
     print("The result is", res1)
 
     # two array element addition
     fut2 = starpu.task_submit()(add, a, b)
-    res2 = await fut2
+    res2 = await(fut2)
     print("The result is", res2)
 
     # two array element multiplication
     fut3 = starpu.task_submit()(multi, c, d)
-    res3 = await fut3
+    res3 = await(fut3)
     print("The result is", res3)
 
     # two array matrix multiplication
     fut4 = starpu.task_submit()(matrix_multi, c, d)
-    res4 = await fut4
+    res4 = await(fut4)
     print("The result is", res4)
 
     # two array matrix multiplication (inverse order)
     fut5 = starpu.task_submit()(matrix_multi, d, c)
-    res5 = await fut5
+    res5 = await(fut5)
     print("The result is", res5)
 
 

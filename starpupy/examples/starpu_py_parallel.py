@@ -35,6 +35,9 @@ except Exception as e:
         print(e)
         exit(77)
 
+def await_fut(fut):
+    return fut.result()
+
 #generate a list to store functions
 g_func=[]
 
@@ -299,7 +302,7 @@ async def main():
 
 	print("--(sqrt)(i**2)for i in range(N)")
 	fut1=starpu.joblib.Parallel(mode="future", n_jobs=-1, perfmodel="sqrt")(starpu.joblib.delayed(sqrt)(i**2)for i in range(N))
-	res1=await fut1
+	res1=await(fut1)
 	print("The result is", sum(res1,[]))
 
 	print("--(multi)(i,j) for i,j in zip(a,b)")
@@ -307,7 +310,7 @@ async def main():
 	b=np.arange(N, 2*N, 1)
 	print("The inputs are a", a, "b", b)
 	fut2=starpu.joblib.Parallel(mode="future", n_jobs=-1, perfmodel="multi")(starpu.joblib.delayed(multi)(i,j) for i,j in zip(a,b))
-	res2=await fut2
+	res2=await(fut2)
 	print("The result is", sum(res2,[]))
 
 	print("--(scal_arr)((i for i in b), A)")
@@ -315,7 +318,7 @@ async def main():
 	b=np.arange(N, 2*N, 1)
 	print("The input arrays are A", A, "b", b)
 	fut3=starpu.joblib.Parallel(mode="future", n_jobs=-1, perfmodel="scal_arr")(starpu.joblib.delayed(scal_arr)((i for i in b), A))
-	res3=await fut3
+	res3=await(fut3)
 	#print("The return array is", np.concatenate(res3))
 	print("The return array is", A)
 
@@ -324,7 +327,7 @@ async def main():
 	b=np.arange(N, 2*N, 1)
 	print("The input lists are a", a, "b", b)
 	fut4=starpu.joblib.Parallel(mode="future", n_jobs=-1, perfmodel="multi_list")(starpu.joblib.delayed(multi_list)((i,j) for i,j in zip(a,b)))
-	res4=await fut4
+	res4=await(fut4)
 	print("The result is", sum(res4,[]))
 
 	print("--(multi_2arr)((i for i in a), (j for j in b))")
@@ -332,7 +335,7 @@ async def main():
 	b=np.arange(N, 2*N, 1)
 	print("The input lists are a", a, "b", b)
 	fut5=starpu.joblib.Parallel(mode="future", n_jobs=-1, perfmodel="multi_2arr")(starpu.joblib.delayed(multi_2arr)((i for i in a), (j for j in b)))
-	res5=await fut5
+	res5=await(fut5)
 	print("The result is", sum(res5,[]))
 
 	print("--(multi_2np)(b=B, a=A)")
@@ -340,7 +343,7 @@ async def main():
 	B=np.arange(N, 2*N, 1)
 	print("The input arrays are A", A, "B", B)
 	fut6=starpu.joblib.Parallel(mode="future", n_jobs=-1, perfmodel="multi_2arr")(starpu.joblib.delayed(multi_2np)(b=B, a=A))
-	res6=await fut6
+	res6=await(fut6)
 	#print("The return array is", np.concatenate(res6))
 	print("The return array is", A)
 
@@ -349,14 +352,14 @@ async def main():
 	a=np.arange(N)
 	print("The input list is a", a)
 	fut7=starpu.joblib.Parallel(mode="future", n_jobs=-1, perfmodel="scal")(starpu.joblib.delayed(scal)(2, (j for j in a)))
-	res7=await fut7
+	res7=await(fut7)
 	print("The result is", sum(res7,[]))
 
 	print("--(scal_np)(2,t=A)")
 	A=np.arange(N)
 	print("The input array is", A)
 	fut8=starpu.joblib.Parallel(mode="future", n_jobs=-1, perfmodel="scal")(starpu.joblib.delayed(scal_np)(2,t=A))
-	res8=await fut8
+	res8=await(fut8)
 	#print("The return array is", np.concatenate(res8))
 	print("The return array is", A)
 
@@ -365,13 +368,13 @@ async def main():
 	B=np.arange(N)
 	print("The input arrays are A", A, "B", B)
 	fut9=starpu.joblib.Parallel(mode="future", n_jobs=-1, perfmodel="add_scal")(starpu.joblib.delayed(add_scal)(2,A,B))
-	res9=await fut9
+	res9=await(fut9)
 	#print("The return array is", np.concatenate(res9))
 	print("The return array is", A)
 
 	print("--input is iterable function list")
 	fut10=starpu.joblib.Parallel(mode="future", n_jobs=-1)(g_func)
-	res10=await fut10
+	res10=await(fut10)
 	#print(res9)
 
 try:

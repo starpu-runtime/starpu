@@ -19,6 +19,9 @@ from starpu import starpupy
 import time
 import asyncio
 
+def await_fut(fut):
+    return fut.result()
+
 try:
         starpu.init()
 except Exception as e:
@@ -102,49 +105,49 @@ def sub_deco(x,a):
 async def main():
 	#submit function "hello"
     fut = starpu.task_submit()(hello)
-    await fut
+    await(fut)
 
     #submit function "func1"
     fut1 = starpu.task_submit()(func1)
-    await fut1
+    await(fut1)
 
     #apply starpu.delayed(func1_deco())
-    await func1_deco()
+    await(func1_deco())
 
 	#submit function "func2"
     fut2 = starpu.task_submit()(func2)
-    res2 = await fut2
+    res2 = await(fut2)
 	#print the result of function
     print("This is a function no input and the return value is", res2)
 
     #submit function "multi"
     fut3 = starpu.task_submit()(multi, 2, 3)
-    res3 = await fut3
+    res3 = await(fut3)
     print("The result of function multi is :", res3)
 
 	#submit function "add"
     fut4 = starpu.task_submit()(add, 1.2, 2.5, 3.6, 4.9)
-    res4 = await fut4
+    res4 = await(fut4)
     print("The result of function add is :", res4)
 
 	#submit function "sub" but only provide function name
     fut5 = starpu.task_submit()(sub, 6, 2, 5.9)
-    res5 = await fut5
+    res5 = await(fut5)
     print("The result of function sub is:", res5)
 
 	#apply starpu.delayed(add_deco)
     fut6 = add_deco(1,2,3)
-    #res6 = await fut6
+    #res6 = await(fut6)
     #print("The result of function is", res6)
 
     #apply starpu.delayed(sub_deco)
     fut7 = sub_deco(fut6, 1)
-    res7 = await fut7
+    res7 = await(fut7)
     print("The first argument of this function is the result of Example 8")
     print("The result of function is", res7)
 
     fut8 = starpu.task_submit()("sqrt", 4)
-    res8 = await fut8
+    res8 = await(fut8)
     print("The result of function sqrt is:", res8)
 
 try:

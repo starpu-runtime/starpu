@@ -114,15 +114,20 @@ static void STARPU_ATTRIBUTE_NORETURN print_exception(const char *msg, ...)
 static int active_multi_interpreter = 0; /*active multi-interpreter */
 static PyObject *StarpupyError; /*starpupy error exception*/
 static PyObject *asyncio_module; /*python asyncio module*/
+static PyObject *concurrent_futures_future_class; /*python concurrent.futures.Future class*/
 static PyObject *cloudpickle_module; /*cloudpickle module*/
 static PyObject *pickle_module; /*pickle module*/
-static PyObject *wait_method = Py_None;  /*method wait_for_fut*/
+static PyObject *asyncio_wait_method = Py_None;  /*method asyncio_wait_for_fut*/
+static PyObject *concurrent_futures_wait_method = Py_None;  /*method concurrent_futures_wait_for_fut*/
 static PyObject *Handle_class = Py_None;  /*Handle class*/
 static PyObject *Token_class = Py_None;  /*Handle_token class*/
 
 static pthread_t main_thread;
 
+/* Asyncio futures */
 static PyObject *cb_loop = Py_None; /*another event loop besides main running loop*/
+/* concurrent.futures */
+static PyObject *cb_executor = Py_None; /*executor for callbacks*/
 static pthread_t thread_id;
 
 static PyThreadState *orig_thread_states[STARPU_NMAXWORKERS];
@@ -190,7 +195,8 @@ void starpupy_prologue_cb_func(void *cl_arg)
 		/*protect borrowed reference, decremented in the end of the loop*/
 		Py_INCREF(obj);
 		const char* tp = Py_TYPE(obj)->tp_name;
-		if(strcmp(tp, "_asyncio.Future") == 0)
+		if(strcmp(tp, "_asyncio.Future") == 0 ||
+		   strcmp(tp, "Future") == 0)
 		{
 			fut_flag = 1;
 			PyObject *done = PyObject_CallMethod(obj, "done", NULL);
@@ -200,19 +206,40 @@ void starpupy_prologue_cb_func(void *cl_arg)
 				/*if the future object is not finished, get its corresponding arg_fut*/
 				PyObject *cb_obj = PyObject_GetAttrString(obj, "arg_fut");
 
-				/*call the method wait_for_fut to await obj*/
-				if (wait_method == Py_None)
+				if(strcmp(tp, "_asyncio.Future") == 0)
 				{
-					wait_method = PyDict_GetItemString(starpu_dict, "wait_for_fut");
+					/* asyncio */
+
+					/*call the method asyncio_wait_for_fut to await obj*/
+					if (asyncio_wait_method == Py_None)
+						asyncio_wait_method = PyDict_GetItemString(starpu_dict, "asyncio_wait_for_fut");
+
+					PyObject *wait_obj = PyObject_CallFunctionObjArgs(asyncio_wait_method, cb_obj, NULL);
+
+					/*decrement the reference obtained before if{}, then get the new reference*/
+					Py_DECREF(cb_obj);
+
+					/*call obj = asyncio.run_coroutine_threadsafe(wait_for_fut(cb_obj), cb_loop)*/
+					cb_obj = PyObject_CallMethod(asyncio_module, "run_coroutine_threadsafe", "O,O", wait_obj, cb_loop);
+
+					Py_DECREF(wait_obj);
 				}
-				PyObject *wait_obj = PyObject_CallFunctionObjArgs(wait_method, cb_obj, NULL);
+				else
+				{
+					/* concurrent.futures */
 
-				/*decrement the reference obtained before if{}, then get the new reference*/
-				Py_DECREF(cb_obj);
-				/*call obj = asyncio.run_coroutine_threadsafe(wait_for_fut(cb_obj), cb_loop)*/
-				cb_obj = PyObject_CallMethod(asyncio_module, "run_coroutine_threadsafe", "O,O", wait_obj, cb_loop);
+					/*call the method concurrent_futures_wait_for_fut to await obj*/
+					if (concurrent_futures_wait_method == Py_None)
+						concurrent_futures_wait_method = PyDict_GetItemString(starpu_dict, "concurrent_futures_wait_for_fut");
 
-				Py_DECREF(wait_obj);
+					/*call obj = executor.submit(wait_for_fut, cb_obj)*/
+					PyObject *new_obj = PyObject_CallMethod(cb_executor, "submit", "O,O", concurrent_futures_wait_method, cb_obj);
+
+					/*decrement the reference obtained before if{}, then get the new reference*/
+					Py_DECREF(cb_obj);
+
+					cb_obj = new_obj;
+				}
 
 				Py_DECREF(obj);
 				obj = cb_obj;
@@ -418,6 +445,8 @@ void starpupy_codelet_func(void *descr[], void *cl_arg)
 
 	/*call the python function get the return value rv, it's a new reference*/
 	PyObject *rv = PyObject_CallObject(func_py, pArglist);
+	if (!rv)
+		PyErr_PrintEx(1);
 
 	// printf("arglist after applying is ");
 	//    PyObject_Print(pArglist, stdout, 0);
@@ -561,22 +590,55 @@ void starpupy_epilogue_cb_func(void *v)
 		starpu_codelet_unpack_arg_fini(&data_ret);
 
 		/*set the Future result and mark the Future as done*/
-		if(fut!=Py_None && loop!=Py_None)
+		if(fut!=Py_None)
 		{
-			/*set the Future result in cb_loop*/
 			PyObject *cb_fut = PyObject_GetAttrString(fut, "arg_fut");
+			if (!cb_fut)
+				PyErr_PrintEx(1);
 			PyObject *cb_set_result = PyObject_GetAttrString(cb_fut, "set_result");
-			PyObject *cb_loop_callback = PyObject_CallMethod(cb_loop, "call_soon_threadsafe", "(O,O)", cb_set_result, rv);
+			if (!cb_set_result)
+				PyErr_PrintEx(1);
+			PyObject *set_result = PyObject_GetAttrString(fut, "set_result");
+			if (!set_result)
+				PyErr_PrintEx(1);
 
-			Py_DECREF(cb_loop_callback);
+			const char* tp = Py_TYPE(fut)->tp_name;
+
+			if(strcmp(tp, "_asyncio.Future") == 0)
+			{
+				/* asyncio */
+
+				/*set the Future result in cb_loop*/
+				PyObject *cb_loop_callback = PyObject_CallMethod(cb_loop, "call_soon_threadsafe", "(O,O)", cb_set_result, rv);
+				if (!cb_loop_callback)
+					PyErr_PrintEx(1);
+				Py_DECREF(cb_loop_callback);
+
+				/*set the Future result in main running loop*/
+				PyObject *loop_callback = PyObject_CallMethod(loop, "call_soon_threadsafe", "(O,O)", set_result, rv);
+				if (!loop_callback)
+					PyErr_PrintEx(1);
+				Py_DECREF(loop_callback);
+			}
+			else
+			{
+				/* concurrent.futures */
+
+				/*set the Future result in cb_loop*/
+				PyObject *cb_loop_callback = PyObject_CallMethod(cb_executor, "submit", "(O,O)", cb_set_result, rv);
+				if (!cb_loop_callback)
+					PyErr_PrintEx(1);
+				Py_DECREF(cb_loop_callback);
+
+				/*set the Future result in main running loop*/
+				PyObject *loop_callback = PyObject_CallMethod(cb_executor, "submit", "(O,O)", set_result, rv);
+				if (!loop_callback)
+					PyErr_PrintEx(1);
+				Py_DECREF(loop_callback);
+			}
+
 			Py_DECREF(cb_set_result);
 			Py_DECREF(cb_fut);
-
-			/*set the Future result in main running loop*/
-			PyObject *set_result = PyObject_GetAttrString(fut, "set_result");
-			PyObject *loop_callback = PyObject_CallMethod(loop, "call_soon_threadsafe", "(O,O)", set_result, rv);
-
-			Py_DECREF(loop_callback);
 			Py_DECREF(set_result);
 		}
 
@@ -884,35 +946,68 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 	}
 	else if(PyObject_IsTrue(ret_fut))
 	{
-		/*get the running Event loop, decremented in starpupy_epilogue_cb_func*/
+		PyObject *cb_fut;
+
+		/*get the running asyncio Event loop, decremented in starpupy_epilogue_cb_func*/
 		loop = PyObject_CallMethod(asyncio_module, "get_running_loop", NULL);
 
-		if (loop == NULL)
+		if (loop)
 		{
-			PyErr_Format(StarpupyError, "Can't get running loop from asyncio module (try to add \"-m asyncio\" when starting Python interpreter)");
-			return NULL;
+			/*create a asyncio.Future object, decremented in starpupy_epilogue_cb_func*/
+			fut = PyObject_CallMethod(loop, "create_future", NULL);
+
+			if (fut == NULL)
+			{
+				PyErr_Format(StarpupyError, "Can't create future for loop from asyncio module (try to add \"-m asyncio\" when starting Python interpreter)");
+				return NULL;
+			}
+
+			/*create a asyncio.Future object attached to cb_loop*/
+			cb_fut = PyObject_CallMethod(cb_loop, "create_future", NULL);
+
+			if (cb_fut == NULL)
+			{
+				PyErr_Format(StarpupyError, "Can't create future for cb_loop from asyncio module (try to add \"-m asyncio\" when starting Python interpreter)");
+				return NULL;
+			}
+		}
+		else
+		{
+			PyErr_Clear();
+
+			loop = Py_None;
+			/* this is decremented in starpupy_epilogue_cb_func */
+			Py_INCREF(loop);
+
+			/*create a concurrent.futures.Future object, decremented in starpupy_epilogue_cb_func*/
+			PyObject *fut_instance = PyInstanceMethod_New(concurrent_futures_future_class);
+			fut = PyObject_CallObject(fut_instance, NULL);
+
+			if (fut == NULL)
+			{
+				PyErr_Format(StarpupyError, "Can't create future from concurrent.futures module");
+				return NULL;
+			}
+
+			/*create a concurrent.futures.Future object for cb_executor*/
+			cb_fut = PyObject_CallObject(fut_instance, NULL);
+
+			if (cb_fut == NULL)
+			{
+				PyErr_Format(StarpupyError, "Can't create future from concurrent.futures module");
+				return NULL;
+			}
 		}
 
-		/*create a asyncio.Future object, decremented in starpupy_epilogue_cb_func*/
-		fut = PyObject_CallMethod(loop, "create_future", NULL);
-
-		if (fut == NULL)
-		{
-			PyErr_Format(StarpupyError, "Can't create future for loop from asyncio module (try to add \"-m asyncio\" when starting Python interpreter)");
-			return NULL;
-		}
-
-		/*create a asyncio.Future object attached to cb_loop*/
-		PyObject *cb_fut = PyObject_CallMethod(cb_loop, "create_future", NULL);
-
-		if (cb_fut == NULL)
-		{
-			PyErr_Format(StarpupyError, "Can't create future for cb_loop from asyncio module (try to add \"-m asyncio\" when starting Python interpreter)");
-			return NULL;
-		}
+		int ret;
 
 		/*set one of fut attribute to cb_fut*/
-		PyObject_SetAttrString(fut, "arg_fut", cb_fut);
+		ret = PyObject_SetAttrString(fut, "arg_fut", cb_fut);
+		if (ret)
+		{
+			PyErr_Format(StarpupyError, "Can't set arg_fut in fut");
+			return NULL;
+		}
 
 		Py_DECREF(cb_fut);
 
@@ -920,7 +1015,12 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 		PyObject *PyTask = PyTask_FromTask(task);
 
 		/*set one of fut attribute to the task pointer*/
-		PyObject_SetAttrString(fut, "starpu_task", PyTask);
+		ret = PyObject_SetAttrString(fut, "starpu_task", PyTask);
+		if (ret)
+		{
+			PyErr_Format(StarpupyError, "Can't set starpu_task in fut");
+			return NULL;
+		}
 
 		/*fut is the return value of this function*/
 		Py_INCREF(fut);
@@ -946,7 +1046,8 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 		/*protect borrowed reference*/
 		Py_INCREF(obj);
 		const char* tp = Py_TYPE(obj)->tp_name;
-		if(strcmp(tp, "_asyncio.Future") == 0)
+		if(strcmp(tp, "_asyncio.Future") == 0 ||
+		   strcmp(tp, "Future") == 0)
 		{
 			/*if one of arguments is Future, get its corresponding task*/
 			PyObject *fut_task = PyObject_GetAttrString(obj, "starpu_task");
@@ -1612,8 +1713,11 @@ static PyObject* starpu_shutdown_wrapper(PyObject *self, PyObject *args)
 	Py_DECREF(gc_module);
 
 	/*stop the cb_loop*/
-	PyObject * cb_loop_stop = PyObject_CallMethod(cb_loop, "stop", NULL);
-	Py_DECREF(cb_loop_stop);
+	if (cb_loop)
+	{
+		PyObject * cb_loop_stop = PyObject_CallMethod(cb_loop, "stop", NULL);
+		Py_DECREF(cb_loop_stop);
+	}
 
 	/*call starpu_shutdown method*/
 	Py_BEGIN_ALLOW_THREADS;
@@ -1745,14 +1849,15 @@ static void starpupyFree(void *self)
 {
 	(void)self;
 	//printf("it's the free function\n");
-	Py_DECREF(asyncio_module);
-	Py_DECREF(cloudpickle_module);
-	Py_DECREF(dumps);
-	Py_DECREF(pickle_module);
-	Py_DECREF(loads);
-	Py_DECREF(starpu_module);
-	Py_DECREF(starpu_dict);
-	Py_DECREF(cb_loop);
+	Py_XDECREF(asyncio_module);
+	Py_XDECREF(concurrent_futures_future_class);
+	Py_XDECREF(cloudpickle_module);
+	Py_XDECREF(dumps);
+	Py_XDECREF(pickle_module);
+	Py_XDECREF(loads);
+	Py_XDECREF(starpu_module);
+	Py_XDECREF(starpu_dict);
+	Py_XDECREF(cb_loop);
 }
 
 /*module definition structure*/
@@ -1793,8 +1898,8 @@ PyMODINIT_FUNC PyInit_starpupy(void)
 	asyncio_module = PyImport_ImportModule("asyncio");
 	if (asyncio_module == NULL)
 	{
-		PyErr_Format(StarpupyError, "can't find asyncio module");
-		Py_XDECREF(asyncio_module);
+		PyErr_Format(PyExc_RuntimeError, "can't find asyncio module");
+		starpupyFree(NULL);
 		return NULL;
 	}
 
@@ -1802,8 +1907,8 @@ PyMODINIT_FUNC PyInit_starpupy(void)
 	cloudpickle_module = PyImport_ImportModule("cloudpickle");
 	if (cloudpickle_module == NULL)
 	{
-		PyErr_Format(StarpupyError, "can't find cloudpickle module");
-		Py_XDECREF(cloudpickle_module);
+		PyErr_Format(PyExc_RuntimeError, "can't find cloudpickle module");
+		starpupyFree(NULL);
 		return NULL;
 	}
 	/*dumps method*/
@@ -1813,8 +1918,8 @@ PyMODINIT_FUNC PyInit_starpupy(void)
 	pickle_module = PyImport_ImportModule("pickle");
 	if (pickle_module == NULL)
 	{
-		PyErr_Format(StarpupyError, "can't find pickle module");
-		Py_XDECREF(pickle_module);
+		PyErr_Format(PyExc_RuntimeError, "can't find pickle module");
+		starpupyFree(NULL);
 		return NULL;
 	}
 	/*loads method*/
@@ -1824,28 +1929,106 @@ PyMODINIT_FUNC PyInit_starpupy(void)
 	starpu_module = PyImport_ImportModule("starpu");
 	if (starpu_module == NULL)
 	{
-		PyErr_Format(StarpupyError, "can't find starpu module");
-		Py_XDECREF(starpu_module);
+		PyErr_Format(PyExc_RuntimeError, "can't find starpu module");
+		starpupyFree(NULL);
 		return NULL;
 	}
 	starpu_dict = PyModule_GetDict(starpu_module);
 	/*protect borrowed reference, decremented in starpupyFree*/
 	Py_INCREF(starpu_dict);
 
+	/* Prepare for running asyncio futures */
+
 	/*create a new event loop in another thread, in case the main loop is occupied*/
 	cb_loop = PyObject_CallMethod(asyncio_module, "new_event_loop", NULL);
 	if (cb_loop  == NULL)
 	{
-		PyErr_Format(StarpupyError, "can't create cb_loop from asyncio module (try to add \"-m asyncio\" when starting Python interpreter)");
-		Py_XDECREF(starpu_module);
+		PyErr_Format(PyExc_RuntimeError, "can't create cb_loop from asyncio module (try to add \"-m asyncio\" when starting Python interpreter)");
+		starpupyFree(NULL);
 		return NULL;
 	}
 
 	int pc = pthread_create(&thread_id, NULL, set_cb_loop, NULL);
 	if (pc)
 	{
-		printf("Fail to create thread\n");
+		PyErr_Format(PyExc_RuntimeError, "Fail to create thread\n");
+		starpupyFree(NULL);
+		return NULL;
 	}
+
+	/* Prepare for running concurrent.futures futures */
+
+	/*python concurrent.futures import*/
+	PyObject *concurrent_futures_module = PyImport_ImportModule("concurrent.futures");
+	if (concurrent_futures_module == NULL)
+	{
+		PyErr_Format(PyExc_RuntimeError, "can't find concurrent.futures module");
+		starpupyFree(NULL);
+		return NULL;
+	}
+
+	PyObject *concurrent_futures_module_dict = PyModule_GetDict(concurrent_futures_module); /* borrowed */
+	Py_DECREF(concurrent_futures_module);
+	if (concurrent_futures_module_dict == NULL)
+	{
+		PyErr_Format(PyExc_RuntimeError, "can't get concurrent.futures dict");
+		starpupyFree(NULL);
+		return NULL;
+	}
+	concurrent_futures_future_class = PyDict_GetItemString(concurrent_futures_module_dict, "Future");
+	Py_DECREF(concurrent_futures_module_dict);
+	if (concurrent_futures_future_class == NULL)
+	{
+		PyErr_Format(PyExc_RuntimeError, "can't find Future class");
+		starpupyFree(NULL);
+		return NULL;
+	}
+
+	PyObject *concurrent_futures_thread_module = PyImport_ImportModule("concurrent.futures.thread");
+	if (concurrent_futures_thread_module == NULL)
+	{
+		PyErr_Format(PyExc_RuntimeError, "can't find concurrent.futures.thread module");
+		starpupyFree(NULL);
+		return NULL;
+	}
+
+	PyObject *concurrent_futures_thread_module_dict = PyModule_GetDict(concurrent_futures_thread_module); /* borrowed */
+	Py_DECREF(concurrent_futures_thread_module);
+	if (concurrent_futures_thread_module_dict == NULL)
+	{
+		PyErr_Format(PyExc_RuntimeError, "can't get concurrent.futures.thread dict");
+		Py_DECREF(concurrent_futures_thread_module);
+		starpupyFree(NULL);
+		return NULL;
+	}
+
+	PyObject *executor_class = PyDict_GetItemString(concurrent_futures_thread_module_dict, "ThreadPoolExecutor");
+	Py_DECREF(concurrent_futures_thread_module_dict);
+	if (executor_class == NULL)
+	{
+		PyErr_Format(PyExc_RuntimeError, "can't find ThreadPoolExecutor class");
+		starpupyFree(NULL);
+		return NULL;
+	}
+
+	PyObject *cb_executor_instance = PyInstanceMethod_New(executor_class);
+	Py_DECREF(executor_class);
+	if (cb_executor_instance == NULL)
+	{
+		PyErr_Format(PyExc_RuntimeError, "can't create concurrent.futures executor");
+		starpupyFree(NULL);
+		return NULL;
+	}
+
+	cb_executor = PyObject_CallObject(cb_executor_instance, NULL);
+	Py_DECREF(cb_executor_instance);
+	if (cb_executor == NULL)
+	{
+		PyErr_Format(PyExc_RuntimeError, "can't create concurrent.futures executor");
+		starpupyFree(NULL);
+		return NULL;
+	}
+
 
 #if defined(STARPU_USE_MPI_MASTER_SLAVE)
 	active_multi_interpreter = 1;
