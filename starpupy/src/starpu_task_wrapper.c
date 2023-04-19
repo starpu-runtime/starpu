@@ -886,12 +886,19 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 	{
 		/*get the running Event loop, decremented in starpupy_epilogue_cb_func*/
 		loop = PyObject_CallMethod(asyncio_module, "get_running_loop", NULL);
+
+		if (loop == NULL)
+		{
+			PyErr_Format(StarpupyError, "Can't get running loop from asyncio module (try to add \"-m asyncio\" when starting Python interpreter)");
+			return NULL;
+		}
+
 		/*create a asyncio.Future object, decremented in starpupy_epilogue_cb_func*/
 		fut = PyObject_CallMethod(loop, "create_future", NULL);
 
 		if (fut == NULL)
 		{
-			PyErr_Format(StarpupyError, "Can't find asyncio module (try to add \"-m asyncio\" when starting Python interpreter)");
+			PyErr_Format(StarpupyError, "Can't create future for loop from asyncio module (try to add \"-m asyncio\" when starting Python interpreter)");
 			return NULL;
 		}
 
@@ -900,7 +907,7 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 
 		if (cb_fut == NULL)
 		{
-			PyErr_Format(StarpupyError, "Can't find asyncio module (try to add \"-m asyncio\" when starting Python interpreter)");
+			PyErr_Format(StarpupyError, "Can't create future for cb_loop from asyncio module (try to add \"-m asyncio\" when starting Python interpreter)");
 			return NULL;
 		}
 
@@ -1827,6 +1834,12 @@ PyMODINIT_FUNC PyInit_starpupy(void)
 
 	/*create a new event loop in another thread, in case the main loop is occupied*/
 	cb_loop = PyObject_CallMethod(asyncio_module, "new_event_loop", NULL);
+	if (cb_loop  == NULL)
+	{
+		PyErr_Format(StarpupyError, "can't create cb_loop from asyncio module (try to add \"-m asyncio\" when starting Python interpreter)");
+		Py_XDECREF(starpu_module);
+		return NULL;
+	}
 
 	int pc = pthread_create(&thread_id, NULL, set_cb_loop, NULL);
 	if (pc)
