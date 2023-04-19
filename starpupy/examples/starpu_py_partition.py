@@ -34,6 +34,9 @@ except Exception as e:
         print(e)
         exit(77)
 
+def await_fut(fut):
+    return fut.result()
+
 # 1-dimension
 # arr = np.arange(20)
 
@@ -74,7 +77,7 @@ for i in range(split_num):
 # async def main():
 # 	for i in range(split_num):
 # 		res=starpu.task_submit()(add, arr_h_list[i], arr_h_list[i])
-# 		res1=await res
+# 		res1=await(res)
 # asyncio.run(main())
 
 arr_r = arr_h.acquire(mode='RW')

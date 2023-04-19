@@ -35,6 +35,9 @@ except Exception as e:
         print(e)
         exit(77)
 
+def await_fut(fut):
+    return fut.result()
+
 if starpupy.worker_get_count_by_type(starpu.STARPU_MPI_MS_WORKER) >= 1 or starpupy.worker_get_count_by_type(starpu.STARPU_TCPIP_MS_WORKER) >= 1:
 	print("This program does not work in MS mode")
 	starpu.shutdown()
@@ -112,7 +115,7 @@ print("result of scal(2, Handle(np.arange(10)) is:", t_h.get())
 # show function returns Future
 async def main():
 	res_fut1 = starpu.task_submit()(show, res1, t_h)
-	await res_fut1
+	await(res_fut1)
 asyncio.run(main())
 
 t_h.unregister()

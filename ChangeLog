@@ -14,6 +14,13 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
+StarPU 1.4.1
+==============================================
+
+Changes:
+  * Fix StarPUPY when not using asyncio: we can use concurrent.futures
+    instead.
+
 StarPU 1.4.0
 ==============================================
 
