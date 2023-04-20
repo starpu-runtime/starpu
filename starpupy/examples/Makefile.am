@@ -28,6 +28,13 @@ endif
 %.concurrent.py: %.py
 	sed -e 's/async //g' -e 's/\<await(/await_fut(/g' -e 's/asyncio.run(main())/main()/g' < $< > $@
 
+all-local: \
+	starpu_py.concurrent.py         \
+	starpu_py_handle.concurrent.py  \
+	starpu_py_np.concurrent.py      \
+	starpu_py_partition.concurrent.py \
+	starpu_py_numpy.concurrent.py
+
 TESTS	=
 
 if !STARPU_SIMGRID
@@ -71,12 +78,7 @@ python_sourcesdir = $(libdir)/starpu/python
 dist_python_sources_DATA	=	\
 	starpu_py_parallel.py		\
 	starpu_py.py   			\
-	starpu_py.concurrent.py   	\
 	starpu_py_handle.py	  	\
-	starpu_py_handle.concurrent.py	\
 	starpu_py_np.py   		\
-	starpu_py_np.concurrent.py   	\
 	starpu_py_partition.py		\
-	starpu_py_partition.concurrent.py \
-	starpu_py_numpy.py		\
-	starpu_py_numpy.concurrent.py
+	starpu_py_numpy.py
