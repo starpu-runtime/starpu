@@ -4256,11 +4256,16 @@ AC_CONFIG_COMMANDS([executable-scripts], [
     starpupy/benchmark/test_handle_perf.sh \
     starpupy/benchmark/test_handle_perf_pickle.sh \
     starpupy/examples/starpu_py.sh \
+    starpupy/examples/starpu_py.concurrent.sh \
     starpupy/examples/starpu_py_handle.sh \
+    starpupy/examples/starpu_py_handle.concurrent.sh \
     starpupy/examples/starpu_py_np.sh \
+    starpupy/examples/starpu_py_np.concurrent.sh \
     starpupy/examples/starpu_py_parallel.sh \
     starpupy/examples/starpu_py_partition.sh \
+    starpupy/examples/starpu_py_partition.concurrent.sh \
     starpupy/examples/starpu_py_numpy.sh \
+    starpupy/examples/starpu_py_numpy.concurrent.sh \
   ; do
       test -e $x || ( mkdir -p $(dirname $x) && ln -sf $ac_abs_top_srcdir/$x $(dirname $x) )
   done
