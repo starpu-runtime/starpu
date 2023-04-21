@@ -19,7 +19,12 @@ include $(top_srcdir)/make/starpu-loader.mk
 
 SUBDIRS =
 
-CLEANFILES = *.gcno *.gcda *.linkinfo
+CLEANFILES = *.gcno *.gcda *.linkinfo \
+	starpu_py.concurrent.py         \
+	starpu_py_handle.concurrent.py  \
+	starpu_py_np.concurrent.py      \
+	starpu_py_partition.concurrent.py \
+	starpu_py_numpy.concurrent.py
 
 if STARPU_USE_MPI_MASTER_SLAVE
 TESTS_ENVIRONMENT	+=	LOADER_ARGS="--mpirun"
