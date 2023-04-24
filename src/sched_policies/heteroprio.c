@@ -1401,13 +1401,13 @@ static void initialize_heteroprio_policy(unsigned sched_ctx_id)
 	if(max_priority < HETEROPRIO_MAX_PRIO-1)
 	{
 		starpu_sched_ctx_set_max_priority(sched_ctx_id, HETEROPRIO_MAX_PRIO-1);
-		_STARPU_MSG("[HETEROPRIO][INITIALIZATION] Max priority has been set to %d\n", HETEROPRIO_MAX_PRIO-1);
+		_STARPU_DISP("[HETEROPRIO][INITIALIZATION] Max priority has been set to %d\n", HETEROPRIO_MAX_PRIO-1);
 	}
 	int min_priority = starpu_sched_ctx_get_min_priority(sched_ctx_id);
 	if(min_priority > 0)
 	{
 		starpu_sched_ctx_set_min_priority(sched_ctx_id, 0);
-		_STARPU_MSG("[HETEROPRIO][INITIALIZATION] Min priority has been set to 0\n");
+		_STARPU_DISP("[HETEROPRIO][INITIALIZATION] Min priority has been set to 0\n");
 	}
 
 	/* Alloc the scheduler data  */
@@ -1416,44 +1416,43 @@ static void initialize_heteroprio_policy(unsigned sched_ctx_id)
 	memset(hp, 0, sizeof(*hp));
 
 	hp->use_locality = use_la_mode = starpu_getenv_number_default("STARPU_HETEROPRIO_USE_LA", 0);
-	_STARPU_MSG("[HETEROPRIO] Data locality : %s\n", hp->use_locality?"ENABLED":"DISABLED");
+	_STARPU_DISP("[HETEROPRIO] Data locality : %s\n", hp->use_locality?"ENABLED":"DISABLED");
 
 	hp->codelet_grouping_strategy = use_auto_mode = starpu_getenv_number_default("STARPU_HETEROPRIO_CODELET_GROUPING_STRATEGY", 0);
 	switch(hp->codelet_grouping_strategy)
 	{
 		case BY_PERF_MODEL_OR_NAME:
-			_STARPU_MSG("[HETEROPRIO] Codelet grouping strategy : BY_PERF_MODEL_OR_NAME\n");
+			_STARPU_DISP("[HETEROPRIO] Codelet grouping strategy : BY_PERF_MODEL_OR_NAME\n");
 			break;
 		case BY_NAME_ONLY:
-			_STARPU_MSG("[HETEROPRIO] Codelet grouping strategy : BY_NAME\n");
+			_STARPU_DISP("[HETEROPRIO] Codelet grouping strategy : BY_NAME\n");
 			break;
 		default:
-			_STARPU_MSG("[HETEROPRIO] Codelet grouping strategy : UNKNOWN\n");
+			_STARPU_DISP("[HETEROPRIO] Codelet grouping strategy : UNKNOWN\n");
 
 			hp->codelet_grouping_strategy = BY_PERF_MODEL_OR_NAME; // setting to default
 	}
 
 	hp->use_auto_calibration = use_auto_mode = starpu_getenv_number_default("STARPU_HETEROPRIO_USE_AUTO_CALIBRATION", 1);
-	_STARPU_MSG("[HETEROPRIO] Auto calibration : %s\n", hp->use_auto_calibration?"ENABLED":"DISABLED");
+	_STARPU_DISP("[HETEROPRIO] Auto calibration : %s\n", hp->use_auto_calibration?"ENABLED":"DISABLED");
 	if(hp->use_auto_calibration)
 	{
 		const int ordering_policy = starpu_getenv_number_default("STARPU_AUTOHETEROPRIO_PRIORITY_ORDERING_POLICY", STARPU_HETEROPRIO_URT_DOT_DIFF_4);
 		STARPU_ASSERT_MSG(ordering_policy < STARPU_AUTOHETEROPRIO_PRIORITY_ORDERING_POLICY_COUNT, "STARPU_AUTOHETEROPRIO_PRIORITY_ORDERING_POLICY must be < %d.\n", STARPU_AUTOHETEROPRIO_PRIORITY_ORDERING_POLICY_COUNT);
 		STARPU_ASSERT_MSG(ordering_policy >= 0, "STARPU_AUTOHETEROPRIO_PRIORITY_ORDERING_POLICY must be >= 0.\n");
 		hp->autoheteroprio_priority_ordering_policy = ordering_policy;
-		_STARPU_MSG("[AUTOHETEROPRIO] Priority ordering policy : %s\n", &starpu_autoheteroprio_priority_ordering_policy_names[hp->autoheteroprio_priority_ordering_policy][0]);
-
+		_STARPU_DISP("[AUTOHETEROPRIO] Priority ordering policy : %s\n", &starpu_autoheteroprio_priority_ordering_policy_names[hp->autoheteroprio_priority_ordering_policy][0]);
 
 		hp->priority_ordering_interval = starpu_getenv_number_default("STARPU_AUTOHETEROPRIO_ORDERING_INTERVAL", 32);
 
 		hp->freeze_data_gathering = starpu_getenv_number_default("STARPU_AUTOHETEROPRIO_FREEZE_GATHERING", 0);
-		_STARPU_MSG("[AUTOHETEROPRIO] Data gathering : %s\n", !hp->freeze_data_gathering?"ENABLED":"DISABLED");
+		_STARPU_DISP("[AUTOHETEROPRIO] Data gathering : %s\n", !hp->freeze_data_gathering?"ENABLED":"DISABLED");
 
 		hp->autoheteroprio_print_prio_after_ordering = starpu_getenv_number_default("STARPU_AUTOHETEROPRIO_PRINT_AFTER_ORDERING", 0);
-		_STARPU_MSG("[AUTOHETEROPRIO] Print after ordering : %s\n", hp->autoheteroprio_print_prio_after_ordering?"ENABLED":"DISABLED");
+		_STARPU_DISP("[AUTOHETEROPRIO] Print after ordering : %s\n", hp->autoheteroprio_print_prio_after_ordering?"ENABLED":"DISABLED");
 
 		hp->autoheteroprio_print_data_on_update = starpu_getenv_number_default("STARPU_AUTOHETEROPRIO_PRINT_DATA_ON_UPDATE", 0);
-		_STARPU_MSG("[AUTOHETEROPRIO] Print on update : %s\n", hp->autoheteroprio_print_data_on_update?"ENABLED":"DISABLED");
+		_STARPU_DISP("[AUTOHETEROPRIO] Print on update : %s\n", hp->autoheteroprio_print_data_on_update?"ENABLED":"DISABLED");
 
 		hp->autoheteroprio_time_estimation_policy = starpu_getenv_number_default("STARPU_AUTOHETEROPRIO_TIME_ESTIMATION_POLICY", 0);
 	}
@@ -1527,7 +1526,7 @@ static void initialize_heteroprio_policy(unsigned sched_ctx_id)
 	{
 		if(hp->use_auto_calibration)
 		{
-			_STARPU_MSG("[HETEROPRIO][INITIALIZATION] Warning: a custom sched init function has been detected while being in auto calibration mode (STARPU_HETEROPRIO_USE_AUTO_CALIBRATION). Custom changes to priority mapping will be overwritten.\n");
+			_STARPU_DISP("[HETEROPRIO][INITIALIZATION] Warning: a custom sched init function has been detected while being in auto calibration mode (STARPU_HETEROPRIO_USE_AUTO_CALIBRATION). Custom changes to priority mapping will be overwritten.\n");
 		}
 		callback_sched(sched_ctx_id);
 	}
@@ -2715,7 +2714,7 @@ static int get_task_auto_priority(struct _starpu_heteroprio_data *hp, const stru
 
 	if(!task->cl->model)
 	{ // The codelet does not have a perf model
-		_STARPU_MSG("[HETEROPRIO] Warning: codelet %s does not have a perfmodel. This may negatively impact heteroprio's auto prioritizing.\n", name);
+		_STARPU_DISP("[HETEROPRIO] Warning: codelet %s does not have a perfmodel. This may negatively impact heteroprio's auto prioritizing.\n", name);
 	}
 
 	unsigned archs[STARPU_NB_TYPES] = {0};
