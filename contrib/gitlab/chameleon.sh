@@ -42,5 +42,8 @@ make -j 20
 
 set +e
 ctest -R test_mpi_s
-ctest --rerun-failed --output-on-failure
+if test $? -ne 0
+then
+    ctest --rerun-failed --output-on-failure
+fi
 #ctest -R test_mpi_sgeadd -V
