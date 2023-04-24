@@ -18,12 +18,11 @@ stages:
   - build
   - check
   - analyze
+  - deploy
 
 .main_template:
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "push"'
-      when: never  # Prevent pipeline run for push event
-    - when: always # Run pipeline for all other cases
+    - if: '$RUN_CI == "yes"'
 
 # to download all the artifacts https://gitlab.inria.fr/starpu/starpu/-/jobs/artifacts/master/download?job=build
 # https://gitlab.inria.fr/starpu/starpu/-/jobs/artifacts/master/raw/starpu-1.3.99.tar.gz?job=build
@@ -87,3 +86,13 @@ analyze_coverity:
     - linux
   script:
     - ./contrib/gitlab/coverity.sh
+
+deploy_chameleon:
+  image: registry.gitlab.inria.fr/solverstack/docker/distrib
+  tags: ['ci.inria.fr', 'linux', 'large', 'docker']
+  stage: deploy
+  script:
+    - ./contrib/gitlab/chameleon.sh
+  rules:
+    - if: '$RUN_CHAMELEON == "yes"'
+
