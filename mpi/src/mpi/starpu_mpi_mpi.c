@@ -186,8 +186,6 @@ void _starpu_mpi_submit_ready_request(void *arg)
 		req->reserved_size = 0;
 	}
 
-	_STARPU_MPI_INC_POSTED_REQUESTS(-1);
-
 	_STARPU_MPI_DEBUG(0, "new req %p srcdst %d tag %"PRIi64" and type %s %d\n", req, req->node_tag.node.rank, req->node_tag.data_tag, _starpu_mpi_request_type(req->request_type), req->backend->is_internal_req);
 
 	if (req->request_type == RECV_REQ)
@@ -317,6 +315,9 @@ void _starpu_mpi_submit_ready_request(void *arg)
 	starpu_pthread_queue_signal(&_starpu_mpi_thread_dontsleep);
 #endif
 	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
+
+	_STARPU_MPI_INC_POSTED_REQUESTS(-1);
+
 	_STARPU_MPI_LOG_OUT();
 }
 
