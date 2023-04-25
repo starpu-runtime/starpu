@@ -1747,7 +1747,7 @@ docal:
 	return expected_duration;
 }
 
-double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, struct _starpu_job *j,unsigned nimpl)
+double __starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, struct _starpu_job *j,unsigned nimpl,size_t offset)
 {
 	int comb;
 	double exp = NAN;
@@ -1755,6 +1755,7 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, s
 	struct starpu_perfmodel_history_entry *entry = NULL;
 	struct starpu_perfmodel_history_table *history, *elt;
 	uint32_t key;
+	double *data;
 
 	comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
 	key = _starpu_compute_buffers_footprint(model, arch, nimpl, j);
@@ -1775,11 +1776,13 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, s
 	history = per_arch_model->history;
 	HASH_FIND_UINT32_T(history, &key, elt);
 	entry = (elt == NULL) ? NULL : elt->history_entry;
-	STARPU_ASSERT_MSG(!entry || entry->mean >= 0, "entry=%p, entry->mean=%lf\n", entry, entry?entry->mean:NAN);
+	if (entry)
+		data = (double*) ((char*) entry + offset);
+	STARPU_ASSERT_MSG(!entry || *data >= 0, "entry=%p, entry data=%lf\n", entry, entry?*data:NAN);
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&model->state->model_rwlock);
 
 	/* Here helgrind would shout that this is unprotected access.
-	 * We do not care about racing access to the mean, we only want
+	 * We do not care about racing access to the mean/deviation, we only want
 	 * a good-enough estimation */
 
 	if (entry && entry->nsample)
@@ -1796,11 +1799,11 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, s
 		if (entry->nsample >= _starpu_calibration_minimum)
 #endif
 		{
-			STARPU_ASSERT_MSG(entry->mean >= 0, "entry->mean=%lf\n", entry->mean);
+			STARPU_ASSERT_MSG(*data >= 0, "entry data=%lf\n", *data);
 			/* TODO: report differently if we've scheduled really enough
 			 * of that task and the scheduler should perhaps put it aside */
 			/* Calibrated enough */
-			exp = entry->mean;
+			exp = *data;
 		}
 	}
 
@@ -1829,6 +1832,16 @@ docal:
 
 	STARPU_ASSERT_MSG(isnan(exp)||exp >= 0, "exp=%lf\n", exp);
 	return exp;
+}
+
+double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, struct _starpu_job *j,unsigned nimpl)
+{
+	return __starpu_history_based_job_expected_perf(model, arch, j, nimpl, offsetof(struct starpu_perfmodel_history_entry, mean));
+}
+
+double _starpu_history_based_job_expected_deviation(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, struct _starpu_job *j,unsigned nimpl)
+{
+	return __starpu_history_based_job_expected_perf(model, arch, j, nimpl, offsetof(struct starpu_perfmodel_history_entry, deviation));
 }
 
 double starpu_perfmodel_history_based_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch * arch, uint32_t footprint)

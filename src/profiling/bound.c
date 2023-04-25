@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2021, 2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
  *
@@ -473,7 +473,8 @@ static void _starpu_get_tasks_times(int nw, int nt, double *times)
 				.footprint_is_computed = 1,
 			};
 			struct starpu_perfmodel_arch* arch = starpu_worker_get_perf_archtype(w, STARPU_NMAX_SCHED_CTXS);
-			double length = _starpu_history_based_job_expected_perf(tp->cl->model, arch, &j, j.nimpl);
+			double length = _starpu_history_based_job_expected_perf(tp->cl->model, arch, &j, j.nimpl)
+			              - _starpu_history_based_job_expected_deviation(tp->cl->model, arch, &j, j.nimpl);
 			if (isnan(length))
 				times[w*nt+t] = NAN;
 			else
@@ -564,7 +565,8 @@ void starpu_bound_print_lp(FILE *output)
 				struct starpu_perfmodel_arch* arch = starpu_worker_get_perf_archtype(w, STARPU_NMAX_SCHED_CTXS);
 				if (_STARPU_IS_ZERO(t1->duration[arch->devices[0].type][arch->devices[0].devid][arch->devices[0].ncores]))
 				{
-					double length = _starpu_history_based_job_expected_perf(t1->cl->model, arch, &j,j.nimpl);
+					double length = _starpu_history_based_job_expected_perf(t1->cl->model, arch, &j,j.nimpl)
+					              - _starpu_history_based_job_expected_deviation(t1->cl->model, arch, &j,j.nimpl);
 					if (isnan(length))
 						/* Avoid problems with binary coding of doubles */
 						t1->duration[arch->devices[0].type][arch->devices[0].devid][arch->devices[0].ncores] = NAN;
