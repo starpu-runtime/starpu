@@ -25,6 +25,9 @@ Changes:
     instead.
   * Add STARPU_CODELET_PROFILING environment variable to disable codelet task
     counting for applications to be able to have const codelets.
+  * In performance bounds, take into account the standard deviation to get the
+    "expected" upper bound, in terms of expected optimistic deviation from the
+    average, rather than the average.
 
 StarPU 1.4.0
 ==============================================
