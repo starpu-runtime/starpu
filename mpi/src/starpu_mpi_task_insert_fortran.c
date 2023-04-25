@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,6 +21,9 @@
 #include <starpu_mpi_task_insert.h>
 #include <starpu_mpi_select_node.h>
 #include <util/starpu_task_insert_utils.h>
+#include <datawizard/coherency.h>
+#include <core/task.h>
+#include <core/workers.h>
 
 #ifdef HAVE_MPI_COMM_F2C
 static
@@ -469,6 +472,14 @@ int _fstarpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, str
 	/* Send and receive data as requested */
 	for(i=0 ; i<nb_data ; i++)
 	{
+                if (descrs[i].handle && descrs[i].handle->mpi_data)
+		{
+			char *redux_map = starpu_mpi_data_get_redux_map(descrs[i].handle);
+			if (redux_map != NULL && descrs[i].mode & STARPU_R && descrs[i].mode & ~ STARPU_REDUX && descrs[i].mode & ~ STARPU_MPI_REDUX)
+			{
+				_starpu_mpi_redux_wrapup_data(descrs[i].handle);
+			}
+		}
 		_starpu_mpi_exchange_data_before_execution(descrs[i].handle, descrs[i].mode, me, xrank, do_execute, prio, comm);
 	}
 
@@ -483,13 +494,8 @@ int _fstarpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, str
 		*descrs_p = descrs;
 	else
 		free(descrs);
-	_STARPU_TRACE_TASK_MPI_PRE_END();
 
-	if (do_execute == 0)
-	{
-		return 1;
-	}
-	else
+	if (do_execute == 1)
 	{
 		_STARPU_MPI_DEBUG(100, "Execution of the codelet %p (%s)\n", codelet, codelet?codelet->name:NULL);
 
@@ -500,8 +506,32 @@ int _fstarpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, str
 		(*task)->prologue_callback_pop_arg_free = 1;
 
 		_fstarpu_task_insert_create(codelet, *task, arglist);
-		return 0;
+
+		if ((*task)->cl)
+		{
+			/* we suppose the current context is not going to change between now and the execution of the task */
+			(*task)->sched_ctx = _starpu_sched_ctx_get_current_context();
+			/* Check the type of worker(s) required by the task exist */
+			if (STARPU_UNLIKELY(!_starpu_worker_exists(*task)))
+			{
+				_STARPU_MPI_DEBUG(0, "There is no worker to execute the codelet %p (%s)\n", codelet, codelet?codelet->name:NULL);
+				return -ENODEV;
+			}
+
+			/* In case we require that a task should be explicitely
+			 * executed on a specific worker, we make sure that the worker
+			 * is able to execute this task.  */
+			if (STARPU_UNLIKELY((*task)->execute_on_a_specific_worker && !starpu_combined_worker_can_execute_task((*task)->workerid, *task, 0)))
+			{
+				_STARPU_MPI_DEBUG(0, "The specified worker %d cannot execute the codelet %p (%s)\n", (*task)->workerid, codelet, codelet?codelet->name:NULL);
+				return -ENODEV;
+			}
+		}
 	}
+
+	_STARPU_TRACE_TASK_MPI_PRE_END();
+
+	return do_execute;
 }
 
 static
@@ -519,7 +549,7 @@ int _fstarpu_mpi_task_insert_v(MPI_Comm comm, struct starpu_codelet *codelet, vo
 	if (ret < 0)
 		return ret;
 
-	if (ret == 0)
+	if (ret == 1)
 	{
 		do_execute = 1;
 		ret = starpu_task_submit(task);
@@ -534,11 +564,18 @@ int _fstarpu_mpi_task_insert_v(MPI_Comm comm, struct starpu_codelet *codelet, vo
 
 			task->destroy = 0;
 			starpu_task_destroy(task);
+			free(descrs);
+			return -ENODEV;
 		}
 	}
-	ret = _starpu_mpi_task_postbuild_v(comm, xrank, do_execute, descrs, nb_data, prio);
+
+	int val = _starpu_mpi_task_postbuild_v(comm, xrank, do_execute, descrs, nb_data, prio);
 	free(descrs);
-	return ret;
+
+	if (ret == 1)
+		_starpu_mpi_pre_submit_hook_call(task);
+
+	return val;
 }
 
 void fstarpu_mpi_task_insert(void **arglist)
@@ -569,8 +606,7 @@ struct starpu_task *fstarpu_mpi_task_build(void **arglist)
 	int ret;
 
 	ret = _fstarpu_mpi_task_build_v(MPI_Comm_f2c(comm), codelet, &task, NULL, NULL, NULL, NULL, arglist+2);
-	STARPU_ASSERT(ret >= 0);
-	return (ret > 0) ? NULL : task;
+	return (ret == 1 || ret == -ENODEV) ? task : NULL;
 }
 
 void fstarpu_mpi_task_post_build(void **arglist)

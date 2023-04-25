@@ -52,7 +52,12 @@ struct _starpu_redux_data_entry
 };
 // the table
 static struct _starpu_redux_data_entry *_redux_data = NULL;
-void _starpu_mpi_redux_wrapup_data(starpu_data_handle_t data_handle);
+
+void _starpu_mpi_pre_submit_hook_call(struct starpu_task *task)
+{
+	if (pre_submit_hook)
+		pre_submit_hook(task);
+}
 
 int starpu_mpi_pre_submit_hook_register(void (*f)(struct starpu_task *))
 {
@@ -251,6 +256,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 	while ((arg_type = va_arg(varg_list_copy, int)) != 0)
 	{
 		int arg_type_nocommute = arg_type & ~STARPU_COMMUTE;
+
 		if (arg_type==STARPU_EXECUTE_ON_NODE)
 		{
 			int rank = va_arg(varg_list_copy, int);
@@ -626,8 +632,8 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 	{
                 if (descrs[i].handle && descrs[i].handle->mpi_data)
 		{
-			char* redux_map = starpu_mpi_data_get_redux_map(descrs[i].handle);
-			if (redux_map != NULL && descrs[i].mode & STARPU_R && descrs[i].mode & ~ STARPU_REDUX && descrs[i].mode & ~ STARPU_MPI_REDUX )
+			char *redux_map = starpu_mpi_data_get_redux_map(descrs[i].handle);
+			if (redux_map != NULL && descrs[i].mode & STARPU_R && descrs[i].mode & ~ STARPU_REDUX && descrs[i].mode & ~ STARPU_MPI_REDUX)
 			{
 				_starpu_mpi_redux_wrapup_data(descrs[i].handle);
 			}
@@ -780,8 +786,8 @@ int _starpu_mpi_task_insert_v(MPI_Comm comm, struct starpu_codelet *codelet, va_
 	int val = _starpu_mpi_task_postbuild_v(comm, xrank, do_execute, descrs, nb_data, prio);
 	free(descrs);
 
-	if (ret == 1 && pre_submit_hook)
-		pre_submit_hook(task);
+	if (ret == 1)
+		_starpu_mpi_pre_submit_hook_call(task);
 
 	return val;
 }

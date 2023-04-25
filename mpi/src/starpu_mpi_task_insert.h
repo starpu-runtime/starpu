@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -28,6 +28,8 @@ int _starpu_mpi_find_executee_node(starpu_data_handle_t data, enum starpu_data_a
 int _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum starpu_data_access_mode mode, int me, int xrank, int do_execute, int prio, MPI_Comm comm);
 int _starpu_mpi_task_postbuild_v(MPI_Comm comm, int xrank, int do_execute, struct starpu_data_descr *descrs, int nb_data, int prio);
 void _starpu_mpi_redux_wrapup_datas();
+void _starpu_mpi_redux_wrapup_data(starpu_data_handle_t data_handle);
+void _starpu_mpi_pre_submit_hook_call(struct starpu_task *task);
 
 #ifdef __cplusplus
 }
