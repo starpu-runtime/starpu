@@ -18,23 +18,23 @@
 set -x
 set -e
 
+export starpudir=$PWD
 export rootdir=$PWD/../starpu_chameleon
+export builddir=$PWD/../starpu_chameleon/build
 rm -rf $rootdir
-mkdir -p $rootdir
+mkdir -p $builddir
 
 ./autogen.sh
-mkdir build && cd build
-../configure --prefix=$rootdir/starpu.inst --disable-static --disable-socl --disable-build-tests --disable-build-examples --disable-build-doc --disable-opencl
+cd $builddir
+$starpudir/configure --prefix=$rootdir/starpu.inst --disable-static --disable-socl --disable-build-tests --disable-build-examples --disable-build-doc --disable-opencl
 make -j 32
 make install
 source $rootdir/starpu.inst/bin/starpu_env
 
 # compiling morse
 cd $rootdir
-rm -fr morse
-mkdir morse
-git clone --quiet --recursive --branch master https://gitlab.inria.fr/solverstack/chameleon.git morse/master
-cd morse/master
+git clone --quiet --recursive --branch master https://gitlab.inria.fr/solverstack/chameleon.git chameleon
+cd chameleon
 mkdir build
 cd build
 CFLAGS=-g cmake ../ -DCHAMELEON_USE_CUDA=ON -DCHAMELEON_USE_MPI=ON
