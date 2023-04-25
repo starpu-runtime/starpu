@@ -69,7 +69,8 @@ the function starpu_task_get_current().
 \subsection Per-codeletFeedback Per-codelet Feedback
 
 The field starpu_codelet::per_worker_stats is
-an array of counters. The <c>i</c>-th entry of the array is incremented every time a
+an array of counters. Unless the \ref STARPU_CODELET_PROFILING environment
+variable was set to 0, the <c>i</c>-th entry of the array is incremented every time a
 task implementing the codelet is executed on the <c>i</c>-th worker.
 This array is not reinitialized when profiling is enabled or disabled.
 The function starpu_codelet_display_stats() can be used to display the execution statistics of a specific codelet.

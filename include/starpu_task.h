@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023 Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2016       Uppsala University
  *
@@ -312,6 +312,23 @@ struct starpu_task;
    initialize the whole structure to zero, either by using explicit
    memset, or the function starpu_codelet_init(), or by letting the
    compiler implicitly do it in e.g. static storage case.
+
+   Note that the codelet structure needs to exist until the task is
+   terminated. If dynamic codelet allocation is desired, release should be done
+   no sooner than the starpu_task::callback_func callback time.
+
+   If the application wants to make the structure constant, it needs to be
+   filled exactly as StarPU expects:
+
+   - starpu_codelet::cpu_funcs, starpu_codelet::cuda_funcs, etc. must be used instead
+   of the deprecated starpu_codelet::cpu_func, starpu_codelet::cuda_func, etc.
+
+   - the starpu_codelet::where field must be set.
+
+   and additionally, starpu_codelet::checked must be set to 1 to tell StarPU
+   that the conditions above are properly met. Also, the \ref
+   STARPU_CODELET_PROFILING environment variable must be set to 0.
+   An example is provided in tests/main/const_codelet.c
 */
 struct starpu_codelet
 {

@@ -823,6 +823,14 @@ Define the idle power of the machine (\ref Energy-basedScheduling).
 Enable on-line performance monitoring (\ref EnablingOn-linePerformanceMonitoring).
 </dd>
 
+<dt>STARPU_CODELET_PROFILING</dt>
+<dd>
+\anchor STARPU_CODELET_PROFILING
+\addindex __env__STARPU_CODELET_PROFILING
+Enable on-line performance monitoring of codelets (\ref Per-codeletFeedback).
+(enabled by default)
+</dd>
+
 <dt>STARPU_PROF_PAPI_EVENTS</dt>
 <dd>
 \anchor STARPU_PROF_PAPI_EVENTS

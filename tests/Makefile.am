@@ -241,6 +241,7 @@ myPROGRAMS +=				\
 	main/get_current_task			\
 	main/starpu_init			\
 	main/submit				\
+	main/const_codelet			\
 	main/pause_resume			\
 	main/pack				\
 	main/get_children_tasks			\

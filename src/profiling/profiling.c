@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2020       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -69,6 +69,8 @@ int _starpu_profiling =
 	0
 #endif
 	;
+
+int _starpu_codelet_profiling = 1;
 
 void starpu_profiling_init()
 {
@@ -251,6 +253,7 @@ void _starpu_profiling_start(void)
 	{
 		starpu_profiling_status_set(STARPU_PROFILING_ENABLE);
 	}
+	_starpu_codelet_profiling = starpu_get_env_number_default("STARPU_CODELET_PROFILING", 1);
 }
 
 void _starpu_profiling_terminate(void)
