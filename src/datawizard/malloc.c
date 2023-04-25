@@ -193,6 +193,7 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 		_STARPU_DISP("Warning: starpu_malloc needs to be called after starpu is initialized, to be able to pin memory for CUDA");
 
 	if (dim == 0)
+		/* Make sure we succeed */
 		dim = 1;
 
 	if (flags & STARPU_MALLOC_COUNT)
@@ -218,10 +219,6 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 		else
 			starpu_memory_allocate(dst_node, dim, flags | STARPU_MEMORY_OVERFLOW);
 	}
-
-	if (dim == 0)
-		/* Make sure we succeed */
-		dim = 1;
 
 	if (malloc_hook)
 	{
