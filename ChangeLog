@@ -23,6 +23,8 @@ StarPU 1.4.1
 Changes:
   * Fix StarPUPY when not using asyncio: we can use concurrent.futures
     instead.
+  * Add STARPU_CODELET_PROFILING environment variable to disable codelet task
+    counting for applications to be able to have const codelets.
 
 StarPU 1.4.0
 ==============================================

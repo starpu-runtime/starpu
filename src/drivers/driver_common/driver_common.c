@@ -88,7 +88,8 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 		task->status = STARPU_TASK_RUNNING;
 
 		STARPU_AYU_RUNTASK(j->job_id);
-		cl->per_worker_stats[workerid]++;
+		if (_starpu_codelet_profiling)
+			cl->per_worker_stats[workerid]++;
 
 		if ((profiling && profiling_info) || calibrate_model || !_starpu_perf_counter_paused())
 		{
