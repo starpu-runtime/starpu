@@ -106,11 +106,12 @@ starpu_pthread_queue_t _starpu_mpi_thread_dontsleep;
 
 /* Count requests posted by the application and not yet submitted to MPI */
 static starpu_pthread_mutex_t mutex_posted_requests;
-static starpu_pthread_mutex_t mutex_ready_requests;
-static int posted_requests = 0, ready_requests = 0, newer_requests, mpi_wait_for_all_running = 0;
+static int posted_requests = 0;
+static int ready_requests = 0; /* Protected by progress mutex */
+static int newer_requests;
+static int mpi_wait_for_all_running = 0;
 
 #define _STARPU_MPI_INC_POSTED_REQUESTS(value) { STARPU_PTHREAD_MUTEX_LOCK(&mutex_posted_requests); posted_requests += value; STARPU_PTHREAD_MUTEX_UNLOCK(&mutex_posted_requests); }
-#define _STARPU_MPI_INC_READY_REQUESTS(value) { STARPU_PTHREAD_MUTEX_LOCK(&mutex_ready_requests); ready_requests += value; STARPU_PTHREAD_MUTEX_UNLOCK(&mutex_ready_requests); }
 
 #ifdef STARPU_SIMGRID
 #pragma weak smpi_simulated_main_
@@ -216,7 +217,7 @@ void _starpu_mpi_submit_ready_request(void *arg)
 					  req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.node.rank, req->data_handle, req->ptr,
 					  req->datatype_name, (int)req->count, req->registered_datatype);
 			_starpu_mpi_req_list_push_front(&ready_recv_requests, req);
-			_STARPU_MPI_INC_READY_REQUESTS(+1);
+			ready_requests++;
 
 			/* inform the starpu mpi thread that the request has been pushed in the ready_requests list */
 			req->posted = 1;
@@ -281,7 +282,7 @@ void _starpu_mpi_submit_ready_request(void *arg)
 					}
 					STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 					_starpu_mpi_req_list_push_front(&ready_recv_requests, req);
-					_STARPU_MPI_INC_READY_REQUESTS(+1);
+					ready_requests++;
 					/* Throw away the dumb request that was only used to know that we got the envelope */
 					_starpu_mpi_request_destroy(sync_req);
 				}
@@ -304,7 +305,7 @@ void _starpu_mpi_submit_ready_request(void *arg)
 			_starpu_mpi_req_prio_list_push_front(&ready_send_requests, req);
 		else
 			_starpu_mpi_req_list_push_front(&ready_recv_requests, req);
-		_STARPU_MPI_INC_READY_REQUESTS(+1);
+		ready_requests++;
 		_STARPU_MPI_DEBUG(3, "Pushing new request %p type %s tag %"PRIi64" src %d data %p ptr %p datatype '%s' count %d registered_datatype %d \n",
 				  req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.node.rank, req->data_handle, req->ptr,
 				  req->datatype_name, (int)req->count, req->registered_datatype);
@@ -1227,7 +1228,7 @@ static void _starpu_mpi_receive_early_data(struct _starpu_mpi_envelope *envelope
 	// Handle the request immediatly to make sure the mpi_irecv is
 	// posted before receiving an other envelope
 	_starpu_mpi_req_list_erase(&ready_recv_requests, early_data_handle->req);
-	_STARPU_MPI_INC_READY_REQUESTS(-1);
+	ready_requests--;
 	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 	_starpu_mpi_handle_ready_request(early_data_handle->req);
 	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
@@ -1364,7 +1365,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 				break;
 
 			req = _starpu_mpi_req_list_pop_back(&ready_recv_requests);
-			_STARPU_MPI_INC_READY_REQUESTS(-1);
+			ready_requests--;
 
 			/* handling a request is likely to block for a while
 			 * (on a sync_data_with_mem call), we want to let the
@@ -1386,7 +1387,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 				break;
 
 			req = _starpu_mpi_req_prio_list_pop_back_highest(&ready_send_requests);
-			_STARPU_MPI_INC_READY_REQUESTS(-1);
+			ready_requests--;
 
 			/* handling a request is likely to block for a while
 			 * (on a sync_data_with_mem call), we want to let the
@@ -1635,7 +1636,6 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 	_starpu_mpi_req_list_init(&detached_requests);
 
 	STARPU_PTHREAD_MUTEX_INIT(&mutex_posted_requests, NULL);
-	STARPU_PTHREAD_MUTEX_INIT(&mutex_ready_requests, NULL);
 
 	nready_process = starpu_getenv_number_default("STARPU_MPI_NREADY_PROCESS", 10);
 	ndetached_send = starpu_getenv_number_default("STARPU_MPI_NDETACHED_SEND", 10);
@@ -1697,7 +1697,6 @@ void _starpu_mpi_progress_shutdown(void **value)
 #endif
 
 	STARPU_PTHREAD_MUTEX_DESTROY(&mutex_posted_requests);
-	STARPU_PTHREAD_MUTEX_DESTROY(&mutex_ready_requests);
 	STARPU_PTHREAD_MUTEX_DESTROY(&progress_mutex);
 	STARPU_PTHREAD_MUTEX_DESTROY(&early_data_mutex);
 	STARPU_PTHREAD_COND_DESTROY(&barrier_cond);
