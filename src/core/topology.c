@@ -1021,7 +1021,11 @@ unsigned _starpu_topology_get_nhwnumanodes(struct _starpu_machine_config *config
 	int nnumanodes = hwloc_get_nbobjs_by_type(topology->hwtopology, HWLOC_OBJ_NUMANODE);
 	unsigned res = nnumanodes > 0 ? nnumanodes : 1;
 
-	STARPU_ASSERT_MSG(res <= STARPU_MAXNUMANODES, "Number of NUMA nodes discovered %d is higher than maximum accepted %d ! Use configure option --enable-maxnumanodes=xxx to increase the maximum value of supported NUMA nodes.\n", res, STARPU_MAXNUMANODES);
+	if (res > STARPU_MAXNUMANODES)
+	{
+		_STARPU_DISP("Warning: Number of NUMA nodes discovered %d is higher than configured %d, reducing to that. Use configure option --enable-maxnumanodes=xxx to increase the maximum value of supported NUMA nodes.\n", res, STARPU_MAXNUMANODES);
+		res = STARPU_MAXNUMANODES;
+	}
 	return res;
 #else
 	return 1;
