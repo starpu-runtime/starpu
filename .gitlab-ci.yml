@@ -89,12 +89,17 @@ analyze_coverity:
   script:
     - ./contrib/gitlab/coverity.sh
 
+.deploy_template:
+  extends: .main_template
+  stage: deploy
+  needs: [build]
+  dependencies:
+    - build
+
 deploy_chameleon:
+  extends: .deploy_template
   image: registry.gitlab.inria.fr/solverstack/docker/distrib
   tags: ['ci.inria.fr', 'linux', 'large', 'docker']
-  stage: deploy
   script:
     - ./contrib/gitlab/chameleon.sh
-  rules:
-    - if: '$RUN_CHAMELEON == "yes"'
 
