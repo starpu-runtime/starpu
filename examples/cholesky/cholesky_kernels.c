@@ -283,7 +283,7 @@ static inline void chol_common_codelet_update_potrf(void *descr[], int s, void *
 			{
 				cusolverStatus_t sstatus;
 				float *workspace = (float *)STARPU_VARIABLE_GET_PTR(descr[1]);
-				int Lwork = STARPU_VARIABLE_GET_ELEMSIZE(descr[1]);
+				int Lwork = STARPU_VARIABLE_GET_ELEMSIZE(descr[1]) / sizeof(float);
 
 				sstatus = cusolverDnSpotrf(starpu_cusolverDn_get_local_handle(), CUBLAS_FILL_MODE_LOWER, nx, sub11, ld, workspace, Lwork, NULL);
 				STARPU_ASSERT(sstatus == CUSOLVER_STATUS_SUCCESS);
