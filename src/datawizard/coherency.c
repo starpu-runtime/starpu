@@ -1302,6 +1302,15 @@ void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job 
 					local_replicate->nb_tasks_prefetch--;
 			}
 		}
+		if (!(mode & STARPU_R) && (mode & STARPU_W))
+		{
+			/* The task will be initializing it. Possibly we have
+			 * only prefetched the allocation, and now we have to
+			 * record that we'll modify it. */
+			local_replicate->initialized = 1;
+			_starpu_update_data_state(handle, local_replicate, mode);
+		}
+
 		needs_init = !local_replicate->initialized;
 		_starpu_spin_unlock(&handle->header_lock);
 
