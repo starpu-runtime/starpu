@@ -1309,7 +1309,7 @@ void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job 
 
 		/* If the replicate was not initialized yet, we have to do it now */
 		if (!(mode & STARPU_SCRATCH) && needs_init)
-			_starpu_redux_init_data_replicate(handle, local_replicate, workerid);
+			_starpu_init_data_replicate(handle, local_replicate, workerid);
 
 #ifdef STARPU_USE_FXT
 		if (fut_active)

@@ -407,7 +407,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 								  unsigned async,
 								  void (*callback_func)(void *), void *callback_arg, int prio, const char *origin);
 
-void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, int workerid);
+void _starpu_init_data_replicate(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, int workerid);
 void _starpu_data_start_reduction_mode(starpu_data_handle_t handle);
 void _starpu_data_end_reduction_mode(starpu_data_handle_t handle, int priority);
 void _starpu_data_end_reduction_mode_terminate(starpu_data_handle_t handle);
