@@ -558,7 +558,7 @@ void cholesky_kernel_init(int nb)
 	int Lwork = 0;
 	if (starpu_cuda_worker_get_count())
 		cusolverDnSpotrf_bufferSize(starpu_cusolverDn_get_local_handle(), CUBLAS_FILL_MODE_LOWER, nb, NULL, nb, &Lwork);
-	starpu_variable_data_register(&scratch, -1, 0, Lwork);
+	starpu_variable_data_register(&scratch, -1, 0, Lwork * sizeof(float));
 #endif
 }
 
