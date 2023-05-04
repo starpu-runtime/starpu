@@ -1132,7 +1132,7 @@ void _starpu_topology_check_ndevices(int *ndevices, unsigned nhwdevices, int ove
 
 		if (reserved > 0)
 		{
-			if (nhwdevices < reserved)
+			if (nhwdevices < (unsigned) reserved)
 			{
 				_STARPU_DISP("Warning: %u %s devices were requested to be reserved, but only %d were available,\n", reserved, dname, nhwdevices);
 				nhwdevices = 0;
