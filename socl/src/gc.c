@@ -186,6 +186,8 @@ void gc_entity_retain_ex(void *arg, const char * DEBUG_PARAM(caller))
 
 #ifdef DEBUG
 	int refs =
+#else
+	(void)
 #endif
 		STARPU_ATOMIC_ADD(&e->refs, 1);
 
