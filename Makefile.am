@@ -205,6 +205,7 @@ EXTRA_DIST += contrib/gitlab/build.sh
 EXTRA_DIST += contrib/gitlab/deploy.sh
 EXTRA_DIST += contrib/gitlab/coverity.sh
 EXTRA_DIST += contrib/gitlab/simgrid.sh
+EXTRA_DIST += contrib/gitlab/chameleon.sh
 
 moduledir = ${libdir}/modules
 module_DATA = packages/starpu-1.4
