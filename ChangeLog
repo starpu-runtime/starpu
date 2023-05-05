@@ -23,7 +23,7 @@ StarPU 1.4.1
 Small features:
   * Add starpu_mpi_tags_{allocate,free} functions to manage mpi data
     tags in distributed memory.
-  
+
 Changes:
   * Fix StarPUPY when not using asyncio: we can use concurrent.futures
     instead.
@@ -32,6 +32,9 @@ Changes:
   * In performance bounds, take into account the standard deviation to get the
     "expected" upper bound, in terms of expected optimistic deviation from the
     average, rather than the average.
+
+Small changes:
+  * Fix function starpu_mpi_wait_for_all()
 
 StarPU 1.4.0
 ==============================================

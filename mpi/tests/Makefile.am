@@ -76,7 +76,8 @@ starpu_mpi_TESTS +=				\
 	policy_selection			\
 	star					\
 	stats					\
-	user_defined_datatype
+	user_defined_datatype			\
+	wait_for_all
 
 if !STARPU_SIMGRID
 starpu_mpi_TESTS +=				\
@@ -244,7 +245,8 @@ noinst_PROGRAMS +=				\
 	coop_cache				\
 	nothing					\
 	display_bindings			\
-	mpi_task_submit
+	mpi_task_submit				\
+	wait_for_all
 
 if STARPU_USE_MPI_FT
 noinst_PROGRAMS +=  \
