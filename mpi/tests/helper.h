@@ -19,6 +19,7 @@
 #include <starpu_config.h>
 #include "../../tests/helper.h"
 
+#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); fflush(ofile); }} while(0)
 #define PRINTF(fmt, ...) do { if (!getenv("STARPU_SSILENT")) {printf(fmt, ## __VA_ARGS__); fflush(stdout); }} while(0)
 #define FPRINTF_MPI(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) { \
 			int _disp_rank; starpu_mpi_comm_rank(MPI_COMM_WORLD, &_disp_rank); \

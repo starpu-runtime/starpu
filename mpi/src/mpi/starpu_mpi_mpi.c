@@ -55,9 +55,6 @@
 /* Number of ready requests to process before polling for completed requests */
 static unsigned nready_process;
 
-/* Number of send requests to submit to MPI at the same time */
-static unsigned ndetached_send;
-
 /* Force allocation of early data */
 static int early_data_force_allocate;
 
@@ -72,14 +69,17 @@ static struct _starpu_mpi_req_prio_list ready_send_requests;
 
 /* The list of detached requests that have already been submitted to MPI */
 static struct _starpu_mpi_req_list detached_requests;
-static unsigned detached_send_nrequests = 0;
 static starpu_pthread_mutex_t detached_requests_mutex;
+
+/* Number of send requests to submit to MPI at the same time */
+static unsigned ndetached_send_requests_max;
+static unsigned ndetached_send_requests = 0;
 
 /* Condition to wake up progression thread */
 static starpu_pthread_cond_t progress_cond;
+static starpu_pthread_mutex_t progress_mutex;
 /* Condition to wake up waiting for all current MPI requests to finish */
 static starpu_pthread_cond_t barrier_cond;
-static starpu_pthread_mutex_t progress_mutex;
 #ifndef STARPU_SIMGRID
 static starpu_pthread_t progress_thread;
 #endif
@@ -107,11 +107,15 @@ starpu_pthread_queue_t _starpu_mpi_thread_dontsleep;
 /* Count requests posted by the application and not yet submitted to MPI */
 static starpu_pthread_mutex_t mutex_posted_requests;
 static int posted_requests = 0;
-static int ready_requests = 0; /* Protected by progress mutex */
 static int newer_requests;
 static int mpi_wait_for_all_running = 0;
 
-#define _STARPU_MPI_INC_POSTED_REQUESTS(value) { STARPU_PTHREAD_MUTEX_LOCK(&mutex_posted_requests); posted_requests += value; STARPU_PTHREAD_MUTEX_UNLOCK(&mutex_posted_requests); }
+#define _STARPU_MPI_INC_POSTED_REQUESTS(req, value) { \
+	STARPU_PTHREAD_MUTEX_LOCK(&mutex_posted_requests); \
+	posted_requests += value; \
+	_STARPU_MPI_DEBUG(0, "posted_requests : %d with req %p srcdst %d tag %"PRIi64" and type %s %d\n", posted_requests, req, req->node_tag.node.rank, req->node_tag.data_tag, _starpu_mpi_request_type(req->request_type), req->backend->is_internal_req); \
+	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex_posted_requests); \
+}
 
 #ifdef STARPU_SIMGRID
 #pragma weak smpi_simulated_main_
@@ -142,12 +146,6 @@ struct _starpu_mpi_early_data_cb_args
 	size_t size;
 	unsigned buffer_node;
 };
-
-void _starpu_mpi_submit_ready_request_inc(struct _starpu_mpi_req *req)
-{
-	_STARPU_MPI_INC_POSTED_REQUESTS(1);
-	_starpu_mpi_submit_ready_request(req);
-}
 
 #if 0
 void _starpu_mpi_coop_sends_build_tree(struct _starpu_mpi_coop_sends *coop_sends)
@@ -215,7 +213,6 @@ void _starpu_mpi_submit_ready_request(void *arg)
 					  req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.node.rank, req->data_handle, req->ptr,
 					  req->datatype_name, (int)req->count, req->registered_datatype);
 			_starpu_mpi_req_list_push_front(&ready_recv_requests, req);
-			ready_requests++;
 
 			/* inform the starpu mpi thread that the request has been pushed in the ready_requests list */
 			req->posted = 1;
@@ -280,7 +277,6 @@ void _starpu_mpi_submit_ready_request(void *arg)
 					}
 					STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 					_starpu_mpi_req_list_push_front(&ready_recv_requests, req);
-					ready_requests++;
 					/* Throw away the dumb request that was only used to know that we got the envelope */
 					_starpu_mpi_request_destroy(sync_req);
 				}
@@ -303,7 +299,6 @@ void _starpu_mpi_submit_ready_request(void *arg)
 			_starpu_mpi_req_prio_list_push_front(&ready_send_requests, req);
 		else
 			_starpu_mpi_req_list_push_front(&ready_recv_requests, req);
-		ready_requests++;
 		_STARPU_MPI_DEBUG(3, "Pushing new request %p type %s tag %"PRIi64" src %d data %p ptr %p datatype '%s' count %d registered_datatype %d \n",
 				  req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.node.rank, req->data_handle, req->ptr,
 				  req->datatype_name, (int)req->count, req->registered_datatype);
@@ -316,14 +311,12 @@ void _starpu_mpi_submit_ready_request(void *arg)
 #endif
 	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 
-	_STARPU_MPI_INC_POSTED_REQUESTS(-1);
-
 	_STARPU_MPI_LOG_OUT();
 }
 
-void _starpu_mpi_req_willpost(struct _starpu_mpi_req *req STARPU_ATTRIBUTE_UNUSED)
+void _starpu_mpi_req_willpost(struct _starpu_mpi_req *req)
 {
-	_STARPU_MPI_INC_POSTED_REQUESTS(1);
+	_STARPU_MPI_INC_POSTED_REQUESTS(req, 1);
 }
 
 #ifdef STARPU_SIMGRID
@@ -626,7 +619,8 @@ int _starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
 	waiting_req->func = _starpu_mpi_wait_func;
 	waiting_req->request_type = WAIT_REQ;
 
-	_starpu_mpi_submit_ready_request_inc(waiting_req);
+	_STARPU_MPI_INC_POSTED_REQUESTS(waiting_req, 1);
+	_starpu_mpi_submit_ready_request(waiting_req);
 
 	/* We wait for the MPI request to finish */
 	STARPU_PTHREAD_MUTEX_LOCK(&req->backend->req_mutex);
@@ -635,6 +629,7 @@ int _starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&req->backend->req_mutex);
 
 	/* The internal request structure was automatically allocated */
+	_STARPU_MPI_INC_POSTED_REQUESTS(waiting_req, -1);
 	_starpu_mpi_request_destroy(waiting_req);
 #endif
 
@@ -732,7 +727,8 @@ int _starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 		testing_req->completed = 0;
 		testing_req->request_type = TEST_REQ;
 
-		_starpu_mpi_submit_ready_request_inc(testing_req);
+		_STARPU_MPI_INC_POSTED_REQUESTS(testing_req, 1);
+		_starpu_mpi_submit_ready_request(testing_req);
 
 		/* We wait for the test request to finish */
 		STARPU_PTHREAD_MUTEX_LOCK(&(testing_req->backend->req_mutex));
@@ -742,6 +738,7 @@ int _starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 
 		ret = testing_req->ret;
 
+		_STARPU_MPI_INC_POSTED_REQUESTS(testing_req, -1);
 		_starpu_mpi_request_destroy(testing_req);
 	}
 	else
@@ -804,7 +801,7 @@ int _starpu_mpi_barrier(MPI_Comm comm)
 	barrier_req->request_type = BARRIER_REQ;
 	barrier_req->node_tag.node.comm = comm;
 
-	_STARPU_MPI_INC_POSTED_REQUESTS(1);
+	_STARPU_MPI_INC_POSTED_REQUESTS(barrier_req, 1);
 	_starpu_mpi_submit_ready_request(barrier_req);
 
 	/* We wait for the MPI request to finish */
@@ -813,6 +810,7 @@ int _starpu_mpi_barrier(MPI_Comm comm)
 		STARPU_PTHREAD_COND_WAIT(&barrier_req->backend->req_cond, &barrier_req->backend->req_mutex);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&barrier_req->backend->req_mutex);
 
+	// posted_requests will be decreated in _starpu_mpi_handle_request_termination() called by _starpu_mpi_barrier_func()
 	_starpu_mpi_request_destroy(barrier_req);
 	_STARPU_MPI_LOG_OUT();
 
@@ -832,7 +830,7 @@ int _starpu_mpi_wait_for_all(MPI_Comm comm)
 	mpi_wait_for_all_running = 1;
 	do
 	{
-		while (posted_requests || ready_requests)
+		while (posted_requests)// || !_starpu_mpi_req_list_empty(&ready_recv_requests) || !_starpu_mpi_req_prio_list_empty(&ready_send_requests) || !_starpu_mpi_req_list_empty(&detached_requests) || _starpu_mpi_early_request_count() != 0 || _starpu_mpi_sync_data_count() != 0)
 			/* Wait for all current MPI requests to finish */
 			STARPU_PTHREAD_COND_WAIT(&barrier_cond, &progress_mutex);
 		/* No current request, clear flag */
@@ -844,7 +842,7 @@ int _starpu_mpi_wait_for_all(MPI_Comm comm)
 		/* Check newer_requests again, in case some MPI requests
 		 * triggered by tasks completed and triggered tasks between
 		 * wait_for_all finished and we take the lock */
-	} while (posted_requests || ready_requests || newer_requests);
+	} while (posted_requests || newer_requests);// || !_starpu_mpi_req_list_empty(&ready_recv_requests) || !_starpu_mpi_req_prio_list_empty(&ready_send_requests) || !_starpu_mpi_req_list_empty(&detached_requests) || _starpu_mpi_early_request_count() != 0 || _starpu_mpi_sync_data_count() != 0 );
 	mpi_wait_for_all_running = 0;
 	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 	return 0;
@@ -922,6 +920,8 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 	/* Execute the specified callback, if any */
 	if (req->callback)
 		req->callback(req->callback_arg);
+
+	_STARPU_MPI_INC_POSTED_REQUESTS(req, -1);
 
 	/* tell anyone potentially waiting on the request that it is
 	 * terminated now */
@@ -1082,13 +1082,14 @@ static void _starpu_mpi_test_detached_requests(void)
 
 			_STARPU_MPI_TRACE_COMPLETE_BEGIN(req->request_type, req->node_tag.node.rank, req->node_tag.data_tag);
 
+			_starpu_mpi_handle_request_termination(req);
+
 			STARPU_PTHREAD_MUTEX_LOCK(&detached_requests_mutex);
-			if (req->request_type == SEND_REQ && ndetached_send > 0)
-				// if ndetached_send == 0, we don't limit the number of concurrent MPI send requests
-				detached_send_nrequests--;
+			if (req->request_type == SEND_REQ && ndetached_send_requests_max > 0)
+				// if ndetached_send_requests_max == 0, we don't limit the number of concurrent MPI send requests
+				ndetached_send_requests--;
 			_starpu_mpi_req_list_erase(&detached_requests, req);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
-			_starpu_mpi_handle_request_termination(req);
 
 			_STARPU_MPI_TRACE_COMPLETE_END(req->request_type, req->node_tag.node.rank, req->node_tag.data_tag);
 
@@ -1124,12 +1125,14 @@ static void _starpu_mpi_handle_detached_request(struct _starpu_mpi_req *req)
 {
 	if (req->detached)
 	{
+		STARPU_PTHREAD_MUTEX_LOCK(&detached_requests_mutex);
+
+		if (req->request_type == SEND_REQ && ndetached_send_requests_max > 0)
+			// if ndetached_send_requests_max == 0, we don't limit the number of concurrent MPI send requests
+			ndetached_send_requests++;
+
 		/* put the submitted request into the list of pending requests
 		 * so that it can be handled by the progression mechanisms */
-		STARPU_PTHREAD_MUTEX_LOCK(&detached_requests_mutex);
-		if (req->request_type == SEND_REQ && ndetached_send > 0)
-			// if ndetached_send == 0, we don't limit the number of concurrent MPI send requests
-			detached_send_nrequests++;
 		_starpu_mpi_req_list_push_back(&detached_requests, req);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
 
@@ -1229,7 +1232,6 @@ static void _starpu_mpi_receive_early_data(struct _starpu_mpi_envelope *envelope
 	// Handle the request immediatly to make sure the mpi_irecv is
 	// posted before receiving an other envelope
 	_starpu_mpi_req_list_erase(&ready_recv_requests, early_data_handle->req);
-	ready_requests--;
 	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 	_starpu_mpi_handle_ready_request(early_data_handle->req);
 	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
@@ -1325,7 +1327,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	int mpi_driver_task_counter = 0;
 	_STARPU_MPI_TRACE_POLLING_BEGIN();
 
-	while (running || posted_requests || !(_starpu_mpi_req_list_empty(&ready_recv_requests)) || !(_starpu_mpi_req_prio_list_empty(&ready_send_requests)) || !(_starpu_mpi_req_list_empty(&detached_requests)))// || !(_starpu_mpi_early_request_count()) || !(_starpu_mpi_sync_data_count()))
+	while (running || posted_requests || !(_starpu_mpi_req_list_empty(&ready_recv_requests)) || !(_starpu_mpi_req_prio_list_empty(&ready_send_requests)) || !(_starpu_mpi_req_list_empty(&detached_requests)))
 	{
 #ifdef STARPU_SIMGRID
 		starpu_pthread_wait_reset(&_starpu_mpi_thread_wait);
@@ -1338,9 +1340,8 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 			//_STARPU_MPI_DEBUG(3, "NO MORE REQUESTS TO HANDLE\n");
 			_STARPU_MPI_TRACE_SLEEP_BEGIN();
 
-			if (mpi_wait_for_all_running)
-				/* Tell mpi_barrier */
-				STARPU_PTHREAD_COND_SIGNAL(&barrier_cond);
+			/* Notify mpi_barrier */
+			STARPU_PTHREAD_COND_SIGNAL(&barrier_cond);
 		}
 #ifdef STARPU_USE_MPI_FT
 		block = block && !starpu_mpi_ft_busy();
@@ -1367,7 +1368,6 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 				break;
 
 			req = _starpu_mpi_req_list_pop_back(&ready_recv_requests);
-			ready_requests--;
 
 			/* handling a request is likely to block for a while
 			 * (on a sync_data_with_mem call), we want to let the
@@ -1380,7 +1380,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 
 		/* get one send request */
 		n = 0;
-		while (!_starpu_mpi_req_prio_list_empty(&ready_send_requests) && (ndetached_send == 0 || detached_send_nrequests < ndetached_send))
+		while (!_starpu_mpi_req_prio_list_empty(&ready_send_requests) && (ndetached_send_requests_max == 0 || ndetached_send_requests < ndetached_send_requests_max))
 		{
 			struct _starpu_mpi_req *req;
 
@@ -1389,7 +1389,6 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 				break;
 
 			req = _starpu_mpi_req_prio_list_pop_back_highest(&ready_send_requests);
-			ready_requests--;
 
 			/* handling a request is likely to block for a while
 			 * (on a sync_data_with_mem call), we want to let the
@@ -1595,7 +1594,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 #endif
 
 	STARPU_MPI_ASSERT_MSG(_starpu_mpi_req_list_empty(&detached_requests), "List of detached requests not empty");
-	STARPU_MPI_ASSERT_MSG(detached_send_nrequests == 0, "Number of detached send requests not 0");
+	STARPU_MPI_ASSERT_MSG(ndetached_send_requests == 0, "Number of detached send requests not 0");
 	STARPU_MPI_ASSERT_MSG(_starpu_mpi_req_list_empty(&ready_recv_requests), "List of ready requests not empty");
 	STARPU_MPI_ASSERT_MSG(_starpu_mpi_req_prio_list_empty(&ready_send_requests), "List of ready requests not empty");
 	STARPU_MPI_ASSERT_MSG(posted_requests == 0, "Number of posted request is not zero");
@@ -1640,7 +1639,7 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 	STARPU_PTHREAD_MUTEX_INIT(&mutex_posted_requests, NULL);
 
 	nready_process = starpu_getenv_number_default("STARPU_MPI_NREADY_PROCESS", 10);
-	ndetached_send = starpu_getenv_number_default("STARPU_MPI_NDETACHED_SEND", 10);
+	ndetached_send_requests_max = starpu_getenv_number_default("STARPU_MPI_NDETACHED_SEND", 10);
 	early_data_force_allocate = starpu_getenv_number_default("STARPU_MPI_EARLYDATA_ALLOCATE", 0);
 
 #ifdef STARPU_SIMGRID
