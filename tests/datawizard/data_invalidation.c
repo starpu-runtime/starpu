@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -28,9 +28,9 @@
  */
 
 #ifdef STARPU_QUICK_CHECK
-#  define NLOOPS		100
+static unsigned nloops=100;
 #else
-#  define NLOOPS		1000
+static unsigned nloops=1000;
 #endif
 #define VECTORSIZE	1024
 
@@ -57,6 +57,7 @@ static void cuda_memset_codelet(void *descr[], void *arg)
 static void opencl_memset_codelet(void *buffers[], void *args)
 {
 	(void) args;
+	STARPU_SKIP_IF_VALGRIND;
 
 	cl_command_queue queue;
 	int id = starpu_worker_get_id_check();
@@ -156,11 +157,15 @@ int main(int argc, char **argv)
 		return STARPU_TEST_SKIPPED;
 	}
 
+#ifdef STARPU_HAVE_VALGRIND_H
+	if(RUNNING_ON_VALGRIND) nloops = 2;
+#endif
+
 	/* The buffer should never be explicitely allocated */
 	starpu_vector_data_register(&v_handle, (uint32_t)-1, (uintptr_t)NULL, VECTORSIZE, sizeof(char));
 
 	unsigned loop;
-	for (loop = 0; loop < NLOOPS; loop++)
+	for (loop = 0; loop < nloops; loop++)
 	{
 		struct starpu_task *memset_task;
 		struct starpu_task *check_content_task;
@@ -192,7 +197,7 @@ int main(int argc, char **argv)
 		starpu_data_invalidate(v_handle);
 	}
 
-	for (loop = 0; loop < NLOOPS; loop++)
+	for (loop = 0; loop < nloops; loop++)
 	{
 		struct starpu_task *memset_task;
 		struct starpu_task *check_content_task;
