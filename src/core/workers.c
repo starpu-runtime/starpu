@@ -1053,7 +1053,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 
 		_STARPU_DEBUG("waiting for worker %u initialization\n", worker);
 		if (!workerarg->run_by_starpu)
-			break;
+			continue;
 
 		struct _starpu_worker_set *worker_set = workerarg->set;
 
