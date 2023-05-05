@@ -89,7 +89,6 @@ if test "$suname" = "Darwin"
 then
     # the VM macos is very slow
     export STARPU_MPI_NP=2
-    STARPU_CONFIGURE_OPTIONS="--enable-mpi-minimal-tests"
 fi
 if test "$suname" = "OpenBSD"
 then
@@ -115,7 +114,7 @@ fi
 export STARPU_MICROBENCHS_DISABLED=1
 export STARPU_TIMEOUT_ENV=3600
 export MPIEXEC_TIMEOUT=3600
-CONFIGURE_OPTIONS="--enable-debug --enable-verbose --disable-build-examples --enable-mpi-check=maybe --disable-build-doc $ARGS"
+CONFIGURE_OPTIONS="--enable-debug --enable-verbose --disable-build-examples --enable-mpi-check=maybe --enable-mpi-minimal-tests --disable-build-doc $ARGS"
 CONFIGURE_CHECK=""
 day=$(date +%u)
 if test $day -le 5
