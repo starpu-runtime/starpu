@@ -180,6 +180,7 @@ int _starpu_malloc_willpin_on_node(unsigned dst_node)
 	int flags = _starpu_get_node_struct(dst_node)->malloc_on_node_default_flags;
 	return (_starpu_malloc_should_pin(flags) && STARPU_RUNNING_ON_VALGRIND == 0
 			&& (_starpu_can_submit_cuda_task()
+			    || _starpu_can_submit_hip_task()
 			    /* || _starpu_can_submit_opencl_task() */
 			));
 }
