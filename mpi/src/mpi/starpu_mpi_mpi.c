@@ -104,16 +104,16 @@ starpu_pthread_queue_t _starpu_mpi_thread_dontsleep;
 #endif
 
 /* Count requests posted by the application and not yet submitted to MPI */
-static starpu_pthread_mutex_t mutex_posted_requests;
+static starpu_pthread_mutex_t posted_requests_mutex;
 static int posted_requests = 0;
 static int newer_requests;
 static int mpi_wait_for_all_running = 0;
 
 #define _STARPU_MPI_INC_POSTED_REQUESTS(req, value) { \
-	STARPU_PTHREAD_MUTEX_LOCK(&mutex_posted_requests); \
+	STARPU_PTHREAD_MUTEX_LOCK(&posted_requests_mutex); \
 	posted_requests += value; \
 	_STARPU_MPI_DEBUG(0, "posted_requests : %d with req %p srcdst %d tag %"PRIi64" and type %s %d\n", posted_requests, req, req->node_tag.node.rank, req->node_tag.data_tag, _starpu_mpi_request_type(req->request_type), req->backend->is_internal_req); \
-	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex_posted_requests); \
+	STARPU_PTHREAD_MUTEX_UNLOCK(&posted_requests_mutex); \
 }
 
 #ifdef STARPU_SIMGRID
@@ -1630,7 +1630,7 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 
 	_starpu_mpi_req_list_init(&detached_requests);
 
-	STARPU_PTHREAD_MUTEX_INIT(&mutex_posted_requests, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&posted_requests_mutex, NULL);
 
 	nready_process = starpu_getenv_number_default("STARPU_MPI_NREADY_PROCESS", 10);
 	ndetached_send_requests_max = starpu_getenv_number_default("STARPU_MPI_NDETACHED_SEND", 10);
@@ -1691,7 +1691,7 @@ void _starpu_mpi_progress_shutdown(void **value)
 	STARPU_PTHREAD_JOIN(progress_thread, value);
 #endif
 
-	STARPU_PTHREAD_MUTEX_DESTROY(&mutex_posted_requests);
+	STARPU_PTHREAD_MUTEX_DESTROY(&posted_requests_mutex);
 	STARPU_PTHREAD_MUTEX_DESTROY(&progress_mutex);
 	STARPU_PTHREAD_MUTEX_DESTROY(&early_data_mutex);
 	STARPU_PTHREAD_COND_DESTROY(&barrier_cond);
