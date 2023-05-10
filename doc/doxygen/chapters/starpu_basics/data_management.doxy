@@ -566,17 +566,20 @@ in various applications, for instance
 
 \code{.c}
 for (i = 0; i < N; i++)
-    for (j = i+1; j < N; j++)
-        task[i][j] = starpu_task_build(&cl, STARPU_RW|STARPU_COMMUTE, A[i], STARPU_RW|STARPU_COMMUTE, A[j], 0);
+    for (j = 0; j < N; j++)
+        task[i][j] = starpu_task_build(&cl, STARPU_RW|STARPU_COMMUTE, A[i], STARPU_RW|STARPU_COMMUTE, B[j], 0);
 \endcode
 
 Which creates a series of tasks that are completely parallel in terms of
 tasks dependencies thanks to commutation, but StarPU still has to prevent two
 tasks from operating on the same data. The Dijkstra solution here leads to a
 worst-case: the \c task[0][j] tasks will wait for each other since
-they all access the same \c A[0]. And \c task[1][2] will wait for
-\c task[0][2], \c task[1][3] will wait for \c task[0][3], etc. In the end no
-parallism is achieved...
+they all access the same \c A[0]. And \c task[1][0] will wait for
+\c task[0][0] because they both access the same \c B[0], \c task[1][1] will wait
+for \c task[0][1] because of \c B[1], etc. In the end no parallism is achieved:
+
+\image html arbiter.png
+\image latex arbiter.png "" width=0.7\textwidth
 
 In this case, one can use a data access arbiter starpu_arbiter, which
 implements the classical centralized solution for the Dining Philosophers

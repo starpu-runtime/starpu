@@ -47,6 +47,7 @@ chapters =	\
 	../doxygen/chapters/code/nf_initexit.f90
 
 images = 	\
+	../doxygen/chapters/images/arbiter.png \
 	../doxygen/chapters/images/data_trace.png \
 	../doxygen/chapters/images/distrib_data.png \
 	../doxygen/chapters/images/distrib_data_histo.png \

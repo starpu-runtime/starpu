@@ -106,6 +106,7 @@ chapters =	\
 	chapters/api/threads.doxy
 
 images = 	\
+	chapters/images/arbiter.png \
 	chapters/images/data_trace.png \
 	chapters/images/distrib_data.png \
 	chapters/images/distrib_data_histo.png \
