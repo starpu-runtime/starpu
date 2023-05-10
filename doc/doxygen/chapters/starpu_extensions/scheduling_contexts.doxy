@@ -112,7 +112,7 @@ A full example is available in the file <c>examples/sched_ctx/two_cpu_contexts.c
 The contexts can also be used to group a set of SMs of an NVIDIA GPU in order to isolate
 the parallel kernels and allow them to coexecution on a specified partition of the GPU.
 
-Each context will be mapped to a stream and the user can indicate the number of SMs.
+Each context will be mapped to a stream and users can indicate the number of SMs.
 The context can be added to a larger context already grouping CPU cores.
 This larger context can use a scheduling policy that assigns tasks to both CPUs and contexts (partitions of the GPU)
 based on performance models adjusted to the number of SMs.

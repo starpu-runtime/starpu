@@ -284,7 +284,7 @@ memory and the local memory of the DFE.
 
 For the moment, we use \ref STARPU_MAIN_RAM to send and store data
 to/from DFE's local memory. However, we aim to use a multiplexer to
-choose which memory node we will use to read/write data. So, the user
+choose which memory node we will use to read/write data. So, users
 can tell that the computational kernel will take data from the main
 memory or DFE's local memory, for example.
 

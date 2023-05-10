@@ -21,7 +21,7 @@ very natural way by the means of asynchronous interactions between the
 application and StarPU.  This is implemented in a separate <c>libstarpumpi</c> library
 which basically provides "StarPU" equivalents of <c>MPI_*</c> functions, where
 <c>void *</c> buffers are replaced with ::starpu_data_handle_t, and all
-GPU-RAM-NIC transfers are handled efficiently by StarPU-MPI.  The user has to
+GPU-RAM-NIC transfers are handled efficiently by StarPU-MPI.  Users have to
 use the usual <c>mpirun</c> command of the MPI implementation to start StarPU on
 the different MPI nodes.
 
@@ -47,7 +47,7 @@ not needed if it is next to <c>mpicc</c>, configure will look there in addition 
 Similarly, Fortran examples use <c>mpif90</c>, which can be specified manually
 with <c>--with-mpifort</c> if it can't be found automatically.
 
-In case the user wants to run several MPI processes by machine (e.g. one per
+If users want to run several MPI processes by machine (e.g. one per
 NUMA node), \ref STARPU_WORKERS_GETBIND needs to be left to its
 default value 1 to make StarPU take into account the binding set by
 the MPI launcher (otherwise each StarPU instance would try to bind on
@@ -888,11 +888,11 @@ tells StarPU to spawn only one contribution per contributing node.
 
 The setup and use of ::STARPU_MPI_REDUX is similar to ::STARPU_REDUX : the initialization and
 reduction codelets should be declared through starpu_data_set_reduction_methods() in the
-same fashion as ::STARPU_REDUX. Example <c>mpi/examples/mpi_redux/mpi_redux.c</c> shows how to use the ::STARPU_MPI_REDUX mode 
+same fashion as ::STARPU_REDUX. Example <c>mpi/examples/mpi_redux/mpi_redux.c</c> shows how to use the ::STARPU_MPI_REDUX mode
 and compare it with the standard ::STARPU_REDUX. The function starpu_mpi_redux_data() is automatically called
 either when a task reading the reduced handle is inserted through the MPI layer of StarPU through
-starpu_mpi_insert_task() or when the user waits for all communications and tasks to be executed
-through starpu_mpi_wait_for_all(). The function can be called by the user to fine-tune arguments
+starpu_mpi_insert_task() or when users wait for all communications and tasks to be executed
+through starpu_mpi_wait_for_all(). The function can be called by users to fine-tune arguments
 such as the priority of the reduction tasks.
 Tasks contributing to the inter-node reduction should be registered as
 accessing the contribution through ::STARPU_RW|::STARPU_COMMUTE mode, as for the
@@ -1120,7 +1120,7 @@ execution with StarPU-MPI.  However, this could result in a loss of performance
 for applications that does not require an extreme reactivity to MPI
 communications.
 
-The starpu_mpi_init_conf() routine allows the user to give the
+The starpu_mpi_init_conf() routine allows users to give the
 starpu_conf configuration structure of StarPU (usually given to the
 starpu_init() routine) to StarPU-MPI, so that StarPU-MPI reserves for its own
 use one of the CPU drivers of the current computing node, or one of the CPU
