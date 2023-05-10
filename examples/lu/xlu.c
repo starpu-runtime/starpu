@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -18,6 +18,8 @@
 /* LU StarPU implementation using explicit tag dependencies */
 #include "xlu.h"
 #include "xlu_kernels.h"
+
+#include "starpu_cusolver.h"
 
 /*
  *	Construct the DAG
@@ -45,6 +47,10 @@ static struct starpu_task *create_task_getrf(starpu_data_handle_t dataA, unsigne
 
 	/* which sub-data is manipulated ? */
 	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, k);
+
+	#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+	task->handles[1] = scratch;
+	#endif
 
 	/* this is an important task */
 	if (!no_prio)
@@ -275,7 +281,11 @@ int STARPU_LU(lu_decomposition)(TYPE *matA, unsigned size, unsigned ld, unsigned
 
 	starpu_data_map_filters(dataA, 2, &f, &f2);
 
+	lu_kernel_init(size / nblocks);
+
 	int ret = dw_codelet_facto_v3(dataA, nblocks, no_prio);
+
+	lu_kernel_fini();
 
 	/* gather all the data */
 	starpu_data_unpartition(dataA, STARPU_MAIN_RAM);
