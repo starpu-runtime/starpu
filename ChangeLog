@@ -32,6 +32,8 @@ Changes:
 
 Small changes:
   * Fix function starpu_mpi_wait_for_all()
+  * Fix atomic functions
+  * SOCL: Fix missing CL_CALLBACK for various callback functions
 
 StarPU 1.4.0
 ==============================================
