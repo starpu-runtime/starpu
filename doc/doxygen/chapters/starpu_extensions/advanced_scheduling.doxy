@@ -77,7 +77,7 @@ starpu_perfmodel::worker_cost_function to a function which shall return
 the estimated consumption of the task in Joules. Such a function can for instance
 use starpu_task_expected_length() on the task (in µs), multiplied by the
 typical power consumption of the device, e.g. in W, and divided by 1000000. to
-get Joules. A corresponding example is in the file <c>tests/perfmodels/regression_based_energy.c</c>.
+get Joules. An example is in the file <c>tests/perfmodels/regression_based_energy.c</c>.
 
 There are other functions in StarPU that are used to measure the energy consumed by the system during execution. The starpu_energy_use() function declares that there are the energy consumptions of the task, while the starpu_energy_used() function returns the total energy consumed since the start of measurement.
 
@@ -165,7 +165,7 @@ task->execute_on_a_specific_worker = 1;
 task->workerid = starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0);
 \endcode
 
-A corresponding example is in the file <c>tests/errorcheck/invalid_tasks.c</c>.
+An example is in the file <c>tests/errorcheck/invalid_tasks.c</c>.
 
 or equivalently
 
@@ -184,7 +184,7 @@ task->workerids_len = 2;
 \endcode
 
 One can also specify the order in which tasks must be executed by setting the field
-starpu_task::workerorder. A corresponding example is available in the file <c>tests/main/execute_schedule.c</c>. If this field is set to a non-zero value, it
+starpu_task::workerorder. An example is available in the file <c>tests/main/execute_schedule.c</c>. If this field is set to a non-zero value, it
 provides the per-worker consecutive order in which tasks will be executed,
 starting from 1. For a given of such task, the worker will thus not execute
 it before all the tasks with smaller order value have been executed, notably

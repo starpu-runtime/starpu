@@ -66,7 +66,9 @@ The resizing is triggered either when the application requires it
 (sc_hypervisor_resize_ctxs()) or
 when the initial distribution of resources alters the performance of
 the application (the application is too slow or the resource are idle
-for too long time). A corresponding example is available in the file <c>sc_hypervisor/examples/hierarchical_ctxs/resize_hierarchical_ctxs.c</c>. If the environment
+for too long time). An example is available in the file <c>sc_hypervisor/examples/hierarchical_ctxs/resize_hierarchical_ctxs.c</c>.
+
+If the environment
 variable \ref SC_HYPERVISOR_TRIGGER_RESIZE is set to <c>speed</c>,
 the monitored speed of the contexts is compared to a theoretical value
 computed with a linear program, and the resizing is triggered

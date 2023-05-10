@@ -43,10 +43,10 @@ Make sure to have a look at the \ref API_Scheduling_Policy section, which
 provides a complete list of the functions available for writing advanced schedulers.
 
 This includes getting an estimation for a task computation completion with
-starpu_task_expected_length(), for a speedup factor relative to CPU speed with 
-starpu_worker_get_relative_speedup(), for the expected data transfer time in micro-seconds 
-with starpu_task_expected_data_transfer_time(), starpu_task_expected_data_transfer_time_for(), or starpu_data_expected_transfer_time(), 
-for the expected conversion time in micro-seconds with starpu_task_expected_conversion_time(), 
+starpu_task_expected_length(), for a speedup factor relative to CPU speed with
+starpu_worker_get_relative_speedup(), for the expected data transfer time in micro-seconds
+with starpu_task_expected_data_transfer_time(), starpu_task_expected_data_transfer_time_for(), or starpu_data_expected_transfer_time(),
+for the expected conversion time in micro-seconds with starpu_task_expected_conversion_time(),
 for the required energy with
 starpu_task_expected_energy() or starpu_task_worker_expected_energy(), etc. Per-worker variants are also available with
 starpu_task_worker_expected_length(), etc.
@@ -58,9 +58,9 @@ The successors of a task can be obtained with starpu_task_get_task_succs().
 One can also directly test the presence of a data handle with starpu_data_is_on_node().
 Prefetches can be triggered by calling either starpu_prefetch_task_input_for(),
 starpu_idle_prefetch_task_input_for(), starpu_prefetch_task_input_for_prio(), or
-starpu_idle_prefetch_task_input_for_prio(). And prefetching data on a specified node can use either 
-starpu_prefetch_task_input_on_node(), starpu_prefetch_task_input_on_node_prio(), 
-starpu_idle_prefetch_task_input_on_node(), or starpu_idle_prefetch_task_input_on_node_prio(). 
+starpu_idle_prefetch_task_input_for_prio(). And prefetching data on a specified node can use either
+starpu_prefetch_task_input_on_node(), starpu_prefetch_task_input_on_node_prio(),
+starpu_idle_prefetch_task_input_on_node(), or starpu_idle_prefetch_task_input_on_node_prio().
 The <c>_prio</c> versions allow specifying a priority for the transfer (instead of taking the task priority by
 default). These prefetches are only processed when there are no fetch data
 requests (i.e. a task is waiting for it) to process. The <c>_idle</c> versions
@@ -99,8 +99,8 @@ if (task->cl)
 \endcode
 
 Task queues can be implemented with the starpu_task_list functions. The function starpu_task_list_init() is used to initialize an empty list structure. Once the list is initialized, new tasks can be added to it using the starpu_task_list_push_front() and starpu_task_list_push_back() to add a task to the front or back of the list respectively. starpu_task_list_front() and starpu_task_list_back() can be used to get the first or last task in the list without removing it. starpu_task_list_begin() and starpu_task_list_end() can be used to get the task iterators from the beginning of the list and check whether it is the end of the list respectively. starpu_task_list_next() can be used to get the next task in the list, which is not erase-safe. starpu_task_list_empty() can be used to check whether the list is empty.
-To remove tasks from the queue, the function starpu_task_list_erase() is used to remove a specific task from the list. starpu_task_list_pop_front() and starpu_task_list_pop_back() can be used to remove the first or last task from the list. 
-Finally, the function starpu_task_list_ismember() is used to check whether a given task is contained in the list. The function starpu_task_list_move() is used to move list from one head to another. 
+To remove tasks from the queue, the function starpu_task_list_erase() is used to remove a specific task from the list. starpu_task_list_pop_front() and starpu_task_list_pop_back() can be used to remove the first or last task from the list.
+Finally, the function starpu_task_list_ismember() is used to check whether a given task is contained in the list. The function starpu_task_list_move() is used to move list from one head to another.
 
 Access to the \c hwloc topology is available with starpu_worker_get_hwloc_obj().
 
@@ -184,8 +184,8 @@ and picks it. If the task was pushed on a shared queue, one may want to only
 wake one idle worker. An example doing this is available in
 <c>src/sched_policies/eager_central_policy.c</c>. When the scheduling policy makes a scheduling decision for a task, it shouhld call starpu_sched_task_break().
 
-Schedulers can set the minimum or maximum task priority level supported by the scheduling 
-policy by calling starpu_sched_set_min_priority() or starpu_sched_set_max_priority(), and then applications can call 
+Schedulers can set the minimum or maximum task priority level supported by the scheduling
+policy by calling starpu_sched_set_min_priority() or starpu_sched_set_max_priority(), and then applications can call
 starpu_sched_get_min_priority() or starpu_sched_get_max_priority() to retrieve the minimum or maximum priority value. The file <c>src/sched_policies/heteroprio.c</c> shows how to uses these functions.
 
 When scheduling a task, it is important to check whether the specified worker can execute the codelet before assigning the task to that worker. This is done using the starpu_worker_can_execute_task() function, or starpu_combined_worker_can_execute_task() which is compatible with combined workers, or starpu_worker_can_execute_task_impl() which also returns the list of implementation numbers that can be used by the worker to execute the task, or starpu_worker_can_execute_task_first_impl() which also returns the first implementation number that can be used.

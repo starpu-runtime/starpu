@@ -191,6 +191,6 @@ When executed, the function starpu_codelet::bubble_gen_dag_func will be
 given as parameter the task being turned into a hierarchical task and
 the value specified with ::STARPU_BUBBLE_GEN_DAG_FUNC_ARG.
 
-A corresponding example involving these functions is in <c>bubble/tests/basic/brec.c</c>. And more examples are available in <c>bubble/tests/basic/*.c</c>.
+An example involving these functions is in <c>bubble/tests/basic/brec.c</c>. And more examples are available in <c>bubble/tests/basic/*.c</c>.
 
 */

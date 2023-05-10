@@ -183,7 +183,7 @@ parallel_workers = starpu_parallel_worker_init(HWLOC_OBJ_SOCKET,
 Using the default type ::STARPU_PARALLEL_WORKER_OPENMP is similar to calling
 starpu_parallel_worker_init() without any extra parameter.
 
-A corresponding example is available in <c>examples/parallel_workers/parallel_workers.c</c>.
+An example is available in <c>examples/parallel_workers/parallel_workers.c</c>.
 
 Users can also define their own function.
 
@@ -198,7 +198,7 @@ parallel_workers = starpu_parallel_worker_init(HWLOC_OBJ_SOCKET,
                                   0);
 \endcode
 
-A corresponding example is available in <c>examples/parallel_workers/parallel_workers_func.c</c>.
+An example is available in <c>examples/parallel_workers/parallel_workers_func.c</c>.
 
 Parameters that can be given to starpu_parallel_worker_init() are
 ::STARPU_PARALLEL_WORKER_MIN_NB,
@@ -246,7 +246,7 @@ As this example illustrates, creating a context without scheduling
 policy will create a parallel worker. The interface function between StarPU
 and the other runtime must be specified through the field
 starpu_task::prologue_callback_pop_func. Such a function can be
-similar to the OpenMP thread team creation one (see above). A corresponding example is available in <c>examples/sched_ctx/parallel_tasks_reuse_handle.c</c>.
+similar to the OpenMP thread team creation one (see above). An example is available in <c>examples/sched_ctx/parallel_tasks_reuse_handle.c</c>.
 
 Note that the OpenMP mode is the default mode both for parallel workers and
 contexts. The result of a parallel worker creation is a woken-up master worker

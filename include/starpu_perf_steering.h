@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2019-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -58,6 +58,13 @@ enum starpu_perf_knob_type
 	starpu_perf_knob_type_double	= 4  /**< 64-bit double precision floating-point value */
 };
 
+/** @} */
+
+/**
+   @name Scope Related Routines
+   @{
+*/
+
 /**
    Translate scope name constant string to scope id.
 */
@@ -68,6 +75,13 @@ int starpu_perf_knob_scope_name_to_id(const char *name);
 */
 const char *starpu_perf_knob_scope_id_to_name(enum starpu_perf_knob_scope scope);
 
+/** @} */
+
+/**
+   @name Type Related Routines
+   @{
+*/
+
 /**
    Translate type name constant string to type id.
 */
@@ -77,6 +91,13 @@ int starpu_perf_knob_type_name_to_id(const char *name);
    Translate type id to type name constant string.
 */
 const char *starpu_perf_knob_type_id_to_name(enum starpu_perf_knob_type type);
+
+/** @} */
+
+/**
+   @name Performance Steering Knob Related Routines
+   @{
+*/
 
 /**
    Return the number of performance steering knobs for the given scope.

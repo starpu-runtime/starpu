@@ -92,7 +92,7 @@ If an application requires a specific alignment constraint for memory allocation
 
 The application can provide its own allocation function by calling
 starpu_malloc_set_hooks(). StarPU will then use them for all data handle
-allocations in the main memory. The corresponding example is in <c>examples/basic_examples/hooks.c</c>.
+allocations in the main memory. An example is in <c>examples/basic_examples/hooks.c</c>.
 
 StarPU provides several functions to monitor the memory usage and availability on the system. The application can use the starpu_memory_get_used() function to monitor its own memory usage on a node, and the starpu_memory_get_total_all_nodes() function to monitor the amount of total memory on all memory nodes, and the starpu_memory_get_available_all_nodes() function to monitor the amount of available memory on all memory nodes. Additionally, the starpu_memory_get_used_all_nodes() function can be used to monitor the amount of used memory on all memory nodes.
 
@@ -109,14 +109,14 @@ starpu_data_set_wt_mask(img_handle, 1<<0);
 \endcode
 
 will for instance request to always automatically transfer a replicate into the
-main memory (node <c>0</c>), as bit <c>0</c> of the write-through bitmask is being set. A corresponding example is available in <c>examples/pi/pi.c</c>.
+main memory (node <c>0</c>), as bit <c>0</c> of the write-through bitmask is being set. An example is available in <c>examples/pi/pi.c</c>.
 
 \code{.c}
 starpu_data_set_wt_mask(img_handle, ~0U);
 \endcode
 
 will request to always automatically broadcast the updated data to all memory
-nodes. A corresponding example is available in <c>tests/datawizard/wt_broadcast.c</c>.
+nodes. An example is available in <c>tests/datawizard/wt_broadcast.c</c>.
 
 Setting the write-through mask to <c>~0U</c> can also be useful to make sure all
 memory nodes always have a copy of the data, so that it is never evicted when
@@ -204,7 +204,7 @@ before submitting tasks, which will thus guide StarPU toward an initial task
 distribution (since StarPU will try to avoid further transfers).
 
 This can be achieved by giving the function starpu_data_prefetch_on_node() the
-handle and the desired target memory node. The corresponding example is available in the file <c>tests/microbenchs/prefetch_data_on_node.c</c>. The variant
+handle and the desired target memory node. An example is available in the file <c>tests/microbenchs/prefetch_data_on_node.c</c>. The variant
 starpu_data_idle_prefetch_on_node() can be used to issue the transfer
 only when the bus is idle. One can also call starpu_data_request_allocation() for the allocation of a piece of data on the specified memory node. We can know whether the allocation is done on the specified memory node by using starpu_data_test_if_allocated_on_node(). We can also know whether the map is done on the specified memory node by using starpu_data_test_if_mapped_on_node().
 
@@ -212,7 +212,7 @@ If we want higher priority to request data to be replicated to a given node as s
 
 Conversely, one can advise StarPU that some data will not be useful in the
 close future by calling starpu_data_wont_use(). StarPU will then write its value
-back to its home node, and evict it from GPUs when room is needed. The corresponding example is available in the file <c>tests/datawizard/partition_wontuse.c</c>. One can also advise StarPU to evict data from the memory node directly by calling starpu_data_evict_from_node(), but it may fail if e.g. some tasks are still working on the memory node. To avoid failure one can call starpu_data_can_evict() to check whether data can be evicted from the memory node. Anyway it is more recommended to use starpu_data_wont_use().
+back to its home node, and evict it from GPUs when room is needed. An example is available in the file <c>tests/datawizard/partition_wontuse.c</c>. One can also advise StarPU to evict data from the memory node directly by calling starpu_data_evict_from_node(), but it may fail if e.g. some tasks are still working on the memory node. To avoid failure one can call starpu_data_can_evict() to check whether data can be evicted from the memory node. Anyway it is more recommended to use starpu_data_wont_use().
 
 One can query the status of handle on the specified memory node by calling starpu_data_query_status2() or starpu_data_query_status(). One can call starpu_memchunk_tidy() to tidy the available memory on the specified memory node periodically.
 

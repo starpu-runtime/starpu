@@ -473,7 +473,7 @@ to be available in the main memory of the node submitting the request.
 For send communications, data is acquired with the mode ::STARPU_R.
 When enabling the pedantic mode, data are instead acquired with the
 ::STARPU_RW which thus ensures that there is not more than 1
-concurrent MPI_Isend calls accessing the data
+concurrent \c MPI_Isend calls accessing the data
 and StarPU does not read from it from tasks during the communication.
 </dd>
 
@@ -515,7 +515,7 @@ Enable the statistics for the MPI checkpoint mechanism. See \ref API_MPI_FT_Supp
 <dd>
 \anchor enable-tcpip-master-slave
 \addindex __configure__--enable-mpi-master-slave
-Enable the TCP/IP Master-Slave support. By default, it is disabled.
+Enable the TCP/IP Master-Slave support (\ref TCPIPSupport). By default, it is disabled.
 </dd>
 
 <dt>--enable-nmad</dt>
@@ -641,11 +641,11 @@ Enable the use of OpenGL for the rendering of some examples.
 \anchor enable-blas-lib
 \addindex __configure__--enable-blas-lib
 Specify the blas library to be used by some of the examples. Librairies available :
-- none [default] : no BLAS library is used
-- atlas: use ATLAS library
-- goto: use GotoBLAS library
-- openblas: use OpenBLAS library
-- mkl: use MKL library (you may need to set specific CFLAGS and LDFLAGS with --with-mkl-cflags and --with-mkl-ldflags)
+- \c none [default] : no BLAS library is used
+- \c atlas: use ATLAS library
+- \c goto: use GotoBLAS library
+- \c openblas: use OpenBLAS library
+- \c mkl: use MKL library (you may need to set specific \c CFLAGS and \c LDFLAGS with --with-mkl-cflags and --with-mkl-ldflags)
 </dd>
 
 <dt>--enable-leveldb</dt>
@@ -747,7 +747,7 @@ provides a script to determine the linking flags.
 <dd>
 \anchor disable-glpk
 \addindex __configure__--disable-glpk
-Disable the use of libglpk for computing area bounds.
+Disable the use of \c libglpk for computing area bounds.
 </dd>
 
 <dt>--disable-build-tests</dt>

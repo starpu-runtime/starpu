@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2018-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2018-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -77,7 +77,7 @@ corresponding to its StarPU device worker thread. The CPUSET of a computing unit
 or its associated worker can be obtained from its type ID and rank with
 starpurm_get_device_worker_cpuset(), which returns the corresponding HWLOC CPUSET.
 
-The corresponding example is available in <c>starpurm/tests/02_list_units.c</c>.
+An example is available in <c>starpurm/tests/02_list_units.c</c>.
 
 \subsection DefCTX Default Context
 
@@ -91,7 +91,7 @@ cores can be done with starpurm_withdraw_cpu_from_starpu() and starpurm_withdraw
 and withdrawing device units can be done with
 starpurm_withdraw_device_from_starpu() and starpurm_withdraw_device_mask_from_starpu().
 These routine should typically be used to control resource usage for the main
-applicative code. A corresponding example is available in <c>starpurm/examples/block_test/block_test.c</c>.
+applicative code. An example is available in <c>starpurm/examples/block_test/block_test.c</c>.
 
 \subsection TmpCTXS Temporary Contexts
 
@@ -110,11 +110,11 @@ allocated concurrently at any time should not exceed
 ::STARPU_NMAX_SCHED_CTXS-2, otherwise, the call to
 starpurm_spawn_kernel_on_cpus() may block until a temporary context becomes
 available. The routine starpurm_spawn_kernel_on_cpus() returns upon the
-completion of the parallel kernel. The corresponding example is available in <c>starpurm/examples/spawn.c</c>. 
+completion of the parallel kernel. An example is available in <c>starpurm/examples/spawn.c</c>.
 An asynchronous variant is available with the
 routine starpurm_spawn_kernel_on_cpus_callback(). This variant returns
 immediately, however it accepts a callback function, which is subsequently
-called to notify the calling code about the completion of the parallel kernel. 
-The corresponding example is available in <c>starpurm/examples/async_spawn.c</c>.
+called to notify the calling code about the completion of the parallel kernel.
+An example is available in <c>starpurm/examples/async_spawn.c</c>.
 
 */

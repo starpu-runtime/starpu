@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -33,7 +33,7 @@ extern "C" {
 struct starpu_data_interface_ops;
 
 /**
-   Describe a data partitioning operation, to be given to starpu_data_partition(). 
+   Describe a data partitioning operation, to be given to starpu_data_partition().
    See \ref DefiningANewDataFilter for more details.
 */
 struct starpu_data_filter
@@ -467,7 +467,7 @@ void starpu_matrix_filter_vertical_block_shadow(void *father_interface, void *ch
    <c>starpu_data_filter::filter_arg_ptr</c>.
 
    <c>starpu_data_filter::get_child_ops</c> needs to be set to
-   starpu_matrix_filter_pick_vector_child_ops. A usage example is
+   starpu_matrix_filter_pick_vector_child_ops(). A usage example is
    available in examples/filters/fmatrix_pick_vector.c
 
    See \ref MatrixDataInterface for more details.
@@ -485,7 +485,7 @@ struct starpu_data_interface_ops *starpu_matrix_filter_pick_vector_child_ops(str
    is set in <c>starpu_data_filter::filter_arg_ptr</c>.
 
    <c>starpu_data_filter::get_child_ops</c> needs to be set to
-   starpu_matrix_filter_pick_variable_child_ops. A usage example is
+   starpu_matrix_filter_pick_variable_child_ops(). A usage example is
    available in examples/filters/fmatrix_pick_variable.c
 
    See \ref MatrixDataInterface for more details.
@@ -570,7 +570,7 @@ void starpu_vector_filter_divide_in_2(void *father_interface, void *child_interf
    position is set in <c>starpu_data_filter::filter_arg_ptr</c>.
 
    <c>starpu_data_filter::get_child_ops</c> needs to be set to
-   starpu_vector_filter_pick_variable_child_ops. A usage example is
+   starpu_vector_filter_pick_variable_child_ops(). A usage example is
    available in examples/filters/fvector_pick_variable.c
 
    See \ref VectorDataInterface for more details.
@@ -670,7 +670,7 @@ void starpu_block_filter_depth_block_shadow(void *father_interface, void *child_
    <c>starpu_data_filter::filter_arg_ptr</c>.
 
    <c>starpu_data_filter::get_child_ops</c> needs to be set to
-   starpu_block_filter_pick_matrix_child_ops. A usage example is
+   starpu_block_filter_pick_matrix_child_ops(). A usage example is
    available in examples/filters/fblock_pick_matrix.c
 
    See \ref BlockDataInterface for more details.
@@ -683,7 +683,7 @@ void starpu_block_filter_pick_matrix_z(void *father_interface, void *child_inter
    <c>starpu_data_filter::filter_arg_ptr</c>.
 
    <c>starpu_data_filter::get_child_ops</c> needs to be set to
-   starpu_block_filter_pick_matrix_child_ops. A usage example is
+   starpu_block_filter_pick_matrix_child_ops(). A usage example is
    available in examples/filters/fblock_pick_matrix.c
 
    See \ref BlockDataInterface for more details.
@@ -702,7 +702,7 @@ struct starpu_data_interface_ops *starpu_block_filter_pick_matrix_child_ops(stru
    is set in <c>starpu_data_filter::filter_arg_ptr</c>.
 
    <c>starpu_data_filter::get_child_ops</c> needs to be set to
-   starpu_block_filter_pick_variable_child_ops. A usage example is
+   starpu_block_filter_pick_variable_child_ops(). A usage example is
    available in examples/filters/fblock_pick_variable.c
 
    See \ref BlockDataInterface for more details.
@@ -822,7 +822,7 @@ void starpu_tensor_filter_time_block_shadow(void *father_interface, void *child_
    <c>starpu_data_filter::filter_arg_ptr</c>.
 
    <c>starpu_data_filter::get_child_ops</c> needs to be set to
-   starpu_tensor_filter_pick_block_child_ops. A usage example is
+   starpu_tensor_filter_pick_block_child_ops(). A usage example is
    available in examples/filters/ftensor_pick_block.c
 
    See \ref TensorDataInterface for more details.
@@ -835,7 +835,7 @@ void starpu_tensor_filter_pick_block_t(void *father_interface, void *child_inter
    <c>starpu_data_filter::filter_arg_ptr</c>.
 
    <c>starpu_data_filter::get_child_ops</c> needs to be set to
-   starpu_tensor_filter_pick_block_child_ops. A usage example is
+   starpu_tensor_filter_pick_block_child_ops(). A usage example is
    available in examples/filters/ftensor_pick_block.c
 
    See \ref TensorDataInterface for more details.
@@ -848,7 +848,7 @@ void starpu_tensor_filter_pick_block_z(void *father_interface, void *child_inter
    <c>starpu_data_filter::filter_arg_ptr</c>.
 
    <c>starpu_data_filter::get_child_ops</c> needs to be set to
-   starpu_tensor_filter_pick_block_child_ops. A usage example is
+   starpu_tensor_filter_pick_block_child_ops(). A usage example is
    available in examples/filters/ftensor_pick_block.c
 
    See \ref TensorDataInterface for more details.
@@ -867,7 +867,7 @@ struct starpu_data_interface_ops *starpu_tensor_filter_pick_block_child_ops(stru
    is set in <c>starpu_data_filter::filter_arg_ptr</c>.
 
    <c>starpu_data_filter::get_child_ops</c> needs to be set to
-   starpu_tensor_filter_pick_variable_child_ops. A usage example is
+   starpu_tensor_filter_pick_variable_child_ops(). A usage example is
    available in examples/filters/ftensor_pick_variable.c
 
    See \ref TensorDataInterface for more details.
@@ -917,7 +917,7 @@ void starpu_ndim_filter_block_shadow(void *father_interface, void *child_interfa
    dimension set in <c>starpu_data_filter::filter_arg</c>.
 
    <c>starpu_data_filter::get_child_ops</c> needs to be set to
-   starpu_ndim_filter_to_tensor_child_ops. A usage example is
+   starpu_ndim_filter_to_tensor_child_ops(). A usage example is
    available in examples/filters/fndim_to_tensor.c
 
    See \ref NdimDataInterface for more details.
@@ -929,7 +929,7 @@ void starpu_ndim_filter_to_tensor(void *father_interface, void *child_interface,
    dimension set in <c>starpu_data_filter::filter_arg</c>.
 
    <c>starpu_data_filter::get_child_ops</c> needs to be set to
-   starpu_ndim_filter_to_block_child_ops. A usage example is
+   starpu_ndim_filter_to_block_child_ops(). A usage example is
    available in examples/filters/fndim_to_block.c
 
    See \ref NdimDataInterface for more details.
@@ -941,7 +941,7 @@ void starpu_ndim_filter_to_block(void *father_interface, void *child_interface, 
    dimension set in <c>starpu_data_filter::filter_arg</c>.
 
    <c>starpu_data_filter::get_child_ops</c> needs to be set to
-   starpu_ndim_filter_to_matrix_child_ops. A usage example is
+   starpu_ndim_filter_to_matrix_child_ops(). A usage example is
    available in examples/filters/fndim_to_matrix.c
 
    See \ref NdimDataInterface for more details.
@@ -952,7 +952,7 @@ void starpu_ndim_filter_to_matrix(void *father_interface, void *child_interface,
    Partition a 1-dim array into \p nparts vectors.
 
    <c>starpu_data_filter::get_child_ops</c> needs to be set to
-   starpu_ndim_filter_to_vector_child_ops. A usage example is
+   starpu_ndim_filter_to_vector_child_ops(). A usage example is
    available in examples/filters/fndim_to_vector.c
 
    See \ref NdimDataInterface for more details.
@@ -963,7 +963,7 @@ void starpu_ndim_filter_to_vector(void *father_interface, void *child_interface,
    Transfer a 0-dim array to a variable.
 
    <c>starpu_data_filter::get_child_ops</c> needs to be set to
-   starpu_ndim_filter_to_variable_child_ops. A usage example is
+   starpu_ndim_filter_to_variable_child_ops(). A usage example is
    available in examples/filters/fndim_to_variable.c
 
    See \ref NdimDataInterface for more details.
@@ -987,7 +987,7 @@ void starpu_ndim_filter_pick_ndim(void *father_interface, void *child_interface,
    The starting position is set in <c>starpu_data_filter::filter_arg_ptr</c>.
 
    <c>starpu_data_filter::get_child_ops</c> needs to be set to
-   starpu_ndim_filter_pick_tensor_child_ops. A usage example is
+   starpu_ndim_filter_pick_tensor_child_ops(). A usage example is
    available in examples/filters/fndim_5d_pick_tensor.c
 
    See \ref NdimDataInterface for more details.
@@ -1000,7 +1000,7 @@ void starpu_ndim_filter_5d_pick_tensor(void *father_interface, void *child_inter
    The starting position is set in <c>starpu_data_filter::filter_arg_ptr</c>.
 
    <c>starpu_data_filter::get_child_ops</c> needs to be set to
-   starpu_ndim_filter_pick_block_child_ops. A usage example is
+   starpu_ndim_filter_pick_block_child_ops(). A usage example is
    available in examples/filters/fndim_4d_pick_block.c
 
    See \ref NdimDataInterface for more details.
@@ -1013,7 +1013,7 @@ void starpu_ndim_filter_4d_pick_block(void *father_interface, void *child_interf
    The starting position is set in <c>starpu_data_filter::filter_arg_ptr</c>.
 
    <c>starpu_data_filter::get_child_ops</c> needs to be set to
-   starpu_ndim_filter_pick_matrix_child_ops. A usage example is
+   starpu_ndim_filter_pick_matrix_child_ops(). A usage example is
    available in examples/filters/fndim_3d_pick_matrix.c
 
    See \ref NdimDataInterface for more details.
@@ -1026,7 +1026,7 @@ void starpu_ndim_filter_3d_pick_matrix(void *father_interface, void *child_inter
    The starting position is set in <c>starpu_data_filter::filter_arg_ptr</c>.
 
    <c>starpu_data_filter::get_child_ops</c> needs to be set to
-   starpu_ndim_filter_pick_vector_child_ops. A usage example is
+   starpu_ndim_filter_pick_vector_child_ops(). A usage example is
    available in examples/filters/fndim_2d_pick_vector.c
 
    See \ref NdimDataInterface for more details.
@@ -1038,7 +1038,7 @@ void starpu_ndim_filter_2d_pick_vector(void *father_interface, void *child_inter
    The starting position is set in <c>starpu_data_filter::filter_arg_ptr</c>.
 
    <c>starpu_data_filter::get_child_ops</c> needs to be set to
-   starpu_ndim_filter_pick_variable_child_ops. A usage example is
+   starpu_ndim_filter_pick_variable_child_ops(). A usage example is
    available in examples/filters/fndim_1d_pick_variable.c
 
    See \ref NdimDataInterface for more details.
@@ -1050,7 +1050,7 @@ void starpu_ndim_filter_1d_pick_variable(void *father_interface, void *child_int
    The starting position is set in <c>starpu_data_filter::filter_arg_ptr</c>.
 
    <c>starpu_data_filter::get_child_ops</c> needs to be set to
-   starpu_ndim_filter_pick_variable_child_ops. A usage example is
+   starpu_ndim_filter_pick_variable_child_ops(). A usage example is
    available in examples/filters/fndim_pick_variable.c
 
    See \ref NdimDataInterface for more details.
