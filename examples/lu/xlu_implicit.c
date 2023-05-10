@@ -21,7 +21,7 @@
 #include "xlu_kernels.h"
 #include "starpu_cusolver.h"
 
-static int create_task_getrf(starpu_data_handle_t dataA, unsigned k, unsigned no_prio)
+static int create_task_getrf(starpu_data_handle_t dataA, unsigned k, unsigned no_prio, int nblocks)
 {
 	int ret;
 	struct starpu_task *task = starpu_task_create();
@@ -39,14 +39,14 @@ static int create_task_getrf(starpu_data_handle_t dataA, unsigned k, unsigned no
 
 	/* this is an important task */
 	if (!no_prio)
-		task->priority = STARPU_MAX_PRIO;
+		task->priority = 3*nblocks - 3*k; /* Bottom-level-based prio */
 
 	ret = starpu_task_submit(task);
 	if (ret != -ENODEV) STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	return ret;
 }
 
-static int create_task_trsm_ll(starpu_data_handle_t dataA, unsigned k, unsigned j, unsigned no_prio)
+static int create_task_trsm_ll(starpu_data_handle_t dataA, unsigned k, unsigned j, unsigned no_prio, int nblocks)
 {
 	int ret;
 	struct starpu_task *task = starpu_task_create();
@@ -59,15 +59,15 @@ static int create_task_trsm_ll(starpu_data_handle_t dataA, unsigned k, unsigned 
 	task->tag_id = TAG_TRSM_LL(k,j);
 	task->color = 0x8080ff;
 
-	if (!no_prio && (j == k+1))
-		task->priority = STARPU_MAX_PRIO;
+	if (!no_prio)
+		task->priority = 3*nblocks - (2*k + j); /* Bottom-level-based prio */
 
 	ret = starpu_task_submit(task);
 	if (ret != -ENODEV) STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	return ret;
 }
 
-static int create_task_trsm_ru(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned no_prio)
+static int create_task_trsm_ru(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned no_prio, int nblocks)
 {
 	int ret;
 	struct starpu_task *task = starpu_task_create();
@@ -81,15 +81,15 @@ static int create_task_trsm_ru(starpu_data_handle_t dataA, unsigned k, unsigned 
 	task->tag_id = TAG_TRSM_RU(k,i);
 	task->color = 0x8080c0;
 
-	if (!no_prio && (i == k+1))
-		task->priority = STARPU_MAX_PRIO;
+	if (!no_prio)
+		task->priority = 3*nblocks - (2*k + i); /* Bottom-level-based prio */
 
 	ret = starpu_task_submit(task);
 	if (ret != -ENODEV) STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	return ret;
 }
 
-static int create_task_gemm(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned j, unsigned no_prio)
+static int create_task_gemm(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned j, unsigned no_prio, int nblocks)
 {
 	int ret;
 	struct starpu_task *task = starpu_task_create();
@@ -104,8 +104,8 @@ static int create_task_gemm(starpu_data_handle_t dataA, unsigned k, unsigned i, 
 
 	task->tag_id = TAG_GEMM(k,i,j);
 
-	if (!no_prio &&  (i == k + 1) && (j == k +1))
-		task->priority = STARPU_MAX_PRIO;
+	if (!no_prio)
+		task->priority = 3*nblocks - (k + i + j); /* Bottom-level-based prio */
 
 	ret = starpu_task_submit(task);
 	if (ret != -ENODEV) STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
@@ -135,14 +135,14 @@ static int dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks, uns
 
 		starpu_iteration_push(k);
 
-		ret = create_task_getrf(dataA, k, no_prio);
+		ret = create_task_getrf(dataA, k, no_prio, nblocks);
 		if (ret == -ENODEV) return ret;
 
 		for (i = k+1; i<nblocks; i++)
 		{
-			ret = create_task_trsm_ll(dataA, k, i, no_prio);
+			ret = create_task_trsm_ll(dataA, k, i, no_prio, nblocks);
 		     if (ret == -ENODEV) return ret;
-		     ret = create_task_trsm_ru(dataA, k, i, no_prio);
+		     ret = create_task_trsm_ru(dataA, k, i, no_prio, nblocks);
 		     if (ret == -ENODEV) return ret;
 		}
 		starpu_data_wont_use(starpu_data_get_sub_data(dataA, 2, k, k));
@@ -150,7 +150,7 @@ static int dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks, uns
 		for (i = k+1; i<nblocks; i++)
 		     for (j = k+1; j<nblocks; j++)
 		     {
-			     ret = create_task_gemm(dataA, k, i, j, no_prio);
+			     ret = create_task_gemm(dataA, k, i, j, no_prio, nblocks);
 			  if (ret == -ENODEV) return ret;
 		     }
 		for (i = k+1; i<nblocks; i++)

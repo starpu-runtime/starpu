@@ -36,7 +36,7 @@ static struct starpu_task *create_task(starpu_tag_t id)
 	return task;
 }
 
-static struct starpu_task *create_task_getrf(starpu_data_handle_t dataA, unsigned k, unsigned no_prio)
+static struct starpu_task *create_task_getrf(starpu_data_handle_t dataA, unsigned k, unsigned no_prio, int nblocks)
 {
 /*	printf("task GETRF k = %d TAG = %llx\n", k, (TAG_GETRF(k))); */
 
@@ -54,7 +54,7 @@ static struct starpu_task *create_task_getrf(starpu_data_handle_t dataA, unsigne
 
 	/* this is an important task */
 	if (!no_prio)
-		task->priority = STARPU_MAX_PRIO;
+		task->priority = 3*nblocks - 3*k; /* Bottom-level-based prio */
 
 	/* enforce dependencies ... */
 	if (k > 0)
@@ -65,7 +65,7 @@ static struct starpu_task *create_task_getrf(starpu_data_handle_t dataA, unsigne
 	return task;
 }
 
-static int create_task_trsm_ll(starpu_data_handle_t dataA, unsigned k, unsigned j, unsigned no_prio)
+static int create_task_trsm_ll(starpu_data_handle_t dataA, unsigned k, unsigned j, unsigned no_prio, int nblocks)
 {
 	int ret;
 
@@ -80,10 +80,8 @@ static int create_task_trsm_ll(starpu_data_handle_t dataA, unsigned k, unsigned 
 	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, k);
 	task->handles[1] = starpu_data_get_sub_data(dataA, 2, j, k);
 
-	if (!no_prio && (j == k+1))
-	{
-		task->priority = STARPU_MAX_PRIO;
-	}
+	if (!no_prio)
+		task->priority = 3*nblocks - (2*k + j); /* Bottom-level-based prio */
 
 	/* enforce dependencies ... */
 	if (k > 0)
@@ -100,7 +98,7 @@ static int create_task_trsm_ll(starpu_data_handle_t dataA, unsigned k, unsigned 
 	return ret;
 }
 
-static int create_task_trsm_ru(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned no_prio)
+static int create_task_trsm_ru(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned no_prio, int nblocks)
 {
 	int ret;
 	struct starpu_task *task = create_task(TAG_TRSM_RU(k, i));
@@ -112,10 +110,8 @@ static int create_task_trsm_ru(starpu_data_handle_t dataA, unsigned k, unsigned 
 	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, k);
 	task->handles[1] = starpu_data_get_sub_data(dataA, 2, k, i);
 
-	if (!no_prio && (i == k+1))
-	{
-		task->priority = STARPU_MAX_PRIO;
-	}
+	if (!no_prio)
+		task->priority = 3*nblocks - (2*k + i); /* Bottom-level-based prio */
 
 	/* enforce dependencies ... */
 	if (k > 0)
@@ -132,7 +128,7 @@ static int create_task_trsm_ru(starpu_data_handle_t dataA, unsigned k, unsigned 
 	return ret;
 }
 
-static int create_task_gemm(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned j, unsigned no_prio)
+static int create_task_gemm(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned j, unsigned no_prio, int nblocks)
 {
 	int ret;
 
@@ -148,10 +144,8 @@ static int create_task_gemm(starpu_data_handle_t dataA, unsigned k, unsigned i, 
 	task->handles[1] = starpu_data_get_sub_data(dataA, 2, j, k); /* produced by TAG_TRSM_LL(k, j) */
 	task->handles[2] = starpu_data_get_sub_data(dataA, 2, j, i); /* produced by TAG_GEMM(k-1, i, j) */
 
-	if (!no_prio &&  (i == k + 1) && (j == k +1))
-	{
-		task->priority = STARPU_MAX_PRIO;
-	}
+	if (!no_prio)
+		task->priority = 3*nblocks - (k + i + j); /* Bottom-level-based prio */
 
 	/* enforce dependencies ... */
 	if (k > 0)
@@ -189,7 +183,7 @@ static int dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks, uns
 	for (k = 0; k < nblocks; k++)
 	{
 		starpu_iteration_push(k);
-		struct starpu_task *task = create_task_getrf(dataA, k, no_prio);
+		struct starpu_task *task = create_task_getrf(dataA, k, no_prio, nblocks);
 
 		/* we defer the launch of the first task */
 		if (k == 0)
@@ -205,9 +199,9 @@ static int dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks, uns
 
 		for (i = k+1; i<nblocks; i++)
 		{
-			ret = create_task_trsm_ll(dataA, k, i, no_prio);
+			ret = create_task_trsm_ll(dataA, k, i, no_prio, nblocks);
 			if (ret == -ENODEV) return ret;
-			ret = create_task_trsm_ru(dataA, k, i, no_prio);
+			ret = create_task_trsm_ru(dataA, k, i, no_prio, nblocks);
 			if (ret == -ENODEV) return ret;
 		}
 
@@ -215,7 +209,7 @@ static int dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks, uns
 		{
 			for (j = k+1; j<nblocks; j++)
 			{
-			     ret = create_task_gemm(dataA, k, i, j, no_prio);
+				ret = create_task_gemm(dataA, k, i, j, no_prio, nblocks);
 			     if (ret == -ENODEV) return ret;
 			}
 		}
