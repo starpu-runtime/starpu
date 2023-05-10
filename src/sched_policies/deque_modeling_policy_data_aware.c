@@ -965,6 +965,9 @@ static void _dm_push_task_notify(struct starpu_task *task, int workerid, int per
 
 	/* Update the predictions */
 	starpu_worker_lock(workerid);
+
+	fifo->pipeline_ntasks++;
+
 	/* Sometimes workers didn't take the tasks as early as we expected */
 	fifo->exp_start = isnan(fifo->exp_start) ? now + fifo->pipeline_len : STARPU_MAX(fifo->exp_start, now);
 	fifo->exp_end = fifo->exp_start + fifo->exp_len;
