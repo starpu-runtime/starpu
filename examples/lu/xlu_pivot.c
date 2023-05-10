@@ -52,8 +52,8 @@ static int create_task_pivot(starpu_data_handle_t *dataAp, unsigned nblocks,
 	task->cl_arg = &piv_description[k];
 
 	/* this is an important task */
-	if (!no_prio && (i == k+1))
-		task->priority = STARPU_MAX_PRIO;
+	if (!no_prio)
+		task->priority = 3*nblocks - (2*k + i); /* Bottom-level-based prio */
 
 	/* enforce dependencies ... */
 	if (k == 0)
@@ -104,7 +104,7 @@ static struct starpu_task *create_task_getrf_pivot(starpu_data_handle_t *dataAp,
 
 	/* this is an important task */
 	if (!no_prio)
-		task->priority = STARPU_MAX_PRIO;
+		task->priority = 3*nblocks - 3*k; /* Bottom-level-based prio */
 
 	/* enforce dependencies ... */
 	if (k > 0)
@@ -131,10 +131,8 @@ static int create_task_trsm_ll(starpu_data_handle_t *dataAp, unsigned nblocks, u
 	task->handles[0] = get_block(dataAp, nblocks, k, k);
 	task->handles[1] = get_block(dataAp, nblocks, j, k);
 
-	if (!no_prio && (j == k+1))
-	{
-		task->priority = STARPU_MAX_PRIO;
-	}
+	if (!no_prio)
+		task->priority = 3*nblocks - (2*k + j); /* Bottom-level-based prio */
 
 	/* enforce dependencies ... */
 #if 0
@@ -168,10 +166,8 @@ static int create_task_trsm_ru(starpu_data_handle_t *dataAp, unsigned nblocks, u
 	task->handles[0] = get_block(dataAp, nblocks, k, k);
 	task->handles[1] = get_block(dataAp, nblocks, k, i);
 
-	if (!no_prio && (i == k+1))
-	{
-		task->priority = STARPU_MAX_PRIO;
-	}
+	if (!no_prio)
+		task->priority = 3*nblocks - (2*k + i); /* Bottom-level-based prio */
 
 	/* enforce dependencies ... */
 	starpu_tag_declare_deps(TAG_TRSM_RU(k, i), 1, PIVOT(k, i));
@@ -198,10 +194,8 @@ static int create_task_gemm(starpu_data_handle_t *dataAp, unsigned nblocks, unsi
 	task->handles[1] = get_block(dataAp, nblocks, j, k); /* produced by TAG_TRSM_LL(k, j) */
 	task->handles[2] = get_block(dataAp, nblocks, j, i);  /* produced by TAG_GEMM(k-1, i, j) */
 
-	if (!no_prio &&  (i == k + 1) && (j == k +1))
-	{
-		task->priority = STARPU_MAX_PRIO;
-	}
+	if (!no_prio)
+		task->priority = 3*nblocks - (k + i + j); /* Bottom-level-based prio */
 
 	/* enforce dependencies ... */
 	if (k > 0)
@@ -279,7 +273,7 @@ static int dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 		{
 			for (j = k+1; j<nblocks; j++)
 			{
-			     ret = create_task_gemm(dataAp, nblocks, k, i, j, get_block, no_prio);
+				ret = create_task_gemm(dataAp, nblocks, k, i, j, get_block, no_prio);
 			     if (ret == -ENODEV) return ret;
 			}
 		}

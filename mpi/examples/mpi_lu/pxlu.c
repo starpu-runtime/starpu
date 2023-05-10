@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -284,7 +284,7 @@ static void create_task_getrf_real(unsigned k)
 
 	/* this is an important task */
 	if (!no_prio)
-		task->priority = STARPU_MAX_PRIO;
+		task->priority = 3*nblocks - 3*k;
 
 	/* enforce dependencies ... */
 	if (k > 0)
@@ -470,10 +470,8 @@ static void create_task_trsm_ll_real(unsigned k, unsigned j)
 	task->callback_func = callback_task_trsm_ll_real;
 	task->callback_arg = arg;
 
-	if (!no_prio && (j == k+1))
-	{
-		task->priority = STARPU_MAX_PRIO;
-	}
+	if (!no_prio)
+		task->priority = 3*nblocks - (2*k + j);
 
 	/* enforce dependencies ... */
 	if (k > 0)
@@ -655,10 +653,8 @@ static void create_task_trsm_ru_real(unsigned k, unsigned i)
 	task->callback_func = callback_task_trsm_ru_real;
 	task->callback_arg = arg;
 
-	if (!no_prio && (i == k+1))
-	{
-		task->priority = STARPU_MAX_PRIO;
-	}
+	if (!no_prio)
+		task->priority = 3*nblocks - (2*k + i);
 
 	/* enforce dependencies ... */
 	if (k > 0)
@@ -782,10 +778,8 @@ static void create_task_gemm_real(unsigned k, unsigned i, unsigned j)
 	STARPU_ASSERT(task->handles[1] != STARPU_POISON_PTR);
 	STARPU_ASSERT(task->handles[2] != STARPU_POISON_PTR);
 
-	if (!no_prio && (i == k + 1) && (j == k +1))
-	{
-		task->priority = STARPU_MAX_PRIO;
-	}
+	if (!no_prio)
+		task->priority = 3*nblocks - (k + i + j);
 
 	/* enforce dependencies ... */
 	if (k > 0)

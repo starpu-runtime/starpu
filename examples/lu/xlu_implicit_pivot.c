@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -45,8 +45,8 @@ static int create_task_pivot(starpu_data_handle_t *dataAp, unsigned nblocks,
 	task->cl_arg = &piv_description[k];
 
 	/* this is an important task */
-	if (!no_prio && (i == k+1))
-		task->priority = STARPU_MAX_PRIO;
+	if (!no_prio)
+		task->priority = 3*nblocks - (2*k + i); /* Bottom-level-based prio */
 
 	ret = starpu_task_submit(task);
 	if (ret != -ENODEV) STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
@@ -55,7 +55,7 @@ static int create_task_pivot(starpu_data_handle_t *dataAp, unsigned nblocks,
 
 static int create_task_getrf_pivot(starpu_data_handle_t *dataAp, unsigned nblocks,
 				unsigned k, struct piv_s *piv_description,
-				starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned), unsigned no_prio)
+						starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned), unsigned no_prio)
 {
 	int ret;
 
@@ -73,7 +73,7 @@ static int create_task_getrf_pivot(starpu_data_handle_t *dataAp, unsigned nblock
 
 	/* this is an important task */
 	if (!no_prio)
-		task->priority = STARPU_MAX_PRIO;
+		task->priority = 3*nblocks - 3*k; /* Bottom-level-based prio */
 
 	ret = starpu_task_submit(task);
 	if (ret != -ENODEV) STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
@@ -95,8 +95,8 @@ static int create_task_trsm_ll(starpu_data_handle_t *dataAp, unsigned nblocks, u
 
 	task->tag_id = TAG_TRSM_LL(k,j);
 
-	if (!no_prio && (j == k+1))
-		task->priority = STARPU_MAX_PRIO;
+	if (!no_prio)
+		task->priority = 3*nblocks - (2*k + j); /* Bottom-level-based prio */
 
 	ret = starpu_task_submit(task);
 	if (ret != -ENODEV) STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
@@ -118,8 +118,8 @@ static int create_task_trsm_ru(starpu_data_handle_t *dataAp, unsigned nblocks, u
 
 	task->tag_id = TAG_TRSM_RU(k,i);
 
-	if (!no_prio && (i == k+1))
-		task->priority = STARPU_MAX_PRIO;
+	if (!no_prio)
+		task->priority = 3*nblocks - (2*k + i); /* Bottom-level-based prio */
 
 	ret = starpu_task_submit(task);
 	if (ret != -ENODEV) STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
@@ -142,8 +142,8 @@ static int create_task_gemm(starpu_data_handle_t *dataAp, unsigned nblocks, unsi
 
 	task->tag_id = TAG_GEMM(k,i,j);
 
-	if (!no_prio &&  (i == k + 1) && (j == k +1))
-		task->priority = STARPU_MAX_PRIO;
+	if (!no_prio)
+		task->priority = 3*nblocks - (k + i + j); /* Bottom-level-based prio */
 
 	ret = starpu_task_submit(task);
 	if (ret != -ENODEV) STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");

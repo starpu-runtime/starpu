@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -46,7 +46,7 @@ static void create_task_getrf(unsigned k)
 			       STARPU_VALUE, &k, sizeof(k),
 			       STARPU_RW, STARPU_PLU(get_block_handle)(k, k),
 			       STARPU_PRIORITY, !no_prio ?
-			       STARPU_MAX_PRIO : STARPU_MIN_PRIO,
+			       (int) (3*nblocks - 3*k) : STARPU_MIN_PRIO,
 			       0);
 }
 
@@ -67,8 +67,8 @@ static void create_task_trsm_ll(unsigned k, unsigned j)
 			       STARPU_VALUE, &k, sizeof(k),
 			       STARPU_R, STARPU_PLU(get_block_handle)(k, k),
 			       STARPU_RW, STARPU_PLU(get_block_handle)(k, j),
-			       STARPU_PRIORITY, !no_prio && (j == k+1) ?
-			       STARPU_MAX_PRIO : STARPU_MIN_PRIO,
+			       STARPU_PRIORITY, !no_prio ?
+			       (int) (3*nblocks - (2*k + j)) : STARPU_MIN_PRIO,
 			       0);
 }
 
@@ -89,8 +89,8 @@ static void create_task_trsm_ru(unsigned k, unsigned i)
 			       STARPU_VALUE, &k, sizeof(k),
 			       STARPU_R, STARPU_PLU(get_block_handle)(k, k),
 			       STARPU_RW, STARPU_PLU(get_block_handle)(i, k),
-			       STARPU_PRIORITY, !no_prio && (i == k+1) ?
-			       STARPU_MAX_PRIO : STARPU_MIN_PRIO,
+			       STARPU_PRIORITY, !no_prio ?
+			       (int) (3*nblocks - (2*k + i)) : STARPU_MIN_PRIO,
 			       0);
 }
 
@@ -108,8 +108,8 @@ static void create_task_gemm(unsigned k, unsigned i, unsigned j)
 			       STARPU_R, STARPU_PLU(get_block_handle)(k, j),
 			       STARPU_R, STARPU_PLU(get_block_handle)(i, k),
 			       STARPU_RW, STARPU_PLU(get_block_handle)(i, j),
-			       STARPU_PRIORITY, !no_prio && (i == k + 1) && (j == k +1) ?
-			       STARPU_MAX_PRIO : STARPU_MIN_PRIO,
+			       STARPU_PRIORITY, !no_prio ?
+			       (int) (3*nblocks - (k + i + j)) : STARPU_MIN_PRIO,
 			       0);
 }
 
