@@ -32,7 +32,7 @@ Changes:
 
 Small changes:
   * Fix function starpu_mpi_wait_for_all()
-  * Fix atomic functions
+  * Fix building atomic functions with llvm on 32bit systems.
   * SOCL: Fix missing CL_CALLBACK for various callback functions
 
 StarPU 1.4.0
