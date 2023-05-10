@@ -57,7 +57,7 @@ of StarPU with starpu_init(). User can call starpu_timing_timespec_delay_us()
 to calculate the time elapsed between start time and end time in microseconds.
 It also specifies the identifier of the worker
 that has executed the task (starpu_profiling_task_info::workerid).
-These dates are stored as <c>timespec</c> structures which the user may convert
+These dates are stored as <c>timespec</c> structures which users may convert
 into micro-seconds using the helper function
 starpu_timing_timespec_to_us(). User can call starpu_worker_get_current_task_exp_end() to get the date when the current task is expected to be finished.
 
@@ -407,8 +407,8 @@ performance model to perform scheduling, without using regression.
 <li>
 
 Another type of model is ::STARPU_MULTIPLE_REGRESSION_BASED, which
-is based on multiple linear regression. In this model, the user
-defines both the relevant parameters and the equation for computing the
+is based on multiple linear regression. In this model, users
+define both the relevant parameters and the equation for computing the
 task duration.
 
 
@@ -419,8 +419,8 @@ T_{kernel} = a + b(M^{\alpha_1} * N^{\beta_1} * K^{\gamma_1}) + c(M^{\alpha_2} *
 
 \f$M, N, K\f$ are the parameters of the task, added at the task
 creation. These need to be extracted by the <c>cl_perf_func</c>
-function, which should be defined by the user. \f$\alpha, \beta,
-\gamma\f$ are the exponents defined by the user in
+function, which should be defined by users. \f$\alpha, \beta,
+\gamma\f$ are the exponents defined by users in
 <c>model->combinations</c> table. Finally, coefficients \f$a, b, c\f$
 are computed automatically by the StarPU at the end of the execution, using least
 squares method of the <c>dgels_</c> LAPACK function.

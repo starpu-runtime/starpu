@@ -1115,7 +1115,7 @@ When set to a positive value, activates the interleaving of the execution of
 tasks with the progression of MPI communications (\ref MPISupport). The
 starpu_mpi_init_conf() function must have been called by the application
 for that environment variable to be used. When set to 0, the MPI progression
-thread does not use at all the driver given by the user, and only focuses on
+thread does not use at all the driver given by users, and only focuses on
 making MPI communications progress.
 </dd>
 

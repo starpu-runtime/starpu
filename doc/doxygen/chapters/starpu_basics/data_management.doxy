@@ -31,7 +31,7 @@ short list below.
 
 A variable is a given-size byte element, typically a scalar. Here is an
 example of how to register a variable data to StarPU by using
-starpu_variable_data_register(). A full code example for variable data interface is available in the file <c>examples/basic_examples/variable.c</c>.
+starpu_variable_data_register(). A full code example for the variable data interface is available in the file <c>examples/basic_examples/variable.c</c>.
 
 \code{.c}
 float var = 42.0;
@@ -43,7 +43,7 @@ starpu_variable_data_register(&var_handle, STARPU_MAIN_RAM, (uintptr_t)&var, siz
 
 A vector is a fixed number of elements of a given size. Here is an
 example of how to register a vector data to StarPU by using
-starpu_vector_data_register(). A full code example for vector data interface is available in the file <c>examples/filters/fvector.c</c>.
+starpu_vector_data_register(). A full code example for the vector data interface is available in the file <c>examples/filters/fvector.c</c>.
 
 \code{.c}
 float vector[NX];
@@ -64,10 +64,7 @@ To just divide in two pieces, starpu_vector_filter_divide_in_2() can
 be used.
 
 In addition, contiguous variables can be picked from a vector by using
-starpu_vector_filter_pick_variable(), and
-starpu_data_filter::get_child_ops needs to be set to starpu_vector_filter_pick_variable_child_ops().
-
-An example is in the file <c>examples/filters/fvector_pick_variable.c</c>.
+starpu_vector_filter_pick_variable() with starpu_data_filter::get_child_ops set to starpu_vector_filter_pick_variable_child_ops(). An example is in the file <c>examples/filters/fvector_pick_variable.c</c>.
 
 \subsection MatrixDataInterface Matrix Data Interface
 
@@ -75,7 +72,7 @@ To register 2-D matrices with a potential padding, one can use the
 matrix data interface. Here is an example of how to register a matrix
 data to StarPU by using starpu_matrix_data_register().
 
-A full code example for matrix data interface is available in the file
+A full code example for the matrix data interface is available in the file
 <c>examples/filters/fmatrix.c</c>.
 
 \code{.c}
@@ -95,14 +92,14 @@ starpu_matrix_filter_vertical_block_shadow(). An
 example is in the file <c>examples/filters/shadow2d.c</c>.
 
 In addition, contiguous vectors can be picked from a matrix along the
-Y dimension by using starpu_matrix_filter_pick_vector_y(), and
-starpu_data_filter::get_child_ops needs to be set to
+Y dimension by using starpu_matrix_filter_pick_vector_y() with
+starpu_data_filter::get_child_ops set to
 starpu_matrix_filter_pick_vector_child_ops(). An example
 is in the file <c>examples/filters/fmatrix_pick_vector.c</c>.
 
 Variable can be also picked from a matrix by using
-starpu_matrix_filter_pick_variable(), and
-starpu_data_filter::get_child_ops needs to be set to
+starpu_matrix_filter_pick_variable() with
+starpu_data_filter::get_child_ops needs set to
 starpu_matrix_filter_pick_variable_child_ops(). An
 example is in the file
 <c>examples/filters/fmatrix_pick_variable.c</c>.
@@ -111,7 +108,7 @@ example is in the file
 
 To register 3-D matrices with potential paddings on Y and Z dimensions,
 one can use the block data interface. Here is an example of how to
-register a block data to StarPU by using starpu_block_data_register(). A full code example for block data interface is available in the file <c>examples/filters/fblock.c</c>.
+register a block data to StarPU by using starpu_block_data_register(). A full code example for the block data interface is available in the file <c>examples/filters/fblock.c</c>.
 
 \code{.c}
 float *block;
@@ -132,14 +129,14 @@ example is in the file <c>examples/filters/shadow3d.c</c>.
 In addition, contiguous matrices
 can be picked from a block along the Z dimension or the Y dimension
 by using starpu_block_filter_pick_matrix_z() or
-starpu_block_filter_pick_matrix_y(), and
-starpu_data_filter::get_child_ops needs to be set to
+starpu_block_filter_pick_matrix_y() with
+starpu_data_filter::get_child_ops set to
 starpu_block_filter_pick_matrix_child_ops(). An example
 is in the file <c>examples/filters/fblock_pick_matrix.c</c>.
 
 Variable can be also picked from a block by using
-starpu_block_filter_pick_variable(), and
-starpu_data_filter::get_child_ops needs to be set to
+starpu_block_filter_pick_variable() with
+starpu_data_filter::get_child_ops set to
 starpu_block_filter_pick_variable_child_ops(). An example
 is in the file <c>examples/filters/fblock_pick_variable.c</c>.
 
@@ -147,7 +144,7 @@ is in the file <c>examples/filters/fblock_pick_variable.c</c>.
 
 To register 4-D matrices with potential paddings on Y, Z, and T dimensions,
 one can use the tensor data interface. Here is an example of how to
-register a tensor data to StarPU by using starpu_tensor_data_register(). A full code example for tensor data interface is available in the file <c>examples/filters/ftensor.c</c>.
+register a tensor data to StarPU by using starpu_tensor_data_register(). A full code example for the tensor data interface is available in the file <c>examples/filters/ftensor.c</c>.
 
 \code{.c}
 float *block;
@@ -173,13 +170,13 @@ In addition, contiguous blocks can be picked from a block along the T dimension,
 Z dimension or the Y dimension by using starpu_tensor_filter_pick_block_t(),
 starpu_tensor_filter_pick_block_z(), or
 starpu_tensor_filter_pick_block_y(), and
-starpu_data_filter::get_child_ops needs to be set to
+starpu_data_filter::get_child_ops set to
 starpu_tensor_filter_pick_block_child_ops(). An example
 is in the file <c>examples/filters/ftensor_pick_block.c</c>.
 
 Variable can be also picked from a tensor by using
-starpu_tensor_filter_pick_variable(), and
-starpu_data_filter::get_child_ops needs to be set to
+starpu_tensor_filter_pick_variable() with
+starpu_data_filter::get_child_ops set to
 starpu_tensor_filter_pick_variable_child_ops(). An
 example is in the file
 <c>examples/filters/ftensor_pick_variable.c</c>.
@@ -187,7 +184,7 @@ example is in the file
 \subsection NdimDataInterface Ndim Data Interface
 
 To register N-dim matrices, one can use the Ndim data interface.
-Here is an example of how to register a 5-dim data to StarPU by using starpu_ndim_data_register(). A full code example for ndim data interface is available in the file <c>examples/filters/fndim.c</c>.
+Here is an example of how to register a 5-dim data to StarPU by using starpu_ndim_data_register(). A full code example for the ndim data interface is available in the file <c>examples/filters/fndim.c</c>.
 
 \code{.c}
 float *arr5d;
@@ -209,14 +206,12 @@ Taking into account existing data interfaces, there are several
 specialized functions which can partition a 0-dim array, 1-dim array,
 2-dim array, 3-dim array or 4-dim array into
 <ul>
-<LI>variables by using starpu_ndim_filter_to_variable() (an example is in the file <c>examples/filters/fndim_to_variable.c</c>)</li>,
-<Li>vectors by using starpu_ndim_filter_to_vector() (an example is in the file <c>examples/filters/fndim_to_vector.c</c>),
-<Li>matrices by using starpu_ndim_filter_to_matrix() (an example is in the file <c>examples/filters/fndim_to_matrix.c</c>),
-<Li>blocks by using starpu_ndim_filter_to_block() (an example is in the file <c>examples/filters/fndim_to_block.c</c>),
-<Li>or tensors by using starpu_ndim_filter_to_tensor() (an example is in the file <c>examples/filters/fndim_to_tensor.c</c>).
+<LI>variables by using starpu_ndim_filter_to_variable() and starpu_data_filter::get_child_ops set to starpu_ndim_filter_to_variable_child_ops() (see file <c>examples/filters/fndim_to_variable.c</c>)</li>,
+<Li>vectors by using starpu_ndim_filter_to_vector() and starpu_data_filter::get_child_ops set to starpu_ndim_filter_to_vector_child_ops() (see file <c>examples/filters/fndim_to_vector.c</c>)</li>,
+<Li>matrices by using starpu_ndim_filter_to_matrix() and starpu_data_filter::get_child_ops set to starpu_ndim_filter_to_matrix_child_ops() (see file <c>examples/filters/fndim_to_matrix.c</c>)</li>,
+<Li>blocks by using starpu_ndim_filter_to_block() and starpu_data_filter::get_child_ops set to starpu_ndim_filter_to_block_child_ops() (see file <c>examples/filters/fndim_to_block.c</c>)</li>,
+<Li>or tensors by using starpu_ndim_filter_to_tensor() and starpu_data_filter::get_child_ops set to starpu_ndim_filter_to_tensor_child_ops() (see file <c>examples/filters/fndim_to_tensor.c</c>)</li>.
 </ul>
-
-starpu_data_filter::get_child_ops needs to be set to starpu_ndim_filter_to_variable_child_ops(), starpu_ndim_filter_to_vector_child_ops(), starpu_ndim_filter_to_matrix_child_ops(), starpu_ndim_filter_to_block_child_ops(), or starpu_ndim_filter_to_tensor_child_ops() respectively.
 
 In addition, contiguous (n-1)dim arrays can be picked from a ndim array
 along the given dimension by using starpu_ndim_filter_pick_ndim(). An
@@ -226,16 +221,15 @@ In specific cases which consider existing data interfaces, contiguous
 variables, vectors, matrices, blocks, or tensors can be along the
 given dimension picked from a
 <ul>
-<li>1-dim array by using starpu_ndim_filter_1d_pick_variable() (an example is in the file <c>examples/filters/fndim_1d_pick_variable.c</c>),
-<li>2-dim array by using starpu_ndim_filter_2d_pick_vector() (an example is in the file <c>examples/filters/fndim_2d_pick_vector.c</c>),
-<li>3-dim array by using starpu_ndim_filter_3d_pick_matrix() (an example is in the file <c>examples/filters/fndim_3d_pick_matrix.c</c>),
-<li>4-dim array by using starpu_ndim_filter_4d_pick_block()(an example is in the file <c>examples/filters/fndim_4d_pick_block.c</c>),
-<li>or 5-dim array by using starpu_ndim_filter_5d_pick_tensor() (an example is in the file <c>examples/filters/fndim_5d_pick_tensor.c</c>).
-
-starpu_data_filter::get_child_ops needs to be set to starpu_ndim_filter_pick_variable_child_ops(), starpu_ndim_filter_pick_vector_child_ops(), starpu_ndim_filter_pick_matrix_child_ops(), starpu_ndim_filter_pick_block_child_ops(), or starpu_ndim_filter_pick_tensor_child_ops() respectively.
+<li>1-dim array by using starpu_ndim_filter_1d_pick_variable() and starpu_data_filter::get_child_ops set to starpu_ndim_filter_pick_variable_child_ops() (see file <c>examples/filters/fndim_1d_pick_variable.c</c>),
+<li>2-dim array by using starpu_ndim_filter_2d_pick_vector() and starpu_data_filter::get_child_ops set to starpu_ndim_filter_pick_vector_child_ops() (see file <c>examples/filters/fndim_2d_pick_vector.c</c>),
+<li>3-dim array by using starpu_ndim_filter_3d_pick_matrix() and starpu_data_filter::get_child_ops set to starpu_ndim_filter_pick_matrix_child_ops() (see file <c>examples/filters/fndim_3d_pick_matrix.c</c>),
+<li>4-dim array by using starpu_ndim_filter_4d_pick_block() and starpu_data_filter::get_child_ops set to starpu_ndim_filter_pick_block_child_ops() (see file <c>examples/filters/fndim_4d_pick_block.c</c>),
+<li>or 5-dim array by using starpu_ndim_filter_5d_pick_tensor() and starpu_data_filter::get_child_ops set to starpu_ndim_filter_pick_tensor_child_ops() (see file <c>examples/filters/fndim_5d_pick_tensor.c</c>).
+</ul>
 
 Variable can be also picked from a ndim array by using
-starpu_ndim_filter_pick_variable(), and starpu_data_filter::get_child_ops needs to be set to starpu_ndim_filter_pick_variable_child_ops(). An example is in the file <c>examples/filters/fndim_pick_variable.c</c>.
+starpu_ndim_filter_pick_variable() with starpu_data_filter::get_child_ops set to starpu_ndim_filter_pick_variable_child_ops(). An example is in the file <c>examples/filters/fndim_pick_variable.c</c>.
 
 \subsection BCSRDataInterface BCSR Data Interface
 
@@ -314,7 +308,7 @@ supported, i.e. along adjacent nnz blocks). starpu_data_filter::get_child_ops ne
 TODO
 
 To register a Compressed Sparse Row Representation (CSR) sparse matrix, one can use the
-CSR data interface. A full code example for CSR data interface is available in the file <c>mpi/tests/datatypes.c</c> to show how to register a COO matrix data to StarPU by using starpu_csr_data_register().
+CSR data interface. A full code example for the CSR data interface is available in the file <c>mpi/tests/datatypes.c</c> to show how to register a COO matrix data to StarPU by using starpu_csr_data_register().
 
 CSR data handles can be partitioned into vertical CSR matrices by using
 starpu_csr_filter_vertical_block(). An example is available in the file <c>examples/spmv/spmv.c</c>.
@@ -322,7 +316,7 @@ starpu_csr_filter_vertical_block(). An example is available in the file <c>examp
 \subsection COODataInterface COO Data Interface
 
 To register 2-D matrices given in the coordinate format (COO), one can use the
-COO data interface. A full code example for COO data interface is available in the file <c>tests/datawizard/interfaces/coo/coo_interface.c</c> to show how to register a COO matrix data to StarPU by using starpu_coo_data_register().
+COO data interface. A full code example for the COO data interface is available in the file <c>tests/datawizard/interfaces/coo/coo_interface.c</c> to show how to register a COO matrix data to StarPU by using starpu_coo_data_register().
 
 \section PartitioningData Partitioning Data
 
@@ -507,7 +501,7 @@ intermediate results there. When the data is eventually accessed in the normal
 mode ::STARPU_R, StarPU will collect the intermediate results in just one
 buffer.
 
-For this to work, the user has to use the function
+For this to work, users have to use the function
 starpu_data_set_reduction_methods() to declare how to initialize these
 buffers, and how to assemble partial results. Or use the function starpu_data_set_reduction_methods_with_args() to pass arguments to the reduction and init tasks.
 
@@ -586,8 +580,8 @@ leading to yet more relaxed dependencies and more parallelism.
 case. This will however not produce any MPI communication, but just pass
 ::STARPU_REDUX to the underlying starpu_task_insert(). starpu_mpi_redux_data()
 posts tasks which will reduce the partial results among MPI nodes into the MPI
-node which owns the data. The function can be called by the user to benefit from
-fine-tuning such as priority setting. If the user does not call this function,
+node which owns the data. The function can be called by users to benefit from
+fine-tuning such as priority setting. If users do not call this function,
 StarPU wraps up reduction patterns automatically. The following example
 shows a hypothetical application which collects partial results
 into data <c>res</c>, then uses it for other computation, before looping again

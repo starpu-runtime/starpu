@@ -58,12 +58,13 @@ measurement granularity is about 10ms.
 Applications can however provide explicit measurements by feeding the energy
 performance model by hand.
 Fine-grain measurement is often not feasible with the feedback provided by
-the hardware, so the user can for instance run a given task a thousand times,
+the hardware, so users can for instance run a given task a thousand times,
 measure the global consumption for that series of tasks, divide it by a
 thousand, repeat for varying kinds of tasks and task sizes, and eventually feed
 StarPU with these manual measurements. For CUDA devices starting with V100,
 the starpu_energy_start() and starpu_energy_stop()
-helpers, described in \ref MeasuringEnergyandPower below, make it easy. 
+helpers, described in \ref MeasuringEnergyandPower below, make it easy.
+
 For older models, one can use <c>nvidia-smi -q -d POWER</c> to get the current
 consumption in Watt. Multiplying this value by the average duration of a
 single task gives the consumption of the task in Joules, which can be given to
@@ -102,7 +103,7 @@ In order to use the right <c>rapl events</c> for energy measurement, user should
 $ papi_native_avail
 \endverbatim
 
-Depending on the system configuration, the user may have to run this as <b>root</b> to get the performance counter values.
+Depending on the system configuration, users may have to run this as <b>root</b> to get the performance counter values.
 
 Since the measurement is for all the CPUs and the memory, the approach taken
 here is to run a series of tasks on all of them and to take the overall measurement.
@@ -127,7 +128,7 @@ In this example, we launch several tasks of the same type in parallel. To perfor
 
 The example starts 40 times more tasks of the same type than there are CPU execution units. Once the tasks are distributed over all CPUs, the latter are all executing the same type of tasks (with the same data size and parameters); each CPU will in the end execute 40 tasks. A specimen task is then constructed and passed to starpu_energy_stop(), which will fold into the performance model the energy requirement measurement for that type and size of task.
 
-For the energy and power measurements, depending on the system configuration, the user may have to run applications as <b>root</b> to use PAPI library.
+For the energy and power measurements, depending on the system configuration, users may have to run applications as <b>root</b> to use PAPI library.
 
 The function starpu_energy_stop() uses <c>PAPI_stop()</c> to stop counting and store the values into the array. We calculate both energy in <c>Joules</c> and power consumption in <c>Watt</c>. We call the function starpu_perfmodel_update_history() in the performance model to provide explicit measurements.
 

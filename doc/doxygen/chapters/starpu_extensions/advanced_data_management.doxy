@@ -401,7 +401,7 @@ void starpu_complex_data_register(starpu_data_handle_t *handleptr,
 \endcode
 
 The <c>struct starpu_complex_interface complex</c> is here used just to store the
-parameters that the user provided to <c>starpu_complex_data_register</c>.
+parameters provided by users to <c>starpu_complex_data_register</c>.
 starpu_data_register() will first allocate the handle, and
 then pass the structure <c>starpu_complex_interface</c> to the method
 starpu_data_interface_ops::register_data_handle, which records them
@@ -731,7 +731,7 @@ This means that:
 
 <ul>
 <li>The starpu_data_interface_ops::register_data_handle method has to allocate
-the meta-data pointers. If the user provided a buffer for the initial value
+the meta-data pointers. If users provided a buffer for the initial value
 of the handle, starpu_data_interface_ops::register_data_handle sets the data
 pointers of the home_node interface to that buffer.
 <li>The interface can additionally provide a \c ptr_register helper to set the
@@ -798,7 +798,7 @@ data structures: one only used on CPUs, and one only used on GPUs.
 This can be done by using the multiformat interface. StarPU
 will be able to convert data from one data structure to the other when needed.
 Note that the scheduler <c>dmda</c> is the only one optimized for this
-interface. The user must provide StarPU with conversion codelets:
+interface. Users must provide StarPU with conversion codelets:
 
 \snippet multiformat.c To be included. You should update doxygen if you see this text.
 

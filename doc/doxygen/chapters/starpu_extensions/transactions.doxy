@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2022-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -66,7 +66,7 @@ of \ref starpu_task_insert().
 The transition from one transaction epoch to the next is expressed using the
 \ref starpu_transaction_next_epoch function to which the \c
 starpu_transaction object and a user argument are passed. Upon a call to that
-function, the start criterion callback is evaluated on the user argument to
+function, the start criterion callback is evaluated on users argument to
 decide whether the next epoch should proceed or be canceled.
 
 \subsection TransactionsClosing Transaction Closing
