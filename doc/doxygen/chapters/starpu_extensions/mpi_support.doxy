@@ -501,7 +501,7 @@ starpu_complex_data_register(&handle, STARPU_MAIN_RAM, real, imaginary, 2);
 ...
 \endcode
 
-A corresponding example is provided in the file <c>mpi/examples/user_datatype/my_interface.c</c>.
+An example is provided in the file <c>mpi/examples/user_datatype/my_interface.c</c>.
 
 It is also possible to use starpu_mpi_datatype_register() to register the
 functions through a handle rather than the interface ID, but note that in that
@@ -620,9 +620,9 @@ automatically send the required data.
 
 To tune the placement of tasks among MPI nodes, one can use
 ::STARPU_EXECUTE_ON_NODE or ::STARPU_EXECUTE_ON_DATA to specify an explicit
-node (corresponding example can be found in <c>mpi/tests/insert_task_node_choice.c</c>), or the node of a given data (e.g. one of the parameters), or use
+node (an example can be found in <c>mpi/tests/insert_task_node_choice.c</c>), or the node of a given data (e.g. one of the parameters), or use
 starpu_mpi_node_selection_register_policy() and ::STARPU_NODE_SELECTION_POLICY
-to provide a dynamic policy (corresponding example can be found in <c>mpi/tests/policy_register.c</c>). The default policy is to execute the task on the
+to provide a dynamic policy (an example can be found in <c>mpi/tests/policy_register.c</c>). The default policy is to execute the task on the
 node which owns a data that require write access; if the task requires several
 data handles with write access, the node executing the task is selected in
 order to minimize the amount of data to transfer between nodes.
@@ -750,7 +750,7 @@ A way to do some of this quite easily can be to just add an <c>if</c> like this:
 
 This permits to drop the cost of function call argument passing and parsing.
 
-A corresponding example is available in the file <c>examples/stencil/implicit-stencil-tasks.c</c>.
+An example is available in the file <c>examples/stencil/implicit-stencil-tasks.c</c>.
 
 If the <c>my_distrib</c> function can be inlined by the compiler, the latter can
 improve the test.
@@ -927,7 +927,7 @@ priority parameter, which allows making StarPU-MPI change the order of MPI
 requests before submitting them to MPI. The default priority is \c 0.
 
 When using the starpu_mpi_task_insert() helper, ::STARPU_PRIORITY defines both the
-task priority and the MPI requests priority. A corresponding example is available in the file <c>mpi/examples/benchs/recv_wait_finalize_bench.c</c>.
+task priority and the MPI requests priority. An example is available in the file <c>mpi/examples/benchs/recv_wait_finalize_bench.c</c>.
 
 To test how much MPI priorities have a good effect on performance, you can
 set the environment variable \ref STARPU_MPI_PRIORITIES to \c 0 to disable the use of
@@ -963,7 +963,7 @@ for the data deallocation will be the same, but it will additionally release som
 pressure from the StarPU-MPI cache hash table during task submission.
 
 One can determine whether a piece of data is cached with
-starpu_mpi_cached_receive() and starpu_mpi_cached_send(). A corresponding example is available in the file <c>mpi/examples/cache/cache.c</c>.
+starpu_mpi_cached_receive() and starpu_mpi_cached_send(). An example is available in the file <c>mpi/examples/cache/cache.c</c>.
 
 Functions starpu_mpi_cached_receive_set() and
 starpu_mpi_cached_send_set() are automatically called by
@@ -1099,7 +1099,7 @@ for(x = 0; x < nblocks ;  x++)
 starpu_mpi_gather_detached(data_handles, nblocks, 0, MPI_COMM_WORLD, NULL, NULL, NULL, NULL);
 \endcode
 
-A corresponding example is available in <c>mpi/tests/mpi_scatter_gather.c</c>.
+An example is available in <c>mpi/tests/mpi_scatter_gather.c</c>.
 
 With NewMadeleine (see \ref Nmad), broadcasts can automatically be detected and
 be optimized by using routing trees. This behavior can be controlled with the

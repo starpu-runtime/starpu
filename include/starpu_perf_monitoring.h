@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2019-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -34,9 +34,10 @@ extern "C" {
    \anchor PM_API
    @{
 */
+
 /**
    Enum of all possible performance counter scopes.
- */
+*/
 enum starpu_perf_counter_scope
 {
 	starpu_perf_counter_scope_undefined   = 0, /**< undefined scope */
@@ -46,8 +47,8 @@ enum starpu_perf_counter_scope
 };
 
 /**
-  Enum of all possible performance counter value type.
- */
+   Enum of all possible performance counter value type.
+*/
 enum starpu_perf_counter_type
 {
 	starpu_perf_counter_type_undefined = 0, /**< underfined value type */
@@ -62,142 +63,198 @@ struct starpu_perf_counter_sample;
 struct starpu_perf_counter_set;
 
 /**
-  Start collecting performance counter values.
-  */
+   Start collecting performance counter values.
+*/
 void starpu_perf_counter_collection_start(void);
+
 /**
-  Stop collecting performance counter values.
-  */
+   Stop collecting performance counter values.
+*/
 void starpu_perf_counter_collection_stop(void);
 
+/** @} */
+
 /**
-  Translate scope name constant string to scope id.
-  */
+   @name Scope Related Routines
+   @{
+*/
+
+/**
+   Translate scope name constant string to scope id.
+*/
 int starpu_perf_counter_scope_name_to_id(const char *name);
+
 /**
-  Translate scope id to scope name constant string.
-  */
+   Translate scope id to scope name constant string.
+*/
 const char *starpu_perf_counter_scope_id_to_name(enum starpu_perf_counter_scope scope);
 
+/** @} */
+
 /**
-  Translate type name constant string to type id.
-  */
+   @name Type Related Routines
+   @{
+*/
+
+/**
+   Translate type name constant string to type id.
+*/
 int starpu_perf_counter_type_name_to_id(const char *name);
+
 /**
-  Translate type id to type name constant string.
-  */
+   Translate type id to type name constant string.
+*/
 const char *starpu_perf_counter_type_id_to_name(enum starpu_perf_counter_type type);
 
-/**
-  Return the number of performance counters for the given scope.
-  */
-int starpu_perf_counter_nb(enum starpu_perf_counter_scope scope);
-/**
-  Translate a performance counter name to its id.
-  */
-int starpu_perf_counter_name_to_id(enum starpu_perf_counter_scope scope, const char *name);
-/**
-  Translate a performance counter rank in its scope to its counter id.
-  */
-int starpu_perf_counter_nth_to_id(enum starpu_perf_counter_scope scope, int nth);
-/**
-  Translate a counter id to its name constant string.
-  */
-const char *starpu_perf_counter_id_to_name(int id);
-/**
-  Return the counter's type id.
-  */
-int starpu_perf_counter_get_type_id(int id);
-/**
-  Return the counter's help string.
-  */
-const char *starpu_perf_counter_get_help_string(int id);
+/** @} */
 
 /**
-  Display the list of counters defined in the given scope.
-  */
-void starpu_perf_counter_list_avail(enum starpu_perf_counter_scope scope);
+   @name Counter Related Routines
+   @{
+*/
+
 /**
-  Display the list of counters defined in all scopes.
-  */
+   Return the number of performance counters for the given scope.
+*/
+int starpu_perf_counter_nb(enum starpu_perf_counter_scope scope);
+
+/**
+   Translate a performance counter name to its id.
+*/
+int starpu_perf_counter_name_to_id(enum starpu_perf_counter_scope scope, const char *name);
+
+/**
+   Translate a performance counter rank in its scope to its counter id.
+*/
+int starpu_perf_counter_nth_to_id(enum starpu_perf_counter_scope scope, int nth);
+
+/**
+   Translate a counter id to its name constant string.
+*/
+const char *starpu_perf_counter_id_to_name(int id);
+
+/**
+   Return the counter's type id.
+*/
+int starpu_perf_counter_get_type_id(int id);
+
+/**
+   Return the counter's help string.
+*/
+const char *starpu_perf_counter_get_help_string(int id);
+
+/** @} */
+
+/**
+   @name Listener Related Routines
+   @{
+*/
+
+/**
+   Display the list of counters defined in the given scope.
+*/
+void starpu_perf_counter_list_avail(enum starpu_perf_counter_scope scope);
+
+/**
+   Display the list of counters defined in all scopes.
+*/
 void starpu_perf_counter_list_all_avail(void);
 
 /**
-  Allocate a new performance counter set.
-  */
+   Allocate a new performance counter set.
+*/
 struct starpu_perf_counter_set *starpu_perf_counter_set_alloc(enum starpu_perf_counter_scope scope);
+
 /**
-  Free a performance counter set.
-  */
+   Free a performance counter set.
+*/
 void starpu_perf_counter_set_free(struct starpu_perf_counter_set *set);
 
 /**
-  Enable a given counter in the set.
-  */
+   Enable a given counter in the set.
+*/
 void starpu_perf_counter_set_enable_id(struct starpu_perf_counter_set *set, int id);
+
 /**
-  Disable a given counter in the set.
-  */
+   Disable a given counter in the set.
+*/
 void starpu_perf_counter_set_disable_id(struct starpu_perf_counter_set *set, int id);
 
 /**
-  Initialize a new performance counter listener.
-  */
+   Initialize a new performance counter listener.
+*/
 struct starpu_perf_counter_listener *starpu_perf_counter_listener_init(struct starpu_perf_counter_set *set, void (*callback)(struct starpu_perf_counter_listener *listener, struct starpu_perf_counter_sample *sample, void *context), void *user_arg);
+
 /**
-  End a performance counter listener.
-  */
+   End a performance counter listener.
+*/
 void starpu_perf_counter_listener_exit(struct starpu_perf_counter_listener *listener);
 
 /**
-  Set a listener for the global scope.
-  */
+   Set a listener for the global scope.
+*/
 void starpu_perf_counter_set_global_listener(struct starpu_perf_counter_listener *listener);
+
 /**
-  Set a listener for the per_worker scope on a given worker.
-  */
+   Set a listener for the per_worker scope on a given worker.
+*/
 void starpu_perf_counter_set_per_worker_listener(unsigned workerid, struct starpu_perf_counter_listener *listener);
+
 /**
-  Set a common listener for all workers.
-  */
+   Set a common listener for all workers.
+*/
 void starpu_perf_counter_set_all_per_worker_listeners(struct starpu_perf_counter_listener *listener);
+
 /**
-  Set a per_codelet listener for a codelet.
-  */
+   Set a per_codelet listener for a codelet.
+*/
 void starpu_perf_counter_set_per_codelet_listener(struct starpu_codelet *cl, struct starpu_perf_counter_listener *listener);
 
 /**
-  Unset the global listener.
-  */
+   Unset the global listener.
+*/
 void starpu_perf_counter_unset_global_listener(void);
-/**
-  Unset the per_worker listener.
-  */
-void starpu_perf_counter_unset_per_worker_listener(unsigned workerid);
-/**
-  Unset all per_worker listeners.
-  */
-void starpu_perf_counter_unset_all_per_worker_listeners(void);
-/**
-  Unset a per_codelet listener.
-  */
-void starpu_perf_counter_unset_per_codelet_listener(struct starpu_codelet *cl);
 
 /**
-  Read an int32 counter value from a sample.
-  */
+   Unset the per_worker listener.
+*/
+void starpu_perf_counter_unset_per_worker_listener(unsigned workerid);
+
+/**
+   Unset all per_worker listeners.
+*/
+void starpu_perf_counter_unset_all_per_worker_listeners(void);
+
+/**
+   Unset a per_codelet listener.
+*/
+void starpu_perf_counter_unset_per_codelet_listener(struct starpu_codelet *cl);
+
+/** @} */
+
+/**
+   @name Sample Related Routines
+   @{
+*/
+
+/**
+   Read an int32 counter value from a sample.
+*/
 int32_t starpu_perf_counter_sample_get_int32_value(struct starpu_perf_counter_sample *sample, const int counter_id);
+
 /**
-  Read an int64 counter value from a sample.
-  */
+   Read an int64 counter value from a sample.
+*/
 int64_t starpu_perf_counter_sample_get_int64_value(struct starpu_perf_counter_sample *sample, const int counter_id);
+
 /**
-  Read a float counter value from a sample.
-  */
+   Read a float counter value from a sample.
+*/
 float starpu_perf_counter_sample_get_float_value(struct starpu_perf_counter_sample *sample, const int counter_id);
+
 /**
-  Read a double counter value from a sample.
-  */
+   Read a double counter value from a sample.
+*/
 double starpu_perf_counter_sample_get_double_value(struct starpu_perf_counter_sample *sample, const int counter_id);
 
 /** @} */

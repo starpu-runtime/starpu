@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2020       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -235,16 +235,16 @@ however require the application to take care of not trying to access the data,
 and will not work in MPI mode, which performs transfers.
 
 Another way is to pass the \ref STARPU_MALLOC_SIMULATION_FOLDED flag to the
-starpu_malloc_flags() function. 
-A corresponding example is available in <c>examples/mult/xgemm.c </c>
+starpu_malloc_flags() function.
+An example is available in <c>examples/mult/xgemm.c </c>
 This will make it allocate a memory area which
 one can read/write, but optimized so that this does not actually consume
 memory. Of course, the values read from such area will be bogus, but this allows
 the application to keep e.g. data load, store, initialization as it is, and also
 work in MPI mode. A more aggressive alternative is to pass also the
 \ref STARPU_MALLOC_SIMULATION_UNIQUE flag (alongside with
-\ref STARPU_MALLOC_SIMULATION_FOLDED) to the starpu_malloc_flags() function. 
-A corresponding example is available in <c>examples/cholesky/cholesky_tag.c </c>.
+\ref STARPU_MALLOC_SIMULATION_FOLDED) to the starpu_malloc_flags() function.
+An example is available in <c>examples/cholesky/cholesky_tag.c </c>.
 This will make StarPU reuse the pointers for allocations of the same size
 without calling the folded allocation again, thus decreasing some pressure on
 memory management.

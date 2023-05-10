@@ -81,7 +81,7 @@ This variable is ignored if the field
 starpu_conf::use_explicit_workers_bindid passed to starpu_init() is
 set.
 
-Setting STARPU_WORKERS_CPUID or STARPU_WORKERS_COREID overrides the binding
+Setting \ref STARPU_WORKERS_CPUID or \ref STARPU_WORKERS_COREID overrides the binding
 provided by the job scheduler, as described for \ref STARPU_WORKERS_GETBIND.
 </dd>
 
@@ -241,7 +241,7 @@ default is Disable. One can call starpu_map_enabled() to check whether memory ma
 <dd>
 \anchor STARPU_DATA_LOCALITY_ENFORCE
 \addindex __env__STARPU_DATA_LOCALITY_ENFORCE
-Enable (1) or disable(0) data locality enforcement when picking up a worker to execute a task. The default is Disabled.
+Enable (1) or Disable(0) data locality enforcement when picking up a worker to execute a task. The default is Disabled.
 </dd>
 
 <dt>STARPU_ENABLE_CUDA_GPU_GPU_DIRECT</dt>
@@ -660,7 +660,7 @@ a separate core. This is for instance useful when running the testsuite on a sin
 \anchor STARPU_MPI_GPUDIRECT
 \addindex __env__STARPU_MPI_GPUDIRECT
 This variable allows to enable (1) MPI GPUDirect support or not (0). The default
-(-1) is to enable it if available. If STARPU_MPI_GPUDIRECT is explicitly set to
+(-1) is to enable it if available. If \ref STARPU_MPI_GPUDIRECT is explicitly set to
 1, StarPU-MPI will warn if MPI does not provide the GPUDirect support.
 </dd>
 
@@ -1128,7 +1128,7 @@ the progression of MPI communications mechanism to execute several tasks before
 checking communication requests again (\ref MPISupport). The
 starpu_mpi_init_conf() function must have been called by the application
 for that environment variable to be used, and the
-STARPU_MPI_DRIVER_CALL_FREQUENCY environment variable set to a positive value.
+\ref STARPU_MPI_DRIVER_CALL_FREQUENCY environment variable set to a positive value.
 </dd>
 
 <dt>STARPU_MPI_MEM_THROTTLE</dt>
@@ -1317,10 +1317,10 @@ CUDA GPUs.
 <dd>
 \anchor STARPU_PERF_MODEL_HOMOGENEOUS_OPENCL
 \addindex __env__STARPU_PERF_MODEL_HOMOGENEOUS_OPENCL
-When set to 1, StarPU will assume that all OPENCL devices have the same
+When set to 1, StarPU will assume that all OpenCL devices have the same
 performance, and thus share performance models for them, thus allowing kernel
 calibration to be much faster, since measurements only have to be once for all
-OPENCL GPUs.
+OpenCL GPUs.
 </dd>
 
 <dt>STARPU_PERF_MODEL_HOMOGENEOUS_MPI_MS</dt>
@@ -1548,7 +1548,7 @@ STARPU_MPI_MEM_THROTTLE is set to 1.
 \addindex __env__STARPU_LIMIT_CPU_NUMA_devid_MEM
 Specify the maximum number of megabytes that should be available to the
 application on the NUMA node with the OS identifier <c>devid</c>.  Setting it
-overrides the value of STARPU_LIMIT_CPU_MEM.
+overrides the value of \ref STARPU_LIMIT_CPU_MEM.
 </dd>
 
 <dt>STARPU_LIMIT_CPU_NUMA_MEM</dt>
@@ -1560,7 +1560,7 @@ application on each NUMA node. This is the same as specifying that same amount
 with \ref STARPU_LIMIT_CPU_NUMA_devid_MEM for each NUMA node number. The total
 memory available to StarPU will thus be this amount multiplied by the number of
 NUMA nodes used by StarPU. Any \ref STARPU_LIMIT_CPU_NUMA_devid_MEM additionally
-specified will take over STARPU_LIMIT_CPU_NUMA_MEM.
+specified will take over \ref STARPU_LIMIT_CPU_NUMA_MEM.
 </dd>
 
 <dt>STARPU_LIMIT_BANDWIDTH</dt>
@@ -1577,7 +1577,7 @@ application on each NUMA node. This is the same as specifying that same amount
 with \ref STARPU_LIMIT_CPU_NUMA_devid_MEM for each NUMA node number. The total
 memory available to StarPU will thus be this amount multiplied by the number of
 NUMA nodes used by StarPU. Any \ref STARPU_LIMIT_CPU_NUMA_devid_MEM additionally
-specified will take over STARPU_LIMIT_BANDWIDTH.
+specified will take over \ref STARPU_LIMIT_BANDWIDTH.
 </dd>
 
 <dt>STARPU_SUBALLOCATOR</dt>
@@ -1969,7 +1969,7 @@ Users can manually display the binding by calling starpu_display_bindings().
 \anchor SC_HYPERVISOR_POLICY
 \addindex __env__SC_HYPERVISOR_POLICY
 Choose between the different resizing policies proposed by StarPU for the hypervisor:
-idle, app_driven, feft_lp, teft_lp; ispeed_lp, throughput_lp etc.
+\c idle, \c app_driven, \c feft_lp, \c teft_lp, \c ispeed_lp, \c throughput_lp etc.
 
 Use <c>SC_HYPERVISOR_POLICY=help</c> to get the list of available policies for the hypervisor
 </dd>
