@@ -169,7 +169,7 @@ enum starpu_cluster_types
 #endif
 };
 /** @deprecated Use starpu_parallel_worker_config */
-struct starpu_cluster_machine STARPU_DEPRECATED;
+struct starpu_cluster_machine;
 /** @deprecated Use starpu_parallel_worker_init() */
 struct starpu_cluster_machine *starpu_cluster_machine(hwloc_obj_type_t cluster_level, ...) STARPU_DEPRECATED;
 /** @deprecated Use starpu_parallel_worker_shutdown() */
