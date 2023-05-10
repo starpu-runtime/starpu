@@ -65,8 +65,7 @@ be used.
 
 In addition, contiguous variables can be picked from a vector by using
 starpu_vector_filter_pick_variable(), and
-starpu_data_filter::get_child_ops needs to be set to \c
-starpu_vector_filter_pick_variable_child_ops.
+starpu_data_filter::get_child_ops needs to be set to starpu_vector_filter_pick_variable_child_ops().
 
 An example is in the file <c>examples/filters/fvector_pick_variable.c</c>.
 
@@ -97,14 +96,14 @@ example is in the file <c>examples/filters/shadow2d.c</c>.
 
 In addition, contiguous vectors can be picked from a matrix along the
 Y dimension by using starpu_matrix_filter_pick_vector_y(), and
-starpu_data_filter::get_child_ops needs to be set to \c
-starpu_matrix_filter_pick_vector_child_ops. An example
+starpu_data_filter::get_child_ops needs to be set to
+starpu_matrix_filter_pick_vector_child_ops(). An example
 is in the file <c>examples/filters/fmatrix_pick_vector.c</c>.
 
 Variable can be also picked from a matrix by using
 starpu_matrix_filter_pick_variable(), and
-starpu_data_filter::get_child_ops needs to be set to \c
-starpu_matrix_filter_pick_variable_child_ops. An
+starpu_data_filter::get_child_ops needs to be set to
+starpu_matrix_filter_pick_variable_child_ops(). An
 example is in the file
 <c>examples/filters/fmatrix_pick_variable.c</c>.
 
@@ -134,14 +133,14 @@ In addition, contiguous matrices
 can be picked from a block along the Z dimension or the Y dimension
 by using starpu_block_filter_pick_matrix_z() or
 starpu_block_filter_pick_matrix_y(), and
-starpu_data_filter::get_child_ops needs to be set to \c
-starpu_block_filter_pick_matrix_child_ops. An example
+starpu_data_filter::get_child_ops needs to be set to
+starpu_block_filter_pick_matrix_child_ops(). An example
 is in the file <c>examples/filters/fblock_pick_matrix.c</c>.
 
 Variable can be also picked from a block by using
 starpu_block_filter_pick_variable(), and
-starpu_data_filter::get_child_ops needs to be set to \c
-starpu_block_filter_pick_variable_child_ops. An example
+starpu_data_filter::get_child_ops needs to be set to
+starpu_block_filter_pick_variable_child_ops(). An example
 is in the file <c>examples/filters/fblock_pick_variable.c</c>.
 
 \subsection TensorDataInterface Tensor Data Interface
@@ -174,14 +173,14 @@ In addition, contiguous blocks can be picked from a block along the T dimension,
 Z dimension or the Y dimension by using starpu_tensor_filter_pick_block_t(),
 starpu_tensor_filter_pick_block_z(), or
 starpu_tensor_filter_pick_block_y(), and
-starpu_data_filter::get_child_ops needs to be set to \c
-starpu_tensor_filter_pick_block_child_ops. An example
+starpu_data_filter::get_child_ops needs to be set to
+starpu_tensor_filter_pick_block_child_ops(). An example
 is in the file <c>examples/filters/ftensor_pick_block.c</c>.
 
 Variable can be also picked from a tensor by using
 starpu_tensor_filter_pick_variable(), and
-starpu_data_filter::get_child_ops needs to be set to \c
-starpu_tensor_filter_pick_variable_child_ops. An
+starpu_data_filter::get_child_ops needs to be set to
+starpu_tensor_filter_pick_variable_child_ops(). An
 example is in the file
 <c>examples/filters/ftensor_pick_variable.c</c>.
 
@@ -308,7 +307,7 @@ StarPU provides an example on how to deal with such matrices in
 BCSR data handles can be partitioned into its dense matrix blocks by using
 starpu_bcsr_filter_canonical_block(), or split into other BCSR data handles by
 using starpu_bcsr_filter_vertical_block() (but only split along the leading dimension is
-supported, i.e. along adjacent nnz blocks). starpu_data_filter::get_child_ops needs to be set to \c starpu_bcsr_filter_canonical_block_child_ops() and starpu_data_filter::get_nchildren set to starpu_bcsr_filter_canonical_block_get_nchildren(). An example is available in <c>tests/datawizard/bcsr.c</c>.
+supported, i.e. along adjacent nnz blocks). starpu_data_filter::get_child_ops needs to be set to starpu_bcsr_filter_canonical_block_child_ops() and starpu_data_filter::get_nchildren set to starpu_bcsr_filter_canonical_block_get_nchildren(). An example is available in <c>tests/datawizard/bcsr.c</c>.
 
 \subsection CSRDataInterface CSR Data Interface
 
