@@ -421,7 +421,6 @@ int _starpu_parallel_worker_remove(struct _starpu_parallel_worker_list *parallel
 		free(parallel_worker->workerids);
 
 	hwloc_bitmap_free(parallel_worker->cpuset);
-	free(parallel_worker->params);
 	_starpu_parallel_worker_list_erase(parallel_worker_list, parallel_worker);
 	_starpu_parallel_worker_delete(parallel_worker);
 
