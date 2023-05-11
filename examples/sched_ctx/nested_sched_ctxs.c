@@ -118,11 +118,11 @@ int main(void)
 	}
 
 	/*create contexts however you want*/
-	unsigned sched_ctx1 = starpu_sched_ctx_create(procs1, nprocs1, "ctx1", STARPU_SCHED_CTX_POLICY_NAME, "eager", 0);
+	unsigned sched_ctx1 = starpu_sched_ctx_create(procs1, nprocs1, "ctx1", STARPU_SCHED_CTX_POLICY_NAME, "dmda", 0);
 	unsigned sched_ctx2 = starpu_sched_ctx_create(procs2, nprocs2, "ctx2", STARPU_SCHED_CTX_POLICY_NAME, "dmda", 0);
 
 	/*indicate what to do with the resources when context 2 finishes (it depends on your application)*/
-//	starpu_sched_ctx_set_inheritor(sched_ctx2, sched_ctx1);
+	starpu_sched_ctx_set_inheritor(sched_ctx2, sched_ctx1);
 
 	int nprocs3 = nprocs1/2;
 	int nprocs4 = nprocs3;

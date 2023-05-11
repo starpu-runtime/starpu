@@ -77,6 +77,7 @@ int main(void)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	parallel_workers = starpu_parallel_worker_init(HWLOC_OBJ_SOCKET,
+						       STARPU_PARALLEL_WORKER_POLICY_NAME, "dmdas",
 						       STARPU_PARALLEL_WORKER_CREATE_FUNC, &bind_func,
 						       STARPU_PARALLEL_WORKER_CREATE_FUNC_ARG, NULL,
 						       0);
