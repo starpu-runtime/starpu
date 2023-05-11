@@ -50,7 +50,7 @@ jobs:
         run: ./configure --prefix=/tmp/foobar --enable-quick-check --disable-mpi-check ${{ matrix.config }}
       - name: Store the config
         if: ${{ always() }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: config.log
           path: config.log
