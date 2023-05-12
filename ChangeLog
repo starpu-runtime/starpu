@@ -35,6 +35,7 @@ Changes:
 
 Small changes:
   * Fix function starpu_mpi_wait_for_all()
+  * Update prologue function names for parallel workers
 
 StarPU 1.4.0
 ==============================================

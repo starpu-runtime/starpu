@@ -138,10 +138,10 @@ int starpu_parallel_worker_shutdown(struct starpu_parallel_worker_config *parall
 int starpu_parallel_worker_print(struct starpu_parallel_worker_config *parallel_workers);
 
 /** Prologue functions */
-void starpu_openmp_prologue(void *);
-#define starpu_intel_openmp_mkl_prologue starpu_openmp_prologue
+void starpu_parallel_worker_openmp_prologue(void *);
+#define starpu_parallel_worker_intel_openmp_mkl_prologue starpu_parallel_worker_openmp_prologue
 #ifdef STARPU_MKL
-void starpu_gnu_openmp_mkl_prologue(void *);
+void starpu_parallel_worker_gnu_openmp_mkl_prologue(void *);
 #endif /* STARPU_MKL */
 
 #define STARPU_CLUSTER_MIN_NB           STARPU_PARALLEL_WORKER_MIN_NB           /**< @deprecated Use ::STARPU_PARALLEL_WORKER_MIN_NB */
