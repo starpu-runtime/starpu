@@ -3206,7 +3206,7 @@ if test x$enable_simgrid = xno; then
      STARPU_EXPORTED_LIBS="$STARPU_EXPORTED_LIBS ${OPENMP_CFLAGS}"
   fi
 fi
-AM_CONDITIONAL([STARPU_HAVE_OPENMP],[test x$enable_simgrid = xno -a -n "$OPENMP_CFLAGS"])
+AM_CONDITIONAL([STARPU_HAVE_OPENMP],[test x$enable_simgrid = xno -a -n "$OPENMP_CFLAGS" -a x$starpu_windows = xno])
 
 ###############################################################################
 #                                                                             #
