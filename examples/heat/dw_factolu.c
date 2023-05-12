@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  * Copyright (C) 2013       Thibaut Lambert
  *
@@ -703,7 +703,7 @@ void dw_codelet_facto_v2(starpu_data_handle_t dataA, unsigned nblocks)
 	advance_22 = calloc(nblocks*nblocks*nblocks, sizeof(*advance_22));
 	STARPU_ASSERT(advance_22);
 
-	cl_args *args = malloc(sizeof(cl_args));
+	cl_args *args = calloc(1, sizeof(cl_args));
 
 	args->i = 0;
 	args->nblocks = nblocks;
