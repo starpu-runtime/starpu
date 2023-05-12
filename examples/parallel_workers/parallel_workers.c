@@ -122,7 +122,7 @@ int main(void)
 
 					 /* Note that this mode requires that you put a prologue callback managing
 					    this on all tasks to be taken into account. */
-					 STARPU_PROLOGUE_CALLBACK_POP, &starpu_openmp_prologue,
+					 STARPU_PROLOGUE_CALLBACK_POP, &starpu_parallel_worker_openmp_prologue,
 
 					 0);
 

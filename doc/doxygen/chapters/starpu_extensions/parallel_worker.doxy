@@ -123,7 +123,7 @@ Finally, the following code shows how to force OpenMP to cooperate with StarPU
 and create the aforementioned OpenMP threads constrained in the parallel worker's
 resources set:
 \code{.c}
-void starpu_openmp_prologue(void * sched_ctx_id)
+void starpu_parallel_worker_openmp_prologue(void * sched_ctx_id)
 {
   int sched_ctx = *(int*)sched_ctx_id;
   int *cpuids = NULL;

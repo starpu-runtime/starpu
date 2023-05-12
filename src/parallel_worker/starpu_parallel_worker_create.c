@@ -30,14 +30,14 @@ starpu_binding_function _starpu_parallel_worker_type_get_func(enum starpu_parall
 	switch (type)
 	{
 	case STARPU_PARALLEL_WORKER_OPENMP:
-		prologue_func = &starpu_openmp_prologue;
+		prologue_func = &starpu_parallel_worker_openmp_prologue;
 		break;
 	case STARPU_PARALLEL_WORKER_INTEL_OPENMP_MKL:
-		prologue_func = &starpu_intel_openmp_mkl_prologue;
+		prologue_func = &starpu_parallel_worker_intel_openmp_mkl_prologue;
 		break;
 #ifdef STARPU_MKL
 	case STARPU_PARALLEL_WORKER_GNU_OPENMP_MKL:
-		prologue_func = &starpu_gnu_openmp_mkl_prologue;
+		prologue_func = &starpu_parallel_worker_gnu_openmp_mkl_prologue;
 		break;
 #endif
 	default:
@@ -47,7 +47,7 @@ starpu_binding_function _starpu_parallel_worker_type_get_func(enum starpu_parall
 	return prologue_func;
 }
 
-void starpu_openmp_prologue(void *arg)
+void starpu_parallel_worker_openmp_prologue(void *arg)
 {
 	(void) arg;
 	int workerid = starpu_worker_get_id_check();
@@ -80,7 +80,7 @@ void starpu_openmp_prologue(void *arg)
 }
 
 #ifdef STARPU_MKL
-void starpu_gnu_openmp_mkl_prologue(void *arg)
+void starpu_parallel_worker_gnu_openmp_mkl_prologue(void *arg)
 {
 	int workerid = starpu_worker_get_id();
 
