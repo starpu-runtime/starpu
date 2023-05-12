@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Joris Pablo
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2017-2021  Federal University of Rio Grande do Sul (UFRGS)
@@ -2449,7 +2449,7 @@ static void handle_start_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		com->comid = comid;
 		com->comm_start = get_event_time_stamp(ev, options);
 		com->size = size;
-
+		com->bandwidth = 0;
 		com->src_node = src;
 		com->dst_node = dst;
 		com->type = link_type;
