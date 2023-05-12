@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -103,7 +103,7 @@ void parallel_task_init()
 
 	main_context.id = starpu_sched_ctx_create(main_context.cpus,
 						  main_context.ncpus,"main_ctx",
-						  STARPU_SCHED_CTX_POLICY_NAME,"prio",
+						  STARPU_SCHED_CTX_POLICY_NAME, "dmda",
 						  0);
 
 	/* Initialize nested contexts */
@@ -174,8 +174,12 @@ int main(void)
 	int ntasks = NTASKS;
 	int ret;
 	unsigned ncpus = 0;
+	struct starpu_conf conf;
 
-	ret = starpu_init(NULL);
+	starpu_conf_init(&conf);
+	conf.sched_policy_name = "dmda";
+
+	ret = starpu_init(&conf);
 	if (ret == -ENODEV)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
@@ -224,8 +228,6 @@ int main(void)
 			goto out;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
-
-
 
 out:
 	/* wait for all tasks at the end*/
