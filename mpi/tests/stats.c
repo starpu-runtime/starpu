@@ -102,6 +102,7 @@ int main(int argc, char **argv)
 	if (rank == 0)
 		STARPU_ASSERT_MSG(stats[1] == sizeof(int), "Comm stats are incorrect %ld != %ld\n", stats[0], (long)sizeof(int));
 
+	free(stats);
 	starpu_mpi_shutdown();
 	if (!mpi_init)
 		MPI_Finalize();

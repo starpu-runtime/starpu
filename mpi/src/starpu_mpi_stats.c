@@ -21,12 +21,12 @@
 #include <starpu_util.h>
 
 /* measure the amount of data transfers between each pair of MPI nodes */
-static size_t *comm_amount;
+static size_t *comm_amount = NULL;
 static size_t comm_amount_memnode[STARPU_MAXNODES];
 static int world_size;
-static int stats_enabled=0;
+static int stats_enabled = 0;
 static int nb_coop;
-static int* nb_nodes_per_coop;
+static int* nb_nodes_per_coop = NULL;
 static double time_init;
 static MPI_Comm comm_init;
 static int nb_sends = 0;
@@ -86,14 +86,17 @@ void _starpu_mpi_comm_stats_enable()
 
 void _starpu_mpi_comm_amounts_shutdown()
 {
-	if (stats_enabled == 0)
-		return;
-	free(comm_amount);
-	free(nb_nodes_per_coop);
+	if (comm_amount)
+	{
+		free(comm_amount);
+		free(nb_nodes_per_coop);
+		comm_amount = NULL;
+		nb_nodes_per_coop = NULL;
 
 #ifdef STARPU_USE_MPI_NMAD
-	_starpu_spin_destroy(&stats_lock);
+		_starpu_spin_destroy(&stats_lock);
 #endif
+	}
 }
 
 void _starpu_mpi_comm_amounts_inc(MPI_Comm comm, unsigned memnode, unsigned dst, MPI_Datatype datatype, int count)
