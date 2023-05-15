@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -15,5 +15,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+static char *path = "./starpu-ooc-files-float";
 #include "mpi_lu-float.h"
 #include "plu_outofcore_example.c"
