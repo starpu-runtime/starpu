@@ -2833,12 +2833,12 @@ if test x$enable_simgrid != xyes; then
 fi
 if test $maxcpus = 0
 then
-	nmaxworkers=`expr 16 \* \( \( \( $nmaxmpidev \* 64 \) + $nmaxcudadev + $nmaxopencldev + $nmaxmaxfpgadev + 15 \) / 16 \) `
+	nmaxworkers=`expr 16 \* \( \( \( $nmaxmpidev \* 64 \) + $nmaxcudadev + $nmaxhipdev + $nmaxopencldev + $nmaxmaxfpgadev + 15 \) / 16 \) `
 elif test $nmaxmpidev = 0
 then
-	nmaxworkers=`expr 16 \* \( \( $maxcpus + $nmaxcudadev + $nmaxopencldev + $nmaxmaxfpgadev + 15 \) / 16 \) `
+	nmaxworkers=`expr 16 \* \( \( $maxcpus + $nmaxcudadev + $nmaxhipdev + $nmaxopencldev + $nmaxmaxfpgadev + 15 \) / 16 \) `
 else
-	nmaxworkers=`expr 16 \* \( \( \( $nmaxmpidev \* $maxcpus \) + $nmaxcudadev + $nmaxopencldev + $nmaxmaxfpgadev + 15 \) / 16 \) `
+	nmaxworkers=`expr 16 \* \( \( \( $nmaxmpidev \* $maxcpus \) + $nmaxcudadev + $nmaxhipdev + $nmaxopencldev + $nmaxmaxfpgadev + 15 \) / 16 \) `
 fi
 AC_MSG_CHECKING(Maximum number of workers)
 AC_MSG_RESULT($nmaxworkers)
