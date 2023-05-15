@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2020       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -531,6 +531,11 @@ void _starpu_gethostname(char *hostname, size_t size)
 		char *host=NULL, *srv_hosts;
 		srv_hosts = strdup(force_mpi_hostnames);
 		int rank;
+
+#ifdef STARPU_HAVE_DARWIN
+		_STARPU_DISP("Detection of MPI rank disabled on darwin, assuming rank is 0");
+		rank = 0;
+#else
 		if (starpu_mpi_world_rank)
 		{
 			rank = starpu_mpi_world_rank();
@@ -540,6 +545,7 @@ void _starpu_gethostname(char *hostname, size_t size)
 			_STARPU_DISP("StarPU-MPI unavailable, the rank of this process is 0");
 			rank = 0;
 		}
+#endif
 
 		if (force_mpi_hostnames != NULL)
 		{
