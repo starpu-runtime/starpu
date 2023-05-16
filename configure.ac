@@ -3203,14 +3203,7 @@ AC_MSG_CHECKING(for OpenMP runtime support)
 AM_CONDITIONAL([STARPU_OPENMP], [test "x$enable_openmp" = "xyes"])
 AC_MSG_RESULT($enable_openmp $openmp_msg)
 
-if test x$enable_simgrid = xno; then
-  if test -n "{OPENMP_CFLAGS}"; then
-     CFLAGS="${CFLAGS} ${OPENMP_CFLAGS}"
-     STARPU_OMP_LDFLAGS="${OPENMP_CFLAGS}"
-     STARPU_EXPORTED_LIBS="$STARPU_EXPORTED_LIBS ${OPENMP_CFLAGS}"
-  fi
-fi
-AM_CONDITIONAL([STARPU_HAVE_OPENMP],[test x$enable_simgrid = xno -a -n "$OPENMP_CFLAGS" -a x$starpu_windows = xno])
+AM_CONDITIONAL([STARPU_HAVE_OPENMP],[test x$enable_simgrid = xno -a -n "$OPENMP_CFLAGS" -a x$starpu_windows != xyes])
 
 ###############################################################################
 #                                                                             #
@@ -4170,7 +4163,7 @@ STARPU_NVCC_H_CPPFLAGS="$STARPU_BASIC_H_CPPFLAGS"
 AC_SUBST([STARPU_NVCC_H_CPPFLAGS])
 
 # these are the flags needed for linking libstarpu (and thus also for static linking)
-LIBSTARPU_LDFLAGS="$STARPU_OPENCL_LDFLAGS $STARPU_CUDA_LDFLAGS $STARPU_HIP_LDFLAGS $HWLOC_LIBS $FXT_LDFLAGS $FXT_LIBS $PAPI_LIBS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LDFLAGS $STARPU_BLAS_LDFLAGS $STARPU_OMP_LDFLAGS $DGELS_LIBS $STARPU_MAX_FPGA_LDFLAGS $STARPU_DLOPEN_LDFLAGS"
+LIBSTARPU_LDFLAGS="$STARPU_OPENCL_LDFLAGS $STARPU_CUDA_LDFLAGS $STARPU_HIP_LDFLAGS $HWLOC_LIBS $FXT_LDFLAGS $FXT_LIBS $PAPI_LIBS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LDFLAGS $STARPU_BLAS_LDFLAGS $DGELS_LIBS $STARPU_MAX_FPGA_LDFLAGS $STARPU_DLOPEN_LDFLAGS $OPENMP_CFLAGS"
 AC_SUBST([LIBSTARPU_LDFLAGS])
 
 # these are the flags needed for linking against libstarpu (because starpu.h makes its includer use pthread_*, simgrid, etc.)
