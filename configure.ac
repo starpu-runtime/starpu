@@ -3118,8 +3118,12 @@ AM_CONDITIONAL([STARPU_HAVE_MPIFORT], [test "x$use_mpi_fort" = "xyes"])
 #                                                                      #
 ########################################################################
 
+default_enable_parallel_worker=yes
+if test x$starpu_darwin = xyes ; then
+   default_enable_parallel_worker=no
+fi
 AC_ARG_ENABLE(parallel-worker, [AS_HELP_STRING([--enable-parallel-worker], [build the parallel worker support])],
-			enable_parallel_worker=$enableval, enable_parallel_worker=yes)
+			enable_parallel_worker=$enableval, enable_parallel_worker=$default_enable_parallel_worker)
 
 AC_MSG_CHECKING(for parallel worker support)
 
