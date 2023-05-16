@@ -68,7 +68,7 @@ of the following strings as argument and returns the corresponding ID:
 </ul>
 The \c cpu pseudo device type is defined for convenience and designates CPU
 cores. The number of units of each type available for computation can be
-obtained with a call to starpu_get_nb_devices_by_type().
+obtained with a call to starpurm_get_nb_devices_by_type().
 
 Each CPU core unit available for computation is designated by its rank among the
 StarPU CPU worker threads and by its own CPUSET bit. Each non-CPU device unit
@@ -87,7 +87,7 @@ StarPU context. Assigning CPU cores can be done with
 starpurm_assign_cpu_to_starpu() and starpurm_assign_cpu_mask_to_starpu(), and
 assigning device units can be done with starpurm_assign_device_to_starpu()
 and starpurm_assign_device_mask_to_starpu(). Conversely, withdrawing CPU
-cores can be done with starpurm_withdraw_cpu_from_starpu() and starpurm_withdraw_cpu_mask_from_starpu(=,
+cores can be done with starpurm_withdraw_cpu_from_starpu() and starpurm_withdraw_cpu_mask_from_starpu(),
 and withdrawing device units can be done with
 starpurm_withdraw_device_from_starpu() and starpurm_withdraw_device_mask_from_starpu().
 These routine should typically be used to control resource usage for the main
