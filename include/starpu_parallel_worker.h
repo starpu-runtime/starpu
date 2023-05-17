@@ -110,9 +110,7 @@ enum starpu_parallel_worker_types
 {
 	STARPU_PARALLEL_WORKER_OPENMP,		 /**< todo */
 	STARPU_PARALLEL_WORKER_INTEL_OPENMP_MKL, /**< todo */
-#ifdef STARPU_MKL
-	STARPU_PARALLEL_WORKER_GNU_OPENMP_MKL, /**< todo */
-#endif
+	STARPU_PARALLEL_WORKER_GNU_OPENMP_MKL,   /**< todo */
 };
 
 /**

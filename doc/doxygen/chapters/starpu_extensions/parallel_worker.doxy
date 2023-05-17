@@ -164,10 +164,13 @@ inside StarPU.
 
 The predefined parallel worker types provided by StarPU are
 ::STARPU_PARALLEL_WORKER_OPENMP, ::STARPU_PARALLEL_WORKER_INTEL_OPENMP_MKL and
-::STARPU_PARALLEL_WORKER_GNU_OPENMP_MKL. The last one is only provided if
-StarPU is compiled with the \c MKL library.  It uses MKL functions to
-set the number of threads, which is more reliable when using an OpenMP
-implementation different from the Intel one.
+::STARPU_PARALLEL_WORKER_GNU_OPENMP_MKL.
+
+If StarPU is compiled with the \c MKL library,
+::STARPU_PARALLEL_WORKER_GNU_OPENMP_MKL uses MKL functions to set the
+number of threads, which is more reliable when using an OpenMP
+implementation different from the Intel one. Otherwise, it will behave
+as ::STARPU_PARALLEL_WORKER_INTEL_OPENMP_MKL.
 
 The parallel worker type is set when calling the function
 starpu_parallel_worker_init() with the parameter ::STARPU_PARALLEL_WORKER_TYPE as
