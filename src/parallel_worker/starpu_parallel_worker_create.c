@@ -35,11 +35,14 @@ starpu_binding_function _starpu_parallel_worker_type_get_func(enum starpu_parall
 	case STARPU_PARALLEL_WORKER_INTEL_OPENMP_MKL:
 		prologue_func = &starpu_parallel_worker_intel_openmp_mkl_prologue;
 		break;
-#ifdef STARPU_MKL
 	case STARPU_PARALLEL_WORKER_GNU_OPENMP_MKL:
+#ifdef STARPU_MKL
 		prologue_func = &starpu_parallel_worker_gnu_openmp_mkl_prologue;
-		break;
+#else
+		_STARPU_MSG("Warning: MKL support is not available, using STARPU_PARALLEL_WORKER_INTEL_OPENMP_MKL instead\n");
+		prologue_func = &starpu_parallel_worker_intel_openmp_mkl_prologue;
 #endif
+		break;
 	default:
 		prologue_func = NULL;
 	}
