@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -17,11 +17,11 @@ CFLAGS          +=      $$(pkg-config --cflags starpu-1.4)
 LDLIBS          +=      $$(pkg-config --libs starpu-1.4)
 
 HAS_CUDA	=	$(shell starpu_machine_display | grep "CUDA" | grep -v "No CUDA worker" | head -1)
-NVCC		?=	nvcc
+NVCC		?=	nvcc -std=c++11
 HAS_OPENCL	=	$(shell starpu_machine_display | grep "OpenCL" | grep -v "No OpenCL worker" | head -1)
 
 %.o: %.cu
-	nvcc $(CFLAGS) $< -c
+	$(NVCC) $(CFLAGS) $< -c
 
 TARGETS = hello_world vector_scal vector_scal_task_insert
 
@@ -40,7 +40,7 @@ LDLIBS				+=	-lOpenCL
 endif
 
 vector_scal: $(VECTOR_SCAL_PREREQUISITES)
-	$(VECTOR_SCAL_COMPILER) $^ $(LDLIBS) -o $@
+	$(VECTOR_SCAL_COMPILER) $^ $(LDLIBS) -o $@ $(LDFLAGS)
 
 VECTOR_SCAL_TASK_INSERT_PREREQUISITES		=	vector_scal_task_insert.o vector_scal_cpu.o
 ifneq ($(strip $(HAS_CUDA)),)
@@ -54,7 +54,7 @@ VECTOR_SCAL_TASK_INSERT_PREREQUISITES += vector_scal_opencl.o
 endif
 
 vector_scal_task_insert: $(VECTOR_SCAL_TASK_INSERT_PREREQUISITES)
-	$(VECTOR_SCAL_TASK_INSERT_COMPILER) $^ $(LDLIBS) -o $@
+	$(VECTOR_SCAL_TASK_INSERT_COMPILER) $^ $(LDLIBS) -o $@ $(LDFLAGS)
 
 clean:
 	rm -f $(TARGETS) *.o
