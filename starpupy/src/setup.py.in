@@ -38,7 +38,7 @@ starpupy = Extension('starpu.starpupy',
                      include_dirs = ['@STARPU_SRC_DIR@/include', '@STARPU_BUILD_DIR@/include', '@STARPU_SRC_DIR@/starpupy/src', '@STARPU_SRC_DIR@/src', '@STARPU_BUILD_DIR@/src'] + numpy_include_dir,
                      libraries = ['starpu-@STARPU_EFFECTIVE_VERSION@', libpython],
                      extra_compile_args = extra_compile_args,
-                     extra_link_args = ['-shared'],
+                     extra_link_args = ['-shared', '@OPENMP_CFLAGS@'],
                      library_dirs = ['@STARPU_BUILD_DIR@/src/.libs'],
 	             sources = ['starpu/starpu_task_wrapper.c', 'starpu/starpupy_handle.c', 'starpu/starpupy_interface.c', 'starpu/starpupy_buffer_interface.c', 'starpu/starpupy_numpy_filters.c'])
 
