@@ -94,6 +94,12 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 		if ((profiling && profiling_info) || calibrate_model || !_starpu_perf_counter_paused())
 		{
 			worker->cl_start = start;
+			if (profiling && profiling_info)
+			{
+				profiling_info->start_time = worker->cl_start;
+				profiling_info->workerid = workerid;
+			}
+
 			if (task->predicted && !isnan(task->predicted))
 			{
 				struct timespec exp_end = start;
@@ -256,10 +262,7 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 
 		if (profiling && profiling_info)
 		{
-			profiling_info->start_time = worker->cl_start;
 			profiling_info->end_time = worker->cl_end;
-
-			profiling_info->workerid = workerid;
 
 			_starpu_worker_update_profiling_info_executing(workerid, 1,
 								       profiling_info->used_cycles,
