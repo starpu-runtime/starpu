@@ -311,6 +311,7 @@ EXTRA_DIST =				\
 	dev/valgrind/papi.suppr		\
 	dev/valgrind/pthread.suppr	\
 	dev/valgrind/starpu.suppr	\
+	dev/valgrind/starpu_pw.suppr	\
 	dev/valgrind/starpupy.suppr	\
 	dev/valgrind/valgrind.suppr	\
 	dev/valgrind/valgrind.sh	\
