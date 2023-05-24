@@ -96,7 +96,7 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 			worker->cl_start = start;
 			if (profiling && profiling_info)
 			{
-				profiling_info->start_time = worker->cl_start;
+				profiling_info->start_time = start;
 				profiling_info->workerid = workerid;
 			}
 
