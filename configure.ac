@@ -3030,16 +3030,24 @@ if test "x$enable_build_fortran_requested" = "xyes" ; then
 		else
 			if $FC -qversion 2>&1|grep -q 'IBM XL Fortran'; then
 				xlf_fc_version=`$FC -V 2>&1 |tail -1|sed 's/.*Version: //'`
-				xlf_maj_version=`echo $xlf_fc_version|cut -d. -f1`
 
 				AC_MSG_WARN([IBM Fortran compiler $xlf_fc_version not validated with the native StarPU Fortran API, Fortran examples will not be built])
 				enable_build_fortran="no"
 			else
 				AC_MSG_WARN(Fortran compiler has not been tested for StarPU native Fortran support)
-				 enable_build_fortran="yes"
+				enable_build_fortran="yes"
 			fi
 		fi
 	fi
+	if $FC -v 2>&1 | grep -q 'Arm C/C++/Fortran Compiler' ; then
+	       armflang_version=`$FC -v 2>&1 | head -1 | sed 's/.*version //'`
+	       armflang_maj_version=`echo $armflang_version|cut -d. -f1`
+               if test $armflang_maj_version -lt 23 ; then
+	                AC_MSG_WARN([ARM Fortran compiler $armflang_version is not validated with the native StarPU Fortran API, Fortran examples will not be built])
+			enable_build_fortran="no"
+	       fi
+        fi
+
 	if test "x$enable_build_fortran" = "xyes" ; then
 		AC_DEFINE(STARPU_HAVE_FC, [1], [Define this if a Fortran compiler is available])
 		if test x$build_mpi_lib = xyes -o x$build_nmad_lib = xyes -o x$build_mpi_master_slave = xyes ; then
