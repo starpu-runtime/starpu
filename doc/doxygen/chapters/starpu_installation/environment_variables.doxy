@@ -1570,14 +1570,7 @@ specified will take over \ref STARPU_LIMIT_CPU_NUMA_MEM.
 Specify the maximum available PCI bandwidth of the system in MB/s. This can only
 be effective with simgrid simulation. This allows to easily override the
 bandwidths stored in the platform file generated from measurements on the native
-system. This can be used e.g. for convenient
-
-Specify the maximum number of megabytes that should be available to the
-application on each NUMA node. This is the same as specifying that same amount
-with \ref STARPU_LIMIT_CPU_NUMA_devid_MEM for each NUMA node number. The total
-memory available to StarPU will thus be this amount multiplied by the number of
-NUMA nodes used by StarPU. Any \ref STARPU_LIMIT_CPU_NUMA_devid_MEM additionally
-specified will take over \ref STARPU_LIMIT_BANDWIDTH.
+system. This can thus be used accelerate or slow down the system bandwidth.
 </dd>
 
 <dt>STARPU_SUBALLOCATOR</dt>
