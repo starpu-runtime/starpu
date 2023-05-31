@@ -23,7 +23,7 @@
 
 typedef void (*check_func)(starpu_data_handle_t handle, int i, int rank, int *error);
 
-int exchange(int rank, starpu_data_handle_t *handles, check_func func)
+int exchange(int rank, starpu_data_handle_t *handles, starpu_mpi_tag_t initial_tag, check_func func)
 {
 	int other_rank = rank%2 == 0 ? rank+1 : rank-1;
 	int i;
@@ -34,11 +34,11 @@ int exchange(int rank, starpu_data_handle_t *handles, check_func func)
 
 	if (rank%2)
 	{
-		ret = starpu_mpi_issend(handles[0], &req[0], other_rank, 0, MPI_COMM_WORLD);
+		ret = starpu_mpi_issend(handles[0], &req[0], other_rank, initial_tag+0, MPI_COMM_WORLD);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_issend");
-		ret = starpu_mpi_issend(handles[NB-2], &req[NB-2], other_rank, NB-2, MPI_COMM_WORLD);
+		ret = starpu_mpi_issend(handles[NB-2], &req[NB-2], other_rank, initial_tag+NB-2, MPI_COMM_WORLD);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_issend");
-		ret = starpu_mpi_isend(handles[NB-1], &req[NB-1], other_rank, NB-1, MPI_COMM_WORLD);
+		ret = starpu_mpi_isend(handles[NB-1], &req[NB-1], other_rank, initial_tag+NB-1, MPI_COMM_WORLD);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend");
 
 		for(i=1 ; i<NB-2 ; i++)
@@ -46,13 +46,13 @@ int exchange(int rank, starpu_data_handle_t *handles, check_func func)
 			if (i%2)
 			{
 				FPRINTF_MPI(stderr, "iSsending value %d\n", i);
-				ret = starpu_mpi_issend(handles[i], &req[i], other_rank, i, MPI_COMM_WORLD);
+				ret = starpu_mpi_issend(handles[i], &req[i], other_rank, initial_tag+i, MPI_COMM_WORLD);
 				STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_issend");
 			}
 			else
 			{
 				FPRINTF_MPI(stderr, "isending value %d\n", i);
-				ret = starpu_mpi_isend(handles[i], &req[i], other_rank, i, MPI_COMM_WORLD);
+				ret = starpu_mpi_isend(handles[i], &req[i], other_rank, initial_tag+i, MPI_COMM_WORLD);
 				STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend");
 			}
 		}
@@ -66,7 +66,7 @@ int exchange(int rank, starpu_data_handle_t *handles, check_func func)
 	{
 		for(i=0 ; i<2 ; i++)
 		{
-			ret = starpu_mpi_irecv(handles[i], &req[i], other_rank, i, MPI_COMM_WORLD);
+			ret = starpu_mpi_irecv(handles[i], &req[i], other_rank, initial_tag+i, MPI_COMM_WORLD);
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv");
 			STARPU_ASSERT(req[i] != NULL);
 		}
@@ -84,7 +84,7 @@ int exchange(int rank, starpu_data_handle_t *handles, check_func func)
 
 		for(i=2 ; i<NB ; i++)
 		{
-			ret = starpu_mpi_irecv(handles[i], &req[i], other_rank, i, MPI_COMM_WORLD);
+			ret = starpu_mpi_irecv(handles[i], &req[i], other_rank, initial_tag+i, MPI_COMM_WORLD);
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv");
 			STARPU_ASSERT(req[i] != NULL);
 		}
@@ -118,21 +118,11 @@ void check_variable(starpu_data_handle_t handle, int i, int rank, int *error)
 	starpu_data_release(handle);
 }
 
-int exchange_variable(int rank)
+int exchange_variable(int rank, starpu_mpi_tag_t initial_tag)
 {
 	int ret, i;
 	starpu_data_handle_t tab_handle[NB];
 	int value[NB];
-	struct starpu_conf conf;
-
-	starpu_conf_init(&conf);
-	starpu_conf_noworker(&conf);
-	conf.ncpus = -1;
-	conf.nmpi_ms = -1;
-	conf.ntcpip_ms = -1;
-
-	ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, &conf);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	FPRINTF_MPI(stderr, "Exchanging variable data\n");
 
@@ -142,32 +132,20 @@ int exchange_variable(int rank)
 		starpu_variable_data_register(&tab_handle[i], STARPU_MAIN_RAM, (uintptr_t)&value[i], sizeof(int));
 		starpu_mpi_data_register(tab_handle[i], i, rank);
 	}
-	ret = exchange(rank, tab_handle, check_variable);
+	ret = exchange(rank, tab_handle, initial_tag, check_variable);
 	for(i=0 ; i<NB ; i++)
 		starpu_data_unregister(tab_handle[i]);
-
-	starpu_mpi_shutdown();
 
 	return ret;
 }
 
-int exchange_void(int rank)
+int exchange_void(int rank, starpu_mpi_tag_t initial_tag)
 {
 	int ret, i;
 	starpu_data_handle_t tab_handle[NB];
-	struct starpu_conf conf;
 
 	// This test is not run with valgrind as valgrind falsely detects error when exchanging NULL pointers
 	STARPU_SKIP_IF_VALGRIND_RETURN_ZERO;
-
-	starpu_conf_init(&conf);
-	starpu_conf_noworker(&conf);
-	conf.ncpus = -1;
-	conf.nmpi_ms = -1;
-	conf.ntcpip_ms = -1;
-
-	ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, &conf);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
 	FPRINTF_MPI(stderr, "Exchanging void data\n");
 
@@ -176,11 +154,9 @@ int exchange_void(int rank)
 		starpu_void_data_register(&tab_handle[i]);
 		starpu_mpi_data_register(tab_handle[i], i, rank);
 	}
-	ret = exchange(rank, tab_handle, NULL);
+	ret = exchange(rank, tab_handle, initial_tag, NULL);
 	for(i=0 ; i<NB ; i++)
 		starpu_data_unregister(tab_handle[i]);
-
-	starpu_mpi_shutdown();
 
 	return ret;
 }
@@ -203,22 +179,12 @@ void check_complex(starpu_data_handle_t handle, int i, int rank, int *error)
 	}
 }
 
-int exchange_complex(int rank)
+int exchange_complex(int rank, starpu_mpi_tag_t initial_tag)
 {
 	int ret, i;
 	starpu_data_handle_t handle[NB];
 	double real[NB];
 	double imaginary[NB];
-	struct starpu_conf conf;
-
-	starpu_conf_init(&conf);
-	starpu_conf_noworker(&conf);
-	conf.ncpus = -1;
-	conf.nmpi_ms = -1;
-	conf.ntcpip_ms = -1;
-
-	ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, &conf);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
 	FPRINTF_MPI(stderr, "Exchanging complex data\n");
 
@@ -229,11 +195,9 @@ int exchange_complex(int rank)
 		starpu_complex_data_register(&handle[i], STARPU_MAIN_RAM, &real[i], &imaginary[i], 1);
 		starpu_mpi_data_register(handle[i], i, rank);
 	}
-	ret = exchange(rank, handle, check_complex);
+	ret = exchange(rank, handle, initial_tag, check_complex);
 	for(i=0 ; i<NB ; i++)
 		starpu_data_unregister(handle[i]);
-
-	starpu_mpi_shutdown();
 
 	return ret;
 }
@@ -242,31 +206,52 @@ int main(int argc, char **argv)
 {
 	int ret=0, global_ret=0;
 	int rank, size;
+	int mpi_init;
+	struct starpu_conf conf;
+	starpu_mpi_tag_t initial_tag = 0;
 
-	MPI_INIT_THREAD_real(&argc, &argv, MPI_THREAD_SERIALIZED);
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &size);
+	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
+
+	starpu_conf_init(&conf);
+	starpu_conf_noworker(&conf);
+	conf.ncpus = -1;
+	conf.nmpi_ms = -1;
+	conf.ntcpip_ms = -1;
+
+	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, &conf);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
+
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
+	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
 
 	if (size%2 != 0)
 	{
 		FPRINTF(stderr, "We need a even number of processes.\n");
-		MPI_Finalize();
+		starpu_mpi_shutdown();
+		if (!mpi_init)
+			MPI_Finalize();
 		return rank == 0 ? STARPU_TEST_SKIPPED : 0;
 	}
 
-	ret = exchange_variable(rank);
+	ret = exchange_variable(rank, initial_tag);
+	initial_tag += NB;
 	if (ret != 0)
 		global_ret = ret;
 
-	ret = exchange_void(rank);
+	ret = exchange_void(rank, initial_tag);
+	initial_tag += NB;
 	if (ret != 0)
 		global_ret = ret;
 
-	ret = exchange_complex(rank);
+	ret = exchange_variable(rank, initial_tag);
+	initial_tag += NB;
 	if (ret != 0)
 		global_ret = ret;
 
-	MPI_Finalize();
+	starpu_mpi_shutdown();
+
+	if (!mpi_init)
+		MPI_Finalize();
 
 	return rank == 0 ? global_ret : 0;
 }
