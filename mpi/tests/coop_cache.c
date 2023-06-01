@@ -73,7 +73,7 @@ static inline int my_distrib(int x, int nb_nodes)
 	return x % nb_nodes;
 }
 
-static inline void do_test(char* cache_enabled)
+static inline void do_test(starpu_mpi_tag_t *initial_tag, char* cache_enabled)
 {
 	int ret, rank, worldsize, i;
 	int* data;
@@ -114,7 +114,7 @@ static inline void do_test(char* cache_enabled)
 		}
 
 		STARPU_ASSERT(handles[i] != NULL);
-		starpu_mpi_data_register(handles[i], i, mpi_rank);
+		starpu_mpi_data_register(handles[i], *initial_tag+i, mpi_rank);
 	}
 
 	starpu_mpi_task_insert(MPI_COMM_WORLD, &parent_cl, STARPU_W, handles[0], 0);
@@ -138,15 +138,18 @@ static inline void do_test(char* cache_enabled)
 	free(handles);
 	free(blocks);
 
+	*initial_tag += 2*worldsize;
 	starpu_mpi_shutdown();
 }
 
 int main(int argc, char **argv)
 {
+	starpu_mpi_tag_t initial_tag = 0;
+
 	MPI_INIT_THREAD_real(&argc, &argv, MPI_THREAD_SERIALIZED);
 
-	do_test(/* disable cache */ "0");
-	do_test(/* enable cache */ "1");
+	do_test(&initial_tag, /* disable cache */ "0");
+	do_test(&initial_tag, /* enable cache */ "1");
 
 	MPI_Finalize();
 

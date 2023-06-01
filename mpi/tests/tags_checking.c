@@ -34,7 +34,7 @@ void callback(void *arg)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 }
 
-int do_test(int rank, int sdetached, int rdetached)
+int do_test(int rank, starpu_mpi_tag_t initial_tag, int sdetached, int rdetached)
 {
 	int ret, i;
 	int val[2];
@@ -62,8 +62,8 @@ int do_test(int rank, int sdetached, int rdetached)
 	}
 	starpu_variable_data_register(&data[0], STARPU_MAIN_RAM, (uintptr_t)&val[0], sizeof(val[0]));
 	starpu_variable_data_register(&data[1], STARPU_MAIN_RAM, (uintptr_t)&val[1], sizeof(val[1]));
-	starpu_mpi_data_register(data[0], 77, 1);
-	starpu_mpi_data_register(data[1], 88, 1);
+	starpu_mpi_data_register(data[0], initial_tag+77, 1);
+	starpu_mpi_data_register(data[1], initial_tag+88, 1);
 
 	if (rank == 1)
 	{
@@ -139,6 +139,7 @@ int main(int argc, char **argv)
 	int rank;
 	int ret=0;
 	int sdetached, rdetached;
+	starpu_mpi_tag_t initial_tag = 0;
 
 	MPI_INIT_THREAD_real(&argc, &argv, MPI_THREAD_SERIALIZED);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -155,7 +156,8 @@ int main(int argc, char **argv)
 	{
 		for(rdetached=0 ; rdetached<=1 ; rdetached++)
 		{
-			ret += do_test(rank, sdetached, rdetached);
+			ret += do_test(rank, initial_tag, sdetached, rdetached);
+			initial_tag += 2;
 		}
 	}
 

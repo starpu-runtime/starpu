@@ -49,7 +49,7 @@ static struct starpu_codelet cl =
 	.modes = { STARPU_W },
 };
 
-static void test(char* enabled)
+static void test(starpu_mpi_tag_t tag, char* enabled)
 {
 	int var = -1;
 	int ret;
@@ -84,13 +84,13 @@ static void test(char* enabled)
 
 		for(n = 1 ; n < worldsize ; n++)
 		{
-			ret = starpu_mpi_isend_detached(handle, n, 0, MPI_COMM_WORLD, NULL, NULL);
+			ret = starpu_mpi_isend_detached(handle, n, tag, MPI_COMM_WORLD, NULL, NULL);
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend_detached");
 		}
 	}
 	else
 	{
-		ret = starpu_mpi_recv(handle, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		ret = starpu_mpi_recv(handle, 0, tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
 		FPRINTF_MPI(stderr, "received data\n");
 		starpu_data_acquire(handle, STARPU_R);
@@ -116,8 +116,8 @@ int main(int argc, char** argv)
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &worldsize);
 
-	test("0");
-	test("1");
+	test(42, "0");
+	test(24, "1");
 
 	MPI_Finalize();
 	return 0;

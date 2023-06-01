@@ -37,7 +37,7 @@ struct starpu_codelet mycodelet =
 	.model = &starpu_perfmodel_nop,
 };
 
-int test(int rank, int node, int *before, int *after, int task_insert, int data_array)
+int test(int rank, int node, starpu_mpi_tag_t initial_tag, int *before, int *after, int task_insert, int data_array)
 {
 	int ok, ret, i, x[2];
 	starpu_data_handle_t data_handles[2];
@@ -77,7 +77,7 @@ int test(int rank, int node, int *before, int *after, int task_insert, int data_
 			starpu_variable_data_register(&data_handles[i], 0, (uintptr_t)&x[i], sizeof(int));
 		else
 			starpu_variable_data_register(&data_handles[i], -1, (uintptr_t)NULL, sizeof(int));
-		starpu_mpi_data_register(data_handles[i], i, i);
+		starpu_mpi_data_register(data_handles[i], initial_tag+i, i);
 		descrs[i].handle = data_handles[i];
 	}
 	descrs[0].mode = STARPU_RW;
@@ -228,6 +228,7 @@ int main(int argc, char **argv)
 	int before[4] = {10, 20, 11, 22};
 	int after_node[2][4] = {{220, 20, 11, 22}, {220, 20, 11, 22}};
 	int node, insert_task, data_array;
+	starpu_mpi_tag_t initial_tag = 0;
 
 	MPI_INIT_THREAD_real(&argc, &argv, MPI_THREAD_SERIALIZED);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -239,7 +240,8 @@ int main(int argc, char **argv)
 		{
 			for(data_array=0 ; data_array<=2 ; data_array++)
 			{
-				ret = test(rank, node, before, after_node[node], insert_task, data_array);
+				ret = test(rank, node, initial_tag, before, after_node[node], insert_task, data_array);
+				initial_tag += 2;
 				if (ret == -ENODEV || ret)
 					global_ret = ret;
 			}

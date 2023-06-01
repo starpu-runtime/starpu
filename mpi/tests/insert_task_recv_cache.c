@@ -41,7 +41,8 @@ struct starpu_codelet mycodelet =
 	.model = &starpu_perfmodel_nop,
 };
 
-#define N     1000
+#define NB_ELEMENTS 1000
+#define NB_DATA     2
 
 /* Returns the MPI node number where data indexes index is */
 int my_distrib(int x)
@@ -49,12 +50,12 @@ int my_distrib(int x)
 	return x;
 }
 
-void test_cache(int rank, char *enabled, size_t *comm_amount)
+void test_cache(int rank, starpu_mpi_tag_t initial_tag, char *enabled, size_t *comm_amount)
 {
 	int i;
 	int ret;
-	unsigned *v[2];
-	starpu_data_handle_t data_handles[2];
+	unsigned *v[NB_DATA];
+	starpu_data_handle_t data_handles[NB_DATA];
 	struct starpu_conf conf;
 
 	FPRINTF(stderr, "Testing with STARPU_MPI_CACHE=%s\n", enabled);
@@ -69,34 +70,34 @@ void test_cache(int rank, char *enabled, size_t *comm_amount)
 	ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, &conf);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
-	for(i = 0; i < 2; i++)
+	for(i = 0; i < NB_DATA; i++)
 	{
 		int j;
-		v[i] = calloc(N, sizeof(unsigned));
-		for(j=0 ; j<N ; j++)
+		v[i] = calloc(NB_ELEMENTS, sizeof(unsigned));
+		for(j=0 ; j<NB_ELEMENTS ; j++)
 		{
 			v[i][j] = 12;
 		}
 	}
 
-	for(i = 0; i < 2; i++)
+	for(i = 0; i < NB_DATA; i++)
 	{
 		int mpi_rank = my_distrib(i);
 		if (mpi_rank == rank)
 		{
-			starpu_vector_data_register(&data_handles[i], STARPU_MAIN_RAM, (uintptr_t)v[i], N, sizeof(unsigned));
+			starpu_vector_data_register(&data_handles[i], STARPU_MAIN_RAM, (uintptr_t)v[i], NB_ELEMENTS, sizeof(unsigned));
 		}
 		else
 		{
 			/* I don't own this index, but will need it for my computations */
-			starpu_vector_data_register(&data_handles[i], -1, (uintptr_t)NULL, N, sizeof(unsigned));
+			starpu_vector_data_register(&data_handles[i], -1, (uintptr_t)NULL, NB_ELEMENTS, sizeof(unsigned));
 		}
-		starpu_mpi_data_register(data_handles[i], i, mpi_rank);
+		starpu_mpi_data_register(data_handles[i], initial_tag+i, mpi_rank);
 	}
 
 	// We call starpu_mpi_task_insert twice, when the cache is enabled, the 1st time puts the
 	// data in the cache, the 2nd time allows to check the data is not sent again
-	for(i = 0; i < 2; i++)
+	for(i = 0; i < NB_DATA; i++)
 	{
 		ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[0], STARPU_R, data_handles[1], 0);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
@@ -106,7 +107,7 @@ void test_cache(int rank, char *enabled, size_t *comm_amount)
 	starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[1]);
 
 	// Check again
-	for(i = 0; i < 2; i++)
+	for(i = 0; i < NB_DATA; i++)
 	{
 		ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[0], STARPU_R, data_handles[1], 0);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
@@ -114,7 +115,7 @@ void test_cache(int rank, char *enabled, size_t *comm_amount)
 
 	starpu_task_wait_for_all();
 
-	for(i = 0; i < 2; i++)
+	for(i = 0; i < NB_DATA; i++)
 	{
 		starpu_data_unregister(data_handles[i]);
 		free(v[i]);
@@ -130,6 +131,7 @@ int main(int argc, char **argv)
 	int result=0;
 	size_t *comm_amount_with_cache;
 	size_t *comm_amount_without_cache;
+	starpu_mpi_tag_t initial_tag = 0;
 
 	MPI_INIT_THREAD_real(&argc, &argv, MPI_THREAD_SERIALIZED);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -141,8 +143,9 @@ int main(int argc, char **argv)
 	comm_amount_with_cache = malloc(size * sizeof(size_t));
 	comm_amount_without_cache = malloc(size * sizeof(size_t));
 
-	test_cache(rank, "0", comm_amount_with_cache);
-	test_cache(rank, "1", comm_amount_without_cache);
+	test_cache(rank, initial_tag, "0", comm_amount_with_cache);
+	initial_tag += NB_DATA;
+	test_cache(rank, initial_tag, "1", comm_amount_without_cache);
 
 	if (rank == 1)
 	{

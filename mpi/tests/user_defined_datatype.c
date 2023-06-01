@@ -98,6 +98,7 @@ int main(int argc, char **argv)
 	}
 	else
 	{
+		starpu_mpi_tag_t initial_tag = 0;
 		test_func funcs[3] = {test_handle_recv_send, test_handle_irecv_isend_detached, NULL};
 		test_func *func;
 		for(func=funcs ; *func!=NULL ; func++)
@@ -152,9 +153,10 @@ int main(int argc, char **argv)
 				starpu_variable_data_register(&handle_vars[i], STARPU_MAIN_RAM, (uintptr_t)&foo[i], sizeof(float));
 			}
 
-			f(handle_vars, ELEMENTS, rank, ELEMENTS);
-			f(handle_complex, ELEMENTS, rank, 2*ELEMENTS);
-			f(handle_values, ELEMENTS, rank, 4*ELEMENTS);
+			f(handle_vars, ELEMENTS, rank, initial_tag+ELEMENTS);
+			f(handle_complex, ELEMENTS, rank, initial_tag+2*ELEMENTS);
+			f(handle_values, ELEMENTS, rank, initial_tag+4*ELEMENTS);
+			initial_tag += 4*ELEMENTS;
 
 			starpu_task_wait_for_all();
 

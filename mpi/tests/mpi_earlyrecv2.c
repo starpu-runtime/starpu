@@ -38,7 +38,7 @@ void callback(void *arg)
 
 typedef void (*check_func)(starpu_data_handle_t handle, int i, int rank, int *error);
 
-int exchange(int rank, starpu_data_handle_t *handles, check_func func, int detached)
+int exchange(int rank, starpu_data_handle_t *handles, starpu_mpi_tag_t initial_tag, check_func func, int detached)
 {
 	int other_rank = rank%2 == 0 ? rank+1 : rank-1;
 	int i;
@@ -46,13 +46,13 @@ int exchange(int rank, starpu_data_handle_t *handles, check_func func, int detac
 
 	if (rank%2)
 	{
-		ret = starpu_mpi_send(handles[0], other_rank, 0, MPI_COMM_WORLD);
+		ret = starpu_mpi_send(handles[0], other_rank, initial_tag+0, MPI_COMM_WORLD);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
-		ret = starpu_mpi_send(handles[NB-1], other_rank, NB-1, MPI_COMM_WORLD);
+		ret = starpu_mpi_send(handles[NB-1], other_rank, initial_tag+NB-1, MPI_COMM_WORLD);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
 		for(i=1 ; i<NB-1 ; i++)
 		{
-			ret = starpu_mpi_send(handles[i], other_rank, i, MPI_COMM_WORLD);
+			ret = starpu_mpi_send(handles[i], other_rank, initial_tag+i, MPI_COMM_WORLD);
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
 		}
 		return 0;
@@ -64,13 +64,13 @@ int exchange(int rank, starpu_data_handle_t *handles, check_func func, int detac
 
 		if (detached)
 		{
-			ret = starpu_mpi_irecv_detached(handles[0], other_rank, 0, MPI_COMM_WORLD, callback, &received);
+			ret = starpu_mpi_irecv_detached(handles[0], other_rank, initial_tag+0, MPI_COMM_WORLD, callback, &received);
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv_detached");
 		}
 		else
 		{
 			memset(req, 0, NB*sizeof(starpu_mpi_req));
-			ret = starpu_mpi_irecv(handles[0], &req[0], other_rank, 0, MPI_COMM_WORLD);
+			ret = starpu_mpi_irecv(handles[0], &req[0], other_rank, initial_tag+0, MPI_COMM_WORLD);
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv");
 			STARPU_ASSERT(req[0] != NULL);
 		}
@@ -81,12 +81,12 @@ int exchange(int rank, starpu_data_handle_t *handles, check_func func, int detac
 		{
 			if (detached)
 			{
-				ret = starpu_mpi_irecv_detached(handles[i], other_rank, i, MPI_COMM_WORLD, callback, &received);
+				ret = starpu_mpi_irecv_detached(handles[i], other_rank, initial_tag+i, MPI_COMM_WORLD, callback, &received);
 				STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv_detached");
 			}
 			else
 			{
-				ret = starpu_mpi_irecv(handles[i], &req[i], other_rank, i, MPI_COMM_WORLD);
+				ret = starpu_mpi_irecv(handles[i], &req[i], other_rank, initial_tag+i, MPI_COMM_WORLD);
 				STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv");
 				STARPU_ASSERT(req[i] != NULL);
 			}
@@ -129,7 +129,7 @@ void check_variable(starpu_data_handle_t handle, int i, int rank, int *error)
 	starpu_data_release(handle);
 }
 
-int exchange_variable(int rank, int detached)
+int exchange_variable(int rank, starpu_mpi_tag_t initial_tag, int detached)
 {
 	int ret, i;
 	starpu_data_handle_t tab_handle[NB];
@@ -143,7 +143,7 @@ int exchange_variable(int rank, int detached)
 		starpu_variable_data_register(&tab_handle[i], STARPU_MAIN_RAM, (uintptr_t)&value[i], sizeof(int));
 		starpu_mpi_data_register(tab_handle[i], i, rank);
 	}
-	ret = exchange(rank, tab_handle, check_variable, detached);
+	ret = exchange(rank, tab_handle, initial_tag, check_variable, detached);
 	for(i=0 ; i<NB ; i++)
 		starpu_data_unregister(tab_handle[i]);
 
@@ -158,7 +158,7 @@ void check_void(starpu_data_handle_t handle, int i, int rank, int *error)
 	(void)error;
 }
 
-int exchange_void(int rank, int detached)
+int exchange_void(int rank, starpu_mpi_tag_t initial_tag, int detached)
 {
 	int ret, i;
 	starpu_data_handle_t tab_handle[NB];
@@ -173,7 +173,7 @@ int exchange_void(int rank, int detached)
 		starpu_void_data_register(&tab_handle[i]);
 		starpu_mpi_data_register(tab_handle[i], i, rank);
 	}
-	ret = exchange(rank, tab_handle, check_void, detached);
+	ret = exchange(rank, tab_handle, initial_tag, check_void, detached);
 	for(i=0 ; i<NB ; i++)
 		starpu_data_unregister(tab_handle[i]);
 
@@ -194,7 +194,7 @@ void check_complex(starpu_data_handle_t handle, int i, int rank, int *error)
 	}
 }
 
-int exchange_complex(int rank, int detached)
+int exchange_complex(int rank, starpu_mpi_tag_t initial_tag, int detached)
 {
 	int ret, i;
 	starpu_data_handle_t handle[NB];
@@ -210,7 +210,7 @@ int exchange_complex(int rank, int detached)
 		starpu_complex_data_register(&handle[i], STARPU_MAIN_RAM, &real[i], &imaginary[i], 1);
 		starpu_mpi_data_register(handle[i], i, rank);
 	}
-	ret = exchange(rank, handle, check_complex, detached);
+	ret = exchange(rank, handle, initial_tag, check_complex, detached);
 	for(i=0 ; i<NB ; i++)
 		starpu_data_unregister(handle[i]);
 
@@ -223,6 +223,7 @@ int main(int argc, char **argv)
 	int rank, size;
 	int mpi_init;
 	struct starpu_conf conf;
+	starpu_mpi_tag_t initial_tag = 0;
 
 	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
 
@@ -247,27 +248,33 @@ int main(int argc, char **argv)
 		return rank == 0 ? STARPU_TEST_SKIPPED : 0;
 	}
 
-	ret = exchange_variable(rank, 0);
+	ret = exchange_variable(rank, initial_tag, 0);
+	initial_tag += NB;
 	if (ret != 0)
 		global_ret = ret;
 
-	ret = exchange_variable(rank, 1);
+	ret = exchange_variable(rank, initial_tag, 1);
+	initial_tag += NB;
 	if (ret != 0)
 		global_ret = ret;
 
-	ret = exchange_void(rank, 0);
+	ret = exchange_void(rank, initial_tag, 0);
+	initial_tag += NB;
 	if (ret != 0)
 		global_ret = ret;
 
-	ret = exchange_void(rank, 1);
+	ret = exchange_void(rank, initial_tag, 1);
+	initial_tag += NB;
 	if (ret != 0)
 		global_ret = ret;
 
-	ret = exchange_complex(rank, 0);
+	ret = exchange_complex(rank, initial_tag, 0);
+	initial_tag += NB;
 	if (ret != 0)
 		global_ret = ret;
 
-	ret = exchange_complex(rank, 1);
+	ret = exchange_complex(rank, initial_tag, 1);
+	initial_tag += NB;
 	if (ret != 0)
 		global_ret = ret;
 
