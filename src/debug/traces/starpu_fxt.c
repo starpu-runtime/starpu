@@ -4524,6 +4524,19 @@ uint64_t _starpu_fxt_find_start_time(char *filename_in)
 	return (ev.time);
 }
 
+
+struct inputrank {
+	int input;
+	int rank;
+};
+
+static int inputrank_compar(const void *_a, const void *_b)
+{
+	const struct inputrank *a = _a;
+	const struct inputrank *b = _b;
+	return a->rank - b->rank;
+}
+
 void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 {
 	_starpu_fxt_dag_init(options->dag_path);
@@ -4552,7 +4565,7 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 	}
 	else
 	{
-		unsigned inputfile;
+		unsigned inputfile, i;
 
 		uint64_t offsets[options->ninputfiles];
 
@@ -4632,13 +4645,16 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 						(sync_k[inputfile]-M):start_k[inputfile];
 		}
 
-		int maxrank = 0;
+		/* Sort input files by rank */
+		struct inputrank inputrank[options->ninputfiles];
 		for (inputfile = 0; inputfile < options->ninputfiles; inputfile++)
 		{
-			int filerank = rank_k[inputfile];
-			if (maxrank < filerank)
-				maxrank = filerank;
+			inputrank[inputfile].input = inputfile;
+			inputrank[inputfile].rank = rank_k[inputfile];
 		}
+		qsort(inputrank, options->ninputfiles, sizeof(inputrank[0]), inputrank_compar);
+
+		int maxrank = inputrank[options->ninputfiles-1].rank;
 
 		int logn;
 		if (maxrank == 0)
@@ -4647,9 +4663,11 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 			logn = log10(maxrank)+1;
 
 		/* generate the Paje trace for the different files */
-		for (inputfile = 0; inputfile < options->ninputfiles; inputfile++)
+		for (i = 0; i < options->ninputfiles; i++)
 		{
+			inputfile = inputrank[i].input;
 			int filerank = rank_k[inputfile];
+			STARPU_ASSERT(filerank == inputrank[i].rank);
 
 			_STARPU_DISP("Parsing file %s (rank %0*d)\n", options->filenames[inputfile], logn, filerank);
 
