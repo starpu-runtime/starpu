@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Joris Pablo
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2017-2021  Federal University of Rio Grande do Sul (UFRGS)
@@ -22,6 +22,7 @@
 #include <common/uthash.h>
 #include <datawizard/copy_driver.h>
 #include <string.h>
+#include <math.h>
 
 #ifdef STARPU_HAVE_POTI
 #include <poti.h>
@@ -4631,12 +4632,26 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 						(sync_k[inputfile]-M):start_k[inputfile];
 		}
 
+		int maxrank = 0;
+		for (inputfile = 0; inputfile < options->ninputfiles; inputfile++)
+		{
+			int filerank = rank_k[inputfile];
+			if (maxrank < filerank)
+				maxrank = filerank;
+		}
+
+		int logn;
+		if (maxrank == 0)
+			logn = 1;
+		else
+			logn = log10(maxrank)+1;
+
 		/* generate the Paje trace for the different files */
 		for (inputfile = 0; inputfile < options->ninputfiles; inputfile++)
 		{
 			int filerank = rank_k[inputfile];
 
-			_STARPU_DISP("Parsing file %s (rank %d)\n", options->filenames[inputfile], filerank);
+			_STARPU_DISP("Parsing file %s (rank %0*d)\n", options->filenames[inputfile], logn, filerank);
 
 			char file_prefix[32];
 			snprintf(file_prefix, sizeof(file_prefix), "%d_", filerank);
