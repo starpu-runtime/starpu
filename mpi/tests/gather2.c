@@ -66,9 +66,9 @@ int main(int argc, char **argv)
 			FPRINTF_MPI(stderr, "received <%d> from node %d\n", var[0], n);
 			starpu_data_release(handle[0]);
 
-			ret = starpu_mpi_recv(handle[0], n, 42, MPI_COMM_WORLD, &status[1]);
+			ret = starpu_mpi_recv(handle[0], n, 44, MPI_COMM_WORLD, &status[1]);
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
-			ret = starpu_mpi_recv(handle[1], n, 44, MPI_COMM_WORLD, &status[2]);
+			ret = starpu_mpi_recv(handle[1], n, 46, MPI_COMM_WORLD, &status[2]);
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
 			for(i=0 ; i<2 ; i++)
 				starpu_data_acquire(handle[i], STARPU_R);
@@ -94,9 +94,9 @@ int main(int argc, char **argv)
 			starpu_variable_data_register(&handle[i], STARPU_MAIN_RAM, (uintptr_t)&var[i], sizeof(var[i]));
 		ret = starpu_mpi_send(handle[0], 0, 42, MPI_COMM_WORLD);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
-		ret = starpu_mpi_send(handle[1], 0, 42, MPI_COMM_WORLD);
+		ret = starpu_mpi_send(handle[1], 0, 44, MPI_COMM_WORLD);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
-		ret = starpu_mpi_send(handle[2], 0, 44, MPI_COMM_WORLD);
+		ret = starpu_mpi_send(handle[2], 0, 46, MPI_COMM_WORLD);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
 		for(i=0 ; i<3 ; i++)
 			starpu_data_unregister(handle[i]);

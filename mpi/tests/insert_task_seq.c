@@ -56,7 +56,7 @@ int my_distrib(int x, int nb_nodes)
 	return x % nb_nodes;
 }
 
-void dotest(int rank, int size, char *enabled)
+void dotest(int rank, int size, starpu_mpi_tag_t initial_tag, char *enabled)
 {
 	int x, i;
 	int ret;
@@ -96,7 +96,7 @@ void dotest(int rank, int size, char *enabled)
 		}
 		if (data_handles[x])
 		{
-			starpu_mpi_data_register(data_handles[x], x, mpi_rank);
+			starpu_mpi_data_register(data_handles[x], initial_tag+x, mpi_rank);
 		}
 	}
 
@@ -129,12 +129,14 @@ int main(int argc, char **argv)
 {
 	int rank, size;
 	int barrier_ret;
+	starpu_mpi_tag_t initial_tag = 0;
 
 	MPI_INIT_THREAD_real(&argc, &argv, MPI_THREAD_SERIALIZED);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-	dotest(rank, size, "0");
+	dotest(rank, size, initial_tag, "0");
+	initial_tag += X;
 
 	/* Be sure all nodes finished the dotest function before repeating it.
 	 * This is required by the dynamic broadcasts of StarPU-nmad:
@@ -146,7 +148,7 @@ int main(int argc, char **argv)
 	barrier_ret = MPI_Barrier(MPI_COMM_WORLD);
 	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);
 
-	dotest(rank, size, "1");
+	dotest(rank, size, initial_tag, "1");
 
 	MPI_Finalize();
 	return 0;
