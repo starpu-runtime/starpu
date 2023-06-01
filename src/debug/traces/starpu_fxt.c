@@ -5097,7 +5097,7 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 			_STARPU_DISP("Parsing file %s (rank %0*d)\n", options->filenames[inputfile], logn, filerank);
 
 			char file_prefix[32];
-			snprintf(file_prefix, sizeof(file_prefix), "%d_", filerank);
+			snprintf(file_prefix, sizeof(file_prefix), "%0*d_", logn, filerank);
 
 			free(options->file_prefix);
 			options->file_prefix = strdup(file_prefix);
