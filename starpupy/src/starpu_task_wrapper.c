@@ -1755,6 +1755,10 @@ static PyObject* starpu_set_ncpu(PyObject *self, PyObject *args)
 
 	starpu_shutdown();
 
+	if (starpu_getenv("STARPU_NCPU") ||
+	    starpu_getenv("STARPU_NCPUS"))
+		fprintf(stderr, "warning: starpupy.set_ncpu is ineffective when the STARPU_NCPU or STARPU_NCPUS environment variable is defined");
+
 	int ret;
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
