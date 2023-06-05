@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -1378,6 +1378,12 @@ void _starpu_simgrid_count_ngpus(void)
 				xbt_dynar_push(route_dynar, &route[i]);
 			free(route);
 #endif
+			if (routesize == 1)
+			{
+				/* Direct link! no need to count anything */
+				starpu_bus_set_ngpus(busid, 1);
+				continue;
+			}
 
 			/* If it goes through "Host", do not care, there is no
 			 * direct transfer support */
@@ -1415,7 +1421,7 @@ void _starpu_simgrid_count_ngpus(void)
 			/* Didn't find it ?! */
 			if (through == -1)
 			{
-				_STARPU_DEBUG("Didn't find through-link for %d->%d\n", src, dst);
+				_STARPU_DISP("Didn't find through-link for %d->%d\n", src, dst);
 				continue;
 			}
 
