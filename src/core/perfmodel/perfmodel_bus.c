@@ -3177,11 +3177,14 @@ double starpu_transfer_predict(unsigned src_node, unsigned dst_node, size_t size
 	double bandwidth = bandwidth_matrix[src_node][dst_node];
 	double latency = latency_matrix[src_node][dst_node];
 	struct _starpu_machine_topology *topology = &_starpu_get_machine_config()->topology;
-#if 0
 	int busid = starpu_bus_get_id(src_node, dst_node);
+#if 0
 	int direct = starpu_bus_get_direct(busid);
 #endif
-	float ngpus = topology->ndevices[STARPU_CUDA_WORKER]+topology->ndevices[STARPU_OPENCL_WORKER];
+	float ngpus = starpu_bus_get_ngpus(busid);
+	if (ngpus != 1)
+		ngpus = topology->ndevices[STARPU_CUDA_WORKER]+topology->ndevices[STARPU_OPENCL_WORKER];
+
 #ifdef STARPU_DEVEL
 #warning FIXME: ngpus should not be used e.g. for slow disk transfers...
 #endif
