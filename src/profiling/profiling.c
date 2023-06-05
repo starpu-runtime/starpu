@@ -648,11 +648,13 @@ void starpu_bus_set_ngpus(int busid, int ngpus)
 
 int starpu_bus_get_ngpus(int busid)
 {
-	struct _starpu_machine_topology *topology = &_starpu_get_machine_config()->topology;
 	int ngpus = bus_ngpus[busid];
 	if (!ngpus)
+	{
+		struct _starpu_machine_topology *topology = &_starpu_get_machine_config()->topology;
 		/* Unknown number of GPUs, assume it's shared by all GPUs */
 		ngpus = topology->ndevices[STARPU_CUDA_WORKER]+topology->ndevices[STARPU_OPENCL_WORKER];
+	}
 	return ngpus;
 }
 
