@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2016       Uppsala University
  *
@@ -1476,9 +1476,14 @@ static unsigned _starpu_topology_count_ngpus(hwloc_obj_t obj)
 	struct _starpu_hwloc_userdata *data = obj->userdata;
 	unsigned n = data->ngpus;
 	unsigned i;
+	hwloc_obj_t child;
 
 	for (i = 0; i < obj->arity; i++)
 		n += _starpu_topology_count_ngpus(obj->children[i]);
+#if HWLOC_API_VERSION >= 0x00020000
+	for (child = obj->io_first_child; child; child = child->next_sibling)
+		n += _starpu_topology_count_ngpus(child);
+#endif
 
 	data->ngpus = n;
 //#ifdef STARPU_VERBOSE
