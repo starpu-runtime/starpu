@@ -239,6 +239,49 @@ void _starpu_cuda_discover_devices(struct _starpu_machine_config *config)
 #endif
 }
 
+#ifdef STARPU_HAVE_LIBNVIDIA_ML
+static int _starpu_cuda_direct_link(unsigned devid1, unsigned devid2)
+{
+	unsigned i;
+	struct cudaDeviceProp props_dev1;
+	struct cudaDeviceProp props_dev2;
+	cudaError_t cures;
+
+	cures = cudaGetDeviceProperties(&props_dev1, devid1);
+	if (cures != cudaSuccess)
+		return 0;
+	cures = cudaGetDeviceProperties(&props_dev2, devid2);
+	if (cures != cudaSuccess)
+		return 0;
+
+	nvmlDevice_t nvml_dev1 = _starpu_cuda_get_nvmldev(&props_dev1);
+
+	if (!nvml_dev1)
+		return 0;
+
+	for (i = 0; i < NVML_NVLINK_MAX_LINKS; i++) {
+		nvmlEnableState_t active;
+		nvmlReturn_t ret;
+		ret = nvmlDeviceGetNvLinkState(nvml_dev1, i, &active);
+		if (ret == NVML_ERROR_NOT_SUPPORTED)
+			continue;
+		if (active != NVML_FEATURE_ENABLED)
+			continue;
+
+		nvmlPciInfo_t pci;
+		nvmlDeviceGetNvLinkRemotePciInfo(nvml_dev1, i, &pci);
+		if ((int) pci.domain == props_dev2.pciDomainID &&
+		    (int) pci.bus == props_dev2.pciBusID &&
+		    (int) pci.device == props_dev2.pciDeviceID)
+			/* We have a direct NVLink! */
+			return 1;
+	}
+
+	/* No direct NVLink found */
+	return 0;
+}
+#endif
+
 static void _starpu_initialize_workers_cuda_gpuid(struct _starpu_machine_config *config)
 {
 	struct _starpu_machine_topology *topology = &config->topology;
@@ -482,9 +525,17 @@ void _starpu_cuda_init_worker_memory(struct _starpu_machine_config *config, int 
 				if (workerarg2->arch == STARPU_CUDA_WORKER)
 				{
 					unsigned memory_node2 = starpu_worker_get_memory_node(worker2);
-					_starpu_cuda_bus_ids[devid2+STARPU_MAXNUMANODES][devid+STARPU_MAXNUMANODES] = _starpu_register_bus(memory_node2, memory_node);
-					_starpu_cuda_bus_ids[devid+STARPU_MAXNUMANODES][devid2+STARPU_MAXNUMANODES] = _starpu_register_bus(memory_node, memory_node2);
+					int bus21 STARPU_ATTRIBUTE_UNUSED = _starpu_cuda_bus_ids[devid2+STARPU_MAXNUMANODES][devid+STARPU_MAXNUMANODES] = _starpu_register_bus(memory_node2, memory_node);
+					int bus12 STARPU_ATTRIBUTE_UNUSED = _starpu_cuda_bus_ids[devid+STARPU_MAXNUMANODES][devid2+STARPU_MAXNUMANODES] = _starpu_register_bus(memory_node, memory_node2);
 #ifndef STARPU_SIMGRID
+#ifdef STARPU_HAVE_LIBNVIDIA_ML
+					if (_starpu_cuda_direct_link(devid, devid2))
+					{
+						starpu_bus_set_ngpus(bus21, 1);
+						starpu_bus_set_ngpus(bus12, 1);
+					}
+					else
+#endif
 #if HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX
 					{
 						hwloc_obj_t obj, obj2, ancestor;
@@ -501,8 +552,8 @@ void _starpu_cuda_init_worker_memory(struct _starpu_machine_config *config, int 
 								_STARPU_DEBUG("CUDA%u and CUDA%u are linked through %s, along %u GPUs\n", devid, devid2, name, data->ngpus);
 							}
 #endif
-							starpu_bus_set_ngpus(_starpu_cuda_bus_ids[devid2+STARPU_MAXNUMANODES][devid+STARPU_MAXNUMANODES], data->ngpus);
-							starpu_bus_set_ngpus(_starpu_cuda_bus_ids[devid+STARPU_MAXNUMANODES][devid2+STARPU_MAXNUMANODES], data->ngpus);
+							starpu_bus_set_ngpus(bus21, data->ngpus);
+							starpu_bus_set_ngpus(bus12, data->ngpus);
 						}
 					}
 #endif
