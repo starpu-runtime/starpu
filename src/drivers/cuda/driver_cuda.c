@@ -1914,7 +1914,7 @@ static void start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *work
 	struct starpu_task *task = j->task;
 
 	int profiling = starpu_profiling_status_get();
-#ifdef STARPU_PROF_TOOL
+#if !defined(STARPU_SIMGRID) && defined(STARPU_PROF_TOOL)
 	struct starpu_prof_tool_info pi;
 #endif
 
