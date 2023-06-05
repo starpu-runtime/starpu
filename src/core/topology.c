@@ -1241,9 +1241,14 @@ static unsigned _starpu_topology_count_ngpus(hwloc_obj_t obj)
 	struct _starpu_hwloc_userdata *data = obj->userdata;
 	unsigned n = data->ngpus;
 	unsigned i;
+	hwloc_obj_t child;
 
 	for (i = 0; i < obj->arity; i++)
 		n += _starpu_topology_count_ngpus(obj->children[i]);
+#if HWLOC_API_VERSION >= 0x00020000
+	for (child = obj->io_first_child; child; child = child->next_sibling)
+		n += _starpu_topology_count_ngpus(child);
+#endif
 
 	data->ngpus = n;
 //#ifdef STARPU_VERBOSE
@@ -1989,6 +1994,14 @@ static void _starpu_init_workers_binding_and_memory(struct _starpu_machine_confi
 	_starpu_init_numa_node(config);
 	_starpu_init_numa_bus();
 
+#ifdef STARPU_SIMGRID
+	_starpu_simgrid_count_ngpus();
+#else
+#ifdef STARPU_HAVE_HWLOC
+	_starpu_topology_count_ngpus(hwloc_get_root_obj(config->topology.hwtopology));
+#endif
+#endif
+
 	/* Eventually initialize accelerators memory nodes */
 	if (!no_mp_config)
 	for (worker = 0; worker < config->topology.nworkers; worker++)
@@ -2026,14 +2039,6 @@ static void _starpu_init_workers_binding_and_memory(struct _starpu_machine_confi
 		int ret = _starpu_find_pu_driving_numa_up(numa_node_obj, node);
 		STARPU_ASSERT_MSG(ret, "oops, didn't find any worker to drive memory node %d!?", node);
 	}
-#endif
-
-#ifdef STARPU_SIMGRID
-	_starpu_simgrid_count_ngpus();
-#else
-#ifdef STARPU_HAVE_HWLOC
-	_starpu_topology_count_ngpus(hwloc_get_root_obj(config->topology.hwtopology));
-#endif
 #endif
 }
 
