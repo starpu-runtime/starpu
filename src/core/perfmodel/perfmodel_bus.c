@@ -2864,7 +2864,7 @@ static void write_bus_platform_file_content(int version)
 				}
 
 				/* Otherwise, link to another GPU? */
-				for (k = i+1; k < ncuda; k++)
+				for (k = 0; k < ncuda; k++)
 				{
 					if ((int) pci.domain == props[k].pciDomainID
 					 && (int) pci.bus == props[k].pciBusID
@@ -2880,7 +2880,7 @@ static void write_bus_platform_file_content(int version)
 					continue;
 
 				/* No idea what this is */
-				_STARPU_DISP("Warning: NVLink to unknown PCI card %04x:%02x:%02x: %04x", pci.domain, pci.bus, pci.device, pci.pciDeviceId);
+				_STARPU_DISP("Warning: NVLink to unknown PCI card %04x:%02x:%02x: %04x\n", pci.domain, pci.bus, pci.device, pci.pciDeviceId);
 			}
 		}
 
