@@ -323,8 +323,10 @@ void _starpu_cuda_init_worker_memory(struct _starpu_machine_config *config, int 
 			if (workerarg2->arch == STARPU_CUDA_WORKER)
 			{
 				unsigned memory_node2 = starpu_worker_get_memory_node(worker2);
-				_starpu_cuda_bus_ids[devid2+STARPU_MAXNUMANODES][devid+STARPU_MAXNUMANODES] = _starpu_register_bus(memory_node2, memory_node);
-				_starpu_cuda_bus_ids[devid+STARPU_MAXNUMANODES][devid2+STARPU_MAXNUMANODES] = _starpu_register_bus(memory_node, memory_node2);
+				int bus21 STARPU_ATTRIBUTE_UNUSED = _starpu_cuda_bus_ids[devid2+STARPU_MAXNUMANODES][devid+STARPU_MAXNUMANODES] = _starpu_register_bus(memory_node2, memory_node);
+				int bus12 STARPU_ATTRIBUTE_UNUSED = _starpu_cuda_bus_ids[devid+STARPU_MAXNUMANODES][devid2+STARPU_MAXNUMANODES] = _starpu_register_bus(memory_node, memory_node2);
+				STARPU_ASSERT(bus21 >= 0);
+				STARPU_ASSERT(bus12 >= 0);
 #if HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX
 				{
 					hwloc_obj_t obj, obj2, ancestor;
@@ -341,8 +343,8 @@ void _starpu_cuda_init_worker_memory(struct _starpu_machine_config *config, int 
 							_STARPU_DEBUG("CUDA%u and CUDA%u are linked through %s, along %u GPUs\n", devid, devid2, name, data->ngpus);
 						}
 #endif
-						starpu_bus_set_ngpus(_starpu_cuda_bus_ids[devid2+STARPU_MAXNUMANODES][devid+STARPU_MAXNUMANODES], data->ngpus);
-						starpu_bus_set_ngpus(_starpu_cuda_bus_ids[devid+STARPU_MAXNUMANODES][devid2+STARPU_MAXNUMANODES], data->ngpus);
+						starpu_bus_set_ngpus(bus21, data->ngpus);
+						starpu_bus_set_ngpus(bus12, data->ngpus);
 					}
 				}
 #endif
