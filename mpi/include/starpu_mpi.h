@@ -648,7 +648,7 @@ char *starpu_mpi_data_get_redux_map(starpu_data_handle_t handle);
 int starpu_mpi_task_insert(MPI_Comm comm, struct starpu_codelet *codelet, ...);
 #ifdef STARPU_USE_FXT
 #define starpu_mpi_task_insert(comm, cl, ...) \
-	starpu_mpi_task_insert((comm), (cl), STARPU_TASK_FILE, __FILE__, STARPU_TASK_LINE, __LINE__, ##__VA_ARGS__)
+	starpu_mpi_task_insert(comm, cl, STARPU_TASK_FILE, __FILE__, STARPU_TASK_LINE, __LINE__, ##__VA_ARGS__)
 #endif
 
 /**
@@ -657,7 +657,7 @@ int starpu_mpi_task_insert(MPI_Comm comm, struct starpu_codelet *codelet, ...);
 int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...);
 #ifdef STARPU_USE_FXT
 #define starpu_mpi_insert_task(comm, cl, ...) \
-	starpu_mpi_insert_task((comm), (cl), STARPU_TASK_FILE, __FILE__, STARPU_TASK_LINE, __LINE__, ##__VA_ARGS__)
+	starpu_mpi_insert_task(comm, cl, STARPU_TASK_FILE, __FILE__, STARPU_TASK_LINE, __LINE__, ##__VA_ARGS__)
 #endif
 
 /**
@@ -676,7 +676,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...);
 struct starpu_task *starpu_mpi_task_build(MPI_Comm comm, struct starpu_codelet *codelet, ...);
 #ifdef STARPU_USE_FXT
 #define starpu_mpi_task_build(comm, cl, ...) \
-	starpu_mpi_task_build((comm), (cl), STARPU_TASK_FILE, __FILE__, STARPU_TASK_LINE, __LINE__, ##__VA_ARGS__)
+	starpu_mpi_task_build(comm, cl, STARPU_TASK_FILE, __FILE__, STARPU_TASK_LINE, __LINE__, ##__VA_ARGS__)
 #endif
 
 /**
