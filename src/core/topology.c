@@ -2634,8 +2634,12 @@ static void _starpu_init_workers_binding_and_memory(struct _starpu_machine_confi
 							if (workerarg2->arch == STARPU_CUDA_WORKER)
 							{
 								unsigned memory_node2 = starpu_worker_get_memory_node(worker2);
-								_starpu_cuda_bus_ids[devid2+STARPU_MAXNUMANODES][devid+STARPU_MAXNUMANODES] = _starpu_register_bus(memory_node2, memory_node);
-								_starpu_cuda_bus_ids[devid+STARPU_MAXNUMANODES][devid2+STARPU_MAXNUMANODES] = _starpu_register_bus(memory_node, memory_node2);
+								int bus21 = _starpu_register_bus(memory_node2, memory_node);
+								int bus12 = _starpu_register_bus(memory_node, memory_node2);
+								if (bus21 < 0 || bus12 < 0)
+									continue;
+								_starpu_cuda_bus_ids[devid2+STARPU_MAXNUMANODES][devid+STARPU_MAXNUMANODES] = bus21;
+								_starpu_cuda_bus_ids[devid+STARPU_MAXNUMANODES][devid2+STARPU_MAXNUMANODES] = bus12;
 #ifndef STARPU_SIMGRID
 #if defined(HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX
 								{
