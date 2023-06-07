@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -417,7 +417,7 @@ extern "C" {
 */
 int starpu_task_set(struct starpu_task *task, struct starpu_codelet *cl, ...);
 #ifdef STARPU_USE_FXT
-#define starpu_task_set(task, cl, ...) starpu_task_set((task), (cl), STARPU_TASK_FILE, __FILE__, STARPU_TASK_LINE, __LINE__, ##__VA_ARGS__)
+#define starpu_task_set(task, cl, ...) starpu_task_set(task, cl, STARPU_TASK_FILE, __FILE__, STARPU_TASK_LINE, __LINE__, ##__VA_ARGS__)
 #endif
 
 /**
@@ -431,7 +431,7 @@ int starpu_task_set(struct starpu_task *task, struct starpu_codelet *cl, ...);
 */
 struct starpu_task *starpu_task_build(struct starpu_codelet *cl, ...);
 #ifdef STARPU_USE_FXT
-#define starpu_task_build(cl, ...) starpu_task_build((cl), STARPU_TASK_FILE, __FILE__, STARPU_TASK_LINE, __LINE__, ##__VA_ARGS__)
+#define starpu_task_build(cl, ...) starpu_task_build(cl, STARPU_TASK_FILE, __FILE__, STARPU_TASK_LINE, __LINE__, ##__VA_ARGS__)
 #endif
 
 /**
@@ -474,7 +474,7 @@ struct starpu_task *starpu_task_build(struct starpu_codelet *cl, ...);
 */
 int starpu_task_insert(struct starpu_codelet *cl, ...);
 #ifdef STARPU_USE_FXT
-#define starpu_task_insert(cl, ...) starpu_task_insert((cl), STARPU_TASK_FILE, __FILE__, STARPU_TASK_LINE, __LINE__, ##__VA_ARGS__)
+#define starpu_task_insert(cl, ...) starpu_task_insert(cl, STARPU_TASK_FILE, __FILE__, STARPU_TASK_LINE, __LINE__, ##__VA_ARGS__)
 #endif
 
 /**
@@ -482,7 +482,7 @@ int starpu_task_insert(struct starpu_codelet *cl, ...);
 */
 int starpu_insert_task(struct starpu_codelet *cl, ...);
 #ifdef STARPU_USE_FXT
-#define starpu_insert_task(cl, ...) starpu_insert_task((cl), STARPU_TASK_FILE, __FILE__, STARPU_TASK_LINE, __LINE__, ##__VA_ARGS__)
+#define starpu_insert_task(cl, ...) starpu_insert_task(cl, STARPU_TASK_FILE, __FILE__, STARPU_TASK_LINE, __LINE__, ##__VA_ARGS__)
 #endif
 
 /**
