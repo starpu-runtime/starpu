@@ -525,11 +525,13 @@ void _starpu_cuda_init_worker_memory(struct _starpu_machine_config *config, int 
 				if (workerarg2->arch == STARPU_CUDA_WORKER)
 				{
 					unsigned memory_node2 = starpu_worker_get_memory_node(worker2);
-					int bus21 STARPU_ATTRIBUTE_UNUSED = _starpu_cuda_bus_ids[devid2+STARPU_MAXNUMANODES][devid+STARPU_MAXNUMANODES] = _starpu_register_bus(memory_node2, memory_node);
-					int bus12 STARPU_ATTRIBUTE_UNUSED = _starpu_cuda_bus_ids[devid+STARPU_MAXNUMANODES][devid2+STARPU_MAXNUMANODES] = _starpu_register_bus(memory_node, memory_node2);
+					int bus21 = _starpu_register_bus(memory_node2, memory_node);
+					int bus12 = _starpu_register_bus(memory_node, memory_node2);
 					if (bus21 < 0 || bus12 < 0)
 						/* Already registered because of e.g. several workers per CUDA */
 						continue;
+					_starpu_cuda_bus_ids[devid2+STARPU_MAXNUMANODES][devid+STARPU_MAXNUMANODES] = bus21;
+					_starpu_cuda_bus_ids[devid+STARPU_MAXNUMANODES][devid2+STARPU_MAXNUMANODES] = bus12;
 #ifndef STARPU_SIMGRID
 #ifdef STARPU_HAVE_LIBNVIDIA_ML
 					if (_starpu_cuda_direct_link(devid, devid2))
