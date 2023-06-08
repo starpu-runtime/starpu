@@ -164,7 +164,7 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 
 	STARPU_ASSERT_MSG(A, "starpu_malloc needs to be passed the address of the pointer to be filled");
 	if (!starpu_is_initialized())
-		_STARPU_DISP("Warning: starpu_malloc needs to be called after starpu is initialized, to be able to pin memory for CUDA");
+		_STARPU_DISP("Warning: starpu_malloc needs to be called after starpu is initialized, to be able to pin memory for CUDA\n");
 
 	if (flags & STARPU_MALLOC_COUNT)
 	{

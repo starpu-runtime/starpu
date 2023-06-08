@@ -1678,7 +1678,7 @@ void _starpu_mpi_driver_init(struct starpu_conf *conf)
 	if (driver_env > 0)
 	{
 #ifdef STARPU_SIMGRID
-		_STARPU_DISP("Warning: MPI driver is not supported with simgrid, this will be disabled");
+		_STARPU_DISP("Warning: MPI driver is not supported with simgrid, this will be disabled\n");
 		return;
 #endif
 		mpi_driver_call_freq = driver_env;
