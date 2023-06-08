@@ -739,7 +739,7 @@ static void _starpu_initialize_workers_bindid(struct _starpu_machine_config *con
 
 	if (topology->nhwpus % topology->nhwworker[STARPU_CPU_WORKER][0])
 	{
-		_STARPU_DISP("Warning: hwloc reported %d logical CPUs for %d cores, this is not homogeneous, will assume %d logical CPUs per core", topology->nhwpus, topology->nhwworker[STARPU_CPU_WORKER][0], nhyperthreads);
+		_STARPU_DISP("Warning: hwloc reported %d logical CPUs for %d cores, this is not homogeneous, will assume %d logical CPUs per core\n", topology->nhwpus, topology->nhwworker[STARPU_CPU_WORKER][0], nhyperthreads);
 	}
 
 	/* conf->workers_bindid indicates the successive logical PU identifier that

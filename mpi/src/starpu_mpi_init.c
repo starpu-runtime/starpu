@@ -113,7 +113,7 @@ void _starpu_mpi_do_initialize(struct _starpu_mpi_argc_argv *argc_argv)
 	if (MPIX_Query_cuda_support())
 		_starpu_mpi_has_cuda = 1;
 	else if (_starpu_mpi_gpudirect > 0)
-		_STARPU_DISP("Warning: MPI GPUDirect requested, but MPIX_Query_cuda_support reports that it is not supported.");
+		_STARPU_DISP("Warning: MPI GPUDirect requested, but MPIX_Query_cuda_support reports that it is not supported.\n");
 	_STARPU_DEBUG("MPI has CUDA: %d\n", _starpu_mpi_has_cuda);
 	if (!_starpu_mpi_gpudirect)
 	{
@@ -129,14 +129,14 @@ void _starpu_mpi_do_initialize(struct _starpu_mpi_argc_argv *argc_argv)
 			int cuda_worker = starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0);
 			_starpu_mpi_cuda_devid = starpu_worker_get_devid(cuda_worker);
 
-			_STARPU_DISP("Warning: MPI GPUDirect is enabled using the PSM2 driver, but StarPU will be driving several CUDA GPUs.");
-			_STARPU_DISP("Since the PSM2 driver only supports one CUDA GPU at a time for GPU Direct (at least as of its version 11.2.185), StarPU-MPI will use GPU Direct only for CUDA%d.", _starpu_mpi_cuda_devid);
-			_STARPU_DISP("To get GPU Direct working with all CUDA GPUs with the PSM2 driver, you will unfortunately have to run one MPI rank per GPU.");
+			_STARPU_DISP("Warning: MPI GPUDirect is enabled using the PSM2 driver, but StarPU will be driving several CUDA GPUs.\n");
+			_STARPU_DISP("Since the PSM2 driver only supports one CUDA GPU at a time for GPU Direct (at least as of its version 11.2.185), StarPU-MPI will use GPU Direct only for CUDA%d.\n", _starpu_mpi_cuda_devid);
+			_STARPU_DISP("To get GPU Direct working with all CUDA GPUs with the PSM2 driver, you will unfortunately have to run one MPI rank per GPU.\n");
 		}
 	}
 #else
 	if (_starpu_mpi_gpudirect > 0)
-		_STARPU_DISP("Warning: MPI GPUDirect requested, but the MPIX_Query_cuda_support function is not provided by the MPI Implementation, did you compile it with CUDA support and the Cuda MPI extension?");
+		_STARPU_DISP("Warning: MPI GPUDirect requested, but the MPIX_Query_cuda_support function is not provided by the MPI Implementation, did you compile it with CUDA support and the Cuda MPI extension?\n");
 	_STARPU_DEBUG("No CUDA support in MPI\n");
 #endif
 #endif

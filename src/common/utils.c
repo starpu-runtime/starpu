@@ -533,7 +533,7 @@ void _starpu_gethostname(char *hostname, size_t size)
 		int rank;
 
 #ifdef STARPU_HAVE_DARWIN
-		_STARPU_DISP("Detection of MPI rank disabled on darwin, assuming rank is 0");
+		_STARPU_DISP("Detection of MPI rank disabled on darwin, assuming rank is 0\n");
 		rank = 0;
 #else
 		if (starpu_mpi_world_rank)
@@ -542,7 +542,7 @@ void _starpu_gethostname(char *hostname, size_t size)
 		}
 		else
 		{
-			_STARPU_DISP("StarPU-MPI unavailable, the rank of this process is 0");
+			_STARPU_DISP("StarPU-MPI unavailable, the rank of this process is 0\n");
 			rank = 0;
 		}
 #endif

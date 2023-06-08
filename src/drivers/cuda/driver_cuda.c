@@ -599,7 +599,7 @@ void starpu_cuda_set_device(unsigned devid STARPU_ATTRIBUTE_UNUSED)
 #elif !defined(HAVE_CUDA_GL_INTEROP_H)
 	if (conf->n_cuda_opengl_interoperability)
 	{
-		_STARPU_MSG("OpenGL interoperability was requested, but cuda_gl_interop.h could not be compiled, please make sure that OpenGL headers were available before ./configure run.");
+		_STARPU_MSG("OpenGL interoperability was requested, but cuda_gl_interop.h could not be compiled, please make sure that OpenGL headers were available before ./configure run.\n");
 		STARPU_ABORT();
 	}
 #else
