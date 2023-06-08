@@ -46,7 +46,7 @@ void starpu_data_set_reduction_methods_with_args(starpu_data_handle_t handle, st
 			STARPU_HG_DISABLE_CHECKING(_warned);
 			if (!_warned)
 			{
-				_STARPU_DISP("Warning: The reduction method should use STARPU_COMMUTE for its first parameter");
+				_STARPU_DISP("Warning: The reduction method should use STARPU_COMMUTE for its first parameter\n");
 				_warned = 1;
 			}
 			redux_cl->modes[0] |= STARPU_COMMUTE;

@@ -746,7 +746,7 @@ void _starpu_parallel_worker(struct _starpu_parallel_worker_group *group)
 				_STARPU_DISP("STARPU PARALLEL_WORKERS: Caution! It seems that you have"
 					     " multiple workers bound to the same PU. If you have"
 					     " multithreading on your cores it is greatly adviced"
-					     " to export STARPU_NTHREADS_PER_CORE=nb.");
+					     " to export STARPU_NTHREADS_PER_CORE=nb.\n");
 				starpu_parallel_worker_warned = 1;
 			}
 			parallel_worker->ncores += size-1;

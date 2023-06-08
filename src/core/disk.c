@@ -506,7 +506,7 @@ void _starpu_swap_init(void)
 #ifdef STARPU_LINUX_SYS
 		ops = &starpu_disk_unistd_o_direct_ops;
 #else
-		_STARPU_DISP("Warning: o_direct support is not compiled in, could not enable disk swap");
+		_STARPU_DISP("Warning: o_direct support is not compiled in, could not enable disk swap\n");
 		return;
 #endif
 
@@ -516,7 +516,7 @@ void _starpu_swap_init(void)
 #ifdef STARPU_HAVE_LEVELDB
 		ops = &starpu_disk_leveldb_ops;
 #else
-		_STARPU_DISP("Warning: leveldb support is not compiled in, could not enable disk swap");
+		_STARPU_DISP("Warning: leveldb support is not compiled in, could not enable disk swap\n");
 		return;
 #endif
 	}
@@ -525,13 +525,13 @@ void _starpu_swap_init(void)
 #ifdef STARPU_HAVE_HDF5
 		ops = &starpu_disk_hdf5_ops;
 #else
-		_STARPU_DISP("Warning: hdf5 support is not compiled in, could not enable disk swap");
+		_STARPU_DISP("Warning: hdf5 support is not compiled in, could not enable disk swap\n");
 		return;
 #endif
 	}
 	else
 	{
-		_STARPU_DISP("Warning: unknown disk swap backend %s, could not enable disk swap", backend);
+		_STARPU_DISP("Warning: unknown disk swap backend %s, could not enable disk swap\n", backend);
 		return;
 	}
 
@@ -540,7 +540,7 @@ void _starpu_swap_init(void)
 	starpu_disk_swap_node = starpu_disk_register(ops, path, ((size_t) size) << 20);
 	if (starpu_disk_swap_node < 0)
 	{
-		_STARPU_DISP("Warning: could not enable disk swap %s on %s with size %ld, could not enable disk swap", backend, path, (long) size);
+		_STARPU_DISP("Warning: could not enable disk swap %s on %s with size %ld, could not enable disk swap\n", backend, path, (long) size);
 		return;
 	}
 }
