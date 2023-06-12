@@ -13,7 +13,9 @@ Please describe how you make the issue happen, so we can reproduce it.
 
 ### Obtained behavior
 
-Please describe the result of your actions, and notably what you got that you didn't expect
+Please describe the result of your actions, and notably what you got that you didn't expect.
+
+If you get a segfault or assertion failure, please run the program in a debugger and send a backtrace (`bt full`). If you are trying a starpu example, you may need to run `gdb` through `libtool --mode=execute gdb` so it can find libraries etc.
 
 ### Expected behavior
 
