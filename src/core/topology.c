@@ -1079,6 +1079,12 @@ unsigned _starpu_topology_get_numa_core_binding(struct _starpu_machine_config *c
 	{
 		hwloc_obj_t obj = hwloc_get_obj_by_type(config->topology.hwtopology, HWLOC_OBJ_NUMANODE, numa_binding[n]);
 
+		if (!obj)
+		{
+			/* NUMA nodes not available, fall back to the whole machine */
+			return _starpu_topology_get_core_binding(binding, nbinding, hwloc_get_root_obj(config->topology.hwtopology));
+		}
+
 #if HWLOC_API_VERSION >= 0x00020000
 		/* Get the actual topology object */
 		obj = obj->parent;
