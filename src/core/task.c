@@ -836,6 +836,8 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 	{
 		// Internal tasks are submitted to initial context
 		task->sched_ctx = _starpu_get_initial_sched_ctx()->id;
+		// And we don't want them to interfere with submit order ids
+		task->no_submitorder = 1;
 	}
 	else if (task->sched_ctx == STARPU_NMAX_SCHED_CTXS)
 	{

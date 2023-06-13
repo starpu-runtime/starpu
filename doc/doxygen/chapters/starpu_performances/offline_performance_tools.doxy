@@ -221,7 +221,8 @@ starpu_task_insert()
 \li <b>Params</b>: represents parameters or input/output types and sizes, possibly indicating the dimensions of the matrices
 \li <b>Size</b>: represents the size of the data being operated on in bytes
 \li <b>Subiteration</b>: represents a sub-iteration number if the computation was part of a larger iteration or loop, as set by starpu_iteration_push()
-\li <b>SubmitOrder</b>: represents the order in which the task was submitted
+\li <b>SubmitOrder</b>: represents the order in which the task was submitted by
+the application
 \li <b>Tag</b>: represents a unique identifier for the task, which can be
 set either through starpu_task::tag_id or by using \ref STARPU_TAG or \ref
 STARPU_TAG_ONLY when calling starpu_task_insert()
