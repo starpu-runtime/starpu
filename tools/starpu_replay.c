@@ -585,6 +585,7 @@ int submit_tasks(void)
 					struct starpu_task *task = starpu_task_create();
 					int ret;
 					task->cl = NULL;
+					task->name = "fake task for submit order";
 					ret = starpu_task_submit(task);
 					STARPU_ASSERT(ret == 0);
 					last_submitorder++;
@@ -617,6 +618,8 @@ int submit_tasks(void)
 				starpu_iteration_push(currentTask->iteration);
 
 			applySchedRec(&currentTask->task, currentTask->submit_order);
+			if (currentTask->submit_order == -1)
+				currentTask->task.no_submitorder = 1;
 			int ret_val = starpu_task_submit(&currentTask->task);
 
 			if (!(currentTask->iteration == -1))
@@ -646,7 +649,10 @@ int submit_tasks(void)
 		{
 			fix_wontuse_handle(currentTask); /* Add the handle in the wontuse task */
 			if (currentTask->task.handles[0])
+			{
 				starpu_data_wont_use(currentTask->task.handles[0]);
+				last_submitorder++;
+			}
 		}
 
 		currentNode = starpu_rbtree_next(currentNode);
