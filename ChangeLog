@@ -515,7 +515,7 @@ Small changes:
   * Use asynchronous transfers for task data fetches with were not prefetched.
   * Allow to call starpu_sched_ctx_set_policy_data on the main
     scheduler context
-  * Fonction starpu_is_initialized() is moved to the public API.
+  * Function starpu_is_initialized() is moved to the public API.
   * Fix code to allow to submit tasks to empty contexts
   * STARPU_COMM_STATS also displays the bandwidth
   * Update data interfaces implementations to only use public API
@@ -858,7 +858,7 @@ Small features:
   * Add starpu_memory_pin and starpu_memory_unpin to pin memory allocated
     another way than starpu_malloc.
   * Add STARPU_NOWHERE to create synchronization tasks with data.
-  * Document how to switch between differents views of the same data.
+  * Document how to switch between different views of the same data.
   * Add STARPU_NAME to specify a task name from a starpu_task_insert call.
   * Add configure option to disable fortran --disable-fortran
   * Add configure option to give path for smpirun executable --with-smpirun
@@ -949,7 +949,7 @@ New features:
     easily control the number of submitted tasks by making task submission
     block.
   * Add STARPU_NOWHERE to create synchronization tasks with data.
-  * Document how to switch between differents views of the same data.
+  * Document how to switch between different views of the same data.
   * Add Fortran 90 module and example using it
 
 StarPU 1.1.4 (git revision 2a3d30b28d6d099d271134a786335acdbb3931a3)
@@ -996,7 +996,7 @@ New features:
   * Add the starpu_paje_summary statistics tool.
   * Enable gpu-gpu transfers for matrices.
   * Let interfaces declare which transfers they allow with the can_copy
-    methode.
+    method.
 
 Small changes:
   * Lock performance model files while writing and reading them to avoid
@@ -1075,7 +1075,7 @@ New features:
   * Capability to emit communication statistics when running MPI code
   * Add starpu_data_unregister_submit, starpu_data_acquire_on_node and
     starpu_data_invalidate_submit
-  * New functionnality to wrapper starpu_insert_task to pass a array of
+  * New functionality to wrapper starpu_insert_task to pass a array of
 	data_handles via the parameter STARPU_DATA_ARRAY
   * Enable GPU-GPU direct transfers.
   * GCC plug-in
@@ -1162,7 +1162,7 @@ New features:
     number is also written in the file itself.
     When updating the format, the internal variable
     _STARPU_PERFMODEL_VERSION should be updated. It is then possible
-    to switch easily between differents versions of StarPU having
+    to switch easily between different versions of StarPU having
     different performance model formats.
   * Tasks can now define a optional prologue callback which is executed
     on the host when the task becomes ready for execution, before getting
@@ -1324,7 +1324,7 @@ StarPU 1.0.1 (git revision 97ea6e15a273e23e4ddabf491b0f9481373ca01a)
 
 Changes:
   * hwloc support. Warn users when hwloc is not found on the system and
-	produce error when not explicitely disabled.
+	produce error when not explicitly disabled.
   * Several bug fixes
   * GCC plug-in
 	- Add `#pragma starpu release'
@@ -1452,7 +1452,7 @@ The API strengthening release
     - Provide the STARPU_SCRATCH data access mode
     - Rework data filter interface
     - Rework data interface structure
-    - A script that automatically renames old functions to accomodate with the new
+    - A script that automatically renames old functions to accommodate with the new
       API is available from https://scm.gforge.inria.fr/svn/starpu/scripts/renaming
       (login: anonsvn, password: anonsvn)
   * Implement dependencies between task directly (eg. without tags)

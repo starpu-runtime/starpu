@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -28,7 +28,7 @@ gflops <- function (x, size)
 parse <- function (size, ampl)
 {
 	filename = paste("timing-perturbate/pertubate", size, ampl, sep=".");
-	
+
 	if (file.exists(filename))
 	{
 		ret <- scan(filename);
@@ -41,7 +41,7 @@ parse <- function (size, ampl)
 parse_ref <- function (size)
 {
 	filename = paste("timings-sched/sched.greedy", size, sep=".");
-	
+
 	if (file.exists(filename))
 	{
 		ret <- scan(filename);

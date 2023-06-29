@@ -68,7 +68,7 @@ struct starpu_omp_numeric_place
 };
 
 /**
- * OpenMP place for thread afinity, defined by the OpenMP spec
+ * OpenMP place for thread affinity, defined by the OpenMP spec
  */
 struct starpu_omp_place
 {

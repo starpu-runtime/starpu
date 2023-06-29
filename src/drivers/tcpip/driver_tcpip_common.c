@@ -108,9 +108,9 @@ struct _starpu_tcpip_ms_request
 	char* buf;
 	/*the length of message*/
 	int len;
-	/*a flag to detect wether the operation is completed*/
+	/*a flag to detect whether the operation is completed*/
 	int flag_completed;
-	/*a semaphore to detect wether the request is completed*/
+	/*a semaphore to detect whether the request is completed*/
 	starpu_sem_t sem_wait_request;
 	/*a flag to detect send or receive*/
 	int is_sender;

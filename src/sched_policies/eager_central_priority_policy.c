@@ -49,7 +49,7 @@ static void initialize_eager_center_priority_policy(unsigned sched_ctx_id)
 	struct _starpu_eager_central_prio_data *data;
 	_STARPU_MALLOC(data, sizeof(struct _starpu_eager_central_prio_data));
 
-	/* only a single queue (even though there are several internaly) */
+	/* only a single queue (even though there are several internally) */
 	starpu_st_prio_deque_init(&data->taskq);
 	starpu_bitmap_init(&data->waiters);
 

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -93,7 +93,7 @@ int test_prefetch(unsigned memnodes)
 	{
 		available_size = starpu_memory_get_available(i);
 		FPRINTF(stderr, "Available memory size on node %u: %zd\n", i, available_size);
-		// here, we do not know which data has been cleaned, we cannot test the exact amout of available memory
+		// here, we do not know which data has been cleaned, we cannot test the exact amount of available memory
 		STARPU_CHECK_RETURN_VALUE((available_size == 0), "starpu_memory_get_available (node %u)", i);
 	}
 
@@ -141,12 +141,12 @@ void test_malloc()
 	/* Allocate one byte */
 	ret = starpu_malloc_flags((void **)&buffer, 1, STARPU_MALLOC_COUNT);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc_flags");
-	FPRINTF(stderr, "Allocation succesfull for 1 b\n");
+	FPRINTF(stderr, "Allocation successful for 1 b\n");
 
 	/* Allocate half the memory */
 	ret = starpu_malloc_flags((void **)&buffer2, SIZE_ALLOC*1024*512, STARPU_MALLOC_COUNT);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc_flags");
-	FPRINTF(stderr, "Allocation succesfull for %d b\n", SIZE_ALLOC*1024*512);
+	FPRINTF(stderr, "Allocation successful for %d b\n", SIZE_ALLOC*1024*512);
 
 	/* Try to allocate the other half, should fail */
 	ret = starpu_malloc_flags((void **)&buffer3, SIZE_ALLOC*1024*512, STARPU_MALLOC_COUNT);
@@ -166,7 +166,7 @@ void test_malloc()
 	/* Should not be able to allocate half the memory again */
 	ret = starpu_malloc_flags((void **)&buffer3, SIZE_ALLOC*1024*512, STARPU_MALLOC_COUNT);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc_flags");
-	FPRINTF(stderr, "Allocation succesfull for %d b\n", SIZE_ALLOC*1024*512);
+	FPRINTF(stderr, "Allocation successful for %d b\n", SIZE_ALLOC*1024*512);
 
 	starpu_free_flags(buffer3, SIZE_ALLOC*1024*512, STARPU_MALLOC_COUNT);
 	starpu_free_flags(buffer, 1, STARPU_MALLOC_COUNT);

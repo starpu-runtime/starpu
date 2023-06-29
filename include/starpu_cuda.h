@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -85,7 +85,7 @@ const struct cudaDeviceProp *starpu_cuda_get_device_properties(unsigned workerid
    copy the data asynchronous (unless \p stream is <c>NULL</c>). If the
    asynchronous copy fails or if \p stream is <c>NULL</c>, it copies the
    data synchronously. The function returns <c>-EAGAIN</c> if the
-   asynchronous launch was successfull. It returns 0 if the synchronous
+   asynchronous launch was successful. It returns 0 if the synchronous
    copy was successful, or fails otherwise.
 
    See \ref CUDASupport for more details.
@@ -102,7 +102,7 @@ int starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node, void *dst_ptr,
    The function first tries to copy the data asynchronous (unless \p stream is
    <c>NULL</c>). If the asynchronous copy fails or if \p stream is <c>NULL</c>,
    it copies the data synchronously. The function returns <c>-EAGAIN</c> if the
-   asynchronous launch was successfull. It returns 0 if the synchronous copy was
+   asynchronous launch was successful. It returns 0 if the synchronous copy was
    successful, or fails otherwise.
 
    See \ref CUDASupport for more details.
@@ -123,7 +123,7 @@ int starpu_cuda_copy2d_async_sync(void *src_ptr, unsigned src_node, void *dst_pt
    The function first tries to copy the data asynchronous (unless \p stream is
    <c>NULL</c>). If the asynchronous copy fails or if \p stream is <c>NULL</c>,
    it copies the data synchronously. The function returns <c>-EAGAIN</c> if the
-   asynchronous launch was successfull. It returns 0 if the synchronous copy was
+   asynchronous launch was successful. It returns 0 if the synchronous copy was
    successful, or fails otherwise.
 
    See \ref CUDASupport for more details.

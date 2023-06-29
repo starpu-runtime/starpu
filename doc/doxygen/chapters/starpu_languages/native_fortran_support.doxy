@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2014-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -110,8 +110,8 @@ is in use.
 - Obtaining the length of an array dimension:
 \code{.f90}
         real(8), dimension(:,:), allocatable, target :: vb
-        intger(c_int) :: ln_vb_1  ! variable to store the length of vb's dimension 1
-        intger(c_int) :: ln_vb_2  ! variable to store the length of vb's dimension 2
+        integer(c_int) :: ln_vb_1  ! variable to store the length of vb's dimension 1
+        integer(c_int) :: ln_vb_2  ! variable to store the length of vb's dimension 2
         ! [...]
         ln_vb_1 = 1+ubound(vb,1)-lbound(vb,1)  ! get length of dimension 1 of vb
         ln_vb_2 = 1+ubound(vb,2)-lbound(vb,2)  ! get length of dimension 2 of vb
@@ -226,7 +226,7 @@ The full example is available in <c>examples/native_fortran/nf_vector.f90</c>.
 \subsection NFOldFortran Using StarPU with Older Fortran Compilers
 
 When using older compilers, Fortran applications may still interoperate
-with StarPU using C marshalling functions as exemplified in StarPU's
+with StarPU using C marshalling functions as examplified in StarPU's
 <c>examples/fortran/</c> and <c>examples/fortran90/</c> example
 directories, though the process will be less convenient.
 

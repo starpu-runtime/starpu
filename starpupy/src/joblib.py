@@ -131,7 +131,7 @@ def future_generator(iterable, n_jobs, dict_task):
 			args_split.append([])
 			# if the array is an numpy array
 			if has_numpy and type(args[i]) is np.ndarray:
-				# check whether the arg is already registed
+				# check whether the arg is already registered
 				handle_dict = starpu.handle_dict
 				if handle_dict.get(id(args[i]))==None:
 					arr_h = Handle(args[i])

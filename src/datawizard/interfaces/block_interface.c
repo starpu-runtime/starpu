@@ -174,7 +174,7 @@ static int block_compare(void *data_interface_a, void *data_interface_b)
 	struct starpu_block_interface *block_a = (struct starpu_block_interface *) data_interface_a;
 	struct starpu_block_interface *block_b = (struct starpu_block_interface *) data_interface_b;
 
-	/* Two matricess are considered compatible if they have the same size */
+	/* Two blocks are considered compatible if they have the same size */
 	return (block_a->nx == block_b->nx)
 		&& (block_a->ny == block_b->ny)
 		&& (block_a->nz == block_b->nz)

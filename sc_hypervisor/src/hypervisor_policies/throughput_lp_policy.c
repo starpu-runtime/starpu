@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -108,7 +108,7 @@ static double _glp_resolve(int ns, int nw, double speed[ns][nw], double w_in_s[n
 			}
 
 		/* vmax should be positif */
-		/* Z = vmax structural variable, x[s][w] are auxiliar variables */
+		/* Z = vmax structural variable, x[s][w] are auxiliary variables */
 		glp_set_col_name(lp, nw*ns+1, "vmax");
 		glp_set_col_bnds(lp, nw*ns+1, GLP_LO, 0.0, 0.0);
 		glp_set_obj_coef(lp, nw*ns+1, 1.);

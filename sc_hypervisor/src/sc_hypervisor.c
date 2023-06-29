@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -158,7 +158,7 @@ static struct sc_hypervisor_policy *_select_hypervisor_policy(struct sc_hypervis
 }
 
 
-/* initializez the performance counters that starpu will use to retrive hints for resizing */
+/* initializez the performance counters that starpu will use to retrieve hints for resizing */
 void* sc_hypervisor_init(struct sc_hypervisor_policy *hypervisor_policy)
 {
 /* Perhaps we have to display some help */

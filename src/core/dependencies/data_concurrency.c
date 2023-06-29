@@ -48,7 +48,7 @@
  * request can be fulfilled, and in such case make the task try to acquire its
  * next data.
  *
- * The same mechanism is used for application data aquisition
+ * The same mechanism is used for application data acquisition
  * (starpu_data_acquire).
  *
  * For data with an arbiter, we have a second step, performed after this first
@@ -105,7 +105,7 @@ static struct _starpu_data_requester *may_unlock_data_req_list_head(starpu_data_
 }
 
 /* Try to submit a data request, in case the request can be processed
- * immediatly, return 0, if there is still a dependency that is not compatible
+ * immediately, return 0, if there is still a dependency that is not compatible
  * with the current mode, the request is put in the per-handle list of
  * "requesters", and this function returns 1. */
 /* No lock is held, this acquires and releases the handle header lock */
@@ -151,14 +151,14 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 	unsigned frozen = 0;
 
 	/* If we are currently performing a reduction, we freeze any request
-	 * that is not explicitely a reduction task. */
+	 * that is not explicitly a reduction task. */
 	unsigned is_a_reduction_task = (request_from_codelet && j && j->reduction_task);
 
 	if (pending_reduction && !is_a_reduction_task)
 		frozen = 1;
 
 	/* If there is currently nobody accessing the piece of data, or it's
-	 * not another writter and if this is the same type of access as the
+	 * not another writer and if this is the same type of access as the
 	 * current one, we can proceed. */
 	unsigned put_in_list = 1;
 
@@ -242,7 +242,7 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 }
 
 /* Take a data, without waiting for it to be available (it is assumed to be).
- * This is typicall used for nodeps tasks, for which a previous task has already
+ * This is typical used for nodeps tasks, for which a previous task has already
  * waited for the proper conditions, and we just need to take another reference
  * for overall reference coherency.
  * No lock is held, this acquires and releases the handle header lock */
@@ -280,7 +280,7 @@ static void _starpu_take_data(unsigned request_from_codelet,
 	}
 
 	/* If we are currently performing a reduction, we freeze any request
-	 * that is not explicitely a reduction task. */
+	 * that is not explicitly a reduction task. */
 	unsigned is_a_reduction_task = (request_from_codelet && j && j->reduction_task);
 
 	STARPU_ASSERT_MSG(!is_a_reduction_task, "TODO");

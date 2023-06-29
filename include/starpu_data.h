@@ -265,7 +265,7 @@ void starpu_data_advise_as_important(starpu_data_handle_t handle, unsigned is_im
    of data. Note that implicit data dependencies are also enforced by
    starpu_data_acquire(), i.e. starpu_data_acquire() will wait for all
    tasks scheduled to work on the data, unless they have been disabled
-   explictly by calling
+   explicitly by calling
    starpu_data_set_default_sequential_consistency_flag() or
    starpu_data_set_sequential_consistency_flag().
    starpu_data_acquire() is a blocking call, so that it cannot be
@@ -548,7 +548,7 @@ int starpu_data_evict_from_node(starpu_data_handle_t handle, unsigned node);
    its children), i.e. a bitmask of nodes where the data should be always
    replicated after modification. It also prevents the data from being
    evicted from these nodes when memory gets scarse. When the data is
-   modified, it is automatically transfered into those memory nodes. For
+   modified, it is automatically transferred into those memory nodes. For
    instance a <c>1<<0</c> write-through mask means that the CUDA workers
    will commit their changes in main memory (node 0). See \ref DataManagementAllocation for more details.
 */

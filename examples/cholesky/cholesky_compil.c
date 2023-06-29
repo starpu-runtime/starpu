@@ -254,7 +254,7 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 	float *mat = NULL;
 
 	/*
-	 * create a simple definite positive symetric matrix example
+	 * create a simple definite positive symmetric matrix example
 	 *
 	 *	Hilbert matrix : h(i,j) = 1/(i+j+1)
 	 *

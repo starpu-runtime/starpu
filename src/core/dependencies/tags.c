@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -146,7 +146,7 @@ static void _starpu_tag_free(void *_tag)
 }
 
 /*
- * Staticly initializing tag_global_rwlock seems to lead to weird errors
+ * Statically initializing tag_global_rwlock seems to lead to weird errors
  * on Darwin, so we do it dynamically.
  */
 void _starpu_init_tags(void)

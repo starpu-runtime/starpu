@@ -84,7 +84,7 @@ int main(int argc, char **argv)
 	starpu_data_acquire_cb(token_handle, STARPU_R, callback_r, NULL);
 
 	starpu_data_acquire(token_handle, STARPU_W);
-	/* These will wait for our relase */
+	/* These will wait for our release */
 	starpu_data_acquire_cb(token_handle, STARPU_R, callback_r, NULL);
 	starpu_data_acquire_cb(token_handle, STARPU_R, callback_r, NULL);
 	starpu_data_acquire_cb(token_handle, STARPU_W, callback_w, NULL);

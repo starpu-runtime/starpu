@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -633,9 +633,9 @@ int starpu_sched_component_can_push(struct starpu_sched_component * component, s
 	return ret;
 }
 
-/* A can_pull call will try to wake up one worker associated to the childs of the
- * component. It is currenly called by components which holds a queue (like fifo and prio
- * components) to signify its childs that a task has been pushed on its local queue.
+/* A can_pull call will try to wake up one worker associated to the children of the
+ * component. It is currently called by components which holds a queue (like fifo and prio
+ * components) to signify its children that a task has been pushed on its local queue.
  */
 int starpu_sched_component_can_pull(struct starpu_sched_component * component)
 {
@@ -650,9 +650,9 @@ int starpu_sched_component_can_pull(struct starpu_sched_component * component)
 	return 0;
 }
 
-/* A can_pull call will try to wake up one worker associated to the childs of the
- * component. It is currenly called by components which holds a queue (like fifo and prio
- * components) to signify its childs that a task has been pushed on its local queue.
+/* A can_pull call will try to wake up one worker associated to the children of the
+ * component. It is currently called by components which holds a queue (like fifo and prio
+ * components) to signify its children that a task has been pushed on its local queue.
  */
 int starpu_sched_component_can_pull_all(struct starpu_sched_component * component)
 {

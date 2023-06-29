@@ -52,11 +52,11 @@ extern "C" {
    interface.
 
    An example of data interface is the "vector" interface which describes
-   a contiguous data array on a spefic memory node. This interface is a
+   a contiguous data array on a specific memory node. This interface is a
    simple structure containing the number of elements in the array, the
    size of the elements, and the address of the array in the appropriate
    address space (this address may be invalid if there is no valid copy
-   of the array in the memory node). More informations on the data
+   of the array in the memory node). More information on the data
    interfaces provided by StarPU are given in \ref API_Data_Interfaces.
 
    When a piece of data managed by StarPU is used by a task, the task
@@ -844,7 +844,7 @@ starpu_ssize_t starpu_data_get_max_size(starpu_data_handle_t handle);
 int starpu_data_get_home_node(starpu_data_handle_t handle);
 
 /**
-   Print basic informations on \p handle on \p node.
+   Print basic information on \p handle on \p node.
    See \ref DataHandlesHelpers for more details.
  */
 void starpu_data_print(starpu_data_handle_t handle, unsigned node, FILE *stream);
@@ -980,7 +980,7 @@ int starpu_interface_copynd(uintptr_t src, size_t src_offset, unsigned src_node,
 			    void *async_data);
 
 /**
-   When an asynchonous implementation of the data transfer is implemented, the call
+   When an asynchronous implementation of the data transfer is implemented, the call
    to the underlying CUDA, OpenCL, etc. call should be surrounded
    by calls to starpu_interface_start_driver_copy_async() and
    starpu_interface_end_driver_copy_async(), so that it is recorded in offline
@@ -2270,7 +2270,7 @@ struct starpu_csr_interface
 	uint32_t *ram_colind; /**< position of non-zero entries on the row (stored in RAM) */
 	uint32_t *ram_rowptr; /**< index (in nzval) of the first entry of the row (stored in RAM) */
 
-	uint32_t firstentry; /**< k for k-based indexing (0 or 1 usually). also useful when partitionning the matrix. */
+	uint32_t firstentry; /**< k for k-based indexing (0 or 1 usually). also useful when partitioning the matrix. */
 
 	size_t elemsize; /**< size of the elements of the matrix */
 };
@@ -2432,7 +2432,7 @@ struct starpu_bcsr_interface
 	uint32_t *ram_colind; /**< array of nnz elements (stored in RAM) */
 	uint32_t *ram_rowptr; /**< array of nrow+1 elements (stored in RAM) */
 
-	uint32_t firstentry; /**< k for k-based indexing (0 or 1 usually). Also useful when partitionning the matrix. */
+	uint32_t firstentry; /**< k for k-based indexing (0 or 1 usually). Also useful when partitioning the matrix. */
 
 	uint32_t r; /**< height of the blocks */
 	uint32_t c; /**< width of the blocks */

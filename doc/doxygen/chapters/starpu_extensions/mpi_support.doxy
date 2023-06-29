@@ -1165,9 +1165,9 @@ StarPU will display at the end of the execution for each node the
 volume and the bandwidth of data sent to all the other nodes.
 Communication statistics can also be enabled and disabled from the
 application by calling the functions starpu_mpi_comm_stats_enable()
-and starpu_mpi_comm_stats_disable(). If communication statictics have
+and starpu_mpi_comm_stats_disable(). If communication statistics have
 been enabled, calling the function starpu_mpi_comm_stats_retrieve()
-will give the amout of communications between the calling node and all
+will give the amount of communications between the calling node and all
 the other nodes. Communication statistics will also be automatically
 displayed at the end of the execution, as examplified below.
 

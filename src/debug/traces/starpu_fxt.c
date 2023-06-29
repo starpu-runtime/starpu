@@ -512,7 +512,7 @@ static int last_codelet_parameter[STARPU_NMAXWORKERS];
 static char last_codelet_parameter_description[STARPU_NMAXWORKERS][MAX_PARAMETERS][FXT_MAX_PARAMS*sizeof(unsigned long)];
 
 /* If more than a period of time has elapsed, we flush the profiling info,
- * otherwise they are accumulated everytime there is a new relevant event. */
+ * otherwise they are accumulated every time there is a new relevant event. */
 #define ACTIVITY_PERIOD	75.0
 static double last_activity_flush_timestamp[STARPU_NMAXWORKERS];
 static double accumulated_sleep_time[STARPU_NMAXWORKERS];
@@ -895,7 +895,7 @@ static void memnode_event(double time, const char *prefix, unsigned int memnodei
 {
 	if (!options->memory_states)
 		return;
-	// If there is not a valid memory node, we cant associate it
+	// If there is not a valid memory node, we cannot associate it
 	if((int)memnodeid < 0)
 		return;
 #ifdef STARPU_HAVE_POTI
@@ -1528,7 +1528,7 @@ static void handle_worker_init_end(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 
 	do_worker_set_state(get_event_time_stamp(ev, options), prefix, worker, "I", "Other");
 
-	/* Initilize the accumulated time counters */
+	/* Initialize the accumulated time counters */
 	last_activity_flush_timestamp[worker] = get_event_time_stamp(ev, options);
 	accumulated_sleep_time[worker] = 0.0;
 	accumulated_exec_time[worker] = 0.0;
@@ -5060,7 +5060,7 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 		 *   t_corrected = t + offset
 		 * The offset represents two steps:
 		 *   1. It changes the time origin of timestamps to the local sync
-		 *      point time (since we are sure the sync point occured at the same
+		 *      point time (since we are sure the sync point occurred at the same
 		 *      global time on each node, it is a valid reference point), hence:
 		 *      offset[k] = -sync_point[k]
 		 *   2. This will make timestamp of events before the sync point

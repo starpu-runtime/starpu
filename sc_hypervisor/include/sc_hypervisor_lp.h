@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -47,27 +47,27 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 double sc_hypervisor_lp_get_tmax(int nw, int *workers);
 
 /**
-   the linear programme determins a rational number of ressources for each ctx, we round them depending on the type of ressource
+   the linear programme determines a rational number of resources for each ctx, we round them depending on the type of resource
 */
 void sc_hypervisor_lp_round_double_to_int(int ns, int nw, double res[ns][nw], int res_rounded[ns][nw]);
 
 /**
-   redistribute the ressource in contexts by assigning the first x available ressources to each one
+   redistribute the resource in contexts by assigning the first x available resources to each one
 */
 void sc_hypervisor_lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw], double res[ns][nw], unsigned *sched_ctxs, struct types_of_workers *tw);
 
 /**
-   make the first distribution of ressource in contexts by assigning the first x available ressources to each one
+   make the first distribution of resource in contexts by assigning the first x available resources to each one
 */
 void sc_hypervisor_lp_distribute_resources_in_ctxs(unsigned *sched_ctxs, int ns, int nw, int res_rounded[ns][nw], double res[ns][nw], int *workers, int nworkers, struct types_of_workers *tw);
 
 /**
-   make the first distribution of ressource in contexts by assigning the first x available ressources to each one, share not integer no of workers
+   make the first distribution of resource in contexts by assigning the first x available resources to each one, share not integer no of workers
 */
 void sc_hypervisor_lp_distribute_floating_no_resources_in_ctxs(unsigned *sched_ctxs, int ns, int nw, double res[ns][nw], int *workers, int nworkers, struct types_of_workers *tw);
 
 /**
-   place resources in contexts dependig on whether they already have workers or not
+   place resources in contexts depending on whether they already have workers or not
 */
 void sc_hypervisor_lp_place_resources_in_ctx(int ns, int nw, double w_in_s[ns][nw], unsigned *sched_ctxs, int *workers, unsigned do_size, struct types_of_workers *tw);
 
@@ -82,7 +82,7 @@ void sc_hypervisor_lp_share_remaining_resources(int ns, unsigned *sched_ctxs, in
 double sc_hypervisor_lp_find_tmax(double t1, double t2);
 
 /**
-   execute the lp trough dichotomy
+   execute the lp through dichotomy
 */
 unsigned sc_hypervisor_lp_execute_dichotomy(int ns, int nw, double w_in_s[ns][nw], unsigned solve_lp_integer, void *specific_data,
 					    double tmin, double tmax, double smallest_tmax,

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -231,7 +231,7 @@ STARPUFFT(twist2_1d_kernel_cpu)(void *descr[], void *_args)
 	struct STARPUFFT(args) *args = _args;
 	STARPUFFT(plan) plan = args->plan;
 	int jj = args->jj;	/* between 0 and DIV_1D */
-	int jjj;		/* beetween 0 and n3 */
+	int jjj;		/* between 0 and n3 */
 	int i;
 	int n1 = plan->n1[0];
 	int n2 = plan->n2[0];
@@ -280,7 +280,7 @@ STARPUFFT(twist3_1d_kernel_cpu)(void *descr[], void *_args)
 	struct STARPUFFT(args) *args = _args;
 	STARPUFFT(plan) plan = args->plan;
 	int jj = args->jj;	/* between 0 and DIV_1D */
-	int jjj;		/* beetween 0 and n3 */
+	int jjj;		/* between 0 and n3 */
 	int i;
 	int n1 = plan->n1[0];
 	int n2 = plan->n2[0];

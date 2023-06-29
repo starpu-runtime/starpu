@@ -37,7 +37,7 @@ struct starpupy_buffer_interface
 	Py_ssize_t buffer_size;	/* The size of py_buffer */
 	int dim_size;		/* For numpy objects, the dimension */
 #ifdef STARPU_PYTHON_HAVE_NUMPY
-	npy_intp* array_dim;	/* For numpy objects, the shapes of the different dimentions */
+	npy_intp* array_dim;	/* For numpy objects, the shapes of the different dimensions */
 #endif
 	int array_type;		/* The type of elements */
 	size_t item_size;	/* The size of elements */

@@ -31,7 +31,7 @@
  * by the application before data arrive.
  *
  * In this test case, multiples processes (called "domains") exchanges
- * informations between multiple "elements" multiple times, with
+ * information between multiple "elements" multiple times, with
  * different sizes (in order to catch error more easily).
  * The communications are independent between the elements (each one
  * as its proper tag), but must occur in the submitted order for an

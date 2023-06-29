@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2016	    Bérangère Subervie
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -102,8 +102,8 @@ int main(int argc, char *argv[])
 	 *    handle that should describe the data
 	 *  - the second argument is the memory node where the data (ie. "vector")
 	 *    resides initially: STARPU_MAIN_RAM stands for an address in main memory, as
-	 *    opposed to an adress on a GPU for instance.
-	 *  - the third argument is the adress of the vector in RAM
+	 *    opposed to an address on a GPU for instance.
+	 *  - the third argument is the address of the vector in RAM
 	 *  - the fourth argument is the number of elements in the vector
 	 *  - the fifth argument is the size of each element.
 	 */
@@ -128,8 +128,6 @@ int main(int argc, char *argv[])
 
 	for (j = 0; j < nb_data; j++)
 		starpu_data_unregister(vector_handle[j]);
-
-	/*on determine si le temps mesure est satisfaisant ou pas*/
 
 	time_m = (end_time - begin_time)/SECONDS_SCALE_COEFFICIENT_TIMING_NOW; //pour ramener en secondes
 	time_s = nb_tasks * TIME;

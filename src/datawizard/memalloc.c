@@ -545,7 +545,7 @@ int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node, enum starp
 			/* TODO: rather check if that can be evicted as well, and if so unmap it before evicting this */
 			return 0;
 
-	/* This data cannnot be pushed outside CPU memory */
+	/* This data cannot be pushed outside CPU memory */
 	if (!handle->ooc && starpu_node_get_kind(node) == STARPU_CPU_RAM
 		&& starpu_memory_nodes_get_numa_count() == 1)
 		return 0;
@@ -917,7 +917,7 @@ restart:
 }
 
 /*
- * Free the memory chunks that are explicitely tagged to be freed.
+ * Free the memory chunks that are explicitly tagged to be freed.
  */
 static size_t flush_memchunk_cache(unsigned node, size_t reclaim)
 {
@@ -1083,7 +1083,7 @@ size_t _starpu_memory_reclaim_generic(unsigned node, unsigned force, size_t recl
 }
 
 /*
- * This function frees all the memory that was implicitely allocated by StarPU
+ * This function frees all the memory that was implicitly allocated by StarPU
  * (for the data replicates). This is not ensuring data coherency, and should
  * only be called while StarPU is getting shut down.
  */
@@ -1177,7 +1177,7 @@ void starpu_memchunk_tidy(unsigned node)
 			handle = mc->data;
 			STARPU_ASSERT(handle);
 
-			/* This data cannnot be pushed outside CPU memory */
+			/* This data cannot be pushed outside CPU memory */
 			if (!handle->ooc && starpu_node_get_kind(node) == STARPU_CPU_RAM)
 				continue;
 
@@ -1215,7 +1215,7 @@ void starpu_memchunk_tidy(unsigned node)
 				 * dropping it! */
 				(node < sizeof(handle->wt_mask) * 8 && handle->wt_mask & (1<<node))
 				/* This is partitioned, don't care about the
-				 * whole data, we'll work on the subdatas.  */
+				 * whole data, we'll work on the subdata.  */
 			     || handle->nchildren
 				/* REDUX, can't do anything with it, skip it */
 			     || mc->relaxed_coherency == 2
@@ -1470,7 +1470,7 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
 /*
  * In order to allocate a piece of data, we try to reuse existing buffers if
  * its possible.
- *	1 - we try to reuse a memchunk that is explicitely unused.
+ *	1 - we try to reuse a memchunk that is explicitly unused.
  *	2 - we go through the list of memory chunks and find one that is not
  *	referenced and that has the same footprint to reuse it.
  *	3 - we call the usual driver's alloc method
@@ -1898,7 +1898,7 @@ choose_target(starpu_data_handle_t handle, unsigned node)
 	else
 	{
 		/* handle->home_node == -1 */
-		/* no place for datas in RAM, we push on disk */
+		/* no place for data in RAM, we push on disk */
 		if (starpu_node_get_kind(node) == STARPU_CPU_RAM)
 		{
 			target = get_better_disk_can_accept_size(handle, node);

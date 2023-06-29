@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -31,7 +31,7 @@
  */
 #define STARPU_DYNAMIC_DEPS_SIZE	1
 
-/* randomly choosen ! */
+/* randomly chosen ! */
 #ifndef STARPU_DYNAMIC_DEPS_SIZE
 #define STARPU_NMAXDEPS	256
 #endif
@@ -107,7 +107,7 @@ struct _starpu_cg
 
 		/** STARPU_CG_APPS
 		 * in case this completion group is related to an application,
-		 * we have to explicitely wake the waiting thread instead of
+		 * we have to explicitly wake the waiting thread instead of
 		 * reschedule the corresponding task */
 		struct
 		{

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -46,7 +46,7 @@ struct sc_hypervisor_policy
 	unsigned custom;
 
 	/**
-	   Distribute workers to contexts even at the begining of the
+	   Distribute workers to contexts even at the beginning of the
 	   program
 	*/
 	void (*size_ctxs)(unsigned *sched_ctxs, int nsched_ctxs, int *workers, int nworkers);
@@ -100,7 +100,7 @@ struct sc_hypervisor_policy
 
 	/**
 	   the hypervisor takes a decision when a certain ctx was
-	   registerd
+	   registered
 	*/
 	void (*start_ctx)(unsigned sched_ctx);
 
@@ -176,7 +176,7 @@ void sc_hypervisor_unregister_ctx(unsigned sched_ctx);
 void sc_hypervisor_post_resize_request(unsigned sched_ctx, int task_tag);
 
 /**
-   Require reconsidering the distribution of ressources over the
+   Require reconsidering the distribution of resources over the
    indicated scheduling contexts, i.e reevaluate the distribution of
    the resources and eventually resize if needed
 */
@@ -278,7 +278,7 @@ unsigned sc_hypervisor_get_nhierarchy_levels(void);
 void sc_hypervisor_get_leaves(unsigned *sched_ctxs, int nsched_ctxs, unsigned *leaves, int *nleaves);
 
 /**
-   Return the nready flops of all ctxs below in hierachy of sched_ctx
+   Return the nready flops of all ctxs below in hierarchy of sched_ctx
 */
 double sc_hypervisor_get_nready_flops_of_all_sons_of_sched_ctx(unsigned sched_ctx);
 

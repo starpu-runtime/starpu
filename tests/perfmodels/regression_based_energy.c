@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -23,7 +23,7 @@
  * A multi-implementation benchmark with dmda scheduler
  * we aim to test the energy model with the different size of gamma
  * for large size of gamma, dmda choose the second implementation which consumes less energy
- * otherwise, it choose the first implementtaion which minimizes the execution time
+ * otherwise, it choose the first implementation which minimizes the execution time
  */
 
 #define STARTlin 131072
@@ -68,7 +68,7 @@ void memset_cpu(void *descr[], void *arg)
 	}
 }
 
-//fonction pour mesurer l'energie
+// energy measurement function
 double energy_function(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl)
 
 {

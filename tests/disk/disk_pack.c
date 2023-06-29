@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013	    Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -35,7 +35,7 @@ int main(int argc, char **argv)
 #else
 /*
  * Try to write into disk memory
- * Use mechanism to push datas from main ram to disk ram
+ * Use mechanism to push data from main ram to disk ram
  * Here we force using the pack/unpack mechanism
  */
 
@@ -149,7 +149,7 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 	if (f == NULL)
 		goto enoent2;
 
-	/* replace all datas by 0 */
+	/* replace all data by 0 */
 	fwrite(C, sizeof(int), NX, f);
 
 	/* close the file */
@@ -165,7 +165,7 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 #endif
 	close(descriptor);
 
-	/* And now, you want to use your datas in StarPU */
+	/* And now, you want to use your data in StarPU */
 	/* Open the file ON the disk */
 	void * data = starpu_disk_open(dd, (void *) name_file_start, NX*sizeof(int));
 	void * data_result = starpu_disk_open(dd, (void *) name_file_end, NX*sizeof(int));
@@ -196,7 +196,7 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 	f = fopen(path_file_end, "rb+");
 	if (f == NULL)
 		goto enoent2;
-	/* take datas */
+	/* take data */
 	size_t read = fread(C, sizeof(int), NX, f);
 	STARPU_ASSERT(read == NX);
 

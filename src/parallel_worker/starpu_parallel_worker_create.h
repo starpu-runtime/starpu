@@ -80,7 +80,7 @@ LIST_TYPE(_starpu_parallel_worker,
 	struct _starpu_parallel_worker_parameters *params;
 )
 
-/** Machine discovery and parallel_worker creation main funcitons */
+/** Machine discovery and parallel_worker creation main functions */
 int _starpu_parallel_worker_config(hwloc_obj_type_t parallel_worker_level, struct starpu_parallel_worker_config *machine);
 int _starpu_parallel_worker_topology(hwloc_obj_type_t parallel_worker_level, struct starpu_parallel_worker_config *machine);
 void _starpu_parallel_worker_group(hwloc_obj_type_t parallel_worker_level, struct starpu_parallel_worker_config *machine);

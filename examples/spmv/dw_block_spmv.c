@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -224,7 +224,7 @@ void launch_spmv_codelets(void)
 				task->handles[1] = starpu_data_get_sub_data(vector_in, 1, i);
 				task->handles[2] = starpu_data_get_sub_data(vector_out, 1, j);
 
-				/* all tasks in the same row are dependant so that we don't wait too much for data
+				/* all tasks in the same row are dependent so that we don't wait too much for data
 				 * we need to wait on the previous task if we are not the first task of a row */
 				if (index != rowptr[row & ~0x3])
 				{

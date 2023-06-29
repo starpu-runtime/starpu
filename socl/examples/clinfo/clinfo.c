@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -37,7 +37,7 @@ int main(void)
 	cl_int err;
 	cl_uint num_platforms;
 
-	// Plaform info
+	// Platform info
 	err = clGetPlatformIDs(0, NULL, &num_platforms);
 	if (num_platforms == 0)
 	{
@@ -60,23 +60,23 @@ int main(void)
 			char str[4096];
 			err = clGetPlatformInfo(platforms[i], CL_PLATFORM_PROFILE, sizeof(str), str, NULL);
 			checkErr(err, "clGetPlatformInfo(CL_PLATFORM_PROFILE)");
-			printf("  Plaform Profile:\t\t\t\t %s\n", str);
+			printf("  Platform Profile:\t\t\t\t %s\n", str);
 
 			err= clGetPlatformInfo(platforms[i], CL_PLATFORM_VERSION, sizeof(str), str, NULL);
 			checkErr(err, "clGetPlatformInfo(CL_PLATFORM_VERSION)");
-			printf("  Plaform Version:\t\t\t\t %s\n", str);
+			printf("  Platform Version:\t\t\t\t %s\n", str);
 
 			err = clGetPlatformInfo(platforms[i], CL_PLATFORM_NAME, sizeof(str), str, NULL);
 			checkErr(err, "clGetPlatformInfo(CL_PLATFORM_NAME)");
-			printf("  Plaform Name:\t\t\t\t\t %s\n", str);
+			printf("  Platform Name:\t\t\t\t\t %s\n", str);
 
 			err = clGetPlatformInfo(platforms[i], CL_PLATFORM_VENDOR, sizeof(str), str, NULL);
 			checkErr(err, "clGetPlatformInfo(CL_PLATFORM_VENDOR)");
-			printf("  Plaform Vendor:\t\t\t\t %s\n", str);
+			printf("  Platform Vendor:\t\t\t\t %s\n", str);
 
 			err = clGetPlatformInfo(platforms[i], CL_PLATFORM_EXTENSIONS, sizeof(str), str, NULL);
 			checkErr(err, "clGetPlatformInfo(CL_PLATFORM_EXTENSIONS)");
-			printf("  Plaform Extensions:\t\t\t %s\n", str);
+			printf("  Platform Extensions:\t\t\t %s\n", str);
 		}
 	}
 
@@ -92,7 +92,7 @@ int main(void)
 
 			err = clGetPlatformInfo(platforms[i], CL_PLATFORM_NAME, sizeof(str), &str, NULL);
 			checkErr(err, "clGetPlatformInfo(CL_PLATFORM_NAME)");
-			printf("  Plaform Name:\t\t\t\t\t %s\n", str);
+			printf("  Platform Name:\t\t\t\t\t %s\n", str);
 
 			err = clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_ALL, 0, NULL, &num_devices);
 			if (err == CL_DEVICE_NOT_FOUND)
@@ -236,7 +236,7 @@ int main(void)
 					GET_BOOL(CL_DEVICE_IMAGE_SUPPORT, "  Image support:\t\t\t\t %s\n");
 
 					GET_SIZET(CL_DEVICE_MAX_PARAMETER_SIZE, "  Max size of kernel argument:\t\t\t %u\n");
-					GET_UINT(CL_DEVICE_MEM_BASE_ADDR_ALIGN, "  Alignment of base addres:\t\t\t %u bits\n");
+					GET_UINT(CL_DEVICE_MEM_BASE_ADDR_ALIGN, "  Alignment of base address:\t\t\t %u bits\n");
 					GET_UINT(CL_DEVICE_MIN_DATA_TYPE_ALIGN_SIZE, "  Minimum alignment for any datatype:\t\t %u bytes\n");
 
 					printf("  Single precision floating point capability\n");
@@ -290,7 +290,7 @@ int main(void)
 
 					GET_ULONG(CL_DEVICE_LOCAL_MEM_SIZE, "  Local memory size:\t\t\t\t %llu bytes\n");
 					GET_SIZET(CL_DEVICE_PROFILING_TIMER_RESOLUTION, "  Profiling timer resolution:\t\t\t %u\n");
-					GET_BOOL_CUSTOM(CL_DEVICE_ENDIAN_LITTLE, "  Device endianess:\t\t\t\t %s\n", "Little", "Big");
+					GET_BOOL_CUSTOM(CL_DEVICE_ENDIAN_LITTLE, "  Device endianness:\t\t\t\t %s\n", "Little", "Big");
 					GET_BOOL(CL_DEVICE_AVAILABLE, "  Available:\t\t\t\t\t %s\n");
 					GET_BOOL(CL_DEVICE_COMPILER_AVAILABLE, "  Compiler available:\t\t\t\t %s\n");
 

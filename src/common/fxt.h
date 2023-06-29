@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Joris Pablo
  * Copyright (C) 2018,2020  Federal University of Rio Grande do Sul (UFRGS)
  *
@@ -841,7 +841,7 @@ do {									\
 				/* Regarding the memory location:
 				 * - if the data interface doesn't provide to_pointer operation, NULL will be returned
 				 *   and the location will be -1, which is fine;
-				 * - we have to check wether the memory is on an actual NUMA node (and not on GPU
+				 * - we have to check whether the memory is on an actual NUMA node (and not on GPU
 				 *   memory, for instance);
 				 * - looking at memory location before executing the task isn't the best choice:
 				 *   the page can be not allocated yet. A solution would be to get the memory
@@ -1161,7 +1161,7 @@ do {										\
 #define _STARPU_TRACE_PAPI_TASK_EVENT(event_id, task, value)	\
 	FUT_DO_PROBE3(_STARPU_FUT_PAPI_TASK_EVENT_VALUE, event_id, _starpu_get_job_associated_to_task(task)->job_id, value)
 
-/* We skip these events becasue they are called so often that they cause FxT to
+/* We skip these events because they are called so often that they cause FxT to
  * fail and make the overall trace unreadable anyway. */
 #define _STARPU_TRACE_START_PROGRESS(memnode)		\
 	FUT_FULL_PROBE2(_STARPU_FUT_KEYMASK_WORKER_VERBOSE, _STARPU_FUT_START_PROGRESS_ON_TID, memnode, _starpu_gettid());

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2019-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,7 +19,7 @@
 #include <starpu_scheduler.h>
 #include "../helper.h"
 
-/* This examples shows the case of letting the runtime determing whether data
+/* This examples shows the case of letting the runtime determining whether data
  * should be in CPU memory or DFE memory, by integrating a multiplexer in a
  * design that can be toggled dynamically.  */
 

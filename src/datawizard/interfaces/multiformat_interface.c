@@ -487,12 +487,12 @@ static int copy_cuda_peer_common(void *src_interface, unsigned src_node,
 					     size, stream);
 		starpu_interface_end_driver_copy_async(src_node, dst_node, start);
 		/* All good ! Still, returning -EAGAIN, because we will need to
-		   check the transfert completion later */
+		   check the transfer completion later */
 		if (status == cudaSuccess)
 			return -EAGAIN;
 	}
 
-	/* Either a synchronous transfert was requested, or the asynchronous one
+	/* Either a synchronous transfer was requested, or the asynchronous one
 	   failed. */
 	status = cudaMemcpyPeer(dst_multiformat->cuda_ptr, dst_dev,
 				src_multiformat->cuda_ptr, src_dev,

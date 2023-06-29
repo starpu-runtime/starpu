@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2013-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2013       Simon Archipoff
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -19,9 +19,9 @@
 Mutex policy
 
 scheduler have to be protected when the hypervisor is modifying it.
-there is a mutex in struct starpu_sched_tree wich should be taken by
+there is a mutex in struct starpu_sched_tree which should be taken by
 the application to push a task
-and one mutex per worker wich should be taken by workers when they pop
+and one mutex per worker which should be taken by workers when they pop
 or push a task.
 The hypervisor must take all of them to modifying the scheduler.
 
@@ -63,7 +63,7 @@ be better.
 Hierarchical construction
 
 Bugs everywhere, works only in simple and particulars cases.
-Its difficult to guess where we should plug accelerators because we cant rely on
+Its difficult to guess where we should plug accelerators because we can't rely on
 hwloc topology. Hierarchical heft seems to work on simple machines with numa components
 and GPUs
 this fail if hwloc_socket_composed_sched_component or hwloc_cache_composed_sched_component is not
@@ -74,4 +74,4 @@ Various things
 
 In several place realloc is used (in prio_deque and for
 starpu_sched_component_add_child), because we should not have a lot
-different priority level nor adding too many childs.
+different priority level nor adding too many children.

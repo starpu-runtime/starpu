@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2014-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -138,7 +138,7 @@ int starpu_mpi_checkpoint_template_submit(starpu_mpi_checkpoint_template_t cp_te
 	current_instance = increment_current_instance();
 	_starpu_mpi_checkpoint_post_cp_discard_recv(cp_template);
 	_starpu_mpi_checkpoint_template_create_instance_tracker(cp_template, cp_template->cp_id, cp_template->checkpoint_domain, current_instance);
-	//TODO check what happens when all the ack msg are received when we arrrive here.
+	//TODO check what happens when all the ack msg are received when we arrive here.
 	item = _starpu_mpi_checkpoint_template_get_first_data(cp_template);
 	while (item != _starpu_mpi_checkpoint_template_end(cp_template))
 	{

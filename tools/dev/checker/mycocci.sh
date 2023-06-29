@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2012-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2012-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -50,7 +50,7 @@ run_script()
 	script=$1
 	mode=$2
 
-	# Make sure the script explicitely defines this virtual rule.
+	# Make sure the script explicitly defines this virtual rule.
 	grep "^virtual ${mode}" $script > /dev/null || return;
 
 	output_file=`basename ${script}`

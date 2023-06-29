@@ -41,7 +41,7 @@ void _starpu_init_perfmodel(void);
  * number is also written in the file itself.
  * When updating the format, the variable _STARPU_PERFMODEL_VERSION
  * should be updated. It is then possible to switch easily between
- * differents versions of StarPU having different performance model
+ * different versions of StarPU having different performance model
  * formats.
  */
 #define _STARPU_PERFMODEL_VERSION 45

@@ -21,7 +21,7 @@
 #define NPARTS 16
 
 /*
- * Test asynchronous partitioning on a temporary data without submitting explit
+ * Test asynchronous partitioning on a temporary data without submitting explicitly
  * partitioning/unpartitioning.
  */
 

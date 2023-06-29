@@ -383,9 +383,10 @@ static int _starpu_max_fpga_copy_ram_to_max_fpga(void *src, void *dst, size_t si
 	// LMemLoopback_writeLMem(dst, size, src);
 }
 
-/* Transfert SIZE bytes from the address pointed by SRC in the SRC_NODE memory
- *  * node to the address pointed by DST in the DST_NODE memory node
- *   */
+/**
+   Transfer SIZE bytes from the address pointed by SRC in the SRC_NODE memory
+   node to the address pointed by DST in the DST_NODE memory node
+*/
 void copy_ram_to_max_fpga(void *src, void *dst, size_t size)
 {
 	(void) src; (void) dst; (void) size;
@@ -400,9 +401,10 @@ void copy_max_fpga_to_ram(void *src, void *dst, size_t size)
 	//LMemLoopback_readLMem(size, src, dst);
 }
 
-/* Transfert SIZE bytes from the address pointed by SRC in the SRC_NODE memory
- * node to the address pointed by DST in the DST_NODE memory node
- */
+/**
+   Transfer SIZE bytes from the address pointed by SRC in the SRC_NODE memory
+   node to the address pointed by DST in the DST_NODE memory node
+*/
 int _starpu_max_fpga_copy_max_fpga_to_ram(void *src, void *dst, size_t size)
 {
 	printf("fpga to ram, fpga @= %p\n",src);
@@ -411,9 +413,10 @@ int _starpu_max_fpga_copy_max_fpga_to_ram(void *src, void *dst, size_t size)
 	//LMemLoopback_readLMem(src, size, dst);
 }
 
-/* Transfert SIZE bytes from the address pointed by SRC in the SRC_NODE memory
- * node to the address pointed by DST in the DST_NODE memory node
- */
+/**
+   Transfer SIZE bytes from the address pointed by SRC in the SRC_NODE memory
+   node to the address pointed by DST in the DST_NODE memory node
+*/
 int _starpu_max_fpga_copy_fpga_to_fpga(void *src, void *dst, size_t size)
 {
 	printf("fpga to ram, fpga @= %p\n",src);

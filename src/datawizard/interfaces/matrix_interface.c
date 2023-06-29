@@ -192,7 +192,7 @@ static int matrix_compare(void *data_interface_a, void *data_interface_b)
 	struct starpu_matrix_interface *matrix_a = (struct starpu_matrix_interface *) data_interface_a;
 	struct starpu_matrix_interface *matrix_b = (struct starpu_matrix_interface *) data_interface_b;
 
-	/* Two matricess are considered compatible if they have the same size */
+	/* Two matrices are considered compatible if they have the same size */
 	return (matrix_a->nx == matrix_b->nx)
 		&& (matrix_a->ny == matrix_b->ny)
 		&& (matrix_a->elemsize == matrix_b->elemsize);
@@ -203,7 +203,7 @@ static int matrix_alloc_compare(void *data_interface_a, void *data_interface_b)
 	struct starpu_matrix_interface *matrix_a = (struct starpu_matrix_interface *) data_interface_a;
 	struct starpu_matrix_interface *matrix_b = (struct starpu_matrix_interface *) data_interface_b;
 
-	/* Two matricess are considered allocation-compatible if they have the same size */
+	/* Two matrices are considered allocation-compatible if they have the same size */
 	return (matrix_a->allocsize == matrix_b->allocsize);
 }
 
@@ -225,7 +225,7 @@ struct pack_matrix_header
 	/* Receiving matrices with different sizes from MPI */
 	/* FIXME: that would break alignment for O_DIRECT disk access...
 	 * while in the disk case, we do know the matrix size anyway */
-	/* FIXME: rather make MPI pack the data interface in the enveloppe for us? */
+	/* FIXME: rather make MPI pack the data interface in the envelope for us? */
 	uint32_t nx;
 	uint32_t ny;
 	size_t elemsize;

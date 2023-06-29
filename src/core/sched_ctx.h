@@ -224,7 +224,7 @@ void _starpu_worker_gets_out_of_ctx(unsigned sched_ctx_id, struct _starpu_worker
 /** Check if the worker belongs to another sched_ctx */
 unsigned _starpu_worker_belongs_to_a_sched_ctx(int workerid, unsigned sched_ctx_id);
 
-/** indicates wheather this worker should go to sleep or not (if it is
+/** indicates whether this worker should go to sleep or not (if it is
  * the last one awake in a context he should better keep awake)
  */
 unsigned _starpu_sched_ctx_last_worker_awake(struct _starpu_worker *worker);

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -63,7 +63,7 @@ static void add_component(struct sched_component_list *list, struct starpu_sched
 	list->arr[list->size] = component;
 	list->size++;
 }
-/* this is the function that actualy built the scheduler, but without workers */
+/* this is the function that actually built the scheduler, but without workers */
 static struct sched_component_list helper_make_scheduler(struct starpu_sched_tree *tree, hwloc_obj_t obj, struct starpu_sched_component_specs specs, unsigned sched_ctx_id)
 {
 	STARPU_ASSERT(obj);
@@ -99,7 +99,7 @@ static struct sched_component_list helper_make_scheduler(struct starpu_sched_tre
 	struct sched_component_list l;
 	init_list(&l);
 	unsigned i;
-	/* collect childs component's */
+	/* collect children component's */
 	for(i = 0; i < obj->arity; i++)
 	{
 		struct sched_component_list lc = helper_make_scheduler(tree, obj->children[i],specs, sched_ctx_id);
@@ -118,7 +118,7 @@ static struct sched_component_list helper_make_scheduler(struct starpu_sched_tre
 	add_component(&l, component);
 	return l;
 }
-/* return the firt component in prefix order such as component->obj == obj, or NULL */
+/* return the first component in prefix order such as component->obj == obj, or NULL */
 static struct starpu_sched_component * _find_sched_component_with_obj(struct starpu_sched_component * component, hwloc_obj_t obj)
 {
 	if(component == NULL)

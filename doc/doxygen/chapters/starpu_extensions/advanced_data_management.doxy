@@ -86,7 +86,7 @@ starpu_memory_pin() to pin memory allocated by other ways, such as local arrays 
 is needed to permit asynchronous data transfer, i.e. permit data
 transfer to overlap with computations. Otherwise, the trace will show
 that the state <c>DriverCopyAsync</c> takes a lot of time, this is
-because CUDA or OpenCL then reverts to synchronous transfers. Before shutting down StarPU, the application should deallocate any memory that has previously been allocated with starpu_malloc(), by calling either starpu_free() or starpu_free_noflag() which is more recommanded. If the application has pinned memory using starpu_memory_pin(), it should unpin the memory using starpu_memory_unpin() before freeing the memory.
+because CUDA or OpenCL then reverts to synchronous transfers. Before shutting down StarPU, the application should deallocate any memory that has previously been allocated with starpu_malloc(), by calling either starpu_free() or starpu_free_noflag() which is more recommended. If the application has pinned memory using starpu_memory_pin(), it should unpin the memory using starpu_memory_unpin() before freeing the memory.
 
 If an application requires a specific alignment constraint for memory allocations made with starpu_malloc(), it can use the starpu_malloc_set_align() function to set the alignment requirement.
 
@@ -292,7 +292,7 @@ starpu_data_pack_node() and starpu_data_pack() are functions that are used to pa
 
 StarPU provides several functions for querying the size and memory allocation of variable size data items, such as: starpu_data_get_size() is a function that returns the size of a data associated with handle in bytes. This is the size of the actual data stored in memory. starpu_data_get_alloc_size() is a function that returns the amount of memory that has been allocated for a data associated with handle in anticipation. This may be larger than the actual size of the data item, due to alignment requirements or other implementation details. starpu_data_get_max_size() is a function that returns the maximum size of a handle data that can be allocated by StarPU.
 
-One can call starpu_data_get_home_node() to retrieve the identifier of the node on which the data handle is originally stored. One can call starpu_data_print() to print basic informations about the data handle and the node to the specified file.
+One can call starpu_data_get_home_node() to retrieve the identifier of the node on which the data handle is originally stored. One can call starpu_data_print() to print basic information about the data handle and the node to the specified file.
 
 \section DataPointers Handles data buffer pointers
 
@@ -633,7 +633,7 @@ variants, notably for the case of 2D or 3D matrix tiles with non-trivial ld.
 
 We can call starpu_interface_data_copy() to record in offline execution traces the copy.
 
-When an asynchonous implementation of the data transfer is implemented, we can call starpu_interface_start_driver_copy_async() and starpu_interface_end_driver_copy_async() to initiate and complete asynchronous data transfers between main memory and GPU memory.
+When an asynchronous implementation of the data transfer is implemented, we can call starpu_interface_start_driver_copy_async() and starpu_interface_end_driver_copy_async() to initiate and complete asynchronous data transfers between main memory and GPU memory.
 
 \subsection DefiningANewDataInterface_pack Data pack/peek/unpack
 
@@ -907,6 +907,6 @@ struct starpu_codelet cl =
 };
 \endcode
 
-An example for specifying target node is availbale in <c>tests/datawizard/specific_node.c</c>.
+An example for specifying target node is available in <c>tests/datawizard/specific_node.c</c>.
 
 */

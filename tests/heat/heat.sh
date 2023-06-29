@@ -30,7 +30,7 @@ BLOCKS=8
 THETALIST="32 64 128 192 256 384"
 
 echo "absolute wall time ..."
-# perform all measurments first 
+# perform all measurements first
 for theta in $THETALIST
 do
 	size=$(($theta*32))
@@ -45,7 +45,7 @@ do
 			export STARPU_NCPUS=$cpus
 			export STARPU_NCUDA=$cublas
 
-			echo "size $size cpus $cpus cublas $cublas blocks $blocks" 
+			echo "size $size cpus $cpus cublas $cublas blocks $blocks"
 			$MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat -nthick 34 -ntheta $(($theta+2)) -nblocks $BLOCKS 2>/dev/null| tee $filename
 		done
 	done
@@ -61,7 +61,7 @@ do
 			export STARPU_NCPUS=$cpus
 			export STARPU_NCUDA=$cublas
 
-			echo "size $size cpus $cpus cublas $cublas blocks $blocks" 
+			echo "size $size cpus $cpus cublas $cublas blocks $blocks"
 			$MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat -nthick 34 -ntheta $(($theta+2)) -nblocks $BLOCKS 2>/dev/null| tee $filename
 		done
 	done
@@ -79,7 +79,7 @@ done
 echo "speedup ..."
 
 for blocks in 2 4 8 16 32
-do	
+do
 	for theta in $THETALIST
 	do
 		size=$(($theta*32))
@@ -100,7 +100,7 @@ do
 	done
 done
 
-# speedups 
+# speedups
 for blocks in 2 4 8 16 32
 do
 	rm -f $DIR/speedup.$blocks
@@ -108,6 +108,6 @@ do
 	do
 		size=$(($theta*32))
 
-		echo "$size	`cat $TIMINGDIR/timing.3.1.$size.$blocks`	`cat  $TIMINGDIR/timing.4.0.$size.$blocks`" >> $DIR/speedup.$blocks 
+		echo "$size	`cat $TIMINGDIR/timing.3.1.$size.$blocks`	`cat  $TIMINGDIR/timing.4.0.$size.$blocks`" >> $DIR/speedup.$blocks
 	done
 done

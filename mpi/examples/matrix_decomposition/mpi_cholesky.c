@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -20,7 +20,7 @@
 
 int main(int argc, char **argv)
 {
-	/* create a simple definite positive symetric matrix example
+	/* create a simple definite positive symmetric matrix example
 	 *
 	 *	Hilbert matrix : h(i,j) = 1/(i+j+1)
 	 * */

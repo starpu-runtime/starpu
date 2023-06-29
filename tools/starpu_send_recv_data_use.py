@@ -3,7 +3,7 @@
 #
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2019-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2019-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -127,7 +127,7 @@ def plot_graph(comm_time_key, match, filename, title, xlabel):
     if len(durations) != 0:
         axs[2].hist(durations, bins=np.logspace(np.log10(1), np.log10(max(durations)), 50), rwidth=0.8)
         axs[2].set_xscale("log")
-        axs[2].set(xlabel=xlabel, ylabel="Number of occurences", title="Histogramm")
+        axs[2].set(xlabel=xlabel, ylabel="Number of occurrences", title="Histogramm")
 
     fig.set_size_inches(15, 9)
 

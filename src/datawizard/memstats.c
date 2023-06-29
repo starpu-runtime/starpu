@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,7 +29,7 @@ void _starpu_memory_stats_init(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUS
 void _starpu_memory_stats_init_per_node(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED, unsigned node STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_MEMORY_STATS
-	/* Stats initilization */
+	/* Stats initialization */
 	//handle->memory_stats->direct_access[node]=0;
 	//handle->memory_stats->loaded_shared[node]=0;
 	//handle->memory_stats->shared_to_owner[node]=0;

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2021       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -55,7 +55,7 @@ LIST_TYPE(_starpu_mem_chunk,
 
 	/** Whether StarPU automatically allocated this memory, or the application did */
 	unsigned automatically_allocated:1;
-	/** A buffer that is used for SCRATCH or reduction cannnot be used with
+	/** A buffer that is used for SCRATCH or reduction cannot be used with
 	 * filters. */
 	unsigned relaxed_coherency:2;
 	/** Whether this is the home chunk, or there is no home chunk (and it is thus always clean) */

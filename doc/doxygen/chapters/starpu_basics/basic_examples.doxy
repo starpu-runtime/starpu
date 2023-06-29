@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -36,7 +36,7 @@ may contain an implementation of the same kernel on different architectures
 (e.g. CUDA, x86, ...). For compatibility, make sure that the whole
 structure is properly initialized to zero, either by using the
 function starpu_codelet_init(), or by letting the
-compiler implicitly do it as exemplified below.
+compiler implicitly do it as examplified below.
 
 The field starpu_codelet::nbuffers specifies the number of data buffers that are
 manipulated by the codelet. Here, the codelet does not access or modify any data

@@ -831,7 +831,7 @@ int starpu_mpi_node_selection_get_current_policy(void);
    Set the current policy used to select the node which will execute
    the codelet. The policy ::STARPU_MPI_NODE_SELECTION_MOST_R_DATA
    selects the node having the most data in ::STARPU_R mode so as to
-   minimize the amount of data to be transfered.
+   minimize the amount of data to be transferred.
 */
 int starpu_mpi_node_selection_set_current_policy(int policy);
 
@@ -908,7 +908,7 @@ int starpu_mpi_gather_detached(starpu_data_handle_t *data_handles, int count, in
 void starpu_mpi_coop_sends_set_use(int use_coop_sends);
 
 /**
-   Return wether coop sends are enabled or not.
+   Return whether coop sends are enabled or not.
 */
 int starpu_mpi_coop_sends_get_use(void);
 
@@ -988,7 +988,7 @@ int64_t starpu_mpi_tags_allocate(int64_t nbtags);
    Note that this function must be called by all MPI processes
    involved in the computations with the same parameters and in the
    exact same order to make sure the tags are identical from one node
-   to anothe as for starpu_mpi_tags_allocate().
+   to another as for starpu_mpi_tags_allocate().
 */
 void starpu_mpi_tags_free(int64_t mintag);
 

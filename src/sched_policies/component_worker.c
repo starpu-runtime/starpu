@@ -38,7 +38,7 @@
  *
  *
  *
- * its possible that a _starpu_task_grid wont have task, because it have been
+ * its possible that a _starpu_task_grid won't have task, because it have been
  * poped by a worker.
  *
  * N = no task

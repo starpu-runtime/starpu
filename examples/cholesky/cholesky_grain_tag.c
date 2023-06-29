@@ -370,7 +370,7 @@ static void shutdown_system(float **matA, unsigned dim, unsigned pinned)
 
 int main(int argc, char **argv)
 {
-	/* create a simple definite positive symetric matrix example
+	/* create a simple definite positive symmetric matrix example
 	 *
 	 *	Hilbert matrix : h(i,j) = 1/(i+j+1)
 	 * */

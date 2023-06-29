@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -67,7 +67,7 @@ void memset_cpu(void *descr[], void *arg)
 	}
 }
 
-//fonction pour mesurer l'energie
+// energe measurement function
 double energy_function(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl)
 
 {

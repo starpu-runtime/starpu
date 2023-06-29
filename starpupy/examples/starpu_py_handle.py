@@ -61,7 +61,7 @@ print("constant handle:")
 print("*************************")
 # show function returns Handle
 ret_h1 = starpu.task_submit(ret_handle=True)(show, "first argument is:", x_h)
-print("show funtion returns:", ret_h1.get())
+print("show function returns:", ret_h1.get())
 
 # return value is Handle
 res1 = starpu.task_submit(ret_handle=True)(add, x_h, y_h)

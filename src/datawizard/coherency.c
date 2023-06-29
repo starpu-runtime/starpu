@@ -712,7 +712,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 		struct _starpu_data_replicate *hop_src_replicate;
 		struct _starpu_data_replicate *hop_dst_replicate;
 
-		/* Only the first request is independant */
+		/* Only the first request is independent */
 		unsigned ndeps = (hop == 0)?0:1;
 
 		hop_src_replicate = &handle->per_node[hop_src_node];
@@ -1293,7 +1293,7 @@ void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job 
 				!(mode & (STARPU_SCRATCH|STARPU_REDUX)) &&
 				(mode & STARPU_R))
 			{
-				/* Allocations or transfer prefetchs should have been done by now and marked
+				/* Allocations or transfer prefetches should have been done by now and marked
 				 * this mc as needed for us.
 				 * Now that we added a reference for the task, we can relieve that.  */
 				/* Note: the replicate might have been evicted in between, thus not 100% sure
@@ -1494,7 +1494,7 @@ static void _starpu_fetch_nowhere_task_input_cb(void *arg)
 }
 
 /* NB : this value can only be an indication of the status of a data
-	at some point, but there is no strong garantee ! */
+	at some point, but there is no strong guarantee ! */
 unsigned starpu_data_is_on_node(starpu_data_handle_t handle, unsigned node)
 {
 	unsigned ret = 0;

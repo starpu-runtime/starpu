@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -78,7 +78,7 @@ struct _starpu_task_bundle
  * =======
  * Structure describing a list of handles sorted by address to speed-up
  * when looking for an element.
- * The list cannot containes duplicate handles.
+ * The list cannot contain duplicate handles.
  *
  * Fields
  * ======
@@ -101,7 +101,7 @@ struct _starpu_handle_list
  * Purpose
  * =======
  * Destroy and deinitialize a bundle,
- * memory previoulsy allocated is freed.
+ * memory previously allocated is freed.
  *
  * Arguments
  * =========

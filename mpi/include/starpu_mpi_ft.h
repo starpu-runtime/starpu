@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -54,7 +54,7 @@ int starpu_mpi_checkpoint_shutdown(void);
  * <ul>
  * <li> ::STARPU_R followed by a data handle and the backup rank;
  * <li> ::STARPU_DATA_ARRAY followed by an array of data handles,
- * its number of elements and a backup rank (non functionnal);
+ * its number of elements and a backup rank (non functional);
  * <li> ::STARPU_VALUE followed by a pointer to the unregistered value,
  * its size in bytes, a unique tag (as the ones given for data handle registering)
  * and the function giving the back up rank of the rank argument : int(backup_of)(int) .
@@ -82,8 +82,8 @@ int starpu_mpi_checkpoint_template_create(starpu_mpi_checkpoint_template_t *cp_t
  * The arguments following the \p cp_template can be of the following types:
  * <ul>
  * <li> ::STARPU_R followed by a data handle and the backup rank;
- * <li> (non functionnal) ::STARPU_DATA_ARRAY followed by an array of data handles,
- * its number of elements and a backup rank (non functionnal);
+ * <li> (non functional) ::STARPU_DATA_ARRAY followed by an array of data handles,
+ * its number of elements and a backup rank (non functional);
  * <li> ::STARPU_VALUE followed by a pointer to the unregistered value,
  * its size in bytes, a unique tag (as the ones given for data handle registering)
  * and the function giving the back up rank of the rank argument : int(backup_of)(int) .
@@ -105,7 +105,7 @@ int starpu_mpi_checkpoint_template_freeze(starpu_mpi_checkpoint_template_t *cp_t
  * at submission time (when ::starpu_mpi_checkpoint_template_submit() is called).
  * The data internal to StarPU (aka handles given with ::STARPU_R) will be saved with their value at
  * execution time (when the task submitted before the ::starpu_mpi_checkpoint_template_submit() have been executed,
- * and before this data is modfied by the tasks submitted after the ::starpu_mpi_checkpoint_template_submit())
+ * and before this data is modified by the tasks submitted after the ::starpu_mpi_checkpoint_template_submit())
  */
 int starpu_mpi_checkpoint_template_submit(starpu_mpi_checkpoint_template_t cp_template, int prio);
 

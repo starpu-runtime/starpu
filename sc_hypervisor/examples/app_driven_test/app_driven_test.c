@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -116,18 +116,18 @@ int main()
 	int num_workers = starpu_worker_get_count();
 	int nres1 = num_workers;
 	int nres2 = num_workers;
-	int ressources1[nres1];
-	int ressources2[nres2];
+	int resources1[nres1];
+	int resources2[nres2];
 	int i;
 	for(i = 0; i < nres1; i++)
-		ressources1[i] = i;
+		resources1[i] = i;
 
 	for(i = 0; i < nres2; i++)
-		ressources2[i] = i;
+		resources2[i] = i;
 
 	/* create contexts */
-	unsigned sched_ctx1 = starpu_sched_ctx_create(ressources1, nres1, "sched_ctx1", STARPU_SCHED_CTX_POLICY_NAME, "dmda", 0);
-	unsigned sched_ctx2 = starpu_sched_ctx_create(ressources2, nres2, "sched_ctx2", STARPU_SCHED_CTX_POLICY_NAME, "dmda", 0);
+	unsigned sched_ctx1 = starpu_sched_ctx_create(resources1, nres1, "sched_ctx1", STARPU_SCHED_CTX_POLICY_NAME, "dmda", 0);
+	unsigned sched_ctx2 = starpu_sched_ctx_create(resources2, nres2, "sched_ctx2", STARPU_SCHED_CTX_POLICY_NAME, "dmda", 0);
 
 	/* initialize the hypervisor */
 	struct sc_hypervisor_policy policy = {};

@@ -186,7 +186,7 @@ int main(void)
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
-		/* Test datas one after the other, but less than NMAXBUFS */
+		/* Test data one after the other, but less than NMAXBUFS */
 		expected[0]++;
 		for (i = 1; i < STARPU_NMAXBUFS-1 && i < 10; i++)
 			expected[i]++;
@@ -253,10 +253,7 @@ int main(void)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 #endif
 
-
-
-
-		/* Test datas one after the other, but more than NMAXBUFS */
+		/* Test data one after the other, but more than NMAXBUFS */
 		for (i = 0; i < STARPU_NMAXBUFS+5 && i < 10; i++)
 			expected[i]++;
 		ret = starpu_task_insert(&codelet,

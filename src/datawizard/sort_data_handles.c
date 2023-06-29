@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -60,7 +60,7 @@ static int _compar_data_paths(const unsigned pathA[], unsigned depthA,
 	return (depthA < depthB)?-1:1;
 }
 
-/* A comparision function between two handles makes it possible to use qsort to
+/* A comparison function between two handles makes it possible to use qsort to
  * sort a list of handles */
 static int _starpu_compar_handles(const struct _starpu_data_descr *descrA,
 				  const struct _starpu_data_descr *descrB)

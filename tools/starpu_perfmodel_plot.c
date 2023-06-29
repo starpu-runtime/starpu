@@ -666,7 +666,7 @@ int main(int argc, char **argv)
 				STARPU_ABORT();
 			}
 
-			/* Make the gnuplot scrit executable */
+			/* Make the gnuplot script executable */
 			ret = chmod(gnuplot_file_name, sb.st_mode|S_IXUSR
 #ifdef S_IXGRP
 								 |S_IXGRP

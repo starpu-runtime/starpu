@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -104,7 +104,7 @@ void sc_hypervisor_get_tasks_times(int nw, int nt, double times[nw][nt], int *wo
 unsigned sc_hypervisor_find_lowest_prio_sched_ctx(unsigned req_sched_ctx, int nworkers_to_move);
 
 /**
-   find the first most idle workers of a contex
+   find the first most idle workers of a context
 */
 int *sc_hypervisor_get_idlest_workers(unsigned sched_ctx, int *nworkers, enum starpu_worker_archtype arch);
 
@@ -164,7 +164,7 @@ double sc_hypervisor_get_speed_per_worker_type(struct sc_hypervisor_wrapper *sc_
 double sc_hypervisor_get_ref_speed_per_worker_type(struct sc_hypervisor_wrapper *sc_w, enum starpu_worker_archtype arch);
 
 /**
-   compute the average speed of a type of worker in all ctxs from the begining of appl
+   compute the average speed of a type of worker in all ctxs from the beginning of appl
 */
 double sc_hypervisor_get_avg_speed(enum starpu_worker_archtype arch);
 

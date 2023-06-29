@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -120,7 +120,7 @@ static int starpu_leveldb_read(void *base, void *obj, void *buf, off_t offset, s
 
 	STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
 
-	/* leveldb need a string to store datas */
+	/* leveldb need a string to store data */
 	std::string value;
 	leveldb::Status s = base_tmp->db->Get(leveldb::ReadOptions(), tmp->key, &value);
 	uintptr_t value_read = (uintptr_t)(value.c_str());
@@ -143,7 +143,7 @@ static int starpu_leveldb_full_read(void *base, void *obj, void **ptr, size_t *s
 
 	STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
 
-	/* leveldb need a string to store datas */
+	/* leveldb need a string to store data */
 	std::string value;
 	leveldb::Status s = base_tmp->db->Get(leveldb::ReadOptions(), tmp->key, &value);
 

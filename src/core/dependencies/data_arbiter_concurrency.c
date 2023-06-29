@@ -138,8 +138,8 @@ struct LockOrDelegateListNode
 	struct LockOrDelegateListNode* next;
 };
 
-/* Post a task to perfom if possible, otherwise put it in the list
- * If we can perfom this task, we may also perfom all the tasks in the list
+/* Post a task to perform if possible, otherwise put it in the list
+ * If we can perform this task, we may also perform all the tasks in the list
  * This function return 1 if the task (and maybe some others) has been done
  * by the calling thread and 0 otherwise (if the task has just been put in the list)
  */
@@ -205,7 +205,7 @@ static int _starpu_LockOrDelegatePostOrPerform(starpu_arbiter_t arbiter, void (*
 #endif
 
 /* Try to submit just one data request, in case the request can be processed
- * immediatly, return 0, if there is still a dependency that is not compatible
+ * immediately, return 0, if there is still a dependency that is not compatible
  * with the current mode, the request is put in the per-handle list of
  * "requesters", and this function returns 1. */
 #ifdef LOCK_OR_DELEGATE
@@ -299,7 +299,7 @@ unsigned _starpu_attempt_to_submit_arbitered_data_request(unsigned request_from_
 	}
 
 	/* If there is currently nobody accessing the piece of data, or it's
-	 * not another writter and if this is the same type of access as the
+	 * not another writer and if this is the same type of access as the
 	 * current one, we can proceed. */
 	unsigned put_in_list = 1;
 

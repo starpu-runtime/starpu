@@ -193,7 +193,7 @@ struct _starpu_sched_ctx_elt* _starpu_sched_ctx_list_add_prio(struct _starpu_sch
 	{
 		parent_list = l;
 	}
-	else //l's priority is inferior or inexistant, add before
+	else //l's priority is inferior or inexistent, add before
 	{
 		_STARPU_MALLOC(parent_list, sizeof(struct _starpu_sched_ctx_list));
 		parent_list->priority = prio;

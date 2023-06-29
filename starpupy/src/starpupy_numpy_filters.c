@@ -281,7 +281,7 @@ PyObject* starpu_data_unpartition_wrapper(PyObject *self, PyObject *args)
 	for(i=0; i<nparts; i++)
 	{
 		PyObject *handles_cap = PyList_GetItem(handle_list, i);
-		/*protect borrowed reference, decrement rigth after*/
+		/*protect borrowed reference, decrement right after*/
 		Py_INCREF(handles_cap);
 		handles[i] = (starpu_data_handle_t) PyCapsule_GetPointer(handles_cap, "Handle");
 		Py_DECREF(handles_cap);

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2016       Uppsala University
  *
@@ -122,7 +122,7 @@ void starpu_task_end_dep_add(struct starpu_task *t, int nb_deps);
 void starpu_task_end_dep_release(struct starpu_task *t);
 
 /**
-   Define a task logical identifer. It is possible to associate a task
+   Define a task logical identifier. It is possible to associate a task
    with a unique <em>tag</em> chosen by the application, and to
    express dependencies between tasks by the means of those tags. To
    do so, fill the field starpu_task::tag_id with a tag number (can be
@@ -181,7 +181,7 @@ void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t
    possible to synchronize with the same tag multiple times, as long
    as the starpu_tag_remove() function is not called. Note that it is
    still possible to synchronize with a tag associated to a task for
-   which the strucuture starpu_task was freed (e.g. if the field
+   which the structure starpu_task was freed (e.g. if the field
    starpu_task::destroy was enabled).
    See \ref WaitingForTasks for more details.
 */

@@ -37,7 +37,7 @@
  */
 static enum _starpu_mp_node_kind _starpu_sink_common_get_kind(void)
 {
-	/* Environment varible STARPU_SINK must be defined when running on sink
+	/* Environment variable STARPU_SINK must be defined when running on sink
 	 * side : let's use it to get the kind of node we're running on */
 	char *node_kind = starpu_getenv("STARPU_SINK");
 	STARPU_ASSERT(node_kind);
@@ -727,7 +727,7 @@ static void _starpu_sink_common_execute_kernel(struct _starpu_mp_node *node, int
 		/* Synchronize with others threads of the combined worker*/
 		STARPU_PTHREAD_BARRIER_WAIT(&task->mp_barrier->after_work_barrier);
 
-		/* The fisrt thread of the combined */
+		/* The first thread of the combined */
 		if(worker->current_rank == 0)
 		{
 			/* Erase the barrier from the list */

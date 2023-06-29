@@ -552,7 +552,7 @@ if test x$enable_mpi = xmaybe ; then
     fi
 fi
 
-# in case MPI was explicitely required, but mpicc is not available, this is an error
+# in case MPI was explicitly required, but mpicc is not available, this is an error
 if test x$enable_mpi = xyes ; then
 	if test ! -x "$mpicc_path"; then
 	   AC_MSG_ERROR([Compiler MPI '$mpicc_path' not valid])
@@ -634,7 +634,7 @@ if test x$enable_simgrid = xyes; then
 	use_mpi_master_slave=no
 fi
 
-# in case it is explicitely required, but mpicc is not available, this is an error
+# in case it is explicitly required, but mpicc is not available, this is an error
 if test x$use_mpi_master_slave = xyes -a ! -x "$mpicc_path"; then
    AC_MSG_ERROR([Compiler MPI '$mpicc_path' not valid])
 fi
@@ -1585,7 +1585,7 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
     fi
     AC_MSG_RESULT($have_valid_cuda)
 
-    # in case CUDA was explicitely required, but is not available, this is an error
+    # in case CUDA was explicitly required, but is not available, this is an error
     if test x$enable_cuda = xyes -a x$have_valid_cuda = xno; then
 	AC_MSG_ERROR([cannot find CUDA])
     fi
@@ -1735,7 +1735,7 @@ if test x$have_curand = xyes; then
 fi
 
 # Peer transfers are only supported since CUDA 4.0
-# Disable them if user explicity wants to disable them
+# Disable them if user explicitly wants to disable them
 AC_ARG_ENABLE(cuda_memcpy_peer, [AS_HELP_STRING([--disable-cuda-memcpy-peer], [do not allow peer transfers when using CUDA 4.0])],, [enable_cuda_memcpy_peer=$enable_cuda])
 if test x$enable_cuda_memcpy_peer = xyes; then
     AC_DEFINE(STARPU_HAVE_CUDA_MEMCPY_PEER,[1],[Peer transfers are supported in CUDA])
@@ -1950,7 +1950,7 @@ if test x$have_valid_hip = xyes; then
     fi
 fi
 
-# in case HIP was explicitely required, but is not available, this is an error
+# in case HIP was explicitly required, but is not available, this is an error
 if test x$enable_hip = xyes -a x$have_valid_hip = xno; then
     AC_MSG_ERROR([cannot find HIP])
 fi
@@ -2152,7 +2152,7 @@ if test x$enable_opencl = xyes -o x$enable_opencl = xmaybe; then
           ;;
         *)
 	  STARPU_LOOK_FOR_OPENCL()
-	  # in case OpenCL was explicitely required, but is not available, this is an error
+	  # in case OpenCL was explicitly required, but is not available, this is an error
 	  if test x$enable_opencl = xyes -a x$have_valid_opencl = xno; then
 	    AC_MSG_ERROR([cannot find OpenCL])
 	  fi
@@ -2213,7 +2213,7 @@ if test x$enable_max_fpga != xno; then
 	AC_PATH_PROG([SLIC_CONFIG], [slic-config], [not-found])
 
 	if test "x$SLIC_CONFIG" = "xnot-found"; then
-		# in case FPGA was explicitely required, but is not available, this is an error
+		# in case FPGA was explicitly required, but is not available, this is an error
 		if test x$enable_max_fpga = xyes; then
 			AC_MSG_ERROR(['slic-config' not found for Maxeler FPGA support])
 		fi
@@ -2864,7 +2864,7 @@ if test $nmaxdevs -lt $nmaxtcpipdev; then
 fi
 AC_DEFINE_UNQUOTED(STARPU_NMAXDEVS, [$nmaxdevs], [Maximum number of device per device arch])
 
-# Computes the maximun number of combined worker
+# Computes the maximum number of combined worker
 nmaxcombinedworkers=$maxcpus
 AC_MSG_CHECKING(Maximum number of workers combinations)
 AC_MSG_RESULT($nmaxcombinedworkers)
@@ -3227,7 +3227,7 @@ AC_ARG_ENABLE([socl],
 
 AC_MSG_CHECKING(for SOCL)
 
-# in case SOCL was explicitely required, but is not available, this is an error
+# in case SOCL was explicitly required, but is not available, this is an error
 if test "x$enable_socl" = "xyes" -a "$have_valid_opencl" = "no" ; then
     AC_MSG_ERROR([SOCL cannot be enabled without OpenCL])
 fi
@@ -3670,11 +3670,11 @@ AS_IF([test "$use_hwloc" != "no"],
       [PKG_CHECK_MODULES([HWLOC],[hwloc], [have_valid_hwloc=yes], [have_valid_hwloc=no])]
      )
 AM_CONDITIONAL(STARPU_HAVE_HWLOC, test "x$have_valid_hwloc" = "xyes")
-# in case hwloc was explicitely required, but is not available, this is an error
+# in case hwloc was explicitly required, but is not available, this is an error
 AS_IF([test "$use_hwloc" = "yes" -a "$have_valid_hwloc" = "no"],
       [AC_MSG_ERROR([cannot find hwloc or pkg-config])]
      )
-# in case hwloc is not available but was not explicitely disabled, this is an error
+# in case hwloc is not available but was not explicitly disabled, this is an error
 AS_IF([test "$have_valid_hwloc" = "no" -a "$use_hwloc" != "no"],
       [AC_MSG_ERROR([libhwloc or pkg-config was not found on your system. If the target machine is hyperthreaded the performance may be impacted a lot.  It is strongly recommended to install libhwloc and pkg-config. However, if you really want to use StarPU without enabling libhwloc, please restart configure by specifying the option '--without-hwloc'.])]
      )

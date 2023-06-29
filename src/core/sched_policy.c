@@ -281,7 +281,7 @@ struct starpu_sched_policy *_starpu_select_sched_policy(struct _starpu_machine_c
 	if (selected_policy)
 		return selected_policy;
 
-	/* First, we check whether the application explicitely gave a scheduling policy or not */
+	/* First, we check whether the application explicitly gave a scheduling policy or not */
 	if (user_conf && (user_conf->sched_policy))
 		return user_conf->sched_policy;
 
@@ -394,7 +394,7 @@ static void _starpu_push_task_on_specific_worker_notify_sched(struct starpu_task
 	}
 }
 
-/* Enqueue a task into the list of tasks explicitely attached to a worker. In
+/* Enqueue a task into the list of tasks explicitly attached to a worker. In
  * case workerid identifies a combined worker, a task will be enqueued into
  * each worker of the combination. */
 static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int workerid)
@@ -1101,7 +1101,7 @@ pick:
 
 	/*
 	 * This worker may not be able to execute this task. In this case, we
-	 * should return the task anyway. It will be pushed back almost immediatly.
+	 * should return the task anyway. It will be pushed back almost immediately.
 	 * This way, we avoid computing and executing the conversions tasks.
 	 * Here, we do not care about what implementation is used.
 	 */

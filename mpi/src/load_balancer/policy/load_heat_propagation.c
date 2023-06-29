@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -248,7 +248,7 @@ static void exchange_data_movements_infos()
 	{
 		if (i != my_rank)
 		{
-			//fprintf(stderr,"Wait for recieving data movement from %d on %d\n", i, my_rank);
+			//fprintf(stderr,"Wait for receiving data movement from %d on %d\n", i, my_rank);
 			flag = 0;
 			while (!flag)
 			{
@@ -332,7 +332,7 @@ static void clean_balance()
 
 /* Core function of the load balancer. Computes from the load_data_cpy handle a
  * load balancing of the work to come (if needed), perform the necessary data
- * communications and negociate with the other nodes the rebalancing. */
+ * communications and negotiate with the other nodes the rebalancing. */
 static void heat_balance(starpu_data_handle_t load_data_cpy)
 {
 	/* Exchange load data handles with neighboring nodes */

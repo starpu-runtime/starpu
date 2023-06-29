@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2015       Mathieu Lirzin
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -256,7 +256,7 @@ int sc_hypervisor_get_nworkers_ctx(unsigned sched_ctx, enum starpu_worker_archty
 double sc_hypervisor_get_elapsed_flops_per_sched_ctx(struct sc_hypervisor_wrapper *sc_w);
 
 /**
-   Get the number of flops executed by a context since the begining
+   Get the number of flops executed by a context since the beginning
 */
 double sc_hypervisor_get_total_elapsed_flops_per_sched_ctx(struct sc_hypervisor_wrapper *sc_w);
 

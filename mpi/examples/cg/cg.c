@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2021-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2021-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -132,7 +132,7 @@ static void generate_random_problem(void)
 				{
 					for (jj = 0; jj < block_size; jj++)
 					{
-						/* We take Hilbert matrix that is not well conditionned but definite positive: H(i,j) = 1/(1+i+j) */
+						/* We take Hilbert matrix that is not well conditioned but definite positive: H(i,j) = 1/(1+i+j) */
 						A[j][i][jj + ii*block_size] = (TYPE) (1.0/(1.0+(ii+(j*block_size)+jj+(i*block_size))));
 					}
 				}

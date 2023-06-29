@@ -262,7 +262,7 @@ void *_starpu_tcpip_src_worker(void *arg)
 		struct _starpu_worker_set * worker_set = &worker_set_tcpip[workersetnum];
 
 		/* As all workers of a set share common data, we just use the first
-		 * one for intializing the following stuffs. */
+		 * one for initializing the following stuffs. */
 		struct _starpu_worker *baseworker = &worker_set->workers[0];
 		struct _starpu_machine_config *config = baseworker->config;
 		unsigned baseworkerid = baseworker - config->workers;

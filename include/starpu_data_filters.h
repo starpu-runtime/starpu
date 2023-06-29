@@ -139,7 +139,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_data, unsigned gathering_
 
 /**
    Return the \p i -th child of the given \p handle, which must have
-   been partitionned beforehand.
+   been partitioned beforehand.
    See \ref PartitioningData for more details.
 */
 starpu_data_handle_t starpu_data_get_child(starpu_data_handle_t handle, unsigned i);
@@ -279,7 +279,7 @@ void starpu_data_partition_readonly_submit(starpu_data_handle_t initial_handle, 
 void starpu_data_partition_readonly_submit_sequential_consistency(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int sequential_consistency);
 
 /**
-   Assume that a partitioning of \p initial_handle has already been submited
+   Assume that a partitioning of \p initial_handle has already been submitted
    in readonly mode through starpu_data_partition_readonly_submit(), and will upgrade
    that partitioning into read-write mode for the \p children, by invalidating \p
    initial_handle, and adding the necessary dependencies.

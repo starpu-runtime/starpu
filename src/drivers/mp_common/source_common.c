@@ -55,7 +55,7 @@ struct _starpu_mp_node *_starpu_src_nodes[STARPU_NARCH][STARPU_MAXTCPIPDEVS];
  */
 static starpu_pthread_mutex_t htbl_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 
-/* Structure used by host to store informations about a kernel executable on
+/* Structure used by host to store information about a kernel executable on
  * a MPI MS device : its name, and its address on each device.
  * If a kernel has been initialized, then a lookup has already been achieved and the
  * device knows how to call it, else the host still needs to do a lookup.
@@ -856,7 +856,7 @@ int _starpu_src_common_copy_host_to_sink_async(struct _starpu_mp_node *mp_node, 
 
 	STARPU_PTHREAD_MUTEX_LOCK(&mp_node->connection_mutex);
 
-	/* For asynchronous transfers, we save informations
+	/* For asynchronous transfers, we save information
 	 * to test is they are finished
 	 */
 	struct _starpu_async_channel * async_channel = event;
@@ -922,7 +922,7 @@ int _starpu_src_common_copy_sink_to_host_async(struct _starpu_mp_node *mp_node, 
 
 	STARPU_PTHREAD_MUTEX_LOCK(&mp_node->connection_mutex);
 
-	/* For asynchronous transfers, we save informations
+	/* For asynchronous transfers, we save information
 	 * to test is they are finished
 	 */
 	struct _starpu_async_channel * async_channel = event;
@@ -991,12 +991,12 @@ int _starpu_src_common_copy_sink_to_sink_sync(struct _starpu_mp_node *src_node, 
 	/* Tell dest to receive data from source. */
 	_starpu_mp_common_send_command(dst_node, STARPU_MP_COMMAND_RECV_FROM_SINK, &cmd, offsetof(struct _starpu_mp_transfer_command_to_device, end));
 
-	/* Wait for answer from dest to know wether transfer is finished. */
+	/* Wait for answer from dest to know whether transfer is finished. */
 	answer = _starpu_src_common_wait_command_sync(dst_node, &arg, &arg_size);
 
 	STARPU_ASSERT(answer == STARPU_MP_COMMAND_ANSWER_TRANSFER_COMPLETE);
 
-	/* Release the receiver when we received the acknowlegment */
+	/* Release the receiver when we received the acknowledgment */
 	STARPU_PTHREAD_MUTEX_UNLOCK(&dst_node->connection_mutex);
 
 	return 0;
@@ -1022,7 +1022,7 @@ int _starpu_src_common_copy_sink_to_sink_async(struct _starpu_mp_node *src_node,
 		STARPU_PTHREAD_MUTEX_LOCK(&dst_node->connection_mutex);
 	}
 
-	/* For asynchronous transfers, we save informations
+	/* For asynchronous transfers, we save information
 	 * to test is they are finished
 	 */
 	struct _starpu_async_channel * async_channel = event;

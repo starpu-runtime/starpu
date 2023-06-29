@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010	    Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -19,7 +19,7 @@
  * This examplifies the use of the shadow filter: a source "vector" of NX
  * elements (plus 2*SHADOW wrap-around elements) is partitioned into vectors
  * with some shadowing, and these are copied into a destination "vector2" of
- * NRPARTS*(NX/NPARTS+2*SHADOW) elements, partitioned in the traditionnal way,
+ * NRPARTS*(NX/NPARTS+2*SHADOW) elements, partitioned in the traditional way,
  * thus showing how shadowing shows up.
  *
  * For instance, with NX=8, SHADOW=1, and NPARTS=4:

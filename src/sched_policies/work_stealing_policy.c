@@ -429,7 +429,7 @@ static void locality_popped_task(struct _starpu_work_stealing_data *ws STARPU_AT
  *
  * \return	a ratio with a positive or negative value, describing the current state of the worker :
  * 		a smaller value implies a faster worker with an relatively emptier queue : more suitable to put tasks in
- * 		a bigger value implies a slower worker with an reletively more replete queue : more suitable to steal tasks from
+ * 		a bigger value implies a slower worker with an relatively more replete queue : more suitable to steal tasks from
  */
 static float overload_metric(struct _starpu_work_stealing_data *ws, unsigned sched_ctx_id, unsigned id)
 {
@@ -468,7 +468,7 @@ static int select_victim_overload(struct _starpu_work_stealing_data *ws, unsigne
 	float best_ratio = FLT_MIN;
 
 	/* Don't try to play smart until we get
-	 * enough informations. */
+	 * enough information. */
 	if (ws->performed_total < calibration_value)
 		return select_victim_round_robin(ws, sched_ctx_id);
 
@@ -504,7 +504,7 @@ static unsigned select_worker_overload(struct _starpu_work_stealing_data *ws, st
 	float best_ratio = FLT_MAX;
 
 	/* Don't try to play smart until we get
-	 * enough informations. */
+	 * enough information. */
 	if (ws->performed_total < calibration_value)
 		return select_worker_round_robin(task, sched_ctx_id);
 
@@ -809,7 +809,7 @@ struct starpu_sched_policy _starpu_sched_ws_policy =
 
 /* local work stealing policy */
 /* Return a worker to steal a task from. The worker is selected according to
- * the proximity list built using the info on te architecture provided by hwloc
+ * the proximity list built using the info on the architecture provided by hwloc
  */
 #ifdef STARPU_HAVE_HWLOC
 static int lws_select_victim(struct _starpu_work_stealing_data *ws, unsigned sched_ctx_id, int workerid)

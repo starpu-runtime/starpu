@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
  *
@@ -37,9 +37,9 @@
 /* #define USE_PERTURBATION	1 */
 
 #ifdef USE_PERTURBATION
-#define PERTURBATE(a)	((starpu_drand48()*2.0f*(AMPL) + 1.0f - (AMPL))*(a))
+#define PERTURB(a)	((starpu_drand48()*2.0f*(AMPL) + 1.0f - (AMPL))*(a))
 #else
-#define PERTURBATE(a)	(a)
+#define PERTURB(a)	(a)
 #endif
 
 double cpu_chol_task_potrf_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
@@ -56,7 +56,7 @@ double cpu_chol_task_potrf_cost(struct starpu_task *task, struct starpu_perfmode
 	FPRINTF(stdout, "cpu_chol_task_potrf_cost n %u cost %e\n", n, cost);
 #endif
 
-	return PERTURBATE(cost);
+	return PERTURB(cost);
 }
 
 double cuda_chol_task_potrf_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
@@ -73,7 +73,7 @@ double cuda_chol_task_potrf_cost(struct starpu_task *task, struct starpu_perfmod
 	FPRINTF(stdout, "cuda_chol_task_potrf_cost n %u cost %e\n", n, cost);
 #endif
 
-	return PERTURBATE(cost);
+	return PERTURB(cost);
 }
 
 double cpu_chol_task_trsm_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
@@ -90,7 +90,7 @@ double cpu_chol_task_trsm_cost(struct starpu_task *task, struct starpu_perfmodel
 	FPRINTF(stdout, "cpu_chol_task_trsm_cost n %u cost %e\n", n, cost);
 #endif
 
-	return PERTURBATE(cost);
+	return PERTURB(cost);
 }
 
 double cuda_chol_task_trsm_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
@@ -107,7 +107,7 @@ double cuda_chol_task_trsm_cost(struct starpu_task *task, struct starpu_perfmode
 	FPRINTF(stdout, "cuda_chol_task_trsm_cost n %u cost %e\n", n, cost);
 #endif
 
-	return PERTURBATE(cost);
+	return PERTURB(cost);
 }
 
 double cpu_chol_task_syrk_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
@@ -124,7 +124,7 @@ double cpu_chol_task_syrk_cost(struct starpu_task *task, struct starpu_perfmodel
 	FPRINTF(stdout, "cpu_chol_task_syrk_cost n %u cost %e\n", n, cost);
 #endif
 
-	return PERTURBATE(cost);
+	return PERTURB(cost);
 }
 
 double cuda_chol_task_syrk_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
@@ -141,7 +141,7 @@ double cuda_chol_task_syrk_cost(struct starpu_task *task, struct starpu_perfmode
 	FPRINTF(stdout, "cuda_chol_task_syrk_cost n %u cost %e\n", n, cost);
 #endif
 
-	return PERTURBATE(cost);
+	return PERTURB(cost);
 }
 
 double cpu_chol_task_gemm_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
@@ -158,7 +158,7 @@ double cpu_chol_task_gemm_cost(struct starpu_task *task, struct starpu_perfmodel
 	FPRINTF(stdout, "cpu_chol_task_gemm_cost n %u cost %e\n", n, cost);
 #endif
 
-	return PERTURBATE(cost);
+	return PERTURB(cost);
 }
 
 double cuda_chol_task_gemm_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
@@ -175,7 +175,7 @@ double cuda_chol_task_gemm_cost(struct starpu_task *task, struct starpu_perfmode
 	FPRINTF(stdout, "cuda_chol_task_gemm_cost n %u cost %e\n", n, cost);
 #endif
 
-	return PERTURBATE(cost);
+	return PERTURB(cost);
 }
 
 void initialize_chol_model(struct starpu_perfmodel* model, char * symbol,

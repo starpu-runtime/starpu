@@ -58,7 +58,7 @@ struct _starpu_data_replicate
 	/** describes the state of the local data in term of coherency */
 	enum _starpu_cache_state	state: 2;
 
-	/** A buffer that is used for SCRATCH or reduction cannnot be used with
+	/** A buffer that is used for SCRATCH or reduction cannot be used with
 	 * filters. */
 	unsigned relaxed_coherency:2;
 
@@ -69,7 +69,7 @@ struct _starpu_data_replicate
 	unsigned allocated:1;
 	/** was it automatically allocated ? (else it's the application-provided
 	 * buffer, don't ever try to free it!) */
-	/** perhaps the allocation was perform higher in the hiearchy
+	/** perhaps the allocation was perform higher in the hierarchy
 	 * for now this is just translated into !automatically_allocated
 	 * */
 	unsigned automatically_allocated:1;
@@ -89,7 +89,7 @@ struct _starpu_data_replicate
 	/** To help the scheduling policies to make some decision, we
 	   may keep a track of the tasks that are likely to request
 	   this data on the current node.
-	   It is the responsability of the scheduling _policy_ to set that
+	   It is the responsibility of the scheduling _policy_ to set that
 	   flag when it assigns a task to a queue, policies which do not
 	   use this hint can simply ignore it.
 	 */
@@ -179,7 +179,7 @@ struct _starpu_data_state
 	/** Our siblings in the father partitioning */
 	unsigned nsiblings; /** How many siblings */
 	starpu_data_handle_t *siblings;
-	unsigned sibling_index; /** indicate which child this node is from the father's perpsective (if any) */
+	unsigned sibling_index; /** indicate which child this node is from the father's perspective (if any) */
 	unsigned depth; /** what's the depth of the tree ? */
 
 #ifdef STARPU_BUBBLE
@@ -259,7 +259,7 @@ struct _starpu_data_state
 
 	/* The following field is set by StarPU at execution time */
 
-	/** Whether lazy unregistration was requested throught starpu_data_unregister_submit */
+	/** Whether lazy unregistration was requested through starpu_data_unregister_submit */
 	unsigned char lazy_unregister;
 
 	/** This lock should protect any operation to enforce
@@ -268,7 +268,7 @@ struct _starpu_data_state
 
 	/** The last submitted task (or application data request) that declared
 	 * it would modify the piece of data ? Any task accessing the data in a
-	 * read-only mode should depend on that task implicitely if the
+	 * read-only mode should depend on that task implicitly if the
 	 * sequential_consistency flag is enabled. */
 	enum starpu_data_access_mode last_submitted_mode;
 	struct starpu_task *last_sync_task;

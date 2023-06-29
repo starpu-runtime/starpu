@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -33,7 +33,7 @@ static struct starpu_task *create_task(starpu_tag_t id)
 
 static void create_data(float **_nzvalA, float **_vecb, float **_vecx, uint32_t *_nnz, uint32_t *_nrow, uint32_t **_colind, uint32_t **_rowptr)
 {
-	/* we need a sparse symetric (definite positive ?) matrix and a "dense" vector */
+	/* we need a sparse symmetric (definite positive ?) matrix and a "dense" vector */
 
 	/* example of 3-band matrix */
 	float *nzval;

@@ -115,7 +115,7 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 #endif
 	close(descriptor);
 
-	/* And now, you want to use your datas in StarPU */
+	/* And now, you want to use your data in StarPU */
 	/* Open the file ON the disk */
 	void * data = starpu_disk_open(disk_src, (void *) name_file_start, NX*sizeof(int));
 	STARPU_ASSERT(data);
@@ -140,7 +140,7 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 	f = fopen(path_file_start, "rb+");
 	if (f == NULL)
 		goto enoent2;
-	/* take datas */
+	/* take data */
 	size_t read = fread(C, sizeof(int), NX, f);
 	STARPU_ASSERT(read == NX);
 
