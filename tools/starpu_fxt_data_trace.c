@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Joris Pablo
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -163,7 +163,7 @@ static void write_gp(char *dir, int argc, char **argv)
 		STARPU_ABORT();
 	}
 
-	/* Make the gnuplot scrit executable for the owner */
+	/* Make the gnuplot script executable for the owner */
 	ret = chmod(file_name, sb.st_mode|S_IXUSR
 #ifdef S_IXGRP
 					 |S_IXGRP

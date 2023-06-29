@@ -596,7 +596,7 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 
 	if (config->cpu_depth == HWLOC_TYPE_DEPTH_UNKNOWN)
 	{
-		/* unknown, using logical procesors as fallback */
+		/* unknown, using logical processors as fallback */
 		_STARPU_DISP("Warning: The OS did not report CPU cores. Assuming there is only one hardware thread per core.\n");
 		config->cpu_depth = hwloc_get_type_depth(topology->hwtopology,
 							 HWLOC_OBJ_PU);

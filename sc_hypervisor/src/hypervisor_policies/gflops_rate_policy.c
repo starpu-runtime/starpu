@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -198,7 +198,7 @@ static int _find_slowest_sched_ctx()
 	for(i = 0; i < nsched_ctxs; i++)
 	{
 		curr_exp_end = _get_exp_end(sched_ctxs[i]);
-		/*if it hasn't started bc of no ressources give it priority */
+		/*if it hasn't started bc of no resources give it priority */
 		if(curr_exp_end == -1.0)
 			return sched_ctxs[i];
 		if(curr_exp_end > last_exp_end)
@@ -226,7 +226,7 @@ static int _find_slowest_available_sched_ctx(unsigned sched_ctx)
 		if(sched_ctxs[i] != sched_ctx)
 		{
 			curr_exp_end = _get_exp_end(sched_ctxs[i]);
-			/*if it hasn't started bc of no ressources give it priority */
+			/*if it hasn't started bc of no resources give it priority */
 			if(curr_exp_end == -1.0)
 				return sched_ctxs[i];
 			if(last_exp_end < curr_exp_end)

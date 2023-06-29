@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  * Copyright (C) 2020       Télécom-Sud Paris
  *
@@ -143,7 +143,7 @@ static int heteroprio_progress_accel(struct starpu_sched_component *component, s
 
 			if (idworker == -1)
 			{
-				/* Not the targetted arch, avoid it */
+				/* Not the targeted arch, avoid it */
 
 				/* XXX: INFINITY doesn't seem to be working properly */
 				estimated_lengths[i] = 1000000000;

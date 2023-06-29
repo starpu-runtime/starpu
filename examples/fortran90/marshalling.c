@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2015       ONERA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -94,7 +94,7 @@ void starpu_loop_element_task_c(double coeff, void **ro_h, void **dro_h, void **
 	starpu_data_handle_t dro_handle = *dro_h;
 	starpu_data_handle_t basis_handle = *basis_h;
 
-	/* execute the task on any eligible computational ressource */
+	/* execute the task on any eligible computational resource */
 	ret = starpu_task_insert(&cl_loop_element,
 				 STARPU_VALUE, &coeff, sizeof(double),
 				 STARPU_R,     ro_handle,
@@ -141,7 +141,7 @@ void starpu_copy_element_task_c(void **ro_h, void **dro_h)
 	starpu_data_handle_t ro_handle = *ro_h;
 	starpu_data_handle_t dro_handle = *dro_h;
 
-	/* execute the task on any eligible computational ressource */
+	/* execute the task on any eligible computational resource */
 	ret = starpu_task_insert(&cl_copy_element,
 				 STARPU_RW,  ro_handle,
 				 STARPU_R,   dro_handle,

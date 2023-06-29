@@ -535,7 +535,7 @@ struct starpu_conf
 	uint64_t trace_buffer_size;
 
 	/**
-	   Set the mininum priority used by priorities-aware
+	   Set the minimum priority used by priorities-aware
 	   schedulers.
 	   This also can be specified with the environment variable \ref
 	   STARPU_MIN_PRIO
@@ -543,7 +543,7 @@ struct starpu_conf
 	int global_sched_ctx_min_priority;
 
 	/**
-	   Set the maxinum priority used by priorities-aware
+	   Set the maximum priority used by priorities-aware
 	   schedulers.
 	   This also can be specified with the environment variable \ref
 	   STARPU_MAX_PRIO
@@ -559,7 +559,7 @@ struct starpu_conf
 	   Specify if StarPU should catch \c SIGINT, \c SIGSEGV and \c SIGTRAP
 	   signals to make sure final actions (e.g dumping FxT trace
 	   files) are done even though the application has crashed. By
-	   default (value = \c 1), signals are catched. It should be
+	   default (value = \c 1), signals are caught. It should be
 	   disabled on systems which already catch these signals for
 	   their own needs (e.g JVM)
 	   This can also be specified with the environment variable

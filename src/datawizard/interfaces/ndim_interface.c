@@ -255,7 +255,7 @@ static int ndim_compare(void *data_interface_a, void *data_interface_b)
 		return 0;
 
 	unsigned i;
-	/* Two matricess are considered compatible if they have the same size */
+	/* Two matrices are considered compatible if they have the same size */
 	for (i=0; i<ndim_a->ndim; i++)
 	{
 		if (ndim_a->nn[i] != ndim_b->nn[i])

@@ -1802,8 +1802,8 @@ static PyMethodDef starpupyMethods[] =
 	{"sched_get_max_priority", starpu_sched_get_max_priority_wrapper, METH_VARARGS, "get the number of max priority"}, /*get the number of max priority*/
 	{"task_nsubmitted", starpu_task_nsubmitted_wrapper, METH_VARARGS, "get the number of submitted tasks which have not completed yet"}, /*get the number of submitted tasks which have not completed yet*/
 	{"shutdown", starpu_shutdown_wrapper, METH_VARARGS, "shutdown starpu"}, /*shutdown starpu*/
-	{"starpupy_data_register", starpupy_data_register_wrapper, METH_VARARGS, "register PyObject in a handle"}, /*reigster PyObject in a handle*/
-	{"starpupy_numpy_register", starpupy_numpy_register_wrapper, METH_VARARGS, "register empty Numpy array in a handle"}, /*reigster PyObject in a handle*/
+	{"starpupy_data_register", starpupy_data_register_wrapper, METH_VARARGS, "register PyObject in a handle"}, /*register PyObject in a handle*/
+	{"starpupy_numpy_register", starpupy_numpy_register_wrapper, METH_VARARGS, "register empty Numpy array in a handle"}, /*register PyObject in a handle*/
 	{"starpupy_get_object", starpupy_get_object_wrapper, METH_VARARGS, "get PyObject from handle"}, /*get PyObject from handle*/
 	{"starpupy_acquire_handle", starpupy_acquire_handle_wrapper, METH_VARARGS, "acquire handle"}, /*acquire handle*/
 	{"starpupy_release_handle", starpupy_release_handle_wrapper, METH_VARARGS, "release handle"}, /*release handle*/

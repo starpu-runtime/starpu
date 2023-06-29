@@ -135,7 +135,7 @@ static size_t void_interface_get_size(starpu_data_handle_t handle STARPU_ATTRIBU
 static starpu_ssize_t allocate_void_buffer_on_node(void *data_interface STARPU_ATTRIBUTE_UNUSED,
 						   unsigned dst_node STARPU_ATTRIBUTE_UNUSED)
 {
-	/* Successfuly allocated 0 bytes */
+	/* Successfully allocated 0 bytes */
 	return 0;
 }
 

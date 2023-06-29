@@ -108,7 +108,7 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 		else if (arg_type == STARPU_DATA_ARRAY)
 		{
 			arg_i++;
-			starpu_data_handle_t *datas = arglist[arg_i];
+			starpu_data_handle_t *data = arglist[arg_i];
 			arg_i++;
 			int nb_handles = *(int *)arglist[arg_i];
 			int i;
@@ -119,7 +119,7 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 				enum starpu_data_access_mode mode = STARPU_CODELET_GET_MODE(codelet, nb_data);
 				if (node_selected == 0)
 				{
-					int ret = _starpu_mpi_find_executee_node(datas[i], mode, me, do_execute, &inconsistent_execute, xrank);
+					int ret = _starpu_mpi_find_executee_node(data[i], mode, me, do_execute, &inconsistent_execute, xrank);
 					if (ret == -EINVAL)
 					{
 						free(descrs);
@@ -132,7 +132,7 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 					nb_allocated_data *= 2;
 					_STARPU_MPI_REALLOC(descrs, nb_allocated_data * sizeof(struct starpu_data_descr));
 				}
-				descrs[nb_data].handle = datas[i];
+				descrs[nb_data].handle = data[i];
 				descrs[nb_data].mode = mode;
 				nb_data ++;
 			}
@@ -518,7 +518,7 @@ int _fstarpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, str
 				return -ENODEV;
 			}
 
-			/* In case we require that a task should be explicitely
+			/* In case we require that a task should be explicitly
 			 * executed on a specific worker, we make sure that the worker
 			 * is able to execute this task.  */
 			if (STARPU_UNLIKELY((*task)->execute_on_a_specific_worker && !starpu_combined_worker_can_execute_task((*task)->workerid, *task, 0)))
@@ -556,7 +556,7 @@ int _fstarpu_mpi_task_insert_v(MPI_Comm comm, struct starpu_codelet *codelet, vo
 
 		if (STARPU_UNLIKELY(ret == -ENODEV))
 		{
-			_STARPU_MSG("submission of task %p wih codelet %p failed (symbol `%s') (err: ENODEV)\n",
+			_STARPU_MSG("submission of task %p with codelet %p failed (symbol `%s') (err: ENODEV)\n",
 				    task, task->cl,
 				    (codelet == NULL) ? "none" :
 				    task->cl->name ? task->cl->name :

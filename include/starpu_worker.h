@@ -152,7 +152,7 @@ struct starpu_worker_collection
 	*/
 	void (*init)(struct starpu_worker_collection *workers);
 	/**
-	   Deinitialize the colection
+	   Deinitialize the collection
 	*/
 	void (*deinit)(struct starpu_worker_collection *workers);
 	/**
@@ -169,7 +169,7 @@ extern struct starpu_worker_collection starpu_worker_tree;
    Wait for all workers to be initialised. Calling this function is
    normally not necessary. It is called for example in
    <c>tools/starpu_machine_display</c> to make sure all workers
-   information are correctly set before printing their informations.
+   information are correctly set before printing their information.
    See \ref PauseResume for more details.
 */
 void starpu_worker_wait_for_initialisation(void);

@@ -182,7 +182,7 @@ static int tensor_compare(void *data_interface_a, void *data_interface_b)
 	struct starpu_tensor_interface *tensor_a = (struct starpu_tensor_interface *) data_interface_a;
 	struct starpu_tensor_interface *tensor_b = (struct starpu_tensor_interface *) data_interface_b;
 
-	/* Two matricess are considered compatible if they have the same size */
+	/* Two tensors are considered compatible if they have the same size */
 	return (tensor_a->nx == tensor_b->nx)
 		&& (tensor_a->ny == tensor_b->ny)
 		&& (tensor_a->nz == tensor_b->nz)

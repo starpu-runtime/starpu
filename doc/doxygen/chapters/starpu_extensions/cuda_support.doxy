@@ -20,6 +20,6 @@ StarPU sets the current CUDA device by calling starpu_cuda_set_device() which ta
 
 We can call starpu_cuda_get_nvmldev() to get identifier of the NVML device associated with a given CUDA device.
 
-Two functions starpu_cuda_report_error() and starpu_cublas_report_error() are useful for debugging and troubleshooting, as they provide detailed information about the error that occurr during CUDA or CUBLAS execution.
+Two functions starpu_cuda_report_error() and starpu_cublas_report_error() are useful for debugging and troubleshooting, as they provide detailed information about the error that occur during CUDA or CUBLAS execution.
 
 */

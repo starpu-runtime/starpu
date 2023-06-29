@@ -603,7 +603,7 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 		sched_ctx->sms_start_idx = occupied_sms;
 		sched_ctx->sms_end_idx = occupied_sms+nsms;
 		occupied_sms += nsms;
-		_STARPU_DEBUG("ctx %u: stream worker %d nsms %d ocupied sms %d\n", sched_ctx->id, workerids[0], nsms, occupied_sms);
+		_STARPU_DEBUG("ctx %u: stream worker %d nsms %d occupied sms %d\n", sched_ctx->id, workerids[0], nsms, occupied_sms);
 		STARPU_ASSERT_MSG(occupied_sms <= STARPU_NMAXSMS , "STARPU:requested more sms than available");
 		_starpu_worker_set_stream_ctx(workerids[0], sched_ctx);
 		sched_ctx->stream_worker = workerids[0];
@@ -613,7 +613,7 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 	sched_ctx->nsub_ctxs = 0;
 	sched_ctx->parallel_view = 0;
 
-	/*init the strategy structs and the worker_collection of the ressources of the context */
+	/*init the strategy structs and the worker_collection of the resources of the context */
 	if(policy)
 	{
 		_starpu_init_sched_policy(config, sched_ctx, policy);
@@ -1045,8 +1045,8 @@ void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 	sort_workerid_array(nworkers_ctx, backup_workerids);
 	notify_workers_about_changing_ctx_pending(nworkers_ctx, backup_workerids);
 
-	/*if both of them have all the ressources is pointless*/
-	/*trying to transfer ressources from one ctx to the other*/
+	/*if both of them have all the resources is pointless*/
+	/*trying to transfer resources from one ctx to the other*/
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	unsigned nworkers = config->topology.nworkers;
 
@@ -1471,7 +1471,7 @@ void _starpu_init_all_sched_ctxs(struct _starpu_machine_config *config)
 	return;
 }
 
-/* sched_ctx aren't necessarly one next to another */
+/* sched_ctx aren't necessary one next to another */
 /* for eg when we remove one its place is free */
 /* when we add  new one we reuse its place */
 static unsigned _starpu_get_first_free_sched_ctx(struct _starpu_machine_config *config)
@@ -1546,7 +1546,7 @@ void _starpu_decrement_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
 	}
 
 	/* We also need to check for config->submitting = 0 (i.e. the
-	 * user calle starpu_drivers_request_termination()), in which
+	 * user called starpu_drivers_request_termination()), in which
 	 * case we need to set config->running to 0 and wake workers,
 	 * so they can terminate, just like
 	 * starpu_drivers_request_termination() does.
@@ -2797,7 +2797,7 @@ static void _get_workers(int min, int max, int *workers, int *nw, enum starpu_wo
 	}
 	else
 	{
-		unsigned enough_ressources = 0;
+		unsigned enough_resources = 0;
 		npus = _starpu_worker_get_nids_ctx_free_by_type(arch, pus, max);
 
 		for(i = 0; i < npus; i++)
@@ -2805,15 +2805,15 @@ static void _get_workers(int min, int max, int *workers, int *nw, enum starpu_wo
 
 		if(npus == max)
 			/*we have enough available resources */
-			enough_ressources = 1;
+			enough_resources = 1;
 
-		if(!enough_ressources && npus >= min)
+		if(!enough_resources && npus >= min)
 			/*we have enough available resources */
-			enough_ressources = 1;
+			enough_resources = 1;
 
-		if(!enough_ressources)
+		if(!enough_resources)
 		{
-			/* try to get ressources from ctx who have more than the min of workers they need */
+			/* try to get resources from ctx who have more than the min of workers they need */
 			int s;
 			for(s = 1; s < STARPU_NMAX_SCHED_CTXS; s++)
 			{
@@ -2840,10 +2840,10 @@ static void _get_workers(int min, int max, int *workers, int *nw, enum starpu_wo
 			}
 
 			if(npus >= min)
-				enough_ressources = 1;
+				enough_resources = 1;
 		}
 
-		if(!enough_ressources)
+		if(!enough_resources)
 		{
 			/* if there is no available workers to satisfy the  minimum required
 			 give them workers proportional to their requirements*/

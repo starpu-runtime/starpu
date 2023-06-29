@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -66,7 +66,7 @@ void scal_cpu_func(void *buffers[], void *_args)
 	if (rank == 0)
 		FPRINTF(stderr, "running task with %d CPUs.\n", starpu_combined_worker_get_size());
 
-	/* We add 1 to the (nel_total % nb_workers) first workers, thus we get an evenly splitted data. */
+	/* We add 1 to the (nel_total % nb_workers) first workers, thus we get an evenly split data. */
 	int nel_worker = (n / nb_workers) + ((rank < (n % nb_workers)) ? 1 : 0);
 
 	int begin = get_first_element_rank(n, rank, nb_workers);

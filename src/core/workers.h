@@ -212,8 +212,8 @@ LIST_TYPE(_starpu_worker,
 	     * subsequent processing once worker completes the ongoing scheduling
 	     * operation */
 	struct _starpu_ctx_change_list ctx_change_list;
-	struct starpu_task_prio_list local_tasks; /**< this queue contains tasks that have been explicitely submitted to that queue */
-	struct starpu_task **local_ordered_tasks; /**< this queue contains tasks that have been explicitely submitted to that queue with an explicit order */
+	struct starpu_task_prio_list local_tasks; /**< this queue contains tasks that have been explicitly submitted to that queue */
+	struct starpu_task **local_ordered_tasks; /**< this queue contains tasks that have been explicitly submitted to that queue with an explicit order */
 	unsigned local_ordered_tasks_size; /**< this records the size of local_ordered_tasks */
 	unsigned current_ordered_task; /**< this records the index (within local_ordered_tasks) of the next ordered task to be executed */
 	unsigned current_ordered_task_order; /**< this records the order of the next ordered task to be executed */
@@ -259,7 +259,7 @@ LIST_TYPE(_starpu_worker,
 
 	  /**
 	   * indicate whether the workers shares tasks lists with other workers
-	   * in this case when removing him from a context it disapears instantly
+	   * in this case when removing him from a context it disappears instantly
 	   */
 	unsigned shares_tasks_lists[STARPU_NMAX_SCHED_CTXS+1];
 
@@ -289,7 +289,7 @@ LIST_TYPE(_starpu_worker,
 	starpu_pthread_mutex_t profiling_info_mutex;
 
 	/* In case the worker is still sleeping when the user request profiling info,
-	 * we need to account for the time elasped while sleeping. */
+	 * we need to account for the time elapsed while sleeping. */
 	unsigned profiling_registered_start[STATUS_INDEX_NR];
 	struct timespec profiling_registered_start_date[STATUS_INDEX_NR];
 	enum _starpu_worker_status profiling_status;
@@ -853,7 +853,7 @@ static inline void _starpu_worker_request_unblocking_in_parallel(struct _starpu_
 	while (worker->state_block_in_parallel_req)
 		STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
 
-	/* unblocking may be requested unconditionnally
+	/* unblocking may be requested unconditionally
 	 * thus, check is unblocking is really needed */
 	if (worker->state_blocked_in_parallel)
 	{
@@ -1072,7 +1072,7 @@ static inline void _starpu_worker_enter_changing_ctx_op(struct _starpu_worker * 
 		}
 		while (worker->state_sched_op_pending);
 
-		/* reset flag so other sched_ops wont have to broadcast state */
+		/* reset flag so other sched_ops won't have to broadcast state */
 		worker->state_changing_ctx_waiting = 0;
 	}
 }

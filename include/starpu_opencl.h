@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -340,7 +340,7 @@ cl_int starpu_opencl_copy_opencl_to_opencl(cl_mem src, unsigned src_node, size_t
    synchronised before returning. If not <c>NULL</c>, \p event can be
    used after the call to wait for this particular copy to complete. The
    function returns <c>-EAGAIN</c> if the asynchronous launch was
-   successfull. It returns 0 if the synchronous copy was successful, or
+   successful. It returns 0 if the synchronous copy was successful, or
    fails otherwise.
    See \ref DefiningANewDataInterface_copy for more details.
 */

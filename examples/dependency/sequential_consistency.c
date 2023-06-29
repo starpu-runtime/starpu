@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2018-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2018-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -107,7 +107,7 @@ void cpu_codeletC(void *descr[], void *args)
  * All three tasks use the same data in RW, taskB is submitted after
  * taskC, so taskB should normally only execute after taskC but as the
  * sequential consistency for (taskB, data) is unset, taskB can
- * execute straightaway
+ * execute straight away
  */
 int main(void)
 {

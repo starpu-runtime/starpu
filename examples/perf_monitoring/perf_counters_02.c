@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2019-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -115,7 +115,7 @@ int main(int argc, char **argv)
 	conf.nmpi_ms = -1;
 	conf.ntcpip_ms = -1;
 
-	/* Start collecting perfomance counter right after initialization */
+	/* Start collecting performance counter right after initialization */
 	conf.start_perf_counter_collection = 1;
 
 	int ret;

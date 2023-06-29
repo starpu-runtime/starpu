@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -27,7 +27,7 @@
 */
 
 /**
-   Set of functions to manipulate datas on disk. See \ref DiskFunctions for more details.
+   Set of functions to manipulate data on disk. See \ref DiskFunctions for more details.
 */
 struct starpu_disk_ops
 {
@@ -48,7 +48,7 @@ struct starpu_disk_ops
 	int (*bandwidth)(unsigned node, void *base);
 
 	/**
-	   Create a new location for datas of size \p size. Return an opaque object pointer.
+	   Create a new location for data of size \p size. Return an opaque object pointer.
 	*/
 	void *(*alloc)(void *base, size_t size);
 
@@ -58,11 +58,11 @@ struct starpu_disk_ops
 	void (*free)(void *base, void *obj, size_t size);
 
 	/**
-	   Open an existing location of datas, at a specific position \p pos dependent on the backend.
+	   Open an existing location of data, at a specific position \p pos dependent on the backend.
 	*/
 	void *(*open)(void *base, void *pos, size_t size);
 	/**
-	   Close, without deleting it, a location of datas \p obj.
+	   Close, without deleting it, a location of data \p obj.
 	*/
 	void (*close)(void *base, void *obj, size_t size);
 
@@ -193,7 +193,7 @@ void *starpu_disk_open(unsigned node, void *pos, size_t size);
 
 /**
    Register a disk memory node with a set of functions to manipulate
-   datas. The \c plug member of \p func will be passed \p parameter,
+   data. The \c plug member of \p func will be passed \p parameter,
    and return a \c base which will be passed to all \p func methods.
    <br />
    SUCCESS: return the disk node. <br />

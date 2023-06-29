@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -79,8 +79,8 @@ int main(int argc, char **argv)
      *    handle that should describe the data
      *  - the second argument is the memory node where the data (ie. "vector")
      *    resides initially: STARPU_MAIN_RAM stands for an address in main memory, as
-     *    opposed to an adress on a GPU for instance.
-     *  - the third argument is the adress of the vector in RAM
+     *    opposed to an address on a GPU for instance.
+     *  - the third argument is the address of the vector in RAM
      *  - the fourth argument is the number of elements in the vector
      *  - the fifth argument is the size of each element.
      */
@@ -105,7 +105,7 @@ int main(int argc, char **argv)
     task->cl_arg = &factor;
     task->cl_arg_size = sizeof(factor);
 
-    /* execute the task on any eligible computational ressource */
+    /* execute the task on any eligible computational resource */
     starpu_task_submit(task);
 
     /* StarPU does not need to manipulate the array anymore so we can stop

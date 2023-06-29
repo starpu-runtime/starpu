@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Joris Pablo
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2020       Federal University of Rio Grande do Sul (UFRGS)
@@ -42,7 +42,7 @@ struct starpu_fxt_codelet_event
 	float time;
 };
 
-/** Store informations related to clock synchronizations: mainly the offset to apply to each time. */
+/** Store information related to clock synchronizations: mainly the offset to apply to each time. */
 struct starpu_fxt_mpi_offset
 {
 	uint64_t local_time_start; /**< node time for the barrier at the beginning of the program */

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -130,7 +130,7 @@ int _starpu_mpi_checkpoint_template_add_entry(starpu_mpi_checkpoint_template_t c
 			else
 			{
 				/* Since this data does not concern me (i.e. it is nor my data neither a data which I'm the back up)
-				 * it is considered unecessary to register in the CP */
+				 * it is considered unnecessary to register in the CP */
 				return 0;
 			}
 			break;
@@ -475,7 +475,7 @@ int _checkpoint_template_digest_ack_reception(int checkpoint_id, int checkpoint_
 		_STARPU_MPI_TRACE_CHECKPOINT_END(checkpoint_instance, cp_template->checkpoint_domain);
 		if (tracker==NULL)
 		{
-			// TODO:should warn some people, because the msg loggin is not implemented(this precise nodes to contact)
+			// TODO:should warn some people, because the msg logging is not implemented(this precise nodes to contact)
 			_STARPU_MPI_DEBUG(0, "No previous checkpoint to discard\n");
 		}
 		else

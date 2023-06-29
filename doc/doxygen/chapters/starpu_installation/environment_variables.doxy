@@ -708,7 +708,7 @@ more information.
 <dd>
 \anchor STARPU_MIN_PRIO_env
 \addindex __env__STARPU_MIN_PRIO
-Set the mininum priority used by priorities-aware schedulers.
+Set the minimum priority used by priorities-aware schedulers.
 The flag can also be set through the field starpu_conf::global_sched_ctx_min_priority.
 </dd>
 
@@ -744,7 +744,7 @@ before considering that the performance model is calibrated. The default value i
 <dd>
 \anchor STARPU_BUS_CALIBRATE
 \addindex __env__STARPU_BUS_CALIBRATE
-If this variable is set to 1, the bus is recalibrated during intialization.
+If this variable is set to 1, the bus is recalibrated during initialization.
 </dd>
 
 <dt>STARPU_PREFETCH</dt>
@@ -867,7 +867,7 @@ WORKER, LcS, LS_SDH, LS_SDH2, LS_SDHB, LC_SMWB, AUTO (by default: AUTO). These a
 \anchor STARPU_LAHETEROPRIO_S_[ARCH]
 \addindex __env__STARPU_LAHETEROPRIO_S_arch
 Specify the number of memory nodes contained in an affinity group. An affinity
-group will be composed of the closests memory nodes to a worker of a given architecture,
+group will be composed of the closest memory nodes to a worker of a given architecture,
 and this worker will look for tasks available inside these memory nodes, before
 considering stealing tasks outside this group.
 ARCH can be CPU, CUDA, OPENCL, MICC, SCC, MPI_MS, etc.
@@ -1454,7 +1454,7 @@ belonging to the selected categories:
 </dd>
 
 The choice of which categories have to be recorded is a tradeoff between
-required informations for offline analyzis and acceptable overhead introduced
+required information for offline analyzis and acceptable overhead introduced
 by tracing. For instance, to inspect with ViTE which tasks workers execute, one
 has to at least select the <c>TASK</c> category.
 
@@ -1809,7 +1809,7 @@ program is making progress in task execution, or is just stuck.
 \anchor STARPU_TASK_BREAK_ON_PUSH
 \addindex __env__STARPU_TASK_BREAK_ON_PUSH
 When this variable contains a job id, StarPU will raise SIGTRAP when the task
-with that job id is being pushed to the scheduler, which will be nicely catched by debuggers
+with that job id is being pushed to the scheduler, which will be nicely caught by debuggers
 (see \ref DebuggingScheduling)
 </dd>
 
@@ -1819,7 +1819,7 @@ with that job id is being pushed to the scheduler, which will be nicely catched 
 \addindex __env__STARPU_TASK_BREAK_ON_SCHED
 When this variable contains a job id, StarPU will raise SIGTRAP when the task
 with that job id is being scheduled by the scheduler (at a scheduler-specific
-point), which will be nicely catched by debuggers.
+point), which will be nicely caught by debuggers.
 This only works for schedulers which have such a scheduling point defined
 (see \ref DebuggingScheduling)
 </dd>
@@ -1829,7 +1829,7 @@ This only works for schedulers which have such a scheduling point defined
 \anchor STARPU_TASK_BREAK_ON_POP
 \addindex __env__STARPU_TASK_BREAK_ON_POP
 When this variable contains a job id, StarPU will raise SIGTRAP when the task
-with that job id is being popped from the scheduler, which will be nicely catched by debuggers
+with that job id is being popped from the scheduler, which will be nicely caught by debuggers
 (see \ref DebuggingScheduling)
 </dd>
 
@@ -1838,7 +1838,7 @@ with that job id is being popped from the scheduler, which will be nicely catche
 \anchor STARPU_TASK_BREAK_ON_EXEC
 \addindex __env__STARPU_TASK_BREAK_ON_EXEC
 When this variable contains a job id, StarPU will raise SIGTRAP when the task
-with that job id is being executed, which will be nicely catched by debuggers
+with that job id is being executed, which will be nicely caught by debuggers
 (see \ref DebuggingScheduling)
 </dd>
 
@@ -2010,7 +2010,7 @@ is not done.
 \addindex __env__SC_HYPERVISOR_LAZY_RESIZE
 By default the hypervisor resizes the contexts in a lazy way, that is workers are firstly added to a new context
 before removing them from the previous one. Once this workers are clearly taken into account
-into the new context (a task was poped there) we remove them from the previous one. However if the application
+into the new context (a task was popped there) we remove them from the previous one. However if the application
 would like that the change in the distribution of workers should change right away this variable should be set to 0
 </dd>
 
@@ -2019,7 +2019,7 @@ would like that the change in the distribution of workers should change right aw
 \anchor SC_HYPERVISOR_SAMPLE_CRITERIA
 \addindex __env__SC_HYPERVISOR_SAMPLE_CRITERIA
 By default the hypervisor uses a sample of flops when computing the speed of the contexts and of the workers.
-If this variable is set to <c>time</c> the hypervisor uses a sample of time (10% of an aproximation of the total
+If this variable is set to <c>time</c> the hypervisor uses a sample of time (10% of an approximation of the total
 execution time of the application)
 </dd>
 

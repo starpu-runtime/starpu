@@ -290,7 +290,7 @@ int main(int argc, char **argv)
 	}
 
 #ifndef STARPU_SIMGRID
-	/* create a simple definite positive symetric matrix example
+	/* create a simple definite positive symmetric matrix example
 	 *
 	 *	Hilbert matrix : h(i,j) = 1/(i+j+1) (+ n In to make is stable)
 	 * */

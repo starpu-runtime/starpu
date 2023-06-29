@@ -312,7 +312,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 		}
 		else if (arg_type == STARPU_DATA_ARRAY)
 		{
-			starpu_data_handle_t *datas = va_arg(varg_list_copy, starpu_data_handle_t *);
+			starpu_data_handle_t *data = va_arg(varg_list_copy, starpu_data_handle_t *);
 			int nb_handles = va_arg(varg_list_copy, int);
 			int i;
 
@@ -322,7 +322,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 				enum starpu_data_access_mode mode = STARPU_CODELET_GET_MODE(codelet, nb_data);
 				if (node_selected == 0)
 				{
-					int ret = _starpu_mpi_find_executee_node(datas[i], mode, me, do_execute, &inconsistent_execute, xrank);
+					int ret = _starpu_mpi_find_executee_node(data[i], mode, me, do_execute, &inconsistent_execute, xrank);
 					if (ret == -EINVAL)
 					{
 						free(descrs);
@@ -336,7 +336,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 					nb_allocated_data *= 2;
 					_STARPU_MPI_REALLOC(descrs, nb_allocated_data * sizeof(struct starpu_data_descr));
 				}
-				descrs[nb_data].handle = datas[i];
+				descrs[nb_data].handle = data[i];
 				descrs[nb_data].mode = mode;
 				nb_data ++;
 			}
@@ -679,7 +679,7 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 				return -ENODEV;
 			}
 
-			/* In case we require that a task should be explicitely
+			/* In case we require that a task should be explicitly
 			 * executed on a specific worker, we make sure that the worker
 			 * is able to execute this task.  */
 			if (STARPU_UNLIKELY((*task)->execute_on_a_specific_worker && !starpu_combined_worker_can_execute_task((*task)->workerid, *task, 0)))
@@ -770,7 +770,7 @@ int _starpu_mpi_task_insert_v(MPI_Comm comm, struct starpu_codelet *codelet, va_
 
 		if (STARPU_UNLIKELY(ret == -ENODEV))
 		{
-			_STARPU_MSG("submission of task %p wih codelet %p failed (symbol `%s') (err: ENODEV)\n",
+			_STARPU_MSG("submission of task %p with codelet %p failed (symbol `%s') (err: ENODEV)\n",
 				    task, task->cl,
 				    (codelet == NULL) ? "none" :
 				    task->cl->name ? task->cl->name :
@@ -1093,7 +1093,7 @@ int starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_han
 						 * data_handle
 						 * - submit the reducing task B
 						 * reading and writing data_handle and
-						 * depending on task A through sequencial
+						 * depending on task A through sequential
 						 * consistency
 						 */
 						starpu_data_handle_t new_handle;
@@ -1205,7 +1205,7 @@ void _starpu_mpi_redux_wrapup_data(starpu_data_handle_t data_handle)
 	return;
 }
 
-void _starpu_mpi_redux_wrapup_datas()
+void _starpu_mpi_redux_wrapup_data_all()
 {
  	struct _starpu_redux_data_entry *entry = NULL, *tmp = NULL;
  	HASH_ITER(hh, _redux_data, entry, tmp)

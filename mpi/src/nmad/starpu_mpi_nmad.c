@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2017       Guillaume Beauchamp
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -679,7 +679,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 
 	/* We cannot rely on _starpu_mpi_use_coop_sends to shutdown mcast:
 	 * coops can be disabled with starpu_mpi_coop_sends_set_use() after
-	 * initialiazation of mcast. */
+	 * initialization of mcast. */
 	if (nmad_mcast_started)
 	{
 		_starpu_mpi_nmad_coop_shutdown();

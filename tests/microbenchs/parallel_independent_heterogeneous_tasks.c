@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2016       Bérangère Subervie
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -122,8 +122,6 @@ int main(int argc, char *argv[])
 	starpu_task_wait_for_all();
 
 	end_time = starpu_timing_now();
-
-	/*on determine si le temps mesure est satisfaisant ou pas*/
 
 	time_m = (end_time - begin_time)/SECONDS_SCALE_COEFFICIENT_TIMING_NOW; //pour ramener en secondes
 	time_s = nb_tasks * TIME;

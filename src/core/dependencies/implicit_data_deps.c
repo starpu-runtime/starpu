@@ -480,7 +480,7 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 /* This function is called when a task has been executed so that we don't
  * create dependencies to task that do not exist anymore. */
 /* NB: We maintain a list of "ghost deps" in case FXT is enabled. Ghost
- * dependencies are the dependencies that are implicitely enforced by StarPU
+ * dependencies are the dependencies that are implicitly enforced by StarPU
  * even if they do not imply a real dependency. For instance in the following
  * sequence, f(Ar) g(Ar) h(Aw), we expect to have h depend on both f and g, but
  * if h is submitted after the termination of f or g, StarPU will not create a

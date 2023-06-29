@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2019,2021  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -648,7 +648,7 @@ int starpu_mpi_wait_for_all(MPI_Comm comm)
 {
 	/* If the user forgets to call mpi_redux_data or insert R tasks on the reduced handles */
 	/* then, we wrap reduction patterns for them. This is typical of benchmarks */
-	_starpu_mpi_redux_wrapup_datas();
+	_starpu_mpi_redux_wrapup_data_all();
 	return _mpi_backend._starpu_mpi_backend_wait_for_all(comm);
 }
 

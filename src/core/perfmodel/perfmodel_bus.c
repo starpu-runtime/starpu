@@ -663,7 +663,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_opencl(int dev, 
 
 static void measure_bandwidth_between_host_and_dev(int dev, struct dev_timing dev_timing_per_numa[STARPU_NMAXDEVS][STARPU_MAXNUMANODES], enum starpu_node_kind type)
 {
-	/* We measure the bandwith between each GPU and each NUMA node */
+	/* We measure the bandwidth between each GPU and each NUMA node */
 	unsigned numa_id;
 	for (numa_id = 0; numa_id < nnumas; numa_id++)
 	{
@@ -874,7 +874,7 @@ static void benchmark_all_memory_nodes(void)
 	for (i = 0; i < nopencl; i++)
 	{
 		_STARPU_DISP("OpenCL %u...\n", i);
-		/* measure bandwith between Host and Device i */
+		/* measure bandwidth between Host and Device i */
 		measure_bandwidth_between_host_and_dev(i, timing_per_numa[STARPU_OPENCL_RAM], STARPU_OPENCL_RAM);
 	}
 #endif
@@ -2158,7 +2158,7 @@ static void update_bandwidth_through(hwloc_obj_t obj, double bandwidth)
 
 /* find_* functions perform the first step: computing maximum bandwidths */
 
-/* Our trafic had to go through the host, go back from target up to the host,
+/* Our traffic had to go through the host, go back from target up to the host,
  * updating uplink downstream bandwidth along the way */
 static void find_platform_backward_path(hwloc_obj_t obj, double bandwidth)
 {
@@ -2418,7 +2418,7 @@ static void emit_pci_link_down(FILE *f, hwloc_obj_t obj)
 /* Go through PCI hub */
 static void emit_pci_link_through(FILE *f, hwloc_obj_t obj)
 {
-	/* We don't care about trafic going through PCI switches */
+	/* We don't care about traffic going through PCI switches */
 	if (obj->type == HWLOC_OBJ_BRIDGE)
 	{
 		if (!obj->name || !strstr(obj->name, "Switch"))
@@ -2432,7 +2432,7 @@ static void emit_pci_link_through(FILE *f, hwloc_obj_t obj)
 	}
 }
 
-/* Our trafic has to go through the host, go back from target up to the host,
+/* Our traffic has to go through the host, go back from target up to the host,
  * using uplink downstream along the way */
 static void emit_platform_backward_path(FILE *f, hwloc_obj_t obj)
 {
@@ -3220,7 +3220,7 @@ void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double band
 		fprintf(stderr, "Data transfer speed for %s (node %u):\n", name, node);
 	}
 
-	/* save bandwith */
+	/* save bandwidth */
 	for(i = 0; i < STARPU_MAXNODES; ++i)
 	{
 		for(j = 0; j < STARPU_MAXNODES; ++j)

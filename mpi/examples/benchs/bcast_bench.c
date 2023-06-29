@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2021, 2022	    Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2021-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -118,7 +118,7 @@ static void bcast(MPI_Comm subcomm, int rank, int nb_dests)
 	{
 		if (rank == 0)
 		{
-			/* We explicitely tell StarPU this send will be a broadcast with n recipients. */
+			/* We explicitly tell StarPU this send will be a broadcast with n recipients. */
 			starpu_mpi_coop_sends_data_handle_nb_sends(data_handle, nb_dests);
 			for (i = 1; i <= nb_dests; i++)
 			{
@@ -286,7 +286,7 @@ int main(int argc, char**argv)
 					MPI_Bcast(&rc, 1, MPI_INT, 0, sub_comm);
 				} while(rc != 0);
 
-				/* find maximum latency accross nb_nodes */
+				/* find maximum latency across nb_nodes */
 				double* lat_all = (subcomm_rank == 0) ? malloc(nb_nodes * sizeof(double)) : NULL;
 				MPI_Gather(&local_lat, 1, MPI_DOUBLE, lat_all, 1, MPI_DOUBLE, 0, sub_comm);
 
@@ -307,7 +307,7 @@ int main(int argc, char**argv)
 				}
 			}
 
-			/* compute time stats accross iterations */
+			/* compute time stats across iterations */
 			if (subcomm_rank == 0)
 			{
 				qsort(lats, iterations, sizeof(double), &comp_double);

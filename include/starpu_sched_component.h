@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  * Copyright (C) 2017       Arthur Chevalier
  *
@@ -557,7 +557,7 @@ struct starpu_sched_component_mct_data
 };
 
 /**
-   create a component with mct_data paremeters. the mct component doesnt
+   create a component with mct_data parameters. the mct component does not
    do anything but pushing tasks on no_perf_model_component and
    calibrating_component
 */
@@ -676,7 +676,7 @@ void starpu_sched_component_composed_recipe_add(struct starpu_sched_component_co
 void starpu_sched_component_composed_recipe_destroy(struct starpu_sched_component_composed_recipe *);
 
 /**
-   create a component that behave as all component of recipe where linked. Except that you cant use starpu_sched_component_is_foo function
+   create a component that behave as all component of recipe where linked. Except that you can not use starpu_sched_component_is_foo function
    if recipe contain a single create_foo arg_foo pair, create_foo(arg_foo) is returned instead of a composed component
 */
 struct starpu_sched_component *starpu_sched_component_composed_component_create(struct starpu_sched_tree *tree, struct starpu_sched_component_composed_recipe *recipe) STARPU_ATTRIBUTE_MALLOC;
@@ -715,7 +715,7 @@ struct starpu_sched_component_specs
 	   this flag is a dirty hack because of the poor expressivity of this interface. As example, if you want to build
 	   a heft component with a fifo component per numa component, and you also have GPUs, if this flag is set, GPUs will share those fifos.
 	   If this flag is not set, a new fifo will be built for each of them (if they have the same starpu_perf_arch and the same
-	   numa component it will be shared. it indicates if heterogenous workers should be brothers or cousins, as example, if a gpu and a cpu should share or not there numa node
+	   numa component it will be shared. it indicates if heterogeneous workers should be brothers or cousins, as example, if a gpu and a cpu should share or not there numa node
 	*/
 	int mix_heterogeneous_workers;
 };

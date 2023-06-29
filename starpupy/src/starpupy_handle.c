@@ -362,7 +362,7 @@ PyObject *starpupy_handle_dict_check(PyObject *obj, char* mode, char* op)
 	PyObject *handle_obj = NULL;
 	if (strcmp(op, "register") == 0)
 	{
-		/*check whether the arg is already registed*/
+		/*check whether the arg is already registered*/
 		if(PyDict_GetItem(handle_dict, obj_id)==NULL)
 		{
 			PyObject *Handle_class = PyDict_GetItemString(starpu_dict, "Handle");
@@ -394,7 +394,7 @@ PyObject *starpupy_handle_dict_check(PyObject *obj, char* mode, char* op)
 	}
 	else if (strcmp(op, "exception") == 0)
 	{
-		/*check in handle_dict whether this arg is already registed*/
+		/*check in handle_dict whether this arg is already registered*/
 		if(!PyDict_Contains(handle_dict, obj_id))
 		{
 			RETURN_EXCEPTION("Argument does not have registered handle");

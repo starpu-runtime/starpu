@@ -25,7 +25,7 @@
 static void usage()
 {
 	fprintf(stderr, "Show the processing units that StarPU can use,\n");
-	fprintf(stderr, "and the bandwitdh and affinity measured between the memory nodes.\n");
+	fprintf(stderr, "and the bandwidth and affinity measured between the memory nodes.\n");
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Usage: %s [OPTION]\n", PROGNAME);
 	fprintf(stderr, "\n");
@@ -36,7 +36,7 @@ static void usage()
 	fprintf(stderr, "\t-f, --force         force bus sampling and show measures \n");
 	fprintf(stderr, "\t-w, --worker <type> only show workers of the given type\n");
 	fprintf(stderr, "\t-c, --count         only display the number of workers\n");
-	fprintf(stderr, "\t-n, --notopology    do not display the bandwitdh and affinity\n");
+	fprintf(stderr, "\t-n, --notopology    do not display the bandwidth and affinity\n");
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Report bugs to <%s>.\n", PACKAGE_BUGREPORT);
 }

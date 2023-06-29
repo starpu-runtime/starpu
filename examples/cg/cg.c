@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -28,7 +28,7 @@
  *		- vector b
  *		- vector x (starting value)
  *		- int i_max, error tolerance eps < 1.
- *	Ouput:
+ *	Output:
  *		- vector x
  *
  *	Pseudo code:
@@ -105,7 +105,7 @@ static void generate_random_problem(void)
 		b[j] = (TYPE)1.0;
 		x[j] = (TYPE)0.0;
 
-		/* We take Hilbert matrix that is not well conditionned but definite positive: H(i,j) = 1/(1+i+j) */
+		/* We take Hilbert matrix that is not well conditioned but definite positive: H(i,j) = 1/(1+i+j) */
 		for (i = 0; i < n; i++)
 		{
 			A[n*j + i] = (TYPE)(1.0/(1.0+i+j));
@@ -329,7 +329,7 @@ int main(int argc, char **argv)
 	partition_data();
 	end = starpu_timing_now();
 
-	FPRINTF(stderr, "Problem intialization timing : %2.2f seconds\n", (end-start)/1e6);
+	FPRINTF(stderr, "Problem initialization timing : %2.2f seconds\n", (end-start)/1e6);
 
 	ret = cg();
 	if (ret == -ENODEV)

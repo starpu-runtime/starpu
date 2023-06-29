@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -140,7 +140,7 @@ static void register_matrices()
 				(comm_rank == 0)?(uintptr_t)(A+b_row*BS*N):0, N, N, BS,
 				sizeof(double));
 
-		/* Register a block to StarPU-MPI, specifying the mpi tag to use for transfering the block
+		/* Register a block to StarPU-MPI, specifying the mpi tag to use for transferring the block
 		 * and the rank of the owner node.
 		 *
 		 * Note: StarPU-MPI is an autonomous layer built on top of StarPU, hence the two separate

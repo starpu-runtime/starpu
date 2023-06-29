@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2021       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -131,7 +131,7 @@ int __starpu_datawizard_progress(enum _starpu_may_alloc may_alloc, unsigned push
 		return 0;
 
 	if (worker->set)
-		/* Runing one of the workers of a worker set. The reference for
+		/* Running one of the workers of a worker set. The reference for
 		 * driving memory is its worker 0 (see registrations in topology.c) */
 		worker = &worker->set->workers[0];
 

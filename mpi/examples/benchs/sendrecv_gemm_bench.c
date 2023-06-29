@@ -104,7 +104,7 @@ void parse_args(int argc, char **argv)
 		{
 			fprintf(stderr,"Usage: %s [-nblocks n] [-size size] [-check] [-comm-thread-cpuid cpuid]\n", argv[0]);
 			fprintf(stderr,"Currently selected: matrix size: %u - %u blocks\n", matrix_dim, nslices);
-			fprintf(stderr, "Use -comm-thread-cpuid to specifiy where to bind the comm benchmarking thread\n");
+			fprintf(stderr, "Use -comm-thread-cpuid to specify where to bind the comm benchmarking thread\n");
 			exit(EXIT_SUCCESS);
 		}
 

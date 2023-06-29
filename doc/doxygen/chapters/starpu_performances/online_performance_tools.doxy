@@ -314,7 +314,7 @@ starpu_perfmodel::symbol and starpu_perfmodel::type are mandatory, to
 give a name to the model, and the type of the model, since there are
 several kinds of performance models. Then starpu_task_get_model_name() can be called to retrieve the name of the performance model associated with a task. For compatibility, make sure to
 initialize the whole structure to zero, either by using explicit
-memset(), or by letting the compiler implicitly do it as exemplified
+memset(), or by letting the compiler implicitly do it as examplified
 below.
 
 <ul>

@@ -58,7 +58,7 @@
 
 #ifdef STARPU_USE_CUDA
 #if CUDART_VERSION >= 5000
-/* Avoid letting our streams spuriously synchonize with the NULL stream */
+/* Avoid letting our streams spuriously synchronize with the NULL stream */
 #define starpu_cudaStreamCreate(stream) cudaStreamCreateWithFlags(stream, cudaStreamNonBlocking)
 #else
 #define starpu_cudaStreamCreate(stream) cudaStreamCreate(stream)

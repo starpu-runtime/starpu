@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2017-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2017-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -272,7 +272,7 @@ static void starpu_hdf5_copy_internal(struct _starpu_hdf5_work * work)
 	{
 		if (!warned)
 		{
-			_STARPU_DISP("Direct disk to disk copy is not supported for a piece of data. Data will be transfered to RAM memory and then, be pushed on disk \n");
+			_STARPU_DISP("Direct disk to disk copy is not supported for a piece of data. Data will be transferred to RAM memory and then, be pushed on disk \n");
 			warned = 1;
 		}
 
@@ -302,7 +302,7 @@ static void * _starpu_hdf5_internal_thread(void * arg)
 			STARPU_PTHREAD_COND_WAIT(&HDF5_VAR_COND, &HDF5_VAR_MUTEX);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&HDF5_VAR_MUTEX);
 
-		/* We are the only consummer here, don't need to protect here */
+		/* We are the only consumer here, don't need to protect here */
 		if (!_starpu_hdf5_work_list_empty(&HDF5_VAR_WORK_LIST))
 		{
 			STARPU_PTHREAD_MUTEX_LOCK(&HDF5_VAR_MUTEX);

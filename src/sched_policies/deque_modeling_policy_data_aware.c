@@ -953,9 +953,9 @@ static void _dm_push_task_notify(struct starpu_task *task, int workerid, int per
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct starpu_st_fifo_taskq *fifo = &dt->queue_array[workerid];
 
-	/* Compute the expected penality */
+	/* Compute the expected penalty */
 	double predicted = starpu_task_worker_expected_length(task, perf_workerid, sched_ctx_id,
-						       starpu_task_get_implementation(task));
+							      starpu_task_get_implementation(task));
 	double predicted_transfer = NAN;
 
 	if (da)

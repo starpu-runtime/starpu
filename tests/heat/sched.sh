@@ -30,7 +30,7 @@ calibrate_point()
 	echo "STARPU_CALIBRATE size : $size / blocks : $nblocks strat -> $strat prefetch -> $prefetch"
 
 	rm -f $SAMPLINGDIR/*
-	
+
 	for iter in `seq 1 $maxiter`
 	do
 		echo "$iter / $maxiter"
@@ -53,7 +53,7 @@ trace_point()
 	size=$(($nblocks * 1024))
 
 	echo "size : $size ... docalibrate $docalibrate"
-	
+
 	filename=$TIMINGDIR/sched.$prefetch.$strat.$size
 
 	if [ $docalibrate == 1 ];
@@ -81,7 +81,7 @@ trace_sched()
 
 	for nblocks in `seq 2 2 30`
 	do
-		trace_point $strat $nblocks $docalibrate $prefetch 
+		trace_point $strat $nblocks $docalibrate $prefetch
 	done
 }
 
@@ -99,7 +99,7 @@ mkdir -p $SAMPLINGDIR
 #schedlist="random random random random"
 
 export STARPU_NCUDA=3
-export STARPU_NCPUS=8 
+export STARPU_NCPUS=8
 
 trace_sched "greedy" 0 0;
 trace_sched "dm" 0 1;

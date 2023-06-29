@@ -302,7 +302,7 @@ struct starpu_task *tasks[4];
 ret = starpu_task_get_task_succs(task, sizeof(tasks)/sizeof(*tasks), tasks);
 \endcode
 
-And the full example of getting task children is availble in the file <c>tests/main/get_children_tasks.c</c>
+And the full example of getting task children is available in the file <c>tests/main/get_children_tasks.c</c>
 
 \section ParallelTasks Parallel Tasks
 

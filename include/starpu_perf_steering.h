@@ -51,7 +51,7 @@ enum starpu_perf_knob_scope
  */
 enum starpu_perf_knob_type
 {
-	starpu_perf_knob_type_undefined = 0, /**< underfined value type */
+	starpu_perf_knob_type_undefined = 0, /**< undefined value type */
 	starpu_perf_knob_type_int32	= 1, /**< signed 32-bit integer value */
 	starpu_perf_knob_type_int64	= 2, /**< signed 64-bit integer value */
 	starpu_perf_knob_type_float	= 3, /**< 32-bit single precision floating-point value */

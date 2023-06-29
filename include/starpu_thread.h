@@ -411,7 +411,7 @@ typedef void *starpu_pthread_barrier_t;
  * starpu_pthread_queue_destroy(&global_queue1->queue);
  *
  * Consumers create a "wait" object, then queue_register on as many queues they
- * want. In their consumption loop, they wait_reset, then test for availibility
+ * want. In their consumption loop, they wait_reset, then test for availability
  * on all producers, and if none was available, call wait_wait to actually wait
  * for producers. On termination, consumers have to queue_unregister before
  * destroying the "wait" object:

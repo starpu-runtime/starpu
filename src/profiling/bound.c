@@ -46,7 +46,7 @@
  * and the constraints will be:
  * - the time taken by each worker to complete its assigned tasks is lower than
  *   the total duration.
- * - the total numer of tasks of a given kind is equal to the number run by the
+ * - the total number of tasks of a given kind is equal to the number run by the
  *   application.
  */
 struct bound_task_pool

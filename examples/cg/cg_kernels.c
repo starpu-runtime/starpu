@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -324,7 +324,7 @@ void dot_kernel_cpu(void *descr[], void *cl_arg)
 	unsigned nx = STARPU_VECTOR_GET_NX(descr[1]);
 
 	TYPE local_dot;
-	/* Note that we explicitely cast the result of the DOT kernel because
+	/* Note that we explicitly cast the result of the DOT kernel because
 	 * some BLAS library will return a double for sdot for instance. */
 	local_dot = (TYPE)DOT(nx, v1, 1, v2, 1);
 

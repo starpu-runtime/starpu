@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2018	    Umeà University
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -193,7 +193,7 @@ int dgels_multiple_reg_coeff(double *mpar, double *my, unsigned long nn, unsigne
 	char trans = 'N';
 	integer m = nn;
 	integer n = ncoeff;
-	integer nrhs = 1; // number of columns of B and X (wich are vectors therefore nrhs=1)
+	integer nrhs = 1; // number of columns of B and X (which are vectors therefore nrhs=1)
 	doublereal *X;
 	_STARPU_MALLOC(X, sizeof(double)*n*m); // (/!\ modified at the output) contain the model and the different values of pararmters
 	doublereal *Y;
@@ -266,7 +266,7 @@ void starpu_validate_mlr(double *coeff, unsigned ncoeff, const char *codelet_nam
 
 	for(i=1; i<ncoeff; i++)
 		if(fabs(coeff[i]) < 1E-10)
-			_STARPU_DISP("Warning: Coefficient computed by least square method is extremelly small (%f). The model %s is likely to be inaccurate.\n", coeff[i], codelet_name);
+			_STARPU_DISP("Warning: Coefficient computed by least square method is extremely small (%f). The model %s is likely to be inaccurate.\n", coeff[i], codelet_name);
 }
 
 int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, double *coeff, unsigned ncoeff, unsigned nparameters, const char **parameters_names, unsigned **combinations, const char *codelet_name)

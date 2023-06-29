@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -72,8 +72,8 @@ struct composed_component
 	struct starpu_sched_component *top,*bottom;
 };
 
-/* this function actualy build the composed component data by changing the list of
- * (component_create_fun, arg_create_fun) into a tree where all components have 1 childs
+/* this function actually build the composed component data by changing the list of
+ * (component_create_fun, arg_create_fun) into a tree where all components have 1 children
  */
 static struct composed_component create_composed_component(struct starpu_sched_tree *tree, struct starpu_sched_component_composed_recipe * recipe
 #ifdef STARPU_HAVE_HWLOC

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -21,7 +21,7 @@
  * elements) is partitioned into matrices with some shadowing, and these are
  * copied into a destination "matrix2" of
  * NRPARTSX*NPARTSY*((NX/NPARTSX+2*SHADOWX)*(NY/NPARTSY+2*SHADOWY)) elements,
- * partitioned in the traditionnal way, thus showing how shadowing shows up.
+ * partitioned in the traditional way, thus showing how shadowing shows up.
  *
  * For instance, with NX=NY=8, SHADOWX=SHADOWY=1, and NPARTSX=NPARTSY=4:
  *

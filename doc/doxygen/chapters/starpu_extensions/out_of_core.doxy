@@ -29,7 +29,7 @@ thus leaving room for new allocations. Whenever some evicted data is needed
 again for a task, StarPU will automatically fetch it back from the disk.
 
 The principle is that one first registers a disk memory node with a set of functions to manipulate
-datas by calling starpu_disk_register(), and then registers a disk location, seen by StarPU as a
+data by calling starpu_disk_register(), and then registers a disk location, seen by StarPU as a
 <c>void*</c>, which can be for instance a Unix path for the \c stdio, \c unistd or
 \c unistd_o_direct backends, or a leveldb database for the \c leveldb backend, an HDF5
 file path for the \c HDF5 backend, etc. The \c disk backend opens this place with the

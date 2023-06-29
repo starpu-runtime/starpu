@@ -528,11 +528,11 @@ struct starpu_codelet
 
 	/**
 	   Is an array of ::starpu_data_access_mode. It describes the
-	   required access modes to the data neeeded by the codelet
+	   required access modes to the data needed by the codelet
 	   (e.g. ::STARPU_RW). The number of entries in this array
 	   must be specified in the field starpu_codelet::nbuffers,
 	   and should not exceed \ref STARPU_NMAXBUFS. If
-	   unsufficient, this value can be set with the configure
+	   insufficient, this value can be set with the configure
 	   option \ref enable-maxbuffers "--enable-maxbuffers".
 	*/
 	enum starpu_data_access_mode modes[STARPU_NMAXBUFS];
@@ -543,7 +543,7 @@ struct starpu_codelet
 	   (e.g. ::STARPU_RW). The number of entries in this array
 	   must be specified in the field starpu_codelet::nbuffers.
 	   This field should be used for codelets having a number of
-	   datas greater than \ref STARPU_NMAXBUFS (see \ref
+	   data greater than \ref STARPU_NMAXBUFS (see \ref
 	   SettingManyDataHandlesForATask). When defining a codelet,
 	   one should either define this field or the field
 	   starpu_codelet::modes defined above.
@@ -575,7 +575,7 @@ struct starpu_codelet
 	   this specifies the memory nodes where each data should be
 	   sent to for task execution. The number of entries in this
 	   array is starpu_codelet::nbuffers. This field should be
-	   used for codelets having a number of datas greater than
+	   used for codelets having a number of data greater than
 	   \ref STARPU_NMAXBUFS (see \ref
 	   SettingManyDataHandlesForATask). When defining a codelet,
 	   one should either define this field or the field
@@ -735,7 +735,7 @@ struct starpu_task
 	   different pieces of data accessed by the task. The number
 	   of entries in this array must be specified in the field
 	   starpu_codelet::nbuffers. This field should be used for
-	   tasks having a number of datas greater than \ref
+	   tasks having a number of data greater than \ref
 	   STARPU_NMAXBUFS (see \ref SettingManyDataHandlesForATask).
 	   When defining a task, one should either define this field
 	   or the field starpu_task::handles defined below.
@@ -760,7 +760,7 @@ struct starpu_task
 	   (e.g. ::STARPU_RW). The number of entries in this array
 	   must be specified in the field starpu_codelet::nbuffers.
 	   This field should be used for codelets having a number of
-	   datas greater than \ref STARPU_NMAXBUFS (see \ref
+	   data greater than \ref STARPU_NMAXBUFS (see \ref
 	   SettingManyDataHandlesForATask).
 	   When defining a codelet, one should either define this
 	   field or the field starpu_task::modes defined below.
@@ -775,7 +775,7 @@ struct starpu_task
 	   different pieces of data accessed by the task. The number
 	   of entries in this array must be specified in the field
 	   starpu_codelet::nbuffers, and should not exceed
-	   \ref STARPU_NMAXBUFS. If unsufficient, this value can be
+	   \ref STARPU_NMAXBUFS. If insufficient, this value can be
 	   set with the configure option \ref enable-maxbuffers
 	   "--enable-maxbuffers".
 
@@ -796,10 +796,10 @@ struct starpu_task
 	   Used only when starpu_codelet::nbuffers is \ref
 	   STARPU_VARIABLE_NBUFFERS.
 	   Array of ::starpu_data_access_mode which describes the
-	   required access modes to the data neeeded by the codelet
+	   required access modes to the data needed by the codelet
 	   (e.g. ::STARPU_RW). The number of entries in this array
 	   must be specified in the field starpu_task::nbuffers, and
-	   should not exceed \ref STARPU_NMAXBUFS. If unsufficient,
+	   should not exceed \ref STARPU_NMAXBUFS. If insufficient,
 	   this value can be set with the configure option
 	   \ref enable-maxbuffers "--enable-maxbuffers".
 
@@ -865,7 +865,7 @@ struct starpu_task
 	   Optional field. The buffer of starpu_codelet_pack_arg()
 	   and starpu_codelet_unpack_arg() can be allocated with
 	   the starpu_task::cl_ret_size bytes starting at address starpu_task::cl_ret.
-	   starpu_task::cl_ret_size can be used for MPI supoort.
+	   starpu_task::cl_ret_size can be used for MPI support.
 	*/
 	size_t cl_ret_size;
 
@@ -1967,7 +1967,7 @@ void starpu_task_ft_prologue(void *check_ft);
    try-task as template task.
 
    \p check_ft is similar to the prologue argument of
-   starpu_task_ft_prologue(), and is typicall set to the very function calling
+   starpu_task_ft_prologue(), and is typically set to the very function calling
    starpu_task_ft_create_retry().
 
    The try-task is returned, and can be modified (e.g. to change scheduling
@@ -2049,7 +2049,7 @@ struct starpu_transaction *starpu_transaction_open(int (*do_start_func)(void *bu
 void starpu_transaction_next_epoch(struct starpu_transaction *p_trs, void *do_start_arg);
 
 /**
-   Function to mark the end of the last transaction epoch and free the transation object.
+   Function to mark the end of the last transaction epoch and free the transaction object.
    See \ref TransactionsClosing for more details.
  */
 void starpu_transaction_close(struct starpu_transaction *p_trs);

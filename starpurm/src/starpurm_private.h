@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2017-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2017-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -63,7 +63,7 @@ struct s_starpurm
 	/** Number of unit types supported by this RM instance. */
 	int unit_ntypes;
 
-	/** Number of unitss available for each type. */
+	/** Number of units available for each type. */
 	int *nunits_by_type;
 
 	/** Number of units. */

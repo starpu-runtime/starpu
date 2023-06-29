@@ -65,7 +65,7 @@ The StarPU module should be imported in any Python code wanting to use the StarP
 import starpu
 \endcode
 
-Before using any StarPU functionnality, it is necessary to call \c starpu.init(). The function \c starpu.shutdown() should be called after all StarPU functions have been called.
+Before using any StarPU functionality, it is necessary to call \c starpu.init(). The function \c starpu.shutdown() should be called after all StarPU functions have been called.
 
 \code{.py}
 import starpu
@@ -1261,7 +1261,7 @@ It is possible to use multiple interpreters when running python applications. To
 
 Python interpreters share the Global Interpreter Lock (GIL), which requires that at any time, one and only one thread has the right to execute a task. In other words, GIL makes the multiple interpreters execution of Python actually serial rather than parallel, and the execution of Python program is single-threaded essentially. Therefore, if the application is pure Python script, even with multi-interpreters, the program cannot be executed in parallel, unless an external C application is called.
 
-Fortunately now there is a quite positive development. Python developpers are preparing to implement stop sharing the GIL between interpreters (https://peps.nogil.dev/pep-0684/) or even make GIL optional so that Python code can be run without GIL (https://peps.nogil.dev/pep-0701/), that will facilitate true parallelism with the next Python version.
+Fortunately now there is a quite positive development. Python developers are preparing to implement stop sharing the GIL between interpreters (https://peps.nogil.dev/pep-0684/) or even make GIL optional so that Python code can be run without GIL (https://peps.nogil.dev/pep-0701/), that will facilitate true parallelism with the next Python version.
 
 In order to transfer data between interpreters, the module \c cloudpickle is used to serialize Python objects in contiguous byte array. This mechanism increases the overhead of the StarPU Python interface, as shown in the following plots, to be compared to the plots given in \ref Benchmark.
 

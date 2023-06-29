@@ -139,7 +139,7 @@ public class Utils {
         vargs.add("1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/"+outputPrefix+".stdout");
         vargs.add("2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/"+outputPrefix+".stderr");
 
-        // Get final commmand
+        // Get final command
         StringBuilder command = new StringBuilder();
         for (String str : vargs) {
             command.append(str).append(" ");

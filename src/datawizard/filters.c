@@ -452,7 +452,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 	 * do anything since this is transparent ?) */
 	unsigned still_valid[STARPU_MAXNODES];
 
-	/* we do 2 passes : the first pass determines wether the data is still
+	/* we do 2 passes : the first pass determines whether the data is still
 	 * valid or not, the second pass is needed to choose between STARPU_SHARED and
 	 * STARPU_OWNER */
 

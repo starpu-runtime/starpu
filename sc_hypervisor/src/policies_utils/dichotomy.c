@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -36,7 +36,7 @@ unsigned sc_hypervisor_lp_execute_dichotomy(int ns, int nw, double w_in_s[ns][nw
 	int nd = 0;
 	double found_tmid = tmax;
 	double potential_tmid = tmid;
-	double threashold = tmax*0.1;
+	double threshold = tmax*0.1;
 	gettimeofday(&start_time, NULL);
 
 	/* we fix tmax and we do not treat it as an unknown
@@ -77,11 +77,11 @@ unsigned sc_hypervisor_lp_execute_dichotomy(int ns, int nw, double w_in_s[ns][nw
 		if(has_sol)
 		{
 			/* if the difference between tmax and tmid is smaller than
-			   a given threashold there is no point in searching more
+			   a given threshold there is no point in searching more
 			   precision */
 			tmax = tmid;
 			potential_tmid = tmin + ((tmax-tmin)/2.0);
-			if((tmax - potential_tmid) < threashold)
+			if((tmax - potential_tmid) < threshold)
 			{
 				printf("had_sol but stop doing it for tmin %lf tmax %lf and potential tmid %lf \n", tmin, tmax, potential_tmid);
 				break;
@@ -94,7 +94,7 @@ unsigned sc_hypervisor_lp_execute_dichotomy(int ns, int nw, double w_in_s[ns][nw
 			   we stop searching for a better sol */
 			tmin = tmid;
 			potential_tmid = tmin + ((tmax-tmin)/2.0);
-			if((tmax - potential_tmid) < threashold)
+			if((tmax - potential_tmid) < threshold)
 			{
 				printf("didn't have sol but stop doing it for tmin %lf tmax %lf and potential tmid %lf \n", tmin, tmax, potential_tmid);
 				break;

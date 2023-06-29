@@ -640,7 +640,7 @@ Enable the use of OpenGL for the rendering of some examples.
 <dd>
 \anchor enable-blas-lib
 \addindex __configure__--enable-blas-lib
-Specify the blas library to be used by some of the examples. Librairies available :
+Specify the blas library to be used by some of the examples. Libraries available :
 - \c none [default] : no BLAS library is used
 - \c atlas: use ATLAS library
 - \c goto: use GotoBLAS library

@@ -28,8 +28,8 @@
 
 #pragma GCC visibility push(hidden)
 
-/* Array of structures containing all the informations useful to send
- * and receive informations with devices */
+/* Array of structures containing all the information useful to send
+ * and receive information with devices */
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 extern struct _starpu_mp_node *_starpu_src_nodes[STARPU_NARCH][STARPU_MAXMPIDEVS];
 #endif

@@ -193,7 +193,7 @@ static void partition_mult_data(void)
 	 * The first elements is a pointer to the data_handle that will be
 	 * associated to the matrix, and the second elements gives the memory
 	 * node in which resides the matrix: 0 means that the 3rd argument is
-	 * an adress in main memory.
+	 * an address in main memory.
 	 */
 	starpu_matrix_data_register(&A_handle, STARPU_MAIN_RAM, (uintptr_t)A,
 		ydim, ydim, zdim, sizeof(float));
@@ -252,9 +252,9 @@ static void partition_mult_data(void)
  *		     |----|   |---|---|---|---|
  *		       A              C
  *
- *	IMPORTANT: applying filters is equivalent to partitionning a piece of
+ *	IMPORTANT: applying filters is equivalent to partitioning a piece of
  *	data in a hierarchical manner, so that memory consistency is enforced
- *	for each of the elements independantly. The tasks should therefore NOT
+ *	for each of the elements independently. The tasks should therefore NOT
  *	access inner nodes (eg. one column of C or the whole C) but only the
  *	leafs of the tree (ie. blocks here). Manipulating inner nodes is only
  *	possible by disapplying the filters (using starpu_data_unpartition), to

@@ -312,7 +312,7 @@ void starpu_task_init(struct starpu_task *task)
 	task->flops = 0.0;
 }
 
-/* Free all the ressources allocated for a task, without deallocating the task
+/* Free all the resources allocated for a task, without deallocating the task
  * structure itself (this is required for statically allocated tasks).
  * All values previously set by the user, like codelet and handles, remain
  * unchanged */
@@ -386,7 +386,7 @@ struct starpu_task * STARPU_ATTRIBUTE_MALLOC starpu_task_create_sync(starpu_data
 	return task;
 }
 
-/* Free the ressource allocated during starpu_task_create. This function can be
+/* Free the resource allocated during starpu_task_create. This function can be
  * called automatically after the execution of a task by setting the "destroy"
  * flag of the starpu_task structure (default behaviour). Calling this function
  * on a statically allocated task results in an undefined behaviour. */
@@ -916,7 +916,7 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 				/* This handle is involved with asynchronous
 				 * partitioning as a parent or a child, make
 				 * sure the right plan is active, submit
-				 * appropiate partitioning / unpartitioning if
+				 * appropriate partitioning / unpartitioning if
 				 * not */
 				_starpu_data_partition_access_submit(handle, (mode & STARPU_W) != 0);
 		}
@@ -928,7 +928,7 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 			return -ENODEV;
 		}
 
-		/* In case we require that a task should be explicitely
+		/* In case we require that a task should be explicitly
 		 * executed on a specific worker, we make sure that the worker
 		 * is able to execute this task.  */
 		if (STARPU_UNLIKELY(task->execute_on_a_specific_worker && !starpu_combined_worker_can_execute_task(task->workerid, task, 0)))
@@ -1286,7 +1286,7 @@ int _starpu_task_wait_for_all_in_nested_ctx_and_return_nb_waited_tasks(unsigned 
 
 /*
  * We wait for all the tasks that have already been submitted. Note that a
- * regenerable is not considered finished until it was explicitely set as
+ * regenerable is not considered finished until it was explicitly set as
  * non-regenerale anymore (eg. from a callback).
  */
 int _starpu_task_wait_for_all_and_return_nb_waited_tasks(void)
@@ -1367,7 +1367,7 @@ int starpu_task_wait_for_all_in_ctx(unsigned sched_ctx)
 /*
  * We wait until there's a certain number of the tasks that have already been
  * submitted left. Note that a regenerable is not considered finished until it
- * was explicitely set as non-regenerale anymore (eg. from a callback).
+ * was explicitly set as non-regenerale anymore (eg. from a callback).
  */
 int starpu_task_wait_for_n_submitted(unsigned n)
 {
@@ -1596,7 +1596,7 @@ int starpu_task_get_current_data_node(unsigned i)
 }
 
 #ifdef STARPU_OPENMP
-/* Prepare the fields of the currentl task for accepting a new set of
+/* Prepare the fields of the current task for accepting a new set of
  * dependencies in anticipation of becoming a continuation.
  *
  * When the task becomes 'continued', it will only be queued again when the new

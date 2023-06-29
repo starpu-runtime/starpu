@@ -68,7 +68,7 @@ helpers, described in \ref MeasuringEnergyandPower below, make it easy.
 For older models, one can use <c>nvidia-smi -q -d POWER</c> to get the current
 consumption in Watt. Multiplying this value by the average duration of a
 single task gives the consumption of the task in Joules, which can be given to
-starpu_perfmodel_update_history(). (exemplified in \ref PerformanceModelExample
+starpu_perfmodel_update_history(). (examplified in \ref PerformanceModelExample
 with the performance model <c>energy_model</c>).
 
 Another way to provide the energy performance is to define a

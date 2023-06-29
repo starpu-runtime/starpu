@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -108,7 +108,7 @@ display_sched <- function()
 	box(bty="u")
 
  #      labels <- c("greedy", "priority", "model", "random", "no-prio")
-#        labels <- c("model", "priority", "weigthed random", "no priority")
+#        labels <- c("model", "priority", "weighted random", "no priority")
         labels <- c("model", "priority", "no priority")
 #	col <-  c("red", "blue", "green", "orange", "black")
         legend("topleft", inset=.05, title="Scheduling policy", labels, lwd=1, lty=1, pch=c(0, 4, 5, 2), col="black", bty="y", bg="white")

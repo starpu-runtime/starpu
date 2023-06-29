@@ -1223,7 +1223,7 @@ static void _starpu_mpi_receive_early_data(struct _starpu_mpi_envelope *envelope
 	while (!(early_data_handle->req->posted))
 		STARPU_PTHREAD_COND_WAIT(&(early_data_handle->req->backend->posted_cond), &progress_mutex);
 
-	// Handle the request immediatly to make sure the mpi_irecv is
+	// Handle the request immediately to make sure the mpi_irecv is
 	// posted before receiving an other envelope
 	_starpu_mpi_req_list_erase(&ready_recv_requests, early_data_handle->req);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);

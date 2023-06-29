@@ -620,13 +620,13 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	STARPU_AYU_REMOVETASK(j->job_id);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
-	/* we do not desallocate the job structure if some is going to
+	/* we do not deallocate the job structure if some is going to
 	 * wait after the task */
 	if (detach && !continuation)
 	{
 		/* no one is going to synchronize with that task so we release
 		 * the data structures now. In case the job was already locked
-		 * by the caller, it is its responsability to destroy the task.
+		 * by the caller, it is its responsibility to destroy the task.
 		 * */
 		if (destroy)
 			_starpu_task_destroy(task);
@@ -637,7 +637,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	{
 		STARPU_ASSERT_MSG((detach && !destroy && !synchronous)
 				|| continuation
-				, "Regenerated task must be detached (was %u), and not have detroy=1 (was %u) or synchronous=1 (was %u)", detach, destroy, synchronous);
+				, "Regenerated task must be detached (was %u), and not have destroy=1 (was %u) or synchronous=1 (was %u)", detach, destroy, synchronous);
 		STARPU_AYU_ADDTASK(j->job_id, j->exclude_from_dag?NULL:task);
 
 		{
@@ -889,7 +889,7 @@ unsigned _starpu_enforce_deps_and_schedule(struct _starpu_job *j)
 	unsigned ret;
 	_STARPU_LOG_IN();
 
-	/* enfore tag dependencies */
+	/* enforce tag dependencies */
 	if (_starpu_not_all_tag_deps_are_fulfilled(j))
 	{
 		STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
@@ -954,7 +954,7 @@ unsigned _starpu_enforce_deps_starting_from_task(struct _starpu_job *j)
 {
 	unsigned ret;
 
-	/* enfore task dependencies */
+	/* enforce task dependencies */
 	if (_starpu_not_all_task_deps_are_fulfilled(j))
 	{
 		STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
@@ -1001,7 +1001,7 @@ unsigned _starpu_reenforce_task_deps_and_schedule(struct _starpu_job *j)
 	_STARPU_LOG_IN();
 	STARPU_ASSERT(j->discontinuous);
 
-	/* enfore task dependencies */
+	/* enforce task dependencies */
 	if (_starpu_not_all_task_deps_are_fulfilled(j))
 	{
 		STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);

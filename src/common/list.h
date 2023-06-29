@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -103,7 +103,7 @@
  *   * Return the last element of the list (from the back)
  *   struct FOO*	FOO_list_last(struct FOO_list*);
  *
- *   * Return the value to be tested at the beginning of the list (at the fromt)
+ *   * Return the value to be tested at the beginning of the list (at the front)
  *   struct FOO*	FOO_list_alpha(struct FOO_list*);
  *
  *   * Return the previous element of the list (from the back)

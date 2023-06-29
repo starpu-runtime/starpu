@@ -322,9 +322,9 @@ struct _starpu_heteroprio_data
 
 	/*** use_locality==1 (laheteroprio) specific : */
 
-	/* Helps ensuring laheteroprio has been correctly initalized */
+	/* Helps ensuring laheteroprio has been correctly initialized */
 	unsigned map_wgroup_has_been_called;
-	/* Helps ensuring laheteroprio has been correctly initalized */
+	/* Helps ensuring laheteroprio has been correctly initialized */
 	unsigned warned_change_nb_memory_nodes;
 	/* Number of memory nodes */
 	unsigned nb_memory_nodes;
@@ -1892,7 +1892,7 @@ This warning will only be displayed once.\n");
 			hp->warned_change_nb_memory_nodes = 1;
 		}
 
-		const unsigned nnodes = hp->nb_memory_nodes; // == starpu_memory_nodes_get_count() if number of mem nodes didnt change during execution
+		const unsigned nnodes = hp->nb_memory_nodes; // == starpu_memory_nodes_get_count() if number of mem nodes didn't change during execution
 
 		if (pushStrategy == PUSH_LcS)
 		{
@@ -2240,7 +2240,7 @@ static double get_autoheteroprio_estimated_time(struct _starpu_heteroprio_data *
 			}
 			if(arch_can_execute_prio(hp, a, priority))
 			{
-				// recursive call, but garanteed to stop because we know that arch_can_execute_prio(hp, a, prio)
+				// recursive call, but guaranteed to stop because we know that arch_can_execute_prio(hp, a, prio)
 				double time = get_autoheteroprio_estimated_time(hp, priority, a);
 				if(time < bestTime)
 				{
@@ -2770,7 +2770,7 @@ static double get_job_NOD(struct _starpu_heteroprio_data *hp, struct _starpu_job
 	unsigned n;
 	for(n=0;n<node->n_outgoing;++n)
 	{
-		struct _starpu_graph_node *successor = node->outgoing[n]; // there is a node->outgoing_slot, but this ordering array doesnt seem useful here
+		struct _starpu_graph_node *successor = node->outgoing[n]; // there is a node->outgoing_slot, but this ordering array does not seem useful here
 		if(successor)
 		{ // successor may be NULL
 			NOD += 1.f/(double)successor->n_incoming;
@@ -2814,7 +2814,7 @@ static double get_job_NRT(struct _starpu_heteroprio_data *hp, struct _starpu_job
 	unsigned n;
 	for(n=0;n<node->n_outgoing;++n)
 	{
-		struct _starpu_graph_node *successor = node->outgoing[n]; // there is a node->outgoing_slot, but this ordering array doesnt seem useful here
+		struct _starpu_graph_node *successor = node->outgoing[n]; // there is a node->outgoing_slot, but this ordering array does not seem useful here
 		if(successor)
 		{
 			// successor may be NULL
@@ -2924,7 +2924,7 @@ static double get_job_successors_best_time_sum(struct _starpu_heteroprio_data *h
 	unsigned n;
 	for(n=0;n<node->n_outgoing;++n)
 	{
-		struct _starpu_graph_node *successor = node->outgoing[n]; // there is a node->outgoing_slot, but this ordering array doesnt seem useful here
+		struct _starpu_graph_node *successor = node->outgoing[n]; // there is a node->outgoing_slot, but this ordering array does not seem useful here
 		if(successor && successor->job && successor->job->task->cl)
 		{
 			// successor may be NULL
@@ -3221,7 +3221,7 @@ the HETEROPRIO_USE_LA variable to 0, or calling starpu_laheteroprio_map_wgroup_m
 	STARPU_PTHREAD_MUTEX_LOCK(&hp->policy_mutex);
 	starpu_worker_relax_off();
 
-	/* Get taks priority (ID) */
+	/* Get tasks priority (ID) */
 	int task_priority;
 	if(hp->use_auto_calibration)
 	{
@@ -3497,7 +3497,7 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 	//	else
 	//	{
 	// used only with use_locality==0
-	/* keep track of the new added task to perfom real prefetch on node */
+	/* keep track of the new added task to perform real prefetch on node */
 	unsigned nb_added_tasks = 0;
 	//	}
 
@@ -3776,7 +3776,7 @@ done:		;
 
 	if(!hp->use_locality)
 	{
-		/* if we have task (task) me way have some in the queue (worker->tasks_queue_size) that was freshly addeed (nb_added_tasks) */
+		/* if we have task (task) me way have some in the queue (worker->tasks_queue_size) that was freshly added (nb_added_tasks) */
 		if(task && worker->tasks_queue.ntasks && nb_added_tasks && starpu_get_prefetch_flag())
 		{
 			/* TODO berenger: iterate in the other sense */

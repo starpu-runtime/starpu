@@ -161,7 +161,7 @@ int main(int argc, char **argv)
 	if(RUNNING_ON_VALGRIND) nloops = 2;
 #endif
 
-	/* The buffer should never be explicitely allocated */
+	/* The buffer should never be explicitly allocated */
 	starpu_vector_data_register(&v_handle, (uint32_t)-1, (uintptr_t)NULL, VECTORSIZE, sizeof(char));
 
 	unsigned loop;

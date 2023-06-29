@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013	    Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -28,7 +28,7 @@
 
 /*
  * Try to write into disk memory
- * Use mechanism to push datas from main ram to disk ram
+ * Use mechanism to push data from main ram to disk ram
  * Here we stress the memory with more tasks than what the RAM can fit.
  */
 

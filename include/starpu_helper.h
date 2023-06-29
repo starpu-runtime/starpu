@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -245,7 +245,7 @@ int starpu_data_cpy_priority(starpu_data_handle_t dst_handle, starpu_data_handle
 int starpu_data_dup_ro(starpu_data_handle_t *dst_handle, starpu_data_handle_t src_handle, int asynchronous);
 
 /**
-   Call hwloc-ps to display binding of each processus and thread running on
+   Call hwloc-ps to display binding of each process and thread running on
    the machine.<br>
    Use the environment variable \ref STARPU_DISPLAY_BINDINGS to automatically
    call this function at the beginning of the execution of StarPU.

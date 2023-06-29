@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -204,7 +204,7 @@ static void assign_combinations_without_hwloc(struct starpu_worker_collection* w
 {
 
 	int size,i;
-	//if the maximun number of worker is already reached
+	//if the maximum number of worker is already reached
 	if(worker_collection->nworkers >= STARPU_NMAXWORKERS - 1)
 		return;
 
@@ -225,7 +225,7 @@ static void assign_combinations_without_hwloc(struct starpu_worker_collection* w
 				newworkerid = starpu_combined_worker_assign_workerid(size, found_workerids);
 				STARPU_ASSERT(newworkerid >= 0);
 				worker_collection->add(worker_collection, newworkerid);
-				//if the maximun number of worker is reached, then return
+				//if the maximum number of worker is reached, then return
 				if(worker_collection->nworkers >= STARPU_NMAXWORKERS - 1)
 					return;
 			}

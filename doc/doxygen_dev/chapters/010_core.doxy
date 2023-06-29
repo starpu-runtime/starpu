@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2018-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2018-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -146,7 +146,7 @@ this task to be ready. While the worker waits for its teammates, it is not
 available to run other tasks or perform other operations. Such a waiting
 operation can therefore not start while conflicting operations such as
 scheduling operations and scheduling context resizing involving the worker are
-on-going. Conversely these operations and other may query weather the worker is
+on-going. Conversely these operations and other may query whether the worker is
 blocked on a parallel task entry with \ref starpu_worker_is_blocked_in_parallel().
 
 The \ref starpu_worker_is_blocked_in_parallel() function is allowed to proceed while

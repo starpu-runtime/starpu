@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2014-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -70,7 +70,7 @@ enum starpu_omp_sched_value
 	starpu_omp_sched_static	   = 1, /**< \b Static iteration scheduling algorithm.*/
 	starpu_omp_sched_dynamic   = 2, /**< \b Dynamic iteration scheduling algorithm.*/
 	starpu_omp_sched_guided	   = 3, /**< \b Guided iteration scheduling algorithm.*/
-	starpu_omp_sched_auto	   = 4, /**< \b Automatically choosen iteration scheduling algorithm.*/
+	starpu_omp_sched_auto	   = 4, /**< \b Automatically chosen iteration scheduling algorithm.*/
 	starpu_omp_sched_runtime   = 5	/**< Choice of iteration scheduling algorithm deferred at \b runtime.*/
 };
 
@@ -817,7 +817,7 @@ extern int starpu_omp_get_cancellation(void) __STARPU_OMP_NOTHROW;
 /**
    Set the default scheduling kind for upcoming loops within the
    current parallel section. \p kind is the scheduler kind, \p modifier
-   complements the scheduler kind with informations such as the chunk size,
+   complements the scheduler kind with information such as the chunk size,
    in accordance with the OpenMP specification.
 
    \sa starpu_omp_get_schedule

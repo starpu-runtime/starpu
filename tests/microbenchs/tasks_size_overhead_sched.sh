@@ -24,7 +24,7 @@ $_MS_LAUNCHER $STARPU_LAUNCH $_STARPU_LAUNCH $ROOT "$@" > tasks_size_overhead.ou
 ret=$?
 if test "$ret" = "0" && [ -z "$(echo $MAKEFLAGS | sed -ne 's/.*-j\([0-9]\+\).*/\1/p')" ]
 then
-    # if the program was successfull and we are not running in parallel, try to run gnuplot
+    # if the program was successful and we are not running in parallel, try to run gnuplot
     DIR=
     [ -z "$STARPU_BENCH_DIR" ] || DIR="$STARPU_BENCH_DIR/"
     export TERMINAL=png

@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -113,7 +113,7 @@ cygwin part.
       Since we build code using CUDA headers with gcc instead of Visual studio,
       a fix is needed: c:\cuda\include\host_defines.h has a bogus CUDARTAPI
       definition which makes linking fail completely. Replace the first
-      occurence of
+      occurrence of
 
       #define CUDARTAPI
 
