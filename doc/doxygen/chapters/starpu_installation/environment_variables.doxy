@@ -1283,6 +1283,7 @@ Specify the main directory in which StarPU is installed
 \addindex __env__STARPU_PERF_MODEL_DIR
 Specify the main directory in which StarPU stores its
 performance model files. The default is <c>$STARPU_HOME/.starpu/sampling</c>.
+See \ref Storing_Performance_Model_Files for more details.
 </dd>
 
 <dt>STARPU_PERF_MODEL_PATH</dt>
@@ -1291,6 +1292,7 @@ performance model files. The default is <c>$STARPU_HOME/.starpu/sampling</c>.
 \addindex __env__STARPU_PERF_MODEL_PATH
 Specify a list of directories separated with ':' in which StarPU stores its
 performance model files.
+See \ref Storing_Performance_Model_Files for more details.
 </dd>
 
 <dt>STARPU_PERF_MODEL_HOMOGENEOUS_CPU</dt>
