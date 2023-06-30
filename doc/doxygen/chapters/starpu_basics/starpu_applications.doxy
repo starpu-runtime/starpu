@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -332,7 +332,7 @@ so:
 $ STARPU_NCUDA=2 ./application
 \endverbatim
 
-\section Storing Performance Model Files
+\section Storing_Performance_Model_Files Storing Performance Model Files
 
 StarPU stores performance model files for bus benchmarking and codelet
 profiles in different directories.
