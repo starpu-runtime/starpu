@@ -525,6 +525,12 @@ int starpu_data_idle_prefetch_on_node_prio(starpu_data_handle_t handle, unsigned
 unsigned starpu_data_is_on_node(starpu_data_handle_t handle, unsigned node);
 
 /**
+   Check whether a valid copy of \p handle is currently available on
+   memory node \p node (excluding prefetch).
+*/
+unsigned starpu_data_is_on_node_excluding_prefetch(starpu_data_handle_t handle, unsigned node);
+
+/**
    Advise StarPU that \p handle will not be used in the close future, and is
    thus a good candidate for eviction from GPUs. StarPU will thus write its value
    back to its home node when the bus is idle, and select this data in priority

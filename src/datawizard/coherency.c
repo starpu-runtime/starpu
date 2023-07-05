@@ -1527,6 +1527,12 @@ unsigned starpu_data_is_on_node(starpu_data_handle_t handle, unsigned node)
 	return ret;
 }
 
+/* Return true if a data is on memory and is not part of a prefetch */
+unsigned starpu_data_is_on_node_excluding_prefetch(starpu_data_handle_t handle, unsigned node)
+{
+	return handle->per_node[node].state != STARPU_INVALID;
+}
+
 /* Unmap the data from this node, e.g. before partitioning or unregistering */
 void _starpu_data_unmap(starpu_data_handle_t handle, unsigned node)
 {
