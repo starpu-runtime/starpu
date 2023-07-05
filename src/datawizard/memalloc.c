@@ -1957,14 +1957,15 @@ void starpu_data_get_node_data(unsigned node, starpu_data_handle_t **_handles, i
 	starpu_data_handle_t *handles;
 	int *valid;
 	struct _starpu_mem_chunk *mc;
+	struct _starpu_node *node_struct = _starpu_get_node_struct(node);
 
 	_STARPU_MALLOC(handles, allocated * sizeof(*handles));
 	_STARPU_MALLOC(valid, allocated * sizeof(*valid));
 
-	_starpu_spin_lock(&mc_lock[node]);
+	_starpu_spin_lock(&node_struct->mc_lock);
 
-	for (mc = _starpu_mem_chunk_list_begin(&mc_list[node]);
-	     mc != _starpu_mem_chunk_list_end(&mc_list[node]);
+	for (mc = _starpu_mem_chunk_list_begin(&node_struct->mc_list);
+	    mc != _starpu_mem_chunk_list_end(&node_struct->mc_list);
 	     mc = _starpu_mem_chunk_list_next(mc))
 	{
 		if (mc->data)
@@ -1983,7 +1984,7 @@ void starpu_data_get_node_data(unsigned node, starpu_data_handle_t **_handles, i
 		}
 	}
 
-	_starpu_spin_unlock(&mc_lock[node]);
+	_starpu_spin_unlock(&node_struct->mc_lock);
 
 	*_handles = handles;
 	*_valid = valid;
