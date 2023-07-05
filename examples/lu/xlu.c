@@ -48,9 +48,9 @@ static struct starpu_task *create_task_getrf(starpu_data_handle_t dataA, unsigne
 	/* which sub-data is manipulated ? */
 	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, k);
 
-	#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
 	task->handles[1] = scratch;
-	#endif
+#endif
 
 	/* this is an important task */
 	if (!no_prio)

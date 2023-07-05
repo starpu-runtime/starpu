@@ -69,6 +69,10 @@ static int create_task_getrf_pivot(starpu_data_handle_t *dataAp, unsigned nblock
 	/* which sub-data is manipulated ? */
 	task->handles[0] = get_block(dataAp, nblocks, k, k);
 
+#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+	task->handles[1] = scratch;
+#endif
+
 	task->tag_id = TAG_GETRF(k);
 
 	/* this is an important task */
