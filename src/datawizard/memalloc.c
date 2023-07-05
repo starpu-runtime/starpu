@@ -1949,3 +1949,43 @@ void *starpu_data_get_sched_data(starpu_data_handle_t handle)
 {
 	return handle->sched_data;
 }
+
+void starpu_data_get_node_data(unsigned node, starpu_data_handle_t **_handles, int **_valid, unsigned *_n)
+{
+	unsigned allocated = 16;
+	unsigned n = 0;
+	starpu_data_handle_t *handles;
+	int *valid;
+	struct _starpu_mem_chunk *mc;
+
+	_STARPU_MALLOC(handles, allocated * sizeof(*handles));
+	_STARPU_MALLOC(valid, allocated * sizeof(*valid));
+
+	_starpu_spin_lock(&mc_lock[node]);
+
+	for (mc = _starpu_mem_chunk_list_begin(&mc_list[node]);
+	     mc != _starpu_mem_chunk_list_end(&mc_list[node]);
+	     mc = _starpu_mem_chunk_list_next(mc))
+	{
+		if (mc->data)
+		{
+			int is_valid, is_loading, is_requested;
+			if (n == allocated)
+			{
+				allocated *= 2;
+				_STARPU_REALLOC(handles, allocated * sizeof(*handles));
+				_STARPU_REALLOC(valid, allocated * sizeof(*valid));
+			}
+			handles[n] = mc->data;
+			starpu_data_query_status2(mc->data, node, NULL, &is_valid, &is_loading, &is_requested);
+			valid[n] = is_valid || is_loading || is_requested;
+			n++;
+		}
+	}
+
+	_starpu_spin_unlock(&mc_lock[node]);
+
+	*_handles = handles;
+	*_valid = valid;
+	*_n = n;
+}

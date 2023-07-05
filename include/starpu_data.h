@@ -704,6 +704,16 @@ void *starpu_data_get_sched_data(starpu_data_handle_t handle);
 */
 int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node, enum starpu_is_prefetch is_prefetch);
 
+/**
+   Return the set of data stored on a node
+
+   This returns an array of the data handles that currently have a copy on node
+   \p node. The array is returned in \p handles, whether they contain valid data
+   is returned in \p states, and the number of handles is returned in \p n. The
+   arrays must be freed by the caller with free().
+*/
+void starpu_data_get_node_data(unsigned node, starpu_data_handle_t **handles, int **valid, unsigned *n);
+
 /** @} */
 
 #ifdef __cplusplus
