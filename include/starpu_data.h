@@ -705,6 +705,65 @@ void *starpu_data_get_sched_data(starpu_data_handle_t handle);
 int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node, enum starpu_is_prefetch is_prefetch);
 
 /**
+   Type for a data victim selector
+
+   This is the type of function to be registered with
+   starpu_data_register_victim_selector().
+
+   \p toload, when different from NULL, specifies that we are looking for a
+   victim with the same shape as this data, so that the buffer can simply be
+   reused without any free/alloc operations (that are very costly with CUDA).
+
+   \p node is the target node in which the victim should be evicted
+
+   \p is_prefetch tells why the StarPU core is looking for an eviction
+   victim. If it is beyond STARPU_FETCH, the selector should not be very
+   aggressive: it should really not evict some data that is known to be reused
+   soon, only for prefetching some other data.
+
+   \p data is the same data as passed in the starpu_data_register_victim_selector() call.
+
+   The selector returns the handle which should preferrably be evicted from the
+   memory node.
+
+   The selector can for instance use starpu_data_is_on_node() to determine which
+   handles are on the memory node.
+
+   It *must* use starpu_data_can_evict() to check whether the data can be
+   evicted. Otherwise eviction will fail, the selector called again, only to
+   fail again, etc. without any possible progress.
+*/
+typedef starpu_data_handle_t starpu_data_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *data);
+
+/**
+   Type for a victim eviction failure
+
+   This is the type of function to be registered with
+   starpu_data_register_victim_selector() for the failure case.
+
+   \p victim is the data that was supposed to be evicted, but failed to be.
+
+   \p data is the same data as passed in the starpu_data_register_victim_selector() call.
+ */
+typedef void starpu_data_victim_eviction_failed(starpu_data_handle_t victim, void *data);
+
+/**
+   Register a data victim selector.
+
+   This register function \p selector to be called when StarPU needs to make
+   room on a given memory node.
+
+   See starpu_data_victim_selector() for more details.
+*/
+void starpu_data_register_victim_selector(starpu_data_victim_selector selector, starpu_data_victim_eviction_failed evicted, void *data);
+
+/**
+   To be returned by a starpu_data_victim_selector() when no victim was found,
+   e.g. because all data is to be used by pending tasks.
+ */
+#define STARPU_DATA_NO_VICTIM ((starpu_data_handle_t) -1)
+
+/**
    Return the set of data stored on a node
 
    This returns an array of the data handles that currently have a copy on node

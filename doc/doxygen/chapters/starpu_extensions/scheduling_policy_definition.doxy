@@ -104,6 +104,12 @@ Finally, the function starpu_task_list_ismember() is used to check whether a giv
 
 Access to the \c hwloc topology is available with starpu_worker_get_hwloc_obj().
 
+A scheduler can decide the data eviction order, by registering a victim selector
+with starpu_data_register_victim_selector(). This selector is called by the
+StarPU core when missing memory space in a given memory node. The selector
+returns a data to be evict from the node, or ::STARPU_DATA_NO_VICTIM to specify
+that no eviction should be performed (e.g. we have to wait for some tasks).
+
 \section DefiningANewBasicSchedulingPolicy Defining A New Basic Scheduling Policy
 
 A full example showing how to define a new scheduling policy is available in

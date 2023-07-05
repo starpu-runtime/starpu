@@ -17,6 +17,10 @@
 StarPU 1.5.0
 ==============================================
 
+New features:
+  * Add starpu_data_register_victim_selector to let schedulers select eviction
+    victims.
+
 StarPU 1.4.1
 ==============================================
 

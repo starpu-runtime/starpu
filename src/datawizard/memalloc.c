@@ -561,6 +561,16 @@ int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node, enum starp
 	return 1;
 }
 
+static starpu_data_victim_selector *victim_selector;
+static void *data_victim_selector;
+static starpu_data_victim_eviction_failed *victim_eviction_failed;
+void starpu_data_register_victim_selector(starpu_data_victim_selector selector, starpu_data_victim_eviction_failed evicted, void *data)
+{
+	victim_selector = selector;
+	data_victim_selector = data;
+	victim_eviction_failed = evicted;
+}
+
 /* This function is called for memory chunks that are possibly in used (ie. not
  * in the cache). They should therefore still be associated to a handle. */
 /* mc_lock is held and may be temporarily released! */
@@ -855,12 +865,42 @@ restart:
 static int try_to_reuse_potentially_in_use_mc(unsigned node, starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, uint32_t footprint, enum starpu_is_prefetch is_prefetch)
 {
 	struct _starpu_mem_chunk *mc, *next_mc, *orig_next_mc;
+	starpu_data_handle_t victim = NULL;
 	int success = 0;
 	struct _starpu_node *node_struct = _starpu_get_node_struct(node);
 
 	if (is_prefetch >= STARPU_IDLEFETCH)
 		/* Do not evict a MC just for an idle fetch */
 		return 0;
+
+	if (victim_selector)
+	{
+		/* Ask someone who knows the future */
+		_STARPU_SCHED_BEGIN;
+		victim = victim_selector(handle, node, is_prefetch, data_victim_selector);
+		_STARPU_SCHED_END;
+
+		if (victim == STARPU_DATA_NO_VICTIM)
+			/* They told me we should not make any victim */
+			return 0;
+
+		if (victim)
+		{
+			uint32_t victim_footprint = _starpu_compute_data_alloc_footprint(victim);
+			if (victim_footprint != footprint)
+			{
+				/* Don't even bother looking for it, it won't fit anyway */
+				if (victim_eviction_failed)
+				{
+				    _STARPU_SCHED_BEGIN;
+				    victim_eviction_failed(victim, data_victim_selector);
+				    _STARPU_SCHED_END;
+				}
+				return 0;
+			}
+		}
+	}
+
 	/*
 	 * We have to unlock mc_lock before locking header_lock, so we have
 	 * to be careful with the list.  We try to do just one pass, by
@@ -882,6 +922,9 @@ restart:
 
 		if (mc->remove_notify)
 			/* Somebody already working here, skip */
+			continue;
+		if (victim && mc->data != victim)
+			/* We were advised some precise data */
 			continue;
 		if (mc->footprint != footprint || _starpu_data_interface_compare(handle->per_node[node].data_interface, handle->ops, mc->data->per_node[node].data_interface, mc->ops) != 1)
 			/* Not the right type of interface, skip */
@@ -912,6 +955,13 @@ restart:
 		}
 	}
 	_starpu_spin_unlock(&node_struct->mc_lock);
+
+	if (victim && victim_eviction_failed != NULL && success == 0)
+	{
+		_STARPU_SCHED_BEGIN;
+		victim_eviction_failed(victim, data_victim_selector);
+		_STARPU_SCHED_END;
+	}
 
 	return success;
 }
@@ -969,9 +1019,25 @@ out:
 static size_t free_potentially_in_use_mc(unsigned node, unsigned force, size_t reclaim, enum starpu_is_prefetch is_prefetch STARPU_ATTRIBUTE_UNUSED)
 {
 	size_t freed = 0;
+	starpu_data_handle_t victim = NULL;
 	struct _starpu_node *node_struct = _starpu_get_node_struct(node);
 
 	struct _starpu_mem_chunk *mc, *next_mc;
+
+	if (!force && victim_selector)
+	{
+		/* Ask someone who knows the future */
+		_STARPU_SCHED_BEGIN;
+		victim = victim_selector(NULL, node, is_prefetch, data_victim_selector);
+		_STARPU_SCHED_END;
+
+		if (victim == STARPU_DATA_NO_VICTIM)
+		{
+			/* They told me we should not make any victim */
+			return 0;
+		}
+	}
+
 
 	/*
 	 * We have to unlock mc_lock before locking header_lock, so we have
@@ -998,6 +1064,9 @@ restart2:
 			struct _starpu_mem_chunk *orig_next_mc = next_mc;
 			if (mc->remove_notify)
 				/* Somebody already working here, skip */
+				continue;
+			if (victim && mc->data != victim)
+				/* We were advised some precise data */
 				continue;
 			if (next_mc)
 			{
@@ -1047,6 +1116,14 @@ restart2:
 		}
 	}
 	_starpu_spin_unlock(&node_struct->mc_lock);
+
+	/* appeler fonction call_victim_slector(succes) */
+	if (victim && victim_eviction_failed != NULL && freed == 0)
+	{
+		_STARPU_SCHED_BEGIN;
+		victim_eviction_failed(victim, data_victim_selector);
+		_STARPU_SCHED_END;
+	}
 
 	return freed;
 }
@@ -1141,6 +1218,7 @@ void starpu_memchunk_tidy(unsigned node)
 	if (!can_evict(node))
 		return;
 
+	// TODO: ideally we would use the Belady order here as well.
 	if (node_struct->mc_clean_nb < (node_struct->mc_nb * minimum_clean_p) / 100)
 	{
 		struct _starpu_mem_chunk *mc, *orig_next_mc, *next_mc;
