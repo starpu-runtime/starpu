@@ -102,6 +102,10 @@ static struct starpu_task *create_task_getrf_pivot(starpu_data_handle_t *dataAp,
 	/* which sub-data is manipulated ? */
 	task->handles[0] = get_block(dataAp, nblocks, k, k);
 
+#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+	task->handles[1] = scratch;
+#endif
+
 	/* this is an important task */
 	if (!no_prio)
 		task->priority = 3*nblocks - 3*k; /* Bottom-level-based prio */
