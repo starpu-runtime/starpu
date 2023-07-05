@@ -645,11 +645,22 @@ struct starpu_codelet cl_getrf_pivot =
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {STARPU_LU(cublas_getrf_pivot)},
 	CAN_EXECUTE
+#if defined(STARPU_HAVE_LIBCUSOLVER)
+	.cuda_flags = {STARPU_CUDA_ASYNC},
+#endif
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
 #endif
+#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+	.nbuffers = 2,
+#else
 	.nbuffers = 1,
-	.modes = {STARPU_RW},
+#endif
+	.modes = { STARPU_RW
+#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+		, STARPU_SCRATCH | STARPU_NOFOOTPRINT
+#endif
+	},
 	.model = &STARPU_LU(model_getrf_pivot)
 };
 
