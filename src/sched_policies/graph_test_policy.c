@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,6 +23,8 @@
  *	central-queue greedy algorithm proceed.
  *
  *	TODO: let workers starting running tasks before the whole graph is submitted?
+ *
+ *  Use STARPU_SCHED_GRAPH_TEST_DESCENDANTS to prioritize with descendants or depth
  */
 
 #include <starpu_scheduler.h>
@@ -46,6 +48,9 @@ struct _starpu_graph_test_policy_data
 	unsigned descendants;			/* Whether we use descendants, or depths, for priorities */
 };
 
+/**
+ * Corresponds to an init + create for a classic scheduler.
+ **/
 static void initialize_graph_test_policy(unsigned sched_ctx_id)
 {
 	struct _starpu_graph_test_policy_data *data;
@@ -167,6 +172,9 @@ static void set_priority(void *_data, struct _starpu_graph_node *node)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&node->mutex);
 }
 
+/**
+ * Set priorities then schedule tasks accordingly.
+ **/
 static void do_schedule_graph_test_policy(unsigned sched_ctx_id)
 {
 	struct _starpu_graph_test_policy_data *data = (struct _starpu_graph_test_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
