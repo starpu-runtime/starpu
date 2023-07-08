@@ -541,8 +541,8 @@ void _starpu_cuda_init_worker_memory(struct _starpu_machine_config *config, int 
 					}
 					else
 #endif
-#if HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX
 					{
+#if HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX
 						hwloc_obj_t obj, obj2, ancestor;
 						obj = hwloc_cuda_get_device_osdev_by_index(config->topology.hwtopology, devid);
 						obj2 = hwloc_cuda_get_device_osdev_by_index(config->topology.hwtopology, devid2);
@@ -560,8 +560,8 @@ void _starpu_cuda_init_worker_memory(struct _starpu_machine_config *config, int 
 							starpu_bus_set_ngpus(bus21, data->ngpus);
 							starpu_bus_set_ngpus(bus12, data->ngpus);
 						}
-					}
 #endif
+					}
 #endif
 				}
 			}
