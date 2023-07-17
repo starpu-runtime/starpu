@@ -908,17 +908,17 @@ static void deinitialize_dmda_policy(unsigned sched_ctx_id)
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 #ifdef STARPU_VERBOSE
 	{
-	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-	long int modelled_task_cnt = dt->total_task_cnt - dt->eager_task_cnt;
-	_STARPU_DEBUG("%s sched policy (sched_ctx %u): total_task_cnt %ld ready_task_cnt %ld (%.1f%%), modelled_task_cnt = %ld (%.1f%%)%s\n",
-		sched_ctx->sched_policy?sched_ctx->sched_policy->policy_name:"<none>",
-		sched_ctx_id,
-		dt->total_task_cnt,
-		dt->ready_task_cnt,
-		(100.0f*dt->ready_task_cnt)/dt->total_task_cnt,
-		modelled_task_cnt,
-		(100.0f*modelled_task_cnt)/dt->total_task_cnt,
-		modelled_task_cnt==0?" *** Check if performance models are enabled and converging on a per-codelet basis, or use an non-modeling scheduling policy. ***":"");
+		struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+		long int modelled_task_cnt = dt->total_task_cnt - dt->eager_task_cnt;
+		_STARPU_DEBUG("%s sched policy (sched_ctx %u): total_task_cnt %ld ready_task_cnt %ld (%.1f%%), modelled_task_cnt = %ld (%.1f%%)%s\n",
+			      sched_ctx->sched_policy?sched_ctx->sched_policy->policy_name:"<none>",
+			      sched_ctx_id,
+			      dt->total_task_cnt,
+			      dt->ready_task_cnt,
+			      (100.0f*dt->ready_task_cnt)/dt->total_task_cnt,
+			      modelled_task_cnt,
+			      (100.0f*modelled_task_cnt)/dt->total_task_cnt,
+			      modelled_task_cnt==0?" *** Check if performance models are enabled and converging on a per-codelet basis, or use an non-modeling scheduling policy. ***":"");
 	}
 #endif
 
