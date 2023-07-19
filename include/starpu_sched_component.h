@@ -212,35 +212,42 @@ struct starpu_sched_tree
    See \ref ImplementAModularizedScheduler for more details.
 */
 struct starpu_sched_tree *starpu_sched_tree_create(unsigned sched_ctx_id) STARPU_ATTRIBUTE_MALLOC;
+
 /**
    destroy tree and free all non shared component in it.
    See \ref ImplementAModularizedScheduler for more details.
 */
 void starpu_sched_tree_destroy(struct starpu_sched_tree *tree);
+
 /**
    calls starpu_sched_tree_destroy, ready for use for starpu_sched_policy::deinit_sched field.
    See \ref ImplementAModularizedScheduler for more details.
  */
 void starpu_sched_tree_deinitialize(unsigned sched_ctx_id);
+
 /**
    See \ref ImplementAModularizedScheduler for more details.
  */
 struct starpu_sched_tree *starpu_sched_tree_get(unsigned sched_ctx_id);
+
 /**
    recursively set all starpu_sched_component::workers, do not take into account shared parts (except workers).
-	See \ref ImplementAModularizedScheduler for more details.
+   See \ref ImplementAModularizedScheduler for more details.
 */
 void starpu_sched_tree_update_workers(struct starpu_sched_tree *t);
+
 /**
    recursively set all starpu_sched_component::workers_in_ctx, do not take into account shared parts (except workers)
-	See \ref ImplementAModularizedScheduler for more details.
+   See \ref ImplementAModularizedScheduler for more details.
 */
 void starpu_sched_tree_update_workers_in_ctx(struct starpu_sched_tree *t);
+
 /**
    compatibility with starpu_sched_policy interface.
    See \ref ImplementAModularizedScheduler for more details.
 */
 int starpu_sched_tree_push_task(struct starpu_task *task);
+
 /**
    compatibility with starpu_sched_policy interface.
    See \ref ImplementAModularizedScheduler for more details.
@@ -258,12 +265,16 @@ int starpu_sched_component_push_task(struct starpu_sched_component *from, struct
 struct starpu_task *starpu_sched_component_pull_task(struct starpu_sched_component *from, struct starpu_sched_component *to);
 
 struct starpu_task *starpu_sched_component_pump_to(struct starpu_sched_component *component, struct starpu_sched_component *to, int *success);
+
 struct starpu_task *starpu_sched_component_pump_downstream(struct starpu_sched_component *component, int *success);
+
 int starpu_sched_component_send_can_push_to_parents(struct starpu_sched_component *component);
+
 /**
    compatibility with starpu_sched_policy interface
 */
 void starpu_sched_tree_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers);
+
 /**
    compatibility with starpu_sched_policy interface
 */

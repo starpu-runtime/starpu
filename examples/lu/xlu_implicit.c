@@ -141,9 +141,9 @@ static int dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks, uns
 		for (i = k+1; i<nblocks; i++)
 		{
 			ret = create_task_trsm_ll(dataA, k, i, no_prio, nblocks);
-		     if (ret == -ENODEV) return ret;
-		     ret = create_task_trsm_ru(dataA, k, i, no_prio, nblocks);
-		     if (ret == -ENODEV) return ret;
+			if (ret == -ENODEV) return ret;
+			ret = create_task_trsm_ru(dataA, k, i, no_prio, nblocks);
+			if (ret == -ENODEV) return ret;
 		}
 		starpu_data_wont_use(starpu_data_get_sub_data(dataA, 2, k, k));
 
@@ -151,12 +151,12 @@ static int dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks, uns
 		     for (j = k+1; j<nblocks; j++)
 		     {
 			     ret = create_task_gemm(dataA, k, i, j, no_prio, nblocks);
-			  if (ret == -ENODEV) return ret;
+			     if (ret == -ENODEV) return ret;
 		     }
 		for (i = k+1; i<nblocks; i++)
 		{
-		    starpu_data_wont_use(starpu_data_get_sub_data(dataA, 2, k, i));
-		    starpu_data_wont_use(starpu_data_get_sub_data(dataA, 2, i, k));
+			starpu_data_wont_use(starpu_data_get_sub_data(dataA, 2, k, i));
+			starpu_data_wont_use(starpu_data_get_sub_data(dataA, 2, i, k));
 		}
 		starpu_iteration_pop();
 	}
