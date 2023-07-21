@@ -423,7 +423,8 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 				unlink(name);
 				free(name);
 				_STARPU_CALLOC(dumb, 1,_starpu_malloc_simulation_fold);
-				write(bogusfile, dumb, _starpu_malloc_simulation_fold);
+				int res = write(bogusfile, dumb, _starpu_malloc_simulation_fold);
+				STARPU_ASSERT_MSG(res > 0, "Cannot write");
 				free(dumb);
 			}
 			/* Map the bogus file in place of the anonymous memory */
