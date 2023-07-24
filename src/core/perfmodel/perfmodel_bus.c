@@ -61,7 +61,7 @@
 #endif
 #endif
 
-#ifdef HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX
+#if HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX
 #include <hwloc/cuda.h>
 #endif
 
