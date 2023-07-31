@@ -32,6 +32,9 @@ extern "C" {
    @{
 */
 
+/**
+   todo
+*/
 struct starpu_fxt_codelet_event
 {
 	char symbol[2048];
@@ -42,7 +45,9 @@ struct starpu_fxt_codelet_event
 	float time;
 };
 
-/** Store information related to clock synchronizations: mainly the offset to apply to each time. */
+/**
+   Store information related to clock synchronizations: mainly the offset to apply to each time.
+*/
 struct starpu_fxt_mpi_offset
 {
 	uint64_t local_time_start; /**< node time for the barrier at the beginning of the program */
@@ -53,6 +58,9 @@ struct starpu_fxt_mpi_offset
 			   (can be 0, 1 or 2) */
 };
 
+/**
+   todo
+*/
 struct starpu_fxt_options
 {
 	unsigned per_task_colour;

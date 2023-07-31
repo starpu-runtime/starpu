@@ -1975,7 +1975,8 @@ size_t starpu_ndim_get_elemsize(starpu_data_handle_t handle);
 extern struct starpu_data_interface_ops starpu_interface_vector_ops;
 
 /**
- */
+   todo
+*/
 struct starpu_vector_interface
 {
 	enum starpu_data_interface_id id; /**< Identifier of the interface */
@@ -2137,7 +2138,7 @@ extern struct starpu_data_interface_ops starpu_interface_variable_ops;
 /**
    Variable interface for a single data (not a vector, a matrix, a list,
    ...)
- */
+*/
 struct starpu_variable_interface
 {
 	enum starpu_data_interface_id id; /**< Identifier of the interface */
@@ -2250,14 +2251,14 @@ void starpu_void_data_register(starpu_data_handle_t *handle);
 /**
    @name CSR Data Interface
    @{
- */
+*/
 
 extern struct starpu_data_interface_ops starpu_interface_csr_ops;
 
 /**
    CSR interface for sparse matrices (compressed sparse row
    representation)
- */
+*/
 struct starpu_csr_interface
 {
 	enum starpu_data_interface_id id; /**< Identifier of the interface */
@@ -2649,7 +2650,7 @@ size_t starpu_bcsr_get_elemsize(starpu_data_handle_t handle);
 
 /**
    Multiformat operations
- */
+*/
 struct starpu_multiformat_data_interface_ops
 {
 	size_t cpu_elemsize;			 /**< size of each element on CPUs */
@@ -2661,6 +2662,9 @@ struct starpu_multiformat_data_interface_ops
 	struct starpu_codelet *cuda_to_cpu_cl;	 /**< pointer to a codelet which converts from CUDA to CPU */
 };
 
+/**
+   todo
+*/
 struct starpu_multiformat_interface
 {
 	enum starpu_data_interface_id id;

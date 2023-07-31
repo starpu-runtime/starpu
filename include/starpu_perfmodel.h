@@ -53,6 +53,9 @@ struct starpu_perfmodel_arch
 	struct starpu_perfmodel_device *devices; /**< list of the devices for the given arch */
 };
 
+/**
+   todo
+*/
 struct starpu_perfmodel_history_entry
 {
 	double mean;	  /**< mean_n = 1/n sum */
@@ -70,6 +73,9 @@ struct starpu_perfmodel_history_entry
 	double *parameters;
 };
 
+/**
+   todo
+*/
 struct starpu_perfmodel_history_list
 {
 	struct starpu_perfmodel_history_list *next;

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2020       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -49,7 +49,7 @@ extern "C" {
 /**
    Information about the execution of a task. It is accessible from
    the field starpu_task::profiling_info if profiling was enabled.
- */
+*/
 struct starpu_profiling_task_info
 {
 	/** Date of task submission (relative to the initialization of StarPU). */
@@ -169,6 +169,9 @@ struct starpu_profiling_worker_info
 	double flops;
 };
 
+/**
+   todo
+*/
 struct starpu_profiling_bus_info
 {
 	/** Time of bus profiling startup. */
