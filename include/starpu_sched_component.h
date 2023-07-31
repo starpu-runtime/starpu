@@ -446,6 +446,9 @@ double starpu_sched_component_estimated_end_min_add(struct starpu_sched_componen
 */
 double starpu_sched_component_estimated_end_average(struct starpu_sched_component *component);
 
+/**
+   todo
+*/
 struct starpu_sched_component_fifo_data
 {
 	unsigned ntasks_threshold;
@@ -473,6 +476,9 @@ int starpu_sched_component_is_fifo(struct starpu_sched_component *component);
    @{
 */
 
+/**
+   todo
+*/
 struct starpu_sched_component_prio_data
 {
 	unsigned ntasks_threshold;
@@ -559,6 +565,9 @@ int starpu_sched_component_is_eager_calibration(struct starpu_sched_component *)
    @{
 */
 
+/**
+   todo
+*/
 struct starpu_sched_component_mct_data
 {
 	double alpha;
@@ -593,6 +602,9 @@ int starpu_sched_component_is_heft(struct starpu_sched_component *component);
    @{
 */
 
+/**
+   todo
+*/
 struct starpu_sched_component_heteroprio_data
 {
 	struct starpu_sched_component_mct_data *mct;
@@ -624,6 +636,9 @@ struct starpu_sched_component *starpu_sched_component_best_implementation_create
    @{
 */
 
+/**
+   todo
+*/
 struct starpu_sched_component_perfmodel_select_data
 {
 	struct starpu_sched_component *calibrator_component;

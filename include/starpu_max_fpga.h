@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2019-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -33,7 +33,7 @@ extern "C" {
 
 /**
    This specifies a Maxeler file to be loaded on some engines.
- */
+*/
 struct starpu_max_load
 {
 	max_file_t *file;	       /**< Provide the file to be loaded */
@@ -47,7 +47,7 @@ struct starpu_max_load
 /**
    Maxeler engine of the current worker.
    See \ref MaxFPGAExample for more details.
- */
+*/
 max_engine_t *starpu_max_fpga_get_local_engine(void);
 
 /** @} */

@@ -165,6 +165,9 @@ enum starpu_codelet_type
 			*/
 };
 
+/**
+   todo
+*/
 enum starpu_task_status
 {
 	STARPU_TASK_INIT, /**< The task has just been initialized. */

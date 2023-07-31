@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -36,6 +36,9 @@ extern "C" {
 
 #define STARPU_AUTOHETEROPRIO_PRIORITY_ORDERING_POLICY_COUNT 28
 
+/**
+   todo
+*/
 enum starpu_autoheteroprio_priority_ordering_policy
 {
 	STARPU_HETEROPRIO_NOD_TIME_COMBINATION, // 0

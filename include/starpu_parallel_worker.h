@@ -157,7 +157,9 @@ void starpu_parallel_worker_gnu_openmp_mkl_prologue(void *);
 #define STARPU_CLUSTER_NEW              STARPU_PARALLEL_WORKER_NEW              /**< @deprecated Use ::STARPU_PARALLEL_WORKER_NEW */
 #define STARPU_CLUSTER_NCORES           STARPU_PARALLEL_WORKER_NCORES           /**< @deprecated Use ::STARPU_PARALLEL_WORKER_NCORES */
 
-/** @deprecated Use ::starpu_parallel_worker_types */
+/**
+    @deprecated Use ::starpu_parallel_worker_types
+*/
 enum starpu_cluster_types
 {
 	STARPU_CLUSTER_OPENMP,		 /**< deprecated */
