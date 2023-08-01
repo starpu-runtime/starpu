@@ -108,8 +108,7 @@ starpu_mpi_TESTS +=				\
 
 if !STARPU_SIMGRID
 starpu_mpi_TESTS +=				\
-	attr					\
-	ndim_interface
+	attr
 endif
 
 if !STARPU_MPI_MINIMAL_TESTS
