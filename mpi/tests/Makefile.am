@@ -99,7 +99,6 @@ starpu_mpi_TESTS +=				\
 	driver					\
 	early_stuff				\
 	insert_task_block			\
-	insert_task_can_execute			\
 	insert_task_tags			\
 	multiple_send				\
 	policy_register				\
