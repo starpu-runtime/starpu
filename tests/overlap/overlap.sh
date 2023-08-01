@@ -17,6 +17,8 @@
 #
 # Test parsing of FxT traces
 
+if test -n "$STARPU_MICROBENCHS_DISABLED" ; then exit 77 ; fi
+
 # Testing another specific scheduler, no need to run this
 [ -z "$STARPU_SCHED" -o "$STARPU_SCHED" = dmdas ] || exit 77
 
