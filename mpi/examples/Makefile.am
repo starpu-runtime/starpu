@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2013       Thibaut Lambert
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -35,14 +35,16 @@ endif
 loader_SOURCES		=	../../tests/loader.c
 endif
 
+STARPU_MPI_NP ?= 4
+
 if STARPU_SIMGRID
-MPI			=	$(abs_top_builddir)/tools/starpu_smpirun -np 4 -platform $(abs_top_srcdir)/tools/perfmodels/cluster.xml -hostfile $(abs_top_srcdir)/tools/perfmodels/hostfile
+MPI			=	$(abs_top_builddir)/tools/starpu_smpirun -np $(STARPU_MPI_NP) -platform $(abs_top_srcdir)/tools/perfmodels/cluster.xml -hostfile $(abs_top_srcdir)/tools/perfmodels/hostfile
 else
 # we always test on 4 processes, the execution time is not that bigger
 if STARPU_QUICK_CHECK
-MPI			=	$(MPIEXEC) $(MPIEXEC_ARGS) -np 4
+MPI			=	$(MPIEXEC) $(MPIEXEC_ARGS) -np $(STARPU_MPI_NP)
 else
-MPI			=	$(MPIEXEC) $(MPIEXEC_ARGS) -np 4
+MPI			=	$(MPIEXEC) $(MPIEXEC_ARGS) -np $(STARPU_MPI_NP)
 endif
 endif
 
