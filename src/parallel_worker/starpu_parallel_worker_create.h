@@ -93,14 +93,14 @@ int _starpu_parallel_worker_analyze_parameters(struct _starpu_parallel_worker_pa
 
 /** Parallel_Worker helper functions */
 void _starpu_parallel_worker_init(struct _starpu_parallel_worker *parallel_worker, struct _starpu_parallel_worker_group *father);
-void _starpu_parallel_worker_create(struct _starpu_parallel_worker *parallel_worker);
+int _starpu_parallel_worker_create(struct _starpu_parallel_worker *parallel_worker);
 
 int _starpu_parallel_worker_bind(struct _starpu_parallel_worker *parallel_worker);
 int _starpu_parallel_worker_remove(struct _starpu_parallel_worker_list *parallel_worker_list, struct _starpu_parallel_worker *parallel_worker);
 
 /** Parallel_Worker group helper function */
 void _starpu_parallel_worker_group_init(struct _starpu_parallel_worker_group *group, struct starpu_parallel_worker_config *father);
-void _starpu_parallel_worker_group_create(struct _starpu_parallel_worker_group *group);
+int _starpu_parallel_worker_group_create(struct _starpu_parallel_worker_group *group);
 int _starpu_parallel_worker_group_remove(struct _starpu_parallel_worker_group_list *group_list, struct _starpu_parallel_worker_group *group);
 
 /** Binding helpers */
