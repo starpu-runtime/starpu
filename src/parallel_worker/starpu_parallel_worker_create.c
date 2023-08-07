@@ -317,8 +317,14 @@ int starpu_parallel_worker_print(struct starpu_parallel_worker_config *parallel_
 	return 0;
 }
 
-void _starpu_parallel_worker_create(struct _starpu_parallel_worker *parallel_worker)
+int _starpu_parallel_worker_create(struct _starpu_parallel_worker *parallel_worker)
 {
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
+
+	if (config->topology.nsched_ctxs == STARPU_NMAX_SCHED_CTXS)
+		/* Too many contexts already :/ */
+		return 0;
+
 	if (parallel_worker->params->awake_workers)
 		parallel_worker->id = starpu_sched_ctx_create(parallel_worker->workerids, parallel_worker->ncores,
 							      "parallel_workers",
@@ -329,10 +335,10 @@ void _starpu_parallel_worker_create(struct _starpu_parallel_worker *parallel_wor
 
 	/* parallel_worker priority can be the lowest, so let's enforce it */
 	starpu_sched_ctx_set_priority(parallel_worker->workerids, parallel_worker->ncores, parallel_worker->id, 0);
-	return;
+	return 1;
 }
 
-void _starpu_parallel_worker_group_create(struct _starpu_parallel_worker_group *group)
+int _starpu_parallel_worker_group_create(struct _starpu_parallel_worker_group *group)
 {
 	struct _starpu_parallel_worker *c;
 	for (c = _starpu_parallel_worker_list_begin(group->parallel_workers) ;
@@ -341,12 +347,13 @@ void _starpu_parallel_worker_group_create(struct _starpu_parallel_worker_group *
 	{
 		if (c->ncores == 0)
 			continue;
-		_starpu_parallel_worker_create(c);
+		if (_starpu_parallel_worker_create(c) == 0)
+			return 0;
 		if (!c->params->awake_workers)
 			_starpu_parallel_worker_bind(c);
 	}
 
-	return;
+	return 1;
 }
 
 void _starpu_parallel_workers_set_nesting(struct starpu_parallel_worker_config *m)
@@ -543,9 +550,16 @@ int _starpu_parallel_worker_config(hwloc_obj_type_t parallel_worker_level, struc
 	for (g = _starpu_parallel_worker_group_list_begin(machine->groups) ;
 	     g != _starpu_parallel_worker_group_list_end(machine->groups) ;
 	     g = _starpu_parallel_worker_group_list_next(g))
-		_starpu_parallel_worker_group_create(g);
+		if (_starpu_parallel_worker_group_create(g) == 0)
+			return -ENODEV;
 
 	starpu_task_wait_for_all();
+
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
+
+	if (config->topology.nsched_ctxs == STARPU_NMAX_SCHED_CTXS)
+		/* Too many contexts already :/ */
+		return -ENODEV;
 
 	/* Create containing context */
 	if (machine->params->sched_policy_struct != NULL)
