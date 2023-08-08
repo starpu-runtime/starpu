@@ -506,7 +506,7 @@ void starpu_bound_print_dot(FILE *output)
 
 	if (!recorddeps)
 	{
-		fprintf(output, "Not supported\n");
+		fprintf(output, "Dependencies were not enabled in the starpu_bound_start call, thus not supported\n");
 		return;
 	}
 	fprintf(output, "strict digraph bounddeps {\n");
@@ -906,7 +906,7 @@ void starpu_bound_print_mps(FILE *output)
 
 	if (recorddeps)
 	{
-		fprintf(output, "Not supported\n");
+		fprintf(output, "Dependencies were enabled in the starpu_bound_start call, thus not supported\n");
 		return;
 	}
 
@@ -1130,7 +1130,7 @@ void starpu_bound_print(FILE *output, int integer)
 #ifdef STARPU_HAVE_GLPK_H
 	if (recorddeps)
 	{
-		fprintf(output, "Not supported\n");
+		fprintf(output, "Dependencies were enabled in the starpu_bound_start call, thus not supported\n");
 		return;
 	}
 
