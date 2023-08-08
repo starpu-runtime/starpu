@@ -77,7 +77,7 @@ int _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)
 		{
 			if (src_node_mask & (1<<i))
 			{
-				double time = starpu_transfer_predict(i, destination, size);
+				double time;
 				unsigned handling_node;
 
 				/* Avoid indirect transfers */
@@ -85,6 +85,7 @@ int _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)
 				if (!link_supports_direct_transfers(handle, i, destination, &handling_node))
 					continue;
 
+				time = starpu_transfer_predict(i, destination, size);
 				if (_STARPU_IS_ZERO(time))
 				{
 					/* No estimation, will have to revert to dumb strategy */
