@@ -164,7 +164,7 @@ void _starpu_tcpip_init_worker_memory(struct _starpu_machine_config *config, int
 {
 	unsigned memory_node = -1;
 	unsigned devid = workerarg->devid;
-	unsigned numa;
+	unsigned numa, devid2;
 
 	if (tcpip_memory_init[devid])
 	{
@@ -182,6 +182,11 @@ void _starpu_tcpip_init_worker_memory(struct _starpu_machine_config *config, int
 			_starpu_register_bus(numa, memory_node);
 			_starpu_register_bus(memory_node, numa);
 		}
+		for (devid2 = 0; devid2 < STARPU_MAXTCPIPDEVS; devid2++)
+			if (tcpip_memory_init[devid2]) {
+				_starpu_register_bus(tcpip_memory_nodes[devid], tcpip_memory_nodes[devid2]);
+				_starpu_register_bus(tcpip_memory_nodes[devid2], tcpip_memory_nodes[devid]);
+			}
 
 	}
 	//This worker can manage transfers on NUMA nodes
