@@ -163,7 +163,7 @@ void _starpu_mpi_init_worker_memory(struct _starpu_machine_config *config, int n
 {
 	unsigned memory_node = -1;
 	unsigned devid = workerarg->devid;
-	unsigned numa;
+	unsigned numa, devid2;
 
 	if (mpi_memory_init[devid])
 	{
@@ -181,6 +181,11 @@ void _starpu_mpi_init_worker_memory(struct _starpu_machine_config *config, int n
 			_starpu_register_bus(numa, memory_node);
 			_starpu_register_bus(memory_node, numa);
 		}
+		for (devid2 = 0; devid2 < STARPU_MAXMPIDEVS; devid2++)
+			if (mpi_memory_init[devid2]) {
+				_starpu_register_bus(mpi_memory_nodes[devid], mpi_memory_nodes[devid2]);
+				_starpu_register_bus(mpi_memory_nodes[devid2], mpi_memory_nodes[devid]);
+			}
 
 	}
 	//This worker can manage transfers on NUMA nodes
