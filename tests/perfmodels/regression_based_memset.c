@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -166,20 +166,21 @@ static int test_memset_energy(int nelems, int workerid, int where, enum starpu_w
 	(void)impl;
 	int nloops;
 	int loop;
+	starpu_data_handle_t handle;
 
 	nloops = NENERGY;
 	if (workerid == -1)
 		nloops *= starpu_worker_get_count_by_type(archtype);
 
-	starpu_data_handle_t handle[nloops];
+	starpu_vector_data_register(&handle, -1, (uintptr_t)NULL, nelems, sizeof(int));
+
 	for (loop = 0; loop < nloops; loop++)
 	{
 		struct starpu_task *task = starpu_task_create();
-		starpu_vector_data_register(&handle[loop], -1, (uintptr_t)NULL, nelems, sizeof(int));
 
 		task->cl = codelet;
 		task->where = where;
-		task->handles[0] = handle[loop];
+		task->handles[0] = handle;
 		task->flops = nelems;
 		if (workerid != -1)
 		{
@@ -194,10 +195,7 @@ static int test_memset_energy(int nelems, int workerid, int where, enum starpu_w
 	}
 
 	starpu_do_schedule();
-	for (loop = 0; loop < nloops; loop++)
-	{
-		starpu_data_unregister(handle[loop]);
-	}
+	starpu_data_unregister(handle);
 
 	return nloops;
 }
