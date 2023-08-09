@@ -42,6 +42,7 @@ static int _mpi_initialized_starpu;
 static int _starpu_mpi_gpudirect;	/* Whether GPU direct was explicitly requested (1) or disabled (0), or should be enabled if available (-1) */
 int _starpu_mpi_has_cuda;		/* Whether CUDA GPU direct is available */
 int _starpu_mpi_has_hip;		/* Whether current HIP backend supports GPU direct */
+int _starpu_mpi_psm2;			/* Whether MPI has PSM2 or not. Useful when using old intel compilers, for which psm2 detection is buggy */
 int _starpu_mpi_cuda_devid = -1;	/* Which CUDA device GPU direct is enabled for (-1 = all) */
 int _starpu_mpi_hip_devid = -1;	        /* Which HIP device GPU direct is enabled for (-1 = all) */
 
@@ -141,7 +142,7 @@ void _starpu_mpi_do_initialize(struct _starpu_mpi_argc_argv *argc_argv)
 		_starpu_mpi_has_cuda = 0;
 		_starpu_mpi_has_hip = 0;
 	}
-	if (_starpu_mpi_has_cuda || _starpu_mpi_has_hip)
+	if ((_starpu_mpi_has_cuda || _starpu_mpi_has_hip) && _starpu_mpi_psm2)
 	{
 #pragma weak psm2_init
 		extern int psm2_init(int *major, int *minor);
@@ -167,6 +168,7 @@ void _starpu_mpi_do_initialize(struct _starpu_mpi_argc_argv *argc_argv)
 			_STARPU_DISP("Warning: MPI GPUDirect is enabled using the PSM2 driver, but StarPU will be driving several CUDA GPUs.\n");
 			_STARPU_DISP("Since the PSM2 driver only supports one CUDA GPU at a time for GPU Direct (at least as of its version 11.2.185), StarPU-MPI will use GPU Direct only for CUDA%d.\n", gpu_device);
 			_STARPU_DISP("To get GPU Direct working with all CUDA GPUs with the PSM2 driver, you will unfortunately have to run one MPI rank per GPU.\n");
+			_STARPU_DISP("if you are sure you are not actually using PSM2, you can set STARPU_MPI_PSM2=0 to disable PSM2 detection.\n");
 		}
 	}
 #else
@@ -250,6 +252,7 @@ int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi, MPI_Comm
 	_starpu_mpi_backend_check();
 
 	_starpu_mpi_gpudirect = starpu_getenv_number("STARPU_MPI_GPUDIRECT");
+	_starpu_mpi_psm2    = starpu_getenv_number_default("STARPU_MPI_PSM2", 1);
 #ifdef STARPU_SIMGRID
 	/* Call MPI_Init_thread as early as possible, to initialize simgrid
 	 * before working with mutexes etc. */
