@@ -672,6 +672,16 @@ Enable (1) or disable (0) MPI GPUDirect support. Default value (-1) is to enable
 If \ref STARPU_MPI_GPUDIRECT is explicitly set to 1, StarPU-MPI will warn if MPI does not provide the GPUDirect support.
 </dd>
 
+<dt>STARPU_MPI_PSM2</dt>
+<dd>
+\anchor STARPU_MPI_PSM2
+\addindex __env__STARPU_MPI_PSM2
+This variable allows to supercede PSM2 detection when asking for MPI GPUDirect support.
+This is helpful when using old intel compilers, for which PSM2 detection is always true.
+The default (1) is to enable it. If PSM2 is detected whereas it should not be, this variable
+can be set to 0.
+</dd>
+
 <dt>STARPU_MPI_REDUX_ARITY_THRESHOLD</dt>
 <dd>
 \anchor STARPU_MPI_REDUX_ARITY_THRESHOLD
