@@ -51,6 +51,7 @@ struct starpu_sched_policy *_starpu_select_sched_policy(struct _starpu_machine_c
 
 void _starpu_sched_task_submit(struct starpu_task *task);
 void _starpu_sched_do_schedule(unsigned sched_ctx_id);
+void _starpu_sched_reset_scheduler(unsigned sched_ctx_id);
 
 int _starpu_push_task(struct _starpu_job *task);
 int _starpu_repush_task(struct _starpu_job *task);

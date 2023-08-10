@@ -1492,6 +1492,11 @@ void starpu_do_schedule(void)
 	}
 }
 
+void starpu_reset_scheduler(void)
+{
+	_starpu_sched_reset_scheduler(0);
+}
+
 void
 starpu_drivers_request_termination(void)
 {

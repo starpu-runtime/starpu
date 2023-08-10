@@ -1865,6 +1865,8 @@ void starpu_iteration_pop(void);
 */
 void starpu_do_schedule(void);
 
+void starpu_reset_scheduler(void);
+
 /**
    Initialize \p cl with default values. Codelets should preferably be
    initialized statically as shown in \ref DefiningACodelet. However
