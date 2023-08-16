@@ -45,7 +45,7 @@ void func_dup_arg(void *descr[], void *_args)
 	assert(*factor == 12 && *c == 'n' && x[0] == 42 && x[1] == 24);
 	free(factor);
 	free(c);
-	//free(x);
+	free(x);
 }
 
 struct starpu_codelet mycodelet =
