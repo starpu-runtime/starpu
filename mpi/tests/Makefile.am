@@ -77,7 +77,8 @@ starpu_mpi_TESTS +=				\
 	star					\
 	stats					\
 	user_defined_datatype			\
-	wait_for_all
+	wait_for_all				\
+	pack
 
 if !STARPU_SIMGRID
 starpu_mpi_TESTS +=				\
@@ -216,6 +217,7 @@ noinst_PROGRAMS +=				\
 	tags_allocate				\
 	tags_checking				\
 	star					\
+	pack					\
 	stats					\
 	sync					\
 	gather					\
