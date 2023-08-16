@@ -378,7 +378,8 @@ void _starpu_sched_do_schedule(unsigned sched_ctx_id)
 void _starpu_sched_reset_scheduler(unsigned sched_ctx_id)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-	sched_ctx->sched_policy->reset_scheduler(sched_ctx_id);
+	if (sched_ctx->sched_policy && sched_ctx->sched_policy->reset_scheduler)
+		sched_ctx->sched_policy->reset_scheduler(sched_ctx_id);
 }
 
 static void _starpu_push_task_on_specific_worker_notify_sched(struct starpu_task *task, struct _starpu_worker *worker, int workerid, int perf_workerid)

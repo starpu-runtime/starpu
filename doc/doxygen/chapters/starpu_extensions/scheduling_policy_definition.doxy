@@ -689,6 +689,10 @@ heuristic based on the duration of the task over CPUs and GPUs to decide between
 the two queues. CPU workers can then pop from the CPU priority queue, and GPU
 workers from the GPU priority queue.
 
+The function starpu_reset_scheduler() can also be called by
+applications when using schedulers which need to reset internal data,
+for example when the application has finished an iteration.
+
 \section DebuggingScheduling Debugging Scheduling
 
 All the \ref OnlinePerformanceTools and \ref OfflinePerformanceTools can

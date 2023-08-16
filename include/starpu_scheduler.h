@@ -165,8 +165,9 @@ struct starpu_sched_policy
 	void (*do_schedule)(unsigned sched_ctx_id);
 
 	/**
-	   Optional field. This method is called when an iteration ends,
-	   which can be used by a scheduler to reset some of its data/structures.
+	   Optional field. This method is called by applications for
+	   example when an iteration ends. This can be used by a
+	   scheduler to reset some of its data/structures.
 	*/
 	void (*reset_scheduler)(unsigned sched_ctx_id);
 

@@ -1860,11 +1860,15 @@ void starpu_iteration_push(unsigned long iteration);
    See \ref CreatingAGanttDiagram for more details.
 */
 void starpu_iteration_pop(void);
+
 /**
 	See \ref GraphScheduling for more details.
 */
 void starpu_do_schedule(void);
 
+/**
+	See \ref GraphScheduling for more details.
+*/
 void starpu_reset_scheduler(void);
 
 /**
