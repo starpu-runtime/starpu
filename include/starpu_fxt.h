@@ -74,6 +74,7 @@ struct starpu_fxt_options
 	unsigned memory_states;
 	unsigned internal;
 	unsigned label_deps;
+	unsigned use_task_color;
 	char *filenames[STARPU_FXT_MAX_FILES];
 	char *out_paje_path;
 	char *distrib_time_path;

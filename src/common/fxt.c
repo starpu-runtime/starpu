@@ -374,6 +374,10 @@ int _starpu_generate_paje_trace_read_option(const char *option, struct starpu_fx
 	{
 		options->number_events_path = strdup("number_events.data");
 	}
+	else if (strcmp(option, "-use-task-color") == 0)
+	{
+		options->use_task_color = 1;
+	}
 	else
 	{
 		return 1;

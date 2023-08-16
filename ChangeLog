@@ -21,6 +21,10 @@ New features:
   * Add starpu_data_register_victim_selector to let schedulers select eviction
     victims.
 
+Small features:
+  * Add FXT option -use-task-color to propagate the specified task
+    color to the contexts
+
 StarPU 1.4.1
 ==============================================
 

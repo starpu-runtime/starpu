@@ -1600,13 +1600,6 @@ static void create_paje_state_if_not_found(char *name, unsigned color, struct st
 
 	_starpu_symbol_name_list_push_front(&symbol_list, entry);
 
-	/* choose some color ... that's disguting yes */
-	unsigned hash_symbol_red = get_color_symbol_red(name);
-	unsigned hash_symbol_green = get_color_symbol_green(name);
-	unsigned hash_symbol_blue = get_color_symbol_blue(name);
-
-	uint32_t hash_sum = hash_symbol_red + hash_symbol_green + hash_symbol_blue;
-
 	float red, green, blue;
 	if (color != 0)
 	{
@@ -1616,6 +1609,12 @@ static void create_paje_state_if_not_found(char *name, unsigned color, struct st
 	}
 	else if (options->per_task_colour)
 	{
+		/* choose some color ... that's disguting yes */
+		unsigned hash_symbol_red = get_color_symbol_red(name);
+		unsigned hash_symbol_green = get_color_symbol_green(name);
+		unsigned hash_symbol_blue = get_color_symbol_blue(name);
+
+		uint32_t hash_sum = hash_symbol_red + hash_symbol_green + hash_symbol_blue;
 		red = (1.0f * hash_symbol_red) / hash_sum;
 		green = (1.0f * hash_symbol_green) / hash_sum;
 		blue = (1.0f * hash_symbol_blue) / hash_sum;
@@ -1638,76 +1637,68 @@ static void create_paje_state_if_not_found(char *name, unsigned color, struct st
 		{
 			char ctx[10];
 			snprintf(ctx, sizeof(ctx), "Ctx%d", i);
-			if(i%10 == 1)
-				create_paje_state_color(name, ctx, i, 1.0, 0.39, 1.0);
-			if(i%10 == 2)
-				create_paje_state_color(name, ctx, i, .0, 1.0, 0.0);
-			if(i%10 == 3)
-				create_paje_state_color(name, ctx, i, 1.0, 1.0, .0);
-			if(i%10 == 4)
-				create_paje_state_color(name, ctx, i, .0, 0.95, 1.0);
-			if(i%10 == 5)
-				create_paje_state_color(name, ctx, i, .0, .0, .0);
-			if(i%10 == 6)
-				create_paje_state_color(name, ctx, i, .0, .0, 0.5);
-			if(i%10 == 7)
-				create_paje_state_color(name, ctx, i, 0.41, 0.41, 0.41);
-			if(i%10 == 8)
-				create_paje_state_color(name, ctx, i, 1.0, .0, 1.0);
-			if(i%10 == 9)
-				create_paje_state_color(name, ctx, i, .0, .0, 1.0);
-			if(i%10 == 0)
-				create_paje_state_color(name, ctx, i, 0.6, 0.80, 50.0);
-
+			if (options->use_task_color)
+			{
+				create_paje_state_color(name, ctx, i, red, green, blue);
+			}
+			else
+			{
+				if(i%10 == 1)
+					create_paje_state_color(name, ctx, i, 1.0, 0.39, 1.0);
+				if(i%10 == 2)
+					create_paje_state_color(name, ctx, i, .0, 1.0, 0.0);
+				if(i%10 == 3)
+					create_paje_state_color(name, ctx, i, 1.0, 1.0, .0);
+				if(i%10 == 4)
+					create_paje_state_color(name, ctx, i, .0, 0.95, 1.0);
+				if(i%10 == 5)
+					create_paje_state_color(name, ctx, i, .0, .0, .0);
+				if(i%10 == 6)
+					create_paje_state_color(name, ctx, i, .0, .0, 0.5);
+				if(i%10 == 7)
+					create_paje_state_color(name, ctx, i, 0.41, 0.41, 0.41);
+				if(i%10 == 8)
+					create_paje_state_color(name, ctx, i, 1.0, .0, 1.0);
+				if(i%10 == 9)
+					create_paje_state_color(name, ctx, i, .0, .0, 1.0);
+				if(i%10 == 0)
+					create_paje_state_color(name, ctx, i, 0.6, 0.80, 50.0);
+			}
 		}
-/* 		create_paje_state_color(name, "Ctx1", 1.0, 0.39, 1.0); */
-/* 		create_paje_state_color(name, "Ctx2", .0, 1.0, 0.0); */
-/* 		create_paje_state_color(name, "Ctx3", 1.0, 1.0, .0); */
-/* 		create_paje_state_color(name, "Ctx4", .0, 0.95, 1.0); */
-/* 		create_paje_state_color(name, "Ctx5", .0, .0, .0); */
-/* 		create_paje_state_color(name, "Ctx6", .0, .0, 0.5); */
-/* 		create_paje_state_color(name, "Ctx7", 0.41, 0.41, 0.41); */
-/* 		create_paje_state_color(name, "Ctx8", 1.0, .0, 1.0); */
-/* 		create_paje_state_color(name, "Ctx9", .0, .0, 1.0); */
-/* 		create_paje_state_color(name, "Ctx10", 0.6, 0.80, 0.19); */
 #else
 		fprintf(out_paje_file, "6	%s	WS	%s	\"%f %f %f\" \n", name, name, red, green, blue);
 		int i;
 		for(i = 1; i < STARPU_NMAX_SCHED_CTXS; i++)
 		{
-			if(i%10 == 1)
-				fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\"1.0 0.39 1.0\" \n", name, i, i, name);
-			if(i%10 == 2)
-				fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\".0 1.0 .0\" \n", name, i, i, name);
-			if(i%10 == 3)
-				fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\"0.87 0.87 .0\" \n", name, i, i, name);
-			if(i%10 == 4)
-				fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\".0 0.95 1.0\" \n", name, i, i, name);
-			if(i%10 == 5)
-				fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\".0 .0 .0\" \n", name, i, i, name);
-			if(i%10 == 6)
-				fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\".0 .0 0.5\" \n", name, i, i, name);
-			if(i%10 == 7)
-				fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\"0.41 0.41 0.41\" \n", name, i, i, name);
-			if(i%10 == 8)
-				fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\"1.0 .0 1.0\" \n", name, i, i, name);
-			if(i%10 == 9)
-				fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\".0 .0 1.0\" \n", name, i, i, name);
-			if(i%10 == 0)
-				fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\"0.6 0.80 0.19\" \n", name, i, i, name);
-
+			if (options->use_task_color)
+			{
+				fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\"%f %f %f\" \n", name, i, i, name, red, green, blue);
+			}
+			else
+			{
+				if(i%10 == 1)
+					fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\"1.0 0.39 1.0\" \n", name, i, i, name);
+				if(i%10 == 2)
+					fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\".0 1.0 .0\" \n", name, i, i, name);
+				if(i%10 == 3)
+					fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\"0.87 0.87 .0\" \n", name, i, i, name);
+				if(i%10 == 4)
+					fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\".0 0.95 1.0\" \n", name, i, i, name);
+				if(i%10 == 5)
+					fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\".0 .0 .0\" \n", name, i, i, name);
+				if(i%10 == 6)
+					fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\".0 .0 0.5\" \n", name, i, i, name);
+				if(i%10 == 7)
+					fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\"0.41 0.41 0.41\" \n", name, i, i, name);
+				if(i%10 == 8)
+					fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\"1.0 .0 1.0\" \n", name, i, i, name);
+				if(i%10 == 9)
+					fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\".0 .0 1.0\" \n", name, i, i, name);
+				if(i%10 == 0)
+					fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\"0.6 0.80 0.19\" \n", name, i, i, name);
+			}
 		}
 
-/* 		fprintf(out_paje_file, "6	%s	Ctx1	%s	\"1.0 0.39 1.0\" \n", name, name); */
-/* 		fprintf(out_paje_file, "6	%s	Ctx2	%s	\".0 1.0 .0\" \n", name, name); */
-/* 		fprintf(out_paje_file, "6	%s	Ctx3	%s	\"0.87 0.87 .0\" \n", name, name); */
-/* 		fprintf(out_paje_file, "6	%s	Ctx4	%s	\".0 0.95 1.0\" \n", name, name); */
-/* 		fprintf(out_paje_file, "6	%s	Ctx5	%s	\".0 .0 .0\" \n", name, name); */
-/* 		fprintf(out_paje_file, "6	%s	Ctx6	%s	\".0 .0 0.5\" \n", name, name); */
-/* 		fprintf(out_paje_file, "6	%s	Ctx7	%s	\"0.41 0.41 0.41\" \n", name, name); */
-/* 		fprintf(out_paje_file, "6	%s	Ctx8	%s	\"1.0 .0 1.0\" \n", name, name); */
-/* 		fprintf(out_paje_file, "6	%s	Ctx9	%s	\".0 .0 1.0\" \n", name, name); */
-/* 		fprintf(out_paje_file, "6	%s	Ctx10	%s	\"0.6 0.80 0.19\" \n", name, name); */
 #endif
 	}
 
