@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2020,2021  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -47,6 +47,7 @@ static void usage()
 	fprintf(stderr, "   -memory-states	show detailed memory states of handles\n");
 	fprintf(stderr, "   -internal		show StarPU-internal tasks in DAG\n");
 	fprintf(stderr, "   -number-events	generate a file counting FxT events by type\n");
+	fprintf(stderr, "   -use-task-color	propagate the specified task color to the contexts\n");
 	fprintf(stderr, "   -h, --help		display this help and exit\n");
 	fprintf(stderr, "   -v, --version	output version information and exit\n\n");
 	fprintf(stderr, "Report bugs to <%s>.", PACKAGE_BUGREPORT);

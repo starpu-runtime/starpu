@@ -56,7 +56,7 @@ int main(void)
 	starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&value, sizeof(value));
 
 	// In the trace file, the following task should be green (executed on CPU)
-	ret = starpu_task_insert(&mycodelet, STARPU_RW, handle, STARPU_NAME, "mytask",
+	ret = starpu_task_insert(&mycodelet, STARPU_RW, handle, STARPU_NAME, "mytask_green",
 				 0);
 	if (STARPU_UNLIKELY(ret == -ENODEV))
 	{
@@ -66,13 +66,13 @@ int main(void)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
 	// In the trace file, the following task will be red as specified by STARPU_TASK_COLOR
-	ret = starpu_task_insert(&mycodelet, STARPU_RW, handle, STARPU_NAME, "mytask",
+	ret = starpu_task_insert(&mycodelet, STARPU_RW, handle, STARPU_NAME, "mytask_red",
 				 STARPU_TASK_COLOR, 0xFF0000,
 				 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
 	// In the trace file, the following task will be blue as specified by the field color of mycodelet_color
-	ret = starpu_task_insert(&mycodelet_color, STARPU_RW, handle, STARPU_NAME, "mytask",
+	ret = starpu_task_insert(&mycodelet_color, STARPU_RW, handle, STARPU_NAME, "mytask_blue",
 				 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 

@@ -45,6 +45,10 @@ Small features:
     and starpu_cpu_os_index()
   * New macro STARPU_CUSOLVER_REPORT_ERROR
 
+Small features:
+  * Add FXT option -use-task-color to propagate the specified task
+    color to the contexts
+
 StarPU 1.4.1
 ==============================================
 
