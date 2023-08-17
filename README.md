@@ -87,6 +87,7 @@ Please skip this step if you are building from a tarball.
 
 ## For all versions
 
+    $ mkdir build && cd build
     $ ./configure
     $ make
     $ make install
@@ -169,4 +170,6 @@ and on the
 # Contact
 
 For any questions regarding StarPU, please contact the starpu-devel
-mailing-list at starpu-devel@inria.fr.
+mailing-list at starpu-devel@inria.fr or browse
+[the StarPU website](https://starpu.gitlabpages.inria.fr/).
+
