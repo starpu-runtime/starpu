@@ -23,7 +23,6 @@
 This part explains the advanced concepts of StarPU. It is intended for users whose applications need more than basic task submission.
 
 <ul>
-<li> Tools to help debugging applications are presented in Chapter \ref DebuggingTools. </li>
 
 <li> Chapter \ref ConfigurationAndInitialization shows a brief overview of how to configure and tune StarPU.</li>
 
@@ -34,6 +33,8 @@ This part explains the advanced concepts of StarPU. It is intended for users who
     <li> After reading Chapter \ref Scheduling, You can get some advanced scheduling policies in StarPU in Chapters \ref AdvancedScheduling, \ref SchedulingContexts and \ref SchedulingContextHypervisor.
     </ul>
 </li>
+
+<li> Tools to help debugging applications are presented in Chapter \ref DebuggingTools. </li>
 
 <li> Other chapters cover some further usages of StarPU.
     <ul>

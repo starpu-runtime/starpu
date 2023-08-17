@@ -59,28 +59,29 @@ The documentation chapters include
     </ul>
 <li> <b> \ref IntroExtensions </b>
     <ul>
-    <li> \ref DebuggingTools
     <li> \ref ConfigurationAndInitialization
     <li> \ref AdvancedTasksInStarPU
     <li> \ref AdvancedDataManagement
     <li> \ref AdvancedScheduling
     <li> \ref SchedulingContexts
     <li> \ref SchedulingContextHypervisor
-    <li> \ref OutOfCore
+    <li> \ref HowToDefineANewSchedulingPolicy
     <li> \ref CUDASupport
     <li> \ref OpenCLSupport
+    <li> \ref MaxFPGASupport
+    <li> \ref OutOfCore
     <li> \ref MPISupport
     <li> \ref TCPIPSupport
     <li> \ref Transactions
     <li> \ref FaultTolerance
     <li> \ref FFTSupport
-    <li> \ref MaxFPGASupport
     <li> \ref SOCLOpenclExtensions
     <li> \ref HierarchicalDAGS
     <li> \ref ParallelWorker
     <li> \ref InteroperabilitySupport
-    <li> \ref HowToDefineANewSchedulingPolicy
     <li> \ref SimGridSupport
+    <li> \ref DebuggingTools
+    <li> \ref Helpers
     </ul>
 <li> <b>Appendices</b>
     <ul>
