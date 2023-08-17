@@ -16,9 +16,16 @@
 
 /*! \page PythonInterface Python Interface
 
-This section presents the StarPU Python Interface. It provides for those used to the Python language a more concise and easy-to-use StarPU interface.
+This chapter presents the StarPU Python Interface. It provides for
+those used to the Python language a more concise and easy-to-use
+StarPU interface.
 
-This interface supports most of the main StarPU functionalities. All the functionalities of the C API are not provided, however, new functions especially adapted to Python have been added. Several examples using the Python API are provided in the directory <c>starpupy/examples/</c>.
+This interface supports most of the main StarPU functionalities. While
+not all features of the C API are replicated in the Python Interface,
+additional functions tailored for Python's ease of use have been
+incorporated.
+
+Several examples using the Python API are provided in the directory <c>starpupy/examples/</c>.
 
 \section Installation Installation of the Python Interface
 
@@ -78,44 +85,86 @@ starpu.shutdown()
 
 \subsection SubmittingTasks Submitting Tasks
 
-One of the most important functionalities in StarPU is the task submission. The Python interface simplifies its usage, as the function can directly be called without any extra steps.
+One of the fundamental aspects of StarPU is the task submission. The
+Python Interface greatly simplifies this process, allowing for direct
+calls to the submission function without any extra complexities.
 
-The Python function to submit tasks is <c>task_submit(options)(func, *args, **kwargs)</c>. \c func is any Python function, \c args and \c kwargs are the function arguments. The function can also be provided as a string. In order to let StarPU make optimizations for your program, you should submit all tasks to allow StarPU to efficiently schedule the underlying tasks. Submitted tasks will not be executed immediately, and you can only get the return value once the task has been executed.
-
-In the first set of parentheses, the following options may be specified. Please note that all options have a default value, the parentheses must be kept even without any option.
+The Python function used for task submission follows the format:
+<c>task_submit(options)(func, *args, **kwargs)</c>. In this structure:
 
 <ul>
-<li> \c name (string, default: \c None)
+<li>
+\c func represents any Python function.
+</li>
+<li>
+\c args and \c kwargs denote the function's arguments.
+</li>
+</ul>
 
-Set the name of the task. This can be useful for debugging purposes.
+You can also provide the function as a string.
+
+By submitting tasks through this function, you enable StarPU to
+perform optimizations for your program's execution. It's recommended
+to submit all tasks to ensure StarPU's efficient scheduling of the
+underlying tasks. It's important to note that submitted tasks do not
+execute immediately, and you can retrieve the return value only after
+the task execution.
+
+The first set of parentheses allows to specify various options.
+Keep in mind that each option has a default value, and even if you're
+not providing any options, the parentheses should be retained. The
+options are as follows:
+
+<ul>
+<li>
+<b>\c name (string, default: \c None)</b> : Set the name of the task. This can be useful for debugging purposes.
+</li>
+<li>
+<b>\c synchronous (unsigned, default: 0)</b> : If this flag is set,
+\c task_submit() only returns when the task has been
+executed (or if no worker is able to process the task). Otherwise, \c
+task_submit() returns immediately.
+</li>
+<li>
+<b>\c priority (int, default: 0)</b> : Set the level of priority for
+the task. This is an integer value whose value must be greater than
+the return value of the function \c starpu.sched_get_min_priority()
+(for the least important tasks), and lower or equal to the return
+value of the function \c starpu.sched_get_max_priority() (for the most
+important tasks). Default priority is defined as 0 in order to allow
+static task initialization. Scheduling strategies that take priorities
+into account can use this parameter to take better scheduling
+decisions, but the scheduling policy may also ignore it.
+</li>
+<li>
+<b>\c  color (unsigned, default: \c None)</b> : Set the color of the
+task to be used in \c dag.dot.
+</li>
+<li>
+<b>\c flops (double, default: \c None)</b> : Set the number of
+floating points operations that the task will have to achieve. This is
+useful for easily getting GFlops/s curves from the function \c
+starpu.perfmodel_plot, and for the hypervisor load balancing.
 </li>
 
-<li> \c synchronous (unsigned, default: 0)
-
-If this flag is set, the function \c task_submit only returns when the task has been executed (or if no worker is able to process the task). Otherwise, \c task_submit returns immediately.
-</li>
-<li> \c priority (int, default: 0)
-
-Set the level of priority for the task. This is an integer value whose value must be greater than the return value of the function \c starpu.sched_get_min_priority() (for the least important tasks), and lower or equal to the return value of the function \c starpu.sched_get_max_priority() (for the most important tasks). Default priority is defined as 0 in order to allow static task initialization. Scheduling strategies that take priorities into account can use this parameter to take better scheduling decisions, but the scheduling policy may also ignore it.
-</li>
-<li> \c  color (unsigned, default: \c None)
-
-Set the color of the task to be used in \c dag.dot.
-</li>
-<li> \c flops (double, default: \c None)
-
-Set the number of floating points operations that the task will have to achieve. This is useful for easily getting GFlops/s curves from the function \c starpu.perfmodel_plot, and for the hypervisor load balancing.
-</li>
-
-<li> \c perfmodel (string, default: \c None)
-
-Set the name of the performance model. This name will be used as the filename where the performance model information will be saved. After the task is executed, one can call the function \c starpu.perfmodel_plot() by giving the symbol of perfmodel to view its performance curve.
+<li>
+<b>\c perfmodel (string, default: \c None)</b> : Set the name of the
+performance model. This name will be used as the filename where the
+performance model information will be saved. After the task is
+executed, one can call the function \c starpu.perfmodel_plot() by
+giving the symbol of perfmodel to view its performance curve.
 </li>
 </ul>
 
 \subsection ReturningFutureObject Returning Future Object
 
-In order to realize asynchronous frameworks, the <c>task_submit()</c> function returns a Future object. This is an extended use for the Python interface. A Future represents an eventual result of an asynchronous operation. It is an awaitable object, Coroutines can await on Future objects until they either have a result or an exception set, or until they are canceled. Some basic examples are available in script <c>starpupy/examples/starpu_py.py</c>.
+In order to realize asynchronous frameworks, the <c>task_submit()</c>
+function returns a Future object. This is an extended use of StarPU
+provided by the Python interface. A Future represents an eventual
+result of an asynchronous operation. It is an awaitable object,
+Coroutines can await on Future objects until they either have a result
+or an exception set, or until they are canceled. Some basic examples
+are available in the script <c>starpupy/examples/starpu_py.py</c>.
 
 This feature needs the \c asyncio module to be imported.
 
@@ -223,9 +272,14 @@ res
 3
 \endverbatim
 
-The Future object can also be used for the next step calculation even before being ready. The eventual result will be awaited until the Future has a result.
+A Future object can also be used for the next step calculation even
+before being ready. The calculation will be postponed until the Future
+has a result.
 
-In this example, after submitting the first task, a Future object <c>fut1</c> is created, and it is used as an argument of a second task. The second task is submitted even without having the return value of the first task.
+In this example, after submitting the first task, a Future object
+<c>fut1</c> is created, and it is used as an argument of a second
+task. The second task is submitted even without having the return
+value of the first task.
 
 \code{.py}
 import asyncio
@@ -263,7 +317,11 @@ res
 
 \subsection SubmitPythonBuffer Submit Python Objects Supporting The Buffer Protocol
 
-The Python buffer protocol is a framework in which Python objects can expose raw byte arrays to other Python objects. This can be extremely useful to efficiently store and manipulate large arrays of data. The StarPU Python Interface allows users to use such objects as task parameters.
+The Python buffer protocol is a framework in which Python objects can
+expose raw byte arrays to other Python objects. This can be extremely
+useful to efficiently store and manipulate large arrays of data. The
+StarPU Python Interface allows users to use such objects as task
+parameters.
 
 \code{.py}
 import asyncio
@@ -289,9 +347,17 @@ res
 array([5., 7., 9.])
 \endverbatim
 
-StarPU uses a specific data interface to handle Python objects supporting buffer protocol, such python objects are then managed by the StarPU data management library which allows minimizing data transfers between accelerators, and avoids copying the object each time.
+StarPU uses a specific data interface to handle Python objects
+supporting buffer protocol, such python objects are then managed by
+the StarPU data management library which allows minimizing data
+transfers between accelerators, and avoids copying the object each
+time.
 
-We show the performances below of the \c numpy addition (<c>numpy.add</c> running the script <c>test_perf.sh</c>) with different array sizes (10, 20, ..., 100, 200, ..., 1000, 2000, ..., 10000, 20000, ..., 100000, 200000, ..., 1000000, 2000000, ..., 10000000, ..., 50000000). We compare two cases:
+We show the performances below of the \c numpy addition
+(<c>numpy.add</c> running the script <c>test_perf.sh</c>) with
+different array sizes (10, 20, ..., 100, 200, ..., 1000, 2000, ...,
+10000, 20000, ..., 100000, 200000, ..., 1000000, 2000000, ...,
+10000000, ..., 50000000). We compare two cases:
 <ol>
 <li> Using StarPU, </li>
 <li> Without using StarPU tasks, but directly calling the <c>numpy.add</c> function.</li>
@@ -423,13 +489,17 @@ If we want to get its up-to-date value, we need extra functions.
 In order to access data registered to StarPU outside tasks, we provide an acquire and release mechanism.
 
 <ul>
-<li> The <c>starpu.acquire(data, mode)</c> method should be called to access registered data outside tasks (Refer to the method <c>starpu_data_acquire()</c> in C interface).  StarPU will ensure that the application will get an up-to-date copy of handle in main memory located where the data was originally registered, and that all concurrent accesses (e.g. from tasks) will be consistent with the access mode specified with the given mode (\c R the default mode, \c W or \c RW).
+<li> The <c>starpu.acquire(data, mode)</c> method should be called to
+access registered data outside tasks (Refer to the C API starpu_data_acquire()).  StarPU will ensure that the application will get an up-to-date copy of handle in main memory located where the data was originally registered, and that all concurrent accesses (e.g. from tasks) will be consistent with the access mode specified with the given mode (\c R the default mode, \c W or \c RW).
 </li>
 
-<li> The <c>starpu.release(data)</c> method must be called once the application no longer needs to access the piece of data (Refer to the method <c>starpu_data_release()</c> in C interface).
+<li> The <c>starpu.release(data)</c> method must be called once the
+application no longer needs to access the piece of data (Refer to the
+C API starpu_data_release()).
 </li>
 
-<li> The <c>starpu.unregister(data)</c> method must be called to unregister the Python object from StarPU. (Refer to the method <c>starpu_data_unregister()</c> in C interface). This method waits for all calculations to be finished before unregistering data.
+<li> The <c>starpu.unregister(data)</c> method must be called to
+unregister the Python object from StarPU. (Refer to the C API starpu_data_unregister()). This method waits for all calculations to be finished before unregistering data.
 </li>
 </ul>
 
@@ -685,15 +755,19 @@ As in Section \ref MethodsAcquireRelease, the \c Handle class defines methods to
 
 <ul>
 <li>
-The method <c>Handle::acquire(mode)</c> should be called before accessing the object outside tasks (Refer to the method <c>starpu_data_acquire()</c> in C interface). The access mode can be \c "R", \c "W", \c "RW", the default value is "R". We will get an up-to-date copy of Python object by calling this method.
+The method <c>Handle::acquire(mode)</c> should be called before
+accessing the object outside tasks (Refer to the C API starpu_data_acquire()). The access mode can be \c "R", \c "W", \c "RW", the default value is "R". We will get an up-to-date copy of Python object by calling this method.
 </li>
 
 <li>
-The method <c>Handle::release()</c> must be called once the application no longer needs to access the registered data (Refer to the method <c>starpu_data_release()</c> in C interface).
+The method <c>Handle::release()</c> must be called once the
+application no longer needs to access the registered data (Refer to
+the C API starpu_data_release()).
 </li>
 
 <LI>
-The method <c>Handle::unregister()</c> to unregister the Python object handle from StarPU (Refer to the method <c>starpu_data_unregister()</c> in C interface). This method will wait for all calculations to be finished before unregistering data.
+The method <c>Handle::unregister()</c> to unregister the Python object
+handle from StarPU (Refer to the C API starpu_data_unregister()). This method will wait for all calculations to be finished before unregistering data.
 </li>
 </ul>
 
@@ -779,7 +853,9 @@ e_h.release()
 
 \subsection HandlePartition Array Partitioning
 
-A n-dim \c numpy array can be split into several sub-arrays by calling the method <c>Handle::partition(nchildren, dim, chunks_list)</c> (Refer to the method <c>starpu_data_partition_plan()</c> in C interface).
+A n-dim \c numpy array can be split into several sub-arrays by calling
+the method <c>Handle::partition(nchildren, dim, chunks_list)</c>
+(Refer to the C API starpu_data_partition_plan()).
 <ul>
 <li>
 <c>nchildren</c> is the number of sub-handles,
@@ -794,7 +870,10 @@ A n-dim \c numpy array can be split into several sub-arrays by calling the metho
 
 The method will return a sub-handle list, each of the sub-handles can be used when submitting a task with <c>task_submit()</c>. This allows to process an array in parallel, once the execution of each sub-handle is finished, the result will be directly reflected in the original n-dim array.
 
-When the sub-handles are no longer needed, the method <c>Handle::unpartition(handle_list, nchildren)</c> should be called to clear the partition and unregister all the sub-handles (Refer to the method <c>starpu_data_partition_clean()</c> in C interface).
+When the sub-handles are no longer needed, the method
+<c>Handle::unpartition(handle_list, nchildren)</c> should be called to
+clear the partition and unregister all the sub-handles
+(Refer to the C API starpu_data_partition_clean()).
 <ul>
 <li>
 <c>handle_list</c> is the sub-handle list which was previously returned by the method <c>Handle::partition()</c>,
