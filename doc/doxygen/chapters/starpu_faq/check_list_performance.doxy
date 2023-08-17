@@ -26,9 +26,9 @@ will show roughly where time is spent, and focus correspondingly.
 
 \section CheckTaskSize Check Task Size
 
-Make sure that your tasks are not too small, as the StarPU runtime overhead
-is not completely zero. As explained in \ref TaskSizeOverhead, you can
-run the script \c tasks_size_overhead.sh to get an
+Make sure that your tasks are not too small, as the StarPU runtime
+overhead may not be negligible. As explained in \ref TaskSizeOverhead,
+you can run the script \c tasks_size_overhead.sh to get an
 idea of the scalability of tasks depending on their duration (in µs), on your
 own system.
 
