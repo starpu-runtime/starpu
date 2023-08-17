@@ -23,16 +23,40 @@
 This part presents the basic knowledge of StarPU. It should be read to understand how StarPU works and how to execute a basic StarPU application.
 
 <ul>
-<li> You can learn how to create and run your own StarPU applications after reading Chapter \ref StarPUApplications.
-<li> We also explain to you how to implement simple programs that submit tasks to StarPU in Chapter \ref BasicExamples and some complex programs in Part \ref StarPUApplications.
-<li> A full source code about scaling a vector is shown in Chapter \ref FullSourceCodeVectorScal.
-<li> We introduce the most important and core concepts in StarPU:
-    <ul>
-    <li> The basic information about how to manage tasks in StarPU is in Chapter \ref TasksInStarPU.
-    <li> In Chapter \ref DataManagement, we show you how to manage the data layout of your applications according to different data interfaces provided by StarPU.
-    <li> We list basic scheduling policies in StarPU in Chapter \ref Scheduling.
-    </ul>
-<li> Once you read all contents above, you can try some examples in StarPU sources. The list of example directories is in Chapter \ref ExamplesInStarPUSources.
+<li>
+Chapter \ref StarPUApplications shows how to create and run your
+own StarPU applications.
+</li>
+<li>
+Chapter \ref BasicExamples shows how to implement simple programs that
+submit tasks to StarPU.
+</li>
+<li>
+Chapter \ref FullSourceCodeVectorScal gives the full source code for
+a vector scaling application.
+</li>
 </ul>
+
+The next chapters cover the most important and core concepts in
+StarPU:
+<ul>
+<li>
+Chapter \ref TasksInStarPU explains the basic information on tasks
+management.
+</li>
+<li>
+Chapter \ref DataManagement shows how to manage the data layout of
+your application data by using the different data interfaces provided
+by StarPU.
+</li>
+<li>
+Chapter \ref Scheduling explains the scheduling policies provided by
+StarPU.
+</li>
+</ul>
+
+Some examples applications are provided from the StarPU sources for
+you to try. Chapter \ref ExamplesInStarPUSources lists these
+applications.
 
 */

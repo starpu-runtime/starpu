@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,39 +16,59 @@
 
 /*! \page BuildingAndInstallingStarPU Building and Installing StarPU
 
-Depending on how much you need to tune the library installation, we
-propose several solutions.
+Depending on the level of customization required for the library
+installation, we offer several solutions.
 
+<ol>
+<li><b>Basic Installation or Evaluation:</b>
+<p/>
+If you are looking to simply try out the library, assess its
+performance on simple cases, run examples, or use the latest stable
+version, we recommend the following options:
 <ul>
 <li>
-You just want to have a try, to see if it can be installed well on
-your system, what are the performances on simple cases, run the
-examples, or simply use the last stable version: we recommend using
-the latest StarPU debian package (see \ref InstallingABinaryPackage)
-for those who work on a Linux Debian or Ubuntu distribution, Guix or
-Spack on other Linux systems (see \ref InstallingASourcePackage), Brew
-on macOS (see \ref InstallingASourcePackage).
+For Linux Debian or Ubuntu distributions, as well as Guix or Spack on
+other Linux systems, consider using the latest StarPU Debian package
+(see \ref InstallingABinaryPackage).
 </li>
 <li>
-You want to use it, but you need a change somewhere in the stack like
-considering another version (git branch), change the default
-MPI, use your favorite compiler, modify some sources: you may try with
-Guix or Spack because these package managers allow building from
-sources and thus many options can be changed dynamically (command
-line), as described in \ref InstallingASourcePackage, or directly
-build from source with the native build system of the library
-(Makefile, GNU autotools) following the procedures described below in
-\ref InstallingFromSource.
+For macOS, you can opt for Brew and follow the steps in \ref
+InstallingASourcePackage.
+</li>
+</ul>
+</li>
+<li><b>Customization for Specific Needs:</b>
+<p/>
+If you intend to use StarPU but require modifications, such as
+switching to another version (git branch), changing the default MPI,
+utilizing a preferred compiler, or altering source code, consider
+these options:
+<ul>
+<li>
+Guix or Spack can be useful, as these package managers allow dynamic
+changes during source-based builds.
+Refer to \ref InstallingASourcePackage for details.
 </li>
 <li>
-You need a tool for reproducibility of your experiments: Guix is
-recommended (see \ref InstallingASourcePackage).
+Alternatively, you can directly build from the source using the native
+build system of the library (Makefile, GNU autotools). Instructions
+can be found in \ref InstallingFromSource.
+</li>
+</ul>
+</li>
+<li><b>Experiment Reproducibility:</b>
+<p/>
+If your focus is on experiment reproducibility, we recommend using
+Guix. Refer to \ref InstallingASourcePackage for guidance.
 </li>
 </ul>
 
-Whatever solution you go for, the tool <c>bin/starpu_config</c> can be
-used to display all the configuration parameters StarPU was installed
-with.
+Whichever solution you choose, you can utilize the tool
+<c>bin/starpu_config</c> to view all the configuration parameters used
+during StarPU installation.
+
+Please refer to the provided documentation for specific installation
+steps and details for each solution.
 
 \section InstallingABinaryPackage Installing a Binary Package
 
