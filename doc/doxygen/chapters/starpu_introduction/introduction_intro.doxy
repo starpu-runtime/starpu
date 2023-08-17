@@ -122,15 +122,23 @@ several processing units as long as it is not modified.
 
 \section ApplicationTaskification Application Taskification
 
-TODO
+We will explain here shortly the concept of "taskifying" an application.
 
-// TODO: section describing what taskifying an application means: before
-// porting to StarPU, turn the program into:
-// "pure" functions, which only access data from their passed parameters
-// a main function which just calls these pure functions
-// and then it's trivial to use StarPU or any other kind of task-based library:
-// simply replace calling the function with submitting a task.
+Before transitioning to StarPU, you must transform your application as follows:
+<ul>
+<li> Refactor functions into "pure" functions that exclusively utilize data from their parameters.
+</li>
+<li> Create a central main function responsible for calling these pure functions.
+</li>
+</ul>
 
+Once this restructuring is complete, integrating StarPU or any similar
+task-based library becomes straightforward. You merely replace
+function calls with task submissions, leveraging the library's
+capabilities.
+
+Chapter \ref StencilApplication shows how to easily convert an
+existing application to use StarPU.
 
 \section ResearchPapers Research Papers
 
