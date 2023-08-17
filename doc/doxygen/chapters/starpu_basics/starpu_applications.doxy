@@ -18,16 +18,17 @@
 
 \section SettingFlagsForCompilingLinkingAndRunningApplications Setting Flags for Compiling, Linking and Running Applications
 
-StarPU provides a <c>pkg-config</c> executable to obtain relevant compiler
-and linker flags. As compiling and linking an application against
-StarPU may require to use specific flags or libraries (for instance
-<c>CUDA</c> or <c>libspe2</c>).
+StarPU provides a <c>pkg-config</c> executable to facilitate the
+retrieval of necessary compiler and linker flags. This is useful when
+compiling and linking an application with StarPU, as certain flags or
+libraries (such as \c CUDA or \c libspe2) may be required.
 
-If StarPU was not installed at some standard location, the path of StarPU's
+If StarPU is not installed in a standard location, the path of StarPU's
 library must be specified in the environment variable
 <c>PKG_CONFIG_PATH</c> to allow <c>pkg-config</c> to find it. For
-example, if StarPU was installed in
-<c>$STARPU_PATH</c>:
+example, if StarPU is installed in
+<c>$STARPU_PATH</c>, you can set the variable \c PKG_CONFIG_PATH like
+this:
 
 \verbatim
 $ export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$STARPU_PATH/lib/pkgconfig
@@ -41,41 +42,47 @@ $ pkg-config --cflags starpu-1.4  # options for the compiler
 $ pkg-config --libs starpu-1.4    # options for the linker
 \endverbatim
 
-Note that it is still possible to use the API provided in the version
-1.0 of StarPU by calling <c>pkg-config</c> with the <c>starpu-1.0</c> package.
-Similar packages are provided for <c>starpumpi-1.0</c> and <c>starpufft-1.0</c>.
-It is also possible to use the API provided in the version
-0.9 of StarPU by calling <c>pkg-config</c> with the <c>libstarpu</c> package.
+Please note that it is still possible to use the API provided in
+StarPU version 1.0 by calling <c>pkg-config</c> with the
+<c>starpu-1.0</c> package.
+Similar packages are provided for <c>starpumpi-1.0</c> and
+<c>starpufft-1.0</c>.
+For the API provided in StarPU version 0.9, you can use
+<c>pkg-config</c> with the <c>libstarpu</c> package.
 Similar packages are provided for <c>libstarpumpi</c> and <c>libstarpufft</c>.
 
-Make sure that <c>pkg-config --libs starpu-1.4</c> actually produces some output
-before going further: <c>PKG_CONFIG_PATH</c> has to point to the place where
-<c>starpu-1.4.pc</c> was installed during <c>make install</c>.
+Make sure that <c>pkg-config --libs starpu-1.4</c> produces valid output
+before going further. To achieve this, make sure that your \c
+PKG_CONFIG_PATH is correctly set to the location where \c
+starpu-1.4.pc was installed during the <c>make install</c> process.
 
-Also pass the option <c>--static</c> if the application is to be
-linked statically.
+Furthermore, if you intend to link your application statically,
+remember to include the <c>--static</c> option during the linking
+process.
 
-It is also necessary to set the environment variable <c>LD_LIBRARY_PATH</c> to
-locate dynamic libraries at runtime.
+Additionally, for runtime execution, it is necessary to set the
+\c LD_LIBRARY_PATH environment variable. This ensures that dynamic
+libraries are located and loaded correctly during runtime.
 
 \verbatim
 $ export LD_LIBRARY_PATH=$STARPU_PATH/lib:$LD_LIBRARY_PATH
 \endverbatim
 
-And it is useful to get access to the StarPU tools:
+And finally you should set the \c PATH variable to get access to
+various StarPU tools:
 
 \verbatim
 $ export PATH=$PATH:$STARPU_PATH/bin
 \endverbatim
 
-It is then useful to check that StarPU executes correctly and finds your hardware:
+Run the following command to ensure that StarPU is executing properly
+and successfully detecting your hardware. If any issues arise, examine the
+output of \c lstopo from the \c hwloc project and report any problems
+either to the hwloc project or to us.
 
 \verbatim
 $ starpu_machine_display
 \endverbatim
-
-If it does not, please check the output of \c lstopo from \c hwloc and report
-the issue to the \c hwloc project, since this is what StarPU uses to detect the hardware.
 
 <br>
 A tool is provided to help set all the environment variables

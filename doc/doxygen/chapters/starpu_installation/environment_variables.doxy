@@ -18,8 +18,25 @@
 
 /*! \page ExecutionConfigurationThroughEnvironmentVariables Execution Configuration Through Environment Variables
 
-The behavior of the StarPU library and tools may be tuned thanks to
-the following environment variables. The function starpu_getenv() allows you to retrieve the value of an environment variable used by StarPU. The function starpu_get_env_string_var_default() allows you to retrieve the value of an environment variable used by StarPU as a string, or a default value if the environment variable is not set. The function allows you to retrieve the value of an environment variable used by StarPU as a size in bytes, or a default value if the environment variable is not set.
+The StarPU library and tools's behavior can be tuned using the following environment variables. To access these variables, you can use the provided functions.
+<ul>
+<li>
+starpu_getenv() retrieves the value of an environment variable.
+</li>
+<li>
+starpu_get_env_string_var_default() retrieves the value of an
+environment variable as a string. If the variable is not set, you can
+provide a default value.
+</li>
+<li>
+starpu_get_env_size_default() retrieves the value of an environment
+variable as a size in bytes, or a default value if the environment
+variable is not set.
+</li>
+
+These functions empower you to fine-tune the behavior of StarPU
+according to your preferences and requirements by leveraging
+environment variables.
 
 \section EnvConfiguringWorkers Configuring Workers
 
