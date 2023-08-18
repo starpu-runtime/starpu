@@ -17,38 +17,35 @@
 /*! \page ConfigurationAndInitialization Configuration and Initialization
 
 This section explains the relationship between configure options,
-compilation options and environment variables.
+compilation options and environment variables used by StarPU.
 
-In StarPU, the configure options are used during the installation
+<ol>
+<li>
+Configure options are used during the installation
 process to enable or disable specific features and libraries.
-These options are set using flags such as \ref enable-maxcpus
+These options are set using flags like \ref enable-maxcpus
 "--enable-maxcpus", which can be used to set the maximum number of
 CPUs that can be used by StarPU.
+</li>
+
+<li>
 Compilation options are used to set specific parameters during the
 compilation process, such as the optimization level, architecture
 type, and debugging options.
+</li>
 
-These options can also be set with the different fields of the
-::starpu_conf parameter given to starpu_init(), such as
-starpu_conf::ncpus, which is used to specify the number of CPUs that
-StarPU should use for computations.
-
-Finally, environment variables are used to set runtime parameters and
+<li>
+Environment variables are used to set runtime parameters and
 control the behavior of the StarPU library.
 For example, the \ref STARPU_NCPUS environment variable can be used to
 specify the number of CPUs to use at runtime, overriding the value set
 during compilation or installation.
+</li>
+</ol>
 
-We call starpu_conf_noworker() to set configuration fields so that no
-worker is enabled, i.e. set starpu_conf::ncpus = 0, starpu_conf::ncuda
-= 0, etc.
-
-We can check whether StarPU is already initialized by calling
-starpu_is_initialized(), and call starpu_wait_initialized() to wait
-for the initialization to be finished.
-
-There are some functions are useful for debugging purposes or for understanding the underlying architecture of the system, such as starpu_topology_print() is used to print the current topology of the system.
-
-We can get the version of StarPU used when running the application by calling starpu_get_version().
+Options can also be set with the different fields of the
+::starpu_conf parameter given to starpu_init(), such as
+starpu_conf::ncpus, which is used to specify the number of CPUs that
+StarPU should use for computations.
 
 */

@@ -18,14 +18,15 @@
 
 \webforeword
 
-\section Organization Organization
-
 This parts shows a basic usage of StarPU and how to execute the provided examples or your own applications.
 
 <ul>
 <li> Chapter \ref BuildingAndInstallingStarPU shows how to build and install StarPU.
-<li> Chapter \ref ExecutionConfigurationThroughEnvironmentVariables lists environment variables that can be used to tune StarPU when executing an application;
-<li> Chapter \ref CompilationConfiguration shows configuration options to tune StarPU building process.
+<li> Chapter \ref CompilationConfiguration shows how to tune StarPU building process through configuration options.
+<li> Chapter \ref ExecutionConfigurationThroughEnvironmentVariables lists environment variables that can be used to tune StarPU when executing an application.
 </ul>
+
+Finally, Chapter \ref ConfigurationAndInitialization shows a brief
+overview of how to configure and tune StarPU.
 
 */

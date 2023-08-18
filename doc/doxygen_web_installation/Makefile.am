@@ -32,6 +32,7 @@ chapters =	\
 	../doxygen/chapters/starpu_installation/environment_variables.doxy		\
 	../doxygen/chapters/starpu_installation/building.doxy		\
 	../doxygen/chapters/starpu_installation/configure_options.doxy		\
+	../doxygen/chapters/starpu_installation/configuration_and_initialization.doxy		\
 	../doxygen/chapters/files.doxy		\
 	../doxygen/chapters/fdl_1_3.doxy		\
 	../doxygen/chapters/code/forkmode.c \

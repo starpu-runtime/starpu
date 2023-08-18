@@ -84,7 +84,6 @@ either to the hwloc project or to us.
 $ starpu_machine_display
 \endverbatim
 
-<br>
 A tool is provided to help set all the environment variables
 needed by StarPU. Once StarPU is installed in a specific directory,
 calling the script <c>bin/starpu_env</c> will set in your current

@@ -16,20 +16,34 @@
 
 /*! \page Helpers Helpers
 
-StarPU provides starpu_sleep() and starpu_usleep() that allow the application to pause the execution of the current thread for a specified amount of time. starpu_sleep() pauses the thread for a specified number of seconds, while starpu_usleep() pauses the thread for a specified number of microseconds.
+StarPU provides several utilities functions to help programmers:
 
-The function starpu_task_dup() creates a duplicate of an existing task. The new task is identical to the original task in terms of its parameters, dependencies, and execution characteristics.
-
-The function starpu_task_set() is used to set the parameters of a task before it is executed, while the function starpu_task_build() is used to create a task with the specified parameters.
-
-starpu_task_insert_data_make_room() is a function in the StarPU library that creates a new slot in the data structure for a given task. This function ensures that enough space is available in the data structure to store the data associated with the task.
-
-The starpu_task_insert_data_process_arg() function processes a scalar argument of a task and inserts it into the task's data structure. This function also performs any necessary data allocation and transfer operations.
-
-starpu_task_insert_data_process_array_arg() is a function that processes an array argument of a task and inserts it into the task's data structure. This function handles the allocation and transfer of the array data, as well as setting up the appropriate metadata to describe the array.
-
-The starpu_task_insert_data_process_mode_array_arg() function processes a mode array argument of a task and inserts it into the task's data structure. This function handles the allocation and transfer of the mode array data, as well as setting up the appropriate metadata to describe the mode array. Additionally, this function also computes the necessary sizes and strides for the data associated with the mode array argument.
-
-StarPU provides several functions to help insert data into a task. The function starpu_task_insert_data_make_room() is used to allocate memory space for a data structure that is required for inserting data into a task. This function is called before inserting any data handles into a task, and ensures that enough memory is available for the data to be stored. Once memory is allocated, the data handle can be inserted into the task using the functions starpu_task_insert_data_process_arg(), starpu_task_insert_data_process_array_arg(), and starpu_task_insert_data_process_mode_array_arg(). These functions are responsible for inserting data handle into a task and specifying how the data should be processed.
+<ul>
+<li>
+starpu_conf_noworker() sets configuration fields so that no
+worker is enabled, i.e. it sets starpu_conf::ncpus to 0,
+starpu_conf::ncuda to 0, etc.
+</li>
+<li>
+starpu_is_initialized() returns a value indicating whether StarPU is
+already initialized, starpu_wait_initialized() only returns when the
+initialization is finished.
+</li>
+<li>
+starpu_topology_print() prints the current topology of the system, and
+is therefore useful for debugging purposes or for understanding the
+underlying architecture of the system.
+</li>
+<li>
+starpu_get_version() returns the version of StarPU used when running
+the application.
+</li>
+<li>
+starpu_sleep() and starpu_usleep() allow the application to pause the
+execution of the current thread for a specified amount of time.
+starpu_sleep() pauses the thread for a specified number of seconds and
+starpu_usleep() for a specified number of microseconds.
+</li>
+</ul>
 
 */
