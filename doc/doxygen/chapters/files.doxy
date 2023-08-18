@@ -24,6 +24,7 @@
 \file starpu_cublas.h
 \file starpu_cublas_v2.h
 \file starpu_cuda.h
+\file starpu_cusolver.h
 \file starpu_cusparse.h
 \file starpu_data_filters.h
 \file starpu_data.h
