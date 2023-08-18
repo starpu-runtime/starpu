@@ -18,8 +18,6 @@
 
 \webforeword
 
-\section Organization Organization
-
 This part presents how to write a StarPU application from an existing application.
 
 The application presented in the following chapter and some others are

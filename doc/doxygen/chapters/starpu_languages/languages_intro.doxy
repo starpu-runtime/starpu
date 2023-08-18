@@ -18,8 +18,6 @@
 
 \webforeword
 
-\section Organization Organization
-
 This part shows how StarPU which is natively written in C, has been extended to allow applications written in other languages to use it.
 
 <ul>

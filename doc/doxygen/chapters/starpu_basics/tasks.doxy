@@ -363,4 +363,50 @@ During unpacking one can also call the function starpu_codelet_unpack_discard_ar
 
 A full code example is in file <c>tests/main/pack.c</c>.
 
+\section OtherTaskUtility Other Task Utility Functions
+
+Here a list of other functions to help with task management.
+
+<ul>
+<li>
+The function starpu_task_dup() creates a duplicate of an existing task. The new task is identical to the original task in terms of its parameters, dependencies, and execution characteristics.
+</li>
+<li>
+The function starpu_task_set() is used to set the parameters of a task before it is executed, while the function starpu_task_build() is used to create a task with the specified parameters.
+</li>
+</ul>
+
+StarPU provides several functions to help insert data into a task.
+The function starpu_task_insert_data_make_room() is used to allocate
+memory space for a data structure that is required for inserting data
+into a task. This function is called before inserting any data handles
+into a task, and ensures that enough memory is available for the data
+to be stored.
+Once memory is allocated, the data handle can be inserted into the
+task using the following functions
+
+<ul>
+<li>
+starpu_task_insert_data_process_arg() processes a scalar
+argument of a task and inserts it into the task's data structure. This
+function also performs any necessary data allocation and transfer
+operations.
+</li>
+<li>
+starpu_task_insert_data_process_array_arg() processes an array
+argument of a task and inserts it into the task's data structure. This
+function handles the allocation and transfer of the array data, as
+well as setting up the appropriate metadata to describe the array.
+</li>
+<li>
+starpu_task_insert_data_process_mode_array_arg() processes a mode
+array argument of a task and inserts it into the task's data
+structure. This function handles the allocation and transfer of the
+mode array data, as well as setting up the appropriate metadata to
+describe the mode array. Additionally, this function also computes the
+necessary sizes and strides for the data associated with the mode
+array argument.
+</li>
+</ul>
+
 */

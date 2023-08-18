@@ -18,40 +18,97 @@
 
 \webforeword
 
-\section Organization Organization
-
 This part explains the advanced concepts of StarPU. It is intended for users whose applications need more than basic task submission.
 
+You can learn more knowledge about some important and core concepts in StarPU:
 <ul>
-
-<li> Chapter \ref ConfigurationAndInitialization shows a brief overview of how to configure and tune StarPU.</li>
-
-<li> You can learn more knowledge about some important and core concepts in StarPU:
-    <ul>
-    <li> After reading Chapter \ref TasksInStarPU, you can get more information about how to manage tasks in StarPU in Chapter \ref AdvancedTasksInStarPU.
-    <li> After reading Chapter \ref DataManagement, you can know more about how to manage the data layout of your applications in Chapter \ref AdvancedDataManagement.
-    <li> After reading Chapter \ref Scheduling, You can get some advanced scheduling policies in StarPU in Chapters \ref AdvancedScheduling, \ref SchedulingContexts and \ref SchedulingContextHypervisor.
-    </ul>
+<li>
+After reading Chapter \ref TasksInStarPU, you can get more
+information about how to manage tasks in StarPU in Chapter \ref
+AdvancedTasksInStarPU.
 </li>
-
-<li> Tools to help debugging applications are presented in Chapter \ref DebuggingTools. </li>
-
-<li> Other chapters cover some further usages of StarPU.
-    <ul>
-    <li> If you need to store more data than what the main memory (RAM) can store, Chapter \ref OutOfCore presents how to add a new memory node on a disk and how to use it.
-    <li> We integrate MPI transfers within task parallelism. For users who need to run MPI processes in their applications Chapter \ref MPISupport may be useful.
-    <li> In Chapter \ref TCPIPSupport, we explain the TCP/IP master slave mechanism which can execute application across many remote cores without thinking about data distribution.
-    <li> Chapter \ref Transactions shows how to cancel a sequence of already submitted tasks based on a just-in-time decision.
-    <li> StarPU provides some supports for failure of tasks or even failure of complete nodes in Chapter \ref FaultTolerance.
-    <li> The usage of <c>libstarpufft</c> is described in Chapter \ref FFTSupport, the design is very similar to both <c>fftw</c> and <c>cufft</c>, but this library provided by StarPU takes benefit from both CPUs and GPUs.
-    <li> StarPU support Field Programmable Gate Array (FPGA) applications exploiting DFE configurations, you can find related usage in Chapter \ref MaxFPGASupport.
-    <li> If you want your applications can share entities such as Events, Contexts or Command Queues between several OpenCL implementations, we have an OpenCL implementation based on StarPU described in Chapter \ref SOCLOpenclExtensions.
-    <li> We propose a hierarchical tasks model in Chapter \ref HierarchicalDAGS to enable tasks subgraphs at runtime for a more dynamic task graph.
-    <li> You can find how to partition a machine into parallel workers in Chapter \ref ParallelWorker.
-    <li> If you need StarPU to coexist with other parallel software elements without resulting in computing core oversubscription or undersubscription, Chapter \ref InteroperabilitySupport is useful. You can get the information about how to dynamically manage the computing resources allocated to StarPU.
-    <li> You can learn how to define a StarPU task scheduling policy in a basic monolithic way, or in a modular way in Chapter \ref HowToDefineANewSchedulingPolicy.
-    <li> Chapter \ref SimGridSupport shows you how to simulate execution on an arbitrary platform.
-    </ul>
+<li>
+After reading Chapter \ref DataManagement, you can know more about
+how to manage the data layout of your applications in Chapter \ref
+AdvancedDataManagement.
+</li>
+<li>
+After reading Chapter \ref Scheduling, you can get some advanced
+scheduling policies in StarPU in Chapters \ref AdvancedScheduling,
+\ref SchedulingContexts and \ref SchedulingContextHypervisor.
+</li>
+<li>
+Chapter \ref HowToDefineANewSchedulingPolicy explains how to
+define a StarPU task scheduling policy either in a basic
+monolithic way, or in a modular way.
+</li>
 </ul>
+
+Other chapters cover some further usages of StarPU.
+<ul>
+<li>
+Chapters \ref CUDASupport and \ref OpenCLSupport show how to use
+GPU devices with CUDA or OpenCL. Chapter \ref MaxFPGASupport
+explains how StarPU support Field Programmable Gate Array (FPGA)
+applications exploiting DFE configurations.
+</li>
+<li>
+If you need to store more data than what the main memory (RAM) can
+store, Chapter \ref OutOfCore presents how to add a new memory
+node on a disk and how to use it.
+</li>
+<li>
+Chapter \ref MPISupport shows how to integrate MPI processes in
+StarPU.
+</li>
+<li>
+Chapter \ref TCPIPSupport shows a TCP/IP master slave mechanism
+which can execute application across many remote cores without
+thinking about data distribution.
+</li>
+<li>
+Chapter \ref Transactions shows how to cancel a sequence of
+already submitted tasks based on a just-in-time decision.
+</li>
+<li>
+Chapter \ref FaultTolerance explains how StarPU provide supports
+for failure of tasks or even failure of complete nodes.
+</li>
+<li>
+Chapter \ref FFTSupport explains how StarPU provides a similar
+library to both <c>fftw</c> and <c>cufft</c>, but by adding a
+support from both CPUs and GPUs.
+</li>
+<li>
+Chapter \ref SOCLOpenclExtensions explains how OpenCL applications
+can transparently be run using StarPU, by givings unified access
+to every available OpenCL device.
+</li>
+<li>
+We propose a hierarchical tasks model in Chapter \ref
+HierarchicalDAGS to enable tasks subgraphs at runtime for a more
+dynamic task graph.
+</li>
+<li>
+You can find how to partition a machine into parallel workers in
+Chapter \ref ParallelWorker.
+</li>
+<li>
+Chapter \ref InteroperabilitySupport shows how StarPU can coexist
+with other parallel software elements without resulting in
+computing core oversubscription or undersubscription.
+</li>
+<li>
+Chapter \ref SimGridSupport shows you how to simulate execution on
+an arbitrary platform.
+</li>
+<li>
+Tools to help debugging applications are presented in Chapter \ref
+DebuggingTools.
+</li>
+</ul>
+
+And finally, chapter \ref Helpers gives a list of StarPU utility
+functions.
 
 */

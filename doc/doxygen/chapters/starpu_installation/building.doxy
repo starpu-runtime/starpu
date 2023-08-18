@@ -20,48 +20,44 @@ Depending on the level of customization required for the library
 installation, we offer several solutions.
 
 <ol>
-<li><b>Basic Installation or Evaluation:</b>
-<p/>
-If you are looking to simply try out the library, assess its
-performance on simple cases, run examples, or use the latest stable
-version, we recommend the following options:
-<ul>
-<li>
-For Linux Debian or Ubuntu distributions, as well as Guix or Spack on
-other Linux systems, consider using the latest StarPU Debian package
-(see \ref InstallingABinaryPackage).
-</li>
-<li>
-For macOS, you can opt for Brew and follow the steps in \ref
-InstallingASourcePackage.
-</li>
-</ul>
-</li>
-<li><b>Customization for Specific Needs:</b>
-<p/>
-If you intend to use StarPU but require modifications, such as
-switching to another version (git branch), changing the default MPI,
-utilizing a preferred compiler, or altering source code, consider
-these options:
-<ul>
-<li>
-Guix or Spack can be useful, as these package managers allow dynamic
-changes during source-based builds.
-Refer to \ref InstallingASourcePackage for details.
-</li>
-<li>
-Alternatively, you can directly build from the source using the native
-build system of the library (Makefile, GNU autotools). Instructions
-can be found in \ref InstallingFromSource.
-</li>
-</ul>
-</li>
-<li><b>Experiment Reproducibility:</b>
-<p/>
-If your focus is on experiment reproducibility, we recommend using
-Guix. Refer to \ref InstallingASourcePackage for guidance.
-</li>
-</ul>
+  <li><b>Basic Installation or Evaluation:</b> If you are looking to
+  simply try out the library, assess its performance on simple cases,
+  run examples, or use the latest stable version, we recommend the
+  following options:
+    <ul>
+    <li>
+    For Linux Debian or Ubuntu distributions, consider using the latest
+    StarPU Debian package (see \ref InstallingABinaryPackage).
+    </li>
+    <li>
+    For macOS, you can opt for Brew and follow the steps in \ref
+    InstallingASourcePackage.
+    </li>
+    </ul>
+  </li>
+  <li><b>Customization for Specific Needs:</b> If you intend to use
+  StarPU but require modifications, such as switching to another version
+  (git branch), changing the default MPI, utilizing a preferred
+  compiler, or altering source code, consider these options:
+    <ul>
+    <li>
+    Guix or Spack can be useful, as these package managers allow dynamic
+    changes during source-based builds.
+    Refer to \ref InstallingASourcePackage for details.
+    </li>
+    <li>
+    Alternatively, you can directly build from the source using the native
+    build system of the library (Makefile, GNU autotools). Instructions
+    can be found in \ref InstallingFromSource.
+    </li>
+    </ul>
+  </li>
+  <li>
+  <b>Experiment Reproducibility:</b> If your focus is on experiment
+  reproducibility, we recommend using Guix. Refer to \ref
+  InstallingASourcePackage for guidance.
+  </li>
+</ol>
 
 Whichever solution you choose, you can utilize the tool
 <c>bin/starpu_config</c> to view all the configuration parameters used

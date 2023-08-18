@@ -29,7 +29,6 @@ include $(top_srcdir)/doc/doxy.mk
 chapters =	\
 	../doxygen/chapters/foreword.doxy		\
 	../doxygen/chapters/starpu_extensions/extensions_intro.doxy		\
-	../doxygen/chapters/starpu_extensions/configuration_and_initialization.doxy		\
 	../doxygen/chapters/starpu_extensions/advanced_tasks.doxy		\
 	../doxygen/chapters/starpu_extensions/advanced_data_management.doxy		\
 	../doxygen/chapters/starpu_extensions/helpers.doxy		\

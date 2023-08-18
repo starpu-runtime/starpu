@@ -35,6 +35,7 @@ chapters =	\
 	chapters/starpu_installation/environment_variables.doxy		\
 	chapters/starpu_installation/building.doxy		\
 	chapters/starpu_installation/configure_options.doxy		\
+	chapters/starpu_installation/configuration_and_initialization.doxy		\
 	chapters/starpu_basics/basics_intro.doxy		\
 	chapters/starpu_basics/starpu_applications.doxy		\
 	chapters/starpu_basics/basic_examples.doxy		\
@@ -58,7 +59,6 @@ chapters =	\
 	chapters/starpu_languages/python.doxy		\
 	chapters/starpu_languages/openmp_runtime_support.doxy		\
 	chapters/starpu_extensions/extensions_intro.doxy		\
-	chapters/starpu_extensions/configuration_and_initialization.doxy		\
 	chapters/starpu_extensions/advanced_tasks.doxy		\
 	chapters/starpu_extensions/advanced_data_management.doxy		\
 	chapters/starpu_extensions/helpers.doxy		\

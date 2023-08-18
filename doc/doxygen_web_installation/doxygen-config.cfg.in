@@ -17,8 +17,9 @@
 #
 INPUT                  = @top_srcdir@/doc/doxygen/chapters/starpu_installation/installation_intro.doxy \
                       @top_srcdir@/doc/doxygen/chapters/starpu_installation/building.doxy \
-                      @top_srcdir@/doc/doxygen/chapters/starpu_installation/environment_variables.doxy \
                       @top_srcdir@/doc/doxygen/chapters/starpu_installation/configure_options.doxy \
+                      @top_srcdir@/doc/doxygen/chapters/starpu_installation/environment_variables.doxy \
+                      @top_srcdir@/doc/doxygen/chapters/starpu_installation/configuration_and_initialization.doxy \
                       @top_srcdir@/doc/doxygen/chapters/fdl_1_3.doxy \
                       @top_srcdir@/doc/doxygen/chapters/files.doxy \
                       @top_srcdir@/doc/doxygen/chapters/api
