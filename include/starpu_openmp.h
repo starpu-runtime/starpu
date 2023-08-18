@@ -402,8 +402,8 @@ extern void *starpu_omp_single_copyprivate_inline_begin(void *data) __STARPU_OMP
    the task that won the election. This function can be used to implement
    <c>\#pragma omp single</c> with a copyprivate clause without code outlining.
 
-   \return the copyprivate pointer for tasks that lost the election and therefore did not execute the code of the single section.
-   \return <c>NULL</c> for the task that won the election and executed the code of the single section.
+   Return the copyprivate pointer for tasks that lost the election and therefore did not execute the code of the single section.
+   Return <c>NULL</c> for the task that won the election and executed the code of the single section.
 
    \sa starpu_omp_single_copyprivate_inline
    \sa starpu_omp_single_copyprivate_inline_begin
@@ -827,9 +827,7 @@ extern int starpu_omp_get_cancellation(void) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_set_schedule(enum starpu_omp_sched_value kind, int modifier) __STARPU_OMP_NOTHROW;
 
 /**
-   Return the current selected default loop scheduler.
-
-   \return the kind and the modifier of the current default loop scheduler.
+   Return the kind and the modifier of the current default loop scheduler.
 
    \sa starpu_omp_set_schedule
 
@@ -964,8 +962,6 @@ extern int starpu_omp_get_place_num_procs(int place_num) __STARPU_OMP_NOTHROW;
 /**
    Return the numerical identifiers of the processors available to the execution environment in the specified place.
 
-   \return the numerical identifiers of the processors available to the execution environment in the specified place.
-
    See \ref OMPStandard for more details.
 */
 extern void starpu_omp_get_place_proc_ids(int place_num, int *ids) __STARPU_OMP_NOTHROW;
@@ -990,8 +986,6 @@ extern int starpu_omp_get_partition_num_places(void) __STARPU_OMP_NOTHROW;
 
 /**
    Return the list of place numbers corresponding to the places in the place-partition-var ICV of the innermost implicit task.
-
-   \return the list of place numbers corresponding to the places in the place-partition-var ICV of the innermost implicit task.
 
    See \ref OMPStandard for more details.
 */

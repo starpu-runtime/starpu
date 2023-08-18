@@ -516,7 +516,7 @@ void starpu_sched_ctx_worker_shares_tasks_lists(int workerid, int sched_ctx_id);
    programmer can inspect local variables etc. to determine why this scheduling
    decision was done.
 
-   See \ref ::STARPU_TASK_BREAK_ON_SCHED
+   See \ref STARPU_TASK_BREAK_ON_SCHED
    See \ref DefiningANewBasicSchedulingPolicy for more details.
  */
 void starpu_sched_task_break(struct starpu_task *task);
