@@ -32,7 +32,7 @@ extern "C" {
    @defgroup API_Bitmap Bitmap
    @brief This is the interface for the bitmap utilities provided by StarPU.
    @{
- */
+*/
 #ifndef _STARPU_LONG_BIT
 #define _STARPU_LONG_BIT ((int)(sizeof(unsigned long) * 8))
 #endif

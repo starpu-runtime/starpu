@@ -48,7 +48,7 @@ extern "C" {
 
 /**
   Convert from enum starpu_worker_archtype to worker type mask for use in "where" fields
-  */
+*/
 #define STARPU_WORKER_TO_MASK(worker_archtype) (1ULL << (worker_archtype + 1))
 
 /**
@@ -122,13 +122,13 @@ extern "C" {
 /**
    Value to be set in starpu_codelet::cuda_flags to allow asynchronous
    CUDA kernel execution.
- */
+*/
 #define STARPU_CUDA_ASYNC (1 << 0)
 
 /**
    Value to be set in starpu_codelet::hip_flags to allow asynchronous
    HIP kernel execution.
- */
+*/
 #define STARPU_HIP_ASYNC (1 << 0)
 
 /**
@@ -211,13 +211,13 @@ typedef void (*starpu_max_fpga_func_t)(void **, void *);
 /**
    @ingroup API_Bubble Hierarchical Dags
    Bubble decision function
- */
+*/
 typedef int (*starpu_bubble_func_t)(struct starpu_task *t, void *arg);
 
 /**
    @ingroup API_Bubble Hierarchical Dags
    Bubble DAG generation function
- */
+*/
 typedef void (*starpu_bubble_gen_dag_func_t)(struct starpu_task *t, void *arg);
 
 /**
@@ -728,10 +728,12 @@ struct starpu_task
 	*/
 	int nbuffers;
 
-	/* Keep dyn_handles, dyn_interfaces and dyn_modes before the
-	 * equivalent static arrays, so we can detect dyn_handles
-	 * being NULL while nbuffers being bigger that STARPU_NMAXBUFS
-	 * (otherwise the overflow would put a non-NULL) */
+	/**
+	   Keep dyn_handles, dyn_interfaces and dyn_modes before the
+	   equivalent static arrays, so we can detect dyn_handles
+	   being NULL while nbuffers being bigger that STARPU_NMAXBUFS
+	   (otherwise the overflow would put a non-NULL)
+	*/
 
 	/**
 	   Array of ::starpu_data_handle_t. Specify the handles to the
@@ -747,6 +749,7 @@ struct starpu_task
 	   when using ::STARPU_DATA_ARRAY and alike.
 	*/
 	starpu_data_handle_t *dyn_handles;
+
 	/**
 	   Array of data pointers to the memory node where execution
 	   will happen, managed by the DSM. Is used when the field
@@ -755,6 +758,7 @@ struct starpu_task
 	   This is filled by StarPU.
 	*/
 	void **dyn_interfaces;
+
 	/**
 	   Used only when starpu_codelet::nbuffers is \ref
 	   STARPU_VARIABLE_NBUFFERS.
@@ -1404,7 +1408,7 @@ struct starpu_task
 	/**
 	   @private
 	   This is private to StarPU, do not modify.
-	 */
+	*/
 	struct starpu_omp_task *omp_task;
 #else
 	void *omp_task;
@@ -1413,25 +1417,25 @@ struct starpu_task
 	/**
 	   When using hierarchical dags, the job identifier of the
 	   bubble task which created the current task
-	 */
+	*/
 	unsigned long bubble_parent;
 
 	/**
 	   When using hierarchical dags, a pointer to the bubble
 	   decision function
-	 */
+	*/
 	starpu_bubble_func_t bubble_func;
 
 	/**
 	   When using hierarchical dags, a pointer to an argument to
 	   be given when calling the bubble decision function
-	 */
+	*/
 	void *bubble_func_arg;
 
 	/**
 	   When using hierarchical dags, a pointer to the bubble
 	   DAG generation function
-	 */
+	*/
 	starpu_bubble_gen_dag_func_t bubble_gen_dag_func;
 
 	/**
@@ -1443,7 +1447,7 @@ struct starpu_task
 	/**
 	   @private
 	   This is private to StarPU, do not modify.
-	  */
+	*/
 	unsigned nb_termination_call_required;
 
 	/**
@@ -1471,13 +1475,13 @@ struct starpu_task
 */
 #define STARPU_TASK_TYPE_DATA_ACQUIRE (1 << 1)
 
+/* Note: remember to update starpu_task_init and starpu_task_ft_create_retry
+ * as well */
 /**
    Value to be used to initialize statically allocated tasks. This is
    equivalent to initializing a structure starpu_task
    with the function starpu_task_init().
 */
-/* Note: remember to update starpu_task_init and starpu_task_ft_create_retry
- * as well */
 #define STARPU_TASK_INITIALIZER                                         \
 	{                                                               \
 		.cl			      = NULL,                   \
@@ -1636,7 +1640,7 @@ struct starpu_task
    will either set the \p i -th element of the field
    starpu_codelet::nodes or the \p i -th element of the field
    starpu_codelet::dyn_nodes (see \ref SettingManyDataHandlesForATask)
- */
+*/
 #define STARPU_CODELET_SET_NODE(codelet, __node, i)       \
 	do {                                              \
 		if ((codelet)->dyn_nodes)                 \
@@ -1688,7 +1692,7 @@ struct starpu_task *starpu_task_create(void) STARPU_ATTRIBUTE_MALLOC;
    with mode \p mode. This allows to synchronize with the task graph, according
    to the sequential consistency, against tasks submitted before or after
    submitting this task. One can then use starpu_task_declare_deps_array() or
-   starpu_task_end_dep_add()/starpu_task_end_dep_release() to add dependencies
+   starpu_task_end_dep_add() / starpu_task_end_dep_release() to add dependencies
    against this task before submitting it.
    See \ref SynchronizationTasks for more details.
  */
@@ -1862,12 +1866,12 @@ void starpu_iteration_push(unsigned long iteration);
 void starpu_iteration_pop(void);
 
 /**
-	See \ref GraphScheduling for more details.
+   See \ref GraphScheduling for more details.
 */
 void starpu_do_schedule(void);
 
 /**
-	See \ref GraphScheduling for more details.
+   See \ref GraphScheduling for more details.
 */
 void starpu_reset_scheduler(void);
 
@@ -1922,7 +1926,7 @@ const char *starpu_task_get_name(struct starpu_task *task);
 
 /**
    Allocate a task structure which is the exact duplicate of \p task.
-   See \ref Helpers for more details.
+   See \ref OtherTaskUtility for more details.
 */
 struct starpu_task *starpu_task_dup(struct starpu_task *task);
 
@@ -1944,13 +1948,13 @@ unsigned starpu_task_get_implementation(struct starpu_task *task);
    Create and submit an empty task that unlocks a tag once all its
    dependencies are fulfilled.
    See \ref SynchronizationTasks for more details.
- */
+*/
 void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t *deps, void (*callback)(void *), void *callback_arg);
 
 /**
    Create and submit an empty task with the given callback.
    See \ref SynchronizationTasks for more details.
- */
+*/
 void starpu_create_callback_task(void (*callback)(void *), void *callback_arg);
 
 /**
@@ -1965,7 +1969,7 @@ void starpu_create_callback_task(void (*callback)(void *), void *callback_arg);
    try-task.
 
    See \ref TaskRetry for more details.
- */
+*/
 void starpu_task_ft_prologue(void *check_ft);
 
 /**
@@ -1983,7 +1987,7 @@ void starpu_task_ft_prologue(void *check_ft);
    parameters) before being submitted with starpu_task_submit_nodeps().
 
    See \ref TaskRetry for more details.
- */
+*/
 struct starpu_task *starpu_task_ft_create_retry(const struct starpu_task *meta_task, const struct starpu_task *template_task, void (*check_ft)(void *));
 
 /**
@@ -1994,27 +1998,27 @@ struct starpu_task *starpu_task_ft_create_retry(const struct starpu_task *meta_t
    recorded for performance models.
 
    This can only be called for a task whose data access modes are either
-   STARPU_R and STARPU_W.
- */
+   ::STARPU_R and ::STARPU_W.
+*/
 void starpu_task_ft_failed(struct starpu_task *task);
 
 /**
    Notify that the try-task was successful and thus the meta-task was
    successful.
    See \ref TaskRetry for more details.
- */
+*/
 void starpu_task_ft_success(struct starpu_task *meta_task);
 
 /**
    Set the function to call when the watchdog detects that StarPU has
-   not finished any task for STARPU_WATCHDOG_TIMEOUT seconds.
+   not finished any task for \ref STARPU_WATCHDOG_TIMEOUT seconds.
    See \ref WatchdogSupport for more details.
 */
 void starpu_task_watchdog_set_hook(void (*hook)(void *), void *hook_arg);
 
 /**
- * Return the given status as a string
- */
+   Return the given status as a string
+*/
 char *starpu_task_status_get_as_string(enum starpu_task_status status);
 
 /**
@@ -2048,19 +2052,19 @@ void starpu_set_limit_max_submitted_tasks(int limit_min);
    @return A pointer to an initializes <c>struct starpu_transaction</c>
    or \c NULL if submitting the transaction begin task failed with \c ENODEV.
    See \ref TransactionsCreation for more details.
- */
+*/
 struct starpu_transaction *starpu_transaction_open(int (*do_start_func)(void *buffer, void *arg), void *do_start_arg);
 
 /**
    Function to mark the end of the current transaction epoch and start a new epoch.
    See \ref TransactionsEpochNext for more details.
- */
+*/
 void starpu_transaction_next_epoch(struct starpu_transaction *p_trs, void *do_start_arg);
 
 /**
    Function to mark the end of the last transaction epoch and free the transaction object.
    See \ref TransactionsClosing for more details.
- */
+*/
 void starpu_transaction_close(struct starpu_transaction *p_trs);
 
 /** @} */

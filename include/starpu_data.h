@@ -33,6 +33,7 @@ extern "C" {
 */
 
 struct _starpu_data_state;
+
 /**
    StarPU uses ::starpu_data_handle_t as an opaque handle to manage a
    piece of data. Once a piece of data has been registered to StarPU,
@@ -50,7 +51,7 @@ typedef struct _starpu_data_state *starpu_data_handle_t;
    _starpu_detect_implicit_data_deps_with_handle
 
    Note: other STARPU_* values in include/starpu_task_util.h
- */
+*/
 enum starpu_data_access_mode
 {
 	STARPU_NONE	 = 0,			  /**< todo */
@@ -58,97 +59,97 @@ enum starpu_data_access_mode
 	STARPU_W	 = (1 << 1),		  /**< write-only mode */
 	STARPU_RW	 = (STARPU_R | STARPU_W), /**< read-write mode. Equivalent to ::STARPU_R|::STARPU_W  */
 	STARPU_SCRATCH	 = (1 << 2),		  /**< A temporary buffer is allocated
-				  for the task, but StarPU does not
-				  enforce data consistency---i.e. each
-				  device has its own buffer,
-				  independently from each other (even
-				  for CPUs), and no data transfer is
-				  ever performed. This is useful for
-				  temporary variables to avoid
-				  allocating/freeing buffers inside
-				  each task. Currently, no behavior is
-				  defined concerning the relation with
-				  the ::STARPU_R and ::STARPU_W modes
-				  and the value provided at
-				  registration --- i.e., the value of
-				  the scratch buffer is undefined at
-				  entry of the codelet function.  It
-				  is being considered for future
-				  extensions at least to define the
-				  initial value.  For now, data to be
-				  used in ::STARPU_SCRATCH mode should
-				  be registered with node -1 and a
-				  <c>NULL</c> pointer, since the value
-				  of the provided buffer is simply
-				  ignored for now.
+						     for the task, but StarPU does not
+						     enforce data consistency---i.e. each
+						     device has its own buffer,
+						     independently from each other (even
+						     for CPUs), and no data transfer is
+						     ever performed. This is useful for
+						     temporary variables to avoid
+						     allocating/freeing buffers inside
+						     each task. Currently, no behavior is
+						     defined concerning the relation with
+						     the ::STARPU_R and ::STARPU_W modes
+						     and the value provided at
+						     registration --- i.e., the value of
+						     the scratch buffer is undefined at
+						     entry of the codelet function.  It
+						     is being considered for future
+						     extensions at least to define the
+						     initial value.  For now, data to be
+						     used in ::STARPU_SCRATCH mode should
+						     be registered with node -1 and a
+						     <c>NULL</c> pointer, since the value
+						     of the provided buffer is simply
+						     ignored for now.
 
-              See \ref ScratchData for more details.
-			       */
+						     See \ref ScratchData for more details.
+						  */
 	STARPU_REDUX	 = (1 << 3),		  /**< Reduction mode.
-				  StarPU will allocate on the fly a per-worker
-				  buffer, so that various tasks that access the
-				  same data in ::STARPU_REDUX mode can execute
-				  in parallel. When a task accesses the
-				  data without ::STARPU_REDUX, StarPU will
-				  automatically reduce the different contributions.
+						     StarPU will allocate on the fly a per-worker
+						     buffer, so that various tasks that access the
+						     same data in ::STARPU_REDUX mode can execute
+						     in parallel. When a task accesses the
+						     data without ::STARPU_REDUX, StarPU will
+						     automatically reduce the different contributions.
 
-				  Codelets contributing to these reductions
-				  with ::STARPU_REDUX must be registered with
-				  ::STARPU_RW | ::STARPU_COMMUTE access modes.
+						     Codelets contributing to these reductions
+						     with ::STARPU_REDUX must be registered with
+						     ::STARPU_RW | ::STARPU_COMMUTE access modes.
 
-				  See \ref DataReduction for more details.
-				  */
+						     See \ref DataReduction for more details.
+						  */
 	STARPU_COMMUTE	 = (1 << 4),		  /**<  ::STARPU_COMMUTE can be passed
-				  along ::STARPU_W or ::STARPU_RW to
-				  express that StarPU can let tasks
-				  commute, which is useful e.g. when
-				  bringing a contribution into some
-				  data, which can be done in any order
-				  (but still require sequential
-				  consistency against reads or
-				  non-commutative writes).
+						     along ::STARPU_W or ::STARPU_RW to
+						     express that StarPU can let tasks
+						     commute, which is useful e.g. when
+						     bringing a contribution into some
+						     data, which can be done in any order
+						     (but still require sequential
+						     consistency against reads or
+						     non-commutative writes).
 
-              See \ref DataCommute for more details.
-			       */
+						     See \ref DataCommute for more details.
+						  */
 	STARPU_SSEND	 = (1 << 5),		  /**< used in starpu_mpi_task_insert() to
-				specify the data has to be sent using
-				a synchronous and non-blocking mode
-				(see starpu_mpi_issend())
-			     */
+						     specify the data has to be sent using
+						     a synchronous and non-blocking mode
+						     (see starpu_mpi_issend())
+						  */
 	STARPU_LOCALITY	 = (1 << 6),		  /**< used to tell the scheduler which
-				   data is the most important for the
-				   task, and should thus be used to
-				   try to group tasks on the same core
-				   or cache, etc. For now only the ws
-				   and lws schedulers take this flag
-				   into account, and only when rebuild
-				   with \c USE_LOCALITY flag defined in
-				   the
-				   src/sched_policies/work_stealing_policy.c
-				   source code.
+						     data is the most important for the
+						     task, and should thus be used to
+						     try to group tasks on the same core
+						     or cache, etc. For now only the ws
+						     and lws schedulers take this flag
+						     into account, and only when rebuild
+						     with \c USE_LOCALITY flag defined in
+						     the
+						     src/sched_policies/work_stealing_policy.c
+						     source code.
 
-               TODO add extended description in documentation.
-				*/
+						     TODO add extended description in documentation.
+						  */
 	STARPU_MPI_REDUX = (1 << 7),		  /**< Inter-node reduction only.
-				   This is similar to ::STARPU_REDUX, except that
-				   StarPU will allocate a per-node buffer only,
-				   i.e. parallelism will be achieved between
-				   nodes, but not within each node. This is
-				   useful when the per-worker buffers allocated
-				   with ::STARPU_REDUX consume too much memory.
+						     This is similar to ::STARPU_REDUX, except that
+						     StarPU will allocate a per-node buffer only,
+						     i.e. parallelism will be achieved between
+						     nodes, but not within each node. This is
+						     useful when the per-worker buffers allocated
+						     with ::STARPU_REDUX consume too much memory.
 
-				   See \ref MPIMpiRedux for more details.
-				   */
-
-	STARPU_NOPLAN = (1 << 8), /**< Disable automatic submission of asynchronous
-				    partitioning/unpartitioning, only use internally by StarPU */
-
-	STARPU_UNMAP = (1 << 9), /**< Request unmapping the destination replicate, only use internally by StarPU */
-
-	STARPU_NOFOOTPRINT = (1 << 10), /**< Ignore this data for the footprint computation. See \ref ScratchData */
-
-	STARPU_ACCESS_MODE_MAX = (1 << 11) /**< The purpose of ::STARPU_ACCESS_MODE_MAX is to
-					be the maximum of this enum. */
+						     See \ref MPIMpiRedux for more details.
+						  */
+	STARPU_NOPLAN = (1 << 8),                 /**< Disable automatic submission of asynchronous
+						     partitioning/unpartitioning, only use internally by StarPU
+						  */
+	STARPU_UNMAP = (1 << 9),                  /**< Request unmapping the destination replicate, only use internally by StarPU
+						   */
+	STARPU_NOFOOTPRINT = (1 << 10),           /**< Ignore this data for the footprint computation. See \ref ScratchData
+						   */
+	STARPU_ACCESS_MODE_MAX = (1 << 11)        /**< The purpose of ::STARPU_ACCESS_MODE_MAX is to
+						     be the maximum of this enum.
+						  */
 };
 
 struct starpu_data_interface_ops;
@@ -190,15 +191,15 @@ unsigned starpu_data_get_coordinates_array(starpu_data_handle_t handle, unsigned
    initially registered. Using a data handle that has been
    unregistered from StarPU results in an undefined behaviour. In case
    we do not need to update the value of the data in the home node, we
-   can use the function starpu_data_unregister_no_coherency() instead. 
+   can use the function starpu_data_unregister_no_coherency() instead.
    See \ref TaskSubmission for more details.
 */
 void starpu_data_unregister(starpu_data_handle_t handle);
 
 /**
-    Similar to starpu_data_unregister(), except that StarPU does not
-    put back a valid copy into the home node, in the buffer that was
-    initially registered. See \ref DataManagementAllocation for more details.
+   Similar to starpu_data_unregister(), except that StarPU does not
+   put back a valid copy into the home node, in the buffer that was
+   initially registered. See \ref DataManagementAllocation for more details.
 */
 void starpu_data_unregister_no_coherency(starpu_data_handle_t handle);
 
@@ -338,7 +339,7 @@ int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t h
    just before the acquisition, and \e post_sync_jobid happens just after the
    release.
 
-   callback_acquired is called when the data is acquired in terms of semantic,
+   \p callback_acquired is called when the data is acquired in terms of semantic,
    but the data is not fetched yet. It is given a pointer to the node, which it
    can modify if it wishes so.
 
@@ -407,9 +408,9 @@ void starpu_data_release_on_node(starpu_data_handle_t handle, int node);
 /**
    Partly release the piece of data acquired by the application either by
    starpu_data_acquire() or by starpu_data_acquire_cb(), switching the
-   acquisition down to \p down_to_mode. For now, only releasing from STARPU_RW
-   or STARPU_W acquisition down to STARPU_R is supported, or down to the same
-   acquisition.  STARPU_NONE can also be passed as \p down_to_mode, in which
+   acquisition down to \p down_to_mode. For now, only releasing from ::STARPU_RW
+   or ::STARPU_W acquisition down to ::STARPU_R is supported, or down to the same
+   acquisition. ::STARPU_NONE can also be passed as \p down_to_mode, in which
    case this is equivalent to calling starpu_data_release(). See \ref DataAccess for more details.
 */
 void starpu_data_release_to(starpu_data_handle_t handle, enum starpu_data_access_mode down_to_mode);
@@ -578,7 +579,7 @@ void starpu_data_set_wt_mask(starpu_data_handle_t handle, uint32_t wt_mask);
    Set the data consistency mode associated to a data handle. The
    consistency mode set using this function has the priority over the
    default mode which can be set with
-   starpu_data_set_default_sequential_consistency_flag(). 
+   starpu_data_set_default_sequential_consistency_flag().
    See \ref SequentialConsistency and \ref DataManagementAllocation for more details.
 */
 void starpu_data_set_sequential_consistency_flag(starpu_data_handle_t handle, unsigned flag);
@@ -611,6 +612,7 @@ void starpu_data_set_default_sequential_consistency_flag(unsigned flag);
    storage (1) or not (0). The default is 1. See \ref OOCDataRegistration for more details.
 */
 void starpu_data_set_ooc_flag(starpu_data_handle_t handle, unsigned flag);
+
 /**
    Get whether this data was set to be elligible to be evicted to disk
    storage (1) or not (0). See \ref OOCDataRegistration for more details.
@@ -639,10 +641,10 @@ struct starpu_codelet;
 /**
    Set the codelets to be used for \p handle when it is accessed in the
    mode ::STARPU_REDUX. Per-worker buffers will be initialized with
-   the codelet \p init_cl (which has to take one handle with STARPU_W), and
+   the codelet \p init_cl (which has to take one handle with ::STARPU_W), and
    reduction between per-worker buffers will be done with the codelet \p
    redux_cl (which has to take a first accumulation handle with
-   STARPU_RW|STARPU_COMMUTE, and a second contribution handle with STARPU_R). 
+   ::STARPU_RW|::STARPU_COMMUTE, and a second contribution handle with ::STARPU_R).
    See \ref DataReduction and \ref TemporaryData for more details.
 */
 void starpu_data_set_reduction_methods(starpu_data_handle_t handle, struct starpu_codelet *redux_cl, struct starpu_codelet *init_cl);
@@ -650,7 +652,7 @@ void starpu_data_set_reduction_methods(starpu_data_handle_t handle, struct starp
 /**
    Same as starpu_data_set_reduction_methods() but allows to pass
    arguments to the reduction and init tasks
- */
+*/
 void starpu_data_set_reduction_methods_with_args(starpu_data_handle_t handle, struct starpu_codelet *redux_cl, void *redux_cl_arg, struct starpu_codelet *init_cl, void *init_cl_arg);
 
 struct starpu_data_interface_ops *starpu_data_get_interface_ops(starpu_data_handle_t handle);
@@ -700,7 +702,7 @@ void starpu_data_set_sched_data(starpu_data_handle_t handle, void *sched_data);
 void *starpu_data_get_sched_data(starpu_data_handle_t handle);
 
 /**
-  Check whether data \p handle can be evicted now from node \p node. See \ref DataPrefetch for more details.
+   Check whether data \p handle can be evicted now from node \p node. See \ref DataPrefetch for more details.
 */
 int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node, enum starpu_is_prefetch is_prefetch);
 
@@ -717,7 +719,7 @@ int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node, enum starp
    \p node is the target node in which the victim should be evicted
 
    \p is_prefetch tells why the StarPU core is looking for an eviction
-   victim. If it is beyond STARPU_FETCH, the selector should not be very
+   victim. If it is beyond ::STARPU_FETCH, the selector should not be very
    aggressive: it should really not evict some data that is known to be reused
    soon, only for prefetching some other data.
 
@@ -760,7 +762,7 @@ void starpu_data_register_victim_selector(starpu_data_victim_selector selector, 
 /**
    To be returned by a starpu_data_victim_selector() when no victim was found,
    e.g. because all data is to be used by pending tasks.
- */
+*/
 #define STARPU_DATA_NO_VICTIM ((starpu_data_handle_t) -1)
 
 /**
