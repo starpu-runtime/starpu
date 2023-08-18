@@ -69,8 +69,7 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters/starpu_introduction/i
 			 @top_srcdir@/doc/doxygen/chapters/starpu_extensions/debugging_tools.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_extensions/helpers.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/fdl_1_3.doxy \
-			 @top_srcdir@/doc/doxygen/chapters/files.doxy \
-			 @top_srcdir@/doc/doxygen/chapters/api
+			 @top_srcdir@/doc/doxygen/chapters/files.doxy
 
 EXAMPLE_PATH           = @top_srcdir@/doc/doxygen \
 		       	 @top_srcdir@/doc/doxygen/chapters \

@@ -25,12 +25,13 @@ with open(sys.argv[1]+"/doxygen-config.cfg", "r", encoding="utf-8") as fin:
     for line in fin.readlines():
         if ".doxy" in line and not "foreword.doxy" in line:
             for x in line.split(" "):
-                if ".doxy" in x:
-                    with open(x, "r", encoding="utf-8") as fin:
+                xx = x.strip()
+                if ".doxy" in xx:
+                    with open(xx, "r", encoding="utf-8") as fin:
                         for line in fin.readlines():
                             if "\page" in line:
                                 line = line.replace("/*! \page ", "").strip()
-                                files[x] = line[0:line.index(" ")]+".html"
+                                files[xx] = line[0:line.index(" ")]+".html"
 
 htmlfiles = ["index.html"]
 htmlfiles.extend(files.values())

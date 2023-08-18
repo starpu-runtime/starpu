@@ -224,7 +224,7 @@
    default value can be modified at configure by using the option \ref
    enable-maxnodes "--enable-maxnodes". Reducing it allows to
    considerably reduce memory used by StarPU data structures.
-   @ingroup API_Workers_Properties
+   @ingroup API_Workers
 */
 #undef STARPU_MAXNODES
 
@@ -250,7 +250,7 @@
    Define the maximum number of CPU workers managed by StarPU. The
    default value can be modified at configure by using the option \ref
    enable-maxcpus "--enable-maxcpus".
-   @ingroup API_Workers_Properties
+   @ingroup API_Workers
 */
 #undef STARPU_MAXCPUS
 
@@ -258,7 +258,7 @@
    Define the maximum number of NUMA nodes managed by StarPU. The
    default value can be modified at configure by using the option \ref
    enable-maxnumanodes "--enable-maxnumanodes".
-   @ingroup API_Workers_Properties
+   @ingroup API_Workers
 */
 #undef STARPU_MAXNUMANODES
 
@@ -291,7 +291,7 @@
 
 /**
    Define the maximum number of workers managed by StarPU.
-   @ingroup API_Workers_Properties
+   @ingroup API_Workers
 */
 #undef STARPU_NMAXWORKERS
 

@@ -33,7 +33,7 @@ extern "C" {
 #endif
 
 /**
-   @defgroup API_Workers_Properties Workers’ Properties
+   @defgroup API_Workers Workers
    @{
 */
 

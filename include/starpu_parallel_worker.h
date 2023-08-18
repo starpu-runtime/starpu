@@ -29,7 +29,7 @@ extern "C" {
 #endif
 
 /**
-   @defgroup API_Parallel_Worker Using Parallel Workers
+   @defgroup API_Parallel_Worker Parallel Workers
    @{
  */
 
