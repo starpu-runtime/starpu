@@ -4067,15 +4067,24 @@ fi
 # Check whether doxygen needed tools are installed
 AC_PATH_PROG(doxygencommand, doxygen)
 if test "$doxygencommand" = "" ; then
+   if test "$enable_build_doc_pdf" = "yes" ; then
+         AC_MSG_ERROR([doxygen missing, cannot build documentation PDF])
+   fi
    enable_build_doc="no"
    enable_build_doc_pdf="no"
 fi
 AC_PATH_PROG(pdflatexcommand, pdflatex)
 if test "$pdflatexcommand" = "" ; then
+   if test "$enable_build_doc_pdf" = "yes" ; then
+         AC_MSG_ERROR([pdflatex missing, cannot build documentation PDF])
+   fi
    enable_build_doc_pdf="no"
 fi
 AC_PATH_PROG(epstopdfcommand, epstopdf)
 if test "$epstopdfcommand" = "" ; then
+   if test "$enable_build_doc_pdf" = "yes" ; then
+         AC_MSG_ERROR([epstopdf missing, cannot build documentation PDF])
+   fi
    enable_build_doc_pdf="no"
 fi
 
