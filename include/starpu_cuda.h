@@ -35,7 +35,7 @@ extern "C" {
 /**
    @defgroup API_CUDA_Extensions CUDA Extensions
    @{
- */
+*/
 
 /**
    Report a CUBLAS error.

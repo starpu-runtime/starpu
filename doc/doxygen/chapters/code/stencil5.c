@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,6 +18,8 @@
 #include "stencil5.h"
 
 //! [To be included. You should update doxygen if you see this text.]
+#define _(row,col,ld) ((row)+(col)*(ld))
+
 void stencil5_cpu(double *xy, double *xm1y, double *xp1y, double *xym1, double *xyp1)
 {
   *xy = (*xy + *xm1y + *xp1y + *xym1 + *xyp1) / 5;

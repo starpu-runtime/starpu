@@ -413,7 +413,7 @@ extern "C" {
    starpu_task_insert().
    If some arguments of type ::STARPU_VALUE are given, the parameter
    starpu_task::cl_arg_free will be set to 1.
-   See \ref Helpers for more details.
+   See \ref OtherTaskUtility for more details.
 */
 int starpu_task_set(struct starpu_task *task, struct starpu_codelet *cl, ...);
 #ifdef STARPU_USE_FXT
@@ -427,7 +427,7 @@ int starpu_task_set(struct starpu_task *task, struct starpu_codelet *cl, ...);
    starpu_task_insert().
    If some arguments of type ::STARPU_VALUE are given, the parameter
    starpu_task::cl_arg_free will be set to 1.
-   See \ref Helpers for more details.
+   See \ref OtherTaskUtility for more details.
 */
 struct starpu_task *starpu_task_build(struct starpu_codelet *cl, ...);
 #ifdef STARPU_USE_FXT
@@ -496,7 +496,7 @@ int starpu_insert_task(struct starpu_codelet *cl, ...);
    make room by calling this function, then store handles with
    STARPU_TASK_SET_HANDLE(), make room again with this function, store
    yet more handles, etc.
-   See \ref Helpers for more details.
+   See \ref OtherTaskUtility for more details.
 */
 void starpu_task_insert_data_make_room(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_buffers, int current_buffer, int room);
 
@@ -504,14 +504,14 @@ void starpu_task_insert_data_make_room(struct starpu_codelet *cl, struct starpu_
    Store data handle \p handle into task \p task with mode \p
    arg_type, updating \p *allocated_buffers and \p *current_buffer
    accordingly.
-   See \ref Helpers for more details.
+   See \ref OtherTaskUtility for more details.
 */
 void starpu_task_insert_data_process_arg(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_buffers, int *current_buffer, int arg_type, starpu_data_handle_t handle);
 
 /**
    Store \p nb_handles data handles \p handles into task \p task,
    updating \p *allocated_buffers and \p *current_buffer accordingly.
-   See \ref Helpers for more details.
+   See \ref OtherTaskUtility for more details.
 */
 void starpu_task_insert_data_process_array_arg(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_buffers, int *current_buffer, int nb_handles, starpu_data_handle_t *handles);
 
@@ -519,7 +519,7 @@ void starpu_task_insert_data_process_array_arg(struct starpu_codelet *cl, struct
    Store \p nb_descrs data handles described by \p descrs into task \p
    task, updating \p *allocated_buffers and \p *current_buffer
    accordingly.
-   See \ref Helpers for more details.
+   See \ref OtherTaskUtility for more details.
 */
 void starpu_task_insert_data_process_mode_array_arg(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_buffers, int *current_buffer, int nb_descrs, struct starpu_data_descr *descrs);
 
