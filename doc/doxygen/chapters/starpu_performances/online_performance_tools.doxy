@@ -652,7 +652,7 @@ Counter Name	                      |Counter Definition
 
 \subsection PerfMonCountCounterSequence Sequence of operations
 
-This section presents a typical sequence of operations to interface an external tool with some StarPU performance counters. In this example, the counters monitored are the per-worker total number of executed tasks (\c starpu.task.w_total_executed") and the tasks' cumulated execution time (\c starpu.task.w_cumul_execution_time).
+This section presents a typical sequence of operations to interface an external tool with some StarPU performance counters. In this example, the counters monitored are the per-worker total number of executed tasks (\c starpu.task.w_total_executed) and the tasks' cumulated execution time (\c starpu.task.w_cumul_execution_time).
 
 <b>Step 0: Initialize StarPU</b>
 

@@ -29,13 +29,13 @@ then use these values instead of the whole allocated size. The values of course
 need to be set within the original allocation. To reserve room for increasing
 the NX/NY values, one can use starpu_matrix_data_register_allocsize() instead of
 starpu_matrix_data_register(), to specify the allocation size to be used instead
-of the default NX*NY*ELEMSIZE. It is also available for a vector by using starpu_vector_data_register_allocsize() 
+of the default NX*NY*ELEMSIZE. It is also available for a vector by using starpu_vector_data_register_allocsize()
 to specify the allocation size to be used instead of the default NX*ELEMSIZE. To support this, the data interface
 has to implement the functions starpu_data_interface_ops::alloc_footprint,
 starpu_data_interface_ops::alloc_compare, and
 starpu_data_interface_ops::reuse_data_on_node for proper StarPU allocation
 management. It might be useful to implement
-starpu_data_interface_ops::cache_data_on_node, otherwise StarPU will just memcpy.
+starpu_data_interface_ops::cache_data_on_node, otherwise StarPU will just call \c memcpy().
 
 A more involved case is changing the amount of allocated data.
 The task implementation can just reallocate the buffer during its execution, and
@@ -60,10 +60,10 @@ starpu_free_on_node_flags(dst_node, old, size, STARPU_MALLOC_PINNED | STARPU_MAL
 interface->size += increase;
 \endcode
 
-so that the allocated area has the expected properties and the allocation is accounted for properly.
+so that the allocated area has the expected properties and the allocation is properly accounted for.
 
 Depending on the interface (vector, CSR, etc.) you may have to fix several
-members of the data interface: e.g. both <c>nx</c> and <c>allocsize</c> for
+fields of the data interface: e.g. both <c>nx</c> and <c>allocsize</c> for
 vectors, and store the pointer both in <c>ptr</c> and <c>dev_handle</c>.
 
 Some interfaces make a distinction between the actual number of elements
@@ -162,7 +162,7 @@ One can also unregister the data handle by calling:
 starpu_data_unregister_no_coherency(handle);
 \endcode
 
-Different from starpu_data_unregister(), a valid copy of the data is not 
+Different from starpu_data_unregister(), a valid copy of the data is not
 put back into the home node in the buffer that was initially registered.
 
 If the handle is to be reused, instead of unregistering it, it can simply be invalidated:
@@ -282,7 +282,7 @@ And now we can start using vertical slices, etc.
 
 \section DataHandlesHelpers Data handles helpers
 
-Functions starpu_data_set_user_data() and starpu_data_get_user_data() are used to associate user-defined data with a specific data handle. One can set or retrieve the field user_data of the data handle by calling these two functions respectively. Similarly, functions starpu_data_set_sched_data() and starpu_data_get_sched_data() are used to associate scheduling-related data with a specific data handle. One can set or retrieve the field sched_data of the data handle by calling these two functions respectively. One can set a name for a data handle by calling starpu_data_set_name().
+Functions starpu_data_set_user_data() and starpu_data_get_user_data() are used to associate user-defined data with a specific data handle. One can set or retrieve the field \c user_data of the data handle by calling these two functions respectively. Similarly, functions starpu_data_set_sched_data() and starpu_data_get_sched_data() are used to associate scheduling-related data with a specific data handle. One can set or retrieve the field \c sched_data of the data handle by calling these two functions respectively. One can set a name for a data handle by calling starpu_data_set_name().
 
 One can call starpu_data_register_same() to register a new piece of data into a data handle with the same interface as the specified data handle. If necessary, one can register a void interface by using starpu_void_data_register(). There is no data really associated to this interface, but it may be used as a synchronization mechanism.
 
@@ -353,7 +353,7 @@ compute the division of pieces of data.
 \section DefiningANewDataInterface Defining A New Data Interface
 
 This section proposes an example how to define your own interface, when the
-StarPU-provided interface do not fit your needs. Here we take a dumb example of
+StarPU-provided interface do not fit your needs. Here we take a simple example of
 an array of complex numbers represented by two arrays of double values. The full source code is in <c>examples/interface/complex_interface.c</c> and <c>examples/interface/complex_interface.h</c>
 
 Let's thus define a new data interface to manage arrays of complex numbers:

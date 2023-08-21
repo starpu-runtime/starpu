@@ -295,8 +295,7 @@ starpu_bcsr_data_register(&bcsr_handle,
 			  sizeof(nzval[0]));
 \endcode
 
-StarPU provides an example on how to deal with such matrices in
-<c>examples/spmv/dw_block_spmv.c</c>.
+An example on how to deal with such matrices is in the file <c>examples/spmv/dw_block_spmv.c</c>.
 
 BCSR data handles can be partitioned into its dense matrix blocks by using
 starpu_bcsr_filter_canonical_block(), or split into other BCSR data handles by
@@ -340,7 +339,7 @@ struct starpu_data_filter f =
 starpu_data_partition(handle, &f);
 \endcode
 
-The handle of a sub-data block of a composite data block can be reteieved by calling starpu_data_get_child(). Or the task submission first retrieves the number of sub-data blocks in a composite data block by calling starpu_data_get_nb_children() and then uses the function starpu_data_get_sub_data() or starpu_data_vget_sub_data() to retrieve the sub-handles to be passed as tasks parameters.
+The handle of a sub-data block of a composite data block can be retrieved by calling starpu_data_get_child(). Or the task submission first retrieves the number of sub-data blocks in a composite data block by calling starpu_data_get_nb_children() and then uses the function starpu_data_get_sub_data() or starpu_data_vget_sub_data() to retrieve the sub-handles to be passed as tasks parameters.
 
 \code{.c}
 /* Submit a task on each sub-vector */
@@ -408,7 +407,7 @@ for documentation.
 
 The partitioning functions described in the previous section are synchronous:
 starpu_data_partition() and starpu_data_unpartition() both wait for all the tasks
-currently working on the data.  This can be a bottleneck for the application.
+currently working on the data. This can be a bottleneck for the application.
 
 An asynchronous API also exists, it works only on handles with sequential
 consistency. The principle is to first plan the partitioning, which returns
@@ -436,7 +435,7 @@ starpu_data_partition_plan(handle, &f_vert, vert_handle);
 
 starpu_data_partition_plan() returns the handles for the partition in <c>vert_handle</c>.
 
-One can then submit tasks working on the main handle, and tasks working on the handles
+One can then submit tasks working on the main \c handle, and tasks working on the sub handles
 <c>vert_handle</c>. Between using the main handle and the handles <c>vert_handle</c>, StarPU will automatically call starpu_data_partition_submit() and
 starpu_data_unpartition_submit(). Or call starpu_data_partition_submit_sequential_consistency() and starpu_data_unpartition_submit_sequential_consistency() to specify the coherency to be used for the main handle, or call starpu_data_unpartition_submit_sequential_consistency_cb() to specify a callback function for the unpartitiong task. One can also call starpu_data_partition_readonly_submit() and starpu_data_unpartition_readonly_submit() which do not guarantee coherency if the application attempts to write to the main handle or any of its sub-handles while a task is still running. However, in read-only case we can also call starpu_data_partition_readonly_submit_sequential_consistency() to specify the coherency to be used for the main handle, or call starpu_data_partition_readwrite_upgrade_submit() to upgrade the partitioning of a data handle from read-only to read-write mode for a specific sub-handle.
 
@@ -491,7 +490,7 @@ see \ref ConcurrentDataAccess.
 
 In various cases, some piece of data is used to accumulate intermediate
 results. For instances, the dot product of a vector, maximum/minimum finding,
-the histogram of a photograph, etc. When these results are produced along the
+the histogram of a picture, etc. When these results are produced along the
 whole machine, it would not be efficient to accumulate them in only one place,
 incurring data transmission each and access concurrency.
 
@@ -501,9 +500,9 @@ intermediate results there. When the data is eventually accessed in the normal
 mode ::STARPU_R, StarPU will collect the intermediate results in just one
 buffer.
 
-For this to work, users have to use the function
-starpu_data_set_reduction_methods() to declare how to initialize these
-buffers, and how to assemble partial results. Or use the function starpu_data_set_reduction_methods_with_args() to pass arguments to the reduction and init tasks.
+The function starpu_data_set_reduction_methods() must be called to specify how to initialize these
+buffers, and how to assemble partial results. The function starpu_data_set_reduction_methods_with_args() can also be used to
+pass arguments to the reduction and init tasks.
 
 For instance, <c>examples/cg/cg.c</c> uses that to optimize its dot product: it first defines
 the codelets for initialization and reduction:
@@ -549,7 +548,7 @@ starpu_variable_data_register(&dtq_handle, -1, NULL, sizeof(type));
 starpu_data_set_reduction_methods(dtq_handle, &accumulate_variable_cl, &bzero_variable_cl);
 \endcode
 
-and <c>dtq_handle</c> can now be used in mode ::STARPU_REDUX for the
+and <c>dtq_handle</c> can now be used with the mode ::STARPU_REDUX for the
 dot products with partitioned vectors:
 
 \code{.c}
@@ -565,7 +564,7 @@ During registration, we have here provided <c>NULL</c>, i.e. there is
 no initial value to be taken into account during reduction. StarPU
 will thus only take into account the contributions from the tasks
 <c>dot_kernel_cl</c>. Also, it will not allocate any memory for
-<c>dtq_handle</c> before tasks <c>dot_kernel_cl</c> are ready to run.
+<c>dtq_handle</c> before the tasks <c>dot_kernel_cl</c> are ready to run.
 
 If another dot product has to be performed, one could unregister
 <c>dtq_handle</c>, and re-register it. But one can also call
@@ -602,9 +601,9 @@ when a task reading the reduced handle is inserted through starpu_mpi_task_inser
 The previous example could avoid calling starpu_mpi_redux_data(). Default priority (0)
 is used. The reduction tree arity is decided based on the size of the data to reduce: a
 flat tree is used with a small data (default to less than 1024 bytes), a binary tree
-otherwise. If the environment variable \ref STARPU_MPI_REDUX_ARITY_THRESHOLD is setup, the
+otherwise. If the environment variable \ref STARPU_MPI_REDUX_ARITY_THRESHOLD is set, the
 threshold between the size of a small data and a bigger data is modified. If the value is
-setup to be negative, flat trees will always be used. If the value is setup to 0, binary
+set to be negative, flat trees will always be used. If the value is set to 0, binary
 trees are used. Otherwise, the size of the data is compared to the size in the environment
 variable. Remaining distributed-memory reduction patterns are wrapped-up at the end of an
 application when calling starpu_mpi_wait_for_all().
@@ -634,18 +633,18 @@ for (i = 0; i < N; i++)
         task[i][j] = starpu_task_build(&cl, STARPU_RW|STARPU_COMMUTE, A[i], STARPU_RW|STARPU_COMMUTE, B[j], 0);
 \endcode
 
-Which creates a series of tasks that are completely parallel in terms of
+It creates a series of tasks that are completely parallel in terms of
 tasks dependencies thanks to commutation, but StarPU still has to prevent two
 tasks from operating on the same data. The Dijkstra solution here leads to a
 worst-case: the \c task[0][j] tasks will wait for each other since
 they all access the same \c A[0]. And \c task[1][0] will wait for
 \c task[0][0] because they both access the same \c B[0], \c task[1][1] will wait
-for \c task[0][1] because of \c B[1], etc. In the end no parallism is achieved:
+for \c task[0][1] because of \c B[1], etc. In the end, no parallism is achieved:
 
 \image html arbiter.png
 \image latex arbiter.png "" width=0.7\textwidth
 
-In this case, one can use a data access arbiter starpu_arbiter, which
+In this case, one can use a data access arbiter ::starpu_arbiter, which
 implements the classical centralized solution for the Dining Philosophers
 problem. One can call starpu_arbiter_create() to create a data access arbiter, and starpu_data_assign_arbiter() to make access to handle managed by arbiter. Once the application no longer needs the arbiter, one can call starpu_arbiter_destroy() to destroy the arbiter after all data assigned to the arbiter have been unregistered. This is more expensive in terms of overhead since it is centralized,
 but it opportunistically gets a lot of parallelism. The centralization can also
@@ -665,39 +664,39 @@ tasks.
 
 \subsection TemporaryData Temporary Data
 
-Data can sometimes be entirely produced by a task, and entirely consumed by
-another task, without the need for other parts of the application to access
-it. In such case, registration can be done without prior allocation, by using
-the special memory node number <c>-1</c>, and passing a zero pointer. StarPU will
+Data can be produced by a task, and consumed by another task, without
+being used by other parts of the application. In such case,
+registration can be done without prior allocation, by using
+the special memory node number <c>-1</c>, and passing a NULL pointer. StarPU will
 actually allocate memory only when the task creating the content gets scheduled,
 and destroy it on unregistration.
 
-In addition to this, it can be tedious for the application to have to unregister
-the data, since it will not use its content anyway. The unregistration can be
+As the application will not use the data, it can be tedious for the
+application to have to unregister it. The unregistration can be
 done lazily by using the function starpu_data_unregister_submit(),
-which will record that no more tasks accessing the handle will be submitted, so
-that it can be freed as soon as the last task accessing it is over.
+which will record that no other tasks accessing the handle will be submitted, so
+that it can be freed as soon as the last task accessing it is completed.
 
 The following code examplifies both points: it registers the temporary
 data, submits three tasks accessing it, and records the data for automatic
 unregistration.
 
 \code{.c}
-starpu_vector_data_register(&handle, -1, 0, n, sizeof(float));
+starpu_vector_data_register(&handle, -1, NULL, n, sizeof(float));
 starpu_task_insert(&produce_data, STARPU_W, handle, 0);
 starpu_task_insert(&compute_data, STARPU_RW, handle, 0);
 starpu_task_insert(&summarize_data, STARPU_R, handle, STARPU_W, result_handle, 0);
 starpu_data_unregister_submit(handle);
 \endcode
 
-The application may also want to see the temporary data initialized
+The application may also want for the temporary data to be initialized
 on the fly before being used by the task. This can be done by using
 starpu_data_set_reduction_methods() to set an initialization codelet (no redux
 codelet is needed).
 
 \subsection ScratchData Scratch Data
 
-Some kernels sometimes need temporary data to complete the computations, i.e. a
+Some kernels sometimes need temporary data to complete the computations, like a
 workspace. The application could allocate it at the start of the codelet
 function, and free it at the end, but this would be costly. It could also
 allocate one buffer per worker (similarly to \ref HowToInitializeAComputationLibraryOnceForEachWorker),
@@ -709,7 +708,7 @@ registered only once, using memory node <c>-1</c>, i.e. the application didn't a
 memory for it, and StarPU will allocate it on demand at task execution.
 
 \code{.c}
-starpu_vector_data_register(&workspace, -1, 0, sizeof(float));
+starpu_variable_data_register(&workspace, -1, NULL, sizeof(float));
 for (i = 0; i < N; i++)
     starpu_task_insert(&compute, STARPU_R, input[i], STARPU_SCRATCH, workspace, STARPU_W, output[i], 0);
 \endcode

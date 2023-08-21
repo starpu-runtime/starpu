@@ -331,8 +331,7 @@ $ STARPU_NCUDA=0 ./application
 
 OpenCL will automatically be started on any device not yet used by
 CUDA. So on a machine running 4 GPUS, it is therefore possible to
-enable CUDA on 2 devices, and OpenCL on the 2 other devices by doing
-so:
+enable CUDA on 2 devices, and OpenCL on the other 2 devices by calling:
 
 \verbatim
 $ STARPU_NCUDA=2 ./application

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -36,8 +36,10 @@ because it provides correct load balance and locality even if the application co
 not have performance models. Other non-modelling scheduling policies can be
 selected among the list below, thanks to the environment variable \ref
 STARPU_SCHED. For instance, <c>export STARPU_SCHED=dmda</c> . Use <c>help</c> to
-get the list of available schedulers. Use the function starpu_sched_get_predefined_policies() to retrieve the NULL-terminated array of all predefined scheduling policies that are available in StarPU. Use starpu_sched_get_sched_policy_in_ctx() or starpu_sched_get_sched_policy() to retrieve the scheduling policy of a task within a specific context or a default context, respectively.
+get the list of available schedulers.
 
+The function starpu_sched_get_predefined_policies() returns a NULL-terminated array of all predefined scheduling policies that are available in StarPU.
+Functions starpu_sched_get_sched_policy_in_ctx() and starpu_sched_get_sched_policy() return the scheduling policy of a task within a specific context or a default context, respectively.
 
 \subsection NonPerformanceModelingPolicies Non Performance Modelling Policies
 
@@ -56,10 +58,10 @@ worker.
 - The <b>lws</b> (locality work stealing) scheduler uses a queue per worker, and schedules
 a task on the worker which released it by
 default. When a worker becomes idle, it steals a task from neighbor workers. It
-also takes into account priorities.
+also takes priorities into account.
 
 - The <b>prio</b> scheduler also uses a central task queue, but sorts tasks by
-priority specified by the programmer.
+priority specified by the application.
 
 - The <b>heteroprio</b> scheduler uses different priorities for the different processing units.
 This scheduler must be configured to work correctly and to expect high-performance
@@ -67,7 +69,7 @@ as described in the corresponding section.
 
 \subsection DMTaskSchedulingPolicy Performance Model-Based Task Scheduling Policies
 
-If (<b>and only if</b>) your application <b>codelets have performance models</b> (\ref
+If (<b>and only if</b>) your <b>codelets have performance models</b> (\ref
 PerformanceModelExample), you should change the scheduler thanks to the
 environment variable \ref STARPU_SCHED, to select one of the policies below, in
 order to take advantage of StarPU's performance modelling. For instance,
@@ -93,8 +95,8 @@ termination time will be minimal. The difference with HEFT is that <b>dm</b>
 schedules tasks as soon as they become available, and thus in the order they
 become available, without taking priorities into account.
 
-- The <b>dmda</b> (deque model data aware) scheduler is similar to \b dm, but it also takes
-into account data transfer time.
+- The <b>dmda</b> (deque model data aware) scheduler is similar to \b dm, but it also takes data transfer time
+into account.
 
 - The <b>dmdap</b> (deque model data aware prio) scheduler is similar to \b dmda,
 except that it sorts tasks by priority order, which allows becoming even closer
@@ -128,21 +130,21 @@ contexts using it are being executed simultaneously.
 \subsection ExistingModularizedSchedulers Modularized Schedulers
 
 StarPU provides a powerful way to implement schedulers, as documented in \ref
-DefiningANewModularSchedulingPolicy . It is currently shipped with the following
+DefiningANewModularSchedulingPolicy. It is currently shipped with the following
 pre-defined Modularized Schedulers :
 
-- <b>modular-eager</b> , <b>modular-eager-prefetching</b> are eager-based Schedulers (without and with prefetching)), they are \n
+- <b>modular-eager</b> , <b>modular-eager-prefetching</b> are eager-based Schedulers (without and with prefetching), they are
 naive schedulers, which try to map a task on the first available resource
 they find. The prefetching variant queues several tasks in advance to be able to
 do data prefetching. This may however degrade load balancing a bit.
 
 - <b>modular-prio</b>, <b>modular-prio-prefetching</b>, <b>modular-eager-prio</b> are prio-based Schedulers (without / with prefetching):,
-similar to Eager-Based Schedulers. Can handle tasks which have a defined
+similar to Eager-Based Schedulers. They can handle tasks which have a defined
 priority and schedule them accordingly.
 The <b>modular-eager-prio</b> variant integrates the eager and priority queue in a
 single component. This allows it to do a better job at pushing tasks.
 
-- <b>modular-random</b>, <b>modular-random-prio</b>, <b>modular-random-prefetching</b>, <b>modular-random-prio-prefetching</b> are random-based Schedulers (without/with prefetching) : \n
+- <b>modular-random</b>, <b>modular-random-prio</b>, <b>modular-random-prefetching</b>, <b>modular-random-prio-prefetching</b> are random-based Schedulers (without/with prefetching) :
 Select randomly a resource to be mapped on for each task.
 
 - <b>modular-ws</b>) implements Work Stealing:
