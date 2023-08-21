@@ -21,7 +21,7 @@
 
 /**
    @defgroup API_OpenMP_Runtime_Support OpenMP Runtime Support
-   @brief This section describes the interface provided for implementing OpenMP runtimes on top of StarPU.
+   @brief API for implementing OpenMP runtimes on top of StarPU.
    @{
 */
 

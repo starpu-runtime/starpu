@@ -16,8 +16,7 @@
 
 /*! \defgroup API_Threads Threads
 
-\brief This section describes the thread facilities provided
-by StarPU. The thread function are either implemented on top of the
+\brief API for thread. The thread functions are either implemented on top of the
 pthread library or the SimGrid library when the simulated performance
 mode is enabled (\ref SimGridSupport).
 
