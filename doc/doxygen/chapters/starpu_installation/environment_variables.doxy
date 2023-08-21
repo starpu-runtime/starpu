@@ -33,8 +33,9 @@ starpu_get_env_size_default() retrieves the value of an environment
 variable as a size in bytes, or a default value if the environment
 variable is not set.
 </li>
+</ul>
 
-These functions empower you to fine-tune the behavior of StarPU
+These functions allow to fine-tune the behavior of StarPU
 according to your preferences and requirements by leveraging
 environment variables.
 
@@ -57,10 +58,10 @@ CPUs. This is for instance useful when running the test suite in parallel.
 By default StarPU uses the OS-provided CPU binding to determine
 how many and which CPU cores it should use. This is notably useful when running
 several StarPU-MPI processes on the same host, to let the MPI launcher set the
-CPUs to be used. The default value is 1.
+CPUs to be used. Default value is 1.
 
 If that binding is erroneous (e.g. because the job scheduler binds to just one
-core of the allocated cores), you can set STARPU_WORKERS_GETBIND to 0 to make
+core of the allocated cores), you can set \ref STARPU_WORKERS_GETBIND to 0 to make
 StarPU use all cores of the machine.
 </dd>
 
@@ -70,27 +71,27 @@ StarPU use all cores of the machine.
 \addindex __env__STARPU_WORKERS_CPUID
 Passing an array of integers in \ref STARPU_WORKERS_CPUID
 specifies on which logical CPU the different workers should be
-bound. For instance, if <c>STARPU_WORKERS_CPUID = "0 1 4 5"</c>, the first
+bound. For instance, if <c>STARPU_WORKERS_CPUID="0 1 4 5"</c>, the first
 worker will be bound to logical CPU #0, the second CPU worker will be bound to
 logical CPU #1 and so on.  Note that the logical ordering of the CPUs is either
 determined by the OS, or provided by the library <c>hwloc</c> in case it is
 available.
-Ranges can be provided: for instance, <c>STARPU_WORKERS_CPUID = "1-3
+Ranges can be provided: for instance, <c>STARPU_WORKERS_CPUID="1-3
 5"</c> will bind the first three workers on logical CPUs #1, #2, and #3, and the
 fourth worker on logical CPU #5. Unbound ranges can also be provided:
-<c>STARPU_WORKERS_CPUID = "1-"</c> will bind the workers starting from logical
+<c>STARPU_WORKERS_CPUID="1-"</c> will bind the workers starting from logical
 CPU #1 up to last CPU.
 
 Note that the first workers correspond to the CUDA workers, then come the
 OpenCL workers, and finally the CPU workers. For example, if
 we have <c>STARPU_NCUDA=1</c>, <c>STARPU_NOPENCL=1</c>, <c>STARPU_NCPU=2</c>
-and <c>STARPU_WORKERS_CPUID = "0 2 1 3"</c>, the CUDA device will be controlled
+and <c>STARPU_WORKERS_CPUID="0 2 1 3"</c>, the CUDA device will be controlled
 by logical CPU #0, the OpenCL device will be controlled by logical CPU #2, and
 the logical CPUs #1 and #3 will be used by the CPU workers.
 
 If the number of workers is larger than the array given in
 \ref STARPU_WORKERS_CPUID, the workers are bound to the logical CPUs in a
-round-robin fashion: if <c>STARPU_WORKERS_CPUID = "0 1"</c>, the first
+round-robin fashion: if <c>STARPU_WORKERS_CPUID="0 1"</c>, the first
 and the third (resp. second and fourth) workers will be put on CPU #0
 (resp. CPU #1).
 
@@ -114,7 +115,7 @@ Same as \ref STARPU_WORKERS_CPUID, but bind the workers to cores instead of PUs
 <dd>
 \anchor STARPU_NTHREADS_PER_CORE
 \addindex __env__STARPU_NTHREADS_PER_CORE
-This allows to specify how many threads StarPU should run on each core. The
+Specify how many threads StarPU should run on each core. The
 default is 1 because kernels are usually already optimized for using a full
 core. Setting this to e.g. 2 instead allows exploiting hyperthreading.
 </dd>
@@ -123,7 +124,7 @@ core. Setting this to e.g. 2 instead allows exploiting hyperthreading.
 <dd>
 \anchor STARPU_MAIN_THREAD_BIND
 \addindex __env__STARPU_MAIN_THREAD_BIND
-When defined, this make StarPU bind the thread that calls starpu_initialize() to
+Tell StarPU to bind the thread that calls starpu_initialize() to
 a reserved CPU, subtracted from the CPU workers.
 </dd>
 
@@ -131,7 +132,7 @@ a reserved CPU, subtracted from the CPU workers.
 <dd>
 \anchor STARPU_MAIN_THREAD_CPUID
 \addindex __env__STARPU_MAIN_THREAD_CPUID
-When defined, this make StarPU bind the thread that calls starpu_initialize() to
+Tell StarPU to bind the thread that calls starpu_initialize() to
 the given CPU ID (using logical numbering).
 </dd>
 
@@ -154,7 +155,7 @@ Define to 1 to enable the tree iterator in schedulers.
 <dd>
 \anchor STARPU_SINGLE_COMBINED_WORKER
 \addindex __env__STARPU_SINGLE_COMBINED_WORKER
-If set, StarPU will create several workers which won't be able to work
+Tell StarPU to create several workers which won't be able to work
 concurrently. It will by default create combined workers, which size goes from 1
 to the total number of CPU workers in the system. \ref STARPU_MIN_WORKERSIZE
 and \ref STARPU_MAX_WORKERSIZE can be used to change this default.
@@ -191,7 +192,7 @@ synthesized, to divide the former synthesized workers into a bunch of 2 cores,
 and the remaining core (for which no combined worker is synthesized since there
 is already a normal worker for it).
 
-The default, 2, thus makes StarPU tend to build binary trees of combined
+Default value is 2, thus makes StarPU tend to build binary trees of combined
 workers.
 </dd>
 
@@ -212,7 +213,7 @@ STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY.
 <dd>
 \anchor STARPU_EXPECTED_TRANSFER_TIME_WRITEBACK
 \addindex __env__STARPU_EXPECTED_TRANSFER_TIME_WRITEBACK
-Setting this to 1 makes task transfer time estimations artificially include
+Set to 1 to make task transfer time estimations artificially include
 the time that will be needed to write back data to the main memory.
 </dd>
 
@@ -221,7 +222,7 @@ the time that will be needed to write back data to the main memory.
 \anchor STARPU_DISABLE_PINNING
 \addindex __env__STARPU_DISABLE_PINNING
 Disable (1) or Enable (0) pinning host memory allocated through starpu_malloc(), starpu_memory_pin()
-and friends.  The default is Enabled.
+and friends. Default value is Enable.
 This permits to test the performance effect of memory pinning.
 </dd>
 
@@ -251,17 +252,16 @@ Defined internally by StarPU when running in master slave mode.
 \anchor STARPU_ENABLE_MAP
 \addindex __env__STARPU_ENABLE_MAP
 Disable (0) or Enable (1) support for memory mapping between memory nodes.  The
-default is Disable. One can call starpu_map_enabled() to check whether memory mapping support between memory nodes is enabled.
+default is Disabled. One can call starpu_map_enabled() to check whether memory mapping support between memory nodes is enabled.
 </dd>
 
 <dt>STARPU_DATA_LOCALITY_ENFORCE</dt>
 <dd>
 \anchor STARPU_DATA_LOCALITY_ENFORCE
 \addindex __env__STARPU_DATA_LOCALITY_ENFORCE
-Enable (1) or Disable(0) data locality enforcement when picking up a worker to execute a task. The default is Disabled.
+Enable (1) or Disable(0) data locality enforcement when picking up a worker to execute a task. Default value is Disable.
 </dd>
 
-<dt>STARPU_ENABLE_CUDA_GPU_GPU_DIRECT</dt>
 </dl>
 
 \subsection cpuWorkers CPU Workers
@@ -291,7 +291,7 @@ This option is ignored if \ref STARPU_NCPU or starpu_conf::ncpus is set.
 <dd>
 \anchor STARPU_NCPUS
 \addindex __env__STARPU_NCPUS
-This variable is deprecated. You should use \ref STARPU_NCPU.
+Deprecated. You should use \ref STARPU_NCPU.
 </dd>
 
 </dl>
@@ -315,7 +315,7 @@ create as many CUDA workers as there are GPU devices.
 \addindex __env__STARPU_NWORKER_PER_CUDA
 Specify the number of workers per CUDA device, and thus the number of kernels
 which will be concurrently running on the devices, i.e. the number of CUDA
-streams. The default value is 1.
+streams. Default value is 1.
 </dd>
 
 <dt>STARPU_CUDA_THREAD_PER_WORKER</dt>
@@ -325,7 +325,7 @@ streams. The default value is 1.
 Specify whether the cuda driver should use one thread per stream (1) or to use
 a single thread to drive all the streams of the device or all devices (0), and
 \ref STARPU_CUDA_THREAD_PER_DEV determines whether is it one thread per device or one
-thread for all devices. The default value is 0. Setting it to 1 is contradictory
+thread for all devices. Default value is 0. Setting it to 1 is contradictory
 with setting \ref STARPU_CUDA_THREAD_PER_DEV.
 </dd>
 
@@ -334,7 +334,7 @@ with setting \ref STARPU_CUDA_THREAD_PER_DEV.
 \anchor STARPU_CUDA_THREAD_PER_DEV
 \addindex __env__STARPU_CUDA_THREAD_PER_DEV
 Specify whether the cuda driver should use one thread per device (1) or to use a
-single thread to drive all the devices (0). The default value is 1.  It does not
+single thread to drive all the devices (0). Default value is 1. It does not
 make sense to set this variable if \ref STARPU_CUDA_THREAD_PER_WORKER is set to to 1
 (since \ref STARPU_CUDA_THREAD_PER_DEV is then meaningless).
 </dd>
@@ -346,7 +346,7 @@ make sense to set this variable if \ref STARPU_CUDA_THREAD_PER_WORKER is set to 
 Specify how many asynchronous tasks are submitted in advance on CUDA
 devices. This for instance permits to overlap task management with the execution
 of previous tasks, but it also allows concurrent execution on Fermi cards, which
-otherwise bring spurious synchronizations. The default is 2. Setting the value to 0 forces a synchronous
+otherwise bring spurious synchronizations. Default value is 2. Setting the value to 0 forces a synchronous
 execution of all tasks.
 </dd>
 
@@ -354,9 +354,8 @@ execution of all tasks.
 <dd>
 \anchor STARPU_WORKERS_CUDAID
 \addindex __env__STARPU_WORKERS_CUDAID
-Similarly to the \ref STARPU_WORKERS_CPUID environment variable, it is
-possible to select which CUDA devices should be used by StarPU. On a machine
-equipped with 4 GPUs, setting <c>STARPU_WORKERS_CUDAID = "1 3"</c> and
+Select which CUDA devices should be used to run CUDA workers (similarly to the \ref STARPU_WORKERS_CPUID environment variable).
+On a machine equipped with 4 GPUs, setting <c>STARPU_WORKERS_CUDAID="1 3"</c> and
 <c>STARPU_NCUDA=2</c> specifies that 2 CUDA workers should be created, and that
 they should use CUDA devices #1 and #3 (the logical ordering of the devices is
 the one reported by CUDA).
@@ -381,7 +380,7 @@ STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY.
 \anchor STARPU_ENABLE_CUDA_GPU_GPU_DIRECT
 \addindex __env__STARPU_ENABLE_CUDA_GPU_GPU_DIRECT
 Enable (1) or Disable (0) direct CUDA transfers from GPU to GPU, without copying
-through RAM. The default is Enabled.
+through RAM. Default value is Enable.
 This permits to test the performance effect of GPU-Direct.
 </dd>
 
@@ -420,9 +419,8 @@ You need to disable CUDA to allow the creation of OpenCL workers.
 <dd>
 \anchor STARPU_WORKERS_OPENCLID
 \addindex __env__STARPU_WORKERS_OPENCLID
-Similarly to the \ref STARPU_WORKERS_CPUID environment variable, it is
-possible to select which GPU devices should be used by StarPU. On a machine
-equipped with 4 GPUs, setting <c>STARPU_WORKERS_OPENCLID = "1 3"</c> and
+Select which GPU devices should be used to run OpenCL workers (similarly to the \ref STARPU_WORKERS_CPUID environment variable)
+On a machine equipped with 4 GPUs, setting <c>STARPU_WORKERS_OPENCLID="1 3"</c> and
 <c>STARPU_NOPENCL=2</c> specifies that 2 OpenCL workers should be
 created, and that they should use GPU devices #1 and #3.
 
@@ -438,7 +436,7 @@ is set.
 Specify how many asynchronous tasks are submitted in advance on OpenCL
 devices. This for instance permits to overlap task management with the execution
 of previous tasks, but it also allows concurrent execution on Fermi cards, which
-otherwise bring spurious synchronizations. The default is 2. Setting the value to 0 forces a synchronous
+otherwise bring spurious synchronizations. Default value is 2. Setting the value to 0 forces a synchronous
 execution of all tasks.
 </dd>
 
@@ -446,18 +444,14 @@ execution of all tasks.
 <dd>
 \anchor STARPU_OPENCL_ON_CPUS
 \addindex __env__STARPU_OPENCL_ON_CPUS
-By default, the OpenCL driver only enables GPU and accelerator
-devices. By setting the environment variable \ref STARPU_OPENCL_ON_CPUS
-to 1, the OpenCL driver will also enable CPU devices.
+Specify that OpenCL workers can also be run on CPU devices. By default, the OpenCL driver only enables GPU devices.
 </dd>
 
 <dt>STARPU_OPENCL_ONLY_ON_CPUS</dt>
 <dd>
 \anchor STARPU_OPENCL_ONLY_ON_CPUS
 \addindex __env__STARPU_OPENCL_ONLY_ON_CPUS
-By default, the OpenCL driver enables GPU and accelerator
-devices. By setting the environment variable \ref STARPU_OPENCL_ONLY_ON_CPUS
-to 1, the OpenCL driver will ONLY enable CPU devices.
+Specify that OpenCL workers can ONLY be run on CPU devices. By default, the OpenCL driver enables GPU devices.
 </dd>
 
 <dt>STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY</dt>
@@ -491,9 +485,8 @@ create as many Maxeler FPGA workers as there are GPU devices.
 <dd>
 \anchor STARPU_WORKERS_MAX_FPGAID
 \addindex __env__STARPU_WORKERS_MAX_FPGAID
-Similarly to the \ref STARPU_WORKERS_CPUID environment variable, it is
-possible to select which Maxeler FPGA devices should be used by StarPU. On a machine
-equipped with 4 Maxeler FPGAs, setting <c>STARPU_WORKERS_MAX_FPGAID = "1 3"</c> and
+Select which Maxeler FPGA devices should be used to run Maxeler FPGA workers (similarly to the \ref STARPU_WORKERS_CPUID environment variable).
+On a machine equipped with 4 Maxeler FPGAs, setting <c>STARPU_WORKERS_MAX_FPGAID="1 3"</c> and
 <c>STARPU_NMAX_FPGA=2</c> specifies that 2 Maxeler FPGA workers should be created, and that
 they should use Maxeler FPGA devices #1 and #3 (the logical ordering of the devices is
 the one reported by the Maxeler stack).
@@ -518,7 +511,7 @@ Specify the number of MPI master slave devices that StarPU can use.
 <dd>
 \anchor STARPU_NMPIMSTHREADS
 \addindex __env__STARPU_NMPIMSTHREADS
-Number of threads to use on the MPI Slave devices.
+Specift the number of threads to use on the MPI Slave devices.
 </dd>
 
 <dt>STARPU_MPI_MS_MULTIPLE_THREAD</dt>
@@ -526,14 +519,14 @@ Number of threads to use on the MPI Slave devices.
 \anchor STARPU_MPI_MS_MULTIPLE_THREAD
 \addindex __env__STARPU_MPI_MS_MULTIPLE_THREAD
 Specify whether the master should use one thread per slave, or one thread for
-driver all slaves. The default is 0.
+driver all slaves. Default value is 0.
 </dd>
 
 <dt>STARPU_MPI_MASTER_NODE</dt>
 <dd>
 \anchor STARPU_MPI_MASTER_NODE
 \addindex __env__STARPU_MPI_MASTER_NODE
-This variable allows to chose which MPI node (with the MPI ID) will be the master.
+Specify the rank of the MPI process which will be the master. Default value is 0.
 </dd>
 
 <dt>STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY</dt>
@@ -577,14 +570,14 @@ it. They will then automatically connect to each other.
 \anchor STARPU_TCPIP_MS_PORT
 \addindex __env__STARPU_TCPIP_MS_PORT
 Specify the port of the master, for connexions between slaves and the master.
-The default if unspecified is 1234.
+Default value is 1234.
 </dd>
 
 <dt>STARPU_NTCPIPMSTHREADS</dt>
 <dd>
 \anchor STARPU_NTCPIPMSTHREADS
 \addindex __env__STARPU_NTCPIPMSTHREADS
-Number of threads to use on the TCP/IP Slave devices.
+Specify the number of threads to use on the TCP/IP Slave devices.
 </dd>
 
 <dt>STARPU_TCPIP_MS_MULTIPLE_THREAD</dt>
@@ -592,7 +585,7 @@ Number of threads to use on the TCP/IP Slave devices.
 \anchor STARPU_TCPIP_MS_MULTIPLE_THREAD
 \addindex __env__STARPU_TCPIP_MS_MULTIPLE_THREAD
 Specify whether the master should use one thread per slave, or one thread for
-driver all slaves. The default is 0.
+driver all slaves. Default value is 0.
 </dd>
 
 <dt>STARPU_DISABLE_ASYNCHRONOUS_TCPIP_MS_COPY</dt>
@@ -622,9 +615,8 @@ create as many HIP workers as there are HIP devices.
 <dd>
 \anchor STARPU_WORKERS_HIPID
 \addindex __env__STARPU_WORKERS_HIPID
-Similarly to the \ref STARPU_WORKERS_HIPID environment variable, it is
-possible to select which HIP devices should be used by StarPU. On a machine
-equipped with 4 HIP devices, setting <c>STARPU_WORKERS_HIPID = "1 3"</c> and
+Select which HIP devices should be used to run HIP workers (similarly to the \ref STARPU_WORKERS_HIPID environment variable).
+On a machine equipped with 4 HIP devices, setting <c>STARPU_WORKERS_HIPID="1 3"</c> and
 <c>STARPU_NHIP=2</c> specifies that 2 HIP workers should be created, and that
 they should use HIP devices #1 and #3.
 
@@ -650,10 +642,10 @@ Disable asynchronous copies between CPU and HIP devices. One can call starpu_asy
 <dd>
 \anchor STARPU_MPI_THREAD_CPUID
 \addindex __env__STARPU_MPI_THREAD_CPUID
-When defined, this make StarPU bind its MPI thread to the given CPU ID,
+Tell StarPU to bind its MPI thread to the given CPU id,
 subtracted from the CPU workers (unless \ref STARPU_NCPU is defined).
 
-Setting it to -1 (the default value) will let StarPU allocate a CPU.
+Default value is -1, it will let StarPU allocate a CPU.
 </dd>
 
 <dt>STARPU_MPI_THREAD_COREID</dt>
@@ -676,9 +668,8 @@ a separate core. This is for instance useful when running the testsuite on a sin
 <dd>
 \anchor STARPU_MPI_GPUDIRECT
 \addindex __env__STARPU_MPI_GPUDIRECT
-This variable allows to enable (1) MPI GPUDirect support or not (0). The default
-(-1) is to enable it if available. If \ref STARPU_MPI_GPUDIRECT is explicitly set to
-1, StarPU-MPI will warn if MPI does not provide the GPUDirect support.
+Enable (1) or disable (0) MPI GPUDirect support. Default value (-1) is to enable if available.
+If \ref STARPU_MPI_GPUDIRECT is explicitly set to 1, StarPU-MPI will warn if MPI does not provide the GPUDirect support.
 </dd>
 
 <dt>STARPU_MPI_REDUX_ARITY_THRESHOLD</dt>
@@ -697,7 +688,6 @@ the setup value replaces the default 1024.
 
 </dl>
 
-
 \section ConfiguringTheSchedulingEngine Configuring The Scheduling Engine
 
 <dl>
@@ -706,7 +696,7 @@ the setup value replaces the default 1024.
 <dd>
 \anchor STARPU_SCHED
 \addindex __env__STARPU_SCHED
-Choose between the different scheduling policies proposed by StarPU: work
+Select the scheduling policy from those proposed by StarPU: work
 random, stealing, greedy, with performance models, etc.
 
 Use <c>STARPU_SCHED=help</c> to get the list of available schedulers.
@@ -716,7 +706,7 @@ Use <c>STARPU_SCHED=help</c> to get the list of available schedulers.
 <dd>
 \anchor STARPU_SCHED_LIB
 \addindex __env__STARPU_SCHED_LIB
-Allow to specify the location of a dynamic library to choose a
+Specify the location of a dynamic library to choose a
 user-defined scheduling policy. See \ref UsingaNewSchedulingPolicy for
 more information.
 </dd>
@@ -741,10 +731,9 @@ The flag can also be set through the field starpu_conf::global_sched_ctx_max_pri
 <dd>
 \anchor STARPU_CALIBRATE
 \addindex __env__STARPU_CALIBRATE
-If this variable is set to 1, the performance models are calibrated during
-the execution. If it is set to 2, the previous values are dropped to restart
-calibration from scratch. Setting this variable to 0 disable calibration, this
-is the default behaviour.
+Set to 1 to calibrate the performance models during the execution.
+Set to 2 to drop the previous values and restart the calibration from scratch.
+Set to 0 to disable calibration, this is the default behaviour.
 
 Note: this currently only applies to <c>dm</c> and <c>dmda</c> scheduling policies.
 </dd>
@@ -754,26 +743,26 @@ Note: this currently only applies to <c>dm</c> and <c>dmda</c> scheduling polici
 \anchor STARPU_CALIBRATE_MINIMUM
 \addindex __env__STARPU_CALIBRATE_MINIMUM
 Define the minimum number of calibration measurements that will be made
-before considering that the performance model is calibrated. The default value is 10.
+before considering that the performance model is calibrated.  Default value is 10.
 </dd>
 
 <dt>STARPU_BUS_CALIBRATE</dt>
 <dd>
 \anchor STARPU_BUS_CALIBRATE
 \addindex __env__STARPU_BUS_CALIBRATE
-If this variable is set to 1, the bus is recalibrated during initialization.
+Set to 1 to recalibrate the bus during initialization.
 </dd>
 
 <dt>STARPU_PREFETCH</dt>
 <dd>
 \anchor STARPU_PREFETCH
 \addindex __env__STARPU_PREFETCH
-Indicate whether data prefetching should be enabled (0 means
-that it is disabled). If prefetching is enabled, when a task is scheduled to be
+Enable (1) or disable (0) data prefetching. Default value is Enable.
+
+If prefetching is enabled, when a task is scheduled to be
 executed e.g. on a GPU, StarPU will request an asynchronous transfer in
 advance, so that data is already present on the GPU when the task starts. As a
 result, computation and data transfers are overlapped.
-Note that prefetching is enabled by default in StarPU.
 </dd>
 
 <dt>STARPU_SCHED_ALPHA</dt>
@@ -875,7 +864,7 @@ in order to reduce the data transfers between memory nodes.
 \anchor STARPU_LAHETEROPRIO_PUSH
 \addindex __env__STARPU_LAHETEROPRIO_PUSH
 Choose between the different push strategies for locality aware Heteroprio:
-WORKER, LcS, LS_SDH, LS_SDH2, LS_SDHB, LC_SMWB, AUTO (by default: AUTO). These are detailed in
+\c WORKER, \c LcS, \c LS_SDH, \c LS_SDH2, \c LS_SDHB, \c LC_SMWB, \c AUTO (by default: AUTO). These are detailed in
 \ref LAHeteroprio
 </dd>
 
@@ -887,7 +876,7 @@ Specify the number of memory nodes contained in an affinity group. An affinity
 group will be composed of the closest memory nodes to a worker of a given architecture,
 and this worker will look for tasks available inside these memory nodes, before
 considering stealing tasks outside this group.
-ARCH can be CPU, CUDA, OPENCL, MICC, SCC, MPI_MS, etc.
+ARCH can be \c CPU, \c CUDA, \c OPENCL, \c SCC, \c MPI_MS, etc.
 </dd>
 
 <dt>STARPU_LAHETEROPRIO_PRIO_STEP_[ARCH]</dt>
@@ -897,7 +886,7 @@ ARCH can be CPU, CUDA, OPENCL, MICC, SCC, MPI_MS, etc.
 Specify the number of buckets in the local memory node in which a worker will look for
 available tasks, before this worker starts looking for tasks in other memory nodes' buckets.
 ARCH indicates that this number is specific to a given arch which can be:
-CPU, CUDA, OPENCL, MICC, SCC, MPI_MS, etc.
+\c CPU, \c CUDA, \c OPENCL, \c SCC, \c MPI_MS, etc.
 </dd>
 
 </dl>
@@ -982,18 +971,16 @@ Disable data gathering from task executions.
 <dd>
 \anchor SOCL_OCL_LIB_OPENCL
 \addindex __env__SOCL_OCL_LIB_OPENCL
-THE SOCL test suite is only run when the environment variable
-\ref SOCL_OCL_LIB_OPENCL is defined. It should contain the location
-of the file <c>libOpenCL.so</c> of the OCL ICD implementation.
+Set the location of the file <c>libOpenCL.so</c> of the OCL ICD implementation.
+The SOCL test suite is only run when \ref SOCL_OCL_LIB_OPENCL is defined.
 </dd>
 
 <dt>OCL_ICD_VENDORS</dt>
 <dd>
 \anchor OCL_ICD_VENDORS
 \addindex __env__OCL_ICD_VENDORS
-When using SOCL with OpenCL ICD
-(https://forge.imag.fr/projects/ocl-icd/), this variable may be used
-to point to the directory where ICD files are installed. The default
+Set the directory where ICD files are installed. This is useful when using SOCL
+with OpenCL ICD (https://forge.imag.fr/projects/ocl-icd/). Default
 directory is <c>/etc/OpenCL/vendors</c>. StarPU installs ICD
 files in the directory <c>$prefix/share/starpu/opencl/vendors</c>.
 </dd>
@@ -1002,44 +989,37 @@ files in the directory <c>$prefix/share/starpu/opencl/vendors</c>.
 <dd>
 \anchor STARPU_COMM_STATS
 \addindex __env__STARPU_COMM_STATS
-This variable is deprecated. You should use \ref STARPU_MPI_STATS.
+Deprecated. You should use \ref STARPU_MPI_STATS.
 </dd>
 
 <dt>STARPU_MPI_STATS</dt>
 <dd>
 \anchor STARPU_MPI_STATS
 \addindex __env__STARPU_MPI_STATS
-Communication statistics for starpumpi (\ref MPIDebug)
-will be enabled when the environment variable \ref STARPU_MPI_STATS
-is defined to an value other than 0.
+Enable (!= 0) or Disable (0) communication statistics for starpumpi (\ref MPIDebug). Default value is Disable.
 </dd>
 
 <dt>STARPU_MPI_CACHE</dt>
 <dd>
 \anchor STARPU_MPI_CACHE
 \addindex __env__STARPU_MPI_CACHE
-Communication cache for starpumpi (\ref MPISupport) will be
-disabled when the environment variable \ref STARPU_MPI_CACHE is set
-to 0. It is enabled by default or for any other values of the variable
-\ref STARPU_MPI_CACHE.
+Disable (0) or Enable (!= 0) communication cache for starpumpi (\ref MPISupport). Default value is Enable.
 </dd>
 
 <dt>STARPU_MPI_COMM</dt>
 <dd>
 \anchor STARPU_MPI_COMM
 \addindex __env__STARPU_MPI_COMM
-Communication trace for starpumpi (\ref MPISupport) will be
-enabled when the environment variable \ref STARPU_MPI_COMM is set
-to 1, and StarPU has been configured with the option
-\ref enable-verbose "--enable-verbose".
+Enable (1) communication trace for starpumpi (\ref MPISupport). Also needs for StarPU to
+have been configured with the option \ref enable-verbose "--enable-verbose".
 </dd>
 
 <dt>STARPU_MPI_CACHE_STATS</dt>
 <dd>
 \anchor STARPU_MPI_CACHE_STATS
 \addindex __env__STARPU_MPI_CACHE_STATS
-When set to 1, statistics are enabled for the communication cache (\ref MPISupport). For now,
-it prints messages on the standard output when data are added or removed from the received
+Enable (1) statistics for the communication cache (\ref MPISupport).
+Messages are printed on the standard output when data are added or removed from the received
 communication cache.
 </dd>
 
@@ -1047,16 +1027,15 @@ communication cache.
 <dd>
 \anchor STARPU_MPI_PRIORITIES
 \addindex __env__STARPU_MPI_PRIORITIES
-When set to 0, the use of priorities to order MPI communications is disabled
-(\ref MPISupport).
+Disable (0) the use of priorities to order MPI communications (\ref MPISupport).
 </dd>
 
 <dt>STARPU_MPI_NDETACHED_SEND</dt>
 <dd>
 \anchor STARPU_MPI_NDETACHED_SEND
 \addindex __env__STARPU_MPI_NDETACHED_SEND
-This sets the number of send requests that StarPU-MPI will emit concurrently.
-The default is 10. Setting it to 0 removes the limit of concurrent send
+Set the number of send requests that StarPU-MPI will emit concurrently.
+Default value is 10. Setting it to 0 removes the limit of concurrent send
 requests.
 </dd>
 
@@ -1064,12 +1043,11 @@ requests.
 <dd>
 \anchor STARPU_MPI_NREADY_PROCESS
 \addindex __env__STARPU_MPI_NREADY_PROCESS
-This sets the number of requests that StarPU-MPI will submit to MPI before
-polling for termination of existing requests. The default is 10. Setting it to
+Set the number of requests that StarPU-MPI will submit to MPI before
+polling for termination of existing requests. Default value is 10. Setting it to
 0 removes the limit: all requests to submit to MPI will be submitted before
 polling for termination of existing ones.
 </dd>
-
 
 <dt>STARPU_MPI_FAKE_SIZE</dt>
 <dd>
@@ -1078,7 +1056,7 @@ polling for termination of existing ones.
 Setting to a number makes StarPU believe that there are as many MPI nodes, even
 if it was run on only one MPI node. This allows e.g. to simulate the execution
 of one of the nodes of a big cluster without actually running the rest.
-It of course does not provide computation results and timing.
+Of course, it does not provide computation results and timing.
 </dd>
 
 <dt>STARPU_MPI_FAKE_RANK</dt>
@@ -1088,14 +1066,14 @@ It of course does not provide computation results and timing.
 Setting to a number makes StarPU believe that it runs the given MPI node, even
 if it was run on only one MPI node. This allows e.g. to simulate the execution
 of one of the nodes of a big cluster without actually running the rest.
-It of course does not provide computation results and timing.
+Of course, it does not provide computation results and timing.
 </dd>
 
 <dt>STARPU_MPI_COOP_SENDS</dt>
 <dd>
 \anchor STARPU_MPI_COOP_SENDS
 \addindex __env__STARPU_MPI_COOP_SENDS
-Setting to 0 disables dynamic collective operations: grouping same requests to
+Disable (0) dynamic collective operations: grouping same requests to
 different nodes until the data becomes available and then use a broadcast tree
 to execute requests.<br>
 By now, it is only supported with the NewMadeleine library (see \ref Nmad).
@@ -1105,7 +1083,7 @@ By now, it is only supported with the NewMadeleine library (see \ref Nmad).
 <dd>
 \anchor STARPU_MPI_RECV_WAIT_FINALIZE
 \addindex __env__STARPU_MPI_RECV_WAIT_FINALIZE
-Setting to 1 disables releasing the write acquire of receiving handles when
+Disable (1) releasing the write acquire of receiving handles when
 data is received but the communication library still needs the data. Set to 0
 by default to unlock as soon as possible tasks which only require a read access
 on the handle; write access will become possible for tasks when the
@@ -1162,7 +1140,7 @@ available main memory (as typically set by \ref STARPU_LIMIT_CPU_MEM)
 \anchor STARPU_MPI_EARLYDATA_ALLOCATE
 \addindex __env__STARPU_MPI_EARLYDATA_ALLOCATE
 When set to 1, the MPI Driver will immediately allocate the data for early
-requests instead of issuing a data request and blocking. The default value is 0,
+requests instead of issuing a data request and blocking. Default value is 0,
 issuing a data request. Because it is an early request and we do not know its
 real priority, the data request will assume \ref STARPU_DEFAULT_PRIO. In cases
 where there are many data requests with priorities greater than
@@ -1173,7 +1151,7 @@ where there are many data requests with priorities greater than
 <dd>
 \anchor STARPU_SIMGRID
 \addindex __env__STARPU_SIMGRID
-When set to 1 (the default is 0), this makes StarPU check that it was really
+When set to 1 (default value is 0), this makes StarPU check that it was really
 build with simulation support. This is convenient in scripts to avoid using a
 native version, that would try to update performance models...
 </dd>
@@ -1182,7 +1160,7 @@ native version, that would try to update performance models...
 <dd>
 \anchor STARPU_SIMGRID_TRANSFER_COST
 \addindex __env__STARPU_SIMGRID_TRANSFER_COST
-When set to 1 (which is the default), data transfers (over PCI bus, typically) are taken into account
+When set to 1 (which is the default value), data transfers (over PCI bus, typically) are taken into account
 in SimGrid mode.
 </dd>
 
@@ -1190,7 +1168,7 @@ in SimGrid mode.
 <dd>
 \anchor STARPU_SIMGRID_CUDA_MALLOC_COST
 \addindex __env__STARPU_SIMGRID_CUDA_MALLOC_COST
-When set to 1 (which is the default), CUDA malloc costs are taken into account
+When set to 1 (which is the default value), CUDA malloc costs are taken into account
 in SimGrid mode.
 </dd>
 
@@ -1198,7 +1176,7 @@ in SimGrid mode.
 <dd>
 \anchor STARPU_SIMGRID_CUDA_QUEUE_COST
 \addindex __env__STARPU_SIMGRID_CUDA_QUEUE_COST
-When set to 1 (which is the default), CUDA task and transfer queueing costs are
+When set to 1 (which is the default value), CUDA task and transfer queueing costs are
 taken into account in SimGrid mode.
 </dd>
 
@@ -1222,7 +1200,7 @@ When unset or set to 1, simulate within SimGrid the GPU transfer queueing.
 \anchor STARPU_MALLOC_SIMULATION_FOLD
 \addindex __env__STARPU_MALLOC_SIMULATION_FOLD
 Define the size of the file used for folding virtual allocation, in
-MiB. The default is 1, thus allowing 64GiB virtual memory when Linux's
+MiB. Default value is 1, thus allowing 64GiB virtual memory when Linux's
 <c>sysctl vm.max_map_count</c> value is the default 65535.
 </dd>
 
@@ -1230,7 +1208,7 @@ MiB. The default is 1, thus allowing 64GiB virtual memory when Linux's
 <dd>
 \anchor STARPU_SIMGRID_TASK_SUBMIT_COST
 \addindex __env__STARPU_SIMGRID_TASK_SUBMIT_COST
-When set to 1 (which is the default), task submission costs are taken into
+When set to 1 (which is the default value), task submission costs are taken into
 account in SimGrid mode. This provides more accurate SimGrid predictions,
 especially for the beginning of the execution.
 </dd>
@@ -1239,7 +1217,7 @@ especially for the beginning of the execution.
 <dd>
 \anchor STARPU_SIMGRID_TASK_PUSH_COST
 \addindex __env__STARPU_SIMGRID_TASK_PUSH_COST
-When set to 1 (which is the default), task push costs are taken into
+When set to 1 (which is the default value), task push costs are taken into
 account in SimGrid mode. This provides more accurate SimGrid predictions,
 especially with large dependency arities.
 </dd>
@@ -1248,7 +1226,7 @@ especially with large dependency arities.
 <dd>
 \anchor STARPU_SIMGRID_FETCHING_INPUT_COST
 \addindex __env__STARPU_SIMGRID_FETCHING_INPUT_COST
-When set to 1 (which is the default), fetching input costs are taken into
+When set to 1 (which is the default value), fetching input costs are taken into
 account in SimGrid mode. This provides more accurate SimGrid predictions,
 especially regarding data transfers.
 </dd>
@@ -1257,7 +1235,7 @@ especially regarding data transfers.
 <dd>
 \anchor STARPU_SIMGRID_SCHED_COST
 \addindex __env__STARPU_SIMGRID_SCHED_COST
-When set to 1 (0 is the default), scheduling costs are taken into
+When set to 1 (0 is the default value), scheduling costs are taken into
 account in SimGrid mode. This provides more accurate SimGrid predictions,
 and allows studying scheduling overhead of the runtime system. However,
 it also makes simulation non-deterministic.
@@ -1267,7 +1245,7 @@ it also makes simulation non-deterministic.
 <dd>
 \anchor STARPUPY_MULTI_INTERPRETER
 \addindex __env__STARPUPY_MULTI_INTERPRETER
-When set to 1 (the default is 0), multi interpreters are enabled in the StarPU Python interface (\ref MultipleInterpreters).
+Enable (1) or disable (0) multi interpreters in the StarPU Python interface (\ref MultipleInterpreters). Default value is Disable.
 </dd>
 
 </dl>
@@ -1281,7 +1259,7 @@ When set to 1 (the default is 0), multi interpreters are enabled in the StarPU P
 \anchor STARPU_HOME
 \addindex __env__STARPU_HOME
 Specify the main directory in which StarPU stores its
-configuration files. The default is <c>$HOME</c> on Unix environments,
+configuration files. Default value is <c>$HOME</c> on Unix environments,
 and <c>$USERPROFILE</c> on Windows environments.
 </dd>
 
@@ -1299,7 +1277,7 @@ Specify the main directory in which StarPU is installed
 \anchor STARPU_PERF_MODEL_DIR
 \addindex __env__STARPU_PERF_MODEL_DIR
 Specify the main directory in which StarPU stores its
-performance model files. The default is <c>$STARPU_HOME/.starpu/sampling</c>.
+performance model files. Default value is <c>$STARPU_HOME/.starpu/sampling</c>.
 See \ref Storing_Performance_Model_Files for more details.
 </dd>
 
@@ -1356,7 +1334,7 @@ MPI Slaves.
 <dd>
 \anchor STARPU_HOSTNAME
 \addindex __env__STARPU_HOSTNAME
-When set, force the hostname to be used when dealing performance model
+When set, force the hostname to be used when managing performance model
 files. Models are indexed by machine name. When running for example on
 a homogenenous cluster, it is possible to share the models between
 machines by setting <c>export STARPU_HOSTNAME=some_global_name</c>.
@@ -1369,10 +1347,10 @@ machines by setting <c>export STARPU_HOSTNAME=some_global_name</c>.
 Similar to \ref STARPU_HOSTNAME but to define multiple nodes on a
 heterogeneous cluster. The variable is a list of hostnames that will be assigned
 to each StarPU-MPI rank considering their position and the value of
-\ref starpu_mpi_world_rank on each rank. When running, for example, on a
+starpu_mpi_world_rank() on each rank. When running, for example, on a
 heterogeneous cluster, it is possible to set individual models for each machine
 by setting <c>export STARPU_MPI_HOSTNAMES="name0 name1 name2"</c>. Where rank 0
-will receive name0, rank1 will receive name1, and so on.
+will receive \c name0, rank1 will receive \c name1, and so on.
 This variable has precedence over \ref STARPU_HOSTNAME.
 </dd>
 
@@ -1392,7 +1370,7 @@ StarPU, and finally in the source directory of StarPU.
 <dd>
 \anchor STARPU_SILENT
 \addindex __env__STARPU_SILENT
-Allow to disable verbose mode at runtime when StarPU
+Disable verbose mode at runtime when StarPU
 has been configured with the option \ref enable-verbose "--enable-verbose". Also
 disable the display of StarPU information and warning messages.
 </dd>
@@ -1438,7 +1416,7 @@ Specify in which file to save the generated trace if FxT is enabled.
 <dd>
 \anchor STARPU_FXT_TRACE
 \addindex __env__STARPU_FXT_TRACE
-Specify whether to generate (1) or not (0) the FxT trace in /tmp/prof_file_XXX_YYY (the directory and file name can be changed with \ref STARPU_FXT_PREFIX and \ref STARPU_FXT_SUFFIX). The default is 0 (do not generate it)
+Enable (1) or disable (0) the FxT trace generation in \c /tmp/prof_file_XXX_YYY (the directory and file name can be changed with \ref STARPU_FXT_PREFIX and \ref STARPU_FXT_SUFFIX). Default value is Disable.
 </dd>
 
 <dt>STARPU_FXT_EVENTS</dt>
@@ -1596,7 +1574,7 @@ system. This can thus be used accelerate or slow down the system bandwidth.
 <dd>
 \anchor STARPU_SUBALLOCATOR
 \addindex __env__STARPU_SUBALLOCATOR
-Specifies to enable (1) the StarPU suballocator or not (0). The default is to
+Enable (1) or disable (0) the StarPU suballocator. Default value is to
 enable it to amortize the cost of GPU and pinned RAM allocations for small
 allocations: StarPU allocate large chunks of memory at a time, and suballocates
 the small buffers within them.
@@ -1608,7 +1586,7 @@ the small buffers within them.
 \addindex __env__STARPU_MINIMUM_AVAILABLE_MEM
 Specify the minimum percentage of memory that should be available in GPUs, i.e.
 not used at all by StarPU (or in main memory, when using out of core), below
-which a eviction pass is performed. The default is 0%.
+which a eviction pass is performed. Default value is 0%.
 </dd>
 
 <dt>STARPU_TARGET_AVAILABLE_MEM</dt>
@@ -1617,7 +1595,7 @@ which a eviction pass is performed. The default is 0%.
 \addindex __env__STARPU_TARGET_AVAILABLE_MEM
 Specify the target percentage of memory that should be available in GPUs, i.e.
 not used at all by StarPU (or in main memory, when using out of core), when
-performing a periodic eviction pass. The default is 0%.
+performing a periodic eviction pass. Default value is 0%.
 </dd>
 
 <dt>STARPU_MINIMUM_CLEAN_BUFFERS</dt>
@@ -1627,7 +1605,7 @@ performing a periodic eviction pass. The default is 0%.
 Specify the minimum percentage of number of buffers that should be clean in GPUs
 (or in main memory, when using out of core), i.e. used by StarPU, but for which
 a copy is available in memory (or on disk, when using out of core), below which
-asynchronous writebacks will be issued. The default is 5%.
+asynchronous writebacks will be issued. Default value is 5%.
 </dd>
 
 <dt>STARPU_TARGET_CLEAN_BUFFERS</dt>
@@ -1637,7 +1615,7 @@ asynchronous writebacks will be issued. The default is 5%.
 Specify the target percentage of number of buffers that should be reached in
 GPUs (or in main memory, when using out of core), i.e. used by StarPU, but for
 which a copy is available in memory (or on disk, when using out of core), when
-performing an asynchronous writeback pass. The default is 10%.
+performing an asynchronous writeback pass. Default value is 10%.
 </dd>
 
 <dt>STARPU_DISK_SWAP</dt>
@@ -1653,9 +1631,9 @@ full.
 \anchor STARPU_DISK_SWAP_BACKEND
 \addindex __env__STARPU_DISK_SWAP_BACKEND
 Specify the backend to be used by StarPU to push data when the main
-memory is getting full. The default is unistd (i.e. using read/write functions),
-other values are stdio (i.e. using fread/fwrite), unistd_o_direct (i.e. using
-read/write with O_DIRECT), leveldb (i.e. using a leveldb database), and hdf5
+memory is getting full. Default value is \c unistd (i.e. using read/write functions),
+other values are \c stdio (i.e. using fread/fwrite), \c unistd_o_direct (i.e. using
+read/write with O_DIRECT), \c leveldb (i.e. using a leveldb database), and \c hdf5
 (i.e. using HDF5 library).
 </dd>
 
@@ -1664,7 +1642,7 @@ read/write with O_DIRECT), leveldb (i.e. using a leveldb database), and hdf5
 \anchor STARPU_DISK_SWAP_SIZE
 \addindex __env__STARPU_DISK_SWAP_SIZE
 Specify the maximum size in MiB to be used by StarPU to push data when the main
-memory is getting full. The default is unlimited.
+memory is getting full. Default value is unlimited.
 </dd>
 
 <dt>STARPU_LIMIT_MAX_SUBMITTED_TASKS</dt>
@@ -1697,7 +1675,7 @@ See \ref HowToReduceTheMemoryFootprintOfInternalDataStructures.
 \addindex __env__STARPU_TRACE_BUFFER_SIZE
 Set the buffer size for recording trace events in MiB. Setting it to a big
 size allows to avoid pauses in the trace while it is recorded on the disk. This
-however also consumes memory, of course. The default value is 64.
+however also consumes memory, of course. Default value is 64.
 </dd>
 
 <dt>STARPU_GENERATE_TRACE</dt>
@@ -1721,7 +1699,7 @@ generate a Paje trace, this variable can be set to specify options (see
 <dd>
 \anchor STARPU_ENABLE_STATS
 \addindex __env__STARPU_ENABLE_STATS
-When defined, enable gathering various data statistics (\ref DataStatistics).
+Enable gathering various data statistics (\ref DataStatistics).
 </dd>
 
 <dt>STARPU_MEMORY_STATS</dt>
@@ -1744,7 +1722,7 @@ StarPU for internal data structures during execution.
 <dd>
 \anchor STARPU_BUS_STATS
 \addindex __env__STARPU_BUS_STATS
-When defined, statistics about data transfers will be displayed when calling
+Enable the display of data transfers statistics when calling
 starpu_shutdown() (\ref Profiling). By default, statistics are printed
 on the standard error stream, use the environment variable \ref
 STARPU_BUS_STATS_FILE to define another filename.
@@ -1762,7 +1740,7 @@ statistics, see \ref STARPU_BUS_STATS.
 <dd>
 \anchor STARPU_WORKER_STATS
 \addindex __env__STARPU_WORKER_STATS
-When defined, statistics about the workers will be displayed when calling
+Enable the display of workers statistics when calling
 starpu_shutdown() (\ref Profiling). When combined with the
 environment variable \ref STARPU_PROFILING, it displays the energy
 consumption (\ref Energy-basedScheduling).  By default, statistics are
@@ -1827,7 +1805,7 @@ program is making progress in task execution, or is just stuck.
 <dd>
 \anchor STARPU_TASK_BREAK_ON_PUSH
 \addindex __env__STARPU_TASK_BREAK_ON_PUSH
-When this variable contains a job id, StarPU will raise SIGTRAP when the task
+When this variable contains a job id, StarPU will raise \c SIGTRAP when the task
 with that job id is being pushed to the scheduler, which will be nicely caught by debuggers
 (see \ref DebuggingScheduling)
 </dd>
@@ -1836,7 +1814,7 @@ with that job id is being pushed to the scheduler, which will be nicely caught b
 <dd>
 \anchor STARPU_TASK_BREAK_ON_SCHED
 \addindex __env__STARPU_TASK_BREAK_ON_SCHED
-When this variable contains a job id, StarPU will raise SIGTRAP when the task
+When this variable contains a job id, StarPU will raise \c SIGTRAP when the task
 with that job id is being scheduled by the scheduler (at a scheduler-specific
 point), which will be nicely caught by debuggers.
 This only works for schedulers which have such a scheduling point defined
@@ -1847,7 +1825,7 @@ This only works for schedulers which have such a scheduling point defined
 <dd>
 \anchor STARPU_TASK_BREAK_ON_POP
 \addindex __env__STARPU_TASK_BREAK_ON_POP
-When this variable contains a job id, StarPU will raise SIGTRAP when the task
+When this variable contains a job id, StarPU will raise \c SIGTRAP when the task
 with that job id is being popped from the scheduler, which will be nicely caught by debuggers
 (see \ref DebuggingScheduling)
 </dd>
@@ -1856,7 +1834,7 @@ with that job id is being popped from the scheduler, which will be nicely caught
 <dd>
 \anchor STARPU_TASK_BREAK_ON_EXEC
 \addindex __env__STARPU_TASK_BREAK_ON_EXEC
-When this variable contains a job id, StarPU will raise SIGTRAP when the task
+When this variable contains a job id, StarPU will raise \c SIGTRAP when the task
 with that job id is being executed, which will be nicely caught by debuggers
 (see \ref DebuggingScheduling)
 </dd>
@@ -1875,7 +1853,7 @@ properly, without performing the actual application-provided computation.
 \anchor STARPU_HISTORY_MAX_ERROR
 \addindex __env__STARPU_HISTORY_MAX_ERROR
 History-based performance models will drop measurements which are really far
-froom the measured average. This specifies the allowed variation. The default is
+froom the measured average. This specifies the allowed variation. Default value is
 50 (%), i.e. the measurement is allowed to be x1.5 faster or /1.5 slower than the
 average.
 </dd>
@@ -2001,7 +1979,7 @@ longer than the value indicated when configuring the hypervisor.
 \anchor SC_HYPERVISOR_START_RESIZE
 \addindex __env__SC_HYPERVISOR_START_RESIZE
 Indicate the moment when the resizing should be available. The value correspond to the percentage
-of the total time of execution of the application. The default value is the resizing frame.
+of the total time of execution of the application. Default value is the resizing frame.
 </dd>
 
 <dt>SC_HYPERVISOR_MAX_SPEED_GAP</dt>
