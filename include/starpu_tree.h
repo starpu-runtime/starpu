@@ -23,7 +23,7 @@ extern "C" {
 
 /**
    @defgroup API_Tree Tree
-   @brief This section describes the tree facilities provided by StarPU.
+   @brief API tree facilities
    @{
 */
 

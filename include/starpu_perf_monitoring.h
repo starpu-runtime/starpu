@@ -25,7 +25,7 @@ extern "C" {
 
 /**
    @defgroup API_Perf_Monitoring Performance Monitoring Counters
-   @brief This section describes the interface to access performance monitoring counters.
+   @brief API to access performance monitoring counters.
    @{
 */
 

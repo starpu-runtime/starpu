@@ -25,7 +25,7 @@ extern "C" {
 
 /**
    @defgroup API_Perf_Steering Performance Steering Knobs
-   @brief This section describes the interface to access performance steering counters.
+   @brief API to access performance steering counters.
    @{
 */
 

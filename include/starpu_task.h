@@ -33,8 +33,7 @@ extern "C" {
 
 /**
    @defgroup API_Codelet_And_Tasks Codelet And Tasks
-   @brief This section describes the interface to manipulate codelets
-   and tasks.
+   @brief API to manipulate codelets and tasks.
    @{
 */
 
