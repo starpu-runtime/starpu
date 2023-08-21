@@ -187,7 +187,7 @@ struct starpu_codelet mycodelet =
 };
 \endcode
 
-And the call to the function starpu_task_insert():
+And the call to starpu_task_insert():
 
 \code{.c}
 starpu_task_insert(&mycodelet,
@@ -271,7 +271,7 @@ be executed, and is allowed to read from <c>i</c> to use it e.g. as an
 index. Note that this macro is only available when compiling StarPU with
 the compiler <c>gcc</c>. In the example file <c>tests/datawizard/acquire_cb_insert.c</c>, this macro is used.
 
-StarPU also provides a utility function starpu_codelet_unpack_args() to retrieve the ::STARPU_VALUE arguments passed to the task. There is several ways of calling this function starpu_codelet_unpack_args(). The full code examples are available in the file <c>tests/main/insert_task_value.c</c>.
+StarPU also provides a utility function starpu_codelet_unpack_args() to retrieve the ::STARPU_VALUE arguments passed to the task. There is several ways of calling starpu_codelet_unpack_args(). The full code examples are available in the file <c>tests/main/insert_task_value.c</c>.
 
 \code{.c}
 void func_cpu(void *descr[], void *_args)
@@ -359,7 +359,7 @@ void func_cpu(void *descr[], void *_args)
 }
 \endcode
 
-During unpacking one can also call the function starpu_codelet_unpack_discard_arg() to skip saving the argument in pointer.
+During unpacking one can also call starpu_codelet_unpack_discard_arg() to skip saving the argument in pointer.
 
 A full code example is in file <c>tests/main/pack.c</c>.
 
@@ -372,7 +372,7 @@ Here a list of other functions to help with task management.
 The function starpu_task_dup() creates a duplicate of an existing task. The new task is identical to the original task in terms of its parameters, dependencies, and execution characteristics.
 </li>
 <li>
-The function starpu_task_set() is used to set the parameters of a task before it is executed, while the function starpu_task_build() is used to create a task with the specified parameters.
+The function starpu_task_set() is used to set the parameters of a task before it is executed, while starpu_task_build() is used to create a task with the specified parameters.
 </li>
 </ul>
 

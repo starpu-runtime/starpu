@@ -23,7 +23,7 @@ to StarPU. The full source code for this example is available in the file <c>exa
 
 \subsection RequiredHeaders Required Headers
 
-The header starpu.h should be included in any code using StarPU.
+The header \c starpu.h should be included in any code using StarPU.
 
 \code{.c}
 #include <starpu.h>
@@ -47,7 +47,7 @@ core will execute a codelet, it will call the function
 <c>cpu_func</c>, which \em must have the following prototype:
 
 \code{.c}
-void (*cpu_func)(void *buffers[], void *cl_arg);
+void cpu_func(void *buffers[], void *cl_arg);
 \endcode
 
 In this example, we can ignore the first argument of this function which gives a
@@ -70,7 +70,7 @@ struct starpu_codelet cl =
 
 \subsection SubmittingATask Submitting A Task
 
-Before submitting any tasks to StarPU, starpu_init() must be called, or starpu_initialize() must be called by giving arguments of application.  The
+Before submitting any tasks to StarPU, starpu_init() must be called, or starpu_initialize() must be called by giving application arguments.  The
 <c>NULL</c> argument specifies that we use the default configuration.
 Tasks can then be submitted until the termination of StarPU -- done by a
 call to starpu_shutdown().
@@ -218,7 +218,7 @@ starpu_task::callback_arg is passed as an argument to the callback
 function. The prototype of a callback function must be:
 
 \code{.c}
-void (*callback_function)(void *);
+void callback_function(void *);
 \endcode
 
 \code{.c}
@@ -267,7 +267,6 @@ struct starpu_codelet cl =
 {
     .where = STARPU_CPU,
     .cpu_funcs = { cpu_func },
-    .cpu_funcs_name = { "cpu_func" },
     .nbuffers = 0
 };
 \endcode
@@ -278,8 +277,6 @@ the codelet may be executed. Here, the value ::STARPU_CPU means that
 only CPUs can execute this codelet. When the optional field
 starpu_codelet::where is unset, its value is automatically set based
 on the availability of the different fields <c>XXX_funcs</c>.
-
-TODO: explain starpu_codelet::cpu_funcs_name
 
 \section VectorScalingUsingStarPUAPI Vector Scaling
 
@@ -298,12 +295,12 @@ movements, programmers only declare which piece of data is accessed and/or
 modified by a task, and StarPU makes sure that when a computational kernel
 starts somewhere (e.g. on a GPU), its data are available locally.
 
-Before submitting those tasks, the programmer first needs to declare the
+Before submitting those tasks, programmers first need to declare the
 different pieces of data to StarPU using the functions
 <c>starpu_*_data_register</c>. To ease the development of applications
 for StarPU, it is possible to describe multiple types of data layout.
 A type of data layout is called an <b>interface</b>. There are
-different predefined interfaces available in StarPU: here we will
+different predefined interfaces available in StarPU, here we will
 consider the <b>vector interface</b>.
 
 The following lines show how to declare an array of <c>NX</c> elements of type
@@ -367,7 +364,6 @@ void scal_cpu_func(void *buffers[], void *cl_arg)
 struct starpu_codelet cl =
 {
     .cpu_funcs = { scal_cpu_func },
-    .cpu_funcs_name = { "scal_cpu_func" },
     .nbuffers = 1,
     .modes = { STARPU_RW }
 };
@@ -452,7 +448,7 @@ task.
 The Makefile given at the beginning of the section must be extended to
 give the rules to compile the CUDA source code. Note that the source
 file of the OpenCL kernel does not need to be compiled now, it will
-be compiled at run-time when calling the function
+be compiled at runtime when calling the function
 starpu_opencl_load_opencl_from_file().
 
 \verbatim
