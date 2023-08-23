@@ -274,6 +274,25 @@ static void init_matrix(int rank)
 			}
 			starpu_data_set_coordinates(*handleptr, 2, j, i);
 			starpu_mpi_data_register(*handleptr, j+i*nblocks, block_rank);
+
+			/* Flushing the node's memory before starting for out-of-core computations */
+			starpu_data_handle_t *data_on_node;
+			unsigned nb_data_on_node = 0;
+			int *valid;
+			int iterator = 0;
+			int node = 0;
+			starpu_data_get_node_data(node, &data_on_node, &valid, &nb_data_on_node);
+			for (iterator = 0; iterator < nb_data_on_node; iterator++)
+			{
+				int ret = starpu_data_evict_from_node(data_on_node[iterator], node);
+				if (ret == -1)
+				{
+					fprintf(stderr, "Error ret == -1 when evicting initialized data\n");
+					exit(1);
+				}
+			}
+			free(data_on_node);
+			free(valid);
 		}
 	}
 
