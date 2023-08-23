@@ -1045,9 +1045,11 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 		STARPU_ASSERT_MSG(!j->submitted || j->terminated >= 1, "Tasks can not be submitted a second time before being terminated. Please use different task structures, or use the regenerate flag to let the task resubmit itself automatically.");
 		STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 #endif
-		_STARPU_TRACE_TASK_SUBMIT(j,
-			_starpu_get_sched_ctx_struct(task->sched_ctx)->iterations[0],
-			_starpu_get_sched_ctx_struct(task->sched_ctx)->iterations[1]);
+		task->iterations[0] = _starpu_get_sched_ctx_struct(task->sched_ctx)->iterations[0];
+		task->iterations[1] = _starpu_get_sched_ctx_struct(task->sched_ctx)->iterations[1];
+		_STARPU_TRACE_TASK_SUBMIT(j, task->iterations[0], task->iterations[1]);
+		_STARPU_TRACE_TASK_NAME(j);
+		_STARPU_TRACE_TASK_LINE(j);
 	}
 
 	/* If this is a continuation, we don't modify the implicit data dependencies detected earlier. */

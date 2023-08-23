@@ -689,6 +689,13 @@ struct starpu_task
 	const char *name;
 
 	/**
+	   Store the iteration numbers (as defined by
+	   starpu_iteration_push() / starpu_iteration_pop()) during
+	   task submission.
+	*/
+	long iterations[2];
+
+	/**
 	   Optional file name where the task was submitted. This can be useful
 	   for debugging purposes.
 	*/
