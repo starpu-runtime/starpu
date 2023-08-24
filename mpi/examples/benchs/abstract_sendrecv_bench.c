@@ -32,6 +32,17 @@ static void cuda_memset_codelet(void *descr[], void *arg)
 	cudaMemsetAsync(buf, 0, length, starpu_cuda_get_local_stream());
 }
 #endif
+#ifdef STARPU_USE_HIP
+static void hip_memset_codelet(void *descr[], void *arg)
+{
+	(void)arg;
+
+	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);
+	unsigned length = STARPU_VECTOR_GET_NX(descr[0]);
+
+	hipMemsetAsync(buf, 0, length, starpu_hip_get_local_stream());
+}
+#endif
 
 void cpu_memset_codelet(void *descr[], void *arg)
 {
@@ -49,6 +60,10 @@ static struct starpu_codelet memset_cl =
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {cuda_memset_codelet},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
+#endif
+#ifdef STARPU_USE_HIP
+	.hip_funcs = {hip_memset_codelet},
+	.hip_flags = {STARPU_HIP_ASYNC},
 #endif
 	.cpu_funcs_name = {"cpu_memset_codelet"},
 	.nbuffers = 1,

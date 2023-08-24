@@ -30,7 +30,8 @@ static inline void man()
 	fprintf(stderr, "\t-h --help         display this help\n");
 	fprintf(stderr, "\t-p                pause workers during benchmark\n");
 	fprintf(stderr, "\t--bidir           full-duplex communications\n");
-	fprintf(stderr, "\t--memnode-cuda    allocate message buffers on first cuda device\n");
+	fprintf(stderr, "\t--memnode-cuda    allocate message buffers on first CUDA device\n");
+	fprintf(stderr, "\t--memnode-hip     allocate message buffers on first HIP device\n");
 	exit(EXIT_SUCCESS);
 }
 
@@ -73,7 +74,22 @@ int main(int argc, char **argv)
 			else
 			{
 				mem_node  = starpu_worker_get_memory_node(worker_id);
-				fprintf(stderr,"Memory will be allocated on the first CUDA worker.\n");
+				fprintf(stderr,"Memory will be allocated on the first cuda worker.\n");
+			}
+		}
+		else if (strcmp(argv[i], "--memnode-hip") == 0)
+		{
+			int worker_id = starpu_worker_get_by_type(STARPU_HIP_WORKER, 0);
+			if(worker_id == -1)
+			{
+				fprintf(stderr,"Error: asked for HIP memory node allocation, but no hip worker found.\n");
+				starpu_mpi_shutdown();
+				return STARPU_TEST_SKIPPED;
+			}
+			else
+			{
+				mem_node  = starpu_worker_get_memory_node(worker_id);
+				fprintf(stderr,"Memory will be allocated on the first hip worker.\n");
 			}
 		}
 		else

@@ -49,14 +49,21 @@ int _starpu_mpi_choose_node(starpu_data_handle_t handle, enum starpu_data_access
 
 		/* Several potential places */
 		unsigned i;
-		if (_starpu_mpi_has_cuda)
+		if (_starpu_mpi_has_cuda || _starpu_mpi_has_hip)
 			for (i = 0; i < STARPU_MAXNODES; i++)
 			{
 				/* Note: We take as a hint that it's allocated on the GPU as
 				 * a clue that we want to push directly to the GPU */
-				if (starpu_node_get_kind(i) == STARPU_CUDA_RAM
+				if (_starpu_mpi_has_cuda
+				        && starpu_node_get_kind(i) == STARPU_CUDA_RAM
 					&& handle->per_node[i].allocated
 					&& (_starpu_mpi_cuda_devid == -1 || _starpu_mpi_cuda_devid == starpu_memory_node_get_devid(i)))
+					/* This node already has allocated buffers, let's just use it */
+					return i;
+				if (_starpu_mpi_has_hip
+				        && starpu_node_get_kind(i) == STARPU_HIP_RAM
+					&& handle->per_node[i].allocated
+					&& (_starpu_mpi_hip_devid == -1 || _starpu_mpi_hip_devid == starpu_memory_node_get_devid(i)))
 					/* This node already has allocated buffers, let's just use it */
 					return i;
 			}
@@ -98,13 +105,21 @@ int _starpu_mpi_choose_node(starpu_data_handle_t handle, enum starpu_data_access
 		unsigned i;
 		for (i = 0; i < STARPU_MAXNODES; i++)
 		{
-			if ((starpu_node_get_kind(i) == STARPU_CPU_RAM ||
-			     (starpu_node_get_kind(i) == STARPU_CUDA_RAM && _starpu_mpi_has_cuda
-				&& (_starpu_mpi_cuda_devid == -1 || _starpu_mpi_cuda_devid == starpu_memory_node_get_devid(i))))
-				&& handle->per_node[i].state != STARPU_INVALID)
-				/* This node already has the value, let's just use it */
+			if (handle->per_node[i].state != STARPU_INVALID)
+			{
+				/* If this node already has the value, let's just use it */
 				/* TODO: rather pick up place next to NIC */
-				return i;
+				if (starpu_node_get_kind(i) == STARPU_CPU_RAM)
+					return i;
+				if (_starpu_mpi_has_cuda
+				    && starpu_node_get_kind(i) == STARPU_CUDA_RAM
+				    && (_starpu_mpi_cuda_devid == -1 || _starpu_mpi_cuda_devid == starpu_memory_node_get_devid(i)))
+					return i;
+				if (_starpu_mpi_has_hip
+				    && starpu_node_get_kind(i) == STARPU_HIP_RAM
+				    && (_starpu_mpi_hip_devid == -1 || _starpu_mpi_hip_devid == starpu_memory_node_get_devid(i)))
+					return i;
+			}
 		}
 
 		/* No luck, take the least loaded node, to transfer from e.g. GPU */
@@ -145,6 +160,7 @@ static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_dat
 
 void _starpu_mpi_isend_irecv_common(struct _starpu_mpi_req *req, enum starpu_data_access_mode mode, int sequential_consistency)
 {
+
 	int node = -1;
 
 	/* Asynchronously request StarPU to fetch the data in main memory: when

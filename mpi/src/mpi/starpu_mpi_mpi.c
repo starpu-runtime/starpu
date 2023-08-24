@@ -1147,7 +1147,7 @@ static void _starpu_mpi_handle_ready_request(struct _starpu_mpi_req *req)
 			  req->ptr, req->datatype_name, (int)req->count, req->registered_datatype);
 
 	/* Set GPU device for current request if GPU Direct is supported */
-	if (_starpu_mpi_has_cuda)
+	if (_starpu_mpi_has_cuda || _starpu_mpi_has_hip)
 	{
 		int mem_node = req->node;
 		if (mem_node >= 0)
@@ -1157,8 +1157,18 @@ static void _starpu_mpi_handle_ready_request(struct _starpu_mpi_req *req)
 			{
 #ifdef STARPU_USE_CUDA
 			case STARPU_CUDA_RAM:
-				if (_starpu_mpi_cuda_devid == -1 && starpu_cuda_worker_get_count() > 1)
+				if (_starpu_mpi_has_cuda
+				    && _starpu_mpi_cuda_devid == -1
+				    && starpu_cuda_worker_get_count() > 1)
 					cudaSetDevice(starpu_memory_node_get_devid(mem_node));
+				break;
+#endif
+#ifdef STARPU_USE_HIP
+			case STARPU_HIP_RAM:
+				if (_starpu_mpi_has_hip
+				    && _starpu_mpi_hip_devid == -1
+				    && starpu_hip_worker_get_count() > 1)
+					hipSetDevice(starpu_memory_node_get_devid(mem_node));
 				break;
 #endif
 			default:

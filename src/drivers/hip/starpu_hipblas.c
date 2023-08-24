@@ -23,11 +23,11 @@
 #include <hipblas/hipblas.h>
 #include <starpu_hipblas.h>
 
-#ifdef STARPU_HIP_PLATFORM_AMD
+#ifdef STARPU_USE_HIP_ROC
 #include <rocblas/rocblas.h>
 #endif
 
-#ifdef STARPU_HIP_PLATFORM_NVIDIA
+#ifdef STARPU_USE_HIP_CUDA
 #include <cublas.h>
 #endif
 
@@ -65,9 +65,9 @@ static void init_hipblas_func(void *args STARPU_ATTRIBUTE_UNUSED)
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	if (!(hipblas_initialized[idx]++))
 	{
-#ifdef STARPU_HIP_PLATFORM_NVIDIA
+#ifdef STARPU_USE_HIP_CUDA
 		cublasInit();
-#elif defined(STARPU_HIP_PLATFORM_AMD)
+#elif defined(STARPU_USE_HIP_ROC)
 		rocblas_initialize();
 #endif
 	}
@@ -80,9 +80,9 @@ static void shutdown_hipblas_func(void *args STARPU_ATTRIBUTE_UNUSED)
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	if (!--hipblas_initialized[idx])
 	{
-#ifdef STARPU_HIP_PLATFORM_NVIDIA
+#ifdef STARPU_USE_HIP_CUDA
 		cublasShutdown();
-#elif defined(STARPU_HIP_PLATFORM_AMD)
+#elif defined(STARPU_USE_HIP_ROC)
 		// no equivalent
 #endif
 	}

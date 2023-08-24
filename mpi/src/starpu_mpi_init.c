@@ -40,8 +40,10 @@ static int _mpi_world_rank;
 #endif
 static int _mpi_initialized_starpu;
 static int _starpu_mpi_gpudirect;	/* Whether GPU direct was explicitly requested (1) or disabled (0), or should be enabled if available (-1) */
-int _starpu_mpi_has_cuda;		/* Whether GPU direct is available */
-int _starpu_mpi_cuda_devid = -1;	/* Which device GPU direct is enabled for (-1 = all) */
+int _starpu_mpi_has_cuda;		/* Whether CUDA GPU direct is available */
+int _starpu_mpi_has_hip;		/* Whether current HIP backend supports GPU direct */
+int _starpu_mpi_cuda_devid = -1;	/* Which CUDA device GPU direct is enabled for (-1 = all) */
+int _starpu_mpi_hip_devid = -1;	        /* Which HIP device GPU direct is enabled for (-1 = all) */
 
 static void _starpu_mpi_print_thread_level_support(int thread_level, char *msg)
 {
@@ -81,6 +83,17 @@ void _starpu_mpi_do_initialize(struct _starpu_mpi_argc_argv *argc_argv)
 		cudaSetDevice(devid);
 	}
 #endif
+#ifdef STARPU_USE_HIP
+	if (_starpu_mpi_gpudirect != 0 && starpu_hip_worker_get_count() > 0)
+	{
+		/* Some GPUDirect implementations (e.g. psm2) want hipSetDevice to be called before MPI_Init */
+		int hip_worker = starpu_worker_get_by_type(STARPU_HIP_WORKER, 0);
+		STARPU_ASSERT(hip_worker >= 0);
+		int devid = starpu_worker_get_devid(hip_worker);
+		STARPU_ASSERT(devid >= 0);
+		hipSetDevice(devid);
+	}
+#endif
 	if (argc_argv->initialize_mpi)
 	{
 		STARPU_ASSERT_MSG(argc_argv->comm == MPI_COMM_WORLD, "It does not make sense to ask StarPU-MPI to initialize MPI while a non-world communicator was given");
@@ -108,29 +121,48 @@ void _starpu_mpi_do_initialize(struct _starpu_mpi_argc_argv *argc_argv)
 	MPI_Comm_size(argc_argv->comm, &argc_argv->world_size);
 	MPI_Comm_set_errhandler(argc_argv->comm, MPI_ERRORS_RETURN);
 
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_HIP_CUDA)
 #ifdef MPIX_CUDA_AWARE_SUPPORT
 	if (MPIX_Query_cuda_support())
+	{
+#if defined(STARPU_USE_CUDA)
 		_starpu_mpi_has_cuda = 1;
+#endif
+#if defined(STARPU_USE_HIP_CUDA)
+		_starpu_mpi_has_hip = 1;
+#endif
+	}
 	else if (_starpu_mpi_gpudirect > 0)
 		_STARPU_DISP("Warning: MPI GPUDirect requested, but MPIX_Query_cuda_support reports that it is not supported.\n");
-	_STARPU_DEBUG("MPI has CUDA: %d\n", _starpu_mpi_has_cuda);
+	_STARPU_DEBUG("MPI has CUDA: %d\n", _starpu_mpi_has_cuda || _starpu_mpi_has_hip);
 	if (!_starpu_mpi_gpudirect)
 	{
 		_STARPU_DEBUG("But disabled by user\n");
 		_starpu_mpi_has_cuda = 0;
+		_starpu_mpi_has_hip = 0;
 	}
-	if (_starpu_mpi_has_cuda)
+	if (_starpu_mpi_has_cuda || _starpu_mpi_has_hip)
 	{
 #pragma weak psm2_init
 		extern int psm2_init(int *major, int *minor);
-		if (psm2_init && starpu_cuda_worker_get_count() > 1)
+		if (psm2_init && (starpu_cuda_worker_get_count() > 1
+				  ||starpu_hip_worker_get_count() > 1))
 		{
-			int cuda_worker = starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0);
-			_starpu_mpi_cuda_devid = starpu_worker_get_devid(cuda_worker);
+			int gpu_device;
+			if (_starpu_mpi_has_cuda)
+			{
+				int cuda_worker = starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0);
+				_starpu_mpi_cuda_devid = starpu_worker_get_devid(cuda_worker);
+				gpu_device = _starpu_mpi_cuda_devid;
+			} else if (_starpu_mpi_has_hip)
+			{
+				int hip_worker = starpu_worker_get_by_type(STARPU_HIP_WORKER, 0);
+				_starpu_mpi_hip_devid = starpu_worker_get_devid(hip_worker);
+				gpu_device = _starpu_mpi_hip_devid;
+			}
 
 			_STARPU_DISP("Warning: MPI GPUDirect is enabled using the PSM2 driver, but StarPU will be driving several CUDA GPUs.\n");
-			_STARPU_DISP("Since the PSM2 driver only supports one CUDA GPU at a time for GPU Direct (at least as of its version 11.2.185), StarPU-MPI will use GPU Direct only for CUDA%d.\n", _starpu_mpi_cuda_devid);
+			_STARPU_DISP("Since the PSM2 driver only supports one CUDA GPU at a time for GPU Direct (at least as of its version 11.2.185), StarPU-MPI will use GPU Direct only for CUDA%d.\n", gpu_device);
 			_STARPU_DISP("To get GPU Direct working with all CUDA GPUs with the PSM2 driver, you will unfortunately have to run one MPI rank per GPU.\n");
 		}
 	}
@@ -138,6 +170,33 @@ void _starpu_mpi_do_initialize(struct _starpu_mpi_argc_argv *argc_argv)
 	if (_starpu_mpi_gpudirect > 0)
 		_STARPU_DISP("Warning: MPI GPUDirect requested, but the MPIX_Query_cuda_support function is not provided by the MPI Implementation, did you compile it with CUDA support and the Cuda MPI extension?\n");
 	_STARPU_DEBUG("No CUDA support in MPI\n");
+#endif
+#endif
+
+#if defined(STARPU_USE_HIP_ROC)
+	/* NOTE: We force enabling MPI GPUDirect if the user requested it, even
+	 * if we detected it as unsupported. */
+	if (_starpu_mpi_gpudirect)
+		_starpu_mpi_has_hip = 1;
+#ifdef MPIX_ROCM_AWARE_SUPPORT
+	if (MPIX_Query_rocm_support())
+		_starpu_mpi_has_hip = 1;
+	else if (_starpu_mpi_gpudirect > 0){
+		_STARPU_DISP("Warning: MPI GPUDirect requested, but MPIX_Query_rocm_support reports that it is not supported.\n");
+		_STARPU_DISP("Warning: We still let it enabled, you may expect some issues.\n");
+	}
+	_STARPU_DEBUG("MPI has ROCM: %d\n", _starpu_mpi_has_hip);
+	if (!_starpu_mpi_gpudirect)
+	{
+		_STARPU_DEBUG("But disabled by user\n");
+		_starpu_mpi_has_hip = 0;
+	}
+#else
+	if (_starpu_mpi_gpudirect > 0){
+		_STARPU_DISP("Warning: MPI GPUDirect requested, but the MPIX_Query_rocm_support function is not provided by the MPI Implementation, did you compile it with ROCM support and the ROCm MPI extension?\n");
+		_STARPU_DISP("Warning: We still let it enabled, you may expect some issues.\n");
+	}
+	_STARPU_DEBUG("No ROCM support in MPI\n");
 #endif
 #endif
 
