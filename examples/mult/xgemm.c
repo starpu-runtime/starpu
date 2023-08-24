@@ -624,27 +624,20 @@ int main(int argc, char **argv)
 					starpu_data_handle_t Ctile = starpu_data_get_sub_data(C_handle, 2, x, y);
 					for (z = 0; z < nslicesz; z++)
 					{
-						struct starpu_task *task = starpu_task_create();
-
-						if (z == 0)
-							task->cl = &cl_gemm0;
-						else
-							task->cl = &cl_gemm;
-
-						task->handles[0] = starpu_data_get_sub_data(A_handle, 2, z, y);
-						task->handles[1] = starpu_data_get_sub_data(B_handle, 2, x, z);
-						task->handles[2] = Ctile;
-
-						task->flops = 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * (zdim/nslicesz);
-
-						ret = starpu_task_submit(task);
+						struct starpu_codelet *cl = z == 0 ? &cl_gemm0 : &cl_gemm;
+						ret = starpu_task_insert(cl,
+									 cl->modes[0], starpu_data_get_sub_data(A_handle, 2, z, y),
+									 cl->modes[1], starpu_data_get_sub_data(B_handle, 2, x, z),
+									 cl->modes[2], Ctile,
+									 STARPU_FLOPS, 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * (zdim/nslicesz),
+									 0);
 						if (ret == -ENODEV)
 						{
-						     check = 0;
-						     ret = 77;
-						     goto enodev;
+							check = 0;
+							ret = 77;
+							goto enodev;
 						}
-						STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+						STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 					}
 					starpu_data_wont_use(Ctile);
 				}
@@ -654,24 +647,19 @@ int main(int argc, char **argv)
 				for (x = 0; x < nslicesx; x++)
 				for (y = 0; y < nslicesy; y++)
 				{
-					struct starpu_task *task = starpu_task_create();
-
-					task->cl = &cl_gemm0;
-
-					task->handles[0] = starpu_data_get_sub_data(A_handle, 1, y);
-					task->handles[1] = starpu_data_get_sub_data(B_handle, 1, x);
-					task->handles[2] = starpu_data_get_sub_data(C_handle, 2, x, y);
-
-					task->flops = 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * zdim;
-
-					ret = starpu_task_submit(task);
+					ret = starpu_task_insert(&cl_gemm0,
+								 cl_gemm0.modes[0], starpu_data_get_sub_data(A_handle, 1, y),
+								 cl_gemm0.modes[1], starpu_data_get_sub_data(B_handle, 1, x),
+								 cl_gemm0.modes[2], starpu_data_get_sub_data(C_handle, 2, x, y),
+								 STARPU_FLOPS, 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * zdim,
+								 0);
 					if (ret == -ENODEV)
 					{
-					     check = 0;
-					     ret = 77;
-					     goto enodev;
+						check = 0;
+						ret = 77;
+						goto enodev;
 					}
-					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 					starpu_data_wont_use(starpu_data_get_sub_data(C_handle, 2, x, y));
 				}
 			}
