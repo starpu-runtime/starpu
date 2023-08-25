@@ -274,7 +274,7 @@ static int dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 			for (j = k+1; j<nblocks; j++)
 			{
 				ret = create_task_gemm(dataAp, nblocks, k, i, j, get_block, no_prio);
-			     if (ret == -ENODEV) return ret;
+				if (ret == -ENODEV) return ret;
 			}
 		}
 		starpu_iteration_pop();
@@ -418,8 +418,8 @@ int STARPU_LU(lu_decomposition_pivot_no_stride)(TYPE **matA, unsigned *ipiv, uns
 	for (bi = 0; bi < nblocks; bi++)
 	{
 		starpu_matrix_data_register(&dataAp[bi+nblocks*bj], STARPU_MAIN_RAM,
-			(uintptr_t)matA[bi+nblocks*bj], size/nblocks,
-			size/nblocks, size/nblocks, sizeof(TYPE));
+					    (uintptr_t)matA[bi+nblocks*bj], size/nblocks,
+					    size/nblocks, size/nblocks, sizeof(TYPE));
 
 		/* We already enforce deps by hand */
 		starpu_data_set_sequential_consistency_flag(dataAp[bi+nblocks*bj], 0);

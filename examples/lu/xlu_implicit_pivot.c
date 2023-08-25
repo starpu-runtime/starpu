@@ -54,8 +54,8 @@ static int create_task_pivot(starpu_data_handle_t *dataAp, unsigned nblocks,
 }
 
 static int create_task_getrf_pivot(starpu_data_handle_t *dataAp, unsigned nblocks,
-				unsigned k, struct piv_s *piv_description,
-						starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned), unsigned no_prio)
+				   unsigned k, struct piv_s *piv_description,
+				   starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned), unsigned no_prio)
 {
 	int ret;
 
@@ -81,7 +81,7 @@ static int create_task_getrf_pivot(starpu_data_handle_t *dataAp, unsigned nblock
 }
 
 static int create_task_trsm_ll(starpu_data_handle_t *dataAp, unsigned nblocks, unsigned k, unsigned j,
-			  starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned), unsigned no_prio)
+			       starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned), unsigned no_prio)
 {
 	int ret;
 	struct starpu_task *task = starpu_task_create();
@@ -104,7 +104,7 @@ static int create_task_trsm_ll(starpu_data_handle_t *dataAp, unsigned nblocks, u
 }
 
 static int create_task_trsm_ru(starpu_data_handle_t *dataAp, unsigned nblocks, unsigned k, unsigned i,
-			  starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned), unsigned no_prio)
+			       starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned), unsigned no_prio)
 {
 	int ret;
 	struct starpu_task *task = starpu_task_create();
@@ -127,7 +127,7 @@ static int create_task_trsm_ru(starpu_data_handle_t *dataAp, unsigned nblocks, u
 }
 
 static int create_task_gemm(starpu_data_handle_t *dataAp, unsigned nblocks, unsigned k, unsigned i, unsigned j,
-			  starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned), unsigned no_prio)
+			    starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned), unsigned no_prio)
 {
 	int ret;
 	struct starpu_task *task = starpu_task_create();
@@ -199,15 +199,15 @@ static int dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 		starpu_data_wont_use(get_block(dataAp, nblocks, k, k));
 
 		for (i = k+1; i<nblocks; i++)
-		     for (j = k+1; j<nblocks; j++)
-		     {
-			     ret = create_task_gemm(dataAp, nblocks, k, i, j, get_block, no_prio);
-			     if (ret == -ENODEV) return ret;
-		     }
+			for (j = k+1; j<nblocks; j++)
+			{
+				ret = create_task_gemm(dataAp, nblocks, k, i, j, get_block, no_prio);
+				if (ret == -ENODEV) return ret;
+			}
 		for (i = k+1; i<nblocks; i++)
 		{
-		    starpu_data_wont_use(get_block(dataAp, nblocks, k, i));
-		    starpu_data_wont_use(get_block(dataAp, nblocks, i, k));
+			starpu_data_wont_use(get_block(dataAp, nblocks, k, i));
+			starpu_data_wont_use(get_block(dataAp, nblocks, i, k));
 		}
 		starpu_iteration_pop();
 	}
@@ -292,7 +292,6 @@ int STARPU_LU(lu_decomposition_pivot)(TYPE *matA, unsigned *ipiv, unsigned size,
 	}
 	PRINTF("\n");
 
-
 	/* gather all the data */
 	starpu_data_unpartition(dataA, STARPU_MAIN_RAM);
 	starpu_data_unregister(dataA);
@@ -320,8 +319,8 @@ int STARPU_LU(lu_decomposition_pivot_no_stride)(TYPE **matA, unsigned *ipiv, uns
 	for (bi = 0; bi < nblocks; bi++)
 	{
 		starpu_matrix_data_register(&dataAp[bi+nblocks*bj], STARPU_MAIN_RAM,
-			(uintptr_t)matA[bi+nblocks*bj], size/nblocks,
-			size/nblocks, size/nblocks, sizeof(TYPE));
+					    (uintptr_t)matA[bi+nblocks*bj], size/nblocks,
+					    size/nblocks, size/nblocks, sizeof(TYPE));
 	}
 
 	unsigned i;

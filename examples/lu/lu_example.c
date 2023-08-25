@@ -32,6 +32,8 @@
 
 #include "starpu_cusolver.h"
 
+int niter=1;
+int current_iteration;
 static unsigned long size = 0;
 static unsigned nblocks = 0;
 static unsigned check = 0;
@@ -109,6 +111,11 @@ static void parse_args(int argc, char **argv)
 			bound = 1;
 			bounddeps = 1;
 			boundprio = 1;
+		}
+		else if (strcmp(argv[i], "-iter") == 0)
+		{
+			char *argptr;
+			niter = strtol(argv[++i], &argptr, 10);
 		}
 		else if (strcmp(argv[i], "-directory") == 0)
 		{
@@ -332,6 +339,28 @@ static void check_result(void)
 	free(A_saved);
 }
 
+static void remove_tags()
+{
+	unsigned k;
+	for (k = 0; k < nblocks; k++)
+	{
+		starpu_tag_remove(TAG_GETRF(k));
+
+		unsigned i;
+		for (i = k+1; i<nblocks; i++)
+		{
+			starpu_tag_remove(TAG_TRSM_LL(k, i));
+			starpu_tag_remove(TAG_TRSM_RU(k, i));
+
+			unsigned j;
+			for (j = k+1; j<nblocks; j++)
+			{
+				starpu_tag_remove(TAG_GEMM(k, i, j));
+			}
+		}
+	}
+}
+
 int main(int argc, char **argv)
 {
 	int ret;
@@ -371,109 +400,117 @@ int main(int argc, char **argv)
 	starpu_cublas_init();
 	starpu_cusolver_init();
 
-	init_matrix();
+	current_iteration = 1;
+	int iter;
+	for (iter = 0; iter < niter; iter++)
+	{
+		init_matrix();
 
 #ifndef STARPU_SIMGRID
-	unsigned *ipiv = NULL;
-	if (check)
-		save_matrix();
+		unsigned *ipiv = NULL;
+		if (check)
+			save_matrix();
 
-	display_matrix(A, size, size, "A");
+		display_matrix(A, size, size, "A");
 
-	if (profile)
-		starpu_profiling_status_set(STARPU_PROFILING_ENABLE);
+		if (profile)
+			starpu_profiling_status_set(STARPU_PROFILING_ENABLE);
 
-	/* Factorize the matrix (in place) */
-	if (pivot)
-	{
-		ipiv = malloc(size*sizeof(unsigned));
-		if (no_stride)
-		{
-			/* in case the LU decomposition uses non-strided blocks, we _copy_ the matrix into smaller blocks */
-			A_blocks = malloc(nblocks*nblocks*sizeof(TYPE *));
-			copy_matrix_into_blocks();
-
-			ret = STARPU_LU(lu_decomposition_pivot_no_stride)(A_blocks, ipiv, size, size, nblocks, no_prio);
-
-			copy_blocks_into_matrix();
-			free(A_blocks);
-		}
-		else
-		{
-			double start;
-			double end;
-
-			start = starpu_timing_now();
-
-			ret = STARPU_LU(lu_decomposition_pivot)(A, ipiv, size, size, nblocks, no_prio);
-
-			end = starpu_timing_now();
-
-			double timing = end - start;
-
-			unsigned n = size;
-			double flop = (2.0f*n*n*n)/3.0f;
-			FPRINTF(stderr, "Synthetic GFlop/s (TOTAL) : \n");
-			FPRINTF(stdout, "%u	%6.2f\n", n, (flop/timing/1000.0f));
-		}
-	}
-	else
-#endif
-	{
-		ret = STARPU_LU(lu_decomposition)(A, size, size, nblocks, no_prio);
-	}
-
-	if (profile)
-	{
-		FPRINTF(stderr, "Setting profile\n");
-		starpu_profiling_status_set(STARPU_PROFILING_DISABLE);
-		starpu_profiling_bus_helper_display_summary();
-	}
-
-	if (bound)
-	{
-		if (bounddeps)
-		{
-			if (!directory)
-				directory = strdup(".");
-			char filename[256];
-			snprintf(filename, sizeof(filename), "%s/%s", directory, "lu.pl");
-			FILE *f = fopen(filename, "w");
-			starpu_bound_print_lp(f);
-			FPRINTF(stderr,"system printed to %s\n", filename);
-			fclose(f);
-			snprintf(filename, sizeof(filename), "%s/%s", directory, "lu.mps");
-			f = fopen(filename, "w");
-			starpu_bound_print_mps(f);
-			FPRINTF(stderr,"system printed to %s\n", filename);
-			fclose(f);
-			snprintf(filename, sizeof(filename), "%s/%s", directory, "lu.dot");
-			f = fopen(filename, "w");
-			starpu_bound_print_dot(f);
-			FPRINTF(stderr,"system printed to %s\n", filename);
-			fclose(f);
-		}
-	}
-
-#ifndef STARPU_SIMGRID
-	if (check)
-	{
-		FPRINTF(stderr, "Checking result\n");
+		/* Factorize the matrix (in place) */
 		if (pivot)
 		{
-			pivot_saved_matrix(ipiv);
+			ipiv = malloc(size*sizeof(unsigned));
+			if (no_stride)
+			{
+				/* in case the LU decomposition uses non-strided blocks, we _copy_ the matrix into smaller blocks */
+				A_blocks = malloc(nblocks*nblocks*sizeof(TYPE *));
+				copy_matrix_into_blocks();
+
+				ret = STARPU_LU(lu_decomposition_pivot_no_stride)(A_blocks, ipiv, size, size, nblocks, no_prio);
+
+				copy_blocks_into_matrix();
+				free(A_blocks);
+			}
+			else
+			{
+				double start;
+				double end;
+
+				start = starpu_timing_now();
+
+				ret = STARPU_LU(lu_decomposition_pivot)(A, ipiv, size, size, nblocks, no_prio);
+
+				end = starpu_timing_now();
+
+				double timing = end - start;
+
+				unsigned n = size;
+				double flop = (2.0f*n*n*n)/3.0f;
+				FPRINTF(stderr, "Synthetic GFlop/s (TOTAL) : \n");
+				FPRINTF(stdout, "%u	%6.2f\n", n, (flop/timing/1000.0f));
+			}
+		}
+		else
+#endif
+		{
+			ret = STARPU_LU(lu_decomposition)(A, size, size, nblocks, no_prio);
 		}
 
-		check_result();
-	}
+		if (profile)
+		{
+			FPRINTF(stderr, "Setting profile\n");
+			starpu_profiling_status_set(STARPU_PROFILING_DISABLE);
+			starpu_profiling_bus_helper_display_summary();
+		}
 
-	if (pivot)
-		free(ipiv);
+		if (bound)
+		{
+			if (bounddeps)
+			{
+				if (!directory)
+					directory = strdup(".");
+				char filename[256];
+				snprintf(filename, sizeof(filename), "%s/%s", directory, "lu.pl");
+				FILE *f = fopen(filename, "w");
+				starpu_bound_print_lp(f);
+				FPRINTF(stderr,"system printed to %s\n", filename);
+				fclose(f);
+				snprintf(filename, sizeof(filename), "%s/%s", directory, "lu.mps");
+				f = fopen(filename, "w");
+				starpu_bound_print_mps(f);
+				FPRINTF(stderr,"system printed to %s\n", filename);
+				fclose(f);
+				snprintf(filename, sizeof(filename), "%s/%s", directory, "lu.dot");
+				f = fopen(filename, "w");
+				starpu_bound_print_dot(f);
+				FPRINTF(stderr,"system printed to %s\n", filename);
+				fclose(f);
+			}
+		}
+
+#ifndef STARPU_SIMGRID
+		if (check)
+		{
+			FPRINTF(stderr, "Checking result\n");
+			if (pivot)
+			{
+				pivot_saved_matrix(ipiv);
+			}
+
+			check_result();
+		}
+
+		if (pivot)
+			free(ipiv);
 #endif
 
 #ifndef STARPU_SIMGRID
-	starpu_free_flags(A, (size_t)size*size*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
+		starpu_free_flags(A, (size_t)size*size*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 #endif
+		remove_tags();
+		current_iteration++;
+		starpu_reset_scheduler();
+	}
 
 	starpu_cusolver_shutdown();
 	starpu_cublas_shutdown();

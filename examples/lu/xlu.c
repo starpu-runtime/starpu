@@ -18,8 +18,13 @@
 /* LU StarPU implementation using explicit tag dependencies */
 #include "xlu.h"
 #include "xlu_kernels.h"
-
 #include "starpu_cusolver.h"
+#include <math.h>
+
+static double average_flop = 0;
+static double timing_total = 0;
+static double flop_total = 0;
+static double timing_square = 0;
 
 /*
  *	Construct the DAG
@@ -28,7 +33,7 @@
 static struct starpu_task *create_task(starpu_tag_t id)
 {
 	struct starpu_task *task = starpu_task_create();
-		task->cl_arg = NULL;
+	task->cl_arg = NULL;
 
 	task->use_tag = 1;
 	task->tag_id = id;
@@ -210,7 +215,7 @@ static int dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks, uns
 			for (j = k+1; j<nblocks; j++)
 			{
 				ret = create_task_gemm(dataA, k, i, j, no_prio, nblocks);
-			     if (ret == -ENODEV) return ret;
+				if (ret == -ENODEV) return ret;
 			}
 		}
 		starpu_iteration_pop();
@@ -234,18 +239,36 @@ static int dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks, uns
 	unsigned n = starpu_matrix_get_nx(dataA);
 	double flop = (2.0f*n*n*n)/3.0f;
 
-	PRINTF("# size\tms\tGFlop/s");
-	if (bound)
-		PRINTF("\tTms\tTGFlop/s");
-	PRINTF("\n");
-	PRINTF("%u\t%.0f\t%.1f", n, timing/1000, flop/timing/1000.0f);
-	if (bound)
+	/* Ignoring the results of the first iteration. */
+	if (current_iteration != 1 || niter == 1)
 	{
-		double min;
-		starpu_bound_compute(&min, NULL, 0);
-		PRINTF("\t%.0f\t%.1f", min, flop/min/1000000.0f);
+		average_flop += flop/timing/1000.0f;
+		timing_total += end - start;
+		flop_total += flop;
+		timing_square += (end-start) * (end-start);
 	}
-	PRINTF("\n");
+
+	if (current_iteration == niter)
+	{
+		int divider = niter == 1 ? 1 : niter - 1;
+		average_flop = average_flop/divider;
+
+		double average = timing_total/divider;
+		double deviation = sqrt(fabs(timing_square / divider - average*average));
+
+		PRINTF("# size\tms\tGFlop/s\tDeviance");
+		if (bound)
+			PRINTF("\tTms\tTGFlop/s");
+		PRINTF("\n");
+		PRINTF("%u\t%.0f\t%.1f\t%.1f", n, timing/1000, average_flop, flop/divider/(average*average)*deviation/1000.0);
+		if (bound)
+		{
+			double min;
+			starpu_bound_compute(&min, NULL, 0);
+			PRINTF("\t%.0f\t%.1f", min, flop/min/1000000.0f);
+		}
+		PRINTF("\n");
+	}
 
 	return 0;
 }

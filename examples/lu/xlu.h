@@ -20,16 +20,11 @@
 #include <starpu.h>
 #include <common/blas.h>
 
-#define TAG_GETRF(k)	((starpu_tag_t)((1ULL<<60) | (unsigned long long)(k)))
-#define TAG_TRSM_LL(k,i)	((starpu_tag_t)(((2ULL<<60) | (((unsigned long long)(k))<<40)	\
-					| (unsigned long long)(i))))
-#define TAG_TRSM_RU(k,j)	((starpu_tag_t)(((3ULL<<60) | (((unsigned long long)(k))<<40)	\
-					| (unsigned long long)(j))))
-#define TAG_GEMM(k,i,j)	((starpu_tag_t)(((4ULL<<60) | ((unsigned long long)(k)<<40) 	\
-					| ((unsigned long long)(i)<<20)	\
-					| (unsigned long long)(j))))
-#define PIVOT(k,i)	((starpu_tag_t)(((5ULL<<60) | (((unsigned long long)(k))<<40)	\
-					| (unsigned long long)(i))))
+#define TAG_GETRF(k)	 ((starpu_tag_t)((1ULL<<60) | (unsigned long long)(k)))
+#define TAG_TRSM_LL(k,i) ((starpu_tag_t)(((2ULL<<60) | (((unsigned long long)(k))<<40) | (unsigned long long)(i))))
+#define TAG_TRSM_RU(k,j) ((starpu_tag_t)(((3ULL<<60) | (((unsigned long long)(k))<<40) | (unsigned long long)(j))))
+#define TAG_GEMM(k,i,j)	 ((starpu_tag_t)(((4ULL<<60) | ((unsigned long long)(k)<<40) | ((unsigned long long)(i)<<20) | (unsigned long long)(j))))
+#define PIVOT(k,i)	 ((starpu_tag_t)(((5ULL<<60) | (((unsigned long long)(k))<<40) | (unsigned long long)(i))))
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 #define PRINTF(fmt, ...) do { if (!getenv("STARPU_SSILENT")) {printf(fmt, ## __VA_ARGS__); }} while(0)
@@ -116,6 +111,10 @@ extern unsigned boundprio;
 extern starpu_data_handle_t scratch;
 void lu_kernel_init(int nb);
 void lu_kernel_fini(void);
+
+/* To run several iterations and only plot the mean of the last 10 and the deviance */
+extern int current_iteration;
+extern int niter;
 
 struct piv_s
 {
