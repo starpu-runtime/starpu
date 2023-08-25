@@ -24,7 +24,6 @@
 #include <string.h>
 #include <math.h>
 
-
 #ifdef STARPU_PAPI
 #include <papi.h>
 #endif
@@ -4926,8 +4925,8 @@ uint64_t _starpu_fxt_find_start_time(char *filename_in)
 	return (ev.time);
 }
 
-
-struct inputrank {
+struct inputrank
+{
 	int input;
 	int rank;
 };

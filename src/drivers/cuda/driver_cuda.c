@@ -259,7 +259,8 @@ static int _starpu_cuda_direct_link(unsigned devid1, unsigned devid2)
 	if (!nvml_dev1)
 		return 0;
 
-	for (i = 0; i < NVML_NVLINK_MAX_LINKS; i++) {
+	for (i = 0; i < NVML_NVLINK_MAX_LINKS; i++)
+	{
 		nvmlEnableState_t active;
 		nvmlReturn_t ret;
 		ret = nvmlDeviceGetNvLinkState(nvml_dev1, i, &active);

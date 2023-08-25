@@ -154,7 +154,8 @@ void _starpu_mpi_do_initialize(struct _starpu_mpi_argc_argv *argc_argv)
 				int cuda_worker = starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0);
 				_starpu_mpi_cuda_devid = starpu_worker_get_devid(cuda_worker);
 				gpu_device = _starpu_mpi_cuda_devid;
-			} else if (_starpu_mpi_has_hip)
+			}
+			else if (_starpu_mpi_has_hip)
 			{
 				int hip_worker = starpu_worker_get_by_type(STARPU_HIP_WORKER, 0);
 				_starpu_mpi_hip_devid = starpu_worker_get_devid(hip_worker);
@@ -181,7 +182,8 @@ void _starpu_mpi_do_initialize(struct _starpu_mpi_argc_argv *argc_argv)
 #ifdef MPIX_ROCM_AWARE_SUPPORT
 	if (MPIX_Query_rocm_support())
 		_starpu_mpi_has_hip = 1;
-	else if (_starpu_mpi_gpudirect > 0){
+	else if (_starpu_mpi_gpudirect > 0)
+	{
 		_STARPU_DISP("Warning: MPI GPUDirect requested, but MPIX_Query_rocm_support reports that it is not supported.\n");
 		_STARPU_DISP("Warning: We still let it enabled, you may expect some issues.\n");
 	}
@@ -192,7 +194,8 @@ void _starpu_mpi_do_initialize(struct _starpu_mpi_argc_argv *argc_argv)
 		_starpu_mpi_has_hip = 0;
 	}
 #else
-	if (_starpu_mpi_gpudirect > 0){
+	if (_starpu_mpi_gpudirect > 0)
+	{
 		_STARPU_DISP("Warning: MPI GPUDirect requested, but the MPIX_Query_rocm_support function is not provided by the MPI Implementation, did you compile it with ROCM support and the ROCm MPI extension?\n");
 		_STARPU_DISP("Warning: We still let it enabled, you may expect some issues.\n");
 	}
