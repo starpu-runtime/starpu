@@ -66,6 +66,11 @@ static void parse_args(int argc, char **argv)
 		{
 			char *argptr;
 			nblocks = strtol(argv[++i], &argptr, 10);
+			if (nblocks >= 1<<20)
+			{
+				fprintf(stderr,"Unsupported large number of blocks for the current 3*20bit tag space\n");
+				exit(EXIT_FAILURE);
+			}
 		}
 
 #ifndef STARPU_SIMGRID
