@@ -152,12 +152,14 @@ void _starpu_mpi_do_initialize(struct _starpu_mpi_argc_argv *argc_argv)
 			if (_starpu_mpi_has_cuda)
 			{
 				int cuda_worker = starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0);
+				STARPU_ASSERT(cuda_worker >= 0);
 				_starpu_mpi_cuda_devid = starpu_worker_get_devid(cuda_worker);
 				gpu_device = _starpu_mpi_cuda_devid;
 			}
 			else if (_starpu_mpi_has_hip)
 			{
 				int hip_worker = starpu_worker_get_by_type(STARPU_HIP_WORKER, 0);
+				STARPU_ASSERT(hip_worker >= 0);
 				_starpu_mpi_hip_devid = starpu_worker_get_devid(hip_worker);
 				gpu_device = _starpu_mpi_hip_devid;
 			}
