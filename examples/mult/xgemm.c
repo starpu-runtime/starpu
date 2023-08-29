@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  * Copyright (C) 2017       Erwan Leria
  *
@@ -629,7 +629,7 @@ int main(int argc, char **argv)
 									 cl->modes[0], starpu_data_get_sub_data(A_handle, 2, z, y),
 									 cl->modes[1], starpu_data_get_sub_data(B_handle, 2, x, z),
 									 cl->modes[2], Ctile,
-									 STARPU_FLOPS, 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * (zdim/nslicesz),
+									 STARPU_FLOPS, (double) (2ULL * (xdim/nslicesx) * (ydim/nslicesy) * (zdim/nslicesz)),
 									 0);
 						if (ret == -ENODEV)
 						{
@@ -651,7 +651,7 @@ int main(int argc, char **argv)
 								 cl_gemm0.modes[0], starpu_data_get_sub_data(A_handle, 1, y),
 								 cl_gemm0.modes[1], starpu_data_get_sub_data(B_handle, 1, x),
 								 cl_gemm0.modes[2], starpu_data_get_sub_data(C_handle, 2, x, y),
-								 STARPU_FLOPS, 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * zdim,
+								 STARPU_FLOPS, (double) (2ULL * (xdim/nslicesx) * (ydim/nslicesy) * zdim),
 								 0);
 					if (ret == -ENODEV)
 					{
