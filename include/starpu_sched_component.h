@@ -823,7 +823,7 @@ struct starpu_sched_tree *starpu_sched_component_make_scheduler(unsigned sched_c
 /**
    Request that the fifos below be sorted with ready tasks first
 */
-#define STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY_FIRST (1 << 14)
+#define STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY_FIRST (1 << 15)
 
 /**
    Request that work between workers using the same fifo below be distributed using a work stealing component.
