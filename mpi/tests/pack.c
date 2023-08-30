@@ -52,7 +52,8 @@ struct starpu_codelet mycodelet =
 {
 	.cpu_funcs = {func_dup_arg},
 	.cpu_funcs_name = {"func_dup_arg"},
-        .nbuffers = 0
+        .nbuffers = 0,
+	.flags = STARPU_CODELET_SIMGRID_EXECUTE,
 };
 
 int main(int argc, char **argv)
