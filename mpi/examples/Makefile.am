@@ -596,6 +596,7 @@ endif
 benchs_sendrecv_bench_SOURCES = benchs/sendrecv_bench.c
 benchs_sendrecv_bench_SOURCES += benchs/bench_helper.c
 benchs_sendrecv_bench_SOURCES += benchs/abstract_sendrecv_bench.c
+benchs_sendrecv_bench_LDADD = $(STARPU_HIP_LDFLAGS)
 
 benchs_bcast_bench_SOURCES = benchs/bcast_bench.c
 benchs_bcast_bench_SOURCES += benchs/bench_helper.c
@@ -619,7 +620,7 @@ benchs_sendrecv_gemm_bench_SOURCES += benchs/gemm_helper.c
 benchs_sendrecv_gemm_bench_SOURCES += benchs/abstract_sendrecv_bench.c
 benchs_sendrecv_gemm_bench_SOURCES += ../../examples/common/blas.c
 
-benchs_sendrecv_gemm_bench_LDADD = $(STARPU_BLAS_LDFLAGS)
+benchs_sendrecv_gemm_bench_LDADD = $(STARPU_BLAS_LDFLAGS) $(STARPU_HIP_LDFLAGS)
 
 benchs_burst_gemm_SOURCES = benchs/burst_gemm.c
 benchs_burst_gemm_SOURCES += benchs/gemm_helper.c
