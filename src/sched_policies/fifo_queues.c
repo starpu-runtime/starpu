@@ -446,7 +446,7 @@ int starpu_st_non_ready_buffers_count(struct starpu_task *task, unsigned worker)
 	return cnt;
 }
 
-struct starpu_task *starpu_st_fifo_taskq_pop_first_ready_task(struct starpu_st_fifo_taskq *fifo_queue, unsigned workerid, int num_priorities)
+struct starpu_task *_starpu_st_fifo_taskq_pop_first_ready_task(struct starpu_st_fifo_taskq *fifo_queue, unsigned workerid, int num_priorities, int ready_first)
 {
 	struct starpu_task *task = NULL, *current;
 
@@ -466,12 +466,13 @@ struct starpu_task *starpu_st_fifo_taskq_pop_first_ready_task(struct starpu_st_f
 		size_t non_ready_best = SIZE_MAX;
 		size_t non_loading_best = SIZE_MAX;
 		size_t non_allocated_best = SIZE_MAX;
+		int task_priority_best = INT_MIN;
 
 		for (current = task; current; current = current->next)
 		{
 			int priority = current->priority;
 
-			if (priority >= first_task_priority)
+			if (ready_first || priority >= first_task_priority)
 			{
 				size_t non_ready, non_loading, non_allocated;
 				starpu_st_non_ready_buffers_size(current, workerid, &non_ready, &non_loading, &non_allocated);
@@ -480,6 +481,7 @@ struct starpu_task *starpu_st_fifo_taskq_pop_first_ready_task(struct starpu_st_f
 					non_ready_best = non_ready;
 					non_loading_best = non_loading;
 					non_allocated_best = non_allocated;
+					task_priority_best = priority;
 					task = current;
 
 					if (non_ready == 0 && non_allocated == 0)
@@ -491,6 +493,7 @@ struct starpu_task *starpu_st_fifo_taskq_pop_first_ready_task(struct starpu_st_f
 					{
 						non_loading_best = non_loading;
 						non_allocated_best = non_allocated;
+						task_priority_best = priority;
 						task = current;
 					}
 					else if (non_loading == non_loading_best)
@@ -498,7 +501,16 @@ struct starpu_task *starpu_st_fifo_taskq_pop_first_ready_task(struct starpu_st_f
 						if (non_allocated < non_allocated_best)
 						{
 							non_allocated_best = non_allocated;
+							task_priority_best = priority;
 							task = current;
+						}
+						else if (non_allocated == non_allocated_best)
+						{
+							if (ready_first && priority > task_priority_best)
+							{
+								task_priority_best = priority;
+								task = current;
+							}
 						}
 					}
 				}
@@ -518,3 +530,14 @@ struct starpu_task *starpu_st_fifo_taskq_pop_first_ready_task(struct starpu_st_f
 
 	return task;
 }
+
+struct starpu_task *starpu_st_fifo_taskq_pop_first_ready_task(struct starpu_st_fifo_taskq *fifo_queue, unsigned workerid, int num_priorities)
+{
+	return _starpu_st_fifo_taskq_pop_first_ready_task(fifo_queue, workerid, num_priorities, 0);
+}
+
+struct starpu_task *starpu_st_fifo_taskq_pop_first_ready_task_ready_first(struct starpu_st_fifo_taskq *fifo_queue, unsigned workerid, int num_priorities)
+{
+	return _starpu_st_fifo_taskq_pop_first_ready_task(fifo_queue, workerid, num_priorities, 1);
+}
+

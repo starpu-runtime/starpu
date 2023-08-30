@@ -455,6 +455,7 @@ struct starpu_sched_component_fifo_data
 	double exp_len_threshold;
 	int ready;
 	int exp;
+	int ready_first;
 };
 
 /**
@@ -818,6 +819,11 @@ struct starpu_sched_tree *starpu_sched_component_make_scheduler(unsigned sched_c
    Request that the fifos below be pulled rather ready tasks
 */
 #define STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY (1 << 10)
+
+/**
+   Request that the fifos below be sorted with ready tasks first
+*/
+#define STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY_FIRST (1 << 14)
 
 /**
    Request that work between workers using the same fifo below be distributed using a work stealing component.

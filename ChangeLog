@@ -24,6 +24,9 @@ New features:
 Small features:
   * Add FXT option -use-task-color to propagate the specified task
     color to the contexts
+  * Add flag STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY_FIRST and
+    environment variable STARPU_SCHED_FIFO_READY_FIRST to let FIFO
+    components pick up ready tasks first.
 
 StarPU 1.4.1
 ==============================================

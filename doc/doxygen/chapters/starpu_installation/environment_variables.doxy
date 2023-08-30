@@ -799,6 +799,14 @@ pick up a task which has most of its data already available. Setting this to 0
 disables this.
 </dd>
 
+<dt>STARPU_SCHED_FIFO_READY_FIRST</dt>
+<dd>
+\anchor STARPU_SCHED_FIFO_READY_FIRST
+\addindex __env__STARPU_SCHED_FIFO_READY_FIRST
+For a modular scheduler with FIFO queues below the decision component, workers
+pick up a task which has the highest priority. Setting this to 1 will pick up the first ready task.
+</dd>
+
 <dt>STARPU_SCHED_SORTED_ABOVE</dt>
 <dd>
 \anchor STARPU_SCHED_SORTED_ABOVE

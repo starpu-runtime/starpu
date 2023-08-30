@@ -120,9 +120,14 @@ struct starpu_task *starpu_st_fifo_taskq_pop_task(starpu_st_fifo_taskq_t fifo, i
 struct starpu_task *starpu_st_fifo_taskq_pop_local_task(starpu_st_fifo_taskq_t fifo);
 
 /**
-   Pop the first task that can be executed on the calling driver and taking into account readiness of data
+   Pop the first task with the highest priority that can be executed on the calling driver and taking into account readiness of data
 */
 struct starpu_task *starpu_st_fifo_taskq_pop_first_ready_task(starpu_st_fifo_taskq_t fifo_queue, unsigned workerid, int num_priorities);
+
+/**
+   Pop the first task that can be executed on the calling driver and taking into account readiness of data
+*/
+struct starpu_task *starpu_st_fifo_taskq_pop_first_ready_task_ready_first(struct starpu_st_fifo_taskq *fifo_queue, unsigned workerid, int num_priorities);
 
 /**
    Opaque type for PRIO task queue

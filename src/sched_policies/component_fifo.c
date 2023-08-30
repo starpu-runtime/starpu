@@ -30,6 +30,7 @@ struct _starpu_fifo_data
 	double exp_len_threshold;
 	int ready;
 	int exp;
+	int ready_first;
 };
 
 static void fifo_component_deinit_data(struct starpu_sched_component * component)
@@ -185,7 +186,12 @@ static struct starpu_task * fifo_pull_task(struct starpu_sched_component * compo
 #ifdef STARPU_DEVEL
 #warning In eager schedulers, we never write that we want to fill the fifo before picking up a task. Eager is then ineffective since in practice the fifo will not fill
 #endif
-		task = starpu_st_fifo_taskq_pop_first_ready_task(queue, starpu_bitmap_first(&to->workers_in_ctx), -1);
+	{
+		if (data->ready_first)
+			task = starpu_st_fifo_taskq_pop_first_ready_task_ready_first(queue, starpu_bitmap_first(&to->workers_in_ctx), -1);
+		else
+			task = starpu_st_fifo_taskq_pop_first_ready_task(queue, starpu_bitmap_first(&to->workers_in_ctx), -1);
+	}
 	else if (to->properties & STARPU_SCHED_COMPONENT_HOMOGENEOUS)
 		task = starpu_st_fifo_taskq_pop_task(queue, starpu_bitmap_first(&to->workers_in_ctx));
 	else
@@ -269,7 +275,7 @@ int starpu_sched_component_is_fifo(struct starpu_sched_component * component)
 	return component->push_task == fifo_push_task;
 }
 
-struct starpu_sched_component * starpu_sched_component_fifo_create(struct starpu_sched_tree *tree, struct starpu_sched_component_fifo_data * params)
+struct starpu_sched_component *starpu_sched_component_fifo_create(struct starpu_sched_tree *tree, struct starpu_sched_component_fifo_data *params)
 {
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "fifo");
 	struct _starpu_fifo_data *data;
@@ -290,6 +296,7 @@ struct starpu_sched_component * starpu_sched_component_fifo_create(struct starpu
 		data->exp_len_threshold=params->exp_len_threshold;
 		data->ready=params->ready;
 		data->exp=params->exp;
+		data->ready_first=params->ready_first;
 	}
 	else
 	{
@@ -297,6 +304,7 @@ struct starpu_sched_component * starpu_sched_component_fifo_create(struct starpu
 		data->exp_len_threshold=0.0;
 		data->ready=0;
 		data->exp=0;
+		data->ready_first=0;
 	}
 
 	return component;

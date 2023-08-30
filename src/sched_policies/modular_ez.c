@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -316,6 +316,7 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 		exp_len_threshold = starpu_getenv_float_default("STARPU_EXP_LEN_THRESHOLD", exp_len_threshold);
 
 		int ready = starpu_getenv_number_default("STARPU_SCHED_READY", (flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY) ? 1 : 0);
+		int ready_first = starpu_getenv_number_default("STARPU_SCHED_FIFO_READY_FIRST", (flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY_FIRST) ? 1 : 0);
 
 		int exp = (flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW_EXP) ? 1 : 0;
 
@@ -333,6 +334,7 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 			.exp_len_threshold = exp_len_threshold,
 			.ready = ready,
 			.exp = exp,
+			.ready_first = ready_first,
 		};
 
 		/* Create one fifo+eager component pair per choice, below scheduling decision */
