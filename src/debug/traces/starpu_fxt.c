@@ -3056,6 +3056,8 @@ static void handle_task_line(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 	char *file = get_fxt_string(ev,2);
 
 	struct task_info *task = get_task(job_id, options->file_rank);
+	if (task->file)
+		free(task->file);
 	task->file = strdup(file);
 	task->line = line;
 
