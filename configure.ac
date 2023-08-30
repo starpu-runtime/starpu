@@ -1879,10 +1879,10 @@ if test x$have_valid_hip = xyes; then
     AC_CHECK_HEADERS([hip/hip_runtime.h hip/hip_runtime_api.h],[have_valid_hip=yes],[have_valid_hip=no])
     if test x$custom_hipblas_dir != x; then
         AC_CHECK_HEADER([$custom_hipblas_dir/include/hipblas.h],[have_valid_hipblas=yes],[have_valid_hipblas=no])
-        AC_MSG_WARN(['hipblas' custom])
+        AC_MSG_NOTICE(['hipblas' custom])
     else
         AC_CHECK_HEADER([hipblas/hipblas.h],[have_valid_hipblas=yes],[have_valid_hipblas=no])
-        AC_MSG_WARN(['hipblas' default])
+        AC_MSG_NOTICE(['hipblas' default])
     fi
     if test x$have_valid_hipblas = xyes; then
         AC_HAVE_LIBRARY([hipblas],[have_valid_hipblas=yes],[have_valid_hipblas=no])
