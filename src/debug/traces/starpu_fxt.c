@@ -1775,6 +1775,8 @@ static void handle_model_name(struct fxt_ev_64 *ev, struct starpu_fxt_options *o
 {
 	struct task_info *task = get_task(ev->param[0], options->file_rank);
 	char *name = get_fxt_string(ev, 2);
+	if (task->model_name)
+		free(task->model_name);
 	task->model_name = strdup(name);
 }
 
