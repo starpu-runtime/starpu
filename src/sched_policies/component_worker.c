@@ -814,7 +814,7 @@ int starpu_sched_component_worker_get_workerid(struct starpu_sched_component * w
 	return starpu_bitmap_first(&worker_component->workers);
 }
 
-void starpu_sched_component_worker_pre_exec_hook(struct starpu_task * task, unsigned sched_ctx_id STARPU_ATTRIBUTE_UNUSED)
+void starpu_sched_component_worker_pre_exec_hook(struct starpu_task * task, unsigned sched_ctx_id)
 {
 	struct _starpu_worker_task_list * list = _worker_get_list(sched_ctx_id);
 	const double now = starpu_timing_now();
@@ -825,7 +825,7 @@ void starpu_sched_component_worker_pre_exec_hook(struct starpu_task * task, unsi
 	STARPU_COMPONENT_MUTEX_UNLOCK(&list->mutex);
 }
 
-void starpu_sched_component_worker_post_exec_hook(struct starpu_task * task, unsigned sched_ctx_id STARPU_ATTRIBUTE_UNUSED)
+void starpu_sched_component_worker_post_exec_hook(struct starpu_task * task, unsigned sched_ctx_id)
 {
 	if(task->execute_on_a_specific_worker)
 		return;
