@@ -86,7 +86,15 @@ starpu_memory_pin() to pin memory allocated by other ways, such as local arrays 
 is needed to permit asynchronous data transfer, i.e. permit data
 transfer to overlap with computations. Otherwise, the trace will show
 that the state <c>DriverCopyAsync</c> takes a lot of time, this is
-because CUDA or OpenCL then reverts to synchronous transfers. Before shutting down StarPU, the application should deallocate any memory that has previously been allocated with starpu_malloc(), by calling either starpu_free() or starpu_free_noflag() which is more recommended. If the application has pinned memory using starpu_memory_pin(), it should unpin the memory using starpu_memory_unpin() before freeing the memory.
+because CUDA or OpenCL then reverts to synchronous transfers. Before shutting
+down StarPU, the application should deallocate any memory that has previously
+been allocated with starpu_malloc(), by calling either starpu_free() or
+starpu_free_noflag() which is more recommended. If the application has
+pinned memory using starpu_memory_pin(), it should unpin the memory using
+starpu_memory_unpin() before freeing the memory. Note that CUDA
+pinning/unpinning takes a long time, so for e.g. temporary data, it is much more
+efficient to use a StarPU temporary data (see \ref TemporaryData), that StarPU
+can reuse and thus avoid the pin/unpin cost.
 
 If an application requires a specific alignment constraint for memory allocations made with starpu_malloc(), it can use the starpu_malloc_set_align() function to set the alignment requirement.
 
