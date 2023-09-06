@@ -88,6 +88,7 @@ EXTRA_DIST = 					\
 	native_fortran/Makefile_nf_matrix.mk		\
 	native_fortran/Makefile_nf_partition.mk		\
 	native_fortran/Makefile_nf_sched_ctx.mk		\
+	native_fortran/Makefile_nf_sched_ctx_color.mk	\
 	native_fortran/Makefile_nf_varbuf.mk		\
 	native_fortran/Makefile_nf_vector.mk		\
 	cpp/Makefile_add_vectors_cpp11.mk		\
@@ -334,6 +335,7 @@ STARPU_EXAMPLES +=				\
 	native_fortran/nf_dynbuf		\
 	native_fortran/nf_varbuf		\
 	native_fortran/nf_sched_ctx		\
+	native_fortran/nf_sched_ctx_color	\
 	native_fortran/nf_partition
 endif
 endif
@@ -557,6 +559,10 @@ native_fortran_nf_sched_ctx_SOURCES =	\
 	native_fortran/nf_sched_ctx_cl.f90		\
 	native_fortran/fstarpu_mod.f90	\
 	native_fortran/nf_sched_ctx.f90
+
+native_fortran_nf_sched_ctx_color_SOURCES =	\
+	native_fortran/fstarpu_mod.f90	\
+	native_fortran/nf_sched_ctx_color.f90
 
 native_fortran_nf_partition_SOURCES =	\
 	native_fortran/nf_partition_cl.f90		\
@@ -1538,6 +1544,7 @@ native_fortran/nf_partition_cl.o: fstarpu_mod.mod
 native_fortran/nf_partition.o: nf_partition_cl.mod fstarpu_mod.mod
 native_fortran/nf_sched_ctx_cl.o: fstarpu_mod.mod
 native_fortran/nf_sched_ctx.o: nf_sched_ctx_cl.mod fstarpu_mod.mod
+native_fortran/nf_sched_ctx_color.o: fstarpu_mod.mod
 native_fortran/nf_varbuf_cl.o: fstarpu_mod.mod
 native_fortran/nf_varbuf.o: nf_varbuf_cl.mod fstarpu_mod.mod
 native_fortran/nf_vector.o: nf_codelets.mod fstarpu_mod.mod
