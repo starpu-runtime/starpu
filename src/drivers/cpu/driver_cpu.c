@@ -367,7 +367,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 		STARPU_ASSERT_MSG(func, "when STARPU_CPU is defined in 'where', cpu_func or cpu_funcs has to be defined");
 		if (_starpu_get_disable_kernels() <= 0)
 		{
-			_STARPU_TRACE_START_EXECUTING();
+			_STARPU_TRACE_START_EXECUTING(j);
 #ifdef STARPU_PROF_TOOL
 			pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_start_cpu_exec, devid, worker_task->workerid, starpu_prof_tool_driver_cpu, -1, (void*)func);
 			starpu_prof_tool_callbacks.starpu_prof_tool_event_start_cpu_exec(&pi, NULL, NULL);
@@ -401,7 +401,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 			pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_cpu_exec, devid, worker_task->workerid, starpu_prof_tool_driver_cpu, -1, (void*)func);
 			starpu_prof_tool_callbacks.starpu_prof_tool_event_end_cpu_exec(&pi, NULL, NULL);
 #endif
-			_STARPU_TRACE_END_EXECUTING();
+			_STARPU_TRACE_END_EXECUTING(j);
 		}
 		if (is_parallel_task && cl->type == STARPU_FORKJOIN)
 			/* rebind to single CPU */
@@ -413,7 +413,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 		pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_cpu_exec, devid, worker_task->workerid, starpu_prof_tool_driver_cpu, -1, (void*)func);
 		starpu_prof_tool_callbacks.starpu_prof_tool_event_end_cpu_exec(&pi, NULL, NULL);
 #endif
-		_STARPU_TRACE_START_EXECUTING();
+		_STARPU_TRACE_START_EXECUTING(j);
 	}
 
 	if (is_parallel_task)
@@ -425,7 +425,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 			pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_cpu_exec, devid, worker_task->workerid, starpu_prof_tool_driver_cpu, -1, (void*)func);
 			starpu_prof_tool_callbacks.starpu_prof_tool_event_end_cpu_exec(&pi, NULL, NULL);
 #endif
-			_STARPU_TRACE_END_EXECUTING();
+			_STARPU_TRACE_END_EXECUTING(j);
 		}
 	}
 

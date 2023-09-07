@@ -869,11 +869,11 @@ do {									\
     } \
 } while(0)
 
-#define _STARPU_TRACE_START_EXECUTING()				\
-	FUT_FULL_PROBE1(_STARPU_FUT_KEYMASK_WORKER_VERBOSE, _STARPU_FUT_START_EXECUTING, _starpu_gettid());
+#define _STARPU_TRACE_START_EXECUTING(job)				\
+	FUT_FULL_PROBE2(_STARPU_FUT_KEYMASK_WORKER_VERBOSE, _STARPU_FUT_START_EXECUTING, _starpu_gettid(), (job)->job_id);
 
-#define _STARPU_TRACE_END_EXECUTING()				\
-	FUT_FULL_PROBE1(_STARPU_FUT_KEYMASK_WORKER_VERBOSE, _STARPU_FUT_END_EXECUTING, _starpu_gettid());
+#define _STARPU_TRACE_END_EXECUTING(job)				\
+	FUT_FULL_PROBE2(_STARPU_FUT_KEYMASK_WORKER_VERBOSE, _STARPU_FUT_END_EXECUTING, _starpu_gettid(), (job)->job_id);
 
 #define _STARPU_TRACE_START_CALLBACK(job)	\
 	FUT_FULL_PROBE2(_STARPU_FUT_KEYMASK_WORKER_VERBOSE, _STARPU_FUT_START_CALLBACK, job, _starpu_gettid());
@@ -1431,8 +1431,8 @@ do {										\
 #define _STARPU_TRACE_WORKER_INIT_END(workerid)		do {(void)(workerid);} while(0)
 #define _STARPU_TRACE_START_CODELET_BODY(job, nimpl, perf_arch, workerid) 	do {(void)(job); (void)(nimpl); (void)(perf_arch); (void)(workerid);} while(0)
 #define _STARPU_TRACE_END_CODELET_BODY(job, nimpl, perf_arch, workerid)		do {(void)(job); (void)(nimpl); (void)(perf_arch); (void)(workerid);} while(0)
-#define _STARPU_TRACE_START_EXECUTING()		do {} while(0)
-#define _STARPU_TRACE_END_EXECUTING()		do {} while(0)
+#define _STARPU_TRACE_START_EXECUTING(job)	do {(void)(job);} while(0)
+#define _STARPU_TRACE_END_EXECUTING(job)	do {(void)(job);} while(0)
 #define _STARPU_TRACE_START_CALLBACK(job)	do {(void)(job);} while(0)
 #define _STARPU_TRACE_END_CALLBACK(job)		do {(void)(job);} while(0)
 #define _STARPU_TRACE_JOB_PUSH(task, prio)	do {(void)(task); (void)(prio);} while(0)

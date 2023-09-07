@@ -1080,9 +1080,9 @@ static void start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *work
 
 	if (_starpu_get_disable_kernels() <= 0)
 	{
-		_STARPU_TRACE_START_EXECUTING();
+		_STARPU_TRACE_START_EXECUTING(j);
 		func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
-		_STARPU_TRACE_END_EXECUTING();
+		_STARPU_TRACE_END_EXECUTING(j);
 	}
 }
 
@@ -1109,9 +1109,6 @@ static void execute_job_on_cuda(struct starpu_task *task, struct _starpu_worker 
 		cudaError_t cures = cudaEventRecord(task_events[workerid], starpu_cuda_get_local_stream());
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);
-#ifdef STARPU_USE_FXT
-		_STARPU_TRACE_START_EXECUTING();
-#endif
 	}
 	else
 	/* Synchronous execution */
@@ -1207,9 +1204,6 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker *worker)
 			_STARPU_TRACE_END_PROGRESS(memnode);
 			/* Asynchronous task completed! */
 			finish_job_on_cuda(_starpu_get_job_associated_to_task(task), worker);
-#ifdef STARPU_USE_FXT
-			_STARPU_TRACE_END_EXECUTING()
-#endif
 			_STARPU_TRACE_START_PROGRESS(memnode);
 		}
 		if (worker->ntasks < 1)

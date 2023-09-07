@@ -89,6 +89,8 @@ extern int _starpu_poti_semiExtendedSetState;
 extern int _starpu_poti_MemoryEvent;
 extern int _starpu_poti_CommLinkStart;
 extern int _starpu_poti_MpiLinkStart;
+extern int _starpu_poti_checkPointState;
+extern int _starpu_poti_JobState;
 
 /*
  * Animation

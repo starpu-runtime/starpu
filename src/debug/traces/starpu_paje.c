@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2017-2019  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -75,6 +75,8 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 							     "Dest string");
 	}
 	_starpu_poti_MpiLinkStart = poti_header_DeclareEvent(PAJE_StartLink, 5, "MPITAG string", "MPIType string", "Priority string", "Handle string", "HName string", "X string", "Y string");
+	_starpu_poti_checkPointState = poti_header_DeclareEvent(PAJE_NewEvent, 2, "CheckpointInstance string", "CheckpointDomain string");
+	_starpu_poti_JobState = poti_header_DeclareEvent(PAJE_SetState, 1, "JobId string");
 #endif
 #else
 	poti_header(1,1);
@@ -261,6 +263,13 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 	fprintf(file, "%%	Value	string\n");
 	fprintf(file, "%%	CheckpointInstance	string\n");
 	fprintf(file, "%%	CheckpointDomain	string\n");
+	fprintf(file, "%%EndEventDef\n");
+	fprintf(file, "%%EventDef	PajeSetState	26\n");
+	fprintf(file, "%%	Time	date\n");
+	fprintf(file, "%%	Container	string\n");
+	fprintf(file, "%%	Type	string\n");
+	fprintf(file, "%%	Value	string\n");
+	fprintf(file, "%%	JobId	string\n");
 	fprintf(file, "%%EndEventDef\n");
 #endif
 

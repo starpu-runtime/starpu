@@ -1280,7 +1280,7 @@ static void start_job_on_hip(struct _starpu_job *j, struct _starpu_worker *worke
 
 	if (_starpu_get_disable_kernels() <= 0)
 	{
-		_STARPU_TRACE_START_EXECUTING();
+		_STARPU_TRACE_START_EXECUTING(j);
 #ifdef STARPU_PROF_TOOL
 		pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_start_gpu_exec, worker->devid, worker->workerid, starpu_prof_tool_driver_gpu, -1, (void*)func);
 		starpu_prof_tool_callbacks.starpu_prof_tool_event_start_gpu_exec(&pi, NULL, NULL);
@@ -1292,7 +1292,7 @@ static void start_job_on_hip(struct _starpu_job *j, struct _starpu_worker *worke
 		pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_gpu_exec, worker->devid, worker->workerid, starpu_prof_tool_driver_gpu, -1, (void*)func);
 		starpu_prof_tool_callbacks.starpu_prof_tool_event_end_gpu_exec(&pi, NULL, NULL);
 #endif
-		_STARPU_TRACE_END_EXECUTING();
+		_STARPU_TRACE_END_EXECUTING(j);
 	}
 }
 
@@ -1329,18 +1329,6 @@ static void execute_job_on_hip(struct starpu_task *task, struct _starpu_worker *
 			hipError_t hipres = hipEventRecord(task_events[workerid][pipeline_idx], starpu_hip_get_local_stream());
 			if (STARPU_UNLIKELY(hipres))
 				STARPU_HIP_REPORT_ERROR(hipres);
-#ifdef STARPU_USE_FXT
-			if (fut_active)
-			{
-				int k;
-				for (k = 0; k < (int) worker->set->nworkers; k++)
-					if (worker->set->workers[k].ntasks == worker->set->workers[k].pipeline_length)
-						break;
-				if (k == (int) worker->set->nworkers)
-					/* Everybody busy */
-					_STARPU_TRACE_START_EXECUTING();
-			}
-#endif
 		}
 	}
 	else /* Synchronous execution */
@@ -1501,18 +1489,6 @@ int _starpu_hip_driver_run_once(struct _starpu_worker *worker)
 					/* Data for next task didn't have time to finish transferring :/ */
 					_STARPU_TRACE_WORKER_START_FETCH_INPUT(NULL, workerid);
 			}
-#ifdef STARPU_USE_FXT
-			if (fut_active)
-			{
-				int k;
-				for (k = 0; k < (int) worker_set->nworkers; k++)
-					if (worker_set->workers[k].ntasks)
-						break;
-				if (k == (int) worker_set->nworkers)
-					/* Everybody busy */
-					_STARPU_TRACE_END_EXECUTING()
-			}
-#endif
 			_STARPU_TRACE_START_PROGRESS(memnode);
 #ifdef STARPU_PROF_TOOL
             pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_start_transfer, worker->workerid, worker->workerid, starpu_prof_tool_driver_gpu, memnode, NULL);

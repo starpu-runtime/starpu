@@ -1948,7 +1948,7 @@ static void start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *work
 
 	if (_starpu_get_disable_kernels() <= 0)
 	{
-		_STARPU_TRACE_START_EXECUTING();
+		_STARPU_TRACE_START_EXECUTING(j);
 #ifdef STARPU_SIMGRID
 		int async = task->cl->cuda_flags[j->nimpl] & STARPU_CUDA_ASYNC;
 		unsigned workerid = worker->workerid;
@@ -1991,7 +1991,7 @@ static void start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *work
 #endif
 
 #endif
-		_STARPU_TRACE_END_EXECUTING();
+		_STARPU_TRACE_END_EXECUTING(j);
 	}
 }
 
@@ -2035,18 +2035,6 @@ static void execute_job_on_cuda(struct starpu_task *task, struct _starpu_worker 
 			cudaError_t cures = cudaEventRecord(task_events[workerid][pipeline_idx], starpu_cuda_get_local_stream());
 			if (STARPU_UNLIKELY(cures))
 				STARPU_CUDA_REPORT_ERROR(cures);
-#endif
-#ifdef STARPU_USE_FXT
-			if (fut_active)
-			{
-				int k;
-				for (k = 0; k < (int) worker->set->nworkers; k++)
-					if (worker->set->workers[k].ntasks == worker->set->workers[k].pipeline_length)
-						break;
-				if (k == (int) worker->set->nworkers)
-					/* Everybody busy */
-					_STARPU_TRACE_START_EXECUTING();
-			}
 #endif
 		}
 	}
@@ -2241,18 +2229,6 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker *worker)
 					/* Data for next task didn't have time to finish transferring :/ */
 					_STARPU_TRACE_WORKER_START_FETCH_INPUT(NULL, workerid);
 			}
-#ifdef STARPU_USE_FXT
-			if (fut_active)
-			{
-				int k;
-				for (k = 0; k < (int) worker_set->nworkers; k++)
-					if (worker_set->workers[k].ntasks)
-						break;
-				if (k == (int) worker_set->nworkers)
-					/* Everybody busy */
-					_STARPU_TRACE_END_EXECUTING()
-			}
-#endif
 			_STARPU_TRACE_START_PROGRESS(memnode);
 #ifdef STARPU_PROF_TOOL
             pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_start_transfer, worker->workerid, worker->workerid, starpu_prof_tool_driver_gpu, memnode, NULL);
