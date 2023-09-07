@@ -1636,32 +1636,34 @@ static void create_paje_state_if_not_found(char *name, unsigned color, struct st
 		{
 			char ctx[10];
 			snprintf(ctx, sizeof(ctx), "Ctx%d", i);
+			char alias[strlen(name) + 10];
+			snprintf(alias, sizeof(alias), "%s_%d", name, i);
 			if (options->use_task_color)
 			{
-				create_paje_state_color(name, ctx, i, red, green, blue);
+				create_paje_state_color(alias, ctx, i, red, green, blue);
 			}
 			else
 			{
 				if(i%10 == 1)
-					create_paje_state_color(name, ctx, i, 1.0, 0.39, 1.0);
+					create_paje_state_color(alias, ctx, i, 1.0, 0.39, 1.0);
 				if(i%10 == 2)
-					create_paje_state_color(name, ctx, i, .0, 1.0, 0.0);
+					create_paje_state_color(alias, ctx, i, .0, 1.0, 0.0);
 				if(i%10 == 3)
-					create_paje_state_color(name, ctx, i, 1.0, 1.0, .0);
+					create_paje_state_color(alias, ctx, i, 1.0, 1.0, .0);
 				if(i%10 == 4)
-					create_paje_state_color(name, ctx, i, .0, 0.95, 1.0);
+					create_paje_state_color(alias, ctx, i, .0, 0.95, 1.0);
 				if(i%10 == 5)
-					create_paje_state_color(name, ctx, i, .0, .0, .0);
+					create_paje_state_color(alias, ctx, i, .0, .0, .0);
 				if(i%10 == 6)
-					create_paje_state_color(name, ctx, i, .0, .0, 0.5);
+					create_paje_state_color(alias, ctx, i, .0, .0, 0.5);
 				if(i%10 == 7)
-					create_paje_state_color(name, ctx, i, 0.41, 0.41, 0.41);
+					create_paje_state_color(alias, ctx, i, 0.41, 0.41, 0.41);
 				if(i%10 == 8)
-					create_paje_state_color(name, ctx, i, 1.0, .0, 1.0);
+					create_paje_state_color(alias, ctx, i, 1.0, .0, 1.0);
 				if(i%10 == 9)
-					create_paje_state_color(name, ctx, i, .0, .0, 1.0);
+					create_paje_state_color(alias, ctx, i, .0, .0, 1.0);
 				if(i%10 == 0)
-					create_paje_state_color(name, ctx, i, 0.6, 0.80, 50.0);
+					create_paje_state_color(alias, ctx, i, 0.6, 0.80, 50.0);
 			}
 		}
 #else
@@ -1737,12 +1739,14 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 		{
 #ifdef STARPU_HAVE_POTI
 			char container[STARPU_POTI_STR_LEN];
-			char ctx[6];
-			snprintf(ctx, sizeof(ctx), "Ctx%u", sched_ctx);
+			char ctx[10];
+			snprintf(ctx, sizeof(ctx), "Ctx%d", sched_ctx);
+			char alias[strlen(name) + 10];
+			snprintf(alias, sizeof(alias), "%s_%d", name, sched_ctx);
 			worker_container_alias(container, STARPU_POTI_STR_LEN, prefix, ev->param[2]);
-			poti_SetState(start_codelet_time, container, ctx, name);
+			poti_SetState(start_codelet_time, container, ctx, alias);
 #else
-			fprintf(out_paje_file, "10	%.9f	%sw%"PRIu64"	Ctx%d	\"%s\"\n", start_codelet_time, prefix, ev->param[2], sched_ctx, name);
+			fprintf(out_paje_file, "10	%.9f	%sw%"PRIu64"	Ctx%d	\"%s_%d\"\n", start_codelet_time, prefix, ev->param[2], sched_ctx, name, sched_ctx);
 #endif
 		}
 	}
@@ -1931,7 +1935,7 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 			poti_SetState(last_codelet_start[worker], container, typectx, name);
 #endif
 #else
-			fprintf(out_paje_file, "21	%.9f	%sw%d	Ctx%u	\"%s\"	%ld	%s	%08lx	%016lx	%s%lu	%s%lu\n", last_codelet_start[worker], prefix, worker, sched_ctx, _starpu_last_codelet_symbol[worker], ev->param[1], parameters,  ev->param[2], ev->param[4], prefix, job_id, prefix, task->submit_order);
+			fprintf(out_paje_file, "21	%.9f	%sw%d	Ctx%u	\"%s_%d\"	%ld	%s	%08lx	%016lx	%s%lu	%s%lu\n", last_codelet_start[worker], prefix, worker, sched_ctx, _starpu_last_codelet_symbol[worker], sched_ctx, ev->param[1], parameters,  ev->param[2], ev->param[4], prefix, job_id, prefix, task->submit_order);
 #endif
 		}
 	}
