@@ -562,9 +562,9 @@ static int execute_job_on_fpga(struct _starpu_job *j, struct starpu_task *worker
 		STARPU_ASSERT_MSG(func, "when STARPU_MAX_FPGA is defined in 'where', fpga_func or max_fpga_funcs has to be defined");
 		if (_starpu_get_disable_kernels() <= 0)
 		{
-			_STARPU_TRACE_START_EXECUTING();
+			_STARPU_TRACE_START_EXECUTING(j);
 			func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
-			_STARPU_TRACE_END_EXECUTING();
+			_STARPU_TRACE_END_EXECUTING(j);
 		}
 	}
 

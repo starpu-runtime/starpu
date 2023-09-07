@@ -1262,7 +1262,7 @@ static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker
 
 	if (_starpu_get_disable_kernels() <= 0)
 	{
-		_STARPU_TRACE_START_EXECUTING();
+		_STARPU_TRACE_START_EXECUTING(j);
 #ifdef STARPU_SIMGRID
 		double length = NAN;
 		double energy = NAN;
@@ -1327,7 +1327,7 @@ static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker
 		cl_command_queue queue;
 		starpu_opencl_get_queue(worker->devid, &queue);
 #endif
-		_STARPU_TRACE_END_EXECUTING();
+		_STARPU_TRACE_END_EXECUTING(j);
 	}
 	return 0;
 }
@@ -1392,7 +1392,6 @@ static void _starpu_opencl_execute_job(struct starpu_task *task, struct _starpu_
 			_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
 			clFlush(queue);
 #endif
-			_STARPU_TRACE_START_EXECUTING();
 		}
 	}
 	else
