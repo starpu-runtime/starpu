@@ -125,6 +125,9 @@
 static unsigned size_p;
 static unsigned nblocks_p;
 static unsigned nbigblocks_p;
+static int priority_attribution_p;
+static int niter_p;
+static int pause_resume_p;
 
 static inline void init_sizes(void)
 {
@@ -152,6 +155,9 @@ static inline void init_sizes(void)
 	if (!nbigblocks_p)
 		nbigblocks_p = 4*power_cbrt;
 #endif
+	priority_attribution_p = 0;
+	niter_p = 1;
+	pause_resume_p = 0;
 }
 
 static unsigned pinned_p = 1;
@@ -201,7 +207,7 @@ void chol_cublas_codelet_update_syrk(void *descr[], void *_args);
 void chol_cublas_codelet_update_gemm(void *descr[], void *_args);
 #endif
 
-static void parse_args(int argc, char **argv)
+static void _parse_args(int argc, char **argv, int extra)
 {
 	int i;
 	for (i = 1; i < argc; i++)
@@ -249,6 +255,21 @@ static void parse_args(int argc, char **argv)
 		{
 			noprio_p = 1;
 		}
+		else if (extra && strcmp(argv[i], "-priority") == 0)
+		{
+			char *argptr;
+			priority_attribution_p = strtol(argv[++i], &argptr, 10);
+			STARPU_ASSERT_MSG(priority_attribution_p >= 0 && priority_attribution_p <= 3, "priority attribution value %d is invalid\n", priority_attribution_p);
+		}
+		else if (extra && strcmp(argv[i], "-niter") == 0)
+		{
+			char *argptr;
+			niter_p = strtol(argv[++i], &argptr, 10);
+		}
+		else if (extra && strcmp(argv[i], "-pause-resume") == 0)
+		{
+			pause_resume_p = 1;
+		}
 		else if (strcmp(argv[i], "-commute") == 0)
 		{
 			cl_syrk.modes[1] |= STARPU_COMMUTE;
@@ -277,8 +298,11 @@ static void parse_args(int argc, char **argv)
 		else
 		/* if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i],"--help") == 0) */
 		{
-			fprintf(stderr,"usage : %s [-size size] [-nblocks nblocks] [-no-pin] [-no-prio] [-bound] [-bound-deps] [-bound-lp] [-check]\n", argv[0]);
-			fprintf(stderr,"Currently selected: %ux%u and %ux%u blocks\n", size_p, size_p, nblocks_p, nblocks_p);
+			fprintf(stderr,"usage : %s [-size size] [-nblocks nblocks] [-no-pin] [-no-prio] [-bound] [-bound-deps] [-bound-lp] %s[-check]\n", argv[0], extra == 1 ? "[-priority p (0: StarPU's priorities, 1: Bottom level priorities, 2: Bottom level priorities with tasks times, 3: PaRSEC's priorities)] [-niter n] [-pause-resume] " : "");
+			fprintf(stderr,"Currently selected: %ux%u and %ux%u blocks", size_p, size_p, nblocks_p, nblocks_p);
+			if (extra)
+				fprintf(stderr, " with priority %d and number of iterations %d\n", priority_attribution_p, niter_p);
+			fprintf(stderr, "\n");
 			exit(0);
 		}
 	}
@@ -287,6 +311,11 @@ static void parse_args(int argc, char **argv)
        if (RUNNING_ON_VALGRIND)
 	       size_p = 16;
 #endif
+}
+
+static void parse_args(int argc, char **argv)
+{
+	_parse_args(argc, argv, 0);
 }
 
 #endif /* __DW_CHOLESKY_H__ */

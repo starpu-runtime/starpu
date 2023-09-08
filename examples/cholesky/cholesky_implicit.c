@@ -33,6 +33,100 @@
 
 #include "starpu_cusolver.h"
 
+/* To average on several iterations and ignoring the first one. */
+static double average_flop = 0;
+static double timing_total = 0;
+static double timing_square = 0;
+static double flop_total = 0;
+static int current_iteration = 1;
+
+double extract_task_duration_for_model(struct starpu_task *task)
+{
+	double time=0.0;
+
+	// First read the CPU perfmodel
+	struct starpu_perfmodel_arch perf_cpu;
+	perf_cpu.ndevices = 1;
+	perf_cpu.devices = malloc(sizeof(struct starpu_perfmodel_device));
+	perf_cpu.devices[0].type = STARPU_CPU_WORKER;
+	perf_cpu.devices[0].devid = 0;
+	perf_cpu.devices[0].ncores = 1;
+	double cpu_time = starpu_task_expected_length(task, &perf_cpu, 0);
+	free(perf_cpu.devices);
+
+	// And now the GPU perfmodels
+	double gpu_time[1000]; //fixme : use the max number of gpus
+	struct starpu_perfmodel_arch perf_gpu;
+	perf_gpu.ndevices = 1;
+	perf_gpu.devices = malloc(sizeof(struct starpu_perfmodel_device));
+	perf_gpu.devices[0].type = STARPU_CUDA_WORKER;
+	perf_gpu.devices[0].ncores = 1;
+	int comb;
+	int nb_gpus=0;
+	for(comb = 0; comb < starpu_perfmodel_get_narch_combs(); comb++)
+	{
+		struct starpu_perfmodel_arch *arch_comb = starpu_perfmodel_arch_comb_fetch(comb);
+		if(arch_comb->ndevices == 1 && arch_comb->devices[0].type == STARPU_CUDA_WORKER)
+		{
+			perf_gpu.devices[0].devid = arch_comb->devices[0].devid;
+			gpu_time[nb_gpus] = starpu_task_expected_length(task, &perf_gpu, 0);
+			nb_gpus++;
+		}
+	}
+	free(perf_gpu.devices);
+
+	// Compute the harmonic mean and weight it with the number of available cpus
+	time = starpu_cpu_worker_get_count() / cpu_time;
+	int i;
+	for(i=0 ; i<nb_gpus ; i++)
+		time += 1 / gpu_time[i];
+	return 1/time;
+}
+
+double time_for_model(struct starpu_task *task)
+{
+	double time = extract_task_duration_for_model(task);
+
+	STARPU_ASSERT_MSG(!isnan(time), "Time for model %s is undefined, you first need to calibrate\n", task->cl->model->symbol);
+	task->destroy = 0;
+	starpu_task_destroy(task);
+	return time;
+}
+
+void time_init(starpu_data_handle_t data, double *potrf, double *trsm, double *gemm, double *syrk)
+{
+	struct starpu_task *task;
+
+	task = starpu_task_build(&cl_potrf,
+				 STARPU_RW, starpu_data_get_sub_data(data, 2, 0, 0),
+#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+					 STARPU_SCRATCH, scratch,
+#endif
+				 0);
+	*potrf = time_for_model(task);
+
+	task = starpu_task_build(&cl_trsm,
+				 STARPU_R, starpu_data_get_sub_data(data, 2, 0, 0),
+				 STARPU_RW, starpu_data_get_sub_data(data, 2, 1, 0),
+				 0);
+	*trsm = time_for_model(task);
+
+	task = starpu_task_build(&cl_gemm,
+				 STARPU_R, starpu_data_get_sub_data(data, 2, 1, 0),
+				 STARPU_R, starpu_data_get_sub_data(data, 2, 1, 0),
+				 cl_gemm.modes[2], starpu_data_get_sub_data(data, 2, 1, 1),
+				 0);
+	*gemm = time_for_model(task);
+
+	task = starpu_task_build(&cl_syrk,
+				 STARPU_R, starpu_data_get_sub_data(data, 2, 1, 0),
+				 cl_syrk.modes[1], starpu_data_get_sub_data(data, 2, 1, 1),
+				 0);
+	*syrk = time_for_model(task);
+
+	//fprintf(stderr, "potrf time %f - trsm time %f - gemm time %f - syrk time %f\n", *potrf, *trsm, *gemm, *syrk);
+}
+
 /*
  *	code to bootstrap the factorization
  *	and construct the DAG
@@ -55,21 +149,49 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 
 	unsigned unbound_prio = STARPU_MAX_PRIO == INT_MAX && STARPU_MIN_PRIO == INT_MIN;
 
+	double t_potrf, t_trsm, t_gemm, t_syrk;
+
 	if (bound_p || bound_lp_p || bound_mps_p)
 		starpu_bound_start(bound_deps_p, 0);
 	starpu_fxt_start_profiling();
 
 	start = starpu_timing_now();
 
+	if (pause_resume_p)
+	{
+		starpu_pause();
+	}
+
+	if (priority_attribution_p == 2)
+		time_init(dataA, &t_potrf, &t_trsm, &t_gemm, &t_syrk);
+
 	/* create all the DAG nodes */
 	for (k = 0; k < nblocks; k++)
 	{
 		int ret;
 		starpu_iteration_push(k);
-		starpu_data_handle_t sdatakk = starpu_data_get_sub_data(dataA, 2, k, k);
+                starpu_data_handle_t sdatakk = starpu_data_get_sub_data(dataA, 2, k, k);
+		int priority;
+
+		if (priority_attribution_p == 0) /* Prio de base */
+		{
+			priority = 2*nblocks - 2*k;
+		}
+		else if (priority_attribution_p == 1) /* Bottom-level priorities as computed by Christophe Alias' Kut polyhedral tool */
+		{
+			priority = 3*nblocks - 3*k;
+		}
+		else if (priority_attribution_p == 2) /* Bottom level priorities computed from timings */
+		{
+			priority = 3*(t_potrf + t_trsm + t_syrk + t_gemm) - (t_potrf + t_trsm + t_gemm)*k;
+		}
+		else /* Prio de parsec */
+		{
+			priority = pow((nblocks-k),3);
+		}
 
 		ret = starpu_task_insert(&cl_potrf,
-					 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k) : STARPU_MAX_PRIO,
+					 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? priority : STARPU_MAX_PRIO,
 					 STARPU_RW, sdatakk,
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
 					 STARPU_SCRATCH, scratch,
@@ -86,8 +208,25 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		{
 			starpu_data_handle_t sdatamk = starpu_data_get_sub_data(dataA, 2, m, k);
 
+                        if (priority_attribution_p == 0) /* Prio de base */
+			{
+				priority = 2*nblocks - 2*k - m;
+			}
+			else if (priority_attribution_p == 1)
+			{
+				priority = 3*nblocks - (2*k + m);
+			}
+			else if (priority_attribution_p == 2)
+			{
+				priority = 3*(t_potrf + t_trsm + t_syrk + t_gemm) - ((t_trsm + t_gemm)*k+(t_potrf + t_syrk - t_gemm)*m + t_gemm - t_syrk);
+			}
+			else /* Prio de parsec */
+			{
+				priority = pow((nblocks-m),3) + 3*(m-k)*(2*nblocks-k-m-1);
+			}
+
 			ret = starpu_task_insert(&cl_trsm,
-						 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m) : (m == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
+						 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? priority : (m == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
 						 STARPU_R, sdatakk,
 						 STARPU_RW, sdatamk,
 						 STARPU_FLOPS, (double) FLOPS_STRSM(nn, nn),
@@ -120,8 +259,32 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 				starpu_data_handle_t sdatamk = starpu_data_get_sub_data(dataA, 2, m, k);
 				starpu_data_handle_t sdatamn = starpu_data_get_sub_data(dataA, 2, m, n);
 
+				if (priority_attribution_p == 0) /* Prio de base */
+				{
+					priority = 2*nblocks - 2*k - m - n;
+				}
+				else if (priority_attribution_p == 1)
+				{
+					priority = 3*nblocks - (k + n + m);
+				}
+				else if (priority_attribution_p == 2)
+				{
+					priority = 3*(t_potrf + t_trsm + t_syrk + t_gemm) - (t_gemm*k + t_trsm*n + (t_potrf + t_syrk - t_gemm)*m - t_syrk + t_gemm);
+				}
+				else /* Prio de parsec */
+				{
+					if (n == m) /* SYRK has different prio in PaRSEC */
+					{
+						priority = pow((nblocks-m),3) + 3*(m-k);
+					}
+					else
+					{
+						priority = pow((nblocks-m),3) + 3*(m-n)*(2*nblocks-m-n-3) + 6*(m-k);
+					}
+				}
+
 				ret = starpu_task_insert(&cl_gemm,
-							 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m - n) : ((n == k+1) && (m == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
+							 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? priority : ((n == k+1) && (m == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
 							 STARPU_R, sdatamk,
 							 STARPU_R, sdatank,
 							 cl_gemm.modes[2], sdatamn,
@@ -137,8 +300,12 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		starpu_iteration_pop();
 	}
 
-	starpu_task_wait_for_all();
+	if (pause_resume_p)
+	{
+		starpu_resume();
+	}
 
+	starpu_task_wait_for_all();
 	end = starpu_timing_now();
 
 	starpu_fxt_stop_profiling();
@@ -153,12 +320,43 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		update_sched_ctx_timing_results((flop/timing/1000.0f), (timing/1000000.0f));
 	else
 	{
-		PRINTF("# size\tms\tGFlop/s");
-		if (bound_p)
-			PRINTF("\tTms\tTGFlop/s");
-		PRINTF("\n");
+		if (niter_p > 1)
+		{
+			if (current_iteration != 1)
+			{
+				average_flop += flop/timing/1000.0f;
+				timing_total += end - start;
+				flop_total += flop;
+				timing_square += (end-start) * (end-start);
+			}
+			if (current_iteration == niter_p)
+			{
+				average_flop = average_flop/(niter_p - 1);
 
-		PRINTF("%lu\t%.0f\t%.1f", nx, timing/1000, (flop/timing/1000.0f));
+				double average = timing_total/(niter_p - 1);
+				double deviation = sqrt(fabs(timing_square / (niter_p - 1) - average*average));
+				PRINTF("# size\tms\tGFlops\tDeviance");
+				if (bound_p)
+					PRINTF("\tTms\tTGFlops");
+				PRINTF("\n");
+
+				//~ PRINTF("%lu\t%.0f\t%.1f", nx, timing/1000, (flop/timing/1000.0f));
+				PRINTF("%lu\t%.0f\t%.1f\t%.1f", nx, timing/1000, average_flop, flop_total/(niter_p-1)/(average*average)*deviation/1000.0);
+				PRINTF("\n");
+			}
+		}
+		else
+		{
+			/* To get flops max */
+			PRINTF("# size\tms\tGFlops");
+			if (bound_p)
+				PRINTF("\tTms\tTGFlops");
+			PRINTF("\n");
+
+			PRINTF("%lu\t%.0f\t%.1f", nx, timing/1000, (flop/timing/1000.0f));
+			PRINTF("\n");
+		}
+
 		if (bound_lp_p)
 		{
 			FILE *f = fopen("cholesky.lp", "w");
@@ -175,9 +373,8 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		{
 			double res;
 			starpu_bound_compute(&res, NULL, 0);
-			PRINTF("\t%.0f\t%.1f", res, (flop/res/1000000.0f));
+			PRINTF("\t%.0f\t%.1f\n", res, (flop/res/1000000.0f));
 		}
-		PRINTF("\n");
 	}
 	return 0;
 }
@@ -372,7 +569,7 @@ int main(int argc, char **argv)
 
 	init_sizes();
 
-	parse_args(argc, argv);
+	_parse_args(argc, argv, 1);
 
 	if(with_ctxs_p || with_noctxs_p || chole1_p || chole2_p)
 		parse_args_ctx(argc, argv);
@@ -380,19 +577,27 @@ int main(int argc, char **argv)
 	starpu_cublas_init();
 	starpu_cusolver_init();
 
-	if(with_ctxs_p)
+	int i;
+	for (i = 0; i < niter_p; i++)
 	{
-		construct_contexts();
-		start_2benchs(execute_cholesky);
+		if(with_ctxs_p)
+		{
+			construct_contexts();
+			start_2benchs(execute_cholesky);
+		}
+		else if(with_noctxs_p)
+			start_2benchs(execute_cholesky);
+		else if(chole1_p)
+			start_1stbench(execute_cholesky);
+		else if(chole2_p)
+			start_2ndbench(execute_cholesky);
+		else
+			execute_cholesky(size_p, nblocks_p);
+
+		current_iteration++;
+
+		starpu_reset_scheduler();
 	}
-	else if(with_noctxs_p)
-		start_2benchs(execute_cholesky);
-	else if(chole1_p)
-		start_1stbench(execute_cholesky);
-	else if(chole2_p)
-		start_2ndbench(execute_cholesky);
-	else
-		execute_cholesky(size_p, nblocks_p);
 
 	starpu_cusolver_shutdown();
 	starpu_cublas_shutdown();
