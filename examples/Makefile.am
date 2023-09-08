@@ -1049,7 +1049,6 @@ SHELL_TESTS	+=				\
 
 cholesky_cholesky_tag_SOURCES =			\
 	cholesky/cholesky_tag.c			\
-	cholesky/cholesky_models.c		\
 	cholesky/cholesky_kernels.c		\
 	common/blas.c
 
@@ -1058,7 +1057,6 @@ cholesky_cholesky_tag_LDADD =			\
 
 cholesky_cholesky_tile_tag_SOURCES =		\
 	cholesky/cholesky_tile_tag.c		\
-	cholesky/cholesky_models.c		\
 	cholesky/cholesky_kernels.c		\
 	common/blas.c
 
@@ -1067,7 +1065,6 @@ cholesky_cholesky_tile_tag_LDADD =		\
 
 cholesky_cholesky_grain_tag_SOURCES =		\
 	cholesky/cholesky_grain_tag.c		\
-	cholesky/cholesky_models.c		\
 	cholesky/cholesky_kernels.c		\
 	common/blas.c
 
@@ -1076,7 +1073,6 @@ cholesky_cholesky_grain_tag_LDADD =		\
 
 cholesky_cholesky_implicit_SOURCES =		\
 	cholesky/cholesky_implicit.c		\
-	cholesky/cholesky_models.c		\
 	cholesky/cholesky_kernels.c		\
 	sched_ctx_utils/sched_ctx_utils.c	\
 	common/blas.c
@@ -1086,7 +1082,6 @@ cholesky_cholesky_implicit_LDADD =		\
 
 cholesky_cholesky_compil_SOURCES =		\
 	cholesky/cholesky_compil.c		\
-	cholesky/cholesky_models.c		\
 	cholesky/cholesky_kernels.c		\
 	sched_ctx_utils/sched_ctx_utils.c	\
 	common/blas.c

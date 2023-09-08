@@ -373,10 +373,26 @@ void chol_cublas_codelet_update_potrf(void *descr[], void *_args)
 }
 #endif/* STARPU_USE_CUDA */
 
-struct starpu_perfmodel chol_model_potrf;
-struct starpu_perfmodel chol_model_trsm;
-struct starpu_perfmodel chol_model_syrk;
-struct starpu_perfmodel chol_model_gemm;
+struct starpu_perfmodel chol_model_potrf =
+{
+	.symbol = "chol_model_potrf",
+	.type = STARPU_HISTORY_BASED
+};
+struct starpu_perfmodel chol_model_trsm =
+{
+	.symbol = "chol_model_trsm",
+	.type = STARPU_HISTORY_BASED
+};
+struct starpu_perfmodel chol_model_syrk =
+{
+	.symbol = "chol_model_syrk",
+	.type = STARPU_HISTORY_BASED
+};
+struct starpu_perfmodel chol_model_gemm =
+{
+	.symbol = "chol_model_gemm",
+	.type = STARPU_HISTORY_BASED
+};
 
 struct starpu_codelet cl_potrf =
 {

@@ -194,26 +194,12 @@ void chol_cpu_codelet_update_trsm(void **, void *);
 void chol_cpu_codelet_update_syrk(void **, void *);
 void chol_cpu_codelet_update_gemm(void **, void *);
 
-double cpu_chol_task_potrf_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
-double cpu_chol_task_trsm_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
-double cpu_chol_task_syrk_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
-double cpu_chol_task_gemm_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
-
 #ifdef STARPU_USE_CUDA
 void chol_cublas_codelet_update_potrf(void *descr[], void *_args);
 void chol_cublas_codelet_update_trsm(void *descr[], void *_args);
 void chol_cublas_codelet_update_syrk(void *descr[], void *_args);
 void chol_cublas_codelet_update_gemm(void *descr[], void *_args);
-
-double cuda_chol_task_potrf_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
-double cuda_chol_task_trsm_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
-double cuda_chol_task_syrk_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
-double cuda_chol_task_gemm_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
 #endif
-
-void initialize_chol_model(struct starpu_perfmodel* model, char* symbol,
-			   double (*cpu_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch*, unsigned),
-			   double (*cuda_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch*, unsigned));
 
 static void parse_args(int argc, char **argv)
 {
