@@ -80,7 +80,7 @@ double extract_task_duration_for_model(struct starpu_task *task)
 	int i;
 	for(i=0 ; i<nb_gpus ; i++)
 		time += 1 / gpu_time[i];
-	return 1/time;
+	return (1/time)/starpu_worker_get_count();
 }
 
 double time_for_model(struct starpu_task *task)
