@@ -644,7 +644,7 @@ for \c task[0][1] because of \c B[1], etc. In the end, no parallism is achieved:
 \image html arbiter.png
 \image latex arbiter.png "" width=0.7\textwidth
 
-In this case, one can use a data access arbiter ::starpu_arbiter, which
+In this case, one can use a data access arbiter ::starpu_arbiter_t, which
 implements the classical centralized solution for the Dining Philosophers
 problem. One can call starpu_arbiter_create() to create a data access arbiter, and starpu_data_assign_arbiter() to make access to handle managed by arbiter. Once the application no longer needs the arbiter, one can call starpu_arbiter_destroy() to destroy the arbiter after all data assigned to the arbiter have been unregistered. This is more expensive in terms of overhead since it is centralized,
 but it opportunistically gets a lot of parallelism. The centralization can also
