@@ -26,7 +26,7 @@ int main(int argc, char **argv)
 	return 77;
 }
 #else
-#include <cassert>
+#include <assert.h>
 #include <vector>
 
 #ifdef PRINT_OUTPUT

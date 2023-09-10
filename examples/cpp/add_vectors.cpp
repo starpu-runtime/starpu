@@ -19,7 +19,7 @@
  * add two std::vector without copying them (0 copy).
  */
 
-#include <cassert>
+#include <assert.h>
 #include <vector>
 
 #ifdef PRINT_OUTPUT
