@@ -51,6 +51,7 @@ EXTRA_DIST = 					\
 	spmv/spmv_opencl.cl			\
 	spmv/matrix_market/examples/fidapm05.mtx \
 	mult/xgemm.c				\
+	mult/xgemm.h				\
 	mult/sgemm.sh				\
 	lu/xlu.c				\
 	lu/xlu_pivot.c				\
@@ -344,7 +345,9 @@ endif
 if STARPU_USE_CUDA
 STARPU_EXAMPLES +=				\
 	mult/sgemm 				\
-	mult/dgemm
+	mult/dgemm				\
+	mult/sgemm_layout			\
+	mult/dgemm_layout
 endif
 
 if STARPU_USE_HIPBLAS
@@ -357,6 +360,8 @@ if !STARPU_NO_BLAS_LIB
 STARPU_EXAMPLES +=				\
 	mult/sgemm 				\
 	mult/dgemm				\
+	mult/sgemm_layout			\
+	mult/dgemm_layout			\
 	lu/lu_example_float			\
 	lu/lu_example_double			\
 	lu/lu_implicit_example_float		\
@@ -1006,16 +1011,32 @@ mult_sgemm_SOURCES = 				\
 mult_sgemm_LDADD =				\
 	$(STARPU_BLAS_LDFLAGS)
 
+mult_sgemm_layout_SOURCES = 			\
+	mult/sgemm_layout.c
+
+mult_sgemm_layout_LDADD =			\
+	$(STARPU_BLAS_LDFLAGS)
+
 mult_dgemm_SOURCES = 				\
 	mult/dgemm.c
 
 mult_dgemm_LDADD =				\
 	$(STARPU_BLAS_LDFLAGS)
 
+mult_dgemm_layout_SOURCES = 			\
+	mult/dgemm_layout.c
+
+mult_dgemm_layout_LDADD =			\
+	$(STARPU_BLAS_LDFLAGS)
+
 if !STARPU_NO_BLAS_LIB
 mult_sgemm_SOURCES += 				\
 	common/blas.c
 mult_dgemm_SOURCES += 				\
+	common/blas.c
+mult_sgemm_layout_SOURCES += 			\
+	common/blas.c
+mult_dgemm_layout_SOURCES += 			\
 	common/blas.c
 endif
 
