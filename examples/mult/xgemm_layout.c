@@ -72,13 +72,14 @@ static void init_problem_data(void)
 
 	if (!tiled)
 	{
+		unsigned x;
 		unsigned ncuda = starpu_cuda_worker_get_count();
 		Cscratch = malloc(sizeof(TYPE*) * ncuda);
-		for(i = 0; i < ncuda; i++)
+		for(x = 0; x < ncuda; x++)
 		{
-			unsigned worker = starpu_worker_get_by_type(STARPU_CUDA_WORKER, i);
+			unsigned worker = starpu_worker_get_by_type(STARPU_CUDA_WORKER, x);
 			unsigned node = starpu_worker_get_memory_node(worker);
-			Cscratch[i] = (TYPE*) starpu_malloc_on_node(node, (xdim / nslicesx) * (ydim / nslicesy) * sizeof(TYPE));
+			Cscratch[x] = (TYPE*) starpu_malloc_on_node(node, (xdim / nslicesx) * (ydim / nslicesy) * sizeof(TYPE));
 		}
 	}
 }
