@@ -51,6 +51,7 @@ EXTRA_DIST = 					\
 	spmv/spmv_opencl.cl			\
 	spmv/matrix_market/examples/fidapm05.mtx \
 	mult/xgemm.c				\
+	mult/xgemm_layout.c			\
 	mult/xgemm.h				\
 	mult/sgemm.sh				\
 	lu/xlu.c				\
