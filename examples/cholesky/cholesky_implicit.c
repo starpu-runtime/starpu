@@ -40,47 +40,21 @@ static double timing_square = 0;
 static double flop_total = 0;
 static int current_iteration = 1;
 
+/* Compute task time corresponding to the average speed over the workers */
 double extract_task_duration_for_model(struct starpu_task *task)
 {
-	double time=0.0;
+	double speed=0.0;
+	unsigned workerid;
 
-	// First read the CPU perfmodel
-	struct starpu_perfmodel_arch perf_cpu;
-	perf_cpu.ndevices = 1;
-	perf_cpu.devices = malloc(sizeof(struct starpu_perfmodel_device));
-	perf_cpu.devices[0].type = STARPU_CPU_WORKER;
-	perf_cpu.devices[0].devid = 0;
-	perf_cpu.devices[0].ncores = 1;
-	double cpu_time = starpu_task_expected_length(task, &perf_cpu, 0);
-	free(perf_cpu.devices);
-
-	// And now the GPU perfmodels
-	double gpu_time[1000]; //fixme : use the max number of gpus
-	struct starpu_perfmodel_arch perf_gpu;
-	perf_gpu.ndevices = 1;
-	perf_gpu.devices = malloc(sizeof(struct starpu_perfmodel_device));
-	perf_gpu.devices[0].type = STARPU_CUDA_WORKER;
-	perf_gpu.devices[0].ncores = 1;
-	int comb;
-	int nb_gpus=0;
-	for(comb = 0; comb < starpu_perfmodel_get_narch_combs(); comb++)
+	for (workerid = 0; workerid < starpu_worker_get_count(); workerid++)
 	{
-		struct starpu_perfmodel_arch *arch_comb = starpu_perfmodel_arch_comb_fetch(comb);
-		if(arch_comb->ndevices == 1 && arch_comb->devices[0].type == STARPU_CUDA_WORKER)
-		{
-			perf_gpu.devices[0].devid = arch_comb->devices[0].devid;
-			gpu_time[nb_gpus] = starpu_task_expected_length(task, &perf_gpu, 0);
-			nb_gpus++;
-		}
+		struct starpu_perfmodel_arch *arch = starpu_worker_get_perf_archtype(workerid, STARPU_NMAX_SCHED_CTXS );
+		double time = starpu_task_expected_length(task, arch, 0);
+		speed += 1./time;
 	}
-	free(perf_gpu.devices);
+	speed /= starpu_worker_get_count();
 
-	// Compute the harmonic mean and weight it with the number of available cpus
-	time = starpu_cpu_worker_get_count() / cpu_time;
-	int i;
-	for(i=0 ; i<nb_gpus ; i++)
-		time += 1 / gpu_time[i];
-	return (1/time)/starpu_worker_get_count();
+	return 1. / speed;
 }
 
 double time_for_model(struct starpu_task *task)
@@ -173,7 +147,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
                 starpu_data_handle_t sdatakk = starpu_data_get_sub_data(dataA, 2, k, k);
 		int priority;
 
-		if (priority_attribution_p == 0) /* Prio de base */
+		if (priority_attribution_p == 0) /* Base priority */
 		{
 			priority = 2*nblocks - 2*k;
 		}
@@ -185,7 +159,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		{
 			priority = 3*(t_potrf + t_trsm + t_syrk + t_gemm) - (t_potrf + t_trsm + t_gemm)*k;
 		}
-		else /* Prio de parsec */
+		else /* Priority of PaRSEC */
 		{
 			priority = pow((nblocks-k),3);
 		}
@@ -208,7 +182,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		{
 			starpu_data_handle_t sdatamk = starpu_data_get_sub_data(dataA, 2, m, k);
 
-                        if (priority_attribution_p == 0) /* Prio de base */
+                        if (priority_attribution_p == 0) /* Base priority */
 			{
 				priority = 2*nblocks - 2*k - m;
 			}
@@ -220,7 +194,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 			{
 				priority = 3*(t_potrf + t_trsm + t_syrk + t_gemm) - ((t_trsm + t_gemm)*k+(t_potrf + t_syrk - t_gemm)*m + t_gemm - t_syrk);
 			}
-			else /* Prio de parsec */
+			else /* Priority of PaRSEC */
 			{
 				priority = pow((nblocks-m),3) + 3*(m-k)*(2*nblocks-k-m-1);
 			}
@@ -259,7 +233,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 				starpu_data_handle_t sdatamk = starpu_data_get_sub_data(dataA, 2, m, k);
 				starpu_data_handle_t sdatamn = starpu_data_get_sub_data(dataA, 2, m, n);
 
-				if (priority_attribution_p == 0) /* Prio de base */
+				if (priority_attribution_p == 0) /* Base priority */
 				{
 					priority = 2*nblocks - 2*k - m - n;
 				}
@@ -271,7 +245,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 				{
 					priority = 3*(t_potrf + t_trsm + t_syrk + t_gemm) - (t_gemm*k + t_trsm*n + (t_potrf + t_syrk - t_gemm)*m - t_syrk + t_gemm);
 				}
-				else /* Prio de parsec */
+				else /* Priorities of PaRSEC */
 				{
 					if (n == m) /* SYRK has different prio in PaRSEC */
 					{
