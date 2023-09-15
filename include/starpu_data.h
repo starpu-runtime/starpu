@@ -54,7 +54,6 @@ typedef struct _starpu_data_state *starpu_data_handle_t;
 */
 enum starpu_data_access_mode
 {
-	STARPU_NONE	 = 0,			  /**< todo */
 	STARPU_R	 = (1 << 0),		  /**< read-only mode */
 	STARPU_W	 = (1 << 1),		  /**< write-only mode */
 	STARPU_RW	 = (STARPU_R | STARPU_W), /**< read-write mode. Equivalent to ::STARPU_R|::STARPU_W  */
@@ -147,7 +146,8 @@ enum starpu_data_access_mode
 						   */
 	STARPU_NOFOOTPRINT = (1 << 10),           /**< Ignore this data for the footprint computation. See \ref ScratchData
 						   */
-	STARPU_ACCESS_MODE_MAX = (1 << 11)        /**< The purpose of ::STARPU_ACCESS_MODE_MAX is to
+	STARPU_NONE	 = (1 << 11),		  /**< todo */
+	STARPU_ACCESS_MODE_MAX = (1 << 12)        /**< The purpose of ::STARPU_ACCESS_MODE_MAX is to
 						     be the maximum of this enum.
 						  */
 };
