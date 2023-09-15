@@ -286,6 +286,10 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 				inconsistent_execute = 0;
 			}
 		}
+		else if (arg_type==STARPU_NONE)
+		{
+			(void)va_arg(varg_list_copy, starpu_data_handle_t);
+		}
 		else if (arg_type_nocommute & STARPU_R || arg_type_nocommute & STARPU_W || arg_type_nocommute & STARPU_RW || arg_type & STARPU_SCRATCH || arg_type & STARPU_REDUX || arg_type & STARPU_MPI_REDUX)
 		{
 			starpu_data_handle_t data = va_arg(varg_list_copy, starpu_data_handle_t);
