@@ -137,7 +137,7 @@ extern "C" {
 #define STARPU_OPENCL_ASYNC (1 << 0)
 
 /**
-   To be used when the RAM memory node is specified.
+   To be used as memory node number for the main CPU memory node.
 */
 #define STARPU_MAIN_RAM 0
 
