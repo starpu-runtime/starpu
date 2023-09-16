@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,14 +25,16 @@
 
 #pragma GCC visibility push(hidden)
 
-/** Drop duplicate values from \p ids */
+/** Drop duplicate values from \p ids. */
 void _starpu_devices_drop_duplicate(unsigned ids[STARPU_NMAXWORKERS]);
 
+/** Set gpu \p devid as already used. */
 void _starpu_devices_gpu_set_used(int devid);
 
-// Detect which GPU devices are already used
+/** Drop from the topology information the gpus which are already used. */
 void _starpu_devices_gpu_clear(struct _starpu_machine_config *config, enum starpu_worker_archtype type);
 
+/** Clean the list of gpus which are already used. */
 void _starpu_devices_gpu_clean();
 
 

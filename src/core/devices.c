@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -45,7 +45,7 @@ void _starpu_devices_gpu_clear(struct _starpu_machine_config *config, enum starp
 	for(i=0 ; i<STARPU_NMAXWORKERS ; i++)
 	{
 		struct _starpu_device_entry *entry;
-		int devid = config->topology.workers_devid[type][i];
+		int devid = topology->workers_devid[type][i];
 
 		HASH_FIND_INT(gpu_devices_already_used, &devid, entry);
 		if (entry == NULL)
@@ -59,7 +59,6 @@ void _starpu_devices_gpu_clear(struct _starpu_machine_config *config, enum starp
 	memcpy(topology->workers_devid[type], tmp, sizeof(unsigned)*STARPU_NMAXWORKERS);
 }
 
-// Detect identical devices, keep unique devices
 void _starpu_devices_drop_duplicate(unsigned ids[STARPU_NMAXWORKERS])
 {
 	struct _starpu_device_entry *devices_already_used = NULL;

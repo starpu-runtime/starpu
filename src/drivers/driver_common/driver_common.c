@@ -61,7 +61,7 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 		calibrate_model = 1;
 
 	/* If the job is executed on a combined worker there is no need for the
-	 * scheduler to process it : it doesn't contain any valuable data
+	 * scheduler to process on non-master : it doesn't contain any valuable data
 	 * as it's not linked to an actual worker */
 	if (j->task_size == 1 && rank == 0)
 		_starpu_sched_pre_exec_hook(task);

@@ -103,6 +103,7 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/src/core/dependencies/data_concurrency.h	\
 	$(top_srcdir)/src/core/dependencies/implicit_data_deps.h	\
 	$(top_srcdir)/src/core/dependencies/cg.h	\
+	$(top_srcdir)/src/core/devices.h	\
 	$(top_srcdir)/src/core/idle_hook.h	\
 	$(top_srcdir)/src/core/sched_ctx_list.h	\
 	$(top_srcdir)/src/core/perfmodel/multiple_regression.h	\

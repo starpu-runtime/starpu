@@ -134,8 +134,6 @@ unsigned _starpu_memory_node_register(enum starpu_node_kind kind, int devid)
 }
 
 /* TODO move in a more appropriate file  !! */
-/* Register a condition variable associated to worker which is associated to a
- * memory node itself. */
 void _starpu_memory_node_register_condition(struct _starpu_worker *worker, starpu_pthread_cond_t *cond, unsigned nodeid)
 {
 	unsigned cond_id;
@@ -204,7 +202,6 @@ unsigned starpu_worker_get_memory_node(unsigned workerid)
 	return _starpu_worker_get_memory_node(workerid);
 }
 
-/* same utility as _starpu_memory_node_add_nworkers */
 void _starpu_worker_drives_memory_node(struct _starpu_worker *worker, unsigned memnode)
 {
 	if (! _starpu_worker_drives_memory[worker->workerid][memnode])
