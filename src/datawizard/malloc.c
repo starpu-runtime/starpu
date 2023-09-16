@@ -911,6 +911,7 @@ static int _starpu_malloc_should_suballoc(unsigned dst_node, size_t size, int fl
 	return (enable_suballocator &&
 		(size <= CHUNK_ALLOC_MAX &&
 		(starpu_node_get_kind(dst_node) == STARPU_CUDA_RAM
+		 || starpu_node_get_kind(dst_node) == STARPU_HIP_RAM
 		 || (starpu_node_get_kind(dst_node) == STARPU_CPU_RAM
 		     && _starpu_malloc_should_pin(flags))
 		 )))
