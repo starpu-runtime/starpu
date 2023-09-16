@@ -1369,6 +1369,8 @@ struct _starpu_node_ops _starpu_driver_cuda_node_ops =
 
 	.wait_request_completion = _starpu_cuda_wait_request_completion,
 	.test_request_completion = _starpu_cuda_test_request_completion,
+
+	.calibrate_bus = 1,
 	.device_name = _starpu_cuda_device_name,
 	.total_memory = _starpu_cuda_total_memory,
 	.max_memory = _starpu_cuda_total_memory,

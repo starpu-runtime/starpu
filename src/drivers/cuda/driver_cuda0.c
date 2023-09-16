@@ -815,6 +815,7 @@ struct _starpu_node_ops _starpu_driver_cuda_node_ops =
 	.copy2d_data_from[STARPU_CPU_RAM] = _starpu_cuda_copy2d_data_from_cpu_to_cuda,
 	.copy2d_data_from[STARPU_CUDA_RAM] = _starpu_cuda_copy2d_data_from_cuda_to_cuda,
 
+	.calibrate_bus = 1,
 	.device_name = _starpu_cuda_device_name,
 	.total_memory = _starpu_cuda_total_memory,
 	.max_memory = _starpu_cuda_total_memory,

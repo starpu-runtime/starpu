@@ -165,6 +165,11 @@ struct _starpu_node_ops
 	/** Name of the type of memory, for debugging */
 	char *name;
 
+	/** Specify whether the bus should be calibrated by the core for this
+	 * type of device, in which case the following fields need to be set.
+	 */
+	int calibrate_bus;
+
 	/** Name of the device **/
 	void (*device_name)(int devid, char *name, size_t size);
 
