@@ -25,10 +25,14 @@
 #include <core/jobs.h>
 #include <common/utils.h>
 
+/** The task job is about to start (or has already started when kernels are
+ * queued in a pipeline), record profiling and trace information. */
 void _starpu_driver_start_job(struct _starpu_worker *args, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch,
 			      int rank, int profiling);
+/** The task job has ended, record profiling and trace information. */
 void _starpu_driver_end_job(struct _starpu_worker *args, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch,
 			    int rank, int profiling);
+/** Feed performance model with the terminated job statistics */
 void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_worker *worker_args,
 					struct starpu_perfmodel_arch* perf_arch, int profiling);
 

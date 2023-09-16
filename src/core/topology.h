@@ -50,7 +50,18 @@ struct _starpu_machine_topology;
 /** Detect the number of memory nodes and where to bind the different workers. */
 int _starpu_build_topology(struct _starpu_machine_config *config, int no_mp_config);
 
-/** Fill workers_gpuid with ids, either commit from explicit_workers_gpuid or from the environment variable \p named varname */
+/**
+ * Initialize a series of workers.
+ *
+ * - If \p explicit_workers_gpuid is non-null, it will be used as the list of device
+ * IDs of the actual hardware devices to be used.
+ * - If \p current is non-null, it points to the next device ID to be used
+ * - \p workers_gpuid is filled with the set of device IDs actually used in the end
+ * - \p varname is the name of the environment variable that users can use to
+ * override the set of device IDs to be used.
+ * - \p nhwgpus is the number of actual devices available on the system.
+ * - \p type is the type of devices.
+ */
 void _starpu_initialize_workers_deviceid(int *explicit_workers_gpuid,
 					 int *current, int *workers_gpuid,
 					 const char *varname, unsigned nhwgpus,
@@ -59,8 +70,8 @@ void _starpu_initialize_workers_deviceid(int *explicit_workers_gpuid,
 /** Get the next devid for architecture \p type */
 int _starpu_get_next_devid(struct _starpu_machine_topology *topology, struct _starpu_machine_config *config, enum starpu_worker_archtype arch);
 
-/** Check that \p *ndevices is not larger than \p nhwdevices (unless overflow is 1), and is not larger than \p max.
- * Cap it otherwise, and advise using the configurename ./configure option in the \p max case. */
+/** Check that \p *ndevices is not larger than \p nhwdevices (unless \p overflow is 1), and is not larger than \p max.
+ * Cap it otherwise, and advise using the \p configurename ./configure option in the \p max case. */
 void _starpu_topology_check_ndevices(int *ndevices, unsigned nhwdevices, int overflow, unsigned max, int reserved, const char *nname, const char *dname, const char *configurename);
 
 /** Configures the topology according to the desired worker distribution on the device.

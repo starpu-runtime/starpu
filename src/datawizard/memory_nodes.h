@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -77,12 +77,13 @@ extern struct _starpu_memory_node_descr _starpu_descr;
 void _starpu_memory_nodes_init(void);
 void _starpu_memory_nodes_deinit(void);
 
+/** Record that there is an additional worker that uses this memory node */
 static inline void _starpu_memory_node_add_nworkers(unsigned node)
 {
 	_starpu_descr.nworkers[node]++;
 }
 
-/** same utility as _starpu_memory_node_add_nworkers */
+/** Record that this worker will driver data transfers for this memory node. */
 void _starpu_worker_drives_memory_node(struct _starpu_worker *worker, unsigned memnode);
 
 static inline const struct _starpu_node_ops *_starpu_memory_node_get_node_ops(unsigned node)
@@ -90,6 +91,7 @@ static inline const struct _starpu_node_ops *_starpu_memory_node_get_node_ops(un
 	return _starpu_descr.node_ops[node];
 }
 
+/** Get the number of workers that use this memory node */
 static inline unsigned _starpu_memory_node_get_nworkers(unsigned node)
 {
 	return _starpu_descr.nworkers[node];
@@ -107,14 +109,20 @@ static inline starpu_sg_host_t _starpu_simgrid_memory_node_get_host(unsigned nod
 }
 #endif
 
+/** Note that this memory node can map CPU data */
 void _starpu_memory_node_set_mapped(unsigned node);
+/** Returns whether this memory node can map CPU data */
 unsigned _starpu_memory_node_get_mapped(unsigned node);
 
+/** Registers a memory node. Returns the memory node number */
 unsigned _starpu_memory_node_register(enum starpu_node_kind kind, int devid);
 
 //void _starpu_memory_node_attach_queue(struct starpu_jobq_s *q, unsigned nodeid);
+/** Register a condition variable associated to worker which is associated to a
+ * memory node itself. */
 void _starpu_memory_node_register_condition(struct _starpu_worker *worker, starpu_pthread_cond_t *cond, unsigned nodeid);
 
+/** See starpu_memory_node_get_description() */
 static inline struct _starpu_memory_node_descr *_starpu_memory_node_get_description(void)
 {
 	return &_starpu_descr;
@@ -123,6 +131,7 @@ static inline struct _starpu_memory_node_descr *_starpu_memory_node_get_descript
 #define _starpu_node_needs_map_update(node) \
 	(starpu_node_get_kind(node) == STARPU_OPENCL_RAM)
 
+/** See starpu_node_get_kind() */
 static inline enum starpu_node_kind _starpu_node_get_kind(unsigned node)
 {
 	return _starpu_descr.nodes[node];
@@ -132,6 +141,7 @@ static inline enum starpu_node_kind _starpu_node_get_kind(unsigned node)
 #if STARPU_MAXNODES == 1
 #define _starpu_memory_nodes_get_count() 1
 #else
+/** See starpu_memory_nodes_get_count() */
 static inline unsigned _starpu_memory_nodes_get_count(void)
 {
 	return _starpu_descr.nnodes;
@@ -142,6 +152,7 @@ static inline unsigned _starpu_memory_nodes_get_count(void)
 #if STARPU_MAXNODES == 1
 #define _starpu_worker_get_memory_node(workerid) 0
 #else
+/** See starpu_worker_get_memory_node() */
 static inline unsigned _starpu_worker_get_memory_node(unsigned workerid)
 {
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
@@ -164,6 +175,7 @@ static inline unsigned _starpu_worker_get_memory_node(unsigned workerid)
 #if STARPU_MAXNODES == 1
 #define _starpu_worker_get_local_memory_node() 0
 #else
+/** See starpu_worker_get_local_memory_node */
 static inline unsigned _starpu_worker_get_local_memory_node(void)
 {
 	struct _starpu_worker *worker = _starpu_get_local_worker_key();

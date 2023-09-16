@@ -123,7 +123,7 @@ void _starpu_init_cuda(void)
 	}
 }
 
-/* This is called to really discover the hardware */
+/* This is called to return the real (non-clamped) number of devices */
 void _starpu_cuda_discover_devices(struct _starpu_machine_config *config)
 {
 	/* Discover the number of CUDA devices. Fill the result in CONFIG. */
