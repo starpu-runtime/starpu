@@ -482,7 +482,7 @@ static starpu_ssize_t allocate_matrix_buffer_on_node(void *data_interface_, unsi
 	if (!handle)
 		return -ENOMEM;
 
-	if (starpu_node_get_kind(dst_node) != STARPU_OPENCL_RAM)
+	if (!starpu_node_needs_offset(dst_node))
 		addr = handle;
 
 	/* update the data properly in consequence */
@@ -541,7 +541,7 @@ static int map_matrix(void *src_interface, unsigned src_node,
 	{
 		dst_matrix->dev_handle = mapped;
 		dst_matrix->offset = 0;
-		if (starpu_node_get_kind(dst_node) != STARPU_OPENCL_RAM)
+		if (!starpu_node_needs_offset(dst_node))
 			dst_matrix->ptr = mapped;
 		dst_matrix->ld = src_matrix->ld;
 		return 0;

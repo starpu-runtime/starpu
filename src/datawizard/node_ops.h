@@ -142,6 +142,14 @@ struct _starpu_node_ops
 	 */
 	int (*is_direct_access_supported)(unsigned node, unsigned handling_node);
 
+	/**
+	  * Whether \p node needs the use a memory offset, i.e. the value returned
+	  * by the allocation method is not a pointer, but some driver handle, and an
+	  * offset needs to be used to access within the allocated area. This is for
+	  * instance the case with OpenCL.
+	  */
+	int needs_offset;
+
 	/** Allocate \p size bytes of data on device \p devid.
 	 * \p flags can contain STARPU_MALLOC_* flags, only useful for CPU memory  */
 	uintptr_t (*malloc_on_device)(int devid, size_t size, int flags);

@@ -346,7 +346,7 @@ static starpu_ssize_t allocate_vector_buffer_on_node(void *data_interface_, unsi
 	if (!handle)
 		return -ENOMEM;
 
-	if (starpu_node_get_kind(dst_node) != STARPU_OPENCL_RAM)
+	if (!starpu_node_needs_offset(dst_node))
 		addr = handle;
 
 	/* update the data properly in consequence */
@@ -402,7 +402,7 @@ static int map_vector(void *src_interface, unsigned src_node,
 	{
 		dst_vector->dev_handle = mapped;
 		dst_vector->offset = 0;
-		if (starpu_node_get_kind(dst_node) != STARPU_OPENCL_RAM)
+		if (!starpu_node_needs_offset(dst_node))
 			dst_vector->ptr = mapped;
 		return 0;
 	}

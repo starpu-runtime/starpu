@@ -530,6 +530,14 @@ int starpu_memory_nodes_numa_devid_to_id(unsigned id);
 enum starpu_node_kind starpu_node_get_kind(unsigned node);
 
 /**
+   Return whether \p node needs the use a memory offset, i.e. the value returned
+   by the allocation method is not a pointer, but some driver handle, and an
+   offset needs to be used to access within the allocated area. This is for
+   instance the case with OpenCL.
+*/
+int starpu_node_needs_offset(unsigned node);
+
+/**
    Return the type of worker which operates on memory node kind \p node_kind.
    See \ref TopologyWorkers for more details.
   */

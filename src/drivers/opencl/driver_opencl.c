@@ -1789,6 +1789,7 @@ hwloc_obj_t _starpu_opencl_get_hwloc_obj(hwloc_topology_t topology, int devid)
 struct _starpu_node_ops _starpu_driver_opencl_node_ops =
 {
 	.name = "opencl driver",
+	.needs_offset = 1,
 	.malloc_on_device = _starpu_opencl_malloc_on_device,
 	.free_on_device = _starpu_opencl_free_on_device,
 

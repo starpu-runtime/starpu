@@ -444,7 +444,7 @@ static starpu_ssize_t allocate_block_buffer_on_node(void *data_interface_, unsig
 	if (!handle)
 		return -ENOMEM;
 
-	if (starpu_node_get_kind(dst_node) != STARPU_OPENCL_RAM)
+	if (!starpu_node_needs_offset(dst_node))
 		addr = handle;
 
 	allocated_memory = nx*ny*nz*elemsize;
@@ -485,7 +485,7 @@ static int map_block(void *src_interface, unsigned src_node,
 	{
 		dst_block->dev_handle = mapped;
 		dst_block->offset = 0;
-		if (starpu_node_get_kind(dst_node) != STARPU_OPENCL_RAM)
+		if (!starpu_node_needs_offset(dst_node))
 			dst_block->ptr = mapped;
 		dst_block->ldy = src_block->ldy;
 		dst_block->ldz = src_block->ldz;

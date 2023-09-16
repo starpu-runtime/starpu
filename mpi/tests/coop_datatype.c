@@ -105,7 +105,7 @@ static starpu_ssize_t data_allocate_data_on_node(void *data_interface, unsigned 
 	if (!handle)
 		return -ENOMEM;
 
-	if (starpu_node_get_kind(node) != STARPU_OPENCL_RAM)
+	if (!starpu_node_needs_offset(node))
 		addr = handle;
 
 	/* update the data properly in consequence */

@@ -268,7 +268,7 @@ static int map_variable(void *src_interface, unsigned src_node,
 	{
 		dst_variable->dev_handle = mapped;
 		dst_variable->offset = 0;
-		if (starpu_node_get_kind(dst_node) != STARPU_OPENCL_RAM)
+		if (!starpu_node_needs_offset(dst_node))
 			dst_variable->ptr = mapped;
 		return 0;
 	}

@@ -186,6 +186,13 @@ static inline unsigned _starpu_worker_get_local_memory_node(void)
 #endif
 #define starpu_worker_get_local_memory_node _starpu_worker_get_local_memory_node
 
+/** See starpu_node_needs_offset() */
+static inline int _starpu_node_needs_offset(unsigned node)
+{
+	return _starpu_memory_node_get_node_ops(node)->needs_offset;
+}
+#define starpu_node_needs_offset _starpu_node_needs_offset
+
 #pragma GCC visibility pop
 
 #endif // __MEMORY_NODES_H__

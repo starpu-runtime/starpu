@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -157,7 +157,7 @@ static starpu_ssize_t data_allocate_data_on_node(void *data_interface, unsigned 
 	if (!handle)
 		return -ENOMEM;
 
-	if (starpu_node_get_kind(node) != STARPU_OPENCL_RAM)
+	if (!starpu_node_needs_offset(node))
 		addr = handle;
 
 	/* update the data properly in consequence */

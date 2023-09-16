@@ -121,7 +121,7 @@ static starpu_ssize_t complex_dev_handle_allocate_data_on_node(void *data_interf
 	if (!dev_handle_imaginary)
 		goto fail_imaginary;
 
-	if (starpu_node_get_kind(node) != STARPU_OPENCL_RAM)
+	if (!starpu_node_needs_offset(node))
 	{
 		addr_real = dev_handle_real;
 		addr_imaginary = dev_handle_imaginary;
