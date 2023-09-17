@@ -1247,11 +1247,11 @@ static unsigned _starpu_topology_count_ngpus(hwloc_obj_t obj)
 	struct _starpu_hwloc_userdata *data = obj->userdata;
 	unsigned n = data->ngpus;
 	unsigned i;
-	hwloc_obj_t child;
 
 	for (i = 0; i < obj->arity; i++)
 		n += _starpu_topology_count_ngpus(obj->children[i]);
 #if HWLOC_API_VERSION >= 0x00020000
+	hwloc_obj_t child;
 	for (child = obj->io_first_child; child; child = child->next_sibling)
 		n += _starpu_topology_count_ngpus(child);
 #endif
