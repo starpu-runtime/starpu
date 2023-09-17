@@ -175,6 +175,8 @@ void _starpu_disk_unregister(void)
 		disk_register_list[i]->functions->unplug(disk_register_list[i]->base);
 		free(disk_register_list[i]);
 		disk_register_list[i] = NULL;
+
+		(void) STARPU_ATOMIC_ADD(&disk_number, -1);
 	}
 
 	/* no disk in the list -> delete the list */
