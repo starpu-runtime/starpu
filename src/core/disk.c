@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -175,8 +175,6 @@ void _starpu_disk_unregister(void)
 		disk_register_list[i]->functions->unplug(disk_register_list[i]->base);
 		free(disk_register_list[i]);
 		disk_register_list[i] = NULL;
-
-		STARPU_ATOMIC_ADD(&disk_number, -1);
 	}
 
 	/* no disk in the list -> delete the list */
