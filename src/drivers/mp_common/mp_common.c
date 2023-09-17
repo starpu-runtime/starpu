@@ -515,12 +515,14 @@ void _starpu_sink_launch_workers(struct _starpu_mp_node *node)
 	{
 		int ret;
 
+		ret = starpu_pthread_attr_init(&attr);
+		STARPU_ASSERT(ret == 0);
+
+#if defined(HAVE_PTHREAD_SETAFFINITY_NP) && defined(__linux__)
 		//init the set
 		CPU_ZERO(&cpuset);
 		CPU_SET(i,&cpuset);
 
-		ret = starpu_pthread_attr_init(&attr);
-		STARPU_ASSERT(ret == 0);
 		int nobind = starpu_getenv_number("STARPU_WORKERS_NOBIND");
 
 		if (nobind <= 0)
@@ -528,6 +530,9 @@ void _starpu_sink_launch_workers(struct _starpu_mp_node *node)
 			ret = pthread_attr_setaffinity_np(&attr, sizeof(cpu_set_t), &cpuset);
 			STARPU_ASSERT(ret == 0);
 		}
+#else
+#warning no CPU binding support
+#endif
 
 		/*prepare the argument for the thread*/
 		_STARPU_MALLOC(arg, sizeof(struct arg_sink_thread));

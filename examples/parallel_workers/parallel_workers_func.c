@@ -31,7 +31,9 @@ static void display_cpu(void *descr[], void *cl_arg)
 	(void)cl_arg;
 #pragma omp parallel
 	{
+#ifdef __linux__
 		fprintf(stderr, "thread %d on cpu %d\n", omp_get_thread_num(), sched_getcpu());
+#endif
 	}
 }
 
