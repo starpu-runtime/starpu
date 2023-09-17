@@ -279,7 +279,7 @@ static void init_matrix(int rank)
 			starpu_data_handle_t *data_on_node;
 			unsigned nb_data_on_node = 0;
 			int *valid;
-			int iterator = 0;
+			unsigned iterator = 0;
 			int node = 0;
 			starpu_data_get_node_data(node, &data_on_node, &valid, &nb_data_on_node);
 			for (iterator = 0; iterator < nb_data_on_node; iterator++)
