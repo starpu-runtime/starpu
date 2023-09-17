@@ -107,9 +107,7 @@ static unsigned nmem[STARPU_NRAM];
 static double numa_latency[STARPU_MAXNUMANODES][STARPU_MAXNUMANODES];
 static double numa_timing[STARPU_MAXNUMANODES][STARPU_MAXNUMANODES];
 
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_HIP) || defined(STARPU_USE_OPENCL)
 static int gpu_numa[STARPU_NRAM][STARPU_NMAXDEVS]; /* hwloc NUMA logical ID */
-#endif
 #endif
 
 /* preference order of NUMA nodes (logical indexes) */
@@ -175,7 +173,7 @@ static int find_cpu_from_numa_node(unsigned numa_id)
 }
 #endif
 
-#if (defined(STARPU_USE_CUDA) || defined(STARPU_USE_HIP) || defined(STARPU_USE_OPENCL)) && !defined(STARPU_SIMGRID)
+#if !defined(STARPU_SIMGRID)
 
 static void set_numa_distance(int dev, unsigned numa, enum starpu_worker_archtype arch, struct dev_timing *dev_timing_per_cpu)
 {
@@ -520,9 +518,7 @@ static void measure_bandwidth_between_host_and_dev(int dev, struct dev_timing de
 	}
 #endif
 }
-#endif /* defined(STARPU_USE_CUDA) || defined(STARPU_USE_HIP) || defined(STARPU_USE_OPENCL) */
 
-#if !defined(STARPU_SIMGRID)
 static void measure_bandwidth_latency_between_numa(int numa_src, int numa_dst, double *timing_nton, double *latency_nton)
 {
 #if defined(STARPU_HAVE_HWLOC)
@@ -593,7 +589,7 @@ no_calibration:
 		numa_latency[numa_src][numa_dst] = 0;
 	}
 }
-#endif
+#endif /* !defined(STARPU_SIMGRID) */
 
 static void benchmark_all_memory_nodes(void)
 {
