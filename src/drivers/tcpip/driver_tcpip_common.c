@@ -22,7 +22,9 @@
 #endif
 #include <error.h>
 #include <errno.h>
+#ifdef MSG_ERRQUEUE
 #include <linux/errqueue.h>
+#endif
 #include <sys/types.h>
 #include <netdb.h>
 #include <arpa/inet.h>
