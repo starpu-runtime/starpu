@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,6 +19,10 @@
 
 #include <core/task.h>
 #include <common/list.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #pragma GCC visibility push(hidden)
 
@@ -124,10 +128,34 @@ void _starpu_graph_compute_descendants(void);
 */
 void _starpu_graph_foreach(void (*func)(void *data, struct _starpu_graph_node *node), void *data);
 
+/**
+ * @brief Retrieves the graph node associated with a given StarPU task.
+ *
+ * This function looks up the job associated with the input task, and returns the graph node associated with that job.
+ *
+ * @param[in] task A task.
+ *
+ * @return Returns a pointer to the graph node associated with the job of the task.
+ */
 struct _starpu_graph_node *_starpu_graph_task_node(struct starpu_task *task);
+
+/**
+ * @brief Retrieves the task associated with a given graph node.
+ *
+ * This function looks up the job associated with the input graph node, and returns the task associated with that job.
+ *
+ * @param[in] node A graph node.
+ *
+ * @return Returns a pointer to the task associated with the job of the node. If the node's job is NULL, returns NULL.
+ */
 struct starpu_task *_starpu_graph_node_task(struct _starpu_graph_node *node);
+
 void _starpu_graph_node_outgoing(struct _starpu_graph_node *node, unsigned *n_outgoing, struct _starpu_graph_node ***outgoing);
 
 #pragma GCC visibility pop
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __GRAPH_H__ */

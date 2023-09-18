@@ -24,6 +24,10 @@
 #include <core/jobs.h>
 #include <common/starpu_spinlock.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #pragma GCC visibility push(hidden)
 
 /** Internal version of starpu_task_destroy: don't check task->destroy flag */
@@ -204,5 +208,9 @@ struct starpu_transaction
 	/** flags, unused for now */
 	int flags;
 };
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // __CORE_TASK_H__

@@ -37,6 +37,10 @@
 #include <valgrind/helgrind.h>
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #pragma GCC visibility push(hidden)
 
 #define _STARPU_STRINGIFY_(x) #x
@@ -211,5 +215,9 @@ void _starpu_util_init(void);
 enum initialization { UNINITIALIZED = 0, CHANGING, INITIALIZED };
 
 #pragma GCC visibility pop
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // __COMMON_UTILS_H__
