@@ -105,6 +105,11 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 			descrs[nb_data].mode = mode;
 			nb_data ++;
 		}
+		else if (arg_type == STARPU_NONE)
+		{
+			arg_i++;
+			/* starpu_data_handle_t */
+		}
 		else if (arg_type == STARPU_DATA_ARRAY)
 		{
 			arg_i++;

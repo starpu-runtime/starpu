@@ -25,6 +25,7 @@ typedef void (*_starpu_callback_func_t)(void *);
 static const intptr_t fstarpu_r	= STARPU_R;
 static const intptr_t fstarpu_w	= STARPU_W;
 static const intptr_t fstarpu_rw	= STARPU_RW;
+static const intptr_t fstarpu_none	= STARPU_NONE;
 static const intptr_t fstarpu_scratch	= STARPU_SCRATCH;
 static const intptr_t fstarpu_redux	= STARPU_REDUX;
 static const intptr_t fstarpu_mpi_redux	= STARPU_MPI_REDUX;
@@ -125,6 +126,7 @@ intptr_t fstarpu_get_constant(char *s)
 	if	(!strcmp(s, "FSTARPU_R"))	{ return fstarpu_r; }
 	else if	(!strcmp(s, "FSTARPU_W"))	{ return fstarpu_w; }
 	else if	(!strcmp(s, "FSTARPU_RW"))	{ return fstarpu_rw; }
+	else if	(!strcmp(s, "FSTARPU_NONE"))	{ return fstarpu_none; }
 	else if	(!strcmp(s, "FSTARPU_SCRATCH"))	{ return fstarpu_scratch; }
 	else if	(!strcmp(s, "FSTARPU_REDUX"))	{ return fstarpu_redux; }
 	else if	(!strcmp(s, "FSTARPU_MPI_REDUX"))	{ return fstarpu_mpi_redux; }
