@@ -228,7 +228,6 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		int ret;
 		starpu_iteration_push(k);
                 starpu_data_handle_t sdatakk = starpu_data_get_sub_data(dataA, 2, k, k);
-		int priority;
 
 		ret = starpu_task_insert(&cl_potrf,
 					 STARPU_PRIORITY, potrf_priority(nblocks, k, t_potrf, t_trsm, t_syrk, t_gemm),
