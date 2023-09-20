@@ -42,6 +42,7 @@ build:
     paths:
       - starpu*.tar.gz
       - starpu*.pdf
+      - html
 
 .check_template:
   extends: .main_template

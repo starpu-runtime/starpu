@@ -37,5 +37,6 @@ make dist
 cp *gz ..
 cp doc/doxygen/starpu.pdf ..
 cp doc/doxygen_dev/starpu_dev.pdf ..
+cp -rp doc/doxygen/html ..
 make clean
 
