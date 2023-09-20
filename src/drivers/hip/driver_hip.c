@@ -443,7 +443,7 @@ void _starpu_hip_init_worker_memory(struct _starpu_machine_config *config, int n
 }
 
 /* Set the current HIP device */
-void starpu_hip_set_device(unsigned devid STARPU_ATTRIBUTE_UNUSED)
+void starpu_hip_set_device(int devid STARPU_ATTRIBUTE_UNUSED)
 {
 	hipError_t hipres;
 	int attempts = 0;

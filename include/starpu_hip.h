@@ -165,7 +165,7 @@ int starpu_hip_copy3d_async_sync_devid(void *src_ptr, int src_dev, enum starpu_n
 /**
    Call <c>hipSetDevice(\p devid)</c>.
 */
-void starpu_hip_set_device(unsigned devid);
+void starpu_hip_set_device(int devid);
 
 /** @} */
 
