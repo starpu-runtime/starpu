@@ -1,12 +1,3 @@
----
-name: Bug report
-about: Create a report to help us improve starpu
-title: ''
-labels: ''
-assignees: ''
-
----
-
 ### Steps to reproduce
 
 Please describe how you make the issue happen, so we can reproduce it.
