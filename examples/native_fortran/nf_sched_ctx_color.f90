@@ -44,7 +44,7 @@ program nf_sched_ctx
   ! initialize StarPU with default settings
   err = fstarpu_init(C_NULL_PTR)
   if (err == -19) then
-     stop 76
+     stop 77
   end if
 
   ! stop there if no CPU worker available
