@@ -346,7 +346,9 @@ endif
 if STARPU_USE_CUDA
 STARPU_EXAMPLES +=				\
 	mult/sgemm 				\
-	mult/dgemm				\
+	mult/dgemm
+
+examplebin_PROGRAMS +=				\
 	mult/sgemm_layout			\
 	mult/dgemm_layout
 endif
@@ -361,8 +363,6 @@ if !STARPU_NO_BLAS_LIB
 STARPU_EXAMPLES +=				\
 	mult/sgemm 				\
 	mult/dgemm				\
-	mult/sgemm_layout			\
-	mult/dgemm_layout			\
 	lu/lu_example_float			\
 	lu/lu_example_double			\
 	lu/lu_implicit_example_float		\
@@ -371,6 +371,10 @@ STARPU_EXAMPLES +=				\
 	cholesky/cholesky_tile_tag		\
 	cholesky/cholesky_implicit		\
 	cholesky/cholesky_compil
+
+examplebin_PROGRAMS +=				\
+	mult/sgemm_layout			\
+	mult/dgemm_layout
 
 if !STARPU_SIMGRID
 STARPU_EXAMPLES +=				\
