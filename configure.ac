@@ -4162,6 +4162,39 @@ AC_SUBST(STARPU_OPTION_LIBS, "$option_libs")
 
 ###############################################################################
 #                                                                             #
+#                          DARTS settings                                     #
+#                                                                             #
+###############################################################################
+
+AC_MSG_CHECKING(whether DARTS debug messages should be displayed)
+AC_ARG_ENABLE(darts-verbose, [AS_HELP_STRING([--enable-darts-verbose],
+					   [display DARTS verbose debug messages])],
+	      enable_darts_verbose=$enableval, enable_darts_verbose=no)
+AC_MSG_RESULT($enable_darts_verbose)
+if test x$enable_darts_verbose = xyes; then
+	AC_DEFINE(STARPU_DARTS_VERBOSE, [1], [display DARTS verbose debug messages])
+fi
+
+AC_MSG_CHECKING(whether DARTS statistics should be enabled)
+AC_ARG_ENABLE(darts-stats, [AS_HELP_STRING([--enable-darts-stats],
+					   [enable DARTS statistics])],
+	      enable_darts_stats=$enableval, enable_darts_stats=no)
+AC_MSG_RESULT($enable_darts_stats)
+if test x$enable_darts_stats = xyes; then
+	AC_DEFINE(STARPU_DARTS_STATS, [1], [enable DARTS statistics])
+fi
+
+AC_MSG_CHECKING(whether DARTS linear mutex should be used)
+AC_ARG_ENABLE(darts-linear-mutex, [AS_HELP_STRING([--enable-darts-linear-mutex],
+					   [enable DARTS linear mutex])],
+	      enable_darts_linear_mutex=$enableval, enable_darts_linear_mutex=no)
+AC_MSG_RESULT($enable_darts_linear_mutex)
+if test x$enable_darts_linear_mutex = xyes; then
+	AC_DEFINE(STARPU_DARTS_LINEAR_MUTEX, [1], [enable DARTS linear mutex])
+fi
+
+###############################################################################
+#                                                                             #
 #                                Final settings                               #
 #                                                                             #
 ###############################################################################

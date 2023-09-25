@@ -26,6 +26,7 @@
 #include <common/barrier.h>
 #include <core/debug.h>
 #include <core/task.h>
+#include <sched_policies/sched_visu.h>
 
 #ifdef HAVE_DLOPEN
 #include <dlfcn.h>
@@ -45,6 +46,7 @@ static const char *sched_lib = NULL;
 
 void _starpu_sched_init(void)
 {
+	_starpu_visu_init();
 	_starpu_task_break_on_push = starpu_getenv_number_default("STARPU_TASK_BREAK_ON_PUSH", -1);
 	_starpu_task_break_on_sched = starpu_getenv_number_default("STARPU_TASK_BREAK_ON_SCHED", -1);
 	_starpu_task_break_on_pop = starpu_getenv_number_default("STARPU_TASK_BREAK_ON_POP", -1);
@@ -101,6 +103,12 @@ static struct starpu_sched_policy *predefined_policies[] =
 
 static struct starpu_sched_policy *predefined_policies_non_default[] =
 {
+	&_starpu_sched_darts_policy,
+	&_starpu_sched_random_order_policy,
+	&_starpu_sched_HFP_policy,
+	&_starpu_sched_modular_heft_HFP_policy,
+	&_starpu_sched_mst_policy,
+	&_starpu_sched_cuthillmckee_policy,
 	NULL
 };
 
@@ -1194,7 +1202,9 @@ profiling:
 		task->prologue_callback_pop_func(task->prologue_callback_pop_arg);
 		_starpu_set_current_task(NULL);
 	}
-
+	
+	_sched_visu_pop_ready_task(task);
+	
 	return task;
 }
 
@@ -1202,6 +1212,9 @@ void _starpu_sched_pre_exec_hook(struct starpu_task *task)
 {
 	unsigned sched_ctx_id = starpu_sched_ctx_get_ctx_for_task(task);
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+
+	_sched_visu_get_current_tasks_for_visualization(task, sched_ctx_id);
+
 	if (sched_ctx->sched_policy && sched_ctx->sched_policy->pre_exec_hook)
 	{
 		_STARPU_SCHED_BEGIN;

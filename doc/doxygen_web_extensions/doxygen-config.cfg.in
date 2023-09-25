@@ -34,6 +34,7 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters/starpu_extensions/ext
                       @top_srcdir@/doc/doxygen/chapters/starpu_extensions/socl_opencl_extensions.doxy \
                       @top_srcdir@/doc/doxygen/chapters/starpu_extensions/bubble.doxy \
                       @top_srcdir@/doc/doxygen/chapters/starpu_extensions/parallel_worker.doxy \
+                      @top_srcdir@/doc/doxygen/chapters/starpu_extensions/darts.doxy \
                       @top_srcdir@/doc/doxygen/chapters/starpu_extensions/interoperability.doxy \
                       @top_srcdir@/doc/doxygen/chapters/starpu_extensions/simgrid.doxy \
                       @top_srcdir@/doc/doxygen/chapters/starpu_extensions/debugging_tools.doxy \

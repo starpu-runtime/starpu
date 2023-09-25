@@ -48,6 +48,7 @@ chapters =	\
 	../doxygen/chapters/starpu_extensions/socl_opencl_extensions.doxy		\
 	../doxygen/chapters/starpu_extensions/bubble.doxy		\
 	../doxygen/chapters/starpu_extensions/parallel_worker.doxy		\
+	../doxygen/chapters/starpu_extensions/darts.doxy		\
 	../doxygen/chapters/starpu_extensions/interoperability.doxy		\
 	../doxygen/chapters/starpu_extensions/scheduling_policy_definition.doxy		\
 	../doxygen/chapters/starpu_extensions/simgrid.doxy		\

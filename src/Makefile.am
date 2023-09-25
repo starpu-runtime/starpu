@@ -164,7 +164,10 @@ noinst_HEADERS = 						\
 	util/starpu_task_insert_utils.h				\
 	util/starpu_data_cpy.h					\
 	sched_policies/prio_deque.h				\
-	sched_policies/sched_component.h
+	sched_policies/sched_component.h			\
+	sched_policies/darts.h					\
+	sched_policies/HFP.h					\
+	sched_policies/sched_visu.h
 
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	common/barrier.c					\
@@ -314,6 +317,12 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/modular_eager_prio.c				\
 	sched_policies/modular_eager_prefetching.c				\
 	sched_policies/modular_gemm.c				\
+	sched_policies/random_order.c				\
+	sched_policies/mst_policy.c				\
+	sched_policies/HFP.c				\
+	sched_policies/sched_visu.c				\
+	sched_policies/darts.c				\
+	sched_policies/cuthillmckee_policy.c				\
 	sched_policies/modular_prio.c				\
 	sched_policies/modular_prio_prefetching.c				\
 	sched_policies/modular_random.c				\

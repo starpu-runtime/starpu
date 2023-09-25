@@ -1,0 +1,140 @@
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+
+/*! \page DARTS Data-aware Scheduler and Visualization Tool
+
+\section DARTS_Scheduling_Policy Overview
+
+DARTS is a research scheduler designed to address memory constraints.
+Study of results available as a conference paper: https://ieeexplore.ieee.org/abstract/document/9820704
+Further study as a pre-publication: https://inria.hal.science/hal-04146714v1
+
+\subsection darts_purpose Purpose
+
+DARTS (for Data-Aware Reactive Task Scheduling) is a scheduling policy that aims to achieve good performance under memory constraints.
+DARTS looks for the "best" data, that is, the data that has the smallest ratio of transfer time to computation made available without additional data load.
+DARTS computes all tasks using this "best" data and the data already loaded into memory.
+If no data allows at least one task to be computed without additional load, the highest priority task is scheduled next.
+DARTS can be used with or without a memory constraint.
+
+\subsection darts_features Features
+
+DARTS has been tested on the outer product, GEMM, the Cholesky and LU factorizations.
+These applications are typically used as follows:
+\verbatim
+./examples/cholesky/cholesky_implicit -size $((block_size*N)) -nblocks $((N)) -niter 1
+./examples/mult/sgemm -xy $((block_size*N)) -nblocks $((N)) -iter 1
+./examples/mult/sgemm -xyz $((block_size*N)) -nblocks $((N)) -nblocksz $((N)) -iter 1
+./examples/lu/lu_implicit_example_float -size $((block_size*N)) -nblocks $((N)) -iter 1
+\endverbatim
+In theory, DARTS can be used for any task-based application.
+
+\section darts_best_practices Best Practices
+
+It is highly recommended to use only GPUs for best performance.
+It is therefore recommended to set the variables \ref STARPU_NOPENCL and \ref STARPU_NCPU to 0.
+
+If the application does not use dependencies (such as the outer product), use the following environment variables:
+\verbatim
+STARPU_DARTS_DEPENDANCES=0
+STARPU_DARTS_PRIO=0
+\endverbatim
+
+For example, a set of parameters for DARTS that achieves the best performance is
+\verbatim
+STARPU_SCHED_READY=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_EXPECTED_TRANSFER_TIME_WRITEBACK=0 STARPU_SCHED=darts STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=5 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ${APPLICATION}
+\endverbatim
+
+\section DARTS_Building_Visualizations Building Visualizations
+
+DARTS is also equipped with a visualization tool that allows to plot the processing order of the task set by a processing unit on a matrix multiplication or a Cholesky factorization.
+The files that make up the visualization are located in the directory \c tools/darts/.
+The visualizations only work for Gemm, the outer product, and the Cholesky factorization when using only GPUs.
+
+\subsection darts_visu_Configuration Configuration
+
+The configure options required are: <c>--enable-darts-stats --enable-darts-verbose<c>.
+
+\subsection darts_visu_launch Launch Options
+
+Add the following environment variables when launching the application:
+
+<ul>
+<li>
+<c>PRINT_N=$((N))<c> where <c>N<c> is the side of the matrix used in the application.
+</li>
+<li>
+<c>PRINT_IN_TERMINAL=1<c>.
+</li>
+<li>
+<c>STARPU_SCHED_OUTPUT=path_to_output<c> to specify where the output file will be stored.
+</li>
+</ul>
+
+If your target application is Cholesky, use <c>-niter 1</c>. If your target application is Gemm or the outer product, use <c>-iter 1</c>
+
+An example of launch options is for the outer product:
+\verbatim
+STARPU_SCHED_OUTPUT=${OUTPUT_PATH} STARPU_SCHED=darts PRINT_IN_TERMINAL=1 PRINT_N=$((N)) STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=5 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -xy $((block_size*N)) -nblocks $((N)) -iter 1
+python3 ./tools/darts/visualization_darts.py ${N} darts ${NGPU} Matrice_ligne 1 0 ${block_size} ${OUTPUT_PATH}
+\endverbatim
+
+A full example of the command used to build the visualization is available in \c tools/darts/example_script_visualization_darts.sh.
+
+The output visualization is stored in the current folder.
+
+\section More_Scheduler More research schedulers about memory-aware scheduling
+
+Other memory-constrained schedulers are also available for experimental purposes, note they only function with GPUs and on GEMM and the outer product.
+
+<ul>
+<li>
+\c HFP for Hierarchical Fair Packing groups tasks that share data into
+packages of maximum size the size of the processing units' memory.
+It should be used with the following command line with one GPU:
+\verbatim
+STARPU_SCHED=HFP MULTIGPU=6 TASK_STEALING=3 STARPU_SCHED_READY=1 BELADY=1 ORDER_U=1 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -xy $((block_size*N)) -nblocks $((N))
+\endverbatim
+With multiple GPUs it should be used with:
+</li>
+<li>
+\c cuthillmckee for Cuthill-McKee is an algorithm that transforms a
+sparse matrix into a minimum band matrix. The algorithm is adapted to
+task-based scheduling by considering vertices as tasks and edges as
+data shares. It should be used as follows:
+\verbatim
+STARPU_SCHED=cuthillmckee REVERSE=1 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -xy $((block_size*N)) -nblocks $((N))
+\endverbatim
+</li>
+<li>
+\c MST for Maximum Spanning Tree (mst) follows Prim's algorithm to add
+vertices to a spanning tree with maximum weights. Vertices are tasks
+and weighted edges are the number of data shared between two tasks. It
+should be used as follows:
+\verbatim
+STARPU_SCHED=mst STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -xy $((block_size*N)) -nblocks $((N))
+\endverbatim
+</li>
+<li>
+\c random_order returns in a randomized order a set of tasks. It
+should be used with the command line:
+\verbatim
+STARPU_SCHED=random_order STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -xy $((block_size*N)) -nblocks $((N))
+\endverbatim
+</li>
+</ul>
+
+*/

@@ -21,6 +21,7 @@ New features:
   * Add starpu_data_register_victim_selector to let schedulers select eviction
     victims.
   * Add bus performance model for HIP driver.
+  * New scheduler darts (Data-Aware Reactive Task Scheduling)
 
 Small features:
   * Add FXT option -use-task-color to propagate the specified task
