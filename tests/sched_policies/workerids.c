@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013	    Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -36,7 +36,8 @@ void funcA(void *buffers[], void *args)
 {
 	(void) buffers;
 	(void) args;
-	STARPU_ASSERT(starpu_worker_get_id() == 0);
+	int id = starpu_worker_get_id();
+	STARPU_ASSERT_MSG(id == 0, "Expected id 0 but got %d\n", id);
 	starpu_usleep(1000);
 }
 
