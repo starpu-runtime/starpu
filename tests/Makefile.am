@@ -191,7 +191,8 @@ myPROGRAMS +=					\
 	openmp/array_slice_01			\
 	openmp/cuda_task_01			\
 	perfmodels/value_nan			\
-	sched_policies/workerids
+	sched_policies/workerids		\
+	sched_policies/help
 
 if STARPU_SIMGRID
 myPROGRAMS +=					\

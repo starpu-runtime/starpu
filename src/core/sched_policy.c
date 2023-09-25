@@ -99,6 +99,11 @@ static struct starpu_sched_policy *predefined_policies[] =
 	NULL
 };
 
+static struct starpu_sched_policy *predefined_policies_non_default[] =
+{
+	NULL
+};
+
 struct starpu_sched_policy **starpu_sched_get_predefined_policies()
 {
 	return predefined_policies;
@@ -222,6 +227,19 @@ static struct starpu_sched_policy *find_sched_policy_from_name(const char *polic
 		}
 	}
 
+	for(policy=predefined_policies_non_default ; *policy!=NULL ; policy++)
+	{
+		struct starpu_sched_policy *p = *policy;
+		if (p->policy_name)
+		{
+			if (strcmp(policy_name, p->policy_name) == 0)
+			{
+				/* we found a policy with the requested name */
+				return p;
+			}
+		}
+	}
+
 	if (strcmp(policy_name, "help") == 0)
 		return NULL;
 
@@ -241,6 +259,13 @@ static void display_sched_help_message(FILE *stream)
 
 		fprintf(stream, "\nThe variable STARPU_SCHED can be set to one of the following strings:\n");
 		for(policy=predefined_policies ; *policy!=NULL ; policy++)
+		{
+			struct starpu_sched_policy *p = *policy;
+			fprintf(stream, "%-30s\t-> %s\n", p->policy_name, p->policy_description);
+		}
+		fprintf(stream, "\n");
+
+		for(policy=predefined_policies_non_default ; *policy!=NULL ; policy++)
 		{
 			struct starpu_sched_policy *p = *policy;
 			fprintf(stream, "%-30s\t-> %s\n", p->policy_name, p->policy_description);

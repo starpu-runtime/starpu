@@ -28,6 +28,8 @@ Small features:
   * Add flag STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY_FIRST and
     environment variable STARPU_SCHED_FIFO_READY_FIRST to let FIFO
     components pick up ready tasks first.
+  * Allow scheduling policies to be loaded with STARPU_SCHED&co but
+    not to be in the list of predefined policies
 
 StarPU 1.4.1
 ==============================================
