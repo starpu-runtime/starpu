@@ -266,7 +266,7 @@ static int random_order_can_pull(struct starpu_sched_component * component)
 
 struct starpu_sched_component *starpu_sched_component_random_order_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
 {
-	starpu_srand48(time(0));
+	starpu_srand48(starpu_get_env_number_default("SEED", 0));
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "random_order");
 
 	struct random_order_sched_data *data;
