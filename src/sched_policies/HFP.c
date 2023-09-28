@@ -3697,7 +3697,7 @@ static void hmetis_input_already_generated(struct _starpu_HFP_paquets *p, struct
 		printf("Error, please precis env var HMETIS_N.\n");
 		exit(0);
 	}
-	int size =  0;
+	//~ int size =  0;
 	starpu_task_list_init(&p->temp_pointer_1->refused_fifo_list);
 	for (i = 1; i < nb_gpu; i++)
 	{
@@ -3710,62 +3710,53 @@ static void hmetis_input_already_generated(struct _starpu_HFP_paquets *p, struct
 	char Nchar[4];
 	sprintf(str, "%d", nb_gpu);
 	sprintf(Nchar, "%d", _starpu_HFP_N);
+
+	char *path2;
 	if (random_task_order == 1)
 	{
-		size = strlen("Output_maxime/Data/input_hMETIS/") + strlen(str) + strlen("GPU_Random_task_order/input_hMETIS_N") + strlen(Nchar) + strlen(".txt");
+		if (sparse_matrix != 0)
+		{
+			asprintf(&path2, "%s%s%s%s%s%s", "Output_maxime/Data/input_hMETIS/", str, "GPU_Random_task_order", "_sparse/input_hMETIS_N", Nchar, ".txt");
+		}
+		else
+		{
+			asprintf(&path2, "%s%s%s%s%s%s", "Output_maxime/Data/input_hMETIS/", str, "GPU_Random_task_order", "/input_hMETIS_N", Nchar, ".txt");
+		}
 	}
 	else if (_starpu_HFP_hmetis == 5) /* Cas matrice 3D */
 	{
-		size = strlen("Output_maxime/Data/input_hMETIS/") + strlen(str) + strlen("GPU_Matrice3D/input_hMETIS_N") + strlen(Nchar) + strlen(".txt");
-	}
-	else if (_starpu_HFP_hmetis == 6) /* Cas cholesky */
-	{
-		size = strlen("Output_maxime/Data/input_hMETIS/") + strlen(str) + strlen("GPU_Cholesky/input_hMETIS_N") + strlen(Nchar) + strlen(".txt");
-	}
-	else
-	{
-		size = strlen("Output_maxime/Data/input_hMETIS/") + strlen(str) + strlen("GPU/input_hMETIS_N") + strlen(Nchar) + strlen(".txt");
-	}
-
-	/* Cas sparse */
-	if (sparse_matrix != 0)
-	{
-		size += strlen("_sparse");
-	}
-
-	char *path2 = (char *)malloc(size);
-	strcpy(path2, "Output_maxime/Data/input_hMETIS/");
-	strcat(path2, str);
-
-	if (random_task_order == 1)
-	{
-		strcat(path2, "GPU_Random_task_order");
-	}
-	else if (_starpu_HFP_hmetis == 5) /* Cas matrice 3D */
-	{
-		strcat(path2, "GPU_Matrice3D");
+		if (sparse_matrix != 0)
+		{
+			asprintf(&path2, "%s%s%s%s%s%s", "Output_maxime/Data/input_hMETIS/", str, "GPU_Matrice3D", "_sparse/input_hMETIS_N", Nchar, ".txt");
+		}
+		else
+		{
+			asprintf(&path2, "%s%s%s%s%s%s", "Output_maxime/Data/input_hMETIS/", str, "GPU_Matrice3D", "/input_hMETIS_N", Nchar, ".txt");
+		}
 	}
 	else if (_starpu_HFP_hmetis == 6) /* Cas Cholesky */
 	{
-		strcat(path2, "GPU_Cholesky");
+		if (sparse_matrix != 0)
+		{
+			asprintf(&path2, "%s%s%s%s%s%s", "Output_maxime/Data/input_hMETIS/", str, "GPU_Cholesky", "_sparse/input_hMETIS_N", Nchar, ".txt");
+		}
+		else
+		{
+			asprintf(&path2, "%s%s%s%s%s%s", "Output_maxime/Data/input_hMETIS/", str, "GPU_Cholesky", "/input_hMETIS_N", Nchar, ".txt");
+		}
 	}
 	else
 	{
-		strcat(path2, "GPU");
+		if (sparse_matrix != 0)
+		{
+			asprintf(&path2, "%s%s%s%s%s%s", "Output_maxime/Data/input_hMETIS/", str, "GPU", "_sparse/input_hMETIS_N", Nchar, ".txt");
+		}
+		else
+		{
+			asprintf(&path2, "%s%s%s%s%s%s", "Output_maxime/Data/input_hMETIS/", str, "GPU", "/input_hMETIS_N", Nchar, ".txt");
+		}
 	}
-
-	/* Cas sparse */
-	if (sparse_matrix != 0)
-	{
-		strcat(path2, "_sparse/input_hMETIS_N");
-	}
-	else
-	{
-		strcat(path2, "/input_hMETIS_N");
-	}
-
-	strcat(path2, Nchar);
-	strcat(path2, ".txt");
+	
 	FILE *f_2 = fopen(path2, "r");
 	free(path2);
 	int number; int error;
