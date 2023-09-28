@@ -1179,7 +1179,7 @@ static void randomize_new_task_list(struct _starpu_darts_sched_data *d)
 	}
 	for (i = 0; i < NT_DARTS; i++)
 	{
-		int random = rand()%(NT_DARTS - i);
+		int random = starpu_lrand48()%(NT_DARTS - i);		
 		starpu_task_list_push_back(&d->main_task_list, task_tab[random]);
 		task_tab[random] = task_tab[NT_DARTS - i - 1];
 	}
@@ -1204,7 +1204,7 @@ static void randomize_full_task_list(struct _starpu_darts_sched_data *d)
 	for (i = 0; i < NT_DARTS; i++)
 	{
 		task_tab[i] = starpu_task_list_pop_front(&d->sched_list);
-		random_number[i] = rand()%size_main_task_list;
+		random_number[i] = starpu_lrand48()%size_main_task_list;
 	}
 
 	/* Appel du tri fusion. */
@@ -1266,7 +1266,7 @@ static void randomize_full_data_not_used_yet()
 
 		for (j = 0; j < number_of_data; j++)
 		{
-			int random = rand()%(number_of_data - j);
+			int random = starpu_lrand48()%(number_of_data - j);
 			_starpu_darts_gpu_data_not_used_list_push_back(randomized_list, data_tab[random]);
 
 			/* I replace the box with the last task in the table */
@@ -1294,7 +1294,7 @@ static void randomize_new_data_not_used_yet()
 			}
 			for (j = 0; j < number_new_data; j++)
 			{
-				int random = rand()%(number_new_data - j);
+				int random = starpu_lrand48()%(number_new_data - j);
 				_starpu_darts_gpu_data_not_used_list_push_back(tab_gpu_planned_task[i].gpu_data, data_tab[random]);
 
 				data_tab[random] = data_tab[number_new_data - j - 1];
@@ -2680,7 +2680,7 @@ static void push_data_not_used_yet_random_spot(starpu_data_handle_t h, struct _s
 		_starpu_darts_gpu_data_not_used_list_push_back(g->gpu_data, new_element);
 		return;
 	}
-	int random = rand()%_starpu_darts_gpu_data_not_used_list_size(g->gpu_data);
+	int random = starpu_lrand48()%_starpu_darts_gpu_data_not_used_list_size(g->gpu_data);
 	struct _starpu_darts_gpu_data_not_used *ptr;
 	ptr = _starpu_darts_gpu_data_not_used_list_begin(g->gpu_data);
 	int i = 0;
