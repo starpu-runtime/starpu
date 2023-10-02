@@ -333,6 +333,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 	poti_DefineEntityValue("Po", "S", "PushingOutput", "0.1 1.0 1.0");
 	poti_DefineEntityValue("C", "S", "Callback", ".0 .3 .8");
 	poti_DefineEntityValue("B", "S", "Overhead", ".5 .18 .0");
+	poti_DefineEntityValue("Ps", "S", "Parallel sync", ".5 .18 1.0");
 	poti_DefineEntityValue("E", "S", "Executing", ".0 .6 .5");
 	poti_DefineEntityValue("Sc", "S", "Scheduling", ".7 .36 .0");
 	poti_DefineEntityValue("Sl", "S", "Sleeping", ".9 .1 .0");
@@ -353,6 +354,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 	poti_DefineEntityValue("Po", "WS", "PushingOutput", "0.1 1.0 1.0");
 	poti_DefineEntityValue("C", "WS", "Callback", ".0 .3 .8");
 	poti_DefineEntityValue("B", "WS", "Overhead", ".5 .18 .0");
+	poti_DefineEntityValue("Ps", "WS", "Parallel sync", ".5 .18 1.0");
 	poti_DefineEntityValue("E", "WS", "Executing", ".0 .6 .5");
 	poti_DefineEntityValue("Sc", "WS", "Scheduling", ".7 .36 .0");
 	poti_DefineEntityValue("Sl", "WS", "Sleeping", ".9 .1 .0");
@@ -414,6 +416,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 		poti_DefineEntityValue("Po", ctx, "PushingOutput", "0.1 1.0 1.0");
 		poti_DefineEntityValue("C", ctx, "Callback", ".0 .3 .8");
 		poti_DefineEntityValue("B", ctx, "Overhead", ".5 .18 .0");
+		poti_DefineEntityValue("Ps", ctx, "Parallel sync", ".5 .18 1.0");
 		poti_DefineEntityValue("E", ctx, "Executing", ".0 .6 .5");
 		poti_DefineEntityValue("Sc", ctx, "Scheduling", ".7 .36 .0");
 		poti_DefineEntityValue("Sl", ctx, "Sleeping", ".9 .1 .0");
@@ -499,6 +502,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 6       Po       S      PushingOutput       \"0.1 1.0 1.0\"            \n\
 6       C       S       Callback       \".0 .3 .8\"            \n\
 6       B       S       Overhead         \".5 .18 .0\"		\n\
+6       Ps      S       \"Parallel sync\"  \".5 .18 1.0\"		\n\
 6       E       S       Executing         \".0 .6 .5\"		\n\
 6       Sc       S      Scheduling         \".7 .36 .0\"		\n\
 6       Sl       S      Sleeping         \".9 .1 .0\"		\n\
@@ -519,6 +523,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 6       Po       WS      PushingOutput       \"0.1 1.0 1.0\"            \n\
 6       C       WS       Callback       \".0 .3 .8\"            \n\
 6       B       WS       Overhead         \".5 .18 .0\"		\n\
+6       Ps      WS       \"Parallel sync\"  \".5 .18 1.0\"		\n\
 6       E       WS       Executing         \".0 .6 .5\"		\n\
 6       Sc       WS      Scheduling         \".7 .36 .0\"		\n\
 6       Sl       WS      Sleeping         \".9 .1 .0\"		\n\
@@ -568,13 +573,14 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 6       Po       Ctx%u      PushingOutput       \"0.1 1.0 1.0\"            \n\
 6       C       Ctx%u       Callback       \".0 .3 .8\"            \n\
 6       B       Ctx%u       Overhead         \".5 .18 .0\"		\n\
+6       Ps      Ctx%u       \"Parallel sync\"  \".5 .18 1.0\"		\n\
 6       E       Ctx%u       Executing         \".0 .6 .5\"		\n\
 6       Sc       Ctx%u      Scheduling         \".7 .36 .0\"		\n\
 6       Sl       Ctx%u      Sleeping         \".9 .1 .0\"		\n\
 6       P       Ctx%u       Progressing         \".1 .3 .1\"		\n\
 6       U       Ctx%u       Unpartitioning         \".0 .0 1.0\"	\n\
 6       H       Ctx%u       Hypervisor         \".5 .18 .0\"		\n",
-		i, i, i, i, i, i, i, i, i, i, i, i, i);
+		i, i, i, i, i, i, i, i, i, i, i, i, i, i);
 	fprintf(file, "\
 6       A       MS      Allocating         \".4 .1 .0\"		\n\
 6       Ar       MS      AllocatingReuse       \".1 .1 .8\"		\n\

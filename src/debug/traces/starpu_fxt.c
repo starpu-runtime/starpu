@@ -580,6 +580,7 @@ static struct
 	{ "P",	 "Progressing",			 WORKER_STATE | THREAD_STATE },
 	{ "U",	 "Unpartitioning",		 WORKER_STATE | THREAD_STATE },
 	{ "B",	 "Overhead",			 WORKER_STATE | THREAD_STATE },
+	{ "Ps",	 "Parallel sync",		 WORKER_STATE | THREAD_STATE },
 	{ "In",	 "Initializing",		 WORKER_STATE | THREAD_STATE },
 	{ "D",	 "Deinitializing",		 WORKER_STATE | THREAD_STATE },
 	{ "E",	 "Executing",			 WORKER_STATE | THREAD_STATE },
@@ -2078,6 +2079,22 @@ static void handle_end_executing(struct fxt_ev_64 *ev, struct starpu_fxt_options
 
 	if (!find_sync(prefixTOnodeid(prefix), threadid))
 		do_thread_set_state(get_event_time_stamp(ev, options), prefix, threadid, "B", "Runtime", -1);
+}
+
+static void handle_start_parallel_sync(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	char *prefix = options->file_prefix;
+	long unsigned int threadid = ev->param[0];
+
+	thread_push_state(get_event_time_stamp(ev, options), prefix, threadid, "Ps");
+}
+
+static void handle_end_parallel_sync(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	char *prefix = options->file_prefix;
+	long unsigned int threadid = ev->param[0];
+
+	thread_pop_state(get_event_time_stamp(ev, options), prefix, threadid);
 }
 
 static void handle_user_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -3736,6 +3753,13 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				break;
 			case _STARPU_FUT_END_EXECUTING:
 				handle_end_executing(&ev, options);
+				break;
+
+			case _STARPU_FUT_START_PARALLEL_SYNC:
+				handle_start_parallel_sync(&ev, options);
+				break;
+			case _STARPU_FUT_END_PARALLEL_SYNC:
+				handle_end_parallel_sync(&ev, options);
 				break;
 
 			case _STARPU_FUT_START_CALLBACK:
