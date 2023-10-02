@@ -418,7 +418,9 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 
 	if (is_parallel_task)
 	{
+		_STARPU_TRACE_START_PARALLEL_SYNC(j);
 		STARPU_PTHREAD_BARRIER_WAIT(&j->after_work_barrier);
+		_STARPU_TRACE_END_PARALLEL_SYNC(j);
 		if (rank != 0)
 		{
 #ifdef STARPU_PROF_TOOL
