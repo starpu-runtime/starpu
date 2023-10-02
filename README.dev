@@ -189,3 +189,25 @@ Writing a new driver is essentially:
 
 - Other places can be extended to add features: asynchronous data transfers,
   energy measurement, multiformat, memory mapping
+
+
+
+Adding a new FXT state
+----------------------
+
+This consists in:
+
+- Adding a code number in src/common/fxt.h
+
+- Adding the callable runtime macro in src/common/fxt.h
+
+- Calling these macros in the wanted place in the runtime
+
+- Adding a paje state in states_list src/debug/traces/starpu_fxt.c and in
+  src/debug/traces/starpu_paje.c
+
+- Adding the management of the code in _starpu_fxt_parse_new_file, usually
+  calling a function that does the actual paje state addition (a push/pop pair
+  or two state sets)
+
+A simple example can be found in 28740e7a91a2 ("Add a Parallel sync state").
