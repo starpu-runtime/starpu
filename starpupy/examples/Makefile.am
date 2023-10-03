@@ -47,14 +47,14 @@ TESTS	+=	starpu_py.sh
 TESTS	+=	starpu_py.concurrent.sh
 
 TESTS	+=	starpu_py_parallel.sh
+TESTS	+=	starpu_py_handle.sh
+TESTS	+=	starpu_py_handle.concurrent.sh
 
 if STARPU_STARPUPY_NUMPY
 TESTS	+=	starpu_py_numpy.sh
 TESTS	+=	starpu_py_numpy.concurrent.sh
 TESTS	+=	starpu_py_np.sh
 TESTS	+=	starpu_py_np.concurrent.sh
-TESTS	+=	starpu_py_handle.sh
-TESTS	+=	starpu_py_handle.concurrent.sh
 TESTS	+=	starpu_py_partition.sh
 TESTS	+=	starpu_py_partition.concurrent.sh
 endif
