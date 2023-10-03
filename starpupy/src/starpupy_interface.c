@@ -58,6 +58,9 @@ static void pyobject_register_data_handle(starpu_data_handle_t handle, int home_
 
 static void pyobject_unregister_data_handle(starpu_data_handle_t handle)
 {
+	/*make sure we own the GIL*/
+	PyGILState_STATE state = PyGILState_Ensure();
+
 	int node = starpu_data_get_home_node(handle);
 	if (node >= 0)
 	{
@@ -66,6 +69,9 @@ static void pyobject_unregister_data_handle(starpu_data_handle_t handle)
 		Py_DECREF(local_interface->object);
 		local_interface->object = NULL;
 	}
+
+	/* release GIL */
+	PyGILState_Release(state);
 }
 
 static starpu_ssize_t pyobject_allocate_data_on_node(void *data_interface, unsigned node)
