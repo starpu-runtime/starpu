@@ -1266,6 +1266,15 @@ it also makes simulation non-deterministic.
 Enable (1) or disable (0) multi interpreters in the StarPU Python interface (\ref MultipleInterpreters). Default value is Disable.
 </dd>
 
+<dt>STARPUPY_OWN_GIL</dt>
+<dd>
+\anchor STARPUPY_OWN_GIL
+\addindex __env__STARPUPY_OWN_GIL
+Enable (1) or disable (0) using per-interpreter GIL (\ref
+PythonParallelism). Default value is Disable for now, until python is fully
+ready for this.
+</dd>
+
 </dl>
 
 \section MiscellaneousAndDebug Miscellaneous And Debug

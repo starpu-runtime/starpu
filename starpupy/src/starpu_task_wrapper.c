@@ -1538,16 +1538,22 @@ static void new_inter(void* arg)
 	STARPU_ASSERT(state == PyGILState_UNLOCKED);
 	orig_thread_states[workerid] = PyThreadState_GET();
 
+	if (starpu_getenv_number_default("STARPUPY_OWN_GIL", 0))
+	{
 #ifdef PyInterpreterConfig_OWN_GIL
-	/* https://peps.nogil.dev/pep-0684/ */
-	PyInterpreterConfig config = {
-	    .check_multi_interp_extensions = 1,
-	    .gil = PyInterpreterConfig_OWN_GIL,
-	};
-	Py_NewInterpreterFromConfig(&new_thread_state, &config);
+		/* https://peps.nogil.dev/pep-0684/ */
+		PyInterpreterConfig config = {
+		    .check_multi_interp_extensions = 1,
+		    .gil = PyInterpreterConfig_OWN_GIL,
+		};
+		Py_NewInterpreterFromConfig(&new_thread_state, &config);
 #else
-	new_thread_state = Py_NewInterpreter();
+		fprintf(stderr, "STARPUPY_OWN_GIL is only supported starting from python 3.12\n");
+		exit(1);
 #endif
+	}
+	else
+		new_thread_state = Py_NewInterpreter();
 
 	PyThreadState_Swap(new_thread_state);
 	new_thread_states[workerid] = new_thread_state;
