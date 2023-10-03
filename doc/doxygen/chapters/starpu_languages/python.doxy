@@ -58,11 +58,24 @@ $
 
 \section PythonParallelism Python Parallelism
 
-Python interpreters share the Global Interpreter Lock (GIL), which requires that at any time, one and only one thread has the right to execute a task. With the latest version of Python (3.11), if the application is pure Python script, even enable multi-interpreters, the program cannot be executed in parallel. GIL makes the multiple interpreters execution of Python actually serial rather than parallel, and the execution of Python program is single-threaded essentially.
+Python interpreters share the Global Interpreter Lock (GIL), which requires
+that at any time, one and only one thread has the right to execute a task. With
+Python versions up to 3.11, if the application is pure Python script, even with
+multi-interpreters, the program cannot be executed in parallel. The sharedGIL
+makes the multiple interpreters execution of Python actually serial rather than
+parallel, and the execution of Python program is single-threaded essentially.
 
-For the pure Python script, the only way to achieve parallelism is to use the master-slave mechanism (Section \ref StarpupyMasterSlave).
-Parallelism may be implemented with multi-interpreters in the future Python version. Details can be found in Section \ref MultipleInterpreters.
-Otherwise parallelism can be achieved when external C applications are called or external APIs e.g. BLAS API is used for Numpy objects.
+For the pure Python script with python versions up to 3.11, the only way
+to achieve parallelism is to use the master-slave mechanism (Section \ref
+StarpupyMasterSlave).  Parallelism may be implemented with multi-interpreters
+in the future Python version. Details can be found in Section \ref
+MultipleInterpreters.  Otherwise parallelism can be achieved when external
+C applications are called or external APIs e.g. BLAS API is used for Numpy
+objects.
+
+Starting from python version 3.12, multiple interpreters can use a separate
+GIL. StarPU automatically enables this, to allow parallelism of pure python
+code.
 
 \section ImplementingStarPUInPython Using StarPU in Python
 
