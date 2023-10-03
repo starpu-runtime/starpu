@@ -339,6 +339,9 @@ static void pybuffer_register_data_handle(starpu_data_handle_t handle, int home_
 
 static void pybuffer_unregister_data_handle(starpu_data_handle_t handle)
 {
+	/*make sure we own the GIL*/
+	PyGILState_STATE state = PyGILState_Ensure();
+
 	unsigned home_node = starpu_data_get_home_node(handle);
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
@@ -367,6 +370,9 @@ static void pybuffer_unregister_data_handle(starpu_data_handle_t handle)
 		free(local_interface->shape);
 		local_interface->shape = NULL;
 	}
+
+	/* release GIL */
+	PyGILState_Release(state);
 }
 
 static starpu_ssize_t pybuffer_allocate_data_on_node(void *data_interface, unsigned node)
