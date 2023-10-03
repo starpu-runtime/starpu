@@ -1538,8 +1538,17 @@ static void new_inter(void* arg)
 	STARPU_ASSERT(state == PyGILState_UNLOCKED);
 	orig_thread_states[workerid] = PyThreadState_GET();
 
-	/* TODO: Use Py_NewInterpreterEx when https://peps.nogil.dev/pep-0684/ gets released */
+#ifdef PyInterpreterConfig_OWN_GIL
+	/* https://peps.nogil.dev/pep-0684/ */
+	PyInterpreterConfig config = {
+	    .check_multi_interp_extensions = 1,
+	    .gil = PyInterpreterConfig_OWN_GIL,
+	};
+	Py_NewInterpreterFromConfig(&new_thread_state, &config);
+#else
 	new_thread_state = Py_NewInterpreter();
+#endif
+
 	PyThreadState_Swap(new_thread_state);
 	new_thread_states[workerid] = new_thread_state;
 	PyEval_SaveThread(); // releases the GIL
