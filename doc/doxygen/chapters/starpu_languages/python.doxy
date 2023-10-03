@@ -73,9 +73,10 @@ MultipleInterpreters.  Otherwise parallelism can be achieved when external
 C applications are called or external APIs e.g. BLAS API is used for Numpy
 objects.
 
-Starting from python version 3.12, multiple interpreters can use a separate
-GIL. StarPU automatically enables this, to allow parallelism of pure python
-code.
+Starting from python version 3.12, multiple interpreters can use a separate GIL,
+to allow parallelism of pure python code.  This can be enabled by setting \ref
+STARPUPY_OWN_GIL to 1. Some corner cases are however not supported yet in python
+3.12, notably the usage of futures.
 
 \section ImplementingStarPUInPython Using StarPU in Python
 
