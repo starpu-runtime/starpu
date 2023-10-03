@@ -74,6 +74,8 @@
 
 #ifndef STARPU_SIMGRID
 static void _starpu_bus_force_sampling(int location);
+
+int _starpu_benchmarking_bus;
 #endif
 
 /* timing is in µs per byte (i.e. slowness, inverse of bandwidth) */
@@ -601,6 +603,8 @@ static void benchmark_all_memory_nodes(void)
 
 	_STARPU_DEBUG("Benchmarking the speed of the bus\n");
 
+	_starpu_benchmarking_bus = 1;
+
 #ifdef STARPU_DEVEL
 #warning FIXME: when running several StarPU processes on the same node (MPI rank per numa), we need to use a lock to avoid concurrent benchmarking.
 #endif
@@ -749,7 +753,7 @@ static void benchmark_all_memory_nodes(void)
 #endif
 
 	_STARPU_DEBUG("Benchmarking the speed of the bus is done.\n");
-
+	_starpu_benchmarking_bus = 0;
 	was_benchmarked = 1;
 #endif /* !SIMGRID */
 }

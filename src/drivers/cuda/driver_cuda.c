@@ -1071,7 +1071,7 @@ uintptr_t _starpu_cuda_malloc_on_device(int devid, size_t size, int flags)
 	starpu_cuda_set_device(devid);
 #else
 	struct _starpu_worker *worker = _starpu_get_local_worker_key();
-	if (!worker || worker->arch != STARPU_CUDA_WORKER || worker->devid != devid)
+	if (!_starpu_benchmarking_bus && (!worker || worker->arch != STARPU_CUDA_WORKER || worker->devid != devid))
 		STARPU_ASSERT_MSG(0, "CUDA peer access is not available with this version of CUDA");
 #endif
 	/* Check if there is free memory */

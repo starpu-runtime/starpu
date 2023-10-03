@@ -70,6 +70,7 @@ struct _starpu_job;
 struct starpu_perfmodel_arch;
 
 extern unsigned _starpu_calibration_minimum;
+extern int _starpu_benchmarking_bus;
 
 void _starpu_find_perf_model_codelet(const char *symbol, const char *hostname, char *path, size_t maxlen);
 void _starpu_find_perf_model_codelet_debug(const char *symbol, const char *hostname, const char *arch, char *path, size_t maxlen);
