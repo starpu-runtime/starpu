@@ -16,7 +16,7 @@
 
 try:
     import numpy as np
-except ModuleNotFoundError as e:
+except (ModuleNotFoundError, ImportError):
 	print("Can't find \"Python3 NumPy\" module (consider running \"pip3 install numpy\" or refer to https://numpy.org/install/)")
 	exit(77)
 

@@ -39,7 +39,7 @@ if (loop.is_running()):
 		import nest_asyncio
 		nest_asyncio.apply()
 		has_nest=True
-	except ModuleNotFoundError as e:
+	except (ModuleNotFoundError, ImportError):
 		has_nest=False
 
 BACKENDS={
