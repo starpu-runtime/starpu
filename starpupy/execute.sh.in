@@ -19,10 +19,10 @@ PROGNAME=$0
 
 usage()
 {
-    echo "Tool to launch StarPUPY examples"
+    echo "Tool to launch StarPUPY and examples"
     echo ""
     echo "  Typical usage:"
-    echo "     $PROGNAME python_script.py"
+    echo "     $PROGNAME [python_script.py]"
     echo ""
     echo "Options:"
     echo "	-h, --help          display this help and exit"
@@ -85,11 +85,6 @@ do
     fi
 done
 
-if test "$EXEC_ARGS" == ""
-then
-    usage
-fi
-
 if test "$mpi" == "mpi"
 then
     if test -n "$gdb"
@@ -107,17 +102,23 @@ fi
 set -- $EXEC_ARGS
 
 examplefile=$1
-if test -f $examplefile
-then
-    pythonscript=$examplefile
-elif test -f $starpupy_path/$examplefile
-then
-    pythonscript=$starpupy_path/$examplefile
-else
-    echo "Error. Python script $examplefile not found in current directory or in $starpupy_path"
-    exit 1
-fi
 shift
+if test -n "$examplefile"
+then
+    if test -f $examplefile
+    then
+	pythonscript=$examplefile
+    elif test -f $starpupy_path/$examplefile
+    then
+	pythonscript=$starpupy_path/$examplefile
+    else
+	echo "Error. Python script $examplefile not found in current directory or in $starpupy_path"
+	exit 1
+    fi
+else
+    # Interactive use
+    LOADER=""
+fi
 
 set -x
 if [ -n "$STARPU_LD_PRELOAD" ]
