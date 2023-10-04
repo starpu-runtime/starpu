@@ -1835,18 +1835,18 @@ if test x$enable_hip != xno; then
 		fi
 		have_valid_hip=no
 	else
-		HIP_PLATFORM="`hipconfig --platform`"
-		HIP_DIR="`hipconfig --path`"
+		HIP_PLATFORM="$(hipconfig --platform)"
+		HIP_DIR="$(hipconfig --path)"
 		HIP_LIB_DIR="$HIP_DIR/lib"
 		HIP_INCLUDE_DIR="$HIP_DIR/include"
-		STARPU_HIP_CPPFLAGS="`hipconfig --cpp_config` -L$HIP_LIB_DIR"
+		STARPU_HIP_CPPFLAGS="$(hipconfig --cpp_config | tr -d '\n') -L$HIP_LIB_DIR"
 		if test "$HIP_PLATFORM" = "nvidia"; then
 			STARPU_HIP_CPPFLAGS="$STARPU_HIP_CPPFLAGS -DSTARPU_USE_HIP_CUDA"
 		fi
 		if test "$HIP_PLATFORM" = "amd"; then
 			STARPU_HIP_CPPFLAGS="$STARPU_HIP_CPPFLAGS -DSTARPU_USE_HIP_ROC"
 		fi
-		HIP_CLANG_PATH="`hipconfig --hipclangpath`"
+		HIP_CLANG_PATH="$(hipconfig --hipclangpath)"
 		have_valid_hip=yes
 
 		AC_ARG_WITH([hipblas],
