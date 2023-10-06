@@ -666,7 +666,7 @@ void starpu_data_partition_clean(starpu_data_handle_t root_handle, unsigned npar
 #ifdef STARPU_DEVEL
 #warning FIXME: better choose gathering node
 #endif
-	starpu_data_partition_clean_node(root_handle, nparts, children, root_handle->home_node != -1 ? root_handle->home_node : STARPU_MAIN_RAM);
+	starpu_data_partition_clean_node(root_handle, nparts, children, root_handle->home_node);
 }
 
 static
@@ -1009,7 +1009,7 @@ static void _starpu_data_partition_access_look_up(starpu_data_handle_t ancestor,
 #ifdef STARPU_DEVEL
 #warning FIXME: better choose gathering node
 #endif
-		starpu_data_unpartition_submit_r(ancestor, ancestor->home_node != -1 ? ancestor->home_node : STARPU_MAIN_RAM);
+		starpu_data_unpartition_submit_r(ancestor, ancestor->home_node);
 	}
 
 	if (!target)
