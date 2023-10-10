@@ -120,6 +120,11 @@ static int _starpu_compar_handles(const struct _starpu_data_descr *descrA,
 	return (dataA->root_handle < dataB->root_handle)?-1:1;
 }
 
+int _starpu_handles_same_root(starpu_data_handle_t dataA, starpu_data_handle_t dataB)
+{
+	return dataA->root_handle == dataB->root_handle;
+}
+
 static int _starpu_compar_buffer_descr(const void *_descrA, const void *_descrB)
 {
 	const struct _starpu_data_descr *descrA = (const struct _starpu_data_descr *) _descrA;

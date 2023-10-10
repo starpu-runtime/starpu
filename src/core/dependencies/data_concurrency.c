@@ -321,19 +321,24 @@ static unsigned attempt_to_submit_data_request_from_job(struct _starpu_job *j, u
 static unsigned _submit_job_access_data(struct _starpu_job *j, unsigned start_buffer_index)
 {
 	unsigned buf;
+	int bufdup;
 
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(j->task);
 	for (buf = start_buffer_index; buf < nbuffers; buf++)
 	{
 		starpu_data_handle_t handle = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buf);
-		if (buf)
+
+		for (bufdup = (int) buf-1; bufdup >= 0; bufdup--)
 		{
-			starpu_data_handle_t handle_m1 = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buf-1);
-			if (handle_m1 == handle)
+			starpu_data_handle_t handle_dup = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, bufdup);
+			if (handle_dup == handle)
 				/* We have already requested this data, skip it. This
 				 * depends on ordering putting writes before reads, see
 				 * _starpu_compar_handles.  */
-				continue;
+				goto next;
+			if (!_starpu_handles_same_root(handle_dup, handle))
+				/* We are not checking within the same parent any more, no need to continue checking other handles */
+				break;
 		}
 
 		STARPU_ASSERT(j->task->status == STARPU_TASK_BLOCKED || j->task->status == STARPU_TASK_BLOCKED_ON_TAG || j->task->status == STARPU_TASK_BLOCKED_ON_TASK || j->task->status == STARPU_TASK_BLOCKED_ON_DATA);
@@ -351,6 +356,8 @@ static unsigned _submit_job_access_data(struct _starpu_job *j, unsigned start_bu
 		{
 			return 1;
 		}
+
+next:
 	}
 
 	return 0;
@@ -373,19 +380,24 @@ static void take_data_from_job(struct _starpu_job *j, unsigned buffer_index)
 static void _submit_job_take_data_deps(struct _starpu_job *j, unsigned start_buffer_index)
 {
 	unsigned buf;
+	int bufdup;
 
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(j->task);
 	for (buf = start_buffer_index; buf < nbuffers; buf++)
 	{
 		starpu_data_handle_t handle = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buf);
-		if (buf)
+
+		for (bufdup = (int) buf-1; bufdup >= 0; bufdup--)
 		{
-			starpu_data_handle_t handle_m1 = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buf-1);
-			if (handle_m1 == handle)
+			starpu_data_handle_t handle_dup = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, bufdup);
+			if (handle_dup == handle)
 				/* We have already requested this data, skip it. This
 				 * depends on ordering putting writes before reads, see
 				 * _starpu_compar_handles.  */
-				continue;
+				goto next;
+			if (!_starpu_handles_same_root(handle_dup, handle))
+				/* We are not checking within the same parent any more, no need to continue checking other handles */
+				break;
 		}
 
 		if(handle->arbiter)
@@ -397,6 +409,8 @@ static void _submit_job_take_data_deps(struct _starpu_job *j, unsigned start_buf
 		}
 
 		take_data_from_job(j, buf);
+
+next:
 	}
 }
 
