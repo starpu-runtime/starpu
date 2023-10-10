@@ -417,6 +417,7 @@ void _starpu_submit_job_enforce_arbitered_deps(struct _starpu_job *j, unsigned b
 
 	const unsigned start_buf_arbiter = buf;
 	unsigned idx_buf_arbiter;
+	int idx_buf_arbiterdup;
 	unsigned all_arbiter_available = 1;
 
 	starpu_data_handle_t handle;
@@ -431,11 +432,18 @@ void _starpu_submit_job_enforce_arbitered_deps(struct _starpu_job *j, unsigned b
 
 		STARPU_ASSERT_MSG(!(mode & STARPU_REDUX), "REDUX with arbiter is not implemented\n");
 
-		if (idx_buf_arbiter && (descrs[idx_buf_arbiter-1].handle == handle))
-			/* We have already requested this data, skip it. This
-			 * depends on ordering putting writes before reads, see
-			 * _starpu_compar_handles.  */
-			continue;
+		for (idx_buf_arbiterdup = (int) idx_buf_arbiter-1; idx_buf_arbiterdup >= 0; idx_buf_arbiterdup--)
+		{
+			starpu_data_handle_t handle_dup = descrs[idx_buf_arbiterdup].handle;
+			if (handle_dup == handle)
+				/* We have already requested this data, skip it. This
+				 * depends on ordering putting writes before reads, see
+				 * _starpu_compar_handles.  */
+				goto next;
+			if (!_starpu_handles_same_root(handle_dup, handle))
+				/* We are not checking within the same parent any more, no need to continue checking other handles */
+				break;
+		}
 
 		if (handle->arbiter != arbiter)
 		{
@@ -461,6 +469,7 @@ void _starpu_submit_job_enforce_arbitered_deps(struct _starpu_job *j, unsigned b
 			all_arbiter_available = 0;
 			break;
 		}
+next:
 	}
 	if (all_arbiter_available == 0)
 	{
@@ -484,15 +493,23 @@ void _starpu_submit_job_enforce_arbitered_deps(struct _starpu_job *j, unsigned b
 
 		/* and cancel all taken */
 		unsigned idx_buf_cancel;
+		int idx_buf_canceldup;
 		for (idx_buf_cancel = start_buf_arbiter; idx_buf_cancel < idx_buf_arbiter ; idx_buf_cancel++)
 		{
 			starpu_data_handle_t cancel_handle = descrs[idx_buf_cancel].handle;
-
-			if (idx_buf_cancel && (descrs[idx_buf_cancel-1].handle == cancel_handle))
-				continue;
 			if (cancel_handle->arbiter != arbiter)
 				/* Will have to process another arbiter, will do that later */
 				break;
+
+			for (idx_buf_canceldup = (int) idx_buf_cancel-1; idx_buf_canceldup >= 0; idx_buf_canceldup--)
+			{
+				starpu_data_handle_t handle_dup = descrs[idx_buf_canceldup].handle;
+				if (handle_dup == cancel_handle)
+					goto next2;
+				if (!_starpu_handles_same_root(handle_dup, cancel_handle))
+					/* We are not checking within the same parent any more, no need to continue checking other handles */
+					break;
+			}
 
 			_starpu_spin_lock(&cancel_handle->header_lock);
 			/* reset the counter because finally we do not take the data */
@@ -502,6 +519,7 @@ void _starpu_submit_job_enforce_arbitered_deps(struct _starpu_job *j, unsigned b
 			cancel_handle->busy_count--;
 			if (!_starpu_data_check_not_busy(cancel_handle))
 				_starpu_spin_unlock(&cancel_handle->header_lock);
+next2:
 		}
 
 #ifndef LOCK_OR_DELEGATE
@@ -650,6 +668,7 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle, enum sta
 		unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(j->task);
 
 		unsigned idx_buf_arbiter;
+		int idx_buf_arbiterdup;
 		unsigned all_arbiter_available = 1;
 		starpu_data_handle_t handle_arbiter;
 		enum starpu_data_access_mode mode;
@@ -660,14 +679,23 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle, enum sta
 		for (idx_buf_arbiter = start_buf_arbiter; idx_buf_arbiter < nbuffers; idx_buf_arbiter++)
 		{
 			handle_arbiter = descrs[idx_buf_arbiter].handle;
-			if (idx_buf_arbiter && (descrs[idx_buf_arbiter-1].handle == handle_arbiter))
-				/* We have already requested this data, skip it. This
-				 * depends on ordering putting writes before reads, see
-				 * _starpu_compar_handles.  */
-				continue;
+
 			if (handle_arbiter->arbiter != arbiter)
 				/* Will have to process another arbiter, will do that later */
 				break;
+
+			for (idx_buf_arbiterdup = (int) idx_buf_arbiter-1; idx_buf_arbiterdup >= 0; idx_buf_arbiterdup--)
+			{
+				starpu_data_handle_t handle_dup = descrs[idx_buf_arbiterdup].handle;
+				if (handle_dup == handle_arbiter)
+					/* We have already requested this data, skip it. This
+					 * depends on ordering putting writes before reads, see
+					 * _starpu_compar_handles.  */
+					goto next;
+				if (!_starpu_handles_same_root(handle_dup, handle_arbiter))
+					/* We are not checking within the same parent any more, no need to continue checking other handles */
+					break;
+			}
 
 			mode = descrs[idx_buf_arbiter].mode;
 			mode = _starpu_arbiter_filter_modes(mode);
@@ -686,6 +714,7 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle, enum sta
 			handle_arbiter->busy_count++;
 			handle_arbiter->current_mode = mode;
 			_starpu_spin_unlock(&handle_arbiter->header_lock);
+next:
 		}
 
 		if (all_arbiter_available)
@@ -735,13 +764,21 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle, enum sta
 
 			/* and revert the mark */
 			unsigned idx_buf_cancel;
+			int idx_buf_canceldup;
 			for (idx_buf_cancel = start_buf_arbiter; idx_buf_cancel < idx_buf_arbiter ; idx_buf_cancel++)
 			{
 				starpu_data_handle_t cancel_handle = descrs[idx_buf_cancel].handle;
-				if (idx_buf_cancel && (descrs[idx_buf_cancel-1].handle == cancel_handle))
-					continue;
 				if (cancel_handle->arbiter != arbiter)
 					break;
+				for (idx_buf_canceldup = (int) idx_buf_cancel-1; idx_buf_canceldup >= 0; idx_buf_canceldup--)
+				{
+					starpu_data_handle_t handle_dup = descrs[idx_buf_canceldup].handle;
+					if (handle_dup == cancel_handle)
+						goto next2;
+					if (!_starpu_handles_same_root(handle_dup, cancel_handle))
+						/* We are not checking within the same parent any more, no need to continue checking other handles */
+						break;
+				}
 				_starpu_spin_lock(&cancel_handle->header_lock);
 				STARPU_ASSERT(cancel_handle->refcnt >= 1);
 				cancel_handle->refcnt--;
@@ -749,6 +786,7 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle, enum sta
 				cancel_handle->busy_count--;
 				if (!_starpu_data_check_not_busy(cancel_handle))
 					_starpu_spin_unlock(&cancel_handle->header_lock);
+next2:
 			}
 		}
 	}

@@ -18,6 +18,7 @@
 #include <common/config.h>
 #include <core/task.h>
 #include <datawizard/datawizard.h>
+#include <datawizard/sort_data_handles.h>
 #include <profiling/bound.h>
 #include <core/debug.h>
 
@@ -436,6 +437,7 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 	struct _starpu_task_wrapper_dlist *dep_slots = _STARPU_JOB_GET_DEP_SLOTS(j);
 
 	unsigned buffer;
+	int bufferdup;
 	for (buffer = 0; buffer < nbuffers; buffer++)
 	{
 		starpu_data_handle_t handle = descrs[buffer].handle;
@@ -446,18 +448,22 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 		if (mode & STARPU_SCRATCH)
 			continue;
 
-		if (buffer)
+		for (bufferdup = (int) buffer-1; bufferdup >= 0; bufferdup--)
 		{
-			starpu_data_handle_t handle_m1 = descrs[buffer-1].handle;
-			enum starpu_data_access_mode mode_m1 = descrs[buffer-1].mode;
-			if (handle_m1 == handle && mode_m1 == mode)
+			starpu_data_handle_t handle_dup = descrs[bufferdup].handle;
+			enum starpu_data_access_mode mode_dup = descrs[bufferdup].mode;
+			if (handle_dup == handle && mode_dup == mode)
 				/* We have already added dependencies for this
 				 * data, skip it. This reduces the number of
 				 * dependencies, and allows notify_soon to work
 				 * when a task uses the same data several times
 				 * (otherwise it will not be able to find out that the two
 				 * dependencies will be over at the same time) */
-				continue;
+				goto next;
+			if (!_starpu_handles_same_root(handle_dup, handle))
+				/* We are not checking within the same parent any more, no need to continue checking other handles */
+				break;
+
 		}
 
 		STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
@@ -473,6 +479,7 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 			int ret = _starpu_task_submit_internally(new_task);
 			STARPU_ASSERT(!ret);
 		}
+next:
 	}
 	_STARPU_LOG_OUT();
 }
@@ -563,6 +570,7 @@ void _starpu_release_task_enforce_sequential_consistency(struct _starpu_job *j)
 
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 	unsigned index;
+	int indexdup;
 
 	/* Release all implicit dependencies */
 	for (index = 0; index < nbuffers; index++)
@@ -570,27 +578,38 @@ void _starpu_release_task_enforce_sequential_consistency(struct _starpu_job *j)
 		starpu_data_handle_t handle = descrs[index].handle;
 		enum starpu_data_access_mode mode = descrs[index].mode;
 
-		if (index)
+		for (indexdup = (int) index-1; indexdup >= 0; indexdup--)
 		{
-			starpu_data_handle_t handle_m1 = descrs[index-1].handle;
-			enum starpu_data_access_mode mode_m1 = descrs[index-1].mode;
-			if (handle_m1 == handle && mode_m1 == mode)
+			starpu_data_handle_t handle_dup = descrs[indexdup].handle;
+			enum starpu_data_access_mode mode_dup = descrs[indexdup].mode;
+			if (handle_dup == handle && mode_dup == mode)
 				/* See _starpu_detect_implicit_data_deps */
-				continue;
+				goto next;
+			if (!_starpu_handles_same_root(handle_dup, handle))
+				/* We are not checking within the same parent any more, no need to continue checking other handles */
+				break;
 		}
 
 		_starpu_release_data_enforce_sequential_consistency(task, &slots[index], handle);
+next:
 	}
 
 	for (index = 0; index < nbuffers; index++)
 	{
 		starpu_data_handle_t handle = descrs[index].handle;
 
-		if (index && descrs[index-1].handle == descrs[index].handle)
-			/* We have already released this data, skip it. This
-			 * depends on ordering putting writes before reads, see
-			 * _starpu_compar_handles */
-			continue;
+		for (indexdup = (int) index-1; indexdup >= 0; indexdup--)
+		{
+			starpu_data_handle_t handle_dup = descrs[indexdup].handle;
+			if (handle_dup == descrs[index].handle)
+				/* We have already released this data, skip it. This
+				 * depends on ordering putting writes before reads, see
+				 * _starpu_compar_handles */
+				goto next2;
+			if (!_starpu_handles_same_root(handle_dup, descrs[index].handle))
+				/* We are not checking within the same parent any more, no need to continue checking other handles */
+				break;
+		}
 
 		/* Release the reference acquired in _starpu_push_task_output */
 		_starpu_spin_lock(&handle->header_lock);
@@ -599,6 +618,7 @@ void _starpu_release_task_enforce_sequential_consistency(struct _starpu_job *j)
 		if (!_starpu_data_check_not_busy(handle))
 			_starpu_spin_unlock(&handle->header_lock);
 
+next2:
 	}
 }
 

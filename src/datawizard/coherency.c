@@ -23,6 +23,7 @@
 #include <datawizard/copy_driver.h>
 #include <datawizard/write_back.h>
 #include <datawizard/memory_nodes.h>
+#include <datawizard/sort_data_handles.h>
 #include <core/dependencies/data_concurrency.h>
 #include <core/disk.h>
 #include <profiling/profiling.h>
@@ -1163,6 +1164,7 @@ int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, in
 	unsigned nacquires;
 
 	unsigned index;
+	int indexdup;
 
 	nacquires = 0;
 	for (index = 0; index < nbuffers; index++)
@@ -1183,11 +1185,18 @@ int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, in
 
 		struct _starpu_data_replicate *local_replicate;
 
-		if (index && descrs[index-1].handle == descrs[index].handle)
-			/* We have already took this data, skip it. This
-			 * depends on ordering putting writes before reads, see
-			 * _starpu_compar_handles */
-			continue;
+		for (indexdup = (int) index-1; indexdup >= 0; indexdup--)
+		{
+			starpu_data_handle_t handle_dup = descrs[indexdup].handle;
+			if (handle_dup == descrs[index].handle)
+				/* We have already taken this data, skip it. This
+				 * depends on ordering putting writes before reads, see
+				 * _starpu_compar_handles */
+				goto next;
+			if (!_starpu_handles_same_root(handle_dup, descrs[index].handle))
+				/* We are not checking within the same parent any more, no need to continue checking other handles */
+				break;
+		}
 
 		local_replicate = get_replicate(handle, mode, workerid, node);
 
@@ -1219,6 +1228,7 @@ int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, in
 		}
 
 		nacquires++;
+next:
 	}
 	_starpu_add_worker_status(worker, STATUS_INDEX_WAITING, NULL);
 	if (async)
@@ -1245,15 +1255,23 @@ enomem:
 
 		struct _starpu_data_replicate *local_replicate;
 
-		if (index2 && descrs[index2-1].handle == descrs[index2].handle)
-			/* We have already released this data, skip it. This
-			 * depends on ordering putting writes before reads, see
-			 * _starpu_compar_handles */
-			continue;
+		for (indexdup = (int) index2-1; indexdup >= 0; indexdup--)
+		{
+			starpu_data_handle_t handle_dup = descrs[indexdup].handle;
+			if (handle_dup == descrs[index2].handle)
+				/* We have already released this data, skip it. This
+				 * depends on ordering putting writes before reads, see
+				 * _starpu_compar_handles */
+				goto next2;
+			if (!_starpu_handles_same_root(handle_dup, descrs[index2].handle))
+				/* We are not checking within the same parent any more, no need to continue checking other handles */
+				break;
+		}
 
 		local_replicate = get_replicate(handle, mode, workerid, node);
 
 		_starpu_release_data_on_node(handle, 0, STARPU_NONE, local_replicate);
+next2:
 	}
 
 	return -1;
@@ -1353,6 +1371,7 @@ void __starpu_push_task_output(struct _starpu_job *j)
 	int workerid = starpu_worker_get_id();
 
 	unsigned index;
+	int indexdup;
 	for (index = 0; index < nbuffers; index++)
 	{
 		starpu_data_handle_t handle = descrs[index].handle;
@@ -1361,11 +1380,19 @@ void __starpu_push_task_output(struct _starpu_job *j)
 
 		struct _starpu_data_replicate *local_replicate = NULL;
 
-		if (index && descrs[index-1].handle == descrs[index].handle)
-			/* We have already released this data, skip it. This
-			 * depends on ordering putting writes before reads, see
-			 * _starpu_compar_handles */
-			continue;
+		for (indexdup = (int) index-1; indexdup >= 0; indexdup--)
+		{
+			starpu_data_handle_t handle_dup = descrs[indexdup].handle;
+			if (handle_dup == descrs[index].handle)
+				/* We have already released this data, skip it. This
+				 * depends on ordering putting writes before reads, see
+				 * _starpu_compar_handles */
+				goto next;
+
+			if (!_starpu_handles_same_root(handle_dup, descrs[index].handle))
+				/* We are not checking within the same parent any more, no need to continue checking other handles */
+				break;
+		}
 
 		if (node != -1)
 			local_replicate = get_replicate(handle, mode, workerid, node);
@@ -1386,6 +1413,7 @@ void __starpu_push_task_output(struct _starpu_job *j)
 			_starpu_spin_unlock(&handle->header_lock);
 			_starpu_release_data_on_node(handle, 0, STARPU_NONE, local_replicate);
 		}
+next:
 	}
 
 	if (profiling && task->profiling_info)
