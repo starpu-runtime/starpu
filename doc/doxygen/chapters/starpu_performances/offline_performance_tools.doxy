@@ -103,6 +103,12 @@ be used to generate trace events which describes the lock's behavior during
 the execution. It is however very heavy and should not be used unless debugging
 StarPU's internal locking.
 
+Be aware that tracing StarPU applications can, in some cases, generate an
+overhead impacting application performance. There are several sources of
+performance penalty, have a look on [the
+paper](https://inria.hal.science/hal-04236246) studying them for more
+information.
+
 When the FxT trace file <c>prof_file_something</c> has been generated,
 it is possible to generate different trace formats by calling:
 

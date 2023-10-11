@@ -620,6 +620,10 @@ static const char *get_state_name(const char *short_name, uint32_t states)
 
 static double compute_time_stamp(double ev_time, struct starpu_fxt_options *options)
 {
+	/* To easily understand what is happening here and have nice pictures, have
+	 * a look on section 5.3 of the paper "Tracing task-based runtime systems:
+	 * Feedbacks from the StarPU case", https://inria.hal.science/hal-04236246
+	 */
 	double offset = 0;
 
 	if (options->file_offset.nb_barriers < 2)
@@ -5105,6 +5109,10 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 		 *      most in the past, so by taking this value, we are sure all events
 		 *      in all processes will have a positive timestamp), hence:
 		 *      offset[k] += M
+		 *
+		 * If you want nice pictures, have a look on section 5.3 of the paper
+		 * "Tracing task-based runtime systems: Feedbacks from the StarPU
+		 * case", https://inria.hal.science/hal-04236246
 		 */
 		for (inputfile = 0; inputfile < options->ninputfiles; inputfile++)
 		{
