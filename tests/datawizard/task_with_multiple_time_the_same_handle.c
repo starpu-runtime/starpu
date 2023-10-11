@@ -134,7 +134,7 @@ int main(void)
 			STARPU_RW,starpu_data_get_sub_data(handle,1,1),
 			0);
 
-	starpu_data_unpartition(handle, -1);
+	starpu_data_unpartition(handle, STARPU_MAIN_RAM);
 
 	starpu_task_wait_for_all();
 	starpu_data_unregister(handle);
