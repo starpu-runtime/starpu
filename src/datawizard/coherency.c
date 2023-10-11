@@ -1228,7 +1228,8 @@ int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, in
 		}
 
 		nacquires++;
-next:
+	next:
+		;
 	}
 	_starpu_add_worker_status(worker, STATUS_INDEX_WAITING, NULL);
 	if (async)
@@ -1271,7 +1272,8 @@ enomem:
 		local_replicate = get_replicate(handle, mode, workerid, node);
 
 		_starpu_release_data_on_node(handle, 0, STARPU_NONE, local_replicate);
-next2:
+	next2:
+		;
 	}
 
 	return -1;
@@ -1413,7 +1415,8 @@ void __starpu_push_task_output(struct _starpu_job *j)
 			_starpu_spin_unlock(&handle->header_lock);
 			_starpu_release_data_on_node(handle, 0, STARPU_NONE, local_replicate);
 		}
-next:
+	next:
+		;
 	}
 
 	if (profiling && task->profiling_info)

@@ -469,7 +469,8 @@ void _starpu_submit_job_enforce_arbitered_deps(struct _starpu_job *j, unsigned b
 			all_arbiter_available = 0;
 			break;
 		}
-next:
+	next:
+		;
 	}
 	if (all_arbiter_available == 0)
 	{
@@ -519,7 +520,8 @@ next:
 			cancel_handle->busy_count--;
 			if (!_starpu_data_check_not_busy(cancel_handle))
 				_starpu_spin_unlock(&cancel_handle->header_lock);
-next2:
+		next2:
+			;
 		}
 
 #ifndef LOCK_OR_DELEGATE
@@ -714,7 +716,8 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle, enum sta
 			handle_arbiter->busy_count++;
 			handle_arbiter->current_mode = mode;
 			_starpu_spin_unlock(&handle_arbiter->header_lock);
-next:
+		next:
+			;
 		}
 
 		if (all_arbiter_available)
@@ -786,7 +789,8 @@ next:
 				cancel_handle->busy_count--;
 				if (!_starpu_data_check_not_busy(cancel_handle))
 					_starpu_spin_unlock(&cancel_handle->header_lock);
-next2:
+			next2:
+				;
 			}
 		}
 	}
