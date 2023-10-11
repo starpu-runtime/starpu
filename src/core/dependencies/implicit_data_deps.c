@@ -479,7 +479,8 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 			int ret = _starpu_task_submit_internally(new_task);
 			STARPU_ASSERT(!ret);
 		}
-next:
+	next:
+		;
 	}
 	_STARPU_LOG_OUT();
 }
@@ -591,7 +592,8 @@ void _starpu_release_task_enforce_sequential_consistency(struct _starpu_job *j)
 		}
 
 		_starpu_release_data_enforce_sequential_consistency(task, &slots[index], handle);
-next:
+	next:
+		;
 	}
 
 	for (index = 0; index < nbuffers; index++)
@@ -618,7 +620,8 @@ next:
 		if (!_starpu_data_check_not_busy(handle))
 			_starpu_spin_unlock(&handle->header_lock);
 
-next2:
+	next2:
+		;
 	}
 }
 

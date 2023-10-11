@@ -357,7 +357,8 @@ static unsigned _submit_job_access_data(struct _starpu_job *j, unsigned start_bu
 			return 1;
 		}
 
-next:
+	next:
+		;
 	}
 
 	return 0;
@@ -410,7 +411,8 @@ static void _submit_job_take_data_deps(struct _starpu_job *j, unsigned start_buf
 
 		take_data_from_job(j, buf);
 
-next:
+	next:
+		;
 	}
 }
 
