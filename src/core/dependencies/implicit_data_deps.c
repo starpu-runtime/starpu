@@ -603,12 +603,12 @@ void _starpu_release_task_enforce_sequential_consistency(struct _starpu_job *j)
 		for (indexdup = (int) index-1; indexdup >= 0; indexdup--)
 		{
 			starpu_data_handle_t handle_dup = descrs[indexdup].handle;
-			if (handle_dup == descrs[index].handle)
+			if (handle_dup == handle)
 				/* We have already released this data, skip it. This
 				 * depends on ordering putting writes before reads, see
 				 * _starpu_compar_handles */
 				goto next2;
-			if (!_starpu_handles_same_root(handle_dup, descrs[index].handle))
+			if (!_starpu_handles_same_root(handle_dup, handle))
 				/* We are not checking within the same parent any more, no need to continue checking other handles */
 				break;
 		}
