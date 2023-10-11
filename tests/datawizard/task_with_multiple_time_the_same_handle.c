@@ -26,6 +26,7 @@ void sum_cpu(void * descr[], void *cl_arg)
 	(void)cl_arg;
 	double * v_dst = (double *) STARPU_VECTOR_GET_PTR(descr[0]);
 	double * v_src = (double *) STARPU_VECTOR_GET_PTR(descr[1]);
+	STARPU_ASSERT(v_dst == v_src);
 	*v_dst+=*v_src;
 }
 
@@ -35,6 +36,8 @@ void sum3_cpu(void * descr[], void *cl_arg)
 	double * v_src1 = (double *) STARPU_VECTOR_GET_PTR(descr[0]);
 	double * v_src2 = (double *) STARPU_VECTOR_GET_PTR(descr[1]);
 	double * v_dst = (double *) STARPU_VECTOR_GET_PTR(descr[2]);
+	STARPU_ASSERT(v_dst == v_src1);
+	STARPU_ASSERT(v_dst == v_src2);
 	*v_dst+=*v_src1+*v_src2;
 }
 
@@ -45,6 +48,8 @@ void sum4_cpu(void * descr[], void *cl_arg)
 	double * v_src2 = (double *) STARPU_VECTOR_GET_PTR(descr[1]);
 	double * v_dst1 = (double *) STARPU_VECTOR_GET_PTR(descr[2]);
 	double * v_dst2 = (double *) STARPU_VECTOR_GET_PTR(descr[3]);
+	STARPU_ASSERT(v_src1 == v_dst1);
+	STARPU_ASSERT(v_src2 == v_dst2);
 	*v_dst2 = (*v_dst1+=*v_src1+*v_src2);
 }
 
