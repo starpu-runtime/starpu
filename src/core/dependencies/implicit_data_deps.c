@@ -482,6 +482,7 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 next:
 	}
 	_STARPU_LOG_OUT();
+	return;
 }
 
 /* This function is called when a task has been executed so that we don't
