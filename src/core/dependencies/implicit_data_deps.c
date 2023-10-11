@@ -440,7 +440,6 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 	int bufferdup;
 	for (buffer = 0; buffer < nbuffers; buffer++)
 	{
-next:
 		starpu_data_handle_t handle = descrs[buffer].handle;
 		enum starpu_data_access_mode mode = descrs[buffer].mode;
 		struct starpu_task *new_task;
@@ -480,8 +479,10 @@ next:
 			int ret = _starpu_task_submit_internally(new_task);
 			STARPU_ASSERT(!ret);
 		}
+next:
 	}
 	_STARPU_LOG_OUT();
+	return;
 }
 
 /* This function is called when a task has been executed so that we don't
