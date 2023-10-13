@@ -180,6 +180,10 @@ msg_as_t _starpu_simgrid_get_as_by_name(const char *name)
 
 int _starpu_simgrid_get_nbhosts(const char *prefix)
 {
+#ifdef HAVE_STARPU_SIMGRID_GET_AS_BY_NAME
+	char new_prefix[32+strlen(prefix)];
+#endif
+
 	int ret;
 #ifdef HAVE_SG_HOST_LIST
 	sg_host_t *hosts_list = NULL;
@@ -191,7 +195,6 @@ int _starpu_simgrid_get_nbhosts(const char *prefix)
 	if (_starpu_simgrid_running_smpi())
 	{
 #ifdef HAVE_STARPU_SIMGRID_GET_AS_BY_NAME
-		char new_prefix[32+strlen(prefix)];
 		char name[32];
 		STARPU_ASSERT(starpu_mpi_world_rank);
 		snprintf(name, sizeof(name), STARPU_MPI_AS_PREFIX"%d", starpu_mpi_world_rank());
