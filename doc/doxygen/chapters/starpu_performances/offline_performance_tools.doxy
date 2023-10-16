@@ -51,9 +51,8 @@ What does the Gantt diagram look like? (see \ref CreatingAGanttDiagram)
 
 You can also use the Temanejo task debugger (see \ref UsingTheTemanejoTaskDebugger) to
 visualize the task graph more easily.
-\section Off-linePerformanceFeedback Off-line Performance Feedback
 
-\subsection GeneratingTracesWithFxT Generating Traces With FxT
+\section GeneratingTracesWithFxT Generating Traces With FxT
 
 StarPU can use the FxT library (see
 https://savannah.nongnu.org/projects/fkt/) to generate traces
@@ -145,7 +144,7 @@ By default, the generated trace contains all information. To reduce
 the trace size, various <c>-no-foo</c> options can be passed to
 <c>starpu_fxt_tool</c>, see <c>starpu_fxt_tool --help</c> .
 
-\subsubsection CreatingAGanttDiagram Creating a Gantt Diagram
+\subsection CreatingAGanttDiagram Creating a Gantt Diagram
 
 One of the generated files is a trace in the Paje format. The file,
 located in the current directory, is named <c>paje.trace</c>. It can
@@ -177,6 +176,8 @@ the beginning and end of the entire timeline, which represent that the unit is
 idle. There are no tasks at these moments, and workers are waiting or in a
 sleeping state.
 
+\subsubsection ZoomingInGantt Zooming in Gantt Diagram
+
 Then as shown in the following figure, press and hold the left mouse button to
 select the area you want to zoom in on. Release the button to view the selected
 area, and we can repeat the zoom action multiple times.
@@ -202,6 +203,8 @@ This zoom result is:
 
 \image html vite_zoom_horiz_result.png width=60%
 \image latex vite_zoom_horiz_result.png "" width=\textwidth
+
+\subsubsection ColorsInGantt Colors in Gantt Diagram
 
 After zooming in, we can observe numerous blocks of varying colors, each block representing a task. Blocks of diverse colors signify different types of tasks. When we double-click on any block, a pop-up window will show related status about that task, such as its type and which worker (CPU/GPU) it belongs to, etc.
 
@@ -262,6 +265,8 @@ with the new colors.
 \image html vite_preferences.png width=60%
 \image latex vite_preferences.png "" width=\textwidth
 
+\subsubsection CurvesInGantt Curves in Gantt Diagram
+
 We can see that there is a curve below task blocks, which represents the
 corresponding <c>GFlop/s</c>. Double-clicking near the curve will display
 the current <c>GFlop/s</c> information in a pop-up window (as shown in the
@@ -287,6 +292,8 @@ the curve gradually became stable later on.
 \image html vite_gpu_memory.png width=60%
 \image latex vite_gpu_memory.png "" width=\textwidth
 
+\subsubsection StatesInGantt States in Gantt Diagram
+
 Above these three curves, we can see some blocks which represent driver
 copy (see the top of the figure below), i.e. a memory copy. The light green
 blocks represent the actual copies, the dark green blocks represent
@@ -311,6 +318,8 @@ represented by blocks of different colors, such as:
 
 and we can always double-click on the block to view relevant information in the pop-up window.
 
+\subsubsection TransfersInGantt Transfers in Gantt Diagram
+
 We can horizontally zoom in on a section of the Gantt diagram, and deselect the "No arrows" option. This will allow us to see a complete process of data transfer, as shown in the following figure:
 
 \image html vite_trans_arrow.png width=60%
@@ -320,6 +329,8 @@ In the above figure, we can see a long segment of magenta color in CUDA2_0 task
 blocks. At the same time, we can see that there are numerous transfers between
 other workers during this time period. This indicates that CUDA2_0 is waiting
 for the completion of the data transfers needed by the task it wants to execute.
+
+\subsubsection SchedulerInGantt Scheduler in Gantt Diagram
 
 At the top of the entire Gantt diagram, there are three curves that represent
 the information of the scheduler. Let's zoom in on the three curves during the
@@ -333,12 +344,16 @@ As shown in the figure below, from top to bottom, they respectively indicate the
 \image html vite_top_curve.png width=60%
 \image latex vite_top_curve.png "" width=\textwidth
 
+\subsubsection MainThreadInGantt Main Thread in Gantt Diagram
+
 At the very bottom of the entire Gantt diagram, we will see a red bar, which represents the main thread waiting for tasks. In front of the red bar (see the figure below), there are some dark red bars, which represent the main thread submitting tasks.
 
 \image html vite_bottom_curve.png width=60%
 \image latex vite_bottom_curve.png "" width=\textwidth
 
 Below these red bars, we can see some white vertical lines with small circles on top, which represent events. The default events can be either task push or task pop or task wait for all. The application can inject its own events at any desired moment with the function starpu_fxt_trace_user_event() or starpu_fxt_trace_user_event_string(). Similarly, double-clicking on the white bars allows you to see relevant information in the pop-up window.
+
+\subsubsection StatisticsInGantt Statistics in Gantt Diagram
 
 To get statistics on the time spent in runtime overhead, we can use the
 statistics plugin of ViTE. In the Preferences menu, select Plugins. In "States Type",
@@ -351,15 +366,7 @@ scheduler.
 \image html vite_worker_state.png width=60%
 \image latex vite_worker_state.png "" width=\textwidth
 
-Traces can also be inspected by hand by using the tool <c>fxt_print</c>, for instance:
-
-\verbatim
-$ fxt_print -o -f /tmp/prof_file_something
-\endverbatim
-
-Timings are in nanoseconds (while timings as seen in ViTE are in milliseconds).
-
-\subsubsection CreatingADAGWithGraphviz Creating a DAG With Graphviz
+\subsection CreatingADAGWithGraphviz Creating a DAG With Graphviz
 
 Another generated trace file is a task graph described using the DOT
 language. The file, created in the current directory, is named
@@ -372,7 +379,7 @@ It is possible to get a graphical output of the graph by using the
 $ dot -Tpdf dag.dot -o output.pdf
 \endverbatim
 
-\subsubsection TraceTaskDetails Getting Task Details
+\subsection TraceTaskDetails Getting Task Details
 
 Another generated trace file gives details on the executed tasks. The
 file, created in the current directory, is named <c>tasks.rec</c>. This file
@@ -400,7 +407,7 @@ $ starpu_perfmodel_recdump tasks.rec -o perfmodel.rec
 
 One can also simply call starpu_task_get_name() to get the name of a task.
 
-\subsubsection TraceSchedTaskDetails Getting Scheduling Task Details
+\subsection TraceSchedTaskDetails Getting Scheduling Task Details
 
 The file, <c>sched_tasks.rec</c>, created in the current directory,
 in the \c recutils format, gives information about the tasks
@@ -408,7 +415,7 @@ scheduling, and lists the push and pop actions of the scheduler. For
 each action, it gives the timestamp, the job priority and the job id.
 Each action is separated from the next one by empty lines. The job id associated with the task can be retrieved by calling starpu_task_get_job_id().
 
-\subsubsection MonitoringActivity Monitoring Activity
+\subsection MonitoringActivity Monitoring Activity
 
 Another generated trace file is an activity trace. The file, created
 in the current directory, is named <c>activity.data</c>. A profile of
@@ -435,7 +442,7 @@ evolution of the number of tasks available in the system during the execution.
 Ready tasks are shown in black, and tasks that are submitted but not
 schedulable yet are shown in grey.
 
-\subsubsection Animation Getting Modular Schedular Animation
+\subsection Animation Getting Modular Schedular Animation
 
 When using modular schedulers (i.e. schedulers which use a modular architecture,
 and whose name start with "modular-"), the call to
@@ -443,7 +450,7 @@ and whose name start with "modular-"), the call to
 which can be viewed in a javascript-enabled web browser. It shows the
 flow of tasks between the components of the modular scheduler.
 
-\subsubsection TimeBetweenSendRecvDataUse Analyzing Time Between MPI Data Transfer and Use by Tasks
+\subsection TimeBetweenSendRecvDataUse Analyzing Time Between MPI Data Transfer and Use by Tasks
 
 <c>starpu_fxt_tool</c> produces a file called <c>comms.rec</c> which describes all
 MPI communications. The script <c>starpu_send_recv_data_use.py</c> uses this file
@@ -458,7 +465,7 @@ same graph but with elapsed time between send and usage of a data by the sender.
 \image latex trace_send_use.png "" width=\textwidth
 
 
-\subsubsection NumberEvents Number of events in trace files
+\subsection NumberEvents Number of events in trace files
 
 When launched with the option <c>-number-events</c>, <c>starpu_fxt_tool</c> will
 produce a file named <c>number_events.data</c>. This file contains the number of
@@ -1299,5 +1306,15 @@ Unfortunately, the gained precision costs some time (several seconds per
 barrier), that is why one can disable this precise synchronization with the
 environment variable \ref STARPU_MPI_TRACE_SYNC_CLOCKS set to \c 0, and use the
 faster MPI barrier instead.
+
+\section VerboseTraces Verbose Traces
+
+Traces can also be inspected by hand by using the tool <c>fxt_print</c>, for instance:
+
+\verbatim
+$ fxt_print -o -f /tmp/prof_file_something
+\endverbatim
+
+Timings are in nanoseconds (while timings as seen in ViTE are in milliseconds).
 
 */
