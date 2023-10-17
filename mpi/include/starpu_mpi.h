@@ -217,6 +217,11 @@ int starpu_mpi_send_prio(starpu_data_handle_t data_handle, int dest, starpu_mpi_
 int starpu_mpi_recv(starpu_data_handle_t data_handle, int source, starpu_mpi_tag_t data_tag, MPI_Comm comm, MPI_Status *status);
 
 /**
+   Similar to starpu_mpi_recv(), but take a priority \p prio
+*/
+int starpu_mpi_recv_prio(starpu_data_handle_t data_handle, int source, starpu_mpi_tag_t data_tag, int prio, MPI_Comm comm, MPI_Status *status);
+
+/**
    Post a standard-mode, non blocking send of \p data_handle to the
    node \p dest using the message tag \p data_tag within the
    communicator \p comm. On completion, the \p callback function is
@@ -957,6 +962,25 @@ void starpu_mpi_comm_stats_retrieve(size_t *comm_stats);
 
 int starpu_mpi_pre_submit_hook_register(void (*f)(struct starpu_task *));
 int starpu_mpi_pre_submit_hook_unregister(void);
+
+/**
+   Copy the content of \p src_handle into \p dst_handle. If both data
+   are on the same node, the function starpu_data_cpy() is called,
+   otherwise a MPI transfer is initiated between both nodes.
+   The parameter \p asynchronous indicates whether the function should
+   block or not.
+   If \p callback_func is not <c>NULL</c>, this callback function
+   is executed on the owner node of the data \p dst_handle after the
+   handle has been received, and it is given the pointer \p
+   callback_arg as argument.
+   See \ref MPITaskUtility for more details.
+*/
+int starpu_mpi_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle, MPI_Comm comm, int asynchronous, void (*callback_func)(void *), void *callback_arg);
+
+/**
+   Similar to starpu_mpi_data_cpy(), but take a priority \p prio.
+*/
+int starpu_mpi_data_cpy_priority(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle, MPI_Comm comm, int asynchronous, void (*callback_func)(void *), void *callback_arg, int priority);
 
 /** @} */
 

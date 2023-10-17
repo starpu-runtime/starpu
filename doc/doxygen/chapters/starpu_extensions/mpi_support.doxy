@@ -719,6 +719,23 @@ starpu_mpi_data_register() has been previously registered, this
 functionality only aims to prevent different parts of an application
 to use the same data tags.
 
+\section MPITaskUtility Other MPI Utility Functions
+
+Similarly to the function starpu_data_cpy(), the function
+starpu_mpi_data_cpy() can be used to transfer a data between 2 nodes.
+It behaves as starpu_data_cpy() if both data are owned by the same
+node, otherwise a transfer is initiated between the nodes. A priority
+and a callback function can be defined.
+
+\code{.c}
+...
+starpu_mpi_data_register(src_handle, 12, 0); // Data is owned by node0
+starpu_mpi_data_register(dst_handle, 42, 1); // Data is owned by node1
+...
+// Send data from node0 to node1
+starpu_mpi_data_cpy(dst_handle, src_handle, MPI_COMM_WORLD, 0, callback, NULL);
+\endcode
+
 \section MPIInsertPruning Pruning MPI Task Insertion
 
 Making all MPI nodes process the whole graph can be a concern with a growing
