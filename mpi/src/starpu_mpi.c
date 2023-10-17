@@ -360,14 +360,14 @@ struct _starpu_mpi_req *_starpu_mpi_irecv_common(starpu_data_handle_t data_handl
 	return req;
 }
 
-int starpu_mpi_irecv(starpu_data_handle_t data_handle, starpu_mpi_req *public_req, int source, starpu_mpi_tag_t data_tag, MPI_Comm comm)
+int _starpu_mpi_irecv_prio(starpu_data_handle_t data_handle, starpu_mpi_req *public_req, int source, starpu_mpi_tag_t data_tag, int prio, MPI_Comm comm)
 {
 	_STARPU_MPI_LOG_IN();
 	STARPU_MPI_ASSERT_MSG(public_req, "starpu_mpi_irecv needs a valid starpu_mpi_req");
 
 	struct _starpu_mpi_req *req;
 	_STARPU_MPI_TRACE_IRECV_COMPLETE_BEGIN(source, data_tag);
-	req = _starpu_mpi_irecv_common(data_handle, source, data_tag, comm, 0, 0, NULL, NULL, 1, 0, 0, STARPU_DEFAULT_PRIO);
+	req = _starpu_mpi_irecv_common(data_handle, source, data_tag, comm, 0, 0, NULL, NULL, 1, 0, 0, prio);
 	_STARPU_MPI_TRACE_IRECV_COMPLETE_END(source, data_tag);
 
 	STARPU_MPI_ASSERT_MSG(req, "Invalid return for _starpu_mpi_irecv_common");
@@ -375,6 +375,11 @@ int starpu_mpi_irecv(starpu_data_handle_t data_handle, starpu_mpi_req *public_re
 
 	_STARPU_MPI_LOG_OUT();
 	return 0;
+}
+
+int starpu_mpi_irecv(starpu_data_handle_t data_handle, starpu_mpi_req *public_req, int source, starpu_mpi_tag_t data_tag, MPI_Comm comm)
+{
+	return _starpu_mpi_irecv_prio(data_handle, public_req, source, data_tag, STARPU_DEFAULT_PRIO, comm);
 }
 
 int starpu_mpi_irecv_detached(starpu_data_handle_t data_handle, int source, starpu_mpi_tag_t data_tag, MPI_Comm comm, void (*callback)(void *), void *arg)
@@ -406,7 +411,7 @@ int starpu_mpi_irecv_detached_sequential_consistency(starpu_data_handle_t data_h
 	return 0;
 }
 
-int starpu_mpi_recv(starpu_data_handle_t data_handle, int source, starpu_mpi_tag_t data_tag, MPI_Comm comm, MPI_Status *status)
+int _starpu_mpi_recv_prio(starpu_data_handle_t data_handle, int source, starpu_mpi_tag_t data_tag, int prio, MPI_Comm comm, MPI_Status *status)
 {
 	STARPU_ASSERT_MSG(status != NULL || status == MPI_STATUS_IGNORE, "MPI_Status value cannot be NULL or different from MPI_STATUS_IGNORE");
 
@@ -415,13 +420,23 @@ int starpu_mpi_recv(starpu_data_handle_t data_handle, int source, starpu_mpi_tag
 
 	_STARPU_MPI_LOG_IN();
 
-	ret = starpu_mpi_irecv(data_handle, &req, source, data_tag, comm);
+	ret = _starpu_mpi_irecv_prio(data_handle, &req, source, data_tag, prio, comm);
 	if (ret)
 		return ret;
 	ret = starpu_mpi_wait(&req, status);
 
 	_STARPU_MPI_LOG_OUT();
 	return ret;
+}
+
+int starpu_mpi_recv(starpu_data_handle_t data_handle, int source, starpu_mpi_tag_t data_tag, MPI_Comm comm, MPI_Status *status)
+{
+	return _starpu_mpi_recv_prio(data_handle, source, data_tag, STARPU_DEFAULT_PRIO, comm, status);
+}
+
+int starpu_mpi_recv_prio(starpu_data_handle_t data_handle, int source, starpu_mpi_tag_t data_tag, int prio, MPI_Comm comm, MPI_Status *status)
+{
+	return _starpu_mpi_recv_prio(data_handle, source, data_tag, prio, comm, status);
 }
 
 struct _starpu_mpi_req* _starpu_mpi_irecv_cache_aware(starpu_data_handle_t data_handle, int source, starpu_mpi_tag_t data_tag, MPI_Comm comm, unsigned detached, unsigned sync, void (*callback)(void *), void *_arg, int sequential_consistency, int is_internal_req, starpu_ssize_t count, int* cache_flag)
@@ -676,4 +691,58 @@ void starpu_mpi_comm_stats_disable()
 void starpu_mpi_comm_stats_enable()
 {
 	_starpu_mpi_comm_stats_enable();
+}
+
+int _starpu_mpi_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle, MPI_Comm comm, int asynchronous, void (*callback_func)(void *), void *callback_arg, int priority)
+{
+	int src, dst;
+
+	src = starpu_mpi_data_get_rank(src_handle);
+	dst = starpu_mpi_data_get_rank(dst_handle);
+
+	if (src == dst)
+		// Both data are on the same node, no need to transfer data
+		return starpu_data_cpy_priority(dst_handle, src_handle, asynchronous, callback_func, callback_arg, priority);
+	else
+	{
+		// We need to transfer data
+		int rank;
+		starpu_mpi_comm_rank(comm, &rank);
+
+		starpu_mpi_tag_t tag = starpu_mpi_data_get_tag(dst_handle);
+
+		if (rank == src)
+		{
+			if (asynchronous == 1)
+				return starpu_mpi_isend_detached_prio(src_handle, dst, tag, priority, comm, NULL, NULL);
+			else
+				return starpu_mpi_send_prio(src_handle, dst, tag, priority, comm);
+		}
+		else if (rank == dst)
+		{
+			int ret;
+			if (asynchronous == 1)
+				ret = starpu_mpi_irecv_detached_prio(dst_handle, src, tag, priority, comm, callback_func, callback_arg);
+			else
+			{
+				ret = starpu_mpi_recv_prio(dst_handle, src, tag, priority, comm, MPI_STATUS_IGNORE);
+				if (callback_func)
+					callback_func(callback_arg);
+			}
+			starpu_mpi_cache_flush(comm, dst_handle);
+			return ret;
+
+		}
+		return 0;
+	}
+}
+
+int starpu_mpi_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle, MPI_Comm comm, int asynchronous, void (*callback_func)(void *), void *callback_arg)
+{
+	return _starpu_mpi_data_cpy(dst_handle, src_handle, comm, asynchronous, callback_func, callback_arg, STARPU_DEFAULT_PRIO);
+}
+
+int starpu_mpi_data_cpy_priority(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle, MPI_Comm comm, int asynchronous, void (*callback_func)(void *), void *callback_arg, int priority)
+{
+	return _starpu_mpi_data_cpy(dst_handle, src_handle, comm, asynchronous, callback_func, callback_arg, priority);
 }

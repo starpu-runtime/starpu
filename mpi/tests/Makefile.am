@@ -119,7 +119,8 @@ starpu_mpi_TESTS +=				\
 	ring_async_implicit			\
 	ring_sync				\
 	ring_sync_detached			\
-	temporary
+	temporary				\
+	data_cpy
 endif
 
 if !STARPU_MPI_MINIMAL_TESTS
@@ -187,6 +188,7 @@ noinst_PROGRAMS +=				\
 	ring_async				\
 	ring_async_implicit			\
 	temporary				\
+	data_cpy				\
 	early_stuff				\
 	block_interface				\
 	block_interface_pinned			\
