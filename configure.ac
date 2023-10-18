@@ -2172,7 +2172,7 @@ AC_SUBST(STARPU_USE_OPENCL, $enable_opencl)
 AM_CONDITIONAL(STARPU_USE_OPENCL, test x$enable_opencl = xyes)
 if test x$enable_opencl = xyes ; then
 	AC_DEFINE(STARPU_USE_OPENCL, [1], [OpenCL support is activated])
-	STARPU_OPENCL_CPPFLAGS="${STARPU_OPENCL_CPPFLAGS} -DSTARPU_OPENCL_DATADIR=${datarootdir}/starpu/opencl -DCL_USE_DEPRECATED_OPENCL_1_1_APIS"
+	STARPU_OPENCL_CPPFLAGS="${STARPU_OPENCL_CPPFLAGS} -DSTARPU_OPENCL_DATADIR=\"\\\"${datarootdir}/starpu/opencl\\\"\" -DCL_USE_DEPRECATED_OPENCL_1_1_APIS"
         AC_SUBST(STARPU_OPENCL_DATAdir, "$(eval echo ${datarootdir}/starpu/opencl/examples)")
         AC_SUBST(STARPU_OPENCL_CPPFLAGS)
         AC_SUBST(STARPU_OPENCL_LDFLAGS)
@@ -4212,7 +4212,7 @@ if test x$enable_openmp = xyes -a \( x$enable_cuda0 = xyes -o x$enable_cuda1 = x
 fi
 
 
-CPPFLAGS="$CPPFLAGS -DSTARPU_SAMPLING_DIR=${datarootdir}/starpu/perfmodels/sampling"
+CPPFLAGS="$CPPFLAGS -DSTARPU_SAMPLING_DIR=\"\\\"${datarootdir}/starpu/perfmodels/sampling\\\"\""
 STARPU_BASIC_H_CPPFLAGS="$HWLOC_CFLAGS $STARPU_CUDA_CPPFLAGS $STARPU_HIP_CPPFLAGS $STARPU_OPENCL_CPPFLAGS $STARPU_MAX_FPGA_CPPFLAGS $SIMGRID_CFLAGS $PAPI_CFLAGS"
 
 # these are the flags needed to compile starpu.h

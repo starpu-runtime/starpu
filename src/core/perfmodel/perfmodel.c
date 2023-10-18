@@ -791,7 +791,7 @@ void _starpu_set_perf_model_dirs()
 		}
 	}
 
-	_perf_model_add_dir(_STARPU_STRINGIFY(STARPU_SAMPLING_DIR), 1, "by installation directory");
+	_perf_model_add_dir(STARPU_SAMPLING_DIR, 1, "by installation directory");
 }
 
 int _starpu_set_default_perf_model_bus()
