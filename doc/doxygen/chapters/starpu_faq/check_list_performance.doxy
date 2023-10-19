@@ -86,7 +86,10 @@ link to \ref StaticScheduling
 For proper overlapping of asynchronous GPU data transfers, data has to be pinned
 by CUDA. Data allocated with starpu_malloc() is always properly pinned. If the
 application registers to StarPU some data which has not been allocated with
-starpu_malloc(), starpu_memory_pin() should be called to pin the data memory.
+starpu_malloc(), starpu_memory_pin() should be called to pin the data
+memory. Otherwise, the "Asynchronous copy submission" parts of the execution
+traces (see \ref StatesInGantt) will show the synchronous inefficiency.
+
 Note that CUDA pinning/unpinning takes a long time, so for e.g. temporary
 data, it is much more efficient to use a StarPU temporary data (see \ref
 TemporaryData), that StarPU can reuse and thus avoid the pin/unpin cost.

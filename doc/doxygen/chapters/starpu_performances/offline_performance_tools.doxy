@@ -301,6 +301,22 @@ asynchronous copy submissions, and the burgundy blocks represent allocating and
 freeing. Double-clicking on a block allows us to view relevant information in
 the pop-up window.
 
+Here, a couple of issues may show up:
+
+\li If the "Allocating/Freeing" parts take a long time, it means that StarPU does
+not manage to re-use data buffers allocated in the GPU. If you have e.g. a lot
+of tiles with different sizes, it may be useful to approximate the allocation
+size, by using e.g. starpu_matrix_data_register_allocsize() with the proper nx /
+ld / ny, but an allocation size that is rounded up, so that buffers with that
+same rounded size can be shared.
+
+\li If the "Asynchronous copy submission" parts take a long time, it means that
+the CPU buffers are not pinned: you need to make sure to use starpu_malloc(), or
+starpu_memory_pin() (see \ref CUDA-specificOptimizations) so that the CPU
+buffers are pinned so that the GPU driver can efficiently process transfers
+asynchronously (in the "Actual copy" part) rather than synchronously (in the
+"Asynchronous copy submission" part).
+
 \image html vite_gpu_curves.png width=60%
 \image latex vite_gpu_curves.png "" width=\textwidth
 
