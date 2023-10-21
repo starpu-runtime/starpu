@@ -1256,7 +1256,7 @@ enomem:
 
 		struct _starpu_data_replicate *local_replicate;
 
-		for (indexdup = (int) index2-1; indexdup >= 0; indexdup--)
+		for (indexdup = (int) index2+1; indexdup < (int) index; indexdup++)
 		{
 			starpu_data_handle_t handle_dup = descrs[indexdup].handle;
 			if (handle_dup == handle)

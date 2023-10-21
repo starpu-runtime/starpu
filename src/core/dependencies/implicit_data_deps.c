@@ -571,7 +571,7 @@ void _starpu_release_task_enforce_sequential_consistency(struct _starpu_job *j)
 
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 	unsigned index;
-	int indexdup;
+	unsigned indexdup;
 
 	/* Release all implicit dependencies */
 	for (index = 0; index < nbuffers; index++)
@@ -579,7 +579,7 @@ void _starpu_release_task_enforce_sequential_consistency(struct _starpu_job *j)
 		starpu_data_handle_t handle = descrs[index].handle;
 		enum starpu_data_access_mode mode = descrs[index].mode;
 
-		for (indexdup = (int) index-1; indexdup >= 0; indexdup--)
+		for (indexdup = index+1; indexdup < nbuffers; indexdup++)
 		{
 			starpu_data_handle_t handle_dup = descrs[indexdup].handle;
 			enum starpu_data_access_mode mode_dup = descrs[indexdup].mode;
@@ -600,11 +600,11 @@ void _starpu_release_task_enforce_sequential_consistency(struct _starpu_job *j)
 	{
 		starpu_data_handle_t handle = descrs[index].handle;
 
-		for (indexdup = (int) index-1; indexdup >= 0; indexdup--)
+		for (indexdup = index+1; indexdup < nbuffers; indexdup++)
 		{
 			starpu_data_handle_t handle_dup = descrs[indexdup].handle;
 			if (handle_dup == handle)
-				/* We have already released this data, skip it. This
+				/* We will release this data, skip it for now. This
 				 * depends on ordering putting writes before reads, see
 				 * _starpu_compar_handles */
 				goto next2;
