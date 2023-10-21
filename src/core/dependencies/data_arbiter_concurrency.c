@@ -494,7 +494,7 @@ void _starpu_submit_job_enforce_arbitered_deps(struct _starpu_job *j, unsigned b
 
 		/* and cancel all taken */
 		unsigned idx_buf_cancel;
-		int idx_buf_canceldup;
+		unsigned idx_buf_canceldup;
 		for (idx_buf_cancel = start_buf_arbiter; idx_buf_cancel < idx_buf_arbiter ; idx_buf_cancel++)
 		{
 			starpu_data_handle_t cancel_handle = descrs[idx_buf_cancel].handle;
@@ -502,7 +502,7 @@ void _starpu_submit_job_enforce_arbitered_deps(struct _starpu_job *j, unsigned b
 				/* Will have to process another arbiter, will do that later */
 				break;
 
-			for (idx_buf_canceldup = (int) idx_buf_cancel-1; idx_buf_canceldup >= 0; idx_buf_canceldup--)
+			for (idx_buf_canceldup = idx_buf_cancel+1; idx_buf_canceldup < idx_buf_arbiter; idx_buf_canceldup++)
 			{
 				starpu_data_handle_t handle_dup = descrs[idx_buf_canceldup].handle;
 				if (handle_dup == cancel_handle)
@@ -767,13 +767,13 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle, enum sta
 
 			/* and revert the mark */
 			unsigned idx_buf_cancel;
-			int idx_buf_canceldup;
+			unsigned idx_buf_canceldup;
 			for (idx_buf_cancel = start_buf_arbiter; idx_buf_cancel < idx_buf_arbiter ; idx_buf_cancel++)
 			{
 				starpu_data_handle_t cancel_handle = descrs[idx_buf_cancel].handle;
 				if (cancel_handle->arbiter != arbiter)
 					break;
-				for (idx_buf_canceldup = (int) idx_buf_cancel-1; idx_buf_canceldup >= 0; idx_buf_canceldup--)
+				for (idx_buf_canceldup = idx_buf_cancel+1; idx_buf_canceldup < idx_buf_arbiter; idx_buf_canceldup++)
 				{
 					starpu_data_handle_t handle_dup = descrs[idx_buf_canceldup].handle;
 					if (handle_dup == cancel_handle)
