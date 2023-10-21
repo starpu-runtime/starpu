@@ -571,7 +571,7 @@ void _starpu_release_task_enforce_sequential_consistency(struct _starpu_job *j)
 
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 	unsigned index;
-	unsigned indexdup;
+	int indexdup;
 
 	/* Release all implicit dependencies */
 	for (index = 0; index < nbuffers; index++)
@@ -579,7 +579,7 @@ void _starpu_release_task_enforce_sequential_consistency(struct _starpu_job *j)
 		starpu_data_handle_t handle = descrs[index].handle;
 		enum starpu_data_access_mode mode = descrs[index].mode;
 
-		for (indexdup = index+1; indexdup < nbuffers; indexdup++)
+		for (indexdup = (int) index-1; indexdup >= 0; indexdup++)
 		{
 			starpu_data_handle_t handle_dup = descrs[indexdup].handle;
 			enum starpu_data_access_mode mode_dup = descrs[indexdup].mode;
@@ -600,7 +600,7 @@ void _starpu_release_task_enforce_sequential_consistency(struct _starpu_job *j)
 	{
 		starpu_data_handle_t handle = descrs[index].handle;
 
-		for (indexdup = index+1; indexdup < nbuffers; indexdup++)
+		for (indexdup = index+1; indexdup < (int) nbuffers; indexdup++)
 		{
 			starpu_data_handle_t handle_dup = descrs[indexdup].handle;
 			if (handle_dup == handle)
