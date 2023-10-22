@@ -579,7 +579,7 @@ void _starpu_release_task_enforce_sequential_consistency(struct _starpu_job *j)
 		starpu_data_handle_t handle = descrs[index].handle;
 		enum starpu_data_access_mode mode = descrs[index].mode;
 
-		for (indexdup = (int) index-1; indexdup >= 0; indexdup++)
+		for (indexdup = (int) index-1; indexdup >= 0; indexdup--)
 		{
 			starpu_data_handle_t handle_dup = descrs[indexdup].handle;
 			enum starpu_data_access_mode mode_dup = descrs[indexdup].mode;
