@@ -36,6 +36,8 @@ StarPU 1.4.2
 ==============================================
 Small features:
   * New functions starpu_mpi_data_cpy() and starpu_mpi_recv_prio()
+  * New functions starpu_bind_thread_on_worker(),
+    starpu_bind_thread_on_main(), and starpu_bind_thread_on_cpu()
 
 StarPU 1.4.1
 ==============================================
