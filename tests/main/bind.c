@@ -67,6 +67,15 @@ int main(void)
 	starpu_bind_thread_on(passive_bindid1, 0, "main");
 	starpu_bind_thread_on(passive_bindid2, 0, "main");
 
+	/* Try to bind on a worker */
+	starpu_bind_thread_on_worker(0);
+
+	/* Try to bind back to the reserved core */
+	starpu_bind_thread_on_cpu(active_bindid);
+
+	/* Try to bind back to the main core, if any */
+	starpu_bind_thread_on_main();
+
 	starpu_shutdown();
 
 	return EXIT_SUCCESS;

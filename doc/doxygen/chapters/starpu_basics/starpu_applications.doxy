@@ -309,6 +309,13 @@ starpu_pause(), then to perform its own computations, and then to
 resume StarPU by calling starpu_resume() so that StarPU can execute
 tasks.
 
+If a computation library used by the application actually creates its
+own thread, it may be useful to call starpu_bind_thread_on_worker()
+before e.g. initializing the library, so that the library records which
+binding it is supposed to use. And then call starpu_bind_thread_on_main()
+again, or starpu_bind_thread_on_cpu() if a core was reserved with
+starpu_get_next_bindid().
+
 \section EnablingOpenCL Enabling OpenCL
 
 When both CUDA and OpenCL drivers are enabled, StarPU will launch an

@@ -718,6 +718,38 @@ unsigned starpu_get_next_bindid(unsigned flags, unsigned *preferred, unsigned np
 int starpu_bind_thread_on(int cpuid, unsigned flags, const char *name);
 
 /**
+   Bind the calling thread on the cores corresponding to the \p workerid .
+
+   \p workerid can be a basic worker or a combined worker.
+
+   This can be used e.g. before initializing a library which records at
+   initialization time the thread binding to be used when running kernels.
+
+   See \ref KernelThreadsStartedByStarPU and \ref cpuWorkers for more details.
+*/
+void starpu_bind_thread_on_worker(unsigned workerid);
+
+/**
+   Bind the calling thread back to the core reserved for the main thread.
+
+   This can be used e.g. after initializing a library which records at
+   initialization time the thread binding to be used when running kernels.
+
+   See \ref KernelThreadsStartedByStarPU and \ref cpuWorkers for more details.
+*/
+void starpu_bind_thread_on_main(void);
+
+/**
+   Bind the calling thread on the given \p cpuid
+
+   This can be used e.g. after initializing a library which records at
+   initialization time the thread binding to be used when running kernels.
+
+   See \ref KernelThreadsStartedByStarPU and \ref cpuWorkers for more details.
+*/
+void starpu_bind_thread_on_cpu(int cpuid);
+
+/**
    Print a description of the topology on \p f.
    See \ref ConfigurationAndInitialization for more details.
 */

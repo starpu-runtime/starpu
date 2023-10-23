@@ -63,6 +63,8 @@
 #include <core/simgrid.h>
 #endif
 
+static int main_thread_cpuid = -1;
+
 static unsigned topology_is_initialized = 0;
 static int nobind;
 static int numa_enabled = -1;
@@ -1289,7 +1291,7 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 	_starpu_initialize_workers_bindid(config);
 
 	/* Reserve thread for main() */
-	int main_thread_cpuid = starpu_getenv_number_default("STARPU_MAIN_THREAD_CPUID", -1);
+	main_thread_cpuid = starpu_getenv_number_default("STARPU_MAIN_THREAD_CPUID", -1);
 	int main_thread_coreid = starpu_getenv_number_default("STARPU_MAIN_THREAD_COREID", -1);
 	if (main_thread_cpuid >= 0 && main_thread_coreid >= 0)
 	{
@@ -1433,19 +1435,72 @@ void _starpu_destroy_machine_config(struct _starpu_machine_config *config, int n
 		_starpu_may_bind_automatically[i] = 0;
 }
 
+void _starpu_do_bind_thread_on_cpu(int cpuid STARPU_ATTRIBUTE_UNUSED)
+{
+#ifndef STARPU_SIMGRID
+	if (nobind > 0)
+		return;
+	if (cpuid < 0)
+		return;
+
+#ifdef STARPU_HAVE_HWLOC
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
+
+	const struct hwloc_topology_support *support = hwloc_topology_get_support(config->topology.hwtopology);
+	if (support->cpubind->set_thisthread_cpubind)
+	{
+		hwloc_obj_t obj = hwloc_get_obj_by_depth(config->topology.hwtopology, config->pu_depth, cpuid);
+		hwloc_bitmap_t set = obj->cpuset;
+		int res;
+
+		hwloc_bitmap_singlify(set);
+		res = hwloc_set_cpubind(config->topology.hwtopology, set, HWLOC_CPUBIND_THREAD);
+		if (res)
+		{
+			perror("hwloc_set_cpubind");
+			STARPU_ABORT();
+		}
+	}
+#elif defined(HAVE_PTHREAD_SETAFFINITY_NP) && defined(__linux__)
+	int res;
+	/* fix the thread on the correct cpu */
+	cpu_set_t aff_mask;
+	CPU_ZERO(&aff_mask);
+	CPU_SET(cpuid, &aff_mask);
+
+	starpu_pthread_t self = starpu_pthread_self();
+
+	res = pthread_setaffinity_np(self, sizeof(aff_mask), &aff_mask);
+	if (res)
+	{
+		const char *msg = strerror(res);
+		_STARPU_MSG("pthread_setaffinity_np: %s\n", msg);
+		STARPU_ABORT();
+	}
+
+#elif defined(_WIN32)
+	DWORD mask = 1 << cpuid;
+	if (!SetThreadAffinityMask(GetCurrentThread(), mask))
+	{
+		_STARPU_ERROR("SetThreadMaskAffinity(%lx) failed\n", mask);
+	}
+#else
+#warning no CPU binding support
+#endif
+#endif
+}
+
 int _starpu_bind_thread_on_cpu(int cpuid STARPU_ATTRIBUTE_UNUSED, int workerid STARPU_ATTRIBUTE_UNUSED, const char *name STARPU_ATTRIBUTE_UNUSED)
 {
 	int ret = 0;
-#ifdef STARPU_SIMGRID
-	return ret;
-#else
+
+#ifndef STARPU_SIMGRID
 	if (nobind > 0)
 		return ret;
 	if (cpuid < 0)
 		return ret;
 
 #ifdef STARPU_HAVE_HWLOC
-	const struct hwloc_topology_support *support;
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 
 	_starpu_init_topology(config);
@@ -1495,49 +1550,9 @@ int _starpu_bind_thread_on_cpu(int cpuid STARPU_ATTRIBUTE_UNUSED, int workerid S
 			}
 		}
 	}
-
-	support = hwloc_topology_get_support(config->topology.hwtopology);
-	if (support->cpubind->set_thisthread_cpubind)
-	{
-		hwloc_obj_t obj = hwloc_get_obj_by_depth(config->topology.hwtopology, config->pu_depth, cpuid);
-		hwloc_bitmap_t set = obj->cpuset;
-		int res;
-
-		hwloc_bitmap_singlify(set);
-		res = hwloc_set_cpubind(config->topology.hwtopology, set, HWLOC_CPUBIND_THREAD);
-		if (res)
-		{
-			perror("hwloc_set_cpubind");
-			STARPU_ABORT();
-		}
-	}
-
-#elif defined(HAVE_PTHREAD_SETAFFINITY_NP) && defined(__linux__)
-	int res;
-	/* fix the thread on the correct cpu */
-	cpu_set_t aff_mask;
-	CPU_ZERO(&aff_mask);
-	CPU_SET(cpuid, &aff_mask);
-
-	starpu_pthread_t self = starpu_pthread_self();
-
-	res = pthread_setaffinity_np(self, sizeof(aff_mask), &aff_mask);
-	if (res)
-	{
-		const char *msg = strerror(res);
-		_STARPU_MSG("pthread_setaffinity_np: %s\n", msg);
-		STARPU_ABORT();
-	}
-
-#elif defined(_WIN32)
-	DWORD mask = 1 << cpuid;
-	if (!SetThreadAffinityMask(GetCurrentThread(), mask))
-	{
-		_STARPU_ERROR("SetThreadMaskAffinity(%lx) failed\n", mask);
-	}
-#else
-#warning no CPU binding support
 #endif
+
+	_starpu_do_bind_thread_on_cpu(cpuid);
 #endif
 	return ret;
 }
@@ -1586,6 +1601,25 @@ void _starpu_bind_thread_on_cpus(struct _starpu_combined_worker *combined_worker
 #  warning no parallel worker CPU binding support
 #endif
 #endif
+}
+
+void starpu_bind_thread_on_main(void)
+{
+	_starpu_do_bind_thread_on_cpu(main_thread_cpuid);
+}
+
+void starpu_bind_thread_on_cpu(int cpuid)
+{
+	_starpu_do_bind_thread_on_cpu(cpuid);
+}
+
+void starpu_bind_thread_on_worker(unsigned workerid)
+{
+	unsigned basic_worker_count = starpu_worker_get_count();
+	if (workerid < basic_worker_count)
+		_starpu_do_bind_thread_on_cpu(starpu_worker_get_bindid(workerid));
+	else
+		_starpu_bind_thread_on_cpus(_starpu_get_combined_worker_struct(workerid));
 }
 
 static size_t _starpu_cpu_get_global_mem_size(int nodeid, struct _starpu_machine_config *config)
