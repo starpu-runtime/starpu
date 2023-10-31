@@ -158,10 +158,11 @@ int _starpu_perfmodel_arch_comb_get(int ndevices, struct starpu_perfmodel_device
 		int found = 0;
 		if(arch_combs[comb]->ndevices == ndevices)
 		{
-			int dev1, dev2;
+			int dev1;
 			int nfounded = 0;
 			for(dev1 = 0; dev1 < arch_combs[comb]->ndevices; dev1++)
 			{
+				int dev2;
 				for(dev2 = 0; dev2 < ndevices; dev2++)
 				{
 					if(arch_combs[comb]->devices[dev1].type == devices[dev2].type &&

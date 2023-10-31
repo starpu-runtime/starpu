@@ -1444,7 +1444,7 @@ int _starpu_workers_able_to_execute_task(struct starpu_task *task, struct _starp
 		STARPU_ASSERT_MSG(worker < STARPU_NMAXWORKERS, "worker id %u", worker);
 		if (starpu_worker_can_execute_task_first_impl(worker, task, NULL))
 		{
-			able++;
+			able = 1;
 			break;
 		}
 	}
@@ -2248,7 +2248,7 @@ unsigned starpu_sched_ctx_worker_is_master_for_child_ctx(int workerid, unsigned 
 	{
 		struct _starpu_sched_ctx_elt *e = _starpu_sched_ctx_list_iterator_get_next(&list_it);
 		struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(e->sched_ctx);
-		if(sched_ctx-> main_master == workerid && sched_ctx->nesting_sched_ctx == sched_ctx_id)
+		if(sched_ctx->main_master == workerid && sched_ctx->nesting_sched_ctx == sched_ctx_id)
 			return sched_ctx->id;
 	}
 	return STARPU_NMAX_SCHED_CTXS;

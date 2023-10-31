@@ -446,7 +446,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 
 	/* A priori, we know all estimations */
 	int unknown = 0;
-	unsigned worker_ctx = 0;
+	unsigned worker_current = 0;
 
 	int task_prio = 0;
 
@@ -461,7 +461,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 
 	struct starpu_sched_ctx_iterator it;
 	workers->init_iterator_for_parallel_tasks(workers, &it, task);
-	while(worker_ctx<nworkers && workers->has_next(workers, &it))
+	while(worker_current<nworkers && workers->has_next(workers, &it))
 	{
 		unsigned nimpl;
 		unsigned impl_mask;
@@ -505,32 +505,32 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 				}
 			}
 
-			exp_end[worker_ctx][nimpl] = exp_start + prev_exp_len;
-			if (exp_end[worker_ctx][nimpl] > max_exp_end_of_workers)
-				max_exp_end_of_workers = exp_end[worker_ctx][nimpl];
+			exp_end[worker_current][nimpl] = exp_start + prev_exp_len;
+			if (exp_end[worker_current][nimpl] > max_exp_end_of_workers)
+				max_exp_end_of_workers = exp_end[worker_current][nimpl];
 
 			//_STARPU_DEBUG("Scheduler dmda: task length (%lf) workerid (%u) kernel (%u) \n", local_task_length[workerid][nimpl],workerid,nimpl);
 
 			if (bundle)
 			{
 				/* TODO : conversion time */
-				local_task_length[worker_ctx][nimpl] = starpu_task_bundle_expected_length(bundle, perf_arch, nimpl);
+				local_task_length[worker_current][nimpl] = starpu_task_bundle_expected_length(bundle, perf_arch, nimpl);
 				if (local_data_penalty)
-					local_data_penalty[worker_ctx][nimpl] = starpu_task_bundle_expected_data_transfer_time(bundle, memory_node);
+					local_data_penalty[worker_current][nimpl] = starpu_task_bundle_expected_data_transfer_time(bundle, memory_node);
 				if (local_energy)
-					local_energy[worker_ctx][nimpl] = starpu_task_bundle_expected_energy(bundle, perf_arch,nimpl);
+					local_energy[worker_current][nimpl] = starpu_task_bundle_expected_energy(bundle, perf_arch,nimpl);
 
 			}
 			else
 			{
-				local_task_length[worker_ctx][nimpl] = starpu_task_worker_expected_length(task, workerid, sched_ctx_id, nimpl);
+				local_task_length[worker_current][nimpl] = starpu_task_worker_expected_length(task, workerid, sched_ctx_id, nimpl);
 				if (local_data_penalty)
-					local_data_penalty[worker_ctx][nimpl] = starpu_task_expected_data_transfer_time_for(task, workerid);
+					local_data_penalty[worker_current][nimpl] = starpu_task_expected_data_transfer_time_for(task, workerid);
 				if (local_energy)
-					local_energy[worker_ctx][nimpl] = starpu_task_worker_expected_energy(task, workerid, sched_ctx_id,nimpl);
+					local_energy[worker_current][nimpl] = starpu_task_worker_expected_energy(task, workerid, sched_ctx_id,nimpl);
 				double conversion_time = starpu_task_expected_conversion_time(task, perf_arch, nimpl);
 				if (conversion_time > 0.0)
-					local_task_length[worker_ctx][nimpl] += conversion_time;
+					local_task_length[worker_current][nimpl] += conversion_time;
 			}
 			double ntasks_end = fifo_ntasks / starpu_worker_get_relative_speedup(perf_arch);
 
@@ -556,12 +556,12 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 			    /* The performance model of this task is not
 			     * calibrated on this workerid, try to run it there
 			     * to calibrate it there. */
-			    || (!calibrating && isnan(local_task_length[worker_ctx][nimpl]))
+			    || (!calibrating && isnan(local_task_length[worker_current][nimpl]))
 
 			    /* the performance model of this task is not
 			     * calibrated on this workerid either, rather run it
 			     * there if this one is low on scheduled tasks. */
-			    || (calibrating && isnan(local_task_length[worker_ctx][nimpl]) && ntasks_end < ntasks_best_end)
+			    || (calibrating && isnan(local_task_length[worker_current][nimpl]) && ntasks_end < ntasks_best_end)
 				)
 			{
 				ntasks_best_end = ntasks_end;
@@ -569,14 +569,14 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 				nimpl_best = nimpl;
 			}
 
-			if (isnan(local_task_length[worker_ctx][nimpl]))
+			if (isnan(local_task_length[worker_current][nimpl]))
 				/* we are calibrating, we want to speed-up calibration time
 				 * so we privilege non-calibrated tasks (but still
 				 * greedily distribute them to avoid dumb schedules) */
 				calibrating = 1;
 
-			if (isnan(local_task_length[worker_ctx][nimpl])
-					|| _STARPU_IS_ZERO(local_task_length[worker_ctx][nimpl]))
+			if (isnan(local_task_length[worker_current][nimpl])
+					|| _STARPU_IS_ZERO(local_task_length[worker_current][nimpl]))
 				/* there is no prediction available for that task
 				 * with that arch (yet or at all), so switch to a greedy strategy */
 				unknown = 1;
@@ -587,23 +587,23 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 			double task_starting_time = exp_start + prev_exp_len;
 			if (local_data_penalty)
 				task_starting_time = STARPU_MAX(task_starting_time,
-					now + local_data_penalty[worker_ctx][nimpl]);
+					now + local_data_penalty[worker_current][nimpl]);
 
-			exp_end[worker_ctx][nimpl] = task_starting_time + local_task_length[worker_ctx][nimpl];
+			exp_end[worker_current][nimpl] = task_starting_time + local_task_length[worker_current][nimpl];
 
-			if (exp_end[worker_ctx][nimpl] < best_exp_end_of_task)
+			if (exp_end[worker_current][nimpl] < best_exp_end_of_task)
 			{
 				/* a better solution was found */
-				best_exp_end_of_task = exp_end[worker_ctx][nimpl];
+				best_exp_end_of_task = exp_end[worker_current][nimpl];
 				nimpl_best = nimpl;
 			}
 
 			if (local_energy)
-				if (isnan(local_energy[worker_ctx][nimpl]))
-					local_energy[worker_ctx][nimpl] = 0.;
+				if (isnan(local_energy[worker_current][nimpl]))
+					local_energy[worker_current][nimpl] = 0.;
 
 		}
-		worker_ctx++;
+		worker_current++;
 	}
 
 	*forced_worker = unknown?ntasks_best:-1;
@@ -635,13 +635,13 @@ static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned 
 
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
-	unsigned nworkers_ctx = workers->nworkers;
-	double local_task_length[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
-	double local_data_penalty[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
-	double local_energy[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
+	unsigned nworkers = workers->nworkers;
+	double local_task_length[nworkers][STARPU_MAXIMPLEMENTATIONS];
+	double local_data_penalty[nworkers][STARPU_MAXIMPLEMENTATIONS];
+	double local_energy[nworkers][STARPU_MAXIMPLEMENTATIONS];
 
 	/* Expected end of this task on the workers */
-	double exp_end[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
+	double exp_end[nworkers][STARPU_MAXIMPLEMENTATIONS];
 
 	/* This is the minimum among the exp_end[] matrix */
 	double min_exp_end_of_task;
@@ -649,11 +649,10 @@ static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned 
 	/* This is the maximum termination time of already-scheduled tasks over all workers */
 	double max_exp_end_of_workers = 0.0;
 
-	double fitness[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
-
+	double fitness[nworkers][STARPU_MAXIMPLEMENTATIONS];
 
 	compute_all_performance_predictions(task,
-					    nworkers_ctx,
+					    nworkers,
 					    local_task_length,
 					    exp_end,
 					    &max_exp_end_of_workers,
@@ -667,10 +666,10 @@ static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned 
 	if (forced_best == -1)
 	{
 		double best_fitness = -1;
-		unsigned worker_ctx = 0;
+		unsigned worker_current = 0;
 		struct starpu_sched_ctx_iterator it;
 		workers->init_iterator_for_parallel_tasks(workers, &it, task);
-		while(worker_ctx < nworkers_ctx && workers->has_next(workers, &it))
+		while(worker_current < nworkers && workers->has_next(workers, &it))
 		{
 			unsigned worker = workers->get_next(workers, &it);
 			unsigned nimpl;
@@ -687,35 +686,35 @@ static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned 
 					continue;
 				}
 				if (da)
-					fitness[worker_ctx][nimpl] = dt->alpha * __s_alpha__value *(exp_end[worker_ctx][nimpl] - min_exp_end_of_task)
-						+ dt->beta * __s_beta__value *(local_data_penalty[worker_ctx][nimpl])
-						+ dt->_gamma * __s_gamma__value *(local_energy[worker_ctx][nimpl]);
+					fitness[worker_current][nimpl] = dt->alpha * __s_alpha__value *(exp_end[worker_current][nimpl] - min_exp_end_of_task)
+						+ dt->beta * __s_beta__value *(local_data_penalty[worker_current][nimpl])
+						+ dt->_gamma * __s_gamma__value *(local_energy[worker_current][nimpl]);
 				else
-					fitness[worker_ctx][nimpl] = exp_end[worker_ctx][nimpl] - min_exp_end_of_task;
+					fitness[worker_current][nimpl] = exp_end[worker_current][nimpl] - min_exp_end_of_task;
 
-				if (da && exp_end[worker_ctx][nimpl] > max_exp_end_of_workers)
+				if (da && exp_end[worker_current][nimpl] > max_exp_end_of_workers)
 				{
 					/* This placement will make the computation
 					 * longer, take into account the idle
 					 * consumption of other cpus */
-					fitness[worker_ctx][nimpl] += dt->_gamma * __s_gamma__value * dt->idle_power * __s_idle_power__value * (exp_end[worker_ctx][nimpl] - max_exp_end_of_workers) / 1000000.0; /* Since gamma is the cost in us of one Joules,
+					fitness[worker_current][nimpl] += dt->_gamma * __s_gamma__value * dt->idle_power * __s_idle_power__value * (exp_end[worker_current][nimpl] - max_exp_end_of_workers) / 1000000.0; /* Since gamma is the cost in us of one Joules,
 																									  then  d->idle_power * (exp_end - max_exp_end_of_workers)
 																									  must be in Joules, thus the / 1000000.0 */
 				}
 
-				if (best == -1 || fitness[worker_ctx][nimpl] < best_fitness)
+				if (best == -1 || fitness[worker_current][nimpl] < best_fitness)
 				{
 					/* we found a better solution */
-					best_fitness = fitness[worker_ctx][nimpl];
+					best_fitness = fitness[worker_current][nimpl];
 					best = worker;
-					best_in_ctx = worker_ctx;
+					best_in_ctx = worker_current;
 					selected_impl = nimpl;
 
 					//_STARPU_DEBUG("best fitness (worker %d) %e = alpha*(%e) + beta(%e) +gamma(%e)\n", worker, best_fitness, exp_end[worker][nimpl] - min_exp_end_of_task, local_data_penalty[worker][nimpl], local_energy[worker][nimpl]);
 
 				}
 			}
-			worker_ctx++;
+			worker_current++;
 		}
 	}
 	STARPU_ASSERT(forced_best != -1 || best != -1);
@@ -747,8 +746,8 @@ static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned 
 
 	//_STARPU_DEBUG("Scheduler dmda: kernel (%u)\n", selected_impl);
 	starpu_task_set_implementation(task, selected_impl);
-
 	starpu_sched_task_break(task);
+
 	if(!simulate)
 	{
 		/* we should now have the best worker in variable "best" */
