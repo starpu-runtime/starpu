@@ -3697,6 +3697,9 @@ AC_CHECK_FUNCS([hwloc_cpukinds_get_nr])
 AC_CHECK_FUNCS([hwloc_get_area_memlocation])
 AM_CONDITIONAL(STARPU_HWLOC_HAVE_TOPOLOGY_DUP, test $ac_cv_func_hwloc_topology_dup = yes)
 
+AC_CHECK_FUNCS([hwloc_type_sscanf])
+AM_CONDITIONAL(STARPU_HWLOC_HAVE_TYPE_SSCANF, test $ac_cv_func_hwloc_type_sscanf = yes)
+
 LIBS="${SAVED_LIBS}"
 CPPFLAGS="${SAVED_CPPFLAGS}"
 export PKG_CONFIG_PATH=$SAVED_PKG_CONFIG_PATH
