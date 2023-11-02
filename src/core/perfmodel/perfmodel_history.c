@@ -1563,7 +1563,7 @@ void starpu_perfmodel_get_arch_name(struct starpu_perfmodel_arch* arch, char *ar
 	devices[0] = '\0';
 	for(i=0 ; i<arch->ndevices ; i++)
 	{
-		written += snprintf(devices + written, sizeof(devices)-written, "%s%d%s", starpu_perfmodel_get_archtype_name(arch->devices[i].type), arch->devices[i].devid, i != arch->ndevices-1 ? "_":"");
+		written += snprintf(devices + written, sizeof(devices)-written, "%s%d_cores%d%s", starpu_perfmodel_get_archtype_name(arch->devices[i].type), arch->devices[i].devid, arch->devices[i].ncores, i != arch->ndevices-1 ? "_":"");
 	}
 	snprintf(archname, maxlen, "%s_impl%u (Comb%d)", devices, impl, comb);
 }
@@ -1820,7 +1820,7 @@ docal:
 	STARPU_HG_DISABLE_CHECKING(model->benchmarking);
 	if (isnan(exp) && !model->benchmarking)
 	{
-		char archname[STR_SHORT_LENGTH];
+		char archname[STR_LONG_LENGTH];
 
 		starpu_perfmodel_get_arch_name(arch, archname, sizeof(archname), nimpl);
 		_STARPU_DISP("Warning: model %s is not calibrated enough for %s size %ld footprint %x (only %u measurements), forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this. You probably need to run again to continue calibrating the model, until this warning disappears.\n", model->symbol, archname, j->task?(long int)_starpu_job_get_data_size(model, arch, nimpl, j):-1, key, entry ? entry->nsample : 0);
