@@ -441,12 +441,16 @@ if STARPU_HWLOC_HAVE_TOPOLOGY_DUP
 STARPU_EXAMPLES +=					\
 	parallel_workers/parallel_workers		\
 	parallel_workers/parallel_workers_func		\
+	parallel_workers/parallel_workers_dmda		\
 	parallel_workers/parallel_workers_oldapi
 
 parallel_workers_parallel_workers_CFLAGS = \
 	$(AM_CFLAGS) -fopenmp
 
 parallel_workers_parallel_workers_func_CFLAGS = \
+	$(AM_CFLAGS) -fopenmp
+
+parallel_workers_parallel_workers_dmda_CFLAGS = \
 	$(AM_CFLAGS) -fopenmp
 
 parallel_workers_parallel_workers_oldapi_CFLAGS = \
