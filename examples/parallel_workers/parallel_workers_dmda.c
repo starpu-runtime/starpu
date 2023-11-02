@@ -58,8 +58,8 @@ int main(void)
 
 	setenv("STARPU_NMPI_MS","0",1);
 	setenv("STARPU_CALIBRATE_MINIMUM", "2", 1);
-	setenv("STARPU_CALIBRATE", "1", 1);
-	//setenv("STARPU_SCHED", "dmda", 1);
+	setenv("STARPU_CALIBRATE", "0", 1);
+	setenv("STARPU_SCHED", "dmda", 1);
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
@@ -76,6 +76,7 @@ int main(void)
 	starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&ret, sizeof(ret));
 	ret = starpu_task_insert(&display_cl,
 				 STARPU_RW, handle,
+				 STARPU_NAME, "task_pw",
 				 0);
 	if (ret == -ENODEV)
 		goto enodev;

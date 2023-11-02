@@ -953,8 +953,7 @@ static void _dm_push_task_notify(struct starpu_task *task, int workerid, int per
 	struct starpu_st_fifo_taskq *fifo = &dt->queue_array[workerid];
 
 	/* Compute the expected penalty */
-	double predicted = starpu_task_worker_expected_length(task, perf_workerid, sched_ctx_id,
-							      starpu_task_get_implementation(task));
+	double predicted = starpu_task_worker_expected_length(task, perf_workerid, task->sched_ctx, starpu_task_get_implementation(task));
 	double predicted_transfer = NAN;
 
 	if (da)
@@ -994,7 +993,7 @@ static void _dm_push_task_notify(struct starpu_task *task, int workerid, int per
 			if(dt->num_priorities != -1)
 			{
 				int i;
-				int task_prio = starpu_st_normalize_prio(task->priority, dt->num_priorities, task->sched_ctx);
+				int task_prio = starpu_st_normalize_prio(task->priority, dt->num_priorities, sched_ctx_id);
 				for(i = 0; i <= task_prio; i++)
 					fifo->exp_len_per_priority[i] += predicted_transfer;
 			}
@@ -1011,7 +1010,7 @@ static void _dm_push_task_notify(struct starpu_task *task, int workerid, int per
 		if(dt->num_priorities != -1)
 		{
 			int i;
-			int task_prio = starpu_st_normalize_prio(task->priority, dt->num_priorities, task->sched_ctx);
+			int task_prio = starpu_st_normalize_prio(task->priority, dt->num_priorities, sched_ctx_id);
 			for(i = 0; i <= task_prio; i++)
 				fifo->exp_len_per_priority[i] += predicted;
 		}
@@ -1020,7 +1019,7 @@ static void _dm_push_task_notify(struct starpu_task *task, int workerid, int per
 	if(dt->num_priorities != -1)
 	{
 		int i;
-		int task_prio = starpu_st_normalize_prio(task->priority, dt->num_priorities, task->sched_ctx);
+		int task_prio = starpu_st_normalize_prio(task->priority, dt->num_priorities, sched_ctx_id);
 		for(i = 0; i <= task_prio; i++)
 			fifo->ntasks_per_priority[i]++;
 	}
