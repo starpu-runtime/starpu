@@ -372,6 +372,11 @@ STARPU_EXAMPLES +=				\
 	cholesky/cholesky_implicit		\
 	cholesky/cholesky_compil
 
+if STARPU_HAVE_HWLOC
+STARPU_EXAMPLES +=				\
+	cholesky/cholesky_pw
+endif
+
 examplebin_PROGRAMS +=				\
 	mult/sgemm_layout			\
 	mult/dgemm_layout
@@ -1077,8 +1082,20 @@ cholesky_libmy_dmda_la_LDFLAGS = $(ldflags) -no-undefined
 SHELL_TESTS	+=				\
 	cholesky/cholesky_julia.sh
 
+if STARPU_HAVE_HWLOC
+cholesky_cholesky_pw_SOURCES =			\
+	cholesky/cholesky_pw.c			\
+	cholesky/cholesky_tag.h			\
+	cholesky/cholesky_kernels.c		\
+	common/blas.c
+
+cholesky_cholesky_pw_LDADD =			\
+	$(STARPU_BLAS_LDFLAGS) -lhwloc
+endif
+
 cholesky_cholesky_tag_SOURCES =			\
 	cholesky/cholesky_tag.c			\
+	cholesky/cholesky_tag.h			\
 	cholesky/cholesky_kernels.c		\
 	common/blas.c
 
