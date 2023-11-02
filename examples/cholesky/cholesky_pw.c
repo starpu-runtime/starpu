@@ -55,13 +55,13 @@ static int initialize_system(int argc, char **argv, float **A, unsigned pinned)
 	else
 	{
 		hwloc_obj_type_t pw_level;
-		int  pw_level_number = 1;
+		int pw_level_number = 1;
 		char level[256];
 
-		int n_argc  = strchr(env_pw_level, ':') == NULL ? 1 : 2;
+		int n_argc = strchr(env_pw_level, ':') == NULL ? 1 : 2;
 		int match = sscanf(env_pw_level, "%255[^:]:%d", level, &pw_level_number);
 
-		if ((match != n_argc) || ((match == 2) && (pw_level_number < 0) ))
+		if ((match != n_argc) || ((match == 2) && (pw_level_number < 0)))
 		{
 			fprintf(stderr, "error STARPU_PARALLEL_WORKER_LEVEL \"%s\"  does not match the format level[:number] where number > 0.\n", env_pw_level);
 			exit(1);
