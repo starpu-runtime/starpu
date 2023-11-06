@@ -757,7 +757,9 @@ static PyObject* free_perfmodel(PyObject *self, PyObject *args)
 	struct starpu_perfmodel *perf=PyCapsule_GetPointer(perfmodel, "Perf");
 
 	Py_BEGIN_ALLOW_THREADS;
+#ifndef STARPU_SIMGRID
 	starpu_save_history_based_model(perf);
+#endif
 	//starpu_perfmodel_unload_model(perf);
 	starpu_perfmodel_deinit(perf);
 	Py_END_ALLOW_THREADS;
@@ -769,6 +771,7 @@ static PyObject* free_perfmodel(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+#ifndef STARPU_SIMGRID
 static PyObject* starpu_save_history_based_model_wrapper(PyObject *self, PyObject *args)
 {
 	(void)self;
@@ -809,6 +812,7 @@ static PyObject* starpu_save_history_based_model_wrapper(PyObject *self, PyObjec
 	Py_INCREF(Py_None);
 	return Py_None;
 }
+#endif
 
 /*****************************Wrappers of StarPU methods****************************/
 /*wrapper submit method*/
@@ -1812,7 +1816,9 @@ static PyMethodDef starpupyMethods[] =
 	{"resume", starpu_resume_wrapper, METH_VARARGS, "resume the workers polling for new tasks"}, /*resume method*/
 	{"init_perfmodel", init_perfmodel, METH_VARARGS, "initialize struct starpu_perfmodel"}, /*initialize perfmodel*/
 	{"free_perfmodel", free_perfmodel, METH_VARARGS, "free struct starpu_perfmodel"}, /*free perfmodel*/
+#ifndef STARPU_SIMGRID
 	{"save_history_based_model", starpu_save_history_based_model_wrapper, METH_VARARGS, "save the performance model"}, /*save the performance model*/
+#endif
 	{"sched_get_min_priority", starpu_sched_get_min_priority_wrapper, METH_VARARGS, "get the number of min priority"}, /*get the number of min priority*/
 	{"sched_get_max_priority", starpu_sched_get_max_priority_wrapper, METH_VARARGS, "get the number of max priority"}, /*get the number of max priority*/
 	{"task_nsubmitted", starpu_task_nsubmitted_wrapper, METH_VARARGS, "get the number of submitted tasks which have not completed yet"}, /*get the number of submitted tasks which have not completed yet*/
