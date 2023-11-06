@@ -338,7 +338,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 	struct starpu_codelet *cl = task->cl;
 #ifdef STARPU_PROF_TOOL
 	struct starpu_prof_tool_info pi;
-	int devid = rank; // CC: unsure
+	int devid = cpu_args->devid;
 #endif
 
 	STARPU_ASSERT(cl);
