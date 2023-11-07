@@ -316,6 +316,10 @@ binding it is supposed to use. And then call starpu_bind_thread_on_main()
 again, or starpu_bind_thread_on_cpu() if a core was reserved with
 starpu_get_next_bindid().
 
+In case that computation library wants to bind threads itself, and uses
+physical numbering instead of logical numbering (as defined by hwloc),
+starpu_cpu_os_index() can be used to convert from StarPU cpuid to OS cpu index.
+
 \section EnablingOpenCL Enabling OpenCL
 
 When both CUDA and OpenCL drivers are enabled, StarPU will launch an
