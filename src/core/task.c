@@ -918,7 +918,7 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 				 * sure the right plan is active, submit
 				 * appropriate partitioning / unpartitioning if
 				 * not */
-				_starpu_data_partition_access_submit(handle, (mode & STARPU_W) != 0);
+				_starpu_data_partition_access_submit(handle, (mode & STARPU_W|STARPU_REDUX) != 0);
 		}
 
 		/* Check the type of worker(s) required by the task exist */
