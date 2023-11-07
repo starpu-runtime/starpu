@@ -750,6 +750,16 @@ void starpu_bind_thread_on_main(void);
 void starpu_bind_thread_on_cpu(int cpuid);
 
 /**
+   Return the OS number of a given \p cpuid
+
+   StarPU uses logical numbering (as define by hwloc) all along, but in case
+   interaction is needed with another binding tool that uses numbering as
+   defined by the OS, we need to convert from hwloc logical numbering to hwloc
+   physical numbering.
+*/
+int starpu_cpu_os_index(int cpuid);
+
+/**
    Print a description of the topology on \p f.
    See \ref ConfigurationAndInitialization for more details.
 */

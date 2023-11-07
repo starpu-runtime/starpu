@@ -1435,6 +1435,23 @@ void _starpu_destroy_machine_config(struct _starpu_machine_config *config, int n
 		_starpu_may_bind_automatically[i] = 0;
 }
 
+int starpu_cpu_os_index(int cpuid)
+{
+#ifdef STARPU_HAVE_HWLOC
+	if (cpuid < 0)
+		return -1;
+
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
+
+	hwloc_obj_t obj = hwloc_get_obj_by_depth(config->topology.hwtopology, config->pu_depth, cpuid);
+	hwloc_bitmap_t set = obj->cpuset;
+
+	return hwloc_bitmap_first(set);
+#else
+	return cpuid;
+#endif
+}
+
 void _starpu_do_bind_thread_on_cpu(int cpuid STARPU_ATTRIBUTE_UNUSED)
 {
 #ifndef STARPU_SIMGRID
