@@ -456,7 +456,7 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 		combined_worker = _starpu_get_combined_worker_struct(workerid);
 	}
 
-	if (use_prefetch)
+	if (use_prefetch && task->prefetched == 0)
 		starpu_prefetch_task_input_for(task, workerid);
 
 	if (is_basic_worker)
