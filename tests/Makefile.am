@@ -88,7 +88,8 @@ EXTRA_DIST =					\
 	maxfpga/Task1.maxj	\
 	maxfpga/Task2.maxj	\
 	maxfpga/Task3.maxj	\
-	datawizard/interfaces/test_interfaces.sh
+	datawizard/interfaces/test_interfaces.sh \
+	traces/fxt.sh
 
 CLEANFILES = 					\
 	*.gcno *.gcda *.linkinfo core starpu_idle_microsec.log *.mod *.png *.output tasks.rec perfs.rec */perfs.rec */*/perfs.rec perfs2.rec fortran90/starpu_mod.f90 bandwidth-*.dat bandwidth.gp bandwidth.eps bandwidth.svg *.csv *.md *.Rmd *.pdf *.html
@@ -445,6 +446,7 @@ SHELL_TESTS += $(MICROBENCHS:=.sh)
 endif
 
 SHELL_TESTS += \
+	traces/fxt.sh \
 	datawizard/locality.sh \
 	microbenchs/bandwidth_scheds.sh
 

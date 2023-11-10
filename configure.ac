@@ -4289,6 +4289,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
     tests/model-checking/prio_list2.sh \
     tests/model-checking/prio_list3.sh \
     tests/model-checking/barrier.sh \
+    tests/traces/fxt.sh \
     examples/heat/heat.sh \
     examples/lu/lu.sh \
     examples/cholesky/cholesky.sh \

@@ -854,8 +854,8 @@ do {									\
 				FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_TASK_VERBOSE_EXTRA, _STARPU_FUT_CODELET_DATA_HANDLE_NUMA_ACCESS, (job)->job_id, (__i), starpu_worker_get_memory_node_kind(starpu_worker_get_type(workerid)) == STARPU_CPU_RAM && starpu_task_get_current_data_node(__i) >= 0 ? starpu_get_memory_location_bitmap(starpu_data_handle_to_pointer(__handle, (unsigned) starpu_task_get_current_data_node(__i)), starpu_data_get_size(__handle)) : -1);	\
 			}						\
 		}							\
-		const size_t __job_size = _starpu_job_get_data_size((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job));	\
-		const uint32_t __job_hash = _starpu_compute_buffers_footprint((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job));\
+		const size_t __job_size = (perf_arch == NULL) ? 0 : _starpu_job_get_data_size((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job)); \
+		const uint32_t __job_hash = (perf_arch == NULL) ? 0 : _starpu_compute_buffers_footprint((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job)); \
 		FUT_FULL_PROBE7(_STARPU_FUT_KEYMASK_TASK_VERBOSE, _STARPU_FUT_CODELET_DETAILS, ((job)->task)->sched_ctx, __job_size, __job_hash, (job)->task->flops / 1000 / ((job)->task->cl && job->task->cl->type != STARPU_SEQ ? j->task_size : 1), (job)->task->tag_id, workerid, ((job)->job_id)); \
 	}								\
     } \
@@ -864,11 +864,11 @@ do {									\
 #define _STARPU_TRACE_END_CODELET_BODY(job, nimpl, perf_arch, workerid)			\
 do {									\
     if(STARPU_UNLIKELY((_STARPU_FUT_KEYMASK_TASK) & fut_active)) { \
-	const size_t job_size = _starpu_job_get_data_size((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job));	\
-	const uint32_t job_hash = _starpu_compute_buffers_footprint((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job));\
-	char _archname[32]=""; \
-	if (perf_arch) starpu_perfmodel_get_arch_name(perf_arch, _archname, 32, 0);	\
-	_STARPU_FUT_FULL_PROBE5STR(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_END_CODELET_BODY, (job)->job_id, (job_size), (job_hash), workerid, _starpu_gettid(), _archname); \
+	    const size_t job_size = (perf_arch == NULL) ? 0 : _starpu_job_get_data_size((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job)); \
+	    const uint32_t job_hash = (perf_arch == NULL) ? 0 : _starpu_compute_buffers_footprint((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job)); \
+	    char _archname[32]="";					\
+	    if (perf_arch) starpu_perfmodel_get_arch_name(perf_arch, _archname, 32, 0);	\
+	    _STARPU_FUT_FULL_PROBE5STR(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_END_CODELET_BODY, (job)->job_id, (job_size), (job_hash), workerid, _starpu_gettid(), _archname); \
     } \
 } while(0)
 

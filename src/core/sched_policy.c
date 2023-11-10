@@ -651,6 +651,7 @@ int _starpu_repush_task(struct _starpu_job *j)
 	if (task->cl == NULL || task->where == STARPU_NOWHERE)
 	{
 		_STARPU_TRACE_TASK_NAME_LINE_COLOR(j);
+		_STARPU_TRACE_START_CODELET_BODY(j, 0, NULL, 0);
 		if (!_starpu_perf_counter_paused() && !j->internal)
 		{
 			(void)STARPU_PERF_COUNTER_ADD64(& _starpu_task__g_current_ready__value, -1);
@@ -667,6 +668,9 @@ int _starpu_repush_task(struct _starpu_job *j)
 			task->prologue_callback_pop_func(task->prologue_callback_pop_arg);
 			_starpu_set_current_task(NULL);
 		}
+
+		_STARPU_TRACE_START_CODELET_BODY(j, 0, NULL, 0);
+		_STARPU_TRACE_END_CODELET_BODY(j, 0, NULL, 0);
 
 		if (task->cl && task->cl->specific_nodes)
 		{
