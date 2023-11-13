@@ -1129,7 +1129,7 @@ static void worker_set_detailed_state(double time, const char *prefix, long unsi
 	poti_SetState(time, container, "WS", name);
 #endif
 #else
-	fprintf(out_paje_file, "20	%.9f	%sw%lu	WS	%s	%lu	%s	%08lx	%016llx	%s%lu	%s%lu	%f	%u	%u	"/*"%u	"*/"%ld	%ld	\"%s\"\n", time, prefix, workerid, name, size, parameters, footprint, tag, prefix, job_id, prefix, task->submit_order, gflop, X, Y, /*Z,*/ iteration, subiteration, numa_nodes);
+	fprintf(out_paje_file, "20	%.9f	%sw%lu	WS	%s	%lu	\"%s\"	%08lx	%016llx	%s%lu	%s%lu	%f	%u	%u	"/*"%u	"*/"%ld	%ld	\"%s\"\n", time, prefix, workerid, name, size, parameters, footprint, tag, prefix, job_id, prefix, task->submit_order, gflop, X, Y, /*Z,*/ iteration, subiteration, numa_nodes);
 #endif
 }
 
