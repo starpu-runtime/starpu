@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -112,6 +112,7 @@ void _starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, s
 		struct _starpu_cg *back_cg = NULL;
 
 		dep_job = _starpu_get_job_associated_to_task(dep_task);
+		STARPU_ASSERT_MSG(dep_task != task, "A task cannot be made to depend on itself");
 
 #ifdef STARPU_DEBUG
 		cg->deps[i] = dep_job;
