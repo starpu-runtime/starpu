@@ -17,7 +17,7 @@
 DIR=$(realpath $(dirname $0))
 ROOTDIR=$DIR/../..
 
-TRACEDIR=$ROOTDIR/traces
+TRACEDIR=$ROOTDIR/tests/traces/fxt.traces
 mkdir -p $TRACEDIR
 if test ! -f $ROOTDIR/examples/filters/fmultiple_submit
 then
