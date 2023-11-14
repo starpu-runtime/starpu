@@ -835,7 +835,7 @@ do {									\
 			{						\
 				starpu_data_handle_t __handle = STARPU_TASK_GET_HANDLE((job)->task, __i);	\
 				void *__interface = _STARPU_TASK_GET_INTERFACES((job)->task)[__i];	\
-				if (__handle->ops->describe)		\
+				if (__interface && __handle->ops->describe)		\
 				{					\
 					__handle->ops->describe(__interface, __buf, sizeof(__buf));	\
 					_STARPU_FUT_FULL_PROBE1STR(_STARPU_FUT_KEYMASK_DATA, _STARPU_FUT_CODELET_DATA, workerid, __buf);	\
