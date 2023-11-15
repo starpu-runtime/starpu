@@ -43,7 +43,7 @@ unsigned long _starpu_job_cnt = 0;
 /* By default, record all events but the VERBOSE_EXTRA ones, which are very costly: */
 #define KEYMASKALL_DEFAULT FUT_KEYMASKALL & (~_STARPU_FUT_KEYMASK_TASK_VERBOSE_EXTRA) & (~_STARPU_FUT_KEYMASK_MPI_VERBOSE_EXTRA)
 
-static char _starpu_prof_file_user[128];
+static char _starpu_prof_file_user[1024];
 int _starpu_fxt_started = 0;
 int _starpu_fxt_willstart = 1;
 starpu_pthread_mutex_t _starpu_fxt_started_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
