@@ -39,6 +39,7 @@ Small features:
   * New functions starpu_bind_thread_on_worker(),
     starpu_bind_thread_on_main(), starpu_bind_thread_on_cpu(),
     and starpu_cpu_os_index()
+  * New macro STARPU_CUSOLVER_REPORT_ERROR
 
 StarPU 1.4.1
 ==============================================

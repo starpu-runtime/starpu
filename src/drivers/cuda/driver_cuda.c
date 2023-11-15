@@ -38,7 +38,8 @@
 #include <nvml.h>
 #endif
 #ifdef STARPU_USE_CUDA
-#include <cublas.h>
+#include <starpu_cublas_v2.h>
+#include <starpu_cusolver.h>
 #endif
 #include <datawizard/memory_manager.h>
 #include <datawizard/memory_nodes.h>
@@ -2440,6 +2441,51 @@ void starpu_cuda_report_error(const char *func, const char *file, int line, cuda
 	const char *errormsg = cudaGetErrorString(status);
 	_STARPU_ERROR("oops in %s (%s:%d)... %d: %s \n", func, file, line, status, errormsg);
 }
+
+#ifdef STARPU_HAVE_LIBCUSOLVER
+void starpu_cusolver_report_error(const char *func, const char *file, int line, cusolverStatus_t status)
+{
+#define REPORT(error) case error: errormsg = #error; break;
+	char *errormsg;
+	switch (status)
+	{
+		REPORT(CUSOLVER_STATUS_SUCCESS);
+		REPORT(CUSOLVER_STATUS_NOT_INITIALIZED);
+		REPORT(CUSOLVER_STATUS_ALLOC_FAILED);
+		REPORT(CUSOLVER_STATUS_INVALID_VALUE);
+		REPORT(CUSOLVER_STATUS_ARCH_MISMATCH);
+		REPORT(CUSOLVER_STATUS_MAPPING_ERROR);
+		REPORT(CUSOLVER_STATUS_EXECUTION_FAILED);
+		REPORT(CUSOLVER_STATUS_INTERNAL_ERROR);
+		REPORT(CUSOLVER_STATUS_MATRIX_TYPE_NOT_SUPPORTED);
+		REPORT(CUSOLVER_STATUS_NOT_SUPPORTED);
+		REPORT(CUSOLVER_STATUS_ZERO_PIVOT);
+		REPORT(CUSOLVER_STATUS_INVALID_LICENSE);
+
+#if CUSOLVER_VER_MAJOR >= 11
+		REPORT(CUSOLVER_STATUS_IRS_PARAMS_NOT_INITIALIZED);
+		REPORT(CUSOLVER_STATUS_IRS_PARAMS_INVALID);
+		REPORT(CUSOLVER_STATUS_IRS_PARAMS_INVALID_PREC);
+		REPORT(CUSOLVER_STATUS_IRS_PARAMS_INVALID_REFINE);
+		REPORT(CUSOLVER_STATUS_IRS_PARAMS_INVALID_MAXITER);
+		REPORT(CUSOLVER_STATUS_IRS_INTERNAL_ERROR);
+		REPORT(CUSOLVER_STATUS_IRS_NOT_SUPPORTED);
+		REPORT(CUSOLVER_STATUS_IRS_OUT_OF_RANGE);
+		REPORT(CUSOLVER_STATUS_IRS_NRHS_NOT_SUPPORTED_FOR_REFINE_GMRES);
+		REPORT(CUSOLVER_STATUS_IRS_INFOS_NOT_INITIALIZED);
+		REPORT(CUSOLVER_STATUS_IRS_INFOS_NOT_DESTROYED);
+		REPORT(CUSOLVER_STATUS_IRS_MATRIX_SINGULAR);
+		REPORT(CUSOLVER_STATUS_INVALID_WORKSPACE);
+#endif
+		default:
+			errormsg = "unknown error";
+			break;
+	}
+	_STARPU_MSG("oops in %s (%s:%d)... %d: %s \n", func, file, line, status, errormsg);
+	STARPU_ABORT();
+}
+#endif
+
 #endif /* STARPU_USE_CUDA */
 
 int _starpu_cuda_run_from_worker(struct _starpu_worker *worker)

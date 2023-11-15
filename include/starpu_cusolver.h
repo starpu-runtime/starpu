@@ -76,6 +76,18 @@ cusolverSpHandle_t starpu_cusolverSp_get_local_handle(void);
    See \ref CUDA-specificOptimizations
 */
 cusolverRfHandle_t starpu_cusolverRf_get_local_handle(void);
+
+/**
+   Report a CUSOLVER error.
+   See \ref CUDASupport for more details.
+*/
+void starpu_cusolver_report_error(const char *func, const char *file, int line, cusolverStatus_t status);
+
+/**
+   Call starpu_cusolver_report_error(), passing the current function, file and line position.
+*/
+#define STARPU_CUSOLVER_REPORT_ERROR(status) starpu_cusolver_report_error(__starpu_func__, __FILE__, __LINE__, status)
+
 #endif
 
 /** @} */

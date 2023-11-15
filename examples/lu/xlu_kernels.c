@@ -381,7 +381,6 @@ static inline void STARPU_LU(common_getrf)(void *descr[], int s, void *_args)
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
-			/* TODO: use cusolver */
 #ifdef STARPU_HAVE_LIBCUSOLVER
 			{
 				cusolverStatus_t sstatus;
@@ -389,7 +388,8 @@ static inline void STARPU_LU(common_getrf)(void *descr[], int s, void *_args)
 				CUBLAS_TYPE *workspace = (CUBLAS_TYPE *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
 				sstatus = CUSOLVER_GETRF(starpu_cusolverDn_get_local_handle(), nx, nx, cublas_sub11, ld, workspace, NULL, NULL);
-				STARPU_ASSERT(sstatus == CUSOLVER_STATUS_SUCCESS);
+				if (sstatus != CUSOLVER_STATUS_SUCCESS)
+					STARPU_CUSOLVER_REPORT_ERROR(sstatus);
 			}
 #else
 			handle = starpu_cublas_get_local_handle();
