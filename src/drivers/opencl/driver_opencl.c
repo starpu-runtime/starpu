@@ -5,7 +5,7 @@
  * Copyright (C) 2011	    Télécom-SudParis
  * Copyright (C) 2013	    Thibaut Lambert
  * Copyright (C) 2021	    Federal University of Rio Grande do Sul (UFRGS)
- * Copyright (C) 2022	    Camille Coti
+ * Copyright (C) 2022-2023  Camille Coti
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -1406,11 +1406,15 @@ static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker
 #else
 #ifdef STARPU_PROF_TOOL
 		struct starpu_prof_tool_info pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_start_gpu_exec, worker->devid, worker->workerid, starpu_prof_tool_driver_ocl, -1, (void*)func);
+		pi.model_name = _starpu_job_get_model_name( j );
+		pi.task_name = _starpu_job_get_task_name( j );
 		starpu_prof_tool_callbacks.starpu_prof_tool_event_start_gpu_exec(&pi, NULL, NULL);
 #endif
 		func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
 #ifdef STARPU_PROF_TOOL
 		pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_gpu_exec, worker->devid, worker->workerid, starpu_prof_tool_driver_ocl, -1, (void*)func);
+		pi.model_name = _starpu_job_get_model_name( j );
+		pi.task_name = _starpu_job_get_task_name( j );
 		starpu_prof_tool_callbacks.starpu_prof_tool_event_end_gpu_exec(&pi, NULL, NULL);
 #endif
 
@@ -1548,6 +1552,8 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 		STARPU_RMB();
 #ifdef STARPU_PROF_TOOL
 		pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_transfer, workerid, workerid, starpu_prof_tool_driver_ocl, memnode, NULL);
+		pi.model_name = _starpu_job_get_model_name( j );
+		pi.task_name = _starpu_job_get_task_name( j );
 		starpu_prof_tool_callbacks.starpu_prof_tool_event_end_transfer(&pi, NULL, NULL);
 #endif
 		_STARPU_TRACE_END_PROGRESS(memnode);
@@ -1569,6 +1575,8 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 		_starpu_opencl_execute_job(task, worker);
 #ifdef STARPU_PROF_TOOL
 		pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_transfer, workerid, workerid, starpu_prof_tool_driver_ocl, memnode, NULL);
+		pi.model_name = _starpu_job_get_model_name( j );
+		pi.task_name = _starpu_job_get_task_name( j );
 		starpu_prof_tool_callbacks.starpu_prof_tool_event_end_transfer(&pi, NULL, NULL);
 #endif
 		_STARPU_TRACE_START_PROGRESS(memnode);
@@ -1603,6 +1611,8 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 			_STARPU_TRACE_END_PROGRESS(memnode);
 #ifdef STARPU_PROF_TOOL
 			pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_transfer, workerid, workerid, starpu_prof_tool_driver_ocl, memnode, NULL);
+			pi.model_name = _starpu_job_get_model_name( j );
+			pi.task_name = _starpu_job_get_task_name( j );
 			starpu_prof_tool_callbacks.starpu_prof_tool_event_end_transfer(&pi, NULL, NULL);
 #endif
 #ifndef STARPU_SIMGRID
@@ -1636,6 +1646,8 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 			_STARPU_TRACE_START_PROGRESS(memnode);
 #ifdef STARPU_PROF_TOOL
 			pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_start_transfer, worker->workerid, worker->workerid, starpu_prof_tool_driver_ocl, memnode, NULL);
+			pi.model_name = _starpu_job_get_model_name( j );
+			pi.task_name = _starpu_job_get_task_name( j );
 			starpu_prof_tool_callbacks.starpu_prof_tool_event_start_transfer(&pi, NULL, NULL);
 #endif
 		}
@@ -1686,6 +1698,8 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 	_STARPU_TRACE_END_PROGRESS(memnode);
 #ifdef STARPU_PROF_TOOL
 	pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_transfer, workerid, workerid, starpu_prof_tool_driver_ocl, memnode, NULL);
+	pi.model_name = _starpu_job_get_model_name( j );
+	pi.task_name = _starpu_job_get_task_name( j );
 	starpu_prof_tool_callbacks.starpu_prof_tool_event_end_transfer(&pi, NULL, NULL);
 #endif
 
@@ -1695,6 +1709,8 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 	_STARPU_TRACE_START_PROGRESS(memnode);
 #ifdef STARPU_PROF_TOOL
 	pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_start_transfer, worker->workerid, worker->workerid, starpu_prof_tool_driver_ocl, memnode, NULL);
+	pi.model_name = _starpu_job_get_model_name( j );
+	pi.task_name = _starpu_job_get_task_name( j );
 	starpu_prof_tool_callbacks.starpu_prof_tool_event_start_transfer(&pi, NULL, NULL);
 #endif
 
@@ -1709,6 +1725,8 @@ void *_starpu_opencl_worker(void *_arg)
 	_STARPU_TRACE_START_PROGRESS(worker->memory_node);
 #ifdef STARPU_PROF_TOOL
 	struct starpu_prof_tool_info  pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_start_transfer, worker->workerid, worker->workerid, starpu_prof_tool_driver_ocl, worker->memory_node, NULL);
+	pi.model_name = _starpu_job_get_model_name( j );
+	pi.task_name = _starpu_job_get_task_name( j );
 	starpu_prof_tool_callbacks.starpu_prof_tool_event_start_transfer(&pi, NULL, NULL);
 #endif
 	while (_starpu_machine_is_running())
@@ -1720,6 +1738,8 @@ void *_starpu_opencl_worker(void *_arg)
 	_STARPU_TRACE_END_PROGRESS(worker->memory_node);
 #ifdef STARPU_PROF_TOOL
 	pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_transfer, worker->workerid, worker->workerid, starpu_prof_tool_driver_ocl, worker->memory_node, NULL);
+	pi.model_name = _starpu_job_get_model_name( j );
+	pi.task_name = _starpu_job_get_task_name( j );
 	starpu_prof_tool_callbacks.starpu_prof_tool_event_end_transfer(&pi, NULL, NULL);
 #endif
 

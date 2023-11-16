@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
- * Copyright (C) 2022  Camille Coti
+ * Copyright (C) 2022       Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2022-2023  Camille Coti
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -42,16 +42,16 @@ void myfunction_cb(struct starpu_prof_tool_info *prof_info, union starpu_prof_to
 		printf("end init driver\n");
 		break;
 	case starpu_prof_tool_event_start_cpu_exec:
-		printf("Start exec fun %p on device %d\n", prof_info->fun_ptr, prof_info->device_number);
+		printf("Start exec fun %p task %s model %s on device %d\n", prof_info->fun_ptr, prof_info->task_name, prof_info->model_name, prof_info->device_number);
 		break;
 	case starpu_prof_tool_event_end_cpu_exec:
-		printf("End exec fun %p on device %d\n", prof_info->fun_ptr, prof_info->device_number);
+		printf("End exec fun %p task %s model %s on device %d\n", prof_info->fun_ptr, prof_info->task_name, prof_info->model_name, prof_info->device_number);
 		break;
 	case starpu_prof_tool_event_start_transfer:
-		printf("Start transfer on memnode %ud\n", prof_info->memnode);
+		printf("Start transfer on memnode %ud task %s model %s\n", prof_info->memnode, prof_info->task_name, prof_info->model_name);
 		break;
 	case starpu_prof_tool_event_end_transfer:
-		printf("End transfer on memnode %ud\n", prof_info->memnode);
+		printf("End transfer on memnode %ud task %s model %s\n", prof_info->memnode, prof_info->task_name, prof_info->model_name);
 		break;
 	default:
 		printf("Unknown callback %d\n",  prof_info->event_type);

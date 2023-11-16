@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2022-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
- * Copyright (C) 2022-2022  Camille Coti
+ * Copyright (C) 2022-2023  Camille Coti
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -86,6 +86,9 @@ struct starpu_prof_tool_info
 	unsigned int starpu_version[3];
 	int thread_id;
 	int worker_id;
+
+	char* task_name;
+	char* model_name;
 
 	int device_number;
 	enum starpu_prof_tool_driver_type driver_type; // not sure
