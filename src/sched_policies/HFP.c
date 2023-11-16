@@ -1469,7 +1469,7 @@ static void load_balance_expected_package_computation_time(struct _starpu_HFP_pa
 			free(p->temp_pointer_2->pointer_node);
 			get_expected_package_computation_time(p->temp_pointer_1, GPU_RAM);
 			get_expected_package_computation_time(p->temp_pointer_2, GPU_RAM);
-			if ( p->temp_pointer_1->expected_package_computation_time >= p->temp_pointer_2->expected_package_computation_time)
+			if (p->temp_pointer_1->expected_package_computation_time >= p->temp_pointer_2->expected_package_computation_time)
 			{
 				break;
 			}

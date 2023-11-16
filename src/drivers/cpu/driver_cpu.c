@@ -371,8 +371,8 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 			_STARPU_TRACE_START_EXECUTING(j);
 #ifdef STARPU_PROF_TOOL
 			pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_start_cpu_exec, devid, worker_task->workerid, starpu_prof_tool_driver_cpu, -1, (void*)func);
-			pi.model_name = _starpu_job_get_model_name( j );
-			pi.task_name = _starpu_job_get_task_name( j );
+			pi.model_name = _starpu_job_get_model_name(j);
+			pi.task_name = _starpu_job_get_task_name(j);
 			starpu_prof_tool_callbacks.starpu_prof_tool_event_start_cpu_exec(&pi, NULL, NULL);
 #endif
 #ifdef STARPU_SIMGRID
@@ -402,8 +402,8 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 #endif
 #ifdef STARPU_PROF_TOOL
 			pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_cpu_exec, devid, worker_task->workerid, starpu_prof_tool_driver_cpu, -1, (void*)func);
-			pi.model_name = _starpu_job_get_model_name( j );
-			pi.task_name = _starpu_job_get_task_name( j );
+			pi.model_name = _starpu_job_get_model_name(j);
+			pi.task_name = _starpu_job_get_task_name(j);
 			starpu_prof_tool_callbacks.starpu_prof_tool_event_end_cpu_exec(&pi, NULL, NULL);
 #endif
 			_STARPU_TRACE_END_EXECUTING(j);
@@ -416,8 +416,8 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 	{
 #ifdef STARPU_PROF_TOOL
 		pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_cpu_exec, devid, worker_task->workerid, starpu_prof_tool_driver_cpu, -1, (void*)func);
-		pi.model_name = _starpu_job_get_model_name( j );
-		pi.task_name = _starpu_job_get_task_name( j );
+		pi.model_name = _starpu_job_get_model_name(j);
+		pi.task_name = _starpu_job_get_task_name(j);
 		starpu_prof_tool_callbacks.starpu_prof_tool_event_end_cpu_exec(&pi, NULL, NULL);
 #endif
 		_STARPU_TRACE_START_EXECUTING(j);
@@ -432,8 +432,8 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 		{
 #ifdef STARPU_PROF_TOOL
 			pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_cpu_exec, devid, worker_task->workerid, starpu_prof_tool_driver_cpu, -1, (void*)func);
-			pi.model_name = _starpu_job_get_model_name( j );
-			pi.task_name = _starpu_job_get_task_name( j );
+			pi.model_name = _starpu_job_get_model_name(j);
+			pi.task_name = _starpu_job_get_task_name(j);
 			starpu_prof_tool_callbacks.starpu_prof_tool_event_end_cpu_exec(&pi, NULL, NULL);
 #endif
 			_STARPU_TRACE_END_EXECUTING(j);
@@ -660,8 +660,8 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 
 #ifdef STARPU_PROF_TOOL
 	pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_transfer, workerid, workerid, starpu_prof_tool_driver_cpu, memnode, NULL);
-	/* pi.model_name = _starpu_job_get_model_name( j );
-	   pi.task_name = _starpu_job_get_task_name( j ); */
+	/* pi.model_name = _starpu_job_get_model_name(j);
+	   pi.task_name = _starpu_job_get_task_name(j); */
 	starpu_prof_tool_callbacks.starpu_prof_tool_event_end_transfer(&pi, NULL, NULL);
 #endif
 	_STARPU_TRACE_END_PROGRESS(memnode);
@@ -695,8 +695,8 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 		int ret = _starpu_cpu_driver_execute_task(cpu_worker, task, j);
 #ifdef STARPU_PROF_TOOL
 		pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_transfer, workerid, cpu_worker->workerid, starpu_prof_tool_driver_cpu, memnode, NULL);
-		/* pi.model_name = _starpu_job_get_model_name( j );
-		   pi.task_name = _starpu_job_get_task_name( j ); */
+		/* pi.model_name = _starpu_job_get_model_name(j);
+		   pi.task_name = _starpu_job_get_task_name(j); */
 		starpu_prof_tool_callbacks.starpu_prof_tool_event_end_transfer(&pi, NULL, NULL);
 #endif
 		_STARPU_TRACE_END_PROGRESS(memnode);
@@ -704,8 +704,8 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 	}
 #ifdef STARPU_PROF_TOOL
 	pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_transfer, workerid, cpu_worker->workerid, starpu_prof_tool_driver_cpu, memnode, NULL);
-	/* pi.model_name = _starpu_job_get_model_name( j );
-	   pi.task_name = _starpu_job_get_task_name( j ); */
+	/* pi.model_name = _starpu_job_get_model_name(j);
+	   pi.task_name = _starpu_job_get_task_name(j); */
 	starpu_prof_tool_callbacks.starpu_prof_tool_event_end_transfer(&pi, NULL, NULL);
 #endif
 	_STARPU_TRACE_END_PROGRESS(memnode);
