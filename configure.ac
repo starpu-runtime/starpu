@@ -2529,6 +2529,9 @@ if test x$enable_fxt != xno; then
 			FXT_CFLAGS="$FXT_CFLAGS $POTI_CFLAGS"
 			FXT_LIBS="$FXT_LIBS $POTI_LIBS"
 		fi
+		if test x$enable_poti = xyes -a x$have_valid_poti = xno ; then
+		   	AC_MSG_ERROR([POTI is required but not available])
+		fi
 	else
 		if test x$enable_fxt = xyes ; then
 			AC_MSG_ERROR([FxT is required but not available])
