@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2022-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2022  Camille Coti
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -80,6 +80,8 @@ struct starpu_prof_tool_info _starpu_prof_tool_get_info(enum starpu_prof_tool_ev
 	ret.worker_id = workerid;
 
 	/* unused fields */
+	ret.task_name = NULL;
+	ret.model_name = NULL;
 	ret.conf = NULL;
 	ret.bytes_to_transfer = 0;
 	ret.bytes_transfered = 0;
@@ -109,6 +111,8 @@ struct starpu_prof_tool_info _starpu_prof_tool_get_info_d(enum starpu_prof_tool_
 	ret.worker_id = workerid;
 
 	/* unused fields */
+	ret.task_name = NULL;
+	ret.model_name = NULL;
 	ret.conf = NULL;
 	ret.fun_ptr = NULL;
 
@@ -131,6 +135,8 @@ struct starpu_prof_tool_info _starpu_prof_tool_get_info_init(enum starpu_prof_to
 	ret.worker_id = 0;
 
 	/* unused fields */
+	ret.task_name = NULL;
+	ret.model_name = NULL;
 	ret.memnode = -1;
 	ret.bytes_to_transfer = 0;
 	ret.bytes_transfered = 0;
