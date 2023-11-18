@@ -372,10 +372,12 @@ STARPU_EXAMPLES +=				\
 	cholesky/cholesky_implicit		\
 	cholesky/cholesky_compil
 
+if STARPU_PARALLEL_WORKER
 if STARPU_HAVE_HWLOC
 if STARPU_HWLOC_HAVE_TYPE_SSCANF
 STARPU_EXAMPLES +=				\
 	cholesky/cholesky_pw
+endif
 endif
 endif
 
