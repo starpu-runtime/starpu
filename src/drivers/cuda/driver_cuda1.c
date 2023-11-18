@@ -52,7 +52,8 @@
 #include <hwloc/cuda.h>
 #endif
 #ifdef STARPU_USE_CUDA
-#include <cublas.h>
+#include <starpu_cublas_v2.h>
+#include <starpu_cusolver.h>
 #endif
 
 #if CUDART_VERSION >= 5000

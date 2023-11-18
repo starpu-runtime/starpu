@@ -47,7 +47,8 @@
 #include <core/task.h>
 #include <common/knobs.h>
 #ifdef STARPU_USE_CUDA
-#include <cublas.h>
+#include <starpu_cublas_v2.h>
+#include <starpu_cusolver.h>
 #endif
 
 /* Consider a rough 10% overhead cost */
