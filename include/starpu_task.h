@@ -120,19 +120,21 @@ extern "C" {
 
 /**
    Value to be set in starpu_codelet::cuda_flags to allow asynchronous
-   CUDA kernel execution.
+   CUDA kernel execution. This requires to use the proper CUDA stream,
+   see \ref CUDA-specificOptimizations
 */
 #define STARPU_CUDA_ASYNC (1 << 0)
 
 /**
    Value to be set in starpu_codelet::hip_flags to allow asynchronous
-   HIP kernel execution.
+   HIP kernel execution. This requires to use the proper HIP stream
 */
 #define STARPU_HIP_ASYNC (1 << 0)
 
 /**
    Value to be set in starpu_codelet::opencl_flags to allow
-   asynchronous OpenCL kernel execution.
+   asynchronous OpenCL kernel execution. This requires to use proper queueing,
+   see \ref OpenCL-specificOptimizations
 */
 #define STARPU_OPENCL_ASYNC (1 << 0)
 
