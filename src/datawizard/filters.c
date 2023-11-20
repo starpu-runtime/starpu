@@ -764,7 +764,7 @@ void starpu_data_partition_readonly_submit_sequential_consistency(starpu_data_ha
 		_starpu_spin_unlock(&children[i]->header_lock);
 	}
 
-	STARPU_ASSERT_MSG(initial_handle->initialized, "It is odd to read-only-partition a data which does not have a value yet");
+	STARPU_ASSERT_MSG(initial_handle->initialized || initial_handle->init_cl, "It is odd to read-only-partition a data which does not have a value yet");
 	struct starpu_data_descr descr[nparts];
 	char handles_sequential_consistency[nparts+1];
 	handles_sequential_consistency[0] = sequential_consistency;
