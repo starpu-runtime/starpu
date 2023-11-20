@@ -324,6 +324,7 @@ myPROGRAMS +=				\
 	datawizard/partitioned_initialization	\
 	datawizard/partitioned_acquire		\
 	datawizard/temporary_partition_implicit	\
+	datawizard/temporary_partition_read	\
 	datawizard/redux_acquire		\
 	disk/disk_copy				\
 	disk/disk_copy_unpack			\
