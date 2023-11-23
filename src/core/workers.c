@@ -695,13 +695,10 @@ int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_tas
 	unsigned nworkers = _starpu_config.topology.nworkers;
 
 
-	if (!_starpu_enforce_locality(workerid, task))
-		return 0;
-
 	/* Is this a parallel worker ? */
 	if (workerid < nworkers)
 	{
-		if (!_starpu_config.workers[workerid].enable_knob)
+		if (!_starpu_can_execute_task_any_impl(workerid, task))
 			return 0;
 
 		return !!((task->where & _starpu_config.workers[workerid].worker_mask) &&
@@ -710,6 +707,9 @@ int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_tas
 	}
 	else
 	{
+		if (!_starpu_enforce_locality(workerid, task))
+			return 0;
+
 		if (cl->type == STARPU_SPMD
 #ifdef STARPU_HAVE_HWLOC
 				|| cl->type == STARPU_FORKJOIN

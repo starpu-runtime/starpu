@@ -112,13 +112,10 @@ int main(void)
 	{
 		int ret;
 
-		if (strncmp((*policy)->policy_name, "modular-", 8) == 0
-		 ||  strcmp((*policy)->policy_name, "pheft") == 0
-		 ||  strcmp((*policy)->policy_name, "heteroprio") == 0
-		 ||  strcmp((*policy)->policy_name, "lws") == 0
-		 ||  strcmp((*policy)->policy_name, "ws") == 0)
+		if (strcmp((*policy)->policy_name, "lws") == 0
+		 || strcmp((*policy)->policy_name, "ws") == 0)
 #ifdef STARPU_DEVEL
-#warning FIXME for modular-*, pheft and heteroprio
+#warning FIXME performance for ws
 #endif
 			continue;
 
