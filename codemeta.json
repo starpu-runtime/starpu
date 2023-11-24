@@ -6,10 +6,9 @@
     "contIntegration": "https://ci.inria.fr/starpu/",
     "dateCreated": "2009-03-01",
     "datePublished": "2009-04-02",
-    "version": "1.4.1",
-    "dateModified": "2023-05-24",
-    "downloadUrl": "https://files.inria.fr/starpu/starpu-1.4.1/starpu-1.4.1.tar.gz",
-    "releaseNotes": "https://files.inria.fr/starpu/starpu-1.4.1/log.txt",
+    "version": "1.4.2",
+    "dateModified": "2023-11-23",
+    "downloadUrl": "https://files.inria.fr/starpu/starpu-1.4.2/starpu-1.4.2.tar.gz",
     "issueTracker": "https://github.com/starpu-runtime/starpu/issues",
     "name": "StarPU",
     "description": "StarPU is a task programming library for hybrid architectures.",
@@ -21,6 +20,7 @@
 	"https://hal.inria.fr/tel-01959127",
 	"https://hal.inria.fr/tel-03105625"
     ],
+    "releaseNotes": "https://files.inria.fr/starpu/starpu-1.4.2/log.txt",
     "keywords": [
         "HPC High-Performance Computing",
         "Task Paradigm",
