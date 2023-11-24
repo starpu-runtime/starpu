@@ -144,9 +144,10 @@ typedef void (*starpu_prof_tool_cb_func)(struct starpu_prof_tool_info*, union st
 typedef void (*starpu_prof_tool_entry_register_func)(enum starpu_prof_tool_event event_type, starpu_prof_tool_cb_func cb, enum starpu_prof_tool_command info);
 
 /**
-   A function with this signature must be implemented by external tools that want to use the callbacks
+   In order to use the StarPU profiling interface, a tool must implement the
+   starpu_prof_tool_library_register function, through which StarPU initializes the tool.
 */
-typedef void (*starpu_prof_tool_entry_func)(starpu_prof_tool_entry_register_func reg, starpu_prof_tool_entry_register_func unreg);
+extern void starpu_prof_tool_library_register(starpu_prof_tool_entry_register_func reg, starpu_prof_tool_entry_register_func unreg);
 
 /** @} */
 

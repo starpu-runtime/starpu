@@ -232,8 +232,7 @@ int _starpu_prof_tool_try_load()
 			return -1;
 		}
 
-		starpu_prof_tool_entry_func entry_func = (starpu_prof_tool_entry_func)found;
-		entry_func(_starpu_prof_tool_register_cb, _starpu_prof_tool_unregister_cb);
+		starpu_prof_tool_library_register(_starpu_prof_tool_register_cb, _starpu_prof_tool_unregister_cb);
 
 		return 1;
 #else
