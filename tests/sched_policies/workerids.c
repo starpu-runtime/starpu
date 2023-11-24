@@ -113,7 +113,8 @@ int main(void)
 		int ret;
 
 		if (strcmp((*policy)->policy_name, "lws") == 0
-		 || strcmp((*policy)->policy_name, "ws") == 0)
+		 || strcmp((*policy)->policy_name, "ws") == 0
+		 || strcmp((*policy)->policy_name, "modular-gemm") == 0)
 #ifdef STARPU_DEVEL
 #warning FIXME performance for ws
 #endif
