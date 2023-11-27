@@ -710,6 +710,13 @@ int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_tas
 		if (!_starpu_enforce_locality(workerid, task))
 			return 0;
 
+		if (task->workerids_len)
+		{
+			size_t div = sizeof(*task->workerids) * 8;
+			if (workerid / div >= task->workerids_len || ! (task->workerids[workerid / div] & (1UL << workerid % div)))
+				return 0;
+		}
+
 		if (cl->type == STARPU_SPMD
 #ifdef STARPU_HAVE_HWLOC
 				|| cl->type == STARPU_FORKJOIN
