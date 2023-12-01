@@ -813,6 +813,55 @@ void starpu_data_partition_readwrite_upgrade_submit(starpu_data_handle_t initial
 	_starpu_data_invalidate_submit_noplan(initial_handle);
 }
 
+void starpu_data_partition_readonly_downgrade_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children)
+{
+	unsigned i;
+	STARPU_ASSERT_MSG(initial_handle->sequential_consistency, "partition planning is currently only supported for data with sequential consistency");
+	_starpu_spin_lock(&initial_handle->header_lock);
+	STARPU_ASSERT_MSG(initial_handle->partitioned == 1, "One can't downgrade a readonly partition planning to readonly while other partition plannings are active");
+	STARPU_ASSERT_MSG(nparts > 0, "One can't partition into 0 parts");
+	initial_handle->part_readonly = 1;
+	if (initial_handle->nactive_readonly_children < initial_handle->partitioned)
+	{
+		_STARPU_REALLOC(initial_handle->active_readonly_children, initial_handle->partitioned * sizeof(initial_handle->active_readonly_children[0]));
+		_STARPU_REALLOC(initial_handle->active_readonly_nchildren, initial_handle->partitioned * sizeof(initial_handle->active_readonly_nchildren[0]));
+		initial_handle->nactive_readonly_children = initial_handle->partitioned;
+	}
+	initial_handle->active_readonly_children[initial_handle->partitioned-1] = children[0]->siblings;
+	initial_handle->active_readonly_nchildren[initial_handle->partitioned-1] = children[0]->nsiblings;
+	_starpu_spin_unlock(&initial_handle->header_lock);
+
+	for (i = 0; i < nparts; i++)
+	{
+		_starpu_spin_lock(&children[i]->header_lock);
+		children[i]->active = 1;
+		children[i]->active_ro = 1;
+		_starpu_spin_unlock(&children[i]->header_lock);
+	}
+
+	struct starpu_data_descr descr[nparts];
+	//char handles_sequential_consistency[nparts+1];
+	//handles_sequential_consistency[0] = initial_handle->sequential_consistency;
+	unsigned n;
+	for (i = 0, n = 0; i < nparts; i++)
+	{
+		STARPU_ASSERT_MSG(children[i]->father_handle == initial_handle, "child(%d) %p is partitioned from %p and not from the given parameter %p", i, children[i], children[i]->father_handle, initial_handle);
+		if (!children[i]->initialized)
+			/* Dropped value, do not care about coherency for this one */
+			continue;
+		descr[n].handle = children[i];
+		descr[n].mode = STARPU_R;
+		n++;
+		///handles_sequential_consistency[i+1] = (char) children[i]->sequential_consistency;
+	}
+	/* TODO: assert nparts too */
+	int ret = starpu_task_insert(initial_handle->switch_cl, initial_handle->initialized?STARPU_RW:STARPU_W, initial_handle,
+				     STARPU_DATA_MODE_ARRAY, descr, n,
+				     ///STARPU_HANDLES_SEQUENTIAL_CONSISTENCY, handles_sequential_consistency,
+				     0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+}
+
 void _starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node, unsigned char *handles_sequential_consistency, void (*callback_func)(void *), void *callback_arg)
 {
 	unsigned i;
