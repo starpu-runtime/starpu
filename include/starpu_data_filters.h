@@ -292,7 +292,14 @@ void starpu_data_partition_readonly_submit_sequential_consistency(starpu_data_ha
    See \ref AsynchronousPartitioning for more details.
 */
 void starpu_data_partition_readwrite_upgrade_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children);
-
+/**
+   Assume that a partitioning of \p initial_handle has already been submitted
+   in read-write mode through starpu_data_partition_submit(), and will downgrade
+   that partitioning into read-only mode for the \p children, fetching data back to the \p
+   initial_handle, and adding the necessary dependencies.
+   See \ref AsynchronousPartitioning for more details.
+*/
+void starpu_data_partition_readonly_downgrade_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children);
 /**
    Assuming that \p initial_handle is partitioned into \p children,
    submit an unpartitionning of \p initial_handle, i.e. submit a
