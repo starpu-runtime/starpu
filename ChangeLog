@@ -16,6 +16,8 @@
 
 StarPU 1.4.3
 ==============================================
+Small features:
+  * Add starpu_data_partition_readonly_downgrade_submit().
 
 StarPU 1.4.2
 ==============================================
