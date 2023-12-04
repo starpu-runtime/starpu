@@ -32,6 +32,11 @@ Small features:
   * Allow scheduling policies to be loaded with STARPU_SCHED&co but
     not to be in the list of predefined policies
 
+StarPU 1.4.3
+==============================================
+Small features:
+  * Add starpu_data_partition_readonly_downgrade_submit().
+
 StarPU 1.4.2
 ==============================================
 Small features:
