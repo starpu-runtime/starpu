@@ -16,7 +16,8 @@
 
 /*
  * This examplifies how to access the same matrix with different partitioned
- * views, doing the coherency through partition planning.
+ * views, doing the coherency through partition planning, but without having to
+ * explicitly submit partitioning/unpartitioning.
  *
  * We first run a kernel on the whole matrix to fill it, then check the value
  * in parallel from the whole handle, from the horizontal slices, and from the
@@ -27,7 +28,7 @@
  * whole handle, the horizontal slices, and the vertical slices. Eventually we
  * switch back to the whole matrix to check and scale it.
  *
- * Please keep this in sync with fmultiple_submit_readonly.c and fmultiple_submit_readonly_downgrade.c
+ * Please keep this in sync with fmultiple_submit_implicit.c
  */
 
 #include <starpu.h>
@@ -41,18 +42,19 @@
 void matrix_fill(void *buffers[], void *cl_arg)
 {
 	unsigned i, j;
-	(void)cl_arg;
 
 	/* length of the matrix */
 	unsigned nx = STARPU_MATRIX_GET_NX(buffers[0]);
 	unsigned ny = STARPU_MATRIX_GET_NY(buffers[0]);
 	unsigned ld = STARPU_MATRIX_GET_LD(buffers[0]);
 	int *val = (int *)STARPU_MATRIX_GET_PTR(buffers[0]);
+	unsigned offset_i, offset_j;
+	starpu_codelet_unpack_args(cl_arg, &offset_i, &offset_j);
 
 	for(j=0; j<ny ; j++)
 	{
 		for(i=0; i<nx ; i++)
-			val[(j*ld)+i] = i+100*j;
+			val[(j*ld)+i] = i+offset_i+100*(j+offset_j);
 	}
 }
 
@@ -91,9 +93,11 @@ void fmultiple_check_scale(void *buffers[], void *cl_arg)
 #ifdef STARPU_USE_CUDA
 extern void fmultiple_check_scale_cuda(void *buffers[], void *cl_arg);
 #endif
+
 #ifdef STARPU_USE_HIP
 extern void fmultiple_check_scale_hip(void *buffers[], void *cl_arg);
 #endif
+
 struct starpu_codelet cl_check_scale =
 {
 #ifdef STARPU_USE_CUDA
@@ -184,7 +188,8 @@ int main(void)
 		cl_check.cpu_funcs[0] = NULL;
 		cl_check.cpu_funcs_name[0] = NULL;
 	}
-	/* Disable codelet on CPUs if we have a HIP device, to force remote execution on the HIp device */
+
+	/* Disable codelet on CPUs if we have a HIP device, to force remote execution on the HIP device */
 	if (starpu_hip_worker_get_count())
 	{
 		cl_check_scale.cpu_funcs[0] = NULL;
@@ -212,13 +217,26 @@ int main(void)
 	};
 	starpu_data_partition_plan(handle, &f_horiz, horiz_handle);
 
-	/* Fill the matrix */
-	ret = starpu_task_insert(&cl_fill, STARPU_W, handle, 0);
-	if (ret == -ENODEV) goto enodev;
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	/* Fill the matrix using vertical view in write mode*/
+	for (i = 0; i < PARTS; i++)
+	{
+		unsigned offset_i = i*(NX/PARTS);
+		unsigned offset_j = 0;
+		ret = starpu_task_insert(&cl_fill,
+					 STARPU_W, vert_handle[i],
+					 STARPU_VALUE, &offset_i, sizeof(offset_i),
+					 STARPU_VALUE, &offset_j, sizeof(offset_j),
+					 0);
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	}
+
 	factor = 1;
 
-	/* Look at readonly vertical and horizontal view of the matrix */
+	/* Now switch to vertical view of the matrix, but readonly */
+	starpu_data_partition_readonly_downgrade_submit(handle, PARTS, vert_handle);
+	/* as well as horizontal view of the matrix, but readonly */
+	starpu_data_partition_readonly_submit(handle, PARTS, horiz_handle);
 
 	/* Check the values of the vertical slices */
 	for (i = 0; i < PARTS; i++)
@@ -254,7 +272,9 @@ int main(void)
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-	/* Now look at the total view of the matrix, and modify it. StarPU has to unpartition everything */
+	/* Now switch back to total view of the matrix */
+	starpu_data_unpartition_submit(handle, PARTS, horiz_handle, -1);
+	starpu_data_unpartition_submit(handle, PARTS, vert_handle, -1);
 
 	/* Check and scale it */
 	start = 0;
@@ -267,7 +287,10 @@ int main(void)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	factor = 2;
 
-	/* Look again readonly vertical and horizontal slices */
+	/* Now switch to vertical view of the matrix, but readonly */
+	starpu_data_partition_readonly_submit(handle, PARTS, vert_handle);
+	/* as well as horizontal view of the matrix, but readonly */
+	starpu_data_partition_readonly_submit(handle, PARTS, horiz_handle);
 
 	/* Check the values of the vertical slices */
 	for (i = 0; i < PARTS; i++)
@@ -303,7 +326,10 @@ int main(void)
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-	/* Now try to touch horizontal slices */
+	/* Disable the read-only vertical view of the matrix */
+	starpu_data_unpartition_submit(handle, PARTS, vert_handle, -1);
+	/* And switch to read-write horizontal view of the matrix */
+	starpu_data_partition_readwrite_upgrade_submit(handle, PARTS, horiz_handle);
 
 	/* Check and scale the values of the horizontal slices */
 	for (i = 0; i < PARTS; i++)
@@ -319,7 +345,10 @@ int main(void)
 	}
 	factor = 4;
 
-	/* And come back to read-only */
+	/* Now switch back to total view of the matrix, but readonly */
+	starpu_data_unpartition_readonly_submit(handle, PARTS, horiz_handle, -1);
+	/* And also enable a vertical view of the matrix, but readonly */
+	starpu_data_partition_readonly_submit(handle, PARTS, vert_handle);
 
 	/* Check the values of the vertical slices */
 	for (i = 0; i < PARTS; i++)
@@ -355,7 +384,11 @@ int main(void)
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-	/* And access the whole matrix again */
+	/* Disable the read-only vertical view of the matrix */
+	starpu_data_unpartition_submit(handle, PARTS, vert_handle, -1);
+	/* And the read-only horizontal view of the matrix */
+	starpu_data_unpartition_submit(handle, PARTS, horiz_handle, -1);
+	/* Thus getting back to a read-write total view of the matrix */
 
 	/* And check and scale the values of the whole matrix */
 	start = 0;
