@@ -959,7 +959,7 @@ static void worker_push_state(double time, const char *prefix, long unsigned int
 #endif
 }
 
-static void worker_pop_state(double time, const char *prefix, long unsigned int workerid)
+static void worker_pop_state(double time, const char *prefix, long unsigned int workerid, const char *comment)
 {
 	if (fut_keymask == FUT_KEYMASK0)
 		return;
@@ -970,7 +970,7 @@ static void worker_pop_state(double time, const char *prefix, long unsigned int 
 	worker_container_alias(container, STARPU_POTI_STR_LEN, prefix, workerid);
 	poti_PopState(time, container, "WS");
 #else
-	fprintf(out_paje_file, "12	%.9f	%sw%lu	WS\n", time, prefix, workerid);
+	fprintf(out_paje_file, "12	%.9f	%sw%lu	WS # %s\n", time, prefix, workerid, comment);
 #endif
 }
 
@@ -1065,11 +1065,11 @@ static void thread_push_state(double time, const char *prefix, long unsigned int
 #endif
 }
 
-static void thread_pop_state(double time, const char *prefix, long unsigned int threadid)
+static void thread_pop_state(double time, const char *prefix, long unsigned int threadid, const char *comment)
 {
 	if (find_sync(prefixTOnodeid(prefix), threadid))
 		/* Unless using worker sets, collapse thread and worker */
-		return worker_pop_state(time, prefix, find_worker_id(prefixTOnodeid(prefix), threadid));
+		return worker_pop_state(time, prefix, find_worker_id(prefixTOnodeid(prefix), threadid), comment);
 
 	if (!out_paje_file)
 		return;
@@ -1289,10 +1289,10 @@ static void do_thread_push_state(double time, const char *prefix, long unsigned 
 		recfmt_thread_push_state(time, prefixTOnodeid(prefix), threadid, name, type);
 }
 
-static void do_thread_pop_state(double time, const char *prefix, long unsigned int threadid)
+static void do_thread_pop_state(double time, const char *prefix, long unsigned int threadid, const char *comment)
 {
 	if (out_paje_file)
-		thread_pop_state(time, prefix, threadid);
+		thread_pop_state(time, prefix, threadid, comment);
 	if (trace_file)
 		recfmt_thread_pop_state(time, prefixTOnodeid(prefix), threadid);
 }
@@ -1360,13 +1360,13 @@ static void do_thread_push_state_worker(double time, const char *prefix, long un
 	}
 }
 
-static void do_thread_pop_state_worker(double time, const char *prefix, long unsigned int threadid)
+static void do_thread_pop_state_worker(double time, const char *prefix, long unsigned int threadid, const char *comment)
 {
 	int worker = find_worker_id(prefixTOnodeid(prefix), threadid);
 
 	if (worker >= 0)
 	{
-		do_thread_pop_state(time, prefix, threadid);
+		do_thread_pop_state(time, prefix, threadid, comment);
 	}
 	else if (worker == -2)
 	{
@@ -2098,7 +2098,7 @@ static void handle_end_parallel_sync(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 	char *prefix = options->file_prefix;
 	long unsigned int threadid = ev->param[0];
 
-	thread_pop_state(get_event_time_stamp(ev, options), prefix, threadid);
+	thread_pop_state(get_event_time_stamp(ev, options), prefix, threadid, "handle_end_parallel_sync");
 }
 
 static void handle_user_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -2145,7 +2145,7 @@ static void handle_start_callback(struct fxt_ev_64 *ev, struct starpu_fxt_option
 
 static void handle_end_callback(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
-	do_thread_pop_state_worker(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1]);
+	do_thread_pop_state_worker(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], "handle_end_callback");
 }
 
 static void handle_hypervisor_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -2155,7 +2155,7 @@ static void handle_hypervisor_begin(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 
 static void handle_hypervisor_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
-	do_thread_pop_state_worker(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0]);
+	do_thread_pop_state_worker(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "handle_hypervisor_end");
 }
 
 static void handle_worker_status_on_tid(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *newstatus)
@@ -2204,7 +2204,7 @@ static void handle_worker_scheduling_push(struct fxt_ev_64 *ev, struct starpu_fx
 
 static void handle_worker_scheduling_pop(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
-	do_thread_pop_state_worker(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0]);
+	do_thread_pop_state_worker(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "handle_worker_scheduling_pop");
 }
 
 static void handle_worker_sleep_start(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -2725,15 +2725,15 @@ static void handle_used_mem(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
 	}
 }
 
-static void handle_task_submit_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, unsigned long tid, const char *eventstr)
+static void handle_task_submit_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, unsigned long tid, const char *eventstr, int push)
 {
 	char *prefix = options->file_prefix;
 	double timestamp = get_event_time_stamp(ev, options);
 
-	if (eventstr)
+	if (push)
 		do_thread_push_state_worker(timestamp, prefix, tid, eventstr, "Runtime", "User");
 	else
-		do_thread_pop_state_worker(timestamp, prefix, tid);
+		do_thread_pop_state_worker(timestamp, prefix, tid, eventstr);
 }
 
 /*
@@ -3871,49 +3871,67 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				break;
 
 			case _STARPU_FUT_TASK_BUILD_START:
-				handle_task_submit_event(&ev, options, ev.param[0], "Bu");
+				handle_task_submit_event(&ev, options, ev.param[0], "Bu", 1);
 				break;
 
 			case _STARPU_FUT_TASK_SUBMIT_START:
-				handle_task_submit_event(&ev, options, ev.param[0], "Su");
+				handle_task_submit_event(&ev, options, ev.param[0], "Su", 1);
 				break;
 
 			case _STARPU_FUT_TASK_THROTTLE_START:
-				handle_task_submit_event(&ev, options, ev.param[0], "Th");
+				handle_task_submit_event(&ev, options, ev.param[0], "Th", 1);
 				break;
 
 			case _STARPU_FUT_TASK_MPI_DECODE_START:
-				handle_task_submit_event(&ev, options, ev.param[0], "MD");
+				handle_task_submit_event(&ev, options, ev.param[0], "MD", 1);
 				break;
 
 			case _STARPU_FUT_TASK_MPI_PRE_START:
-				handle_task_submit_event(&ev, options, ev.param[0], "MPr");
+				handle_task_submit_event(&ev, options, ev.param[0], "MPr", 1);
 				break;
 
 			case _STARPU_FUT_TASK_MPI_POST_START:
-				handle_task_submit_event(&ev, options, ev.param[0], "MPo");
+				handle_task_submit_event(&ev, options, ev.param[0], "MPo", 1);
 				break;
 
 			case _STARPU_FUT_TASK_WAIT_START:
-				handle_task_submit_event(&ev, options, ev.param[1], "W");
+				handle_task_submit_event(&ev, options, ev.param[1], "W", 1);
 				break;
 
 			case _STARPU_FUT_TASK_WAIT_FOR_ALL_START:
-				handle_task_submit_event(&ev, options, ev.param[0], "WA");
+				handle_task_submit_event(&ev, options, ev.param[0], "WA", 1);
 				break;
 
 			case _STARPU_FUT_TASK_BUILD_END:
+				handle_task_submit_event(&ev, options, ev.param[0], "Bu", 0);
+				break;
+
 			case _STARPU_FUT_TASK_SUBMIT_END:
+				handle_task_submit_event(&ev, options, ev.param[0], "Su", 0);
+				break;
+
 			case _STARPU_FUT_TASK_THROTTLE_END:
+				handle_task_submit_event(&ev, options, ev.param[0], "Th", 0);
+				break;
+
 			case _STARPU_FUT_TASK_MPI_DECODE_END:
+				handle_task_submit_event(&ev, options, ev.param[0], "MD", 0);
+				break;
+
 			case _STARPU_FUT_TASK_MPI_PRE_END:
+				handle_task_submit_event(&ev, options, ev.param[0], "MPr", 0);
+				break;
+
 			case _STARPU_FUT_TASK_MPI_POST_END:
+				handle_task_submit_event(&ev, options, ev.param[0], "MPo", 0);
+				break;
+
 			case _STARPU_FUT_TASK_WAIT_FOR_ALL_END:
-				handle_task_submit_event(&ev, options, ev.param[0], NULL);
+				handle_task_submit_event(&ev, options, ev.param[0], "WA", 0);
 				break;
 
 			case _STARPU_FUT_TASK_WAIT_END:
-				handle_task_submit_event(&ev, options, ev.param[0], NULL);
+				handle_task_submit_event(&ev, options, ev.param[0], "W", 0);
 				break;
 
 			case _STARPU_FUT_TASK_EXCLUDE_FROM_DAG:
