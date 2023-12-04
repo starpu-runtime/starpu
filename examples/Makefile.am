@@ -247,6 +247,7 @@ STARPU_EXAMPLES +=				\
 	filters/fmultiple_manual		\
 	filters/fmultiple_submit		\
 	filters/fmultiple_submit_readonly	\
+	filters/fmultiple_submit_readonly_downgrade	\
 	filters/fmultiple_submit_implicit	\
 	filters/frecursive			\
 	filters/shadow				\
@@ -957,12 +958,19 @@ endif
 filters_fmultiple_submit_readonly_SOURCES =	\
 	filters/fmultiple_submit_readonly.c
 
+filters_fmultiple_submit_readonly_downgrade_SOURCES =	\
+	filters/fmultiple_submit_readonly_downgrade.c
+
 if STARPU_USE_CUDA
 filters_fmultiple_submit_readonly_SOURCES +=	\
+	filters/fmultiple_cuda.cu
+filters_fmultiple_submit_readonly_downgrade_SOURCES =	\
 	filters/fmultiple_cuda.cu
 endif
 if STARPU_USE_HIP
 filters_fmultiple_submit_readonly_SOURCES +=	\
+	filters/fmultiple_hip.hip
+filters_fmultiple_submit_readonly_downgrade_SOURCES =	\
 	filters/fmultiple_hip.hip
 endif
 
