@@ -818,7 +818,8 @@ void starpu_data_partition_readonly_downgrade_submit(starpu_data_handle_t initia
 	unsigned i;
 	STARPU_ASSERT_MSG(initial_handle->sequential_consistency, "partition planning is currently only supported for data with sequential consistency");
 	_starpu_spin_lock(&initial_handle->header_lock);
-	STARPU_ASSERT_MSG(initial_handle->partitioned == 1, "One can't downgrade a readonly partition planning to readonly while other partition plannings are active");
+	STARPU_ASSERT_MSG(initial_handle->partitioned == 1, "One can't downgrade a read-write partition planning to read-only while other partition plannings are active");
+	STARPU_ASSERT_MSG(initial_handle->part_readonly == 0, "Partition is already read-only");
 	STARPU_ASSERT_MSG(nparts > 0, "One can't partition into 0 parts");
 	initial_handle->part_readonly = 1;
 	if (initial_handle->nactive_readonly_children < initial_handle->partitioned)
@@ -840,8 +841,6 @@ void starpu_data_partition_readonly_downgrade_submit(starpu_data_handle_t initia
 	}
 
 	struct starpu_data_descr descr[nparts];
-	//char handles_sequential_consistency[nparts+1];
-	//handles_sequential_consistency[0] = initial_handle->sequential_consistency;
 	unsigned n;
 	for (i = 0, n = 0; i < nparts; i++)
 	{
@@ -852,7 +851,6 @@ void starpu_data_partition_readonly_downgrade_submit(starpu_data_handle_t initia
 		descr[n].handle = children[i];
 		descr[n].mode = STARPU_R;
 		n++;
-		///handles_sequential_consistency[i+1] = (char) children[i]->sequential_consistency;
 	}
 	/* TODO: assert nparts too */
 	int ret = starpu_task_insert(initial_handle->switch_cl, initial_handle->initialized?STARPU_RW:STARPU_W, initial_handle,
