@@ -320,7 +320,7 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 			void *initial_interface = starpu_data_get_interface_on_node(initial_handle, node);
 			void *child_interface = starpu_data_get_interface_on_node(child, node);
 
-			STARPU_ASSERT_MSG(!(!inherit_state && child_replicate->automatically_allocated && child_replicate->allocated), "partition planning is currently not supported when handle has some automatically allocated buffers");
+			STARPU_ASSERT_MSG(!(!inherit_state && initial_replicate->automatically_allocated && child_replicate->allocated), "partition planning is currently not supported when handle has some automatically allocated buffers");
 			f->filter_func(initial_interface, child_interface, f, i, nparts);
 		}
 
