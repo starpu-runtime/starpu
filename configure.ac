@@ -3172,6 +3172,8 @@ fi
 
 if test x$enable_openmp_llvm = xyes; then
 	AC_DEFINE(STARPU_OPENMP_LLVM, [1], [Define this to enable LLVM OpenMP runtime support])
+	STARPU_OPENMP_CPPFLAGS="-I$STARPU_SRC_DIR/include/openmp"
+	AC_SUBST(STARPU_OPENMP_CPPFLAGS)
 	# Force activating the generic OpenMP runtime support
 	enable_openmp="yes"
 fi
@@ -3188,7 +3190,7 @@ AC_MSG_RESULT($enable_openmp_llvm $openmp_llvm_msg)
 
 AC_ARG_ENABLE(openmp, [AS_HELP_STRING([--enable-openmp],
 			[build the OpenMP runtime support])],
-			enable_openmp=$enableval, enable_openmp=yes)
+			enable_openmp=$enableval, enable_openmp=no)
 
 AC_CHECK_HEADER([ucontext.h],[have_valid_ucontext=yes],[have_valid_ucontext=no])
 
@@ -4219,7 +4221,7 @@ fi
 
 
 CPPFLAGS="$CPPFLAGS -DSTARPU_SAMPLING_DIR=\"\\\"${datarootdir}/starpu/perfmodels/sampling\\\"\""
-STARPU_BASIC_H_CPPFLAGS="$HWLOC_CFLAGS $STARPU_CUDA_CPPFLAGS $STARPU_HIP_CPPFLAGS $STARPU_OPENCL_CPPFLAGS $STARPU_MAX_FPGA_CPPFLAGS $SIMGRID_CFLAGS $PAPI_CFLAGS"
+STARPU_BASIC_H_CPPFLAGS="$HWLOC_CFLAGS $STARPU_CUDA_CPPFLAGS $STARPU_HIP_CPPFLAGS $STARPU_OPENCL_CPPFLAGS $STARPU_MAX_FPGA_CPPFLAGS $SIMGRID_CFLAGS $PAPI_CFLAGS $STARPU_OPENMP_CPPFLAGS"
 
 # these are the flags needed to compile starpu.h
 STARPU_H_CPPFLAGS="$STARPU_BASIC_H_CPPFLAGS"

@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2019-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2019-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -33,7 +33,7 @@ array: 1, 1, 1, 1,
 To execute the application using the StarPU OpenMP LLVM support, one just needs it to create a symbolic link named libomp.so.5 to the StarPU OpenMP LLVM library, e.g
 
 $ mkdir libs
-$ ln -s $STARPU_ROOT/lib/libstarpu_openmp_llvm-1.3.so libs/libomp.so.5
+$ ln -s $STARPU_ROOT/lib/libstarpu_openmp_llvm-1.4.so libs/libomp.so.5
 $ LD_LIBRARY_PATH=./libs:$LD_LIBRARY_PATH ./a.out
 [starpu][__kmp_constructor] Initialising the StarPU OpenMP LLVM Support
 Hello from 0

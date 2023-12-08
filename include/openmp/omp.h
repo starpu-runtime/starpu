@@ -106,5 +106,5 @@ extern void *omp_get_local_cuda_stream(void) __STARPU_OMP_NOTHROW;
 }
 #endif
 
-#endif /* STARPU_USE_OPENMP */
+#endif /* STARPU_OPENMP */
 #endif /* __STARPU_OPENMP_OMP_H__ */

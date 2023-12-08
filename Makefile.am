@@ -146,7 +146,7 @@ versinclude_HEADERS = 				\
 
 if STARPU_OPENMP_LLVM
 versinclude_HEADERS += 				\
-	include/omp.h
+	include/openmp/omp.h
 endif
 
 nodist_versinclude_HEADERS = 			\

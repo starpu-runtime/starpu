@@ -1308,7 +1308,7 @@ extern starpu_data_handle_t starpu_omp_data_lookup(const void *ptr) __STARPU_OMP
 }
 #endif
 
-#endif /* STARPU_USE_OPENMP */
+#endif /* STARPU_OPENMP */
 
 /** @} */
 
