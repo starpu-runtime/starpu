@@ -87,8 +87,8 @@ struct starpu_prof_tool_info
 	int thread_id;
 	int worker_id;
 
-	char* task_name;
-	char* model_name;
+	const char *task_name;
+	const char *model_name;
 
 	int device_number;
 	enum starpu_prof_tool_driver_type driver_type; // not sure
