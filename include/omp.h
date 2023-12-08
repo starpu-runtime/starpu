@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2018-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2018-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -106,5 +106,5 @@ extern void *omp_get_local_cuda_stream(void) __STARPU_OMP_NOTHROW;
 }
 #endif
 
-#endif /* STARPU_USE_OPENMP && !STARPU_DONT_INCLUDE_OPENMP_HEADERS */
+#endif /* STARPU_USE_OPENMP */
 #endif /* __STARPU_OPENMP_OMP_H__ */
