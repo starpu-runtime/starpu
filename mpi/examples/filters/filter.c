@@ -77,6 +77,7 @@ void vector_filter(void *father_interface, void *child_interface, struct starpu_
 
 int main(int argc, char **argv)
 {
+	return 77;
 	int i, rank, nodes;
 	int vector[NX];
 	int vector_check[NX];
