@@ -500,22 +500,9 @@ static unsigned get_color_symbol_blue(char *name)
 	return (unsigned)starpu_hash_crc32c_string("blue", hash_symbol) % 1024;
 }
 
-/* Start time of last codelet for this worker */
-static double last_codelet_start[STARPU_NMAXWORKERS];
-/* End time of last codelet for this worker */
-static double last_codelet_end[STARPU_NMAXWORKERS];
-/* _STARPU_FUT_DO_PROBE5STR records only 3 longs */
-char _starpu_last_codelet_symbol[STARPU_NMAXWORKERS][(FXT_MAX_PARAMS-5)*sizeof(unsigned long)];
-static int last_codelet_parameter[STARPU_NMAXWORKERS];
-#define MAX_PARAMETERS 8
-static char last_codelet_parameter_description[STARPU_NMAXWORKERS][MAX_PARAMETERS][FXT_MAX_PARAMS*sizeof(unsigned long)];
-
 /* If more than a period of time has elapsed, we flush the profiling info,
  * otherwise they are accumulated every time there is a new relevant event. */
 #define ACTIVITY_PERIOD	75.0
-static double last_activity_flush_timestamp[STARPU_NMAXWORKERS];
-static double accumulated_sleep_time[STARPU_NMAXWORKERS];
-static double accumulated_exec_time[STARPU_NMAXWORKERS];
 
 static unsigned steal_number = 0;
 
@@ -551,8 +538,6 @@ LIST_TYPE(_starpu_computation,
 
 /* List of ongoing computations */
 static struct _starpu_computation_list computation_list;
-/* Last computation for each worker */
-static struct _starpu_computation *ongoing_computation[STARPU_NMAXWORKERS];
 
 /* Current total GFlops */
 static double current_computation;
@@ -606,6 +591,23 @@ static struct
 	{ "WA",  "Waiting all tasks",		 THREAD_STATE | USER_THREAD_STATE },
 	{ "No",  "Nothing",			 THREAD_STATE | USER_THREAD_STATE },
 };
+
+struct _thread_info *_thread_infos = NULL;
+static struct _thread_info *get_thread_info(long unsigned int threadid, int worker, int create_if_needed)
+{
+	struct _thread_info *thread_info = NULL;
+	HASH_FIND(hh, _thread_infos, &threadid, sizeof(threadid), thread_info);
+
+	if (thread_info == NULL && create_if_needed == 1)
+	{
+		_STARPU_CALLOC(thread_info, 1, sizeof(*thread_info));
+		thread_info->tid = threadid;
+		thread_info->worker = worker;
+		HASH_ADD(hh, _thread_infos, tid, sizeof(threadid), thread_info);
+	}
+	STARPU_ASSERT_MSG(thread_info != NULL, "No thread information for %lu\n", threadid);
+	return thread_info;
+}
 
 static const char *get_state_name(const char *short_name, uint32_t states)
 {
@@ -842,23 +844,24 @@ static int find_sync(unsigned long nodeid, unsigned long tid)
 	return entry->sync;
 }
 
-static void update_accumulated_time(int worker, double sleep_time, double exec_time, double current_timestamp, int forceflush)
+static void update_accumulated_time(long unsigned int threadid, int worker, double sleep_time, double exec_time, double current_timestamp, int forceflush)
 {
-	accumulated_sleep_time[worker] += sleep_time;
-	accumulated_exec_time[worker] += exec_time;
+	struct _thread_info *thread_info = get_thread_info(threadid, worker, 0);
+	thread_info->accumulated_sleep_time += sleep_time;
+	thread_info->accumulated_exec_time += exec_time;
 
 	/* If sufficient time has elapsed since the last flush, we have a new
 	 * point in our graph */
-	double elapsed = current_timestamp - last_activity_flush_timestamp[worker];
+	double elapsed = current_timestamp - thread_info->last_activity_flush_timestamp;
 	if (forceflush || (elapsed > ACTIVITY_PERIOD))
 	{
 		if (activity_file)
-			fprintf(activity_file, "%d\t%.9f\t%.9f\t%.9f\t%.9f\n", worker, current_timestamp, elapsed, accumulated_exec_time[worker], accumulated_sleep_time[worker]);
+			fprintf(activity_file, "%d\t%.9f\t%.9f\t%.9f\t%.9f\n", worker, current_timestamp, elapsed, thread_info->accumulated_exec_time, thread_info->accumulated_sleep_time);
 
 		/* reset the accumulated times */
-		last_activity_flush_timestamp[worker] = current_timestamp;
-		accumulated_sleep_time[worker] = 0.0;
-		accumulated_exec_time[worker] = 0.0;
+		thread_info->last_activity_flush_timestamp = current_timestamp;
+		thread_info->accumulated_sleep_time = 0.0;
+		thread_info->accumulated_exec_time = 0.0;
 	}
 }
 
@@ -1529,23 +1532,25 @@ static void handle_worker_init_end(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 {
 	char *prefix = options->file_prefix;
 	int worker;
+	unsigned long int tid = ev->param[0];
 
 	if (ev->nb_params < 2)
 	{
-		worker = find_worker_id(prefixTOnodeid(prefix), ev->param[0]);
+		worker = find_worker_id(prefixTOnodeid(prefix), tid);
 		STARPU_ASSERT(worker >= 0);
 	}
 	else
 		worker = ev->param[1];
 
-	do_thread_set_state(get_event_time_stamp(ev, options), prefix, ev->param[0], "B", "Runtime", -1);
-
+	do_thread_set_state(get_event_time_stamp(ev, options), prefix, tid, "B", "Runtime", -1);
 	do_worker_set_state(get_event_time_stamp(ev, options), prefix, worker, "I", "Other");
 
+	struct _thread_info *thread_info = get_thread_info(tid, worker, 1);
+
 	/* Initialize the accumulated time counters */
-	last_activity_flush_timestamp[worker] = get_event_time_stamp(ev, options);
-	accumulated_sleep_time[worker] = 0.0;
-	accumulated_exec_time[worker] = 0.0;
+	thread_info->last_activity_flush_timestamp = get_event_time_stamp(ev, options);
+	thread_info->accumulated_sleep_time = 0.0;
+	thread_info->accumulated_exec_time = 0.0;
 }
 
 static void handle_worker_deinit_start(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -1714,38 +1719,40 @@ static void create_paje_state_if_not_found(char *name, unsigned color, struct st
 					fprintf(out_paje_file, "6	%s_%d	Ctx%d	%s	\"0.6 0.80 0.19\" \n", name, i, i, name);
 			}
 		}
-
 #endif
 	}
-
 }
-
 
 static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	int worker = ev->param[2];
 	int node = ev->param[3];
-
-	if (worker < 0) return;
+	long unsigned int tid = ev->param[4];
+	int codelet_null_or_nowhere = ev->param[5];
 
 	struct task_info *task = get_task(ev->param[0], options->file_rank);
 	char *name = task->name;
 	create_paje_state_if_not_found(name, task->color, options);
 
-	snprintf(_starpu_last_codelet_symbol[worker], sizeof(_starpu_last_codelet_symbol[worker]), "%.*s", (int) sizeof(_starpu_last_codelet_symbol[worker])-1, name);
-	_starpu_last_codelet_symbol[worker][sizeof(_starpu_last_codelet_symbol[worker])-1] = 0;
-	last_codelet_parameter[worker] = 0;
+	struct _thread_info *thread_info = get_thread_info(tid, worker, 1);
+
+	if (codelet_null_or_nowhere)
+		return;
 
 	double start_codelet_time = get_event_time_stamp(ev, options);
-	double last_start_codelet_time = last_codelet_start[worker];
-	last_codelet_start[worker] = start_codelet_time;
-	char *prefix = options->file_prefix;
+	double last_start_codelet_time = thread_info->last_codelet_start;
+	thread_info->last_codelet_start = start_codelet_time;
+	snprintf(thread_info->symbol, sizeof(thread_info->symbol), "%.*s", (int) sizeof(thread_info->symbol)-1, name);
+	thread_info->symbol[sizeof(thread_info->symbol)-1] = 0;
+	thread_info->codelet_parameter = 0;
 
 	task->start_time = start_codelet_time;
 	task->workerid = worker;
 	task->node = node;
 
-	do_worker_set_state(start_codelet_time, prefix, ev->param[2], name, "Task");
+	char *prefix = options->file_prefix;
+	do_worker_set_state(start_codelet_time, prefix, worker, name, "Task");
+
 	if (out_paje_file)
 	{
 		unsigned sched_ctx = ev->param[1];
@@ -1758,27 +1765,27 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 			snprintf(ctx, sizeof(ctx), "Ctx%d", sched_ctx);
 			char alias[strlen(name) + 10];
 			snprintf(alias, sizeof(alias), "%s_%d", name, sched_ctx);
-			worker_container_alias(container, STARPU_POTI_STR_LEN, prefix, ev->param[2]);
+			worker_container_alias(container, STARPU_POTI_STR_LEN, prefix, worker);
 			poti_SetState(start_codelet_time, container, ctx, alias);
 #else
-			fprintf(out_paje_file, "10	%.9f	%sw%"PRIu64"	Ctx%d	\"%s_%d\"\n", start_codelet_time, prefix, ev->param[2], sched_ctx, name, sched_ctx);
+			fprintf(out_paje_file, "10	%.9f	%sw%"PRIu64"	Ctx%d	\"%s_%d\"\n", start_codelet_time, prefix, worker, sched_ctx, name, sched_ctx);
 #endif
 		}
 	}
 
-	struct _starpu_computation *comp = ongoing_computation[worker];
+	struct _starpu_computation *comp = thread_info->ongoing_computation;
 	if (!comp)
 	{
 		/* First task for this worker */
-		comp = ongoing_computation[worker] = _starpu_computation_new();
+		comp = thread_info->ongoing_computation = _starpu_computation_new();
 		comp->peer = NULL;
 		comp->comp_start = start_codelet_time;
 		if (!options->no_flops)
 			_starpu_computation_list_push_back(&computation_list, comp);
 	}
 	else if (options->no_smooth ||
-			(start_codelet_time - last_codelet_end[worker]) >=
-			IDLE_FACTOR * (last_codelet_end[worker] - last_start_codelet_time))
+			(start_codelet_time - thread_info->last_codelet_end) >=
+			IDLE_FACTOR * (thread_info->last_codelet_end - last_start_codelet_time))
 	{
 		/* Long idle period, move previously-allocated comp to now */
 		comp->comp_start = start_codelet_time;
@@ -1799,16 +1806,18 @@ static void handle_model_name(struct fxt_ev_64 *ev, struct starpu_fxt_options *o
 	task->model_name = strdup(name);
 }
 
-static void handle_codelet_data(struct fxt_ev_64 *ev STARPU_ATTRIBUTE_UNUSED, struct starpu_fxt_options *options STARPU_ATTRIBUTE_UNUSED)
+static void handle_codelet_data(struct fxt_ev_64 *ev, struct starpu_fxt_options *options STARPU_ATTRIBUTE_UNUSED)
 {
-	int worker = ev->param[0];
-	if (worker < 0) return;
-	int num = last_codelet_parameter[worker]++;
+	unsigned long int tid = ev->param[1];
+	struct _thread_info *thread_info = get_thread_info(tid, -1, 0);
+
+	thread_info->codelet_parameter = thread_info->codelet_parameter + 1;
+	int num = thread_info->codelet_parameter;
 	if (num >= MAX_PARAMETERS)
 		return;
-	char *name = get_fxt_string(ev, 1);
-	snprintf(last_codelet_parameter_description[worker][num], sizeof(last_codelet_parameter_description[worker][num]), "%.*s", (int) sizeof(last_codelet_parameter_description[worker][num])-1, name);
-	last_codelet_parameter_description[worker][num][sizeof(last_codelet_parameter_description[worker][num])-1] = 0;
+	char *name = get_fxt_string(ev, 2);
+	snprintf(thread_info->codelet_parameter_description[num], sizeof(thread_info->codelet_parameter_description[num]), "%.*s", (int) sizeof(thread_info->codelet_parameter_description[num])-1, name);
+	thread_info->codelet_parameter_description[num][sizeof(thread_info->codelet_parameter_description[num])-1] = 0;
 }
 
 static void handle_codelet_data_handle(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -1853,19 +1862,19 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 {
 	int worker = ev->param[5];
 	unsigned long job_id = ev->param[6];
+	long unsigned int tid = ev->param[7];
 
-	if (worker < 0) return;
-
+	struct _thread_info *thread_info = get_thread_info(tid, worker, 0);
 	char parameters[256];
 	size_t eaten = 0;
-	if (!last_codelet_parameter[worker])
+	if (!thread_info->codelet_parameter)
 		snprintf(parameters, sizeof(parameters) - 1, "nodata");
 	else
 	{
 		int i;
-		for (i = 0; i < last_codelet_parameter[worker] && i < MAX_PARAMETERS; i++)
+		for (i = 0; i < thread_info->codelet_parameter && i < MAX_PARAMETERS; i++)
 		{
-			eaten += snprintf(parameters + eaten, sizeof(parameters) - eaten - 1, "%s%s", i?" ":"", last_codelet_parameter_description[worker][i]);
+			eaten += snprintf(parameters + eaten, sizeof(parameters) - eaten - 1, "%s%s", i?" ":"", thread_info->codelet_parameter_description[i]);
 		}
 	}
 	parameters[sizeof(parameters)-1] = 0;
@@ -1913,7 +1922,7 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 			if ((*c == ' ') || (*c == '\t'))
 				*c = '_';
 
-		worker_set_detailed_state(last_codelet_start[worker], prefix, worker, _starpu_last_codelet_symbol[worker], ev->param[1], parameters, ev->param[2], ev->param[4], job_id, ((double) task->kflops) / 1000000, X, Y, Z, task->iterations[0], task->iterations[1], numa_nodes_str, options);
+		worker_set_detailed_state(thread_info->last_codelet_start, prefix, worker, thread_info->symbol, ev->param[1], parameters, ev->param[2], ev->param[4], job_id, ((double) task->kflops) / 1000000, X, Y, Z, task->iterations[0], task->iterations[1], numa_nodes_str, options);
 		if (sched_ctx != 0)
 		{
 #ifdef STARPU_HAVE_POTI
@@ -1921,10 +1930,10 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 			char typectx[STARPU_POTI_STR_LEN];
 			snprintf(typectx, sizeof(typectx), "Ctx%u", sched_ctx);
 			worker_container_alias(container, sizeof(container), prefix, worker);
-			poti_SetState(last_codelet_start[worker], container, typectx, _starpu_last_codelet_symbol[worker]);
+			poti_SetState(thread_info->last_codelet_start, container, typectx, thread_info->symbol);
 
 			char name[STARPU_POTI_STR_LEN];
-			snprintf(name, sizeof(name), "%s", _starpu_last_codelet_symbol[worker]);
+			snprintf(name, sizeof(name), "%s", thread_info->symbol);
 
 			char size_str[STARPU_POTI_STR_LEN];
 			char parameters_str[STARPU_POTI_STR_LEN];
@@ -1940,17 +1949,17 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 			snprintf(submitorder_str, sizeof(submitorder_str), "%s%lu", prefix, task->submit_order);
 
 #ifdef HAVE_POTI_INIT_CUSTOM
-			poti_user_SetState(_starpu_poti_semiExtendedSetState, last_codelet_start[worker], container, typectx, name, 6, size_str,
+			poti_user_SetState(_starpu_poti_semiExtendedSetState, thread_info->last_codelet_start, container, typectx, name, 6, size_str,
 					   parameters_str,
 					   footprint_str,
 					   tag_str,
 					   jobid_str,
 					   submitorder_str);
 #else
-			poti_SetState(last_codelet_start[worker], container, typectx, name);
+			poti_SetState(thread_info->last_codelet_start, container, typectx, name);
 #endif
 #else
-			fprintf(out_paje_file, "21	%.9f	%sw%d	Ctx%u	\"%s_%d\"	%ld	%s	%08lx	%016lx	%s%lu	%s%lu\n", last_codelet_start[worker], prefix, worker, sched_ctx, _starpu_last_codelet_symbol[worker], sched_ctx, ev->param[1], parameters,  ev->param[2], ev->param[4], prefix, job_id, prefix, task->submit_order);
+			fprintf(out_paje_file, "21	%.9f	%sw%d	Ctx%u	\"%s_%d\"	%ld	%s	%08lx	%016lx	%s%lu	%s%lu\n", thread_info->last_codelet_start, prefix, worker, sched_ctx, thread_info->symbol, sched_ctx, ev->param[1], parameters,  ev->param[2], ev->param[4], prefix, job_id, prefix, task->submit_order);
 #endif
 		}
 	}
@@ -1966,14 +1975,18 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	uint32_t codelet_hash = ev->param[2];
 	int worker = ev->param[3];
 	long unsigned int threadid = ev->param[4];
-	char *name = get_fxt_string(ev, 5);
+	int codelet_null_or_nowhere = ev->param[5];
+	char *name = get_fxt_string(ev, 6);
 
-	if (worker < 0) return;
+	struct _thread_info *thread_info = get_thread_info(threadid, worker, 0);
+
+	if (codelet_null_or_nowhere == 1)
+		return;
 
 	char *prefix = options->file_prefix;
 	double end_codelet_time = get_event_time_stamp(ev, options);
-	double last_end_codelet_time = last_codelet_end[worker];
-	last_codelet_end[worker] = end_codelet_time;
+	double last_end_codelet_time = thread_info->last_codelet_end;
+	thread_info->last_codelet_end = end_codelet_time;
 
 	const char *state = "I";
 	if (find_sync(prefixTOnodeid(prefix), threadid))
@@ -1984,9 +1997,9 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	struct task_info *task = get_task(job_id, options->file_rank);
 
 	task->end_time = end_codelet_time;
-	update_accumulated_time(worker, 0.0, end_codelet_time - task->start_time, end_codelet_time, 0);
+	update_accumulated_time(threadid, worker, 0.0, end_codelet_time - task->start_time, end_codelet_time, 0);
 
-	struct _starpu_computation *peer = ongoing_computation[worker];
+	struct _starpu_computation *peer = thread_info->ongoing_computation;
 	double gflops_start = peer->comp_start;
 	double codelet_length;
 	double gflops;
@@ -2024,7 +2037,7 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 				}
 			}
 			fprintf(out_paje_file, "13	%.9f	%sw%d	gf	%f\n",
-					gflops_start, prefix, worker, gflops);
+				gflops_start, prefix, worker, gflops);
 #endif
 		}
 
@@ -2043,10 +2056,10 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	comp->peer = NULL;
 	if (!options->no_flops)
 		_starpu_computation_list_push_back(&computation_list, comp);
-	ongoing_computation[worker] = comp;
+	thread_info->ongoing_computation = comp;
 
 	if (distrib_time)
-		fprintf(distrib_time, "%s\t%s%d\t%ld\t%"PRIx32"\t%.9f\n", _starpu_last_codelet_symbol[worker],
+		fprintf(distrib_time, "%s\t%s%d\t%ld\t%"PRIx32"\t%.9f\n", thread_info->symbol,
 			prefix, worker, (unsigned long) codelet_size, codelet_hash, codelet_length);
 
 	if (options->dumped_codelets)
@@ -2054,7 +2067,7 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 		dumped_codelets_count++;
 		_STARPU_REALLOC(dumped_codelets, dumped_codelets_count*sizeof(struct starpu_fxt_codelet_event));
 
-		snprintf(dumped_codelets[dumped_codelets_count - 1].symbol, sizeof(dumped_codelets[dumped_codelets_count - 1].symbol)-1, "%s", _starpu_last_codelet_symbol[worker]);
+		snprintf(dumped_codelets[dumped_codelets_count - 1].symbol, sizeof(dumped_codelets[dumped_codelets_count - 1].symbol)-1, "%s", thread_info->symbol);
 		dumped_codelets[dumped_codelets_count - 1].symbol[sizeof(dumped_codelets[dumped_codelets_count - 1].symbol)-1] = 0;
 		dumped_codelets[dumped_codelets_count - 1].workerid = worker;
 		snprintf(dumped_codelets[dumped_codelets_count - 1].perfmodel_archname, sizeof(dumped_codelets[dumped_codelets_count - 1].perfmodel_archname), "%.*s", (int) sizeof(dumped_codelets[dumped_codelets_count - 1].perfmodel_archname)-1, name);
@@ -2063,7 +2076,7 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 		dumped_codelets[dumped_codelets_count - 1].hash = codelet_hash;
 		dumped_codelets[dumped_codelets_count - 1].time = codelet_length;
 	}
-	_starpu_last_codelet_symbol[worker][0] = 0;
+	thread_info->symbol[0] = 0;
 }
 
 static void handle_start_executing(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -2222,18 +2235,19 @@ static void handle_worker_sleep_start(struct fxt_ev_64 *ev, struct starpu_fxt_op
 
 static void handle_worker_sleep_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
+	unsigned long int tid = ev->param[0];
 	char *prefix = options->file_prefix;
-	int worker = find_worker_id(prefixTOnodeid(prefix), ev->param[0]);
+	int worker = find_worker_id(prefixTOnodeid(prefix), tid);
 	if (worker < 0)
 		return;
 
 	double end_sleep_timestamp = get_event_time_stamp(ev, options);
 
-	do_thread_set_state(end_sleep_timestamp, prefix, ev->param[0], "B", "Runtime", -1);
+	do_thread_set_state(end_sleep_timestamp, prefix, tid, "B", "Runtime", -1);
 
 	double sleep_length = end_sleep_timestamp - last_sleep_start[worker];
 
-	update_accumulated_time(worker, sleep_length, 0.0, end_sleep_timestamp, 0);
+	update_accumulated_time(tid, worker, sleep_length, 0.0, end_sleep_timestamp, 0);
 }
 
 static void handle_data_register(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -2366,7 +2380,7 @@ static void handle_data_doing_wont_use(struct fxt_ev_64 *ev, struct starpu_fxt_o
 static void handle_mpi_data_set_rank(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	unsigned long handle = ev->param[0];
-	unsigned long rank = ev->param[1];
+	int rank = ev->param[1];
 	struct data_info *data = get_data(handle, options->file_rank);
 
 	data->mpi_owner = rank;
@@ -2855,7 +2869,7 @@ static void handle_component_push(struct fxt_ev_64 *ev, struct starpu_fxt_option
 	char *prefix = options->file_prefix;
 	double current_timestamp = get_event_time_stamp(ev, options);
 	int workerid = find_worker_id(prefixTOnodeid(prefix), ev->param[0]);
-	_starpu_fxt_component_push(anim_file, options, current_timestamp, workerid, ev->param[1], ev->param[2], ev->param[3], ev->param[4]);
+	_starpu_fxt_component_push(anim_file, options, current_timestamp, ev->param[0], workerid, ev->param[1], ev->param[2], ev->param[3], ev->param[4]);
 }
 
 static void handle_component_pull(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -2863,7 +2877,7 @@ static void handle_component_pull(struct fxt_ev_64 *ev, struct starpu_fxt_option
 	char *prefix = options->file_prefix;
 	double current_timestamp = get_event_time_stamp(ev, options);
 	int workerid = find_worker_id(prefixTOnodeid(prefix), ev->param[0]);
-	_starpu_fxt_component_pull(anim_file, options, current_timestamp, workerid, ev->param[1], ev->param[2], ev->param[3], ev->param[4]);
+	_starpu_fxt_component_pull(anim_file, options, current_timestamp, ev->param[0], workerid, ev->param[1], ev->param[2], ev->param[3], ev->param[4]);
 }
 
 static
@@ -2883,7 +2897,6 @@ void handle_update_task_cnt(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
 		fprintf(out_paje_file, "13	%.9f	%ssched nsubmitted	%f\n", current_timestamp, options->file_prefix, (float)nsubmitted);
 #endif
 	}
-
 
 	if (activity_file)
 		fprintf(activity_file, "cnt_submitted\t%.9f\t%d\n", current_timestamp, nsubmitted);
@@ -4402,10 +4415,12 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 	unsigned i;
 	if (!options->no_flops)
 	{
+
 		/* computations are supposed to be over, unref any pending comp */
-		for (i = 0; i < STARPU_NMAXWORKERS; i++)
+		struct _thread_info *current=NULL, *tmp=NULL;
+		HASH_ITER(hh, _thread_infos, current, tmp)
 		{
-			struct _starpu_computation *comp = ongoing_computation[i];
+			struct _starpu_computation *comp = current->ongoing_computation;
 			if (comp)
 			{
 				STARPU_ASSERT(!comp->peer);
@@ -4416,14 +4431,17 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 		_starpu_fxt_process_computations(options);
 	}
 
-	for (i = 0; i < STARPU_NMAXWORKERS; i++)
 	{
-		struct _starpu_computation *comp = ongoing_computation[i];
-		if (comp)
+		struct _thread_info *current=NULL, *tmp=NULL;
+		HASH_ITER(hh, _thread_infos, current, tmp)
 		{
-			STARPU_ASSERT(!comp->peer);
-			_starpu_computation_delete(comp);
-			ongoing_computation[i] = 0;
+			struct _starpu_computation *comp = current->ongoing_computation;
+			if (comp)
+			{
+				STARPU_ASSERT(!comp->peer);
+				_starpu_computation_delete(comp);
+				current->ongoing_computation = 0;
+			}
 		}
 	}
 
@@ -4493,19 +4511,21 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 
 	if (out_paje_file && !options->no_flops)
 	{
-		for (i = 0; i < STARPU_NMAXWORKERS; i++)
+		struct _thread_info *current=NULL, *tmp=NULL;
+		HASH_ITER(hh, _thread_infos, current, tmp)
 		{
-			if (last_codelet_end[i] != 0.0)
+			if (current->last_codelet_end != 0.0)
 			{
 #ifdef STARPU_HAVE_POTI
 				char container[STARPU_POTI_STR_LEN];
 				worker_container_alias(container, STARPU_POTI_STR_LEN, prefix, i);
-				poti_SetVariable(last_codelet_end[i], container, "gf", 0.);
+				poti_SetVariable(current->last_codelet_end, container, "gf", 0.);
 #else
-				fprintf(out_paje_file, "13	%.9f	%sw%u	gf	%f\n",
-						last_codelet_end[i], prefix, i, 0.);
+				if (current->worker != -1)
+					fprintf(out_paje_file, "13	%.9f	%sw%u	gf	%f\n",
+						current->last_codelet_end, prefix, current->worker, 0.);
 #endif
-				last_codelet_end[i] = 0.0;
+				current->last_codelet_end = 0.0;
 			}
 		}
 
@@ -5206,21 +5226,19 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 
 	_starpu_fxt_dag_terminate();
 
+	struct _thread_info *entry=NULL, *tmp=NULL;
+	HASH_ITER(hh, _thread_infos, entry, tmp)
+	{
+		free(entry->codelet_name);
+		HASH_DEL(_thread_infos, entry);
+		free(entry);
+	}
+
 	options->nworkers = nworkers;
 	free(options->file_prefix);
 }
 
 #define DATA_STR_MAX_SIZE 15
-
-struct parse_task
-{
-	unsigned exec_time;
-	unsigned data_total;
-	unsigned workerid;
-	char *codelet_name;
-};
-
-static struct parse_task tasks[STARPU_NMAXWORKERS];
 
 static struct starpu_data_trace_kernel
 {
@@ -5269,12 +5287,10 @@ static char *extract_kernel_job_name(int jobid)
 
 #define NANO_SEC_TO_MILI_SEC 0.000001
 
-static FILE *codelet_list;
-
-static void write_task(char *dir, struct parse_task *pt)
+static void write_task(char *dir, struct _thread_info *thread_info, FILE *codelet_list)
 {
 	struct starpu_data_trace_kernel *kernel;
-	char *codelet_name = pt->codelet_name;
+	char *codelet_name = thread_info->codelet_name;
 	HASH_FIND_STR(kernels, codelet_name, kernel);
 	//fprintf(stderr, "%p %p %s\n", kernel, kernels, codelet_name);
 	if(kernel == NULL)
@@ -5292,8 +5308,8 @@ static void write_task(char *dir, struct parse_task *pt)
 		HASH_ADD_STR(kernels, name, kernel);
 		fprintf(codelet_list, "%s\n", codelet_name);
 	}
-	double time = pt->exec_time * NANO_SEC_TO_MILI_SEC;
-	fprintf(kernel->file, "%lf %u %u\n", time, pt->data_total, pt->workerid);
+	double time = thread_info->exec_time * NANO_SEC_TO_MILI_SEC;
+	fprintf(kernel->file, "%lf %u %u\n", time, thread_info->data_total, thread_info->workerid);
 }
 
 void starpu_fxt_write_data_trace_in_dir(char *filename_in, char *dir)
@@ -5315,7 +5331,7 @@ void starpu_fxt_write_data_trace_in_dir(char *filename_in, char *dir)
 
 	char filename_out[512];
 	snprintf(filename_out, sizeof(filename_out), "%s/codelet_list", dir);
-	codelet_list = fopen(filename_out, "w+");
+	FILE *codelet_list = fopen(filename_out, "w+");
 	if(!codelet_list)
 	{
 		STARPU_ABORT_MSG("Failed to open '%s' (err %s)", filename_out, strerror(errno));
@@ -5352,35 +5368,38 @@ void starpu_fxt_write_data_trace_in_dir(char *filename_in, char *dir)
 
 		case _STARPU_FUT_START_CODELET_BODY:
 			{
-				int workerid = ev.param[2];
-				tasks[workerid].workerid = (unsigned)workerid;
-				tasks[workerid].exec_time = ev.time;
+				long unsigned int tid = ev.param[4];
+				int worker = ev.param[2];
+				struct _thread_info *thread_info = get_thread_info(tid, worker, 1);
+				thread_info->exec_time = ev.time;
 			}
 			break;
 
 		case _STARPU_FUT_END_CODELET_BODY:
 			{
+				long unsigned int tid = ev.param[4];
+				struct _thread_info *thread_info = get_thread_info(tid, -1, 0);
 				int jobid = (int)ev.param[0];
-				int workerid = ev.param[3];
-				assert(workerid != -1);
-				tasks[workerid].exec_time = ev.time - tasks[workerid].exec_time;
+				thread_info->exec_time = ev.time - thread_info->exec_time;
 				char *name = extract_kernel_job_name(jobid);
 				if (name == NULL)
 				{
 					name = strdup("unknown");
 				}
-				tasks[workerid].codelet_name = name;
-				write_task(dir, &tasks[workerid]);
+				thread_info->codelet_name = name;
+				write_task(dir, thread_info, codelet_list);
 				/* codelet_name is copied in write_task() when needed */
-				tasks[workerid].codelet_name = NULL;
+				thread_info->codelet_name = NULL;
 				free(name);
 			}
 			break;
 
 		case _STARPU_FUT_DATA_LOAD:
 			{
-				int workerid = ev.param[0];
-				tasks[workerid].data_total = ev.param[1];
+				long unsigned int tid = ev.param[2];
+				int worker = ev.param[0];
+				struct _thread_info *thread_info = get_thread_info(tid, worker, 1);
+				thread_info->data_total = ev.param[1];
 			}
 			break;
 
@@ -5413,9 +5432,15 @@ void starpu_fxt_write_data_trace_in_dir(char *filename_in, char *dir)
 		_exit(EXIT_FAILURE);
 	}
 
-	unsigned i;
-	for (i = 0; i < STARPU_NMAXWORKERS; i++)
-		free(tasks[i].codelet_name);
+	{
+		struct _thread_info *entry=NULL, *tmp=NULL;
+		HASH_ITER(hh, _thread_infos, entry, tmp)
+		{
+			free(entry->codelet_name);
+			HASH_DEL(_thread_infos, entry);
+			free(entry);
+		}
+	}
 
 	free_worker_ids();
 

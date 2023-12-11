@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2018-2020  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -35,6 +35,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include <common/uthash.h>
 #include <common/fxt.h>
 #include <common/list.h>
 #include "../mpi/src/starpu_mpi_fxt.h"
@@ -48,6 +49,32 @@
 #define STARPU_TRACE_STR_LEN 200
 
 #pragma GCC visibility push(hidden)
+
+#define MAX_PARAMETERS 8
+struct _thread_info
+{
+	UT_hash_handle hh;
+	long unsigned int tid;
+	int worker;
+	char symbol[(FXT_MAX_PARAMS-5)*sizeof(unsigned long)];
+	int codelet_parameter;
+	char codelet_parameter_description[MAX_PARAMETERS][FXT_MAX_PARAMS*sizeof(unsigned long)];
+	/* Start time of last codelet for this worker */
+	double last_codelet_start;
+	/* End time of last codelet for this worker */
+	double last_codelet_end;
+	struct _starpu_computation *ongoing_computation;
+	double accumulated_sleep_time;
+	double accumulated_exec_time;
+	double last_activity_flush_timestamp;
+
+	// data used by starpu_fxt_write_data_trace_in_dir()
+	unsigned exec_time;
+	unsigned data_total;
+	unsigned workerid;
+	char *codelet_name;
+};
+extern struct _thread_info *_thread_infos;
 
 extern char _starpu_last_codelet_symbol[STARPU_NMAXWORKERS][(FXT_MAX_PARAMS-5)*sizeof(unsigned long)];
 
@@ -99,8 +126,8 @@ void _starpu_fxt_component_print_header(FILE *output);
 void _starpu_fxt_component_new(uint64_t component, char *name);
 void _starpu_fxt_component_connect(uint64_t parent, uint64_t child);
 void _starpu_fxt_component_update_ntasks(unsigned nsubmitted, unsigned curq_size);
-void _starpu_fxt_component_push(FILE *output, struct starpu_fxt_options *options, double timestamp, int workerid, uint64_t from, uint64_t to, uint64_t task, unsigned prio);
-void _starpu_fxt_component_pull(FILE *output, struct starpu_fxt_options *options, double timestamp, int workerid, uint64_t from, uint64_t to, uint64_t task, unsigned prio);
+void _starpu_fxt_component_push(FILE *output, struct starpu_fxt_options *options, double timestamp, long unsigned int tid, int workerid, uint64_t from, uint64_t to, uint64_t task, unsigned prio);
+void _starpu_fxt_component_pull(FILE *output, struct starpu_fxt_options *options, double timestamp, long unsigned int tid, int workerid, uint64_t from, uint64_t to, uint64_t task, unsigned prio);
 void _starpu_fxt_component_dump(FILE *output);
 void _starpu_fxt_component_finish(FILE *output);
 void _starpu_fxt_component_deinit(void);

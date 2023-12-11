@@ -668,8 +668,11 @@ int _starpu_repush_task(struct _starpu_job *j)
 			_starpu_set_current_task(NULL);
 		}
 
-		_STARPU_TRACE_START_CODELET_BODY(j, 0, NULL, 0);
-		_STARPU_TRACE_END_CODELET_BODY(j, 0, NULL, 0);
+		{
+			int worker_id = starpu_worker_get_id();
+			_STARPU_TRACE_START_CODELET_BODY(j, 0, NULL, worker_id);
+			_STARPU_TRACE_END_CODELET_BODY(j, 0, NULL, worker_id);
+		}
 
 		if (task->cl && task->cl->specific_nodes)
 		{
