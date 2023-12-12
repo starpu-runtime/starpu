@@ -827,6 +827,7 @@ do {									\
 	int mem_node = workerid == -1 ? -1 : (int)starpu_worker_get_memory_node(workerid); \
 	int codelet_null = (job)->task->cl == NULL; \
 	int nowhere = ((job)->task->where == STARPU_NOWHERE) || ((job)->task->cl != NULL && (job)->task->cl->where == STARPU_NOWHERE); \
+	enum starpu_node_kind kind = workerid == -1 ? STARPU_UNUSED : starpu_worker_get_memory_node_kind(starpu_worker_get_type(workerid)); \
 	FUT_FULL_PROBE6(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_START_CODELET_BODY, (job)->job_id, ((job)->task)->sched_ctx, workerid, mem_node, _starpu_gettid(), (codelet_null == 1 || nowhere == 1)); \
 	if ((job)->task->cl)						\
 	{								\
@@ -853,7 +854,7 @@ do {									\
 			 *   location at the end of the task, but there is no FxT probe where we iterate over
 			 *   handles, after task execution.
 			 * */						\
-			FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_TASK_VERBOSE_EXTRA, _STARPU_FUT_CODELET_DATA_HANDLE_NUMA_ACCESS, (job)->job_id, (__i), starpu_worker_get_memory_node_kind(starpu_worker_get_type(workerid)) == STARPU_CPU_RAM && starpu_task_get_current_data_node(__i) >= 0 ? starpu_get_memory_location_bitmap(starpu_data_handle_to_pointer(__handle, (unsigned) starpu_task_get_current_data_node(__i)), starpu_data_get_size(__handle)) : -1);	\
+			FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_TASK_VERBOSE_EXTRA, _STARPU_FUT_CODELET_DATA_HANDLE_NUMA_ACCESS, (job)->job_id, (__i), kind == STARPU_CPU_RAM && starpu_task_get_current_data_node(__i) >= 0 ? starpu_get_memory_location_bitmap(starpu_data_handle_to_pointer(__handle, (unsigned) starpu_task_get_current_data_node(__i)), starpu_data_get_size(__handle)) : -1);	\
 		}							\
 	}								\
 	if (!(codelet_null == 1 || nowhere == 1))			\
