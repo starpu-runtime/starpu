@@ -352,7 +352,8 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 			PRINTF("\n");
 
 			PRINTF("%lu\t%.0f\t%.1f", nx, timing/1000, (flop/timing/1000.0f));
-			PRINTF("\n");
+			if (!bound_p)
+				PRINTF("\n");
 		}
 
 		if (bound_lp_p)
