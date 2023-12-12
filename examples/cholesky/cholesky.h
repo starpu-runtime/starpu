@@ -171,6 +171,7 @@ static unsigned with_ctxs_p = 0;
 static unsigned with_noctxs_p = 0;
 static unsigned chole1_p = 0;
 static unsigned chole2_p = 0;
+static unsigned median_p = 0;
 
 extern struct starpu_perfmodel chol_model_potrf;
 extern struct starpu_perfmodel chol_model_trsm;
@@ -295,10 +296,14 @@ static void _parse_args(int argc, char **argv, int extra)
 		{
 			check_p = 1;
 		}
+		else if (strcmp(argv[i], "-median") == 0)
+		{
+			median_p = 1;
+		}
 		else
 		/* if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i],"--help") == 0) */
 		{
-			fprintf(stderr,"usage : %s [-size size] [-nblocks nblocks] [-no-pin] [-no-prio] [-bound] [-bound-deps] [-bound-lp] %s[-check]\n", argv[0], extra == 1 ? "[-priority p (0: StarPU's priorities, 1: Bottom level priorities, 2: Bottom level priorities with tasks times, 3: PaRSEC's priorities)] [-niter n] [-pause-resume] " : "");
+			fprintf(stderr,"usage : %s [-size size] [-nblocks nblocks] [-no-pin] [-no-prio] [-bound] [-bound-deps] [-bound-lp] %s[-check]\n", argv[0], extra == 1 ? "[-priority p (0: StarPU's priorities, 1: Bottom level priorities, 2: Bottom level priorities with tasks times, 3: PaRSEC's priorities)] [-niter n] [-pause-resume] [-median_p] " : "");
 			fprintf(stderr,"Currently selected: %ux%u and %ux%u blocks", size_p, size_p, nblocks_p, nblocks_p);
 			if (extra)
 				fprintf(stderr, " with priority %d and number of iterations %d\n", priority_attribution_p, niter_p);

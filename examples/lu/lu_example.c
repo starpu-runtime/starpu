@@ -33,6 +33,7 @@
 #include "starpu_cusolver.h"
 
 int niter=1;
+int median_p = 0;
 int current_iteration;
 static unsigned long size = 0;
 static unsigned nblocks = 0;
@@ -116,6 +117,11 @@ static void parse_args(int argc, char **argv)
 		{
 			char *argptr;
 			niter = strtol(argv[++i], &argptr, 10);
+		}
+		else if (strcmp(argv[i], "-median") == 0)
+		{
+			char *argptr;
+			median_p = 1;
 		}
 		else if (strcmp(argv[i], "-directory") == 0)
 		{

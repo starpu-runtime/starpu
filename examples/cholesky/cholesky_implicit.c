@@ -40,6 +40,15 @@ static double timing_square = 0;
 static double flop_total = 0;
 static int current_iteration = 1;
 
+/* To compute the median */
+static int tab_size;
+double *tab_for_median;
+
+int compare_double (const void * a, const void * b)
+{
+  return ( *(double*)a - *(double*)b );
+}
+
 /* Compute task time corresponding to the average speed over the workers */
 double extract_task_duration_for_model(struct starpu_task *task)
 {
@@ -201,6 +210,9 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 {
 	double start;
 	double end;
+	
+	if (niter_p == 1)
+		median_p = 0; /* With only 1 iteration, no need to compute the median */
 
 	unsigned k,m,n;
 	unsigned long nx = starpu_matrix_get_nx(dataA);
@@ -326,9 +338,21 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 				timing_total += end - start;
 				flop_total += flop;
 				timing_square += (end-start) * (end-start);
+				
+				if (median_p)
+				{
+					tab_for_median[current_iteration - 2] = flop/timing/1000.0f;
+				}
 			}
 			if (current_iteration == niter_p)
 			{
+				double median = 0;
+				if (median_p)
+				{
+					qsort(tab_for_median, tab_size, sizeof(double), compare_double);
+					median = tab_for_median[tab_size/2];
+				}
+				
 				average_flop = average_flop/(niter_p - 1);
 
 				double average = timing_total/(niter_p - 1);
@@ -339,7 +363,11 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 				PRINTF("\n");
 
 				//~ PRINTF("%lu\t%.0f\t%.1f", nx, timing/1000, (flop/timing/1000.0f));
-				PRINTF("%lu\t%.0f\t%.1f\t%.1f", nx, timing/1000, average_flop, flop_total/(niter_p-1)/(average*average)*deviation/1000.0);
+				
+				if (!median_p)
+					PRINTF("%lu\t%.0f\t%.1f\t%.1f", nx, timing/1000, average_flop, flop_total/(niter_p-1)/(average*average)*deviation/1000.0);
+				else
+					PRINTF("%lu\t%.0f\t%.1f\t%.1f", nx, timing/1000, median, flop_total/(niter_p-1)/(average*average)*deviation/1000.0);
 				PRINTF("\n");
 			}
 		}
@@ -573,6 +601,10 @@ int main(int argc, char **argv)
 	if(with_ctxs_p || with_noctxs_p || chole1_p || chole2_p)
 		parse_args_ctx(argc, argv);
 
+	/* Init for the median */
+	tab_size = niter_p - 1;
+	tab_for_median = malloc(sizeof(double)*tab_size);
+	
 	starpu_cublas_init();
 	starpu_cusolver_init();
 
@@ -597,7 +629,9 @@ int main(int argc, char **argv)
 
 		starpu_reset_scheduler();
 	}
-
+	
+	free(tab_for_median);
+	
 	starpu_cusolver_shutdown();
 	starpu_cublas_shutdown();
 	starpu_shutdown();

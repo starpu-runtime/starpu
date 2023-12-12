@@ -115,6 +115,7 @@ void lu_kernel_fini(void);
 /* To run several iterations and only plot the mean of the last 10 and the deviance */
 extern int current_iteration;
 extern int niter;
+extern int median_p;
 
 struct piv_s
 {

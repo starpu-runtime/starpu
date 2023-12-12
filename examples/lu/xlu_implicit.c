@@ -27,6 +27,15 @@ static double timing_total = 0;
 static double flop_total = 0;
 static double timing_square = 0;
 
+/* To compute the median */
+static int tab_size;
+double *tab_for_median;
+
+int compare_double (const void * a, const void * b)
+{
+  return ( *(double*)a - *(double*)b );
+}
+
 static int create_task_getrf(starpu_data_handle_t dataA, unsigned k, unsigned no_prio, int nblocks)
 {
 	int ret;
@@ -186,21 +195,46 @@ static int dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks, uns
 		timing_total += end - start;
 		flop_total += flop;
 		timing_square += (end-start) * (end-start);
+		
+		if (median_p)
+		{
+			tab_for_median[current_iteration - 2] = flop/timing/1000.0f;
+		}
 	}
 
 	if (current_iteration == niter)
 	{
+		double median = 0;
+		if (median_p)
+		{
+			qsort(tab_for_median, tab_size, sizeof(double), compare_double);
+			median = tab_for_median[tab_size/2];
+		}
+				
 		int divider = niter == 1 ? 1 : niter - 1;
 		average_flop = average_flop/divider;
 
 		double average = timing_total/divider;
 		double deviation = sqrt(fabs(timing_square / divider - average*average));
 
-		PRINTF("# size\tms\tGFlops\tDeviance");
+		if (niter > 1)
+			PRINTF("# size\tms\tGFlops\tDeviance");
+		else
+			PRINTF("# size\tms\tGFlops");
 		if (bound)
 			PRINTF("\tTms\tTGFlops");
 		PRINTF("\n");
-		PRINTF("%u\t%.0f\t%.1f\t%.1f", n, timing/1000, average_flop, flop/divider/(average*average)*deviation/1000.0);
+		
+		if (niter > 1)
+			if (!median_p)
+				PRINTF("%u\t%.0f\t%.1f\t%.1f", n, timing/1000, average_flop, flop/divider/(average*average)*deviation/1000.0);
+			else
+				PRINTF("%u\t%.0f\t%.1f\t%.1f", n, timing/1000, median, flop/divider/(average*average)*deviation/1000.0);
+		else
+			if (!median_p)
+				PRINTF("%u\t%.0f\t%.1f", n, timing/1000, average_flop);
+			else
+				PRINTF("%u\t%.0f\t%.1f", n, timing/1000, median);
 		if (bound)
 		{
 			double min;
@@ -214,6 +248,11 @@ static int dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks, uns
 
 int STARPU_LU(lu_decomposition)(TYPE *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned no_prio)
 {
+	
+	/* Init for the median */
+	tab_size = niter - 1;
+	tab_for_median = malloc(sizeof(double)*tab_size);
+	
 	starpu_data_handle_t dataA;
 
 	/* monitor and partition the A matrix into blocks :
@@ -239,7 +278,9 @@ int STARPU_LU(lu_decomposition)(TYPE *matA, unsigned size, unsigned ld, unsigned
 	int ret = dw_codelet_facto_v3(dataA, nblocks, no_prio);
 
 	lu_kernel_fini();
-
+	
+	free(tab_for_median);
+	
 	/* gather all the data */
 	starpu_data_unpartition(dataA, STARPU_MAIN_RAM);
 	starpu_data_unregister(dataA);
