@@ -116,6 +116,9 @@ void lu_kernel_fini(void);
 extern int current_iteration;
 extern int niter;
 extern int median_p;
+extern int tab_size;
+extern double * tab_for_median;
+
 
 struct piv_s
 {

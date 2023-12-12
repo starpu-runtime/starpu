@@ -27,10 +27,6 @@ static double timing_total = 0;
 static double flop_total = 0;
 static double timing_square = 0;
 
-/* To compute the median */
-static int tab_size;
-double *tab_for_median;
-
 int compare_double (const void * a, const void * b)
 {
   return ( *(double*)a - *(double*)b );
@@ -248,11 +244,6 @@ static int dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks, uns
 
 int STARPU_LU(lu_decomposition)(TYPE *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned no_prio)
 {
-	
-	/* Init for the median */
-	tab_size = niter - 1;
-	tab_for_median = malloc(sizeof(double)*tab_size);
-	
 	starpu_data_handle_t dataA;
 
 	/* monitor and partition the A matrix into blocks :
@@ -278,9 +269,7 @@ int STARPU_LU(lu_decomposition)(TYPE *matA, unsigned size, unsigned ld, unsigned
 	int ret = dw_codelet_facto_v3(dataA, nblocks, no_prio);
 
 	lu_kernel_fini();
-	
-	free(tab_for_median);
-	
+		
 	/* gather all the data */
 	starpu_data_unpartition(dataA, STARPU_MAIN_RAM);
 	starpu_data_unregister(dataA);

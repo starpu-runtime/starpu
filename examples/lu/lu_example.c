@@ -34,6 +34,8 @@
 
 int niter=1;
 int median_p = 0;
+int tab_size;
+double * tab_for_median;
 int current_iteration;
 static unsigned long size = 0;
 static unsigned nblocks = 0;
@@ -403,6 +405,10 @@ int main(int argc, char **argv)
 		size = 16;
 #endif
 
+	/* Init for the median */
+	tab_size = niter - 1;
+	tab_for_median = malloc(sizeof(double)*tab_size);
+
 	starpu_cublas_init();
 	starpu_cusolver_init();
 
@@ -517,6 +523,8 @@ int main(int argc, char **argv)
 		current_iteration++;
 		starpu_reset_scheduler();
 	}
+
+	free(tab_for_median);
 
 	starpu_cusolver_shutdown();
 	starpu_cublas_shutdown();
