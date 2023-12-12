@@ -4041,6 +4041,10 @@ then
 	then
 		STARPUPY_EXTRA_LINK_ARGS=", '$OPENMP_CFLAGS'"
 	fi
+	if test x$enable_coverage = xyes
+	then
+		STARPUPY_EXTRA_LINK_ARGS="$STARPUPY_EXTRA_LINK_ARGS, '-lgcov'"
+	fi
 fi
 AC_SUBST(STARPUPY_EXTRA_LINK_ARGS)
 
