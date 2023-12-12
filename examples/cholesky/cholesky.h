@@ -303,7 +303,7 @@ static void _parse_args(int argc, char **argv, int extra)
 		else
 		/* if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i],"--help") == 0) */
 		{
-			fprintf(stderr,"usage : %s [-size size] [-nblocks nblocks] [-no-pin] [-no-prio] [-bound] [-bound-deps] [-bound-lp] %s[-check]\n", argv[0], extra == 1 ? "[-priority p (0: StarPU's priorities, 1: Bottom level priorities, 2: Bottom level priorities with tasks times, 3: PaRSEC's priorities)] [-niter n] [-pause-resume] [-median_p] " : "");
+			fprintf(stderr,"usage : %s [-size size] [-nblocks nblocks] [-no-pin] [-no-prio] [-bound] [-bound-deps] [-bound-lp] %s[-check]\n", argv[0], extra == 1 ? "[-priority p (0: StarPU's priorities, 1: Bottom level priorities, 2: Bottom level priorities with tasks times, 3: PaRSEC's priorities)] [-niter n] [-pause-resume] [-median] " : "");
 			fprintf(stderr,"Currently selected: %ux%u and %ux%u blocks", size_p, size_p, nblocks_p, nblocks_p);
 			if (extra)
 				fprintf(stderr, " with priority %d and number of iterations %d\n", priority_attribution_p, niter_p);
