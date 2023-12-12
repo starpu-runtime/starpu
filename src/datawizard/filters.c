@@ -830,6 +830,8 @@ void starpu_data_partition_readonly_downgrade_submit(starpu_data_handle_t initia
 	}
 	initial_handle->active_readonly_children[initial_handle->partitioned-1] = children[0]->siblings;
 	initial_handle->active_readonly_nchildren[initial_handle->partitioned-1] = children[0]->nsiblings;
+	initial_handle->active_children = NULL;
+	initial_handle->active_nchildren = 0;
 	_starpu_spin_unlock(&initial_handle->header_lock);
 
 	for (i = 0; i < nparts; i++)

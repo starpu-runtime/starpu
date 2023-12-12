@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2015       Anthony Simonet
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -106,20 +106,24 @@ void _starpu_fxt_component_dump(FILE *file)
 	fxt_component_dump(file, fxt_component_root(), 0);
 }
 
-static void fxt_worker_print(FILE *file, struct starpu_fxt_options *options, int workerid, unsigned comp_workerid, unsigned depth)
+static void fxt_worker_print(FILE *file, struct starpu_fxt_options *options, long unsigned int tid, int workerid, unsigned comp_workerid, unsigned depth)
 {
 	fprintf(file, "\t\t\t%*s<table><tr><td class='worker_box%s'><center>%s\n", 2*depth, "",
 		(int) comp_workerid == workerid ? "_sched":"",
 		options->worker_names[comp_workerid]);
-	if (_starpu_last_codelet_symbol[comp_workerid][0])
-		fprintf(file, "\t\t\t%*s<table><tr><td class='run_task'>%s</td></tr></table>\n", 2*(depth+1), "", _starpu_last_codelet_symbol[comp_workerid]);
+
+	struct _thread_info *thread_info = NULL;
+	HASH_FIND(hh, _thread_infos, &tid, sizeof(tid), thread_info);
+
+	if (thread_info && thread_info->symbol[0])
+		fprintf(file, "\t\t\t%*s<table><tr><td class='run_task'>%s</td></tr></table>\n", 2*(depth+1), "", thread_info->symbol);
 	else
 		fprintf(file, "\t\t\t%*s<table><tr><td class='fake_task'></td></tr></table>\n", 2*(depth+1), "");
 	fprintf(file, "\t\t\t%*s</center></td></tr>\n", 2*depth, "");
 	fprintf(file, "\t\t\t%*s</table>", 2*depth, "");
 }
 
-static void fxt_component_print(FILE *file, struct starpu_fxt_options *options, int workerid, struct component *from, struct component *to, struct component *comp, unsigned depth)
+static void fxt_component_print(FILE *file, struct starpu_fxt_options *options, long unsigned int tid, int workerid, struct component *from, struct component *to, struct component *comp, unsigned depth)
 {
 	unsigned i, n;
 	unsigned ntasks = comp->ntasks + comp->npriotasks;
@@ -184,7 +188,7 @@ static void fxt_component_print(FILE *file, struct starpu_fxt_options *options, 
 			if (comp->children[i]->parent == comp)
 			{
 				fprintf(file, "\t\t\t%*s<td>\n", 2*depth, "");
-				fxt_component_print(file, options, workerid, from, to, comp->children[i], depth+1);
+				fxt_component_print(file, options, tid, workerid, from, to, comp->children[i], depth+1);
 				fprintf(file, "\t\t\t%*s</td>\n", 2*depth, "");
 			}
 		fprintf(file, "\t\t\t%*s</tr>\n", 2*depth, "");
@@ -194,7 +198,7 @@ static void fxt_component_print(FILE *file, struct starpu_fxt_options *options, 
 	{
 		fprintf(file, "\t\t\t%*s<tr>\n", 2*depth, "");
 		fprintf(file, "\t\t\t%*s<td>\n", 2*depth, "");
-		fxt_worker_print(file, options, workerid, comp->workerid, depth+1);
+		fxt_worker_print(file, options, tid, workerid, comp->workerid, depth+1);
 		fprintf(file, "\t\t\t%*s</td>\n", 2*depth, "");
 		fprintf(file, "\t\t\t%*s</tr>\n", 2*depth, "");
 	}
@@ -202,10 +206,10 @@ static void fxt_component_print(FILE *file, struct starpu_fxt_options *options, 
 	fprintf(file, "\t\t\t%*s</table>", 2*depth, "");
 }
 
-void _starpu_fxt_component_print(FILE *file, struct starpu_fxt_options *options, int workerid, struct component *from, struct component *to)
+void _starpu_fxt_component_print(FILE *file, struct starpu_fxt_options *options, long unsigned int tid, int workerid, struct component *from, struct component *to)
 {
 	fprintf(file, "<center>\n");
-	fxt_component_print(file, options, workerid, from, to, fxt_component_root(), 0);
+	fxt_component_print(file, options, tid, workerid, from, to, fxt_component_root(), 0);
 	fprintf(file, "</center>\n");
 }
 
@@ -357,7 +361,7 @@ void _starpu_fxt_component_print_header(FILE *file)
 	fprintf(file, "\t<body>\n");
 }
 
-static void fxt_component_print_step(FILE *file, struct starpu_fxt_options *options, double timestamp, int workerid, unsigned push, struct component *from, struct component *to)
+static void fxt_component_print_step(FILE *file, struct starpu_fxt_options *options, double timestamp, long unsigned int tid, int workerid, unsigned push, struct component *from, struct component *to)
 {
 	fprintf(file, "\t\t<div id='et%u' style='display:%s;'><center><!-- Étape %u -->\n",
 			global_state, global_state > 1 ? "none":"block", global_state);
@@ -365,7 +369,7 @@ static void fxt_component_print_step(FILE *file, struct starpu_fxt_options *opti
 	//fprintf(file, "\t\t\t<tt><pre>\n");
 	//_starpu_fxt_component_dump(file);
 	//fprintf(file, "\t\t\t</pre></tt>\n");
-	_starpu_fxt_component_print(file, options, workerid, from, to);
+	_starpu_fxt_component_print(file, options, tid, workerid, from, to);
 	fprintf(file,"\t\t</center></div>");
 
 	global_state++;
@@ -394,7 +398,7 @@ void _starpu_fxt_component_update_ntasks(unsigned _nsubmitted, unsigned _curq_si
 	curq_size = _curq_size;
 }
 
-void _starpu_fxt_component_push(FILE *output, struct starpu_fxt_options *options, double timestamp, int workerid, uint64_t from, uint64_t to, uint64_t task STARPU_ATTRIBUTE_UNUSED, unsigned prio)
+void _starpu_fxt_component_push(FILE *output, struct starpu_fxt_options *options, double timestamp, long unsigned int tid, int workerid, uint64_t from, uint64_t to, uint64_t task STARPU_ATTRIBUTE_UNUSED, unsigned prio)
 {
 	struct component *from_p = NULL, *to_p = NULL;
 
@@ -429,10 +433,10 @@ void _starpu_fxt_component_push(FILE *output, struct starpu_fxt_options *options
 	}
 
 	// fprintf(stderr,"push from %s to %s\n", from_p?from_p->name:"none", to_p?to_p->name:"none");
-	fxt_component_print_step(output, options, timestamp, workerid, 1, from_p, to_p);
+	fxt_component_print_step(output, options, timestamp, tid, workerid, 1, from_p, to_p);
 }
 
-void _starpu_fxt_component_pull(FILE *output, struct starpu_fxt_options *options, double timestamp, int workerid, uint64_t from, uint64_t to, uint64_t task STARPU_ATTRIBUTE_UNUSED, unsigned prio)
+void _starpu_fxt_component_pull(FILE *output, struct starpu_fxt_options *options, double timestamp, long unsigned int tid, int workerid, uint64_t from, uint64_t to, uint64_t task STARPU_ATTRIBUTE_UNUSED, unsigned prio)
 {
 	struct component *from_p = NULL, *to_p = NULL;
 
@@ -467,7 +471,7 @@ void _starpu_fxt_component_pull(FILE *output, struct starpu_fxt_options *options
 		nflowing--;
 
 	// fprintf(stderr,"pull from %s to %s\n", from_p?from_p->name:"none", to_p?to_p->name:"none");
-	fxt_component_print_step(output, options, timestamp, workerid, 0, from_p, to_p);
+	fxt_component_print_step(output, options, timestamp, tid, workerid, 0, from_p, to_p);
 }
 
 void _starpu_fxt_component_finish(FILE *file)

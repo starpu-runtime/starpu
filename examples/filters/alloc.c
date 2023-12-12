@@ -29,6 +29,7 @@ void init_cpu(void* buffers[], void *args)
 
 int main(int argc, char** argv)
 {
+	return 77;
 	int i, ret;
 	starpu_data_handle_t parent;
 	starpu_data_handle_t parent_sync;

@@ -193,7 +193,8 @@ myPROGRAMS +=					\
 	openmp/cuda_task_01			\
 	perfmodels/value_nan			\
 	sched_policies/workerids		\
-	sched_policies/help
+	sched_policies/help			\
+	traces/fxt
 
 if STARPU_SIMGRID
 myPROGRAMS +=					\

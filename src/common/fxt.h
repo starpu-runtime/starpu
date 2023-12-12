@@ -824,39 +824,44 @@ do {									\
 #define _STARPU_TRACE_START_CODELET_BODY(job, nimpl, perf_arch, workerid)				\
 do {									\
     if(STARPU_UNLIKELY((_STARPU_FUT_KEYMASK_TASK|_STARPU_FUT_KEYMASK_TASK_VERBOSE|_STARPU_FUT_KEYMASK_DATA|_STARPU_FUT_KEYMASK_TASK_VERBOSE_EXTRA) & fut_active)) { \
-	FUT_FULL_PROBE4(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_START_CODELET_BODY, (job)->job_id, ((job)->task)->sched_ctx, workerid, starpu_worker_get_memory_node(workerid)); \
+	int mem_node = workerid == -1 ? -1 : (int)starpu_worker_get_memory_node(workerid); \
+	int codelet_null = (job)->task->cl == NULL; \
+	int nowhere = ((job)->task->where == STARPU_NOWHERE) || ((job)->task->cl != NULL && (job)->task->cl->where == STARPU_NOWHERE); \
+	enum starpu_node_kind kind = workerid == -1 ? STARPU_UNUSED : starpu_worker_get_memory_node_kind(starpu_worker_get_type(workerid)); \
+	FUT_FULL_PROBE6(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_START_CODELET_BODY, (job)->job_id, ((job)->task)->sched_ctx, workerid, mem_node, _starpu_gettid(), (codelet_null == 1 || nowhere == 1)); \
+	if ((job)->task->cl)						\
 	{								\
-		if ((job)->task->cl)					\
+		const int __nbuffers = STARPU_TASK_GET_NBUFFERS((job)->task); \
+		char __buf[FXT_MAX_PARAMS*sizeof(long)];		\
+		int __i;						\
+		for (__i = 0; __i < __nbuffers; __i++)			\
 		{							\
-			const int __nbuffers = STARPU_TASK_GET_NBUFFERS((job)->task);	\
-			char __buf[FXT_MAX_PARAMS*sizeof(long)];	\
-			int __i;					\
-			for (__i = 0; __i < __nbuffers; __i++)		\
+			starpu_data_handle_t __handle = STARPU_TASK_GET_HANDLE((job)->task, __i); \
+			void *__interface = _STARPU_TASK_GET_INTERFACES((job)->task)[__i]; \
+			if (__interface && __handle->ops->describe)	\
 			{						\
-				starpu_data_handle_t __handle = STARPU_TASK_GET_HANDLE((job)->task, __i);	\
-				void *__interface = _STARPU_TASK_GET_INTERFACES((job)->task)[__i];	\
-				if (__interface && __handle->ops->describe)		\
-				{					\
-					__handle->ops->describe(__interface, __buf, sizeof(__buf));	\
-					_STARPU_FUT_FULL_PROBE1STR(_STARPU_FUT_KEYMASK_DATA, _STARPU_FUT_CODELET_DATA, workerid, __buf);	\
-				}					\
-				FUT_FULL_PROBE4(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_CODELET_DATA_HANDLE, (job)->job_id, (__handle), _starpu_data_get_size(__handle), STARPU_TASK_GET_MODE((job)->task, __i));	\
-				/* Regarding the memory location:
-				 * - if the data interface doesn't provide to_pointer operation, NULL will be returned
-				 *   and the location will be -1, which is fine;
-				 * - we have to check whether the memory is on an actual NUMA node (and not on GPU
-				 *   memory, for instance);
-				 * - looking at memory location before executing the task isn't the best choice:
-				 *   the page can be not allocated yet. A solution would be to get the memory
-				 *   location at the end of the task, but there is no FxT probe where we iterate over
-				 *   handles, after task execution.
-				 * */ \
-				FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_TASK_VERBOSE_EXTRA, _STARPU_FUT_CODELET_DATA_HANDLE_NUMA_ACCESS, (job)->job_id, (__i), starpu_worker_get_memory_node_kind(starpu_worker_get_type(workerid)) == STARPU_CPU_RAM && starpu_task_get_current_data_node(__i) >= 0 ? starpu_get_memory_location_bitmap(starpu_data_handle_to_pointer(__handle, (unsigned) starpu_task_get_current_data_node(__i)), starpu_data_get_size(__handle)) : -1);	\
+				__handle->ops->describe(__interface, __buf, sizeof(__buf)); \
+				_STARPU_FUT_FULL_PROBE2STR(_STARPU_FUT_KEYMASK_DATA, _STARPU_FUT_CODELET_DATA, workerid, _starpu_gettid(), __buf); \
 			}						\
+			FUT_FULL_PROBE4(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_CODELET_DATA_HANDLE, (job)->job_id, (__handle), _starpu_data_get_size(__handle), STARPU_TASK_GET_MODE((job)->task, __i));	\
+			/* Regarding the memory location:
+			 * - if the data interface doesn't provide to_pointer operation, NULL will be returned
+			 *   and the location will be -1, which is fine;
+			 * - we have to check whether the memory is on an actual NUMA node (and not on GPU
+			 *   memory, for instance);
+			 * - looking at memory location before executing the task isn't the best choice:
+			 *   the page can be not allocated yet. A solution would be to get the memory
+			 *   location at the end of the task, but there is no FxT probe where we iterate over
+			 *   handles, after task execution.
+			 * */						\
+			FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_TASK_VERBOSE_EXTRA, _STARPU_FUT_CODELET_DATA_HANDLE_NUMA_ACCESS, (job)->job_id, (__i), kind == STARPU_CPU_RAM && starpu_task_get_current_data_node(__i) >= 0 ? starpu_get_memory_location_bitmap(starpu_data_handle_to_pointer(__handle, (unsigned) starpu_task_get_current_data_node(__i)), starpu_data_get_size(__handle)) : -1);	\
 		}							\
+	}								\
+	if (!(codelet_null == 1 || nowhere == 1))			\
+	{								\
 		const size_t __job_size = (perf_arch == NULL) ? 0 : _starpu_job_get_data_size((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job)); \
 		const uint32_t __job_hash = (perf_arch == NULL) ? 0 : _starpu_compute_buffers_footprint((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job)); \
-		FUT_FULL_PROBE7(_STARPU_FUT_KEYMASK_TASK_VERBOSE, _STARPU_FUT_CODELET_DETAILS, ((job)->task)->sched_ctx, __job_size, __job_hash, (job)->task->flops / 1000 / ((job)->task->cl && job->task->cl->type != STARPU_SEQ ? j->task_size : 1), (job)->task->tag_id, workerid, ((job)->job_id)); \
+		FUT_FULL_PROBE8(_STARPU_FUT_KEYMASK_TASK_VERBOSE, _STARPU_FUT_CODELET_DETAILS, ((job)->task)->sched_ctx, __job_size, __job_hash, (job)->task->flops / 1000 / ((job)->task->cl && job->task->cl->type != STARPU_SEQ ? j->task_size : 1), (job)->task->tag_id, workerid, ((job)->job_id), _starpu_gettid()); \
 	}								\
     } \
 } while(0)
@@ -868,7 +873,9 @@ do {									\
 	    const uint32_t job_hash = (perf_arch == NULL) ? 0 : _starpu_compute_buffers_footprint((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job)); \
 	    char _archname[32]="";					\
 	    if (perf_arch) starpu_perfmodel_get_arch_name(perf_arch, _archname, 32, 0);	\
-	    _STARPU_FUT_FULL_PROBE5STR(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_END_CODELET_BODY, (job)->job_id, (job_size), (job_hash), workerid, _starpu_gettid(), _archname); \
+	    int nowhere = ((job)->task->where == STARPU_NOWHERE) || ((job)->task->cl != NULL && (job)->task->cl->where == STARPU_NOWHERE); \
+	    int codelet_null = (job)->task->cl == NULL;			\
+	    _STARPU_FUT_FULL_PROBE6STR(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_END_CODELET_BODY, (job)->job_id, (job_size), (job_hash), workerid, _starpu_gettid(), (codelet_null == 1 || nowhere == 1), _archname); \
     } \
 } while(0)
 
@@ -1374,7 +1381,7 @@ do {										\
 	FUT_FULL_PROBE2(_STARPU_FUT_KEYMASK_DSM, _STARPU_FUT_MEMORY_FULL,size,_starpu_gettid());
 
 #define _STARPU_TRACE_DATA_LOAD(workerid,size)	\
-	FUT_FULL_PROBE2(_STARPU_FUT_KEYMASK_DSM, _STARPU_FUT_DATA_LOAD, workerid, size);
+	FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_DSM, _STARPU_FUT_DATA_LOAD, workerid, size, _starpu_gettid());
 
 #define _STARPU_TRACE_START_UNPARTITION(handle, memnode)		\
 	FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_DSM, _STARPU_FUT_START_UNPARTITION_ON_TID, memnode, _starpu_gettid(), handle);

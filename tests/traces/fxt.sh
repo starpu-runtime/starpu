@@ -19,7 +19,7 @@ ROOTDIR=$DIR/../..
 
 TRACEDIR=$ROOTDIR/tests/traces/fxt.traces
 mkdir -p $TRACEDIR
-if test ! -f $ROOTDIR/examples/filters/fmultiple_submit
+if test ! -f $ROOTDIR/tests/traces/fxt
 then
     echo "Example not available"
     exit 77
@@ -29,7 +29,7 @@ export STARPU_FXT_PREFIX=$TRACEDIR
 export STARPU_FXT_TRACE=1
 export STARPU_GENERATE_TRACE_OPTIONS="-no-acquire -c -label-deps"
 export STARPU_GENERATE_TRACE=1
-$MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/filters/fmultiple_submit
+$MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/tests/traces/fxt
 
 if test ! -f $STARPU_FXT_PREFIX/prof_file_${USER}_0
 then
