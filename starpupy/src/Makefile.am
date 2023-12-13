@@ -42,7 +42,7 @@ all: $(PYTHON_PY_BUILD) $(PYTHON_C_BUILD) $(PYTHON_H_BUILD)
 
 # FIXME and enable
 dist-hook:
-	nm -n build/starpu/starpupy.cpython-*.so | grep -v " [Ua-z] " | grep -ve " _\?_\?_\?f\?starpu" | grep -ve " \(_init\|_fini\|_edata\|__bss_start\|_end\|PyInit_starpupy\)" | (! grep .)
+	nm -n build/starpu/starpupy.cpython-*.so | grep -v " [Ua-z] " | grep -ve " _\?_\?_\?f\?starpu" | grep -ve " \(_init\|_fini\|_edata\|__bss_start\|_end\|PyInit_starpupy\|__gcov_\|mangle_path\)" | (! grep .)
 
 check: all
 
