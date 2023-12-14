@@ -964,13 +964,13 @@ filters_fmultiple_submit_readonly_downgrade_SOURCES =	\
 if STARPU_USE_CUDA
 filters_fmultiple_submit_readonly_SOURCES +=	\
 	filters/fmultiple_cuda.cu
-filters_fmultiple_submit_readonly_downgrade_SOURCES =	\
+filters_fmultiple_submit_readonly_downgrade_SOURCES +=	\
 	filters/fmultiple_cuda.cu
 endif
 if STARPU_USE_HIP
 filters_fmultiple_submit_readonly_SOURCES +=	\
 	filters/fmultiple_hip.hip
-filters_fmultiple_submit_readonly_downgrade_SOURCES =	\
+filters_fmultiple_submit_readonly_downgrade_SOURCES +=	\
 	filters/fmultiple_hip.hip
 endif
 
