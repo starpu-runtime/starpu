@@ -90,7 +90,7 @@ static int random_push_task(struct starpu_task *task)
 static void initialize_random_policy(unsigned sched_ctx_id)
 {
 	(void) sched_ctx_id;
-	starpu_srand48(time(NULL));
+	starpu_srand48((long int)time(NULL));
 }
 
 static void deinitialize_random_policy(unsigned sched_ctx_id)
