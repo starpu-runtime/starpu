@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2023-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2023-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -35,6 +35,7 @@ source $rootdir/starpu.inst/bin/starpu_env
 cd $rootdir
 git clone --quiet --recursive --branch master https://gitlab.inria.fr/solverstack/chameleon.git chameleon
 cd chameleon
+git show HEAD
 mkdir build
 cd build
 CFLAGS=-g cmake ../ -DCHAMELEON_USE_CUDA=ON -DCHAMELEON_USE_MPI=ON
