@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2011       Télécom-SudParis
 # Copyright (C) 2013       Thibaut Lambert
 # Copyright (C) 2017       Guillaume Beauchamp
@@ -3990,10 +3990,9 @@ then
 	AC_MSG_RESULT($joblib_avail)
 	if test "$joblib_avail" = "no" ; then
 		if test "x$enable_starpupy" = xyes ; then
-			AC_MSG_ERROR([python3 module joblib missing, cannot build StarPU python interface (consider running 'pip3 install joblib')])
+		   	AC_DEFINE(STARPU_PYTHON_HAVE_JOBLIB, [1], [Python joblib package available])
 		else
-			AC_MSG_WARN([python3 module joblib missing, cannot build StarPU python interface (consider running 'pip3 install joblib')])
-			enable_starpupy=no
+			AC_MSG_WARN([python3 module joblib missing, cannot build full StarPU python interface (consider running 'pip3 install joblib')])
 		fi
 	fi
 fi
@@ -4004,10 +4003,9 @@ then
 	AC_MSG_RESULT($cloudpickle_avail)
 	if test "$cloudpickle_avail" = "no" ; then
 		if test "x$enable_starpupy" = xyes ; then
-			AC_MSG_ERROR([python3 module cloudpickle missing, cannot build StarPU python interface (consider running 'pip3 install cloudpickle')])
+		   	AC_DEFINE(STARPU_PYTHON_HAVE_CLOUDPICKLE, [1], [Python cloudpickle package available])
 		else
-			AC_MSG_WARN([python3 module cloudpickle missing, cannot build StarPU python interface (consider running 'pip3 install cloudpickle')])
-			enable_starpupy=no
+			AC_MSG_WARN([python3 module cloudpickle missing, cannot build full StarPU python interface (consider running 'pip3 install cloudpickle')])
 		fi
 	fi
 fi

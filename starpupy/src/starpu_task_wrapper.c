@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -1917,6 +1917,14 @@ PyMODINIT_FUNC PyInit_starpupy(void)
 	PyEval_InitThreads();
 #endif
 
+#if defined(STARPU_USE_MPI_MASTER_SLAVE)
+	active_multi_interpreter = 1;
+#else
+	if (starpu_getenv_number_default("STARPUPY_MULTI_INTERPRETER", 0)
+		|| starpu_getenv_number("STARPU_TCPIP_MS_SLAVES") > 0)
+		active_multi_interpreter = 1;
+#endif
+
 	main_thread = pthread_self();
 
 	/*python asyncio import*/
@@ -1929,26 +1937,32 @@ PyMODINIT_FUNC PyInit_starpupy(void)
 	}
 
 	/*cloudpickle import*/
-	cloudpickle_module = PyImport_ImportModule("cloudpickle");
-	if (cloudpickle_module == NULL)
+	if (active_multi_interpreter)
 	{
-		PyErr_Format(PyExc_RuntimeError, "can't find cloudpickle module");
-		starpupyFree(NULL);
-		return NULL;
+		cloudpickle_module = PyImport_ImportModule("cloudpickle");
+		if (cloudpickle_module == NULL)
+		{
+			PyErr_Format(PyExc_RuntimeError, "can't find cloudpickle module");
+			starpupyFree(NULL);
+			return NULL;
+		}
+		/*dumps method*/
+		dumps = PyObject_GetAttrString(cloudpickle_module, "dumps");
 	}
-	/*dumps method*/
-	dumps = PyObject_GetAttrString(cloudpickle_module, "dumps");
 
 	/*pickle import*/
-	pickle_module = PyImport_ImportModule("pickle");
-	if (pickle_module == NULL)
+	if (active_multi_interpreter)
 	{
-		PyErr_Format(PyExc_RuntimeError, "can't find pickle module");
-		starpupyFree(NULL);
-		return NULL;
+		pickle_module = PyImport_ImportModule("pickle");
+		if (pickle_module == NULL)
+		{
+			PyErr_Format(PyExc_RuntimeError, "can't find pickle module");
+			starpupyFree(NULL);
+			return NULL;
+		}
+		/*loads method*/
+		loads = PyObject_GetAttrString(pickle_module, "loads");
 	}
-	/*loads method*/
-	loads = PyObject_GetAttrString(pickle_module, "loads");
 
 	/*starpu import*/
 	starpu_module = PyImport_ImportModule("starpu");
@@ -2053,15 +2067,6 @@ PyMODINIT_FUNC PyInit_starpupy(void)
 		starpupyFree(NULL);
 		return NULL;
 	}
-
-
-#if defined(STARPU_USE_MPI_MASTER_SLAVE)
-	active_multi_interpreter = 1;
-#else
-	if (starpu_getenv_number_default("STARPUPY_MULTI_INTERPRETER", 0)
-		|| starpu_getenv_number("STARPU_TCPIP_MS_SLAVES") > 0)
-		active_multi_interpreter = 1;
-#endif
 
 	/*module import multi-phase initialization*/
 	return PyModuleDef_Init(&starpupymodule);

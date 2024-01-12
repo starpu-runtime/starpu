@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -36,6 +36,10 @@ StarPU 1.4.3
 ==============================================
 Small features:
   * Add starpu_data_partition_readonly_downgrade_submit().
+
+Small changes:
+   * StarPUPY no longer requires python modules joblib and cloudpickle
+     to be mandatory
 
 StarPU 1.4.2
 ==============================================
