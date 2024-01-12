@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,9 +29,16 @@ Several examples using the Python API are provided in the directory <c>starpupy/
 
 \section Installation Installation of the Python Interface
 
-The python modules \c joblib and \c cloudpickle are mandatory and should be installed before calling \c configure. The python module \c numpy is recommended, but not mandatory.
+Calling \c configure will enable by default the StarPU Python
+Interface. You can also specify the option \ref enable-starpupy
+"--enable-starpupy" which will fail if some requirements are missing.
+For now, the only requirement is the availability of the \c python3
+interpreter.
 
-If all requirements are met, calling \c configure will enable by default the Python Interface. You can also specify the option \ref enable-starpupy "--enable-starpupy" which will fail if some requirements are missing.
+The python modules \c joblib and \c cloudpickle are mandatory to run
+parallel codes.
+
+The python module \c numpy is recommended, but not mandatory.
 
 \verbatim
 $ pip3 install joblib

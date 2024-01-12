@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020-2023  Universit'e de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2024  Universit'e de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -21,7 +21,11 @@ except (ModuleNotFoundError, ImportError):
     np = None
 
 import starpu
-import starpu.joblib
+try:
+    import starpu.joblib
+except (ModuleNotFoundError, ImportError):
+    print("Can't find starpu.joblib\" module (consider running \"pip3 install joblib\")")
+    exit(77)
 from starpu import starpupy
 import time
 import asyncio
