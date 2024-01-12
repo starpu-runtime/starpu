@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -32,6 +32,10 @@ installation, we offer several solutions.
     <li>
     For macOS, you can opt for Brew and follow the steps in \ref
     InstallingASourcePackage.
+    </li>
+    <li>
+    Using an already installed module on a cluster, as explained in
+    \ref UsingModule
     </li>
     </ul>
   </li>
@@ -121,6 +125,12 @@ $ spack install starpu@1.3.5
 
 We strongly advise reading the detailed reference manual at
 https://spack.readthedocs.io/en/latest/getting_started.html
+
+\subsection UsingModule Using a Module
+
+On some clusters, StarPU is provided as a module, for example on the
+Jean Zay cluster. The information is available at
+http://www.idris.fr/jean-zay/cpu/jean-zay-cpu-starpu.html
 
 \section InstallingFromSource Building from Source
 
