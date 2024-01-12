@@ -3980,12 +3980,10 @@ then
 	AC_MSG_CHECKING(for python3 module joblib)
 	AC_PYTHON_MODULE(joblib,[joblib_avail=yes],[joblib_avail=no])
 	AC_MSG_RESULT($joblib_avail)
-	if test "$joblib_avail" = "no" ; then
-		if test "x$enable_starpupy" = xyes ; then
-		   	AC_DEFINE(STARPU_PYTHON_HAVE_JOBLIB, [1], [Python joblib package available])
-		else
-			AC_MSG_WARN([python3 module joblib missing, cannot build full StarPU python interface (consider running 'pip3 install joblib')])
-		fi
+	if test "$joblib_avail" = "yes" ; then
+		AC_DEFINE(STARPU_PYTHON_HAVE_JOBLIB, [1], [Python joblib package available])
+	else
+		AC_MSG_WARN([python3 module joblib missing, cannot build full StarPU python interface (consider running 'pip3 install joblib')])
 	fi
 fi
 if test "x$enable_starpupy" != xno
@@ -3993,12 +3991,10 @@ then
 	AC_MSG_CHECKING(for python3 module cloudpickle)
 	AC_PYTHON_MODULE(cloudpickle,[cloudpickle_avail=yes],[cloudpickle_avail=no])
 	AC_MSG_RESULT($cloudpickle_avail)
-	if test "$cloudpickle_avail" = "no" ; then
-		if test "x$enable_starpupy" = xyes ; then
-		   	AC_DEFINE(STARPU_PYTHON_HAVE_CLOUDPICKLE, [1], [Python cloudpickle package available])
-		else
-			AC_MSG_WARN([python3 module cloudpickle missing, cannot build full StarPU python interface (consider running 'pip3 install cloudpickle')])
-		fi
+	if test "$cloudpickle_avail" = "yes" ; then
+		AC_DEFINE(STARPU_PYTHON_HAVE_CLOUDPICKLE, [1], [Python cloudpickle package available])
+	else
+		AC_MSG_WARN([python3 module cloudpickle missing, cannot build full StarPU python interface (consider running 'pip3 install cloudpickle')])
 	fi
 fi
 if test "x$enable_starpupy" != xno
