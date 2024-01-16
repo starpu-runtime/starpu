@@ -57,7 +57,6 @@ checks:
   parallel:
     matrix:
       - NODE: [debian10, ubuntu1604, ubuntu1804, centos72amd64]
-f)
   tags:
     - starpu
     - ${NODE}
