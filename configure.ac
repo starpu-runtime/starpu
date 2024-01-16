@@ -3984,6 +3984,19 @@ then
 fi
 if test "x$enable_starpupy" != xno
 then
+	AC_CHECK_LIB([python$PYTHON_VERSION], [PyErr_Print], [have_python_lib=yes], [have_python_lib=no])
+	if test "$have_python_lib" = "no" ; then
+		if test "x$enable_starpupy" = xyes ; then
+			AC_MSG_ERROR([Python library missing, cannot build StarPU python interface (consider installing python-dev)])
+		else
+			AC_MSG_WARN([Python library missing, cannot build StarPU python interface (consider installing python-dev)])
+			enable_starpupy=no
+		fi
+	fi
+fi
+
+if test "x$enable_starpupy" != xno
+then
 	CPPFLAGS=${SAVED_CPPFLAGS}
 	AC_MSG_CHECKING(for python3 module joblib)
 	AC_PYTHON_MODULE(joblib,[joblib_avail=yes],[joblib_avail=no])
