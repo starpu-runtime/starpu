@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -36,20 +36,13 @@ chapters =	\
 	../doxygen/chapters/starpu_basics/data_management.doxy		\
 	../doxygen/chapters/starpu_basics/scheduling.doxy		\
 	../doxygen/chapters/starpu_basics/examples_sources.doxy		\
+	../doxygen/chapters/starpu_basics/code/vector_scal_c.c \
+	../doxygen/chapters/starpu_basics/code/vector_scal_cpu.c \
+	../doxygen/chapters/starpu_basics/code/vector_scal_cuda.c \
+	../doxygen/chapters/starpu_basics/code/vector_scal_opencl.c \
+	../doxygen/chapters/starpu_basics/code/vector_scal_opencl_codelet.cl \
 	../doxygen/chapters/files.doxy		\
-	../doxygen/chapters/fdl_1_3.doxy		\
-	../doxygen/chapters/code/forkmode.c \
-	../doxygen/chapters/code/multiformat.c \
-	../doxygen/chapters/code/complex.c \
-	../doxygen/chapters/code/simgrid.c \
-	../doxygen/chapters/code/vector_scal_c.c \
-	../doxygen/chapters/code/vector_scal_cpu.c \
-	../doxygen/chapters/code/vector_scal_cuda.c \
-	../doxygen/chapters/code/vector_scal_opencl.c \
-	../doxygen/chapters/code/vector_scal_opencl_codelet.cl \
-	../doxygen/chapters/code/disk_copy.c \
-	../doxygen/chapters/code/disk_compute.c \
-	../doxygen/chapters/code/nf_initexit.f90
+	../doxygen/chapters/fdl_1_3.doxy
 
 images = 	\
 	../doxygen/chapters/images/arbiter.png \

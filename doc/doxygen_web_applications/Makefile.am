@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -30,11 +30,11 @@ chapters =	\
 	../doxygen/chapters/foreword.doxy		\
 	../doxygen/chapters/starpu_applications/applications_intro.doxy		\
 	../doxygen/chapters/starpu_applications/stencil.doxy		\
+	../doxygen/chapters/starpu_applications/code/stencil5.c	\
+	../doxygen/chapters/starpu_applications/code/stencil5_starpu.c 	\
+	../doxygen/chapters/starpu_applications/code/stencil5_starpu_mpi.c \
 	../doxygen/chapters/files.doxy		\
-	../doxygen/chapters/fdl_1_3.doxy \
-	../doxygen/chapters/code/stencil5.c	\
-	../doxygen/chapters/code/stencil5_starpu.c 	\
-	../doxygen/chapters/code/stencil5_starpu_mpi.c
+	../doxygen/chapters/fdl_1_3.doxy
 
 images =
 
