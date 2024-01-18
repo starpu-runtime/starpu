@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -66,7 +66,7 @@ The visualizations only work for Gemm, the outer product, and the Cholesky facto
 
 \subsection darts_visu_Configuration Configuration
 
-The configure options required are: <c>--enable-darts-stats --enable-darts-verbose<c>.
+The configure options required are: <c>--enable-darts-stats --enable-darts-verbose</c>.
 
 \subsection darts_visu_launch Launch Options
 
@@ -74,13 +74,13 @@ Add the following environment variables when launching the application:
 
 <ul>
 <li>
-<c>PRINT_N=$((N))<c> where <c>N<c> is the side of the matrix used in the application.
+<c>PRINT_N=$((N))</c> where <c>N</c> is the side of the matrix used in the application.
 </li>
 <li>
-<c>PRINT_IN_TERMINAL=1<c>.
+<c>PRINT_IN_TERMINAL=1</c>.
 </li>
 <li>
-<c>STARPU_SCHED_OUTPUT=path_to_output<c> to specify where the output file will be stored.
+<c>STARPU_SCHED_OUTPUT=path_to_output</c> to specify where the output file will be stored.
 </li>
 </ul>
 

@@ -44,8 +44,16 @@ chapters =	\
 	chapters/starpu_basics/data_management.doxy		\
 	chapters/starpu_basics/scheduling.doxy		\
 	chapters/starpu_basics/examples_sources.doxy		\
+	chapters/starpu_basics/code/vector_scal_c.c \
+	chapters/starpu_basics/code/vector_scal_cpu.c \
+	chapters/starpu_basics/code/vector_scal_cuda.c \
+	chapters/starpu_basics/code/vector_scal_opencl.c \
+	chapters/starpu_basics/code/vector_scal_opencl_codelet.cl \
 	chapters/starpu_applications/applications_intro.doxy		\
 	chapters/starpu_applications/stencil.doxy		\
+	chapters/starpu_applications/code/stencil5.c	\
+	chapters/starpu_applications/code/stencil5_starpu.c	\
+	chapters/starpu_applications/code/stencil5_starpu_mpi.c	\
 	chapters/starpu_performances/performances_intro.doxy		\
 	chapters/starpu_performances/benchmarking_starpu.doxy		\
 	chapters/starpu_performances/online_performance_tools.doxy		\
@@ -58,6 +66,9 @@ chapters =	\
 	chapters/starpu_languages/java.doxy 		\
 	chapters/starpu_languages/python.doxy		\
 	chapters/starpu_languages/openmp_runtime_support.doxy		\
+	chapters/starpu_languages/code/nf_initexit.f90 \
+	chapters/starpu_languages/code/java_starpu.java	\
+	chapters/starpu_languages/code/java_spark.java	\
 	chapters/starpu_extensions/extensions_intro.doxy		\
 	chapters/starpu_extensions/advanced_tasks.doxy		\
 	chapters/starpu_extensions/advanced_data_management.doxy		\
@@ -82,25 +93,14 @@ chapters =	\
 	chapters/starpu_extensions/interoperability.doxy		\
 	chapters/starpu_extensions/scheduling_policy_definition.doxy		\
 	chapters/starpu_extensions/simgrid.doxy		\
+	chapters/starpu_extensions/code/complex.c \
+	chapters/starpu_extensions/code/disk_compute.c \
+	chapters/starpu_extensions/code/disk_copy.c \
+	chapters/starpu_extensions/code/forkmode.c \
+	chapters/starpu_extensions/code/multiformat.c \
+	chapters/starpu_extensions/code/simgrid.c \
 	chapters/files.doxy		\
 	chapters/fdl_1_3.doxy		\
-	chapters/code/forkmode.c \
-	chapters/code/multiformat.c \
-	chapters/code/complex.c \
-	chapters/code/simgrid.c \
-	chapters/code/vector_scal_c.c \
-	chapters/code/vector_scal_cpu.c \
-	chapters/code/vector_scal_cuda.c \
-	chapters/code/vector_scal_opencl.c \
-	chapters/code/vector_scal_opencl_codelet.cl \
-	chapters/code/disk_copy.c \
-	chapters/code/disk_compute.c \
-	chapters/code/nf_initexit.f90 \
-	chapters/code/stencil5.c	\
-	chapters/code/stencil5_starpu.c	\
-	chapters/code/stencil5_starpu_mpi.c	\
-	chapters/code/java_starpu.java	\
-	chapters/code/java_spark.java	\
 	chapters/api/fortran_support.doxy \
 	chapters/api/bubble_support.doxy \
 	chapters/api/fft_support.doxy \

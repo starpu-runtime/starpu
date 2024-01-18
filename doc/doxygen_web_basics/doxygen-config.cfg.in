@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2011       Télécom-SudParis
 # Copyright (C) 2013       Simon Archipoff
 #
@@ -28,8 +28,7 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters/starpu_basics/basics_
                       @top_srcdir@/doc/doxygen/chapters/api
 
 EXAMPLE_PATH           = @top_srcdir@/doc/doxygen \
-                         @top_srcdir@/doc/doxygen/chapters \
-                         @top_srcdir@/doc/doxygen/chapters/code
+                         @top_srcdir@/doc/doxygen/chapters
 
 INPUT_FILTER           = @top_builddir@/doc/doxygen/doxygen_filter.sh
 

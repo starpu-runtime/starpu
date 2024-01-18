@@ -52,20 +52,14 @@ chapters =	\
 	../doxygen/chapters/starpu_extensions/interoperability.doxy		\
 	../doxygen/chapters/starpu_extensions/scheduling_policy_definition.doxy		\
 	../doxygen/chapters/starpu_extensions/simgrid.doxy		\
+	../doxygen/chapters/starpu_extensions/code/complex.c \
+	../doxygen/chapters/starpu_extensions/code/disk_compute.c \
+	../doxygen/chapters/starpu_extensions/code/disk_copy.c \
+	../doxygen/chapters/starpu_extensions/code/forkmode.c \
+	../doxygen/chapters/starpu_extensions/code/multiformat.c \
+	../doxygen/chapters/starpu_extensions/code/simgrid.c \
 	../doxygen/chapters/files.doxy		\
-	../doxygen/chapters/fdl_1_3.doxy		\
-	../doxygen/chapters/code/forkmode.c \
-	../doxygen/chapters/code/multiformat.c \
-	../doxygen/chapters/code/complex.c \
-	../doxygen/chapters/code/simgrid.c \
-	../doxygen/chapters/code/vector_scal_c.c \
-	../doxygen/chapters/code/vector_scal_cpu.c \
-	../doxygen/chapters/code/vector_scal_cuda.c \
-	../doxygen/chapters/code/vector_scal_opencl.c \
-	../doxygen/chapters/code/vector_scal_opencl_codelet.cl \
-	../doxygen/chapters/code/disk_copy.c \
-	../doxygen/chapters/code/disk_compute.c \
-	../doxygen/chapters/code/nf_initexit.f90
+	../doxygen/chapters/fdl_1_3.doxy
 
 images = 	\
 	../doxygen/chapters/images/arbiter.png \
