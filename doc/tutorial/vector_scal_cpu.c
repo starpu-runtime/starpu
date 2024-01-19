@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,7 +20,7 @@
 void vector_scal_cpu(void *buffers[], void *cl_arg)
 {
 	unsigned i;
-	float *factor = cl_arg;
+	float factor;
 
 	/*
 	 * The "buffers" array matches the task->handles array: for instance
@@ -43,6 +43,7 @@ void vector_scal_cpu(void *buffers[], void *cl_arg)
 	float *val = (float *)STARPU_VECTOR_GET_PTR(vector);
 
 	/* scale the vector */
+	starpu_codelet_unpack_args(cl_arg, &factor);
 	for (i = 0; i < n; i++)
-		val[i] *= *factor;
+		val[i] *= factor;
 }

@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -16,9 +16,9 @@
 CFLAGS          +=      $$(pkg-config --cflags starpu-1.4)
 LDLIBS          +=      $$(pkg-config --libs starpu-1.4)
 
-HAS_CUDA	=	$(shell starpu_machine_display | grep "CUDA" | grep -v "No CUDA worker" | head -1)
+HAS_CUDA	=	$(shell starpu_config | grep 'STARPU_USE_CUDA 1')
 NVCC		?=	nvcc -std=c++11
-HAS_OPENCL	=	$(shell starpu_machine_display | grep "OpenCL" | grep -v "No OpenCL worker" | head -1)
+HAS_OPENCL	=	$(shell starpu_config | grep 'STARPU_USE_OPENCL 1')
 
 %.o: %.cu
 	$(NVCC) $(CFLAGS) $< -c

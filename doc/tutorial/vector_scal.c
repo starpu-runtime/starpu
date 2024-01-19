@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,7 +18,7 @@
  * This example demonstrates how to use StarPU to scale an array by a factor.
  * It shows how to manipulate data with StarPU's data management library.
  *  1- how to declare a piece of data to StarPU (starpu_vector_data_register)
- *  2- how to describe which data are accessed by a task (task->handle[0])
+ *  2- how to submit a task to StarPU
  *  3- how a kernel can manipulate the data (buffers[0].vector.ptr)
  */
 #include <starpu.h>
@@ -29,7 +29,8 @@ extern void vector_scal_cpu(void *buffers[], void *_args);
 extern void vector_scal_cuda(void *buffers[], void *_args);
 extern void vector_scal_opencl(void *buffers[], void *_args);
 
-static struct starpu_codelet cl = {
+static struct starpu_codelet cl =
+{
 	/* CPU implementation of the codelet */
 	.cpu_funcs = {vector_scal_cpu},
 #ifdef STARPU_USE_CUDA
@@ -86,25 +87,18 @@ int main(int argc, char **argv)
 
 	float factor = 3.14;
 
-	/* create a synchronous task: any call to starpu_task_submit will block
-	 * until it is terminated */
-	struct starpu_task *task = starpu_task_create();
-	task->synchronous = 1;
+	ret = starpu_task_insert(&cl,
+				 /* an argument is passed to the codelet, beware that this is a
+				  * READ-ONLY buffer and that the codelet may be given a pointer to a
+				  * COPY of the argument */
+				 STARPU_VALUE, &factor, sizeof(factor),
+				 /* the codelet manipulates one buffer in RW mode */
+				 STARPU_RW, vector_handle,
+				 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
-	task->cl = &cl;
-
-	/* the codelet manipulates one buffer in RW mode */
-	task->handles[0] = vector_handle;
-
-	/* an argument is passed to the codelet, beware that this is a
-	 * READ-ONLY buffer and that the codelet may be given a pointer to a
-	 * COPY of the argument */
-	task->cl_arg = &factor;
-	task->cl_arg_size = sizeof(factor);
-
-	/* execute the task on any eligible computational resource */
-	ret = starpu_task_submit(task);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	/* Wait for tasks completion */
+	starpu_task_wait_for_all();
 
 	/* StarPU does not need to manipulate the array anymore so we can stop
 	 * monitoring it */
