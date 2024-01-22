@@ -1,0 +1,185 @@
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2022-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+
+/*! \page VectorApplication A Vector Scaling Application
+
+\section BaseVersion Base version
+
+The non-StarPU version shows a basic example that we will be using to illustrate how to use StarPU. It
+simply allocates a vector, and calls a scaling function over it.
+
+\snippet vector_scal_c.c To be included. You should update doxygen if you see this text.
+
+\section StarPUCversion StarPU C version
+
+\subsection ComputationKernels  Computation Kernels
+
+We are going to transform here the computation function \c
+vector_scal_cpu.
+
+\snippet vector_scal_c.c Original scal code To be included. You should update doxygen if you see this text.
+
+The StarPU corresponding function takes as parameters a list of DSM interfaces and a non-DSM parameter.
+
+\snippet vector_scal_cpu.c Prototype To be included. You should update doxygen if you see this text.
+
+The first DSM parameter is the vector and is available through \c
+buffer[0]. StarPU provides functions to get the vector data, and
+extract the pointer and size of the vector.
+
+\snippet vector_scal_cpu.c Extract To be included. You should update doxygen if you see this text.
+
+The non-DSM parameters are stored in the second argument of the
+function, and need to be unpacked.
+
+\snippet vector_scal_cpu.c Unpack To be included. You should update doxygen if you see this text.
+
+It is then possible to perform the vector scaling as in the original function.
+
+\snippet vector_scal_cpu.c Compute To be included. You should update doxygen if you see this text.
+
+<table>
+<tr>
+<th>
+Original code
+</th>
+<th>
+StarPU code
+</th>
+</tr>
+<tr>
+<td>
+\snippet vector_scal_c_align.c Original scal code To be included. You should update doxygen if you see this text.
+</td>
+<td>
+\snippet vector_scal_cpu.c starpu scal code To be included. You should update doxygen if you see this text.
+</td>
+</tr>
+</table>
+
+The GPU and OpenCL implementations can be seen in \ref FullSourceCodeVectorScal.
+
+\subsection MainCode Main Code
+
+Let's look now at the main code.
+
+<ul>
+<li>
+The \c cl codelet structure simply gathers pointers on the functions
+  mentioned above, and notes that the functions takes only one DSM
+  parameter.
+
+\snippet vector_scal_starpu.c Codelet To be included. You should update doxygen if you see this text.
+</li>
+<li>
+The \c main function starts with initializing StarPU with the
+default parameters.
+
+\snippet vector_scal_starpu.c init To be included. You should update doxygen if you see this text.
+</li>
+<li>
+It then allocates the vector and fills it like the original code.
+
+\snippet vector_scal_starpu.c alloc To be included. You should update doxygen if you see this text.
+</li>
+<li>
+It then registers the data to StarPU, and gets back a DSM handle.
+From now on, the application is not supposed to access \c vector
+directly, since its content may be copied and modified by a task on
+a GPU, the main-memory copy then being outdated.
+
+\snippet vector_scal_starpu.c register To be included. You should update doxygen if you see this text.
+</li>
+<li>
+It then submits a (asynchronous) task to StarPU.
+
+\snippet vector_scal_starpu.c task_insert To be included. You should update doxygen if you see this text.
+</li>
+<li>
+It waits for task completion, and unregisters the vector from
+  StarPU, which brings back the modified version to main memory, so
+  the result can be read.
+
+\snippet vector_scal_starpu.c wait To be included. You should update doxygen if you see this text.
+</li>
+<li>
+Eventually, it shuts down StarPU:
+
+\snippet vector_scal_starpu.c shutdown To be included. You should update doxygen if you see this text.
+</li>
+</ul>
+
+<table>
+<tr>
+<th>
+Original code
+</th>
+<th>
+StarPU code
+</th>
+</tr>
+<tr>
+<td>
+\snippet vector_scal_c_align.c Original main code To be included. You should update doxygen if you see this text.
+</td>
+<td>
+\snippet vector_scal_starpu.c To be included. You should update doxygen if you see this text.
+</td>
+</tr>
+</table>
+
+\section BuildingandRunning Building and Running
+
+We will use the StarPU docker image.
+
+\verbatim
+$ docker run -it registry.gitlab.inria.fr/starpu/starpu-docker/starpu:latest
+\endverbatim
+
+If your machine has GPU devices, you can use the following command to enable the GPU devices within the docker image.
+
+\verbatim
+$ docker run -it registry.gitlab.inria.fr/starpu/starpu-docker/starpu:latest
+\endverbatim
+
+From your docker image, you can then call the following commands.
+
+\verbatim
+$ cd src/starpu/doc/tutorial
+$ make vector_scal
+$ ./vector_scal
+\endverbatim
+
+You can set the environment variable \ref STARPU_WORKER_STATS to \c 1 when
+running your application to see the number of tasks executed by each
+device.
+
+\verbatim
+$ STARPU_WORKER_STATS=1 ./vector_scal
+\endverbatim
+
+If your machine has GPU devices, you can force the execution on the GPU devices by setting the number of CPU workers to 0.
+
+\verbatim
+# to force the implementation on a GPU device, by default, it will enable CUDA
+$ STARPU_WORKER_STATS=1 STARPU_NCPU=0 ./vector_scal
+
+# to force the implementation on a OpenCL device
+$ STARPU_WORKER_STATS=1 STARPU_NCPU=0 STARPU_NCUDA=0 ./vector_scal
+\endverbatim
+
+
+*/

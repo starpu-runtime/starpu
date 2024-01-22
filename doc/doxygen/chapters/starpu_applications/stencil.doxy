@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022, 2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,8 +15,6 @@
  */
 
 /*! \page StencilApplication A Stencil Application
-
-We show in this chapter how to easily convert an existing application to use StarPU.
 
 \section StencilOriginal The Original Application
 
@@ -61,5 +59,43 @@ And to insert a task, the function starpu_mpi_task_insert() must be used.
 The whole StarPU-MPI application looks as follows.
 
 \snippet stencil5_starpu_mpi.c To be included. You should update doxygen if you see this text.
+
+\section StencilRunning Running the application
+
+\verbatim
+$ docker run -it registry.gitlab.inria.fr/starpu/starpu-docker/starpu:latest
+\endverbatim
+
+If your machine has GPU devices, you can use the following command to enable the GPU devices within the docker image.
+
+\verbatim
+$ docker run -it registry.gitlab.inria.fr/starpu/starpu-docker/starpu:latest
+\endverbatim
+
+From your docker image, you can then call the following commands.
+
+\verbatim
+$ git clone https://gitlab.inria.fr/starpu/starpu-applications.git
+$ cd starpu-applications/stencil5
+$ make
+\endverbatim
+
+To run the non-StarPU application
+
+\verbatim
+$ ./stencil5 -v
+\endverbatim
+
+To run the sequential StarPU application
+
+\verbatim
+$ ./stencil5_starpu -v
+\endverbatim
+
+To run the StarPU MPI application. Setting the variable \ref STARPU_COMM_STATS to 1 will display the amount of communication between the different MPI processes.
+
+\verbatim
+$ STARPU_COMM_STATS=1 mpirun -np 4 ./stencil5_starpu_mpi -v 4 3
+\endverbatim
 
 */

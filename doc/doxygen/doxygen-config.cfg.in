@@ -32,6 +32,7 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters/starpu_introduction/i
 			 @top_srcdir@/doc/doxygen/chapters/starpu_basics/scheduling.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_basics/examples_sources.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_applications/applications_intro.doxy \
+       			 @top_srcdir@/doc/doxygen/chapters/starpu_applications/vector_scaling.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_applications/stencil.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_performances/performances_intro.doxy \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_performances/benchmarking_starpu.doxy \
