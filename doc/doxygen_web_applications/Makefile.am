@@ -29,6 +29,11 @@ include $(top_srcdir)/doc/doxy.mk
 chapters =	\
 	../doxygen/chapters/foreword.doxy		\
 	../doxygen/chapters/starpu_applications/applications_intro.doxy		\
+	../doxygen/chapters/starpu_applications/vector_scaling.doxy		\
+	../doxygen/chapters/starpu_applications/code/vector_scal_c.c		\
+	../doxygen/chapters/starpu_applications/code/vector_scal_c_align.c	\
+	../doxygen/chapters/starpu_applications/code/vector_scal_cpu.c		\
+	../doxygen/chapters/starpu_applications/code/vector_scal_starpu.c	\
 	../doxygen/chapters/starpu_applications/stencil.doxy		\
 	../doxygen/chapters/starpu_applications/code/stencil5.c	\
 	../doxygen/chapters/starpu_applications/code/stencil5_starpu.c 	\

@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -50,6 +50,11 @@ chapters =	\
 	chapters/starpu_basics/code/vector_scal_opencl.c \
 	chapters/starpu_basics/code/vector_scal_opencl_codelet.cl \
 	chapters/starpu_applications/applications_intro.doxy		\
+	chapters/starpu_applications/vector_scaling.doxy		\
+	chapters/starpu_applications/code/vector_scal_c.c		\
+	chapters/starpu_applications/code/vector_scal_c_align.c		\
+	chapters/starpu_applications/code/vector_scal_cpu.c		\
+	chapters/starpu_applications/code/vector_scal_starpu.c		\
 	chapters/starpu_applications/stencil.doxy		\
 	chapters/starpu_applications/code/stencil5.c	\
 	chapters/starpu_applications/code/stencil5_starpu.c	\
