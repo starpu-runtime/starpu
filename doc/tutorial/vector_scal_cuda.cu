@@ -23,7 +23,7 @@ static __global__ void vector_mult_cuda(float *val, unsigned int n, float factor
                val[i] *= factor;
 }
 
-extern "C" void vector_scal_cuda(void *buffers[], void *_args)
+extern "C" void vector_scal_cuda(void *buffers[], void *cl_arg)
 {
         float factor;
 	starpu_codelet_unpack_args(cl_arg, &factor);
