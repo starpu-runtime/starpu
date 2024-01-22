@@ -23,7 +23,7 @@ HAS_OPENCL	=	$(shell starpu_config | grep 'STARPU_USE_OPENCL 1')
 %.o: %.cu
 	$(NVCC) $(CFLAGS) $< -c
 
-TARGETS = hello_world vector_scal vector_scal_task_insert
+TARGETS = hello_world vector_scal
 
 all: $(TARGETS)
 
@@ -41,20 +41,6 @@ endif
 
 vector_scal: $(VECTOR_SCAL_PREREQUISITES)
 	$(VECTOR_SCAL_COMPILER) $^ $(LDLIBS) -o $@ $(LDFLAGS)
-
-VECTOR_SCAL_TASK_INSERT_PREREQUISITES		=	vector_scal_task_insert.o vector_scal_cpu.o
-ifneq ($(strip $(HAS_CUDA)),)
-VECTOR_SCAL_TASK_INSERT_PREREQUISITES		+=	vector_scal_cuda.o
-VECTOR_SCAL_TASK_INSERT_COMPILER		=	$(NVCC)
-else
-VECTOR_SCAL_TASK_INSERT_COMPILER		=	$(CC)
-endif
-ifneq ($(strip $(HAS_OPENCL)),)
-VECTOR_SCAL_TASK_INSERT_PREREQUISITES += vector_scal_opencl.o
-endif
-
-vector_scal_task_insert: $(VECTOR_SCAL_TASK_INSERT_PREREQUISITES)
-	$(VECTOR_SCAL_TASK_INSERT_COMPILER) $^ $(LDLIBS) -o $@ $(LDFLAGS)
 
 clean:
 	rm -f $(TARGETS) *.o
