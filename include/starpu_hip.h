@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,7 +29,9 @@
 #pragma GCC diagnostic ignored "-Wimplicit-int"
 #endif
 #pragma GCC diagnostic ignored "-Wreturn-type"
+#if STARPU_USE_HIPBLAS
 #include <hipblas/hipblas.h>
+#endif
 #include <hip/hip_runtime.h>
 #include <hip/hip_runtime_api.h>
 #pragma GCC diagnostic pop
