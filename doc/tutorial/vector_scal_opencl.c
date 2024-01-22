@@ -18,7 +18,7 @@
 
 extern struct starpu_opencl_program programs;
 
-void vector_scal_opencl(void *buffers[], void *_args)
+void vector_scal_opencl(void *buffers[], void *cl_arg)
 {
 	float factor;
 	int id, devid;
