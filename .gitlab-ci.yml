@@ -57,7 +57,7 @@ checks:
   extends: .check_template
   parallel:
     matrix:
-      - NODE: [debian10, ubuntu1604, ubuntu1804, centos72amd64, macosx]
+      - NODE: [debian12, debian10, ubuntu1604, ubuntu1804, centos72amd64, macosx]
   tags:
     - ${NODE}
 
