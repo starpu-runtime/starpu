@@ -65,7 +65,7 @@ check_simgrid:
   extends: .check_template
   tags:
     - starpu
-    - linux
+    - debian10
   script:
     - ./contrib/gitlab/simgrid.sh
 
