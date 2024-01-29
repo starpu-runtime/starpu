@@ -1,6 +1,9 @@
+#!/usr/bin/env python3
+# coding=utf-8
+#
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -255,6 +258,14 @@ def get_i_j_cholesky(iterationk, figure_par_ligne):
 	i = int(iterationk) // int(figure_par_ligne)
 	j = int(iterationk) % int(figure_par_ligne)
 	return i, j
+
+def usage():
+        print("Error. Not enough parameters")
+        print(sys.argv)
+
+if len(sys.argv) != 9:
+    usage()
+    sys.exit(1)
 
 N = int(sys.argv[1])
 ORDO = sys.argv[2]
