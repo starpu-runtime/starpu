@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -46,13 +46,13 @@ dist-hook:
 
 check: all
 
-PYTHONPATH=$(prefix)/lib/python$(PYTHON_VERSION)/site-packages
+PYTHONPATH=$(DESTDIR)$(prefix)/lib/python$(PYTHON_VERSION)/site-packages
 
 install-exec-local: all
-	@if test -d $(prefix)/lib/python$(PYTHON_VERSION) ; \
+	@if test -d $(DESTDIR)$(prefix)/lib/python$(PYTHON_VERSION) ; \
 	then	\
-		chmod u+w $(prefix)/lib/python$(PYTHON_VERSION) ; \
-		chmod u+w $(prefix)/lib/python$(PYTHON_VERSION)/site-packages ; \
+		chmod u+w $(DESTDIR)$(prefix)/lib/python$(PYTHON_VERSION) ; \
+		chmod u+w $(DESTDIR)$(prefix)/lib/python$(PYTHON_VERSION)/site-packages ; \
 	fi
 	$(MKDIR_P) $(PYTHONPATH)/starpu
 	chmod u+w $(PYTHONPATH)/starpu
@@ -60,7 +60,7 @@ install-exec-local: all
 	chmod u+w $(PYTHONPATH)/tmp
 	$(MKDIR_P) $(PYTHONPATH)/tmp/starpu
 	chmod u+w $(PYTHONPATH)/tmp/starpu
-	PYTHONPATH=$(PYTHONPATH) $(PYTHON) setup.py install
+	$(PYTHON) setup.py install --root '$(DESTDIR)'
 	rm -fr build/bdist*
 
 if STARPU_BUILD_STARPUPY
@@ -73,8 +73,8 @@ distclean-local:
 	rm -rf build
 
 uninstall-local:
-	rm -rf $(prefix)/lib/python$(PYTHON_VERSION)/site-packages/starpu*
-	rm -rf $(prefix)/lib/python$(PYTHON_VERSION)/site-packages/tmp/starpu*
+	rm -rf $(DESTDIR)$(prefix)/lib/python$(PYTHON_VERSION)/site-packages/starpu*
+	rm -rf $(DESTDIR)$(prefix)/lib/python$(PYTHON_VERSION)/site-packages/tmp/starpu*
 
 EXTRA_DIST	=			\
 	delay.py			\
