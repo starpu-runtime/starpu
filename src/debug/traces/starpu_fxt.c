@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Joris Pablo
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2017-2021  Federal University of Rio Grande do Sul (UFRGS)
@@ -1768,7 +1768,7 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 			worker_container_alias(container, STARPU_POTI_STR_LEN, prefix, worker);
 			poti_SetState(start_codelet_time, container, ctx, alias);
 #else
-			fprintf(out_paje_file, "10	%.9f	%sw%"PRIu64"	Ctx%d	\"%s_%d\"\n", start_codelet_time, prefix, worker, sched_ctx, name, sched_ctx);
+			fprintf(out_paje_file, "10	%.9f	%sw%d	Ctx%d	\"%s_%d\"\n", start_codelet_time, prefix, worker, sched_ctx, name, sched_ctx);
 #endif
 		}
 	}
