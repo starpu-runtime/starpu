@@ -39,4 +39,4 @@ HTML_OUTPUT            = html_web_introduction
 PROJECT_NAME           = "StarPU Handbook - StarPU Introduction"
 ALIASES                += "intropage{2} = \mainpage"
 ALIASES		       += "foreword = \htmlonly <h1><a class='anchor' id='Foreword'></a>Foreword</h1> \endhtmlonly \htmlinclude version.html \htmlinclude foreword.html"
-ALIASES		       += "webforeword = "
+ALIASES		       += "webforeword = \htmlonly <b><em>This is a sub-part of the StarPU documentation, go <a href='../html'>here</a> to read the whole documentation.</em></b> \endhtmlonly"
