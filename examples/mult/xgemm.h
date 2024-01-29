@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  * Copyright (C) 2017       Erwan Leria
  *
@@ -142,6 +142,7 @@ static void cublas_gemm(void *descr[], void *arg)
 #endif
 
 #ifdef STARPU_USE_HIP
+#ifdef STARPU_USE_HIPBLAS
 static void hipblas_mult(void *descr[], void *arg, const TYPE *beta)
 {
         (void)arg;
@@ -175,6 +176,7 @@ static void hipblas_gemm(void *descr[], void *arg)
 {
         hipblas_mult(descr, arg, &p1_hip);
 }
+#endif
 #endif
 
 #ifdef STARPU_HAVE_BLAS
