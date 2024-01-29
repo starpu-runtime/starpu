@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2020       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -73,6 +73,14 @@
    @ingroup API_HIP_Extensions
 */
 #undef STARPU_USE_HIP
+
+/**
+   Defined when StarPU has been installed with
+   HIP BLAS support. It should be used in your code to detect the
+   availability of HIP BLAS.
+   @ingroup API_HIP_Extensions
+*/
+#undef STARPU_USE_HIPBLAS
 
 /**
    Defined when StarPU has been installed with
