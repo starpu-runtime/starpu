@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2018-2023 Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2018-2024 Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -357,7 +357,7 @@ kmp_task_t *__kmpc_omp_task_alloc(ident_t *loc_ref, kmp_int32 gtid,
 static void task_call_variants(void (*fn)(void*, ...), void *buffers[], void *args)
 {
 	void **arg_ptrs = args;
-	int nargs = arg_ptrs[1];
+	intptr_t nargs = (intptr_t) arg_ptrs[1];
 	// TODO: asm it, as we could do it nicely in a loop
 	switch (nargs)
 	{
@@ -411,7 +411,7 @@ kmp_task_t *__kmpc_omp_task_alloc_variants(ident_t *loc_ref, kmp_int32 gtid,
 					   size_t sizeof_kmp_task_t,
 					   size_t sizeof_shareds,
 					   kmp_routine_entry_t task_entry,
-					   kmp_int32 nvariants)
+					   kmp_int32 nvariants STARPU_ATTRIBUTE_UNUSED)
 {
 	kmp_task_t *task = __kmpc_omp_task_alloc(loc_ref, gtid, flags, sizeof_kmp_task_t, sizeof_shareds, task_entry);
 #ifdef _STARPU_OPENMP_LLVM_VARIANT
@@ -453,7 +453,7 @@ kmp_int32 __kmpc_omp_task_with_deps(ident_t *loc_ref, kmp_int32 gtid,
 	/* This is freed in starpu_omp_task_region, as attr.cl_arg_free is set to true*/
 	void **arg_ptrs = calloc(4, sizeof(void*));
 	arg_ptrs[0] = new_task;
-	arg_ptrs[1] = ndeps + ndeps_noalias;
+	arg_ptrs[1] = (intptr_t) (ndeps + ndeps_noalias);
 
 #ifdef _STARPU_OPENMP_LLVM_VARIANT
 	if (new_task->nvariants == 0)
