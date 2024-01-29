@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2022-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2022-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -27,7 +27,7 @@ root=$(dirname $0)
 
 	if test -f $root/doxygen/chapters/starpu_$x/${x}_intro.doxy
 	then
-	    headline=$(grep -A6 intropage $root/doxygen/chapters/starpu_$x/${x}_intro.doxy | tail -1)
+	    headline=$(grep -A2 webforeword $root/doxygen/chapters/starpu_$x/${x}_intro.doxy | tail -1)
 	    echo "- $x"
 	    if test -n "$headline"
 	    then
