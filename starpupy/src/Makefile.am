@@ -70,7 +70,7 @@ clean-local:
 endif
 
 distclean-local:
-	rm -rf build
+	rm -rf build dist lib
 
 uninstall-local:
 	rm -rf $(DESTDIR)$(prefix)/lib/python$(PYTHON_VERSION)/site-packages/starpu*
