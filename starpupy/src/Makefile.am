@@ -39,7 +39,6 @@ $(top_builddir)/starpupy/src/starpu/%.h: $(abs_top_srcdir)/starpupy/src/%.h
 
 all: $(PYTHON_PY_BUILD) $(PYTHON_C_BUILD) $(PYTHON_H_BUILD)
 	LDFLAGS=$${LDFLAGS/-no-pie/} $(PYTHON) setup.py build $(PYTHON_SETUP_OPTIONS)
-	LDFLAGS=$${LDFLAGS/-no-pie/} $(PYTHON) setup.py clean $(PYTHON_SETUP_OPTIONS)
 
 # FIXME and enable
 dist-hook:
@@ -50,6 +49,7 @@ check: all
 PYTHONPATH=$(DESTDIR)$(prefix)/lib/python$(PYTHON_VERSION)/site-packages
 
 install-exec-local: all
+	LDFLAGS=$${LDFLAGS/-no-pie/} $(PYTHON) setup.py clean
 	@if test -d $(DESTDIR)$(prefix)/lib/python$(PYTHON_VERSION) ; \
 	then	\
 		chmod u+w $(DESTDIR)$(prefix)/lib/python$(PYTHON_VERSION) ; \
