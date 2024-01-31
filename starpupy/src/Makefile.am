@@ -39,6 +39,7 @@ $(top_builddir)/starpupy/src/starpu/%.h: $(abs_top_srcdir)/starpupy/src/%.h
 
 all: $(PYTHON_PY_BUILD) $(PYTHON_C_BUILD) $(PYTHON_H_BUILD)
 	LDFLAGS=$${LDFLAGS/-no-pie/} $(PYTHON) setup.py build $(PYTHON_SETUP_OPTIONS)
+	LDFLAGS=$${LDFLAGS/-no-pie/} $(PYTHON) setup.py clean $(PYTHON_SETUP_OPTIONS)
 
 # FIXME and enable
 dist-hook:
@@ -56,17 +57,13 @@ install-exec-local: all
 	fi
 	$(MKDIR_P) $(PYTHONPATH)/starpu
 	chmod u+w $(PYTHONPATH)/starpu
-	$(MKDIR_P) $(PYTHONPATH)/tmp
-	chmod u+w $(PYTHONPATH)/tmp
-	$(MKDIR_P) $(PYTHONPATH)/tmp/starpu
-	chmod u+w $(PYTHONPATH)/tmp/starpu
 	$(PYTHON) setup.py install --prefix '$(prefix)' --root '$(DESTDIR)$(prefix)'
 	rm -fr build/bdist*
 
 if STARPU_BUILD_STARPUPY
 clean-local:
 	rm -rf lib dist build starpupy.egg-info
-	$(PYTHON) setup.py clean
+	$(PYTHON) setup.py clean -a
 endif
 
 distclean-local:
