@@ -60,7 +60,7 @@ install-exec-local: all
 	chmod u+w $(PYTHONPATH)/tmp
 	$(MKDIR_P) $(PYTHONPATH)/tmp/starpu
 	chmod u+w $(PYTHONPATH)/tmp/starpu
-	$(PYTHON) setup.py install --prefix '$(DESTDIR)' --root '$(DESTDIR)$(prefix)'
+	$(PYTHON) setup.py install --prefix '$(prefix)' --root '$(DESTDIR)$(prefix)'
 	rm -fr build/bdist*
 
 if STARPU_BUILD_STARPUPY
@@ -73,9 +73,8 @@ distclean-local:
 	rm -rf build dist lib
 
 uninstall-local: clean-local
-	rm -rf $(DESTDIR)$(prefix)/lib/python$(PYTHON_VERSION)/site-packages/starpu/*
-	rm -rf $(DESTDIR)$(prefix)/lib/python$(PYTHON_VERSION)/site-packages/starpupy*
-	rm -rf $(DESTDIR)$(prefix)/lib/python$(PYTHON_VERSION)/site-packages/tmp/starpu/*
+	rm -rf $(DESTDIR)$(prefix)/lib/python$(PYTHON_VERSION)/site-packages/starpu*
+	rm -rf $(DESTDIR)$(prefix)/lib/python$(PYTHON_VERSION)/site-packages/tmp/starpu*
 
 EXTRA_DIST	=			\
 	delay.py			\
