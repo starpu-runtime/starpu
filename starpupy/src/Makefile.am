@@ -60,21 +60,22 @@ install-exec-local: all
 	chmod u+w $(PYTHONPATH)/tmp
 	$(MKDIR_P) $(PYTHONPATH)/tmp/starpu
 	chmod u+w $(PYTHONPATH)/tmp/starpu
-	$(PYTHON) setup.py install --root '$(DESTDIR)'
+	$(PYTHON) setup.py install --prefix '$(DESTDIR)' --root '$(DESTDIR)$(prefix)'
 	rm -fr build/bdist*
 
 if STARPU_BUILD_STARPUPY
 clean-local:
-	rm -fr build $(top_builddir)/starpupy/src/starpupy.egg-info
-	rm -f starpu/*py starpu/*c
+	rm -rf lib dist build starpupy.egg-info
+	$(PYTHON) setup.py clean
 endif
 
 distclean-local:
 	rm -rf build dist lib
 
-uninstall-local:
-	rm -rf $(DESTDIR)$(prefix)/lib/python$(PYTHON_VERSION)/site-packages/starpu*
-	rm -rf $(DESTDIR)$(prefix)/lib/python$(PYTHON_VERSION)/site-packages/tmp/starpu*
+uninstall-local: clean-local
+	rm -rf $(DESTDIR)$(prefix)/lib/python$(PYTHON_VERSION)/site-packages/starpu/*
+	rm -rf $(DESTDIR)$(prefix)/lib/python$(PYTHON_VERSION)/site-packages/starpupy*
+	rm -rf $(DESTDIR)$(prefix)/lib/python$(PYTHON_VERSION)/site-packages/tmp/starpu/*
 
 EXTRA_DIST	=			\
 	delay.py			\
