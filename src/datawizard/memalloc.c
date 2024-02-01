@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2018,2021  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -1178,7 +1178,8 @@ void starpu_memchunk_tidy(unsigned node)
 			STARPU_ASSERT(handle);
 
 			/* This data cannot be pushed outside CPU memory */
-			if (!handle->ooc && starpu_node_get_kind(node) == STARPU_CPU_RAM)
+			if (!handle->ooc && starpu_node_get_kind(node) == STARPU_CPU_RAM
+				&& starpu_memory_nodes_get_numa_count() == 1)
 				continue;
 
 			if (_starpu_spin_trylock(&handle->header_lock))
