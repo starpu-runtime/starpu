@@ -16,6 +16,8 @@
 
 StarPU 1.4.4
 ==============================================
+Small changes:
+  * Fix build system for StarPU Python interface
 
 StarPU 1.4.3
 ==============================================
