@@ -16,6 +16,8 @@
 
 StarPU 1.5.0
 ==============================================
+Small changes:
+  * Fix build system for StarPU Python interface
 
 New features:
   * Add starpu_data_register_victim_selector to let schedulers select eviction
