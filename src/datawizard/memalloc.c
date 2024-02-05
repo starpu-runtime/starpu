@@ -546,7 +546,8 @@ int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node, enum starp
 			return 0;
 
 	/* This data cannot be pushed outside CPU memory */
-	if (!handle->ooc && starpu_node_get_kind(node) == STARPU_CPU_RAM
+	if (!handle->ooc && handle->home_node == -1
+		&& starpu_node_get_kind(node) == STARPU_CPU_RAM
 		&& starpu_memory_nodes_get_numa_count() == 1)
 		return 0;
 
@@ -1178,7 +1179,8 @@ void starpu_memchunk_tidy(unsigned node)
 			STARPU_ASSERT(handle);
 
 			/* This data cannot be pushed outside CPU memory */
-			if (!handle->ooc && starpu_node_get_kind(node) == STARPU_CPU_RAM
+			if (!handle->ooc && handle->home_node == -1
+				&& starpu_node_get_kind(node) == STARPU_CPU_RAM
 				&& starpu_memory_nodes_get_numa_count() == 1)
 				continue;
 
