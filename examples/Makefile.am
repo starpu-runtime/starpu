@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2011       Télécom-SudParis
 # Copyright (C) 2016       Uppsala University
 # Copyright (C) 2017       Erwan Leria
@@ -300,7 +300,7 @@ SHELL_TESTS +=					\
 
 pkglib_LTLIBRARIES +=	\
 	profiling_tool/libprofiling_tool.la
-profiling_tool_libprofiling_tool_la_LDFLAGS = $(ldflags) -no-undefined
+profiling_tool_libprofiling_tool_la_LDFLAGS = $(ldflags) -no-undefined -module -avoid-version
 endif
 
 if !STARPU_SIMGRID
@@ -311,7 +311,7 @@ SHELL_TESTS += \
 	scheduler/libdummy_sched.sh
 pkglib_LTLIBRARIES +=	\
 	scheduler/libdummy_sched.la
-scheduler_libdummy_sched_la_LDFLAGS = $(ldflags) -no-undefined
+scheduler_libdummy_sched_la_LDFLAGS = $(ldflags) -no-undefined -module -avoid-version
 
 if STARPU_HAVE_CXX11
 STARPU_EXAMPLES +=	\
@@ -1097,7 +1097,7 @@ if !STARPU_NO_BLAS_LIB
 
 pkglib_LTLIBRARIES +=	\
 	cholesky/libmy_dmda.la
-cholesky_libmy_dmda_la_LDFLAGS = $(ldflags) -no-undefined
+cholesky_libmy_dmda_la_LDFLAGS = $(ldflags) -no-undefined -module -avoid-version
 
 SHELL_TESTS	+=				\
 	cholesky/cholesky_julia.sh
