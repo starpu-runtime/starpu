@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011	    Télécom-SudParis
  * Copyright (C) 2013	    Thibaut Lambert
  *
@@ -149,12 +149,12 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 			}
 		}
 		_STARPU_TRACE_TASK_NAME_LINE_COLOR(j);
-		_STARPU_TRACE_START_CODELET_BODY(j, j->nimpl, &sched_ctx->perf_arch, workerid);
+		_STARPU_TRACE_START_CODELET_BODY(j, j->nimpl, &sched_ctx->perf_arch, workerid, rank);
 	}
 	else
 	{
 		_STARPU_TRACE_TASK_NAME_LINE_COLOR(j);
-		_STARPU_TRACE_START_CODELET_BODY(j, j->nimpl, perf_arch, workerid);
+		_STARPU_TRACE_START_CODELET_BODY(j, j->nimpl, perf_arch, workerid, rank);
 	}
 	_starpu_sched_ctx_unlock_read(sched_ctx->id);
 	_STARPU_TASK_BREAK_ON(task, exec);
@@ -175,12 +175,12 @@ void _starpu_driver_end_job(struct _starpu_worker *worker, struct _starpu_job *j
 	if (!sched_ctx->sched_policy)
 	{
 		_starpu_perfmodel_create_comb_if_needed(&(sched_ctx->perf_arch));
-		_STARPU_TRACE_END_CODELET_BODY(j, j->nimpl, &(sched_ctx->perf_arch), workerid);
+		_STARPU_TRACE_END_CODELET_BODY(j, j->nimpl, &(sched_ctx->perf_arch), workerid, rank);
 	}
 	else
 	{
 		_starpu_perfmodel_create_comb_if_needed(perf_arch);
-		_STARPU_TRACE_END_CODELET_BODY(j, j->nimpl, perf_arch, workerid);
+		_STARPU_TRACE_END_CODELET_BODY(j, j->nimpl, perf_arch, workerid, rank);
 	}
 
 	if (cl && cl->model && cl->model->benchmarking)

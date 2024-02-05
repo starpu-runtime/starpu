@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Joris Pablo
  * Copyright (C) 2018,2020  Federal University of Rio Grande do Sul (UFRGS)
  *
@@ -821,12 +821,12 @@ do {									\
 		FUT_DO_ALWAYS_PROBE2(_STARPU_FUT_WORKER_INIT_END, _starpu_gettid(), (__workerid)); \
 } while (0)
 
-#define _STARPU_TRACE_START_CODELET_BODY(job, nimpl, perf_arch, workerid)				\
+#define _STARPU_TRACE_START_CODELET_BODY(job, nimpl, perf_arch, workerid, rank)				\
 do {									\
     if(STARPU_UNLIKELY((_STARPU_FUT_KEYMASK_TASK|_STARPU_FUT_KEYMASK_TASK_VERBOSE|_STARPU_FUT_KEYMASK_DATA|_STARPU_FUT_KEYMASK_TASK_VERBOSE_EXTRA) & fut_active)) { \
 	FUT_FULL_PROBE4(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_START_CODELET_BODY, (job)->job_id, ((job)->task)->sched_ctx, workerid, starpu_worker_get_memory_node(workerid)); \
 	{								\
-		if ((job)->task->cl)					\
+		if (rank == 0 && (job)->task->cl)			\
 		{							\
 			const int __nbuffers = STARPU_TASK_GET_NBUFFERS((job)->task);	\
 			char __buf[FXT_MAX_PARAMS*sizeof(long)];	\
@@ -861,7 +861,7 @@ do {									\
     } \
 } while(0)
 
-#define _STARPU_TRACE_END_CODELET_BODY(job, nimpl, perf_arch, workerid)			\
+#define _STARPU_TRACE_END_CODELET_BODY(job, nimpl, perf_arch, workerid, rank)			\
 do {									\
     if(STARPU_UNLIKELY((_STARPU_FUT_KEYMASK_TASK) & fut_active)) { \
 	const size_t job_size = _starpu_job_get_data_size((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job));	\
@@ -1438,8 +1438,8 @@ do {										\
 #define _STARPU_TRACE_REGISTER_THREAD(cpuid)		do {(void)(cpuid);} while(0)
 #define _STARPU_TRACE_WORKER_INIT_START(a,b,c,d,e,f)	do {(void)(a); (void)(b); (void)(c); (void)(d); (void)(e); (void)(f);} while(0)
 #define _STARPU_TRACE_WORKER_INIT_END(workerid)		do {(void)(workerid);} while(0)
-#define _STARPU_TRACE_START_CODELET_BODY(job, nimpl, perf_arch, workerid) 	do {(void)(job); (void)(nimpl); (void)(perf_arch); (void)(workerid);} while(0)
-#define _STARPU_TRACE_END_CODELET_BODY(job, nimpl, perf_arch, workerid)		do {(void)(job); (void)(nimpl); (void)(perf_arch); (void)(workerid);} while(0)
+#define _STARPU_TRACE_START_CODELET_BODY(job, nimpl, perf_arch, workerid, rank) do {(void)(job); (void)(nimpl); (void)(perf_arch); (void)(workerid); (void)(rank);} while(0)
+#define _STARPU_TRACE_END_CODELET_BODY(job, nimpl, perf_arch, workerid, rank)	do {(void)(job); (void)(nimpl); (void)(perf_arch); (void)(workerid); (void)(rank);} while(0)
 #define _STARPU_TRACE_START_EXECUTING(job)	do {(void)(job);} while(0)
 #define _STARPU_TRACE_END_EXECUTING(job)	do {(void)(job);} while(0)
 #define _STARPU_TRACE_START_PARALLEL_SYNC(job)	do {(void)(job);} while(0)

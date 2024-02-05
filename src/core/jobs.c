@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
  *
@@ -858,7 +858,7 @@ void _starpu_bubble_execute(struct _starpu_job *j)
 {
 	_STARPU_TRACE_BUBBLE(j);
 	_STARPU_TRACE_TASK_NAME_LINE_COLOR(j);
-	_STARPU_TRACE_START_CODELET_BODY(j, 0, NULL, 0);
+	_STARPU_TRACE_START_CODELET_BODY(j, 0, NULL, 0, 0);
 	STARPU_ASSERT_MSG(j->task->bubble_gen_dag_func!=NULL || (j->task->cl && j->task->cl->bubble_gen_dag_func!=NULL),
 			  "task->bubble_gen_dag_func MUST be defined\n");
 
@@ -873,7 +873,7 @@ void _starpu_bubble_execute(struct _starpu_job *j)
 	else
 		j->task->cl->bubble_gen_dag_func(j->task, j->task->bubble_gen_dag_func_arg);
 	j->task->where = STARPU_NOWHERE;
-	_STARPU_TRACE_END_CODELET_BODY(j, 0, NULL, 0);
+	_STARPU_TRACE_END_CODELET_BODY(j, 0, NULL, 0, 0);
 }
 #endif
 
