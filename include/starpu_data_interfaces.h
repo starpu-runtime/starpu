@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -1006,7 +1006,8 @@ void starpu_interface_end_driver_copy_async(unsigned src_node, unsigned dst_node
 void starpu_interface_data_copy(unsigned src_node, unsigned dst_node, size_t size);
 
 /**
-   Allocate \p size bytes on node \p dst_node with the given allocation \p flags. This returns 0 if
+   Allocate \p size bytes on node \p dst_node with the given allocation \p flags
+   (such as ::STARPU_MALLOC_PINNED, ::STARPU_MALLOC_COUNT, etc.). This returns 0 if
    allocation failed, the allocation method should then return <c>-ENOMEM</c> as
    allocated size. Deallocation must be done with starpu_free_on_node_flags().
 
