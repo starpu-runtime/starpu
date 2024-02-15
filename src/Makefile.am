@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2013       Simon Archipoff
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -469,4 +469,4 @@ dist-hook:
 		nm $$j | $(GREP) -e "U \($$look\)$$" && { echo $$j ; failed=1 ; } ; \
 	done ; \
 	[ $$failed == 0 ]
-	nm -n .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.so | grep -v " [Ua-z] " | grep -ve " _\?_\?_\?f\?starpu" | grep -ve " \(_init\|main\|smpi_simulated_main_\|_fini\|_edata\|__bss_start\|_end\|fut_getstamp\|__gcov_\|mangle_path\)" | (! grep .)
+	nm -n .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.so | grep -v " [Ua-z] " | grep -v ' W '| grep -ve " _\?_\?_\?f\?starpu" | grep -ve " \(_init\|main\|smpi_simulated_main_\|_fini\|_edata\|__bss_start\|_end\|fut_getstamp\|__gcov_\|mangle_path\)" | (! grep .)
