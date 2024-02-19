@@ -78,7 +78,8 @@ int _starpu_mpi_choose_node(starpu_data_handle_t handle, enum starpu_data_access
 
 		for (i = 0; i < STARPU_MAXNODES; i++)
 		{
-			if (starpu_node_get_kind(i) == STARPU_CPU_RAM)
+                       if (starpu_node_get_kind(i) == STARPU_CPU_RAM
+                               || (_starpu_mpi_has_cuda && starpu_node_get_kind(i) == STARPU_CUDA_RAM))
 			{
 				starpu_ssize_t size = starpu_memory_get_available(i);
 				if (size >= needed && size > maximum)
