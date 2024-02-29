@@ -35,6 +35,7 @@ extern "C" {
 */
 void starpu_hipblas_init(void);
 
+#ifdef STARPU_USE_HIP
 #ifndef STARPU_USE_HIPBLAS
 typedef void* hipblasHandle_t;
 #endif
@@ -45,6 +46,7 @@ typedef void* hipblasHandle_t;
    starpu_hipblas_init().
 */
 hipblasHandle_t starpu_hipblas_get_local_handle(void);
+#endif
 
 /**
    Synchronously deinitialize the HIPBLAS library on
