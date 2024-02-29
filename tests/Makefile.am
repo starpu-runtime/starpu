@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -348,6 +348,7 @@ myPROGRAMS +=				\
 	microbenchs/matrix_as_vector		\
 	microbenchs/bandwidth			\
 	overlap/gpu_concurrency			\
+	parallel_tasks/combined_worker_assign_workerid	\
 	parallel_tasks/explicit_combined_worker	\
 	parallel_tasks/parallel_kernels		\
 	parallel_tasks/parallel_kernels_trivial	\
