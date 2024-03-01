@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
  *
@@ -97,6 +97,8 @@ int _starpu_create_bus_sampling_directory_if_needed(int location);
 void _starpu_create_codelet_sampling_directory_if_needed(int location);
 
 void _starpu_load_bus_performance_files(void);
+
+void _starpu_init_bus_performance(void);
 
 int _starpu_get_perf_model_bus();
 int _starpu_set_default_perf_model_bus();
