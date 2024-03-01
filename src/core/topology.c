@@ -3035,6 +3035,8 @@ int _starpu_build_topology(struct _starpu_machine_config *config, int no_mp_conf
 		}
 	}
 
+	_starpu_init_bus_performance();
+
 	return 0;
 }
 
