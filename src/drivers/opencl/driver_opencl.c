@@ -1835,6 +1835,7 @@ struct _starpu_node_ops _starpu_driver_opencl_node_ops =
 	.wait_request_completion = _starpu_opencl_wait_request_completion,
 	.test_request_completion = _starpu_opencl_test_request_completion,
 
+	.calibrate_bus = 1,
 	.device_name = _starpu_opencl_device_name,
 	.total_memory = _starpu_opencl_total_memory,
 	.max_memory = _starpu_opencl_max_memory,
