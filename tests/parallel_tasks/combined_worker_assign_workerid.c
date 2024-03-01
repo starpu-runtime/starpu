@@ -81,7 +81,7 @@ int main(void)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	combined_ncpus = starpu_cpu_worker_get_count();
-	if (combined_ncpus < 2) goto shutdown;
+	if (combined_ncpus < 4) goto shutdown;
 
 	int *workerids = malloc(sizeof(int) * combined_ncpus);
 	starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, workerids, combined_ncpus);
