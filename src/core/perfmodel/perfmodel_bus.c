@@ -1359,6 +1359,7 @@ static double search_bus_best_latency(int src, enum starpu_node_kind type, int h
 
 static void write_bus_latency_file_content(void)
 {
+	enum starpu_node_kind type;
 	unsigned src, dst, maxnode;
 	/* Boundaries to check if src or dst are inside the interval */
 	unsigned b_low, b_up;
@@ -1385,11 +1386,15 @@ static void write_bus_latency_file_content(void)
 	_starpu_fftruncate(f, 0);
 
 	fprintf(f, "# ");
-	for (dst = 0; dst < STARPU_MAXNODES; dst++)
-		fprintf(f, "to %u\t\t", dst);
+	for (type = STARPU_CPU_RAM; type < STARPU_NRAM; type++)
+	{
+		for (dst = 0; dst < nmem[type]; dst++)
+		{
+			fprintf(f, "to %s %d\t", _starpu_node_get_prefix(type), dst);
+		}
+	}
 	fprintf(f, "\n");
 
-	enum starpu_node_kind type;
 	maxnode = 0;
 	for (type = STARPU_CPU_RAM; type < STARPU_NRAM; type++)
 		maxnode += nmem[type];
@@ -1642,6 +1647,7 @@ static double search_bus_best_timing(int src, enum starpu_node_kind type, int ht
 
 static void write_bus_bandwidth_file_content(void)
 {
+	enum starpu_node_kind type;
 	unsigned src, dst, maxnode;
 	unsigned b_low, b_up;
 	FILE *f;
@@ -1662,11 +1668,15 @@ static void write_bus_bandwidth_file_content(void)
 	_starpu_fftruncate(f, 0);
 
 	fprintf(f, "# ");
-	for (dst = 0; dst < STARPU_MAXNODES; dst++)
-		fprintf(f, "to %u\t\t", dst);
+	for (type = STARPU_CPU_RAM; type < STARPU_NRAM; type++)
+	{
+		for (dst = 0; dst < nmem[type]; dst++)
+		{
+			fprintf(f, "to %s %d\t", _starpu_node_get_prefix(type), dst);
+		}
+	}
 	fprintf(f, "\n");
 
-	enum starpu_node_kind type;
 	maxnode = 0;
 	for (type = STARPU_CPU_RAM; type < STARPU_NRAM; type++)
 		maxnode += nmem[type];
