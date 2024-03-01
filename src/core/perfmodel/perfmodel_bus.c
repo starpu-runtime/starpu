@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -89,8 +89,10 @@ struct dev_timing
 	double latency_dtoh;
 };
 
-static double bandwidth_matrix[STARPU_MAXNODES][STARPU_MAXNODES]; /* MB/s */
-static double latency_matrix[STARPU_MAXNODES][STARPU_MAXNODES]; /* µs */
+static double raw_bandwidth_matrix[STARPU_MAXNODES][STARPU_MAXNODES];	/* MB/s, indexed by device ids */
+static double bandwidth_matrix[STARPU_MAXNODES][STARPU_MAXNODES];	/* MB/s, indexed by memory nodes */
+static double raw_latency_matrix[STARPU_MAXNODES][STARPU_MAXNODES];	/* µs, indexed by devices ids */
+static double latency_matrix[STARPU_MAXNODES][STARPU_MAXNODES];		/* µs, indexed by memory nodes */
 static unsigned was_benchmarked = 0;
 #ifndef STARPU_SIMGRID
 static unsigned ncpus = 0;
@@ -1077,7 +1079,7 @@ static int load_bus_latency_file_content(void)
 				return 0;
 			}
 
-			latency_matrix[src][dst] = latency;
+			raw_latency_matrix[src][dst] = latency;
 
 			/* Look out for \t\n */
 			n = getc(f);
@@ -1089,7 +1091,7 @@ static int load_bus_latency_file_content(void)
 
 		/* No more values, take NAN */
 		for (; dst < STARPU_MAXNODES; dst++)
-			latency_matrix[src][dst] = NAN;
+			raw_latency_matrix[src][dst] = NAN;
 
 		while (n == '\t')
 		{
@@ -1128,7 +1130,7 @@ static int load_bus_latency_file_content(void)
 	/* No more values, take NAN */
 	for (; src < STARPU_MAXNODES; src++)
 		for (dst = 0; dst < STARPU_MAXNODES; dst++)
-			latency_matrix[src][dst] = NAN;
+			raw_latency_matrix[src][dst] = NAN;
 
 	return 1;
 }
@@ -1365,7 +1367,7 @@ static int load_bus_bandwidth_file_content(void)
 #endif
 			}
 
-			bandwidth_matrix[src][dst] = bandwidth;
+			raw_bandwidth_matrix[src][dst] = bandwidth;
 
 			/* Look out for \t\n */
 			n = getc(f);
@@ -1377,7 +1379,7 @@ static int load_bus_bandwidth_file_content(void)
 
 		/* No more values, take NAN */
 		for (; dst < STARPU_MAXNODES; dst++)
-			bandwidth_matrix[src][dst] = NAN;
+			raw_bandwidth_matrix[src][dst] = NAN;
 
 		while (n == '\t')
 		{
@@ -1416,7 +1418,7 @@ static int load_bus_bandwidth_file_content(void)
 	/* No more values, take NAN */
 	for (; src < STARPU_MAXNODES; src++)
 		for (dst = 0; dst < STARPU_MAXNODES; dst++)
-			latency_matrix[src][dst] = NAN;
+			raw_bandwidth_matrix[src][dst] = NAN;
 
 	return 1;
 }
@@ -2905,6 +2907,35 @@ void _starpu_load_bus_performance_files(void)
 #ifndef STARPU_SIMGRID
 	check_bus_platform_file();
 #endif
+}
+
+static unsigned _get_raw_memory_node_index(unsigned node)
+{
+	enum starpu_node_kind type = starpu_node_get_kind(node), cur;
+	int devid = starpu_memory_node_get_devid(node);
+	unsigned base;
+
+	base = 0;
+	for (cur = STARPU_CPU_RAM; cur < type; cur++)
+		base += nmem[cur];
+
+	return base + devid;
+}
+
+void _starpu_init_bus_performance(void)
+{
+	unsigned src, dst, raw_src, raw_dst;
+
+	for (src = 0; src < STARPU_MAXNODES; src++)
+	{
+		for (dst = 0; dst < STARPU_MAXNODES; dst++)
+		{
+			raw_src = _get_raw_memory_node_index(src);
+			raw_dst = _get_raw_memory_node_index(dst);
+			bandwidth_matrix[src][dst] = raw_bandwidth_matrix[raw_src][raw_dst];
+			latency_matrix[src][dst] = raw_latency_matrix[raw_src][raw_dst];
+		}
+	}
 }
 
 /* (in MB/s) */

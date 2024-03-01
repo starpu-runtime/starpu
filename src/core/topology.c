@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2016       Uppsala University
  *
@@ -2130,6 +2130,8 @@ int _starpu_build_topology(struct _starpu_machine_config *config, int no_mp_conf
 		else if (config->arch_nodeid[type] != (int) starpu_worker_get_memory_node(i))
 			config->arch_nodeid[type] = -2;
 	}
+
+	_starpu_init_bus_performance();
 
 	return 0;
 }
