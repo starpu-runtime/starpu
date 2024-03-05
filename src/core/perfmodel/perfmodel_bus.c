@@ -288,15 +288,16 @@ static void measure_bandwidth_between_host_and_dev_on_numa(int dev, enum starpu_
 	{
 		/* we use STARPU_MAIN_RAM */
 		_STARPU_MALLOC(h_buffer, size);
+	}
+
 #if defined(STARPU_USE_CUDA)
-		if (kind == STARPU_CUDA_RAM)
-			cudaHostRegister((void *)h_buffer, size, 0);
+	if (kind == STARPU_CUDA_RAM)
+		cudaHostRegister((void *)h_buffer, size, 0);
 #endif
 #if defined(STARPU_USE_HIP)
-		if (kind == STARPU_HIP_RAM)
-			hipHostRegister((void *)h_buffer, size, 0);
+	if (kind == STARPU_HIP_RAM)
+		hipHostRegister((void *)h_buffer, size, 0);
 #endif
-	}
 
 	/* hack to avoid third party libs to rebind threads */
 	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID, NULL);
