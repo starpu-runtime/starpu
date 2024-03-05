@@ -206,8 +206,9 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 	{
 		/* we use STARPU_MAIN_RAM */
 		_STARPU_MALLOC(h_buffer, size);
-		cudaHostRegister((void *)h_buffer, size, 0);
 	}
+
+	cudaHostRegister((void *)h_buffer, size, 0);
 
 	if (STARPU_UNLIKELY(cures)) STARPU_CUDA_REPORT_ERROR(cures);
 
