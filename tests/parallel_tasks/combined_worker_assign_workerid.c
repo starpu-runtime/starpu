@@ -92,6 +92,7 @@ int main(void)
 		ctx_id = 0;
 
 	combined_workerid = starpu_combined_worker_assign_workerid(combined_ncpus, workerids);
+	STARPU_ASSERT(combined_workerid > 0);
 	free(workerids);
 
 	struct starpu_worker_collection* workers = starpu_sched_ctx_get_worker_collection(ctx_id);
