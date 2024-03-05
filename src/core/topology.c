@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2016       Uppsala University
  *
@@ -1044,21 +1044,27 @@ static void _starpu_deinitialize_workers_bindid(struct _starpu_machine_config *c
  * we look for a an available core among the list if possible, otherwise a
  * round-robin policy is used. */
 static inline unsigned _starpu_get_next_bindid(struct _starpu_machine_config *config, unsigned flags,
-					       unsigned *preferred_binding, unsigned npreferred)
+					       unsigned *preferred_numa_binding, unsigned npreferred_numa)
 {
 	struct _starpu_machine_topology *topology = &config->topology;
 
 	STARPU_ASSERT_MSG(topology_is_initialized, "The StarPU core is not initialized yet, have you called starpu_init?");
+
+	unsigned preferred_binding[STARPU_NMAXWORKERS];
+	unsigned npreferred;
 
 	unsigned current_preferred;
 	unsigned nhyperthreads = topology->nhwpus / topology->nhwcpus;
 	unsigned workers_nbindid = topology->workers_nbindid;
 	unsigned i;
 
-	if (npreferred)
+	if (npreferred_numa)
 	{
 		STARPU_ASSERT_MSG(preferred_binding, "Passing NULL pointer for parameter preferred_binding with a non-0 value of parameter npreferred");
+		npreferred = _starpu_topology_get_numa_core_binding(config, preferred_numa_binding, npreferred_numa, preferred_binding, STARPU_NMAXWORKERS);
 	}
+	else
+		npreferred = 0;
 
 	/* loop over the preference list */
 	for (current_preferred = 0;
@@ -1152,7 +1158,7 @@ unsigned _starpu_topology_get_nhwpu(struct _starpu_machine_config *config)
 	return config->topology.nhwpus;
 }
 
-unsigned _starpu_topology_get_nnumanodes(struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED)
+unsigned _starpu_topology_get_nhwnumanodes(struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED)
 {
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 	if (config->conf.nopencl != 0)
@@ -1168,20 +1174,70 @@ unsigned _starpu_topology_get_nnumanodes(struct _starpu_machine_config *config S
 #if defined(STARPU_HAVE_HWLOC)
 	if (numa_enabled == -1)
 		numa_enabled = starpu_get_env_number_default("STARPU_USE_NUMA", 0);
-	if (numa_enabled)
-	{
-		struct _starpu_machine_topology *topology = &config->topology ;
-		int nnumanodes = hwloc_get_nbobjs_by_type(topology->hwtopology, HWLOC_OBJ_NUMANODE) ;
-		res = nnumanodes > 0 ? nnumanodes : 1 ;
-	}
-	else
+
+	struct _starpu_machine_topology *topology = &config->topology ;
+	int nnumanodes = hwloc_get_nbobjs_by_type(topology->hwtopology, HWLOC_OBJ_NUMANODE) ;
+	res = nnumanodes > 0 ? nnumanodes : 1 ;
+#else
+	res = 1;
 #endif
-	{
-		res = 1;
-	}
 
 	STARPU_ASSERT_MSG(res <= STARPU_MAXNUMANODES, "Number of NUMA nodes discovered %d is higher than maximum accepted %d ! Use configure option --enable-maxnumanodes=xxx to increase the maximum value of supported NUMA nodes.\n", res, STARPU_MAXNUMANODES);
 	return res;
+}
+
+unsigned _starpu_topology_get_nnumanodes(struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED)
+{
+	unsigned res;
+#if defined(STARPU_HAVE_HWLOC)
+	if (numa_enabled)
+		res = _starpu_topology_get_nhwnumanodes(config);
+	else
+#endif
+		res = 1;
+
+	return res;
+}
+
+static unsigned _starpu_topology_get_core_binding(unsigned *binding, unsigned nbinding, hwloc_obj_t obj)
+{
+	unsigned found = 0;
+	unsigned n;
+
+	if (obj->type == HWLOC_OBJ_CORE)
+	{
+		*binding = obj->logical_index;
+		found++;
+	}
+
+	for (n = 0; n < obj->arity; n++) {
+		found += _starpu_topology_get_core_binding(binding + found, nbinding - found, obj->children[n]);
+	}
+	return found;
+}
+
+unsigned _starpu_topology_get_numa_core_binding(struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED, const unsigned *numa_binding, unsigned nnuma, unsigned *binding, unsigned nbinding)
+{
+#if defined(STARPU_HAVE_HWLOC)
+	unsigned n;
+	unsigned cur = 0;
+
+	for (n = 0; n < nnuma; n++)
+	{
+		hwloc_obj_t obj = hwloc_get_obj_by_type(config->topology.hwtopology, HWLOC_OBJ_NUMANODE, numa_binding[n]);
+
+#if HWLOC_API_VERSION >= 0x00020000
+		/* Get the actual topology object */
+		obj = obj->parent;
+#endif
+		cur += _starpu_topology_get_core_binding(binding + cur, nbinding - cur, obj);
+		if (cur == nbinding)
+			break;
+	}
+	return cur;
+#else
+	return 0;
+#endif
 }
 
 #ifdef STARPU_HAVE_HWLOC
@@ -2523,7 +2579,8 @@ static void _starpu_init_workers_binding_and_memory(struct _starpu_machine_confi
 	}
 
 	/* Init CPU binding before NUMA nodes, because we use it to discover NUMA nodes */
-	_starpu_init_binding_cpu(config);
+	if (numa_enabled)
+		_starpu_init_binding_cpu(config);
 
 	/* Initialize NUMA nodes */
 	_starpu_init_numa_node(config);
@@ -2552,6 +2609,9 @@ static void _starpu_init_workers_binding_and_memory(struct _starpu_machine_confi
 				if (numa_starpu_id < 0 || numa_starpu_id >= STARPU_MAXNUMANODES)
 					numa_starpu_id = STARPU_MAIN_RAM;
 
+				if (!numa_enabled)
+					workerarg->bindid = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, NULL, 0);
+
 #if defined(STARPU_HAVE_HWLOC) && !defined(STARPU_SIMGRID)
 				hwloc_obj_t pu_obj = hwloc_get_obj_by_type(config->topology.hwtopology, HWLOC_OBJ_PU, workerarg->bindid);
 				struct _starpu_hwloc_userdata *userdata = pu_obj->userdata;
@@ -2574,7 +2634,7 @@ static void _starpu_init_workers_binding_and_memory(struct _starpu_machine_confi
 				{
 					/* StarPU is allowed to bind threads automatically */
 					preferred_binding = _starpu_get_cuda_affinity_vector(devid);
-					npreferred = config->topology.nhwpus;
+					npreferred = _starpu_topology_get_nhwnumanodes(config);
 				}
 #endif /* SIMGRID */
 				if (cuda_init[devid])
@@ -2687,7 +2747,7 @@ static void _starpu_init_workers_binding_and_memory(struct _starpu_machine_confi
 				{
 					/* StarPU is allowed to bind threads automatically */
 					preferred_binding = _starpu_get_opencl_affinity_vector(devid);
-					npreferred = config->topology.nhwpus;
+					npreferred = _starpu_topology_get_nhwnumanodes(config);
 				}
 #endif /* SIMGRID */
 				if (opencl_init[devid])

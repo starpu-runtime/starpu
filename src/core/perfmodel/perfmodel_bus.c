@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022, 2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -104,7 +104,7 @@ static double numa_timing[STARPU_MAXNUMANODES][STARPU_MAXNUMANODES];
 static uint64_t cuda_size[STARPU_MAXCUDADEVS];
 #endif
 #ifdef STARPU_USE_CUDA
-/* preference order of cores (logical indexes) */
+/* preference order of NUMA nodes (logical indexes) */
 static unsigned cuda_affinity_matrix[STARPU_MAXCUDADEVS][STARPU_MAXNUMANODES];
 
 #ifndef STARPU_SIMGRID
@@ -121,7 +121,7 @@ static char cudadev_direct[STARPU_MAXNODES][STARPU_MAXNODES];
 static uint64_t opencl_size[STARPU_MAXOPENCLDEVS];
 #endif
 #ifdef STARPU_USE_OPENCL
-/* preference order of cores (logical indexes) */
+/* preference order of NUMA nodes (logical indexes) */
 static unsigned opencl_affinity_matrix[STARPU_MAXOPENCLDEVS][STARPU_MAXNUMANODES];
 static struct dev_timing opencldev_timing_per_numa[STARPU_MAXOPENCLDEVS*STARPU_MAXNUMANODES];
 #endif
@@ -190,7 +190,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 
 #if defined(STARPU_HAVE_HWLOC)
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
-	const unsigned nnuma_nodes = _starpu_topology_get_nnumanodes(config);
+	const unsigned nnuma_nodes = _starpu_topology_get_nhwnumanodes(config);
 	if (nnuma_nodes > 1)
 	{
 		/* NUMA mode activated */
@@ -469,7 +469,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_opencl(int dev, 
 	unsigned char *h_buffer;
 #if defined(STARPU_HAVE_HWLOC)
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
-	const unsigned nnuma_nodes = _starpu_topology_get_nnumanodes(config);
+	const unsigned nnuma_nodes = _starpu_topology_get_nhwnumanodes(config);
 
 	if (nnuma_nodes > 1)
 	{
@@ -622,7 +622,7 @@ static void measure_bandwidth_between_numa_nodes_and_dev(int dev, struct dev_tim
 {
 	/* We measure the bandwith between each GPU and each NUMA node */
 	struct _starpu_machine_config * config = _starpu_get_machine_config();
-	const unsigned nnuma_nodes = _starpu_topology_get_nnumanodes(config);
+	const unsigned nnuma_nodes = _starpu_topology_get_nhwnumanodes(config);
 
 	unsigned numa_id;
 	for (numa_id = 0; numa_id < nnuma_nodes; numa_id++)
@@ -674,7 +674,7 @@ static void measure_bandwidth_between_host_and_dev(int dev, struct dev_timing *d
 
 #ifdef STARPU_VERBOSE
 	struct _starpu_machine_config * config = _starpu_get_machine_config();
-	const unsigned nnuma_nodes = _starpu_topology_get_nnumanodes(config);
+	const unsigned nnuma_nodes = _starpu_topology_get_nhwnumanodes(config);
 	unsigned numa_id;
 	for (numa_id = 0; numa_id < nnuma_nodes; numa_id++)
 	{
@@ -784,7 +784,7 @@ static void benchmark_all_gpu_devices(void)
 
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	ncpus = _starpu_topology_get_nhwcpu(config);
-	nnumas = _starpu_topology_get_nnumanodes(config);
+	nnumas = _starpu_topology_get_nhwnumanodes(config);
 
 	for (i = 0; i < nnumas; i++)
 		for (j = 0; j < nnumas; j++)
@@ -1895,7 +1895,7 @@ void starpu_bus_print_bandwidth(FILE *f)
 	{
 		struct dev_timing *timing;
 		struct _starpu_machine_config * config = _starpu_get_machine_config();
-		unsigned config_nnumas = _starpu_topology_get_nnumanodes(config);
+		unsigned config_nnumas = _starpu_topology_get_nhwnumanodes(config);
 		unsigned numa;
 
 #ifdef STARPU_USE_CUDA
@@ -2096,7 +2096,7 @@ static void check_bus_config_file(void)
 
 		// Loading current configuration
 		ncpus = _starpu_topology_get_nhwcpu(config);
-		nnumas = _starpu_topology_get_nnumanodes(config);
+		nnumas = _starpu_topology_get_nhwnumanodes(config);
 #ifdef STARPU_USE_CUDA
 		ncuda = _starpu_get_cuda_device_count();
 #endif
@@ -3131,7 +3131,7 @@ void _starpu_load_bus_performance_files(void)
 	_starpu_create_sampling_directory_if_needed();
 
 	struct _starpu_machine_config * config = _starpu_get_machine_config();
-	nnumas = _starpu_topology_get_nnumanodes(config);
+	nnumas = _starpu_topology_get_nhwnumanodes(config);
 #ifndef STARPU_SIMGRID
 	ncpus = _starpu_topology_get_nhwcpu(config);
 #endif

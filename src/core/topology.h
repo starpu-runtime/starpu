@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021, 2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -56,8 +56,14 @@ unsigned _starpu_topology_get_nhwcpu(struct _starpu_machine_config *config);
 /** returns the number of logical cpus */
 unsigned _starpu_topology_get_nhwpu(struct _starpu_machine_config *config);
 
+/** returns the number of hardware NUMA nodes */
+unsigned _starpu_topology_get_nhwnumanodes(struct _starpu_machine_config *config);
+
 /** returns the number of NUMA nodes */
 unsigned _starpu_topology_get_nnumanodes(struct _starpu_machine_config *config);
+
+/** given a list of numa nodes (logical indexes) \p numa_binding, fill \p binding with the corresponding cores (logical indexes) */
+unsigned _starpu_topology_get_numa_core_binding(struct _starpu_machine_config *config, const unsigned *numa_binding, unsigned nnuma, unsigned *binding, unsigned nbinding);
 
 /** returns the number of hyperthreads per core */
 unsigned _starpu_get_nhyperthreads();
