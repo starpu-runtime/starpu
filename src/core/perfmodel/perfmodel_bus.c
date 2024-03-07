@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -522,7 +522,7 @@ static int find_numa_node(hwloc_obj_t obj)
 #if HWLOC_API_VERSION >= 0x00020000
 	while (current->memory_first_child == NULL)
 #else
-	while (current->depth != HWLOC_OBJ_NUMANODE)
+	while (current->type != HWLOC_OBJ_NUMANODE)
 #endif
 	{
 		current = current->parent;
@@ -535,7 +535,7 @@ static int find_numa_node(hwloc_obj_t obj)
 #if HWLOC_API_VERSION >= 0x00020000
 	current = current->memory_first_child;
 #else
-	STARPU_ASSERT(current->depth == HWLOC_OBJ_NUMANODE);
+	STARPU_ASSERT(current->type == HWLOC_OBJ_NUMANODE);
 #endif
 
 	return current->logical_index;
