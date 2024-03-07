@@ -605,7 +605,7 @@ static int find_cpu_from_numa_node(hwloc_obj_t obj)
 	STARPU_ASSERT(obj);
 	hwloc_obj_t current = obj;
 
-	while (current->depth != HWLOC_OBJ_PU)
+	while (current->type != HWLOC_OBJ_PU)
 	{
 		current = current->first_child;
 
@@ -615,7 +615,7 @@ static int find_cpu_from_numa_node(hwloc_obj_t obj)
                         return -1;
 	}
 
-	STARPU_ASSERT(current->depth == HWLOC_OBJ_PU);
+	STARPU_ASSERT(current->type == HWLOC_OBJ_PU);
 
 	return current->logical_index;
 }
