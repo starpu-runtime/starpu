@@ -145,6 +145,43 @@ hwloc_topology_t _starpu_perfmodel_get_hwtopology()
 {
 	return hwtopology;
 }
+
+static int find_cpu_from_numa_node(unsigned numa_id)
+{
+	hwloc_obj_t obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NUMANODE, numa_id);
+
+	if (obj)
+	{
+#if HWLOC_API_VERSION >= 0x00020000
+		/* From hwloc 2.0, NUMAnode objects do not contain CPUs, they
+		 * are contained in a group which contain the CPUs. */
+		obj = obj->parent;
+#endif
+	}
+	else
+	{
+		/* No such NUMA node, probably hwloc 1.x with no NUMA
+		 * node, just take one CPU from the whole system */
+		obj = hwloc_get_root_obj(hwtopology);
+	}
+
+	STARPU_ASSERT(obj);
+	hwloc_obj_t current = obj;
+
+	while (current->type != HWLOC_OBJ_PU)
+	{
+		current = current->first_child;
+
+		/* If we don't find a "PU" obj before the leave, perhaps we are
+		 * just not allowed to use it. */
+		if (!current)
+			return -1;
+	}
+
+	STARPU_ASSERT(current->type == HWLOC_OBJ_PU);
+
+	return current->logical_index;
+}
 #endif
 
 #if (defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)) && !defined(STARPU_SIMGRID)
@@ -599,28 +636,6 @@ static int compar_dev_timing(const void *left_dev_timing, const void *right_dev_
 	return (timing_sum2_left > timing_sum2_right);
 }
 
-#ifdef STARPU_HAVE_HWLOC
-static int find_cpu_from_numa_node(hwloc_obj_t obj)
-{
-	STARPU_ASSERT(obj);
-	hwloc_obj_t current = obj;
-
-	while (current->type != HWLOC_OBJ_PU)
-	{
-		current = current->first_child;
-
-                /* If we don't find a "PU" obj before the leave, perhaps we are
-                 * just not allowed to use it. */
-                if (!current)
-                        return -1;
-	}
-
-	STARPU_ASSERT(current->type == HWLOC_OBJ_PU);
-
-	return current->logical_index;
-}
-#endif
-
 static void measure_bandwidth_between_numa_nodes_and_dev(int dev, struct dev_timing *dev_timing_per_numanode, char *type)
 {
 	/* We measure the bandwith between each GPU and each NUMA node */
@@ -639,22 +654,8 @@ static void measure_bandwidth_between_numa_nodes_and_dev(int dev, struct dev_tim
 		/* Chose one CPU connected to this NUMA node */
 		int cpu_id = 0;
 #ifdef STARPU_HAVE_HWLOC
-		hwloc_obj_t obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NUMANODE, numa_id);
-
-		if (obj)
-		{
-#if HWLOC_API_VERSION >= 0x00020000
-			/* From hwloc 2.0, NUMAnode objects do not contain CPUs, they are contained in a group which contain the CPUs. */
-			obj = obj->parent;
+		cpu_id = find_cpu_from_numa_node(numa_id);
 #endif
-			cpu_id = find_cpu_from_numa_node(obj);
-		}
-		else
-                        /* No such NUMA node, probably hwloc 1.x with no NUMA
-                         * node, just take one CPU from the whole system */
-			cpu_id = find_cpu_from_numa_node(hwloc_get_root_obj(hwtopology));
-#endif
-
 		if (cpu_id < 0)
 			continue;
 
@@ -702,6 +703,17 @@ static void measure_bandwidth_latency_between_numa(int numa_src, int numa_dst)
 		double start, end, timing;
 		unsigned iter;
 
+		/* Chose one CPU connected to this NUMA node */
+		int cpu_id = 0;
+#ifdef STARPU_HAVE_HWLOC
+		cpu_id = find_cpu_from_numa_node(numa_src);
+#endif
+		if (cpu_id < 0)
+			/* We didn't find a CPU attached to the numa_src NUMA nodes */
+			goto no_calibration;
+
+		_starpu_bind_thread_on_cpu(cpu_id, STARPU_NOWORKERID, NULL);
+
 		unsigned char *h_buffer;
 		hwloc_obj_t obj_src = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NUMANODE, numa_src);
 #if HWLOC_API_VERSION >= 0x00020000
@@ -746,6 +758,7 @@ static void measure_bandwidth_latency_between_numa(int numa_src, int numa_dst)
 	else
 #endif
 	{
+no_calibration:
 		/* Cannot make a real calibration */
 		numa_timing[numa_src][numa_dst] = 0.01;
 		numa_latency[numa_src][numa_dst] = 0;
