@@ -236,12 +236,13 @@ void _starpu_cuda_discover_devices(struct _starpu_machine_config *config)
 }
 
 #ifdef STARPU_HAVE_LIBNVIDIA_ML
-static int _starpu_cuda_direct_link(unsigned devid1, unsigned devid2)
+static int _starpu_cuda_direct_link(struct _starpu_machine_config *config, unsigned devid1, unsigned devid2)
 {
 	unsigned i;
 	struct cudaDeviceProp props_dev1;
 	struct cudaDeviceProp props_dev2;
 	cudaError_t cures;
+	int nvswitch = 0;
 
 	cures = cudaGetDeviceProperties(&props_dev1, devid1);
 	if (cures != cudaSuccess)
@@ -267,6 +268,19 @@ static int _starpu_cuda_direct_link(unsigned devid1, unsigned devid2)
 
 		nvmlPciInfo_t pci;
 		nvmlDeviceGetNvLinkRemotePciInfo(nvml_dev1, i, &pci);
+
+		hwloc_obj_t obj = hwloc_get_pcidev_by_busid(config->topology.hwtopology,
+				pci.domain, pci.bus, pci.device, 0);
+		if (obj && obj->type == HWLOC_OBJ_PCI_DEVICE
+			&& (obj->attr->pcidev.class_id >> 8 == 0x06)
+			&& (obj->attr->pcidev.vendor_id == 0x10de))
+		{
+			/* This is an NVIDIA PCI bridge, i.e. an NVSwitch */
+			/* NVSwitch */
+			nvswitch = 1;
+			break;
+		}
+
 		if ((int) pci.domain == props_dev2.pciDomainID &&
 		    (int) pci.bus == props_dev2.pciBusID &&
 		    (int) pci.device == props_dev2.pciDeviceID)
@@ -274,7 +288,44 @@ static int _starpu_cuda_direct_link(unsigned devid1, unsigned devid2)
 			return 1;
 	}
 
-	/* No direct NVLink found */
+	if (!nvswitch)
+	{
+		/* No direct NVLink or NVSwitch found for dev1 */
+		return 0;
+	}
+
+	nvmlDevice_t nvml_dev2 = _starpu_cuda_get_nvmldev(&props_dev2);
+
+	if (!nvml_dev2)
+		return 0;
+
+	for (i = 0; i < NVML_NVLINK_MAX_LINKS; i++)
+	{
+		nvmlEnableState_t active;
+		nvmlReturn_t ret;
+		ret = nvmlDeviceGetNvLinkState(nvml_dev2, i, &active);
+		if (ret == NVML_ERROR_NOT_SUPPORTED)
+			continue;
+		if (active != NVML_FEATURE_ENABLED)
+			continue;
+
+		nvmlPciInfo_t pci;
+		nvmlDeviceGetNvLinkRemotePciInfo(nvml_dev2, i, &pci);
+
+		hwloc_obj_t obj = hwloc_get_pcidev_by_busid(config->topology.hwtopology,
+				pci.domain, pci.bus, pci.device, 0);
+		if (obj && obj->type == HWLOC_OBJ_PCI_DEVICE
+			&& (obj->attr->pcidev.class_id >> 8 == 0x06)
+			&& (obj->attr->pcidev.vendor_id == 0x10de))
+		{
+			/* This is an NVIDIA PCI bridge, i.e. an NVSwitch */
+			/* NVSwitch */
+			/* TODO: follow answers to https://forums.developer.nvidia.com/t/how-to-distinguish-different-nvswitch/241983 */
+			return 1;
+		}
+	}
+
+	/* No NVSwitch found for dev2 */
 	return 0;
 }
 #endif
@@ -531,7 +582,7 @@ void _starpu_cuda_init_worker_memory(struct _starpu_machine_config *config, int 
 					_starpu_cuda_bus_ids[devid+STARPU_MAXNUMANODES][devid2+STARPU_MAXNUMANODES] = bus12;
 #ifndef STARPU_SIMGRID
 #ifdef STARPU_HAVE_LIBNVIDIA_ML
-					if (_starpu_cuda_direct_link(devid, devid2))
+					if (_starpu_cuda_direct_link(config, devid, devid2))
 					{
 						starpu_bus_set_ngpus(bus21, 1);
 						starpu_bus_set_ngpus(bus12, 1);
