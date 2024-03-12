@@ -1686,6 +1686,9 @@ if test x$enable_cuda = xyes; then
 			], [], [[#include <nvml.h>]])
 		AC_DEFINE([STARPU_HAVE_LIBNVIDIA_ML], [1], [Define to 1 if you have the nvidia-ml library])
 		STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lnvidia-ml"
+	else
+	    AC_MSG_WARN([nvidia-ml could not be found. This will prevent from correct understanding of the machine topology.])
+	    NO_NVML="Warning: no nvidia-ml found"
 	fi
 	AC_MSG_CHECKING(whether nvidia-ml should be used)
 	AC_MSG_RESULT($have_valid_nvml)
@@ -4457,7 +4460,7 @@ AC_OUTPUT([
 AC_MSG_NOTICE([
 
 	CPUs     enabled: $enable_cpu
-	CUDA     enabled: $enable_cuda
+	CUDA     enabled: $enable_cuda $NO_NVML
 	HIP      enabled: $enable_hip
 	OpenCL   enabled: $enable_opencl
 	Max FPGA enabled: $enable_max_fpga
