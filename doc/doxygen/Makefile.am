@@ -44,11 +44,11 @@ chapters =	\
 	chapters/starpu_basics/data_management.doxy		\
 	chapters/starpu_basics/scheduling.doxy		\
 	chapters/starpu_basics/examples_sources.doxy		\
-	chapters/starpu_basics/code/vector_scal_c.c \
-	chapters/starpu_basics/code/vector_scal_cpu.c \
-	chapters/starpu_basics/code/vector_scal_cuda.c \
-	chapters/starpu_basics/code/vector_scal_opencl.c \
-	chapters/starpu_basics/code/vector_scal_opencl_codelet.cl \
+	chapters/starpu_basics/code/basics_vector_scal_c.c \
+	chapters/starpu_basics/code/basics_vector_scal_cpu.c \
+	chapters/starpu_basics/code/basics_vector_scal_cuda.c \
+	chapters/starpu_basics/code/basics_vector_scal_opencl.c \
+	chapters/starpu_basics/code/basics_vector_scal_opencl_codelet.cl \
 	chapters/starpu_applications/applications_intro.doxy		\
 	chapters/starpu_applications/vector_scaling.doxy		\
 	chapters/starpu_applications/code/vector_scal_c.c		\
