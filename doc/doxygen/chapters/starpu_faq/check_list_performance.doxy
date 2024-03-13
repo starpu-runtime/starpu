@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -58,6 +58,14 @@ assertions. This makes StarPU more performant for tiny tasks by
 disabling all sanity checks. Only use this for measurements and production, not for development, since this will drop all basic checks.
 
 \section DataRelatedFeaturesToImprovePerformance Data Related Features Which May Improve Performance
+
+As can be seen in \ref StatesInGantt, if the application has a lot of different
+kinds of sizes of data, StarPU will end up freeing/reallocating data on GPU to
+accomodate for the different sizes. It can be very effective to round the
+allocated size up a bit by e.g. 10% so that StarPU will be able to reuse buffers
+for data with similar but not exactly same size. This can be registered by using
+starpu_matrix_data_register_allocsize(), starpu_vector_data_register_allocsize()
+so that StarPU knows both the rounded-up data size, and the actual size used for computation.
 
 link to \ref DataManagement
 
