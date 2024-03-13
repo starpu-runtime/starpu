@@ -36,11 +36,11 @@ chapters =	\
 	../doxygen/chapters/starpu_basics/data_management.doxy		\
 	../doxygen/chapters/starpu_basics/scheduling.doxy		\
 	../doxygen/chapters/starpu_basics/examples_sources.doxy		\
-	../doxygen/chapters/starpu_basics/code/vector_scal_c.c \
-	../doxygen/chapters/starpu_basics/code/vector_scal_cpu.c \
-	../doxygen/chapters/starpu_basics/code/vector_scal_cuda.c \
-	../doxygen/chapters/starpu_basics/code/vector_scal_opencl.c \
-	../doxygen/chapters/starpu_basics/code/vector_scal_opencl_codelet.cl \
+	../doxygen/chapters/starpu_basics/code/basics_vector_scal_c.c \
+	../doxygen/chapters/starpu_basics/code/basics_vector_scal_cpu.c \
+	../doxygen/chapters/starpu_basics/code/basics_vector_scal_cuda.c \
+	../doxygen/chapters/starpu_basics/code/basics_vector_scal_opencl.c \
+	../doxygen/chapters/starpu_basics/code/basics_vector_scal_opencl_codelet.cl \
 	../doxygen/chapters/files.doxy		\
 	../doxygen/chapters/fdl_1_3.doxy
 

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -407,7 +407,7 @@ that the vector pointer returned by ::STARPU_VECTOR_GET_PTR is here a
 pointer in GPU memory, so that it can be passed as such to the
 kernel call <c>vector_mult_cuda</c>.
 
-\snippet vector_scal_cuda.c To be included. You should update doxygen if you see this text.
+\snippet basics_vector_scal_cuda.c To be included. You should update doxygen if you see this text.
 
 \subsection DefinitionOfTheOpenCLKernel Definition of the OpenCL Kernel
 
@@ -430,7 +430,7 @@ which returns a <c>cl_mem</c> (which is not a device pointer, but an OpenCL
 handle), which can be passed as such to the OpenCL kernel. The difference is
 important when using partitioning, see \ref PartitioningData.
 
-\snippet vector_scal_opencl.c To be included. You should update doxygen if you see this text.
+\snippet basics_vector_scal_opencl.c To be included. You should update doxygen if you see this text.
 
 \subsection DefinitionOfTheMainCode Definition of the Main Code
 
@@ -441,7 +441,7 @@ starpu_codelet::cuda_funcs and starpu_codelet::opencl_funcs are set to
 define the pointers to the CUDA and OpenCL implementations of the
 task.
 
-\snippet vector_scal_c.c To be included. You should update doxygen if you see this text.
+\snippet basics_vector_scal_c.c To be included. You should update doxygen if you see this text.
 
 \subsection ExecutionOfHybridVectorScaling Execution of Hybrid Vector Scaling
 

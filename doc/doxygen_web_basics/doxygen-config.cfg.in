@@ -28,7 +28,8 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters/starpu_basics/basics_
                       @top_srcdir@/doc/doxygen/chapters/api
 
 EXAMPLE_PATH           = @top_srcdir@/doc/doxygen \
-                         @top_srcdir@/doc/doxygen/chapters
+                         @top_srcdir@/doc/doxygen/chapters \
+			 @top_srcdir@/doc/doxygen/chapters/starpu_basics/code
 
 INPUT_FILTER           = @top_builddir@/doc/doxygen/doxygen_filter.sh
 

@@ -19,6 +19,8 @@
 \foreword
 \webforeword
 
+
+# we need to keep 2 blank lines above
 \section Motivation Motivation
 
 // This is a comment and it will be removed before the file is processed by doxygen
