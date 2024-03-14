@@ -234,11 +234,22 @@ Small changes:
     do not call starpu_mpi_redux_data()
   * Remove starpu_data_pointer_is_inside().
 
+StarPU 1.3.11
+====================================================================
+
+Small changes:
+  * Fix building with cuda 12
+
 StarPU 1.3.10
 ====================================================================
 
 Small features:
   * Add starpu_worker_get_current_task_exp_end.
+
+Small changes:
+  * Change the default value for configure option --enable-maxcpus to
+    auto. it allows StarPU to automatically use the number of CPUs
+    on the build machine.
 
 StarPU 1.3.9
 ====================================================================
