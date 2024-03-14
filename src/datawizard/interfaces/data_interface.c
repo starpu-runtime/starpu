@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -1001,14 +1001,8 @@ void starpu_data_unregister_submit(starpu_data_handle_t handle)
 	starpu_data_acquire_on_node_cb(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, handle->initialized?STARPU_RW:STARPU_W, _starpu_data_unregister_submit_cb, handle);
 }
 
-static void _starpu_data_invalidate(void *data)
+static void __starpu_data_deinitialize(starpu_data_handle_t handle)
 {
-	starpu_data_handle_t handle = data;
-	size_t size = _starpu_data_get_alloc_size(handle);
-	_starpu_spin_lock(&handle->header_lock);
-
-	//_STARPU_DEBUG("Really invalidating data %p\n", data);
-
 #ifdef STARPU_DEBUG
 	{
 		/* There shouldn't be any pending request since we acquired the data in W mode */
@@ -1024,14 +1018,6 @@ static void _starpu_data_invalidate(void *data)
 	{
 		struct _starpu_data_replicate *local = &handle->per_node[node];
 
-		if (local->mc && local->allocated && local->automatically_allocated)
-		{
-			_starpu_data_unregister_ram_pointer(handle, node);
-
-			/* free the data copy in a lazy fashion */
-			_starpu_request_mem_chunk_removal(handle, local, node, size);
-		}
-
 		if (local->state != STARPU_INVALID)
 			_STARPU_TRACE_DATA_STATE_INVALID(handle, node);
 		local->state = STARPU_INVALID;
@@ -1045,17 +1031,100 @@ static void _starpu_data_invalidate(void *data)
 		{
 			struct _starpu_data_replicate *local = &handle->per_worker[worker];
 
+			local->state = STARPU_INVALID;
+		}
+	}
+}
+
+
+static void _starpu_data_invalidate(void *data)
+{
+	starpu_data_handle_t handle = data;
+	size_t size = _starpu_data_get_alloc_size(handle);
+
+	_starpu_spin_lock(&handle->header_lock);
+
+	//_STARPU_DEBUG("Really invalidating data %p\n", data);
+
+	__starpu_data_deinitialize(handle);
+
+	unsigned node;
+
+	for (node = 0; node < STARPU_MAXNODES; node++)
+	{
+		struct _starpu_data_replicate *local = &handle->per_node[node];
+
+		if (local->mc && local->allocated && local->automatically_allocated)
+		{
+			_starpu_data_unregister_ram_pointer(handle, node);
+
+			/* free the data copy in a lazy fashion */
+			_starpu_request_mem_chunk_removal(handle, local, node, size);
+		}
+
+	}
+
+	if (handle->per_worker)
+	{
+		unsigned worker;
+		unsigned nworkers = starpu_worker_get_count();
+		for (worker = 0; worker < nworkers; worker++)
+		{
+			struct _starpu_data_replicate *local = &handle->per_worker[worker];
+
 			if (local->mc && local->allocated && local->automatically_allocated)
 				/* free the data copy in a lazy fashion */
 				_starpu_request_mem_chunk_removal(handle, local, starpu_worker_get_memory_node(worker), size);
-
-			local->state = STARPU_INVALID;
 		}
 	}
 
 	_starpu_spin_unlock(&handle->header_lock);
 
 	starpu_data_release_on_node(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL);
+}
+
+static void _starpu_data_deinitialize(void *data)
+{
+	starpu_data_handle_t handle = data;
+
+	_starpu_spin_lock(&handle->header_lock);
+
+	//_STARPU_DEBUG("Really deinitializing data %p\n", data);
+
+	__starpu_data_deinitialize(handle);
+
+	_starpu_spin_unlock(&handle->header_lock);
+
+	starpu_data_release_on_node(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL);
+}
+
+void starpu_data_deinitialize(starpu_data_handle_t handle)
+{
+	STARPU_ASSERT(handle);
+
+	starpu_data_acquire_on_node(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, STARPU_W);
+
+	_starpu_data_deinitialize(handle);
+
+	handle->initialized = 0;
+}
+
+void starpu_data_deinitialize_submit(starpu_data_handle_t handle)
+{
+	STARPU_ASSERT(handle);
+
+	starpu_data_acquire_on_node_cb(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, STARPU_W, _starpu_data_deinitialize, handle);
+
+	handle->initialized = 0;
+}
+
+void _starpu_data_deinitialize_submit_noplan(starpu_data_handle_t handle)
+{
+	STARPU_ASSERT(handle);
+
+	starpu_data_acquire_on_node_cb(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, STARPU_W | STARPU_NOPLAN, _starpu_data_deinitialize, handle);
+
+	handle->initialized = 0;
 }
 
 void starpu_data_invalidate(starpu_data_handle_t handle)

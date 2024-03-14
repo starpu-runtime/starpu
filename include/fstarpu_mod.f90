@@ -1,6 +1,6 @@
 ! StarPU --- Runtime system for heterogeneous multicore architectures.
 !
-! Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+! Copyright (C) 2016-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 !
 ! StarPU is free software; you can redistribute it and/or modify
 ! it under the terms of the GNU Lesser General Public License as published by
@@ -1455,6 +1455,18 @@ module fstarpu_mod
                         use iso_c_binding, only: c_ptr
                         type(c_ptr), value, intent(in) :: dh
                 end subroutine fstarpu_data_unregister_submit
+
+                ! void starpu_data_deinitialize(starpu_data_handle_t handle);
+                subroutine fstarpu_data_deinitialize (dh) bind(C,name="starpu_data_deinitialize")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: dh
+                end subroutine fstarpu_data_deinitialize
+
+                ! void starpu_data_deinitialize_submit(starpu_data_handle_t handle);
+                subroutine fstarpu_data_deinitialize_submit (dh) bind(C,name="starpu_data_deinitialize_submit")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: dh
+                end subroutine fstarpu_data_deinitialize_submit
 
                 ! void starpu_data_invalidate(starpu_data_handle_t handle);
                 subroutine fstarpu_data_invalidate (dh) bind(C,name="starpu_data_invalidate")

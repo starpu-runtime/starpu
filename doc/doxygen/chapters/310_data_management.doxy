@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021, 2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -311,14 +311,35 @@ starpu_data_unregister_submit(handle);
 actual unregistration will be done after all tasks working on the handle
 terminate.
 
-If the handle is to be reused, instead of unregistering it, it can simply be invalidated:
+If the handle is to be reused, instead of unregistering it, it can simply be deinitialized:
+
+\code{.c}
+starpu_data_deinitialize(handle);
+\endcode
+
+So that the value will be ignored and not written back to main memory.
+
+Or instead it can even be invalidated (the buffers containing the current value
+will then be freed, and reallocated only when another task writes some value to
+the handle):
+
+\code{.c}
+starpu_data_invalidate(handle);
+\endcode
+
+if the data transfer is asynchronous, one can use the submit versions:
+
+\code{.c}
+starpu_data_deinitialize_submit(handle);
+\endcode
+
+or
 
 \code{.c}
 starpu_data_invalidate_submit(handle);
 \endcode
 
-the buffers containing the current value will then be freed, and reallocated
-only when another task writes some value to the handle.
+A basic example is available in the files <c>tests/datawizard/data_deinitialize.c</c> and <c>tests/datawizard/data_invalidation.c</c>.
 
 \section DataPrefetch Data Prefetch
 
@@ -664,7 +685,8 @@ will thus only take into account the contributions from the tasks
 
 If another dot product has to be performed, one could unregister
 <c>dtq_handle</c>, and re-register it. But one can also call
-starpu_data_invalidate_submit() with the parameter <c>dtq_handle</c>,
+starpu_data_deinitialize_submit()  or even starpu_data_invalidate_submit() with
+the parameter <c>dtq_handle</c>,
 which will clear all data from the handle, thus resetting it back to
 the initial status <c>register(NULL)</c>.
 
