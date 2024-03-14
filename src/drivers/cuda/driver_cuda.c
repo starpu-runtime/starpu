@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2021, 2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
@@ -564,7 +564,7 @@ static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worke
 #ifdef HAVE_NVMLDEVICEGETTOTALENERGYCONSUMPTION
 		unsigned long long energy_start = 0;
 		nvmlReturn_t nvmlRet = -1;
-		if (profiling && task->profiling_info)
+		if (profiling && _starpu_energy_profiling && task->profiling_info)
 		{
 			nvmlRet = nvmlDeviceGetTotalEnergyConsumption(nvmlDev[worker->devid], &energy_start);
 			if (nvmlRet == NVML_SUCCESS)
@@ -586,7 +586,7 @@ static void finish_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *wor
 
 
 #ifdef HAVE_NVMLDEVICEGETTOTALENERGYCONSUMPTION
-	if (profiling && j->task->profiling_info && j->task->profiling_info->energy_consumed)
+	if (profiling && _starpu_energy_profiling && j->task->profiling_info && j->task->profiling_info->energy_consumed)
 	{
 		unsigned long long energy_end;
 		nvmlReturn_t nvmlRet;

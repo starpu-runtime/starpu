@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2020       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -24,6 +24,8 @@
 #include <starpu_profiling.h>
 #include <starpu_util.h>
 #include <common/config.h>
+
+extern int _starpu_energy_profiling;
 
 /** Create a task profiling info structure (with the proper time stamps) in case
  * profiling is enabled. */

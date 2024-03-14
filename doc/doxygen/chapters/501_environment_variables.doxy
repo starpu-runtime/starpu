@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2016       Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -612,6 +612,14 @@ Define the idle power of the machine (\ref Energy-basedScheduling).
 \anchor STARPU_PROFILING
 \addindex __env__STARPU_PROFILING
 Enable on-line performance monitoring (\ref EnablingOn-linePerformanceMonitoring).
+</dd>
+
+<dt>STARPU_ENERGY_PROFILING</dt>
+<dd>
+\anchor STARPU_ENERGY_PROFILING
+\addindex __env__STARPU_ENERGY_PROFILING
+Enable on-line energy monitoring of tasks (\ref Per-codeletFeedback).
+(disabled by default)
 </dd>
 
 </dl>
