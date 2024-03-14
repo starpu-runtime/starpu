@@ -62,10 +62,12 @@ disabling all sanity checks. Only use this for measurements and production, not 
 As can be seen in \ref StatesInGantt, if the application has a lot of different
 kinds of sizes of data, StarPU will end up freeing/reallocating data on GPU to
 accomodate for the different sizes. It can be very effective to round the
-allocated size up a bit by e.g. 10% so that StarPU will be able to reuse buffers
-for data with similar but not exactly same size. This can be registered by using
+allocated size up a bit by e.g. 10% (e.g. 11MB for all data sizes between 10MB
+and 11MB) so that StarPU will be able to reuse buffers of the same size for
+data with similar but not exactly same size. This can be registered by using
 starpu_matrix_data_register_allocsize(), starpu_vector_data_register_allocsize()
-so that StarPU knows both the rounded-up data size, and the actual size used for computation.
+so that StarPU records both the rounded-up data size, and the actual size used for
+computation.
 
 link to \ref DataManagement
 
