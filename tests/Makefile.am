@@ -267,6 +267,7 @@ myPROGRAMS +=				\
 	datawizard/double_parameter		\
 	datawizard/write_only_tmp_buffer	\
 	datawizard/data_invalidation		\
+	datawizard/data_deinitialize		\
 	datawizard/dining_philosophers		\
 	datawizard/manual_reduction		\
 	datawizard/readers_and_writers		\
@@ -318,6 +319,7 @@ myPROGRAMS +=				\
 	datawizard/task_with_multiple_time_the_same_handle	\
 	datawizard/test_arbiter			\
 	datawizard/invalidate_pending_requests	\
+	datawizard/deinitialize_pending_requests	\
 	datawizard/temporary_partition		\
 	datawizard/partitioned_initialization	\
 	datawizard/partitioned_acquire		\

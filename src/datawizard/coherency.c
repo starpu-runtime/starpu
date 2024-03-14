@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2018,2021  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -960,7 +960,7 @@ void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_
 	wt_mask &= (1ULL<<max_wt_mask)-1;
 
 	/* Note that it is possible that there is no valid copy of the data (if
-	 * starpu_data_invalidate was called for instance). In that case, we do
+	 * starpu_data_invalidate/deinitialize was called for instance). In that case, we do
 	 * not enforce any write-through mechanism. */
 
 	unsigned memory_node = replicate->memory_node;

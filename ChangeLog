@@ -222,6 +222,12 @@ Small changes:
     do not call starpu_mpi_redux_data()
   * Remove starpu_data_pointer_is_inside().
 
+StarPU 1.3.12
+====================================================================
+
+Small changes:
+  * Add starpu_data_deinitialize and starpu_data_deinitialize_submit
+
 StarPU 1.3.11
 ====================================================================
 
