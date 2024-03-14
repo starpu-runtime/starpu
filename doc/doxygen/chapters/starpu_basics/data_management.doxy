@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -568,7 +568,8 @@ will thus only take into account the contributions from the tasks
 
 If another dot product has to be performed, one could unregister
 <c>dtq_handle</c>, and re-register it. But one can also call
-starpu_data_invalidate_submit() with the parameter <c>dtq_handle</c>,
+starpu_data_deinitialize_submit() or even starpu_data_invalidate_submit() with
+the parameter <c>dtq_handle</c>,
 which will clear all data from the handle, thus resetting it back to
 the initial status <c>register(NULL)</c>.
 

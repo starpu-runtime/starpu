@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2021       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -216,16 +216,34 @@ void starpu_data_unregister_no_coherency(starpu_data_handle_t handle);
 void starpu_data_unregister_submit(starpu_data_handle_t handle);
 
 /**
+   Deinitialize all replicates of the data \p handle immediately. After
+   data deinitialization, the first access to \p handle must be performed
+   in ::STARPU_W mode. Accessing an deinitialized data in ::STARPU_R
+   mode results in undefined behaviour. See \ref DataManagementAllocation for more details.
+*/
+void starpu_data_deinitialize(starpu_data_handle_t handle);
+
+/**
+   Submit deinitialization of the data \p handle after completion of
+   previously submitted tasks. See \ref DataManagementAllocation for more details.
+*/
+void starpu_data_deinitialize_submit(starpu_data_handle_t handle);
+
+/**
    Destroy all replicates of the data \p handle immediately. After
    data invalidation, the first access to \p handle must be performed
    in ::STARPU_W mode. Accessing an invalidated data in ::STARPU_R
    mode results in undefined behaviour. See \ref DataManagementAllocation for more details.
+
+   This is the same as starpu_data_deinitialize(), plus explicitly releasing the buffers.
 */
 void starpu_data_invalidate(starpu_data_handle_t handle);
 
 /**
    Submit invalidation of the data \p handle after completion of
-   previously submitted tasks. See \ref DataReduction for more details.
+   previously submitted tasks. See \ref DataManagementAllocation for more details.
+
+   This is the same as starpu_data_deinitialize_submit(), plus explicitly releasing the buffers.
 */
 void starpu_data_invalidate_submit(starpu_data_handle_t handle);
 
