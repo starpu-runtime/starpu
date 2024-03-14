@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -60,6 +60,10 @@ that has executed the task (starpu_profiling_task_info::workerid).
 These dates are stored as <c>timespec</c> structures which users may convert
 into micro-seconds using the helper function
 starpu_timing_timespec_to_us(). User can call starpu_worker_get_current_task_exp_end() to get the date when the current task is expected to be finished.
+
+When \ref ::STARPU_ENERGY_PROFILING is enabled,
+starpu_profiling_task_info::energy_consumed, provides the amount of Joules used
+by the task.
 
 It is worth noting that the application may directly access this structure from
 the callback executed at the end of the task. The structure starpu_task
