@@ -19,12 +19,16 @@ stages:
   - check
   - analyze
   - deploy
+  - new-release
+  - set-release
+  - release
 
 .main_template:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "push"'
       when: never  # Prevent pipeline run for push event
-    - when: always # Run pipeline for all other cases
+    - if: '$CI_PIPELINE_SOURCE != "trigger"'
+      when: always # Run pipeline for all other cases
 
 # to download all the artifacts https://gitlab.inria.fr/starpu/starpu/-/jobs/artifacts/master/download?job=build
 # https://gitlab.inria.fr/starpu/starpu/-/jobs/artifacts/master/raw/starpu-1.3.99.tar.gz?job=build
@@ -103,4 +107,41 @@ deploy_chameleon:
   tags: ['ci.inria.fr', 'linux', 'large', 'docker']
   script:
     - ./contrib/gitlab/chameleon.sh
+
+new-release:
+  stage: new-release
+  only:
+    - tags
+  tags:
+    - starpu-release
+  script:
+    - ./contrib/releases/new-release.sh
+  timeout: 3h
+
+set-release:
+  stage: set-release
+  dependencies:
+    - new-release
+  only:
+    - tags
+  tags:
+    - starpu-release
+  script:
+    - ./contrib/releases/set-release.sh
+  artifacts:
+    paths:
+      - release-cli.txt
+
+release:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  dependencies:
+    - set-release
+  only:
+    - tags
+  tags:
+    - ci.inria.fr
+  script:
+    - cat release-cli.txt
+    - eval "$(cat release-cli.txt)"
 
