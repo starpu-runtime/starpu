@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,7 +21,18 @@
 /*! \page SimGridSupport SimGrid Support
 
 StarPU can use Simgrid in order to simulate execution on an arbitrary
-platform. This was tested with SimGrid from 3.11 to 3.16, and 3.18 to
+platform.
+
+The principle is to first run the application natively on the platform that one
+wants to laterlater simulate, and let StarPU record performance models. One
+then recompiles StarPU and the application in simgrid mode, where everything
+is executed the same, except the execution of the codelet function, and the
+data transfers, which are replaced by virtual sleeps based on the performance
+models. This thus allows to use the performance model for tasks and data
+transfers, while executing natively all the rest (the task scheduler and the
+application, notably).
+
+This was tested with SimGrid from 3.11 to 3.16, and 3.18 to
 3.30. SimGrid version 3.25 needs to be configured with -Denable_msg=ON .
 Other versions may have compatibility issues. 3.17 notably does not build at
 all. MPI simulation does not work with version 3.22.
