@@ -1093,6 +1093,31 @@ static void _starpu_data_deinitialize(void *data)
 
 	__starpu_data_deinitialize(handle);
 
+	unsigned node;
+
+	for (node = 0; node < STARPU_MAXNODES; node++)
+	{
+		struct _starpu_data_replicate *local = &handle->per_node[node];
+
+		if (local->mc && local->allocated && local->automatically_allocated)
+			/* note that the data is now clean */
+			_starpu_memchunk_clean(local->mc, node);
+	}
+
+	if (handle->per_worker)
+	{
+		unsigned worker;
+		unsigned nworkers = starpu_worker_get_count();
+		for (worker = 0; worker < nworkers; worker++)
+		{
+			struct _starpu_data_replicate *local = &handle->per_worker[worker];
+
+			if (local->mc && local->allocated && local->automatically_allocated)
+				/* note that the data is now clean */
+				_starpu_memchunk_clean(local->mc, starpu_worker_get_memory_node(worker));
+		}
+	}
+
 	_starpu_spin_unlock(&handle->header_lock);
 
 	starpu_data_release_on_node(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL);

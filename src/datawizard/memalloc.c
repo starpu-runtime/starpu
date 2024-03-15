@@ -1702,6 +1702,29 @@ void _starpu_memchunk_wont_use(struct _starpu_mem_chunk *mc, unsigned node)
 	_starpu_spin_unlock(&mc_lock[node]);
 }
 
+/* This memchunk content was dropped, and thus becomes clean */
+void _starpu_memchunk_clean(struct _starpu_mem_chunk *mc, unsigned node)
+{
+	if (!mc)
+		/* user-allocated memory */
+		return;
+	if (mc->home)
+		/* Home is always clean */
+		return;
+	STARPU_ASSERT(node < STARPU_MAXNODES);
+	if (!can_evict(node))
+		/* Don't bother */
+		return;
+	struct _starpu_node *node_struct = _starpu_get_node_struct(node);
+	_starpu_spin_lock(&node_struct->mc_lock);
+	if (!mc->clean)
+	{
+		node_struct->mc_clean_nb++;
+		mc->clean = 1;
+	}
+	_starpu_spin_unlock(&node_struct->mc_lock);
+}
+
 /* This memchunk is being written to, and thus becomes dirty */
 void _starpu_memchunk_dirty(struct _starpu_mem_chunk *mc, unsigned node)
 {
