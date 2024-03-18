@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2020,2021  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -324,7 +324,7 @@ represented by blocks of different colors, such as:
 \li Burgundy represents <c>submitting task</c>
 \li Lake blue represents <c>executing</c>, it is executing the application codelet function. Here it is very short because the codelet just submits a kernel asynchronously.
 \li Dark blue represents <c>callback</c>
-\li Chestnut represents <c>overhead</c>
+\li Chestnut represents <c>overhead</c>. This state is not supposed to be long, as it represents everything that we did not classify as an operation that is supposed to be long like the operations mentioned above. If you find situations where some overhead is long, this is a bug worth reporting so we can fix it.
 
 and we can always double-click on the block to view relevant information in the pop-up window.
 
