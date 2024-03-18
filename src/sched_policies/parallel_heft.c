@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
  *
@@ -194,14 +194,14 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	return ret;
 }
 
-static double compute_expected_end(double *_worker_exp_end, int workerid, double length)
+static double compute_expected_end(double *_worker_exp_end, int workerid)
 {
 	if (!starpu_worker_is_combined_worker(workerid))
 	{
 		double res;
 		/* This is a basic worker */
 
-		res = _worker_exp_end[workerid] + length;
+		res = _worker_exp_end[workerid];
 
 		return res;
 	}
@@ -217,7 +217,7 @@ static double compute_expected_end(double *_worker_exp_end, int workerid, double
 		int i;
 		for (i = 0; i < worker_size; i++)
 		{
-			double local_exp_end = _worker_exp_end[combined_workerid[i]] + length;
+			double local_exp_end = _worker_exp_end[combined_workerid[i]];
 			exp_end = STARPU_MAX(exp_end, local_exp_end);
 		}
 
@@ -387,7 +387,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 			if (unknown)
 				continue;
 
-			local_exp_end[worker_ctx][nimpl] = compute_expected_end(_worker_exp_end, workerid, local_task_length[worker_ctx][nimpl]);
+			local_exp_end[worker_ctx][nimpl] = compute_expected_end(_worker_exp_end, workerid) + local_task_length[worker_ctx][nimpl];
 
 			//fprintf(stderr, "WORKER %d -> length %e end %e\n", workerid, local_task_length[worker_ctx][nimpl], local_exp_end[workerid][nimpl]);
 
@@ -469,7 +469,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 		best_id_ctx = forced_best_ctx;
 		nimpl_best = forced_nimpl;
 		//penality_best = 0.0;
-		best_exp_end = compute_expected_end(_worker_exp_end, best, 0);
+		best_exp_end = compute_expected_end(_worker_exp_end, best);
 	}
 	else
 	{
