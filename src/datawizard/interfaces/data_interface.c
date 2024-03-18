@@ -1021,6 +1021,7 @@ static void __starpu_data_deinitialize(starpu_data_handle_t handle)
 		if (local->state != STARPU_INVALID)
 			_STARPU_TRACE_DATA_STATE_INVALID(handle, node);
 		local->state = STARPU_INVALID;
+		local->initialized = 0;
 	}
 
 	if (handle->per_worker)
