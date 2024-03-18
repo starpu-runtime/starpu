@@ -387,7 +387,11 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 			if (unknown)
 				continue;
 
-			local_exp_end[worker_ctx][nimpl] = compute_expected_end(_worker_exp_end, workerid) + local_task_length[worker_ctx][nimpl];
+			double task_starting_time = STARPU_MAX(
+					compute_expected_end(_worker_exp_end, workerid),
+					now + local_data_penalty[worker_ctx][nimpl]);
+
+			local_exp_end[worker_ctx][nimpl] = task_starting_time + local_task_length[worker_ctx][nimpl];
 
 			//fprintf(stderr, "WORKER %d -> length %e end %e\n", workerid, local_task_length[worker_ctx][nimpl], local_exp_end[workerid][nimpl]);
 
