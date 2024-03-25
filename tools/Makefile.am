@@ -241,7 +241,6 @@ dist_pkgdata_perfmodels_sampling_codelets_DATA = \
 	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_trsm_ru_openblas.mirage	\
 	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_gemm_openblas.mirage	\
 	perfmodels/sampling/codelets/45/overlap_sleep_1024_24.mirage	\
-	perfmodels/sampling/codelets/45/overlap_sleep_1024_24.mirage	\
 	perfmodels/sampling/codelets/45/add_scal.mirage	\
 	perfmodels/sampling/codelets/45/func.mirage	\
 	perfmodels/sampling/codelets/45/log_arr.mirage	\
