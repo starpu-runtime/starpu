@@ -378,7 +378,7 @@ if np is not None:
         print("The return array is", A)
 
         print("--input is iterable function list")
-        fut10=starpu.joblib.Parallel(mode="future", n_jobs=-1)(g_func)
+        fut10=starpu.joblib.Parallel(mode="future", n_jobs=-1, perfmodel="func")(g_func)
         res10=await(fut10)
         #print(res9)
 
