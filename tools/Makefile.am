@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2013       Joris Pablo
 # Copyright (C) 2013       Thibaut Lambert
 # Copyright (C) 2017       Erwan Leria
@@ -241,6 +241,17 @@ dist_pkgdata_perfmodels_sampling_codelets_DATA = \
 	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_trsm_ru_openblas.mirage	\
 	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_gemm_openblas.mirage	\
 	perfmodels/sampling/codelets/45/overlap_sleep_1024_24.mirage	\
+	perfmodels/sampling/codelets/45/overlap_sleep_1024_24.mirage	\
+	perfmodels/sampling/codelets/45/add_scal.mirage	\
+	perfmodels/sampling/codelets/45/func.mirage	\
+	perfmodels/sampling/codelets/45/log_arr.mirage	\
+	perfmodels/sampling/codelets/45/log_list.mirage	\
+	perfmodels/sampling/codelets/45/multi.mirage	\
+	perfmodels/sampling/codelets/45/multi_2arr.mirage	\
+	perfmodels/sampling/codelets/45/multi_list.mirage	\
+	perfmodels/sampling/codelets/45/scal.mirage	\
+	perfmodels/sampling/codelets/45/scal_arr.mirage	\
+	perfmodels/sampling/codelets/45/sqrt.mirage	\
 \
 	perfmodels/sampling/codelets/45/chol_model_potrf.sirocco	\
 	perfmodels/sampling/codelets/45/chol_model_trsm.sirocco	\
