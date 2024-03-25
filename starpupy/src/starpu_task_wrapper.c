@@ -857,6 +857,7 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 	starpu_codelet_init(func_cl);
 	func_cl->cpu_funcs[0] = &starpupy_codelet_func;
 	func_cl->cpu_funcs_name[0] = "starpupy_codelet_func";
+	func_cl->flags = STARPU_CODELET_SIMGRID_EXECUTE;
 
 	int h_index = 0, h_flag = 0;
 	int nbuffer = 0;
