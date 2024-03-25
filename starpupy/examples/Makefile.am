@@ -63,6 +63,7 @@ TESTS	+=	starpu_py_np.concurrent.sh
 TESTS	+=	starpu_py_partition.sh
 TESTS	+=	starpu_py_partition.concurrent.sh
 endif
+endif
 
 EXTRA_DIST	=		\
 	starpu_py_parallel.py	\
