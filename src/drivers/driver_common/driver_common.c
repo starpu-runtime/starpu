@@ -526,12 +526,10 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 	STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 
-
 	STARPU_AYU_PRERUNTASK(_starpu_get_job_associated_to_task(task)->job_id, workerid);
 
 	return task;
 }
-
 
 int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_task ** tasks, int nworkers, unsigned memnode STARPU_ATTRIBUTE_UNUSED)
 {
