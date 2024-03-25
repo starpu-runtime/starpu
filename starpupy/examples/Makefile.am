@@ -42,6 +42,11 @@ all-local: \
 
 TESTS	=
 
+if STARPU_STARPUPY_NUMPY
+TESTS	+=	starpu_py_perfmodel.sh
+TESTS	+=	starpu_py_perfmodel.concurrent.sh
+endif
+
 if !STARPU_SIMGRID
 TESTS	+=	starpu_py.sh
 TESTS	+=	starpu_py.concurrent.sh
@@ -57,9 +62,6 @@ TESTS	+=	starpu_py_np.sh
 TESTS	+=	starpu_py_np.concurrent.sh
 TESTS	+=	starpu_py_partition.sh
 TESTS	+=	starpu_py_partition.concurrent.sh
-TESTS	+=	starpu_py_perfmodel.sh
-TESTS	+=	starpu_py_perfmodel.concurrent.sh
-endif
 endif
 
 EXTRA_DIST	=		\
