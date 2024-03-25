@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -20,6 +20,10 @@
 
 #include <sys/types.h>
 #include <starpu_config.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* list of functions to use on disk */
 struct starpu_disk_ops
@@ -70,5 +74,9 @@ int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, starpu_s
 #define STARPU_DISK_SIZE_MIN (16*1024*1024)
 
 extern int starpu_disk_swap_node;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __STARPU_DISK_H__ */
