@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -498,7 +498,9 @@ void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv 
 		SIMIX_set_maestro(maestro, NULL);
 #endif
 		/* Initialize simgrid */
-		_starpu_start_simgrid(argc, *argv);
+		int no_argc = 1;
+		char *starpu = "starpu", *no_argv [] = { starpu, NULL };
+		_starpu_start_simgrid(argc ? argc : &no_argc, argv ? *argv : no_argv);
 
 		/* And attach the main thread to the main simgrid process */
 		void **tsd;
