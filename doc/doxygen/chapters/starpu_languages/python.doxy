@@ -1412,4 +1412,12 @@ When you write your Python script, make sure to import all required functions be
 
 (TODO)
 
+\section StarPUPYSimgrid StarPUPY and Simgrid
+
+In simgrid mode, the Python interpreter will not be aware of simgrid and will
+thus not notify it when some thread is blocked waiting for something to happen
+in another thread. This notably means that the `asyncio` mode and waiting for a
+`future` will not work, and one thus has to use StarPUPY-provided functions to
+wait for completion, such as `starpupy.task_wait_for_all()` or `data.acquire`.
+
 */
