@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -35,8 +35,13 @@ static struct starpu_codelet my_codelet =
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 	.modes = { STARPU_RW },
-	.nbuffers = 1
+	.nbuffers = 1,
+
+	.flags = STARPU_CODELET_SIMGRID_EXECUTE,
 };
+
+/* Also test that the application can provide its own main function */
+#undef main
 
 int main(void)
 {
