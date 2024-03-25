@@ -15,5 +15,5 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-$(dirname $0)/../execute.sh examples/starpu_py_perfmodel.concurrent.py $*
+$(dirname $0)/../execute.sh starpu_py_perfmodel.concurrent.py $*
 

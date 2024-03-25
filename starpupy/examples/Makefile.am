@@ -24,6 +24,7 @@ CLEANFILES = *.gcno *.gcda *.linkinfo \
 	starpu_py_handle.concurrent.py  \
 	starpu_py_np.concurrent.py      \
 	starpu_py_partition.concurrent.py \
+	starpu_py_perfmodel.concurrent.py \
 	starpu_py_numpy.concurrent.py
 
 if STARPU_USE_MPI_MASTER_SLAVE
@@ -38,6 +39,7 @@ all-local: \
 	starpu_py_handle.concurrent.py  \
 	starpu_py_np.concurrent.py      \
 	starpu_py_partition.concurrent.py \
+	starpu_py_perfmodel.concurrent.py \
 	starpu_py_numpy.concurrent.py
 
 TESTS	=
