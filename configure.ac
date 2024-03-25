@@ -4308,6 +4308,8 @@ AC_CONFIG_COMMANDS([executable-scripts], [
     starpupy/examples/starpu_py_parallel.sh \
     starpupy/examples/starpu_py_partition.sh \
     starpupy/examples/starpu_py_partition.concurrent.sh \
+    starpupy/examples/starpu_py_perfmodel.sh \
+    starpupy/examples/starpu_py_perfmodel.concurrent.sh \
     starpupy/examples/starpu_py_numpy.sh \
     starpupy/examples/starpu_py_numpy.concurrent.sh \
   ; do
