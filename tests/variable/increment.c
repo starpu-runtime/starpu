@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022, 2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -58,7 +58,9 @@ struct starpu_codelet increment_cl =
 	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
 	.cpu_funcs_name = {"increment_cpu"},
-	.nbuffers = 1
+	.nbuffers = 1,
+
+	.flags = STARPU_CODELET_SIMGRID_EXECUTE,
 };
 
 struct starpu_codelet increment_redux_cl =
@@ -79,6 +81,8 @@ struct starpu_codelet increment_redux_cl =
 #endif
 	.cpu_funcs_name = {"increment_cpu"},
 	.nbuffers = 1,
+
+	.flags = STARPU_CODELET_SIMGRID_EXECUTE,
 };
 
 void redux_cpu(void *descr[], void *arg)
@@ -108,6 +112,8 @@ struct starpu_codelet redux_cl =
 #endif
 	.cpu_funcs = {redux_cpu},
 	.cpu_funcs_name = {"redux_cpu"},
+
+	.flags = STARPU_CODELET_SIMGRID_EXECUTE,
 };
 
 void neutral_cpu(void *descr[], void *arg)
@@ -135,7 +141,9 @@ struct starpu_codelet neutral_cl =
 	.cpu_funcs = {neutral_cpu},
 	.cpu_funcs_name = {"neutral_cpu"},
 	.modes = {STARPU_W},
-	.nbuffers = 1
+	.nbuffers = 1,
+
+	.flags = STARPU_CODELET_SIMGRID_EXECUTE,
 };
 
 #ifndef STARPU_USE_OPENCL
