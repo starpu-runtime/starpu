@@ -147,6 +147,21 @@ static enum {
 } cpu_only;
 static int _nb_gpus;
 
+static int get_current_gpu(void) {
+	if (cpu_only == CPU_ONLY)
+	{
+		return 0;
+	}
+	else if (cpu_only == CPU_GPU)
+	{
+		return starpu_worker_get_memory_node(starpu_worker_get_id());
+	}
+	else
+	{
+		return starpu_worker_get_memory_node(starpu_worker_get_id()) - 1;
+	}
+}
+
 static bool new_tasks_initialized;
 static struct _starpu_darts_gpu_planned_task *tab_gpu_planned_task;
 static struct _starpu_darts_gpu_pulled_task *tab_gpu_pulled_task;
@@ -2647,19 +2662,7 @@ static struct starpu_task *darts_pull_task(struct starpu_sched_component *compon
 
 	_REFINED_MUTEX_UNLOCK();
 
-	int current_gpu; /* Index in tabs of structs */
-	if (cpu_only == CPU_ONLY)
-	{
-		current_gpu = 0;
-	}
-	else if (cpu_only == CPU_GPU)
-	{
-		current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
-	}
-	else
-	{
-		current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id()) - 1;
-	}
+	int current_gpu = get_current_gpu(); /* Index in tabs of structs */
 
 	struct starpu_task *task = get_task_to_return_pull_task_darts(current_gpu, &data->main_task_list);
 
@@ -2708,19 +2711,7 @@ static void darts_victim_eviction_failed(starpu_data_handle_t victim, void *comp
 	victim_evicted_compteur++;
 #endif
 
-	int current_gpu; /* Index in tabs of structs */
-	if (cpu_only == CPU_ONLY)
-	{
-		current_gpu = 0;
-	}
-	else if (cpu_only == CPU_GPU)
-	{
-		current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
-	}
-	else
-	{
-		current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id()) - 1;
-	}
+	int current_gpu = get_current_gpu(); /* Index in tabs of structs */
 
 	tab_gpu_planned_task[current_gpu].data_to_evict_next = victim;
 
@@ -2834,19 +2825,7 @@ static starpu_data_handle_t darts_victim_selector(starpu_data_handle_t toload, u
 	gettimeofday(&time_start_selector, NULL);
 #endif
 
-	int current_gpu; /* Index in tabs of structs */
-	if (cpu_only == CPU_ONLY)
-	{
-		current_gpu = 0;
-	}
-	else if (cpu_only == CPU_GPU)
-	{
-		current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
-	}
-	else
-	{
-		current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id()) - 1;
-	}
+	int current_gpu = get_current_gpu(); /* Index in tabs of structs */
 
 	/* If an eviction was refused we try to evict it again. */
 	if (tab_gpu_planned_task[current_gpu].data_to_evict_next != NULL)
@@ -3124,19 +3103,7 @@ static int darts_can_push(struct starpu_sched_component *component, struct starp
 		nb_refused_task++;
 #endif
 
-		int current_gpu; /* Index in tabs of structs */
-		if (cpu_only == CPU_ONLY)
-		{
-			current_gpu = 0;
-		}
-		else if (cpu_only == CPU_GPU)
-		{
-			current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
-		}
-		else
-		{
-			current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id()) - 1;
-		}
+		int current_gpu = get_current_gpu(); /* Index in tabs of structs */
 
 		starpu_task_list_push_back(&tab_gpu_planned_task[current_gpu].refused_fifo_list, task);
 
@@ -3342,19 +3309,7 @@ static void get_task_done(struct starpu_task *task, unsigned sci)
 {
 	_LINEAR_MUTEX_LOCK();
 
-	int current_gpu;
-	if (cpu_only == CPU_ONLY)
-	{
-		current_gpu = 0;
-	}
-	else if (cpu_only == CPU_GPU)
-	{
-		current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
-	}
-	else
-	{
-		current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id()) - 1;
-	}
+	int current_gpu = get_current_gpu(); /* Index in tabs of structs */
 
 	if (eviction_strategy_darts == 1)
 	{
