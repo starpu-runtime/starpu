@@ -763,9 +763,11 @@ typedef starpu_data_handle_t starpu_data_victim_selector(starpu_data_handle_t to
 
    \p victim is the data that was supposed to be evicted, but failed to be.
 
+   \p node is the node on which the failure happened.
+
    \p data is the same data as passed in the starpu_data_register_victim_selector() call.
  */
-typedef void starpu_data_victim_eviction_failed(starpu_data_handle_t victim, void *data);
+typedef void starpu_data_victim_eviction_failed(starpu_data_handle_t victim, unsigned node, void *data);
 
 /**
    Register a data victim selector.

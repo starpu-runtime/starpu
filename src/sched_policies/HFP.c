@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2023	Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2024	Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -4215,7 +4215,7 @@ static starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, 
 	return data_on_node[index_latest_use];
 }
 
-static void belady_victim_eviction_failed(starpu_data_handle_t victim, void *component)
+static void belady_victim_eviction_failed(starpu_data_handle_t victim, unsigned node, void *component)
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&HFP_mutex);
 
@@ -4225,7 +4225,7 @@ static void belady_victim_eviction_failed(starpu_data_handle_t victim, void *com
 	/* If a data was not truly evicted I put it back in the list. */
 	data->p->temp_pointer_1 = data->p->first_link;
 	unsigned i;
-	for (i = 1; i < starpu_worker_get_memory_node(starpu_worker_get_id()); i++)
+	for (i = 1; i < node; i++)
 	{
 		data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
 	}

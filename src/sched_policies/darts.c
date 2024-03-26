@@ -147,12 +147,16 @@ static enum {
 } cpu_only;
 static int _nb_gpus;
 
-static int get_current_gpu(void) {
-	int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
+static int get_gpu(unsigned node) {
 	if (starpu_cpu_worker_get_count() == 0)
 		/* Ignore the CPU memory nodes since there are no CPU workers */
-		current_gpu -= starpu_memory_nodes_get_count_by_kind(STARPU_CPU_RAM);
-	return current_gpu;
+		node -= starpu_memory_nodes_get_count_by_kind(STARPU_CPU_RAM);
+	return node;
+}
+
+static int get_current_gpu(void) {
+	unsigned current_node = starpu_worker_get_memory_node(starpu_worker_get_id_check());
+	return get_gpu(current_node);
 }
 
 static bool new_tasks_initialized;
@@ -2666,7 +2670,7 @@ static void push_data_not_used_yet_random_spot(starpu_data_handle_t h, struct _s
 }
 
 /* If an eviction was refused, we will try to evict it if possible at the next eviction call. To do this we retrieve the data here. */
-static void darts_victim_eviction_failed(starpu_data_handle_t victim, void *component)
+static void darts_victim_eviction_failed(starpu_data_handle_t victim, unsigned node, void *component)
 {
 	(void)component;
 	_REFINED_MUTEX_LOCK();
@@ -2678,7 +2682,7 @@ static void darts_victim_eviction_failed(starpu_data_handle_t victim, void *comp
 	victim_evicted_compteur++;
 #endif
 
-	int current_gpu = get_current_gpu(); /* Index in tabs of structs */
+	int current_gpu = get_gpu(node); /* Index in tabs of structs */
 
 	tab_gpu_planned_task[current_gpu].data_to_evict_next = victim;
 
@@ -2792,7 +2796,7 @@ static starpu_data_handle_t darts_victim_selector(starpu_data_handle_t toload, u
 	gettimeofday(&time_start_selector, NULL);
 #endif
 
-	int current_gpu = get_current_gpu(); /* Index in tabs of structs */
+	int current_gpu = get_gpu(node); /* Index in tabs of structs */
 
 	/* If an eviction was refused we try to evict it again. */
 	if (tab_gpu_planned_task[current_gpu].data_to_evict_next != NULL)

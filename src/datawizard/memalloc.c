@@ -894,7 +894,7 @@ static int try_to_reuse_potentially_in_use_mc(unsigned node, starpu_data_handle_
 				if (victim_eviction_failed)
 				{
 				    _STARPU_SCHED_BEGIN;
-				    victim_eviction_failed(victim, data_victim_selector);
+				    victim_eviction_failed(victim, node, data_victim_selector);
 				    _STARPU_SCHED_END;
 				}
 				return 0;
@@ -960,7 +960,7 @@ restart:
 	if (victim && victim_eviction_failed != NULL && success == 0)
 	{
 		_STARPU_SCHED_BEGIN;
-		victim_eviction_failed(victim, data_victim_selector);
+		victim_eviction_failed(victim, node, data_victim_selector);
 		_STARPU_SCHED_END;
 	}
 
@@ -1122,7 +1122,7 @@ restart2:
 	if (victim && victim_eviction_failed != NULL && freed == 0)
 	{
 		_STARPU_SCHED_BEGIN;
-		victim_eviction_failed(victim, data_victim_selector);
+		victim_eviction_failed(victim, node, data_victim_selector);
 		_STARPU_SCHED_END;
 	}
 
