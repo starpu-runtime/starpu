@@ -2860,32 +2860,33 @@ static starpu_data_handle_t darts_victim_selector(starpu_data_handle_t toload, u
 	/* Compute the number of task in pulled_task associated with each data. */
 	for (i = 0; i < nb_data_on_node; i++)
 	{
+		/* - 1 means that the associated data in the tab of data cannot be evicted. */
+		nb_task_in_pulled_task[i] = -1;
+
 		STARPU_IGNORE_UTILITIES_HANDLES_FROM_DATA(data_on_node[i]);
-		if (starpu_data_can_evict(data_on_node[i], node, is_prefetch))
-		{
-			struct _starpu_darts_handle_user_data *hud = data_on_node[i]->user_data;
-			nb_task_in_pulled_task[i] = hud->nb_task_in_pulled_task[current_gpu];
-			_STARPU_SCHED_PRINT("%d task in pulled_task for %p.\n", hud->nb_task_in_pulled_task[current_gpu], data_on_node[i]);
+		if (!starpu_data_can_evict(data_on_node[i], node, is_prefetch))
+			continue;
 
-			if (hud->nb_task_in_pulled_task[current_gpu] == 0 && hud->nb_task_in_planned_task[current_gpu] == 0)
-			{
+		struct _starpu_darts_handle_user_data *hud = data_on_node[i]->user_data;
+		if (!hud)
+			continue;
+
+		nb_task_in_pulled_task[i] = hud->nb_task_in_pulled_task[current_gpu];
+		_STARPU_SCHED_PRINT("%d task in pulled_task for %p.\n", hud->nb_task_in_pulled_task[current_gpu], data_on_node[i]);
+
+		if (hud->nb_task_in_pulled_task[current_gpu] == 0 && hud->nb_task_in_planned_task[current_gpu] == 0)
+		{
 #ifdef STARPU_DARTS_STATS
-				victim_selector_return_data_not_in_planned_and_pulled++;
+			victim_selector_return_data_not_in_planned_and_pulled++;
 #endif
-				_STARPU_SCHED_PRINT("%d task in planned task as well for %p.\n", hud->nb_task_in_pulled_task[current_gpu], data_on_node[i]);
-				returned_handle = data_on_node[i];
-				goto deletion_in_victim_selector;
-			}
-
-			if (hud->nb_task_in_pulled_task[current_gpu] < min_number_task_in_pulled_task)
-			{
-				min_number_task_in_pulled_task = hud->nb_task_in_pulled_task[current_gpu];
-			}
+			_STARPU_SCHED_PRINT("%d task in planned task as well for %p.\n", hud->nb_task_in_pulled_task[current_gpu], data_on_node[i]);
+			returned_handle = data_on_node[i];
+			goto deletion_in_victim_selector;
 		}
-		else
+
+		if (hud->nb_task_in_pulled_task[current_gpu] < min_number_task_in_pulled_task)
 		{
-			/* - 1 means that the associated data in the tab of data cannot be evicted. */
-			nb_task_in_pulled_task[i] = -1;
+			min_number_task_in_pulled_task = hud->nb_task_in_pulled_task[current_gpu];
 		}
 	}
 
