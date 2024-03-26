@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -66,7 +66,7 @@ LIST_TYPE(_starpu_parallel_worker_group,
 	hwloc_obj_t group_obj;
 	int nparallel_workers;
 	struct _starpu_parallel_worker_list *parallel_workers;
-	struct starpu_parallel_worker_config *father;
+	struct starpu_parallel_worker_config *parent;
 	struct _starpu_parallel_worker_parameters *params;
 )
 
@@ -76,7 +76,7 @@ LIST_TYPE(_starpu_parallel_worker,
 	int ncores;
 	int *cores;
 	int *workerids;
-	struct _starpu_parallel_worker_group *father;
+	struct _starpu_parallel_worker_group *parent;
 	struct _starpu_parallel_worker_parameters *params;
 )
 
@@ -92,14 +92,14 @@ void _starpu_parallel_worker_copy_parameters(struct _starpu_parallel_worker_para
 int _starpu_parallel_worker_analyze_parameters(struct _starpu_parallel_worker_parameters *params, int npus);
 
 /** Parallel_Worker helper functions */
-void _starpu_parallel_worker_init(struct _starpu_parallel_worker *parallel_worker, struct _starpu_parallel_worker_group *father);
+void _starpu_parallel_worker_init(struct _starpu_parallel_worker *parallel_worker, struct _starpu_parallel_worker_group *parent);
 int _starpu_parallel_worker_create(struct _starpu_parallel_worker *parallel_worker);
 
 int _starpu_parallel_worker_bind(struct _starpu_parallel_worker *parallel_worker);
 int _starpu_parallel_worker_remove(struct _starpu_parallel_worker_list *parallel_worker_list, struct _starpu_parallel_worker *parallel_worker);
 
 /** Parallel_Worker group helper function */
-void _starpu_parallel_worker_group_init(struct _starpu_parallel_worker_group *group, struct starpu_parallel_worker_config *father);
+void _starpu_parallel_worker_group_init(struct _starpu_parallel_worker_group *group, struct starpu_parallel_worker_config *parent);
 int _starpu_parallel_worker_group_create(struct _starpu_parallel_worker_group *group);
 int _starpu_parallel_worker_group_remove(struct _starpu_parallel_worker_group_list *group_list, struct _starpu_parallel_worker_group *group);
 

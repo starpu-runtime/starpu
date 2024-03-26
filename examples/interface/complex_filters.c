@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2019-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,12 +18,12 @@
 
 #include "complex_interface.h"
 
-void starpu_complex_filter_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
+void starpu_complex_filter_block(void *parent_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
 {
-	struct starpu_complex_interface *complex_father = father_interface;
+	struct starpu_complex_interface *complex_parent = parent_interface;
 	struct starpu_complex_interface *complex_child = child_interface;
 
-	uint32_t nx = complex_father->nx;
+	uint32_t nx = complex_parent->nx;
 	size_t elemsize = sizeof(double);
 
 	STARPU_ASSERT_MSG(nchunks <= nx, "%u parts for %u elements", nchunks, nx);
@@ -36,16 +36,16 @@ void starpu_complex_filter_block(void *father_interface, void *child_interface, 
 
 	complex_child->nx = child_nx;
 
-	if (complex_father->real)
+	if (complex_parent->real)
 	{
-		complex_child->real = (void*) ((uintptr_t) complex_father->real + offset);
-		complex_child->imaginary = (void*) ((uintptr_t) complex_father->imaginary + offset);
+		complex_child->real = (void*) ((uintptr_t) complex_parent->real + offset);
+		complex_child->imaginary = (void*) ((uintptr_t) complex_parent->imaginary + offset);
 	}
 }
 
-void starpu_complex_filter_canonical(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
+void starpu_complex_filter_canonical(void *parent_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
 {
-	struct starpu_complex_interface *complex_father = father_interface;
+	struct starpu_complex_interface *complex_parent = parent_interface;
 	struct starpu_vector_interface *vector_child = child_interface;
 
 	STARPU_ASSERT_MSG(nchunks == 2, "complex can only be split into two pieces");
@@ -53,15 +53,15 @@ void starpu_complex_filter_canonical(void *father_interface, void *child_interfa
 
 	vector_child->id = STARPU_VECTOR_INTERFACE_ID;
 	if (id == 0)
-		vector_child->ptr = (uintptr_t) complex_father->real;
+		vector_child->ptr = (uintptr_t) complex_parent->real;
 	else
-		vector_child->ptr = (uintptr_t) complex_father->imaginary;
+		vector_child->ptr = (uintptr_t) complex_parent->imaginary;
 
 	/* the complex interface doesn't support dev_handle/offset */
 	vector_child->dev_handle = vector_child->ptr;
 	vector_child->offset = 0;
 
-	vector_child->nx = complex_father->nx;
+	vector_child->nx = complex_parent->nx;
 	vector_child->elemsize = sizeof(double);
 	vector_child->slice_base = 0;
 	vector_child->allocsize = vector_child->nx * vector_child->elemsize;

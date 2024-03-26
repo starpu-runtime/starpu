@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -596,9 +596,9 @@ unsigned sc_hypervisor_check_speed_gap_btw_ctxs(unsigned *sched_ctxs_in, int ns_
 	return 0;
 }
 
-unsigned sc_hypervisor_check_speed_gap_btw_ctxs_on_level(int level, int *workers_in, int nworkers_in, unsigned father_sched_ctx_id, unsigned **sched_ctxs, int *nsched_ctxs)
+unsigned sc_hypervisor_check_speed_gap_btw_ctxs_on_level(int level, int *workers_in, int nworkers_in, unsigned parent_sched_ctx_id, unsigned **sched_ctxs, int *nsched_ctxs)
 {
-	sc_hypervisor_get_ctxs_on_level(sched_ctxs, nsched_ctxs, level, father_sched_ctx_id);
+	sc_hypervisor_get_ctxs_on_level(sched_ctxs, nsched_ctxs, level, parent_sched_ctx_id);
 
 	if(*nsched_ctxs	 > 0)
 		return sc_hypervisor_check_speed_gap_btw_ctxs(*sched_ctxs, *nsched_ctxs, workers_in, nworkers_in);

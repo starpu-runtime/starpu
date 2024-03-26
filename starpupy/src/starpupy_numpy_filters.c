@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020-2023 Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2024 Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -27,20 +27,20 @@
 #include "starpupy_buffer_interface.h"
 #include "starpupy_numpy_filters.h"
 
-static void starpupy_numpy_filter(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
+static void starpupy_numpy_filter(void *parent_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
 {
-	struct starpupy_buffer_interface *buffer_father = (struct starpupy_buffer_interface *) father_interface;
+	struct starpupy_buffer_interface *buffer_parent = (struct starpupy_buffer_interface *) parent_interface;
 	struct starpupy_buffer_interface *buffer_child = (struct starpupy_buffer_interface *) child_interface;
 
-	size_t elemsize = buffer_father->item_size;
+	size_t elemsize = buffer_parent->item_size;
 
-	STARPU_ASSERT_MSG(buffer_father->id == _starpupy_interface_pybuffer_ops.interfaceid, "%s can only be applied on a vector data", __func__);
+	STARPU_ASSERT_MSG(buffer_parent->id == _starpupy_interface_pybuffer_ops.interfaceid, "%s can only be applied on a vector data", __func__);
 
 	/*get the ndim*/
-	int ndim = buffer_father->dim_size;
+	int ndim = buffer_parent->dim_size;
 
 #ifdef STARPU_PYTHON_HAVE_NUMPY
-	Py_ssize_t nbuf = buffer_father->buffer_size;
+	Py_ssize_t nbuf = buffer_parent->buffer_size;
 	int narr = nbuf/elemsize;
 
 	int child_narr;
@@ -52,7 +52,7 @@ static void starpupy_numpy_filter(void *father_interface, void *child_interface,
 	int i;
 	for (i=0; i<ndim; i++)
 	{
-		ni[i] = (unsigned)buffer_father->array_dim[i];
+		ni[i] = (unsigned)buffer_parent->array_dim[i];
 	}
 
 	unsigned nn = ni[dim];
@@ -98,9 +98,9 @@ static void starpupy_numpy_filter(void *father_interface, void *child_interface,
 
 	child_narr = narr/nn*child_nn;
 
-	if(buffer_father->py_buffer)
-		buffer_child->py_buffer = buffer_father->py_buffer + offset;
-	
+	if(buffer_parent->py_buffer)
+		buffer_child->py_buffer = buffer_parent->py_buffer + offset;
+
 	buffer_child->buffer_size = child_narr * elemsize;
 
 	npy_intp *child_dim;
@@ -118,10 +118,10 @@ static void starpupy_numpy_filter(void *father_interface, void *child_interface,
 	}
 	buffer_child->array_dim = child_dim;
 #endif
-	buffer_child->id = buffer_father->id;
-	buffer_child->buffer_type = buffer_father->buffer_type;
+	buffer_child->id = buffer_parent->id;
+	buffer_child->buffer_type = buffer_parent->buffer_type;
 	buffer_child->dim_size = ndim;
-	buffer_child->array_type = buffer_father->array_type;
+	buffer_child->array_type = buffer_parent->array_type;
 	buffer_child->item_size = elemsize;
 
 }

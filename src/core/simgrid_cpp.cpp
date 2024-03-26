@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -55,7 +55,7 @@ typedef struct
 	void_f_pvoid_t code;
 	void *userparam;
 #if SIMGRID_VERSION < 32501
-	void *father_data;
+	void *parent_data;
 #endif
 } thread_data_t;
 
@@ -66,7 +66,7 @@ static void *_starpu_simgrid_xbt_thread_create_wrapper(void *arg)
 	/* FIXME: Ugly work-around for bug in simgrid: the MPI context is not properly set at MSG process startup */
 	starpu_sleep(0.000001);
 #ifdef HAVE_SMPI_THREAD_CREATE
-	/* Make this actor inherit SMPI data from father actor */
+	/* Make this actor inherit SMPI data from parent actor */
 	SMPI_thread_create();
 #endif
 	t->code(t->userparam);
@@ -94,7 +94,7 @@ static int _starpu_simgrid_xbt_thread_create_wrapper(int argc STARPU_ATTRIBUTE_U
 #else
 	thread_data_t *t = (thread_data_t *) SIMIX_process_self_get_data();
 #endif
-	simcall_process_set_data(self, t->father_data);
+	simcall_process_set_data(self, t->parent_data);
 	t->code(t->userparam);
 	simcall_process_set_data(self, NULL);
 	free(t);
@@ -126,9 +126,9 @@ void _starpu_simgrid_xbt_thread_create(const char *name, starpu_pthread_attr_t *
 	res->userparam = param;
 	res->code = code;
 #if SIMGRID_VERSION < 31300
-	res->father_data = SIMIX_process_self_get_data(SIMIX_process_self());
+	res->parent_data = SIMIX_process_self_get_data(SIMIX_process_self());
 #else
-	res->father_data = SIMIX_process_self_get_data();
+	res->parent_data = SIMIX_process_self_get_data();
 #endif
 
 #if SIMGRID_VERSION < 31200

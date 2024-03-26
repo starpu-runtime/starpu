@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -36,7 +36,7 @@ int do_starpu_init()
 	return 0;
 }
 
-void do_init_sub_data(int matrix[NX][NY], starpu_data_handle_t handle, starpu_data_handle_t sub_handle[PARTS], void (*filter_func)(void *father_interface, void *child_interface, struct starpu_data_filter *, unsigned id, unsigned nparts), int x, int y, int nx, int ny, int ld)
+void do_init_sub_data(int matrix[NX][NY], starpu_data_handle_t handle, starpu_data_handle_t sub_handle[PARTS], void (*filter_func)(void *parent_interface, void *child_interface, struct starpu_data_filter *, unsigned id, unsigned nparts), int x, int y, int nx, int ny, int ld)
 {
 	struct starpu_data_filter f =
 	{
@@ -46,7 +46,7 @@ void do_init_sub_data(int matrix[NX][NY], starpu_data_handle_t handle, starpu_da
 	starpu_data_partition_plan(handle, &f, sub_handle);
 }
 
-int do_apply_sub_graph(starpu_data_handle_t handle, starpu_data_handle_t sub_handle[PARTS], void (*filter_func)(void *father_interface, void *child_interface, struct starpu_data_filter *, unsigned id, unsigned nparts), int factor, int start)
+int do_apply_sub_graph(starpu_data_handle_t handle, starpu_data_handle_t sub_handle[PARTS], void (*filter_func)(void *parent_interface, void *child_interface, struct starpu_data_filter *, unsigned id, unsigned nparts), int factor, int start)
 {
 	int i, ret;
 

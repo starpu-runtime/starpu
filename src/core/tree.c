@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2014-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -35,20 +35,20 @@ void starpu_tree_reset_visited(struct starpu_tree *tree, char *visited)
 		starpu_tree_reset_visited(&tree->nodes[i], visited);
 }
 
-void starpu_tree_prepare_children(unsigned arity, struct starpu_tree *father)
+void starpu_tree_prepare_children(unsigned arity, struct starpu_tree *parent)
 {
-	_STARPU_MALLOC(father->nodes, arity*sizeof(struct starpu_tree));
-	father->arity = arity;
+	_STARPU_MALLOC(parent->nodes, arity*sizeof(struct starpu_tree));
+	parent->arity = arity;
 }
 
-void starpu_tree_insert(struct starpu_tree *tree, int id, int level, int is_pu, int arity, struct starpu_tree *father)
+void starpu_tree_insert(struct starpu_tree *tree, int id, int level, int is_pu, int arity, struct starpu_tree *parent)
 {
 	tree->level = level;
 	tree->arity = arity;
 	tree->nodes = NULL;
 	tree->id = is_pu ? id : level;
 	tree->is_pu = is_pu;
-	tree->father = father;
+	tree->parent = parent;
 }
 
 struct starpu_tree* starpu_tree_get(struct starpu_tree *tree, int id)
@@ -104,53 +104,53 @@ static struct starpu_tree* _get_down_to_leaves(struct starpu_tree *node, char *v
 
 struct starpu_tree* starpu_tree_get_neighbour(struct starpu_tree *tree, struct starpu_tree *node, char *visited, char *present)
 {
-	struct starpu_tree *father = node == NULL ? tree : node->father;
+	struct starpu_tree *parent = node == NULL ? tree : node->parent;
 
 	int st, n;
 
-	if (father == NULL) return NULL;
+	if (parent == NULL) return NULL;
 
-	if (father == tree && father->arity == 0)
+	if (parent == tree && parent->arity == 0)
 		return tree;
 
-	for(st = 0; st < father->arity; st++)
+	for(st = 0; st < parent->arity; st++)
 	{
-		if(&father->nodes[st] == node)
+		if(&parent->nodes[st] == node)
 			break;
 	}
 
-	for(n = 0; n < father->arity; n++)
+	for(n = 0; n < parent->arity; n++)
 	{
-		int i = (st+n)%father->arity;
-		if(&father->nodes[i] != node)
+		int i = (st+n)%parent->arity;
+		if(&parent->nodes[i] != node)
 		{
-			if(father->nodes[i].arity == 0)
+			if(parent->nodes[i].arity == 0)
 			{
-				if(father->nodes[i].is_pu)
+				if(parent->nodes[i].is_pu)
 				{
 					int *workerids;
-					int nworkers = starpu_bindid_get_workerids(father->nodes[i].id, &workerids);
+					int nworkers = starpu_bindid_get_workerids(parent->nodes[i].id, &workerids);
 					int w;
 					for(w = 0; w < nworkers; w++)
 					{
 						if(!visited[workerids[w]] && present[workerids[w]])
-							return &father->nodes[i];
+							return &parent->nodes[i];
 					}
 				}
 			}
 			else
 			{
-				struct starpu_tree *leaf = _get_down_to_leaves(&father->nodes[i], visited, present);
+				struct starpu_tree *leaf = _get_down_to_leaves(&parent->nodes[i], visited, present);
 				if(leaf)
 					return leaf;
 			}
 		}
 	}
 
-	if(tree == father)
+	if(tree == parent)
 		return NULL;
 
-	return starpu_tree_get_neighbour(tree, father, visited, present);
+	return starpu_tree_get_neighbour(tree, parent, visited, present);
 }
 
 void starpu_tree_free(struct starpu_tree *tree)

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,10 +18,10 @@
 #include <common/config.h>
 #include <datawizard/filters.h>
 
-static void _starpu_tensor_filter_block(int dim, void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+static void _starpu_tensor_filter_block(int dim, void *parent_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 		   unsigned id, unsigned nparts, uintptr_t shadow_size)
 {
-	struct starpu_tensor_interface *tensor_father = (struct starpu_tensor_interface *) father_interface;
+	struct starpu_tensor_interface *tensor_parent = (struct starpu_tensor_interface *) parent_interface;
 	struct starpu_tensor_interface *tensor_child = (struct starpu_tensor_interface *) child_interface;
 
 	unsigned blocksize;
@@ -36,48 +36,48 @@ static void _starpu_tensor_filter_block(int dim, void *father_interface, void *c
 	{
 	case 1: /* horizontal*/
 		/* actual number of elements */
-		nx = tensor_father->nx - 2 * shadow_size;
-		ny = tensor_father->ny;
-		nz = tensor_father->nz;
-		nt = tensor_father->nt;
+		nx = tensor_parent->nx - 2 * shadow_size;
+		ny = tensor_parent->ny;
+		nz = tensor_parent->nz;
+		nt = tensor_parent->nt;
 		nn = nx;
 		blocksize = 1;
 		break;
 
 	case 2: /* vertical*/
-		nx = tensor_father->nx;
+		nx = tensor_parent->nx;
 		/* actual number of elements */
-		ny = tensor_father->ny - 2 * shadow_size;
-		nz = tensor_father->nz;
-		nt = tensor_father->nt;
+		ny = tensor_parent->ny - 2 * shadow_size;
+		nz = tensor_parent->nz;
+		nt = tensor_parent->nt;
 		nn = ny;
-		blocksize = tensor_father->ldy;
+		blocksize = tensor_parent->ldy;
 		break;
 
 	case 3: /* depth*/
-		nx = tensor_father->nx;
-		ny = tensor_father->ny;
+		nx = tensor_parent->nx;
+		ny = tensor_parent->ny;
 		/* actual number of elements */
-		nz = tensor_father->nz - 2 * shadow_size;
-		nt = tensor_father->nt;
+		nz = tensor_parent->nz - 2 * shadow_size;
+		nt = tensor_parent->nt;
 		nn = nz;
-		blocksize = tensor_father->ldz;
+		blocksize = tensor_parent->ldz;
 		break;
 
 	case 4: /* time*/
-		nx = tensor_father->nx;
-		ny = tensor_father->ny;
-		nz = tensor_father->nz;
+		nx = tensor_parent->nx;
+		ny = tensor_parent->ny;
+		nz = tensor_parent->nz;
 		/* actual number of elements */
-		nt = tensor_father->nt - 2 * shadow_size;
+		nt = tensor_parent->nt - 2 * shadow_size;
 		nn = nt;
-		blocksize = tensor_father->ldt;
+		blocksize = tensor_parent->ldt;
 		break;
 	default:
 		STARPU_ASSERT_MSG(0, "Unknown value for dim");
 	}
 
-	size_t elemsize = tensor_father->elemsize;
+	size_t elemsize = tensor_parent->elemsize;
 
 	STARPU_ASSERT_MSG(nparts <= nn, "cannot split %u elements in %u parts", nn, nparts);
 
@@ -87,8 +87,8 @@ static void _starpu_tensor_filter_block(int dim, void *father_interface, void *c
 
 	child_nn += 2 * shadow_size;
 
-	STARPU_ASSERT_MSG(tensor_father->id == STARPU_TENSOR_INTERFACE_ID, "%s can only be applied on a tensor data", __func__);
-	tensor_child->id = tensor_father->id;
+	STARPU_ASSERT_MSG(tensor_parent->id == STARPU_TENSOR_INTERFACE_ID, "%s can only be applied on a tensor data", __func__);
+	tensor_child->id = tensor_parent->id;
 
 	switch(dim)
 	{
@@ -122,109 +122,109 @@ static void _starpu_tensor_filter_block(int dim, void *father_interface, void *c
 
 	tensor_child->elemsize = elemsize;
 
-	if (tensor_father->dev_handle)
+	if (tensor_parent->dev_handle)
 	{
-		if (tensor_father->ptr)
-			tensor_child->ptr = tensor_father->ptr + offset;
-		tensor_child->ldy = tensor_father->ldy;
-		tensor_child->ldz = tensor_father->ldz;
-		tensor_child->ldt = tensor_father->ldt;
-		tensor_child->dev_handle = tensor_father->dev_handle;
-		tensor_child->offset = tensor_father->offset + offset;
+		if (tensor_parent->ptr)
+			tensor_child->ptr = tensor_parent->ptr + offset;
+		tensor_child->ldy = tensor_parent->ldy;
+		tensor_child->ldz = tensor_parent->ldz;
+		tensor_child->ldt = tensor_parent->ldt;
+		tensor_child->dev_handle = tensor_parent->dev_handle;
+		tensor_child->offset = tensor_parent->offset + offset;
 	}
 }
 
-void starpu_tensor_filter_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+void starpu_tensor_filter_block(void *parent_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 				unsigned id, unsigned nparts)
 {
-	_starpu_tensor_filter_block(1, father_interface, child_interface, f, id, nparts, 0);
+	_starpu_tensor_filter_block(1, parent_interface, child_interface, f, id, nparts, 0);
 }
 
-void starpu_tensor_filter_block_shadow(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+void starpu_tensor_filter_block_shadow(void *parent_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 				       unsigned id, unsigned nparts)
 {
 	uintptr_t shadow_size = (uintptr_t) f->filter_arg_ptr;
 
-	_starpu_tensor_filter_block(1, father_interface, child_interface, f, id, nparts, shadow_size);
+	_starpu_tensor_filter_block(1, parent_interface, child_interface, f, id, nparts, shadow_size);
 }
 
-void starpu_tensor_filter_vertical_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+void starpu_tensor_filter_vertical_block(void *parent_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 					 unsigned id, unsigned nparts)
 {
-	_starpu_tensor_filter_block(2, father_interface, child_interface, f, id, nparts, 0);
+	_starpu_tensor_filter_block(2, parent_interface, child_interface, f, id, nparts, 0);
 }
 
-void starpu_tensor_filter_vertical_block_shadow(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+void starpu_tensor_filter_vertical_block_shadow(void *parent_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 						unsigned id, unsigned nparts)
 {
 	uintptr_t shadow_size = (uintptr_t) f->filter_arg_ptr;
 
-	_starpu_tensor_filter_block(2, father_interface, child_interface, f, id, nparts, shadow_size);
+	_starpu_tensor_filter_block(2, parent_interface, child_interface, f, id, nparts, shadow_size);
 }
 
-void starpu_tensor_filter_depth_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+void starpu_tensor_filter_depth_block(void *parent_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 				      unsigned id, unsigned nparts)
 {
-	_starpu_tensor_filter_block(3, father_interface, child_interface, f, id, nparts, 0);
+	_starpu_tensor_filter_block(3, parent_interface, child_interface, f, id, nparts, 0);
 }
 
-void starpu_tensor_filter_depth_block_shadow(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+void starpu_tensor_filter_depth_block_shadow(void *parent_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 					     unsigned id, unsigned nparts)
 {
 	uintptr_t shadow_size = (uintptr_t) f->filter_arg_ptr;
 
-	_starpu_tensor_filter_block(3, father_interface, child_interface, f, id, nparts, shadow_size);
+	_starpu_tensor_filter_block(3, parent_interface, child_interface, f, id, nparts, shadow_size);
 }
 
-void starpu_tensor_filter_time_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+void starpu_tensor_filter_time_block(void *parent_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 				     unsigned id, unsigned nparts)
 {
-	_starpu_tensor_filter_block(4, father_interface, child_interface, f, id, nparts, 0);
+	_starpu_tensor_filter_block(4, parent_interface, child_interface, f, id, nparts, 0);
 }
 
-void starpu_tensor_filter_time_block_shadow(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+void starpu_tensor_filter_time_block_shadow(void *parent_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 					    unsigned id, unsigned nparts)
 {
 	uintptr_t shadow_size = (uintptr_t) f->filter_arg_ptr;
 
-	_starpu_tensor_filter_block(4, father_interface, child_interface, f, id, nparts, shadow_size);
+	_starpu_tensor_filter_block(4, parent_interface, child_interface, f, id, nparts, shadow_size);
 }
 
-static void _starpu_tensor_filter_pick_block(int dim, void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+static void _starpu_tensor_filter_pick_block(int dim, void *parent_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 					     unsigned id, unsigned nparts)
 {
-	struct starpu_tensor_interface *tensor_father = (struct starpu_tensor_interface *) father_interface;
+	struct starpu_tensor_interface *tensor_parent = (struct starpu_tensor_interface *) parent_interface;
 	struct starpu_block_interface *block_child = (struct starpu_block_interface *) child_interface;
 
 	unsigned blocksize;
 	uint32_t nn;
-	uint32_t nx = tensor_father->nx;
-	uint32_t ny = tensor_father->ny;
-	uint32_t nz = tensor_father->nz;
-	uint32_t nt = tensor_father->nt;
+	uint32_t nx = tensor_parent->nx;
+	uint32_t ny = tensor_parent->ny;
+	uint32_t nz = tensor_parent->nz;
+	uint32_t nt = tensor_parent->nt;
 
 	switch(dim)
 	{
 		/* along y-axis */
 		case 1:
 			nn = ny;
-			blocksize = tensor_father->ldy;
+			blocksize = tensor_parent->ldy;
 			break;
 		/* along z-axis */
 		case 2:
 			nn = nz;
-			blocksize = tensor_father->ldz;
+			blocksize = tensor_parent->ldz;
 			break;
 		/* along t-axis */
 		case 3:
 			nn = nt;
-			blocksize = tensor_father->ldt;
+			blocksize = tensor_parent->ldt;
 			break;
 		default:
 			STARPU_ASSERT_MSG(0, "Unknown value for dim");
 	}
 
-	size_t elemsize = tensor_father->elemsize;
+	size_t elemsize = tensor_parent->elemsize;
 
 	size_t chunk_pos = (size_t)f->filter_arg_ptr;
 
@@ -233,7 +233,7 @@ static void _starpu_tensor_filter_pick_block(int dim, void *father_interface, vo
 
 	size_t offset = (chunk_pos + id) * blocksize * elemsize;
 
-	STARPU_ASSERT_MSG(tensor_father->id == STARPU_TENSOR_INTERFACE_ID, "%s can only be applied on a tensor data", __func__);
+	STARPU_ASSERT_MSG(tensor_parent->id == STARPU_TENSOR_INTERFACE_ID, "%s can only be applied on a tensor data", __func__);
 	block_child->id = STARPU_BLOCK_INTERFACE_ID;
 
 	switch(dim)
@@ -262,50 +262,50 @@ static void _starpu_tensor_filter_pick_block(int dim, void *father_interface, vo
 
 	block_child->elemsize = elemsize;
 
-	if (tensor_father->dev_handle)
+	if (tensor_parent->dev_handle)
 	{
-		if (tensor_father->ptr)
-			block_child->ptr = tensor_father->ptr + offset;
+		if (tensor_parent->ptr)
+			block_child->ptr = tensor_parent->ptr + offset;
 		switch(dim)
 		{
 			/* along y-axis */
 			case 1:
-				block_child->ldy = tensor_father->ldz;
-				block_child->ldz = tensor_father->ldt;
+				block_child->ldy = tensor_parent->ldz;
+				block_child->ldz = tensor_parent->ldt;
 				break;
 			/* along z-axis */
 			case 2:
-				block_child->ldy = tensor_father->ldy;
-				block_child->ldz = tensor_father->ldt;
+				block_child->ldy = tensor_parent->ldy;
+				block_child->ldz = tensor_parent->ldt;
 				break;
 			/* along t-axis */
 			case 3:
-				block_child->ldy = tensor_father->ldy;
-				block_child->ldz = tensor_father->ldz;
+				block_child->ldy = tensor_parent->ldy;
+				block_child->ldz = tensor_parent->ldz;
 				break;
 			default:
 				STARPU_ASSERT_MSG(0, "Unknown value for dim");
 		}
-		block_child->dev_handle = tensor_father->dev_handle;
-		block_child->offset = tensor_father->offset + offset;
+		block_child->dev_handle = tensor_parent->dev_handle;
+		block_child->offset = tensor_parent->offset + offset;
 	}
 }
-void starpu_tensor_filter_pick_block_t(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+void starpu_tensor_filter_pick_block_t(void *parent_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 				       unsigned id, unsigned nparts)
 {
-	_starpu_tensor_filter_pick_block(3, father_interface, child_interface, f, id, nparts);
+	_starpu_tensor_filter_pick_block(3, parent_interface, child_interface, f, id, nparts);
 }
 
-void starpu_tensor_filter_pick_block_z(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+void starpu_tensor_filter_pick_block_z(void *parent_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 				       unsigned id, unsigned nparts)
 {
-	_starpu_tensor_filter_pick_block(2, father_interface, child_interface, f, id, nparts);
+	_starpu_tensor_filter_pick_block(2, parent_interface, child_interface, f, id, nparts);
 }
 
-void starpu_tensor_filter_pick_block_y(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+void starpu_tensor_filter_pick_block_y(void *parent_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 				       unsigned id, unsigned nparts)
 {
-	_starpu_tensor_filter_pick_block(1, father_interface, child_interface, f, id, nparts);
+	_starpu_tensor_filter_pick_block(1, parent_interface, child_interface, f, id, nparts);
 }
 
 struct starpu_data_interface_ops *starpu_tensor_filter_pick_block_child_ops(STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, STARPU_ATTRIBUTE_UNUSED unsigned child)
@@ -313,22 +313,22 @@ struct starpu_data_interface_ops *starpu_tensor_filter_pick_block_child_ops(STAR
 	return &starpu_interface_block_ops;
 }
 
-void starpu_tensor_filter_pick_variable(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, STARPU_ATTRIBUTE_UNUSED unsigned id, STARPU_ATTRIBUTE_UNUSED unsigned nchunks)
+void starpu_tensor_filter_pick_variable(void *parent_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, STARPU_ATTRIBUTE_UNUSED unsigned id, STARPU_ATTRIBUTE_UNUSED unsigned nchunks)
 {
-	struct starpu_tensor_interface *tensor_father = (struct starpu_tensor_interface *) father_interface;
+	struct starpu_tensor_interface *tensor_parent = (struct starpu_tensor_interface *) parent_interface;
 	/* each chunk becomes a variable */
 	struct starpu_variable_interface *variable_child = (struct starpu_variable_interface *) child_interface;
 
-	uint32_t nx = tensor_father->nx;
-	uint32_t ny = tensor_father->ny;
-	uint32_t nz = tensor_father->nz;
-	uint32_t nt = tensor_father->nt;
+	uint32_t nx = tensor_parent->nx;
+	uint32_t ny = tensor_parent->ny;
+	uint32_t nz = tensor_parent->nz;
+	uint32_t nt = tensor_parent->nt;
 
-	unsigned ldy = tensor_father->ldy;
-	unsigned ldz = tensor_father->ldz;
-	unsigned ldt = tensor_father->ldt;
+	unsigned ldy = tensor_parent->ldy;
+	unsigned ldz = tensor_parent->ldz;
+	unsigned ldt = tensor_parent->ldt;
 
-	size_t elemsize = tensor_father->elemsize;
+	size_t elemsize = tensor_parent->elemsize;
 
 	uint32_t* chunk_pos = (uint32_t*)f->filter_arg_ptr;
 	// int i;
@@ -341,19 +341,19 @@ void starpu_tensor_filter_pick_variable(void *father_interface, void *child_inte
 
 	size_t offset = (chunk_pos[3] * ldt + chunk_pos[2] * ldz + chunk_pos[1] * ldy + chunk_pos[0]) * elemsize;
 
-	STARPU_ASSERT_MSG(tensor_father->id == STARPU_TENSOR_INTERFACE_ID, "%s can only be applied on a tensor data", __func__);
+	STARPU_ASSERT_MSG(tensor_parent->id == STARPU_TENSOR_INTERFACE_ID, "%s can only be applied on a tensor data", __func__);
 
 	/* update the child's interface */
 	variable_child->id = STARPU_VARIABLE_INTERFACE_ID;
 	variable_child->elemsize = elemsize;
 
 	/* is the information on this node valid ? */
-	if (tensor_father->dev_handle)
+	if (tensor_parent->dev_handle)
 	{
-		if (tensor_father->ptr)
-			variable_child->ptr = tensor_father->ptr + offset;
-		variable_child->dev_handle = tensor_father->dev_handle;
-		variable_child->offset = tensor_father->offset + offset;
+		if (tensor_parent->ptr)
+			variable_child->ptr = tensor_parent->ptr + offset;
+		variable_child->dev_handle = tensor_parent->dev_handle;
+		variable_child->offset = tensor_parent->offset + offset;
 	}
 }
 

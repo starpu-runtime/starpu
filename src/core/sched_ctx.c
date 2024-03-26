@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2016       Uppsala University
  * Copyright (C) 2017       Arthur Chevalier
  *
@@ -1209,9 +1209,9 @@ static void set_priority_hierarchically_on_notified_workers(int* workers_to_add,
 {
 	if(starpu_sched_ctx_get_hierarchy_level(sched_ctx) > 0)
 	{
-		unsigned father = starpu_sched_ctx_get_inheritor(sched_ctx);
-		set_priority_on_notified_workers(workers_to_add, nworkers_to_add, father, priority);
-		set_priority_hierarchically_on_notified_workers(workers_to_add, nworkers_to_add, father, priority);
+		unsigned parent = starpu_sched_ctx_get_inheritor(sched_ctx);
+		set_priority_on_notified_workers(workers_to_add, nworkers_to_add, parent, priority);
+		set_priority_hierarchically_on_notified_workers(workers_to_add, nworkers_to_add, parent, priority);
 	}
 	return;
 }

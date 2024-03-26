@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2016       Uppsala University
@@ -1352,7 +1352,7 @@ struct starpu_tree* starpu_workers_get_tree(void)
 #define NORMAL_CHILD(obj) ((obj)->type < HWLOC_OBJ_BRIDGE)
 #endif
 
-static void _fill_tree(struct starpu_tree *tree, hwloc_obj_t curr_obj, unsigned depth, hwloc_topology_t topology, struct starpu_tree *father)
+static void _fill_tree(struct starpu_tree *tree, hwloc_obj_t curr_obj, unsigned depth, hwloc_topology_t topology, struct starpu_tree *parent)
 {
 	unsigned i, j;
 	unsigned arity;
@@ -1372,11 +1372,11 @@ static void _fill_tree(struct starpu_tree *tree, hwloc_obj_t curr_obj, unsigned 
 	if (arity == 1)
 	{
 		/* Nothing interestin here, skip level */
-		_fill_tree(tree, curr_obj->children[0], depth+1, topology, father);
+		_fill_tree(tree, curr_obj->children[0], depth+1, topology, parent);
 		return;
 	}
 
-	starpu_tree_insert(tree, curr_obj->logical_index, depth, curr_obj->type == HWLOC_OBJ_PU, arity, father);
+	starpu_tree_insert(tree, curr_obj->logical_index, depth, curr_obj->type == HWLOC_OBJ_PU, arity, parent);
 	starpu_tree_prepare_children(arity, tree);
 	j = 0;
 	for(i = 0; i < arity; i++)

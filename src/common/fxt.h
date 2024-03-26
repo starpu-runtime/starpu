@@ -927,8 +927,8 @@ do {									\
 #define _STARPU_TRACE_TAG(tag, job)	\
 	FUT_FULL_PROBE2(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TAG, tag, (job)->job_id)
 
-#define _STARPU_TRACE_TAG_DEPS(tag_child, tag_father)	\
-	FUT_FULL_PROBE2(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TAG_DEPS, tag_child, tag_father)
+#define _STARPU_TRACE_TAG_DEPS(tag_child, tag_parent)	\
+	FUT_FULL_PROBE2(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TAG_DEPS, tag_child, tag_parent)
 
 #define _STARPU_TRACE_TASK_DEPS(job_prev, job_succ)	\
 	_STARPU_FUT_FULL_PROBE4STR(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_DEPS, (job_prev)->job_id, (job_succ)->job_id, (job_succ)->task->type, 1, "task")

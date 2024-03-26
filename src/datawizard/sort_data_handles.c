@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -35,7 +35,7 @@ static void find_data_path(struct _starpu_data_state *data, unsigned path[])
 	for (level = 0; level < depth; level++)
 	{
 		path[depth - level - 1] = current->sibling_index;
-		current = current->father_handle;
+		current = current->parent_handle;
 	}
 }
 
@@ -56,7 +56,7 @@ static int _compar_data_paths(const unsigned pathA[], unsigned depthA,
 		return 0;
 
 	/* A is a subdata of B or B is a subdata of A, so the smallest one is
-	 * the father of the other (we take this convention). */
+	 * the parent of the other (we take this convention). */
 	return (depthA < depthB)?-1:1;
 }
 

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -265,7 +265,7 @@ void sc_hypervisor_update_resize_interval(unsigned *sched_ctxs, int nsched_ctxs,
    Return a list of contexts that are on the same level in the
    hierarchy of contexts
 */
-void sc_hypervisor_get_ctxs_on_level(unsigned **sched_ctxs, int *nsched_ctxs, unsigned hierarchy_level, unsigned father_sched_ctx_id);
+void sc_hypervisor_get_ctxs_on_level(unsigned **sched_ctxs, int *nsched_ctxs, unsigned hierarchy_level, unsigned parent_sched_ctx_id);
 
 /**
    Returns the number of levels of ctxs registered to the hyp

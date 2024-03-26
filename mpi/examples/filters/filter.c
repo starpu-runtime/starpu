@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2019-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -49,29 +49,29 @@ struct starpu_codelet cl =
 	.name = "vector_scal"
 };
 
-void vector_filter(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nchunks)
+void vector_filter(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nchunks)
 {
-	struct starpu_vector_interface *vector_father = (struct starpu_vector_interface *) father_interface;
+	struct starpu_vector_interface *vector_parent = (struct starpu_vector_interface *) parent_interface;
 	struct starpu_vector_interface *vector_child = (struct starpu_vector_interface *) child_interface;
 
-	uint32_t nx = vector_father->nx;
-	size_t elemsize = vector_father->elemsize;
+	uint32_t nx = vector_parent->nx;
+	size_t elemsize = vector_parent->elemsize;
 
 	STARPU_ASSERT_MSG(nchunks <= nx, "%u parts for %u elements", nchunks, nx);
 	STARPU_ASSERT(nchunks == 2);
 	STARPU_ASSERT_MSG((nx % nchunks) == 0, "nx=%u is not a multiple of nchunks %u\n", nx, nchunks);
 
-	vector_child->id = vector_father->id;
+	vector_child->id = vector_parent->id;
 	vector_child->nx = nx/2;
 	vector_child->elemsize = elemsize;
 	vector_child->allocsize = vector_child->nx * elemsize;
 
-	if (vector_father->dev_handle)
+	if (vector_parent->dev_handle)
 	{
 		size_t offset = (id *(nx/nchunks)) * elemsize;
-		if (vector_father->ptr) vector_child->ptr = vector_father->ptr + offset;
-		vector_child->dev_handle = vector_father->dev_handle;
-		vector_child->offset = vector_father->offset + offset;
+		if (vector_parent->ptr) vector_child->ptr = vector_parent->ptr + offset;
+		vector_child->dev_handle = vector_parent->dev_handle;
+		vector_child->offset = vector_parent->offset + offset;
 	}
 }
 

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -395,27 +395,27 @@ int _starpu_parallel_worker_bind(struct _starpu_parallel_worker *parallel_worker
 				  0);
 }
 
-void _starpu_parallel_worker_group_init(struct _starpu_parallel_worker_group *group, struct starpu_parallel_worker_config *father)
+void _starpu_parallel_worker_group_init(struct _starpu_parallel_worker_group *group, struct starpu_parallel_worker_config *parent)
 {
 	group->id = 0;
 	group->nparallel_workers = 0;
 	group->parallel_workers = _starpu_parallel_worker_list_new();
-	group->father = father;
+	group->parent = parent;
 	_STARPU_MALLOC(group->params, sizeof(struct _starpu_parallel_worker_parameters));
-	_starpu_parallel_worker_copy_parameters(father->params, group->params);
+	_starpu_parallel_worker_copy_parameters(parent->params, group->params);
 	return;
 }
 
-void _starpu_parallel_worker_init(struct _starpu_parallel_worker *parallel_worker, struct _starpu_parallel_worker_group *father)
+void _starpu_parallel_worker_init(struct _starpu_parallel_worker *parallel_worker, struct _starpu_parallel_worker_group *parent)
 {
 	parallel_worker->id = STARPU_NMAX_SCHED_CTXS;
 	parallel_worker->cpuset = hwloc_bitmap_alloc();
 	parallel_worker->ncores = 0;
 	parallel_worker->cores = NULL;
 	parallel_worker->workerids = NULL;
-	parallel_worker->father = father;
+	parallel_worker->parent = parent;
 	_STARPU_MALLOC(parallel_worker->params, sizeof(struct _starpu_parallel_worker_parameters));
-	_starpu_parallel_worker_copy_parameters(father->params, parallel_worker->params);
+	_starpu_parallel_worker_copy_parameters(parent->params, parallel_worker->params);
 }
 
 int _starpu_parallel_worker_remove(struct _starpu_parallel_worker_list *parallel_worker_list, struct _starpu_parallel_worker *parallel_worker)
@@ -672,7 +672,7 @@ void _starpu_parallel_worker(struct _starpu_parallel_worker_group *group)
 {
 	int i, avail_pus, npus, npreset=0;
 	struct _starpu_parallel_worker *parallel_worker;
-	npus = hwloc_get_nbobjs_inside_cpuset_by_type(group->father->topology,
+	npus = hwloc_get_nbobjs_inside_cpuset_by_type(group->parent->topology,
 						      group->group_obj->cpuset,
 						      HWLOC_OBJ_PU);
 
@@ -734,7 +734,7 @@ void _starpu_parallel_worker(struct _starpu_parallel_worker_group *group)
 
 	for (i=0 ; i<npus ; i++)
 	{
-		hwloc_obj_t pu = hwloc_get_obj_inside_cpuset_by_type(group->father->topology,
+		hwloc_obj_t pu = hwloc_get_obj_inside_cpuset_by_type(group->parent->topology,
 								     group->group_obj->cpuset,
 								     HWLOC_OBJ_PU, i);
 

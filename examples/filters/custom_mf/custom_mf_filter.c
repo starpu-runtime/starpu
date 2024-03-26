@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -57,45 +57,45 @@ static struct starpu_multiformat_data_interface_ops format_ops =
 	.cpu_elemsize = sizeof(struct point),
 };
 
-static void custom_filter(void *father, void *child, struct starpu_data_filter *f,
+static void custom_filter(void *parent, void *child, struct starpu_data_filter *f,
 			  unsigned id, unsigned nchunks)
 {
 	(void)f;
-	struct custom_data_interface *custom_father, *custom_child;
-	custom_father = (struct custom_data_interface *) father;
+	struct custom_data_interface *custom_parent, *custom_child;
+	custom_parent = (struct custom_data_interface *) parent;
 	custom_child = (struct custom_data_interface *) child;
 
 	assert(N % nchunks == 0); // XXX
 	starpu_ssize_t chunk_size = N/nchunks;
 
-	if (custom_father->cpu_ptr)
+	if (custom_parent->cpu_ptr)
 	{
-		struct point *tmp = (struct point *) custom_father->cpu_ptr;
+		struct point *tmp = (struct point *) custom_parent->cpu_ptr;
 		tmp += id * chunk_size;
 		custom_child->cpu_ptr = tmp;
 	}
 #ifdef STARPU_USE_CUDA
-	else if (custom_father->cuda_ptr)
+	else if (custom_parent->cuda_ptr)
 	{
-		struct struct_of_arrays *soa_father, *soa_child;
-		soa_father = (struct struct_of_arrays*) custom_father->cuda_ptr;
+		struct struct_of_arrays *soa_parent, *soa_child;
+		soa_parent = (struct struct_of_arrays*) custom_parent->cuda_ptr;
 		soa_child = (struct struct_of_arrays*) custom_child->cuda_ptr;
-		soa_child->x = soa_father->x + chunk_size;
-		soa_child->y = soa_father->y + chunk_size;
+		soa_child->x = soa_parent->x + chunk_size;
+		soa_child->y = soa_parent->y + chunk_size;
 	}
 #endif
 #ifdef STARPU_USE_OPENCL
-	else if (custom_father->opencl_ptr)
+	else if (custom_parent->opencl_ptr)
 	{
-		struct struct_of_arrays *soa_father, *soa_child;
-		soa_father = (struct struct_of_arrays*) custom_father->opencl_ptr;
+		struct struct_of_arrays *soa_parent, *soa_child;
+		soa_parent = (struct struct_of_arrays*) custom_parent->opencl_ptr;
 		soa_child = (struct struct_of_arrays*) custom_child->opencl_ptr;
-		soa_child->x = soa_father->x + chunk_size;
-		soa_child->y = soa_father->y + chunk_size;
+		soa_child->x = soa_parent->x + chunk_size;
+		soa_child->y = soa_parent->y + chunk_size;
 	}
 #endif /* !STARPU_USE_OPENCL */
 
-	custom_child->ops = custom_father->ops;
+	custom_child->ops = custom_parent->ops;
 	custom_child->nx = chunk_size;
 }
 

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -170,16 +170,16 @@ struct _starpu_data_state
 
 	/** In case we user filters, the handle may describe a sub-data */
 	struct _starpu_data_state *root_handle; /** root of the tree */
-	struct _starpu_data_state *father_handle; /** father of the node, NULL if the current node is the root */
+	struct _starpu_data_state *parent_handle; /** parent of the node, NULL if the current node is the root */
 	starpu_data_handle_t *active_children; /** The currently active set of read-write children */
 	unsigned active_nchildren;
 	starpu_data_handle_t **active_readonly_children; /** The currently active set of read-only children */
 	unsigned *active_readonly_nchildren; /** Size of active_readonly_children[i] array */
 	unsigned nactive_readonly_children; /** Size of active_readonly_children and active_readonly_nchildren arrays. Actual use is given by 'partitioned' */
-	/** Our siblings in the father partitioning */
+	/** Our siblings in the parent partitioning */
 	unsigned nsiblings; /** How many siblings */
 	starpu_data_handle_t *siblings;
-	unsigned sibling_index; /** indicate which child this node is from the father's perspective (if any) */
+	unsigned sibling_index; /** indicate which child this node is from the parent's perspective (if any) */
 	unsigned depth; /** what's the depth of the tree ? */
 
 #ifdef STARPU_BUBBLE
@@ -205,7 +205,7 @@ struct _starpu_data_state
 	/** Whether a partition plan is currently submitted in readonly mode */
 	unsigned part_readonly:1;
 
-	/** Whether our father is currently partitioned into ourself */
+	/** Whether our parent is currently partitioned into ourself */
 	unsigned active:1;
 	unsigned active_ro:1;
 

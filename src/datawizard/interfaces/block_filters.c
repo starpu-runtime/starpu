@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,10 +18,10 @@
 #include <common/config.h>
 #include <datawizard/filters.h>
 
-static void _starpu_block_filter_block(int dim, void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+static void _starpu_block_filter_block(int dim, void *parent_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 				       unsigned id, unsigned nparts, uintptr_t shadow_size)
 {
-	struct starpu_block_interface *block_father = (struct starpu_block_interface *) father_interface;
+	struct starpu_block_interface *block_parent = (struct starpu_block_interface *) parent_interface;
 	struct starpu_block_interface *block_child = (struct starpu_block_interface *) child_interface;
 
 	unsigned blocksize;
@@ -36,35 +36,35 @@ static void _starpu_block_filter_block(int dim, void *father_interface, void *ch
 		/* horizontal*/
 		case 1:
 			/* actual number of elements */
-			nx = block_father->nx - 2 * shadow_size;
-			ny = block_father->ny;
-			nz = block_father->nz;
+			nx = block_parent->nx - 2 * shadow_size;
+			ny = block_parent->ny;
+			nz = block_parent->nz;
 			nn = nx;
 			blocksize = 1;
 			break;
 		/* vertical*/
 		case 2:
-			nx = block_father->nx;
+			nx = block_parent->nx;
 			/* actual number of elements */
-			ny = block_father->ny - 2 * shadow_size;
-			nz = block_father->nz;
+			ny = block_parent->ny - 2 * shadow_size;
+			nz = block_parent->nz;
 			nn = ny;
-			blocksize = block_father->ldy;
+			blocksize = block_parent->ldy;
 			break;
 		/* depth*/
 		case 3:
-			nx = block_father->nx;
-			ny = block_father->ny;
+			nx = block_parent->nx;
+			ny = block_parent->ny;
 			/* actual number of elements */
-			nz = block_father->nz - 2 * shadow_size;
+			nz = block_parent->nz - 2 * shadow_size;
 			nn = nz;
-			blocksize = block_father->ldz;
+			blocksize = block_parent->ldz;
 			break;
 		default:
 			STARPU_ASSERT_MSG(0, "Unknown value for dim");
 	}
 
-	size_t elemsize = block_father->elemsize;
+	size_t elemsize = block_parent->elemsize;
 
 	STARPU_ASSERT_MSG(nparts <= nn, "cannot split %u elements in %u parts", nn, nparts);
 
@@ -74,8 +74,8 @@ static void _starpu_block_filter_block(int dim, void *father_interface, void *ch
 
 	child_nn += 2 * shadow_size;
 
-	STARPU_ASSERT_MSG(block_father->id == STARPU_BLOCK_INTERFACE_ID, "%s can only be applied on a block data", __func__);
-	block_child->id = block_father->id;
+	STARPU_ASSERT_MSG(block_parent->id == STARPU_BLOCK_INTERFACE_ID, "%s can only be applied on a block data", __func__);
+	block_child->id = block_parent->id;
 
 	switch(dim)
 	{
@@ -98,89 +98,89 @@ static void _starpu_block_filter_block(int dim, void *father_interface, void *ch
 
 	block_child->elemsize = elemsize;
 
-	if (block_father->dev_handle)
+	if (block_parent->dev_handle)
 	{
-		if (block_father->ptr)
-			block_child->ptr = block_father->ptr + offset;
-		block_child->ldy = block_father->ldy;
-		block_child->ldz = block_father->ldz;
-		block_child->dev_handle = block_father->dev_handle;
-		block_child->offset = block_father->offset + offset;
+		if (block_parent->ptr)
+			block_child->ptr = block_parent->ptr + offset;
+		block_child->ldy = block_parent->ldy;
+		block_child->ldz = block_parent->ldz;
+		block_child->dev_handle = block_parent->dev_handle;
+		block_child->offset = block_parent->offset + offset;
 	}
 }
 
-void starpu_block_filter_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+void starpu_block_filter_block(void *parent_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 			       unsigned id, unsigned nparts)
 {
-	_starpu_block_filter_block(1, father_interface, child_interface, f, id, nparts, 0);
+	_starpu_block_filter_block(1, parent_interface, child_interface, f, id, nparts, 0);
 }
 
-void starpu_block_filter_block_shadow(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+void starpu_block_filter_block_shadow(void *parent_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 				      unsigned id, unsigned nparts)
 {
 	uintptr_t shadow_size = (uintptr_t) f->filter_arg_ptr;
 
-	_starpu_block_filter_block(1, father_interface, child_interface, f, id, nparts, shadow_size);
+	_starpu_block_filter_block(1, parent_interface, child_interface, f, id, nparts, shadow_size);
 }
 
-void starpu_block_filter_vertical_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+void starpu_block_filter_vertical_block(void *parent_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 					unsigned id, unsigned nparts)
 {
-	_starpu_block_filter_block(2, father_interface, child_interface, f, id, nparts, 0);
+	_starpu_block_filter_block(2, parent_interface, child_interface, f, id, nparts, 0);
 }
 
-void starpu_block_filter_vertical_block_shadow(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+void starpu_block_filter_vertical_block_shadow(void *parent_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 					       unsigned id, unsigned nparts)
 {
 	uintptr_t shadow_size = (uintptr_t) f->filter_arg_ptr;
 
-	_starpu_block_filter_block(2, father_interface, child_interface, f, id, nparts, shadow_size);
+	_starpu_block_filter_block(2, parent_interface, child_interface, f, id, nparts, shadow_size);
 }
 
-void starpu_block_filter_depth_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+void starpu_block_filter_depth_block(void *parent_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 				     unsigned id, unsigned nparts)
 {
-	_starpu_block_filter_block(3, father_interface, child_interface, f, id, nparts, 0);
+	_starpu_block_filter_block(3, parent_interface, child_interface, f, id, nparts, 0);
 }
 
-void starpu_block_filter_depth_block_shadow(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+void starpu_block_filter_depth_block_shadow(void *parent_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 					    unsigned id, unsigned nparts)
 {
 	uintptr_t shadow_size = (uintptr_t) f->filter_arg_ptr;
 
-	_starpu_block_filter_block(3, father_interface, child_interface, f, id, nparts, shadow_size);
+	_starpu_block_filter_block(3, parent_interface, child_interface, f, id, nparts, shadow_size);
 }
 
-static void _starpu_block_filter_pick_matrix(int dim, void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+static void _starpu_block_filter_pick_matrix(int dim, void *parent_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 					    unsigned id, unsigned nparts)
 {
-	struct starpu_block_interface *block_father = (struct starpu_block_interface *) father_interface;
+	struct starpu_block_interface *block_parent = (struct starpu_block_interface *) parent_interface;
 	struct starpu_matrix_interface *matrix_child = (struct starpu_matrix_interface *) child_interface;
 
 	unsigned blocksize;
 
 	uint32_t nn;
-	uint32_t nx = block_father->nx;
-	uint32_t ny = block_father->ny;
-	uint32_t nz = block_father->nz;
+	uint32_t nx = block_parent->nx;
+	uint32_t ny = block_parent->ny;
+	uint32_t nz = block_parent->nz;
 
 	switch(dim)
 	{
 		/* along y-axis */
 		case 1:
 			nn = ny;
-			blocksize = block_father->ldy;
+			blocksize = block_parent->ldy;
 			break;
 		/* along z-axis */
 		case 2:
 			nn = nz;
-			blocksize = block_father->ldz;
+			blocksize = block_parent->ldz;
 			break;
 		default:
 			STARPU_ASSERT_MSG(0, "Unknown value for dim");
 	}
 
-	size_t elemsize = block_father->elemsize;
+	size_t elemsize = block_parent->elemsize;
 
 	size_t chunk_pos = (size_t)f->filter_arg_ptr;
 
@@ -189,7 +189,7 @@ static void _starpu_block_filter_pick_matrix(int dim, void *father_interface, vo
 
 	size_t offset = (chunk_pos + id) * blocksize * elemsize;
 
-	STARPU_ASSERT_MSG(block_father->id == STARPU_BLOCK_INTERFACE_ID, "%s can only be applied on a block data", __func__);
+	STARPU_ASSERT_MSG(block_parent->id == STARPU_BLOCK_INTERFACE_ID, "%s can only be applied on a block data", __func__);
 	matrix_child->id = STARPU_MATRIX_INTERFACE_ID;
 
 	switch(dim)
@@ -211,38 +211,38 @@ static void _starpu_block_filter_pick_matrix(int dim, void *father_interface, vo
 	matrix_child->elemsize = elemsize;
 	matrix_child->allocsize = matrix_child->nx * matrix_child->ny * elemsize;
 
-	if (block_father->dev_handle)
+	if (block_parent->dev_handle)
 	{
-		if (block_father->ptr)
-			matrix_child->ptr = block_father->ptr + offset;
+		if (block_parent->ptr)
+			matrix_child->ptr = block_parent->ptr + offset;
 		switch(dim)
 		{
 			/* along y-axis */
 			case 1:
-				matrix_child->ld = block_father->ldz;
+				matrix_child->ld = block_parent->ldz;
 				break;
 			/* along z-axis */
 			case 2:
-				matrix_child->ld = block_father->ldy;
+				matrix_child->ld = block_parent->ldy;
 				break;
 			default:
 				STARPU_ASSERT_MSG(0, "Unknown value for dim");
 		}
-		matrix_child->dev_handle = block_father->dev_handle;
-		matrix_child->offset = block_father->offset + offset;
+		matrix_child->dev_handle = block_parent->dev_handle;
+		matrix_child->offset = block_parent->offset + offset;
 	}
 }
 
-void starpu_block_filter_pick_matrix_z(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+void starpu_block_filter_pick_matrix_z(void *parent_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 					    unsigned id, unsigned nparts)
 {
-	_starpu_block_filter_pick_matrix(2, father_interface, child_interface, f, id, nparts);
+	_starpu_block_filter_pick_matrix(2, parent_interface, child_interface, f, id, nparts);
 }
 
-void starpu_block_filter_pick_matrix_y(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+void starpu_block_filter_pick_matrix_y(void *parent_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 					    unsigned id, unsigned nparts)
 {
-	_starpu_block_filter_pick_matrix(1, father_interface, child_interface, f, id, nparts);
+	_starpu_block_filter_pick_matrix(1, parent_interface, child_interface, f, id, nparts);
 }
 
 struct starpu_data_interface_ops *starpu_block_filter_pick_matrix_child_ops(STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, STARPU_ATTRIBUTE_UNUSED unsigned child)
@@ -251,20 +251,20 @@ struct starpu_data_interface_ops *starpu_block_filter_pick_matrix_child_ops(STAR
 }
 
 
-void starpu_block_filter_pick_variable(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, STARPU_ATTRIBUTE_UNUSED unsigned id, STARPU_ATTRIBUTE_UNUSED unsigned nchunks)
+void starpu_block_filter_pick_variable(void *parent_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, STARPU_ATTRIBUTE_UNUSED unsigned id, STARPU_ATTRIBUTE_UNUSED unsigned nchunks)
 {
-	struct starpu_block_interface *block_father = (struct starpu_block_interface *) father_interface;
+	struct starpu_block_interface *block_parent = (struct starpu_block_interface *) parent_interface;
 	/* each chunk becomes a variable */
 	struct starpu_variable_interface *variable_child = (struct starpu_variable_interface *) child_interface;
 
-	uint32_t nx = block_father->nx;
-	uint32_t ny = block_father->ny;
-	uint32_t nz = block_father->nz;
+	uint32_t nx = block_parent->nx;
+	uint32_t ny = block_parent->ny;
+	uint32_t nz = block_parent->nz;
 
-	unsigned ldy = block_father->ldy;
-	unsigned ldz = block_father->ldz;
+	unsigned ldy = block_parent->ldy;
+	unsigned ldz = block_parent->ldz;
 
-	size_t elemsize = block_father->elemsize;
+	size_t elemsize = block_parent->elemsize;
 
 	uint32_t* chunk_pos = (uint32_t*)f->filter_arg_ptr;
 	// int i;
@@ -277,19 +277,19 @@ void starpu_block_filter_pick_variable(void *father_interface, void *child_inter
 
 	size_t offset = (chunk_pos[2] * ldz + chunk_pos[1] * ldy + chunk_pos[0]) * elemsize;
 
-	STARPU_ASSERT_MSG(block_father->id == STARPU_BLOCK_INTERFACE_ID, "%s can only be applied on a block data", __func__);
+	STARPU_ASSERT_MSG(block_parent->id == STARPU_BLOCK_INTERFACE_ID, "%s can only be applied on a block data", __func__);
 
 	/* update the child's interface */
 	variable_child->id = STARPU_VARIABLE_INTERFACE_ID;
 	variable_child->elemsize = elemsize;
 
 	/* is the information on this node valid ? */
-	if (block_father->dev_handle)
+	if (block_parent->dev_handle)
 	{
-		if (block_father->ptr)
-			variable_child->ptr = block_father->ptr + offset;
-		variable_child->dev_handle = block_father->dev_handle;
-		variable_child->offset = block_father->offset + offset;
+		if (block_parent->ptr)
+			variable_child->ptr = block_parent->ptr + offset;
+		variable_child->dev_handle = block_parent->dev_handle;
+		variable_child->offset = block_parent->offset + offset;
 	}
 }
 

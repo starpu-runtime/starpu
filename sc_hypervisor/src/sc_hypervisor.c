@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -398,13 +398,13 @@ void sc_hypervisor_unregister_ctx(unsigned sched_ctx)
 		hypervisor.policy.end_ctx(sched_ctx);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&act_hypervisor_mutex);
-	unsigned father = starpu_sched_ctx_get_inheritor(sched_ctx);
+	unsigned parent = starpu_sched_ctx_get_inheritor(sched_ctx);
 	int *pus;
 	unsigned npus = starpu_sched_ctx_get_workers_list(sched_ctx, &pus);
 
 	if(npus)
 	{
-		starpu_sched_ctx_set_priority(pus, npus, father, 1);
+		starpu_sched_ctx_set_priority(pus, npus, parent, 1);
 		free(pus);
 	}
 
@@ -548,9 +548,9 @@ static void _decrement_elapsed_flops_per_worker(unsigned sched_ctx, int worker, 
 {
 	if(starpu_sched_ctx_get_hierarchy_level(sched_ctx) > 0)
 	{
-		unsigned father = starpu_sched_ctx_get_inheritor(sched_ctx);
-		hypervisor.sched_ctx_w[father].elapsed_flops[worker] -= flops;
-		_decrement_elapsed_flops_per_worker(father, worker, flops);
+		unsigned parent = starpu_sched_ctx_get_inheritor(sched_ctx);
+		hypervisor.sched_ctx_w[parent].elapsed_flops[worker] -= flops;
+		_decrement_elapsed_flops_per_worker(parent, worker, flops);
 	}
 
 	return;
@@ -937,12 +937,12 @@ int _update_max_hierarchically(unsigned *sched_ctxs, int nsched_ctxs)
 	}
 	return max;
 }
-void _update_max_diff_hierarchically(unsigned father, double diff)
+void _update_max_diff_hierarchically(unsigned parent, double diff)
 {
-	int level = starpu_sched_ctx_get_hierarchy_level(father);
+	int level = starpu_sched_ctx_get_hierarchy_level(parent);
 	unsigned *sched_ctxs_child;
 	int nsched_ctxs_child = 0;
-	sc_hypervisor_get_ctxs_on_level(&sched_ctxs_child, &nsched_ctxs_child, level+1, father);
+	sc_hypervisor_get_ctxs_on_level(&sched_ctxs_child, &nsched_ctxs_child, level+1, parent);
 	if(nsched_ctxs_child > 0)
 	{
 		int s;
@@ -1644,16 +1644,16 @@ void sc_hypervisor_update_diff_elapsed_flops(unsigned sched_ctx, double diff_ela
 	return;
 }
 
-void sc_hypervisor_get_ctxs_on_level(unsigned **sched_ctxs, int *nsched_ctxs, unsigned hierarchy_level, unsigned father_sched_ctx_id)
+void sc_hypervisor_get_ctxs_on_level(unsigned **sched_ctxs, int *nsched_ctxs, unsigned hierarchy_level, unsigned parent_sched_ctx_id)
 {
 	unsigned s;
 	*nsched_ctxs = 0;
 	*sched_ctxs = (unsigned*)malloc(hypervisor.nsched_ctxs * sizeof(unsigned));
 	for(s = 0; s < hypervisor.nsched_ctxs; s++)
 	{
-		/* if father == STARPU_NMAX_SCHED_CTXS we take all the ctxs in this level */
+		/* if parent == STARPU_NMAX_SCHED_CTXS we take all the ctxs in this level */
 		if(starpu_sched_ctx_get_hierarchy_level(hypervisor.sched_ctxs[s]) == hierarchy_level &&
-		   (starpu_sched_ctx_get_inheritor(hypervisor.sched_ctxs[s]) == father_sched_ctx_id || father_sched_ctx_id == STARPU_NMAX_SCHED_CTXS))
+		   (starpu_sched_ctx_get_inheritor(hypervisor.sched_ctxs[s]) == parent_sched_ctx_id || parent_sched_ctx_id == STARPU_NMAX_SCHED_CTXS))
 			(*sched_ctxs)[(*nsched_ctxs)++] = hypervisor.sched_ctxs[s];
 	}
 	if(*nsched_ctxs == 0)
@@ -1688,17 +1688,17 @@ void sc_hypervisor_get_leaves(unsigned *sched_ctxs, int nsched_ctxs, unsigned *l
 	int s, s2;
 	for(s = 0; s < nsched_ctxs; s++)
 	{
-		unsigned is_someones_father = 0;
+		unsigned is_someones_parent = 0;
 		for(s2 = 0; s2 < nsched_ctxs; s2++)
 		{
-			unsigned father = starpu_sched_ctx_get_inheritor(sched_ctxs[s2]);
-			if(sched_ctxs[s] == father)
+			unsigned parent = starpu_sched_ctx_get_inheritor(sched_ctxs[s2]);
+			if(sched_ctxs[s] == parent)
 			{
-				is_someones_father = 1;
+				is_someones_parent = 1;
 				break;
 			}
 		}
-		if(!is_someones_father)
+		if(!is_someones_parent)
 			leaves[(*nleaves)++] = sched_ctxs[s];
 	}
 	return;

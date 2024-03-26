@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -85,13 +85,13 @@ static void _try_resizing_hierarchically(unsigned levels, unsigned current_level
 		sc_hypervisor_get_ctxs_on_level(&sched_ctxs_child, &nsched_ctxs_child, current_level+1, sched_ctxs[s]);
 		if(nsched_ctxs_child > 0)
 		{
-			int *pus_father;
-			unsigned npus_father = 0;
-			npus_father = starpu_sched_ctx_get_workers_list(sched_ctxs[s], &pus_father);
+			int *pus_parent;
+			unsigned npus_parent = 0;
+			npus_parent = starpu_sched_ctx_get_workers_list(sched_ctxs[s], &pus_parent);
 
-			_try_resizing_hierarchically(levels-1, current_level+1, sched_ctxs_child, nsched_ctxs_child, pus_father, npus_father);
+			_try_resizing_hierarchically(levels-1, current_level+1, sched_ctxs_child, nsched_ctxs_child, pus_parent, npus_parent);
 
-			free(pus_father);
+			free(pus_parent);
 			free(sched_ctxs_child);
 		}
 	}
@@ -168,73 +168,73 @@ static void _resize_if_speed_diff(unsigned sched_ctx, int worker)
 			return;
 		}
 
-		unsigned father = starpu_sched_ctx_get_inheritor(sched_ctx);
+		unsigned parent = starpu_sched_ctx_get_inheritor(sched_ctx);
 		int level;
-		int *pus_father_old = NULL;
-		unsigned npus_father_old = 0;
+		int *pus_parent_old = NULL;
+		unsigned npus_parent_old = 0;
 		unsigned *sched_ctxs_old = NULL;
 		int nsched_ctxs_old = 0;
 		unsigned is_speed_diff = 0;
 
 		for(level = current_level ; level >= 0; level--)
 		{
-			int *pus_father = NULL;
-			int npus_father = -1;
+			int *pus_parent = NULL;
+			int npus_parent = -1;
 			if(level > 0)
-				npus_father = starpu_sched_ctx_get_workers_list(father, &pus_father);
+				npus_parent = starpu_sched_ctx_get_workers_list(parent, &pus_parent);
 
 
 			unsigned *sched_ctxs = NULL;
 			int nsched_ctxs = 0;
-			is_speed_diff = sc_hypervisor_check_speed_gap_btw_ctxs_on_level(level, pus_father, npus_father, father, &sched_ctxs, &nsched_ctxs);
+			is_speed_diff = sc_hypervisor_check_speed_gap_btw_ctxs_on_level(level, pus_parent, npus_parent, parent, &sched_ctxs, &nsched_ctxs);
 			if(!is_speed_diff)
 			{
 				if(level == current_level)
 				{
-					if(pus_father)
-						free(pus_father);
+					if(pus_parent)
+						free(pus_parent);
 					if(sched_ctxs)
 						free(sched_ctxs);
-					pus_father = NULL;
+					pus_parent = NULL;
 					sched_ctxs = NULL;
 					break;
 				}
 				else
 				{
-					_resize(sched_ctxs_old, nsched_ctxs_old, pus_father_old, npus_father_old);
+					_resize(sched_ctxs_old, nsched_ctxs_old, pus_parent_old, npus_parent_old);
 
-					if(pus_father_old)
-						free(pus_father_old);
+					if(pus_parent_old)
+						free(pus_parent_old);
 					if(sched_ctxs_old)
 						free(sched_ctxs_old);
-					pus_father_old = NULL;
+					pus_parent_old = NULL;
 					sched_ctxs_old = NULL;
 
-					if(pus_father)
-						free(pus_father);
+					if(pus_parent)
+						free(pus_parent);
 					if(nsched_ctxs > 0)
 						free(sched_ctxs);
-					pus_father = NULL;
+					pus_parent = NULL;
 					sched_ctxs = NULL;
 					break;
 				}
 			}
-			if(pus_father_old)
-				free(pus_father_old);
+			if(pus_parent_old)
+				free(pus_parent_old);
 			if(sched_ctxs_old)
 				free(sched_ctxs_old);
 
-			pus_father_old = pus_father;
+			pus_parent_old = pus_parent;
 			sched_ctxs_old = sched_ctxs;
-			npus_father_old = npus_father;
+			npus_parent_old = npus_parent;
 			nsched_ctxs_old = nsched_ctxs;
 
-			father = level > 1 ? starpu_sched_ctx_get_inheritor(father) : STARPU_NMAX_SCHED_CTXS;
+			parent = level > 1 ? starpu_sched_ctx_get_inheritor(parent) : STARPU_NMAX_SCHED_CTXS;
 		}
 		if(is_speed_diff)
 		{
-			if(pus_father_old)
-				free(pus_father_old);
+			if(pus_parent_old)
+				free(pus_parent_old);
 			if(sched_ctxs_old)
 				free(sched_ctxs_old);
 

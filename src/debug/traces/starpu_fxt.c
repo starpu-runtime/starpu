@@ -2919,15 +2919,15 @@ static void handle_tag(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 static void handle_tag_deps(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	uint64_t child;
-	uint64_t father;
+	uint64_t parent;
 
 	child = ev->param[0];
-	father = ev->param[1];
+	parent = ev->param[1];
 
 	if (options->label_deps)
-		_starpu_fxt_dag_add_tag_deps(options->file_prefix, child, father, "tag");
+		_starpu_fxt_dag_add_tag_deps(options->file_prefix, child, parent, "tag");
 	else
-		_starpu_fxt_dag_add_tag_deps(options->file_prefix, child, father, NULL);
+		_starpu_fxt_dag_add_tag_deps(options->file_prefix, child, parent, NULL);
 }
 
 static void handle_task_deps(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)

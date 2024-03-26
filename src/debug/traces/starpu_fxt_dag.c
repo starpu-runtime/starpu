@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -75,14 +75,14 @@ void _starpu_fxt_dag_add_tag(const char *prefix, uint64_t tag, unsigned long job
 	}
 }
 
-void _starpu_fxt_dag_add_tag_deps(const char *prefix, uint64_t child, uint64_t father, const char *label)
+void _starpu_fxt_dag_add_tag_deps(const char *prefix, uint64_t child, uint64_t parent, const char *label)
 {
 	if (out_file)
 	{
 		if (label)
-			fprintf(out_file, "\t \"tag_%s%llx\"->\"tag_%s%llx\" [label=\"%s\"]\n", prefix, (unsigned long long)father, prefix, (unsigned long long)child, label);
+			fprintf(out_file, "\t \"tag_%s%llx\"->\"tag_%s%llx\" [label=\"%s\"]\n", prefix, (unsigned long long)parent, prefix, (unsigned long long)child, label);
 		else
-			fprintf(out_file, "\t \"tag_%s%llx\"->\"tag_%s%llx\"\n", prefix, (unsigned long long)father, prefix, (unsigned long long)child);
+			fprintf(out_file, "\t \"tag_%s%llx\"->\"tag_%s%llx\"\n", prefix, (unsigned long long)parent, prefix, (unsigned long long)child);
 	}
 }
 

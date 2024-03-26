@@ -131,7 +131,7 @@ static void _starpu_register_new_data(starpu_data_handle_t handle, int home_node
 	_starpu_spin_lock(&handle->header_lock);
 
 	handle->root_handle = handle;
-	//handle->father_handle = NULL;
+	//handle->parent_handle = NULL;
 	//handle->nsiblings = 0;
 	//handle->siblings = NULL;
 	//handle->sibling_index = 0; /* could be anything for the root */
@@ -280,7 +280,7 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 #endif
 
 	//handle->root_handle
-	//handle->father_handle
+	//handle->parent_handle
 	//handle->active_children = NULL;
 	//handle->active_nchildren = 0;
 	//handle->active_readonly_children = NULL;

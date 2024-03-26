@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  * Copyright (C) 2017       Arthur Chevalier
  *
@@ -301,7 +301,7 @@ typedef struct starpu_sched_component *(*starpu_sched_component_create_t)(struct
 
 /**
    allocate and initialize component field with defaults values :
-   .pop_task make recursive call on father
+   .pop_task make recursive call on parent
    .estimated_load compute relative speedup and tasks in sub tree
    .estimated_end return the minimum of recursive call on children
    .add_child is starpu_sched_component_add_child
@@ -313,7 +313,7 @@ struct starpu_sched_component *starpu_sched_component_create(struct starpu_sched
 
 /**
    free data allocated by starpu_sched_component_create and call component->deinit_data(component)
-   set to <c>NULL</c> the member starpu_sched_component::fathers[sched_ctx_id] of all child if its equal to \p component
+   set to <c>NULL</c> the member starpu_sched_component::parents[sched_ctx_id] of all child if its equal to \p component
 */
 
 void starpu_sched_component_destroy(struct starpu_sched_component *component);

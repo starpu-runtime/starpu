@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -52,10 +52,10 @@ size_t starpu_complex_dev_handle_get_offset_imaginary(starpu_data_handle_t handl
 #define STARPU_COMPLEX_DEV_HANDLE_GET_OFFSET_IMAGINARY(interface) (((struct starpu_complex_dev_handle_interface *)(interface))->offset_imaginary)
 
 /* Split complex vector into smaller complex vectors */
-void starpu_complex_dev_handle_filter_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nchunks);
+void starpu_complex_dev_handle_filter_block(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nchunks);
 
 /* Split complex into two simple vectors */
-void starpu_complex_dev_handle_filter_canonical(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nchunks);
+void starpu_complex_dev_handle_filter_canonical(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nchunks);
 struct starpu_data_interface_ops *starpu_complex_dev_handle_filter_canonical_child_ops(struct starpu_data_filter *f, unsigned child);
 
 #endif /* __COMPLEX_DEV_HANDLE_INTERFACE_H */

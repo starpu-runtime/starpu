@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -19,14 +19,14 @@
 #include <common/config.h>
 #include <datawizard/filters.h>
 
-static void _starpu_vector_filter_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks, uintptr_t shadow_size)
+static void _starpu_vector_filter_block(void *parent_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks, uintptr_t shadow_size)
 {
-	struct starpu_vector_interface *vector_father = (struct starpu_vector_interface *) father_interface;
+	struct starpu_vector_interface *vector_parent = (struct starpu_vector_interface *) parent_interface;
 	struct starpu_vector_interface *vector_child = (struct starpu_vector_interface *) child_interface;
 
 	/* actual number of elements */
-	uint32_t nx = vector_father->nx - 2 * shadow_size;
-	size_t elemsize = vector_father->elemsize;
+	uint32_t nx = vector_parent->nx - 2 * shadow_size;
+	size_t elemsize = vector_parent->elemsize;
 
 	STARPU_ASSERT_MSG(nchunks <= nx, "cannot split %u elements in %u parts", nx, nchunks);
 
@@ -35,52 +35,52 @@ static void _starpu_vector_filter_block(void *father_interface, void *child_inte
 	starpu_filter_nparts_compute_chunk_size_and_offset(nx, nchunks, elemsize, id, 1, &child_nx, &offset);
 	child_nx += 2*shadow_size;
 
-	STARPU_ASSERT_MSG(vector_father->id == STARPU_VECTOR_INTERFACE_ID, "%s can only be applied on a vector data", __func__);
-	vector_child->id = vector_father->id;
+	STARPU_ASSERT_MSG(vector_parent->id == STARPU_VECTOR_INTERFACE_ID, "%s can only be applied on a vector data", __func__);
+	vector_child->id = vector_parent->id;
 	vector_child->nx = child_nx;
 	vector_child->elemsize = elemsize;
 	vector_child->allocsize = vector_child->nx * elemsize;
 
-	if (vector_father->dev_handle)
+	if (vector_parent->dev_handle)
 	{
-		if (vector_father->ptr)
-			vector_child->ptr = vector_father->ptr + offset;
-		vector_child->dev_handle = vector_father->dev_handle;
-		vector_child->offset = vector_father->offset + offset;
+		if (vector_parent->ptr)
+			vector_child->ptr = vector_parent->ptr + offset;
+		vector_child->dev_handle = vector_parent->dev_handle;
+		vector_child->offset = vector_parent->offset + offset;
 	}
 }
 
-void starpu_vector_filter_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
+void starpu_vector_filter_block(void *parent_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
 {
-	_starpu_vector_filter_block(father_interface, child_interface, f, id, nchunks, 0);
+	_starpu_vector_filter_block(parent_interface, child_interface, f, id, nchunks, 0);
 }
 
 
-void starpu_vector_filter_block_shadow(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
+void starpu_vector_filter_block_shadow(void *parent_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
 {
 	uintptr_t shadow_size = (uintptr_t) f->filter_arg_ptr;
 
-	_starpu_vector_filter_block(father_interface, child_interface, f, id, nchunks, shadow_size);
+	_starpu_vector_filter_block(parent_interface, child_interface, f, id, nchunks, shadow_size);
 }
 
 
-void starpu_vector_filter_divide_in_2(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, STARPU_ATTRIBUTE_UNUSED unsigned nchunks)
+void starpu_vector_filter_divide_in_2(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, STARPU_ATTRIBUTE_UNUSED unsigned nchunks)
 {
 	/* there cannot be more than 2 chunks */
 	STARPU_ASSERT_MSG(id < 2, "Only %u parts", id);
 
-	struct starpu_vector_interface *vector_father = (struct starpu_vector_interface *) father_interface;
+	struct starpu_vector_interface *vector_parent = (struct starpu_vector_interface *) parent_interface;
 	struct starpu_vector_interface *vector_child = (struct starpu_vector_interface *) child_interface;
 
 	uint32_t length_first = f->filter_arg;
 
-	uint32_t nx = vector_father->nx;
-	size_t elemsize = vector_father->elemsize;
+	uint32_t nx = vector_parent->nx;
+	size_t elemsize = vector_parent->elemsize;
 
 	STARPU_ASSERT_MSG(length_first < nx, "First part is too long: %u vs %u", length_first, nx);
 
-	STARPU_ASSERT_MSG(vector_father->id == STARPU_VECTOR_INTERFACE_ID, "%s can only be applied on a vector data", __func__);
-	vector_child->id = vector_father->id;
+	STARPU_ASSERT_MSG(vector_parent->id == STARPU_VECTOR_INTERFACE_ID, "%s can only be applied on a vector data", __func__);
+	vector_child->id = vector_parent->id;
 
 	/* this is the first child */
 	if (id == 0)
@@ -89,12 +89,12 @@ void starpu_vector_filter_divide_in_2(void *father_interface, void *child_interf
 		vector_child->elemsize = elemsize;
 		vector_child->allocsize = vector_child->nx * elemsize;
 
-		if (vector_father->dev_handle)
+		if (vector_parent->dev_handle)
 		{
-			if (vector_father->ptr)
-				vector_child->ptr = vector_father->ptr;
-			vector_child->offset = vector_father->offset;
-			vector_child->dev_handle = vector_father->dev_handle;
+			if (vector_parent->ptr)
+				vector_child->ptr = vector_parent->ptr;
+			vector_child->offset = vector_parent->offset;
+			vector_child->dev_handle = vector_parent->dev_handle;
 		}
 	}
 	else /* the second child */
@@ -103,35 +103,35 @@ void starpu_vector_filter_divide_in_2(void *father_interface, void *child_interf
 		vector_child->elemsize = elemsize;
 		vector_child->allocsize = vector_child->nx * elemsize;
 
-		if (vector_father->dev_handle)
+		if (vector_parent->dev_handle)
 		{
-			if (vector_father->ptr)
-				vector_child->ptr = vector_father->ptr + length_first*elemsize;
-			vector_child->offset = vector_father->offset + length_first*elemsize;
-			vector_child->dev_handle = vector_father->dev_handle;
+			if (vector_parent->ptr)
+				vector_child->ptr = vector_parent->ptr + length_first*elemsize;
+			vector_child->offset = vector_parent->offset + length_first*elemsize;
+			vector_child->dev_handle = vector_parent->dev_handle;
 		}
 	}
 }
 
 
-void starpu_vector_filter_list_long(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, STARPU_ATTRIBUTE_UNUSED unsigned nchunks)
+void starpu_vector_filter_list_long(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, STARPU_ATTRIBUTE_UNUSED unsigned nchunks)
 {
-	struct starpu_vector_interface *vector_father = (struct starpu_vector_interface *) father_interface;
+	struct starpu_vector_interface *vector_parent = (struct starpu_vector_interface *) parent_interface;
 	struct starpu_vector_interface *vector_child = (struct starpu_vector_interface *) child_interface;
 
 	long *length_tab = (long *) f->filter_arg_ptr;
 
-	size_t elemsize = vector_father->elemsize;
+	size_t elemsize = vector_parent->elemsize;
 
 	long chunk_size = length_tab[id];
 
-	STARPU_ASSERT_MSG(vector_father->id == STARPU_VECTOR_INTERFACE_ID, "%s can only be applied on a vector data", __func__);
-	vector_child->id = vector_father->id;
+	STARPU_ASSERT_MSG(vector_parent->id == STARPU_VECTOR_INTERFACE_ID, "%s can only be applied on a vector data", __func__);
+	vector_child->id = vector_parent->id;
 	vector_child->nx = chunk_size;
 	vector_child->elemsize = elemsize;
 	vector_child->allocsize = vector_child->nx * elemsize;
 
-	if (vector_father->dev_handle)
+	if (vector_parent->dev_handle)
 	{
 		/* compute the current position */
 		unsigned current_pos = 0;
@@ -139,31 +139,31 @@ void starpu_vector_filter_list_long(void *father_interface, void *child_interfac
 		for (i = 0; i < id; i++)
 			current_pos += length_tab[i];
 
-		if (vector_father->ptr)
-			vector_child->ptr = vector_father->ptr + current_pos*elemsize;
-		vector_child->offset = vector_father->offset + current_pos*elemsize;
-		vector_child->dev_handle = vector_father->dev_handle;
+		if (vector_parent->ptr)
+			vector_child->ptr = vector_parent->ptr + current_pos*elemsize;
+		vector_child->offset = vector_parent->offset + current_pos*elemsize;
+		vector_child->dev_handle = vector_parent->dev_handle;
 	}
 }
 
-void starpu_vector_filter_list(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, STARPU_ATTRIBUTE_UNUSED unsigned nchunks)
+void starpu_vector_filter_list(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, STARPU_ATTRIBUTE_UNUSED unsigned nchunks)
 {
-	struct starpu_vector_interface *vector_father = (struct starpu_vector_interface *) father_interface;
+	struct starpu_vector_interface *vector_parent = (struct starpu_vector_interface *) parent_interface;
 	struct starpu_vector_interface *vector_child = (struct starpu_vector_interface *) child_interface;
 
 	uint32_t *length_tab = (uint32_t *) f->filter_arg_ptr;
 
-	size_t elemsize = vector_father->elemsize;
+	size_t elemsize = vector_parent->elemsize;
 
 	uint32_t chunk_size = length_tab[id];
 
-	STARPU_ASSERT_MSG(vector_father->id == STARPU_VECTOR_INTERFACE_ID, "%s can only be applied on a vector data", __func__);
-	vector_child->id = vector_father->id;
+	STARPU_ASSERT_MSG(vector_parent->id == STARPU_VECTOR_INTERFACE_ID, "%s can only be applied on a vector data", __func__);
+	vector_child->id = vector_parent->id;
 	vector_child->nx = chunk_size;
 	vector_child->elemsize = elemsize;
 	vector_child->allocsize = vector_child->nx * elemsize;
 
-	if (vector_father->dev_handle)
+	if (vector_parent->dev_handle)
 	{
 		/* compute the current position */
 		unsigned current_pos = 0;
@@ -171,22 +171,22 @@ void starpu_vector_filter_list(void *father_interface, void *child_interface, st
 		for (i = 0; i < id; i++)
 			current_pos += length_tab[i];
 
-		if (vector_father->ptr)
-			vector_child->ptr = vector_father->ptr + current_pos*elemsize;
-		vector_child->offset = vector_father->offset + current_pos*elemsize;
-		vector_child->dev_handle = vector_father->dev_handle;
+		if (vector_parent->ptr)
+			vector_child->ptr = vector_parent->ptr + current_pos*elemsize;
+		vector_child->offset = vector_parent->offset + current_pos*elemsize;
+		vector_child->dev_handle = vector_parent->dev_handle;
 	}
 }
 
-void starpu_vector_filter_pick_variable(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
+void starpu_vector_filter_pick_variable(void *parent_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
 {
-	struct starpu_vector_interface *vector_father = (struct starpu_vector_interface *) father_interface;
+	struct starpu_vector_interface *vector_parent = (struct starpu_vector_interface *) parent_interface;
 	/* each chunk becomes a variable */
 	struct starpu_variable_interface *variable_child = (struct starpu_variable_interface *) child_interface;
 
 	/* actual number of elements */
-	uint32_t nx = vector_father->nx;
-	size_t elemsize = vector_father->elemsize;
+	uint32_t nx = vector_parent->nx;
+	size_t elemsize = vector_parent->elemsize;
 
 	size_t chunk_pos = (size_t)f->filter_arg_ptr;
 
@@ -195,17 +195,17 @@ void starpu_vector_filter_pick_variable(void *father_interface, void *child_inte
 
 	size_t offset = (chunk_pos + id) * elemsize;
 
-	STARPU_ASSERT_MSG(vector_father->id == STARPU_VECTOR_INTERFACE_ID, "%s can only be applied on a vector data", __func__);
+	STARPU_ASSERT_MSG(vector_parent->id == STARPU_VECTOR_INTERFACE_ID, "%s can only be applied on a vector data", __func__);
 
 	variable_child->id = STARPU_VARIABLE_INTERFACE_ID;
 	variable_child->elemsize = elemsize;
 
-	if (vector_father->dev_handle)
+	if (vector_parent->dev_handle)
 	{
-		if (vector_father->ptr)
-			variable_child->ptr = vector_father->ptr + offset;
-		variable_child->dev_handle = vector_father->dev_handle;
-		variable_child->offset = vector_father->offset + offset;
+		if (vector_parent->ptr)
+			variable_child->ptr = vector_parent->ptr + offset;
+		variable_child->dev_handle = vector_parent->dev_handle;
+		variable_child->offset = vector_parent->offset + offset;
 	}
 }
 

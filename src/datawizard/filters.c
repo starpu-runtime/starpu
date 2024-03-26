@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2021       Federal University of Rio Grande do Sul (UFRGS)
@@ -251,7 +251,7 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		_starpu_data_handle_init(child, ops, initial_handle->mf_node);
 
 		child->root_handle = initial_handle->root_handle;
-		child->father_handle = initial_handle;
+		child->parent_handle = initial_handle;
 
 		child->nsiblings = nparts;
 		if (inherit_state)
@@ -697,7 +697,7 @@ void _starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned
 	struct starpu_data_descr descr[nparts];
 	for (i = 0; i < nparts; i++)
 	{
-		STARPU_ASSERT_MSG(children[i]->father_handle == initial_handle, "child(%d) %p is partitioned from %p and not from the given parameter %p", i, children[i], children[i]->father_handle, initial_handle);
+		STARPU_ASSERT_MSG(children[i]->parent_handle == initial_handle, "child(%d) %p is partitioned from %p and not from the given parameter %p", i, children[i], children[i]->parent_handle, initial_handle);
 		descr[i].handle = children[i];
 		descr[i].mode = STARPU_W;
 	}
@@ -771,7 +771,7 @@ void starpu_data_partition_readonly_submit_sequential_consistency(starpu_data_ha
 
 	for (i = 0; i < nparts; i++)
 	{
-		STARPU_ASSERT_MSG(children[i]->father_handle == initial_handle, "child(%d) %p is partitioned from %p and not from the given parameter %p", i, children[i], children[i]->father_handle, initial_handle);
+		STARPU_ASSERT_MSG(children[i]->parent_handle == initial_handle, "child(%d) %p is partitioned from %p and not from the given parameter %p", i, children[i], children[i]->parent_handle, initial_handle);
 		descr[i].handle = children[i];
 		descr[i].mode = STARPU_W;
 		handles_sequential_consistency[i+1] = (char) children[i]->sequential_consistency;
@@ -802,7 +802,7 @@ void starpu_data_partition_readwrite_upgrade_submit(starpu_data_handle_t initial
 	struct starpu_data_descr descr[nparts];
 	for (i = 0; i < nparts; i++)
 	{
-		STARPU_ASSERT_MSG(children[i]->father_handle == initial_handle, "child(%d) %p is partitioned from %p and not from the given parameter %p", i, children[i], children[i]->father_handle, initial_handle);
+		STARPU_ASSERT_MSG(children[i]->parent_handle == initial_handle, "child(%d) %p is partitioned from %p and not from the given parameter %p", i, children[i], children[i]->parent_handle, initial_handle);
 		children[i]->active_ro = 0;
 		descr[i].handle = children[i];
 		descr[i].mode = STARPU_W;
@@ -846,7 +846,7 @@ void starpu_data_partition_readonly_downgrade_submit(starpu_data_handle_t initia
 	unsigned n;
 	for (i = 0, n = 0; i < nparts; i++)
 	{
-		STARPU_ASSERT_MSG(children[i]->father_handle == initial_handle, "child(%d) %p is partitioned from %p and not from the given parameter %p", i, children[i], children[i]->father_handle, initial_handle);
+		STARPU_ASSERT_MSG(children[i]->parent_handle == initial_handle, "child(%d) %p is partitioned from %p and not from the given parameter %p", i, children[i], children[i]->parent_handle, initial_handle);
 		if (!children[i]->initialized)
 			/* Dropped value, do not care about coherency for this one */
 			continue;
@@ -909,7 +909,7 @@ void _starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsign
 	struct starpu_data_descr descr[nparts];
 	for (i = 0, n = 0; i < nparts; i++)
 	{
-		STARPU_ASSERT_MSG(children[i]->father_handle == initial_handle, "child(%d) %p is partitioned from %p and not from the given parameter %p", i, children[i], children[i]->father_handle, initial_handle);
+		STARPU_ASSERT_MSG(children[i]->parent_handle == initial_handle, "child(%d) %p is partitioned from %p and not from the given parameter %p", i, children[i], children[i]->parent_handle, initial_handle);
 		if (!children[i]->initialized)
 			/* Dropped value, do not care about coherency for this one */
 			continue;
@@ -976,7 +976,7 @@ void starpu_data_unpartition_readonly_submit(starpu_data_handle_t initial_handle
 	struct starpu_data_descr descr[nparts];
 	for (i = 0, n = 0; i < nparts; i++)
 	{
-		STARPU_ASSERT_MSG(children[i]->father_handle == initial_handle, "child(%d) %p is partitioned from %p and not from the given parameter %p", i, children[i], children[i]->father_handle, initial_handle);
+		STARPU_ASSERT_MSG(children[i]->parent_handle == initial_handle, "child(%d) %p is partitioned from %p and not from the given parameter %p", i, children[i], children[i]->parent_handle, initial_handle);
 		if (!children[i]->initialized)
 			/* Dropped value, do not care about coherency for this one */
 			continue;
@@ -1031,13 +1031,13 @@ static void starpu_data_unpartition_submit_r(starpu_data_handle_t ancestor, int 
 /* Make ancestor partition itself properly for target */
 static void _starpu_data_partition_access_look_up(starpu_data_handle_t ancestor, starpu_data_handle_t target, int write)
 {
-	/* First make sure ancestor has proper state, if not, ask father */
+	/* First make sure ancestor has proper state, if not, ask parent */
 	if (!ancestor->active || (write && ancestor->active_ro))
 	{
 		/* (The root is always active-rw) */
-		STARPU_ASSERT(ancestor->father_handle);
-		_STARPU_DEBUG("ancestor %p is not ready: %s, asking father %p\n", ancestor, ancestor->active ? ancestor->active_ro ? "RO" : "RW" : "NONE", ancestor->father_handle);
-		_starpu_data_partition_access_look_up(ancestor->father_handle, ancestor, write);
+		STARPU_ASSERT(ancestor->parent_handle);
+		_STARPU_DEBUG("ancestor %p is not ready: %s, asking parent %p\n", ancestor, ancestor->active ? ancestor->active_ro ? "RO" : "RW" : "NONE", ancestor->parent_handle);
+		_starpu_data_partition_access_look_up(ancestor->parent_handle, ancestor, write);
 		_STARPU_DEBUG("ancestor %p is now ready\n", ancestor);
 	}
 	else

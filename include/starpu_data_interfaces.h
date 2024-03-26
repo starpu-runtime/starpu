@@ -2451,8 +2451,8 @@ extern struct starpu_data_interface_ops starpu_interface_bcsr_ops;
    row representation)
 
    Note: when a BCSR matrix is partitioned, nzval, colind, and rowptr point into
-   the corresponding father arrays. The rowptr content is thus the same as the
-   father's. Firstentry is used to offset this so it becomes valid for the child
+   the corresponding parent arrays. The rowptr content is thus the same as the
+   parent's. Firstentry is used to offset this so it becomes valid for the child
    arrays.
 */
 struct starpu_bcsr_interface

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -376,23 +376,23 @@ static void s_compute_chunk_size_and_offset(unsigned n, unsigned nparts, size_t 
 		*offset = (i * (n / nparts) + STARPU_MIN(remainder, i)) * ld * elemsize;
 }
 
-static void s_jobject_vector_filter_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
+static void s_jobject_vector_filter_block(void *parent_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
 {
 	uint32_t child_nx;
 	size_t offset;
-	struct jobject_vector_interface *vector_father = father_interface;
+	struct jobject_vector_interface *vector_parent = parent_interface;
 	struct jobject_vector_interface *vector_child = child_interface;
-	uint32_t nx = vector_father->nx;
+	uint32_t nx = vector_parent->nx;
 
 	STARPU_ASSERT_MSG(nchunks <= nx, "%u parts for %u elements", nchunks, nx);
 
 	s_compute_chunk_size_and_offset(nx, nchunks, sizeof(jobject), id, 1, &child_nx, &offset);
 
-	STARPU_ASSERT_MSG(vector_father->id == STARPUJNI_JOBJECT_VECTOR_INTERFACE_ID,
+	STARPU_ASSERT_MSG(vector_parent->id == STARPUJNI_JOBJECT_VECTOR_INTERFACE_ID,
 			  "%s can only be applied on a jobject-vector data", __func__);
-	vector_child->id = vector_father->id;
+	vector_child->id = vector_parent->id;
 	vector_child->nx = child_nx;
-	vector_child->ptr = vector_father->ptr + offset;
+	vector_child->ptr = vector_parent->ptr + offset;
 }
 
 JNIEXPORT void JNICALL STARPU_DATA_FUNCNAME(VectorHandle, partition)(JNIEnv *env, jclass cls, jlong handle, jint nbParts)

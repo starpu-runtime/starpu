@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -40,15 +40,15 @@ struct starpu_data_filter
 {
 	/**
 	   Fill the \p child_interface structure with interface information
-	   for the \p i -th child of the parent \p father_interface (among
+	   for the \p i -th child of the parent \p parent_interface (among
 	   \p nparts). The \p filter structure is provided, allowing to inspect the
 	   starpu_data_filter::filter_arg and starpu_data_filter::filter_arg_ptr
 	   parameters.
 	   The details of what needs to be filled in \p child_interface vary according
 	   to the data interface, but generally speaking:
 	   <ul>
-	   <li> <c>id</c> is usually just copied over from the father,
-	   when the sub data has the same structure as the father,
+	   <li> <c>id</c> is usually just copied over from the parent,
+	   when the sub data has the same structure as the parent,
 	   e.g. a subvector is a vector, a submatrix is a matrix, etc.
 	   This is however not the case for instance when dividing a
 	   BCSR matrix into its dense blocks, which then are matrices.
@@ -62,21 +62,21 @@ struct starpu_data_filter
 	   change. </li>
 	   <li> <c>elemsize</c> is usually just copied over. </li>
 	   <li> <c>ptr</c>, the pointer to the data, has to be
-	   computed according to \p i and the father's <c>ptr</c>, so
+	   computed according to \p i and the parent's <c>ptr</c>, so
 	   as to point to the start of the sub data. This should
-	   however be done only if the father has <c>ptr</c> different
+	   however be done only if the parent has <c>ptr</c> different
 	   from NULL: in the OpenCL case notably, the
 	   <c>dev_handle</c> and <c>offset</c> fields are used
 	   instead. </li>
 	   <li> <c>dev_handle</c> should be just copied over from the
 	   parent. </li>
 	   <li> <c>offset</c> has to be computed according to \p i and
-	   the father's <c>offset</c>, so as to provide the offset of
+	   the parent's <c>offset</c>, so as to provide the offset of
 	   the start of the sub data. This is notably used for the
 	   OpenCL case.
 	   </ul>
 	*/
-	void (*filter_func)(void *father_interface, void *child_interface, struct starpu_data_filter *, unsigned id, unsigned nparts);
+	void (*filter_func)(void *parent_interface, void *child_interface, struct starpu_data_filter *, unsigned id, unsigned nparts);
 
 	unsigned nchildren; /**< Number of parts to partition the data into. */
 
@@ -379,7 +379,7 @@ void starpu_data_unpartition_submit_sequential_consistency(starpu_data_handle_t 
 
    See \ref BCSRDataInterface for more details.
 */
-void starpu_bcsr_filter_canonical_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_bcsr_filter_canonical_block(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Return the number of children obtained with starpu_bcsr_filter_canonical_block().
@@ -400,7 +400,7 @@ struct starpu_data_interface_ops *starpu_bcsr_filter_canonical_block_child_ops(s
 
    See \ref BCSRDataInterface for more details.
 */
-void starpu_bcsr_filter_vertical_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_bcsr_filter_vertical_block(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /** @} */
 
@@ -416,7 +416,7 @@ void starpu_bcsr_filter_vertical_block(void *father_interface, void *child_inter
 
    See \ref CSRDataInterface for more details.
 */
-void starpu_csr_filter_vertical_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_csr_filter_vertical_block(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /** @} */
 
@@ -437,7 +437,7 @@ void starpu_csr_filter_vertical_block(void *father_interface, void *child_interf
 
    See \ref MatrixDataInterface for more details.
 */
-void starpu_matrix_filter_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_matrix_filter_block(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Partition a dense Matrix along the x dimension, with a
@@ -452,7 +452,7 @@ void starpu_matrix_filter_block(void *father_interface, void *child_interface, s
 
    See \ref MatrixDataInterface for more details.
 */
-void starpu_matrix_filter_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_matrix_filter_block_shadow(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Partition a dense Matrix along the y dimension, thus getting
@@ -461,7 +461,7 @@ void starpu_matrix_filter_block_shadow(void *father_interface, void *child_inter
 
    See \ref MatrixDataInterface for more details.
 */
-void starpu_matrix_filter_vertical_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_matrix_filter_vertical_block(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Partition a dense Matrix along the y dimension, with a
@@ -475,7 +475,7 @@ void starpu_matrix_filter_vertical_block(void *father_interface, void *child_int
 
    See \ref MatrixDataInterface for more details.
 */
-void starpu_matrix_filter_vertical_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_matrix_filter_vertical_block_shadow(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Pick \p nparts contiguous vectors from a matrix along
@@ -488,7 +488,7 @@ void starpu_matrix_filter_vertical_block_shadow(void *father_interface, void *ch
 
    See \ref MatrixDataInterface for more details.
 */
-void starpu_matrix_filter_pick_vector_y(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_matrix_filter_pick_vector_y(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Return the child_ops of the partition obtained with starpu_matrix_filter_pick_vector_y().
@@ -506,7 +506,7 @@ struct starpu_data_interface_ops *starpu_matrix_filter_pick_vector_child_ops(str
 
    See \ref MatrixDataInterface for more details.
 */
-void starpu_matrix_filter_pick_variable(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_matrix_filter_pick_variable(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Return the child_ops of the partition obtained with starpu_matrix_filter_pick_variable().
@@ -526,16 +526,16 @@ struct starpu_data_interface_ops *starpu_matrix_filter_pick_variable_child_ops(s
 
 /**
    Return in \p child_interface the \p id th element of the vector
-   represented by \p father_interface once partitioned in \p nparts chunks of
+   represented by \p parent_interface once partitioned in \p nparts chunks of
    equal size.
 
    See \ref VectorDataInterface for more details.
 */
-void starpu_vector_filter_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_vector_filter_block(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Return in \p child_interface the \p id th element of the vector
-   represented by \p father_interface once partitioned in \p nparts chunks of
+   represented by \p parent_interface once partitioned in \p nparts chunks of
    equal size with a shadow border starpu_data_filter::filter_arg_ptr, thus getting a vector
    of size <c>(n-2*shadow)/nparts+2*shadow</c>. The starpu_data_filter::filter_arg_ptr field
    of \p f must be the shadow size casted into \c void*.
@@ -546,11 +546,11 @@ void starpu_vector_filter_block(void *father_interface, void *child_interface, s
 
    See \ref VectorDataInterface for more details.
 */
-void starpu_vector_filter_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_vector_filter_block_shadow(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Return in \p child_interface the \p id th element of the vector
-   represented by \p father_interface once partitioned into \p nparts chunks
+   represented by \p parent_interface once partitioned into \p nparts chunks
    according to the starpu_data_filter::filter_arg_ptr field of \p f. The
    starpu_data_filter::filter_arg_ptr field must point to an array of \p nparts long
    elements, each of which specifies the number of elements in each chunk
@@ -558,11 +558,11 @@ void starpu_vector_filter_block_shadow(void *father_interface, void *child_inter
 
    See \ref VectorDataInterface for more details.
 */
-void starpu_vector_filter_list_long(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_vector_filter_list_long(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Return in \p child_interface the \p id th element of the vector
-   represented by \p father_interface once partitioned into \p nparts chunks
+   represented by \p parent_interface once partitioned into \p nparts chunks
    according to the starpu_data_filter::filter_arg_ptr field of \p f. The
    starpu_data_filter::filter_arg_ptr field must point to an array of \p nparts uint32_t
    elements, each of which specifies the number of elements in each chunk
@@ -570,16 +570,16 @@ void starpu_vector_filter_list_long(void *father_interface, void *child_interfac
 
    See \ref VectorDataInterface for more details.
 */
-void starpu_vector_filter_list(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_vector_filter_list(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Return in \p child_interface the \p id th element of the vector
-   represented by \p father_interface once partitioned in <c>2</c> chunks of
+   represented by \p parent_interface once partitioned in <c>2</c> chunks of
    equal size, ignoring nparts. Thus, \p id must be <c>0</c> or <c>1</c>.
 
    See \ref VectorDataInterface for more details.
 */
-void starpu_vector_filter_divide_in_2(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_vector_filter_divide_in_2(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Pick \p nparts contiguous variables from a vector. The starting
@@ -591,7 +591,7 @@ void starpu_vector_filter_divide_in_2(void *father_interface, void *child_interf
 
    See \ref VectorDataInterface for more details.
 */
-void starpu_vector_filter_pick_variable(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_vector_filter_pick_variable(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Return the child_ops of the partition obtained with starpu_vector_filter_pick_variable().
@@ -618,7 +618,7 @@ struct starpu_data_interface_ops *starpu_vector_filter_pick_variable_child_ops(s
 
   See \ref BlockDataInterface for more details.
 */
-void starpu_block_filter_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_block_filter_block(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Partition a block along the X dimension, with a
@@ -632,7 +632,7 @@ void starpu_block_filter_block(void *father_interface, void *child_interface, st
 
    See \ref BlockDataInterface for more details.
 */
-void starpu_block_filter_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_block_filter_block_shadow(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Partition a block along the Y dimension, thus getting
@@ -641,7 +641,7 @@ void starpu_block_filter_block_shadow(void *father_interface, void *child_interf
 
    See \ref BlockDataInterface for more details.
 */
-void starpu_block_filter_vertical_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_block_filter_vertical_block(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Partition a block along the Y dimension, with a
@@ -655,7 +655,7 @@ void starpu_block_filter_vertical_block(void *father_interface, void *child_inte
 
    See \ref BlockDataInterface for more details.
 */
-void starpu_block_filter_vertical_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_block_filter_vertical_block_shadow(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Partition a block along the Z dimension, thus getting
@@ -664,7 +664,7 @@ void starpu_block_filter_vertical_block_shadow(void *father_interface, void *chi
 
    See \ref BlockDataInterface for more details.
 */
-void starpu_block_filter_depth_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_block_filter_depth_block(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Partition a block along the Z dimension, with a
@@ -678,7 +678,7 @@ void starpu_block_filter_depth_block(void *father_interface, void *child_interfa
 
    See \ref BlockDataInterface for more details.
 */
-void starpu_block_filter_depth_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_block_filter_depth_block_shadow(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Pick \p nparts contiguous matrices from a block along
@@ -691,7 +691,7 @@ void starpu_block_filter_depth_block_shadow(void *father_interface, void *child_
 
    See \ref BlockDataInterface for more details.
 */
-void starpu_block_filter_pick_matrix_z(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_block_filter_pick_matrix_z(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Pick \p nparts contiguous matrices from a block along
@@ -704,7 +704,7 @@ void starpu_block_filter_pick_matrix_z(void *father_interface, void *child_inter
 
    See \ref BlockDataInterface for more details.
 */
-void starpu_block_filter_pick_matrix_y(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_block_filter_pick_matrix_y(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Return the child_ops of the partition obtained with starpu_block_filter_pick_matrix_z()
@@ -723,7 +723,7 @@ struct starpu_data_interface_ops *starpu_block_filter_pick_matrix_child_ops(stru
 
    See \ref BlockDataInterface for more details.
 */
-void starpu_block_filter_pick_variable(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_block_filter_pick_variable(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Return the child_ops of the partition obtained with starpu_block_filter_pick_variable().
@@ -747,7 +747,7 @@ struct starpu_data_interface_ops *starpu_block_filter_pick_variable_child_ops(st
 
    See \ref TensorDataInterface for more details.
 */
-void starpu_tensor_filter_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_tensor_filter_block(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Partition a tensor along the X dimension, with a
@@ -761,7 +761,7 @@ void starpu_tensor_filter_block(void *father_interface, void *child_interface, s
 
    See \ref TensorDataInterface for more details.
 */
-void starpu_tensor_filter_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_tensor_filter_block_shadow(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Partition a tensor along the Y dimension, thus getting
@@ -770,7 +770,7 @@ void starpu_tensor_filter_block_shadow(void *father_interface, void *child_inter
 
    See \ref TensorDataInterface for more details.
 */
-void starpu_tensor_filter_vertical_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_tensor_filter_vertical_block(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Partition a tensor along the Y dimension, with a
@@ -784,7 +784,7 @@ void starpu_tensor_filter_vertical_block(void *father_interface, void *child_int
 
    See \ref TensorDataInterface for more details.
 */
-void starpu_tensor_filter_vertical_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_tensor_filter_vertical_block_shadow(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Partition a tensor along the Z dimension, thus getting
@@ -793,7 +793,7 @@ void starpu_tensor_filter_vertical_block_shadow(void *father_interface, void *ch
 
    See \ref TensorDataInterface for more details.
 */
-void starpu_tensor_filter_depth_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_tensor_filter_depth_block(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Partition a tensor along the Z dimension, with a
@@ -807,7 +807,7 @@ void starpu_tensor_filter_depth_block(void *father_interface, void *child_interf
 
    See \ref TensorDataInterface for more details.
 */
-void starpu_tensor_filter_depth_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_tensor_filter_depth_block_shadow(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Partition a tensor along the T dimension, thus getting
@@ -816,7 +816,7 @@ void starpu_tensor_filter_depth_block_shadow(void *father_interface, void *child
 
    See \ref TensorDataInterface for more details.
 */
-void starpu_tensor_filter_time_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_tensor_filter_time_block(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Partition a tensor along the T dimension, with a
@@ -830,7 +830,7 @@ void starpu_tensor_filter_time_block(void *father_interface, void *child_interfa
 
    See \ref TensorDataInterface for more details.
 */
-void starpu_tensor_filter_time_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_tensor_filter_time_block_shadow(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Pick \p nparts contiguous blocks from a tensor along
@@ -843,7 +843,7 @@ void starpu_tensor_filter_time_block_shadow(void *father_interface, void *child_
 
    See \ref TensorDataInterface for more details.
 */
-void starpu_tensor_filter_pick_block_t(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_tensor_filter_pick_block_t(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Pick \p nparts contiguous blocks from a tensor along
@@ -856,7 +856,7 @@ void starpu_tensor_filter_pick_block_t(void *father_interface, void *child_inter
 
    See \ref TensorDataInterface for more details.
 */
-void starpu_tensor_filter_pick_block_z(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_tensor_filter_pick_block_z(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Pick \p nparts contiguous blocks from a tensor along
@@ -869,7 +869,7 @@ void starpu_tensor_filter_pick_block_z(void *father_interface, void *child_inter
 
    See \ref TensorDataInterface for more details.
 */
-void starpu_tensor_filter_pick_block_y(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_tensor_filter_pick_block_y(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Return the child_ops of the partition obtained with starpu_tensor_filter_pick_block_t(),
@@ -888,7 +888,7 @@ struct starpu_data_interface_ops *starpu_tensor_filter_pick_block_child_ops(stru
 
    See \ref TensorDataInterface for more details.
 */
-void starpu_tensor_filter_pick_variable(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_tensor_filter_pick_variable(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Return the child_ops of the partition obtained with starpu_tensor_filter_pick_variable().
@@ -912,7 +912,7 @@ struct starpu_data_interface_ops *starpu_tensor_filter_pick_variable_child_ops(s
 
    See \ref NdimDataInterface for more details.
 */
-void starpu_ndim_filter_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_ndim_filter_block(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Partition a ndim array along the given dimension set in
@@ -926,7 +926,7 @@ void starpu_ndim_filter_block(void *father_interface, void *child_interface, str
 
    See \ref NdimDataInterface for more details.
 */
-void starpu_ndim_filter_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_ndim_filter_block_shadow(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Partition a 4-dim array into \p nparts tensors along the given
@@ -938,7 +938,7 @@ void starpu_ndim_filter_block_shadow(void *father_interface, void *child_interfa
 
    See \ref NdimDataInterface for more details.
 */
-void starpu_ndim_filter_to_tensor(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_ndim_filter_to_tensor(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Partition a 3-dim array into \p nparts blocks along the given
@@ -950,7 +950,7 @@ void starpu_ndim_filter_to_tensor(void *father_interface, void *child_interface,
 
    See \ref NdimDataInterface for more details.
 */
-void starpu_ndim_filter_to_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_ndim_filter_to_block(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Partition a 2-dim array into \p nparts matrices along the given
@@ -962,7 +962,7 @@ void starpu_ndim_filter_to_block(void *father_interface, void *child_interface, 
 
    See \ref NdimDataInterface for more details.
 */
-void starpu_ndim_filter_to_matrix(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_ndim_filter_to_matrix(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Partition a 1-dim array into \p nparts vectors.
@@ -973,7 +973,7 @@ void starpu_ndim_filter_to_matrix(void *father_interface, void *child_interface,
 
    See \ref NdimDataInterface for more details.
 */
-void starpu_ndim_filter_to_vector(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_ndim_filter_to_vector(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Transfer a 0-dim array to a variable.
@@ -984,7 +984,7 @@ void starpu_ndim_filter_to_vector(void *father_interface, void *child_interface,
 
    See \ref NdimDataInterface for more details.
 */
-void starpu_ndim_filter_to_variable(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_ndim_filter_to_variable(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Pick \p nparts contiguous (n-1)dim arrays from a ndim array along
@@ -995,7 +995,7 @@ void starpu_ndim_filter_to_variable(void *father_interface, void *child_interfac
 
    See \ref NdimDataInterface for more details.
 */
-void starpu_ndim_filter_pick_ndim(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_ndim_filter_pick_ndim(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Pick \p nparts contiguous tensors from a 5-dim array along
@@ -1008,7 +1008,7 @@ void starpu_ndim_filter_pick_ndim(void *father_interface, void *child_interface,
 
    See \ref NdimDataInterface for more details.
 */
-void starpu_ndim_filter_5d_pick_tensor(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_ndim_filter_5d_pick_tensor(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Pick \p nparts contiguous blocks from a 4-dim array along
@@ -1021,7 +1021,7 @@ void starpu_ndim_filter_5d_pick_tensor(void *father_interface, void *child_inter
 
    See \ref NdimDataInterface for more details.
 */
-void starpu_ndim_filter_4d_pick_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_ndim_filter_4d_pick_block(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Pick \p nparts contiguous matrices from a 3-dim array along
@@ -1034,7 +1034,7 @@ void starpu_ndim_filter_4d_pick_block(void *father_interface, void *child_interf
 
    See \ref NdimDataInterface for more details.
 */
-void starpu_ndim_filter_3d_pick_matrix(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_ndim_filter_3d_pick_matrix(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Pick \p nparts contiguous vectors from a 2-dim array along
@@ -1047,7 +1047,7 @@ void starpu_ndim_filter_3d_pick_matrix(void *father_interface, void *child_inter
 
    See \ref NdimDataInterface for more details.
 */
-void starpu_ndim_filter_2d_pick_vector(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_ndim_filter_2d_pick_vector(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Pick \p nparts contiguous variables from a 1-dim array.
@@ -1059,7 +1059,7 @@ void starpu_ndim_filter_2d_pick_vector(void *father_interface, void *child_inter
 
    See \ref NdimDataInterface for more details.
 */
-void starpu_ndim_filter_1d_pick_variable(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_ndim_filter_1d_pick_variable(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Pick \p nparts contiguous variables from a ndim array.
@@ -1071,7 +1071,7 @@ void starpu_ndim_filter_1d_pick_variable(void *father_interface, void *child_int
 
    See \ref NdimDataInterface for more details.
 */
-void starpu_ndim_filter_pick_variable(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_ndim_filter_pick_variable(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
    Return the child_ops of the partition obtained with starpu_ndim_filter_pick_tensor().

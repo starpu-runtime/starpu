@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -51,10 +51,10 @@ of elements ; for a matrix, it involves a pointer for the start, the number of e
 and the size of each element ; etc. Codelet functions receive interfaces for the local memory node copies of data handles assigned to the scheduled task, to access their data.
 
 Data \b partitioning means dividing the data of a specific data handle
-(referred to as the \b father) into several \b children data handles,
+(referred to as the \b parent) into several \b children data handles,
 each representing distinct segments of the original data.
 
-A \b filter is the function responsible for deriving child data handles from a father
+A \b filter is the function responsible for deriving child data handles from a parent
 data handle, thus defining how the partitioning should be done (e.g.
 horizontal, vertical, etc.)
 
