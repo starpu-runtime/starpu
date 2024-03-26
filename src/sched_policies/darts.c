@@ -3276,7 +3276,8 @@ static void get_task_done(struct starpu_task *task, unsigned sci)
 		{
 			STARPU_IGNORE_UTILITIES_HANDLES(task, i);
 			struct _starpu_darts_handle_sched_data *hud = STARPU_TASK_GET_HANDLE(task, i)->sched_data;
-			hud->nb_task_in_pulled_task[current_gpu] -= 1;
+			if (hud)
+				hud->nb_task_in_pulled_task[current_gpu] -= 1;
 		}
 		_REFINED_MUTEX_UNLOCK();
 	}
