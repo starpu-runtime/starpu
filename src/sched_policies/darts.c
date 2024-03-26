@@ -148,18 +148,11 @@ static enum {
 static int _nb_gpus;
 
 static int get_current_gpu(void) {
-	if (cpu_only == CPU_ONLY)
-	{
-		return 0;
-	}
-	else if (cpu_only == CPU_GPU)
-	{
-		return starpu_worker_get_memory_node(starpu_worker_get_id());
-	}
-	else
-	{
-		return starpu_worker_get_memory_node(starpu_worker_get_id()) - 1;
-	}
+	int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
+	if (starpu_cpu_worker_get_count() == 0)
+		/* Ignore the CPU memory nodes since there are no CPU workers */
+		current_gpu -= starpu_memory_nodes_get_count_by_kind(STARPU_CPU_RAM);
+	return current_gpu;
 }
 
 static bool new_tasks_initialized;
@@ -215,18 +208,6 @@ struct timeval time_start_createtolasttaskfinished;
  * does not contain any valuable information. Thus we ignore it. **/
 #define STARPU_IGNORE_UTILITIES_HANDLES(task, index) if ((STARPU_TASK_GET_MODE(task, index) & STARPU_SCRATCH) || (STARPU_TASK_GET_MODE(task, index) & STARPU_REDUX)) { continue; }
 #define STARPU_IGNORE_UTILITIES_HANDLES_FROM_DATA(handle) if ((handle->current_mode == STARPU_SCRATCH) || (handle->current_mode == STARPU_REDUX)) { continue; }
-
-static int _get_number_GPU()
-{
-	int return_value = starpu_memory_nodes_get_count_by_kind(STARPU_CUDA_RAM);
-
-	if (return_value == 0) /* We are not using GPUs so we are in an out-of-core case using CPUs. Need to return 1. If I want to deal with GPUs AND CPUs we need to adpt this function to return NGPU + 1 */
-	{
-		return 1;
-	}
-
-	return return_value;
-}
 
 /* Return the number of handle used by a task without considering the scratch data used by a cusolver. */
 static int get_nbuffer_without_scratch(struct starpu_task *t)
@@ -3154,11 +3135,11 @@ struct starpu_sched_component *starpu_sched_component_darts_create(struct starpu
 
 	_STARPU_SCHED_PRINT("-----\nSTARPU_DARTS_EVICTION_STRATEGY_DARTS = %d\nSTARPU_DARTS_THRESHOLD = %d\nSTARPU_DARTS_APP = %d\nSTARPU_DARTS_CHOOSE_BEST_DATA_FROM = %d\nSTARPU_DARTS_SIMULATE_MEMORY = %d\nSTARPU_DARTS_TASK_ORDER = %d\nSTARPU_DARTS_DATA_ORDER = %d\nSTARPU_DARTS_DEPENDANCES = %d\nSTARPU_DARTS_PRIO = %d\nSTARPU_DARTS_FREE_PUSHED_TASK_POSITION = %d\nSTARPU_DARTS_GRAPH_DESCENDANTS = %d\nSTARPU_DARTS_DOPT_SELECTION_ORDER = %d\nSTARPU_DARTS_HIGHEST_PRIORITY_TASK_RETURNED_IN_DEFAULT_CASE = %d\nSTARPU_DARTS_CAN_A_DATA_BE_IN_MEM_AND_IN_NOT_USED_YET = %d\nSTARPU_DARTS_PUSH_FREE_TASK_ON_GPU_WITH_LEAST_TASK_IN_PLANNED_TASK = %d\n-----\n", eviction_strategy_darts, threshold, app, choose_best_data_from, simulate_memory, task_order, data_order, dependances, prio, free_pushed_task_position, graph_descendants, dopt_selection_order, highest_priority_task_returned_in_default_case, can_a_data_be_in_mem_and_in_not_used_yet, push_free_task_on_gpu_with_least_task_in_planned_task);
 
-	_nb_gpus = _get_number_GPU();
-	if (cpu_only == CPU_GPU)
-	{
-		_nb_gpus += starpu_memory_nodes_get_count_by_kind(STARPU_CPU_RAM); /* Adding one to account for the NUMA node because we are in a CPU+GPU case. */
-	}
+	_nb_gpus = starpu_memory_nodes_get_count();
+	if (starpu_cpu_worker_get_count() == 0)
+		/* Ignore the CPU memory nodes since there are no CPU workers */
+		_nb_gpus -= starpu_memory_nodes_get_count_by_kind(STARPU_CPU_RAM);
+
 	NT_DARTS = 0;
 	new_tasks_initialized = false;
 	round_robin_free_task = -1; /* Starts at -1 because it is updated at the beginning and not the end of push_task. Thus to start at 0 on the first task you need to init it at -1. */
@@ -3168,18 +3149,11 @@ struct starpu_sched_component *starpu_sched_component_darts_create(struct starpu
 	int i;
 	for (i = 0; i < _nb_gpus; i++)
 	{
-		if (cpu_only == GPU_ONLY) /* Using GPUs so memory nodes are 1->Ngpu */
-		{
-			memory_nodes[i] = i + 1;
-		}
-		else if (cpu_only == CPU_GPU) /* Using GPUs and CPUs so memory nodes are 0->Ngpu+Ncpu */
-		{
+		if (starpu_cpu_worker_get_count() == 0)
+			/* Skip the CPU memory nodes since there are no CPU workers */
+			memory_nodes[i] = i + starpu_memory_nodes_get_count_by_kind(STARPU_CPU_RAM);
+		else
 			memory_nodes[i] = i;
-		}
-		else /* Using CPUs so memory nodes are 0->N_numa_nodes */
-		{
-			memory_nodes[i] = i;
-		}
 	}
 
 #ifdef STARPU_DARTS_STATS
