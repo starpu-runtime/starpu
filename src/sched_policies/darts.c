@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -140,7 +140,11 @@ static int dopt_selection_order;
 static int highest_priority_task_returned_in_default_case;
 static int push_free_task_on_gpu_with_least_task_in_planned_task;
 static int round_robin_free_task;
-static int cpu_only;
+static enum {
+	GPU_ONLY,
+	CPU_ONLY,
+	CPU_GPU,
+} cpu_only;
 static int _nb_gpus;
 
 static bool new_tasks_initialized;
@@ -2644,11 +2648,11 @@ static struct starpu_task *darts_pull_task(struct starpu_sched_component *compon
 	_REFINED_MUTEX_UNLOCK();
 
 	int current_gpu; /* Index in tabs of structs */
-	if (cpu_only == 1)
+	if (cpu_only == CPU_ONLY)
 	{
 		current_gpu = 0;
 	}
-	else if (cpu_only == 2)
+	else if (cpu_only == CPU_GPU)
 	{
 		current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
 	}
@@ -2705,11 +2709,11 @@ static void darts_victim_eviction_failed(starpu_data_handle_t victim, void *comp
 #endif
 
 	int current_gpu; /* Index in tabs of structs */
-	if (cpu_only == 1)
+	if (cpu_only == CPU_ONLY)
 	{
 		current_gpu = 0;
 	}
-	else if (cpu_only == 2)
+	else if (cpu_only == CPU_GPU)
 	{
 		current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
 	}
@@ -2831,11 +2835,11 @@ static starpu_data_handle_t darts_victim_selector(starpu_data_handle_t toload, u
 #endif
 
 	int current_gpu; /* Index in tabs of structs */
-	if (cpu_only == 1)
+	if (cpu_only == CPU_ONLY)
 	{
 		current_gpu = 0;
 	}
-	else if (cpu_only == 2)
+	else if (cpu_only == CPU_GPU)
 	{
 		current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
 	}
@@ -3121,11 +3125,11 @@ static int darts_can_push(struct starpu_sched_component *component, struct starp
 #endif
 
 		int current_gpu; /* Index in tabs of structs */
-		if (cpu_only == 1)
+		if (cpu_only == CPU_ONLY)
 		{
 			current_gpu = 0;
 		}
-		else if (cpu_only == 2)
+		else if (cpu_only == CPU_GPU)
 		{
 			current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
 		}
@@ -3170,21 +3174,21 @@ struct starpu_sched_component *starpu_sched_component_darts_create(struct starpu
 
 	if (starpu_cpu_worker_get_count() > 0 && starpu_cuda_worker_get_count() == 0 && starpu_hip_worker_get_count() == 0 && starpu_opencl_worker_get_count() == 0 && starpu_mpi_ms_worker_get_count() == 0 && starpu_tcpip_ms_worker_get_count() == 0)
 	{
-		cpu_only = 1; // Only CPUs
+		cpu_only = CPU_ONLY; // Only CPUs
 	}
 	else if (starpu_cpu_worker_get_count() > 0 && (starpu_cuda_worker_get_count() > 0 || starpu_hip_worker_get_count() == 0 || starpu_opencl_worker_get_count() == 0 || starpu_mpi_ms_worker_get_count() == 0 || starpu_tcpip_ms_worker_get_count() == 0))
 	{
-		cpu_only = 2; // Both GPUs and CPUs
+		cpu_only = CPU_GPU; // Both GPUs and CPUs
 	}
 	else
 	{
-		cpu_only = 0; // Only GPUs
+		cpu_only = GPU_ONLY; // Only GPUs
 	}
 
 	_STARPU_SCHED_PRINT("-----\nSTARPU_DARTS_EVICTION_STRATEGY_DARTS = %d\nSTARPU_DARTS_THRESHOLD = %d\nSTARPU_DARTS_APP = %d\nSTARPU_DARTS_CHOOSE_BEST_DATA_FROM = %d\nSTARPU_DARTS_SIMULATE_MEMORY = %d\nSTARPU_DARTS_TASK_ORDER = %d\nSTARPU_DARTS_DATA_ORDER = %d\nSTARPU_DARTS_DEPENDANCES = %d\nSTARPU_DARTS_PRIO = %d\nSTARPU_DARTS_FREE_PUSHED_TASK_POSITION = %d\nSTARPU_DARTS_GRAPH_DESCENDANTS = %d\nSTARPU_DARTS_DOPT_SELECTION_ORDER = %d\nSTARPU_DARTS_HIGHEST_PRIORITY_TASK_RETURNED_IN_DEFAULT_CASE = %d\nSTARPU_DARTS_CAN_A_DATA_BE_IN_MEM_AND_IN_NOT_USED_YET = %d\nSTARPU_DARTS_PUSH_FREE_TASK_ON_GPU_WITH_LEAST_TASK_IN_PLANNED_TASK = %d\n-----\n", eviction_strategy_darts, threshold, app, choose_best_data_from, simulate_memory, task_order, data_order, dependances, prio, free_pushed_task_position, graph_descendants, dopt_selection_order, highest_priority_task_returned_in_default_case, can_a_data_be_in_mem_and_in_not_used_yet, push_free_task_on_gpu_with_least_task_in_planned_task);
 
 	_nb_gpus = _get_number_GPU();
-	if (cpu_only == 2)
+	if (cpu_only == CPU_GPU)
 	{
 		_nb_gpus += starpu_memory_nodes_get_count_by_kind(STARPU_CPU_RAM); /* Adding one to account for the NUMA node because we are in a CPU+GPU case. */
 	}
@@ -3197,11 +3201,11 @@ struct starpu_sched_component *starpu_sched_component_darts_create(struct starpu
 	int i;
 	for (i = 0; i < _nb_gpus; i++)
 	{
-		if (cpu_only == 0) /* Using GPUs so memory nodes are 1->Ngpu */
+		if (cpu_only == GPU_ONLY) /* Using GPUs so memory nodes are 1->Ngpu */
 		{
 			memory_nodes[i] = i + 1;
 		}
-		else if (cpu_only == 2) /* Using GPUs and CPUs so memory nodes are 0->Ngpu+Ncpu */
+		else if (cpu_only == CPU_GPU) /* Using GPUs and CPUs so memory nodes are 0->Ngpu+Ncpu */
 		{
 			memory_nodes[i] = i;
 		}
@@ -3339,11 +3343,11 @@ static void get_task_done(struct starpu_task *task, unsigned sci)
 	_LINEAR_MUTEX_LOCK();
 
 	int current_gpu;
-	if (cpu_only == 1)
+	if (cpu_only == CPU_ONLY)
 	{
 		current_gpu = 0;
 	}
-	else if (cpu_only == 2)
+	else if (cpu_only == CPU_GPU)
 	{
 		current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
 	}
@@ -3383,7 +3387,7 @@ static void get_task_done(struct starpu_task *task, unsigned sci)
 		{
 			_starpu_darts_pulled_task_list_erase(tab_gpu_pulled_task[current_gpu].ptl, temp);
 
-			if (cpu_only == 0)
+			if (cpu_only == GPU_ONLY)
 			{
 				_starpu_darts_pulled_task_delete(temp);
 			}
