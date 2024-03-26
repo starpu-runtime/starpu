@@ -34,7 +34,7 @@ transfers, while executing natively all the rest (the task scheduler and the
 application, notably).
 
 This was tested with SimGrid from 3.11 to 3.16, and 3.18 to
-3.30. SimGrid version 3.25 needs to be configured with -Denable_msg=ON .
+3.35. SimGrid version 3.25 needs to be configured with -Denable_msg=ON .
 Other versions may have compatibility issues. 3.17 notably does not build at
 all. MPI simulation does not work with version 3.22.
 
