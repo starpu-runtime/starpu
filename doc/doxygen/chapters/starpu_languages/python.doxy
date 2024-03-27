@@ -1420,4 +1420,9 @@ in another thread. This notably means that the `asyncio` mode and waiting for a
 `future` will not work, and one thus has to use StarPUPY-provided functions to
 wait for completion, such as `starpupy.task_wait_for_all()` or `data.acquire`.
 
+Also, we have not yet implemented not calling the actual call of the task
+function, so the execution time will be longer than in real execution, since not
+only it executes computations, but also sequentially, and adds the simulation
+overhead.
+
 */
