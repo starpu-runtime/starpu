@@ -43,6 +43,10 @@ int _starpu_HFP_N;
 static double EXPECTED_TIME;
 starpu_ssize_t _starpu_HFP_GPU_RAM_M;
 bool _starpu_HFP_do_schedule_done;
+static char *_output_directory;
+
+static FILE *_file_data_stolen = NULL;
+static char *_file_data_stolen_path = NULL;
 
 /* Variables used for Belady in xgemm.c and HFP.c and mst.c */
 struct starpu_sched_policy _starpu_sched_HFP_policy;
@@ -77,10 +81,19 @@ static int _get_number_GPU()
 
 void _starpu_visu_init()
 {
+	_output_directory = _sched_visu_get_output_directory();
 	_nb_gpus = _get_number_GPU();
 	_sched_visu_init(_nb_gpus);
 
 	_starpu_HFP_do_schedule_done = false;
+}
+
+static char *_get_path(const char *name)
+{
+	int size = strlen(_output_directory) + strlen(name) + 2;
+	char *path = malloc(size);
+	snprintf(path, size, "%s/%s", _output_directory, name);
+	return path;
 }
 
 /* Used only for visualisation of non-HFP schedulers in python */
@@ -3192,7 +3205,12 @@ static void load_balance_expected_time(struct _starpu_HFP_paquets *a, int number
 			ite = 0;
 
 			//Pour visu python. Pas implémenté dans load_balance et load_balance_expected_package_time
-			FILE *f = fopen("Output_maxime/Data_stolen_load_balance.txt", "a");
+			if (_file_data_stolen == NULL)
+			{
+				if (_file_data_stolen_path == NULL)
+					_file_data_stolen_path = _get_path("Data_stolen_load_balance.txt");
+				_file_data_stolen = fopen(_file_data_stolen_path, "a");
+			}
 
 			while (ite < expected_time_to_steal)
 			{
@@ -3207,14 +3225,14 @@ static void load_balance_expected_time(struct _starpu_HFP_paquets *a, int number
 					if (_print3d != 0)
 					{
 						starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, temp_tab_coordinates);
-						fprintf(f, "%d	%d", temp_tab_coordinates[0], temp_tab_coordinates[1]);
+						fprintf(_file_data_stolen, "%d	%d", temp_tab_coordinates[0], temp_tab_coordinates[1]);
 						starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 0), 2, temp_tab_coordinates);
-						fprintf(f, "	%d	%d\n", temp_tab_coordinates[0], index);
+						fprintf(_file_data_stolen, "	%d	%d\n", temp_tab_coordinates[0], index);
 					}
 					else
 					{
 						starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, temp_tab_coordinates);
-						fprintf(f, "%d	%d	%d\n", temp_tab_coordinates[0], temp_tab_coordinates[1], index);
+						fprintf(_file_data_stolen, "%d	%d	%d\n", temp_tab_coordinates[0], temp_tab_coordinates[1], index);
 					}
 				}
 
@@ -3222,8 +3240,6 @@ static void load_balance_expected_time(struct _starpu_HFP_paquets *a, int number
 				merge_task_and_package(a->temp_pointer_1, task);
 				a->temp_pointer_2->nb_task_in_sub_list--;
 			}
-
-			fclose(f);
 		}
 	}
 
@@ -3439,20 +3455,17 @@ static void load_balance(struct _starpu_HFP_paquets *a, int number_gpu)
 /* Print the order in one file for each GPU and also print in a tex file the coordinate for 2D matrix, before the ready, so it's only planned */
 static void print_order_in_file_hfp(struct _starpu_HFP_paquets *p)
 {
-	char str[2];
 	unsigned i = 0;
-	int size = 0;
-	char *path = NULL;
 
 	p->temp_pointer_1 = p->first_link;
 	struct starpu_task *task;
 	while (p->temp_pointer_1 != NULL)
 	{
+		char str[2];
 		sprintf(str, "%d", i);
-		size = strlen("Output_maxime/Task_order_HFP_") + strlen(str);
-		path = malloc(sizeof(char)*size);
-		strcpy(path, "Output_maxime/Task_order_HFP_");
-		strcat(path, str);
+		int size = strlen(_output_directory) + strlen("/Task_order_HFP_") + strlen(str) + 2;
+		char path[size];
+		snprintf(path, size, "%s/Task_order_HFP_%s", _output_directory, str);
 		FILE *f = fopen(path, "w");
 		for (task = starpu_task_list_begin(&p->temp_pointer_1->sub_list); task != starpu_task_list_end(&p->temp_pointer_1->sub_list); task = starpu_task_list_next(task))
 		{
@@ -3466,7 +3479,8 @@ static void print_order_in_file_hfp(struct _starpu_HFP_paquets *p)
 	{
 		i = 0;
 		p->temp_pointer_1 = p->first_link;
-		FILE *f = fopen("Output_maxime/Data_coordinates_order_last_HFP.txt", "w");
+		char *path = _get_path("Data_coordinates_order_last_HFP.txt");
+		FILE *f = fopen(path, "w");
 		int temp_tab_coordinates[2];
 		while (p->temp_pointer_1 != NULL)
 		{
@@ -3479,6 +3493,7 @@ static void print_order_in_file_hfp(struct _starpu_HFP_paquets *p)
 			i++;
 		}
 		fclose(f);
+		free(path);
 		//visualisation_tache_matrice_format_tex("HFP");
 	}
 }
@@ -3490,7 +3505,8 @@ static void print_order_in_file_hfp(struct _starpu_HFP_paquets *p)
  */
 void _starpu_hmetis_scheduling(struct _starpu_HFP_paquets *p, struct starpu_task_list *l, int nb_gpu)
 {
-	FILE *f1 = fopen("Output_maxime/temp_input_hMETIS.txt", "w+");
+	char *f1_path = _get_path("temp_input_hMETIS.txt");
+	FILE *f1 = fopen(f1_path, "w+");
 	_starpu_HFP_NT = 0;
 	struct starpu_task *task_1;
 	int NT = 0;
@@ -3569,17 +3585,22 @@ void _starpu_hmetis_scheduling(struct _starpu_HFP_paquets *p, struct starpu_task
 		fprintf(f1, "%f\n", starpu_task_expected_length(task_1, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0));
 	}
 	/* Printing information for hMETIS on the first line */
-	FILE *f_3 = fopen("Output_maxime/input_hMETIS.txt", "w+");
+	char *f3_path = _get_path("input_hMETIS.txt");
+	FILE *f_3 = fopen(f3_path, "w+");
 	fprintf(f_3, "%d %d 10\n", number_hyperedge, NT); /* Number of hyperedges, number of task, 10 for weighted vertices but non weighted */
 	char ch;
 	rewind(f1);
 	while ((ch = fgetc(f1)) != EOF)
 		fputc(ch, f_3);
 	fclose(f1);
+	free(f1_path);
 	fclose(f_3);
+	free(f3_path);
+
 	//TODO : remplacer le 3 par nb_gpu ici
 	//TODO tester différents paramètres de hmetis et donc modifier ici
-	FILE *f2 = fopen("Output_maxime/hMETIS_parameters.txt", "r");
+	char *f2_path = _get_path("hMETIS_parameters.txt");
+	FILE *f2 = fopen(f2_path, "r");
 
 	//~ Nparts : nombre de paquets.
 	//~ UBfactor : 1 - 49, a tester. Déséquilibre autorisé.
@@ -3590,7 +3611,7 @@ void _starpu_hmetis_scheduling(struct _starpu_HFP_paquets *p, struct starpu_task
 	//~ Reconst : 0 - 1, a tester. 0 par défaut. Normalement ca ne devrait rien changer car ca joue juste sur le fait de reconstruire les hyperedges ou non.
 	//~ dbglvl : 0. Sert à montrer des infos de debug; Si besoin mettre (1, 2 ou 4).
 
-	int size = strlen("../these_gonthier_maxime/hMETIS/hmetis-1.5-linux/hmetis Output_maxime/input_hMETIS.txt_");
+	int size = strlen("hmetis ") + strlen(_output_directory) + strlen("/input_hMETIS.txt_");
 	char buffer[100];
 	while (fscanf(f2, "%s", buffer) == 1)
 	{
@@ -3598,18 +3619,21 @@ void _starpu_hmetis_scheduling(struct _starpu_HFP_paquets *p, struct starpu_task
 	}
 	rewind(f2);
 	char *system_call = (char *)malloc(size);
-	strcpy(system_call, "../these_gonthier_maxime/hMETIS/hmetis-1.5-linux/hmetis Output_maxime/input_hMETIS.txt");
+	strcpy(system_call, "hmetis ");
+	strcat(system_call, _output_directory);
+	strcat(system_call, "/input_hMETIS.txt");
 	while (fscanf(f2, "%s", buffer)== 1)
 	{
 		strcat(system_call, " ");
 		strcat(system_call, buffer);
 	}
 	fclose(f2);
+	free(f2_path);
 
 	int cr = system(system_call);
 	if (cr != 0)
 	{
-		printf("Error when calling system(../these_gonthier_maxime/hMETIS/hmetis-1.5-linux/hmetis\n");
+		printf("Error when calling system(hmetis ...)\n");
 		exit(0);
 	}
 	starpu_task_list_init(&p->temp_pointer_1->refused_fifo_list);
@@ -3622,10 +3646,9 @@ void _starpu_hmetis_scheduling(struct _starpu_HFP_paquets *p, struct starpu_task
 	p->first_link = p->temp_pointer_1;
 	char str[2];
 	sprintf(str, "%d", nb_gpu);
-	size = strlen("Output_maxime/input_hMETIS.txt.part.") + strlen(str);
-	char *path2 = (char *)malloc(size);
-	strcpy(path2, "Output_maxime/input_hMETIS.txt.part.");
-	strcat(path2, str);
+	size = strlen(_output_directory) + strlen("/input_hMETIS.txt.part.") + strlen(str) + 1;
+	char path2[size];
+	snprintf(path2, size, "%s%s%s", _output_directory, "/input_hMETIS.txt.part.", str);
 	FILE *f_2 = fopen(path2, "r");
 	int number; int error;
 	for (i = 0; i < NT; i++)
@@ -3655,7 +3678,8 @@ void _starpu_hmetis_scheduling(struct _starpu_HFP_paquets *p, struct starpu_task
 		{
 			i = 0;
 			p->temp_pointer_1 = p->first_link;
-			FILE *f = fopen("Output_maxime/Data_coordinates_order_last_hMETIS.txt", "w");
+			char *path = _get_path("Data_coordinates_order_last_hMETIS.txt");
+			FILE *f = fopen(path, "w");
 			int temp_tab_coordinates[2];
 			while (p->temp_pointer_1 != NULL)
 			{
@@ -3668,6 +3692,7 @@ void _starpu_hmetis_scheduling(struct _starpu_HFP_paquets *p, struct starpu_task
 				i++;
 			}
 			fclose(f);
+			free(path);
 			//visualisation_tache_matrice_format_tex("hMETIS"); /* So I can get the matrix visualisation before tempering it with HFP */
 		}
 		p->temp_pointer_1 = p->first_link;
@@ -3716,49 +3741,48 @@ static void hmetis_input_already_generated(struct _starpu_HFP_paquets *p, struct
 	{
 		if (sparse_matrix != 0)
 		{
-			asprintf(&path2, "%s%s%s%s%s%s", "Output_maxime/Data/input_hMETIS/", str, "GPU_Random_task_order", "_sparse/input_hMETIS_N", Nchar, ".txt");
+			asprintf(&path2, "%s%s%s%s%s%s%s", _output_directory, "/Data/input_hMETIS/", str, "GPU_Random_task_order", "_sparse/input_hMETIS_N", Nchar, ".txt");
 		}
 		else
 		{
-			asprintf(&path2, "%s%s%s%s%s%s", "Output_maxime/Data/input_hMETIS/", str, "GPU_Random_task_order", "/input_hMETIS_N", Nchar, ".txt");
+			asprintf(&path2, "%s%s%s%s%s%s%s", _output_directory, "/Data/input_hMETIS/", str, "GPU_Random_task_order", "/input_hMETIS_N", Nchar, ".txt");
 		}
 	}
 	else if (_starpu_HFP_hmetis == 5) /* Cas matrice 3D */
 	{
 		if (sparse_matrix != 0)
 		{
-			asprintf(&path2, "%s%s%s%s%s%s", "Output_maxime/Data/input_hMETIS/", str, "GPU_Matrice3D", "_sparse/input_hMETIS_N", Nchar, ".txt");
+			asprintf(&path2, "%s%s%s%s%s%s%s", _output_directory, "/Data/input_hMETIS/", str, "GPU_Matrice3D", "_sparse/input_hMETIS_N", Nchar, ".txt");
 		}
 		else
 		{
-			asprintf(&path2, "%s%s%s%s%s%s", "Output_maxime/Data/input_hMETIS/", str, "GPU_Matrice3D", "/input_hMETIS_N", Nchar, ".txt");
+			asprintf(&path2, "%s%s%s%s%s%s%s", _output_directory, "/Data/input_hMETIS/", str, "GPU_Matrice3D", "/input_hMETIS_N", Nchar, ".txt");
 		}
 	}
 	else if (_starpu_HFP_hmetis == 6) /* Cas Cholesky */
 	{
 		if (sparse_matrix != 0)
 		{
-			asprintf(&path2, "%s%s%s%s%s%s", "Output_maxime/Data/input_hMETIS/", str, "GPU_Cholesky", "_sparse/input_hMETIS_N", Nchar, ".txt");
+			asprintf(&path2, "%s%s%s%s%s%s%s", _output_directory, "/Data/input_hMETIS/", str, "GPU_Cholesky", "_sparse/input_hMETIS_N", Nchar, ".txt");
 		}
 		else
 		{
-			asprintf(&path2, "%s%s%s%s%s%s", "Output_maxime/Data/input_hMETIS/", str, "GPU_Cholesky", "/input_hMETIS_N", Nchar, ".txt");
+			asprintf(&path2, "%s%s%s%s%s%s%s", _output_directory, "/Data/input_hMETIS/", str, "GPU_Cholesky", "/input_hMETIS_N", Nchar, ".txt");
 		}
 	}
 	else
 	{
 		if (sparse_matrix != 0)
 		{
-			asprintf(&path2, "%s%s%s%s%s%s", "Output_maxime/Data/input_hMETIS/", str, "GPU", "_sparse/input_hMETIS_N", Nchar, ".txt");
+			asprintf(&path2, "%s%s%s%s%s%s%s", _output_directory, "/Data/input_hMETIS/", str, "GPU", "_sparse/input_hMETIS_N", Nchar, ".txt");
 		}
 		else
 		{
-			asprintf(&path2, "%s%s%s%s%s%s", "Output_maxime/Data/input_hMETIS/", str, "GPU", "/input_hMETIS_N", Nchar, ".txt");
+			asprintf(&path2, "%s%s%s%s%s%s%s", _output_directory, "/Data/input_hMETIS/", str, "GPU", "/input_hMETIS_N", Nchar, ".txt");
 		}
 	}
-	
+
 	FILE *f_2 = fopen(path2, "r");
-	free(path2);
 	int number; int error;
 	for (i = 0; i < _starpu_HFP_NT; i++)
 	{
@@ -3780,6 +3804,7 @@ static void hmetis_input_already_generated(struct _starpu_HFP_paquets *p, struct
 		starpu_task_list_push_back(&p->temp_pointer_1->sub_list, task_1);
 	}
 	fclose(f_2);
+	free(path2);
 }
 
 static void init_visualisation(struct _starpu_HFP_paquets *a)
@@ -3789,15 +3814,18 @@ static void init_visualisation(struct _starpu_HFP_paquets *a)
 	//~ {
 		//~ visualisation_data_gpu_in_file_hfp_format_tex(a);
 	//~ }
+	// Empty files
 	//TODO corriger la manière dont je vide si il y a plus de 3 GPUs
-	FILE *f = fopen("Output_maxime/Task_order_effective_0", "w"); /* Just to empty it before */
-	fclose(f);
-	f = fopen("Output_maxime/Task_order_effective_1", "w"); /* Just to empty it before */
-	fclose(f);
-	f = fopen("Output_maxime/Task_order_effective_2", "w"); /* Just to empty it before */
-	fclose(f);
-	f = fopen("Output_maxime/Data_coordinates_order_last_scheduler.txt", "w");
-	fclose(f);
+	char *strings[] = {"Task_order_effective_0", "Task_order_effective_1", "Task_order_effective_2", "Data_coordinates_order_last_scheduler.txt", NULL};
+	char **name;
+	for(name=strings ; *name!=NULL ; name++)
+	{
+		char *path = _get_path(*name);
+		FILE *f = fopen(path, "w");
+		fclose(f);
+		fprintf(stderr, "ahah %s\n", path);
+		free(path);
+	}
 }
 
 /* The function that sort the tasks in packages */
@@ -4000,7 +4028,8 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 				int i = 0;
 				int j = 0;
 				int temp_tab_coordinates[2];
-				FILE *f_last_package = fopen("Output_maxime/last_package_split.txt", "w");
+				char *path = _get_path("last_package_split.txt");
+				FILE *f_last_package = fopen(path, "w");
 				data->p->temp_pointer_1 = data->p->first_link;
 				int sub_package = 0;
 
@@ -4037,6 +4066,7 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 					//~ printf("Next.\n");
 				}
 				fclose(f_last_package);
+				free(path);
 				//~ printf("End of printing1.\n"); fflush(stdout);
 			}
 
@@ -4257,8 +4287,10 @@ struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_s
 	assert(0);
 	if (_print_in_terminal == 1)
 	{
-		FILE *f = fopen("Output_maxime/Data_stolen_load_balance.txt", "w");
-		fclose(f);
+		_file_data_stolen_path = _get_path("Data_stolen_load_balance.txt");
+		_file_data_stolen = fopen(_file_data_stolen_path, "w");
+		fclose(_file_data_stolen);
+		_file_data_stolen = NULL;
 	}
 
 	struct _starpu_HFP_sched_data *data;
@@ -4326,6 +4358,10 @@ static void deinitialize_HFP_center_policy(unsigned sched_ctx_id)
 {
 	struct starpu_sched_tree *tree = (struct starpu_sched_tree*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	starpu_sched_tree_destroy(tree);
+	if (_file_data_stolen_path)
+		free(_file_data_stolen_path);
+	if (_file_data_stolen)
+		fclose(_file_data_stolen);
 }
 
 /* Get the task that was last executed. Used to update the task list of pulled task	 */
