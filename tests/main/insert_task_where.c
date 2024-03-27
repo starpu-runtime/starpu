@@ -39,6 +39,9 @@ int main(void)
 	starpu_conf_init(&conf);
 	starpu_conf_noworker(&conf);
 	conf.ncpus = -1;
+#ifndef STARPU_SIMGRID
+	conf.ncuda = -1;
+#endif
 	conf.nmpi_ms = -1;
 	conf.ntcpip_ms = -1;
 
