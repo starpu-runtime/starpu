@@ -64,11 +64,15 @@ int main(void)
 				  0);
 	if (ret1 != -ENODEV) STARPU_CHECK_RETURN_VALUE(ret1, "starpu_task_insert");
 
+#ifdef STARPU_SIMGRID
+	ret2 = -ENODEV;
+#else
 	ret2 = starpu_task_insert(&my_codelet,
 				  STARPU_EXECUTE_WHERE, STARPU_CUDA,
 				  STARPU_RW, data_handles[1],
 				  0);
 	if (ret2 != -ENODEV) STARPU_CHECK_RETURN_VALUE(ret2, "starpu_task_insert");
+#endif
 
 	starpu_data_unregister(data_handles[0]);
 	starpu_data_unregister(data_handles[1]);
