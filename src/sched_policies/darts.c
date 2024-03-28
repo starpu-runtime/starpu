@@ -939,7 +939,7 @@ static int darts_push_task(struct starpu_sched_component *component, struct star
 	{
 		round_robin_free_task++;
 	}
-
+	
 	int j;
 	for (j = 0; j < _nb_gpus; j++)
 	{
@@ -956,10 +956,13 @@ static int darts_push_task(struct starpu_sched_component *component, struct star
 		{
 			gpu_looked_at = j;
 		}
-
-		_STARPU_SCHED_PRINT("gpu_looked_at = %d\n", gpu_looked_at);
-
-		if (is_my_task_free(gpu_looked_at, task))
+		
+		/* TODO: I have no way here to make a correlation between the planned task list I'm looking at
+		 * and the corresponding worker_id. So I just put the task in planned task anyway and when I pull task from
+		 * planned task to pulled task in get_task_to_return, I check if it is possible and if not I push the task
+		 * in the main task list. Because we are here in push_task, this sould never happen twice for a 
+		 * same task. */
+		if (is_my_task_free(gpu_looked_at, task)) // && starpu_worker_can_execute_task_first_impl(current_worker_id, task, NULL))
 		{
 			_STARPU_SCHED_PRINT("Task %p is free from push_task\n", task);
 			if (dependances == 1)
@@ -1717,10 +1720,9 @@ static void _starpu_darts_erase_task_and_data_pointer(struct starpu_task *task, 
 /* Main function of DARTS scheduling.
  * Takes the set of available task, the GPU (or CPU) asking for work as an input.
  * Chooses the best data that is not yet in memory of the PU and fill a buffer of task with task associated with this data. */
-static void _starpu_darts_scheduling_3D_matrix(struct starpu_task_list *main_task_list, int current_gpu, struct _starpu_darts_gpu_planned_task *g)
+static void _starpu_darts_scheduling_3D_matrix(struct starpu_task_list *main_task_list, int current_gpu, struct _starpu_darts_gpu_planned_task *g, int current_worker_id)
 {
 	_STARPU_SCHED_PRINT("Début de sched 3D avec GPU %d.\n", current_gpu);
-
 	Dopt[current_gpu] = NULL;
 
 #ifdef STARPU_DARTS_STATS
@@ -1780,6 +1782,13 @@ static void _starpu_darts_scheduling_3D_matrix(struct starpu_task_list *main_tas
 		{
 			struct starpu_task *task = NULL;
 			task = g->first_task_to_pop;
+
+			/* I check if this taks can be executed on the current worker. Else I go to random where I will also checl if a random task can be executed and return NULL if it's not the case */
+			if (!starpu_worker_can_execute_task_first_impl(current_worker_id, task, NULL))
+			{
+				goto random;
+			}
+
 			g->first_task_to_pop = NULL;
 			if (!starpu_task_list_ismember(main_task_list, task))
 			{
@@ -1894,67 +1903,72 @@ static void _starpu_darts_scheduling_3D_matrix(struct starpu_task_list *main_tas
 				struct _starpu_darts_task_using_data *t;
 				for (t = _starpu_darts_task_using_data_list_begin(e->D->sched_data); t != _starpu_darts_task_using_data_list_end(e->D->sched_data); t = _starpu_darts_task_using_data_list_next(t))
 				{
-					/* I put it at false if at least one data is missing. */
-					data_not_available = 0;
-					unsigned j;
-					for (j = 0; j < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T); j++)
+					/* I check if this task is able to be computed on the target worker. If not I don't check if there are free task. */
+					if (starpu_worker_can_execute_task_first_impl(current_worker_id, t->pointer_to_T, NULL))
 					{
-						STARPU_IGNORE_UTILITIES_HANDLES(t->pointer_to_T, j);
-						/* I test if the data is on memory */
-						if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, j) != e->D)
+
+						/* I put it at false if at least one data is missing. */
+						data_not_available = 0;
+						unsigned j;
+						for (j = 0; j < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T); j++)
 						{
-							if (simulate_memory == 0)
+							STARPU_IGNORE_UTILITIES_HANDLES(t->pointer_to_T, j);
+							/* I test if the data is on memory */
+							if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, j) != e->D)
 							{
-								if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), memory_nodes[current_gpu]))
+								if (simulate_memory == 0)
 								{
-									data_not_available++;
+									if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), memory_nodes[current_gpu]))
+									{
+										data_not_available++;
+									}
+								}
+								else if (simulate_memory == 1)
+								{
+									hud = STARPU_TASK_GET_HANDLE(t->pointer_to_T, j)->user_data;
+									if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), memory_nodes[current_gpu]) && hud->nb_task_in_pulled_task[current_gpu] == 0 && hud->nb_task_in_planned_task[current_gpu] == 0)
+									{
+										data_not_available++;
+									}
 								}
 							}
-							else if (simulate_memory == 1)
+						}
+
+						if (data_not_available == 0)
+						{
+							temp_number_free_task_max++;
+
+							/* With threshold == 2, we stop as soon as we find a data that allow at least one fee task. */
+							if (threshold == 2)
 							{
-								hud = STARPU_TASK_GET_HANDLE(t->pointer_to_T, j)->user_data;
-								if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), memory_nodes[current_gpu]) && hud->nb_task_in_pulled_task[current_gpu] == 0 && hud->nb_task_in_planned_task[current_gpu] == 0)
-								{
-									data_not_available++;
-								}
+								hud = e->D->user_data;
+								update_best_data_single_decision_tree(&number_free_task_max, &remaining_expected_length_max, &handle_popped, &priority_max, &number_1_from_free_task_max, temp_number_free_task_max, hud->sum_remaining_task_expected_length, e->D, temp_priority_max, temp_number_1_from_free_task_max, &data_chosen_index, i, &best_1_from_free_task, temp_best_1_from_free_task, temp_transfer_time_min, &transfer_time_min, temp_length_free_tasks_max, &ratio_transfertime_freetask_min);
+
+								goto end_choose_best_data;
 							}
+
+							/* For the first one I want to forget priority of one from free tasks. */
+							if (temp_number_free_task_max == 1)
+							{
+								temp_priority_max = t->pointer_to_T->priority;
+							}
+							else if (t->pointer_to_T->priority > temp_priority_max)
+							{
+								temp_priority_max = t->pointer_to_T->priority;
+							}
+
+							temp_length_free_tasks_max += starpu_task_expected_length(t->pointer_to_T, perf_arch, 0);
 						}
-					}
-
-					if (data_not_available == 0)
-					{
-						temp_number_free_task_max++;
-
-						/* With threshold == 2, we stop as soon as we find a data that allow at least one fee task. */
-						if (threshold == 2)
+						else if (data_not_available == 1)
 						{
-							hud = e->D->user_data;
-							update_best_data_single_decision_tree(&number_free_task_max, &remaining_expected_length_max, &handle_popped, &priority_max, &number_1_from_free_task_max, temp_number_free_task_max, hud->sum_remaining_task_expected_length, e->D, temp_priority_max, temp_number_1_from_free_task_max, &data_chosen_index, i, &best_1_from_free_task, temp_best_1_from_free_task, temp_transfer_time_min, &transfer_time_min, temp_length_free_tasks_max, &ratio_transfertime_freetask_min);
+							temp_number_1_from_free_task_max++;
 
-							goto end_choose_best_data;
-						}
-
-						/* For the first one I want to forget priority of one from free tasks. */
-						if (temp_number_free_task_max == 1)
-						{
-							temp_priority_max = t->pointer_to_T->priority;
-						}
-						else if (t->pointer_to_T->priority > temp_priority_max)
-						{
-							temp_priority_max = t->pointer_to_T->priority;
-						}
-
-						temp_length_free_tasks_max += starpu_task_expected_length(t->pointer_to_T, perf_arch, 0);
-					}
-					else if (data_not_available == 1)
-					{
-						temp_number_1_from_free_task_max++;
-
-						/* Getting the max priority */
-						if (t->pointer_to_T->priority > temp_priority_max)
-						{
-							temp_priority_max = t->pointer_to_T->priority;
-							temp_best_1_from_free_task = t->pointer_to_T;
+							/* Getting the max priority */
+							if (t->pointer_to_T->priority > temp_priority_max)
+							{
+								temp_priority_max = t->pointer_to_T->priority;
+								temp_best_1_from_free_task = t->pointer_to_T;
+							}
 						}
 					}
 				}
@@ -1990,110 +2004,113 @@ static void _starpu_darts_scheduling_3D_matrix(struct starpu_task_list *main_tas
 			struct _starpu_darts_task_using_data *t2;
 			for (t2 = _starpu_darts_task_using_data_list_begin(data_on_node[x]->sched_data); t2 != _starpu_darts_task_using_data_list_end(data_on_node[x]->sched_data); t2 = _starpu_darts_task_using_data_list_next(t2))
 			{
-				_STARPU_SCHED_PRINT("On task %p from this data\n", t2);
-
-				/* I set myself to a data item of this task (which is not the one in memory). */
-				unsigned k;
-				for (k = 0; k < STARPU_TASK_GET_NBUFFERS(t2->pointer_to_T); k++)
+				if (starpu_worker_can_execute_task_first_impl(current_worker_id, t2->pointer_to_T, NULL))
 				{
-					STARPU_IGNORE_UTILITIES_HANDLES(t2->pointer_to_T, k);
-					_STARPU_SCHED_PRINT("On data %p from this task\n", STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k));
-					hud_last_check = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->user_data;
+					_STARPU_SCHED_PRINT("On task %p from this data\n", t2);
 
-					/* Here you should not look at the same data twice if possible. It can happen. */
-					if (STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k) != data_on_node[x] && hud_last_check->last_check_to_choose_from[current_gpu] != g->number_data_selection && !starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k), memory_nodes[current_gpu]))
+					/* I set myself to a data item of this task (which is not the one in memory). */
+					unsigned k;
+					for (k = 0; k < STARPU_TASK_GET_NBUFFERS(t2->pointer_to_T); k++)
 					{
-						_STARPU_SCHED_PRINT("Data %p is being looked at\n", STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k));
-#ifdef STARPU_DARTS_STATS
-						nb_data_looked_at++;
-#endif
+						STARPU_IGNORE_UTILITIES_HANDLES(t2->pointer_to_T, k);
+						_STARPU_SCHED_PRINT("On data %p from this task\n", STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k));
+						hud_last_check = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->user_data;
 
-						/* Update the iteration for the data so as not to look at it twice at that iteration. */
-						hud_last_check->last_check_to_choose_from[current_gpu] = g->number_data_selection;
-						STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->user_data = hud_last_check;
-
-						temp_number_free_task_max = 0;
-						temp_number_1_from_free_task_max = 0;
-						temp_priority_max = INT_MIN;
-						temp_best_1_from_free_task = NULL;
-						temp_length_free_tasks_max = 0;
-
-#ifdef STARPU_DARTS_STATS
-						nb_data_looked_at++;
-#endif
-
-						struct _starpu_darts_task_using_data *t;
-						for (t = _starpu_darts_task_using_data_list_begin(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->sched_data); t != _starpu_darts_task_using_data_list_end(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->sched_data); t = _starpu_darts_task_using_data_list_next(t))
+						/* Here you should not look at the same data twice if possible. It can happen. */
+						if (STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k) != data_on_node[x] && hud_last_check->last_check_to_choose_from[current_gpu] != g->number_data_selection && !starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k), memory_nodes[current_gpu]))
 						{
-							_STARPU_SCHED_PRINT("Task %p is using this data\n", t);
+							_STARPU_SCHED_PRINT("Data %p is being looked at\n", STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k));
+#ifdef STARPU_DARTS_STATS
+							nb_data_looked_at++;
+#endif
 
-							/* I put it at 1 if at least one data is missing. */
-							data_not_available = 0;
+							/* Update the iteration for the data so as not to look at it twice at that iteration. */
+							hud_last_check->last_check_to_choose_from[current_gpu] = g->number_data_selection;
+							STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->user_data = hud_last_check;
 
-							unsigned j;
-							for (j = 0; j < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T); j++)
+							temp_number_free_task_max = 0;
+							temp_number_1_from_free_task_max = 0;
+							temp_priority_max = INT_MIN;
+							temp_best_1_from_free_task = NULL;
+							temp_length_free_tasks_max = 0;
+
+#ifdef STARPU_DARTS_STATS
+							nb_data_looked_at++;
+#endif
+
+							struct _starpu_darts_task_using_data *t;
+							for (t = _starpu_darts_task_using_data_list_begin(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->sched_data); t != _starpu_darts_task_using_data_list_end(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->sched_data); t = _starpu_darts_task_using_data_list_next(t))
 							{
-								STARPU_IGNORE_UTILITIES_HANDLES(t->pointer_to_T, j);
-								if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, j) != STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k))
+								_STARPU_SCHED_PRINT("Task %p is using this data\n", t);
+
+								/* I put it at 1 if at least one data is missing. */
+								data_not_available = 0;
+
+								unsigned j;
+								for (j = 0; j < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T); j++)
 								{
-									if (simulate_memory == 0)
+									STARPU_IGNORE_UTILITIES_HANDLES(t->pointer_to_T, j);
+									if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, j) != STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k))
 									{
-										if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), memory_nodes[current_gpu]))
+										if (simulate_memory == 0)
 										{
-											data_not_available++;
+											if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), memory_nodes[current_gpu]))
+											{
+												data_not_available++;
+											}
+										}
+										else if (simulate_memory == 1)
+										{
+											hud = STARPU_TASK_GET_HANDLE(t->pointer_to_T, j)->user_data;
+											if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), memory_nodes[current_gpu]) && hud->nb_task_in_pulled_task[current_gpu] == 0 && hud->nb_task_in_planned_task[current_gpu] == 0)
+											{
+												data_not_available++;
+											}
 										}
 									}
-									else if (simulate_memory == 1)
+								}
+
+								if (data_not_available == 0)
+								{
+									temp_number_free_task_max++;
+
+									/* Version where I stop as soon as I get a free task. */
+									if (threshold == 2)
 									{
-										hud = STARPU_TASK_GET_HANDLE(t->pointer_to_T, j)->user_data;
-										if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), memory_nodes[current_gpu]) && hud->nb_task_in_pulled_task[current_gpu] == 0 && hud->nb_task_in_planned_task[current_gpu] == 0)
-										{
-											data_not_available++;
-										}
+										hud = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->user_data;
+										update_best_data_single_decision_tree(&number_free_task_max, &remaining_expected_length_max, &handle_popped, &priority_max, &number_1_from_free_task_max, temp_number_free_task_max, hud->sum_remaining_task_expected_length, STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k), temp_priority_max, temp_number_1_from_free_task_max, &data_chosen_index, x, &best_1_from_free_task, temp_best_1_from_free_task, temp_transfer_time_min, &transfer_time_min, temp_length_free_tasks_max, &ratio_transfertime_freetask_min);
+
+										goto end_choose_best_data;
+									}
+
+									/* For the first one I want to forget priority of one from free tasks. */
+									if (temp_number_free_task_max == 1)
+									{
+										temp_priority_max = t->pointer_to_T->priority;
+									}
+									else if (t->pointer_to_T->priority > temp_priority_max)
+									{
+										temp_priority_max = t->pointer_to_T->priority;
+									}
+									temp_length_free_tasks_max += starpu_task_expected_length(t->pointer_to_T, perf_arch, 0);
+								}
+								else if (data_not_available == 1)
+								{
+									temp_number_1_from_free_task_max++;
+									if (t->pointer_to_T->priority > temp_priority_max)
+									{
+										temp_priority_max = t->pointer_to_T->priority;
+										temp_best_1_from_free_task = t->pointer_to_T;
 									}
 								}
 							}
 
-							if (data_not_available == 0)
-							{
-								temp_number_free_task_max++;
+							temp_transfer_time_min = starpu_data_expected_transfer_time(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k), current_gpu ,STARPU_R);
 
-								/* Version where I stop as soon as I get a free task. */
-								if (threshold == 2)
-								{
-									hud = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->user_data;
-									update_best_data_single_decision_tree(&number_free_task_max, &remaining_expected_length_max, &handle_popped, &priority_max, &number_1_from_free_task_max, temp_number_free_task_max, hud->sum_remaining_task_expected_length, STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k), temp_priority_max, temp_number_1_from_free_task_max, &data_chosen_index, x, &best_1_from_free_task, temp_best_1_from_free_task, temp_transfer_time_min, &transfer_time_min, temp_length_free_tasks_max, &ratio_transfertime_freetask_min);
-
-									goto end_choose_best_data;
-								}
-
-								/* For the first one I want to forget priority of one from free tasks. */
-								if (temp_number_free_task_max == 1)
-								{
-									temp_priority_max = t->pointer_to_T->priority;
-								}
-								else if (t->pointer_to_T->priority > temp_priority_max)
-								{
-									temp_priority_max = t->pointer_to_T->priority;
-								}
-								temp_length_free_tasks_max += starpu_task_expected_length(t->pointer_to_T, perf_arch, 0);
-							}
-							else if (data_not_available == 1)
-							{
-								temp_number_1_from_free_task_max++;
-								if (t->pointer_to_T->priority > temp_priority_max)
-								{
-									temp_priority_max = t->pointer_to_T->priority;
-									temp_best_1_from_free_task = t->pointer_to_T;
-								}
-							}
+							/* Update best data if needed */
+							hud = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->user_data;
+							update_best_data_single_decision_tree(&number_free_task_max, &remaining_expected_length_max, &handle_popped, &priority_max, &number_1_from_free_task_max, temp_number_free_task_max, hud->sum_remaining_task_expected_length, STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k), temp_priority_max, temp_number_1_from_free_task_max, &data_chosen_index, x, &best_1_from_free_task, temp_best_1_from_free_task, temp_transfer_time_min, &transfer_time_min, temp_length_free_tasks_max, &ratio_transfertime_freetask_min);
 						}
-
-						temp_transfer_time_min = starpu_data_expected_transfer_time(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k), current_gpu ,STARPU_R);
-
-						/* Update best data if needed */
-						hud = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->user_data;
-						update_best_data_single_decision_tree(&number_free_task_max, &remaining_expected_length_max, &handle_popped, &priority_max, &number_1_from_free_task_max, temp_number_free_task_max, hud->sum_remaining_task_expected_length, STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k), temp_priority_max, temp_number_1_from_free_task_max, &data_chosen_index, x, &best_1_from_free_task, temp_best_1_from_free_task, temp_transfer_time_min, &transfer_time_min, temp_length_free_tasks_max, &ratio_transfertime_freetask_min);
 					}
 				}
 			}
@@ -2331,7 +2348,7 @@ static void _starpu_darts_scheduling_3D_matrix(struct starpu_task_list *main_tas
 			number_data_conflict--;
 #endif
 			_STARPU_SCHED_PRINT("Critical data conflict.\n");
-			_starpu_darts_scheduling_3D_matrix(main_task_list, current_gpu, g);
+			_starpu_darts_scheduling_3D_matrix(main_task_list, current_gpu, g, current_worker_id);
 		}
 
 	random: ; /* We pop a task from the main task list. Either the head (from a randomized list or not depending on STARPU_DARTS_TASK_ORDER) or the highest priority task. */
@@ -2353,12 +2370,24 @@ static void _starpu_darts_scheduling_3D_matrix(struct starpu_task_list *main_tas
 			if (highest_priority_task_returned_in_default_case == 1) /* Highest priority task is returned. */
 			{
 				task = get_highest_priority_task(main_task_list);
+				if (!starpu_worker_can_execute_task_first_impl(current_worker_id, task, NULL))
+				{
+					//printf("In random, can't execute %p on PU %d, return void\n", task, current_gpu);
+					_REFINED_MUTEX_UNLOCK();
+					return;
+				}
 			}
 			else /* Head of the task list is returned. */
 			{
 				task = starpu_task_list_pop_front(main_task_list);
+				if (!starpu_worker_can_execute_task_first_impl(current_worker_id, task, NULL))
+				{
+					starpu_task_list_push_front(main_task_list, task);
+					_REFINED_MUTEX_UNLOCK();
+					return;	
+				}
 			}
-
+			
 			_STARPU_SCHED_PRINT("\"Random\" task for GPU %d is %p.\n", current_gpu, task);
 		}
 		else
@@ -2443,7 +2472,7 @@ static void _starpu_darts_add_task_to_pulled_task(int current_gpu, struct starpu
  * In multi GPU it allows me to return a task from the right element in the
  * linked list without having another GPU comme and ask a task in pull_task.
  */
-static struct starpu_task *get_task_to_return_pull_task_darts(int current_gpu, struct starpu_task_list *l)
+static struct starpu_task *get_task_to_return_pull_task_darts(int current_gpu, struct starpu_task_list *l, int current_worker_id)
 {
 	/* If there are still tasks either in the packages, the main task list or the refused task,
 	 * I enter here to return a task or start darts_scheduling. Else I return NULL.
@@ -2457,10 +2486,13 @@ static struct starpu_task *get_task_to_return_pull_task_darts(int current_gpu, s
 	}
 
 	_REFINED_MUTEX_LOCK();
-	/* If the package is not empty I can return the head of the task list. */
+	/* If planned_task is not empty I can return the head of the task list.
+	 * I also check if the task can be executed by the current worker. If 
+	 * not it is sent back to the main task list. */
 	if (!starpu_task_list_empty(&tab_gpu_planned_task[current_gpu].planned_task))
 	{
 		struct starpu_task *task = starpu_task_list_pop_front(&tab_gpu_planned_task[current_gpu].planned_task);
+
 		/* Remove it from planned task compteur. Could be done in an external function as I use it two times */
 		unsigned i;
 		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
@@ -2469,20 +2501,34 @@ static struct starpu_task *get_task_to_return_pull_task_darts(int current_gpu, s
 			struct _starpu_darts_handle_user_data *hud = STARPU_TASK_GET_HANDLE(task, i)->user_data;
 			hud->nb_task_in_planned_task[current_gpu] = hud->nb_task_in_planned_task[current_gpu] - 1;
 		}
+
+		/* Check if can be executed on this worker */
+		if (!starpu_worker_can_execute_task_first_impl(starpu_worker_get_id_check(), task, NULL))
+		{
+			//printf("Can't execute task %p on this worker in get_task_to_return planned_task not empty\n", task); fflush(stdout);
+			/* If not, push front task in main task list and return NULL */
+			starpu_task_list_push_front(&l ,task);
+			_REFINED_MUTEX_UNLOCK();
+			return NULL;
+		}
+
+		/* Add it to pulled task */
 		_starpu_darts_add_task_to_pulled_task(current_gpu, task);
 
 		/* For visualisation in python. */
 		_sched_visu_print_data_to_load_prefetch(task, current_gpu, 1);
 		_STARPU_SCHED_PRINT("Task: %p is getting out of pull_task from planned task not empty on GPU %d.\n", task, current_gpu);
+
 		_REFINED_MUTEX_UNLOCK();
 		return task;
 	}
 
-	/* Else if there are still tasks in the main task list I call dynamic outer algorithm. */
+	/* Else if there are still tasks in the main task list I call the darts algorithm. */
 	if (!starpu_task_list_empty(l))
 	{
 		_REFINED_MUTEX_UNLOCK();
-		_starpu_darts_scheduling_3D_matrix(l, current_gpu, &tab_gpu_planned_task[current_gpu]);
+		//printf("current_gpu before calling 3D: %d, worker_id: %d\n", current_gpu, starpu_worker_get_id_check()); fflush(stdout);
+		_starpu_darts_scheduling_3D_matrix(l, current_gpu, &tab_gpu_planned_task[current_gpu], current_worker_id);
 		_REFINED_MUTEX_LOCK();
 		struct starpu_task *task;
 		if (!starpu_task_list_empty(&tab_gpu_planned_task[current_gpu].planned_task))
@@ -2512,6 +2558,7 @@ static struct starpu_task *get_task_to_return_pull_task_darts(int current_gpu, s
 		/* For visualisation in python. */
 		_sched_visu_print_data_to_load_prefetch(task, current_gpu, 1);
 		_STARPU_SCHED_PRINT("Return task %p from the scheduling call GPU %d.\n", task, current_gpu);
+
 #ifdef STARPU_DARTS_STATS
 		nb_return_task_after_scheduling++;
 #endif
@@ -2541,7 +2588,6 @@ static struct starpu_task *darts_pull_task(struct starpu_sched_component *compon
 {
 	(void)to;
 	_STARPU_SCHED_PRINT("Début de pull_task.\n");
-
 	_LINEAR_MUTEX_LOCK();
 
 	struct _starpu_darts_sched_data *data = component->data;
@@ -2636,11 +2682,17 @@ static struct starpu_task *darts_pull_task(struct starpu_sched_component *compon
 
 	int current_gpu = get_current_gpu(); /* Index in tabs of structs */
 
-	struct starpu_task *task = get_task_to_return_pull_task_darts(current_gpu, &data->main_task_list);
-
+	struct starpu_task *task = get_task_to_return_pull_task_darts(current_gpu, &data->main_task_list, starpu_worker_get_id_check());
+	/* if (task != NULL) {
+	       printf("CPU %d GPU %d OPENCL %d\n", starpu_worker_get_by_type(STARPU_CPU_WORKER, 0), starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0), starpu_worker_get_by_type(STARPU_OPENCL_WORKER, 0)); fflush(stdout); 	
+		printf("Pulled %stask %p on PU %d.\n", task?"":"NO ", task, current_gpu); fflush(stdout); 
+		printf("is executable?: %d\n", starpu_worker_can_execute_task_first_impl(0, task, NULL)); fflush(stdout);
+		printf("is executable?: %d\n", starpu_worker_can_execute_task_first_impl(1, task, NULL)); fflush(stdout);
+		printf("is executable?: %d\n", starpu_worker_can_execute_task_first_impl(2, task, NULL)); fflush(stdout);
+		printf("Current worker id: %d\n", starpu_worker_get_id_check());
+	}*/
+	_STARPU_SCHED_PRINT("Pulled %stask %p on PU %d.\n", task?"":"NO ", task, current_gpu);
 	_LINEAR_MUTEX_UNLOCK();
-
-	_STARPU_SCHED_PRINT("Pulled %stask %p on GPU %d.\n", task?"":"NO ", task, current_gpu);
 	return task;
 }
 
@@ -3131,7 +3183,6 @@ struct starpu_sched_component *starpu_sched_component_darts_create(struct starpu
 	NT_DARTS = 0;
 	new_tasks_initialized = false;
 	round_robin_free_task = -1; /* Starts at -1 because it is updated at the beginning and not the end of push_task. Thus to start at 0 on the first task you need to init it at -1. */
-
 	/* Initialize memory node of each GPU or CPU */
 	memory_nodes = malloc(sizeof(int)*_nb_gpus);
 	int i;
