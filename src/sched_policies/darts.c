@@ -939,7 +939,7 @@ static int darts_push_task(struct starpu_sched_component *component, struct star
 	{
 		round_robin_free_task++;
 	}
-	
+
 	int j;
 	for (j = 0; j < _nb_gpus; j++)
 	{
@@ -956,11 +956,11 @@ static int darts_push_task(struct starpu_sched_component *component, struct star
 		{
 			gpu_looked_at = j;
 		}
-		
+
 		/* TODO: I have no way here to make a correlation between the planned task list I'm looking at
 		 * and the corresponding worker_id. So I just put the task in planned task anyway and when I pull task from
 		 * planned task to pulled task in get_task_to_return, I check if it is possible and if not I push the task
-		 * in the main task list. Because we are here in push_task, this sould never happen twice for a 
+		 * in the main task list. Because we are here in push_task, this sould never happen twice for a
 		 * same task. */
 		if (is_my_task_free(gpu_looked_at, task)) // && starpu_worker_can_execute_task_first_impl(current_worker_id, task, NULL))
 		{
@@ -1182,7 +1182,7 @@ static void randomize_new_task_list(struct _starpu_darts_sched_data *d)
 	}
 	for (i = 0; i < NT_DARTS; i++)
 	{
-		int random = starpu_lrand48()%(NT_DARTS - i);		
+		int random = starpu_lrand48()%(NT_DARTS - i);
 		starpu_task_list_push_back(&d->main_task_list, task_tab[random]);
 		task_tab[random] = task_tab[NT_DARTS - i - 1];
 	}
@@ -2384,10 +2384,10 @@ static void _starpu_darts_scheduling_3D_matrix(struct starpu_task_list *main_tas
 				{
 					starpu_task_list_push_front(main_task_list, task);
 					_REFINED_MUTEX_UNLOCK();
-					return;	
+					return;
 				}
 			}
-			
+
 			_STARPU_SCHED_PRINT("\"Random\" task for GPU %d is %p.\n", current_gpu, task);
 		}
 		else
@@ -2487,7 +2487,7 @@ static struct starpu_task *get_task_to_return_pull_task_darts(int current_gpu, s
 
 	_REFINED_MUTEX_LOCK();
 	/* If planned_task is not empty I can return the head of the task list.
-	 * I also check if the task can be executed by the current worker. If 
+	 * I also check if the task can be executed by the current worker. If
 	 * not it is sent back to the main task list. */
 	if (!starpu_task_list_empty(&tab_gpu_planned_task[current_gpu].planned_task))
 	{
@@ -2684,8 +2684,8 @@ static struct starpu_task *darts_pull_task(struct starpu_sched_component *compon
 
 	struct starpu_task *task = get_task_to_return_pull_task_darts(current_gpu, &data->main_task_list, starpu_worker_get_id_check());
 	/* if (task != NULL) {
-	       printf("CPU %d GPU %d OPENCL %d\n", starpu_worker_get_by_type(STARPU_CPU_WORKER, 0), starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0), starpu_worker_get_by_type(STARPU_OPENCL_WORKER, 0)); fflush(stdout); 	
-		printf("Pulled %stask %p on PU %d.\n", task?"":"NO ", task, current_gpu); fflush(stdout); 
+	       printf("CPU %d GPU %d OPENCL %d\n", starpu_worker_get_by_type(STARPU_CPU_WORKER, 0), starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0), starpu_worker_get_by_type(STARPU_OPENCL_WORKER, 0)); fflush(stdout);
+		printf("Pulled %stask %p on PU %d.\n", task?"":"NO ", task, current_gpu); fflush(stdout);
 		printf("is executable?: %d\n", starpu_worker_can_execute_task_first_impl(0, task, NULL)); fflush(stdout);
 		printf("is executable?: %d\n", starpu_worker_can_execute_task_first_impl(1, task, NULL)); fflush(stdout);
 		printf("is executable?: %d\n", starpu_worker_can_execute_task_first_impl(2, task, NULL)); fflush(stdout);
