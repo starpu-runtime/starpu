@@ -2507,7 +2507,7 @@ static struct starpu_task *get_task_to_return_pull_task_darts(int current_gpu, s
 		{
 			//printf("Can't execute task %p on this worker in get_task_to_return planned_task not empty\n", task); fflush(stdout);
 			/* If not, push front task in main task list and return NULL */
-			starpu_task_list_push_front(&l ,task);
+			starpu_task_list_push_front(l ,task);
 			_REFINED_MUTEX_UNLOCK();
 			return NULL;
 		}
