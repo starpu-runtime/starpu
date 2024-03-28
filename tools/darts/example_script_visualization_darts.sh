@@ -19,7 +19,7 @@
 # Requirements for a visualization:
 # 1. Configure with the options --enable-darts-stats --enable-darts-verbose
 # 2. Use the following environemnt variable: PRINT_N=$((N)) with N the side of the matrix used in the application
-# 3. To launch this script from the starpu/ folder use: 
+# 3. To launch this script from the starpu/ folder use:
 # ./tools/darts/example_script_visualization_darts.sh $PATH_TO_STARPU_FOLDER N Application NGPU scheduler block_size memory_limitation_of_the_gpus $PATH_TO_PERFMODEL (optional, can also be left empty if the experiment is not done in simulation) hostname (optional if you are not using simulation)
 # For instance it can be: ./tools/darts/example_script_visualization_darts.sh /home/name/ 15 Cholesky 1 darts 960 2000 /home/name/starpu/tools/perfmodels/sampling/ attila
 # 4. If your targeted application is Cholesky, use -niter 1
