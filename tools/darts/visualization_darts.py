@@ -32,129 +32,129 @@ from color_darts import gradiant_color
 from color_darts import gradiant_multiple_color
 
 def gpu_color(gpu):
-    r = 0
-    g = 0
-    b = 0
-    if (gpu == 0):
-        r = 1
-    elif (gpu == 1):
-        g = 1
-    elif (gpu == 2):
-        r = 73/255
-        g = 116/255
-        b = 1
-    elif (gpu == 3):
-        r = 1
-        b = 1
-    elif (gpu == 4):
-        g = 1
-        b = 1
-    elif (gpu == 5):
-        r = 1
-        b = 1
-    elif (gpu == 6):
-        r = 1
-        g = 0.5
-        b = 0.5
-    elif (gpu == 7):
-        r = 0.5
-        g = 1
-        b = 0.5
+    red = 0
+    green = 0
+    blue = 0
+    if gpu == 0:
+        red = 1
+    elif gpu == 1:
+        green = 1
+    elif gpu == 2:
+        red = 73/255
+        green = 116/255
+        blue = 1
+    elif gpu == 3:
+        red = 1
+        blue = 1
+    elif gpu == 4:
+        green = 1
+        blue = 1
+    elif gpu == 5:
+        red = 1
+        blue = 1
+    elif gpu == 6:
+        red = 1
+        green = 0.5
+        blue = 0.5
+    elif gpu == 7:
+        red = 0.5
+        green = 1
+        blue = 0.5
     else:
-        r = 1/gpu
-        g = 1/gpu
-        b = 1/gpu
-    return (r, g, b)
+        red = 1/gpu
+        green = 1/gpu
+        blue = 1/gpu
+    return (red, green, blue)
 
 # Print a line on the side of the matrix depending on wheter or not a data load was necessary
 def lignes_sur_le_cote(case, axe, epaisseur, gpu, line_type):
     epaisseur = epaisseur/2
 
-    if (gpu == 0):
+    if gpu == 0:
         decalage = 3
-    elif (gpu == 1):
+    elif gpu == 1:
         decalage = 4
-    elif (gpu == 2):
+    elif gpu == 2:
         decalage = 5
-    elif (gpu == 3):
+    elif gpu == 3:
         decalage = 6
-    elif (gpu == 4):
+    elif gpu == 4:
         decalage = 7
-    elif (gpu == 5):
+    elif gpu == 5:
         decalage = 8
-    elif (gpu == 6):
+    elif gpu == 6:
         decalage = 9
-    elif (gpu == 7):
+    elif gpu == 7:
         decalage = 10
     else:
         decalage = 3 + gpu
 
-    if (axe == "x"):
+    if axe == "x":
         trans = ax.get_xaxis_transform()
         ax.annotate('', xy = (case, -0.1), xycoords=trans, ha = "center", va = "top")
         return ax.plot([case - 0.49, case + 0.49],[-.02 * decalage, -.02 * decalage], color = gpu_color(gpu), linewidth = epaisseur, transform = trans, clip_on = False, linestyle = line_type)
-    elif (axe == "y"):
+    elif axe == "y":
         trans = ax.get_yaxis_transform()
         return ax.plot([-.02 * decalage, -.02 * decalage], [case - 0.49, case + 0.49], color = gpu_color(gpu), linewidth = epaisseur, transform = trans, clip_on = False, linestyle = line_type)
 
 def custom_lignes_sur_le_cote(case, axe, epaisseur, gpu, line_type, decalage):
-    if (axe == "x"):
+    if axe == "x":
         trans = ax.get_xaxis_transform()
         ax.annotate('', xy = (case, -0.1), xycoords=trans, ha = "center", va = "top")
         return ax.plot([case - 0.45, case + 0.45],[-.02 * decalage, -.02 * decalage], color = gpu_color(gpu), linewidth = epaisseur, transform = trans, clip_on = False, linestyle = line_type)
-    elif (axe == "y"):
+    elif axe == "y":
         trans = ax.get_yaxis_transform()
         return ax.plot([-.02 * decalage, -.02 * decalage], [case - 0.45, case + 0.45], color = gpu_color(gpu), linewidth = epaisseur, transform = trans, clip_on = False, linestyle = line_type)
 
 def data_sur_le_cote_3D(x, y, axe, line_width, gpu, line_type, i, j, z):
-    if (gpu == 0):
+    if gpu == 0:
         decalage = 0
-    elif (gpu == 1):
+    elif gpu == 1:
         decalage = 0.2
-    elif (gpu == 2):
+    elif gpu == 2:
         decalage = 0.4
-    elif (gpu == 3):
+    elif gpu == 3:
         decalage = 0.6
-    elif (gpu == 4):
+    elif gpu == 4:
         decalage = 0.8
-    elif (gpu == 5):
+    elif gpu == 5:
         decalage = 1
-    elif (gpu == 6):
+    elif gpu == 6:
         decalage = 1.2
-    elif (gpu == 7):
+    elif gpu == 7:
         decalage = 1.4
     else:
         decalage = 1.6 + 0.2*(gpu%8)
 
-    if (axe == "x"):
+    if axe == "x":
         return ax[i, j].plot([x - 0.49, x + 0.49], [z + decalage, z + decalage], color = gpu_color(gpu), linewidth = line_width, linestyle = line_type)
-    elif (axe == "y"):
+    elif axe == "y":
         return ax[i, j].plot([z + decalage, z + decalage], [y - 0.49, y + 0.49], color = gpu_color(gpu), linewidth = line_width, linestyle = line_type)
-    elif (axe == "z"):
+    elif axe == "z":
         return ax[i, j].plot([x - 0.49, x + 0.49 - decalage], [y - 0.49 + decalage, y + 0.49], color = gpu_color(gpu), linewidth = line_width, linestyle = line_type)
     else:
         sys.exit("Axe must be x, y or z in def data_sur_le_cote_3D(x, y, axe, epaisseur, gpu, line_type, i, j)")
 
 # Printing in a separate white matrix the data loaded with a heat map
 def data_sur_le_cote_3D_heat_map(x, y, axe, heat, gpu, i, j, z):
-    r = 0
-    g = 0
-    b = 0
-    if (heat == 1):
-        g = 1
-    elif (heat == 2):
-        r = 1
-        g = 127/255
-    elif (heat == 3):
-        r = 1
-    elif (heat == 4):
-        r = 0.5
-        b = 0.5
+    red = 0
+    green = 0
+    blue = 0
+    if heat == 1:
+        green = 1
+    elif heat == 2:
+        red = 1
+        green = 127/255
+    elif heat == 3:
+        red = 1
+    elif heat == 4:
+        red = 0.5
+        blue = 0.5
     else:
         sys.exit("Heat must be 1, 2, 3 or 4 in data_sur_le_cote_3D_heat_map")
 
-    if (axe == "z"):
-        m[i, j][x, y, :] = (r, g, b)
+    if axe == "z":
+        m[i, j][x, y, :] = (red, green, blue)
     else:
         sys.exit("Axe must be z in data_sur_le_cote_3D_heat_map")
 
@@ -207,39 +207,39 @@ def sous_paquets(x, y, sous_paquet):
         return ax.annotate(sous_paquet, xy = (x, y), ha = "center")
 
 def separation_sous_paquets(x, y, x_bis, y_bis):
-    if (x == 0 and x_bis == N - 1):
+    if x == 0 and x_bis == N - 1:
         return ax.plot([x - 0.49, x - 0.49],[y - 0.49, y + 0.49], color = "black", linewidth = 4, clip_on = False)
-    elif (x == N - 1 and x_bis == 0):
+    elif x == N - 1 and x_bis == 0:
         return ax.plot([x + 0.49, x + 0.49],[y - 0.49, y + 0.49], color = "black", linewidth = 4, clip_on = False)
-    elif (y == 0 and y_bis == N - 1):
+    elif y == 0 and y_bis == N - 1:
         return ax.plot([x - 0.49, x + 0.49],[y - 0.49, y - 0.49], color = "black", linewidth = 4, clip_on = False)
-    elif (y == N - 1 and y_bis == 0):
+    elif y == N - 1 and y_bis == 0:
         return ax.plot([x - 0.49, x + 0.49],[y + 0.49, y + 0.49], color = "black", linewidth = 4, clip_on = False)
-    elif (x < x_bis):
+    elif x < x_bis:
         return ax.plot([x + 0.49, x + 0.49],[y - 0.49, y + 0.49], color = "black", linewidth = 4, clip_on = False)
-    elif (x > x_bis):
+    elif x > x_bis:
         return ax.plot([x - 0.49, x - 0.49],[y - 0.49, y + 0.49], color = "black", linewidth = 4, clip_on = False)
-    elif (y < y_bis):
+    elif y < y_bis:
         return ax.plot([x - 0.49, x + 0.49],[y + 0.49, y + 0.49], color = "black", linewidth = 4, clip_on = False)
-    elif (y > y_bis):
+    elif y > y_bis:
         return ax.plot([x - 0.49, x + 0.49],[y - 0.49, y - 0.49], color = "black", linewidth = 4, clip_on = False)
 
 def separation_sous_paquets_3D(x, y, x_bis, y_bis, i, j):
-    if (x == 0 and x_bis == N - 1):
+    if x == 0 and x_bis == N - 1:
         return ax[i, j].plot([x - 0.49, x - 0.49],[y - 0.49, y + 0.49], color = "black", linewidth = 4, clip_on = False)
-    elif (x == N - 1 and x_bis == 0):
+    elif x == N - 1 and x_bis == 0:
         return ax[i, j].plot([x + 0.49, x + 0.49],[y - 0.49, y + 0.49], color = "black", linewidth = 4, clip_on = False)
-    elif (y == 0 and y_bis == N - 1):
+    elif y == 0 and y_bis == N - 1:
         return ax[i, j].plot([x - 0.49, x + 0.49],[y - 0.49, y - 0.49], color = "black", linewidth = 4, clip_on = False)
-    elif (y == N - 1 and y_bis == 0):
+    elif y == N - 1 and y_bis == 0:
         return ax[i, j].plot([x - 0.49, x + 0.49],[y + 0.49, y + 0.49], color = "black", linewidth = 4, clip_on = False)
-    elif (x < x_bis):
+    elif x < x_bis:
         return ax[i, j].plot([x + 0.49, x + 0.49],[y - 0.49, y + 0.49], color = "black", linewidth = 4, clip_on = False)
-    elif (x > x_bis):
+    elif x > x_bis:
         return ax[i, j].plot([x - 0.49, x - 0.49],[y - 0.49, y + 0.49], color = "black", linewidth = 4, clip_on = False)
-    elif (y < y_bis):
+    elif y < y_bis:
         return ax[i, j].plot([x - 0.49, x + 0.49],[y + 0.49, y + 0.49], color = "black", linewidth = 4, clip_on = False)
-    elif (y > y_bis):
+    elif y > y_bis:
         return ax[i, j].plot([x - 0.49, x + 0.49],[y - 0.49, y - 0.49], color = "black", linewidth = 4, clip_on = False)
 
 def get_i_j(z):
@@ -304,14 +304,14 @@ numerotation_axes_complete = True # If you don't want a numerotation of the axis
 z_dans_les_cases = False
 
 
-if (ORDO == "HFP"):
+if ORDO == "HFP":
     sous_paquets_and_task_stealing = False # pour afficher ou non les sous paquets et le stealing avec HFP
 else:
     sous_paquets_and_task_stealing = False
 
 plt.tick_params(labelsize=50) # Pour la taille des chiffres sur les axes x et y des matrices
 
-if (APPLI == "Matrice_ligne" or APPLI == "Matrice3D" or APPLI == "MatriceZ4" or APPLI == "MatriceZN"):
+if APPLI == "Matrice_ligne" or APPLI == "Matrice3D" or APPLI == "MatriceZ4" or APPLI == "MatriceZN":
 
     NDIMENSIONS = int(sys.argv[5])
 
@@ -320,7 +320,7 @@ if (APPLI == "Matrice_ligne" or APPLI == "Matrice3D" or APPLI == "MatriceZ4" or 
     epaisseur_lignes_sur_le_cote_prefetch = [[1] * N for i in range(NGPU)]
     epaisseur_colonnes_sur_le_cote_prefetch = [[1] * N for i in range(NGPU)]
 
-    if (NDIMENSIONS == 1):
+    if NDIMENSIONS == 1:
 
         size_numero_dans_les_cases = 19
 
@@ -330,7 +330,7 @@ if (APPLI == "Matrice_ligne" or APPLI == "Matrice3D" or APPLI == "MatriceZ4" or 
         fig, ax = plt.subplots( nrows=1, ncols=1 )  # create figure & 1 axis
 
         # Grid
-        if (numerotation_axes_complete == True):
+        if numerotation_axes_complete == True:
             ax.set_xticks(np.arange(0, N, 1)) # numérotations des axes X et Y
             ax.set_yticks(np.arange(0, N, 1))
         else:
@@ -349,7 +349,7 @@ if (APPLI == "Matrice_ligne" or APPLI == "Matrice3D" or APPLI == "MatriceZ4" or 
 
         file_coord.seek(0)
 
-        if (ORDRE_GLOBAL == 1):
+        if ORDRE_GLOBAL == 1:
             for i in range (0, NGPU):
                 nb_tache_par_gpu[i] = N*N
 
@@ -357,68 +357,68 @@ if (APPLI == "Matrice_ligne" or APPLI == "Matrice3D" or APPLI == "MatriceZ4" or 
         for line in file_coord:
             fields = line.split()
             # X Y GPU
-            if (ORDRE_GLOBAL == 0):
+            if ORDRE_GLOBAL == 0:
                 index_ordre = int(fields[2])
             else:
                 index_ordre = 0
             m[int(fields[1]), int(fields[0]), :] = gradiant_color(int(fields[2]), order[index_ordre], nb_tache_par_gpu[int(fields[2])])
 
-            if (numerotation_des_cases == True):
+            if numerotation_des_cases == True:
                 ax.text(int(fields[0]), int(fields[1]), order[index_ordre], va="center", weight="bold", ha="center", color = "white", size = size_numero_dans_les_cases)
-            elif (numerotation_des_cases_partielles == True and order[index_ordre]%10 == 0):
+            elif numerotation_des_cases_partielles == True and order[index_ordre]%10 == 0:
                 ax.text(int(fields[0]), int(fields[1]), order[index_ordre], weight="bold", va="center", ha="center", color = "white", size = size_numero_dans_les_cases, zorder=10)
             order[index_ordre] = order[index_ordre] + 1
 
-        if (lignes_dans_les_cases == True or lignes_sur_les_cote == True):
+        if lignes_dans_les_cases == True or lignes_sur_les_cote == True:
             for line in file_data:
                 fields = line.split()
 
-                if (int(fields[2]) != 0):
+                if int(fields[2]) != 0:
                     column_to_load(int(fields[0]), int(fields[1]))
 
-                    if (lignes_sur_les_cote == True):
+                    if lignes_sur_les_cote == True:
                         lignes_sur_le_cote(int(fields[1]), "y", epaisseur_colonnes_sur_le_cote[int(fields[4])][int(fields[1])], int(fields[4]), "solid")
                         epaisseur_colonnes_sur_le_cote[int(fields[4])][int(fields[1])] += 4
 
                     data_to_load[int(fields[0])][int(fields[1])] = 1
 
-                if (int(fields[3]) != 0):
+                if int(fields[3]) != 0:
                     line_to_load(int(fields[0]), int(fields[1]))
 
-                    if (lignes_sur_les_cote == True):
+                    if lignes_sur_les_cote == True:
                         lignes_sur_le_cote(int(fields[0]), "x", epaisseur_lignes_sur_le_cote[int(fields[4])][int(fields[0])], int(fields[4]), "solid")
                         epaisseur_lignes_sur_le_cote[int(fields[4])][int(fields[0])] += 4
 
-                    if (data_to_load[int(fields[0])][int(fields[1])] != 0):
+                    if data_to_load[int(fields[0])][int(fields[1])] != 0:
                         data_to_load[int(fields[0])][int(fields[1])] = 3
                     else:
                         data_to_load[int(fields[0])][int(fields[1])] = 2
 
             for line in file_coord_prefetch:
                 fields = line.split()
-                if (int(fields[2]) != 0 and data_to_load[int(fields[0])][int(fields[1])] != 1 and data_to_load[int(fields[0])][int(fields[1])] != 3):
+                if int(fields[2]) != 0 and data_to_load[int(fields[0])][int(fields[1])] != 1 and data_to_load[int(fields[0])][int(fields[1])] != 3:
                     column_to_load_prefetch(int(fields[0]), int(fields[1]))
 
-                    if (lignes_sur_les_cote == True):
-                        if (epaisseur_colonnes_sur_le_cote[int(fields[4])][int(fields[1])] == 1):
+                    if lignes_sur_les_cote == True:
+                        if epaisseur_colonnes_sur_le_cote[int(fields[4])][int(fields[1])] == 1:
                             lignes_sur_le_cote(int(fields[1]), "y", epaisseur_colonnes_sur_le_cote_prefetch[int(fields[4])][int(fields[1])], int(fields[4]), "dashed")
                             epaisseur_colonnes_sur_le_cote_prefetch[int(fields[4])][int(fields[1])] += 4
                         else:
                             lignes_sur_le_cote(int(fields[1]), "y", epaisseur_colonnes_sur_le_cote[int(fields[4])][int(fields[1])], int(fields[4]), "solid")
                             epaisseur_colonnes_sur_le_cote[int(fields[4])][int(fields[1])] += 4
 
-                if (int(fields[3]) != 0 and data_to_load[int(fields[0])][int(fields[1])] != 2 and data_to_load[int(fields[0])][int(fields[1])] != 3):
+                if int(fields[3]) != 0 and data_to_load[int(fields[0])][int(fields[1])] != 2 and data_to_load[int(fields[0])][int(fields[1])] != 3:
                     line_to_load_prefetch(int(fields[0]), int(fields[1]))
 
-                    if (lignes_sur_les_cote == True):
-                        if (epaisseur_lignes_sur_le_cote[int(fields[4])][int(fields[0])] == 1):
+                    if lignes_sur_les_cote == True:
+                        if epaisseur_lignes_sur_le_cote[int(fields[4])][int(fields[0])] == 1:
                             lignes_sur_le_cote(int(fields[0]), "x", epaisseur_lignes_sur_le_cote_prefetch[int(fields[4])][int(fields[0])], int(fields[4]), "dashed")
                             epaisseur_lignes_sur_le_cote_prefetch[int(fields[4])][int(fields[0])] += 4
                         else:
                             lignes_sur_le_cote(int(fields[0]), "x", epaisseur_lignes_sur_le_cote[int(fields[4])][int(fields[0])], int(fields[4]), "solid")
                             epaisseur_lignes_sur_le_cote[int(fields[4])][int(fields[0])] += 4
 
-        if (sous_paquets_and_task_stealing == True):
+        if sous_paquets_and_task_stealing == True:
             # Load balance steal
             file_load_balance = open(PATH + "/Data_stolen_load_balance.txt", "r")
 
@@ -438,29 +438,29 @@ if (APPLI == "Matrice_ligne" or APPLI == "Matrice3D" or APPLI == "MatriceZ4" or 
 
             for i in range(N):
                 for j in range(N):
-                    if (i != 0):
-                        if (hierarchie_paquets[i][j] != hierarchie_paquets[i - 1][j]):
+                    if i != 0:
+                        if hierarchie_paquets[i][j] != hierarchie_paquets[i - 1][j]:
                             separation_sous_paquets(i, j, i - 1, j)
                     else:
-                        if (hierarchie_paquets[i][j] != hierarchie_paquets[N - 1][j]):
+                        if hierarchie_paquets[i][j] != hierarchie_paquets[N - 1][j]:
                             separation_sous_paquets(i, j, N - 1, j)
-                    if (i != N - 1):
-                        if (hierarchie_paquets[i][j] != hierarchie_paquets[i + 1][j]):
+                    if i != N - 1:
+                        if hierarchie_paquets[i][j] != hierarchie_paquets[i + 1][j]:
                             separation_sous_paquets(i, j, i + 1, j)
                     else:
-                        if (hierarchie_paquets[i][j] != hierarchie_paquets[0][j]):
+                        if hierarchie_paquets[i][j] != hierarchie_paquets[0][j]:
                             separation_sous_paquets(i, j, 0, j)
-                    if (j != 0):
-                        if (hierarchie_paquets[i][j] != hierarchie_paquets[i][j - 1]):
+                    if j != 0:
+                        if hierarchie_paquets[i][j] != hierarchie_paquets[i][j - 1]:
                             separation_sous_paquets(i, j, i, j - 1)
                     else:
-                        if (hierarchie_paquets[i][j] != hierarchie_paquets[i][N - 1]):
+                        if hierarchie_paquets[i][j] != hierarchie_paquets[i][N - 1]:
                             separation_sous_paquets(i, j, i, N - 1)
-                    if (j != N - 1):
-                        if (hierarchie_paquets[i][j] != hierarchie_paquets[i][j + 1]):
+                    if j != N - 1:
+                        if hierarchie_paquets[i][j] != hierarchie_paquets[i][j + 1]:
                             separation_sous_paquets(i, j, i, j + 1)
                     else:
-                        if (hierarchie_paquets[i][j] != hierarchie_paquets[i][0]):
+                        if hierarchie_paquets[i][j] != hierarchie_paquets[i][0]:
                             separation_sous_paquets(i, j, i, 0)
 
             file_last_package.close()
@@ -479,7 +479,7 @@ if (APPLI == "Matrice_ligne" or APPLI == "Matrice3D" or APPLI == "MatriceZ4" or 
 
         for i in range(NROW):
             for j in range(NCOL):
-                if (numerotation_axes_complete == True):
+                if numerotation_axes_complete == True:
                     ax[i, j].set_xticks(np.arange(0, N, 1)) # numérotations des axes X et Y
                     ax[i, j].set_yticks(np.arange(0, N, 1))
                 else:
@@ -489,7 +489,7 @@ if (APPLI == "Matrice_ligne" or APPLI == "Matrice3D" or APPLI == "MatriceZ4" or 
                 ax[i, j].set_yticks(np.arange(0.5, N, 1), minor=True)
                 ax[i, j].grid(which = 'minor', color = 'black', linestyle = '-', linewidth = 1)
                 ax[i, j].tick_params(labelsize=13) # Plus petit pour 3D car dans FGCS c'est agrandiss
-        if (NDIMENSIONS == 4):
+        if NDIMENSIONS == 4:
             i_x_on_side = 2
             j_x_on_side = 0
             i_y_on_side = 2
@@ -531,9 +531,9 @@ if (APPLI == "Matrice_ligne" or APPLI == "Matrice3D" or APPLI == "MatriceZ4" or 
 
             index_ordre = int(fields[3])
 
-            if (numerotation_des_cases == True):
+            if numerotation_des_cases == True:
                 ax[i,j].text(int(fields[0]), int(fields[1]), order[index_ordre], va="center", weight="bold", ha="center", color = "white", size = size_numero_dans_les_cases)
-            elif (numerotation_des_cases_partielles == True and order[index_ordre]%10 == 0):
+            elif numerotation_des_cases_partielles == True and order[index_ordre]%10 == 0:
                 ax[i,j].text(int(fields[0]), int(fields[1]), order[index_ordre], va="center", weight="bold", ha="center", color = "white", size = size_numero_dans_les_cases, zorder=10)
 
             order[int(fields[3])] = order[int(fields[3])] + 1
@@ -542,30 +542,30 @@ if (APPLI == "Matrice_ligne" or APPLI == "Matrice3D" or APPLI == "MatriceZ4" or 
                 fields = line.split()
                 i, j = get_i_j(int(fields[2]))
 
-                if (int(fields[3]) != 0):
+                if int(fields[3]) != 0:
                     column_to_load_3D(int(fields[0]), int(fields[1]), i, j)
 
-                    if (lignes_sur_les_cote == True):
+                    if lignes_sur_les_cote == True:
                         data_sur_le_cote_3D(int(fields[0]), int(fields[1]), "y", epaisseur_y[i_y_on_side, j_y_on_side][int(fields[2]) + (int(fields[6])*4), int(fields[1])], int(fields[6]), "solid", i_x_on_side, j_x_on_side, int(fields[2]))
                         epaisseur_y[i_y_on_side, j_y_on_side][int(fields[2]) + (int(fields[6])*4), int(fields[1])] += 4
 
                     already_fetched_x[i, j][int(fields[0]), int(fields[1])] = 1
 
-                if (int(fields[4]) != 0):
+                if int(fields[4]) != 0:
                     line_to_load_3D(int(fields[0]), int(fields[1]), i, j)
 
-                    if (lignes_sur_les_cote == True):
+                    if lignes_sur_les_cote == True:
                         data_sur_le_cote_3D(int(fields[0]), int(fields[1]), "x", epaisseur_x[i_x_on_side, j_x_on_side][int(fields[0]), int(fields[2]) + (int(fields[6])*4)], int(fields[6]), "solid", i_y_on_side, j_y_on_side, int(fields[2]))
                         epaisseur_x[i_x_on_side, j_x_on_side][int(fields[0]), int(fields[2]) + (int(fields[6])*4)] += 4
 
                     already_fetched_y[i, j][int(fields[0]), int(fields[1])] = 1
 
                 # The "diagonal" (Z)
-                if (z_dans_les_cases == True):
-                    if (int(fields[5]) != 0):
+                if z_dans_les_cases == True:
+                    if int(fields[5]) != 0:
                         Z_to_load_3D(int(fields[0]), int(fields[1]), i, j)
 
-                        if (NGPU == 1 and NDIMENSIONS == 4):
+                        if NGPU == 1 and NDIMENSIONS == 4:
                             data_sur_le_cote_3D_heat_map(int(fields[1]), int(fields[0]), "z", epaisseur_z[i_z_on_side, j_z_on_side][int(fields[0]), int(fields[1])], int(fields[6]), i_z_on_side, j_z_on_side, int(fields[2]))
                             epaisseur_z[i_z_on_side, j_z_on_side][int(fields[0]), int(fields[1])] += 1
                         else:
@@ -577,23 +577,23 @@ if (APPLI == "Matrice_ligne" or APPLI == "Matrice3D" or APPLI == "MatriceZ4" or 
             for line in file_coord_prefetch:
                 fields = line.split()
                 i, j = get_i_j(int(fields[2]))
-                if (int(fields[3]) != 0 and already_fetched_x[i, j][int(fields[0]), int(fields[1])] == 0):
+                if int(fields[3]) != 0 and already_fetched_x[i, j][int(fields[0]), int(fields[1])] == 0:
                     column_to_load_3D_prefetch(int(fields[0]), int(fields[1]), i, j)
 
-                    if (lignes_sur_les_cote == True):
+                    if lignes_sur_les_cote == True:
                         data_sur_le_cote_3D(int(fields[0]), int(fields[1]), "y", 1, int(fields[6]), "dashed", i_x_on_side, j_x_on_side, int(fields[2]))
 
-                if (int(fields[4]) != 0 and already_fetched_y[i, j][int(fields[0]), int(fields[1])] == 0):
+                if int(fields[4]) != 0 and already_fetched_y[i, j][int(fields[0]), int(fields[1])] == 0:
                     line_to_load_3D_prefetch(int(fields[0]), int(fields[1]), i, j)
 
-                    if (lignes_sur_les_cote == True):
+                    if lignes_sur_les_cote == True:
                         data_sur_le_cote_3D(int(fields[0]), int(fields[1]), "x", 1, int(fields[6]), "dashed", i_y_on_side, j_y_on_side, int(fields[2]))
 
-                if (z_dans_les_cases == True):
-                    if (int(fields[5]) != 0 and already_fetched_z[i, j][int(fields[0]), int(fields[1])] == 0):
+                if z_dans_les_cases == True:
+                    if int(fields[5]) != 0 and already_fetched_z[i, j][int(fields[0]), int(fields[1])] == 0:
                         Z_to_load_3D_prefetch(int(fields[0]), int(fields[1]), i, j)
 
-        if (ORDO == "HFP"):
+        if ORDO == "HFP":
             file_load_balance = open(PATH + "/Data_stolen_load_balance.txt", "r")
 
             for line in file_load_balance:
@@ -605,7 +605,7 @@ if (APPLI == "Matrice_ligne" or APPLI == "Matrice3D" or APPLI == "MatriceZ4" or 
 
             file_last_package = open(PATH + "/last_package_split.txt", "r")
 
-            if (sous_paquets_and_task_stealing == True):
+            if sous_paquets_and_task_stealing == True:
                 for line in file_last_package:
                     fields = line.split()
                     i, j = get_i_j(int(fields[2]))
@@ -615,29 +615,29 @@ if (APPLI == "Matrice_ligne" or APPLI == "Matrice3D" or APPLI == "MatriceZ4" or 
                     for j_bis in range(2):
                         for i in range(N):
                             for j in range(N):
-                                if (i != 0):
-                                    if (hierarchie_paquets[i_bis, j_bis][i, j] != hierarchie_paquets[i_bis, j_bis][i - 1, j]):
+                                if i != 0:
+                                    if hierarchie_paquets[i_bis, j_bis][i, j] != hierarchie_paquets[i_bis, j_bis][i - 1, j]:
                                         separation_sous_paquets_3D(i, j, i - 1, j, i_bis, j_bis)
                                 else:
-                                    if (hierarchie_paquets[i_bis, j_bis][i, j] != hierarchie_paquets[i_bis, j_bis][N - 1, j]):
+                                    if hierarchie_paquets[i_bis, j_bis][i, j] != hierarchie_paquets[i_bis, j_bis][N - 1, j]:
                                         separation_sous_paquets_3D(i, j, N - 1, j, i_bis, j_bis)
-                                if (i != N - 1):
-                                    if (hierarchie_paquets[i_bis, j_bis][i, j] != hierarchie_paquets[i_bis, j_bis][i + 1, j]):
+                                if i != N - 1:
+                                    if hierarchie_paquets[i_bis, j_bis][i, j] != hierarchie_paquets[i_bis, j_bis][i + 1, j]:
                                         separation_sous_paquets_3D(i, j, i + 1, j, i_bis, j_bis)
                                 else:
-                                    if (hierarchie_paquets[i_bis, j_bis][i, j] != hierarchie_paquets[i_bis, j_bis][0, j]):
+                                    if hierarchie_paquets[i_bis, j_bis][i, j] != hierarchie_paquets[i_bis, j_bis][0, j]:
                                         separation_sous_paquets_3D(i, j, 0, j, i_bis, j_bis)
-                                if (j != 0):
-                                    if (hierarchie_paquets[i_bis, j_bis][i, j] != hierarchie_paquets[i_bis, j_bis][i, j - 1]):
+                                if j != 0:
+                                    if hierarchie_paquets[i_bis, j_bis][i, j] != hierarchie_paquets[i_bis, j_bis][i, j - 1]:
                                         separation_sous_paquets_3D(i, j, i, j - 1, i_bis, j_bis)
                                 else:
-                                    if (hierarchie_paquets[i_bis, j_bis][i, j] != hierarchie_paquets[i_bis, j_bis][i, N - 1]):
+                                    if hierarchie_paquets[i_bis, j_bis][i, j] != hierarchie_paquets[i_bis, j_bis][i, N - 1]:
                                         separation_sous_paquets_3D(i, j, i, N - 1, i_bis, j_bis)
-                                if (j != N - 1):
-                                    if (hierarchie_paquets[i_bis, j_bis][i, j] != hierarchie_paquets[i_bis, j_bis][i, j + 1]):
+                                if j != N - 1:
+                                    if hierarchie_paquets[i_bis, j_bis][i, j] != hierarchie_paquets[i_bis, j_bis][i, j + 1]:
                                         separation_sous_paquets_3D(i, j, i, j + 1, i_bis, j_bis)
                                 else:
-                                    if (hierarchie_paquets[i_bis, j_bis][i, j] != hierarchie_paquets[i_bis, j_bis][i, 0]):
+                                    if hierarchie_paquets[i_bis, j_bis][i, j] != hierarchie_paquets[i_bis, j_bis][i, 0]:
                                         separation_sous_paquets_3D(i, j, i, 0, i_bis, j_bis)
             else:
                 print("hierarchie 3D not implemented yet for Z != 4")
@@ -656,7 +656,7 @@ if (APPLI == "Matrice_ligne" or APPLI == "Matrice3D" or APPLI == "MatriceZ4" or 
                 ax[i, j].imshow(m[i, j])
     # End of 3D matrix
 
-elif (APPLI == "Cholesky"):
+elif APPLI == "Cholesky":
 
     # ~ numerotation_des_cases = True
     numerotation_des_cases = False
@@ -676,7 +676,7 @@ elif (APPLI == "Cholesky"):
     memory_size_in_tiles = True
     # ~ memory_size_in_tiles = False
 
-    if (memory_size_in_tiles == True):
+    if memory_size_in_tiles == True:
         MEMOIRE = int(sys.argv[6])
         TILE_SIZE = int(sys.argv[7])
 
@@ -735,7 +735,7 @@ elif (APPLI == "Cholesky"):
 
     row_to_suppr = 1
     for i in range(NCOL*NROW - N):
-        if (i%(NCOL) == 0 and i != 0):
+        if i%(NCOL) == 0 and i != 0:
             row_to_suppr += 1
         if NGPU >= 1:
             fig1.delaxes(ax1[NROW - row_to_suppr, NCOL - 1 - i%(NCOL)])
@@ -787,7 +787,7 @@ elif (APPLI == "Cholesky"):
             already_fetched_y[i, j] = np.zeros((N, N, 1))
             already_fetched_z[i, j] = np.zeros((N, N, 1))
 
-    if (memory_size_in_tiles == True):
+    if memory_size_in_tiles == True:
         taille_1_tuile = TILE_SIZE*TILE_SIZE*4 # Car c'est du simple. Pour LU en double ce sera *8
         nb_tuile__qui_rentre_en_memoire = int((MEMOIRE*1000000)/taille_1_tuile)
         x_to_fill = int(math.sqrt(nb_tuile__qui_rentre_en_memoire))
@@ -858,9 +858,9 @@ elif (APPLI == "Cholesky"):
         elif int(fields[3]) == 7:
             m8[i, j][int(fields[1]), int(fields[2]), :] = gradiant_multiple_color(order[int(fields[3])], nb_tache_par_gpu[int(fields[3])], NGPU, int(fields[3]))
 
-        if (numerotation_des_cases == True):
+        if numerotation_des_cases == True:
             ax[i, j].text(int(fields[2]), int(fields[1]), order[int(fields[3])], va="center", ha="center", color = "white", size = size_numero_dans_les_cases)
-        elif (numerotation_des_cases_partielles == True and order[int(fields[3])]%20 == 0):
+        elif numerotation_des_cases_partielles == True and order[int(fields[3])]%20 == 0:
             if int(fields[3]) == 0:
                 ax1[i, j].text(int(fields[2]), int(fields[1]), order[int(fields[3])], va="center", ha="center", color = "white", size = size_numero_dans_les_cases)
             elif int(fields[3]) == 1:
@@ -881,20 +881,20 @@ elif (APPLI == "Cholesky"):
 
         order[int(fields[3])] = order[int(fields[3])] + 1
 
-    if (lignes_dans_les_cases_et_sur_le_cote == True):
+    if lignes_dans_les_cases_et_sur_le_cote == True:
         next(file_data)
         for line in file_data:
             fields = line.split()
 
             i, j = get_i_j_cholesky(fields[7], NCOL)
 
-            if (int(fields[3]) == 1):
+            if int(fields[3]) == 1:
                 ax1[i, j].plot([int(fields[2]), int(fields[2])], [int(fields[1]) - 0.44, int(fields[1]) + 0.44], '#FFBB96', lw = 1.2, zorder = 5)
                 already_fetched_x[i, j][int(fields[2]), int(fields[1])] = 1
-            if (int(fields[4]) == 1):
+            if int(fields[4]) == 1:
                 ax1[i, j].plot([int(fields[2]) - 0.44, int(fields[2]) + 0.44], [int(fields[1]), int(fields[1])], '#FFBB96', lw = 1.2, zorder = 5)
                 already_fetched_y[i, j][int(fields[2]), int(fields[1])] = 1
-            if (int(fields[5]) == 1):
+            if int(fields[5]) == 1:
                 ax1[i, j].plot([int(fields[2]) - 0.44, int(fields[2]) + 0.44], [int(fields[1]) - 0.44, int(fields[1]) + 0.44], '#FFBB96', lw = 1.2, zorder = 5)
                 already_fetched_z[i, j][int(fields[2]), int(fields[1])] = 1
 
@@ -904,15 +904,15 @@ elif (APPLI == "Cholesky"):
 
             i, j = get_i_j_cholesky(fields[7], NCOL)
 
-            if (int(fields[3]) == 1 and already_fetched_x[i, j][int(fields[2]), int(fields[1])] == 0):
+            if int(fields[3]) == 1 and already_fetched_x[i, j][int(fields[2]), int(fields[1])] == 0:
                 ax1[i, j].plot([int(fields[2]), int(fields[2])], [int(fields[1]) - 0.44, int(fields[1]) + 0.44], '#FFBB96', lw = 1.2, zorder = 5, linestyle = "dotted")
-            if (int(fields[4]) == 1 and already_fetched_y[i, j][int(fields[2]), int(fields[1])] == 0):
+            if int(fields[4]) == 1 and already_fetched_y[i, j][int(fields[2]), int(fields[1])] == 0:
                 ax1[i, j].plot([int(fields[2]) - 0.44, int(fields[2]) + 0.44], [int(fields[1]), int(fields[1])], '#FFBB96', lw = 1.2, zorder = 5, linestyle = "dotted")
-            if (int(fields[5]) == 1 and already_fetched_z[i, j][int(fields[2]), int(fields[1])] == 0):
+            if int(fields[5]) == 1 and already_fetched_z[i, j][int(fields[2]), int(fields[1])] == 0:
                 ax1[i, j].plot([int(fields[2]) - 0.44, int(fields[2]) + 0.44], [int(fields[1]) - 0.44, int(fields[1]) + 0.44], '#FFBB96', lw = 1.2, zorder = 5, linestyle = "dotted")
 
 
-    if (nb_load_dans_les_cases == True):
+    if nb_load_dans_les_cases == True:
         next(file_data)
         for line in file_data:
             fields = line.split()
@@ -920,18 +920,18 @@ elif (APPLI == "Cholesky"):
             i, j = get_i_j_cholesky(fields[7], NCOL)
 
             nb_of_fetch = int(fields[3]) + int(fields[4]) + int(fields[5])
-            if (nb_of_fetch == 1):
+            if nb_of_fetch == 1:
                 ax1[i, j].text(int(fields[2]), int(fields[1]), 1, va="center", ha="center", color = "white", size = size_numero_dans_les_cases)
-            elif (nb_of_fetch == 2):
+            elif nb_of_fetch == 2:
                 ax1[i, j].text(int(fields[2]), int(fields[1]), 2, va="center", ha="center", color = "white", size = size_numero_dans_les_cases)
-            elif (nb_of_fetch == 3):
+            elif nb_of_fetch == 3:
                 ax1[i, j].text(int(fields[2]), int(fields[1]), 3, va="center", ha="center", color = "white", size = size_numero_dans_les_cases)
 
-            if (int(fields[3]) == 1):
+            if int(fields[3]) == 1:
                 already_fetched_x[i, j][int(fields[2]), int(fields[1])] = 1
-            if (int(fields[4]) == 1):
+            if int(fields[4]) == 1:
                 already_fetched_y[i, j][int(fields[2]), int(fields[1])] = 1
-            if (int(fields[5]) == 1):
+            if int(fields[5]) == 1:
                 already_fetched_z[i, j][int(fields[2]), int(fields[1])] = 1
 
 
@@ -942,19 +942,19 @@ elif (APPLI == "Cholesky"):
             i, j = get_i_j_cholesky(fields[7], NCOL)
 
             nb_of_prefetch = 0
-            if (int(fields[3]) == 1 and already_fetched_x[i, j][int(fields[2]), int(fields[1])] == 0):
+            if int(fields[3]) == 1 and already_fetched_x[i, j][int(fields[2]), int(fields[1])] == 0:
                 nb_of_prefetch += 1
-            if (int(fields[4]) == 1 and already_fetched_y[i, j][int(fields[2]), int(fields[1])] == 0):
+            if int(fields[4]) == 1 and already_fetched_y[i, j][int(fields[2]), int(fields[1])] == 0:
                 nb_of_prefetch += 1
-            if (int(fields[5]) == 1 and already_fetched_z[i, j][int(fields[2]), int(fields[1])] == 0):
+            if int(fields[5]) == 1 and already_fetched_z[i, j][int(fields[2]), int(fields[1])] == 0:
                 nb_of_prefetch += 1
 
-            # ~ if (nb_of_fetch == 0):
-            if (nb_of_prefetch == 1):
+            # ~ if nb_of_fetch == 0:
+            if nb_of_prefetch == 1:
                 ax1[i, j].text(int(fields[2]), int(fields[1]), 1, va="center", ha="center", color = "black", size = size_numero_dans_les_cases)
-            elif (nb_of_fetch == 2):
+            elif nb_of_fetch == 2:
                 ax1[i, j].text(int(fields[2]), int(fields[1]), 2, va="center", ha="center", color = "black", size = size_numero_dans_les_cases)
-            elif (nb_of_fetch == 3):
+            elif nb_of_fetch == 3:
                 ax1[i, j].text(int(fields[2]), int(fields[1]), 3, va="center", ha="center", color = "black", size = size_numero_dans_les_cases)
 
     # Adding text under the figures
@@ -999,18 +999,18 @@ file_coord.close()
 file_data.close()
 file_coord_prefetch.close()
 
-if (APPLI == "Matrice3D" or APPLI == "MatriceZ4"):
+if APPLI == "Matrice3D" or APPLI == "MatriceZ4":
     image_format = 'svg'
     image_name1 = ORDO + '_M3D_N' + str(N) + "." + "image_format"
     fig.savefig(image_name1, format=image_format, dpi=1200)
 
-if (APPLI == "Matrice_ligne"):
+if APPLI == "Matrice_ligne":
     image_format = 'svg'
     image_name1 = ORDO + '_M2D_N' + str(N) + "." + image_format
     fig.savefig(image_name1, format=image_format, dpi=1200)
 
 
-if (APPLI == "Cholesky"):
+if APPLI == "Cholesky":
     image_format = 'svg'
     if NGPU >= 1:
         image_name1 = ORDO + '_CHO_N' + str(N) + '_GPU_1.' + image_format

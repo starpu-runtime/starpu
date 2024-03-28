@@ -25,56 +25,56 @@ import math
 from colour import Color
 
 def gradiant_color(gpu, order, number_task_gpu):
-    r = 0
-    g = 0
-    b = 0
-    if (gpu == 0):
-        r = 1
-    elif (gpu == 1):
-        g = 1
-    elif (gpu == 2):
-        r = 73/255
-        g = 116/255
-        b = 1
-    elif (gpu == 3):
-        r = 1
-        b = 1
-    elif (gpu == 4):
-        g = 1
-        b = 1
-    elif (gpu == 5):
-        r = 1
-        b = 1
-    elif (gpu == 6):
-        r = 1
-        g = 0.5
-        b = 0.5
-    elif (gpu == 7):
-        r = 0.5
-        g = 1
-        b = 0.5
+    red = 0
+    green = 0
+    blue = 0
+    if gpu == 0:
+        red = 1
+    elif gpu == 1:
+        green = 1
+    elif gpu == 2:
+        red = 73/255
+        green = 116/255
+        blue = 1
+    elif gpu == 3:
+        red = 1
+        blue = 1
+    elif gpu == 4:
+        green = 1
+        blue = 1
+    elif gpu == 5:
+        red = 1
+        blue = 1
+    elif gpu == 6:
+        red = 1
+        green = 0.5
+        blue = 0.5
+    elif gpu == 7:
+        red = 0.5
+        green = 1
+        blue = 0.5
     else:
-        r = 1/gpu
-        g = 1/gpu
-        b = 1/gpu
+        red = 1/gpu
+        green = 1/gpu
+        blue = 1/gpu
 
-    if (r != 0):
-        r = r - (r*order)/(number_task_gpu*1.3) # The multiplier help avoid darker colors
-    if (g != 0):
-        g = g - (g*order)/(number_task_gpu*1.5)
-    if (b != 0):
-        b = b - (b*order)/(number_task_gpu*1.5)
+    if red != 0:
+        red = red - (red*order)/(number_task_gpu*1.3) # The multiplier help avoid darker colors
+    if green != 0:
+        green = green - (green*order)/(number_task_gpu*1.5)
+    if blue != 0:
+        blue = blue - (blue*order)/(number_task_gpu*1.5)
 
-    if (r != 0 and g == 0 and b == 0):
-        g = 0.3 - (r*order)/(number_task_gpu*1.2)
-        b = 0.3 - (r*order)/(number_task_gpu*1.2)
-    elif (r == 0 and g != 0 and b == 0):
-        r = 0.3 - (g*order)/(number_task_gpu*1.5)
-        b = 0.3 - (g*order)/(number_task_gpu*1.5)
-    elif (r == 0 and g == 0 and b != 0):
-        g = 0.3 - (b*order)/(number_task_gpu*1.5)
-        r = 0.3 - (b*order)/(number_task_gpu*1.5)
-    return(r, g, b)
+    if red != 0 and green == 0 and blue == 0:
+        green = 0.3 - (red*order)/(number_task_gpu*1.2)
+        blue = 0.3 - (red*order)/(number_task_gpu*1.2)
+    elif red == 0 and green != 0 and blue == 0:
+        red = 0.3 - (green*order)/(number_task_gpu*1.5)
+        blue = 0.3 - (green*order)/(number_task_gpu*1.5)
+    elif red == 0 and green == 0 and blue != 0:
+        green = 0.3 - (blue*order)/(number_task_gpu*1.5)
+        red = 0.3 - (blue*order)/(number_task_gpu*1.5)
+    return(red, green, blue)
 
 # Multiple colors for the same GPU
 def gradiant_multiple_color(order, number_task_gpu, NGPU, current_gpu):
@@ -86,26 +86,26 @@ def gradiant_multiple_color(order, number_task_gpu, NGPU, current_gpu):
     if triplet_index >= len(color_list):
         triplet_index = len(color_list) - 1
 
-    r, g, b = color_list[triplet_index]
+    r, g, blue = color_list[triplet_index]
 
     order = order%pas
 
     multiplier_to_lighten_up = 1.8
-    if (r != 0):
-        r = r - (r*order)/(pas*multiplier_to_lighten_up)
-    if (g != 0):
-        g = g - (g*order)/(pas*multiplier_to_lighten_up)
-    if (b != 0):
-        b = b - (b*order)/(pas*multiplier_to_lighten_up)
+    if red != 0:
+        red = red - (red*order)/(pas*multiplier_to_lighten_up)
+    if green != 0:
+        green = green - (green*order)/(pas*multiplier_to_lighten_up)
+    if blue != 0:
+        blue = blue - (blue*order)/(pas*multiplier_to_lighten_up)
 
-    if (r != 0 and g == 0 and b == 0):
-        g = 0.3 - (r*order)/(pas*1.2)
-        b = 0.3 - (r*order)/(pas*1.2)
-    elif (r == 0 and g != 0 and b == 0):
-        r = 0.3 - (g*order)/(pas*1.5)
-        b = 0.3 - (g*order)/(pas*1.5)
-    elif (r == 0 and g == 0 and b != 0):
-        g = 0.3 - (b*order)/(pas*1.5)
-        r = 0.3 - (b*order)/(pas*1.5)
+    if red != 0 and green == 0 and blue == 0:
+        green = 0.3 - (red*order)/(pas*1.2)
+        blue = 0.3 - (red*order)/(pas*1.2)
+    elif red == 0 and green != 0 and blue == 0:
+        red = 0.3 - (green*order)/(pas*1.5)
+        blue = 0.3 - (green*order)/(pas*1.5)
+    elif red == 0 and green == 0 and blue != 0:
+        green = 0.3 - (blue*order)/(pas*1.5)
+        red = 0.3 - (blue*order)/(pas*1.5)
 
-    return(r, g, b)
+    return(red, green, blue)
