@@ -982,9 +982,9 @@ void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_
 	{
 		/* Release refcnt taken by fetch_data_on_node */
 		replicate->refcnt--;
-		STARPU_ASSERT_MSG(replicate->refcnt >= 0, "handle %p released too many times", handle);
+		STARPU_ASSERT_MSG(replicate->refcnt >= 0, "handle %p released too many times on node %u", handle, memory_node);
 
-		STARPU_ASSERT_MSG(handle->busy_count > 0, "handle %p released too many times", handle);
+		STARPU_ASSERT_MSG(handle->busy_count > 0, "handle %p released too many times on node %u", handle, memory_node);
 		handle->busy_count--;
 	}
 
