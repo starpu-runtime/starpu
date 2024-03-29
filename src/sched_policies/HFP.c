@@ -3613,7 +3613,7 @@ void _starpu_hmetis_scheduling(struct _starpu_HFP_paquets *p, struct starpu_task
 
 	int size = strlen("hmetis ") + strlen(_output_directory) + strlen("/input_hMETIS.txt_");
 	char buffer[100];
-	while (fscanf(f2, "%s", buffer) == 1)
+	while (fscanf(f2, "%100s", buffer) == 1)
 	{
 		size += sizeof(buffer);
 	}
@@ -3622,7 +3622,7 @@ void _starpu_hmetis_scheduling(struct _starpu_HFP_paquets *p, struct starpu_task
 	strcpy(system_call, "hmetis ");
 	strcat(system_call, _output_directory);
 	strcat(system_call, "/input_hMETIS.txt");
-	while (fscanf(f2, "%s", buffer)== 1)
+	while (fscanf(f2, "%100s", buffer) == 1)
 	{
 		strcat(system_call, " ");
 		strcat(system_call, buffer);
