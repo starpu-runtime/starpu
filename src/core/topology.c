@@ -2167,7 +2167,7 @@ void starpu_topology_print(FILE *output)
 	hwloc_topology_t topo = topology->hwtopology;
 	hwloc_obj_t pu_obj;
 	hwloc_obj_t last_numa_obj = (void*) -1, numa_obj;
-	hwloc_obj_t last_package_obj = (void*) -1, package_obj;
+	hwloc_obj_t last_socket_obj = (void*) -1, socket_obj;
 #endif
 
 	for (pu = 0; pu < topology->nhwpus; pu++)
@@ -2184,14 +2184,14 @@ void starpu_topology_print(FILE *output)
 			last_numa_obj = numa_obj;
 		}
 		fprintf(output, "\t");
-		package_obj = hwloc_get_ancestor_obj_by_type(topo, HWLOC_OBJ_SOCKET, pu_obj);
-		if (package_obj != last_package_obj)
+		socket_obj = hwloc_get_ancestor_obj_by_type(topo, HWLOC_OBJ_SOCKET, pu_obj);
+		if (socket_obj != last_socket_obj)
 		{
-			if (package_obj)
-				fprintf(output, "pack %2u", package_obj->logical_index);
+			if (socket_obj)
+				fprintf(output, "sock %2u", socket_obj->logical_index);
 			else
-				fprintf(output, "no pack");
-			last_package_obj = package_obj;
+				fprintf(output, "no sock");
+			last_socket_obj = socket_obj;
 		}
 		fprintf(output, "\t");
 #endif
