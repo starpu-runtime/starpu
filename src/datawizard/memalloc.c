@@ -743,7 +743,37 @@ static int _starpu_data_interface_compare(void *data_interface_a, struct starpu_
 	return ret;
 }
 
-#ifdef STARPU_USE_ALLOCATION_CACHE
+#ifndef STARPU_USE_ALLOCATION_CACHE
+static int _starpu_memchunk_cache_test_locked(unsigned node, starpu_data_handle_t handle, uint32_t footprint) { return 0; }
+#else
+static int _starpu_memchunk_cache_test_locked(unsigned node, starpu_data_handle_t handle, uint32_t footprint)
+{
+	/* go through all buffers in the cache */
+	struct mc_cache_entry *entry;
+	struct _starpu_node *node_struct = _starpu_get_node_struct(node);
+
+	HASH_FIND(hh, node_struct->mc_cache, &footprint, sizeof(footprint), entry);
+	if (!entry)
+		/* No data with that footprint */
+		return 0;
+
+	struct _starpu_mem_chunk *mc;
+	for (mc = _starpu_mem_chunk_list_begin(&entry->list);
+	     mc != _starpu_mem_chunk_list_end(&entry->list);
+	     mc = _starpu_mem_chunk_list_next(mc))
+	{
+		/* Is that a false hit ? (this is _very_ unlikely) */
+		if (_starpu_data_interface_compare(handle->per_node[node].data_interface, handle->ops, mc->chunk_interface, mc->ops) != 1)
+			continue;
+
+		/* Cache hit */
+		return 1;
+	}
+
+	/* This is a cache miss */
+	return 0;
+}
+
 /* This function must be called with node->mc_lock taken */
 static struct _starpu_mem_chunk *_starpu_memchunk_cache_lookup_locked(unsigned node, starpu_data_handle_t handle, uint32_t footprint)
 {
@@ -1979,10 +2009,13 @@ choose_target(starpu_data_handle_t handle, unsigned node)
 		{
 			unsigned i;
 			unsigned nb_numa_nodes = starpu_memory_nodes_get_numa_count();
+			uint32_t footprint = _starpu_compute_data_alloc_footprint(handle);
 			for (i=0; i<nb_numa_nodes; i++)
 			{
 				if (handle->per_node[i].allocated ||
-				    _starpu_memory_manager_test_allocate_size(i, size_handle) == 1)
+				    _starpu_memory_manager_test_allocate_size(i, size_handle) == 1 ||
+				    /* FIXME: should rather maintain how many bytes we have in cache, for the different-tiles case */
+				    _starpu_memchunk_cache_test_locked(i, handle, footprint))
 				{
 					target = i;
 					break;
@@ -2011,10 +2044,13 @@ choose_target(starpu_data_handle_t handle, unsigned node)
 		/* try to push data to RAM if we can before to push on disk*/
 			unsigned i;
 			unsigned nb_numa_nodes = starpu_memory_nodes_get_numa_count();
+			uint32_t footprint = _starpu_compute_data_alloc_footprint(handle);
 			for (i=0; i<nb_numa_nodes; i++)
 			{
 				if (handle->per_node[i].allocated ||
-				    _starpu_memory_manager_test_allocate_size(i, size_handle) == 1)
+				    _starpu_memory_manager_test_allocate_size(i, size_handle) == 1 ||
+				    /* FIXME: should rather maintain how many bytes we have in cache, for the different-tiles case */
+				    _starpu_memchunk_cache_test_locked(i, handle, footprint))
 				{
 					target = i;
 					break;

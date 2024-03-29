@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -38,7 +38,7 @@ int test_prefetch(unsigned memnodes)
 {
 	float *buffers[4];
 	starpu_data_handle_t handles[4];
-	unsigned i;
+	unsigned i, j;
 	starpu_ssize_t available_size;
 
 	if (starpu_getenv_number_default("STARPU_DIDUSE_BARRIER", 0))
@@ -119,6 +119,27 @@ int test_prefetch(unsigned memnodes)
 		starpu_data_unregister(handles[i]);
 		free(buffers[i]);
 	}
+
+	i = 0;
+	available_size = starpu_memory_get_available(i);
+	FPRINTF(stderr, "Available memory size on node %u: %zd\n", i, available_size);
+	STARPU_CHECK_RETURN_VALUE_IS((int)available_size, SIZE_ALLOC*1024*1024, "starpu_memory_get_available (node %u)", i);
+
+	/* Write data directly in GPU without any allocation in main memory, starpu should be able to evict to main memory progressively */
+	for(i=1 ; i<memnodes ; i++)
+	{
+		for(j=0 ; j<4 ; j++)
+		{
+			starpu_variable_data_register(&handles[j], -1, 0, SIZE_ALLOC*1024*400);
+			starpu_data_acquire_on_node(handles[j], i, STARPU_W);
+			starpu_data_release_on_node(handles[j], i);
+		}
+		for(j=0 ; j<4 ; j++)
+		{
+			starpu_data_unregister(handles[j]);
+		}
+	}
+
 
 	for(i=1 ; i<memnodes ; i++)
 	{
