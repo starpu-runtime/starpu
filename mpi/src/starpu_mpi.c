@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2019,2021  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -681,6 +681,13 @@ void starpu_mpi_comm_stats_enable()
 int _starpu_mpi_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle, MPI_Comm comm, int asynchronous, void (*callback_func)(void *), void *callback_arg, int priority)
 {
 	int src, dst;
+
+	if (dst_handle == src_handle)
+	{
+		if (callback_func)
+			callback_func(callback_arg);
+		return 0;
+	}
 
 	src = starpu_mpi_data_get_rank(src_handle);
 	dst = starpu_mpi_data_get_rank(dst_handle);
