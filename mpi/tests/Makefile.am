@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2013       Thibaut Lambert
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -120,7 +120,8 @@ starpu_mpi_TESTS +=				\
 	ring_sync				\
 	ring_sync_detached			\
 	temporary				\
-	data_cpy
+	data_cpy				\
+	mpi_data_cpy
 endif
 
 if !STARPU_MPI_MINIMAL_TESTS
@@ -189,6 +190,7 @@ noinst_PROGRAMS +=				\
 	ring_async_implicit			\
 	temporary				\
 	data_cpy				\
+	mpi_data_cpy				\
 	early_stuff				\
 	block_interface				\
 	block_interface_pinned			\
