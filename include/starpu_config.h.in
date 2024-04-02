@@ -80,7 +80,7 @@
    availability of NVML-related functions.
    @ingroup API_CUDA_Extensions
 */
-#undef STARPU_HAVE_LIBNVIDIA_ML
+#undef STARPU_HAVE_NVML_H
 
 /**
    Defined when StarPU has been installed with OpenCL support. It

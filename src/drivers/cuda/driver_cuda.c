@@ -34,8 +34,11 @@
 #ifdef HAVE_CUDA_GL_INTEROP_H
 #include <cuda_gl_interop.h>
 #endif
-#ifdef STARPU_HAVE_LIBNVIDIA_ML
+#ifdef STARPU_HAVE_NVML_H
 #include <nvml.h>
+#endif
+#ifdef HAVE_DLOPEN
+#include <dlfcn.h>
 #endif
 #ifdef STARPU_USE_CUDA
 #include <starpu_cublas_v2.h>
@@ -78,8 +81,16 @@
 static int ncudagpus = -1;
 
 static size_t global_mem[STARPU_MAXCUDADEVS];
-#ifdef STARPU_HAVE_LIBNVIDIA_ML
+#ifdef STARPU_HAVE_NVML_H
 static nvmlDevice_t nvmlDev[STARPU_MAXCUDADEVS];
+__typeof__(nvmlInit) *_starpu_nvmlInit;
+__typeof__(nvmlDeviceGetNvLinkState) *_starpu_nvmlDeviceGetNvLinkState;
+__typeof__(nvmlDeviceGetNvLinkRemotePciInfo) *_starpu_nvmlDeviceGetNvLinkRemotePciInfo;
+__typeof__(nvmlDeviceGetHandleByPciBusId) *_starpu_nvmlDeviceGetHandleByPciBusId;
+__typeof__(nvmlDeviceGetIndex) *_starpu_nvmlDeviceGetIndex;
+#ifdef HAVE_DECL_NVMLDEVICEGETTOTALENERGYCONSUMPTION
+__typeof__(nvmlDeviceGetTotalEnergyConsumption) *_starpu_nvmlDeviceGetTotalEnergyConsumption;
+#endif
 #endif
 int _starpu_cuda_bus_ids[STARPU_MAXCUDADEVS+STARPU_MAXNUMANODES][STARPU_MAXCUDADEVS+STARPU_MAXNUMANODES];
 #ifdef STARPU_USE_CUDA
@@ -234,13 +245,32 @@ void _starpu_cuda_discover_devices(struct _starpu_machine_config *config)
 	if (STARPU_UNLIKELY(cures != cudaSuccess))
 		cnt = 0;
 	config->topology.nhwdevices[STARPU_CUDA_WORKER] = cnt;
-#ifdef STARPU_HAVE_LIBNVIDIA_ML
-	nvmlInit();
+#ifdef STARPU_HAVE_NVML_H
+	void *nvml = dlopen("libnvidia-ml.so.1", RTLD_LAZY);
+
+	_starpu_nvmlInit = dlsym(nvml, "nvmlInit_v2");
+	if (!_starpu_nvmlInit)
+		_starpu_nvmlInit = dlsym(nvml, "nvmlInit");
+	if (_starpu_nvmlInit)
+	{
+		_starpu_nvmlDeviceGetNvLinkState = dlsym(nvml, "nvmlDeviceGetNvLinkState");
+		_starpu_nvmlDeviceGetNvLinkRemotePciInfo = dlsym(nvml, "nvmlDeviceGetNvLinkRemotePciInfo_v2");
+		if (!_starpu_nvmlDeviceGetNvLinkRemotePciInfo)
+			_starpu_nvmlDeviceGetNvLinkRemotePciInfo = dlsym(nvml, "nvmlDeviceGetNvLinkRemotePciInfo");
+		_starpu_nvmlDeviceGetHandleByPciBusId = dlsym(nvml, "nvmlDeviceGetHandleByPciBusId_v2");
+		if (!_starpu_nvmlDeviceGetHandleByPciBusId)
+			_starpu_nvmlDeviceGetHandleByPciBusId = dlsym(nvml, "nvmlDeviceGetHandleByPciBusId");
+		_starpu_nvmlDeviceGetIndex = dlsym(nvml, "nvmlDeviceGetIndex");
+#ifdef HAVE_DECL_NVMLDEVICEGETTOTALENERGYCONSUMPTION
+		_starpu_nvmlDeviceGetTotalEnergyConsumption = dlsym(nvml, "nvmlDeviceGetTotalEnergyConsumption");
+#endif
+		_starpu_nvmlInit();
+	}
 #endif
 #endif
 }
 
-#ifdef STARPU_HAVE_LIBNVIDIA_ML
+#ifdef STARPU_HAVE_NVML_H
 static int _starpu_cuda_direct_link(struct _starpu_machine_config *config, unsigned devid1, unsigned devid2)
 {
 	unsigned i;
@@ -248,6 +278,9 @@ static int _starpu_cuda_direct_link(struct _starpu_machine_config *config, unsig
 	struct cudaDeviceProp props_dev2;
 	cudaError_t cures;
 	int nvswitch = 0;
+
+	if (!_starpu_nvmlDeviceGetNvLinkState || !_starpu_nvmlDeviceGetNvLinkRemotePciInfo)
+		return 0;
 
 	cures = cudaGetDeviceProperties(&props_dev1, devid1);
 	if (cures != cudaSuccess)
@@ -264,14 +297,14 @@ static int _starpu_cuda_direct_link(struct _starpu_machine_config *config, unsig
 	for (i = 0; i < NVML_NVLINK_MAX_LINKS; i++) {
 		nvmlEnableState_t active;
 		nvmlReturn_t ret;
-		ret = nvmlDeviceGetNvLinkState(nvml_dev1, i, &active);
+		ret = _starpu_nvmlDeviceGetNvLinkState(nvml_dev1, i, &active);
 		if (ret == NVML_ERROR_NOT_SUPPORTED)
 			continue;
 		if (active != NVML_FEATURE_ENABLED)
 			continue;
 
 		nvmlPciInfo_t pci;
-		nvmlDeviceGetNvLinkRemotePciInfo(nvml_dev1, i, &pci);
+		_starpu_nvmlDeviceGetNvLinkRemotePciInfo(nvml_dev1, i, &pci);
 
 		hwloc_obj_t obj = hwloc_get_pcidev_by_busid(config->topology.hwtopology,
 				pci.domain, pci.bus, pci.device, 0);
@@ -307,14 +340,14 @@ static int _starpu_cuda_direct_link(struct _starpu_machine_config *config, unsig
 	{
 		nvmlEnableState_t active;
 		nvmlReturn_t ret;
-		ret = nvmlDeviceGetNvLinkState(nvml_dev2, i, &active);
+		ret = _starpu_nvmlDeviceGetNvLinkState(nvml_dev2, i, &active);
 		if (ret == NVML_ERROR_NOT_SUPPORTED)
 			continue;
 		if (active != NVML_FEATURE_ENABLED)
 			continue;
 
 		nvmlPciInfo_t pci;
-		nvmlDeviceGetNvLinkRemotePciInfo(nvml_dev2, i, &pci);
+		_starpu_nvmlDeviceGetNvLinkRemotePciInfo(nvml_dev2, i, &pci);
 
 		hwloc_obj_t obj = hwloc_get_pcidev_by_busid(config->topology.hwtopology,
 				pci.domain, pci.bus, pci.device, 0);
@@ -585,7 +618,7 @@ void _starpu_cuda_init_worker_memory(struct _starpu_machine_config *config, int 
 					_starpu_cuda_bus_ids[devid2+STARPU_MAXNUMANODES][devid+STARPU_MAXNUMANODES] = bus21;
 					_starpu_cuda_bus_ids[devid+STARPU_MAXNUMANODES][devid2+STARPU_MAXNUMANODES] = bus12;
 #ifndef STARPU_SIMGRID
-#ifdef STARPU_HAVE_LIBNVIDIA_ML
+#ifdef STARPU_HAVE_NVML_H
 					if (_starpu_cuda_direct_link(config, devid, devid2))
 					{
 						starpu_bus_set_ngpus(bus21, 1);
@@ -895,14 +928,14 @@ static void deinit_worker_context(unsigned workerid, unsigned devid STARPU_ATTRI
 #endif /* STARPU_SIMGRID */
 }
 
-#ifdef STARPU_HAVE_LIBNVIDIA_ML
+#ifdef STARPU_HAVE_NVML_H
 nvmlDevice_t _starpu_cuda_get_nvmldev(struct cudaDeviceProp *dev_props)
 {
 	char busid[13];
 	nvmlDevice_t ret;
 
 	snprintf(busid, sizeof(busid), "%04x:%02x:%02x.0", dev_props->pciDomainID, dev_props->pciBusID, dev_props->pciDeviceID);
-	if (nvmlDeviceGetHandleByPciBusId(busid, &ret) != NVML_SUCCESS)
+	if (!_starpu_nvmlDeviceGetHandleByPciBusId || _starpu_nvmlDeviceGetHandleByPciBusId(busid, &ret) != NVML_SUCCESS)
 		ret = NULL;
 
 	return ret;
@@ -988,7 +1021,7 @@ int _starpu_cuda_driver_init(struct _starpu_worker *worker)
 
 #if defined(STARPU_HAVE_BUSID) && !defined(STARPU_SIMGRID)
 #if defined(STARPU_HAVE_DOMAINID) && !defined(STARPU_SIMGRID)
-#ifdef STARPU_HAVE_LIBNVIDIA_ML
+#ifdef STARPU_HAVE_NVML_H
 		nvmlDev[devid] = _starpu_cuda_get_nvmldev(&props[devid]);
 #endif
 		if (props[devid].pciDomainID)
@@ -2021,9 +2054,9 @@ static void start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *work
 #ifdef HAVE_NVMLDEVICEGETTOTALENERGYCONSUMPTION
 		unsigned long long energy_start = 0;
 		nvmlReturn_t nvmlRet = -1;
-		if (profiling && _starpu_energy_profiling && task->profiling_info)
+		if (profiling && _starpu_energy_profiling && task->profiling_info && _starpu_nvmlDeviceGetTotalEnergyConsumption)
 		{
-			nvmlRet = nvmlDeviceGetTotalEnergyConsumption(nvmlDev[worker->devid], &energy_start);
+			nvmlRet = _starpu_nvmlDeviceGetTotalEnergyConsumption(nvmlDev[worker->devid], &energy_start);
 			if (nvmlRet == NVML_SUCCESS)
 				task->profiling_info->energy_consumed = energy_start / 1000.;
 		}
@@ -2105,11 +2138,11 @@ static void finish_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *wor
 
 
 #ifdef HAVE_NVMLDEVICEGETTOTALENERGYCONSUMPTION
-	if (profiling && _starpu_energy_profiling && j->task->profiling_info && j->task->profiling_info->energy_consumed)
+	if (profiling && _starpu_energy_profiling && j->task->profiling_info && j->task->profiling_info->energy_consumed && _starpu_nvmlDeviceGetTotalEnergyConsumption)
 	{
 		unsigned long long energy_end;
 		nvmlReturn_t nvmlRet;
-		nvmlRet = nvmlDeviceGetTotalEnergyConsumption(nvmlDev[worker->devid], &energy_end);
+		nvmlRet = _starpu_nvmlDeviceGetTotalEnergyConsumption(nvmlDev[worker->devid], &energy_end);
 #ifdef STARPU_DEVEL
 #warning TODO: measure idle consumption to subtract it
 #endif

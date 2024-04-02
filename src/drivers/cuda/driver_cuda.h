@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2015       Mathieu Lirzin
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -27,7 +27,7 @@ void _starpu_cuda_preinit(void);
 #ifdef STARPU_USE_CUDA
 #include <cuda.h>
 #include <cuda_runtime_api.h>
-#ifdef STARPU_HAVE_LIBNVIDIA_ML
+#ifdef STARPU_HAVE_NVML_H
 #include <nvml.h>
 #endif
 #endif
@@ -62,9 +62,18 @@ void _starpu_shutdown_cublas_v2_func(void);
 void _starpu_cublas_v2_init(void);
 void _starpu_cublas_v2_shutdown(void);
 void *_starpu_cuda_worker(void *);
-#ifdef STARPU_HAVE_LIBNVIDIA_ML
+#ifdef STARPU_HAVE_NVML_H
 nvmlDevice_t _starpu_cuda_get_nvmldev(struct cudaDeviceProp *props);
+extern __typeof__(nvmlInit) *_starpu_nvmlInit;
+extern __typeof__(nvmlDeviceGetNvLinkState) *_starpu_nvmlDeviceGetNvLinkState;
+extern __typeof__(nvmlDeviceGetNvLinkRemotePciInfo) *_starpu_nvmlDeviceGetNvLinkRemotePciInfo;
+extern __typeof__(nvmlDeviceGetHandleByPciBusId) *_starpu_nvmlDeviceGetHandleByPciBusId;
+extern __typeof__(nvmlDeviceGetIndex) *_starpu_nvmlDeviceGetIndex;
+#ifdef HAVE_DECL_NVMLDEVICEGETTOTALENERGYCONSUMPTION
+extern __typeof__(nvmlDeviceGetTotalEnergyConsumption) *_starpu_nvmlDeviceGetTotalEnergyConsumption;
 #endif
+#endif
+
 #else
 #  define _starpu_cuda_discover_devices(config) ((void) config)
 #endif
