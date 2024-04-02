@@ -243,9 +243,12 @@ void _starpu_cuda_discover_devices(struct _starpu_machine_config *config)
 #ifdef STARPU_HAVE_NVML_H
 	void *nvml = dlopen("libnvidia-ml.so.1", RTLD_LAZY);
 
-	_starpu_nvmlInit = dlsym(nvml, "nvmlInit_v2");
-	if (!_starpu_nvmlInit)
-		_starpu_nvmlInit = dlsym(nvml, "nvmlInit");
+	if (nvml)
+	{
+		_starpu_nvmlInit = dlsym(nvml, "nvmlInit_v2");
+		if (!_starpu_nvmlInit)
+			_starpu_nvmlInit = dlsym(nvml, "nvmlInit");
+	}
 	if (_starpu_nvmlInit)
 	{
 		_starpu_nvmlDeviceGetNvLinkState = dlsym(nvml, "nvmlDeviceGetNvLinkState");
