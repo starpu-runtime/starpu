@@ -73,6 +73,7 @@ struct _starpu_darts_handle_user_data
 	int* last_check_to_choose_from; /* To clarify the last time I looked at this data, so as not to look at it twice in choose best data from 1 in the same iteration of searching for the best data. */
 	int* is_present_in_data_not_used_yet; /* Array of the number of GPUs used in push_task to find out whether data is present in a GPU's datanotusedyet. Updated when data is used and removed from the list, and when data is pushed. Provides a quick indication of whether data should be added or not. */
 	double sum_remaining_task_expected_length; /* Sum of expected job durations using this data. Used to tie break. Initialized in push task, decreased when adding a task in planned task and increased when removing a task from planned task after an eviction. */
+	enum starpu_data_access_mode access_mode; /* access_mode (R, W, RW, ...) used to know how to get the expected transfer time. TODO: use it to ignore data in W in data_not_used_yet and in eviction. */
 };
 
 /** Task out of pulled task. Updated by post_exec. I'm forced to use a list of single task and not task list because else starpu doesn't allow me to push a tasks in two different task_list **/
@@ -89,6 +90,7 @@ struct _starpu_darts_gpu_pulled_task
 /** In the "packages" of dynamic data aware, each representing a gpu **/
 LIST_TYPE(_starpu_darts_gpu_data_not_used,
 	  starpu_data_handle_t D; /* The data not used yet by the GPU. */
+//	  enum access_mode;
 );
 
 /** In the handles **/
@@ -606,6 +608,8 @@ static void initialize_task_data_gpu_single_task_no_dependencies(struct starpu_t
 				hud->is_present_in_data_not_used_yet[j] = 1;
 			}
 
+			hud->access_mode = STARPU_TASK_GET_MODE(task, i);
+
 			STARPU_TASK_GET_HANDLE(task, i)->user_data = hud;
 		}
 		else
@@ -623,6 +627,7 @@ static void initialize_task_data_gpu_single_task_no_dependencies(struct starpu_t
 					hud->is_present_in_data_not_used_yet[j] = 1;
 				}
 				hud->last_iteration_DARTS = iteration_DARTS;
+				hud->access_mode = STARPU_TASK_GET_MODE(task, i);
 			}
 		}
 
@@ -651,6 +656,7 @@ static void initialize_task_data_gpu_single_task_dependencies(struct starpu_task
 			hud->last_check_to_choose_from = malloc(_nb_gpus*sizeof(int));
 			hud->is_present_in_data_not_used_yet = malloc(_nb_gpus*sizeof(int));
 			hud->sum_remaining_task_expected_length = starpu_task_expected_length(task, perf_arch, 0);
+			hud->access_mode = STARPU_TASK_GET_MODE(task, i);
 
 			_STARPU_SCHED_PRINT("Data is new. Expected length in data %p: %f\n", STARPU_TASK_GET_HANDLE(task, i), hud->sum_remaining_task_expected_length);
 
@@ -691,6 +697,8 @@ static void initialize_task_data_gpu_single_task_dependencies(struct starpu_task
 				hud->last_iteration_DARTS = iteration_DARTS;
 				hud->sum_remaining_task_expected_length = starpu_task_expected_length(task, perf_arch, 0);
 
+				hud->access_mode = STARPU_TASK_GET_MODE(task, i);
+				
 				int j;
 				for (j = 0; j < _nb_gpus; j++)
 				{
@@ -721,6 +729,8 @@ static void initialize_task_data_gpu_single_task_dependencies(struct starpu_task
 			{
 				hud->sum_remaining_task_expected_length += starpu_task_expected_length(task, perf_arch, 0);
 
+				hud->access_mode = STARPU_TASK_GET_MODE(task, i);
+				
 				int j;
 				for (j = 0; j < _nb_gpus; j++)
 				{
@@ -893,9 +903,13 @@ static int darts_push_task(struct starpu_sched_component *component, struct star
 		{
 			printf(" %p mode is STARPU_REDUX\n", STARPU_TASK_GET_HANDLE(task, i)); fflush(stdout);
 		}
+		else if (STARPU_TASK_GET_MODE(task, i) & STARPU_R)
+		{
+			printf(" %p mode is STARPU_READ\n", STARPU_TASK_GET_HANDLE(task, i)); fflush(stdout);
+		}
 		else
 		{
-			printf(" %p mode is R-RW-W", STARPU_TASK_GET_HANDLE(task, i)); fflush(stdout);
+			printf(" %p mode is RW or W", STARPU_TASK_GET_HANDLE(task, i)); fflush(stdout);
 		}
 	}
 	printf("\n"); fflush(stdout);
@@ -939,7 +953,7 @@ static int darts_push_task(struct starpu_sched_component *component, struct star
 	{
 		round_robin_free_task++;
 	}
-
+	
 	int j;
 	for (j = 0; j < _nb_gpus; j++)
 	{
@@ -956,11 +970,11 @@ static int darts_push_task(struct starpu_sched_component *component, struct star
 		{
 			gpu_looked_at = j;
 		}
-
+		
 		/* TODO: I have no way here to make a correlation between the planned task list I'm looking at
 		 * and the corresponding worker_id. So I just put the task in planned task anyway and when I pull task from
 		 * planned task to pulled task in get_task_to_return, I check if it is possible and if not I push the task
-		 * in the main task list. Because we are here in push_task, this sould never happen twice for a
+		 * in the main task list. Because we are here in push_task, this sould never happen twice for a 
 		 * same task. */
 		if (is_my_task_free(gpu_looked_at, task)) // && starpu_worker_can_execute_task_first_impl(current_worker_id, task, NULL))
 		{
@@ -1182,7 +1196,7 @@ static void randomize_new_task_list(struct _starpu_darts_sched_data *d)
 	}
 	for (i = 0; i < NT_DARTS; i++)
 	{
-		int random = starpu_lrand48()%(NT_DARTS - i);
+		int random = starpu_lrand48()%(NT_DARTS - i);		
 		starpu_task_list_push_back(&d->main_task_list, task_tab[random]);
 		task_tab[random] = task_tab[NT_DARTS - i - 1];
 	}
@@ -1886,7 +1900,8 @@ static void _starpu_darts_scheduling_3D_matrix(struct starpu_task_list *main_tas
 		struct _starpu_darts_gpu_data_not_used *e;
 		for (e = _starpu_darts_gpu_data_not_used_list_begin(g->gpu_data); e != _starpu_darts_gpu_data_not_used_list_end(g->gpu_data) && i != choose_best_data_threshold; e = _starpu_darts_gpu_data_not_used_list_next(e), i++)
 		{
-			temp_transfer_time_min = starpu_data_expected_transfer_time(e->D, current_gpu, STARPU_R);
+			hud = e->D->user_data;
+			temp_transfer_time_min = starpu_data_expected_transfer_time(e->D, current_gpu, hud->access_mode);
 			_STARPU_SCHED_PRINT("Temp transfer time is %f\n", temp_transfer_time_min);
 			temp_number_free_task_max = 0;
 			temp_number_1_from_free_task_max = 0;
@@ -2104,11 +2119,11 @@ static void _starpu_darts_scheduling_3D_matrix(struct starpu_task_list *main_tas
 									}
 								}
 							}
-
-							temp_transfer_time_min = starpu_data_expected_transfer_time(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k), current_gpu ,STARPU_R);
+							/* Get hud here because need the access mode for transfer time. Next I use it to update the best data if needed. */
+							hud = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->user_data;
+							temp_transfer_time_min = starpu_data_expected_transfer_time(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k), current_gpu, hud->access_mode);
 
 							/* Update best data if needed */
-							hud = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->user_data;
 							update_best_data_single_decision_tree(&number_free_task_max, &remaining_expected_length_max, &handle_popped, &priority_max, &number_1_from_free_task_max, temp_number_free_task_max, hud->sum_remaining_task_expected_length, STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k), temp_priority_max, temp_number_1_from_free_task_max, &data_chosen_index, x, &best_1_from_free_task, temp_best_1_from_free_task, temp_transfer_time_min, &transfer_time_min, temp_length_free_tasks_max, &ratio_transfertime_freetask_min);
 						}
 					}
@@ -2384,10 +2399,10 @@ static void _starpu_darts_scheduling_3D_matrix(struct starpu_task_list *main_tas
 				{
 					starpu_task_list_push_front(main_task_list, task);
 					_REFINED_MUTEX_UNLOCK();
-					return;
+					return;	
 				}
 			}
-
+			
 			_STARPU_SCHED_PRINT("\"Random\" task for GPU %d is %p.\n", current_gpu, task);
 		}
 		else
@@ -2487,7 +2502,7 @@ static struct starpu_task *get_task_to_return_pull_task_darts(int current_gpu, s
 
 	_REFINED_MUTEX_LOCK();
 	/* If planned_task is not empty I can return the head of the task list.
-	 * I also check if the task can be executed by the current worker. If
+	 * I also check if the task can be executed by the current worker. If 
 	 * not it is sent back to the main task list. */
 	if (!starpu_task_list_empty(&tab_gpu_planned_task[current_gpu].planned_task))
 	{
@@ -2684,13 +2699,9 @@ static struct starpu_task *darts_pull_task(struct starpu_sched_component *compon
 
 	struct starpu_task *task = get_task_to_return_pull_task_darts(current_gpu, &data->main_task_list, starpu_worker_get_id_check());
 	/* if (task != NULL) {
-	       printf("CPU %d GPU %d OPENCL %d\n", starpu_worker_get_by_type(STARPU_CPU_WORKER, 0), starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0), starpu_worker_get_by_type(STARPU_OPENCL_WORKER, 0)); fflush(stdout);
-		printf("Pulled %stask %p on PU %d.\n", task?"":"NO ", task, current_gpu); fflush(stdout);
-		printf("is executable?: %d\n", starpu_worker_can_execute_task_first_impl(0, task, NULL)); fflush(stdout);
-		printf("is executable?: %d\n", starpu_worker_can_execute_task_first_impl(1, task, NULL)); fflush(stdout);
-		printf("is executable?: %d\n", starpu_worker_can_execute_task_first_impl(2, task, NULL)); fflush(stdout);
-		printf("Current worker id: %d\n", starpu_worker_get_id_check());
-	}*/
+	       printf("CPU %d GPU %d OPENCL %d\n", starpu_worker_get_by_type(STARPU_CPU_WORKER, 0), starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0), starpu_worker_get_by_type(STARPU_OPENCL_WORKER, 0)); fflush(stdout); 	
+		printf("Pulled %stask %p on PU %d.\n", task?"":"NO ", task, current_gpu); fflush(stdout); 
+	} */
 	_STARPU_SCHED_PRINT("Pulled %stask %p on PU %d.\n", task?"":"NO ", task, current_gpu);
 	_LINEAR_MUTEX_UNLOCK();
 	return task;
