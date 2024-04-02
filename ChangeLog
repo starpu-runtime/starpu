@@ -36,6 +36,7 @@ Small features:
 
 StarPU 1.4.5
 ==============================================
+  * Do not link libstarpu against libnvidia-ml
 
 StarPU 1.4.4
 ==============================================

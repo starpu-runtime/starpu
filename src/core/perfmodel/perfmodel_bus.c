@@ -50,7 +50,7 @@
 
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
-#ifdef STARPU_HAVE_LIBNVIDIA_ML
+#ifdef STARPU_HAVE_NVML_H
 #include <hwloc/nvml.h>
 #endif
 #ifndef HWLOC_API_VERSION
@@ -2087,13 +2087,13 @@ static hwloc_obj_t get_hwloc_cuda_obj(hwloc_topology_t topology, unsigned devid)
 		if (res)
 			return res;
 
-#if defined(STARPU_HAVE_LIBNVIDIA_ML) && !defined(STARPU_USE_CUDA0) && !defined(STARPU_USE_CUDA1)
+#if defined(STARPU_HAVE_NVML_H) && !defined(STARPU_USE_CUDA0) && !defined(STARPU_USE_CUDA1)
 		nvmlDevice_t nvmldev = _starpu_cuda_get_nvmldev(&props);
 
-		if (nvmldev)
+		if (nvmldev && _starpu_nvmlDeviceGetIndex)
 		{
 			unsigned int index;
-			if (nvmlDeviceGetIndex(nvmldev, &index) == NVML_SUCCESS)
+			if (_starpu_nvmlDeviceGetIndex(nvmldev, &index) == NVML_SUCCESS)
 			{
 				res = hwloc_nvml_get_device_osdev_by_index(topology, index);
 				if (res)
@@ -2631,7 +2631,7 @@ static int have_hwloc_pci_bw_routes(FILE *f, const char *Bps, const char *s)
 		memset(nvswitch, 0, sizeof(nvswitch));
 
 		/* TODO: move to drivers */
-#if defined(STARPU_HAVE_LIBNVIDIA_ML) && !defined(STARPU_USE_CUDA0) && !defined(STARPU_USE_CUDA1)
+#if defined(STARPU_HAVE_NVML_H) && !defined(STARPU_USE_CUDA0) && !defined(STARPU_USE_CUDA1)
 		/* First find NVLinks */
 		struct cudaDeviceProp props[ncuda];
 
@@ -2642,6 +2642,7 @@ static int have_hwloc_pci_bw_routes(FILE *f, const char *Bps, const char *s)
 				props[i].name[0] = 0;
 		}
 
+		if (_starpu_nvmlDeviceGetNvLinkState && _starpu_nvmlDeviceGetNvLinkRemotePciInfo)
 		for (i = 0; i < ncuda; i++)
 		{
 			unsigned j;
@@ -2661,12 +2662,12 @@ static int have_hwloc_pci_bw_routes(FILE *f, const char *Bps, const char *s)
 				nvmlPciInfo_t pci;
 				unsigned k;
 
-				nvmlret = nvmlDeviceGetNvLinkState(nvmldev, j, &active);
+				nvmlret = _starpu_nvmlDeviceGetNvLinkState(nvmldev, j, &active);
 				if (nvmlret != NVML_SUCCESS)
 					continue;
 				if (active != NVML_FEATURE_ENABLED)
 					continue;
-				nvmlret = nvmlDeviceGetNvLinkRemotePciInfo(nvmldev, j, &pci);
+				nvmlret = _starpu_nvmlDeviceGetNvLinkRemotePciInfo(nvmldev, j, &pci);
 				if (nvmlret != NVML_SUCCESS)
 					continue;
 

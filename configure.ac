@@ -1659,39 +1659,25 @@ if test x$enable_cuda = xyes; then
 		     [AC_DEFINE([STARPU_HAVE_LIBCUSOLVER], [1], [Define to 1 if you have the cusolver library])
 		      STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcusolver"])
 
-	LIBS="${LIBS} -lnvidia-ml"
+	AC_MSG_CHECKING(whether nvidia-ml can be used)
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
 		[[#include <nvml.h>]],
-		[[nvmlInit();]]
+		[[
+		  __typeof__(nvmlInit) *mynvmlInit = nvmlInit;
+		  mynvmlInit();
+		]]
 		)],
 	    [
-	      AC_RUN_IFELSE([AC_LANG_PROGRAM(
-	        [[#include <nvml.h>]],
-		[[nvmlInit();]]
-		)],
-		[have_valid_nvml="yes"],
-		[
-	          AC_MSG_RESULT([NVML found and can be compiled, but compiled application can not be run, you are probably on a machine without the CUDA driver])
-	          have_valid_nvml="no"
-		])
+	      AC_DEFINE([STARPU_HAVE_NVML_H], [1], [Define to 1 if you have the nvml.h header])
+	      AC_MSG_RESULT(yes)
+	      AC_CHECK_DECLS([nvmlDeviceGetTotalEnergyConsumption], [], [], [[#include <nvml.h>]])
 	    ],
 	    [
-	    AC_MSG_WARN([NVML found, but nvml.h could not be compiled])
-	    have_valid_nvml="no"
+	      AC_MSG_RESULT(no)
+	      AC_MSG_WARN([nvml.h could not be compiled. This will prevent from correct understanding of the machine topology.])
+	      NO_NVML="Warning: no nvml.h found"
 	    ]
 	)
-	if test x$have_valid_nvml = xyes ; then
-		AC_CHECK_DECLS([nvmlDeviceGetTotalEnergyConsumption], [
-			AC_CHECK_FUNCS([nvmlDeviceGetTotalEnergyConsumption])
-			], [], [[#include <nvml.h>]])
-		AC_DEFINE([STARPU_HAVE_LIBNVIDIA_ML], [1], [Define to 1 if you have the nvidia-ml library])
-		STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lnvidia-ml"
-	else
-	    AC_MSG_WARN([nvidia-ml could not be found. This will prevent from correct understanding of the machine topology.])
-	    NO_NVML="Warning: no nvidia-ml found"
-	fi
-	AC_MSG_CHECKING(whether nvidia-ml should be used)
-	AC_MSG_RESULT($have_valid_nvml)
 
 	CPPFLAGS="${SAVED_CPPFLAGS}"
 	LDFLAGS="${SAVED_LDFLAGS}"

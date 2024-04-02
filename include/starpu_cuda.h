@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,7 +25,7 @@
 #include <cuda_runtime.h>
 #include <cuda_runtime_api.h>
 
-#ifdef STARPU_HAVE_LIBNVIDIA_ML
+#ifdef STARPU_HAVE_NVML_H
 #include <nvml.h>
 #endif
 
@@ -175,7 +175,7 @@ int starpu_cuda_copy3d_async_sync_devid(void *src_ptr, int src_dev, enum starpu_
 */
 void starpu_cuda_set_device(int devid);
 
-#ifdef STARPU_HAVE_LIBNVIDIA_ML
+#ifdef STARPU_HAVE_NVML_H
 /**
   Return the nvml device for a CUDA device
   See \ref CUDASupport for more details.
