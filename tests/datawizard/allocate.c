@@ -140,6 +140,21 @@ int test_prefetch(unsigned memnodes)
 		}
 	}
 
+	/* Try again, but with different data sizes now */
+	for(i=1 ; i<memnodes ; i++)
+	{
+		for(j=0 ; j<4 ; j++)
+		{
+			starpu_variable_data_register(&handles[j], -1, 0, SIZE_ALLOC*1024*400 - j);
+			starpu_data_acquire_on_node(handles[j], i, STARPU_W);
+			starpu_data_release_on_node(handles[j], i);
+		}
+		for(j=0 ; j<4 ; j++)
+		{
+			starpu_data_unregister(handles[j]);
+		}
+	}
+
 
 	for(i=1 ; i<memnodes ; i++)
 	{
