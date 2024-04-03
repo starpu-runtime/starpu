@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2023 Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2024 Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2016       Uppsala University
  *
@@ -1538,7 +1538,7 @@ struct starpu_task
    starpu_codelet::nbuffers, or starpu_task::nbuffers if the former is
    \ref STARPU_VARIABLE_NBUFFERS.
 */
-#define STARPU_TASK_GET_NBUFFERS(task) ((unsigned)((task)->cl->nbuffers == STARPU_VARIABLE_NBUFFERS ? ((task)->nbuffers) : ((task)->cl->nbuffers)))
+#define STARPU_TASK_GET_NBUFFERS(task) ((unsigned) ( ((task)->cl) ? (((task)->cl->nbuffers == STARPU_VARIABLE_NBUFFERS) ? ((task)->nbuffers) : ((task)->cl->nbuffers)) : (task)->nbuffers))
 
 /**
    Return the \p i -th data handle of \p task. If \p task is defined
