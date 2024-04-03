@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -85,8 +85,8 @@ can transparently be run using StarPU, by givings unified access
 to every available OpenCL device.
 </li>
 <li>
-We propose a hierarchical tasks model in Chapter \ref
-HierarchicalDAGS to enable tasks subgraphs at runtime for a more
+We propose a recursive tasks model in Chapter \ref
+RecursiveTasks to enable tasks subgraphs at runtime for a more
 dynamic task graph.
 </li>
 <li>

@@ -159,18 +159,18 @@ AC_MSG_RESULT($enable_prof_tool)
 
 ###############################################################################
 #                                                                             #
-#                            Hierarchical dags support                        #
+#                            Recursive tasks support                          #
 #                                                                             #
 ###############################################################################
 
 AC_ARG_ENABLE(bubble, [AS_HELP_STRING([--enable-bubble],
-			[build the hierarchical dags (a.k.a bubble) support])],
+			[build the recursive tasks (a.k.a bubble) support])],
 			enable_bubble=$enableval, enable_bubble=no)
 
-AC_MSG_CHECKING([for hierarchical dags - a.k.a bubble - support])
+AC_MSG_CHECKING([for recursive tasks - a.k.a bubble - support])
 
 if test x$enable_bubble = xyes; then
-	AC_DEFINE(STARPU_BUBBLE, [1], [Define this to enable hierarchical dags support])
+	AC_DEFINE(STARPU_BUBBLE, [1], [Define this to enable recursive tasks support])
 fi
 
 AM_CONDITIONAL([STARPU_BUBBLE], [test "x$enable_bubble" = "xyes"])
@@ -4548,7 +4548,7 @@ AC_MSG_NOTICE([
 	       Native fortran support:                        $enable_build_fortran
 	       Native MPI fortran support:                    $use_mpi_fort
 	       Support for multiple linear regression models: $support_mlr
-	       Hierarchical dags support:                     $enable_bubble
+	       Recursive tasks support:                       $enable_bubble
 	       JULIA enabled:                                 $enable_julia
 ])
 

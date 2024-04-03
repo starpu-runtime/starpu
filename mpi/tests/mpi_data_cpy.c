@@ -46,12 +46,19 @@ int main(int argc, char **argv)
         int ret;
         int value = 0;
         starpu_data_handle_t *data;
+	struct starpu_conf conf;
         int mpi_init;
 	int i;
 
         MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
 
-        ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, NULL);
+	starpu_conf_init(&conf);
+	starpu_conf_noworker(&conf);
+	conf.ncpus = -1;
+	conf.nmpi_ms = -1;
+	conf.ntcpip_ms = -1;
+
+        ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, &conf);
         STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
@@ -71,7 +78,8 @@ int main(int argc, char **argv)
 	{
 		int j;
 
-                starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data[i%size], STARPU_VALUE, &rank, sizeof(rank), 0);
+                ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data[i%size], STARPU_VALUE, &rank, sizeof(rank), 0);
+		if (ret == -ENODEV) goto enodev;
 
                 for(j = 0; j<size; j++)
 		{
@@ -80,13 +88,18 @@ int main(int argc, char **argv)
         }
 
         starpu_task_wait_for_all();
+
+ enodev:
 	for(i=0; i<size; i++)
 	{
                 starpu_data_unregister(data[i]);
 	}
 
-	FPRINTF_MPI(stderr, "value after calculation: %d (expected %d)\n", value, INC_COUNT);
-        STARPU_ASSERT_MSG(value == INC_COUNT, "[rank %d] value %d is not the expected value %d\n", rank, value, INC_COUNT);
+	if (ret == 0)
+	{
+		FPRINTF_MPI(stderr, "value after calculation: %d (expected %d)\n", value, INC_COUNT);
+		STARPU_ASSERT_MSG(value == INC_COUNT, "[rank %d] value %d is not the expected value %d\n", rank, value, INC_COUNT);
+	}
 
         starpu_mpi_shutdown();
 

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2017-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2017-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/*! \page HierarchicalDAGS Hierarchical DAGS
+/*! \page RecursiveTasks Recursive Tasks
 
 The STF model has the intrinsic limitation of supporting static task
 graphs only, which leads to potential submission overhead and to a
@@ -23,11 +23,11 @@ heterogeneous systems.
 
 To address these problems, we have extended the STF model to enable
 tasks subgraphs at runtime. We refer to these tasks as
-<em>hierarchical tasks</em>. This approach allows for a more dynamic
+<em>recursive tasks</em>. This approach allows for a more dynamic
 task graph. This allows to dynamically adapt the granularity to meet
 the optimal size of the targeted computing resource.
 
-<em>Hierarchical tasks</em> are tasks that can transform themselves into
+<em>Recursive tasks</em> are tasks that can transform themselves into
 a new task-graph dynamically at runtime. Programmers submit a coarse
 version of the DAG, called the bubbles graph, which represents the
 general shape of the application tasks graph. The execution of this
@@ -42,7 +42,7 @@ tasks.
 
 \section BubblesExamples An Example
 
-In order to understand the hierarchical tasks model, an example of
+In order to understand the recursive tasks model, an example of
 "bubblification" is showed here. We start from a simple example,
 multiplying the elements of a vector.
 
@@ -168,7 +168,7 @@ int vector_bubble()
 
 The full example is available in the file <c>bubble/tests/vector/vector.c</c>.
 
-To define a hierarchical task, one needs to define the fields
+To define a recursive task, one needs to define the fields
 starpu_codelet::bubble_func and starpu_codelet::bubble_gen_dag_func.
 
 The field starpu_codelet::bubble_func is a pointer function which will
@@ -188,7 +188,7 @@ as parameter the task being checked, and the value specified with
 ::STARPU_BUBBLE_FUNC_ARG.
 
 When executed, the function starpu_codelet::bubble_gen_dag_func will be
-given as parameter the task being turned into a hierarchical task and
+given as parameter the task being turned into a recursive task and
 the value specified with ::STARPU_BUBBLE_GEN_DAG_FUNC_ARG.
 
 An example involving these functions is in <c>bubble/tests/basic/brec.c</c>. And more examples are available in <c>bubble/tests/basic/*.c</c>.

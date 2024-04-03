@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2017-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2017-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,8 +18,8 @@
 * The file is empty but necessary to define the group API_Bubble
 */
 
-/*! \defgroup API_Bubble Hierarchical Dags
+/*! \defgroup API_Bubble Recursive Tasks
 
-\brief API for Hierarchical DAGS
+\brief API for Recursive Tasks
 
 */

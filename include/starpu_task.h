@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2023 Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2024 Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2016       Uppsala University
  *
@@ -210,13 +210,13 @@ typedef void (*starpu_opencl_func_t)(void **, void *);
 typedef void (*starpu_max_fpga_func_t)(void **, void *);
 
 /**
-   @ingroup API_Bubble Hierarchical Dags
+   @ingroup API_Bubble Recursive Tasks
    Bubble decision function
 */
-typedef int (*starpu_bubble_func_t)(struct starpu_task *t, void *arg);
+typedef int (*starpu_bubble_func_t)(struct starpu_task *, void *);
 
 /**
-   @ingroup API_Bubble Hierarchical Dags
+   @ingroup API_Bubble Recursive Tasks
    Bubble DAG generation function
 */
 typedef void (*starpu_bubble_gen_dag_func_t)(struct starpu_task *t, void *arg);
@@ -1423,31 +1423,31 @@ struct starpu_task
 #endif
 
 	/**
-	   When using hierarchical dags, the job identifier of the
+	   When using recursive tasks, the job identifier of the
 	   bubble task which created the current task
 	*/
 	unsigned long bubble_parent;
 
 	/**
-	   When using hierarchical dags, a pointer to the bubble
+	   When using recursive tasks, a pointer to the bubble
 	   decision function
 	*/
 	starpu_bubble_func_t bubble_func;
 
 	/**
-	   When using hierarchical dags, a pointer to an argument to
+	   When using recursive tasks, a pointer to an argument to
 	   be given when calling the bubble decision function
 	*/
 	void *bubble_func_arg;
 
 	/**
-	   When using hierarchical dags, a pointer to the bubble
+	   When using recursive tasks, a pointer to the bubble
 	   DAG generation function
 	*/
 	starpu_bubble_gen_dag_func_t bubble_gen_dag_func;
 
 	/**
-	   When using hierarchical dags, a pointer to an argument to
+	   When using recursive tasks, a pointer to an argument to
 	   be given when calling the bubble DAG generation function
 	 */
 	void *bubble_gen_dag_func_arg;
@@ -1538,7 +1538,7 @@ struct starpu_task
    starpu_codelet::nbuffers, or starpu_task::nbuffers if the former is
    \ref STARPU_VARIABLE_NBUFFERS.
 */
-#define STARPU_TASK_GET_NBUFFERS(task) ((unsigned)((task)->cl->nbuffers == STARPU_VARIABLE_NBUFFERS ? ((task)->nbuffers) : ((task)->cl->nbuffers)))
+#define STARPU_TASK_GET_NBUFFERS(task) ((unsigned) ( ((task)->cl) ? (((task)->cl->nbuffers == STARPU_VARIABLE_NBUFFERS) ? ((task)->nbuffers) : ((task)->cl->nbuffers)) : (task)->nbuffers))
 
 /**
    Return the \p i -th data handle of \p task. If \p task is defined
