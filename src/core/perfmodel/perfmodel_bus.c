@@ -51,6 +51,8 @@
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
 #ifdef STARPU_HAVE_NVML_H
+#define nvmlDeviceGetPciInfo _starpu_nvmlDeviceGetPciInfo
+#define nvmlDeviceGetUUID _starpu_nvmlDeviceGetUUID
 #include <hwloc/nvml.h>
 #endif
 #ifndef HWLOC_API_VERSION
@@ -2090,7 +2092,7 @@ static hwloc_obj_t get_hwloc_cuda_obj(hwloc_topology_t topology, unsigned devid)
 #if defined(STARPU_HAVE_NVML_H) && !defined(STARPU_USE_CUDA0) && !defined(STARPU_USE_CUDA1)
 		nvmlDevice_t nvmldev = _starpu_cuda_get_nvmldev(&props);
 
-		if (nvmldev && _starpu_nvmlDeviceGetIndex)
+		if (nvmldev && _starpu_nvmlDeviceGetIndex && _starpu_nvmlDeviceGetPciInfo && _starpu_nvmlDeviceGetUUID)
 		{
 			unsigned int index;
 			if (_starpu_nvmlDeviceGetIndex(nvmldev, &index) == NVML_SUCCESS)
