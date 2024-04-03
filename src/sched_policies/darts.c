@@ -503,7 +503,7 @@ static bool is_my_task_free(int current_gpu, struct starpu_task *task)
 
 /* In the case of a task accessing a data in W mode, we use this function to remove it from the data not
  * used list. */
-void _if_found_erase_data_from_data_not_used_yet_of_all_pu(starpu_data_handle_t data_to_remove)
+static void _if_found_erase_data_from_data_not_used_yet_of_all_pu(starpu_data_handle_t data_to_remove)
 {
 	int i = 0;
 	struct _starpu_darts_handle_user_data *hud = NULL;
