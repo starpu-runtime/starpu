@@ -548,9 +548,8 @@ static void initialize_task_data_gpu_single_task_no_dependencies(struct starpu_t
 			{
 		
 				access_mode_is_W = false;
-				if (STARPU_TASK_GET_MODE(task, j) & STARPU_W)
+				if ((STARPU_TASK_GET_MODE(task, j) & STARPU_RW) == STARPU_W)	
 				{
-					// TODO: check list of data not used yet. If you find this data remove it because the access mode is now W
 					if (STARPU_TASK_GET_HANDLE(task, j)->user_data != NULL) /* If it's not NULL, we already saw the data */
 					{
 						if_found_erase_data_from_data_not_used_yet_of_all_pu(STARPU_TASK_GET_HANDLE(task, j));
@@ -681,9 +680,8 @@ static void initialize_task_data_gpu_single_task_dependencies(struct starpu_task
 		STARPU_IGNORE_UTILITIES_HANDLES(task, i);
 		
 		access_mode_is_W = false;
-		if (STARPU_TASK_GET_MODE(task, i) & STARPU_W)
+		if ((STARPU_TASK_GET_MODE(task, i) & STARPU_RW) == STARPU_W)	
 		{
-			// TODO: check list of data not used yet. If you find this data remove it because the access mode is now W
 			if (STARPU_TASK_GET_HANDLE(task, i)->user_data != NULL) /* If it's not NULL, we already saw the data */
 			{
 				if_found_erase_data_from_data_not_used_yet_of_all_pu(STARPU_TASK_GET_HANDLE(task, i));
