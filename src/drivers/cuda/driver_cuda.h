@@ -70,6 +70,8 @@ extern __typeof__(nvmlDeviceGetNvLinkRemotePciInfo) *_starpu_nvmlDeviceGetNvLink
 extern __typeof__(nvmlDeviceGetHandleByIndex) *_starpu_nvmlDeviceGetHandleByIndex;
 extern __typeof__(nvmlDeviceGetHandleByPciBusId) *_starpu_nvmlDeviceGetHandleByPciBusId;
 extern __typeof__(nvmlDeviceGetIndex) *_starpu_nvmlDeviceGetIndex;
+extern __typeof__(nvmlDeviceGetPciInfo) *_starpu_nvmlDeviceGetPciInfo;
+extern __typeof__(nvmlDeviceGetUUID) *_starpu_nvmlDeviceGetUUID;
 #ifdef HAVE_DECL_NVMLDEVICEGETTOTALENERGYCONSUMPTION
 extern __typeof__(nvmlDeviceGetTotalEnergyConsumption) *_starpu_nvmlDeviceGetTotalEnergyConsumption;
 #endif
