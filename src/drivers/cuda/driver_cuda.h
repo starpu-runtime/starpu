@@ -67,6 +67,7 @@ nvmlDevice_t _starpu_cuda_get_nvmldev(struct cudaDeviceProp *props);
 extern __typeof__(nvmlInit) *_starpu_nvmlInit;
 extern __typeof__(nvmlDeviceGetNvLinkState) *_starpu_nvmlDeviceGetNvLinkState;
 extern __typeof__(nvmlDeviceGetNvLinkRemotePciInfo) *_starpu_nvmlDeviceGetNvLinkRemotePciInfo;
+extern __typeof__(nvmlDeviceGetHandleByIndex) *_starpu_nvmlDeviceGetHandleByIndex;
 extern __typeof__(nvmlDeviceGetHandleByPciBusId) *_starpu_nvmlDeviceGetHandleByPciBusId;
 extern __typeof__(nvmlDeviceGetIndex) *_starpu_nvmlDeviceGetIndex;
 #ifdef HAVE_DECL_NVMLDEVICEGETTOTALENERGYCONSUMPTION

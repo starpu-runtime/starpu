@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -146,15 +146,18 @@ int starpu_energy_start(int workerid STARPU_ATTRIBUTE_UNUSED, enum starpu_worker
 #ifdef HAVE_NVMLDEVICEGETTOTALENERGYCONSUMPTION
 	case STARPU_CUDA_WORKER:
 	{
+		if (!_starpu_nvmlDeviceGetHandleByIndex || !_starpu_nvmlDeviceGetTotalEnergyConsumption)
+			return -1;
+
 		STARPU_ASSERT_MSG(workerid != -1, "For CUDA GPUs we measure each GPU separately, please specify a worker\n");
 		int devid = starpu_worker_get_devid(workerid);
-		int ret = nvmlDeviceGetHandleByIndex_v2(devid,  &device);
+		int ret = _starpu_nvmlDeviceGetHandleByIndex(devid,  &device);
 		if (ret != NVML_SUCCESS)
 		{
 			_STARPU_DISP("Could not get CUDA device %d from nvml\n", devid);
 			return -1;
 		}
-		ret = nvmlDeviceGetTotalEnergyConsumption(device, &energy_begin);
+		ret = _starpu_nvmlDeviceGetTotalEnergyConsumption(device, &energy_begin);
 		if (ret != NVML_SUCCESS)
 		{
 			_STARPU_DISP("Could not measure energy used by CUDA device %d\n", devid);
@@ -225,8 +228,11 @@ int starpu_energy_stop(struct starpu_perfmodel *model, struct starpu_task *task,
 #ifdef HAVE_NVMLDEVICEGETTOTALENERGYCONSUMPTION
 	case STARPU_CUDA_WORKER:
 	{
+		if (!_starpu_nvmlDeviceGetTotalEnergyConsumption)
+			return -1;
+
 		STARPU_ASSERT_MSG(workerid != -1, "For CUDA GPUs we measure each GPU separately, please specify a worker\n");
-		int ret = nvmlDeviceGetTotalEnergyConsumption(device, &energy_end);
+		int ret = _starpu_nvmlDeviceGetTotalEnergyConsumption(device, &energy_end);
 		if (ret != NVML_SUCCESS)
 			return -1;
 		energy = (energy_end - energy_begin) / 1000.;
