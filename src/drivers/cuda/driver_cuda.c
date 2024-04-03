@@ -86,6 +86,7 @@ static nvmlDevice_t nvmlDev[STARPU_MAXCUDADEVS];
 __typeof__(nvmlInit) *_starpu_nvmlInit;
 __typeof__(nvmlDeviceGetNvLinkState) *_starpu_nvmlDeviceGetNvLinkState;
 __typeof__(nvmlDeviceGetNvLinkRemotePciInfo) *_starpu_nvmlDeviceGetNvLinkRemotePciInfo;
+__typeof__(nvmlDeviceGetHandleByIndex) *_starpu_nvmlDeviceGetHandleByIndex;
 __typeof__(nvmlDeviceGetHandleByPciBusId) *_starpu_nvmlDeviceGetHandleByPciBusId;
 __typeof__(nvmlDeviceGetIndex) *_starpu_nvmlDeviceGetIndex;
 #ifdef HAVE_DECL_NVMLDEVICEGETTOTALENERGYCONSUMPTION
@@ -252,6 +253,9 @@ void _starpu_cuda_discover_devices(struct _starpu_machine_config *config)
 	if (_starpu_nvmlInit)
 	{
 		_starpu_nvmlDeviceGetNvLinkState = dlsym(nvml, "nvmlDeviceGetNvLinkState");
+		_starpu_nvmlDeviceGetHandleByIndex = dlsym(nvml, "nvmlDeviceGetHandleByIndex_v2");
+		if (!_starpu_nvmlDeviceGetHandleByIndex)
+			_starpu_nvmlDeviceGetHandleByIndex = dlsym(nvml, "nvmlDeviceGetHandleByIndex");
 		_starpu_nvmlDeviceGetNvLinkRemotePciInfo = dlsym(nvml, "nvmlDeviceGetNvLinkRemotePciInfo_v2");
 		if (!_starpu_nvmlDeviceGetNvLinkRemotePciInfo)
 			_starpu_nvmlDeviceGetNvLinkRemotePciInfo = dlsym(nvml, "nvmlDeviceGetNvLinkRemotePciInfo");
