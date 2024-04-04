@@ -682,8 +682,8 @@ int _starpu_repush_task(struct _starpu_job *j)
 		else
 		{
 			if (task->cl
-#ifdef STARPU_BUBBLE
-			    && !j->is_bubble
+#ifdef STARPU_RECURSIVE_TASKS
+			    && !j->is_recursive_task
 #endif
 			    )
 				__starpu_push_task_output(j);

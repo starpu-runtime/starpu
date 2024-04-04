@@ -92,7 +92,7 @@ chapters =	\
 	chapters/starpu_extensions/fault_tolerance.doxy	\
 	chapters/starpu_extensions/fft_support.doxy		\
 	chapters/starpu_extensions/socl_opencl_extensions.doxy		\
-	chapters/starpu_extensions/bubble.doxy		\
+	chapters/starpu_extensions/recursive_tasks.doxy		\
 	chapters/starpu_extensions/parallel_worker.doxy		\
 	chapters/starpu_extensions/darts.doxy \
 	chapters/starpu_extensions/interoperability.doxy		\
@@ -107,7 +107,7 @@ chapters =	\
 	chapters/files.doxy		\
 	chapters/fdl_1_3.doxy		\
 	chapters/api/fortran_support.doxy \
-	chapters/api/bubble_support.doxy \
+	chapters/api/recursive_tasks_support.doxy \
 	chapters/api/fft_support.doxy \
 	chapters/api/threads.doxy
 

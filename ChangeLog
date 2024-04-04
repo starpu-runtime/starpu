@@ -16,6 +16,9 @@
 
 StarPU 1.5.0
 ==============================================
+Changes:
+   * Rename hierarchical tasks in recursive tasks
+
 Small changes:
   * Fix build system for StarPU Python interface
 

@@ -32,7 +32,7 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters/starpu_extensions/ext
                       @top_srcdir@/doc/doxygen/chapters/starpu_extensions/fault_tolerance.doxy \
                       @top_srcdir@/doc/doxygen/chapters/starpu_extensions/fft_support.doxy \
                       @top_srcdir@/doc/doxygen/chapters/starpu_extensions/socl_opencl_extensions.doxy \
-                      @top_srcdir@/doc/doxygen/chapters/starpu_extensions/bubble.doxy \
+                      @top_srcdir@/doc/doxygen/chapters/starpu_extensions/recursive_tasks.doxy \
                       @top_srcdir@/doc/doxygen/chapters/starpu_extensions/parallel_worker.doxy \
                       @top_srcdir@/doc/doxygen/chapters/starpu_extensions/darts.doxy \
                       @top_srcdir@/doc/doxygen/chapters/starpu_extensions/interoperability.doxy \

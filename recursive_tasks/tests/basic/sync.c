@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2019-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -58,12 +58,12 @@ struct starpu_codelet real_codelet =
 	.nbuffers = 1
 };
 
-int always_bubble(struct starpu_task *t, void *arg)
+int always_recursive_task(struct starpu_task *t, void *arg)
 {
 	return 1;
 }
 
-void bubble_gen_dag_func(struct starpu_task *t, void *arg)
+void recursive_task_gen_dag_func(struct starpu_task *t, void *arg)
 {
 	int i;
 	starpu_data_handle_t *subdata = (starpu_data_handle_t *)arg;
@@ -105,14 +105,14 @@ int main(int argv, char *argc[])
 	starpu_vector_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&A, SIZE, sizeof(A[0]));
 	starpu_data_partition_plan(handle, &f, subhandles);
 
-	/* insert bubble on handle */
+	/* insert recursive_task on handle */
 	ret = starpu_task_insert(&scam_codelet,
 				 STARPU_RW, handle,
-				 STARPU_BUBBLE_FUNC, always_bubble,
-				 STARPU_BUBBLE_GEN_DAG_FUNC, bubble_gen_dag_func,
-				 STARPU_BUBBLE_GEN_DAG_FUNC_ARG, subhandles,
+				 STARPU_RECURSIVE_TASK_FUNC, always_recursive_task,
+				 STARPU_RECURSIVE_TASK_GEN_DAG_FUNC, recursive_task_gen_dag_func,
+				 STARPU_RECURSIVE_TASK_GEN_DAG_FUNC_ARG, subhandles,
 				 STARPU_TASK_SYNCHRONOUS, 1,
-				 STARPU_NAME, "bubble",
+				 STARPU_NAME, "recursive_task",
 				 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 

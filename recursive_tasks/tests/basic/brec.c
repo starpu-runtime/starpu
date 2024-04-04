@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2019-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2019       Gwenole Lucas
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -43,15 +43,15 @@ struct starpu_codelet sub_data_codelet =
 	.nbuffers = 1,
 };
 
-int rec_is_bubble(struct starpu_task *t, void *arg)
+int rec_is_recursive_task(struct starpu_task *t, void *arg)
 {
 	int v = *(int *)arg;
-	fprintf(stderr, "'%s' is a %s\n", starpu_task_get_name(t), (v == 0)?"task":"bubble");
+	fprintf(stderr, "'%s' is a %s\n", starpu_task_get_name(t), (v == 0)?"task":"recursive_task");
 	free(arg);
 	return v;
 }
 
-void rec2_bubble_gen_dag(struct starpu_task *t, void *arg)
+void rec2_recursive_task_gen_dag(struct starpu_task *t, void *arg)
 {
 	starpu_data_handle_t *subdata = (starpu_data_handle_t *)arg;
 	int i;
@@ -74,25 +74,25 @@ void free_memory(void *arg)
 
 starpu_data_handle_t sub_handles_l2[PARTS][PARTS];
 
-void rec_bubble_gen_dag(struct starpu_task *t, void *arg)
+void rec_recursive_task_gen_dag(struct starpu_task *t, void *arg)
 {
 	starpu_data_handle_t *subdata = (starpu_data_handle_t *)arg;
 	unsigned i;
 
 	for(i=0 ; i<PARTS ; i++)
 	{
-		int *is_bubble = malloc(sizeof(int));
-		*is_bubble = rand() & 1;
+		int *is_recursive_task = malloc(sizeof(int));
+		*is_recursive_task = rand() & 1;
 		char *name;
-		asprintf(&name, "%s %s", starpu_task_get_name(t), (*is_bubble == 0) ? "T_L2" : "B_L2");
+		asprintf(&name, "%s %s", starpu_task_get_name(t), (*is_recursive_task == 0) ? "T_L2" : "B_L2");
 
 		int ret = starpu_task_insert(&sub_data_codelet,
 					     STARPU_RW, subdata[i],
-					     STARPU_BUBBLE_PARENT, t,
-					     STARPU_BUBBLE_FUNC, &rec_is_bubble,
-					     STARPU_BUBBLE_FUNC_ARG, is_bubble,
-					     STARPU_BUBBLE_GEN_DAG_FUNC, &rec2_bubble_gen_dag,
-					     STARPU_BUBBLE_GEN_DAG_FUNC_ARG, sub_handles_l2[i],
+					     STARPU_RECURSIVE_TASK_PARENT, t,
+					     STARPU_RECURSIVE_TASK_FUNC, &rec_is_recursive_task,
+					     STARPU_RECURSIVE_TASK_FUNC_ARG, is_recursive_task,
+					     STARPU_RECURSIVE_TASK_GEN_DAG_FUNC, &rec2_recursive_task_gen_dag,
+					     STARPU_RECURSIVE_TASK_GEN_DAG_FUNC_ARG, sub_handles_l2[i],
 					     STARPU_CALLBACK_WITH_ARG_NFREE, &free_memory, name,
 					     STARPU_NAME, name,
 					     0);
@@ -136,18 +136,18 @@ int main(int argv, char **argc)
 
 	for(i=0 ; i<STEPS ; i++)
 	{
-		int *is_bubble = malloc(sizeof(int));
-		*is_bubble = rand() & 1;
+		int *is_recursive_task = malloc(sizeof(int));
+		*is_recursive_task = rand() & 1;
 
 		char *name;
-		asprintf(&name, "%s %d", (*is_bubble == 0) ? "T_L1" : "B_L1", i);
+		asprintf(&name, "%s %d", (*is_recursive_task == 0) ? "T_L1" : "B_L1", i);
 
 		ret = starpu_task_insert(&sub_data_codelet,
 					 STARPU_RW, main_handle,
-					 STARPU_BUBBLE_FUNC, &rec_is_bubble,
-					 STARPU_BUBBLE_FUNC_ARG, is_bubble,
-					 STARPU_BUBBLE_GEN_DAG_FUNC, &rec_bubble_gen_dag,
-					 STARPU_BUBBLE_GEN_DAG_FUNC_ARG, sub_handles_l1,
+					 STARPU_RECURSIVE_TASK_FUNC, &rec_is_recursive_task,
+					 STARPU_RECURSIVE_TASK_FUNC_ARG, is_recursive_task,
+					 STARPU_RECURSIVE_TASK_GEN_DAG_FUNC, &rec_recursive_task_gen_dag,
+					 STARPU_RECURSIVE_TASK_GEN_DAG_FUNC_ARG, sub_handles_l1,
 					 STARPU_NAME, name,
 					 STARPU_CALLBACK_WITH_ARG_NFREE, &free_memory, name,
 					 0);

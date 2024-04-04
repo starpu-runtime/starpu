@@ -116,14 +116,14 @@ void _starpu_fxt_dag_set_task_name(const char *prefix, unsigned long job_id, con
 		fprintf(out_file, "\t \"task_%s%lu\" [ style=filled, label=\"%s\", fillcolor=\"%s\", fontcolor=\"%s\"]\n", prefix, job_id, label, color, fontcolor);
 }
 
-#ifdef STARPU_BUBBLE
-void _starpu_fxt_dag_set_task_bubble(const char *prefix, unsigned long job_id, int is_bubble, unsigned long bubble_parent)
+#ifdef STARPU_RECURSIVE_TASKS
+void _starpu_fxt_dag_set_recursive_task(const char *prefix, unsigned long job_id, int is_recursive_task, unsigned long recursive_task_parent)
 {
 	if (out_file)
 	{
-		fprintf(out_file, "\t \"task_%s%lu\" [ bubble=\"%d\" ", prefix, job_id, is_bubble);
-		if (bubble_parent)
-			fprintf(out_file, ", bubble_parent=\"%lu\"", bubble_parent);
+		fprintf(out_file, "\t \"task_%s%lu\" [ recursive_task=\"%d\" ", prefix, job_id, is_recursive_task);
+		if (recursive_task_parent)
+			fprintf(out_file, ", recursive_task_parent=\"%lu\"", recursive_task_parent);
 		fprintf(out_file, "]\n");
 	}
 }

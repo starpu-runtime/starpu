@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2016       Uppsala University
@@ -825,11 +825,11 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 	else
 		STARPU_ASSERT(task->status == STARPU_TASK_INIT);
 
-#ifdef STARPU_BUBBLE
-	if ((j->task->bubble_func && j->task->bubble_func(j->task, j->task->bubble_func_arg)) || (j->task->cl && j->task->cl->bubble_func && j->task->cl->bubble_func(j->task, j->task->bubble_func_arg)))
-		j->is_bubble = 1;
+#ifdef STARPU_RECURSIVE_TASKS
+	if ((j->task->recursive_task_func && j->task->recursive_task_func(j->task, j->task->recursive_task_func_arg)) || (j->task->cl && j->task->cl->recursive_task_func && j->task->cl->recursive_task_func(j->task, j->task->recursive_task_func_arg)))
+		j->is_recursive_task = 1;
 	else
-		j->is_bubble = 0;
+		j->is_recursive_task = 0;
 #endif
 
 	if (j->internal)
@@ -906,10 +906,10 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 
 			if (!(task->cl->flags & STARPU_CODELET_NOPLANS) &&
 			    ((handle->nplans && !handle->nchildren) || handle->siblings)
-#ifdef STARPU_BUBBLE
-			    && !j->is_bubble
+#ifdef STARPU_RECURSIVE_TASKS
+			    && !j->is_recursive_task
 			    /*
-			     * => require to set the is_bubble a soon as possible and not in the turn_task_into_bubble.
+			     * => require to set the is_recursive_task a soon as possible and not in the turn_task_into_recursive_task.
 			     */
 #endif
 			    && !(mode & STARPU_NOPLAN))
@@ -1054,8 +1054,8 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 
 	/* If this is a continuation, we don't modify the implicit data dependencies detected earlier. */
 	if (task->cl && !continuation && !nodeps
-#ifdef STARPU_BUBBLE
-	    && !j->is_bubble
+#ifdef STARPU_RECURSIVE_TASKS
+	    && !j->is_recursive_task
 #endif
 		)
 	{
@@ -1134,7 +1134,7 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 #undef starpu_task_submit
 int starpu_task_submit(struct starpu_task *task)
 {
-#ifdef STARPU_BUBBLE_VERBOSE
+#ifdef STARPU_RECURSIVE_TASKS_VERBOSE
 	struct timespec tp;
 	clock_gettime(CLOCK_MONOTONIC, &tp);
 	unsigned long long timestamp = 1000000000ULL*tp.tv_sec + tp.tv_nsec;

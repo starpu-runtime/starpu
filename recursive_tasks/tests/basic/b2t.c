@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2019-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2019       Gwenole Lucas
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -27,9 +27,9 @@ struct starpu_codelet sub_data_chain_codelet =
 	.name = "sub_data_chain_cl"
 };
 
-void bubble_chain_gen_dag(struct starpu_task *t, void *arg)
+void recursive_task_chain_gen_dag(struct starpu_task *t, void *arg)
 {
-	FPRINTF(stderr, "Hello i am a bubble\n");
+	FPRINTF(stderr, "Hello i am a recursive task\n");
 	int i;
 	starpu_data_handle_t *subdata = (starpu_data_handle_t *)arg;
 
@@ -37,18 +37,18 @@ void bubble_chain_gen_dag(struct starpu_task *t, void *arg)
 	{
 		int ret = starpu_task_insert(&sub_data_chain_codelet,
 					     STARPU_RW, subdata[i],
-					     STARPU_RW, subdata[0], /* Just to chain the tasks submitted by the bubble */
+					     STARPU_RW, subdata[0], /* Just to chain the tasks submitted by the recursive task */
 					     STARPU_NAME, "T'(subA)",
 					     0);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	}
 }
 
-struct starpu_codelet bubble_chain_codelet =
+struct starpu_codelet recursive_task_chain_codelet =
 {
-	.cpu_funcs = {bubble_func},
-	.bubble_func = is_bubble,
-	.bubble_gen_dag_func = bubble_chain_gen_dag,
+	.cpu_funcs = {recursive_task_func},
+	.recursive_task_func = is_recursive_task,
+	.recursive_task_gen_dag_func = recursive_task_chain_gen_dag,
 	.nbuffers = 1
 };
 
@@ -109,10 +109,10 @@ int main(int argv, char **argc)
 
 	starpu_data_partition_plan(A, &f, subA);
 
-	ret = starpu_task_insert(&bubble_chain_codelet,
+	ret = starpu_task_insert(&recursive_task_chain_codelet,
 				 STARPU_RW, A,
 				 STARPU_NAME, "B(A)",
-				 STARPU_BUBBLE_GEN_DAG_FUNC_ARG, subA,
+				 STARPU_RECURSIVE_TASK_GEN_DAG_FUNC_ARG, subA,
 				 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
@@ -144,7 +144,7 @@ int main(int argv, char **argc)
 	for (i=0; i<SIZE; i++)
 	{
 		int a = 2*(i+1); check[i] = 2*i+1;
-		check_bubble(a); check_binary_task(check[i], a);
+		check_recursive_task(a); check_binary_task(check[i], a);
 		STARPU_ASSERT(vB[i] == check[i]);
 	}
 	FPRINTF(stderr, "vB is correct\n");

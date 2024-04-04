@@ -182,7 +182,7 @@ struct _starpu_data_state
 	unsigned sibling_index; /** indicate which child this node is from the parent's perspective (if any) */
 	unsigned depth; /** what's the depth of the tree ? */
 
-#ifdef STARPU_BUBBLE
+#ifdef STARPU_RECURSIVE_TASKS
 	starpu_pthread_mutex_t unpartition_mutex;
 #endif
 

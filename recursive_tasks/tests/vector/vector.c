@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2019-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2019       Gwenole Lucas
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -50,7 +50,7 @@ struct starpu_data_filter f =
 	.nchildren = SLICES
 };
 
-int vector_no_bubble()
+int vector_no_recursive_task()
 {
 	TYPE *vector;
 	starpu_data_handle_t vhandle;
@@ -118,14 +118,14 @@ void no_func(void *buffers[], void *arg)
 	return;
 }
 
-int is_bubble(struct starpu_task *t, void *arg)
+int is_recursive_task(struct starpu_task *t, void *arg)
 {
 	(void)arg;
 	(void)t;
 	return 1;
 }
 
-void bubble_gen_dag(struct starpu_task *t, void *arg)
+void recursive_task_gen_dag(struct starpu_task *t, void *arg)
 {
 	int i;
 	starpu_data_handle_t *subdata = (starpu_data_handle_t *)arg;
@@ -140,15 +140,15 @@ void bubble_gen_dag(struct starpu_task *t, void *arg)
 	}
 }
 
-struct starpu_codelet bubble_codelet =
+struct starpu_codelet recursive_task_codelet =
 {
 	.cpu_funcs = {no_func},
-	.bubble_func = is_bubble,
-	.bubble_gen_dag_func = bubble_gen_dag,
+	.recursive_task_func = is_recursive_task,
+	.recursive_task_gen_dag_func = recursive_task_gen_dag,
 	.nbuffers = 1
 };
 
-int vector_bubble()
+int vector_recursive_task()
 {
 	TYPE *vector;
 	starpu_data_handle_t vhandle;
@@ -183,10 +183,10 @@ int vector_bubble()
 
 	for(loop=0 ; loop<NITER; loop++)
 	{
-		ret = starpu_task_insert(&bubble_codelet,
+		ret = starpu_task_insert(&recursive_task_codelet,
 					 STARPU_RW, vhandle,
 					 STARPU_NAME, "B1",
-					 STARPU_BUBBLE_GEN_DAG_FUNC_ARG, sub_handles,
+					 STARPU_RECURSIVE_TASK_GEN_DAG_FUNC_ARG, sub_handles,
 					 0);
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
@@ -216,11 +216,11 @@ int main(int argc, char **argv)
 {
 	int ret;
 
-	ret = vector_no_bubble();
+	ret = vector_no_recursive_task();
 	if (ret == 77)
 		return ret;
 
-	ret = vector_bubble();
+	ret = vector_recursive_task();
 	if (ret == 77)
 		return ret;
 

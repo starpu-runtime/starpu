@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -363,43 +363,43 @@ extern "C" {
 #define STARPU_EPILOGUE_CALLBACK_ARG (46 << STARPU_MODE_SHIFT)
 
 /**
-   \ingroup API_Bubble
+   \ingroup API_Recursive_Tasks
    Used when calling starpu_task_insert(), must be followed by a
-   pointer to a bubble decision function ::starpu_bubble_func_t
+   pointer to a recursive_task decision function ::starpu_recursive_task_func_t
 */
-#define STARPU_BUBBLE_FUNC (47 << STARPU_MODE_SHIFT)
+#define STARPU_RECURSIVE_TASK_FUNC (47 << STARPU_MODE_SHIFT)
 
 /**
-   \ingroup API_Bubble
+   \ingroup API_Recursive_Tasks
    Used when calling starpu_task_insert(), must be followed by a
    pointer which will be passed to the function defined in
-   starpu_codelet::bubble_func
+   starpu_codelet::recursive_task_func
 */
-#define STARPU_BUBBLE_FUNC_ARG (48 << STARPU_MODE_SHIFT)
+#define STARPU_RECURSIVE_TASK_FUNC_ARG (48 << STARPU_MODE_SHIFT)
 
 /**
-   \ingroup API_Bubble
+   \ingroup API_Recursive_Tasks
    Used when calling starpu_task_insert(), must be followed by a
-   pointer to a bubble DAG generation function
-   ::starpu_bubble_gen_dag_func_t
+   pointer to a recursive task DAG generation function
+   ::starpu_recursive_task_gen_dag_func_t
 */
-#define STARPU_BUBBLE_GEN_DAG_FUNC (49 << STARPU_MODE_SHIFT)
+#define STARPU_RECURSIVE_TASK_GEN_DAG_FUNC (49 << STARPU_MODE_SHIFT)
 
 /**
-   \ingroup API_Bubble
+   \ingroup API_Recursive_Tasks
    Used when calling starpu_task_insert(), must be followed by a
    pointer which will be passed to the function defined in
-   starpu_codelet::bubble_gen_dag_func
+   starpu_codelet::recursive_task_gen_dag_func
 */
-#define STARPU_BUBBLE_GEN_DAG_FUNC_ARG (50 << STARPU_MODE_SHIFT)
+#define STARPU_RECURSIVE_TASK_GEN_DAG_FUNC_ARG (50 << STARPU_MODE_SHIFT)
 
 /**
-   \ingroup API_Bubble
+   \ingroup API_Recursive_Tasks
    Used when calling starpu_task_insert(), must be followed by a
-   pointer to a task. The task will be set as the bubble parent task
+   pointer to a task. The task will be set as the parent task of the recursive task
    when using the offline tracing tool.
 */
-#define STARPU_BUBBLE_PARENT (51 << STARPU_MODE_SHIFT)
+#define STARPU_RECURSIVE_TASK_PARENT (51 << STARPU_MODE_SHIFT)
 
 /**
    This has to be the last mode value plus 1

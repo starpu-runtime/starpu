@@ -29,24 +29,24 @@ the optimal size of the targeted computing resource.
 
 <em>Recursive tasks</em> are tasks that can transform themselves into
 a new task-graph dynamically at runtime. Programmers submit a coarse
-version of the DAG, called the bubbles graph, which represents the
+version of the DAG, called the recursive tasks graph, which represents the
 general shape of the application tasks graph. The execution of this
-bubble graph will generate and submit the computing tasks of the
+recursive tasks graph will generate and submit the computing tasks of the
 application. It is up to application programmers to decide how to
-build the bubble graph (i.e. how to structure the computation tasks
-graph to create some groups of tasks). Dependencies between bubbles
+build the recursive tasks graph (i.e. how to structure the computation tasks
+graph to create some groups of tasks). Dependencies between recursive tasks
 are automatically deduced from dependencies between their computing
 tasks.
 
-//Figure of bubble task graph and computing task graph that maps with it
+//Figure of recursive tasks graph and computing task graph that maps with it
 
-\section BubblesExamples An Example
+\section RecursiveTasksExamples An Example
 
 In order to understand the recursive tasks model, an example of
 "bubblification" is showed here. We start from a simple example,
 multiplying the elements of a vector.
 
-\subsection BubblesInitialVersion Initial Version
+\subsection RecursiveTasksInitialVersion Initial Version
 
 A computation is done several times on a vector split in smaller
 vectors. For each step and each sub-vector, a task is generated to
@@ -71,7 +71,7 @@ struct starpu_codelet vector_cl =
 	.modes = {STARPU_RW}
 };
 
-int vector_no_bubble()
+int vector_no_recursive_task()
 {
 	TYPE *vector;
 	starpu_data_handle_t vhandle;
@@ -96,11 +96,11 @@ int vector_no_bubble()
 }
 \endcode
 
-\subsection BubblesBubbleVersion Bubble Version
+\subsection RecursiveTasksVersion Recursive Tasks Version
 
-The bubble version of the code replaces the inner loop that realizes
-the tasks insertion by a call to a bubble creation. At its execution,
-the bubble will insert the computing tasks. The bubble graph is built
+The recursive tasks version of the code replaces the inner loop that realizes
+the tasks insertion by a call to a recursive tasks creation. At its execution,
+the recursive task will insert the computing tasks. The recursive task graph is built
 accordingly to the dependencies of the subdata.
 
 \code{.c}
@@ -110,14 +110,14 @@ void no_func(void *buffers[], void *arg)
 	return;
 }
 
-int is_bubble(struct starpu_task *t, void *arg)
+int is_recursive_task(struct starpu_task *t, void *arg)
 {
 	(void)arg;
 	(void)t;
 	return 1;
 }
 
-void bubble_gen_dag(struct starpu_task *t, void *arg)
+void recursive_task_gen_dag(struct starpu_task *t, void *arg)
 {
 	int i;
 	starpu_data_handle_t *subdata = (starpu_data_handle_t *)arg;
@@ -131,15 +131,15 @@ void bubble_gen_dag(struct starpu_task *t, void *arg)
 	}
 }
 
-struct starpu_codelet bubble_codelet =
+struct starpu_codelet recursive_task_codelet =
 {
 	.cpu_funcs = {no_func},
-	.bubble_func = is_bubble,
-	.bubble_gen_dag_func = bubble_gen_dag,
+	.recursive_task_func = is_recursive_task,
+	.recursive_task_gen_dag_func = recursive_task_gen_dag,
 	.nbuffers = 1
 };
 
-int vector_bubble()
+int vector_recursive_task()
 {
 	TYPE *vector;
 	starpu_data_handle_t vhandle;
@@ -152,10 +152,10 @@ int vector_bubble()
 
 	for(loop=0 ; loop<NITER; loop++)
 	{
-		starpu_task_insert(&bubble_codelet,
+		starpu_task_insert(&recursive_task_codelet,
 				STARPU_RW, vhandle,
 				STARPU_NAME, "B1",
-				STARPU_BUBBLE_GEN_DAG_FUNC_ARG, sub_handles,
+				STARPU_RECURSIVE_TASK_GEN_DAG_FUNC_ARG, sub_handles,
 				0);
 	}
 
@@ -166,31 +166,31 @@ int vector_bubble()
 }
 \endcode
 
-The full example is available in the file <c>bubble/tests/vector/vector.c</c>.
+The full example is available in the file <c>recursive_tasks/tests/vector/vector.c</c>.
 
 To define a recursive task, one needs to define the fields
-starpu_codelet::bubble_func and starpu_codelet::bubble_gen_dag_func.
+starpu_codelet::recursive_task_func and starpu_codelet::recursive_task_gen_dag_func.
 
-The field starpu_codelet::bubble_func is a pointer function which will
+The field starpu_codelet::recursive_task_func is a pointer function which will
 be executed by StarPU to decide at runtime if the task must be
-transformed into a bubble. If the function returns a non-zero value,
-the function starpu_codelet::bubble_gen_dag_func will be executed to
+transformed into a recursive_task. If the function returns a non-zero value,
+the function starpu_codelet::recursive_task_gen_dag_func will be executed to
 create the new graph of tasks.
 
 The pointer functions can also be defined when calling
-starpu_task_insert() by using the arguments ::STARPU_BUBBLE_FUNC and
-::STARPU_BUBBLE_GEN_DAG_FUNC. Both these functions can be passed
-parameters through the arguments ::STARPU_BUBBLE_FUNC_ARG and
-::STARPU_BUBBLE_GEN_DAG_FUNC_ARG
+starpu_task_insert() by using the arguments ::STARPU_RECURSIVE_TASK_FUNC and
+::STARPU_RECURSIVE_TASK_GEN_DAG_FUNC. Both these functions can be passed
+parameters through the arguments ::STARPU_RECURSIVE_TASK_FUNC_ARG and
+::STARPU_RECURSIVE_TASK_GEN_DAG_FUNC_ARG
 
-When executed, the function starpu_codelet::bubble_func will be given
+When executed, the function starpu_codelet::recursive_task_func will be given
 as parameter the task being checked, and the value specified with
-::STARPU_BUBBLE_FUNC_ARG.
+::STARPU_RECURSIVE_TASK_FUNC_ARG.
 
-When executed, the function starpu_codelet::bubble_gen_dag_func will be
+When executed, the function starpu_codelet::recursive_task_gen_dag_func will be
 given as parameter the task being turned into a recursive task and
-the value specified with ::STARPU_BUBBLE_GEN_DAG_FUNC_ARG.
+the value specified with ::STARPU_RECURSIVE_TASK_GEN_DAG_FUNC_ARG.
 
-An example involving these functions is in <c>bubble/tests/basic/brec.c</c>. And more examples are available in <c>bubble/tests/basic/*.c</c>.
+An example involving these functions is in <c>recursive_tasks/tests/basic/brec.c</c>. And more examples are available in <c>recursive_tasks/tests/basic/*.c</c>.
 
 */

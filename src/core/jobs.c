@@ -440,8 +440,8 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 
 	/* We release handle reference count */
 	if (task->cl && !continuation
-#ifdef STARPU_BUBBLE
-	    && !j->is_bubble
+#ifdef STARPU_RECURSIVE_TASKS
+	    && !j->is_recursive_task
 #endif
 	    )
 	{
@@ -745,8 +745,8 @@ static unsigned _starpu_not_all_task_deps_are_fulfilled(struct _starpu_job *j)
 	return ret;
 }
 
-#ifdef STARPU_BUBBLE
-int _starpu_bubble_unpartition_data_if_needed(struct _starpu_job *j)
+#ifdef STARPU_RECURSIVE_TASKS
+int _starpu_recursive_task_unpartition_data_if_needed(struct _starpu_job *j)
 {
 	//_STARPU_DEBUG("[%s(%p)]\n", starpu_task_get_name(j->task), j->task);
 	int unpartition_needed = 0;
@@ -822,22 +822,22 @@ int _starpu_bubble_unpartition_data_if_needed(struct _starpu_job *j)
 	return 1;
 }
 
-static int _starpu_turn_task_into_bubble(struct _starpu_job *j)
+static int _starpu_turn_task_into_recursive_task(struct _starpu_job *j)
 {
-	if (j->already_turned_into_bubble)
+	if (j->already_turned_into_recursive_task)
 	{
 		/*
-		 * We have first checked all dependencies of the bubble,
+		 * We have first checked all dependencies of the recursive task,
 		 * and secondly checked in a second stage the additional
 		 * partition/unpartition dependencies
 		 */
 		STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 		return 0;
 	}
-	j->already_turned_into_bubble = 1;
+	j->already_turned_into_recursive_task = 1;
 	//_STARPU_DEBUG("[%s(%p)]\n", starpu_task_get_name(j->task), j->task);
 
-	if (j->is_bubble == 1)
+	if (j->is_recursive_task == 1)
 	{
 		STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 		return 0;
@@ -850,28 +850,28 @@ static int _starpu_turn_task_into_bubble(struct _starpu_job *j)
 	else
 	{
 		STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
-		return _starpu_bubble_unpartition_data_if_needed(j);
+		return _starpu_recursive_task_unpartition_data_if_needed(j);
 	}
 }
 
-void _starpu_bubble_execute(struct _starpu_job *j)
+void _starpu_recursive_task_execute(struct _starpu_job *j)
 {
-	_STARPU_TRACE_BUBBLE(j);
+	_STARPU_TRACE_RECURSIVE_TASK(j);
 	_STARPU_TRACE_TASK_NAME_LINE_COLOR(j);
 	_STARPU_TRACE_START_CODELET_BODY(j, 0, NULL, 0, 0);
-	STARPU_ASSERT_MSG(j->task->bubble_gen_dag_func!=NULL || (j->task->cl && j->task->cl->bubble_gen_dag_func!=NULL),
-			  "task->bubble_gen_dag_func MUST be defined\n");
+	STARPU_ASSERT_MSG(j->task->recursive_task_gen_dag_func!=NULL || (j->task->cl && j->task->cl->recursive_task_gen_dag_func!=NULL),
+			  "task->recursive_task_gen_dag_func MUST be defined\n");
 
 #ifdef STARPU_VERBOSE
 	struct timespec tp;
 	clock_gettime(CLOCK_MONOTONIC, &tp);
 	unsigned long long timestamp = 1000000000ULL*tp.tv_sec + tp.tv_nsec;
-	_STARPU_DEBUG("{%llu} [%s(%p)] Running bubble\n", timestamp, starpu_task_get_name(j->task), j->task);
+	_STARPU_DEBUG("{%llu} [%s(%p)] Running recursive task\n", timestamp, starpu_task_get_name(j->task), j->task);
 #endif
-	if (j->task->bubble_gen_dag_func)
-		j->task->bubble_gen_dag_func(j->task, j->task->bubble_gen_dag_func_arg);
+	if (j->task->recursive_task_gen_dag_func)
+		j->task->recursive_task_gen_dag_func(j->task, j->task->recursive_task_gen_dag_func_arg);
 	else
-		j->task->cl->bubble_gen_dag_func(j->task, j->task->bubble_gen_dag_func_arg);
+		j->task->cl->recursive_task_gen_dag_func(j->task, j->task->recursive_task_gen_dag_func_arg);
 	j->task->where = STARPU_NOWHERE;
 	_STARPU_TRACE_END_CODELET_BODY(j, 0, NULL, 0, 0);
 }
@@ -905,7 +905,7 @@ unsigned _starpu_enforce_deps_and_schedule(struct _starpu_job *j)
 		return 0;
 	}
 
-#ifdef STARPU_BUBBLE
+#ifdef STARPU_RECURSIVE_TASKS
 	/* Wait for all dependencies at the correct level to be
 	 * fulfilled before adding missing partition/unpartition
 	 *
@@ -913,19 +913,19 @@ unsigned _starpu_enforce_deps_and_schedule(struct _starpu_job *j)
 	 * case and come back later when these new dependencies are
 	 * fulfilled
 	 */
-	if (_starpu_turn_task_into_bubble(j))
+	if (_starpu_turn_task_into_recursive_task(j))
 	{
-		_STARPU_LOG_OUT_TAG("bubble");
+		_STARPU_LOG_OUT_TAG("recursive_task");
 		return 0;
 	}
 #else
 	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 #endif
 
-#ifdef STARPU_BUBBLE
-	if (j->is_bubble == 1)
+#ifdef STARPU_RECURSIVE_TASKS
+	if (j->is_recursive_task == 1)
 	{
-		_starpu_bubble_execute(j);
+		_starpu_recursive_task_execute(j);
 	}
 	else
 #endif
@@ -938,9 +938,9 @@ unsigned _starpu_enforce_deps_and_schedule(struct _starpu_job *j)
 		}
 	}
 
-#ifdef STARPU_BUBBLE
-	if (j->task->bubble_parent != 0)
-		_STARPU_TRACE_BUBBLE_TASK_DEPS(j->task->bubble_parent, j);
+#ifdef STARPU_RECURSIVE_TASKS
+	if (j->task->recursive_task_parent != 0)
+		_STARPU_TRACE_RECURSIVE_TASK_DEPS(j->task->recursive_task_parent, j);
 #endif
 
 	ret = _starpu_push_task(j);
@@ -960,20 +960,20 @@ unsigned _starpu_enforce_deps_starting_from_task(struct _starpu_job *j)
 		STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 		return 0;
 	}
-#ifdef STARPU_BUBBLE
-	if (_starpu_turn_task_into_bubble(j))
+#ifdef STARPU_RECURSIVE_TASKS
+	if (_starpu_turn_task_into_recursive_task(j))
 	{
-		_STARPU_LOG_OUT_TAG("bubble");
+		_STARPU_LOG_OUT_TAG("recursive_task");
 		return 0;
 	}
 #else
 	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 #endif
 
-#ifdef STARPU_BUBBLE
-	if (j->is_bubble == 1)
+#ifdef STARPU_RECURSIVE_TASKS
+	if (j->is_recursive_task == 1)
 	{
-		_starpu_bubble_execute(j);
+		_starpu_recursive_task_execute(j);
 	}
 	else
 #endif
@@ -983,9 +983,9 @@ unsigned _starpu_enforce_deps_starting_from_task(struct _starpu_job *j)
 			return 0;
 	}
 
-#ifdef STARPU_BUBBLE
-	if (j->task->bubble_parent != 0)
-		_STARPU_TRACE_BUBBLE_TASK_DEPS(j->task->bubble_parent, j);
+#ifdef STARPU_RECURSIVE_TASKS
+	if (j->task->recursive_task_parent != 0)
+		_STARPU_TRACE_RECURSIVE_TASK_DEPS(j->task->recursive_task_parent, j);
 #endif
 
 	ret = _starpu_push_task(j);
@@ -1024,9 +1024,9 @@ unsigned _starpu_take_deps_and_schedule(struct _starpu_job *j)
 	/* Take references */
 	_starpu_submit_job_take_data_deps(j);
 
-#ifdef STARPU_BUBBLE
-	if (j->task->bubble_parent != 0)
-		_STARPU_TRACE_BUBBLE_TASK_DEPS(j->task->bubble_parent, j);
+#ifdef STARPU_RECURSIVE_TASKS
+	if (j->task->recursive_task_parent != 0)
+		_STARPU_TRACE_RECURSIVE_TASK_DEPS(j->task->recursive_task_parent, j);
 #endif
 
 	/* And immediately push task */

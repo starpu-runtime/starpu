@@ -545,7 +545,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 		STARPU_PTHREAD_MUTEX_DESTROY(&child_handle->busy_mutex);
 		STARPU_PTHREAD_COND_DESTROY(&child_handle->busy_cond);
 		STARPU_PTHREAD_MUTEX_DESTROY(&child_handle->sequential_consistency_mutex);
-#ifdef STARPU_BUBBLE
+#ifdef STARPU_RECURSIVE_TASKS
 		STARPU_PTHREAD_MUTEX_DESTROY(&child_handle->unpartition_mutex);
 #endif
 

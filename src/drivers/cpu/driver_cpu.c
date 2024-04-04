@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
@@ -531,7 +531,7 @@ static int _starpu_cpu_driver_execute_task(struct _starpu_worker *cpu_worker, st
 	cpu_worker->current_task = j->task;
 	j->workerid = cpu_worker->workerid;
 
-#ifdef STARPU_BUBBLE_VERBOSE
+#ifdef STARPU_RECURSIVE_TASKS_VERBOSE
 	struct timespec tp;
 	clock_gettime(CLOCK_MONOTONIC, &tp);
 	unsigned long long timestamp = 1000000000ULL*tp.tv_sec + tp.tv_nsec;

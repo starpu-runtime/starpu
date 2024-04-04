@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2010-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -115,7 +115,7 @@ define starpu-print-task
   end
   printf "\tndeps_completed:\t\t<%u>\n", $job->job_successors->ndeps_completed
   printf "\tnsuccs:\t\t\t\t<%u>\n", $job->job_successors->nsuccs
-  printf "\tparent:\t\t\t\t<%lu>\n", $task->bubble_parent
+  printf "\tparent:\t\t\t\t<%lu>\n", $task->recursive_task_parent
   if $job
     starpu-print-job $job
   end

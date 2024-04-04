@@ -243,8 +243,8 @@
 
 #define _STARPU_FUT_TASK_END_DEP	0x5188
 
-#ifdef STARPU_BUBBLE
-#define _STARPU_FUT_TASK_BUBBLE		0x5189
+#ifdef STARPU_RECURSIVE_TASKS
+#define _STARPU_FUT_RECURSIVE_TASK		0x5189
 #endif
 
 #define	_STARPU_FUT_START_PARALLEL_SYNC	0x518a
@@ -939,9 +939,9 @@ do {									\
 #define _STARPU_TRACE_GHOST_TASK_DEPS(ghost_prev_id, job_succ)		\
 	_STARPU_FUT_FULL_PROBE4STR(_STARPU_FUT_KEYMASK_TASK_VERBOSE, _STARPU_FUT_TASK_DEPS, (ghost_prev_id), (job_succ)->job_id, (job_succ)->task->type, 1, "ghost")
 
-#ifdef STARPU_BUBBLE
-#define _STARPU_TRACE_BUBBLE_TASK_DEPS(prev_id, job_succ)		\
-	_STARPU_FUT_FULL_PROBE4STR(_STARPU_FUT_KEYMASK_TASK_VERBOSE, _STARPU_FUT_TASK_DEPS, (prev_id), (job_succ)->job_id, (job_succ)->task->type, 1, "bubble")
+#ifdef STARPU_RECURSIVE_TASKS
+#define _STARPU_TRACE_RECURSIVE_TASK_DEPS(prev_id, job_succ)		\
+	_STARPU_FUT_FULL_PROBE4STR(_STARPU_FUT_KEYMASK_TASK_VERBOSE, _STARPU_FUT_TASK_DEPS, (prev_id), (job_succ)->job_id, (job_succ)->task->type, 1, "recursive_task")
 #endif
 
 #define _STARPU_TRACE_TASK_EXCLUDE_FROM_DAG(job)			\
@@ -963,13 +963,13 @@ do {									\
 			_STARPU_FUT_FULL_PROBE2STR(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_LINE, (job)->job_id, (job)->task->line, (job)->task->file); \
 } while(0)
 
-#ifdef STARPU_BUBBLE
-#define _STARPU_TRACE_BUBBLE(job)					\
+#ifdef STARPU_RECURSIVE_TASKS
+#define _STARPU_TRACE_RECURSIVE_TASK(job)					\
 do {								\
     if(STARPU_UNLIKELY((_STARPU_FUT_KEYMASK_TASK) & fut_active)) { \
-	unsigned int is_bubble=(job)->is_bubble;			\
-	unsigned long bubble_parent=(job)->task->bubble_parent;		\
-	FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_BUBBLE, (job)->job_id, is_bubble, bubble_parent); \
+	unsigned int is_recursive_task=(job)->is_recursive_task;			\
+	unsigned long recursive_task_parent=(job)->task->recursive_task_parent;		\
+	FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_RECURSIVE_TASK, (job)->job_id, is_recursive_task, recursive_task_parent); \
     } \
 } while(0)
 #endif
@@ -1571,9 +1571,9 @@ do {										\
 #define _STARPU_TRACE_DATA_REQUEST_CREATED(handle, orig, dest, prio, is_pre, req) do {(void)(handle); (void)(orig); (void)(dest); (void)(prio); (void)(is_pre); (void)(req); } while(0)
 #define _STARPU_TRACE_PAPI_TASK_EVENT(event_id, task, value) do {(void)(event_id); (void)(task); (void)(value);} while(0)
 
-#ifdef STARPU_BUBBLE
-#define _STARPU_TRACE_BUBBLE_TASK_DEPS(a, b)	do {(void)(a); (void)(b);} while(0)
-#define _STARPU_TRACE_BUBBLE(a)			do {(void)(a);} while(0)
+#ifdef STARPU_RECURSIVE_TASKS
+#define _STARPU_TRACE_RECURSIVE_TASK_DEPS(a, b)	do {(void)(a); (void)(b);} while(0)
+#define _STARPU_TRACE_RECURSIVE_TASK(a)			do {(void)(a);} while(0)
 #endif
 
 #endif // STARPU_USE_FXT

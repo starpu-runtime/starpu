@@ -15,10 +15,10 @@
  */
 
 /*
-* The file is empty but necessary to define the group API_Bubble
+* The file is empty but necessary to define the group API_Recursive_Tasks
 */
 
-/*! \defgroup API_Bubble Recursive Tasks
+/*! \defgroup API_Recursive_Tasks Recursive Tasks
 
 \brief API for Recursive Tasks
 

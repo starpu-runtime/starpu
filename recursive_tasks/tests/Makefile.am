@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2019-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2019-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -21,12 +21,10 @@ AM_CXXFLAGS += $(APP_CXXFLAGS)
 AM_FFLAGS += $(APP_FFLAGS)
 AM_FCFLAGS += $(APP_FCFLAGS)
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/src -I$(top_srcdir)/src/ $(STARPU_H_CPPFLAGS)
-AM_CPPFLAGS += -I$(top_srcdir)/bubble/include
 AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@
 LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@ $(STARPU_EXPORTED_LIBS)
 LIBS += $(HWLOC_LIBS)
 LIBS += $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS)
-#LIBS += ../src/libstarpububble-@STARPU_EFFECTIVE_VERSION@.la
 
 BUILT_SOURCES =
 
@@ -54,7 +52,7 @@ TESTS = $(myPROGRAMS)
 myPROGRAMS =
 
 if !STARPU_SIMGRID
-if STARPU_BUBBLE
+if STARPU_RECURSIVE_TASKS
 myPROGRAMS +=			\
 	basic/b			\
 	basic/bb		\

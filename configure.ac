@@ -163,26 +163,26 @@ AC_MSG_RESULT($enable_prof_tool)
 #                                                                             #
 ###############################################################################
 
-AC_ARG_ENABLE(bubble, [AS_HELP_STRING([--enable-bubble],
-			[build the recursive tasks (a.k.a bubble) support])],
-			enable_bubble=$enableval, enable_bubble=no)
+AC_ARG_ENABLE(recursive-tasks, [AS_HELP_STRING([--enable-recursive-tasks],
+			[build the recursive tasks support])],
+			enable_recursive_tasks=$enableval, enable_recursive_tasks=no)
 
-AC_MSG_CHECKING([for recursive tasks - a.k.a bubble - support])
+AC_MSG_CHECKING([for recursive tasks support])
 
-if test x$enable_bubble = xyes; then
-	AC_DEFINE(STARPU_BUBBLE, [1], [Define this to enable recursive tasks support])
+if test x$enable_recursive_tasks = xyes; then
+	AC_DEFINE(STARPU_RECURSIVE_TASKS, [1], [Define this to enable recursive tasks support])
 fi
 
-AM_CONDITIONAL([STARPU_BUBBLE], [test "x$enable_bubble" = "xyes"])
-AC_MSG_RESULT($enable_bubble)
+AM_CONDITIONAL([STARPU_RECURSIVE_TASKS], [test "x$enable_recursive_tasks" = "xyes"])
+AC_MSG_RESULT($enable_recursive_tasks)
 
-AC_MSG_CHECKING(whether bubble debug messages should be displayed)
-AC_ARG_ENABLE(bubble-verbose, [AS_HELP_STRING([--enable-bubble-verbose],
-			[display verbose bubble messages])],
-			enable_bubble_verbose=$enableval, enable_bubble_verbose=no)
-AC_MSG_RESULT($enable_bubble_verbose)
-if test x$enable_bubble_verbose = xextra; then
-	AC_DEFINE(STARPU_BUBBLE_VERBOSE, [1], [display verbose bubble debug messages])
+AC_MSG_CHECKING(whether recursive tasks debug messages should be displayed)
+AC_ARG_ENABLE(recursive-tasks-verbose, [AS_HELP_STRING([--enable-recursive-tasks-verbose],
+			[display verbose recursive_tasks messages])],
+			enable_recursive_tasks_verbose=$enableval, enable_recursive_tasks_verbose=no)
+AC_MSG_RESULT($enable_recursive_tasks_verbose)
+if test x$enable_recursive_tasks_verbose = xextra; then
+	AC_DEFINE(STARPU_RECURSIVE_TASKS_VERBOSE, [1], [display verbose recursive tasks debug messages])
 fi
 
 ###############################################################################
@@ -4343,7 +4343,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   ; do
       test -e $x || ( mkdir -p $(dirname $x) && ln -sf $ac_abs_top_srcdir/$x $(dirname $x) )
   done
-  for x in tools julia/examples starpufft/tests examples examples/stencil mpi/tests mpi/examples socl/examples bubble/tests starpupy/examples starpu_openmp_llvm/examples \
+  for x in tools julia/examples starpufft/tests examples examples/stencil mpi/tests mpi/examples socl/examples recursive_tasks/tests starpupy/examples starpu_openmp_llvm/examples \
   ; do
     test -e $x/loader.c || ln -sf $ac_abs_top_srcdir/tests/loader.c $x
   done
@@ -4474,8 +4474,8 @@ AC_OUTPUT([
 	doc/doxygen_web_extensions/doxygen-config.cfg
 	tools/msvc/starpu_var.bat
 	min-dgels/Makefile
-	bubble/Makefile
-	bubble/tests/Makefile
+	recursive_tasks/Makefile
+	recursive_tasks/tests/Makefile
 	julia/Makefile
 	julia/src/Makefile
 	julia/src/dynamic_compiler/Makefile
@@ -4548,7 +4548,7 @@ AC_MSG_NOTICE([
 	       Native fortran support:                        $enable_build_fortran
 	       Native MPI fortran support:                    $use_mpi_fort
 	       Support for multiple linear regression models: $support_mlr
-	       Recursive tasks support:                       $enable_bubble
+	       Recursive tasks support:                       $enable_recursive_tasks
 	       JULIA enabled:                                 $enable_julia
 ])
 

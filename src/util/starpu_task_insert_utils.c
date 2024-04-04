@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -481,30 +481,30 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 		{
 			task->handles_sequential_consistency = va_arg(varg_list, unsigned char *);
 		}
-#ifdef STARPU_BUBBLE
-		else if (arg_type==STARPU_BUBBLE_FUNC)
+#ifdef STARPU_RECURSIVE_TASKS
+		else if (arg_type==STARPU_RECURSIVE_TASK_FUNC)
 		{
-			task->bubble_func = va_arg(varg_list, starpu_bubble_func_t);
+			task->recursive_task_func = va_arg(varg_list, starpu_recursive_task_func_t);
 		}
-		else if (arg_type==STARPU_BUBBLE_FUNC_ARG)
+		else if (arg_type==STARPU_RECURSIVE_TASK_FUNC_ARG)
 		{
-			task->bubble_func_arg = va_arg(varg_list, void*);
+			task->recursive_task_func_arg = va_arg(varg_list, void*);
 		}
-		else if (arg_type==STARPU_BUBBLE_GEN_DAG_FUNC)
+		else if (arg_type==STARPU_RECURSIVE_TASK_GEN_DAG_FUNC)
 		{
-			task->bubble_gen_dag_func = va_arg(varg_list, starpu_bubble_gen_dag_func_t);
+			task->recursive_task_gen_dag_func = va_arg(varg_list, starpu_recursive_task_gen_dag_func_t);
 		}
-		else if (arg_type==STARPU_BUBBLE_GEN_DAG_FUNC_ARG)
+		else if (arg_type==STARPU_RECURSIVE_TASK_GEN_DAG_FUNC_ARG)
 		{
-			task->bubble_gen_dag_func_arg = va_arg(varg_list,void*);
+			task->recursive_task_gen_dag_func_arg = va_arg(varg_list,void*);
 		}
-		else if (arg_type==STARPU_BUBBLE_PARENT)
+		else if (arg_type==STARPU_RECURSIVE_TASK_PARENT)
 		{
 			struct starpu_task *parent = va_arg(varg_list, struct starpu_task *);
 			if (parent)
 			{
 				struct _starpu_job *job = _starpu_get_job_associated_to_task(parent);
-				task->bubble_parent = job->job_id;
+				task->recursive_task_parent = job->job_id;
 			}
 		}
 #endif
@@ -856,33 +856,33 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 		{
 			task->handles_sequential_consistency = (unsigned char *)arglist[arg_i];
 		}
-#ifdef STARPU_BUBBLE
-		else if (arg_type==STARPU_BUBBLE_FUNC)
+#ifdef STARPU_RECURSIVE_TASKS
+		else if (arg_type==STARPU_RECURSIVE_TASK_FUNC)
 		{
 			arg_i++;
-			task->bubble_func = (starpu_bubble_func_t)arglist[arg_i];
+			task->recursive_task_func = (starpu_recursive_task_func_t)arglist[arg_i];
 		}
-		else if (arg_type==STARPU_BUBBLE_FUNC_ARG)
+		else if (arg_type==STARPU_RECURSIVE_TASK_FUNC_ARG)
 		{
 			arg_i++;
-			task->bubble_func_arg = (void *)arglist[arg_i];
+			task->recursive_task_func_arg = (void *)arglist[arg_i];
 		}
-		else if (arg_type==STARPU_BUBBLE_GEN_DAG_FUNC)
+		else if (arg_type==STARPU_RECURSIVE_TASK_GEN_DAG_FUNC)
 		{
 			arg_i++;
-			task->bubble_gen_dag_func = (starpu_bubble_gen_dag_func_t)arglist[arg_i];
+			task->recursive_task_gen_dag_func = (starpu_recursive_task_gen_dag_func_t)arglist[arg_i];
 		}
-		else if (arg_type==STARPU_BUBBLE_GEN_DAG_FUNC_ARG)
+		else if (arg_type==STARPU_RECURSIVE_TASK_GEN_DAG_FUNC_ARG)
 		{
 			arg_i++;
-			task->bubble_gen_dag_func_arg = (void*)arglist[arg_i];
+			task->recursive_task_gen_dag_func_arg = (void*)arglist[arg_i];
 		}
-		else if (arg_type==STARPU_BUBBLE_PARENT)
+		else if (arg_type==STARPU_RECURSIVE_TASK_PARENT)
 		{
 			arg_i++;
 			struct starpu_task *parent = (struct starpu_task *)arglist[arg_i];
 			struct _starpu_job *job = _starpu_get_job_associated_to_task(parent);
-			task->bubble_parent = job->job_id;
+			task->recursive_task_parent = job->job_id;
 
 		}
 #endif

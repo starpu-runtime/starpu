@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2019-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2019       Gwenole Lucas
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -22,7 +22,7 @@
 #define SIZE  25
 #endif
 
-#define check_bubble(x) x*=2
+#define check_recursive_task(x) x*=2
 #define check_task(x) x+=10
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
@@ -68,13 +68,13 @@ struct starpu_codelet sub_data_codelet =
 	.model = &starpu_perfmodel_nop
 };
 
-void bubble_func(void *buffers[], void *arg)
+void recursive_task_func(void *buffers[], void *arg)
 {
 	assert(0);
 	return;
 }
 
-int is_bubble(struct starpu_task *t, void *arg)
+int is_recursive_task(struct starpu_task *t, void *arg)
 {
 	(void)arg;
 	(void)t;
@@ -83,9 +83,9 @@ int is_bubble(struct starpu_task *t, void *arg)
 	return 1;
 }
 
-void bubble_gen_dag(struct starpu_task *t, void *arg)
+void recursive_task_gen_dag(struct starpu_task *t, void *arg)
 {
-	FPRINTF(stderr, "Hello i am a bubble\n");
+	FPRINTF(stderr, "Hello i am a recursive task\n");
 	int i;
 	starpu_data_handle_t *subdata = (starpu_data_handle_t *)arg;
 
@@ -99,11 +99,11 @@ void bubble_gen_dag(struct starpu_task *t, void *arg)
 	}
 }
 
-struct starpu_codelet bubble_codelet =
+struct starpu_codelet recursive_task_codelet =
 {
-	.cpu_funcs = {bubble_func},
-	.bubble_func = is_bubble,
-	.bubble_gen_dag_func = bubble_gen_dag,
+	.cpu_funcs = {recursive_task_func},
+	.recursive_task_func = is_recursive_task,
+	.recursive_task_gen_dag_func = recursive_task_gen_dag,
 	.nbuffers = 1,
 	.model = &starpu_perfmodel_nop
 };

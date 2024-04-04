@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2019-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2019       Gwenole Lucas
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -51,10 +51,10 @@ int main(int argv, char **argc)
 				 STARPU_NAME, "T1", 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
-	ret = starpu_task_insert(&bubble_codelet,
+	ret = starpu_task_insert(&recursive_task_codelet,
 				 STARPU_RW, main_handle,
 				 STARPU_NAME, "B1",
-				 STARPU_BUBBLE_GEN_DAG_FUNC_ARG, sub_handles_l1,
+				 STARPU_RECURSIVE_TASK_GEN_DAG_FUNC_ARG, sub_handles_l1,
 				 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
@@ -63,10 +63,10 @@ int main(int argv, char **argc)
 				 STARPU_NAME, "T2", 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
-	ret = starpu_task_insert(&bubble_codelet,
+	ret = starpu_task_insert(&recursive_task_codelet,
 				 STARPU_RW, main_handle,
 				 STARPU_NAME, "B2",
-				 STARPU_BUBBLE_GEN_DAG_FUNC_ARG, sub_handles_l1,
+				 STARPU_RECURSIVE_TASK_GEN_DAG_FUNC_ARG, sub_handles_l1,
 				 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
@@ -84,7 +84,7 @@ int main(int argv, char **argc)
 	for (i=0; i<SIZE; i++)
 	{
 		int x=i+1;
-		check_task(x); check_bubble(x); check_task(x); check_bubble(x); check_task(x);
+		check_task(x); check_recursive_task(x); check_task(x); check_recursive_task(x); check_task(x);
 		STARPU_ASSERT(v[i] == x);
 	}
 

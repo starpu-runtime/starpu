@@ -555,10 +555,10 @@ Enable OpenMP Support (\ref OpenMPRuntimeSupport)
 Enable LLVM OpenMP Support (\ref OMPLLVM)
 </dd>
 
-<dt>--enable-bubble</dt>
+<dt>--enable-recursive-tasks</dt>
 <dd>
-\anchor enable-bubble
-\addindex __configure__--enable-bubble
+\anchor enable-recursive-tasks
+\addindex __configure__--enable-recursive-tasks
 Enable recursive tasks support (\ref RecursiveTasks)
 
 <dt>--enable-parallel-worker</dt>

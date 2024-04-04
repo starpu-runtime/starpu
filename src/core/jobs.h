@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022, 2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011	    Télécom-SudParis
  * Copyright (C) 2013	    Thibaut Lambert
  *
@@ -210,9 +210,9 @@ struct _starpu_job
 	struct _starpu_job_multilist_all_submitted all_submitted;
 #endif
 
-#ifdef STARPU_BUBBLE
-	int already_turned_into_bubble;
-	unsigned is_bubble:1;
+#ifdef STARPU_RECURSIVE_TASKS
+	int already_turned_into_recursive_task;
+	unsigned is_recursive_task:1;
 #endif
 };
 

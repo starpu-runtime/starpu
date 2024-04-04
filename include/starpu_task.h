@@ -210,16 +210,16 @@ typedef void (*starpu_opencl_func_t)(void **, void *);
 typedef void (*starpu_max_fpga_func_t)(void **, void *);
 
 /**
-   @ingroup API_Bubble Recursive Tasks
-   Bubble decision function
+   @ingroup API_Recursive_Tasks
+   Recursive Task decision function
 */
-typedef int (*starpu_bubble_func_t)(struct starpu_task *, void *);
+typedef int (*starpu_recursive_task_func_t)(struct starpu_task *, void *);
 
 /**
-   @ingroup API_Bubble Recursive Tasks
-   Bubble DAG generation function
+   @ingroup API_Recursive_Tasks
+   Recursive Task DAG generation function
 */
-typedef void (*starpu_bubble_gen_dag_func_t)(struct starpu_task *t, void *arg);
+typedef void (*starpu_recursive_task_gen_dag_func_t)(struct starpu_task *t, void *arg);
 
 /**
    @deprecated
@@ -506,14 +506,14 @@ struct starpu_codelet
 
 	/**
 	   Optional function to decide if the task is to be
-	   transformed into a bubble
+	   transformed into a recursive task
 	 */
-	starpu_bubble_func_t bubble_func;
+	starpu_recursive_task_func_t recursive_task_func;
 
 	/**
 	   Optional function to transform the task into a new graph
 	 */
-	starpu_bubble_gen_dag_func_t bubble_gen_dag_func;
+	starpu_recursive_task_gen_dag_func_t recursive_task_gen_dag_func;
 
 	/**
 	   Specify the number of arguments taken by the codelet. These
@@ -1424,33 +1424,33 @@ struct starpu_task
 
 	/**
 	   When using recursive tasks, the job identifier of the
-	   bubble task which created the current task
+	   recursive task task which created the current task
 	*/
-	unsigned long bubble_parent;
+	unsigned long recursive_task_parent;
 
 	/**
-	   When using recursive tasks, a pointer to the bubble
+	   When using recursive tasks, a pointer to the recursive task
 	   decision function
 	*/
-	starpu_bubble_func_t bubble_func;
+	starpu_recursive_task_func_t recursive_task_func;
 
 	/**
 	   When using recursive tasks, a pointer to an argument to
-	   be given when calling the bubble decision function
+	   be given when calling the recursive task decision function
 	*/
-	void *bubble_func_arg;
+	void *recursive_task_func_arg;
 
 	/**
-	   When using recursive tasks, a pointer to the bubble
+	   When using recursive tasks, a pointer to the recursive task
 	   DAG generation function
 	*/
-	starpu_bubble_gen_dag_func_t bubble_gen_dag_func;
+	starpu_recursive_task_gen_dag_func_t recursive_task_gen_dag_func;
 
 	/**
 	   When using recursive tasks, a pointer to an argument to
-	   be given when calling the bubble DAG generation function
+	   be given when calling the recursive task DAG generation function
 	 */
-	void *bubble_gen_dag_func_arg;
+	void *recursive_task_gen_dag_func_arg;
 
 	/**
 	   @private

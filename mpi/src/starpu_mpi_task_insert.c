@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2021       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -528,21 +528,21 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 		{
 			(void)va_arg(varg_list_copy, char *);
 		}
-#ifdef STARPU_BUBBLE
-		else if (arg_type==STARPU_BUBBLE_FUNC)
+#ifdef STARPU_RECURSIVE_TASKS
+		else if (arg_type==STARPU_RECURSIVE_TASK_FUNC)
 		{
-			STARPU_ASSERT_MSG(0, "Bubbles + MPI not supported yet\n");
+			STARPU_ASSERT_MSG(0, "Recursive Tasks + MPI not supported yet\n");
 			(void)va_arg(varg_list,void*);
 		}
-		else if (arg_type==STARPU_BUBBLE_FUNC_ARG)
-		{
-			(void)va_arg(varg_list,void*);
-		}
-		else if (arg_type==STARPU_BUBBLE_GEN_DAG_FUNC)
+		else if (arg_type==STARPU_RECURSIVE_TASK_FUNC_ARG)
 		{
 			(void)va_arg(varg_list,void*);
 		}
-		else if (arg_type==STARPU_BUBBLE_GEN_DAG_FUNC_ARG)
+		else if (arg_type==STARPU_RECURSIVE_TASK_GEN_DAG_FUNC)
+		{
+			(void)va_arg(varg_list,void*);
+		}
+		else if (arg_type==STARPU_RECURSIVE_TASK_GEN_DAG_FUNC_ARG)
 		{
 			(void)va_arg(varg_list,void*);
 		}
