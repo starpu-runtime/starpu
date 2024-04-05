@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2016       Uppsala University
  *
@@ -698,6 +698,10 @@ int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[]);
 /**
    Get the description of a combined worker.
    See \ref SchedulingHelpers for more details.
+
+   \p workerid is the requested combined worker id,
+   \p worker_size returns the number of workers in the combined worker,
+   \p combined_workerid returns the list for worker ids in the combined worker.
 */
 int starpu_combined_worker_get_description(int workerid, int *worker_size, int **combined_workerid);
 
