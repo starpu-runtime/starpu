@@ -1011,12 +1011,16 @@ static int darts_push_task(struct starpu_sched_component *component, struct star
 			gpu_looked_at = j;
 		}
 
+		struct starpu_sched_component *to = component->children[gpu_looked_at];
+		STARPU_ASSERT(STARPU_SCHED_COMPONENT_IS_HOMOGENEOUS(to));
+		unsigned workerid = starpu_bitmap_first(&to->workers_in_ctx);
+
 		/* TODO: I have no way here to make a correlation between the planned task list I'm looking at
 		 * and the corresponding worker_id. So I just put the task in planned task anyway and when I pull task from
 		 * planned task to pulled task in get_task_to_return, I check if it is possible and if not I push the task
 		 * in the main task list. Because we are here in push_task, this sould never happen twice for a
 		 * same task. */
-		if (is_my_task_free(gpu_looked_at, task)) // && starpu_worker_can_execute_task_first_impl(current_worker_id, task, NULL))
+		if (is_my_task_free(gpu_looked_at, task) && starpu_worker_can_execute_task_first_impl(workerid, task, NULL))
 		{
 			_STARPU_SCHED_PRINT("Task %p is free from push_task\n", task);
 			if (dependances == 1)
