@@ -2557,7 +2557,7 @@ static struct starpu_task *get_task_to_return_pull_task_darts(int current_gpu, s
 		}
 
 		/* Check if can be executed on this worker */
-		if (!starpu_worker_can_execute_task_first_impl(starpu_worker_get_id_check(), task, NULL))
+		if (!starpu_worker_can_execute_task_first_impl(current_worker_id, task, NULL))
 		{
 			//printf("Can't execute task %p on this worker in get_task_to_return planned_task not empty\n", task); fflush(stdout);
 			/* If not, push front task in main task list and return NULL */
@@ -2581,7 +2581,7 @@ static struct starpu_task *get_task_to_return_pull_task_darts(int current_gpu, s
 	if (!starpu_task_list_empty(l))
 	{
 		_REFINED_MUTEX_UNLOCK();
-		//printf("current_gpu before calling 3D: %d, worker_id: %d\n", current_gpu, starpu_worker_get_id_check()); fflush(stdout);
+		//printf("current_gpu before calling 3D: %d, worker_id: %d\n", current_gpu, current_worker_id); fflush(stdout);
 		_starpu_darts_scheduling_3D_matrix(l, current_gpu, &tab_gpu_planned_task[current_gpu], current_worker_id);
 		_REFINED_MUTEX_LOCK();
 		struct starpu_task *task;
@@ -2734,9 +2734,11 @@ static struct starpu_task *darts_pull_task(struct starpu_sched_component *compon
 
 	_REFINED_MUTEX_UNLOCK();
 
-	int current_gpu = get_current_gpu(); /* Index in tabs of structs */
+	STARPU_ASSERT(STARPU_SCHED_COMPONENT_IS_HOMOGENEOUS(to));
+	unsigned workerid = starpu_bitmap_first(&to->workers_in_ctx);
+	int current_gpu = get_gpu(starpu_worker_get_memory_node(workerid)); /* Index in tabs of structs */
 
-	struct starpu_task *task = get_task_to_return_pull_task_darts(current_gpu, &data->main_task_list, starpu_worker_get_id_check());
+	struct starpu_task *task = get_task_to_return_pull_task_darts(current_gpu, &data->main_task_list, workerid);
 	/* if (task != NULL) {
 	       printf("CPU %d GPU %d OPENCL %d\n", starpu_worker_get_by_type(STARPU_CPU_WORKER, 0), starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0), starpu_worker_get_by_type(STARPU_OPENCL_WORKER, 0)); fflush(stdout);
 		printf("Pulled %stask %p on PU %d.\n", task?"":"NO ", task, current_gpu); fflush(stdout);
@@ -3174,7 +3176,9 @@ static int darts_can_push(struct starpu_sched_component *component, struct starp
 		nb_refused_task++;
 #endif
 
-		int current_gpu = get_current_gpu(); /* Index in tabs of structs */
+		STARPU_ASSERT(STARPU_SCHED_COMPONENT_IS_HOMOGENEOUS(to));
+		unsigned workerid = starpu_bitmap_first(&to->workers_in_ctx);
+		int current_gpu = get_gpu(starpu_worker_get_memory_node(workerid)); /* Index in tabs of structs */
 
 		starpu_task_list_push_back(&tab_gpu_planned_task[current_gpu].refused_fifo_list, task);
 
