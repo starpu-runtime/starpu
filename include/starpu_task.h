@@ -559,16 +559,20 @@ struct starpu_codelet
 	   systematically send all data to the memory node where the
 	   task will be executing, it will read the
 	   starpu_codelet::nodes or starpu_codelet::dyn_nodes array to
-	   determine, for each data, whether to send it on the memory
-	   node where the task will be executing (-1), or on a
-	   specific node (!= -1).
+	   determine, for each data, on which memory node to send it.
 	*/
 	unsigned specific_nodes;
 
 	/**
 	   Optional field. When starpu_codelet::specific_nodes is 1,
 	   this specifies the memory nodes where each data should be
-	   sent to for task execution. The number of entries in this
+	   sent to for task execution. This can be a specific memory
+	   node (>= 0), or any of ::STARPU_SPECIFIC_NODE_LOCAL,
+	   ::STARPU_SPECIFIC_NODE_CPU, ::STARPU_SPECIFIC_NODE_SLOW,
+	   :STARPU_SPECIFIC_NODE_FASTSTARPU_SPECIFIC_NODE_FAST,
+	   ::STARPU_SPECIFIC_NODE_LOCAL_OR_CPU.
+
+	   The number of entries in this
 	   array is starpu_codelet::nbuffers, and should not exceed
 	   \ref STARPU_NMAXBUFS.
 	*/
