@@ -570,7 +570,8 @@ struct starpu_codelet
 	   node (>= 0), or any of ::STARPU_SPECIFIC_NODE_LOCAL,
 	   ::STARPU_SPECIFIC_NODE_CPU, ::STARPU_SPECIFIC_NODE_SLOW,
 	   :STARPU_SPECIFIC_NODE_FASTSTARPU_SPECIFIC_NODE_FAST,
-	   ::STARPU_SPECIFIC_NODE_LOCAL_OR_CPU.
+	   ::STARPU_SPECIFIC_NODE_LOCAL_OR_CPU,
+	   ::STARPU_SPECIFIC_NODE_NONE.
 
 	   The number of entries in this
 	   array is starpu_codelet::nbuffers, and should not exceed
