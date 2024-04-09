@@ -830,12 +830,20 @@ struct starpu_task
 	   Optional pointer which is passed to the codelet through the
 	   second argument of the codelet implementation (e.g.
 	   starpu_codelet::cpu_func or starpu_codelet::cuda_func). The
-	   default value is <c>NULL</c>. starpu_codelet_pack_args()
-	   and starpu_codelet_unpack_args() are helpers that can can
-	   be used to respectively pack and unpack data into and from
-	   it, but the application can manage it any way, the only
-	   requirement is that the size of the data must be set in
-	   starpu_task::cl_arg_size .
+	   default value is <c>NULL</c>.
+
+	   Note that the pointer is passed unchanged to most drivers, so the
+	   application has to ensure the liveness of the pointed data, by using
+	   static memory or dynamic allocation (starpu_task::cl_arg_free can be
+	   used for convenience in that case).
+
+	   For the master/slave drivers however, the content pointed by cl_arg
+	   is copied to the slave, so the size of the data must be set in
+	   starpu_task::cl_arg_size.
+
+	   starpu_codelet_pack_args() and starpu_codelet_unpack_args() are
+	   helpers that can can be used to respectively pack and unpack data
+	   into and from it and update starpu_task::cl_arg_size accordingly.
 
 	   With starpu_task_insert() and alike this can be specified thanks to
 	   ::STARPU_CL_ARGS followed by a void* and a size_t.
