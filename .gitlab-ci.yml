@@ -57,7 +57,7 @@ build:
   script:
     - ./contrib/gitlab/deploy.sh
 
-checks:
+check:
   extends: .check_template
   parallel:
     matrix:
