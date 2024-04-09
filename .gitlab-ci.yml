@@ -81,9 +81,9 @@ check_simgrid:
 .analyze_template:
   extends: .main_template
   stage: analyze
-  needs: [build]
+  needs: [check]
   dependencies:
-    - build
+    - check
 
 analyze_coverity:
   extends: .analyze_template
@@ -96,9 +96,9 @@ analyze_coverity:
 .deploy_template:
   extends: .main_template
   stage: deploy
-  needs: [build]
+  needs: [check]
   dependencies:
-    - build
+    - check
 
 deploy_chameleon:
   extends: .deploy_template
