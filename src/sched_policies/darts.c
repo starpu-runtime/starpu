@@ -520,18 +520,19 @@ static void _if_found_erase_data_from_data_not_used_yet_of_all_pu(starpu_data_ha
 				hud = e->D->user_data;
 				hud->is_present_in_data_not_used_yet[i] = 0;
 				_starpu_darts_gpu_data_not_used_delete(e);
+				
+				/* Liberating user_data as well */
+			/*	free(hud->nb_task_in_pulled_task);
+				free(hud->nb_task_in_planned_task);
+				free(hud->last_check_to_choose_from);
+				free(hud->is_present_in_data_not_used_yet);
+				free(e->D->user_data);
+*/
 				break;
 			}
 		}
 	}
 }
-
-/** Clear not used struc when a data is unregistered. **/
-/*
-void darts_unregister_data_clear(starpu_data_handle_t data_handle)
-{
-	printf("In unregister data clear\n"); fflush(stdout);
-}*/
 
 /* Initialize for:
  * tasks -> pointer to the data it uses, pointer to the pointer of task list in the data,
