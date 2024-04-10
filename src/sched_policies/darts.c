@@ -73,6 +73,8 @@ struct _starpu_darts_handle_user_data
 	int* last_check_to_choose_from; /* To clarify the last time I looked at this data, so as not to look at it twice in choose best data from 1 in the same iteration of searching for the best data. */
 	int* is_present_in_data_not_used_yet; /* Array of the number of GPUs used in push_task to find out whether data is present in a GPU's datanotusedyet. Updated when data is used and removed from the list, and when data is pushed. Provides a quick indication of whether data should be added or not. */
 	double sum_remaining_task_expected_length; /* Sum of expected job durations using this data. Used to tie break. Initialized in push task, decreased when adding a task in planned task and increased when removing a task from planned task after an eviction. */
+
+	struct _starpu_darts_gpu_data_not_used** data_not_used;
 };
 
 /** Task out of pulled task. Updated by post_exec. I'm forced to use a list of single task and not task list because else starpu doesn't allow me to push a tasks in two different task_list **/
@@ -507,30 +509,18 @@ static void _if_found_erase_data_from_data_not_used_yet_of_all_pu(starpu_data_ha
 {
 	int i = 0;
 	struct _starpu_darts_handle_user_data *hud = NULL;
+
+	hud = data_to_remove->user_data;  /* New */
+
 	for (i = 0; i < _nb_gpus; i++)
 	{
-		struct _starpu_darts_gpu_data_not_used *e;
-		for (e = _starpu_darts_gpu_data_not_used_list_begin(tab_gpu_planned_task[i].gpu_data);
-		     e != _starpu_darts_gpu_data_not_used_list_end(tab_gpu_planned_task[i].gpu_data);
-		     e = _starpu_darts_gpu_data_not_used_list_next(e))
-		{
-			if (e->D == data_to_remove)
-			{
-				_starpu_darts_gpu_data_not_used_list_erase(tab_gpu_planned_task[i].gpu_data, e);
-				hud = e->D->user_data;
-				hud->is_present_in_data_not_used_yet[i] = 0;
-				_starpu_darts_gpu_data_not_used_delete(e);
-				
-				/* Liberating user_data as well */
-				free(hud->nb_task_in_pulled_task);
-				free(hud->nb_task_in_planned_task);
-				free(hud->last_check_to_choose_from);
-				free(hud->is_present_in_data_not_used_yet);
-				free(e->D->user_data);
-				break;
-			}
-		}
+		_starpu_darts_gpu_data_not_used_list_erase(tab_gpu_planned_task[i].gpu_data, hud->data_not_used[i]);
+		hud->is_present_in_data_not_used_yet[i] = 0;
+		_starpu_darts_gpu_data_not_used_delete(hud->data_not_used[i]);
+	
 	}
+	hud = NULL;
+	free(hud);
 }
 
 /* Initialize for:
@@ -713,6 +703,7 @@ static void initialize_task_data_gpu_single_task_dependencies(struct starpu_task
 			hud->last_check_to_choose_from = malloc(_nb_gpus*sizeof(int));
 			hud->is_present_in_data_not_used_yet = malloc(_nb_gpus*sizeof(int));
 			hud->sum_remaining_task_expected_length = starpu_task_expected_length(task, perf_arch, 0);
+			hud->data_not_used = malloc(_nb_gpus*sizeof(struct _starpu_darts_gpu_data_not_used));
 
 			_STARPU_SCHED_PRINT("Data is new. Expected length in data %p: %f\n", STARPU_TASK_GET_HANDLE(task, i), hud->sum_remaining_task_expected_length);
 
@@ -726,6 +717,7 @@ static void initialize_task_data_gpu_single_task_dependencies(struct starpu_task
 				hud->nb_task_in_planned_task[j] = 0;
 				hud->last_check_to_choose_from[j] = 0;
 				hud->is_present_in_data_not_used_yet[j] = 0;
+				hud->data_not_used[j] = e;
 
 				if (access_mode_is_W == false && also_add_data_in_not_used_yet_list == 1 && (can_a_data_be_in_mem_and_in_not_used_yet == 1 || !starpu_data_is_on_node(e->D, memory_nodes[j])))
 				{
@@ -764,6 +756,7 @@ static void initialize_task_data_gpu_single_task_dependencies(struct starpu_task
 					hud->nb_task_in_planned_task[j] = 0;
 					hud->last_check_to_choose_from[j] = 0;
 					hud->is_present_in_data_not_used_yet[j] = 0;
+					hud->data_not_used[j] = e;
 
 					if (access_mode_is_W == false && also_add_data_in_not_used_yet_list == 1 && (can_a_data_be_in_mem_and_in_not_used_yet == 1 || !starpu_data_is_on_node(e->D, memory_nodes[j])))
 					{
