@@ -526,6 +526,13 @@ static void _if_found_erase_data_from_data_not_used_yet_of_all_pu(starpu_data_ha
 	}
 }
 
+/** Clear not used struc when a data is unregistered. **/
+/*
+void darts_unregister_data_clear(starpu_data_handle_t data_handle)
+{
+	printf("In unregister data clear\n"); fflush(stdout);
+}*/
+
 /* Initialize for:
  * tasks -> pointer to the data it uses, pointer to the pointer of task list in the data,
  * pointer to the cell in the main task list (main_task_list).
@@ -577,15 +584,20 @@ static void initialize_task_data_gpu_single_task_no_dependencies(struct starpu_t
 						}
 					}
 				}
-				else if (access_mode_is_W == false)
+				else 
 				{
-					if (data_order == 1)
+					/* Unregister fix */
+					_starpu_data_set_unregister_hook(STARPU_TASK_GET_HANDLE(task, j), _if_found_erase_data_from_data_not_used_yet_of_all_pu);
+					if (access_mode_is_W == false)
 					{
-						_starpu_darts_gpu_data_not_used_list_push_back(tab_gpu_planned_task[i].new_gpu_data, e);
-					}
-					else
-					{
-						_starpu_darts_gpu_data_not_used_list_push_back(tab_gpu_planned_task[i].gpu_data, e);
+						if (data_order == 1)
+						{
+							_starpu_darts_gpu_data_not_used_list_push_back(tab_gpu_planned_task[i].new_gpu_data, e);
+						}
+						else
+						{
+							_starpu_darts_gpu_data_not_used_list_push_back(tab_gpu_planned_task[i].gpu_data, e);
+						}
 					}
 				}
 			}
@@ -689,9 +701,11 @@ static void initialize_task_data_gpu_single_task_dependencies(struct starpu_task
 			access_mode_is_W = true;
 		}
 
-		//printf("Add data\n"); fflush(stdout);
 		if (STARPU_TASK_GET_HANDLE(task, i)->user_data == NULL)
 		{
+			/* Unregister fix */
+			_starpu_data_set_unregister_hook(STARPU_TASK_GET_HANDLE(task, i), _if_found_erase_data_from_data_not_used_yet_of_all_pu);
+
 			struct _starpu_darts_handle_user_data *hud = malloc(sizeof(*hud));
 			hud->last_iteration_DARTS = iteration_DARTS;
 			hud->nb_task_in_pulled_task = malloc(_nb_gpus*sizeof(int));
