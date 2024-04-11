@@ -555,7 +555,7 @@ static void unregister_data_all_pu(starpu_data_handle_t data_to_remove)
 static void initialize_task_data_gpu_single_task_no_dependencies(struct starpu_task *task, int also_add_data_in_not_used_yet_list)
 {
 	bool access_mode_is_W = false;
-	struct _starpu_darts_handle_user_data *hud = malloc(sizeof(*hud));
+	struct _starpu_darts_handle_user_data *hud = NULL;
 	if (also_add_data_in_not_used_yet_list == 1)
 	{
 		/* Adding the data not used yet in all the GPU(s). */
@@ -580,6 +580,7 @@ static void initialize_task_data_gpu_single_task_no_dependencies(struct starpu_t
 				/* If the data already has an existing structure */
 				if (STARPU_TASK_GET_HANDLE(task, j)->user_data != NULL)
 				{
+					hud = malloc(sizeof(*hud));
 					hud = STARPU_TASK_GET_HANDLE(task, j)->user_data;
 
 					if ((hud->last_iteration_DARTS != iteration_DARTS || hud->is_present_in_data_not_used_yet[i] == 0) && (access_mode_is_W == false)) /* It is a new iteration of the same application, so the data must be re-initialized. */
@@ -1902,6 +1903,7 @@ static void _starpu_darts_scheduling_3D_matrix(struct starpu_task_list *main_tas
 							hud->is_present_in_data_not_used_yet[current_gpu] = 0;
 
 							_starpu_darts_gpu_data_not_used_delete(e);
+							hud->data_not_used[current_gpu] = NULL;
 							break;
 						}
 					}
@@ -2286,6 +2288,7 @@ static void _starpu_darts_scheduling_3D_matrix(struct starpu_task_list *main_tas
 			hud->is_present_in_data_not_used_yet[current_gpu] = 0;
 
 			_starpu_darts_gpu_data_not_used_delete(e);
+			hud->data_not_used[current_gpu] = NULL;
 
 			_STARPU_SCHED_PRINT("Erased data %p\n", e->D);
 			print_data_not_used_yet_one_gpu(g->gpu_data, current_gpu);
@@ -2400,6 +2403,7 @@ static void _starpu_darts_scheduling_3D_matrix(struct starpu_task_list *main_tas
 							hud->is_present_in_data_not_used_yet[current_gpu] = 0;
 
 							_starpu_darts_gpu_data_not_used_delete(e1);
+							hud->data_not_used[current_gpu] = NULL;
 
 							break;
 						}
@@ -2506,6 +2510,7 @@ static void _starpu_darts_scheduling_3D_matrix(struct starpu_task_list *main_tas
 							hud->is_present_in_data_not_used_yet[current_gpu] = 0;
 
 							_starpu_darts_gpu_data_not_used_delete(e);
+							hud->data_not_used[current_gpu] = NULL;
 							break;
 						}
 					}
