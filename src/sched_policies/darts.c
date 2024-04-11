@@ -509,13 +509,18 @@ static void unregister_data_all_pu(starpu_data_handle_t data_to_remove)
 	int i = 0;
 	struct _starpu_darts_handle_user_data *hud = NULL;
 
+	_REFINED_MUTEX_LOCK();
+	_LINEAR_MUTEX_LOCK();
+
 	hud = data_to_remove->user_data;  /* New */
 
 	for (i = 0; i < _nb_gpus; i++)
 	{
-		_starpu_darts_gpu_data_not_used_list_erase(tab_gpu_planned_task[i].gpu_data, hud->data_not_used[i]);
-		hud->is_present_in_data_not_used_yet[i] = 0;
-		_starpu_darts_gpu_data_not_used_delete(hud->data_not_used[i]);
+		if (hud->is_present_in_data_not_used_yet[i]) {
+			_starpu_darts_gpu_data_not_used_list_erase(tab_gpu_planned_task[i].gpu_data, hud->data_not_used[i]);
+			hud->is_present_in_data_not_used_yet[i] = 0;
+			_starpu_darts_gpu_data_not_used_delete(hud->data_not_used[i]);
+		}
 	
 	}
 	free(hud->nb_task_in_pulled_task);
@@ -524,6 +529,10 @@ static void unregister_data_all_pu(starpu_data_handle_t data_to_remove)
 	free(hud->is_present_in_data_not_used_yet);
 	free(hud->data_not_used);
 	data_to_remove->user_data = NULL;
+	free(hud);
+
+	_REFINED_MUTEX_UNLOCK();
+	_LINEAR_MUTEX_UNLOCK();
 }
 
 /* In the case of a task accessing a data in W mode, we use this function to remove it from the data not
@@ -537,9 +546,11 @@ static void _if_found_erase_data_from_data_not_used_yet_of_all_pu(starpu_data_ha
 
 	for (i = 0; i < _nb_gpus; i++)
 	{
-		_starpu_darts_gpu_data_not_used_list_erase(tab_gpu_planned_task[i].gpu_data, hud->data_not_used[i]);
-		hud->is_present_in_data_not_used_yet[i] = 0;
-		_starpu_darts_gpu_data_not_used_delete(hud->data_not_used[i]);
+		if (hud->is_present_in_data_not_used_yet[i]) {
+			_starpu_darts_gpu_data_not_used_list_erase(tab_gpu_planned_task[i].gpu_data, hud->data_not_used[i]);
+			hud->is_present_in_data_not_used_yet[i] = 0;
+			_starpu_darts_gpu_data_not_used_delete(hud->data_not_used[i]);
+		}
 	
 	}
 
