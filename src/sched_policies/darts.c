@@ -522,6 +522,7 @@ static void unregister_data_all_pu(starpu_data_handle_t data_to_remove)
 	free(hud->nb_task_in_planned_task);
 	free(hud->last_check_to_choose_from);
 	free(hud->is_present_in_data_not_used_yet);
+	free(hud->data_not_used);
 	data_to_remove->user_data = NULL;
 }
 
