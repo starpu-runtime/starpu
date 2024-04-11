@@ -724,7 +724,7 @@ static void initialize_task_data_gpu_single_task_dependencies(struct starpu_task
 			hud->last_check_to_choose_from = malloc(_nb_gpus*sizeof(int));
 			hud->is_present_in_data_not_used_yet = malloc(_nb_gpus*sizeof(int));
 			hud->sum_remaining_task_expected_length = starpu_task_expected_length(task, perf_arch, 0);
-			hud->data_not_used = malloc(_nb_gpus*sizeof(struct _starpu_darts_gpu_data_not_used));
+			hud->data_not_used = malloc(_nb_gpus*sizeof(struct _starpu_darts_gpu_data_not_used*));
 
 			_STARPU_SCHED_PRINT("Data is new. Expected length in data %p: %f\n", STARPU_TASK_GET_HANDLE(task, i), hud->sum_remaining_task_expected_length);
 
