@@ -503,6 +503,28 @@ static bool is_my_task_free(int current_gpu, struct starpu_task *task)
 	return true;
 }
 
+/* Erase function for unregister. */
+static void unregister_data_all_pu(starpu_data_handle_t data_to_remove)
+{
+	int i = 0;
+	struct _starpu_darts_handle_user_data *hud = NULL;
+
+	hud = data_to_remove->user_data;  /* New */
+
+	for (i = 0; i < _nb_gpus; i++)
+	{
+		_starpu_darts_gpu_data_not_used_list_erase(tab_gpu_planned_task[i].gpu_data, hud->data_not_used[i]);
+		hud->is_present_in_data_not_used_yet[i] = 0;
+		_starpu_darts_gpu_data_not_used_delete(hud->data_not_used[i]);
+	
+	}
+	free(hud->nb_task_in_pulled_task);
+	free(hud->nb_task_in_planned_task);
+	free(hud->last_check_to_choose_from);
+	free(hud->is_present_in_data_not_used_yet);
+	data_to_remove->user_data = NULL;
+}
+
 /* In the case of a task accessing a data in W mode, we use this function to remove it from the data not
  * used list. */
 static void _if_found_erase_data_from_data_not_used_yet_of_all_pu(starpu_data_handle_t data_to_remove)
@@ -519,8 +541,14 @@ static void _if_found_erase_data_from_data_not_used_yet_of_all_pu(starpu_data_ha
 		_starpu_darts_gpu_data_not_used_delete(hud->data_not_used[i]);
 	
 	}
-	hud = NULL;
-	free(hud);
+
+	//free(hud->nb_task_in_pulled_task);
+	//free(hud->nb_task_in_planned_task);
+	//free(hud->last_check_to_choose_from);
+	//free(hud->is_present_in_data_not_used_yet);
+	//free(hud);
+//	data_to_remove->user_data = NULL;
+	//}
 }
 
 /* Initialize for:
@@ -577,7 +605,7 @@ static void initialize_task_data_gpu_single_task_no_dependencies(struct starpu_t
 				else 
 				{
 					/* Unregister fix */
-					_starpu_data_set_unregister_hook(STARPU_TASK_GET_HANDLE(task, j), _if_found_erase_data_from_data_not_used_yet_of_all_pu);
+					_starpu_data_set_unregister_hook(STARPU_TASK_GET_HANDLE(task, j), unregister_data_all_pu);
 					if (access_mode_is_W == false)
 					{
 						if (data_order == 1)
@@ -694,7 +722,7 @@ static void initialize_task_data_gpu_single_task_dependencies(struct starpu_task
 		if (STARPU_TASK_GET_HANDLE(task, i)->user_data == NULL)
 		{
 			/* Unregister fix */
-			_starpu_data_set_unregister_hook(STARPU_TASK_GET_HANDLE(task, i), _if_found_erase_data_from_data_not_used_yet_of_all_pu);
+			_starpu_data_set_unregister_hook(STARPU_TASK_GET_HANDLE(task, i), unregister_data_all_pu);
 
 			struct _starpu_darts_handle_user_data *hud = malloc(sizeof(*hud));
 			hud->last_iteration_DARTS = iteration_DARTS;
