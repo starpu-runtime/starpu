@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -170,6 +170,12 @@
 #define LIST_INLINE static inline
 #endif
 
+#ifdef STARPU_DEBUG
+#define LIST_CLEAR(ptr) do { *(ptr) = NULL; } while (0)
+#else
+#define LIST_CLEAR(ptr) ((void)0)
+#endif
+
 /**@hideinitializer
  * Generates a new type for list of elements */
 #define LIST_TYPE(ENAME, DECL) \
@@ -199,7 +205,7 @@
     { struct ENAME *e; _STARPU_MALLOC(e, sizeof(struct ENAME)); \
       e->_next = NULL; e->_prev = NULL; return e; } \
   /** @internal */LIST_INLINE void ENAME##_delete(struct ENAME *e) \
-    { free(e); } \
+    { LIST_CLEAR(&e->_next); LIST_CLEAR(&e->_prev); free(e); } \
   /** @internal */LIST_INLINE void ENAME##_list_push_front(struct ENAME##_list *l, struct ENAME *e) \
     { if(l->_tail == NULL) l->_tail = e; else l->_head->_prev = e; \
       e->_prev = NULL; e->_next = l->_head; l->_head = e; } \
@@ -232,10 +238,11 @@
   /** @internal */LIST_INLINE int ENAME##_list_empty(const struct ENAME##_list *l) \
     { return (l->_head == NULL); } \
   /** @internal */LIST_INLINE void ENAME##_list_delete(struct ENAME##_list *l) \
-    { free(l); } \
+    { LIST_CLEAR(&l->_head); LIST_CLEAR(&l->_tail); free(l); } \
   /** @internal */LIST_INLINE void ENAME##_list_erase(struct ENAME##_list *l, struct ENAME *c) \
     { struct ENAME *p = c->_prev; if(p) p->_next = c->_next; else l->_head = c->_next; \
-      if(c->_next) c->_next->_prev = p; else l->_tail = p; } \
+      if(c->_next) c->_next->_prev = p; else l->_tail = p; \
+      LIST_CLEAR(&c->_next); LIST_CLEAR(&c->_prev); } \
   /** @internal */LIST_INLINE struct ENAME *ENAME##_list_pop_front(struct ENAME##_list *l) \
     { struct ENAME *e = ENAME##_list_front(l); \
       ENAME##_list_erase(l, e); return e; } \
