@@ -601,8 +601,6 @@ int _starpu_parallel_worker_topology(hwloc_obj_type_t parallel_worker_level, str
 	int nworkers = starpu_worker_get_count_by_type(STARPU_CPU_WORKER);
 	if (nworkers == 0)
 		return -ENODEV;
-	if (hwloc_get_nbobjs_by_type(machine->topology, parallel_worker_level) <= 0)
-		return -ENODEV;
 
 	int *workers;
 	_STARPU_MALLOC(workers, sizeof(int) * nworkers);
@@ -623,13 +621,15 @@ int _starpu_parallel_worker_topology(hwloc_obj_type_t parallel_worker_level, str
 	}
 
 	hwloc_topology_restrict(topology, avail_cpus, 0);
+	hwloc_bitmap_free(avail_cpus);
 	free(workers);
+
+	if (hwloc_get_nbobjs_by_type(topology, parallel_worker_level) <= 0)
+		return -ENODEV;
 
 	/* Use new topology to fill in the parallel_worker list */
 	machine->topology = topology;
 	_starpu_parallel_worker_group(parallel_worker_level, machine);
-
-	hwloc_bitmap_free(avail_cpus);
 
 	return 0;
 }
