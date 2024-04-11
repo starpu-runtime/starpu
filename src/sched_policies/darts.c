@@ -512,10 +512,11 @@ static void _if_found_erase_data_from_data_not_used_yet_of_all_pu(starpu_data_ha
 
 	for (i = 0; i < _nb_gpus; i++)
 	{
-		if (hud->is_present_in_data_not_used_yet[i]) {
+		if (hud->data_not_used[i]) {
 			_starpu_darts_gpu_data_not_used_list_erase(tab_gpu_planned_task[i].gpu_data, hud->data_not_used[i]);
 			hud->is_present_in_data_not_used_yet[i] = 0;
 			_starpu_darts_gpu_data_not_used_delete(hud->data_not_used[i]);
+			hud->data_not_used[i] = NULL;
 		}
 	
 	}
