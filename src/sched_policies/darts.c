@@ -2797,6 +2797,7 @@ static void push_data_not_used_yet_random_spot(starpu_data_handle_t h, struct _s
 	_STARPU_SCHED_PRINT("%p gets 1 at is_present_in_data_not_used_yet with random push\n", h);
 	struct _starpu_darts_handle_user_data *hud = h->user_data;
 	hud->is_present_in_data_not_used_yet[gpu_id] = 1;
+	hud->data_not_used[gpu_id] = new_element;
 
 	if (_starpu_darts_gpu_data_not_used_list_empty(g->gpu_data))
 	{
