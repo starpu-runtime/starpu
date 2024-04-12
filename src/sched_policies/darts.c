@@ -142,21 +142,24 @@ static int dopt_selection_order;
 static int highest_priority_task_returned_in_default_case;
 static int push_free_task_on_gpu_with_least_task_in_planned_task;
 static int round_robin_free_task;
-static enum {
+static enum
+{
 	GPU_ONLY,
 	CPU_ONLY,
 	CPU_GPU,
 } cpu_only;
 static int _nb_gpus;
 
-static int get_gpu(unsigned node) {
+static int get_gpu(unsigned node)
+{
 	if (starpu_cpu_worker_get_count() == 0)
 		/* Ignore the CPU memory nodes since there are no CPU workers */
 		node -= starpu_memory_nodes_get_count_by_kind(STARPU_CPU_RAM);
 	return node;
 }
 
-static int get_current_gpu(void) {
+static int get_current_gpu(void)
+{
 	unsigned current_node = starpu_worker_get_memory_node(starpu_worker_get_id_check());
 	return get_gpu(current_node);
 }
@@ -512,13 +515,13 @@ static void _if_found_erase_data_from_data_not_used_yet_of_all_pu(starpu_data_ha
 
 	for (i = 0; i < _nb_gpus; i++)
 	{
-		if (hud->data_not_used[i]) {
+		if (hud->data_not_used[i])
+		{
 			_starpu_darts_gpu_data_not_used_list_erase(tab_gpu_planned_task[i].gpu_data, hud->data_not_used[i]);
 			hud->is_present_in_data_not_used_yet[i] = 0;
 			_starpu_darts_gpu_data_not_used_delete(hud->data_not_used[i]);
 			hud->data_not_used[i] = NULL;
 		}
-	
 	}
 }
 
@@ -567,7 +570,7 @@ static void initialize_task_data_gpu_single_task_no_dependencies(struct starpu_t
 			{
 
 				access_mode_is_W = false;
-				if ((STARPU_TASK_GET_MODE(task, j) & STARPU_RW) == STARPU_W)	
+				if ((STARPU_TASK_GET_MODE(task, j) & STARPU_RW) == STARPU_W)
 				{
 					if (STARPU_TASK_GET_HANDLE(task, j)->user_data != NULL) /* If it's not NULL, we already saw the data */
 					{
@@ -584,7 +587,7 @@ static void initialize_task_data_gpu_single_task_no_dependencies(struct starpu_t
 					hud = STARPU_TASK_GET_HANDLE(task, j)->user_data;
 
 					if ((hud->last_iteration_DARTS != iteration_DARTS || hud->is_present_in_data_not_used_yet[i] == 0) && (access_mode_is_W == false)) /* It is a new iteration of the same application, so the data must be re-initialized. */
-					{	
+					{
 						struct _starpu_darts_gpu_data_not_used *e = _starpu_darts_gpu_data_not_used_new();
 						e->D = STARPU_TASK_GET_HANDLE(task, j);
 						hud->data_not_used[i] = e;
@@ -599,7 +602,7 @@ static void initialize_task_data_gpu_single_task_no_dependencies(struct starpu_t
 						}
 					}
 				}
-				else 
+				else
 				{
 					/* Unregister fix */
 					_starpu_data_set_unregister_hook(STARPU_TASK_GET_HANDLE(task, j), unregister_data_all_pu);
@@ -708,7 +711,7 @@ static void initialize_task_data_gpu_single_task_dependencies(struct starpu_task
 		STARPU_IGNORE_UTILITIES_HANDLES(task, i);
 
 		access_mode_is_W = false;
-		if ((STARPU_TASK_GET_MODE(task, i) & STARPU_RW) == STARPU_W)	
+		if ((STARPU_TASK_GET_MODE(task, i) & STARPU_RW) == STARPU_W)
 		{
 			if (STARPU_TASK_GET_HANDLE(task, i)->user_data != NULL) /* If it's not NULL, we already saw the data */
 			{
