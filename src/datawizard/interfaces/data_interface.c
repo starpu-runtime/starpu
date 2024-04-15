@@ -613,30 +613,6 @@ static void _starpu_data_unregister_fetch_data_callback(void *_arg)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&arg->mutex);
 }
 
-
-LIST_TYPE(_starpu_unregister_hook_func,
-	  _starpu_data_handle_unregister_hook hook_func;
-);
-
-void _starpu_data_set_unregister_hook_unused_func(starpu_data_handle_t handle, _starpu_data_handle_unregister_hook func)
-{
-	STARPU_ASSERT(handle->unregister_hook == NULL);
-
-	struct _starpu_unregister_hook_func *uhf = _starpu_unregister_hook_func_new();
-	uhf->hook_func = func;
-
-	if (handle->unregister_hook == NULL)
-	{
-		struct _starpu_unregister_hook_func_list *new_list = _starpu_unregister_hook_func_list_new();
-		_starpu_unregister_hook_func_list_push_back(new_list, uhf);
-		handle->unregister_hook = new_list;
-	}
-	else
-	{
-		_starpu_unregister_hook_func_list_push_back(handle->unregister_hook, uhf);
-	}
-}
-
 void _starpu_data_set_unregister_hook(starpu_data_handle_t handle, _starpu_data_handle_unregister_hook func)
 {
 	STARPU_ASSERT(handle->unregister_hook == NULL);
