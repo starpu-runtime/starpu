@@ -80,6 +80,9 @@ int main(void)
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
+	struct starpu_sched_policy *policy = starpu_sched_get_sched_policy();
+	if (strcmp(conf.sched_policy_name, policy->policy_name)) goto shutdown;
+
 	combined_ncpus = starpu_cpu_worker_get_count();
 	if (combined_ncpus < 4) goto shutdown;
 

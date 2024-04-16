@@ -601,7 +601,6 @@ static inline int _starpu_can_execute_task_any_impl(unsigned workerid, struct st
 /* must be called with sched_mutex locked to protect state_blocked_in_parallel */
 int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl)
 {
-
 	/* TODO: check that the task operand sizes will fit on that device */
 	return _starpu_can_execute_task_any_impl(workerid, task) &&
 		_starpu_can_use_nth_implementation(_starpu_config.workers[workerid].arch, task->cl, nimpl) &&

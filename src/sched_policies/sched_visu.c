@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2023	Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2024	Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,6 +23,7 @@ static int *_index_current_popped_task;
 static int _index_current_popped_task_all_gpu;
 static int *_index_current_popped_task_prefetch;
 static int _index_current_popped_task_all_gpu_prefetch;
+static int _index_current_task_for_visualization=0;
 #endif
 int _print3d;
 int _print_in_terminal;
@@ -30,7 +31,6 @@ int _print_n;
 #ifdef PRINT_PYTHON
 static int index_task_currently_treated=0;
 #endif
-static int _index_current_task_for_visualization=0;
 struct starpu_task *task_currently_treated = NULL;
 
 static char *_output_directory = NULL;
