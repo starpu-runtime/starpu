@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
@@ -796,7 +796,7 @@ void starpu_cusolver_report_error(const char *func, const char *file, int line, 
 		REPORT(CUSOLVER_STATUS_ZERO_PIVOT);
 		REPORT(CUSOLVER_STATUS_INVALID_LICENSE);
 
-#if CUSOLVER_VER_MAJOR >= 11
+#if defined(CUSOLVER_VER_MAJOR) && (CUSOLVER_VER_MAJOR >= 11)
 		REPORT(CUSOLVER_STATUS_IRS_PARAMS_NOT_INITIALIZED);
 		REPORT(CUSOLVER_STATUS_IRS_PARAMS_INVALID);
 		REPORT(CUSOLVER_STATUS_IRS_PARAMS_INVALID_PREC);
