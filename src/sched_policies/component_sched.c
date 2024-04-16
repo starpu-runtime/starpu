@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -104,7 +104,20 @@ int starpu_sched_component_can_execute_task(struct starpu_sched_component * comp
 		    worker = starpu_bitmap_next(&component->workers_in_ctx, worker))
 			if (starpu_worker_can_execute_task(worker, task, nimpl)
 			    || starpu_combined_worker_can_execute_task(worker, task, nimpl))
+			{
+				if (starpu_worker_can_execute_task(worker, task, nimpl) == 1)
+					_STARPU_EXTRA_DEBUG("worker %d CAN execute task %s with impl %d\n", worker, starpu_task_get_name(task), nimpl);
+				if (starpu_combined_worker_can_execute_task(worker, task, nimpl) == 1)
+					_STARPU_EXTRA_DEBUG("combined worker %d CAN execute task %s with impl %d\n", worker, starpu_task_get_name(task), nimpl);
 				return 1;
+			}
+			else
+			{
+				if (starpu_worker_can_execute_task(worker, task, nimpl) == 0)
+					_STARPU_EXTRA_DEBUG("worker %d CANNOT execute task %s with impl %d\n", worker, starpu_task_get_name(task), nimpl);
+				if (starpu_combined_worker_can_execute_task(worker, task, nimpl) == 0)
+					_STARPU_EXTRA_DEBUG("combined worker %d CANNOT execute task %s with impl %d\n", worker, starpu_task_get_name(task), nimpl);
+			}
 	return 0;
 }
 

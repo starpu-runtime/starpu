@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2017       Guillaume Beauchamp
  * Copyright (C) 2021       Federal University of Rio Grande do Sul (UFRGS)
  *
@@ -315,6 +315,7 @@ void _starpu_mpi_submit_ready_request(void *arg)
 
 void _starpu_mpi_req_willpost(struct _starpu_mpi_req *req)
 {
+	(void)req;
 	_STARPU_MPI_INC_POSTED_REQUESTS(req, 1);
 }
 
@@ -644,6 +645,7 @@ int _starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
 #ifdef STARPU_DEVEL
 #warning see if we can return ret instead of 0
 #endif
+	(void)ret;
 	return 0;
 }
 
@@ -763,6 +765,7 @@ int _starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 #ifdef STARPU_DEVEL
 #warning see if we can return ret instead of 0
 #endif
+	(void)ret;
 	return 0;
 }
 
