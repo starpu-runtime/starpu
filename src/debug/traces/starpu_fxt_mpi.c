@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2017-2020  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -426,7 +426,7 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comm
 			char Y_str[STARPU_POTI_STR_LEN];
 			snprintf(Y_str, sizeof(Y_str), "%u", cur->Y);
 
-			poti_user_StartLink(_starpu_poti_MpiLinkStart, start_date, "MPIroot", "MPIL", mpi_container, paje_value, paje_key, 7, str_mpi_tag, get_mpi_type_str(cur->type), str_priority, str_handle, name, X_str, Y_str);
+			poti_user_StartLink(_starpu_poti_MpiLinkStart, start_date, "MPIroot", "MPIL", mpi_container, paje_value, paje_key, 7, str_mpi_tag, get_mpi_type_str(cur->type), str_priority, str_handle, cur->name, X_str, Y_str);
 
 			poti_SetVariable(start_date, mpi_container, "bwo_mpi", current_out_bandwidth[src]);
 			snprintf(mpi_container, sizeof(mpi_container), "%d_mpict", dst);
