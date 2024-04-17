@@ -1143,8 +1143,6 @@ static int run_data(void)
 				{
 					timing = end - start;
 				}
-
-				starpu_reset_scheduler();
 			}
 			/* End of normal execution of 2D matrix. */
 		}
