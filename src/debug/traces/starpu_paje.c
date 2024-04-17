@@ -24,6 +24,7 @@
 #ifdef STARPU_USE_FXT
 
 #ifdef STARPU_HAVE_POTI
+int _starpu_poti_JobState;
 #ifdef HAVE_POTI_INIT_CUSTOM
 int _starpu_poti_extendedSetState = -1;
 int _starpu_poti_semiExtendedSetState = -1;
