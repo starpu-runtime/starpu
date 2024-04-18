@@ -437,7 +437,7 @@ elif test "$gitcommand" = "" ; then
 else
   bdir=$PWD
   cd $srcdir
-  git log -n 1 --pretty="%H" . > $bdir/STARPU-REVISION_tmp
+  git log -n 1 --pretty="%H%d" . > $bdir/STARPU-REVISION_tmp
   cd $bdir
   if test -s ./STARPU-REVISION_tmp ; then
     mv ./STARPU-REVISION_tmp ./STARPU-REVISION
