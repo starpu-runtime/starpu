@@ -338,7 +338,7 @@ if test "$gitcommand" = "" ; then
       echo "unknown" > ./STARPU-REVISION
    fi
 else
-   git log -n 1 --pretty="%H" $srcdir > ./STARPU-REVISION
+   git log -n 1 --pretty="%H%d" $srcdir > ./STARPU-REVISION
 fi
 
 AM_CONDITIONAL([STARPU_CROSS_COMPILING], [test "x$cross_compiling" = "xyes"])
