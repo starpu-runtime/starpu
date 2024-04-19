@@ -31,7 +31,7 @@ then
 fi
 
 # download the change log
-wget https://files.inria.fr/starpu/nathalie/starpu-${release}/log.txt -O log-${release}.txt 2>/dev/null
+wget https://files.inria.fr/starpu/starpu-${release}/log.txt -O log-${release}.txt 2>/dev/null
 changelog=$(cat log-${release}.txt | tr '*' '-')
 echo ${changelog}
 
@@ -39,16 +39,16 @@ echo ${changelog}
 curl --request DELETE --header "JOB-TOKEN: ${CI_JOB_TOKEN}" https://gitlab.inria.fr/api/v4/projects/${CI_PROJECT_ID}/releases/starpu-${release}
 
 # copy the source archive and the documentation to the Gitlab's Package registry
-wget https://files.inria.fr/starpu/nathalie/starpu-${release}/starpu-${release}.tar.gz -O starpu-${release}.tar.gz  2>/dev/null
+wget https://files.inria.fr/starpu/starpu-${release}/starpu-${release}.tar.gz -O starpu-${release}.tar.gz  2>/dev/null
 curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ./starpu-${release}.tar.gz "https://gitlab.inria.fr/api/v4/projects/${CI_PROJECT_ID}/packages/generic/starpu/${release}/starpu-${release}.tar.gz"
 
-wget https://files.inria.fr/starpu/nathalie/starpu-${release}/starpu.pdf -O starpu-${release}.pdf  2>/dev/null
+wget https://files.inria.fr/starpu/starpu-${release}/starpu.pdf -O starpu-${release}.pdf  2>/dev/null
 curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ./starpu-${release}.pdf "https://gitlab.inria.fr/api/v4/projects/${CI_PROJECT_ID}/packages/generic/starpu/${release}/starpu-${release}.pdf"
 
 # Create a file with the CLI to create the release
 (
     echo "release-cli create --name \"Release ${release}\" --tag-name ${CI_COMMIT_TAG} --ref \"${CI_COMMIT_REF_NAME}\" --description \"${changelog}\" \\"
-    echo "--assets-link \"{\\\"name\\\":\\\"Release download page\\\",\\\"url\\\":\\\"https://files.inria.fr/starpu/nathalie/starpu-${release}\\\"}\" \\"
+    echo "--assets-link \"{\\\"name\\\":\\\"Release download page\\\",\\\"url\\\":\\\"https://files.inria.fr/starpu/starpu-${release}\\\"}\" \\"
     for asset in starpu-${release}.pdf starpu-${release}.tar.gz
     do
         echo "--assets-link \"{\\\"name\\\":\\\"${asset}\\\",\\\"url\\\":\\\"https://gitlab.inria.fr/api/v4/projects/${CI_PROJECT_ID}/packages/generic/starpu/${release}/${asset}\\\"}\" \\"
