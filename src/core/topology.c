@@ -1553,7 +1553,7 @@ int _starpu_bind_thread_on_cpu(int cpuid STARPU_ATTRIBUTE_UNUSED, int workerid S
 
 			if (workerid >= 0)
 				/* This shouldn't happen for workers */
-				_STARPU_DISP("[%s] Maybe check starpu_machine_display's output to determine what wrong binding happened. Hwloc reported a total of %d cores and %d threads, and to use %d threads from logical %d, perhaps there is misdetection between hwloc, the kernel and the BIOS, or an administrative allocation issue from e.g. the job scheduler?\n", hostname, config->topology.nhwworker[STARPU_CPU_WORKER][0], config->topology.nhwpus, config->topology.nusedpus, config->topology.firstusedpu);
+				_STARPU_DISP("[%s] Maybe check starpu_machine_display's output to determine what wrong binding happened. Hwloc reported a total of %d cores and %d threads, and to use %d threads from logical %d, perhaps there is misdetection between hwloc, the kernel and the BIOS, or an administrative allocation issue from e.g. the job scheduler? You may want to try to use export STARPU_WORKERS_GETBIND=0 to ignore the job scheduler binding\n", hostname, config->topology.nhwworker[STARPU_CPU_WORKER][0], config->topology.nhwpus, config->topology.nusedpus, config->topology.firstusedpu);
 			ret = -1;
 		}
 		else
