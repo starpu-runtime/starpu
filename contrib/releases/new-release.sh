@@ -126,6 +126,7 @@ then
     (
 	cat ${dir}/head.org
 	echo "#+TITLE: StarPU Release starpu-${release} - Documentation"
+	echo "* Documentation produced on ${DATE}"
 	cat doc/README.org
     ) > ${ARTIFACTS}/doc/doc.org
 fi
