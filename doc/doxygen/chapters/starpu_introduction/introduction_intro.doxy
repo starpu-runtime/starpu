@@ -80,7 +80,7 @@ The remainder of this section describes the main concepts used in StarPU.
 A video, lasting 26 minutes, accessible on the StarPU website
 (https://starpu.gitlabpages.inria.fr/) presents these concepts.
 
-Additionally, a serie of tutorials can be found at
+Additionally, a series of tutorials can be found at
 https://starpu.gitlabpages.inria.fr/tutorials/
 
 // explain the notion of codelet and task (i.e. g(A, B)
