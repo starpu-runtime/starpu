@@ -17,8 +17,6 @@
 stages:
   - build
   - check
-  - analyze
-  - deploy
 
 .main_template:
   rules:
@@ -74,33 +72,4 @@ check_simgrid:
 #  tags : ["macosx"]
 #  script:
 #    - STARPU_USER_CONFIGURE_OPTIONS=--disable-mpi ./contrib/gitlab/deploy.sh
-
-.analyze_template:
-  extends: .main_template
-  stage: analyze
-  needs: [build]
-  dependencies:
-    - build
-
-analyze_coverity:
-  extends: .analyze_template
-  tags:
-    - starpu
-    - linux
-  script:
-    - ./contrib/gitlab/coverity.sh
-
-.deploy_template:
-  extends: .main_template
-  stage: deploy
-  needs: [check]
-  dependencies:
-    - check
-
-deploy_chameleon:
-  extends: .deploy_template
-  image: registry.gitlab.inria.fr/solverstack/docker/distrib
-  tags: ['ci.inria.fr', 'linux', 'large', 'docker']
-  script:
-    - ./contrib/gitlab/chameleon.sh
 
