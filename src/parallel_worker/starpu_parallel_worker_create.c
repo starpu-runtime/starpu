@@ -127,7 +127,7 @@ struct starpu_parallel_worker_config *_starpu_parallel_worker_init_varg(hwloc_ob
 	_STARPU_CALLOC(machine, 1, sizeof(struct starpu_parallel_worker_config));
 	_STARPU_CALLOC(machine->params, 1, sizeof(struct _starpu_parallel_worker_parameters));
 	machine->id = STARPU_NMAX_SCHED_CTXS;
-	machine->groups = _starpu_parallel_worker_group_list_new();
+	_starpu_parallel_worker_group_list_init(&machine->groups);
 	machine->nparallel_workers = 0;
 	machine->ngroups = 0;
 	machine->topology = NULL;
@@ -189,18 +189,18 @@ struct starpu_parallel_worker_config *_starpu_parallel_worker_init_varg(hwloc_ob
 		{
 			struct _starpu_parallel_worker_group *group = _starpu_parallel_worker_group_new();
 			_starpu_parallel_worker_group_init(group, machine);
-			_starpu_parallel_worker_group_list_push_back(machine->groups, group);
+			_starpu_parallel_worker_group_list_push_back(&machine->groups, group);
 			machine->params = group->params;
 		}
 		else if (arg_type == STARPU_PARALLEL_WORKER_NEW)
 		{
 			struct _starpu_parallel_worker *parallel_worker = _starpu_parallel_worker_new();
-			struct _starpu_parallel_worker_group *group = _starpu_parallel_worker_group_list_back(machine->groups);
+			struct _starpu_parallel_worker_group *group = _starpu_parallel_worker_group_list_back(&machine->groups);
 			if (group == NULL)
 			{
 				group = _starpu_parallel_worker_group_new();
 				_starpu_parallel_worker_group_init(group, machine);
-				_starpu_parallel_worker_group_list_push_back(machine->groups, group);
+				_starpu_parallel_worker_group_list_push_back(&machine->groups, group);
 			}
 			_starpu_parallel_worker_init(parallel_worker, group);
 			_starpu_parallel_worker_list_push_back(group->parallel_workers, parallel_worker);
@@ -208,12 +208,12 @@ struct starpu_parallel_worker_config *_starpu_parallel_worker_init_varg(hwloc_ob
 		}
 		else if (arg_type == STARPU_PARALLEL_WORKER_NCORES)
 		{
-			struct _starpu_parallel_worker_group *group = _starpu_parallel_worker_group_list_back(machine->groups);
+			struct _starpu_parallel_worker_group *group = _starpu_parallel_worker_group_list_back(&machine->groups);
 			if (group == NULL)
 			{
 				group = _starpu_parallel_worker_group_new();
 				_starpu_parallel_worker_group_init(group, machine);
-				_starpu_parallel_worker_group_list_push_back(machine->groups, group);
+				_starpu_parallel_worker_group_list_push_back(&machine->groups, group);
 			}
 			struct _starpu_parallel_worker *parallel_worker =_starpu_parallel_worker_list_back(group->parallel_workers);
 			parallel_worker->ncores = va_arg(varg_list, unsigned);
@@ -262,7 +262,7 @@ int starpu_parallel_worker_shutdown(struct starpu_parallel_worker_config *machin
 	if (machine == NULL)
 		return -1;
 	struct _starpu_parallel_worker_group *g;
-	struct _starpu_parallel_worker_group_list *group_list = machine->groups;
+	struct _starpu_parallel_worker_group_list *group_list = &machine->groups;
 
 	if (machine->id != STARPU_NMAX_SCHED_CTXS)
 		starpu_sched_ctx_delete(machine->id);
@@ -274,7 +274,6 @@ int starpu_parallel_worker_shutdown(struct starpu_parallel_worker_config *machin
 		g = _starpu_parallel_worker_group_list_next(g);
 		_starpu_parallel_worker_group_remove(group_list, tmp);
 	}
-	_starpu_parallel_worker_group_list_delete(group_list);
 
 	if (machine->topology != NULL)
 		hwloc_topology_destroy(machine->topology);
@@ -298,8 +297,8 @@ int starpu_parallel_worker_print(struct starpu_parallel_worker_config *parallel_
 	cnt=0;
 	if (parallel_workers->nparallel_workers)
 	{
-		for (group = _starpu_parallel_worker_group_list_begin(parallel_workers->groups);
-		     group != _starpu_parallel_worker_group_list_end(parallel_workers->groups);
+		for (group = _starpu_parallel_worker_group_list_begin(&parallel_workers->groups);
+		     group != _starpu_parallel_worker_group_list_end(&parallel_workers->groups);
 		     group = _starpu_parallel_worker_group_list_next(group))
 		{
 			for (parallel_worker = _starpu_parallel_worker_list_begin(group->parallel_workers);
@@ -361,8 +360,8 @@ void _starpu_parallel_workers_set_nesting(struct starpu_parallel_worker_config *
 	struct _starpu_parallel_worker_group *g;
 	struct _starpu_parallel_worker *c;
 
-	for (g = _starpu_parallel_worker_group_list_begin(m->groups) ;
-	     g != _starpu_parallel_worker_group_list_end(m->groups) ;
+	for (g = _starpu_parallel_worker_group_list_begin(&m->groups) ;
+	     g != _starpu_parallel_worker_group_list_end(&m->groups) ;
 	     g = _starpu_parallel_worker_group_list_next(g))
 	{
 		for (c = _starpu_parallel_worker_list_begin(g->parallel_workers) ;
@@ -547,8 +546,8 @@ int _starpu_parallel_worker_config(hwloc_obj_type_t parallel_worker_level, struc
 	if (ret)
 		return ret;
 
-	for (g = _starpu_parallel_worker_group_list_begin(machine->groups) ;
-	     g != _starpu_parallel_worker_group_list_end(machine->groups) ;
+	for (g = _starpu_parallel_worker_group_list_begin(&machine->groups) ;
+	     g != _starpu_parallel_worker_group_list_end(&machine->groups) ;
 	     g = _starpu_parallel_worker_group_list_next(g))
 		if (_starpu_parallel_worker_group_create(g) == 0)
 			return -ENODEV;
@@ -638,13 +637,10 @@ void _starpu_parallel_worker_group(hwloc_obj_type_t parallel_worker_level, struc
 	int i;
 	struct _starpu_parallel_worker_group *group = NULL;
 
-	if (machine->groups == NULL)
-		machine->groups = _starpu_parallel_worker_group_list_new();
-
 	nb_objects = hwloc_get_nbobjs_by_type(machine->topology, parallel_worker_level);
 	STARPU_ASSERT(nb_objects > 0);
 
-	group = _starpu_parallel_worker_group_list_begin(machine->groups);
+	group = _starpu_parallel_worker_group_list_begin(&machine->groups);
 	for (i = 0 ; i < nb_objects ; i++)
 	{
 		hwloc_obj_t parallel_worker_obj = hwloc_get_obj_by_type(machine->topology, parallel_worker_level, i);
@@ -653,7 +649,7 @@ void _starpu_parallel_worker_group(hwloc_obj_type_t parallel_worker_level, struc
 		{
 			group = _starpu_parallel_worker_group_new();
 			_starpu_parallel_worker_group_init(group, machine);
-			_starpu_parallel_worker_group_list_push_back(machine->groups, group);
+			_starpu_parallel_worker_group_list_push_back(&machine->groups, group);
 		}
 
 		group->group_obj = parallel_worker_obj;
@@ -801,7 +797,7 @@ struct starpu_cluster_machine STARPU_DEPRECATED
 	hwloc_topology_t topology;
 	unsigned nparallel_workers;
 	unsigned ngroups;
-	struct _starpu_parallel_worker_group_list *groups;
+	struct _starpu_parallel_worker_group_list groups;
 	struct _starpu_parallel_worker_parameters *params;
 };
 

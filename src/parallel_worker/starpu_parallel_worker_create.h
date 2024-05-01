@@ -36,13 +36,22 @@ extern
 
 #pragma GCC visibility push(hidden)
 
+LIST_TYPE(_starpu_parallel_worker_group,
+	unsigned id;
+	hwloc_obj_t group_obj;
+	int nparallel_workers;
+	struct _starpu_parallel_worker_list *parallel_workers;
+	struct starpu_parallel_worker_config *parent;
+	struct _starpu_parallel_worker_parameters *params;
+)
+
 struct starpu_parallel_worker_config
 {
 	unsigned id;
 	hwloc_topology_t topology;
 	unsigned nparallel_workers;
 	unsigned ngroups;
-	struct _starpu_parallel_worker_group_list *groups;
+	struct _starpu_parallel_worker_group_list groups;
 	struct _starpu_parallel_worker_parameters *params;
 };
 
@@ -60,15 +69,6 @@ struct _starpu_parallel_worker_parameters
 	int type;
 	unsigned awake_workers;
 };
-
-LIST_TYPE(_starpu_parallel_worker_group,
-	unsigned id;
-	hwloc_obj_t group_obj;
-	int nparallel_workers;
-	struct _starpu_parallel_worker_list *parallel_workers;
-	struct starpu_parallel_worker_config *parent;
-	struct _starpu_parallel_worker_parameters *params;
-)
 
 LIST_TYPE(_starpu_parallel_worker,
 	unsigned id;
