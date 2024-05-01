@@ -203,7 +203,7 @@ struct starpu_parallel_worker_config *_starpu_parallel_worker_init_varg(hwloc_ob
 				_starpu_parallel_worker_group_list_push_back(&machine->groups, group);
 			}
 			_starpu_parallel_worker_init(parallel_worker, group);
-			_starpu_parallel_worker_list_push_back(group->parallel_workers, parallel_worker);
+			_starpu_parallel_worker_list_push_back(&group->parallel_workers, parallel_worker);
 			machine->params = parallel_worker->params;
 		}
 		else if (arg_type == STARPU_PARALLEL_WORKER_NCORES)
@@ -215,7 +215,7 @@ struct starpu_parallel_worker_config *_starpu_parallel_worker_init_varg(hwloc_ob
 				_starpu_parallel_worker_group_init(group, machine);
 				_starpu_parallel_worker_group_list_push_back(&machine->groups, group);
 			}
-			struct _starpu_parallel_worker *parallel_worker =_starpu_parallel_worker_list_back(group->parallel_workers);
+			struct _starpu_parallel_worker *parallel_worker =_starpu_parallel_worker_list_back(&group->parallel_workers);
 			parallel_worker->ncores = va_arg(varg_list, unsigned);
 		}
 		else
@@ -301,8 +301,8 @@ int starpu_parallel_worker_print(struct starpu_parallel_worker_config *parallel_
 		     group != _starpu_parallel_worker_group_list_end(&parallel_workers->groups);
 		     group = _starpu_parallel_worker_group_list_next(group))
 		{
-			for (parallel_worker = _starpu_parallel_worker_list_begin(group->parallel_workers);
-			     parallel_worker != _starpu_parallel_worker_list_end(group->parallel_workers);
+			for (parallel_worker = _starpu_parallel_worker_list_begin(&group->parallel_workers);
+			     parallel_worker != _starpu_parallel_worker_list_end(&group->parallel_workers);
 			     parallel_worker = _starpu_parallel_worker_list_next(parallel_worker))
 			{
 				printf("Parallel worker %d contains the following logical indexes:\n\t", cnt);
@@ -340,8 +340,8 @@ int _starpu_parallel_worker_create(struct _starpu_parallel_worker *parallel_work
 int _starpu_parallel_worker_group_create(struct _starpu_parallel_worker_group *group)
 {
 	struct _starpu_parallel_worker *c;
-	for (c = _starpu_parallel_worker_list_begin(group->parallel_workers) ;
-	     c != _starpu_parallel_worker_list_end(group->parallel_workers) ;
+	for (c = _starpu_parallel_worker_list_begin(&group->parallel_workers) ;
+	     c != _starpu_parallel_worker_list_end(&group->parallel_workers) ;
 	     c = _starpu_parallel_worker_list_next(c))
 	{
 		if (c->ncores == 0)
@@ -364,8 +364,8 @@ void _starpu_parallel_workers_set_nesting(struct starpu_parallel_worker_config *
 	     g != _starpu_parallel_worker_group_list_end(&m->groups) ;
 	     g = _starpu_parallel_worker_group_list_next(g))
 	{
-		for (c = _starpu_parallel_worker_list_begin(g->parallel_workers) ;
-		     c != _starpu_parallel_worker_list_end(g->parallel_workers) ;
+		for (c = _starpu_parallel_worker_list_begin(&g->parallel_workers) ;
+		     c != _starpu_parallel_worker_list_end(&g->parallel_workers) ;
 		     c = _starpu_parallel_worker_list_next(c))
 			_starpu_get_sched_ctx_struct(c->id)->nesting_sched_ctx = m->id;
 	}
@@ -398,7 +398,7 @@ void _starpu_parallel_worker_group_init(struct _starpu_parallel_worker_group *gr
 {
 	group->id = 0;
 	group->nparallel_workers = 0;
-	group->parallel_workers = _starpu_parallel_worker_list_new();
+	_starpu_parallel_worker_list_init(&group->parallel_workers);
 	group->parent = parent;
 	_STARPU_MALLOC(group->params, sizeof(struct _starpu_parallel_worker_parameters));
 	_starpu_parallel_worker_copy_parameters(parent->params, group->params);
@@ -438,7 +438,7 @@ int _starpu_parallel_worker_remove(struct _starpu_parallel_worker_list *parallel
 
 int _starpu_parallel_worker_group_remove(struct _starpu_parallel_worker_group_list *group_list, struct _starpu_parallel_worker_group *group)
 {
-	struct _starpu_parallel_worker_list *parallel_worker_list = group->parallel_workers;
+	struct _starpu_parallel_worker_list *parallel_worker_list = &group->parallel_workers;
 	struct _starpu_parallel_worker *c = _starpu_parallel_worker_list_begin(parallel_worker_list);
 	while (c != _starpu_parallel_worker_list_end(parallel_worker_list))
 	{
@@ -446,7 +446,6 @@ int _starpu_parallel_worker_group_remove(struct _starpu_parallel_worker_group_li
 		c = _starpu_parallel_worker_list_next(c);
 		_starpu_parallel_worker_remove(parallel_worker_list, tmp);
 	}
-	_starpu_parallel_worker_list_delete(parallel_worker_list);
 
 	free(group->params);
 	_starpu_parallel_worker_group_list_erase(group_list, group);
@@ -673,8 +672,8 @@ void _starpu_parallel_worker(struct _starpu_parallel_worker_group *group)
 
 	/* Preset parallel_workers */
 	avail_pus = npus;
-	for (parallel_worker=_starpu_parallel_worker_list_begin(group->parallel_workers);
-	     parallel_worker!=_starpu_parallel_worker_list_end(group->parallel_workers);
+	for (parallel_worker=_starpu_parallel_worker_list_begin(&group->parallel_workers);
+	     parallel_worker!=_starpu_parallel_worker_list_end(&group->parallel_workers);
 	     parallel_worker=_starpu_parallel_worker_list_next(parallel_worker))
 	{
 		if (parallel_worker->ncores > avail_pus)
@@ -699,7 +698,7 @@ void _starpu_parallel_worker(struct _starpu_parallel_worker_group *group)
 		{
 			parallel_worker = _starpu_parallel_worker_new();
 			_starpu_parallel_worker_init(parallel_worker, group);
-			_starpu_parallel_worker_list_push_back(group->parallel_workers, parallel_worker);
+			_starpu_parallel_worker_list_push_back(&group->parallel_workers, parallel_worker);
 		}
 
 		if (parallel_worker->ncores != 0 && parallel_worker->ncores > avail_pus)
@@ -723,7 +722,7 @@ void _starpu_parallel_worker(struct _starpu_parallel_worker_group *group)
 	}
 	group->nparallel_workers += npreset;
 
-	parallel_worker = _starpu_parallel_worker_list_begin(group->parallel_workers);
+	parallel_worker = _starpu_parallel_worker_list_begin(&group->parallel_workers);
 	int count = 0;
 	static int starpu_parallel_worker_warned = 0;
 
