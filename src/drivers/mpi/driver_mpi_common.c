@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -39,7 +39,7 @@ LIST_TYPE(_starpu_mpi_ms_event_request,
 struct _starpu_mpi_ms_async_event
 {
 	int is_sender;
-	struct _starpu_mpi_ms_event_request_list * requests;
+	struct _starpu_mpi_ms_event_request_list requests;
 };
 
 static inline struct _starpu_mpi_ms_async_event *_starpu_mpi_ms_async_event(union _starpu_async_channel_event *_event)
@@ -277,11 +277,10 @@ static void __starpu_mpi_common_send_to_device(const struct _starpu_mp_node *nod
 
 		/* call by sink, we need to initialize some parts, for host it's done in data_request.c */
 		if (channel->node_ops == NULL)
-			mpi_ms_event->requests = NULL;
-
-		/* Initialize the list */
-		if (mpi_ms_event->requests == NULL)
-			mpi_ms_event->requests = _starpu_mpi_ms_event_request_list_new();
+		{
+			/* Initialize the list */
+			_starpu_mpi_ms_event_request_list_init(&mpi_ms_event->requests);
+		}
 
 		struct _starpu_mpi_ms_event_request * req = _starpu_mpi_ms_event_request_new();
 
@@ -290,7 +289,7 @@ static void __starpu_mpi_common_send_to_device(const struct _starpu_mp_node *nod
 		channel->starpu_mp_common_finished_receiver++;
 		channel->starpu_mp_common_finished_sender++;
 
-		_starpu_mpi_ms_event_request_list_push_back(mpi_ms_event->requests, req);
+		_starpu_mpi_ms_event_request_list_push_back(&mpi_ms_event->requests, req);
 	}
 	else
 	{
@@ -327,11 +326,10 @@ static void __starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *n
 
 		/* call by sink, we need to initialize some parts, for host it's done in data_request.c */
 		if (channel->node_ops == NULL)
-			mpi_ms_event->requests = NULL;
-
-		/* Initialize the list */
-		if (mpi_ms_event->requests == NULL)
-			mpi_ms_event->requests = _starpu_mpi_ms_event_request_list_new();
+		{
+			/* Initialize the list */
+			_starpu_mpi_ms_event_request_list_init(&mpi_ms_event->requests);
+		}
 
 		struct _starpu_mpi_ms_event_request * req = _starpu_mpi_ms_event_request_new();
 
@@ -341,7 +339,7 @@ static void __starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *n
 		channel->starpu_mp_common_finished_receiver++;
 		channel->starpu_mp_common_finished_sender++;
 
-		_starpu_mpi_ms_event_request_list_push_back(mpi_ms_event->requests, req);
+		_starpu_mpi_ms_event_request_list_push_back(&mpi_ms_event->requests, req);
 	}
 	else
 	{
@@ -393,38 +391,28 @@ static void _starpu_mpi_common_polling_node(struct _starpu_mp_node * node)
 unsigned int _starpu_mpi_common_test_event(struct _starpu_async_channel * event)
 {
 	struct _starpu_mpi_ms_async_event *mpi_ms_event = _starpu_mpi_ms_async_event(&event->event);
-	if (mpi_ms_event->requests != NULL && !_starpu_mpi_ms_event_request_list_empty(mpi_ms_event->requests))
+
+	struct _starpu_mpi_ms_event_request * req = _starpu_mpi_ms_event_request_list_begin(&mpi_ms_event->requests);
+	struct _starpu_mpi_ms_event_request * req_next;
+
+	while (req != _starpu_mpi_ms_event_request_list_end(&mpi_ms_event->requests))
 	{
-		struct _starpu_mpi_ms_event_request * req = _starpu_mpi_ms_event_request_list_begin(mpi_ms_event->requests);
-		struct _starpu_mpi_ms_event_request * req_next;
+		req_next = _starpu_mpi_ms_event_request_list_next(req);
 
-		while (req != _starpu_mpi_ms_event_request_list_end(mpi_ms_event->requests))
+		int flag = 0;
+		MPI_Test(&req->request, &flag, MPI_STATUS_IGNORE);
+		if (flag)
 		{
-			req_next = _starpu_mpi_ms_event_request_list_next(req);
+			_starpu_mpi_ms_event_request_list_erase(&mpi_ms_event->requests, req);
+			_starpu_mpi_ms_event_request_delete(req);
 
-			int flag = 0;
-			MPI_Test(&req->request, &flag, MPI_STATUS_IGNORE);
-			if (flag)
-			{
-				_starpu_mpi_ms_event_request_list_erase(mpi_ms_event->requests, req);
-				_starpu_mpi_ms_event_request_delete(req);
+			if (mpi_ms_event->is_sender)
+				event->starpu_mp_common_finished_sender--;
+			else
+				event->starpu_mp_common_finished_receiver--;
 
-				if (mpi_ms_event->is_sender)
-					event->starpu_mp_common_finished_sender--;
-				else
-					event->starpu_mp_common_finished_receiver--;
-
-			}
-			req = req_next;
 		}
-
-		/* When the list is empty, we finished to wait each request */
-		if (_starpu_mpi_ms_event_request_list_empty(mpi_ms_event->requests))
-		{
-			/* Destroy the list */
-			_starpu_mpi_ms_event_request_list_delete(mpi_ms_event->requests);
-			mpi_ms_event->requests = NULL;
-		}
+		req = req_next;
 	}
 
 	_starpu_mpi_common_polling_node(event->polling_node_sender);
@@ -439,34 +427,28 @@ unsigned int _starpu_mpi_common_test_event(struct _starpu_async_channel * event)
 void _starpu_mpi_common_wait_request_completion(struct _starpu_async_channel * event)
 {
 	struct _starpu_mpi_ms_async_event *mpi_ms_event = _starpu_mpi_ms_async_event(&event->event);
-	if (mpi_ms_event->requests != NULL && !_starpu_mpi_ms_event_request_list_empty(mpi_ms_event->requests))
+
+	struct _starpu_mpi_ms_event_request * req = _starpu_mpi_ms_event_request_list_begin(&mpi_ms_event->requests);
+	struct _starpu_mpi_ms_event_request * req_next;
+
+	while (req != _starpu_mpi_ms_event_request_list_end(&mpi_ms_event->requests))
 	{
-		struct _starpu_mpi_ms_event_request * req = _starpu_mpi_ms_event_request_list_begin(mpi_ms_event->requests);
-		struct _starpu_mpi_ms_event_request * req_next;
+		req_next = _starpu_mpi_ms_event_request_list_next(req);
 
-		while (req != _starpu_mpi_ms_event_request_list_end(mpi_ms_event->requests))
-		{
-			req_next = _starpu_mpi_ms_event_request_list_next(req);
+		MPI_Wait(&req->request, MPI_STATUS_IGNORE);
+		_starpu_mpi_ms_event_request_list_erase(&mpi_ms_event->requests, req);
 
-			MPI_Wait(&req->request, MPI_STATUS_IGNORE);
-			_starpu_mpi_ms_event_request_list_erase(mpi_ms_event->requests, req);
+		_starpu_mpi_ms_event_request_delete(req);
+		req = req_next;
 
-			_starpu_mpi_ms_event_request_delete(req);
-			req = req_next;
+		if (mpi_ms_event->is_sender)
+			event->starpu_mp_common_finished_sender--;
+		else
+			event->starpu_mp_common_finished_receiver--;
 
-			if (mpi_ms_event->is_sender)
-				event->starpu_mp_common_finished_sender--;
-			else
-				event->starpu_mp_common_finished_receiver--;
-
-		}
-
-		STARPU_ASSERT_MSG(_starpu_mpi_ms_event_request_list_empty(mpi_ms_event->requests), "MPI Request list is not empty after a wait_event !");
-
-		/* Destroy the list */
-		_starpu_mpi_ms_event_request_list_delete(mpi_ms_event->requests);
-		mpi_ms_event->requests = NULL;
 	}
+
+	STARPU_ASSERT_MSG(_starpu_mpi_ms_event_request_list_empty(&mpi_ms_event->requests), "MPI Request list is not empty after a wait_event !");
 
 	//incoming ack from devices
 	while(event->starpu_mp_common_finished_sender > 0 || event->starpu_mp_common_finished_receiver > 0)
