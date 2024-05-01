@@ -40,7 +40,9 @@
  *   * Suppress a cell
  *   void		FOO_delete(struct FOO*);
  *
- *   * Create a list (initially empty)
+ *   * Create a list (initially empty). Most often you do *not* want to use this,
+ *     because you can rather just use FOO_list_init on a struct FOO_list that you
+ *     have already allocated in your own structure.
  *   struct FOO_list*	FOO_list_new(void);
  *
  *   * Initializes a list (initially empty)
