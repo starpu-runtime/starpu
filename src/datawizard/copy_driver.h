@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022, 2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2021       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -53,7 +53,7 @@ struct _starpu_disk_event
 {
 	unsigned memory_node;
 	unsigned node;
-	struct _starpu_disk_backend_event_list * requests;
+	struct _starpu_disk_backend_event_list requests;
 
 	void * ptr;
 	size_t size;
@@ -64,7 +64,7 @@ struct _starpu_disk_event
  * transfer has terminated or not */
 union _starpu_async_channel_event
 {
-	char data[40];
+	char data[48];
 };
 
 struct _starpu_async_channel

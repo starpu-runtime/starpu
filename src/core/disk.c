@@ -60,16 +60,11 @@ static void add_async_event(struct _starpu_async_channel * channel, void * event
 		return;
 
 	struct _starpu_disk_event *disk_event = _starpu_disk_get_event(&channel->event);
-	if (disk_event->requests == NULL)
-	{
-		disk_event->requests = _starpu_disk_backend_event_list_new();
-	}
-
 	struct _starpu_disk_backend_event * backend_event = _starpu_disk_backend_event_new();
 	backend_event->backend_event = event;
 
 	/* Store event at the end of the list */
-	_starpu_disk_backend_event_list_push_back(disk_event->requests, backend_event);
+	_starpu_disk_backend_event_list_push_back(&disk_event->requests, backend_event);
 }
 
 int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, starpu_ssize_t size)
@@ -392,30 +387,23 @@ void starpu_disk_wait_request(struct _starpu_async_channel *async_channel)
 	int devid = starpu_memory_node_get_devid(node);
 	STARPU_ASSERT(devid < STARPU_NMAXDEVS);
 
-	if (disk_event->requests != NULL && !_starpu_disk_backend_event_list_empty(disk_event->requests))
+	struct _starpu_disk_backend_event * event = _starpu_disk_backend_event_list_begin(&disk_event->requests);
+	struct _starpu_disk_backend_event * next;
+
+	/* Wait all events in the list and remove them */
+	while (event != _starpu_disk_backend_event_list_end(&disk_event->requests))
 	{
-		struct _starpu_disk_backend_event * event = _starpu_disk_backend_event_list_begin(disk_event->requests);
-		struct _starpu_disk_backend_event * next;
+		next = _starpu_disk_backend_event_list_next(event);
 
-		/* Wait all events in the list and remove them */
-		while (event != _starpu_disk_backend_event_list_end(disk_event->requests))
-		{
-			next = _starpu_disk_backend_event_list_next(event);
+		disk_register_list[devid]->functions->wait_request(event->backend_event);
 
-			disk_register_list[devid]->functions->wait_request(event->backend_event);
+		disk_register_list[devid]->functions->free_request(event->backend_event);
 
-			disk_register_list[devid]->functions->free_request(event->backend_event);
+		_starpu_disk_backend_event_list_erase(&disk_event->requests, event);
 
-			_starpu_disk_backend_event_list_erase(disk_event->requests, event);
+		_starpu_disk_backend_event_delete(event);
 
-			_starpu_disk_backend_event_delete(event);
-
-			event = next;
-		}
-
-		/* Remove the list because it doesn't contain any event */
-		_starpu_disk_backend_event_list_delete(disk_event->requests);
-		disk_event->requests = NULL;
+		event = next;
 	}
 }
 
@@ -426,39 +414,29 @@ int starpu_disk_test_request(struct _starpu_async_channel *async_channel)
 	int devid = starpu_memory_node_get_devid(node);
 	STARPU_ASSERT(devid < STARPU_NMAXDEVS);
 
-	if (disk_event->requests != NULL && !_starpu_disk_backend_event_list_empty(disk_event->requests))
+	struct _starpu_disk_backend_event * event = _starpu_disk_backend_event_list_begin(&disk_event->requests);
+	struct _starpu_disk_backend_event * next;
+
+	/* Wait all events in the list and remove them */
+	while (event != _starpu_disk_backend_event_list_end(&disk_event->requests))
 	{
-		struct _starpu_disk_backend_event * event = _starpu_disk_backend_event_list_begin(disk_event->requests);
-		struct _starpu_disk_backend_event * next;
+		next = _starpu_disk_backend_event_list_next(event);
 
-		/* Wait all events in the list and remove them */
-		while (event != _starpu_disk_backend_event_list_end(disk_event->requests))
-		{
-			next = _starpu_disk_backend_event_list_next(event);
+		int res = disk_register_list[devid]->functions->test_request(event->backend_event);
 
-			int res = disk_register_list[devid]->functions->test_request(event->backend_event);
+			if (res)
+			{
+				disk_register_list[devid]->functions->free_request(event->backend_event);
 
-				if (res)
-				{
-					disk_register_list[devid]->functions->free_request(event->backend_event);
+				_starpu_disk_backend_event_list_erase(&disk_event->requests, event);
 
-					_starpu_disk_backend_event_list_erase(disk_event->requests, event);
+				_starpu_disk_backend_event_delete(event);
+			}
 
-					_starpu_disk_backend_event_delete(event);
-				}
-
-			event = next;
-		}
-
-		/* Remove the list because it doesn't contain any event */
-		if (_starpu_disk_backend_event_list_empty(disk_event->requests))
-		{
-			_starpu_disk_backend_event_list_delete(disk_event->requests);
-			disk_event->requests = NULL;
-		}
+		event = next;
 	}
 
-	return disk_event->requests == NULL;
+	return _starpu_disk_backend_event_list_empty(&disk_event->requests);
 }
 
 void starpu_disk_free_request(struct _starpu_async_channel *async_channe STARPU_ATTRIBUTE_UNUSED)

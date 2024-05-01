@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -116,7 +116,7 @@ int _starpu_disk_copy_interface_from_disk_to_cpu(starpu_data_handle_t handle, vo
 	if (req && !starpu_asynchronous_copy_disabled())
 	{
 		req->async_channel.node_ops = &_starpu_driver_disk_node_ops;
-		disk_event->requests = NULL;
+		_starpu_disk_backend_event_list_init(&disk_event->requests);
 		disk_event->ptr = NULL;
 		disk_event->handle = NULL;
 	}
@@ -162,7 +162,7 @@ int _starpu_disk_copy_interface_from_disk_to_disk(starpu_data_handle_t handle, v
 	{
 		struct _starpu_disk_event *disk_event = _starpu_disk_get_event(&req->async_channel.event);
 		req->async_channel.node_ops = &_starpu_driver_disk_node_ops;
-		disk_event->requests = NULL;
+		_starpu_disk_backend_event_list_init(&disk_event->requests);
 		disk_event->ptr = NULL;
 		disk_event->handle = NULL;
 	}
@@ -183,7 +183,7 @@ int _starpu_disk_copy_interface_from_cpu_to_disk(starpu_data_handle_t handle, vo
 	if (req && !starpu_asynchronous_copy_disabled())
 	{
 		req->async_channel.node_ops = &_starpu_driver_disk_node_ops;
-		disk_event->requests = NULL;
+		_starpu_disk_backend_event_list_init(&disk_event->requests);
 		disk_event->ptr = NULL;
 		disk_event->handle = NULL;
 	}
