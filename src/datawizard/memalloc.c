@@ -1219,7 +1219,7 @@ void starpu_memchunk_tidy(unsigned node)
 	if (!can_evict(node))
 		return;
 
-	// TODO: ideally we would use the Belady order here as well.
+	// TODO: ideally we would use the Belady order from the victim selector here as well.
 	if (node_struct->mc_clean_nb < (node_struct->mc_nb * minimum_clean_p) / 100)
 	{
 		struct _starpu_mem_chunk *mc, *orig_next_mc, *next_mc;
