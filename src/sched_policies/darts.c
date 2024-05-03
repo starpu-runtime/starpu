@@ -568,7 +568,6 @@ static void initialize_task_data_gpu_single_task_no_dependencies(struct starpu_t
 			unsigned j;
 			for (j = 0; j < STARPU_TASK_GET_NBUFFERS(task); j++)
 			{
-
 				access_mode_is_W = false;
 				if ((STARPU_TASK_GET_MODE(task, j) & STARPU_RW) == STARPU_W)
 				{
@@ -602,24 +601,21 @@ static void initialize_task_data_gpu_single_task_no_dependencies(struct starpu_t
 						}
 					}
 				}
-				else
+				else if (access_mode_is_W == false)
 				{
 					/* Unregister fix */
 					_starpu_data_set_unregister_hook(STARPU_TASK_GET_HANDLE(task, j), unregister_data_all_pu);
-					if (access_mode_is_W == false)
+					struct _starpu_darts_gpu_data_not_used *e = _starpu_darts_gpu_data_not_used_new();
+					e->D = STARPU_TASK_GET_HANDLE(task, j);
+					hud->data_not_used[i] = e;
+					hud->is_present_in_data_not_used_yet[i] = 1;
+					if (data_order == 1)
 					{
-						struct _starpu_darts_gpu_data_not_used *e = _starpu_darts_gpu_data_not_used_new();
-						e->D = STARPU_TASK_GET_HANDLE(task, j);
-						hud->data_not_used[i] = e;
-						hud->is_present_in_data_not_used_yet[i] = 1;
-						if (data_order == 1)
-						{
-							_starpu_darts_gpu_data_not_used_list_push_back(tab_gpu_planned_task[i].new_gpu_data, e);
-						}
-						else
-						{
-							_starpu_darts_gpu_data_not_used_list_push_back(tab_gpu_planned_task[i].gpu_data, e);
-						}
+						_starpu_darts_gpu_data_not_used_list_push_back(tab_gpu_planned_task[i].new_gpu_data, e);
+					}
+					else
+					{
+						_starpu_darts_gpu_data_not_used_list_push_back(tab_gpu_planned_task[i].gpu_data, e);
 					}
 				}
 			}
@@ -709,7 +705,7 @@ static void initialize_task_data_gpu_single_task_dependencies(struct starpu_task
 	for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 	{
 		STARPU_IGNORE_UTILITIES_HANDLES(task, i);
-
+		
 		access_mode_is_W = false;
 		if ((STARPU_TASK_GET_MODE(task, i) & STARPU_RW) == STARPU_W)
 		{
@@ -805,7 +801,6 @@ static void initialize_task_data_gpu_single_task_dependencies(struct starpu_task
 			else
 			{
 				hud->sum_remaining_task_expected_length += starpu_task_expected_length(task, perf_arch, 0);
-
 
 				int j;
 				for (j = 0; j < _nb_gpus; j++)
@@ -1029,7 +1024,7 @@ static int darts_push_task(struct starpu_sched_component *component, struct star
 	{
 		round_robin_free_task++;
 	}
-
+	
 	int j;
 	for (j = 0; j < _nb_gpus; j++)
 	{
@@ -1051,11 +1046,6 @@ static int darts_push_task(struct starpu_sched_component *component, struct star
 		STARPU_ASSERT(STARPU_SCHED_COMPONENT_IS_HOMOGENEOUS(to));
 		unsigned workerid = starpu_bitmap_first(&to->workers_in_ctx);
 
-		/* TODO: I have no way here to make a correlation between the planned task list I'm looking at
-		 * and the corresponding worker_id. So I just put the task in planned task anyway and when I pull task from
-		 * planned task to pulled task in get_task_to_return, I check if it is possible and if not I push the task
-		 * in the main task list. Because we are here in push_task, this sould never happen twice for a
-		 * same task. */
 		if (is_my_task_free(gpu_looked_at, task) && starpu_worker_can_execute_task_first_impl(workerid, task, NULL))
 		{
 			_STARPU_SCHED_PRINT("Task %p is free from push_task\n", task);
@@ -1895,20 +1885,16 @@ static void _starpu_darts_scheduling_3D_matrix(struct starpu_task_list *main_tas
 				STARPU_IGNORE_UTILITIES_HANDLES(task, x);
 				if (!_starpu_darts_gpu_data_not_used_list_empty(g->gpu_data))
 				{
-					struct _starpu_darts_gpu_data_not_used *e;
-					for (e = _starpu_darts_gpu_data_not_used_list_begin(g->gpu_data); e != _starpu_darts_gpu_data_not_used_list_end(g->gpu_data); e = _starpu_darts_gpu_data_not_used_list_next(e))
+					hud = STARPU_TASK_GET_HANDLE(task, x)->user_data;
+					if (hud->data_not_used[current_gpu])
 					{
-						if (e->D == STARPU_TASK_GET_HANDLE(task, x))
-						{
-							_starpu_darts_gpu_data_not_used_list_erase(g->gpu_data, e);
-							hud = e->D->user_data;
-							_STARPU_SCHED_PRINT("%p gets 0 at is_present_in_data_not_used_yet GPU is %d\n", e->D, current_gpu);
-							hud->is_present_in_data_not_used_yet[current_gpu] = 0;
+						_starpu_darts_gpu_data_not_used_list_erase(g->gpu_data, hud->data_not_used[current_gpu]); 
+						_STARPU_SCHED_PRINT("%p gets 0 at is_present_in_data_not_used_yet GPU is %d\n", e->D, current_gpu);
+						hud->is_present_in_data_not_used_yet[current_gpu] = 0;
 
-							_starpu_darts_gpu_data_not_used_delete(e);
-							hud->data_not_used[current_gpu] = NULL;
-							break;
-						}
+						_starpu_darts_gpu_data_not_used_delete(hud->data_not_used[current_gpu]);
+						hud->data_not_used[current_gpu] = NULL;
+						break;
 					}
 				}
 			}
@@ -1977,7 +1963,7 @@ static void _starpu_darts_scheduling_3D_matrix(struct starpu_task_list *main_tas
 		g->number_data_selection++;
 #endif
 
-		int i=0;
+		int i = 0;
 		struct _starpu_darts_gpu_data_not_used *e;
 		for (e = _starpu_darts_gpu_data_not_used_list_begin(g->gpu_data); e != _starpu_darts_gpu_data_not_used_list_end(g->gpu_data) && i != choose_best_data_threshold; e = _starpu_darts_gpu_data_not_used_list_next(e), i++)
 		{
@@ -2279,21 +2265,14 @@ static void _starpu_darts_scheduling_3D_matrix(struct starpu_task_list *main_tas
 		/* I erase the data from the list of data not used. */
 		if (choose_best_data_from == 0)
 		{
-			struct _starpu_darts_gpu_data_not_used *e;
-			e = _starpu_darts_gpu_data_not_used_list_begin(g->gpu_data);
-			while (e->D != handle_popped)
-			{
-				  e = _starpu_darts_gpu_data_not_used_list_next(e);
-			}
+			hud = handle_popped->user_data;
 
-			_starpu_darts_gpu_data_not_used_list_erase(g->gpu_data, e);
-			hud = e->D->user_data;
+			_starpu_darts_gpu_data_not_used_list_erase(g->gpu_data, hud->data_not_used[current_gpu]);
 			hud->is_present_in_data_not_used_yet[current_gpu] = 0;
 
-			_starpu_darts_gpu_data_not_used_delete(e);
+			_starpu_darts_gpu_data_not_used_delete(hud->data_not_used[current_gpu]);
 			hud->data_not_used[current_gpu] = NULL;
 
-			_STARPU_SCHED_PRINT("Erased data %p\n", e->D);
 			print_data_not_used_yet_one_gpu(g->gpu_data, current_gpu);
 		}
 
@@ -2395,21 +2374,19 @@ static void _starpu_darts_scheduling_3D_matrix(struct starpu_task_list *main_tas
 				if (!_starpu_darts_gpu_data_not_used_list_empty(g->gpu_data)) /* TODO : utile ? */
 				{
 					struct _starpu_darts_gpu_data_not_used *e1;
-					for (e1 = _starpu_darts_gpu_data_not_used_list_begin(g->gpu_data); e1 != _starpu_darts_gpu_data_not_used_list_end(g->gpu_data); e1 = _starpu_darts_gpu_data_not_used_list_next(e1))
+					hud = STARPU_TASK_GET_HANDLE(best_1_from_free_task, x)->user_data;
+					//printf("In 1 from free with %p\n", hud->data_not_used[current_gpu]);
+					if (hud->data_not_used[current_gpu])
 					{
-						if (e1->D == STARPU_TASK_GET_HANDLE(best_1_from_free_task, x))
-						{
-							_starpu_darts_gpu_data_not_used_list_erase(g->gpu_data, e1);
-							hud = e1->D->user_data;
-							_STARPU_SCHED_PRINT("%p gets 0 at is_present_in_data_not_used_yet GPU is %d\n", e1->D, current_gpu);
+						_starpu_darts_gpu_data_not_used_list_erase(g->gpu_data, hud->data_not_used[current_gpu]);
+						_STARPU_SCHED_PRINT("%p gets 0 at is_present_in_data_not_used_yet GPU is %d\n", e1->D, current_gpu);
 
-							hud->is_present_in_data_not_used_yet[current_gpu] = 0;
+						hud->is_present_in_data_not_used_yet[current_gpu] = 0;
 
-							_starpu_darts_gpu_data_not_used_delete(e1);
-							hud->data_not_used[current_gpu] = NULL;
+						_starpu_darts_gpu_data_not_used_delete(hud->data_not_used[current_gpu]);
+						hud->data_not_used[current_gpu] = NULL;
 
-							break;
-						}
+						break;
 					}
 				}
 			}
@@ -2484,7 +2461,7 @@ static void _starpu_darts_scheduling_3D_matrix(struct starpu_task_list *main_tas
 					return;
 				}
 			}
-
+			
 			_STARPU_SCHED_PRINT("\"Random\" task for GPU %d is %p.\n", current_gpu, task);
 		}
 		else
@@ -2502,20 +2479,16 @@ static void _starpu_darts_scheduling_3D_matrix(struct starpu_task_list *main_tas
 				STARPU_IGNORE_UTILITIES_HANDLES(task, x);
 				if (!_starpu_darts_gpu_data_not_used_list_empty(g->gpu_data))
 				{
-					struct _starpu_darts_gpu_data_not_used *e;
-					for (e = _starpu_darts_gpu_data_not_used_list_begin(g->gpu_data); e != _starpu_darts_gpu_data_not_used_list_end(g->gpu_data); e = _starpu_darts_gpu_data_not_used_list_next(e))
+					hud = STARPU_TASK_GET_HANDLE(task, x)->user_data;
+					if (hud->data_not_used[current_gpu])
 					{
-						if (e->D == STARPU_TASK_GET_HANDLE(task, x))
-						{
-							_starpu_darts_gpu_data_not_used_list_erase(g->gpu_data, e);
-							hud = e->D->user_data;
-							_STARPU_SCHED_PRINT("%p gets 0 at is_present_in_data_not_used_yet GPU is %d\n", e->D, current_gpu);
-							hud->is_present_in_data_not_used_yet[current_gpu] = 0;
+						_starpu_darts_gpu_data_not_used_list_erase(g->gpu_data, hud->data_not_used[current_gpu]);
+						_STARPU_SCHED_PRINT("%p gets 0 at is_present_in_data_not_used_yet GPU is %d\n", e->D, current_gpu);
+						hud->is_present_in_data_not_used_yet[current_gpu] = 0;
 
-							_starpu_darts_gpu_data_not_used_delete(e);
-							hud->data_not_used[current_gpu] = NULL;
-							break;
-						}
+						_starpu_darts_gpu_data_not_used_delete(hud->data_not_used[current_gpu]);
+						hud->data_not_used[current_gpu] = NULL;
+						break;
 					}
 				}
 			}
@@ -2783,10 +2756,6 @@ static struct starpu_task *darts_pull_task(struct starpu_sched_component *compon
 	int current_gpu = get_gpu(starpu_worker_get_memory_node(workerid)); /* Index in tabs of structs */
 
 	struct starpu_task *task = get_task_to_return_pull_task_darts(current_gpu, &data->main_task_list, workerid);
-	/* if (task != NULL) {
-	       printf("CPU %d GPU %d OPENCL %d\n", starpu_worker_get_by_type(STARPU_CPU_WORKER, 0), starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0), starpu_worker_get_by_type(STARPU_OPENCL_WORKER, 0)); fflush(stdout);
-		printf("Pulled %stask %p on PU %d.\n", task?"":"NO ", task, current_gpu); fflush(stdout);
-	} */
 	_STARPU_SCHED_PRINT("Pulled %stask %p on PU %d.\n", task?"":"NO ", task, current_gpu);
 	_LINEAR_MUTEX_UNLOCK();
 	return task;

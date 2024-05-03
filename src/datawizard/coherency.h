@@ -140,6 +140,10 @@ extern int _starpu_has_not_important_data;
 
 typedef void (*_starpu_data_handle_unregister_hook)(starpu_data_handle_t);
 
+LIST_TYPE(_starpu_unregister_hook_func,
+	  _starpu_data_handle_unregister_hook hook_func;
+);
+
 /** This is initialized in both _starpu_register_new_data and _starpu_data_partition */
 struct _starpu_data_state
 {
@@ -324,7 +328,8 @@ struct _starpu_data_state
 	unsigned int mf_node; //XXX
 
 	/** hook to be called when unregistering the data */
-	_starpu_data_handle_unregister_hook unregister_hook;
+	/*_starpu_data_handle_unregister_hook unregister_hook;*/
+	struct _starpu_unregister_hook_func_list unregister_hook;
 
 	struct starpu_arbiter *arbiter;
 	/** This is protected by the arbiter mutex */

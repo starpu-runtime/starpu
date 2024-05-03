@@ -425,10 +425,11 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 
 		sizes[child] = _starpu_data_get_alloc_size(child_handle);
 
-		if (child_handle->unregister_hook)
-		{
-			child_handle->unregister_hook(child_handle);
-		}
+		struct _starpu_unregister_hook_func *a;
+		for (a  = _starpu_unregister_hook_func_list_begin(&child_handle->unregister_hook);
+		     a != _starpu_unregister_hook_func_list_end(&child_handle->unregister_hook);
+		     a  = _starpu_unregister_hook_func_list_next(a))
+			a->hook_func(child_handle);
 
 		if (child_handle->per_worker)
 		{

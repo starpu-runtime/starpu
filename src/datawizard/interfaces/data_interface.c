@@ -374,7 +374,7 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 
 	handle->mf_node = mf_node;
 
-	//handle->unregister_hook = NULL;
+	_starpu_unregister_hook_func_list_init0(&handle->unregister_hook);
 
 	if (_starpu_global_arbiter)
 		/* Just for testing purpose */
@@ -615,8 +615,9 @@ static void _starpu_data_unregister_fetch_data_callback(void *_arg)
 
 void _starpu_data_set_unregister_hook(starpu_data_handle_t handle, _starpu_data_handle_unregister_hook func)
 {
-	STARPU_ASSERT(handle->unregister_hook == NULL);
-	handle->unregister_hook = func;
+	struct _starpu_unregister_hook_func *new = _starpu_unregister_hook_func_new();
+	new->hook_func = func;
+	_starpu_unregister_hook_func_list_push_back(&handle->unregister_hook, new);
 }
 
 /*
@@ -812,11 +813,11 @@ retry_busy:
 	STARPU_PTHREAD_MUTEX_UNLOCK(&handle->busy_mutex);
 
 	/* Unregister MPI things after having waited for MPI reqs etc. to settle down */
-	if (handle->unregister_hook)
-	{
-		handle->unregister_hook(handle);
-		handle->unregister_hook = NULL;
-	}
+	struct _starpu_unregister_hook_func *a;
+	for (a  = _starpu_unregister_hook_func_list_begin(&handle->unregister_hook);
+	     a != _starpu_unregister_hook_func_list_end(&handle->unregister_hook);
+	     a  = _starpu_unregister_hook_func_list_next(a))
+		a->hook_func(handle);
 
 	/* Wait for finished requests to release the handle */
 	_starpu_spin_lock(&handle->header_lock);
