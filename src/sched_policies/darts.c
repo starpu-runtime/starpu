@@ -2874,14 +2874,13 @@ static starpu_data_handle_t _starpu_darts_least_used_data_on_planned_task(starpu
 	int min_nb_task_in_planned_task = INT_MAX;
 	starpu_data_handle_t returned_handle = NULL;
 
-	struct _starpu_darts_handle_user_data *hud = malloc(sizeof(struct _starpu_darts_handle_user_data));
 	int i;
 	for (i = 0; i < nb_data_on_node; i++)
 	{
 		STARPU_IGNORE_UTILITIES_HANDLES_FROM_DATA(data_tab[i]);
 		if (nb_task_in_pulled_task[i] == 0)
 		{
-			hud = data_tab[i]->user_data;
+			struct _starpu_darts_handle_user_data *hud = data_tab[i]->user_data;
 
 			if (hud->nb_task_in_planned_task[current_gpu] < min_nb_task_in_planned_task)
 			{
