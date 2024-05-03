@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2018       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -586,6 +586,9 @@ int starpu_free_flags(void *A, size_t dim, int flags)
 
 int _starpu_free_flags_on_node(unsigned dst_node, void *A, size_t dim, int flags)
 {
+	if (!A)
+		return 0;
+
 	if (dim == 0)
 		dim = 1;
 
