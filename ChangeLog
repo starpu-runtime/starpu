@@ -17,6 +17,9 @@
 StarPU 1.4.6
 ==============================================
 
+Small features:
+  * Add FXT option -use-task-color to propagate the specified task
+    color to the contexts
 
 StarPU 1.4.5
 ==============================================
@@ -44,10 +47,6 @@ Small features:
     starpu_bind_thread_on_main(), starpu_bind_thread_on_cpu(),
     and starpu_cpu_os_index()
   * New macro STARPU_CUSOLVER_REPORT_ERROR
-
-Small features:
-  * Add FXT option -use-task-color to propagate the specified task
-    color to the contexts
 
 StarPU 1.4.1
 ==============================================
