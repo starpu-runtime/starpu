@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -135,6 +135,7 @@ int starpu_malloc(void **A, size_t dim);
    Free memory which has previously been allocated with
    starpu_malloc(). This function is deprecated, one should use
    starpu_free_noflag().
+   The function does nothing if the pointer is \c NULL.
    See \ref DataManagementAllocation for more details.
 */
 int starpu_free(void *A) STARPU_DEPRECATED;
@@ -150,6 +151,7 @@ int starpu_malloc_flags(void **A, size_t dim, int flags);
    Free memory by specifying its size. The given flags should be
    consistent with the ones given to starpu_malloc_flags() when
    allocating the memory.
+   The function does nothing if the pointer is \c NULL.
    See \ref HowToLimitMemoryPerNode for more details.
 */
 int starpu_free_flags(void *A, size_t dim, int flags);
@@ -157,6 +159,7 @@ int starpu_free_flags(void *A, size_t dim, int flags);
 /**
    Free memory by specifying its size. Should be used for memory
    allocated with starpu_malloc().
+   The function does nothing if the pointer is \c NULL.
    See \ref DataManagementAllocation for more details.
 */
 int starpu_free_noflag(void *A, size_t dim);
