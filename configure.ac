@@ -1384,7 +1384,6 @@ if test x$enable_simgrid = xyes; then
 	enable_cuda=no
 fi
 
-#AC_MSG_CHECKING(whether CUDA is available)
 AC_ARG_WITH(cuda-dir,
 	[AS_HELP_STRING([--with-cuda-dir=<path>],
 	[specify CUDA installation directory])],
@@ -1412,21 +1411,49 @@ AC_ARG_WITH(cuda-lib-dir,
 		enable_cuda=yes
 	], [cuda_lib_dir=no])
 
+AC_ARG_WITH(cublas-dir,
+	[AS_HELP_STRING([--with-cublas-dir=<path>],
+	[specify CUBLAS installation directory])],
+	[
+		cublas_dir="$withval"
+		# in case this was not explicit yet
+		enable_cuda=yes
+	], cublas_dir=$cuda_dir)
+
+AC_ARG_WITH(cublas-include-dir,
+	[AS_HELP_STRING([--with-cublas-include-dir=<path>],
+	[specify where CUBLAS headers are installed])],
+	[
+		cublas_include_dir="$withval"
+		# in case this was not explicit yet
+		enable_cuda=yes
+	], [cublas_include_dir=$cuda_include_dir])
+
+AC_ARG_WITH(cublas-lib-dir,
+	[AS_HELP_STRING([--with-cublas-lib-dir=<path>],
+	[specify where CUBLAS libraries are installed])],
+	[
+		cublas_lib_dir="$withval"
+		# in case this was not explicit yet
+		enable_cuda=yes
+	], [cublas_lib_dir=$cublas_include_dir])
+
 AC_DEFUN([STARPU_CHECK_CUDA_L],
 [
     __cuda_L=$1
     SAVED_LDFLAGS="${LDFLAGS}"
     STARPU_CUDA_LDFLAGS="${__cuda_L}"
-    AC_MSG_CHECKING(whether CUDA library is available in $__cuda_L)
+    if test "$__cuda_L" = "" ; then
+        AC_MSG_CHECKING(whether CUDA library is available in default location)
+    else
+    	AC_MSG_CHECKING(whether CUDA library is available in $__cuda_L)
+    fi
     AC_MSG_RESULT()
     LDFLAGS="${SAVED_LDFLAGS} ${__cuda_L}"
     AC_HAVE_LIBRARY([cudart],[have_valid_cuda=yes],[have_valid_cuda=no])
     unset ac_cv_lib_cudart_main
     if test "$have_valid_cuda" = yes ; then
 	LDFLAGS="${SAVED_LDFLAGS} ${STARPU_CUDA_LDFLAGS}"
-	# we also check that CUBLAS is available
-	AC_HAVE_LIBRARY([cublas],[have_valid_cuda=yes],[have_valid_cuda=no])
-	unset ac_cv_lib_cublas_main
     fi
     LDFLAGS="${SAVED_LDFLAGS}"
 ])
@@ -1537,6 +1564,85 @@ AC_DEFUN([STARPU_CHECK_CUDA],
     fi
 ])
 
+AC_DEFUN([STARPU_CHECK_CUBLAS_L],
+[
+    __cublas_L=$1
+    SAVED_LDFLAGS="${LDFLAGS}"
+    STARPU_CUDA_LDFLAGS="${__cublas_L}"
+    if test "$__cublas_L" = "" ; then
+        AC_MSG_CHECKING(whether CUBLAS library is available in default location)
+    else
+    	AC_MSG_CHECKING(whether CUBLAS library is available in $__cublas_L)
+    fi
+    AC_MSG_RESULT()
+    LDFLAGS="${SAVED_LDFLAGS} ${__cublas_L}"
+    AC_HAVE_LIBRARY([cublas],[have_valid_cublas=yes],[have_valid_cublas=no])
+    unset ac_cv_lib_cublas_main
+    if test "$have_valid_cublas" = yes ; then
+	LDFLAGS="${SAVED_LDFLAGS} ${STARPU_CUDA_LDFLAGS}"
+    fi
+    LDFLAGS="${SAVED_LDFLAGS}"
+])
+AC_DEFUN([STARPU_CHECK_CUBLAS],
+[
+    __cublas_dir=$1
+    __cublas_include_dir=$2
+    __cublas_lib_dir=$3
+
+    if test -z "$__cublas_lib_dir" ; then
+	__cublas_lib_dir=no
+    fi
+    if test -z "$__cublas_include_dir" ; then
+	__cublas_include_dir=no
+    fi
+    if test -z "$__cublas_dir" ; then
+	__cublas_dir=no
+    fi
+
+    if test "$__cublas_dir" != "no" ; then
+	AC_MSG_CHECKING(whether CUBLAS is available in $__cublas_dir, $__cublas_include_dir and $__cublas_lib_dir)
+    else
+	AC_MSG_CHECKING(whether CUBLAS is available)
+    fi
+    AC_MSG_RESULT()
+
+    if test "$__cublas_include_dir" = "no" -a "$__cublas_dir" != "no" ; then
+        __cublas_include_dir="$__cublas_dir/include"
+    fi
+
+    SAVED_CPPFLAGS="$CPPFLAGS"
+    have_valid_cublas=no
+
+    if test "$__cublas_include_dir" != "no" ; then
+        CPPFLAGS="${CPPFLAGS} -I$__cublas_include_dir"
+    fi
+
+    AC_CHECK_HEADER([cublas.h],[have_valid_cublas=yes],[have_valid_cublas=no])
+    unset ac_cv_header_cublas_h
+
+    if test "$have_valid_cublas" = "yes" ; then
+	if test "$__cublas_lib_dir" != "no" ; then
+	    STARPU_CHECK_CUBLAS_L("-L${__cublas_lib_dir}")
+	else
+	    if test "$__cublas_dir" != "no" ; then
+		for __cublas_libdir in lib64 lib lib/x64 lib/Win32 ; do
+		    STARPU_CHECK_CUBLAS_L("-L${__cublas_dir}/${__cublas_libdir}")
+		    if test "$have_valid_cublas" = yes ; then
+			break
+		    fi
+		done
+	    else
+		STARPU_CHECK_CUBLAS_L("")
+	    fi
+	fi
+    fi
+
+    if test "$have_valid_cublas" = "no" ; then
+	CPPFLAGS="${SAVED_CPPFLAGS}"
+	unset STARPU_CUDA_LDFLAGS
+    fi
+])
+
 if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
     STARPU_CHECK_CUDA("$cuda_dir", "$cuda_include_dir", "$cuda_lib_dir")
     if test "$have_valid_cuda" = "no" ; then
@@ -1551,6 +1657,25 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
 		fi
 	    fi
 	done
+    fi
+
+    # Check that CUBLAS is available
+    if test "$have_valid_cuda" = "yes" ; then
+        STARPU_CHECK_CUBLAS("$cublas_dir", "$cublas_include_dir", "$cublas_lib_dir")
+	if test "$have_valid_cublas" = "no" ; then
+	    for f in "" "/usr/local/cuda" "/c/cuda" "/cygdrive/c/cuda" "/opt/cuda" "$CUDA_ROOT" "$CUDA_PATH" "$CUDA_INC_PATH/.." "$CUDA_INC/.." "$CUDA_BIN/.." "$CUDA_SDK/.." "$CUDA_INSTALL_PATH" "$CUDA_TOOLKIT"; do
+	        if test -n "$f" ; then
+		    STARPU_CHECK_CUBLAS("$f", "no", "no")
+		    if test "$have_valid_cublas" = "yes" ; then
+		        break
+		    fi
+	        fi
+	    done
+        fi
+
+        if test "$have_valid_cublas" = "no" ; then
+	    AC_MSG_ERROR([CUDA found without CUBLAS])
+        fi
     fi
 
     # Check cuda is compatible with the C compiler
