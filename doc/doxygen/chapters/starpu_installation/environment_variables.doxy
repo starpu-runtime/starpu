@@ -1972,7 +1972,9 @@ The flag can also be set through the field starpu_conf::catch_signals.
 <dd>
 \anchor STARPU_DISPLAY_BINDINGS
 \addindex __env__STARPU_DISPLAY_BINDINGS
-Display the binding of all processes and threads running on the machine. If MPI is enabled, display the binding of each node.<br>
+Display the binding of all processes and threads running on the machine.
+Setting it to 1 displays the binding masks. Setting it to 2 displays the topology.
+If MPI is enabled, display the binding of each node.<br>
 Users can manually display the binding by calling starpu_display_bindings().
 </dd>
 </dl>
