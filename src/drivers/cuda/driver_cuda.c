@@ -285,6 +285,7 @@ void _starpu_cuda_discover_devices(struct _starpu_machine_config *config)
 #endif
 }
 
+#ifdef STARPU_HAVE_HWLOC
 #ifdef STARPU_HAVE_NVML_H
 static int _starpu_cuda_direct_link(struct _starpu_machine_config *config, unsigned devid1, unsigned devid2)
 {
@@ -380,6 +381,7 @@ static int _starpu_cuda_direct_link(struct _starpu_machine_config *config, unsig
 	/* No NVSwitch found for dev2 */
 	return 0;
 }
+#endif
 #endif
 
 static void _starpu_initialize_workers_cuda_gpuid(struct _starpu_machine_config *config)
@@ -633,6 +635,7 @@ void _starpu_cuda_init_worker_memory(struct _starpu_machine_config *config, int 
 					_starpu_cuda_bus_ids[devid2+STARPU_MAXNUMANODES][devid+STARPU_MAXNUMANODES] = bus21;
 					_starpu_cuda_bus_ids[devid+STARPU_MAXNUMANODES][devid2+STARPU_MAXNUMANODES] = bus12;
 #ifndef STARPU_SIMGRID
+#ifdef STARPU_HAVE_HWLOC
 #ifdef STARPU_HAVE_NVML_H
 					if (_starpu_cuda_direct_link(config, devid, devid2))
 					{
@@ -640,6 +643,7 @@ void _starpu_cuda_init_worker_memory(struct _starpu_machine_config *config, int 
 						starpu_bus_set_ngpus(bus12, 1);
 					}
 					else
+#endif
 #endif
 					{
 #if HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX
