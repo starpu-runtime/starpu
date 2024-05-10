@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2018-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2018-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -18,7 +18,7 @@
 ROOT=${0%.sh}
 [ -z "$STARPU_SCHED" ] || STARPU_SCHEDS="$STARPU_SCHED"
 #[ -n "$STARPU_SCHEDS" ] || STARPU_SCHEDS=`$(dirname $0)/../../tools/starpu_sched_display`
-[ -n "$STARPU_SCHEDS" ] || STARPU_SCHEDS="dmdas modular-heft2 modular-heft modular-heft-prio modular-heteroprio dmdap dmdar dmda dmdasd prio lws"
+[ -n "$STARPU_SCHEDS" ] || STARPU_SCHEDS="dmdas modular-dmdas modular-heft2 modular-heft modular-heft-prio modular-heteroprio dmdap dmdar dmda dmdasd modular-dmdap modular-dmdar modular-dmda prio lws"
 [ -n "$STARPU_HOSTNAME" ] || export STARPU_HOSTNAME=mirage
 unset MALLOC_PERTURB_
 
