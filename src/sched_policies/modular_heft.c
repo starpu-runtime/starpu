@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -73,6 +73,118 @@ struct starpu_sched_policy _starpu_sched_modular_heft_policy =
 	.post_exec_hook = starpu_sched_component_worker_post_exec_hook,
 	.policy_name = "modular-heft",
 	.policy_description = "heft modular policy",
+	.worker_type = STARPU_WORKER_LIST,
+	.prefetches = 1,
+};
+
+static void initialize_dmda_center_policy(unsigned sched_ctx_id)
+{
+	starpu_sched_component_initialize_simple_scheduler((starpu_sched_component_create_t) starpu_sched_component_mct_create, NULL,
+			STARPU_SCHED_SIMPLE_DECIDE_WORKERS |
+			STARPU_SCHED_SIMPLE_PERFMODEL |
+			STARPU_SCHED_SIMPLE_FIFOS_BELOW |
+			STARPU_SCHED_SIMPLE_FIFOS_BELOW_EXP |
+			STARPU_SCHED_SIMPLE_FIFOS_BELOW_NOLIMIT |
+			STARPU_SCHED_SIMPLE_IMPL, sched_ctx_id);
+}
+
+struct starpu_sched_policy _starpu_sched_modular_dmda_policy =
+{
+	.init_sched = initialize_dmda_center_policy,
+	.deinit_sched = starpu_sched_tree_deinitialize,
+	.add_workers = starpu_sched_tree_add_workers,
+	.remove_workers = starpu_sched_tree_remove_workers,
+	.push_task = starpu_sched_tree_push_task,
+	.pop_task = starpu_sched_tree_pop_task,
+	.pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
+	.post_exec_hook = starpu_sched_component_worker_post_exec_hook,
+	.policy_name = "modular-dmda",
+	.policy_description = "data-aware performance model modular policy",
+	.worker_type = STARPU_WORKER_LIST,
+	.prefetches = 1,
+};
+
+static void initialize_dmdap_center_policy(unsigned sched_ctx_id)
+{
+	starpu_sched_component_initialize_simple_scheduler((starpu_sched_component_create_t) starpu_sched_component_mct_create, NULL,
+			STARPU_SCHED_SIMPLE_DECIDE_WORKERS |
+			STARPU_SCHED_SIMPLE_PERFMODEL |
+			STARPU_SCHED_SIMPLE_FIFOS_BELOW |
+			STARPU_SCHED_SIMPLE_FIFOS_BELOW_PRIO |
+			STARPU_SCHED_SIMPLE_FIFOS_BELOW_EXP |
+			STARPU_SCHED_SIMPLE_FIFOS_BELOW_NOLIMIT |
+			STARPU_SCHED_SIMPLE_IMPL, sched_ctx_id);
+}
+
+struct starpu_sched_policy _starpu_sched_modular_dmdap_policy =
+{
+	.init_sched = initialize_dmdap_center_policy,
+	.deinit_sched = starpu_sched_tree_deinitialize,
+	.add_workers = starpu_sched_tree_add_workers,
+	.remove_workers = starpu_sched_tree_remove_workers,
+	.push_task = starpu_sched_tree_push_task,
+	.pop_task = starpu_sched_tree_pop_task,
+	.pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
+	.post_exec_hook = starpu_sched_component_worker_post_exec_hook,
+	.policy_name = "modular-dmdap",
+	.policy_description = "data-aware performance model modular policy (priority)",
+	.worker_type = STARPU_WORKER_LIST,
+	.prefetches = 1,
+};
+
+static void initialize_dmdar_center_policy(unsigned sched_ctx_id)
+{
+	starpu_sched_component_initialize_simple_scheduler((starpu_sched_component_create_t) starpu_sched_component_mct_create, NULL,
+			STARPU_SCHED_SIMPLE_DECIDE_WORKERS |
+			STARPU_SCHED_SIMPLE_PERFMODEL |
+			STARPU_SCHED_SIMPLE_FIFOS_BELOW |
+			STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY |
+			STARPU_SCHED_SIMPLE_FIFOS_BELOW_EXP |
+			STARPU_SCHED_SIMPLE_FIFOS_BELOW_NOLIMIT |
+			STARPU_SCHED_SIMPLE_IMPL, sched_ctx_id);
+}
+
+struct starpu_sched_policy _starpu_sched_modular_dmdar_policy =
+{
+	.init_sched = initialize_dmdar_center_policy,
+	.deinit_sched = starpu_sched_tree_deinitialize,
+	.add_workers = starpu_sched_tree_add_workers,
+	.remove_workers = starpu_sched_tree_remove_workers,
+	.push_task = starpu_sched_tree_push_task,
+	.pop_task = starpu_sched_tree_pop_task,
+	.pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
+	.post_exec_hook = starpu_sched_component_worker_post_exec_hook,
+	.policy_name = "modular-dmdar",
+	.policy_description = "data-aware performance model modular policy (ready)",
+	.worker_type = STARPU_WORKER_LIST,
+	.prefetches = 1,
+};
+
+static void initialize_dmdas_center_policy(unsigned sched_ctx_id)
+{
+	starpu_sched_component_initialize_simple_scheduler((starpu_sched_component_create_t) starpu_sched_component_mct_create, NULL,
+			STARPU_SCHED_SIMPLE_DECIDE_WORKERS |
+			STARPU_SCHED_SIMPLE_PERFMODEL |
+			STARPU_SCHED_SIMPLE_FIFOS_BELOW |
+			STARPU_SCHED_SIMPLE_FIFOS_BELOW_PRIO |
+			STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY |
+			STARPU_SCHED_SIMPLE_FIFOS_BELOW_EXP |
+			STARPU_SCHED_SIMPLE_FIFOS_BELOW_NOLIMIT |
+			STARPU_SCHED_SIMPLE_IMPL, sched_ctx_id);
+}
+
+struct starpu_sched_policy _starpu_sched_modular_dmdas_policy =
+{
+	.init_sched = initialize_dmdas_center_policy,
+	.deinit_sched = starpu_sched_tree_deinitialize,
+	.add_workers = starpu_sched_tree_add_workers,
+	.remove_workers = starpu_sched_tree_remove_workers,
+	.push_task = starpu_sched_tree_push_task,
+	.pop_task = starpu_sched_tree_pop_task,
+	.pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
+	.post_exec_hook = starpu_sched_component_worker_post_exec_hook,
+	.policy_name = "modular-dmdas",
+	.policy_description = "data-aware performance model (sorted) modular policy",
 	.worker_type = STARPU_WORKER_LIST,
 	.prefetches = 1,
 };
