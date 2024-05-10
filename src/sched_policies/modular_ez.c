@@ -267,6 +267,17 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 			no_perfmodel_component = starpu_sched_component_eager_create(t, NULL);
 			calibrator_component = starpu_sched_component_eager_calibration_create(t, NULL);
 
+			if (! (flags & STARPU_SCHED_SIMPLE_FIFO_ABOVE))
+			{
+				/* We won't have a fifo above, the eager components do need one */
+				struct starpu_sched_component *calibrator_fifo = starpu_sched_component_fifo_create(t, NULL);
+				struct starpu_sched_component *no_perfmodel_fifo = starpu_sched_component_fifo_create(t, NULL);
+				starpu_sched_component_connect(calibrator_fifo, calibrator_component);
+				starpu_sched_component_connect(no_perfmodel_fifo, no_perfmodel_component);
+				calibrator_component = calibrator_fifo;
+				no_perfmodel_component = no_perfmodel_fifo;
+			}
+
 			struct starpu_sched_component_perfmodel_select_data perfmodel_select_data =
 				{
 					.calibrator_component = calibrator_component,
