@@ -19,9 +19,6 @@
 #include <starpu_scheduler.h>
 #include <limits.h>
 
-#define _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT 2
-#define _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT 1000000000.0
-
 /* Random scheduler with fifo queues for its scheduling window and its workers. */
 
 static void initialize_random_fifo_prefetching_center_policy(unsigned sched_ctx_id)
