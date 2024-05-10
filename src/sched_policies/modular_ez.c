@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -298,7 +298,11 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 
 		/* Take default ntasks_threshold */
 		unsigned ntasks_threshold;
-		if (starpu_sched_component_is_heft(decision_component) ||
+		if (flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW_NOLIMIT)
+		{
+			ntasks_threshold = UINT_MAX;
+		}
+		else if (starpu_sched_component_is_heft(decision_component) ||
 		    starpu_sched_component_is_mct(decision_component) ||
 		    starpu_sched_component_is_heteroprio(decision_component))
 		{
@@ -312,7 +316,16 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 		/* But let user tune it */
 		ntasks_threshold = starpu_getenv_number_default("STARPU_NTASKS_THRESHOLD", ntasks_threshold);
 
-		double exp_len_threshold = _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT;
+		double exp_len_threshold;
+		if (flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW_NOLIMIT)
+		{
+			exp_len_threshold = INFINITY;
+		}
+		else
+		{
+			exp_len_threshold = _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT;
+		}
+		/* But let user tune it */
 		exp_len_threshold = starpu_getenv_float_default("STARPU_EXP_LEN_THRESHOLD", exp_len_threshold);
 
 		int ready = starpu_getenv_number_default("STARPU_SCHED_READY", (flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY) ? 1 : 0);

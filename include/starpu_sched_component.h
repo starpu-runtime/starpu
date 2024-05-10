@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  * Copyright (C) 2017       Arthur Chevalier
  *
@@ -807,6 +807,11 @@ struct starpu_sched_tree *starpu_sched_component_make_scheduler(unsigned sched_c
    Request that the fifos below be pulled rather ready tasks
 */
 #define STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY (1 << 10)
+
+/**
+   Request that the fifos below have no size limit
+*/
+#define STARPU_SCHED_SIMPLE_FIFOS_BELOW_NOLIMIT (1 << 16)
 
 /**
    Request that work between workers using the same fifo below be distributed using a work stealing component.
