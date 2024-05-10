@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Simon Archipoff
  *
@@ -504,9 +504,9 @@ static double simple_worker_estimated_end(struct starpu_sched_component * compon
 {
 	struct _starpu_worker_component_data * data = component->data;
 	double now = starpu_timing_now();
-	if (now + data->list->pipeline_len > data->list->exp_start)
+	if (now > data->list->exp_start)
 	{
-		data->list->exp_start = now + data->list->pipeline_len;
+		data->list->exp_start = now;
 		data->list->exp_end = data->list->exp_start + data->list->exp_len;
 	}
 	return data->list->exp_end;
@@ -568,6 +568,7 @@ static struct starpu_sched_component * starpu_sched_component_worker_create(stru
 	data->list = _starpu_worker_task_list_create();
 	component->data = data;
 
+	/* FIXME: missing push_task_notify */
 	component->push_task = simple_worker_push_task;
 	component->pull_task = simple_worker_pull_task;
 	component->can_pull = simple_worker_can_pull;
