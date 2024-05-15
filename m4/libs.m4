@@ -83,7 +83,31 @@ AC_DEFUN([IS_SUPPORTED_CFLAG],
 	SAVED_CFLAGS="$CFLAGS"
 	CFLAGS="$1"
 
+	check_mpi="no"
 	AC_LINK_IFELSE(
+		AC_LANG_PROGRAM(
+			[[]],
+			[[AC_LANG_SOURCE([const char *hello = "Hello World";])]]
+		),
+		[
+			m4_default_nblank([$2], check_mpi="yes")
+			AC_MSG_RESULT(yes)
+		],
+		[
+			AC_MSG_RESULT(no)
+		]
+	)
+
+	if test "$build_mpi_lib" = "no" -a "$build_nmad_lib" = "no"
+	then
+		if test "$check_mpi" = "yes" ; then
+			   GLOBAL_AM_CFLAGS="$GLOBAL_AM_CFLAGS $1"
+		fi
+	elif test "$check_mpi" = "yes" ; then
+	   SAVED_CC="$CC"
+	   CC="$MPICC"
+	   AC_MSG_CHECKING([whether MPI C compiler supports $1])
+	   AC_LINK_IFELSE(
 		AC_LANG_PROGRAM(
 			[[]],
 			[[AC_LANG_SOURCE([const char *hello = "Hello World";])]]
@@ -95,7 +119,9 @@ AC_DEFUN([IS_SUPPORTED_CFLAG],
 		[
 			AC_MSG_RESULT(no)
 		]
-	)
+	   )
+	   CC="$SAVED_CC"
+	fi
 	CFLAGS="$SAVED_CFLAGS"
 ])
 
@@ -167,7 +193,25 @@ AC_DEFUN([IS_SUPPORTED_FCFLAG],
 	SAVED_FCFLAGS="$FCFLAGS"
 	FCFLAGS="$1"
 
+	check_mpi="no"
 	AC_LINK_IFELSE(
+		AC_LANG_PROGRAM(
+			[],
+			[[AC_LANG_SOURCE([])]]
+		),
+		[
+			m4_default_nblank([$2], check_mpi="yes")
+			AC_MSG_RESULT(yes)
+		],
+		[
+			AC_MSG_RESULT(no)
+		]
+	)
+	if test "$check_mpi" = "yes" ; then
+	   SAVED_FC="$FC"
+	   FC="$MPIFORT"
+	   AC_MSG_CHECKING([whether MPI Fortran compiler supports $1])
+	   AC_LINK_IFELSE(
 		AC_LANG_PROGRAM(
 			[],
 			[[AC_LANG_SOURCE([])]]
@@ -179,7 +223,9 @@ AC_DEFUN([IS_SUPPORTED_FCFLAG],
 		[
 			AC_MSG_RESULT(no)
 		]
-	)
+	   )
+	   FC="$SAVED_FC"
+	fi
 	FCFLAGS="$SAVED_FCFLAGS"
 	AC_LANG_POP([Fortran])
 ])
