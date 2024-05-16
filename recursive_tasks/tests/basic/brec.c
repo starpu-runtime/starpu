@@ -45,10 +45,20 @@ struct starpu_codelet sub_data_codelet =
 
 int rec_is_recursive_task(struct starpu_task *t, void *arg)
 {
-	int v = *(int *)arg;
-	fprintf(stderr, "'%s' is a %s\n", starpu_task_get_name(t), (v == 0)?"task":"recursive_task");
-	free(arg);
-	return v;
+	int *v = (int *)arg;
+
+	int val = *v;
+	if (val < 0)
+	{
+		val += 2;
+		free(arg);
+	}
+	else
+	{
+		*v -= 2;
+	}
+	FPRINTF(stderr, "'%s' is a %s\n", starpu_task_get_name(t), (val == 0)?"task":"recursive_task");
+	return val;
 }
 
 void rec2_recursive_task_gen_dag(struct starpu_task *t, void *arg)
@@ -73,6 +83,11 @@ void free_memory(void *arg)
 }
 
 starpu_data_handle_t sub_handles_l2[PARTS][PARTS];
+/* Uncomment (as well as seed1++ and seed2++ lines) for deterministic execution */
+/* int rdar1[] = {1, 1, 0, 1, 0, 0, 1, 1, 0, 1}; // First level */
+/* int rdar2[] = {0, 1, 1, 0, 0, 0};             // It's all a RW-chain, so we should be able to define the second level here */
+/* int *seed1 = rdar1; */
+/* int *seed2 = rdar2; */
 
 void rec_recursive_task_gen_dag(struct starpu_task *t, void *arg)
 {
@@ -83,6 +98,7 @@ void rec_recursive_task_gen_dag(struct starpu_task *t, void *arg)
 	{
 		int *is_recursive_task = malloc(sizeof(int));
 		*is_recursive_task = rand() & 1;
+		/* int *is_recursive_task = seed2++; */
 		char *name;
 		asprintf(&name, "%s %s", starpu_task_get_name(t), (*is_recursive_task == 0) ? "T_L2" : "B_L2");
 
@@ -131,6 +147,10 @@ int main(int argv, char **argc)
 	{
 		starpu_data_partition_plan(sub_handles_l1[i], &f, sub_handles_l2[i]);
 	}
+
+	FPRINTF(stderr, "[L0] %p\n", main_handle);
+	FPRINTF(stderr, "[L1] %p\n", sub_handles_l1[0]);
+	FPRINTF(stderr, "[L2] %p\n", sub_handles_l2[0][0]);
 
 #define STEPS 10
 

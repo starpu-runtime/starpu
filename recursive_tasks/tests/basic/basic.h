@@ -56,15 +56,41 @@ void sub_data_func(void *buffers[], void *arg)
 
 	for(i=0 ; i<nx ; i++)
 		v[i] *= 2;
-	struct starpu_task *task = starpu_task_get_current();
-	print_vector(v, nx, starpu_task_get_name(task));
+	char str[35];
+	sprintf(str, "subtask_%d", (int)(uintptr_t) arg);
+	print_vector(v, nx, str);
 }
+
+extern void sub_data_cuda_func(void *buffers[], void *arg);
 
 struct starpu_codelet sub_data_codelet =
 {
 	.cpu_funcs = {sub_data_func},
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = {sub_data_cuda_func},
+#endif
 	.nbuffers = 1,
-	.name = "sub_data_cl",
+	.name = "task_cl",
+	.model = &starpu_perfmodel_nop
+};
+
+void sub_data_RO_func(void *buffers[], void *arg)
+{
+	int *v = (int*)STARPU_VECTOR_GET_PTR(buffers[0]);
+	int nx = STARPU_VECTOR_GET_NX(buffers[0]);
+	print_vector(v, nx, "subtaskRO");
+}
+
+extern void sub_data_RO_cuda_func(void *buffers[], void *arg);
+
+struct starpu_codelet sub_data_RO_codelet =
+{
+	.cpu_funcs = {sub_data_RO_func},
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = {sub_data_RO_cuda_func},
+#endif
+	.nbuffers = 1,
+	.name = "subtaskRO_cl",
 	.model = &starpu_perfmodel_nop
 };
 
@@ -83,6 +109,17 @@ int is_recursive_task(struct starpu_task *t, void *arg)
 	return 1;
 }
 
+// Function which change when called a second time
+int is_recursive_task_only_second_time(struct starpu_task *t, void *arg)
+{
+	assert(arg);
+	int * v = (int*) arg;
+	if (*v)
+		return 1;
+	*v = 1;
+	return 0;
+}
+
 void recursive_task_gen_dag(struct starpu_task *t, void *arg)
 {
 	FPRINTF(stderr, "Hello i am a recursive task\n");
@@ -91,19 +128,58 @@ void recursive_task_gen_dag(struct starpu_task *t, void *arg)
 
 	for(i=0 ; i<PARTS ; i++)
 	{
+		char *str = calloc(25, sizeof(char));
+		sprintf(str, "sub_data_%d", i);
 		int ret = starpu_task_insert(&sub_data_codelet,
+					     STARPU_CL_ARGS_NFREE, i, sizeof(int),
 					     STARPU_RW, subdata[i],
-					     STARPU_NAME, "sub_data",
+					     STARPU_RECURSIVE_TASK_PARENT, t,
+					     STARPU_NAME, str,
 					     0);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	}
 }
 
+struct starpu_codelet recursive_task_second_call_codelet =
+{
+	.cpu_funcs = {recursive_task_func},
+	.recursive_task_func = is_recursive_task_only_second_time,
+	.recursive_task_gen_dag_func = recursive_task_gen_dag,
+	.nbuffers = 1,
+	.model = &starpu_perfmodel_nop
+};
+
 struct starpu_codelet recursive_task_codelet =
 {
 	.cpu_funcs = {recursive_task_func},
+	.cuda_funcs = {recursive_task_func},
 	.recursive_task_func = is_recursive_task,
 	.recursive_task_gen_dag_func = recursive_task_gen_dag,
+	.nbuffers = 1,
+	.model = &starpu_perfmodel_nop
+};
+
+void recursive_taskRO_gen_dag(struct starpu_task *t, void *arg)
+{
+	FPRINTF(stderr, "Hello i am a recursive_task\n");
+	int i;
+	starpu_data_handle_t *subdata = (starpu_data_handle_t *)arg;
+
+	for(i=0 ; i<PARTS ; i++)
+	{
+		int ret = starpu_task_insert(&sub_data_RO_codelet,
+					     STARPU_R, subdata[i],
+					     STARPU_NAME, "sub_data_RO",
+					     0);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+	}
+}
+
+struct starpu_codelet recursive_taskRO_codelet =
+{
+	.cpu_funcs = {recursive_task_func},
+	.recursive_task_func = is_recursive_task,
+	.recursive_task_gen_dag_func = recursive_taskRO_gen_dag,
 	.nbuffers = 1,
 	.model = &starpu_perfmodel_nop
 };
@@ -121,9 +197,31 @@ void task_func(void *buffers[], void *arg)
 	}
 }
 
+extern void task_cuda_func(void *buffers[], void *arg);
+
 struct starpu_codelet task_codelet =
 {
 	.cpu_funcs = {task_func},
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = {task_cuda_func},
+#endif
 	.nbuffers = 1
 };
 
+void task_RO_func(void *buffers[], void *arg)
+{
+	int *v = (int*)STARPU_VECTOR_GET_PTR(buffers[0]);
+	int nx = STARPU_VECTOR_GET_NX(buffers[0]);
+	print_vector(v, nx, "taskRO");
+}
+
+extern void task_RO_cuda_func(void *buffers[], void *arg);
+
+struct starpu_codelet taskRO_codelet =
+{
+	.cpu_funcs = {task_RO_func},
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = {task_RO_cuda_func},
+#endif
+	.nbuffers = 1
+};
