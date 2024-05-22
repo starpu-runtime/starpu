@@ -1927,7 +1927,7 @@ if test x$enable_cuda = xyes; then
     # hip_runtime.h conflicts with cuda_runtime.h
     # see https://github.com/ROCm-Developer-Tools/HIP/issues/2703
     if test x$enable_hip = xyes ; then
-	AC_MSG_WARN([Disabling HIP as CUDA is enabled])
+	AC_MSG_WARN([Disabling HIP as CUDA is enabled, see https://github.com/ROCm-Developer-Tools/HIP/issues/2703])
     fi
     enable_hip=no
 fi
