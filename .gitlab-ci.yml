@@ -22,7 +22,6 @@ stages:
   - new-release
   - set-release
   - release
-  - build_manual
 
 .main_template:
   rules:
@@ -145,17 +144,4 @@ release:
   script:
     - cat release-cli.txt
     - eval "$(cat release-cli.txt)"
-
-
-build_manual:
-  stage: build_manual
-  tags:
-    - starpu
-    - debian10
-  script:
-    - ./contrib/gitlab/check.sh
-  timeout: 3h
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "push"'
-      when: never  # Prevent pipeline run for push event
 
