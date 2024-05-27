@@ -1962,7 +1962,7 @@ static void _starpu_darts_scheduling_3D_matrix(struct starpu_task_list *main_tas
 #ifdef STARPU_DARTS_STATS
 		g->number_data_selection++;
 #endif
-
+		_REFINED_MUTEX_LOCK();
 		int i = 0;
 		struct _starpu_darts_gpu_data_not_used *e;
 		for (e = _starpu_darts_gpu_data_not_used_list_begin(g->gpu_data); e != _starpu_darts_gpu_data_not_used_list_end(g->gpu_data) && i != choose_best_data_threshold; e = _starpu_darts_gpu_data_not_used_list_next(e), i++)
@@ -2060,6 +2060,7 @@ static void _starpu_darts_scheduling_3D_matrix(struct starpu_task_list *main_tas
 				update_best_data_single_decision_tree(&number_free_task_max, &remaining_expected_length_max, &handle_popped, &priority_max, &number_1_from_free_task_max, temp_number_free_task_max, hud->sum_remaining_task_expected_length, e->D, temp_priority_max, temp_number_1_from_free_task_max, &data_chosen_index, i, &best_1_from_free_task, temp_best_1_from_free_task, temp_transfer_time_min, &transfer_time_min, temp_length_free_tasks_max, &ratio_transfertime_freetask_min);
 			}
 		}
+		_REFINED_MUTEX_UNLOCK();
 	}
 	else if (choose_best_data_from == 1) /* The case where I only look at data (not yet in memory) from tasks using data in memory. */
 	{
@@ -2261,7 +2262,7 @@ static void _starpu_darts_scheduling_3D_matrix(struct starpu_task_list *main_tas
 		gettimeofday(&time_start_fill_planned_task_list, NULL);
 		nb_free_choice++;
 #endif
-
+		_REFINED_MUTEX_LOCK();
 		/* I erase the data from the list of data not used. */
 		if (choose_best_data_from == 0)
 		{
@@ -2277,8 +2278,6 @@ static void _starpu_darts_scheduling_3D_matrix(struct starpu_task_list *main_tas
 		}
 
 		_STARPU_SCHED_PRINT("The data adding the most free tasks is %p and %d task.\n", handle_popped, number_free_task_max);
-
-		_REFINED_MUTEX_LOCK();
 
 		struct _starpu_darts_task_using_data *t;
 		for (t = _starpu_darts_task_using_data_list_begin(handle_popped->sched_data); t != _starpu_darts_task_using_data_list_end(handle_popped->sched_data); t = _starpu_darts_task_using_data_list_next(t))
@@ -2424,7 +2423,7 @@ static void _starpu_darts_scheduling_3D_matrix(struct starpu_task_list *main_tas
 			_STARPU_SCHED_PRINT("Critical data conflict.\n");
 			_starpu_darts_scheduling_3D_matrix(main_task_list, current_gpu, g, current_worker_id);
 		}
-
+	
 	random: ; /* We pop a task from the main task list. Either the head (from a randomized list or not depending on STARPU_DARTS_TASK_ORDER) or the highest priority task. */
 
 		Dopt[current_gpu] = NULL;
@@ -2598,7 +2597,6 @@ static struct starpu_task *get_task_to_return_pull_task_darts(int current_gpu, s
 	if (!starpu_task_list_empty(l))
 	{
 		_REFINED_MUTEX_UNLOCK();
-		//printf("current_gpu before calling 3D: %d, worker_id: %d\n", current_gpu, current_worker_id); fflush(stdout);
 		_starpu_darts_scheduling_3D_matrix(l, current_gpu, &tab_gpu_planned_task[current_gpu], current_worker_id);
 		_REFINED_MUTEX_LOCK();
 		struct starpu_task *task;
