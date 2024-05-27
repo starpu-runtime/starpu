@@ -22,7 +22,7 @@ stages:
   - new-release
   - set-release
   - release
-  - build_examples
+  - build_manual
 
 .main_template:
   rules:
@@ -146,8 +146,9 @@ release:
     - cat release-cli.txt
     - eval "$(cat release-cli.txt)"
 
-build_examples:
-  stage: build_examples
+
+build_manual:
+  stage: build_manual
   tags:
     - starpu
     - debian10
@@ -157,5 +158,4 @@ build_examples:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "push"'
       when: never  # Prevent pipeline run for push event
-    - if: '$RUN_EXAMPLES == "yes"'
 
