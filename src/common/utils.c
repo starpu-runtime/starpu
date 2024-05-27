@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2020       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -750,10 +750,15 @@ int starpu_get_env_size_default(const char *str, int defval)
 void starpu_display_bindings(void)
 {
 #if defined(STARPU_HAVE_HWLOC) && !defined(STARPU_SIMGRID)
-	int hwloc_ret = system("hwloc-ps -a -t -c");
-	if (hwloc_ret)
+	int value = starpu_getenv_number_default("STARPU_DISPLAY_BINDINGS", 0);
+	int ret = 0;
+	if (value == 2)
+		ret = system("lstopo --ps -");
+	else
+		ret = system("hwloc-ps -a -t -c");
+	if (ret)
 	{
-		_STARPU_DISP("hwloc-ps returned %d\n", hwloc_ret);
+		_STARPU_DISP("%s returned %d\n", value==2?"lstopo":"hwloc-ps", ret);
 		fflush(stderr);
 	}
 	fflush(stdout);

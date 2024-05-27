@@ -826,6 +826,11 @@ struct starpu_sched_tree *starpu_sched_component_make_scheduler(unsigned sched_c
 #define STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY_FIRST (1 << 15)
 
 /**
+   Request that the fifos below have no size limit
+*/
+#define STARPU_SCHED_SIMPLE_FIFOS_BELOW_NOLIMIT (1 << 16)
+
+/**
    Request that work between workers using the same fifo below be distributed using a work stealing component.
 */
 #define STARPU_SCHED_SIMPLE_WS_BELOW (1 << 11)

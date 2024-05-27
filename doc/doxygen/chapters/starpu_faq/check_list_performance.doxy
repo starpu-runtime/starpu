@@ -57,7 +57,7 @@ The \c configure option \ref enable-fast "--enable-fast" disables all
 assertions. This makes StarPU more performant for tiny tasks by
 disabling all sanity checks. Only use this for measurements and production, not for development, since this will drop all basic checks.
 
-\section DataRelatedFeaturesToImprovePerformance Data Related Features Which May Improve Performance
+\section DataRelatedFeaturesToImprovePerformance Data-Related Features Which May Improve Performance
 
 As can be seen in \ref StatesInGantt, if the application has a lot of different
 kinds of sizes of data, StarPU will end up freeing/reallocating data on GPU to

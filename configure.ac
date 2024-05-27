@@ -1927,7 +1927,7 @@ if test x$enable_cuda = xyes; then
     # hip_runtime.h conflicts with cuda_runtime.h
     # see https://github.com/ROCm-Developer-Tools/HIP/issues/2703
     if test x$enable_hip = xyes ; then
-	AC_MSG_WARN([Disabling HIP as CUDA is enabled])
+	AC_MSG_WARN([Disabling HIP as CUDA is enabled, see https://github.com/ROCm-Developer-Tools/HIP/issues/2703])
     fi
     enable_hip=no
 fi
@@ -2429,6 +2429,139 @@ AC_MSG_RESULT($disable_asynchronous_max_fpga_copy)
 if test x$disable_asynchronous_max_fpga_copy = xyes ; then
    AC_DEFINE([STARPU_DISABLE_ASYNCHRONOUS_MAX_FPGA_COPY], [1], [Define to 1 to disable asynchronous copy between CPU and Maxeler FPGA devices])
 fi
+
+###############################################################################
+#                                                                             #
+#                               Fortran                                       #
+#                                                                             #
+###############################################################################
+
+AC_ARG_ENABLE(fortran, [AS_HELP_STRING([--disable-fortran],
+			[disable build of fortran examples])],
+			enable_build_fortran_requested=$enableval, enable_build_fortran_requested=yes)
+use_mpi_fort=no
+enable_build_fortran=no
+if test "x$enable_build_fortran_requested" = "xyes" ; then
+   if test "x$FC" != "x"; then
+   	if $FC --version|grep -q 'GNU Fortran'; then
+		 AC_LANG_PUSH([Fortran])
+		 OLD_FCFLAGS="$FCFLAGS"
+		 FCFLAGS="$FCFLAGS -cpp"
+		 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [[
+#if __GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
+#error GFortran too old, version >= 4.9.x needed, Fortran examples will not be built
+#endif
+]]
+                 )],
+                 [enable_build_fortran="yes"],
+                 [enable_build_fortran="no"])
+		 FCFLAGS="$OLD_FCFLAGS"
+		 AC_LANG_POP([Fortran])
+                 if test "$enable_build_fortran" = "no" ; then
+                   AC_MSG_WARN([GFortran too old, version >= 4.9.x needed, Fortran examples will not be built])
+                 fi
+	else
+		if $FC -V 2>&1|grep -q 'Intel(R) Fortran'; then
+			enable_build_fortran="yes"
+			ifort_fc_version=`$FC -V 2>&1 |head -1|sed 's/.*Version //;s/ Build.*//'`
+			ifort_maj_version=`echo $ifort_fc_version|cut -d. -f1`
+
+			if test $ifort_maj_version -lt 16; then
+				AC_MSG_WARN([Intel Fortran compiler $ifort_fc_version too old, version >= 2016.x needed, Fortran examples will not be built])
+				enable_build_fortran="no"
+			fi
+		else
+			if $FC -qversion 2>&1|grep -q 'IBM XL Fortran'; then
+				xlf_fc_version=`$FC -V 2>&1 |tail -1|sed 's/.*Version: //'`
+
+				AC_MSG_WARN([IBM Fortran compiler $xlf_fc_version not validated with the native StarPU Fortran API, Fortran examples will not be built])
+				enable_build_fortran="no"
+			else
+				AC_MSG_WARN(Fortran compiler has not been tested for StarPU native Fortran support)
+				enable_build_fortran="yes"
+			fi
+		fi
+	fi
+	if $FC -v 2>&1 | grep -q 'Arm C/C++/Fortran Compiler' ; then
+	       armflang_version=`$FC -v 2>&1 | head -1 | sed 's/.*version //'`
+	       armflang_maj_version=`echo $armflang_version|cut -d. -f1`
+               if test $armflang_maj_version -lt 23 ; then
+	                AC_MSG_WARN([ARM Fortran compiler $armflang_version is not validated with the native StarPU Fortran API, Fortran examples will not be built])
+			enable_build_fortran="no"
+	       fi
+        fi
+
+	if test "x$enable_build_fortran" = "xyes" ; then
+		AC_DEFINE(STARPU_HAVE_FC, [1], [Define this if a Fortran compiler is available])
+		if test x$build_mpi_lib = xyes -o x$build_nmad_lib = xyes -o x$build_mpi_master_slave = xyes ; then
+			#Check MPIFORT
+			if test x$enable_simgrid = xyes ; then
+				DEFAULT_MPIFORT=smpifort
+			else
+				DEFAULT_MPIFORT=mpifort
+			fi
+			AC_ARG_WITH(mpifort, [AS_HELP_STRING([--with-mpifort=<mpifort name or path to mpifort>], [Name or path of the mpifort compiler])], [DEFAULT_MPIFORT=$withval])
+			case $DEFAULT_MPIFORT in
+				/*) mpifort_path="$DEFAULT_MPIFORT" ;;
+				*)  AC_PATH_PROG(mpifort_path, $DEFAULT_MPIFORT, [no], [$simgrid_dir/bin:$PATH]) ;;
+			esac
+			# We test if the MPIFORT compiler exists
+			if test ! -x $mpifort_path; then
+				AC_MSG_RESULT(The mpifort compiler '$mpifort_path' does not have the execute permission)
+				mpifort_path=no
+			else
+				OLD_CC=$CC
+				CC=$mpicc_path
+				AC_LINK_IFELSE(
+						AC_LANG_PROGRAM(
+							[[#include <mpi.h>]],
+							[[AC_LANG_SOURCE([return MPI_Comm_f2c(0);])]]
+							),
+						[use_mpi_fort=yes],
+						[use_mpi_fort=no]
+						)
+				CC=$OLD_CC
+				if test "x$use_mpi_fort" = xyes; then
+					AC_DEFINE([HAVE_MPI_COMM_F2C], [1], [Function MPI_Comm_f2c is available])
+				fi
+			fi
+
+			AC_MSG_CHECKING(whether mpifort is available)
+			AC_MSG_RESULT($mpifort_path)
+			AC_SUBST(MPIFORT, $mpifort_path)
+
+			if test x$mpifort_path != xno ; then
+				MPIPATH=$(dirname $mpifort_path):$PATH
+			else
+				MPIPATH=$PATH
+			fi
+		fi
+	fi
+   fi
+fi
+if test "x$enable_build_fortran" = "xyes" ; then
+   if test "x$FC" = "x" ; then
+      enable_build_fortran="no"
+   fi
+fi
+
+#We have MPI C/C++ compiler
+if test x$build_mpi_master_slave = xyes; then
+    #Check if we can compile fortran cases
+    if test x$use_mpi_fort = xyes ; then
+        F77LD=$mpifort_path
+        FCLD=$mpifort_path
+        F77=$mpifort_path
+        FC=$mpifort_path
+    else
+        enable_build_fortran=no
+    fi
+fi
+
+
+AM_CONDITIONAL([STARPU_HAVE_FC], [test "x$FC" != "x" -a "x$enable_build_fortran" = "xyes"])
+AM_CONDITIONAL([STARPU_HAVE_F77], [test "x$F77" != "x" -a "x$enable_build_fortran" = "xyes"])
+AM_CONDITIONAL([STARPU_HAVE_MPIFORT], [test "x$use_mpi_fort" = "xyes"])
 
 ###############################################################################
 #                                                                             #
@@ -3103,139 +3236,6 @@ if test "x$check_flags" != "x" ; then
 		IS_SUPPORTED_FLAG($xflag)
 	done
 fi
-
-###############################################################################
-#                                                                             #
-#                               Fortran                                       #
-#                                                                             #
-###############################################################################
-
-AC_ARG_ENABLE(fortran, [AS_HELP_STRING([--disable-fortran],
-			[disable build of fortran examples])],
-			enable_build_fortran_requested=$enableval, enable_build_fortran_requested=yes)
-use_mpi_fort=no
-enable_build_fortran=no
-if test "x$enable_build_fortran_requested" = "xyes" ; then
-   if test "x$FC" != "x"; then
-   	if $FC --version|grep -q 'GNU Fortran'; then
-		 AC_LANG_PUSH([Fortran])
-		 OLD_FCFLAGS="$FCFLAGS"
-		 FCFLAGS="$FCFLAGS -cpp"
-		 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [[
-#if __GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 9)
-#error GFortran too old, version >= 4.9.x needed, Fortran examples will not be built
-#endif
-]]
-                 )],
-                 [enable_build_fortran="yes"],
-                 [enable_build_fortran="no"])
-		 FCFLAGS="$OLD_FCFLAGS"
-		 AC_LANG_POP([Fortran])
-                 if test "$enable_build_fortran" = "no" ; then
-                   AC_MSG_WARN([GFortran too old, version >= 4.9.x needed, Fortran examples will not be built])
-                 fi
-	else
-		if $FC -V 2>&1|grep -q 'Intel(R) Fortran'; then
-			enable_build_fortran="yes"
-			ifort_fc_version=`$FC -V 2>&1 |head -1|sed 's/.*Version //;s/ Build.*//'`
-			ifort_maj_version=`echo $ifort_fc_version|cut -d. -f1`
-
-			if test $ifort_maj_version -lt 16; then
-				AC_MSG_WARN([Intel Fortran compiler $ifort_fc_version too old, version >= 2016.x needed, Fortran examples will not be built])
-				enable_build_fortran="no"
-			fi
-		else
-			if $FC -qversion 2>&1|grep -q 'IBM XL Fortran'; then
-				xlf_fc_version=`$FC -V 2>&1 |tail -1|sed 's/.*Version: //'`
-
-				AC_MSG_WARN([IBM Fortran compiler $xlf_fc_version not validated with the native StarPU Fortran API, Fortran examples will not be built])
-				enable_build_fortran="no"
-			else
-				AC_MSG_WARN(Fortran compiler has not been tested for StarPU native Fortran support)
-				enable_build_fortran="yes"
-			fi
-		fi
-	fi
-	if $FC -v 2>&1 | grep -q 'Arm C/C++/Fortran Compiler' ; then
-	       armflang_version=`$FC -v 2>&1 | head -1 | sed 's/.*version //'`
-	       armflang_maj_version=`echo $armflang_version|cut -d. -f1`
-               if test $armflang_maj_version -lt 23 ; then
-	                AC_MSG_WARN([ARM Fortran compiler $armflang_version is not validated with the native StarPU Fortran API, Fortran examples will not be built])
-			enable_build_fortran="no"
-	       fi
-        fi
-
-	if test "x$enable_build_fortran" = "xyes" ; then
-		AC_DEFINE(STARPU_HAVE_FC, [1], [Define this if a Fortran compiler is available])
-		if test x$build_mpi_lib = xyes -o x$build_nmad_lib = xyes -o x$build_mpi_master_slave = xyes ; then
-			#Check MPIFORT
-			if test x$enable_simgrid = xyes ; then
-				DEFAULT_MPIFORT=smpifort
-			else
-				DEFAULT_MPIFORT=mpifort
-			fi
-			AC_ARG_WITH(mpifort, [AS_HELP_STRING([--with-mpifort=<mpifort name or path to mpifort>], [Name or path of the mpifort compiler])], [DEFAULT_MPIFORT=$withval])
-			case $DEFAULT_MPIFORT in
-				/*) mpifort_path="$DEFAULT_MPIFORT" ;;
-				*)  AC_PATH_PROG(mpifort_path, $DEFAULT_MPIFORT, [no], [$simgrid_dir/bin:$PATH]) ;;
-			esac
-			# We test if the MPIFORT compiler exists
-			if test ! -x $mpifort_path; then
-				AC_MSG_RESULT(The mpifort compiler '$mpifort_path' does not have the execute permission)
-				mpifort_path=no
-			else
-				OLD_CC=$CC
-				CC=$mpicc_path
-				AC_LINK_IFELSE(
-						AC_LANG_PROGRAM(
-							[[#include <mpi.h>]],
-							[[AC_LANG_SOURCE([return MPI_Comm_f2c(0);])]]
-							),
-						[use_mpi_fort=yes],
-						[use_mpi_fort=no]
-						)
-				CC=$OLD_CC
-				if test "x$use_mpi_fort" = xyes; then
-					AC_DEFINE([HAVE_MPI_COMM_F2C], [1], [Function MPI_Comm_f2c is available])
-				fi
-			fi
-
-			AC_MSG_CHECKING(whether mpifort is available)
-			AC_MSG_RESULT($mpifort_path)
-			AC_SUBST(MPIFORT, $mpifort_path)
-
-			if test x$mpifort_path != xno ; then
-				MPIPATH=$(dirname $mpifort_path):$PATH
-			else
-				MPIPATH=$PATH
-			fi
-		fi
-	fi
-   fi
-fi
-if test "x$enable_build_fortran" = "xyes" ; then
-   if test "x$FC" = "x" ; then
-      enable_build_fortran="no"
-   fi
-fi
-
-#We have MPI C/C++ compiler
-if test x$build_mpi_master_slave = xyes; then
-    #Check if we can compile fortran cases
-    if test x$use_mpi_fort = xyes ; then
-        F77LD=$mpifort_path
-        FCLD=$mpifort_path
-        F77=$mpifort_path
-        FC=$mpifort_path
-    else
-        enable_build_fortran=no
-    fi
-fi
-
-
-AM_CONDITIONAL([STARPU_HAVE_FC], [test "x$FC" != "x" -a "x$enable_build_fortran" = "xyes"])
-AM_CONDITIONAL([STARPU_HAVE_F77], [test "x$F77" != "x" -a "x$enable_build_fortran" = "xyes"])
-AM_CONDITIONAL([STARPU_HAVE_MPIFORT], [test "x$use_mpi_fort" = "xyes"])
 
 ########################################################################
 #                                                                      #

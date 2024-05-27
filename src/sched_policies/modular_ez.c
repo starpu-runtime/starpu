@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -267,6 +267,17 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 			no_perfmodel_component = starpu_sched_component_eager_create(t, NULL);
 			calibrator_component = starpu_sched_component_eager_calibration_create(t, NULL);
 
+			if (! (flags & STARPU_SCHED_SIMPLE_FIFO_ABOVE))
+			{
+				/* We won't have a fifo above, the eager components do need one */
+				struct starpu_sched_component *calibrator_fifo = starpu_sched_component_fifo_create(t, NULL);
+				struct starpu_sched_component *no_perfmodel_fifo = starpu_sched_component_fifo_create(t, NULL);
+				starpu_sched_component_connect(calibrator_fifo, calibrator_component);
+				starpu_sched_component_connect(no_perfmodel_fifo, no_perfmodel_component);
+				calibrator_component = calibrator_fifo;
+				no_perfmodel_component = no_perfmodel_fifo;
+			}
+
 			struct starpu_sched_component_perfmodel_select_data perfmodel_select_data =
 				{
 					.calibrator_component = calibrator_component,
@@ -298,7 +309,11 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 
 		/* Take default ntasks_threshold */
 		unsigned ntasks_threshold;
-		if (starpu_sched_component_is_heft(decision_component) ||
+		if (flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW_NOLIMIT)
+		{
+			ntasks_threshold = UINT_MAX;
+		}
+		else if (starpu_sched_component_is_heft(decision_component) ||
 		    starpu_sched_component_is_mct(decision_component) ||
 		    starpu_sched_component_is_heteroprio(decision_component))
 		{
@@ -312,7 +327,16 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 		/* But let user tune it */
 		ntasks_threshold = starpu_getenv_number_default("STARPU_NTASKS_THRESHOLD", ntasks_threshold);
 
-		double exp_len_threshold = _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT;
+		double exp_len_threshold;
+		if (flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW_NOLIMIT)
+		{
+			exp_len_threshold = INFINITY;
+		}
+		else
+		{
+			exp_len_threshold = _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT;
+		}
+		/* But let user tune it */
 		exp_len_threshold = starpu_getenv_float_default("STARPU_EXP_LEN_THRESHOLD", exp_len_threshold);
 
 		int ready = starpu_getenv_number_default("STARPU_SCHED_READY", (flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY) ? 1 : 0);
