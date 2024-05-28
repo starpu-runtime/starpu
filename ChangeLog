@@ -17,6 +17,9 @@
 StarPU 1.4.7
 ==============================================
 
+Small changes:
+  * Fix simgrid version of examples/mult
+
 StarPU 1.4.6
 ==============================================
 
