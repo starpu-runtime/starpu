@@ -234,7 +234,7 @@ $ make
 Once everything is built, you may want to test the result. An
 extensive set of regression tests is provided with StarPU. Running the
 tests is done by calling <c>make check</c>. These tests are run every night
-and the result from the main profile is publicly available (https://starpu.gitlabpages/files/testing/master/).
+and the result from the main profile is publicly available (https://starpu.gitlabpages.inria.fr/files/testing/master/).
 
 \verbatim
 $ make check
