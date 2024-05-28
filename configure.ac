@@ -2523,7 +2523,7 @@ else
         # spews a lot of warnings.
 	if test x$enable_debug != xyes; then
 		if test x$GCC = xyes; then
-			CPPFLAGS="-D_FORTIFY_SOURCE=1 $CPPFLAGS"
+			CPPFLAGS="-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=1 $CPPFLAGS"
 		fi
 	fi
 fi
