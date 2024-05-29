@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2016-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2016-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +14,6 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-LAUNCHER_ENV	=
-LAUNCHER	=
 include $(top_srcdir)/make/starpu.mk
 
 STARPU_MPI_NP ?= 4
@@ -26,6 +24,14 @@ if STARPU_SIMGRID
 STARPU_MPIEXEC			= $(abs_top_builddir)/tools/starpu_smpirun -np $(STARPU_MPI_NP) -platform $(abs_top_srcdir)/tools/perfmodels/cluster.xml -hostfile $(abs_top_srcdir)/tools/perfmodels/hostfile
 else
 STARPU_MPIEXEC			= $(MPIEXEC) $(MPIEXEC_ARGS) -np $(STARPU_MPI_NP)
+endif
+
+if STARPU_USE_MPI
+LAUNCHER	= $(STARPU_MPIEXEC)
+LAUNCHER_ENV	= $(MPI_RUN_ENV)
+else
+LAUNCHER_ENV	=
+LAUNCHER	=
 endif
 
 showcheckfailed:

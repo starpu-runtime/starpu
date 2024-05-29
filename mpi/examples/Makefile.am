@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2013       Thibaut Lambert
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -22,9 +22,6 @@ FC=$(MPIFORT)
 FCLD=$(MPIFORT)
 
 include $(top_srcdir)/make/starpu-loader.mk
-
-LAUNCHER	= $(STARPU_MPIEXEC)
-LAUNCHER_ENV	= $(MPI_RUN_ENV)
 
 if STARPU_SIMGRID
 LOADER_BIN = $(LAUNCHER)
