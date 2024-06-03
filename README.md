@@ -179,6 +179,8 @@ Contributions are welcome! Both on the
 and on the
 [github StarPU mirror](https://github.com/starpu-runtime/starpu)
 
+Please see [our contribution page](https://starpu.gitlabpages.inria.fr/involved.html) for details.
+
 ## Contact
 
 For any questions regarding StarPU, please contact the starpu-devel
