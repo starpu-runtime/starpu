@@ -1266,7 +1266,11 @@ using the NewMadeleine's MPI interface (MadMPI). StarPU will use the standard
 MPI API and NewMadeleine will handle the calls to the MPI API. In this case,
 StarPU makes communications progress and thus communication progress has to be
 disabled in NewMadeleine by compiling it with the profile
-<c>pukabi+madmpi-mini.conf</c>.
+<c>pukabi+madmpi-mini.conf</c>. However, this profile disables threading
+support in NewMadeleine. If the application needs to use
+<c>MPI_THREAD_MULTIPLE</c>, NewMadeleine has to be built with the profile
+<c>pukabi+madmpi.conf</c> and StarPU will automatically disable communication
+progression in NewMadeleine at runtime.
 </li>
 </ul>
 

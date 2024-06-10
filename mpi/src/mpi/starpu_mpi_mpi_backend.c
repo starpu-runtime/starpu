@@ -33,7 +33,10 @@ static void starpu_mpi_mpi_backend_constructor(void) __attribute__((constructor)
 static void starpu_mpi_mpi_backend_constructor(void)
 {
 #ifdef HAVE_PIOMAN
-	/* We don't want progression in both PIOman and StarPU */
+	/* If MadMPI is used, MadMPI should not the built with PIOman, as we don't
+	 * want communication progression to be done in both StarPU and MadMPI.
+	 * Yet, if it is the case, we disable PIOman progression.
+	 * (PIOman is required by MadMPI to be able to use MPI_THREAD_MULTIPLE):*/
 	setenv("PIOM_ENABLE_PROGRESSION", "0", 0);
 #endif
 }
