@@ -175,6 +175,11 @@ void starpu_fxt_trace_user_event(unsigned long code);
 */
 void starpu_fxt_trace_user_event_string(const char *s);
 
+/**
+   Add a string event in the execution trace if FxT is enabled even during initialization.
+*/
+void starpu_fxt_trace_user_meta_string(const char *s);
+
 /** @} */
 
 #ifdef __cplusplus

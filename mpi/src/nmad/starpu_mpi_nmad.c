@@ -606,7 +606,13 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 
 #ifdef STARPU_USE_FXT
 	_starpu_mpi_fxt_init(argc_argv);
+
+#ifdef HAVE_NM_TRACE_ADD_SYNCHRO_POINT
+	starpu_fxt_trace_user_meta_string("Clock_synchronize");
+	nm_trace_add_synchro_point();
+#endif 
 #endif
+
 
 	if (_starpu_mpi_use_coop_sends)
 	{
