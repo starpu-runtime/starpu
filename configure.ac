@@ -604,6 +604,7 @@ if test x$enable_mpi = xyes -a x$enable_nmad = xyes ; then
     CFLAGS="$CFLAGS $NMAD_CFLAGS"
     LIBS="$LIBS $NMAD_LIBS"
     AC_CHECK_FUNCS([piom_ltask_set_bound_thread_os_indexes])
+    AC_CHECK_FUNCS([nm_trace_add_synchro_point])
     CFLAGS="$save_CFLAGS"
     LIBS="$save_LIBS"
 else
