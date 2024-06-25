@@ -18,6 +18,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <strings.h>
 #include <common/config.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -663,7 +664,15 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 			}
 
 			if (weight == 1 || hwloc_bitmap_weight(log_coreset) == 1)
-				_STARPU_DISP("Warning: the current CPU binding set contains only one CPU, maybe you need to tell your job scheduler to bind on all allocated cores (e.g. --exclusive --ntasks-per-node=1 or --cpus-per-task for Slurm, or --bind-to board for openmpi), or you can use STARPU_WORKERS_GETBIND=0 to bypass it, but make sure you are not oversubscribing the machine\n");
+			{
+				const char *omp_bind = starpu_getenv("OMP_PROC_BIND");
+				_STARPU_DISP("Warning: the current CPU binding set contains only one CPU.\n");
+				if (omp_bind && !strcasecmp(omp_bind, "true"))
+					_STARPU_DISP("Because he OMP_PROC_BIND environment variable is set to true.\n");
+				else
+					_STARPU_DISP("Maybe you need to tell your job scheduler to bind on all allocated cores (e.g. --exclusive --ntasks-per-node=1 or --cpus-per-task for Slurm, or --bind-to board for openmpi).");
+				_STARPU_DISP("You can use STARPU_WORKERS_GETBIND=0 to bypass it, but make sure you are not oversubscribing the machine.\n");
+			}
 			topology->nusedpus = weight;
 			topology->firstusedpu = first;
 		} while(0);
