@@ -21,7 +21,7 @@ set -e
 export starpudir=$PWD
 export rootdir=$PWD/../starpu_chameleon
 export builddir=$PWD/../starpu_chameleon/build
-rm -rf $rootdir
+if test -d $rootdir ; then rm -rf $rootdir ; fi
 mkdir -p $builddir
 
 ./autogen.sh
