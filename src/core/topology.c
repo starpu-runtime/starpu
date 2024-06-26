@@ -670,7 +670,7 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 				if (omp_bind && strcasecmp(omp_bind, "false"))
 					_STARPU_DISP("The OMP_PROC_BIND environment variable is set to %s.\n", omp_bind);
 				else
-					_STARPU_DISP("Maybe you need to tell your job scheduler to bind on all allocated cores (e.g. --exclusive --ntasks-per-node=1 or --cpus-per-task for Slurm, or --bind-to board for openmpi).");
+					_STARPU_DISP("Maybe you need to tell your job scheduler to bind on all allocated cores (e.g. --exclusive --ntasks-per-node=1 or --cpus-per-task for Slurm, or --bind-to board for openmpi).\n");
 				_STARPU_DISP("You can use STARPU_WORKERS_GETBIND=0 to bypass it, but make sure you are not oversubscribing the machine.\n");
 			}
 			topology->nusedpus = weight;
