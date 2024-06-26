@@ -1097,6 +1097,7 @@ static void worker_set_detailed_state(double time, const char *prefix, long unsi
 	char tag_str[STARPU_POTI_STR_LEN];
 	char jobid_str[STARPU_POTI_STR_LEN];
 	char submitorder_str[STARPU_POTI_STR_LEN];
+	char priority_str[STARPU_POTI_STR_LEN];
 	char gflop_str[STARPU_POTI_STR_LEN];
 	char X_str[STARPU_POTI_STR_LEN], Y_str[STARPU_POTI_STR_LEN], Z_str[STARPU_POTI_STR_LEN];
 	char iteration_str[STARPU_POTI_STR_LEN], subiteration_str[STARPU_POTI_STR_LEN];
@@ -1107,6 +1108,7 @@ static void worker_set_detailed_state(double time, const char *prefix, long unsi
 	snprintf(tag_str, sizeof(tag_str), "%016llx", tag);
 	snprintf(jobid_str, sizeof(jobid_str), "%s%lu", prefix, job_id);
 	snprintf(submitorder_str, sizeof(submitorder_str), "%s%lu", prefix, task->submit_order);
+	snprintf(priority_str, sizeof(submitorder_str), "%s%lu", prefix, task->submit_order);
 	snprintf(gflop_str, sizeof(gflop_str), "%f", gflop);
 	snprintf(X_str, sizeof(X_str), "%u", X);
 	snprintf(Y_str, sizeof(Y_str), "%u", Y);
@@ -1115,12 +1117,13 @@ static void worker_set_detailed_state(double time, const char *prefix, long unsi
 	snprintf(subiteration_str, sizeof(subiteration_str), "%ld", subiteration);
 
 #ifdef HAVE_POTI_INIT_CUSTOM
-	poti_user_SetState(_starpu_poti_extendedSetState, time, container, "WS", name, 12, size_str,
+	poti_user_SetState(_starpu_poti_extendedSetState, time, container, "WS", name, 13, size_str,
 			   parameters_str,
 			   footprint_str,
 			   tag_str,
 			   jobid_str,
 			   submitorder_str,
+			   priority_str,
 			   gflop_str,
 			   X_str,
 			   Y_str,
@@ -1132,7 +1135,7 @@ static void worker_set_detailed_state(double time, const char *prefix, long unsi
 	poti_SetState(time, container, "WS", name);
 #endif
 #else
-	fprintf(out_paje_file, "20	%.9f	%sw%lu	WS	\"%s\"	%lu	\"%s\"	%08lx	%016llx	%s%lu	%s%lu	%f	%u	%u	"/*"%u	"*/"%ld	%ld	\"%s\"\n", time, prefix, workerid, name, size, parameters, footprint, tag, prefix, job_id, prefix, task->submit_order, gflop, X, Y, /*Z,*/ iteration, subiteration, numa_nodes);
+	fprintf(out_paje_file, "20	%.9f	%sw%lu	WS	\"%s\"	%lu	\"%s\"	%08lx	%016llx	%s%lu	%s%lu	%lu	%f	%u	%u	"/*"%u	"*/"%ld	%ld	\"%s\"\n", time, prefix, workerid, name, size, parameters, footprint, tag, prefix, job_id, prefix, task->submit_order, task->priority, gflop, X, Y, /*Z,*/ iteration, subiteration, numa_nodes);
 #endif
 }
 
