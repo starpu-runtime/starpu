@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2017       Guillaume Beauchamp
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -43,6 +43,7 @@
 #include <nm_mpi_nmad.h>
 #include <nm_mcast_interface.h>
 #include <nm_sendrecv_interface.h>
+#include <nm_core_interface.h>
 
 #include "starpu_mpi_nmad_coop.h"
 #include "starpu_mpi_nmad_backend.h"
@@ -610,7 +611,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 #ifdef HAVE_NM_TRACE_ADD_SYNCHRO_POINT
 	starpu_fxt_trace_user_meta_string("Clock_synchronize");
 	nm_trace_add_synchro_point();
-#endif 
+#endif
 #endif
 
 
