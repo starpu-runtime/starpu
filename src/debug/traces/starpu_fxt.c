@@ -1102,7 +1102,7 @@ static void worker_set_detailed_state(double time, const char *prefix, long unsi
 	snprintf(tag_str, sizeof(tag_str), "%016llx", tag);
 	snprintf(jobid_str, sizeof(jobid_str), "%s%lu", prefix, job_id);
 	snprintf(submitorder_str, sizeof(submitorder_str), "%s%lu", prefix, task->submit_order);
-	snprintf(priority_str, sizeof(submitorder_str), "%s%lu", prefix, task->submit_order);
+	snprintf(priority_str, sizeof(priority_str), "%lu", task->priority);
 	snprintf(gflop_str, sizeof(gflop_str), "%f", gflop);
 	snprintf(X_str, sizeof(X_str), "%u", X);
 	snprintf(Y_str, sizeof(Y_str), "%u", Y);
