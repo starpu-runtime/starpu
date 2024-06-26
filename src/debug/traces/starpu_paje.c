@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2017-2019  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -42,13 +42,14 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 #ifdef HAVE_POTI_INIT_CUSTOM
 	poti_header();     /* see poti_init_custom to customize the header */
 	_starpu_poti_extendedSetState = poti_header_DeclareEvent (PAJE_SetState,
-						     11,
+						     13,
 						     "Size string",
 						     "Params string",
 						     "Footprint string",
 						     "Tag string",
 						     "JobId string",
 						     "SubmitOrder string",
+						     "Priority string",
 						     "GFlop string",
 						     "X string",
 						     "Y string",
@@ -198,6 +199,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 	fprintf(file, "%%	Tag	string\n");
 	fprintf(file, "%%	JobId	string\n");
 	fprintf(file, "%%	SubmitOrder	string\n");
+	fprintf(file, "%%	Priority	string\n");
 	fprintf(file, "%%	GFlop	string\n");
 	fprintf(file, "%%	X	string\n");
 	fprintf(file, "%%	Y	string\n");
