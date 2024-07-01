@@ -952,9 +952,9 @@ do {									\
 
 #define _STARPU_TRACE_TASK_NAME_LINE_COLOR(job)				\
 	do {								\
+		_STARPU_TRACE_TASK_COLOR(job);				\
 		_STARPU_TRACE_TASK_NAME(job);				\
 		_STARPU_TRACE_TASK_LINE(job);				\
-		_STARPU_TRACE_TASK_COLOR(job);				\
 	} while(0)
 
 #define _STARPU_TRACE_TASK_LINE(job)					\

@@ -1048,6 +1048,7 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 		task->iterations[0] = _starpu_get_sched_ctx_struct(task->sched_ctx)->iterations[0];
 		task->iterations[1] = _starpu_get_sched_ctx_struct(task->sched_ctx)->iterations[1];
 		_STARPU_TRACE_TASK_SUBMIT(j, task->iterations[0], task->iterations[1]);
+		_STARPU_TRACE_TASK_COLOR(j);
 		_STARPU_TRACE_TASK_NAME(j);
 		_STARPU_TRACE_TASK_LINE(j);
 	}
