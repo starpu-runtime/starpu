@@ -1892,6 +1892,9 @@ if test x$have_valid_hip = xyes; then
             STARPU_HIPBLAS_LDFLAGS="-L$HIPBLAS_LIB_DIR"
         fi
         STARPU_HIPBLAS_LDFLAGS="$STARPU_HIPBLAS_LDFLAGS -lhipblas"
+        if test "$HIP_PLATFORM" = "amd"; then
+            STARPU_HIPBLAS_LDFLAGS="$STARPU_HIPBLAS_LDFLAGS -lrocblas"
+        fi
     else
         AC_MSG_WARN(['hipblas' not found, disabling HIP examples])
     fi
