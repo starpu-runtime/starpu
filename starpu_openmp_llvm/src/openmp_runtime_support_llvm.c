@@ -453,7 +453,7 @@ kmp_int32 __kmpc_omp_task_with_deps(ident_t *loc_ref, kmp_int32 gtid,
 	/* This is freed in starpu_omp_task_region, as attr.cl_arg_free is set to true*/
 	void **arg_ptrs = calloc(4, sizeof(void*));
 	arg_ptrs[0] = new_task;
-	arg_ptrs[1] = (intptr_t) (ndeps + ndeps_noalias);
+	arg_ptrs[1] = (void*) (intptr_t) (ndeps + ndeps_noalias);
 
 #ifdef _STARPU_OPENMP_LLVM_VARIANT
 	if (new_task->nvariants == 0)
