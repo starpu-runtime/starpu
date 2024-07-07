@@ -2414,13 +2414,12 @@ static void _starpu_darts_scheduling_3D_matrix(struct starpu_task_list *main_tas
 				STARPU_IGNORE_UTILITIES_HANDLES(best_1_from_free_task, x);
 				if (!_starpu_darts_gpu_data_not_used_list_empty(g->gpu_data)) /* TODO : utile ? */
 				{
-					struct _starpu_darts_gpu_data_not_used *e1;
 					hud = STARPU_TASK_GET_HANDLE(best_1_from_free_task, x)->user_data;
 					//printf("In 1 from free with %p\n", hud->data_not_used[current_gpu]);
 					if (hud->data_not_used[current_gpu])
 					{
 						_starpu_darts_gpu_data_not_used_list_erase(g->gpu_data, hud->data_not_used[current_gpu]);
-						_STARPU_SCHED_PRINT("%p gets 0 at is_present_in_data_not_used_yet GPU is %d\n", e1->D, current_gpu);
+						_STARPU_SCHED_PRINT("%p gets 0 at is_present_in_data_not_used_yet GPU is %d\n", hud->data_not_used[current_gpu]->D, current_gpu);
 
 						hud->is_present_in_data_not_used_yet[current_gpu] = 0;
 
