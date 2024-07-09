@@ -224,9 +224,7 @@ void starpu_data_map_filters_array(starpu_data_handle_t root_handle, int nfilter
    Plan to partition \p initial_handle into several subdata according to
    the filter \p f.
    The handles are returned into the \p children array, which has to be
-   the same size as the number of parts described in \p f. These handles
-   are not immediately usable, starpu_data_partition_submit() has to be
-   called to submit the actual partitioning.
+   the same size as the number of parts described in \p f. 
 
    Here is an example of how to use the function:
    \code{.c}
@@ -235,8 +233,8 @@ void starpu_data_map_filters_array(starpu_data_handle_t root_handle, int nfilter
    {
      .filter_func = starpu_matrix_filter_block,
      .nchildren = nslicesx
-     };
-     starpu_data_partition_plan(A_handle, &f, children);
+   };
+   starpu_data_partition_plan(A_handle, &f, children);
    \endcode
 
    See \ref AsynchronousPartitioning for more details.
