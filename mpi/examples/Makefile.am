@@ -379,6 +379,26 @@ endif
 endif
 endif
 
+###################
+# Context example #
+###################
+
+if STARPU_HAVE_MPIFORT
+if !STARPU_SANITIZE
+examplebin_PROGRAMS +=			\
+	native_fortran/nf_context
+
+native_fortran_nf_context_SOURCES =		\
+	native_fortran/fstarpu_mpi_mod.f90	\
+	native_fortran/fstarpu_mod.f90		\
+	native_fortran/strtoptr.c		\
+	native_fortran/nf_context.f90
+
+# force dependencies generation
+native_fortran/nf_context.o: native_fortran/nf_context.f90 native_fortran/fstarpu_mod.o native_fortran/fstarpu_mpi_mod.o
+endif
+endif
+
 ########################################
 # Native Fortran MPI STARPU_REDUX test #
 ########################################
