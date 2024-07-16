@@ -328,6 +328,12 @@ int starpu_mpi_barrier(MPI_Comm comm);
 int starpu_mpi_wait_for_all(MPI_Comm comm);
 
 /**
+   Wait until all StarPU tasks in the given context and communications
+   for the given communicator are completed
+*/
+int starpu_mpi_wait_for_all_in_ctx(MPI_Comm comm, unsigned sched_ctx);
+
+/**
    Post a standard-mode, non blocking send of \p data_handle to the
    node \p dest using the message tag \p data_tag within the
    communicator \p comm. On completion, \p tag is unlocked.

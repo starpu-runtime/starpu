@@ -653,6 +653,15 @@ module fstarpu_mpi_mod
                         integer(c_int), value, intent(in) :: mpi_comm
                 end function fstarpu_mpi_wait_for_all
 
+                ! int starpu_mpi_wait_for_all_in_ctx(MPI_Comm comm, unsigned sched_ctx);
+                function fstarpu_mpi_wait_for_all_in_ctx (mpi_comm, sched_ctx) bind(C)
+                        use iso_c_binding
+                        implicit none
+                        integer(c_int) :: fstarpu_mpi_wait_for_all_in_ctx
+                        integer(c_int), value, intent(in) :: mpi_comm
+                        integer(c_int), value, intent(in) :: sched_ctx
+                end function fstarpu_mpi_wait_for_all_in_ctx
+
                 ! int starpu_mpi_datatype_register(starpu_data_handle_t handle, starpu_mpi_datatype_allocate_func_t allocate_datatype_func, starpu_mpi_datatype_free_func_t free_datatype_func);
                 function fstarpu_mpi_datatype_register(dh, alloc_func, free_func) bind(C,name="starpu_mpi_datatype_register")
                         use iso_c_binding

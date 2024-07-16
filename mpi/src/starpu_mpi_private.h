@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2023  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2024  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -389,6 +389,7 @@ struct _starpu_mpi_backend
 
 	int (*_starpu_mpi_backend_barrier)(MPI_Comm comm);
 	int (*_starpu_mpi_backend_wait_for_all)(MPI_Comm comm);
+	int (*_starpu_mpi_backend_wait_for_all_in_ctx)(MPI_Comm comm, unsigned sched_ctx);
 	int (*_starpu_mpi_backend_wait)(starpu_mpi_req *public_req, MPI_Status *status);
 	int (*_starpu_mpi_backend_test)(starpu_mpi_req *public_req, int *flag, MPI_Status *status);
 

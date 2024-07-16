@@ -819,7 +819,7 @@ int _starpu_mpi_barrier(MPI_Comm comm)
 	return 0;
 }
 
-int _starpu_mpi_wait_for_all(MPI_Comm comm)
+int _starpu_mpi_wait_for_all__(MPI_Comm comm, unsigned sched_ctx)
 {
 	(void) comm;
 	_STARPU_MPI_LOG_IN();
@@ -839,7 +839,10 @@ int _starpu_mpi_wait_for_all(MPI_Comm comm)
 		newer_requests = 0;
 		STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 		/* Now wait for all tasks */
-		starpu_task_wait_for_all();
+		if (sched_ctx == STARPU_NMAX_SCHED_CTXS+1)
+			starpu_task_wait_for_all();
+		else
+			starpu_task_wait_for_all_in_ctx(sched_ctx);
 		STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 		/* Check newer_requests again, in case some MPI requests
 		 * triggered by tasks completed and triggered tasks between
@@ -849,6 +852,17 @@ int _starpu_mpi_wait_for_all(MPI_Comm comm)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 	return 0;
 }
+
+int _starpu_mpi_wait_for_all(MPI_Comm comm)
+{
+	return _starpu_mpi_wait_for_all__(comm, STARPU_NMAX_SCHED_CTXS+1);
+}
+
+int _starpu_mpi_wait_for_all_in_ctx(MPI_Comm comm, unsigned sched_ctx)
+{
+	return _starpu_mpi_wait_for_all__(comm, sched_ctx);
+}
+
 
 /********************************************************/
 /*							*/

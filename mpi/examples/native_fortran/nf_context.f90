@@ -76,6 +76,7 @@ program nf_context
         C_CHAR_"qrm_ctx"//C_NULL_CHAR,                &
         (/ FSTARPU_SCHED_CTX_POLICY_NAME, ptr,        &
         c_null_ptr /))
+  write(*, '("Created context: ",i1,"")')ctx
 
   allocate(a(mpi_size))
 
@@ -117,15 +118,9 @@ program nf_context
      end if
   end do
 
-  ! if only wait for tasks in ctx I have a segfault
-  !call fstarpu_task_wait_for_all_in_ctx(ctx)
-
-  ! if wait for all tasks (regardless of ctx) it works
-  call fstarpu_task_wait_for_all()
-
+  ret = fstarpu_mpi_wait_for_all_in_ctx(mpi_comm, ctx)
   ret = fstarpu_mpi_barrier(mpi_comm)
   if(mpi_rank.eq.0) write(*,'("Yuppi, all the tasks in ctx",i1," ave finished!")')ctx
-
 
   call fstarpu_codelet_free(task_cl     );   task_cl   = c_null_ptr
   call fstarpu_shutdown()

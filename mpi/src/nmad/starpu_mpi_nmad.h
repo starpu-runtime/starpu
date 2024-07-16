@@ -41,6 +41,7 @@ void _starpu_mpi_progress_shutdown(void **value);
 
 int _starpu_mpi_barrier(MPI_Comm comm);
 int _starpu_mpi_wait_for_all(MPI_Comm comm);
+int _starpu_mpi_wait_for_all_in_ctx(MPI_Comm comm, unsigned sched_ctx);
 int _starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status);
 int _starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status);
 

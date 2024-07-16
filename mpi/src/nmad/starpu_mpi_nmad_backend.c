@@ -109,6 +109,7 @@ struct _starpu_mpi_backend _mpi_backend =
 
 	._starpu_mpi_backend_barrier = _starpu_mpi_barrier,
 	._starpu_mpi_backend_wait_for_all = _starpu_mpi_wait_for_all,
+	._starpu_mpi_backend_wait_for_all = _starpu_mpi_wait_for_all_in_ctx,
 	._starpu_mpi_backend_wait = _starpu_mpi_wait,
 	._starpu_mpi_backend_test = _starpu_mpi_test,
 

@@ -323,4 +323,9 @@ int fstarpu_mpi_wait_for_all(MPI_Fint comm)
 {
 	return starpu_mpi_wait_for_all(MPI_Comm_f2c(comm));
 }
+
+int fstarpu_mpi_wait_for_all_in_ctx(MPI_Fint comm, int sched_ctx)
+{
+	return starpu_mpi_wait_for_all_in_ctx(MPI_Comm_f2c(comm), (unsigned)sched_ctx);
+}
 #endif
