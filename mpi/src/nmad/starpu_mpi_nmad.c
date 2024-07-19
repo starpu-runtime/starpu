@@ -294,7 +294,7 @@ int _starpu_mpi_barrier(MPI_Comm comm)
 	return ret;
 }
 
-int _starpu_mpi_wait_for_all__(MPI_Comm comm, unsigned schd_ctx)
+int _starpu_mpi_wait_for_all__(MPI_Comm comm, unsigned sched_ctx)
 {
 	(void) comm;
 	_STARPU_MPI_LOG_IN();
