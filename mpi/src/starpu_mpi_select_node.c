@@ -90,6 +90,10 @@ int _starpu_mpi_select_node_with_most_data(int me, int nb_nodes, struct starpu_d
 		int rank = starpu_data_get_rank(data);
 		size_t size = data->ops->get_size(data);
 
+		if (rank == STARPU_MPI_PER_NODE)
+			/* Each of them has it */
+			continue;
+
 		if (mode & STARPU_R)
 			size_on_nodes[rank] += size;
 

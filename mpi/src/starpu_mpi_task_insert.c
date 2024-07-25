@@ -107,6 +107,10 @@ int _starpu_mpi_find_executee_node(starpu_data_handle_t data, enum starpu_data_a
 		{
 			_STARPU_MPI_DEBUG(100, "Another node %d had already been selected to execute the codelet, can't now set %d\n", *xrank, mpi_rank);
 			*inconsistent_execute = 1;
+			if (*xrank == STARPU_MPI_PER_NODE)
+				_STARPU_ERROR("Data %p has rank %d but we had STARPU_MPI_PER_NODE data before that", data, mpi_rank);
+			else if (mpi_rank == STARPU_MPI_PER_NODE)
+				_STARPU_ERROR("Data %p has rank STARPU_MPI_PER_NODE but we had non-STARPU_MPI_PER_NODE data before that (rank %d)", data, *xrank);
 		}
 	}
 	_STARPU_MPI_DEBUG(100, "Executing: inconsistent=%d, do_execute=%d, xrank=%d\n", *inconsistent_execute, *do_execute, *xrank);
