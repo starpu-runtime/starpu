@@ -171,7 +171,8 @@ struct starpu_parallel_worker_config *_starpu_parallel_worker_init_varg(hwloc_ob
 		}
 		else if (arg_type == STARPU_PARALLEL_WORKER_CREATE_FUNC)
 		{
-			machine->params->create_func = va_arg(varg_list, void (*)(void*));
+			typedef void (*fn)(void*);
+			machine->params->create_func = va_arg(varg_list, fn);
 		}
 		else if (arg_type == STARPU_PARALLEL_WORKER_CREATE_FUNC_ARG)
 		{
