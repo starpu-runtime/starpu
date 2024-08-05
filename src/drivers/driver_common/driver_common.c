@@ -118,6 +118,11 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 				worker->cl_expend.tv_nsec = 0;
 			}
 		}
+		else
+		{
+			worker->cl_start.tv_sec = 0;
+			worker->cl_start.tv_nsec = 0;
+		}
 
 		_starpu_job_notify_start(j, perf_arch);
 	}
@@ -188,13 +193,14 @@ void _starpu_driver_end_job(struct _starpu_worker *worker, struct _starpu_job *j
 
 	struct timespec end;
 	struct starpu_profiling_task_info *profiling_info = task->profiling_info;
-	if ((profiling && profiling_info) || (rank == 0 && (calibrate_model || !_starpu_perf_counter_paused())))
+	if ((profiling && profiling_info) || (rank == 0 && (calibrate_model || !_starpu_perf_counter_paused() ||
+		                                            worker->cl_start.tv_sec || worker->cl_start.tv_nsec)))
 		_starpu_clock_gettime(&end);
 	_starpu_clear_worker_status(worker, STATUS_INDEX_EXECUTING, &end);
 
 	if (rank == 0)
 	{
-		if ((profiling && profiling_info) || calibrate_model || !_starpu_perf_counter_paused())
+		if (worker->cl_start.tv_sec || worker->cl_start.tv_nsec)
 			worker->cl_end = end;
 		STARPU_AYU_POSTRUNTASK(j->job_id);
 	}
@@ -239,7 +245,7 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 		calibrate_model = 1;
 #endif
 
-	if ((profiling && profiling_info) || calibrate_model || !_starpu_perf_counter_paused())
+	if (worker->cl_start.tv_sec || worker->cl_start.tv_nsec)
 	{
 		starpu_timespec_sub(&worker->cl_end, &worker->cl_start, &measured_ts);
 		double measured = starpu_timing_timespec_to_us(&measured_ts);
