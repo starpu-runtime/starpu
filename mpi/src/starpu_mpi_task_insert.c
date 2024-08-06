@@ -159,7 +159,18 @@ int _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum s
 				_STARPU_MPI_DEBUG(1, "Sending data %p to %d with prio %d\n", data, xrank, prio);
 				_SEND_DATA(data, mode, xrank, data_tag, prio, comm, NULL, NULL);
 			}
-			// Else the data has already been sent
+			/* Else the data has already been sent
+			 *
+			 * TODO: if the cached communication did not start yet, and if
+			 * the priority of the ignored communication is higher than the
+			 * cached communication, change the priority of the cached
+			 * communication to reflect it is actually needed with a higher
+			 * priority.
+			 * In StarPU-MPI this can be done while the request is in the
+			 * ready_send_requests list and before its MPI_Isend is issued;
+			 * with StarPU-NewMadeleine, it requires explicit support from
+			 * NewMadeleine (management of list of send requests is done
+			 * directly by NewMadeleine). */
 		}
 	}
 	return 0;
