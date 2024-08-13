@@ -826,8 +826,14 @@ int _starpu_get_perf_model_bus()
 		int res = access(path, F_OK);
 		if (res == 0)
 		{
-			_perf_model_bus_location = i;
-			return _perf_model_bus_location;
+			struct stat st;
+			res = stat(path, &st);
+			if (res != 0 && st.st_size != 0)
+			{
+				_perf_model_bus_location = i;
+				return _perf_model_bus_location;
+			}
+			// else the file is empty, just ignore it
 		}
 		i++;
 	}
