@@ -828,7 +828,7 @@ int _starpu_get_perf_model_bus()
 		{
 			struct stat st;
 			res = stat(path, &st);
-			if (res != 0 && st.st_size != 0)
+			if (res == 0 && st.st_size != 0)
 			{
 				_perf_model_bus_location = i;
 				return _perf_model_bus_location;
