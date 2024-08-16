@@ -158,9 +158,9 @@ $ docker run -it --gpus all registry.gitlab.inria.fr/starpu/starpu-docker/starpu
 From your docker image, you can then call the following commands.
 
 \verbatim
-$ cd src/starpu/doc/tutorial
-$ make vector_scal
-$ ./vector_scal
+$ cd tutorial/files
+$ make vector_scal_task_insert
+$ ./vector_scal_task_insert
 \endverbatim
 
 You can set the environment variable \ref STARPU_WORKER_STATS to \c 1 when
@@ -168,17 +168,17 @@ running your application to see the number of tasks executed by each
 device.
 
 \verbatim
-$ STARPU_WORKER_STATS=1 ./vector_scal
+$ STARPU_WORKER_STATS=1 ./vector_scal_task_insert
 \endverbatim
 
 If your machine has GPU devices, you can force the execution on the GPU devices by setting the number of CPU workers to 0.
 
 \verbatim
 # to force the implementation on a GPU device, by default, it will enable CUDA
-$ STARPU_WORKER_STATS=1 STARPU_NCPU=0 ./vector_scal
+$ STARPU_WORKER_STATS=1 STARPU_NCPU=0 ./vector_scal_task_insert
 
 # to force the implementation on a OpenCL device
-$ STARPU_WORKER_STATS=1 STARPU_NCPU=0 STARPU_NCUDA=0 ./vector_scal
+$ STARPU_WORKER_STATS=1 STARPU_NCPU=0 STARPU_NCUDA=0 ./vector_scal_task_insert
 \endverbatim
 
 
