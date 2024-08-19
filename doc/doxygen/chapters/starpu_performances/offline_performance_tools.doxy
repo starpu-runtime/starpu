@@ -609,12 +609,14 @@ $ tools/starpu_perfmodel_display -x -s non_linear_memset_regression_based
 
 The tool <c>starpu_perfmodel_plot</c> can be used to draw performance
 models. It writes a <c>.gp</c> file in the current directory, to be
-run with the tool <c>gnuplot</c>, which shows the corresponding curve.
+run with the tool <c>gnuplot</c>, which generates the corresponding
+curve both in postscript and png format.
 
 \verbatim
 $ tools/starpu_perfmodel_plot -s non_linear_memset_regression_based
 $ gnuplot starpu_non_linear_memset_regression_based.gp
-$ gv starpu_non_linear_memset_regression_based.png
+$ gv starpu_non_linear_memset_regression_based.eps
+$ geeqie starpu_non_linear_memset_regression_based.png
 \endverbatim
 
 \image html starpu_non_linear_memset_regression_based.png
@@ -691,7 +693,7 @@ proper unit in the graph:
 \verbatim
 $ tools/starpu_perfmodel_plot -e -s non_linear_memset_regression_based_energy
 $ gnuplot starpu_non_linear_memset_regression_based_energy.gp
-$ gv starpu_non_linear_memset_regression_based_energy.png
+$ gv starpu_non_linear_memset_regression_based_energy.eps
 \endverbatim
 
 \image html starpu_non_linear_memset_regression_based_energy.png
@@ -702,7 +704,7 @@ The <c>-f</c> option can also be used to display the performance in terms of GFl
 \verbatim
 $ tools/starpu_perfmodel_plot -f -e -s non_linear_memset_regression_based_energy
 $ gnuplot starpu_gflops_non_linear_memset_regression_based_energy.gp
-$ gv starpu_gflops_non_linear_memset_regression_based_energy.png
+$ gv starpu_gflops_non_linear_memset_regression_based_energy.eps
 \endverbatim
 
 \image html starpu_gflops_non_linear_memset_regression_based_energy.png

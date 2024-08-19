@@ -567,6 +567,9 @@ static void display_selected_models(FILE *gnuplot_file, struct starpu_perfmodel 
 		display_all_perf_models(gnuplot_file, model, &first, options);
 	display_history_based_perf_models(gnuplot_file, model, energy_model, &first, options);
 
+	fprintf(gnuplot_file, "\nset term png\n");
+	fprintf(gnuplot_file, "set output \"starpu_%s%s.png\"\n", options->energy_symbol?"power_":options->gflops?"gflops_":"", options->symbol);
+	fprintf(gnuplot_file, "replot\n");
 	free(symbol);
 }
 
