@@ -146,13 +146,13 @@ StarPU code
 We will use the StarPU docker image.
 
 \verbatim
-$ docker run -it registry.gitlab.inria.fr/starpu/starpu-docker/starpu:latest
+$ docker run -it registry.gitlab.inria.fr/starpu/starpu-docker/starpu:1.4.7
 \endverbatim
 
 If your machine has GPU devices, you can use the following command to enable the GPU devices within the docker image.
 
 \verbatim
-$ docker run -it --gpus all registry.gitlab.inria.fr/starpu/starpu-docker/starpu:latest
+$ docker run -it --gpus all registry.gitlab.inria.fr/starpu/starpu-docker/starpu:1.4.7
 \endverbatim
 
 From your docker image, you can then call the following commands.
