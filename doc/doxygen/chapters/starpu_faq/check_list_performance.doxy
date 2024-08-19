@@ -429,7 +429,7 @@ execution time on CPUs was about 25ms, with a 0.2ms standard deviation, over
 8 samples. It is a good idea to check this before doing actual performance
 measurements.
 
-A graph can be drawn by using the tool <c>starpu_perfmodel_plot</c>:
+A graph (both in postscript and png format) can be drawn by using the tool <c>starpu_perfmodel_plot</c>:
 
 \verbatim
 $ starpu_perfmodel_plot -s starpu_slu_lu_model_getrf
