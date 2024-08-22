@@ -2663,6 +2663,7 @@ static int have_hwloc_pci_bw_routes(FILE *f, const char *Bps, const char *s)
 				nvmlReturn_t nvmlret;
 				nvmlPciInfo_t pci;
 				unsigned k;
+				_starpu_nvmlIntNvLinkDeviceType_t remote_type = _STARPU_NVML_NVLINK_DEVICE_TYPE_UNKNOWN;
 
 				nvmlret = _starpu_nvmlDeviceGetNvLinkState(nvmldev, j, &active);
 				if (nvmlret != NVML_SUCCESS)
@@ -2673,22 +2674,44 @@ static int have_hwloc_pci_bw_routes(FILE *f, const char *Bps, const char *s)
 				if (nvmlret != NVML_SUCCESS)
 					continue;
 
-				hwloc_obj_t obj = hwloc_get_pcidev_by_busid(topology,
-					        pci.domain, pci.bus, pci.device, 0);
-				if (obj && obj->type == HWLOC_OBJ_PCI_DEVICE && (obj->attr->pcidev.class_id >> 8 == 0x06))
+#if HAVE_DECL_NVMLDEVICEGETNVLINKREMOTEDEVICETYPE
+				if (_starpu_nvmlDeviceGetNvLinkRemoteDeviceType)
+					_starpu_nvmlDeviceGetNvLinkRemoteDeviceType(nvmldev, j, &remote_type);
+#endif
+				if (remote_type == _STARPU_NVML_NVLINK_DEVICE_TYPE_UNKNOWN)
 				{
-					/* This is a PCI bridge */
-					switch (obj->attr->pcidev.vendor_id)
+					hwloc_obj_t obj = hwloc_get_pcidev_by_busid(topology,
+							pci.domain, pci.bus, pci.device, 0);
+					if (obj && obj->type == HWLOC_OBJ_PCI_DEVICE && (obj->attr->pcidev.class_id >> 8 == 0x06))
 					{
-					case 0x1014:
+						/* This is a PCI bridge */
+						switch (obj->attr->pcidev.vendor_id)
+						{
+						case 0x1014:
+							remote_type == _STARPU_NVML_NVLINK_DEVICE_TYPE_IBMNPU;
+							break;
+						case 0x10de:
+							remote_type == _STARPU_NVML_NVLINK_DEVICE_TYPE_SWITCH;
+							break;
+						}
+					}
+				}
+
+				switch (remote_type)
+				{
+					case _STARPU_NVML_NVLINK_DEVICE_TYPE_IBMNPU:
 						/* IBM OpenCAPI port, direct CPU-GPU NVLink */
 						/* TODO: NUMA affinity */
 						nvlinkhost[i] = 1;
 						continue;
-					case 0x10de:
+
+					case _STARPU_NVML_NVLINK_DEVICE_TYPE_SWITCH:
 						nvswitch[i] = 1;
 						continue;
-					}
+
+					default:
+						break;
+
 				}
 
 				/* Otherwise, link to another GPU? */

@@ -1834,6 +1834,7 @@ if test x$enable_cuda = xyes; then
 	      AC_DEFINE([STARPU_HAVE_NVML_H], [1], [Define to 1 if you have the nvml.h header])
 	      AC_MSG_RESULT(yes)
 	      AC_CHECK_DECLS([nvmlDeviceGetTotalEnergyConsumption], [], [], [[#include <nvml.h>]])
+	      AC_CHECK_DECLS([nvmlDeviceGetNvLinkRemoteDeviceType], [], [], [[#include <nvml.h>]])
 	    ],
 	    [
 	      AC_MSG_RESULT(no)

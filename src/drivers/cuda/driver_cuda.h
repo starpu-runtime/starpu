@@ -75,6 +75,20 @@ extern __typeof__(nvmlDeviceGetUUID) *_starpu_nvmlDeviceGetUUID;
 #if HAVE_DECL_NVMLDEVICEGETTOTALENERGYCONSUMPTION
 extern __typeof__(nvmlDeviceGetTotalEnergyConsumption) *_starpu_nvmlDeviceGetTotalEnergyConsumption;
 #endif
+#if HAVE_DECL_NVMLDEVICEGETNVLINKREMOTEDEVICETYPE
+extern __typeof__(nvmlDeviceGetNvLinkRemoteDeviceType) *_starpu_nvmlDeviceGetNvLinkRemoteDeviceType;
+typedef nvmlIntNvLinkDeviceType_t _starpu_nvmlIntNvLinkDeviceType_t;
+#define _STARPU_NVML_NVLINK_DEVICE_TYPE_GPU NVML_NVLINK_DEVICE_TYPE_GPU
+#define _STARPU_NVML_NVLINK_DEVICE_TYPE_IBMNPU NVML_NVLINK_DEVICE_TYPE_IBMNPU
+#define _STARPU_NVML_NVLINK_DEVICE_TYPE_SWITCH NVML_NVLINK_DEVICE_TYPE_SWITCH
+#define _STARPU_NVML_NVLINK_DEVICE_TYPE_UNKNOWN NVML_NVLINK_DEVICE_TYPE_UNKNOWN
+#else
+typedef unsigned _starpu_nvmlIntNvLinkDeviceType_t;
+#define _STARPU_NVML_NVLINK_DEVICE_TYPE_GPU	0x00
+#define _STARPU_NVML_NVLINK_DEVICE_TYPE_IBMNPU	0x01
+#define _STARPU_NVML_NVLINK_DEVICE_TYPE_SWITCH	0x02
+#define _STARPU_NVML_NVLINK_DEVICE_TYPE_UNKNOWN	0xFF
+#endif
 #endif
 
 #else

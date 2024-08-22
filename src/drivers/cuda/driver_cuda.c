@@ -94,6 +94,9 @@ __typeof__(nvmlDeviceGetUUID) *_starpu_nvmlDeviceGetUUID;
 #if HAVE_DECL_NVMLDEVICEGETTOTALENERGYCONSUMPTION
 __typeof__(nvmlDeviceGetTotalEnergyConsumption) *_starpu_nvmlDeviceGetTotalEnergyConsumption;
 #endif
+#if HAVE_DECL_NVMLDEVICEGETNVLINKREMOTEDEVICETYPE
+__typeof__(nvmlDeviceGetNvLinkRemoteDeviceType) *_starpu_nvmlDeviceGetNvLinkRemoteDeviceType;
+#endif
 #endif
 int _starpu_cuda_bus_ids[STARPU_MAXCUDADEVS+STARPU_MAXNUMANODES][STARPU_MAXCUDADEVS+STARPU_MAXNUMANODES];
 #ifdef STARPU_USE_CUDA
@@ -274,6 +277,9 @@ void _starpu_cuda_discover_devices(struct _starpu_machine_config *config)
 #if HAVE_DECL_NVMLDEVICEGETTOTALENERGYCONSUMPTION
 		_starpu_nvmlDeviceGetTotalEnergyConsumption = dlsym(nvml, "nvmlDeviceGetTotalEnergyConsumption");
 #endif
+#if HAVE_DECL_NVMLDEVICEGETNVLINKREMOTEDEVICETYPE
+		_starpu_nvmlDeviceGetNvLinkRemoteDeviceType = dlsym(nvml, "nvmlDeviceGetNvLinkRemoteDeviceType");
+#endif
 		_starpu_nvmlInit();
 	}
 #endif
@@ -309,6 +315,8 @@ static int _starpu_cuda_direct_link(struct _starpu_machine_config *config, unsig
 	{
 		nvmlEnableState_t active;
 		nvmlReturn_t ret;
+		_starpu_nvmlIntNvLinkDeviceType_t remote_type = _STARPU_NVML_NVLINK_DEVICE_TYPE_UNKNOWN;
+
 		ret = _starpu_nvmlDeviceGetNvLinkState(nvml_dev1, i, &active);
 		if (ret == NVML_ERROR_NOT_SUPPORTED)
 			continue;
@@ -318,23 +326,34 @@ static int _starpu_cuda_direct_link(struct _starpu_machine_config *config, unsig
 		nvmlPciInfo_t pci;
 		_starpu_nvmlDeviceGetNvLinkRemotePciInfo(nvml_dev1, i, &pci);
 
-		hwloc_obj_t obj = hwloc_get_pcidev_by_busid(config->topology.hwtopology,
-				pci.domain, pci.bus, pci.device, 0);
-		if (obj && obj->type == HWLOC_OBJ_PCI_DEVICE
-			&& (obj->attr->pcidev.class_id >> 8 == 0x06)
-			&& (obj->attr->pcidev.vendor_id == 0x10de))
+		if ((int) pci.domain == props_dev2.pciDomainID &&
+		    (int) pci.bus == props_dev2.pciBusID &&
+		    (int) pci.device == props_dev2.pciDeviceID)
+			/* We have a direct NVLink! */
+			return 1;
+
+#if HAVE_DECL_NVMLDEVICEGETNVLINKREMOTEDEVICETYPE
+		if (_starpu_nvmlDeviceGetNvLinkRemoteDeviceType)
+			_starpu_nvmlDeviceGetNvLinkRemoteDeviceType(nvml_dev1, i, &remote_type);
+#endif
+
+		if (remote_type == _STARPU_NVML_NVLINK_DEVICE_TYPE_UNKNOWN)
+		{
+			hwloc_obj_t obj = hwloc_get_pcidev_by_busid(config->topology.hwtopology,
+					pci.domain, pci.bus, pci.device, 0);
+			if (obj && obj->type == HWLOC_OBJ_PCI_DEVICE
+				&& (obj->attr->pcidev.class_id >> 8 == 0x06)
+				&& (obj->attr->pcidev.vendor_id == 0x10de))
+				remote_type = _STARPU_NVML_NVLINK_DEVICE_TYPE_SWITCH;
+		}
+
+		if (remote_type == _STARPU_NVML_NVLINK_DEVICE_TYPE_SWITCH)
 		{
 			/* This is an NVIDIA PCI bridge, i.e. an NVSwitch */
 			/* NVSwitch */
 			nvswitch = 1;
 			break;
 		}
-
-		if ((int) pci.domain == props_dev2.pciDomainID &&
-		    (int) pci.bus == props_dev2.pciBusID &&
-		    (int) pci.device == props_dev2.pciDeviceID)
-			/* We have a direct NVLink! */
-			return 1;
 	}
 
 	if (!nvswitch)
@@ -352,20 +371,33 @@ static int _starpu_cuda_direct_link(struct _starpu_machine_config *config, unsig
 	{
 		nvmlEnableState_t active;
 		nvmlReturn_t ret;
+		_starpu_nvmlIntNvLinkDeviceType_t remote_type = _STARPU_NVML_NVLINK_DEVICE_TYPE_UNKNOWN;
+
 		ret = _starpu_nvmlDeviceGetNvLinkState(nvml_dev2, i, &active);
 		if (ret == NVML_ERROR_NOT_SUPPORTED)
 			continue;
 		if (active != NVML_FEATURE_ENABLED)
 			continue;
 
-		nvmlPciInfo_t pci;
-		_starpu_nvmlDeviceGetNvLinkRemotePciInfo(nvml_dev2, i, &pci);
+#if HAVE_DECL_NVMLDEVICEGETNVLINKREMOTEDEVICETYPE
+		if (_starpu_nvmlDeviceGetNvLinkRemoteDeviceType)
+			_starpu_nvmlDeviceGetNvLinkRemoteDeviceType(nvml_dev2, i, &remote_type);
+#endif
 
-		hwloc_obj_t obj = hwloc_get_pcidev_by_busid(config->topology.hwtopology,
-				pci.domain, pci.bus, pci.device, 0);
-		if (obj && obj->type == HWLOC_OBJ_PCI_DEVICE
-			&& (obj->attr->pcidev.class_id >> 8 == 0x06)
-			&& (obj->attr->pcidev.vendor_id == 0x10de))
+		if (remote_type == _STARPU_NVML_NVLINK_DEVICE_TYPE_UNKNOWN)
+		{
+			nvmlPciInfo_t pci;
+			_starpu_nvmlDeviceGetNvLinkRemotePciInfo(nvml_dev2, i, &pci);
+
+			hwloc_obj_t obj = hwloc_get_pcidev_by_busid(config->topology.hwtopology,
+					pci.domain, pci.bus, pci.device, 0);
+			if (obj && obj->type == HWLOC_OBJ_PCI_DEVICE
+				&& (obj->attr->pcidev.class_id >> 8 == 0x06)
+				&& (obj->attr->pcidev.vendor_id == 0x10de))
+				remote_type = _STARPU_NVML_NVLINK_DEVICE_TYPE_SWITCH;
+		}
+
+		if (remote_type == _STARPU_NVML_NVLINK_DEVICE_TYPE_SWITCH)
 		{
 			/* This is an NVIDIA PCI bridge, i.e. an NVSwitch */
 			/* NVSwitch */
