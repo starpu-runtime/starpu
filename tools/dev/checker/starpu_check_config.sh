@@ -21,7 +21,7 @@ SGREP="grep --exclude-dir=.git --binary-files=without-match"
 for m in $(grep undef $DIR/src/common/config.h.in | awk '{print $2}' | grep -v "^PACKAGE")
 do
     #echo Check macro $m
-    used=$($SGREP -rsl $m | grep -v Makefile | grep -v "^src" | grep -v configure | grep -v autom4 | grep -v "mpi/src" | grep -v "tests/helper.h" | grep -v m4 | grep -v doc )
+    used=$($SGREP -rs $m | grep -v Makefile | grep -v "^src" | grep -v configure | grep -v autom4 | grep -v "mpi/src" | grep -v "tests/helper.h" | grep -v m4 | grep -v doc | grep -v tags | grep -v TAGS | grep -v config.log | grep -v 'ref' | grep -v src | grep -v tools | grep -v tests)
     if test -n "$used"
     then
 	#echo "Checking $m is defined in include config"
@@ -30,7 +30,7 @@ do
 	then
 	    echo "Error: Macro $m is not defined in include/starpu_config.h.in"
 	    echo "but is used in"
-	    echo $used |  tr ' ' '\012'
+	    echo $used |  tr ':' '\012'|head -1
 	    echo
 	fi
     fi
