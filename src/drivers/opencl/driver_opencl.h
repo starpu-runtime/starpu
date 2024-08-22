@@ -107,9 +107,7 @@ void _starpu_opencl_free_on_device(int dst_devid, uintptr_t addr, size_t size, i
 void _starpu_opencl_device_name(int devid, char *name, size_t size);
 size_t _starpu_opencl_total_memory(int devid);
 size_t _starpu_opencl_max_memory(int devid);
-void _starpu_opencl_init_device_context(int devid);
 void _starpu_opencl_reset_device(int devid);
-int _starpu_opencl_peer_access(int devid, int peer_devid);
 
 #pragma GCC visibility pop
 
