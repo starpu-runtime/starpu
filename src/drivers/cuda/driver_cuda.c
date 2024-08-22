@@ -91,7 +91,7 @@ __typeof__(nvmlDeviceGetHandleByPciBusId) *_starpu_nvmlDeviceGetHandleByPciBusId
 __typeof__(nvmlDeviceGetIndex) *_starpu_nvmlDeviceGetIndex;
 __typeof__(nvmlDeviceGetPciInfo) *_starpu_nvmlDeviceGetPciInfo;
 __typeof__(nvmlDeviceGetUUID) *_starpu_nvmlDeviceGetUUID;
-#ifdef HAVE_DECL_NVMLDEVICEGETTOTALENERGYCONSUMPTION
+#if HAVE_DECL_NVMLDEVICEGETTOTALENERGYCONSUMPTION
 __typeof__(nvmlDeviceGetTotalEnergyConsumption) *_starpu_nvmlDeviceGetTotalEnergyConsumption;
 #endif
 #endif
@@ -271,7 +271,7 @@ void _starpu_cuda_discover_devices(struct _starpu_machine_config *config)
 		if (!_starpu_nvmlDeviceGetPciInfo)
 			_starpu_nvmlDeviceGetPciInfo = dlsym(nvml, "nvmlDeviceGetPciInfo");
 		_starpu_nvmlDeviceGetUUID = dlsym(nvml, "nvmlDeviceGetUUID");
-#ifdef HAVE_DECL_NVMLDEVICEGETTOTALENERGYCONSUMPTION
+#if HAVE_DECL_NVMLDEVICEGETTOTALENERGYCONSUMPTION
 		_starpu_nvmlDeviceGetTotalEnergyConsumption = dlsym(nvml, "nvmlDeviceGetTotalEnergyConsumption");
 #endif
 		_starpu_nvmlInit();
