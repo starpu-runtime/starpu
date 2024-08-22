@@ -61,6 +61,10 @@
 #include <datawizard/datawizard.h>
 #include <datawizard/malloc.h>
 
+#ifdef STARPU_NOSV
+#include <nosv.h>
+#endif
+
 #pragma GCC visibility push(hidden)
 
 #define STARPU_MAX_PIPELINE 4
@@ -221,6 +225,9 @@ LIST_TYPE(_starpu_worker,
 	struct starpu_task *current_tasks[STARPU_MAX_PIPELINE]; /**< tasks currently executed by this worker (pipelined version) */
 #ifdef STARPU_SIMGRID
 	starpu_pthread_wait_t wait;
+#endif
+#ifdef STARPU_NOSV
+	nosv_task_t nosv_worker_task;
 #endif
 
 	struct timespec cl_start; /**< Codelet start time of the task currently running */

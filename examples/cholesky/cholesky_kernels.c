@@ -419,6 +419,7 @@ struct starpu_codelet cl_potrf =
 #endif
 	},
 	.model = &chol_model_potrf,
+	.name = "cl_POTRF",
 	.color = 0xffff00,
 };
 
@@ -436,6 +437,7 @@ struct starpu_codelet cl_trsm =
 	.nbuffers = 2,
 	.modes = { STARPU_R, STARPU_RW },
 	.model = &chol_model_trsm,
+	.name = "cl_TRSM",
 	.color = 0x8080ff,
 };
 
@@ -454,6 +456,7 @@ struct starpu_codelet cl_syrk =
 	.nbuffers = 2,
 	.modes = { STARPU_R, STARPU_RW },
 	.model = &chol_model_syrk,
+	.name = "cl_SYRK",
 	.color = 0x00ff00,
 };
 
@@ -472,6 +475,7 @@ struct starpu_codelet cl_gemm =
 	.nbuffers = 3,
 	.modes = { STARPU_R, STARPU_R, STARPU_RW },
 	.model = &chol_model_gemm,
+	.name = "cl_GEMM",
 	.color = 0x00c000,
 };
 
@@ -496,6 +500,7 @@ struct starpu_codelet cl_potrf_gpu =
 #endif
 	},
 	.model = &chol_model_potrf,
+	.name = "cl_POTRF_GPU",
 	.color = 0xffff00,
 };
 
@@ -510,6 +515,7 @@ struct starpu_codelet cl_trsm_gpu =
 	.nbuffers = 2,
 	.modes = { STARPU_R, STARPU_RW },
 	.model = &chol_model_trsm,
+	.name = "cl_TRSM_GPU",
 	.color = 0x8080ff,
 };
 
@@ -524,6 +530,7 @@ struct starpu_codelet cl_gemm_gpu =
 	.nbuffers = 3,
 	.modes = { STARPU_R, STARPU_R, STARPU_RW },
 	.model = &chol_model_gemm,
+	.name = "cl_GEMM_GPU",
 	.color = 0x00ff00,
 };
 
@@ -543,6 +550,7 @@ struct starpu_codelet cl_potrf_cpu =
 #endif
 	},
 	.model = &chol_model_potrf,
+	.name = "cl_POTRF_CPU",
 	.color = 0xffff00,
 };
 
@@ -554,6 +562,7 @@ struct starpu_codelet cl_trsm_cpu =
 	.nbuffers = 2,
 	.modes = { STARPU_R, STARPU_RW },
 	.model = &chol_model_trsm,
+	.name = "cl_TRSM_CPU",
 	.color = 0x8080ff,
 };
 
@@ -566,6 +575,7 @@ struct starpu_codelet cl_gemm_cpu =
 	.nbuffers = 3,
 	.modes = { STARPU_R, STARPU_R, STARPU_RW },
 	.model = &chol_model_gemm,
+	.name = "cl_GEMM_CPU",
 	.color = 0x00ff00,
 };
 

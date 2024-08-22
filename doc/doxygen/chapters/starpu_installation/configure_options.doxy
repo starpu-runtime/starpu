@@ -860,6 +860,13 @@ Allow to make multiple linear regression models use the system-provided BLAS for
 (see \ref PerformanceModelExample)
 </dd>
 
+<dt>--enable-nosv</dt>
+<dd>
+\anchor enable-nosv
+\addindex __configure__--enable-nosv
+Enable support for nOS-V hypervision (see \ref Interoperability)
+</dd>
+
 </dl>
 
 */

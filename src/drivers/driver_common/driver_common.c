@@ -35,6 +35,9 @@
 #include <fcntl.h>
 #include <errno.h>
 
+#ifdef STARPU_NOSV
+#include <nosv.h>
+#endif
 
 void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch, int rank, int profiling)
 {
@@ -399,8 +402,24 @@ static void _starpu_exponential_backoff(struct _starpu_worker *worker)
 	if (worker->spinning_backoff < worker->config->conf.driver_spinning_backoff_max)
 		worker->spinning_backoff<<=1;
 
-	while(delay--)
+	while(delay--) {
+#ifdef STARPU_NOSV
+		if (worker->arch == STARPU_CPU_WORKER)
+		{
+			/* nOS-V only supported for CPU workers for now */
+
+			//_STARPU_DISP("nOS-V: nosv_yield on %s\n", worker->short_name);
+			int status = nosv_yield(NOSV_YIELD_NONE);
+			STARPU_ASSERT(status == 0);
+		}
+		else
+		{
+			STARPU_UYIELD();
+		}
+#else
 		STARPU_UYIELD();
+#endif
+	}
 }
 #endif
 

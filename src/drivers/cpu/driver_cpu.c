@@ -62,6 +62,11 @@
 #include <windows.h>
 #endif
 
+#ifdef STARPU_NOSV
+#include <nosv.h>
+#endif
+
+
 static unsigned already_busy_cpus;
 
 static struct _starpu_driver_info driver_info =
@@ -180,6 +185,13 @@ int _starpu_cpu_driver_init(struct _starpu_worker *cpu_worker)
 	snprintf(cpu_worker->short_name, sizeof(cpu_worker->short_name), "CPU %d", devid);
 	starpu_pthread_setname(cpu_worker->short_name);
 
+#ifdef STARPU_NOSV
+	{
+		_STARPU_DISP("nOS-V: nosv_attach to %s\n", cpu_worker->short_name);
+		int status = nosv_attach(&cpu_worker->nosv_worker_task, NULL, cpu_worker->short_name, NOSV_ATTACH_NONE);
+		STARPU_ASSERT(status == 0);
+	}
+#endif
 	_STARPU_TRACE_WORKER_INIT_END(cpu_worker->workerid);
 
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&cpu_worker->sched_mutex);
@@ -211,6 +223,14 @@ int _starpu_cpu_driver_deinit(struct _starpu_worker *cpu_worker)
 	 * coherency is not maintained anymore at that point ! */
 	_starpu_free_all_automatically_allocated_buffers(memnode);
 
+#ifdef STARPU_NOSV
+	{
+		int status = nosv_detach(NOSV_DETACH_NONE);
+		STARPU_ASSERT(status == 0);
+		_STARPU_DISP("nOS-V: nosv_detach from %s\n", cpu_worker->short_name);
+		cpu_worker->nosv_worker_task = NULL;
+	}
+#endif
 	cpu_worker->worker_is_initialized = 0;
 	_STARPU_TRACE_WORKER_DEINIT_END(STARPU_CPU_WORKER);
 
@@ -394,7 +414,25 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 			if (rank == 0)
 				_starpu_profiling_papi_task_start_counters(task);
 #endif
-			func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
+#ifdef STARPU_NOSV
+			if (j->nosv_task_type)
+			{
+				nosv_task_t nosv_task;
+				int status;
+
+				status = nosv_create(&nosv_task, j->nosv_task_type, sizeof(struct _starpu_nosv_task_metadata), NOSV_CREATE_NONE);
+				STARPU_ASSERT(status == 0);
+				struct _starpu_nosv_task_metadata *nosv_task_metadata = nosv_get_task_metadata(nosv_task);
+				nosv_task_metadata->func = func;
+				nosv_task_metadata->starpu_task = task;
+				status = nosv_submit(nosv_task, NOSV_SUBMIT_INLINE);
+				STARPU_ASSERT(status == 0);
+			}
+			else
+#endif
+			{
+				func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
+			}
 #ifdef STARPU_PAPI
 			if (rank == 0)
 				_starpu_profiling_papi_task_stop_counters(task);

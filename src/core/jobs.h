@@ -43,6 +43,10 @@
 #include <common/utils.h>
 #include <common/list.h>
 
+#ifdef STARPU_NOSV
+#include <nosv.h>
+#endif
+
 #pragma GCC visibility push(hidden)
 
 struct _starpu_worker;
@@ -214,7 +218,19 @@ struct _starpu_job
 	int already_turned_into_recursive_task;
 	unsigned is_recursive_task:1;
 #endif
+
+#ifdef STARPU_NOSV
+	nosv_task_type_t nosv_task_type;
+#endif
 };
+
+#ifdef STARPU_NOSV
+struct _starpu_nosv_task_metadata
+{
+	_starpu_cl_func_t func;
+	struct starpu_task * starpu_task;
+};
+#endif
 
 #ifdef STARPU_DEBUG
 MULTILIST_CREATE_INLINES(struct _starpu_job, _starpu_job, all_submitted)

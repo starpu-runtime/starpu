@@ -252,6 +252,18 @@ static void * watchdog_hook_arg = NULL;
 
 #define _STARPU_TASK_MAGIC 42
 
+#ifdef STARPU_NOSV
+struct nosv_task_type_entry
+{
+	UT_hash_handle hh;
+	struct starpu_codelet *cl;
+	nosv_task_type_t nosv_task_type;
+};
+
+static struct nosv_task_type_entry *nosv_task_types_hash;
+static struct _starpu_spinlock nosv_task_types_lock;
+#endif
+
 /* Called once at starpu_init */
 void _starpu_task_init(void)
 {
@@ -260,12 +272,70 @@ void _starpu_task_init(void)
 	limit_max_submitted_tasks = starpu_getenv_number("STARPU_LIMIT_MAX_SUBMITTED_TASKS");
 	watchdog_crash = starpu_getenv_number_default("STARPU_WATCHDOG_CRASH", 0);
 	watchdog_delay = starpu_getenv_number_default("STARPU_WATCHDOG_DELAY", 0);
+#ifdef STARPU_NOSV
+	_starpu_spin_init(&nosv_task_types_lock);
+#endif
 }
 
 void _starpu_task_deinit(void)
 {
+#ifdef STARPU_NOSV
+	_starpu_spin_lock(&nosv_task_types_lock);
+	{
+		struct nosv_task_type_entry *entry=NULL, *tmp=NULL;
+
+		HASH_ITER(hh, nosv_task_types_hash, entry, tmp)
+		{
+			HASH_DEL(nosv_task_types_hash, entry);
+			nosv_type_destroy(entry->nosv_task_type, NOSV_TYPE_DESTROY_NONE);
+			free(entry);
+		}
+
+		nosv_task_types_hash = NULL;
+	}
+	_starpu_spin_unlock(&nosv_task_types_lock);
+	_starpu_spin_destroy(&nosv_task_types_lock);
+#endif
 	STARPU_PTHREAD_KEY_DELETE(current_task_key);
 }
+
+#ifdef STARPU_NOSV
+static void _starpu_nosv_task_wrapper(nosv_task_t nosv_task)
+{
+	struct _starpu_nosv_task_metadata *task_metadata = nosv_get_task_metadata(nosv_task);
+	task_metadata->func(_STARPU_TASK_GET_INTERFACES(task_metadata->starpu_task), task_metadata->starpu_task->cl_arg);
+}
+
+static nosv_task_type_t starpu_nosv_get_task_type_from_codelet(struct starpu_codelet *cl)
+{
+	if (cl == NULL)
+	{
+		return NULL;
+	}
+
+	struct nosv_task_type_entry *entry;
+	nosv_task_type_t nosv_task_type;
+	_starpu_spin_lock(&nosv_task_types_lock);
+	HASH_FIND_PTR(nosv_task_types_hash, &cl, entry);
+	if (entry == NULL)
+	{
+		_STARPU_MALLOC(entry, sizeof(*entry));
+
+		const char *label = _starpu_codelet_get_model_name(cl);
+		int status = nosv_type_init(&nosv_task_type, _starpu_nosv_task_wrapper, NULL, NULL, label, NULL, NULL, NOSV_TYPE_INIT_NONE);
+		STARPU_ASSERT(status == 0);
+		entry->nosv_task_type = nosv_task_type;
+		entry->cl = cl;
+		HASH_ADD_PTR(nosv_task_types_hash, cl, entry);
+	}
+	else
+	{
+		nosv_task_type = entry->nosv_task_type;
+	}
+	_starpu_spin_unlock(&nosv_task_types_lock);
+	return nosv_task_type;
+}
+#endif
 
 void starpu_set_limit_min_submitted_tasks(int limit_min)
 {
@@ -558,6 +628,13 @@ int _starpu_submit_job(struct _starpu_job *j, int nodeps)
 	_STARPU_LOG_IN();
 	/* notify bound computation of a new task */
 	_starpu_bound_record(j);
+
+#ifdef STARPU_NOSV
+	if (!j->nosv_task_type)
+	{
+		j->nosv_task_type = starpu_nosv_get_task_type_from_codelet(task->cl);
+	}
+#endif
 
 	_starpu_increment_nsubmitted_tasks_of_sched_ctx(j->task->sched_ctx);
 	_starpu_sched_task_submit(task);

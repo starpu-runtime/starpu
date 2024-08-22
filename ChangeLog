@@ -27,6 +27,7 @@ New features:
     victims.
   * Add bus performance model for HIP driver.
   * New scheduler darts (Data-Aware Reactive Task Scheduling)
+  * Add basic support for nOS-V hypervision
 
 Small features:
   * Add FXT option -use-task-color to propagate the specified task

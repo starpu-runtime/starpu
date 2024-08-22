@@ -60,6 +60,11 @@
 #include <core/simgrid.h>
 #endif
 
+#ifdef STARPU_NOSV
+#warning nOS-V support enabled
+#include <nosv.h>
+#endif
+
 #if defined(_WIN32) && !defined(__CYGWIN__)
 #include <windows.h>
 #endif
@@ -1588,6 +1593,17 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	/* This initializes the simgrid thread library, thus needs to be early */
 	_starpu_simgrid_init_early(argc, argv);
 #endif
+#ifdef STARPU_NOSV
+	{
+		int status = nosv_init();
+		if (status != 0)
+		{
+			_STARPU_DISP("nOS-V: nosv_init failed with error %d\n", status);
+			return -ENODEV;
+		}
+		_STARPU_DISP("nOS-V: nosv_init called succesfully\n");
+	}
+#endif
 
 	STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 	while (initialized == CHANGING)
@@ -2271,6 +2287,13 @@ void starpu_shutdown(void)
 	_starpu_print_idle_time();
 	_STARPU_DEBUG("Shutdown finished\n");
 
+#ifdef STARPU_NOSV
+	{
+		int status = nosv_shutdown();
+		STARPU_ASSERT(status == 0);
+		_STARPU_DISP("nOS-V: nosv_shutdown called\n");
+	}
+#endif
 #ifdef STARPU_SIMGRID
 	/* This finalizes the simgrid thread library, thus needs to be late */
 	_starpu_simgrid_deinit();

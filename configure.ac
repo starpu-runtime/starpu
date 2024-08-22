@@ -403,6 +403,40 @@ if test x$enable_worker_cb = xyes ; then
 	AC_DEFINE(STARPU_WORKER_CALLBACKS, [1], [workers must call callbacks on sleep/wake-up])
 fi
 
+# nOS-V support
+have_nosv=no
+
+AC_ARG_ENABLE(nosv, [AS_HELP_STRING([--enable-nosv],
+			[enable support for nOS-V])],
+			enable_nosv=$enableval, enable_nosv=no)
+
+if test x$enable_simgrid = xyes; then
+	if test x$enable_nosv = xyes; then
+		AC_MSG_ERROR([nOS-V support is not compatible with SimGrid])
+	fi
+	enable_nosv=no
+fi
+
+if test x$enable_nosv = xyes; then
+	PKG_CHECK_MODULES([NOSV],  [nos-v],  [
+	AC_DEFINE(STARPU_NOSV, [1], [Define this to enable nOS-V support])
+	AC_SUBST([STARPU_NOSV], [1])
+	have_nosv=yes
+	], [:])
+fi
+
+if test x$enable_nosv = xyes -a x$have_nosv = xyes; then
+	LIBS="${NOSV_LIBS} ${SAVED_LIBS}"
+	CPPFLAGS="${NOSV_CFLAGS} ${SAVED_CPPFLAGS}"
+else
+	enable_nosv=no
+fi
+
+AM_CONDITIONAL(STARPU_BUILD_NOSV, [test x$enable_nosv = xyes])
+
+AC_MSG_CHECKING([for nOS-V support])
+AC_MSG_RESULT($enable_nosv)
+
 ###############################################################################
 #                                                                             #
 #                                LIBTOOLS                                     #
@@ -4675,6 +4709,7 @@ AC_MSG_NOTICE([
 	       SOCL test suite:                               $run_socl_check
 	       Scheduler Hypervisor:                          $build_sc_hypervisor
 	       simgrid enabled:                               $enable_simgrid
+	       nOS-V enabled:                                 $enable_nosv
 	       ayudame enabled:                               $ayu_msg
 	       HDF5 enabled:                                  $enable_hdf5
 	       Native fortran support:                        $enable_build_fortran

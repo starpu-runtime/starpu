@@ -117,4 +117,34 @@ immediately, however it accepts a callback function, which is subsequently
 called to notify the calling code about the completion of the parallel kernel.
 An example is available in <c>starpurm/examples/async_spawn.c</c>.
 
+\section NOSVSupport nOS-V Support
+
+nOS-V is a runtime library that implements the nOS-V tasking API, developed by
+the Programming Models group at the Barcelona Supercomputing Center.
+Its main goal is to provide a low-level and low-overhead tasking runtime which
+supports co-execution and can be leveraged by higher-level programming models.
+nOS-V is available here: https://github.com/bsc-pm/nos-v
+
+StarPU comes with basic support for interoperating with nOS-V, currently for CPU
+workers only. It implements the following features:
+<ul>
+<li>CPU workers are attached to nOS-V.</li>.
+<li>Idle CPU StarPU workers yield to nOS-V to enable other nOS-V clients to use the corresponding CPU time.</li>
+<li>CPU StarPU tasks are created as inline nOS-V tasks in their corresponding workers.</li>
+<li>nOS-V task types are created per-codelet and are labelled with their corresponding codelet name to help in using nOS-V monitoring features.</li>
+</ul>
+
+nOS-V support has to be enabled explicitly at configure time using the option
+\ref enable-nosv "--enable-nosv":
+
+\verbatim
+$ ./configure --enable-nosv
+\endverbatim
+
+A run under nOS-V hypervision is then obtained by using LD_PRELOAD to load the nOS-V library:
+
+\verbatim
+LD_PRELOAD=<PATH_TO_NOSV_LIB>/libnosv.so <STARPU_APPLICATION>
+\endverbatim
+
 */
