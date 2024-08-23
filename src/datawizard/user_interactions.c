@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021, 2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -522,16 +522,14 @@ static void _prefetch_data_on_node(void *arg)
 		_starpu_spin_unlock(&handle->header_lock);
 }
 
+/* Prefetch data. This is the execution-time part */
 static
-int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigned node, unsigned async, enum starpu_data_access_mode mode, enum _starpu_is_prefetch prefetch, int prio)
+int __starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigned node, unsigned async, enum starpu_data_access_mode mode, enum _starpu_is_prefetch prefetch, int prio)
 {
 	STARPU_ASSERT(handle);
 
 	/* it is forbidden to call this function from a callback or a codelet */
 	STARPU_ASSERT_MSG(async || _starpu_worker_may_perform_blocking_calls(), "Synchronous prefetch is not possible from a task or a callback");
-
-	/* Check that previous tasks have set a value if needed */
-	_starpu_data_check_initialized(handle, mode);
 
 	struct user_interaction_wrapper *wrapper;
 	_STARPU_MALLOC(wrapper, sizeof(*wrapper));
@@ -581,6 +579,17 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigne
 	return 0;
 }
 
+/* Prefetch data. This is the submission-time part */
+static
+int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigned node, unsigned async, enum starpu_data_access_mode mode, enum _starpu_is_prefetch prefetch, int prio)
+{
+	/* Check that previous tasks have set a value if needed */
+	/* Only valid at submission time, not execution time */
+	_starpu_data_check_initialized(handle, mode);
+
+	return __starpu_prefetch_data_on_node_with_mode(handle, node, async, mode, prefetch, prio);
+}
+
 int starpu_data_fetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async)
 {
 	return _starpu_prefetch_data_on_node_with_mode(handle, node, async, STARPU_R, STARPU_FETCH, 0);
@@ -606,6 +615,7 @@ int starpu_data_idle_prefetch_on_node(starpu_data_handle_t handle, unsigned node
 	return starpu_data_idle_prefetch_on_node_prio(handle, node, async, 0);
 }
 
+/* Execution-time part */
 static void _starpu_data_wont_use(void *data)
 {
 	unsigned node;
@@ -634,7 +644,7 @@ static void _starpu_data_wont_use(void *data)
 	_starpu_spin_unlock(&handle->header_lock);
 	starpu_data_release_on_node(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL);
 	if (handle->home_node != -1)
-		starpu_data_idle_prefetch_on_node(handle, handle->home_node, 1);
+		__starpu_prefetch_data_on_node_with_mode(handle, handle->home_node, 1, STARPU_R, STARPU_IDLEFETCH, STARPU_DEFAULT_PRIO);
 	else
 	{
 		if (handle->ooc)
@@ -645,7 +655,7 @@ static void _starpu_data_wont_use(void *data)
 			for (i = 0; i < nnodes; i++)
 			{
 				if (starpu_node_get_kind(i) == STARPU_DISK_RAM)
-					starpu_data_idle_prefetch_on_node(handle, i, 1);
+					__starpu_prefetch_data_on_node_with_mode(handle, i, 1, STARPU_R, STARPU_IDLEFETCH, STARPU_DEFAULT_PRIO);
 			}
 		}
 	}
