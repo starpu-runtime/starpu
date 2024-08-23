@@ -123,6 +123,8 @@ When adding a feature, we want four kinds of documentation:
 * At least one working example in examples/, or at least a working test in
   tests/. Ideally enough examples and tests to cover all the various features.
 
+  The test should include a comment (after #includes) to explain what it tests.
+
 * A section in the Doxygen documentation, that explains in which case the
   feature is useful and how to use it, and points to the abovementioned
   example/test.
