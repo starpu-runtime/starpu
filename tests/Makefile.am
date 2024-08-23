@@ -327,6 +327,7 @@ myPROGRAMS +=				\
 	datawizard/temporary_partition		\
 	datawizard/partitioned_initialization	\
 	datawizard/partitioned_acquire		\
+	datawizard/partitioned_gather		\
 	datawizard/temporary_partition_implicit	\
 	datawizard/temporary_partition_read	\
 	datawizard/redux_acquire		\
@@ -533,6 +534,10 @@ datawizard_data_invalidation_SOURCES =		\
 
 datawizard_lazy_allocation_SOURCES =		\
 	datawizard/lazy_allocation.c		\
+	vector/memset.c
+
+datawizard_partitioned_gather_SOURCES =		\
+	datawizard/partitioned_gather.c		\
 	vector/memset.c
 
 datawizard_wt_host_SOURCES =		\
