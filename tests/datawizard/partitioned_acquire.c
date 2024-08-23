@@ -21,7 +21,7 @@
 #define NPARTS 16
 
 /*
- * Test asynchronous partitioning on a temporary data.
+ * Test acquiring with asynchronous partitioning.
  */
 
 static void codelet(void *descr[], void *_args)
