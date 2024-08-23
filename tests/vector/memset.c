@@ -79,6 +79,7 @@ static void opencl_memset_codelet(void *buffers[], void *args)
 
 struct starpu_codelet memset_cl =
 {
+	.name = "memset_cl",
 	.cpu_funcs = {cpu_memset_codelet},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {cuda_memset_codelet},
@@ -183,6 +184,7 @@ static void opencl_check_content_codelet(void *buffers[], void *args)
 
 struct starpu_codelet memset_check_content_cl =
 {
+	.name = "memset_check_content_cl",
 	.cpu_funcs = {cpu_check_content_codelet},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {cuda_check_content_codelet},
