@@ -59,6 +59,7 @@ EXTRA_DIST =					\
 	variable/increment_opencl_kernel.cl \
 	variable/redux_opencl_kernel.cl \
 	variable/neutral_opencl_kernel.cl \
+	vector/memset.h \
 	datawizard/interfaces/test_interfaces.h	\
 	datawizard/interfaces/bcsr/bcsr_opencl_kernel.cl \
 	datawizard/interfaces/coo/coo_opencl_kernel.cl \
@@ -521,6 +522,18 @@ if STARPU_USE_OPENCL
 datawizard_acquire_release_to_SOURCES +=		\
 	variable/increment_opencl.c
 endif
+
+datawizard_data_deinitialize_SOURCES =		\
+	datawizard/data_deinitialize.c		\
+	vector/memset.c
+
+datawizard_data_invalidation_SOURCES =		\
+	datawizard/data_invalidation.c		\
+	vector/memset.c
+
+datawizard_lazy_allocation_SOURCES =		\
+	datawizard/lazy_allocation.c		\
+	vector/memset.c
 
 datawizard_wt_host_SOURCES =		\
 	datawizard/wt_host.c		\
