@@ -244,6 +244,12 @@ static unsigned may_free_handle(starpu_data_handle_t handle, unsigned node)
 {
 	STARPU_ASSERT(handle->per_node[node].mapped == STARPU_UNMAPPED);
 
+	if (handle->gathering_node != -1 && (unsigned) handle->gathering_node == node)
+		/* Avoid freeing chunk that could be used by a child */
+		/* TODO: we'd want to avoid it only if we indeed have a child.
+		 * Testing for handle->plans is not enough since that's at submission time */
+		return 0;
+
 	/* we only free if no one refers to the leaf */
 	uint32_t refcnt = _starpu_get_data_refcnt(handle, node);
 	if (refcnt)
@@ -1749,8 +1755,61 @@ int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_
 		return 0;
 
 	STARPU_ASSERT(replicate->mapped == STARPU_UNMAPPED);
-
 	STARPU_ASSERT(replicate->data_interface);
+
+	if (handle->parent_handle && dst_node == _starpu_data_get_gathering_node(handle))
+	{
+		/* We are on the gathering node, we have to reuse the allocation of the parent, for gathering coherency. */
+		/* If the parent is not allocated yet, we now want to force allocation, to make sure to reuse the same allocation. */
+
+		struct _starpu_data_replicate *parent_replicate = &handle->parent_handle->per_node[dst_node];
+		int ret = 0;
+
+		/* Take temporary reference on the replicate to be able to work on the parent */
+		replicate->refcnt++;
+		handle->busy_count++;
+		_starpu_spin_unlock(&handle->header_lock);
+
+		/* Since we have a refcnt, may_free_subtree will avoid evicting what we are trying to allocate */
+		_starpu_spin_lock(&handle->parent_handle->header_lock);
+
+		if (!parent_replicate->allocated)
+		{
+			/* We have to force parent allocation to gather the data */
+			ret = _starpu_allocate_memory_on_node(handle->parent_handle, parent_replicate, is_prefetch, only_fast_alloc);
+		}
+
+		_starpu_spin_unlock(&handle->parent_handle->header_lock);
+
+		_starpu_spin_lock(&handle->header_lock);
+
+		if (parent_replicate->allocated)
+		{
+			/* Ok, we can/have to reuse it */
+			handle->filter->filter_func(parent_replicate->data_interface, replicate->data_interface, handle->filter, handle->sibling_index, handle->nsiblings);
+			replicate->allocated = 1;
+			replicate->automatically_allocated = 0;
+		}
+
+		/* Clean the temporary reference */
+		replicate->refcnt--;
+		STARPU_ASSERT(replicate->refcnt >= 0);
+		STARPU_ASSERT(handle->busy_count > 0);
+		handle->busy_count--;
+		ret = _starpu_data_check_not_busy(handle);
+		STARPU_ASSERT(ret == 0);
+
+		if (ret != 0)
+		{
+			/* Oops, we wanted to force parent allocation, but failed to */
+			return ret;
+		}
+
+		/* Success! */
+		STARPU_ASSERT(replicate->allocated);
+		return 0;
+	}
+
 	allocated_memory = _starpu_allocate_interface(handle, replicate, dst_node, is_prefetch, only_fast_alloc);
 
 	/* perhaps we could really not handle that capacity misses */

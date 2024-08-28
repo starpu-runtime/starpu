@@ -61,10 +61,8 @@ int main(void)
 	starpu_vector_data_register(&handle, -1, 0, SIZE, sizeof(char));
 
 	/* We will work with this GPU */
-	int cpu, gpu;
+	int gpu;
 	int node;
-
-	cpu = starpu_worker_get_by_type(STARPU_CPU_WORKER, 0);
 
 	if (starpu_cuda_worker_get_count() > 0)
 		gpu = starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0);
@@ -83,12 +81,12 @@ int main(void)
 	};
 	starpu_data_partition_plan(handle, &f, handles);
 
-	/* Memset on the pieces on the CPU */
+	/* Memset on the pieces on the GPU */
 	for (i = 0; i < NPARTS; i++)
-		starpu_task_insert(&memset_cl, STARPU_EXECUTE_ON_WORKER, cpu, STARPU_W, handles[i], 0);
+		starpu_task_insert(&memset_cl, STARPU_EXECUTE_ON_WORKER, gpu, STARPU_W, handles[i], 0);
 
-	/* Check that the whole data on the CPU is correct */
-	starpu_task_insert(&memset_check_content_cl, STARPU_EXECUTE_ON_WORKER, cpu, STARPU_R, handle, 0);
+	/* Check that the whole data on the GPU is correct */
+	starpu_task_insert(&memset_check_content_cl, STARPU_EXECUTE_ON_WORKER, gpu, STARPU_R, handle, 0);
 
 	/* That's because the pointers in the gathering node (the GPU) are the same */
 	struct starpu_vector_interface *handle_interface = starpu_data_get_interface_on_node(handle, node);

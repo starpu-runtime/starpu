@@ -25,6 +25,12 @@
 #include <datawizard/memory_nodes.h>
 #include <core/task.h>
 
+void starpu_data_set_gathering_node(starpu_data_handle_t handle, unsigned node)
+{
+	STARPU_ASSERT_MSG(!handle->nplans && !handle->nchildren, "starpu_data_set_gathering_node can only be called before partitioning the data");
+	handle->gathering_node = node;
+}
+
 /*
  * This function applies a data filter on all the elements of a partition
  */
@@ -179,7 +185,6 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 {
 	unsigned i;
 	unsigned node;
-	unsigned found = STARPU_MAXNODES;
 
 	for (node = 0; node < STARPU_MAXNODES; node++)
 		_starpu_data_unmap(initial_handle, node);
@@ -187,6 +192,9 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 	/* first take care to properly lock the data header */
 	_starpu_spin_lock(&initial_handle->header_lock);
 
+	if (initial_handle->gathering_node == -1)
+		/* This handle will gather data, decide for good where */
+		initial_handle->gathering_node = _starpu_data_get_gathering_node(initial_handle);
 	initial_handle->nplans++;
 
 	STARPU_ASSERT_MSG(nparts > 0, "Partitioning data %p in 0 piece does not make sense", initial_handle);
@@ -201,25 +209,7 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 	}
 
 	for (node = 0; node < STARPU_MAXNODES; node++)
-	{
-		if (initial_handle->per_node[node].state != STARPU_INVALID)
-			found = node;
 		STARPU_ASSERT(initial_handle->per_node[node].mapped == STARPU_UNMAPPED);
-	}
-	if (found == STARPU_MAXNODES)
-	{
-		/* This is lazy allocation, allocate it now in main RAM, so as
-		 * to have somewhere to gather pieces later */
-		/* FIXME: mark as unevictable! */
-		int home_node = initial_handle->home_node;
-		if (home_node < 0 || (starpu_node_get_kind(home_node) != STARPU_CPU_RAM))
-			home_node = STARPU_MAIN_RAM;
-		int ret = _starpu_allocate_memory_on_node(initial_handle, &initial_handle->per_node[home_node], STARPU_FETCH, 0);
-#ifdef STARPU_DEVEL
-#warning we should reclaim memory if allocation failed
-#endif
-		STARPU_ASSERT(!ret);
-	}
 
 	if (nparts && !inherit_state)
 	{
@@ -252,6 +242,7 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 
 		child->root_handle = initial_handle->root_handle;
 		child->parent_handle = initial_handle;
+		child->filter = f;
 
 		child->nsiblings = nparts;
 		if (inherit_state)
@@ -266,6 +257,7 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		child->active = inherit_state;
 
 		child->home_node = initial_handle->home_node;
+		child->gathering_node = initial_handle->gathering_node;
 		child->wt_mask = initial_handle->wt_mask;
 
 		child->aliases = initial_handle->aliases;
@@ -320,7 +312,6 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 			void *initial_interface = starpu_data_get_interface_on_node(initial_handle, node);
 			void *child_interface = starpu_data_get_interface_on_node(child, node);
 
-			STARPU_ASSERT_MSG(!(!inherit_state && initial_replicate->automatically_allocated), "partition planning is currently not supported when handle has some automatically allocated buffers");
 			f->filter_func(initial_interface, child_interface, f, i, nparts);
 		}
 
@@ -612,15 +603,8 @@ void starpu_data_partition_plan(starpu_data_handle_t initial_handle, struct star
 	STARPU_ASSERT_MSG(initial_handle->nchildren == 0, "partition planning and synchronous partitioning is not supported");
 	STARPU_ASSERT_MSG(initial_handle->sequential_consistency, "partition planning is currently only supported for data with sequential consistency");
 	struct starpu_codelet *cl = initial_handle->switch_cl;
-	int home_node = initial_handle->home_node;
+	int gathering_node = _starpu_data_get_gathering_node(initial_handle);
 	starpu_data_handle_t *children;
-	if (home_node == -1)
-		/* Nothing better for now */
-		/* TODO: pass -1, and make _starpu_fetch_nowhere_task_input
-		 * really call _starpu_fetch_data_on_node, and make that update
-		 * the coherency.
-		 */
-		home_node = STARPU_MAIN_RAM;
 
 	_STARPU_MALLOC(children, nparts * sizeof(*children));
 	for (i = 0; i < nparts; i++)
@@ -646,7 +630,7 @@ void starpu_data_partition_plan(starpu_data_handle_t initial_handle, struct star
 		/* First initialization, or previous initialization was with fewer parts, enlarge it */
 		_STARPU_REALLOC(cl->dyn_nodes, (nparts+1) * sizeof(*cl->dyn_nodes));
 		for (i = initial_handle->switch_cl_nparts; i < nparts+1; i++)
-			cl->dyn_nodes[i] = home_node;
+			cl->dyn_nodes[i] = gathering_node;
 		initial_handle->switch_cl_nparts = nparts;
 	}
 }

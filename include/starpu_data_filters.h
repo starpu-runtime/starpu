@@ -237,6 +237,10 @@ void starpu_data_map_filters_array(starpu_data_handle_t root_handle, int nfilter
    starpu_data_partition_plan(A_handle, &f, children);
    \endcode
 
+   The filter \p f needs to be kept alive until starpu_data_partition_clean()
+   is called, since StarPU may have to call the filter function to dynamically
+   partition existing data buffers on the fly.
+
    See \ref AsynchronousPartitioning for more details.
 */
 void starpu_data_partition_plan(starpu_data_handle_t initial_handle, struct starpu_data_filter *f, starpu_data_handle_t *children);

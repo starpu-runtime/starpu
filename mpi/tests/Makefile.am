@@ -54,7 +54,7 @@ AM_FFLAGS += $(APP_FFLAGS)
 AM_FCFLAGS += $(APP_FCFLAGS)
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/include -I$(top_srcdir)/mpi/include -I$(top_srcdir)/mpi/src -I$(top_srcdir)/src -I$(top_builddir)/src -I$(top_srcdir)/examples/ $(STARPU_H_CPPFLAGS)
 AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@
-LIBS += $(STARPU_CUDA_LDFLAGS) $(STARPU_HIP_LDFLAGS)
+LIBS += $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_HIP_LDFLAGS)
 LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@ ../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la $(STARPU_EXPORTED_LIBS)
 
 ########################
@@ -71,6 +71,7 @@ starpu_mpi_TESTS +=				\
 	insert_task_can_execute			\
 	insert_task_tags			\
 	multiple_send				\
+	partition				\
 	policy_register				\
 	policy_register_many			\
 	policy_selection			\
@@ -265,6 +266,8 @@ XFAIL_TESTS=					\
 	starpu_redefine				\
 	nothing
 
+partition_SOURCES = partition.c
+partition_SOURCES += ../../tests/vector/memset.c
 ring_SOURCES = ring.c
 ring_sync_SOURCES = ring_sync.c
 ring_sync_detached_SOURCES = ring_sync_detached.c

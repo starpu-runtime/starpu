@@ -328,6 +328,8 @@ myPROGRAMS +=				\
 	datawizard/partitioned_initialization	\
 	datawizard/partitioned_acquire		\
 	datawizard/partitioned_gather		\
+	datawizard/partitioned_gather_gpu	\
+	datawizard/partitioned_gather_gpu_gpu	\
 	datawizard/temporary_partition_implicit	\
 	datawizard/temporary_partition_read	\
 	datawizard/redux_acquire		\
@@ -538,6 +540,14 @@ datawizard_lazy_allocation_SOURCES =		\
 
 datawizard_partitioned_gather_SOURCES =		\
 	datawizard/partitioned_gather.c		\
+	vector/memset.c
+
+datawizard_partitioned_gather_gpu_SOURCES =	\
+	datawizard/partitioned_gather_gpu.c	\
+	vector/memset.c
+
+datawizard_partitioned_gather_gpu_gpu_SOURCES =	\
+	datawizard/partitioned_gather_gpu_gpu.c	\
 	vector/memset.c
 
 datawizard_wt_host_SOURCES =		\

@@ -172,9 +172,10 @@ struct _starpu_data_state
 	starpu_pthread_mutex_t busy_mutex;
 	starpu_pthread_cond_t busy_cond;
 
-	/** In case we user filters, the handle may describe a sub-data */
+	/** In case we use filters, the handle may describe a sub-data */
 	struct _starpu_data_state *root_handle; /** root of the tree */
 	struct _starpu_data_state *parent_handle; /** parent of the node, NULL if the current node is the root */
+	struct starpu_data_filter *filter; /** The filter that is used to produce us as a child */
 	starpu_data_handle_t *active_children; /** The currently active set of read-write children */
 	unsigned active_nchildren;
 	starpu_data_handle_t **active_readonly_children; /** The currently active set of read-only children */
@@ -193,7 +194,9 @@ struct _starpu_data_state
 	/** Synchronous partitioning */
 	starpu_data_handle_t children;
 	unsigned nchildren;
-	/** How many partition plans this handle has */
+
+	/* Asynchronous partitioning */
+	/** How many partition plans this handle currently has (at submission time) */
 	unsigned nplans;
 	/** Switch codelet for asynchronous partitioning */
 	struct starpu_codelet *switch_cl;
@@ -235,8 +238,11 @@ struct _starpu_data_state
 	/** Whether we shall not ever write to this handle, thus allowing various optimizations */
 	unsigned readonly:1;
 
-	/** where is the data home, i.e. which node it was registered from ? -1 if none yet */
+	/** where the data home is, i.e. which node it was registered from ? -1 if none yet */
 	int home_node;
+
+	/** which node should be used to gather data from children. -1 if not defined yet */
+	int gathering_node;
 
 	/** what is the default write-through mask for that data ? */
 	uint32_t wt_mask;
@@ -420,6 +426,16 @@ void _starpu_data_end_reduction_mode_terminate(starpu_data_handle_t handle);
 void _starpu_data_unmap(starpu_data_handle_t handle, unsigned node);
 
 void _starpu_data_set_unregister_hook(starpu_data_handle_t handle, _starpu_data_handle_unregister_hook func) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
+
+static inline unsigned _starpu_data_get_gathering_node(starpu_data_handle_t handle)
+{
+	if (handle->gathering_node != -1)
+		return handle->gathering_node;
+	if (handle->home_node != -1)
+		return handle->home_node;
+	/* Nothing better for now */
+	return STARPU_MAIN_RAM;
+}
 
 #pragma GCC visibility pop
 

@@ -328,6 +328,7 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 	//handle->footprint
 
 	//handle->home_node
+	handle->gathering_node = -1;
 	//handle->wt_mask
 	//handle->aliases = 0;
 	//handle->is_not_important
@@ -985,6 +986,12 @@ static void _starpu_data_invalidate(void *data)
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		struct _starpu_data_replicate *local = &handle->per_node[node];
+
+		if (handle->gathering_node != -1 && node == (unsigned) handle->gathering_node)
+			/* Avoid freeing chunk that could be used by a child */
+			/* TODO: we'd want to avoid it only if we indeed have a child.
+			 * Testing for handle->plans is not enough since that's at submission time */
+			continue;
 
 		if (local->mc && local->allocated && local->automatically_allocated)
 		{

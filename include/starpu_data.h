@@ -580,6 +580,12 @@ int starpu_data_evict_from_node(starpu_data_handle_t handle, unsigned node);
 void starpu_data_set_wt_mask(starpu_data_handle_t handle, uint32_t wt_mask);
 
 /**
+   Set the gathering node of the data, i.e. where the pieces from children of
+   partitioning will be collected to obtain data coherency.
+*/
+void starpu_data_set_gathering_node(starpu_data_handle_t handle, unsigned node);
+
+/**
    @name Implicit Data Dependencies
    In this section, we describe how StarPU makes it possible to
    insert implicit task dependencies in order to enforce sequential data

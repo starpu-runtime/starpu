@@ -441,6 +441,8 @@ starpu_data_unpartition_submit(). Or call starpu_data_partition_submit_sequentia
 
 After the task has completed using the data partition, starpu_data_partition_clean() or starpu_data_partition_clean_node() is used to clean up a data partition on the local node or on a specific node.
 
+Note that \c f_vert needs to be kept alive until we call starpu_data_partition_clean().
+
 All this code is asynchronous, just submitting which tasks, partitioning and
 unpartitioning will be done at runtime.
 
@@ -456,6 +458,11 @@ its interior and halos, and then just submit a task updating the whole
 subdomain, then submit MPI sends/receives to update the halos, then submit
 again a task updating the whole subdomain, etc. and StarPU will automatically
 partition/unpartition each time.
+
+By default, StarPU will collect the pieces of the children on the home node
+if there is one, or on the STARPU_MAIN_RAM memory node otherwise. This can be
+changed by calling starpu_data_set_gathering_node() before partitioning the
+data.
 
 \section DataCommute Commute Data Access
 
