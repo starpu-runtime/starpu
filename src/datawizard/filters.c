@@ -350,11 +350,10 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 	unsigned sizes[root_handle->nchildren];
 
 	_STARPU_TRACE_START_UNPARTITION(root_handle, gathering_node);
-	_starpu_spin_lock(&root_handle->header_lock);
 
 	STARPU_ASSERT_MSG(root_handle->nchildren != 0, "data %p is not partitioned, can not unpartition it", root_handle);
 
-	/* first take all the children lock (in order !) */
+	/* first gather data from all the children */
 	for (child = 0; child < root_handle->nchildren; child++)
 	{
 		starpu_data_handle_t child_handle = starpu_data_get_child(root_handle, child);
@@ -404,8 +403,13 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 		/* Make sure it is not mapped */
 		for (node = 0; node < STARPU_MAXNODES; node++)
 			_starpu_data_unmap(child_handle, node);
+	}
 
-		/* Wait for all requests to finish (notably WT and UNMAP requests) */
+	/* Wait for all requests to finish (notably WT and UNMAP requests) */
+	for (child = 0; child < root_handle->nchildren; child++)
+	{
+		starpu_data_handle_t child_handle = starpu_data_get_child(root_handle, child);
+
 		STARPU_PTHREAD_MUTEX_LOCK(&child_handle->busy_mutex);
 		while (1)
 		{
@@ -420,6 +424,13 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 			STARPU_PTHREAD_COND_WAIT(&child_handle->busy_cond, &child_handle->busy_mutex);
 		}
 		STARPU_PTHREAD_MUTEX_UNLOCK(&child_handle->busy_mutex);
+	}
+
+	/* take all the locks (in order !) */
+	_starpu_spin_lock(&root_handle->header_lock);
+	for (child = 0; child < root_handle->nchildren; child++)
+	{
+		starpu_data_handle_t child_handle = starpu_data_get_child(root_handle, child);
 
 		_starpu_spin_lock(&child_handle->header_lock);
 
