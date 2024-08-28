@@ -2688,10 +2688,10 @@ static int have_hwloc_pci_bw_routes(FILE *f, const char *Bps, const char *s)
 						switch (obj->attr->pcidev.vendor_id)
 						{
 						case 0x1014:
-							remote_type == _STARPU_NVML_NVLINK_DEVICE_TYPE_IBMNPU;
+							remote_type = _STARPU_NVML_NVLINK_DEVICE_TYPE_IBMNPU;
 							break;
 						case 0x10de:
-							remote_type == _STARPU_NVML_NVLINK_DEVICE_TYPE_SWITCH;
+							remote_type = _STARPU_NVML_NVLINK_DEVICE_TYPE_SWITCH;
 							break;
 						}
 					}
