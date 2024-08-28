@@ -59,6 +59,7 @@ static void opencl_memset_codelet(void *buffers[], void *args)
 
 	cl_mem buffer = (cl_mem) STARPU_VECTOR_GET_DEV_HANDLE(buffers[0]);
 	unsigned length = STARPU_VECTOR_GET_NX(buffers[0]);
+	size_t offset = STARPU_VECTOR_GET_OFFSET(buffers[0]);
 	char *v = malloc(length);
 	STARPU_ASSERT(v != NULL);
 	memset(v, 42, length);
@@ -67,7 +68,7 @@ static void opencl_memset_codelet(void *buffers[], void *args)
 	err = clEnqueueWriteBuffer(queue,
 				   buffer,
 				   CL_FALSE,
-				   0,      /* offset */
+				   offset, /* offset */
 				   length, /* sizeof (char) */
 				   v,
 				   0,      /* num_events_in_wait_list */
