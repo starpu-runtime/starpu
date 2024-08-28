@@ -126,18 +126,23 @@ static void cuda_check_content_codelet(void *descr[], void *arg)
 
 	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);
 	unsigned length = STARPU_VECTOR_GET_NX(descr[0]);
+	size_t block = 1024;
 
-	unsigned i;
-	for (i = 0; i < length; i++)
+	unsigned i, j;
+	for (i = 0; i < length; i+=block)
 	{
-		char dst;
-		cudaMemcpyAsync(&dst, &buf[i], sizeof(char), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
+		size_t size = block;
+		if (i + size > length)
+			size = length - i;
+		char dst[size];
+		cudaMemcpyAsync(dst, &buf[i], size, cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
 		cudaStreamSynchronize(starpu_cuda_get_local_stream());
-		if (dst != 42)
-		{
-			FPRINTF(stderr, "buf[%u] is %c while it should be %c\n", i, dst, 42);
-			exit(-1);
-		}
+		for (j = 0; j < size; j++)
+			if (dst[j] != 42)
+			{
+				FPRINTF(stderr, "buf[%u] is %c while it should be %c\n", i + j, dst[j], 42);
+				exit(-1);
+			}
 	}
 }
 #endif
@@ -155,30 +160,35 @@ static void opencl_check_content_codelet(void *buffers[], void *args)
 
 	cl_mem buf = (cl_mem) STARPU_VECTOR_GET_DEV_HANDLE(buffers[0]);
 	unsigned length = STARPU_VECTOR_GET_NX(buffers[0]);
+	size_t block = 1024;
 
-	unsigned i;
-	for (i = 0; i < length; i++)
+	unsigned i, j;
+	for (i = 0; i < length; i+=block)
 	{
-		char dst;
+		size_t size = block;
+		if (i + size > length)
+			size = length - i;
+		char dst[size];
 		cl_int err;
 
 		err = clEnqueueReadBuffer(queue,
 					  buf,
 					  CL_FALSE,
-					  i * sizeof(dst),
-					  sizeof(dst),
-					  &dst,
+					  i,
+					  size,
+					  dst,
 					  0,      /* num_events_in_wait_list */
 					  NULL,   /* event_wait_list */
 					  NULL    /* event */);
 		if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 
 		clFinish(queue);
-		if (dst != 42)
-		{
-			FPRINTF(stderr, "buf[%u] is '%c' while it should be '%c'\n", i, dst, 42);
-			exit(-1);
-		}
+		for (j = 0; j < size; j++)
+			if (dst[j] != 42)
+			{
+				FPRINTF(stderr, "buf[%u] is '%c' while it should be '%c'\n", i + j, dst[j], 42);
+				exit(-1);
+			}
 	}
 }
 #endif
