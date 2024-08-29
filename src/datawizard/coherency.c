@@ -537,6 +537,8 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 								  unsigned async,
 								  void (*callback_func)(void *), void *callback_arg, int prio, const char *origin)
 {
+	enum starpu_data_access_mode orig_mode = mode;
+
 	/* We don't care about commuting for data requests, that was handled before. */
 	mode &= ~STARPU_COMMUTE;
 
@@ -651,11 +653,17 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 			mode &= ~STARPU_R;
 		}
 	}
-	else if (dst_replicate)
-	{
+	if (dst_replicate && !(mode & STARPU_R)) {
 		/* if the data is in write only mode (and not SCRATCH or REDUX), there is no need for a source, data will be initialized by the task itself */
 		if (mode & STARPU_W && is_prefetch <= STARPU_TASK_PREFETCH)
-			dst_replicate->initialized = 1;
+		{
+			if (orig_mode & STARPU_R)
+				/* _starpu_fetch_task_input_tail will call init_cl */
+				STARPU_ASSERT(handle->init_cl);
+			else
+				/* No initialization needed at all */
+				dst_replicate->initialized = 1;
+		}
 		if (starpu_node_get_kind(requesting_node) == STARPU_CPU_RAM && !nwait
 			&& !_starpu_malloc_willpin_on_node(requesting_node))
 		{
