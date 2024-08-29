@@ -72,9 +72,13 @@ int main(int argc, char **argv)
 	for (i = 0; i < NPARTS; i++)
 		starpu_mpi_data_register(handles[i], i+1, 1);
 
-	/* Initialize the pieces there */
+	/* Initialize the pieces */
 	for (i = 0; i < NPARTS; i++)
-		starpu_mpi_task_insert(MPI_COMM_WORLD, &memset_cl, STARPU_W, handles[i], 0);
+		if (size >= 3 && i % 2)
+			/* Just for fun */
+			starpu_mpi_task_insert(MPI_COMM_WORLD, &memset_cl, STARPU_W, handles[i], STARPU_EXECUTE_ON_NODE, 2, 0);
+		else
+			starpu_mpi_task_insert(MPI_COMM_WORLD, &memset_cl, STARPU_W, handles[i], 0);
 
 	/* Clean partition */
 	starpu_data_partition_clean(handle, NPARTS, handles);
