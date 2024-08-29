@@ -80,14 +80,12 @@ int main(int argc, char **argv)
 		else
 			starpu_mpi_task_insert(MPI_COMM_WORLD, &memset_cl, STARPU_W, handles[i], 0);
 
-	/* Clean partition */
+	/* Check it from somewhere else */
+	starpu_mpi_task_insert(MPI_COMM_WORLD, &memset_check_content_cl, STARPU_R, handle, STARPU_EXECUTE_ON_NODE, 0, 0);
+
+	/* Clean up */
 	starpu_data_partition_clean(handle, NPARTS, handles);
-
-	/* Migrate it back to 0 */
-	starpu_mpi_data_migrate(MPI_COMM_WORLD, handle, 0);
-
-	/* And check it there */
-	starpu_mpi_task_insert(MPI_COMM_WORLD, &memset_check_content_cl, STARPU_R, handle, 0);
+	starpu_data_unregister(handle);
 
 	starpu_mpi_shutdown();
 
