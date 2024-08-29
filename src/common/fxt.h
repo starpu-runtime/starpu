@@ -829,7 +829,7 @@ do {									\
 	int nowhere = ((job)->task->where == STARPU_NOWHERE) || ((job)->task->cl != NULL && (job)->task->cl->where == STARPU_NOWHERE); \
 	enum starpu_node_kind kind = workerid == -1 ? STARPU_UNUSED : starpu_worker_get_memory_node_kind(starpu_worker_get_type(workerid)); \
 	FUT_FULL_PROBE6(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_START_CODELET_BODY, (job)->job_id, ((job)->task)->sched_ctx, workerid, mem_node, _starpu_gettid(), (codelet_null == 1 || nowhere == 1)); \
-	if (rank == 0 && (job)->task->cl)				\
+	if (rank == 0 && (job)->task->cl && !nowhere)				\
 	{								\
 		const int __nbuffers = STARPU_TASK_GET_NBUFFERS((job)->task); \
 		char __buf[FXT_MAX_PARAMS*sizeof(long)];		\
