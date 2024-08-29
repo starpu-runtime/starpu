@@ -83,9 +83,11 @@ int main(void)
 	struct starpu_vector_interface *subhandle0_interface = starpu_data_get_interface_on_node(handles[0], STARPU_MAIN_RAM);
 
 	starpu_data_acquire_on_node(handle, STARPU_MAIN_RAM, STARPU_R);
+	starpu_data_acquire_on_node(handles[0], STARPU_MAIN_RAM, STARPU_R);
 	STARPU_ASSERT(handle_interface->ptr == subhandle0_interface->ptr);
 	STARPU_ASSERT(handle_interface->dev_handle == subhandle0_interface->dev_handle);
 	STARPU_ASSERT(handle_interface->offset == subhandle0_interface->offset);
+	starpu_data_release_on_node(handles[0], STARPU_MAIN_RAM);
 	starpu_data_release_on_node(handle, STARPU_MAIN_RAM);
 
 	/* Clean */
