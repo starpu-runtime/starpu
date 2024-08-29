@@ -286,6 +286,8 @@ int main(int argc, char **argv)
 	struct starpu_conf conf;
 	float alone, alone_int, alone_int_nop, alone_int_sync, sched, sched_int;
 
+	if (getenv("STARPU_MICROBENCHS_DISABLED")) return STARPU_TEST_SKIPPED;
+
 	parse_args(argc, argv);
 
 	starpu_conf_init(&conf);
