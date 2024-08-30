@@ -48,9 +48,6 @@
 /* Consider a rough 10% overhead cost */
 #define FREE_MARGIN 0.9
 
-/* the number of HIP devices */
-static int nhipgpus = -1;
-
 static size_t global_mem[STARPU_MAXHIPDEVS];
 int _starpu_hip_bus_ids[STARPU_MAXHIPDEVS+STARPU_MAXNUMANODES][STARPU_MAXHIPDEVS+STARPU_MAXNUMANODES];
 static hipStream_t streams[STARPU_NMAXWORKERS];
@@ -164,11 +161,6 @@ unsigned _starpu_get_hip_device_count(void)
 /* This is run from initialize to determine the number of HIP devices */
 void _starpu_init_hip(void)
 {
-	if (nhipgpus < 0)
-	{
-		nhipgpus = _starpu_get_hip_device_count();
-		STARPU_ASSERT(nhipgpus <= STARPU_MAXHIPDEVS);
-	}
 }
 
 /* This is called to really discover the hardware */
@@ -517,6 +509,8 @@ static void _starpu_hip_force_init()
 /* Really initialize one device */
 static void init_device_context(unsigned devid, unsigned memnode)
 {
+	STARPU_ASSERT(devid < STARPU_MAXHIPDADEVS);
+
 	hipError_t hipres;
 
 	starpu_hip_set_device(devid);
@@ -580,12 +574,17 @@ static void init_device_context(unsigned devid, unsigned memnode)
 	if (STARPU_UNLIKELY(hipres))
 		STARPU_HIP_REPORT_ERROR(hipres);
 
-	int i;
-	for (i = 0; i < nhipgpus; i++)
+	int nworkers = starpu_worker_get_count();
+	int workerid;
+	for (workerid = 0; workerid < nworkers; workerid++)
 	{
-		hipres = starpu_hipStreamCreate(&in_peer_transfer_streams[i][devid]);
-		if (STARPU_UNLIKELY(hipres))
-			STARPU_HIP_REPORT_ERROR(hipres);
+		struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+		if (worker->arch == STARPU_HIP_WORKER)
+		{
+			hipres = starpu_hipStreamCreate(&in_peer_transfer_streams[worker->devid][devid]);
+			if (STARPU_UNLIKELY(hipres))
+				STARPU_HIP_REPORT_ERROR(hipres);
+		}
 	}
 
 	STARPU_PTHREAD_MUTEX_LOCK(&hip_device_init_mutex[devid]);
@@ -606,13 +605,20 @@ static void deinit_device_context(unsigned devid STARPU_ATTRIBUTE_UNUSED)
 	hipStreamDestroy(in_transfer_streams[devid]);
 	hipStreamDestroy(out_transfer_streams[devid]);
 
-	for (i = 0; i < nhipgpus; i++)
+	int nworkers = starpu_worker_get_count();
+	int workerid;
+	for (workerid = 0; workerid < nworkers; workerid++)
 	{
-		hipStreamDestroy(in_peer_transfer_streams[i][devid]);
-		if (hip_peer_enabled[devid][i]) {
-			hipDeviceDisablePeerAccess(i);
-			(void) hipGetLastError();
-			hip_peer_enabled[devid][i] = 0;
+		struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+		if (worker->arch == STARPU_HIP_WORKER)
+		{
+			hipStreamDestroy(in_peer_transfer_streams[worker->devid][devid]);
+			if (hip_peer_enabled[devid][worker->devid])
+			{
+				hipDeviceDisablePeerAccess(worker->devid);
+				(void) hipGetLastError();
+				hip_peer_enabled[devid][worker->devid] = 0;
+			}
 		}
 	}
 }
