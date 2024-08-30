@@ -53,9 +53,6 @@
 /* Consider a rough 10% overhead cost */
 #define FREE_MARGIN 0.9
 
-/* the number of CUDA devices */
-static int ncudagpus = -1;
-
 static size_t global_mem[STARPU_MAXCUDADEVS];
 int _starpu_cuda_bus_ids[STARPU_MAXCUDADEVS+STARPU_MAXNUMANODES][STARPU_MAXCUDADEVS+STARPU_MAXNUMANODES];
 /* Note: streams are not thread-safe, so we define them for each CUDA worker
@@ -116,11 +113,6 @@ unsigned _starpu_get_cuda_device_count(void)
 /* This is run from initialize to determine the number of CUDA devices */
 void _starpu_init_cuda(void)
 {
-	if (ncudagpus < 0)
-	{
-		ncudagpus = _starpu_get_cuda_device_count();
-		STARPU_ASSERT(ncudagpus <= STARPU_MAXCUDADEVS);
-	}
 }
 
 /* This is called to return the real (non-clamped) number of devices */
@@ -279,6 +271,8 @@ static void _starpu_cuda_limit_gpu_mem_if_needed(unsigned devid)
 /* Really initialize one device */
 static void init_device_context(unsigned devid, unsigned memnode)
 {
+	STARPU_ASSERT(devid < STARPU_MAXCUDADEVS);
+
 	cudaError_t cures;
 
 	starpu_cuda_set_device(devid);
