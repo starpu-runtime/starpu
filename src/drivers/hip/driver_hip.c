@@ -566,7 +566,6 @@ static void init_device_context(unsigned devid, unsigned memnode)
 /* De-initialize one device */
 static void deinit_device_context(unsigned devid STARPU_ATTRIBUTE_UNUSED)
 {
-	int i;
 	starpu_hip_set_device(devid);
 
 	hipStreamDestroy(in_transfer_streams[devid]);
