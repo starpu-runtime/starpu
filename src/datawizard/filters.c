@@ -491,7 +491,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 			 * whole data, it's not valid */
 			isvalid = 0;
 
-		if (!isvalid && local->mc && local->allocated && local->automatically_allocated)
+		if (!isvalid && local->mc && local->allocated && local->automatically_allocated && !local->refcnt)
 			/* free the data copy in a lazy fashion */
 			_starpu_request_mem_chunk_removal(root_handle, local, node, _starpu_data_get_alloc_size(root_handle));
 
