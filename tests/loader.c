@@ -283,7 +283,8 @@ int main(int argc, char *argv[])
 		    (launcher && strstr(launcher, "helgrind")) ||
 		    tsan)
 			timeout *= 20;
-		if (asan || usan || lsan)
+		if (asan || usan || lsan ||
+		    (launcher && strstr(launcher, "compute-sanitizer")))
 			timeout *= 5;
 
 		if (timeout > 1750)
