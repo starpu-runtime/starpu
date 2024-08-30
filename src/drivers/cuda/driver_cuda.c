@@ -131,6 +131,9 @@ static unsigned cuda_bindid[STARPU_MAXCUDADEVS];
 static unsigned cuda_memory_init[STARPU_MAXCUDADEVS];
 static unsigned cuda_memory_nodes[STARPU_MAXCUDADEVS];
 static int cuda_globalbindid;
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
+static char cuda_peer_enabled[STARPU_MAXCUDADEVS][STARPU_MAXCUDADEVS];
+#endif
 #endif
 
 int _starpu_nworker_per_cuda;
@@ -853,9 +856,10 @@ static void init_device_context(unsigned devid, unsigned memnode)
 				int can = _starpu_cuda_peer_access(devid, worker->devid);
 				if (can)
 				{
-						_STARPU_DEBUG("Enabled GPU-Direct %d -> %d\n", worker->devid, devid);
-						/* direct copies are made from the destination, see link_supports_direct_transfers */
-						starpu_bus_set_direct(_starpu_cuda_bus_ids[worker->devid+STARPU_MAXNUMANODES][devid+STARPU_MAXNUMANODES], 1);
+					cuda_peer_enabled[devid][worker->devid] = 1;
+					_STARPU_DEBUG("Enabled GPU-Direct %d -> %d\n", worker->devid, devid);
+					/* direct copies are made from the destination, see link_supports_direct_transfers */
+					starpu_bus_set_direct(_starpu_cuda_bus_ids[worker->devid+STARPU_MAXNUMANODES][devid+STARPU_MAXNUMANODES], 1);
 				}
 			}
 		}
@@ -924,6 +928,13 @@ static void deinit_device_context(unsigned devid STARPU_ATTRIBUTE_UNUSED)
 	for (i = 0; i < ncudagpus; i++)
 	{
 		cudaStreamDestroy(in_peer_transfer_streams[i][devid]);
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
+		if (cuda_peer_enabled[devid][i]) {
+			cudaDeviceDisablePeerAccess(i);
+			(void) cudaGetLastError();
+			cuda_peer_enabled[devid][i] = 0;
+		}
+#endif
 	}
 #endif /* !STARPU_SIMGRID */
 }
