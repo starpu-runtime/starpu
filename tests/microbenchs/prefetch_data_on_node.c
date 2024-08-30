@@ -117,6 +117,7 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	starpu_malloc((void **)&v, VECTORSIZE*sizeof(unsigned));
+	memset(v, 0, VECTORSIZE*sizeof(unsigned));
 	starpu_vector_data_register(&v_handle, STARPU_MAIN_RAM, (uintptr_t)v, VECTORSIZE, sizeof(unsigned));
 
 	unsigned nworker = starpu_worker_get_count();
