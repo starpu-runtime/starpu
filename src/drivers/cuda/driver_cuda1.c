@@ -553,6 +553,14 @@ uintptr_t _starpu_cuda_malloc_on_device(int devid, size_t size, int flags)
 	return addr;
 }
 
+void _starpu_cuda_memset_on_device(uintptr_t ptr, int c, size_t size)
+{
+	cudaError_t status;
+	status = cudaMemset((void*) ptr, c, size);
+	if (STARPU_UNLIKELY(status != cudaSuccess))
+		STARPU_CUDA_REPORT_ERROR(status);
+}
+
 void _starpu_cuda_free_on_device(int devid, uintptr_t addr, size_t size, int flags)
 {
 	(void) devid;
@@ -1394,6 +1402,7 @@ struct _starpu_node_ops _starpu_driver_cuda_node_ops =
 {
 	.name = "cuda1 driver",
 	.malloc_on_device = _starpu_cuda_malloc_on_device,
+	.memset_on_device = _starpu_cuda_memset_on_device,
 	.free_on_device = _starpu_cuda_free_on_device,
 
 	.is_direct_access_supported = _starpu_cuda_is_direct_access_supported,

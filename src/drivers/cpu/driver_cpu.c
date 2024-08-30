@@ -263,6 +263,11 @@ uintptr_t _starpu_cpu_malloc_on_device(int dst_dev, size_t size, int flags)
 	return addr;
 }
 
+void _starpu_cpu_memset_on_device(uintptr_t ptr, int c, size_t size)
+{
+	memset((void*) ptr, c, size);
+}
+
 void _starpu_cpu_free_on_device(int dst_dev, uintptr_t addr, size_t size, int flags)
 {
 	unsigned dst_node = starpu_memory_devid_find_node(dst_dev, STARPU_CPU_RAM);
@@ -811,6 +816,7 @@ struct _starpu_node_ops _starpu_driver_cpu_node_ops =
 	.name = "cpu driver",
 
 	.malloc_on_device = _starpu_cpu_malloc_on_device,
+	.memset_on_device = _starpu_cpu_memset_on_device,
 	.free_on_device = _starpu_cpu_free_on_device,
 
 	.is_direct_access_supported = _starpu_cpu_is_direct_access_supported,

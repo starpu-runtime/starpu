@@ -305,7 +305,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa(int dev, enum starpu_
 	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID, NULL);
 
 	/* Fill them */
-	memset(h_buffer, 0, size);
+	memset(h_buffer, 0x42, size);
 
 	/* hack to avoid third party libs to rebind threads */
 	_starpu_bind_thread_on_cpu(cpu, STARPU_NOWORKERID, NULL);
@@ -425,6 +425,8 @@ static void measure_bandwidth_between_dev_and_dev(int src, int dst, enum starpu_
 	/* Allocate a buffer on the device */
 	uintptr_t s_buffer;
 	s_buffer = src_ops->malloc_on_device(src, size, 0);
+	if (src_ops->memset_on_device)
+		src_ops->memset_on_device(s_buffer, 0x42, size);
 
 	/* Allocate a buffer on the device */
 	uintptr_t d_buffer;

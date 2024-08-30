@@ -153,6 +153,8 @@ struct _starpu_node_ops
 	/** Allocate \p size bytes of data on device \p devid.
 	 * \p flags can contain STARPU_MALLOC_* flags, only useful for CPU memory  */
 	uintptr_t (*malloc_on_device)(int devid, size_t size, int flags);
+	/** Memset \p size bytes of data at \p ptr to byte \p c */
+	void (*memset_on_device)(uintptr_t ptr, int c, size_t size);
 	/** Free data \p addr, which was a previous allocation of \p size bytes
 	 * of data on device \p devid with flags \p flags*/
 	void (*free_on_device)(int devid, uintptr_t addr, size_t size, int flags);
