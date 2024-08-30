@@ -74,6 +74,7 @@ static int hip_device_users[STARPU_MAXHIPDEVS];
 static starpu_pthread_mutex_t hip_device_init_mutex[STARPU_MAXHIPDEVS];
 static starpu_pthread_cond_t hip_device_init_cond[STARPU_MAXHIPDEVS];
 static int hip_globalbindid;
+static char hip_peer_enabled[STARPU_MAXCUDADEVS][STARPU_MAXCUDADEVS];
 
 
 int _starpu_nworker_per_hip;
@@ -538,7 +539,23 @@ static void init_device_context(unsigned devid, unsigned memnode)
 #ifdef STARPU_HAVE_HIP_MEMCPY_PEER
 	if (starpu_getenv_number("STARPU_ENABLE_HIP_GPU_GPU_DIRECT") != 0)
 	{
-		/* TODO: starpu_bus_set_direct for each worker */
+		int nworkers = starpu_worker_get_count();
+		int workerid;
+		for (workerid = 0; workerid < nworkers; workerid++)
+		{
+			struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+			if (worker->arch == STARPU_HIP_WORKER && worker->devid != devid)
+			{
+				int can = _starpu_hip_peer_access(devid, worker->devid);
+				if (can)
+				{
+					hip_peer_enabled[devid][worker->devid] = 1;
+					_STARPU_DEBUG("Enabled GPU-Direct %d -> %d\n", worker->devid, devid);
+					/* direct copies are made from the destination, see link_supports_direct_transfers */
+					starpu_bus_set_direct(_starpu_hip_bus_ids[worker->devid+STARPU_MAXNUMANODES][devid+STARPU_MAXNUMANODES], 1);
+				}
+			}
+		}
 	}
 #endif
 	/* force HIP to initialize the context for real */
@@ -592,6 +609,11 @@ static void deinit_device_context(unsigned devid STARPU_ATTRIBUTE_UNUSED)
 	for (i = 0; i < nhipgpus; i++)
 	{
 		hipStreamDestroy(in_peer_transfer_streams[i][devid]);
+		if (hip_peer_enabled[devid][i]) {
+			hipDeviceDisablePeerAccess(i);
+			(void) hipGetLastError();
+			hip_peer_enabled[devid][i] = 0;
+		}
 	}
 }
 
