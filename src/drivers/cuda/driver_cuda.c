@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021, 2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
@@ -62,9 +62,6 @@
 
 /* Consider a rough 10% overhead cost */
 #define FREE_MARGIN 0.9
-
-/* the number of CUDA devices */
-static int ncudagpus = -1;
 
 static size_t global_mem[STARPU_MAXCUDADEVS];
 #ifdef STARPU_HAVE_LIBNVIDIA_ML
@@ -323,6 +320,8 @@ done:
 
 static void init_device_context(unsigned devid, unsigned memnode)
 {
+	STARPU_ASSERT(devid < STARPU_MAXCUDADEVS);
+
 #ifndef STARPU_SIMGRID
 	cudaError_t cures;
 
@@ -409,12 +408,17 @@ static void init_device_context(unsigned devid, unsigned memnode)
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
 
-	int i;
-	for (i = 0; i < ncudagpus; i++)
+	int nworkers = starpu_worker_get_count();
+	int workerid;
+	for (workerid = 0; workerid < nworkers; workerid++)
 	{
-		cures = starpu_cudaStreamCreate(&in_peer_transfer_streams[i][devid]);
-		if (STARPU_UNLIKELY(cures))
-			STARPU_CUDA_REPORT_ERROR(cures);
+		struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+		if (worker->arch == STARPU_CUDA_WORKER)
+		{
+			cures = starpu_cudaStreamCreate(&in_peer_transfer_streams[worker->devid][devid]);
+			if (STARPU_UNLIKELY(cures))
+				STARPU_CUDA_REPORT_ERROR(cures);
+		}
 	}
 #endif /* !STARPU_SIMGRID */
 
@@ -454,15 +458,20 @@ static void init_worker_context(unsigned workerid, unsigned devid STARPU_ATTRIBU
 #ifndef STARPU_SIMGRID
 static void deinit_device_context(unsigned devid)
 {
-	int i;
 	starpu_cuda_set_device(devid);
 
 	cudaStreamDestroy(in_transfer_streams[devid]);
 	cudaStreamDestroy(out_transfer_streams[devid]);
 
-	for (i = 0; i < ncudagpus; i++)
+	int nworkers = starpu_worker_get_count();
+	int workerid;
+	for (workerid = 0; workerid < nworkers; workerid++)
 	{
-		cudaStreamDestroy(in_peer_transfer_streams[i][devid]);
+		struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+		if (worker->arch == STARPU_CUDA_WORKER)
+		{
+			cudaStreamDestroy(in_peer_transfer_streams[worker->devid][devid]);
+		}
 	}
 }
 #endif /* !STARPU_SIMGRID */
@@ -508,11 +517,6 @@ unsigned _starpu_get_cuda_device_count(void)
 /* This is run from initialize to determine the number of CUDA devices */
 void _starpu_init_cuda(void)
 {
-	if (ncudagpus < 0)
-	{
-		ncudagpus = _starpu_get_cuda_device_count();
-		STARPU_ASSERT(ncudagpus <= STARPU_MAXCUDADEVS);
-	}
 }
 
 static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worker, unsigned char pipeline_idx STARPU_ATTRIBUTE_UNUSED)
