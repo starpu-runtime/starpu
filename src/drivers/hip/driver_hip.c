@@ -1315,8 +1315,8 @@ int _starpu_hip_peer_access(int devid, int peer_devid)
 		{
 			hipres = hipDeviceEnablePeerAccess(peer_devid, 0);
 			(void) hipGetLastError();
+			return 1;
 		}
-		return 1;
 	}
 	return 0;
 }
