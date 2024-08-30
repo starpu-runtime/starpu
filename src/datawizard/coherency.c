@@ -653,7 +653,8 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 			mode &= ~STARPU_R;
 		}
 	}
-	if (dst_replicate && !(mode & STARPU_R)) {
+	if (dst_replicate && !(mode & STARPU_R))
+	{
 		/* if the data is in write only mode (and not SCRATCH or REDUX), there is no need for a source, data will be initialized by the task itself */
 		if (mode & STARPU_W && is_prefetch <= STARPU_TASK_PREFETCH)
 		{
