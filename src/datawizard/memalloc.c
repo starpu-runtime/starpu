@@ -1763,7 +1763,7 @@ int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_
 		/* If the parent is not allocated yet, we now want to force allocation, to make sure to reuse the same allocation. */
 
 		struct _starpu_data_replicate *parent_replicate = &handle->parent_handle->per_node[dst_node];
-		int ret = 0;
+		int ret = 0, ret2;
 
 		/* Take temporary reference on the replicate to be able to work on the parent */
 		replicate->refcnt++;
@@ -1796,8 +1796,8 @@ int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_
 		STARPU_ASSERT(replicate->refcnt >= 0);
 		STARPU_ASSERT(handle->busy_count > 0);
 		handle->busy_count--;
-		ret = _starpu_data_check_not_busy(handle);
-		STARPU_ASSERT(ret == 0);
+		ret2 = _starpu_data_check_not_busy(handle);
+		STARPU_ASSERT(ret2 == 0);
 
 		if (ret != 0)
 		{
