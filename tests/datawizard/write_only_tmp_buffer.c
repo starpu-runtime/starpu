@@ -25,7 +25,7 @@
  * Test initializing a buffer with a task, then printing it with another task
  */
 
-#define VECTORSIZE	1024
+#define VECTORSIZE	1
 
 starpu_data_handle_t v_handle;
 
@@ -43,7 +43,7 @@ static void opencl_codelet_null(void *descr[], void *arg)
         int devid = starpu_worker_get_devid(id);
 
         starpu_opencl_get_queue(devid, &queue);
-        err = clEnqueueWriteBuffer(queue, buf, CL_TRUE, 0, sizeof(char), &ptr, 0, NULL, NULL);
+        err = clEnqueueWriteBuffer(queue, buf, CL_TRUE, 0, VECTORSIZE*sizeof(char), &ptr, 0, NULL, NULL);
 	if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 }
 #endif
@@ -56,7 +56,7 @@ static void cuda_codelet_null(void *descr[], void *arg)
 
 	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);
 
-	cudaMemsetAsync(buf, 42, 1, starpu_cuda_get_local_stream());
+	cudaMemsetAsync(buf, 42, VECTORSIZE, starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -65,7 +65,7 @@ void cpu_codelet_null(void *descr[], void *arg)
 	(void)arg;
 	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);
 
-	*buf = 42;
+	memset(buf, 42, VECTORSIZE);
 }
 
 void display_var(void *descr[], void *arg)
