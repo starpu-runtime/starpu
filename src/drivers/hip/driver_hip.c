@@ -482,7 +482,7 @@ static void _starpu_hip_limit_gpu_mem_if_needed(unsigned devid)
 /* Really initialize one device */
 static void init_device_context(unsigned devid, unsigned memnode)
 {
-	STARPU_ASSERT(devid < STARPU_MAXHIPDADEVS);
+	STARPU_ASSERT(devid < STARPU_MAXHIPDEVS);
 
 	hipError_t hipres;
 	int attempts = 0;
