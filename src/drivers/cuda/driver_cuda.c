@@ -2089,8 +2089,8 @@ int _starpu_cuda_peer_access(int devid, int peer_devid)
 		{
 			cures = cudaDeviceEnablePeerAccess(peer_devid, 0);
 			(void) cudaGetLastError();
+			return 1;
 		}
-		return 1;
 	}
 #endif
 	return 0;
