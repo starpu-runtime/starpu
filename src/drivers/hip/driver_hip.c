@@ -579,7 +579,7 @@ static void init_device_context(unsigned devid, unsigned memnode)
 	for (workerid = 0; workerid < nworkers; workerid++)
 	{
 		struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-		if (worker->arch == STARPU_HIP_WORKER)
+		if (worker->arch == STARPU_HIP_WORKER && worker->subworkerid == 0)
 		{
 			hipres = starpu_hipStreamCreate(&in_peer_transfer_streams[worker->devid][devid]);
 			if (STARPU_UNLIKELY(hipres))
@@ -609,7 +609,7 @@ static void deinit_device_context(unsigned devid STARPU_ATTRIBUTE_UNUSED)
 	for (workerid = 0; workerid < nworkers; workerid++)
 	{
 		struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-		if (worker->arch == STARPU_HIP_WORKER)
+		if (worker->arch == STARPU_HIP_WORKER && worker->subworkerid == 0)
 		{
 			hipStreamDestroy(in_peer_transfer_streams[worker->devid][devid]);
 			if (hip_peer_enabled[devid][worker->devid])

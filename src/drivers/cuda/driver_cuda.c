@@ -845,7 +845,7 @@ static void init_device_context(unsigned devid, unsigned memnode)
 		for (workerid = 0; workerid < nworkers; workerid++)
 		{
 			struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-			if (worker->arch == STARPU_CUDA_WORKER && worker->devid != devid)
+			if (worker->arch == STARPU_CUDA_WORKER && worker->subworkerid == 0 && worker->devid != devid)
 			{
 				int can = _starpu_cuda_peer_access(devid, worker->devid);
 				if (can)
@@ -896,7 +896,7 @@ static void init_device_context(unsigned devid, unsigned memnode)
 	for (workerid = 0; workerid < nworkers; workerid++)
 	{
 		struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-		if (worker->arch == STARPU_CUDA_WORKER)
+		if (worker->arch == STARPU_CUDA_WORKER && worker->subworkerid == 0)
 		{
 			cures = starpu_cudaStreamCreate(&in_peer_transfer_streams[worker->devid][devid]);
 			if (STARPU_UNLIKELY(cures))
@@ -928,7 +928,7 @@ static void deinit_device_context(unsigned devid STARPU_ATTRIBUTE_UNUSED)
 	for (workerid = 0; workerid < nworkers; workerid++)
 	{
 		struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-		if (worker->arch == STARPU_CUDA_WORKER)
+		if (worker->arch == STARPU_CUDA_WORKER && worker->subworkerid == 0)
 		{
 			cudaStreamDestroy(in_peer_transfer_streams[worker->devid][devid]);
 #ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
