@@ -86,6 +86,7 @@ void starpu_parallel_worker_openmp_prologue(void *arg)
 void starpu_parallel_worker_gnu_openmp_mkl_prologue(void *arg)
 {
 	int workerid = starpu_worker_get_id();
+	(void) arg;
 
 	if (starpu_worker_get_type(workerid) == STARPU_CPU_WORKER)
 	{
