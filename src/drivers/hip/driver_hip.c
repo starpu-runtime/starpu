@@ -866,7 +866,7 @@ void _starpu_hip_memset_on_device(uintptr_t ptr, int c, size_t size)
 	hipError_t status;
 	status = hipMemset((void*) ptr, c, size);
 	if (STARPU_UNLIKELY(status != hipSuccess))
-		STARPU_hip_REPORT_ERROR(status);
+		STARPU_HIP_REPORT_ERROR(status);
 }
 
 void _starpu_hip_free_on_device(int devid, uintptr_t addr, size_t size, int flags)
