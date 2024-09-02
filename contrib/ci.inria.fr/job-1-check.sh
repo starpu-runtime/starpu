@@ -114,7 +114,6 @@ fi
 export STARPU_MICROBENCHS_DISABLED=1
 export STARPU_TIMEOUT_ENV=3600
 export MPIEXEC_TIMEOUT=3600
-export STARPU_MPI_DRIVER_CALL_FREQUENCY=1
 CONFIGURE_OPTIONS="--enable-debug --enable-verbose --disable-build-examples --enable-mpi-check=maybe --enable-mpi-minimal-tests --disable-build-doc $ARGS"
 CONFIGURE_CHECK=""
 day=$(date +%u)
