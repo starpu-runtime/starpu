@@ -1251,10 +1251,14 @@ uintptr_t _starpu_cuda_malloc_on_device(int devid, size_t size, int flags)
 
 void _starpu_cuda_memset_on_device(uintptr_t ptr, int c, size_t size)
 {
+#ifdef STARPU_SIMGRID
+	ptr = (void *)1;
+#else
 	cudaError_t status;
 	status = cudaMemset((void*) ptr, c, size);
 	if (STARPU_UNLIKELY(status != cudaSuccess))
 		STARPU_CUDA_REPORT_ERROR(status);
+#endif
 }
 
 void _starpu_cuda_free_on_device(int devid, uintptr_t addr, size_t size, int flags)
