@@ -613,7 +613,9 @@ AC_ARG_ENABLE(mpi-minimal-tests, [AS_HELP_STRING([--enable-mpi-minimal-tests],
             [enable_mpi_minimal_tests=no])
 
 AM_CONDITIONAL([STARPU_MPI_MINIMAL_TESTS], [test x$enable_mpi_minimal_tests = xyes])
-
+if test "x$enable_mpi_minimal_tests" = "xyes"; then
+  AC_DEFINE(STARPU_MPI_MINIMAL_TESTS, [1], [only enable MPI minimal tests])
+fi
 
 ###############################################################################
 #                                                                             #
