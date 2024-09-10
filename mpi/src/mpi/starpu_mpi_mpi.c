@@ -120,6 +120,19 @@ static int mpi_wait_for_all_running = 0;
 #pragma weak smpi_simulated_main_
 extern int smpi_simulated_main_(int argc, char *argv[]);
 
+#if SIMGRID_VERSION >= 32600
+void
+#else
+int
+#endif
+_starpu_smpi_simulated_main_(int argc, char *argv[])
+{
+#if SIMGRID_VERSION < 32600
+	return
+#endif
+		smpi_simulated_main_(argc, argv);
+}
+
 #pragma weak smpi_process_set_user_data
 #if !HAVE_DECL_SMPI_PROCESS_SET_USER_DATA && !defined(smpi_process_set_user_data)
 extern void smpi_process_set_user_data(void *);
@@ -1268,7 +1281,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	void **tsd;
 	_STARPU_CALLOC(tsd, MAX_TSD + 1, sizeof(void*));
 #if defined(HAVE_SG_ACTOR_DATA) || defined(HAVE_SG_ACTOR_SET_DATA)
-	_starpu_simgrid_actor_create("main", smpi_simulated_main_, _starpu_simgrid_get_host_by_name("MAIN"), *(argc_argv->argc), argv_cpy);
+	_starpu_simgrid_actor_create("main", _starpu_smpi_simulated_main_, _starpu_simgrid_get_host_by_name("MAIN"), *(argc_argv->argc), argv_cpy);
 	/* And set TSD for us */
 #ifdef HAVE_SG_ACTOR_SET_DATA
 	sg_actor_set_data(sg_actor_self(), tsd);
@@ -1276,7 +1289,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	sg_actor_data_set(sg_actor_self(), tsd);
 #endif
 #else
-	MSG_process_create_with_arguments("main", smpi_simulated_main_, NULL, _starpu_simgrid_get_host_by_name("MAIN"), *(argc_argv->argc), argv_cpy);
+	MSG_process_create_with_arguments("main", _starpu_smpi_simulated_main_, NULL, _starpu_simgrid_get_host_by_name("MAIN"), *(argc_argv->argc), argv_cpy);
 	/* And set TSD for us */
 	if (!smpi_process_set_user_data)
 	{
