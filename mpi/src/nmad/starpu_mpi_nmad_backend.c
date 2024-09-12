@@ -21,6 +21,8 @@
 
 #ifdef STARPU_USE_MPI_NMAD
 
+#include <nm_public.h>
+
 static void starpu_mpi_nmad_backend_constructor(void) __attribute__((constructor));
 static void starpu_mpi_nmad_backend_constructor(void)
 {
@@ -37,6 +39,7 @@ static void starpu_mpi_nmad_backend_constructor(void)
 void _starpu_mpi_nmad_backend_init(struct starpu_conf *conf)
 {
 	(void)conf;
+	nm_abi_config_check();
 }
 
 void _starpu_mpi_nmad_backend_shutdown(void)
