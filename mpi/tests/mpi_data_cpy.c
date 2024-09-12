@@ -38,6 +38,7 @@ struct starpu_codelet mycodelet =
         .modes = {STARPU_RW},
         .model = &starpu_perfmodel_nop,
 	.name = "increment"
+	.flags = STARPU_CODELET_SIMGRID_EXECUTE,
 };
 
 int main(int argc, char **argv)
