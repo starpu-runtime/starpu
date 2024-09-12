@@ -39,7 +39,8 @@ int main(int argc, char **argv)
 	if (size < 2)
 	{
 		FPRINTF(stderr, "We need at least 2 processes.\n");
-		MPI_Finalize();
+		if (!mpi_init)
+			MPI_Finalize();
 		return rank == 0 ? STARPU_TEST_SKIPPED : 0;
 	}
 
