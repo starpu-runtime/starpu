@@ -2205,8 +2205,10 @@ void starpu_topology_print(FILE *output)
 		fprintf(output, "\t");
 #endif
 		if ((pu % nthreads_per_core) == 0)
-			fprintf(output, "core %u", pu / nthreads_per_core);
-		fprintf(output, "\tPU %u\t", pu);
+			fprintf(output, "core %-5u ", pu / nthreads_per_core);
+		else
+			fprintf(output, "           ");
+		fprintf(output, "PU %-5u ", pu);
 		for (worker = 0;
 		     worker < nworkers + ncombinedworkers;
 		     worker++)
@@ -2219,7 +2221,7 @@ void starpu_topology_print(FILE *output)
 				{
 					char name[256];
 					starpu_worker_get_name(worker, name, sizeof(name));
-					fprintf(output, "%s\t", name);
+					fprintf(output, "%-10s ", name);
 				}
 			}
 			else
@@ -2230,7 +2232,7 @@ void starpu_topology_print(FILE *output)
 				for (i = 0; i < worker_size; i++)
 				{
 					if (topology->workers_bindid[combined_workerid[i]] == pu)
-						fprintf(output, "comb %u\t", worker-nworkers);
+						fprintf(output, "comb %-5u ", worker-nworkers);
 				}
 			}
 		}
