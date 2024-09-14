@@ -158,7 +158,7 @@ int main(int argc, char **argv)
 	starpu_do_schedule();
 	/* Wait for the termination of all loops */
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
-	if (loop_cnt < niter)
+	while (loop_cnt < niter)
 		STARPU_PTHREAD_COND_WAIT(&cond, &mutex);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 

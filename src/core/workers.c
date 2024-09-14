@@ -2050,7 +2050,7 @@ void _starpu_may_pause(void)
 	if (STARPU_UNLIKELY(_starpu_config.pause_depth > 0))
 	{
 		STARPU_PTHREAD_MUTEX_LOCK(&pause_mutex);
-		if (_starpu_config.pause_depth > 0)
+		while (_starpu_config.pause_depth > 0)
 		{
 			STARPU_PTHREAD_COND_WAIT(&pause_cond, &pause_mutex);
 		}
