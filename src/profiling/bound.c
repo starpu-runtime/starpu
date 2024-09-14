@@ -535,12 +535,12 @@ void starpu_bound_print_lp(FILE *output)
 	int w, w2; /* worker */
 	unsigned n, n2;
 
-	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	nw = starpu_worker_get_count();
 	if (!nw)
 		/* Make llvm happy about the VLA below */
 		return;
 
+	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	if (recorddeps)
 	{
 		struct bound_task *t1, *t2;
