@@ -245,7 +245,7 @@ int main(int argc, char **argv)
 
 	starpu_do_schedule();
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
-	if (!finished)
+	while (!finished)
 		STARPU_PTHREAD_COND_WAIT(&cond, &mutex);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
