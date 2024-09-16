@@ -51,7 +51,9 @@
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
 #ifdef STARPU_HAVE_NVML_H
+#undef  nvmlDeviceGetPciInfo
 #define nvmlDeviceGetPciInfo _starpu_nvmlDeviceGetPciInfo
+#undef  nvmlDeviceGetUUID
 #define nvmlDeviceGetUUID _starpu_nvmlDeviceGetUUID
 #include <hwloc/nvml.h>
 #endif
