@@ -88,8 +88,8 @@ void starpu_cublas_init(void)
 	for (i = 0; i < STARPU_MAXCUDADEVS; i++)
 		STARPU_PTHREAD_MUTEX_INIT0(&mutex[i], NULL);
 
-	starpu_execute_on_each_worker(init_cublas_func, NULL, STARPU_CUDA);
-	starpu_execute_on_each_worker(set_cublas_stream_func, NULL, STARPU_CUDA);
+	starpu_execute_on_each_worker_ex(init_cublas_func, NULL, STARPU_CUDA, "init_cublas");
+	starpu_execute_on_each_worker_ex(set_cublas_stream_func, NULL, STARPU_CUDA, "set_cublas_stream_func");
 
 	_starpu_cublas_v2_init();
 #endif
@@ -100,7 +100,7 @@ void starpu_cublas_shutdown(void)
 #ifdef STARPU_USE_CUDA
 	if (!starpu_cuda_worker_get_count())
 		return;
-	starpu_execute_on_each_worker(shutdown_cublas_func, NULL, STARPU_CUDA);
+	starpu_execute_on_each_worker_ex(shutdown_cublas_func, NULL, STARPU_CUDA, "shutdown_cublas");
 
 	_starpu_cublas_v2_shutdown();
 #endif

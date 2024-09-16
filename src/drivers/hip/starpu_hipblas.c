@@ -97,7 +97,7 @@ void starpu_hipblas_init(void)
 {
 #ifdef STARPU_USE_HIP
 #ifdef STARPU_USE_HIPBLAS
-	starpu_execute_on_each_worker(init_hipblas_func, NULL, STARPU_HIP);
+	starpu_execute_on_each_worker_ex(init_hipblas_func, NULL, STARPU_HIP, "init_hipblas");
 
 	if (hipblasCreate(&main_handle) != HIPBLAS_STATUS_SUCCESS)
 		main_handle = NULL;
@@ -109,7 +109,7 @@ void starpu_hipblas_shutdown(void)
 {
 #ifdef STARPU_USE_HIP
 #ifdef STARPU_USE_HIPBLAS
-	starpu_execute_on_each_worker(shutdown_hipblas_func, NULL, STARPU_HIP);
+	starpu_execute_on_each_worker_ex(shutdown_hipblas_func, NULL, STARPU_HIP, "shutdown_hipblas");
 
 	if (main_handle)
 		hipblasDestroy(main_handle);

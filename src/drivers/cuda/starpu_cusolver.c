@@ -57,7 +57,7 @@ void starpu_cusolver_init(void)
 #ifdef STARPU_HAVE_LIBCUSOLVER
 	if (!starpu_cuda_worker_get_count())
 		return;
-	starpu_execute_on_each_worker(init_cusolver_func, NULL, STARPU_CUDA);
+	starpu_execute_on_each_worker_ex(init_cusolver_func, NULL, STARPU_CUDA, "init_cusolver");
 
 	if (cusolverDnCreate(&mainDn_handle) != CUSOLVER_STATUS_SUCCESS)
 		mainDn_handle = NULL;
@@ -73,7 +73,7 @@ void starpu_cusolver_shutdown(void)
 #ifdef STARPU_HAVE_LIBCUSOLVER
 	if (!starpu_cuda_worker_get_count())
 		return;
-	starpu_execute_on_each_worker(shutdown_cusolver_func, NULL, STARPU_CUDA);
+	starpu_execute_on_each_worker_ex(shutdown_cusolver_func, NULL, STARPU_CUDA, "shutdown_cusolver");
 
 	if (mainDn_handle)
 		cusolverDnDestroy(mainDn_handle);
