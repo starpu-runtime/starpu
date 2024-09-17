@@ -930,6 +930,9 @@ void _starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsign
 
 	for (i = 0; i < nparts; i++)
 	{
+#ifdef STARPU_DEVEL
+#warning that s costly, perhaps we could add a STARPU_DESTROY mode that does the invalidation after the task?
+#endif
 		if (!handles_sequential_consistency || handles_sequential_consistency[i+1])
 			_starpu_data_invalidate_submit_noplan(children[i]);
 	}
