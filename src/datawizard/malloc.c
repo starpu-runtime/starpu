@@ -279,7 +279,6 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 			malloc_pinned_cl.where = STARPU_CUDA;
 			struct starpu_task *task = starpu_task_create();
 			task->name = "cuda_malloc_pinned";
-			task->callback_func = NULL;
 			task->cl = &malloc_pinned_cl;
 			task->cl_arg = &s;
 			task->type = STARPU_TASK_TYPE_INTERNAL;
@@ -338,7 +337,6 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 //			malloc_pinned_cl.where = STARPU_OPENCL;
 //			struct starpu_task *task = starpu_task_create();
 //		        task->name = "opencl_malloc_pinned";
-//			task->callback_func = NULL;
 //			task->cl = &malloc_pinned_cl;
 //			task->cl_arg = &s;
 //			task->synchronous = 1;
@@ -634,7 +632,6 @@ int _starpu_free_flags_on_node(unsigned dst_node, void *A, size_t dim, int flags
 				free_pinned_cl.where = STARPU_CUDA;
 				struct starpu_task *task = starpu_task_create();
 				task->name = "cuda_free_pinned";
-				task->callback_func = NULL;
 				task->cl = &free_pinned_cl;
 				task->cl_arg = A;
 				task->synchronous = 1;
@@ -674,7 +671,6 @@ int _starpu_free_flags_on_node(unsigned dst_node, void *A, size_t dim, int flags
 //                free_pinned_cl.where = STARPU_OPENCL;
 //		struct starpu_task *task = starpu_task_create();
 //              task->name = "opencl_free_pinned";
-//		task->callback_func = NULL;
 //		task->cl = &free_pinned_cl;
 //		task->cl_arg = A;
 //		task->synchronous = 1;

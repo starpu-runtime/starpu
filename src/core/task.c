@@ -2061,7 +2061,6 @@ static struct starpu_transaction *_do_starpu_transaction_open(int(*do_start_func
 	struct _starpu_trs_epoch *p_epoch = _starpu_trs_epoch_new();
 
 	struct starpu_task *task = starpu_task_create();
-	task->callback_func = NULL;
 	task->cl_arg = p_trs;
 	task->handles[0] = p_trs->handle;
 	if (do_start_sync_handle != NULL)
