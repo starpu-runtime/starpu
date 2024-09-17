@@ -426,6 +426,19 @@ static void print_data_not_used_yet()
 #endif
 }
 
+#ifdef PRINT
+static void print_pulled_task_one_gpu(struct _starpu_darts_gpu_pulled_task *g, int current_gpu)
+{
+	(void)g; (void)current_gpu;
+	printf("Pulled task for GPU %d:\n", current_gpu); fflush(stdout);
+	struct _starpu_darts_pulled_task *p;
+	for (p = _starpu_darts_pulled_task_list_begin(tab_gpu_pulled_task[current_gpu].ptl); p != _starpu_darts_pulled_task_list_end(tab_gpu_pulled_task[current_gpu].ptl); p = _starpu_darts_pulled_task_list_next(p))
+	{
+		printf("%p\n", p->pointer_to_pulled_task); fflush(stdout);
+	}
+}
+#endif
+
 static void print_data_not_used_yet_one_gpu(struct _starpu_darts_gpu_planned_task *g, int current_gpu)
 {
 	(void)g; (void)current_gpu;
