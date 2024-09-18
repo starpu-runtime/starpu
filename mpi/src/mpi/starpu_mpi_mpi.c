@@ -927,7 +927,7 @@ static void _starpu_mpi_early_data_cb(void* arg)
 		if (datatype)
 		{
 			int position=0;
-			void *ptr = starpu_data_get_local_ptr(args->data_handle);
+			void *ptr = starpu_data_handle_to_pointer(args->data_handle, STARPU_MAIN_RAM);
 			MPI_Unpack(args->buffer, itf_src->get_size(args->early_handle), &position, ptr, 1, datatype, args->req->node_tag.node.comm);
 			starpu_free_on_node_flags(STARPU_MAIN_RAM, (uintptr_t) args->buffer, args->size, 0);
 			args->buffer = NULL;
