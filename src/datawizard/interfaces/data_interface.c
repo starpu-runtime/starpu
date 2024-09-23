@@ -820,6 +820,13 @@ retry_busy:
 	     a  = _starpu_unregister_hook_func_list_next(a))
 		a->hook_func(handle);
 
+	while (!_starpu_unregister_hook_func_list_empty(&handle->unregister_hook))
+	{
+		/* This computation is complete */
+		a = _starpu_unregister_hook_func_list_pop_front(&handle->unregister_hook);
+		_starpu_unregister_hook_func_delete(a);
+	}
+
 	/* Wait for finished requests to release the handle */
 	_starpu_spin_lock(&handle->header_lock);
 	if (handle->busy_count)
