@@ -105,7 +105,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 			starpu_data_handle_t sdatann = starpu_data_get_sub_data(dataA, 2, n, n);
 
 			ret = starpu_task_insert(&cl_syrk,
-						 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - n - n) : (n == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
+						 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - n) : (n == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
 						 STARPU_R, sdatank,
 						 cl_syrk.modes[1], sdatann,
 						 STARPU_FLOPS, (double) FLOPS_SSYRK(nn, nn),
