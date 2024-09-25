@@ -182,7 +182,12 @@ static int gemm_priority(unsigned nblocks, unsigned k, unsigned m, unsigned n, d
 	}
 
 	if (priority_attribution_p == 0) /* Base priority */
-		return 2*nblocks - 2*k - m - n;
+	{
+		if (n == m)
+			return 2*nblocks - 2*k - n;
+		else
+			return 2*nblocks - 2*k - m - n;
+	}
 
 	if (priority_attribution_p == 1)
 		return 3*nblocks - (k + n + m);
