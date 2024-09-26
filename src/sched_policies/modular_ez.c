@@ -63,8 +63,8 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 	struct starpu_sched_component *calibrator_component = NULL;
 	unsigned sched;
 	va_list varg_list;
-	unsigned decide_flags;
-	unsigned flags;
+	unsigned decide_flags = 0;
+	unsigned flags = 0;
 
 	/* Start building the tree */
 	t = starpu_sched_tree_create(sched_ctx_id);
@@ -82,7 +82,7 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 
 
 	unsigned nbelow;
-	unsigned nummaxids;
+	unsigned nummaxids = STARPU_NARCH;
 
 	va_start(varg_list, ndecisions);
 	for (sched = 0; sched < ndecisions; sched++)
