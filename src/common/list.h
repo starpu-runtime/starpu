@@ -51,7 +51,7 @@
  *   * Initializes a list (initially empty), assuming that the content of FOO_list was already zeroed
  *   void		FOO_list_init0(struct FOO_list*);
  *
- *   * Suppresses a liste
+ *   * Suppresses a list
  *   void		FOO_list_delete(struct FOO_list*);
  *
  *   * Check whether a list is empty
