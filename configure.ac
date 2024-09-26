@@ -494,7 +494,15 @@ if test x$enable_simgrid = xyes ; then
 else
     DEFAULT_MPICC=mpicc
 fi
-AC_ARG_WITH(mpicc, [AS_HELP_STRING([--with-mpicc=<mpicc name or path to mpicc>], [Name or path of the mpicc compiler])], [DEFAULT_MPICC=$withval])
+mpicc_path_explicit=no
+mpicxx_path_explicit=no
+AC_ARG_WITH(mpicc,
+	[AS_HELP_STRING([--with-mpicc=<mpicc name or path to mpicc>], [Name or path of the mpicc compiler])],
+        [
+		DEFAULT_MPICC=$withval
+		mpicc_path_explicit=yes
+	]
+	)
 case $DEFAULT_MPICC in
 	/*) mpicc_path="$DEFAULT_MPICC" ;;
 	*)  AC_PATH_PROG(mpicc_path, $DEFAULT_MPICC, [no], [$simgrid_dir/bin:$PATH]) ;;
@@ -521,7 +529,12 @@ if test x$enable_simgrid = xyes ; then
 else
     DEFAULT_MPICXX=mpicxx
 fi
-AC_ARG_WITH(mpicxx, [AS_HELP_STRING([--with-mpicxx=<mpicxx name or path to mpicxx>], [Name or path of the mpicxx/mpic++ compiler])], [DEFAULT_MPICXX=$withval])
+AC_ARG_WITH(mpicxx,
+	[AS_HELP_STRING([--with-mpicxx=<mpicxx name or path to mpicxx>], [Name or path of the mpicxx/mpic++ compiler])],
+	[
+		DEFAULT_MPICXX=$withval
+		mpicxx_path_explicit=yes
+	])
 case $DEFAULT_MPICXX in
 	/*) mpicxx_path="$DEFAULT_MPICXX" ;;
 	*)  AC_PATH_PROG(mpicxx_path, $DEFAULT_MPICXX, [no], [$MPIPATH]) ;;
@@ -543,13 +556,24 @@ AC_MSG_CHECKING(whether mpicxx is available)
 AC_MSG_RESULT($mpicxx_path)
 AC_SUBST(MPICXX, $mpicxx_path)
 
+mpiexec_path_explicit=no
 # Check if mpiexec is available
 if test x$enable_simgrid = xyes ; then
     DEFAULT_MPIEXEC=smpirun
-    AC_ARG_WITH(smpirun, [AS_HELP_STRING([--with-smpirun[=<name of smpirun or path to smpirun>]], [Name or path of the smpirun helper])], [DEFAULT_MPIEXEC=$withval])
+    AC_ARG_WITH(smpirun,
+	[AS_HELP_STRING([--with-smpirun[=<name of smpirun or path to smpirun>]], [Name or path of the smpirun helper])],
+	[
+		DEFAULT_MPIEXEC=$withval
+		mpiexec_path_explicit=yes
+	])
 else
     DEFAULT_MPIEXEC=mpiexec
-    AC_ARG_WITH(mpiexec, [AS_HELP_STRING([--with-mpiexec=<name of mpiexec or path to mpiexec>], [Name or path of mpiexec])], [DEFAULT_MPIEXEC=$withval])
+    AC_ARG_WITH(mpiexec,
+	[AS_HELP_STRING([--with-mpiexec=<name of mpiexec or path to mpiexec>], [Name or path of mpiexec])],
+	[
+		DEFAULT_MPIEXEC=$withval
+		mpiexec_path_explicit=yes
+	])
 fi
 
 case $DEFAULT_MPIEXEC in
@@ -2539,12 +2563,18 @@ if test "x$enable_build_fortran_requested" = "xyes" ; then
 		AC_DEFINE(STARPU_HAVE_FC, [1], [Define this if a Fortran compiler is available])
 		if test x$build_mpi_lib = xyes -o x$build_nmad_lib = xyes -o x$build_mpi_master_slave = xyes ; then
 			#Check MPIFORT
+			mpifort_path_explicit=no
 			if test x$enable_simgrid = xyes ; then
 				DEFAULT_MPIFORT=smpifort
 			else
 				DEFAULT_MPIFORT=mpifort
 			fi
-			AC_ARG_WITH(mpifort, [AS_HELP_STRING([--with-mpifort=<mpifort name or path to mpifort>], [Name or path of the mpifort compiler])], [DEFAULT_MPIFORT=$withval])
+			AC_ARG_WITH(mpifort,
+				[AS_HELP_STRING([--with-mpifort=<mpifort name or path to mpifort>], [Name or path of the mpifort compiler])],
+				[
+					DEFAULT_MPIFORT=$withval
+					mpifort_path_explicit=yes
+				])
 			case $DEFAULT_MPIFORT in
 				/*) mpifort_path="$DEFAULT_MPIFORT" ;;
 				*)  AC_PATH_PROG(mpifort_path, $DEFAULT_MPIFORT, [no], [$simgrid_dir/bin:$PATH]) ;;
@@ -4375,6 +4405,22 @@ fi
 #                                Final settings                               #
 #                                                                             #
 ###############################################################################
+
+if test x$mpicc_path_explicit = xyes -o x$mpicxx_path_explicit = xyes -o x$mpiexec_path_explicit = xyes -o \( x$enable_build_fortran = xyes -a x$mpiforth_path_explicit = xyes \) ; then
+   AC_MSG_CHECKING(if all MPI executables are set)
+   all_mpi_path_explicit=yes
+   missing_mpi_paths=""
+   if test x$mpicc_path_explicit = xno ; then all_mpi_path_explicit=no ; missing_mpi_paths="$missing_mpi_paths mpicc" ; fi
+   if test x$mpicxx_path_explicit = xno ; then all_mpi_path_explicit=no ; missing_mpi_paths="$missing_mpi_paths mpicxx" ; fi
+   if test x$mpiexec_path_explicit = xno ; then all_mpi_path_explicit=no ; missing_mpi_paths="$missing_mpi_paths mpiexec" ; fi
+   if test x$enable_build_fortran = xyes ; then
+      if test x$mpifort_path_explicit = xno ; then all_mpi_path_explicit=no ; missing_mpi_paths="$missing_mpi_paths mpifort" ; fi
+   fi
+   AC_MSG_RESULT($all_mpi_path_explicit)
+   if test x$all_mpi_path_explicit = xno ; then
+      AC_MSG_WARN([You explicitely set some of the MPI executables but not all of them (missing ones:$missing_mpi_paths), this may lead to some errors])
+   fi
+fi
 
 if test x$enable_simgrid = xyes -a \( x$enable_cuda0 = xyes -o x$enable_cuda1 = xyes \) ; then
     AC_MSG_ERROR([Cuda0 or Cuda1 not supported with simgrid])
