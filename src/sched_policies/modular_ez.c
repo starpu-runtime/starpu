@@ -64,7 +64,7 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 	unsigned sched;
 	va_list varg_list;
 	unsigned decide_flags = 0;
-	unsigned flags = 0;
+	unsigned flags_bottom = 0;
 
 	/* Start building the tree */
 	t = starpu_sched_tree_create(sched_ctx_id);
@@ -82,7 +82,6 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 
 
 	unsigned nbelow;
-	unsigned nummaxids = STARPU_NARCH;
 
 	va_start(varg_list, ndecisions);
 	for (sched = 0; sched < ndecisions; sched++)
@@ -91,7 +90,7 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 
 		starpu_sched_component_create_t create_decision_component = va_arg(varg_list, starpu_sched_component_create_t);
 		void *data = va_arg(varg_list, void *);
-		flags = va_arg(varg_list, unsigned);
+		unsigned flags = va_arg(varg_list, unsigned);
 		(void) create_decision_component;
 		(void) data;
 
@@ -122,18 +121,20 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 		}
 
 		/* See what the component will decide */
-		nummaxids = starpu_worker_get_count() + starpu_combined_worker_get_count();
-		if (starpu_memory_nodes_get_count() > nummaxids)
-			nummaxids = starpu_memory_nodes_get_count();
-		if (STARPU_NARCH > nummaxids)
-			nummaxids = STARPU_NARCH;
-
 		if (sched == 0)
 			decide_flags = flags & STARPU_SCHED_SIMPLE_DECIDE_MASK;
 		else
 			STARPU_ASSERT(decide_flags == (flags & STARPU_SCHED_SIMPLE_DECIDE_MASK));
 	}
 	va_end(varg_list);
+
+	unsigned nummaxids;
+
+	nummaxids = starpu_worker_get_count() + starpu_combined_worker_get_count();
+	if (starpu_memory_nodes_get_count() > nummaxids)
+		nummaxids = starpu_memory_nodes_get_count();
+	if (STARPU_NARCH > nummaxids)
+		nummaxids = STARPU_NARCH;
 
 	unsigned below_id[nummaxids];
 
@@ -199,7 +200,9 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 
 		starpu_sched_component_create_t create_decision_component = va_arg(varg_list, starpu_sched_component_create_t);
 		void *data = va_arg(varg_list, void *);
-		flags = va_arg(varg_list, unsigned);
+		unsigned flags = va_arg(varg_list, unsigned);
+
+		flags_bottom |= flags & (STARPU_SCHED_SIMPLE_IMPL|STARPU_SCHED_SIMPLE_PERFMODEL);
 
 		while ((flags & STARPU_SCHED_SIMPLE_PRE_DECISION) == STARPU_SCHED_SIMPLE_PRE_DECISION)
 		{
@@ -438,7 +441,7 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 		unsigned id;
 
 		/* Create implementation chooser if requested */
-		if (flags & STARPU_SCHED_SIMPLE_IMPL)
+		if (flags_bottom & STARPU_SCHED_SIMPLE_IMPL)
 		{
 			struct starpu_sched_component * impl_component = starpu_sched_component_best_implementation_create(t, NULL);
 			starpu_sched_component_connect(impl_component, worker_component);
@@ -473,7 +476,7 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 
 		/* Plug perfmodel calibrator if requested */
 		/* FIXME: this won't work with several scheduling decisions */
-		if (flags & STARPU_SCHED_SIMPLE_PERFMODEL)
+		if (flags_bottom & STARPU_SCHED_SIMPLE_PERFMODEL)
 		{
 			starpu_sched_component_connect(no_perfmodel_component, worker);
 			/* Calibrator needs to choose the implementation */
