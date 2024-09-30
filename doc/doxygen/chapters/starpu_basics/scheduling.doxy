@@ -18,54 +18,37 @@
 
 \section TaskSchedulingPolicy Task Scheduling Policies
 
-The basics of the scheduling policy are the following:
+The basics of the scheduling policy are as follows:
 
 <ul>
-<li>The scheduler gets to schedule tasks (<c>push</c> operation) when they become
-ready to be executed, i.e. they are not waiting for some tags, data dependencies
-or task dependencies.</li>
-<li>Workers pull tasks (<c>pop</c> operation) one by one from the scheduler.
+<li>
+The scheduler can schedule tasks (<c>push</c> operation) when they are ready to run, i.e. not waiting for some tags, data dependencies or task dependencies.
+</li>
+<li>
+Workers pull tasks from the scheduler one by one (<c>pop</c> operation).
+</li>
 </ul>
 
-This means scheduling policies usually contain at least one queue of tasks to
-store them between the time when they become available, and the time when a
-worker gets to grab them.
+This means that scheduling policies usually contain at least one queue of tasks to store them between the time they become available, and the time a worker can grab them.
 
-By default, StarPU uses the work-stealing scheduler \b lws. This is
-because it provides correct load balance and locality even if the application codelets do
-not have performance models. Other non-modelling scheduling policies can be
-selected among the list below, thanks to the environment variable \ref
-STARPU_SCHED. For instance, <c>export STARPU_SCHED=dmda</c> . Use <c>help</c> to
-get the list of available schedulers.
+By default, StarPU uses the work-stealing scheduler \b lws. This is because it provides correct load balancing and locality even if the application codelets do not have performance models. Other non-modeled scheduling policies can be selected from the list below, thanks to the \ref
+STARPU_SCHED environment variable. For example, <c>export STARPU_SCHED=dmda</c> . Use <c>help</c> to get the list of available schedulers.
 
-The function starpu_sched_get_predefined_policies() returns a NULL-terminated array of all predefined scheduling policies that are available in StarPU.
-Functions starpu_sched_get_sched_policy_in_ctx() and starpu_sched_get_sched_policy() return the scheduling policy of a task within a specific context or a default context, respectively.
+The starpu_sched_get_predefined_policies() function returns a NULL-terminated array of all predefined scheduling policies available in StarPU. The starpu_sched_get_sched_policy_in_ctx() and starpu_sched_get_sched_policy() functions return the scheduling policy of a task within a specific context or a default context, respectively.
 
 \subsection NonPerformanceModelingPolicies Non Performance Modelling Policies
 
-- The <b>eager</b> scheduler uses a central task queue, from which all workers draw tasks
-to work on concurrently. This however does not permit to prefetch data since the scheduling
-decision is taken late. If a task has a non-0 priority, it is put at the front of the queue.
+- The <b>eager</b> scheduler uses a central task queue, from which all workers draw tasks to work on concurrently. However, this does not allow data prefetching since the scheduling decision is made late. If a task has a priority other than 0, it is placed at the front of the queue.
 
-- The <b>random</b> scheduler uses a queue per worker, and distributes tasks randomly according to assumed worker
-overall performance.
+- The <b>random</b> scheduler uses one queue per worker, and randomly distributes tasks according to the assumed overall performance of the worker.
 
-- The <b>ws</b> (work stealing) scheduler uses a queue per worker, and schedules
-a task on the worker which released it by
-default. When a worker becomes idle, it steals a task from the most loaded
-worker.
+- The <b>ws</b> (work stealing) scheduler uses one queue per worker, and schedules a task on the worker that released it by default. When a worker becomes idle, it steals a task from the most busy worker.
 
-- The <b>lws</b> (locality work stealing) scheduler uses a queue per worker, and schedules
-a task on the worker which released it by
-default. When a worker becomes idle, it steals a task from neighbor workers. It
-also takes priorities into account.
+- The <b>lws</b> (locality work stealing) scheduler uses one queue per worker, and by default, schedules a task on the worker that released it. When a worker becomes idle, it steals a task from neighboring workers. It also takes priorities into account.
 
-- The <b>prio</b> scheduler also uses a central task queue, but sorts tasks by
-priority specified by the application.
+- The <b>prio</b> scheduler also uses a central task queue, but sorts tasks by priority as specified by the application.
 
-- The <b>heteroprio</b> scheduler uses different priorities for the different processing units.
-This scheduler must be configured to work correctly and to expect high-performance
-as described in the corresponding section.
+- The <b>heteroprio</b> scheduler uses different priorities for the different processing units. This scheduler must be configured to work properly and to expect high-performance, as described in the appropriate section.
 
 \subsection DMTaskSchedulingPolicy Performance Model-Based Task Scheduling Policies
 

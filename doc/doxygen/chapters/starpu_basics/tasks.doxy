@@ -18,95 +18,44 @@
 
 \section TaskGranularity Task Granularity
 
-Similar to other runtimes, StarPU introduces some overhead in managing
-tasks. This overhead, while not always negligible, is mitigated by its
-intelligent scheduling and data management capabilities. The typical
-order of magnitude for this overhead is a few microseconds, which is
-notably smaller than the inherent CUDA overhead. To ensure that this
-overhead remains insignificant, the work assigned to a task should be
-substantial enough.
+Similar to other runtimes, StarPU introduces some overhead in managing tasks. This overhead, while not always negligible, is mitigated by its intelligent scheduling and data management capabilities. The typical order of magnitude for this overhead is a few microseconds, which is significantly less than the inherent CUDA overhead. To ensure that this overhead remains insignificant, the work assigned to a task should be substantial enough.
 
-The length of tasks should ideally be relatively larger to effectively
-counterbalance this overhead. It iss advised to consider the offline
-performance feedback, which provides insights into task lengths.
-Monitoring task lengths becomes crucial if you're encountering
-suboptimal performance.
+Ideally, the length of tasks should be relatively large to effectively offset this overhead. It is advisable to consider offline performance feedback, which provides insight into task length. Monitoring task lengths becomes critical when you are experiencing suboptimal performance.
 
-To gauge the scalability potential based task size, you can run the
-<c>tests/microbenchs/tasks_size_overhead.sh</c> script. It provides a
-visual representation of the speedup achievable with independent tasks
-of very small sizes.
+To gauge the scalability potential based on task size, you can run the <c>tests/microbenchs/tasks_size_overhead.sh</c> script. It provides a visual representation of the speedup achievable with independent tasks of very small size.
 
-This benchmark is installed in <c>$STARPU_PATH/lib/starpu/examples/</c>.
-It gives a glimpse into how long a task should be (in µs) for StarPU overhead
-to be low enough to keep efficiency. The script generates a plot
-illustrating the speedup trends for tasks of different sizes,
-correlated with the number of CPUs in use.
+This benchmark is installed in <c>$STARPU_PATH/lib/starpu/examples/</c>. It gives an idea of how long a task should be (in µs) for StarPU overhead to be low enough to maintain efficiency. The script generates a graph showing the speedup trends for tasks of different sizes, correlated with the number of CPUs used.
 
-For example, in the figure below, for 128 µs tasks (the red line),
-StarPU overhead is low enough to guarantee a good speedup if the
-number of CPUs is not more than 36. But with the same number of CPUs,
-64 µs tasks (the black line) cannot have a correct speedup. The number
-of CPUs must be decreased to about 17 in order to keep efficiency.
+For example, in the figure below, for 128 µs tasks (the red line), StarPU overhead is low enough to guarantee a good speedup if the number of CPUs is not more than 36. But with the same number of CPUs, 64 µs tasks (the black line) cannot have a proper speedup. The number of CPUs must be reduced to about 17 to maintain efficiency.
 
 \image html tasks_size_overhead.png
 \image latex tasks_size_overhead.png "" width=\textwidth
 
-To determine the task size your application is using, it is possible
-to use <c>starpu_fxt_data_trace</c> as explained in \ref DataTrace.
+To determine the task size used by your application, it is possible to use <c>starpu_fxt_data_trace</c> as explained in \ref DataTrace.
 
-The selection of a scheduler in StarPU also plays a significant role.
-Different schedulers have varying impacts on the overall execution.
-For example, the \c dmda scheduler may require additional time to make
-decisions, while the \c eager scheduler tends to be more immediate in
-its decisions.
+The choice of a scheduler in StarPU also plays an important role. Different schedulers have different effects on the overall execution. For example, the \c dmda scheduler may require additional time to make decisions, while the \c eager scheduler tends to be more immediate in its decisions.
 
-To assess the impact of scheduler choice on your target machine, you
-can once again utilize the \c tasks_size_overhead.sh script. This
-script provides valuable insights into how different schedulers affect
-performance in conjunction with task sizes.
+To evaluate the impact of scheduler selection on your target machine, you can once again use the \c tasks_size_overhead.sh script. This script provides valuable insight into how different schedulers affect performance in relation to task size.
 
 \section TaskSubmission Task Submission
 
-To enable StarPU to perform online optimizations effectively, it is
-recommended to submit tasks asynchronously whenever possible. The goal
-is to maximize the level of asynchronous submission, allowing StarPU
-to have more flexibility in optimizing the scheduling process.
-Ideally, all tasks should be submitted asynchronously, and the use of
-functions like starpu_task_wait_for_all() or starpu_data_unregister()
-should be limited to waiting for task completion.
+To allow StarPU to effectively perform online optimizations, it is recommended to submit tasks asynchronously whenever possible. The goal is to maximize the level of asynchronous submission, allowing StarPU to have more flexibility in optimizing the scheduling process. Ideally, all tasks should be submitted asynchronously, and the use of functions like starpu_task_wait_for_all() or starpu_data_unregister() should be limited to waiting for task completion.
 
-StarPU will then be able to rework the whole schedule, overlap
-computation with communication, manage accelerator local memory usage, etc.
-A simple example is in the file <c>examples/basic_examples/variable.c</c>
+StarPU will then be able to rework the whole schedule, overlap computation with communication, manage local accelerator memory usage, etc. A simple example can be found in <c>examples/basic_examples/variable.c</c>
 
 \section TaskPriorities Task Priorities
 
-StarPU's default behavior considers tasks in the order they
-are submitted by the application. However, in scenarios where the
-application programmer possesses knowledge about certain tasks that
-should take priority due to their impact on performance (such as tasks
-whose output is crucial for subsequent tasks), the
-starpu_task::priority field can be utilized to convey this information
-to StarPU's scheduling process.
+StarPU's default behavior is to consider tasks in the order in which they are submitted by the application. However, in scenarios where the application programmer has knowledge about certain tasks that should be prioritized due to their impact on performance (such as tasks whose output is critical to subsequent tasks), the starpu_task::priority field can be used to convey this information to StarPU's scheduling process.
 
-An example is provided in the application
-<c>examples/heat/dw_factolu_tag.c</c>.
+An example can be found in <c>examples/heat/dw_factolu_tag.c</c>.
 
 \section SettingManyDataHandlesForATask Setting Many Data Handles For a Task
 
-The maximum number of data that a task can manage is fixed by the macro
-\ref STARPU_NMAXBUFS. This macro has a default value which can be
-customized through the \c configure option \ref enable-maxbuffers
-"--enable-maxbuffers".
+The maximum number of data that a task can manage is set by the macro \ref STARPU_NMAXBUFS. This macro has a default value that can be changed using the \c configure option \ref enable-maxbuffers "--enable-maxbuffers".
 
-However, if you have specific cases where you need tasks to manage
-more data than the maximum allowed, you can use the field
-starpu_task::dyn_handles when defining a task, along with the field
-starpu_codelet::dyn_modes when defining the corresponding codelet.
+However, if you have specific cases where you need tasks to manage more data than the maximum allowed, you can use the starpu_task::dyn_handles field when defining a task, along with the starpu_codelet::dyn_modes field when defining the corresponding codelet.
 
-This dynamic handle mechanism enables tasks to handle additional data
-beyond the usual limit imposed by \ref STARPU_NMAXBUFS.
+This dynamic handle mechanism allows tasks to handle additional data beyond the usual limit imposed by \ref STARPU_NMAXBUFS.
 
 \code{.c}
 enum starpu_data_access_mode modes[STARPU_NMAXBUFS+1] =
@@ -146,17 +95,12 @@ starpu_task_insert(&dummy_big_cl,
 		  0);
 \endcode
 
-The whole code for this complex data interface is available in the
-file <c>examples/basic_examples/dynamic_handles.c</c>.
+The whole code for this complex data interface is available in <c>examples/basic_examples/dynamic_handles.c</c>.
 
 \section SettingVariableDataHandlesForATask Setting a Variable Number Of Data Handles For a Task
 
-Normally, the number of data handles given to a task is set with
-starpu_codelet::nbuffers. This field can however be set to
-\ref STARPU_VARIABLE_NBUFFERS, in which case starpu_task::nbuffers
-must be set, and starpu_task::modes (or starpu_task::dyn_modes,
-see \ref SettingManyDataHandlesForATask) should be used to specify the modes for
-the handles. Examples in <c>examples/basic_examples/dynamic_handles.c</c> show how to implement it.
+Normally, the number of data handles given to a task is set with starpu_codelet::nbuffers. However, this field can be set to \ref STARPU_VARIABLE_NBUFFERS, in which case starpu_task::nbuffers must be set, and starpu_task::modes (or starpu_task::dyn_modes,
+see \ref SettingManyDataHandlesForATask) should be used to specify the modes for the handles. Examples in <c>examples/basic_examples/dynamic_handles.c</c> show how to implement this.
 
 \section InsertTaskUtility Insert Task Utility
 

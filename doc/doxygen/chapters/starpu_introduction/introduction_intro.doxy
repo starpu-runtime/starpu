@@ -23,146 +23,69 @@
 // we need to keep 2 blank lines above
 \section Motivation Motivation
 
-// This is a comment and it will be removed before the file is processed by doxygen
-// complex machines with heterogeneous cores/devices
+The use of specialized hardware, such as accelerators or coprocessors, offers an interesting approach to overcoming the physical limitations faced by processor architects. As a result, many machines are now equipped with one or more accelerators (e.g. a GPU) in addition to the usual processor(s). While considerable efforts has been devoted to offloading computation to such accelerators, very little attention has been paid to portability concerns, and to the ability of heterogeneous accelerators and processors to interact with each other.
 
-The use of specialized hardware, such as accelerators or coprocessors offers an
-interesting approach to overcoming the physical limits encountered by processor
-architects. As a result, many machines are now equipped with one or several
-accelerators (e.g. a GPU), in addition to the usual processor(s). While significant efforts have been devoted to offloading computation onto such accelerators, very
-little attention has been paid to portability concerns on the one hand, and to the
-possibility of having heterogeneous accelerators and processors interact on the other hand.
-
-StarPU is a runtime system that provides support for heterogeneous multicore
-architectures. It not only offers a unified view of the computational resources
-(i.e. CPUs and accelerators simultaneously) but also takes care of
-efficiently mapping and executing tasks onto an heterogeneous machine while
-transparently handling low-level issues such as data transfers in a portable
-manner.
-
-// this leads to a complicated distributed memory design
-// which is not (easily) manageable by hand
-// added value/benefits of StarPU
-//    - portability
-//   - scheduling, perf. portability
+StarPU is a runtime system that provides support for heterogeneous multicore architectures. It not only provides a unified view of the computational resources (i.e. CPUs and accelerators simultaneously), but also efficiently maps and executes tasks on a heterogeneous machine while transparently handling low-level issues such as data transfers in a portable manner.
 
 \section StarPUInANutshell StarPU in a Nutshell
 
-StarPU is a software tool designed to enable programmers to harness the
-computational capabilities of both CPUs and GPUs, all while sparing them
-the need to meticulously adapt their programs for specific target machines
-and processing units.
+StarPU is a software tool that enables programmers to take advantage of the computational power of both CPUs and GPUs without having to painstakingly adapt their programs for specific target machines and processing units.
 
-At the heart of StarPU lies its runtime support library, which takes
-charge of scheduling tasks supplied by applications on heterogeneous
-CPU/GPU systems. Furthermore, StarPU provides programming language
-support through an OpenCL front-end (\ref SOCLOpenclExtensions).
+At the heart of StarPU is a runtime support library that handles the scheduling of tasks delivered by applications on heterogeneous CPU/GPU systems. In addition, StarPU provides programming language support through an OpenCL front-end (\ref SOCLOpenclExtensions).
 
-StarPU's runtime mechanism and programming language extensions are
-built around a task-based programming model. In this modell,
-applications submit computational tasks, with CPU and/or GPU
-implementations. StarPU effectively schedules these tasks and manages
-the associated data transfers across available CPUs and GPUs.
-The data that a task operates on are automatically exchanged between
-accelerators and the main memory, thereby sparing programmers the
-intricacies of scheduling and the technical details tied to these
-transfers.
+StarPU's runtime mechanism and programming language extensions are based on a task-based programming model. In this model, applications submit computational tasks, with CPU and/or GPU implementations. StarPU efficiently schedules these tasks and manages the associated data transfers across available CPUs and GPUs.
+The data that a task operates on is automatically exchanged between accelerators and the main memory, freeing programmers from the intricacies of scheduling and the technical details associated to these transfers.
 
-StarPU excels in its adaptness at efficiently scheduling tasks using
-established algorithms from the literature (\ref TaskSchedulingPolicy).
-Furthermore addition, it provides the flexibility for scheduling
-experts, such as compiler or computational library developers, to
-implement custom scheduling policies in a manner that is easily
-portable (\ref HowToDefineANewSchedulingPolicy).
+StarPU is characterized by its adaptability in efficiently scheduling tasks using established algorithms from the literature (\ref TaskSchedulingPolicy). In addition, it provides the flexibility for scheduling experts, such as compiler or computational library developers, to implement custom scheduling policies in a way that is easily portable (\ref HowToDefineANewSchedulingPolicy).
 
-The remainder of this section describes the main concepts used in StarPU.
+The rest of this section describes the main concepts used in StarPU.
 
-A video, lasting 26 minutes, accessible on the StarPU website
-(https://starpu.gitlabpages.inria.fr/) presents these concepts.
+A 26 minutes video available on the StarPU website (https://starpu.gitlabpages.inria.fr/) introduces these concepts.
 
-Additionally, a series of tutorials can be found at
-https://starpu.gitlabpages.inria.fr/tutorials/
+In addition, a series of tutorials can be found at https://starpu.gitlabpages.inria.fr/tutorials/.
 
-One of the tutorials is available within a docker image
-https://starpu.gitlabpages.inria.fr/tutorials/docker/
+One of the tutorials is available within a docker image https://starpu.gitlabpages.inria.fr/tutorials/docker/
 
 // explain the notion of codelet and task (i.e. g(A, B)
 
 \subsection CodeletAndTasks Codelet and Tasks
 
-One of StarPU's key data structures is the \b codelet. A codelet defines a
-computational kernel that can potentially be implemented across
-various architectures, including CPUs, CUDA devices, or OpenCL devices.
+One of the key data structures in StarPU is the \b codelet. A codelet defines a computational kernel that can potentially be implemented on different architectures, including CPUs, CUDA devices, or OpenCL devices.
 
 // TODO insert illustration f: f_spu, f_cpu, ...
 
-Another pivotal data structure is the \b task. Executing a StarPU task
-involves applying a codelet to a data set, utilizing one of the
-architectures on which the codelet is implemented. Therefore, a task
-describes the codelet that it
-uses, the data accessed, and how they are
-accessed during the computation (read and/or write).
-StarPU tasks are asynchronous, meaning that submitting a task to
-StarPU is a non-blocking
-operation. The task structure can also specify a \b callback function,
-which is called once StarPU succesfully completes the task.
-Additionally, it contains optional
-fields that the application may use to provide hints to the scheduler,
-such as priority levels.
+Another key     data structure is the \b task. Running a StarPU task involves applying a codelet to a dataset using one of the architectures on which the codelet is implemented. Therefore, a task describes the codelet it uses, the data it accesses, and how the data is accessed during the computation (read and/or write). StarPU tasks are asynchronous, i.e submitting a task to StarPU is a non-blocking operation. The task structure can also specify a \b callback function that will be called when StarPU succesfully completes the task. Additionally, it contains optional fields that the application can use to provide hints to the scheduler, such as priority levels.
 
-By default, task dependencies are inferred from data dependency (sequential
-coherency) within StarPU. However, the application has the ability to
-disable sequential coherency for specific data, and dependencies can
-also be specifically defined.
-A task can be uniquely identified by a 64-bit number, chosen by the
-application, referred to as a \b tag.
-Task dependencies can be enforced through callback functions, by
-submitting other tasks, or by specifying dependencies
-between tags (which can correspond to tasks that have yet to be
-submitted).
+By default, task dependencies are inferred from data dependencies (sequential coherency) within StarPU. However, the application has the ability to disable sequential coherency for specific data, and dependencies can also be specifically defined. A task can be uniquely identified by a 64-bit number, chosen by the
+application, called a \b tag. Task dependencies can be enforced by callback functions, by submitting other tasks, or by specifying dependencies between tags (which may correspond to tasks that have yet to be submitted).
 
 // TODO insert illustration f(Ar, Brw, Cr) + ..
 // DSM
 
 \subsection StarPUDataManagementLibrary StarPU Data Management Library
 
-As StarPU dynamically schedules tasks at runtime, the need for data
-transfers is automatically managed in a``just-in-time'' manner between
-different processing units,
-This automated approach alleviates the burden on application
-programmers to explicitly handle data transfers.
-Furthemore, to minimize needless transfers, StarPU retains data at the
-location of its last use, even if modifications were made there.
-Additionally, StarPU allows multiple instances of the same data to
-coexist across various processing units simultaneously, as long as the
-data remains unaltered.
+Because StarPU dynamically schedules tasks at runtime, the need for data transfers between different processing units is automatically managed in a``just-in-time'' manner. This automated approach reduces the burden on application programmers to explicitly handle data transfers. Furthemore, to minimize unnecessary transfers, StarPU retains data at the location of its last use, even if changes have been made there. In addition, StarPU allows multiple instances of the same data to coexist on different processing units as long as the data remains unchanegd.
 
 \section ApplicationTaskification Application Taskification
 
-We will explain here shortly the concept of "taskifying" an application.
+We will shortly explain here the concept of "taskifying" an application.
 
-Before transitioning to StarPU, you must transform your application as follows:
+Before transitioning to StarPU, you need to transform your application as follows:
 <ul>
-<li> Refactor functions into "pure" functions that exclusively utilize data from their parameters.
+<li> Refactor functions into "pure" functions that only use data from their parameters.
 </li>
 <li> Create a central main function responsible for calling these pure functions.
 </li>
 </ul>
 
-Once this restructuring is complete, integrating StarPU or any similar
-task-based library becomes straightforward. You merely replace
-function calls with task submissions, leveraging the library's
-capabilities.
+Once this restructuring is complete, integrating StarPU or any similar task-based library becomes straightforward. You simply replace function calls with task submissions and take advantage of the library's capabilities.
 
-Chapter \ref StencilApplication shows how to easily convert an
-existing application to use StarPU.
+Chapter \ref StencilApplication shows how to easily convert an existing application to use StarPU.
 
 \section ResearchPapers Research Papers
 
-Research papers about StarPU can be found at
-https://starpu.gitlabpages.inria.fr/publications/.
+Research papers about StarPU can be found at https://starpu.gitlabpages.inria.fr/publications/.
 
-A good overview is available in the research report at
-http://hal.archives-ouvertes.fr/inria-00467677.
+A good overview is available in the research report at http://hal.archives-ouvertes.fr/inria-00467677.
 
 */
