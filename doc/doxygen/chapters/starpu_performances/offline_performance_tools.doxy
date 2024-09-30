@@ -52,6 +52,11 @@ What does the Gantt diagram look like? (see \ref CreatingAGanttDiagram)
 You can also use the Temanejo task debugger (see \ref UsingTheTemanejoTaskDebugger) to
 visualize the task graph more easily.
 
+To get an overview about how StarPU tracing system works and which are its
+possible limitations, have a look on [the
+paper](https://inria.hal.science/hal-04236246) studying StarPU's tracing
+mechanisms and performance.
+
 \section GeneratingTracesWithFxT Generating Traces With FxT
 
 StarPU can use the FxT library (see
