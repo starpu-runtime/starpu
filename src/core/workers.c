@@ -61,7 +61,6 @@
 #endif
 
 #ifdef STARPU_NOSV
-#warning nOS-V support enabled
 #include <nosv.h>
 #endif
 

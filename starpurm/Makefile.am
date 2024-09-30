@@ -24,7 +24,7 @@ SUBDIRS += examples
 endif
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = packages/starpurm-1.3.pc
+pkgconfig_DATA = packages/starpurm-1.3.pc packages/starpurm-1.4.pc
 
 versincludedir = $(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)
 versinclude_HEADERS = 					\
