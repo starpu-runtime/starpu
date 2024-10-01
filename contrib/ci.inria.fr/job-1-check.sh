@@ -138,10 +138,26 @@ make -j4
 make dist
 set +e
 set -o pipefail
-make -k check 2>&1 | tee  ../check_$$
+if test -n "$STARPU_CHECK_DIRS"
+then
+    for x in $STARPU_CHECK_DIRS
+    do
+	make check -C $x 2>&1 | tee  ../check_$$
+    done
+else
+    make -k check 2>&1 | tee  ../check_$$
+fi
 RET=$?
 
-make showcheckfailed
+if test -n "$STARPU_CHECK_DIRS"
+then
+    for x in $STARPU_CHECK_DIRS
+    do
+	make showcheckfailed -C $x
+    done
+else
+    make showcheckfailed
+fi
 make clean
 
 grep "^FAIL:" ../check_$$ || true
