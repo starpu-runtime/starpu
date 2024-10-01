@@ -24,7 +24,7 @@ void callback(void *arg)
 	*completed = 1;
 }
 
-#define SIZE 370*000*0000
+#define SIZE INT_MAX
 
 int main(int argc, char **argv)
 {
