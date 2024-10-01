@@ -101,8 +101,13 @@ fi
 
 export CC=gcc
 
+mpiexec=$(echo $STARPU_USER_CONFIGURE_OPTIONS| tr ' ' '\012'|grep with-mpiexec | sed 's/--with-mpiexec=//')
+if test -z $mpiexec
+then
+    mpiexec=mpiexec
+fi
 set +e
-mpiexec -oversubscribe pwd 2>/dev/null
+$mpiexec -oversubscribe pwd 2>/dev/null
 ret=$?
 set -e
 ARGS=""
