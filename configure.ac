@@ -4182,6 +4182,21 @@ then
 		fi
 	fi
 fi
+if test "x$enable_starpupy" != xno
+then
+	AC_MSG_CHECKING(for python3 setuptools)
+	if $PYTHON -c "import setuptools" ; then
+		AC_MSG_RESULT(yes)
+	else
+		AC_MSG_RESULT(no)
+		if test "x$enable_starpupy" = xyes ; then
+			AC_MSG_ERROR([setuptools missing, cannot install StarPU python interface (consider installing python-setuptools)])
+		else
+			AC_MSG_WARN([setuptools missing, cannot install StarPU python interface (consider installing python-setuptools)])
+			enable_starpupy=no
+		fi
+	fi
+fi
 
 if test "x$enable_starpupy" != xno
 then
@@ -4194,9 +4209,7 @@ then
 	else
 		AC_MSG_WARN([python3 module joblib missing, cannot build full StarPU python interface (consider running 'pip3 install joblib')])
 	fi
-fi
-if test "x$enable_starpupy" != xno
-then
+
 	AC_MSG_CHECKING(for python3 module cloudpickle)
 	AC_PYTHON_MODULE(cloudpickle,[cloudpickle_avail=yes],[cloudpickle_avail=no])
 	AC_MSG_RESULT($cloudpickle_avail)
@@ -4205,9 +4218,7 @@ then
 	else
 		AC_MSG_WARN([python3 module cloudpickle missing, cannot build full StarPU python interface (consider running 'pip3 install cloudpickle')])
 	fi
-fi
-if test "x$enable_starpupy" != xno
-then
+
 	starpupy_support=yes
 	AC_MSG_CHECKING(for python3 module numpy)
 	AC_PYTHON_MODULE(numpy,[numpy_avail=yes],[numpy_avail=no])
