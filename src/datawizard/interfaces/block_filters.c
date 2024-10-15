@@ -26,10 +26,10 @@ static void _starpu_block_filter_block(int dim, void *parent_interface, void *ch
 
 	unsigned blocksize;
 	/* the element will be split, in case horizontal, it's nx, in case vertical, it's ny, in case depth, it's nz*/
-	uint32_t nn;
-	uint32_t nx;
-	uint32_t ny;
-	uint32_t nz;
+	size_t nn;
+	size_t nx;
+	size_t ny;
+	size_t nz;
 
 	switch(dim)
 	{
@@ -66,9 +66,9 @@ static void _starpu_block_filter_block(int dim, void *parent_interface, void *ch
 
 	size_t elemsize = block_parent->elemsize;
 
-	STARPU_ASSERT_MSG(nparts <= nn, "cannot split %u elements in %u parts", nn, nparts);
+	STARPU_ASSERT_MSG(nparts <= nn, "cannot split %zu elements in %u parts", nn, nparts);
 
-	uint32_t child_nn;
+	size_t child_nn;
 	size_t offset;
 	starpu_filter_nparts_compute_chunk_size_and_offset(nn, nparts, elemsize, id, blocksize, &child_nn, &offset);
 
@@ -159,10 +159,10 @@ static void _starpu_block_filter_pick_matrix(int dim, void *parent_interface, vo
 
 	unsigned blocksize;
 
-	uint32_t nn;
-	uint32_t nx = block_parent->nx;
-	uint32_t ny = block_parent->ny;
-	uint32_t nz = block_parent->nz;
+	size_t nn;
+	size_t nx = block_parent->nx;
+	size_t ny = block_parent->ny;
+	size_t nz = block_parent->nz;
 
 	switch(dim)
 	{
@@ -257,13 +257,12 @@ void starpu_block_filter_pick_variable(void *parent_interface, void *child_inter
 	/* each chunk becomes a variable */
 	struct starpu_variable_interface *variable_child = (struct starpu_variable_interface *) child_interface;
 
-	uint32_t nx = block_parent->nx;
-	uint32_t ny = block_parent->ny;
-	uint32_t nz = block_parent->nz;
+	size_t nx = block_parent->nx;
+	size_t ny = block_parent->ny;
+	size_t nz = block_parent->nz;
 
-	unsigned ldy = block_parent->ldy;
-	unsigned ldz = block_parent->ldz;
-
+	size_t ldy = block_parent->ldy;
+	size_t ldz = block_parent->ldz;
 	size_t elemsize = block_parent->elemsize;
 
 	uint32_t* chunk_pos = (uint32_t*)f->filter_arg_ptr;

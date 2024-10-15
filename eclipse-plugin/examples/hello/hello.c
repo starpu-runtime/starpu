@@ -21,7 +21,7 @@
 void display_cpu_func(void *buffers[], void *cl_arg)
 {
 	(void)cl_arg;
-	int nx, i;
+	size_t nx, i;
 	struct starpu_vector_interface *vector;
 	int *val;
 
@@ -35,7 +35,8 @@ void display_cpu_func(void *buffers[], void *cl_arg)
 
 void scal_cpu_func(void *buffers[], void *cl_arg)
 {
-	int factor, nx, i;
+	int factor;
+	size_t nx, i;
 	struct starpu_vector_interface *vector;
 	int *val;
 

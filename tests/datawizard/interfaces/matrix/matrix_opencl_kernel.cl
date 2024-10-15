@@ -15,9 +15,9 @@
  */
 
 __kernel void matrix_opencl(__global int *val,
-				 unsigned int nx,
-				 __global int *err,
-				 int factor)
+			    ulong nx,
+			    __global int *err,
+			    int factor)
 {
         const int i = get_global_id(0);
 	if (i >= nx)

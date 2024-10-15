@@ -49,10 +49,10 @@ static void omp_destructor(void)
 void task_region_h(void *buffers[], void *args)
 {
 	struct starpu_vector_interface *_vector = buffers[0];
-	int nx = STARPU_VECTOR_GET_NX(_vector);
+	size_t nx = STARPU_VECTOR_GET_NX(_vector);
 	int *v = (int *)STARPU_VECTOR_GET_PTR(_vector);
 	int f = (int)(intptr_t)args;
-	int i;
+	size_t i;
 
 	printf("depth 2 task, entry: vector ptr = %p\n", v);
 
@@ -68,7 +68,7 @@ void task_region_g(void *buffers[], void *args)
 {
 	struct starpu_vector_interface *_vector = buffers[0];
 
-	int nx = STARPU_VECTOR_GET_NX(_vector);
+	size_t nx = STARPU_VECTOR_GET_NX(_vector);
 	int *v = (int *)STARPU_VECTOR_GET_PTR(_vector);
 	int f = (int)(intptr_t)args;
 
@@ -76,7 +76,7 @@ void task_region_g(void *buffers[], void *args)
 
 	{
 		starpu_data_handle_t task_vector_handle;
-		int i;
+		size_t i;
 
 		for (i = 0; i < nx; i++)
 		{

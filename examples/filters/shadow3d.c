@@ -44,24 +44,24 @@ void cpu_func(void *buffers[], void *cl_arg)
 {
 	(void)cl_arg;
 	/* length of the shadowed source matrix */
-	unsigned ldy = STARPU_BLOCK_GET_LDY(buffers[0]);
-	unsigned ldz = STARPU_BLOCK_GET_LDZ(buffers[0]);
-	unsigned x = STARPU_BLOCK_GET_NX(buffers[0]);
-	unsigned y = STARPU_BLOCK_GET_NY(buffers[0]);
-	unsigned z = STARPU_BLOCK_GET_NZ(buffers[0]);
+	size_t ldy = STARPU_BLOCK_GET_LDY(buffers[0]);
+	size_t ldz = STARPU_BLOCK_GET_LDZ(buffers[0]);
+	size_t x = STARPU_BLOCK_GET_NX(buffers[0]);
+	size_t y = STARPU_BLOCK_GET_NY(buffers[0]);
+	size_t z = STARPU_BLOCK_GET_NZ(buffers[0]);
 	/* local copy of the shadowed source matrix pointer */
 	int *val = (int *)STARPU_BLOCK_GET_PTR(buffers[0]);
 
 	/* length of the destination matrix */
-	unsigned ldy2 = STARPU_BLOCK_GET_LDY(buffers[1]);
-	unsigned ldz2 = STARPU_BLOCK_GET_LDZ(buffers[1]);
-	unsigned x2 = STARPU_BLOCK_GET_NX(buffers[1]);
-	unsigned y2 = STARPU_BLOCK_GET_NY(buffers[1]);
-	unsigned z2 = STARPU_BLOCK_GET_NZ(buffers[1]);
+	size_t ldy2 = STARPU_BLOCK_GET_LDY(buffers[1]);
+	size_t ldz2 = STARPU_BLOCK_GET_LDZ(buffers[1]);
+	size_t x2 = STARPU_BLOCK_GET_NX(buffers[1]);
+	size_t y2 = STARPU_BLOCK_GET_NY(buffers[1]);
+	size_t z2 = STARPU_BLOCK_GET_NZ(buffers[1]);
 	/* local copy of the destination matrix pointer */
 	int *val2 = (int *)STARPU_BLOCK_GET_PTR(buffers[1]);
 
-	unsigned i, j, k;
+	size_t i, j, k;
 
 	/* If things go right, sizes should match */
 	STARPU_ASSERT(x == x2);
@@ -78,24 +78,24 @@ void cuda_func(void *buffers[], void *cl_arg)
 {
 	(void)cl_arg;
 	/* length of the shadowed source matrix */
-	unsigned ldy = STARPU_BLOCK_GET_LDY(buffers[0]);
-	unsigned ldz = STARPU_BLOCK_GET_LDZ(buffers[0]);
-	unsigned x = STARPU_BLOCK_GET_NX(buffers[0]);
-	unsigned y = STARPU_BLOCK_GET_NY(buffers[0]);
-	unsigned z = STARPU_BLOCK_GET_NZ(buffers[0]);
+	size_t ldy = STARPU_BLOCK_GET_LDY(buffers[0]);
+	size_t ldz = STARPU_BLOCK_GET_LDZ(buffers[0]);
+	size_t x = STARPU_BLOCK_GET_NX(buffers[0]);
+	size_t y = STARPU_BLOCK_GET_NY(buffers[0]);
+	size_t z = STARPU_BLOCK_GET_NZ(buffers[0]);
 	/* local copy of the shadowed source matrix pointer */
 	int *val = (int *)STARPU_BLOCK_GET_PTR(buffers[0]);
 
 	/* length of the destination matrix */
-	unsigned ldy2 = STARPU_BLOCK_GET_LDY(buffers[1]);
-	unsigned ldz2 = STARPU_BLOCK_GET_LDZ(buffers[1]);
-	unsigned x2 = STARPU_BLOCK_GET_NX(buffers[1]);
-	unsigned y2 = STARPU_BLOCK_GET_NY(buffers[1]);
-	unsigned z2 = STARPU_BLOCK_GET_NZ(buffers[1]);
+	size_t ldy2 = STARPU_BLOCK_GET_LDY(buffers[1]);
+	size_t ldz2 = STARPU_BLOCK_GET_LDZ(buffers[1]);
+	size_t x2 = STARPU_BLOCK_GET_NX(buffers[1]);
+	size_t y2 = STARPU_BLOCK_GET_NY(buffers[1]);
+	size_t z2 = STARPU_BLOCK_GET_NZ(buffers[1]);
 	/* local copy of the destination matrix pointer */
 	int *val2 = (int *)STARPU_BLOCK_GET_PTR(buffers[1]);
 
-	unsigned k;
+	size_t k;
 	cudaError_t cures;
 
 	/* If things go right, sizes should match */
@@ -113,7 +113,7 @@ void cuda_func(void *buffers[], void *cl_arg)
 
 int main(void)
 {
-	unsigned i, j, k, l, m, n;
+	size_t i, j, k, l, m, n;
 	int matrix[NZ + 2*SHADOWZ][NY + 2*SHADOWY][NX + 2*SHADOWX];
 	int matrix2[NZ + PARTSZ*2*SHADOWZ][NY + PARTSY*2*SHADOWY][NX + PARTSX*2*SHADOWX];
 	starpu_data_handle_t handle, handle2;

@@ -117,12 +117,12 @@ static void register_tensor_handle(starpu_data_handle_t handle, int home_node, v
 
 /* declare a new data with the BLAS interface */
 void starpu_tensor_data_register(starpu_data_handle_t *handleptr, int home_node,
-				uintptr_t ptr, uint32_t ldy, uint32_t ldz, uint32_t ldt, uint32_t nx,
-				uint32_t ny, uint32_t nz, uint32_t nt, size_t elemsize)
+				uintptr_t ptr, size_t ldy, size_t ldz, size_t ldt, size_t nx,
+				size_t ny, size_t nz, size_t nt, size_t elemsize)
 {
-	STARPU_ASSERT_MSG(ldy >= nx, "ldy = %u should not be less than nx = %u.", ldy, nx);
-	STARPU_ASSERT_MSG(ldz/ldy >= ny, "ldz/ldy = %u/%u = %u should not be less than ny = %u.", ldz, ldy, ldz/ldy, ny);
-	STARPU_ASSERT_MSG(ldt/ldz >= nz, "ldt/ldz = %u/%u = %u should not be less than nz = %u.", ldt, ldz, ldt/ldz, nz);
+	STARPU_ASSERT_MSG(ldy >= nx, "ldy = %zu should not be less than nx = %zu.", ldy, nx);
+	STARPU_ASSERT_MSG(ldz/ldy >= ny, "ldz/ldy = %zu/%zu = %zu should not be less than ny = %zu.", ldz, ldy, ldz/ldy, ny);
+	STARPU_ASSERT_MSG(ldt/ldz >= nz, "ldt/ldz = %zu/%zu = %zu should not be less than nz = %zu.", ldt, ldz, ldt/ldz, nz);
 	struct starpu_tensor_interface tensor_interface =
 	{
 		.id = STARPU_TENSOR_INTERFACE_ID,
@@ -153,7 +153,7 @@ void starpu_tensor_data_register(starpu_data_handle_t *handleptr, int home_node,
 }
 
 void starpu_tensor_ptr_register(starpu_data_handle_t handle, unsigned node,
-				  uintptr_t ptr, uintptr_t dev_handle, size_t offset, uint32_t ldy, uint32_t ldz, uint32_t ldt)
+				  uintptr_t ptr, uintptr_t dev_handle, size_t offset, size_t ldy, size_t ldz, size_t ldt)
 {
 	struct starpu_tensor_interface *tensor_interface = starpu_data_get_interface_on_node(handle, node);
 	starpu_data_ptr_register(handle, node);
@@ -196,7 +196,7 @@ static void display_tensor_interface(starpu_data_handle_t handle, FILE *f)
 
 	tensor_interface = (struct starpu_tensor_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
-	fprintf(f, "%u\t%u\t%u\t%u\t", tensor_interface->nx, tensor_interface->ny, tensor_interface->nz, tensor_interface->nt);
+	fprintf(f, "%zu\t%zu\t%zu\t%zu\t", tensor_interface->nx, tensor_interface->ny, tensor_interface->nz, tensor_interface->nt);
 }
 
 #define IS_CONTIGUOUS_MATRIX(nx, ny, ldy) ((nx) == (ldy))
@@ -210,20 +210,20 @@ static int pack_tensor_handle(starpu_data_handle_t handle, unsigned node, void *
 	struct starpu_tensor_interface *tensor_interface = (struct starpu_tensor_interface *)
 		starpu_data_get_interface_on_node(handle, node);
 
-	uint32_t ldy = tensor_interface->ldy;
-	uint32_t ldz = tensor_interface->ldz;
-	uint32_t ldt = tensor_interface->ldt;
-	uint32_t nx = tensor_interface->nx;
-	uint32_t ny = tensor_interface->ny;
-	uint32_t nz = tensor_interface->nz;
-	uint32_t nt = tensor_interface->nt;
+	size_t ldy = tensor_interface->ldy;
+	size_t ldz = tensor_interface->ldz;
+	size_t ldt = tensor_interface->ldt;
+	size_t nx = tensor_interface->nx;
+	size_t ny = tensor_interface->ny;
+	size_t nz = tensor_interface->nz;
+	size_t nt = tensor_interface->nt;
 	size_t elemsize = tensor_interface->elemsize;
 
 	*count = nx*ny*nz*nt*elemsize;
 
 	if (ptr != NULL)
 	{
-		uint32_t t, z, y;
+		size_t t, z, y;
 		char *block = (void *)tensor_interface->ptr;
 
 		*ptr = (void *)starpu_malloc_on_node_flags(node, *count, 0);
@@ -279,18 +279,18 @@ static int peek_tensor_handle(starpu_data_handle_t handle, unsigned node, void *
 	struct starpu_tensor_interface *tensor_interface = (struct starpu_tensor_interface *)
 		starpu_data_get_interface_on_node(handle, node);
 
-	uint32_t ldy = tensor_interface->ldy;
-	uint32_t ldz = tensor_interface->ldz;
-	uint32_t ldt = tensor_interface->ldt;
-	uint32_t nx = tensor_interface->nx;
-	uint32_t ny = tensor_interface->ny;
-	uint32_t nz = tensor_interface->nz;
-	uint32_t nt = tensor_interface->nt;
+	size_t ldy = tensor_interface->ldy;
+	size_t ldz = tensor_interface->ldz;
+	size_t ldt = tensor_interface->ldt;
+	size_t nx = tensor_interface->nx;
+	size_t ny = tensor_interface->ny;
+	size_t nz = tensor_interface->nz;
+	size_t nt = tensor_interface->nt;
 	size_t elemsize = tensor_interface->elemsize;
 
 	STARPU_ASSERT(count == elemsize * nx * ny * nz * nt);
 
-	uint32_t t, z, y;
+	size_t t, z, y;
 	char *cur = ptr;
 	char *block = (void *)tensor_interface->ptr;
 
@@ -362,7 +362,7 @@ static size_t tensor_interface_get_size(starpu_data_handle_t handle)
 }
 
 /* offer an access to the data parameters */
-uint32_t starpu_tensor_get_nx(starpu_data_handle_t handle)
+size_t starpu_tensor_get_nx(starpu_data_handle_t handle)
 {
 	struct starpu_tensor_interface *tensor_interface = (struct starpu_tensor_interface *)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
@@ -374,7 +374,7 @@ uint32_t starpu_tensor_get_nx(starpu_data_handle_t handle)
 	return tensor_interface->nx;
 }
 
-uint32_t starpu_tensor_get_ny(starpu_data_handle_t handle)
+size_t starpu_tensor_get_ny(starpu_data_handle_t handle)
 {
 	struct starpu_tensor_interface *tensor_interface = (struct starpu_tensor_interface *)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
@@ -386,7 +386,7 @@ uint32_t starpu_tensor_get_ny(starpu_data_handle_t handle)
 	return tensor_interface->ny;
 }
 
-uint32_t starpu_tensor_get_nz(starpu_data_handle_t handle)
+size_t starpu_tensor_get_nz(starpu_data_handle_t handle)
 {
 	struct starpu_tensor_interface *tensor_interface = (struct starpu_tensor_interface *)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
@@ -398,7 +398,7 @@ uint32_t starpu_tensor_get_nz(starpu_data_handle_t handle)
 	return tensor_interface->nz;
 }
 
-uint32_t starpu_tensor_get_nt(starpu_data_handle_t handle)
+size_t starpu_tensor_get_nt(starpu_data_handle_t handle)
 {
 	struct starpu_tensor_interface *tensor_interface = (struct starpu_tensor_interface *)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
@@ -410,7 +410,7 @@ uint32_t starpu_tensor_get_nt(starpu_data_handle_t handle)
 	return tensor_interface->nt;
 }
 
-uint32_t starpu_tensor_get_local_ldy(starpu_data_handle_t handle)
+size_t starpu_tensor_get_local_ldy(starpu_data_handle_t handle)
 {
 	unsigned node;
 	node = starpu_worker_get_local_memory_node();
@@ -427,7 +427,7 @@ uint32_t starpu_tensor_get_local_ldy(starpu_data_handle_t handle)
 	return tensor_interface->ldy;
 }
 
-uint32_t starpu_tensor_get_local_ldz(starpu_data_handle_t handle)
+size_t starpu_tensor_get_local_ldz(starpu_data_handle_t handle)
 {
 	unsigned node;
 	node = starpu_worker_get_local_memory_node();
@@ -444,7 +444,7 @@ uint32_t starpu_tensor_get_local_ldz(starpu_data_handle_t handle)
 	return tensor_interface->ldz;
 }
 
-uint32_t starpu_tensor_get_local_ldt(starpu_data_handle_t handle)
+size_t starpu_tensor_get_local_ldt(starpu_data_handle_t handle)
 {
 	unsigned node;
 	node = starpu_worker_get_local_memory_node();
@@ -500,10 +500,10 @@ static starpu_ssize_t allocate_tensor_buffer_on_node(void *data_interface_, unsi
 
 	struct starpu_tensor_interface *dst_block = (struct starpu_tensor_interface *) data_interface_;
 
-	uint32_t nx = dst_block->nx;
-	uint32_t ny = dst_block->ny;
-	uint32_t nz = dst_block->nz;
-	uint32_t nt = dst_block->nt;
+	size_t nx = dst_block->nx;
+	size_t ny = dst_block->ny;
+	size_t nz = dst_block->nz;
+	size_t nt = dst_block->nt;
 	size_t elemsize = dst_block->elemsize;
 
 	starpu_ssize_t allocated_memory;
@@ -532,10 +532,10 @@ static starpu_ssize_t allocate_tensor_buffer_on_node(void *data_interface_, unsi
 static void free_tensor_buffer_on_node(void *data_interface, unsigned node)
 {
 	struct starpu_tensor_interface *tensor_interface = (struct starpu_tensor_interface *) data_interface;
-	uint32_t nx = tensor_interface->nx;
-	uint32_t ny = tensor_interface->ny;
-	uint32_t nz = tensor_interface->nz;
-	uint32_t nt = tensor_interface->nt;
+	size_t nx = tensor_interface->nx;
+	size_t ny = tensor_interface->ny;
+	size_t nz = tensor_interface->nz;
+	size_t nt = tensor_interface->nt;
 	size_t elemsize = tensor_interface->elemsize;
 
 	starpu_free_on_node(node, tensor_interface->dev_handle, nx*ny*nz*nt*elemsize);
@@ -594,18 +594,18 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 	struct starpu_tensor_interface *dst_block = (struct starpu_tensor_interface *) dst_interface;
 	int ret = 0;
 
-	uint32_t nx = dst_block->nx;
-	uint32_t ny = dst_block->ny;
-	uint32_t nz = dst_block->nz;
-	uint32_t nt = dst_block->nt;
+	size_t nx = dst_block->nx;
+	size_t ny = dst_block->ny;
+	size_t nz = dst_block->nz;
+	size_t nt = dst_block->nt;
 	size_t elemsize = dst_block->elemsize;
 
-	uint32_t ldy_src = src_block->ldy;
-	uint32_t ldz_src = src_block->ldz;
-	uint32_t ldt_src = src_block->ldt;
-	uint32_t ldy_dst = dst_block->ldy;
-	uint32_t ldz_dst = dst_block->ldz;
-	uint32_t ldt_dst = dst_block->ldt;
+	size_t ldy_src = src_block->ldy;
+	size_t ldz_src = src_block->ldz;
+	size_t ldt_src = src_block->ldt;
+	size_t ldy_dst = dst_block->ldy;
+	size_t ldz_dst = dst_block->ldz;
+	size_t ldt_dst = dst_block->ldt;
 
 	if (starpu_interface_copy4d(src_block->dev_handle, src_block->offset, src_node,
 				    dst_block->dev_handle, dst_block->offset, dst_node,
@@ -624,10 +624,10 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 static starpu_ssize_t describe(void *data_interface, char *buf, size_t size)
 {
 	struct starpu_tensor_interface *block = (struct starpu_tensor_interface *) data_interface;
-	return snprintf(buf, size, "T%ux%ux%ux%ux%u",
-			(unsigned) block->nx,
-			(unsigned) block->ny,
-			(unsigned) block->nz,
-			(unsigned) block->nt,
-			(unsigned) block->elemsize);
+	return snprintf(buf, size, "T%zux%zux%zux%zux%zu",
+			block->nx,
+			block->ny,
+			block->nz,
+			block->nt,
+			block->elemsize);
 }

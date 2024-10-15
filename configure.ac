@@ -610,6 +610,9 @@ if test x$enable_mpi = xmaybe ; then
     fi
 fi
 
+AC_ARG_ENABLE(mpi-type-vector-c, AC_HELP_STRING([--disable-mpi-type-vector-c], [Disable usage of function MPI_Type_vector_c]),
+	      [enable_mpi_type_vector_c=$enableval], [enable_mpi_type_vector_c=yes])
+
 # in case MPI was explicitly required, but mpicc is not available, this is an error
 if test x$enable_mpi = xyes ; then
 	if test ! -x "$mpicc_path"; then
@@ -626,6 +629,9 @@ if test x$enable_mpi = xyes ; then
 		[AC_DEFINE(STARPU_HAVE_MPI_EXT, [1], [<mpi-ext.h> is available])])
 
 	AC_CHECK_FUNC([MPI_Comm_create_group], [AC_DEFINE([STARPU_HAVE_MPI_COMM_CREATE_GROUP], [1], [Define to 1 if the function MPI_Comm_create_group is available.])])
+	if test x$enable_mpi_type_vector_c = xyes ; then
+		AC_CHECK_FUNC([MPI_Type_vector_c], [AC_DEFINE([STARPU_HAVE_MPI_TYPE_VECTOR_C], [1], [Define to 1 if the function MPI_Type_vector_c is available.])])
+	fi
 	CC=$OLD_CC
 fi
 

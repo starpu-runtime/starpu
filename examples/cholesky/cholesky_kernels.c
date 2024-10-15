@@ -49,13 +49,13 @@ static inline void chol_common_cpu_codelet_update_gemm(void *descr[], int s, voi
 	float *right 	= (float *)STARPU_MATRIX_GET_PTR(descr[1]);
 	float *center 	= (float *)STARPU_MATRIX_GET_PTR(descr[2]);
 
-	unsigned dx = STARPU_MATRIX_GET_NY(descr[2]);
-	unsigned dy = STARPU_MATRIX_GET_NX(descr[2]);
-	unsigned dz = STARPU_MATRIX_GET_NY(descr[0]);
+	size_t dx = STARPU_MATRIX_GET_NY(descr[2]);
+	size_t dy = STARPU_MATRIX_GET_NX(descr[2]);
+	size_t dz = STARPU_MATRIX_GET_NY(descr[0]);
 
-	unsigned ld21 = STARPU_MATRIX_GET_LD(descr[0]);
-	unsigned ld12 = STARPU_MATRIX_GET_LD(descr[1]);
-	unsigned ld22 = STARPU_MATRIX_GET_LD(descr[2]);
+	size_t ld21 = STARPU_MATRIX_GET_LD(descr[0]);
+	size_t ld12 = STARPU_MATRIX_GET_LD(descr[1]);
+	size_t ld22 = STARPU_MATRIX_GET_LD(descr[2]);
 
 	switch (s)
 	{
@@ -129,11 +129,11 @@ static inline void chol_common_cpu_codelet_update_syrk(void *descr[], int s, voi
 	float *left 	= (float *)STARPU_MATRIX_GET_PTR(descr[0]);
 	float *center 	= (float *)STARPU_MATRIX_GET_PTR(descr[1]);
 
-	unsigned dx = STARPU_MATRIX_GET_NY(descr[1]);
-	unsigned dz = STARPU_MATRIX_GET_NY(descr[0]);
+	size_t dx = STARPU_MATRIX_GET_NY(descr[1]);
+	size_t dz = STARPU_MATRIX_GET_NY(descr[0]);
 
-	unsigned ld21 = STARPU_MATRIX_GET_LD(descr[0]);
-	unsigned ld22 = STARPU_MATRIX_GET_LD(descr[1]);
+	size_t ld21 = STARPU_MATRIX_GET_LD(descr[0]);
+	size_t ld22 = STARPU_MATRIX_GET_LD(descr[1]);
 
 	switch (s)
 	{
@@ -189,11 +189,11 @@ static inline void chol_common_codelet_update_trsm(void *descr[], int s, void *_
 	sub11 = (float *)STARPU_MATRIX_GET_PTR(descr[0]);
 	sub21 = (float *)STARPU_MATRIX_GET_PTR(descr[1]);
 
-	unsigned ld11 = STARPU_MATRIX_GET_LD(descr[0]);
-	unsigned ld21 = STARPU_MATRIX_GET_LD(descr[1]);
+	size_t ld11 = STARPU_MATRIX_GET_LD(descr[0]);
+	size_t ld21 = STARPU_MATRIX_GET_LD(descr[1]);
 
-	unsigned nx21 = STARPU_MATRIX_GET_NY(descr[1]);
-	unsigned ny21 = STARPU_MATRIX_GET_NX(descr[1]);
+	size_t nx21 = STARPU_MATRIX_GET_NY(descr[1]);
+	size_t ny21 = STARPU_MATRIX_GET_NX(descr[1]);
 
 #ifdef STARPU_USE_CUDA
 	cublasStatus_t status;
@@ -243,10 +243,10 @@ static inline void chol_common_codelet_update_potrf(void *descr[], int s, void *
 
 	sub11 = (float *)STARPU_MATRIX_GET_PTR(descr[0]);
 
-	unsigned nx = STARPU_MATRIX_GET_NY(descr[0]);
-	unsigned ld = STARPU_MATRIX_GET_LD(descr[0]);
+	size_t nx = STARPU_MATRIX_GET_NY(descr[0]);
+	size_t ld = STARPU_MATRIX_GET_LD(descr[0]);
 
-	unsigned z;
+	size_t z;
 
 	switch (s)
 	{

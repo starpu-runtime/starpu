@@ -27,7 +27,7 @@ void test_matrix_opencl_func(void *buffers[], void *args)
 	STARPU_SKIP_IF_VALGRIND;
 
 	int id, devid, factor, ret;
-	unsigned int n;
+	cl_ulong n;
 
         cl_int             err;
 	cl_kernel          kernel;
@@ -58,19 +58,18 @@ void test_matrix_opencl_func(void *buffers[], void *args)
 	if (err != CL_SUCCESS)
 		STARPU_OPENCL_REPORT_ERROR(err);
 
-	fail = clCreateBuffer(context, CL_MEM_COPY_HOST_PTR,
-		sizeof(int), &matrix_config.copy_failed, &err);
+	fail = clCreateBuffer(context, CL_MEM_COPY_HOST_PTR,  sizeof(int), &matrix_config.copy_failed, &err);
 	if (err != CL_SUCCESS)
 		STARPU_OPENCL_REPORT_ERROR(err);
 
 	/* Setting args */
 	int nargs;
 	nargs = starpu_opencl_set_kernel_args(&err, &kernel,
-					sizeof(val), &val,
-					sizeof(n), &n,
-					sizeof(fail), &fail,
-					sizeof(factor), &factor,
-					0);
+					      sizeof(val), &val,
+					      sizeof(n), &n,
+					      sizeof(fail), &fail,
+					      sizeof(factor), &factor,
+					      0);
 	if (nargs != 4)
 		STARPU_OPENCL_REPORT_ERROR(err);
 	{
@@ -96,14 +95,14 @@ void test_matrix_opencl_func(void *buffers[], void *args)
                         global = (global + local-1) / local * local;
 
 		err = clEnqueueNDRangeKernel(queue,
-					kernel,
-					1,
-					NULL,
-					&global,
-					&local,
-					0,
-					NULL,
-					&event);
+					     kernel,
+					     1,
+					     NULL,
+					     &global,
+					     &local,
+					     0,
+					     NULL,
+					     &event);
 
 		if (err != CL_SUCCESS)
 			STARPU_OPENCL_REPORT_ERROR(err);

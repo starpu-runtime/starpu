@@ -40,7 +40,7 @@ static __global__ void scal_cuda(unsigned n, int *v, int factor)
 extern "C" void sub_data_cuda_func(void *buffers[], void *arg)
 {
         int *v = (int*)STARPU_VECTOR_GET_PTR(buffers[0]);
-        int nx = STARPU_VECTOR_GET_NX(buffers[0]);
+        size_t nx = STARPU_VECTOR_GET_NX(buffers[0]);
 
 	unsigned threads_per_block = 64;
         unsigned nblocks = (nx + threads_per_block-1) / threads_per_block;
@@ -61,7 +61,7 @@ extern "C" void sub_data_cuda_func(void *buffers[], void *arg)
 extern "C" void sub_data_RO_cuda_func(void *buffers[], void *arg)
 {
         int *v = (int*)STARPU_VECTOR_GET_PTR(buffers[0]);
-        int nx = STARPU_VECTOR_GET_NX(buffers[0]);
+        size_t nx = STARPU_VECTOR_GET_NX(buffers[0]);
         if (!getenv("STARPU_SSILENT"))
         {
                 print_vector_cuda<<<1, 1, 0, starpu_cuda_get_local_stream()>>>(nx, v, 3);
@@ -84,7 +84,7 @@ static __global__ void add_cuda(unsigned n, int *v, int term)
 extern "C" void task_cuda_func(void *buffers[], void *arg)
 {
 	int *v = (int*)STARPU_VECTOR_GET_PTR(buffers[0]);
-	int nx = STARPU_VECTOR_GET_NX(buffers[0]);
+	size_t nx = STARPU_VECTOR_GET_NX(buffers[0]);
         if (!getenv("STARPU_SSILENT"))
         {
                 print_vector_cuda<<<1, 1, 0, starpu_cuda_get_local_stream()>>>(nx, v, 0);
@@ -104,7 +104,7 @@ extern "C" void task_cuda_func(void *buffers[], void *arg)
 extern "C" void task_RO_cuda_func(void *buffers[], void *arg)
 {
         int *v = (int*)STARPU_VECTOR_GET_PTR(buffers[0]);
-        int nx = STARPU_VECTOR_GET_NX(buffers[0]);
+        size_t nx = STARPU_VECTOR_GET_NX(buffers[0]);
 
         if (!getenv("STARPU_SSILENT"))
         {

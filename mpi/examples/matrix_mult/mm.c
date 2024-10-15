@@ -246,17 +246,17 @@ static void cpu_mult(void *handles[], void *arg)
 	double *block_B = (double *)STARPU_MATRIX_GET_PTR(handles[1]);
 	double *block_C = (double *)STARPU_MATRIX_GET_PTR(handles[2]);
 
-	unsigned n_col_A = STARPU_MATRIX_GET_NX(handles[0]);
-	unsigned n_col_B = STARPU_MATRIX_GET_NX(handles[1]);
-	unsigned n_col_C = STARPU_MATRIX_GET_NX(handles[2]);
+	size_t n_col_A = STARPU_MATRIX_GET_NX(handles[0]);
+	size_t n_col_B = STARPU_MATRIX_GET_NX(handles[1]);
+	size_t n_col_C = STARPU_MATRIX_GET_NX(handles[2]);
 
-	unsigned n_row_A = STARPU_MATRIX_GET_NY(handles[0]);
-	unsigned n_row_B = STARPU_MATRIX_GET_NY(handles[1]);
-	unsigned n_row_C = STARPU_MATRIX_GET_NY(handles[2]);
+	size_t n_row_A = STARPU_MATRIX_GET_NY(handles[0]);
+	size_t n_row_B = STARPU_MATRIX_GET_NY(handles[1]);
+	size_t n_row_C = STARPU_MATRIX_GET_NY(handles[2]);
 
-	unsigned ld_A = STARPU_MATRIX_GET_LD(handles[0]);
-	unsigned ld_B = STARPU_MATRIX_GET_LD(handles[1]);
-	unsigned ld_C = STARPU_MATRIX_GET_LD(handles[2]);
+	size_t ld_A = STARPU_MATRIX_GET_LD(handles[0]);
+	size_t ld_B = STARPU_MATRIX_GET_LD(handles[1]);
+	size_t ld_C = STARPU_MATRIX_GET_LD(handles[2]);
 
 	/* Sanity check, not needed in real life case */
 	assert(n_col_C == n_col_B);

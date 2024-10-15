@@ -23,16 +23,15 @@ void starpu_complex_dev_handle_filter_block(void *parent_interface, void *child_
 	struct starpu_complex_dev_handle_interface *complex_dev_handle_parent = parent_interface;
 	struct starpu_complex_dev_handle_interface *complex_dev_handle_child = child_interface;
 
-	uint32_t nx = complex_dev_handle_parent->nx;
+	size_t nx = complex_dev_handle_parent->nx;
 	size_t elemsize = sizeof(double);
 
-	STARPU_ASSERT_MSG(nchunks <= nx, "%u parts for %u elements", nchunks, nx);
+	STARPU_ASSERT_MSG(nchunks <= nx, "%u parts for %zu elements", nchunks, nx);
 
-	uint32_t child_nx;
+	size_t child_nx;
 	size_t offset;
 	/* Compute the split */
-	starpu_filter_nparts_compute_chunk_size_and_offset(nx, nchunks, elemsize, id, 1,
-						     &child_nx, &offset);
+	starpu_filter_nparts_compute_chunk_size_and_offset(nx, nchunks, elemsize, id, 1, &child_nx, &offset);
 
 	complex_dev_handle_child->nx = child_nx;
 

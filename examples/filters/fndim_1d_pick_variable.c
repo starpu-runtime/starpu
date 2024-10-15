@@ -63,8 +63,8 @@ int main(void)
 	}
 	FPRINTF(stderr,"\n");
 
-	unsigned nn[1] = {NX};
-	unsigned ldn[1] = {1};
+	size_t nn[1] = {NX};
+	size_t ldn[1] = {1};
 
 	/* Declare data to StarPU */
 	starpu_ndim_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)arr1d, ldn, nn, 1, sizeof(int));

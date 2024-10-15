@@ -26,7 +26,7 @@
 static void init_problem_data(void)
 {
 #ifndef STARPU_SIMGRID
-	unsigned i,j;
+	size_t i,j;
 #endif
 
 	starpu_malloc_flags((void **)&A, zdim*ydim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
@@ -63,7 +63,7 @@ static void init_problem_data(void)
 
 static void partition_mult_data(void)
 {
-	unsigned x, y, z;
+	size_t x, y, z;
 
 	starpu_matrix_data_register(&A_handle, STARPU_MAIN_RAM, (uintptr_t)A, ydim, ydim, zdim, sizeof(TYPE));
 	starpu_matrix_data_register(&B_handle, STARPU_MAIN_RAM, (uintptr_t)B, zdim, zdim, xdim, sizeof(TYPE));
@@ -130,13 +130,13 @@ static void cublas_mult(void *descr[], void *arg, const TYPE *beta)
 	TYPE *subB = (TYPE *)STARPU_MATRIX_GET_PTR(descr[1]);
 	TYPE *subC = (TYPE *)STARPU_MATRIX_GET_PTR(descr[2]);
 
-	unsigned nxC = STARPU_MATRIX_GET_NX(descr[2]);
-	unsigned nyC = STARPU_MATRIX_GET_NY(descr[2]);
-	unsigned nyA = STARPU_MATRIX_GET_NY(descr[0]);
+	size_t nxC = STARPU_MATRIX_GET_NX(descr[2]);
+	size_t nyC = STARPU_MATRIX_GET_NY(descr[2]);
+	size_t nyA = STARPU_MATRIX_GET_NY(descr[0]);
 
-	unsigned ldA = STARPU_MATRIX_GET_LD(descr[0]);
-	unsigned ldB = STARPU_MATRIX_GET_LD(descr[1]);
-	unsigned ldC = STARPU_MATRIX_GET_LD(descr[2]);
+	size_t ldA = STARPU_MATRIX_GET_LD(descr[0]);
+	size_t ldB = STARPU_MATRIX_GET_LD(descr[1]);
+	size_t ldC = STARPU_MATRIX_GET_LD(descr[2]);
 
 	cublasStatus_t status = CUBLAS_GEMM(starpu_cublas_get_local_handle(),
 					    CUBLAS_OP_N, CUBLAS_OP_N,
@@ -156,13 +156,13 @@ void cpu_mult(void *descr[], void *arg, TYPE beta)
 	TYPE *subB = (TYPE *)STARPU_MATRIX_GET_PTR(descr[1]);
 	TYPE *subC = (TYPE *)STARPU_MATRIX_GET_PTR(descr[2]);
 
-	unsigned nxC = STARPU_MATRIX_GET_NX(descr[2]);
-	unsigned nyC = STARPU_MATRIX_GET_NY(descr[2]);
-	unsigned nyA = STARPU_MATRIX_GET_NY(descr[0]);
+	size_t nxC = STARPU_MATRIX_GET_NX(descr[2]);
+	size_t nyC = STARPU_MATRIX_GET_NY(descr[2]);
+	size_t nyA = STARPU_MATRIX_GET_NY(descr[0]);
 
-	unsigned ldA = STARPU_MATRIX_GET_LD(descr[0]);
-	unsigned ldB = STARPU_MATRIX_GET_LD(descr[1]);
-	unsigned ldC = STARPU_MATRIX_GET_LD(descr[2]);
+	size_t ldA = STARPU_MATRIX_GET_LD(descr[0]);
+	size_t ldB = STARPU_MATRIX_GET_LD(descr[1]);
+	size_t ldC = STARPU_MATRIX_GET_LD(descr[2]);
 
 	int worker_size = starpu_combined_worker_get_size();
 
@@ -399,9 +399,9 @@ static void parse_args(int argc, char **argv)
 		{
 			fprintf(stderr,"Usage: %s [-3d] [-nblocks n] [-nblocksx x] [-nblocksy y] [-nblocksz z] [-x x] [-y y] [-xy n] [-z z] [-xyz n] [-size size] [-iter iter] [-bound] [-check] [-spmd] [-hostname] [-nsleeps nsleeps]\n", argv[0]);
 			if (tiled)
-				fprintf(stderr,"Currently selected: %ux%u * %ux%u and %ux%ux%u blocks (size %ux%u length %u), %u iterations, %u sleeps\n", zdim, ydim, xdim, zdim, nslicesx, nslicesy, nslicesz, xdim / nslicesx, ydim / nslicesy, zdim / nslicesz, niter, nsleeps);
+				fprintf(stderr,"Currently selected: %zux%zu * %zux%zu and %zux%zux%zu blocks (size %zux%zu length %zu), %u iterations, %u sleeps\n", zdim, ydim, xdim, zdim, nslicesx, nslicesy, nslicesz, xdim / nslicesx, ydim / nslicesy, zdim / nslicesz, niter, nsleeps);
 			else
-				fprintf(stderr,"Currently selected: %ux%u * %ux%u and %ux%u blocks (size %ux%u length %u), %u iterations, %u sleeps\n", zdim, ydim, xdim, zdim, nslicesx, nslicesy, xdim / nslicesx, ydim / nslicesy, zdim, niter, nsleeps);
+				fprintf(stderr,"Currently selected: %zux%zu * %zux%zu and %zux%zu blocks (size %zux%zu length %zu), %u iterations, %u sleeps\n", zdim, ydim, xdim, zdim, nslicesx, nslicesy, xdim / nslicesx, ydim / nslicesy, zdim, niter, nsleeps);
 			exit(EXIT_SUCCESS);
 		}
 		else
@@ -446,7 +446,7 @@ static int run_data(void)
 	        starpu_fxt_start_profiling();
                 double start = starpu_timing_now();
 
-		unsigned x, y, z, iter;
+		size_t x, y, z, iter;
 		for (iter = 0; iter < niter; iter++)
 		{
 			if (tiled)
@@ -518,7 +518,7 @@ static int run_data(void)
 			gethostname(hostname, 255);
 			PRINTF("%s\t", hostname);
 		}
-		PRINTF("%u\t%u\t%u\t%.0f\t%.1f", xdim, ydim, zdim, timing/(niter)/1000.0, flops/timing/1000.0);
+		PRINTF("%zu\t%zu\t%zu\t%.0f\t%.1f", xdim, ydim, zdim, timing/(niter)/1000.0, flops/timing/1000.0);
 		if (bound)
 			PRINTF("\t%.0f\t%.1f\t%.0f\t%.1f", min, flops/min/1000000.0, min_int, flops/min_int/1000000.0);
 		PRINTF("\n");

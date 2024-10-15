@@ -65,6 +65,17 @@ check:
   tags:
     - ${NODE}
 
+check_mpich:
+  extends: .check_template
+  tags:
+    - starpu
+    - ubuntu1804
+  parallel:
+    matrix:
+      - SCRIPT: [./contrib/gitlab/mpich.sh, ./contrib/gitlab/mpich_struct.sh]
+  script:
+    - ${SCRIPT}
+
 check_simgrid:
   extends: .check_template
   tags:

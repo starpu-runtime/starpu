@@ -29,10 +29,10 @@ __kernel void _redux_opencl(__global DOT_TYPE *dota,
 __kernel void _dot_opencl(__global float *x,
 			  __global float *y,
 			  __global DOT_TYPE *dot,
-			  unsigned n)
+			  ulong n)
 {
 /* FIXME: real parallel implementation */
-	unsigned i;
+	ulong i;
 	__local double tmp;
 	tmp = 0.0;
 	for (i = 0; i < n ; i++)

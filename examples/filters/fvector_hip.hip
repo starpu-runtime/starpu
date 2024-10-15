@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2024  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,9 +18,9 @@
 
 #include <starpu.h>
 
-static __global__ void fvector_hip(int *vector, int n, float factor)
+static __global__ void fvector_hip(int *vector, size_t n, float factor)
 {
-        int i;
+        size_t i;
         for (i = 0; i < n; i++)
                 vector[i] *= factor;
 }
@@ -29,7 +29,7 @@ extern "C" void vector_hip_func(void *buffers[], void *_args)
 {
         int *factor = (int *)_args;
         int *vector = (int *)STARPU_VECTOR_GET_PTR(buffers[0]);
-        int n = (int)STARPU_VECTOR_GET_NX(buffers[0]);
+        size_t n = STARPU_VECTOR_GET_NX(buffers[0]);
 
         hipLaunchKernelGGL(fvector_hip, 1, 1, 0, starpu_hip_get_local_stream(), vector, n, *factor);
         hipError_t status = hipGetLastError();

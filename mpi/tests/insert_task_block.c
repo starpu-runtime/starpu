@@ -22,11 +22,11 @@ void func_cpu(void *descr[], void *_args)
 {
 	(void)_args;
 	unsigned *matrix = (unsigned *)STARPU_MATRIX_GET_PTR(descr[0]);
-	int nx = (int)STARPU_MATRIX_GET_NX(descr[0]);
-	int ny = (int)STARPU_MATRIX_GET_NY(descr[0]);
-	int ld = (int)STARPU_MATRIX_GET_LD(descr[0]);
+	size_t nx = STARPU_MATRIX_GET_NX(descr[0]);
+	size_t ny = STARPU_MATRIX_GET_NY(descr[0]);
+	size_t ld = STARPU_MATRIX_GET_LD(descr[0]);
 
-	int i, j;
+	size_t i, j;
 	unsigned sum=0;
 
 	for (i = 0; i < nx; i++)

@@ -91,8 +91,8 @@ __global__ void gpuMandelbrotKernel
 extern "C" void gpu_mandelbrot(void *descr[], void *args)
 {
   int *d_subP;
-  uint32_t nxP, nyP;
-  uint32_t ldP;
+  size_t nxP, nyP;
+  size_t ldP;
   uint32_t nblocks;
   struct Params *params = (struct Params *) args;
 

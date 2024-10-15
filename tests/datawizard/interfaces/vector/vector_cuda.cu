@@ -18,7 +18,7 @@
 
 extern struct test_config vector_config;
 
-__global__ void framework_cuda(int *val, unsigned n, int *err, int factor)
+__global__ void framework_cuda(int *val, size_t n, int *err, int factor)
 {
         unsigned i =  blockIdx.x*blockDim.x + threadIdx.x;
 
@@ -47,7 +47,7 @@ extern "C" void test_vector_cuda_func(void *buffers[], void *args)
 	if (error != cudaSuccess)
 		return;
 
-        unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
+        size_t n = STARPU_VECTOR_GET_NX(buffers[0]);
         int *val = (int *)STARPU_VECTOR_GET_PTR(buffers[0]);
 	int factor = *(int*) args;
 

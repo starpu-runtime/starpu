@@ -22,13 +22,13 @@ struct custom_data_interface
 	void *cuda_ptr;
 	void *opencl_ptr;
 	struct starpu_multiformat_data_interface_ops *ops;
-	uint32_t nx;
+	size_t nx;
 };
 
 void custom_data_register(starpu_data_handle_t *handle,
 				 int home_node,
 				 void *ptr,
-				 uint32_t nx,
+				 size_t nx,
 				 struct starpu_multiformat_data_interface_ops* ops);
 
 #define CUSTOM_GET_NX(interface) (((struct custom_data_interface*)(interface))->nx)

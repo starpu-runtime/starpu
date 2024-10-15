@@ -18,9 +18,9 @@
 
 #include <starpu.h>
 
-static __global__ void f4d_cuda(int *arr4d, int nx, int ny, int nz, int nt, unsigned ldy, unsigned ldz, unsigned ldt, float factor)
+static __global__ void f4d_cuda(int *arr4d, size_t nx, size_t ny, size_t nz, size_t nt, size_t ldy, size_t ldz, size_t ldt, float factor)
 {
-        int i, j, k, l;
+        size_t i, j, k, l;
 
         for(l=0; l<nt ; l++)
         {
@@ -39,15 +39,15 @@ extern "C" void f4d_cuda_func(void *buffers[], void *_args)
 {
         int *factor = (int *)_args;
         int *arr4d = (int *)STARPU_NDIM_GET_PTR(buffers[0]);
-        int *nn = (int *)STARPU_NDIM_GET_NN(buffers[0]);
-        unsigned *ldn = STARPU_NDIM_GET_LDN(buffers[0]);
-        int nx = nn[0];
-        int ny = nn[1];
-        int nz = nn[2];
-        int nt = nn[3];
-        unsigned ldy = ldn[1];
-        unsigned ldz = ldn[2];
-        unsigned ldt = ldn[3];
+        size_t *nn = STARPU_NDIM_GET_NN(buffers[0]);
+        size_t *ldn = STARPU_NDIM_GET_LDN(buffers[0]);
+        size_t nx = nn[0];
+        size_t ny = nn[1];
+        size_t nz = nn[2];
+        size_t nt = nn[3];
+        size_t ldy = ldn[1];
+        size_t ldz = ldn[2];
+        size_t ldt = ldn[3];
 
         f4d_cuda<<<1,1, 0, starpu_cuda_get_local_stream()>>>(arr4d, nx, ny, nz, nt, ldy, ldz, ldt, *factor);
         cudaError_t status = cudaGetLastError();

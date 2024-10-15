@@ -31,7 +31,7 @@ static __global__ void vector_scale_cuda_kernel(float *vector, unsigned n, float
 extern "C" void vector_scale_cuda_func(void *cl_buffers[], void *cl_arg)
 {
 	float scalar = -1.0;
-	unsigned n = STARPU_VECTOR_GET_NX(cl_buffers[0]);
+	size_t n = STARPU_VECTOR_GET_NX(cl_buffers[0]);
 	float *vector = (float *)STARPU_VECTOR_GET_PTR(cl_buffers[0]);
 	starpu_codelet_unpack_args(cl_arg, &scalar);
 

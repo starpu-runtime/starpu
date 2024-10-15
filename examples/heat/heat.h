@@ -57,11 +57,11 @@ typedef struct point_t
 	float y;
 } point;
 
-extern void dw_factoLU(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned version, unsigned no_prio);
-extern void dw_factoLU_tag(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned no_prio);
-extern void dw_factoLU_grain(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned nbigblocks);
-extern void initialize_system(float **A, float **B, unsigned dim, unsigned pinned);
-extern void free_system(float *A, float *B, unsigned dim, unsigned pinned);
+extern void dw_factoLU(float *matA, size_t size, size_t ld, size_t nblocks, unsigned version, unsigned no_prio);
+extern void dw_factoLU_tag(float *matA, size_t size, size_t ld, size_t nblocks, unsigned no_prio);
+extern void dw_factoLU_grain(float *matA, size_t size, size_t ld, size_t nblocks, size_t nbigblocks);
+extern void initialize_system(float **A, float **B, size_t dim, size_t pinned);
+extern void free_system(float *A, float *B, size_t dim, size_t pinned);
 
 void display_stat_heat(void);
 

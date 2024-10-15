@@ -34,11 +34,11 @@ void opencl_codelet(void *descr[], void *_args)
 	cl_event event;
 	int id, devid, err;
 	cl_mem block = (cl_mem)STARPU_BLOCK_GET_DEV_HANDLE(descr[0]);
-	int nx = (int)STARPU_BLOCK_GET_NX(descr[0]);
-	int ny = (int)STARPU_BLOCK_GET_NY(descr[0]);
-	int nz = (int)STARPU_BLOCK_GET_NZ(descr[0]);
-	int ldy = (int)STARPU_BLOCK_GET_LDY(descr[0]);
-	int ldz = (int) STARPU_BLOCK_GET_LDZ(descr[0]);
+	cl_ulong nx = STARPU_BLOCK_GET_NX(descr[0]);
+	cl_ulong ny = STARPU_BLOCK_GET_NY(descr[0]);
+	cl_ulong nz = STARPU_BLOCK_GET_NZ(descr[0]);
+	cl_ulong ldy = STARPU_BLOCK_GET_LDY(descr[0]);
+	cl_ulong ldz = STARPU_BLOCK_GET_LDZ(descr[0]);
 	float *multiplier = (float *)_args;
 
 	id = starpu_worker_get_id_check();

@@ -149,9 +149,10 @@ static void sum_cpu(void * descr[], void *cl_arg)
 	double *v_dst = (double *) STARPU_VECTOR_GET_PTR(descr[0]);
 	double *v_src0 = (double *) STARPU_VECTOR_GET_PTR(descr[1]);
 	double *v_src1 = (double *) STARPU_VECTOR_GET_PTR(descr[2]);
-	int size = STARPU_VECTOR_GET_NX(descr[0]);
+	size_t size = STARPU_VECTOR_GET_NX(descr[0]);
 
-	int i, k;
+	size_t i;
+	int k;
 	for (k=0;k<LOOPS;k++)
 	{
 #pragma omp parallel for

@@ -140,8 +140,8 @@ to use SSE to scale a vector. The codelet can be written as follows:
 void scal_sse_func(void *buffers[], void *cl_arg)
 {
     float *vector = (float *) STARPU_VECTOR_GET_PTR(buffers[0]);
-    unsigned int n = STARPU_VECTOR_GET_NX(buffers[0]);
-    unsigned int n_iterations = n/4;
+    size_t n = STARPU_VECTOR_GET_NX(buffers[0]);
+    size_t n_iterations = n/4;
     if (n % 4 != 0)
         n_iterations++;
 
@@ -149,7 +149,7 @@ void scal_sse_func(void *buffers[], void *cl_arg)
     __m128 factor __attribute__((aligned(16)));
     factor = _mm_set1_ps(*(float *) cl_arg);
 
-    unsigned int i;
+    size_t i;
     for (i = 0; i < n_iterations; i++)
         VECTOR[i] = _mm_mul_ps(factor, VECTOR[i]);
 }
@@ -352,10 +352,10 @@ the rank of the current CPU within the combined worker. For instance:
 \code{.c}
 static void func(void *buffers[], void *args)
 {
-    unsigned i;
+    size_t i;
     float *factor = _args;
     struct starpu_vector_interface *vector = buffers[0];
-    unsigned n = STARPU_VECTOR_GET_NX(vector);
+    size_t n = STARPU_VECTOR_GET_NX(vector);
     float *val = (float *)STARPU_VECTOR_GET_PTR(vector);
 
     /* Compute slice to compute */

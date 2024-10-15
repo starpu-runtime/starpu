@@ -16,7 +16,7 @@
 
 /* dumb OpenCL kernel to fill a 3D matrix */
 
-__kernel void fblock_opencl(__global int* block, unsigned offset, int nx, int ny, int nz, unsigned ldy, unsigned ldz, int factor)
+__kernel void fblock_opencl(__global int* block, ulong offset, ulong nx, ulong ny, ulong nz, ulong ldy, ulong ldz, int factor)
 {
 	const int idx = get_global_id(0);
 	const int idy = get_global_id(1);

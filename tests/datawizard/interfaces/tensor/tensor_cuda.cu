@@ -19,8 +19,8 @@
 extern struct test_config tensor_config;
 
 static __global__ void tensor_cuda(int *tensor,
-				  int nx, int ny, int nz, int nt,
-				  unsigned ldy, unsigned ldz, unsigned ldt,
+				  size_t nx, size_t ny, size_t nz, size_t nt,
+				  size_t ldy, size_t ldz, size_t ldt,
 				  int factor, int *err)
 {
         int i, j, k, l;
@@ -63,13 +63,13 @@ extern "C" void test_tensor_cuda_func(void *buffers[], void *args)
 	if (error != cudaSuccess)
 		STARPU_CUDA_REPORT_ERROR(error);
 
-	int nx = STARPU_TENSOR_GET_NX(buffers[0]);
-	int ny = STARPU_TENSOR_GET_NY(buffers[0]);
-	int nz = STARPU_TENSOR_GET_NZ(buffers[0]);
-	int nt = STARPU_TENSOR_GET_NT(buffers[0]);
-        unsigned ldy = STARPU_TENSOR_GET_LDY(buffers[0]);
-        unsigned ldz = STARPU_TENSOR_GET_LDZ(buffers[0]);
-        unsigned ldt = STARPU_TENSOR_GET_LDT(buffers[0]);
+	size_t nx = STARPU_TENSOR_GET_NX(buffers[0]);
+	size_t ny = STARPU_TENSOR_GET_NY(buffers[0]);
+	size_t nz = STARPU_TENSOR_GET_NZ(buffers[0]);
+	size_t nt = STARPU_TENSOR_GET_NT(buffers[0]);
+        size_t ldy = STARPU_TENSOR_GET_LDY(buffers[0]);
+        size_t ldz = STARPU_TENSOR_GET_LDZ(buffers[0]);
+        size_t ldt = STARPU_TENSOR_GET_LDT(buffers[0]);
 	int *tensor = (int *) STARPU_TENSOR_GET_PTR(buffers[0]);
 	int factor = *(int*) args;
 

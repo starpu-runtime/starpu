@@ -72,8 +72,8 @@ int main(void)
 	assert(arr3d);
 	generate_block_data(arr3d, NX, NY, NZ, NX, NX*NY);
 
-	unsigned nn[3] = {NX, NY, NZ};
-	unsigned ldn[3] = {1, NX, NX*NY};
+	size_t nn[3] = {NX, NY, NZ};
+	size_t ldn[3] = {1, NX, NX*NY};
 
 	/* Declare data to StarPU */
 	starpu_ndim_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)arr3d, ldn, nn, 3, sizeof(int));

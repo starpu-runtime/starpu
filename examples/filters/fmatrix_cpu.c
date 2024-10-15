@@ -20,13 +20,13 @@
 
 void matrix_cpu_func(void *buffers[], void *cl_arg)
 {
-	int i, j;
+	size_t i, j;
 	int *factor = (int *) cl_arg;
 
 	/* length of the matrix */
-	int nx = (int)STARPU_MATRIX_GET_NX(buffers[0]);
-	int ny = (int)STARPU_MATRIX_GET_NY(buffers[0]);
-	unsigned ld = STARPU_MATRIX_GET_LD(buffers[0]);
+	size_t nx = STARPU_MATRIX_GET_NX(buffers[0]);
+	size_t ny = STARPU_MATRIX_GET_NY(buffers[0]);
+	size_t ld = STARPU_MATRIX_GET_LD(buffers[0]);
 	/* local copy of the matrix pointer */
 	int *matrix = (int *)STARPU_MATRIX_GET_PTR(buffers[0]);
 

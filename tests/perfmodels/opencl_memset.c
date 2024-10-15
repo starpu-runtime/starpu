@@ -30,7 +30,7 @@ void _memset_opencl(void *buffers[], void *args, const char *name)
 	cl_kernel kernel;
 	cl_command_queue queue;
 
-	unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
+	cl_ulong n = STARPU_VECTOR_GET_NX(buffers[0]);
 	cl_mem val = (cl_mem)STARPU_VECTOR_GET_DEV_HANDLE(buffers[0]);
 
 	id = starpu_worker_get_id_check();

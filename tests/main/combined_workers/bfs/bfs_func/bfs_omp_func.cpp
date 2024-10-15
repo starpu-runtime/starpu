@@ -23,14 +23,14 @@
 void omp_bfs_func(void *buffers[], void *_args)
 {
 	Node* graph_nodes = (Node *) STARPU_VECTOR_GET_PTR(buffers[0]);
-	int no_of_nodes = STARPU_VECTOR_GET_NX(buffers[0]);
+	size_t no_of_nodes = STARPU_VECTOR_GET_NX(buffers[0]);
 	int* graph_edges = (int *) STARPU_VECTOR_GET_PTR(buffers[1]);
 	bool *graph_mask = (bool *) STARPU_VECTOR_GET_PTR(buffers[2]);
 	bool *updating_graph_mask = (bool *) STARPU_VECTOR_GET_PTR(buffers[3]);
 	bool *graph_visited = (bool *) STARPU_VECTOR_GET_PTR(buffers[4]);
 	int* cost = (int *) STARPU_VECTOR_GET_PTR(buffers[5]);
 	int k=0;
-    
+
 	bool stop;
 	do
 	{
@@ -39,11 +39,11 @@ void omp_bfs_func(void *buffers[], void *_args)
 
 #ifdef OPEN
 		#pragma omp parallel for num_threads(starpu_combined_worker_get_size())
-#endif 
-		for(int tid = 0; tid < no_of_nodes; tid++ )
+#endif
+		for(size_t tid = 0; tid < no_of_nodes; tid++ )
 		{
 			if (graph_mask[tid] == true)
-			{ 
+			{
 				graph_mask[tid]=false;
 				for(int i=graph_nodes[tid].starting; i<(graph_nodes[tid].no_of_edges + graph_nodes[tid].starting); i++)
 				{
@@ -69,7 +69,7 @@ void omp_bfs_func(void *buffers[], void *_args)
 		k++;
 	}
 	while(stop);
-	
+
 	printf("Kernel Executed %d times, threads: %d\n",k, starpu_combined_worker_get_size());
 	//printf("graph_edges = %d, %d, %d\n",graph_edges[0], graph_edges[1], graph_edges[2]);
 	//printf("graph_mask = %d, %d, %d\n",graph_mask[0], graph_mask[1], graph_mask[2]);

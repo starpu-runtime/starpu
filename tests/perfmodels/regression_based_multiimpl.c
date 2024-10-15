@@ -40,8 +40,8 @@ void memset0_cpu(void *descr[], void *arg)
 	STARPU_SKIP_IF_VALGRIND;
 
 	unsigned *ptr = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
-	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
-	unsigned i;
+	size_t n = STARPU_VECTOR_GET_NX(descr[0]);
+	size_t i;
 
 	starpu_usleep(100);
 
@@ -58,8 +58,8 @@ void memset_cpu(void *descr[], void *arg)
 	STARPU_SKIP_IF_VALGRIND;
 
 	unsigned *ptr = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
-	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
-	int i;
+	size_t n = STARPU_VECTOR_GET_NX(descr[0]);
+	size_t i;
 
 	for (i=0; i<6.5*n ; i++)
 	{

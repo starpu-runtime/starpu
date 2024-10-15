@@ -43,13 +43,13 @@ static starpu_data_handle_t A_handle, B_handle, C_handle;
 static unsigned nslicesx = 4;
 static unsigned nslicesy = 4;
 #ifdef STARPU_QUICK_CHECK
-static unsigned xdim = 512;
-static unsigned ydim = 512;
-static unsigned zdim = 256;
+static size_t xdim = 512;
+static size_t ydim = 512;
+static size_t zdim = 256;
 #else
-static unsigned xdim = 1024;
-static unsigned ydim = 1024;
-static unsigned zdim = 512;
+static size_t xdim = 1024;
+static size_t ydim = 1024;
+static size_t zdim = 512;
 #endif
 
 extern void hip_mult(void *descr[], void *arg);
@@ -88,8 +88,8 @@ void cpu_mult(void *descr[], void *arg)
 {
 	(void)arg;
 	float *subA, *subB, *subC;
-	uint32_t nxC, nyC, nyA;
-	uint32_t ldA, ldB, ldC;
+	size_t nxC, nyC, nyA;
+	size_t ldA, ldB, ldC;
 
 	/* ptr gives a pointer to the first element of the local copy */
 	subA = (float *)STARPU_MATRIX_GET_PTR(descr[0]);
@@ -117,7 +117,7 @@ void cpu_mult(void *descr[], void *arg)
 	ldC = STARPU_MATRIX_GET_LD(descr[2]);
 
 	/* we use a FORTRAN-ordering! */
-	unsigned i,j,k;
+	size_t i,j,k;
 	for (i = 0; i < nyC; i++) /* iterate over columns of C */
 	{
 		for (j = 0; j < nxC; j++) /* iterate over rows of C */
@@ -136,7 +136,7 @@ void cpu_mult(void *descr[], void *arg)
 
 static void init_problem_data(void)
 {
-	unsigned i,j;
+	size_t i,j;
 
 	/* we initialize matrices A, B and C in the usual way */
 
@@ -307,7 +307,7 @@ static int launch_tasks(void)
 {
 	int ret;
 	/* partition the work into slices */
-	unsigned taskx, tasky;
+	size_t taskx, tasky;
 
 	for (taskx = 0; taskx < nslicesx; taskx++)
 	{
@@ -365,16 +365,16 @@ static int launch_tasks(void)
 	return 0;
 }
 
-void check_result(float* C_gpu, float* C_ref, uint32_t ldC)
+void check_result(float* C_gpu, float* C_ref, size_t ldC)
 {
-	unsigned i,j;
+	size_t i,j;
 	for (i = 0; i < ydim; i++)
 	{
 		for (j = 0; j < xdim; j++)
 		{
 			if(C_gpu[j + i*ldC]-C_ref[j + i*ldC] > 1e-6*C_ref[j + i*ldC])
 			{
-				printf("| Cref[%u,%u]=%f - Cgpu[%u,%u]=%f | Error in the computation of C: the difference between the two is bigger than 1e-6 * the reference"
+				printf("| Cref[%zu,%zu]=%f - Cgpu[%zu,%zu]=%f | Error in the computation of C: the difference between the two is bigger than 1e-6 * the reference"
 				       , i, j, C_ref[j + i*ldC], i, j, C_gpu[j + i*ldC]);
 				exit(1);
 			}
@@ -407,11 +407,11 @@ int main(void)
 	/* cpu compution to check */
 	/* ============================================= */
 
-	uint32_t ldA = ydim;
-	uint32_t ldB = zdim;
-	uint32_t ldC = ydim;
+	size_t ldA = ydim;
+	size_t ldB = zdim;
+	size_t ldC = ydim;
 
-	unsigned i,j,k;
+	size_t i,j,k;
 	for (i = 0; i < ydim; i++)
 	{
 		for (j = 0; j < xdim; j++)

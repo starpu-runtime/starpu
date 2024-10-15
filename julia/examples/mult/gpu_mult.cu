@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020       University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2024  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2018       Alexis Juven
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -58,8 +58,8 @@ extern "C" void gpu_mult(void * descr[], void * args)
 {
 
 	float * d_subA, * d_subB, * d_subC;
-	uint32_t nxC, nyC, nyA;
-	uint32_t ldA, ldB, ldC;
+	size_t nxC, nyC, nyA;
+	size_t ldA, ldB, ldC;
 	uint32_t nblocks;
 
 	d_subA = (float *) STARPU_MATRIX_GET_PTR(descr[0]);

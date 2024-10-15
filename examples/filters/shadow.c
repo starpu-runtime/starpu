@@ -52,15 +52,15 @@
 void cpu_func(void *buffers[], void *cl_arg)
 {
 	(void)cl_arg;
-	unsigned i;
+	size_t i;
 
 	/* length of the shadowed source vector */
-	unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
+	size_t n = STARPU_VECTOR_GET_NX(buffers[0]);
 	/* local copy of the shadowed source vector pointer */
 	int *val = (int *)STARPU_VECTOR_GET_PTR(buffers[0]);
 
 	/* length of the destination vector */
-	unsigned n2 = STARPU_VECTOR_GET_NX(buffers[1]);
+	size_t n2 = STARPU_VECTOR_GET_NX(buffers[1]);
 	/* local copy of the destination vector pointer */
 	int *val2 = (int *)STARPU_VECTOR_GET_PTR(buffers[1]);
 
@@ -75,12 +75,12 @@ void cuda_func(void *buffers[], void *cl_arg)
 {
 	(void)cl_arg;
 	/* length of the shadowed source vector */
-	unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
+	size_t n = STARPU_VECTOR_GET_NX(buffers[0]);
 	/* local copy of the shadowed source vector pointer */
 	int *val = (int *)STARPU_VECTOR_GET_PTR(buffers[0]);
 
 	/* length of the destination vector */
-	unsigned n2 = STARPU_VECTOR_GET_NX(buffers[1]);
+	size_t n2 = STARPU_VECTOR_GET_NX(buffers[1]);
 	/* local copy of the destination vector pointer */
 	int *val2 = (int *)STARPU_VECTOR_GET_PTR(buffers[1]);
 
@@ -92,7 +92,7 @@ void cuda_func(void *buffers[], void *cl_arg)
 
 int main(void)
 {
-	unsigned j;
+	size_t j;
 	int vector[NX + 2*SHADOW];
 	int vector2[NX + PARTS*2*SHADOW];
 	starpu_data_handle_t handle, handle2;

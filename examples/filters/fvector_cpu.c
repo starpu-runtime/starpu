@@ -20,11 +20,11 @@
 
 void vector_cpu_func(void *buffers[], void *cl_arg)
 {
-	int i;
+	size_t i;
 	int *factor = (int *) cl_arg;
 
 	/* length of the vector */
-	int n = (int)STARPU_VECTOR_GET_NX(buffers[0]);
+	size_t n = (int)STARPU_VECTOR_GET_NX(buffers[0]);
 	/* local copy of the vector pointer */
 	int *vector = (int *)STARPU_VECTOR_GET_PTR(buffers[0]);
 

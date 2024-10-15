@@ -18,9 +18,9 @@
 
 #include <starpu.h>
 
-static __global__ void _fmultiple_check_scale_cuda(int *val, int nx, int ny, unsigned ld, int start, int factor)
+static __global__ void _fmultiple_check_scale_cuda(int *val, size_t nx, size_t ny, size_t ld, int start, int factor)
 {
-        int i, j;
+        size_t i, j;
 	for(j=0; j<ny ; j++)
 	{
 		for(i=0; i<nx ; i++)
@@ -35,9 +35,9 @@ static __global__ void _fmultiple_check_scale_cuda(int *val, int nx, int ny, uns
 extern "C" void fmultiple_check_scale_cuda(void *buffers[], void *cl_arg)
 {
 	int start, factor;
-	int nx = (int)STARPU_MATRIX_GET_NX(buffers[0]);
-	int ny = (int)STARPU_MATRIX_GET_NY(buffers[0]);
-        unsigned ld = STARPU_MATRIX_GET_LD(buffers[0]);
+	size_t nx = STARPU_MATRIX_GET_NX(buffers[0]);
+	size_t ny = STARPU_MATRIX_GET_NY(buffers[0]);
+        size_t ld = STARPU_MATRIX_GET_LD(buffers[0]);
 	int *val = (int *)STARPU_MATRIX_GET_PTR(buffers[0]);
 
 	starpu_codelet_unpack_args(cl_arg, &start, &factor);
@@ -48,9 +48,9 @@ extern "C" void fmultiple_check_scale_cuda(void *buffers[], void *cl_arg)
 	if (status != cudaSuccess) STARPU_CUDA_REPORT_ERROR(status);
 }
 
-static __global__ void _fmultiple_check_cuda(int *val, int nx, int ny, unsigned ld, int start, int factor)
+static __global__ void _fmultiple_check_cuda(int *val, size_t nx, size_t ny, size_t ld, int start, int factor)
 {
-        int i, j;
+        size_t i, j;
 	for(j=0; j<ny ; j++)
 	{
 		for(i=0; i<nx ; i++)
@@ -64,9 +64,9 @@ static __global__ void _fmultiple_check_cuda(int *val, int nx, int ny, unsigned 
 extern "C" void fmultiple_check_cuda(void *buffers[], void *cl_arg)
 {
 	int start, factor;
-	int nx = (int)STARPU_MATRIX_GET_NX(buffers[0]);
-	int ny = (int)STARPU_MATRIX_GET_NY(buffers[0]);
-        unsigned ld = STARPU_MATRIX_GET_LD(buffers[0]);
+	size_t nx = STARPU_MATRIX_GET_NX(buffers[0]);
+	size_t ny = STARPU_MATRIX_GET_NY(buffers[0]);
+        size_t ld = STARPU_MATRIX_GET_LD(buffers[0]);
 	int *val = (int *)STARPU_MATRIX_GET_PTR(buffers[0]);
 
 	starpu_codelet_unpack_args(cl_arg, &start, &factor);

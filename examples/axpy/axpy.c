@@ -55,7 +55,7 @@ void axpy_cpu(void *descr[], void *arg)
 {
 	TYPE alpha = *((TYPE *)arg);
 
-	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
+	size_t n = STARPU_VECTOR_GET_NX(descr[0]);
 
 	TYPE *block_x = (TYPE *)STARPU_VECTOR_GET_PTR(descr[0]);
 	TYPE *block_y = (TYPE *)STARPU_VECTOR_GET_PTR(descr[1]);
@@ -68,7 +68,7 @@ void axpy_gpu(void *descr[], void *arg)
 {
 	TYPE alpha = *((TYPE *)arg);
 
-	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
+	size_t n = STARPU_VECTOR_GET_NX(descr[0]);
 
 	TYPE *block_x = (TYPE *)STARPU_VECTOR_GET_PTR(descr[0]);
 	TYPE *block_y = (TYPE *)STARPU_VECTOR_GET_PTR(descr[1]);

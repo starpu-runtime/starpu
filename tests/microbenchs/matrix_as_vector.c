@@ -39,8 +39,8 @@ void vector_cpu_func(void *descr[], void *cl_arg)
 	STARPU_SKIP_IF_VALGRIND;
 
 	float *matrix = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
-	int nx = STARPU_VECTOR_GET_NX(descr[0]);
-	int i;
+	size_t nx = STARPU_VECTOR_GET_NX(descr[0]);
+	size_t i;
 	float sum=0;
 
 	for(i=0 ; i<nx ; i++) sum+=matrix[i];
@@ -55,7 +55,7 @@ void vector_cuda_func(void *descr[], void *cl_arg)
 	STARPU_SKIP_IF_VALGRIND;
 
 	float *matrix = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
-	int nx = STARPU_VECTOR_GET_NX(descr[0]);
+	size_t nx = STARPU_VECTOR_GET_NX(descr[0]);
 
 	float sum;
 	cublasStatus_t status = cublasSasum(starpu_cublas_get_local_handle(), nx, matrix, 1, &sum);
@@ -74,9 +74,9 @@ void matrix_cpu_func(void *descr[], void *cl_arg)
 	STARPU_SKIP_IF_VALGRIND;
 
 	float *matrix = (float *)STARPU_MATRIX_GET_PTR(descr[0]);
-	int nx = STARPU_MATRIX_GET_NX(descr[0]);
-	int ny = STARPU_MATRIX_GET_NY(descr[0]);
-	int i;
+	size_t nx = STARPU_MATRIX_GET_NX(descr[0]);
+	size_t ny = STARPU_MATRIX_GET_NY(descr[0]);
+	size_t i;
 	float sum=0;
 
 	for(i=0 ; i<nx*ny ; i++) sum+=matrix[i];
@@ -91,8 +91,8 @@ void matrix_cuda_func(void *descr[], void *cl_arg)
 	STARPU_SKIP_IF_VALGRIND;
 
 	float *matrix = (float *)STARPU_MATRIX_GET_PTR(descr[0]);
-	int nx = STARPU_MATRIX_GET_NX(descr[0]);
-	int ny = STARPU_MATRIX_GET_NY(descr[0]);
+	size_t nx = STARPU_MATRIX_GET_NX(descr[0]);
+	size_t ny = STARPU_MATRIX_GET_NY(descr[0]);
 
 	float sum;
 	cublasStatus_t status = cublasSasum(starpu_cublas_get_local_handle(), nx*ny, matrix, 1, &sum);

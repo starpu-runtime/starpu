@@ -30,8 +30,8 @@ void cpu_nbody(void *descr[], void *arg)
 	double *subA;
 	double *M;
 
-	uint32_t nxP, nxA, nxM;
-	uint32_t ldP, ldA, ldM;
+	size_t nxP, nxA, nxM;
+	size_t ldP, ldA, ldM;
 
 	P = (double *)STARPU_MATRIX_GET_PTR(descr[0]);
 	subA = (double *)STARPU_MATRIX_GET_PTR(descr[1]);
@@ -49,16 +49,16 @@ void cpu_nbody(void *descr[], void *arg)
 
 	unsigned id = nxA * params->taskx;
 
-	uint32_t i,j;
-	
+	size_t i,j;
+
 	for (i = 0; i < nxA; i++){
 		double sumaccx = 0;
 		double sumaccy = 0;
-		
+
 		for (j = 0; j < nxP; j++){
-			
+
 			if (j != i + id){
-				
+
 				double dx = P[j] - P[i + id];
 				double dy = P[j + ldP] - P[i + id + ldP];
 
@@ -80,8 +80,8 @@ void cpu_nbody2(void *descr[], void *arg)
 	double *subV;
 	double *subA;
 
-	uint32_t nxP, nxV, nxA;
-	uint32_t ldP, ldV, ldA;
+	size_t nxP, nxV, nxA;
+	size_t ldP, ldV, ldA;
 
 	subP = (double *)STARPU_MATRIX_GET_PTR(descr[0]);
 	subV = (double *)STARPU_MATRIX_GET_PTR(descr[1]);
@@ -90,16 +90,16 @@ void cpu_nbody2(void *descr[], void *arg)
 	nxP = STARPU_MATRIX_GET_NX(descr[0]);
 	nxV = STARPU_MATRIX_GET_NX(descr[1]);
 	nxA = STARPU_MATRIX_GET_NX(descr[2]);
-	
+
 	ldP = STARPU_MATRIX_GET_LD(descr[0]);
 	ldV = STARPU_MATRIX_GET_LD(descr[1]);
 	ldA = STARPU_MATRIX_GET_LD(descr[2]);
-	
-	
+
+
 	unsigned i,dt;
 	dt = 3600;
 	for (i = 0; i < nxP; i++){
-	
+
 		subV[i] = subV[i] + dt*subA[i];
 		subV[i + ldV] = subV[i + ldV] + dt*subA[i + ldA];
 
@@ -107,4 +107,3 @@ void cpu_nbody2(void *descr[], void *arg)
 		subP[i + ldP] = subP[i + ldP] + dt*subV[i + ldV];
 	}
 }
-	      

@@ -34,7 +34,7 @@ void fpga_impl(void *buffers[], void *cl_arg)
 	int32_t *ptrB = (int32_t*) STARPU_VECTOR_GET_PTR(buffers[1]);
 	int32_t *ptrC = (int32_t*) STARPU_VECTOR_GET_PTR(buffers[2]);
 
-	int size = STARPU_VECTOR_GET_NX(buffers[0]);
+	size_t size = STARPU_VECTOR_GET_NX(buffers[0]);
 
 	// XXX: would rather use a scratch buffer
 	size_t ptrCT1 = 0x00000000000000c0;
@@ -80,7 +80,7 @@ void fpga_impl1(void *buffers[], void *cl_arg)
 	int32_t *ptrB = (int32_t*) STARPU_VECTOR_GET_PTR(buffers[1]);
 	size_t	 ptrC = (size_t)   STARPU_VECTOR_GET_PTR(buffers[2]); /* FPGA */
 
-	int size = STARPU_VECTOR_GET_NX(buffers[0]);
+	size_t size = STARPU_VECTOR_GET_NX(buffers[0]);
 
 	printf("T1 with %p %p %zu\n", ptrA, ptrB, ptrC);
 	/* C = A+B */

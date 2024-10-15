@@ -33,7 +33,7 @@ extern void vector_cuda_func(void *buffers[], void *cl_arg);
 extern void vector_hip_func(void *buffers[], void *cl_arg);
 #endif
 
-extern void generate_matrix_data(int *matrix, int nx, int ny, unsigned ld);
+extern void generate_matrix_data(int *matrix, size_t nx, size_t ny, size_t ld);
 extern void print_2dim_data(starpu_data_handle_t ndim_handle);
 
 int main(void)
@@ -68,8 +68,8 @@ int main(void)
 	starpu_malloc((void **)&arr2d, NX*NY*sizeof(int));
 	generate_matrix_data(arr2d, NX, NY, NX);
 
-	unsigned nn[2] = {NX, NY};
-	unsigned ldn[2] = {1, NX};
+	size_t nn[2] = {NX, NY};
+	size_t ldn[2] = {1, NX};
 
 	/* Declare data to StarPU */
 	starpu_ndim_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)arr2d, ldn, nn, 2, sizeof(int));

@@ -101,7 +101,7 @@ void cpu_codelet_func_2(void *descr[], void *arg)
 {
 	(void)arg;
 	/* simply copy r into d */
-	uint32_t nx = STARPU_VECTOR_GET_NX(descr[0]);
+	size_t nx = STARPU_VECTOR_GET_NX(descr[0]);
 	size_t elemsize = STARPU_VECTOR_GET_ELEMSIZE(descr[0]);
 
 	STARPU_ASSERT(STARPU_VECTOR_GET_NX(descr[0]) == STARPU_VECTOR_GET_NX(descr[1]));
@@ -125,11 +125,11 @@ void cpu_codelet_func_3(void *descr[], void *arg)
 	struct cg_problem *pb = arg;
 	float dot;
 	float *vec;
-	int size;
+	size_t size;
 
 	/* get the vector */
 	vec = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
-	size = (int)STARPU_VECTOR_GET_NX(descr[0]);
+	size = STARPU_VECTOR_GET_NX(descr[0]);
 
 	dot = STARPU_SDOT(size, vec, 1, vec, 1);
 
@@ -145,7 +145,7 @@ void cublas_codelet_func_3(void *descr[], void *arg)
 	struct cg_problem *pb = arg;
 	float dot;
 	float *vec;
-	uint32_t size;
+	size_t size;
 
 	/* get the vector */
 	vec = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
@@ -218,7 +218,7 @@ void cpu_codelet_func_5(void *descr[], void *arg)
 	float dot;
 	struct cg_problem *pb = arg;
 	float *vecd, *vecq;
-	uint32_t size;
+	size_t size;
 
 	/* get the vector */
 	vecd = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
@@ -238,7 +238,7 @@ void cublas_codelet_func_5(void *descr[], void *arg)
 	float dot;
 	struct cg_problem *pb = arg;
 	float *vecd, *vecq;
-	uint32_t size;
+	size_t size;
 
 	/* get the vector */
 	vecd = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
@@ -269,7 +269,7 @@ void cpu_codelet_func_6(void *descr[], void *arg)
 {
 	struct cg_problem *pb = arg;
 	float *vecx, *vecd;
-	uint32_t size;
+	size_t size;
 
 	/* get the vector */
 	vecx = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
@@ -285,7 +285,7 @@ void cublas_codelet_func_6(void *descr[], void *arg)
 {
 	struct cg_problem *pb = arg;
 	float *vecx, *vecd;
-	uint32_t size;
+	size_t size;
 
 	/* get the vector */
 	vecx = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
@@ -310,7 +310,7 @@ void cpu_codelet_func_7(void *descr[], void *arg)
 {
 	struct cg_problem *pb = arg;
 	float *vecr, *vecq;
-	uint32_t size;
+	size_t size;
 
 	/* get the vector */
 	vecr = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
@@ -326,7 +326,7 @@ void cublas_codelet_func_7(void *descr[], void *arg)
 {
 	struct cg_problem *pb = arg;
 	float *vecr, *vecq;
-	uint32_t size;
+	size_t size;
 
 	/* get the vector */
 	vecr = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
@@ -356,7 +356,7 @@ void cpu_codelet_func_8(void *descr[], void *arg)
 	float dot;
 	struct cg_problem *pb = arg;
 	float *vecr;
-	uint32_t size;
+	size_t size;
 
 	/* get the vector */
 	vecr = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
@@ -375,7 +375,7 @@ void cublas_codelet_func_8(void *descr[], void *arg)
 	float dot;
 	struct cg_problem *pb = arg;
 	float *vecr;
-	uint32_t size;
+	size_t size;
 
 	/* get the vector */
 	vecr = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
@@ -403,7 +403,7 @@ void cpu_codelet_func_9(void *descr[], void *arg)
 {
 	struct cg_problem *pb = arg;
 	float *vecd, *vecr;
-	uint32_t size;
+	size_t size;
 
 	/* get the vector */
 	vecd = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
@@ -423,7 +423,7 @@ void cublas_codelet_func_9(void *descr[], void *arg)
 {
 	struct cg_problem *pb = arg;
 	float *vecd, *vecr;
-	uint32_t size;
+	size_t size;
 
 	/* get the vector */
 	vecd = (float *)STARPU_VECTOR_GET_PTR(descr[0]);

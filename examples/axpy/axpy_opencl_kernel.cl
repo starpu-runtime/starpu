@@ -19,10 +19,10 @@
 #include "axpy.h"
 
 __kernel void _axpy_opencl(__global TYPE *x,
-			   unsigned x_offset,
+			   ulong x_offset,
 			   __global TYPE *y,
-			   unsigned y_offset,
-			   unsigned nx,
+			   ulong y_offset,
+			   ulong nx,
 			   TYPE alpha)
 {
         const int i = get_global_id(0);

@@ -20,13 +20,13 @@
 
 void matrix_fill(void *buffers[], void *cl_arg)
 {
-	unsigned i, j;
+	size_t i, j;
 	(void)cl_arg;
 
 	/* length of the matrix */
-	unsigned nx = STARPU_MATRIX_GET_NX(buffers[0]);
-	unsigned ny = STARPU_MATRIX_GET_NY(buffers[0]);
-	unsigned ld = STARPU_MATRIX_GET_LD(buffers[0]);
+	size_t nx = STARPU_MATRIX_GET_NX(buffers[0]);
+	size_t ny = STARPU_MATRIX_GET_NY(buffers[0]);
+	size_t ld = STARPU_MATRIX_GET_LD(buffers[0]);
 	int *val = (int *)STARPU_MATRIX_GET_PTR(buffers[0]);
 
 	for(j=0; j<ny ; j++)
@@ -48,12 +48,12 @@ struct starpu_codelet cl_fill =
 void fmultiple_check_scale(void *buffers[], void *cl_arg)
 {
 	int start, factor;
-	unsigned i, j;
+	size_t i, j;
 
 	/* length of the matrix */
-	unsigned nx = STARPU_MATRIX_GET_NX(buffers[0]);
-	unsigned ny = STARPU_MATRIX_GET_NY(buffers[0]);
-	unsigned ld = STARPU_MATRIX_GET_LD(buffers[0]);
+	size_t nx = STARPU_MATRIX_GET_NX(buffers[0]);
+	size_t ny = STARPU_MATRIX_GET_NY(buffers[0]);
+	size_t ld = STARPU_MATRIX_GET_LD(buffers[0]);
 	int *val = (int *)STARPU_MATRIX_GET_PTR(buffers[0]);
 
 	starpu_codelet_unpack_args(cl_arg, &start, &factor);
@@ -62,7 +62,7 @@ void fmultiple_check_scale(void *buffers[], void *cl_arg)
 	int written=0;
 	for(j=0; j<ny ; j++)
 	{
-		written += snprintf(message+written, sizeof(message)-written, "[%d]", j);
+		written += snprintf(message+written, sizeof(message)-written, "[%zu]", j);
 		for(i=0; i<nx ; i++)
 		{
 			written += snprintf(message+written, sizeof(message)-written, "%4d", val[(j*ld)+i]);

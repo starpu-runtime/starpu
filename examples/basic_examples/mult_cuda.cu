@@ -66,11 +66,11 @@
  * in the case of CPU, GPU frame buffer in the case of GPU etc.). Since we have
  * registered data with the "matrix" data interface, we use the matrix macros.
  */
-static __global__ void cuda_mult_kernel(uint32_t nxC, uint32_t nyC, uint32_t nyA,
-				       uint32_t ldA, uint32_t ldB, uint32_t ldC,
+static __global__ void cuda_mult_kernel(size_t nxC, size_t nyC, size_t nyA,
+				       size_t ldA, size_t ldB, size_t ldC,
 				       float * subA, float * subB, float * subC )
 {
-	uint32_t id, i, j, k;
+	size_t id, i, j, k;
 	float sum;
 	id = blockIdx.x * blockDim.x + threadIdx.x;
 	i = id % nxC;
@@ -91,9 +91,9 @@ extern "C" void cuda_mult(void *descr[], void *arg)
 {
 	(void)arg;
 	float *d_subA, *d_subB, *d_subC;
-	uint32_t nxC, nyC, nyA;
-	uint32_t ldA, ldB, ldC;
-	uint32_t nblocks;
+	size_t nxC, nyC, nyA;
+	size_t ldA, ldB, ldC;
+	size_t nblocks;
 
 	/* ptr gives a pointer to the first element of the local copy */
 	d_subA = (float *)STARPU_MATRIX_GET_PTR(descr[0]);

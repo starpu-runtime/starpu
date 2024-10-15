@@ -50,13 +50,13 @@ __device__ static inline long long jlstarpu_interval_size__device(long long star
 }
 
 
-__global__ void mandelbrot(int64_t kernel_ids__start_1, int64_t kernel_ids__step_1, int64_t kernel_ids__dim_1, int64_t kernel_ids__start_2, 
-                           int64_t kernel_ids__step_2, int64_t kernel_ids__dim_2, double* ptr_hF6lCYyJ, int64_t local_width, 
-                           int64_t* ptr_qoUGBRtY, int64_t local_height, double conv_limit, int64_t* ptr_A5zD9sJZ, 
+__global__ void mandelbrot(int64_t kernel_ids__start_1, int64_t kernel_ids__step_1, int64_t kernel_ids__dim_1, int64_t kernel_ids__start_2,
+                           int64_t kernel_ids__step_2, int64_t kernel_ids__dim_2, double* ptr_hF6lCYyJ, int64_t local_width,
+                           int64_t* ptr_qoUGBRtY, int64_t local_height, double conv_limit, int64_t* ptr_A5zD9sJZ,
                            uint32_t ld_A5zD9sJZ)
 {
     int64_t THREAD_ID = (int64_t) ((((blockIdx).x) * ((blockDim).x)) + ((threadIdx).x));
-    
+
     if ((THREAD_ID) >= (((1) * (kernel_ids__dim_2)) * (kernel_ids__dim_1)))
     {
         return ;
@@ -75,7 +75,7 @@ __global__ void mandelbrot(int64_t kernel_ids__start_1, int64_t kernel_ids__step
     double zi = (double) (ci);
     int64_t n = (int64_t) (0);
     int64_t b1 = (int64_t) (((n) < (max_iterations)) + ((((zr) * (zr)) + ((zi) * (zi))) < ((conv_limit) * (conv_limit))));
-    
+
     while ((b1) >= (2))
     {
         double tmp = (double) ((((zr) * (zr)) - ((zi) * (zi))) + (cr));
@@ -85,7 +85,7 @@ __global__ void mandelbrot(int64_t kernel_ids__start_1, int64_t kernel_ids__step
         b1 = ((n) <= (max_iterations)) + ((((zr) * (zr)) + ((zi) * (zi))) <= ((conv_limit) * (conv_limit)));
     }
     ;
-    
+
     if ((n) < (max_iterations))
     {
         ptr_A5zD9sJZ[((y) + (((x) - (1)) * (ld_A5zD9sJZ))) - (1)] = ((255) * (n)) / (max_iterations);
@@ -100,12 +100,12 @@ __global__ void mandelbrot(int64_t kernel_ids__start_1, int64_t kernel_ids__step
 
 extern "C" void CUDA_mandelbrot(void** buffers_uwrYFDVe, void* cl_arg_uwrYFDVe)
 {
-    uint32_t ld_A5zD9sJZ = (uint32_t) (STARPU_MATRIX_GET_LD(buffers_uwrYFDVe[(1) - (1)]));
+    size_t ld_A5zD9sJZ = STARPU_MATRIX_GET_LD(buffers_uwrYFDVe[(1) - (1)]);
     int64_t* ptr_A5zD9sJZ = (int64_t*) (STARPU_MATRIX_GET_PTR(buffers_uwrYFDVe[(1) - (1)]));
     double* ptr_hF6lCYyJ = (double*) (STARPU_VECTOR_GET_PTR(buffers_uwrYFDVe[(2) - (1)]));
     int64_t* ptr_qoUGBRtY = (int64_t*) (STARPU_VECTOR_GET_PTR(buffers_uwrYFDVe[(3) - (1)]));
-    int64_t local_width = (int64_t) (STARPU_MATRIX_GET_NY(buffers_uwrYFDVe[(1) - (1)]));
-    int64_t local_height = (int64_t) (STARPU_MATRIX_GET_NX(buffers_uwrYFDVe[(1) - (1)]));
+    size_t local_width = STARPU_MATRIX_GET_NY(buffers_uwrYFDVe[(1) - (1)]);
+    size_t local_height = STARPU_MATRIX_GET_NX(buffers_uwrYFDVe[(1) - (1)]);
     double conv_limit = (double) (2.0);
     int64_t kernel_ids__start_1 = (int64_t) (1);
     int64_t kernel_ids__step_1 = (int64_t) (1);
@@ -115,17 +115,15 @@ extern "C" void CUDA_mandelbrot(void** buffers_uwrYFDVe, void* cl_arg_uwrYFDVe)
     int64_t kernel_ids__dim_2 = (int64_t) (jlstarpu_interval_size(kernel_ids__start_2, kernel_ids__step_2, local_height));
     int64_t nthreads = (int64_t) (((1) * (kernel_ids__dim_1)) * (kernel_ids__dim_2));
     int64_t nblocks = (int64_t) ((((nthreads) + (THREADS_PER_BLOCK)) - (1)) / (THREADS_PER_BLOCK));
-    
+
     mandelbrot
         <<< nblocks, THREADS_PER_BLOCK, 0, starpu_cuda_get_local_stream()
-        >>> (kernel_ids__start_1, kernel_ids__step_1, kernel_ids__dim_1, kernel_ids__start_2, 
-             kernel_ids__step_2, kernel_ids__dim_2, ptr_hF6lCYyJ, local_width, 
-             ptr_qoUGBRtY, local_height, conv_limit, ptr_A5zD9sJZ, 
+        >>> (kernel_ids__start_1, kernel_ids__step_1, kernel_ids__dim_1, kernel_ids__start_2,
+             kernel_ids__step_2, kernel_ids__dim_2, ptr_hF6lCYyJ, local_width,
+             ptr_qoUGBRtY, local_height, conv_limit, ptr_A5zD9sJZ,
              ld_A5zD9sJZ);
     ;
     cudaError_t status = cudaGetLastError();
     if (status != cudaSuccess) STARPU_CUDA_REPORT_ERROR(status);
     cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
-
-

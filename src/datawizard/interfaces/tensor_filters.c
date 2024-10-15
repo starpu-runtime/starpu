@@ -26,11 +26,11 @@ static void _starpu_tensor_filter_block(int dim, void *parent_interface, void *c
 
 	unsigned blocksize;
 	/* the element will be split, in case horizontal, it's nx, in case vertical, it's ny, in case depth, it's nz, in case time, it's nt*/
-	uint32_t nn;
-	uint32_t nx;
-	uint32_t ny;
-	uint32_t nz;
-	uint32_t nt;
+	size_t nn;
+	size_t nx;
+	size_t ny;
+	size_t nz;
+	size_t nt;
 
 	switch(dim)
 	{
@@ -79,9 +79,9 @@ static void _starpu_tensor_filter_block(int dim, void *parent_interface, void *c
 
 	size_t elemsize = tensor_parent->elemsize;
 
-	STARPU_ASSERT_MSG(nparts <= nn, "cannot split %u elements in %u parts", nn, nparts);
+	STARPU_ASSERT_MSG(nparts <= nn, "cannot split %zu elements in %u parts", nn, nparts);
 
-	uint32_t child_nn;
+	size_t child_nn;
 	size_t offset;
 	starpu_filter_nparts_compute_chunk_size_and_offset(nn, nparts, elemsize, id, blocksize, &child_nn, &offset);
 
@@ -197,11 +197,11 @@ static void _starpu_tensor_filter_pick_block(int dim, void *parent_interface, vo
 	struct starpu_block_interface *block_child = (struct starpu_block_interface *) child_interface;
 
 	unsigned blocksize;
-	uint32_t nn;
-	uint32_t nx = tensor_parent->nx;
-	uint32_t ny = tensor_parent->ny;
-	uint32_t nz = tensor_parent->nz;
-	uint32_t nt = tensor_parent->nt;
+	size_t nn;
+	size_t nx = tensor_parent->nx;
+	size_t ny = tensor_parent->ny;
+	size_t nz = tensor_parent->nz;
+	size_t nt = tensor_parent->nt;
 
 	switch(dim)
 	{
@@ -319,14 +319,14 @@ void starpu_tensor_filter_pick_variable(void *parent_interface, void *child_inte
 	/* each chunk becomes a variable */
 	struct starpu_variable_interface *variable_child = (struct starpu_variable_interface *) child_interface;
 
-	uint32_t nx = tensor_parent->nx;
-	uint32_t ny = tensor_parent->ny;
-	uint32_t nz = tensor_parent->nz;
-	uint32_t nt = tensor_parent->nt;
+	size_t nx = tensor_parent->nx;
+	size_t ny = tensor_parent->ny;
+	size_t nz = tensor_parent->nz;
+	size_t nt = tensor_parent->nt;
 
-	unsigned ldy = tensor_parent->ldy;
-	unsigned ldz = tensor_parent->ldz;
-	unsigned ldt = tensor_parent->ldt;
+	size_t ldy = tensor_parent->ldy;
+	size_t ldz = tensor_parent->ldz;
+	size_t ldt = tensor_parent->ldt;
 
 	size_t elemsize = tensor_parent->elemsize;
 

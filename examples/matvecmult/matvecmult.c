@@ -30,9 +30,9 @@ void opencl_codelet(void *descr[], void *_args)
 	cl_mem matrix = (cl_mem)STARPU_MATRIX_GET_DEV_HANDLE(descr[0]);
 	cl_mem vector = (cl_mem)STARPU_VECTOR_GET_DEV_HANDLE(descr[1]);
 	cl_mem mult = (cl_mem)STARPU_VECTOR_GET_DEV_HANDLE(descr[2]);
-	int nx = STARPU_MATRIX_GET_NX(descr[0]);
-	int ny = STARPU_MATRIX_GET_NY(descr[0]);
-	int ld = STARPU_MATRIX_GET_LD(descr[0]);
+	cl_ulong nx = STARPU_MATRIX_GET_NX(descr[0]);
+	cl_ulong ny = STARPU_MATRIX_GET_NY(descr[0]);
+	cl_ulong ld = STARPU_MATRIX_GET_LD(descr[0]);
 
 	id = starpu_worker_get_id_check();
 	devid = starpu_worker_get_devid(id);

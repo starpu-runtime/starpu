@@ -57,7 +57,7 @@ void scal_cpu_func(void *buffers[], void *_args)
 	int i;
 	float *factor = _args, f = *factor;
 	struct starpu_vector_interface *vector = buffers[0];
-	int n = STARPU_VECTOR_GET_NX(vector);
+	size_t n = STARPU_VECTOR_GET_NX(vector);
 	float *val = (float *)STARPU_VECTOR_GET_PTR(vector);
 
 	int nb_workers = starpu_combined_worker_get_size();

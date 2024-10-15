@@ -69,8 +69,8 @@ static void register_data(void)
 					_arr4d[(l*NX*NY*NZ)+(k*NX*NY)+(j*NX)+i] = val++;
 
 	/* Registering data */
-	unsigned nn[4] = {NX, NY, NZ, NT};
-	unsigned ldn[4] = {1, NX, NX*NY, NX*NY*NZ};
+	size_t nn[4] = {NX, NY, NZ, NT};
+	size_t ldn[4] = {1, NX, NX*NY, NX*NY*NZ};
 
 	starpu_ndim_data_register(&_arr4d_handle, STARPU_MAIN_RAM, (uintptr_t)_arr4d, ldn, nn, 4, sizeof(_arr4d[0]));
 	starpu_ndim_data_register(&_arr4d2_handle, STARPU_MAIN_RAM, (uintptr_t)_arr4d2, ldn, nn, 4, sizeof(_arr4d2[0]));
@@ -87,17 +87,17 @@ void test_arr4d_cpu_func(void *buffers[], void *args)
 	STARPU_SKIP_IF_VALGRIND;
 
 	int factor = *(int*)args;
-	int *nn = (int *)STARPU_NDIM_GET_NN(buffers[0]);
-	unsigned *ldn = STARPU_NDIM_GET_LDN(buffers[0]);
-	int nx = nn[0];
-	int ny = nn[1];
-	int nz = nn[2];
-	int nt = nn[3];
-	unsigned ldy = ldn[1];
-	unsigned ldz = ldn[2];
-	unsigned ldt = ldn[3];
+	size_t *nn = STARPU_NDIM_GET_NN(buffers[0]);
+	size_t *ldn = STARPU_NDIM_GET_LDN(buffers[0]);
+	size_t nx = nn[0];
+	size_t ny = nn[1];
+	size_t nz = nn[2];
+	size_t nt = nn[3];
+	size_t ldy = ldn[1];
+	size_t ldz = ldn[2];
+	size_t ldt = ldn[3];
 	int *arr4d = (int *) STARPU_NDIM_GET_PTR(buffers[0]);
-	int i, j, k, l;
+	size_t i, j, k, l;
 	int val = 0;
 	arr4d_config.copy_failed = SUCCESS;
 	for (l = 0; l < nt; l++)
@@ -108,7 +108,7 @@ void test_arr4d_cpu_func(void *buffers[], void *args)
 			{
 				for (i = 0; i < nx; i++)
 				{
-					if (arr4d[(l*ldt)+(k*ldz)+(j*ldy)+i] != factor * val)
+					if (arr4d[(l*ldt)+(k*ldz)+(j*ldy)+i] != val * factor)
 					{
 						arr4d_config.copy_failed = FAILURE;
 						return;

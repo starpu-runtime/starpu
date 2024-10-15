@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2024  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,9 +16,9 @@
 
 #include <starpu.h>
 
-static __global__ void hip_block(float *block, int nx, int ny, int nz, unsigned ldy, unsigned ldz, float multiplier)
+static __global__ void hip_block(float *block, size_t nx, size_t ny, size_t nz, size_t ldy, size_t ldz, float multiplier)
 {
-        int i, j, k;
+        size_t i, j, k;
         for(k=0; k<nz ; k++)
 	{
                 for(j=0; j<ny ; j++)
@@ -32,11 +32,11 @@ static __global__ void hip_block(float *block, int nx, int ny, int nz, unsigned 
 extern "C" void hip_codelet(void *descr[], void *_args)
 {
         float *block = (float *)STARPU_BLOCK_GET_PTR(descr[0]);
-	int nx = STARPU_BLOCK_GET_NX(descr[0]);
-	int ny = STARPU_BLOCK_GET_NY(descr[0]);
-	int nz = STARPU_BLOCK_GET_NZ(descr[0]);
-        unsigned ldy = STARPU_BLOCK_GET_LDY(descr[0]);
-        unsigned ldz = STARPU_BLOCK_GET_LDZ(descr[0]);
+	size_t nx = STARPU_BLOCK_GET_NX(descr[0]);
+	size_t ny = STARPU_BLOCK_GET_NY(descr[0]);
+	size_t nz = STARPU_BLOCK_GET_NZ(descr[0]);
+        size_t ldy = STARPU_BLOCK_GET_LDY(descr[0]);
+        size_t ldz = STARPU_BLOCK_GET_LDZ(descr[0]);
         float *multiplier = (float *)_args;
 
         hipLaunchKernelGGL(hip_block, 1, 1, 0, 0,

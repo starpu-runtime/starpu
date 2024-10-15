@@ -68,13 +68,13 @@ void loop_element_cpu_func(void *buffers[], void *cl_arg)
 	double coeff;
 
 	double **ro = (double **) STARPU_MATRIX_GET_PTR(buffers[0]);
-	int Neq_max  = STARPU_MATRIX_GET_NX(buffers[0]);
+	size_t Neq_max  = STARPU_MATRIX_GET_NX(buffers[0]);
 
 	double **dro = (double **) STARPU_MATRIX_GET_PTR(buffers[1]);
 
 	double **basis = (double **) STARPU_MATRIX_GET_PTR(buffers[2]);
-	int Np = STARPU_MATRIX_GET_NX(buffers[2]);
-	int Ng = STARPU_MATRIX_GET_NY(buffers[2]);
+	size_t Np = STARPU_MATRIX_GET_NX(buffers[2]);
+	size_t Ng = STARPU_MATRIX_GET_NY(buffers[2]);
 
 	starpu_codelet_unpack_args(cl_arg, &coeff);
 
@@ -123,8 +123,8 @@ void copy_element_cpu_func(void *buffers[], void *cl_arg)
 {
 	(void)cl_arg;
 	double **ro = (double **) STARPU_MATRIX_GET_PTR(buffers[0]);
-	int Neq_max  = STARPU_MATRIX_GET_NX(buffers[0]);
-	int Np = STARPU_MATRIX_GET_NY(buffers[0]);
+	size_t Neq_max  = STARPU_MATRIX_GET_NX(buffers[0]);
+	size_t Np = STARPU_MATRIX_GET_NY(buffers[0]);
 
 	double **dro = (double **) STARPU_MATRIX_GET_PTR(buffers[1]);
 

@@ -53,12 +53,12 @@ void cpu_f(void *descr[], void *arg)
 	unsigned *v = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
 	unsigned *tmp = (unsigned *)STARPU_VECTOR_GET_PTR(descr[1]);
 
-	unsigned nx = STARPU_VECTOR_GET_NX(descr[0]);
+	size_t nx = STARPU_VECTOR_GET_NX(descr[0]);
 	size_t elemsize = STARPU_VECTOR_GET_ELEMSIZE(descr[0]);
 
 	memcpy(tmp, v, nx*elemsize);
 
-	unsigned i;
+	size_t i;
 	for (i = 0; i < nx; i++)
 	{
 		v[i] = tmp[i] + 1;

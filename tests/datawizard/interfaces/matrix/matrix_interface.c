@@ -31,7 +31,6 @@ extern void test_matrix_cuda_func(void *buffers[], void *_args);
 extern void test_matrix_opencl_func(void *buffers[], void *args);
 #endif
 
-
 static starpu_data_handle_t matrix_handle;
 static starpu_data_handle_t matrix2_handle;
 
@@ -60,8 +59,8 @@ struct test_config matrix_config =
 static void
 register_data(void)
 {
-	int i;
-	int size = WIDTH * HEIGHT;
+	size_t i;
+	size_t size = WIDTH * HEIGHT;
 	for (i = 0; i < size; i++)
 		matrix[i] = i;
 
@@ -95,17 +94,17 @@ test_matrix_cpu_func(void *buffers[], void *args)
 
 	int *val;
 	int factor;
-	int i;
-	int nx, ny;
+	size_t i;
+	size_t nx, ny;
 
 	nx = STARPU_MATRIX_GET_NX(buffers[0]);
 	ny = STARPU_MATRIX_GET_NY(buffers[0]);
-	val = (int *) STARPU_MATRIX_GET_PTR(buffers[0]);
+	val = (int*) STARPU_MATRIX_GET_PTR(buffers[0]);
 	factor = *(int *) args;
 
 	for (i = 0; i < nx*ny; i++)
 	{
-		if (val[i] != i * factor)
+		if (val[i] != (int)i * factor)
 		{
 			matrix_config.copy_failed = FAILURE;
 			return;

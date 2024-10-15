@@ -18,9 +18,9 @@
 
 #include <starpu.h>
 
-static __global__ void f3d_cuda(int *arr3d, int nx, int ny, int nz, unsigned ldy, unsigned ldz, float factor)
+static __global__ void f3d_cuda(int *arr3d, size_t nx, size_t ny, size_t nz, size_t ldy, size_t ldz, float factor)
 {
-        int i, j, k;
+        size_t i, j, k;
 
         for(k=0; k<nz ; k++)
         {
@@ -36,13 +36,13 @@ extern "C" void f3d_cuda_func(void *buffers[], void *_args)
 {
         int *factor = (int *)_args;
         int *arr3d = (int *)STARPU_NDIM_GET_PTR(buffers[0]);
-        int *nn = (int *)STARPU_NDIM_GET_NN(buffers[0]);
-        unsigned *ldn = STARPU_NDIM_GET_LDN(buffers[0]);
-        int nx = nn[0];
-        int ny = nn[1];
-        int nz = nn[2];
-        unsigned ldy = ldn[1];
-        unsigned ldz = ldn[2];
+        size_t *nn = STARPU_NDIM_GET_NN(buffers[0]);
+        size_t *ldn = STARPU_NDIM_GET_LDN(buffers[0]);
+        size_t nx = nn[0];
+        size_t ny = nn[1];
+        size_t nz = nn[2];
+        size_t ldy = ldn[1];
+        size_t ldz = ldn[2];
 
         f3d_cuda<<<1,1, 0, starpu_cuda_get_local_stream()>>>(arr3d, nx, ny, nz, ldy, ldz, *factor);
         cudaError_t status = cudaGetLastError();

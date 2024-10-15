@@ -100,7 +100,7 @@ double *last_tick;
 static int achieved_iter;
 
 /* Record how many updates each worker performed */
-unsigned update_per_worker[STARPU_NMAXWORKERS];
+size_t update_per_worker[STARPU_NMAXWORKERS];
 
 static void record_who_runs_what(struct block_description *block)
 {
@@ -140,7 +140,7 @@ static void check_load(struct starpu_block_interface *block, struct starpu_block
  */
 static void load_subblock_from_buffer_cpu(void *_block,
 					void *_boundary,
-					unsigned firstz)
+					size_t firstz)
 {
 	struct starpu_block_interface *block = (struct starpu_block_interface *)_block;
 	struct starpu_block_interface *boundary = (struct starpu_block_interface *)_boundary;
@@ -149,7 +149,7 @@ static void load_subblock_from_buffer_cpu(void *_block,
 	/* We do a contiguous memory transfer */
 	size_t boundary_size = K*block->ldz*block->elemsize;
 
-	unsigned offset = firstz*block->ldz;
+	size_t offset = firstz*block->ldz;
 	TYPE *block_data = (TYPE *)block->ptr;
 	TYPE *boundary_data = (TYPE *)boundary->ptr;
 	memcpy(&block_data[offset], boundary_data, boundary_size);
@@ -161,7 +161,7 @@ static void load_subblock_from_buffer_cpu(void *_block,
 #ifdef STARPU_USE_CUDA
 static void load_subblock_from_buffer_cuda(void *_block,
 					void *_boundary,
-					unsigned firstz)
+					size_t firstz)
 {
 	struct starpu_block_interface *block = (struct starpu_block_interface *)_block;
 	struct starpu_block_interface *boundary = (struct starpu_block_interface *)_boundary;
@@ -170,7 +170,7 @@ static void load_subblock_from_buffer_cuda(void *_block,
 	/* We do a contiguous memory transfer */
 	size_t boundary_size = K*block->ldz*block->elemsize;
 
-	unsigned offset = firstz*block->ldz;
+	size_t offset = firstz*block->ldz;
 	TYPE *block_data = (TYPE *)block->ptr;
 	TYPE *boundary_data = (TYPE *)boundary->ptr;
 	cudaMemcpyAsync(&block_data[offset], boundary_data, boundary_size, cudaMemcpyDeviceToDevice, starpu_cuda_get_local_stream());
@@ -181,16 +181,16 @@ static void load_subblock_from_buffer_cuda(void *_block,
  */
 static void update_func_cuda(void *descr[], void *arg)
 {
-	unsigned z;
+	size_t z;
 	starpu_codelet_unpack_args(arg, &z);
 	struct block_description *block = get_block_description(z);
 
 	int workerid = starpu_worker_get_id_check();
 	DEBUG("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 	if (block->bz == 0)
-		FPRINTF(stderr,"!!! DO update_func_cuda z %u CUDA%d !!!\n", block->bz, workerid);
+		FPRINTF(stderr,"!!! DO update_func_cuda z %zu CUDA%d !!!\n", block->bz, workerid);
 	else
-		DEBUG("!!! DO update_func_cuda z %u CUDA%d !!!\n", block->bz, workerid);
+		DEBUG("!!! DO update_func_cuda z %zu CUDA%d !!!\n", block->bz, workerid);
 #if defined(STARPU_USE_MPI) && !defined(STARPU_SIMGRID) && !defined(STARPU_USE_MPI_MASTER_SLAVE)
 	int rank = 0;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -198,8 +198,8 @@ static void update_func_cuda(void *descr[], void *arg)
 #endif
 	DEBUG("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 
-	unsigned block_size_z = get_block_size(block->bz);
-	unsigned i;
+	size_t block_size_z = get_block_size(block->bz);
+	size_t i;
 	update_per_worker[workerid]++;
 
 	record_who_runs_what(block);
@@ -246,14 +246,14 @@ static void update_func_cuda(void *descr[], void *arg)
 #ifdef STARPU_USE_OPENCL
 static void load_subblock_from_buffer_opencl(struct starpu_block_interface *block,
 					struct starpu_block_interface *boundary,
-					unsigned firstz)
+					size_t firstz)
 {
 	check_load(block, boundary);
 
 	/* We do a contiguous memory transfer */
 	size_t boundary_size = K*block->ldz*block->elemsize;
 
-	unsigned offset = firstz*block->ldz;
+	size_t offset = firstz*block->ldz;
 	cl_mem block_data = (cl_mem)block->dev_handle;
 	cl_mem boundary_data = (cl_mem)boundary->dev_handle;
 
@@ -268,16 +268,16 @@ static void load_subblock_from_buffer_opencl(struct starpu_block_interface *bloc
  */
 static void update_func_opencl(void *descr[], void *arg)
 {
-	unsigned z;
+	size_t z;
 	starpu_codelet_unpack_args(arg, &z);
 	struct block_description *block = get_block_description(z);
 
 	int workerid = starpu_worker_get_id_check();
 	DEBUG("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 	if (block->bz == 0)
-		FPRINTF(stderr,"!!! DO update_func_opencl z %u OPENCL%d !!!\n", block->bz, workerid);
+		FPRINTF(stderr,"!!! DO update_func_opencl z %zu OPENCL%d !!!\n", block->bz, workerid);
 	else
-		DEBUG("!!! DO update_func_opencl z %u OPENCL%d !!!\n", block->bz, workerid);
+		DEBUG("!!! DO update_func_opencl z %zu OPENCL%d !!!\n", block->bz, workerid);
 #if defined(STARPU_USE_MPI) && !defined(STARPU_SIMGRID) && !defined(STARPU_USE_MPI_MASTER_SLAVE)
 	int rank = 0;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -285,8 +285,8 @@ static void update_func_opencl(void *descr[], void *arg)
 #endif
 	DEBUG("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 
-	unsigned block_size_z = get_block_size(block->bz);
-	unsigned i;
+	size_t block_size_z = get_block_size(block->bz);
+	size_t i;
 	update_per_worker[workerid]++;
 
 	record_who_runs_what(block);
@@ -338,16 +338,16 @@ static void update_func_opencl(void *descr[], void *arg)
  */
 void update_func_cpu(void *descr[], void *arg)
 {
-	unsigned zz;
+	size_t zz;
 	starpu_codelet_unpack_args(arg, &zz);
 	struct block_description *block = get_block_description(zz);
 
 	int workerid = starpu_worker_get_id_check();
 	DEBUG("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 	if (block->bz == 0)
-		DEBUG("!!! DO update_func_cpu z %u worker%d !!!\n", block->bz, workerid);
+		DEBUG("!!! DO update_func_cpu z %zu worker%d !!!\n", block->bz, workerid);
 	else
-		DEBUG("!!! DO update_func_cpu z %u worker%d !!!\n", block->bz, workerid);
+		DEBUG("!!! DO update_func_cpu z %zu worker%d !!!\n", block->bz, workerid);
 #if defined(STARPU_USE_MPI) && !defined(STARPU_SIMGRID) && !defined(STARPU_USE_MPI_MASTER_SLAVE)
 	int rank = 0;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -355,8 +355,8 @@ void update_func_cpu(void *descr[], void *arg)
 #endif
 	DEBUG("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 
-	unsigned block_size_z = get_block_size(block->bz);
-	unsigned i;
+	size_t block_size_z = get_block_size(block->bz);
+	size_t i;
 	update_per_worker[workerid]++;
 
 	record_who_runs_what(block);
@@ -385,15 +385,15 @@ void update_func_cpu(void *descr[], void *arg)
 		TYPE *old = (TYPE*) oldb->ptr, *newer = (TYPE*) newb->ptr;
 
 		/* Shadow data */
-		unsigned ldy = oldb->ldy, ldz = oldb->ldz;
-		unsigned nx = oldb->nx, ny = oldb->ny, nz = oldb->nz;
-		unsigned x, y, z;
-		unsigned stepx = 1;
-		unsigned stepy = 1;
-		unsigned stepz = 1;
-		unsigned idx = 0;
-		unsigned idy = 0;
-		unsigned idz = 0;
+		size_t ldy = oldb->ldy, ldz = oldb->ldz;
+		size_t nx = oldb->nx, ny = oldb->ny, nz = oldb->nz;
+		size_t x, y, z;
+		size_t stepx = 1;
+		size_t stepy = 1;
+		size_t stepz = 1;
+		size_t idx = 0;
+		size_t idy = 0;
+		size_t idz = 0;
 		TYPE *ptr = old;
 
 #		include "shadow.h"
@@ -437,7 +437,7 @@ struct starpu_codelet cl_update =
 /* CPU version */
 static void load_subblock_into_buffer_cpu(void *_block,
 					void *_boundary,
-					unsigned firstz)
+					size_t firstz)
 {
 	struct starpu_block_interface *block = (struct starpu_block_interface *)_block;
 	struct starpu_block_interface *boundary = (struct starpu_block_interface *)_boundary;
@@ -446,7 +446,7 @@ static void load_subblock_into_buffer_cpu(void *_block,
 	/* We do a contiguous memory transfer */
 	size_t boundary_size = K*block->ldz*block->elemsize;
 
-	unsigned offset = firstz*block->ldz;
+	size_t offset = firstz*block->ldz;
 	TYPE *block_data = (TYPE *)block->ptr;
 	TYPE *boundary_data = (TYPE *)boundary->ptr;
 	memcpy(boundary_data, &block_data[offset], boundary_size);
@@ -456,7 +456,7 @@ static void load_subblock_into_buffer_cpu(void *_block,
 #ifdef STARPU_USE_CUDA
 static void load_subblock_into_buffer_cuda(void *_block,
 					void *_boundary,
-					unsigned firstz)
+					size_t firstz)
 {
 	struct starpu_block_interface *block = (struct starpu_block_interface *)_block;
 	struct starpu_block_interface *boundary = (struct starpu_block_interface *)_boundary;
@@ -465,7 +465,7 @@ static void load_subblock_into_buffer_cuda(void *_block,
 	/* We do a contiguous memory transfer */
 	size_t boundary_size = K*block->ldz*block->elemsize;
 
-	unsigned offset = firstz*block->ldz;
+	size_t offset = firstz*block->ldz;
 	TYPE *block_data = (TYPE *)block->ptr;
 	TYPE *boundary_data = (TYPE *)boundary->ptr;
 	cudaMemcpyAsync(boundary_data, &block_data[offset], boundary_size, cudaMemcpyDeviceToDevice, starpu_cuda_get_local_stream());
@@ -476,14 +476,14 @@ static void load_subblock_into_buffer_cuda(void *_block,
 #ifdef STARPU_USE_OPENCL
 static void load_subblock_into_buffer_opencl(struct starpu_block_interface *block,
 					struct starpu_block_interface *boundary,
-					unsigned firstz)
+					size_t firstz)
 {
 	check_load(block, boundary);
 
 	/* We do a contiguous memory transfer */
 	size_t boundary_size = K*block->ldz*block->elemsize;
 
-	unsigned offset = firstz*block->ldz;
+	size_t offset = firstz*block->ldz;
 	cl_mem block_data = (cl_mem)block->dev_handle;
 	cl_mem boundary_data = (cl_mem)boundary->dev_handle;
 
@@ -496,13 +496,13 @@ static void load_subblock_into_buffer_opencl(struct starpu_block_interface *bloc
 #endif /* STARPU_USE_OPENCL */
 
 /* Record how many top/bottom saves each worker performed */
-unsigned top_per_worker[STARPU_NMAXWORKERS];
-unsigned bottom_per_worker[STARPU_NMAXWORKERS];
+size_t top_per_worker[STARPU_NMAXWORKERS];
+size_t bottom_per_worker[STARPU_NMAXWORKERS];
 
 /* top save, CPU version */
 void dummy_func_top_cpu(void *descr[], void *arg)
 {
-	unsigned z;
+	size_t z;
 	starpu_codelet_unpack_args(arg, &z);
 	struct block_description *block = get_block_description(z);
 
@@ -512,7 +512,7 @@ void dummy_func_top_cpu(void *descr[], void *arg)
 	DEBUG("DO SAVE Bottom block %d\n", block->bz);
 
 	/* The offset along the z axis is (block_size_z + K)- K */
-	unsigned block_size_z = get_block_size(block->bz);
+	size_t block_size_z = get_block_size(block->bz);
 
 	load_subblock_into_buffer_cpu(descr[0], descr[2], block_size_z);
 	load_subblock_into_buffer_cpu(descr[1], descr[3], block_size_z);
@@ -521,7 +521,7 @@ void dummy_func_top_cpu(void *descr[], void *arg)
 /* bottom save, CPU version */
 void dummy_func_bottom_cpu(void *descr[], void *arg)
 {
-	unsigned z;
+	size_t z;
 	starpu_codelet_unpack_args(arg, &z);
 	struct block_description *block = get_block_description(z);
 	STARPU_ASSERT(block);
@@ -539,7 +539,7 @@ void dummy_func_bottom_cpu(void *descr[], void *arg)
 #ifdef STARPU_USE_CUDA
 static void dummy_func_top_cuda(void *descr[], void *arg)
 {
-	unsigned z;
+	size_t z;
 	starpu_codelet_unpack_args(arg, &z);
 	struct block_description *block = get_block_description(z);
 
@@ -549,7 +549,7 @@ static void dummy_func_top_cuda(void *descr[], void *arg)
 	DEBUG("DO SAVE Top block %d\n", block->bz);
 
 	/* The offset along the z axis is (block_size_z + K)- K */
-	unsigned block_size_z = get_block_size(block->bz);
+	size_t block_size_z = get_block_size(block->bz);
 
 	load_subblock_into_buffer_cuda(descr[0], descr[2], block_size_z);
 	load_subblock_into_buffer_cuda(descr[1], descr[3], block_size_z);
@@ -558,7 +558,7 @@ static void dummy_func_top_cuda(void *descr[], void *arg)
 /* bottom save, CUDA version */
 static void dummy_func_bottom_cuda(void *descr[], void *arg)
 {
-	unsigned z;
+	size_t z;
 	starpu_codelet_unpack_args(arg, &z);
 	struct block_description *block = get_block_description(z);
 	(void) block;
@@ -577,7 +577,7 @@ static void dummy_func_bottom_cuda(void *descr[], void *arg)
 #ifdef STARPU_USE_OPENCL
 static void dummy_func_top_opencl(void *descr[], void *arg)
 {
-	unsigned z;
+	size_t z;
 	starpu_codelet_unpack_args(arg, &z);
 	struct block_description *block = get_block_description(z);
 
@@ -587,7 +587,7 @@ static void dummy_func_top_opencl(void *descr[], void *arg)
 	DEBUG("DO SAVE Top block %d\n", block->bz);
 
 	/* The offset along the z axis is (block_size_z + K)- K */
-	unsigned block_size_z = get_block_size(block->bz);
+	size_t block_size_z = get_block_size(block->bz);
 
 	load_subblock_into_buffer_opencl(descr[0], descr[2], block_size_z);
 	load_subblock_into_buffer_opencl(descr[1], descr[3], block_size_z);
@@ -596,7 +596,7 @@ static void dummy_func_top_opencl(void *descr[], void *arg)
 /* bottom save, OPENCL version */
 static void dummy_func_bottom_opencl(void *descr[], void *arg)
 {
-	unsigned z;
+	size_t z;
 	starpu_codelet_unpack_args(arg, &z);
 	struct block_description *block = get_block_description(z);
 	(void) block;
@@ -660,12 +660,12 @@ struct starpu_codelet save_cl_top =
 void memset_func(void *descr[], void *arg)
 {
 	(void)descr;
-	unsigned sizex, sizey, bz;
+	size_t sizex, sizey, bz;
 	starpu_codelet_unpack_args(arg, &sizex, &sizey, &bz);
 	struct block_description *block = get_block_description(bz);
-	unsigned size_bz = get_block_size(bz);
+	size_t size_bz = get_block_size(bz);
 
-	unsigned x,y,z;
+	size_t x,y,z;
 	for (x = 0; x < sizex + 2*K; x++)
 	{
 		for (y = 0; y < sizey + 2*K; y++)
@@ -725,14 +725,14 @@ struct starpu_codelet cl_memset =
 static void initlayer_func(void *descr[], void *arg)
 {
 	(void)descr;
-	unsigned sizex, sizey, bz;
+	size_t sizex, sizey, bz;
 	starpu_codelet_unpack_args(arg, &sizex, &sizey, &bz);
 	struct block_description *block = get_block_description(bz);
-	unsigned size_bz = get_block_size(bz);
+	size_t size_bz = get_block_size(bz);
 
 	/* Initialize layer with some random data */
-	unsigned x, y, z;
-	unsigned sum = 0;
+	size_t x, y, z;
+	size_t sum = 0;
 	for (x = 0; x < sizex; x++)
 		for (y = 0; y < sizey; y++)
 			for (z = 0; z < size_bz; z++)

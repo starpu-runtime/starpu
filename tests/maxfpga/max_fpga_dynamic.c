@@ -36,7 +36,7 @@ void fpga_impl1(void *buffers[], void *cl_arg)
 	int32_t *ptrB = (int32_t*) STARPU_VECTOR_GET_PTR(buffers[1]);
 	size_t	 ptrC = (size_t)   STARPU_VECTOR_GET_PTR(buffers[2]); /* FPGA */
 
-	int size = STARPU_VECTOR_GET_NX(buffers[0]);
+	size_t size = STARPU_VECTOR_GET_NX(buffers[0]);
 
 	max_engine_t *engine = starpu_max_fpga_get_local_engine();;
 
@@ -83,7 +83,7 @@ void fpga_impl2(void *buffers[], void *cl_arg)
 	size_t ptrB = (size_t) STARPU_VECTOR_GET_PTR(buffers[1]); /* FPGA */
 	size_t ptrC = (size_t) STARPU_VECTOR_GET_PTR(buffers[2]); /* FPGA */
 
-	int size = STARPU_VECTOR_GET_NX(buffers[0]);
+	size_t size = STARPU_VECTOR_GET_NX(buffers[0]);
 
 	max_engine_t *engine = starpu_max_fpga_get_local_engine();;
 
@@ -129,7 +129,7 @@ void fpga_impl3(void *buffers[], void *cl_arg)
 	size_t	 ptrB = (size_t)   STARPU_VECTOR_GET_PTR(buffers[1]); /* FPGA */
 	int32_t *ptrC = (int32_t*) STARPU_VECTOR_GET_PTR(buffers[2]);
 
-	int size = STARPU_VECTOR_GET_NX(buffers[0]);
+	size_t size = STARPU_VECTOR_GET_NX(buffers[0]);
 
 	max_engine_t *engine = starpu_max_fpga_get_local_engine();;
 

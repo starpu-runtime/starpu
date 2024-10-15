@@ -50,11 +50,11 @@ static void omp_destructor(void)
 void task_region_g(void *buffers[], void *args)
 {
 	struct starpu_vector_interface *_vector_1 = buffers[0];
-	int nx1 = STARPU_VECTOR_GET_NX(_vector_1);
+	size_t nx1 = STARPU_VECTOR_GET_NX(_vector_1);
 	int *v1 = (int *)STARPU_VECTOR_GET_PTR(_vector_1);
 
 	struct starpu_vector_interface *_vector_2 = buffers[1];
-	int nx2 = STARPU_VECTOR_GET_NX(_vector_2);
+	size_t nx2 = STARPU_VECTOR_GET_NX(_vector_2);
 	int *v2 = (int *)STARPU_VECTOR_GET_PTR(_vector_2);
 
 	int f = (int)(intptr_t)args;

@@ -36,7 +36,7 @@ static void init_rm_infos(void);
 static void vector_scale_func(void *cl_buffers[], void *cl_arg)
 {
 	float scalar = -1.0;
-	int n = STARPU_VECTOR_GET_NX(cl_buffers[0]);
+	size_t n = STARPU_VECTOR_GET_NX(cl_buffers[0]);
 	float *vector = (float *)STARPU_VECTOR_GET_PTR(cl_buffers[0]);
 	int i;
 	starpu_codelet_unpack_args(cl_arg, &scalar);

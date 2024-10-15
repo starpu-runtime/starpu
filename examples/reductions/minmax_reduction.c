@@ -109,7 +109,7 @@ void minmax_cpu_func(void *descr[], void *cl_arg)
 	(void)cl_arg;
 	/* The array containing the values */
 	TYPE *local_array = (TYPE *)STARPU_VECTOR_GET_PTR(descr[0]);
-	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
+	size_t n = STARPU_VECTOR_GET_NX(descr[0]);
 
 	TYPE *minmax = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
@@ -117,7 +117,7 @@ void minmax_cpu_func(void *descr[], void *cl_arg)
 	TYPE local_max = minmax[1];
 
 	/* Compute the min and the max elements in the array */
-	unsigned i;
+	size_t i;
 	for (i = 0; i < n; i++)
 	{
 		TYPE val = local_array[i];

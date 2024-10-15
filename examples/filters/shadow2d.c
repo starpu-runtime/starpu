@@ -96,20 +96,20 @@ void cpu_func(void *buffers[], void *cl_arg)
 {
 	(void)cl_arg;
 	/* length of the shadowed source matrix */
-	unsigned ld = STARPU_MATRIX_GET_LD(buffers[0]);
-	unsigned n = STARPU_MATRIX_GET_NX(buffers[0]);
-	unsigned m = STARPU_MATRIX_GET_NY(buffers[0]);
+	size_t ld = STARPU_MATRIX_GET_LD(buffers[0]);
+	size_t n = STARPU_MATRIX_GET_NX(buffers[0]);
+	size_t m = STARPU_MATRIX_GET_NY(buffers[0]);
 	/* local copy of the shadowed source matrix pointer */
 	int *val = (int *)STARPU_MATRIX_GET_PTR(buffers[0]);
 
 	/* length of the destination matrix */
-	unsigned ld2 = STARPU_MATRIX_GET_LD(buffers[1]);
-	unsigned n2 = STARPU_MATRIX_GET_NX(buffers[1]);
-	unsigned m2 = STARPU_MATRIX_GET_NY(buffers[1]);
+	size_t ld2 = STARPU_MATRIX_GET_LD(buffers[1]);
+	size_t n2 = STARPU_MATRIX_GET_NX(buffers[1]);
+	size_t m2 = STARPU_MATRIX_GET_NY(buffers[1]);
 	/* local copy of the destination matrix pointer */
 	int *val2 = (int *)STARPU_MATRIX_GET_PTR(buffers[1]);
 
-	unsigned i, j;
+	size_t i, j;
 
 	/* If things go right, sizes should match */
 	STARPU_ASSERT(n == n2);
@@ -126,16 +126,16 @@ void cuda_func(void *buffers[], void *cl_arg)
 	cudaError_t cures;
 
 	/* length of the shadowed source matrix */
-	unsigned ld = STARPU_MATRIX_GET_LD(buffers[0]);
-	unsigned n = STARPU_MATRIX_GET_NX(buffers[0]);
-	unsigned m = STARPU_MATRIX_GET_NY(buffers[0]);
+	size_t ld = STARPU_MATRIX_GET_LD(buffers[0]);
+	size_t n = STARPU_MATRIX_GET_NX(buffers[0]);
+	size_t m = STARPU_MATRIX_GET_NY(buffers[0]);
 	/* local copy of the shadowed source matrix pointer */
 	int *val = (int *)STARPU_MATRIX_GET_PTR(buffers[0]);
 
 	/* length of the destination matrix */
-	unsigned ld2 = STARPU_MATRIX_GET_LD(buffers[1]);
-	unsigned n2 = STARPU_MATRIX_GET_NX(buffers[1]);
-	unsigned m2 = STARPU_MATRIX_GET_NY(buffers[1]);
+	size_t ld2 = STARPU_MATRIX_GET_LD(buffers[1]);
+	size_t n2 = STARPU_MATRIX_GET_NX(buffers[1]);
+	size_t m2 = STARPU_MATRIX_GET_NY(buffers[1]);
 	/* local copy of the destination matrix pointer */
 	int *val2 = (int *)STARPU_MATRIX_GET_PTR(buffers[1]);
 
@@ -149,7 +149,7 @@ void cuda_func(void *buffers[], void *cl_arg)
 
 int main(void)
 {
-	unsigned i, j, k, l;
+	size_t i, j, k, l;
 	int matrix[NY + 2*SHADOWY][NX + 2*SHADOWX];
 	int matrix2[NY + PARTSY*2*SHADOWY][NX + PARTSX*2*SHADOWX];
 	starpu_data_handle_t handle, handle2;

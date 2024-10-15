@@ -22,7 +22,7 @@
 /* This kernel takes a buffer and scales it by a constant factor */
 void scal_cpu_func(void *buffers[], void *cl_arg)
 {
-    unsigned i;
+    size_t i;
     float *factor = cl_arg;
 
     /*
@@ -38,7 +38,7 @@ void scal_cpu_func(void *buffers[], void *cl_arg)
     struct starpu_vector_interface *vector = buffers[0];
 
     /* length of the vector */
-    unsigned n = STARPU_VECTOR_GET_NX(vector);
+    size_t n = STARPU_VECTOR_GET_NX(vector);
 
     /* get a pointer to the local copy of the vector: note that we have to
      * cast it in (float *) since a vector could contain any type of
@@ -53,22 +53,22 @@ void scal_cpu_func(void *buffers[], void *cl_arg)
 void scal_sse_func(void *buffers[], void *cl_arg)
 {
     float *vector = (float *) STARPU_VECTOR_GET_PTR(buffers[0]);
-    unsigned int n = STARPU_VECTOR_GET_NX(buffers[0]);
-    unsigned int n_iterations = n/4;
+    size_t n = STARPU_VECTOR_GET_NX(buffers[0]);
+    size_t n_iterations = n/4;
 
     __m128 *VECTOR = (__m128*) vector;
     __m128 FACTOR STARPU_ATTRIBUTE_ALIGNED(16);
     float factor = *(float *) cl_arg;
     FACTOR = _mm_set1_ps(factor);
 
-    unsigned int i;
+    size_t i;
     for (i = 0; i < n_iterations; i++)
         VECTOR[i] = _mm_mul_ps(FACTOR, VECTOR[i]);
 
     unsigned int remainder = n%4;
     if (remainder != 0)
     {
-        unsigned int start = 4 * n_iterations;
+        size_t start = 4 * n_iterations;
         for (i = start; i < start+remainder; ++i)
         {
             vector[i] = factor * vector[i];

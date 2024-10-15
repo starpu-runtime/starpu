@@ -31,7 +31,7 @@ void starpu_bcsr_filter_vertical_block(void *parent_interface, void *child_inter
 	uint32_t *ram_rowptr = bcsr_parent->ram_rowptr;
 	uint32_t *rowptr = bcsr_parent->rowptr;
 
-	unsigned child_nrow;
+	size_t child_nrow;
 	size_t child_rowoffset;
 
 	STARPU_ASSERT_MSG(bcsr_parent->id == STARPU_BCSR_INTERFACE_ID, "%s can only be applied on a bcsr data", __func__);

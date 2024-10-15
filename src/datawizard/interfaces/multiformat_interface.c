@@ -73,7 +73,7 @@ static size_t multiformat_interface_get_size(starpu_data_handle_t handle);
 static uint32_t footprint_multiformat_interface_crc32(starpu_data_handle_t handle);
 static int multiformat_compare(void *data_interface_a, void *data_interface_b);
 static void display_multiformat_interface(starpu_data_handle_t handle, FILE *f);
-static uint32_t starpu_multiformat_get_nx(starpu_data_handle_t handle);
+static size_t starpu_multiformat_get_nx(starpu_data_handle_t handle);
 
 static struct starpu_multiformat_data_interface_ops*
 get_mf_ops(void *data_interface)
@@ -163,7 +163,7 @@ static void register_multiformat_handle(starpu_data_handle_t handle, int home_no
 void starpu_multiformat_data_register(starpu_data_handle_t *handleptr,
 				      int home_node,
 				      void *ptr,
-				      uint32_t nobjects,
+				      size_t nx,
 				      struct starpu_multiformat_data_interface_ops *format_ops)
 {
 	struct starpu_multiformat_interface multiformat =
@@ -172,7 +172,7 @@ void starpu_multiformat_data_register(starpu_data_handle_t *handleptr,
 		.cpu_ptr    = ptr,
 		.cuda_ptr   = NULL,
 		.opencl_ptr = NULL,
-		.nx         = nobjects,
+		.nx         = nx,
 		.ops        = format_ops
 	};
 
@@ -206,7 +206,7 @@ static void display_multiformat_interface(starpu_data_handle_t handle, FILE *f)
 	multiformat_interface = (struct starpu_multiformat_interface *)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
-	fprintf(f, "%u\t", multiformat_interface->nx);
+	fprintf(f, "%zu\t", multiformat_interface->nx);
 }
 
 /* XXX : returns CPU size */
@@ -219,7 +219,7 @@ static size_t multiformat_interface_get_size(starpu_data_handle_t handle)
 	return size;
 }
 
-uint32_t starpu_multiformat_get_nx(starpu_data_handle_t handle)
+size_t starpu_multiformat_get_nx(starpu_data_handle_t handle)
 {
 	struct starpu_multiformat_interface *multiformat_interface;
 	multiformat_interface = (struct starpu_multiformat_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);

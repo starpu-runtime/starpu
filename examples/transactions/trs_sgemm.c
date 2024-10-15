@@ -185,13 +185,13 @@ static void cublas_mult(void *descr[], void *arg)
 	TYPE *subB = (TYPE *)STARPU_MATRIX_GET_PTR(descr[1]);
 	TYPE *subC = (TYPE *)STARPU_MATRIX_GET_PTR(descr[2]);
 
-	unsigned nxC = STARPU_MATRIX_GET_NX(descr[2]);
-	unsigned nyC = STARPU_MATRIX_GET_NY(descr[2]);
-	unsigned nyA = STARPU_MATRIX_GET_NY(descr[0]);
+	size_t nxC = STARPU_MATRIX_GET_NX(descr[2]);
+	size_t nyC = STARPU_MATRIX_GET_NY(descr[2]);
+	size_t nyA = STARPU_MATRIX_GET_NY(descr[0]);
 
-	unsigned ldA = STARPU_MATRIX_GET_LD(descr[0]);
-	unsigned ldB = STARPU_MATRIX_GET_LD(descr[1]);
-	unsigned ldC = STARPU_MATRIX_GET_LD(descr[2]);
+	size_t ldA = STARPU_MATRIX_GET_LD(descr[0]);
+	size_t ldB = STARPU_MATRIX_GET_LD(descr[1]);
+	size_t ldC = STARPU_MATRIX_GET_LD(descr[2]);
 
 	cublasStatus_t status = CUBLAS_GEMM(starpu_cublas_get_local_handle(),
 					    CUBLAS_OP_N, CUBLAS_OP_N,
@@ -210,13 +210,13 @@ void cpu_mult(void *descr[], void *arg)
 	TYPE *subB = (TYPE *)STARPU_MATRIX_GET_PTR(descr[1]);
 	TYPE *subC = (TYPE *)STARPU_MATRIX_GET_PTR(descr[2]);
 
-	unsigned nxC = STARPU_MATRIX_GET_NX(descr[2]);
-	unsigned nyC = STARPU_MATRIX_GET_NY(descr[2]);
-	unsigned nyA = STARPU_MATRIX_GET_NY(descr[0]);
+	size_t nxC = STARPU_MATRIX_GET_NX(descr[2]);
+	size_t nyC = STARPU_MATRIX_GET_NY(descr[2]);
+	size_t nyA = STARPU_MATRIX_GET_NY(descr[0]);
 
-	unsigned ldA = STARPU_MATRIX_GET_LD(descr[0]);
-	unsigned ldB = STARPU_MATRIX_GET_LD(descr[1]);
-	unsigned ldC = STARPU_MATRIX_GET_LD(descr[2]);
+	size_t ldA = STARPU_MATRIX_GET_LD(descr[0]);
+	size_t ldB = STARPU_MATRIX_GET_LD(descr[1]);
+	size_t ldC = STARPU_MATRIX_GET_LD(descr[2]);
 
 	int worker_size = starpu_combined_worker_get_size();
 

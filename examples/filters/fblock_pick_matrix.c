@@ -34,14 +34,14 @@ extern void matrix_cuda_func(void *buffers[], void *cl_arg);
 extern void matrix_hip_func(void *buffers[], void *cl_arg);
 #endif
 
-extern void generate_block_data(int *block, int nx, int ny, int nz, unsigned ldy, unsigned ldz);
+extern void generate_block_data(int *block, size_t nx, size_t ny, size_t nz, size_t ldy, size_t ldz);
 extern void print_block_data(starpu_data_handle_t block_handle);
 extern void print_matrix_data(starpu_data_handle_t matrix_handle);
 
 int main(void)
 {
 	int *block;
-	int i, j, k;
+	int i;
 	int ret;
 	int factor = 2;
 

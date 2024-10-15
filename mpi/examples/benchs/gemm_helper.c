@@ -97,9 +97,9 @@ static void cpu_init_matrix_random(void *descr[], void *arg)
 	(void)arg;
 	TYPE *subA = (TYPE *)STARPU_MATRIX_GET_PTR(descr[0]);
 	TYPE *subB = (TYPE *)STARPU_MATRIX_GET_PTR(descr[1]);
-	unsigned nx = STARPU_MATRIX_GET_NX(descr[0]);
-	unsigned ny = STARPU_MATRIX_GET_NY(descr[0]);
-	unsigned i = 0;
+	size_t nx = STARPU_MATRIX_GET_NX(descr[0]);
+	size_t ny = STARPU_MATRIX_GET_NY(descr[0]);
+	size_t i;
 
 	for (i = 0; i < nx *ny; i++)
 	{
@@ -113,9 +113,9 @@ static void cpu_init_matrix_zero(void *descr[], void *arg)
 {
 	(void)arg;
 	TYPE *subA = (TYPE *)STARPU_MATRIX_GET_PTR(descr[0]);
-	unsigned nx = STARPU_MATRIX_GET_NX(descr[0]);
-	unsigned ny = STARPU_MATRIX_GET_NY(descr[0]);
-	unsigned i = 0;
+	size_t nx = STARPU_MATRIX_GET_NX(descr[0]);
+	size_t ny = STARPU_MATRIX_GET_NY(descr[0]);
+	size_t i;
 
 	for (i = 0; i < nx *ny; i++)
 	{
@@ -131,13 +131,13 @@ static void cpu_mult(void *descr[], void *arg)
 	TYPE *subB = (TYPE *)STARPU_MATRIX_GET_PTR(descr[1]);
 	TYPE *subC = (TYPE *)STARPU_MATRIX_GET_PTR(descr[2]);
 
-	unsigned nxC = STARPU_MATRIX_GET_NX(descr[2]);
-	unsigned nyC = STARPU_MATRIX_GET_NY(descr[2]);
-	unsigned nyA = STARPU_MATRIX_GET_NY(descr[0]);
+	size_t nxC = STARPU_MATRIX_GET_NX(descr[2]);
+	size_t nyC = STARPU_MATRIX_GET_NY(descr[2]);
+	size_t nyA = STARPU_MATRIX_GET_NY(descr[0]);
 
-	unsigned ldA = STARPU_MATRIX_GET_LD(descr[0]);
-	unsigned ldB = STARPU_MATRIX_GET_LD(descr[1]);
-	unsigned ldC = STARPU_MATRIX_GET_LD(descr[2]);
+	size_t ldA = STARPU_MATRIX_GET_LD(descr[0]);
+	size_t ldB = STARPU_MATRIX_GET_LD(descr[1]);
+	size_t ldC = STARPU_MATRIX_GET_LD(descr[2]);
 
 	int worker_size = starpu_combined_worker_get_size();
 

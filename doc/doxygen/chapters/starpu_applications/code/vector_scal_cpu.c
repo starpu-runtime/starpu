@@ -24,7 +24,7 @@ void vector_scal_cpu(void *buffers[], void *cl_arg)
 //! [Extract To be included. You should update doxygen if you see this text.]
 	struct starpu_vector_interface *vector = buffers[0];
 	float *val = (float *)STARPU_VECTOR_GET_PTR(vector);
-	unsigned n = STARPU_VECTOR_GET_NX(vector);
+	size_t n = STARPU_VECTOR_GET_NX(vector);
 //! [Extract To be included. You should update doxygen if you see this text.]
 
 //! [Unpack To be included. You should update doxygen if you see this text.]
@@ -33,7 +33,7 @@ void vector_scal_cpu(void *buffers[], void *cl_arg)
 //! [Unpack To be included. You should update doxygen if you see this text.]
 
 //! [Compute To be included. You should update doxygen if you see this text.]
-	unsigned i;
+	size_t i;
 	for (i = 0; i < n; i++)
 		val[i] *= factor;
 //! [Compute To be included. You should update doxygen if you see this text.]

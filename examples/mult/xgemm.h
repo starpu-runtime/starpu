@@ -52,17 +52,17 @@ static unsigned niter = 2;
 static unsigned niter = 10;
 #endif
 static unsigned nsleeps = 1;
-static unsigned nslicesx = 4;
-static unsigned nslicesy = 4;
-static unsigned nslicesz = 4;
+static size_t nslicesx = 4;
+static size_t nslicesy = 4;
+static size_t nslicesz = 4;
 #if defined(STARPU_QUICK_CHECK) && !defined(STARPU_SIMGRID)
-static unsigned xdim = 256;
-static unsigned ydim = 256;
-static unsigned zdim = 64;
+static size_t xdim = 256;
+static size_t ydim = 256;
+static size_t zdim = 64;
 #else
-static unsigned xdim = 960*4;
-static unsigned ydim = 960*4;
-static unsigned zdim = 960*4;
+static size_t xdim = 960*4;
+static size_t ydim = 960*4;
+static size_t zdim = 960*4;
 #endif
 static unsigned check = 0;
 static unsigned bound = 0;
@@ -150,13 +150,13 @@ static void hipblas_mult(void *descr[], void *arg, const TYPE *beta)
         TYPE *subB = (TYPE *)STARPU_MATRIX_GET_PTR(descr[1]);
         TYPE *subC = (TYPE *)STARPU_MATRIX_GET_PTR(descr[2]);
 
-        unsigned nxC = STARPU_MATRIX_GET_NX(descr[2]);
-        unsigned nyC = STARPU_MATRIX_GET_NY(descr[2]);
-        unsigned nyA = STARPU_MATRIX_GET_NY(descr[0]);
+        size_t nxC = STARPU_MATRIX_GET_NX(descr[2]);
+        size_t nyC = STARPU_MATRIX_GET_NY(descr[2]);
+        size_t nyA = STARPU_MATRIX_GET_NY(descr[0]);
 
-        unsigned ldA = STARPU_MATRIX_GET_LD(descr[0]);
-        unsigned ldB = STARPU_MATRIX_GET_LD(descr[1]);
-        unsigned ldC = STARPU_MATRIX_GET_LD(descr[2]);
+        size_t ldA = STARPU_MATRIX_GET_LD(descr[0]);
+        size_t ldB = STARPU_MATRIX_GET_LD(descr[1]);
+        size_t ldC = STARPU_MATRIX_GET_LD(descr[2]);
 
         hipblasStatus_t status = HIPBLAS_GEMM(starpu_hipblas_get_local_handle(),
 					      HIPBLAS_OP_N, HIPBLAS_OP_N,

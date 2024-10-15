@@ -133,8 +133,8 @@ int main(int argc, char **argv)
 		int NX=3;
 		int NY=2;
 		int array2d[NX*NY];
-		unsigned nn[2] = {NX, NY};
-		unsigned ldn[2] = {1, NX};
+		size_t nn[2] = {NX, NY};
+		size_t ldn[2] = {1, NX};
 		starpu_ndim_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)array2d, ldn, nn, 2, sizeof(int));
 		ret = check_copy(handle, "ndim");
 	}

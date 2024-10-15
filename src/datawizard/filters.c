@@ -1113,7 +1113,7 @@ void _starpu_data_partition_access_submit(starpu_data_handle_t target, int write
 
 void starpu_filter_nparts_compute_chunk_size_and_offset(unsigned n, unsigned nparts,
 							size_t elemsize, unsigned id,
-							unsigned blocksize, unsigned *chunk_size,
+							size_t blocksize, size_t *chunk_size,
 							size_t *offset)
 {
 	*chunk_size = n/nparts;
@@ -1134,5 +1134,5 @@ void starpu_filter_nparts_compute_chunk_size_and_offset(unsigned n, unsigned npa
 	 * offset = total * elemsize * blocksize;
 	 */
 	if (offset != NULL)
-		*offset = (id *(n/nparts) + STARPU_MIN(remainder, id)) * (size_t) blocksize * elemsize;
+		*offset = (id *(n/nparts) + STARPU_MIN(remainder, id)) * blocksize * elemsize;
 }

@@ -209,11 +209,11 @@ void dw_callback_v2_codelet_update_gemm(void *argcb)
 					cl_args *utrsmlla = malloc(sizeof(cl_args));
 
 					struct starpu_task *task_trsm_ll = starpu_task_create();
-						task_trsm_ll->callback_func = dw_callback_v2_codelet_update_trsm_ll;
-						task_trsm_ll->callback_arg = utrsmlla;
-						task_trsm_ll->cl = &cl_trsm_ll;
-						task_trsm_ll->cl_arg = utrsmlla;
-						task_trsm_ll->cl_arg_size = sizeof(*utrsmlla);
+					task_trsm_ll->callback_func = dw_callback_v2_codelet_update_trsm_ll;
+					task_trsm_ll->callback_arg = utrsmlla;
+					task_trsm_ll->cl = &cl_trsm_ll;
+					task_trsm_ll->cl_arg = utrsmlla;
+					task_trsm_ll->cl_arg_size = sizeof(*utrsmlla);
 
 					utrsmlla->i = k+1;
 					utrsmlla->k = i;

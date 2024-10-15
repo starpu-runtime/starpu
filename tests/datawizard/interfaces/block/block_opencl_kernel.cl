@@ -14,8 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 __kernel void block_opencl(__global int *block,
-			   int nx, int ny, int nz,
-			   int ldy, int ldz,
+			   ulong nx, ulong ny, ulong nz, ulong ldy, ulong ldz,
 			   int factor, __global int *err)
 {
 	const int idx = get_global_id(0);

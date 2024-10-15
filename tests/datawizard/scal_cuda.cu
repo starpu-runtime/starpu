@@ -16,7 +16,7 @@
 
 #include <starpu.h>
 
-static __global__ void vector_mult_cuda(unsigned *val, unsigned n)
+static __global__ void vector_mult_cuda(unsigned *val, size_t n)
 {
         unsigned i =  blockIdx.x*blockDim.x + threadIdx.x;
 
@@ -26,7 +26,7 @@ static __global__ void vector_mult_cuda(unsigned *val, unsigned n)
 
 extern "C" void scal_func_cuda(void *buffers[], void *_args)
 {
-        unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
+        size_t n = STARPU_VECTOR_GET_NX(buffers[0]);
         unsigned *val = (unsigned *)STARPU_VECTOR_GET_PTR(buffers[0]);
 	unsigned threads_per_block = 64;
 	unsigned nblocks = (n + threads_per_block-1) / threads_per_block;

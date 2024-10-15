@@ -25,12 +25,12 @@ static void _starpu_vector_filter_block(void *parent_interface, void *child_inte
 	struct starpu_vector_interface *vector_child = (struct starpu_vector_interface *) child_interface;
 
 	/* actual number of elements */
-	uint32_t nx = vector_parent->nx - 2 * shadow_size;
+	size_t nx = vector_parent->nx - 2 * shadow_size;
 	size_t elemsize = vector_parent->elemsize;
 
-	STARPU_ASSERT_MSG(nchunks <= nx, "cannot split %u elements in %u parts", nx, nchunks);
+	STARPU_ASSERT_MSG(nchunks <= nx, "cannot split %zu elements in %u parts", nx, nchunks);
 
-	uint32_t child_nx;
+	size_t child_nx;
 	size_t offset;
 	starpu_filter_nparts_compute_chunk_size_and_offset(nx, nchunks, elemsize, id, 1, &child_nx, &offset);
 	child_nx += 2*shadow_size;
@@ -72,12 +72,12 @@ void starpu_vector_filter_divide_in_2(void *parent_interface, void *child_interf
 	struct starpu_vector_interface *vector_parent = (struct starpu_vector_interface *) parent_interface;
 	struct starpu_vector_interface *vector_child = (struct starpu_vector_interface *) child_interface;
 
-	uint32_t length_first = f->filter_arg;
+	size_t length_first = f->filter_arg;
 
-	uint32_t nx = vector_parent->nx;
+	size_t nx = vector_parent->nx;
 	size_t elemsize = vector_parent->elemsize;
 
-	STARPU_ASSERT_MSG(length_first < nx, "First part is too long: %u vs %u", length_first, nx);
+	STARPU_ASSERT_MSG(length_first < nx, "First part is too long: %zu vs %zu", length_first, nx);
 
 	STARPU_ASSERT_MSG(vector_parent->id == STARPU_VECTOR_INTERFACE_ID, "%s can only be applied on a vector data", __func__);
 	vector_child->id = vector_parent->id;
@@ -185,7 +185,7 @@ void starpu_vector_filter_pick_variable(void *parent_interface, void *child_inte
 	struct starpu_variable_interface *variable_child = (struct starpu_variable_interface *) child_interface;
 
 	/* actual number of elements */
-	uint32_t nx = vector_parent->nx;
+	size_t nx = vector_parent->nx;
 	size_t elemsize = vector_parent->elemsize;
 
 	size_t chunk_pos = (size_t)f->filter_arg_ptr;

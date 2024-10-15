@@ -36,10 +36,10 @@ static inline void common_block_spmv(void *descr[], int s, void *_args)
 	float *in 	= (float *)STARPU_VECTOR_GET_PTR(descr[1]);
 	float *out 	= (float *)STARPU_VECTOR_GET_PTR(descr[2]);
 
-	unsigned dx = STARPU_MATRIX_GET_NX(descr[0]);
-	unsigned dy = STARPU_MATRIX_GET_NY(descr[0]);
+	size_t dx = STARPU_MATRIX_GET_NX(descr[0]);
+	size_t dy = STARPU_MATRIX_GET_NY(descr[0]);
 
-	unsigned ld = STARPU_MATRIX_GET_LD(descr[0]);
+	size_t ld = STARPU_MATRIX_GET_LD(descr[0]);
 
 	switch (s)
 	{
@@ -50,7 +50,7 @@ static inline void common_block_spmv(void *descr[], int s, void *_args)
 		case 1:
 		{
 			cublasStatus_t status = cublasSgemv (starpu_cublas_get_local_handle(),
-					CUBLAS_OP_T, dx, dy, &p1, block, ld, in, 1, &p1, out, 1);
+							     CUBLAS_OP_T, dx, dy, &p1, block, ld, in, 1, &p1, out, 1);
 			if (status != CUBLAS_STATUS_SUCCESS)
 				STARPU_CUBLAS_REPORT_ERROR(status);
 			break;

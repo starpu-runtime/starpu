@@ -129,10 +129,10 @@ static void *matrix_to_pointer(void *data_interface, unsigned node)
 
 /* declare a new data with the matrix interface */
 void starpu_matrix_data_register_allocsize(starpu_data_handle_t *handleptr, int home_node,
-					   uintptr_t ptr, uint32_t ld, uint32_t nx,
-					   uint32_t ny, size_t elemsize, size_t allocsize)
+					   uintptr_t ptr, size_t ld, size_t nx,
+					   size_t ny, size_t elemsize, size_t allocsize)
 {
-	STARPU_ASSERT_MSG(ld >= nx, "ld = %u should not be less than nx = %u.", ld, nx);
+	STARPU_ASSERT_MSG(ld >= nx, "ld = %zu should not be less than nx = %zu.", ld, nx);
 	struct starpu_matrix_interface matrix_interface =
 	{
 		.id = STARPU_MATRIX_INTERFACE_ID,
@@ -160,14 +160,14 @@ void starpu_matrix_data_register_allocsize(starpu_data_handle_t *handleptr, int 
 }
 
 void starpu_matrix_data_register(starpu_data_handle_t *handleptr, int home_node,
-				 uintptr_t ptr, uint32_t ld, uint32_t nx,
-				 uint32_t ny, size_t elemsize)
+				 uintptr_t ptr, size_t ld, size_t nx,
+				 size_t ny, size_t elemsize)
 {
 	starpu_matrix_data_register_allocsize(handleptr, home_node, ptr, ld, nx, ny, elemsize, nx * ny * elemsize);
 }
 
 void starpu_matrix_ptr_register(starpu_data_handle_t handle, unsigned node,
-				uintptr_t ptr, uintptr_t dev_handle, size_t offset, uint32_t ld)
+				uintptr_t ptr, uintptr_t dev_handle, size_t offset, size_t ld)
 {
 	struct starpu_matrix_interface *matrix_interface = starpu_data_get_interface_on_node(handle, node);
 	starpu_data_ptr_register(handle, node);
@@ -212,7 +212,7 @@ static void display_matrix_interface(starpu_data_handle_t handle, FILE *f)
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
-	fprintf(f, "%u\t%u\t", matrix_interface->nx, matrix_interface->ny);
+	fprintf(f, "%zu\t%zu\t", matrix_interface->nx, matrix_interface->ny);
 }
 
 #define IS_CONTIGUOUS_MATRIX(nx, ny, ld) ((nx) == (ld))
@@ -226,8 +226,8 @@ struct pack_matrix_header
 	/* FIXME: that would break alignment for O_DIRECT disk access...
 	 * while in the disk case, we do know the matrix size anyway */
 	/* FIXME: rather make MPI pack the data interface in the envelope for us? */
-	uint32_t nx;
-	uint32_t ny;
+	size_t nx;
+	size_t ny;
 	size_t elemsize;
 #endif
 };
@@ -239,9 +239,9 @@ static int pack_matrix_handle(starpu_data_handle_t handle, unsigned node, void *
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *)
 		starpu_data_get_interface_on_node(handle, node);
 
-	uint32_t ld = matrix_interface->ld;
-	uint32_t nx = matrix_interface->nx;
-	uint32_t ny = matrix_interface->ny;
+	size_t ld = matrix_interface->ld;
+	size_t nx = matrix_interface->nx;
+	size_t ny = matrix_interface->ny;
 	size_t elemsize = matrix_interface->elemsize;
 
 	*count = nx*ny*elemsize + sizeof(struct pack_matrix_header);
@@ -265,7 +265,7 @@ static int pack_matrix_handle(starpu_data_handle_t handle, unsigned node, void *
 			memcpy(cur, matrix, nx*ny*elemsize);
 		else
 		{
-			uint32_t y;
+			size_t y;
 			for(y=0 ; y<ny ; y++)
 			{
 				memcpy(cur, matrix, nx*elemsize);
@@ -285,9 +285,9 @@ static int peek_matrix_handle(starpu_data_handle_t handle, unsigned node, void *
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *)
 		starpu_data_get_interface_on_node(handle, node);
 
-	uint32_t ld = matrix_interface->ld;
-	uint32_t nx = matrix_interface->nx;
-	uint32_t ny = matrix_interface->ny;
+	size_t ld = matrix_interface->ld;
+	size_t nx = matrix_interface->nx;
+	size_t ny = matrix_interface->ny;
 	size_t elemsize = matrix_interface->elemsize;
 
 	struct pack_matrix_header *header = ptr;
@@ -300,14 +300,14 @@ static int peek_matrix_handle(starpu_data_handle_t handle, unsigned node, void *
 		/* We can store whatever can fit */
 
 		STARPU_ASSERT_MSG(header->elemsize == elemsize,
-				"Data element size %u needs to be same as the received data element size %u",
-				(unsigned) elemsize, (unsigned) header->elemsize);
+				  "Data element size %zu needs to be same as the received data element size %zu",
+				  elemsize, header->elemsize);
 
 		STARPU_ASSERT_MSG(header->nx * header->ny * header->elemsize <= matrix_interface->allocsize,
-				"Initial size of data %lu needs to be big enough for received data %ux%ux%u",
-				(unsigned long) matrix_interface->allocsize,
-				(unsigned) header->nx, (unsigned) header->ny,
-				(unsigned) header->elemsize);
+				  "Initial size of data %zu needs to be big enough for received data %zux%zux%zu",
+				  matrix_interface->allocsize,
+				  header->nx, header->ny,
+				  header->elemsize);
 
 		/* Better keep it contiguous */
 		matrix_interface->ld = ld = header->nx;
@@ -315,10 +315,10 @@ static int peek_matrix_handle(starpu_data_handle_t handle, unsigned node, void *
 	else
 	{
 		STARPU_ASSERT_MSG(header->nx <= nx,
-				"Initial nx %u of data needs to be big enough for received data nx %u\n",
+				"Initial nx %zu of data needs to be big enough for received data nx %zu\n",
 				nx, header->nx);
 		STARPU_ASSERT_MSG(header->ny <= ny,
-				"Initial ny %u of data needs to be big enough for received data ny %u\n",
+				"Initial ny %zu of data needs to be big enough for received data ny %zu\n",
 				ny, header->ny);
 	}
 
@@ -336,7 +336,7 @@ static int peek_matrix_handle(starpu_data_handle_t handle, unsigned node, void *
 		memcpy(matrix, ptr, nx*ny*elemsize);
 	else
 	{
-		uint32_t y;
+		size_t y;
 		for(y=0 ; y<ny ; y++)
 		{
 			memcpy(matrix, cur, nx*elemsize);
@@ -383,7 +383,7 @@ static size_t matrix_interface_get_alloc_size(starpu_data_handle_t handle)
 }
 
 /* offer an access to the data parameters */
-uint32_t starpu_matrix_get_nx(starpu_data_handle_t handle)
+size_t starpu_matrix_get_nx(starpu_data_handle_t handle)
 {
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
@@ -395,7 +395,7 @@ uint32_t starpu_matrix_get_nx(starpu_data_handle_t handle)
 	return matrix_interface->nx;
 }
 
-uint32_t starpu_matrix_get_ny(starpu_data_handle_t handle)
+size_t starpu_matrix_get_ny(starpu_data_handle_t handle)
 {
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
@@ -407,7 +407,7 @@ uint32_t starpu_matrix_get_ny(starpu_data_handle_t handle)
 	return matrix_interface->ny;
 }
 
-uint32_t starpu_matrix_get_local_ld(starpu_data_handle_t handle)
+size_t starpu_matrix_get_local_ld(starpu_data_handle_t handle)
 {
 	unsigned node;
 	node = starpu_worker_get_local_memory_node();
@@ -474,7 +474,7 @@ static starpu_ssize_t allocate_matrix_buffer_on_node(void *data_interface_, unsi
 
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *) data_interface_;
 
-	uint32_t ld = matrix_interface->nx; // by default
+	size_t ld = matrix_interface->nx; // by default
 
 	starpu_ssize_t allocated_memory = matrix_interface->allocsize;
 	handle = starpu_malloc_on_node(dst_node, allocated_memory);
@@ -576,12 +576,12 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 	struct starpu_matrix_interface *dst_matrix = (struct starpu_matrix_interface *) dst_interface;
 	int ret = 0;
 
-	uint32_t nx = dst_matrix->nx;
-	uint32_t ny = dst_matrix->ny;
+	size_t nx = dst_matrix->nx;
+	size_t ny = dst_matrix->ny;
 	size_t elemsize = dst_matrix->elemsize;
 
-	uint32_t ld_src = src_matrix->ld;
-	uint32_t ld_dst = dst_matrix->ld;
+	size_t ld_src = src_matrix->ld;
+	size_t ld_dst = dst_matrix->ld;
 
 	if (starpu_interface_copy2d(src_matrix->dev_handle, src_matrix->offset, src_node,
 				    dst_matrix->dev_handle, dst_matrix->offset, dst_node,
@@ -598,8 +598,5 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 static starpu_ssize_t describe(void *data_interface, char *buf, size_t size)
 {
 	struct starpu_matrix_interface *matrix = (struct starpu_matrix_interface *) data_interface;
-	return snprintf(buf, size, "M%ux%ux%u",
-			(unsigned) matrix->nx,
-			(unsigned) matrix->ny,
-			(unsigned) matrix->elemsize);
+	return snprintf(buf, size, "M%zux%zux%zu", matrix->nx, matrix->ny, matrix->elemsize);
 }

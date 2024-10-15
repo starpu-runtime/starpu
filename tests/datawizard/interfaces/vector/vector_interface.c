@@ -83,10 +83,10 @@ void test_vector_cpu_func(void *buffers[], void *args)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
-	unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
+	size_t n = STARPU_VECTOR_GET_NX(buffers[0]);
 	int *val = (int *) STARPU_VECTOR_GET_PTR(buffers[0]);
 	int factor = *(int*)args;
-	unsigned int i;
+	size_t i;
 	for (i = 0; i < n; i++)
 	{
 		if (val[i] != (int)i*factor)

@@ -16,7 +16,7 @@
 
 __kernel void increment_vector_opencl(__global unsigned *val,
 				      __global unsigned *tmp,
-				      unsigned nx)
+				      ulong nx)
 {
         const int id = get_global_id(0);
 

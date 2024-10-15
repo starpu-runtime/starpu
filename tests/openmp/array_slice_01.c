@@ -50,9 +50,9 @@ void task_region_h(void *buffers[], void *_args)
 {
 	void **args = _args;
 	struct starpu_vector_interface *_vector = buffers[0];
-	int nx = STARPU_VECTOR_GET_NX(_vector);
-	int elemsize = STARPU_VECTOR_GET_ELEMSIZE(_vector);
-	int slice_base = STARPU_VECTOR_GET_SLICE_BASE(_vector);
+	size_t nx = STARPU_VECTOR_GET_NX(_vector);
+	size_t elemsize = STARPU_VECTOR_GET_ELEMSIZE(_vector);
+	size_t slice_base = STARPU_VECTOR_GET_SLICE_BASE(_vector);
 	int *v = (int *)STARPU_VECTOR_GET_PTR(_vector);
 	int f = (int)(intptr_t)args[0];
 	int imin = (int)(intptr_t)args[1];
@@ -61,7 +61,7 @@ void task_region_h(void *buffers[], void *_args)
 
 	assert(elemsize == sizeof(v[0]));
 
-	printf("depth 2 task, entry: vector ptr = %p, slice_base = %d, imin = %d, imax = %d\n", v, slice_base, imin, imax);
+	printf("depth 2 task, entry: vector ptr = %p, slice_base = %zu, imin = %d, imax = %d\n", v, slice_base, imin, imax);
 
 	for (i = imin; i < imax; i++)
 	{
@@ -77,7 +77,7 @@ void task_region_g(void *buffers[], void *args)
 {
 	struct starpu_vector_interface *_vector = buffers[0];
 
-	int nx = STARPU_VECTOR_GET_NX(_vector);
+	size_t nx = STARPU_VECTOR_GET_NX(_vector);
 	int *v = (int *)STARPU_VECTOR_GET_PTR(_vector);
 	int f = (int)(intptr_t)args;
 

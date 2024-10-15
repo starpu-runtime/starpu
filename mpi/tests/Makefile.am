@@ -79,7 +79,8 @@ starpu_mpi_TESTS +=				\
 	stats					\
 	user_defined_datatype			\
 	wait_for_all				\
-	pack
+	pack					\
+	large_set
 
 if !STARPU_SIMGRID
 starpu_mpi_TESTS +=				\
@@ -172,6 +173,7 @@ endif
 
 noinst_PROGRAMS +=				\
 	datatypes				\
+	large_set				\
 	pingpong				\
 	mpi_test				\
 	mpi_isend				\

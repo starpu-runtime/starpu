@@ -37,11 +37,11 @@ test_block_opencl_func(void *buffers[], void *args)
 	ret = starpu_opencl_load_opencl_from_file(KERNEL_LOCATION, &opencl_program, NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
 
-	int nx = STARPU_BLOCK_GET_NX(buffers[0]);
-	int ny = STARPU_BLOCK_GET_NY(buffers[0]);
-	int nz = STARPU_BLOCK_GET_NZ(buffers[0]);
-        unsigned ldy = STARPU_BLOCK_GET_LDY(buffers[0]);
-        unsigned ldz = STARPU_BLOCK_GET_LDZ(buffers[0]);
+	cl_ulong nx = STARPU_BLOCK_GET_NX(buffers[0]);
+	cl_ulong ny = STARPU_BLOCK_GET_NY(buffers[0]);
+	cl_ulong nz = STARPU_BLOCK_GET_NZ(buffers[0]);
+        cl_ulong ldy = STARPU_BLOCK_GET_LDY(buffers[0]);
+        cl_ulong ldz = STARPU_BLOCK_GET_LDZ(buffers[0]);
 	cl_mem block = (cl_mem) STARPU_BLOCK_GET_DEV_HANDLE(buffers[0]);
 
 	cl_context context;
@@ -49,8 +49,7 @@ test_block_opencl_func(void *buffers[], void *args)
 	devid = starpu_worker_get_devid(id);
 	starpu_opencl_get_context(devid, &context);
 
-	cl_mem fail = clCreateBuffer(context, CL_MEM_COPY_HOST_PTR,
-		sizeof(int), &block_config.copy_failed, &err);
+	cl_mem fail = clCreateBuffer(context, CL_MEM_COPY_HOST_PTR, sizeof(int), &block_config.copy_failed, &err);
 
 	if (err != CL_SUCCESS)
 		STARPU_OPENCL_REPORT_ERROR(err);

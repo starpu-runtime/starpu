@@ -22,7 +22,7 @@
 
 extern "C" __global__ void spmv_kernel(uint32_t nnz, uint32_t nrow, float *nzval, uint32_t *colind, uint32_t *rowptr,
 				       uint32_t firstentry, uint32_t elemsize,
-				       float *vecin, uint32_t nx_in, uint32_t elemsize1, float * vecout, uint32_t nx_out, uint32_t elemsize2)
+				       float *vecin, size_t nx_in, uint32_t elemsize1, float *vecout, size_t nx_out, uint32_t elemsize2)
 {
 	/* only one dimension is used here */
 	unsigned nthreads = gridDim.x*blockDim.x;
@@ -51,7 +51,7 @@ extern "C" __global__ void spmv_kernel(uint32_t nnz, uint32_t nrow, float *nzval
 
 extern "C" __global__ void spmv_kernel_3(uint32_t nnz, uint32_t nrow, float *nzval, uint32_t *colind, uint32_t *rowptr,
 					 uint32_t firstentry,
-					 float *vecin, uint32_t nx_in, float * vecout, uint32_t nx_out)
+					 float *vecin, size_t nx_in, float * vecout, size_t nx_out)
 {
 	/* only one dimension is used here */
 	unsigned block_rowstart = blockIdx.x*( (nrow + gridDim.x - 1)/gridDim.x );
@@ -87,10 +87,10 @@ extern "C" void spmv_kernel_cuda(void *descr[], void *args)
 	uint32_t firstentry = STARPU_CSR_GET_FIRSTENTRY(descr[0]);
 
 	float *vecin = (float *)STARPU_VECTOR_GET_PTR(descr[1]);
-	uint32_t nx_in = STARPU_VECTOR_GET_NX(descr[1]);
+	size_t nx_in = STARPU_VECTOR_GET_NX(descr[1]);
 
 	float *vecout = (float *)STARPU_VECTOR_GET_PTR(descr[2]);
-	uint32_t nx_out = STARPU_VECTOR_GET_NX(descr[2]);
+	size_t nx_out = STARPU_VECTOR_GET_NX(descr[2]);
 
 	dim3 dimBlock(8, 1);
 	dim3 dimGrid(512, 1);

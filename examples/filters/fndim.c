@@ -39,8 +39,8 @@ extern void f4d_cuda_func(void *buffers[], void *cl_arg);
 extern void f4d_hip_func(void *buffers[], void *cl_arg);
 #endif
 
-extern void generate_tensor_data(int *tensor, int nx, int ny, int nz, int nt, unsigned ldy, unsigned ldz, unsigned ldt);
-extern void print_tensor(int *tensor, int nx, int ny, int nz, int nt, unsigned ldy, unsigned ldz, unsigned ldt);
+extern void generate_tensor_data(int *tensor, size_t nx, size_t ny, size_t nz, size_t nt, size_t ldy, size_t ldz, size_t ldt);
+extern void print_tensor(int *tensor, size_t nx, size_t ny, size_t nz, size_t nt, size_t ldy, size_t ldz, size_t ldt);
 extern void print_4dim_data(starpu_data_handle_t ndim_handle);
 
 int main(void)
@@ -75,8 +75,8 @@ int main(void)
 	assert(arr4d);
 	generate_tensor_data(arr4d, NX, NY, NZ, NT, NX, NX*NY, NX*NY*NZ);
 
-	unsigned nn[4] = {NX, NY, NZ, NT};
-	unsigned ldn[4] = {1, NX, NX*NY, NX*NY*NZ};
+	size_t nn[4] = {NX, NY, NZ, NT};
+	size_t ldn[4] = {1, NX, NX*NY, NX*NY*NZ};
 
 	/* Declare data to StarPU */
 	starpu_ndim_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)arr4d, ldn, nn, 4, sizeof(int));

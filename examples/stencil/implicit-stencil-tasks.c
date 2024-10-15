@@ -44,14 +44,14 @@
  * Schedule initialization tasks
  */
 
-void create_task_memset(unsigned sizex, unsigned sizey, unsigned z)
+void create_task_memset(size_t sizex, size_t sizey, size_t z)
 {
 	struct block_description *descr = get_block_description(z);
 
 	int ret = starpu_task_insert(&cl_memset,
-				     STARPU_VALUE,   &sizex,  sizeof(unsigned),
-				     STARPU_VALUE,   &sizey,  sizeof(unsigned),
-				     STARPU_VALUE,   &z,  sizeof(unsigned),
+				     STARPU_VALUE,   &sizex,  sizeof(size_t),
+				     STARPU_VALUE,   &sizey,  sizeof(size_t),
+				     STARPU_VALUE,   &z,  sizeof(size_t),
 				     STARPU_W,   descr->layers_handle[0],
 				     STARPU_W,   descr->layers_handle[1],
 				     STARPU_W,   descr->boundaries_handle[T][0],
@@ -69,14 +69,14 @@ void create_task_memset(unsigned sizex, unsigned sizey, unsigned z)
 	}
 }
 
-void create_task_initlayer(unsigned sizex, unsigned sizey, unsigned z)
+void create_task_initlayer(size_t sizex, size_t sizey, size_t z)
 {
 	struct block_description *descr = get_block_description(z);
 
 	int ret = starpu_task_insert(&cl_initlayer,
-				     STARPU_VALUE,   &sizex,  sizeof(unsigned),
-				     STARPU_VALUE,   &sizey,  sizeof(unsigned),
-				     STARPU_VALUE,   &z,  sizeof(unsigned),
+				     STARPU_VALUE,   &sizex,  sizeof(size_t),
+				     STARPU_VALUE,   &sizey,  sizeof(size_t),
+				     STARPU_VALUE,   &z,  sizeof(size_t),
 				     STARPU_W,   descr->layers_handle[0],
 				     0);
 
@@ -93,7 +93,7 @@ void create_task_initlayer(unsigned sizex, unsigned sizey, unsigned z)
  * Schedule saving boundaries of blocks to communication buffers
  */
 
-static void create_task_save_local(unsigned z, int dir)
+static void create_task_save_local(size_t z, int dir)
 {
 	struct block_description *descr = get_block_description(z);
 	struct starpu_codelet *codelet;
@@ -101,7 +101,7 @@ static void create_task_save_local(unsigned z, int dir)
 
 	codelet = (dir == -1)?&save_cl_bottom:&save_cl_top;
 	ret = starpu_task_insert(codelet,
-				 STARPU_VALUE,   &z,  sizeof(unsigned),
+				 STARPU_VALUE,   &z,  sizeof(size_t),
 				 STARPU_R,   descr->layers_handle[0],
 				 STARPU_R,   descr->layers_handle[1],
 				 STARPU_W,   descr->boundaries_handle[(1-dir)/2][0],
@@ -122,12 +122,12 @@ static void create_task_save_local(unsigned z, int dir)
  * Schedule update computation in computation buffer
  */
 
-void create_task_update(unsigned iter, unsigned z, int local_rank)
+void create_task_update(size_t iter, size_t z, int local_rank)
 {
 	STARPU_ASSERT(iter != 0);
 
-	unsigned old_layer = (K*(iter-1)) % 2;
-	unsigned new_layer = (old_layer + 1) % 2;
+	size_t old_layer = (K*(iter-1)) % 2;
+	size_t new_layer = (old_layer + 1) % 2;
 
 	struct block_description *descr = get_block_description(z);
 	struct block_description *bottom_neighbour = descr->boundary_blocks[B];
@@ -143,7 +143,7 @@ void create_task_update(unsigned iter, unsigned z, int local_rank)
 		((bottom_neighbour->boundary_blocks[B]->mpi_node != local_rank) || (top_neighbour->boundary_blocks[T]->mpi_node != local_rank)) ? STARPU_MAX_PRIO-1 : STARPU_DEFAULT_PRIO;
 
 	int ret = starpu_task_insert(codelet,
-				     STARPU_VALUE,   &z,  sizeof(unsigned),
+				     STARPU_VALUE,   &z,  sizeof(size_t),
 				     STARPU_RW,      descr->layers_handle[old_layer],
 				     STARPU_RW,      descr->layers_handle[new_layer],
 				     STARPU_R,       bottom_neighbour->boundaries_handle[T][old_layer],

@@ -39,6 +39,79 @@ void _starpu_mpi_datatype_shutdown(void)
 {
 }
 
+static void _make_lower_datatype(size_t block_size, size_t begin, size_t nx, size_t elemsize, int *block_lengths, MPI_Datatype *block_types, MPI_Aint *displacements, int *block_count, int nb_blocks)
+{
+	size_t end_line = begin+nx*elemsize;
+	_STARPU_MPI_DEBUG(1200, "  processing lower layer from pos %zu to %zu\n", begin, end_line);
+	do
+	{
+		size_t block_end = begin+block_size;
+		if (block_end > end_line) block_end = end_line;
+		if (*block_count > 0 && (begin == (size_t)block_lengths[*block_count - 1]+displacements[*block_count-1]) && (block_lengths[*block_count - 1] + block_end-begin < block_size))
+		{
+			// the new block is directly after the previous one and both do not exceed maximum size, merge them
+			block_lengths[*block_count - 1] += (block_end-begin);
+			_STARPU_MPI_DEBUG(1200, "    updating previous block %d with length %u from %zu to %zu with displacement %zu\n", *block_count-1, block_lengths[*block_count-1], displacements[*block_count-1], block_end, displacements[*block_count]);
+		}
+		else
+		{
+			block_lengths[*block_count] = (block_end-begin);
+			block_types[*block_count] = MPI_BYTE;
+			displacements[*block_count] = begin;
+			_STARPU_MPI_DEBUG(1200, "    creating block %d with length %u from %zu to %zu with displacement %zu\n", *block_count, block_lengths[*block_count], begin, block_end, displacements[*block_count]);
+			*block_count = *block_count + 1;
+		}
+		STARPU_ASSERT_MSG(*block_count < nb_blocks, "MPI Datatype creation failed");
+		begin = block_end;
+	} while(begin < end_line);
+}
+
+static void _make_recursive_datatype(size_t *layers, size_t *steps, int nb_dims, int current_dim, size_t elemsize, size_t block_size, size_t begin, int *block_lengths, MPI_Datatype *block_types, MPI_Aint *displacements, int *block_count, int nb_blocks)
+{
+	size_t i;
+	for(i=0 ; i<layers[current_dim-1] ; i++)
+	{
+		if (current_dim-1 == 1)
+			// this is the lowest dimension
+			_make_lower_datatype(block_size, begin, layers[0], elemsize, block_lengths, block_types, displacements, block_count, nb_blocks);
+		else
+			_make_recursive_datatype(layers, steps, nb_dims, current_dim-1, elemsize, block_size, begin, block_lengths, block_types, displacements, block_count, nb_blocks);
+		begin += steps[current_dim-1] * elemsize;
+	}
+}
+
+static void _make_datatype(MPI_Datatype *datatype, size_t *layers, size_t *steps, int nb_dims, size_t elemsize)
+{
+#define BLOCK_SIZE (size_t)INT_MAX
+#define NB_BLOCKS 10000
+	int block_count=0;
+	int block_lengths[NB_BLOCKS];
+	MPI_Aint displacements[NB_BLOCKS];
+	MPI_Datatype block_types[NB_BLOCKS];
+	int ret;
+
+	_STARPU_MPI_DEBUG(1200, "creating datatype for a data with %d dimensions with elements of size %zu and a block_size %zu\n", nb_dims, elemsize, BLOCK_SIZE);
+
+	size_t begin = 0;
+	if (nb_dims == 1)
+		_make_lower_datatype(BLOCK_SIZE, begin, layers[0], elemsize, block_lengths, block_types, displacements, &block_count, NB_BLOCKS);
+	else
+		_make_recursive_datatype(layers, steps, nb_dims, nb_dims, elemsize, BLOCK_SIZE, begin, block_lengths, block_types, displacements, &block_count, NB_BLOCKS);
+
+	ret = MPI_Type_create_struct(block_count, block_lengths, displacements, block_types, datatype);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_create_struct failed");
+
+	{
+		MPI_Aint lb, extent;
+		MPI_Type_get_extent(*datatype, &lb, &extent);
+		_STARPU_MPI_DEBUG(1200, "using type with size %zu, lb %zu and %d block(s)\n", extent, lb, block_count);
+		STARPU_ASSERT_MSG(extent-displacements[block_count-1]-block_lengths[block_count-1] == 0, "MPI Datatype creation failed. Your MPI implementation does not seem to manage large data sets. You should use a MPI which implements MPI_Type_vector_c");
+	}
+
+	ret = MPI_Type_commit(datatype);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
+}
+
 /*
  * 	Matrix
  */
@@ -47,18 +120,24 @@ static int handle_to_datatype_matrix(starpu_data_handle_t data_handle, unsigned 
 {
 	struct starpu_matrix_interface *matrix_interface = starpu_data_get_interface_on_node(data_handle, node);
 
-	int ret;
-
-	unsigned nx = STARPU_MATRIX_GET_NX(matrix_interface);
-	unsigned ny = STARPU_MATRIX_GET_NY(matrix_interface);
-	unsigned ld = STARPU_MATRIX_GET_LD(matrix_interface);
+	size_t nx = STARPU_MATRIX_GET_NX(matrix_interface);
+	size_t ny = STARPU_MATRIX_GET_NY(matrix_interface);
+	size_t ld = STARPU_MATRIX_GET_LD(matrix_interface);
 	size_t elemsize = STARPU_MATRIX_GET_ELEMSIZE(matrix_interface);
 
-	ret = MPI_Type_vector(ny, nx*elemsize, ld*elemsize, MPI_BYTE, datatype);
-	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_vector failed");
-
+#ifdef STARPU_HAVE_MPI_TYPE_VECTOR_C
+	int ret;
+	_STARPU_MPI_DEBUG(1200, "creating datatype for matrix using MPI_Type_vector_c\n");
+	ret = MPI_Type_vector_c(ny, nx*elemsize, ld*elemsize, MPI_BYTE, datatype);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_vector_c failed");
 	ret = MPI_Type_commit(datatype);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
+#else
+	_STARPU_MPI_DEBUG(1200, "creating datatype for matrix using MPI_Type_create_struct\n");
+	size_t layers[2] = {nx, ny};
+	size_t steps[2] = {1, ld};
+	_make_datatype(datatype, layers, steps, 2, elemsize);
+#endif
 
 	return 0;
 }
@@ -71,17 +150,18 @@ static int handle_to_datatype_block(starpu_data_handle_t data_handle, unsigned n
 {
 	struct starpu_block_interface *block_interface = starpu_data_get_interface_on_node(data_handle, node);
 
-	int ret;
-
-	unsigned nx = STARPU_BLOCK_GET_NX(block_interface);
-	unsigned ny = STARPU_BLOCK_GET_NY(block_interface);
-	unsigned nz = STARPU_BLOCK_GET_NZ(block_interface);
-	unsigned ldy = STARPU_BLOCK_GET_LDY(block_interface);
-	unsigned ldz = STARPU_BLOCK_GET_LDZ(block_interface);
+	size_t nx = STARPU_BLOCK_GET_NX(block_interface);
+	size_t ny = STARPU_BLOCK_GET_NY(block_interface);
+	size_t nz = STARPU_BLOCK_GET_NZ(block_interface);
+	size_t ldy = STARPU_BLOCK_GET_LDY(block_interface);
+	size_t ldz = STARPU_BLOCK_GET_LDZ(block_interface);
 	size_t elemsize = STARPU_BLOCK_GET_ELEMSIZE(block_interface);
 
+#ifdef STARPU_HAVE_MPI_TYPE_VECTOR_C
+	int ret;
+	_STARPU_MPI_DEBUG(1200, "creating datatype for block using MPI_Type_vector_c\n");
 	MPI_Datatype datatype_2dlayer;
-	ret = MPI_Type_vector(ny, nx*elemsize, ldy*elemsize, MPI_BYTE, &datatype_2dlayer);
+	ret = MPI_Type_vector_c(ny, nx*elemsize, ldy*elemsize, MPI_BYTE, &datatype_2dlayer);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_vector failed");
 
 	ret = MPI_Type_create_hvector(nz, 1, ldz*elemsize, datatype_2dlayer, datatype);
@@ -92,6 +172,11 @@ static int handle_to_datatype_block(starpu_data_handle_t data_handle, unsigned n
 
 	ret = MPI_Type_free(&datatype_2dlayer);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_free failed");
+#else
+	size_t layers[3] = {nx, ny, nz};
+	size_t steps[3] = {1, ldy, ldz};
+	_make_datatype(datatype, layers, steps, 3, elemsize);
+#endif
 
 	return 0;
 }
@@ -104,36 +189,18 @@ static int handle_to_datatype_tensor(starpu_data_handle_t data_handle, unsigned 
 {
 	struct starpu_tensor_interface *tensor_interface = starpu_data_get_interface_on_node(data_handle, node);
 
-	int ret;
-
-	unsigned nx = STARPU_TENSOR_GET_NX(tensor_interface);
-	unsigned ny = STARPU_TENSOR_GET_NY(tensor_interface);
-	unsigned nz = STARPU_TENSOR_GET_NZ(tensor_interface);
-	unsigned nt = STARPU_TENSOR_GET_NT(tensor_interface);
-	unsigned ldy = STARPU_TENSOR_GET_LDY(tensor_interface);
-	unsigned ldz = STARPU_TENSOR_GET_LDZ(tensor_interface);
-	unsigned ldt = STARPU_TENSOR_GET_LDT(tensor_interface);
+	size_t nx = STARPU_TENSOR_GET_NX(tensor_interface);
+	size_t ny = STARPU_TENSOR_GET_NY(tensor_interface);
+	size_t nz = STARPU_TENSOR_GET_NZ(tensor_interface);
+	size_t nt = STARPU_TENSOR_GET_NT(tensor_interface);
+	size_t ldy = STARPU_TENSOR_GET_LDY(tensor_interface);
+	size_t ldz = STARPU_TENSOR_GET_LDZ(tensor_interface);
+	size_t ldt = STARPU_TENSOR_GET_LDT(tensor_interface);
 	size_t elemsize = STARPU_TENSOR_GET_ELEMSIZE(tensor_interface);
 
-	MPI_Datatype datatype_3dlayer;
-	ret = MPI_Type_vector(ny, nx*elemsize, ldy*elemsize, MPI_BYTE, &datatype_3dlayer);
-	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_vector failed");
-
-	MPI_Datatype datatype_2dlayer;
-	ret = MPI_Type_create_hvector(nz, 1, ldz*elemsize, datatype_3dlayer, &datatype_2dlayer);
-	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_hvector failed");
-
-	ret = MPI_Type_create_hvector(nt, 1, ldt*elemsize, datatype_2dlayer, datatype);
-	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_hvector failed");
-
-	ret = MPI_Type_commit(datatype);
-	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
-
-	ret = MPI_Type_free(&datatype_3dlayer);
-	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_free failed");
-
-	ret = MPI_Type_free(&datatype_2dlayer);
-	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_free failed");
+	size_t layers[4] = {nx, ny, nz, nt};
+	size_t steps[4] = {1, ldy, ldz, ldt};
+	_make_datatype(datatype, layers, steps, 4, elemsize);
 
 	return 0;
 }
@@ -146,41 +213,12 @@ static int handle_to_datatype_ndim(starpu_data_handle_t data_handle, unsigned no
 {
 	struct starpu_ndim_interface *ndim_interface = starpu_data_get_interface_on_node(data_handle, node);
 
-	int ret;
-
-	unsigned *nn = STARPU_NDIM_GET_NN(ndim_interface);
-	unsigned *ldn = STARPU_NDIM_GET_LDN(ndim_interface);
+	size_t *nn = STARPU_NDIM_GET_NN(ndim_interface);
+	size_t *ldn = STARPU_NDIM_GET_LDN(ndim_interface);
 	size_t ndim = STARPU_NDIM_GET_NDIM(ndim_interface);
 	size_t elemsize = STARPU_NDIM_GET_ELEMSIZE(ndim_interface);
 
-	if (ndim > 1)
-	{
-		MPI_Datatype datatype_ndlayer;
-		ret = MPI_Type_vector(nn[1], nn[0]*elemsize, ldn[1]*elemsize, MPI_BYTE, &datatype_ndlayer);
-		STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_vector failed");
-
-		MPI_Datatype oldtype = datatype_ndlayer, newtype;
-		unsigned i;
-		for (i = 2; i < ndim; i++)
-		{
-			ret = MPI_Type_create_hvector(nn[i], 1, ldn[i]*elemsize, oldtype, &newtype);
-			STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_hvector failed");
-
-			ret = MPI_Type_free(&oldtype);
-			STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_free failed");
-
-			oldtype = newtype;
-		}
-		*datatype = oldtype;
-	}
-	else if (ndim == 1)
-	{
-		ret = MPI_Type_contiguous(nn[0]*elemsize, MPI_BYTE, datatype);
-		STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_contiguous failed");
-	}
-
-	ret = MPI_Type_commit(datatype);
-	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
+	_make_datatype(datatype, nn, ldn, ndim, elemsize);
 	return 0;
 }
 
@@ -192,16 +230,21 @@ static int handle_to_datatype_vector(starpu_data_handle_t data_handle, unsigned 
 {
 	struct starpu_vector_interface *vector_interface = starpu_data_get_interface_on_node(data_handle, node);
 
-	int ret;
-
-	unsigned nx = STARPU_VECTOR_GET_NX(vector_interface);
+	size_t nx = STARPU_VECTOR_GET_NX(vector_interface);
 	size_t elemsize = STARPU_VECTOR_GET_ELEMSIZE(vector_interface);
 
-	ret = MPI_Type_contiguous(nx*elemsize, MPI_BYTE, datatype);
-	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_contiguous failed");
-
+#ifdef STARPU_HAVE_MPI_TYPE_VECTOR_C
+	int ret;
+	_STARPU_MPI_DEBUG(1200, "creating datatype for vector using MPI_Type_vector_c\n");
+	ret = MPI_Type_vector_c(1, nx*elemsize, 0, MPI_BYTE, datatype);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_vector_c failed");
 	ret = MPI_Type_commit(datatype);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
+#else
+	_STARPU_MPI_DEBUG(1200, "creating datatype for vector using MPI_Type_create_struct\n");
+	size_t layers[1] = {nx};
+	_make_datatype(datatype, layers, NULL, 1, elemsize);
+#endif
 
 	return 0;
 }
@@ -341,7 +384,7 @@ void _starpu_mpi_datatype_allocate(starpu_data_handle_t data_handle, struct _sta
 			req->registered_datatype = 0;
 		}
 	}
-#ifdef STARPU_VERBOSE
+#ifdef STARPU_MPI_VERBOSE
 	{
 		char datatype_name[MPI_MAX_OBJECT_NAME];
 		int datatype_name_len;

@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 __kernel void test_vector_opencl(__global int *val,
-				 unsigned int nx,
+				 ulong nx,
 				 __global int *err,
 				 int factor)
 {

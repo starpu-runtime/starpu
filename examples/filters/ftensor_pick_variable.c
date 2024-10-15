@@ -37,7 +37,7 @@ void cpu_func(void *buffers[], void *cl_arg)
 extern void variable_cuda_func(void *buffers[], void *cl_arg);
 #endif
 
-extern void generate_tensor_data(int *tensor, int nx, int ny, int nz, int nt, unsigned ldy, unsigned ldz, unsigned ldt);
+extern void generate_tensor_data(int *tensor, size_t nx, size_t ny, size_t nz, size_t nt, size_t ldy, size_t ldz, size_t ldt);
 extern void print_tensor_data(starpu_data_handle_t tensor_handle);
 
 int main(void)
@@ -46,7 +46,7 @@ int main(void)
 	int i, j, k, l;
 	int ret;
 	int factor = 2;
-	uint32_t pos[4] = {1,2,1,2};
+	size_t pos[4] = {1,2,1,2};
 
 	starpu_data_handle_t handle;
 	starpu_data_handle_t var_handle;

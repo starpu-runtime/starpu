@@ -65,7 +65,7 @@ int main(int argc, char **argv)
 		assert(arr4d);
 
 		/* fill the inner 4-dim array */
-		unsigned i, j, k, l;
+		size_t i, j, k, l;
 		int n = 0;
 		for (l = 0; l < SIZE; l++)
 		{
@@ -81,8 +81,8 @@ int main(int argc, char **argv)
 			}
 		}
 
-		unsigned nn[4] = {SIZE, SIZE, SIZE, SIZE};
-		unsigned ldn[4] = {1, BIGSIZE, BIGSIZE*BIGSIZE, BIGSIZE*BIGSIZE*BIGSIZE};
+		size_t nn[4] = {SIZE, SIZE, SIZE, SIZE};
+		size_t ldn[4] = {1, BIGSIZE, BIGSIZE*BIGSIZE, BIGSIZE*BIGSIZE*BIGSIZE};
 
 		starpu_ndim_data_register(&arr4d_handle, STARPU_MAIN_RAM, (uintptr_t)arr4d, ldn, nn, 4, sizeof(int));
 	}
@@ -91,8 +91,8 @@ int main(int argc, char **argv)
 		arr4d = calloc(SIZE*SIZE*SIZE*SIZE, sizeof(int));
 		assert(arr4d);
 
-		unsigned nn[4] = {SIZE, SIZE, SIZE, SIZE};
-		unsigned ldn[4] = {1, SIZE, SIZE*SIZE, SIZE*SIZE*SIZE};
+		size_t nn[4] = {SIZE, SIZE, SIZE, SIZE};
+		size_t ldn[4] = {1, SIZE, SIZE*SIZE, SIZE*SIZE*SIZE};
 
 		starpu_ndim_data_register(&arr4d_handle, STARPU_MAIN_RAM, (uintptr_t)arr4d, ldn, nn, 4, sizeof(int));
 	}
@@ -111,7 +111,7 @@ int main(int argc, char **argv)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
 
 		int m = 10;
-		unsigned i, j, k, l;
+		size_t i, j, k, l;
 		for (l = 0; l < SIZE; l++)
 		{
 			for (k = 0; k < SIZE; k++)
@@ -140,7 +140,7 @@ int main(int argc, char **argv)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
 
 		int n = 0, m = 10;
-		unsigned i, j, k, l;
+		size_t i, j, k, l;
 		for (l = 0; l < SIZE; l++)
 		{
 			for (k = 0; k < SIZE; k++)

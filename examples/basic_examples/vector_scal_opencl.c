@@ -31,7 +31,7 @@ void scal_opencl_func(void *buffers[], void *_args)
 	cl_command_queue queue;
 
 	/* length of the vector */
-	unsigned int n = STARPU_VECTOR_GET_NX(buffers[0]);
+	cl_ulong n = STARPU_VECTOR_GET_NX(buffers[0]);
 	/* OpenCL copy of the vector pointer */
 	cl_mem val = (cl_mem)STARPU_VECTOR_GET_DEV_HANDLE(buffers[0]);
 

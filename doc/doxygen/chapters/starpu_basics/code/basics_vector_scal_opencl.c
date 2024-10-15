@@ -28,7 +28,7 @@ void scal_opencl_func(void *buffers[], void *_args)
     cl_event event;                       /* OpenCL specific code */
 
     /* length of the vector */
-    unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
+    size_t n = STARPU_VECTOR_GET_NX(buffers[0]);
     /* OpenCL copy of the vector pointer */
     cl_mem val = (cl_mem)STARPU_VECTOR_GET_DEV_HANDLE(buffers[0]);
 

@@ -23,14 +23,14 @@
 
 void display_func(void *buffers[], void *cl_arg)
 {
-	unsigned i;
+	size_t i;
 
 	/* length of the vector */
-	unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
+	size_t n = STARPU_VECTOR_GET_NX(buffers[0]);
 	/* local copy of the vector pointer */
 	int *val = (int *)STARPU_VECTOR_GET_PTR(buffers[0]);
 
-	FPRINTF(stderr, "vector with n=%u : ", n);
+	FPRINTF(stderr, "vector with n=%zu : ", n);
 	for (i = 0; i < n; i++)
 		FPRINTF(stderr, "%5d ", val[i]);
 	FPRINTF(stderr, "\n");
@@ -38,14 +38,14 @@ void display_func(void *buffers[], void *cl_arg)
 
 void cpu_func(void *buffers[], void *cl_arg)
 {
-	unsigned i;
+	size_t i;
 
 	/* length of the vector */
-	unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
+	size_t n = STARPU_VECTOR_GET_NX(buffers[0]);
 	/* local copy of the vector pointer */
 	int *val = (int *)STARPU_VECTOR_GET_PTR(buffers[0]);
 
-	FPRINTF(stderr, "computing on vector with n=%u\n", n);
+	FPRINTF(stderr, "computing on vector with n=%zu\n", n);
 	for (i = 0; i < n; i++)
 		val[i] *= 2;
 }

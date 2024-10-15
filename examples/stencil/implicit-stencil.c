@@ -25,25 +25,25 @@
 /* default parameter values */
 static unsigned  bind_tasks = 0;
 
-static unsigned ticks = 1000;
+static size_t ticks = 1000;
 
 #ifdef STARPU_QUICK_CHECK
-static unsigned niter = 4;
+static size_t niter = 4;
 #define SIZE 16
 #define NBZ 8
 #else
-static unsigned niter = 32;
+static size_t niter = 32;
 #define SIZE 128
 #define NBZ 64
 #endif
 
 /* Problem size */
-static unsigned sizex = SIZE;
-static unsigned sizey = SIZE;
-static unsigned sizez = NBZ*SIZE;
+static size_t sizex = SIZE;
+static size_t sizey = SIZE;
+static size_t sizez = NBZ*SIZE;
 
 /* Number of blocks (scattered over the different MPI processes) */
-unsigned nbz = NBZ;
+size_t nbz = NBZ;
 
 double start;
 double begin, end;
@@ -53,22 +53,22 @@ double timing;
  *	Initialization
  */
 
-unsigned get_bind_tasks(void)
+size_t get_bind_tasks(void)
 {
 	return bind_tasks;
 }
 
-unsigned get_nbz(void)
+size_t get_nbz(void)
 {
 	return nbz;
 }
 
-unsigned get_niter(void)
+size_t get_niter(void)
 {
 	return niter;
 }
 
-unsigned get_ticks(void)
+size_t get_ticks(void)
 {
 	return ticks;
 }
@@ -119,10 +119,10 @@ static void parse_args(int argc, char **argv)
 			 fprintf(stderr, "\n");
 			 fprintf(stderr, "Options:\n");
 			 fprintf(stderr, "-b			bind tasks on CPUs/GPUs\n");
-			 fprintf(stderr, "-nbz <n>		Number of blocks on Z axis (%u by default)\n", nbz);
-			 fprintf(stderr, "-size[xyz] <size>	Domain size on x/y/z axis (%ux%ux%u by default)\n", sizex, sizey, sizez);
-			 fprintf(stderr, "-niter <n>		Number of iterations (%u by default)\n", niter);
-			 fprintf(stderr, "-ticks <t>		How often to put ticks in the output (ms, %u by default)\n", ticks);
+			 fprintf(stderr, "-nbz <n>		Number of blocks on Z axis (%zu by default)\n", nbz);
+			 fprintf(stderr, "-size[xyz] <size>	Domain size on x/y/z axis (%zux%zux%zu by default)\n", sizex, sizey, sizez);
+			 fprintf(stderr, "-niter <n>		Number of iterations (%zu by default)\n", niter);
+			 fprintf(stderr, "-ticks <t>		How often to put ticks in the output (ms, %zu by default)\n", ticks);
 			 exit(0);
 		}
 	}
@@ -177,9 +177,9 @@ static void free_problem(int rank)
  *	Main body
  */
 
-void func(unsigned task_per_worker[STARPU_NMAXWORKERS])
+void func(size_t task_per_worker[STARPU_NMAXWORKERS])
 {
-	unsigned total = 0;
+	size_t total = 0;
 	int worker;
 
 	for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
@@ -190,7 +190,7 @@ void func(unsigned task_per_worker[STARPU_NMAXWORKERS])
 		{
 			char name[64];
 			starpu_worker_get_name(worker, name, sizeof(name));
-			FPRINTF(stderr,"\t%s -> %u (%2.2f%%)\n", name, task_per_worker[worker], (100.0*task_per_worker[worker])/total);
+			FPRINTF(stderr,"\t%s -> %zu (%2.2f%%)\n", name, task_per_worker[worker], (100.0*task_per_worker[worker])/total);
 		}
 	}
 }
@@ -339,12 +339,12 @@ int main(int argc, char **argv)
 		func(bottom_per_worker);
 #endif
 #if 1
-		unsigned nzblocks_per_process = (nbz + world_size - 1) / world_size;
+		size_t nzblocks_per_process = (nbz + world_size - 1) / world_size;
 
 		int iter;
 		for (iter = 0; iter < who_runs_what_len; iter++)
 		{
-			unsigned last, bz;
+			size_t last, bz;
 			last = 1;
 			for (bz = 0; bz < nbz; bz++)
 			{

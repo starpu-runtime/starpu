@@ -25,8 +25,8 @@ void cpu_mandelbrot(void *descr[], void *cl_arg)
         pixels = (long long int *)STARPU_MATRIX_GET_PTR(descr[0]);
         struct params *params = (struct params *) cl_arg;
 
-        long width = STARPU_MATRIX_GET_NY(descr[0]);
-        long height = STARPU_MATRIX_GET_NX(descr[0]);
+        size_t width = STARPU_MATRIX_GET_NY(descr[0]);
+        size_t height = STARPU_MATRIX_GET_NX(descr[0]);
         double zoom = width * 0.25296875;
         double iz = 1. / zoom;
         float diverge = 4.0;

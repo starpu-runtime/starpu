@@ -50,36 +50,36 @@ void cpu_func(void *buffers[], void *cl_arg)
 {
 	(void)cl_arg;
 	/* length of the shadowed source matrix */
-	unsigned *nn = STARPU_NDIM_GET_NN(buffers[0]);
-	unsigned *ldn = STARPU_NDIM_GET_LDN(buffers[0]);
-	unsigned x = nn[0];
-	unsigned y = nn[1];
-	unsigned z = nn[2];
-	unsigned t = nn[3];
-	unsigned g = nn[4];
-	unsigned ldy = ldn[1];
-	unsigned ldz = ldn[2];
-	unsigned ldt = ldn[3];
-	unsigned ldg = ldn[4];
+	size_t *nn = STARPU_NDIM_GET_NN(buffers[0]);
+	size_t *ldn = STARPU_NDIM_GET_LDN(buffers[0]);
+	size_t x = nn[0];
+	size_t y = nn[1];
+	size_t z = nn[2];
+	size_t t = nn[3];
+	size_t g = nn[4];
+	size_t ldy = ldn[1];
+	size_t ldz = ldn[2];
+	size_t ldt = ldn[3];
+	size_t ldg = ldn[4];
 	/* local copy of the shadowed source matrix pointer */
 	int *val = (int *)STARPU_NDIM_GET_PTR(buffers[0]);
 
 	/* length of the destination matrix */
-	unsigned *nn2 = STARPU_NDIM_GET_NN(buffers[1]);
-	unsigned *ldn2 = STARPU_NDIM_GET_LDN(buffers[1]);
-	unsigned x2 = nn2[0];
-	unsigned y2 = nn2[1];
-	unsigned z2 = nn2[2];
-	unsigned t2 = nn2[3];
-	unsigned g2 = nn2[4];
-	unsigned ldy2 = ldn2[1];
-	unsigned ldz2 = ldn2[2];
-	unsigned ldt2 = ldn2[3];
-	unsigned ldg2 = ldn2[4];
+	size_t *nn2 = STARPU_NDIM_GET_NN(buffers[1]);
+	size_t *ldn2 = STARPU_NDIM_GET_LDN(buffers[1]);
+	size_t x2 = nn2[0];
+	size_t y2 = nn2[1];
+	size_t z2 = nn2[2];
+	size_t t2 = nn2[3];
+	size_t g2 = nn2[4];
+	size_t ldy2 = ldn2[1];
+	size_t ldz2 = ldn2[2];
+	size_t ldt2 = ldn2[3];
+	size_t ldg2 = ldn2[4];
 	/* local copy of the destination matrix pointer */
 	int *val2 = (int *)STARPU_NDIM_GET_PTR(buffers[1]);
 
-	unsigned i, j, k, l, m;
+	size_t i, j, k, l, m;
 
 	/* If things go right, sizes should match */
 	STARPU_ASSERT(x == x2);
@@ -100,36 +100,36 @@ void cuda_func(void *buffers[], void *cl_arg)
 {
 	(void)cl_arg;
 	/* length of the shadowed source matrix */
-	unsigned *nn = STARPU_NDIM_GET_NN(buffers[0]);
-	unsigned *ldn = STARPU_NDIM_GET_LDN(buffers[0]);
-	unsigned x = nn[0];
-	unsigned y = nn[1];
-	unsigned z = nn[2];
-	unsigned t = nn[3];
-	unsigned g = nn[4];
-	unsigned ldy = ldn[1];
-	unsigned ldz = ldn[2];
-	unsigned ldt = ldn[3];
-	unsigned ldg = ldn[4];
+	size_t *nn = STARPU_NDIM_GET_NN(buffers[0]);
+	size_t *ldn = STARPU_NDIM_GET_LDN(buffers[0]);
+	size_t x = nn[0];
+	size_t y = nn[1];
+	size_t z = nn[2];
+	size_t t = nn[3];
+	size_t g = nn[4];
+	size_t ldy = ldn[1];
+	size_t ldz = ldn[2];
+	size_t ldt = ldn[3];
+	size_t ldg = ldn[4];
 	/* local copy of the shadowed source matrix pointer */
 	int *val = (int *)STARPU_NDIM_GET_PTR(buffers[0]);
 
 	/* length of the destination matrix */
-	unsigned *nn2 = STARPU_NDIM_GET_NN(buffers[1]);
-	unsigned *ldn2 = STARPU_NDIM_GET_LDN(buffers[1]);
-	unsigned x2 = nn2[0];
-	unsigned y2 = nn2[1];
-	unsigned z2 = nn2[2];
-	unsigned t2 = nn2[3];
-	unsigned g2 = nn2[4];
-	unsigned ldy2 = ldn2[1];
-	unsigned ldz2 = ldn2[2];
-	unsigned ldt2 = ldn2[3];
-	unsigned ldg2 = ldn2[4];
+	size_t *nn2 = STARPU_NDIM_GET_NN(buffers[1]);
+	size_t *ldn2 = STARPU_NDIM_GET_LDN(buffers[1]);
+	size_t x2 = nn2[0];
+	size_t y2 = nn2[1];
+	size_t z2 = nn2[2];
+	size_t t2 = nn2[3];
+	size_t g2 = nn2[4];
+	size_t ldy2 = ldn2[1];
+	size_t ldz2 = ldn2[2];
+	size_t ldt2 = ldn2[3];
+	size_t ldg2 = ldn2[4];
 	/* local copy of the destination matrix pointer */
 	int *val2 = (int *)STARPU_NDIM_GET_PTR(buffers[1]);
 
-	unsigned k, l, m;
+	size_t k, l, m;
 	cudaError_t cures;
 
 	/* If things go right, sizes should match */
@@ -155,7 +155,7 @@ void cuda_func(void *buffers[], void *cl_arg)
 
 int main(void)
 {
-	unsigned i, j, k, l, m, n, p, q, r, s;
+	size_t i, j, k, l, m, n, p, q, r, s;
 	int matrix[NG + 2*SHADOWG][NT + 2*SHADOWT][NZ + 2*SHADOWZ][NY + 2*SHADOWY][NX + 2*SHADOWX];
 	int matrix2[NG + PARTSG*2*SHADOWG][NT + PARTST*2*SHADOWT][NZ + PARTSZ*2*SHADOWZ][NY + PARTSY*2*SHADOWY][NX + PARTSX*2*SHADOWX];
 	starpu_data_handle_t handle, handle2;
@@ -707,11 +707,11 @@ int main(void)
 		exit(77);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	unsigned nn1[5] = {NX + 2*SHADOWX, NY + 2*SHADOWY, NZ + 2*SHADOWZ, NT + 2*SHADOWT, NG + 2*SHADOWG};
-	unsigned ldn1[5] = {1, NX + 2*SHADOWX, (NX + 2*SHADOWX) * (NY + 2*SHADOWY), (NX + 2*SHADOWX) * (NY + 2*SHADOWY) * (NZ + 2*SHADOWZ), (NX + 2*SHADOWX) * (NY + 2*SHADOWY) * (NZ + 2*SHADOWZ) *  (NT + 2*SHADOWT)};
+	size_t nn1[5] = {NX + 2*SHADOWX, NY + 2*SHADOWY, NZ + 2*SHADOWZ, NT + 2*SHADOWT, NG + 2*SHADOWG};
+	size_t ldn1[5] = {1, NX + 2*SHADOWX, (NX + 2*SHADOWX) * (NY + 2*SHADOWY), (NX + 2*SHADOWX) * (NY + 2*SHADOWY) * (NZ + 2*SHADOWZ), (NX + 2*SHADOWX) * (NY + 2*SHADOWY) * (NZ + 2*SHADOWZ) *  (NT + 2*SHADOWT)};
 
-	unsigned nn2[5] = {NX + PARTSX*2*SHADOWX, NY + PARTSY*2*SHADOWY, NZ + PARTSZ*2*SHADOWZ, NT + PARTST*2*SHADOWT, NG + PARTSG*2*SHADOWG};
-	unsigned ldn2[5] = {1, NX + PARTSX*2*SHADOWX, (NX + PARTSX*2*SHADOWX) * (NY + PARTSY*2*SHADOWY), (NX + PARTSX*2*SHADOWX) * (NY + PARTSY*2*SHADOWY) * (NZ + PARTSZ*2*SHADOWZ), (NX + PARTSX*2*SHADOWX) * (NY + PARTSY*2*SHADOWY) * (NZ + PARTSZ*2*SHADOWZ) * (NT + PARTST*2*SHADOWT)};
+	size_t nn2[5] = {NX + PARTSX*2*SHADOWX, NY + PARTSY*2*SHADOWY, NZ + PARTSZ*2*SHADOWZ, NT + PARTST*2*SHADOWT, NG + PARTSG*2*SHADOWG};
+	size_t ldn2[5] = {1, NX + PARTSX*2*SHADOWX, (NX + PARTSX*2*SHADOWX) * (NY + PARTSY*2*SHADOWY), (NX + PARTSX*2*SHADOWX) * (NY + PARTSY*2*SHADOWY) * (NZ + PARTSZ*2*SHADOWZ), (NX + PARTSX*2*SHADOWX) * (NY + PARTSY*2*SHADOWY) * (NZ + PARTSZ*2*SHADOWZ) * (NT + PARTST*2*SHADOWT)};
 
 	/* Declare source matrix to StarPU */
 	starpu_ndim_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)matrix, ldn1, nn1, 5, sizeof(matrix[0][0][0][0][0]));

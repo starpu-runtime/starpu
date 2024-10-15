@@ -19,8 +19,8 @@
 __kernel void spmv(int nnz, int nrow,
                    __global float* nzval, __global unsigned* colind,
                    __global unsigned* rowptr, int firstentry,
-                   __global float *vecin, int nx_in,
-                   __global float *vecout, int nx_out)
+                   __global float *vecin, ulong nx_in,
+                   __global float *vecout, ulong nx_out)
 {
 	const int row = get_global_id(0);
 	if (row < nrow)

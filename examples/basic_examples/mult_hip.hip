@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2022  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2024  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -91,8 +91,8 @@ extern "C" void hip_mult(void *descr[], void *arg)
 {
 	(void)arg;
 	float *subA, *subB, *subC;
-	uint32_t nxC, nyC, nyA;
-	uint32_t ldA, ldB, ldC;
+	size_t nxC, nyC, nyA;
+	size_t ldA, ldB, ldC;
 	uint32_t nblocks;
 
 	/* ptr gives a pointer to the first element of the local copy */

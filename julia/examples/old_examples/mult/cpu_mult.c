@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020       University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2024  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2019       Mael Keryell
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -28,8 +28,8 @@ void cpu_mult(void *descr[], void *arg)
 {
 	(void)arg;
 	float *subA, *subB, *subC;
-	uint32_t nxC, nyC, nyA;
-	uint32_t ldA, ldB, ldC;
+	size_t nxC, nyC, nyA;
+	size_t ldA, ldB, ldC;
 
 	/* .blas.ptr gives a pointer to the first element of the local copy */
 	subA = (float *)STARPU_MATRIX_GET_PTR(descr[0]);

@@ -18,10 +18,10 @@
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
-void print_5darr(int *arr5d, int nx, int ny, int nz, int nt, int ng, unsigned ldy, unsigned ldz, unsigned ldt, unsigned ldg)
+void print_5darr(int *arr5d, size_t nx, size_t ny, size_t nz, size_t nt, size_t ng, size_t ldy, size_t ldz, size_t ldt, size_t ldg)
 {
-	int i, j, k, l, m;
-	FPRINTF(stderr, "5dim array=%p nx=%d ny=%d nz=%d nt=%d ng=%d ldy=%u ldz=%u ldt=%u ldg=%u\n", arr5d, nx, ny, nz, nt, ng, ldy, ldz, ldt, ldg);
+	size_t i, j, k, l, m;
+	FPRINTF(stderr, "5dim array=%p nx=%zu ny=%zu nz=%zu nt=%zu ng=%zu ldy=%zu ldz=%zu ldt=%zu ldg=%zu\n", arr5d, nx, ny, nz, nt, ng, ldy, ldz, ldt, ldg);
 	for(m=0 ; m<ng ; m++)
 	{
 		for(l=0 ; l<nt ; l++)
@@ -48,17 +48,17 @@ void print_5darr(int *arr5d, int nx, int ny, int nz, int nt, int ng, unsigned ld
 void print_5dim_data(starpu_data_handle_t ndim_handle)
 {
 	int *arr5d = (int *)starpu_ndim_get_local_ptr(ndim_handle);
-	unsigned *nn = starpu_ndim_get_nn(ndim_handle);
-	unsigned *ldn = starpu_ndim_get_local_ldn(ndim_handle);
+	size_t *nn = starpu_ndim_get_nn(ndim_handle);
+	size_t *ldn = starpu_ndim_get_local_ldn(ndim_handle);
 
 	starpu_data_acquire(ndim_handle, STARPU_R);
 	print_5darr(arr5d, nn[0], nn[1], nn[2], nn[3], nn[4], ldn[1], ldn[2], ldn[3], ldn[4]);
 	starpu_data_release(ndim_handle);
 }
 
-void generate_5dim_data(int *arr5d, int nx, int ny, int nz, int nt, int ng, unsigned ldy, unsigned ldz, unsigned ldt, unsigned ldg)
+void generate_5dim_data(int *arr5d, size_t nx, size_t ny, size_t nz, size_t nt, size_t ng, size_t ldy, size_t ldz, size_t ldt, size_t ldg)
 {
-	int i, j, k, l, m, n = 0;
+	size_t i, j, k, l, m, n = 0;
 	for(m=0 ; m<ng ; m++)
 	{
 		for(l=0 ; l<nt ; l++)

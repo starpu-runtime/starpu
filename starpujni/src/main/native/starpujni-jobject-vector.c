@@ -102,7 +102,7 @@ static unsigned s_memory_node(void)
 	return result;
 }
 
-void starpujni_jobject_vector_data_register(starpu_data_handle_t *handleptr, int home_node, uint32_t size)
+void starpujni_jobject_vector_data_register(starpu_data_handle_t *handleptr, int home_node, size_t size)
 {
 	struct jobject_vector_interface vector =
 	{
@@ -114,7 +114,7 @@ void starpujni_jobject_vector_data_register(starpu_data_handle_t *handleptr, int
 	starpu_data_register(handleptr, home_node, &vector, &JOBJECT_VECTOR_INTERFACE_OPS);
 }
 
-uint32_t starpujni_jobject_vector_get_nx(starpu_data_handle_t handle)
+size_t starpujni_jobject_vector_get_nx(starpu_data_handle_t handle)
 {
 	struct jobject_vector_interface *vector = starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 	return vector->nx;
@@ -206,13 +206,13 @@ static int s_jobject_vector_compare(void *data_interface_a, void *data_interface
 static void s_jobject_vector_display(starpu_data_handle_t handle, FILE *f)
 {
 	struct jobject_vector_interface *vector = starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
-	fprintf(f, "%u\t", vector->nx);
+	fprintf(f, "%zu\t", vector->nx);
 }
 
 static starpu_ssize_t s_jobject_vector_describe(void *data_interface, char *buf, size_t size)
 {
 	struct jobject_vector_interface *vector = data_interface;
-	return snprintf(buf, size, "JV%u",(unsigned) vector->nx);
+	return snprintf(buf, size, "JV%zu",(unsigned) vector->nx);
 }
 
 static int s_jobject_vector_pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count)
@@ -378,13 +378,13 @@ static void s_compute_chunk_size_and_offset(unsigned n, unsigned nparts, size_t 
 
 static void s_jobject_vector_filter_block(void *parent_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
 {
-	uint32_t child_nx;
+	size_t child_nx;
 	size_t offset;
 	struct jobject_vector_interface *vector_parent = parent_interface;
 	struct jobject_vector_interface *vector_child = child_interface;
-	uint32_t nx = vector_parent->nx;
+	size_t nx = vector_parent->nx;
 
-	STARPU_ASSERT_MSG(nchunks <= nx, "%u parts for %u elements", nchunks, nx);
+	STARPU_ASSERT_MSG(nchunks <= nx, "%u parts for %zu elements", nchunks, nx);
 
 	s_compute_chunk_size_and_offset(nx, nchunks, sizeof(jobject), id, 1, &child_nx, &offset);
 

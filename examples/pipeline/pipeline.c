@@ -60,8 +60,8 @@ void pipeline_cpu_x(void *descr[], void *args)
 {
 	float x;
 	float *val = (float *) STARPU_VECTOR_GET_PTR(descr[0]);
-	int n = STARPU_VECTOR_GET_NX(descr[0]);
-	int i;
+	size_t n = STARPU_VECTOR_GET_NX(descr[0]);
+	size_t i;
 
 	starpu_codelet_unpack_args(args, &x);
 	for (i = 0; i < n ; i++)
@@ -89,7 +89,7 @@ void pipeline_cpu_axpy(void *descr[], void *arg)
 	(void)arg;
 	float *x = (float *) STARPU_VECTOR_GET_PTR(descr[0]);
 	float *y = (float *) STARPU_VECTOR_GET_PTR(descr[1]);
-	int n = STARPU_VECTOR_GET_NX(descr[0]);
+	size_t n = STARPU_VECTOR_GET_NX(descr[0]);
 
 	STARPU_SAXPY(n, 1., x, 1, y, 1);
 }
@@ -100,7 +100,7 @@ void pipeline_cublas_axpy(void *descr[], void *arg)
 	(void)arg;
 	float *x = (float *) STARPU_VECTOR_GET_PTR(descr[0]);
 	float *y = (float *) STARPU_VECTOR_GET_PTR(descr[1]);
-	int n = STARPU_VECTOR_GET_NX(descr[0]);
+	size_t n = STARPU_VECTOR_GET_NX(descr[0]);
 	float alpha = 1.;
 
 	cublasStatus_t status = cublasSaxpy(starpu_cublas_get_local_handle(), n, &alpha, x, 1, y, 1);
@@ -133,7 +133,7 @@ void pipeline_cpu_sum(void *descr[], void *arg)
 {
 	(void)arg;
 	float *x = (float *) STARPU_VECTOR_GET_PTR(descr[0]);
-	int n = STARPU_VECTOR_GET_NX(descr[0]);
+	size_t n = STARPU_VECTOR_GET_NX(descr[0]);
 	float y;
 
 	y = STARPU_SASUM(n, x, 1);
@@ -146,7 +146,7 @@ void pipeline_cublas_sum(void *descr[], void *arg)
 {
 	(void)arg;
 	float *x = (float *) STARPU_VECTOR_GET_PTR(descr[0]);
-	int n = STARPU_VECTOR_GET_NX(descr[0]);
+	size_t n = STARPU_VECTOR_GET_NX(descr[0]);
 	float y;
 
 	cublasStatus_t status = cublasSasum(starpu_cublas_get_local_handle(), n, x, 1, &y);

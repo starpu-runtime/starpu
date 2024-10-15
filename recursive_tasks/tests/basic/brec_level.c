@@ -34,8 +34,8 @@ void sub_data_read_func(void *buffers[], void *arg)
 void sub_data_func(void *buffers[], void *arg)
 {
 	int *v = (int*)STARPU_VECTOR_GET_PTR(buffers[0]);
-	int nx = STARPU_VECTOR_GET_NX(buffers[0]);
-	int i;
+	size_t nx = STARPU_VECTOR_GET_NX(buffers[0]);
+	size_t i;
 
 	for(i=0 ; i<nx ; i++)
 		v[i] *= 2;

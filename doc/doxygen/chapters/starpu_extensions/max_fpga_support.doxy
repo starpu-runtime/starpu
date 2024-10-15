@@ -183,7 +183,7 @@ void fpga_add(void *buffers[], void *cl_arg)
     int *b = (int*) STARPU_VECTOR_GET_PTR(buffers[1]);
     int *c = (int*) STARPU_VECTOR_GET_PTR(buffers[2]);
 
-    int size = STARPU_VECTOR_GET_NX(buffers[0]);
+    size_t size = STARPU_VECTOR_GET_NX(buffers[0]);
 
     /* actions to run on an engine */
     max_actions_t *act = max_actions_init(maxfile, NULL);

@@ -21,7 +21,7 @@ void julia_saxpy_cpu_codelet(void *descr[], void *arg)
 {
 	float alpha = *((float *)arg);
 
-	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
+	size_t n = STARPU_VECTOR_GET_NX(descr[0]);
 
 	float *block_x = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 	float *block_y = (float *)STARPU_VECTOR_GET_PTR(descr[1]);
@@ -38,7 +38,7 @@ void julia_saxpy_cuda_codelet(void *descr[], void *arg)
 {
 	float alpha = *((float *)arg);
 
-	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
+	size_t n = STARPU_VECTOR_GET_NX(descr[0]);
 
 	float *block_x = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 	float *block_y = (float *)STARPU_VECTOR_GET_PTR(descr[1]);

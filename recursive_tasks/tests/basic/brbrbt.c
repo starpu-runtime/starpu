@@ -26,8 +26,8 @@ starpu_data_handle_t sub_handles_l3[PARTS];
 void sleep_func(void *buffers[], void *arg)
 {
 	int *v = (int*)STARPU_VECTOR_GET_PTR(buffers[0]);
-	int nx = STARPU_VECTOR_GET_NX(buffers[0]);
-	int i;
+	size_t nx = STARPU_VECTOR_GET_NX(buffers[0]);
+	size_t i;
 
 	print_vector(v, nx, "task");
 	for(i=0 ; i<nx ; i++)

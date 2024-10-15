@@ -18,10 +18,10 @@
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
-void print_block(int *block, int nx, int ny, int nz, unsigned ldy, unsigned ldz)
+void print_block(int *block, size_t nx, size_t ny, size_t nz, size_t ldy, size_t ldz)
 {
-	int i, j, k;
-	FPRINTF(stderr, "block=%p nx=%d ny=%d nz=%d ldy=%u ldz=%u\n", block, nx, ny, nz, ldy, ldz);
+	size_t i, j, k;
+	FPRINTF(stderr, "block=%p nx=%zu ny=%zu nz=%zu ldy=%zu ldz=%zu\n", block, nx, ny, nz, ldy, ldz);
 	for(k=0 ; k<nz ; k++)
 	{
 		for(j=0 ; j<ny ; j++)
@@ -40,11 +40,11 @@ void print_block(int *block, int nx, int ny, int nz, unsigned ldy, unsigned ldz)
 void print_block_data(starpu_data_handle_t block_handle)
 {
 	int *block = (int *)starpu_block_get_local_ptr(block_handle);
-	int nx = starpu_block_get_nx(block_handle);
-	int ny = starpu_block_get_ny(block_handle);
-	int nz = starpu_block_get_nz(block_handle);
-	unsigned ldy = starpu_block_get_local_ldy(block_handle);
-	unsigned ldz = starpu_block_get_local_ldz(block_handle);
+	size_t nx = starpu_block_get_nx(block_handle);
+	size_t ny = starpu_block_get_ny(block_handle);
+	size_t nz = starpu_block_get_nz(block_handle);
+	size_t ldy = starpu_block_get_local_ldy(block_handle);
+	size_t ldz = starpu_block_get_local_ldz(block_handle);
 
 	starpu_data_acquire(block_handle, STARPU_R);
 	print_block(block, nx, ny, nz, ldy, ldz);
@@ -54,17 +54,17 @@ void print_block_data(starpu_data_handle_t block_handle)
 void print_3dim_data(starpu_data_handle_t ndim_handle)
 {
 	int *arr3d = (int *)starpu_ndim_get_local_ptr(ndim_handle);
-	unsigned *nn = starpu_ndim_get_nn(ndim_handle);
-	unsigned *ldn = starpu_ndim_get_local_ldn(ndim_handle);
+	size_t *nn = starpu_ndim_get_nn(ndim_handle);
+	size_t *ldn = starpu_ndim_get_local_ldn(ndim_handle);
 
 	starpu_data_acquire(ndim_handle, STARPU_R);
 	print_block(arr3d, nn[0], nn[1], nn[2], ldn[1], ldn[2]);
 	starpu_data_release(ndim_handle);
 }
 
-void generate_block_data(int *block, int nx, int ny, int nz, unsigned ldy, unsigned ldz)
+void generate_block_data(int *block, size_t nx, size_t ny, size_t nz, size_t ldy, size_t ldz)
 {
-	int i, j, k, n = 0;
+	size_t i, j, k, n = 0;
 	for(k=0 ; k<nz ; k++)
 	{
 		for(j=0 ; j<ny ; j++)

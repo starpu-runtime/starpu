@@ -52,7 +52,7 @@ struct starpu_codelet recursive_task_chain_codelet =
 void btask_func(void *buffers[], void *arg)
 {
 	int *vA = (int*)STARPU_VECTOR_GET_PTR(buffers[0]);
-	int nx = STARPU_VECTOR_GET_NX(buffers[0]);
+	size_t nx = STARPU_VECTOR_GET_NX(buffers[0]);
 
 	print_vector(vA, nx, "task vA");
 }

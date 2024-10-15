@@ -67,9 +67,9 @@ static void opencl_task(void *buffers[], void *args)
 	starpu_opencl_get_queue(devid, &queue);
 
 	cl_mem numbers = (cl_mem) STARPU_VECTOR_GET_DEV_HANDLE(buffers[0]);
-	unsigned size = STARPU_VECTOR_GET_NX(buffers[0]);
+	cl_ulong size = STARPU_VECTOR_GET_NX(buffers[0]);
 
-	unsigned i;
+	cl_ulong i;
 	for (i = 0; i < size; i++)
 	{
 		cl_int err;

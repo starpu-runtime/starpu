@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2024  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,9 +18,9 @@
 
 #include <starpu.h>
 
-static __global__ void ftensor_hip(int *tensor, int nx, int ny, int nz, int nt, unsigned ldy, unsigned ldz, unsigned ldt, float factor)
+static __global__ void ftensor_hip(int *tensor, size_t nx, size_t ny, size_t nz, size_t nt, size_t ldy, size_t ldz, size_t ldt, float factor)
 {
-        int i, j, k, l;
+        size_t i, j, k, l;
 
         for(l=0; l<nt ; l++)
         {
@@ -39,13 +39,13 @@ extern "C" void tensor_hip_func(void *buffers[], void *_args)
 {
         int *factor = (int *)_args;
         int *tensor = (int *)STARPU_TENSOR_GET_PTR(buffers[0]);
-        int nx = (int)STARPU_TENSOR_GET_NX(buffers[0]);
-        int ny = (int)STARPU_TENSOR_GET_NY(buffers[0]);
-        int nz = (int)STARPU_TENSOR_GET_NZ(buffers[0]);
-        int nt = (int)STARPU_TENSOR_GET_NT(buffers[0]);
-        unsigned ldy = STARPU_TENSOR_GET_LDY(buffers[0]);
-        unsigned ldz = STARPU_TENSOR_GET_LDZ(buffers[0]);
-        unsigned ldt = STARPU_TENSOR_GET_LDT(buffers[0]);
+        size_t nx = STARPU_TENSOR_GET_NX(buffers[0]);
+        size_t ny = STARPU_TENSOR_GET_NY(buffers[0]);
+        size_t nz = STARPU_TENSOR_GET_NZ(buffers[0]);
+        size_t nt = STARPU_TENSOR_GET_NT(buffers[0]);
+        size_t ldy = STARPU_TENSOR_GET_LDY(buffers[0]);
+        size_t ldz = STARPU_TENSOR_GET_LDZ(buffers[0]);
+        size_t ldt = STARPU_TENSOR_GET_LDT(buffers[0]);
 
         hipLaunchKernelGGL(ftensor_hip, 1, 1, 0, starpu_hip_get_local_stream(), tensor, nx, ny, nz, nt, ldy, ldz, ldt, *factor);
         hipError_t status = hipGetLastError();

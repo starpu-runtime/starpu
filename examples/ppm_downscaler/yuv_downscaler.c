@@ -59,30 +59,30 @@ void ds_kernel_cpu(void *descr[], void *arg)
 {
 	(void)arg;
 	uint8_t *input = (uint8_t *)STARPU_MATRIX_GET_PTR(descr[0]);
-	const unsigned input_ld = STARPU_MATRIX_GET_LD(descr[0]);
+	const size_t input_ld = STARPU_MATRIX_GET_LD(descr[0]);
 
 	uint8_t *output = (uint8_t *)STARPU_MATRIX_GET_PTR(descr[1]);
-	const unsigned output_ld = STARPU_MATRIX_GET_LD(descr[1]);
+	const size_t output_ld = STARPU_MATRIX_GET_LD(descr[1]);
 
-	const unsigned ncols = STARPU_MATRIX_GET_NX(descr[0]);
-	const unsigned nlines = STARPU_MATRIX_GET_NY(descr[0]);
+	const size_t ncols = STARPU_MATRIX_GET_NX(descr[0]);
+	const size_t nlines = STARPU_MATRIX_GET_NY(descr[0]);
 
-	unsigned line, col;
+	size_t line, col;
 	for (line = 0; line < nlines; line+=FACTOR)
 	for (col = 0; col < ncols; col+=FACTOR)
 	{
 		unsigned sum = 0;
 
-		unsigned lline, lcol;
+		size_t lline, lcol;
 		for (lline = 0; lline < FACTOR; lline++)
 		for (lcol = 0; lcol < FACTOR; lcol++)
 		{
-			unsigned in_index = (lcol + col) + (lline + line)*input_ld;
+			size_t in_index = (lcol + col) + (lline + line)*input_ld;
 
 			sum += input[in_index];
 		}
 
-		unsigned out_index = (col / FACTOR) + (line / FACTOR)*output_ld;
+		size_t out_index = (col / FACTOR) + (line / FACTOR)*output_ld;
 		output[out_index] = (uint8_t)(sum/(FACTOR*FACTOR));
 	}
 }

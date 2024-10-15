@@ -46,12 +46,12 @@ void axpy_cpu(void *descr[], void *arg)
 {
 	float alpha = *((float *)arg);
 
-	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
+	size_t n = STARPU_VECTOR_GET_NX(descr[0]);
 
 	float *block_x = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 	float *block_y = (float *)STARPU_VECTOR_GET_PTR(descr[1]);
 
-	unsigned i;
+	size_t i;
 	for(i = 0; i < n; i++)
 		block_y[i] = alpha * block_x[i] + block_y[i];
 }

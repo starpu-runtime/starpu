@@ -31,18 +31,17 @@ struct Params
 
 void cpu_mandelbrot(void *descr[], void *cl_arg)
 {
-	
 	struct Params *params = cl_arg;
 
 	int *subP;
-	uint32_t nxP, nyP;
-	uint32_t ldP;
+	size_t nxP, nyP;
+	size_t ldP;
 
 	subP = (int *)STARPU_MATRIX_GET_PTR(descr[0]);
 
 	nxP = STARPU_MATRIX_GET_NX(descr[0]);
 	nyP = STARPU_MATRIX_GET_NY(descr[0]);
-	
+
 	ldP = STARPU_MATRIX_GET_LD(descr[0]);
 
 	float centerr = params->cr;
@@ -69,7 +68,7 @@ void cpu_mandelbrot(void *descr[], void *cl_arg)
 			float zr = cr;
 			float zi = ci;
 			float m = zr * zr + zi * zi;
-			
+
 			for (n = 0; n <= max_iter && m < conv_limit * conv_limit; n++) {
 
 				float tmp = zr*zr - zi*zi + cr;

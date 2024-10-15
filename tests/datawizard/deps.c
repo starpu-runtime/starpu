@@ -29,8 +29,8 @@ void null_cpu_func(void *buffers[], void *arg)
 void prod_cpu_func(void *buffers[], void *arg)
 {
 	int *data = (int *)STARPU_VECTOR_GET_PTR(buffers[0]);
-	int n = STARPU_VECTOR_GET_NX(buffers[0]);
-	int i;
+	size_t n = STARPU_VECTOR_GET_NX(buffers[0]);
+	size_t i;
 	int factor;
 
 	starpu_codelet_unpack_args(arg, &factor);

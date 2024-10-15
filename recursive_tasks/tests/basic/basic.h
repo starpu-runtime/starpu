@@ -33,11 +33,11 @@ struct starpu_data_filter f =
 	.nchildren = PARTS
 };
 
-void print_vector(int *v, int nx, const char *label)
+void print_vector(int *v, size_t nx, const char *label)
 {
 	char message[100000];
 	int cur=0;
-	int i;
+	size_t i;
 
 	cur += snprintf(&message[cur], 100000 - cur, "%s : ", label);
 	for (i=0; i<nx-1; i++)
@@ -51,8 +51,8 @@ void print_vector(int *v, int nx, const char *label)
 void sub_data_func(void *buffers[], void *arg)
 {
 	int *v = (int*)STARPU_VECTOR_GET_PTR(buffers[0]);
-	int nx = STARPU_VECTOR_GET_NX(buffers[0]);
-	int i;
+	size_t nx = STARPU_VECTOR_GET_NX(buffers[0]);
+	size_t i;
 
 	for(i=0 ; i<nx ; i++)
 		v[i] *= 2;
@@ -77,7 +77,7 @@ struct starpu_codelet sub_data_codelet =
 void sub_data_RO_func(void *buffers[], void *arg)
 {
 	int *v = (int*)STARPU_VECTOR_GET_PTR(buffers[0]);
-	int nx = STARPU_VECTOR_GET_NX(buffers[0]);
+	size_t nx = STARPU_VECTOR_GET_NX(buffers[0]);
 	print_vector(v, nx, "subtaskRO");
 }
 
@@ -187,8 +187,8 @@ struct starpu_codelet recursive_taskRO_codelet =
 void task_func(void *buffers[], void *arg)
 {
 	int *v = (int*)STARPU_VECTOR_GET_PTR(buffers[0]);
-	int nx = STARPU_VECTOR_GET_NX(buffers[0]);
-	int i;
+	size_t nx = STARPU_VECTOR_GET_NX(buffers[0]);
+	size_t i;
 
 	print_vector(v, nx, "task");
 	for(i=0 ; i<nx ; i++)
@@ -211,7 +211,7 @@ struct starpu_codelet task_codelet =
 void task_RO_func(void *buffers[], void *arg)
 {
 	int *v = (int*)STARPU_VECTOR_GET_PTR(buffers[0]);
-	int nx = STARPU_VECTOR_GET_NX(buffers[0]);
+	size_t nx = STARPU_VECTOR_GET_NX(buffers[0]);
 	print_vector(v, nx, "taskRO");
 }
 

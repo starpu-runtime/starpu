@@ -29,8 +29,8 @@
 void func_cpu(void *descr[], void *_args)
 {
 	(void) _args;
-	int x;
-	int nx = STARPU_VECTOR_GET_NX(descr[0]);
+	size_t x;
+	size_t nx = STARPU_VECTOR_GET_NX(descr[0]);
 	TYPE *v = (TYPE *)STARPU_VECTOR_GET_PTR(descr[0]);
 
 	for(x=0 ; x<nx ; x++)

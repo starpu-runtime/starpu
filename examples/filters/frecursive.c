@@ -20,18 +20,18 @@
 
 void cpu_codelet(void *buffers[], void *cl_arg)
 {
-	unsigned i, j;
+	size_t i, j;
 	int factor;
 
 	starpu_codelet_unpack_args(cl_arg, &factor, 0);
 	/* length of the matrix */
-	unsigned nx = STARPU_MATRIX_GET_NX(buffers[0]);
-	unsigned ny = STARPU_MATRIX_GET_NY(buffers[0]);
-	unsigned ld = STARPU_MATRIX_GET_LD(buffers[0]);
+	size_t nx = STARPU_MATRIX_GET_NX(buffers[0]);
+	size_t ny = STARPU_MATRIX_GET_NY(buffers[0]);
+	size_t ld = STARPU_MATRIX_GET_LD(buffers[0]);
 	/* local copy of the matrix pointer */
 	int *val = (int *)STARPU_MATRIX_GET_PTR(buffers[0]);
 
-	FPRINTF(stderr, "computing on matrix with nx=%u, ny=%u, ld=%u\n", nx, ny, ld);
+	FPRINTF(stderr, "computing on matrix with nx=%zu, ny=%zu, ld=%zu\n", nx, ny, ld);
 	for(j=0; j<ny ; j++)
 	{
 		for(i=0; i<nx ; i++)

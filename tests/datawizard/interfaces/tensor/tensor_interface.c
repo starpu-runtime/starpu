@@ -106,15 +106,15 @@ void test_tensor_cpu_func(void *buffers[], void *args)
 	STARPU_SKIP_IF_VALGRIND;
 
 	int factor = *(int*)args;
-	int nx = STARPU_TENSOR_GET_NX(buffers[0]);
-	int ny = STARPU_TENSOR_GET_NY(buffers[0]);
-	int nz = STARPU_TENSOR_GET_NZ(buffers[0]);
-	int nt = STARPU_TENSOR_GET_NT(buffers[0]);
-        unsigned ldy = STARPU_TENSOR_GET_LDY(buffers[0]);
-        unsigned ldz = STARPU_TENSOR_GET_LDZ(buffers[0]);
-        unsigned ldt = STARPU_TENSOR_GET_LDT(buffers[0]);
+	size_t nx = STARPU_TENSOR_GET_NX(buffers[0]);
+	size_t ny = STARPU_TENSOR_GET_NY(buffers[0]);
+	size_t nz = STARPU_TENSOR_GET_NZ(buffers[0]);
+	size_t nt = STARPU_TENSOR_GET_NT(buffers[0]);
+        size_t ldy = STARPU_TENSOR_GET_LDY(buffers[0]);
+        size_t ldz = STARPU_TENSOR_GET_LDZ(buffers[0]);
+        size_t ldt = STARPU_TENSOR_GET_LDT(buffers[0]);
 	int *tensor = (int *) STARPU_TENSOR_GET_PTR(buffers[0]);
-	int i, j, k, l;
+	size_t i, j, k, l;
 	int val = 0;
 	tensor_config.copy_failed = SUCCESS;
 	for (l = 0; l < nt; l++)

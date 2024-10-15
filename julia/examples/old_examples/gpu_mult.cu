@@ -18,17 +18,14 @@
 #include <stdint.h>
 #include <stdio.h>
 
-
-
-
 __global__ void gpuMultKernel
 (
-		uint32_t nxC, uint32_t nyC, uint32_t nyA,
-		uint32_t ldA, uint32_t ldB, uint32_t ldC,
-		float * subA, float * subB, float * subC
+	size_t nxC, size_t nyC, size_t nyA,
+	size_t ldA, size_t ldB, size_t ldC,
+	float * subA, float * subB, float * subC
 )
 {
-	uint32_t id, i, j, k;
+	size_t id, i, j, k;
 	float sum;
 
 	id = blockIdx.x * blockDim.x + threadIdx.x;
@@ -46,20 +43,16 @@ __global__ void gpuMultKernel
 	}
 
 	subC[i + j*ldC] = sum;
-
 }
-
-
 
 #define THREADS_PER_BLOCK 64
 
 extern "C" void gpu_mult(void * descr[], void * args)
 {
-
 	float * d_subA, * d_subB, * d_subC;
-	uint32_t nxC, nyC, nyA;
-	uint32_t ldA, ldB, ldC;
-	uint32_t nblocks;
+	size_t nxC, nyC, nyA;
+	size_t ldA, ldB, ldC;
+	size_t nblocks;
 
 	d_subA = (float *) STARPU_MATRIX_GET_PTR(descr[0]);
 	d_subB = (float *) STARPU_MATRIX_GET_PTR(descr[1]);
@@ -82,5 +75,4 @@ extern "C" void gpu_mult(void * descr[], void * args)
 	if (status != cudaSuccess) STARPU_CUDA_REPORT_ERROR(status);
 
 	cudaStreamSynchronize(starpu_cuda_get_local_stream());
-
 }

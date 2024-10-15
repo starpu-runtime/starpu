@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-__kernel void vector_mult_opencl(__global unsigned* val, unsigned offset, unsigned nx)
+__kernel void vector_mult_opencl(__global unsigned* val, ulong offset, ulong nx)
 {
         const int i = get_global_id(0);
 	val = (__global char*) val + offset;

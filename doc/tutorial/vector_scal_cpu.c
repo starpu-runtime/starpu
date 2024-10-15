@@ -19,7 +19,7 @@
 /* This kernel takes a buffer and scales it by a constant factor */
 void vector_scal_cpu(void *buffers[], void *cl_arg)
 {
-	unsigned i;
+	size_t i;
 	float factor;
 
 	/*
@@ -35,7 +35,7 @@ void vector_scal_cpu(void *buffers[], void *cl_arg)
 	struct starpu_vector_interface *vector = buffers[0];
 
 	/* length of the vector */
-	unsigned n = STARPU_VECTOR_GET_NX(vector);
+	size_t n = STARPU_VECTOR_GET_NX(vector);
 
 	/* get a pointer to the local copy of the vector : note that we have to
 	 * cast it in (float *) since a vector could contain any type of

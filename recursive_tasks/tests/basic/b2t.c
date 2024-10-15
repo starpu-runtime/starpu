@@ -56,8 +56,8 @@ void binary_task_func(void *buffers[], void *arg)
 {
 	int *vA = (int*)STARPU_VECTOR_GET_PTR(buffers[0]);
 	int *vB = (int*)STARPU_VECTOR_GET_PTR(buffers[1]);
-	int nx = STARPU_VECTOR_GET_NX(buffers[0]);
-	int i;
+	size_t nx = STARPU_VECTOR_GET_NX(buffers[0]);
+	size_t i;
 
 	print_vector(vA, nx, "task vA");
 	for(i=0 ; i<nx ; i++)

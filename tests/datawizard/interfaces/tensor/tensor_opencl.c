@@ -37,13 +37,13 @@ test_tensor_opencl_func(void *buffers[], void *args)
 	ret = starpu_opencl_load_opencl_from_file(KERNEL_LOCATION, &opencl_program, NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
 
-	int nx = STARPU_TENSOR_GET_NX(buffers[0]);
-	int ny = STARPU_TENSOR_GET_NY(buffers[0]);
-	int nz = STARPU_TENSOR_GET_NZ(buffers[0]);
-	int nt = STARPU_TENSOR_GET_NT(buffers[0]);
-        unsigned ldy = STARPU_TENSOR_GET_LDY(buffers[0]);
-        unsigned ldz = STARPU_TENSOR_GET_LDZ(buffers[0]);
-        unsigned ldt = STARPU_TENSOR_GET_LDT(buffers[0]);
+	cl_ulong nx = STARPU_TENSOR_GET_NX(buffers[0]);
+	cl_ulong ny = STARPU_TENSOR_GET_NY(buffers[0]);
+	cl_ulong nz = STARPU_TENSOR_GET_NZ(buffers[0]);
+	cl_ulong nt = STARPU_TENSOR_GET_NT(buffers[0]);
+        cl_ulong ldy = STARPU_TENSOR_GET_LDY(buffers[0]);
+        cl_ulong ldz = STARPU_TENSOR_GET_LDZ(buffers[0]);
+        cl_ulong ldt = STARPU_TENSOR_GET_LDT(buffers[0]);
 	cl_mem tensor = (cl_mem) STARPU_TENSOR_GET_DEV_HANDLE(buffers[0]);
 
 	cl_context context;
@@ -51,8 +51,7 @@ test_tensor_opencl_func(void *buffers[], void *args)
 	devid = starpu_worker_get_devid(id);
 	starpu_opencl_get_context(devid, &context);
 
-	cl_mem fail = clCreateBuffer(context, CL_MEM_COPY_HOST_PTR,
-		sizeof(int), &tensor_config.copy_failed, &err);
+	cl_mem fail = clCreateBuffer(context, CL_MEM_COPY_HOST_PTR, sizeof(int), &tensor_config.copy_failed, &err);
 
 	if (err != CL_SUCCESS)
 		STARPU_OPENCL_REPORT_ERROR(err);

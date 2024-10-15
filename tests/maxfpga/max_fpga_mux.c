@@ -88,7 +88,7 @@ void fpga_impl1(void *buffers[], void *cl_arg)
 	enum starpu_node_kind kindBT1 = starpu_node_get_kind(starpu_task_get_current_data_node(1));
 	enum starpu_node_kind kindCT1 = starpu_node_get_kind(starpu_task_get_current_data_node(2));
 
-	int size = STARPU_VECTOR_GET_NX(buffers[0]);
+	size_t size = STARPU_VECTOR_GET_NX(buffers[0]);
 
 	max_engine_t *engine = starpu_max_fpga_get_local_engine();;
 
@@ -138,7 +138,7 @@ void fpga_impl2(void *buffers[], void *cl_arg)
 	enum starpu_node_kind kindBT2 = starpu_node_get_kind(starpu_task_get_current_data_node(1));
 	enum starpu_node_kind kindCT2 = starpu_node_get_kind(starpu_task_get_current_data_node(2));
 
-	int size = STARPU_VECTOR_GET_NX(buffers[0]);
+	size_t size = STARPU_VECTOR_GET_NX(buffers[0]);
 
 	max_engine_t *engine = starpu_max_fpga_get_local_engine();;
 
@@ -188,7 +188,7 @@ void fpga_impl3(void *buffers[], void *cl_arg)
 	enum starpu_node_kind kindBT3 = starpu_node_get_kind(starpu_task_get_current_data_node(1));
 	enum starpu_node_kind kindCT3 = starpu_node_get_kind(starpu_task_get_current_data_node(2));
 
-	int size = STARPU_VECTOR_GET_NX(buffers[0]);
+	size_t size = STARPU_VECTOR_GET_NX(buffers[0]);
 
 	max_engine_t *engine = starpu_max_fpga_get_local_engine();;
 

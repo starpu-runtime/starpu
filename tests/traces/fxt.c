@@ -18,10 +18,10 @@
 
 void set(void *buffers[], void *cl_arg)
 {
-	unsigned i;
+	size_t i;
 	(void)cl_arg;
 
-	unsigned nx = STARPU_VECTOR_GET_NX(buffers[0]);
+	size_t nx = STARPU_VECTOR_GET_NX(buffers[0]);
 	int *val = (int *)STARPU_VECTOR_GET_PTR(buffers[0]);
 
 	for(i=0; i<nx ; i++)
@@ -42,7 +42,6 @@ struct starpu_codelet cl_set =
 
 int main(void)
 {
-	unsigned n=1;
 	int vector[NX];
 	int ret, i;
 

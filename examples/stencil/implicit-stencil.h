@@ -58,7 +58,7 @@ struct block_description
 
 	unsigned preferred_worker;
 
-	unsigned bz;
+	size_t bz;
 
 
 	/* For each of the following buffers, there are two (0/1) buffers to
@@ -88,7 +88,7 @@ int MPI_TAG1(int z, int iter, int dir);
 
 #define MIN(a,b)	((a)<(b)?(a):(b))
 
-void create_blocks_array(unsigned sizex, unsigned sizey, unsigned sizez, unsigned nbz);
+void create_blocks_array(size_t sizex, size_t sizey, size_t sizez, size_t nbz);
 void free_blocks_array();
 struct block_description *get_block_description(int z);
 void assign_blocks_to_mpi_nodes(int world_size);
@@ -102,19 +102,19 @@ void free_memory_on_node(int rank);
 void display_memory_consumption(int rank, double time);
 
 int get_block_mpi_node(int z);
-unsigned get_block_size(int z);
-unsigned get_bind_tasks(void);
+size_t get_block_size(int z);
+size_t get_bind_tasks(void);
 
-unsigned get_nbz(void);
-unsigned get_niter(void);
-unsigned get_ticks(void);
+size_t get_nbz(void);
+size_t get_niter(void);
+size_t get_ticks(void);
 
 unsigned global_workerid(unsigned local_workerid);
 
-void create_task_memset(unsigned sizex, unsigned sizey, unsigned z);
-void create_task_initlayer(unsigned sizex, unsigned sizey, unsigned z);
-void create_task_update(unsigned iter, unsigned z, int local_rank);
-void create_task_save(unsigned iter, unsigned z, int dir, int local_rank);
+void create_task_memset(size_t sizex, size_t sizey, size_t z);
+void create_task_initlayer(size_t sizex, size_t sizey, size_t z);
+void create_task_update(size_t iter, size_t z, int local_rank);
+void create_task_save(size_t iter, size_t z, int dir, int local_rank);
 
 extern int starpu_mpi_initialize(void);
 extern int starpu_mpi_shutdown(void);
@@ -126,9 +126,9 @@ extern struct starpu_codelet save_cl_top;
 extern struct starpu_codelet cl_memset;
 extern struct starpu_codelet cl_initlayer;
 
-extern unsigned update_per_worker[STARPU_NMAXWORKERS];
-extern unsigned top_per_worker[STARPU_NMAXWORKERS];
-extern unsigned bottom_per_worker[STARPU_NMAXWORKERS];
+extern size_t update_per_worker[STARPU_NMAXWORKERS];
+extern size_t top_per_worker[STARPU_NMAXWORKERS];
+extern size_t bottom_per_worker[STARPU_NMAXWORKERS];
 
 extern double start;
 extern int who_runs_what_len;

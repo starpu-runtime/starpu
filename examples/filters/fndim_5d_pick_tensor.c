@@ -36,7 +36,7 @@ extern void tensor_cuda_func(void *buffers[], void *cl_arg);
 extern void tensor_hip_func(void *buffers[], void *cl_arg);
 #endif
 
-extern void generate_5dim_data(int *arr5d, int nx, int ny, int nz, int nt, int ng, unsigned ldy, unsigned ldz, unsigned ldt, unsigned ldg);
+extern void generate_5dim_data(int *arr5d, size_t nx, size_t ny, size_t nz, size_t nt, size_t ng, size_t ldy, size_t ldz, size_t ldt, size_t ldg);
 extern void print_5dim_data(starpu_data_handle_t ndim_handle);
 extern void print_tensor_data(starpu_data_handle_t ndim_handle);
 
@@ -74,8 +74,8 @@ int main(void)
 	assert(arr5d);
 	generate_5dim_data(arr5d, NX, NY, NZ, NT, NG, NX, NX*NY, NX*NY*NZ, NX*NY*NZ*NT);
 
-	unsigned nn[5] = {NX, NY, NZ, NT, NG};
-	unsigned ldn[5] = {1, NX, NX*NY, NX*NY*NZ, NX*NY*NZ*NT};
+	size_t nn[5] = {NX, NY, NZ, NT, NG};
+	size_t ldn[5] = {1, NX, NX*NY, NX*NY*NZ, NX*NY*NZ*NT};
 
 	/* Declare data to StarPU */
 	starpu_ndim_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)arr5d, ldn, nn, 5, sizeof(int));

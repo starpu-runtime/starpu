@@ -349,11 +349,11 @@ The definition of the codelet can be written as follows:
 \code{.c}
 void scal_cpu_func(void *buffers[], void *cl_arg)
 {
-    unsigned i;
+    size_t i;
     float *factor = cl_arg;
 
     /* length of the vector */
-    unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
+    size_t n = STARPU_VECTOR_GET_NX(buffers[0]);
     /* CPU copy of the vector pointer */
     float *val = (float *)STARPU_VECTOR_GET_PTR(buffers[0]);
 

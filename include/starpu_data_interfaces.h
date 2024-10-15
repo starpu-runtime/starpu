@@ -1003,7 +1003,7 @@ int starpu_interface_copy4d(uintptr_t src, size_t src_offset, unsigned src_node,
 int starpu_interface_copynd(uintptr_t src, size_t src_offset, unsigned src_node,
 			    uintptr_t dst, size_t dst_offset, unsigned dst_node,
 			    size_t elemsize, size_t ndim,
-			    uint32_t *nn, uint32_t *ldn_src, uint32_t *ldn_dst,
+			    size_t *nn, size_t *ldn_src, size_t *ldn_dst,
 			    void *async_data);
 
 /**
@@ -1131,9 +1131,9 @@ struct starpu_matrix_interface
 	uintptr_t ptr;			  /**< local pointer of the matrix */
 	uintptr_t dev_handle;		  /**< device handle of the matrix */
 	size_t offset;			  /**< offset in the matrix */
-	uint32_t nx;			  /**< number of elements on the x-axis of the matrix */
-	uint32_t ny;			  /**< number of elements on the y-axis of the matrix */
-	uint32_t ld;			  /**< number of elements between each row of the
+	size_t nx;			  /**< number of elements on the x-axis of the matrix */
+	size_t ny;			  /**< number of elements on the y-axis of the matrix */
+	size_t ld;			  /**< number of elements between each row of the
 					       matrix. Maybe be equal to starpu_matrix_interface::nx
 					       when there is no padding.
 					  */
@@ -1157,7 +1157,7 @@ struct starpu_matrix_interface
 
    See \ref MatrixDataInterface for more details.
 */
-void starpu_matrix_data_register(starpu_data_handle_t *handle, int home_node, uintptr_t ptr, uint32_t ld, uint32_t nx, uint32_t ny, size_t elemsize);
+void starpu_matrix_data_register(starpu_data_handle_t *handle, int home_node, uintptr_t ptr, size_t ld, size_t nx, size_t ny, size_t elemsize);
 
 /**
    Similar to starpu_matrix_data_register, but additionally specifies which
@@ -1165,32 +1165,32 @@ void starpu_matrix_data_register(starpu_data_handle_t *handle, int home_node, ui
 
    See \ref VariableSizeDataInterface for more details.
 */
-void starpu_matrix_data_register_allocsize(starpu_data_handle_t *handle, int home_node, uintptr_t ptr, uint32_t ld, uint32_t nx, uint32_t ny, size_t elemsize, size_t allocsize);
+void starpu_matrix_data_register_allocsize(starpu_data_handle_t *handle, int home_node, uintptr_t ptr, size_t ld, size_t nx, size_t ny, size_t elemsize, size_t allocsize);
 
 /**
    Register into the \p handle that to store data on node \p node it should use the
    buffer located at \p ptr, or device handle \p dev_handle and offset \p offset
    (for OpenCL, notably), with \p ld elements between rows.
 */
-void starpu_matrix_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr, uintptr_t dev_handle, size_t offset, uint32_t ld);
+void starpu_matrix_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr, uintptr_t dev_handle, size_t offset, size_t ld);
 
 /**
    Return the number of elements on the x-axis of the matrix
    designated by \p handle.
 */
-uint32_t starpu_matrix_get_nx(starpu_data_handle_t handle);
+size_t starpu_matrix_get_nx(starpu_data_handle_t handle);
 
 /**
    Return the number of elements on the y-axis of the matrix
    designated by \p handle.
 */
-uint32_t starpu_matrix_get_ny(starpu_data_handle_t handle);
+size_t starpu_matrix_get_ny(starpu_data_handle_t handle);
 
 /**
    Return the number of elements between each row of the matrix
    designated by \p handle. Maybe be equal to nx when there is no padding.
 */
-uint32_t starpu_matrix_get_local_ld(starpu_data_handle_t handle);
+size_t starpu_matrix_get_local_ld(starpu_data_handle_t handle);
 
 /**
    Return the local pointer associated with \p handle.
@@ -1441,11 +1441,11 @@ struct starpu_block_interface
 	uintptr_t ptr;	      /**< local pointer of the block */
 	uintptr_t dev_handle; /**< device handle of the block. */
 	size_t offset;	      /**< offset in the block. */
-	uint32_t nx;	      /**< number of elements on the x-axis of the block. */
-	uint32_t ny;	      /**< number of elements on the y-axis of the block. */
-	uint32_t nz;	      /**< number of elements on the z-axis of the block. */
-	uint32_t ldy;	      /**< number of elements between two lines */
-	uint32_t ldz;	      /**< number of elements between two planes */
+	size_t nx;	      /**< number of elements on the x-axis of the block. */
+	size_t ny;	      /**< number of elements on the y-axis of the block. */
+	size_t nz;	      /**< number of elements on the z-axis of the block. */
+	size_t ldy;	      /**< number of elements between two lines */
+	size_t ldz;	      /**< number of elements between two planes */
 	size_t elemsize;      /**< size of the elements of the block. */
 };
 
@@ -1464,7 +1464,7 @@ struct starpu_block_interface
 
    See \ref BlockDataInterface for more details.
 */
-void starpu_block_data_register(starpu_data_handle_t *handle, int home_node, uintptr_t ptr, uint32_t ldy, uint32_t ldz, uint32_t nx, uint32_t ny, uint32_t nz, size_t elemsize);
+void starpu_block_data_register(starpu_data_handle_t *handle, int home_node, uintptr_t ptr, size_t ldy, size_t ldz, size_t nx, size_t ny, size_t nz, size_t elemsize);
 
 /**
    Register into the \p handle that to store data on node \p node it should use the
@@ -1472,37 +1472,37 @@ void starpu_block_data_register(starpu_data_handle_t *handle, int home_node, uin
    (for OpenCL, notably), with \p ldy elements between rows and \p ldz
    elements between z planes.
 */
-void starpu_block_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr, uintptr_t dev_handle, size_t offset, uint32_t ldy, uint32_t ldz);
+void starpu_block_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr, uintptr_t dev_handle, size_t offset, size_t ldy, size_t ldz);
 
 /**
    Return the number of elements on the x-axis of the block
    designated by \p handle.
  */
-uint32_t starpu_block_get_nx(starpu_data_handle_t handle);
+size_t starpu_block_get_nx(starpu_data_handle_t handle);
 
 /**
    Return the number of elements on the y-axis of the block
    designated by \p handle.
  */
-uint32_t starpu_block_get_ny(starpu_data_handle_t handle);
+size_t starpu_block_get_ny(starpu_data_handle_t handle);
 
 /**
    Return the number of elements on the z-axis of the block
    designated by \p handle.
  */
-uint32_t starpu_block_get_nz(starpu_data_handle_t handle);
+size_t starpu_block_get_nz(starpu_data_handle_t handle);
 
 /**
    Return the number of elements between each row of the block
    designated by \p handle, in the format of the current memory node.
 */
-uint32_t starpu_block_get_local_ldy(starpu_data_handle_t handle);
+size_t starpu_block_get_local_ldy(starpu_data_handle_t handle);
 
 /**
    Return the number of elements between each z plane of the block
    designated by \p handle, in the format of the current memory node.
  */
-uint32_t starpu_block_get_local_ldz(starpu_data_handle_t handle);
+size_t starpu_block_get_local_ldz(starpu_data_handle_t handle);
 
 /**
    Return the local pointer associated with \p handle.
@@ -1633,13 +1633,13 @@ struct starpu_tensor_interface
 	uintptr_t ptr;	      /**< local pointer of the tensor */
 	uintptr_t dev_handle; /**< device handle of the tensor. */
 	size_t offset;	      /**< offset in the tensor. */
-	uint32_t nx;	      /**< number of elements on the x-axis of the tensor. */
-	uint32_t ny;	      /**< number of elements on the y-axis of the tensor. */
-	uint32_t nz;	      /**< number of elements on the z-axis of the tensor. */
-	uint32_t nt;	      /**< number of elements on the t-axis of the tensor. */
-	uint32_t ldy;	      /**< number of elements between two lines */
-	uint32_t ldz;	      /**< number of elements between two planes */
-	uint32_t ldt;	      /**< number of elements between two cubes */
+	size_t nx;	      /**< number of elements on the x-axis of the tensor. */
+	size_t ny;	      /**< number of elements on the y-axis of the tensor. */
+	size_t nz;	      /**< number of elements on the z-axis of the tensor. */
+	size_t nt;	      /**< number of elements on the t-axis of the tensor. */
+	size_t ldy;	      /**< number of elements between two lines */
+	size_t ldz;	      /**< number of elements between two planes */
+	size_t ldt;	      /**< number of elements between two cubes */
 	size_t elemsize;      /**< size of the elements of the tensor. */
 };
 
@@ -1658,7 +1658,7 @@ struct starpu_tensor_interface
 
    See \ref TensorDataInterface for more details.
 */
-void starpu_tensor_data_register(starpu_data_handle_t *handle, int home_node, uintptr_t ptr, uint32_t ldy, uint32_t ldz, uint32_t ldt, uint32_t nx, uint32_t ny, uint32_t nz, uint32_t nt, size_t elemsize);
+void starpu_tensor_data_register(starpu_data_handle_t *handle, int home_node, uintptr_t ptr, size_t ldy, size_t ldz, size_t ldt, size_t nx, size_t ny, size_t nz, size_t nt, size_t elemsize);
 
 /**
    Register into the \p handle that to store data on node \p node it should use the
@@ -1666,49 +1666,49 @@ void starpu_tensor_data_register(starpu_data_handle_t *handle, int home_node, ui
    (for OpenCL, notably), with \p ldy elements between rows, and \p ldz
    elements between z planes, and \p ldt elements between t cubes.
 */
-void starpu_tensor_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr, uintptr_t dev_handle, size_t offset, uint32_t ldy, uint32_t ldz, uint32_t ldt);
+void starpu_tensor_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr, uintptr_t dev_handle, size_t offset, size_t ldy, size_t ldz, size_t ldt);
 
 /**
    Return the number of elements on the x-axis of the tensor
    designated by \p handle.
  */
-uint32_t starpu_tensor_get_nx(starpu_data_handle_t handle);
+size_t starpu_tensor_get_nx(starpu_data_handle_t handle);
 
 /**
    Return the number of elements on the y-axis of the tensor
    designated by \p handle.
  */
-uint32_t starpu_tensor_get_ny(starpu_data_handle_t handle);
+size_t starpu_tensor_get_ny(starpu_data_handle_t handle);
 
 /**
    Return the number of elements on the z-axis of the tensor
    designated by \p handle.
  */
-uint32_t starpu_tensor_get_nz(starpu_data_handle_t handle);
+size_t starpu_tensor_get_nz(starpu_data_handle_t handle);
 
 /**
    Return the number of elements on the t-axis of the tensor
    designated by \p handle.
  */
-uint32_t starpu_tensor_get_nt(starpu_data_handle_t handle);
+size_t starpu_tensor_get_nt(starpu_data_handle_t handle);
 
 /**
    Return the number of elements between each row of the tensor
    designated by \p handle, in the format of the current memory node.
 */
-uint32_t starpu_tensor_get_local_ldy(starpu_data_handle_t handle);
+size_t starpu_tensor_get_local_ldy(starpu_data_handle_t handle);
 
 /**
    Return the number of elements between each z plane of the tensor
    designated by \p handle, in the format of the current memory node.
  */
-uint32_t starpu_tensor_get_local_ldz(starpu_data_handle_t handle);
+size_t starpu_tensor_get_local_ldz(starpu_data_handle_t handle);
 
 /**
    Return the number of elements between each t cubes of the tensor
    designated by \p handle, in the format of the current memory node.
  */
-uint32_t starpu_tensor_get_local_ldt(starpu_data_handle_t handle);
+size_t starpu_tensor_get_local_ldt(starpu_data_handle_t handle);
 
 /**
    Return the local pointer associated with \p handle.
@@ -1859,8 +1859,8 @@ struct starpu_ndim_interface
 	uintptr_t dev_handle; /**< device handle of the ndim. */
 	size_t offset;	      /**< offset in the ndim. */
 	size_t allocsize;     /**< size actually currently allocated. */
-	uint32_t *nn;	      /**< array of element number on each dimension */
-	uint32_t *ldn;	      /**< array of element number between two units on each dimension */
+	size_t *nn;	      /**< array of element number on each dimension */
+	size_t *ldn;	      /**< array of element number between two units on each dimension */
 	size_t ndim;	      /**< size of the dimension. */
 	size_t elemsize;      /**< size of the elements of the ndim. */
 };
@@ -1884,38 +1884,39 @@ struct starpu_ndim_interface
 
    See \ref NdimDataInterface for more details.
 */
-void starpu_ndim_data_register(starpu_data_handle_t *handleptr, int home_node, uintptr_t ptr, uint32_t *ldn, uint32_t *nn, size_t ndim, size_t elemsize);
+void starpu_ndim_data_register(starpu_data_handle_t *handleptr, int home_node, uintptr_t ptr, size_t *ldn, size_t *nn, size_t ndim, size_t elemsize);
+
 /**
    Register into the \p handle that to store data on node \p node it should use the
    buffer located at \p ptr, or device handle \p dev_handle and offset \p offset
    (for OpenCL, notably), with \p ldn elements between two units on each dimension.
 */
-void starpu_ndim_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr, uintptr_t dev_handle, size_t offset, uint32_t *ldn);
+void starpu_ndim_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr, uintptr_t dev_handle, size_t offset, size_t *ldn);
 
 /**
    Return the number of elements on each dimension of the ndim array
    designated by \p handle.
  */
-uint32_t *starpu_ndim_get_nn(starpu_data_handle_t handle);
+size_t *starpu_ndim_get_nn(starpu_data_handle_t handle);
 
 /**
    Return the number of elements on the i-axis of the ndim array
    designated by \p handle. When i=0, it means x-axis,
    when i=1, it means y-axis, when i=2, it means z-axis, etc.
  */
-uint32_t starpu_ndim_get_ni(starpu_data_handle_t handle, size_t i);
+size_t starpu_ndim_get_ni(starpu_data_handle_t handle, size_t i);
 
 /**
    Return the number of elements between two units on each dimension of the ndim array
    designated by \p handle, in the format of the current memory node.
 */
-uint32_t *starpu_ndim_get_local_ldn(starpu_data_handle_t handle);
+size_t *starpu_ndim_get_local_ldn(starpu_data_handle_t handle);
 
 /**
    Return the number of elements between two units i-axis dimension of the ndim array
    designated by \p handle, in the format of the current memory node.
 */
-uint32_t starpu_ndim_get_local_ldi(starpu_data_handle_t handle, size_t i);
+size_t starpu_ndim_get_local_ldi(starpu_data_handle_t handle, size_t i);
 
 /**
    Return the local pointer associated with \p handle.
@@ -2028,9 +2029,9 @@ struct starpu_vector_interface
 	uintptr_t ptr;	      /**< local pointer of the vector */
 	uintptr_t dev_handle; /**< device handle of the vector. */
 	size_t offset;	      /**< offset in the vector */
-	uint32_t nx;	      /**< number of elements on the x-axis of the vector */
+	size_t nx;	      /**< number of elements on the x-axis of the vector */
 	size_t elemsize;      /**< size of the elements of the vector */
-	uint32_t slice_base;  /**< vector slice base, used by the StarPU OpenMP runtime support */
+	size_t slice_base;  /**< vector slice base, used by the StarPU OpenMP runtime support */
 	size_t allocsize;     /**< size actually currently allocated */
 };
 
@@ -2046,14 +2047,14 @@ struct starpu_vector_interface
 
    See \ref VectorDataInterface for more details.
  */
-void starpu_vector_data_register(starpu_data_handle_t *handle, int home_node, uintptr_t ptr, uint32_t nx, size_t elemsize);
+void starpu_vector_data_register(starpu_data_handle_t *handle, int home_node, uintptr_t ptr, size_t nx, size_t elemsize);
 
 /**
    Similar to starpu_vector_data_register, but additionally specifies which
    allocation size should be used instead of the initial nx*elemsize.
    See \ref VariableSizeDataInterface for more details.
 */
-void starpu_vector_data_register_allocsize(starpu_data_handle_t *handle, int home_node, uintptr_t ptr, uint32_t nx, size_t elemsize, size_t allocsize);
+void starpu_vector_data_register_allocsize(starpu_data_handle_t *handle, int home_node, uintptr_t ptr, size_t nx, size_t elemsize, size_t allocsize);
 
 /**
    Register into the \p handle that to store data on node \p node it should use the
@@ -2065,7 +2066,7 @@ void starpu_vector_ptr_register(starpu_data_handle_t handle, unsigned node, uint
 /**
    Return the number of elements registered into the array designated by \p handle.
  */
-uint32_t starpu_vector_get_nx(starpu_data_handle_t handle);
+size_t starpu_vector_get_nx(starpu_data_handle_t handle);
 
 /**
    Return the size of each element of the array designated by \p handle.
@@ -2717,7 +2718,7 @@ struct starpu_multiformat_interface
 	void *cuda_ptr;
 	void *hip_ptr;
 	void *opencl_ptr;
-	uint32_t nx;
+	size_t nx;
 	struct starpu_multiformat_data_interface_ops *ops;
 };
 
@@ -2726,11 +2727,11 @@ struct starpu_multiformat_interface
    ways, depending upon the processing unit that manipulates it. It
    allows the programmer, for instance, to use an array of structures
    when working on a CPU, and a structure of arrays when working on a
-   GPU. \p nobjects is the number of elements in the data. \p format_ops
+   GPU. \p nx is the number of elements in the data. \p format_ops
    describes the format.
    See \ref TheMultiformatInterface for more details.
 */
-void starpu_multiformat_data_register(starpu_data_handle_t *handle, int home_node, void *ptr, uint32_t nobjects, struct starpu_multiformat_data_interface_ops *format_ops);
+void starpu_multiformat_data_register(starpu_data_handle_t *handle, int home_node, void *ptr, size_t nx, struct starpu_multiformat_data_interface_ops *format_ops);
 
 /**
    Return the local pointer to the data with CPU format.

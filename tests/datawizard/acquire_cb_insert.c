@@ -47,7 +47,7 @@ struct starpu_codelet which_index =
 
 void work_cpu(void *descr[], void *_args)
 {
-	int i, n = STARPU_VECTOR_GET_NX(descr[0]);
+	size_t i, n = STARPU_VECTOR_GET_NX(descr[0]);
 	float *x0 = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 
 	(void)_args;

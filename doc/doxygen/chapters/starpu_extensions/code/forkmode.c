@@ -17,10 +17,10 @@
 //! [To be included. You should update doxygen if you see this text.]
 void scal_cpu_func(void *buffers[], void *_args)
 {
-    unsigned i;
+    size_t i;
     float *factor = _args;
     struct starpu_vector_interface *vector = buffers[0];
-    unsigned n = STARPU_VECTOR_GET_NX(vector);
+    size_t n = STARPU_VECTOR_GET_NX(vector);
     float *val = (float *)STARPU_VECTOR_GET_PTR(vector);
 
 #pragma omp parallel for num_threads(starpu_combined_worker_get_size())

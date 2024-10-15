@@ -94,7 +94,7 @@ struct starpu_data_filter
 	*/
 	struct starpu_data_interface_ops *(*get_child_ops)(struct starpu_data_filter *, unsigned id);
 
-	unsigned filter_arg; /**< Additional parameter for the filter function */
+	size_t filter_arg; /**< Additional parameter for the filter function */
 
 	/**
 	   Additional pointer parameter for
@@ -1142,7 +1142,7 @@ struct starpu_data_interface_ops *starpu_ndim_filter_to_variable_child_ops(struc
    and \p blocksize, which is most often 1.
    See \ref DefiningANewDataFilter for more details.
  */
-void starpu_filter_nparts_compute_chunk_size_and_offset(unsigned n, unsigned nparts, size_t elemsize, unsigned id, unsigned blocksize, unsigned *chunk_size, size_t *offset);
+void starpu_filter_nparts_compute_chunk_size_and_offset(unsigned n, unsigned nparts, size_t elemsize, unsigned id, size_t blocksize, size_t *chunk_size, size_t *offset);
 
 /** @} */
 

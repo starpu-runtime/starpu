@@ -76,7 +76,7 @@ static void starpupy_numpy_filter(void *parent_interface, void *child_interface,
 	}
 
 	/*we will do the partition on ni*/
-	unsigned child_nn;
+	size_t child_nn;
 	unsigned* chunks_list = (unsigned*) f->filter_arg_ptr;
 
 	if (chunks_list != NULL)

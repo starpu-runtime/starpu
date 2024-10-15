@@ -20,14 +20,14 @@
 
 void block_cpu_func(void *buffers[], void *cl_arg)
 {
-	int i, j, k;
+	size_t i, j, k;
 	int *factor = (int *) cl_arg;
 	int *block = (int *)STARPU_BLOCK_GET_PTR(buffers[0]);
-	int nx = (int)STARPU_BLOCK_GET_NX(buffers[0]);
-	int ny = (int)STARPU_BLOCK_GET_NY(buffers[0]);
-	int nz = (int)STARPU_BLOCK_GET_NZ(buffers[0]);
-	unsigned ldy = STARPU_BLOCK_GET_LDY(buffers[0]);
-	unsigned ldz = STARPU_BLOCK_GET_LDZ(buffers[0]);
+	size_t nx = STARPU_BLOCK_GET_NX(buffers[0]);
+	size_t ny = STARPU_BLOCK_GET_NY(buffers[0]);
+	size_t nz = STARPU_BLOCK_GET_NZ(buffers[0]);
+	size_t ldy = STARPU_BLOCK_GET_LDY(buffers[0]);
+	size_t ldz = STARPU_BLOCK_GET_LDZ(buffers[0]);
 
 	for(k=0; k<nz ; k++)
 	{

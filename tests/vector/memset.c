@@ -28,7 +28,7 @@ void cpu_memset_codelet(void *descr[], void *arg)
 	STARPU_SKIP_IF_VALGRIND;
 
 	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);
-	unsigned length = STARPU_VECTOR_GET_NX(descr[0]);
+	size_t length = STARPU_VECTOR_GET_NX(descr[0]);
 
 	memset(buf, 42, length * sizeof(*buf));
 }
@@ -40,7 +40,7 @@ static void cuda_memset_codelet(void *descr[], void *arg)
 	STARPU_SKIP_IF_VALGRIND;
 
 	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);
-	unsigned length = STARPU_VECTOR_GET_NX(descr[0]);
+	size_t length = STARPU_VECTOR_GET_NX(descr[0]);
 
 	cudaMemsetAsync(buf, 42, length, starpu_cuda_get_local_stream());
 }
@@ -58,8 +58,8 @@ static void opencl_memset_codelet(void *buffers[], void *args)
 	starpu_opencl_get_queue(devid, &queue);
 
 	cl_mem buffer = (cl_mem) STARPU_VECTOR_GET_DEV_HANDLE(buffers[0]);
-	unsigned length = STARPU_VECTOR_GET_NX(buffers[0]);
-	size_t offset = STARPU_VECTOR_GET_OFFSET(buffers[0]);
+	cl_ulong length = STARPU_VECTOR_GET_NX(buffers[0]);
+	cl_ulong offset = STARPU_VECTOR_GET_OFFSET(buffers[0]);
 	char *v = malloc(length);
 	STARPU_ASSERT(v != NULL);
 	memset(v, 42, length);
@@ -105,14 +105,14 @@ void cpu_check_content_codelet(void *descr[], void *arg)
 	STARPU_SKIP_IF_VALGRIND;
 
 	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);
-	unsigned length = STARPU_VECTOR_GET_NX(descr[0]);
+	size_t length = STARPU_VECTOR_GET_NX(descr[0]);
 
-	unsigned i;
+	size_t i;
 	for (i = 0; i < length; i++)
 	{
 		if (buf[i] != 42)
 		{
-			FPRINTF(stderr, "buf[%u] is '%c' while it should be '%c'\n", i, buf[i], 42);
+			FPRINTF(stderr, "buf[%zu] is '%c' while it should be '%c'\n", i, buf[i], 42);
 			exit(-1);
 		}
 	}
@@ -125,10 +125,10 @@ static void cuda_check_content_codelet(void *descr[], void *arg)
 	STARPU_SKIP_IF_VALGRIND;
 
 	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);
-	unsigned length = STARPU_VECTOR_GET_NX(descr[0]);
+	size_t length = STARPU_VECTOR_GET_NX(descr[0]);
 	size_t block = 1024;
 
-	unsigned i, j;
+	size_t i, j;
 	for (i = 0; i < length; i+=block)
 	{
 		size_t size = block;
@@ -140,7 +140,7 @@ static void cuda_check_content_codelet(void *descr[], void *arg)
 		for (j = 0; j < size; j++)
 			if (dst[j] != 42)
 			{
-				FPRINTF(stderr, "buf[%u] is %c while it should be %c\n", i + j, dst[j], 42);
+				FPRINTF(stderr, "buf[%zu] is %c while it should be %c\n", i + j, dst[j], 42);
 				exit(-1);
 			}
 	}
@@ -159,10 +159,10 @@ static void opencl_check_content_codelet(void *buffers[], void *args)
 	starpu_opencl_get_queue(devid, &queue);
 
 	cl_mem buf = (cl_mem) STARPU_VECTOR_GET_DEV_HANDLE(buffers[0]);
-	unsigned length = STARPU_VECTOR_GET_NX(buffers[0]);
+	cl_ulong length = STARPU_VECTOR_GET_NX(buffers[0]);
 	size_t block = 1024;
 
-	unsigned i, j;
+	cl_ulong i, j;
 	for (i = 0; i < length; i+=block)
 	{
 		size_t size = block;
@@ -186,7 +186,7 @@ static void opencl_check_content_codelet(void *buffers[], void *args)
 		for (j = 0; j < size; j++)
 			if (dst[j] != 42)
 			{
-				FPRINTF(stderr, "buf[%u] is '%c' while it should be '%c'\n", i + j, dst[j], 42);
+				FPRINTF(stderr, "buf[%zu] is '%c' while it should be '%c'\n", i + j, dst[j], 42);
 				exit(-1);
 			}
 	}

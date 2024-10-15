@@ -21,10 +21,10 @@
 
 void scal_cpu_func(void *buffers[], void *cl_arg)
 {
-	unsigned i;
+	size_t i;
 	float factor;
 	struct starpu_vector_interface *vector = buffers[0];
-	unsigned n = STARPU_VECTOR_GET_NX(vector);
+	size_t n = STARPU_VECTOR_GET_NX(vector);
 	float *val = (float *) STARPU_VECTOR_GET_PTR(vector);
 	starpu_codelet_unpack_args(cl_arg, &factor);
 

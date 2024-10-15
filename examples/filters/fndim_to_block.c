@@ -33,7 +33,7 @@ extern void block_cuda_func(void *buffers[], void *cl_arg);
 extern void block_hip_func(void *buffers[], void *cl_arg);
 #endif
 
-extern void generate_block_data(int *block, int nx, int ny, int nz, unsigned ldy, unsigned ldz);
+extern void generate_block_data(int *block, size_t nx, size_t ny, size_t nz, size_t ldy, size_t ldz);
 extern void print_3dim_data(starpu_data_handle_t ndim_handle);
 extern void print_block_data(starpu_data_handle_t block_handle);
 
@@ -71,8 +71,8 @@ int main(void)
 	assert(arr3d);
 	generate_block_data(arr3d, NX, NY, NZ, NX, NX*NY);
 
-	unsigned nn[3] = {NX, NY, NZ};
-	unsigned ldn[3] = {1, NX, NX*NY};
+	size_t nn[3] = {NX, NY, NZ};
+	size_t ldn[3] = {1, NX, NX*NY};
 
 	/* Declare data to StarPU */
 	starpu_ndim_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)arr3d, ldn, nn, 3, sizeof(int));

@@ -148,7 +148,7 @@ struct vector_cpp_interface
 	enum starpu_data_interface_id id;
 
 	uintptr_t ptr;
-	uint32_t nx;
+	size_t nx;
 	size_t elemsize;
 	std::vector<MY_TYPE>* vec;
 
@@ -368,7 +368,7 @@ static void register_vector_cpp_handle(starpu_data_handle_t handle, int home_nod
 
 /* declare a new data with the vector interface */
 void vector_cpp_data_register(starpu_data_handle_t *handleptr, int home_node,
-			      std::vector<MY_TYPE>* vec, uint32_t nx, size_t elemsize)
+			      std::vector<MY_TYPE>* vec, size_t nx, size_t elemsize)
 {
 #if __cplusplus >= 201103L
 	struct vector_cpp_interface vector =
@@ -398,14 +398,12 @@ void vector_cpp_data_register(starpu_data_handle_t *handleptr, int home_node,
 }
 
 /* offer an access to the data parameters */
-uint32_t vector_cpp_get_nx(starpu_data_handle_t handle)
+size_t vector_cpp_get_nx(starpu_data_handle_t handle)
 {
-	struct vector_cpp_interface *vector_interface = (struct vector_cpp_interface *)
-		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+	struct vector_cpp_interface *vector_interface = (struct vector_cpp_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	return vector_interface->nx;
 }
-
 
 static uint32_t footprint_vector_cpp_interface_crc32(starpu_data_handle_t handle)
 {
@@ -424,18 +422,16 @@ static int vector_cpp_compare(void *data_interface_a, void *data_interface_b)
 
 static void display_vector_cpp_interface(starpu_data_handle_t handle, FILE *f)
 {
-	struct vector_cpp_interface *vector_interface = (struct vector_cpp_interface *)
-		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+	struct vector_cpp_interface *vector_interface = (struct vector_cpp_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
-	fprintf(f, "%u\t", vector_interface->nx);
+	fprintf(f, "%zu\t", vector_interface->nx);
 }
 
 static int pack_vector_cpp_handle(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count)
 {
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
-	struct vector_cpp_interface *vector_interface = (struct vector_cpp_interface *)
-		starpu_data_get_interface_on_node(handle, node);
+	struct vector_cpp_interface *vector_interface = (struct vector_cpp_interface *) starpu_data_get_interface_on_node(handle, node);
 
 	*count = vector_interface->nx*vector_interface->elemsize;
 
@@ -452,8 +448,7 @@ static int peek_vector_cpp_handle(starpu_data_handle_t handle, unsigned node, vo
 {
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
-	struct vector_cpp_interface *vector_interface = (struct vector_cpp_interface *)
-		starpu_data_get_interface_on_node(handle, node);
+	struct vector_cpp_interface *vector_interface = (struct vector_cpp_interface *) starpu_data_get_interface_on_node(handle, node);
 
 	STARPU_ASSERT(count == vector_interface->elemsize * vector_interface->nx);
 	memcpy((void*)vector_interface->ptr, ptr, count);
@@ -496,7 +491,7 @@ static starpu_ssize_t allocate_vector_cpp_buffer_on_node(void *data_interface_, 
 {
 	struct vector_cpp_interface *vector_interface = (struct vector_cpp_interface *) data_interface_;
 
-	uint32_t nx = vector_interface->nx;
+	size_t nx = vector_interface->nx;
 	size_t elemsize = vector_interface->elemsize;
 
 	starpu_ssize_t allocated_memory;

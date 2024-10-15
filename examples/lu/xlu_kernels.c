@@ -47,13 +47,13 @@ static inline void STARPU_LU(common_gemm)(void *descr[], int s, void *_args)
 	TYPE *left 	= (TYPE *)STARPU_MATRIX_GET_PTR(descr[1]);
 	TYPE *center 	= (TYPE *)STARPU_MATRIX_GET_PTR(descr[2]);
 
-	unsigned dx = STARPU_MATRIX_GET_NX(descr[2]);
-	unsigned dy = STARPU_MATRIX_GET_NY(descr[2]);
-	unsigned dz = STARPU_MATRIX_GET_NY(descr[0]);
+	size_t dx = STARPU_MATRIX_GET_NX(descr[2]);
+	size_t dy = STARPU_MATRIX_GET_NY(descr[2]);
+	size_t dz = STARPU_MATRIX_GET_NY(descr[0]);
 
-	unsigned ld12 = STARPU_MATRIX_GET_LD(descr[0]);
-	unsigned ld21 = STARPU_MATRIX_GET_LD(descr[1]);
-	unsigned ld22 = STARPU_MATRIX_GET_LD(descr[2]);
+	size_t ld12 = STARPU_MATRIX_GET_LD(descr[0]);
+	size_t ld21 = STARPU_MATRIX_GET_LD(descr[1]);
+	size_t ld22 = STARPU_MATRIX_GET_LD(descr[2]);
 
 #ifdef STARPU_USE_CUDA
 	cublasStatus_t status;
@@ -174,11 +174,11 @@ static inline void STARPU_LU(common_trsmll)(void *descr[], int s, void *_args)
 	sub11 = (TYPE *)STARPU_MATRIX_GET_PTR(descr[0]);
 	sub12 = (TYPE *)STARPU_MATRIX_GET_PTR(descr[1]);
 
-	unsigned ld11 = STARPU_MATRIX_GET_LD(descr[0]);
-	unsigned ld12 = STARPU_MATRIX_GET_LD(descr[1]);
+	size_t ld11 = STARPU_MATRIX_GET_LD(descr[0]);
+	size_t ld12 = STARPU_MATRIX_GET_LD(descr[1]);
 
-	unsigned nx12 = STARPU_MATRIX_GET_NX(descr[1]);
-	unsigned ny12 = STARPU_MATRIX_GET_NY(descr[1]);
+	size_t nx12 = STARPU_MATRIX_GET_NX(descr[1]);
+	size_t ny12 = STARPU_MATRIX_GET_NY(descr[1]);
 
 #ifdef STARPU_USE_CUDA
 	cublasStatus_t status;
@@ -264,11 +264,11 @@ static inline void STARPU_LU(common_trsmru)(void *descr[], int s, void *_args)
 	sub11 = (TYPE *)STARPU_MATRIX_GET_PTR(descr[0]);
 	sub21 = (TYPE *)STARPU_MATRIX_GET_PTR(descr[1]);
 
-	unsigned ld11 = STARPU_MATRIX_GET_LD(descr[0]);
-	unsigned ld21 = STARPU_MATRIX_GET_LD(descr[1]);
+	size_t ld11 = STARPU_MATRIX_GET_LD(descr[0]);
+	size_t ld21 = STARPU_MATRIX_GET_LD(descr[1]);
 
-	unsigned nx21 = STARPU_MATRIX_GET_NX(descr[1]);
-	unsigned ny21 = STARPU_MATRIX_GET_NY(descr[1]);
+	size_t nx21 = STARPU_MATRIX_GET_NX(descr[1]);
+	size_t ny21 = STARPU_MATRIX_GET_NY(descr[1]);
 
 #ifdef STARPU_USE_CUDA
 	cublasStatus_t status;
@@ -351,10 +351,10 @@ static inline void STARPU_LU(common_getrf)(void *descr[], int s, void *_args)
 
 	sub11 = (TYPE *)STARPU_MATRIX_GET_PTR(descr[0]);
 
-	unsigned long nx = STARPU_MATRIX_GET_NX(descr[0]);
-	unsigned long ld = STARPU_MATRIX_GET_LD(descr[0]);
+	size_t nx = STARPU_MATRIX_GET_NX(descr[0]);
+	size_t ld = STARPU_MATRIX_GET_LD(descr[0]);
 
-	unsigned long z;
+	size_t z;
 
 #ifdef STARPU_USE_CUDA
 	cublasStatus_t status;
@@ -492,10 +492,10 @@ static inline void STARPU_LU(common_getrf_pivot)(void *descr[],
 
 	sub11 = (TYPE *)STARPU_MATRIX_GET_PTR(descr[0]);
 
-	unsigned long nx = STARPU_MATRIX_GET_NX(descr[0]);
-	unsigned long ld = STARPU_MATRIX_GET_LD(descr[0]);
+	size_t nx = STARPU_MATRIX_GET_NX(descr[0]);
+	size_t ld = STARPU_MATRIX_GET_LD(descr[0]);
 
-	unsigned long z;
+	size_t z;
 
 	struct piv_s *piv = _args;
 	unsigned *ipiv = piv->piv;
@@ -663,10 +663,10 @@ static inline void STARPU_LU(common_pivot)(void *descr[],
 	TYPE *matrix;
 
 	matrix = (TYPE *)STARPU_MATRIX_GET_PTR(descr[0]);
-	unsigned long nx = STARPU_MATRIX_GET_NX(descr[0]);
-	unsigned long ld = STARPU_MATRIX_GET_LD(descr[0]);
+	size_t nx = STARPU_MATRIX_GET_NX(descr[0]);
+	size_t ld = STARPU_MATRIX_GET_LD(descr[0]);
 
-	unsigned row;
+	size_t row;
 
 	struct piv_s *piv = _args;
 	unsigned *ipiv = piv->piv;

@@ -223,11 +223,11 @@ void dot_cpu_func(void *descr[], void *cl_arg)
 	float *local_y = (float *)STARPU_VECTOR_GET_PTR(descr[1]);
 	DOT_TYPE *dot = (DOT_TYPE *)STARPU_VARIABLE_GET_PTR(descr[2]);
 
-	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
+	size_t n = STARPU_VECTOR_GET_NX(descr[0]);
 
 	DOT_TYPE local_dot = 0.0;
 
-	unsigned i;
+	size_t i;
 	for (i = 0; i < n; i++)
 	{
 		local_dot += (DOT_TYPE)local_x[i]*(DOT_TYPE)local_y[i];
@@ -247,7 +247,7 @@ void dot_cuda_func(void *descr[], void *cl_arg)
 	float *local_y = (float *)STARPU_VECTOR_GET_PTR(descr[1]);
 	DOT_TYPE *dot = (DOT_TYPE *)STARPU_VARIABLE_GET_PTR(descr[2]);
 
-	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
+	size_t n = STARPU_VECTOR_GET_NX(descr[0]);
 
 	cudaMemcpyAsync(&current_dot, dot, sizeof(DOT_TYPE), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
 	cudaStreamSynchronize(starpu_cuda_get_local_stream());
@@ -277,7 +277,7 @@ void dot_opencl_func(void *buffers[], void *cl_arg)
 	cl_mem x = (cl_mem) STARPU_VECTOR_GET_DEV_HANDLE(buffers[0]);
 	cl_mem y = (cl_mem) STARPU_VECTOR_GET_DEV_HANDLE(buffers[1]);
 	cl_mem dot = (cl_mem) STARPU_VARIABLE_GET_PTR(buffers[2]);
-	unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
+	cl_ulong n = STARPU_VECTOR_GET_NX(buffers[0]);
 
 	id = starpu_worker_get_id_check();
 	devid = starpu_worker_get_devid(id);

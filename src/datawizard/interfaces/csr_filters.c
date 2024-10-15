@@ -31,7 +31,7 @@ void starpu_csr_filter_vertical_block(void *parent_interface, void *child_interf
 	uint32_t *ram_rowptr = csr_parent->ram_rowptr;
 
 	size_t first_index;
-	unsigned child_nrow;
+	size_t child_nrow;
 
 	starpu_filter_nparts_compute_chunk_size_and_offset(nrow, nchunks, 1, id, 1, &child_nrow, &first_index);
 

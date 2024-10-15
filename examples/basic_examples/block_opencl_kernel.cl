@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-__kernel void block(__global float *b, int nx, int ny, int nz, int ldy, int ldz, float multiplier)
+__kernel void block(__global float *b, ulong nx, ulong ny, ulong nz, ulong ldy, ulong ldz, float multiplier)
 {
      const int i = get_global_id(0);
      if (i < (nz*ldz)+(ny*ldy)+nx)

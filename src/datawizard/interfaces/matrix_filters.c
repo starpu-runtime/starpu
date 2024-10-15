@@ -30,9 +30,9 @@ static void _starpu_matrix_filter_block(int dim, void *parent_interface, void *c
 
 	unsigned blocksize;
 	/* the element will be split, in case horizontal, it's nx, in case vertical, it's ny*/
-	uint32_t nn;
-	uint32_t nx;
-	uint32_t ny;
+	size_t nn;
+	size_t nx;
+	size_t ny;
 
 	switch(dim)
 	{
@@ -58,9 +58,9 @@ static void _starpu_matrix_filter_block(int dim, void *parent_interface, void *c
 
 	size_t elemsize = matrix_parent->elemsize;
 
-	STARPU_ASSERT_MSG(nchunks <= nn, "cannot split %u elements in %u parts", nn, nchunks);
+	STARPU_ASSERT_MSG(nchunks <= nn, "cannot split %zu elements in %u parts", nn, nchunks);
 
-	uint32_t child_nn;
+	size_t child_nn;
 	size_t offset;
 
 	starpu_filter_nparts_compute_chunk_size_and_offset(nn, nchunks, elemsize, id, blocksize, &child_nn, &offset);
@@ -137,8 +137,8 @@ void starpu_matrix_filter_pick_vector_y(void *parent_interface, void *child_inte
 
 	unsigned blocksize;
 
-	uint32_t nx;
-	uint32_t ny;
+	size_t nx;
+	size_t ny;
 
 	/* actual number of elements */
 	nx = matrix_parent->nx;
@@ -185,9 +185,9 @@ void starpu_matrix_filter_pick_variable(void *parent_interface, void *child_inte
 
 	unsigned blocksize;
 
-	uint32_t nx;
-	uint32_t ld;
-	uint32_t ny;
+	size_t nx;
+	size_t ld;
+	size_t ny;
 
 	/* actual number of elements */
 	nx = matrix_parent->nx;

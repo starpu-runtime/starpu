@@ -186,13 +186,13 @@ static void cublas_mult2d(void *descr[], void *arg, const TYPE *beta)
 	unsigned devid = starpu_worker_get_devid(worker);
 	TYPE *subC = Cscratch[devid];
 
-	unsigned nxC = STARPU_MATRIX_GET_NY(descr[1]);
-	unsigned nyC = STARPU_MATRIX_GET_NX(descr[0]);
-	unsigned nyA = STARPU_MATRIX_GET_NY(descr[0]);
+	size_t nxC = STARPU_MATRIX_GET_NY(descr[1]);
+	size_t nyC = STARPU_MATRIX_GET_NX(descr[0]);
+	size_t nyA = STARPU_MATRIX_GET_NY(descr[0]);
 
-	unsigned ldA = STARPU_MATRIX_GET_LD(descr[0]);
-	unsigned ldB = STARPU_MATRIX_GET_LD(descr[1]);
-	unsigned ldC = nxC;
+	size_t ldA = STARPU_MATRIX_GET_LD(descr[0]);
+	size_t ldB = STARPU_MATRIX_GET_LD(descr[1]);
+	size_t ldC = nxC;
 
 	cudaStream_t stream = starpu_cuda_get_local_stream();
 
@@ -214,13 +214,13 @@ static void cublas_mult(void *descr[], void *arg, const TYPE *beta)
 	TYPE *subB = (TYPE *)STARPU_MATRIX_GET_PTR(descr[1]);
 	TYPE *subC = (TYPE *)STARPU_MATRIX_GET_PTR(descr[2]);
 
-	unsigned nxC = STARPU_MATRIX_GET_NX(descr[2]);
-	unsigned nyC = STARPU_MATRIX_GET_NY(descr[2]);
-	unsigned nyA = STARPU_MATRIX_GET_NY(descr[0]);
+	size_t nxC = STARPU_MATRIX_GET_NX(descr[2]);
+	size_t nyC = STARPU_MATRIX_GET_NY(descr[2]);
+	size_t nyA = STARPU_MATRIX_GET_NY(descr[0]);
 
-	unsigned ldA = STARPU_MATRIX_GET_LD(descr[0]);
-	unsigned ldB = STARPU_MATRIX_GET_LD(descr[1]);
-	unsigned ldC = STARPU_MATRIX_GET_LD(descr[2]);
+	size_t ldA = STARPU_MATRIX_GET_LD(descr[0]);
+	size_t ldB = STARPU_MATRIX_GET_LD(descr[1]);
+	size_t ldC = STARPU_MATRIX_GET_LD(descr[2]);
 
 	cudaStream_t stream = starpu_cuda_get_local_stream();
 
@@ -228,7 +228,7 @@ static void cublas_mult(void *descr[], void *arg, const TYPE *beta)
 		cudaMemsetAsync(subC, 0, sizeof(*subC) * nxC * nyC, stream);
 	else
 	{
-		unsigned i;
+		size_t i;
 		for (i = 0; i < nyC; i++)
 			cudaMemsetAsync(subC + i*ldC, 0, sizeof(*subC) * nxC, stream);
 	}
@@ -257,14 +257,14 @@ void cpu_mult2d(void *descr[], void *arg, TYPE beta)
 	TYPE *subA = (TYPE *)STARPU_MATRIX_GET_PTR(descr[0]);
 	TYPE *subB = (TYPE *)STARPU_MATRIX_GET_PTR(descr[1]);
 
-	unsigned nxC = STARPU_MATRIX_GET_NY(descr[1]);
-	unsigned nyC = STARPU_MATRIX_GET_NX(descr[0]);
-	unsigned nyA = STARPU_MATRIX_GET_NY(descr[0]);
+	size_t nxC = STARPU_MATRIX_GET_NY(descr[1]);
+	size_t nyC = STARPU_MATRIX_GET_NX(descr[0]);
+	size_t nyA = STARPU_MATRIX_GET_NY(descr[0]);
 
-	unsigned ldA = STARPU_MATRIX_GET_LD(descr[0]);
-	unsigned ldB = STARPU_MATRIX_GET_LD(descr[1]);
+	size_t ldA = STARPU_MATRIX_GET_LD(descr[0]);
+	size_t ldB = STARPU_MATRIX_GET_LD(descr[1]);
 
-	unsigned ldC = nxC;
+	size_t ldC = nxC;
 
 	TYPE subC[nxC*nyC];
 
@@ -301,13 +301,13 @@ void cpu_mult(void *descr[], void *arg, TYPE beta)
 	TYPE *subB = (TYPE *)STARPU_MATRIX_GET_PTR(descr[1]);
 	TYPE *subC = (TYPE *)STARPU_MATRIX_GET_PTR(descr[2]);
 
-	unsigned nxC = STARPU_MATRIX_GET_NX(descr[2]);
-	unsigned nyC = STARPU_MATRIX_GET_NY(descr[2]);
-	unsigned nyA = STARPU_MATRIX_GET_NY(descr[0]);
+	size_t nxC = STARPU_MATRIX_GET_NX(descr[2]);
+	size_t nyC = STARPU_MATRIX_GET_NY(descr[2]);
+	size_t nyA = STARPU_MATRIX_GET_NY(descr[0]);
 
-	unsigned ldA = STARPU_MATRIX_GET_LD(descr[0]);
-	unsigned ldB = STARPU_MATRIX_GET_LD(descr[1]);
-	unsigned ldC = STARPU_MATRIX_GET_LD(descr[2]);
+	size_t ldA = STARPU_MATRIX_GET_LD(descr[0]);
+	size_t ldB = STARPU_MATRIX_GET_LD(descr[1]);
+	size_t ldC = STARPU_MATRIX_GET_LD(descr[2]);
 
 	int worker_size = starpu_combined_worker_get_size();
 
@@ -315,7 +315,7 @@ void cpu_mult(void *descr[], void *arg, TYPE beta)
 		memset(subC, 0, sizeof(*subC) * nxC * nyC);
 	else
 	{
-		unsigned i;
+		size_t i;
 		for (i = 0; i < nyC; i++)
 			memset(subC + i*ldC, 0, sizeof(*subC) * nxC);
 	}
@@ -636,9 +636,9 @@ static void parse_args(int argc, char **argv)
 		{
 			fprintf(stderr,"Usage: %s [-3d] [-nblocks n] [-nblocksx x] [-nblocksy y] [-nblocksz z] [-x x] [-y y] [-xy n] [-z z] [-xyz n] [-size size] [-iter iter] [-bound] [-check] [-spmd] [-hostname] [-nsleeps nsleeps]\n", argv[0]);
 			if (tiled)
-				fprintf(stderr,"Currently selected: %ux%u * %ux%u and %ux%ux%u blocks (size %ux%u length %u), %u iterations, %u sleeps\n", zdim, ydim, xdim, zdim, nslicesx, nslicesy, nslicesz, xdim / nslicesx, ydim / nslicesy, zdim / nslicesz, niter, nsleeps);
+				fprintf(stderr,"Currently selected: %zux%zu * %zux%zu and %zux%zux%zu blocks (size %zux%zu length %zu), %u iterations, %u sleeps\n", zdim, ydim, xdim, zdim, nslicesx, nslicesy, nslicesz, xdim / nslicesx, ydim / nslicesy, zdim / nslicesz, niter, nsleeps);
 			else
-				fprintf(stderr,"Currently selected: %ux%u * %ux%u and %ux%u blocks (size %ux%u length %u), %u iterations, %u sleeps\n", zdim, ydim, xdim, zdim, nslicesx, nslicesy, xdim / nslicesx, ydim / nslicesy, zdim, niter, nsleeps);
+				fprintf(stderr,"Currently selected: %zux%zu * %zux%zu and %zux%zu blocks (size %zux%zu length %zu), %u iterations, %u sleeps\n", zdim, ydim, xdim, zdim, nslicesx, nslicesy, xdim / nslicesx, ydim / nslicesy, zdim, niter, nsleeps);
 			exit(EXIT_SUCCESS);
 		}
 		else
@@ -1178,7 +1178,7 @@ static int run_data(void)
 			}
 			double average = timing/niter;
 			double deviation = sqrt(fabs(timing_square / niter - average*average));
-			PRINTF("%u\t%u\t%u\t%.0f\t%.1f\t%f", xdim, ydim, zdim, timing/niter/1000.0, flops/timing/1000.0, flops/niter/(average*average)*deviation/1000.0);
+			PRINTF("%zu\t%zu\t%zu\t%.0f\t%.1f\t%f", xdim, ydim, zdim, timing/niter/1000.0, flops/timing/1000.0, flops/niter/(average*average)*deviation/1000.0);
 			if (bound)
 				PRINTF("\t%.0f\t%.1f\t%.0f\t%.1f\t%f", min, flops/min/1000000.0, min_int, flops/min_int/1000000.0, flops/niter/(average*average)*deviation/1000.0);
 			PRINTF("\n");
@@ -1186,7 +1186,7 @@ static int run_data(void)
 		else /* We don't */
 		{
 			double flops = 2.0 * ((unsigned long long)(niter+1)) * ((unsigned long long)xdim) * ((unsigned long long)ydim) * ((unsigned long long)zdim);
-			PRINTF("%u\t%u\t%u\t%.0f\t%.1f\t%f", xdim, ydim, zdim, timing/(niter+1)/1000.0, flops/timing/1000.0, 0.0);
+			PRINTF("%zu\t%zu\t%zu\t%.0f\t%.1f\t%f", xdim, ydim, zdim, timing/(niter+1)/1000.0, flops/timing/1000.0, 0.0);
 			if (bound)
 				PRINTF("\t%.0f\t%.1f\t%.0f\t%.1f\t%f", min, flops/min/1000000.0, min_int, flops/min_int/1000000.0, 0.0);
 			PRINTF("\n");

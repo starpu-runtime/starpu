@@ -57,8 +57,8 @@ void fill_tmp_buffer(void *buffers[], void *cl_arg)
 {
 	(void)cl_arg;
 	int *tmp = (int *) STARPU_VECTOR_GET_PTR(buffers[0]);
-	int nx = STARPU_VECTOR_GET_NX(buffers[0]);
-	int i;
+	size_t nx = STARPU_VECTOR_GET_NX(buffers[0]);
+	size_t i;
 
 	for (i=0; i<nx; i++)
 		tmp[i]=nx+i;
@@ -80,11 +80,11 @@ void read_ghost(void *buffers[], void *cl_arg)
 {
 	(void)cl_arg;
 	int *tmp = (int *) STARPU_VECTOR_GET_PTR(buffers[0]);
-	int nx=STARPU_VECTOR_GET_NX(buffers[0]);
-	int i;
+	size_t nx=STARPU_VECTOR_GET_NX(buffers[0]);
+	size_t i;
 	for(i=0; i<nx;i++)
 	{
-		assert(tmp[i]==nx+i);
+		assert(tmp[i]==(int)(nx+i));
 	}
 }
 

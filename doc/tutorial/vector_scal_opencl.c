@@ -29,7 +29,7 @@ void vector_scal_opencl(void *buffers[], void *cl_arg)
 	starpu_codelet_unpack_args(cl_arg, &factor);
 
 	/* length of the vector */
-	unsigned int n = STARPU_VECTOR_GET_NX(buffers[0]);
+	cl_ulong n = STARPU_VECTOR_GET_NX(buffers[0]);
 	/* OpenCL copy of the vector pointer */
 	cl_mem val = (cl_mem) STARPU_VECTOR_GET_DEV_HANDLE(buffers[0]);
 

@@ -34,9 +34,9 @@ static void init_rm_infos(void);
 static void vector_scale_func(void *cl_buffers[], void *cl_arg)
 {
 	double scalar = -1.0;
-	int n = STARPU_VECTOR_GET_NX(cl_buffers[0]);
+	size_t n = STARPU_VECTOR_GET_NX(cl_buffers[0]);
 	double *vector = (double *)STARPU_VECTOR_GET_PTR(cl_buffers[0]);
-	int i;
+	size_t i;
 	starpu_codelet_unpack_args(cl_arg, &scalar);
 
 	int workerid = starpu_worker_get_id();
@@ -49,7 +49,7 @@ static void vector_scale_func(void *cl_buffers[], void *cl_arg)
 		int strl2 = hwloc_bitmap_snprintf(NULL, 0, check_cpuset);
 		char str2[strl2+1];
 		hwloc_bitmap_snprintf(str2, strl2+1, check_cpuset);
-		printf("worker[%03d] - task: vector=%p, n=%d, scalar=%lf, worker cpuset = %s, selected cpuset = %s\n", workerid, vector, n, scalar, str1, str2);
+		printf("worker[%03d] - task: vector=%p, n=%zu, scalar=%lf, worker cpuset = %s, selected cpuset = %s\n", workerid, vector, n, scalar, str1, str2);
 	}
 	hwloc_bitmap_and(check_cpuset, check_cpuset, worker_cpuset);
 	assert(!hwloc_bitmap_iszero(check_cpuset));

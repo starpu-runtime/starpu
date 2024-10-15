@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2022  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2024  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,9 +18,9 @@
 
 #include <starpu.h>
 
-static __global__ void _fmultiple_check_scale_hip(int *val, int nx, int ny, unsigned ld, int start, int factor)
+static __global__ void _fmultiple_check_scale_hip(int *val, size_t nx, size_t ny, size_t ld, int start, int factor)
 {
-        int i, j;
+        size_t i, j;
 	for(j=0; j<ny ; j++)
 	{
 		for(i=0; i<nx ; i++)
@@ -35,9 +35,9 @@ static __global__ void _fmultiple_check_scale_hip(int *val, int nx, int ny, unsi
 extern "C" void fmultiple_check_scale_hip(void *buffers[], void *cl_arg)
 {
 	int start, factor;
-	int nx = (int)STARPU_MATRIX_GET_NX(buffers[0]);
-	int ny = (int)STARPU_MATRIX_GET_NY(buffers[0]);
-        unsigned ld = STARPU_MATRIX_GET_LD(buffers[0]);
+	size_t nx = STARPU_MATRIX_GET_NX(buffers[0]);
+	size_t ny = STARPU_MATRIX_GET_NY(buffers[0]);
+        size_t ld = STARPU_MATRIX_GET_LD(buffers[0]);
 	int *val = (int *)STARPU_MATRIX_GET_PTR(buffers[0]);
 
 	starpu_codelet_unpack_args(cl_arg, &start, &factor);
@@ -48,9 +48,9 @@ extern "C" void fmultiple_check_scale_hip(void *buffers[], void *cl_arg)
 	if (status != hipSuccess) STARPU_HIP_REPORT_ERROR(status);
 }
 
-static __global__ void _fmultiple_check_hip(int *val, int nx, int ny, unsigned ld, int start, int factor)
+static __global__ void _fmultiple_check_hip(int *val, size_t nx, size_t ny, size_t ld, int start, int factor)
 {
-        int i, j;
+        size_t i, j;
 	for(j=0; j<ny ; j++)
 	{
 		for(i=0; i<nx ; i++)
@@ -64,9 +64,9 @@ static __global__ void _fmultiple_check_hip(int *val, int nx, int ny, unsigned l
 extern "C" void fmultiple_check_hip(void *buffers[], void *cl_arg)
 {
 	int start, factor;
-	int nx = (int)STARPU_MATRIX_GET_NX(buffers[0]);
-	int ny = (int)STARPU_MATRIX_GET_NY(buffers[0]);
-        unsigned ld = STARPU_MATRIX_GET_LD(buffers[0]);
+	size_t nx = STARPU_MATRIX_GET_NX(buffers[0]);
+	size_t ny = STARPU_MATRIX_GET_NY(buffers[0]);
+        size_t ld = STARPU_MATRIX_GET_LD(buffers[0]);
 	int *val = (int *)STARPU_MATRIX_GET_PTR(buffers[0]);
 
 	starpu_codelet_unpack_args(cl_arg, &start, &factor);

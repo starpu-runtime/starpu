@@ -18,7 +18,7 @@
 
 extern struct test_config matrix_config;
 
-__global__ void matrix_cuda(int *val, unsigned n, int *err, int factor)
+__global__ void matrix_cuda(int *val, size_t n, int *err, int factor)
 {
         unsigned i =  blockIdx.x*blockDim.x + threadIdx.x;
 
@@ -37,7 +37,7 @@ extern "C" void test_matrix_cuda_func(void *buffers[], void *args)
 	int *ret;
 	int *val;
 	cudaError_t error;
-	unsigned int nx, ny, n;
+	size_t nx, ny, n;
 
 	nx = STARPU_MATRIX_GET_NX(buffers[0]);
 	ny = STARPU_MATRIX_GET_NY(buffers[0]);
@@ -52,9 +52,9 @@ extern "C" void test_matrix_cuda_func(void *buffers[], void *args)
 		STARPU_CUDA_REPORT_ERROR(error);
 
 	error = cudaMemcpyAsync(ret,
-			   &matrix_config.copy_failed,
-			   sizeof(int),
-			   cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
+				&matrix_config.copy_failed,
+				sizeof(int),
+				cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
 	if (error != cudaSuccess)
 		STARPU_CUDA_REPORT_ERROR(error);
 
@@ -63,9 +63,9 @@ extern "C" void test_matrix_cuda_func(void *buffers[], void *args)
 	if (error != cudaSuccess) STARPU_CUDA_REPORT_ERROR(error);
 
 	error = cudaMemcpyAsync(&matrix_config.copy_failed,
-			   ret,
-			   sizeof(int),
-			   cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
+				ret,
+				sizeof(int),
+				cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
 	if (error != cudaSuccess)
 		STARPU_CUDA_REPORT_ERROR(error);
 

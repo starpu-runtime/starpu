@@ -41,9 +41,9 @@
 static struct starpu_task *create_task(starpu_tag_t id)
 {
 	struct starpu_task *task = starpu_task_create();
-		task->cl_arg = NULL;
-		task->use_tag = 1;
-		task->tag_id = id;
+	task->cl_arg = NULL;
+	task->use_tag = 1;
+	task->tag_id = id;
 
 	return task;
 }
@@ -247,23 +247,23 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 
 	double timing = end - start;
 
-	unsigned nx = starpu_matrix_get_nx(dataA);
+	size_t nx = starpu_matrix_get_nx(dataA);
 
 	double flop = (1.0f*nx*nx*nx)/3.0f;
 
 	PRINTF("# size\tms\tGFlop/s\n");
-	PRINTF("%u\t%.0f\t%.1f\n", nx, timing/1000, (flop/timing/1000.0f));
+	PRINTF("%zu\t%.0f\t%.1f\n", nx, timing/1000, (flop/timing/1000.0f));
 
 	return 0;
 }
 
-static int cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
+static int cholesky(float *matA, size_t size, size_t ld, size_t nblocks)
 {
 	starpu_data_handle_t dataA;
 	int ret;
 
 	/* monitor and partition the A matrix into blocks :
-	 * one block is now determined by 2 unsigned (m,n) */
+	 * one block is now determined by 2 size_t (m,n) */
 	starpu_matrix_data_register(&dataA, STARPU_MAIN_RAM, (uintptr_t)matA, ld, size, size, sizeof(float));
 
 	starpu_data_set_sequential_consistency_flag(dataA, 0);

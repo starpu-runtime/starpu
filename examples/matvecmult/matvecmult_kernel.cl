@@ -14,13 +14,13 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-__kernel void matVecMult(const __global float *A, const __global float *X, int n, int m, __global float *Y, int ld)
+__kernel void matVecMult(const __global float *A, const __global float *X, ulong n, ulong m, __global float *Y, ulong ld)
 {
 	const int i = get_global_id(0);
 	if (i < m)
 	{
 		float val = 0;
-		int j;
+		ulong j;
 
 		for (j = 0; j < n; j++)
 		       val += A[i*ld+j] * X[j];

@@ -26,11 +26,11 @@ struct Params
 };
 
 __global__ void gpuNbodyKernel(double *P, double *subA, double *M,
-			     uint32_t nxP, uint32_t nxA, uint32_t nxM,
-			     uint32_t ldP, uint32_t ldA,
+			     size_t nxP, size_t nxA, size_t nxM,
+			     size_t ldP, size_t ldA,
 			     struct Params params)
 {
-  uint32_t id, i, j, k;
+  size_t id, i, j, k;
   double dx, dy, modul;
 
   id = blockIdx.x * blockDim.x + threadIdx.x;
@@ -72,9 +72,9 @@ extern "C" void gpu_nbody(void * descr[], void * args)
 {
 
   double *d_P, *d_subA, *d_M;
-  uint32_t nxP, nxA, nxM;
-  uint32_t ldA, ldP;
-  uint32_t nblocks;
+  size_t nxP, nxA, nxM;
+  size_t ldA, ldP;
+  size_t nblocks;
 
   struct Params *params = (struct Params *) args;
 
@@ -108,12 +108,12 @@ extern "C" void gpu_nbody(void * descr[], void * args)
 
 
 __global__ void gpuNbody2Kernel(double *d_subP, double *d_subV, double *d_subA,
-			      uint32_t nxP, uint32_t nxV, uint32_t nxA,
-			      uint32_t ldP, uint32_t ldV, uint32_t ldA,
+			      size_t nxP, size_t nxV, size_t nxA,
+			      size_t ldP, size_t ldV, size_t ldA,
 			      struct Params params)
 {
 
-  uint32_t id, i, j;
+  size_t id, i, j;
 
   id = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -135,9 +135,9 @@ __global__ void gpuNbody2Kernel(double *d_subP, double *d_subV, double *d_subA,
 extern "C" void gpu_nbody2(void * descr[], void *args)
 {
   double *d_subP, *d_subV, *d_subA;
-  uint32_t nxP, nxV, nxA;
-  uint32_t ldP, ldV, ldA;
-  uint32_t nblocks;
+  size_t nxP, nxV, nxA;
+  size_t ldP, ldV, ldA;
+  size_t nblocks;
 
   struct Params *params = (struct Params *) args;
 

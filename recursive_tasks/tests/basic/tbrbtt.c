@@ -39,8 +39,8 @@ void task_2arg_func(void *buffers[], void *arg)
 {
 	int *v1 = (int*)STARPU_VECTOR_GET_PTR(buffers[0]);
 	int *v2 = (int*)STARPU_VECTOR_GET_PTR(buffers[1]);
-	int nx = STARPU_VECTOR_GET_NX(buffers[0]);
-	int i;
+	size_t nx = STARPU_VECTOR_GET_NX(buffers[0]);
+	size_t i;
 
 	print_vector(v1, nx, "task");
 	for(i=0 ; i<nx ; i++)

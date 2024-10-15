@@ -79,7 +79,7 @@ void c_listener_cb(struct starpu_perf_counter_listener *listener, struct starpu_
 void func(void *buffers[], void *cl_args)
 {
 	int *int_vector = (int*)STARPU_VECTOR_GET_PTR(buffers[0]);
-	int NX = (int)STARPU_VECTOR_GET_NX(buffers[0]);
+	size_t NX = (int)STARPU_VECTOR_GET_NX(buffers[0]);
 	const int niters;
 	starpu_codelet_unpack_args(cl_args, &niters);
 	int i;

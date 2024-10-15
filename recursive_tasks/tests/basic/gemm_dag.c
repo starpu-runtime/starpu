@@ -49,8 +49,8 @@ void scam_func(void *buffers[], void *arg)
 void real_func(void *buffers[], void *arg)
 {
 	int *A = (int*)STARPU_VECTOR_GET_PTR(buffers[0]);
-	int nx = STARPU_VECTOR_GET_NX(buffers[0]);
-	int i;
+	size_t nx = STARPU_VECTOR_GET_NX(buffers[0]);
+	size_t i;
 	for (i=0; i<nx; i++)
 	{
 		FPRINTF(stderr, "%d ", A[i]);
@@ -63,9 +63,9 @@ void pseudo_gemm_func(void *buffers[], void *arg)
 	int *A = (int*)STARPU_VECTOR_GET_PTR(buffers[0]);
 	int *B = (int*)STARPU_VECTOR_GET_PTR(buffers[1]);
 	int *C = (int*)STARPU_VECTOR_GET_PTR(buffers[2]);
-	int nx = STARPU_VECTOR_GET_NX(buffers[0]);
+	size_t nx = STARPU_VECTOR_GET_NX(buffers[0]);
 
-	int i;
+	size_t i;
 	for (i=0; i<nx; i++)
 	{
 		C[i] += A[i]*B[i];

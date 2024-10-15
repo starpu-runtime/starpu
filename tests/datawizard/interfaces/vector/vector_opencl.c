@@ -37,7 +37,7 @@ test_vector_opencl_func(void *buffers[], void *args)
 	ret = starpu_opencl_load_opencl_from_file(KERNEL_LOCATION, &opencl_program, NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
 
-	unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
+	cl_ulong n = STARPU_VECTOR_GET_NX(buffers[0]);
 	cl_mem val = (cl_mem)STARPU_VECTOR_GET_DEV_HANDLE(buffers[0]);
 
 	cl_context context;

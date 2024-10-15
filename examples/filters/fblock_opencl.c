@@ -37,12 +37,12 @@ void opencl_func(void *buffers[], void *cl_arg)
 
 	int *factor = cl_arg;
 	cl_mem block = (cl_mem)STARPU_BLOCK_GET_DEV_HANDLE(buffers[0]);
-	unsigned offset = STARPU_BLOCK_GET_OFFSET(buffers[0]);
-	int nx = (int)STARPU_BLOCK_GET_NX(buffers[0]);
-	int ny = (int)STARPU_BLOCK_GET_NY(buffers[0]);
-	int nz = (int)STARPU_BLOCK_GET_NZ(buffers[0]);
-	unsigned ldy = STARPU_BLOCK_GET_LDY(buffers[0]);
-	unsigned ldz = STARPU_BLOCK_GET_LDZ(buffers[0]);
+	cl_ulong offset = STARPU_BLOCK_GET_OFFSET(buffers[0]);
+	cl_ulong nx = STARPU_BLOCK_GET_NX(buffers[0]);
+	cl_ulong ny = STARPU_BLOCK_GET_NY(buffers[0]);
+	cl_ulong nz = STARPU_BLOCK_GET_NZ(buffers[0]);
+	cl_ulong ldy = STARPU_BLOCK_GET_LDY(buffers[0]);
+	cl_ulong ldz = STARPU_BLOCK_GET_LDZ(buffers[0]);
 
 	id = starpu_worker_get_id_check();
 	devid = starpu_worker_get_devid(id);

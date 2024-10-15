@@ -35,7 +35,7 @@ static void memset_cuda(void *descr[], void *arg)
 	STARPU_SKIP_IF_VALGRIND;
 
 	int *ptr = (int *)STARPU_VECTOR_GET_PTR(descr[0]);
-	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
+	size_t n = STARPU_VECTOR_GET_NX(descr[0]);
 
 	cudaMemsetAsync(ptr, 42, n * sizeof(*ptr), starpu_cuda_get_local_stream());
 }
@@ -47,7 +47,7 @@ void memset_cpu(void *descr[], void *arg)
 	STARPU_SKIP_IF_VALGRIND;
 
 	int *ptr = (int *)STARPU_VECTOR_GET_PTR(descr[0]);
-	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
+	size_t n = STARPU_VECTOR_GET_NX(descr[0]);
 
 	memset(ptr, 42, n * sizeof(*ptr));
 }

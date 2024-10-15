@@ -22,8 +22,8 @@
 void init_cpu(void* buffers[], void *args)
 {
 	double *v = (double*)STARPU_VECTOR_GET_PTR(buffers[0]);
-	unsigned nx = STARPU_VECTOR_GET_NX(buffers[0]);
-	unsigned i;
+	size_t nx = STARPU_VECTOR_GET_NX(buffers[0]);
+	size_t i;
 	for (i=0; i<nx; ++i) v[i] = 0;
 }
 

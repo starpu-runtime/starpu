@@ -29,11 +29,11 @@ void axpy_opencl(void *buffers[], void *_args)
 	cl_kernel kernel;
 	cl_command_queue queue;
 
-	unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
+	cl_ulong n = STARPU_VECTOR_GET_NX(buffers[0]);
 	cl_mem x = (cl_mem) STARPU_VECTOR_GET_DEV_HANDLE(buffers[0]);
-	unsigned x_offset = STARPU_VECTOR_GET_OFFSET(buffers[0]);
+	cl_ulong x_offset = STARPU_VECTOR_GET_OFFSET(buffers[0]);
 	cl_mem y = (cl_mem) STARPU_VECTOR_GET_DEV_HANDLE(buffers[1]);
-	unsigned y_offset = STARPU_VECTOR_GET_OFFSET(buffers[1]);
+	cl_ulong y_offset = STARPU_VECTOR_GET_OFFSET(buffers[1]);
 
 	id = starpu_worker_get_id_check();
 	devid = starpu_worker_get_devid(id);

@@ -26,13 +26,13 @@
 
 void cpu_func(void *buffers[], void *cl_arg)
 {
-	unsigned i;
+	size_t i;
 	int factor;
 	int rank;
 
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	fprintf(stderr, "computing on rank %d\n", rank);
-	unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
+	size_t n = STARPU_VECTOR_GET_NX(buffers[0]);
 	int *val = (int *)STARPU_VECTOR_GET_PTR(buffers[0]);
 	starpu_codelet_unpack_args(cl_arg, &factor);
 
@@ -54,12 +54,12 @@ void vector_filter(void *parent_interface, void *child_interface, struct starpu_
 	struct starpu_vector_interface *vector_parent = (struct starpu_vector_interface *) parent_interface;
 	struct starpu_vector_interface *vector_child = (struct starpu_vector_interface *) child_interface;
 
-	uint32_t nx = vector_parent->nx;
+	size_t nx = vector_parent->nx;
 	size_t elemsize = vector_parent->elemsize;
 
-	STARPU_ASSERT_MSG(nchunks <= nx, "%u parts for %u elements", nchunks, nx);
+	STARPU_ASSERT_MSG(nchunks <= nx, "%u parts for %zu elements", nchunks, nx);
 	STARPU_ASSERT(nchunks == 2);
-	STARPU_ASSERT_MSG((nx % nchunks) == 0, "nx=%u is not a multiple of nchunks %u\n", nx, nchunks);
+	STARPU_ASSERT_MSG((nx % nchunks) == 0, "nx=%zu is not a multiple of nchunks %u\n", nx, nchunks);
 
 	vector_child->id = vector_parent->id;
 	vector_child->nx = nx/2;

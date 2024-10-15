@@ -35,7 +35,7 @@ float cpu_vector_scal(void *buffers[], void *cl_arg)
   struct starpu_vector_interface *vector = (struct starpu_vector_interface *) buffers[0];
 
   /* length of the vector */
-  unsigned n = STARPU_VECTOR_GET_NX(vector);
+  size_t n = STARPU_VECTOR_GET_NX(vector);
 
   /* get a pointer to the local copy of the vector : note that we have to
    * cast it in (float *) since a vector could contain any type of

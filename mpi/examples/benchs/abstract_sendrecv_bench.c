@@ -27,7 +27,7 @@ static void cuda_memset_codelet(void *descr[], void *arg)
 	(void)arg;
 
 	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);
-	unsigned length = STARPU_VECTOR_GET_NX(descr[0]);
+	size_t length = STARPU_VECTOR_GET_NX(descr[0]);
 
 	cudaMemsetAsync(buf, 0, length, starpu_cuda_get_local_stream());
 }
@@ -38,7 +38,7 @@ static void hip_memset_codelet(void *descr[], void *arg)
 	(void)arg;
 
 	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);
-	unsigned length = STARPU_VECTOR_GET_NX(descr[0]);
+	size_t length = STARPU_VECTOR_GET_NX(descr[0]);
 
 	hipMemsetAsync(buf, 0, length, starpu_hip_get_local_stream());
 }
@@ -49,7 +49,7 @@ void cpu_memset_codelet(void *descr[], void *arg)
 	(void)arg;
 
 	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);
-	unsigned length = STARPU_VECTOR_GET_NX(descr[0]);
+	size_t length = STARPU_VECTOR_GET_NX(descr[0]);
 
 	memset(buf, 0, length * sizeof(*buf));
 }

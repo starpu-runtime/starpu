@@ -28,8 +28,8 @@ void cpu_mult(void *descr[], void *arg)
 {
 	(void)arg;
 	float *subA, *subB, *subC;
-	uint32_t nxC, nyC, nyA;
-	uint32_t ldA, ldB, ldC;
+	size_t nxC, nyC, nyA;
+	size_t ldA, ldB, ldC;
 
 	/* .blas.ptr gives a pointer to the first element of the local copy */
 	subA = (float *)STARPU_MATRIX_GET_PTR(descr[0]);

@@ -20,9 +20,9 @@
 /* Manage block and tags allocation */
 
 static struct block_description *blocks;
-static unsigned sizex, sizey, sizez;
-static unsigned nbz;
-static unsigned *block_sizes_z;
+static size_t sizex, sizey, sizez;
+static size_t nbz;
+static size_t *block_sizes_z;
 
 /*
  *	Tags for various codelet completion
@@ -89,14 +89,14 @@ int MPI_TAG_BOUNDARIES(int z, int dir, int buffer)
 /* Compute the size of the different blocks */
 static void compute_block_sizes(void)
 {
-	block_sizes_z = (unsigned *) malloc(nbz*sizeof(unsigned));
+	block_sizes_z = (size_t *) malloc(nbz*sizeof(size_t));
 	STARPU_ASSERT(block_sizes_z);
 
 	/* Perhaps the last chunk is smaller */
-	unsigned default_block_size = (sizez+nbz-1)/nbz;
-	unsigned remaining = sizez;
+	size_t default_block_size = (sizez+nbz-1)/nbz;
+	size_t remaining = sizez;
 
-	unsigned b;
+	size_t b;
 	for (b = 0; b < nbz; b++)
 	{
 		block_sizes_z[b] = MIN(default_block_size, remaining);
@@ -106,7 +106,7 @@ static void compute_block_sizes(void)
 	STARPU_ASSERT(remaining == 0);
 }
 
-unsigned get_block_size(int bz)
+size_t get_block_size(int bz)
 {
 	return block_sizes_z[bz];
 }
@@ -126,7 +126,7 @@ int get_block_mpi_node(int z)
 	return blocks[z].mpi_node;
 }
 
-void create_blocks_array(unsigned _sizex, unsigned _sizey, unsigned _sizez, unsigned _nbz)
+void create_blocks_array(size_t _sizex, size_t _sizey, size_t _sizez, size_t _nbz)
 {
 	/* Store the parameters */
 	nbz = _nbz;
@@ -141,7 +141,7 @@ void create_blocks_array(unsigned _sizex, unsigned _sizey, unsigned _sizez, unsi
 	/* What is the size of the different blocks ? */
 	compute_block_sizes();
 
-	unsigned bz;
+	size_t bz;
 	for (bz = 0; bz < nbz; bz++)
 	{
 		struct block_description * block =
@@ -168,7 +168,7 @@ void free_blocks_array()
 
 void assign_blocks_to_workers(int rank)
 {
-	unsigned bz;
+	size_t bz;
 
 	/* NB: perhaps we could count a GPU as multiple workers */
 
@@ -176,7 +176,7 @@ void assign_blocks_to_workers(int rank)
 	/*unsigned nworkers = starpu_worker_get_count();*/
 
 	/* how many blocks are on that MPI node ? */
-//	unsigned nblocks = 0;
+//	size_t nblocks = 0;
 //	for (bz = 0; bz < nbz; bz++)
 //	{
 //		struct block_description *block =
@@ -187,7 +187,7 @@ void assign_blocks_to_workers(int rank)
 //	}
 
 	/* how many blocks per worker ? */
-	/*unsigned nblocks_per_worker = (nblocks + nworkers - 1)/nworkers;*/
+	/*size_t nblocks_per_worker = (nblocks + nworkers - 1)/nworkers;*/
 
 	/* we now attribute up to nblocks_per_worker blocks per workers */
 	unsigned attributed = 0;
@@ -233,9 +233,9 @@ void assign_blocks_to_workers(int rank)
 
 void assign_blocks_to_mpi_nodes(int world_size)
 {
-	unsigned nzblocks_per_process = (nbz + world_size - 1) / world_size;
+	size_t nzblocks_per_process = (nbz + world_size - 1) / world_size;
 
-	unsigned bz;
+	size_t bz;
 	for (bz = 0; bz < nbz; bz++)
 	{
 		struct block_description *block =
@@ -247,7 +247,7 @@ void assign_blocks_to_mpi_nodes(int world_size)
 
 static size_t allocated = 0;
 
-static void allocate_block_on_node(starpu_data_handle_t *handleptr, unsigned bz, TYPE **ptr, unsigned nx, unsigned ny, unsigned nz)
+static void allocate_block_on_node(starpu_data_handle_t *handleptr, size_t bz, TYPE **ptr, size_t nx, size_t ny, size_t nz)
 {
 	int ret;
 	size_t block_size = nx*ny*nz*sizeof(TYPE);
@@ -274,7 +274,7 @@ static void allocate_block_on_node(starpu_data_handle_t *handleptr, unsigned bz,
 	starpu_data_set_coordinates(*handleptr, 1, bz);
 }
 
-static void free_block_on_node(starpu_data_handle_t handleptr, unsigned nx, unsigned ny, unsigned nz)
+static void free_block_on_node(starpu_data_handle_t handleptr, size_t nx, size_t ny, size_t nz)
 {
 	void *ptr = (void *) starpu_block_get_local_ptr(handleptr);
 	size_t block_size = nx*ny*nz*sizeof(TYPE);
@@ -284,19 +284,19 @@ static void free_block_on_node(starpu_data_handle_t handleptr, unsigned nx, unsi
 
 void display_memory_consumption(int rank, double time)
 {
-	FPRINTF(stderr, "%lu B of memory were allocated on node %d in %f ms\n", (unsigned long)allocated, rank, time/1000);
+	FPRINTF(stderr, "%zu B of memory were allocated on node %d in %f ms\n", allocated, rank, time/1000);
 }
 
 void allocate_memory_on_node(int rank)
 {
-	unsigned bz;
+	size_t bz;
 
 	/* Correctly allocate and declare all data handles to StarPU. */
 	for (bz = 0; bz < nbz; bz++)
 	{
 		struct block_description *block = get_block_description(bz);
 		int node = block->mpi_node;
-		unsigned size_bz = block_sizes_z[bz];
+		size_t size_bz = block_sizes_z[bz];
 
 		if (node == rank)
 		{
@@ -373,7 +373,7 @@ void allocate_memory_on_node(int rank)
 
 void free_memory_on_node(int rank)
 {
-	unsigned bz;
+	size_t bz;
 	for (bz = 0; bz < nbz; bz++)
 	{
 		struct block_description *block = get_block_description(bz);
@@ -421,7 +421,7 @@ void free_memory_on_node(int rank)
 /* check how many cells are alive */
 void check(int rank)
 {
-	unsigned bz;
+	size_t bz;
 	for (bz = 0; bz < nbz; bz++)
 	{
 		struct block_description *block = get_block_description(bz);
@@ -431,15 +431,15 @@ void check(int rank)
 		/* Main blocks */
 		if (node == rank)
 		{
-			unsigned size_bz = block_sizes_z[bz];
+			size_t size_bz = block_sizes_z[bz];
 #ifdef LIFE
-			unsigned x, y, z;
-			unsigned sum = 0;
+			size_t x, y, z;
+			size_t sum = 0;
 			for (x = 0; x < sizex; x++)
 				for (y = 0; y < sizey; y++)
 					for (z = 0; z < size_bz; z++)
 						sum += block->layers[0][(K+x)+(K+y)*(sizex + 2*K)+(K+z)*(sizex+2*K)*(sizey+2*K)];
-			printf("block %u got %u/%u alive\n", bz, sum, sizex*sizey*size_bz);
+			printf("block %zu got %zu/%zu alive\n", bz, sum, sizex*sizey*size_bz);
 #endif
 		}
 	}

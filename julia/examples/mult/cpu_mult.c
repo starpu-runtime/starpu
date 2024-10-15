@@ -44,13 +44,13 @@ void cpu_mult(void *descr[], void *cl_arg)
 	 * NB: in case some filters were used, the leading dimension is not
 	 * guaranteed to be the same in main memory (on the original matrix)
 	 * and on the accelerator! */
-	const uint32_t nxC = STARPU_MATRIX_GET_NX(descr[2]);
-	const uint32_t nyC = STARPU_MATRIX_GET_NY(descr[2]);
-	const uint32_t nyA = STARPU_MATRIX_GET_NY(descr[0]);
+	const size_t nxC = STARPU_MATRIX_GET_NX(descr[2]);
+	const size_t nyC = STARPU_MATRIX_GET_NY(descr[2]);
+	const size_t nyA = STARPU_MATRIX_GET_NY(descr[0]);
 
-	const uint32_t ldA = STARPU_MATRIX_GET_LD(descr[0]);
-	const uint32_t ldB = STARPU_MATRIX_GET_LD(descr[1]);
-	const uint32_t ldC = STARPU_MATRIX_GET_LD(descr[2]);
+	const size_t ldA = STARPU_MATRIX_GET_LD(descr[0]);
+	const size_t ldB = STARPU_MATRIX_GET_LD(descr[1]);
+	const size_t ldC = STARPU_MATRIX_GET_LD(descr[2]);
 	/* we assume a FORTRAN-ordering! */
 	int i,j,k,ii,jj,kk;
 	for (i = 0; i < nyC*nxC; i++) subC[i] = 0;
