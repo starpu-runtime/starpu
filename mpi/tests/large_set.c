@@ -606,7 +606,15 @@ int main(int argc, char **argv)
 				MPI_Finalize();
 			return rank_comm == 0 ? STARPU_TEST_SKIPPED : 0;
 		}
-		MPI_Type_commit(&datatype);
+		ret = MPI_Type_commit(&datatype);
+		if (ret != MPI_SUCCESS)
+		{
+			FPRINTF(stderr, "Function MPI_Type_commit fails with large types.\n");
+			starpu_mpi_shutdown();
+			if (!mpi_init)
+				MPI_Finalize();
+			return rank_comm == 0 ? STARPU_TEST_SKIPPED : 0;
+		}
 		MPI_Type_free(&datatype);
 	}
 #endif
