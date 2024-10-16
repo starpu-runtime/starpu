@@ -24,6 +24,8 @@ Changes:
 
 Small changes:
   * Fix build system for StarPU Python interface
+  * When defined the variable STARPU_PERF_MODEL_DIR will be used to
+    dump perfmodel files.
 
 New features:
   * Add starpu_data_register_victim_selector to let schedulers select eviction

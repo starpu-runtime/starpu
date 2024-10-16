@@ -441,4 +441,15 @@ mv $HOME/.starpu/sampling /usr/local/starpu/sampling
 STARPU_PERF_MODEL_DIR=/usr/local/starpu/sampling ./application
 \endverbatim
 
+When defined the variable \ref STARPU_PERF_MODEL_DIR will be used to
+dump perfmodel files. The application will read bus performance files
+and codelet performance files from <c>$HOME/.starpu</c> when
+available, and will write in the directory \ref STARPU_PERF_MODEL_DIR.
+
+\verbatim
+$ STARPU_PERF_MODEL_DIR=$(mktemp -d)  STARPU_SCHED=dmda STARPU_CALIBRATE=1 ./examples/cholesky/cholesky_implicit
+...
+[starpu][starpu_save_history_based_model] Going to write performance model in file </tmp/tmp.wZSizZncuU/codelets/45/chol_model_potrf.vesubie> for model <chol_model_potrf>
+\endverbatim
+
 */

@@ -1236,12 +1236,14 @@ void starpu_save_history_based_model(struct starpu_perfmodel *model)
 	char path[STR_LONG_LENGTH];
 	starpu_perfmodel_get_model_path(model->symbol, path, sizeof(path));
 
-	if (path[0] == '\0')
+	if (path[0] == '\0' || _starpu_perf_model_dir)
+	{
 		starpu_perfmodel_get_model_path_default_location(model->symbol, path, sizeof(path));
+	}
 
 	free(model->path);
 	model->path = strdup(path);
-	_STARPU_DEBUG("Opening performance model file <%s> for model <%s>\n", path, model->symbol);
+	_STARPU_DEBUG("Going to write performance model in file <%s> for model <%s>\n", path, model->symbol);
 
 	/* overwrite existing file, or create it */
 	FILE *f;

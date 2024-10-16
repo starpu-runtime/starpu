@@ -38,6 +38,7 @@
 #endif
 
 static int _starpu_expected_transfer_time_writeback;
+char *_starpu_perf_model_dir = NULL;
 
 void _starpu_init_perfmodel(void)
 {
@@ -772,10 +773,10 @@ void _starpu_set_perf_model_dirs()
 {
 	if (_perf_model_paths_nb != 0) return;
 
-	char *env = starpu_getenv("STARPU_PERF_MODEL_DIR");
-	if (env)
+	_starpu_perf_model_dir = starpu_getenv("STARPU_PERF_MODEL_DIR");
+	if (_starpu_perf_model_dir)
 	{
-		_perf_model_add_dir(env, 0, "by variable STARPU_PERF_MODEL_DIR");
+		_perf_model_add_dir(_starpu_perf_model_dir, 0, "by variable STARPU_PERF_MODEL_DIR");
 	}
 
 #ifdef STARPU_PERF_MODEL_DIR
@@ -786,7 +787,7 @@ void _starpu_set_perf_model_dirs()
 	_perf_model_add_dir(home, 0, "by STARPU_HOME directory");
 #endif
 
-	env = starpu_getenv("STARPU_PERF_MODEL_PATH");
+	char *env = starpu_getenv("STARPU_PERF_MODEL_PATH");
 	if (env)
 	{
 		char *saveptr, *token;
