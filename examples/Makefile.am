@@ -68,6 +68,8 @@ EXTRA_DIST = 					\
 	filters/custom_mf/conversion_opencl.cl  \
 	filters/custom_mf/custom_opencl.cl \
 	filters/custom_mf/custom_types.h \
+	filters/fmultiple_gpu.h \
+	filters/fmultiple_temp.h \
 	interface/complex_kernels.cl \
 	interface/complex_dev_handle/complex_dev_handle_kernels.cl \
 	reductions/dot_product.h	\
@@ -246,9 +248,17 @@ STARPU_EXAMPLES +=				\
 	filters/fndim_to_variable		\
 	filters/fmultiple_manual		\
 	filters/fmultiple_submit		\
+	filters/fmultiple_submit_gpu		\
+	filters/fmultiple_submit_temp		\
 	filters/fmultiple_submit_readonly	\
+	filters/fmultiple_submit_readonly_gpu	\
+	filters/fmultiple_submit_readonly_temp	\
 	filters/fmultiple_submit_readonly_downgrade	\
+	filters/fmultiple_submit_readonly_downgrade_gpu	\
+	filters/fmultiple_submit_readonly_downgrade_temp	\
 	filters/fmultiple_submit_implicit	\
+	filters/fmultiple_submit_implicit_gpu	\
+	filters/fmultiple_submit_implicit_temp	\
 	filters/frecursive			\
 	filters/shadow				\
 	filters/shadow2d			\
@@ -945,44 +955,92 @@ endif
 
 filters_fmultiple_submit_SOURCES =		\
 	filters/fmultiple_submit.c
+filters_fmultiple_submit_gpu_SOURCES =		\
+	filters/fmultiple_submit_gpu.c
+filters_fmultiple_submit_temp_SOURCES =		\
+	filters/fmultiple_submit_temp.c
 
 if STARPU_USE_CUDA
 filters_fmultiple_submit_SOURCES +=		\
 	filters/fmultiple_cuda.cu
+filters_fmultiple_submit_gpu_SOURCES +=		\
+	filters/fmultiple_cuda.cu
+filters_fmultiple_submit_temp_SOURCES +=	\
+	filters/fmultiple_cuda.cu
 endif
 if STARPU_USE_HIP
 filters_fmultiple_submit_SOURCES +=		\
+	filters/fmultiple_hip.hip
+filters_fmultiple_submit_gpu_SOURCES +=		\
+	filters/fmultiple_hip.hip
+filters_fmultiple_submit_temp_SOURCES +=	\
 	filters/fmultiple_hip.hip
 endif
 
 filters_fmultiple_submit_readonly_SOURCES =	\
 	filters/fmultiple_submit_readonly.c
+filters_fmultiple_submit_readonly_gpu_SOURCES =	\
+	filters/fmultiple_submit_readonly_gpu.c
+filters_fmultiple_submit_readonly_temp_SOURCES =	\
+	filters/fmultiple_submit_readonly_temp.c
 
 filters_fmultiple_submit_readonly_downgrade_SOURCES =	\
 	filters/fmultiple_submit_readonly_downgrade.c
+filters_fmultiple_submit_readonly_downgrade_gpu_SOURCES =	\
+	filters/fmultiple_submit_readonly_downgrade_gpu.c
+filters_fmultiple_submit_readonly_downgrade_temp_SOURCES =	\
+	filters/fmultiple_submit_readonly_downgrade_temp.c
 
 if STARPU_USE_CUDA
 filters_fmultiple_submit_readonly_SOURCES +=	\
 	filters/fmultiple_cuda.cu
+filters_fmultiple_submit_readonly_gpu_SOURCES +=	\
+	filters/fmultiple_cuda.cu
+filters_fmultiple_submit_readonly_temp_SOURCES +=	\
+	filters/fmultiple_cuda.cu
 filters_fmultiple_submit_readonly_downgrade_SOURCES +=	\
+	filters/fmultiple_cuda.cu
+filters_fmultiple_submit_readonly_downgrade_gpu_SOURCES +=	\
+	filters/fmultiple_cuda.cu
+filters_fmultiple_submit_readonly_downgrade_temp_SOURCES +=	\
 	filters/fmultiple_cuda.cu
 endif
 if STARPU_USE_HIP
 filters_fmultiple_submit_readonly_SOURCES +=	\
 	filters/fmultiple_hip.hip
+filters_fmultiple_submit_readonly_gpu_SOURCES +=	\
+	filters/fmultiple_hip.hip
+filters_fmultiple_submit_readonly_temp_SOURCES +=	\
+	filters/fmultiple_hip.hip
 filters_fmultiple_submit_readonly_downgrade_SOURCES +=	\
+	filters/fmultiple_hip.hip
+filters_fmultiple_submit_readonly_downgrade_gpu_SOURCES +=	\
+	filters/fmultiple_hip.hip
+filters_fmultiple_submit_readonly_downgrade_temp_SOURCES +=	\
 	filters/fmultiple_hip.hip
 endif
 
 filters_fmultiple_submit_implicit_SOURCES =		\
 	filters/fmultiple_submit_implicit.c
+filters_fmultiple_submit_implicit_gpu_SOURCES =		\
+	filters/fmultiple_submit_implicit_gpu.c
+filters_fmultiple_submit_implicit_temp_SOURCES =	\
+	filters/fmultiple_submit_implicit_temp.c
 
 if STARPU_USE_CUDA
 filters_fmultiple_submit_implicit_SOURCES +=		\
 	filters/fmultiple_cuda.cu
+filters_fmultiple_submit_implicit_gpu_SOURCES +=	\
+	filters/fmultiple_cuda.cu
+filters_fmultiple_submit_implicit_temp_SOURCES +=	\
+	filters/fmultiple_cuda.cu
 endif
 if STARPU_USE_HIP
 filters_fmultiple_submit_implicit_SOURCES +=		\
+	filters/fmultiple_hip.hip
+filters_fmultiple_submit_implicit_gpu_SOURCES +=	\
+	filters/fmultiple_hip.hip
+filters_fmultiple_submit_implicit_temp_SOURCES +=	\
 	filters/fmultiple_hip.hip
 endif
 

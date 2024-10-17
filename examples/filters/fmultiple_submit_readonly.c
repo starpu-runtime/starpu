@@ -163,7 +163,6 @@ int main(void)
 {
 	int start, factor;
 	unsigned n=1;
-	int matrix[NX][NY];
 	int ret, i;
 
 	/* We haven't taken care otherwise */
@@ -198,7 +197,12 @@ int main(void)
 	}
 
 	/* Declare the whole matrix to StarPU */
+#ifdef MATRIX_REGISTER
+	MATRIX_REGISTER
+#else
+	int matrix[NX][NY];
 	starpu_matrix_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)matrix, NX, NX, NY, sizeof(matrix[0][0]));
+#endif
 
 	/* Partition the matrix in PARTS vertical slices */
 	struct starpu_data_filter f_vert =
@@ -395,7 +399,9 @@ int main(void)
 	 */
 	starpu_data_partition_clean(handle, PARTS, vert_handle);
 	starpu_data_partition_clean(handle, PARTS, horiz_handle);
-	starpu_data_unregister(handle);
+#ifdef MATRIX_FREE
+	MATRIX_FREE
+#endif
 	starpu_shutdown();
 
 	return ret;
