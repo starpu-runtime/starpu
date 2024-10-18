@@ -41,7 +41,7 @@
 
 void matrix_fill(void *buffers[], void *cl_arg)
 {
-	unsigned i, j;
+	size_t i, j;
 	(void)cl_arg;
 
 	/* length of the matrix */
@@ -69,7 +69,7 @@ struct starpu_codelet cl_fill =
 void fmultiple_check_scale(void *buffers[], void *cl_arg)
 {
 	int start, factor;
-	unsigned i, j;
+	size_t i, j;
 
 	/* length of the matrix */
 	size_t nx = STARPU_MATRIX_GET_NX(buffers[0]);
@@ -117,7 +117,7 @@ struct starpu_codelet cl_check_scale =
 void fmultiple_check(void *buffers[], void *cl_arg)
 {
 	int start, factor;
-	unsigned i, j;
+	size_t i, j;
 
 	/* length of the matrix */
 	size_t nx = STARPU_MATRIX_GET_NX(buffers[0]);
@@ -399,6 +399,7 @@ int main(void)
 	 */
 	starpu_data_partition_clean(handle, PARTS, vert_handle);
 	starpu_data_partition_clean(handle, PARTS, horiz_handle);
+	starpu_data_unregister(handle);
 #ifdef MATRIX_FREE
 	MATRIX_FREE
 #endif
