@@ -302,6 +302,12 @@ void data_movements_data_register(starpu_data_handle_t *handleptr, unsigned home
 		.size = size
 	};
 
+	if (home_node >= 0)
+	{
+		starpu_check_on_node(home_node, (uintptr_t) tags, size*sizeof(starpu_mpi_tag_t));
+		starpu_check_on_node(home_node, (uintptr_t) ranks, size*sizeof(int));
+	}
+
 	starpu_data_register(handleptr, home_node, &data_movements, &interface_data_movements_ops);
 }
 

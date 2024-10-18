@@ -145,16 +145,9 @@ void starpu_matrix_data_register_allocsize(starpu_data_handle_t *handleptr, int 
 		.offset = 0,
 		.allocsize = allocsize,
 	};
-#ifndef STARPU_SIMGRID
-	if (home_node >= 0 && starpu_node_get_kind(home_node) == STARPU_CPU_RAM)
-	{
-		if (nx && ny && elemsize)
-		{
-			STARPU_ASSERT_ACCESSIBLE(ptr);
-			STARPU_ASSERT_ACCESSIBLE(ptr + (ny-1)*ld*elemsize + nx*elemsize - 1);
-		}
-	}
-#endif
+
+	if (home_node >= 0 && nx && ny && elemsize)
+		starpu_check_on_node(home_node, ptr, (ny-1)*ld*elemsize + nx*elemsize);
 
 	starpu_data_register(handleptr, home_node, &matrix_interface, &starpu_interface_matrix_ops);
 }
@@ -525,6 +518,7 @@ static void reuse_matrix_buffer_on_node(void *dst_data_interface, const void *ca
 	dst_matrix_interface->dev_handle = cached_matrix_interface->dev_handle;
 	dst_matrix_interface->offset = 0;
 	dst_matrix_interface->ld = dst_matrix_interface->nx; // by default
+     // TODO: when node is RAM, tell valgrind that it's fresh
 }
 
 static int map_matrix(void *src_interface, unsigned src_node,

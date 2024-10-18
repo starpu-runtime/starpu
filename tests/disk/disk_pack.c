@@ -59,6 +59,9 @@ void starpu_my_vector_data_register(starpu_data_handle_t *handleptr, unsigned ho
 		.allocsize = nx * elemsize,
 	};
 
+	if (home_node >= 0)
+		starpu_check_on_node(home_node, ptr, nx*elemsize);
+
 	starpu_data_register(handleptr, home_node, &vector, &starpu_interface_my_vector_ops);
 }
 

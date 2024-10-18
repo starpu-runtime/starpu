@@ -273,5 +273,11 @@ void starpu_complex_data_register(starpu_data_handle_t *handleptr, int home_node
 		.nx = nx
 	};
 
+	if (home_node >= 0)
+	{
+		starpu_check_on_node(home_node, (uintptr_t) real, nx*sizeof(*real));
+		starpu_check_on_node(home_node, (uintptr_t) real, nx*sizeof(*imaginary));
+	}
+
 	starpu_data_register(handleptr, home_node, &complex, &interface_complex_ops);
 }

@@ -324,7 +324,7 @@ static struct starpu_data_interface_ops interface_data_ops =
 	.describe = data_describe
 };
 
-void starpu_my_data_register(starpu_data_handle_t *handleptr, unsigned home_node, struct starpu_my_data *xc)
+void starpu_my_data_register(starpu_data_handle_t *handleptr, int home_node, struct starpu_my_data *xc)
 {
 	if (interface_data_ops.interfaceid == STARPU_UNKNOWN_INTERFACE_ID)
 	{
@@ -339,6 +339,9 @@ void starpu_my_data_register(starpu_data_handle_t *handleptr, unsigned home_node
 		.dev_handle = (uintptr_t) xc,
 		.offset = 0,
 	};
+
+	if (home_node >= 0)
+		starpu_check_on_node(home_node, (uintptr_t) xc, sizeof(int) + sizeof(char));
 
 	starpu_data_register(handleptr, home_node, &data, &interface_data_ops);
 }
@@ -367,7 +370,7 @@ static struct starpu_data_interface_ops interface_data2_ops =
 	.describe = data_describe
 };
 
-void starpu_my_data2_register(starpu_data_handle_t *handleptr, unsigned home_node, struct starpu_my_data *xc)
+void starpu_my_data2_register(starpu_data_handle_t *handleptr, int home_node, struct starpu_my_data *xc)
 {
 	if (interface_data2_ops.interfaceid == STARPU_UNKNOWN_INTERFACE_ID)
 	{
@@ -382,6 +385,9 @@ void starpu_my_data2_register(starpu_data_handle_t *handleptr, unsigned home_nod
 		.dev_handle = (uintptr_t) xc,
 		.offset = 0,
 	};
+
+	if (home_node >= 0)
+		starpu_check_on_node(home_node, (uintptr_t) xc, sizeof(int) + sizeof(char));
 
 	starpu_data_register(handleptr, home_node, &data, &interface_data2_ops);
 }

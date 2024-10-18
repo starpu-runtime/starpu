@@ -138,16 +138,9 @@ void starpu_vector_data_register_allocsize(starpu_data_handle_t *handleptr, int 
 		.offset = 0,
 		.allocsize = allocsize,
 	};
-#if (!defined(STARPU_SIMGRID) && !defined(STARPU_OPENMP))
-	if (home_node >= 0 && starpu_node_get_kind(home_node) == STARPU_CPU_RAM)
-	{
-		if (nx && elemsize)
-		{
-			STARPU_ASSERT_ACCESSIBLE(ptr);
-			STARPU_ASSERT_ACCESSIBLE(ptr + nx*elemsize - 1);
-		}
-	}
-#endif
+
+	if (home_node >= 0)
+		starpu_check_on_node(home_node, ptr, nx*elemsize);
 
 	starpu_data_register(handleptr, home_node, &vector, &starpu_interface_vector_ops);
 }

@@ -282,6 +282,18 @@ void _starpu_cpu_free_on_device(int dst_dev, uintptr_t addr, size_t size, int fl
 				   );
 }
 
+void _starpu_cpu_check_on_device(int dev, uintptr_t addr, size_t size)
+{
+#ifndef STARPU_SIMGRID
+	if (size == 0)
+		return;
+
+	// TODO: when dev > 0, check NUMA node
+	STARPU_ASSERT_ACCESSIBLE(addr);
+	STARPU_ASSERT_ACCESSIBLE(addr + size - 1);
+#endif
+}
+
 int _starpu_cpu_copy_interface(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
 {
 	int src_kind = starpu_node_get_kind(src_node);
@@ -820,6 +832,7 @@ struct _starpu_node_ops _starpu_driver_cpu_node_ops =
 	.malloc_on_device = _starpu_cpu_malloc_on_device,
 	.memset_on_device = _starpu_cpu_memset_on_device,
 	.free_on_device = _starpu_cpu_free_on_device,
+	.check_on_device = _starpu_cpu_check_on_device,
 
 	.is_direct_access_supported = _starpu_cpu_is_direct_access_supported,
 

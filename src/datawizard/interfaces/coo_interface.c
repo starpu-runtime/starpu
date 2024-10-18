@@ -238,20 +238,13 @@ starpu_coo_data_register(starpu_data_handle_t *handleptr, int home_node,
 		.n_values = n_values,
 		.elemsize = elemsize,
 	};
-#ifndef STARPU_SIMGRID
-	if (home_node >= 0 && starpu_node_get_kind(home_node) == STARPU_CPU_RAM)
+
+	if (home_node >= 0)
 	{
-		if (n_values)
-		{
-			STARPU_ASSERT_ACCESSIBLE(columns);
-			STARPU_ASSERT_ACCESSIBLE((uintptr_t) columns + n_values*sizeof(uint32_t) - 1);
-			STARPU_ASSERT_ACCESSIBLE(rows);
-			STARPU_ASSERT_ACCESSIBLE((uintptr_t) rows + n_values*sizeof(uint32_t) - 1);
-		}
-		STARPU_ASSERT_ACCESSIBLE(values);
-		STARPU_ASSERT_ACCESSIBLE(values + n_values*elemsize - 1);
+		starpu_check_on_node(home_node, (uintptr_t) columns, n_values*sizeof(uint32_t));
+		starpu_check_on_node(home_node, (uintptr_t) rows, n_values*sizeof(uint32_t));
+		starpu_check_on_node(home_node, values, n_values*elemsize);
 	}
-#endif
 
 	starpu_data_register(handleptr, home_node, &coo_interface,
 			     &starpu_interface_coo_ops);

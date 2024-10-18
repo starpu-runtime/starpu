@@ -113,16 +113,9 @@ void starpu_variable_data_register(starpu_data_handle_t *handleptr, int home_nod
 		.offset = 0,
 		.elemsize = elemsize
 	};
-#ifndef STARPU_SIMGRID
-	if (home_node >= 0 && starpu_node_get_kind(home_node) == STARPU_CPU_RAM)
-	{
-		if (elemsize)
-		{
-			STARPU_ASSERT_ACCESSIBLE(ptr);
-			STARPU_ASSERT_ACCESSIBLE(ptr + elemsize - 1);
-		}
-	}
-#endif
+
+	if (home_node >= 0)
+		starpu_check_on_node(home_node, ptr, elemsize);
 
 	starpu_data_register(handleptr, home_node, &variable, &starpu_interface_variable_ops);
 }

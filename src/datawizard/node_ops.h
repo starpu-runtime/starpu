@@ -158,6 +158,8 @@ struct _starpu_node_ops
 	/** Free data \p addr, which was a previous allocation of \p size bytes
 	 * of data on device \p devid with flags \p flags*/
 	void (*free_on_device)(int devid, uintptr_t addr, size_t size, int flags);
+	/** Check that data \p addr is indeed in device \p devid */
+	void (*check_on_device)(int devid, uintptr_t addr, size_t size);
 
 	/** Map data a piece of data to this type of node from another type of node.
 	 * This method is optional */

@@ -138,16 +138,9 @@ void starpu_tensor_data_register(starpu_data_handle_t *handleptr, int home_node,
 		.nt = nt,
 		.elemsize = elemsize
 	};
-#ifndef STARPU_SIMGRID
-	if (home_node >= 0 && starpu_node_get_kind(home_node) == STARPU_CPU_RAM)
-	{
-		if (nx && ny && nz && nt && elemsize)
-		{
-			STARPU_ASSERT_ACCESSIBLE(ptr);
-			STARPU_ASSERT_ACCESSIBLE(ptr + (nt-1)*ldt*elemsize + (nz-1)*ldz*elemsize + (ny-1)*ldy*elemsize + nx*elemsize - 1);
-		}
-	}
-#endif
+
+	if (home_node >= 0 && nx && ny && nz && nt && elemsize)
+		starpu_check_on_node(home_node, ptr, (nt-1)*ldt*elemsize + (nz-1)*ldz*elemsize + (ny-1)*ldy*elemsize + nx*elemsize);
 
 	starpu_data_register(handleptr, home_node, &tensor_interface, &starpu_interface_tensor_ops);
 }

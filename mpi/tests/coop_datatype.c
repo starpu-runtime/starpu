@@ -219,6 +219,9 @@ void starpu_my_data_register(starpu_data_handle_t *handleptr, unsigned home_node
 		.offset = 0,
 	};
 
+	if (home_node >= 0)
+		starpu_check_on_node(home_node, (uintptr_t) xc, sizeof(int) + sizeof(char));
+
 	starpu_data_register(handleptr, home_node, &data, &interface_data_ops);
 }
 

@@ -185,13 +185,13 @@ void starpu_ndim_data_register(starpu_data_handle_t *handleptr, int home_node, u
 		.elemsize = elemsize,
 		.allocsize = allocsize,
 	};
-#ifndef STARPU_SIMGRID
-	if (home_node >= 0 && starpu_node_get_kind(home_node) == STARPU_CPU_RAM)
+
+	if (home_node >= 0)
 	{
 		size_t nn0 = ndim?nn[0]:1;
 		int b = 1;
 		size_t buffersize = 0;
-		for (i = 1; i < ndim; i++)
+		for (i = 1; i < ndim && b; i++)
 		{
 			if (nn[i])
 			{
@@ -206,12 +206,8 @@ void starpu_ndim_data_register(starpu_data_handle_t *handleptr, int home_node, u
 		buffersize += nn0*elemsize;
 
 		if (b && elemsize)
-		{
-			STARPU_ASSERT_ACCESSIBLE(ptr);
-			STARPU_ASSERT_ACCESSIBLE(ptr + buffersize - 1);
-		}
+			starpu_check_on_node(home_node, ptr, buffersize);
 	}
-#endif
 
 	starpu_data_register(handleptr, home_node, &ndim_interface, &starpu_interface_ndim_ops);
 }

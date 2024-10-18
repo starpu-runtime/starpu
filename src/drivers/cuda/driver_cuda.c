@@ -1302,6 +1302,26 @@ void _starpu_cuda_free_on_device(int devid, uintptr_t addr, size_t size, int fla
 #endif
 }
 
+void _starpu_cuda_check_on_device(int devid, uintptr_t addr, size_t size)
+{
+	(void) size;
+#if CUDART_VERSION >= 4000
+	cudaError_t err;
+	struct cudaPointerAttributes attr;
+	err = cudaPointerGetAttributes(&attr, (void*) addr);
+	STARPU_ASSERT_MSG(err == cudaSuccess, "Pointer %p is not recognized by CUDA\n", (void*) addr);
+#if CUDART_VERSION >= 11000
+	STARPU_ASSERT_MSG(attr.type != cudaMemoryTypeHost, "Pointer %p is not on a CUDA device\n", (void*) addr);
+#else
+	STARPU_ASSERT_MSG(attr.memoryType != cudaMemoryTypeHost, "Pointer %p is not on a CUDA device\n", (void*) addr);
+#endif
+	STARPU_ASSERT_MSG(attr.device == devid, "Pointer %p is not CUDA device %d but on CUDA device %d\n", (void*) addr, devid, attr.device);
+#else
+	(void) devid;
+	(void) addr;
+#endif
+}
+
 #ifdef STARPU_USE_CUDA
 int starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node,
 				void *dst_ptr, unsigned dst_node,
@@ -2697,6 +2717,7 @@ struct _starpu_node_ops _starpu_driver_cuda_node_ops =
 	.malloc_on_device = _starpu_cuda_malloc_on_device,
 	.memset_on_device = _starpu_cuda_memset_on_device,
 	.free_on_device = _starpu_cuda_free_on_device,
+	.check_on_device = _starpu_cuda_check_on_device,
 
 	.is_direct_access_supported = _starpu_cuda_is_direct_access_supported,
 

@@ -394,6 +394,9 @@ void vector_cpp_data_register(starpu_data_handle_t *handleptr, int home_node,
 	};
 #endif
 
+	if (home_node >= 0)
+		starpu_check_on_node(home_node, (uintptr_t) &(*vec)[0], nx * elemsize);
+
 	starpu_data_register(handleptr, home_node, &vector, &interface_vector_cpp_ops);
 }
 

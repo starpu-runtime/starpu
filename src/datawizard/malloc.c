@@ -808,6 +808,16 @@ void _starpu_free_on_node_flags(unsigned dst_node, uintptr_t addr, size_t size, 
 		starpu_memory_deallocate(dst_node, size);
 }
 
+void starpu_check_on_node(unsigned node, uintptr_t addr, size_t size)
+{
+	const struct _starpu_node_ops *node_ops = _starpu_memory_node_get_node_ops(node);
+	if (!node_ops->check_on_device)
+		return;
+
+	int devid = starpu_memory_node_get_devid(node);
+	node_ops->check_on_device(devid, addr, size);
+}
+
 int
 starpu_memory_pin(void *addr STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRIBUTE_UNUSED)
 {

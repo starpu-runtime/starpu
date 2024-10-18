@@ -1084,6 +1084,13 @@ void starpu_free_on_node_flags(unsigned dst_node, uintptr_t addr, size_t size, i
 void starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size);
 
 /**
+   Check that \p addr of \p size bytes is indeed a pointer on node \p node.
+
+   See \ref DefiningANewDataInterface for more details.
+*/
+void starpu_check_on_node(unsigned node, uintptr_t addr, size_t size);
+
+/**
    Define the default flags for allocations performed by starpu_malloc_on_node() and
    starpu_free_on_node(). The default is \ref STARPU_MALLOC_PINNED | \ref STARPU_MALLOC_COUNT.
 	See \ref HowToLimitMemoryPerNode for more details.

@@ -883,6 +883,18 @@ void _starpu_hip_free_on_device(int devid, uintptr_t addr, size_t size, int flag
 #endif
 }
 
+void _starpu_hip_check_on_device(int devid, uintptr_t addr, size_t size)
+{
+	(void) size;
+	hipError_t err;
+	hipPointerAttributes_t attr;
+	err = hipPointerGetAttributes(&attr, (void*) addr);
+	STARPU_ASSERT_MSG(err == hipSuccess, "Pointer %p is not recognized by HIP\n", (void*) addr);
+	STARPU_ASSERT_MSG(attr.type != hipMemoryTypeHost, "Pointer %p is not on a HIP device\n", (void*) addr);
+	STARPU_ASSERT_MSG(attr.device == devid, "Pointer %p is not HIP device %d but on HIP device %d\n", (void*) addr, devid, attr.device);
+
+}
+
 #ifdef STARPU_USE_HIP
 int starpu_hip_copy_async_sync(void *src_ptr, unsigned src_node,
 			       void *dst_ptr, unsigned dst_node,
@@ -1792,6 +1804,7 @@ struct _starpu_node_ops _starpu_driver_hip_node_ops =
 	.malloc_on_device = _starpu_hip_malloc_on_device,
 	.memset_on_device = _starpu_hip_memset_on_device,
 	.free_on_device = _starpu_hip_free_on_device,
+	.check_on_device = _starpu_hip_check_on_device,
 
 	.is_direct_access_supported = _starpu_hip_is_direct_access_supported,
 

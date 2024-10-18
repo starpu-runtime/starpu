@@ -419,6 +419,12 @@ void starpu_complex_data_register(starpu_data_handle_t *handleptr,
                 .nx = nx
         };
 
+	if (home_node >= 0)
+	{
+		starpu_check_on_node(home_node, (uintptr_t) real, nx * sizeof(*real));
+		starpu_check_on_node(home_node, (uintptr_t) imaginary, nx * sizeof(*imaginary));
+	}
+
         starpu_data_register(handleptr, home_node, &complex, &interface_complex_ops);
 }
 \endcode
@@ -429,6 +435,8 @@ starpu_data_register() will first allocate the handle, and
 then pass the structure <c>starpu_complex_interface</c> to the method
 starpu_data_interface_ops::register_data_handle, which records them
 within the data handle (it is called once per node by starpu_data_register()):
+
+We make starpu_check_on_node() calls to check that the pointers are not bogus.
 
 \code{.c}
 static void complex_register_data_handle(starpu_data_handle_t handle, int home_node, void *data_interface)

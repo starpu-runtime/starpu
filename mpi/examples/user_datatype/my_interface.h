@@ -35,8 +35,8 @@ struct starpu_my_data
 	char c;
 };
 
-void starpu_my_data_register(starpu_data_handle_t *handle, unsigned home_node, struct starpu_my_data *xc);
-void starpu_my_data2_register(starpu_data_handle_t *handle, unsigned home_node, struct starpu_my_data *xc);
+void starpu_my_data_register(starpu_data_handle_t *handle, int home_node, struct starpu_my_data *xc);
+void starpu_my_data2_register(starpu_data_handle_t *handle, int home_node, struct starpu_my_data *xc);
 
 char starpu_my_data_get_char(starpu_data_handle_t handle);
 int starpu_my_data_get_int(starpu_data_handle_t handle);

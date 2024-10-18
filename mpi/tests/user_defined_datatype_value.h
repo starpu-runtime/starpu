@@ -170,6 +170,9 @@ void starpu_value_data_register(starpu_data_handle_t *handleptr, unsigned home_n
 		.value = value
 	};
 
+	if (home_node >= 0)
+		starpu_check_on_node(home_node, (uintptr_t) value, sizeof(int));
+
 	starpu_data_register(handleptr, home_node, &value_int, &interface_value_ops);
 }
 
