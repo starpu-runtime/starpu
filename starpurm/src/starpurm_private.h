@@ -75,7 +75,7 @@ struct s_starpurm
 	/** Array of units. */
 	struct s_starpurm_unit *units;
 
-	/** Cpuset of all the StarPU's workers (CPU+devices. */
+	/** Cpuset of all the StarPU's workers (CPU+devices). */
 	hwloc_cpuset_t global_cpuset;
 
 	/** Cpuset of all StarPU CPU workers. */
@@ -101,6 +101,24 @@ struct s_starpurm
 
 	/** worker id to unit id table */
 	int *worker_unit_ids;
+
+	/** maximum value among cpu worker devids */
+	int max_cpu_worker_devid;
+
+	/** worker devid to cpu unit id table */
+	int *cpu_worker_devids_to_unit_id;
+
+	/** maximum value among opencl worker devids */
+	int max_opencl_worker_devid;
+
+	/** worker devid to opencl unit id table */
+	int *opencl_worker_devids_to_unit_id;
+
+	/** maximum value among cuda worker devids */
+	int max_cuda_worker_devid;
+
+	/** worker devid to cuda unit id table */
+	int *cuda_worker_devids_to_unit_id;
 
 	/** Temporary contexts accounting. */
 	unsigned int max_temporary_ctxs;

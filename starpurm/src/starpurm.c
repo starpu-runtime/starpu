@@ -45,6 +45,9 @@ struct s_starpurm_unit
 	/* StarPU id of the worker driving the device. */
 	int workerid;
 
+	/* StarPU devid of the worker driving the device. */
+	int devid;
+
 	/* Cpuset of the StarPU worker. */
 	hwloc_cpuset_t worker_cpuset;
 
@@ -263,7 +266,8 @@ void starpurm_enqueue_event_cpu_unit_available(int unit_id)
 	int workerid = rm->units[unit_id].workerid; struct
 		s_starpurm_event *event = calloc(1, sizeof(*event));
 	event->code = starpurm_event_unit_available; event->workerid =
-		workerid; _enqueue_event(event); }
+		workerid; _enqueue_event(event);
+}
 
 static void *event_thread_func(void *_arg)
 {
@@ -726,6 +730,7 @@ void starpurm_initialize_with_cpuset(const hwloc_cpuset_t initially_owned_cpuset
 
 	int unitid = 0;
 
+	int max_cpu_worker_devid = 0;
 	int cpu_workerids[cpu_nunits];
 	starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, cpu_workerids, cpu_nunits);
 	rm->unit_offsets_by_type[starpurm_unit_cpu] = unitid;
@@ -740,6 +745,11 @@ void starpurm_initialize_with_cpuset(const hwloc_cpuset_t initially_owned_cpuset
 		if (max_worker_id < rm->units[unitid].workerid)
 		{
 			max_worker_id = rm->units[unitid].workerid;
+		}
+		rm->units[unitid].devid = starpu_worker_get_devid(rm->units[unitid].workerid);
+		if (max_cpu_worker_devid < rm->units[unitid].devid)
+		{
+			max_cpu_worker_devid = rm->units[unitid].devid;
 		}
 		rm->units[unitid].worker_cpuset = starpu_worker_get_hwloc_cpuset(rm->units[unitid].workerid);
 		STARPU_PTHREAD_COND_INIT(&rm->units[unitid].unit_available_cond, NULL);
@@ -756,6 +766,7 @@ void starpurm_initialize_with_cpuset(const hwloc_cpuset_t initially_owned_cpuset
 		unitid++;
 	}
 
+	int max_opencl_worker_devid = 0;
 	int opencl_workerids[opencl_nunits];
 	starpu_worker_get_ids_by_type(STARPU_OPENCL_WORKER, opencl_workerids, opencl_nunits);
 	rm->unit_offsets_by_type[starpurm_unit_opencl] = unitid;
@@ -764,10 +775,16 @@ void starpurm_initialize_with_cpuset(const hwloc_cpuset_t initially_owned_cpuset
 		rm->units[unitid].id = unitid;
 		rm->units[unitid].type = starpurm_unit_opencl;
 		rm->units[unitid].selected = 1; /* enabled by default */
+		rm->units[unitid].devid = starpu_worker_get_devid(rm->units[unitid].workerid);
 		rm->units[unitid].workerid = opencl_workerids[i];
 		if (max_worker_id < rm->units[unitid].workerid)
 		{
 			max_worker_id = rm->units[unitid].workerid;
+		}
+		rm->units[unitid].devid = starpu_worker_get_devid(rm->units[unitid].workerid);
+		if (max_opencl_worker_devid < rm->units[unitid].devid)
+		{
+			max_opencl_worker_devid = rm->units[unitid].devid;
 		}
 		rm->units[unitid].worker_cpuset = starpu_worker_get_hwloc_cpuset(rm->units[unitid].workerid);
 		STARPU_PTHREAD_COND_INIT(&rm->units[unitid].unit_available_cond, NULL);
@@ -777,6 +794,7 @@ void starpurm_initialize_with_cpuset(const hwloc_cpuset_t initially_owned_cpuset
 		unitid++;
 	}
 
+	int max_cuda_worker_devid = 0;
 	int cuda_workerids[opencl_nunits];
 	starpu_worker_get_ids_by_type(STARPU_CUDA_WORKER, cuda_workerids, cuda_nunits);
 	rm->unit_offsets_by_type[starpurm_unit_cuda] = unitid;
@@ -786,9 +804,15 @@ void starpurm_initialize_with_cpuset(const hwloc_cpuset_t initially_owned_cpuset
 		rm->units[unitid].type = starpurm_unit_cuda;
 		rm->units[unitid].selected = 1; /* enabled by default */
 		rm->units[unitid].workerid = cuda_workerids[i];
+		rm->units[unitid].devid = starpu_worker_get_devid(rm->units[unitid].workerid);
 		if (max_worker_id < rm->units[unitid].workerid)
 		{
 			max_worker_id = rm->units[unitid].workerid;
+		}
+		rm->units[unitid].devid = starpu_worker_get_devid(rm->units[unitid].workerid);
+		if (max_cuda_worker_devid < rm->units[unitid].devid)
+		{
+			max_cuda_worker_devid = rm->units[unitid].devid;
 		}
 		rm->units[unitid].worker_cpuset = starpu_worker_get_hwloc_cpuset(rm->units[unitid].workerid);
 		STARPU_PTHREAD_COND_INIT(&rm->units[unitid].unit_available_cond, NULL);
@@ -811,6 +835,52 @@ void starpurm_initialize_with_cpuset(const hwloc_cpuset_t initially_owned_cpuset
 		}
 		rm->worker_unit_ids = worker_unit_ids;
 	}
+
+	rm->max_cpu_worker_devid = max_cpu_worker_devid;
+	{
+		int *cpu_worker_devids_to_unit_id = malloc(max_cpu_worker_devid * sizeof(*cpu_worker_devids_to_unit_id));
+		for (i = 0; i < max_cpu_worker_devid; i++)
+		{
+			cpu_worker_devids_to_unit_id[i] = -1;
+		}
+		const int offset = rm->unit_offsets_by_type[starpurm_unit_cpu];
+		for (i = 0; i < cpu_nunits; i++)
+		{
+			cpu_worker_devids_to_unit_id[rm->units[i].devid] = offset + i;
+		}
+		rm->cpu_worker_devids_to_unit_id = cpu_worker_devids_to_unit_id;
+	}
+
+	rm->max_opencl_worker_devid = max_opencl_worker_devid;
+	{
+		int *opencl_worker_devids_to_unit_id = malloc(max_opencl_worker_devid * sizeof(*opencl_worker_devids_to_unit_id));
+		for (i = 0; i < max_opencl_worker_devid; i++)
+		{
+			opencl_worker_devids_to_unit_id[i] = -1;
+		}
+		const int offset = rm->unit_offsets_by_type[starpurm_unit_opencl];
+		for (i = 0; i < opencl_nunits; i++)
+		{
+			opencl_worker_devids_to_unit_id[rm->units[i].devid] = offset + i;
+		}
+		rm->opencl_worker_devids_to_unit_id = opencl_worker_devids_to_unit_id;
+	}
+
+	rm->max_cuda_worker_devid = max_cuda_worker_devid;
+	{
+		int *cuda_worker_devids_to_unit_id = malloc(max_cuda_worker_devid * sizeof(*cuda_worker_devids_to_unit_id));
+		for (i = 0; i < max_cuda_worker_devid; i++)
+		{
+			cuda_worker_devids_to_unit_id[i] = -1;
+		}
+		const int offset = rm->unit_offsets_by_type[starpurm_unit_cuda];
+		for (i = 0; i < cuda_nunits; i++)
+		{
+			cuda_worker_devids_to_unit_id[rm->units[i].devid] = offset + i;
+		}
+		rm->cuda_worker_devids_to_unit_id = cuda_worker_devids_to_unit_id;
+	}
+
 
 	/* create StarPU sched_ctx for RM instance */
 	{
@@ -1041,6 +1111,56 @@ hwloc_cpuset_t starpurm_get_cpu_worker_cpuset(int unit_rank)
 	return hwloc_bitmap_dup(rm->units[rm->unit_offsets_by_type[starpurm_unit_cpu] + unit_rank].worker_cpuset);
 }
 
+int starpurm_get_device_worker_devid(int id)
+{
+	assert(_starpurm != NULL);
+	assert(_starpurm->state != state_uninitialized);
+	struct s_starpurm *rm = _starpurm;
+
+	assert(id >= 0 && id < rm->nunits);
+	return rm->units[id].devid;
+}
+
+int starpurm_get_device_type(int id)
+{
+	assert(_starpurm != NULL);
+	assert(_starpurm->state != state_uninitialized);
+	struct s_starpurm *rm = _starpurm;
+
+	assert(id >= 0 && id < rm->nunits);
+	return rm->units[id].type;
+}
+
+int starpurm_get_device_id_from_worker_devid(int type_id, int worker_devid)
+{
+	assert(_starpurm != NULL);
+	assert(_starpurm->state != state_uninitialized);
+	struct s_starpurm *rm = _starpurm;
+
+	int id = -1;
+	assert(type_id >= 0 && type_id < starpurm_unit_ntypes);
+	if (type_id == starpurm_unit_opencl)
+	{
+		assert(type_id == starpurm_unit_opencl);
+		assert(worker_devid >= 0 && worker_devid < rm->max_opencl_worker_devid);
+		id = rm->opencl_worker_devids_to_unit_id[worker_devid];
+	}
+	else if (type_id == starpurm_unit_cuda)
+	{
+		assert(type_id == starpurm_unit_cuda);
+		assert(worker_devid >= 0 && worker_devid < rm->max_cuda_worker_devid);
+		id = rm->cuda_worker_devids_to_unit_id[worker_devid];
+	}
+	else
+	{
+		assert(type_id == starpurm_unit_cpu);
+		assert(worker_devid >= 0 && worker_devid < rm->max_cpu_worker_devid);
+		id = rm->cpu_worker_devids_to_unit_id[worker_devid];
+	}
+
+	return id;
+}
+
 /* Dynamic resource sharing */
 starpurm_drs_ret_t starpurm_set_drs_enable(starpurm_drs_desc_t *spd)
 {
@@ -1124,11 +1244,11 @@ starpurm_drs_ret_t starpurm_assign_cpu_to_starpu(starpurm_drs_desc_t *spd, int c
 	if (!rm->dynamic_resource_sharing)
 		return starpurm_DRS_DISABLD;
 	starpurm_drs_ret_t ret = 0;
-	assert(hwloc_bitmap_isset(rm->global_cpuset, cpuid));
-	if (!hwloc_bitmap_isset(rm->selected_cpuset, cpuid))
+	assert(cpuid < rm->max_cpu_worker_devid);
 	{
+		int unit_id = rm->cpu_worker_devids_to_unit_id[cpuid];
 		hwloc_cpuset_t temp_cpuset = hwloc_bitmap_dup(rm->selected_cpuset);
-		hwloc_bitmap_set(temp_cpuset, cpuid);
+		hwloc_bitmap_or(temp_cpuset, temp_cpuset, rm->units[unit_id].worker_cpuset);
 		ret = _starpurm_update_cpuset(temp_cpuset);
 		hwloc_bitmap_free(temp_cpuset);
 	}
@@ -1181,11 +1301,11 @@ starpurm_drs_ret_t starpurm_withdraw_cpu_from_starpu(starpurm_drs_desc_t *spd, i
 	if (!rm->dynamic_resource_sharing)
 		return starpurm_DRS_DISABLD;
 	starpurm_drs_ret_t ret = 0;
-	assert(hwloc_bitmap_isset(rm->global_cpuset, cpuid));
-	if (hwloc_bitmap_isset(rm->selected_cpuset, cpuid))
+	assert(cpuid < rm->max_cpu_worker_devid);
 	{
+		int unit_id = rm->cpu_worker_devids_to_unit_id[cpuid];
 		hwloc_cpuset_t temp_cpuset = hwloc_bitmap_dup(rm->selected_cpuset);
-		hwloc_bitmap_clr(temp_cpuset, cpuid);
+		hwloc_bitmap_andnot(temp_cpuset, temp_cpuset, rm->units[unit_id].worker_cpuset);
 		ret = _starpurm_update_cpuset(temp_cpuset);
 		hwloc_bitmap_free(temp_cpuset);
 	}
@@ -1356,18 +1476,18 @@ void starpurm_unregister_polling_service(const char *service_name, starpurm_poll
 }
 
 /* devices */
-int starpurm_get_device_type_id(const char *type_str)
+int starpurm_device_type_name_to_id(const char *type_name)
 {
-	if (strcmp(type_str, "cpu") == 0)
+	if (strcmp(type_name, "cpu") == 0)
 		return starpurm_unit_cpu;
-	if (strcmp(type_str, "opencl") == 0)
+	if (strcmp(type_name, "opencl") == 0)
 		return starpurm_unit_opencl;
-	if (strcmp(type_str, "cuda") == 0)
+	if (strcmp(type_name, "cuda") == 0)
 		return starpurm_unit_cuda;
 	return -1;
 }
 
-const char *starpurm_get_device_type_name(int type_id)
+const char *starpurm_device_type_id_to_name(int type_id)
 {
 	if (type_id == starpurm_unit_cpu)
 		return "cpu";
@@ -1389,7 +1509,7 @@ int starpurm_get_nb_devices_by_type(int type_id)
 	return rm->nunits_by_type[type_id];
 }
 
-int starpurm_get_device_id(int type_id, int unit_rank)
+int starpurm_get_device_id_from_rank(int type_id, int unit_rank)
 {
 
 	assert(_starpurm != NULL);
@@ -1620,15 +1740,14 @@ starpurm_drs_ret_t starpurm_return_device(starpurm_drs_desc_t *spd, int type_id,
 }
 
 /* cpusets */
-hwloc_cpuset_t starpurm_get_device_worker_cpuset(int type_id, int unit_rank)
+hwloc_cpuset_t starpurm_get_device_worker_cpuset(int id)
 {
 	assert(_starpurm != NULL);
 	assert(_starpurm->state != state_uninitialized);
 	struct s_starpurm *rm = _starpurm;
 
-	assert(type_id >= 0 && type_id < starpurm_unit_ntypes);
-	assert(unit_rank >= 0 && unit_rank < rm->nunits_by_type[type_id]);
-	return hwloc_bitmap_dup(rm->units[rm->unit_offsets_by_type[type_id] + unit_rank].worker_cpuset);
+	assert(id >= 0 && id < rm->nunits);
+	return hwloc_bitmap_dup(rm->units[id].worker_cpuset);
 }
 
 hwloc_cpuset_t starpurm_get_global_cpuset(void)

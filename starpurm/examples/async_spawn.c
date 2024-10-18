@@ -204,15 +204,15 @@ static void test2(const int N, const int task_mult)
 
 static void init_rm_infos(void)
 {
-	int cpu_type = starpurm_get_device_type_id("cpu");
-	int nb_cpu_units = starpurm_get_nb_devices_by_type(cpu_type);
+	int cpu_type_id = starpurm_device_type_name_to_id("cpu");
+	int nb_cpu_units = starpurm_get_nb_devices_by_type(cpu_type_id);
 	if (nb_cpu_units < 1)
 	{
 		/* No CPU unit available. */
 		exit(77);
 	}
 
-	rm_cpu_type_id = cpu_type;
+	rm_cpu_type_id = cpu_type_id;
 	rm_nb_cpu_units = nb_cpu_units;
 }
 

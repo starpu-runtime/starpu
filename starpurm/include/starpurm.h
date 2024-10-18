@@ -294,13 +294,13 @@ void starpurm_unregister_polling_service(const char *service_name, starpurm_poll
    - \c "opencl": OpenCL device unit;
    - \c "cuda": nVidia CUDA device unit;
 */
-int starpurm_get_device_type_id(const char *type_str);
+int starpurm_device_type_name_to_id(const char *type_name);
 
 /**
    Return the device type name associated to the device type ID
    constant.
 */
-const char *starpurm_get_device_type_name(int type_id);
+const char *starpurm_device_type_id_to_name(int type_id);
 
 /**
    Return the number of initialized StarPU worker for the device type
@@ -312,7 +312,23 @@ int starpurm_get_nb_devices_by_type(int type_id);
    Return the unique ID assigned to the \p device_rank nth device of
    type \p type_id.
 */
-int starpurm_get_device_id(int type_id, int device_rank);
+int starpurm_get_device_id_from_rank(int type_id, int device_rank);
+
+/**
+   Return the StarPU worker devid of device with unique ID \p id.
+*/
+int starpurm_get_device_worker_devid(int id);
+
+/**
+   Return the type id of device with unique ID \p id.
+*/
+int starpurm_get_device_type(int id);
+
+/**
+   Return the unique ID assigned to the device of StarPU worker devid \p worker_devid
+   and of type \p type_id.
+*/
+int starpurm_get_device_id_from_worker_devid(int type_id, int worker_devid);
 
 /**
    Extend StarPU's default scheduling context to use \p unit_rank nth
@@ -448,7 +464,7 @@ starpurm_drs_ret_t starpurm_return_device(starpurm_drs_desc_t *spd, int type_id,
    Return the CPU-set of the StarPU worker associated to the \p
    unit_rank nth unit of type \p type_id.
 */
-hwloc_cpuset_t starpurm_get_device_worker_cpuset(int type_id, int unit_rank);
+hwloc_cpuset_t starpurm_get_device_worker_cpuset(int id);
 
 /**
    Return the cumulated CPU-set of all StarPU worker threads.

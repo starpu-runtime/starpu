@@ -64,6 +64,7 @@
 
 #ifdef STARPU_NOSV
 #include <nosv.h>
+#include <nosv/affinity.h>
 #endif
 
 
@@ -188,7 +189,8 @@ int _starpu_cpu_driver_init(struct _starpu_worker *cpu_worker)
 #ifdef STARPU_NOSV
 	{
 		_STARPU_DISP("nOS-V: nosv_attach to %s\n", cpu_worker->short_name);
-		int status = nosv_attach(&cpu_worker->nosv_worker_task, NULL, cpu_worker->short_name, NOSV_ATTACH_NONE);
+		nosv_affinity_t affinity = nosv_affinity_get(devid, NOSV_AFFINITY_LEVEL_CPU, NOSV_AFFINITY_TYPE_STRICT);
+		int status = nosv_attach(&cpu_worker->nosv_worker_task, &affinity, cpu_worker->short_name, NOSV_ATTACH_NONE);
 		STARPU_ASSERT(status == 0);
 	}
 #endif

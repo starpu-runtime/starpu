@@ -31,15 +31,16 @@ int main(int argc, char *argv[])
 	(void)argc;
 	(void)argv;
 	starpurm_initialize();
-	int cpu_id = starpurm_get_device_type_id("cpu");
-	const int nb_cpu_units = starpurm_get_nb_devices_by_type(cpu_id);
+	const int cpu_type_id = starpurm_device_type_name_to_id("cpu");
+	const int nb_cpu_units = starpurm_get_nb_devices_by_type(cpu_type_id);
 	if (nb_cpu_units < 1)
 	{
 		starpurm_shutdown();
 		return 77;
 	}
+	const int cpu0_id = starpurm_get_device_id_from_rank(cpu_type_id, 0);
 	hwloc_cpuset_t cpuset;
-	cpuset = starpurm_get_device_worker_cpuset(cpu_id, 0);
+	cpuset = starpurm_get_device_worker_cpuset(cpu0_id);
 	disp_cpuset("worker cpuset", cpuset);
 	hwloc_bitmap_free(cpuset);
 
