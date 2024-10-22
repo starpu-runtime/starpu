@@ -1048,28 +1048,6 @@ struct starpu_task
 	unsigned cl_ret_free : 1;
 
 	/**
-	   Optional field. In case starpu_task::callback_arg was
-	   allocated by the application through <c>malloc()</c>,
-	   setting starpu_task::callback_arg_free to 1 makes StarPU
-	   automatically call <c>free(callback_arg)</c> when
-	   destroying the task.
-
-	   With starpu_task_insert() and alike, this is set to 1 when using
-	   ::STARPU_CALLBACK_ARG or ::STARPU_CALLBACK_WITH_ARG, or set
-	   to 0 when using ::STARPU_CALLBACK_ARG_NFREE
-	*/
-	unsigned callback_arg_free : 1;
-
-	/**
-	   Optional field. In case starpu_task::epilogue_callback_arg was
-	   allocated by the application through <c>malloc()</c>,
-	   setting starpu_task::epilogue_callback_arg_free to 1 makes StarPU
-	   automatically call <c>free(epilogue_callback_arg)</c> when
-	   destroying the task.
-	*/
-	unsigned epilogue_callback_arg_free : 1;
-
-	/**
 	   Optional field. In case starpu_task::prologue_callback_arg
 	   was allocated by the application through <c>malloc()</c>,
 	   setting starpu_task::prologue_callback_arg_free to 1 makes
@@ -1095,6 +1073,28 @@ struct starpu_task
 	   ::STARPU_PROLOGUE_CALLBACK_POP_ARG_NFREE
 	*/
 	unsigned prologue_callback_pop_arg_free : 1;
+
+	/**
+	   Optional field. In case starpu_task::epilogue_callback_arg was
+	   allocated by the application through <c>malloc()</c>,
+	   setting starpu_task::epilogue_callback_arg_free to 1 makes StarPU
+	   automatically call <c>free(epilogue_callback_arg)</c> when
+	   destroying the task.
+	*/
+	unsigned epilogue_callback_arg_free : 1;
+
+	/**
+	   Optional field. In case starpu_task::callback_arg was
+	   allocated by the application through <c>malloc()</c>,
+	   setting starpu_task::callback_arg_free to 1 makes StarPU
+	   automatically call <c>free(callback_arg)</c> when
+	   destroying the task.
+
+	   With starpu_task_insert() and alike, this is set to 1 when using
+	   ::STARPU_CALLBACK_ARG or ::STARPU_CALLBACK_WITH_ARG, or set
+	   to 0 when using ::STARPU_CALLBACK_ARG_NFREE
+	*/
+	unsigned callback_arg_free : 1;
 
 	/**
 	   Optional field, the default value is 0. If set, this flag
