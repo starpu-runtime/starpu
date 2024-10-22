@@ -899,6 +899,58 @@ struct starpu_task
 
 	/**
 	   Optional field, the default value is <c>NULL</c>. This is a
+	   function pointer of prototype <c>void (*f)(void *)</c>
+	   which specifies a possible callback. If this pointer is
+	   non-<c>NULL</c>, the callback function is executed on the
+	   host when the task becomes ready for execution, before
+	   getting scheduled. The callback is passed the value
+	   contained in the starpu_task::prologue_callback_arg field.
+	   No callback is executed if the field is set to <c>NULL</c>.
+
+	   With starpu_task_insert() and alike this can be specified thanks to
+	   ::STARPU_PROLOGUE_CALLBACK followed by the function pointer.
+	*/
+	void (*prologue_callback_func)(void *);
+
+	/**
+	   Optional field, the default value is <c>NULL</c>. This is
+	   the pointer passed to the prologue callback function. This
+	   field is ignored if the field
+	   starpu_task::prologue_callback_func is set to <c>NULL</c>.
+
+	   With starpu_task_insert() and alike this can be specified thanks to
+	   ::STARPU_PROLOGUE_CALLBACK_ARG followed by the argument
+	*/
+	void *prologue_callback_arg;
+
+	/**
+	   Optional field, the default value is <c>NULL</c>. This is a
+	   function pointer of prototype <c>void (*f)(void*)</c>
+	   which specifies a possible callback. If this pointer is
+	   non-<c>NULL</c>, the callback function is executed on the host
+	   when the task is pop-ed from the scheduler, just before getting
+	   executed. The callback is passed the value contained in the
+	   starpu_task::prologue_callback_pop_arg field.
+	   No callback is executed if the field is set to <c>NULL</c>.
+
+	   With starpu_task_insert() and alike this can be specified thanks to
+	   ::STARPU_PROLOGUE_CALLBACK_POP followed by the function pointer.
+	*/
+	void (*prologue_callback_pop_func)(void *);
+
+	/**
+	   Optional field, the default value is <c>NULL</c>. This is
+	   the pointer passed to the prologue_callback_pop function. This
+	   field is ignored if the field
+	   starpu_task::prologue_callback_pop_func is set to <c>NULL</c>.
+
+	   With starpu_task_insert() and alike this can be specified thanks to
+	   ::STARPU_PROLOGUE_CALLBACK_POP_ARG followed by the argument.
+	   */
+	void *prologue_callback_pop_arg;
+
+	/**
+	   Optional field, the default value is <c>NULL</c>. This is a
 	   function pointer of prototype <c>void (*f)(void *)</c> which
 	   specifies a possible callback. If this pointer is non-<c>NULL</c>,
 	   the callback function is executed on the host after the execution of
@@ -954,58 +1006,6 @@ struct starpu_task
 	   pointer and the argument.
 	*/
 	void *callback_arg;
-
-	/**
-	   Optional field, the default value is <c>NULL</c>. This is a
-	   function pointer of prototype <c>void (*f)(void *)</c>
-	   which specifies a possible callback. If this pointer is
-	   non-<c>NULL</c>, the callback function is executed on the
-	   host when the task becomes ready for execution, before
-	   getting scheduled. The callback is passed the value
-	   contained in the starpu_task::prologue_callback_arg field.
-	   No callback is executed if the field is set to <c>NULL</c>.
-
-	   With starpu_task_insert() and alike this can be specified thanks to
-	   ::STARPU_PROLOGUE_CALLBACK followed by the function pointer.
-	*/
-	void (*prologue_callback_func)(void *);
-
-	/**
-	   Optional field, the default value is <c>NULL</c>. This is
-	   the pointer passed to the prologue callback function. This
-	   field is ignored if the field
-	   starpu_task::prologue_callback_func is set to <c>NULL</c>.
-
-	   With starpu_task_insert() and alike this can be specified thanks to
-	   ::STARPU_PROLOGUE_CALLBACK_ARG followed by the argument
-	*/
-	void *prologue_callback_arg;
-
-	/**
-	   Optional field, the default value is <c>NULL</c>. This is a
-	   function pointer of prototype <c>void (*f)(void*)</c>
-	   which specifies a possible callback. If this pointer is
-	   non-<c>NULL</c>, the callback function is executed on the host
-	   when the task is pop-ed from the scheduler, just before getting
-	   executed. The callback is passed the value contained in the
-	   starpu_task::prologue_callback_pop_arg field.
-	   No callback is executed if the field is set to <c>NULL</c>.
-
-	   With starpu_task_insert() and alike this can be specified thanks to
-	   ::STARPU_PROLOGUE_CALLBACK_POP followed by the function pointer.
-	*/
-	void (*prologue_callback_pop_func)(void *);
-
-	/**
-	   Optional field, the default value is <c>NULL</c>. This is
-	   the pointer passed to the prologue_callback_pop function. This
-	   field is ignored if the field
-	   starpu_task::prologue_callback_pop_func is set to <c>NULL</c>.
-
-	   With starpu_task_insert() and alike this can be specified thanks to
-	   ::STARPU_PROLOGUE_CALLBACK_POP_ARG followed by the argument.
-	   */
-	void *prologue_callback_pop_arg;
 
 	/**
 	   Transaction to which the task belongs, if any
