@@ -284,6 +284,7 @@ void _starpu_cpu_free_on_device(int dst_dev, uintptr_t addr, size_t size, int fl
 
 void _starpu_cpu_check_on_device(int dev, uintptr_t addr, size_t size)
 {
+	(void) dev;
 #ifndef STARPU_SIMGRID
 	if (size == 0)
 		return;
@@ -291,6 +292,9 @@ void _starpu_cpu_check_on_device(int dev, uintptr_t addr, size_t size)
 	// TODO: when dev > 0, check NUMA node
 	STARPU_ASSERT_ACCESSIBLE(addr);
 	STARPU_ASSERT_ACCESSIBLE(addr + size - 1);
+#else
+	(void) addr;
+	(void) size;
 #endif
 }
 
