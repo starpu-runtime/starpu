@@ -402,9 +402,31 @@ extern "C" {
 #define STARPU_RECURSIVE_TASK_PARENT (51 << STARPU_MODE_SHIFT)
 
 /**
+   Used when calling starpu_task_insert(), must be followed by a
+   pointer to a soon callback function.
+*/
+#define STARPU_SOON_CALLBACK (52 << STARPU_MODE_SHIFT)
+
+/**
+   Used when calling starpu_task_insert(), must be followed by a
+   pointer to be given as an argument to the soon callback
+   function
+*/
+#define STARPU_SOON_CALLBACK_ARG (53 << STARPU_MODE_SHIFT)
+
+/**
+   Used when calling starpu_task_insert(), similarly to
+   ::STARPU_SOON_CALLBACK_POP_ARG, must be followed by a pointer
+   to be given as an argument to the soon callback pop function,
+   the argument will not be freed, i.e
+   starpu_task::soon_callback_pop_arg_free will be set to 0
+*/
+#define STARPU_SOON_CALLBACK_ARG_NFREE (54 << STARPU_MODE_SHIFT)
+
+/**
    This has to be the last mode value plus 1
 */
-#define STARPU_SHIFTED_MODE_MAX (52 << STARPU_MODE_SHIFT)
+#define STARPU_SHIFTED_MODE_MAX (55 << STARPU_MODE_SHIFT)
 
 /**
    Set the given \p task corresponding to \p cl with the following arguments.

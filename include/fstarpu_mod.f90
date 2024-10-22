@@ -43,6 +43,9 @@ module fstarpu_mod
         type(c_ptr), bind(C) :: FSTARPU_CALLBACK_WITH_ARG_NFREE
         type(c_ptr), bind(C) :: FSTARPU_CALLBACK_ARG
         type(c_ptr), bind(C) :: FSTARPU_CALLBACK_ARG_NFREE
+        type(c_ptr), bind(C) :: FSTARPU_SOON_CALLBACK
+        type(c_ptr), bind(C) :: FSTARPU_SOON_CALLBACK_ARG
+        type(c_ptr), bind(C) :: FSTARPU_SOON_CALLBACK_ARG_NFREE
         type(c_ptr), bind(C) :: FSTARPU_PROLOGUE_CALLBACK
         type(c_ptr), bind(C) :: FSTARPU_PROLOGUE_CALLBACK_ARG
         type(c_ptr), bind(C) :: FSTARPU_PROLOGUE_CALLBACK_ARG_NFREE
@@ -2540,6 +2543,10 @@ module fstarpu_mod
                                 fstarpu_get_constant(C_CHAR_"FSTARPU_CALLBACK_WITH_ARG_NFREE"//C_NULL_CHAR)
                         FSTARPU_CALLBACK_ARG    = fstarpu_get_constant(C_CHAR_"FSTARPU_CALLBACK_ARG"//C_NULL_CHAR)
                         FSTARPU_CALLBACK_ARG_NFREE    = fstarpu_get_constant(C_CHAR_"FSTARPU_CALLBACK_ARG_NFREE"//C_NULL_CHAR)
+                        FSTARPU_SOON_CALLBACK       = fstarpu_get_constant(C_CHAR_"FSTARPU_SOON_CALLBACK"//C_NULL_CHAR)
+                        FSTARPU_SOON_CALLBACK_ARG   = fstarpu_get_constant(C_CHAR_"FSTARPU_SOON_CALLBACK_ARG"//C_NULL_CHAR)
+                        FSTARPU_SOON_CALLBACK_ARG_NFREE   = &
+                                fstarpu_get_constant(C_CHAR_"FSTARPU_SOON_CALLBACK_ARG_NFREE"//C_NULL_CHAR)
                         FSTARPU_PROLOGUE_CALLBACK       = fstarpu_get_constant(C_CHAR_"FSTARPU_PROLOGUE_CALLBACK"//C_NULL_CHAR)
                         FSTARPU_PROLOGUE_CALLBACK_ARG   = fstarpu_get_constant(C_CHAR_"FSTARPU_PROLOGUE_CALLBACK_ARG"//C_NULL_CHAR)
                         FSTARPU_PROLOGUE_CALLBACK_ARG_NFREE   = &

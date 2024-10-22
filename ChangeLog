@@ -21,6 +21,7 @@ Changes:
    * Fix asynchronous partitioning with data without home node
    * Allow large sizes for vector, matrix, block, tensor and ndim data
      interfaces, and use proper MPI datatypes to exchange them.
+   * Add soon_callback in tasks.
 
 Small changes:
   * Fix build system for StarPU Python interface

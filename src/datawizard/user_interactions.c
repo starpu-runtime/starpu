@@ -191,6 +191,7 @@ static void starpu_data_acquire_cb_pre_sync_callback(void *arg)
 /* The data must be released by calling starpu_data_release later on */
 int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_data_handle_t handle, int node,
 							  enum starpu_data_access_mode mode,
+							  void (*callback_soon)(void *arg, double delay),
 							  void (*callback_acquired)(void *arg, int *node, enum starpu_data_access_mode mode),
 							  void (*callback)(void *arg),
 							  void *arg,
@@ -229,6 +230,8 @@ int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_dat
 		wrapper->pre_sync_task->detach = 1;
 		wrapper->pre_sync_task->callback_func = starpu_data_acquire_cb_pre_sync_callback;
 		wrapper->pre_sync_task->callback_arg = wrapper;
+		wrapper->pre_sync_task->soon_callback_func = callback_soon;
+		wrapper->pre_sync_task->soon_callback_arg = arg;
 		wrapper->pre_sync_task->type = STARPU_TASK_TYPE_DATA_ACQUIRE;
 		wrapper->pre_sync_task->priority = prio;
 		pre_sync_job = _starpu_get_job_associated_to_task(wrapper->pre_sync_task);
@@ -287,7 +290,7 @@ static int starpu_data_acquire_on_node_cb_sequential_consistency_quick(starpu_da
 								enum starpu_data_access_mode mode, void (*callback)(void *), void *arg,
 								int sequential_consistency, int quick)
 {
-	return starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(handle, node, mode, NULL, callback, arg, sequential_consistency, quick, NULL, NULL, STARPU_DEFAULT_PRIO);
+	return starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(handle, node, mode, NULL, NULL, callback, arg, sequential_consistency, quick, NULL, NULL, STARPU_DEFAULT_PRIO);
 }
 
 int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t handle, int node,

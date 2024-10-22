@@ -120,6 +120,7 @@ struct _starpu_cg
 
 typedef struct _starpu_notify_job_start_data _starpu_notify_job_start_data;
 
+extern int _starpu_do_notify_dependencies;
 void _starpu_notify_dependencies(struct _starpu_job *j);
 void _starpu_job_notify_start(struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch);
 void _starpu_job_notify_ready_soon(struct _starpu_job *j, _starpu_notify_job_start_data *data);

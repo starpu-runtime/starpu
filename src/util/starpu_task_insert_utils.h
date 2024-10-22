@@ -26,6 +26,7 @@
 #pragma GCC visibility push(hidden)
 
 typedef void (*_starpu_callback_func_t)(void *);
+typedef void (*_starpu_callback_soon_func_t)(void *, double delay);
 
 int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *task, va_list varg_list) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
 int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *task, void **arglist) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;

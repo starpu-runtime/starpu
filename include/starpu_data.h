@@ -357,13 +357,17 @@ int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t h
    just before the acquisition, and \e post_sync_jobid happens just after the
    release.
 
+   \p callback_soon is called when it is determined when the acquisition of the
+   data will be made an estimated amount of time from now, because the last
+   dependency has just started and we know how long it will take.
+
    \p callback_acquired is called when the data is acquired in terms of semantic,
    but the data is not fetched yet. It is given a pointer to the node, which it
    can modify if it wishes so.
 
    This is a very internal interface, subject to changes, do not use this.
 */
-int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode, void (*callback_acquired)(void *arg, int *node, enum starpu_data_access_mode mode), void (*callback)(void *arg), void *arg, int sequential_consistency, int quick, long *pre_sync_jobid, long *post_sync_jobid, int prio);
+int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode, void (*callback_soon)(void *arg, double delay), void (*callback_acquired)(void *arg, int *node, enum starpu_data_access_mode mode), void (*callback)(void *arg), void *arg, int sequential_consistency, int quick, long *pre_sync_jobid, long *post_sync_jobid, int prio);
 
 /**
    The application can call this function instead of starpu_data_acquire() so as to

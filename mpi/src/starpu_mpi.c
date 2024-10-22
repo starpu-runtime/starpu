@@ -186,14 +186,15 @@ void _starpu_mpi_isend_irecv_common(struct _starpu_mpi_req *req, enum starpu_dat
 		}
 	}
 
+	/* TODO: use soon_callback */
 	if (sequential_consistency)
 	{
-		starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(req->data_handle, node, mode, _starpu_mpi_acquired_callback, _starpu_mpi_submit_ready_request, (void *)req, 1 /*sequential consistency*/, 1, &req->pre_sync_jobid, &req->post_sync_jobid, req->prio);
+		starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(req->data_handle, node, mode, NULL, _starpu_mpi_acquired_callback, _starpu_mpi_submit_ready_request, (void *)req, 1 /*sequential consistency*/, 1, &req->pre_sync_jobid, &req->post_sync_jobid, req->prio);
 	}
 	else
 	{
 		/* post_sync_job_id has already been filled */
-		starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(req->data_handle, node, mode, _starpu_mpi_acquired_callback, _starpu_mpi_submit_ready_request, (void *)req, 0 /*sequential consistency*/, 1, &req->pre_sync_jobid, NULL, req->prio);
+		starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(req->data_handle, node, mode, NULL, _starpu_mpi_acquired_callback, _starpu_mpi_submit_ready_request, (void *)req, 0 /*sequential consistency*/, 1, &req->pre_sync_jobid, NULL, req->prio);
 	}
 }
 

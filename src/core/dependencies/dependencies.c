@@ -37,6 +37,8 @@ void _starpu_notify_dependencies(struct _starpu_job *j)
 
 }
 
+/* Whether we should notify dependencies when the task is ready soon */
+int _starpu_do_notify_dependencies;
 /* TODO: make this a hashtable indexed by func+data and pass that through data. */
 static starpu_notify_ready_soon_func notify_ready_soon_func;
 static void *notify_ready_soon_func_data;
@@ -60,12 +62,10 @@ void _starpu_job_notify_start(struct _starpu_job *j, struct starpu_perfmodel_arc
 {
 	double delay;
 
-	if (!notify_ready_soon_func)
+	if (!notify_ready_soon_func && !_starpu_do_notify_dependencies)
 		return;
 
 	delay = starpu_task_expected_length(j->task, perf_arch, j->nimpl);
-	if (isnan(delay) || _STARPU_IS_ZERO(delay))
-		return;
 
 	__starpu_job_notify_start(j, delay);
 }
@@ -89,8 +89,10 @@ void _starpu_job_notify_ready_soon(struct _starpu_job *j, _starpu_notify_job_sta
 	struct starpu_task *task = j->task;
 
 	/* Notify that this task will start after the given delay */
-	notify_ready_soon_func(notify_ready_soon_func_data, task, data->delay);
-
+	if (notify_ready_soon_func)
+		notify_ready_soon_func(notify_ready_soon_func_data, task, data->delay);
+	if (task->soon_callback_func)
+		task->soon_callback_func(task->soon_callback_arg, data->delay);
 
 	/* Notify some known transitions as well */
 

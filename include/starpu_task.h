@@ -899,6 +899,39 @@ struct starpu_task
 
 	/**
 	   Optional field, the default value is <c>NULL</c>. This is a
+	   function pointer of prototype <c>void (*f)(void *, double delay)</c>
+	   which specifies a possible callback. If this pointer is
+	   non-<c>NULL</c>, the callback function is executed on the
+	   host when it is determined when a task will be ready an estimated
+	   amount of time from now (given as parameter \p delay), because
+	   its last dependency has just started and we know how long it
+	   will take. The callback is passed the value contained in the
+	   starpu_task::soon_callback_arg field.  No callback is executed if the
+	   field is set to <c>NULL</c>.
+
+	   The \p delay is the estimated amount of time from now before the task
+	   gets ready. It may be 0 if the last dependency has no codelet or
+	   performance model, or nan if the performance model of the last
+	   dependency is not calibrated yet.
+
+	   With starpu_task_insert() and alike this can be specified thanks to
+	   ::STARPU_SOON_CALLBACK followed by the function pointer.
+	*/
+	void (*soon_callback_func)(void *, double delay);
+
+	/**
+	   Optional field, the default value is <c>NULL</c>. This is
+	   the pointer passed to the soon callback function. This
+	   field is ignored if the field
+	   starpu_task::soon_callback_func is set to <c>NULL</c>.
+
+	   With starpu_task_insert() and alike this can be specified thanks to
+	   ::STARPU_SOON_CALLBACK_ARG followed by the argument
+	*/
+	void *soon_callback_arg;
+
+	/**
+	   Optional field, the default value is <c>NULL</c>. This is a
 	   function pointer of prototype <c>void (*f)(void *)</c>
 	   which specifies a possible callback. If this pointer is
 	   non-<c>NULL</c>, the callback function is executed on the
@@ -1046,6 +1079,19 @@ struct starpu_task
 	   call <c>free(cl_ret)</c> when destroying the task.
 	*/
 	unsigned cl_ret_free : 1;
+
+	/**
+	   Optional field. In case starpu_task::soon_callback_arg
+	   was allocated by the application through <c>malloc()</c>,
+	   setting starpu_task::soon_callback_arg_free to 1 makes
+	   StarPU automatically call
+	   <c>free(soon_callback_arg)</c> when destroying the task.
+
+	   With starpu_task_insert() and alike this is set to 1 when using
+	   ::STARPU_SOON_CALLBACK_ARG, or set to 0 when using
+	   ::STARPU_SOON_CALLBACK_ARG_NFREE
+	*/
+	unsigned soon_callback_arg_free : 1;
 
 	/**
 	   Optional field. In case starpu_task::prologue_callback_arg

@@ -275,6 +275,7 @@ void _starpu_task_init(void)
 #ifdef STARPU_NOSV
 	_starpu_spin_init(&nosv_task_types_lock);
 #endif
+	VALGRIND_HG_DISABLE_CHECKING(&_starpu_do_notify_dependencies, sizeof(_starpu_do_notify_dependencies));
 }
 
 void _starpu_task_deinit(void)
@@ -483,6 +484,10 @@ void _starpu_task_destroy(struct starpu_task *task)
 		/* Does user want StarPU release cl_ret ? */
 		if (task->cl_ret_free)
 			free(task->cl_ret);
+
+		/* Does user want StarPU release soon_callback_arg ? */
+		if (task->soon_callback_arg_free)
+			free(task->soon_callback_arg);
 
 		/* Does user want StarPU release callback_arg ? */
 		if (task->callback_arg_free)
@@ -945,6 +950,11 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 	_starpu_codelet_check_deprecated_fields(task->cl);
 	if (task->where== -1 && task->cl)
 		task->where = task->cl->where;
+
+	if (task->soon_callback_func && !_starpu_do_notify_dependencies)
+		/* We will have to notify dependencies */
+		/* FIXME: if last dependency has already started, we won't get a notification */
+		_starpu_do_notify_dependencies = 1;
 
 	if (task->cl)
 	{
@@ -2155,6 +2165,7 @@ struct starpu_task *starpu_task_ft_create_retry
 	struct starpu_task *new_task = starpu_task_create();
 
 	*new_task = *template_task;
+	new_task->soon_callback_func = NULL;
 	new_task->prologue_callback_func = NULL;
 	/* XXX: cl_arg needs to be duplicated */
 	STARPU_ASSERT_MSG(!meta_task->cl_arg_free || !meta_task->cl_arg, "not supported yet");
@@ -2162,6 +2173,7 @@ struct starpu_task *starpu_task_ft_create_retry
 	new_task->callback_func = check_ft;
 	new_task->callback_arg = (void*) meta_task;
 	new_task->callback_arg_free = 0;
+	new_task->soon_callback_arg_free = 0;
 	new_task->prologue_callback_arg_free = 0;
 	STARPU_ASSERT_MSG(!new_task->prologue_callback_pop_arg_free, "not supported");
 	new_task->use_tag = 0;
