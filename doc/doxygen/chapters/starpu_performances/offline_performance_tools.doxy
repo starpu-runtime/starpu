@@ -232,8 +232,8 @@ starpu_task_insert()
 \li <b>Iteration</b>: refers to the iteration number of the computation, as set by starpu_iteration_push() at the beginning of submission loops and starpu_iteration_pop() at the end of submission loops
 \li <b>JobId</b>: represents a unique identifier for the specific task, as returned by starpu_task_get_job_id()
 \li <b>NumaNodes</b>: refers to the NUMA node where the data is stored, the environment variable \ref STARPU_FXT_EVENTS needs to contain \c TASK_VERBOSE_EXTRA, otherwise it will be -1
-\li <b>Params</b>: represents parameters or input/output types and sizes, possibly indicating the dimensions of the matrices
-\li <b>Size</b>: represents the size of the data being operated on in bytes
+\li <b>Params</b>: represents parameters or input/output types and sizes, possibly indicating the dimensions of the matrices, depending on how the function starpu_data_interface_ops::describe of the datatype is implemented
+\li <b>Size</b>: represents the size of the data being operated on in bytes, computed as the sum of the data sizes of each data handle manipulated by the task
 \li <b>Subiteration</b>: represents a sub-iteration number if the computation was part of a larger iteration or loop, as set by starpu_iteration_push()
 \li <b>SubmitOrder</b>: represents the order in which the task was submitted by
 the application
@@ -399,6 +399,23 @@ It is possible to get a graphical output of the graph by using the
 \verbatim
 $ dot -Tpdf dag.dot -o output.pdf
 \endverbatim
+
+
+or visualize it directly with a program like <c>xdot</c>:
+
+\verbatim
+$ xdot dag.dot
+\endverbatim
+
+In the task graph, the color of each node is computed as follows:
+<ol>
+    <li>If the codelet defined a color (see \ref starpu_codelet::color), this color is used;</li>
+    <li>If the option <c>-c</c> of <c>starpu_fxt_tool</c> was set, all tasks having the same name will have the same color;</li>
+    <li>Otherwise, the color will represent on which worker the task was executed (green for CPUs and yellow to red for accelerators.</li>
+</ol>
+
+Moreover, the option <c>-no-acquire</c> of <c>starpu_fxt_tool</c> hides StarPU internal tasks for data acquisition from the graph. On the contrary, the option <c>-internal</c> shows more internal tasks.
+
 
 \subsection TraceTaskDetails Getting Task Details
 

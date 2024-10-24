@@ -3052,41 +3052,44 @@ static void handle_task_name(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 	struct task_info *task = get_task(job_id, options->file_rank);
 	int worker = find_worker_id(prefixTOnodeid(prefix), ev->param[1]);
 
-	const char *color;
-	char buffer[32];
-	int code;
-	if (task->color != 0)
-	{
-		snprintf(buffer, sizeof(buffer), "#%06x", task->color);
-		color = &buffer[0];
-		code = ((task->color & 0xff) +
-			((task->color >> 8) & 0xff) +
-			((task->color >> 16) & 0xff)) / 256;
-	}
-	else if (options->per_task_colour)
-	{
-		unsigned red = get_color_symbol_red(name)/4;
-		unsigned green = get_color_symbol_green(name)/4;
-		unsigned blue = get_color_symbol_blue(name)/4;
-		snprintf(buffer, sizeof(buffer), "#%s%x%s%x%s%x",
-			 red < 16 ? "0" : "", red,
-			 green < 16 ? "0" : "", green,
-			 blue < 16 ? "0" : "", blue);
-		color = &buffer[0];
-		code = (red + green + blue) / 256;
-	}
-	else
-	{
-		color= (worker < 0)?"#aaaaaa":get_worker_color(worker);
-		code = 0;
-	}
-
 	if (!task->name)
 		task->name = strdup(name);
 
-	char *fontcolor = code <= 1 ? "white" : "black";
 	if (!task->exclude_from_dag && show_task(task, options))
+	{
+		const char *color;
+		char buffer[32];
+		int code;
+		if (task->color != 0)
+		{
+			snprintf(buffer, sizeof(buffer), "#%06x", task->color);
+			color = &buffer[0];
+			code = ((task->color & 0xff) +
+				((task->color >> 8) & 0xff) +
+				((task->color >> 16) & 0xff)) / 256;
+		}
+		else if (options->per_task_colour)
+		{
+			unsigned red = get_color_symbol_red(name)/4;
+			unsigned green = get_color_symbol_green(name)/4;
+			unsigned blue = get_color_symbol_blue(name)/4;
+			snprintf(buffer, sizeof(buffer), "#%s%x%s%x%s%x",
+				red < 16 ? "0" : "", red,
+				green < 16 ? "0" : "", green,
+				blue < 16 ? "0" : "", blue);
+			color = &buffer[0];
+			code = (red + green + blue) / 256;
+		}
+		else
+		{
+			color= (worker < 0)?"#aaaaaa":get_worker_color(worker);
+			code = 0;
+		}
+
+
+		char *fontcolor = code <= 1 ? "white" : "black";
 		_starpu_fxt_dag_set_task_name(options->file_prefix, job_id, task->name, color, fontcolor);
+	}
 }
 
 #ifdef STARPU_RECURSIVE_TASKS
