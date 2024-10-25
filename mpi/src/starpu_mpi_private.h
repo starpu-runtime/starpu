@@ -68,6 +68,7 @@ extern int _starpu_mpi_fake_world_rank;
 extern int _starpu_mpi_use_prio;
 extern int _starpu_mpi_nobind;
 extern int _starpu_mpi_thread_cpuid;
+extern int _starpu_mpi_thread_multiple_send;
 extern int _starpu_mpi_use_coop_sends;
 extern int _starpu_mpi_mem_throttle;
 extern int _starpu_mpi_recv_wait_finalize;

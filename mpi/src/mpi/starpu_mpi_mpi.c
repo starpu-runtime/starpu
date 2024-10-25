@@ -309,7 +309,18 @@ void _starpu_mpi_submit_ready_request(void *arg)
 	{
 		STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 		if (req->request_type == SEND_REQ)
-			_starpu_mpi_req_prio_list_push_front(&ready_send_requests, req);
+		{
+			if (_starpu_mpi_thread_multiple_send)
+			{
+				/* Directly send from this thread */
+				STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
+				_starpu_mpi_handle_ready_request(req);
+				STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
+			}
+			else
+				/* Defer to MPI thread */
+				_starpu_mpi_req_prio_list_push_front(&ready_send_requests, req);
+		}
 		else
 			_starpu_mpi_req_list_push_front(&ready_recv_requests, req);
 		_STARPU_MPI_DEBUG(3, "Pushing new request %p type %s tag %"PRIi64" src %d data %p ptr %p datatype '%s' count %d registered_datatype %d \n",
