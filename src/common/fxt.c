@@ -122,9 +122,11 @@ static void _starpu_profile_set_tracefile(void)
 	if (!fxt_suffix)
 	{
 		user = starpu_getenv("USER");
-		if (!user)
-			user = "";
-		snprintf(suffix, sizeof(suffix), "prof_file_%s_%d", user, _starpu_id);
+		if (!user || strlen(user) == 0)
+			// For instance, docker containers have no USER env var
+			snprintf(suffix, sizeof(suffix), "prof_file_%d", _starpu_id);
+		else
+			snprintf(suffix, sizeof(suffix), "prof_file_%s_%d", user, _starpu_id);
 	}
 	else
 	{
