@@ -46,26 +46,35 @@ int _starpu_mpi_cuda_devid = -1;	/* Which device GPU direct is enabled for (-1 =
 
 static void _starpu_mpi_print_thread_level_support(int thread_level, char *msg)
 {
+	const char *level = NULL;
 	switch (thread_level)
 	{
 		case MPI_THREAD_SERIALIZED:
 		{
-			_STARPU_DISP("MPI%s MPI_THREAD_SERIALIZED; Multiple threads may make MPI calls, but only one at a time.\n", msg);
+			level = "MPI_THREAD_SERIALIZED";
+			_STARPU_DISP("MPI%s %s; Multiple threads may make MPI calls, but only one at a time.\n", msg, level);
 			break;
 		}
 		case MPI_THREAD_FUNNELED:
 		{
-			_STARPU_DISP("MPI%s MPI_THREAD_FUNNELED; The application can safely make calls to StarPU-MPI functions, but should not call directly MPI communication functions.\n", msg);
+			level = "MPI_THREAD_FUNNELED";
+			_STARPU_DISP("MPI%s %s; The application can safely make calls to StarPU-MPI functions, but should not call directly MPI communication functions.\n", msg, level);
 			break;
 		}
 		case MPI_THREAD_SINGLE:
 		{
-			_STARPU_DISP("MPI%s MPI_THREAD_SINGLE; MPI does not have multi-thread support, this might cause problems. The application can make calls to StarPU-MPI functions, but not call directly MPI Communication functions.\n", msg);
+			level = "MPI_THREAD_SINGLE";
+			_STARPU_DISP("MPI%s %s; MPI does not have multi-thread support, this might cause problems. The application can make calls to StarPU-MPI functions, but not call directly MPI Communication functions.\n", msg, level);
 			break;
 		}
 		case MPI_THREAD_MULTIPLE:
 			/* no problem */
 			break;
+	}
+	if (thread_level != MPI_THREAD_MULTIPLE && _starpu_mpi_thread_multiple_send)
+	{
+		_STARPU_DISP("STARPU_MPI_THREAD_MULTIPLE_SEND requested but MPI%s %s, disabling STARPU_MPI_THREAD_MULTIPLE_SEND\n", msg, level);
+		_starpu_mpi_thread_multiple_send = 0;
 	}
 }
 
@@ -87,7 +96,7 @@ void _starpu_mpi_do_initialize(struct _starpu_mpi_argc_argv *argc_argv)
 		STARPU_ASSERT_MSG(argc_argv->comm == MPI_COMM_WORLD, "It does not make sense to ask StarPU-MPI to initialize MPI while a non-world communicator was given");
 		int thread_support;
 		_STARPU_DEBUG("Calling MPI_Init_thread\n");
-		if (MPI_Init_thread(argc_argv->argc, argc_argv->argv, MPI_THREAD_SERIALIZED, &thread_support) != MPI_SUCCESS)
+		if (MPI_Init_thread(argc_argv->argc, argc_argv->argv, _starpu_mpi_thread_multiple_send ? MPI_THREAD_MULTIPLE : MPI_THREAD_SERIALIZED, &thread_support) != MPI_SUCCESS)
 		{
 			_STARPU_ERROR("MPI_Init_thread failed\n");
 		}

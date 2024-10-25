@@ -26,6 +26,7 @@ int _starpu_mpi_comm_debug;
 
 int _starpu_mpi_nobind = -1;
 int _starpu_mpi_thread_cpuid = -1;
+int _starpu_mpi_thread_multiple_send = 0;
 int _starpu_mpi_use_prio = 1;
 int _starpu_mpi_fake_world_size = -1;
 int _starpu_mpi_fake_world_rank = -1;
@@ -68,6 +69,7 @@ void _starpu_mpi_env_init(void)
 	_starpu_mpi_fake_world_rank = starpu_getenv_number("STARPU_MPI_FAKE_RANK");
 	_starpu_mpi_nobind = starpu_getenv_number_default("STARPU_MPI_NOBIND", 0);
 	_starpu_mpi_thread_cpuid = starpu_getenv_number_default("STARPU_MPI_THREAD_CPUID", -1);
+	_starpu_mpi_thread_multiple_send = starpu_getenv_number_default("STARPU_MPI_THREAD_MULTIPLE_SEND", 0);
 	_starpu_mpi_use_prio = starpu_getenv_number_default("STARPU_MPI_PRIORITIES", 1);
 	_starpu_mpi_use_coop_sends = starpu_getenv_number_default("STARPU_MPI_COOP_SENDS", 1);
 	_starpu_mpi_mem_throttle = starpu_getenv_number_default("STARPU_MPI_MEM_THROTTLE", 0);
