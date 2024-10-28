@@ -44,7 +44,7 @@ int main(int argc, char **argv)
 const struct starpu_data_copy_methods my_vector_copy_data_methods_s;
 struct starpu_data_interface_ops starpu_interface_my_vector_ops;
 
-void starpu_my_vector_data_register(starpu_data_handle_t *handleptr, unsigned home_node,
+void starpu_my_vector_data_register(starpu_data_handle_t *handleptr, int home_node,
 			uintptr_t ptr, uint32_t nx, size_t elemsize)
 {
 	struct starpu_vector_interface vector =
