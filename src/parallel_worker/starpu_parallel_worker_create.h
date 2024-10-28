@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -43,6 +43,7 @@ struct starpu_parallel_worker_config
 	unsigned nparallel_workers;
 	unsigned ngroups;
 	struct _starpu_parallel_worker_group_list *groups;
+	struct _starpu_parallel_worker_parameters *orig_params;
 	struct _starpu_parallel_worker_parameters *params;
 };
 
