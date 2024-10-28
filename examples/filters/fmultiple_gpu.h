@@ -14,9 +14,16 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <starpu_config.h>
+
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
+#define enable_cuda 1
+#else
+#define enable_cuda 0
+#endif
 #define MATRIX_REGISTER				\
 	unsigned node;							\
-	if (starpu_memory_nodes_get_count_by_kind(STARPU_CUDA_RAM) >= 1) \
+	if (starpu_memory_nodes_get_count_by_kind(STARPU_CUDA_RAM) >= 1 && enable_cuda) \
 		starpu_memory_node_get_ids_by_type(STARPU_CUDA_RAM, &node, 1); \
 	else if (starpu_memory_nodes_get_count_by_kind(STARPU_HIP_RAM) >= 1) \
 		starpu_memory_node_get_ids_by_type(STARPU_HIP_RAM, &node, 1); \
