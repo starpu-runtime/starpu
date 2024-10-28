@@ -203,7 +203,7 @@ static struct starpu_data_interface_ops interface_data_ops =
 	.describe = data_describe
 };
 
-void starpu_my_data_register(starpu_data_handle_t *handleptr, unsigned home_node, struct starpu_my_data *xc)
+void starpu_my_data_register(starpu_data_handle_t *handleptr, int home_node, struct starpu_my_data *xc)
 {
 	if (interface_data_ops.interfaceid == STARPU_UNKNOWN_INTERFACE_ID)
 	{
