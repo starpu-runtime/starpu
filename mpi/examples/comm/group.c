@@ -51,8 +51,8 @@ int main(int argc, char **argv)
 		ranks[pos/2] = pos;
 	}
 
-	MPI_Group world_group, even_group;
-	MPI_Comm even_comm;
+	MPI_Group world_group, even_group = MPI_GROUP_NULL;
+	MPI_Comm even_comm = MPI_COMM_NULL;
 	MPI_Comm_group(MPI_COMM_WORLD, &world_group);
 	MPI_Group_incl(world_group, n, ranks, &even_group);
 	MPI_Comm_create_group(MPI_COMM_WORLD, even_group, 0, &even_comm);
@@ -119,11 +119,10 @@ int main(int argc, char **argv)
 	starpu_mpi_shutdown();
 
 	MPI_Group_free(&world_group);
-	if (even_comm != MPI_COMM_NULL)
-	{
+	if (even_group != MPI_GROUP_NULL)
 		MPI_Group_free(&even_group);
+	if (even_comm != MPI_COMM_NULL)
 		MPI_Comm_free(&even_comm);
-	}
 
 	MPI_Finalize();
 	return 0;
