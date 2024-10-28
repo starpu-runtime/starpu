@@ -601,6 +601,8 @@ int main(int argc, char **argv)
 		if (ret != MPI_SUCCESS)
 		{
 			FPRINTF(stderr, "Function MPI_Type_create_struct fails with large types.\n");
+			MPI_Type_free(&datatype);
+			fclose(_f_buffer);
 			starpu_mpi_shutdown();
 			if (!mpi_init)
 				MPI_Finalize();
@@ -610,6 +612,8 @@ int main(int argc, char **argv)
 		if (ret != MPI_SUCCESS)
 		{
 			FPRINTF(stderr, "Function MPI_Type_commit fails with large types.\n");
+			MPI_Type_free(&datatype);
+			fclose(_f_buffer);
 			starpu_mpi_shutdown();
 			if (!mpi_init)
 				MPI_Finalize();
