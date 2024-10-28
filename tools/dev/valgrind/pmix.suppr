@@ -141,10 +141,8 @@
    Memcheck:Leak
    match-leak-kinds: indirect
    fun:malloc
-   fun:strdup
    ...
    fun:get_data
-   ...
    fun:event_process_active_single_queue
    fun:event_process_active
    fun:event_base_loop
@@ -158,7 +156,6 @@
    Memcheck:Leak
    match-leak-kinds: definite
    fun:malloc
-   fun:strdup
    ...
    fun:get_data
    fun:event_process_active_single_queue
