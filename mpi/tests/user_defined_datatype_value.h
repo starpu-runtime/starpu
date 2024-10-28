@@ -163,7 +163,7 @@ static struct starpu_data_interface_ops interface_value_ops =
 	.unpack_data = value_unpack_data
 };
 
-void starpu_value_data_register(starpu_data_handle_t *handleptr, unsigned home_node, int *value)
+void starpu_value_data_register(starpu_data_handle_t *handleptr, int home_node, int *value)
 {
 	struct starpu_value_interface value_int =
 	{
