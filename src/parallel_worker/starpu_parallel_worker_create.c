@@ -126,7 +126,8 @@ struct starpu_parallel_worker_config *_starpu_parallel_worker_init_varg(hwloc_ob
 	struct starpu_parallel_worker_config *machine;
 
 	_STARPU_CALLOC(machine, 1, sizeof(struct starpu_parallel_worker_config));
-	_STARPU_CALLOC(machine->params, 1, sizeof(struct _starpu_parallel_worker_parameters));
+	_STARPU_CALLOC(machine->orig_params, 1, sizeof(struct _starpu_parallel_worker_parameters));
+	machine->params = machine->orig_params;
 	machine->id = STARPU_NMAX_SCHED_CTXS;
 	_starpu_parallel_worker_group_list_init(&machine->groups);
 	machine->nparallel_workers = 0;
@@ -279,7 +280,7 @@ int starpu_parallel_worker_shutdown(struct starpu_parallel_worker_config *machin
 
 	if (machine->topology != NULL)
 		hwloc_topology_destroy(machine->topology);
-	free(machine->params);
+	free(machine->orig_params);
 	free(machine);
 	starpu_sched_ctx_set_context(0);
 
@@ -432,6 +433,7 @@ int _starpu_parallel_worker_remove(struct _starpu_parallel_worker_list *parallel
 		free(parallel_worker->workerids);
 
 	hwloc_bitmap_free(parallel_worker->cpuset);
+	free(parallel_worker->params);
 	_starpu_parallel_worker_list_erase(parallel_worker_list, parallel_worker);
 	_starpu_parallel_worker_delete(parallel_worker);
 

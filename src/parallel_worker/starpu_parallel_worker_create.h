@@ -62,6 +62,7 @@ struct starpu_parallel_worker_config
 	unsigned nparallel_workers;
 	unsigned ngroups;
 	struct _starpu_parallel_worker_group_list groups;
+	struct _starpu_parallel_worker_parameters *orig_params;
 	struct _starpu_parallel_worker_parameters *params;
 };
 
