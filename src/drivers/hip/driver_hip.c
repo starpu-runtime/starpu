@@ -890,7 +890,11 @@ void _starpu_hip_check_on_device(int devid, uintptr_t addr, size_t size)
 	hipPointerAttribute_t attr;
 	err = hipPointerGetAttributes(&attr, (void*) addr);
 	STARPU_ASSERT_MSG(err == hipSuccess, "Pointer %p is not recognized by HIP\n", (void*) addr);
+#if HIP_VERSION >= 50500000
 	STARPU_ASSERT_MSG(attr.type != hipMemoryTypeHost, "Pointer %p is not on a HIP device\n", (void*) addr);
+#else
+	STARPU_ASSERT_MSG(attr.memoryType != hipMemoryTypeHost, "Pointer %p is not on a HIP device\n", (void*) addr);
+#endif
 	STARPU_ASSERT_MSG(attr.device == devid, "Pointer %p is not HIP device %d but on HIP device %d\n", (void*) addr, devid, attr.device);
 
 }
