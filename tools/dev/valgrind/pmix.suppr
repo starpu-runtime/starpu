@@ -154,10 +154,12 @@
 {
    <insert_a_suppression_name_here>
    Memcheck:Leak
-   match-leak-kinds: definite
    fun:malloc
    ...
-   fun:get_data
+   fun:pmix_hash_fetch
+   fun:pmix_gds_hash_fetch
+   fun:_getnb_cbfunc
+   fun:pmix_ptl_base_process_msg
    fun:event_process_active_single_queue
    fun:event_process_active
    fun:event_base_loop
