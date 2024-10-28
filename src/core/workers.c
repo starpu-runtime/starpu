@@ -1843,6 +1843,12 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 
 		_starpu_destroy_machine_config(&_starpu_config, is_a_sink);
 
+		free((char*) _starpu_config.conf.sched_policy_name);
+		if (_starpu_config.conf.n_cuda_opengl_interoperability)
+			free(_starpu_config.conf.cuda_opengl_interoperability);
+		if (_starpu_config.conf.n_not_launched_drivers)
+			free(_starpu_config.conf.not_launched_drivers);
+
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 		if (_starpu_mpi_common_is_mp_initialized())
 			_starpu_mpi_common_mp_deinit();
