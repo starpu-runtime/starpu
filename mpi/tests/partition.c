@@ -56,7 +56,7 @@ int main(int argc, char **argv)
 
 	/* Initial data on rank 0 */
 	if (rank == 0)
-		ptr = malloc(SIZE);
+		ptr = calloc(SIZE, 1);
 	starpu_vector_data_register(&handle, rank == 0 ? STARPU_MAIN_RAM : -1, rank == 0 ? (uintptr_t) ptr : 0, SIZE, 1);
 	starpu_mpi_data_register(handle, 0, 0);
 
