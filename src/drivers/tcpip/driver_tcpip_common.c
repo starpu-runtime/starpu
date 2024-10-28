@@ -628,7 +628,17 @@ int _starpu_tcpip_common_mp_init()
 		for(cur = res; cur; cur = cur->ai_next)
 		{
 			int local_sock_flag;
-			int connect_res = slave_connect(&source_sock, cur, &sink_addr, NULL, NULL, &local_sock_flag);
+			int connect_res;
+			int try = 0;
+			while(1)
+			{
+				connect_res = slave_connect(&source_sock, cur, &sink_addr, NULL, NULL, &local_sock_flag);
+				if (connect_res == 0)
+					break;
+				if (errno != ECONNREFUSED || try++ >= 10)
+					break;
+				sleep(1);
+			}
 			if(connect_res == 1)
 				continue;
 			else if(connect_res < 0)
