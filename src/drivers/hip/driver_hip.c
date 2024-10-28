@@ -887,7 +887,7 @@ void _starpu_hip_check_on_device(int devid, uintptr_t addr, size_t size)
 {
 	(void) size;
 	hipError_t err;
-	hipPointerAttributes_t attr;
+	hipPointerAttribute_t attr;
 	err = hipPointerGetAttributes(&attr, (void*) addr);
 	STARPU_ASSERT_MSG(err == hipSuccess, "Pointer %p is not recognized by HIP\n", (void*) addr);
 	STARPU_ASSERT_MSG(attr.type != hipMemoryTypeHost, "Pointer %p is not on a HIP device\n", (void*) addr);
