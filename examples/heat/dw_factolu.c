@@ -132,7 +132,7 @@ void dw_callback_v2_codelet_update_gemm(void *argcb)
 	if ((i == j) && (i == k+1))
 	{
 		/* we now reduce the LU22 part (recursion appears there) */
-		cl_args *ugetrfarg = malloc(sizeof(cl_args));
+		cl_args *ugetrfarg = calloc(1, sizeof(cl_args));
 
 		struct starpu_task *task = starpu_task_create();
 		task->callback_func = dw_callback_v2_codelet_update_getrf;
@@ -169,7 +169,7 @@ void dw_callback_v2_codelet_update_gemm(void *argcb)
 				if ((u & STARTED) == 0)
 				{
 					/* we are the only one that should launch that task */
-					cl_args *utrsmrua = malloc(sizeof(cl_args));
+					cl_args *utrsmrua = calloc(1, sizeof(cl_args));
 
 					struct starpu_task *task_trsm_ru = starpu_task_create();
 					task_trsm_ru->callback_func = dw_callback_v2_codelet_update_trsm_ru;
@@ -206,7 +206,7 @@ void dw_callback_v2_codelet_update_gemm(void *argcb)
 				 if ((u & STARTED) == 0)
 				 {
 					/* we are the only one that should launch that task */
-					cl_args *utrsmlla = malloc(sizeof(cl_args));
+					cl_args *utrsmlla = calloc(1, sizeof(cl_args));
 
 					struct starpu_task *task_trsm_ll = starpu_task_create();
 					task_trsm_ll->callback_func = dw_callback_v2_codelet_update_trsm_ll;
@@ -262,7 +262,7 @@ void dw_callback_v2_codelet_update_trsm_ll(void *argcb)
 			if ((u & STARTED) == 0)
 			{
 				/* update that square matrix */
-				cl_args *ugemma = malloc(sizeof(cl_args));
+				cl_args *ugemma = calloc(1, sizeof(cl_args));
 
 				struct starpu_task *task_gemm = starpu_task_create();
 				task_gemm->callback_func = dw_callback_v2_codelet_update_gemm;
@@ -323,7 +323,7 @@ void dw_callback_v2_codelet_update_trsm_ru(void *argcb)
 			if ((u & STARTED) == 0)
 			{
 				/* update that square matrix */
-				cl_args *ugemma = malloc(sizeof(cl_args));
+				cl_args *ugemma = calloc(1, sizeof(cl_args));
 
 				struct starpu_task *task_gemm = starpu_task_create();
 				task_gemm->callback_func = dw_callback_v2_codelet_update_gemm;
@@ -400,7 +400,7 @@ void dw_callback_v2_codelet_update_getrf(void *argcb)
 					int ret;
 
 					/* we are the only one that should launch that task */
-					cl_args *utrsmlla = malloc(sizeof(cl_args));
+					cl_args *utrsmlla = calloc(1, sizeof(cl_args));
 
 					struct starpu_task *task_trsm_ll = starpu_task_create();
 					task_trsm_ll->callback_func = dw_callback_v2_codelet_update_trsm_ll;
@@ -444,7 +444,7 @@ void dw_callback_v2_codelet_update_getrf(void *argcb)
 					int ret;
 
 					/* we are the only one that should launch that task */
-					cl_args *utrsmrua = malloc(sizeof(cl_args));
+					cl_args *utrsmrua = calloc(1, sizeof(cl_args));
 
 					struct starpu_task *task_trsm_ru = starpu_task_create();
 					task_trsm_ru->callback_func = dw_callback_v2_codelet_update_trsm_ru;
@@ -507,10 +507,10 @@ void dw_callback_codelet_update_getrf(void *argcb)
 			int ret;
 
 			/* update slice from utrsmll */
-			cl_args *utrsmlla = malloc(sizeof(cl_args));
+			cl_args *utrsmlla = calloc(1, sizeof(cl_args));
 
 			/* update slice from utrsmru */
-			cl_args *utrsmrua = malloc(sizeof(cl_args));
+			cl_args *utrsmrua = calloc(1, sizeof(cl_args));
 
 			struct starpu_task *task_trsm_ll = starpu_task_create();
 			task_trsm_ll->callback_func = dw_callback_codelet_update_trsm_ll_21;
@@ -570,7 +570,7 @@ void dw_callback_codelet_update_gemm(void *argcb)
 		free(args->remaining);
 
 		/* we now reduce the LU22 part (recursion appears there) */
-		cl_args *ugetrfarg = malloc(sizeof(cl_args));
+		cl_args *ugetrfarg = calloc(1, sizeof(cl_args));
 
 		struct starpu_task *task = starpu_task_create();
 		task->callback_func = dw_callback_codelet_update_getrf;
@@ -618,7 +618,7 @@ void dw_callback_codelet_update_trsm_ll_21(void *argcb)
 				int ret;
 
 				/* update that square matrix */
-				cl_args *ugemma = malloc(sizeof(cl_args));
+				cl_args *ugemma = calloc(1, sizeof(cl_args));
 
 				struct starpu_task *task_gemm = starpu_task_create();
 				task_gemm->callback_func = dw_callback_codelet_update_gemm;
@@ -657,7 +657,7 @@ void dw_callback_codelet_update_trsm_ll_21(void *argcb)
 void dw_codelet_facto(starpu_data_handle_t dataA, unsigned nblocks)
 {
 	int ret;
-	cl_args *args = malloc(sizeof(cl_args));
+	cl_args *args = calloc(1, sizeof(cl_args));
 
 	args->i = 0;
 	args->nblocks = nblocks;
