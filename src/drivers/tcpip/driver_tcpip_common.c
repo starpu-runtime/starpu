@@ -739,7 +739,7 @@ int _starpu_tcpip_common_mp_init()
 		freeaddrinfo(res1);
 		if (!cur1)
 		{
-			fprintf(stderr, "could not connect\n");
+			fprintf(stderr, "could not connect async\n");
 			return -1;
 		}
 
