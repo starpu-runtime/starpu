@@ -35,6 +35,8 @@ New features:
   * Add bus performance model for HIP driver.
   * New scheduler darts (Data-Aware Reactive Task Scheduling)
   * Add basic support for nOS-V hypervision
+  * Enable STARPU_MPI_THREAD_MULTIPLE_SEND by default on mpich, openmpi ≥ 4
+    and Mad-MPI.
 
 Small features:
   * Add FXT option -use-task-color to propagate the specified task
