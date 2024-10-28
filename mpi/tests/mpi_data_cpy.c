@@ -95,6 +95,7 @@ int main(int argc, char **argv)
 	{
                 starpu_data_unregister(data[i]);
 	}
+	free(data);
 
 	if (ret == 0)
 	{
