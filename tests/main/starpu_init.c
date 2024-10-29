@@ -46,6 +46,8 @@ static int check_cpu(int env_cpu, int conf_cpu, int precedence_over_env, int exp
 
 	struct starpu_conf user_conf;
 	starpu_conf_init(&user_conf);
+	user_conf.nmpi_ms = 0;
+	user_conf.ntcpip_ms = 0;
 	user_conf.precedence_over_environment_variables = precedence_over_env;
 
 	if (conf_cpu != -1)
