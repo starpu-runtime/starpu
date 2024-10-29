@@ -87,6 +87,8 @@ int main(int argc, char **argv)
 	/* Clean up */
 	starpu_data_partition_clean(handle, NPARTS, handles);
 	starpu_data_unregister(handle);
+	if (rank == 0)
+		free(ptr);
 
 	starpu_mpi_shutdown();
 
