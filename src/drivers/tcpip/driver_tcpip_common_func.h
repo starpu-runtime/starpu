@@ -119,8 +119,10 @@ enum errcase {SOCK_INIT, SOCK_GETADDRINFO, SOCK_GETADDRINFO_LOCAL};
 #define CONNECT(sockfd, addr, addrlen, cur) ({ \
 			if (connect(sockfd, addr, addrlen) < 0) \
 			{					\
+				int err = errno;			\
 				perror("fail to connect socket");	\
 				close(sockfd);				\
+				errno = err;				\
 				if(cur)					\
 					return 1;			\
 				else					\
