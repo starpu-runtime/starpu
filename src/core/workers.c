@@ -1637,26 +1637,16 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	if (_starpu_mpi_common_mp_init() == -ENODEV)
 	{
-		STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
-		init_count--;
-		initialized = UNINITIALIZED;
-		/* Let somebody else try to do it */
-		STARPU_PTHREAD_COND_SIGNAL(&init_cond);
-		STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
-		return -ENODEV;
+		_STARPU_DISP("Warning: starpu_init called several times, ignoring slaves in this restart\n");
+		user_conf->nmpi_ms = 0;
 	}
 #endif
 
 #ifdef STARPU_USE_TCPIP_MASTER_SLAVE
 	if (_starpu_tcpip_common_mp_init() == -ENODEV)
 	{
-		STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
-		init_count--;
-		initialized = UNINITIALIZED;
-		/* Let somebody else try to do it */
-		STARPU_PTHREAD_COND_SIGNAL(&init_cond);
-		STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
-		return -ENODEV;
+		_STARPU_DISP("Warning: starpu_init called several times, ignoring slaves in this restart\n");
+		user_conf->ntcpip_ms = 0;
 	}
 #endif
 

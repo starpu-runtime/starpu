@@ -420,7 +420,10 @@ int _starpu_tcpip_common_mp_init()
 {
 	//Here we supposed the programmer called two times starpu_init.
 	if (tcpip_initialized)
+	{
+		nb_sink = 0;
 		return -ENODEV;
+	}
 
 	/*get the slave number*/
 	nb_sink = starpu_getenv_number("STARPU_TCPIP_MS_SLAVES");
@@ -891,6 +894,8 @@ int _starpu_tcpip_common_mp_init()
 
 void _starpu_tcpip_common_mp_deinit()
 {
+	if (!nb_sink)
+		return;
 	is_running = 0;
 	char buf = 0;
 	write(thread_pipe[1], &buf, 1);

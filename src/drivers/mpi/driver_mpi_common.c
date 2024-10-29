@@ -25,7 +25,7 @@
 
 #define DRIVER_MPI_MASTER_NODE_DEFAULT 0
 
-static int mpi_initialized = 0;
+static int mpi_initialized = 0, mpi_shutdown = 0;
 static int extern_initialized = 0;
 static int src_node_id;
 
@@ -83,7 +83,9 @@ int _starpu_mpi_common_mp_init()
 {
 	//Here we supposed the programmer called two times starpu_init.
 	if (mpi_initialized)
+	{
 		return -ENODEV;
+	}
 
 	mpi_initialized = 1;
 
@@ -125,8 +127,11 @@ int _starpu_mpi_common_mp_init()
 
 void _starpu_mpi_common_mp_deinit()
 {
-	if (!extern_initialized)
+	if (!extern_initialized && !mpi_shutdown)
+	{
 		MPI_Finalize();
+		mpi_shutdown = 1;
+	}
 }
 
 int _starpu_mpi_common_is_src_node()
@@ -143,7 +148,7 @@ int _starpu_mpi_common_get_src_node()
 
 int _starpu_mpi_common_is_mp_initialized()
 {
-	return mpi_initialized;
+	return mpi_initialized && !mpi_shutdown;
 }
 
 /* common parts to initialize a source or a sink node */
