@@ -1305,7 +1305,7 @@ void _starpu_cuda_free_on_device(int devid, uintptr_t addr, size_t size, int fla
 void _starpu_cuda_check_on_device(int devid, uintptr_t addr, size_t size)
 {
 	(void) size;
-#if CUDART_VERSION >= 4000
+#if !defined(STARPU_SIMGRID) && CUDART_VERSION >= 4000
 	cudaError_t err;
 	struct cudaPointerAttributes attr;
 	err = cudaPointerGetAttributes(&attr, (void*) addr);
