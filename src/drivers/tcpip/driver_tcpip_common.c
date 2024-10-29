@@ -59,7 +59,6 @@
 typedef starpu_ssize_t(*what_t)(int fd, void *buf, size_t count);
 
 static int tcpip_initialized = 0;
-static int extern_initialized = 0;
 //static int src_node_id = 0;
 static int nb_sink;
 static char* host_port;
@@ -896,19 +895,18 @@ void _starpu_tcpip_common_mp_deinit()
 	char buf = 0;
 	write(thread_pipe[1], &buf, 1);
 	STARPU_PTHREAD_JOIN(thread_pending, NULL);
-	if (!extern_initialized)
+
+	int i;
+	for (i=0; i<nb_sink; i++)
 	{
-		int i;
-		for (i=0; i<nb_sink; i++)
-		{
-			if (tcpip_sock[i].sync_sock == -1)
-				/* Ourself */
-				continue;
-			close(tcpip_sock[i].sync_sock);
-			close(tcpip_sock[i].async_sock);
-			close(tcpip_sock[i].notif_sock);
-		}
+		if (tcpip_sock[i].sync_sock == -1)
+			/* Ourself */
+			continue;
+		close(tcpip_sock[i].sync_sock);
+		close(tcpip_sock[i].async_sock);
+		close(tcpip_sock[i].notif_sock);
 	}
+
 	free(tcpip_sock);
 	free(local_flag);
 	_starpu_spin_destroy(&ListLock);
