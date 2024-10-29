@@ -1624,6 +1624,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 
 	int rc = _starpu_prof_tool_try_load();
 	(void) rc; /* unused for now */
+	int no_ms = 0;
 
 #ifdef STARPU_PROF_TOOL
 	struct starpu_prof_tool_info pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_init_begin, 0, 0, starpu_prof_tool_driver_cpu, -1, NULL);
@@ -1638,7 +1639,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	if (_starpu_mpi_common_mp_init() == -ENODEV)
 	{
 		_STARPU_DISP("Warning: starpu_init called several times, ignoring slaves in this restart\n");
-		user_conf->nmpi_ms = 0;
+		no_ms = 1;
 	}
 #endif
 
@@ -1646,7 +1647,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	if (_starpu_tcpip_common_mp_init() == -ENODEV)
 	{
 		_STARPU_DISP("Warning: starpu_init called several times, ignoring slaves in this restart\n");
-		user_conf->ntcpip_ms = 0;
+		no_ms = 1;
 	}
 #endif
 
@@ -1760,6 +1761,12 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 		_starpu_config.conf = *user_conf;
 	}
 	_starpu_conf_check_environment(&_starpu_config.conf);
+
+	if (no_ms)
+	{
+		_starpu_config.conf.nmpi_ms = 0;
+		_starpu_config.conf.ntcpip_ms = 0;
+	}
 
 	if (is_a_sink && _starpu_config.conf.nmpi_ms == 0 &&
 		_starpu_config.conf.ntcpip_ms == 0)
