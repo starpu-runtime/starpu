@@ -35,6 +35,8 @@ int main(void)
 
 	/* First get the number of cores */
 	starpu_conf_init(&conf);
+	conf.nmpi_ms = 0;
+	conf.ntcpip_ms = 0;
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
