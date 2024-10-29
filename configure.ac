@@ -4037,20 +4037,6 @@ AM_CONDITIONAL(STARPU_STARPUPY_NUMPY, [test x$numpy_avail = xyes])
 
 AC_ARG_VAR([PYTHON], [Python3 interpreter])
 
-STARPUPY_EXTRA_LINK_ARGS=""
-if test "x$enable_starpupy" != xno
-then
-	if test "x$OPENMP_CFLAGS" != "x"
-	then
-		STARPUPY_EXTRA_LINK_ARGS="$STARPUPY_EXTRA_LINK_ARGS '$OPENMP_CFLAGS', "
-	fi
-	if test x$enable_coverage = xyes
-	then
-		STARPUPY_EXTRA_LINK_ARGS="$STARPUPY_EXTRA_LINK_ARGS '-lgcov', "
-	fi
-fi
-AC_SUBST(STARPUPY_EXTRA_LINK_ARGS)
-
 ##########################################
 # Documentation                          #
 ##########################################
@@ -4216,6 +4202,20 @@ if test "x$enable_shared" = xno; then
 	STARPU_EXPORTED_LIBS="$STARPU_EXPORTED_LIBS $LDFLAGS $LIBS $LIBSTARPU_LDFLAGS"
 fi
 AC_SUBST(STARPU_EXPORTED_LIBS)
+
+STARPUPY_EXTRA_LINK_ARGS=""
+if test "x$enable_starpupy" != xno
+then
+	if test "x$OPENMP_CFLAGS" != "x"
+	then
+		STARPUPY_EXTRA_LINK_ARGS="$STARPUPY_EXTRA_LINK_ARGS '$OPENMP_CFLAGS', "
+	fi
+	for flag in $STARPU_EXPORTED_LIBS
+	do
+		STARPUPY_EXTRA_LINK_ARGS="$STARPUPY_EXTRA_LINK_ARGS '$flag', "
+	done
+fi
+AC_SUBST(STARPUPY_EXTRA_LINK_ARGS)
 
 LIBSTARPU_LINK=libstarpu-$STARPU_EFFECTIVE_VERSION.la
 LIBSTARPU_LINK="$LIBSTARPU_LINK $STARPU_EXPORTED_LIBS"
