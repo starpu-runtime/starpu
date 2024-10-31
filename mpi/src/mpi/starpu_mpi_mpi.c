@@ -89,6 +89,9 @@ static int running = 0;
  * This is to be taken always before the progress_mutex. */
 static starpu_pthread_mutex_t early_data_mutex;
 
+/* Synchronizes the sending of an enveloppe and the corresponding data */
+static starpu_pthread_mutex_t send_mutex;
+
 /* Driver taken by StarPU-MPI to process tasks when there is no requests to
  * handle instead of polling endlessly */
 static struct starpu_driver *mpi_driver = NULL;
@@ -458,6 +461,8 @@ void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 	req->backend->envelope->data_tag = req->node_tag.data_tag;
 	req->backend->envelope->sync = req->sync;
 
+	STARPU_PTHREAD_MUTEX_LOCK(&send_mutex);
+
 	if (req->registered_datatype == 1)
 	{
 		int size, ret;
@@ -516,6 +521,8 @@ void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 		// Otherwise we can send the data
 		_starpu_mpi_isend_data_func(req);
 	}
+
+	STARPU_PTHREAD_MUTEX_UNLOCK(&send_mutex);
 }
 
 /********************************************************/
@@ -1675,6 +1682,7 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 {
 	STARPU_PTHREAD_MUTEX_INIT(&progress_mutex, NULL);
 	STARPU_PTHREAD_MUTEX_INIT(&early_data_mutex, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&send_mutex, NULL);
 	STARPU_PTHREAD_COND_INIT(&progress_cond, NULL);
 	STARPU_PTHREAD_COND_INIT(&barrier_cond, NULL);
 	_starpu_mpi_req_list_init(&ready_recv_requests);
@@ -1746,6 +1754,7 @@ void _starpu_mpi_progress_shutdown(void **value)
 	STARPU_PTHREAD_MUTEX_DESTROY(&posted_requests_mutex);
 	STARPU_PTHREAD_MUTEX_DESTROY(&progress_mutex);
 	STARPU_PTHREAD_MUTEX_DESTROY(&early_data_mutex);
+	STARPU_PTHREAD_MUTEX_DESTROY(&send_mutex);
 	STARPU_PTHREAD_COND_DESTROY(&barrier_cond);
 }
 
