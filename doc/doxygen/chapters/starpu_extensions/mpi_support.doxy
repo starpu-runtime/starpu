@@ -271,7 +271,7 @@ itself. If the application initializes MPI itself, it must call
 <c>MPI_THREAD_MULTIPLE</c>, since StarPU-MPI uses a separate thread to
 perform the communications. <c>MPI_THREAD_MULTIPLE</c> is necessary if
 the application also performs some MPI communications, or if
-STARPU_MPI_THREAD_MULTIPLE_SEND is set to non-zero.
+\ref STARPU_MPI_THREAD_MULTIPLE_SEND is set to non-zero.
 
 \section PointToPointCommunication Point To Point Communication
 
