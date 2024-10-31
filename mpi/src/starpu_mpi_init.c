@@ -75,8 +75,7 @@ static void _starpu_mpi_print_thread_level_support(int thread_level, char *msg)
 	}
 	if (thread_level != MPI_THREAD_MULTIPLE && _starpu_mpi_thread_multiple_send)
 	{
-		if (_starpu_mpi_thread_multiple_send != -1)
-			_STARPU_DISP("STARPU_MPI_THREAD_MULTIPLE_SEND requested but MPI%s %s, disabling STARPU_MPI_THREAD_MULTIPLE_SEND\n", msg, level);
+		_STARPU_DISP("STARPU_MPI_THREAD_MULTIPLE_SEND requested but MPI%s %s, disabling STARPU_MPI_THREAD_MULTIPLE_SEND\n", msg, level);
 		_starpu_mpi_thread_multiple_send = 0;
 	}
 }
