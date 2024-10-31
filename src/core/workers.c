@@ -2245,7 +2245,7 @@ void starpu_shutdown(void)
 	_starpu_job_fini();
 
 	/* Drop all remaining tags */
-	_starpu_tag_clear();
+	starpu_tag_clear();
 
 #ifdef STARPU_OPENMP
 	_starpu_omp_dummy_shutdown();

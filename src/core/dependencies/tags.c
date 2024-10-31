@@ -174,14 +174,14 @@ void starpu_tag_remove(starpu_tag_t id)
 	}
 }
 
-void _starpu_tag_clear(void)
+void starpu_tag_clear(void)
 {
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&tag_global_rwlock);
 
 	/* XXX: _starpu_tag_free takes the tag spinlocks while we are keeping
 	 * the global rwlock. This contradicts the lock order of
 	 * starpu_tag_wait_array. Should not be a problem in practice since
-	 * _starpu_tag_clear is called at shutdown only. */
+	 * starpu_tag_clear is called at shutdown only. */
 	struct _starpu_tag_table *entry=NULL, *tmp=NULL;
 
 	HASH_ITER(hh, tag_htbl, entry, tmp)

@@ -83,7 +83,7 @@ to delay the termination of a task until the termination of other tasks. A simpl
 
 starpu_tag_notify_from_apps() can be used to explicitly unlock a specific tag, but if it is called several times on the same tag, notification will be done only on first call. However, one can call starpu_tag_restart() to clear the already notified status of a tag which is not associated with a task, and then calling starpu_tag_notify_from_apps() again will notify the successors. Alternatively, starpu_tag_notify_restart_from_apps() can be used to atomically call both starpu_tag_notify_from_apps() and starpu_tag_restart() on a specific tag.
 
-To get the task associated to a specific tag, one can call starpu_tag_get_task(). Once the corresponding task has been executed and when there is no other tag that depend on this tag anymore, one can call starpu_tag_remove() to release the resources associated to the specific tag.
+To get the task associated to a specific tag, one can call starpu_tag_get_task(). Once the corresponding task has been executed and when there is no other tag that depend on this tag anymore, one can call starpu_tag_remove() to release the resources associated to the specific tag. One can use starpu_tag_clear() to clear all the tags (but it requires that no starpu_tag_wait_array() call is currently pending).
 
 \section WaitingForTasks Waiting For Tasks
 
