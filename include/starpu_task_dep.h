@@ -240,6 +240,14 @@ void starpu_tag_notify_restart_from_apps(starpu_tag_t id);
  */
 struct starpu_task *starpu_tag_get_task(starpu_tag_t id);
 
+/**
+   Calls starpu_tag_remove() for all tags.
+   The current implementation requires that no starpu_tag_wait_array() is
+   currently pending.
+   See \ref TasksAndTagsDependencies for more details.
+ */
+void starpu_tag_clear(void);
+
 /** @} */
 
 #ifdef __cplusplus
