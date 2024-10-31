@@ -53,6 +53,7 @@ Small features:
   * Add png curve generation to starpu_perfmodel_plot
   * Add STARPU_MPI_THREAD_MULTIPLE_SEND environment variable to enable parallel
     sending with MPI.
+  * Add starpu_tag_clear
 
 StarPU 1.4.7
 ==============================================
