@@ -31,7 +31,13 @@ export STARPU_GENERATE_TRACE_OPTIONS="-no-acquire -c -label-deps"
 export STARPU_GENERATE_TRACE=1
 $MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/tests/traces/fxt
 
-if test ! -f $STARPU_FXT_PREFIX/prof_file_${USER}_0
+prof_file=prof_file_${USER}_0
+if test -z "$USER"
+then
+    prof_file=prof_file_0
+fi
+
+if test ! -f $STARPU_FXT_PREFIX/$prof_file
 then
     echo "FxT file not generated"
     exit 77
