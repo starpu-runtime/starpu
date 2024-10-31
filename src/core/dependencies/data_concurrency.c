@@ -477,6 +477,20 @@ void _starpu_job_set_ordered_buffers(struct _starpu_job *j)
 	{
 		buffers[buffers[i].index].orderedindex = i;
 	}
+	if (task->cl && task->cl->specific_nodes)
+		for (i=1 ; i<nbuffers; i++)
+		{
+			if (buffers[i].handle == buffers[i-1].handle
+				&& STARPU_CODELET_GET_NODE(task->cl, buffers[i].index) !=
+				   STARPU_CODELET_GET_NODE(task->cl, buffers[i-1].index))
+			{
+				STARPU_ASSERT_MSG(!(buffers[i].mode & STARPU_W) &&
+						  !(buffers[i-1].mode & STARPU_W),
+						  "Cannot request the same data on different nodes with write mode");
+				STARPU_ASSERT_MSG(!(buffers[i].mode & STARPU_REDUX),
+						  "Cannot request the same data on different nodes with redux mode");
+			}
+		}
 }
 
 /* Sort the data used by the given job by handle pointer value order, and
