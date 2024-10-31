@@ -30,7 +30,12 @@ test -x $PREFIX/../../tools/starpu_fxt_tool || exit 77
 
 export STARPU_FXT_PREFIX=$PREFIX/locality.traces
 STARPU_FXT_TRACE=1 STARPU_SCHED=modular-eager $MS_LAUNCHER $STARPU_LAUNCH $PREFIX/locality
-$STARPU_LAUNCH $PREFIX/../../tools/starpu_fxt_tool -d $STARPU_FXT_PREFIX -memory-states -label-deps -i $STARPU_FXT_PREFIX/prof_file_${USER}_0
+prof_file=prof_file_${USER}_0
+if test -z "$USER"
+then
+    prof_file=prof_file_0
+fi
+$STARPU_LAUNCH $PREFIX/../../tools/starpu_fxt_tool -d $STARPU_FXT_PREFIX -memory-states -label-deps -i $STARPU_FXT_PREFIX/$prof_file
 
 # Check that they are approved by Grenoble :)
 
