@@ -68,7 +68,7 @@ void specific2_kernel(void *descr[], void *arg)
 	dataptr = (unsigned*) STARPU_VARIABLE_GET_PTR(descr[1]);
 
 	if (node == STARPU_MAIN_RAM)
-		STARPU_ASSERT(dataptr == &data2);
+		STARPU_ASSERT(dataptr == &data || dataptr == &data2);
 }
 
 static struct starpu_codelet specific2_cl =
@@ -118,7 +118,7 @@ int main(void)
 	starpu_data_handle_t data_handle, data_handle2;
 
 #ifdef STARPU_QUICK_CHECK
-	unsigned ntasks = 12;
+	unsigned ntasks = 16;
 #else
 	unsigned ntasks = 1000;
 #endif
@@ -151,7 +151,10 @@ int main(void)
 		else
 			task->cl = &increment_cl;
 		task->handles[0] = data_handle;
-		task->handles[1] = data_handle2;
+		if (i % 8 >= 4)
+			task->handles[1] = data_handle;
+		else
+			task->handles[1] = data_handle2;
 
 		ret = starpu_task_submit(task);
 		if (ret == -ENODEV) goto enodev;
