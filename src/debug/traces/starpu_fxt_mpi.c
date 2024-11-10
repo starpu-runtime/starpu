@@ -69,11 +69,11 @@ struct starpu_fxt_mpi_offset _starpu_fxt_mpi_find_sync_points(char *filename_in,
 	fxt_blockev_t block;
 	block = fxt_blockev_enter(fut);
 
-	struct fxt_ev_64 ev;
+	struct fxt_ev_native ev;
 	int ret;
 	uint64_t local_sync_time;
 
-	while (offset.nb_barriers < 2 && (ret = fxt_next_ev(block, FXT_EV_TYPE_64, (struct fxt_ev *)&ev)) == FXT_EV_OK)
+	while (offset.nb_barriers < 2 && (ret = fxt_next_ev(block, FXT_EV_TYPE_NATIVE, (struct fxt_ev *)&ev)) == FXT_EV_OK)
 	{
 		if (ev.code == _STARPU_MPI_FUT_BARRIER)
 		{

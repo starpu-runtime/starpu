@@ -51,7 +51,7 @@ static uint64_t* number_events = NULL;
 static unsigned long fut_keymask;
 
 /* Get pointer to string starting at nth parameter */
-static char *get_fxt_string(struct fxt_ev_64 *ev, int n)
+static char *get_fxt_string(struct fxt_ev_native *ev, int n)
 {
 	char *s = (char *)&ev->param[n];
 	s[(FXT_MAX_PARAMS-n)*sizeof(unsigned long) - 1] = 0;
@@ -400,7 +400,7 @@ const char *_starpu_fxt_data_get_name(unsigned long handle, int mpi_rank)
 	return data->name;
 }
 
-static void handle_papi_event(struct fxt_ev_64 *ev STARPU_ATTRIBUTE_UNUSED, struct starpu_fxt_options *options STARPU_ATTRIBUTE_UNUSED)
+static void handle_papi_event(struct fxt_ev_native *ev STARPU_ATTRIBUTE_UNUSED, struct starpu_fxt_options *options STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_PAPI
 	int event_code = ev->param[0];
@@ -678,7 +678,7 @@ static double compute_time_stamp(double ev_time, struct starpu_fxt_options *opti
 	return (ev_time + offset) / 1000000.0;
 }
 
-static double get_event_time_stamp(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static double get_event_time_stamp(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	double ev_time = (double) ev->time;
 
@@ -1389,7 +1389,7 @@ static void do_thread_pop_state_worker(double time, const char *prefix, long uns
  *	Initialization
  */
 
-static void handle_new_mem_node(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_new_mem_node(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	char *prefix = options->file_prefix;
 
@@ -1441,7 +1441,7 @@ static int create_ordered_stream_id(int nodeid, int devid)
 	return stable[nodeid][devid]++;
 }
 
-static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_worker_init_start(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	/*
 	   arg0 : type of worker (cuda, cpu ..)
@@ -1531,7 +1531,7 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 	options->worker_archtypes[workerid] = arch;
 }
 
-static void handle_worker_init_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_worker_init_end(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	char *prefix = options->file_prefix;
 	int worker;
@@ -1556,7 +1556,7 @@ static void handle_worker_init_end(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 	thread_info->accumulated_exec_time = 0.0;
 }
 
-static void handle_worker_deinit_start(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_worker_deinit_start(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	char *prefix = options->file_prefix;
 	long unsigned int threadid = ev->param[0];
@@ -1564,7 +1564,7 @@ static void handle_worker_deinit_start(struct fxt_ev_64 *ev, struct starpu_fxt_o
 	do_thread_set_state(get_event_time_stamp(ev, options), prefix, threadid, "D", "Runtime", -1);
 }
 
-static void handle_worker_deinit_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_worker_deinit_end(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	char *prefix = options->file_prefix;
 
@@ -1726,7 +1726,7 @@ static void create_paje_state_if_not_found(char *name, unsigned color, struct st
 	}
 }
 
-static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_start_codelet_body(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	int worker = ev->param[2];
 	int node = ev->param[3];
@@ -1800,7 +1800,7 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 	}
 }
 
-static void handle_model_name(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_model_name(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	struct task_info *task = get_task(ev->param[0], options->file_rank);
 	char *name = get_fxt_string(ev, 2);
@@ -1809,7 +1809,7 @@ static void handle_model_name(struct fxt_ev_64 *ev, struct starpu_fxt_options *o
 	task->model_name = strdup(name);
 }
 
-static void handle_codelet_data(struct fxt_ev_64 *ev, struct starpu_fxt_options *options STARPU_ATTRIBUTE_UNUSED)
+static void handle_codelet_data(struct fxt_ev_native *ev, struct starpu_fxt_options *options STARPU_ATTRIBUTE_UNUSED)
 {
 	unsigned long int tid = ev->param[1];
 	struct _thread_info *thread_info = get_thread_info(tid, -1, 0);
@@ -1823,7 +1823,7 @@ static void handle_codelet_data(struct fxt_ev_64 *ev, struct starpu_fxt_options 
 	thread_info->codelet_parameter_description[num][sizeof(thread_info->codelet_parameter_description[num])-1] = 0;
 }
 
-static void handle_codelet_data_handle(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_codelet_data_handle(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	struct task_info *task = get_task(ev->param[0], options->file_rank);
 	unsigned alloc = 0;
@@ -1851,7 +1851,7 @@ static void handle_codelet_data_handle(struct fxt_ev_64 *ev, struct starpu_fxt_o
 	task->ndata++;
 }
 
-static void handle_codelet_data_handle_numa_access(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_codelet_data_handle_numa_access(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	struct task_info *task = get_task(ev->param[0], options->file_rank);
 	unsigned i = (unsigned) ev->param[1];
@@ -1861,7 +1861,7 @@ static void handle_codelet_data_handle_numa_access(struct fxt_ev_64 *ev, struct 
 	task->data[i].numa_nodes_bitmap = ev->param[2];
 }
 
-static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_codelet_details(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	int worker = ev->param[5];
 	unsigned long job_id = ev->param[6];
@@ -1971,7 +1971,7 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 static long dumped_codelets_count;
 static struct starpu_fxt_codelet_event *dumped_codelets;
 
-static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_end_codelet_body(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	unsigned long job_id = ev->param[0];
 	size_t codelet_size = ev->param[1];
@@ -2082,7 +2082,7 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	thread_info->symbol[0] = 0;
 }
 
-static void handle_start_executing(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_start_executing(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	char *prefix = options->file_prefix;
 	long unsigned int threadid = ev->param[0];
@@ -2092,7 +2092,7 @@ static void handle_start_executing(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 		do_thread_set_state(get_event_time_stamp(ev, options), prefix, threadid, "E", "Runtime", job_id);
 }
 
-static void handle_end_executing(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_end_executing(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	char *prefix = options->file_prefix;
 	long unsigned int threadid = ev->param[0];
@@ -2101,7 +2101,7 @@ static void handle_end_executing(struct fxt_ev_64 *ev, struct starpu_fxt_options
 		do_thread_set_state(get_event_time_stamp(ev, options), prefix, threadid, "B", "Runtime", -1);
 }
 
-static void handle_start_parallel_sync(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_start_parallel_sync(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	char *prefix = options->file_prefix;
 	long unsigned int threadid = ev->param[0];
@@ -2109,7 +2109,7 @@ static void handle_start_parallel_sync(struct fxt_ev_64 *ev, struct starpu_fxt_o
 	thread_push_state(get_event_time_stamp(ev, options), prefix, threadid, "Ps");
 }
 
-static void handle_end_parallel_sync(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_end_parallel_sync(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	char *prefix = options->file_prefix;
 	long unsigned int threadid = ev->param[0];
@@ -2117,7 +2117,7 @@ static void handle_end_parallel_sync(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 	thread_pop_state(get_event_time_stamp(ev, options), prefix, threadid, "handle_end_parallel_sync");
 }
 
-static void handle_user_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_user_event(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	int worker;
 	unsigned long code = ev->param[0];
@@ -2154,27 +2154,27 @@ static void handle_user_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *o
 #endif
 }
 
-static void handle_start_callback(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_start_callback(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	do_thread_push_state_worker(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], "C", "Runtime", "UNK"); /* XXX */
 }
 
-static void handle_end_callback(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_end_callback(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	do_thread_pop_state_worker(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], "handle_end_callback");
 }
 
-static void handle_hypervisor_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_hypervisor_begin(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	do_thread_push_state_worker(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "H", "Runtime", "UNK"); /* XXX */
 }
 
-static void handle_hypervisor_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_hypervisor_end(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	do_thread_pop_state_worker(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "handle_hypervisor_end");
 }
 
-static void handle_worker_status_on_tid(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *newstatus)
+static void handle_worker_status_on_tid(struct fxt_ev_native *ev, struct starpu_fxt_options *options, const char *newstatus)
 {
 	char *prefix = options->file_prefix;
 	if (find_worker_id(prefixTOnodeid(prefix), ev->param[1]) < 0)
@@ -2183,7 +2183,7 @@ static void handle_worker_status_on_tid(struct fxt_ev_64 *ev, struct starpu_fxt_
 	do_thread_set_state(get_event_time_stamp(ev, options), prefix, ev->param[1], newstatus, "Runtime", -1);
 }
 
-static void handle_worker_status(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *newstatus)
+static void handle_worker_status(struct fxt_ev_native *ev, struct starpu_fxt_options *options, const char *newstatus)
 {
 	int worker;
 	worker = ev->param[1];
@@ -2195,7 +2195,7 @@ static void handle_worker_status(struct fxt_ev_64 *ev, struct starpu_fxt_options
 
 static double last_sleep_start[STARPU_NMAXWORKERS];
 
-static void handle_worker_scheduling_start(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_worker_scheduling_start(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	char *prefix = options->file_prefix;
 	if (find_worker_id(prefixTOnodeid(prefix), ev->param[0]) < 0)
@@ -2204,7 +2204,7 @@ static void handle_worker_scheduling_start(struct fxt_ev_64 *ev, struct starpu_f
 	do_thread_set_state(get_event_time_stamp(ev, options), prefix, ev->param[0], "Sc", "Runtime", -1);
 }
 
-static void handle_worker_scheduling_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_worker_scheduling_end(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	char *prefix = options->file_prefix;
 	if (find_worker_id(prefixTOnodeid(prefix), ev->param[0]) < 0)
@@ -2213,17 +2213,17 @@ static void handle_worker_scheduling_end(struct fxt_ev_64 *ev, struct starpu_fxt
 	do_thread_set_state(get_event_time_stamp(ev, options), prefix, ev->param[0], "B", "Runtime", -1);
 }
 
-static void handle_worker_scheduling_push(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_worker_scheduling_push(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	do_thread_push_state_worker(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "Sc", "Runtime", "User");
 }
 
-static void handle_worker_scheduling_pop(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_worker_scheduling_pop(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	do_thread_pop_state_worker(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "handle_worker_scheduling_pop");
 }
 
-static void handle_worker_sleep_start(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_worker_sleep_start(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	char *prefix = options->file_prefix;
 	int worker = find_worker_id(prefixTOnodeid(prefix), ev->param[0]);
@@ -2236,7 +2236,7 @@ static void handle_worker_sleep_start(struct fxt_ev_64 *ev, struct starpu_fxt_op
 	do_thread_set_state(get_event_time_stamp(ev, options), prefix, ev->param[0], "Sl", "Other", -1);
 }
 
-static void handle_worker_sleep_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_worker_sleep_end(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	unsigned long int tid = ev->param[0];
 	char *prefix = options->file_prefix;
@@ -2253,7 +2253,7 @@ static void handle_worker_sleep_end(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	update_accumulated_time(tid, worker, sleep_length, 0.0, end_sleep_timestamp, 0);
 }
 
-static void handle_data_register(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_data_register(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	unsigned long handle = ev->param[0];
 	char *prefix = options->file_prefix;
@@ -2279,7 +2279,7 @@ static void handle_data_register(struct fxt_ev_64 *ev, struct starpu_fxt_options
 	}
 }
 
-static void handle_data_unregister(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_data_unregister(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	unsigned long handle = ev->param[0];
 	char *prefix = options->file_prefix;
@@ -2300,7 +2300,7 @@ static void handle_data_unregister(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 	data_dump(data);
 }
 
-static void handle_data_state(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *state)
+static void handle_data_state(struct fxt_ev_native *ev, struct starpu_fxt_options *options, const char *state)
 {
 	unsigned long handle = ev->param[0];
 	unsigned node = ev->param[1];
@@ -2323,7 +2323,7 @@ static void handle_data_copy(void)
 {
 }
 
-static void handle_data_name(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_data_name(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	unsigned long handle = ev->param[0];
 	char *name = get_fxt_string(ev, 1);
@@ -2332,7 +2332,7 @@ static void handle_data_name(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 	data->name = strdup(name);
 }
 
-static void handle_data_coordinates(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_data_coordinates(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	unsigned long handle = ev->param[0];
 	unsigned dimensions = ev->param[1];
@@ -2345,7 +2345,7 @@ static void handle_data_coordinates(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 		data->dims[i] = ev->param[i+2];
 }
 
-static void handle_data_wont_use(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_data_wont_use(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	unsigned long handle = ev->param[0];
 	unsigned long submit_order = ev->param[1];
@@ -2360,7 +2360,7 @@ static void handle_data_wont_use(struct fxt_ev_64 *ev, struct starpu_fxt_options
 	fprintf(tasks_file, "\n");
 }
 
-static void handle_data_doing_wont_use(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_data_doing_wont_use(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	unsigned long handle = ev->param[0];
 	char *prefix = options->file_prefix;
@@ -2380,7 +2380,7 @@ static void handle_data_doing_wont_use(struct fxt_ev_64 *ev, struct starpu_fxt_o
 	}
 }
 
-static void handle_mpi_data_set_rank(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_mpi_data_set_rank(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	unsigned long handle = ev->param[0];
 	int rank = ev->param[1];
@@ -2389,7 +2389,7 @@ static void handle_mpi_data_set_rank(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 	data->mpi_owner = rank;
 }
 
-static void handle_mpi_data_set_tag(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_mpi_data_set_tag(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	unsigned long handle = ev->param[0];
 	long tag = ev->param[1];
@@ -2411,7 +2411,7 @@ static const char *copy_link_type(enum starpu_is_prefetch prefetch)
 }
 
 
-static void handle_checkpoint_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_checkpoint_begin(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	/* Add an event in the trace */
 	if (out_paje_file)
@@ -2428,7 +2428,7 @@ static void handle_checkpoint_begin(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	}
 }
 
-static void handle_checkpoint_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_checkpoint_end(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	/* Add an event in the trace */
 	if (out_paje_file)
@@ -2445,7 +2445,7 @@ static void handle_checkpoint_end(struct fxt_ev_64 *ev, struct starpu_fxt_option
 	}
 }
 
-static void handle_start_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_start_driver_copy(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	unsigned src = ev->param[0];
 	unsigned dst = ev->param[1];
@@ -2510,7 +2510,7 @@ static void handle_start_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 }
 
 
-static void handle_work_stealing(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_work_stealing(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	if (out_paje_file)
 	{
@@ -2541,7 +2541,7 @@ static void handle_work_stealing(struct fxt_ev_64 *ev, struct starpu_fxt_options
 }
 
 
-static void handle_end_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_end_driver_copy(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	int src = -1;
 	unsigned long handle = 0;
@@ -2611,7 +2611,7 @@ static void handle_end_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 	}
 }
 
-static void handle_start_driver_copy_async(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_start_driver_copy_async(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	unsigned src = ev->param[0];
 	unsigned dst = ev->param[1];
@@ -2627,7 +2627,7 @@ static void handle_start_driver_copy_async(struct fxt_ev_64 *ev, struct starpu_f
 
 }
 
-static void handle_end_driver_copy_async(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_end_driver_copy_async(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	unsigned src = ev->param[0];
 	unsigned dst = ev->param[1];
@@ -2644,7 +2644,7 @@ static void handle_end_driver_copy_async(struct fxt_ev_64 *ev, struct starpu_fxt
 
 /* Currently unused */
 STARPU_ATTRIBUTE_UNUSED
-static void handle_memnode_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr)
+static void handle_memnode_event(struct fxt_ev_native *ev, struct starpu_fxt_options *options, const char *eventstr)
 {
 	unsigned memnode = ev->param[0];
 
@@ -2652,7 +2652,7 @@ static void handle_memnode_event(struct fxt_ev_64 *ev, struct starpu_fxt_options
 		memnode_set_state(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr);
 }
 
-static void handle_data_request(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr)
+static void handle_data_request(struct fxt_ev_native *ev, struct starpu_fxt_options *options, const char *eventstr)
 {
 	unsigned memnode = ev->param[0];
 	unsigned dest = ev->param[1];
@@ -2664,7 +2664,7 @@ static void handle_data_request(struct fxt_ev_64 *ev, struct starpu_fxt_options 
 	memnode_event(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr, handle, request, prefe, prio, dest, options);
 }
 
-static void handle_memnode_event_start_3(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr)
+static void handle_memnode_event_start_3(struct fxt_ev_native *ev, struct starpu_fxt_options *options, const char *eventstr)
 {
 	unsigned memnode = ev->param[0];
 	unsigned size = ev->param[2];
@@ -2673,7 +2673,7 @@ static void handle_memnode_event_start_3(struct fxt_ev_64 *ev, struct starpu_fxt
 	memnode_event(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr, handle, 0, 0, size, memnode, options);
 }
 
-static void handle_memnode_event_start_4(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr)
+static void handle_memnode_event_start_4(struct fxt_ev_native *ev, struct starpu_fxt_options *options, const char *eventstr)
 {
 	unsigned memnode = ev->param[0];
 	//unsigned dest = ev->param[1]; // Not used
@@ -2684,7 +2684,7 @@ static void handle_memnode_event_start_4(struct fxt_ev_64 *ev, struct starpu_fxt
 	memnode_event(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr, handle, 0, prefe, size, memnode, options);
 }
 
-static void handle_memnode_event_end_3(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr)
+static void handle_memnode_event_end_3(struct fxt_ev_native *ev, struct starpu_fxt_options *options, const char *eventstr)
 {
 	unsigned memnode = ev->param[0];
 	unsigned long handle = ev->param[2];
@@ -2693,7 +2693,7 @@ static void handle_memnode_event_end_3(struct fxt_ev_64 *ev, struct starpu_fxt_o
 	memnode_event(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr, handle, 0, info, 0, memnode, options);
 }
 
-static void handle_memnode_event_start_2(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr)
+static void handle_memnode_event_start_2(struct fxt_ev_native *ev, struct starpu_fxt_options *options, const char *eventstr)
 {
 	unsigned memnode = ev->param[0];
 	unsigned long handle = ev->param[2];
@@ -2701,7 +2701,7 @@ static void handle_memnode_event_start_2(struct fxt_ev_64 *ev, struct starpu_fxt
 	memnode_event(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr, handle, 0, 0, 0, memnode, options);
 }
 
-static void handle_memnode_event_end_2(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr)
+static void handle_memnode_event_end_2(struct fxt_ev_native *ev, struct starpu_fxt_options *options, const char *eventstr)
 {
 	unsigned memnode = ev->param[0];
 	unsigned long handle = ev->param[2];
@@ -2709,7 +2709,7 @@ static void handle_memnode_event_end_2(struct fxt_ev_64 *ev, struct starpu_fxt_o
 	memnode_event(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr, handle, 0, 0, 0, memnode, options);
 }
 
-static void handle_push_memnode_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr)
+static void handle_push_memnode_event(struct fxt_ev_native *ev, struct starpu_fxt_options *options, const char *eventstr)
 {
 	unsigned memnode = ev->param[0];
 
@@ -2717,7 +2717,7 @@ static void handle_push_memnode_event(struct fxt_ev_64 *ev, struct starpu_fxt_op
 		memnode_push_state(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr);
 }
 
-static void handle_pop_memnode_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_pop_memnode_event(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	unsigned memnode = ev->param[0];
 
@@ -2725,7 +2725,7 @@ static void handle_pop_memnode_event(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		memnode_pop_state(get_event_time_stamp(ev, options), options->file_prefix, memnode);
 }
 
-static void handle_used_mem(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_used_mem(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	unsigned memnode = ev->param[0];
 
@@ -2742,7 +2742,7 @@ static void handle_used_mem(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
 	}
 }
 
-static void handle_task_submit_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, unsigned long tid, const char *eventstr, int push)
+static void handle_task_submit_event(struct fxt_ev_native *ev, struct starpu_fxt_options *options, unsigned long tid, const char *eventstr, int push)
 {
 	char *prefix = options->file_prefix;
 	double timestamp = get_event_time_stamp(ev, options);
@@ -2759,7 +2759,7 @@ static void handle_task_submit_event(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 static int curq_size = 0;
 static int nsubmitted = 0;
 
-static void handle_job_push(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_job_push(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	double current_timestamp = get_event_time_stamp(ev, options);
 
@@ -2807,7 +2807,7 @@ static void handle_job_push(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
 }
 
 
-static void handle_job_pop(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_job_pop(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	double current_timestamp = get_event_time_stamp(ev, options);
 	unsigned task = ev->param[0];
@@ -2857,17 +2857,17 @@ static void handle_job_pop(struct fxt_ev_64 *ev, struct starpu_fxt_options *opti
 	}
 }
 
-static void handle_component_new(struct fxt_ev_64 *ev, struct starpu_fxt_options *options STARPU_ATTRIBUTE_UNUSED)
+static void handle_component_new(struct fxt_ev_native *ev, struct starpu_fxt_options *options STARPU_ATTRIBUTE_UNUSED)
 {
 	_starpu_fxt_component_new(ev->param[0], get_fxt_string(ev, 1));
 }
 
-static void handle_component_connect(struct fxt_ev_64 *ev, struct starpu_fxt_options *options STARPU_ATTRIBUTE_UNUSED)
+static void handle_component_connect(struct fxt_ev_native *ev, struct starpu_fxt_options *options STARPU_ATTRIBUTE_UNUSED)
 {
 	_starpu_fxt_component_connect(ev->param[0], ev->param[1]);
 }
 
-static void handle_component_push(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_component_push(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	char *prefix = options->file_prefix;
 	double current_timestamp = get_event_time_stamp(ev, options);
@@ -2875,7 +2875,7 @@ static void handle_component_push(struct fxt_ev_64 *ev, struct starpu_fxt_option
 	_starpu_fxt_component_push(anim_file, options, current_timestamp, ev->param[0], workerid, ev->param[1], ev->param[2], ev->param[3], ev->param[4]);
 }
 
-static void handle_component_pull(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_component_pull(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	char *prefix = options->file_prefix;
 	double current_timestamp = get_event_time_stamp(ev, options);
@@ -2884,7 +2884,7 @@ static void handle_component_pull(struct fxt_ev_64 *ev, struct starpu_fxt_option
 }
 
 static
-void handle_update_task_cnt(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+void handle_update_task_cnt(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	double current_timestamp = get_event_time_stamp(ev, options);
 
@@ -2905,7 +2905,7 @@ void handle_update_task_cnt(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
 		fprintf(activity_file, "cnt_submitted\t%.9f\t%d\n", current_timestamp, nsubmitted);
 }
 
-static void handle_tag(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_tag(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	uint64_t tag;
 	unsigned long job;
@@ -2919,7 +2919,7 @@ static void handle_tag(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 		_starpu_fxt_dag_add_tag(options->file_prefix, tag, job, NULL);
 }
 
-static void handle_tag_deps(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_tag_deps(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	uint64_t child;
 	uint64_t parent;
@@ -2933,7 +2933,7 @@ static void handle_tag_deps(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
 		_starpu_fxt_dag_add_tag_deps(options->file_prefix, child, parent, NULL);
 }
 
-static void handle_task_deps(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_task_deps(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	unsigned long dep_prev = ev->param[0];
 	unsigned long dep_succ = ev->param[1];
@@ -2977,7 +2977,7 @@ static void handle_task_deps(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 	}
 }
 
-static void handle_task_end_dep(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_task_end_dep(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	unsigned long dep_prev = ev->param[0];
 	unsigned long dep_succ = ev->param[1];
@@ -3007,7 +3007,7 @@ static void handle_task_end_dep(struct fxt_ev_64 *ev, struct starpu_fxt_options 
 		_starpu_fxt_dag_add_task_end_dep(options->file_prefix, dep_succ, dep_prev);
 }
 
-static void handle_task_submit(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_task_submit(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	unsigned long job_id = ev->param[0];
 	unsigned long iteration = ev->param[1];
@@ -3025,7 +3025,7 @@ static void handle_task_submit(struct fxt_ev_64 *ev, struct starpu_fxt_options *
 	task->type = type;
 }
 
-static void handle_task_color(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_task_color(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	unsigned long job_id = ev->param[0];
 	struct task_info *task = get_task(job_id, options->file_rank);
@@ -3034,7 +3034,7 @@ static void handle_task_color(struct fxt_ev_64 *ev, struct starpu_fxt_options *o
 	task->color = color;
 }
 
-static void handle_task_exclude_from_dag(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_task_exclude_from_dag(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	unsigned long job_id = ev->param[0];
 	unsigned exclude_from_dag = ev->param[1];
@@ -3043,7 +3043,7 @@ static void handle_task_exclude_from_dag(struct fxt_ev_64 *ev, struct starpu_fxt
 	task->exclude_from_dag = exclude_from_dag;
 }
 
-static void handle_task_name(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_task_name(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	unsigned long job_id = ev->param[0];
 	char *name = get_fxt_string(ev,2);
@@ -3093,7 +3093,7 @@ static void handle_task_name(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 }
 
 #ifdef STARPU_RECURSIVE_TASKS
-static void handle_recursive_task(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_recursive_task(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	unsigned long job_id = ev->param[0];
 	int is_recursive_task = (int)ev->param[1];
@@ -3108,7 +3108,7 @@ static void handle_recursive_task(struct fxt_ev_64 *ev, struct starpu_fxt_option
 }
 #endif
 
-static void handle_task_line(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_task_line(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	unsigned long job_id = ev->param[0];
 	int line = ev->param[1];
@@ -3125,7 +3125,7 @@ static void handle_task_line(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 }
 
 
-static void handle_task_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_task_done(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	/* Ideally, we would be able to dump tasks as they terminate, to save
 	 * memory.
@@ -3144,7 +3144,7 @@ static void handle_task_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 #endif
 }
 
-static void handle_tag_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_tag_done(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	char *prefix = options->file_prefix;
 
@@ -3180,7 +3180,7 @@ static void handle_tag_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
 	_starpu_fxt_dag_set_tag_done(options->file_prefix, tag_id, color, fontcolor);
 }
 
-static void handle_mpi_barrier(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_mpi_barrier(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	int rank = ev->param[0];
 	double sync_time = ev->param[3];
@@ -3242,7 +3242,7 @@ static void show_mpi_thread(struct starpu_fxt_options *options)
 	}
 }
 
-static void handle_mpi_start(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_mpi_start(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
@@ -3257,7 +3257,7 @@ static void handle_mpi_start(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 
 }
 
-static void handle_mpi_stop(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_mpi_stop(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
@@ -3276,7 +3276,7 @@ static void handle_mpi_stop(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
 	}
 }
 
-static void handle_mpi_isend_submit_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_mpi_isend_submit_begin(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
@@ -3284,7 +3284,7 @@ static void handle_mpi_isend_submit_begin(struct fxt_ev_64 *ev, struct starpu_fx
 }
 
 static int mpi_warned;
-static void handle_mpi_isend_submit_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_mpi_isend_submit_end(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	unsigned type = ev->param[0];
 	int dest = ev->param[1];
@@ -3309,7 +3309,7 @@ static void handle_mpi_isend_submit_end(struct fxt_ev_64 *ev, struct starpu_fxt_
 		_starpu_fxt_mpi_add_send_transfer(options->file_rank, dest, mpi_tag, size, date, jobid, handle, type, prio);
 }
 
-static void handle_mpi_isend_numa_node(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_mpi_isend_numa_node(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	int dest = ev->param[0];
 	long jobid = ev->param[1];
@@ -3319,49 +3319,49 @@ static void handle_mpi_isend_numa_node(struct fxt_ev_64 *ev, struct starpu_fxt_o
 		_starpu_fxt_mpi_send_transfer_set_numa_node(options->file_rank, dest, jobid, numa_nodes_bitmap);
 }
 
-static void handle_mpi_irecv_submit_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_mpi_irecv_submit_begin(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
 	do_mpicommthread_set_state(date, options->file_prefix, "RvS");
 }
 
-static void handle_mpi_irecv_submit_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_mpi_irecv_submit_end(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
 	do_mpicommthread_set_state(date, options->file_prefix, "P");
 }
 
-static void handle_mpi_isend_complete_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_mpi_isend_complete_begin(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
 	do_mpicommthread_set_state(date, options->file_prefix, "SdC");
 }
 
-static void handle_mpi_isend_complete_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_mpi_isend_complete_end(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
 	do_mpicommthread_set_state(date, options->file_prefix, "P");
 }
 
-static void handle_mpi_irecv_complete_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_mpi_irecv_complete_begin(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
 	do_mpicommthread_set_state(date, options->file_prefix, "RvC");
 }
 
-static void handle_mpi_irecv_complete_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_mpi_irecv_complete_end(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
 	do_mpicommthread_set_state(date, options->file_prefix, "P");
 }
 
-static void handle_mpi_irecv_terminated(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_mpi_irecv_terminated(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	int src = ev->param[0];
 	int mpi_tag = ev->param[1];
@@ -3381,7 +3381,7 @@ static void handle_mpi_irecv_terminated(struct fxt_ev_64 *ev, struct starpu_fxt_
 		_starpu_fxt_mpi_add_recv_transfer(src, options->file_rank, mpi_tag, date, jobid, handle);
 }
 
-static void handle_mpi_irecv_numa_node(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_mpi_irecv_numa_node(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	int src = ev->param[0];
 	long jobid = ev->param[1];
@@ -3391,91 +3391,91 @@ static void handle_mpi_irecv_numa_node(struct fxt_ev_64 *ev, struct starpu_fxt_o
 		_starpu_fxt_mpi_recv_transfer_set_numa_node(src, options->file_rank, jobid, numa_nodes_bitmap);
 }
 
-static void handle_mpi_sleep_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_mpi_sleep_begin(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
 	do_mpicommthread_set_state(date, options->file_prefix, "Sl");
 }
 
-static void handle_mpi_sleep_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_mpi_sleep_end(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
 	do_mpicommthread_set_state(date, options->file_prefix, "Pl");
 }
 
-static void handle_mpi_dtesting_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_mpi_dtesting_begin(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
 	do_mpicommthread_set_state(date, options->file_prefix, "DT");
 }
 
-static void handle_mpi_dtesting_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_mpi_dtesting_end(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
 	do_mpicommthread_set_state(date, options->file_prefix, "P");
 }
 
-static void handle_mpi_utesting_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_mpi_utesting_begin(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
 	do_mpicommthread_set_state(date, options->file_prefix, "UT");
 }
 
-static void handle_mpi_utesting_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_mpi_utesting_end(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
 	do_mpicommthread_set_state(date, options->file_prefix, "P");
 }
 
-static void handle_mpi_uwait_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_mpi_uwait_begin(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
 	do_mpicommthread_set_state(date, options->file_prefix, "UW");
 }
 
-static void handle_mpi_uwait_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_mpi_uwait_end(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
 	do_mpicommthread_set_state(date, options->file_prefix, "P");
 }
 
-static void handle_mpi_testing_detached_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_mpi_testing_detached_begin(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
 	do_mpicommthread_push_state(date, options->file_prefix, "TD");
 }
 
-static void handle_mpi_testing_detached_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_mpi_testing_detached_end(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
 	do_mpicommthread_pop_state(date, options->file_prefix);
 }
 
-static void handle_mpi_test_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_mpi_test_begin(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
 	do_mpicommthread_push_state(date, options->file_prefix, "MT");
 }
 
-static void handle_mpi_test_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_mpi_test_end(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
 	do_mpicommthread_pop_state(date, options->file_prefix);
 }
 
-static void handle_mpi_polling_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_mpi_polling_begin(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
@@ -3483,7 +3483,7 @@ static void handle_mpi_polling_begin(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		mpicommthread_set_state(date, options->file_prefix, "Pl");
 }
 
-static void handle_mpi_polling_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_mpi_polling_end(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
@@ -3491,7 +3491,7 @@ static void handle_mpi_polling_end(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 		mpicommthread_set_state(date, options->file_prefix, "P");
 }
 
-static void handle_mpi_driver_run_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_mpi_driver_run_begin(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
@@ -3499,7 +3499,7 @@ static void handle_mpi_driver_run_begin(struct fxt_ev_64 *ev, struct starpu_fxt_
 		mpicommthread_set_state(date, options->file_prefix, "Dr");
 }
 
-static void handle_mpi_driver_run_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_mpi_driver_run_end(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
@@ -3507,7 +3507,7 @@ static void handle_mpi_driver_run_end(struct fxt_ev_64 *ev, struct starpu_fxt_op
 		mpicommthread_set_state(date, options->file_prefix, "Pl");
 }
 
-static void handle_set_profiling(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_set_profiling(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	int status = ev->param[0];
 
@@ -3520,7 +3520,7 @@ static void handle_task_wait_for_all(void)
 	_starpu_fxt_dag_add_sync_point();
 }
 
-static void handle_string_event(struct fxt_ev_64 *ev, const char *event, struct starpu_fxt_options *options)
+static void handle_string_event(struct fxt_ev_native *ev, const char *event, struct starpu_fxt_options *options)
 {
 	/* Add an event in the trace */
 	if (out_paje_file)
@@ -3538,13 +3538,13 @@ static void handle_string_event(struct fxt_ev_64 *ev, const char *event, struct 
 		recfmt_dump_state(get_event_time_stamp(ev, options), "ProgEvent", -1, 0, event, "Program");
 }
 
-static void handle_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_event(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	char *event = get_fxt_string(ev, 0);
 	handle_string_event(ev, event, options);
 }
 
-static void handle_thread_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_thread_event(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	/* Add an event in the trace */
 	if (out_paje_file)
@@ -3715,11 +3715,11 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 		/* put the mpi thread at the top, so MPI communications nicely show up in the middle */
 		show_mpi_thread(options);
 
-	struct fxt_ev_64 ev;
+	struct fxt_ev_native ev;
 	while(1)
 	{
 		unsigned i;
-		int ret = fxt_next_ev(block, FXT_EV_TYPE_64, (struct fxt_ev *)&ev);
+		int ret = fxt_next_ev(block, FXT_EV_TYPE_NATIVE, (struct fxt_ev *)&ev);
 		for (i = ev.nb_params; i < FXT_MAX_PARAMS; i++)
 			ev.param[i] = 0;
 		if (ret != FXT_EV_OK)
@@ -4996,9 +4996,9 @@ uint64_t _starpu_fxt_find_start_time(char *filename_in)
 	fxt_blockev_t block;
 	block = fxt_blockev_enter(fut);
 
-	struct fxt_ev_64 ev;
+	struct fxt_ev_native ev;
 
-	int ret = fxt_next_ev(block, FXT_EV_TYPE_64, (struct fxt_ev *)&ev);
+	int ret = fxt_next_ev(block, FXT_EV_TYPE_NATIVE, (struct fxt_ev *)&ev);
 	STARPU_ASSERT(ret == FXT_EV_OK);
 
 #ifdef HAVE_FXT_BLOCKEV_LEAVE
@@ -5349,8 +5349,8 @@ void starpu_fxt_write_data_trace_in_dir(char *filename_in, char *dir)
 	while(1)
 	{
 		unsigned i;
-		struct fxt_ev_64 ev;
-		int ret = fxt_next_ev(block, FXT_EV_TYPE_64, (struct fxt_ev *)&ev);
+		struct fxt_ev_native ev;
+		int ret = fxt_next_ev(block, FXT_EV_TYPE_NATIVE, (struct fxt_ev *)&ev);
 		for (i = ev.nb_params; i < FXT_MAX_PARAMS; i++)
 			ev.param[i] = 0;
 		if (ret != FXT_EV_OK)

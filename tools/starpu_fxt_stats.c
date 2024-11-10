@@ -31,7 +31,7 @@
 #include <starpu.h>
 
 static fxt_t fut;
-struct fxt_ev_64 ev;
+struct fxt_ev_native ev;
 
 static uint64_t transfers[16][16];
 
@@ -156,7 +156,7 @@ int main(int argc, char **argv)
 
 	while(1)
 	{
-		ret = fxt_next_ev(block, FXT_EV_TYPE_64, (struct fxt_ev *)&ev);
+		ret = fxt_next_ev(block, FXT_EV_TYPE_NATIVE, (struct fxt_ev *)&ev);
 		if (ret != FXT_EV_OK)
 		{
 			fprintf(stderr, "no more block ...\n");
