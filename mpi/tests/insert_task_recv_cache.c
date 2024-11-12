@@ -17,6 +17,7 @@
 #include <starpu.h>
 #include <starpu_mpi.h>
 #include <math.h>
+#include <datawizard/malloc.h>
 #include "helper.h"
 
 #if !defined(STARPU_HAVE_SETENV)
@@ -95,6 +96,9 @@ void test_cache(int rank, starpu_mpi_tag_t initial_tag, char *enabled, size_t *c
 		starpu_mpi_data_register(data_handles[i], initial_tag+i, mpi_rank);
 	}
 
+	/* We shouldn't have needed to allocate anything so far */
+	STARPU_ASSERT(starpu_memory_get_used(STARPU_MAIN_RAM) == 0);
+
 	// We call starpu_mpi_task_insert twice, when the cache is enabled, the 1st time puts the
 	// data in the cache, the 2nd time allows to check the data is not sent again
 	for(i = 0; i < NB_DATA; i++)
@@ -102,9 +106,26 @@ void test_cache(int rank, starpu_mpi_tag_t initial_tag, char *enabled, size_t *c
 		ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[0], STARPU_R, data_handles[1], 0);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
 	}
+	starpu_task_wait_for_all();
+
+	if (rank == 0)
+	{
+		if (strcmp(enabled, "1") == 0)
+			/* 0 should be caching handle 1 */
+			STARPU_ASSERT(starpu_memory_get_used(STARPU_MAIN_RAM) == NB_ELEMENTS * sizeof(unsigned));
+	}
+	else
+		/* 1 shouldn't be caching anything */
+		STARPU_ASSERT(starpu_memory_get_used(STARPU_MAIN_RAM) == 0);
 
 	// Flush the cache for data_handles[1] which has been sent from node1 to node0
 	starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[1]);
+
+	starpu_task_wait_for_all();
+
+	if (!_starpu_malloc_willpin_on_node(STARPU_MAIN_RAM))
+		/* 0's cache should be flushed now too, and without GPUs we will have completely freed the buffer */
+		STARPU_ASSERT(starpu_memory_get_used(STARPU_MAIN_RAM) == 0);
 
 	// Check again
 	for(i = 0; i < NB_DATA; i++)
