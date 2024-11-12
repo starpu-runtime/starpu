@@ -985,8 +985,8 @@ static void _starpu_data_invalidate(void *data)
 	{
 		struct _starpu_data_replicate *local = &handle->per_node[node];
 
-		if (local->refcnt)
-			/* Avoid freeing chunk still in use */
+		if (local->refcnt > 1)
+			/* Avoid freeing chunk still in use by others than this function */
 			continue;
 
 		if (local->mc && local->allocated && local->automatically_allocated)
@@ -1012,7 +1012,7 @@ static void _starpu_data_invalidate(void *data)
 		{
 			struct _starpu_data_replicate *local = &handle->per_worker[worker];
 
-			if (local->mc && local->allocated && local->automatically_allocated && !local->refcnt)
+			if (local->mc && local->allocated && local->automatically_allocated && local->refcnt <= 1)
 				/* free the data copy in a lazy fashion */
 				_starpu_request_mem_chunk_removal(handle, local, starpu_worker_get_memory_node(worker), size);
 		}

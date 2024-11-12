@@ -17,6 +17,9 @@
 #ifndef __ALLOC_H__
 #define __ALLOC_H__
 
+#include <common/list.h>
+#include <common/utils.h>
+
 #pragma GCC visibility push(hidden)
 
 /** @file */
@@ -32,7 +35,7 @@ int _starpu_free_flags_on_node(unsigned dst_node, void *A, size_t dim, int flags
  * the allocation will be very expensive, and should thus be moved out from the
  * critical path
  */
-int _starpu_malloc_willpin_on_node(unsigned dst_node);
+int _starpu_malloc_willpin_on_node(unsigned dst_node) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
 
 /**
  * On CUDA which has very expensive malloc, for small sizes, allocate big
