@@ -1022,7 +1022,7 @@ pick:
 	/* get tasks from the stacks of the strategy */
 	if(!task)
 	{
-		struct _starpu_sched_ctx *sched_ctx ;
+		struct _starpu_sched_ctx *sched_ctx;
 #ifndef STARPU_NON_BLOCKING_DRIVERS
 		int been_here[STARPU_NMAX_SCHED_CTXS];
 		int i;

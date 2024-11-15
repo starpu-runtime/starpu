@@ -754,7 +754,7 @@ static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned 
 	}
 	else
 	{
-		return exp_end[best_in_ctx][selected_impl] ;
+		return exp_end[best_in_ctx][selected_impl];
 	}
 }
 

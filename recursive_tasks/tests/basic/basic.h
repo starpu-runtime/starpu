@@ -19,7 +19,7 @@
 #define PARTS 5
 #endif
 #ifndef SIZE
-#define SIZE  25
+#define SIZE 25
 #endif
 
 #define check_recursive_task(x) x*=2
