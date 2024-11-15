@@ -219,7 +219,7 @@ typedef int (*starpu_recursive_task_func_t)(struct starpu_task *, void *);
    @ingroup API_Recursive_Tasks
    Recursive Task DAG generation function
 */
-typedef void (*starpu_recursive_task_gen_dag_func_t)(struct starpu_task *t, void *arg);
+typedef void (*starpu_recursive_task_gen_dag_func_t)(struct starpu_task *, void *);
 
 /**
    @deprecated
