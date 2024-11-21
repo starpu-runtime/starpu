@@ -160,8 +160,7 @@ starpu_mpi_TESTS +=				\
 
 if STARPU_USE_MPI_MPI
 starpu_mpi_TESTS +=				\
-	load_balancer \
-	multiple_comms
+	load_balancer
 endif
 endif
 
@@ -219,6 +218,7 @@ noinst_PROGRAMS +=				\
 	insert_task_seq				\
 	insert_task_tags			\
 	multiple_send				\
+	multiple_comms				\
 	mpi_scatter_gather			\
 	mpi_reduction				\
 	user_defined_datatype			\
