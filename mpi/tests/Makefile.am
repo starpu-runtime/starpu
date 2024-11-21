@@ -160,7 +160,8 @@ starpu_mpi_TESTS +=				\
 
 if STARPU_USE_MPI_MPI
 starpu_mpi_TESTS +=				\
-	load_balancer
+	load_balancer \
+	multiple_comms
 endif
 endif
 
@@ -255,7 +256,8 @@ noinst_PROGRAMS +=				\
 	nothing					\
 	display_bindings			\
 	mpi_task_submit				\
-	wait_for_all
+	wait_for_all \
+	multiple_comms
 
 if STARPU_USE_MPI_FT
 noinst_PROGRAMS +=  \
