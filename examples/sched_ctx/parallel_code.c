@@ -74,6 +74,12 @@ int main(void)
 	int *procs1;
 
 	unsigned ncpus =  starpu_cpu_worker_get_count();
+	if (ncpus == 0)
+	{
+		// we need at least 1 cpu worker to create a parallel region
+		starpu_shutdown();
+		return 77;
+	}
 	procs1 = (int*)malloc(ncpus*sizeof(int));
 	starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, procs1, ncpus);
 	nprocs1 = ncpus;
