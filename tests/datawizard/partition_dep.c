@@ -54,6 +54,13 @@ int main(int argc, char **argv)
 	starpu_vector_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)foo, size, sizeof(*foo));
 
 	ret = starpu_task_insert(&scal_codelet, STARPU_RW, handle, 0);
+	if (ret == -ENODEV)
+	{
+		starpu_data_unregister(handle);
+		fprintf(stderr, "WARNING: No one can execute this task\n");
+		starpu_shutdown();
+		return STARPU_TEST_SKIPPED;
+	}
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
 	struct starpu_data_filter f =

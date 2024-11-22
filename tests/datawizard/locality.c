@@ -125,6 +125,7 @@ int main(int argc, char *argv[])
 						 STARPU_VALUE, &loop, sizeof(loop),
 						 STARPU_VALUE, &i, sizeof(i),
 						 0);
+			if (ret == -ENODEV) goto enodev;
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 		}
 	}
@@ -171,4 +172,14 @@ int main(int argc, char *argv[])
 
 	starpu_shutdown();
 	return EXIT_SUCCESS;
+
+ enodev:
+	for (i = 0; i < N; i++)
+	{
+		starpu_data_unregister(A[i]);
+		starpu_data_unregister(B[i]);
+	}
+	starpu_arbiter_destroy(arbiter);
+	starpu_shutdown();
+	return STARPU_TEST_SKIPPED;
 }
