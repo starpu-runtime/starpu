@@ -224,7 +224,7 @@ void starpu_data_map_filters_array(starpu_data_handle_t root_handle, int nfilter
    Plan to partition \p initial_handle into several subdata according to
    the filter \p f.
    The handles are returned into the \p children array, which has to be
-   the same size as the number of parts described in \p f. 
+   the same size as the number of parts described in \p f.
 
    Here is an example of how to use the function:
    \code{.c}
