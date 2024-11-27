@@ -53,6 +53,7 @@ struct _starpu_mct_data *starpu_mct_init_parameters(struct starpu_sched_componen
 		data->_gamma = starpu_getenv_float_default("STARPU_SCHED_GAMMA", _STARPU_SCHED_GAMMA_DEFAULT);
 		data->idle_power = starpu_getenv_float_default("STARPU_IDLE_POWER", 0.0);
 	}
+	STARPU_PTHREAD_MUTEX_INIT(&data->scheduling_mutex, NULL);
 
 	return data;
 }

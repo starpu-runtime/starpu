@@ -123,7 +123,6 @@ struct starpu_sched_component * starpu_sched_component_mct_create(struct starpu_
 	struct _starpu_mct_data *data = starpu_mct_init_parameters(params);
 
 	component->data = data;
-	STARPU_PTHREAD_MUTEX_INIT(&data->scheduling_mutex, NULL);
 
 	component->push_task = mct_push_task;
 	component->deinit_data = mct_component_deinit_data;
