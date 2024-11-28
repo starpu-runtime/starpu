@@ -122,7 +122,7 @@ void _starpu_initialize_registered_performance_models(void)
 		const char *arch = starpu_worker_get_type_as_env_var(archtype);
 		int def = archtype == STARPU_CPU_WORKER ? 1 : 0;
 		snprintf(name, sizeof(name), "STARPU_PERF_MODEL_HOMOGENEOUS_%s", arch);
-		ignore_devid[archtype] = starpu_getenv_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_CPU", def);
+		ignore_devid[archtype] = starpu_getenv_number_default(name, def);
 	}
 }
 
