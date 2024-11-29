@@ -450,10 +450,6 @@ endif
 
 
 #########################################
-
-# If some external references appear (U), it means the corresponding .c file has
-# only included <starpu.h> and not the internal src/ header which contains the
-# static inline definition
 dist-hook:
 	failed=0 ; \
 	look=""; \
@@ -468,5 +464,11 @@ dist-hook:
 	for j in $(shell find . -name \*.o) ; do \
 		nm $$j | $(GREP) -e "U \($$look\)$$" && { echo $$j ; failed=1 ; } ; \
 	done ; \
-	[ $$failed == 0 ]
-	nm -n .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.so | grep -v " [Ua-z] " | grep -v ' W '| grep -ve " _\?_\?_\?f\?starpu" | grep -ve " \(_init\|main\|smpi_simulated_main_\|_fini\|_edata\|__bss_start\|_end\|fut_getstamp\|__gcov_\|mangle_path\)" | (! grep .)
+	if [ $$failed != 0 ]; then \
+		echo "The corresponding .c files have include included <starpu.h> to get these symbols. They should also include the internal src/ header which contains the static inline definition." ; \
+		false ; \
+	fi
+	if ! nm -n .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.so | grep -v " [Ua-z] " | grep -v ' W '| grep -ve " _\?_\?_\?f\?starpu" | grep -ve " \(_init\|main\|smpi_simulated_main_\|_fini\|_edata\|__bss_start\|_end\|fut_getstamp\|__gcov_\|mangle_path\)" | (! grep .) ; then \
+		echo "These symbols are exported ; they should either be given some starpu prefix, or be made static." ; \
+		false ; \
+	fi
