@@ -151,6 +151,13 @@ the beginning of the codelet to make sure that CUBLAS is really using the proper
 stream. When using CUBLAS v2, starpu_cublas_get_local_handle() can be called to queue CUBLAS
 kernels with the proper configuration.
 
+Similary, calling starpu_cublasLt_init() makes StarPU create CUBLASLT handles
+on each CUDA device, starpu_cublasLt_get_local_handle() can then be used to
+queue CUSPARSE kernels with the proper configuration. starpu_cublasLt_shutdown() will synchronously deinitialize the CUBLASLT library on every CUDA device.
+Since CUBLASLT handles are not bundled with CUDA streams, users should call
+starpu_cuda_get_local_stream() to get a CUDA stream before calling a
+CUBLASLT API.
+
 Similarly, calling starpu_cusparse_init() makes StarPU create CUSPARSE handles
 on each CUDA device, starpu_cusparse_get_local_handle() can then be used to
 queue CUSPARSE kernels with the proper configuration. starpu_cusparse_shutdown() will synchronously deinitialize the CUSPARSE library on every CUDA device.
