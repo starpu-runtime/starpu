@@ -25,6 +25,7 @@ INPUT                  +=  @top_builddir@/doc/doxygen/starpu_config.h \
 			 @top_srcdir@/include/starpu_task_list.h \
 			 @top_srcdir@/include/starpu_task_util.h \
 			 @top_srcdir@/include/starpu_cuda.h \
+			 @top_srcdir@/include/starpu_cublasLt.h \
 			 @top_srcdir@/include/starpu_cusparse.h \
 			 @top_srcdir@/include/starpu_cublas.h \
 			 @top_srcdir@/include/starpu_cublas_v2.h \
