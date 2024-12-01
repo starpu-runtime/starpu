@@ -73,6 +73,7 @@ typedef INT_PTR intptr_t;
 #include <starpu_hip.h>
 #include <starpu_hipblas.h>
 #include <starpu_cublas.h>
+#include <starpu_cublasLt.h>
 #include <starpu_cusparse.h>
 #include <starpu_bound.h>
 #include <starpu_hash.h>

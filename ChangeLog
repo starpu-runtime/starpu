@@ -54,6 +54,7 @@ Small features:
   * Add STARPU_MPI_THREAD_MULTIPLE_SEND environment variable to enable parallel
     sending with MPI.
   * Add starpu_tag_clear
+  * Add starpu_cublasLt_init/shutdown/get_local_handle helpers.
 
 StarPU 1.4.7
 ==============================================
