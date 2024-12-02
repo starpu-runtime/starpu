@@ -39,9 +39,9 @@ static const TYPE p1_cuda = 1.0;
 static const TYPE v0_cuda = 0.0;
 #endif
 
+#include <starpu_hipblas.h>
 #ifdef STARPU_USE_HIP
 #include <hip/hip_runtime.h>
-#include <starpu_hipblas.h>
 static const TYPE p1_hip = 1.0;
 static const TYPE v0_hip = 0.0;
 #endif
