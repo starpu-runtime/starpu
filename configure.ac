@@ -4579,7 +4579,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   ; do
       test -e $x || ( mkdir -p $(dirname $x) && ln -sf $ac_abs_top_srcdir/$x $(dirname $x) )
   done
-  for x in tools julia/examples starpufft/tests examples examples/stencil mpi/tests mpi/examples socl/examples recursive_tasks/tests starpupy/examples starpu_openmp_llvm/examples \
+  for x in tools julia/examples starpufft/tests examples examples/stencil mpi/tests mpi/examples socl/examples starpupy/examples starpu_openmp_llvm/examples \
   ; do
     test -e $x/loader.c || ln -sf $ac_abs_top_srcdir/tests/loader.c $x
   done
@@ -4710,8 +4710,6 @@ AC_OUTPUT([
 	doc/doxygen_web_extensions/doxygen-config.cfg
 	tools/msvc/starpu_var.bat
 	min-dgels/Makefile
-	recursive_tasks/Makefile
-	recursive_tasks/tests/Makefile
 	julia/Makefile
 	julia/src/Makefile
 	julia/src/dynamic_compiler/Makefile
