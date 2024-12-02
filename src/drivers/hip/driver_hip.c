@@ -22,6 +22,7 @@
 
 #include <starpu.h>
 #include <starpu_hip.h>
+#include <starpu_hipblas.h>
 #include <starpu_profiling.h>
 #include <common/utils.h>
 #include <common/config.h>

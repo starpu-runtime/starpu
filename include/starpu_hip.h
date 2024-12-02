@@ -29,9 +29,6 @@
 #pragma GCC diagnostic ignored "-Wimplicit-int"
 #endif
 #pragma GCC diagnostic ignored "-Wreturn-type"
-#ifdef STARPU_USE_HIPBLAS
-#include <hipblas/hipblas.h>
-#endif
 #include <hip/hip_runtime.h>
 #include <hip/hip_runtime_api.h>
 #pragma GCC diagnostic pop

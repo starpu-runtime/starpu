@@ -22,6 +22,7 @@
 
 #ifdef STARPU_HAVE_LIBCUSPARSE
 #include <cusparse.h>
+#include <starpu_cusparse.h>
 
 static cusparseHandle_t cusparse_handles[STARPU_NMAXWORKERS];
 static cusparseHandle_t main_handle;

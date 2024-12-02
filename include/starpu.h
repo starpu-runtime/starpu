@@ -71,9 +71,7 @@ typedef INT_PTR intptr_t;
 #include <starpu_rand.h>
 #include <starpu_cuda.h>
 #include <starpu_hip.h>
-#include <starpu_hipblas.h>
 #include <starpu_cublas.h>
-#include <starpu_cusparse.h>
 #include <starpu_bound.h>
 #include <starpu_hash.h>
 #include <starpu_profiling.h>
