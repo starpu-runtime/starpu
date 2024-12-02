@@ -152,6 +152,7 @@ myPROGRAMS +=					\
 	helper/cublas_init			\
 	helper/cublasLt_init			\
 	helper/cusparse_init			\
+	helper/hipblas_init			\
 	helper/pinned_memory			\
 	helper/execute_on_all			\
 	microbenchs/display_structures_size	\
