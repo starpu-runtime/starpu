@@ -18,6 +18,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <starpu.h>
+#include <starpu_cublasLt.h>
 #include <stdlib.h>
 #include "../helper.h"
 
