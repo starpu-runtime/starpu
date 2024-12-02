@@ -37,10 +37,6 @@ if STARPU_USE_MPI
 SUBDIRS += mpi
 endif
 
-if STARPU_RECURSIVE_TASKS
-SUBDIRS += recursive_tasks
-endif
-
 if STARPU_BUILD_EXAMPLES
 SUBDIRS += examples
 endif
