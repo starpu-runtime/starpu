@@ -1271,3 +1271,101 @@ slic_%.o: %.max
 CLEANFILES += */*.max */*.class max_fpga/*.h
 endif
 
+###################
+# Recursive tasks #
+###################
+
+if !STARPU_SIMGRID
+if STARPU_RECURSIVE_TASKS
+myPROGRAMS +=			\
+	basic/b			\
+	basic/bb		\
+	basic/btb		\
+	basic/btb_func		\
+	basic/bbt		\
+	basic/brob		\
+	basic/btt		\
+	basic/bbtt		\
+	basic/tbbt		\
+	basic/tbtbt		\
+	basic/brt		\
+	basic/brbtt		\
+	basic/sync		\
+	basic/gemm_dag		\
+	basic/b2t		\
+	basic/brec		\
+	basic/brec_level	\
+	basic/read		\
+	basic/tbrbtt		\
+	basic/P2bUt		\
+	basic/Nbrbt		\
+	basic/brbrbt		\
+	basic/b-nbt		\
+	basic/tbtbt-3data	\
+	basic/turnRW		\
+	basic/unpartitionRO	\
+	basic/flush		\
+	basic/brbtbrb           \
+	vector/vector
+endif
+endif
+
+basic_b_SOURCES = basic/b.c
+basic_bb_SOURCES = basic/bb.c
+basic_btb_SOURCES = basic/btb.c
+basic_btb_func_SOURCES = basic/btb_func.c
+basic_bbt_SOURCES = basic/bbt.c
+basic_brob_SOURCES = basic/brob.c
+basic_btt_SOURCES = basic/btt.c
+basic_bbtt_SOURCES = basic/bbtt.c
+basic_tbbt_SOURCES = basic/tbbt.c
+basic_tbtbt_SOURCES = basic/tbtbt.c
+basic_brt_SOURCES = basic/brt.c
+basic_brbtt_SOURCES = basic/brbtt.c
+basic_gemm_dag_SOURCES = basic/gemm_dag.c
+basic_b2t_SOURCES = basic/b2t.c
+basic_brec_SOURCES = basic/brec.c
+basic_brec_level_SOURCES = basic/brec_level.c
+basic_read_SOURCES = basic/read.c
+basic_tbrbtt_SOURCES = basic/tbrbtt.c
+basic_P2bUt_SOURCES = basic/P2bUt.c
+basic_Nbrbt_SOURCES = basic/Nbrbt.c
+basic_brbrbt_SOURCES = basic/brbrbt.c
+basic_b_nbt_SOURCES = basic/b-nbt.c
+basic_tbtbt_3data_SOURCES = basic/tbtbt-3data.c
+basic_turnRW_SOURCES = basic/turnRW.c
+basic_unpartitionRO_SOURCES = basic/unpartitionRO.c
+basic_flush_SOURCES = basic/flush.c
+basic_brbtbrb_SOURCES = basic/brbtbrb.c
+vector_vector_SOURCES = vector/vector.c
+
+if STARPU_USE_CUDA
+myPROGRAMS +=			\
+	basic/b_on_cuda
+basic_b_on_cuda_SOURCES = basic/b_on_cuda.c
+basic_b_on_cuda_SOURCES += basic/basic.cu
+basic_b_SOURCES += basic/basic.cu
+basic_bb_SOURCES += basic/basic.cu
+basic_btb_SOURCES += basic/basic.cu
+basic_btb_func_SOURCES += basic/basic.cu
+basic_brob_SOURCES += basic/basic.cu
+basic_btt_SOURCES += basic/basic.cu
+basic_brbrbt_SOURCES += basic/basic.cu
+basic_tbtbt_3data_SOURCES += basic/basic.cu
+basic_brbtbrb_SOURCES += basic/basic.cu
+basic_read_SOURCES += basic/basic.cu
+basic_b_nbt_SOURCES += basic/basic.cu
+basic_brt_SOURCES += basic/basic.cu
+basic_b2t_SOURCES += basic/basic.cu
+basic_bbt_SOURCES += basic/basic.cu
+basic_flush_SOURCES += basic/basic.cu
+basic_unpartitionRO_SOURCES += basic/basic.cu
+basic_turnRW_SOURCES += basic/basic.cu
+basic_P2bUt_SOURCES += basic/basic.cu
+basic_tbbt_SOURCES += basic/basic.cu
+basic_tbrbtt_SOURCES += basic/basic.cu
+basic_brbtt_SOURCES += basic/basic.cu
+basic_bbtt_SOURCES += basic/basic.cu
+basic_Nbrbt_SOURCES += basic/basic.cu
+basic_tbtbt_SOURCES += basic/basic.cu
+endif
