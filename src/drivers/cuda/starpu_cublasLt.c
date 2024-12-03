@@ -21,7 +21,7 @@
 #include <core/workers.h>
 
 #ifdef STARPU_HAVE_LIBCUBLASLT
-#include <cublasLt.h>
+#include <starpu_cublasLt.h>
 
 static cublasLtHandle_t cublasLt_handles[STARPU_NMAXWORKERS];
 static cublasLtHandle_t main_handle;
