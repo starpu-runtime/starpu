@@ -90,7 +90,8 @@ EXTRA_DIST =					\
 	maxfpga/Task2.maxj	\
 	maxfpga/Task3.maxj	\
 	datawizard/interfaces/test_interfaces.sh \
-	traces/fxt.sh
+	traces/fxt.sh \
+	recursive_tasks/basic/basic.h
 
 CLEANFILES = 					\
 	*.gcno *.gcda *.linkinfo core starpu_idle_microsec.log *.mod *.png *.output tasks.rec perfs.rec */perfs.rec */*/perfs.rec perfs2.rec fortran90/starpu_mod.f90 bandwidth-*.dat bandwidth.gp bandwidth.eps bandwidth.svg *.csv *.md *.Rmd *.pdf *.html
