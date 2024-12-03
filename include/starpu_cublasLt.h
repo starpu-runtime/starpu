@@ -18,6 +18,7 @@
 #define __STARPU_CUBLASLT_H__
 
 #ifdef STARPU_USE_CUDA
+#include <library_types.h>
 #include <cublasLt.h>
 #endif
 
