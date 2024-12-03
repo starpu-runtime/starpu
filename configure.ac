@@ -1650,9 +1650,11 @@ if test x$enable_cuda = xyes; then
 	SAVED_LIBS="${LIBS}"
 	AC_CHECK_HEADERS([cuda_gl_interop.h])
 
-    AC_CHECK_LIB([cublasLt], [cublasLtCreate],
-             [AC_DEFINE([STARPU_HAVE_LIBCUBLASLT], [1], [Define to 1 if you have the cublasLt library])
-              STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcublasLt"])
+	AC_CHECK_HEADERS([cublasLt.h], [
+		AC_CHECK_LIB([cublasLt], [cublasLtCreate],
+		     [AC_DEFINE([STARPU_HAVE_LIBCUBLASLT], [1], [Define to 1 if you have the cublasLt library])
+		      STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcublasLt"])
+	])
 
 	AC_CHECK_LIB([cusparse], [cusparseCreate],
 		     [AC_DEFINE([STARPU_HAVE_LIBCUSPARSE], [1], [Define to 1 if you have the cusparse library])
