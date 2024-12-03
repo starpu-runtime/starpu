@@ -318,7 +318,7 @@ void starpu_mpi_cached_send_clear(starpu_data_handle_t data_handle)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&_cache_mutex);
 }
 
-int starpu_mpi_cached_send_set(starpu_data_handle_t data_handle, int dest)
+int starpu_mpi_cached_send_set(starpu_data_handle_t data_handle, int dest, MPI_Comm comm)
 {
 	struct _starpu_mpi_data *mpi_data = data_handle->mpi_data;
 
@@ -328,6 +328,18 @@ int starpu_mpi_cached_send_set(starpu_data_handle_t data_handle, int dest)
 	STARPU_MPI_ASSERT_MSG(dest < _starpu_cache_comm_size, "Node %d invalid. Max node is %d\n", dest, _starpu_cache_comm_size);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&_cache_mutex);
+
+	MPI_Comm comm_default = MPI_COMM_WORLD;
+	if(comm != comm_default) {
+		int translated_rank;
+		MPI_Group group_default;
+		MPI_Group group_user;
+		MPI_Comm_group(comm_default, &group_default);
+		MPI_Comm_group(comm, &group_user);
+		MPI_Group_translate_ranks(group_user, 1, &dest, group_default, &translated_rank);
+		dest = translated_rank;
+	}
+	
 	int already_sent = mpi_data->cache_sent[dest];
 	if (mpi_data->cache_sent[dest] == 0)
 	{
