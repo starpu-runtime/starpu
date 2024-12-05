@@ -18,8 +18,10 @@
 #define __STARPU_CUBLASLT_H__
 
 #ifdef STARPU_USE_CUDA
+#ifdef STARPU_HAVE_LIBCUBLASLT
 #include <library_types.h>
 #include <cublasLt.h>
+#endif
 #endif
 
 #ifdef __cplusplus
@@ -45,12 +47,14 @@ void starpu_cublasLt_init(void);
 void starpu_cublasLt_shutdown(void);
 
 #ifdef STARPU_USE_CUDA
+#ifdef STARPU_HAVE_LIBCUBLASLT
 /**
    Return the CUBLASLT handle to be used to queue CUBLASLT
    kernels. It is properly initialized and configured for multistream by
    starpu_cublasLt_init(). See \ref CUDA-specificOptimizations for more details.
 */
 cublasLtHandle_t starpu_cublasLt_get_local_handle(void);
+#endif
 #endif
 
 /** @} */
