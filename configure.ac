@@ -3323,29 +3323,6 @@ if test "x$check_flags" != "x" ; then
 	done
 fi
 
-########################################################################
-#                                                                      #
-#                     Parallel worker support                          #
-#                                                                      #
-########################################################################
-
-default_enable_parallel_worker=yes
-if test x$starpu_darwin = xyes ; then
-   default_enable_parallel_worker=no
-fi
-AC_ARG_ENABLE(parallel-worker, [AS_HELP_STRING([--enable-parallel-worker], [build the parallel worker support])],
-			enable_parallel_worker=$enableval, enable_parallel_worker=$default_enable_parallel_worker)
-
-AC_MSG_CHECKING(for parallel worker support)
-
-if test x$enable_parallel_worker = xyes; then
-	AC_DEFINE(STARPU_PARALLEL_WORKER, [1], [Define this to enable parallel worker support])
-	AC_OPENMP
-fi
-
-AM_CONDITIONAL([STARPU_PARALLEL_WORKER], [test "x$enable_parallel_worker" = "xyes"])
-AC_MSG_RESULT($enable_parallel_worker)
-
 ###############################################################################
 #                                                                             #
 #                            OpenMP LLVM runtime support                      #
@@ -3417,6 +3394,46 @@ AM_CONDITIONAL([STARPU_OPENMP], [test "x$enable_openmp" = "xyes"])
 AC_MSG_RESULT($enable_openmp $openmp_msg)
 
 AM_CONDITIONAL([STARPU_HAVE_OPENMP],[test x$enable_simgrid = xno -a -n "$OPENMP_CFLAGS" -a x$starpu_windows != xyes])
+
+########################################################################
+#                                                                      #
+#                     Parallel worker support                          #
+#                                                                      #
+########################################################################
+
+default_enable_parallel_worker=maybe
+parallel_worker_error=""
+if test x$enable_openmp = xno ; then
+   parallel_worker_error="as OpenMP is disabled"
+   default_enable_parallel_worker=no
+fi
+if test x$starpu_darwin = xyes ; then
+   parallel_worker_error="as running on Darwin architecture"
+   default_enable_parallel_worker=no
+fi
+
+AC_ARG_ENABLE(parallel-worker, [AS_HELP_STRING([--enable-parallel-worker], [build the parallel worker support])],
+			enable_parallel_worker=$enableval, enable_parallel_worker=$default_enable_parallel_worker)
+
+AC_MSG_CHECKING(for parallel worker support)
+
+if test x$enable_parallel_worker = xyes; then
+   if test "x$parallel_worker_error" != "x" ; then
+      AC_MSG_ERROR([Parallel workers requested but not available $parallel_worker_error])
+   fi
+fi
+
+if test x$enable_parallel_worker = xmaybe; then
+   enable_parallel_worker=yes
+fi
+
+if test x$enable_parallel_worker = xyes; then
+	AC_DEFINE(STARPU_PARALLEL_WORKER, [1], [Define this to enable parallel worker support])
+	AC_OPENMP
+fi
+
+AM_CONDITIONAL([STARPU_PARALLEL_WORKER], [test "x$enable_parallel_worker" = "xyes"])
+AC_MSG_RESULT($enable_parallel_worker)
 
 ###############################################################################
 #                                                                             #
