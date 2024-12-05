@@ -38,7 +38,7 @@ cd chameleon
 git show HEAD
 mkdir build
 cd build
-CFLAGS=-g cmake ../ -DCHAMELEON_USE_CUDA=ON -DCHAMELEON_USE_MPI=ON
+CFLAGS=-g cmake ../ -DCHAMELEON_USE_MPI=ON
 make -j 20
 
 set +e

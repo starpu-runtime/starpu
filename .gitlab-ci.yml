@@ -102,8 +102,8 @@ analyze_coverity:
 
 deploy_chameleon:
   extends: .deploy_template
-  image: registry.gitlab.inria.fr/solverstack/docker/distrib
-  tags: ['ci.inria.fr', 'linux', 'large', 'docker']
+  image: registry.gitlab.inria.fr/solverstack/chameleon
+  tags: ['ci.inria.fr', 'linux', 'large']
   script:
     - ./contrib/gitlab/chameleon.sh
 
