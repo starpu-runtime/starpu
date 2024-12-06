@@ -23,6 +23,9 @@ stages:
   - set-release
   - release
 
+default:
+  interruptible: true
+
 .main_template:
   rules:
     - if: ($CI_PIPELINE_SOURCE != "push") && ($CI_PIPELINE_SOURCE != "trigger")
