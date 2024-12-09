@@ -1341,6 +1341,7 @@ recursive_tasks_basic_flush_SOURCES = recursive_tasks/basic/flush.c
 recursive_tasks_basic_brbtbrb_SOURCES = recursive_tasks/basic/brbtbrb.c
 recursive_tasks_vector_vector_SOURCES = recursive_tasks/vector/vector.c
 
+if STARPU_RECURSIVE_TASKS
 if STARPU_USE_CUDA
 myPROGRAMS +=			\
 	recursive_tasks/basic/b_on_cuda
@@ -1371,3 +1372,5 @@ recursive_tasks_basic_bbtt_SOURCES += recursive_tasks/basic/basic.cu
 recursive_tasks_basic_Nbrbt_SOURCES += recursive_tasks/basic/basic.cu
 recursive_tasks_basic_tbtbt_SOURCES += recursive_tasks/basic/basic.cu
 endif
+endif
+
