@@ -670,7 +670,7 @@ just the MPI thread.
 
 This can improve performance, but depends on the MPI implementation to be really
 thread-multiple-safe. This is enabled by default when built against MPICH,
-OpenMPI ≥ 4, or MadMPI.
+OpenMPI (version superior or equal to 4), or MadMPI.
 </dd>
 
 <dt>STARPU_MPI_NOBIND</dt>
