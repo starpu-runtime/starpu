@@ -37,9 +37,8 @@ default:
 build:
   extends: .main_template
   stage: build
-  tags:
-    - starpu
-    - linux
+  image: registry.gitlab.inria.fr/starpu/starpu-docker/ci-debian12
+  tags: ['ci.inria.fr', 'linux', 'large']
   script:
     - ./contrib/gitlab/build.sh
   artifacts:
@@ -56,27 +55,30 @@ build:
   script:
     - ./contrib/gitlab/deploy.sh
 
+check_ci:
+  extends: .check_template
+  parallel:
+    matrix:
+      - NODE: [centos72amd64, macosx]
+  tags:
+    - ${NODE}
+  script:
+    - ./contrib/gitlab/deploy.sh
+
 check:
   extends: .check_template
   parallel:
     matrix:
-      - NODE: [debian12, debian10, ubuntu1604, ubuntu1804, centos72amd64, macosx]
-  tags:
-    - ${NODE}
+      - NODE: [debian12, debian10, ubuntu1604, ubuntu1804, ubuntu2004]
+  image: registry.gitlab.inria.fr/starpu/starpu-docker/ci-${NODE}
+  tags: ['ci.inria.fr', 'linux', 'large']
 
 check_simgrid:
   extends: .check_template
-  tags:
-    - starpu
-    - debian10
+  image: registry.gitlab.inria.fr/starpu/starpu-docker/ci-debian10
+  tags: ['ci.inria.fr', 'linux', 'large']
   script:
     - ./contrib/gitlab/simgrid.sh
-
-#check_macosx:
-#  extends: .check_template
-#  tags : ["macosx"]
-#  script:
-#    - STARPU_USER_CONFIGURE_OPTIONS=--disable-mpi ./contrib/gitlab/deploy.sh
 
 .analyze_template:
   extends: .main_template
