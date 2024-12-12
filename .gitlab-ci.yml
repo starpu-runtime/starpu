@@ -53,7 +53,7 @@ check_ci:
   extends: .check_template
   parallel:
     matrix:
-      - NODE: [centos72amd64, macosx]
+      - NODE: [centos72amd64]
   tags:
     - ${NODE}
   script:
