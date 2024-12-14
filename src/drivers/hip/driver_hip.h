@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -51,7 +51,6 @@ extern struct _starpu_node_ops _starpu_driver_hip_node_ops;
 extern int _starpu_nworker_per_hip;
 
 void _starpu_hip_init(void);
-unsigned _starpu_get_hip_device_count(void);
 #ifdef STARPU_HAVE_HWLOC
 struct _starpu_machine_topology;
 hwloc_obj_t _starpu_hip_get_hwloc_obj(hwloc_topology_t topology, int devid);
@@ -68,25 +67,6 @@ void *_starpu_hip_worker(void *);
 #else
 #  define _starpu_hip_discover_devices(config) ((void) config)
 #endif
-
-unsigned _starpu_hip_test_request_completion(struct _starpu_async_channel *async_channel);
-void _starpu_hip_wait_request_completion(struct _starpu_async_channel *async_channel);
-
-int _starpu_hip_copy_interface_from_cpu_to_hip(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req);
-int _starpu_hip_copy_interface_from_hip_to_hip(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req);
-int _starpu_hip_copy_interface_from_hip_to_cpu(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req);
-
-int _starpu_hip_copy_data_from_hip_to_hip(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel);
-int _starpu_hip_copy_data_from_hip_to_cpu(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel);
-int _starpu_hip_copy_data_from_cpu_to_hip(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel);
-
-int _starpu_hip_copy2d_data_from_hip_to_hip(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t blocksize, size_t numblocks, size_t ld_src, size_t ld_dst, struct _starpu_async_channel *async_channel);
-int _starpu_hip_copy2d_data_from_hip_to_cpu(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t blocksize, size_t numblocks, size_t ld_src, size_t ld_dst, struct _starpu_async_channel *async_channel);
-int _starpu_hip_copy2d_data_from_cpu_to_hip(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t blocksize, size_t numblocks, size_t ld_src, size_t ld_dst, struct _starpu_async_channel *async_channel);
-
-int _starpu_hip_is_direct_access_supported(unsigned node, unsigned handling_node);
-uintptr_t _starpu_hip_malloc_on_node(unsigned dst_node, size_t size, int flags);
-void _starpu_hip_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, int flags);
 
 #pragma GCC visibility pop
 

@@ -46,8 +46,6 @@ void _starpu_deinit_mpi_config(struct _starpu_machine_config *config);
 void _starpu_mpi_source_init(struct _starpu_mp_node *node);
 void _starpu_mpi_source_deinit(struct _starpu_mp_node *node);
 
-int _starpu_mpi_is_direct_access_supported(unsigned node, unsigned handling_node);
-
 #endif /* STARPU_USE_MPI_MASTER_SLAVE */
 
 #pragma GCC visibility pop

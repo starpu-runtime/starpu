@@ -91,7 +91,10 @@ int _starpu_driver_copy_data_1_to_1(starpu_data_handle_t handle,
 
 int _starpu_copy_interface_any_to_any(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req);
 
+/* Just test for request completion */
 unsigned _starpu_driver_test_request_completion(struct _starpu_async_channel *async_channel);
+
+/* Wait for request completion. Only used at starpu_shutdown */
 void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_channel);
 
 #ifdef __cplusplus

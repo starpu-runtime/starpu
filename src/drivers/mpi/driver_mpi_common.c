@@ -436,6 +436,7 @@ unsigned int _starpu_mpi_common_test_event(struct _starpu_async_channel * event)
 /* - In device to device communications, the first ack received by host
  * is considered as the sender (but it cannot be, in fact, the sender)
  */
+/* Only used at starpu_shutdown */
 void _starpu_mpi_common_wait_request_completion(struct _starpu_async_channel * event)
 {
 	struct _starpu_mpi_ms_async_event *mpi_ms_event = _starpu_mpi_ms_async_event(&event->event);

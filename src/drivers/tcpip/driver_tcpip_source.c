@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2021-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2021-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -318,14 +318,14 @@ void *_starpu_tcpip_src_worker(void *arg)
 	return NULL;
 }
 
-int _starpu_tcpip_is_direct_access_supported(unsigned node, unsigned handling_node)
+static int _starpu_tcpip_is_direct_access_supported(unsigned node, unsigned handling_node)
 {
 	(void) node;
 	enum starpu_node_kind kind = starpu_node_get_kind(handling_node);
 	return (kind == STARPU_TCPIP_MS_RAM);
 }
 
-uintptr_t _starpu_tcpip_map(uintptr_t src, size_t src_offset, unsigned src_node STARPU_ATTRIBUTE_UNUSED, unsigned dst_node, size_t size, int *ret)
+static uintptr_t _starpu_tcpip_map(uintptr_t src, size_t src_offset, unsigned src_node STARPU_ATTRIBUTE_UNUSED, unsigned dst_node, size_t size, int *ret)
 {
 	if(!_starpu_tcpip_mp_has_local())
 	{
@@ -345,14 +345,14 @@ uintptr_t _starpu_tcpip_map(uintptr_t src, size_t src_offset, unsigned src_node 
 	return map_addr;
 }
 
-int _starpu_tcpip_unmap(uintptr_t src STARPU_ATTRIBUTE_UNUSED, size_t src_offset STARPU_ATTRIBUTE_UNUSED, unsigned src_node STARPU_ATTRIBUTE_UNUSED, uintptr_t dst, unsigned dst_node, size_t size)
+static int _starpu_tcpip_unmap(uintptr_t src STARPU_ATTRIBUTE_UNUSED, size_t src_offset STARPU_ATTRIBUTE_UNUSED, unsigned src_node STARPU_ATTRIBUTE_UNUSED, uintptr_t dst, unsigned dst_node, size_t size)
 {
 	_starpu_src_common_unmap(dst_node, dst, size);
 
 	return 0;
 }
 
-int _starpu_tcpip_update_map(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size)
+static int _starpu_tcpip_update_map(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size)
 {
 	(void) src;
 	(void) src_offset;

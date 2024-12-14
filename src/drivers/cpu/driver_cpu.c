@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
@@ -63,6 +63,11 @@
 
 static unsigned already_busy_cpus;
 
+static void _starpu_cpu_init_worker_binding(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg);
+static void _starpu_cpu_init_worker_memory(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg);
+
+static void *_starpu_cpu_worker(void *);
+
 static struct _starpu_driver_info driver_info =
 {
 	.name_upper = "CPU",
@@ -79,6 +84,7 @@ static struct _starpu_driver_info driver_info =
 	.init_worker_memory = _starpu_cpu_init_worker_memory,
 };
 
+static struct _starpu_node_ops _starpu_driver_cpu_node_ops;
 static struct _starpu_memory_driver_info memory_driver_info =
 {
 	.name_upper = "NUMA",
@@ -130,14 +136,14 @@ void _starpu_init_cpu_config(struct _starpu_machine_topology *topology, struct _
 #endif
 
 /* Bind the driver on a CPU core */
-void _starpu_cpu_init_worker_binding(struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
+static void _starpu_cpu_init_worker_binding(struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
 {
 	/* Dedicate a cpu core to that worker */
 	workerarg->bindid = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, NULL, 0);;
 }
 
 /* Set up memory and buses */
-void _starpu_cpu_init_worker_memory(struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
+static void _starpu_cpu_init_worker_memory(struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
 {
 	unsigned memory_node = -1;
 	int numa_logical_id = _starpu_get_logical_numa_node_worker(workerarg->workerid);
@@ -162,7 +168,7 @@ void _starpu_cpu_init_worker_memory(struct _starpu_machine_config *config STARPU
 
 #ifdef STARPU_USE_CPU
 /* This is run from the driver thread to initialize the driver CUDA context */
-int _starpu_cpu_driver_init(struct _starpu_worker *cpu_worker)
+static int _starpu_cpu_driver_init(struct _starpu_worker *cpu_worker)
 {
 	int devid = cpu_worker->devid;
 
@@ -198,7 +204,7 @@ int _starpu_cpu_driver_init(struct _starpu_worker *cpu_worker)
 	return 0;
 }
 
-int _starpu_cpu_driver_deinit(struct _starpu_worker *cpu_worker)
+static int _starpu_cpu_driver_deinit(struct _starpu_worker *cpu_worker)
 {
 	_STARPU_TRACE_WORKER_DEINIT_START;
 
@@ -223,7 +229,7 @@ int _starpu_cpu_driver_deinit(struct _starpu_worker *cpu_worker)
 }
 #endif /* STARPU_USE_CPU */
 
-uintptr_t _starpu_cpu_malloc_on_node(unsigned dst_node, size_t size, int flags)
+static uintptr_t _starpu_cpu_malloc_on_node(unsigned dst_node, size_t size, int flags)
 {
 	uintptr_t addr = 0;
 	_starpu_malloc_flags_on_node(dst_node, (void**) &addr, size,
@@ -241,7 +247,7 @@ uintptr_t _starpu_cpu_malloc_on_node(unsigned dst_node, size_t size, int flags)
 	return addr;
 }
 
-void _starpu_cpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, int flags)
+static void _starpu_cpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, int flags)
 {
 	_starpu_free_flags_on_node(dst_node, (void*)addr, size,
 #if defined(STARPU_USE_CUDA) && !defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
@@ -252,7 +258,7 @@ void _starpu_cpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, in
 				   );
 }
 
-int _starpu_cpu_copy_interface(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
+static int _starpu_cpu_copy_interface(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
 {
 	int src_kind = starpu_node_get_kind(src_node);
 	int dst_kind = starpu_node_get_kind(dst_node);
@@ -270,7 +276,7 @@ int _starpu_cpu_copy_interface(starpu_data_handle_t handle, void *src_interface,
 	return ret;
 }
 
-int _starpu_cpu_copy_data(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
+static int _starpu_cpu_copy_data(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
 {
 	int src_kind = starpu_node_get_kind(src_node);
 	int dst_kind = starpu_node_get_kind(dst_node);
@@ -282,14 +288,14 @@ int _starpu_cpu_copy_data(uintptr_t src, size_t src_offset, unsigned src_node, u
 	return 0;
 }
 
-int _starpu_cpu_is_direct_access_supported(unsigned node, unsigned handling_node)
+static int _starpu_cpu_is_direct_access_supported(unsigned node, unsigned handling_node)
 {
 	(void) node;
 	(void) handling_node;
 	return 1;
 }
 
-uintptr_t _starpu_cpu_map(uintptr_t src, size_t src_offset, unsigned src_node, unsigned dst_node, size_t size, int *ret)
+static uintptr_t _starpu_cpu_map(uintptr_t src, size_t src_offset, unsigned src_node, unsigned dst_node, size_t size, int *ret)
 {
 	(void) src_node;
 	(void) dst_node;
@@ -299,7 +305,7 @@ uintptr_t _starpu_cpu_map(uintptr_t src, size_t src_offset, unsigned src_node, u
 	return src + src_offset;
 }
 
-int _starpu_cpu_unmap(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, unsigned dst_node, size_t size)
+static int _starpu_cpu_unmap(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, unsigned dst_node, size_t size)
 {
 	(void) src;
 	(void) src_offset;
@@ -311,7 +317,7 @@ int _starpu_cpu_unmap(uintptr_t src, size_t src_offset, unsigned src_node, uintp
 	return 0;
 }
 
-int _starpu_cpu_update_map(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size)
+static int _starpu_cpu_update_map(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size)
 {
 	(void) src;
 	(void) src_offset;
@@ -560,7 +566,7 @@ static int _starpu_cpu_driver_execute_task(struct _starpu_worker *cpu_worker, st
 }
 
 /* One iteration of the main driver loop */
-int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
+static int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 {
 	unsigned memnode = cpu_worker->memory_node;
 	int workerid = cpu_worker->workerid;
@@ -697,7 +703,7 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 	return 0;
 }
 
-void *_starpu_cpu_worker(void *arg)
+static void *_starpu_cpu_worker(void *arg)
 {
 	struct _starpu_worker *worker = arg;
 
@@ -723,21 +729,21 @@ void *_starpu_cpu_worker(void *arg)
 	return NULL;
 }
 
-int _starpu_cpu_driver_run(struct _starpu_worker *worker)
+static int _starpu_cpu_driver_run(struct _starpu_worker *worker)
 {
 	_starpu_cpu_worker(worker);
 
 	return 0;
 }
 
-int _starpu_cpu_driver_set_devid(struct starpu_driver *driver, struct _starpu_worker *worker)
+static int _starpu_cpu_driver_set_devid(struct starpu_driver *driver, struct _starpu_worker *worker)
 {
 	driver->id.cpu_id = worker->devid;
 
 	return 0;
 }
 
-int _starpu_cpu_driver_is_devid(struct starpu_driver *driver, struct _starpu_worker *worker)
+static int _starpu_cpu_driver_is_devid(struct starpu_driver *driver, struct _starpu_worker *worker)
 {
 	return driver->id.cpu_id == worker->devid;
 }
@@ -753,7 +759,7 @@ struct _starpu_driver_ops _starpu_driver_cpu_ops =
 };
 #endif /* STARPU_USE_CPU */
 
-struct _starpu_node_ops _starpu_driver_cpu_node_ops =
+static struct _starpu_node_ops _starpu_driver_cpu_node_ops =
 {
 	.name = "cpu driver",
 

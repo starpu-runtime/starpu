@@ -163,6 +163,8 @@ int _starpu_handle_node_prefetch_requests(unsigned handling_node, unsigned peer_
 int _starpu_handle_node_idle_requests(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout, enum _starpu_may_alloc may_alloc, unsigned *pushed);
 
 int _starpu_handle_pending_node_data_requests(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout);
+
+/* Only used at starpu_shutdown */
 int _starpu_handle_all_pending_node_data_requests(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout);
 
 int _starpu_check_that_no_data_request_exists(unsigned handling_node);

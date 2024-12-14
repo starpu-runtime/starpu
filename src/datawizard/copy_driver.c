@@ -740,6 +740,7 @@ int starpu_interface_copynd(uintptr_t src, size_t src_offset, unsigned src_node,
 	return ret;
 }
 
+/* Only used at starpu_shutdown */
 void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_channel)
 {
 #ifdef STARPU_SIMGRID

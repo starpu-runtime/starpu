@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2021, 2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -23,6 +23,7 @@
 #include <datawizard/coherency.h>
 #include <datawizard/memory_nodes.h>
 
+static struct _starpu_node_ops _starpu_driver_disk_node_ops;
 static struct _starpu_memory_driver_info memory_driver_info =
 {
 	.name_upper = "Disk",
@@ -35,7 +36,7 @@ void _starpu_disk_preinit(void)
 	_starpu_memory_driver_info_register(STARPU_DISK_RAM, &memory_driver_info);
 }
 
-uintptr_t _starpu_disk_malloc_on_node(unsigned dst_node, size_t size, int flags)
+static uintptr_t _starpu_disk_malloc_on_node(unsigned dst_node, size_t size, int flags)
 {
 	(void) flags;
 	uintptr_t addr = 0;
@@ -43,34 +44,34 @@ uintptr_t _starpu_disk_malloc_on_node(unsigned dst_node, size_t size, int flags)
 	return addr;
 }
 
-void _starpu_disk_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, int flags)
+static void _starpu_disk_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, int flags)
 {
 	(void) flags;
 	_starpu_disk_free(dst_node, (void *) addr , size);
 }
 
-int _starpu_disk_copy_src_to_disk(void * src, unsigned src_node, void * dst, size_t dst_offset, unsigned dst_node, size_t size, void * async_channel)
+static int _starpu_disk_copy_src_to_disk(void * src, unsigned src_node, void * dst, size_t dst_offset, unsigned dst_node, size_t size, void * async_channel)
 {
 	STARPU_ASSERT(starpu_node_get_kind(src_node) == STARPU_CPU_RAM);
 
 	return _starpu_disk_write(src_node, dst_node, dst, src, dst_offset, size, async_channel);
 }
 
-int _starpu_disk_copy_disk_to_src(void * src, size_t src_offset, unsigned src_node, void * dst, unsigned dst_node, size_t size, void * async_channel)
+static int _starpu_disk_copy_disk_to_src(void * src, size_t src_offset, unsigned src_node, void * dst, unsigned dst_node, size_t size, void * async_channel)
 {
 	STARPU_ASSERT(starpu_node_get_kind(dst_node) == STARPU_CPU_RAM);
 
 	return _starpu_disk_read(src_node, dst_node, src, dst, src_offset, size, async_channel);
 }
 
-int _starpu_disk_copy_disk_to_disk(void * src, size_t src_offset, unsigned src_node, void * dst, size_t dst_offset, unsigned dst_node, size_t size, void * async_channel)
+static int _starpu_disk_copy_disk_to_disk(void * src, size_t src_offset, unsigned src_node, void * dst, size_t dst_offset, unsigned dst_node, size_t size, void * async_channel)
 {
 	STARPU_ASSERT(starpu_node_get_kind(src_node) == STARPU_DISK_RAM && starpu_node_get_kind(dst_node) == STARPU_DISK_RAM);
 
 	return _starpu_disk_copy(src_node, src, src_offset, dst_node, dst, dst_offset, size, async_channel);
 }
 
-unsigned _starpu_disk_test_request_completion(struct _starpu_async_channel *async_channel)
+static unsigned _starpu_disk_test_request_completion(struct _starpu_async_channel *async_channel)
 {
 	struct _starpu_disk_event *disk_event = _starpu_disk_get_event(&async_channel->event);
 	unsigned success = starpu_disk_test_request(async_channel);
@@ -90,7 +91,8 @@ unsigned _starpu_disk_test_request_completion(struct _starpu_async_channel *asyn
 	return success;
 }
 
-void _starpu_disk_wait_request_completion(struct _starpu_async_channel *async_channel)
+/* Only used at starpu_shutdown */
+static void _starpu_disk_wait_request_completion(struct _starpu_async_channel *async_channel)
 {
 	struct _starpu_disk_event *disk_event = _starpu_disk_get_event(&async_channel->event);
 	starpu_disk_wait_request(async_channel);
@@ -109,7 +111,7 @@ void _starpu_disk_wait_request_completion(struct _starpu_async_channel *async_ch
 	}
 }
 
-int _starpu_disk_copy_interface_from_disk_to_cpu(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
+static int _starpu_disk_copy_interface_from_disk_to_cpu(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
 {
 	int src_kind = starpu_node_get_kind(src_node);
 	int dst_kind = starpu_node_get_kind(dst_node);
@@ -153,7 +155,7 @@ int _starpu_disk_copy_interface_from_disk_to_cpu(starpu_data_handle_t handle, vo
 	return ret;
 }
 
-int _starpu_disk_copy_interface_from_disk_to_disk(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
+static int _starpu_disk_copy_interface_from_disk_to_disk(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
 {
 	int src_kind = starpu_node_get_kind(src_node);
 	int dst_kind = starpu_node_get_kind(dst_node);
@@ -174,7 +176,7 @@ int _starpu_disk_copy_interface_from_disk_to_disk(starpu_data_handle_t handle, v
 	return ret;
 }
 
-int _starpu_disk_copy_interface_from_cpu_to_disk(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
+static int _starpu_disk_copy_interface_from_cpu_to_disk(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
 {
 	int src_kind = starpu_node_get_kind(src_node);
 	int dst_kind = starpu_node_get_kind(dst_node);
@@ -219,7 +221,7 @@ int _starpu_disk_copy_interface_from_cpu_to_disk(starpu_data_handle_t handle, vo
 	return ret;
 }
 
-int _starpu_disk_copy_data_from_disk_to_cpu(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
+static int _starpu_disk_copy_data_from_disk_to_cpu(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
 {
 	int src_kind = starpu_node_get_kind(src_node);
 	int dst_kind = starpu_node_get_kind(dst_node);
@@ -230,7 +232,7 @@ int _starpu_disk_copy_data_from_disk_to_cpu(uintptr_t src, size_t src_offset, un
 					     size, async_channel);
 }
 
-int _starpu_disk_copy_data_from_disk_to_disk(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
+static int _starpu_disk_copy_data_from_disk_to_disk(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
 {
 	int src_kind = starpu_node_get_kind(src_node);
 	int dst_kind = starpu_node_get_kind(dst_node);
@@ -241,7 +243,7 @@ int _starpu_disk_copy_data_from_disk_to_disk(uintptr_t src, size_t src_offset, u
 					      size, async_channel);
 }
 
-int _starpu_disk_copy_data_from_cpu_to_disk(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
+static int _starpu_disk_copy_data_from_cpu_to_disk(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
 {
 	int src_kind = starpu_node_get_kind(src_node);
 	int dst_kind = starpu_node_get_kind(dst_node);
@@ -252,7 +254,7 @@ int _starpu_disk_copy_data_from_cpu_to_disk(uintptr_t src, size_t src_offset, un
 					     size, async_channel);
 }
 
-int _starpu_disk_is_direct_access_supported(unsigned node, unsigned handling_node)
+static int _starpu_disk_is_direct_access_supported(unsigned node, unsigned handling_node)
 {
 	/* Each worker can manage disks but disk <-> disk is not always allowed */
 	switch (starpu_node_get_kind(handling_node))
@@ -266,7 +268,7 @@ int _starpu_disk_is_direct_access_supported(unsigned node, unsigned handling_nod
 	}
 }
 
-struct _starpu_node_ops _starpu_driver_disk_node_ops =
+static struct _starpu_node_ops _starpu_driver_disk_node_ops =
 {
 	.name = "disk driver",
 
