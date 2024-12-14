@@ -318,39 +318,39 @@ void *_starpu_tcpip_src_worker(void *arg)
 	return NULL;
 }
 
-uintptr_t _starpu_driver_tcpip_allocate(int devid, size_t size, int flags)
+static uintptr_t _starpu_driver_tcpip_allocate(int devid, size_t size, int flags)
 {
 	return _starpu_src_common_allocate(STARPU_TCPIP_MS_WORKER, devid, size, flags);
 }
 
-void _starpu_driver_tcpip_free(int devid, uintptr_t addr, size_t size, int flags)
+static void _starpu_driver_tcpip_free(int devid, uintptr_t addr, size_t size, int flags)
 {
 	_starpu_src_common_free(STARPU_TCPIP_MS_WORKER, devid, addr, size, flags);
 }
 
-int _starpu_tcpip_is_direct_access_supported(unsigned node, unsigned handling_node)
+static int _starpu_tcpip_is_direct_access_supported(unsigned node, unsigned handling_node)
 {
 	(void) node;
 	enum starpu_node_kind kind = starpu_node_get_kind(handling_node);
 	return (kind == STARPU_TCPIP_MS_RAM);
 }
 
-int _starpu_driver_tcpip_copy_data_host_to_sink(uintptr_t src, size_t src_offset, int src_devid, uintptr_t dst, size_t dst_offset, int dst_devid, size_t size, struct _starpu_async_channel *async_channel)
+static int _starpu_driver_tcpip_copy_data_host_to_sink(uintptr_t src, size_t src_offset, int src_devid, uintptr_t dst, size_t dst_offset, int dst_devid, size_t size, struct _starpu_async_channel *async_channel)
 {
 	return _starpu_src_common_copy_data_host_to_sink(src, src_offset, src_devid, dst, dst_offset, STARPU_TCPIP_MS_WORKER, dst_devid, size, async_channel);
 }
 
-int _starpu_driver_tcpip_copy_data_sink_to_host(uintptr_t src, size_t src_offset, int src_devid, uintptr_t dst, size_t dst_offset, int dst_devid, size_t size, struct _starpu_async_channel *async_channel)
+static int _starpu_driver_tcpip_copy_data_sink_to_host(uintptr_t src, size_t src_offset, int src_devid, uintptr_t dst, size_t dst_offset, int dst_devid, size_t size, struct _starpu_async_channel *async_channel)
 {
 	return _starpu_src_common_copy_data_sink_to_host(src, src_offset, STARPU_TCPIP_MS_WORKER, src_devid, dst, dst_offset, dst_devid, size, async_channel);
 }
 
-int _starpu_driver_tcpip_copy_data_sink_to_sink(uintptr_t src, size_t src_offset, int src_devid, uintptr_t dst, size_t dst_offset, int dst_devid, size_t size, struct _starpu_async_channel *async_channel)
+static int _starpu_driver_tcpip_copy_data_sink_to_sink(uintptr_t src, size_t src_offset, int src_devid, uintptr_t dst, size_t dst_offset, int dst_devid, size_t size, struct _starpu_async_channel *async_channel)
 {
 	return _starpu_src_common_copy_data_sink_to_sink(src, src_offset, STARPU_TCPIP_MS_WORKER, src_devid, dst, dst_offset, STARPU_TCPIP_MS_WORKER, dst_devid, size, async_channel);
 }
 
-uintptr_t _starpu_tcpip_map(uintptr_t src, size_t src_offset, unsigned src_node STARPU_ATTRIBUTE_UNUSED, unsigned dst_node, size_t size, int *ret)
+static uintptr_t _starpu_tcpip_map(uintptr_t src, size_t src_offset, unsigned src_node STARPU_ATTRIBUTE_UNUSED, unsigned dst_node, size_t size, int *ret)
 {
 	if(!_starpu_tcpip_mp_has_local())
 	{
@@ -370,14 +370,14 @@ uintptr_t _starpu_tcpip_map(uintptr_t src, size_t src_offset, unsigned src_node 
 	return map_addr;
 }
 
-int _starpu_tcpip_unmap(uintptr_t src STARPU_ATTRIBUTE_UNUSED, size_t src_offset STARPU_ATTRIBUTE_UNUSED, unsigned src_node STARPU_ATTRIBUTE_UNUSED, uintptr_t dst, unsigned dst_node, size_t size)
+static int _starpu_tcpip_unmap(uintptr_t src STARPU_ATTRIBUTE_UNUSED, size_t src_offset STARPU_ATTRIBUTE_UNUSED, unsigned src_node STARPU_ATTRIBUTE_UNUSED, uintptr_t dst, unsigned dst_node, size_t size)
 {
 	_starpu_src_common_unmap(dst_node, dst, size);
 
 	return 0;
 }
 
-int _starpu_tcpip_update_map(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size)
+static int _starpu_tcpip_update_map(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size)
 {
 	(void) src;
 	(void) src_offset;

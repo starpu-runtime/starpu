@@ -95,7 +95,7 @@ void _starpu_cuda_init(void)
 /* Return the number of devices usable in the system.
  * The value returned cannot be greater than MAXCUDADEVS */
 
-unsigned _starpu_get_cuda_device_count(void)
+static unsigned _starpu_get_cuda_device_count(void)
 {
 	int cnt;
 	cudaError_t cures;
@@ -304,7 +304,7 @@ static void deinit_device_context(unsigned devid STARPU_ATTRIBUTE_UNUSED)
 }
 
 /* This is run from the driver thread to initialize the driver CUDA context */
-int _starpu_cuda_driver_init(struct _starpu_worker *worker)
+static int _starpu_cuda_driver_init(struct _starpu_worker *worker)
 {
 	_starpu_driver_start(worker, STARPU_CUDA_WORKER, 0);
 	_starpu_set_local_worker_key(worker);
@@ -344,7 +344,7 @@ int _starpu_cuda_driver_init(struct _starpu_worker *worker)
 	return 0;
 }
 
-int _starpu_cuda_driver_deinit(struct _starpu_worker *worker)
+static int _starpu_cuda_driver_deinit(struct _starpu_worker *worker)
 {
 	_STARPU_TRACE_WORKER_DEINIT_START;
 
@@ -369,7 +369,7 @@ int _starpu_cuda_driver_deinit(struct _starpu_worker *worker)
 	return 0;
 }
 
-uintptr_t _starpu_cuda_malloc_on_device(int devid, size_t size, int flags)
+static uintptr_t _starpu_cuda_malloc_on_device(int devid, size_t size, int flags)
 {
 	uintptr_t addr = 0;
 	(void) flags;
@@ -397,7 +397,7 @@ uintptr_t _starpu_cuda_malloc_on_device(int devid, size_t size, int flags)
 	return addr;
 }
 
-void _starpu_cuda_memset_on_device(uintptr_t ptr, int c, size_t size)
+static void _starpu_cuda_memset_on_device(uintptr_t ptr, int c, size_t size)
 {
 	cudaError_t status;
 	status = cudaMemset((void*) ptr, c, size);
@@ -405,7 +405,7 @@ void _starpu_cuda_memset_on_device(uintptr_t ptr, int c, size_t size)
 		STARPU_CUDA_REPORT_ERROR(status);
 }
 
-void _starpu_cuda_free_on_device(int devid, uintptr_t addr, size_t size, int flags)
+static void _starpu_cuda_free_on_device(int devid, uintptr_t addr, size_t size, int flags)
 {
 	(void) devid;
 	(void) addr;
@@ -467,7 +467,7 @@ int starpu_cuda_copy2d_async_sync_devid(void *src_ptr, int src_devid, enum starp
 	return 0;
 }
 
-int _starpu_cuda_copy_interface(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
+static int _starpu_cuda_copy_interface(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
 {
 	(void) req;
 
@@ -479,7 +479,7 @@ int _starpu_cuda_copy_interface(starpu_data_handle_t handle, void *src_interface
 	return ret;
 }
 
-int _starpu_cuda_copy_data_from_cuda_to_cpu(uintptr_t src, size_t src_offset, int src_devid, uintptr_t dst, size_t dst_offset, int dst_devid, size_t size, struct _starpu_async_channel *async_channel STARPU_ATTRIBUTE_UNUSED)
+static int _starpu_cuda_copy_data_from_cuda_to_cpu(uintptr_t src, size_t src_offset, int src_devid, uintptr_t dst, size_t dst_offset, int dst_devid, size_t size, struct _starpu_async_channel *async_channel STARPU_ATTRIBUTE_UNUSED)
 {
 	return starpu_cuda_copy_async_sync_devid((void*) (src + src_offset), src_devid, STARPU_CUDA_RAM,
 						 (void*) (dst + dst_offset), dst_devid, STARPU_CPU_RAM,
@@ -488,7 +488,7 @@ int _starpu_cuda_copy_data_from_cuda_to_cpu(uintptr_t src, size_t src_offset, in
 						 cudaMemcpyDeviceToHost);
 }
 
-int _starpu_cuda_copy_data_from_cuda_to_cuda(uintptr_t src, size_t src_offset, int src_devid, uintptr_t dst, size_t dst_offset, int dst_devid, size_t size, struct _starpu_async_channel *async_channel STARPU_ATTRIBUTE_UNUSED)
+static int _starpu_cuda_copy_data_from_cuda_to_cuda(uintptr_t src, size_t src_offset, int src_devid, uintptr_t dst, size_t dst_offset, int dst_devid, size_t size, struct _starpu_async_channel *async_channel STARPU_ATTRIBUTE_UNUSED)
 {
 #ifndef STARPU_HAVE_CUDA_MEMCPY_PEER
 	STARPU_ASSERT(src_devid == dst_devid);
@@ -501,7 +501,7 @@ int _starpu_cuda_copy_data_from_cuda_to_cuda(uintptr_t src, size_t src_offset, i
 						 cudaMemcpyDeviceToDevice);
 }
 
-int _starpu_cuda_copy_data_from_cpu_to_cuda(uintptr_t src, size_t src_offset, int src_devid, uintptr_t dst, size_t dst_offset, int dst_devid, size_t size, struct _starpu_async_channel *async_channel STARPU_ATTRIBUTE_UNUSED)
+static int _starpu_cuda_copy_data_from_cpu_to_cuda(uintptr_t src, size_t src_offset, int src_devid, uintptr_t dst, size_t dst_offset, int dst_devid, size_t size, struct _starpu_async_channel *async_channel STARPU_ATTRIBUTE_UNUSED)
 {
 	return starpu_cuda_copy_async_sync_devid((void*) (src + src_offset), src_devid, STARPU_CPU_RAM,
 						 (void*) (dst + dst_offset), dst_devid, STARPU_CUDA_RAM,
@@ -511,7 +511,7 @@ int _starpu_cuda_copy_data_from_cpu_to_cuda(uintptr_t src, size_t src_offset, in
 }
 
 /* Driver porters: these are optional but really recommended */
-int _starpu_cuda_copy2d_data_from_cuda_to_cpu(uintptr_t src, size_t src_offset, int src_devid,
+static int _starpu_cuda_copy2d_data_from_cuda_to_cpu(uintptr_t src, size_t src_offset, int src_devid,
 					      uintptr_t dst, size_t dst_offset, int dst_devid,
 					      size_t blocksize, size_t numblocks, size_t ld_src, size_t ld_dst,
 					      struct _starpu_async_channel *async_channel STARPU_ATTRIBUTE_UNUSED)
@@ -523,7 +523,7 @@ int _starpu_cuda_copy2d_data_from_cuda_to_cpu(uintptr_t src, size_t src_offset, 
 						   cudaMemcpyDeviceToHost);
 }
 
-int _starpu_cuda_copy2d_data_from_cuda_to_cuda(uintptr_t src, size_t src_offset, int src_devid,
+static int _starpu_cuda_copy2d_data_from_cuda_to_cuda(uintptr_t src, size_t src_offset, int src_devid,
 					       uintptr_t dst, size_t dst_offset, int dst_devid,
 					       size_t blocksize, size_t numblocks, size_t ld_src, size_t ld_dst,
 					       struct _starpu_async_channel *async_channel STARPU_ATTRIBUTE_UNUSED)
@@ -539,7 +539,7 @@ int _starpu_cuda_copy2d_data_from_cuda_to_cuda(uintptr_t src, size_t src_offset,
 						   cudaMemcpyDeviceToDevice);
 }
 
-int _starpu_cuda_copy2d_data_from_cpu_to_cuda(uintptr_t src, size_t src_offset, int src_devid,
+static int _starpu_cuda_copy2d_data_from_cpu_to_cuda(uintptr_t src, size_t src_offset, int src_devid,
 					      uintptr_t dst, size_t dst_offset, int dst_devid,
 					      size_t blocksize, size_t numblocks, size_t ld_src, size_t ld_dst,
 					      struct _starpu_async_channel *async_channel STARPU_ATTRIBUTE_UNUSED)
@@ -551,14 +551,14 @@ int _starpu_cuda_copy2d_data_from_cpu_to_cuda(uintptr_t src, size_t src_offset, 
 						   cudaMemcpyHostToDevice);
 }
 
-void _starpu_cuda_init_device_context(int devid)
+static void _starpu_cuda_init_device_context(int devid)
 {
 	starpu_cuda_set_device(devid);
 	/* hack to force the initialization */
 	cudaFree(0);
 }
 
-void _starpu_cuda_device_name(int devid, char *name, size_t size)
+static void _starpu_cuda_device_name(int devid, char *name, size_t size)
 {
 	struct cudaDeviceProp prop;
 	cudaError_t cures;
@@ -568,7 +568,7 @@ void _starpu_cuda_device_name(int devid, char *name, size_t size)
 	name[size-1] = 0;
 }
 
-size_t _starpu_cuda_total_memory(int devid)
+static size_t _starpu_cuda_total_memory(int devid)
 {
 	struct cudaDeviceProp prop;
 	cudaError_t cures;
@@ -577,7 +577,7 @@ size_t _starpu_cuda_total_memory(int devid)
 	return prop.totalGlobalMem;
 }
 
-void _starpu_cuda_reset_device(int devid)
+static void _starpu_cuda_reset_device(int devid)
 {
 	starpu_cuda_set_device(devid);
 #if CUDART_VERSION >= 4000
@@ -672,7 +672,7 @@ static void finish_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *wor
 }
 
 /* One iteration of the main driver loop */
-int _starpu_cuda_driver_run_once(struct _starpu_worker *worker)
+static int _starpu_cuda_driver_run_once(struct _starpu_worker *worker)
 {
 	struct starpu_task *task;
 	struct _starpu_job *j;
@@ -822,7 +822,7 @@ void starpu_cusolver_report_error(const char *func, const char *file, int line, 
 }
 #endif
 
-int _starpu_cuda_run_from_worker(struct _starpu_worker *worker)
+static int _starpu_cuda_run_from_worker(struct _starpu_worker *worker)
 {
 	/* Let's go ! */
 	_starpu_cuda_worker(worker);

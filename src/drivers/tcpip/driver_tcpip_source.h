@@ -44,8 +44,6 @@ void *_starpu_tcpip_src_worker(void *arg);
 void _starpu_tcpip_source_init(struct _starpu_mp_node *node);
 void _starpu_tcpip_source_deinit(struct _starpu_mp_node *node);
 
-int _starpu_tcpip_is_direct_access_supported(unsigned node, unsigned handling_node);
-
 #endif /* STARPU_USE_TCPIP_MASTER_SLAVE */
 
 #pragma GCC visibility pop

@@ -44,7 +44,6 @@ extern struct _starpu_node_ops _starpu_driver_cuda_node_ops;
 extern int _starpu_nworker_per_cuda;
 
 void _starpu_cuda_init(void);
-unsigned _starpu_get_cuda_device_count(void);
 #ifdef STARPU_HAVE_HWLOC
 struct _starpu_machine_topology;
 hwloc_obj_t _starpu_cuda_get_hwloc_obj(hwloc_topology_t topology, int devid);
@@ -94,38 +93,6 @@ typedef unsigned _starpu_nvmlIntNvLinkDeviceType_t;
 #else
 #  define _starpu_cuda_discover_devices(config) ((void) config)
 #endif
-
-#ifdef STARPU_USE_CUDA
-#ifdef STARPU_USE_CUDA_MAP
-uintptr_t _starpu_cuda_map_ram(uintptr_t src_ptr, size_t src_offset, unsigned src_node, unsigned dst_node, size_t size, int *ret);
-int _starpu_cuda_unmap_ram(uintptr_t src_ptr, size_t src_offset, unsigned src_node, uintptr_t dst_ptr, unsigned dst_node, size_t size);
-int _starpu_cuda_update_map(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size);
-#endif
-#endif
-
-unsigned _starpu_cuda_test_request_completion(struct _starpu_async_channel *async_channel);
-void _starpu_cuda_wait_request_completion(struct _starpu_async_channel *async_channel);
-
-int _starpu_cuda_copy_interface_from_cpu_to_cuda(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req);
-int _starpu_cuda_copy_interface_from_cuda_to_cuda(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req);
-int _starpu_cuda_copy_interface_from_cuda_to_cpu(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req);
-
-int _starpu_cuda_copy_data_from_cuda_to_cuda(uintptr_t src, size_t src_offset, int src_devid, uintptr_t dst, size_t dst_offset, int dst_devid, size_t size, struct _starpu_async_channel *async_channel);
-int _starpu_cuda_copy_data_from_cuda_to_cpu(uintptr_t src, size_t src_offset, int src_devid, uintptr_t dst, size_t dst_offset, int dst_devid, size_t size, struct _starpu_async_channel *async_channel);
-int _starpu_cuda_copy_data_from_cpu_to_cuda(uintptr_t src, size_t src_offset, int src_devid, uintptr_t dst, size_t dst_offset, int dst_devid, size_t size, struct _starpu_async_channel *async_channel);
-
-int _starpu_cuda_copy2d_data_from_cuda_to_cuda(uintptr_t src, size_t src_offset, int src_devid, uintptr_t dst, size_t dst_offset, int dst_devid, size_t blocksize, size_t numblocks, size_t ld_src, size_t ld_dst, struct _starpu_async_channel *async_channel);
-int _starpu_cuda_copy2d_data_from_cuda_to_cpu(uintptr_t src, size_t src_offset, int src_devid, uintptr_t dst, size_t dst_offset, int dst_devid, size_t blocksize, size_t numblocks, size_t ld_src, size_t ld_dst, struct _starpu_async_channel *async_channel);
-int _starpu_cuda_copy2d_data_from_cpu_to_cuda(uintptr_t src, size_t src_offset, int src_devid, uintptr_t dst, size_t dst_offset, int dst_devid, size_t blocksize, size_t numblocks, size_t ld_src, size_t ld_dst, struct _starpu_async_channel *async_channel);
-
-int _starpu_cuda_is_direct_access_supported(unsigned node, unsigned handling_node);
-uintptr_t _starpu_cuda_malloc_on_device(int devid, size_t size, int flags);
-void _starpu_cuda_free_on_device(int devid, uintptr_t addr, size_t size, int flags);
-void _starpu_cuda_device_name(int devid, char *name, size_t size);
-size_t _starpu_cuda_total_memory(int devid);
-void _starpu_cuda_init_device_context(int devid);
-void _starpu_cuda_reset_device(int devid);
-int _starpu_cuda_peer_access(int devid, int peer_devid);
 
 #pragma GCC visibility pop
 

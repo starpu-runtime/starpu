@@ -80,7 +80,7 @@ static void _starpu_initialize_workers_max_fpga_deviceid(struct _starpu_machine_
 	_starpu_devices_drop_duplicate(topology->workers_max_fpga_deviceid);
 }
 
-unsigned _starpu_max_fpga_get_device_count(void)
+static unsigned _starpu_max_fpga_get_device_count(void)
 {
 	return nmax_fpga;
 }
@@ -312,7 +312,7 @@ static void init_device_context(unsigned devid)
 	}
 }
 
-int _starpu_max_fpga_driver_init(struct _starpu_worker *worker)
+static int _starpu_max_fpga_driver_init(struct _starpu_worker *worker)
 {
 	int devid = worker->devid;
 	_starpu_driver_start(worker, STARPU_MAX_FPGA_WORKER, 1);
@@ -339,7 +339,7 @@ int _starpu_max_fpga_driver_init(struct _starpu_worker *worker)
 	return 0;
 }
 
-int _starpu_max_fpga_driver_deinit(struct _starpu_worker *fpga_worker)
+static int _starpu_max_fpga_driver_deinit(struct _starpu_worker *fpga_worker)
 {
 	_STARPU_TRACE_WORKER_DEINIT_START;
 
@@ -404,7 +404,7 @@ void copy_max_fpga_to_ram(void *src, void *dst, size_t size)
    Transfer SIZE bytes from the address pointed by SRC in the SRC_NODE memory
    node to the address pointed by DST in the DST_NODE memory node
 */
-int _starpu_max_fpga_copy_max_fpga_to_ram(void *src, void *dst, size_t size)
+static int _starpu_max_fpga_copy_max_fpga_to_ram(void *src, void *dst, size_t size)
 {
 	printf("fpga to ram, fpga @= %p\n",src);
 	memcpy(dst,src,size);
@@ -425,7 +425,7 @@ int _starpu_max_fpga_copy_fpga_to_fpga(void *src, void *dst, size_t size)
 }
 
 /* Asynchronous transfers */
-int _starpu_max_fpga_copy_ram_to_max_fpga_async(void *src, void *dst, size_t size)
+static int _starpu_max_fpga_copy_ram_to_max_fpga_async(void *src, void *dst, size_t size)
 {
 	printf("ram to fpga, fpga @= %p\n",dst);
 	memcpy(dst,src,size);
@@ -433,14 +433,14 @@ int _starpu_max_fpga_copy_ram_to_max_fpga_async(void *src, void *dst, size_t siz
 	// Trouver dans la doc une version asynchrone de LMemLoopback_writeLMem();
 }
 
-int _starpu_max_fpga_copy_max_fpga_to_ram_async(void *src, void *dst, size_t size)
+static int _starpu_max_fpga_copy_max_fpga_to_ram_async(void *src, void *dst, size_t size)
 {
 	printf("fpga to ram, fpga @= %p\n",src);
 	memcpy(dst,src,size);
 	return 0;
 }
 
-int _starpu_run_fpga(struct _starpu_worker *workerarg)
+static int _starpu_run_fpga(struct _starpu_worker *workerarg)
 {
 	/* Let's go ! */
 	_starpu_max_fpga_worker(workerarg);

@@ -160,6 +160,7 @@ void _starpu_datawizard_progress(enum _starpu_may_alloc may_alloc)
 	__starpu_datawizard_progress(may_alloc, 1);
 }
 
+/* Only used at starpu_shutdown */
 void _starpu_datawizard_handle_all_pending_node_data_requests(unsigned memnode)
 {
 	unsigned nnodes = starpu_memory_nodes_get_count();

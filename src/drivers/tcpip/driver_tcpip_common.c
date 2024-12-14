@@ -1332,6 +1332,7 @@ unsigned int _starpu_tcpip_common_test_event(struct _starpu_async_channel * even
 /* - In device to device communications, the first ack received by host
  * is considered as the sender (but it cannot be, in fact, the sender)
  */
+/* Only used at starpu_shutdown */
 void _starpu_tcpip_common_wait_request_completion(struct _starpu_async_channel * event)
 {
 	_starpu_tcpip_common_action_completion(1, event);

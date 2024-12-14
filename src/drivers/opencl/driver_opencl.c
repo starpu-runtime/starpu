@@ -387,7 +387,7 @@ void _starpu_opencl_init_worker_memory(struct _starpu_machine_config *config STA
 }
 
 /* Really initialize one device */
-int _starpu_opencl_init_context(int devid)
+static int _starpu_opencl_init_context(int devid)
 {
 #ifdef STARPU_SIMGRID
 	int j;
@@ -441,7 +441,7 @@ int _starpu_opencl_init_context(int devid)
 }
 
 /* De-initialize one device */
-int _starpu_opencl_deinit_context(int devid)
+static int _starpu_opencl_deinit_context(int devid)
 {
 #ifdef STARPU_SIMGRID
 	int j;
@@ -565,7 +565,7 @@ static void _starpu_opencl_limit_gpu_mem_if_needed(unsigned devid)
 }
 
 /* This is run from the driver thread to initialize the driver OpenCL context */
-int _starpu_opencl_driver_init(struct _starpu_worker *worker)
+static int _starpu_opencl_driver_init(struct _starpu_worker *worker)
 {
 	int devid = worker->devid;
 
@@ -637,7 +637,7 @@ int _starpu_opencl_driver_init(struct _starpu_worker *worker)
 	return 0;
 }
 
-int _starpu_opencl_driver_deinit(struct _starpu_worker *worker)
+static int _starpu_opencl_driver_deinit(struct _starpu_worker *worker)
 {
 	_STARPU_TRACE_WORKER_DEINIT_START;
 
@@ -706,7 +706,7 @@ cl_int starpu_opencl_allocate_memory(int devid STARPU_ATTRIBUTE_UNUSED, cl_mem *
 }
 #endif
 
-uintptr_t _starpu_opencl_malloc_on_device(int dst_devid, size_t size, int flags)
+static uintptr_t _starpu_opencl_malloc_on_device(int dst_devid, size_t size, int flags)
 {
 	(void)flags;
 	uintptr_t addr = 0;
@@ -739,7 +739,7 @@ uintptr_t _starpu_opencl_malloc_on_device(int dst_devid, size_t size, int flags)
 	return addr;
 }
 
-void _starpu_opencl_free_on_device(int dst_devid, uintptr_t addr, size_t size, int flags)
+static void _starpu_opencl_free_on_device(int dst_devid, uintptr_t addr, size_t size, int flags)
 {
 	(void)dst_devid;
 	(void)addr;
@@ -972,21 +972,21 @@ static inline cl_event *_starpu_opencl_event(union _starpu_async_channel_event *
 	return event;
 }
 
-int _starpu_opencl_copy_data_from_opencl_to_opencl(uintptr_t src, size_t src_offset, int src_devid, uintptr_t dst, size_t dst_offset, int dst_devid, size_t size, struct _starpu_async_channel *async_channel)
+static int _starpu_opencl_copy_data_from_opencl_to_opencl(uintptr_t src, size_t src_offset, int src_devid, uintptr_t dst, size_t dst_offset, int dst_devid, size_t size, struct _starpu_async_channel *async_channel)
 {
 	return starpu_opencl_copy_async_sync_devid(src, src_offset, src_devid, STARPU_OPENCL_RAM,
 						   dst, dst_offset, dst_devid, STARPU_OPENCL_RAM,
 						   size, _starpu_opencl_event(&async_channel->event));
 }
 
-int _starpu_opencl_copy_data_from_opencl_to_cpu(uintptr_t src, size_t src_offset, int src_devid, uintptr_t dst, size_t dst_offset, int dst_devid, size_t size, struct _starpu_async_channel *async_channel)
+static int _starpu_opencl_copy_data_from_opencl_to_cpu(uintptr_t src, size_t src_offset, int src_devid, uintptr_t dst, size_t dst_offset, int dst_devid, size_t size, struct _starpu_async_channel *async_channel)
 {
 	return starpu_opencl_copy_async_sync_devid(src, src_offset, src_devid, STARPU_OPENCL_RAM,
 						   dst, dst_offset, dst_devid, STARPU_CPU_RAM,
 						   size, _starpu_opencl_event(&async_channel->event));
 }
 
-int _starpu_opencl_copy_data_from_cpu_to_opencl(uintptr_t src, size_t src_offset, int src_devid, uintptr_t dst, size_t dst_offset, int dst_devid, size_t size, struct _starpu_async_channel *async_channel)
+static int _starpu_opencl_copy_data_from_cpu_to_opencl(uintptr_t src, size_t src_offset, int src_devid, uintptr_t dst, size_t dst_offset, int dst_devid, size_t size, struct _starpu_async_channel *async_channel)
 {
 	return starpu_opencl_copy_async_sync_devid(src, src_offset, src_devid, STARPU_CPU_RAM,
 						   dst, dst_offset, dst_devid, STARPU_OPENCL_RAM,
@@ -994,7 +994,7 @@ int _starpu_opencl_copy_data_from_cpu_to_opencl(uintptr_t src, size_t src_offset
 }
 
 #if 0
-cl_int _starpu_opencl_copy_rect_opencl_to_ram(cl_mem buffer, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *ptr, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, const size_t buffer_origin[3], const size_t host_origin[3],
+static cl_int _starpu_opencl_copy_rect_opencl_to_ram(cl_mem buffer, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *ptr, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, const size_t buffer_origin[3], const size_t host_origin[3],
 					      const size_t region[3], size_t buffer_row_pitch, size_t buffer_slice_pitch,
 					      size_t host_row_pitch, size_t host_slice_pitch, cl_event *event)
 {
@@ -1016,7 +1016,7 @@ cl_int _starpu_opencl_copy_rect_opencl_to_ram(cl_mem buffer, unsigned src_node S
 	return CL_SUCCESS;
 }
 
-cl_int _starpu_opencl_copy_rect_ram_to_opencl(void *ptr, unsigned src_node STARPU_ATTRIBUTE_UNUSED, cl_mem buffer, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, const size_t buffer_origin[3], const size_t host_origin[3],
+static cl_int _starpu_opencl_copy_rect_ram_to_opencl(void *ptr, unsigned src_node STARPU_ATTRIBUTE_UNUSED, cl_mem buffer, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, const size_t buffer_origin[3], const size_t host_origin[3],
 					      const size_t region[3], size_t buffer_row_pitch, size_t buffer_slice_pitch,
 					      size_t host_row_pitch, size_t host_slice_pitch, cl_event *event)
 {
@@ -1039,7 +1039,7 @@ cl_int _starpu_opencl_copy_rect_ram_to_opencl(void *ptr, unsigned src_node STARP
 }
 #endif
 
-unsigned _starpu_opencl_test_request_completion(struct _starpu_async_channel *async_channel)
+static unsigned _starpu_opencl_test_request_completion(struct _starpu_async_channel *async_channel)
 {
 	cl_int event_status;
 	cl_event opencl_event = *_starpu_opencl_event(&async_channel->event);
@@ -1057,7 +1057,8 @@ unsigned _starpu_opencl_test_request_completion(struct _starpu_async_channel *as
 	return (event_status == CL_COMPLETE);
 }
 
-void _starpu_opencl_wait_request_completion(struct _starpu_async_channel *async_channel)
+/* Only used at starpu_shutdown */
+static void _starpu_opencl_wait_request_completion(struct _starpu_async_channel *async_channel)
 {
 	cl_int err;
 	if (*_starpu_opencl_event(&async_channel->event) == NULL)
@@ -1070,7 +1071,7 @@ void _starpu_opencl_wait_request_completion(struct _starpu_async_channel *async_
 		STARPU_OPENCL_REPORT_ERROR(err);
 }
 
-int _starpu_opencl_copy_interface_from_opencl_to_opencl(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
+static int _starpu_opencl_copy_interface_from_opencl_to_opencl(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
 {
 	int src_kind = starpu_node_get_kind(src_node);
 	int dst_kind = starpu_node_get_kind(dst_node);
@@ -1103,7 +1104,7 @@ int _starpu_opencl_copy_interface_from_opencl_to_opencl(starpu_data_handle_t han
 	return ret;
 }
 
-int _starpu_opencl_copy_interface_from_opencl_to_cpu(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
+static int _starpu_opencl_copy_interface_from_opencl_to_cpu(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
 {
 	int src_kind = starpu_node_get_kind(src_node);
 	int dst_kind = starpu_node_get_kind(dst_node);
@@ -1136,7 +1137,7 @@ int _starpu_opencl_copy_interface_from_opencl_to_cpu(starpu_data_handle_t handle
 	return ret;
 }
 
-int _starpu_opencl_copy_interface_from_cpu_to_opencl(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
+static int _starpu_opencl_copy_interface_from_cpu_to_opencl(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
 {
 	int src_kind = starpu_node_get_kind(src_node);
 	int dst_kind = starpu_node_get_kind(dst_node);
@@ -1169,7 +1170,7 @@ int _starpu_opencl_copy_interface_from_cpu_to_opencl(starpu_data_handle_t handle
 	return ret;
 }
 
-uintptr_t
+static uintptr_t
 _starpu_opencl_map_ram(uintptr_t src, size_t src_offset, unsigned src_node STARPU_ATTRIBUTE_UNUSED,
 		      unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, int *ret)
 {
@@ -1191,7 +1192,7 @@ _starpu_opencl_map_ram(uintptr_t src, size_t src_offset, unsigned src_node STARP
 	return (uintptr_t)memory;
 }
 
-int
+static int
 _starpu_opencl_unmap_ram(uintptr_t src STARPU_ATTRIBUTE_UNUSED, size_t src_offset STARPU_ATTRIBUTE_UNUSED, unsigned src_node STARPU_ATTRIBUTE_UNUSED,
 			uintptr_t dst, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRIBUTE_UNUSED)
 {
@@ -1206,7 +1207,7 @@ _starpu_opencl_unmap_ram(uintptr_t src STARPU_ATTRIBUTE_UNUSED, size_t src_offse
 	return 0;
 }
 
-int
+static int
 _starpu_opencl_update_opencl_map(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size)
 {
 	(void) size;
@@ -1235,7 +1236,7 @@ _starpu_opencl_update_opencl_map(uintptr_t src, size_t src_offset, unsigned src_
 	return 0;
 }
 
-int
+static int
 _starpu_opencl_update_cpu_map(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size)
 {
 	(void) size;
@@ -1269,7 +1270,7 @@ _starpu_opencl_update_cpu_map(uintptr_t src, size_t src_offset, unsigned src_nod
 #endif /* STARPU_USE_OPENCL */
 
 #ifndef STARPU_SIMGRID
-void _starpu_opencl_device_name(int devid, char *name, size_t size)
+static void _starpu_opencl_device_name(int devid, char *name, size_t size)
 {
 	cl_device_id device;
 	cl_int err=0;
@@ -1278,7 +1279,7 @@ void _starpu_opencl_device_name(int devid, char *name, size_t size)
 	if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 }
 
-size_t _starpu_opencl_total_memory(int devid)
+static size_t _starpu_opencl_total_memory(int devid)
 {
 	cl_device_id device;
 	cl_ulong totalGlobalMem;
@@ -1290,7 +1291,7 @@ size_t _starpu_opencl_total_memory(int devid)
 	return totalGlobalMem;
 }
 
-size_t _starpu_opencl_max_memory(int devid)
+static size_t _starpu_opencl_max_memory(int devid)
 {
 	cl_device_id device;
 	cl_ulong maxMemAllocSize;
@@ -1302,12 +1303,12 @@ size_t _starpu_opencl_max_memory(int devid)
 	return maxMemAllocSize;
 }
 
-void _starpu_opencl_set_device(int devid)
+static void _starpu_opencl_set_device(int devid)
 {
 	(void)devid;
 }
 
-void _starpu_opencl_init_device(int devid)
+static void _starpu_opencl_init_device(int devid)
 {
 	cl_context context;
 	int not_initialized;
@@ -1316,7 +1317,7 @@ void _starpu_opencl_init_device(int devid)
 	if (not_initialized == 1)
 		_starpu_opencl_init_context(devid);
 }
-void _starpu_opencl_reset_device(int devid)
+static void _starpu_opencl_reset_device(int devid)
 {
 	cl_context context;
 	int not_initialized;
@@ -1522,7 +1523,7 @@ static void _starpu_opencl_stop_job(struct _starpu_job *j, struct _starpu_worker
 
 }
 
-int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
+static int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 {
 	int workerid = worker->workerid;
 	unsigned memnode = worker->memory_node;
@@ -1747,7 +1748,7 @@ void *_starpu_opencl_worker(void *_arg)
 }
 
 #ifdef STARPU_USE_OPENCL
-int _starpu_run_opencl(struct _starpu_worker *workerarg)
+static int _starpu_run_opencl(struct _starpu_worker *workerarg)
 {
 	_STARPU_DEBUG("Running OpenCL %u from the application\n", workerarg->devid);
 
@@ -1757,14 +1758,14 @@ int _starpu_run_opencl(struct _starpu_worker *workerarg)
 	return 0;
 }
 
-int _starpu_opencl_driver_set_devid(struct starpu_driver *driver, struct _starpu_worker *worker)
+static int _starpu_opencl_driver_set_devid(struct starpu_driver *driver, struct _starpu_worker *worker)
 {
 	starpu_opencl_get_device(worker->devid, &driver->id.opencl_id);
 
 	return 0;
 }
 
-int _starpu_opencl_driver_is_devid(struct starpu_driver *driver, struct _starpu_worker *worker)
+static int _starpu_opencl_driver_is_devid(struct starpu_driver *driver, struct _starpu_worker *worker)
 {
 	cl_device_id device;
 	starpu_opencl_get_device(worker->devid, &device);

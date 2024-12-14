@@ -895,6 +895,7 @@ static int _handle_pending_node_data_requests(unsigned handling_node, unsigned p
 		/* wait until the transfer is terminated */
 		if (force)
 		{
+			/* We are doing starpu_shutdown */
 			_starpu_driver_wait_request_completion(&r->async_channel);
 			starpu_handle_data_request_completion(r);
 		}
@@ -933,6 +934,7 @@ int _starpu_handle_pending_node_data_requests(unsigned handling_node, unsigned p
 	return _handle_pending_node_data_requests(handling_node, peer_node, inout, 0);
 }
 
+/* Only used at starpu_shutdown */
 int _starpu_handle_all_pending_node_data_requests(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout)
 {
 	return _handle_pending_node_data_requests(handling_node, peer_node, inout, 1);

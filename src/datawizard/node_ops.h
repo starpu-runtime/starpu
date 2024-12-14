@@ -126,7 +126,8 @@ struct _starpu_node_ops
 	 * This method is optional.  */
 	copy3d_data_t copy3d_data_from[STARPU_MAX_RAM+1];
 
-	/** Wait for the completion of asynchronous request \p async_channel.  */
+	/** Wait for the completion of asynchronous request \p async_channel.
+	 * Only used at starpu_shutdown.  */
 	void (*wait_request_completion)(struct _starpu_async_channel *async_channel);
 	/** Test whether asynchronous request \p async_channel has completed.  */
 	unsigned (*test_request_completion)(struct _starpu_async_channel *async_channel);
