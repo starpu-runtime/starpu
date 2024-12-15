@@ -98,6 +98,10 @@ $ make
 $ make install
 ```
 
+### If building fails
+
+Please post the commands you used to build, your whole build log, and the obtained `config.log` in the bug report.
+
 ### Windows build
 
 StarPU can be built using MinGW or Cygwin.  To avoid the cygwin dependency,
