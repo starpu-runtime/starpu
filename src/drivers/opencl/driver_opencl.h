@@ -45,6 +45,8 @@ struct _starpu_machine_config;
 void _starpu_opencl_discover_devices(struct _starpu_machine_config *config);
 
 void _starpu_opencl_init(void);
+int _starpu_opencl_init_context(int devid);
+int _starpu_opencl_deinit_context(int devid);
 unsigned _starpu_opencl_get_device_count(void);
 #ifdef STARPU_HAVE_HWLOC
 struct _starpu_machine_topology;

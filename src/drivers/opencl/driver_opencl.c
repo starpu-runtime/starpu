@@ -135,7 +135,7 @@ void _starpu_opencl_init(void)
 		cl_device_type device_type = CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR;
 
 		_STARPU_DEBUG("Initialising OpenCL\n");
-        
+
 		// Get Platforms
 		if (starpu_getenv_number("STARPU_OPENCL_ON_CPUS") > 0)
 		     device_type |= CL_DEVICE_TYPE_CPU;
@@ -387,7 +387,7 @@ void _starpu_opencl_init_worker_memory(struct _starpu_machine_config *config STA
 }
 
 /* Really initialize one device */
-static int _starpu_opencl_init_context(int devid)
+int _starpu_opencl_init_context(int devid)
 {
 #ifdef STARPU_SIMGRID
 	int j;
@@ -441,7 +441,7 @@ static int _starpu_opencl_init_context(int devid)
 }
 
 /* De-initialize one device */
-static int _starpu_opencl_deinit_context(int devid)
+int _starpu_opencl_deinit_context(int devid)
 {
 #ifdef STARPU_SIMGRID
 	int j;
