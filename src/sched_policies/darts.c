@@ -291,7 +291,7 @@ void _starpu_darts_tab_gpu_pulled_task_init()
 }
 
 /* Function called directly in the applications of starpu to reinit the struct of darts. Used when multiple iteration of a same application are lauched in the same execution. */
-void starpu_darts_reinitialize_structures()
+void starpu_darts_reinitialize_structures(unsigned sched_ctx_id)
 {
 	_REFINED_MUTEX_LOCK();
 	_LINEAR_MUTEX_LOCK();
