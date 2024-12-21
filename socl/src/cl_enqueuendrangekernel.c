@@ -96,7 +96,7 @@ void soclEnqueueNDRangeKernel_task(void *descr[], void *args)
  */
 cl_int command_ndrange_kernel_submit(command_ndrange_kernel cmd)
 {
-	starpu_task task = task_create();
+	starpu_task task = task_create(CL_COMMAND_NDRANGE_KERNEL);
 	task->cl = &cmd->codelet;
 	task->cl->model = cmd->kernel->perfmodel;
 	task->cl_arg = cmd;

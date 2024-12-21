@@ -19,7 +19,7 @@
 
 #include "socl.h"
 
-starpu_task task_create() STARPU_ATTRIBUTE_MALLOC;
+starpu_task task_create(cl_command_type typ) STARPU_ATTRIBUTE_MALLOC;
 void task_dependency_add(starpu_task task, cl_uint num_events, cl_event *events);
 void command_completed(cl_command cmd);
 
