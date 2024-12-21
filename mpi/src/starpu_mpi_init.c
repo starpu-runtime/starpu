@@ -159,7 +159,7 @@ void _starpu_mpi_do_initialize(struct _starpu_mpi_argc_argv *argc_argv)
 		if (psm2_init && (starpu_cuda_worker_get_count() > 1
 				  ||starpu_hip_worker_get_count() > 1))
 		{
-			int gpu_device;
+			int gpu_device = -1;
 			if (_starpu_mpi_has_cuda)
 			{
 				int cuda_worker = starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0);
@@ -175,10 +175,12 @@ void _starpu_mpi_do_initialize(struct _starpu_mpi_argc_argv *argc_argv)
 				gpu_device = _starpu_mpi_hip_devid;
 			}
 
-			_STARPU_DISP("Warning: MPI GPUDirect is enabled using the PSM2 driver, but StarPU will be driving several CUDA GPUs.\n");
-			_STARPU_DISP("Since the PSM2 driver only supports one CUDA GPU at a time for GPU Direct (at least as of its version 11.2.185), StarPU-MPI will use GPU Direct only for CUDA%d.\n", gpu_device);
-			_STARPU_DISP("To get GPU Direct working with all CUDA GPUs with the PSM2 driver, you will unfortunately have to run one MPI rank per GPU.\n");
-			_STARPU_DISP("if you are sure you are not actually using PSM2, you can set STARPU_MPI_PSM2=0 to disable PSM2 detection.\n");
+			if (gpu_device >= 0) {
+				_STARPU_DISP("Warning: MPI GPUDirect is enabled using the PSM2 driver, but StarPU will be driving several CUDA GPUs.\n");
+				_STARPU_DISP("Since the PSM2 driver only supports one CUDA GPU at a time for GPU Direct (at least as of its version 11.2.185), StarPU-MPI will use GPU Direct only for CUDA%d.\n", gpu_device);
+				_STARPU_DISP("To get GPU Direct working with all CUDA GPUs with the PSM2 driver, you will unfortunately have to run one MPI rank per GPU.\n");
+				_STARPU_DISP("if you are sure you are not actually using PSM2, you can set STARPU_MPI_PSM2=0 to disable PSM2 detection.\n");
+			}
 		}
 	}
 #else
