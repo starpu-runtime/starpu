@@ -98,7 +98,7 @@ int main(void)
 	int nprocs, nprocs_per_context=1;
 	int procs[STARPU_NMAXWORKERS];
 	int ntasks=10;
-	char msg[2] = "ab";
+	char msg[3] = "ab";
 	unsigned *buffer[2];
 	struct starpu_conf conf;
 
