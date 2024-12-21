@@ -51,7 +51,7 @@ void command_completed_task_callback(void *arg)
 /*
  * Create a StarPU task
  */
-starpu_task task_create()
+starpu_task task_create(cl_command_type typ)
 {
 	struct starpu_task * task;
 
@@ -163,7 +163,7 @@ void cpu_task_submit_ex(cl_command cmd, void (*callback)(void*), void *arg, int 
 
 	codelet->where = STARPU_OPENCL | STARPU_CPU | STARPU_CUDA;
 
-	starpu_task task = task_create();
+	starpu_task task = task_create(CL_COMMAND_TASK);
 	if (num_events != 0)
 	{
 		task_depends_on(task, num_events, events);
