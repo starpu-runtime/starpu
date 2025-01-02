@@ -36,7 +36,7 @@ static void *lib_handle=NULL;
 /**
    Dummy implementations of the callbacks
 */
-static void _starpu_prof_tool_event_dummy_func(struct starpu_prof_tool_info*, union starpu_prof_tool_event_info*, struct starpu_prof_tool_api_info*)
+static void _starpu_prof_tool_event_dummy_func(struct starpu_prof_tool_info *pti, union starpu_prof_tool_event_info *ptei, struct starpu_prof_tool_api_info *ptai)
 {
 }
 
