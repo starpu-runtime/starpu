@@ -293,7 +293,7 @@ static struct starpu_data_interface_ops interface_data_movements_ops =
 	.describe = NULL
 };
 
-void data_movements_data_register(starpu_data_handle_t *handleptr, unsigned home_node, int *ranks, starpu_mpi_tag_t *tags, int size)
+void data_movements_data_register(starpu_data_handle_t *handleptr, int home_node, int *ranks, starpu_mpi_tag_t *tags, int size)
 {
 	struct data_movements_interface data_movements =
 	{

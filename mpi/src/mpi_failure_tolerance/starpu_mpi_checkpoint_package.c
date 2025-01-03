@@ -17,7 +17,7 @@
 #include <mpi_failure_tolerance/starpu_mpi_checkpoint_package.h>
 #include <mpi_failure_tolerance/starpu_mpi_ft_stats.h>
 
-struct _starpu_mpi_checkpoint_data_list* checkpoint_data_list;
+struct _starpu_mpi_checkpoint_data_list *checkpoint_data_list;
 starpu_pthread_mutex_t package_package_mutex;
 
 int _checkpoint_package_data_delete_all();
@@ -38,10 +38,10 @@ int checkpoint_package_shutdown()
 }
 
 #ifdef STARPU_USE_MPI_FT_STATS
-void _stats_store_checkpoint_data(struct _starpu_mpi_checkpoint_data* new_checkpoint_data)
+void _stats_store_checkpoint_data(struct _starpu_mpi_checkpoint_data *new_checkpoint_data)
 {
-	struct _starpu_mpi_checkpoint_data* next_checkpoint_data;
-	struct _starpu_mpi_checkpoint_data* checkpoint_data = _starpu_mpi_checkpoint_data_list_begin(checkpoint_data_list);
+	struct _starpu_mpi_checkpoint_data *next_checkpoint_data;
+	struct _starpu_mpi_checkpoint_data *checkpoint_data = _starpu_mpi_checkpoint_data_list_begin(checkpoint_data_list);
 	while (checkpoint_data != _starpu_mpi_checkpoint_data_list_end(checkpoint_data_list))
 	{
 		next_checkpoint_data = _starpu_mpi_checkpoint_data_list_next(checkpoint_data);
@@ -52,20 +52,20 @@ void _stats_store_checkpoint_data(struct _starpu_mpi_checkpoint_data* new_checkp
 		}
 		checkpoint_data = next_checkpoint_data;
 	}
-	_STARPU_MPI_FT_STATS_STORE_CP_DATA(new_checkpoint_data->type==STARPU_VALUE?new_checkpoint_data->count:new_checkpoint_data->type==STARPU_R?starpu_data_get_size((starpu_data_handle_t) new_checkpoint_data->ptr):-1);
+	_STARPU_MPI_FT_STATS_STORE_CP_DATA(new_checkpoint_data->type==STARPU_VALUE?(size_t)new_checkpoint_data->count:new_checkpoint_data->type==STARPU_R?starpu_data_get_size((starpu_data_handle_t)new_checkpoint_data->ptr):(size_t)-1);
 }
 #else
-void _stats_store_checkpoint_data(STARPU_ATTRIBUTE_UNUSED struct _starpu_mpi_checkpoint_data* new_checkpoint_data)
+void _stats_store_checkpoint_data(STARPU_ATTRIBUTE_UNUSED struct _starpu_mpi_checkpoint_data *new_checkpoint_data)
 {
 	return;
 }
 #endif
 
 #ifdef STARPU_USE_MPI_FT_STATS
-void _stats_discard_checkpoint_data(struct _starpu_mpi_checkpoint_data* new_checkpoint_data)
+void _stats_discard_checkpoint_data(struct _starpu_mpi_checkpoint_data *new_checkpoint_data)
 {
-	struct _starpu_mpi_checkpoint_data* next_checkpoint_data;
-	struct _starpu_mpi_checkpoint_data* checkpoint_data = _starpu_mpi_checkpoint_data_list_begin(checkpoint_data_list);
+	struct _starpu_mpi_checkpoint_data *next_checkpoint_data;
+	struct _starpu_mpi_checkpoint_data *checkpoint_data = _starpu_mpi_checkpoint_data_list_begin(checkpoint_data_list);
 	while (checkpoint_data != _starpu_mpi_checkpoint_data_list_end(checkpoint_data_list))
 	{
 		next_checkpoint_data = _starpu_mpi_checkpoint_data_list_next(checkpoint_data);
@@ -76,18 +76,18 @@ void _stats_discard_checkpoint_data(struct _starpu_mpi_checkpoint_data* new_chec
 		}
 		checkpoint_data = next_checkpoint_data;
 	}
-	_STARPU_MPI_FT_STATS_DISCARD_CP_DATA(new_checkpoint_data->type==STARPU_VALUE?new_checkpoint_data->count:new_checkpoint_data->type==STARPU_R?starpu_data_get_size((starpu_data_handle_t) new_checkpoint_data->ptr):-1);
+	_STARPU_MPI_FT_STATS_DISCARD_CP_DATA(new_checkpoint_data->type==STARPU_VALUE?(size_t)new_checkpoint_data->count:new_checkpoint_data->type==STARPU_R?starpu_data_get_size((starpu_data_handle_t)new_checkpoint_data->ptr):(size_t)-1);
 }
 #else
-void _stats_discard_checkpoint_data(STARPU_ATTRIBUTE_UNUSED struct _starpu_mpi_checkpoint_data* new_checkpoint_data)
+void _stats_discard_checkpoint_data(STARPU_ATTRIBUTE_UNUSED struct _starpu_mpi_checkpoint_data *new_checkpoint_data)
 {
 	return;
 }
 #endif
 
-int checkpoint_package_data_add(int cp_id, int cp_inst, int rank, starpu_mpi_tag_t tag, int type, void* ptr, int count)
+int checkpoint_package_data_add(int cp_id, int cp_inst, int rank, starpu_mpi_tag_t tag, int type, void *ptr, int count)
 {
-	struct _starpu_mpi_checkpoint_data* checkpoint_data = _starpu_mpi_checkpoint_data_new();
+	struct _starpu_mpi_checkpoint_data *checkpoint_data = _starpu_mpi_checkpoint_data_new();
 	checkpoint_data->cp_id = cp_id;
 	checkpoint_data->cp_inst = cp_inst;
 	checkpoint_data->rank = rank;
@@ -103,7 +103,7 @@ int checkpoint_package_data_add(int cp_id, int cp_inst, int rank, starpu_mpi_tag
 	return 0;
 }
 
-int _checkpoint_package_data_delete(struct _starpu_mpi_checkpoint_data* checkpoint_data)
+int _checkpoint_package_data_delete(struct _starpu_mpi_checkpoint_data *checkpoint_data)
 {
 	size_t size;
 	_starpu_mpi_checkpoint_data_list_erase(checkpoint_data_list, checkpoint_data);
@@ -134,9 +134,9 @@ int checkpoint_package_data_del(int cp_id, int cp_inst, int rank)
 	(void)cp_id;
 	int done = 0;
 	size_t size = 0;
-	struct _starpu_mpi_checkpoint_data* next_checkpoint_data = NULL;
+	struct _starpu_mpi_checkpoint_data *next_checkpoint_data = NULL;
 	STARPU_PTHREAD_MUTEX_LOCK(&package_package_mutex);
-	struct _starpu_mpi_checkpoint_data* checkpoint_data = _starpu_mpi_checkpoint_data_list_begin(checkpoint_data_list);
+	struct _starpu_mpi_checkpoint_data *checkpoint_data = _starpu_mpi_checkpoint_data_list_begin(checkpoint_data_list);
 	while (checkpoint_data != _starpu_mpi_checkpoint_data_list_end(checkpoint_data_list))
 	{
 		next_checkpoint_data = _starpu_mpi_checkpoint_data_list_next(checkpoint_data);
@@ -159,9 +159,9 @@ int _checkpoint_package_data_delete_all()
 {
 	int done = 0;
 	size_t size = 0;
-	struct _starpu_mpi_checkpoint_data* next_checkpoint_data = NULL;
+	struct _starpu_mpi_checkpoint_data *next_checkpoint_data = NULL;
 	STARPU_PTHREAD_MUTEX_LOCK(&package_package_mutex);
-	struct _starpu_mpi_checkpoint_data* checkpoint_data = _starpu_mpi_checkpoint_data_list_begin(checkpoint_data_list);
+	struct _starpu_mpi_checkpoint_data *checkpoint_data = _starpu_mpi_checkpoint_data_list_begin(checkpoint_data_list);
 	while (checkpoint_data != _starpu_mpi_checkpoint_data_list_end(checkpoint_data_list))
 	{
 		next_checkpoint_data = _starpu_mpi_checkpoint_data_list_next(checkpoint_data);

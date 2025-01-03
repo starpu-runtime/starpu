@@ -31,7 +31,7 @@ starpu_pthread_mutex_t           cp_template_mutex;
 starpu_pthread_mutex_t           current_instance_mutex;
 starpu_mpi_checkpoint_template_t cp_template_array[MAX_CP_TEMPLATE_NUMBER];
 int                              cp_template_array_size = 0;
-static int                       my_rank;
+//static int                       my_rank;
 static int                       comm_size;
 static int                       current_instance;
 

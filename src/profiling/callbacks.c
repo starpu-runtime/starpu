@@ -38,6 +38,9 @@ static void *lib_handle=NULL;
 */
 static void _starpu_prof_tool_event_dummy_func(struct starpu_prof_tool_info *pti, union starpu_prof_tool_event_info *ptei, struct starpu_prof_tool_api_info *ptai)
 {
+	(void)pti;
+	(void)ptei;
+	(void)ptai;
 }
 
 void starpu_profiling_init_lib()

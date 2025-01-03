@@ -67,7 +67,7 @@ void scal_cpu_func(void *buffers[], void *_args)
 		FPRINTF(stderr, "running task with %d CPUs.\n", starpu_combined_worker_get_size());
 
 	/* We add 1 to the (nel_total % nb_workers) first workers, thus we get an evenly split data. */
-	int nel_worker = (n / nb_workers) + ((rank < (n % nb_workers)) ? 1 : 0);
+	int nel_worker = ((int)n / nb_workers) + ((rank < ((int)n % nb_workers)) ? 1 : 0);
 
 	int begin = get_first_element_rank(n, rank, nb_workers);
 

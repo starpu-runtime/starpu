@@ -33,7 +33,7 @@
 
 static struct _starpu_mpi_req_list detached_ft_service_requests;
 static struct _starpu_mpi_req_list ready_send_ft_service_requests;
-static unsigned detached_send_n_ft_service_requests;
+//static unsigned detached_send_n_ft_service_requests;
 static starpu_pthread_mutex_t detached_ft_service_requests_mutex;
 static starpu_pthread_mutex_t ft_service_requests_mutex;
 
@@ -118,6 +118,7 @@ int _starpu_mpi_ft_service_submit_rdy()
 	}
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&ft_service_requests_mutex);
+	return 0;
 }
 
 int _starpu_mpi_ft_service_post_special_recv(int tag)
@@ -346,7 +347,7 @@ int starpu_mpi_ft_service_progress()
 	return 0;
 }
 
-int starpu_mpi_ft_service_lib_init(void(*_ack_msg_recv_cb)(void*), void(*_cp_info_recv_cb)(void*))
+int starpu_mpi_ft_service_lib_init(void(*__ack_msg_recv_cb)(void*), void(*_cp_info_recv_cb)(void*))
 {
 	_starpu_mpi_req_list_init(&detached_ft_service_requests);
 	_starpu_mpi_req_list_init(&ready_send_ft_service_requests);
@@ -359,7 +360,7 @@ int starpu_mpi_ft_service_lib_init(void(*_ack_msg_recv_cb)(void*), void(*_cp_inf
 	ready_send_ft_service_msg = 0;
 	pending_send_ft_service_msg = 0;
 
-	ack_msg_recv_cb = _ack_msg_recv_cb;
+	ack_msg_recv_cb = __ack_msg_recv_cb;
 	cp_info_recv_cb = _cp_info_recv_cb;
 
 	return 0;

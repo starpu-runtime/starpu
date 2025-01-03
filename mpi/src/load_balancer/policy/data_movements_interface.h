@@ -32,7 +32,7 @@ struct data_movements_interface
 	int size;
 };
 
-void data_movements_data_register(starpu_data_handle_t *handle, unsigned home_node, int *ranks, starpu_mpi_tag_t *tags, int size);
+void data_movements_data_register(starpu_data_handle_t *handle, int home_node, int *ranks, starpu_mpi_tag_t *tags, int size);
 
 starpu_mpi_tag_t **data_movements_get_ref_tags_table(starpu_data_handle_t handle);
 int **data_movements_get_ref_ranks_table(starpu_data_handle_t handle);

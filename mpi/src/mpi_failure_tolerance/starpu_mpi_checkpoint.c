@@ -31,17 +31,20 @@
 
 starpu_pthread_mutex_t cp_lib_mutex;
 
-void _ack_msg_send_cb(void* _args)
+void _ack_msg_send_cb(void *_args)
 {
-	struct _starpu_mpi_cp_ack_arg_cb* arg = (struct _starpu_mpi_cp_ack_arg_cb*) _args;
+	(void)_args;
 	_STARPU_MPI_FT_STATS_SEND_FT_SERVICE_MSG(sizeof(struct _starpu_mpi_cp_ack_msg));
+#ifdef STARPU_MPI_VERBOSE
+	struct _starpu_mpi_cp_ack_arg_cb *arg = (struct _starpu_mpi_cp_ack_arg_cb *)_args;
 	_STARPU_MPI_DEBUG(3, "Ack send succeeded cpid:%d, cpinst:%d, dest:%d\n", arg->msg.checkpoint_id, arg->msg.checkpoint_instance, arg->rank);
 	//free(arg);
+#endif
 }
 
-void _ack_msg_recv_cb(void* _args)
+void _ack_msg_recv_cb(void *_args)
 {
-	struct _starpu_mpi_cp_ack_arg_cb* arg = (struct _starpu_mpi_cp_ack_arg_cb*) _args;
+	struct _starpu_mpi_cp_ack_arg_cb *arg = (struct _starpu_mpi_cp_ack_arg_cb *)_args;
 	int ret;
 	_STARPU_MPI_FT_STATS_RECV_FT_SERVICE_MSG(sizeof(struct _starpu_mpi_cp_ack_msg));
 	_STARPU_MPI_DEBUG(3, "ack msg recved id:%d inst:%d\n", arg->msg.checkpoint_id, arg->msg.checkpoint_instance);
@@ -56,32 +59,33 @@ void _ack_msg_recv_cb(void* _args)
 	}
 }
 
-void _starpu_mpi_store_data_and_send_ack_cb(struct _starpu_mpi_cp_ack_arg_cb* arg)
+void _starpu_mpi_store_data_and_send_ack_cb(struct _starpu_mpi_cp_ack_arg_cb *arg)
 {
 	checkpoint_package_data_add(arg->msg.checkpoint_id, arg->msg.checkpoint_instance, arg->rank, arg->tag, arg->type, arg->copy_handle, arg->count);
 	_STARPU_MPI_DEBUG(3,"Send ack msg to %d: id=%d inst=%d\n", arg->rank, arg->msg.checkpoint_id, arg->msg.checkpoint_instance);
-	_starpu_mpi_ft_service_post_send((void *) &arg->msg, sizeof(struct _starpu_mpi_cp_ack_msg), arg->rank,
+	_starpu_mpi_ft_service_post_send((void *)&arg->msg, sizeof(struct _starpu_mpi_cp_ack_msg), arg->rank,
 					 _STARPU_MPI_TAG_CP_ACK, MPI_COMM_WORLD, _ack_msg_send_cb, arg);
 }
 
-void _starpu_mpi_push_cp_ack_recv_cb(struct _starpu_mpi_cp_ack_arg_cb* arg)
+void _starpu_mpi_push_cp_ack_recv_cb(struct _starpu_mpi_cp_ack_arg_cb *arg)
 {
+	(void)arg;
 	_STARPU_MPI_DEBUG(3, "Posting ack recv cb from %d\n", arg->rank);
 	_starpu_mpi_ft_service_post_special_recv(_STARPU_MPI_TAG_CP_ACK);
-//	_ft_service_msg_irecv_cb((void *) &arg->msg, sizeof(struct _starpu_mpi_cp_ack_msg), arg->rank,
+//	_ft_service_msg_irecv_cb((void *)&arg->msg, sizeof(struct _starpu_mpi_cp_ack_msg), arg->rank,
 //	                         _STARPU_MPI_TAG_CP_ACK, MPI_COMM_WORLD, _ack_msg_recv_cb, arg);
 }
 
-void _recv_internal_dup_ro_cb(void* _args)
+void _recv_internal_dup_ro_cb(void *_args)
 {
-	struct _starpu_mpi_cp_ack_arg_cb* arg = (struct _starpu_mpi_cp_ack_arg_cb*) _args;
+	struct _starpu_mpi_cp_ack_arg_cb *arg = (struct _starpu_mpi_cp_ack_arg_cb *)_args;
 	starpu_data_release(arg->copy_handle);
 	_starpu_mpi_store_data_and_send_ack_cb(arg);
 }
 
-void _recv_cp_external_data_cb(void* _args)
+void _recv_cp_external_data_cb(void *_args)
 {
-	struct _starpu_mpi_cp_ack_arg_cb* arg = (struct _starpu_mpi_cp_ack_arg_cb*) _args;
+	struct _starpu_mpi_cp_ack_arg_cb *arg = (struct _starpu_mpi_cp_ack_arg_cb *)_args;
 	_STARPU_MPI_FT_STATS_RECV_CP_DATA(starpu_data_get_size(arg->handle));
 	// an handle has specifically been created, Let's get the value back, and unregister the handle
 	arg->copy_handle = starpu_data_handle_to_pointer(arg->handle, STARPU_MAIN_RAM);
@@ -89,23 +93,23 @@ void _recv_cp_external_data_cb(void* _args)
 	_starpu_mpi_store_data_and_send_ack_cb(arg);
 }
 
-void _send_cp_external_data_cb(void* _args)
+void _send_cp_external_data_cb(void *_args)
 {
-	struct _starpu_mpi_cp_ack_arg_cb* arg = (struct _starpu_mpi_cp_ack_arg_cb*) _args;
+	struct _starpu_mpi_cp_ack_arg_cb *arg = (struct _starpu_mpi_cp_ack_arg_cb *)_args;
 	_STARPU_MPI_FT_STATS_SEND_CP_DATA(starpu_data_get_size(arg->handle));
 	free(starpu_data_handle_to_pointer(arg->handle, STARPU_MAIN_RAM));
 	starpu_data_unregister_submit(arg->handle);
 	_starpu_mpi_push_cp_ack_recv_cb(arg);
 }
 
-void _send_cp_internal_data_cb(void* _args)
+void _send_cp_internal_data_cb(void *_args)
 {
-	struct _starpu_mpi_cp_ack_arg_cb* arg = (struct _starpu_mpi_cp_ack_arg_cb*) _args;
+	struct _starpu_mpi_cp_ack_arg_cb *arg = (struct _starpu_mpi_cp_ack_arg_cb *)_args;
 	_starpu_mpi_push_cp_ack_recv_cb(_args);
 	if (!arg->cache_flag)
 	{
 		//TODO: check cp_domain!
-		struct _starpu_mpi_checkpoint_tracker* tracker = _starpu_mpi_checkpoint_template_get_tracking_inst_by_id_inst(0, arg->checkpoint_instance_hint);
+		struct _starpu_mpi_checkpoint_tracker *tracker = _starpu_mpi_checkpoint_template_get_tracking_inst_by_id_inst(0, arg->checkpoint_instance_hint);
 		if(!tracker->first_msg_sent_flag)
 		{
 			tracker->first_msg_sent_flag = 1;
@@ -114,7 +118,7 @@ void _send_cp_internal_data_cb(void* _args)
 	}
 }
 
-void _send_internal_data_stats(struct _starpu_mpi_cp_ack_arg_cb* arg)
+void _send_internal_data_stats(struct _starpu_mpi_cp_ack_arg_cb *arg)
 {
 	if (arg->cache_flag)
 	{
@@ -129,10 +133,10 @@ void _send_internal_data_stats(struct _starpu_mpi_cp_ack_arg_cb* arg)
 int starpu_mpi_checkpoint_template_submit(starpu_mpi_checkpoint_template_t cp_template, int prio)
 {
 	starpu_data_handle_t handle;
-	struct _starpu_mpi_data* mpi_data;
-	struct _starpu_mpi_cp_ack_arg_cb* arg;
-	void* cpy_ptr;
-	struct _starpu_mpi_checkpoint_template_item* item;
+	struct _starpu_mpi_data *mpi_data;
+	struct _starpu_mpi_cp_ack_arg_cb *arg;
+	void *cpy_ptr;
+	struct _starpu_mpi_checkpoint_template_item *item;
 	int current_instance;
 
 	current_instance = increment_current_instance();
@@ -243,9 +247,9 @@ int starpu_mpi_checkpoint_template_submit(starpu_mpi_checkpoint_template_t cp_te
 // * @param args
 // * @return
 // */
-//void _starpu_mpi_checkpoint_ack_send_cb(void* args)
+//void _starpu_mpi_checkpoint_ack_send_cb(void *args)
 //{
-//	starpu_mpi_checkpoint_template_t cp_template = (starpu_mpi_checkpoint_template_t) args;
+//	starpu_mpi_checkpoint_template_t cp_template = (starpu_mpi_checkpoint_template_t)args;
 //	starpu_pthread_mutex_lock(&cp_template->mutex);
 //	cp_template->remaining_ack_awaited--;
 //	starpu_pthread_mutex_unlock(&cp_template->mutex);
@@ -253,22 +257,22 @@ int starpu_mpi_checkpoint_template_submit(starpu_mpi_checkpoint_template_t cp_te
 
 
 //
-//void _starpu_checkpoint_cached_data_send_copy_and_ack(void* _arg)
+//void _starpu_checkpoint_cached_data_send_copy_and_ack(void *_arg)
 //{
-//	struct _starpu_mpi_cp_ack_arg_cb* arg = (struct _starpu_mpi_cp_ack_arg_cb*) _arg;
+//	struct _starpu_mpi_cp_ack_arg_cb *arg = (struct _starpu_mpi_cp_ack_arg_cb *)_arg;
 //	starpu_data_register_same(&arg->copy_handle, arg->handle);
 //	starpu_data_cpy_priority(arg->copy_handle, arg->handle, 1, _starpu_mpi_push_cp_ack_recv_cb, _arg, STARPU_MAX_PRIO);
 //	starpu_data_release(arg->handle);
 //}
 //
-//void _starpu_checkpoint_data_send_copy_and_ack(void* _args)
+//void _starpu_checkpoint_data_send_copy_and_ack(void *_args)
 //{
-//	struct _starpu_mpi_cp_ack_arg_cb* arg = (struct _starpu_mpi_cp_ack_arg_cb*) _args;
+//	struct _starpu_mpi_cp_ack_arg_cb *arg = (struct _starpu_mpi_cp_ack_arg_cb *)_args;
 //	starpu_data_register_same(&arg->copy_handle, arg->handle);
 //	starpu_data_cpy_priority(arg->copy_handle, arg->handle, 1, _starpu_mpi_push_cp_ack_recv_cb, _args, STARPU_MAX_PRIO);
 //}
 //
-//void _starpu_mpi_treat_cache_ack_no_lock_cb(void* _args)
+//void _starpu_mpi_treat_cache_ack_no_lock_cb(void *_args)
 //{
 //	starpu_mpi_checkpoint_template_t cp_template = (starpu_mpi_checkpoint_template_t)_args;
 //	cp_template->remaining_ack_awaited--;
