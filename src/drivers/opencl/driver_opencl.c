@@ -1207,6 +1207,7 @@ _starpu_opencl_unmap_ram(uintptr_t src STARPU_ATTRIBUTE_UNUSED, size_t src_offse
 	return 0;
 }
 
+#if 0
 static int
 _starpu_opencl_update_opencl_map(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size)
 {
@@ -1235,6 +1236,7 @@ _starpu_opencl_update_opencl_map(uintptr_t src, size_t src_offset, unsigned src_
 
 	return 0;
 }
+#endif
 
 static int
 _starpu_opencl_update_cpu_map(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size)

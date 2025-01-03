@@ -351,6 +351,7 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comm
 			current_out_bandwidth[match->src] -= match->bandwidth;
 			current_in_bandwidth[match->dst] -= match->bandwidth;
 #ifdef STARPU_HAVE_POTI
+			(void)out_paje_file;
 			snprintf(mpi_container, sizeof(mpi_container), "%d_mpict", match->src);
 			poti_SetVariable(match->date, mpi_container, "bwo_mpi", current_out_bandwidth[match->src]);
 			snprintf(mpi_container, sizeof(mpi_container), "%d_mpict", match->dst);

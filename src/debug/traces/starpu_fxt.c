@@ -969,6 +969,7 @@ static void worker_pop_state(double time, const char *prefix, long unsigned int 
 	if (!out_paje_file)
 		return;
 #ifdef STARPU_HAVE_POTI
+	(void)comment;
 	char container[STARPU_POTI_STR_LEN];
 	worker_container_alias(container, STARPU_POTI_STR_LEN, prefix, workerid);
 	poti_PopState(time, container, "WS");
@@ -1868,7 +1869,7 @@ static void handle_codelet_details(struct fxt_ev_native *ev, struct starpu_fxt_o
 	long unsigned int tid = ev->param[7];
 
 	struct _thread_info *thread_info = get_thread_info(tid, worker, 0);
-	char parameters[256];
+	char parameters[STARPU_POTI_STR_LEN];
 	size_t eaten = 0;
 	if (!thread_info->codelet_parameter)
 		snprintf(parameters, sizeof(parameters) - 1, "nodata");
@@ -1936,7 +1937,7 @@ static void handle_codelet_details(struct fxt_ev_native *ev, struct starpu_fxt_o
 			poti_SetState(thread_info->last_codelet_start, container, typectx, thread_info->symbol);
 
 			char name[STARPU_POTI_STR_LEN];
-			snprintf(name, sizeof(name), "%s", thread_info->symbol);
+			snprintf(name, sizeof(name), "%.*s", STARPU_POTI_STR_LEN-1, thread_info->symbol);
 
 			char size_str[STARPU_POTI_STR_LEN];
 			char parameters_str[STARPU_POTI_STR_LEN];
@@ -4418,7 +4419,7 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 			_starpu_fxt_process_computations(options);
 	}
 
-	unsigned i;
+	unsigned i=0;
 	if (!options->no_flops)
 	{
 

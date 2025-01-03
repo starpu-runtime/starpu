@@ -53,6 +53,7 @@ void command_completed_task_callback(void *arg)
  */
 starpu_task task_create(cl_command_type typ)
 {
+	(void)typ;
 	struct starpu_task * task;
 
 	/* Create StarPU task */
