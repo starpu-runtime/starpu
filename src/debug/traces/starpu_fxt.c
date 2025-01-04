@@ -1869,7 +1869,7 @@ static void handle_codelet_details(struct fxt_ev_native *ev, struct starpu_fxt_o
 	long unsigned int tid = ev->param[7];
 
 	struct _thread_info *thread_info = get_thread_info(tid, worker, 0);
-	char parameters[STARPU_POTI_STR_LEN];
+	char parameters[STARPU_TRACE_STR_LEN];
 	size_t eaten = 0;
 	if (!thread_info->codelet_parameter)
 		snprintf(parameters, sizeof(parameters) - 1, "nodata");
