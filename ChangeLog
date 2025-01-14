@@ -46,6 +46,9 @@ Small features:
     components pick up ready tasks first.
   * Allow scheduling policies to be loaded with STARPU_SCHED&co but
     not to be in the list of predefined policies
+  * Add function starpu_data_partition_get_nplans() to get the current
+    number of asynchronous partitions for a given data at submission
+    time
 
 StarPU 1.4.8
 ==============================================

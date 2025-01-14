@@ -363,6 +363,11 @@ void starpu_data_partition_submit_sequential_consistency(starpu_data_handle_t in
 */
 void starpu_data_unpartition_submit_sequential_consistency(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gathering_node, int sequential_consistency);
 
+/**
+   Get the current number of asynchronous partitions for \p initial_handle (at submission time)
+*/
+int starpu_data_partition_get_nplans(starpu_data_handle_t initial_handle);
+
 /** @} */
 
 /**

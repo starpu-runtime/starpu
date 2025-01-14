@@ -200,6 +200,8 @@ int main(void)
 	starpu_matrix_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)matrix, NX, NX, NY, sizeof(matrix[0][0]));
 #endif
 
+	FPRINTF(stderr, "Number of plans %d\n", starpu_data_partition_get_nplans(handle));
+
 	/* Partition the matrix in PARTS vertical slices */
 	struct starpu_data_filter f_vert =
 	{
@@ -215,6 +217,8 @@ int main(void)
 		.nchildren = PARTS
 	};
 	starpu_data_partition_plan(handle, &f_horiz, horiz_handle);
+
+	FPRINTF(stderr, "Number of plans %d\n", starpu_data_partition_get_nplans(handle));
 
 	/* Fill the matrix */
 	ret = starpu_task_insert(&cl_fill, STARPU_W, handle, 0);

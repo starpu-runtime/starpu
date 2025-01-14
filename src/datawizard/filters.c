@@ -596,6 +596,11 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 	_starpu_data_partition(initial_handle, NULL, nparts, f, 1);
 }
 
+int starpu_data_partition_get_nplans(starpu_data_handle_t initial_handle)
+{
+	return initial_handle->nplans;
+}
+
 void starpu_data_partition_plan(starpu_data_handle_t initial_handle, struct starpu_data_filter *f, starpu_data_handle_t *childrenp)
 {
 	unsigned i;
