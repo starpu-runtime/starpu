@@ -416,7 +416,7 @@ extern "C" {
 
 /**
    Used when calling starpu_task_insert(), similarly to
-   ::STARPU_SOON_CALLBACK_POP_ARG, must be followed by a pointer
+   ::STARPU_SOON_CALLBACK_ARG, must be followed by a pointer
    to be given as an argument to the soon callback pop function,
    the argument will not be freed, i.e
    starpu_task::soon_callback_pop_arg_free will be set to 0

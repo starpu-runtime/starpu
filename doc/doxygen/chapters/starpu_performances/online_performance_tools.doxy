@@ -61,7 +61,7 @@ These dates are stored as <c>timespec</c> structures which users may convert
 into micro-seconds using the helper function
 starpu_timing_timespec_to_us(). User can call starpu_worker_get_current_task_exp_end() to get the date when the current task is expected to be finished.
 
-When \ref ::STARPU_ENERGY_PROFILING is enabled,
+When \ref STARPU_ENERGY_PROFILING is enabled,
 starpu_profiling_task_info::energy_consumed, provides the amount of Joules used
 by the task.
 

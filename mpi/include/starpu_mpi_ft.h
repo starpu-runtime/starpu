@@ -44,11 +44,11 @@ int starpu_mpi_checkpoint_shutdown(void);
 
 /**
  * Wrapped function to register a checkpoint template \p cp_template with the given arguments.
- * It is then ready to use with ::starpu_mpi_checkpoint_template_submit() during the program execution.
- * This command executes ::starpu_mpi_checkpoint_template_create(), adds the given checkpoint entry and freezes the
+ * It is then ready to use with starpu_mpi_checkpoint_template_submit() during the program execution.
+ * This command executes starpu_mpi_checkpoint_template_create(), adds the given checkpoint entry and freezes the
  * checkpoint, and therefore can no longer be modified.
  * A unique checkpoint id \p cp_id is requested from the user in order to create several templates and to
- * match with a corresponding ::starpu_mpi_init_from_checkpoint() (not implemented yet).
+ * match with a corresponding starpu_mpi_init_from_checkpoint() (not implemented yet).
  *
  * The arguments following the \p cp_template and the \p cp_id can be of the following types:
  * <ul>
@@ -66,18 +66,18 @@ int starpu_mpi_checkpoint_template_register(starpu_mpi_checkpoint_template_t *cp
 /**
  * Create a new checkpoint template. A unique checkpoint id \p cp_id is requested from
  * the user in order to create several templates and to
- * match with a corresponding ::starpu_mpi_init_from_checkpoint() (not implemented yet).
- * Note a template must be frozen with ::starpu_mpi_checkpoint_template_freeze() in order to use it
- * with ::starpu_mpi_checkpoint_template_submit().
+ * match with a corresponding starpu_mpi_init_from_checkpoint() (not implemented yet).
+ * Note a template must be frozen with starpu_mpi_checkpoint_template_freeze() in order to use it
+ * with starpu_mpi_checkpoint_template_submit().
 */
 int starpu_mpi_checkpoint_template_create(starpu_mpi_checkpoint_template_t *cp_template, int cp_id, int cp_domain);
 
 /**
- * Add a single entry to a checkpoint template previously created with ::starpu_mpi_checkpoint_template_create().
+ * Add a single entry to a checkpoint template previously created with starpu_mpi_checkpoint_template_create().
  * As many entries can be added to a template with as many argument to a single function call, or with as many
  * calls to this function.
  * Once all the entry added, the
- * template must be frozen before using ::starpu_mpi_checkpoint_template_submit().
+ * template must be frozen before using starpu_mpi_checkpoint_template_submit().
  *
  * The arguments following the \p cp_template can be of the following types:
  * <ul>
@@ -94,18 +94,18 @@ int starpu_mpi_checkpoint_template_add_entry(starpu_mpi_checkpoint_template_t *c
 
 /**
  * Freeze the given template.
- * A frozen template can no longer be modified with ::starpu_mpi_checkpoint_template_add_entry().
- * A template must be frozen before using ::starpu_mpi_checkpoint_template_submit().
+ * A frozen template can no longer be modified with starpu_mpi_checkpoint_template_add_entry().
+ * A template must be frozen before using starpu_mpi_checkpoint_template_submit().
  */
 int starpu_mpi_checkpoint_template_freeze(starpu_mpi_checkpoint_template_t *cp_template);
 
 /**
  * Submit the checkpoint to StarPU, and can be seen as a cut in the task graph. StarPU will save the data as currently
  * described in the submission. Note that the data external to StarPu (::STARPU_VALUE) will be saved with the current value
- * at submission time (when ::starpu_mpi_checkpoint_template_submit() is called).
+ * at submission time (when starpu_mpi_checkpoint_template_submit() is called).
  * The data internal to StarPU (aka handles given with ::STARPU_R) will be saved with their value at
- * execution time (when the task submitted before the ::starpu_mpi_checkpoint_template_submit() have been executed,
- * and before this data is modified by the tasks submitted after the ::starpu_mpi_checkpoint_template_submit())
+ * execution time (when the task submitted before the starpu_mpi_checkpoint_template_submit() have been executed,
+ * and before this data is modified by the tasks submitted after the starpu_mpi_checkpoint_template_submit())
  */
 int starpu_mpi_checkpoint_template_submit(starpu_mpi_checkpoint_template_t cp_template, int prio);
 
