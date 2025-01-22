@@ -119,6 +119,14 @@ int _starpu_mpi_find_executee_node(starpu_data_handle_t data, enum starpu_data_a
 
 int _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum starpu_data_access_mode mode, int me, int xrank, int do_execute, int prio, MPI_Comm comm)
 {
+    if (data && data->mpi_data)
+    {
+        char *redux_map = starpu_mpi_data_get_redux_map(data);
+        if (redux_map != NULL && mode & STARPU_R && mode & ~ STARPU_REDUX && mode & ~ STARPU_MPI_REDUX)
+        {
+            _starpu_mpi_redux_wrapup_data(data);
+        }
+    }
 	if (data && xrank == STARPU_MPI_PER_NODE)
 	{
 		STARPU_ASSERT_MSG(starpu_mpi_data_get_rank(data) == STARPU_MPI_PER_NODE, "If task is replicated, it has to access only per-node data");
@@ -179,6 +187,41 @@ int _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum s
 static
 int _starpu_mpi_exchange_data_after_execution(starpu_data_handle_t data, enum starpu_data_access_mode mode, int me, int xrank, int do_execute, int prio, MPI_Comm comm)
 {
+    if ((mode & STARPU_REDUX || mode & STARPU_MPI_REDUX) && data)
+    {
+        struct _starpu_mpi_data *mpi_data = (struct _starpu_mpi_data *) data->mpi_data;
+        int rrank = starpu_mpi_data_get_rank(data);
+        int size;
+        starpu_mpi_comm_size(comm, &size);
+        if (mpi_data->redux_map == NULL)
+        {
+            _STARPU_CALLOC(mpi_data->redux_map, size, sizeof(mpi_data->redux_map[0]));
+        }
+        mpi_data->redux_map [xrank] = 1;
+        mpi_data->redux_map [rrank] = 1;
+        int outside_owner = 0;
+        int j;
+        for (j = 0; j < size; j++)
+        {
+            if (mpi_data->redux_map[j] && j != rrank)
+            {
+                outside_owner = 1;
+                break;
+            }
+        }
+        if (outside_owner)
+        {
+            struct _starpu_redux_data_entry *entry;
+            HASH_FIND_PTR(_redux_data, &data, entry);
+            if (entry == NULL)
+            {
+                _STARPU_MPI_MALLOC(entry, sizeof(*entry));
+                starpu_data_handle_t data_handle = data;
+                entry->data_handle = data_handle;
+                HASH_ADD_PTR(_redux_data, data_handle, entry);
+            }
+        }
+    }
 	if (mode & STARPU_W && !(mode & STARPU_MPI_REDUX))
 	{
 		int mpi_rank = starpu_mpi_data_get_rank(data);
@@ -661,14 +704,6 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 	/* Send and receive data as requested */
 	for(i=0 ; i<nb_data ; i++)
 	{
-                if (descrs[i].handle && descrs[i].handle->mpi_data)
-		{
-			char *redux_map = starpu_mpi_data_get_redux_map(descrs[i].handle);
-			if (redux_map != NULL && descrs[i].mode & STARPU_R && descrs[i].mode & ~ STARPU_REDUX && descrs[i].mode & ~ STARPU_MPI_REDUX)
-			{
-				_starpu_mpi_redux_wrapup_data(descrs[i].handle);
-			}
-		}
 		_starpu_mpi_exchange_data_before_execution(descrs[i].handle, descrs[i].mode, me, xrank, do_execute, prio, comm);
 	}
 
@@ -735,41 +770,6 @@ int _starpu_mpi_task_postbuild_v(MPI_Comm comm, int xrank, int do_execute, struc
 
 	for(i=0 ; i<nb_data ; i++)
 	{
-		if ((descrs[i].mode & STARPU_REDUX || descrs[i].mode & STARPU_MPI_REDUX) && descrs[i].handle)
-		{
-			struct _starpu_mpi_data *mpi_data = (struct _starpu_mpi_data *) descrs[i].handle->mpi_data;
-			int rrank = starpu_mpi_data_get_rank(descrs[i].handle);
-			int size;
-			starpu_mpi_comm_size(comm, &size);
-			if (mpi_data->redux_map == NULL)
-			{
-				_STARPU_CALLOC(mpi_data->redux_map, size, sizeof(mpi_data->redux_map[0]));
-			}
-			mpi_data->redux_map [xrank] = 1;
-			mpi_data->redux_map [rrank] = 1;
-			int outside_owner = 0;
-			int j;
-			for (j = 0; j < size; j++)
-			{
-				if (mpi_data->redux_map[j] && j != rrank)
-				{
-					outside_owner = 1;
-					break;
-				}
-			}
-			if (outside_owner)
-			{
-				struct _starpu_redux_data_entry *entry;
-				HASH_FIND_PTR(_redux_data, &descrs[i].handle, entry);
-				if (entry == NULL)
-				{
-					_STARPU_MPI_MALLOC(entry, sizeof(*entry));
-					starpu_data_handle_t data_handle = descrs[i].handle;
-					entry->data_handle = data_handle;
-					HASH_ADD_PTR(_redux_data, data_handle, entry);
-				}
-			}
-		}
 		_starpu_mpi_exchange_data_after_execution(descrs[i].handle, descrs[i].mode, me, xrank, do_execute, prio, comm);
 		_starpu_mpi_clear_data_after_execution(descrs[i].handle, descrs[i].mode, me, do_execute);
 	}

@@ -492,14 +492,6 @@ int _fstarpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, str
 	/* Send and receive data as requested */
 	for(i=0 ; i<nb_data ; i++)
 	{
-                if (descrs[i].handle && descrs[i].handle->mpi_data)
-		{
-			char *redux_map = starpu_mpi_data_get_redux_map(descrs[i].handle);
-			if (redux_map != NULL && descrs[i].mode & STARPU_R && descrs[i].mode & ~ STARPU_REDUX && descrs[i].mode & ~ STARPU_MPI_REDUX)
-			{
-				_starpu_mpi_redux_wrapup_data(descrs[i].handle);
-			}
-		}
 		_starpu_mpi_exchange_data_before_execution(descrs[i].handle, descrs[i].mode, me, xrank, do_execute, prio, comm);
 	}
 
