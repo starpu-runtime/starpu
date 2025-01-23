@@ -17,6 +17,7 @@
 #include <starpu_mpi.h>
 #include <starpu_mpi_private.h>
 #include <starpu_mpi_fxt.h>
+#include <mpi_failure_tolerance/ulfm/starpu_mpi_ulfm_comm.h>
 
 #ifdef STARPU_HAVE_MPI_SYNC_CLOCKS
 #include <mpi_sync_clocks.h>
@@ -40,12 +41,13 @@ static void _starpu_mpi_add_sync_point_in_fxt(void)
 {
 	int rank, worldsize, ret;
 
+	MPI_Comm internal_comm_world = _starpu_mpi_ulfm_get_mpi_comm_from_key(MPI_COMM_WORLD);
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &worldsize);
 
 	STARPU_ASSERT(worldsize > 1);
 
-	ret = MPI_Barrier(MPI_COMM_WORLD);
+	ret = MPI_Barrier(internal_comm_world);
 	STARPU_MPI_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Barrier returning %s", _starpu_mpi_get_mpi_error_code(ret));
 
 	if (fxt_random_number == -1) // only for the first sync point
@@ -57,7 +59,7 @@ static void _starpu_mpi_add_sync_point_in_fxt(void)
 
 		_STARPU_MPI_DEBUG(3, "unique key %x\n", fxt_random_number);
 
-		ret = MPI_Bcast(&fxt_random_number, 1, MPI_INT, 0, MPI_COMM_WORLD);
+		ret = MPI_Bcast(&fxt_random_number, 1, MPI_INT, 0, internal_comm_world);
 		STARPU_MPI_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Bcast returning %s", _starpu_mpi_get_mpi_error_code(ret));
 	}
 
@@ -79,7 +81,7 @@ static void _starpu_mpi_add_sync_point_in_fxt(void)
 	else /* mpi_sync_synchronize() can be long (several seconds), one can prefer to use a less precise but faster method: */
 #endif
 	{
-		ret = MPI_Barrier(MPI_COMM_WORLD);
+		ret = MPI_Barrier(internal_comm_world);
 		STARPU_MPI_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Barrier returning %s", _starpu_mpi_get_mpi_error_code(ret));
 
 		_STARPU_MPI_TRACE_BARRIER(rank, worldsize, fxt_random_number, 0);

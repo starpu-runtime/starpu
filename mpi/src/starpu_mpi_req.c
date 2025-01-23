@@ -74,7 +74,7 @@ struct _starpu_mpi_req *_starpu_mpi_request_fill(starpu_data_handle_t data_handl
 						 unsigned detached, unsigned sync, int prio, void (*callback)(void *), void *arg,
 						 enum _starpu_mpi_request_type request_type, void (*func)(struct _starpu_mpi_req *),
 						 int sequential_consistency,
-						 int is_internal_req,
+						 int is_internal_req, starpu_mpi_comm internal_comm,
 						 starpu_ssize_t count)
 {
 	struct _starpu_mpi_req *req;
@@ -89,6 +89,7 @@ struct _starpu_mpi_req *_starpu_mpi_request_fill(starpu_data_handle_t data_handl
 	req->node_tag.node.rank = srcdst;
 	req->node_tag.data_tag = data_tag;
 	req->node_tag.node.comm = comm;
+	req->node_tag.internal_comm = internal_comm;
 	req->detached = detached;
 	req->sync = sync;
 	req->callback = callback;

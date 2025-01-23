@@ -74,13 +74,13 @@ check:
   image: registry.gitlab.inria.fr/starpu/starpu-docker/ci-${NODE}
   tags: ['ci.inria.fr', 'linux', 'large']
 
-check_mpich:
+check_mpi:
   extends: .check_template
   image: registry.gitlab.inria.fr/starpu/starpu-docker/ci-ubuntu1804
   tags: ['ci.inria.fr', 'linux', 'large']
   parallel:
     matrix:
-      - SCRIPT: [./contrib/gitlab/mpich.sh, ./contrib/gitlab/mpich_struct.sh]
+      - SCRIPT: [./contrib/gitlab/mpich.sh, ./contrib/gitlab/mpich_struct.sh, ./contrib/gitlab/mpi_ulfm.sh]
   script:
     - ${SCRIPT}
 

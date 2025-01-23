@@ -50,6 +50,18 @@ int _starpu_mpi_simgrid_mpi_test(unsigned *done, int *flag);
 void _starpu_mpi_simgrid_wait_req(MPI_Request *request, MPI_Status *status, starpu_pthread_queue_t *queue, unsigned *done);
 #endif
 
+/**
+   This is used with communicator abstraction.
+   StarPU will use the starpu_mpi_comm type to designate internal communicators and use them with each MPI call.
+   A top level function will typically give a MPI_Comm from the application as parameter to other functions.
+   When an MPI_Call is made, it is used to get the corresponding starpu_mpi_comm, using the function
+   _starpu_mpi_ulfm_get_mpi_comm_from_key() declared in mpi/src/mpi_failure_tolerance/ulfm/starpu_mpi_ulfm_comm.h.
+   This is because an internal communicator can become invalid between two function calls.
+   A starpu_mpi_comm may be stored in a variable, but only when the use of the same communicator multiple times is needed,
+   even if it contains dead processes (this is the case for requests created after an envelope is received).
+*/
+typedef MPI_Comm starpu_mpi_comm;
+
 struct _starpu_mpi_req* _starpu_mpi_isend_cache_aware(starpu_data_handle_t data_handle, int dest, starpu_mpi_tag_t data_tag, MPI_Comm comm, unsigned detached, unsigned sync, int prio, void (*callback)(void *), void *_arg, int sequential_consistency, int* cache_flag);
 struct _starpu_mpi_req* _starpu_mpi_irecv_cache_aware(starpu_data_handle_t data_handle, int source, starpu_mpi_tag_t data_tag, MPI_Comm comm, unsigned detached, unsigned sync, void (*callback)(void *), void *_arg, int sequential_consistency, int is_internal_req, starpu_ssize_t count, int* cache_flag);
 
@@ -190,6 +202,7 @@ struct _starpu_mpi_node_tag
 {
 	struct _starpu_mpi_node node;
 	starpu_mpi_tag_t data_tag;
+	starpu_mpi_comm internal_comm;
 };
 
 MULTILIST_CREATE_TYPE(_starpu_mpi_req, coop_sends)
@@ -337,14 +350,14 @@ struct _starpu_mpi_req * _starpu_mpi_request_fill(starpu_data_handle_t data_hand
 						  unsigned detached, unsigned sync, int prio, void (*callback)(void *), void *arg,
 						  enum _starpu_mpi_request_type request_type, void (*func)(struct _starpu_mpi_req *),
 						  int sequential_consistency,
-						  int is_internal_req,
+						  int is_internal_req, starpu_mpi_comm internal_comm,
 						  starpu_ssize_t count);
 
 void _starpu_mpi_request_destroy(struct _starpu_mpi_req *req);
 
 char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type);
 
-struct _starpu_mpi_req *_starpu_mpi_irecv_common(starpu_data_handle_t data_handle, int source, starpu_mpi_tag_t data_tag, MPI_Comm comm, unsigned detached, unsigned sync, void (*callback)(void *), void *arg, int sequential_consistency, int is_internal_req, starpu_ssize_t count, int prio);
+struct _starpu_mpi_req *_starpu_mpi_irecv_common(starpu_data_handle_t data_handle, int source, starpu_mpi_tag_t data_tag, MPI_Comm comm, starpu_mpi_comm internal_comm, unsigned detached, unsigned sync, void (*callback)(void *), void *arg, int sequential_consistency, int is_internal_req, starpu_ssize_t count, int prio);
 
 int _starpu_mpi_choose_node(starpu_data_handle_t data_handle, enum starpu_data_access_mode mode);
 

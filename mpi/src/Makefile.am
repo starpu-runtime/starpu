@@ -85,7 +85,8 @@ noinst_HEADERS =					\
 	nmad/starpu_mpi_nmad.h				\
 	load_balancer/policy/data_movements_interface.h	\
 	load_balancer/policy/load_data_interface.h	\
-	load_balancer/policy/load_balancer_policy.h
+	load_balancer/policy/load_balancer_policy.h \
+	mpi_failure_tolerance/ulfm/starpu_mpi_ulfm_comm.h
 
 if STARPU_USE_MPI_FT
 noinst_HEADERS +=       \
@@ -139,7 +140,8 @@ libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES +=    \
 	mpi_failure_tolerance/starpu_mpi_ft_service_comms.c \
 	mpi_failure_tolerance/starpu_mpi_checkpoint_package.c  \
 	mpi_failure_tolerance/starpu_mpi_checkpoint_tracker.c  \
-	mpi_failure_tolerance/starpu_mpi_ft_stats.c
+	mpi_failure_tolerance/starpu_mpi_ft_stats.c \
+	mpi_failure_tolerance/ulfm/starpu_mpi_ulfm_comm.c
 endif STARPU_USE_MPI_FT
 
 if STARPU_USE_FXT

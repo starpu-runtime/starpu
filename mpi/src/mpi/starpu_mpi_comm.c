@@ -20,12 +20,14 @@
 #include <starpu_mpi_private.h>
 #include <mpi/starpu_mpi_comm.h>
 #include <common/list.h>
+#include <mpi_failure_tolerance/ulfm/starpu_mpi_ulfm_comm.h>
 
 #ifdef STARPU_USE_MPI_MPI
 
 struct _starpu_mpi_comm
 {
-	MPI_Comm comm;
+	MPI_Comm app_comm;
+	starpu_mpi_comm internal_comm;
 	struct _starpu_mpi_envelope *envelope;
 	MPI_Request request;
 	int posted;
@@ -92,9 +94,10 @@ void _starpu_mpi_comm_shutdown()
 void _starpu_mpi_comm_register(MPI_Comm comm)
 {
 	struct _starpu_mpi_comm_hashtable *found;
+	starpu_mpi_comm internal_comm = _starpu_mpi_ulfm_get_mpi_comm_from_key(comm);
 
 	STARPU_PTHREAD_RWLOCK_RDLOCK(&_starpu_mpi_comms_mutex);
-	HASH_FIND(hh, _starpu_mpi_comms_cache, &comm, sizeof(MPI_Comm), found);
+	HASH_FIND(hh, _starpu_mpi_comms_cache, &internal_comm, sizeof(internal_comm), found);
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&_starpu_mpi_comms_mutex);
 	if (found)
 	{
@@ -103,7 +106,7 @@ void _starpu_mpi_comm_register(MPI_Comm comm)
 	}
 
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&_starpu_mpi_comms_mutex);
-	HASH_FIND(hh, _starpu_mpi_comms_cache, &comm, sizeof(MPI_Comm), found);
+	HASH_FIND(hh, _starpu_mpi_comms_cache, &internal_comm, sizeof(internal_comm), found);
 	if (found)
 	{
 		_STARPU_MPI_DEBUG(10, "comm %ld (%ld) already registered in between\n", (long int)comm, (long int)MPI_COMM_WORLD);
@@ -119,14 +122,15 @@ void _starpu_mpi_comm_register(MPI_Comm comm)
 		_STARPU_MPI_DEBUG(10, "registering comm %ld (%ld) number %d\n", (long int)comm, (long int)MPI_COMM_WORLD, _starpu_mpi_comm_nb);
 		struct _starpu_mpi_comm *_comm;
 		_STARPU_MPI_CALLOC(_comm, 1, sizeof(struct _starpu_mpi_comm));
-		_comm->comm = comm;
+		_comm->internal_comm = internal_comm;
+		_comm->app_comm = comm;
 		_STARPU_MPI_CALLOC(_comm->envelope, 1,sizeof(struct _starpu_mpi_envelope));
 		_comm->posted = 0;
 		_starpu_mpi_comms[_starpu_mpi_comm_nb] = _comm;
 		_starpu_mpi_comm_nb++;
 		struct _starpu_mpi_comm_hashtable *entry;
 		_STARPU_MPI_MALLOC(entry, sizeof(*entry));
-		entry->comm = comm;
+		entry->comm = internal_comm;
 		HASH_ADD(hh, _starpu_mpi_comms_cache, comm, sizeof(entry->comm), entry);
 
 #ifdef STARPU_SIMGRID
@@ -148,9 +152,9 @@ void _starpu_mpi_comm_post_recv()
 		struct _starpu_mpi_comm *_comm = _starpu_mpi_comms[i]; // get the ith _comm;
 		if (_comm->posted == 0)
 		{
-			_STARPU_MPI_DEBUG(3, "Posting a receive to get a data envelop on comm %d %ld\n", i, (long int)_comm->comm);
-			_STARPU_MPI_COMM_FROM_DEBUG(_comm->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, MPI_ANY_SOURCE, _STARPU_MPI_TAG_ENVELOPE, (int64_t)_STARPU_MPI_TAG_ENVELOPE, _comm->comm);
-			MPI_Irecv(_comm->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, MPI_ANY_SOURCE, _STARPU_MPI_TAG_ENVELOPE, _comm->comm, &_comm->request);
+			_STARPU_MPI_DEBUG(3, "Posting a receive to get a data envelop on comm %d %ld\n", i, (long int)_comm->app_comm);
+			_STARPU_MPI_COMM_FROM_DEBUG(_comm->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, MPI_ANY_SOURCE, _STARPU_MPI_TAG_ENVELOPE, (int64_t)_STARPU_MPI_TAG_ENVELOPE, _comm->internal_comm);
+			MPI_Irecv(_comm->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, MPI_ANY_SOURCE, _STARPU_MPI_TAG_ENVELOPE, _comm->internal_comm, &_comm->request);
 #ifdef STARPU_SIMGRID
 			_starpu_mpi_simgrid_wait_req(&_comm->request, &_comm->status, &_comm->queue, &_comm->done);
 #endif
@@ -160,7 +164,7 @@ void _starpu_mpi_comm_post_recv()
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&_starpu_mpi_comms_mutex);
 }
 
-int _starpu_mpi_comm_test_recv(MPI_Status *status, struct _starpu_mpi_envelope **envelope, MPI_Comm *comm)
+int _starpu_mpi_comm_test_recv(MPI_Status *status, struct _starpu_mpi_envelope **envelope, starpu_mpi_comm *comm, MPI_Comm *app_comm)
 {
 	int i=_starpu_mpi_comm_tested;
 
@@ -187,7 +191,8 @@ int _starpu_mpi_comm_test_recv(MPI_Status *status, struct _starpu_mpi_envelope *
 				if (_starpu_mpi_comm_tested == _starpu_mpi_comm_nb)
 					_starpu_mpi_comm_tested = 0;
 				*envelope = _comm->envelope;
-				*comm = _comm->comm;
+				*comm = _comm->internal_comm;
+				*app_comm = _comm->app_comm;
 				STARPU_PTHREAD_RWLOCK_UNLOCK(&_starpu_mpi_comms_mutex);
 				return 1;
 			}
@@ -229,6 +234,20 @@ void _starpu_mpi_comm_cancel_recv()
 		}
 	}
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&_starpu_mpi_comms_mutex);
+}
+
+int _starpu_mpi_comm_all_posted()
+{
+	int i;
+	int posted = 0;
+
+	for(i=0 ; i<_starpu_mpi_comm_nb ; i++)
+	{
+		struct _starpu_mpi_comm *_comm = _starpu_mpi_comms[i];
+		if (_comm->posted == 1)
+			posted ++;
+	}
+	return (posted == _starpu_mpi_comm_nb);
 }
 
 #endif /* STARPU_USE_MPI_MPI */

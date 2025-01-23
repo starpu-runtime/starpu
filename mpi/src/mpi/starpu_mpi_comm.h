@@ -36,8 +36,9 @@ void _starpu_mpi_comm_init(MPI_Comm comm);
 void _starpu_mpi_comm_shutdown();
 void _starpu_mpi_comm_register(MPI_Comm comm);
 void _starpu_mpi_comm_post_recv();
-int _starpu_mpi_comm_test_recv(MPI_Status *status, struct _starpu_mpi_envelope **envelope, MPI_Comm *comm);
+int _starpu_mpi_comm_test_recv(MPI_Status *status, struct _starpu_mpi_envelope **envelope, starpu_mpi_comm *comm, MPI_Comm *app_comm);
 void _starpu_mpi_comm_cancel_recv();
+int _starpu_mpi_comm_all_posted();
 
 #ifdef __cplusplus
 }

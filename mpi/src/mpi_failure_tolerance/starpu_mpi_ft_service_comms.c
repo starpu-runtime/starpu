@@ -21,6 +21,7 @@
 #include <mpi_failure_tolerance/starpu_mpi_checkpoint.h>
 #include <mpi_failure_tolerance/starpu_mpi_checkpoint_template.h>
 #include <mpi_failure_tolerance/starpu_mpi_checkpoint_package.h>
+#include <mpi_failure_tolerance/ulfm/starpu_mpi_ulfm_comm.h>
 #include <sys/param.h>
 #include <starpu_mpi_private.h>
 #include <mpi/starpu_mpi_mpi_backend.h> // Should be deduced at preprocessing (Nmad vs MPI)
@@ -48,6 +49,8 @@ typedef void (*cb_fn_type)(void*);
 cb_fn_type ack_msg_recv_cb;
 cb_fn_type cp_info_recv_cb;
 
+static starpu_mpi_comm used_comm = MPI_COMM_WORLD;
+
 int _starpu_mpi_ft_service_submit_rdy()
 {
 	int i;
@@ -62,14 +65,14 @@ int _starpu_mpi_ft_service_submit_rdy()
 		_STARPU_MALLOC(arg, sizeof(struct _starpu_mpi_cp_ack_arg_cb));
 		req = _starpu_mpi_request_fill(NULL, MPI_ANY_SOURCE, _STARPU_MPI_TAG_CP_ACK, MPI_COMM_WORLD,
 					       1, 0, 0, ack_msg_recv_cb, arg, RECV_REQ, NULL,
-					       1, 0, sizeof(arg->msg));
+					       1, 0, used_comm, sizeof(arg->msg));
 		req->ptr = (void*)&arg->msg;
 		req->datatype = MPI_BYTE;
 		_STARPU_MALLOC(req->status, sizeof(MPI_Status));
 
 		STARPU_PTHREAD_MUTEX_LOCK(&detached_ft_service_requests_mutex);
 		MPI_Irecv(req->ptr, req->count, req->datatype, req->node_tag.node.rank, req->node_tag.data_tag,
-		          req->node_tag.node.comm, &req->backend->data_request);
+		          req->node_tag.internal_comm, &req->backend->data_request);
 		_STARPU_MPI_DEBUG(5, "Posting MPI_Irecv ft service msg: req %p tag %"PRIi64" src %d comm %ld ptr %p\n", req,  req->node_tag.data_tag, req->node_tag.node.rank, (long int)req->node_tag.node.comm, req->ptr);
 		_starpu_mpi_req_list_push_back(&detached_ft_service_requests, req);
 		pending_ack_msgs_recv++;
@@ -85,14 +88,14 @@ int _starpu_mpi_ft_service_submit_rdy()
 		_STARPU_MALLOC(arg, sizeof(struct _starpu_mpi_cp_discard_arg_cb));
 		req = _starpu_mpi_request_fill(NULL, MPI_ANY_SOURCE, _STARPU_MPI_TAG_CP_INFO, MPI_COMM_WORLD,
 		                         1, 0, 0, cp_info_recv_cb, arg, RECV_REQ, NULL,
-		                         1, 0, sizeof(arg->msg));
+		                         1, 0, used_comm, sizeof(arg->msg));
 		req->ptr = (void*)&arg->msg;
 		req->datatype = MPI_BYTE;
 		_STARPU_MALLOC(req->status, sizeof(MPI_Status));
 
 		STARPU_PTHREAD_MUTEX_LOCK(&detached_ft_service_requests_mutex);
 		MPI_Irecv(req->ptr, req->count, req->datatype, req->node_tag.node.rank, req->node_tag.data_tag,
-		          req->node_tag.node.comm, &req->backend->data_request);
+		          req->node_tag.internal_comm, &req->backend->data_request);
 		_STARPU_MPI_DEBUG(5, "Posting MPI_Irecv ft service msg: req %p tag %"PRIi64" src %d comm %ld ptr %p\n", req,  req->node_tag.data_tag, req->node_tag.node.rank, (long int)req->node_tag.node.comm, req->ptr);
 		_starpu_mpi_req_list_push_back(&detached_ft_service_requests, req);
 		pending_cp_info_msgs_recv++;
@@ -107,7 +110,7 @@ int _starpu_mpi_ft_service_submit_rdy()
 		req = _starpu_mpi_req_list_pop_front(&ready_send_ft_service_requests);
 		STARPU_PTHREAD_MUTEX_LOCK(&detached_ft_service_requests_mutex);
 		MPI_Isend(req->ptr, req->count, req->datatype, req->node_tag.node.rank, req->node_tag.data_tag,
-		          req->node_tag.node.comm, &req->backend->data_request);
+		          used_comm, &req->backend->data_request);
 
 		_STARPU_MPI_DEBUG(5, "Posting MPI_Isend ft service msg: req %p tag %"PRIi64" src %d comm %ld ptr %p\n", req,  req->node_tag.data_tag, req->node_tag.node.rank, (long int)req->node_tag.node.comm, req->ptr);
 		_starpu_mpi_req_list_push_back(&detached_ft_service_requests, req);
@@ -153,7 +156,7 @@ int _starpu_mpi_ft_service_post_send(void* msg, int count, int rank, int tag, MP
 	STARPU_ASSERT_MSG(tag==_STARPU_MPI_TAG_CP_ACK || tag == _STARPU_MPI_TAG_CP_INFO, "Only _STARPU_MPI_TAG_CP_ACK or _STARPU_MPI_TAG_CP_INFO are service msgs.");
 
 	/* Initialize the request structure */
-	req = _starpu_mpi_request_fill(NULL, rank, tag, comm, 1, 0, 0, callback, arg, SEND_REQ, NULL, 1, 0, count);
+	req = _starpu_mpi_request_fill(NULL, rank, tag, comm, 1, 0, 0, callback, arg, SEND_REQ, NULL, 1, 0, NULL, count);
 //	TODO: Check compatibility with prio
 	req->ptr = msg;
 	req->datatype = MPI_BYTE;
@@ -364,6 +367,13 @@ int starpu_mpi_ft_service_lib_init(void(*__ack_msg_recv_cb)(void*), void(*_cp_in
 	cp_info_recv_cb = _cp_info_recv_cb;
 
 	return 0;
+}
+
+void starpu_mpi_ft_service_comm_update(starpu_mpi_comm comm)
+{
+	STARPU_PTHREAD_MUTEX_LOCK(&ft_service_requests_mutex);
+	used_comm = comm;
+	STARPU_PTHREAD_MUTEX_UNLOCK(&ft_service_requests_mutex);
 }
 
 int starpu_mpi_ft_service_lib_busy()

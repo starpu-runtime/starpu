@@ -29,6 +29,7 @@
 #include <datawizard/coherency.h>
 #include <core/simgrid.h>
 #include <core/task.h>
+#include <mpi_failure_tolerance/ulfm/starpu_mpi_ulfm_comm.h>
 
 #ifdef STARPU_HAVE_MPI_EXT
 #include <mpi-ext.h>
@@ -123,6 +124,9 @@ void _starpu_mpi_do_initialize(struct _starpu_mpi_argc_argv *argc_argv)
 		_starpu_mpi_print_thread_level_support(provided, " has been initialized with");
 	}
 
+	_starpu_mpi_ulfm_comm_register(argc_argv->comm);
+	if (argc_argv->comm != MPI_COMM_WORLD)
+		_starpu_mpi_ulfm_comm_register(MPI_COMM_WORLD);
 	// automatically register the given communicator
 	starpu_mpi_comm_register(argc_argv->comm);
 	if (argc_argv->comm != MPI_COMM_WORLD)
@@ -457,8 +461,8 @@ int starpu_mpi_comm_register(MPI_Comm comm)
 
 	_STARPU_MPI_MALLOC(entry, sizeof(*entry));
 	entry->comm = comm;
-	MPI_Comm_size(entry->comm, &(entry->size));
-	MPI_Comm_rank(entry->comm, &(entry->rank));
+	MPI_Comm_size(_starpu_mpi_ulfm_get_mpi_comm_from_key(entry->comm), &(entry->size));
+	MPI_Comm_rank(_starpu_mpi_ulfm_get_mpi_comm_from_key(entry->comm), &(entry->rank));
 	HASH_ADD(hh, registered_comms, comm, sizeof(entry->comm), entry);
 	return 0;
 }

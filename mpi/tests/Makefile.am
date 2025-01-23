@@ -64,6 +64,7 @@ LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@ ../src/libstarpumpi-@STARPU_EFFECTI
 starpu_mpi_TESTS =
 
 starpu_mpi_TESTS +=				\
+	abstract_comms				\
 	callback				\
 	driver					\
 	early_stuff				\
@@ -172,6 +173,7 @@ starpu_mpi_TESTS +=				\
 endif
 
 noinst_PROGRAMS +=				\
+	abstract_comms				\
 	datatypes				\
 	large_set				\
 	pingpong				\

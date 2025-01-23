@@ -29,6 +29,7 @@ void starpu_mpi_test_ft_detached_service_requests(void);
 int starpu_mpi_ft_service_progress();
 int starpu_mpi_ft_service_lib_init(void(*_ack_msg_recv_cb)(void*), void(*cp_info_recv_cb)(void*));
 int starpu_mpi_ft_service_lib_busy();
+void starpu_mpi_ft_service_comm_update(starpu_mpi_comm comm);
 
 #ifdef __cplusplus
 }
