@@ -754,7 +754,7 @@ void starpurm_initialize_with_cpuset(const hwloc_cpuset_t initially_owned_cpuset
 		rm->units[unitid].worker_cpuset = starpu_worker_get_hwloc_cpuset(rm->units[unitid].workerid);
 		STARPU_PTHREAD_COND_INIT(&rm->units[unitid].unit_available_cond, NULL);
 		hwloc_bitmap_or(rm->global_cpuset, rm->global_cpuset, rm->units[unitid].worker_cpuset);
-		hwloc_bitmap_or(rm->all_cpu_workers_cpuset, rm->all_cpu_workers_cpuset, rm->units[unitid].worker_cpuset);;
+		hwloc_bitmap_or(rm->all_cpu_workers_cpuset, rm->all_cpu_workers_cpuset, rm->units[unitid].worker_cpuset);
 #ifdef STARPURM_VERBOSE
 		{
 			char * s_unit = NULL;

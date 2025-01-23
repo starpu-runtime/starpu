@@ -54,7 +54,7 @@ static inline void stat_init();
 static inline void _starpu_ft_stats_shutdown();
 static inline void _starpu_ft_stats_write_to_fd();
 static inline void _starpu_ft_stats_send_data(size_t size);
-static inline void _starpu_ft_stats_send_data_cached(size_t size);;
+static inline void _starpu_ft_stats_send_data_cached(size_t size);
 static inline void _starpu_ft_stats_recv_data(size_t size);
 static inline void _starpu_ft_stats_recv_data_cached(size_t size);
 static inline void _starpu_ft_stats_recv_data_cp_cached(size_t size);

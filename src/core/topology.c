@@ -2083,7 +2083,7 @@ static void _starpu_init_workers_binding_and_memory(struct _starpu_machine_confi
 
 #if defined(STARPU_HAVE_HWLOC) && !defined(STARPU_SIMGRID)
 	/* If some NUMA nodes don't have drivers, attribute some */
-	unsigned node, nnodes = starpu_memory_nodes_get_count();;
+	unsigned node, nnodes = starpu_memory_nodes_get_count();
 	if (!no_mp_config)
 	for (node = 0; node < nnodes; node++)
 	{

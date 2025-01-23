@@ -144,7 +144,7 @@ void _starpu_init_cpu_config(struct _starpu_machine_topology *topology, struct _
 static void _starpu_cpu_init_worker_binding(struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
 {
 	/* Dedicate a cpu core to that worker */
-	workerarg->bindid = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, NULL, 0);;
+	workerarg->bindid = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, NULL, 0);
 }
 
 /* Set up memory and buses */

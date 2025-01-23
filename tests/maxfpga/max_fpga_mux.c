@@ -90,7 +90,7 @@ void fpga_impl1(void *buffers[], void *cl_arg)
 
 	size_t size = STARPU_VECTOR_GET_NX(buffers[0]);
 
-	max_engine_t *engine = starpu_max_fpga_get_local_engine();;
+	max_engine_t *engine = starpu_max_fpga_get_local_engine();
 
 	printf("T1 with %p %p %p\n", ptrAT1, ptrBT1, ptrCT1);
 	/* C = A+B */
@@ -140,7 +140,7 @@ void fpga_impl2(void *buffers[], void *cl_arg)
 
 	size_t size = STARPU_VECTOR_GET_NX(buffers[0]);
 
-	max_engine_t *engine = starpu_max_fpga_get_local_engine();;
+	max_engine_t *engine = starpu_max_fpga_get_local_engine();
 
 	printf("T2 with %p %p %p\n", ptrAT2, ptrBT2, ptrCT2);
 	/* C = A*B */
@@ -190,7 +190,7 @@ void fpga_impl3(void *buffers[], void *cl_arg)
 
 	size_t size = STARPU_VECTOR_GET_NX(buffers[0]);
 
-	max_engine_t *engine = starpu_max_fpga_get_local_engine();;
+	max_engine_t *engine = starpu_max_fpga_get_local_engine();
 
 	printf("T3 with %p %p %p\n", ptrAT3, ptrBT3, ptrCT3);
 	/* C = A+B */
