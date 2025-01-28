@@ -1619,6 +1619,17 @@ subgraphs_plan_SOURCES	=		\
 	subgraphs/codelets.c
 
 
+############################
+# recursive tasks examples #
+############################
+
+if !STARPU_SIMGRID
+if STARPU_RECURSIVE_TASKS
+STARPU_EXAMPLES +=			\
+	recursive_tasks/vector
+endif
+endif
+
 # - link over source file to build our own object
 fortran90/starpu_mod.f90:
 	@$(MKDIR_P) $(dir $@)

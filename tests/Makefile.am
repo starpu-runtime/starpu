@@ -16,6 +16,8 @@
 include $(top_srcdir)/make/starpu-tests.mk
 include $(top_srcdir)/make/starpu-loader.mk
 
+SUBDIRS	=
+
 AM_CFLAGS += $(APP_CFLAGS)
 AM_CXXFLAGS += $(APP_CXXFLAGS)
 AM_FFLAGS += $(APP_FFLAGS)
@@ -90,8 +92,7 @@ EXTRA_DIST =					\
 	maxfpga/Task2.maxj	\
 	maxfpga/Task3.maxj	\
 	datawizard/interfaces/test_interfaces.sh \
-	traces/fxt.sh \
-	recursive_tasks/basic/basic.h
+	traces/fxt.sh
 
 CLEANFILES = 					\
 	*.gcno *.gcda *.linkinfo core starpu_idle_microsec.log *.mod *.png *.output tasks.rec perfs.rec */perfs.rec */*/perfs.rec perfs2.rec fortran90/starpu_mod.f90 bandwidth-*.dat bandwidth.gp bandwidth.eps bandwidth.svg *.csv *.md *.Rmd *.pdf *.html
@@ -100,7 +101,6 @@ clean-local:
 	-rm -rf overlap/overlap.traces datawizard/locality.traces traces/fxt.traces
 
 BUILT_SOURCES =
-SUBDIRS =
 
 examplebindir = $(libdir)/starpu/examples
 
@@ -1237,6 +1237,10 @@ endif
 sched_policies_execute_all_tasks_LDFLAGS = $(AM_LDFLAGS) -lm
 sched_policies_execute_all_tasks_CFLAGS = $(AM_LDFLAGS) $(FXT_CFLAGS)
 
+if STARPU_RECURSIVE_TASKS
+SUBDIRS +=	recursive_tasks
+endif
+
 # Fortran90 tests
 
 # - link over source file to build our own object
@@ -1273,104 +1277,4 @@ slic_%.o: %.max
 CLEANFILES += */*.max */*.class max_fpga/*.h
 endif
 
-###################
-# Recursive tasks #
-###################
-
-if !STARPU_SIMGRID
-if STARPU_RECURSIVE_TASKS
-myPROGRAMS +=			\
-	recursive_tasks/basic/b			\
-	recursive_tasks/basic/bb		\
-	recursive_tasks/basic/btb		\
-	recursive_tasks/basic/btb_func		\
-	recursive_tasks/basic/bbt		\
-	recursive_tasks/basic/brob		\
-	recursive_tasks/basic/btt		\
-	recursive_tasks/basic/bbtt		\
-	recursive_tasks/basic/tbbt		\
-	recursive_tasks/basic/tbtbt		\
-	recursive_tasks/basic/brt		\
-	recursive_tasks/basic/brbtt		\
-	recursive_tasks/basic/sync		\
-	recursive_tasks/basic/gemm_dag		\
-	recursive_tasks/basic/b2t		\
-	recursive_tasks/basic/brec		\
-	recursive_tasks/basic/brec_level	\
-	recursive_tasks/basic/read		\
-	recursive_tasks/basic/tbrbtt		\
-	recursive_tasks/basic/P2bUt		\
-	recursive_tasks/basic/Nbrbt		\
-	recursive_tasks/basic/brbrbt		\
-	recursive_tasks/basic/b-nbt		\
-	recursive_tasks/basic/tbtbt-3data	\
-	recursive_tasks/basic/turnRW		\
-	recursive_tasks/basic/unpartitionRO	\
-	recursive_tasks/basic/flush		\
-	recursive_tasks/basic/brbtbrb           \
-	recursive_tasks/vector/vector
-endif
-endif
-
-recursive_tasks_basic_b_SOURCES = recursive_tasks/basic/b.c
-recursive_tasks_basic_bb_SOURCES = recursive_tasks/basic/bb.c
-recursive_tasks_basic_btb_SOURCES = recursive_tasks/basic/btb.c
-recursive_tasks_basic_btb_func_SOURCES = recursive_tasks/basic/btb_func.c
-recursive_tasks_basic_bbt_SOURCES = recursive_tasks/basic/bbt.c
-recursive_tasks_basic_brob_SOURCES = recursive_tasks/basic/brob.c
-recursive_tasks_basic_btt_SOURCES = recursive_tasks/basic/btt.c
-recursive_tasks_basic_bbtt_SOURCES = recursive_tasks/basic/bbtt.c
-recursive_tasks_basic_tbbt_SOURCES = recursive_tasks/basic/tbbt.c
-recursive_tasks_basic_tbtbt_SOURCES = recursive_tasks/basic/tbtbt.c
-recursive_tasks_basic_brt_SOURCES = recursive_tasks/basic/brt.c
-recursive_tasks_basic_brbtt_SOURCES = recursive_tasks/basic/brbtt.c
-recursive_tasks_basic_gemm_dag_SOURCES = recursive_tasks/basic/gemm_dag.c
-recursive_tasks_basic_b2t_SOURCES = recursive_tasks/basic/b2t.c
-recursive_tasks_basic_brec_SOURCES = recursive_tasks/basic/brec.c
-recursive_tasks_basic_brec_level_SOURCES = recursive_tasks/basic/brec_level.c
-recursive_tasks_basic_read_SOURCES = recursive_tasks/basic/read.c
-recursive_tasks_basic_tbrbtt_SOURCES = recursive_tasks/basic/tbrbtt.c
-recursive_tasks_basic_P2bUt_SOURCES = recursive_tasks/basic/P2bUt.c
-recursive_tasks_basic_Nbrbt_SOURCES = recursive_tasks/basic/Nbrbt.c
-recursive_tasks_basic_brbrbt_SOURCES = recursive_tasks/basic/brbrbt.c
-recursive_tasks_basic_b_nbt_SOURCES = recursive_tasks/basic/b-nbt.c
-recursive_tasks_basic_tbtbt_3data_SOURCES = recursive_tasks/basic/tbtbt-3data.c
-recursive_tasks_basic_turnRW_SOURCES = recursive_tasks/basic/turnRW.c
-recursive_tasks_basic_unpartitionRO_SOURCES = recursive_tasks/basic/unpartitionRO.c
-recursive_tasks_basic_flush_SOURCES = recursive_tasks/basic/flush.c
-recursive_tasks_basic_brbtbrb_SOURCES = recursive_tasks/basic/brbtbrb.c
-recursive_tasks_vector_vector_SOURCES = recursive_tasks/vector/vector.c
-
-if STARPU_RECURSIVE_TASKS
-if STARPU_USE_CUDA
-myPROGRAMS +=			\
-	recursive_tasks/basic/b_on_cuda
-recursive_tasks_basic_b_on_cuda_SOURCES = recursive_tasks/basic/b_on_cuda.c
-recursive_tasks_basic_b_on_cuda_SOURCES += recursive_tasks/basic/basic.cu
-recursive_tasks_basic_b_SOURCES += recursive_tasks/basic/basic.cu
-recursive_tasks_basic_bb_SOURCES += recursive_tasks/basic/basic.cu
-recursive_tasks_basic_btb_SOURCES += recursive_tasks/basic/basic.cu
-recursive_tasks_basic_btb_func_SOURCES += recursive_tasks/basic/basic.cu
-recursive_tasks_basic_brob_SOURCES += recursive_tasks/basic/basic.cu
-recursive_tasks_basic_btt_SOURCES += recursive_tasks/basic/basic.cu
-recursive_tasks_basic_brbrbt_SOURCES += recursive_tasks/basic/basic.cu
-recursive_tasks_basic_tbtbt_3data_SOURCES += recursive_tasks/basic/basic.cu
-recursive_tasks_basic_brbtbrb_SOURCES += recursive_tasks/basic/basic.cu
-recursive_tasks_basic_read_SOURCES += recursive_tasks/basic/basic.cu
-recursive_tasks_basic_b_nbt_SOURCES += recursive_tasks/basic/basic.cu
-recursive_tasks_basic_brt_SOURCES += recursive_tasks/basic/basic.cu
-recursive_tasks_basic_b2t_SOURCES += recursive_tasks/basic/basic.cu
-recursive_tasks_basic_bbt_SOURCES += recursive_tasks/basic/basic.cu
-recursive_tasks_basic_flush_SOURCES += recursive_tasks/basic/basic.cu
-recursive_tasks_basic_unpartitionRO_SOURCES += recursive_tasks/basic/basic.cu
-recursive_tasks_basic_turnRW_SOURCES += recursive_tasks/basic/basic.cu
-recursive_tasks_basic_P2bUt_SOURCES += recursive_tasks/basic/basic.cu
-recursive_tasks_basic_tbbt_SOURCES += recursive_tasks/basic/basic.cu
-recursive_tasks_basic_tbrbtt_SOURCES += recursive_tasks/basic/basic.cu
-recursive_tasks_basic_brbtt_SOURCES += recursive_tasks/basic/basic.cu
-recursive_tasks_basic_bbtt_SOURCES += recursive_tasks/basic/basic.cu
-recursive_tasks_basic_Nbrbt_SOURCES += recursive_tasks/basic/basic.cu
-recursive_tasks_basic_tbtbt_SOURCES += recursive_tasks/basic/basic.cu
-endif
-endif
 
