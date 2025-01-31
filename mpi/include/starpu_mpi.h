@@ -742,6 +742,23 @@ int starpu_mpi_task_exchange_data_before_execution(MPI_Comm comm, struct starpu_
 int starpu_mpi_task_exchange_data_after_execution(MPI_Comm comm, struct starpu_data_descr *descrs, unsigned nb_data, struct starpu_mpi_task_exchange_params params);
 
 /**
+   Send \p data from node \p me to the node who is going to execute
+   the task.
+   This function should normally only be called by
+   starpu_mpi_task_exchange_data_before_execution(). Please be careful
+   when calling it directly.
+*/
+int starpu_mpi_exchange_data_before_execution(MPI_Comm comm, starpu_data_handle_t data, enum starpu_data_access_mode mode, struct starpu_mpi_task_exchange_params params);
+
+/**
+   Receive \p data from the node who executed the task.
+   This function should normally only be called by
+   starpu_mpi_task_exchange_data_after_execution(). Please be careful
+   when calling it directly.
+*/
+int starpu_mpi_exchange_data_after_execution(MPI_Comm comm, starpu_data_handle_t data, enum starpu_data_access_mode mode, struct starpu_mpi_task_exchange_params params);
+
+/**
    Transfer data \p data_handle to MPI node \p node, sending it from
    its owner if needed. At least the target node and the owner have to
    call the function.

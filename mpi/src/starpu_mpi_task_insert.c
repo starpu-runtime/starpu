@@ -117,6 +117,13 @@ int _starpu_mpi_find_executee_node(starpu_data_handle_t data, enum starpu_data_a
 	return 0;
 }
 
+int starpu_mpi_exchange_data_before_execution(MPI_Comm comm, starpu_data_handle_t data, enum starpu_data_access_mode mode, struct starpu_mpi_task_exchange_params params)
+{
+	int me;
+	starpu_mpi_comm_rank(comm, &me);
+	return _starpu_mpi_exchange_data_before_execution(data, mode, me, params.xrank, params.do_execute, params.priority, comm);
+}
+
 int _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum starpu_data_access_mode mode, int me, int xrank, int do_execute, int prio, MPI_Comm comm)
 {
 	if (data && data->mpi_data)
@@ -184,7 +191,6 @@ int _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum s
 	return 0;
 }
 
-static
 int _starpu_mpi_exchange_data_after_execution(starpu_data_handle_t data, enum starpu_data_access_mode mode, int me, int xrank, int do_execute, int prio, MPI_Comm comm)
 {
 	if ((mode & STARPU_REDUX || mode & STARPU_MPI_REDUX) && data)
@@ -257,6 +263,13 @@ int _starpu_mpi_exchange_data_after_execution(starpu_data_handle_t data, enum st
 		}
 	}
 	return 0;
+}
+
+int starpu_mpi_exchange_data_after_execution(MPI_Comm comm, starpu_data_handle_t data, enum starpu_data_access_mode mode, struct starpu_mpi_task_exchange_params params)
+{
+	int me;
+	starpu_mpi_comm_rank(comm, &me);
+	return _starpu_mpi_exchange_data_after_execution(data, mode, me, params.xrank, params.do_execute, params.priority, comm);
 }
 
 static
