@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2025  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -159,8 +159,13 @@ int _starpu_simgrid_get_nbhosts(const char *prefix)
 #ifdef HAVE_SG_HOST_LIST
 	sg_host_t *hosts_list = NULL;
 #endif
+#if defined(HAVE_SG_ZONE_GET_ALL_HOSTS)
+	const_sg_host_t *hosts = NULL;
+#else
 	xbt_dynar_t hosts = NULL;
-	unsigned i, nb = 0;
+#endif
+	int i;
+	int nb = 0;
 	unsigned len = strlen(prefix);
 
 	if (_starpu_simgrid_running_smpi())
@@ -169,7 +174,9 @@ int _starpu_simgrid_get_nbhosts(const char *prefix)
 		char name[32];
 		STARPU_ASSERT(starpu_mpi_world_rank);
 		snprintf(name, sizeof(name), STARPU_MPI_AS_PREFIX"%d", starpu_mpi_world_rank());
-#if defined(HAVE_MSG_ZONE_GET_HOSTS) || defined(HAVE_SG_ZONE_GET_HOSTS) || defined(MSG_zone_get_hosts) || defined(sg_zone_get_hosts)
+#if defined(HAVE_SG_ZONE_GET_ALL_HOSTS)
+		hosts = sg_zone_get_all_hosts(_starpu_simgrid_get_as_by_name(name), &nb);
+#elif defined(HAVE_MSG_ZONE_GET_HOSTS) || defined(HAVE_SG_ZONE_GET_HOSTS) || defined(MSG_zone_get_hosts) || defined(sg_zone_get_hosts)
 		hosts = xbt_dynar_new(sizeof(sg_host_t), NULL);
 #  if defined(HAVE_SG_ZONE_GET_HOSTS) || defined(sg_zone_get_hosts)
 		sg_zone_get_hosts(_starpu_simgrid_get_as_by_name(name), hosts);
@@ -197,8 +204,10 @@ int _starpu_simgrid_get_nbhosts(const char *prefix)
 		hosts = MSG_hosts_as_dynar();
 #endif
 	}
+#if !defined(HAVE_SG_ZONE_GET_ALL_HOSTS)
 	if (hosts)
 		nb = xbt_dynar_length(hosts);
+#endif
 
 	ret = 0;
 	for (i = 0; i < nb; i++)
@@ -209,7 +218,9 @@ int _starpu_simgrid_get_nbhosts(const char *prefix)
 			name = sg_host_get_name(hosts_list[i]);
 		else
 #endif
-#if defined(STARPU_HAVE_SIMGRID_HOST_H)
+#if defined(HAVE_SG_ZONE_GET_ALL_HOSTS)
+			name = sg_host_get_name(hosts[i]);
+#elif defined(STARPU_HAVE_SIMGRID_HOST_H)
 			name = sg_host_get_name(xbt_dynar_get_as(hosts, i, sg_host_t));
 #else
 			name = MSG_host_get_name(xbt_dynar_get_as(hosts, i, msg_host_t));
@@ -217,8 +228,10 @@ int _starpu_simgrid_get_nbhosts(const char *prefix)
 		if (!strncmp(name, prefix, len))
 			ret++;
 	}
+#if !defined(HAVE_SG_ZONE_GET_ALL_HOSTS)
 	if (hosts)
 		xbt_dynar_free(&hosts);
+#endif
 	return ret;
 }
 
@@ -234,7 +247,9 @@ unsigned long long _starpu_simgrid_get_memsize(const char *prefix, unsigned devi
 	if (!host)
 		return 0;
 
-#ifdef HAVE_SG_HOST_GET_PROPERTIES
+#if defined(HAVE_SG_HOST_GET_PROPERTY_NAMES)
+	if (!sg_host_get_property_names(host, NULL))
+#elif defined(HAVE_SG_HOST_GET_PROPERTIES)
 	if (!sg_host_get_properties(host))
 #else
 	if (!MSG_host_get_properties(host))
@@ -514,7 +529,11 @@ void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv 
 		_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
 
 #if defined(HAVE_SG_ACTOR_ATTACH) && (defined (HAVE_SG_ACTOR_DATA) || defined(HAVE_SG_ACTOR_GET_DATA))
+#if SIMGRID_VERSION > 33600
+		sg_actor_t actor = sg_actor_attach("main", NULL, _starpu_simgrid_get_host_by_name("MAIN"));
+#else
 		sg_actor_t actor = sg_actor_attach("main", NULL, _starpu_simgrid_get_host_by_name("MAIN"), NULL);
+#endif
 #ifdef HAVE_SG_ACTOR_SET_DATA
 		sg_actor_set_data(actor, tsd);
 #else
@@ -1294,8 +1313,13 @@ void _starpu_simgrid_count_ngpus(void)
 		{
 			int busid;
 			starpu_sg_host_t srchost, dsthost;
+#if defined(HAVE_SG_HOST_GET_ROUTE_LINKS)
+			const_sg_link_t *routes;
+			const_sg_link_t link;
+#else
 			xbt_dynar_t route_dynar = xbt_dynar_new(sizeof(starpu_sg_link_t), NULL);
 			starpu_sg_link_t link;
+#endif
 			int i, routesize;
 			int through;
 			unsigned src2;
@@ -1310,13 +1334,16 @@ void _starpu_simgrid_count_ngpus(void)
 
 			srchost = _starpu_simgrid_get_memnode_host(src);
 			dsthost = _starpu_simgrid_get_memnode_host(dst);
-#if defined(HAVE_SG_HOST_GET_ROUTE) || defined(HAVE_SG_HOST_ROUTE)  || defined(sg_host_route)
-#ifdef HAVE_SG_HOST_GET_ROUTE
+#if defined(HAVE_SG_HOST_GET_ROUTE_LINKS) || defined(HAVE_SG_HOST_GET_ROUTE) || defined(HAVE_SG_HOST_ROUTE)  || defined(sg_host_route)
+#if defined(HAVE_SG_HOST_GET_ROUTE_LINKS)
+			routes = sg_host_get_route_links(srchost, dsthost, &routesize);
+#elif defined(HAVE_SG_HOST_GET_ROUTE)
 			sg_host_get_route(srchost, dsthost, route_dynar);
+			routesize = xbt_dynar_length(route_dynar);
 #else
 			sg_host_route(srchost, dsthost, route_dynar);
-#endif
 			routesize = xbt_dynar_length(route_dynar);
+#endif
 #else
 			const starpu_sg_link_t *route = SD_route_get_list(srchost, dsthost);
 			routesize = SD_route_get_size(srchost, dsthost);
@@ -1335,7 +1362,11 @@ void _starpu_simgrid_count_ngpus(void)
 			 * direct transfer support */
 			for (i = 0; i < routesize; i++)
 			{
+#ifdef HAVE_SG_HOST_GET_ROUTE_LINKS
+				link = routes[i];
+#else
 				xbt_dynar_get_cpy(route_dynar, i, &link);
+#endif
 				if (
 #ifdef HAVE_SG_LINK_GET_NAME
 					!strcmp(sg_link_get_name(link), "Host")
@@ -1352,7 +1383,11 @@ void _starpu_simgrid_count_ngpus(void)
 			through = -1;
 			for (i = 0; i < routesize; i++)
 			{
+#ifdef HAVE_SG_HOST_GET_ROUTE_LINKS
+				link = routes[i];
+#else
 				xbt_dynar_get_cpy(route_dynar, i, &link);
+#endif
 #ifdef HAVE_SG_LINK_GET_NAME
 				name = sg_link_get_name(link);
 #else
@@ -1371,7 +1406,11 @@ void _starpu_simgrid_count_ngpus(void)
 				continue;
 			}
 
+#ifdef HAVE_SG_HOST_GET_ROUTE_LINKS
+			link = routes[through];
+#else
 			xbt_dynar_get_cpy(route_dynar, through, &link);
+#endif
 #ifdef HAVE_SG_LINK_GET_NAME
 			name = sg_link_get_name(link);
 #else
@@ -1400,14 +1439,21 @@ void _starpu_simgrid_count_ngpus(void)
 
 				starpu_sg_host_t srchost2 = _starpu_simgrid_get_memnode_host(src2);
 				int routesize2;
+#if defined(HAVE_SG_HOST_GET_ROUTE_LINKS)
+				const_sg_link_t *routes2;
+#else
 				xbt_dynar_t route_dynar2 = xbt_dynar_new(sizeof(starpu_sg_link_t), NULL);
-#if defined(HAVE_SG_HOST_GET_ROUTE) || defined(HAVE_SG_HOST_ROUTE) || defined(sg_host_route)
-#ifdef HAVE_SG_HOST_GET_ROUTE
+#endif
+#if defined(HAVE_SG_HOST_GET_ROUTE_LINKS) || defined(HAVE_SG_HOST_GET_ROUTE) || defined(HAVE_SG_HOST_ROUTE)  || defined(sg_host_route)
+#if defined(HAVE_SG_HOST_GET_ROUTE_LINKS)
+				routes2 = sg_host_get_route_links(srchost2, ramhost, &routesize2);
+#elif defined(HAVE_SG_HOST_GET_ROUTE)
 				sg_host_get_route(srchost2, ramhost, route_dynar2);
+				routesize2 = xbt_dynar_length(route_dynar2);
 #else
 				sg_host_route(srchost2, ramhost, route_dynar2);
-#endif
 				routesize2 = xbt_dynar_length(route_dynar2);
+#endif
 #else
 				const starpu_sg_link_t *route2 = SD_route_get_list(srchost2, ramhost);
 				routesize2 = SD_route_get_size(srchost2, ramhost);
@@ -1418,7 +1464,11 @@ void _starpu_simgrid_count_ngpus(void)
 
 				for (i = 0; i < routesize2; i++)
 				{
+#ifdef HAVE_SG_HOST_GET_ROUTE_LINKS
+					link = routes2[i];
+#else
 					xbt_dynar_get_cpy(route_dynar2, i, &link);
+#endif
 					if (
 #ifdef HAVE_SG_LINK_GET_NAME
 						!strcmp(name, sg_link_get_name(link))
