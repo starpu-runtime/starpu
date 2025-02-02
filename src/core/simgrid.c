@@ -1418,7 +1418,7 @@ void _starpu_simgrid_count_ngpus(void)
 
 				for (i = 0; i < routesize2; i++)
 				{
-					xbt_dynar_get_cpy(route_dynar, i, &link);
+					xbt_dynar_get_cpy(route_dynar2, i, &link);
 					if (
 #ifdef HAVE_SG_LINK_GET_NAME
 						!strcmp(name, sg_link_get_name(link))
