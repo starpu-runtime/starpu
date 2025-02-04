@@ -3016,6 +3016,16 @@ double starpu_transfer_predict(unsigned src_node, unsigned dst_node, size_t size
 	}
 #endif
 
+	if (isnan(latency) || isnan(bandwidth))
+	{
+		static int warned = 0;
+		if (!warned)
+		{
+			_STARPU_DISP("Warning: no bus performance model was calibrated between nodes %d and %d, ignoring transfer time\n", src_node, dst_node);
+			warned = 1;
+		}
+		return 0;
+	}
 
 	return latency + (size/bandwidth)*2*ngpus;
 }
