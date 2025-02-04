@@ -17,6 +17,12 @@
 #ifndef __STARPU_HIPBLAS_H__
 #define __STARPU_HIPBLAS_H__
 
+#ifdef STARPU_USE_HIP
+#ifdef STARPU_USE_HIPBLAS
+#include <hipblas/hipblas.h>
+#endif
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -36,16 +42,14 @@ extern "C" {
 void starpu_hipblas_init(void);
 
 #ifdef STARPU_USE_HIP
-#ifndef STARPU_USE_HIPBLAS
-typedef void* hipblasHandle_t;
-#endif
-
+#ifdef STARPU_USE_HIPBLAS
 /**
    Return the HIPBLAS handle to be used to queue HIPBLAS kernels. It
    is properly initialized and configured for multistream by
    starpu_hipblas_init().
 */
 hipblasHandle_t starpu_hipblas_get_local_handle(void);
+#endif
 #endif
 
 /**
