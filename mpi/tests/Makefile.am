@@ -68,6 +68,7 @@ starpu_mpi_TESTS +=				\
 	callback				\
 	driver					\
 	early_stuff				\
+	insert_task_count			\
 	insert_task_block			\
 	insert_task_can_execute			\
 	insert_task_tags			\
@@ -96,7 +97,6 @@ starpu_mpi_TESTS +=				\
 	gather					\
 	gather2					\
 	insert_task				\
-	insert_task_count			\
 	insert_task_dyn_handles			\
 	insert_task_node_choice			\
 	insert_task_owner			\

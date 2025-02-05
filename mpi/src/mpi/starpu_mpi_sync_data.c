@@ -102,7 +102,7 @@ struct _starpu_mpi_req *_starpu_mpi_sync_data_find(starpu_mpi_tag_t data_tag, in
 	node_tag.node.rank = source;
 	node_tag.data_tag = data_tag;
 
-	_STARPU_MPI_DEBUG(60, "Looking for sync_data_handle with comm %ld source %d tag %ld in the hashmap\n", (long int)comm, source, data_tag);
+	_STARPU_MPI_DEBUG(2000, "Looking for sync_data_handle with comm %ld source %d tag %ld in the hashmap\n", (long int)comm, source, data_tag);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_mpi_sync_data_handle_mutex);
 	HASH_FIND(hh, _starpu_mpi_sync_data_handle_hashmap, &node_tag, sizeof(struct _starpu_mpi_node_tag), found);

@@ -63,7 +63,7 @@ void _starpu_mpi_nmad_backend_request_init(struct _starpu_mpi_req *req)
 	_starpu_spin_init(&req->backend->finalized_to_destroy_lock);
 }
 
-void _starpu_mpi_nmad_backend_request_fill(struct _starpu_mpi_req *req, int is_internal_req STARPU_ATTRIBUTE_UNUSED)
+void _starpu_mpi_nmad_backend_request_fill(struct _starpu_mpi_req *req, int is_internal_req STARPU_ATTRIBUTE_UNUSED, starpu_mpi_comm internal_comm STARPU_ATTRIBUTE_UNUSED)
 {
 	/* this function gives session and gate: */
 	nm_mpi_nmad_dest(&req->backend->session, &req->backend->gate, req->node_tag.node.comm, req->node_tag.node.rank);

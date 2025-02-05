@@ -58,6 +58,7 @@ struct _starpu_mpi_envelope
 struct _starpu_mpi_req_backend
 {
 	MPI_Request data_request;
+	starpu_mpi_comm internal_comm;
 
 	starpu_pthread_mutex_t req_mutex;
 	starpu_pthread_cond_t req_cond;

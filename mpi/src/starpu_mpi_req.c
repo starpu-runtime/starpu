@@ -89,7 +89,6 @@ struct _starpu_mpi_req *_starpu_mpi_request_fill(starpu_data_handle_t data_handl
 	req->node_tag.node.rank = srcdst;
 	req->node_tag.data_tag = data_tag;
 	req->node_tag.node.comm = comm;
-	req->node_tag.internal_comm = internal_comm;
 	req->detached = detached;
 	req->sync = sync;
 	req->callback = callback;
@@ -98,7 +97,7 @@ struct _starpu_mpi_req *_starpu_mpi_request_fill(starpu_data_handle_t data_handl
 	req->sequential_consistency = sequential_consistency;
 	req->count = count;
 
-	_mpi_backend._starpu_mpi_backend_request_fill(req, is_internal_req);
+	_mpi_backend._starpu_mpi_backend_request_fill(req, is_internal_req, internal_comm);
 
 	return req;
 }

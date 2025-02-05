@@ -72,7 +72,7 @@ int _starpu_mpi_ft_service_submit_rdy()
 
 		STARPU_PTHREAD_MUTEX_LOCK(&detached_ft_service_requests_mutex);
 		MPI_Irecv(req->ptr, req->count, req->datatype, req->node_tag.node.rank, req->node_tag.data_tag,
-		          req->node_tag.internal_comm, &req->backend->data_request);
+		          req->backend->internal_comm, &req->backend->data_request);
 		_STARPU_MPI_DEBUG(5, "Posting MPI_Irecv ft service msg: req %p tag %"PRIi64" src %d comm %ld ptr %p\n", req,  req->node_tag.data_tag, req->node_tag.node.rank, (long int)req->node_tag.node.comm, req->ptr);
 		_starpu_mpi_req_list_push_back(&detached_ft_service_requests, req);
 		pending_ack_msgs_recv++;
@@ -95,7 +95,7 @@ int _starpu_mpi_ft_service_submit_rdy()
 
 		STARPU_PTHREAD_MUTEX_LOCK(&detached_ft_service_requests_mutex);
 		MPI_Irecv(req->ptr, req->count, req->datatype, req->node_tag.node.rank, req->node_tag.data_tag,
-		          req->node_tag.internal_comm, &req->backend->data_request);
+		          req->backend->internal_comm, &req->backend->data_request);
 		_STARPU_MPI_DEBUG(5, "Posting MPI_Irecv ft service msg: req %p tag %"PRIi64" src %d comm %ld ptr %p\n", req,  req->node_tag.data_tag, req->node_tag.node.rank, (long int)req->node_tag.node.comm, req->ptr);
 		_starpu_mpi_req_list_push_back(&detached_ft_service_requests, req);
 		pending_cp_info_msgs_recv++;
@@ -156,7 +156,7 @@ int _starpu_mpi_ft_service_post_send(void* msg, int count, int rank, int tag, MP
 	STARPU_ASSERT_MSG(tag==_STARPU_MPI_TAG_CP_ACK || tag == _STARPU_MPI_TAG_CP_INFO, "Only _STARPU_MPI_TAG_CP_ACK or _STARPU_MPI_TAG_CP_INFO are service msgs.");
 
 	/* Initialize the request structure */
-	req = _starpu_mpi_request_fill(NULL, rank, tag, comm, 1, 0, 0, callback, arg, SEND_REQ, NULL, 1, 0, NULL, count);
+	req = _starpu_mpi_request_fill(NULL, rank, tag, comm, 1, 0, 0, callback, arg, SEND_REQ, NULL, 1, 0, 0, count);
 //	TODO: Check compatibility with prio
 	req->ptr = msg;
 	req->datatype = MPI_BYTE;

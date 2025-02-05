@@ -22,6 +22,7 @@
 #include <mpi.h>
 #include <common/config.h>
 #include <common/list.h>
+#include <starpu_mpi_private.h>
 
 /** @file */
 

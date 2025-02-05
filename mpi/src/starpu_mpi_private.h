@@ -202,7 +202,6 @@ struct _starpu_mpi_node_tag
 {
 	struct _starpu_mpi_node node;
 	starpu_mpi_tag_t data_tag;
-	starpu_mpi_comm internal_comm;
 };
 
 MULTILIST_CREATE_TYPE(_starpu_mpi_req, coop_sends)
@@ -389,7 +388,7 @@ struct _starpu_mpi_backend
 	void (*_starpu_mpi_backend_shutdown)(void);
 	int (*_starpu_mpi_backend_reserve_core)(void);
 	void (*_starpu_mpi_backend_request_init)(struct _starpu_mpi_req *req);
-	void (*_starpu_mpi_backend_request_fill)(struct _starpu_mpi_req *req, int is_internal_req);
+	void (*_starpu_mpi_backend_request_fill)(struct _starpu_mpi_req *req, int is_internal_req, starpu_mpi_comm internal_comm);
 	void (*_starpu_mpi_backend_request_destroy)(struct _starpu_mpi_req *req);
 	void (*_starpu_mpi_backend_data_clear)(starpu_data_handle_t data_handle);
 	void (*_starpu_mpi_backend_data_register)(starpu_data_handle_t data_handle, starpu_mpi_tag_t data_tag);
