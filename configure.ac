@@ -1541,7 +1541,7 @@ AC_DEFUN([STARPU_CHECK_CUDA],
 if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
     STARPU_CHECK_CUDA("$cuda_dir", "$cuda_include_dir", "$cuda_lib_dir")
     if test "$have_valid_cuda" = "no" ; then
-	STARPU_CHECK_CUDA("$CUDA_ROOT", "$CUDA_PATH", "$CUDA_INC_PATH", "$CUDA_LIB_PATH")
+	STARPU_CHECK_CUDA("$CUDA_ROOT", "$CUDA_INC_PATH", "$CUDA_LIB_PATH")
     fi
     if test "$have_valid_cuda" = "no" ; then
 	for f in "/usr/local/cuda" "/c/cuda" "/cygdrive/c/cuda" "/opt/cuda" "$CUDA_ROOT" "$CUDA_PATH" "$CUDA_INC_PATH/.." "$CUDA_INC/.." "$CUDA_BIN/.." "$CUDA_SDK/.." "$CUDA_INSTALL_PATH" "$CUDA_TOOLKIT"; do
