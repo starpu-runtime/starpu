@@ -569,6 +569,20 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
 	STARPU_CHECK_CUDA("$CUDA_ROOT", "$CUDA_INC_PATH", "$CUDA_LIB_PATH")
     fi
     if test "$have_valid_cuda" = "no" ; then
+	if test "$NVCC" = "" ; then
+	    AC_PATH_PROG([NVCC], [nvcc], [not-found], [$PATH:/usr/local/cuda/bin])
+	fi
+	if test "$NVCC" != not-found ; then
+	    CUDA_ROOT="$(dirname $NVCC)/.."
+	    # Try to find all of cuda just from the availability of nvcc in PATH
+	    STARPU_CHECK_CUDA("$CUDA_ROOT", "$CUDA_ROOT/include", "$CUDA_ROOT/lib")
+	    cuda_dir=$(dirname $NVCC)/..
+	else
+	    unset NVCC
+	fi
+    fi
+
+    if test "$have_valid_cuda" = "no" ; then
 	for f in "/usr/local/cuda" "/c/cuda" "/cygdrive/c/cuda" "/opt/cuda" "$CUDA_ROOT" "$CUDA_PATH" "$CUDA_INC_PATH/.." "$CUDA_INC/.." "$CUDA_BIN/.." "$CUDA_SDK/.." "$CUDA_INSTALL_PATH" "$CUDA_TOOLKIT"; do
 	    if test -n "$f" ; then
 		STARPU_CHECK_CUDA("$f", "no", "no")
