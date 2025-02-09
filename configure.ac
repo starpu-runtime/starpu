@@ -200,7 +200,7 @@ if test x$enable_simgrid = xyes ; then
 	AC_CHECK_TYPES([smx_actor_t], [AC_DEFINE([STARPU_HAVE_SMX_ACTOR_T], [1], [Define to 1 if you have the smx_actor_t type.])], [], [[#include <simgrid/simix.h>]])
 
 	# Latest functions
-	AC_CHECK_FUNCS([MSG_process_attach sg_actor_attach sg_actor_init sg_actor_on_exit MSG_zone_get_hosts sg_zone_get_hosts sg_zone_get_all_hosts MSG_process_self_name MSG_process_userdata_init sg_actor_get_data sg_actor_set_data sg_actor_data])
+	AC_CHECK_FUNCS([MSG_process_attach sg_actor_attach sg_actor_attach_pthread sg_actor_init sg_actor_on_exit MSG_zone_get_hosts sg_zone_get_hosts sg_zone_get_all_hosts MSG_process_self_name MSG_process_userdata_init sg_actor_get_data sg_actor_set_data sg_actor_data])
 	AC_CHECK_FUNCS([xbt_mutex_try_acquire smpi_process_set_user_data SMPI_thread_create sg_zone_get_by_name sg_link_get_name sg_link_name sg_link_set_bandwidth sg_link_bandwidth_set sg_host_get_route sg_host_get_route_links sg_host_route sg_host_self sg_host_list sg_host_get_speed sg_host_speed simcall_process_create sg_config_continue_after_help])
 	AC_CHECK_FUNCS([simgrid_set_maestro])
 	AC_CHECK_FUNCS([simgrid_init], [AC_DEFINE([STARPU_SIMGRID_HAVE_SIMGRID_INIT], [1], [Define to 1 if you have the `simgrid_init' function.])])
