@@ -370,7 +370,7 @@ int _starpu_mpi_irecv_prio(starpu_data_handle_t data_handle, starpu_mpi_req *pub
 
 	struct _starpu_mpi_req *req;
 	_STARPU_MPI_TRACE_IRECV_COMPLETE_BEGIN(source, data_tag);
-	req = _starpu_mpi_irecv_common(data_handle, source, data_tag, comm, NULL, 0, 0, NULL, NULL, 1, 0, 0, prio);
+	req = _starpu_mpi_irecv_common(data_handle, source, data_tag, comm, MPI_COMM_NULL, 0, 0, NULL, NULL, 1, 0, 0, prio);
 	_STARPU_MPI_TRACE_IRECV_COMPLETE_END(source, data_tag);
 
 	STARPU_MPI_ASSERT_MSG(req, "Invalid return for _starpu_mpi_irecv_common");
@@ -389,7 +389,7 @@ int starpu_mpi_irecv_detached(starpu_data_handle_t data_handle, int source, star
 {
 	_STARPU_MPI_LOG_IN();
 
-	_starpu_mpi_irecv_common(data_handle, source, data_tag, comm, NULL, 1, 0, callback, arg, 1, 0, 0, STARPU_DEFAULT_PRIO);
+	_starpu_mpi_irecv_common(data_handle, source, data_tag, comm, MPI_COMM_NULL, 1, 0, callback, arg, 1, 0, 0, STARPU_DEFAULT_PRIO);
 	_STARPU_MPI_LOG_OUT();
 	return 0;
 }
@@ -398,7 +398,7 @@ int starpu_mpi_irecv_detached_prio(starpu_data_handle_t data_handle, int source,
 {
 	_STARPU_MPI_LOG_IN();
 
-	_starpu_mpi_irecv_common(data_handle, source, data_tag, comm, NULL, 1, 0, callback, arg, 1, 0, 0, prio);
+	_starpu_mpi_irecv_common(data_handle, source, data_tag, comm, MPI_COMM_NULL, 1, 0, callback, arg, 1, 0, 0, prio);
 
 	_STARPU_MPI_LOG_OUT();
 	return 0;
@@ -408,7 +408,7 @@ int starpu_mpi_irecv_detached_sequential_consistency(starpu_data_handle_t data_h
 {
 	_STARPU_MPI_LOG_IN();
 
-	_starpu_mpi_irecv_common(data_handle, source, data_tag, comm, NULL, 1, 0, callback, arg, sequential_consistency, 0, 0, STARPU_DEFAULT_PRIO);
+	_starpu_mpi_irecv_common(data_handle, source, data_tag, comm, MPI_COMM_NULL, 1, 0, callback, arg, sequential_consistency, 0, 0, STARPU_DEFAULT_PRIO);
 
 	_STARPU_MPI_LOG_OUT();
 	return 0;
@@ -451,7 +451,7 @@ struct _starpu_mpi_req* _starpu_mpi_irecv_cache_aware(starpu_data_handle_t data_
 		if (data_tag == -1)
 			_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
 		_STARPU_MPI_DEBUG(1, "Receiving data %p from %d\n", data_handle, source);
-		req = _starpu_mpi_irecv_common(data_handle, source, data_tag, comm, NULL, detached, sync, callback, _arg, sequential_consistency, is_internal_req, count, STARPU_DEFAULT_PRIO); //TODO: Allow to pass prio in args
+		req = _starpu_mpi_irecv_common(data_handle, source, data_tag, comm, MPI_COMM_NULL, detached, sync, callback, _arg, sequential_consistency, is_internal_req, count, STARPU_DEFAULT_PRIO); //TODO: Allow to pass prio in args
 		*cache_flag = 0;
 	}
 	else
