@@ -1464,6 +1464,7 @@ void _starpu_handler(int sig)
 	}
 	if (sig == SIGSEGV)
 	{
+		STARPU_DUMP_BACKTRACE();
 		void (*sig_act)(int) = act_sigsegv;
 		if (sig_act == NULL)
 			sig_act = SIG_DFL;
