@@ -121,10 +121,10 @@ int starpu_mpi_exchange_data_before_execution(MPI_Comm comm, starpu_data_handle_
 {
 	int me;
 	starpu_mpi_comm_rank(comm, &me);
-	return _starpu_mpi_exchange_data_before_execution(data, mode, me, params.xrank, params.do_execute, params.priority, comm);
+	return _starpu_mpi_exchange_data_before_execution(data, mode, me, params.xrank, params.do_execute, params.priority, comm, NULL);
 }
 
-int _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum starpu_data_access_mode mode, int me, int xrank, int do_execute, int prio, MPI_Comm comm)
+int _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum starpu_data_access_mode mode, int me, int xrank, int do_execute, int prio, MPI_Comm comm, int *exchange_needed)
 {
 	if (data && data->mpi_data)
 	{
@@ -133,6 +133,11 @@ int _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum s
 		{
 			_starpu_mpi_redux_wrapup_data(data);
 		}
+	}
+	if ((mode & STARPU_REDUX || mode & STARPU_MPI_REDUX) && data)
+	{
+		if (exchange_needed)
+			*exchange_needed = 1;
 	}
 	if (data && xrank == STARPU_MPI_PER_NODE)
 	{
@@ -149,6 +154,8 @@ int _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum s
 
 		if (do_execute && mpi_rank != STARPU_MPI_PER_NODE && mpi_rank != me)
 		{
+			if (exchange_needed)
+				*exchange_needed = 1;
 			/* The node is going to execute the codelet, but it does not own the data, it needs to receive the data from the owner node */
 			int already_received = starpu_mpi_cached_receive_set(data);
 			if (already_received == 0)
@@ -165,6 +172,8 @@ int _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum s
 
 		if (!do_execute && mpi_rank == me)
 		{
+			if (exchange_needed)
+				*exchange_needed = 1;
 			/* The node owns the data, but another node is going to execute the codelet, the node needs to send the data to the executee node. */
 			int already_sent = starpu_mpi_cached_send_set(data, xrank);
 			if (already_sent == 0)
@@ -188,6 +197,16 @@ int _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum s
 			 * directly by NewMadeleine). */
 		}
 	}
+	if (data && mode & STARPU_W)
+	{
+		int mpi_rank = starpu_mpi_data_get_rank(data);
+		if ((do_execute && mpi_rank != STARPU_MPI_PER_NODE && mpi_rank != me) || (!do_execute && mpi_rank == me))
+		{
+			if (exchange_needed)
+				*exchange_needed = 1;
+		}
+	}
+
 	return 0;
 }
 
@@ -328,40 +347,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 	{
 		int arg_type_nocommute = arg_type & ~STARPU_COMMUTE;
 
-		if (arg_type==STARPU_EXECUTE_ON_NODE)
-		{
-			int rank = va_arg(varg_list_copy, int);
-			if (rank != -1)
-			{
-				*xrank = rank;
-				if (node_selected == 0)
-				{
-					_STARPU_MPI_DEBUG(100, "Executing on node %d\n", *xrank);
-					*do_execute = 1;
-					node_selected = 1;
-					inconsistent_execute = 0;
-				}
-			}
-		}
-		else if (arg_type==STARPU_EXECUTE_ON_DATA)
-		{
-			starpu_data_handle_t data = va_arg(varg_list_copy, starpu_data_handle_t);
-			if (node_selected == 0)
-			{
-				*xrank = starpu_mpi_data_get_rank(data);
-				STARPU_ASSERT_MSG(*xrank != -1, "Rank of the data must be set using starpu_mpi_data_register() or starpu_data_set_rank()");
-				_STARPU_MPI_DEBUG(100, "Executing on data node %d\n", *xrank);
-				STARPU_ASSERT_MSG(*xrank <= nb_nodes, "Node %d to execute codelet is not a valid node (%d)", *xrank, nb_nodes);
-				*do_execute = 1;
-				node_selected = 1;
-				inconsistent_execute = 0;
-			}
-		}
-		else if (arg_type==STARPU_NONE)
-		{
-			(void)va_arg(varg_list_copy, starpu_data_handle_t);
-		}
-		else if (arg_type_nocommute & STARPU_R || arg_type_nocommute & STARPU_W || arg_type_nocommute & STARPU_RW || arg_type & STARPU_SCRATCH || arg_type & STARPU_REDUX || arg_type & STARPU_MPI_REDUX)
+		if (arg_type_nocommute & STARPU_R || arg_type_nocommute & STARPU_W || arg_type_nocommute & STARPU_RW || arg_type & STARPU_SCRATCH || arg_type & STARPU_REDUX || arg_type & STARPU_MPI_REDUX)
 		{
 			starpu_data_handle_t data = va_arg(varg_list_copy, starpu_data_handle_t);
 			enum starpu_data_access_mode mode = (enum starpu_data_access_mode) arg_type;
@@ -384,8 +370,36 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 			descrs[nb_data].handle = data;
 			descrs[nb_data].mode = mode;
 			nb_data ++;
+			continue;
 		}
-		else if (arg_type == STARPU_DATA_ARRAY)
+		switch(arg_type)
+		{
+		case STARPU_CALLBACK:
+		{
+			(void)va_arg(varg_list_copy, _starpu_callback_func_t);
+			break;
+		}
+		case STARPU_CALLBACK_ARG:
+		case STARPU_CALLBACK_ARG_NFREE:
+		{
+			(void)va_arg(varg_list_copy, void *);
+			break;
+		}
+		case STARPU_CALLBACK_WITH_ARG:
+		case STARPU_CALLBACK_WITH_ARG_NFREE:
+		{
+			(void)va_arg(varg_list_copy, _starpu_callback_func_t);
+			(void)va_arg(varg_list_copy, void *);
+			break;
+		}
+		case STARPU_CL_ARGS:
+		case STARPU_CL_ARGS_NFREE:
+		{
+			(void)va_arg(varg_list_copy, void *);
+			(void)va_arg(varg_list_copy, size_t);
+			break;
+		}
+		case  STARPU_DATA_ARRAY:
 		{
 			starpu_data_handle_t *data = va_arg(varg_list_copy, starpu_data_handle_t *);
 			int nb_handles = va_arg(varg_list_copy, int);
@@ -415,8 +429,9 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 				descrs[nb_data].mode = mode;
 				nb_data ++;
 			}
+			break;
 		}
-		else if (arg_type == STARPU_DATA_MODE_ARRAY)
+		case  STARPU_DATA_MODE_ARRAY:
 		{
 			struct starpu_data_descr *_descrs = va_arg(varg_list_copy, struct starpu_data_descr*);
 			int nb_handles = va_arg(varg_list_copy, int);
@@ -445,227 +460,245 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 				descrs[nb_data].mode = mode;
 				nb_data ++;
 			}
+			break;
 		}
-		else if (arg_type==STARPU_VALUE)
-		{
-			(void)va_arg(varg_list_copy, void *);
-			(void)va_arg(varg_list_copy, size_t);
-		}
-		else if (arg_type==STARPU_CL_ARGS)
-		{
-			(void)va_arg(varg_list_copy, void *);
-			(void)va_arg(varg_list_copy, size_t);
-		}
-		else if (arg_type==STARPU_CL_ARGS_NFREE)
-		{
-			(void)va_arg(varg_list_copy, void *);
-			(void)va_arg(varg_list_copy, size_t);
-		}
-		else if (arg_type==STARPU_TASK_DEPS_ARRAY)
-		{
-			(void)va_arg(varg_list_copy, unsigned);
-			(void)va_arg(varg_list_copy, struct starpu_task **);
-		}
-		else if (arg_type==STARPU_TASK_END_DEPS_ARRAY)
-		{
-			(void)va_arg(varg_list_copy, unsigned);
-			(void)va_arg(varg_list_copy, struct starpu_task **);
-		}
-		else if (arg_type==STARPU_CALLBACK)
+		case STARPU_EPILOGUE_CALLBACK:
 		{
 			(void)va_arg(varg_list_copy, _starpu_callback_func_t);
+			break;
 		}
-		else if (arg_type==STARPU_CALLBACK_WITH_ARG)
-		{
-			(void)va_arg(varg_list_copy, _starpu_callback_func_t);
-			(void)va_arg(varg_list_copy, void *);
-		}
-		else if (arg_type==STARPU_CALLBACK_WITH_ARG_NFREE)
-		{
-			(void)va_arg(varg_list_copy, _starpu_callback_func_t);
-			(void)va_arg(varg_list_copy, void *);
-		}
-		else if (arg_type==STARPU_CALLBACK_ARG)
+		case STARPU_EPILOGUE_CALLBACK_ARG:
 		{
 			(void)va_arg(varg_list_copy, void *);
+			break;
 		}
-		else if (arg_type==STARPU_CALLBACK_ARG_NFREE)
+		case STARPU_EXECUTE_ON_DATA:
 		{
-			(void)va_arg(varg_list_copy, void *);
+			starpu_data_handle_t data = va_arg(varg_list_copy, starpu_data_handle_t);
+			if (node_selected == 0)
+			{
+				*xrank = starpu_mpi_data_get_rank(data);
+				STARPU_ASSERT_MSG(*xrank != -1, "Rank of the data must be set using starpu_mpi_data_register() or starpu_data_set_rank()");
+				_STARPU_MPI_DEBUG(100, "Executing on data node %d\n", *xrank);
+				STARPU_ASSERT_MSG(*xrank <= nb_nodes, "Node %d to execute codelet is not a valid node (%d)", *xrank, nb_nodes);
+				*do_execute = 1;
+				node_selected = 1;
+				inconsistent_execute = 0;
+			}
+			break;
 		}
-		else if (arg_type==STARPU_EPILOGUE_CALLBACK)
+		case STARPU_EXECUTE_ON_NODE:
 		{
-			(void)va_arg(varg_list_copy, _starpu_callback_func_t);
+			int rank = va_arg(varg_list_copy, int);
+			if (rank != -1)
+			{
+				*xrank = rank;
+				if (node_selected == 0)
+				{
+					_STARPU_MPI_DEBUG(100, "Executing on node %d\n", *xrank);
+					*do_execute = 1;
+					node_selected = 1;
+					inconsistent_execute = 0;
+				}
+			}
+			break;
 		}
-		else if (arg_type==STARPU_EPILOGUE_CALLBACK_ARG)
+		case STARPU_EXECUTE_ON_WORKER:
 		{
-			(void)va_arg(varg_list_copy, void *);
-		}
-		else if (arg_type==STARPU_PRIORITY)
-		{
-			prio = va_arg(varg_list_copy, int);
-		}
-		/* STARPU_EXECUTE_ON_NODE handled above */
-		/* STARPU_EXECUTE_ON_DATA handled above */
-		/* STARPU_DATA_ARRAY handled above */
-		/* STARPU_DATA_MODE_ARRAY handled above */
-		else if (arg_type==STARPU_TAG)
-		{
-			(void)va_arg(varg_list_copy, starpu_tag_t);
-		}
-		else if (arg_type==STARPU_HYPERVISOR_TAG)
-		{
+			// the flag is decoded and set later when
+			// calling function _starpu_task_insert_create()
 			(void)va_arg(varg_list_copy, int);
+			break;
 		}
-		else if (arg_type==STARPU_FLOPS)
-		{
-			(void)va_arg(varg_list_copy, double);
-		}
-		else if (arg_type==STARPU_SCHED_CTX)
-		{
-			(void)va_arg(varg_list_copy, unsigned);
-		}
-		else if (arg_type==STARPU_SOON_CALLBACK)
-		{
-			(void)va_arg(varg_list_copy, _starpu_callback_soon_func_t);
-		}
-		else if (arg_type==STARPU_SOON_CALLBACK_ARG)
-		{
-			(void)va_arg(varg_list_copy, void *);
-		}
-		else if (arg_type==STARPU_SOON_CALLBACK_ARG_NFREE)
-		{
-			(void)va_arg(varg_list_copy, void *);
-		}
-		else if (arg_type==STARPU_PROLOGUE_CALLBACK)
-		{
-			(void)va_arg(varg_list_copy, _starpu_callback_func_t);
-		}
-		else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG)
-		{
-			(void)va_arg(varg_list_copy, void *);
-		}
-		else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG_NFREE)
-		{
-			(void)va_arg(varg_list_copy, void *);
-		}
-		else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP)
-		{
-			(void)va_arg(varg_list_copy, _starpu_callback_func_t);
-		}
-		else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG)
-		{
-			(void)va_arg(varg_list_copy, void *);
-		}
-		else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG_NFREE)
-		{
-			(void)va_arg(varg_list_copy, void *);
-		}
-		else if (arg_type==STARPU_EXECUTE_WHERE)
+		case STARPU_EXECUTE_WHERE:
 		{
 			// the flag is decoded and set later when
 			// calling function _starpu_task_insert_create()
 			(void)va_arg(varg_list_copy, unsigned long long);
+			break;
 		}
-		else if (arg_type==STARPU_EXECUTE_ON_WORKER)
-		{
-			// the flag is decoded and set later when
-			// calling function _starpu_task_insert_create()
-			(void)va_arg(varg_list_copy, int);
-		}
-		else if (arg_type==STARPU_TAG_ONLY)
-		{
-			(void)va_arg(varg_list_copy, starpu_tag_t);
-		}
-		else if (arg_type==STARPU_NAME)
-		{
-			(void)va_arg(varg_list_copy, const char *);
-		}
-		else if (arg_type==STARPU_POSSIBLY_PARALLEL)
-		{
-			(void)va_arg(varg_list_copy, unsigned);
-		}
-		else if (arg_type==STARPU_WORKER_ORDER)
-		{
-			// the flag is decoded and set later when
-			// calling function _starpu_task_insert_create()
-			(void)va_arg(varg_list_copy, unsigned);
-		}
-		else if (arg_type==STARPU_NODE_SELECTION_POLICY)
-		{
-			select_node_policy = va_arg(varg_list_copy, int);
-		}
-		else if (arg_type==STARPU_TASK_COLOR)
-		{
-			(void)va_arg(varg_list_copy, int);
-		}
-		else if (arg_type==STARPU_TASK_SYNCHRONOUS)
-		{
-			(void)va_arg(varg_list_copy, int);
-		}
-		else if (arg_type==STARPU_TRANSACTION)
-		{
-			(void)va_arg(varg_list_copy, struct starpu_transaction *);
-		}
-		else if (arg_type==STARPU_HANDLES_SEQUENTIAL_CONSISTENCY)
+		case STARPU_HANDLES_SEQUENTIAL_CONSISTENCY:
 		{
 			(void)va_arg(varg_list_copy, char *);
+			break;
+		}
+		case STARPU_FLOPS:
+		{
+			(void)va_arg(varg_list_copy, double);
+			break;
+		}
+		case STARPU_HYPERVISOR_TAG:
+		{
+			(void)va_arg(varg_list_copy, int);
+			break;
+		}
+		case STARPU_NAME:
+		{
+			(void)va_arg(varg_list_copy, const char *);
+			break;
+		}
+		case STARPU_NODE_SELECTION_POLICY:
+		{
+			select_node_policy = va_arg(varg_list_copy, int);
+			break;
+		}
+		case STARPU_NONE:
+		{
+			(void)va_arg(varg_list_copy, starpu_data_handle_t);
+			break;
+		}
+		case STARPU_POSSIBLY_PARALLEL:
+		{
+			(void)va_arg(varg_list_copy, unsigned);
+			break;
+		}
+		case STARPU_PRIORITY:
+		{
+			prio = va_arg(varg_list_copy, int);
+			break;
+		}
+		case STARPU_PROLOGUE_CALLBACK:
+		{
+			(void)va_arg(varg_list_copy, _starpu_callback_func_t);
+			break;
+		}
+		case STARPU_PROLOGUE_CALLBACK_ARG:
+		case STARPU_PROLOGUE_CALLBACK_ARG_NFREE:
+		{
+			(void)va_arg(varg_list_copy, void *);
+			break;
+		}
+		case STARPU_PROLOGUE_CALLBACK_POP:
+		{
+			(void)va_arg(varg_list_copy, _starpu_callback_func_t);
+			break;
+		}
+		case STARPU_PROLOGUE_CALLBACK_POP_ARG:
+		case STARPU_PROLOGUE_CALLBACK_POP_ARG_NFREE:
+		{
+			(void)va_arg(varg_list_copy, void *);
+			break;
 		}
 #ifdef STARPU_RECURSIVE_TASKS
-		else if (arg_type==STARPU_RECURSIVE_TASK_FUNC)
+		case STARPU_RECURSIVE_TASK_FUNC:
+		case STARPU_RECURSIVE_TASK_FUNC_ARG:
+		case STARPU_RECURSIVE_TASK_GEN_DAG_FUNC:
+		case STARPU_RECURSIVE_TASK_GEN_DAG_FUNC_ARG:
 		{
 			STARPU_ASSERT_MSG(0, "Recursive Tasks + MPI not supported yet\n");
 			(void)va_arg(varg_list,void*);
+			break;
 		}
-		else if (arg_type==STARPU_RECURSIVE_TASK_FUNC_ARG)
+		case STARPU_RECURSIVE_TASK_PARENT:
 		{
-			(void)va_arg(varg_list,void*);
-		}
-		else if (arg_type==STARPU_RECURSIVE_TASK_GEN_DAG_FUNC)
-		{
-			(void)va_arg(varg_list,void*);
-		}
-		else if (arg_type==STARPU_RECURSIVE_TASK_GEN_DAG_FUNC_ARG)
-		{
-			(void)va_arg(varg_list,void*);
+			STARPU_ASSERT_MSG(0, "Recursive Tasks + MPI not supported yet\n");
+			(void)va_arg(varg_list,struct starpu_task *);
+			break;
 		}
 #endif
-		else if (arg_type==STARPU_TASK_END_DEP)
+		case STARPU_SCHED_CTX:
+		case STARPU_SEQUENTIAL_CONSISTENCY:
+		{
+			(void)va_arg(varg_list_copy, unsigned);
+			break;
+		}
+		case STARPU_SOON_CALLBACK:
+		{
+			(void)va_arg(varg_list_copy, _starpu_callback_soon_func_t);
+			break;
+		}
+		case STARPU_SOON_CALLBACK_ARG:
+		case STARPU_SOON_CALLBACK_ARG_NFREE:
+		{
+			(void)va_arg(varg_list_copy, void *);
+			break;
+		}
+		case STARPU_TAG:
+		case STARPU_TAG_ONLY:
+		{
+			(void)va_arg(varg_list_copy, starpu_tag_t);
+			break;
+		}
+		case STARPU_TASK_COLOR:
 		{
 			(void)va_arg(varg_list_copy, int);
+			break;
 		}
-		else if (arg_type==STARPU_TASK_WORKERIDS)
+		case STARPU_TASK_DEPS_ARRAY:
+		{
+			(void)va_arg(varg_list_copy, unsigned);
+			(void)va_arg(varg_list_copy, struct starpu_task **);
+			break;
+		}
+		case STARPU_TASK_END_DEP:
+		{
+			(void)va_arg(varg_list_copy, int);
+			break;
+		}
+		case STARPU_TASK_END_DEPS_ARRAY:
+		{
+			(void)va_arg(varg_list_copy, unsigned);
+			(void)va_arg(varg_list_copy, struct starpu_task **);
+			break;
+		}
+		case STARPU_TASK_FILE:
+		{
+			(void)va_arg(varg_list_copy, const char *);
+			break;
+		}
+		case STARPU_TASK_LINE:
+		{
+			(void)va_arg(varg_list_copy, int);
+			break;
+		}
+		case STARPU_TASK_NO_SUBMITORDER:
+		{
+			(void)va_arg(varg_list_copy, unsigned);
+			break;
+		}
+		case STARPU_TASK_PROFILING_INFO:
+		{
+			(void)va_arg(varg_list_copy, struct starpu_profiling_task_info *);
+			break;
+		}
+		case STARPU_TASK_SCHED_DATA:
+		{
+			(void)va_arg(varg_list_copy, void *);
+			break;
+		}
+		case STARPU_TASK_SYNCHRONOUS:
+		{
+			(void)va_arg(varg_list_copy, int);
+			break;
+		}
+		case STARPU_TASK_WORKERIDS:
 		{
 			(void)va_arg(varg_list_copy, unsigned);
 			(void)va_arg(varg_list_copy, uint32_t*);
+			break;
 		}
-		else if (arg_type==STARPU_SEQUENTIAL_CONSISTENCY)
+		case STARPU_TRANSACTION:
 		{
-			(void)va_arg(varg_list_copy, unsigned);
+			(void)va_arg(varg_list_copy, struct starpu_transaction *);
+			break;
 		}
-		else if (arg_type==STARPU_TASK_PROFILING_INFO)
-		{
-			(void)va_arg(varg_list_copy, struct starpu_profiling_task_info *);
-		}
-		else if (arg_type==STARPU_TASK_NO_SUBMITORDER)
-		{
-			(void)va_arg(varg_list_copy, unsigned);
-		}
-		else if (arg_type==STARPU_TASK_SCHED_DATA)
+		case STARPU_VALUE:
 		{
 			(void)va_arg(varg_list_copy, void *);
+			(void)va_arg(varg_list_copy, size_t);
+			break;
 		}
-		else if (arg_type==STARPU_TASK_FILE)
+		case STARPU_WORKER_ORDER:
 		{
-			(void)va_arg(varg_list_copy, const char *);
+			// the flag is decoded and set later when
+			// calling function _starpu_task_insert_create()
+			(void)va_arg(varg_list_copy, unsigned);
+			break;
 		}
-		else if (arg_type==STARPU_TASK_LINE)
-		{
-			(void)va_arg(varg_list_copy, int);
-		}
-		else
+		default:
 		{
 			STARPU_ABORT_MSG("Unrecognized argument %d, did you perhaps forget to end arguments with 0?\n", arg_type);
+		}
 		}
 
 	}
@@ -694,7 +727,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 }
 
 static
-int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, struct starpu_task **task, int *xrank_p, struct starpu_data_descr **descrs_p, int *nb_data_p, int *prio_p, va_list varg_list)
+int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, struct starpu_task **task, int *xrank_p, struct starpu_data_descr **descrs_p, int *nb_data_p, int *prio_p, int *exchange_needed, va_list varg_list)
 {
 	int me, do_execute, xrank, nb_nodes;
 	int ret;
@@ -714,10 +747,12 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 		return ret;
 
 	_STARPU_TRACE_TASK_MPI_PRE_START();
+	if (exchange_needed)
+		*exchange_needed = 0;
 	/* Send and receive data as requested */
 	for(i=0 ; i<nb_data ; i++)
 	{
-		_starpu_mpi_exchange_data_before_execution(descrs[i].handle, descrs[i].mode, me, xrank, do_execute, prio, comm);
+		_starpu_mpi_exchange_data_before_execution(descrs[i].handle, descrs[i].mode, me, xrank, do_execute, prio, comm, exchange_needed);
 	}
 
 	if (xrank_p)
@@ -774,17 +809,27 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 	return do_execute;
 }
 
-int _starpu_mpi_task_postbuild_v(MPI_Comm comm, int xrank, int do_execute, struct starpu_data_descr *descrs, int nb_data, int prio)
+int _starpu_mpi_task_postbuild_v(MPI_Comm comm, int xrank, int do_execute, struct starpu_data_descr *descrs, int nb_data, int prio, int exchange_needed)
 {
 	int me, i;
 
 	_STARPU_TRACE_TASK_MPI_POST_START();
 	starpu_mpi_comm_rank(comm, &me);
 
-	for(i=0 ; i<nb_data ; i++)
+	if (exchange_needed)
 	{
-		_starpu_mpi_exchange_data_after_execution(descrs[i].handle, descrs[i].mode, me, xrank, do_execute, prio, comm);
-		_starpu_mpi_clear_data_after_execution(descrs[i].handle, descrs[i].mode, me, do_execute);
+		for(i=0 ; i<nb_data ; i++)
+		{
+			_starpu_mpi_exchange_data_after_execution(descrs[i].handle, descrs[i].mode, me, xrank, do_execute, prio, comm);
+		}
+	}
+
+	if (_starpu_cache_enabled || do_execute)
+	{
+		for(i=0 ; i<nb_data ; i++)
+		{
+			_starpu_mpi_clear_data_after_execution(descrs[i].handle, descrs[i].mode, me, do_execute);
+		}
 	}
 
 	_STARPU_TRACE_TASK_MPI_POST_END();
@@ -802,8 +847,9 @@ int _starpu_mpi_task_insert_v(MPI_Comm comm, struct starpu_codelet *codelet, va_
 	struct starpu_data_descr *descrs;
 	int nb_data;
 	int prio;
+	int exchange_needed;
 
-	ret = _starpu_mpi_task_build_v(comm, codelet, &task, &xrank, &descrs, &nb_data, &prio, varg_list);
+	ret = _starpu_mpi_task_build_v(comm, codelet, &task, &xrank, &descrs, &nb_data, &prio, &exchange_needed, varg_list);
 	if (ret < 0)
 		return ret;
 
@@ -827,7 +873,7 @@ int _starpu_mpi_task_insert_v(MPI_Comm comm, struct starpu_codelet *codelet, va_
 		}
 	}
 
-	int val = _starpu_mpi_task_postbuild_v(comm, xrank, do_execute, descrs, nb_data, prio);
+	int val = _starpu_mpi_task_postbuild_v(comm, xrank, do_execute, descrs, nb_data, prio, exchange_needed);
 	free(descrs);
 
 	if (ret == 1)
@@ -868,7 +914,7 @@ struct starpu_task *starpu_mpi_task_build(MPI_Comm comm, struct starpu_codelet *
 	int ret;
 
 	va_start(varg_list, codelet);
-	ret = _starpu_mpi_task_build_v(comm, codelet, &task, NULL, NULL, NULL, NULL, varg_list);
+	ret = _starpu_mpi_task_build_v(comm, codelet, &task, NULL, NULL, NULL, NULL, NULL, varg_list);
 	va_end(varg_list);
 	return (ret == 1 || ret == -ENODEV) ? task : NULL;
 }
@@ -878,7 +924,7 @@ struct starpu_task *starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet
 	struct starpu_task *task;
 	int ret;
 
-	ret = _starpu_mpi_task_build_v(comm, codelet, &task, NULL, NULL, NULL, NULL, varg_list);
+	ret = _starpu_mpi_task_build_v(comm, codelet, &task, NULL, NULL, NULL, NULL, NULL, varg_list);
 	return (ret == 1 || ret == -ENODEV) ? task : NULL;
 }
 
@@ -901,7 +947,7 @@ int starpu_mpi_task_post_build(MPI_Comm comm, struct starpu_codelet *codelet, ..
 	if (ret < 0)
 		return ret;
 
-	ret = _starpu_mpi_task_postbuild_v(comm, xrank, do_execute, descrs, nb_data, prio);
+	ret = _starpu_mpi_task_postbuild_v(comm, xrank, do_execute, descrs, nb_data, prio, 1);
 	free(descrs);
 	return ret;
 }
@@ -922,7 +968,7 @@ int starpu_mpi_task_post_build_v(MPI_Comm comm, struct starpu_codelet *codelet, 
 	if (ret < 0)
 		return ret;
 
-	ret = _starpu_mpi_task_postbuild_v(comm, xrank, do_execute, descrs, nb_data, prio);
+	ret = _starpu_mpi_task_postbuild_v(comm, xrank, do_execute, descrs, nb_data, prio, 1);
 	free(descrs);
 	return ret;
 }
@@ -974,7 +1020,8 @@ int starpu_mpi_task_exchange_data_before_execution(MPI_Comm comm, struct starpu_
 							   params->xrank,
 							   params->do_execute,
 							   task->priority,
-							   comm);
+							   comm,
+							   NULL);
 	}
 
 	params->priority = task->priority;
@@ -983,7 +1030,7 @@ int starpu_mpi_task_exchange_data_before_execution(MPI_Comm comm, struct starpu_
 
 int starpu_mpi_task_exchange_data_after_execution(MPI_Comm comm, struct starpu_data_descr *descrs, unsigned nb_data, struct starpu_mpi_task_exchange_params params)
 {
-	return _starpu_mpi_task_postbuild_v(comm, params.xrank, params.do_execute, descrs, nb_data, params.priority);
+	return _starpu_mpi_task_postbuild_v(comm, params.xrank, params.do_execute, descrs, nb_data, params.priority, 1);
 }
 
 struct starpu_codelet _starpu_mpi_redux_data_synchro_cl =

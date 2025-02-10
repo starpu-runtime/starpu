@@ -105,9 +105,6 @@ int main(int argc, char **argv)
 		return rank == 0 ? STARPU_TEST_SKIPPED : 0;
 	}
 
-	if (rank != 0 && rank != 1)
-		goto end;
-
 	if (rank == 0)
 	{
 		starpu_variable_data_register(&data_handlesx0, STARPU_MAIN_RAM, (uintptr_t)&x0, sizeof(x0));
@@ -121,6 +118,13 @@ int main(int argc, char **argv)
 		starpu_mpi_data_register(data_handlesx1, 1, rank);
 		starpu_variable_data_register(&data_handlesx0, -1, (uintptr_t)NULL, sizeof(x0));
 		starpu_mpi_data_register(data_handlesx0, 0, 0);
+	}
+	else
+	{
+		starpu_variable_data_register(&data_handlesx1, -1, (uintptr_t)NULL, sizeof(x1));
+		starpu_variable_data_register(&data_handlesx0, -1, (uintptr_t)NULL, sizeof(x0));
+		starpu_mpi_data_register(data_handlesx0, 0, 0);
+		starpu_mpi_data_register(data_handlesx1, 1, 0);
 	}
 
 	node = starpu_mpi_data_get_rank(data_handlesx1);
