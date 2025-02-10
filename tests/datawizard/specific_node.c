@@ -201,7 +201,8 @@ int main(void)
 	for (i = 0; i < ntasks; i++)
 	{
 		struct starpu_task *task = starpu_task_create();
-		switch (i%8) {
+		switch (i%8)
+		{
 		case 0:
 			task->cl = &specific_cl;
 			break;
