@@ -422,7 +422,7 @@ static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 
 	_STARPU_MPI_TRACE_ISEND_SUBMIT_BEGIN(req->node_tag.node.rank, req->node_tag.data_tag, 0);
 
-	if(req->backend->internal_comm == NULL)
+	if(req->backend->internal_comm == MPI_COMM_NULL)
 		STARPU_ABORT_MSG("The internal communicator was not set before trying to send some data. The request given should have been created with an internal communicator");
 	if (req->sync == 0)
 	{
@@ -543,7 +543,7 @@ void _starpu_mpi_irecv_size_func(struct _starpu_mpi_req *req)
 	_STARPU_MPI_DEBUG(0, "post MPI irecv request %p type %s tag %"PRIi64" src %d data %p ptr %p datatype '%s' count %d registered_datatype %d \n", req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.node.rank, req->data_handle, req->ptr, req->datatype_name, (int)req->count, req->registered_datatype);
 
 	_STARPU_MPI_TRACE_IRECV_SUBMIT_BEGIN(req->node_tag.node.rank, req->node_tag.data_tag);
-	if(req->backend->internal_comm == NULL)
+	if(req->backend->internal_comm == MPI_COMM_NULL)
 		req->backend->internal_comm = _starpu_mpi_ulfm_get_mpi_comm_from_key(req->node_tag.node.comm);
 
 	if (req->sync)
