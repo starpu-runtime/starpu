@@ -33,7 +33,9 @@
 static starpu_pthread_mutex_t papi_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 static int papi_events[PAPI_MAX_HWCTRS];
 static int papi_nevents = 0;
+#ifdef PAPI_ECMP_DISABLED
 static int warned_component_unavailable = 0;
+#endif
 #endif
 
 /* Store the busid of the different (src, dst) pairs. busid_matrix[src][dst]
