@@ -413,6 +413,7 @@ int _fstarpu_mpi_task_insert_v(MPI_Comm comm, struct starpu_codelet *codelet, vo
 {
 	struct starpu_task *task;
 	int ret;
+	int me;
 	int xrank;
 	int do_execute = 0;
 	struct starpu_data_descr *descrs;
@@ -420,6 +421,7 @@ int _fstarpu_mpi_task_insert_v(MPI_Comm comm, struct starpu_codelet *codelet, vo
 	int prio;
 	int exchange_needed;
 
+	starpu_mpi_comm_rank(comm, &me);
 	ret = _fstarpu_mpi_task_build_v(comm, codelet, &task, &xrank, &descrs, &nb_data, &prio, &exchange_needed, arglist);
 	if (ret < 0)
 		return ret;
@@ -444,7 +446,7 @@ int _fstarpu_mpi_task_insert_v(MPI_Comm comm, struct starpu_codelet *codelet, vo
 		}
 	}
 
-	int val = _starpu_mpi_task_postbuild_v(comm, xrank, do_execute, descrs, nb_data, prio, exchange_needed);
+	int val = _starpu_mpi_task_postbuild_v(comm, me, xrank, do_execute, descrs, nb_data, prio, exchange_needed);
 	free(descrs);
 
 	if (ret == 1)
@@ -505,7 +507,7 @@ void fstarpu_mpi_task_post_build(void **arglist)
 	ret = _fstarpu_mpi_task_decode_v(codelet, me, nb_nodes, &xrank, &do_execute, &descrs, &nb_data, &prio, arglist+2);
 	STARPU_ASSERT(ret >= 0);
 
-	ret = _starpu_mpi_task_postbuild_v(MPI_Comm_f2c(comm), xrank, do_execute, descrs, nb_data, prio, 1);
+	ret = _starpu_mpi_task_postbuild_v(MPI_Comm_f2c(comm), me, xrank, do_execute, descrs, nb_data, prio, 1);
 	free(descrs);
 	STARPU_ASSERT(ret >= 0);
 }
