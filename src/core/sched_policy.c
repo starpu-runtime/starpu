@@ -21,6 +21,7 @@
 #include <common/config.h>
 #include <common/utils.h>
 #include <core/sched_policy.h>
+#include <profiling/starpu_tracing.h>
 #include <profiling/profiling.h>
 #include <datawizard/memory_nodes.h>
 #include <common/barrier.h>
@@ -543,7 +544,7 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 			struct starpu_task *alias = starpu_task_dup(task);
 			alias->destroy = 1;
 
-			_STARPU_TRACE_JOB_PUSH(alias, alias->priority);
+			_starpu_trace_job_push(alias, alias->priority);
 			worker = _starpu_get_worker_struct(combined_workerid[j]);
 			ret |= _starpu_push_local_task(worker, alias);
 		}
@@ -637,9 +638,9 @@ int _starpu_repush_task(struct _starpu_job *j)
 			if(sched_ctx->id != 0 && sched_ctx->perf_counters != NULL
 			   && sched_ctx->perf_counters->notify_empty_ctx)
 			{
-				_STARPU_TRACE_HYPERVISOR_BEGIN();
+				_starpu_trace_hypervisor_begin();
 				sched_ctx->perf_counters->notify_empty_ctx(sched_ctx->id, task);
-				_STARPU_TRACE_HYPERVISOR_END();
+				_starpu_trace_hypervisor_end();
 			}
 #endif
 			return 0;
@@ -654,7 +655,7 @@ int _starpu_repush_task(struct _starpu_job *j)
 	 * corresponding dependencies */
 	if (task->cl == NULL || task->where == STARPU_NOWHERE)
 	{
-		_STARPU_TRACE_TASK_NAME_LINE_COLOR(j);
+		_starpu_trace_task_name_line_color(j);
 		if (!_starpu_perf_counter_paused() && !j->internal)
 		{
 			(void)STARPU_PERF_COUNTER_ADD64(& _starpu_task__g_current_ready__value, -1);
@@ -674,8 +675,8 @@ int _starpu_repush_task(struct _starpu_job *j)
 
 		{
 			int worker_id = starpu_worker_get_id();
-			_STARPU_TRACE_START_CODELET_BODY(j, 0, NULL, worker_id, 0);
-			_STARPU_TRACE_END_CODELET_BODY(j, 0, NULL, worker_id, 0);
+			_starpu_trace_start_codelet_body(j, 0, NULL, worker_id, 0);
+			_starpu_trace_end_codelet_body(j, 0, NULL, worker_id, 0);
 		}
 
 		if (task->cl && task->cl->specific_nodes)
@@ -708,7 +709,7 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
 
-	_STARPU_TRACE_JOB_PUSH(task, task->priority);
+	_starpu_trace_job_push(task, task->priority);
 
 	/* if the contexts still does not have workers put the task back to its place in
 	   the empty ctx list */
@@ -727,9 +728,9 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 			if(sched_ctx->id != 0 && sched_ctx->perf_counters != NULL
 			   && sched_ctx->perf_counters->notify_empty_ctx)
 			{
-				_STARPU_TRACE_HYPERVISOR_BEGIN();
+				_starpu_trace_hypervisor_begin();
 				sched_ctx->perf_counters->notify_empty_ctx(sched_ctx->id, task);
-				_STARPU_TRACE_HYPERVISOR_END();
+				_starpu_trace_hypervisor_end();
 			}
 #endif
 
@@ -779,7 +780,7 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 					if (job->task_size > 1)
 					{
 						alias = starpu_task_dup(task);
-						_STARPU_TRACE_JOB_PUSH(alias, alias->priority);
+						_starpu_trace_job_push(alias, alias->priority);
 						alias->destroy = 1;
 					}
 					else
@@ -839,7 +840,7 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 		if(ret == -1)
 		{
 			_STARPU_MSG("repush task \n");
-			_STARPU_TRACE_JOB_POP(task, task->priority);
+			_starpu_trace_job_pop(task, task->priority);
 			ret = _starpu_push_task_to_workers(task);
 		}
 	}
@@ -866,7 +867,7 @@ int _starpu_pop_task_end(struct starpu_task *task)
 {
 	if (!task)
 		return 0;
-	_STARPU_TRACE_JOB_POP(task, task->priority);
+	_starpu_trace_job_pop(task, task->priority);
 	return 0;
 }
 
@@ -1091,9 +1092,9 @@ pick:
 					struct starpu_sched_ctx_performance_counters *perf_counters = sched_ctx->perf_counters;
 					if(sched_ctx->id != 0 && perf_counters != NULL && perf_counters->notify_idle_cycle && _starpu_sched_ctx_allow_hypervisor(sched_ctx->id))
 					{
-//					_STARPU_TRACE_HYPERVISOR_BEGIN();
+//					_starpu_trace_hypervisor_begin();
 						perf_counters->notify_idle_cycle(sched_ctx->id, worker->workerid, 1.0);
-//					_STARPU_TRACE_HYPERVISOR_END();
+//					_starpu_trace_hypervisor_end();
 					}
 				}
 #endif //STARPU_USE_SC_HYPERVISOR
@@ -1131,9 +1132,9 @@ pick:
 
 	if(sched_ctx->id != 0 && perf_counters != NULL && perf_counters->notify_poped_task && _starpu_sched_ctx_allow_hypervisor(sched_ctx->id))
 	{
-//		_STARPU_TRACE_HYPERVISOR_BEGIN();
+//		_starpu_trace_hypervisor_begin();
 		perf_counters->notify_poped_task(task->sched_ctx, worker->workerid);
-//		_STARPU_TRACE_HYPERVISOR_END();
+//		_starpu_trace_hypervisor_end();
 	}
 #endif //STARPU_USE_SC_HYPERVISOR
 

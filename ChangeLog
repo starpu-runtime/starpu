@@ -22,6 +22,7 @@ Changes:
    * Allow large sizes for vector, matrix, block, tensor and ndim data
      interfaces, and use proper MPI datatypes to exchange them.
    * Add soon_callback in tasks.
+   * Refactor the multiple tracing mechanisms
 
 Small changes:
   * Fix build system for StarPU Python interface

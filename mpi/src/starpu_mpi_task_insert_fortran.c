@@ -38,7 +38,7 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 	int prio = 0;
 	int select_node_policy = STARPU_MPI_NODE_SELECTION_CURRENT_POLICY;
 
-	_STARPU_TRACE_TASK_MPI_DECODE_START();
+	_starpu_trace_task_mpi_decode_start();
 
 	_STARPU_MPI_MALLOC(descrs, nb_allocated_data * sizeof(struct starpu_data_descr));
 	nb_data = 0;
@@ -62,7 +62,7 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 				if (ret == -EINVAL)
 				{
 					free(descrs);
-					_STARPU_TRACE_TASK_MPI_DECODE_END();
+					_starpu_trace_task_mpi_decode_end();
 					return ret;
 				}
 			}
@@ -112,7 +112,7 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 					if (ret == -EINVAL)
 					{
 						free(descrs);
-						_STARPU_TRACE_TASK_MPI_DECODE_END();
+						_starpu_trace_task_mpi_decode_end();
 						return ret;
 					}
 				}
@@ -144,7 +144,7 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 					if (ret == -EINVAL)
 					{
 						free(descrs);
-						_STARPU_TRACE_TASK_MPI_DECODE_END();
+						_starpu_trace_task_mpi_decode_end();
 						return ret;
 					}
 				}
@@ -326,7 +326,7 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 	*nb_data_p = nb_data;
 	*prio_p = prio;
 
-	_STARPU_TRACE_TASK_MPI_DECODE_END();
+	_starpu_trace_task_mpi_decode_end();
 	return 0;
 }
 
@@ -350,7 +350,7 @@ int _fstarpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, str
 	if (ret < 0)
 		return ret;
 
-	_STARPU_TRACE_TASK_MPI_PRE_START();
+	_starpu_trace_task_mpi_pre_start();
 	/* Send and receive data as requested */
 	for(i=0 ; i<nb_data ; i++)
 	{
@@ -403,7 +403,7 @@ int _fstarpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, str
 		}
 	}
 
-	_STARPU_TRACE_TASK_MPI_PRE_END();
+	_starpu_trace_task_mpi_pre_end();
 
 	return do_execute;
 }

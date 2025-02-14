@@ -22,7 +22,6 @@
 #include <starpu.h>
 #include <common/config.h>
 #include <common/list.h>
-#include <common/fxt.h>
 #include <common/uthash.h>
 
 #pragma GCC visibility push(hidden)

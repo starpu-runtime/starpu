@@ -21,7 +21,8 @@
 
 #include <starpu.h>
 #include <common/config.h>
-#include <common/fxt.h>
+//#include <common/fxt.h>
+#include <profiling/fxt/fxt.h>
 
 #define PROGNAME "starpu_fxt_tool"
 

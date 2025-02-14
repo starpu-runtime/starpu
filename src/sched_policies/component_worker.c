@@ -631,7 +631,7 @@ static int combined_worker_push_task(struct starpu_sched_component * component, 
 	task_alias[0]->task->destroy = 1;
 	task_alias[0]->left = NULL;
 	task_alias[0]->ntasks = data->parallel_worker.worker_size;
-	_STARPU_TRACE_JOB_PUSH(task_alias[0]->task, task_alias[0]->task->priority > 0);
+	_starpu_trace_job_push(task_alias[0]->task, task_alias[0]->task->priority > 0);
 	unsigned i;
 	for(i = 1; i < data->parallel_worker.worker_size; i++)
 	{
@@ -642,7 +642,7 @@ static int combined_worker_push_task(struct starpu_sched_component * component, 
 		task_alias[i]->left = task_alias[i-1];
 		task_alias[i - 1]->right = task_alias[i];
 		task_alias[i]->pntasks = &(task_alias[0]->ntasks);
-		_STARPU_TRACE_JOB_PUSH(task_alias[i]->task, task_alias[i]->task->priority > 0);
+		_starpu_trace_job_push(task_alias[i]->task, task_alias[i]->task->priority > 0);
 	}
 
 	starpu_pthread_mutex_t * mutex_to_unlock = NULL;

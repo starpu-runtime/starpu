@@ -22,7 +22,6 @@
 #include <starpu_scheduler.h>
 #include <schedulers/starpu_scheduler_toolbox.h>
 
-#include <common/fxt.h>
 #include <core/topology.h>
 #include <sched_policies/fifo_queues.h>
 

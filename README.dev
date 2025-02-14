@@ -194,16 +194,20 @@ Writing a new driver is essentially:
 
 
 
-Adding a new FXT state
+Adding a new trace event
 ----------------------
 
 This consists in:
 
-- Adding a code number in src/common/fxt.h
+- Adding a new function in src/profiling/starpu_tracing.h and in src/profiling/starpu_tracing.c
 
-- Adding the callable runtime macro in src/common/fxt.h
+- Calling this function in the wanted place in the runtime
 
-- Calling these macros in the wanted place in the runtime
+Implementing this event with FxT consists in
+
+- Adding a code number in src/profiling/fxt/fxt.h
+
+- Adding the callable runtime macro in src/profiling/fxt/fxt.h
 
 - Adding a paje state in states_list src/debug/traces/starpu_fxt.c and in
   src/debug/traces/starpu_paje.c

@@ -14,8 +14,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-//#include "fxt_tool.h"
-
 #include <search.h>
 
 #include <sys/types.h>
@@ -25,7 +23,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include <common/fxt.h>
+#include <profiling/fxt/fxt.h>
 #include <common/list.h>
 #include <common/config.h>
 #include <starpu.h>

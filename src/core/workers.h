@@ -27,7 +27,7 @@
 #include <starpu.h>
 #include <common/config.h>
 #include <common/timing.h>
-#include <common/fxt.h>
+#include <profiling/fxt/fxt.h>
 #include <common/thread.h>
 #include <common/utils.h>
 #include <core/jobs.h>

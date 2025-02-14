@@ -125,7 +125,6 @@ noinst_HEADERS = 						\
 	common/list.h						\
 	common/rwlock.h						\
 	common/starpu_spinlock.h				\
-	common/fxt.h						\
 	common/utils.h						\
 	common/thread.h						\
 	common/barrier.h					\
@@ -157,9 +156,11 @@ noinst_HEADERS = 						\
 	drivers/disk/driver_disk.h				\
 	debug/traces/starpu_fxt.h				\
 	parallel_worker/starpu_parallel_worker_create.h		\
+	profiling/starpu_tracing.h		 		\
+	profiling/fxt/fxt.h			 		\
 	profiling/bound.h					\
 	profiling/profiling.h					\
-	profiling/callbacks.h					\
+	profiling/callbacks/callbacks.h				\
 	util/openmp_runtime_support.h				\
 	util/starpu_task_insert_utils.h				\
 	util/starpu_data_cpy.h					\
@@ -176,7 +177,6 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	common/rwlock.c						\
 	common/starpu_spinlock.c				\
 	common/timing.c						\
-	common/fxt.c						\
 	common/utils.c						\
 	common/thread.c						\
 	common/rbtree.c						\
@@ -288,10 +288,12 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	debug/traces/anim.c					\
 	debug/latency.c						\
 	debug/structures_size.c					\
+	profiling/starpu_tracing.c		 		\
+	profiling/fxt/fxt.c					\
 	profiling/profiling.c					\
 	profiling/bound.c					\
 	profiling/profiling_helpers.c				\
-	profiling/callbacks.c					\
+	profiling/callbacks/callbacks.c				\
 	worker_collection/worker_list.c				\
 	worker_collection/worker_tree.c				\
 	sched_policies/component_worker.c				\

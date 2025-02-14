@@ -25,7 +25,6 @@
 #include <starpu_scheduler.h>
 #include <schedulers/starpu_scheduler_toolbox.h>
 
-#include <common/fxt.h>
 #include <core/task.h>
 #include <core/workers.h>
 #include <core/sched_policy.h>

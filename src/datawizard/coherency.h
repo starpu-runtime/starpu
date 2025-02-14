@@ -25,7 +25,6 @@
 #include <common/starpu_spinlock.h>
 #include <common/rwlock.h>
 #include <common/timing.h>
-#include <common/fxt.h>
 #include <common/list.h>
 
 #include <datawizard/interfaces/data_interface.h>

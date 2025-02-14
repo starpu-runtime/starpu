@@ -36,7 +36,7 @@
 #include <stdlib.h>
 
 #include <common/uthash.h>
-#include <common/fxt.h>
+#include <profiling/fxt/fxt.h>
 #include <common/list.h>
 #include "../mpi/src/starpu_mpi_fxt.h"
 #include <starpu.h>

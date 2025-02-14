@@ -24,6 +24,10 @@
 #include <core/jobs.h>
 #include <common/starpu_spinlock.h>
 
+#ifdef BUILDING_STARPU
+#include <common/prio_list.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

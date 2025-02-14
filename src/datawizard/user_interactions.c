@@ -669,7 +669,7 @@ static void _starpu_data_wont_use(void *data)
 	unsigned node;
 	starpu_data_handle_t handle = data;
 
-	_STARPU_TRACE_DATA_DOING_WONT_USE(handle);
+	_starpu_trace_data_doing_wont_use(&handle);
 
 	_starpu_spin_lock(&handle->header_lock);
 	for (node = 0; node < STARPU_MAXNODES; node++)
@@ -742,7 +742,7 @@ void starpu_data_wont_use(starpu_data_handle_t handle)
 		return;
 	}
 
-	_STARPU_TRACE_DATA_WONT_USE(handle);
+	_starpu_trace_data_wont_use(&handle);
 	starpu_data_acquire_on_node_cb_sequential_consistency_quick(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, STARPU_R, _starpu_data_wont_use, handle, 1, 1);
 }
 

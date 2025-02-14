@@ -361,7 +361,7 @@ void starpu_sched_component_connect(struct starpu_sched_component *parent, struc
 {
 	parent->add_child(parent, child);
 	child->add_parent(child, parent);
-	_STARPU_TRACE_SCHED_COMPONENT_CONNECT(parent,child);
+	_starpu_trace_sched_component_connect(parent,child);
 }
 
 int starpu_sched_tree_push_task(struct starpu_task * task)
@@ -384,7 +384,7 @@ int starpu_sched_component_push_task(struct starpu_sched_component *from STARPU_
 	int priority = task->priority;
 	pushback = to->push_task(to, task);
 	if (!pushback)
-		_STARPU_TRACE_SCHED_COMPONENT_PUSH(from, to, task, priority);
+		_starpu_trace_sched_component_push(from, to, task, priority);
 	return pushback;
 }
 
@@ -403,7 +403,7 @@ struct starpu_task * starpu_sched_component_pull_task(struct starpu_sched_compon
 {
 	struct starpu_task *task = from->pull_task(from, to);
 	if (task)
-		_STARPU_TRACE_SCHED_COMPONENT_PULL(from, to, task);
+		_starpu_trace_sched_component_pull(from, to, task);
 	return task;
 }
 
@@ -783,6 +783,6 @@ struct starpu_sched_component * starpu_sched_component_create(struct starpu_sche
 	component->deinit_data = take_component_and_does_nothing;
 	component->notify_change_workers = take_component_and_does_nothing;
 	component->name = strdup(name);
-	_STARPU_TRACE_SCHED_COMPONENT_NEW(component);
+	_starpu_trace_sched_component_new(component);
 	return component;
 }

@@ -458,7 +458,7 @@ void starpu_data_register(starpu_data_handle_t *handleptr, int home_node, void *
 	_starpu_data_register_ops(ops);
 
 	_starpu_register_new_data(handle, home_node, 0);
-	_STARPU_TRACE_HANDLE_DATA_REGISTER(handle);
+	_starpu_trace_handle_data_register(&handle);
 }
 
 void starpu_data_register_same(starpu_data_handle_t *handledst, starpu_data_handle_t handlesrc)
@@ -892,7 +892,7 @@ retry_busy:
 		free(handle->switch_cl->dyn_nodes);
 		free(handle->switch_cl);
 	}
-	_STARPU_TRACE_HANDLE_DATA_UNREGISTER(handle);
+	_starpu_trace_handle_data_unregister(&handle);
 	free(handle);
 	(void)STARPU_ATOMIC_ADD(&nregistered, -1);
 }
@@ -958,7 +958,7 @@ static void __starpu_data_deinitialize(starpu_data_handle_t handle)
 		struct _starpu_data_replicate *local = &handle->per_node[node];
 
 		if (local->state != STARPU_INVALID)
-			_STARPU_TRACE_DATA_STATE_INVALID(handle, node);
+			_starpu_trace_data_state_invalid(&handle, node);
 		local->state = STARPU_INVALID;
 		local->initialized = 0;
 	}
@@ -1204,7 +1204,7 @@ size_t starpu_data_get_alloc_size(starpu_data_handle_t handle)
 
 void starpu_data_set_name(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED, const char *name STARPU_ATTRIBUTE_UNUSED)
 {
-	_STARPU_TRACE_DATA_NAME(handle, name);
+	_starpu_trace_data_name(&handle, name);
 }
 
 int starpu_data_get_home_node(starpu_data_handle_t handle)
@@ -1224,7 +1224,7 @@ void starpu_data_set_coordinates_array(starpu_data_handle_t handle, unsigned dim
 	for (i = 0; i < dimensions; i++)
 		handle->coordinates[i] = dims[i];
 
-	_STARPU_TRACE_DATA_COORDINATES(handle, dimensions, dims);
+	_starpu_trace_data_coordinates(&handle, dimensions, dims);
 }
 
 void starpu_data_set_coordinates(starpu_data_handle_t handle, unsigned dimensions, ...)

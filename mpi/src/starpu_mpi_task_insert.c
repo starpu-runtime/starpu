@@ -331,7 +331,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 	int prio = 0;
 	int select_node_policy = STARPU_MPI_NODE_SELECTION_CURRENT_POLICY;
 
-	_STARPU_TRACE_TASK_MPI_DECODE_START();
+	_starpu_trace_task_mpi_decode_start();
 
 	_STARPU_MPI_MALLOC(descrs, nb_allocated_data * sizeof(struct starpu_data_descr));
 	nb_data = 0;
@@ -354,7 +354,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 				{
 					free(descrs);
 					va_end(varg_list_copy);
-					_STARPU_TRACE_TASK_MPI_DECODE_END();
+					_starpu_trace_task_mpi_decode_end();
 					return ret;
 				}
 			}
@@ -412,7 +412,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 					{
 						free(descrs);
 						va_end(varg_list_copy);
-						_STARPU_TRACE_TASK_MPI_DECODE_END();
+						_starpu_trace_task_mpi_decode_end();
 						return ret;
 					}
 				}
@@ -443,7 +443,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 					{
 						free(descrs);
 						va_end(varg_list_copy);
-						_STARPU_TRACE_TASK_MPI_DECODE_END();
+						_starpu_trace_task_mpi_decode_end();
 						return ret;
 					}
 				}
@@ -718,7 +718,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 	*nb_data_p = nb_data;
 	*prio_p = prio;
 
-	_STARPU_TRACE_TASK_MPI_DECODE_END();
+	_starpu_trace_task_mpi_decode_end();
 	return 0;
 }
 
@@ -741,9 +741,10 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, int me, struct starpu_codelet *codel
 	if (ret < 0)
 		return ret;
 
-	_STARPU_TRACE_TASK_MPI_PRE_START();
+	_starpu_trace_task_mpi_pre_start();
 	if (exchange_needed)
 		*exchange_needed = 0;
+
 	/* Send and receive data as requested */
 	for(i=0 ; i<nb_data ; i++)
 	{
@@ -799,7 +800,7 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, int me, struct starpu_codelet *codel
 		}
 	}
 
-	_STARPU_TRACE_TASK_MPI_PRE_END();
+	_starpu_trace_task_mpi_pre_end();
 
 	return do_execute;
 }
@@ -808,7 +809,8 @@ int _starpu_mpi_task_postbuild_v(MPI_Comm comm, int me, int xrank, int do_execut
 {
 	int i;
 
-	_STARPU_TRACE_TASK_MPI_POST_START();
+	_starpu_trace_task_mpi_post_start();
+	starpu_mpi_comm_rank(comm, &me);
 
 	if (exchange_needed)
 	{
@@ -826,7 +828,7 @@ int _starpu_mpi_task_postbuild_v(MPI_Comm comm, int me, int xrank, int do_execut
 		}
 	}
 
-	_STARPU_TRACE_TASK_MPI_POST_END();
+	_starpu_trace_task_mpi_post_end();
 	_STARPU_MPI_LOG_OUT();
 	return 0;
 }

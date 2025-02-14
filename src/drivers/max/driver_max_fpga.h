@@ -28,7 +28,6 @@
 #include <core/task.h>
 #include <datawizard/datawizard.h>
 #include <core/perfmodel/perfmodel.h>
-#include <common/fxt.h>
 
 void _starpu_max_fpga_preinit(void);
 

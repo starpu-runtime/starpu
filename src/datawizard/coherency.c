@@ -205,11 +205,11 @@ void _starpu_update_data_state(starpu_data_handle_t handle,
 				/* The mapping node will be kept up to date */
 				continue;
 			if (handle->per_node[node].state != STARPU_INVALID)
-			       _STARPU_TRACE_DATA_STATE_INVALID(handle, node);
+				_starpu_trace_data_state_invalid(&handle, node);
 			handle->per_node[node].state = STARPU_INVALID;
 		}
 		if (requesting_replicate->state != STARPU_OWNER)
-			_STARPU_TRACE_DATA_STATE_OWNER(handle, requesting_node);
+			_starpu_trace_data_state_owner(&handle, requesting_node);
 		requesting_replicate->state = STARPU_OWNER;
 		if (handle->home_node != -1 && handle->per_node[handle->home_node].state == STARPU_INVALID)
 			/* Notify that this MC is now dirty */
@@ -228,12 +228,12 @@ void _starpu_update_data_state(starpu_data_handle_t handle,
 				if (replicate->state != STARPU_INVALID)
 				{
 					if (replicate->state != STARPU_SHARED)
-						_STARPU_TRACE_DATA_STATE_SHARED(handle, node);
+						_starpu_trace_data_state_shared(&handle, node);
 					replicate->state = STARPU_SHARED;
 				}
 			}
 			if (requesting_replicate->state != STARPU_SHARED)
-				_STARPU_TRACE_DATA_STATE_SHARED(handle, requesting_node);
+				_starpu_trace_data_state_shared(&handle, requesting_node);
 			requesting_replicate->state = STARPU_SHARED;
 		}
 	}
@@ -1159,10 +1159,10 @@ int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, in
 		worker->task_transferring = task;
 		worker->nb_buffers_transferred = 0;
 		if (worker->ntasks <= 1)
-			_STARPU_TRACE_WORKER_START_FETCH_INPUT(NULL, workerid);
+			_starpu_trace_worker_start_fetch_input(NULL, workerid);
 	}
 	else
-		_STARPU_TRACE_START_FETCH_INPUT(NULL);
+		_starpu_trace_start_fetch_input(NULL);
 
 	int profiling = starpu_profiling_status_get();
 	if (profiling && task->profiling_info)
@@ -1252,7 +1252,7 @@ int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, in
 	return 0;
 
 enomem:
-	_STARPU_TRACE_END_FETCH_INPUT(NULL);
+	_starpu_trace_end_fetch_input(NULL);
 	_STARPU_DISP("something went wrong with buffer %u\n", index);
 
 	/* try to unreference all the input that were successfully taken */
@@ -1355,12 +1355,12 @@ void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job 
 			total_size += _starpu_data_get_size(handle);
 #endif
 	}
-	_STARPU_TRACE_DATA_LOAD(workerid,total_size);
+	_starpu_trace_data_load(workerid,total_size);
 
 	if (profiling && task->profiling_info)
 		_starpu_clock_gettime(&task->profiling_info->acquire_data_end_time);
 
-	_STARPU_TRACE_END_FETCH_INPUT(NULL);
+	_starpu_trace_end_fetch_input(NULL);
 
 	_starpu_clear_worker_status(worker, STATUS_INDEX_WAITING, NULL);
 }
@@ -1435,9 +1435,9 @@ void __starpu_push_task_output(struct _starpu_job *j)
 /* Version for a driver running on a worker: we show the driver state in the trace */
 void _starpu_push_task_output(struct _starpu_job *j)
 {
-	_STARPU_TRACE_START_PUSH_OUTPUT(NULL);
+	_starpu_trace_start_push_output(NULL);
 	__starpu_push_task_output(j);
-	_STARPU_TRACE_END_PUSH_OUTPUT(NULL);
+	_starpu_trace_end_push_output(NULL);
 }
 
 struct fetch_nowhere_wrapper

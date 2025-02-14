@@ -266,7 +266,7 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 	struct starpu_task **task_deps_array = NULL;
 	struct starpu_task **task_end_deps_array = NULL;
 
-	_STARPU_TRACE_TASK_BUILD_START();
+	_starpu_trace_task_build_start();
 
 	task->cl = cl;
 	current_buffer = 0;
@@ -655,7 +655,7 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 		starpu_task_declare_end_deps_array(task, nend_deps, task_end_deps_array);
 	}
 
-	_STARPU_TRACE_TASK_BUILD_END();
+	_starpu_trace_task_build_end();
 	return 0;
 }
 
@@ -669,7 +669,7 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 	struct starpu_task **task_deps_array = NULL;
 	struct starpu_task **task_end_deps_array = NULL;
 
-	_STARPU_TRACE_TASK_BUILD_START();
+	_starpu_trace_task_build_start();
 
 	struct starpu_codelet_pack_arg_data state;
 	starpu_codelet_pack_arg_init(&state);
@@ -1109,7 +1109,7 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 		starpu_task_declare_end_deps_array(task, nend_deps, task_end_deps_array);
 	}
 
-	_STARPU_TRACE_TASK_BUILD_END();
+	_starpu_trace_task_build_end();
 
 	return 0;
 }

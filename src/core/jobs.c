@@ -79,7 +79,7 @@ void _starpu_exclude_task_from_dag(struct starpu_task *task)
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 
 	j->exclude_from_dag = 1;
-	_STARPU_TRACE_TASK_EXCLUDE_FROM_DAG(j);
+	_starpu_trace_task_exclude_from_dag(j);
 }
 
 /* create an internal struct _starpu_job structure to encapsulate the task */
@@ -101,7 +101,7 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 	job->task = task;
 
 	if (
-#if defined(STARPU_DEBUG)
+#if defined(STARPU_DEBUG) || defined(STARPU_PROF_TASKSTUBS)
 	    1
 #elif defined(STARPU_USE_FXT)
 	    fut_active
@@ -325,7 +325,7 @@ void starpu_task_end_dep_release(struct starpu_task *t)
 	if (current)
 	{
 		struct _starpu_job *jcurrent = _starpu_get_job_associated_to_task(current);
-		_STARPU_TRACE_TASK_END_DEP(jcurrent, j);
+		_starpu_trace_task_end_dep(jcurrent, j);
 	}
 #endif
 
@@ -391,9 +391,9 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 
 			_starpu_set_current_task(task);
 
-			_STARPU_TRACE_START_CALLBACK(j);
+			_starpu_trace_start_callback(j);
 			epilogue_callback(task->epilogue_callback_arg);
-			_STARPU_TRACE_END_CALLBACK(j);
+			_starpu_trace_end_callback(j);
 
 			_starpu_set_current_task(current_task);
 
@@ -569,9 +569,9 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 
 			_starpu_set_current_task(task);
 
-			_STARPU_TRACE_START_CALLBACK(j);
+			_starpu_trace_start_callback(j);
 			callback(task->callback_arg);
-			_STARPU_TRACE_END_CALLBACK(j);
+			_starpu_trace_end_callback(j);
 
 			_starpu_set_current_task(current_task);
 
@@ -589,7 +589,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	/* Note: For now, we keep the TASK_DONE trace event for continuation,
 	 * however we could add a specific event for stopped tasks if needed.
 	 */
-	_STARPU_TRACE_TASK_DONE(j);
+	_starpu_trace_task_done(j);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 
@@ -856,9 +856,9 @@ static int _starpu_turn_task_into_recursive_task(struct _starpu_job *j)
 
 void _starpu_recursive_task_execute(struct _starpu_job *j)
 {
-	_STARPU_TRACE_RECURSIVE_TASK(j);
-	_STARPU_TRACE_TASK_NAME_LINE_COLOR(j);
-	_STARPU_TRACE_START_CODELET_BODY(j, 0, NULL, 0, 0);
+	_starpu_trace_recursive_task(j);
+	_starpu_trace_task_name_line_color(j);
+	_starpu_trace_start_codelet_body(j, 0, NULL, 0, 0);
 	STARPU_ASSERT_MSG(j->task->recursive_task_gen_dag_func!=NULL || (j->task->cl && j->task->cl->recursive_task_gen_dag_func!=NULL),
 			  "task->recursive_task_gen_dag_func MUST be defined\n");
 
@@ -873,7 +873,7 @@ void _starpu_recursive_task_execute(struct _starpu_job *j)
 	else
 		j->task->cl->recursive_task_gen_dag_func(j->task, j->task->recursive_task_gen_dag_func_arg);
 	j->task->where = STARPU_NOWHERE;
-	_STARPU_TRACE_END_CODELET_BODY(j, 0, NULL, 0, 0);
+	_starpu_trace_end_codelet_body(j, 0, NULL, 0, 0);
 }
 #endif
 
@@ -940,7 +940,7 @@ unsigned _starpu_enforce_deps_and_schedule(struct _starpu_job *j)
 
 #ifdef STARPU_RECURSIVE_TASKS
 	if (j->task->recursive_task_parent != 0)
-		_STARPU_TRACE_RECURSIVE_TASK_DEPS(j->task->recursive_task_parent, j);
+		_starpu_trace_recursive_task_deps(j->task->recursive_task_parent, j);
 #endif
 
 	ret = _starpu_push_task(j);
@@ -985,7 +985,7 @@ unsigned _starpu_enforce_deps_starting_from_task(struct _starpu_job *j)
 
 #ifdef STARPU_RECURSIVE_TASKS
 	if (j->task->recursive_task_parent != 0)
-		_STARPU_TRACE_RECURSIVE_TASK_DEPS(j->task->recursive_task_parent, j);
+		_starpu_trace_recursive_task_deps(j->task->recursive_task_parent, j);
 #endif
 
 	ret = _starpu_push_task(j);
@@ -1026,7 +1026,7 @@ unsigned _starpu_take_deps_and_schedule(struct _starpu_job *j)
 
 #ifdef STARPU_RECURSIVE_TASKS
 	if (j->task->recursive_task_parent != 0)
-		_STARPU_TRACE_RECURSIVE_TASK_DEPS(j->task->recursive_task_parent, j);
+		_starpu_trace_recursive_task_deps(j->task->recursive_task_parent, j);
 #endif
 
 	/* And immediately push task */

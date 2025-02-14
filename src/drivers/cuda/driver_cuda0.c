@@ -326,7 +326,7 @@ static int _starpu_cuda_driver_init(struct _starpu_worker *worker)
 	snprintf(worker->short_name, sizeof(worker->short_name), "CUDA %u", devid);
 	_STARPU_DEBUG("cuda (%s) dev id %u thread is ready to run on CPU %d !\n", devname, devid, worker->bindid);
 
-	_STARPU_TRACE_WORKER_INIT_END(workerid);
+	_starpu_trace_worker_init_end(workerid);
 
 	{
 		char thread_name[16];
@@ -346,7 +346,7 @@ static int _starpu_cuda_driver_init(struct _starpu_worker *worker)
 
 static int _starpu_cuda_driver_deinit(struct _starpu_worker *worker)
 {
-	_STARPU_TRACE_WORKER_DEINIT_START;
+	_starpu_trace_worker_deinit_start;
 
 	unsigned devid = worker->devid;
 	unsigned memnode = worker->memory_node;
@@ -364,7 +364,7 @@ static int _starpu_cuda_driver_deinit(struct _starpu_worker *worker)
 	deinit_device_context(devid);
 
 	worker->worker_is_initialized = 0;
-	_STARPU_TRACE_WORKER_DEINIT_END(STARPU_CUDA_WORKER);
+	_starpu_trace_worker_deinit_end(STARPU_CUDA_WORKER);
 
 	return 0;
 }
@@ -617,9 +617,9 @@ static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worke
 
 	if (_starpu_get_disable_kernels() <= 0)
 	{
-		_STARPU_TRACE_START_EXECUTING(j);
+		_starpu_trace_start_executing(j);
 		func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
-		_STARPU_TRACE_END_EXECUTING(j);
+		_starpu_trace_end_executing(j);
 	}
 
 	return 0;

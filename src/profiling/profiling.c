@@ -22,7 +22,7 @@
 #include <common/config.h>
 #include <common/utils.h>
 #include <common/timing.h>
-#include <common/fxt.h>
+#include <profiling/fxt/fxt.h>
 #include <errno.h>
 
 #ifdef STARPU_PAPI
@@ -116,7 +116,7 @@ int starpu_profiling_status_set(int status)
 	_starpu_profiling = status;
 	ANNOTATE_HAPPENS_BEFORE(&_starpu_profiling);
 
-	_STARPU_TRACE_SET_PROFILING(status);
+	_starpu_trace_set_profiling(status);
 
 	/* If we enable profiling, we reset the counters. */
 	if (status == STARPU_PROFILING_ENABLE)
@@ -240,7 +240,7 @@ void _starpu_profiling_papi_task_stop_counters(struct starpu_task *task)
 		PAPI_stop(profiling_info->papi_event_set, profiling_info->papi_values);
 		for(i=0; i<papi_nevents; i++)
 		{
-			_STARPU_TRACE_PAPI_TASK_EVENT(papi_events[i], task, profiling_info->papi_values[i]);
+			_starpu_trace_papi_task_event(papi_events[i], task, profiling_info->papi_values[i]);
 		}
 		PAPI_cleanup_eventset(profiling_info->papi_event_set);
 		PAPI_destroy_eventset(&profiling_info->papi_event_set);

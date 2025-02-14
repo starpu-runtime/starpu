@@ -23,7 +23,7 @@
 #include <sys/stat.h>
 #include <limits.h>
 #ifdef STARPU_USE_FXT
-#include <common/fxt.h>
+#include <profiling/fxt/fxt.h>
 #endif
 #include <common/utils.h>
 

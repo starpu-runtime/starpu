@@ -326,7 +326,7 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 		struct starpu_task *alias = starpu_task_dup(task);
 		int local_worker = combined_workerid[i];
 		alias->destroy = 1;
-		_STARPU_TRACE_JOB_PUSH(alias, alias->priority > 0);
+		_starpu_trace_job_push(alias, alias->priority > 0);
 		starpu_st_fifo_taskq_push_task(&data->local_fifo[local_worker], alias);
 	}
 
@@ -337,7 +337,7 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
-	_STARPU_TRACE_JOB_PUSH(master_alias, master_alias->priority > 0);
+	_starpu_trace_job_push(master_alias, master_alias->priority > 0);
 
 	for (i = 1; i < worker_size; i++)
 	{

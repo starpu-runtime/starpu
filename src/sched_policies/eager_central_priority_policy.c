@@ -29,7 +29,6 @@
 #include <starpu_bitmap.h>
 #include <limits.h>
 
-#include <common/fxt.h>
 #include <core/workers.h>
 #include <sched_policies/prio_deque.h>
 

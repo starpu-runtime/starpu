@@ -35,8 +35,8 @@
 #include <core/task.h>
 #include <core/detect_combined_workers.h>
 #include <datawizard/malloc.h>
+#include <profiling/starpu_tracing.h>
 #include <profiling/profiling.h>
-#include <profiling/callbacks.h>
 #include <drivers/max/driver_max_fpga.h>
 #include <profiling/bound.h>
 #include <sched_policies/sched_component.h>
@@ -921,25 +921,15 @@ static void _starpu_worker_deinit(struct _starpu_worker *workerarg)
 	_starpu_perf_counter_sample_exit(&workerarg->perf_counter_sample);
 }
 
-#ifdef STARPU_USE_FXT
-void _starpu_worker_start(struct _starpu_worker *worker, enum starpu_worker_archtype archtype, unsigned sync)
-{
-	unsigned devid = worker->devid;
-	unsigned memnode = worker->memory_node;
-	_STARPU_TRACE_WORKER_INIT_START(archtype, worker->workerid, devid, memnode, worker->bindid, sync);
-}
-#endif
-
 void _starpu_driver_start(struct _starpu_worker *worker, enum starpu_worker_archtype archtype, unsigned sync STARPU_ATTRIBUTE_UNUSED)
 {
 	(void) archtype;
 	int devid = worker->devid;
 	(void) devid;
 
-#ifdef STARPU_USE_FXT
-	_STARPU_TRACE_REGISTER_THREAD(worker->bindid);
-	_starpu_worker_start(worker, archtype, sync);
-#endif
+	_starpu_trace_register_thread(worker->bindid);
+	_starpu_trace_worker_init_start(worker, archtype, sync);
+
 	_starpu_set_local_worker_key(worker);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&worker->mutex);
@@ -1452,9 +1442,7 @@ void _starpu_handler(int sig)
 #ifdef STARPU_VERBOSE
 	_STARPU_MSG("Catching signal '%d'\n", sig);
 #endif
-#ifdef STARPU_USE_FXT
-	_starpu_fxt_dump_file();
-#endif
+	_starpu_trace_finalize();
 	if (sig == SIGINT)
 	{
 		void (*sig_act)(int) = act_sigint;
@@ -1829,9 +1817,9 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 
 	_starpu_init_perfmodel();
 
-#ifdef STARPU_USE_FXT
-	_starpu_fxt_init_profiling(_starpu_config.conf.trace_buffer_size);
-#endif
+	/* Initialize the profiling tool(s) */
+
+	_starpu_trace_initialize();
 
 	_starpu_open_debug_logfile();
 
@@ -1876,9 +1864,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 		STARPU_PTHREAD_COND_SIGNAL(&init_cond);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
 
-#ifdef STARPU_USE_FXT
-		_starpu_stop_fxt_profiling();
-#endif
+		_starpu_trace_finalize();
 		return ret;
 	}
 
@@ -1966,12 +1952,6 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 		fflush(stdout);
 	}
 
-#ifdef STARPU_PROF_TOOL
-	pi = _starpu_prof_tool_get_info_init(starpu_prof_tool_event_init_end, 0, starpu_prof_tool_driver_cpu, &(_starpu_config.conf));
-	pi.conf = &_starpu_config.conf;
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_init_end(&pi, NULL, NULL);
-#endif
-
 	return 0;
 }
 
@@ -2035,10 +2015,7 @@ out:
 		STARPU_ASSERT(_starpu_ctx_change_list_empty(&worker->ctx_change_list));
 	}
 
-#ifdef STARPU_PROF_TOOL
-	struct starpu_prof_tool_info pi = _starpu_prof_tool_get_info_init(starpu_prof_tool_event_terminate, 0, starpu_prof_tool_driver_cpu, NULL);
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_terminate(&pi, NULL, NULL);
-#endif
+	_starpu_trace_finalize();
 }
 
 /* Condition variable and mutex used to pause/resume. */
@@ -2226,8 +2203,6 @@ void starpu_shutdown(void)
 	for (worker = 0; worker < _starpu_config.topology.nworkers; worker++)
 		_starpu_worker_deinit(&_starpu_config.workers[worker]);
 
-	_starpu_prof_tool_unload();
-
 	_starpu_profiling_terminate();
 
 	_starpu_disk_unregister();
@@ -2237,9 +2212,8 @@ void starpu_shutdown(void)
 #endif
 	_starpu_destroy_topology(&_starpu_config);
 	_starpu_initialized_combined_workers = 0;
-#ifdef STARPU_USE_FXT
-	_starpu_stop_fxt_profiling();
-#endif
+
+	_starpu_trace_finalize();
 
 	_starpu_data_interface_shutdown();
 

@@ -319,7 +319,7 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		 * store it in the handle */
 		child->footprint = _starpu_compute_data_footprint(child);
 
-		_STARPU_TRACE_HANDLE_DATA_REGISTER(child);
+		_starpu_trace_handle_data_register(&child);
 	}
 	/* now let the header */
 	_starpu_spin_unlock(&initial_handle->header_lock);
@@ -340,7 +340,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 	unsigned node;
 	unsigned sizes[root_handle->nchildren];
 
-	_STARPU_TRACE_START_UNPARTITION(root_handle, gathering_node);
+	_starpu_trace_start_unpartition(&root_handle, gathering_node);
 
 	STARPU_ASSERT_MSG(root_handle->nchildren != 0, "data %p is not partitioned, can not unpartition it", root_handle);
 
@@ -564,7 +564,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 			free(child_handle->switch_cl);
 		}
 
-		_STARPU_TRACE_HANDLE_DATA_UNREGISTER(child_handle);
+		_starpu_trace_handle_data_unregister(&child_handle);
 	}
 
 	/* there is no child anymore */
@@ -578,7 +578,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 
 	free(children);
 
-	_STARPU_TRACE_END_UNPARTITION(root_handle, gathering_node);
+	_starpu_trace_end_unpartition(&root_handle, gathering_node);
 }
 
 void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_data_filter *f)

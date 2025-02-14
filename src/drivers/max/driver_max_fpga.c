@@ -328,7 +328,7 @@ static int _starpu_max_fpga_driver_init(struct _starpu_worker *worker)
 	snprintf(worker->short_name, sizeof(worker->short_name), "FPGA %d", devid);
 	starpu_pthread_setname(worker->short_name);
 
-	_STARPU_TRACE_WORKER_INIT_END(worker->workerid);
+	_starpu_trace_worker_init_end(worker->workerid);
 
 	/* tell the main thread that we are ready */
 	STARPU_PTHREAD_MUTEX_LOCK(&worker->mutex);
@@ -341,7 +341,7 @@ static int _starpu_max_fpga_driver_init(struct _starpu_worker *worker)
 
 static int _starpu_max_fpga_driver_deinit(struct _starpu_worker *fpga_worker)
 {
-	_STARPU_TRACE_WORKER_DEINIT_START;
+	_starpu_trace_worker_deinit_start();
 
 	unsigned memnode = fpga_worker->memory_node;
 	_starpu_datawizard_handle_all_pending_node_data_requests(memnode);
@@ -352,7 +352,7 @@ static int _starpu_max_fpga_driver_deinit(struct _starpu_worker *fpga_worker)
 	_starpu_free_all_automatically_allocated_buffers(memnode);
 
 	fpga_worker->worker_is_initialized = 0;
-	_STARPU_TRACE_WORKER_DEINIT_END(STARPU_MAX_FPGA_WORKER);
+	_starpu_trace_worker_deinit_end(STARPU_MAX_FPGA_WORKER);
 
 	return 0;
 }
@@ -561,9 +561,9 @@ static int execute_job_on_fpga(struct _starpu_job *j, struct starpu_task *worker
 		STARPU_ASSERT_MSG(func, "when STARPU_MAX_FPGA is defined in 'where', fpga_func or max_fpga_funcs has to be defined");
 		if (_starpu_get_disable_kernels() <= 0)
 		{
-			_STARPU_TRACE_START_EXECUTING(j);
+			_starpu_trace_start_executing(j; task, fpga_args, func);
 			func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
-			_STARPU_TRACE_END_EXECUTING(j);
+			_starpu_trace_end_executing(j, fpga_args);
 		}
 	}
 
@@ -581,13 +581,13 @@ int _starpu_max_fpga_driver_run_once(struct _starpu_worker *fpga_worker)
 	unsigned memnode = fpga_worker->memory_node;
 	int workerid = fpga_worker->workerid;
 
-	_STARPU_TRACE_START_PROGRESS(memnode);
+	_starpu_trace_start_progress(memnode, fpga_worker);
 	_starpu_datawizard_progress(1);
 	if (memnode != STARPU_MAIN_RAM)
 	{
 		_starpu_datawizard_progress(1);
 	}
-	_STARPU_TRACE_END_PROGRESS(memnode);
+	_starpu_trace_end_progress(memnode, fpga_worker);
 
 	struct _starpu_job *j;
 	struct starpu_task *task;
@@ -683,16 +683,16 @@ int _starpu_max_fpga_driver_run_once(struct _starpu_worker *fpga_worker)
 void *_starpu_max_fpga_worker(void *_arg)
 {
 	struct _starpu_worker* worker = _arg;
-	 unsigned memnode = worker->memory_node;
+	unsigned memnode = worker->memory_node;
 
 	_starpu_max_fpga_driver_init(worker);
-	_STARPU_TRACE_START_PROGRESS(memnode);
+	_starpu_trace_start_progress(memnode, worker);
 	while (_starpu_machine_is_running())
 	{
 		_starpu_may_pause();
 		_starpu_max_fpga_driver_run_once(worker);
 	}
-	_STARPU_TRACE_END_PROGRESS(memnode);
+	_starpu_trace_end_progress(memnode, worker);
 	_starpu_max_fpga_driver_deinit(worker);
 
 	return NULL;

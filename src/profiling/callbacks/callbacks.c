@@ -15,7 +15,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <profiling/callbacks.h>
+#include <profiling/callbacks/callbacks.h>
 #include <stdlib.h>
 #ifdef HAVE_DLOPEN
 #include <dlfcn.h>

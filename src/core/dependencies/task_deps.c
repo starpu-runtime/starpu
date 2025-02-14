@@ -33,7 +33,7 @@ static struct _starpu_cg *create_cg_task(unsigned ntags, struct _starpu_job *j)
 
 	cg->ntags = ntags;
 	cg->remaining = ntags;
-#ifdef STARPU_DEBUG
+#if defined(STARPU_DEBUG) || defined(STARPU_PROF_TASKSTUBS)
 	cg->ndeps = ntags;
 	cg->deps = NULL;
 	cg->done = NULL;
@@ -42,7 +42,7 @@ static struct _starpu_cg *create_cg_task(unsigned ntags, struct _starpu_job *j)
 
 	cg->succ.job = j;
 	j->job_successors.ndeps++;
-#ifdef STARPU_DEBUG
+#if defined(STARPU_DEBUG) || defined(STARPU_PROF_TASKSTUBS)
 	_STARPU_REALLOC(j->job_successors.deps, j->job_successors.ndeps * sizeof(j->job_successors.deps[0]));
 	_STARPU_REALLOC(j->job_successors.done, j->job_successors.ndeps * sizeof(j->job_successors.done[0]));
 	j->job_successors.deps[j->job_successors.ndeps-1] = cg;
@@ -98,7 +98,7 @@ void _starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, s
 	struct _starpu_cg *cg = create_cg_task(ndeps, job);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&job->sync_mutex);
 
-#ifdef STARPU_DEBUG
+#if defined(STARPU_DEBUG) || defined(STARPU_PROF_TASKSTUBS)
 	_STARPU_MALLOC(cg->deps, ndeps * sizeof(cg->deps[0]));
 	_STARPU_MALLOC(cg->done, ndeps * sizeof(cg->done[0]));
 #endif
@@ -114,7 +114,7 @@ void _starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, s
 		dep_job = _starpu_get_job_associated_to_task(dep_task);
 		STARPU_ASSERT_MSG(dep_task != task, "A task cannot be made to depend on itself");
 
-#ifdef STARPU_DEBUG
+#if defined(STARPU_DEBUG) || defined(STARPU_PROF_TASKSTUBS)
 		cg->deps[i] = dep_job;
 		cg->done[i] = 0;
 #endif
@@ -138,7 +138,7 @@ void _starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, s
 		}
 		STARPU_PTHREAD_MUTEX_UNLOCK(&dep_job->sync_mutex);
 
-		_STARPU_TRACE_TASK_DEPS(dep_job, job);
+		_starpu_trace_task_deps(dep_job, job);
 		_starpu_bound_task_dep(job, dep_job);
 		if (check)
 		{

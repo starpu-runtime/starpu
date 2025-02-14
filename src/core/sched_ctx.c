@@ -1012,9 +1012,9 @@ void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 #ifdef STARPU_USE_SC_HYPERVISOR
 	if (sched_ctx_id != 0 && sched_ctx_id != STARPU_NMAX_SCHED_CTXS && sched_ctx->perf_counters != NULL)
 	{
-		_STARPU_TRACE_HYPERVISOR_BEGIN();
+		_starpu_trace_hypervisor_begin();
 		sched_ctx->perf_counters->notify_delete_context(sched_ctx_id);
-		_STARPU_TRACE_HYPERVISOR_END();
+		_starpu_trace_hypervisor_end();
 	}
 #endif //STARPU_USE_SC_HYPERVISOR
 
@@ -2049,10 +2049,10 @@ void _starpu_sched_ctx_post_exec_task_cb(int workerid, struct starpu_task *task,
 
 		if(_starpu_sched_ctx_allow_hypervisor(sched_ctx->id) || task->hypervisor_tag > 0)
 		{
-			_STARPU_TRACE_HYPERVISOR_BEGIN();
+			_starpu_trace_hypervisor_begin();
 			sched_ctx->perf_counters->notify_post_exec_task(task, data_size[task->sched_ctx][workerid], footprint,
 									task->hypervisor_tag, flops[task->sched_ctx][workerid]);
-			_STARPU_TRACE_HYPERVISOR_END();
+			_starpu_trace_hypervisor_end();
 			flops[task->sched_ctx][workerid] = 0.0;
 			data_size[task->sched_ctx][workerid] = 0;
 		}
@@ -2066,9 +2066,9 @@ void starpu_sched_ctx_call_pushed_task_cb(int workerid, unsigned sched_ctx_id)
 	if(sched_ctx != NULL && sched_ctx_id != _starpu_get_initial_sched_ctx()->id && sched_ctx_id != STARPU_NMAX_SCHED_CTXS
 	   && sched_ctx->perf_counters != NULL && _starpu_sched_ctx_allow_hypervisor(sched_ctx_id))
 	{
-		_STARPU_TRACE_HYPERVISOR_BEGIN();
+		_starpu_trace_hypervisor_begin();
 		sched_ctx->perf_counters->notify_pushed_task(sched_ctx_id, workerid);
-		_STARPU_TRACE_HYPERVISOR_END();
+		_starpu_trace_hypervisor_end();
 	}
 }
 #endif //STARPU_USE_SC_HYPERVISOR

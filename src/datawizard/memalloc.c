@@ -341,7 +341,7 @@ static int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT transfer_subtree_to_node(starpu_d
 
 			/* some other node may have the copy */
 			if (src_replicate->state != STARPU_INVALID)
-				_STARPU_TRACE_DATA_STATE_INVALID(handle, src_node);
+				_starpu_trace_data_state_invalid(&handle, src_node);
 			src_replicate->state = STARPU_INVALID;
 
 			/* count the number of copies */
@@ -358,7 +358,7 @@ static int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT transfer_subtree_to_node(starpu_d
 			if (cnt == 1)
 			{
 				if (handle->per_node[last].state != STARPU_OWNER)
-					_STARPU_TRACE_DATA_STATE_OWNER(handle, last);
+					_starpu_trace_data_state_owner(&handle, last);
 				handle->per_node[last].state = STARPU_OWNER;
 			}
 
@@ -434,9 +434,9 @@ static size_t free_memory_on_node(struct _starpu_mem_chunk *mc, unsigned node)
 			data_interface = mc->chunk_interface;
 		STARPU_ASSERT(data_interface);
 
-	       _STARPU_TRACE_START_FREE(node, mc->size, handle);
+	       _starpu_trace_start_free(node, mc->size, &handle);
 		mc->ops->free_data_on_node(data_interface, node);
-	       _STARPU_TRACE_END_FREE(node, handle);
+	       _starpu_trace_end_free(node, &handle);
 
 		if (handle)
 			notify_handle_children(handle, replicate, node);
@@ -666,12 +666,12 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 				if (handle->per_node[node].state == STARPU_OWNER)
 					_starpu_memory_handle_stats_invalidated(handle, node);
 #endif
-			       _STARPU_TRACE_START_WRITEBACK(node, handle);
+			       _starpu_trace_start_writeback(node, &handle);
 				/* Note: this may need to allocate data etc.
 				 * and thus release the header lock, take
 				 * mc_lock, etc. */
 				res = transfer_subtree_to_node(handle, node, target);
-			       _STARPU_TRACE_END_WRITEBACK(node, handle);
+			       _starpu_trace_end_writeback(node, &handle);
 #ifdef STARPU_MEMORY_STATS
 				_starpu_memory_handle_stats_loaded_owner(handle, target);
 #endif
@@ -1233,7 +1233,7 @@ void starpu_memchunk_tidy(unsigned node)
 
 		/* _STARPU_DEBUG("%d not clean: %d %d\n", node, node_struct->mc_clean_nb, node_struct->mc_nb); */
 
-		_STARPU_TRACE_START_WRITEBACK_ASYNC(node);
+		_starpu_trace_start_writeback_async(node);
 		_starpu_spin_lock(&node_struct->mc_lock);
 
 		for (mc = node_struct->mc_dirty_head;
@@ -1378,7 +1378,7 @@ void starpu_memchunk_tidy(unsigned node)
 				_starpu_spin_unlock(&handle->header_lock);
 		}
 		_starpu_spin_unlock(&node_struct->mc_lock);
-		_STARPU_TRACE_END_WRITEBACK_ASYNC(node);
+		_starpu_trace_end_writeback_async(node);
 	}
 
 	total = starpu_memory_get_total(node);
@@ -1418,9 +1418,9 @@ void starpu_memchunk_tidy(unsigned node)
 		}
 	}
 
-	_STARPU_TRACE_START_MEMRECLAIM(node,2);
+	_starpu_trace_start_memreclaim(node,2);
 	free_potentially_in_use_mc(node, 0, amount, STARPU_PREFETCH);
-	_STARPU_TRACE_END_MEMRECLAIM(node,2);
+	_starpu_trace_end_memreclaim(node,2);
 out:
 	(void) STARPU_ATOMIC_ADD(&node_struct->tidying, -1);
 }
@@ -1587,16 +1587,16 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 
 #ifdef STARPU_USE_ALLOCATION_CACHE
 	if (!prefetch_oom)
-		_STARPU_TRACE_START_ALLOC_REUSE(dst_node, data_size, handle, is_prefetch);
+		_starpu_trace_start_alloc_reuse(dst_node, data_size, &handle, is_prefetch);
 	if (try_to_find_reusable_mc(dst_node, handle, replicate, footprint))
 	{
 		_starpu_allocation_cache_hit(dst_node);
 		if (!prefetch_oom)
-			_STARPU_TRACE_END_ALLOC_REUSE(dst_node, handle, 1);
+			_starpu_trace_end_alloc_reuse(dst_node, &handle, 1);
 		return data_size;
 	}
 	if (!prefetch_oom)
-		_STARPU_TRACE_END_ALLOC_REUSE(dst_node, handle, 0);
+		_starpu_trace_end_alloc_reuse(dst_node, &handle, 0);
 #endif
 
 	/* If this is RAM and pinned this will be slow
@@ -1624,11 +1624,11 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 	do
 	{
 		if (!prefetch_oom)
-			_STARPU_TRACE_START_ALLOC(dst_node, data_size, handle, is_prefetch);
+			_starpu_trace_start_alloc(dst_node, data_size, &handle, is_prefetch);
 
 		allocated_memory = handle->ops->allocate_data_on_node(data_interface, dst_node);
 		if (!prefetch_oom)
-			_STARPU_TRACE_END_ALLOC(dst_node, handle, allocated_memory);
+			_starpu_trace_end_alloc(dst_node, &handle, allocated_memory);
 
 		if (allocated_memory == -ENOMEM)
 		{
@@ -1673,9 +1673,9 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 				told_reclaiming = 1;
 			}
 			/* That was not enough, we have to really reclaim */
-			_STARPU_TRACE_START_MEMRECLAIM(dst_node,is_prefetch);
+			_starpu_trace_start_memreclaim(dst_node,is_prefetch);
 			freed = _starpu_memory_reclaim_generic(dst_node, 0, reclaim, is_prefetch);
-			_STARPU_TRACE_END_MEMRECLAIM(dst_node,is_prefetch);
+			_starpu_trace_end_memreclaim(dst_node,is_prefetch);
 
 			if (!freed && is_prefetch >= STARPU_FETCH)
 			{
@@ -1727,9 +1727,9 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 	else if (replicate->allocated)
 	{
 		/* Argl, somebody allocated it in between already, drop this one */
-	       _STARPU_TRACE_START_FREE(dst_node, data_size, handle);
+	       _starpu_trace_start_free(dst_node, data_size, &handle);
 		handle->ops->free_data_on_node(data_interface, dst_node);
-	       _STARPU_TRACE_END_FREE(dst_node, handle);
+	       _starpu_trace_end_free(dst_node, &handle);
 		allocated_memory = 0;
 	}
 	else

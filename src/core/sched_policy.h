@@ -25,17 +25,18 @@
 #include <core/workers.h>
 #include <core/sched_ctx.h>
 #include <starpu_scheduler.h>
+#include <profiling/starpu_tracing.h>
 
 #include <core/simgrid.h>
 
 #pragma GCC visibility push(hidden)
 
 #define _STARPU_SCHED_BEGIN \
-	_STARPU_TRACE_WORKER_SCHEDULING_PUSH;	\
+	_starpu_trace_worker_scheduling_push();			\
 	_SIMGRID_TIMER_BEGIN(_starpu_simgrid_sched_cost())
 #define _STARPU_SCHED_END \
 	_SIMGRID_TIMER_END;			\
-	_STARPU_TRACE_WORKER_SCHEDULING_POP
+	_starpu_trace_worker_scheduling_pop()
 
 void _starpu_sched_init(void);
 

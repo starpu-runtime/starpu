@@ -20,7 +20,7 @@
 #include <datawizard/memory_manager.h>
 #include <datawizard/memory_nodes.h>
 #include <datawizard/malloc.h>
-#include <common/fxt.h>
+#include <profiling/starpu_tracing.h>
 #include <datawizard/copy_driver.h>
 #include <datawizard/memalloc.h>
 #include <datawizard/node_ops.h>
@@ -120,7 +120,7 @@ unsigned _starpu_memory_node_register(enum starpu_node_kind kind, int devid)
 	STARPU_ASSERT_MSG(node < STARPU_MAXNODES,"Too many nodes (%u) for maximum %d. Use configure option --enable-maxnodes=xxx to update the maximum number of nodes.", node + 1, STARPU_MAXNODES);
 
 	_starpu_descr.nodes[node] = kind;
-	_STARPU_TRACE_NEW_MEM_NODE(node);
+	_starpu_trace_new_mem_node(node);
 
 	_starpu_descr.devid[node] = devid;
 	_starpu_descr.node_ops[node] = node_ops;

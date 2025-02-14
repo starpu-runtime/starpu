@@ -17,32 +17,8 @@
 #include <starpu_sched_component.h>
 #include <starpu_scheduler.h>
 #include <schedulers/starpu_scheduler_toolbox.h>
-#include <common/fxt.h>
 #include <core/workers.h>
 #include <sched_policies/prio_deque.h>
-
-#ifdef STARPU_USE_FXT
-#define STARPU_TRACE_SCHED_COMPONENT_PUSH_PRIO(component,ntasks,exp_len) do {                                 \
-	if (fut_active) {					\
-		int workerid = STARPU_NMAXWORKERS + 1;			\
-		if((component->nchildren == 1) && starpu_sched_component_is_worker(component->children[0])) \
-			workerid = starpu_sched_component_worker_get_workerid(component->children[0]); \
-		_STARPU_TRACE_SCHED_COMPONENT_PUSH_PRIO(workerid, ntasks, exp_len); \
-	}								\
-} while (0)
-
-#define STARPU_TRACE_SCHED_COMPONENT_POP_PRIO(component,ntasks,exp_len) do {                                 \
-	if (fut_active) { \
-		int workerid = STARPU_NMAXWORKERS + 1;			\
-		if((component->nchildren == 1) && starpu_sched_component_is_worker(component->children[0])) \
-			workerid = starpu_sched_component_worker_get_workerid(component->children[0]); \
-		_STARPU_TRACE_SCHED_COMPONENT_POP_PRIO(workerid, ntasks, exp_len); \
-	}								\
-} while (0)
-#else
-#define STARPU_TRACE_SCHED_COMPONENT_PUSH_PRIO(component,ntasks,exp_len) do { } while (0)
-#define STARPU_TRACE_SCHED_COMPONENT_POP_PRIO(component,ntasks,exp_len) do { } while (0)
-#endif
 
 struct _starpu_prio_data
 {
@@ -175,7 +151,7 @@ static int prio_push_local_task(struct starpu_sched_component * component, struc
 		{
 			ret = starpu_st_prio_deque_push_back_task(queue,task);
 			starpu_sched_component_prefetch_on_node(component, task);
-			STARPU_TRACE_SCHED_COMPONENT_PUSH_PRIO(component, queue->ntasks, exp_len);
+			_starpu_trace_sched_component_push_prio(component, queue->ntasks, exp_len);
 		}
 		STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 		if(!is_pushback)
@@ -248,7 +224,7 @@ static struct starpu_task * prio_pull_task(struct starpu_sched_component * compo
 			queue->exp_len = 0.0;
 	}
 	if(task)
-		STARPU_TRACE_SCHED_COMPONENT_POP_PRIO(component, queue->ntasks, queue->exp_len);
+		_starpu_trace_sched_component_pop_prio(component, queue->ntasks, queue->exp_len);
 	STARPU_ASSERT(!isnan(queue->exp_end));
 	STARPU_ASSERT(!isnan(queue->exp_len));
 	STARPU_ASSERT(!isnan(queue->exp_start));

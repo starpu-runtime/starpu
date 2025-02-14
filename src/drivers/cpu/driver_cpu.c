@@ -46,7 +46,7 @@
 #include <core/task.h>
 #include <core/disk.h>
 #include <common/knobs.h>
-#include <profiling/callbacks.h>
+#include <profiling/starpu_tracing.h>
 
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
@@ -177,14 +177,6 @@ static int _starpu_cpu_driver_init(struct _starpu_worker *cpu_worker)
 {
 	int devid = cpu_worker->devid;
 
-#ifdef STARPU_PROF_TOOL
-	struct starpu_prof_tool_info pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_driver_init, devid, cpu_worker->workerid, starpu_prof_tool_driver_cpu, -1, NULL);
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_init(&pi, NULL, NULL);
-
-	pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_driver_init_start, devid, cpu_worker->workerid, starpu_prof_tool_driver_cpu, -1, NULL);
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_init_start(&pi, NULL, NULL);
-#endif
-
 	_starpu_driver_start(cpu_worker, STARPU_CPU_WORKER, 1);
 	snprintf(cpu_worker->name, sizeof(cpu_worker->name), "CPU %d", devid);
 	snprintf(cpu_worker->short_name, sizeof(cpu_worker->short_name), "CPU %d", devid);
@@ -198,7 +190,8 @@ static int _starpu_cpu_driver_init(struct _starpu_worker *cpu_worker)
 		STARPU_ASSERT(status == 0);
 	}
 #endif
-	_STARPU_TRACE_WORKER_INIT_END(cpu_worker->workerid);
+	int rc = _starpu_trace_worker_init_end(cpu_worker, STARPU_CPU_WORKER);
+	(void) rc;
 
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&cpu_worker->sched_mutex);
 	cpu_worker->status = STATUS_UNKNOWN;
@@ -210,16 +203,15 @@ static int _starpu_cpu_driver_init(struct _starpu_worker *cpu_worker)
 	STARPU_PTHREAD_COND_SIGNAL(&cpu_worker->ready_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&cpu_worker->mutex);
 
-#ifdef STARPU_PROF_TOOL
-	pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_driver_init_end, devid, cpu_worker->workerid, starpu_prof_tool_driver_cpu, -1, NULL);
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_init_end(&pi, NULL, NULL);
-#endif
 	return 0;
 }
 
 static int _starpu_cpu_driver_deinit(struct _starpu_worker *cpu_worker)
 {
-	_STARPU_TRACE_WORKER_DEINIT_START;
+	int rc;
+
+	rc = _starpu_trace_worker_deinit_start();
+	(void) rc;
 
 	unsigned memnode = cpu_worker->memory_node;
 	_starpu_datawizard_handle_all_pending_node_data_requests(memnode);
@@ -238,13 +230,9 @@ static int _starpu_cpu_driver_deinit(struct _starpu_worker *cpu_worker)
 	}
 #endif
 	cpu_worker->worker_is_initialized = 0;
-	_STARPU_TRACE_WORKER_DEINIT_END(STARPU_CPU_WORKER);
 
-#ifdef STARPU_PROF_TOOL
- 	int workerid = cpu_worker->workerid;
-	struct starpu_prof_tool_info pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_driver_deinit, workerid, workerid, starpu_prof_tool_driver_cpu, memnode, NULL);
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_deinit(&pi, NULL, NULL);
-#endif
+	rc = _starpu_trace_worker_deinit_end(cpu_worker->workerid, STARPU_CPU_WORKER);
+	(void) rc;
 
 	return 0;
 }
@@ -384,10 +372,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 	int profiling = starpu_profiling_status_get();
 	struct starpu_task *task = j->task;
 	struct starpu_codelet *cl = task->cl;
-#ifdef STARPU_PROF_TOOL
-	struct starpu_prof_tool_info pi;
-	int devid = cpu_args->devid;
-#endif
+	int rc;
 
 	STARPU_ASSERT(cl);
 
@@ -415,13 +400,8 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 		STARPU_ASSERT_MSG(func, "when STARPU_CPU is defined in 'where', cpu_func or cpu_funcs has to be defined");
 		if (_starpu_get_disable_kernels() <= 0)
 		{
-			_STARPU_TRACE_START_EXECUTING(j);
-#ifdef STARPU_PROF_TOOL
-			pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_start_cpu_exec, devid, worker_task->workerid, starpu_prof_tool_driver_cpu, -1, (void*)func);
-			pi.model_name = _starpu_job_get_model_name(j);
-			pi.task_name = _starpu_job_get_task_name(j);
-			starpu_prof_tool_callbacks.starpu_prof_tool_event_start_cpu_exec(&pi, NULL, NULL);
-#endif
+			rc = _starpu_trace_start_executing( j, worker_task, cpu_args, func);
+
 #ifdef STARPU_SIMGRID
 			if (cl->flags & STARPU_CODELET_SIMGRID_EXECUTE)
 				func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
@@ -465,13 +445,9 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 				_starpu_profiling_papi_task_stop_counters(task);
 #endif
 #endif
-#ifdef STARPU_PROF_TOOL
-			pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_cpu_exec, devid, worker_task->workerid, starpu_prof_tool_driver_cpu, -1, (void*)func);
-			pi.model_name = _starpu_job_get_model_name(j);
-			pi.task_name = _starpu_job_get_task_name(j);
-			starpu_prof_tool_callbacks.starpu_prof_tool_event_end_cpu_exec(&pi, NULL, NULL);
-#endif
-			_STARPU_TRACE_END_EXECUTING(j);
+			rc = _starpu_trace_end_executing(j, cpu_args);
+			(void) rc;
+
 		}
 		if (is_parallel_task && cl->type == STARPU_FORKJOIN)
 			/* rebind to single CPU */
@@ -479,29 +455,19 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 	}
 	else
 	{
-#ifdef STARPU_PROF_TOOL
-		pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_cpu_exec, devid, worker_task->workerid, starpu_prof_tool_driver_cpu, -1, (void*)func);
-		pi.model_name = _starpu_job_get_model_name(j);
-		pi.task_name = _starpu_job_get_task_name(j);
-		starpu_prof_tool_callbacks.starpu_prof_tool_event_end_cpu_exec(&pi, NULL, NULL);
-#endif
-		_STARPU_TRACE_START_EXECUTING(j);
+		rc = _starpu_trace_start_executing(j, worker_task, cpu_args, func);
+		(void) rc;
 	}
 
 	if (is_parallel_task)
 	{
-		_STARPU_TRACE_START_PARALLEL_SYNC(j);
+		_starpu_trace_start_parallel_sync(j);
 		STARPU_PTHREAD_BARRIER_WAIT(&j->after_work_barrier);
-		_STARPU_TRACE_END_PARALLEL_SYNC(j);
+		_starpu_trace_end_parallel_sync(j);
 		if (rank != 0)
 		{
-#ifdef STARPU_PROF_TOOL
-			pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_cpu_exec, devid, worker_task->workerid, starpu_prof_tool_driver_cpu, -1, (void*)func);
-			pi.model_name = _starpu_job_get_model_name(j);
-			pi.task_name = _starpu_job_get_task_name(j);
-			starpu_prof_tool_callbacks.starpu_prof_tool_event_end_cpu_exec(&pi, NULL, NULL);
-#endif
-			_STARPU_TRACE_END_EXECUTING(j);
+			rc = _starpu_trace_end_executing(j, cpu_args);
+			(void)rc;
 		}
 	}
 
@@ -638,13 +604,11 @@ static int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 {
 	unsigned memnode = cpu_worker->memory_node;
 	int workerid = cpu_worker->workerid;
-#ifdef STARPU_PROF_TOOL
-	struct starpu_prof_tool_info pi;
-#endif
 	int res;
 	struct _starpu_job *j;
 	struct starpu_task *task = NULL, *pending_task;
 	int rank = 0;
+	int rc;
 
 #ifdef STARPU_SIMGRID
 	starpu_pthread_wait_reset(&cpu_worker->wait);
@@ -656,11 +620,9 @@ static int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 	{
 		int ret;
 		STARPU_RMB();
-		_STARPU_TRACE_END_PROGRESS(memnode);
-#ifdef STARPU_PROF_TOOL
-		pi = _starpu_prof_tool_get_info_d(starpu_prof_tool_event_end_transfer, workerid, workerid, starpu_prof_tool_driver_cpu, memnode, cpu_worker->nb_buffers_totransfer, cpu_worker->nb_buffers_transferred);
-		starpu_prof_tool_callbacks.starpu_prof_tool_event_end_transfer(&pi, NULL, NULL);
-#endif
+		rc = _starpu_trace_end_progress(memnode, cpu_worker);
+		(void) rc;
+
 		j = _starpu_get_job_associated_to_task(pending_task);
 
 		_starpu_fetch_task_input_tail(pending_task, j, cpu_worker);
@@ -668,11 +630,9 @@ static int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 		cpu_worker->task_transferring = NULL;
 
 		ret = _starpu_cpu_driver_execute_task(cpu_worker, pending_task, j);
-		_STARPU_TRACE_START_PROGRESS(memnode);
-#ifdef STARPU_PROF_TOOL
-		pi = _starpu_prof_tool_get_info_d(starpu_prof_tool_event_start_transfer, workerid, workerid, starpu_prof_tool_driver_cpu, memnode, cpu_worker->nb_buffers_totransfer, cpu_worker->nb_buffers_transferred);
-		starpu_prof_tool_callbacks.starpu_prof_tool_event_start_transfer(&pi, NULL, NULL);
-#endif
+		rc = _starpu_trace_start_progress(memnode, cpu_worker);
+		(void) rc;
+
 		return ret;
 	}
 
@@ -722,14 +682,9 @@ static int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 		_starpu_push_task_to_workers(task);
 		return 0;
 	}
+	rc = _starpu_trace_end_progress(memnode, cpu_worker);
+	(void) rc;
 
-#ifdef STARPU_PROF_TOOL
-	pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_transfer, workerid, workerid, starpu_prof_tool_driver_cpu, memnode, NULL);
-	/* pi.model_name = _starpu_job_get_model_name(j);
-	   pi.task_name = _starpu_job_get_task_name(j); */
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_end_transfer(&pi, NULL, NULL);
-#endif
-	_STARPU_TRACE_END_PROGRESS(memnode);
 	/* Get the rank in case it is a parallel task */
 	if (j->task_size > 1)
 	{
@@ -758,46 +713,33 @@ static int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 	else
 	{
 		int ret = _starpu_cpu_driver_execute_task(cpu_worker, task, j);
-#ifdef STARPU_PROF_TOOL
-		pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_transfer, workerid, cpu_worker->workerid, starpu_prof_tool_driver_cpu, memnode, NULL);
-		/* pi.model_name = _starpu_job_get_model_name(j);
-		   pi.task_name = _starpu_job_get_task_name(j); */
-		starpu_prof_tool_callbacks.starpu_prof_tool_event_end_transfer(&pi, NULL, NULL);
-#endif
-		_STARPU_TRACE_END_PROGRESS(memnode);
+		rc = _starpu_trace_end_transfer(memnode, cpu_worker);
+		(void) rc;
 		return ret;
 	}
-#ifdef STARPU_PROF_TOOL
-	pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_transfer, workerid, cpu_worker->workerid, starpu_prof_tool_driver_cpu, memnode, NULL);
-	/* pi.model_name = _starpu_job_get_model_name(j);
-	   pi.task_name = _starpu_job_get_task_name(j); */
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_end_transfer(&pi, NULL, NULL);
-#endif
-	_STARPU_TRACE_END_PROGRESS(memnode);
+	rc = _starpu_trace_end_transfer(memnode, cpu_worker);
+	(void) rc;
+
 	return 0;
 }
 
 static void *_starpu_cpu_worker(void *arg)
 {
 	struct _starpu_worker *worker = arg;
+	unsigned memnode = worker->memory_node;
+	int rc;
 
 	_starpu_cpu_driver_init(worker);
-	_STARPU_TRACE_START_PROGRESS(worker->memory_node);
-#ifdef STARPU_PROF_TOOL
-	struct starpu_prof_tool_info pi;
-	pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_start_transfer, worker->workerid, worker->workerid, starpu_prof_tool_driver_cpu, worker->memory_node, NULL);
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_start_transfer(&pi, NULL, NULL);
-#endif
+	rc = _starpu_trace_start_transfer(memnode, worker);
+	(void) rc;
+
 	while (_starpu_machine_is_running())
 	{
 		_starpu_may_pause();
 		_starpu_cpu_driver_run_once(worker);
 	}
-	_STARPU_TRACE_END_PROGRESS(worker->memory_node);
-#ifdef STARPU_PROF_TOOL
-	pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_transfer, worker->workerid, worker->workerid, starpu_prof_tool_driver_cpu, worker->memory_node, NULL);
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_end_transfer(&pi, NULL, NULL);
-#endif
+	rc = _starpu_trace_end_transfer(memnode, worker);
+	(void) rc;
 	_starpu_cpu_driver_deinit(worker);
 
 	return NULL;

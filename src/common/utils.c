@@ -26,6 +26,16 @@
 #include <fcntl.h>
 #include <ctype.h>
 
+#ifdef STARPU_HAVE_WINDOWS
+#include <windows.h>
+#endif
+
+#ifdef __linux__
+#include <sys/syscall.h>   /* for SYS_gettid */
+#elif defined(__FreeBSD__)
+#include <sys/thr.h>       /* for thr_self() */
+#endif
+
 #if defined(_WIN32) && !defined(__CYGWIN__)
 #include <io.h>
 #include <sys/locking.h>
@@ -766,3 +776,31 @@ void starpu_display_bindings(void)
 	_STARPU_DISP("hwloc not available to display bindings.\n");
 #endif
 }
+
+long _starpu_gettid(void)
+{
+	/* TODO: test at configure whether __thread is available, and use that
+	 * to cache the value.
+	 * Don't use the TSD, this is getting called before we would have the
+	 * time to allocate it.  */
+#ifdef STARPU_SIMGRID
+#  ifdef HAVE_SG_ACTOR_SELF
+	return (uintptr_t) sg_actor_self();
+#  else
+	return (uintptr_t) MSG_process_self();
+#  endif
+#else
+#if defined(__linux__)
+	return syscall(SYS_gettid);
+#elif defined(__FreeBSD__)
+	long tid;
+	thr_self(&tid);
+	return tid;
+#elif defined(_WIN32) && !defined(__CYGWIN__)
+	return (long) GetCurrentThreadId();
+#else
+	return (long) starpu_pthread_self();
+#endif
+#endif
+}
+

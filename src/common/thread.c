@@ -20,7 +20,7 @@
 #include <core/workers.h>
 #endif
 #include <common/thread.h>
-#include <common/fxt.h>
+#include <profiling/fxt/fxt.h>
 #include <common/timing.h>
 
 #include <errno.h>
@@ -226,7 +226,7 @@ int starpu_pthread_mutex_destroy(starpu_pthread_mutex_t *mutex)
 
 int starpu_pthread_mutex_lock(starpu_pthread_mutex_t *mutex)
 {
-	_STARPU_TRACE_LOCKING_MUTEX();
+	_starpu_trace_locking_mutex();
 
 	/* Note: this is actually safe, because simgrid only preempts within
 	 * simgrid functions */
@@ -256,14 +256,14 @@ int starpu_pthread_mutex_lock(starpu_pthread_mutex_t *mutex)
 	xbt_mutex_acquire(*mutex);
 #endif
 
-	_STARPU_TRACE_MUTEX_LOCKED();
+	_starpu_trace_mutex_locked();
 
 	return 0;
 }
 
 int starpu_pthread_mutex_unlock(starpu_pthread_mutex_t *mutex)
 {
-	_STARPU_TRACE_UNLOCKING_MUTEX();
+	_starpu_trace_unlocking_mutex();
 
 #ifdef STARPU_HAVE_SIMGRID_MUTEX_H
 	sg_mutex_unlock(*mutex);
@@ -271,7 +271,7 @@ int starpu_pthread_mutex_unlock(starpu_pthread_mutex_t *mutex)
 	xbt_mutex_release(*mutex);
 #endif
 
-	_STARPU_TRACE_MUTEX_UNLOCKED();
+	_starpu_trace_mutex_unlocked();
 
 	return 0;
 }
@@ -279,7 +279,7 @@ int starpu_pthread_mutex_unlock(starpu_pthread_mutex_t *mutex)
 int starpu_pthread_mutex_trylock(starpu_pthread_mutex_t *mutex)
 {
 	int ret;
-	_STARPU_TRACE_TRYLOCK_MUTEX();
+	_starpu_trace_trylock_mutex();
 
 #ifdef STARPU_HAVE_SIMGRID_MUTEX_H
 	ret = sg_mutex_try_lock(*mutex);
@@ -290,8 +290,10 @@ int starpu_pthread_mutex_trylock(starpu_pthread_mutex_t *mutex)
 #endif
 	ret = ret ? 0 : EBUSY;
 
-	_STARPU_TRACE_MUTEX_LOCKED();
-
+	if (ret)
+	{
+		_starpu_trace_mutex_locked();
+	}
 	return ret;
 }
 
@@ -468,7 +470,7 @@ int starpu_pthread_cond_broadcast(starpu_pthread_cond_t *cond)
 
 int starpu_pthread_cond_wait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex)
 {
-	_STARPU_TRACE_COND_WAIT_BEGIN();
+	_starpu_trace_cond_wait_begin();
 
 	_starpu_pthread_cond_auto_init(cond);
 #ifdef STARPU_HAVE_SIMGRID_COND_H
@@ -477,7 +479,7 @@ int starpu_pthread_cond_wait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t
 	xbt_cond_wait(*cond, *mutex);
 #endif
 
-	_STARPU_TRACE_COND_WAIT_END();
+	_starpu_trace_cond_wait_end();
 
 	return 0;
 }
@@ -493,7 +495,7 @@ int starpu_pthread_cond_timedwait(starpu_pthread_cond_t *cond, starpu_pthread_mu
 	delta.tv_nsec = abstime->tv_nsec - now.tv_nsec;
 	delay = (double) delta.tv_sec + (double) delta.tv_nsec / 1000000000.;
 
-	_STARPU_TRACE_COND_WAIT_BEGIN();
+	_starpu_trace_cond_wait_begin();
 
 	_starpu_pthread_cond_auto_init(cond);
 #ifdef STARPU_HAVE_SIMGRID_COND_H
@@ -502,7 +504,7 @@ int starpu_pthread_cond_timedwait(starpu_pthread_cond_t *cond, starpu_pthread_mu
 	ret = xbt_cond_timedwait(*cond, *mutex, delay) ? ETIMEDOUT : 0;
 #endif
 
-	_STARPU_TRACE_COND_WAIT_END();
+	_starpu_trace_cond_wait_end();
 
 	return ret;
 #else
@@ -536,11 +538,11 @@ int starpu_pthread_rwlock_destroy(starpu_pthread_rwlock_t *rwlock)
 
 int starpu_pthread_rwlock_rdlock(starpu_pthread_rwlock_t *rwlock)
 {
-	_STARPU_TRACE_RDLOCKING_RWLOCK();
+	_starpu_trace_rdlocking_rwlock();
 
 	int p_ret = starpu_pthread_mutex_lock(rwlock);
 
-	_STARPU_TRACE_RWLOCK_RDLOCKED();
+	_starpu_trace_rwlock_rdlocked();
 
 	return p_ret;
 }
@@ -550,18 +552,18 @@ int starpu_pthread_rwlock_tryrdlock(starpu_pthread_rwlock_t *rwlock)
 	int p_ret = starpu_pthread_mutex_trylock(rwlock);
 
 	if (!p_ret)
-		_STARPU_TRACE_RWLOCK_RDLOCKED();
+		_starpu_trace_rwlock_rdlocked();
 
 	return p_ret;
 }
 
 int starpu_pthread_rwlock_wrlock(starpu_pthread_rwlock_t *rwlock)
 {
-	_STARPU_TRACE_WRLOCKING_RWLOCK();
+	_starpu_trace_wrlocking_rwlock();
 
 	int p_ret = starpu_pthread_mutex_lock(rwlock);
 
-	_STARPU_TRACE_RWLOCK_WRLOCKED();
+	_starpu_trace_rwlock_wrlocked();
 
 	return p_ret;
 }
@@ -571,7 +573,7 @@ int starpu_pthread_rwlock_trywrlock(starpu_pthread_rwlock_t *rwlock)
 	int p_ret =  starpu_pthread_mutex_trylock(rwlock);
 
 	if (!p_ret)
-		_STARPU_TRACE_RWLOCK_RDLOCKED();
+		_starpu_trace_rwlock_rdlocked();
 
 	return p_ret;
 }
@@ -579,11 +581,11 @@ int starpu_pthread_rwlock_trywrlock(starpu_pthread_rwlock_t *rwlock)
 
 int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock)
 {
-	_STARPU_TRACE_UNLOCKING_RWLOCK();
+	_starpu_trace_unlocking_rwlock();
 
 	int p_ret = starpu_pthread_mutex_unlock(rwlock);
 
-	_STARPU_TRACE_RWLOCK_UNLOCKED();
+	_starpu_trace_rwlock_unlocked();
 
 	return p_ret;
 }
@@ -606,11 +608,11 @@ int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier)
 {
 	int ret;
 
-	_STARPU_TRACE_BARRIER_WAIT_BEGIN();
+	_starpu_trace_barrier_wait_begin();
 
 	ret = sg_barrier_wait(*barrier);
 
-	_STARPU_TRACE_BARRIER_WAIT_END();
+	_starpu_trace_barrier_wait_end();
 	return ret;
 }
 #elif defined(STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT) || defined(xbt_barrier_init)
@@ -631,11 +633,11 @@ int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier)
 {
 	int ret;
 
-	_STARPU_TRACE_BARRIER_WAIT_BEGIN();
+	_starpu_trace_barrier_wait_begin();
 
 	ret = xbt_barrier_wait(*barrier);
 
-	_STARPU_TRACE_BARRIER_WAIT_END();
+	_starpu_trace_barrier_wait_end();
 	return ret;
 }
 #endif /* defined(STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT) */
@@ -812,7 +814,7 @@ int starpu_pthread_barrier_destroy(starpu_pthread_barrier_t *barrier)
 int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier)
 {
 	int ret = 0;
-	_STARPU_TRACE_BARRIER_WAIT_BEGIN();
+	_starpu_trace_barrier_wait_begin();
 
 	starpu_pthread_mutex_lock(&barrier->mutex);
 	barrier->done++;
@@ -832,7 +834,7 @@ int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier)
 
 	starpu_pthread_mutex_unlock(&barrier->mutex);
 
-	_STARPU_TRACE_BARRIER_WAIT_END();
+	_starpu_trace_barrier_wait_end();
 
 	return ret;
 }
@@ -842,22 +844,22 @@ int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier)
 #if !defined(STARPU_SIMGRID) && !defined(_MSC_VER) /* !STARPU_SIMGRID */
 int starpu_pthread_mutex_lock(starpu_pthread_mutex_t *mutex)
 {
-	_STARPU_TRACE_LOCKING_MUTEX();
+	_starpu_trace_locking_mutex();
 
 	int p_ret = pthread_mutex_lock(mutex);
 
-	_STARPU_TRACE_MUTEX_LOCKED();
+	_starpu_trace_mutex_locked();
 
 	return p_ret;
 }
 
 int starpu_pthread_mutex_unlock(starpu_pthread_mutex_t *mutex)
 {
-	_STARPU_TRACE_UNLOCKING_MUTEX();
+	_starpu_trace_unlocking_mutex();
 
 	int p_ret = pthread_mutex_unlock(mutex);
 
-	_STARPU_TRACE_MUTEX_UNLOCKED();
+	_starpu_trace_mutex_unlocked();
 
 	return p_ret;
 }
@@ -865,80 +867,80 @@ int starpu_pthread_mutex_unlock(starpu_pthread_mutex_t *mutex)
 int starpu_pthread_mutex_trylock(starpu_pthread_mutex_t *mutex)
 {
 	int ret;
-	_STARPU_TRACE_TRYLOCK_MUTEX();
+	_starpu_trace_trylock_mutex();
 
 	ret = pthread_mutex_trylock(mutex);
 
 	if (!ret)
-		_STARPU_TRACE_MUTEX_LOCKED();
+		_starpu_trace_mutex_locked();
 
 	return ret;
 }
 
 int starpu_pthread_cond_wait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex)
 {
-	_STARPU_TRACE_COND_WAIT_BEGIN();
+	_starpu_trace_cond_wait_begin();
 
 	int p_ret = pthread_cond_wait(cond, mutex);
 
-	_STARPU_TRACE_COND_WAIT_END();
+	_starpu_trace_cond_wait_end();
 
 	return p_ret;
 }
 
 int starpu_pthread_rwlock_rdlock(starpu_pthread_rwlock_t *rwlock)
 {
-	_STARPU_TRACE_RDLOCKING_RWLOCK();
+	_starpu_trace_rdlocking_rwlock();
 
 	int p_ret = pthread_rwlock_rdlock(rwlock);
 
-	_STARPU_TRACE_RWLOCK_RDLOCKED();
+	_starpu_trace_rwlock_rdlocked();
 
 	return p_ret;
 }
 
 int starpu_pthread_rwlock_tryrdlock(starpu_pthread_rwlock_t *rwlock)
 {
-	_STARPU_TRACE_RDLOCKING_RWLOCK();
+	_starpu_trace_rdlocking_rwlock();
 
 	int p_ret = pthread_rwlock_tryrdlock(rwlock);
 
 	if (!p_ret)
-		_STARPU_TRACE_RWLOCK_RDLOCKED();
+		_starpu_trace_rwlock_rdlocked();
 
 	return p_ret;
 }
 
 int starpu_pthread_rwlock_wrlock(starpu_pthread_rwlock_t *rwlock)
 {
-	_STARPU_TRACE_WRLOCKING_RWLOCK();
+	_starpu_trace_wrlocking_rwlock();
 
 	int p_ret = pthread_rwlock_wrlock(rwlock);
 
-	_STARPU_TRACE_RWLOCK_WRLOCKED();
+	_starpu_trace_rwlock_wrlocked();
 
 	return p_ret;
 }
 
 int starpu_pthread_rwlock_trywrlock(starpu_pthread_rwlock_t *rwlock)
 {
-	_STARPU_TRACE_WRLOCKING_RWLOCK();
+	_starpu_trace_wrlocking_rwlock();
 
 	int p_ret = pthread_rwlock_trywrlock(rwlock);
 
 	if (!p_ret)
-		_STARPU_TRACE_RWLOCK_WRLOCKED();
+		_starpu_trace_rwlock_wrlocked();
 
 	return p_ret;
 }
 
 int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock)
 {
-	_STARPU_TRACE_UNLOCKING_RWLOCK();
+	_starpu_trace_unlocking_rwlock();
 
 	int p_ret = pthread_rwlock_unlock(rwlock);
 
-	_STARPU_TRACE_RWLOCK_UNLOCKED();
+	_starpu_trace_rwlock_unlocked();
 
 	return p_ret;
 }
@@ -948,11 +950,11 @@ int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock)
 int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier)
 {
 	int ret;
-	_STARPU_TRACE_BARRIER_WAIT_BEGIN();
+	_starpu_trace_barrier_wait_begin();
 
 	ret = pthread_barrier_wait(barrier);
 
-	_STARPU_TRACE_BARRIER_WAIT_END();
+	_starpu_trace_barrier_wait_end();
 
 	return ret;
 }

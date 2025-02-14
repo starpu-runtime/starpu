@@ -623,7 +623,7 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 
 	if (task)
 	{
-		_STARPU_TRACE_WORK_STEALING(workerid, victim);
+		_starpu_trace_work_stealing(workerid, victim);
 		starpu_sched_task_break(task);
 		starpu_sched_ctx_list_task_counters_decrement(sched_ctx_id, victim);
 		record_data_locality(task, workerid);

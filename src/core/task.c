@@ -28,7 +28,6 @@
 #include <core/dependencies/data_concurrency.h>
 #include <common/config.h>
 #include <common/utils.h>
-#include <common/fxt.h>
 #include <common/knobs.h>
 #include <datawizard/memory_nodes.h>
 #include <profiling/profiling.h>
@@ -562,7 +561,7 @@ int starpu_task_wait(struct starpu_task *task)
 
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 
-	_STARPU_TRACE_TASK_WAIT_START(j);
+	_starpu_trace_task_wait_start(j);
 
 	starpu_do_schedule();
 	_starpu_wait_job(j);
@@ -573,7 +572,7 @@ int starpu_task_wait(struct starpu_task *task)
 		_starpu_task_destroy(task);
 
 	_starpu_perf_counter_update_global_sample();
-	_STARPU_TRACE_TASK_WAIT_END();
+	_starpu_trace_task_wait_end();
 	_STARPU_LOG_OUT();
 	return 0;
 }
@@ -669,9 +668,9 @@ int _starpu_submit_job(struct _starpu_job *j, int nodeps)
 			}
 		}
 
-		_STARPU_TRACE_HYPERVISOR_BEGIN();
+		_starpu_trace_hypervisor_begin();
 		sched_ctx->perf_counters->notify_submitted_job(j->task, j->footprint, data_size);
-		_STARPU_TRACE_HYPERVISOR_END();
+		_starpu_trace_hypervisor_end();
 	}
 #endif//STARPU_USE_SC_HYPERVISOR
 
@@ -960,7 +959,7 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 	{
 		unsigned i;
 		unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
-		_STARPU_TRACE_UPDATE_TASK_CNT(0);
+		_starpu_trace_update_task_cnt(0);
 
 		/* Check buffers */
 		if (task->dyn_handles == NULL)
@@ -1105,13 +1104,13 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 			&& limit_min_submitted_tasks < nsubmitted_tasks)
 		{
 			starpu_do_schedule();
-			_STARPU_TRACE_TASK_THROTTLE_START();
+			_starpu_trace_task_throttle_start();
 			starpu_task_wait_for_n_submitted(limit_min_submitted_tasks);
-			_STARPU_TRACE_TASK_THROTTLE_END();
+			_starpu_trace_task_throttle_end();
 		}
 	}
 
-	_STARPU_TRACE_TASK_SUBMIT_START();
+	_starpu_trace_task_submit_start();
 
 	if (task->cl && !continuation)
 	{
@@ -1121,7 +1120,7 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 	ret = _starpu_task_submit_head(task);
 	if (ret)
 	{
-		_STARPU_TRACE_TASK_SUBMIT_END();
+		_starpu_trace_task_submit_end();
 		return ret;
 	}
 
@@ -1134,10 +1133,10 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 #endif
 		task->iterations[0] = _starpu_get_sched_ctx_struct(task->sched_ctx)->iterations[0];
 		task->iterations[1] = _starpu_get_sched_ctx_struct(task->sched_ctx)->iterations[1];
-		_STARPU_TRACE_TASK_SUBMIT(j, task->iterations[0], task->iterations[1]);
-		_STARPU_TRACE_TASK_COLOR(j);
-		_STARPU_TRACE_TASK_NAME(j);
-		_STARPU_TRACE_TASK_LINE(j);
+		_starpu_trace_task_submit(j, task->iterations[0], task->iterations[1]);
+		_starpu_trace_task_color(j);
+		_starpu_trace_task_name(j);
+		_starpu_trace_task_line(j);
 	}
 
 	/* If this is a continuation, we don't modify the implicit data dependencies detected earlier. */
@@ -1214,7 +1213,7 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 		     _starpu_task_destroy(task);
 	}
 
-	_STARPU_TRACE_TASK_SUBMIT_END();
+	_starpu_trace_task_submit_end();
 	_STARPU_LOG_OUT();
 	return ret;
 }
@@ -1438,9 +1437,9 @@ int starpu_task_wait_for_all(void)
 
 int _starpu_task_wait_for_all_in_ctx_and_return_nb_waited_tasks(unsigned sched_ctx)
 {
-	_STARPU_TRACE_TASK_WAIT_FOR_ALL_START();
+	_starpu_trace_task_wait_for_all_start();
 	int ret = _starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx);
-	_STARPU_TRACE_TASK_WAIT_FOR_ALL_END();
+	_starpu_trace_task_wait_for_all_end();
 	/* TODO: improve Temanejo into knowing about contexts ... */
 	STARPU_AYU_BARRIER();
 	return ret;

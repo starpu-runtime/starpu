@@ -49,7 +49,7 @@ struct _starpu_cg_list
 	/** Number of notifications to be waited for */
 	unsigned ndeps; /* how many deps ? */
 	unsigned ndeps_completed; /* how many deps are done ? */
-#ifdef STARPU_DEBUG
+#if defined(STARPU_DEBUG) || defined(STARPU_PROF_TASKSTUBS)
 	/** Array of the notifications, size ndeps */
 	struct _starpu_cg **deps;
 	/** Which ones have notified, size ndeps */
@@ -87,7 +87,7 @@ struct _starpu_cg
 	/** number of remaining tags */
 	unsigned remaining;
 
-#ifdef STARPU_DEBUG
+#if defined(STARPU_DEBUG) || defined(STARPU_PROF_TASKSTUBS)
 	unsigned ndeps;
 	/** array of predecessors, size ndeps */
 	void **deps;

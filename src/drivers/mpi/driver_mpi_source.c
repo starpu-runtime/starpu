@@ -314,7 +314,7 @@ void *_starpu_mpi_src_worker(void *arg)
 		for (i = 0; i < worker_set->nworkers; i++)
 		{
 			struct _starpu_worker *worker = &worker_set->workers[i];
-			_STARPU_TRACE_WORKER_INIT_END(worker->workerid);
+			_starpu_trace_worker_init_end(worker->workerid);
 		}
 
 		_starpu_src_common_init_switch_env(workersetnum);

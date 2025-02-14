@@ -26,19 +26,9 @@
 unsigned long _starpu_job_cnt = 0;
 
 #ifdef STARPU_USE_FXT
-#include <common/fxt.h>
+#include <profiling/fxt/fxt.h>
 #include <starpu_fxt.h>
 #include <sys/stat.h>
-
-#ifdef STARPU_HAVE_WINDOWS
-#include <windows.h>
-#endif
-
-#ifdef __linux__
-#include <sys/syscall.h>   /* for SYS_gettid */
-#elif defined(__FreeBSD__)
-#include <sys/thr.h>       /* for thr_self() */
-#endif
 
 /* By default, record all events but the VERBOSE_EXTRA ones, which are very costly: */
 #define KEYMASKALL_DEFAULT FUT_KEYMASKALL & (~_STARPU_FUT_KEYMASK_TASK_VERBOSE_EXTRA) & (~_STARPU_FUT_KEYMASK_MPI_VERBOSE_EXTRA)
@@ -79,33 +69,6 @@ uint64_t fut_getstamp(void)
 	return starpu_timing_now()*1000.;
 }
 #endif
-
-long _starpu_gettid(void)
-{
-	/* TODO: test at configure whether __thread is available, and use that
-	 * to cache the value.
-	 * Don't use the TSD, this is getting called before we would have the
-	 * time to allocate it.  */
-#ifdef STARPU_SIMGRID
-#  ifdef HAVE_SG_ACTOR_SELF
-	return (uintptr_t) sg_actor_self();
-#  else
-	return (uintptr_t) MSG_process_self();
-#  endif
-#else
-#if defined(__linux__)
-	return syscall(SYS_gettid);
-#elif defined(__FreeBSD__)
-	long tid;
-	thr_self(&tid);
-	return tid;
-#elif defined(_WIN32) && !defined(__CYGWIN__)
-	return (long) GetCurrentThreadId();
-#else
-	return (long) starpu_pthread_self();
-#endif
-#endif
-}
 
 static void _starpu_profile_set_tracefile(void)
 {
@@ -255,13 +218,13 @@ void starpu_fxt_start_profiling()
 {
 	unsigned threadid = _starpu_gettid();
 	fut_keychange(FUT_ENABLE, _starpu_profile_get_user_keymask(), threadid);
-	_STARPU_TRACE_META("start_profiling");
+	_starpu_trace_meta("start_profiling");
 }
 
 void starpu_fxt_stop_profiling()
 {
 	unsigned threadid = _starpu_gettid();
-	_STARPU_TRACE_META("stop_profiling");
+	_starpu_trace_meta("stop_profiling");
 	fut_keychange(FUT_SETMASK, _STARPU_FUT_KEYMASK_META, threadid);
 }
 
@@ -275,7 +238,6 @@ void _starpu_fxt_flush_callback()
 {
 	_STARPU_MSG("FxT is flushing trace to disk ! This can impact performance.\n");
 	_STARPU_MSG("Maybe you should increase the value of STARPU_TRACE_BUFFER_SIZE ?\n");
-
 	starpu_fxt_trace_user_event_string("fxt flush");
 }
 #endif
@@ -484,7 +446,7 @@ void starpu_fxt_stop_profiling()
 void starpu_fxt_trace_user_event(unsigned long code STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
-	_STARPU_TRACE_USER_EVENT(code);
+	_starpu_trace_user_event(code);
 #endif
 }
 
@@ -492,13 +454,13 @@ void starpu_fxt_trace_user_event(unsigned long code STARPU_ATTRIBUTE_UNUSED)
 void starpu_fxt_trace_user_meta_string(const char *s STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
-	_STARPU_TRACE_META(s);
+	_starpu_trace_meta(s);
 #endif
 }
 
 void starpu_fxt_trace_user_event_string(const char *s STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
-	_STARPU_TRACE_EVENT(s);
+	_starpu_trace_event(s);
 #endif
 }

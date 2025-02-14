@@ -26,7 +26,6 @@
 #include <common/graph.h>
 #include "heteroprio.h"
 
-#include <common/fxt.h>
 #include <core/task.h>
 #include <core/workers.h>
 #include <core/debug.h>

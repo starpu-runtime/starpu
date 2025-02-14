@@ -21,9 +21,10 @@
 #include <errno.h>
 #include <stdint.h>
 #include <common/config.h>
-#include <common/fxt.h>
 #include <common/thread.h>
 #include <starpu.h>
+
+#include <profiling/starpu_tracing.h>
 
 #ifdef STARPU_SPINLOCK_CHECK
 
@@ -40,11 +41,11 @@ int _starpu_spin_destroy(struct _starpu_spinlock *lock);
 
 static inline int __starpu_spin_lock(struct _starpu_spinlock *lock, const char *file STARPU_ATTRIBUTE_UNUSED, int line STARPU_ATTRIBUTE_UNUSED, const char *func STARPU_ATTRIBUTE_UNUSED)
 {
-	_STARPU_TRACE_LOCKING_SPINLOCK(file, line);
+	_starpu_trace_locking_spinlock(file, line);
 	int ret = starpu_pthread_mutex_lock(&lock->errcheck_lock);
 	STARPU_ASSERT(!ret);
 	lock->last_taker = func;
-	_STARPU_TRACE_SPINLOCK_LOCKED(file, line);
+	_starpu_trace_spinlock_locked(file, line);
 	return ret;
 }
 
@@ -55,23 +56,23 @@ static inline void _starpu_spin_checklocked(struct _starpu_spinlock *lock STARPU
 
 static inline int __starpu_spin_trylock(struct _starpu_spinlock *lock, const char *file STARPU_ATTRIBUTE_UNUSED, int line STARPU_ATTRIBUTE_UNUSED, const char *func STARPU_ATTRIBUTE_UNUSED)
 {
-	_STARPU_TRACE_TRYLOCK_SPINLOCK(file, line);
+	_starpu_trace_trylock_spinlock(file, line);
 	int ret = starpu_pthread_mutex_trylock(&lock->errcheck_lock);
 	STARPU_ASSERT(!ret || (ret == EBUSY));
 	if (STARPU_LIKELY(!ret))
 	{
 		lock->last_taker = func;
-		_STARPU_TRACE_SPINLOCK_LOCKED(file, line);
+		_starpu_trace_spinlock_locked(file, line);
 	}
 	return ret;
 }
 
 static inline int __starpu_spin_unlock(struct _starpu_spinlock *lock, const char *file STARPU_ATTRIBUTE_UNUSED, int line STARPU_ATTRIBUTE_UNUSED, const char *func STARPU_ATTRIBUTE_UNUSED)
 {
-	_STARPU_TRACE_UNLOCKING_SPINLOCK(file, line);
+	_starpu_trace_unlocking_spinlock(file, line);
 	int ret = starpu_pthread_mutex_unlock(&lock->errcheck_lock);
 	STARPU_ASSERT(!ret);
-	_STARPU_TRACE_SPINLOCK_UNLOCKED(file, line);
+	_starpu_trace_spinlock_unlocked(file, line);
 	return ret;
 }
 #else
@@ -94,10 +95,10 @@ static inline int _starpu_spin_init(struct _starpu_spinlock *lock)
 
 static inline int __starpu_spin_lock(struct _starpu_spinlock *lock, const char *file STARPU_ATTRIBUTE_UNUSED, int line STARPU_ATTRIBUTE_UNUSED, const char *func STARPU_ATTRIBUTE_UNUSED)
 {
-	_STARPU_TRACE_LOCKING_SPINLOCK(file, line);
+	_starpu_trace_unlocking_spinlock(file, line);
 	int ret = starpu_pthread_spin_lock(&lock->lock);
 	STARPU_ASSERT(!ret);
-	_STARPU_TRACE_SPINLOCK_LOCKED(file, line);
+	_starpu_trace_spinlock_locked(file, line);
 	return ret;
 }
 
@@ -105,20 +106,20 @@ static inline int __starpu_spin_lock(struct _starpu_spinlock *lock, const char *
 
 static inline int __starpu_spin_trylock(struct _starpu_spinlock *lock, const char *file STARPU_ATTRIBUTE_UNUSED, int line STARPU_ATTRIBUTE_UNUSED, const char *func STARPU_ATTRIBUTE_UNUSED)
 {
-	_STARPU_TRACE_TRYLOCK_SPINLOCK(file, line);
+	_starpu_trace_trylock_spinlock(file, line);
 	int ret = starpu_pthread_spin_trylock(&lock->lock);
 	STARPU_ASSERT(!ret || (ret == EBUSY));
 	if (STARPU_LIKELY(!ret))
-		_STARPU_TRACE_SPINLOCK_LOCKED(file, line);
+		_starpu_trace_spinlock_locked(file, line);
 	return ret;
 }
 
 static inline int __starpu_spin_unlock(struct _starpu_spinlock *lock, const char *file STARPU_ATTRIBUTE_UNUSED, int line STARPU_ATTRIBUTE_UNUSED, const char *func STARPU_ATTRIBUTE_UNUSED)
 {
-	_STARPU_TRACE_UNLOCKING_SPINLOCK(file, line);
+	_starpu_trace_unlocking_spinlock(file, line);
 	int ret = starpu_pthread_spin_unlock(&lock->lock);
 	STARPU_ASSERT(!ret);
-	_STARPU_TRACE_SPINLOCK_UNLOCKED(file, line);
+	_starpu_trace_spinlock_unlocked(file, line);
 	return ret;
 }
 #endif

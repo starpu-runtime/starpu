@@ -34,7 +34,6 @@
 #endif
 #include <common/timing.h>
 #include <common/list.h>
-#include <common/fxt.h>
 #include <core/dependencies/tags.h>
 #include <datawizard/datawizard.h>
 #include <core/perfmodel/perfmodel.h>
@@ -217,6 +216,10 @@ struct _starpu_job
 #ifdef STARPU_RECURSIVE_TASKS
 	int already_turned_into_recursive_task;
 	unsigned is_recursive_task:1;
+#endif
+
+#ifdef STARPU_PROF_TASKSTUBS
+	uintptr_t ps_task_timer;
 #endif
 
 #ifdef STARPU_NOSV

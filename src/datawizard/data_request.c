@@ -153,7 +153,7 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 
 	_starpu_spin_init(&r->lock);
 
-	_STARPU_TRACE_DATA_REQUEST_CREATED(handle, src_replicate?src_replicate->memory_node:-1, dst_replicate?dst_replicate->memory_node:-1, prio, is_prefetch, r);
+	_starpu_trace_data_request_created(&handle, src_replicate?src_replicate->memory_node:-1, dst_replicate?dst_replicate->memory_node:-1, prio, is_prefetch, r);
 
 	r->origin = origin;
 	r->handle = handle;
@@ -443,7 +443,7 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 		unsigned src_node = src_replicate->memory_node;
 		unsigned dst_node = dst_replicate->memory_node;
 		size_t size = _starpu_data_get_size(handle);
-		_STARPU_TRACE_END_DRIVER_COPY(src_node, dst_node, size, r->com_id, r->prefetch);
+		_starpu_trace_end_driver_copy(src_node, dst_node, size, r->com_id, r->prefetch);
 	}
 #endif
 

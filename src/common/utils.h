@@ -216,6 +216,8 @@ enum initialization { UNINITIALIZED = 0, CHANGING, INITIALIZED };
 
 #pragma GCC visibility pop
 
+long _starpu_gettid(void) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
+
 #ifdef __cplusplus
 }
 #endif
