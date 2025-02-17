@@ -734,7 +734,7 @@ int _starpu_hip_driver_init(struct _starpu_worker *worker)
 #endif
 		init_worker_context(workerid, worker->devid);
 
-		int rc = _starpu_trace_worker_init_end(workerid, starpu_prof_tool_driver_hip);
+		int rc = _starpu_trace_worker_init_end(worker, STARPU_HIP_WORKER);
 		(void) rc;
 	}
 	{
@@ -808,10 +808,10 @@ int _starpu_hip_driver_deinit(struct _starpu_worker *worker)
 		unsigned memnode = worker->memory_node;
 
 		deinit_worker_context(workerid, worker->devid);
+		_starpu_trace_worker_deinit_end(workerid, STARPU_HIP_WORKER);
 	}
 
 	worker_set->workers[0].worker_is_initialized = 0;
-	_starpu_trace_worker_deinit_end(STARPU_HIP_WORKER);
 
 	return 0;
 }
@@ -1390,7 +1390,7 @@ static void start_job_on_hip(struct _starpu_job *j, struct _starpu_worker *worke
 
 	if (_starpu_get_disable_kernels() <= 0)
 	{
-		_starpu_trace_start_executing(j, worker);
+		_starpu_trace_start_executing(j, task, worker, func);
 		func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
 		_starpu_trace_end_executing(j, worker);
 	}
@@ -1637,7 +1637,7 @@ void *_starpu_hip_worker(void *_arg)
 	_starpu_hip_driver_init(worker);
 	for (i = 0; i < worker_set->nworkers; i++)
 	{
-		_starpu_trace_start_progress(worker_set->workers[i].memory_node, worker_set->workers[i]);
+		_starpu_trace_start_progress(worker_set->workers[i].memory_node, worker);
 	}
 	while (_starpu_machine_is_running())
 	{
