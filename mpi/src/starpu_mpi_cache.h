@@ -30,7 +30,7 @@ extern "C"
 
 extern int _starpu_cache_enabled;
 void _starpu_mpi_cache_init(MPI_Comm comm);
-void _starpu_mpi_cache_shutdown();
+void _starpu_mpi_cache_shutdown(void);
 void _starpu_mpi_cache_data_init(starpu_data_handle_t data_handle);
 void _starpu_mpi_cache_data_clear(starpu_data_handle_t data_handle);
 

@@ -82,7 +82,7 @@ void _starpu_mpi_cache_init(MPI_Comm comm)
 	STARPU_PTHREAD_MUTEX_INIT(&_cache_mutex, NULL);
 }
 
-void _starpu_mpi_cache_shutdown()
+void _starpu_mpi_cache_shutdown(void)
 {
 	if (_starpu_cache_enabled == 0)
 		return;
