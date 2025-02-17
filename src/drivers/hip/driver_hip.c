@@ -1646,7 +1646,7 @@ void *_starpu_hip_worker(void *_arg)
 	}
 	for (i = 0; i < worker_set->nworkers; i++)
 	{
-		_starpu_trace_end_progress(worker_set->workers[i].memory_node, worker_set->workers[i]);
+		_starpu_trace_end_progress(worker_set->workers[i].memory_node, worker);
 	}
 	_starpu_hip_driver_deinit(worker);
 
