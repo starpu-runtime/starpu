@@ -439,7 +439,7 @@ int starpu_mpi_shutdown_comm(MPI_Comm comm)
 
 	_starpu_mpi_comm_amounts_display(stderr, rank);
 	_starpu_mpi_comm_amounts_shutdown();
-	_starpu_mpi_cache_shutdown(world_size);
+	_starpu_mpi_cache_shutdown();
 
 	_mpi_backend._starpu_mpi_backend_shutdown();
 
