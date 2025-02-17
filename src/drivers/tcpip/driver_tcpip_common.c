@@ -154,7 +154,7 @@ struct _starpu_tcpip_req_pending
 };
 
 //function thread
-static void * _starpu_tcpip_thread_pending()
+static void * _starpu_tcpip_thread_pending(void *foo STARPU_ATTRIBUTE_UNUSED)
 {
 	fd_set reads;
 	fd_set writes;
