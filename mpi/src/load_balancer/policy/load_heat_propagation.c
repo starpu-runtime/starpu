@@ -401,7 +401,7 @@ static void submitted_task_heat(struct starpu_task *task)
 	}
 }
 
-static void finished_task_heat()
+static void finished_task_heat(void)
 {
 	//fprintf(stderr,"Try to decrement nsubmitted_tasks...");
 	STARPU_PTHREAD_MUTEX_LOCK(&load_data_mutex);
