@@ -35,8 +35,8 @@ struct load_balancer_policy
 {
 	int (*init)(struct starpu_mpi_lb_conf *);
 	int (*deinit)();
-	void (*submitted_task_entry_point)();
-	void (*finished_task_entry_point)();
+	void (*submitted_task_entry_point)(struct starpu_task *task);
+	void (*finished_task_entry_point)(void);
 
 	/** Name of the load balancing policy. The selection of the load balancer is
 	 * performed through the use of the STARPU_MPI_LB=name environment
