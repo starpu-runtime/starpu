@@ -20,7 +20,7 @@
 #include <core/workers.h>
 #endif
 #include <common/thread.h>
-#include <profiling/fxt/fxt.h>
+#include <profiling/starpu_tracing.h>
 #include <common/timing.h>
 
 #include <errno.h>
