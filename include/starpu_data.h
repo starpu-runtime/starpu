@@ -129,7 +129,9 @@ enum starpu_data_access_mode
 
 						     TODO add extended description in documentation.
 						  */
-	STARPU_MPI_REDUX = (1 << 7),		  /**< Inter-node reduction only.
+	_STARPU_MPI_REDUX = (1 << 7),
+	STARPU_MPI_REDUX = (_STARPU_MPI_REDUX|STARPU_RW|STARPU_COMMUTE),
+                        	 		  /**< Inter-node reduction only.
 						     This is similar to ::STARPU_REDUX, except that
 						     StarPU will allocate a per-node buffer only,
 						     i.e. parallelism will be achieved between

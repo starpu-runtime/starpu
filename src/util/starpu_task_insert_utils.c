@@ -180,11 +180,6 @@ void starpu_task_insert_data_process_arg(struct starpu_codelet *cl, struct starp
 
 	enum starpu_data_access_mode arg_mode = (enum starpu_data_access_mode) arg_type & ~STARPU_SSEND & ~STARPU_NOFOOTPRINT;
 
-	/* MPI_REDUX should be interpreted as RW|COMMUTE by the "ground" StarPU layer.*/
-	if (arg_mode & STARPU_MPI_REDUX)
-	{
-		arg_mode = STARPU_RW|STARPU_COMMUTE;
-	}
 	if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS || (cl->nbuffers > STARPU_NMAXBUFS && !cl->dyn_modes))
 	{
 		STARPU_TASK_SET_MODE(task, arg_mode,* current_buffer);
@@ -276,7 +271,7 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 
 	while((arg_type = va_arg(varg_list, int)) != 0)
 	{
-		if (arg_type & STARPU_R || arg_type & STARPU_W || arg_type & STARPU_SCRATCH || arg_type & STARPU_REDUX || arg_type & STARPU_MPI_REDUX)
+		if (arg_type & STARPU_R || arg_type & STARPU_W || arg_type & STARPU_SCRATCH || arg_type & STARPU_REDUX)
 		{
 			starpu_data_handle_t handle = va_arg(varg_list, starpu_data_handle_t);
 			starpu_task_insert_data_process_arg(cl, task, &allocated_buffers, &current_buffer, arg_type, handle);
@@ -683,8 +678,7 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 		if (arg_type & STARPU_R
 			|| arg_type & STARPU_W
 			|| arg_type & STARPU_SCRATCH
-			|| arg_type & STARPU_REDUX
-			|| arg_type & STARPU_MPI_REDUX)
+			|| arg_type & STARPU_REDUX)
 		{
 			arg_i++;
 			starpu_data_handle_t handle = arglist[arg_i];

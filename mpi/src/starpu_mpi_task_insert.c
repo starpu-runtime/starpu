@@ -127,12 +127,12 @@ int _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum s
 	if (data && data->mpi_data)
 	{
 		char *redux_map = starpu_mpi_data_get_redux_map(data);
-		if (redux_map != NULL && mode & STARPU_R && mode & ~ STARPU_REDUX && mode & ~ STARPU_MPI_REDUX)
+		if (redux_map != NULL && mode & STARPU_R && !(mode & STARPU_REDUX) && !(mode & _STARPU_MPI_REDUX))
 		{
 			_starpu_mpi_redux_wrapup_data(data);
 		}
 	}
-	if ((mode & STARPU_REDUX || mode & STARPU_MPI_REDUX) && data)
+	if ((mode & STARPU_REDUX || mode & _STARPU_MPI_REDUX) && data)
 	{
 		if (exchange_needed)
 			*exchange_needed = 1;
@@ -141,7 +141,7 @@ int _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum s
 	{
 		STARPU_ASSERT_MSG(starpu_mpi_data_get_rank(data) == STARPU_MPI_PER_NODE, "If task is replicated, it has to access only per-node data");
 	}
-	if (data && mode & STARPU_R && !(mode & STARPU_MPI_REDUX))
+	if (data && mode & STARPU_R && !(mode & _STARPU_MPI_REDUX))
 	{
 		int mpi_rank = starpu_mpi_data_get_rank(data);
 		starpu_mpi_tag_t data_tag = starpu_mpi_data_get_tag(data);
@@ -210,7 +210,7 @@ int _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum s
 
 int _starpu_mpi_exchange_data_after_execution(starpu_data_handle_t data, enum starpu_data_access_mode mode, int me, int xrank, int do_execute, int prio, MPI_Comm comm)
 {
-	if ((mode & STARPU_REDUX || mode & STARPU_MPI_REDUX) && data)
+	if ((mode & STARPU_REDUX || mode & _STARPU_MPI_REDUX) && data)
 	{
 		struct _starpu_mpi_data *mpi_data = (struct _starpu_mpi_data *) data->mpi_data;
 		int rrank = starpu_mpi_data_get_rank(data);
@@ -245,7 +245,7 @@ int _starpu_mpi_exchange_data_after_execution(starpu_data_handle_t data, enum st
 			}
 		}
 	}
-	if (mode & STARPU_W && !(mode & STARPU_MPI_REDUX))
+	if (mode & STARPU_W && !(mode & _STARPU_MPI_REDUX))
 	{
 		int mpi_rank = starpu_mpi_data_get_rank(data);
 		starpu_mpi_tag_t data_tag = starpu_mpi_data_get_tag(data);
@@ -292,7 +292,7 @@ void _starpu_mpi_clear_data_after_execution(starpu_data_handle_t data, enum star
 {
 	if (_starpu_cache_enabled)
 	{
-		if ((mode & STARPU_W && !(mode & STARPU_MPI_REDUX)) || mode & STARPU_REDUX)
+		if ((mode & STARPU_W && !(mode & _STARPU_MPI_REDUX)) || mode & STARPU_REDUX)
 		{
 			/* The data has been modified, it MUST be removed from the cache */
 			starpu_mpi_cached_send_clear(data);
@@ -302,7 +302,7 @@ void _starpu_mpi_clear_data_after_execution(starpu_data_handle_t data, enum star
 	else
 	{
 		/* We allocated a temporary buffer for the received data, now drop it */
-		if ((mode & STARPU_R && !(mode & STARPU_MPI_REDUX)) && do_execute)
+		if ((mode & STARPU_R && !(mode & _STARPU_MPI_REDUX)) && do_execute)
 		{
 			int mpi_rank = starpu_mpi_data_get_rank(data);
 			if (mpi_rank == STARPU_MPI_PER_NODE)
@@ -343,7 +343,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 	{
 		int arg_type_nocommute = arg_type & ~STARPU_COMMUTE;
 
-		if (arg_type_nocommute & STARPU_R || arg_type_nocommute & STARPU_W || arg_type_nocommute & STARPU_RW || arg_type & STARPU_SCRATCH || arg_type & STARPU_REDUX || arg_type & STARPU_MPI_REDUX)
+		if (arg_type_nocommute & STARPU_R || arg_type_nocommute & STARPU_W || arg_type_nocommute & STARPU_RW || arg_type & STARPU_SCRATCH || arg_type & STARPU_REDUX || arg_type & _STARPU_MPI_REDUX)
 		{
 			starpu_data_handle_t data = va_arg(varg_list_copy, starpu_data_handle_t);
 			enum starpu_data_access_mode mode = (enum starpu_data_access_mode) arg_type;
