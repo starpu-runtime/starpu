@@ -50,7 +50,7 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 		int arg_type = (int)(intptr_t)arglist[arg_i];
 		int arg_type_nocommute = arg_type & ~STARPU_COMMUTE;
 
-		if (arg_type_nocommute & STARPU_R || arg_type_nocommute & STARPU_W || arg_type_nocommute & STARPU_RW || arg_type & STARPU_SCRATCH || arg_type & STARPU_REDUX || arg_type & _STARPU_MPI_REDUX)
+		if (arg_type_nocommute & STARPU_R || arg_type_nocommute & STARPU_W || arg_type_nocommute & STARPU_RW || arg_type & STARPU_SCRATCH || arg_type & STARPU_REDUX || arg_type & STARPU_MPI_REDUX)
 		{
 			arg_i++;
 			starpu_data_handle_t data = arglist[arg_i];
