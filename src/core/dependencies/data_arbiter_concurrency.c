@@ -96,11 +96,7 @@
 static int _starpu_arbiter_filter_modes(int mode)
 {
 	/* Do not care about some flags */
-	mode &= ~STARPU_COMMUTE;
-	mode &= ~STARPU_SSEND;
-	mode &= ~STARPU_LOCALITY;
-	mode &= ~STARPU_NOFOOTPRINT;
-	mode &= ~STARPU_MPI_REDUX_INTERNAL;
+	mode &= (STARPU_RW | STARPU_SCRATCH | STARPU_REDUX | STARPU_NOPLAN | STARPU_UNMAP);
 	if (mode == STARPU_RW)
 		mode = STARPU_W;
 	return mode;
