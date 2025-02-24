@@ -41,6 +41,9 @@ enum _starpu_cache_state
 	STARPU_INVALID
 };
 
+/** Defines the internal flag for the STARPU_MPI_REDUX mode */
+#define STARPU_MPI_REDUX_INTERNAL (STARPU_MPI_REDUX & ~(STARPU_RW|STARPU_COMMUTE))
+
 /** this should contain the information relative to a given data replicate  */
 struct _starpu_data_replicate
 {

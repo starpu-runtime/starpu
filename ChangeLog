@@ -29,6 +29,8 @@ Small changes:
   * When defined the variable STARPU_PERF_MODEL_DIR will be used to
     dump perfmodel files.
   * Check CUDA and HIP pointers on on-GPU data registration.
+  * STARPU_MPI_REDUX definition also sets STARPU_RW | STARPU_COMMUTE
+    and codelet mode can match task_insert mode
 
 New features:
   * Add starpu_data_register_victim_selector to let schedulers select eviction

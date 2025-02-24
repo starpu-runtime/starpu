@@ -295,7 +295,7 @@ static void task_dump(struct task_info *task, struct starpu_fxt_options *options
 				(task->data[i].mode & STARPU_W)?"W":"",
 				(task->data[i].mode & STARPU_SCRATCH)?"S":"",
 				(task->data[i].mode & STARPU_REDUX)?"X":"",
-				(task->data[i].mode & STARPU_MPI_REDUX)?"X-mpi":"",
+				(task->data[i].mode & STARPU_MPI_REDUX_INTERNAL)?"X-mpi":"",
 				(task->data[i].mode & STARPU_COMMUTE)?"C":"");
 		fprintf(tasks_file, "\n");
 		fprintf(tasks_file, "Sizes:");

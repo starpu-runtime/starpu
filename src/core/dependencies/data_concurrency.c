@@ -122,6 +122,7 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 	mode &= ~STARPU_SSEND;
 	mode &= ~STARPU_LOCALITY;
 	mode &= ~STARPU_NOFOOTPRINT;
+	mode &= ~STARPU_MPI_REDUX_INTERNAL;
 	if (mode == STARPU_RW)
 		mode = STARPU_W;
 
@@ -257,6 +258,7 @@ static void _starpu_take_data(unsigned request_from_codelet,
 	mode &= ~STARPU_SSEND;
 	mode &= ~STARPU_LOCALITY;
 	mode &= ~STARPU_NOFOOTPRINT;
+	mode &= ~STARPU_MPI_REDUX_INTERNAL;
 	if (mode == STARPU_RW)
 		mode = STARPU_W;
 

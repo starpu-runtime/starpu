@@ -100,6 +100,7 @@ static int _starpu_arbiter_filter_modes(int mode)
 	mode &= ~STARPU_SSEND;
 	mode &= ~STARPU_LOCALITY;
 	mode &= ~STARPU_NOFOOTPRINT;
+	mode &= ~STARPU_MPI_REDUX_INTERNAL;
 	if (mode == STARPU_RW)
 		mode = STARPU_W;
 	return mode;

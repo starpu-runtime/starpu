@@ -218,6 +218,7 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 	mode &= ~ STARPU_SSEND;
 	mode &= ~ STARPU_LOCALITY;
 	mode &= ~ STARPU_NOFOOTPRINT;
+	mode &= ~ STARPU_MPI_REDUX_INTERNAL;
 
 	STARPU_ASSERT(!(mode & STARPU_SCRATCH));
 	_STARPU_LOG_IN();
@@ -398,6 +399,7 @@ int _starpu_test_implicit_data_deps_with_handle(starpu_data_handle_t handle, enu
 	mode &= ~ STARPU_SSEND;
 	mode &= ~ STARPU_LOCALITY;
 	mode &= ~ STARPU_NOFOOTPRINT;
+	mode &= ~ STARPU_MPI_REDUX_INTERNAL;
 
 	STARPU_ASSERT(!(mode & STARPU_SCRATCH));
 

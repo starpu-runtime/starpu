@@ -58,7 +58,7 @@ program nf_mpi_redux
   task_red_cl = fstarpu_codelet_allocate()
   call fstarpu_codelet_set_name(task_red_cl, namered)
   call fstarpu_codelet_add_cpu_func(task_red_cl,C_FUNLOC(cl_cpu_task_red))
-  call fstarpu_codelet_add_buffer(task_red_cl, FSTARPU_RW.ior.FSTARPU_COMMUTE)
+  call fstarpu_codelet_add_buffer(task_red_cl, FSTARPU_MPI_REDUX)
   call fstarpu_codelet_add_buffer(task_red_cl, FSTARPU_R)
 
   task_ini_cl = fstarpu_codelet_allocate()
@@ -72,7 +72,7 @@ program nf_mpi_redux
 
     if (trial.eq.2) then
           write(*,*) "Using STARPU_MPI_REDUX"
-          codelet_mode = FSTARPU_RW.ior.FSTARPU_COMMUTE
+          codelet_mode = FSTARPU_MPI_REDUX
           task_mode = FSTARPU_MPI_REDUX
     else if (trial.eq.1) then
           write(*,*) "Using STARPU_REDUX"

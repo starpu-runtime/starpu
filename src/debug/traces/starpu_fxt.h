@@ -35,6 +35,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include <datawizard/coherency.h>
 #include <common/uthash.h>
 #include <profiling/fxt/fxt.h>
 #include <common/list.h>
