@@ -119,7 +119,7 @@ int _starpu_mpi_find_executee_node(starpu_data_handle_t data, enum starpu_data_a
 
 int starpu_mpi_exchange_data_before_execution(MPI_Comm comm, starpu_data_handle_t data, enum starpu_data_access_mode mode, struct starpu_mpi_task_exchange_params params)
 {
-	return _starpu_mpi_exchange_data_before_execution(data, mode, params.me, params.xrank, params.do_execute, params.priority, comm, NULL);
+	return _starpu_mpi_exchange_data_before_execution(data, mode, params.me, params.xrank, params.do_execute, params.priority, comm, &(params.exchange_needed));
 }
 
 int _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum starpu_data_access_mode mode, int me, int xrank, int do_execute, int prio, MPI_Comm comm, int *exchange_needed)
@@ -1025,7 +1025,7 @@ int starpu_mpi_task_exchange_data_before_execution(MPI_Comm comm, struct starpu_
 							   params->do_execute,
 							   task->priority,
 							   comm,
-							   NULL);
+							   &(params->exchange_needed));
 	}
 
 	params->priority = task->priority;
@@ -1034,7 +1034,7 @@ int starpu_mpi_task_exchange_data_before_execution(MPI_Comm comm, struct starpu_
 
 int starpu_mpi_task_exchange_data_after_execution(MPI_Comm comm, struct starpu_data_descr *descrs, unsigned nb_data, struct starpu_mpi_task_exchange_params params)
 {
-	return _starpu_mpi_task_postbuild_v(comm, params.me, params.xrank, params.do_execute, descrs, nb_data, params.priority, 1);
+	return _starpu_mpi_task_postbuild_v(comm, params.me, params.xrank, params.do_execute, descrs, nb_data, params.priority, params.exchange_needed);
 }
 
 struct starpu_codelet _starpu_mpi_redux_data_synchro_cl =

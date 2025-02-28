@@ -714,10 +714,11 @@ int starpu_mpi_task_post_build_v(MPI_Comm comm, struct starpu_codelet *codelet, 
  */
 struct starpu_mpi_task_exchange_params
 {
-	int do_execute; /**< is the caller going to execute the task */
-	int xrank;      /**< node executing the task */
-	int priority;   /**< priority of the task being executed */
-	int me;         /**< rank of the current node */
+	int do_execute;      /**< is the caller going to execute the task */
+	int xrank;           /**< node executing the task */
+	int priority;        /**< priority of the task being executed */
+	int me;              /**< rank of the current node */
+	int exchange_needed; /**< if data need to be exchanged */
 };
 
 /**
