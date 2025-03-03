@@ -119,8 +119,6 @@ int _starpu_trace_task_deps(struct _starpu_job *job_prev, struct _starpu_job *jo
 int _starpu_trace_task_end_dep(struct _starpu_job *job_prev, struct _starpu_job *job_succ);
 /* Add a ghost dependency */
 int _starpu_trace_ghost_task_deps(unsigned ghost_prev_id, struct _starpu_job *job_succ);
-/* Unused */
-int _starpu_trace_bubble_task_deps(unsigned long prev_id, struct _starpu_job *job_succ);
 /* Push a non-root recursive task */
 int _starpu_trace_recursive_task_deps(unsigned long prev_id, struct _starpu_job *job_succ);
 
@@ -128,8 +126,6 @@ int _starpu_trace_recursive_task_deps(unsigned long prev_id, struct _starpu_job 
 int _starpu_trace_recursive_task(struct _starpu_job *job);
 /* Exclude a task from the DAG */
 int _starpu_trace_task_exclude_from_dag(struct _starpu_job *job);
-/* Unused */
-int _starpu_trace_bubble(struct _starpu_job *job);
 /* Set the task's line number as set by the programmer to be used by an external profiling system. */
 int _starpu_trace_task_line(struct _starpu_job *job);
 /* Set the task's name as set by the programmer to be used by an external profiling system. */

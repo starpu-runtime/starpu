@@ -662,14 +662,6 @@ int _starpu_trace_ghost_task_deps(unsigned ghost_prev_id STARPU_ATTRIBUTE_UNUSED
 	return 0;
 }
 
-int _starpu_trace_bubble_task_deps(unsigned long prev_id STARPU_ATTRIBUTE_UNUSED, struct _starpu_job *job_succ STARPU_ATTRIBUTE_UNUSED)
-{
-#ifdef STARPU_USE_FXT
-
-#endif
-	return 0;
-}
-
 int _starpu_trace_recursive_task_deps(unsigned long prev_id STARPU_ATTRIBUTE_UNUSED, struct _starpu_job *job_succ STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_RECURSIVE_TASKS
@@ -731,14 +723,6 @@ int _starpu_trace_task_line(struct _starpu_job *job STARPU_ATTRIBUTE_UNUSED)
 #ifdef STARPU_USE_FXT
 	if ((job)->task->file)
 		_STARPU_FUT_FULL_PROBE2STR(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_LINE, (job)->job_id, (job)->task->line, (job)->task->file);
-#endif
-	return 0;
-}
-
-int _starpu_trace_bubble(struct _starpu_job *job STARPU_ATTRIBUTE_UNUSED)
-{
-#ifdef STARPU_USE_FXT
-
 #endif
 	return 0;
 }
