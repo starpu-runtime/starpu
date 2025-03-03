@@ -78,6 +78,9 @@
  * * Append second priority list at ends of the first priority list (O(log2 p))
  * void FOO_prio_list_push_prio_list_back(struct FOO_prio_list*, struct FOO_prio_list*)
  *
+ * * Append second priority list at beginning of the first priority list (O(log2 p))
+ * void FOO_prio_list_push_prio_list_front(struct FOO_prio_list*, struct FOO_prio_list*)
+ *
  * * Test whether cell is part of the list (O(n))
  * void FOO_prio_list_ismember(struct FOO_prio_list*, struct FOO*)
  *
