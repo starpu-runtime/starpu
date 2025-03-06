@@ -193,12 +193,13 @@ extern "C" {
 #endif /* __GNUC__ */
 
 #define STARPU_BACKTRACE_LENGTH 32
+#define STARPU_BACKTRACE_FILE stderr
 #ifdef __GLIBC__
 #define STARPU_DUMP_BACKTRACE()                                       \
 	do {                                                          \
 		void *__ptrs[STARPU_BACKTRACE_LENGTH];                \
 		int __n = backtrace(__ptrs, STARPU_BACKTRACE_LENGTH); \
-		backtrace_symbols_fd(__ptrs, __n, 2);                 \
+		backtrace_symbols_fd(__ptrs, __n, fileno(STARPU_BACKTRACE_FILE)); \
 	}                                                             \
 	while (0)
 #else

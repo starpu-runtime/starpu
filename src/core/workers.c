@@ -1452,7 +1452,12 @@ void _starpu_handler(int sig)
 	}
 	if (sig == SIGSEGV)
 	{
+		char real_hostname[128];
+		gethostname(real_hostname, sizeof(real_hostname));
+		fprintf(STARPU_BACKTRACE_FILE, "SIGSEGV on %s PID %d\n", real_hostname, getpid());
 		STARPU_DUMP_BACKTRACE();
+		fflush(STARPU_BACKTRACE_FILE);
+
 		void (*sig_act)(int) = act_sigsegv;
 		if (sig_act == NULL)
 			sig_act = SIG_DFL;
