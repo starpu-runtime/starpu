@@ -17,6 +17,10 @@ See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
 # StarPU: A Unified Runtime System for Heterogeneous Multicore Architectures
 
+Please consult
+[https://starpu.gitlabpages.inria.fr](https://starpu.gitlabpages.inria.fr)
+for informations.
+
 ## What is StarPU?
 
 StarPU is a runtime system that offers support for heterogeneous multicore
