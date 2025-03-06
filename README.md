@@ -191,3 +191,6 @@ For any questions regarding StarPU, please contact the starpu-devel
 mailing-list at starpu-devel@inria.fr or browse
 [the StarPU website](https://starpu.gitlabpages.inria.fr/).
 
+You can also contact the devel team
+[github](https://github.com/starpu-runtime/starpu/discussions) or
+[discord](https://discord.gg/ERq6hvY)
