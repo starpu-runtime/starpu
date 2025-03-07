@@ -51,6 +51,8 @@ void starpu_data_set_reduction_methods_with_args(starpu_data_handle_t handle, st
 			}
 			redux_cl->modes[0] |= STARPU_COMMUTE;
 		}
+		redux_cl->modes[0] &= ~STARPU_MPI_REDUX_INTERNAL;
+
 		STARPU_ASSERT_MSG(redux_cl->modes[0] == (STARPU_RW | STARPU_COMMUTE), "The first parameter of the reduction method has to use STARPU_RW|STARPU_COMMUTE");
 		STARPU_ASSERT_MSG(redux_cl->modes[1] == STARPU_R, "The second parameter of the reduction method has to use STARPU_R");
 	}

@@ -57,7 +57,7 @@ static struct starpu_codelet mpi_work_cl =
 {
 	.cpu_funcs = { cl_cpu_work },
 	.nbuffers = 2,
-	.modes = { STARPU_RW | STARPU_COMMUTE, STARPU_R },
+	.modes = { STARPU_MPI_REDUX, STARPU_R },
 	.name = "task_init-mpi"
 };
 
@@ -197,7 +197,7 @@ int main(int argc, char *argv[])
 				tmp1 += 1.0 / (work_node + 1.0);
 				tmp2 += (nworkers - 1.0)*work_node*i;
 			}
-			FPRINTF(stderr, "computed result ---> %f expected %f\n", a, 
+			FPRINTF(stderr, "computed result ---> %f expected %f\n", a,
 				1.0 + (comm_size - 1.0)*(comm_size)/2.0 + work_coef*nworkers*((comm_size-1)*3.0 + tmp1) + tmp2);
 		}
 		starpu_data_unregister(a_h);

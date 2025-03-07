@@ -57,7 +57,7 @@ static struct starpu_codelet mpi_work_cl =
 {
 	.cpu_funcs = { cl_cpu_work },
 	.nbuffers = 2,
-	.modes = { STARPU_RW | STARPU_COMMUTE, STARPU_R },
+	.modes = { STARPU_MPI_REDUX, STARPU_R },
 	.name = "task_init-mpi"
 };
 
