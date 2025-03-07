@@ -1019,13 +1019,19 @@ if test x$enable_mpi = xyes -o x$build_mpi_master_slave = xyes ; then
 
     # openmpi version
     MPICC_LDFLAGS=`$mpicc_path --showme:link 2>/dev/null`
-
     if test -z "$MPICC_LDFLAGS"
     then
 	# mpich version
 	MPICC_LDFLAGS=`$mpicc_path -link_info | awk '{$1=""; print}'`
     fi
     AC_SUBST(MPICC_LDFLAGS)
+
+    MPICC_CFLAGS=`$mpicc_path --showme:compile 2>/dev/null`
+    if test -z "$MPICC_CFLAGS"
+    then
+	MPICC_CFLAGS=`$mpicc_path -link_info | awk '{$1=""; print}'`
+    fi
+    AC_SUBST(MPICC_CFLAGS)
 else
     cc_or_mpicc=$CC
 fi

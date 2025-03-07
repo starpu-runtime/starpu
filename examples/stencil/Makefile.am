@@ -28,8 +28,8 @@ LIBS += $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS)
 LIBS += $(STARPU_EXPORTED_LIBS)
 
 if STARPU_USE_MPI
-LIBS += $(top_builddir)/mpi/src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-AM_CPPFLAGS += -I$(top_srcdir)/mpi/include
+LIBS += $(top_builddir)/mpi/src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la  $(MPICC_LDFLAGS)
+AM_CPPFLAGS += -I$(top_srcdir)/mpi/include $(MPICC_CFLAGS)
 LAUNCHER			= $(STARPU_MPIEXEC)
 LAUNCHER_ENV			= $(MPI_RUN_ENV)
 if STARPU_SIMGRID
