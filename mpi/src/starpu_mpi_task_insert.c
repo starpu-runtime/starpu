@@ -117,9 +117,9 @@ int _starpu_mpi_find_executee_node(starpu_data_handle_t data, enum starpu_data_a
 	return 0;
 }
 
-int starpu_mpi_exchange_data_before_execution(MPI_Comm comm, starpu_data_handle_t data, enum starpu_data_access_mode mode, struct starpu_mpi_task_exchange_params params)
+int starpu_mpi_exchange_data_before_execution(MPI_Comm comm, starpu_data_handle_t data, enum starpu_data_access_mode mode, struct starpu_mpi_task_exchange_params *params)
 {
-	return _starpu_mpi_exchange_data_before_execution(data, mode, params.me, params.xrank, params.do_execute, params.priority, comm, &(params.exchange_needed));
+	return _starpu_mpi_exchange_data_before_execution(data, mode, params->me, params->xrank, params->do_execute, params->priority, comm, &(params->exchange_needed));
 }
 
 int _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum starpu_data_access_mode mode, int me, int xrank, int do_execute, int prio, MPI_Comm comm, int *exchange_needed)

@@ -750,7 +750,7 @@ int starpu_mpi_task_exchange_data_after_execution(MPI_Comm comm, struct starpu_d
    starpu_mpi_task_exchange_data_before_execution(). Please be careful
    when calling it directly.
 */
-int starpu_mpi_exchange_data_before_execution(MPI_Comm comm, starpu_data_handle_t data, enum starpu_data_access_mode mode, struct starpu_mpi_task_exchange_params params);
+int starpu_mpi_exchange_data_before_execution(MPI_Comm comm, starpu_data_handle_t data, enum starpu_data_access_mode mode, struct starpu_mpi_task_exchange_params *params);
 
 /**
    Receive \p data from the node who executed the task.
