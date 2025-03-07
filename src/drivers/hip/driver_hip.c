@@ -663,18 +663,13 @@ int _starpu_hip_driver_init(struct _starpu_worker *worker)
 	_starpu_driver_start(worker0, STARPU_HIP_WORKER, 0);
 	_starpu_set_local_worker_key(worker);
 
-#ifdef STARPU_USE_FXT
 	for (i = 1; i < worker_set->nworkers; i++)
-		_starpu_worker_start(&worker_set->workers[i], STARPU_HIP_WORKER, 0);
-#endif
-
+		_starpu_trace_worker_init_start(&worker_set->workers[i], STARPU_HIP_WORKER, 0);
 	for (i = 0; i < worker_set->nworkers; i++)
 	{
 		worker = &worker_set->workers[i];
 		unsigned devid = worker->devid;
 		unsigned memnode = worker->memory_node;
-
-		_starpu_trace_worker_init_start(worker, STARPU_HIP_WORKER, 0);
 
 		if ((int) devid == lastdevid)
 		{
