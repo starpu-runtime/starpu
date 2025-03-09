@@ -17,5 +17,5 @@
 
 export STARPU_MICROBENCHS_DISABLED=1
 export STARPU_CHECK_DIRS=mpi
-export STARPU_USER_CONFIGURE_OPTIONS="--disable-socl --with-mpicc=/usr/bin/mpicc.mpich --with-mpiexec=/usr/bin/mpiexec.mpich --with-mpicxx=/usr/bin/mpicxx.mpich --with-mpifort=/usr/bin/mpifort.mpich --enable-mpi-minimal-tests"
+export STARPU_USER_CONFIGURE_OPTIONS="--disable-socl --with-mpicc=/usr/bin/mpicc.mpich --with-mpiexec=/usr/bin/mpiexec.mpich --with-mpicxx=/usr/bin/mpicxx.mpich --with-mpifort=/usr/bin/mpifort.mpich"
 ./contrib/ci.inria.fr/job-1-check.sh
