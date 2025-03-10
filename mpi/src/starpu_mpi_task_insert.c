@@ -1208,7 +1208,7 @@ int starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_han
 
 					        /* Task B */
 						ret = starpu_task_insert(data_handle->redux_cl,
-						                         STARPU_RW|STARPU_COMMUTE, data_handle,
+						                         STARPU_MPI_REDUX, data_handle,
 									 STARPU_R, new_handle,
 									 STARPU_PRIORITY, prio,
 									 STARPU_NAME, "redux_prio_tree_redux_cl",
