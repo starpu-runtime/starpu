@@ -53,7 +53,7 @@ program nf_mpi_redux
   task_red_cl = fstarpu_codelet_allocate()
   call fstarpu_codelet_set_name(task_red_cl, namered)
   call fstarpu_codelet_add_cpu_func(task_red_cl,C_FUNLOC(cl_cpu_task_red))
-  call fstarpu_codelet_add_buffer(task_red_cl, FSTARPU_RW.ior.FSTARPU_COMMUTE)
+  call fstarpu_codelet_add_buffer(task_red_cl, FSTARPU_MPI_REDUX)
   call fstarpu_codelet_add_buffer(task_red_cl, FSTARPU_R)
 
   task_ini_cl = fstarpu_codelet_allocate()
@@ -63,7 +63,7 @@ program nf_mpi_redux
 
   work_coef=2
 
-  codelet_mode = FSTARPU_RW.ior.FSTARPU_COMMUTE
+  codelet_mode = FSTARPU_MPI_REDUX
   task_mode = FSTARPU_MPI_REDUX
   ! allocate and fill codelet structs
   work_cl = fstarpu_codelet_allocate()

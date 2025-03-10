@@ -37,7 +37,7 @@ static struct starpu_codelet init_codelet =
 static struct starpu_codelet redux_codelet =
 {
 	.cpu_funcs = {redux_cpu_func},
-	.modes = {STARPU_RW|STARPU_COMMUTE, STARPU_R},
+	.modes = {STARPU_MPI_REDUX, STARPU_R},
 	.nbuffers = 2,
 #ifdef STARPU_SIMGRID
 	.model = &starpu_perfmodel_nop,
