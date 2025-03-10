@@ -478,7 +478,7 @@ static int _starpu_cuda_driver_init(struct _starpu_worker *worker)
 
 	init_worker_context(workerid, worker->devid);
 
-	_starpu_trace_worker_init_end(workerid);
+	_starpu_trace_worker_init_end(worker, STARPU_CUDA_WORKER);
 
 	{
 		char thread_name[16];
@@ -520,7 +520,7 @@ static int _starpu_cuda_driver_deinit(struct _starpu_worker *worker)
 	deinit_worker_context(workerid, worker->devid);
 
 	worker->worker_is_initialized = 0;
-	_starpu_trace_worker_deinit_end(STARPU_CUDA_WORKER);
+	_starpu_trace_worker_deinit_end(workerid, STARPU_CUDA_WORKER);
 
 	return 0;
 }
@@ -1095,9 +1095,9 @@ static void start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *work
 
 	if (_starpu_get_disable_kernels() <= 0)
 	{
-		_starpu_trace_start_executing(j);
+		_starpu_trace_start_executing(j, task, worker, func);
 		func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
-		_starpu_trace_end_executing(j);
+		_starpu_trace_end_executing(j, worker);
 	}
 }
 
@@ -1186,7 +1186,7 @@ static int _starpu_cuda_driver_run_once(struct _starpu_worker *worker)
 		if (task && worker->nb_buffers_transferred == worker->nb_buffers_totransfer)
 		{
 			STARPU_RMB();
-			_starpu_trace_end_progress(memnode);
+			_starpu_trace_end_progress(memnode, worker);
 			j = _starpu_get_job_associated_to_task(task);
 
 			_starpu_fetch_task_input_tail(task, j, worker);
@@ -1194,7 +1194,7 @@ static int _starpu_cuda_driver_run_once(struct _starpu_worker *worker)
 			worker->task_transferring = NULL;
 
 			execute_job_on_cuda(task, worker);
-			_starpu_trace_start_progress(memnode);
+			_starpu_trace_start_progress(memnode, worker);
 		}
 
 		/* Then test for termination of queued tasks */
@@ -1216,10 +1216,10 @@ static int _starpu_cuda_driver_run_once(struct _starpu_worker *worker)
 		}
 		else
 		{
-			_starpu_trace_end_progress(memnode);
+			_starpu_trace_end_progress(memnode, worker);
 			/* Asynchronous task completed! */
 			finish_job_on_cuda(_starpu_get_job_associated_to_task(task), worker);
-			_starpu_trace_start_progress(memnode);
+			_starpu_trace_start_progress(memnode, worker);
 		}
 		if (worker->ntasks < 1)
 			idle_tasks++;
@@ -1261,11 +1261,11 @@ static int _starpu_cuda_driver_run_once(struct _starpu_worker *worker)
 	worker->current_task = task;
 
 	/* Fetch data asynchronously */
-	_starpu_trace_end_progress(memnode);
+	_starpu_trace_end_progress(memnode, worker);
 	_starpu_set_local_worker_key(worker);
 	res = _starpu_fetch_task_input(task, j, 1);
 	STARPU_ASSERT(res == 0);
-	_starpu_trace_start_progress(memnode);
+	_starpu_trace_start_progress(memnode, worker);
 
 	return 0;
 }
@@ -1275,13 +1275,13 @@ void *_starpu_cuda_worker(void *_arg)
 	struct _starpu_worker *worker = _arg;
 
 	_starpu_cuda_driver_init(worker);
-	_starpu_trace_start_progress(worker->memory_node);
+	_starpu_trace_start_progress(worker->memory_node, worker);
 	while (_starpu_machine_is_running())
 	{
 		_starpu_may_pause();
 		_starpu_cuda_driver_run_once(worker);
 	}
-	_starpu_trace_end_progress(worker->memory_node);
+	_starpu_trace_end_progress(worker->memory_node, worker);
 	_starpu_cuda_driver_deinit(worker);
 
 	return NULL;
