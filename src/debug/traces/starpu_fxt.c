@@ -2469,7 +2469,7 @@ static void handle_start_driver_copy(struct fxt_ev_native *ev, struct starpu_fxt
 			unsigned Y = _starpu_fxt_data_get_coord(handle, options->file_rank, 1);
 			const char *name = _starpu_fxt_data_get_name(handle, options->file_rank);
 			if (!name)
-				name = "";
+				name = "noname";
 
 #ifdef STARPU_HAVE_POTI
 			char paje_value[STARPU_POTI_STR_LEN], paje_key[STARPU_POTI_STR_LEN], src_memnode_container[STARPU_POTI_STR_LEN];
