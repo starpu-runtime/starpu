@@ -1104,7 +1104,7 @@ static void worker_set_detailed_state(double time, const char *prefix, long unsi
 	char iteration_str[STARPU_POTI_STR_LEN], subiteration_str[STARPU_POTI_STR_LEN];
 
 	snprintf(size_str, sizeof(size_str), "%lu", size);
-	snprintf(parameters_str, sizeof(parameters_str), "%s", parameters);
+	snprintf(parameters_str, sizeof(parameters_str), "%s", strlen(parameters)?parameters:"0");
 	snprintf(footprint_str, sizeof(footprint_str), "%08lx", footprint);
 	snprintf(tag_str, sizeof(tag_str), "%016llx", tag);
 	snprintf(jobid_str, sizeof(jobid_str), "%s%lu", prefix, job_id);
