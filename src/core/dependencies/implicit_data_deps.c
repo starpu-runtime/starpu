@@ -601,11 +601,13 @@ void _starpu_release_task_enforce_sequential_consistency(struct _starpu_job *j)
 	for (index = 0; index < nbuffers; index++)
 	{
 		starpu_data_handle_t handle = descrs[index].handle;
+		int node = descrs[index].orig_node;
 
 		for (indexdup = index+1; indexdup < (int) nbuffers; indexdup++)
 		{
 			starpu_data_handle_t handle_dup = descrs[indexdup].handle;
-			if (handle_dup == handle)
+			int node_dup = descrs[indexdup].orig_node;
+			if (handle_dup == handle && node_dup == node)
 				/* We will release this data, skip it for now. This
 				 * depends on ordering putting writes before reads, see
 				 * _starpu_compar_handles */

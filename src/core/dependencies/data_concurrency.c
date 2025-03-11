@@ -329,11 +329,13 @@ static unsigned _submit_job_access_data(struct _starpu_job *j, unsigned start_bu
 	for (buf = start_buffer_index; buf < nbuffers; buf++)
 	{
 		starpu_data_handle_t handle = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buf);
+		int node = _STARPU_JOB_GET_ORDERED_BUFFER_ORIG_NODE(j, buf);
 
 		for (bufdup = (int) buf-1; bufdup >= 0; bufdup--)
 		{
 			starpu_data_handle_t handle_dup = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, bufdup);
-			if (handle_dup == handle)
+			int node_dup = _STARPU_JOB_GET_ORDERED_BUFFER_ORIG_NODE(j, bufdup);
+			if (handle_dup == handle && node_dup == node)
 				/* We have already requested this data, skip it. This
 				 * depends on ordering putting writes before reads, see
 				 * _starpu_compar_handles.  */
@@ -389,11 +391,13 @@ static void _submit_job_take_data_deps(struct _starpu_job *j, unsigned start_buf
 	for (buf = start_buffer_index; buf < nbuffers; buf++)
 	{
 		starpu_data_handle_t handle = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buf);
+		int node = _STARPU_JOB_GET_ORDERED_BUFFER_ORIG_NODE(j, buf);
 
 		for (bufdup = (int) buf-1; bufdup >= 0; bufdup--)
 		{
 			starpu_data_handle_t handle_dup = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, bufdup);
-			if (handle_dup == handle)
+			int node_dup = _STARPU_JOB_GET_ORDERED_BUFFER_ORIG_NODE(j, bufdup);
+			if (handle_dup == handle && node_dup == node)
 				/* We have already requested this data, skip it. This
 				 * depends on ordering putting writes before reads, see
 				 * _starpu_compar_handles.  */
@@ -472,6 +476,7 @@ void _starpu_job_set_ordered_buffers(struct _starpu_job *j)
 		buffers[i].index = i;
 		buffers[i].handle = STARPU_TASK_GET_HANDLE(task, i);
 		buffers[i].mode = STARPU_TASK_GET_MODE(task, i);
+		buffers[i].orig_node = task->cl ? STARPU_CODELET_GET_NODE(task->cl, i) : STARPU_SPECIFIC_NODE_NONE;
 		buffers[i].node = -1;
 	}
 	_starpu_sort_task_handles(buffers, nbuffers);
