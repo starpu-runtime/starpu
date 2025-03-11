@@ -422,11 +422,13 @@ void _starpu_submit_job_enforce_arbitered_deps(struct _starpu_job *j, unsigned b
 
 	starpu_data_handle_t handle;
 	enum starpu_data_access_mode mode;
+	int node;
 
 	for (idx_buf_arbiter = start_buf_arbiter; idx_buf_arbiter < nbuffers; idx_buf_arbiter++)
 	{
 		handle = descrs[idx_buf_arbiter].handle;
 		mode = descrs[idx_buf_arbiter].mode & ~STARPU_COMMUTE;
+		node = descrs[idx_buf_arbiter].orig_node;
 
 		mode = _starpu_arbiter_filter_modes(mode);
 
@@ -435,7 +437,8 @@ void _starpu_submit_job_enforce_arbitered_deps(struct _starpu_job *j, unsigned b
 		for (idx_buf_arbiterdup = (int) idx_buf_arbiter-1; idx_buf_arbiterdup >= 0; idx_buf_arbiterdup--)
 		{
 			starpu_data_handle_t handle_dup = descrs[idx_buf_arbiterdup].handle;
-			if (handle_dup == handle)
+			int node_dup = descrs[idx_buf_arbiterdup].orig_node;
+			if (handle_dup == handle && node_dup == node)
 				/* We have already requested this data, skip it. This
 				 * depends on ordering putting writes before reads, see
 				 * _starpu_compar_handles.  */
@@ -498,6 +501,7 @@ void _starpu_submit_job_enforce_arbitered_deps(struct _starpu_job *j, unsigned b
 		for (idx_buf_cancel = start_buf_arbiter; idx_buf_cancel < idx_buf_arbiter ; idx_buf_cancel++)
 		{
 			starpu_data_handle_t cancel_handle = descrs[idx_buf_cancel].handle;
+			int cancel_node = descrs[idx_buf_cancel].orig_node;
 			if (cancel_handle->arbiter != arbiter)
 				/* Will have to process another arbiter, will do that later */
 				break;
@@ -505,7 +509,8 @@ void _starpu_submit_job_enforce_arbitered_deps(struct _starpu_job *j, unsigned b
 			for (idx_buf_canceldup = idx_buf_cancel+1; idx_buf_canceldup < idx_buf_arbiter; idx_buf_canceldup++)
 			{
 				starpu_data_handle_t handle_dup = descrs[idx_buf_canceldup].handle;
-				if (handle_dup == cancel_handle)
+				int node_dup = descrs[idx_buf_canceldup].orig_node;
+				if (handle_dup == cancel_handle && node_dup == cancel_node)
 					goto next2;
 				if (!_starpu_handles_same_root(handle_dup, cancel_handle))
 					/* We are not checking within the same parent any more, no need to continue checking other handles */
@@ -674,6 +679,7 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle, enum sta
 		unsigned all_arbiter_available = 1;
 		starpu_data_handle_t handle_arbiter;
 		enum starpu_data_access_mode mode;
+		int node_arbiter;
 
 		unsigned start_buf_arbiter = r->buffer_index;
 		struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
@@ -681,6 +687,7 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle, enum sta
 		for (idx_buf_arbiter = start_buf_arbiter; idx_buf_arbiter < nbuffers; idx_buf_arbiter++)
 		{
 			handle_arbiter = descrs[idx_buf_arbiter].handle;
+			node_arbiter = descrs[idx_buf_arbiter].orig_node;
 
 			if (handle_arbiter->arbiter != arbiter)
 				/* Will have to process another arbiter, will do that later */
@@ -689,7 +696,8 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle, enum sta
 			for (idx_buf_arbiterdup = (int) idx_buf_arbiter-1; idx_buf_arbiterdup >= 0; idx_buf_arbiterdup--)
 			{
 				starpu_data_handle_t handle_dup = descrs[idx_buf_arbiterdup].handle;
-				if (handle_dup == handle_arbiter)
+				int node_dup = descrs[idx_buf_arbiterdup].orig_node;
+				if (handle_dup == handle_arbiter && node_dup == node_arbiter)
 					/* We have already requested this data, skip it. This
 					 * depends on ordering putting writes before reads, see
 					 * _starpu_compar_handles.  */
@@ -771,12 +779,14 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle, enum sta
 			for (idx_buf_cancel = start_buf_arbiter; idx_buf_cancel < idx_buf_arbiter ; idx_buf_cancel++)
 			{
 				starpu_data_handle_t cancel_handle = descrs[idx_buf_cancel].handle;
+				int cancel_node = descrs[idx_buf_cancel].orig_node;
 				if (cancel_handle->arbiter != arbiter)
 					break;
 				for (idx_buf_canceldup = idx_buf_cancel+1; idx_buf_canceldup < idx_buf_arbiter; idx_buf_canceldup++)
 				{
 					starpu_data_handle_t handle_dup = descrs[idx_buf_canceldup].handle;
-					if (handle_dup == cancel_handle)
+					int node_dup = descrs[idx_buf_canceldup].orig_node;
+					if (handle_dup == cancel_handle && node_dup == cancel_node)
 						goto next2;
 					if (!_starpu_handles_same_root(handle_dup, cancel_handle))
 						/* We are not checking within the same parent any more, no need to continue checking other handles */

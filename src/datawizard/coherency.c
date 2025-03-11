@@ -1172,6 +1172,7 @@ int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, in
 		int ret;
 		starpu_data_handle_t handle = descrs[index].handle;
 		enum starpu_data_access_mode mode = descrs[index].mode;
+		int orig_node = descrs[index].orig_node;
 		int node = _starpu_task_data_get_node_on_worker(task, descrs[index].index, workerid);
 		/* We set this here for coherency with __starpu_push_task_output */
 		descrs[index].node = node;
@@ -1188,7 +1189,8 @@ int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, in
 		for (indexdup = (int) index-1; indexdup >= 0; indexdup--)
 		{
 			starpu_data_handle_t handle_dup = descrs[indexdup].handle;
-			if (handle_dup == handle)
+			int node_dup = descrs[indexdup].orig_node;
+			if (handle_dup == handle && node_dup == orig_node)
 				/* We have already taken this data, skip it. This
 				 * depends on ordering putting writes before reads, see
 				 * _starpu_compar_handles */
@@ -1252,6 +1254,7 @@ enomem:
 	{
 		starpu_data_handle_t handle = descrs[index2].handle;
 		enum starpu_data_access_mode mode = descrs[index2].mode;
+		int orig_node = descrs[index2].orig_node;
 		int node = descrs[index2].node;
 
 		struct _starpu_data_replicate *local_replicate;
@@ -1259,7 +1262,8 @@ enomem:
 		for (indexdup = (int) index2+1; indexdup < (int) index; indexdup++)
 		{
 			starpu_data_handle_t handle_dup = descrs[indexdup].handle;
-			if (handle_dup == handle)
+			int node_dup = descrs[indexdup].orig_node;
+			if (handle_dup == handle && node_dup == orig_node)
 				/* We have already released this data, skip it. This
 				 * depends on ordering putting writes before reads, see
 				 * _starpu_compar_handles */
@@ -1378,6 +1382,7 @@ void __starpu_push_task_output(struct _starpu_job *j)
 	{
 		starpu_data_handle_t handle = descrs[index].handle;
 		enum starpu_data_access_mode mode = descrs[index].mode;
+		int orig_node = descrs[index].orig_node;
 		int node = descrs[index].node;
 
 		struct _starpu_data_replicate *local_replicate = NULL;
@@ -1385,7 +1390,8 @@ void __starpu_push_task_output(struct _starpu_job *j)
 		for (indexdup = (int) index-1; indexdup >= 0; indexdup--)
 		{
 			starpu_data_handle_t handle_dup = descrs[indexdup].handle;
-			if (handle_dup == handle)
+			int node_dup = descrs[indexdup].orig_node;
+			if (handle_dup == handle && node_dup == orig_node)
 				/* We have already released this data, skip it. This
 				 * depends on ordering putting writes before reads, see
 				 * _starpu_compar_handles */
