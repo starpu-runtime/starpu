@@ -1817,7 +1817,7 @@ int _starpu_trace_rwlock_unlocked()
 
 #ifdef STARPU_FXT_LOCK_TRACES
 #ifdef STARPU_USE_FXT
-#define _STARPU_TRACE_SPINLOCK_CONDITION (starpu_worker_get_type(starpu_worker_get_id()) == STARPU_CUDA_WORKER);
+#define _STARPU_TRACE_SPINLOCK_CONDITION (starpu_worker_get_type(starpu_worker_get_id()) == STARPU_CUDA_WORKER)
 #endif
 #endif
 
