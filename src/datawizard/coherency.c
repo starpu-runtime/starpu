@@ -1252,7 +1252,7 @@ enomem:
 	{
 		starpu_data_handle_t handle = descrs[index2].handle;
 		enum starpu_data_access_mode mode = descrs[index2].mode;
-		int node = descrs[index].node;
+		int node = descrs[index2].node;
 
 		struct _starpu_data_replicate *local_replicate;
 
