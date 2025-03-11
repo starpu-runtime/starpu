@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023, 2025  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -269,10 +269,13 @@ static unsigned _submit_job_access_data(struct _starpu_job *j, unsigned start_bu
 	for (buf = start_buffer_index; buf < nbuffers; buf++)
 	{
 		starpu_data_handle_t handle = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buf);
+		int node = _STARPU_JOB_GET_ORDERED_BUFFER_ORIG_NODE(j, buf);
+
 		if (buf)
 		{
 			starpu_data_handle_t handle_m1 = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buf-1);
-			if (handle_m1 == handle)
+			int node_m1 = _STARPU_JOB_GET_ORDERED_BUFFER_ORIG_NODE(j, buf-1);
+			if (handle_m1 == handle && node_m1 == node)
 				/* We have already requested this data, skip it. This
 				 * depends on ordering putting writes before reads, see
 				 * _starpu_compar_handles.  */
@@ -353,6 +356,7 @@ void _starpu_job_set_ordered_buffers(struct _starpu_job *j)
 		buffers[i].index = i;
 		buffers[i].handle = STARPU_TASK_GET_HANDLE(task, i);
 		buffers[i].mode = STARPU_TASK_GET_MODE(task, i);
+		buffers[i].orig_node = task->cl ? STARPU_CODELET_GET_NODE(task->cl, i) : -1;
 		buffers[i].node = -1;
 	}
 	_starpu_sort_task_handles(buffers, nbuffers);

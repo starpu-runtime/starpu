@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2021, 2025  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -550,8 +550,9 @@ void _starpu_release_task_enforce_sequential_consistency(struct _starpu_job *j)
 	for (index = 0; index < nbuffers; index++)
 	{
 		starpu_data_handle_t handle = descrs[index].handle;
+		int node = descrs[index].orig_node;
 
-		if (index && descrs[index-1].handle == descrs[index].handle)
+		if (index && descrs[index-1].handle == handle && descrs[index-1].orig_node == node)
 			/* We have already released this data, skip it. This
 			 * depends on ordering putting writes before reads, see
 			 * _starpu_compar_handles */

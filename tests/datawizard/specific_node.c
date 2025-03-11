@@ -99,6 +99,11 @@ int main(void)
 
 	int ret, ret2;
 
+	/* Disable prefetching, it makes the test work just by luck */
+#ifdef STARPU_HAVE_SETENV
+	setenv("STARPU_PREFETCH", "0", 1);
+#endif
+
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");

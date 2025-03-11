@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021, 2025  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -419,17 +419,19 @@ void _starpu_submit_job_enforce_arbitered_deps(struct _starpu_job *j, unsigned b
 
 	starpu_data_handle_t handle;
 	enum starpu_data_access_mode mode;
+	int node;
 
 	for (idx_buf_arbiter = start_buf_arbiter; idx_buf_arbiter < nbuffers; idx_buf_arbiter++)
 	{
 		handle = descrs[idx_buf_arbiter].handle;
 		mode = descrs[idx_buf_arbiter].mode & ~STARPU_COMMUTE;
+		node = descrs[idx_buf_arbiter].orig_node;
 
 		mode = _starpu_arbiter_filter_modes(mode);
 
 		STARPU_ASSERT_MSG(!(mode & STARPU_REDUX), "REDUX with arbiter is not implemented\n");
 
-		if (idx_buf_arbiter && (descrs[idx_buf_arbiter-1].handle == handle))
+		if (idx_buf_arbiter && (descrs[idx_buf_arbiter-1].handle == handle) && descrs[idx_buf_arbiter-1].orig_node == node)
 			/* We have already requested this data, skip it. This
 			 * depends on ordering putting writes before reads, see
 			 * _starpu_compar_handles.  */
@@ -485,8 +487,9 @@ void _starpu_submit_job_enforce_arbitered_deps(struct _starpu_job *j, unsigned b
 		for (idx_buf_cancel = start_buf_arbiter; idx_buf_cancel < idx_buf_arbiter ; idx_buf_cancel++)
 		{
 			starpu_data_handle_t cancel_handle = descrs[idx_buf_cancel].handle;
+			int cancel_node = descrs[idx_buf_cancel].orig_node;
 
-			if (idx_buf_cancel && (descrs[idx_buf_cancel-1].handle == cancel_handle))
+			if (idx_buf_cancel && (descrs[idx_buf_cancel-1].handle == cancel_handle) && (descrs[idx_buf_cancel-1].orig_node == cancel_node))
 				continue;
 			if (cancel_handle->arbiter != arbiter)
 				/* Will have to process another arbiter, will do that later */
@@ -629,6 +632,7 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle)
 		unsigned all_arbiter_available = 1;
 		starpu_data_handle_t handle_arbiter;
 		enum starpu_data_access_mode mode;
+		int node_arbiter;
 
 		unsigned start_buf_arbiter = r->buffer_index;
 		struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
@@ -636,7 +640,8 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle)
 		for (idx_buf_arbiter = start_buf_arbiter; idx_buf_arbiter < nbuffers; idx_buf_arbiter++)
 		{
 			handle_arbiter = descrs[idx_buf_arbiter].handle;
-			if (idx_buf_arbiter && (descrs[idx_buf_arbiter-1].handle == handle_arbiter))
+			node_arbiter = descrs[idx_buf_arbiter].orig_node;
+			if (idx_buf_arbiter && (descrs[idx_buf_arbiter-1].handle == handle_arbiter) && (descrs[idx_buf_arbiter-1].orig_node == node_arbiter))
 				/* We have already requested this data, skip it. This
 				 * depends on ordering putting writes before reads, see
 				 * _starpu_compar_handles.  */
@@ -714,7 +719,8 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle)
 			for (idx_buf_cancel = start_buf_arbiter; idx_buf_cancel < idx_buf_arbiter ; idx_buf_cancel++)
 			{
 				starpu_data_handle_t cancel_handle = descrs[idx_buf_cancel].handle;
-				if (idx_buf_cancel && (descrs[idx_buf_cancel-1].handle == cancel_handle))
+				int cancel_node = descrs[idx_buf_cancel].orig_node;
+				if (idx_buf_cancel && (descrs[idx_buf_cancel-1].handle == cancel_handle) && (descrs[idx_buf_cancel-1].orig_node == cancel_node))
 					continue;
 				if (cancel_handle->arbiter != arbiter)
 					break;
