@@ -570,9 +570,7 @@ static int _starpu_opencl_driver_init(struct _starpu_worker *worker)
 {
 	int devid = worker->devid;
 
-	_starpu_trace_worker_init_start(worker, STARPU_OPENCL_WORKER, 0);
 	_starpu_driver_start(worker, STARPU_OPENCL_WORKER, 0);
-
 	_starpu_opencl_init_context(devid);
 
 	/* one more time to avoid hacks from third party lib :) */
@@ -614,8 +612,6 @@ static int _starpu_opencl_driver_init(struct _starpu_worker *worker)
 
 	_STARPU_DEBUG("OpenCL (%s) dev id %d thread is ready to run on CPU %d !\n", devname, devid, worker->bindid);
 
-	_starpu_trace_worker_init_end(worker, STARPU_OPENCL_WORKER );
-
 	/* tell the main thread that this one is ready */
 	STARPU_PTHREAD_MUTEX_LOCK(&worker->mutex);
 	worker->status = STATUS_UNKNOWN;
@@ -628,10 +624,10 @@ static int _starpu_opencl_driver_init(struct _starpu_worker *worker)
 
 static int _starpu_opencl_driver_deinit(struct _starpu_worker *worker)
 {
-	_starpu_trace_worker_deinit_start();
+	int rc = _starpu_trace_worker_deinit_start();
+	(void) rc;
 
 	unsigned memnode = worker->memory_node;
-
 	_starpu_datawizard_handle_all_pending_node_data_requests(memnode);
 
 	/* In case there remains some memory that was automatically
@@ -645,7 +641,8 @@ static int _starpu_opencl_driver_deinit(struct _starpu_worker *worker)
 	_starpu_opencl_deinit_context(devid);
 
 	worker->worker_is_initialized = 0;
-	_starpu_trace_worker_deinit_end(worker->workerid, STARPU_OPENCL_WORKER);
+	rc = _starpu_trace_worker_deinit_end(worker->workerid, STARPU_OPENCL_WORKER);
+	(void) rc;
 
 	return 0;
 }

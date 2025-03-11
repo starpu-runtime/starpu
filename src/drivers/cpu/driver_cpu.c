@@ -208,9 +208,7 @@ static int _starpu_cpu_driver_init(struct _starpu_worker *cpu_worker)
 
 static int _starpu_cpu_driver_deinit(struct _starpu_worker *cpu_worker)
 {
-	int rc;
-
-	rc = _starpu_trace_worker_deinit_start();
+	int rc = _starpu_trace_worker_deinit_start();
 	(void) rc;
 
 	unsigned memnode = cpu_worker->memory_node;
