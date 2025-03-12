@@ -60,6 +60,21 @@ defined to a non-empty value, when calling configure.
 
 
 
+Tests
+-----
+
+Please do try make check, at least with ./configure --enable-quick-check
+
+If a test fails, you can run it specifically again with
+
+make check TESTS=the_test
+
+You can also re-run only the failing tests with
+
+make recheck
+
+
+
 Naming Conventions
 ------------------
 
