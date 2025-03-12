@@ -4495,7 +4495,7 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 					unsigned Y = _starpu_fxt_data_get_coord(itor->handle, options->file_rank, 1);
 					const char *name = _starpu_fxt_data_get_name(itor->handle, options->file_rank);
 					if (!name)
-						name = "";
+						name = "noname";
 #ifdef STARPU_HAVE_POTI
 					char str_handle[STARPU_POTI_STR_LEN];
 					snprintf(str_handle, sizeof(str_handle), "%lx", itor->handle);
