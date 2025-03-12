@@ -20,7 +20,6 @@
 #include <starpu.h>
 #include <stdlib.h>
 #include "../helper.h"
-#include "../variable/increment.h"
 
 /*
  * Test using the specific_nodes field with loading the same data several
