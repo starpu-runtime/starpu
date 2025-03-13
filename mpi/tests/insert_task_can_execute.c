@@ -96,5 +96,5 @@ enodev:
 	if (!mpi_init)
 		MPI_Finalize();
 
-	return ret;
+	return (ret == -ENODEV) ? 0 : ret;
 }
