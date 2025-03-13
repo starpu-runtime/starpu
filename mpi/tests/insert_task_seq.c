@@ -75,6 +75,7 @@ void dotest(int rank, int size, starpu_mpi_tag_t initial_tag, char *enabled)
 	conf.ntcpip_ms = -1;
 
 	ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, &conf);
+	if (ret == -ENODEV) return;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	for(x = 0; x < X; x++)

@@ -52,6 +52,7 @@ int test(int rank, int node, starpu_mpi_tag_t initial_tag, int *before, int *aft
 	conf.ntcpip_ms = -1;
 
 	ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, &conf);
+	if (ret == -ENODEV) goto nonode;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	if (starpu_cpu_worker_get_count() == 0)
@@ -218,6 +219,7 @@ nodata:
 	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);
 	starpu_mpi_shutdown();
 
+nonode:
 	return ret == -ENODEV ? ret : !ok;
 }
 
@@ -248,6 +250,7 @@ int main(int argc, char **argv)
 		}
 	}
 
+ enodev:
 	MPI_Finalize();
 	if (rank == 0)
 		return global_ret==-ENODEV?STARPU_TEST_SKIPPED:global_ret;

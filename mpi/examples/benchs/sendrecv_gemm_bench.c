@@ -144,7 +144,14 @@ int main(int argc, char **argv)
 
 		starpu_mpi_shutdown();
 
-		return STARPU_TEST_SKIPPED;
+		return (mpi_rank == 0 ? STARPU_TEST_SKIPPED : 0);
+	}
+
+	if (starpu_cpu_worker_get_count() == 0)
+	{
+		FPRINTF_MPI(stderr, "No CPU is available\n");
+		starpu_mpi_shutdown();
+		return (mpi_rank == 0 ? STARPU_TEST_SKIPPED : 0);
 	}
 
 	STARPU_PTHREAD_BARRIER_INIT(&thread_barrier, NULL, 2);

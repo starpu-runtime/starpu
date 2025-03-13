@@ -60,6 +60,7 @@ int main(int argc, char **argv)
 	conf.ntcpip_ms = -1;
 
         ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, &conf);
+	if (ret == -ENODEV) goto enodev;
         STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
@@ -80,7 +81,7 @@ int main(int argc, char **argv)
 		int j;
 
                 ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data[i%size], STARPU_VALUE, &rank, sizeof(rank), 0);
-		if (ret == -ENODEV) goto enodev;
+		if (ret == -ENODEV) goto enodev_task;
 
                 for(j = 0; j<size; j++)
 		{
@@ -90,7 +91,7 @@ int main(int argc, char **argv)
 
         starpu_task_wait_for_all();
 
- enodev:
+ enodev_task:
 	for(i=0; i<size; i++)
 	{
                 starpu_data_unregister(data[i]);
@@ -105,6 +106,7 @@ int main(int argc, char **argv)
 
         starpu_mpi_shutdown();
 
+ enodev:
 	if (!mpi_init)
 		MPI_Finalize();
 

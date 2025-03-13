@@ -65,6 +65,7 @@ static void test(starpu_mpi_tag_t tag, char* enabled)
 	conf.ntcpip_ms = -1;
 
 	ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, &conf);
+	if (ret == -ENODEV) return;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t) &var, sizeof(var));

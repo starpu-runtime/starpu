@@ -53,9 +53,9 @@ int main(int argc, char **argv)
 	conf.ntcpip_ms = -1;
 
 	ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, &conf);
-	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
-	if (ret == -ENODEV) return rank==0?STARPU_TEST_SKIPPED:0;
+	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 
 	if (starpu_cpu_worker_get_count() == 0)
 	{
@@ -85,7 +85,7 @@ int main(int argc, char **argv)
 		{
 			task->destroy = 0;
 			starpu_task_destroy(task);
-			goto enodev;
+			goto xenodev;
 		}
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
@@ -99,7 +99,7 @@ int main(int argc, char **argv)
 
 	starpu_task_wait_for_all();
 
-enodev:
+xenodev:
 	for(i=0; i<2; i++)
 	{
 		starpu_data_unregister(data_handles[i]);
@@ -110,9 +110,7 @@ nodata:
 	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);
 	starpu_mpi_shutdown();
 
+enodev:
 	MPI_Finalize();
-	if (rank == 0)
-		return ret==-ENODEV?STARPU_TEST_SKIPPED:ret;
-	else
-		return 0;
+	return 0;
 }

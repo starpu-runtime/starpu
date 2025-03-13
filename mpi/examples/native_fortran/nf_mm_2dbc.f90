@@ -63,7 +63,7 @@ program nf_mm_2dbc
   ret = fstarpu_mpi_init(1)
   if (ret /= 0) then
      write(*,'("fstarpu_mpi_init status:",i4)') ret
-     stop 1
+     stop 0
   end if
 
   ! stop there if no CPU worker available

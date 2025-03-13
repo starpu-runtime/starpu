@@ -85,6 +85,13 @@ int main(int argc, char **argv)
 	if (starpu_mpi_cache_is_enabled() == 0)
 		goto skip;
 
+	if (starpu_cpu_worker_get_count() == 0)
+	{
+		FPRINTF(stderr, "We need at least 1 CPU worker.\n");
+		starpu_mpi_shutdown();
+		if (rank == 0) return 77; else return 0;
+	}
+
 	if (rank == 0)
 		starpu_variable_data_register(&data, STARPU_MAIN_RAM, (uintptr_t)&val, sizeof(unsigned));
 	else

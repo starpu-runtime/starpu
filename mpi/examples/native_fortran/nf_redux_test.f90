@@ -26,14 +26,32 @@ program main
   character(kind=c_char,len=*), parameter :: namered=C_CHAR_"task_red"//C_NULL_CHAR
   character(kind=c_char,len=*), parameter :: nameini=C_CHAR_"task_ini"//C_NULL_CHAR
   real(kind(1.d0)), target                :: a1, a2, b1, b2
-  integer(kind=8)                          :: tag, err
+  integer(kind=8)                         :: tag, err
   type(c_ptr)                             :: a1hdl, a2hdl, b1hdl, b2hdl
   integer, target                         :: comm, comm_world, comm_w_rank, comm_size
   integer(c_int), target                  :: w_node
+  integer(c_int)                          :: ncpu
 
   call fstarpu_fxt_autostart_profiling(0)
   ret = fstarpu_init(c_null_ptr)
+  if (ret == -19) then
+     stop 77
+  else if (ret /= 0) then
+     stop 1
+  end if
+
   ret = fstarpu_mpi_init(1)
+  if (ret /= 0) then
+     write(*,'("fstarpu_mpi_init status:",i4)') ret
+     stop 0
+  end if
+
+  ! stop there if no CPU worker available
+  ncpu = fstarpu_cpu_worker_get_count()
+  if (ncpu == 0) then
+     call fstarpu_shutdown()
+     stop 77
+  end if
 
   comm_world = fstarpu_mpi_world_comm()
   comm_w_rank  = fstarpu_mpi_world_rank()

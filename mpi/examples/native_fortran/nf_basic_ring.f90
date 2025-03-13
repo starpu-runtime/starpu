@@ -40,7 +40,7 @@ program nf_basic_ring
         ret = fstarpu_mpi_init(1)
         print *,"fstarpu_mpi_init status:", ret
         if (ret /= 0) then
-                stop 1
+                stop 0
         end if
 
         ! stop there if no CPU worker available

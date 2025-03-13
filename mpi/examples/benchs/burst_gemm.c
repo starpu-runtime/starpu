@@ -113,8 +113,14 @@ int main(int argc, char **argv)
 			FPRINTF(stderr, "We need 2 processes.\n");
 
 		starpu_mpi_shutdown();
+		return (mpi_rank == 0 ? STARPU_TEST_SKIPPED : 0);
+	}
 
-		return STARPU_TEST_SKIPPED;
+	if (starpu_cpu_worker_get_count() == 0)
+	{
+		FPRINTF_MPI(stderr, "No CPU is available\n");
+		starpu_mpi_shutdown();
+		return (mpi_rank == 0 ? STARPU_TEST_SKIPPED : 0);
 	}
 
 	gemm_alloc_data();

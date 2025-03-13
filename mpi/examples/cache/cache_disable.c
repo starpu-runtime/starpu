@@ -49,6 +49,13 @@ int main(int argc, char **argv)
 	if (cache == 0)
 		goto skip;
 
+	if (starpu_cpu_worker_get_count() == 0)
+	{
+		FPRINTF(stderr, "We need at least 1 CPU worker.\n");
+		starpu_mpi_shutdown();
+		if (rank == 0) return 77; else return 0;
+	}
+
 	val = malloc(sizeof(*val));
 	*val = 12;
 

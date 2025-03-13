@@ -89,6 +89,7 @@ static inline void do_test(starpu_mpi_tag_t *initial_tag, char* cache_enabled)
 	conf.ntcpip_ms = -1;
 
 	ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, &conf);
+	if (ret == -ENODEV) return;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);

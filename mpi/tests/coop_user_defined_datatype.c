@@ -73,6 +73,7 @@ int main(int argc, char **argv)
 	conf.ntcpip_ms = -1;
 
 	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, &conf);
+	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &my_rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &worldsize);
@@ -177,8 +178,12 @@ int main(int argc, char **argv)
 
 	starpu_mpi_shutdown();
 
+enodev:
 	if (!mpi_init)
 		MPI_Finalize();
 
-	return (my_rank == worldsize-1) ? !compare : ret;
+	if (ret == -ENODEV)
+		return 0;
+	else
+		return (my_rank == worldsize-1) ? !compare : ret;
 }

@@ -48,6 +48,7 @@ int do_test(int rank, starpu_mpi_tag_t initial_tag, int sdetached, int rdetached
 	conf.ntcpip_ms = -1;
 
 	ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, &conf);
+	if (ret == -ENODEV) return ret;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	if (rank == 1)
@@ -156,11 +157,16 @@ int main(int argc, char **argv)
 	{
 		for(rdetached=0 ; rdetached<=1 ; rdetached++)
 		{
-			ret += do_test(rank, initial_tag, sdetached, rdetached);
+			int xret = do_test(rank, initial_tag, sdetached, rdetached);
+			if (xret == -ENODEV)
+				goto enodev;
+			else
+				ret += ret;
 			initial_tag += 2;
 		}
 	}
 
+ enodev:
 	MPI_Finalize();
 	return rank == 0 ? ret : 0;
 }
