@@ -31,7 +31,7 @@ program nf_mpi_redux
   type(c_ptr)                             :: ahdl
   type(c_ptr), target, allocatable        :: bhdl(:)
   type(c_ptr)                             :: task_mode, codelet_mode
-  integer, target                         :: comm_world,comm_w_rank, comm_size
+  integer, target                         :: comm_world, comm_w_rank, comm_size, ncpu
   integer(c_int), target                  :: w_node, nworkers, work_coef
 
   call fstarpu_fxt_autostart_profiling(0)
@@ -44,7 +44,13 @@ program nf_mpi_redux
   if (comm_size.lt.2) then
     write(*,'(" ")')
     write(*,'("This application is meant to run with at least two nodes (found ",i4," ; i am ",i4,").")') comm_size, comm_w_rank
-    stop 2
+    stop 77
+  end if
+  ! stop there if no CPU worker available
+  ncpu = fstarpu_cpu_worker_get_count()
+  if (ncpu == 0) then
+     call fstarpu_shutdown()
+     stop 77
   end if
   allocate(b(comm_size-1), bhdl(comm_size-1))
   nworkers = fstarpu_worker_get_count()

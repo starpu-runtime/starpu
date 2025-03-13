@@ -31,7 +31,7 @@ program nf_mpi_redux
   type(c_ptr), target                     :: ahdl
   type(c_ptr), target, allocatable        :: bhdl(:)
   type(c_ptr)                             :: task_mode, codelet_mode
-  integer, target                         :: comm_world,comm_w_rank, comm_size
+  integer, target                         :: comm_world,comm_w_rank, comm_size, ncpu
   integer(c_int), target                  :: w_node, nworkers, work_coef
 
   !call fstarpu_fxt_autostart_profiling(0)
@@ -46,7 +46,13 @@ program nf_mpi_redux
   if (nworkers.lt.1) then
     write(*,'(" ")')
     write(*,'("This application is meant to run with at least one worker per node.")')
-    stop 2
+    stop 77
+  end if
+  ! stop there if no CPU worker available
+  ncpu = fstarpu_cpu_worker_get_count()
+  if (ncpu == 0) then
+     call fstarpu_shutdown()
+     stop 77
   end if
 
   ! allocate and reduction codelets
