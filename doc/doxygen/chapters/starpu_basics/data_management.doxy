@@ -29,14 +29,28 @@ short list below.
 
 \subsection VariableDataInterface Variable Data Interface
 
-A variable is a given-size byte element, typically a scalar. Here is an
-example of how to register a variable data to StarPU by using
-starpu_variable_data_register(). A full code example for the variable data interface is available in the file <c>examples/basic_examples/variable.c</c>.
+A variable is a given-size byte element, typically a scalar or a pointer to an application-specific structure.
+
+Here is an example of how to register a variable data to StarPU by using
+starpu_variable_data_register(). A full code example for the variable data
+interface is available in the file <c>examples/basic_examples/variable.c</c>.
 
 \code{.c}
 float var = 42.0;
 starpu_data_handle_t var_handle;
 starpu_variable_data_register(&var_handle, STARPU_MAIN_RAM, (uintptr_t)&var, sizeof(var));
+\endcode
+
+Here is an example of how to register an application-specific data to StarPU,
+the idea is to register the variable that contains the pointer to the
+application-specific data. This will not provide support for GPUs and MPI, but
+can be an easy start before defining your own data interface to describe the
+application-specific structure (see \ref DefiningANewDataInterface).
+
+\code{.c}
+struct mystructure *A = ...;
+starpu_data_handle_t var_handle;
+starpu_variable_data_register(&var_handle, STARPU_MAIN_RAM, (uintptr_t)&A, sizeof(A));
 \endcode
 
 \subsection VectorDataInterface Vector Data Interface

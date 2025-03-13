@@ -2203,7 +2203,8 @@ struct starpu_variable_interface
 
 /**
    Register the \p size byte element pointed to by \p ptr, which is
-   typically a scalar, and initialize \p handle to represent this data item.
+   typically a scalar or a pointer to an application-specific structure, and
+   initialize \p handle to represent this data item.
 
    Here an example of how to use the function.
    \code{.c}
