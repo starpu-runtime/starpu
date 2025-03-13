@@ -34,6 +34,11 @@ program nf_mpi_redux
   integer, target                         :: comm_world, comm_w_rank, comm_size, ncpu
   integer(c_int), target                  :: w_node, nworkers, work_coef
 
+  ! Not supported yet
+  if (fstarpu_getenv_number_default("STARPU_GLOBAL_ARBITER", 0).gt.0) then
+     stop 77
+  end if
+
   call fstarpu_fxt_autostart_profiling(0)
   ret = fstarpu_init(c_null_ptr)
   ret = fstarpu_mpi_init(1)

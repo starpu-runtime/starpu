@@ -113,6 +113,10 @@ static struct starpu_codelet task_red_cl =
 
 int main(int argc, char *argv[])
 {
+	/* Not supported yet */
+	if (starpu_getenv_number_default("STARPU_GLOBAL_ARBITER", 0) > 0)
+		return 77;
+
 	int comm_rank, comm_size;
 	/* Initializes STarPU and the StarPU-MPI layer */
 	starpu_fxt_autostart_profiling(0);

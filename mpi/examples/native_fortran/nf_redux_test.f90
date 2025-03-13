@@ -32,6 +32,11 @@ program main
   integer(c_int), target                  :: w_node
   integer(c_int)                          :: ncpu
 
+  ! Not supported yet
+  if (fstarpu_getenv_number_default("STARPU_GLOBAL_ARBITER", 0).gt.0) then
+     stop 77
+  end if
+
   call fstarpu_fxt_autostart_profiling(0)
   ret = fstarpu_init(c_null_ptr)
   if (ret == -19) then
