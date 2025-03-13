@@ -19,6 +19,11 @@
 
 int main(int argc, char **argv)
 {
+#ifdef STARPU_NO_ASSERT
+	// the code below will not fail as asserts are disabled
+	// force the test to fail
+	return 1;
+#endif
 	int ret;
 	struct starpu_conf conf;
 	int mpi_init;
