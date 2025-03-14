@@ -48,10 +48,10 @@ int main(int argc, char **argv)
 
 		id = starpu_perf_counter_scope_name_to_id("global");
 		STARPU_ASSERT(id == starpu_perf_counter_scope_global);
-		
+
 		id = starpu_perf_counter_scope_name_to_id("per_worker");
 		STARPU_ASSERT(id == starpu_perf_counter_scope_per_worker);
-		
+
 		id = starpu_perf_counter_scope_name_to_id("per_codelet");
 		STARPU_ASSERT(id == starpu_perf_counter_scope_per_codelet);
 
@@ -60,13 +60,13 @@ int main(int argc, char **argv)
 
 	{
 		const char *name;
-		
+
 		name = starpu_perf_counter_scope_id_to_name(starpu_perf_counter_scope_global);
 		STARPU_ASSERT(strcmp(name, "global") == 0);
-		
+
 		name = starpu_perf_counter_scope_id_to_name(starpu_perf_counter_scope_per_worker);
 		STARPU_ASSERT(strcmp(name, "per_worker") == 0);
-		
+
 		name = starpu_perf_counter_scope_id_to_name(starpu_perf_counter_scope_per_codelet);
 		STARPU_ASSERT(strcmp(name, "per_codelet") == 0);
 
@@ -93,16 +93,16 @@ int main(int argc, char **argv)
 
 	{
 		const char *name;
-		
+
 		name = starpu_perf_counter_type_id_to_name(starpu_perf_counter_type_int32);
 		STARPU_ASSERT(strcmp(name, "int32") == 0);
-		
+
 		name = starpu_perf_counter_type_id_to_name(starpu_perf_counter_type_int64);
 		STARPU_ASSERT(strcmp(name, "int64") == 0);
-		
+
 		name = starpu_perf_counter_type_id_to_name(starpu_perf_counter_type_float);
 		STARPU_ASSERT(strcmp(name, "float") == 0);
-		
+
 		name = starpu_perf_counter_type_id_to_name(starpu_perf_counter_type_double);
 		STARPU_ASSERT(strcmp(name, "double") == 0);
 
