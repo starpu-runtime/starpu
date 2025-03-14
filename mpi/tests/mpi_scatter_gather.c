@@ -62,7 +62,7 @@ void rcallback(void *arg)
 
 int main(int argc, char **argv)
 {
-	int rank, nodes, ret, x;
+	int rank=-1, nodes, ret, x;
 	int *vector = NULL;
 	starpu_data_handle_t *data_handles;
 	int size=10;
@@ -78,6 +78,7 @@ int main(int argc, char **argv)
 	conf.ntcpip_ms = -1;
 
 	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, &conf);
+	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
@@ -209,6 +210,7 @@ int main(int argc, char **argv)
 	free(data_handles);
 
 	starpu_mpi_shutdown();
+enodev:
 	if (!mpi_init)
 		MPI_Finalize();
 

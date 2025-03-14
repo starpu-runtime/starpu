@@ -64,10 +64,21 @@ int main(int argc, char **argv)
 	conf.ntcpip_ms = -1;
 
 	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, &conf);
+	if (ret == -ENODEV) goto xenodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
+
+	if (starpu_cpu_worker_get_count() == 0)
+	{
+		if (rank == 0)
+			FPRINTF(stderr, "We need at least 1 CPU worker.\n");
+		starpu_mpi_shutdown();
+		if (!mpi_init)
+			MPI_Finalize();
+		return rank == 0 ? STARPU_TEST_SKIPPED : 0;
+	}
 
 	for(x = 0; x < X; x++)
 	{
@@ -140,6 +151,7 @@ enodev:
 
 	starpu_mpi_shutdown();
 
+ xenodev:
 	if (!mpi_init)
 		MPI_Finalize();
 

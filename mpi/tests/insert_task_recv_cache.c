@@ -51,7 +51,7 @@ int my_distrib(int x)
 	return x;
 }
 
-void test_cache(int rank, starpu_mpi_tag_t initial_tag, char *enabled, size_t *comm_amount)
+int test_cache(int rank, starpu_mpi_tag_t initial_tag, char *enabled, size_t *comm_amount)
 {
 	int i;
 	int ret;
@@ -69,6 +69,7 @@ void test_cache(int rank, starpu_mpi_tag_t initial_tag, char *enabled, size_t *c
 	conf.ntcpip_ms = -1;
 
 	ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, &conf);
+	if (ret == -ENODEV) return 1;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	for(i = 0; i < NB_DATA; i++)
@@ -144,6 +145,7 @@ void test_cache(int rank, starpu_mpi_tag_t initial_tag, char *enabled, size_t *c
 
 	starpu_mpi_comm_stats_retrieve(comm_amount);
 	starpu_mpi_shutdown();
+	return 0;
 }
 
 int main(int argc, char **argv)
@@ -164,9 +166,11 @@ int main(int argc, char **argv)
 	comm_amount_with_cache = malloc(size * sizeof(size_t));
 	comm_amount_without_cache = malloc(size * sizeof(size_t));
 
-	test_cache(rank, initial_tag, "0", comm_amount_with_cache);
+	result = test_cache(rank, initial_tag, "0", comm_amount_with_cache);
+	if (result) goto end;
 	initial_tag += NB_DATA;
-	test_cache(rank, initial_tag, "1", comm_amount_without_cache);
+	result = test_cache(rank, initial_tag, "1", comm_amount_without_cache);
+	if (result) goto end;
 
 	if (rank == 1)
 	{
@@ -181,6 +185,7 @@ int main(int argc, char **argv)
 	free(comm_amount_without_cache);
 	free(comm_amount_with_cache);
 
+end:
 	MPI_Finalize();
 	return rank == 0 ? !result : 0;
 }
