@@ -407,7 +407,7 @@ int main(void)
 	hipres = hipGetDeviceCount(&cnt);
 	if (hipres)
 	{
-		fprintf(stderr,"hip error %d\n", hipres);
+		fprintf(stderr,"hip error: <%s>\n", hipGetErrorString(hipres));
 		exit(1);
 	}
 	printf("number of hip devices: %d\n", cnt);
@@ -418,7 +418,7 @@ int main(void)
 		hipres = hipGetDeviceProperties(&props, i);
 		if (hipres)
 		{
-			fprintf(stderr,"HIP error %d\n", hipres);
+			fprintf(stderr,"hip error: <%s>\n", hipGetErrorString(hipres));
 			continue;
 		}
 		printf("%s\n", props.name);
