@@ -59,6 +59,7 @@ int main(int argc, char **argv)
 	conf.ntcpip_ms = -1;
 
 	ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, &conf);
+	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	if (rank % 2)
@@ -107,6 +108,8 @@ int main(int argc, char **argv)
 	starpu_data_unregister(data[1]);
 
 	starpu_mpi_shutdown();
+
+enodev:
 	if (!mpi_init)
 		MPI_Finalize();
 	return 0;

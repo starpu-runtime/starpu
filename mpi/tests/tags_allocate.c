@@ -40,6 +40,7 @@ int main(int argc, char **argv)
 	conf.ntcpip_ms = -1;
 
 	ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, &conf);
+	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	int64_t mintag = starpu_mpi_tags_allocate(X*Y);
@@ -68,7 +69,9 @@ int main(int argc, char **argv)
 	starpu_mpi_tags_free(mintag);
 
 	starpu_mpi_shutdown();
+
+enodev:
 	if (!mpi_init)
 		MPI_Finalize();
-	return rank == 0 ? ret : 0;
+	return rank == 0 ? (ret == -ENODEV ? 0 : ret) : 0;
 }

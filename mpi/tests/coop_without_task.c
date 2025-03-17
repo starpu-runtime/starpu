@@ -39,6 +39,7 @@ int main(int argc, char **argv)
 	conf.ntcpip_ms = -1;
 
 	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, &conf);
+	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
@@ -71,7 +72,7 @@ int main(int argc, char **argv)
 		printf("[%d] received data: %d\n", rank, var);
 		STARPU_ASSERT(var == 42);
 
-		starpu_data_release(handle);
+	starpu_data_release(handle);
 
 		FPRINTF_MPI(stderr, "received data\n");
 	}
@@ -81,6 +82,8 @@ int main(int argc, char **argv)
 	printf("[%d] end\n", rank);
 
 	starpu_mpi_shutdown();
+
+enodev:
 	if (!mpi_init)
 		MPI_Finalize();
 
