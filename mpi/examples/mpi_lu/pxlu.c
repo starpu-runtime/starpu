@@ -25,24 +25,23 @@
 // GETRF   TRSM_RU
 // TRSM_LL GEMM
 
-#define TAG_GETRF(k)	((starpu_tag_t)((1ULL<<50) | (unsigned long long)(k)))
-#define TAG_TRSM_LL(k,j)	((starpu_tag_t)(((2ULL<<50) | (((unsigned long long)(k))<<32)	\
+#define TAG_GETRF(k)	                ((starpu_tag_t)((1ULL<<50) | (unsigned long long)(k)))
+#define TAG_TRSM_LL(k,j)	        ((starpu_tag_t)(((2ULL<<50) | (((unsigned long long)(k))<<32)	\
 					| (unsigned long long)(j))))
-#define TAG_TRSM_RU(k,i)	((starpu_tag_t)(((3ULL<<50) | (((unsigned long long)(k))<<32)	\
+#define TAG_TRSM_RU(k,i)	        ((starpu_tag_t)(((3ULL<<50) | (((unsigned long long)(k))<<32)	\
 					| (unsigned long long)(i))))
-#define TAG_GEMM(k,i,j)	((starpu_tag_t)(((4ULL<<50) | ((unsigned long long)(k)<<32) 	\
+#define TAG_GEMM(k,i,j)	                ((starpu_tag_t)(((4ULL<<50) | ((unsigned long long)(k)<<32) 	\
 					| ((unsigned long long)(i)<<16)	\
 					| (unsigned long long)(j))))
-#define TAG_GETRF_SAVE(k)	((starpu_tag_t)((5ULL<<50) | (unsigned long long)(k)))
-#define TAG_TRSM_LL_SAVE(k,j)	((starpu_tag_t)(((6ULL<<50) | (((unsigned long long)(k))<<32)	\
+#define TAG_GETRF_SAVE(k)	        ((starpu_tag_t)((5ULL<<50) | (unsigned long long)(k)))
+#define TAG_TRSM_LL_SAVE(k,j)	        ((starpu_tag_t)(((6ULL<<50) | (((unsigned long long)(k))<<32)	\
 					| (unsigned long long)(j))))
-#define TAG_TRSM_RU_SAVE(k,i)	((starpu_tag_t)(((7ULL<<50) | (((unsigned long long)(k))<<32)	\
+#define TAG_TRSM_RU_SAVE(k,i)	        ((starpu_tag_t)(((7ULL<<50) | (((unsigned long long)(k))<<32)	\
 					| (unsigned long long)(i))))
-
 #define TAG_GETRF_SAVE_PARTIAL(k)	((starpu_tag_t)((8ULL<<50) | (unsigned long long)(k)))
 #define TAG_TRSM_LL_SAVE_PARTIAL(k,j)	((starpu_tag_t)(((9ULL<<50) | (((unsigned long long)(k))<<32)	\
 					| (unsigned long long)(j))))
-#define TAG_TRSM_RU_SAVE_PARTIAL(k,i)	((starpu_tag_t)(((10ULL<<50) | (((unsigned long long)(k))<<32)	\
+#define TAG_TRSM_RU_SAVE_PARTIAL(k,i)	((starpu_tag_t)(((10ULL<<50) | (((unsigned long long)(k))<<32) \
 					| (unsigned long long)(i))))
 
 #define STARPU_TAG_INIT	((starpu_tag_t)(11ULL<<50))
@@ -464,8 +463,8 @@ static void create_task_trsm_ll_real(unsigned k, unsigned j)
 	STARPU_ASSERT(task->handles[1] != STARPU_POISON_PTR);
 
 	struct callback_arg *arg = malloc(sizeof(struct callback_arg));
-		arg->j = j;
-		arg->k = k;
+	arg->j = j;
+	arg->k = k;
 
 	task->callback_func = callback_task_trsm_ll_real;
 	task->callback_arg = arg;

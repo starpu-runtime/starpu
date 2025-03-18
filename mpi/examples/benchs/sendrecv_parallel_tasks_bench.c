@@ -166,6 +166,13 @@ int main(int argc, char **argv)
 		return STARPU_TEST_SKIPPED;
 	}
 
+	if (starpu_cpu_worker_get_count() == 0)
+	{
+		FPRINTF_MPI(stderr, "No CPU worker is available\n");
+		starpu_mpi_shutdown();
+		return (rank == 0 ? 77 : 0);
+	}
+
 	if (rank == 0)
 	{
 		printf("Times in us\n");

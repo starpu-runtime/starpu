@@ -195,8 +195,16 @@ int main(int argc, char**argv)
 			FPRINTF(stderr, "We need at least 2 processes.\n");
 
 		starpu_mpi_shutdown();
-
+		MPI_Finalize();
 		return STARPU_TEST_SKIPPED;
+	}
+
+	if (starpu_cpu_worker_get_count() + starpu_cuda_worker_get_count() + starpu_hip_worker_get_count() == 0)
+	{
+		FPRINTF_MPI(stderr, "No CPU, CUDA or HIP worker is available\n");
+		starpu_mpi_shutdown();
+		MPI_Finalize();
+		return (rank == 0 ? 77 : 0);
 	}
 
 	MPI_Comm_group(MPI_COMM_WORLD, &world_group);
