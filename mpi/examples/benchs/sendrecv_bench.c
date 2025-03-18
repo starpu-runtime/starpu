@@ -116,7 +116,6 @@ int main(int argc, char **argv)
 	{
 		FPRINTF_MPI(stderr, "No CPU, CUDA or HIP worker is available\n");
 		starpu_mpi_shutdown();
-		MPI_Finalize();
 		return (rank == 0 ? 77 : 0);
 	}
 
