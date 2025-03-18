@@ -185,7 +185,6 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-
 	unsigned cpu_count = starpu_cpu_worker_get_count();
 	uint64_t s;
 	unsigned i;
