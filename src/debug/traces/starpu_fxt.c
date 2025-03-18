@@ -1459,6 +1459,9 @@ static void handle_worker_init_start(struct fxt_ev_native *ev, struct starpu_fxt
 	long unsigned int threadid = ev->param[6];
 	int new_thread;
 
+	// Make sure the thread information is saved in the hashtable
+	get_thread_info(threadid, workerid, 1);
+
 	new_thread = register_worker_id(prefixTOnodeid(prefix), threadid, workerid, set);
 
 	const char *kindstr;
