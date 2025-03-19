@@ -34,11 +34,6 @@ program nf_mpi_redux
   integer, target                         :: comm_world, comm_w_rank, comm_size, ncpu
   integer(c_int), target                  :: w_node, nworkers, work_coef
 
-  ! Not supported yet
-  if (fstarpu_getenv_number_default("STARPU_GLOBAL_ARBITER", 0).gt.0) then
-     stop 77
-  end if
-
   call fstarpu_fxt_autostart_profiling(0)
   ret = fstarpu_init(c_null_ptr)
   ret = fstarpu_mpi_init(1)
@@ -50,6 +45,11 @@ program nf_mpi_redux
     write(*,'(" ")')
     write(*,'("This application is meant to run with at least two nodes (found ",i4," ; i am ",i4,").")') comm_size, comm_w_rank
     stop 77
+  end if
+  ! Not supported yet
+  if (fstarpu_getenv_number_default("STARPU_GLOBAL_ARBITER", 0).gt.0) then
+     call fstarpu_shutdown()
+     stop 77
   end if
   ! stop there if no CPU worker available
   ncpu = fstarpu_cpu_worker_get_count()
