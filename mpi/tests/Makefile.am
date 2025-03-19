@@ -258,8 +258,9 @@ noinst_PROGRAMS +=				\
 	nothing					\
 	display_bindings			\
 	mpi_task_submit				\
-	wait_for_all \
-	multiple_comms
+	wait_for_all				\
+	multiple_comms				\
+	partition
 
 if STARPU_USE_MPI_FT
 noinst_PROGRAMS +=  \
