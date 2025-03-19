@@ -47,7 +47,7 @@ program main
   end if
 
   ! Not supported yet
-  if (fstarpu_getenv_number_default(C_CHAR_"STARPU_GLOBAL_ARBITER"//C_NULL_CHAR, 0).gt.0) then
+  if (fstarpu_getenv_number(C_CHAR_"STARPU_GLOBAL_ARBITER"//C_NULL_CHAR).gt.0) then
      call fstarpu_shutdown()
      stop 77
   end if

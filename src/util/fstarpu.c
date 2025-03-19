@@ -761,7 +761,7 @@ void fstarpu_data_filter_set_filter_arg_ptr(struct starpu_data_filter *filter, v
 	filter->filter_arg_ptr = filter_arg_ptr;
 }
 
-int fstarpu_getenv_number_default(const char *str, int defval)
+int fstarpu_getenv_number(const char *str)
 {
-	return starpu_get_env_number_default(str, defval);
+	return starpu_get_env_number(str);
 }

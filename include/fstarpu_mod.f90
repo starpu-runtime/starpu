@@ -253,13 +253,12 @@ module fstarpu_mod
                         integer(c_int), intent(out) :: major,minor,release
                 end subroutine fstarpu_get_version
 
-                ! int starpu_get_env_number_default(const char *str, int defval)
-                function fstarpu_getenv_number_default(str, defval) bind(C)
+                ! int starpu_get_env_number(const char *str)
+                function fstarpu_getenv_number(str) bind(C)
                   use iso_c_binding, only: c_char, c_int
                         character(c_char),intent(in) :: str(*)
-                        integer(c_int),intent(in) :: defval
-                        integer(c_int)              :: fstarpu_getenv_number_default
-                end function fstarpu_getenv_number_default
+                        integer(c_int)              :: fstarpu_getenv_number
+                end function fstarpu_getenv_number
 
                 ! == starpu_worker.h ==
 
