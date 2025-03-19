@@ -215,6 +215,9 @@ ctags-local:
 	cd $(top_srcdir) ; $(CTAGS) -R -I LIST_TYPE
 	$(SED) -i $(top_srcdir)/tags -e '/^[^	]* [^	]*	/d' -e '/^[^	]*$$/d'
 
+etags:
+	cd $(top_srcdir) ; find . -type f -iname "*.[ch]" | $(ETAGS) -
+
 
 # Cyclomatic complexity reports.
 
