@@ -1252,15 +1252,6 @@ if  test x$enable_long_check = xyes; then
 fi
 AM_CONDITIONAL([STARPU_LONG_CHECK], [test "x$enable_long_check" = "xyes"])
 
-# Define new check
-AC_ARG_ENABLE(new-check, [AS_HELP_STRING([--enable-new-check],
-				   [Enable new and known-to-fail testcases])],
-				   enable_new_check=$enableval, enable_new_check=no)
-if  test x$enable_new_check = xyes; then
-	AC_DEFINE(STARPU_NEW_CHECK, [1], [enable new check])
-fi
-AM_CONDITIONAL([STARPU_NEW_CHECK], [test "x$enable_new_check" = "xyes"])
-
 AC_CHECK_HEADERS([malloc.h], [AC_DEFINE([STARPU_HAVE_MALLOC_H], [1], [Define to 1 if you have the <malloc.h> header file.])])
 
 AC_ARG_ENABLE(valgrind, [AS_HELP_STRING([--disable-valgrind],
