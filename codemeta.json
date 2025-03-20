@@ -12,7 +12,9 @@
     "issueTracker": "https://github.com/starpu-runtime/starpu/issues",
     "name": "StarPU",
     "description": "StarPU is a task programming library for hybrid architectures.",
-    "isSourceCodeOf": "https://starpu.gitlabpages.inria.fr/",
+    "codemeta:isSourceCodeOf": {
+	"id": "https://starpu.gitlabpages.inria.fr/"
+    },
     "applicationCategory": "HPC",
     "developmentStatus": "active",
     "referencePublication": [
