@@ -197,4 +197,4 @@ mailing-list at starpu-devel@inria.fr or browse
 
 You can also contact the devel team on
 [github](https://github.com/starpu-runtime/starpu/discussions) or
-[discord](https://discord.gg/ERq6hvY)
+[discord](https://discord.gg/vKVJsuHB8U)
