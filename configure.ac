@@ -913,6 +913,9 @@ fi
 if test x$enable_mpi = xno ; then
     running_mpi_check=no
 fi
+if test x$mpiexec_path = x ; then
+    running_mpi_check=no
+fi
 
 AM_CONDITIONAL(STARPU_MPI_CHECK, test x$running_mpi_check = xyes)
 AC_MSG_CHECKING(whether MPI tests should be run)
