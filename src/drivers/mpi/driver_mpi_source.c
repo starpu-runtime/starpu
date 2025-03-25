@@ -286,11 +286,8 @@ void *_starpu_mpi_src_worker(void *arg)
 		/* unsigned memnode = baseworker->memory_node; */
 
 		_starpu_driver_start(baseworker, STARPU_CPU_WORKER, 0);
-
-#ifdef STARPU_USE_FXT
 		for (i = 1; i < worker_set->nworkers; i++)
-			_starpu_worker_start(&worker_set->workers[i], STARPU_MPI_MS_WORKER, 0);
-#endif
+			_starpu_trace_worker_init_start(&worker_set->workers[i], STARPU_MPI_MS_WORKER, 0);
 
 		// Current task for a thread managing a worker set has no sense.
 		_starpu_set_current_task(NULL);
@@ -314,7 +311,7 @@ void *_starpu_mpi_src_worker(void *arg)
 		for (i = 0; i < worker_set->nworkers; i++)
 		{
 			struct _starpu_worker *worker = &worker_set->workers[i];
-			_starpu_trace_worker_init_end(worker->workerid);
+			_starpu_trace_worker_init_end(worker, STARPU_MPI_MS_WORKER);
 		}
 
 		_starpu_src_common_init_switch_env(workersetnum);
