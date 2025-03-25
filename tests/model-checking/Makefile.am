@@ -21,8 +21,16 @@ EXTRA_DIST =		\
 	barrier.sh	\
 	starpu-mc.sh.in
 
-AM_CPPFLAGS = -I$(top_builddir)/src -I$(top_srcdir)/src -I$(top_builddir)/include -I$(top_srcdir)/include $(SIMGRID_CFLAGS)
-AM_LDFLAGS  = -Wl,-znorelro -Wl,-znoseparate-code
+AM_CFLAGS += $(APP_CFLAGS)
+AM_CXXFLAGS += $(APP_CXXFLAGS)
+AM_FFLAGS += $(APP_FFLAGS)
+AM_FCFLAGS += $(APP_FCFLAGS)
+AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/src -I$(top_srcdir)/src/ $(STARPU_H_CPPFLAGS) $(SIMGRID_CFLAGS)
+AM_LDFLAGS = -Wl,-znorelro -Wl,-znoseparate-code @STARPU_EXPORT_DYNAMIC@
+LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@ $(STARPU_EXPORTED_LIBS)
+LIBS += $(HWLOC_LIBS)
+LIBS += $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_HIP_LDFLAGS)
+LIBS += $(STARPU_MAX_FPGA_LDFLAGS)
 LIBS += $(SIMGRID_LDFLAGS)
 
 noinst_PROGRAMS = \
