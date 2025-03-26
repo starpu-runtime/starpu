@@ -33,6 +33,9 @@ int main(void)
 	unsigned passive_bindid1;
 	unsigned passive_bindid2;
 
+	if (starpu_getenv_number_default("STARPU_WORKERS_NOBIND", 0) > 0)
+		return STARPU_TEST_SKIPPED;
+
 	/* First get the number of cores */
 	starpu_conf_init(&conf);
 	conf.nmpi_ms = 0;
