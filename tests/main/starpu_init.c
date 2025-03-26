@@ -88,6 +88,7 @@ int main(void)
 	int cpu, cpu_init;
 	int cpu_test1, cpu_test2, cpu_test3;
 
+	unsetenv("STARPU_WORKERS_NOBIND");
 	unsetenv("STARPU_NCPUS");
 	unsetenv("STARPU_NCPU");
 
