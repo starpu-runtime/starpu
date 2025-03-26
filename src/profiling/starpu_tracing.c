@@ -1444,7 +1444,7 @@ int _starpu_trace_start_progress(unsigned memnode STARPU_ATTRIBUTE_UNUSED, struc
 #endif
 
 #ifdef STARPU_PROF_TOOL
-	if(starpu_prof_tool_callbacks.starpu_prof_tool_event_start_transfer)
+	if (worker && starpu_prof_tool_callbacks.starpu_prof_tool_event_start_transfer)
 	{
 		struct starpu_prof_tool_info pi;
 		enum starpu_prof_tool_driver_type driver_type;
@@ -1489,7 +1489,7 @@ int _starpu_trace_end_progress(unsigned memnode STARPU_ATTRIBUTE_UNUSED, struct 
 #endif
 
 #ifdef STARPU_PROF_TOOL
-	if(starpu_prof_tool_callbacks.starpu_prof_tool_event_end_transfer)
+	if(worker && starpu_prof_tool_callbacks.starpu_prof_tool_event_end_transfer)
 	{
 		struct starpu_prof_tool_info pi;
 		enum starpu_prof_tool_driver_type driver_type;
