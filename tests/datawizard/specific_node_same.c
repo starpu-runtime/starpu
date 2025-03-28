@@ -93,7 +93,12 @@ int main(void)
 		task->handles[1] = data_handle;
 
 		ret = starpu_task_submit(task);
-		if (ret == -ENODEV) goto enodev;
+		if (ret == -ENODEV)
+		{
+			task->destroy = 0;
+			starpu_task_destroy(task);
+			goto enodev;
+		}
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
