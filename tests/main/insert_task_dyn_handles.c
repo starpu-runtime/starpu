@@ -86,6 +86,9 @@ int test(int n, struct starpu_codelet *static_codelet)
 {
 	int i, ret;
 
+	// make sure dyn_nodes is set correctly
+	codelet.dyn_nodes = static_codelet->dyn_nodes;
+
 	for (i = 0; i < n; i++)
 		expected[i]++;
 	ret = starpu_task_insert(&codelet,
@@ -177,11 +180,13 @@ int main(void)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
 		/* Test more than NMAXBUFS */
+		codelet_plus1.dyn_nodes = calloc(STARPU_NMAXBUFS+1, sizeof(codelet_plus1.dyn_nodes[0]));
 		ret = test(STARPU_NMAXBUFS+1, &codelet_plus1);
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
 		/* Test yet more than NMAXBUFS */
+		codelet_plus5.dyn_nodes = calloc(STARPU_NMAXBUFS+5, sizeof(codelet_plus5.dyn_nodes[0]));
 		ret = test(STARPU_NMAXBUFS+5, &codelet_plus5);
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");

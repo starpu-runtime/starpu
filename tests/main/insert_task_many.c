@@ -128,6 +128,10 @@ int main(void)
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
+	codelet_dyn.dyn_nodes = calloc(NPARAMS, sizeof(*(codelet_dyn.nodes)));
+        codelet_toomany.dyn_nodes = calloc(NPARAMS, sizeof(*(codelet_toomany.nodes)));
+        codelet_variable.dyn_nodes = calloc(NPARAMS, sizeof(*(codelet_variable.nodes)));
+
 	codelet_dyn.dyn_modes = malloc(NPARAMS * sizeof(*(codelet_dyn.modes)));
 	codelet_dyn.dyn_modes[0] = STARPU_R,
 	codelet_dyn.dyn_modes[1] = STARPU_R,
