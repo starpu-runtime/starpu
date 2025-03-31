@@ -245,6 +245,9 @@ enodev:
 	starpu_shutdown();
 	free(data_handles);
 	free(codelet_dyn.dyn_modes);
+	free(codelet_dyn.dyn_nodes);
+        free(codelet_toomany.dyn_nodes);
+        free(codelet_variable.dyn_nodes);
 
 	if (ret == -ENODEV)
 	{
