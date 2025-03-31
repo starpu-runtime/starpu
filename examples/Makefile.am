@@ -384,15 +384,9 @@ STARPU_EXAMPLES +=				\
 	cholesky/cholesky_compil
 
 if STARPU_PARALLEL_WORKER
-if STARPU_HAVE_OPENMP
-if STARPU_HAVE_HWLOC
-if STARPU_HWLOC_HAVE_TOPOLOGY_DUP
-if STARPU_HWLOC_HAVE_TYPE_SSCANF
+if STARPU_HAVE_HWLOC_TYPE_SSCANF
 STARPU_EXAMPLES +=				\
 	cholesky/cholesky_pw
-endif
-endif
-endif
 endif
 endif
 
@@ -451,17 +445,7 @@ STARPU_EXAMPLES +=				\
 endif
 endif
 
-if STARPU_HAVE_OPENMP
-STARPU_EXAMPLES +=				\
-	openmp/vector_scal_omp			\
-	sched_ctx/sched_ctx_without_sched_policy\
-	sched_ctx/nested_sched_ctxs		\
-	sched_ctx/sched_ctx_without_sched_policy_awake\
-	sched_ctx/parallel_tasks_reuse_handle	\
-	sched_ctx/parallel_code
-
-if STARPU_HAVE_HWLOC
-if STARPU_HWLOC_HAVE_TOPOLOGY_DUP
+if STARPU_PARALLEL_WORKER
 STARPU_EXAMPLES +=					\
 	parallel_workers/parallel_workers		\
 	parallel_workers/parallel_workers_func		\
@@ -470,24 +454,21 @@ STARPU_EXAMPLES +=					\
 	parallel_workers/parallel_workers_oldapi
 
 parallel_workers_parallel_workers_CFLAGS = \
-	$(AM_CFLAGS) -fopenmp
+	$(AM_CFLAGS) $(OPENMP_CFLAGS)
 
 parallel_workers_parallel_workers_func_CFLAGS = \
-	$(AM_CFLAGS) -fopenmp
+	$(AM_CFLAGS) $(OPENMP_CFLAGS)
 
 parallel_workers_parallel_workers_dmda_CFLAGS = \
-	$(AM_CFLAGS) -fopenmp
+	$(AM_CFLAGS) $(OPENMP_CFLAGS)
 
 parallel_workers_parallel_workers_numa_CFLAGS = \
-	$(AM_CFLAGS) -fopenmp
+	$(AM_CFLAGS) $(OPENMP_CFLAGS)
 
 parallel_workers_parallel_workers_oldapi_CFLAGS = \
-	$(AM_CFLAGS) -fopenmp
+	$(AM_CFLAGS) $(OPENMP_CFLAGS)
 endif
 endif
-endif
-
-endif !STARPU_SIMGRID
 
 if STARPU_USE_CUDA
 STARPU_EXAMPLES +=				\
@@ -1585,20 +1566,30 @@ endif
 ##################
 
 if STARPU_HAVE_OPENMP
+STARPU_EXAMPLES +=				\
+	openmp/vector_scal_omp			\
+	sched_ctx/sched_ctx_without_sched_policy\
+	sched_ctx/nested_sched_ctxs		\
+	sched_ctx/sched_ctx_without_sched_policy_awake\
+	sched_ctx/parallel_tasks_reuse_handle	\
+	sched_ctx/parallel_code
+endif
+
+if STARPU_HAVE_OPENMP
 openmp_vector_scal_omp_CFLAGS = \
-	$(AM_CFLAGS) -fopenmp
+	$(AM_CFLAGS) $(OPENMP_CFLAGS)
 
 sched_ctx_parallel_code_CFLAGS = \
-	$(AM_CFLAGS) -fopenmp
+	$(AM_CFLAGS) $(OPENMP_CFLAGS)
 
 sched_ctx_sched_ctx_without_sched_policy_CFLAGS = \
-	$(AM_CFLAGS) -fopenmp
+	$(AM_CFLAGS) $(OPENMP_CFLAGS)
 
 sched_ctx_nested_sched_ctxs_CFLAGS = \
-	$(AM_CFLAGS) -fopenmp
+	$(AM_CFLAGS) $(OPENMP_CFLAGS)
 
 sched_ctx_parallel_tasks_reuse_handle_CFLAGS = \
-	$(AM_CFLAGS) -fopenmp
+	$(AM_CFLAGS) $(OPENMP_CFLAGS)
 
 endif
 

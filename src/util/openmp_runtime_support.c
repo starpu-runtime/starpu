@@ -1148,7 +1148,7 @@ static void omp_initial_region_exit(void)
 }
 
 /*
- * If StarPU was compiled with --enable-openmp, but the OpenMP runtime support
+ * If StarPU was compiled with --enable-starpu-openmp, but the OpenMP runtime support
  * is not in use, starpu_init() may have been called directly instead of
  * through starpu_omp_init(). However, some starpu_omp functions may be still
  * be called such as _starpu_omp_get_task(). So let's setup a basic environment

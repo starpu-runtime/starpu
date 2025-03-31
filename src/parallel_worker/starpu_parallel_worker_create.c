@@ -19,6 +19,7 @@
  * hwloc software.
  */
 
+#include <starpu_config.h>
 #include <parallel_worker/starpu_parallel_worker_create.h>
 
 #ifdef STARPU_PARALLEL_WORKER

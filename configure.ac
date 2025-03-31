@@ -93,6 +93,9 @@ AC_CHECK_PROGS(PROG_STAT,gstat stat)
 AC_CHECK_PROGS(PROG_DATE,gdate date)
 AC_PATH_PROGS(PROG_FIND,find)
 AC_CHECK_PROGS(PROG_CLANG,clang)
+AC_OPENMP
+
+AM_CONDITIONAL(STARPU_HAVE_OPENMP, test "x$OPENMP_CFLAGS" != "x")
 
 AC_CACHE_CHECK([for parallel that supports semaphores with exit code], [ac_cv_path_PARALLEL],
   [AC_PATH_PROGS_FEATURE_CHECK([PARALLEL], [parallel],
@@ -3465,7 +3468,7 @@ AC_MSG_RESULT($enable_openmp_llvm $openmp_llvm_msg)
 #                                                                             #
 ###############################################################################
 
-AC_ARG_ENABLE(openmp, [AS_HELP_STRING([--enable-openmp],
+AC_ARG_ENABLE(openmp, [AS_HELP_STRING([--enable-starpu-openmp],
 			[build the OpenMP runtime support])],
 			enable_openmp=$enableval, enable_openmp=no)
 
@@ -3489,51 +3492,9 @@ if test x$enable_openmp = xyes; then
 	AC_DEFINE(STARPU_OPENMP, [1], [Define this to enable OpenMP runtime support])
 fi
 
-AC_MSG_CHECKING(for OpenMP runtime support)
+AC_MSG_CHECKING(for StarPU OpenMP runtime support)
 AM_CONDITIONAL([STARPU_OPENMP], [test "x$enable_openmp" = "xyes"])
 AC_MSG_RESULT($enable_openmp $openmp_msg)
-
-AM_CONDITIONAL([STARPU_HAVE_OPENMP],[test x$enable_simgrid = xno -a -n "$OPENMP_CFLAGS" -a x$starpu_windows != xyes])
-
-########################################################################
-#                                                                      #
-#                     Parallel worker support                          #
-#                                                                      #
-########################################################################
-
-default_enable_parallel_worker=maybe
-parallel_worker_error=""
-if test x$enable_openmp = xno ; then
-   parallel_worker_error="as OpenMP is disabled"
-   default_enable_parallel_worker=no
-fi
-if test x$starpu_darwin = xyes ; then
-   parallel_worker_error="as running on Darwin architecture"
-   default_enable_parallel_worker=no
-fi
-
-AC_ARG_ENABLE(parallel-worker, [AS_HELP_STRING([--enable-parallel-worker], [build the parallel worker support])],
-			enable_parallel_worker=$enableval, enable_parallel_worker=$default_enable_parallel_worker)
-
-AC_MSG_CHECKING(for parallel worker support)
-
-if test x$enable_parallel_worker = xyes; then
-   if test "x$parallel_worker_error" != "x" ; then
-      AC_MSG_ERROR([Parallel workers requested but not available $parallel_worker_error])
-   fi
-fi
-
-if test x$enable_parallel_worker = xmaybe; then
-   enable_parallel_worker=yes
-fi
-
-if test x$enable_parallel_worker = xyes; then
-	AC_DEFINE(STARPU_PARALLEL_WORKER, [1], [Define this to enable parallel worker support])
-	AC_OPENMP
-fi
-
-AM_CONDITIONAL([STARPU_PARALLEL_WORKER], [test "x$enable_parallel_worker" = "xyes"])
-AC_MSG_RESULT($enable_parallel_worker)
 
 ###############################################################################
 #                                                                             #
@@ -4017,10 +3978,10 @@ AC_CHECK_FUNCS([hwloc_topology_dup])
 AC_CHECK_FUNCS([hwloc_topology_set_components])
 AC_CHECK_FUNCS([hwloc_cpukinds_get_nr])
 AC_CHECK_FUNCS([hwloc_get_area_memlocation])
-AM_CONDITIONAL(STARPU_HWLOC_HAVE_TOPOLOGY_DUP, test $ac_cv_func_hwloc_topology_dup = yes)
+AM_CONDITIONAL(STARPU_HAVE_HWLOC_TOPOLOGY_DUP, test $ac_cv_func_hwloc_topology_dup = yes)
 
 AC_CHECK_FUNCS([hwloc_type_sscanf])
-AM_CONDITIONAL(STARPU_HWLOC_HAVE_TYPE_SSCANF, test $ac_cv_func_hwloc_type_sscanf = yes)
+AM_CONDITIONAL(STARPU_HAVE_HWLOC_TYPE_SSCANF, test $ac_cv_func_hwloc_type_sscanf = yes)
 
 LIBS="${SAVED_LIBS}"
 CPPFLAGS="${SAVED_CPPFLAGS}"
@@ -4029,6 +3990,50 @@ export PKG_CONFIG_PATH=$SAVED_PKG_CONFIG_PATH
 AC_MSG_CHECKING(whether hwloc should be used)
 AC_MSG_RESULT($have_valid_hwloc)
 AC_SUBST(HWLOC_REQUIRES)
+
+########################################################################
+#                                                                      #
+#                     Parallel worker support                          #
+#                                                                      #
+########################################################################
+
+default_enable_parallel_worker=maybe
+parallel_worker_error=""
+if test "x$OPENMP_CFLAGS" = "x"  ; then
+   parallel_worker_error="as OpenMP is disabled"
+   default_enable_parallel_worker=no
+fi
+if test x$starpu_darwin = xyes ; then
+   parallel_worker_error="as running on Darwin architecture"
+   default_enable_parallel_worker=no
+fi
+if test x$ac_cv_func_hwloc_topology_dup != xyes
+then
+   parallel_worker_error="as function hwloc_topology_dup is not available"
+   default_enable_parallel_worker=no
+fi
+
+AC_ARG_ENABLE(parallel-worker, [AS_HELP_STRING([--enable-parallel-worker], [build the parallel worker support])],
+			enable_parallel_worker=$enableval, enable_parallel_worker=$default_enable_parallel_worker)
+
+AC_MSG_CHECKING(for parallel worker support)
+
+if test x$enable_parallel_worker = xyes; then
+   if test "x$parallel_worker_error" != "x" ; then
+      AC_MSG_ERROR([Parallel workers requested but not available $parallel_worker_error])
+   fi
+fi
+
+if test x$enable_parallel_worker = xmaybe; then
+   enable_parallel_worker=yes
+fi
+
+if test x$enable_parallel_worker = xyes; then
+   AC_DEFINE(STARPU_PARALLEL_WORKER, [1], [Define this to enable parallel worker support])
+fi
+
+AM_CONDITIONAL([STARPU_PARALLEL_WORKER], [test "x$enable_parallel_worker" = "xyes"])
+AC_MSG_RESULT($enable_parallel_worker)
 
 # is the header file f77.h available ?
 AC_CHECK_HEADER([f77.h], [have_f77_h=yes], [have_f77_h=no])

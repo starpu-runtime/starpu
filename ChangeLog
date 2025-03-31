@@ -31,6 +31,8 @@ Small changes:
   * Check CUDA and HIP pointers on on-GPU data registration.
   * STARPU_MPI_REDUX definition also sets STARPU_RW | STARPU_COMMUTE
     and codelet mode can match task_insert mode
+  * Configure option to enable StarPU OpenMP runtime support has been
+    renamed (from --enable-openmp) to --enable-starpu-openmp
 
 New features:
   * Add starpu_data_register_victim_selector to let schedulers select eviction

@@ -405,13 +405,9 @@ if STARPU_HAVE_HWLOC
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += \
 	sched_policies/scheduler_maker.c			\
 	sched_policies/hierarchical_heft.c
-if STARPU_HWLOC_HAVE_TOPOLOGY_DUP
-if STARPU_HAVE_OPENMP
-libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += parallel_worker/starpu_parallel_worker_create.c
-endif
-endif
 endif
 
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += parallel_worker/starpu_parallel_worker_create.c
 
 #########################################
 #										#

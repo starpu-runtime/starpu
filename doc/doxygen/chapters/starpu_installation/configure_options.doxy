@@ -541,11 +541,11 @@ Disable the SOCL extension (\ref SOCLOpenclExtensions).  By
 default, it is enabled when an OpenCL implementation is found.
 </dd>
 
-<dt>--enable-openmp</dt>
+<dt>--enable-starpu-openmp</dt>
 <dd>
-\anchor enable-openmp
-\addindex __configure__--enable-openmp
-Enable OpenMP Support (\ref OpenMPRuntimeSupport)
+\anchor enable-starpu-openmp
+\addindex __configure__--enable-starpu-openmp
+Enable StarPU OpenMP Support (\ref OpenMPRuntimeSupport)
 </dd>
 
 <dt>--enable-openmp-llvm</dt>

@@ -51,7 +51,7 @@ SORS API functions inherit from extended semantics.
 \section OMPConfiguration Configuration
 
 SORS can be compiled into <c>libstarpu</c> through
-the \c configure option \ref enable-openmp "--enable-openmp".
+the \c configure option \ref enable-starpu-openmp "--enable-starpu-openmp".
 Conditional compiled source codes may check for the
 availability of the OpenMP Runtime Support by testing whether the C
 preprocessor macro <c>STARPU_OPENMP</c> is defined or not.
