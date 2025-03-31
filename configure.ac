@@ -3997,7 +3997,7 @@ AC_SUBST(HWLOC_REQUIRES)
 #                                                                      #
 ########################################################################
 
-default_enable_parallel_worker=maybe
+default_enable_parallel_worker=no
 parallel_worker_error=""
 if test "x$OPENMP_CFLAGS" = "x"  ; then
    parallel_worker_error="as OpenMP is disabled"
@@ -4024,16 +4024,12 @@ if test x$enable_parallel_worker = xyes; then
    fi
 fi
 
-if test x$enable_parallel_worker = xmaybe; then
-   enable_parallel_worker=yes
-fi
-
 if test x$enable_parallel_worker = xyes; then
    AC_DEFINE(STARPU_PARALLEL_WORKER, [1], [Define this to enable parallel worker support])
 fi
 
 AM_CONDITIONAL([STARPU_PARALLEL_WORKER], [test "x$enable_parallel_worker" = "xyes"])
-AC_MSG_RESULT($enable_parallel_worker)
+AC_MSG_RESULT($enable_parallel_worker $parallel_worker_error)
 
 # is the header file f77.h available ?
 AC_CHECK_HEADER([f77.h], [have_f77_h=yes], [have_f77_h=no])
