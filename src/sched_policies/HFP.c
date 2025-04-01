@@ -91,7 +91,8 @@ void _starpu_visu_init()
 static char *_get_path(const char *name)
 {
 	int size = strlen(_output_directory) + strlen(name) + 2;
-	char *path = malloc(size);
+	char *path;
+	_STARPU_MALLOC(ptr, size);
 	snprintf(path, size, "%s/%s", _output_directory, name);
 	return path;
 }
@@ -122,7 +123,8 @@ void _starpu_HFP_initialize_global_variable(struct starpu_task *task)
 /* Put a link at the beginning of the linked list */
 void _starpu_HFP_insertion(struct _starpu_HFP_paquets *a)
 {
-	struct _starpu_HFP_my_list *new = malloc(sizeof(*new)); /* Creation of a new link */
+	struct _starpu_HFP_my_list *new;
+	_STARPU_MALLOC(new, sizeof(*new)); /* Creation of a new link */
 	starpu_task_list_init(&new->sub_list);
 	new->next = a->temp_pointer_1;
 	new->nb_task_in_sub_list = 0;
@@ -251,8 +253,8 @@ static void get_ordre_utilisation_donnee(struct _starpu_HFP_paquets* a, int nb_g
 				if (STARPU_TASK_GET_HANDLE(task, i)->sched_data == NULL) /* If it's empty I create the list in the handle */
 				{
 					/* J'initialise à vide la liste pour chaque case du tableau */
-					b = malloc(sizeof(*b));
-					b->next_use_tab = malloc(sizeof(*b->next_use_tab));
+					_STARPU_MALLOC(b, sizeof(*b));
+					_STARPU_MALLOC(b->next_use_tab, sizeof(*b->next_use_tab));
 					for (j = 0; j < nb_gpu; j++)
 					{
 						b->next_use_tab[j] = _starpu_HFP_next_use_by_gpu_list_new();
@@ -2947,16 +2949,14 @@ static struct starpu_task_list hierarchical_fair_packing_one_task_list (struct s
 										}
 										else if (max_common_data_last_package == common_data_last_package_i2_j2)
 										{
-											//~ if (_print_in_terminal == 1) { printf("SWITCH PAQUET J\n"); }
 											paquets_data->temp_pointer_2 = HFP_reverse_sub_list(paquets_data->temp_pointer_2);
 										}
 										else
-										{ /* max_common_data_last_package == common_data_last_package_i1_j1 */
-											//~ if (_print_in_terminal == 1) { printf("SWITCH PAQUET I\n"); }
+										{
+											/* max_common_data_last_package == common_data_last_package_i1_j1 */
 											paquets_data->temp_pointer_1 = HFP_reverse_sub_list(paquets_data->temp_pointer_1);
 										}
 									}
-									//~ if (_print_in_terminal == 1) { printf("Fin de l'ordre U sans doublons\n"); }
 								}
 
 								paquets_data->temp_pointer_1->split_last_ij = paquets_data->temp_pointer_1->nb_task_in_sub_list;
@@ -3044,8 +3044,10 @@ static struct starpu_task_list hierarchical_fair_packing_one_task_list (struct s
 		/* Code to get the coordinates of each data in the order in which tasks get out of pull_task */
 		while (paquets_data->temp_pointer_1 != NULL)
 		{
-			/* if ((strcmp(_starpu_HFP_appli,"starpu_sgemm_gemm") == 0) && (_print_in_terminal == 1)) {
-			   for (task = starpu_task_list_begin(&paquets_data->temp_pointer_1->sub_list); task != starpu_task_list_end(&paquets_data->temp_pointer_1->sub_list); task  = starpu_task_list_next(task)) {
+			/* if ((strcmp(_starpu_HFP_appli,"starpu_sgemm_gemm") == 0) && (_print_in_terminal == 1))
+			   {
+			   for (task = starpu_task_list_begin(&paquets_data->temp_pointer_1->sub_list); task != starpu_task_list_end(&paquets_data->temp_pointer_1->sub_list); task  = starpu_task_list_next(task))
+			   {
 			   starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task,2),2,temp_tab_coordinates);
 			   coordinate_visualization_matrix[temp_tab_coordinates[0]][temp_tab_coordinates[1]] = NT - paquets_data->temp_pointer_1->index_package - 1;
 			   coordinate_order_visualization_matrix[temp_tab_coordinates[0]][temp_tab_coordinates[1]] = tab_runner;

@@ -619,7 +619,8 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 		unsigned n, i, first, last, weight;
 		int ret;
 
-		do {
+		do
+		{
 			/* Get the process binding (e.g. provided by the job scheduler) */
 			ret = hwloc_get_cpubind(topology->hwtopology, cpuset, HWLOC_CPUBIND_THREAD);
 			if (ret)

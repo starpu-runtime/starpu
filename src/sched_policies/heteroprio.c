@@ -2151,7 +2151,8 @@ This warning will only be displayed once.\n");
 	else
 	{
 		if (workerid == (unsigned)-1)
-		{ /*master thread */
+		{
+			/* master thread */
 			best_mem_node = hp->master_tasks_queue_idx;
 		}
 		else

@@ -403,7 +403,8 @@ static void _starpu_exponential_backoff(struct _starpu_worker *worker)
 	if (worker->spinning_backoff < worker->config->conf.driver_spinning_backoff_max)
 		worker->spinning_backoff<<=1;
 
-	while(delay--) {
+	while(delay--)
+	{
 #ifdef STARPU_NOSV
 		if (worker->arch == STARPU_CPU_WORKER)
 		{
