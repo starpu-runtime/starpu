@@ -61,7 +61,8 @@ struct random_order_sched_data
 /* Put a link at the beginning of the linked list */
 static void random_order_insertion(struct random_order_sched_data *a)
 {
-	struct my_list *new = malloc(sizeof(*new)); /* Creation of a new link */
+	struct my_list *new;
+	_STARPU_MALLOC(new, sizeof(*new)); /* Creation of a new link */
 	starpu_task_list_init(&new->sub_list);
 	new->next = a->temp_pointer_1;
 	a->temp_pointer_1 = new;
@@ -202,6 +203,7 @@ static struct starpu_task *random_order_pull_task(struct starpu_sched_component 
 			int time_taken = end - start;
 			if (starpu_get_env_number_default("PRINTF",0) == 1) printf("Temps d'exec : %d secondes\n",time_taken);
 			FILE *f_time = fopen("Output_maxime/Execution_time_raw.txt","a");
+			STARPU_ASSERT_MSG(f_time, "cannot open file <%s>\n", "Output_maxime/Execution_time_raw.txt");
 			fprintf(f_time,"%d\n",time_taken);
 			fclose(f_time);
 
@@ -278,7 +280,8 @@ struct starpu_sched_component *starpu_sched_component_random_order_create(struct
 	starpu_task_list_init(&data->popped_task_list);
 	starpu_task_list_init(&data->random_list);
 
-	struct my_list *my_data = malloc(sizeof(*my_data));
+	struct my_list *my_data;
+	_STARPU_MALLOC(my_data, sizeof(*my_data));
 	my_data->next = NULL;
 	starpu_task_list_init(&my_data->sub_list);
 	data->temp_pointer_1 = my_data;

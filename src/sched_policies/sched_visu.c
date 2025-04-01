@@ -116,6 +116,7 @@ void _sched_visu_print_data_to_load_prefetch(struct starpu_task *task, int gpu_i
 			f2 = fopen(path, "a");
 		}
 		STARPU_ASSERT_MSG(f2, "cannot open file <%s>\n", path);
+
 		if (_print3d != 0)
 		{
 			starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, tab_coordinates);
@@ -143,6 +144,7 @@ void _sched_visu_print_data_to_load_prefetch(struct starpu_task *task, int gpu_i
 		{
 			f2 = fopen(path, "a");
 		}
+		STARPU_ASSERT(f2, "could not open file <%s>", path);
 
 		/* Impression du type de tâche. */
 		if (strcmp(starpu_task_get_name(task), "POTRF") == 0)
@@ -246,6 +248,8 @@ void _sched_visu_pop_ready_task(struct starpu_task *task)
 			{
 				f2 = fopen(path, "a");
 			}
+			STARPU_ASSERT(f2, "could not open file <%s>", path);
+
 			if (_print3d != 0)
 			{
 				starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, tab_coordinates);
@@ -274,6 +278,7 @@ void _sched_visu_pop_ready_task(struct starpu_task *task)
 			{
 				f2 = fopen(path, "a");
 			}
+			STARPU_ASSERT(f2, "could not open file <%s>", path);
 
 			/* Impression du type de tâche. */
 			if (strcmp(starpu_task_get_name(task), "chol_model_11") == 0 || strcmp(starpu_task_get_name(task), "POTRF") == 0)
@@ -384,6 +389,8 @@ struct starpu_task *_sched_visu_get_data_to_load(unsigned sched_ctx)
 			{
 				f2 = fopen(path, "a");
 			}
+			STARPU_ASSERT(f2, "could not open file <%s>", path);
+
 			if (_print3d != 0)
 			{
 				starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, tab_coordinates);
@@ -411,6 +418,7 @@ struct starpu_task *_sched_visu_get_data_to_load(unsigned sched_ctx)
 			{
 				f2 = fopen(path, "a");
 			}
+			STARPU_ASSERT(f2, "could not open file <%s>", path);
 
 			/* Impression du type de tâche. */
 			if (strcmp(starpu_task_get_name(task), "chol_model_11") == 0 || strcmp(starpu_task_get_name(task), "POTRF") == 0)
@@ -482,6 +490,8 @@ void _sched_visu_print_effective_order_in_file(struct starpu_task *task, int ind
 		{
 			f = fopen(path, "a");
 		}
+		STARPU_ASSERT(f, "could not open file <%s>", path);
+
 		/* Pour matrice 3D je récupère la coord de Z aussi */
 		if (_print3d != 0)
 		{
@@ -527,6 +537,7 @@ void _sched_visu_print_effective_order_in_file(struct starpu_task *task, int ind
 		{
 			f = fopen(path, "a");
 		}
+		STARPU_ASSERT(f, "could not open file <%s>", path);
 
 		/* Impression du type de tâche. */
 		if (strcmp(starpu_task_get_name(task), "chol_model_11") == 0 || strcmp(starpu_task_get_name(task), "POTRF") == 0)

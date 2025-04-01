@@ -1213,9 +1213,9 @@ profiling:
 		task->prologue_callback_pop_func(task->prologue_callback_pop_arg);
 		_starpu_set_current_task(NULL);
 	}
-	
+
 	_sched_visu_pop_ready_task(task);
-	
+
 	return task;
 }
 

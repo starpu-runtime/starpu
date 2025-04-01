@@ -42,3 +42,4 @@ leak:PyInit__multiarray_umath
 leak:_abc__abc_init
 leak:marshal_loads
 # leak:PyTuple_New
+leak:set_cb_loop

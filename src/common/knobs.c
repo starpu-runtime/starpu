@@ -392,7 +392,6 @@ static void set_listener(struct starpu_perf_counter_sample *sample, struct starp
 	_starpu_spin_unlock(&sample->lock);
 }
 
-
 void starpu_perf_counter_set_global_listener(struct starpu_perf_counter_listener *listener)
 {
 	set_listener(&global_sample, listener);
