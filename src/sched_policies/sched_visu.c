@@ -490,7 +490,7 @@ void _sched_visu_print_effective_order_in_file(struct starpu_task *task, int ind
 		{
 			f = fopen(path, "a");
 		}
-		STARPU_ASSERT(f, "could not open file <%s>", path);
+		STARPU_ASSERT_MSG(f, "could not open file <%s>", path);
 
 		/* Pour matrice 3D je récupère la coord de Z aussi */
 		if (_print3d != 0)
@@ -537,7 +537,7 @@ void _sched_visu_print_effective_order_in_file(struct starpu_task *task, int ind
 		{
 			f = fopen(path, "a");
 		}
-		STARPU_ASSERT(f, "could not open file <%s>", path);
+		STARPU_ASSERT_MSG(f, "could not open file <%s>", path);
 
 		/* Impression du type de tâche. */
 		if (strcmp(starpu_task_get_name(task), "chol_model_11") == 0 || strcmp(starpu_task_get_name(task), "POTRF") == 0)
