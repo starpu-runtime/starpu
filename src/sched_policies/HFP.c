@@ -92,7 +92,7 @@ static char *_get_path(const char *name)
 {
 	int size = strlen(_output_directory) + strlen(name) + 2;
 	char *path;
-	_STARPU_MALLOC(ptr, size);
+	_STARPU_MALLOC(path, size);
 	snprintf(path, size, "%s/%s", _output_directory, name);
 	return path;
 }
