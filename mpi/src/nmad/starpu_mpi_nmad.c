@@ -142,6 +142,7 @@ void _starpu_mpi_isend_func(struct _starpu_mpi_req *req)
 
 	if (req->registered_datatype == 1)
 	{
+		/* We can give the handle pointer directly to NewMadeleine */
 		req->count = 1;
 		req->ptr = starpu_data_handle_to_pointer(req->data_handle, req->node);
 
@@ -149,6 +150,7 @@ void _starpu_mpi_isend_func(struct _starpu_mpi_req *req)
 	}
 	else
 	{
+		/* More complex case: we need a starpu_data_pack_node() and to send the actual data size to the receiver */
 		_starpu_mpi_isend_unknown_datatype(req);
 	}
 
@@ -191,12 +193,16 @@ void _starpu_mpi_irecv_func(struct _starpu_mpi_req *req)
 	_starpu_mpi_datatype_allocate(req->data_handle, req);
 	if (req->registered_datatype == 1)
 	{
+		/* We can give the handle pointer directly to NewMadeleine */
 		req->count = 1;
 		req->ptr = starpu_data_handle_to_pointer(req->data_handle, req->node);
+
 		_starpu_mpi_irecv_known_datatype(req);
 	}
 	else
 	{
+		/* More complex case: we need to first get the actual size of data we
+		 * will receive, allocate the buffer, and to a starpu_data_unpack_node() */
 		_starpu_mpi_irecv_unknown_datatype(req);
 	}
 

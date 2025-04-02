@@ -15,9 +15,9 @@
  */
 
 #include <starpu_mpi.h>
-#include <interface/complex_interface.h>
+#include <interface/complex_interface.h> // From examples/
 #include <interface/complex_codelet.h>
-#include <user_defined_datatype_value.h>
+#include <user_defined_datatype_value.h> // From mpi/tests/
 #include "helper.h"
 
 #ifdef STARPU_QUICK_CHECK
@@ -149,8 +149,11 @@ int main(int argc, char **argv)
 			}
 			for(i=0 ; i<ELEMENTS ; i++)
 			{
+				// Complex and value interfaces are "unknown data interfaces",
+				// without support for direct conversion to a regular MPI datatype
 				starpu_complex_data_register(&handle_complex[i], STARPU_MAIN_RAM, real[i], imaginary[i], 2);
 				starpu_value_data_register(&handle_values[i], STARPU_MAIN_RAM, &values[i]);
+				// Variable interface is a built-in StarPU data interface which is directly converted to an MPI datatype
 				starpu_variable_data_register(&handle_vars[i], STARPU_MAIN_RAM, (uintptr_t)&foo[i], sizeof(float));
 			}
 

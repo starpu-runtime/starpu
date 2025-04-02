@@ -38,6 +38,10 @@ void _starpu_mpi_isend_prepare_unknown_datatype(struct _starpu_mpi_req* req, str
 
 	starpu_data_pack_node(req->data_handle, req->node, &req->ptr, &req->count);
 
+	/* The receiver may not know the size of the data it will receive (there
+	 * are data interfaces which allow to change buffer sizes during task
+	 * execution, look for "Data Interface with Variable Size" in the
+	 * documentation), so we need to send the actual data size to the receiver: */
 	req->backend->unknown_datatype_v[0].iov_base = &req->count;
 	req->backend->unknown_datatype_v[0].iov_len = sizeof(starpu_ssize_t);
 	req->backend->unknown_datatype_v[1].iov_base = req->ptr;
@@ -98,7 +102,12 @@ static void _starpu_mpi_unknown_datatype_recv_callback(nm_sr_event_t event, cons
 
 	if (event & NM_SR_EVENT_RECV_DATA)
 	{
-		// Header arrived, so get the size of the datatype and store it in req->count:
+		/* Header arrived, so get the size of the datatype and store it in req->count:
+		 *
+		 * (there are data interfaces which allow to change buffer sizes during
+		 * task execution, so receiver may not know the size of the data it
+		 * will receive, even with the sequential task flow -- look for "Data
+		 * Interface with Variable Size" in the documentation) */
 		struct nm_data_s data_header;
 		nm_data_contiguous_build(&data_header, &req->count, sizeof(starpu_ssize_t));
 		nm_sr_recv_peek(req->backend->session, &req->backend->data_request, &data_header);
