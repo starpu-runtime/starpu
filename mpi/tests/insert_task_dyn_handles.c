@@ -95,7 +95,6 @@ int main(int argc, char **argv)
 	starpu_variable_data_register(&factor_handle, STARPU_MAIN_RAM, (uintptr_t)&factor, sizeof(factor));
 	starpu_mpi_data_register(factor_handle, FFACTOR, 1);
 
-	codelet.dyn_nodes = calloc(STARPU_NMAXBUFS+15, sizeof(codelet.dyn_nodes[0]));
 	for (loop = 0; loop < nloops; loop++)
 	{
 		ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &codelet,
@@ -124,7 +123,6 @@ enodev:
 
 	free(data_handles);
 	free(descrs);
-	free(codelet.dyn_nodes);
 
 	if (ret == -ENODEV)
 	{

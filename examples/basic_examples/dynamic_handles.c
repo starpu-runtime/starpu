@@ -87,6 +87,7 @@ int main(void)
 
 	starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&val, sizeof(int));
 
+
 	/* This tests a small constant number of arguments with starpu_task_submit */
 	task = starpu_task_create();
 	task->synchronous = 1;
@@ -101,8 +102,8 @@ int main(void)
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
+
 	/* This tests a large constant number of arguments with starpu_task_submit */
-	dummy_big_cl.dyn_nodes = calloc(dummy_big_cl.nbuffers, sizeof(dummy_big_cl.dyn_nodes[0]));
 	task2 = starpu_task_create();
 	task2->synchronous = 1;
 	task2->cl = &dummy_big_cl;
@@ -121,8 +122,8 @@ int main(void)
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
+
 	/* This tests a large variable number of arguments with starpu_task_submit */
-	dummy_variable_cl.dyn_nodes = calloc(dummy_big_cl.nbuffers, sizeof(dummy_big_cl.dyn_nodes[0]));
 	task3 = starpu_task_create();
 	task3->synchronous = 1;
 	task3->cl = &dummy_variable_cl;
@@ -142,6 +143,7 @@ int main(void)
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
+
 	/* This tests a small number of arguments with starpu_task_insert */
 	ret = starpu_task_insert(&dummy_small_cl,
 				 STARPU_VALUE, &(dummy_small_cl.nbuffers), sizeof(dummy_small_cl.nbuffers),
@@ -151,6 +153,7 @@ int main(void)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	ret = starpu_task_wait_for_all();
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
+
 
 	/* This tests a large constant number of arguments with starpu_task_insert */
 	descrs = malloc(dummy_big_cl.nbuffers * sizeof(struct starpu_data_descr));
@@ -169,6 +172,7 @@ int main(void)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 	free(descrs);
 
+
 	/* This tests a large variable number of arguments with starpu_task_insert */
 	descrs = malloc(dummy_big_cl.nbuffers * sizeof(struct starpu_data_descr));
 	for(i=0 ; i<dummy_big_cl.nbuffers ; i++)
@@ -185,8 +189,7 @@ int main(void)
 	ret = starpu_task_wait_for_all();
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 	free(descrs);
-	free(dummy_big_cl.dyn_nodes);
-	free(dummy_variable_cl.dyn_nodes);
+
 
 	starpu_data_unregister(handle);
 	starpu_shutdown();
