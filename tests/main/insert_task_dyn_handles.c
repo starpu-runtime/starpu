@@ -319,8 +319,6 @@ int main(void)
 	}
 
 enodev:
-	free(codelet_plus1.dyn_nodes);
-	free(codelet_plus5.dyn_nodes);
         for(i=0 ; i<STARPU_NMAXBUFS+5 ; i++)
 	{
                 starpu_data_unregister(data_handles[i]);
