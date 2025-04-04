@@ -419,7 +419,7 @@ int _fstarpu_mpi_task_insert_v(MPI_Comm comm, struct starpu_codelet *codelet, vo
 	struct starpu_data_descr *descrs;
 	int nb_data;
 	int prio;
-	int exchange_needed;
+	int exchange_needed=0;
 
 	starpu_mpi_comm_rank(comm, &me);
 	ret = _fstarpu_mpi_task_build_v(comm, codelet, &task, &xrank, &descrs, &nb_data, &prio, &exchange_needed, arglist);

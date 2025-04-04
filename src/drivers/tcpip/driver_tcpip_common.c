@@ -66,7 +66,7 @@ static int index_sink = 0;
 
 int _starpu_tcpip_common_multiple_thread;
 
-static int is_running;
+static int is_running=0;
 
 static struct _starpu_spinlock ListLock;
 
@@ -1389,7 +1389,8 @@ void _starpu_tcpip_common_measure_bandwidth_latency(double timing_dtod[STARPU_MA
 	_STARPU_MALLOC(buf, SIZE_BANDWIDTH);
 	memset(buf, 0, SIZE_BANDWIDTH);
 
-	_starpu_tcpip_common_mp_init();
+	if (!is_running)
+		_starpu_tcpip_common_mp_init();
 
 	int sender, receiver;
 	for(sender = 0; sender < nb_sink+1; sender++)
