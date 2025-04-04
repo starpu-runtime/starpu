@@ -93,7 +93,6 @@ AC_CHECK_PROGS(PROG_STAT,gstat stat)
 AC_CHECK_PROGS(PROG_DATE,gdate date)
 AC_PATH_PROGS(PROG_FIND,find)
 AC_CHECK_PROGS(PROG_CLANG,clang)
-AC_OPENMP
 
 AM_CONDITIONAL(STARPU_HAVE_OPENMP, test "x$OPENMP_CFLAGS" != "x")
 
@@ -3999,10 +3998,6 @@ AC_SUBST(HWLOC_REQUIRES)
 
 default_enable_parallel_worker=no
 parallel_worker_error=""
-if test "x$OPENMP_CFLAGS" = "x"  ; then
-   parallel_worker_error="as OpenMP is disabled"
-   default_enable_parallel_worker=no
-fi
 if test x$starpu_darwin = xyes ; then
    parallel_worker_error="as running on Darwin architecture"
    default_enable_parallel_worker=no
@@ -4019,6 +4014,10 @@ AC_ARG_ENABLE(parallel-worker, [AS_HELP_STRING([--enable-parallel-worker], [buil
 AC_MSG_CHECKING(for parallel worker support)
 
 if test x$enable_parallel_worker = xyes; then
+   AC_OPENMP
+   if test "x$OPENMP_CFLAGS" = "x"  ; then
+      parallel_worker_error="as OpenMP is disabled"
+   fi
    if test "x$parallel_worker_error" != "x" ; then
       AC_MSG_ERROR([Parallel workers requested but not available $parallel_worker_error])
    fi
