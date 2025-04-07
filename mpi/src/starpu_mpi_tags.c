@@ -53,6 +53,24 @@ void _starpu_mpi_tags_init(void)
 	}
 }
 
+int64_t starpu_mpi_tags_get_next_value()
+{
+	struct starpu_tags_range *current = cst_first;
+	int64_t min = 0;
+	int64_t max = (current == NULL) ? _starpu_tags_ub : current->min;
+
+	STARPU_ASSERT(_starpu_tags_ub != 0); /* StarPU tag must be initialized */
+
+	while (((max - min) < 1) && (current != NULL))
+	{
+		min = current->max;
+		current = current->next;
+		max = (current == NULL) ? _starpu_tags_ub : current->min;
+	}
+
+	return min;
+}
+
 int64_t starpu_mpi_tags_allocate(int64_t nbtags)
 {
 	struct starpu_tags_range *new;
@@ -95,7 +113,7 @@ int64_t starpu_mpi_tags_allocate(int64_t nbtags)
 		prev->next = new;
 	}
 
-	_STARPU_MPI_DEBUG(0, "Allocates tag range %ld - %ld\n", min, min + nbtags);
+	_STARPU_MPI_DEBUG(0, "Allocates tag range %"PRIi64" - %"PRIi64"\n", min, min + nbtags);
 
 	STARPU_ASSERT(cst_first != NULL);
 	return new->min;
@@ -116,7 +134,7 @@ void starpu_mpi_tags_free(int64_t min)
 
 	if (current == NULL)
 	{
-		_STARPU_ERROR("Failed to release the tag range starting by %ld", min);
+		_STARPU_ERROR("Failed to release the tag range starting by %"PRIi64, min);
 		return;
 	}
 
@@ -133,7 +151,7 @@ void starpu_mpi_tags_free(int64_t min)
 		cst_first = current->next;
 	}
 
-	_STARPU_MPI_DEBUG(0, "Free tag range %ld - %ld\n", current->min, current->max);
+	_STARPU_MPI_DEBUG(0, "Free tag range %"PRIi64" - %"PRIi64"\n", current->min, current->max);
 
 	free(current);
 

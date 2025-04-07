@@ -43,8 +43,16 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
-	int64_t mintag = starpu_mpi_tags_allocate(X*Y);
+	int64_t nexttag = starpu_mpi_tags_get_next_value();
+	if (nexttag == 0)
+	{
+		starpu_mpi_shutdown();
+		if (!mpi_init)
+			MPI_Finalize();
+		return rank == 0 ? STARPU_TEST_SKIPPED : 0;
+	}
 
+	int64_t mintag = starpu_mpi_tags_allocate(X*Y);
 	for(x = 0; x < X; x++)
 	{
 		for (y = 0; y < Y; y++)

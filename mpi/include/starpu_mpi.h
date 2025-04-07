@@ -1016,6 +1016,18 @@ int starpu_mpi_data_cpy_priority(starpu_data_handle_t dst_handle, starpu_data_ha
 */
 
 /**
+   Return the value of the next available tag to be used to register
+   StarPU data handles.
+   If the returned value is 0, no values are available.
+
+   Note that this function must be called by all MPI processes
+   involved in the computations with the same parameters and in the
+   exact same order to make sure the tags are identical from one node
+   to another.
+*/
+int64_t starpu_mpi_tags_get_next_value();
+
+/**
    Book a range of unique tags of size \p nbtags to be used to register
    StarPU data handles.
    This function returns the minimal tag value available \c mintag to
