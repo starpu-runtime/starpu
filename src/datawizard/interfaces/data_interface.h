@@ -55,10 +55,18 @@ void _starpu_data_initialize_per_worker(starpu_data_handle_t handle);
 extern struct starpu_arbiter *_starpu_global_arbiter;
 extern void _starpu_data_interface_init(void);
 extern int __starpu_data_check_not_busy(starpu_data_handle_t handle) STARPU_ATTRIBUTE_WARN_UNUSED_RESULT;
+
+/** _starpu_data_check_not_busy must be called when releasing a reference on a handle, to check whether this was
+ * unregistered lazily and we are the last holder of a reference, and thus
+ * responsible for actually unregistering it.
+ * The handle header lock must be already held
+ * If this returns 1, the handle was destroyed and must not be accessed at all,
+ * not even its header lock (it doesn't exist any more) */
 #define _starpu_data_check_not_busy(handle) \
 	(STARPU_UNLIKELY(!handle->busy_count && \
 			 (handle->busy_waiting || handle->lazy_unregister)) ? \
 		__starpu_data_check_not_busy(handle) : 0)
+
 extern void _starpu_data_interface_shutdown(void);
 
 struct starpu_data_interface_ops *_starpu_data_interface_get_ops(unsigned interface_id) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
