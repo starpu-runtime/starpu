@@ -519,6 +519,8 @@ int check_dataset(struct data_function data_funcs, struct type_function type_fun
 	return ret;
 }
 
+int _starpu_test_datatype();
+
 int main(int argc, char **argv)
 {
 	int ret;
@@ -586,41 +588,16 @@ int main(int argc, char **argv)
 		// StarPU will use MPI_Type_create_struct. Before
 		// running the test, let's check if this function can
 		// properly handle large types
-		int block_count=3;
-		int block_lengths[3]={INT_MAX,INT_MAX,12};
-		MPI_Aint displacements[3]={0,INT_MAX,INT_MAX*(size_t)2};
-		MPI_Datatype block_types[3]={MPI_BYTE,MPI_BYTE,MPI_BYTE};
-		MPI_Datatype datatype;
-
-		ret = MPI_Type_create_struct(block_count, block_lengths, displacements, block_types, &datatype);
-		if (ret == MPI_SUCCESS)
-		{
-			MPI_Aint lb, extent;
-			MPI_Type_get_extent(datatype, &lb, &extent);
-			ret = (extent-displacements[2]-block_lengths[2] == 0) ? MPI_SUCCESS : MPI_ERR_TYPE;
-		}
-		if (ret != MPI_SUCCESS)
+		ret = _starpu_test_datatype();
+		if (ret == 0)
 		{
 			FPRINTF(stderr, "Function MPI_Type_create_struct fails with large types.\n");
-			MPI_Type_free(&datatype);
 			fclose(_f_buffer);
 			starpu_mpi_shutdown();
 			if (!mpi_init)
 				MPI_Finalize();
 			return rank_comm == 0 ? STARPU_TEST_SKIPPED : 0;
 		}
-		ret = MPI_Type_commit(&datatype);
-		if (ret != MPI_SUCCESS)
-		{
-			FPRINTF(stderr, "Function MPI_Type_commit fails with large types.\n");
-			MPI_Type_free(&datatype);
-			fclose(_f_buffer);
-			starpu_mpi_shutdown();
-			if (!mpi_init)
-				MPI_Finalize();
-			return rank_comm == 0 ? STARPU_TEST_SKIPPED : 0;
-		}
-		MPI_Type_free(&datatype);
 	}
 #endif
 

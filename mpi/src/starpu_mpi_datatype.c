@@ -80,7 +80,7 @@ static void _make_recursive_datatype(size_t *layers, size_t *steps, int nb_dims,
 	}
 }
 
-static void _make_datatype(MPI_Datatype *datatype, size_t *layers, size_t *steps, int nb_dims, size_t elemsize)
+static int __make_datatype(MPI_Datatype *datatype, size_t *layers, size_t *steps, int nb_dims, size_t elemsize, int assert)
 {
 #define BLOCK_SIZE (size_t)INT_MAX
 #define NB_BLOCKS 10000
@@ -105,11 +105,20 @@ static void _make_datatype(MPI_Datatype *datatype, size_t *layers, size_t *steps
 		MPI_Aint lb, extent;
 		MPI_Type_get_extent(*datatype, &lb, &extent);
 		_STARPU_MPI_DEBUG(1200, "using type with size %zu, lb %zu and %d block(s)\n", extent, lb, block_count);
-		STARPU_ASSERT_MSG(extent-displacements[block_count-1]-block_lengths[block_count-1] == 0, "MPI Datatype creation failed. Your MPI implementation does not seem to manage large data sets. You should use a MPI which implements MPI_Type_vector_c");
+		if (assert)
+			STARPU_ASSERT_MSG(extent-displacements[block_count-1]-block_lengths[block_count-1] == 0, "MPI Datatype creation failed. Your MPI implementation does not seem to manage large data sets. You should use a MPI which implements MPI_Type_vector_c");
+		else
+			return (extent-displacements[block_count-1]-block_lengths[block_count-1] == 0);
 	}
 
 	ret = MPI_Type_commit(datatype);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
+	return 0;
+}
+
+static void _make_datatype(MPI_Datatype *datatype, size_t *layers, size_t *steps, int nb_dims, size_t elemsize)
+{
+	__make_datatype(datatype, layers, steps, nb_dims, elemsize, 1);
 }
 
 /*
@@ -241,7 +250,7 @@ static int handle_to_datatype_vector(starpu_data_handle_t data_handle, unsigned 
 	ret = MPI_Type_commit(datatype);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
 #else
-	_STARPU_MPI_DEBUG(1200, "creating datatype for vector using MPI_Type_create_struct\n");
+	_STARPU_MPI_DEBUG(1200, "creating datatype for vector using MPI_Type_create_struct and %zu elements of size %zu\n", nx, elemsize);
 	size_t layers[1] = {nx};
 	_make_datatype(datatype, layers, NULL, 1, elemsize);
 #endif
@@ -522,4 +531,14 @@ int starpu_mpi_datatype_unregister(starpu_data_handle_t handle)
 {
 	enum starpu_data_interface_id id = starpu_data_get_interface_id(handle);
 	return starpu_mpi_interface_datatype_unregister(id);
+}
+
+int _starpu_test_datatype()
+{
+	MPI_Datatype datatype;
+	size_t layers[1] = {(size_t)INT_MAX+12};
+	size_t elemsize = 1;
+	int ret = __make_datatype(&datatype, layers, NULL, 1, elemsize, 0);
+	_starpu_mpi_handle_free_simple_datatype(&datatype);
+	return ret;
 }
