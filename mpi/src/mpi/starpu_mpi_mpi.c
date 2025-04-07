@@ -476,7 +476,7 @@ void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 
 		MPI_Type_size(req->datatype, &size);
 		req->backend->envelope->size = (starpu_ssize_t)req->count * size;
-		_STARPU_MPI_DEBUG(20, "Post MPI isend count (%ld) datatype_size %ld request to %d\n",req->count,starpu_data_get_size(req->data_handle), req->node_tag.node.rank);
+		_STARPU_MPI_DEBUG(20, "Post MPI isend count (%ld) datatype_size %zu request to %d\n",req->count,starpu_data_get_size(req->data_handle), req->node_tag.node.rank);
 		_STARPU_MPI_COMM_TO_DEBUG(req->backend->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->node_tag.node.rank, _STARPU_MPI_TAG_ENVELOPE, req->backend->envelope->data_tag, req->node_tag.node.comm);
 		ret = MPI_Isend(req->backend->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->node_tag.node.rank, _STARPU_MPI_TAG_ENVELOPE, req->backend->internal_comm, &req->backend->size_req);
 		STARPU_MPI_ASSERT_MSG(ret == MPI_SUCCESS, "when sending envelope, MPI_Isend returning %s", _starpu_mpi_get_mpi_error_code(ret));
@@ -491,7 +491,7 @@ void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 		if (req->backend->envelope->size != -1)
 		{
 			// We already know the size of the data, let's send it to overlap with the packing of the data
-			_STARPU_MPI_DEBUG(20, "Sending size %ld (%ld %s) to node %d (first call to pack)\n", req->backend->envelope->size, sizeof(req->count), "MPI_BYTE", req->node_tag.node.rank);
+			_STARPU_MPI_DEBUG(20, "Sending size %zu (%zu %s) to node %d (first call to pack)\n", req->backend->envelope->size, sizeof(req->count), "MPI_BYTE", req->node_tag.node.rank);
 			req->count = req->backend->envelope->size;
 			_STARPU_MPI_COMM_TO_DEBUG(req->backend->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->node_tag.node.rank, _STARPU_MPI_TAG_ENVELOPE, req->backend->envelope->data_tag, req->node_tag.node.comm);
 			ret = MPI_Isend(req->backend->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->node_tag.node.rank, _STARPU_MPI_TAG_ENVELOPE, req->backend->internal_comm, &req->backend->size_req);
@@ -503,7 +503,7 @@ void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 		if (req->backend->envelope->size == -1)
 		{
 			// We know the size now, let's send it
-			_STARPU_MPI_DEBUG(20, "Sending size %ld (%ld %s) to node %d (second call to pack)\n", req->backend->envelope->size, sizeof(req->count), "MPI_BYTE", req->node_tag.node.rank);
+			_STARPU_MPI_DEBUG(20, "Sending size %zu (%zu %s) to node %d (second call to pack)\n", req->backend->envelope->size, sizeof(req->count), "MPI_BYTE", req->node_tag.node.rank);
 			_STARPU_MPI_COMM_TO_DEBUG(req->backend->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->node_tag.node.rank, _STARPU_MPI_TAG_ENVELOPE, req->backend->envelope->data_tag, req->node_tag.node.comm);
 			ret = MPI_Isend(req->backend->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->node_tag.node.rank, _STARPU_MPI_TAG_ENVELOPE, req->backend->internal_comm, &req->backend->size_req);
 			STARPU_MPI_ASSERT_MSG(ret == MPI_SUCCESS, "when sending size, MPI_Isend returning %s", _starpu_mpi_get_mpi_error_code(ret));
@@ -511,7 +511,7 @@ void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 		else
 		{
 			// We check the size returned with the 2 calls to pack is the same
-			STARPU_MPI_ASSERT_MSG(req->count == req->backend->envelope->size, "Calls to pack_data returned different sizes %ld != %ld", req->count, req->backend->envelope->size);
+			STARPU_MPI_ASSERT_MSG(req->count == req->backend->envelope->size, "Calls to pack_data returned different sizes %zu != %zu", req->count, req->backend->envelope->size);
 		}
 		// We can send the data now
 	}
@@ -1504,7 +1504,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 				}
 				else
 				{
-					_STARPU_MPI_DEBUG(3, "Searching for application request with tag %"PRIi64" and source %d (size %ld)\n", envelope->data_tag, envelope_status.MPI_SOURCE, envelope->size);
+					_STARPU_MPI_DEBUG(3, "Searching for application request with tag %"PRIi64" and source %d (size %zu)\n", envelope->data_tag, envelope_status.MPI_SOURCE, envelope->size);
 
 					STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 					STARPU_PTHREAD_MUTEX_LOCK(&early_data_mutex);
@@ -1577,7 +1577,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 							early_request->ptr = (void *)starpu_malloc_on_node_flags(early_request->node, early_request->count, 0);
 							starpu_memory_allocate(early_request->node, early_request->count, STARPU_MEMORY_OVERFLOW);
 
-							STARPU_MPI_ASSERT_MSG(early_request->ptr, "cannot allocate message of size %ld\n", early_request->count);
+							STARPU_MPI_ASSERT_MSG(early_request->ptr, "cannot allocate message of size %zu\n", early_request->count);
 						}
 
 						_STARPU_MPI_DEBUG(3, "Handling new request... \n");

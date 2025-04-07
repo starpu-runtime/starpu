@@ -31,13 +31,13 @@ void func_dup_arg(void *descr[], void *_args)
 	starpu_codelet_unpack_arg_init(&state, _args, psize);
 
 	starpu_codelet_dup_arg(&state, (void**)&factor, &size);
-	STARPU_ASSERT_MSG(size == sizeof(*factor), "Expected size %ld != received size %ld\n", sizeof(*factor), size);
+	STARPU_ASSERT_MSG(size == sizeof(*factor), "Expected size %zu != received size %zu\n", sizeof(*factor), size);
 
 	starpu_codelet_dup_arg(&state, (void**)&c, &size);
-	STARPU_ASSERT_MSG(size == sizeof(*c), "Expected size %ld != received size %ld\n", sizeof(*c), size);
+	STARPU_ASSERT_MSG(size == sizeof(*c), "Expected size %zu != received size %zu\n", sizeof(*c), size);
 
 	starpu_codelet_dup_arg(&state, (void**)&x, &size);
-	STARPU_ASSERT_MSG(size == 2*sizeof(x[0]), "Expected size %ld != received size %ld\n", 2*sizeof(x[0]), size);
+	STARPU_ASSERT_MSG(size == 2*sizeof(x[0]), "Expected size %zu != received size %zu\n", 2*sizeof(x[0]), size);
 
 	starpu_codelet_unpack_arg_fini(&state);
 

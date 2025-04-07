@@ -175,8 +175,8 @@ void _starpu_mpi_comm_amounts_display(FILE *stream, int node)
 	fprintf(stream, "\n[starpu_comm_stats][%d] TOTAL:\t%f B\t%f MB\t %f B/s\t %f MB/s\n", node, (float)sum, (float)sum/1024/1024, (float)sum/(float)time, (float)sum/1204/1024/(float)time);
 
 	fprintf(stream, "[starpu_comm_stats][%d] nb_sends: %d\n", node, nb_sends);
-	fprintf(stream, "[starpu_comm_stats][%d] max_sent_size: %ld\n", node, max_sent_size);
-	fprintf(stream, "[starpu_comm_stats][%d] average sent size: %ld\n", node, nb_sends ? sum / nb_sends : 0);
+	fprintf(stream, "[starpu_comm_stats][%d] max_sent_size: %zu\n", node, max_sent_size);
+	fprintf(stream, "[starpu_comm_stats][%d] average sent size: %zu\n", node, nb_sends ? sum / nb_sends : 0);
 
 	for (dst = 0; dst < world_size; dst++)
 	{

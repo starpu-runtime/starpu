@@ -104,7 +104,7 @@ int main(int argc, char **argv)
 
 	size_t buffer_size = numa_node_mem * 1.5;
 
-	printf("NUMA node 0 has %lu MB, the buffer will use %lu MB\n", numa_node_mem / 1024 / 1024, buffer_size / 1024 / 1024);
+	printf("NUMA node 0 has %zu MB, the buffer will use %zu MB\n", numa_node_mem / 1024 / 1024, buffer_size / 1024 / 1024);
 
 	uintptr_t buffer = starpu_malloc_on_node(STARPU_MAIN_RAM, buffer_size);
 	if (!buffer)

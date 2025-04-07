@@ -37,8 +37,8 @@ test_arr4d_opencl_func(void *buffers[], void *args)
 	ret = starpu_opencl_load_opencl_from_file(KERNEL_LOCATION, &opencl_program, NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
 
-	cl_ulong *nn = STARPU_NDIM_GET_NN(buffers[0]);
-	cl_ulong *ldn = STARPU_NDIM_GET_LDN(buffers[0]);
+	cl_ulong *nn = (cl_ulong *)STARPU_NDIM_GET_NN(buffers[0]);
+	cl_ulong *ldn = (cl_ulong *)STARPU_NDIM_GET_LDN(buffers[0]);
 	cl_ulong nx = nn[0];
 	cl_ulong ny = nn[1];
 	cl_ulong nz = nn[2];

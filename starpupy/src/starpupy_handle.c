@@ -293,6 +293,9 @@ PyObject* starpupy_numpy_register_wrapper(PyObject *self, PyObject *args)
 
 	free(dim);
 	return new_array;
+#else
+	(void) self;
+	(void) args;
 #endif
 	return NULL;
 }

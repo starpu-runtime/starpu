@@ -117,6 +117,9 @@ static void starpupy_numpy_filter(void *parent_interface, void *child_interface,
 		}
 	}
 	buffer_child->array_dim = child_dim;
+#else
+	(void) id;
+	(void) nchunks;
 #endif
 	buffer_child->id = buffer_parent->id;
 	buffer_child->buffer_type = buffer_parent->buffer_type;

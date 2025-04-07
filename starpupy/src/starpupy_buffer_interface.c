@@ -66,6 +66,8 @@ PyObject* starpupy_buffer_get_numpy(struct starpupy_buffer_interface *pybuffer_i
 	Py_DECREF(numpy_arr1d);
 
 	return numpy_arr;
+#else
+	(void) pybuffer_interface;
 #endif
 	Py_INCREF(Py_None);
 	return Py_None;

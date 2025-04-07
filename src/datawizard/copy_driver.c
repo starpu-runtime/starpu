@@ -385,18 +385,18 @@ void starpu_interface_start_driver_copy_async_devid(int src_dev, enum starpu_nod
 						    int dst_dev, enum starpu_node_kind dst_kind,
 						    double *start)
 {
-	unsigned src_node, dst_node;
+	*start = starpu_timing_now();
 #ifdef STARPU_USE_FXT
+	unsigned src_node, dst_node;
 	src_node = starpu_memory_devid_find_node(src_dev, src_kind);
 	dst_node = starpu_memory_devid_find_node(dst_dev, dst_kind);
+	_starpu_trace_start_driver_copy_async(src_node, dst_node);
 #else
 	(void)src_dev;
 	(void)dst_dev;
 	(void)src_kind;
 	(void)dst_kind;
 #endif
-	*start = starpu_timing_now();
-	_starpu_trace_start_driver_copy_async(src_node, dst_node);
 }
 
 void starpu_interface_end_driver_copy_async(unsigned src_node, unsigned dst_node, double start)

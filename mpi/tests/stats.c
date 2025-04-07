@@ -100,7 +100,7 @@ int main(int argc, char **argv)
 
 	starpu_mpi_comm_stats_retrieve(stats);
 	if (rank == 0)
-		STARPU_ASSERT_MSG(stats[1] == sizeof(int), "Comm stats are incorrect %ld != %ld\n", stats[0], (long)sizeof(int));
+		STARPU_ASSERT_MSG(stats[1] == sizeof(int), "Comm stats are incorrect %zu != %zu\n", stats[0], sizeof(int));
 
 	free(stats);
 	starpu_mpi_shutdown();

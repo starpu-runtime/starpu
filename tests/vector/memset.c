@@ -186,7 +186,7 @@ static void opencl_check_content_codelet(void *buffers[], void *args)
 		for (j = 0; j < size; j++)
 			if (dst[j] != 42)
 			{
-				FPRINTF(stderr, "buf[%zu] is '%c' while it should be '%c'\n", i + j, dst[j], 42);
+				FPRINTF(stderr, "buf[%zu] is '%c' while it should be '%c'\n", (size_t)(i + j), dst[j], 42);
 				exit(-1);
 			}
 	}
