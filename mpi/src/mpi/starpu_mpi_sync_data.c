@@ -102,7 +102,7 @@ struct _starpu_mpi_req *_starpu_mpi_sync_data_find(starpu_mpi_tag_t data_tag, in
 	node_tag.node.rank = source;
 	node_tag.data_tag = data_tag;
 
-	_STARPU_MPI_DEBUG(2000, "Looking for sync_data_handle with comm %ld source %d tag %ld in the hashmap\n", (long int)comm, source, data_tag);
+	_STARPU_MPI_DEBUG(2000, "Looking for sync_data_handle with comm %ld source %d tag %"PRIi64" in the hashmap\n", (long int)comm, source, data_tag);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_mpi_sync_data_handle_mutex);
 	HASH_FIND(hh, _starpu_mpi_sync_data_handle_hashmap, &node_tag, sizeof(struct _starpu_mpi_node_tag), found);
@@ -123,7 +123,7 @@ struct _starpu_mpi_req *_starpu_mpi_sync_data_find(starpu_mpi_tag_t data_tag, in
 		}
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_sync_data_handle_mutex);
-	_STARPU_MPI_DEBUG(60, "Found sync_data_handle %p with comm %ld source %d tag %ld in the hashmap\n", req, (long int)comm, source, data_tag);
+	_STARPU_MPI_DEBUG(60, "Found sync_data_handle %p with comm %ld source %d tag %"PRIi64" in the hashmap\n", req, (long int)comm, source, data_tag);
 	return req;
 }
 
@@ -131,7 +131,7 @@ void _starpu_mpi_sync_data_add(struct _starpu_mpi_req *sync_req)
 {
 	struct _starpu_mpi_sync_data_handle_hashlist *hashlist;
 
-	_STARPU_MPI_DEBUG(2000, "Adding sync_req %p with comm %ld source %d tag %ld in the hashmap\n", sync_req, (long int)sync_req->node_tag.node.comm, sync_req->node_tag.node.rank, sync_req->node_tag.data_tag);
+	_STARPU_MPI_DEBUG(2000, "Adding sync_req %p with comm %ld source %d tag %"PRIi64" in the hashmap\n", sync_req, (long int)sync_req->node_tag.node.comm, sync_req->node_tag.node.rank, sync_req->node_tag.data_tag);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_mpi_sync_data_handle_mutex);
 	HASH_FIND(hh, _starpu_mpi_sync_data_handle_hashmap, &sync_req->node_tag, sizeof(struct _starpu_mpi_node_tag), hashlist);

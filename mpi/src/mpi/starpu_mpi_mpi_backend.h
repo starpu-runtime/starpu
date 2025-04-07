@@ -29,7 +29,7 @@ extern "C"
 
 #ifdef STARPU_USE_MPI_MPI
 
-extern int _starpu_mpi_tag;
+extern starpu_mpi_tag_t _starpu_mpi_tag;
 #define _STARPU_MPI_TAG_ENVELOPE  _starpu_mpi_tag
 #define _STARPU_MPI_TAG_DATA      _starpu_mpi_tag+1
 #define _STARPU_MPI_TAG_SYNC_DATA _starpu_mpi_tag+2

@@ -136,7 +136,7 @@ int _starpu_debug_rank;
 			starpu_mpi_comm_rank(comm, &_rank); \
 			MPI_Type_size(datatype, &__size); \
 			MPI_Comm_get_name(comm, _comm_name, &_comm_name_len); \
-			fprintf(stderr, "[%d][starpu_mpi] :%d:%s:%d:%d:%ld:%s:%p:%ld:%d:%s:%d\n", _rank, _rank, way, node, tag, utag, _comm_name, ptr, count, __size, __starpu_func__ , __LINE__); \
+			fprintf(stderr, "[%d][starpu_mpi] :%d:%s:%d:%"PRIi64":%"PRIi64":%s:%p:%zu:%zu:%s:%d\n", _rank, _rank, way, node, tag, utag, _comm_name, ptr, count, __size, __starpu_func__ , __LINE__); \
 			fflush(stderr);	\
 		} \
 	} while(0)

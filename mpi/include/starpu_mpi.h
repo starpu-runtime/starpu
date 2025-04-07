@@ -145,16 +145,6 @@ int starpu_mpi_comm_get_attr(MPI_Comm comm, int keyval, void *attribute_val, int
 */
 int starpu_mpi_get_thread_cpuid(void);
 
-/**
-   Get the tag used for MPI communications submitted by StarPU.
-*/
-int starpu_mpi_get_communication_tag(void);
-
-/**
-   Set the tag used for MPI communications submitted by StarPU.
-*/
-void starpu_mpi_set_communication_tag(int tag);
-
 /** @} */
 
 /**
@@ -172,6 +162,16 @@ typedef void *starpu_mpi_req;
    Type of the message tag.
 */
 typedef int64_t starpu_mpi_tag_t;
+
+/**
+   Get the tag used for MPI communications submitted by StarPU.
+*/
+starpu_mpi_tag_t starpu_mpi_get_communication_tag(void);
+
+/**
+   Set the tag used for MPI communications submitted by StarPU.
+*/
+void starpu_mpi_set_communication_tag(starpu_mpi_tag_t tag);
 
 /**
    Post a standard-mode, non blocking send of \p data_handle to the

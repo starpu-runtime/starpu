@@ -21,7 +21,7 @@
 int _starpu_debug_rank=-1;
 int _starpu_debug_level_min=0;
 int _starpu_debug_level_max=0;
-int _starpu_mpi_tag = 42;
+starpu_mpi_tag_t _starpu_mpi_tag = 42;
 int _starpu_mpi_comm_debug;
 
 int _starpu_mpi_nobind = -1;
@@ -44,12 +44,12 @@ void _starpu_mpi_set_debug_level_max(int level)
 	_starpu_debug_level_max = level;
 }
 
-int starpu_mpi_get_communication_tag(void)
+starpu_mpi_tag_t starpu_mpi_get_communication_tag(void)
 {
 	return _starpu_mpi_tag;
 }
 
-void starpu_mpi_set_communication_tag(int tag)
+void starpu_mpi_set_communication_tag(starpu_mpi_tag_t tag)
 {
 	_starpu_mpi_tag = tag;
 }

@@ -85,7 +85,7 @@ void _starpu_mpi_tag_data_register(starpu_data_handle_t handle, starpu_mpi_tag_t
 	_STARPU_MPI_MALLOC(entry, sizeof(*entry));
 
 	STARPU_ASSERT_MSG(!(_starpu_mpi_tag_get_data_handle_from_tag(data_tag)),
-			  "There is already a data handle %p registered with the tag %ld\n", _starpu_mpi_tag_get_data_handle_from_tag(data_tag), data_tag);
+			  "There is already a data handle %p registered with the tag %"PRIi64"\n", _starpu_mpi_tag_get_data_handle_from_tag(data_tag), data_tag);
 
 	_STARPU_MPI_DEBUG(42, "Adding handle %p with tag %"PRIi64" in hashtable\n", handle, data_tag);
 

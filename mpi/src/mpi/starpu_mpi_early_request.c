@@ -83,7 +83,7 @@ struct _starpu_mpi_req* _starpu_mpi_early_request_dequeue(starpu_mpi_tag_t data_
 	node_tag.data_tag = data_tag;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_mpi_early_request_mutex);
-	_STARPU_MPI_DEBUG(100, "Looking for early_request with comm %ld source %d tag %ld\n", (long int)node_tag.node.comm, node_tag.node.rank, node_tag.data_tag);
+	_STARPU_MPI_DEBUG(100, "Looking for early_request with comm %ld source %d tag %"PRIi64"\n", (long int)node_tag.node.comm, node_tag.node.rank, node_tag.data_tag);
 	HASH_FIND(hh, _starpu_mpi_early_request_hash, &node_tag.node, sizeof(struct _starpu_mpi_node), hashlist);
 	if (hashlist == NULL)
 	{
@@ -107,7 +107,7 @@ struct _starpu_mpi_req* _starpu_mpi_early_request_dequeue(starpu_mpi_tag_t data_
 			_starpu_mpi_early_request_hash_count --;
 		}
 	}
-	_STARPU_MPI_DEBUG(100, "Found early_request %p with comm %ld source %d tag %ld\n", found, (long int)node_tag.node.comm, node_tag.node.rank, node_tag.data_tag);
+	_STARPU_MPI_DEBUG(100, "Found early_request %p with comm %ld source %d tag %"PRIi64"\n", found, (long int)node_tag.node.comm, node_tag.node.rank, node_tag.data_tag);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_early_request_mutex);
 	return found;
 }
@@ -124,7 +124,7 @@ struct _starpu_mpi_early_request_tag_hashlist *_starpu_mpi_early_request_extract
 	node_tag.data_tag = data_tag;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_mpi_early_request_mutex);
-	_STARPU_MPI_DEBUG(100, "Looking for early_request with comm %ld source %d tag %ld\n", (long int)node_tag.node.comm, node_tag.node.rank, node_tag.data_tag);
+	_STARPU_MPI_DEBUG(100, "Looking for early_request with comm %ld source %d tag %"PRIi64"\n", (long int)node_tag.node.comm, node_tag.node.rank, node_tag.data_tag);
 	HASH_FIND(hh, _starpu_mpi_early_request_hash, &node_tag.node, sizeof(struct _starpu_mpi_node), hashlist);
 	if (hashlist)
 	{
@@ -135,7 +135,7 @@ struct _starpu_mpi_early_request_tag_hashlist *_starpu_mpi_early_request_extract
 			HASH_DEL(hashlist->datahash, tag_hashlist);
 		}
 	}
-	_STARPU_MPI_DEBUG(100, "Found hashlist %p with comm %ld source %d tag %ld\n", hashlist, (long int)node_tag.node.comm, node_tag.node.rank, node_tag.data_tag);
+	_STARPU_MPI_DEBUG(100, "Found hashlist %p with comm %ld source %d tag %"PRIi64"\n", hashlist, (long int)node_tag.node.comm, node_tag.node.rank, node_tag.data_tag);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_early_request_mutex);
 	return tag_hashlist;
 }
@@ -143,7 +143,7 @@ struct _starpu_mpi_early_request_tag_hashlist *_starpu_mpi_early_request_extract
 void _starpu_mpi_early_request_enqueue(struct _starpu_mpi_req *req)
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_mpi_early_request_mutex);
-	_STARPU_MPI_DEBUG(100, "Adding request %p with comm %ld source %d tag %ld in the application request hashmap\n", req, (long int)req->node_tag.node.comm, req->node_tag.node.rank, req->node_tag.data_tag);
+	_STARPU_MPI_DEBUG(100, "Adding request %p with comm %ld source %d tag %"PRIi64" in the application request hashmap\n", req, (long int)req->node_tag.node.comm, req->node_tag.node.rank, req->node_tag.data_tag);
 
 	struct _starpu_mpi_early_request_hashlist *hashlist;
 	HASH_FIND(hh, _starpu_mpi_early_request_hash, &req->node_tag.node, sizeof(struct _starpu_mpi_node), hashlist);
