@@ -226,6 +226,18 @@ if (STARPU_FOUND)
 endif()
 \endcode
 
+Alternatively, one can use the <c>IMPORTED_TARGET</c> option of <c>pkg_check_modules</c> to define a CMake target that can be used to compile and link StarPU codes:
+
+\code{File CMakeLists.txt}
+cmake_minimum_required (VERSION 3.2)
+project (hello_starpu)
+
+find_package(PkgConfig)
+pkg_check_modules(STARPU REQUIRED IMPORTED_TARGET starpu-1.4)
+
+add_executable(hello_starpu hello_starpu.c PkgConfig::STARPU)
+\endcode
+
 \section RunningABasicStarPUApplication Running a Basic StarPU Application
 
 Basic examples using StarPU are built in the directory
