@@ -158,9 +158,21 @@ int main(void)
 The \c CMakeLists.txt file below uses the Pkg-Config support from CMake to
 autodetect the StarPU installation and library dependences (such as
 <c>libhwloc</c>) provided that the <c>PKG_CONFIG_PATH</c> variable is set, and
-is sufficient to build a statically-linked executable. This example has been
-successfully tested with CMake 3.2, though it may work with earlier CMake 3.x
-versions.
+is sufficient to build a statically-linked executable.
+
+The CMake code uses the <c>IMPORTED_TARGET</c> option of <c>pkg_check_modules</c> to define a CMake target that can be used to compile and link StarPU codes:
+
+\code{File CMakeLists.txt}
+cmake_minimum_required (VERSION 3.2)
+project (hello_starpu)
+
+find_package(PkgConfig)
+pkg_check_modules(STARPU REQUIRED IMPORTED_TARGET starpu-1.4)
+
+add_executable(hello_starpu hello_starpu.c PkgConfig::STARPU)
+\endcode
+
+One can also use the following alternative.
 
 \code{File CMakeLists.txt}
 cmake_minimum_required (VERSION 3.2)
@@ -179,7 +191,7 @@ endif()
 add_executable(hello_starpu hello_starpu.c)
 \endcode
 
-The following \c CMakeLists.txt implements an alternative, more complex
+The following \c CMakeLists.txt implements a more complex
 strategy, still relying on Pkg-Config, but also taking into account additional
 flags. While more complete, this approach makes CMake's build types (Debug,
 Release, ...) unavailable because of the direct affectation to variable
@@ -224,18 +236,6 @@ if (STARPU_FOUND)
     # Static -l libs
     target_link_libraries(hello_starpu PRIVATE ${STARPU_STATIC_LIBRARIES})
 endif()
-\endcode
-
-Alternatively, one can use the <c>IMPORTED_TARGET</c> option of <c>pkg_check_modules</c> to define a CMake target that can be used to compile and link StarPU codes:
-
-\code{File CMakeLists.txt}
-cmake_minimum_required (VERSION 3.2)
-project (hello_starpu)
-
-find_package(PkgConfig)
-pkg_check_modules(STARPU REQUIRED IMPORTED_TARGET starpu-1.4)
-
-add_executable(hello_starpu hello_starpu.c PkgConfig::STARPU)
 \endcode
 
 \section RunningABasicStarPUApplication Running a Basic StarPU Application
