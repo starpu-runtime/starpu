@@ -177,8 +177,6 @@ struct _starpu_job* _starpu_get_job_associated_to_task_slow(struct starpu_task *
 
 void _starpu_job_destroy(struct _starpu_job *j)
 {
-#ifndef STARPU_PROF_TASKSTUBS
-
 	/* Wait for any code that was still working on the job (and was
 	 * probably our waker) */
 	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
@@ -212,7 +210,6 @@ void _starpu_job_destroy(struct _starpu_job *j)
 		(void) STARPU_ATOMIC_ADDL(&njobs, -1);
 
 	free(j);
-#endif
 }
 
 int _starpu_job_finished(struct _starpu_job *j)

@@ -23,6 +23,59 @@
 
 #include "starpu_tracing.h"
 
+
+#ifdef STARPU_PROF_TASKSTUBS
+void _create_timer( struct _starpu_job *job, void* func ){
+	/* j-> job_successors: list of all the completion groups that depend on the job */
+	char* name;
+	unsigned long tid = job->job_id;
+
+	tasktimer_argument_value_t args[1];
+	args[0].type = TASKTIMER_LONG_INTEGER_TYPE;
+	args[0].l_value = tid;
+
+	uint64_t* parents = NULL;
+	uint64_t myguid = tid;
+
+	if(NULL != job->task->name)
+	{
+		name = job->task->name;
+	}
+	else
+	{
+		asprintf(&name, "%s %p", "UNRESOLVED ADDR", func);
+	}
+
+	unsigned nb_parents = 0;
+	
+	for (unsigned i = 0; i < job->job_successors.ndeps; i++)
+	{
+		nb_parents += job->job_successors.deps[i]->ndeps;
+	}
+
+	unsigned nb_succ = job->job_successors.nsuccs;
+	
+	if( nb_parents )
+	{
+		parents = (uint64_t*) malloc( nb_parents*sizeof( uint64_t ) );
+		unsigned k = 0;
+		for (unsigned i = 0; i < job->job_successors.ndeps; i++)
+		{
+			for( unsigned j = 0 ; j < job->job_successors.deps[i]->ndeps; j++ ){
+				parents[k] = ((struct _starpu_job*)(job->job_successors.deps[i]->deps[j]))->job_id;
+				k++;
+			}
+		}
+	} else {
+		parents = NULL;
+		nb_parents = 0;
+	}
+
+	TASKTIMER_CREATE(func, name, myguid, parents, nb_parents, tt);
+	job->ps_task_timer = tt;
+}
+#endif
+
 extern struct _starpu_machine_config _starpu_config;
 
 int _starpu_trace_initialize()
@@ -230,32 +283,7 @@ int _starpu_trace_start_executing(struct _starpu_job *j, struct starpu_task *wor
 	/* a timer should have been created when the task was submitted */
 	if(NULL == j->ps_task_timer)
 	{
-/* j-> job_successors: list of all the completion groups that depend on the job */
-		tasktimer_argument_value_t args[1];
-		args[0].type = TASKTIMER_LONG_INTEGER_TYPE;
-		args[0].l_value = tid;
-
-		uint64_t* parents = NULL;
-		uint64_t myguid = tid;
-
-		if(NULL != j->task->name)
-		{
-			name = j->task->name;
-		}
-		else
-		{
-			asprintf(&name, "%s %p", "UNRESOLVED ADDR", func);
-			// TODO memory leak here
-		}
-
-		TASKTIMER_CREATE(func, name, myguid, parents, j->job_successors.ndeps, tt);
-		j->ps_task_timer = tt;
-
-		for (int i = 0; i < j->job_successors.ndeps; i++)
-		{
-			TASKTIMER_ADD_PARENTS(j->ps_task_timer, ((struct _starpu_job*)(j->job_successors.deps[i]->deps))->job_id, 1);
-		}
-
+		_create_timer( j, func );
 	}
 
 	tasktimer_execution_space_t resource;
@@ -339,7 +367,8 @@ int _starpu_trace_end_executing(struct _starpu_job *job, struct _starpu_worker *
 
 #ifdef STARPU_PROF_TASKSTUBS
 	TASKTIMER_STOP(job->ps_task_timer);
-	#endif
+	TASKTIMER_DESTROY(job->ps_task_timer);
+#endif
 
 	return 0;
 }
@@ -630,7 +659,21 @@ int _starpu_trace_task_deps(struct _starpu_job *job_prev STARPU_ATTRIBUTE_UNUSED
 	/* looks like the succ is the current task */
 
 #if 0
-	TASKTIMER_ADD_PARENTS(job_succ->ps_task_timer, job_prev->job_id, 1);
+	if( job_succ ){
+		printf( "succ: %d\t", job_succ->job_id);
+	}
+	if( job_prev ){
+		printf( "prev: %d", job_prev->job_id );
+	}
+	printf( "\n");
+	if( !job_prev->ps_task_timer ) printf( "prev does not have any timer\n");	
+	if( !job_succ->ps_task_timer ) printf( "succ does not have any timer\n");	
+	if( !job_prev->ps_task_timer ){
+		_create_timer( job_prev, NULL );
+	}
+
+	TASKTIMER_ADD_CHILDREN(job_prev->ps_task_timer, job_succ->job_id, 1);
+//	TASKTIMER_ADD_PARENTS(job_succ->ps_task_timer, job_prev->job_id, 1);
 #endif
 #endif
 	return 0;
@@ -1027,32 +1070,9 @@ int _starpu_trace_task_submit(struct _starpu_job *job STARPU_ATTRIBUTE_UNUSED, l
 #ifdef STARPU_PROF_TASKSTUBS
 // unsigned long starpu_task_get_job_id(struct starpu_task *task);
 
-	unsigned long tid = job->job_id;
-
-	char* name = NULL;
 	if(NULL == job->ps_task_timer)
 	{
-		void* func = NULL;
-/* j-> job_successors: list of all the completion groups that depend on the job */
-		tasktimer_argument_value_t args[1];
-		args[0].type = TASKTIMER_LONG_INTEGER_TYPE;
-		args[0].l_value = tid;
-
-		uint64_t* parents = NULL;
-		uint64_t myguid = tid;
-
-		if(NULL != job->task->name)
-		{
-			name = job->task->name;
-		}
-		else
-		{
-			name = "";
-		}
-
-		/* TODO update the address later? */
-		TASKTIMER_CREATE(func, name, myguid, parents, 0, tt);
-		job->ps_task_timer = tt;
+		_create_timer( job, NULL );
 	}
 
 	for (int i = 0; i < job->job_successors.ndeps; i++)
@@ -2157,7 +2177,7 @@ int _starpu_trace_start_transfer(unsigned memnode STARPU_ATTRIBUTE_UNUSED, struc
 #endif
 
 #ifdef STARPU_PROF_TASKSTUBS
-	uint64_t myguid = 0;// //new_guid(); TODO
+//	uint64_t myguid = 0;// //new_guid(); TODO
 
 	tasktimer_execution_space_t source_info, dest_info; /* TODO will set that later */
 	tasktimer_execution_space_p sip = &source_info;
