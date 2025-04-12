@@ -25,19 +25,20 @@
 
 
 #ifdef STARPU_PROF_TASKSTUBS
-void _create_timer( struct _starpu_job *job, void* func ){
+void _create_timer(struct _starpu_job *job, void* func)
+{
 	/* j-> job_successors: list of all the completion groups that depend on the job */
-	char* name;
+	char *name;
 	unsigned long tid = job->job_id;
 
 	tasktimer_argument_value_t args[1];
 	args[0].type = TASKTIMER_LONG_INTEGER_TYPE;
 	args[0].l_value = tid;
 
-	uint64_t* parents = NULL;
+	uint64_t *parents = NULL;
 	uint64_t myguid = tid;
 
-	if(NULL != job->task->name)
+	if (NULL != job->task->name)
 	{
 		name = job->task->name;
 	}
@@ -47,26 +48,28 @@ void _create_timer( struct _starpu_job *job, void* func ){
 	}
 
 	unsigned nb_parents = 0;
-	
-	for (unsigned i = 0; i < job->job_successors.ndeps; i++)
+	unsigned i;
+	for (i = 0; i < job->job_successors.ndeps; i++)
 	{
 		nb_parents += job->job_successors.deps[i]->ndeps;
 	}
 
-	unsigned nb_succ = job->job_successors.nsuccs;
-	
-	if( nb_parents )
+	if (nb_parents)
 	{
-		parents = (uint64_t*) malloc( nb_parents*sizeof( uint64_t ) );
+		parents = (uint64_t*) malloc(nb_parents*sizeof(uint64_t));
 		unsigned k = 0;
-		for (unsigned i = 0; i < job->job_successors.ndeps; i++)
+		for (i = 0; i < job->job_successors.ndeps; i++)
 		{
-			for( unsigned j = 0 ; j < job->job_successors.deps[i]->ndeps; j++ ){
+			unsigned j;
+			for(j = 0 ; j < job->job_successors.deps[i]->ndeps; j++)
+			{
 				parents[k] = ((struct _starpu_job*)(job->job_successors.deps[i]->deps[j]))->job_id;
 				k++;
 			}
 		}
-	} else {
+	}
+	else
+	{
 		parents = NULL;
 		nb_parents = 0;
 	}
@@ -659,18 +662,17 @@ int _starpu_trace_task_deps(struct _starpu_job *job_prev STARPU_ATTRIBUTE_UNUSED
 	/* looks like the succ is the current task */
 
 #if 0
-	if( job_succ ){
+	if (job_succ)
 		printf( "succ: %d\t", job_succ->job_id);
-	}
-	if( job_prev ){
+	if (job_prev)
 		printf( "prev: %d", job_prev->job_id );
-	}
 	printf( "\n");
-	if( !job_prev->ps_task_timer ) printf( "prev does not have any timer\n");	
-	if( !job_succ->ps_task_timer ) printf( "succ does not have any timer\n");	
-	if( !job_prev->ps_task_timer ){
+	if (!job_prev->ps_task_timer)
+		printf( "prev does not have any timer\n");
+	if (!job_succ->ps_task_timer)
+		printf( "succ does not have any timer\n");
+	if (!job_prev->ps_task_timer)
 		_create_timer( job_prev, NULL );
-	}
 
 	TASKTIMER_ADD_CHILDREN(job_prev->ps_task_timer, job_succ->job_id, 1);
 //	TASKTIMER_ADD_PARENTS(job_succ->ps_task_timer, job_prev->job_id, 1);
