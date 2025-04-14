@@ -23,9 +23,8 @@
 
 #include "starpu_tracing.h"
 
-
 #ifdef STARPU_PROF_TASKSTUBS
-void _create_timer(struct _starpu_job *job, void* func)
+void _create_timer(struct _starpu_job *job, void *func)
 {
 	/* j-> job_successors: list of all the completion groups that depend on the job */
 	char *name;
@@ -219,7 +218,7 @@ int _starpu_trace_worker_deinit_end(unsigned workerid, enum starpu_worker_archty
 	return 0;
 }
 
-int _starpu_trace_start_executing(struct _starpu_job *j, struct starpu_task *worker_task, struct _starpu_worker *worker, void* func)
+int _starpu_trace_start_executing(struct _starpu_job *j, struct starpu_task *worker_task, struct _starpu_worker *worker, void *func)
 {
 #ifdef STARPU_USE_FXT
 	/**
@@ -282,11 +281,11 @@ int _starpu_trace_start_executing(struct _starpu_job *j, struct starpu_task *wor
 #ifdef STARPU_PROF_TASKSTUBS
 
 	unsigned long tid = j->job_id;
-	char* name = NULL;
+	char *name = NULL;
 	/* a timer should have been created when the task was submitted */
 	if(NULL == j->ps_task_timer)
 	{
-		_create_timer( j, func );
+		_create_timer(j, func);
 	}
 
 	tasktimer_execution_space_t resource;
@@ -333,7 +332,7 @@ int _starpu_trace_end_executing(struct _starpu_job *job, struct _starpu_worker *
 		struct starpu_task *worker_task = job->task;
 		struct starpu_codelet *cl = worker_task->cl;
 		// crash here
-		void* func = _starpu_task_get_cpu_nth_implementation(cl, job->nimpl);
+		void *func = _starpu_task_get_cpu_nth_implementation(cl, job->nimpl);
 
 		struct starpu_prof_tool_info pi;
 //	int devid = cpu_args->devid;
@@ -384,7 +383,7 @@ int _starpu_trace_end_executing(struct _starpu_job *job, struct _starpu_worker *
  * \p workerid is the id of the worker.
  * \p rank is the instance rank in a parallel team of workers in the case of a parallel task, or 0 for a sequential task.
  */
-int _starpu_trace_start_codelet_body(struct _starpu_job *job STARPU_ATTRIBUTE_UNUSED, int nimpl STARPU_ATTRIBUTE_UNUSED, struct starpu_perfmodel_arch* perf_arch STARPU_ATTRIBUTE_UNUSED, int workerid STARPU_ATTRIBUTE_UNUSED, int rank STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_start_codelet_body(struct _starpu_job *job STARPU_ATTRIBUTE_UNUSED, int nimpl STARPU_ATTRIBUTE_UNUSED, struct starpu_perfmodel_arch *perf_arch STARPU_ATTRIBUTE_UNUSED, int workerid STARPU_ATTRIBUTE_UNUSED, int rank STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	if(STARPU_UNLIKELY((_STARPU_FUT_KEYMASK_TASK|_STARPU_FUT_KEYMASK_TASK_VERBOSE|_STARPU_FUT_KEYMASK_DATA|_STARPU_FUT_KEYMASK_TASK_VERBOSE_EXTRA) & fut_active))
@@ -443,7 +442,7 @@ int _starpu_trace_start_codelet_body(struct _starpu_job *job STARPU_ATTRIBUTE_UN
  * \p workerid is the id of the worker.
  * \p rank is the instance rank in a parallel team of workers in the case of a parallel task, or 0 for a sequential task.
  */
-int _starpu_trace_end_codelet_body(struct _starpu_job *job STARPU_ATTRIBUTE_UNUSED, unsigned nimpl STARPU_ATTRIBUTE_UNUSED, struct starpu_perfmodel_arch* perf_arch STARPU_ATTRIBUTE_UNUSED, int workerid STARPU_ATTRIBUTE_UNUSED, int rank STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_end_codelet_body(struct _starpu_job *job STARPU_ATTRIBUTE_UNUSED, unsigned nimpl STARPU_ATTRIBUTE_UNUSED, struct starpu_perfmodel_arch *perf_arch STARPU_ATTRIBUTE_UNUSED, int workerid STARPU_ATTRIBUTE_UNUSED, int rank STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	if(STARPU_UNLIKELY((_STARPU_FUT_KEYMASK_TASK) & fut_active))
@@ -514,7 +513,7 @@ int _starpu_trace_end_callback(struct _starpu_job *job STARPU_ATTRIBUTE_UNUSED)
  * \p task is the task instance.
  * \p prio is the priority of the task instance.
  */
-int _starpu_trace_job_push(struct starpu_task* task STARPU_ATTRIBUTE_UNUSED, int prio STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_job_push(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, int prio STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_SCHED, _STARPU_FUT_JOB_PUSH, _starpu_get_job_associated_to_task(task)->job_id, prio, _starpu_gettid());
@@ -527,7 +526,7 @@ int _starpu_trace_job_push(struct starpu_task* task STARPU_ATTRIBUTE_UNUSED, int
  * \p task is the task instance.
  * \p prio is the priority of the task instance.
  */
-int _starpu_trace_job_pop(struct starpu_task* task STARPU_ATTRIBUTE_UNUSED, int prio STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_job_pop(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, int prio STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_SCHED, _STARPU_FUT_JOB_POP, _starpu_get_job_associated_to_task(task)->job_id, prio, _starpu_gettid());
@@ -626,7 +625,7 @@ int _starpu_trace_worker_start_fetch_input(struct _starpu_job *job STARPU_ATTRIB
  * \p tag is the tag id.
  * \p job is the job instance.
  */
-int _starpu_trace_tag(starpu_tag_t* tag STARPU_ATTRIBUTE_UNUSED, struct _starpu_job *job STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_tag(starpu_tag_t *tag STARPU_ATTRIBUTE_UNUSED, struct _starpu_job *job STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	FUT_FULL_PROBE2(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TAG, tag, (job)->job_id);
@@ -639,7 +638,7 @@ int _starpu_trace_tag(starpu_tag_t* tag STARPU_ATTRIBUTE_UNUSED, struct _starpu_
  * \p tag_child is the successor dependence tag id.
  * \p tag_parent is the predecessor dependence tag id.
  */
-int _starpu_trace_tag_deps(starpu_tag_t* tag_child STARPU_ATTRIBUTE_UNUSED, starpu_tag_t* tag_parent STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_tag_deps(starpu_tag_t *tag_child STARPU_ATTRIBUTE_UNUSED, starpu_tag_t *tag_parent STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	FUT_FULL_PROBE2(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TAG_DEPS, tag_child, tag_parent);
@@ -663,16 +662,16 @@ int _starpu_trace_task_deps(struct _starpu_job *job_prev STARPU_ATTRIBUTE_UNUSED
 
 #if 0
 	if (job_succ)
-		printf( "succ: %d\t", job_succ->job_id);
+		printf("succ: %d\t", job_succ->job_id);
 	if (job_prev)
-		printf( "prev: %d", job_prev->job_id );
-	printf( "\n");
+		printf("prev: %d", job_prev->job_id);
+	printf("\n");
 	if (!job_prev->ps_task_timer)
-		printf( "prev does not have any timer\n");
+		printf("prev does not have any timer\n");
 	if (!job_succ->ps_task_timer)
-		printf( "succ does not have any timer\n");
+		printf("succ does not have any timer\n");
 	if (!job_prev->ps_task_timer)
-		_create_timer( job_prev, NULL );
+		_create_timer(job_prev, NULL);
 
 	TASKTIMER_ADD_CHILDREN(job_prev->ps_task_timer, job_succ->job_id, 1);
 //	TASKTIMER_ADD_PARENTS(job_succ->ps_task_timer, job_prev->job_id, 1);
@@ -832,7 +831,7 @@ int _starpu_trace_task_done(struct _starpu_job *job STARPU_ATTRIBUTE_UNUSED)
  * A dependence tag is releasing its dependences.
  * \p tag is the done tag.
  */
-int _starpu_trace_tag_done(struct _starpu_tag* tag STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_tag_done(struct _starpu_tag *tag STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	if(STARPU_UNLIKELY((_STARPU_FUT_KEYMASK_TASK) & fut_active))
@@ -857,7 +856,7 @@ int _starpu_trace_tag_done(struct _starpu_tag* tag STARPU_ATTRIBUTE_UNUSED)
  * \p handle is the corresponding data handle.
  * \p name is the name to be assigned to the data handle.
  */
-int _starpu_trace_data_name(starpu_data_handle_t *handle STARPU_ATTRIBUTE_UNUSED, const char* name STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_data_name(starpu_data_handle_t *handle STARPU_ATTRIBUTE_UNUSED, const char *name STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	_STARPU_FUT_FULL_PROBE1STR(_STARPU_FUT_KEYMASK_META, _STARPU_FUT_DATA_NAME, handle, name);
@@ -1445,7 +1444,7 @@ int _starpu_trace_end_writeback_async(unsigned memnode STARPU_ATTRIBUTE_UNUSED)
  * \p task is the corresponding task.
  * \p value is the value collected from the PAPI event.
  */
-int _starpu_trace_papi_task_event(int event_id STARPU_ATTRIBUTE_UNUSED, struct starpu_task* task STARPU_ATTRIBUTE_UNUSED, long long int value STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_papi_task_event(int event_id STARPU_ATTRIBUTE_UNUSED, struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, long long int value STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	FUT_DO_PROBE3(_STARPU_FUT_PAPI_TASK_EVENT_VALUE, event_id, _starpu_get_job_associated_to_task(task)->job_id, value);
@@ -1562,7 +1561,7 @@ int _starpu_trace_user_event(unsigned long code STARPU_ATTRIBUTE_UNUSED)
  * A trace meta-event has been recorded.
  * \p S is the trace meta-event string.
  */
-int _starpu_trace_meta(const char* S STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_meta(const char *S STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 #ifdef FUT_DO_ALWAYS_PROBESTR
@@ -1599,7 +1598,7 @@ int _starpu_trace_task_wait_for_all()
  * An unconditional event has been recorded.
  * \p S is the event string.
  */
-int _starpu_trace_event_always(const char* S STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_event_always(const char *S STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 #ifdef FUT_DO_ALWAYS_PROBESTR
@@ -1614,7 +1613,7 @@ int _starpu_trace_event_always(const char* S STARPU_ATTRIBUTE_UNUSED)
  * An default verbosity level event has been recorded.
  * \p S is the event string.
  */
-int _starpu_trace_event(const char* S STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_event(const char *S STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 #ifdef FUT_DO_ALWAYS_PROBESTR
@@ -1628,7 +1627,7 @@ int _starpu_trace_event(const char* S STARPU_ATTRIBUTE_UNUSED)
  * An verbose level event has been recorded.
  * \p S is the event string.
  */
-int _starpu_trace_event_verbose(const char* S STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_event_verbose(const char *S STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 #ifdef FUT_DO_ALWAYS_PROBESTR
@@ -1641,7 +1640,7 @@ int _starpu_trace_event_verbose(const char* S STARPU_ATTRIBUTE_UNUSED)
 /**
  * Obsolete? Does not seem to be used anymore.
  */
-int _starpu_trace_thread_event(const char* S STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_thread_event(const char *S STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	_STARPU_FUT_FULL_PROBE1STR(_STARPU_FUT_KEYMASK_WORKER, _STARPU_FUT_THREAD_EVENT, _starpu_gettid(), S);
@@ -1846,7 +1845,7 @@ int _starpu_trace_rwlock_unlocked()
 /**
  * A spin-lock lock operation has been started.
  */
-int _starpu_trace_spinlock_locked(const char* file STARPU_ATTRIBUTE_UNUSED, int line STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_spinlock_locked(const char *file STARPU_ATTRIBUTE_UNUSED, int line STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_FXT_LOCK_TRACES
 #ifdef STARPU_USE_FXT
@@ -1864,7 +1863,7 @@ int _starpu_trace_spinlock_locked(const char* file STARPU_ATTRIBUTE_UNUSED, int 
 /**
  * A spin-lock lock operation has been started.
  */
-int _starpu_trace_locking_spinlock(const char* file STARPU_ATTRIBUTE_UNUSED, int line STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_locking_spinlock(const char *file STARPU_ATTRIBUTE_UNUSED, int line STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_FXT_LOCK_TRACES
 #ifdef STARPU_USE_FXT
@@ -1882,7 +1881,7 @@ int _starpu_trace_locking_spinlock(const char* file STARPU_ATTRIBUTE_UNUSED, int
 /**
  * A spin-lock unlock operation has been started.
  */
-int _starpu_trace_unlocking_spinlock(const char* file STARPU_ATTRIBUTE_UNUSED, int line STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_unlocking_spinlock(const char *file STARPU_ATTRIBUTE_UNUSED, int line STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_FXT_LOCK_TRACES
 #ifdef STARPU_USE_FXT
@@ -1900,7 +1899,7 @@ int _starpu_trace_unlocking_spinlock(const char* file STARPU_ATTRIBUTE_UNUSED, i
 /**
  * A spin-lock unlock operation has been completed.
  */
-int _starpu_trace_spinlock_unlocked(const char* file STARPU_ATTRIBUTE_UNUSED, int line STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_spinlock_unlocked(const char *file STARPU_ATTRIBUTE_UNUSED, int line STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_FXT_LOCK_TRACES
 #ifdef STARPU_USE_FXT
@@ -1918,7 +1917,7 @@ int _starpu_trace_spinlock_unlocked(const char* file STARPU_ATTRIBUTE_UNUSED, in
 /**
  * A spin-lock trylock operation has been attempted.
  */
-int _starpu_trace_trylock_spinlock(const char* file STARPU_ATTRIBUTE_UNUSED, int line STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_trylock_spinlock(const char *file STARPU_ATTRIBUTE_UNUSED, int line STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_FXT_LOCK_TRACES
 #ifdef STARPU_USE_FXT
@@ -2017,7 +2016,7 @@ int _starpu_trace_end_unpartition(starpu_data_handle_t *handle STARPU_ATTRIBUTE_
 	return 0;
 }
 
-int _starpu_trace_sched_component_push_prio(struct starpu_sched_component * component STARPU_ATTRIBUTE_UNUSED, unsigned ntasks STARPU_ATTRIBUTE_UNUSED, double exp_len STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_sched_component_push_prio(struct starpu_sched_component *component STARPU_ATTRIBUTE_UNUSED, unsigned ntasks STARPU_ATTRIBUTE_UNUSED, double exp_len STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	if (fut_active)
@@ -2031,7 +2030,7 @@ int _starpu_trace_sched_component_push_prio(struct starpu_sched_component * comp
 	return 0;
 }
 
-int _starpu_trace_sched_component_pop_prio(struct starpu_sched_component * component STARPU_ATTRIBUTE_UNUSED, unsigned ntasks STARPU_ATTRIBUTE_UNUSED, double exp_len STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_sched_component_pop_prio(struct starpu_sched_component *component STARPU_ATTRIBUTE_UNUSED, unsigned ntasks STARPU_ATTRIBUTE_UNUSED, double exp_len STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	if (fut_active)
@@ -2045,7 +2044,7 @@ int _starpu_trace_sched_component_pop_prio(struct starpu_sched_component * compo
 	return 0;
 }
 
-int _starpu_trace_sched_component_new(struct starpu_sched_component* component STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_sched_component_new(struct starpu_sched_component *component STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	if (STARPU_UNLIKELY(fut_active)) _STARPU_FUT_ALWAYS_PROBE1STR(_STARPU_FUT_SCHED_COMPONENT_NEW, component, (component)->name);
@@ -2053,7 +2052,7 @@ int _starpu_trace_sched_component_new(struct starpu_sched_component* component S
 	return 0;
 }
 
-int _starpu_trace_sched_component_connect(struct starpu_sched_component* parent STARPU_ATTRIBUTE_UNUSED, struct starpu_sched_component* child STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_sched_component_connect(struct starpu_sched_component *parent STARPU_ATTRIBUTE_UNUSED, struct starpu_sched_component *child STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	if (STARPU_UNLIKELY(fut_active)) FUT_RAW_ALWAYS_PROBE2(FUT_CODE(_STARPU_FUT_SCHED_COMPONENT_CONNECT,2), parent, child);
@@ -2061,7 +2060,7 @@ int _starpu_trace_sched_component_connect(struct starpu_sched_component* parent 
 	return 0;
 }
 
-int _starpu_trace_sched_component_push(struct starpu_sched_component* from STARPU_ATTRIBUTE_UNUSED, struct starpu_sched_component* to STARPU_ATTRIBUTE_UNUSED, struct starpu_task* task STARPU_ATTRIBUTE_UNUSED, int prio STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_sched_component_push(struct starpu_sched_component *from STARPU_ATTRIBUTE_UNUSED, struct starpu_sched_component *to STARPU_ATTRIBUTE_UNUSED, struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, int prio STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	FUT_FULL_PROBE5(_STARPU_FUT_KEYMASK_SCHED, _STARPU_FUT_SCHED_COMPONENT_PUSH, _starpu_gettid(), from, to, task, prio);
@@ -2069,7 +2068,7 @@ int _starpu_trace_sched_component_push(struct starpu_sched_component* from STARP
 	return 0;
 }
 
-int _starpu_trace_sched_component_pull(struct starpu_sched_component* from STARPU_ATTRIBUTE_UNUSED, struct starpu_sched_component* to STARPU_ATTRIBUTE_UNUSED, struct starpu_task* task STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_sched_component_pull(struct starpu_sched_component *from STARPU_ATTRIBUTE_UNUSED, struct starpu_sched_component *to STARPU_ATTRIBUTE_UNUSED, struct starpu_task *task STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	FUT_FULL_PROBE5(_STARPU_FUT_KEYMASK_SCHED, _STARPU_FUT_SCHED_COMPONENT_PULL, _starpu_gettid(), from, to, task, (task)->priority);
@@ -2191,7 +2190,8 @@ int _starpu_trace_start_transfer(unsigned memnode STARPU_ATTRIBUTE_UNUSED, struc
 	dest_info.device_id = 0;
 	dest_info.instance_id = 0;
 
-	char* source = &memnode, dest = &memnode;/* TODO will set that later */
+	char *source = &memnode;
+	char *dest = &memnode;/* TODO will set that later */
 
 	// TASKTIMER_DATA_TRANSFER_START(myguid, sip, "source", (void*)source, dip, "dest", (void*)dest);
 #endif
