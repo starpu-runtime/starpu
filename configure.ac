@@ -200,36 +200,36 @@ AC_ARG_WITH(taskstubs-lib-dir,
 if test x$enable_taskstubs = xyes ; then
 	AC_DEFINE(STARPU_PROF_TASKSTUBS, [1], [Define this to enable TaskStubs support])
 	PKG_CHECK_MODULES([TASKSTUBS], [TASKSTUBS], [have_pkg_taskstubs=yes], [have_pkg_taskstubs=no])
-	
+
 	if test x$have_pkg_taskstubs = xyes; then
 		have_taskstubs=yes
 	else
 		if test "$taskstubs_include_dir" = "no" ; then
 		   if test "$taskstubs_dir" != "no" ; then
 		      taskstubs_include_dir="$taskstubs_dir/include/"
-		   fi		
+		   fi
 		fi
 
 		if test "$taskstubs_lib_dir" = "no" ; then
 		   if test "$taskstubs_dir" != "no" ; then
 		      taskstubs_lib_dir="$taskstubs_dir/lib"
-		   fi		
+		   fi
 		fi
 
 		if test "$taskstubs_include_dir" != "no" ; then
 		   AC_MSG_NOTICE(Using TaskStubs include dir $taskstubs_include_dir)
 		   TASKSTUBS_CFLAGS="-I$taskstubs_include_dir -I$taskstubs_include_dir/timer_plugin $TASKSTUBS_CFLAGS"
 		else
-		   AC_MSG_WARN([TaskStubs dir not found])
+		   AC_MSG_ERROR([TaskStubs dir not found])
 		fi
-		
+
 		if test "$taskstubs_lib_dir" != "no" ; then
 		   AC_MSG_NOTICE(Using TaskStubs lib dir $taskstubs_lib_dir)
 		   TASKSTUBS_LIBS="-L$taskstubs_lib_dir/ -ltimer_plugin"
 		else
-		   AC_MSG_WARN([TaskStubs lib not found])
+		   AC_MSG_ERROR([TaskStubs lib not found])
 		fi
-		
+
 		if test "$taskstubs_lib_dir" != "no" ; then
 		   if test "$taskstubs_lib_dir" != "no" ; then
 		      have_taskstubs=yes
@@ -244,7 +244,7 @@ if test x$enable_taskstubs = xyes ; then
 	   	LDFLAGS="$TASKSTUBS_LIBS $LDFLAGS"
 	fi
 fi
-	
+
 ###############################################################################
 #                                                                             #
 #                            Recursive tasks support                          #
