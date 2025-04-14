@@ -1,0 +1,24 @@
+digraph prof {
+ label = "Start Date/Time: 11/04/2025 11:51:11\lElapsed Time: 25.699 seconds\lCores detected: 16\lWorker threads observed: 18\lAvailable CPU time: 411.184 seconds\l"
+ labelloc = "t";
+ labeljust = "l";
+ overlap = false;
+ splines = true;
+ rankdir = "LR";
+ node [shape=box];
+  "APEX MAIN" -> "POTRF" [ label="  count: 1" ]; 
+  "APEX MAIN" -> "int apex_preload_main(int, char**, char**)" [ label="  count: 1" ]; 
+  "POTRF" -> "TRSM" [ label="  count: 7" ]; 
+  "GEMM" -> "GEMM" [ label="  count: 35" ]; 
+  "GEMM" -> "TRSM" [ label="  count: 21" ]; 
+  "SYRK" -> "SYRK" [ label="  count: 21" ]; 
+  "SYRK" -> "POTRF" [ label="  count: 7" ]; 
+  "TRSM" -> "GEMM" [ label="  count: 21" ]; 
+  "TRSM" -> "SYRK" [ label="  count: 7" ]; 
+  "APEX MAIN" [shape=box; color=firebrick; style=filled; fontcolor=white; fillcolor="#ff0000"; label="APEX MAIN\lcalls: 1\ltime: 25.699s\linclusive: 25.699s\lper call: 25.699s\l" ];
+  "int apex_preload_main(int, char**, char**)" [shape=box; color=firebrick; style=filled; fontcolor=white; fillcolor="#ff0000"; label="int apex_preload_main(int, char**, char**)\lcalls: 1\ltime: 25.6859s\linclusive: 25.6859s\lper call: 25.6859s\l" ];
+  "SYRK" [shape=box; color=firebrick; style=filled; fontcolor=black; fillcolor="#ffe1e1"; label="SYRK\lcalls: 28\ltime: 2.92731s\linclusive: 2.92731s\lper call: 0.104547s\l" ];
+  "POTRF" [shape=box; color=firebrick; style=filled; fontcolor=white; fillcolor="#ff1818"; label="POTRF\lcalls: 8\ltime: 23.2364s\linclusive: 23.2364s\lper call: 2.90454s\l" ];
+  "GEMM" [shape=box; color=firebrick; style=filled; fontcolor=white; fillcolor="#ff3939"; label="GEMM\lcalls: 56\ltime: 19.8694s\linclusive: 19.8694s\lper call: 0.35481s\l" ];
+  "TRSM" [shape=box; color=firebrick; style=filled; fontcolor=black; fillcolor="#ffe9e9"; label="TRSM\lcalls: 28\ltime: 2.13467s\linclusive: 2.13467s\lper call: 0.0762382s\l" ];
+}

@@ -575,6 +575,13 @@ Enable parallel worker support (\ref ParallelWorker)
 Enable the StarPU Eclipse Plugin. See \ref EclipsePlugin to know how to install Eclipse.
 </dd>
 
+<dt>--enable-taskstubs</dt>
+<dd>
+\anchor enable-taskstubs
+\addindex __configure__--enable-taskstubs
+Enable the tracing and profiling with APEX. See \ref APEX for more details.
+</dd>
+
 </dl>
 
 \section AdvancedConfiguration Advanced Configuration

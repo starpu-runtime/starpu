@@ -78,7 +78,13 @@ images = 	\
 	../doxygen/chapters/starpu_performances/images/vite_zoom_horiz.png \
 	../doxygen/chapters/starpu_performances/images/vite_zoom_horiz_result.png \
 	../doxygen/chapters/starpu_performances/images/vite_zoom.png \
-	../doxygen/chapters/starpu_performances/images/vite_zoom_result.png
+	../doxygen/chapters/starpu_performances/images/vite_zoom_result.png \
+	../doxygen/chapters/starpu_performances/images/taskgraph.0.dot \
+	../doxygen/chapters/starpu_performances/images/taskgraph.0.png \
+	../doxygen/chapters/starpu_performances/images/traces_tasks.png \
+	../doxygen/chapters/starpu_performances/images/traces_threads.png \
+	../doxygen/chapters/starpu_performances/images/tasks.json.gz \
+	../doxygen/chapters/starpu_performances/images/threads.json.gz
 
 if STARPU_BUILD_DOC
 starpu_config.h: $(top_srcdir)/include/starpu_config.h.in

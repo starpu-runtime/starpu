@@ -24,13 +24,13 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters/starpu_performances/p
                       @top_srcdir@/doc/doxygen/chapters/api
 
 EXAMPLE_PATH           = @top_srcdir@/doc/doxygen \
-                             @top_srcdir@/doc/doxygen/chapters
+                         @top_srcdir@/doc/doxygen/chapters
 
 INPUT_FILTER           = @top_builddir@/doc/doxygen/doxygen_filter.sh
 
 #LATEX_HEADER           = @top_srcdir@/doc/doxygen/refman.tex
 
-IMAGE_PATH             = @top_srcdir@/doc/doxygen/chapters/images
+IMAGE_PATH             = @top_srcdir@/doc/doxygen/chapters/starpu_performances/images
 
 GENERATE_LATEX         = @DOC_GENERATE_LATEX@
 
