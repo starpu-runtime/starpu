@@ -47,30 +47,44 @@ void _create_timer(struct _starpu_job *job, void *func)
 	}
 
 	unsigned nb_parents = 0;
-	unsigned i;
-	for (i = 0; i < job->job_successors.ndeps; i++)
+	unsigned n;
+	for(n=0 ; n < job->job_successors.ndeps; n++)
 	{
-		nb_parents += job->job_successors.deps[i]->ndeps;
-	}
-
-	if (nb_parents)
-	{
-		parents = (uint64_t*) malloc(nb_parents*sizeof(uint64_t));
-		unsigned k = 0;
-		for (i = 0; i < job->job_successors.ndeps; i++)
+		if (!job->job_successors.done[n])
 		{
-			unsigned j;
-			for(j = 0 ; j < job->job_successors.deps[i]->ndeps; j++)
+			struct _starpu_cg *cg = job->job_successors.deps[n];
+			unsigned m;
+			for(m=0 ; m < cg->ndeps ; m++)
 			{
-				parents[k] = ((struct _starpu_job*)(job->job_successors.deps[i]->deps[j]))->job_id;
-				k++;
+				if (!cg->done[m])
+				{
+					nb_parents += 1;
+				}
 			}
 		}
 	}
-	else
+	if (nb_parents)
 	{
-		parents = NULL;
-		nb_parents = 0;
+		unsigned k = 0;
+		unsigned n;
+		parents = (uint64_t*) malloc(nb_parents*sizeof(uint64_t));
+		for(n=0 ; n < job->job_successors.ndeps; n++)
+		{
+			if (!job->job_successors.done[n])
+			{
+				struct _starpu_cg *cg = job->job_successors.deps[n];
+				unsigned m;
+				for(m=0 ; m < cg->ndeps ; m++)
+				{
+					if (!cg->done[m])
+					{
+						struct _starpu_job *xjob = cg->deps[m];
+						parents[k] = xjob->job_id;
+						k ++;
+					}
+				}
+			}
+		}
 	}
 
 	TASKTIMER_CREATE(func, name, myguid, parents, nb_parents, tt);
@@ -1073,12 +1087,27 @@ int _starpu_trace_task_submit(struct _starpu_job *job STARPU_ATTRIBUTE_UNUSED, l
 
 	if(NULL == job->ps_task_timer)
 	{
-		_create_timer( job, NULL );
+		_create_timer(job, NULL);
 	}
 
-	for (int i = 0; i < job->job_successors.ndeps; i++)
+	unsigned n;
+	for(n=0 ; n < job->job_successors.ndeps; n++)
 	{
-		TASKTIMER_ADD_PARENTS(job->ps_task_timer, ((struct _starpu_job*)(job->job_successors.deps[i]->deps))->job_id, 1);
+		if (!job->job_successors.done[n])
+		{
+			struct _starpu_cg *cg = job->job_successors.deps[n];
+			unsigned m;
+			for(m=0 ; m < cg->ndeps ; m++)
+			{
+				if (!cg->done[m])
+				{
+					struct _starpu_job *xjob = cg->deps[m];
+					uint64_t parent[1];
+					parent[0] = xjob->job_id;
+					TASKTIMER_ADD_PARENTS(job->ps_task_timer, parent, 1);
+				}
+			}
+		}
 	}
 
 #endif
