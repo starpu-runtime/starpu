@@ -16,7 +16,7 @@
 include $(top_srcdir)/make/starpu-tests.mk
 include $(top_srcdir)/make/starpu-loader.mk
 
-SUBDIRS	=
+SUBDIRS	= microbenchs
 
 AM_CFLAGS += $(APP_CFLAGS)
 AM_CXXFLAGS += $(APP_CXXFLAGS)
@@ -37,20 +37,6 @@ EXTRA_DIST =					\
 	regression/profiles.in			\
 	regression/regression.sh.in		\
 	regression/profiles.build.only.in	\
-	microbenchs/tasks_data_overhead.sh	\
-	microbenchs/sync_tasks_data_overhead.sh	\
-	microbenchs/async_tasks_data_overhead.sh	\
-	microbenchs/tasks_size_overhead.sh	\
-	microbenchs/tasks_size_overhead_sched.sh	\
-	microbenchs/tasks_size_overhead_scheds.sh	\
-	microbenchs/tasks_size_overhead.gp	\
-	microbenchs/parallel_dependent_homogeneous_tasks_data.sh	\
-	microbenchs/parallel_independent_heterogeneous_tasks_data.sh	\
-	microbenchs/parallel_independent_heterogeneous_tasks.sh	\
-	microbenchs/parallel_independent_homogeneous_tasks_data.sh	\
-	microbenchs/parallel_independent_homogeneous_tasks.sh	\
-	microbenchs/bandwidth_scheds.sh		\
-	microbenchs/starpu_check.sh		\
 	energy/static.sh			\
 	energy/dynamic.sh			\
 	energy/perfs.gp				\
@@ -77,8 +63,6 @@ EXTRA_DIST =					\
 	datawizard/interfaces/tensor/tensor_opencl_kernel.cl \
 	datawizard/interfaces/ndim/ndim_opencl_kernel.cl \
 	perfmodels/opencl_memset_kernel.cl \
-	$(MICROBENCHS:=.sh) \
-	microbenchs/microbench.sh	\
 	memory/memstress2.gp	\
 	memory/memstress2.sh	\
 	memory/memstress.gp	\
@@ -156,8 +140,6 @@ myPROGRAMS +=					\
 	helper/hipblas_init			\
 	helper/pinned_memory			\
 	helper/execute_on_all			\
-	microbenchs/display_structures_size	\
-	microbenchs/local_pingpong		\
 	overlap/overlap				\
 	sched_ctx/sched_ctx_list		\
 	sched_ctx/sched_ctx_policy_data		\
@@ -349,14 +331,6 @@ myPROGRAMS +=				\
 	helper/starpu_data_cpy			\
 	helper/starpu_data_dup_ro		\
 	helper/starpu_create_sync_task		\
-	microbenchs/async_tasks_overhead	\
-	microbenchs/sync_tasks_overhead		\
-	microbenchs/tasks_overhead		\
-	microbenchs/tasks_size_overhead		\
-	microbenchs/prefetch_data_on_node 	\
-	microbenchs/redundant_buffer		\
-	microbenchs/matrix_as_vector		\
-	microbenchs/bandwidth			\
 	overlap/gpu_concurrency			\
 	parallel_tasks/combined_worker_assign_workerid	\
 	parallel_tasks/explicit_combined_worker	\
@@ -395,15 +369,6 @@ myPROGRAMS +=				\
 endif
 endif
 
-MICROBENCHS = \
-	microbenchs/parallel_independent_homogeneous_tasks      \
-	microbenchs/parallel_independent_heterogeneous_tasks    \
-	microbenchs/parallel_independent_homogeneous_tasks_data	\
-	microbenchs/parallel_independent_heterogeneous_tasks_data \
-	microbenchs/parallel_redux_homogeneous_tasks_data \
-	microbenchs/parallel_redux_heterogeneous_tasks_data \
-	microbenchs/parallel_dependent_homogeneous_tasks_data
-
 if STARPU_HAVE_FC
 if !STARPU_SANITIZE
 if !STARPU_SIMGRID
@@ -422,29 +387,7 @@ endif
 endif
 
 examplebin_PROGRAMS = \
-	main/deadlock				\
-	microbenchs/async_tasks_overhead	\
-	microbenchs/sync_tasks_overhead		\
-	microbenchs/tasks_overhead		\
-	microbenchs/tasks_size_overhead		\
-	microbenchs/local_pingpong
-examplebin_SCRIPTS = \
-	microbenchs/tasks_data_overhead.sh \
-	microbenchs/sync_tasks_data_overhead.sh \
-	microbenchs/async_tasks_data_overhead.sh \
-	microbenchs/tasks_size_overhead.gp \
-	microbenchs/tasks_size_overhead.sh
-if !STARPU_SIMGRID
-if !STARPU_USE_MPI_MASTER_SLAVE
-examplebin_PROGRAMS += \
-	microbenchs/bandwidth
-SHELL_TESTS += \
-	microbenchs/tasks_data_overhead.sh \
-	microbenchs/sync_tasks_data_overhead.sh \
-	microbenchs/async_tasks_data_overhead.sh \
-	microbenchs/tasks_size_overhead_scheds.sh
-endif
-endif
+	main/deadlock
 
 if STARPU_HAVE_WINDOWS
 check_PROGRAMS	=	$(myPROGRAMS)
@@ -452,16 +395,10 @@ else
 check_PROGRAMS	=	$(LOADER) $(myPROGRAMS)
 endif
 noinst_PROGRAMS += $(myPROGRAMS)
-noinst_PROGRAMS += $(MICROBENCHS)
-
-if STARPU_SIMGRID
-SHELL_TESTS += $(MICROBENCHS:=.sh)
-endif
 
 SHELL_TESTS += \
 	traces/fxt.sh \
-	datawizard/locality.sh \
-	microbenchs/bandwidth_scheds.sh
+	datawizard/locality.sh
 
 if STARPU_USE_FXT
 SHELL_TESTS += \
