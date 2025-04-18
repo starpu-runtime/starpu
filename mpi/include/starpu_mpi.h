@@ -504,7 +504,7 @@ int starpu_mpi_cached_send(starpu_data_handle_t data_handle, int dest);
  * add it to the cache and return 0
  * Return 0 if the communication cache is not enabled
  */
-int starpu_mpi_cached_send_set(starpu_data_handle_t data, int dest);
+int starpu_mpi_cached_send_set(starpu_data_handle_t data, int dest, MPI_Comm comm);
 
 /**
  * Remove \p data from the emission cache
