@@ -739,7 +739,9 @@ pointers.
 <li>Meta-data pointers, which always point to RAM memory. They are usually
 always allocated so that they can always be used. For instance, for the
 n-dimension matrix interface the array of dimension sizes and the array of ld
-are meta-data pointers.
+are meta-data pointers. These are typically allocated at data registration time
+in starpu_data_interface_ops::register_data_handle, and released at data
+unregistration time in starpu_data_interface_ops::unregister_data_handle
 </ul>
 
 This means that:
