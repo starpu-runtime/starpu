@@ -770,19 +770,21 @@ pointers of the home_node interface to that buffer.
 <li>The interface can additionally provide a \c ptr_register helper to set the
 data pointer of a given node. One can call starpu_data_ptr_register() to realise.
 <li>The starpu_data_interface_ops::unregister_data_handle method has to
-deallocate the meta-data pointers
+deallocate the meta-data pointers.
 <li>The starpu_data_interface_ops::allocate_data_on_node method has to allocate
 the data pointers on the given node.
 <li>The starpu_data_interface_ops::free_data_on_node method has to deallocate
 the data pointers on the given node.
-<li>The starpu_data_interface_ops::cache_data_on_node transfers the data
-pointers from a source interface to a cached interface. This can notably take
+<li>The optional starpu_data_interface_ops::cache_data_on_node transfers the data
+pointers from a source interface to a cached interface. If undefined, a mere
+memcpy is used instead.  This can notably take
 the opportunity to clear pointers in the source interface. This also needs to
 copy the properties that starpu_data_interface_ops::compare (or
 starpu_data_interface_ops::alloc_compare if defined) needs for comparing
 interfaces for caching compatibility.
 <li>The starpu_data_interface_ops::reuse_data_on_node transfers the data
-pointers from a cached interface to the destination interface.
+pointers from a cached interface to the destination interface. If undefined, a
+mere memcpy is used instead.
 <li>The starpu_data_interface_ops::map_data has to map the data pointers on the
 given node. One should define function starpu_interface_map() to set this field.
 <li>The starpu_data_interface_ops::unmap_data has to unmap the data pointers on
@@ -792,6 +794,22 @@ the given node. One should define function starpu_interface_update_map() to set 
 <li>The filtering functions have to allocate the meta-data pointers for the
 child interface, and when the parent interface has data pointers, it has to set
 the child data pointers to point into the parent data buffers.
+</ul>
+
+Put another way:
+
+<ul>
+<li>starpu_data_register() initializes the handle structure and calls
+starpu_data_interface_ops::register_data_handle.
+<li>Then StarPU may call starpu_data_interface_ops::allocate_data_on_node and
+starpu_data_interface_ops::free_data_on_node as it sees fit when it needs
+the data allocated on some node or not.
+<li>Eventually, starpu_data_unregister() releases the handle buffers for all
+nodes (except the home node given to starpu_data_register() ), which either
+means calling starpu_data_interface_ops::free_data_on_node (if allocation
+cache is disabled), or putting them into the allocation cache.  It then calls
+starpu_data_interface_ops::unregister_data_handle, and releases the handle
+structure.
 </ul>
 
 Note: for compressed matrices such as CSR, BCSR, COO, the \c colind and \c
