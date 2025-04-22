@@ -191,13 +191,27 @@ int main(int argc, char **argv)
 
 			snprintf(file, sizeof(file), "%s/async_tasks_overhead_total%s.dat", output_dir, numberp);
 			f = fopen(file, "a");
-			fprintf(f, "%s\t%f\n", bench_id, timing/1000000);
-			fclose(f);
+			if (!f)
+			{
+				fprintf(stderr, "cannot open file <%s>\n", file);
+			}
+			else
+			{
+				fprintf(f, "%s\t%f\n", bench_id, timing/1000000);
+				fclose(f);
+			}
 
 			snprintf(file, sizeof(file), "%s/async_tasks_overhead_per_task%s.dat", output_dir, numberp);
 			f = fopen(file, "a");
-			fprintf(f, "%s\t%f\n", bench_id, timing/ntasks);
-			fclose(f);
+			if (!f)
+			{
+				fprintf(stderr, "cannot open file <%s>\n", file);
+			}
+			else
+			{
+				fprintf(f, "%s\t%f\n", bench_id, timing/ntasks);
+				fclose(f);
+			}
 		}
 	}
 

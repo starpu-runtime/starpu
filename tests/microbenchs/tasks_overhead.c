@@ -208,33 +208,75 @@ int main(int argc, char **argv)
 
 			snprintf(file, sizeof(file), "%s/tasks_overhead_total_submit%s.dat", output_dir, numberp);
 			f = fopen(file, "a");
-			fprintf(f, "%s\t%f\n", bench_id, timing_submit/1000000);
-			fclose(f);
+			if (!f)
+			{
+				fprintf(stderr, "cannot open file <%s>\n", file);
+			}
+			else
+			{
+				fprintf(f, "%s\t%f\n", bench_id, timing_submit/1000000);
+				fclose(f);
+			}
 
 			snprintf(file, sizeof(file), "%s/tasks_overhead_per_task_submit%s.dat", output_dir, numberp);
 			f = fopen(file, "a");
-			fprintf(f, "%s\t%f\n", bench_id, timing_submit/ntasks);
-			fclose(f);
+			if (!f)
+			{
+				fprintf(stderr, "cannot open file <%s>\n", file);
+			}
+			else
+			{
+				fprintf(f, "%s\t%f\n", bench_id, timing_submit/ntasks);
+				fclose(f);
+			}
 
 			snprintf(file, sizeof(file), "%s/tasks_overhead_total_execution%s.dat", output_dir, numberp);
 			f = fopen(file, "a");
-			fprintf(f, "%s\t%f\n", bench_id, timing_exec/1000000);
-			fclose(f);
+			if (!f)
+			{
+				fprintf(stderr, "cannot open file <%s>\n", file);
+			}
+			else
+			{
+				fprintf(f, "%s\t%f\n", bench_id, timing_exec/1000000);
+				fclose(f);
+			}
 
 			snprintf(file, sizeof(file), "%s/tasks_overhead_per_task_execution%s.dat", output_dir, numberp);
 			f = fopen(file, "a");
-			fprintf(f, "%s\t%f\n", bench_id, timing_exec/ntasks);
-			fclose(f);
+			if (!f)
+			{
+				fprintf(stderr, "cannot open file <%s>\n", file);
+			}
+			else
+			{
+				fprintf(f, "%s\t%f\n", bench_id, timing_exec/ntasks);
+				fclose(f);
+			}
 
 			snprintf(file, sizeof(file), "%s/tasks_overhead_total_submit_execution%s.dat", output_dir, numberp);
 			f = fopen(file, "a");
-			fprintf(f, "%s\t%f\n", bench_id, (timing_submit+timing_exec)/1000000);
-			fclose(f);
+			if (!f)
+			{
+				fprintf(stderr, "cannot open file <%s>\n", file);
+			}
+			else
+			{
+				fprintf(f, "%s\t%f\n", bench_id, (timing_submit+timing_exec)/1000000);
+				fclose(f);
+			}
 
 			snprintf(file, sizeof(file), "%s/tasks_overhead_per_task_submit_execution%s.dat", output_dir, numberp);
 			f = fopen(file, "a");
-			fprintf(f, "%s\t%f\n", bench_id, (timing_submit+timing_exec)/ntasks);
-			fclose(f);
+			if (!f)
+			{
+				fprintf(stderr, "cannot open file <%s>\n", file);
+			}
+			else
+			{
+				fprintf(f, "%s\t%f\n", bench_id, (timing_submit+timing_exec)/ntasks);
+				fclose(f);
+			}
 		}
 	}
 

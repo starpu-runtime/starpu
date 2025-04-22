@@ -311,8 +311,15 @@ int main(int argc, char **argv)
 
 					snprintf(file, sizeof(file), "%s/tasks_size_overhead_total%s%s.dat", output_dir, sched?"_":"", sched?sched:"");
 					f = fopen(file, "a");
-					fprintf(f, "%s\t%u\t%u\t%f\n", bench_id, ncpus, size, timing/1000000 /(ntasks*ncpus) *1000);
-					fclose(f);
+					if (!f)
+					{
+						fprintf(stderr, "cannot open file <%s>\n", file);
+					}
+					else
+					{
+						fprintf(f, "%s\t%u\t%u\t%f\n", bench_id, ncpus, size, timing/1000000 /(ntasks*ncpus) *1000);
+						fclose(f);
+					}
 				}
 			}
 		}

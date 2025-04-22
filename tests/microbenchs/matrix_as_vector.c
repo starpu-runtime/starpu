@@ -165,8 +165,15 @@ int check_size(int nx, struct starpu_codelet *vector_codelet, struct starpu_code
 				FILE *f;
 				snprintf(file, sizeof(file), "%s/matrix_as_vector_%s.dat", output_dir, device_name);
 				f = fopen(file, "a");
-				fprintf(f, "%s\t%d\t%f\t%f\n", bench_id, nx, vector_timing, matrix_timing);
-				fclose(f);
+				if (!f)
+				{
+					fprintf(stderr, "cannot open file <%s>\n", file);
+				}
+				else
+				{
+					fprintf(f, "%s\t%d\t%f\t%f\n", bench_id, nx, vector_timing, matrix_timing);
+					fclose(f);
+				}
 			}
 		}
 
