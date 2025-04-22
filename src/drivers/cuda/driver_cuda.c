@@ -1167,7 +1167,6 @@ static int _starpu_cuda_driver_deinit(struct _starpu_worker *worker)
 	{
 		worker = &worker_set->workers[i];
 		unsigned workerid = worker->workerid;
-		unsigned memnode = worker->memory_node;
 
 		deinit_worker_context(workerid, worker->devid);
 		_starpu_trace_worker_deinit_end(workerid, STARPU_CUDA_WORKER);
