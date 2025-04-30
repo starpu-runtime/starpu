@@ -27,7 +27,6 @@ then
 fi
 
 BUILD=./build_$$
-
 ./autogen.sh
 if test -d $BUILD ; then chmod -R 777 $BUILD && rm -rf $BUILD ; fi
 mkdir $BUILD && cd $BUILD
@@ -39,6 +38,7 @@ cp doc/doxygen/starpu.pdf ..
 cp doc/doxygen_dev/starpu_dev.pdf ..
 cp -rp doc/doxygen/html ..
 make clean
+cd ../
 
 tarball=$(ls -tr starpu-*.tar.gz | tail -1)
 
