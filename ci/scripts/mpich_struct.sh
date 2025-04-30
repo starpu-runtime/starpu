@@ -15,4 +15,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-./contrib/ci.inria.fr/job-1-check.sh
+export STARPU_MICROBENCHS_DISABLED=1
+export STARPU_CHECK_DIRS=mpi
+export STARPU_USER_CONFIGURE_OPTIONS="--with-mpicc=/usr/bin/mpicc.mpich --with-mpiexec=/usr/bin/mpiexec.mpich --with-mpicxx=/usr/bin/mpicxx.mpich --with-mpifort=/usr/bin/mpifort.mpich --disable-mpi-type-vector-c"
+./ci/scripts/check.sh

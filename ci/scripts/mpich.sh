@@ -15,15 +15,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-BRANCH="unknown"
-if test -n "$CI_COMMIT_BRANCH"
-then
-    BRANCH=$CI_COMMIT_BRANCH
-fi
-if test -n "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME"
-then
-    BRANCH=$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
-fi
-
-./contrib/ci.inria.fr/job-1-check.sh -coverity $BRANCH
-
+export STARPU_MICROBENCHS_DISABLED=1
+export STARPU_CHECK_DIRS=mpi
+export STARPU_USER_CONFIGURE_OPTIONS="--disable-socl --with-mpicc=/usr/bin/mpicc.mpich --with-mpiexec=/usr/bin/mpiexec.mpich --with-mpicxx=/usr/bin/mpicxx.mpich --with-mpifort=/usr/bin/mpifort.mpich"
+./ci/scripts/check.sh

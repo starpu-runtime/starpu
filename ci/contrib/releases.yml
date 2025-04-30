@@ -20,7 +20,7 @@ new-release:
   tags:
     - starpu-release
   script:
-    - ./contrib/releases/new-release.sh
+    - ./ci/scripts/releases/new-release.sh
   timeout: 3h
 
 set-release:
@@ -32,7 +32,7 @@ set-release:
   tags:
     - starpu-release
   script:
-    - ./contrib/releases/set-release.sh
+    - ./ci/scripts/releases/set-release.sh
   artifacts:
     paths:
       - release-cli.txt

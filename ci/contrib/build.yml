@@ -27,7 +27,7 @@ build:
   image: registry.gitlab.inria.fr/starpu/starpu-docker/ci-debian12
   tags: ['ci.inria.fr', 'linux', 'large']
   script:
-    - ./contrib/gitlab/build.sh
+    - ./ci/scripts/build.sh
   artifacts:
     paths:
       - starpu*.tar.gz
@@ -41,7 +41,7 @@ build:
   dependencies:
     - build
   script:
-    - ./contrib/gitlab/deploy.sh
+    - ./ci/scripts/check.sh
 
 check_ci:
   extends: .check_template
@@ -51,7 +51,7 @@ check_ci:
   tags:
     - ${NODE}
   script:
-    - ./contrib/gitlab/deploy.sh
+    - ./ci/scripts/check.sh
 
 check:
   extends: .check_template
@@ -67,7 +67,7 @@ check_mpi:
   tags: ['ci.inria.fr', 'linux', 'large']
   parallel:
     matrix:
-      - SCRIPT: [./contrib/gitlab/mpich.sh, ./contrib/gitlab/mpich_struct.sh, ./contrib/gitlab/mpi_ulfm.sh]
+      - SCRIPT: [./ci/scripts/mpich.sh, ./ci/scripts/mpich_struct.sh, ./ci/scripts/mpi_ulfm.sh]
   script:
     - ${SCRIPT}
 
@@ -76,7 +76,7 @@ check_simgrid:
   image: registry.gitlab.inria.fr/starpu/starpu-docker/ci-debian10
   tags: ['ci.inria.fr', 'linux', 'large']
   script:
-    - ./contrib/gitlab/simgrid.sh
+    - ./ci/scripts/simgrid.sh
 
 .analyze_template:
   extends: .main_template
@@ -91,7 +91,7 @@ analyze_coverity:
     - starpu
     - linux
   script:
-    - ./contrib/gitlab/coverity.sh
+    - ./ci/scripts/coverity.sh
 
 .deploy_template:
   extends: .main_template
@@ -105,5 +105,5 @@ deploy_chameleon:
   image: registry.gitlab.inria.fr/solverstack/chameleon
   tags: ['ci.inria.fr', 'linux', 'large']
   script:
-    - ./contrib/gitlab/chameleon.sh
+    - ./ci/scripts/chameleon.sh
 

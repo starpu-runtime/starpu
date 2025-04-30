@@ -17,7 +17,28 @@
 
 set -e
 
-./contrib/ci.inria.fr/job-0-tarball.sh
+export LC_ALL=C
+export PKG_CONFIG_PATH=/home/ci/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH
+export LD_LIBRARY_PATH=/home/ci/usr/local/lib:$LD_LIBRARY_PATH
+
+if test -f $HOME/starpu_specific_env.sh
+then
+    . $HOME/starpu_specific_env.sh
+fi
+
+BUILD=./build_$$
+
+./autogen.sh
+if test -d $BUILD ; then chmod -R 777 $BUILD && rm -rf $BUILD ; fi
+mkdir $BUILD && cd $BUILD
+../configure --enable-build-doc-pdf $STARPU_USER_CONFIGURE_OPTIONS
+make -j4
+make dist
+cp *gz ..
+cp doc/doxygen/starpu.pdf ..
+cp doc/doxygen_dev/starpu_dev.pdf ..
+cp -rp doc/doxygen/html ..
+make clean
 
 tarball=$(ls -tr starpu-*.tar.gz | tail -1)
 

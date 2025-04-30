@@ -16,6 +16,4 @@
 #
 
 export STARPU_MICROBENCHS_DISABLED=1
-export STARPU_CHECK_DIRS=mpi
-export STARPU_USER_CONFIGURE_OPTIONS="--disable-socl --enable-mpi-ft --enable-mpi-ft-stats"
-./contrib/ci.inria.fr/job-1-check.sh
+STARPU_USER_CONFIGURE_OPTIONS="--enable-simgrid --disable-cuda --disable-mpi --disable-mpi-check" ./ci/scripts/check.sh
