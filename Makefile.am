@@ -197,7 +197,6 @@ EXTRA_DIST += ci/scripts/build.sh
 EXTRA_DIST += ci/scripts/check.sh
 EXTRA_DIST += ci/scripts/chameleon.sh
 EXTRA_DIST += ci/scripts/coverity.sh
-EXTRA_DIST += ci/scripts/deploy.sh
 EXTRA_DIST += ci/scripts/mpi_ulfm.sh
 EXTRA_DIST += ci/scripts/mpich_struct.sh
 EXTRA_DIST += ci/scripts/mpich.sh
