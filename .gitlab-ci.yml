@@ -27,6 +27,6 @@ default:
   interruptible: true
 
 include:
-  - local: ci/contrib/build.yml
-  - local: ci/contrib/releases.yml
+  - local: ci/gitlab/build.yml
+  - local: ci/gitlab/releases.yml
 
