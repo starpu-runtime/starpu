@@ -35,5 +35,5 @@ void _starpu_mpi_driver_shutdown();
 }
 #endif
 
-#endif // STARPU_USE_MPI_MPI
-#endif // __STARPU_MPI_DRIVER_H__
+#endif /* STARPU_USE_MPI_MPI */
+#endif /* __STARPU_MPI_DRIVER_H__ */

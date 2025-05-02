@@ -44,5 +44,6 @@ int _starpu_mpi_comm_all_posted();
 }
 #endif
 
-#endif // STARPU_USE_MPI_MPI
-#endif // __STARPU_MPI_COMM_H__
+#endif /* STARPU_USE_MPI_MPI */
+#endif /* __STARPU_MPI_COMM_H__ */
+

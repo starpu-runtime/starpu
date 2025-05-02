@@ -14,8 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef FT_STARPU_STARPU_MPI_ULFM_COMM_H
-#define FT_STARPU_STARPU_MPI_ULFM_COMM_H
+#ifndef __STARPU_MPI_ULFM_COMM_H__
+#define __STARPU_MPI_ULFM_COMM_H__
 
 #ifdef __cplusplus
 extern "C"
@@ -58,4 +58,4 @@ static inline void _starpu_mpi_ulfm_comm_test_update(MPI_Comm key_comm STARPU_AT
 }
 #endif
 
-#endif //FT_STARPU_STARPU_MPI_ULFM_COMM_H
+#endif /* __STARPU_MPI_ULFM_COMM_H__ */

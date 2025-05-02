@@ -37,5 +37,5 @@ void _starpu_mpi_nmad_end_coop_callback(void* arg);
 }
 #endif
 
-#endif // STARPU_USE_MPI_NMAD
-#endif // __STARPU_MPI_NMAD_COOP_H__
+#endif /* STARPU_USE_MPI_NMAD */
+#endif /* __STARPU_MPI_NMAD_COOP_H__ */

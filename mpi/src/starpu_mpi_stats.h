@@ -40,4 +40,4 @@ void _starpu_mpi_comm_amounts_display(FILE *stream, int node);
 }
 #endif
 
-#endif // __STARPU_MPI_STATS_H__
+#endif /* __STARPU_MPI_STATS_H__ */

@@ -38,4 +38,4 @@ void _starpu_mpi_cache_data_clear(starpu_data_handle_t data_handle);
 }
 #endif
 
-#endif // __STARPU_MPI_CACHE_H__
+#endif /* __STARPU_MPI_CACHE_H__ */

@@ -14,8 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef FT_STARPU_STARPU_MPI_CHECKPOINT_H
-#define FT_STARPU_STARPU_MPI_CHECKPOINT_H
+#ifndef __STARPU_MPI_CHECKPOINT_H__
+#define __STARPU_MPI_CHECKPOINT_H__
 
 #include <starpu_mpi.h>
 #include <common/list.h>
@@ -67,4 +67,4 @@ void _ack_msg_recv_cb(void* _args);
 }
 #endif
 
-#endif //FT_STARPU_STARPU_MPI_CHECKPOINT_H
+#endif /* __STARPU_MPI_CHECKPOINT_H__ */

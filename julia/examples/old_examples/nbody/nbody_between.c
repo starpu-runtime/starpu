@@ -19,8 +19,8 @@
 #include <starpu.h>
 #include <math.h>
 #include <stdint.h>
-#include "../includes/display.h"
-#include "../includes/sorting.h"
+#include "../helper/display.h"
+#include "../helper/sorting.h"
 
 struct Param {
 	unsigned taskx;

@@ -51,4 +51,4 @@ extern struct load_balancer_policy load_heat_propagation_policy;
 }
 #endif
 
-#endif // __LOAD_BALANCER_POLICY_H__
+#endif /* __LOAD_BALANCER_POLICY_H__ */

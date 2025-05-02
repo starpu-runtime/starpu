@@ -51,10 +51,10 @@ struct _starpu_mpi_req_backend
 	struct iovec unknown_datatype_v[2];
 };
 
-#endif // STARPU_USE_MPI_NMAD
+#endif /* STARPU_USE_MPI_NMAD */
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // __STARPU_MPI_NMAD_BACKEND_H__
+#endif /* __STARPU_MPI_NMAD_BACKEND_H__ */

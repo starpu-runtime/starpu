@@ -14,8 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef FT_STARPU_STARPU_MPI_FT_SERVICE_COMMS_H
-#define FT_STARPU_STARPU_MPI_FT_SERVICE_COMMS_H
+#ifndef __STARPU_MPI_FT_SERVICE_COMMS_H__
+#define __STARPU_MPI_FT_SERVICE_COMMS_H__
 
 #ifdef __cplusplus
 extern "C"
@@ -35,4 +35,4 @@ void starpu_mpi_ft_service_comm_update(starpu_mpi_comm comm);
 }
 #endif
 
-#endif //FT_STARPU_STARPU_MPI_FT_SERVICE_COMMS_H
+#endif /* __STARPU_MPI_FT_SERVICE_COMMS_H__ */

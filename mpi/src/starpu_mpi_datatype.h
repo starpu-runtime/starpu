@@ -39,4 +39,4 @@ MPI_Datatype _starpu_mpi_datatype_get_user_defined_datatype(starpu_data_handle_t
 }
 #endif
 
-#endif // __STARPU_MPI_DATATYPE_H__
+#endif /* __STARPU_MPI_DATATYPE_H__ */

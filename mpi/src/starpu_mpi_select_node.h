@@ -35,4 +35,4 @@ int _starpu_mpi_select_node(int me, int nb_nodes, struct starpu_data_descr *desc
 }
 #endif
 
-#endif // __STARPU_MPI_SELECT_NODE_H__
+#endif /* __STARPU_MPI_SELECT_NODE_H__ */

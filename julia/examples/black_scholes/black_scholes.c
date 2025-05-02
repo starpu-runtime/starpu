@@ -18,7 +18,7 @@
 #include <stdio.h>
 #include <starpu.h>
 #include <math.h>
-#include "../includes/sorting.h"
+#include "../helper/sorting.h"
 
 
 

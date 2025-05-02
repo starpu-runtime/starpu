@@ -14,8 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef SC_HYPERVISOR_CONFIG_H
-#define SC_HYPERVISOR_CONFIG_H
+#ifndef __SC_HYPERVISOR_CONFIG_H__
+#define __SC_HYPERVISOR_CONFIG_H__
 
 #include <sc_hypervisor.h>
 
@@ -227,4 +227,4 @@ void sc_hypervisor_ctl(unsigned sched_ctx, ...);
 }
 #endif
 
-#endif
+#endif /* __SC_HYPERVISOR_CONFIG_H__ */

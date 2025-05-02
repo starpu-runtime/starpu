@@ -14,8 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef _STARPU_MPI_CHECKPOINT_TEMPLATE_H
-#define _STARPU_MPI_CHECKPOINT_TEMPLATE_H
+#ifndef __STARPU_MPI_CHECKPOINT_TEMPLATE_H__
+#define __STARPU_MPI_CHECKPOINT_TEMPLATE_H__
 
 #include <starpu_mpi.h>
 #include <common/list.h>
@@ -224,4 +224,4 @@ static inline int _starpu_checkpoint_template_free(starpu_mpi_checkpoint_templat
 }
 #endif
 
-#endif //_STARPU_MPI_CHECKPOINT_TEMPLATE_H
+#endif /* __STARPU_MPI_CHECKPOINT_TEMPLATE_H__ */

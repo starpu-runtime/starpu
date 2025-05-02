@@ -14,8 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef __STARPU_PARALLEL_WORKERS_UTIL_H__
-#define __STARPU_PARALLEL_WORKERS_UTIL_H__
+#ifndef __STARPU_PARALLEL_WORKER_H__
+#define __STARPU_PARALLEL_WORKER_H__
 
 #include <starpu_config.h>
 
@@ -185,4 +185,4 @@ int starpu_cluster_print(struct starpu_cluster_machine *clusters) STARPU_DEPRECA
 #endif
 #endif
 
-#endif /* __STARPU_PARALLEL_WORKERS_UTIL_H__ */
+#endif /* __STARPU_PARALLEL_WORKER_H__ */

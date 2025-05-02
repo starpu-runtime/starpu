@@ -415,4 +415,4 @@ extern struct _starpu_mpi_backend _mpi_backend;
 }
 #endif
 
-#endif // __STARPU_MPI_PRIVATE_H__
+#endif /* __STARPU_MPI_PRIVATE_H__ */

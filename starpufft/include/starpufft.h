@@ -16,8 +16,8 @@
 
 // The documentation for this file is in doc/doxygen/chapters/api/fft_support.doxy
 
-#ifndef __STARPU_FFT_H__
-#define __STARPU_FFT_H__
+#ifndef __STARPUFFT_H__
+#define __STARPUFFT_H__
 
 #include <stdio.h>
 #include <complex.h>
@@ -68,4 +68,4 @@ __STARPUFFT_INTERFACE(__STARPUFFTL, long double)
 /* Internal use */
 extern int starpufft_last_plan_number;
 
-#endif // __STARPU_FFT_H__
+#endif /* __STARPUFFT_H__ */

@@ -1060,4 +1060,4 @@ void starpu_mpi_tags_free(int64_t mintag);
 #endif
 
 #endif // STARPU_USE_MPI
-#endif // __STARPU_MPI_H__
+#endif /* __STARPU_MPI_H__ */

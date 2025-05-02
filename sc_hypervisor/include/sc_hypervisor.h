@@ -14,8 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef SC_HYPERVISOR_H
-#define SC_HYPERVISOR_H
+#ifndef __SC_HYPERVISOR_H__
+#define __SC_HYPERVISOR_H__
 
 #include <starpu.h>
 #include <starpu_sched_ctx_hypervisor.h>
@@ -292,4 +292,4 @@ void sc_hypervisor_init_worker(int workerid, unsigned sched_ctx);
 }
 #endif
 
-#endif
+#endif /* __SC_HYPERVISOR_H__ */

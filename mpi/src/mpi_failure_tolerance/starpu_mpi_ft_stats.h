@@ -14,8 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef FT_STARPU_STARPU_MPI_FT_STATS_H
-#define FT_STARPU_STARPU_MPI_FT_STATS_H
+#ifndef __STARPU_MPI_FT_STATS_H__
+#define __STARPU_MPI_FT_STATS_H__
 
 #include <common/list.h>
 #include <common/utils.h>
@@ -284,5 +284,5 @@ static inline void _starpu_ft_stats_shutdown()
 }
 #endif
 
-#endif // STARPU_USE_MPI_FT
-#endif //FT_STARPU_STARPU_MPI_FT_STATS_H
+#endif /* STARPU_USE_MPI_FT */
+#endif /* __STARPU_MPI_FT_STATS_H__ */

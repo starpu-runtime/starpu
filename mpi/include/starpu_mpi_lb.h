@@ -14,8 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef __STARPU_MPI_LOAD_BALANCER_H__
-#define __STARPU_MPI_LOAD_BALANCER_H__
+#ifndef __STARPU_MPI_LB_H__
+#define __STARPU_MPI_LB_H__
 
 #include <starpu.h>
 
@@ -43,4 +43,4 @@ void starpu_mpi_lb_shutdown(void);
 }
 #endif
 
-#endif // __STARPU_MPI_LOAD_BALANCER_H__
+#endif /* __STARPU_MPI_LB_H__ */

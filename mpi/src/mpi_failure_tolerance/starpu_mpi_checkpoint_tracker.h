@@ -14,8 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef FT_STARPU_STARPU_MPI_CHECKPOINT_TRACKER_H
-#define FT_STARPU_STARPU_MPI_CHECKPOINT_TRACKER_H
+#ifndef __STARPU_MPI_CHECKPOINT_TRACKER_H__
+#define __STARPU_MPI_CHECKPOINT_TRACKER_H__
 
 #ifdef __cplusplus
 extern "C"
@@ -47,4 +47,4 @@ struct _starpu_mpi_checkpoint_tracker* _starpu_mpi_checkpoint_tracker_get_last_v
 }
 #endif
 
-#endif //FT_STARPU_STARPU_MPI_CHECKPOINT_TRACKER_H
+#endif /* __STARPU_MPI_CHECKPOINT_TRACKER_H__ */

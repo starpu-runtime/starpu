@@ -40,4 +40,4 @@ void _starpu_mpi_cache_stats_update(unsigned dst, starpu_data_handle_t data_hand
 }
 #endif
 
-#endif // __STARPU_MPI_CACHE_STATS_H__
+#endif /* __STARPU_MPI_CACHE_STATS_H__ */

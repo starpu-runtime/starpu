@@ -18,7 +18,7 @@
 #include <stdlib.h>
 #include <starpu.h>
 #include <stdint.h>
-#include "../includes/display.h"
+#include "../helper/display.h"
 
 void mandelbrot(void **, void *);
 void CUDA_mandelbrot(void **, void *);

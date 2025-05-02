@@ -51,4 +51,4 @@ void starpu_idle_hook_deregister(int hook_id);
 }
 #endif
 
-#endif /* __STARPU_H__ */
+#endif /* __STARPU_EXPERT_H__ */

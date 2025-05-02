@@ -33,4 +33,4 @@ void _starpu_mpi_do_initialize(struct _starpu_mpi_argc_argv *argc_argv);
 }
 #endif
 
-#endif // __STARPU_MPI_INIT_H__
+#endif /* __STARPU_MPI_INIT_H__ */

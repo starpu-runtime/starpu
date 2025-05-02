@@ -131,4 +131,4 @@ static inline int starpu_mpi_checkpoint_shutdown(void) { return 0; }
 }
 #endif
 
-#endif // __STARPU_MPI_FT_H__
+#endif /* __STARPU_MPI_FT_H__ */

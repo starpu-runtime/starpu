@@ -14,8 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef __STARPU_SCHEDULER_HETEROPRIO_H__
-#define __STARPU_SCHEDULER_HETEROPRIO_H__
+#ifndef __STARPU_HETEROPRIO_H__
+#define __STARPU_HETEROPRIO_H__
 
 #include <starpu.h>
 
@@ -129,4 +129,4 @@ void starpu_heteroprio_print_wgroups(FILE *stream, unsigned sched_ctx_id);
 }
 #endif
 
-#endif /* __STARPU_SCHEDULER_HETEROPRIO_H__ */
+#endif /* __STARPU_HETEROPRIO_H__ */

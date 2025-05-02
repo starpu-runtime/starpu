@@ -281,4 +281,4 @@ hwloc_topology_t starpu_get_hwloc_topology(void);
 }
 #endif
 
-#endif // __STARPU_HELPER_H__
+#endif /* __STARPU_HELPER_H__ */

@@ -41,5 +41,5 @@ starpu_data_handle_t _starpu_mpi_tag_get_data_handle_from_tag(starpu_mpi_tag_t d
 }
 #endif
 
-#endif // STARPU_USE_MPI_MPI
-#endif // __STARPU_MPI_TAG_H__
+#endif /* STARPU_USE_MPI_MPI */
+#endif /* __STARPU_MPI_TAG_H__ */

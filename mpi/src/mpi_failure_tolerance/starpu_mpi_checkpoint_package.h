@@ -14,8 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef _STARPU_MPI_CHECKPOINT_PACKAGE_H
-#define _STARPU_MPI_CHECKPOINT_PACKAGE_H
+#ifndef __STARPU_MPI_CHECKPOINT_PACKAGE_H__
+#define __STARPU_MPI_CHECKPOINT_PACKAGE_H__
 
 #include <starpu_mpi.h>
 #include <common/list.h>
@@ -48,4 +48,4 @@ int checkpoint_package_data_del(int cp_id, int cp_inst, int rank);
 }
 #endif
 
-#endif //_STARPU_MPI_CHECKPOINT_PACKAGE_H
+#endif /* __STARPU_MPI_CHECKPOINT_PACKAGE_H__ */

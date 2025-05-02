@@ -15,8 +15,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef __STARPU_SCHEDULER_TOOLBOX_FIFO_QUEUES_H__
-#define __STARPU_SCHEDULER_TOOLBOX_FIFO_QUEUES_H__
+#ifndef __STARPU_SCHEDULER_TOOLBOX_H__
+#define __STARPU_SCHEDULER_TOOLBOX_H__
 
 #include <starpu.h>
 #include <starpu_scheduler.h>
@@ -169,4 +169,4 @@ void starpu_st_non_ready_buffers_size(struct starpu_task *task, unsigned worker,
 }
 #endif
 
-#endif /* __STARPU_SCHEDULER_TOOLBOX_FIFO_QUEUES_H__ */
+#endif /* __STARPU_SCHEDULER_TOOLBOX_H__ */

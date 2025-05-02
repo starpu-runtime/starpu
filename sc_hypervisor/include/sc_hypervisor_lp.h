@@ -14,8 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef SC_HYPERVISOR_LP_H
-#define SC_HYPERVISOR_LP_H
+#ifndef __SC_HYPERVISOR_LP_H__
+#define __SC_HYPERVISOR_LP_H__
 
 #include <sc_hypervisor.h>
 #include <starpu_config.h>
@@ -123,4 +123,4 @@ double sc_hypervisor_lp_simulate_distrib_flops_on_sample(int ns, int nw, double 
 }
 #endif
 
-#endif
+#endif /* __SC_HYPERVISOR_LP_H__ */

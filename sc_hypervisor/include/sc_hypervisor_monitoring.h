@@ -15,8 +15,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef SC_HYPERVISOR_MONITORING_H
-#define SC_HYPERVISOR_MONITORING_H
+#ifndef __SC_HYPERVISOR_MONITORING_H__
+#define __SC_HYPERVISOR_MONITORING_H__
 
 #include <sc_hypervisor.h>
 
@@ -276,4 +276,4 @@ double sc_hypervisor_get_speed(struct sc_hypervisor_wrapper *sc_w, enum starpu_w
 }
 #endif
 
-#endif
+#endif /* __SC_HYPERVISOR_MONITORING_H__ */

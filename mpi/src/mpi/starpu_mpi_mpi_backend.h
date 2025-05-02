@@ -84,4 +84,4 @@ struct _starpu_mpi_req_backend
 }
 #endif
 
-#endif // __STARPU_MPI_MPI_BACKEND_H__
+#endif /* __STARPU_MPI_MPI_BACKEND_H__ */
