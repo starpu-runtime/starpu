@@ -14,8 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef __STARPU_MPI_FT_H__
-#define __STARPU_MPI_FT_H__
+#ifndef __STARPU_MPI_FT_PRIVATE_H__
+#define __STARPU_MPI_FT_PRIVATE_H__
 
 #ifdef __cplusplus
 extern "C"
@@ -29,4 +29,4 @@ int starpu_mpi_ft_busy();
 }
 #endif
 
-#endif /* __STARPU_MPI_FT_H__ */
+#endif /* __STARPU_MPI_FT_PRIVATE_H__ */

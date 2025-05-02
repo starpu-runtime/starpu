@@ -44,7 +44,7 @@
 #include <core/topology.h>
 #include <mpi_failure_tolerance/ulfm/starpu_mpi_ulfm_comm.h>
 #ifdef STARPU_USE_MPI_FT
-#include <mpi_failure_tolerance/starpu_mpi_ft.h>
+#include <mpi_failure_tolerance/starpu_mpi_ft_private.h>
 #endif // STARPU_USE_MPI_FT
 
 #ifdef STARPU_USE_FXT

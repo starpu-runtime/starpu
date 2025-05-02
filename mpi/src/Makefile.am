@@ -90,7 +90,7 @@ noinst_HEADERS =					\
 
 if STARPU_USE_MPI_FT
 noinst_HEADERS +=       \
-	mpi_failure_tolerance/starpu_mpi_ft.h   \
+	mpi_failure_tolerance/starpu_mpi_ft_private.h   \
 	mpi_failure_tolerance/starpu_mpi_checkpoint.h    \
 	mpi_failure_tolerance/starpu_mpi_checkpoint_template.h \
 	mpi_failure_tolerance/starpu_mpi_ft_service_comms.h  \
@@ -134,7 +134,7 @@ libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
 
 if STARPU_USE_MPI_FT
 libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES +=    \
-	mpi_failure_tolerance/starpu_mpi_ft.c   \
+	mpi_failure_tolerance/starpu_mpi_ft_private.c   \
 	mpi_failure_tolerance/starpu_mpi_checkpoint.c    \
 	mpi_failure_tolerance/starpu_mpi_checkpoint_template.c   \
 	mpi_failure_tolerance/starpu_mpi_ft_service_comms.c \
