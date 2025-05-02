@@ -15,11 +15,41 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 REP=${1:-.}
+EXCLUDE=$(dirname $0)/starpu_check_copyright_exclude.txt
 
-find $REP -not -path "*build*" -not -path "*.git*" -not -path "*tools/perfmodels/sampling*" -not -path "*starpu-top*"  -not -path "*min-dgels*" -not -name ".gitignore" -not -name "*.eps"  -not -name "*.pdf" -not -name "*.png" -not -path "*.deps*" -type f > /tmp/list_$$
+    git ls-files $REP |
+    grep -v uthash.h |
+    grep -v ax_cxx_compile_stdcxx.m4 |
+    grep -v pkg.m4 |
+    grep -v rbtree |
+    grep -v gcc-plugin |
+    grep -v min-dgels |
+    grep -v starpu-top |
+    grep -v SobolQRNG |
+    grep -v socl/src/CL |
+    grep -v ocl_icd.h |
+    grep -v socl.icd.in |
+    grep -v starpujni/cmake |
+    grep -v starpujni/src |
+    grep -v starpujni/scripts |
+    grep -v tools/gpus |
+    grep -v cproject.in |
+    grep -v build-aux |
+    grep -v tools/perfmodels/sampling |
+    grep -v .png |
+    grep -v .gitignore |
+    grep -vi issue_template |
+    grep -v .out |
+    grep -v .xml |
+    grep -v .maxj |
+    grep -v .dat > /tmp/list_$$
 
 for f in $(cat /tmp/list_$$)
 do
+    if grep -q $f ${EXCLUDE}
+    then
+	continue
+    fi
     copyright=$(grep "StarPU is free software" $f 2>/dev/null)
     if test -z "$copyright"
     then

@@ -1,0 +1,52 @@
+#!/bin/bash
+# StarPU --- Runtime system for heterogeneous multicore architectures.
+#
+# Copyright (C) 2025-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+#
+# StarPU is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation; either version 2.1 of the License, or (at
+# your option) any later version.
+#
+# StarPU is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# See the GNU Lesser General Public License in COPYING.LGPL for more details.
+#
+.editorconfig
+.sublime-project
+.vscode/settings.json
+AUTHORS
+COPYING.LGPL
+ci/scripts/releases/head.org
+codemeta.json
+doc/COPYING.GFDL
+doc/doxygen/chapters/starpu_performances/images/taskgraph.0.dot
+doc/doxygen/chapters/starpu_performances/images/tasks.json.gz
+doc/doxygen/chapters/starpu_performances/images/threads.json.gz
+doc/doxygen/foreword.html
+eclipse-plugin/.classpath
+eclipse-plugin/.project
+eclipse-plugin/.settings/org.eclipse.jdt.core.prefs
+eclipse-plugin/META-INF/MANIFEST.MF
+eclipse-plugin/build.properties
+eclipse-plugin/examples/hello/.project
+eclipse-plugin/src/deploy/javaCompilerArgs
+examples/audio/input.wav
+examples/spmv/matrix_market/examples/fidapm05.mtx
+examples/stencil/results
+julia/Manifest.toml
+julia/Project.toml
+julia/examples/mult/mult.plot
+julia/examples/old_examples/README
+socl/README
+starpujni/INSTALL.org
+tests/main/combined_workers/bfs/temp.patch
+tools/msvc/starpu.sln
+tools/msvc/starpu/starpu.vcxproj
+tools/patch-ayudame
+tools/perfmodels/hostfile
+src/common/config-src-build.h.in
+tests/maxfpga/LMemLoopbackCpuCode.c
+tests/maxfpga/StreamFMACpuCode.cpp
