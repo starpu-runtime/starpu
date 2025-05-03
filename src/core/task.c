@@ -338,6 +338,16 @@ static nosv_task_type_t starpu_nosv_get_task_type_from_codelet(struct starpu_cod
 }
 #endif
 
+int starpu_get_limit_min_submitted_tasks()
+{
+	return limit_min_submitted_tasks;
+}
+
+int starpu_get_limit_max_submitted_tasks()
+{
+	return limit_max_submitted_tasks;
+}
+
 void starpu_set_limit_min_submitted_tasks(int limit_min)
 {
 	limit_min_submitted_tasks = limit_min;
