@@ -769,7 +769,7 @@ static void free_worker_ids(void)
 static int register_worker_id(unsigned long nodeid, unsigned long tid, int workerid, int sync)
 {
 	nworkers++;
-	STARPU_ASSERT_MSG(workerid < STARPU_NMAXWORKERS, "Too many workers in this trace, please increase in ./configure invocation the maximum number of CPUs and GPUs to the same value as was used for execution");
+	STARPU_ASSERT_MSG_ALWAYS(workerid < STARPU_NMAXWORKERS, "Too many workers in this trace, please increase in ./configure invocation the maximum number of CPUs and GPUs to the same value as was used for execution");
 
 	return register_thread(nodeid, tid, workerid, sync);
 }

@@ -279,6 +279,41 @@ extern "C" {
 #endif
 
 /**
+   This macro will abort if the expression \p x is false.
+   The string \p msg will be displayed.
+*/
+#if defined(__INTEL_COMPILER)
+#pragma warning disable 279 // otherwise icc triggers "warning #279: controlling expression is constant" (probably because of assert(0 && #x))
+#endif
+#if defined(__CUDACC__) || defined(STARPU_HAVE_WINDOWS)
+#define STARPU_ASSERT_MSG_ALWAYS(x, msg, ...)                                                                          \
+	do {                                                                                                           \
+		if (STARPU_UNLIKELY(!(x)))                                                                             \
+		{                                                                                                      \
+			STARPU_DUMP_BACKTRACE();                                                                       \
+			fprintf(stderr, "\n[starpu][%s][assert failure] " msg "\n\n", __starpu_func__, ##__VA_ARGS__); \
+			STARPU_SIMGRID_ASSERT(0 && #x);                                                                \
+			*(int *)NULL = 0;                                                                              \
+		}                                                                                                      \
+	}                                                                                                              \
+	while (0)
+#else
+#define STARPU_ASSERT_MSG_ALWAYS(x, msg, ...)                                                                          \
+	do {                                                                                                           \
+		if (STARPU_UNLIKELY(!(x)))                                                                             \
+		{                                                                                                      \
+			STARPU_DUMP_BACKTRACE();                                                                       \
+			fprintf(stderr, "\n[starpu][%s][assert failure] " msg "\n\n", __starpu_func__, ##__VA_ARGS__); \
+			STARPU_SIMGRID_ASSERT(0 && #x);                                                                \
+			assert(0 && #x);                                                                               \
+			abort();                                                                                       \
+			*(int *)NULL = 0;                                                                              \
+		}                                                                                                      \
+	}                                                                                                              \
+	while (0)
+#endif
+
+/**
    Unless StarPU has been configured with the option \ref enable-fast
    "--enable-fast", this macro will abort if the expression \p x is false.
    The string \p msg will be displayed.
@@ -294,36 +329,8 @@ extern "C" {
 	}                              \
 	while (0)
 #else
-#if defined(__INTEL_COMPILER)
-#pragma warning disable 279 // otherwise icc triggers "warning #279: controlling expression is constant" (probably because of assert(0 && #x))
-#endif
-#if defined(__CUDACC__) || defined(STARPU_HAVE_WINDOWS)
 #define STARPU_ASSERT_MSG(x, msg, ...)                                                                                 \
-	do {                                                                                                           \
-		if (STARPU_UNLIKELY(!(x)))                                                                             \
-		{                                                                                                      \
-			STARPU_DUMP_BACKTRACE();                                                                       \
-			fprintf(stderr, "\n[starpu][%s][assert failure] " msg "\n\n", __starpu_func__, ##__VA_ARGS__); \
-			STARPU_SIMGRID_ASSERT(0 && #x);                                                                \
-			*(int *)NULL = 0;                                                                              \
-		}                                                                                                      \
-	}                                                                                                              \
-	while (0)
-#else
-#define STARPU_ASSERT_MSG(x, msg, ...)                                                                                 \
-	do {                                                                                                           \
-		if (STARPU_UNLIKELY(!(x)))                                                                             \
-		{                                                                                                      \
-			STARPU_DUMP_BACKTRACE();                                                                       \
-			fprintf(stderr, "\n[starpu][%s][assert failure] " msg "\n\n", __starpu_func__, ##__VA_ARGS__); \
-			STARPU_SIMGRID_ASSERT(0 && #x);                                                                \
-			assert(0 && #x);                                                                               \
-			abort();                                                                                       \
-			*(int *)NULL = 0;                                                                              \
-		}                                                                                                      \
-	}                                                                                                              \
-	while (0)
-#endif
+	STARPU_ASSERT_MSG_ALWAYS(x, msg, ##__VA_ARGS__)
 #endif
 
 #ifdef __APPLE_CC__

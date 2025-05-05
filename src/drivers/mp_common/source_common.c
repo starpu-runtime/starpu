@@ -702,10 +702,10 @@ struct _starpu_mp_node *_starpu_src_common_get_mp_node_from_memory_node(int memo
 	int devid = starpu_memory_node_get_devid(memory_node);
 	enum starpu_worker_archtype archtype = starpu_memory_node_get_worker_archtype(starpu_node_get_kind(memory_node));
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-	STARPU_ASSERT_MSG(devid >= 0 && devid < STARPU_MAXMPIDEVS, "bogus devid %d for memory node %d\n", devid, memory_node);
+	STARPU_ASSERT_MSG_ALWAYS(devid >= 0 && devid < STARPU_MAXMPIDEVS, "bogus devid %d for memory node %d\n", devid, memory_node);
 #endif
 #ifdef STARPU_USE_TCPIP_MASTER_SLAVE
-	STARPU_ASSERT_MSG(devid >= 0 && devid < STARPU_MAXTCPIPDEVS, "bogus devid %d for memory node %d\n", devid, memory_node);
+	STARPU_ASSERT_MSG_ALWAYS(devid >= 0 && devid < STARPU_MAXTCPIPDEVS, "bogus devid %d for memory node %d\n", devid, memory_node);
 #endif
 
 	return _starpu_src_nodes[archtype][devid];
