@@ -1777,7 +1777,7 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 					int devid = numa_logical_id == STARPU_NUMA_MAIN_RAM ? 0 : numa_logical_id;
 					int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, devid);
 					_starpu_memory_manager_set_global_memory_size(memnode, _starpu_cpu_get_global_mem_size(devid, config));
-					STARPU_ASSERT_MSG(memnode < STARPU_MAXNUMANODES, "Wrong Memory Node : %d (only %d available)", memnode, STARPU_MAXNUMANODES);
+					STARPU_ASSERT_MSG_ALWAYS(memnode < STARPU_MAXNUMANODES, "Wrong Memory Node : %d (only %d available)", memnode, STARPU_MAXNUMANODES);
 					_starpu_memory_node_set_mapped(memnode);
 					numa_memory_nodes_to_hwloclogid[memnode] = numa_logical_id;
 					int numa_physical_id = _starpu_get_physical_numa_node_worker(worker);
@@ -1832,7 +1832,7 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 				{
 					int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, obj->logical_index);
 					_starpu_memory_manager_set_global_memory_size(memnode, _starpu_cpu_get_global_mem_size(obj->logical_index, config));
-					STARPU_ASSERT_MSG(memnode < STARPU_MAXNUMANODES, "Wrong Memory Node : %d (only %d available)", memnode, STARPU_MAXNUMANODES);
+					STARPU_ASSERT_MSG_ALWAYS(memnode < STARPU_MAXNUMANODES, "Wrong Memory Node : %d (only %d available)", memnode, STARPU_MAXNUMANODES);
 					_starpu_memory_node_set_mapped(memnode);
 					numa_memory_nodes_to_hwloclogid[memnode] = obj->logical_index;
 					numa_memory_nodes_to_physicalid[memnode] = obj->os_index;
@@ -1898,7 +1898,7 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 
 		if (numa == 0)
 			STARPU_ASSERT_MSG(memnode == STARPU_MAIN_RAM, "Wrong Memory Node : %d (expected %d) \n", memnode, STARPU_MAIN_RAM);
-		STARPU_ASSERT_MSG(memnode < STARPU_MAXNUMANODES, "Wrong Memory Node : %d (only %d available) \n", memnode, STARPU_MAXNUMANODES);
+		STARPU_ASSERT_MSG_ALWAYS(memnode < STARPU_MAXNUMANODES, "Wrong Memory Node : %d (only %d available) \n", memnode, STARPU_MAXNUMANODES);
 
 #ifdef STARPU_SIMGRID
 		if (nnuma > 1)

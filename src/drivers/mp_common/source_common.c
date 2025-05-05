@@ -700,10 +700,10 @@ void(* _starpu_src_common_get_cpu_func_from_job(const struct _starpu_mp_node *no
 struct _starpu_mp_node *_starpu_src_common_get_mp_node_from_devid(enum starpu_worker_archtype archtype, int devid)
 {
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-	STARPU_ASSERT_MSG(devid >= 0 && devid < STARPU_MAXMPIDEVS, "bogus devid %d for device %d\n", devid, devid);
+	STARPU_ASSERT_MSG_ALWAYS(devid >= 0 && devid < STARPU_MAXMPIDEVS, "bogus devid %d for device %d\n", devid, devid);
 #endif
 #ifdef STARPU_USE_TCPIP_MASTER_SLAVE
-	STARPU_ASSERT_MSG(devid >= 0 && devid < STARPU_MAXTCPIPDEVS, "bogus devid %d for device %d\n", devid, devid);
+	STARPU_ASSERT_MSG_ALWAYS(devid >= 0 && devid < STARPU_MAXTCPIPDEVS, "bogus devid %d for device %d\n", devid, devid);
 #endif
 
 	return _starpu_src_nodes[archtype][devid];

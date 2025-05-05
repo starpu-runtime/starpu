@@ -221,7 +221,7 @@ void _starpu_init_hip_config(struct _starpu_machine_topology *topology, struct _
 	int nworker_per_hip = starpu_get_env_number_default("STARPU_NWORKER_PER_HIP", 1);
 
 	STARPU_ASSERT_MSG(nworker_per_hip > 0, "STARPU_NWORKER_PER_HIP has to be > 0");
-	STARPU_ASSERT_MSG(nworker_per_hip < STARPU_NMAXWORKERS, "STARPU_NWORKER_PER_HIP (%d) cannot be higher than STARPU_NMAXWORKERS (%d)\n", nworker_per_hip, STARPU_NMAXWORKERS);
+	STARPU_ASSERT_MSG_ALWAYS(nworker_per_hip < STARPU_NMAXWORKERS, "STARPU_NWORKER_PER_HIP (%d) cannot be higher than STARPU_NMAXWORKERS (%d)\n", nworker_per_hip, STARPU_NMAXWORKERS);
 
 #ifndef STARPU_NON_BLOCKING_DRIVERS
 	if (nworker_per_hip > 1)

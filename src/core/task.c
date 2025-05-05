@@ -964,7 +964,7 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 
 		/* Check buffers */
 		if (task->dyn_handles == NULL)
-			STARPU_ASSERT_MSG(STARPU_TASK_GET_NBUFFERS(task) <= STARPU_NMAXBUFS,
+			STARPU_ASSERT_MSG_ALWAYS(STARPU_TASK_GET_NBUFFERS(task) <= STARPU_NMAXBUFS,
 					  "Codelet %p has too many buffers (%d vs max %d). Either use --enable-maxbuffers configure option to increase the max, or use dyn_handles instead of handles.",
 					  task->cl, STARPU_TASK_GET_NBUFFERS(task), STARPU_NMAXBUFS);
 

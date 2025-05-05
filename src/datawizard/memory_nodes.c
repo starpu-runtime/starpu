@@ -117,7 +117,7 @@ unsigned _starpu_memory_node_register(enum starpu_node_kind kind, int devid)
 	unsigned node;
 	/* ATOMIC_ADD returns the new value ... */
 	node = STARPU_ATOMIC_ADD(&_starpu_descr.nnodes, 1) - 1;
-	STARPU_ASSERT_MSG(node < STARPU_MAXNODES,"Too many nodes (%u) for maximum %d. Use configure option --enable-maxnodes=xxx to update the maximum number of nodes.", node + 1, STARPU_MAXNODES);
+	STARPU_ASSERT_MSG_ALWAYS(node < STARPU_MAXNODES,"Too many nodes (%u) for maximum %d. Use configure option --enable-maxnodes=xxx to update the maximum number of nodes.", node + 1, STARPU_MAXNODES);
 
 	_starpu_descr.nodes[node] = kind;
 	_starpu_trace_new_mem_node(node);

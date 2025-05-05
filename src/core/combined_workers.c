@@ -81,7 +81,7 @@ int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
 	 * safe because this method should only be called when the scheduler
 	 * is being initialized. */
 	new_workerid = basic_worker_count + combined_worker_id;
-	STARPU_ASSERT_MSG(new_workerid < STARPU_NMAXWORKERS, "Too many combined workers (%d) for parallel task execution. Please use configure option --enable-maxcpus to increase it beyond the current value %d", new_workerid, STARPU_MAXCPUS);
+	STARPU_ASSERT_MSG_ALWAYS(new_workerid < STARPU_NMAXWORKERS, "Too many combined workers (%d) for parallel task execution. Please use configure option --enable-maxcpus to increase it beyond the current value %d", new_workerid, STARPU_MAXCPUS);
 	config->topology.ncombinedworkers++;
 
 //	fprintf(stderr, "COMBINED WORKERS ");
