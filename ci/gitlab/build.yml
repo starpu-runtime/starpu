@@ -90,6 +90,7 @@ analyze_coverity:
   tags:
     - starpu
     - linux
+    - coverity
   script:
     - ./ci/scripts/coverity.sh
 
