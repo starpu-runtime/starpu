@@ -92,6 +92,7 @@ analyze_coverity:
   tags:
     - starpu
     - linux
+    - coverity
   script:
     - ./contrib/gitlab/coverity.sh
 
