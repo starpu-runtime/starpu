@@ -339,7 +339,7 @@ static void check_result(void)
 
 	FPRINTF(stderr, "||%sA-LU|| / (||A||*N) : %e\n", pivot?"P":"", residual/(matnorm*size));
 
-	if (residual/(matnorm*size) > 1e-5)
+	if (residual/(matnorm*size) > PIVOT_THRESHHOLD)
 		exit(-1);
 
 	free(L);
