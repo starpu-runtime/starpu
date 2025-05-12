@@ -18,12 +18,28 @@
 #include "../helper.h"
 #include "../variable/increment.h"
 
-void redux_with_args_cpu(void *descr[], void *arg)
+void init_with_args_cpu(void *descr[], void *arg)
 {
 	int *value = (int *)arg;
 	unsigned *dst = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
+	*dst = *value;
+}
+
+struct starpu_codelet init_with_args_cl =
+{
+	.modes = { STARPU_W },
+	.nbuffers = 1,
+	.cpu_funcs = {init_with_args_cpu},
+};
+
+void redux_with_args_cpu(void *descr[], void *arg)
+{
+	int value_1;
+	int value_2;
+	starpu_codelet_unpack_args(arg, &value_1, &value_2);
+	unsigned *dst = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	unsigned *src = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[1]);
-	*dst = *dst + *src + *value;
+	*dst = *dst + *src + value_1 + value_2;
 }
 
 struct starpu_codelet redux_with_args_cl =
@@ -38,7 +54,15 @@ int main(int argc, char **argv)
 	int ret;
 	unsigned var = 0;
 	starpu_data_handle_t handle;
-	unsigned value = 42;
+	unsigned init_value = 42;
+	int redux_value_1 = 5;
+	int redux_value_2 = 7;
+	void* redux_cl_args;
+	size_t redux_cl_args_size;
+	starpu_codelet_pack_args(&redux_cl_args, &redux_cl_args_size,
+		STARPU_VALUE, &redux_value_1, sizeof(redux_value_1),
+		STARPU_VALUE, &redux_value_2, sizeof(redux_value_2),
+		0);
 
 	/* Not supported yet */
 	if (starpu_getenv_number_default("STARPU_GLOBAL_ARBITER", 0) > 0)
@@ -58,15 +82,16 @@ int main(int argc, char **argv)
 	increment_load_opencl();
 
 	starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&var, sizeof(unsigned));
-	starpu_data_set_reduction_methods_with_args(handle, &redux_with_args_cl, &value, &neutral_cl, NULL);
+	starpu_data_set_reduction_methods_with_args(handle, &redux_with_args_cl, redux_cl_args, &init_with_args_cl, &init_value);
 	ret = starpu_task_insert(&increment_redux_cl, STARPU_REDUX, handle, 0);
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	starpu_data_unregister(handle);
 
-	if (var != value+1)
+	int expected_value = init_value + redux_value_1 + redux_value_2 + 1;
+	if (var != expected_value)
 	{
-		FPRINTF(stderr, "Value %u != Expected value %u\n", var, value+1);
+		FPRINTF(stderr, "Value %u != Expected value %u\n", var, expected_value);
 		goto err;
 	}
 

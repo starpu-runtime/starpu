@@ -38,7 +38,9 @@ static void _starpu_data_check_initialized(starpu_data_handle_t handle, enum sta
 
 	if (!handle->initialized && handle->init_cl)
 	{
-		int ret = starpu_task_insert(handle->init_cl, STARPU_W, handle, 0);
+		int ret = starpu_task_insert(handle->init_cl,
+			STARPU_CL_ARGS_NFREE, handle->init_cl_arg, 0,
+			STARPU_W, handle, 0);
 		STARPU_ASSERT(ret == 0);
 	}
 	STARPU_ASSERT_MSG(handle->initialized, "handle %p is not initialized while trying to read it\n", handle);

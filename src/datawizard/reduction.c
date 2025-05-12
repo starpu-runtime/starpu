@@ -172,7 +172,7 @@ void _starpu_init_data_replicate(starpu_data_handle_t handle, struct _starpu_dat
 		}
 #endif
 		default:
-			init_func(&replicate->data_interface, NULL);
+			init_func(&replicate->data_interface, handle->init_cl_arg);
 			break;
 	}
 
@@ -422,6 +422,7 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle, int priority)
 			j->reduction_task = 1;
 
 			redux_task->cl = handle->redux_cl;
+			redux_task->cl_arg = handle->redux_cl_arg;
 			STARPU_ASSERT(redux_task->cl);
 
 			if (!(STARPU_CODELET_GET_MODE(redux_task->cl, 0)))
