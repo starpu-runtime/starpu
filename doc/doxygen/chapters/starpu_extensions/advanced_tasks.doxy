@@ -112,11 +112,17 @@ When using e.g. starup_task_insert(), it may be more convenient to wait for the
 <em>result</em> of a task rather than waiting for a given task explicitly. That
 can be done thanks to starpu_data_acquire() or starpu_data_acquire_cb()
 that wait for the result to be available in the home node of the data. That
-will thus wait for all the tasks that lead to that result. One can also
-use starpu_data_acquire_on_node() and give it ::STARPU_ACQUIRE_NO_NODE to
-tell to just wait for tasks to complete, but not wait for the data to be
-available in the home node. One can also use starpu_data_acquire_try() or
-starpu_data_acquire_on_node_try() to just test for the termination.
+will thus wait for all the tasks that lead to that result.
+starpu_data_acquire_on_node() or starpu_data_acquire_on_node_cb() can be used to
+get the result in a given memory node.
+
+One can also use starpu_data_acquire_try() or starpu_data_acquire_on_node_try()
+to just test for the termination.
+
+One can also give to starpu_data_acquire_on_node() or
+starpu_data_acquire_on_node_try() the ::STARPU_ACQUIRE_NO_NODE node to tell to
+just wait for tasks to complete, but not wait for the data to be available in a
+particular memory node.
 
 If a task is created by using starpu_task_create() or starpu_task_insert(),
 the field starpu_task::destroy is set to 1 by default, which means that the
