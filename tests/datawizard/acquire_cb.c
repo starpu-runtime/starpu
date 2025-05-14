@@ -39,6 +39,20 @@ void callback_r(void *arg)
         starpu_data_release(token_handle);
 }
 
+static
+void callback_none(void *arg)
+{
+	(void)arg;
+        starpu_data_release_on_node(token_handle, STARPU_ACQUIRE_NO_NODE);
+}
+
+static
+void callback_ram(void *arg)
+{
+	(void)arg;
+        starpu_data_release_on_node(token_handle, STARPU_MAIN_RAM);
+}
+
 int main(int argc, char **argv)
 {
 	int ret;
@@ -96,6 +110,14 @@ int main(int argc, char **argv)
 	starpu_data_acquire_cb(token_handle, STARPU_R, callback_r, NULL);
 	starpu_data_acquire_cb(token_handle, STARPU_R, callback_r, NULL);
 	starpu_data_release(token_handle);
+
+	starpu_data_acquire_on_node_cb(token_handle, STARPU_ACQUIRE_NO_NODE, STARPU_R, callback_none, NULL);
+
+	starpu_data_acquire_on_node(token_handle, STARPU_ACQUIRE_NO_NODE, STARPU_R);
+	starpu_data_release_on_node(token_handle, STARPU_ACQUIRE_NO_NODE);
+
+	starpu_data_acquire_on_node(token_handle, STARPU_ACQUIRE_NO_NODE, STARPU_R);
+	starpu_data_get_on_node_cb_prio(token_handle, STARPU_MAIN_RAM, STARPU_R, callback_ram, NULL, STARPU_FETCH, 0);
 
 	starpu_data_unregister(token_handle);
 

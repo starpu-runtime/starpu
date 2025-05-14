@@ -325,6 +325,31 @@ int starpu_data_acquire_cb_sequential_consistency(starpu_data_handle_t handle,
 }
 
 
+int starpu_data_get_on_node_cb_prio(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode, void (*callback)(void *), void *arg, enum starpu_is_prefetch prefetch, int prio)
+{
+	if (node == STARPU_ACQUIRE_NO_NODE)
+		/* Still no transfer to do.  */
+		return 0;
+	STARPU_ASSERT_MSG(node != STARPU_ACQUIRE_NO_NODE_LOCK_ALL, "starpu_data_get_on_node_cb_prio does not support STARPU_ACQUIRE_NO_NODE_LOCK_ALL");
+
+#ifndef STARPU_NO_ASSERT
+	_starpu_spin_lock(&handle->header_lock);
+	STARPU_ASSERT_MSG(((mode & STARPU_W) == STARPU_W && handle->current_mode == STARPU_W) ||
+	                  (mode == STARPU_R && handle->current_mode == STARPU_R), "The mode given to starpu_data_get_on_node_cb_prio must be coherent with the mode of the previous acquisition");
+	_starpu_spin_unlock(&handle->header_lock);
+#endif
+
+	_starpu_fetch_data_on_node(handle, node, &handle->per_node[node], mode, 0, NULL, prefetch, 1, callback, arg, prio, "starpu_data_get_on_node_cb_prio");
+
+	/* _starpu_fetch_data_on_node above takes a busy reference in addition to the one we had taken in the previous data_acquire */
+	_starpu_spin_lock(&handle->header_lock);
+	handle->busy_count--;
+	if (!_starpu_notify_data_dependencies(handle, mode))
+		_starpu_spin_unlock(&handle->header_lock);
+
+	return 0;
+}
+
 /*
  *	Blocking data request from application
  */

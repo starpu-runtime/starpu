@@ -205,11 +205,57 @@ A basic example is available in the files <c>tests/datawizard/data_deinitialize.
 
 \section DataAccess Data Access
 
-To access registered data outside tasks we can call the function starpu_data_acquire(). The access mode can be read-only mode ::STARPU_R, write-only mode ::STARPU_W, and read-write mode ::STARPU_RW. We will get an up-to-date copy of handle in memory located where the data was originally registered. The application can also call starpu_data_acquire_try() instead of starpu_data_acquire() to acquire the data, but if previously-submitted tasks have not completed when we ask to acquire the data, the program will crash. starpu_data_release() must be called once the application no longer needs to access the piece of data. Or call starpu_data_release_to() to partly release the piece of data acquired.
-We can also access registered data from a given memory node by calling the function starpu_data_acquire_on_node(), or calling starpu_data_acquire_on_node_try() if all previously-submitted tasks have completed. Correspondingly, starpu_data_release_on_node() must be called once the application no longer needs to access the piece of data and the node parameter must be exactly the same as the corresponding starpu_data_acquire_on_node() call. Or call starpu_data_release_to_on_node() to partly release the piece of data acquired.
+To access registered data outside tasks we can call the function
+starpu_data_acquire(). The access mode can be read-only mode ::STARPU_R,
+write-only mode ::STARPU_W, and read-write mode ::STARPU_RW. We will get an
+up-to-date copy of handle in memory located where the data was originally
+registered.
+The application can also call starpu_data_acquire_try() instead of
+starpu_data_acquire() to try to acquire the data: if previously-submitted tasks
+have not completed, the call will fail.
+starpu_data_release() must be called once the application no longer needs to
+access the piece of data. Or call starpu_data_release_to() to downgrade the mode
+of acquisition of the data.
 
-The application may access the requested data asynchronous during the execution of callback by calling starpu_data_acquire_cb(), and by calling starpu_data_acquire_cb_sequential_consistency() with the possibility of enabling or disabling data dependencies. The callback function must call starpu_data_release() once the application no longer needs to access the piece of data. Or call starpu_data_release_to() to partly release the piece of data acquired.
-The application can also access registered data from a given memory node instead of main memory by calling the function starpu_data_acquire_on_node_cb(), and by calling starpu_data_acquire_on_node_cb_sequential_consistency() with the possibility of enabling or disabling data dependencies. starpu_data_release_on_node() must be called once the application no longer needs to access the piece of data. Or call starpu_data_release_to_on_node() to partly release the piece of data acquired.
+We can also access registered data on a given memory node by
+calling the function starpu_data_acquire_on_node().
+The application can also call starpu_data_acquire_on_node_try()
+to try to acquire the data.
+Correspondingly, starpu_data_release_on_node() must be called once the
+application no longer needs to access the piece of data. The node parameter
+must be exactly the same as the corresponding starpu_data_acquire_on_node()
+call. One can also call starpu_data_release_to_on_node() to downgrade the mode of
+acquisition of the data.
+
+The application may access the requested data asynchronous during the
+execution of callback by calling starpu_data_acquire_cb(), or by calling
+starpu_data_acquire_cb_sequential_consistency() with the possibility of
+enabling or disabling data dependencies.
+starpu_data_release() must be called once the application no longer needs to
+access the piece of data. Or call starpu_data_release_to() to
+downgrade the mode of acquisition of the data.
+
+The application can also access registered data from a given memory node instead
+of main memory by calling the function starpu_data_acquire_on_node_cb(),
+and by calling starpu_data_acquire_on_node_cb_sequential_consistency()
+with the possibility of enabling or disabling data dependencies.
+starpu_data_release_on_node() must be called once the application no longer
+needs to access the piece of data. Or call starpu_data_release_to_on_node() to
+downgrade the mode of acquisition of the data.
+
+It is possible to only wait for a data to be available by passing
+::STARPU_ACQUIRE_NO_NODE to starpu_data_acquire_on_node(),
+starpu_data_acquire_on_node_try() or starpu_data_acquire_on_node_cb(). The
+data will not be made available on a particular memory node, only the tasks
+dependencies will be waited for. ::STARPU_ACQUIRE_NO_NODE must then accordingly
+be given to starpu_data_release_on_node().
+
+It is also possible to pass ::STARPU_ACQUIRE_NO_NODE to
+starpu_data_acquire_on_node(), starpu_data_acquire_on_node_try() or
+starpu_data_acquire_on_node_cb(), and later on (before releasing the data), call
+starpu_data_get_on_node_cb_prio() to request the data to be made available on
+the given memory node. That same memory node number must then accordingly
+be given to starpu_data_release_on_node().
 
 \section DataPrefetch Data Prefetch
 

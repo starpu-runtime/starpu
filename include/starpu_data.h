@@ -24,6 +24,8 @@
 extern "C" {
 #endif
 
+enum starpu_is_prefetch;
+
 /**
    @defgroup API_Data_Management Data Management
    @brief Data management facilities provided by StarPU. We show how
@@ -325,6 +327,19 @@ int starpu_data_acquire_cb(starpu_data_handle_t handle, enum starpu_data_access_
    used instead of an explicit node number. See \ref DataAccess for more details.
 */
 int starpu_data_acquire_on_node_cb(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode, void (*callback)(void *), void *arg);
+
+/**
+   After a previous starpu_data_acquire_on_node() call was given
+   ::STARPU_ACQUIRE_NO_NODE, one can call starpu_data_get_on_node_cb_prio()
+   to acquire the data on a given node \p node. The end result is as if
+   starpu_data_acquire_on_node() was given \p node originally. The \p mode
+   must be the same as previously given to starpu_data_acquire_on_node(). The
+   subsequent starpu_data_release_on_node() call must be given the same \p node .
+   Only one starpu_data_get_on_node_cb_prio() call can be made for one
+   starpu_data_acquire_on_node(::STARPU_ACQUIRE_NO_NODE) call.
+   See \ref DataAccess for more details.
+*/
+int starpu_data_get_on_node_cb_prio(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode, void (*callback)(void *), void *arg, enum starpu_is_prefetch prefetch, int prio);
 
 /**
    Similar to starpu_data_acquire_cb() with the possibility of

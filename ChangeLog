@@ -54,6 +54,7 @@ Small features:
   * Add function starpu_data_partition_get_nplans() to get the current
     number of asynchronous partitions for a given data at submission
     time
+  * Add starpu_data_get_on_node_cb_prio()
 
 StarPU 1.4.8
 ==============================================
