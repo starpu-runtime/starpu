@@ -585,8 +585,7 @@ int _starpu_notify_data_dependencies(starpu_data_handle_t handle, enum starpu_da
 		/* Downgrade from W or RW down to R, keeping the same reference,
 		 * but thus allowing other readers without allowing writers.  */
 		STARPU_ASSERT(down_to_mode == STARPU_R &&
-				(handle->current_mode == STARPU_RW ||
-				 handle->current_mode == STARPU_W));
+			      handle->current_mode == STARPU_W);
 		handle->current_mode = down_to_mode;
 	}
 
