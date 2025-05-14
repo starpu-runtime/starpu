@@ -160,7 +160,9 @@ static void _starpu_register_new_data(starpu_data_handle_t handle, int home_node
 
 	/* By default, there are no methods available to perform a reduction */
 	//handle->redux_cl = NULL;
+	//handle->redux_cl_arg = NULL;
 	//handle->init_cl = NULL;
+	//handle->init_cl_arg = NULL;
 
 	/* that new data is invalid from all nodes perpective except for the
 	 * home node */
@@ -359,7 +361,9 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 	//handle->post_sync_tasks_cnt = 0;
 
 	//handle->redux_cl
+	//handle->redux_cl_arg
 	//handle->init_cl
+	//handle->init_cl_arg
 
 	//handle->reduction_refcnt = 0;
 
