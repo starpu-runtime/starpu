@@ -274,7 +274,9 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		/* The methods used for reduction are propagated to the
 		 * children. */
 		child->redux_cl = initial_handle->redux_cl;
+		child->redux_cl_arg = initial_handle->redux_cl_arg;
 		child->init_cl = initial_handle->init_cl;
+		child->init_cl_arg = initial_handle->init_cl_arg;
 
 		for (node = 0; node < STARPU_MAXNODES; node++)
 		{
