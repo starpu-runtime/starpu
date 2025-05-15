@@ -24,8 +24,6 @@
 extern "C" {
 #endif
 
-enum starpu_is_prefetch;
-
 /**
    @defgroup API_Data_Management Data Management
    @brief Data management facilities provided by StarPU. We show how
@@ -153,6 +151,26 @@ enum starpu_data_access_mode
 	STARPU_ACCESS_MODE_MAX = (1 << 12)        /**< The purpose of ::STARPU_ACCESS_MODE_MAX is to
 						     be the maximum of this enum.
 						  */
+};
+
+/**
+   Prefetch levels
+
+   Data requests are ordered by priorities, but also by prefetching level,
+   between data that a task wants now, and data that we will probably want
+   "soon".
+*/
+enum starpu_is_prefetch
+{
+	/** A task really needs it now! */
+	STARPU_FETCH = 0,
+	/** A task will need it soon */
+	STARPU_TASK_PREFETCH = 1,
+	/** It is a good idea to have it asap */
+	STARPU_PREFETCH = 2,
+	/** Get this here when you have time to */
+	STARPU_IDLEFETCH = 3,
+	STARPU_NFETCH
 };
 
 struct starpu_data_interface_ops;
@@ -494,26 +512,6 @@ void starpu_arbiter_destroy(starpu_arbiter_t arbiter);
    the specified memory \p node. See \ref DataPrefetch for more details.
 */
 int starpu_data_request_allocation(starpu_data_handle_t handle, unsigned node);
-
-/**
-   Prefetch levels
-
-   Data requests are ordered by priorities, but also by prefetching level,
-   between data that a task wants now, and data that we will probably want
-   "soon".
-*/
-enum starpu_is_prefetch
-{
-	/** A task really needs it now! */
-	STARPU_FETCH = 0,
-	/** A task will need it soon */
-	STARPU_TASK_PREFETCH = 1,
-	/** It is a good idea to have it asap */
-	STARPU_PREFETCH = 2,
-	/** Get this here when you have time to */
-	STARPU_IDLEFETCH = 3,
-	STARPU_NFETCH
-};
 
 /**
    Issue a fetch request for the data \p handle to \p node, i.e.
