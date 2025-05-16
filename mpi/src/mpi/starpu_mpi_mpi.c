@@ -310,7 +310,7 @@ void _starpu_mpi_submit_ready_request(void *arg)
 		STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 		if (req->request_type == SEND_REQ)
 		{
-			if (_starpu_mpi_thread_multiple_send)
+			if (_starpu_mpi_thread_multiple_send && (ndetached_send_requests_max == 0 || ndetached_send_requests < ndetached_send_requests_max))
 			{
 				/* Directly send from this thread */
 				STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
