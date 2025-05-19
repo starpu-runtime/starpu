@@ -442,8 +442,7 @@ static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 #endif
 
 	// this trace event is the start of the communication link:
-	// the last parameter, set to 0, is for communication priority (not used in this MPI backend)
-	_STARPU_MPI_TRACE_ISEND_SUBMIT_END(_STARPU_MPI_FUT_POINT_TO_POINT_SEND, req, 0);
+	_STARPU_MPI_TRACE_ISEND_SUBMIT_END(_STARPU_MPI_FUT_POINT_TO_POINT_SEND, req, req->prio);
 
 	/* somebody is perhaps waiting for the MPI request to be posted */
 	STARPU_PTHREAD_MUTEX_LOCK(&req->backend->req_mutex);
