@@ -86,7 +86,7 @@ void _starpu_fxt_dag_add_tag_deps(const char *prefix, uint64_t child, uint64_t p
 void _starpu_fxt_dag_set_tag_done(const char *prefix, uint64_t tag, const char *color, const char *fontcolor);
 void _starpu_fxt_dag_add_task_deps(const char *prefix, unsigned long dep_prev, unsigned long dep_succ, const char *label);
 void _starpu_fxt_dag_add_task_end_dep(const char *prefix, unsigned long prev, unsigned long succ);
-void _starpu_fxt_dag_set_task_name(const char *prefix, unsigned long job_id, const char *label, const char *color, const char *fontcolor);
+void _starpu_fxt_dag_set_task_name(const char *prefix, unsigned long job_id, const char *label, const char *color, const char *fontcolor, const long iterations[2]);
 #ifdef STARPU_RECURSIVE_TASKS
 void _starpu_fxt_dag_set_recursive_task(const char *prefix, unsigned long job_id, int is_recursive_task, unsigned long recursive_task_parent);
 #endif

@@ -342,6 +342,10 @@ int _starpu_generate_paje_trace_read_option(const char *option, struct starpu_fx
 	{
 		options->use_task_color = 1;
 	}
+	else if (strcmp(option, "-iter-clusters") == 0)
+	{
+		options->iter_clusters = 1;
+	}
 	else
 	{
 		return 1;

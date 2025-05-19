@@ -3092,7 +3092,11 @@ static void handle_task_name(struct fxt_ev_native *ev, struct starpu_fxt_options
 
 
 		char *fontcolor = code <= 1 ? "white" : "black";
-		_starpu_fxt_dag_set_task_name(options->file_prefix, job_id, task->name, color, fontcolor);
+
+		if (options->iter_clusters)
+			_starpu_fxt_dag_set_task_name(options->file_prefix, job_id, task->name, color, fontcolor, task->iterations);
+		else
+			_starpu_fxt_dag_set_task_name(options->file_prefix, job_id, task->name, color, fontcolor, NULL);
 	}
 }
 
