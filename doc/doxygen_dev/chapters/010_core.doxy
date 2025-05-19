@@ -126,8 +126,7 @@ sequence, leading to lock inversion deadlocks.
 
 In consequence, no thread must hold more than one worker's sched_mutex at any time.
 Instead, workers implement a relaxed locking scheme based on the \c state_relax_refcnt
-counter, itself protected by the worker's sched_mutex. When <code>state_relax_refcnt
-> 0</code>, the targeted worker state flags may be observed, otherwise the thread attempting
+counter, itself protected by the worker's sched_mutex. When <code>state_relax_refcnt > 0</code>, the targeted worker state flags may be observed, otherwise the thread attempting
 the observation must repeatedly wait on the targeted worker's \c sched_cond
 condition until <code>state_relax_refcnt > 0</code>.
 
