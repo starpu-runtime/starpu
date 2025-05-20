@@ -33,6 +33,11 @@ default:
     RUNNER_SCRIPT_TIMEOUT: 58m
     RUNNER_AFTER_SCRIPT_TIMEOUT: 2m
 
+workflow:
+  auto_cancel:
+    on_new_commit: interruptible
+    on_job_failure: all
+
 include:
   - local: ci/gitlab/daily.yml
   - local: ci/gitlab/build.yml
