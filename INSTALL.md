@@ -15,7 +15,9 @@
  See the GNU Lesser General Public License in COPYING.LGPL for more details.
 -->
 
-# Installing StarPU on a Unix machine
+# Installing StarPU
+
+## Installing StarPU on a Unix machine
 
 ```shell
 $ ./autogen.sh # If running the SVN version
@@ -24,13 +26,12 @@ $ make
 $ make install
 ```
 
-
-# Installing StarPU on Windows
+## Installing StarPU on Windows
 
 If you are building from a tarball downloaded from the website, you can skip the
 cygwin part.
 
-## Install cygwin
+### Install cygwin
 
 http://cygwin.com/install.html
 
@@ -44,11 +45,11 @@ Make sure the following packages are available:
 - (Archive)/zip
 - (Devel)/pkg-config
 
-## Install mingw
+### Install mingw
 
 http://www.mingw.org/
 
-## Install hwloc (not mandatory, but strongly recommended)
+### Install hwloc (not mandatory, but strongly recommended)
 
 http://www.open-mpi.org/projects/hwloc
 
@@ -57,7 +58,7 @@ runs windows 64 bits, if you are running a 32 bits mingw (check the
 output of the command `uname -a`), you will need to install the 32
 bits version of hwloc.
 
-## Install Microsoft Visual C++ Studio Express
+### Install Microsoft Visual C++ Studio Express
 
 http://www.microsoft.com/express/Downloads
 
@@ -83,9 +84,9 @@ Try to call `cl.exe`, `lib.exe` and `link.exe` without any option to make
 sure these dump their help output with a series of options, otherwise no
 `.def` or `.lib` file will be produced.
 
-## Install GPU Drivers (not mandatory)
+### Install GPU Drivers (not mandatory)
 
-### Install Cuda
+#### Install Cuda
 
 http://developer.nvidia.com/object/cuda_3_2_downloads.html
 
@@ -136,7 +137,7 @@ with
 While at it, you can also comment the `__cdecl` definition to avoid spurious
 warnings.
 
-### Install OpenCL
+#### Install OpenCL
 
 http://developer.nvidia.com/object/opencl-download.html
 
@@ -149,7 +150,7 @@ Anyway, you should copy the `*.dl_` files from the directory
 (extraction path) in the bin directory of the CUDA installation
 directory (the directory should be `v3.2/bin/`)
 
-### Install MsCompress
+#### Install MsCompress
 
 http://gnuwin32.sourceforge.net/packages/mscompress.htm
 
@@ -164,20 +165,20 @@ for i in *.dl_ ; do /cygdrive/c/Program\ Files/GnuWin32/bin/msexpand.exe  $i ; m
 If you are building from a tarball downloaded from the website, you can skip the
 `autogen.sh` part.
 
-## Start autogen.sh from cygwin
+### Start autogen.sh from cygwin
 
 ```shell
 cd starpu-trunk
 ./autogen.sh
 ```
 
-## Start a MinGW shell
+### Start a MinGW shell
 
 ```shell
 /cygdrive/c/MinGW/msys/1.0/bin/sh.exe --login -i
 ```
 
-## Configure, make, install from MinGW
+### Configure, make, install from MinGW
 
 If you have a non-english version of windows, use
 
@@ -216,7 +217,7 @@ sed -e 's/$/'$'\015'/ < AUTHORS > $prefix/AUTHORS.txt
 sed -e 's/$/'$'\015'/ < COPYING.LGPL > $prefix/COPYING.LGPL.txt
 ```
 
-## Standalone installation
+### Standalone installation
 
 If you want your StarPU installation to be standalone, you need to
 copy the DLL files from hwloc, Cuda, and OpenCL into the StarPU
