@@ -18,7 +18,7 @@
     - if: ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_COMMIT_MESSAGE =~ /^Merge branch/)
       when: never
     - if: ($STARPU_RUN_BENCHMARKS == null && $STARPU_MASTER_EXTENDED_CHECK == null)
-      when: always
+      when: on_success
 
 preliminary_checks:
   extends: .build_main_template
