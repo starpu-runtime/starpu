@@ -212,3 +212,25 @@ Implementing this event with FxT consists in
   or two state sets)
 
 A simple example can be found in [28740e7a91a2 ("Add a Parallel sync state")](https://gitlab.inria.fr/starpu/starpu/-/commit/28740e7a91a2d6b4879861734905db086674f5e3).
+
+## Continuous Integration
+
+Different tests are available with the [gitlab pipelines](https://gitlab.inria.fr/starpu/starpu/-/pipelines)
+
+- The master branch is tested on each commit with a minimal set of
+  tests (mainly compilation with different profiles, execution on a
+  few specific configurations, and a chameleon test).
+  This is the same for all branches having the commit [48f7aceae0](https://gitlab.inria.fr/starpu/starpu/-/commit/48f7aceae0916820432d01b25b54f74d45da3271)
+
+- Once a day, benchmarks and coverage tests are automatically run
+  against the master branch, though a scheduled pipeline. See the
+  [schedule](https://gitlab.inria.fr/starpu/starpu/-/pipeline_schedules)
+
+- Once a day, extended tests are automatically run against the master
+  branch. See the
+  [schedule](https://gitlab.inria.fr/starpu/starpu/-/pipeline_schedules)
+
+- All merge requests are automatically tested at each update. A
+  minimal set of tests is automatically started. Extended tests must
+  be run manually, and *SHOULD BE* run at least once before the MR is
+  approved.
