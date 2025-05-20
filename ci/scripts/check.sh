@@ -29,10 +29,15 @@ tarball=$(ls -tr starpu-*.tar.gz | tail -1)
 
 if test -z "$tarball"
 then
-    echo Error. No tar.gz file
-    ls
-    pwd
-    exit 1
+    if test "$1" != "-no-tarball"
+    then
+	echo Error. No tar.gz file
+	ls
+	pwd
+	exit 1
+    else
+	shift
+    fi
 fi
 
 COVERITY=0
@@ -50,29 +55,26 @@ then
     BRANCH=$1
 fi
 
-basename=$(basename $tarball .tar.gz)
-export STARPU_HOME=$PWD/$basename/home
-mkdir -p $basename
-cd $basename
+export STARPU_HOME=$(mktemp -d $PWD/starpu_home_XXXXX)
+
+if test -n "$tarball"
+then
+    basename=$(basename $tarball .tar.gz)
+    test -d $basename && chmod -R u+rwX $basename && rm -rf $basename
+    tar xfz $tarball >/dev/null 2>&1
+    hour=$(date "+%H")
+    today=$(date "+%Y-%m-%d")
+    lasthour=$(echo $hour - 1 | bc)
+    if test "$hour" = "0" -o "$hour" = "00" ; then lasthour=0 ; fi
+    (find $basename -exec touch -d ${today}T${lasthour}:0:0 {} \; || true ) >/dev/null 2>&1
+    cd $basename
+fi
+
 (
     echo "oldPWD=\${PWD}"
     env|grep -v LS_COLORS | grep '^[A-Z]'|grep -v BASH_FUNC | grep '=' | sed 's/=/=\"/'| sed 's/$/\"/' | sed 's/^/export /'
     echo "cd \$oldPWD"
 ) > ${PWD}/env
-
-test -d $basename && chmod -R u+rwX $basename && rm -rf $basename
-tar xfz ../$tarball >/dev/null 2>&1
-
-hour=$(date "+%H")
-today=$(date "+%Y-%m-%d")
-lasthour=$(echo $hour - 1 | bc )
-if test "$hour" = "0" -o "$hour" = "00"
-then
-    lasthour=0
-fi
-
-(find $basename -exec touch -d ${today}T${lasthour}:0:0 {} \; || true ) >/dev/null 2>&1
-cd $basename
 
 if test -f $HOME/starpu_specific_env.sh
 then

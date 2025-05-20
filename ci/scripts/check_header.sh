@@ -1,6 +1,7 @@
+#!/bin/sh
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2025-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -13,28 +14,18 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
----
-stages:
-  - pre
-  - daily
-  - build
-  - check
-  - extended_check
-  - analyze
-  - deploy
-  - new-release
-  - set-release
-  - release
 
-default:
-  interruptible: true
-  timeout: 1h
-  variables:
-    RUNNER_SCRIPT_TIMEOUT: 58m
-    RUNNER_AFTER_SCRIPT_TIMEOUT: 2m
+code=0
 
-include:
-  - local: ci/gitlab/daily.yml
-  - local: ci/gitlab/build.yml
-  - local: ci/gitlab/extended_build.yml
-  - local: ci/gitlab/releases.yml
+TOOLSDIR=$(dirname $0)/../../tools
+$TOOLSDIR/dev/checker/starpu_check_copyright.sh
+rc=$?
+if [ $rc -eq 0 ]
+then
+    echo "Check header: SUCCESS"
+else
+    echo "Check header: FAILED"
+    code=1
+fi
+
+exit $code

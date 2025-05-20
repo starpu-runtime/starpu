@@ -23,6 +23,8 @@ Changes:
      interfaces, and use proper MPI datatypes to exchange them.
    * Add soon_callback in tasks.
    * Refactor the multiple tracing mechanisms
+   * Add to the gitlab CI the extended check profiles which were
+     previously run on buildbot
 
 Small changes:
   * Fix build system for StarPU Python interface

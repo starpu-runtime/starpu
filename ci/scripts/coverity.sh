@@ -25,5 +25,5 @@ then
     BRANCH=$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
 fi
 
-./ci/scripts/check.sh -coverity $BRANCH
+./ci/scripts/check.sh -no-tarball -coverity $BRANCH
 

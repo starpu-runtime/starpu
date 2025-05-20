@@ -1,6 +1,7 @@
+#!/bin/sh
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2025-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -13,28 +14,21 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
----
-stages:
-  - pre
-  - daily
-  - build
-  - check
-  - extended_check
-  - analyze
-  - deploy
-  - new-release
-  - set-release
-  - release
 
-default:
-  interruptible: true
-  timeout: 1h
-  variables:
-    RUNNER_SCRIPT_TIMEOUT: 58m
-    RUNNER_AFTER_SCRIPT_TIMEOUT: 2m
+set -e
+if test "x$1" = "x"
+then
+    echo Argument missing
+    exit 1
+fi
 
-include:
-  - local: ci/gitlab/daily.yml
-  - local: ci/gitlab/build.yml
-  - local: ci/gitlab/extended_build.yml
-  - local: ci/gitlab/releases.yml
+set -x
+script=$($(dirname $0)/../profiles/genere_ci.py -p $1)
+if test -z "$script"
+then
+    echo Profile $1 unknown
+    exit 1
+fi
+
+echo "Running script $script"
+. $script

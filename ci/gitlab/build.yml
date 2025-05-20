@@ -12,20 +12,32 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
-#
-.main_template:
+
+.build_main_template:
   rules:
-    - if: ($CI_PIPELINE_SOURCE != "push") && ($CI_PIPELINE_SOURCE != "trigger")
+    - if: ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_COMMIT_MESSAGE =~ /^Merge branch/)
+      when: never
+    - if: ($STARPU_RUN_BENCHMARKS == null && $STARPU_MASTER_EXTENDED_CHECK == null)
+      when: always
+
+preliminary_checks:
+  extends: .build_main_template
+  stage: pre
+  tags: ['starpu', 'linux']
+  script:
+    - ./ci/scripts/check_header.sh
 
 # to download all the artifacts https://gitlab.inria.fr/starpu/starpu/-/jobs/artifacts/master/download?job=build
 # https://gitlab.inria.fr/starpu/starpu/-/jobs/artifacts/master/raw/starpu-1.3.99.tar.gz?job=build
 # https://gitlab.inria.fr/starpu/starpu/-/jobs/artifacts/master/raw/starpu.pdf?job=build
 # https://docs.gitlab.com/ee/ci/pipelines/job_artifacts.html#downloading-artifacts
 build:
-  extends: .main_template
+  extends: .build_main_template
   stage: build
   image: registry.gitlab.inria.fr/starpu/starpu-docker/ci-debian12
   tags: ['ci.inria.fr', 'linux', 'large']
+  dependencies:
+    - preliminary_checks
   script:
     - ./ci/scripts/build.sh
   artifacts:
@@ -35,7 +47,7 @@ build:
       - html
 
 .check_template:
-  extends: .main_template
+  extends: .build_main_template
   stage: check
   needs: [build]
   dependencies:
@@ -78,24 +90,8 @@ check_simgrid:
   script:
     - ./ci/scripts/simgrid.sh
 
-.analyze_template:
-  extends: .main_template
-  stage: analyze
-  needs: [build]
-  dependencies:
-    - build
-
-analyze_coverity:
-  extends: .analyze_template
-  tags:
-    - starpu
-    - linux
-    - coverity
-  script:
-    - ./ci/scripts/coverity.sh
-
 .deploy_template:
-  extends: .main_template
+  extends: .build_main_template
   stage: deploy
   needs: [check]
   dependencies:

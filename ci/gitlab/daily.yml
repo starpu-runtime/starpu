@@ -1,0 +1,67 @@
+# StarPU --- Runtime system for heterogeneous multicore architectures.
+#
+# Copyright (C) 2021-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+#
+# StarPU is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation; either version 2.1 of the License, or (at
+# your option) any later version.
+#
+# StarPU is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# See the GNU Lesser General Public License in COPYING.LGPL for more details.
+
+.daily_template:
+  stage: daily
+  rules:
+    - if: ($CI_PIPELINE_SOURCE == "schedule") && ($STARPU_RUN_BENCHMARKS == "yes")
+
+coverity:
+  extends: .daily_template
+  tags:
+    - starpu
+    - linux
+    - coverity
+  script:
+    - ./ci/scripts/coverity.sh
+
+benchmarks:
+  extends: .daily_template
+  tags: ['starpu', 'node_nogpu']
+  before_script:
+    - rm -rf ./artifacts
+  script:
+    - ./ci/scripts/run_profile.sh benchmarks
+  after_script:
+    - ./ci/scripts/clean_profile.sh benchmarks
+
+benchmarks_update:
+  extends: .daily_template
+  dependencies:
+    - benchmarks
+  needs:
+    - benchmarks
+  tags: ['starpu', 'node_nogpu']
+  script:
+    - ./ci/scripts/bench.sh ./artifacts
+
+coverage:
+  extends: .daily_template
+  tags: ['starpu', 'node_gpu']
+  script:
+    - ./ci/scripts/run_profile.sh coverage
+  after_script:
+    - ./ci/scripts/clean_profile.sh coverage
+
+coverage_update:
+  extends: .daily_template
+  dependencies:
+    - coverage
+  needs:
+    - coverage
+  tags: ['starpu', 'node_gpu']
+  script:
+    - ./ci/scripts/upload.sh ./artifacts
+
