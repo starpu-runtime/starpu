@@ -12,23 +12,16 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
-#
----
-stages:
-  - pre
-  - daily
-  - build
-  - check
-  - extended_check
-  - analyze
-  - deploy
-  - new-release
-  - set-release
-  - release
 
-include:
-  - local: ci/gitlab/common.yml
-  - local: ci/gitlab/daily.yml
-  - local: ci/gitlab/build.yml
-  - local: ci/gitlab/extended_build.yml
-  - local: ci/gitlab/releases.yml
+default:
+  interruptible: true
+  timeout: 1h
+  variables:
+    RUNNER_SCRIPT_TIMEOUT: 58m
+    RUNNER_AFTER_SCRIPT_TIMEOUT: 2m
+
+workflow:
+  auto_cancel:
+    on_new_commit: interruptible
+    on_job_failure: all
+

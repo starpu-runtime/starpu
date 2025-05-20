@@ -191,6 +191,7 @@ EXTRA_DIST = autogen.sh AUTHORS COPYING.LGPL README.md README_dev.md STARPU-VERS
 
 EXTRA_DIST += .gitlab-ci.yml
 EXTRA_DIST += ci/gitlab/build.yml
+EXTRA_DIST += ci/gitlab/common.yml
 EXTRA_DIST += ci/gitlab/daily.yml
 EXTRA_DIST += ci/gitlab/extended_build.yml
 EXTRA_DIST += ci/gitlab/releases.yml
