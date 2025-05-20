@@ -232,5 +232,5 @@ Different tests are available with the [gitlab pipelines](https://gitlab.inria.f
 
 - All merge requests are automatically tested at each update. A
   minimal set of tests is automatically started. Extended tests must
-  be run manually, and *SHOULD BE* run at least once before the MR is
+  be run manually, and ***SHOULD BE*** run at least once before the MR is
   approved.
