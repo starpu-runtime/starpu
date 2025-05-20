@@ -117,7 +117,7 @@ Update the video drivers to the latest stable release available for your
 hardware. Old ATI drivers (< 2.3) contain bugs that cause OpenCL support in
 StarPU to hang or exhibit incorrect behaviour.
 
-For details on the Windows build process, see the [INSTALL](https://gitlab.inria.fr/starpu/starpu/-/blob/master/INSTALL) file.
+For details on the Windows build process, see the [INSTALL](https://gitlab.inria.fr/starpu/starpu/-/blob/master/INSTALL.md) file.
 
 ## Running StarPU Applications on Microsoft Visual C
 
