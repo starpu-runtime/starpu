@@ -36,6 +36,7 @@ then
 	pwd
 	exit 1
     else
+	./autogen.sh
 	shift
     fi
 fi
