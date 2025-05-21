@@ -16,12 +16,31 @@
 default:
   interruptible: true
   timeout: 1h
-  variables:
-    RUNNER_SCRIPT_TIMEOUT: 58m
-    RUNNER_AFTER_SCRIPT_TIMEOUT: 2m
+variables:
+  RUNNER_SCRIPT_TIMEOUT: 58m
+  RUNNER_AFTER_SCRIPT_TIMEOUT: 2m
 
 workflow:
   auto_cancel:
     on_new_commit: interruptible
     on_job_failure: all
 
+.extended_check_master_manual_branch:
+  rules:
+    - if: ($CI_PIPELINE_SCHEDULE_DESCRIPTION != null && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $STARPU_MASTER_EXTENDED_CHECK == "yes")
+      when: always
+    - if: ($CI_PIPELINE_SCHEDULE_DESCRIPTION == null && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && ($CI_PIPELINE_SOURCE == 'merge_request_event' || ($CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS == null)))
+      when: manual
+
+.benchmarks_master:
+  stage: daily
+  rules:
+    - if: ($CI_PIPELINE_SCHEDULE_DESCRIPTION != null && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $STARPU_RUN_BENCHMARKS == "yes")
+      when: always
+
+.master_branch:
+  rules:
+    - if: ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_COMMIT_MESSAGE =~ /^Merge branch/)
+      when: never
+    - if: ($CI_PIPELINE_SCHEDULE_DESCRIPTION == null && (($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_PIPELINE_SOURCE == 'merge_request_event') || ($CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS == null)))
+      when: on_success

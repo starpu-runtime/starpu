@@ -26,7 +26,7 @@
     - ./ci/scripts/clean_profile.sh ${PROFILE}
 
 compilation:
- extends: [.main_template, .build_main_template]
+ extends: [.main_template, .master_branch]
  tags: ['starpu', 'node_gpu']
  when: on_success
  stage: build
@@ -35,19 +35,12 @@ compilation:
      - PROFILE: [compilation-disable-cuda-disable-hip-disable-opencl, compilation-disable-cuda-enable-hip-disable-opencl, compilation-enable-cuda-disable-hip-disable-opencl, compilation-enable-cuda-enable-hip-disable-opencl, compilation-disable-cuda-disable-hip-enable-opencl, compilation-disable-cuda-enable-hip-enable-opencl, compilation-windows-i686, compilation-windows-x86-64, compilation-windows, compilation-leveldb]
 
 .manual_template:
-  extends: .main_template
+  extends: [.main_template, .extended_check_master_manual_branch]
   allow_failure: false
-  when: manual
   stage: extended_check
-  rules:
-    - if: ($STARPU_RUN_BENCHMARKS == null && ($CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH))
-      when: manual
-    - if: ($STARPU_RUN_BENCHMARKS == null && ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $STARPU_MASTER_EXTENDED_CHECK == "yes"))
-      when: always
 
 .manual_failure_template:
   extends: .manual_template
-  stage: extended_check
   allow_failure: true
 
 32bit:
@@ -107,7 +100,7 @@ valgrind:
     matrix:
       - PROFILE: [valgrind]
 
-#grind:
+grind:
   extends: .manual_failure_template
   tags: ['starpu', 'node_nogpu']
   allow_failure: true
@@ -136,7 +129,7 @@ gpu:
     matrix:
       - PROFILE: [cuda-opencl, cuda-opencl-runtime, cuda-cudaid, ncuda-nopencl-zero, cuda0, cuda1, cuda4-nopeer-transfer, cuda-multiworker, cuda-multithread, cuda-monothread, cuda-nopipeline, opencl-only, opencl-nopipeline, hip-only]
 
-default:
+basic:
   extends: .manual_template
   tags: ['starpu', 'node_gpu']
   parallel:

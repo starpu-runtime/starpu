@@ -13,13 +13,8 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-.daily_template:
-  stage: daily
-  rules:
-    - if: ($CI_PIPELINE_SOURCE == "schedule") && ($STARPU_RUN_BENCHMARKS == "yes")
-
 coverity:
-  extends: .daily_template
+  extends: .benchmarks_master
   tags:
     - starpu
     - linux
@@ -28,7 +23,7 @@ coverity:
     - ./ci/scripts/coverity.sh
 
 benchmarks:
-  extends: .daily_template
+  extends: .benchmarks_master
   tags: ['starpu', 'node_nogpu']
   before_script:
     - rm -rf ./artifacts
@@ -38,7 +33,7 @@ benchmarks:
     - ./ci/scripts/clean_profile.sh benchmarks
 
 benchmarks_update:
-  extends: .daily_template
+  extends: .benchmarks_master
   dependencies:
     - benchmarks
   needs:
@@ -48,7 +43,7 @@ benchmarks_update:
     - ./ci/scripts/bench.sh ./artifacts
 
 coverage:
-  extends: .daily_template
+  extends: .benchmarks_master
   tags: ['starpu', 'node_gpu']
   script:
     - ./ci/scripts/run_profile.sh coverage
@@ -56,7 +51,7 @@ coverage:
     - ./ci/scripts/clean_profile.sh coverage
 
 coverage_update:
-  extends: .daily_template
+  extends: .benchmarks_master
   dependencies:
     - coverage
   needs:
