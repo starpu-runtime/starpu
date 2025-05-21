@@ -112,8 +112,10 @@ void _starpu_fxt_dag_add_task_end_dep(const char *prefix, unsigned long prev, un
 
 void _starpu_fxt_dag_set_task_name(const char *prefix, unsigned long job_id, const char *label, const char *color, const char *fontcolor, const long iterations[2])
 {
-	if (out_file) {
-		if (iterations && iterations[0] != -1) {
+	if (out_file)
+	{
+		if (iterations && iterations[0] != -1)
+		{
 			fprintf(out_file, "subgraph cluster_iterations_%lu {\n", iterations[0]);
 			if (iterations[1] != -1)
 				fprintf(out_file, "subgraph cluster_iterations_%lu_sub_%lu {\n", iterations[0], iterations[1]);
@@ -121,7 +123,8 @@ void _starpu_fxt_dag_set_task_name(const char *prefix, unsigned long job_id, con
 
 		fprintf(out_file, "\t \"task_%s%lu\" [ style=filled, label=\"%s\", fillcolor=\"%s\", fontcolor=\"%s\"]\n", prefix, job_id, label, color, fontcolor);
 
-		if (iterations && iterations[0] != -1) {
+		if (iterations && iterations[0] != -1)
+		{
 			if (iterations[1] != -1)
 				fprintf(out_file, "}\n");
 			fprintf(out_file, "}\n");
