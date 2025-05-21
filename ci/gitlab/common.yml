@@ -16,9 +16,9 @@
 default:
   interruptible: true
   timeout: 1h
-#  variables:
-#    RUNNER_SCRIPT_TIMEOUT: 58m
-#    RUNNER_AFTER_SCRIPT_TIMEOUT: 2m
+  variables:
+    RUNNER_SCRIPT_TIMEOUT: 58m
+    RUNNER_AFTER_SCRIPT_TIMEOUT: 2m
 
 workflow:
   auto_cancel:
