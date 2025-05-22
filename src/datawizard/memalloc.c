@@ -588,11 +588,15 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 	 * memchunk that could be used with filters. */
 	if (mc->relaxed_coherency == 1)
 	{
-		STARPU_ASSERT(mc->replicate);
-
 		if (_starpu_spin_trylock(&handle->header_lock))
 			/* Handle is busy, abort */
 			return 0;
+
+		if (!mc->replicate) {
+			/* _starpu_request_mem_chunk_removal removed it before us */
+			_starpu_spin_unlock(&handle->header_lock);
+			return 0;
+		}
 
 		if (mc->replicate->refcnt == 0)
 		{
