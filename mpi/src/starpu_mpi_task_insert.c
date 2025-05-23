@@ -295,6 +295,9 @@ void _starpu_mpi_clear_data_after_execution(starpu_data_handle_t data, enum star
 		if ((mode & STARPU_W && !(mode & STARPU_MPI_REDUX_INTERNAL)) || mode & STARPU_REDUX)
 		{
 			/* The data has been modified, it MUST be removed from the cache */
+#ifdef STARPU_DEVEL
+#warning FIXME: better simply call starpu_mpi_cache_flush
+#endif
 			starpu_mpi_cached_send_clear(data);
 			starpu_mpi_cached_receive_clear(data);
 		}
