@@ -159,6 +159,10 @@ drivers:
 
 sanitizer:
   extends: .manual_template
+  timeout: 2h
+  variables:
+    RUNNER_SCRIPT_TIMEOUT: 118m
+    RUNNER_AFTER_SCRIPT_TIMEOUT: 2m
   tags: ['starpu', 'node_gpu']
   parallel:
     matrix:
