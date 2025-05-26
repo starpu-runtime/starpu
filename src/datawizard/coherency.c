@@ -665,14 +665,15 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 				/* No initialization needed at all */
 				dst_replicate->initialized = 1;
 		}
-		if (starpu_node_get_kind(requesting_node) == STARPU_CPU_RAM && !nwait
-			&& !_starpu_malloc_willpin_on_node(requesting_node))
+
+		if (!nwait)
 		{
-			/* FIXME: also try to map */
-			/* And this is the main RAM without pinning, really no need for a
-			 * request, just quickly allocate and be done */
-			if (dst_replicate->mapped != STARPU_UNMAPPED
-				|| _starpu_allocate_memory_on_node(handle, dst_replicate, is_prefetch, 0) == 0)
+			/* We don't have any transfer to wait for, try to allocate immediately */
+			if (dst_replicate->mapped != STARPU_UNMAPPED /* already mapped */
+				|| ((starpu_node_get_kind(requesting_node) == STARPU_CPU_RAM && !_starpu_malloc_willpin_on_node(requesting_node)) /* This is the main RAM without pinning, really no need for a request, just quickly allocate and be done */
+				    && _starpu_allocate_memory_on_node(handle, dst_replicate, is_prefetch, 0) == 0)
+				|| ((starpu_node_get_kind(requesting_node) != STARPU_CPU_RAM ||  _starpu_malloc_willpin_on_node(requesting_node)) /* This is expensive allocation, but we can still try to quickly allocate from the cache */
+				    && _starpu_allocate_memory_on_node(handle, dst_replicate, is_prefetch, 1) == 0))
 			{
 				if (is_prefetch <= STARPU_TASK_PREFETCH)
 					_starpu_update_data_state(handle, dst_replicate, mode);
