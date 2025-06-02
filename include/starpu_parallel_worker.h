@@ -121,6 +121,9 @@ struct starpu_parallel_worker_config;
 /**
    Create parallel_workers on the machine with the given parameters.
    See \ref CreatingParallel for more details.
+
+   This returns NULL if too many parallel workers were created.
+   The --enable-max-sched-ctxs configure option can be used to increase the limitation.
  */
 struct starpu_parallel_worker_config *starpu_parallel_worker_init(hwloc_obj_type_t parallel_worker_level, ...);
 
