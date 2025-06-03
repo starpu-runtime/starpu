@@ -24,7 +24,7 @@
 
 #pragma GCC visibility push(hidden)
 
-#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
+#ifdef STARPU_USE_TCPIP_SERVER_CLIENT
 
 extern int _starpu_tcpip_common_multiple_thread;
 
@@ -80,7 +80,7 @@ void _starpu_tcpip_common_barrier(void);
 
 void _starpu_tcpip_common_measure_bandwidth_latency(double bandwidth_dtod[STARPU_MAXTCPIPDEVS][STARPU_MAXTCPIPDEVS], double latency_dtod[STARPU_MAXTCPIPDEVS][STARPU_MAXTCPIPDEVS]);
 
-#endif  /* STARPU_USE_TCPIP_MASTER_SLAVE */
+#endif  /* STARPU_USE_TCPIP_SERVER_CLIENT */
 
 #pragma GCC visibility pop
 

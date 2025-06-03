@@ -96,7 +96,7 @@ void _starpu_initialize_registered_performance_models(void)
 	enum starpu_worker_archtype archtype;
 	for (archtype = 0; archtype < STARPU_NARCH; ++archtype)
 	{
-		if(archtype != STARPU_MPI_MS_WORKER && archtype != STARPU_TCPIP_MS_WORKER)
+		if(archtype != STARPU_MPI_SC_WORKER && archtype != STARPU_TCPIP_SC_WORKER)
 		{
 			ndevices += conf->topology.nhwdevices[archtype];
 		}

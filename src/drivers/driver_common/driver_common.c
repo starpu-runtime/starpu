@@ -65,7 +65,7 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 		calibrate_model = 1;
 
 	/* If the job is executed on a combined worker there is no need for the
-	 * scheduler to process on non-master : it doesn't contain any valuable data
+	 * scheduler to process on non-primary : it doesn't contain any valuable data
 	 * as it's not linked to an actual worker */
 	if (j->task_size == 1 && rank == 0)
 		_starpu_sched_pre_exec_hook(task);
@@ -131,14 +131,14 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 		_starpu_job_notify_start(j, perf_arch);
 	}
 
-	// Find out if the worker is the master of a parallel context
+	// Find out if the worker is the primary of a parallel context
 	struct _starpu_sched_ctx *sched_ctx = _starpu_sched_ctx_get_sched_ctx_for_worker_and_job(worker, j);
 	if(!sched_ctx)
 		sched_ctx = _starpu_get_sched_ctx_struct(j->task->sched_ctx);
 	_starpu_sched_ctx_lock_read(sched_ctx->id);
 	if(!sched_ctx->sched_policy)
 	{
-		if(!sched_ctx->awake_workers && sched_ctx->main_master == worker->workerid)
+		if(!sched_ctx->awake_workers && sched_ctx->main_primary == worker->workerid)
 		{
 			struct starpu_worker_collection *workers = sched_ctx->workers;
 			struct starpu_sched_ctx_iterator it;
@@ -176,7 +176,7 @@ void _starpu_driver_end_job(struct _starpu_worker *worker, struct _starpu_job *j
 	int workerid = worker->workerid;
 	unsigned calibrate_model = 0;
 
-	// Find out if the worker is the master of a parallel context
+	// Find out if the worker is the primary of a parallel context
 	struct _starpu_sched_ctx *sched_ctx = _starpu_sched_ctx_get_sched_ctx_for_worker_and_job(worker, j);
 	if(!sched_ctx)
 		sched_ctx = _starpu_get_sched_ctx_struct(j->task->sched_ctx);
@@ -210,7 +210,7 @@ void _starpu_driver_end_job(struct _starpu_worker *worker, struct _starpu_job *j
 	}
 
 	if(!sched_ctx->sched_policy && !sched_ctx->awake_workers &&
-	   sched_ctx->main_master == worker->workerid)
+	   sched_ctx->main_primary == worker->workerid)
 	{
 		struct starpu_worker_collection *workers = sched_ctx->workers;
 		struct starpu_sched_ctx_iterator it;

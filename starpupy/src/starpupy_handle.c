@@ -41,10 +41,10 @@ static PyObject* starpupy_object_register(PyObject *obj, PyObject *retval, char*
 	const char *tp = Py_TYPE(obj)->tp_name;
 	//printf("the type of object is %s\n", tp);
 
-	/*if we are in master slave mode and the object is not a numpy array and a return value, it cannot work */
-	if ((starpu_tcpip_ms_worker_get_count() >= 1 || starpu_mpi_ms_worker_get_count() >= 1) && strcmp(tp, "numpy.ndarray") != 0 && !PyObject_IsTrue(retval))
+	/*if we are in server client mode and the object is not a numpy array and a return value, it cannot work */
+	if ((starpu_tcpip_sc_worker_get_count() >= 1 || starpu_mpi_sc_worker_get_count() >= 1) && strcmp(tp, "numpy.ndarray") != 0 && !PyObject_IsTrue(retval))
 	{
-		RETURN_EXCEPTION("in master-slave mode, data handles are supported only for numpy arrays for now");
+		RETURN_EXCEPTION("in server client mode, data handles are supported only for numpy arrays for now");
 	}
 
 	/*if the object is bytes*/

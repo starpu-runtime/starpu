@@ -110,7 +110,7 @@ examplebin_SCRIPTS = \
 	tasks_size_overhead.gp \
 	tasks_size_overhead.sh
 if !STARPU_SIMGRID
-if !STARPU_USE_MPI_MASTER_SLAVE
+if !STARPU_USE_MPI_SERVER_CLIENT
 examplebin_PROGRAMS += \
 	bandwidth
 SHELL_TESTS += \

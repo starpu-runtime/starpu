@@ -42,9 +42,9 @@ static enum _starpu_mp_node_kind _starpu_sink_common_get_kind(void)
 	char *node_kind = starpu_getenv("STARPU_SINK");
 	STARPU_ASSERT(node_kind);
 
-	if (!strcmp(node_kind, "STARPU_MPI_MS"))
+	if (!strcmp(node_kind, "STARPU_MPI_SC"))
 		return STARPU_NODE_MPI_SINK;
-	else if (!strcmp(node_kind, "STARPU_TCPIP_MS"))
+	else if (!strcmp(node_kind, "STARPU_TCPIP_SC"))
 		return STARPU_NODE_TCPIP_SINK;
 	else
 		return STARPU_NODE_INVALID_KIND;
@@ -519,10 +519,10 @@ void _starpu_sink_common_worker(void)
 	if (_starpu_config.conf.n_not_launched_drivers)
 		free(_starpu_config.conf.not_launched_drivers);
 
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
+#ifdef STARPU_USE_MPI_SERVER_CLIENT
 	_starpu_mpi_common_mp_deinit();
 #endif
-#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
+#ifdef STARPU_USE_TCPIP_SERVER_CLIENT
 	_starpu_tcpip_common_mp_deinit();
 #endif
 
@@ -782,7 +782,7 @@ void* _starpu_sink_thread(void * thread_arg)
 
 	struct _starpu_worker *worker = &_starpu_get_machine_config()->workers[node->baseworkerid + coreid];
 	char *s;
-	asprintf(&s, "slave %d core %d", node->baseworkerid, coreid);
+	asprintf(&s, "client %d core %d", node->baseworkerid, coreid);
 	starpu_pthread_setname(s);
 	free(s);
 

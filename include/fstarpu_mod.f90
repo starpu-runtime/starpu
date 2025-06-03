@@ -399,12 +399,12 @@ module fstarpu_mod
                         integer(c_int), value, intent(in) :: id
                 end function fstarpu_worker_is_blocked
 
-                ! unsigned starpu_worker_is_slave_somewhere(int workerid);
-                function fstarpu_worker_is_slave_somewhere(id) bind(C,name="starpu_worker_is_slave_somewhere")
+                ! unsigned starpu_worker_is_sub_worker_somewhere(int workerid);
+                function fstarpu_worker_is_sub_worker_somewhere(id) bind(C,name="starpu_worker_is_sub_worker_somewhere")
                         use iso_c_binding, only: c_int
-                        integer(c_int)              :: fstarpu_worker_is_slave_somewhere
+                        integer(c_int)              :: fstarpu_worker_is_sub_worker_somewhere
                         integer(c_int), value, intent(in) :: id
-                end function fstarpu_worker_is_slave_somewhere
+                end function fstarpu_worker_is_sub_worker_somewhere
 
                 ! char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type);
                 subroutine fstarpu_worker_get_type_as_string(typeid,dst,maxlen) bind(C)
@@ -2274,30 +2274,13 @@ module fstarpu_mod
                         integer(c_int), value, intent(in) :: nworkers
                 end function fstarpu_sched_ctx_book_workers_for_task
 
-                ! void starpu_sched_ctx_unbook_workers_for_task(unsigned sched_ctx_id, int master);
-                subroutine fstarpu_sched_ctx_unbook_workers_for_task (sched_ctx_id, master) &
-                                bind(c,name="starpu_sched_ctx_unbook_workers_for_task")
+                ! unsigned starpu_sched_ctx_primary_get_context(int primaryid);
+                function fstarpu_sched_ctx_primary_get_context (primaryid) &
+                                bind(c,name="starpu_sched_ctx_primary_get_context")
                         use iso_c_binding, only: c_int
-                        integer(c_int), value, intent(in) :: sched_ctx_id
-                        integer(c_int), value, intent(in) :: master
-                end subroutine fstarpu_sched_ctx_unbook_workers_for_task
-
-                ! unsigned starpu_sched_ctx_worker_is_master_for_child_ctx(int workerid, unsigned sched_ctx_id);
-                function fstarpu_sched_ctx_worker_is_master_for_child_ctx (workerid, sched_ctx_id) &
-                                bind(c,name="starpu_sched_ctx_worker_is_master_for_child_ctx")
-                        use iso_c_binding, only: c_int
-                        integer(c_int) :: fstarpu_sched_ctx_worker_is_master_for_child_ctx
-                        integer(c_int), value, intent(in) :: workerid
-                        integer(c_int), value, intent(in) :: sched_ctx_id
-                end function fstarpu_sched_ctx_worker_is_master_for_child_ctx
-
-                ! unsigned starpu_sched_ctx_master_get_context(int masterid);
-                function fstarpu_sched_ctx_master_get_context (masterid) &
-                                bind(c,name="starpu_sched_ctx_master_get_context")
-                        use iso_c_binding, only: c_int
-                        integer(c_int) :: fstarpu_sched_ctx_master_get_context
-                        integer(c_int), value, intent(in) :: masterid
-                end function fstarpu_sched_ctx_master_get_context
+                        integer(c_int) :: fstarpu_sched_ctx_primary_get_context
+                        integer(c_int), value, intent(in) :: primaryid
+                end function fstarpu_sched_ctx_primary_get_context
 
                 ! void starpu_sched_ctx_revert_task_counters(unsigned sched_ctx_id, double flops);
                 subroutine fstarpu_sched_ctx_revert_task_counters (sched_ctx_id, flops) &

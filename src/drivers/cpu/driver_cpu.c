@@ -550,7 +550,7 @@ static int _starpu_cpu_driver_execute_task(struct _starpu_worker *cpu_worker, st
 		cpu_worker->worker_size = 1;
 
 		struct _starpu_sched_ctx *sched_ctx = _starpu_sched_ctx_get_sched_ctx_for_worker_and_job(cpu_worker, j);
-		if (sched_ctx && !sched_ctx->sched_policy && !sched_ctx->awake_workers && sched_ctx->main_master == cpu_worker->workerid)
+		if (sched_ctx && !sched_ctx->sched_policy && !sched_ctx->awake_workers && sched_ctx->main_primary == cpu_worker->workerid)
 			perf_arch = &sched_ctx->perf_arch;
 		else
 			perf_arch = &cpu_worker->perf_arch;

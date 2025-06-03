@@ -78,8 +78,8 @@ int main(void)
 	struct starpu_task *task;
 
 	starpu_conf_init(&conf);
-	conf.nmpi_ms = 0;
-	conf.ntcpip_ms = 0;
+	conf.nmpi_sc = 0;
+	conf.ntcpip_sc = 0;
 
 	ret = starpu_init(&conf);
 	if (STARPU_UNLIKELY(ret == -ENODEV))

@@ -3269,11 +3269,11 @@ struct starpu_sched_component *starpu_sched_component_darts_create(struct starpu
 	can_a_data_be_in_mem_and_in_not_used_yet = starpu_get_env_number_default("STARPU_DARTS_CAN_A_DATA_BE_IN_MEM_AND_IN_NOT_USED_YET", 0);
 	push_free_task_on_gpu_with_least_task_in_planned_task = starpu_get_env_number_default("STARPU_DARTS_PUSH_FREE_TASK_ON_GPU_WITH_LEAST_TASK_IN_PLANNED_TASK", 2);
 
-	if (starpu_cpu_worker_get_count() > 0 && starpu_cuda_worker_get_count() == 0 && starpu_hip_worker_get_count() == 0 && starpu_opencl_worker_get_count() == 0 && starpu_mpi_ms_worker_get_count() == 0 && starpu_tcpip_ms_worker_get_count() == 0)
+	if (starpu_cpu_worker_get_count() > 0 && starpu_cuda_worker_get_count() == 0 && starpu_hip_worker_get_count() == 0 && starpu_opencl_worker_get_count() == 0 && starpu_mpi_sc_worker_get_count() == 0 && starpu_tcpip_sc_worker_get_count() == 0)
 	{
 		cpu_only = CPU_ONLY; // Only CPUs
 	}
-	else if (starpu_cpu_worker_get_count() > 0 && (starpu_cuda_worker_get_count() > 0 || starpu_hip_worker_get_count() == 0 || starpu_opencl_worker_get_count() == 0 || starpu_mpi_ms_worker_get_count() == 0 || starpu_tcpip_ms_worker_get_count() == 0))
+	else if (starpu_cpu_worker_get_count() > 0 && (starpu_cuda_worker_get_count() > 0 || starpu_hip_worker_get_count() == 0 || starpu_opencl_worker_get_count() == 0 || starpu_mpi_sc_worker_get_count() == 0 || starpu_tcpip_sc_worker_get_count() == 0))
 	{
 		cpu_only = CPU_GPU; // Both GPUs and CPUs
 	}

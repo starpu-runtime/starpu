@@ -26,8 +26,8 @@ Execution entities:
 - <b>worker</b>: A worker (see \ref CoreEntitiesWorkers, \ref
   CoreEntitiesWorkersAndContexts) entity is a CPU thread created by StarPU to manage
   one computing unit. The computing unit can be a local CPU core, an accelerator
-  or GPU device, or --- on the master side when running in master-slave
-  distributed mode --- a remote slave computing node. It is responsible for
+  or GPU device, or --- on the server side when running in server client
+  distributed mode --- a client computing node. It is responsible for
   querying scheduling policies for tasks to execute.
 
 - <b>sched_context</b>: A scheduling context (see \ref CoreEntitiesContexts, \ref
@@ -62,7 +62,7 @@ A <b>worker</b> is a CPU thread created by StarPU. Its role is to manage one com
 unit. This computing unit can be a local CPU core, in which case, the worker
 thread manages the actual CPU core to which it is assigned; or it can be a
 computing device such as a GPU or an accelerator (or even a remote computing
-node when StarPU is running in distributed master-slave mode.) When a worker
+node when StarPU is running in distributed server client mode.) When a worker
 manages a computing device, the CPU core to which the worker's thread is
 by default exclusively assigned to the device management work and does not
 participate to computation.
@@ -360,19 +360,19 @@ The source code common to all drivers is shared in
 services such as grabbing a new task to execute on a worker, managing statistics
 accounting on job startup and completion and updating the worker status
 
-\subsubsection CoreEntitiesDriversMP Master/Slave Drivers
+\subsubsection CoreEntitiesDriversMP Server Client Drivers
 
 A subset of the drivers corresponds to drivers managing computing units in
-master/slave mode, that is, drivers involving a local master instance managing
-one or more remote slave instances on the targeted device(s). This includes
+server client mode, that is, drivers involving a local server instance managing
+one or more client instances on the targeted device(s). This includes
 devices such as discrete manycore accelerators (e.g. Intel's Knight Corners
 board, for instance), or pseudo devices such as a cluster of cpu nodes driver
-through StarPU's MPI master/slave mode. A driver instance on the master side
-is named the \b source, while a driver instances on the slave side is named
+through StarPU's MPI server client mode. A driver instance on the server side
+is named the \b source, while a driver instances on the worker side is named
 the \b sink.
 
 A significant part of the work realized on the source and sink sides of
-master/slave drivers is identical among all master/slave drivers, due to the
+server client drivers is identical among all server client drivers, due to the
 similarities in the software pattern. Therefore, many routines are shared among
 all these drivers in the \c src/drivers/mp_common subdirectory. In particular, a
 set of default commands to be used between sources and sinks is defined,

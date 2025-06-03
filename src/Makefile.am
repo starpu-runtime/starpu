@@ -20,7 +20,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/include/ -DBUILDING_STARPU -DSTARPU_DATADIR='"$(da
 AM_CPPFLAGS += $(STARPU_H_CPPFLAGS) $(OPENMP_CFLAGS)
 AM_CPPFLAGS += $(FXT_CFLAGS)
 LIBS += -lm $(LIBSTARPU_LDFLAGS) $(OPENMP_CFLAGS)
-if STARPU_USE_MPI_MASTER_SLAVE
+if STARPU_USE_MPI_SERVER_CLIENT
 LIBS += $(MPICC_LDFLAGS)
 endif
 
@@ -420,27 +420,27 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mp_common/source_comm
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mp_common/sink_common.c
 endif
 
-#########################################
-#                                       #
-#     MPI Master/Slave compilation      #
-#                                       #
-#########################################
+###################################
+#                                 #
+#  MPI Server Client compilation  #
+#                                 #
+###################################
 
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mpi/driver_mpi_init.c
-if STARPU_USE_MPI_MASTER_SLAVE
+if STARPU_USE_MPI_SERVER_CLIENT
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mpi/driver_mpi_common.c
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mpi/driver_mpi_source.c
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mpi/driver_mpi_sink.c
 endif
 
-#########################################
-#                                       #
-#     TCPIP Master/Slave compilation      #
-#                                       #
-#########################################
+####################################
+#                                  #
+# TCPIP Server Client compilation  #
+#                                  #
+####################################
 
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/tcpip/driver_tcpip_init.c
-if STARPU_USE_TCPIP_MASTER_SLAVE
+if STARPU_USE_TCPIP_SERVER_CLIENT
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/tcpip/driver_tcpip_common.c
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/tcpip/driver_tcpip_source.c
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/tcpip/driver_tcpip_sink.c
@@ -451,7 +451,7 @@ endif
 dist-hook:
 	failed=0 ; \
 	look=""; \
-	for i in $$( $(GREP) "static inline" $$(find $(srcdir) -name \*.h) | $(SED) -e 's/.*static inline //g' | $(GREP) -v ENAME\#\# | $(SED) -n -e 's/[^(]* \(\|\*\)\([^ (]*\)(.*/\2/' -e 'p;s/^_*//;p' | $(GREP) -v _starpu_spin_init | $(GREP) -v starpu_sched_ctx_worker_is_master_for_child_ctx) ; do \
+	for i in $$( $(GREP) "static inline" $$(find $(srcdir) -name \*.h) | $(SED) -e 's/.*static inline //g' | $(GREP) -v ENAME\#\# | $(SED) -n -e 's/[^(]* \(\|\*\)\([^ (]*\)(.*/\2/' -e 'p;s/^_*//;p' | $(GREP) -v _starpu_spin_init | $(GREP) -v starpu_sched_ctx_worker_is_primary_for_child_ctx) ; do \
 		if [ -z "$$look" ] ; then \
 			look="$$i" ; \
 		else \

@@ -700,8 +700,8 @@ int main(void)
 
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
-	conf.nmpi_ms = 0;
-	conf.ntcpip_ms = 0;
+	conf.nmpi_sc = 0;
+	conf.ntcpip_sc = 0;
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV)
 		exit(77);

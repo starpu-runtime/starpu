@@ -26,7 +26,7 @@
 #include <drivers/driver_common/driver_common.h>
 #include <drivers/mp_common/source_common.h>
 
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
+#ifdef STARPU_USE_MPI_SERVER_CLIENT
 static unsigned mpi_bindid_init[STARPU_MAXMPIDEVS] = { };
 static unsigned mpi_bindid[STARPU_MAXMPIDEVS];
 static unsigned mpi_memory_init[STARPU_MAXMPIDEVS] = { };
@@ -35,7 +35,7 @@ static unsigned mpi_memory_nodes[STARPU_MAXMPIDEVS];
 static struct _starpu_worker_set mpi_worker_set[STARPU_MAXMPIDEVS];
 #endif
 
-struct _starpu_mp_node *_starpu_mpi_ms_src_get_actual_thread_mp_node()
+struct _starpu_mp_node *_starpu_mpi_sc_src_get_actual_thread_mp_node()
 {
 	struct _starpu_worker *actual_worker = _starpu_get_local_worker_key();
 	STARPU_ASSERT(actual_worker);
@@ -43,30 +43,30 @@ struct _starpu_mp_node *_starpu_mpi_ms_src_get_actual_thread_mp_node()
 	int devid = actual_worker->devid;
 	STARPU_ASSERT(devid >= 0 && devid < STARPU_MAXMPIDEVS);
 
-	return _starpu_src_nodes[STARPU_MPI_MS_WORKER][devid];
+	return _starpu_src_nodes[STARPU_MPI_SC_WORKER][devid];
 }
 
-/* Configure one MPI slaves for run */
+/* Configure one MPI workers for run */
 static void __starpu_init_mpi_config(struct _starpu_machine_topology *topology,
 				     struct _starpu_machine_config *config,
 				     unsigned mpi_idx)
 {
 	int nhwcores;
-	_starpu_src_common_sink_nbcores(_starpu_src_nodes[STARPU_MPI_MS_WORKER][mpi_idx], &nhwcores);
+	_starpu_src_common_sink_nbcores(_starpu_src_nodes[STARPU_MPI_SC_WORKER][mpi_idx], &nhwcores);
 	STARPU_ASSERT(mpi_idx < STARPU_NMAXDEVS);
-	topology->nhwworker[STARPU_MPI_MS_WORKER][mpi_idx] = nhwcores;
+	topology->nhwworker[STARPU_MPI_SC_WORKER][mpi_idx] = nhwcores;
 
 	int nmpicores;
-	nmpicores = starpu_getenv_number("STARPU_NMPIMSTHREADS");
+	nmpicores = starpu_getenv_number("STARPU_MPI_SC_NTHREADS");
 
-	_starpu_topology_check_ndevices(&nmpicores, nhwcores, 0, INT_MAX, 0, "STARPU_NMPIMSTHREADS", "MPI cores", "");
+	_starpu_topology_check_ndevices(&nmpicores, nhwcores, 0, INT_MAX, 0, "STARPU_MPI_SC_NTHREADS", "MPI cores", "");
 
 	mpi_worker_set[mpi_idx].workers = &config->workers[topology->nworkers];
 	mpi_worker_set[mpi_idx].nworkers = nmpicores;
-	_starpu_src_nodes[STARPU_MPI_MS_WORKER][mpi_idx]->baseworkerid = topology->nworkers;
+	_starpu_src_nodes[STARPU_MPI_SC_WORKER][mpi_idx]->baseworkerid = topology->nworkers;
 
 	_starpu_topology_configure_workers(topology, config,
-			STARPU_MPI_MS_WORKER,
+			STARPU_MPI_SC_WORKER,
 			mpi_idx, mpi_idx, 0, 0,
 			nmpicores, 1, &mpi_worker_set[mpi_idx],
 			_starpu_mpi_common_multiple_thread  ? NULL : mpi_worker_set);
@@ -88,40 +88,40 @@ void _starpu_init_mpi_config(struct _starpu_machine_topology *topology, struct _
 	for (i = 0; i < (int) (sizeof(mpi_worker_set)/sizeof(mpi_worker_set[0])); i++)
 		mpi_worker_set[i].workers = NULL;
 
-	int nmpims = user_conf->nmpi_ms;
+	int nmpisc = user_conf->nmpi_sc;
 
-	if (nmpims != 0)
+	if (nmpisc != 0)
 	{
 		/* Discover and initialize the number of MPI nodes through the mp
 		 * infrastructure. */
 		unsigned nhwmpidevices = _starpu_mpi_src_get_device_count();
 
-		if (nmpims == -1)
+		if (nmpisc == -1)
 			/* Nothing was specified, so let's use the number of
 			 * detected mpi devices. ! */
-			nmpims = nhwmpidevices;
+			nmpisc = nhwmpidevices;
 		else
 		{
-			if ((unsigned) nmpims > nhwmpidevices)
+			if ((unsigned) nmpisc > nhwmpidevices)
 			{
 				/* The user requires more MPI devices than there is available */
-				_STARPU_MSG("# Warning: %d MPI Master-Slave devices requested. Only %u available.\n",
-					    nmpims, nhwmpidevices);
-				nmpims = nhwmpidevices;
+				_STARPU_MSG("# Warning: %d MPI Server Client devices requested. Only %u available.\n",
+					    nmpisc, nhwmpidevices);
+				nmpisc = nhwmpidevices;
 			}
 			/* Let's make sure this value is OK. */
-			if (nmpims > STARPU_MAXMPIDEVS)
+			if (nmpisc > STARPU_MAXMPIDEVS)
 			{
-				_STARPU_DISP("Warning: %d MPI MS devices requested. Only %d enabled. Use configure option --enable-maxmpidev=xxx to update the maximum value of supported MPI MS devices.\n", nmpims, STARPU_MAXMPIDEVS);
-				nmpims = STARPU_MAXMPIDEVS;
+				_STARPU_DISP("Warning: %d MPI server client devices requested. Only %d enabled. Use configure option --enable-maxmpidev=xxx to update the maximum value of supported MPI server client devices.\n", nmpisc, STARPU_MAXMPIDEVS);
+				nmpisc = STARPU_MAXMPIDEVS;
 			}
 		}
 	}
 
-	topology->ndevices[STARPU_MPI_MS_WORKER] = nmpims;
+	topology->ndevices[STARPU_MPI_SC_WORKER] = nmpisc;
 
-	/* if user don't want to use MPI slaves, we close the slave processes */
-	if (no_mp_config && topology->ndevices[STARPU_MPI_MS_WORKER] == 0)
+	/* if user don't want to use MPI clients, we close the remote processes */
+	if (no_mp_config && topology->ndevices[STARPU_MPI_SC_WORKER] == 0)
 	{
 		_starpu_mpi_common_mp_deinit();
 		exit(0);
@@ -129,10 +129,10 @@ void _starpu_init_mpi_config(struct _starpu_machine_topology *topology, struct _
 
 	if (!no_mp_config)
 	{
-		for (i = 0; i < nmpims; i++)
-			_starpu_src_nodes[STARPU_MPI_MS_WORKER][i] = _starpu_mp_common_node_create(STARPU_NODE_MPI_SOURCE, i);
+		for (i = 0; i < nmpisc; i++)
+			_starpu_src_nodes[STARPU_MPI_SC_WORKER][i] = _starpu_mp_common_node_create(STARPU_NODE_MPI_SOURCE, i);
 
-		for (i = 0; i < nmpims; i++)
+		for (i = 0; i < nmpisc; i++)
 			__starpu_init_mpi_config(topology, config, i);
 	}
 }
@@ -172,7 +172,7 @@ void _starpu_mpi_init_worker_memory(struct _starpu_machine_config *config, int n
 	else
 	{
 		mpi_memory_init[devid] = 1;
-		memory_node = mpi_memory_nodes[devid] = _starpu_memory_node_register(STARPU_MPI_MS_RAM, devid);
+		memory_node = mpi_memory_nodes[devid] = _starpu_memory_node_register(STARPU_MPI_SC_RAM, devid);
 
 		_starpu_memory_node_set_mapped(memory_node);
 
@@ -199,12 +199,12 @@ void _starpu_mpi_init_worker_memory(struct _starpu_machine_config *config, int n
 
 	if (!_starpu_mpi_common_multiple_thread)
 	{
-		/* MPI driver thread can manage all slave memories if we disable the MPI multiple thread */
+		/* MPI driver thread can manage all client memories if we disable the MPI multiple thread */
 		int findworker;
 		for (findworker = 0; findworker < workerarg->workerid; findworker++)
 		{
 			struct _starpu_worker *findworkerarg = &config->workers[findworker];
-			if (findworkerarg->arch == STARPU_MPI_MS_WORKER)
+			if (findworkerarg->arch == STARPU_MPI_SC_WORKER)
 			{
 				_starpu_worker_drives_memory_node(workerarg, findworkerarg->memory_node);
 				_starpu_worker_drives_memory_node(findworkerarg, memory_node);
@@ -220,9 +220,9 @@ void _starpu_mpi_init_worker_memory(struct _starpu_machine_config *config, int n
 
 static void _starpu_deinit_mpi_node(int devid)
 {
-	_starpu_mp_common_send_command(_starpu_src_nodes[STARPU_MPI_MS_WORKER][devid], STARPU_MP_COMMAND_EXIT, NULL, 0);
+	_starpu_mp_common_send_command(_starpu_src_nodes[STARPU_MPI_SC_WORKER][devid], STARPU_MP_COMMAND_EXIT, NULL, 0);
 
-	_starpu_mp_common_node_destroy(_starpu_src_nodes[STARPU_MPI_MS_WORKER][devid]);
+	_starpu_mp_common_node_destroy(_starpu_src_nodes[STARPU_MPI_SC_WORKER][devid]);
 }
 
 
@@ -231,7 +231,7 @@ void _starpu_deinit_mpi_config(struct _starpu_machine_config *config)
 	struct _starpu_machine_topology *topology = &config->topology;
 	unsigned i;
 
-	for (i = 0; i < topology->ndevices[STARPU_MPI_MS_WORKER]; i++)
+	for (i = 0; i < topology->ndevices[STARPU_MPI_SC_WORKER]; i++)
 		_starpu_deinit_mpi_node(i);
 }
 
@@ -257,7 +257,7 @@ unsigned _starpu_mpi_src_get_device_count()
 
 	MPI_Comm_size(MPI_COMM_WORLD, &nb_mpi_devices);
 
-	//Remove one for master
+	//Remove one for server
 	nb_mpi_devices = nb_mpi_devices - 1;
 
 	return nb_mpi_devices;
@@ -287,71 +287,71 @@ void *_starpu_mpi_src_worker(void *arg)
 
 		_starpu_driver_start(baseworker, STARPU_CPU_WORKER, 0);
 		for (i = 1; i < worker_set->nworkers; i++)
-			_starpu_trace_worker_init_start(&worker_set->workers[i], STARPU_MPI_MS_WORKER, 0);
+			_starpu_trace_worker_init_start(&worker_set->workers[i], STARPU_MPI_SC_WORKER, 0);
 
 		// Current task for a thread managing a worker set has no sense.
 		_starpu_set_current_task(NULL);
 
-		for (i = 0; i < config->topology.nworker[STARPU_MPI_MS_WORKER][devid]; i++)
+		for (i = 0; i < config->topology.nworker[STARPU_MPI_SC_WORKER][devid]; i++)
 		{
 			struct _starpu_worker *worker = &config->workers[baseworkerid+i];
-			snprintf(worker->name, sizeof(worker->name), "MPI_MS %u core %u", devid, i);
-			snprintf(worker->short_name, sizeof(worker->short_name), "MPI_MS %u.%u", devid, i);
+			snprintf(worker->name, sizeof(worker->name), "MPI_SC %u core %u", devid, i);
+			snprintf(worker->short_name, sizeof(worker->short_name), "MPI_SC %u.%u", devid, i);
 		}
 
 		{
 			char thread_name[16];
 			if (_starpu_mpi_common_multiple_thread)
-				snprintf(thread_name, sizeof(thread_name), "MPI_MS %u", devid);
+				snprintf(thread_name, sizeof(thread_name), "MPI_SC %u", devid);
 			else
-				snprintf(thread_name, sizeof(thread_name), "MPI_MS");
+				snprintf(thread_name, sizeof(thread_name), "MPI_SC");
 			starpu_pthread_setname(thread_name);
 		}
 
 		for (i = 0; i < worker_set->nworkers; i++)
 		{
 			struct _starpu_worker *worker = &worker_set->workers[i];
-			_starpu_trace_worker_init_end(worker, STARPU_MPI_MS_WORKER);
+			_starpu_trace_worker_init_end(worker, STARPU_MPI_SC_WORKER);
 		}
 
 		_starpu_src_common_init_switch_env(workersetnum);
 	}  /* for */
 
-	_starpu_src_common_workers_set(worker_set_mpi, nbsinknodes, &_starpu_src_nodes[STARPU_MPI_MS_WORKER][worker_set_mpi->workers[0].devid]);
+	_starpu_src_common_workers_set(worker_set_mpi, nbsinknodes, &_starpu_src_nodes[STARPU_MPI_SC_WORKER][worker_set_mpi->workers[0].devid]);
 
 	return NULL;
 }
 
 static uintptr_t _starpu_driver_mpi_allocate(int devid, size_t size, int flags)
 {
-	return _starpu_src_common_allocate(STARPU_MPI_MS_WORKER, devid, size, flags);
+	return _starpu_src_common_allocate(STARPU_MPI_SC_WORKER, devid, size, flags);
 }
 
 static void _starpu_driver_mpi_free(int devid, uintptr_t addr, size_t size, int flags)
 {
-	_starpu_src_common_free(STARPU_MPI_MS_WORKER, devid, addr, size, flags);
+	_starpu_src_common_free(STARPU_MPI_SC_WORKER, devid, addr, size, flags);
 }
 
 static int _starpu_mpi_is_direct_access_supported(unsigned node, unsigned handling_node)
 {
 	(void) node;
 	enum starpu_node_kind kind = starpu_node_get_kind(handling_node);
-	return (kind == STARPU_MPI_MS_RAM);
+	return (kind == STARPU_MPI_SC_RAM);
 }
 
 static int _starpu_driver_mpi_copy_data_host_to_sink(uintptr_t src, size_t src_offset, int src_devid, uintptr_t dst, size_t dst_offset, int dst_devid, size_t size, struct _starpu_async_channel *async_channel)
 {
-	return _starpu_src_common_copy_data_host_to_sink(src, src_offset, src_devid, dst, dst_offset, STARPU_MPI_MS_WORKER, dst_devid, size, async_channel);
+	return _starpu_src_common_copy_data_host_to_sink(src, src_offset, src_devid, dst, dst_offset, STARPU_MPI_SC_WORKER, dst_devid, size, async_channel);
 }
 
 static int _starpu_driver_mpi_copy_data_sink_to_host(uintptr_t src, size_t src_offset, int src_devid, uintptr_t dst, size_t dst_offset, int dst_devid, size_t size, struct _starpu_async_channel *async_channel)
 {
-	return _starpu_src_common_copy_data_sink_to_host(src, src_offset, STARPU_MPI_MS_WORKER, src_devid, dst, dst_offset, dst_devid, size, async_channel);
+	return _starpu_src_common_copy_data_sink_to_host(src, src_offset, STARPU_MPI_SC_WORKER, src_devid, dst, dst_offset, dst_devid, size, async_channel);
 }
 
 static int _starpu_driver_mpi_copy_data_sink_to_sink(uintptr_t src, size_t src_offset, int src_devid, uintptr_t dst, size_t dst_offset, int dst_devid, size_t size, struct _starpu_async_channel *async_channel)
 {
-	return _starpu_src_common_copy_data_sink_to_sink(src, src_offset, STARPU_MPI_MS_WORKER, src_devid, dst, dst_offset, STARPU_MPI_MS_WORKER, dst_devid, size, async_channel);
+	return _starpu_src_common_copy_data_sink_to_sink(src, src_offset, STARPU_MPI_SC_WORKER, src_devid, dst, dst_offset, STARPU_MPI_SC_WORKER, dst_devid, size, async_channel);
 }
 
 static uintptr_t _starpu_mpi_map(uintptr_t src, size_t src_offset, unsigned src_node STARPU_ATTRIBUTE_UNUSED, unsigned dst_node, size_t size, int *ret)
@@ -389,7 +389,7 @@ static int _starpu_mpi_update_map(uintptr_t src, size_t src_offset, unsigned src
 	return 0;
 }
 
-struct _starpu_node_ops _starpu_driver_mpi_ms_node_ops =
+struct _starpu_node_ops _starpu_driver_mpi_sc_node_ops =
 {
 	.name = "mpi driver",
 
@@ -399,16 +399,16 @@ struct _starpu_node_ops _starpu_driver_mpi_ms_node_ops =
 	.is_direct_access_supported = _starpu_mpi_is_direct_access_supported,
 
 	.copy_interface_to[STARPU_CPU_RAM] = _starpu_copy_interface_any_to_any,
-	.copy_interface_to[STARPU_MPI_MS_RAM] = _starpu_copy_interface_any_to_any,
+	.copy_interface_to[STARPU_MPI_SC_RAM] = _starpu_copy_interface_any_to_any,
 
 	.copy_interface_from[STARPU_CPU_RAM] = _starpu_copy_interface_any_to_any,
-	.copy_interface_from[STARPU_MPI_MS_RAM] = _starpu_copy_interface_any_to_any,
+	.copy_interface_from[STARPU_MPI_SC_RAM] = _starpu_copy_interface_any_to_any,
 
 	.copy_data_to[STARPU_CPU_RAM] = _starpu_driver_mpi_copy_data_sink_to_host,
-	.copy_data_to[STARPU_MPI_MS_RAM] = _starpu_driver_mpi_copy_data_sink_to_sink,
+	.copy_data_to[STARPU_MPI_SC_RAM] = _starpu_driver_mpi_copy_data_sink_to_sink,
 
 	.copy_data_from[STARPU_CPU_RAM] = _starpu_driver_mpi_copy_data_host_to_sink,
-	.copy_data_from[STARPU_MPI_MS_RAM] = _starpu_driver_mpi_copy_data_sink_to_sink,
+	.copy_data_from[STARPU_MPI_SC_RAM] = _starpu_driver_mpi_copy_data_sink_to_sink,
 
 	/* TODO: copy2D/3D? */
 

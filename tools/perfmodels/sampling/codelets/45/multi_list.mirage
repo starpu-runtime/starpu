@@ -12,7 +12,7 @@
 1
 ####################
 # DEV_0
-# device type (CPU - 0, CUDA - 1, OpenCL - 2, FPGA - 4, MPI_MS - 5, TCPIP_MS - 6, HIP - 7)
+# device type (CPU - 0, CUDA - 1, OpenCL - 2, FPGA - 4, MPI_SC - 5, TCPIP_SC - 6, HIP - 7)
 0
 ####################
 # DEV_0

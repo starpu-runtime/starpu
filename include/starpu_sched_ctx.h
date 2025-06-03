@@ -327,19 +327,19 @@ void starpu_sched_ctx_bind_current_thread_to_cpuid(unsigned cpuid);
 
 int starpu_sched_ctx_book_workers_for_task(unsigned sched_ctx_id, int *workerids, int nworkers);
 
-void starpu_sched_ctx_unbook_workers_for_task(unsigned sched_ctx_id, int master);
+void starpu_sched_ctx_unbook_workers_for_task(unsigned sched_ctx_id, int primary);
 
 /**
    Return the first context (child of sched_ctx_id) where the workerid
-   is master
+   is primary
  */
-unsigned starpu_sched_ctx_worker_is_master_for_child_ctx(int workerid, unsigned sched_ctx_id);
+unsigned starpu_sched_ctx_worker_is_primary_for_child_ctx(int workerid, unsigned sched_ctx_id);
 
 /**
-   Return the context id of masterid if it master of a context. If
+   Return the context id of primaryid if it is the primary worker of a context. If
    not, return ::STARPU_NMAX_SCHED_CTXS.
 */
-unsigned starpu_sched_ctx_master_get_context(int masterid);
+unsigned starpu_sched_ctx_primary_get_context(int primaryid);
 
 void starpu_sched_ctx_revert_task_counters_ctx_locked(unsigned sched_ctx_id, double flops);
 

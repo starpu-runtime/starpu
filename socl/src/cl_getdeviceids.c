@@ -67,7 +67,7 @@ soclGetDeviceIDs(cl_platform_id   platform,
 		for (i=0; i < ndevs; i++)
 		{
 			int devid = starpu_worker_get_devid(workers[i]);
-			socl_devices[i].dispatch = &socl_master_dispatch;
+			socl_devices[i].dispatch = &socl_primary_dispatch;
 			socl_devices[i].worker_id = workers[i];
 			socl_devices[i].device_id = devid;
 		}

@@ -69,7 +69,7 @@
 #include <hwloc/cuda.h>
 #endif
 
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
+#ifdef STARPU_USE_MPI_SERVER_CLIENT
 #include <mpi.h>
 #endif
 
@@ -106,8 +106,8 @@ static unsigned nmem[STARPU_NRAM];
 #define ncuda (nmem[STARPU_CUDA_RAM])
 #define nhip (nmem[STARPU_HIP_RAM])
 #define nopencl (nmem[STARPU_OPENCL_RAM])
-#define nmpims (nmem[STARPU_MPI_MS_RAM])
-#define ntcpip_ms (nmem[STARPU_TCPIP_MS_RAM])
+#define nmpisc (nmem[STARPU_MPI_SC_RAM])
+#define ntcpipsc (nmem[STARPU_TCPIP_SC_RAM])
 
 #ifndef STARPU_SIMGRID
 /* Benchmarking the performance of the bus */
@@ -229,7 +229,7 @@ static void set_numa_distance(int dev, unsigned numa, enum starpu_worker_archtyp
 #endif
 }
 
-/* TODO: factorize MPI_MS and TCPIP_MS. Will probably need to introduce a method
+/* TODO: factorize MPI_SC and TCPIP_SC. Will probably need to introduce a method
  * for MPI_Barrier, and for determining which combinations should be measured. */
 
 static void measure_bandwidth_between_host_and_dev_on_numa(int dev, enum starpu_node_kind kind, unsigned numa, int cpu,
@@ -693,51 +693,51 @@ static void benchmark_all_memory_nodes(void)
 	}
 #endif
 
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
+#ifdef STARPU_USE_MPI_SERVER_CLIENT
 	double mpi_time_device_to_device[STARPU_MAXMPIDEVS][STARPU_MAXMPIDEVS] = {{0.0}};
 	double mpi_latency_device_to_device[STARPU_MAXMPIDEVS][STARPU_MAXMPIDEVS] = {{0.0}};
 	/* FIXME: rather make _starpu_mpi_common_measure_bandwidth_latency directly fill timing_per_numa */
 	_starpu_mpi_common_measure_bandwidth_latency(mpi_time_device_to_device, mpi_latency_device_to_device);
-	for (i = 0; i < nmpims; i++)
+	for (i = 0; i < nmpisc; i++)
 	{
 		for (j = 0; j < nnumas; j++)
 		{
-			timing_per_numa[STARPU_MPI_MS_RAM][i][j].numa_id = j;
-			timing_per_numa[STARPU_MPI_MS_RAM][i][j].numa_distance = -1;
-			timing_per_numa[STARPU_MPI_MS_RAM][i][j].timing_htod = mpi_time_device_to_device[0][i+1];
-			timing_per_numa[STARPU_MPI_MS_RAM][i][j].latency_htod = mpi_latency_device_to_device[0][i+1];
-			timing_per_numa[STARPU_MPI_MS_RAM][i][j].timing_dtoh = mpi_time_device_to_device[i+1][0];
-			timing_per_numa[STARPU_MPI_MS_RAM][i][j].latency_dtoh = mpi_latency_device_to_device[i+1][0];
+			timing_per_numa[STARPU_MPI_SC_RAM][i][j].numa_id = j;
+			timing_per_numa[STARPU_MPI_SC_RAM][i][j].numa_distance = -1;
+			timing_per_numa[STARPU_MPI_SC_RAM][i][j].timing_htod = mpi_time_device_to_device[0][i+1];
+			timing_per_numa[STARPU_MPI_SC_RAM][i][j].latency_htod = mpi_latency_device_to_device[0][i+1];
+			timing_per_numa[STARPU_MPI_SC_RAM][i][j].timing_dtoh = mpi_time_device_to_device[i+1][0];
+			timing_per_numa[STARPU_MPI_SC_RAM][i][j].latency_dtoh = mpi_latency_device_to_device[i+1][0];
 		}
-		for (j = 0; j < nmpims; j++)
+		for (j = 0; j < nmpisc; j++)
 		{
-			timing_dtod[STARPU_MPI_MS_RAM][i][j] = mpi_time_device_to_device[i+1][j+1];
+			timing_dtod[STARPU_MPI_SC_RAM][i][j] = mpi_time_device_to_device[i+1][j+1];
 		}
 	}
-#endif /* STARPU_USE_MPI_MASTER_SLAVE */
+#endif /* STARPU_USE_MPI_SERVER_CLIENT */
 
-#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
+#ifdef STARPU_USE_TCPIP_SERVER_CLIENT
 	double tcpip_time_device_to_device[STARPU_MAXTCPIPDEVS][STARPU_MAXTCPIPDEVS] = {{0.0}};
 	double tcpip_latency_device_to_device[STARPU_MAXTCPIPDEVS][STARPU_MAXTCPIPDEVS] = {{0.0}};
 	/* FIXME: rather make _starpu_mpi_common_measure_bandwidth_latency directly fill timing_per_numa */
 	_starpu_tcpip_common_measure_bandwidth_latency(tcpip_time_device_to_device, tcpip_latency_device_to_device);
-	for (i = 0; i < ntcpip_ms; i++)
+	for (i = 0; i < ntcpipsc; i++)
 	{
 		for (j = 0; j < nnumas; j++)
 		{
-			timing_per_numa[STARPU_TCPIP_MS_RAM][i][j].numa_id = j;
-			timing_per_numa[STARPU_TCPIP_MS_RAM][i][j].numa_distance = -1;
-			timing_per_numa[STARPU_TCPIP_MS_RAM][i][j].timing_htod = tcpip_time_device_to_device[0][i+1];
-			timing_per_numa[STARPU_TCPIP_MS_RAM][i][j].latency_htod = tcpip_latency_device_to_device[0][i+1];
-			timing_per_numa[STARPU_TCPIP_MS_RAM][i][j].timing_dtoh = tcpip_time_device_to_device[i+1][0];
-			timing_per_numa[STARPU_TCPIP_MS_RAM][i][j].latency_dtoh = tcpip_latency_device_to_device[i+1][0];
+			timing_per_numa[STARPU_TCPIP_SC_RAM][i][j].numa_id = j;
+			timing_per_numa[STARPU_TCPIP_SC_RAM][i][j].numa_distance = -1;
+			timing_per_numa[STARPU_TCPIP_SC_RAM][i][j].timing_htod = tcpip_time_device_to_device[0][i+1];
+			timing_per_numa[STARPU_TCPIP_SC_RAM][i][j].latency_htod = tcpip_latency_device_to_device[0][i+1];
+			timing_per_numa[STARPU_TCPIP_SC_RAM][i][j].timing_dtoh = tcpip_time_device_to_device[i+1][0];
+			timing_per_numa[STARPU_TCPIP_SC_RAM][i][j].latency_dtoh = tcpip_latency_device_to_device[i+1][0];
 		}
-		for (j = 0; j < ntcpip_ms; j++)
+		for (j = 0; j < ntcpipsc; j++)
 		{
-			timing_dtod[STARPU_TCPIP_MS_RAM][i][j] = tcpip_time_device_to_device[i+1][j+1];
+			timing_dtod[STARPU_TCPIP_SC_RAM][i][j] = tcpip_time_device_to_device[i+1][j+1];
 		}
 	}
-#endif /* STARPU_USE_TCPIP_MASTER_SLAVE */
+#endif /* STARPU_USE_TCPIP_SERVER_CLIENT */
 
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_set_cpubind(hwtopology, former_cpuset, HWLOC_CPUBIND_THREAD);
@@ -1689,8 +1689,8 @@ static void get_config_path(char *path, size_t maxlen)
 	get_bus_path("config", path, maxlen);
 }
 
-#if defined(STARPU_USE_MPI_MASTER_SLAVE)
-/* check if the master or one slave has to recalibrate */
+#if defined(STARPU_USE_MPI_SERVER_CLIENT)
+/* check if the server or one client has to recalibrate */
 static int mpi_check_recalibrate(int my_recalibrate)
 {
 	int nb_mpi = _starpu_mpi_src_get_device_count() + 1;
@@ -1714,19 +1714,19 @@ static void compare_value_and_recalibrate(enum starpu_node_kind type, const char
 {
 	int recalibrate = 0;
 	if (val_file != val_detected &&
-		!((type == STARPU_MPI_MS_RAM || type == STARPU_TCPIP_MS_RAM) && !val_detected))
+		!((type == STARPU_MPI_SC_RAM || type == STARPU_TCPIP_SC_RAM) && !val_detected))
 		recalibrate = 1;
 
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
+#ifdef STARPU_USE_MPI_SERVER_CLIENT
 	//Send to each other to know if we had to recalibrate because someone cannot have the correct value in the config file
-	if (_starpu_config.conf.nmpi_ms != 0)
+	if (_starpu_config.conf.nmpi_sc != 0)
 		recalibrate = mpi_check_recalibrate(recalibrate);
 #endif
 
 	if (recalibrate)
 	{
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-		/* Only the master prints the message */
+#ifdef STARPU_USE_MPI_SERVER_CLIENT
+		/* Only the server prints the message */
 		if (_starpu_mpi_common_is_src_node())
 #endif
 			_STARPU_DISP("Current configuration does not match the bus performance model (%s: (stored) %d != (current) %d), recalibrating...\n", msg, val_file, val_detected);
@@ -1734,7 +1734,7 @@ static void compare_value_and_recalibrate(enum starpu_node_kind type, const char
 		int location = _starpu_get_perf_model_bus();
 		_starpu_bus_force_sampling(location);
 
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
+#ifdef STARPU_USE_MPI_SERVER_CLIENT
 		if (_starpu_mpi_common_is_src_node())
 #endif
 			_STARPU_DISP("... done\n");
@@ -1752,8 +1752,8 @@ static void check_bus_config_file(void)
 	if (location < 0 || config->conf.bus_calibrate > 0)
 		recalibrate = 1;
 
-#if defined(STARPU_USE_MPI_MASTER_SLAVE)
-	if (_starpu_config.conf.nmpi_ms != 0)
+#if defined(STARPU_USE_MPI_SERVER_CLIENT)
+	if (_starpu_config.conf.nmpi_sc != 0)
 		//Send to each other to know if we had to recalibrate because someone cannot have the config file
 		recalibrate = mpi_check_recalibrate(recalibrate);
 #endif
@@ -2924,9 +2924,9 @@ void _starpu_load_bus_performance_files(void)
 	check_bus_config_file();
 #endif
 
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-	/* be sure that master wrote the perf files */
-	if (_starpu_config.conf.nmpi_ms != 0)
+#ifdef STARPU_USE_MPI_SERVER_CLIENT
+	/* be sure that server wrote the perf files */
+	if (_starpu_config.conf.nmpi_sc != 0)
 		_starpu_mpi_common_barrier();
 #endif
 

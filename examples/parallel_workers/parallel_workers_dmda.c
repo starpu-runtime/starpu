@@ -56,7 +56,7 @@ int main(void)
 	struct starpu_parallel_worker_config *parallel_workers;
 	starpu_data_handle_t handle;
 
-	setenv("STARPU_NMPI_MS","0",1);
+	setenv("STARPU_NMPI_SC","0",1);
 	setenv("STARPU_CALIBRATE_MINIMUM", "2", 1);
 	setenv("STARPU_CALIBRATE", "0", 1);
 	setenv("STARPU_SCHED", "dmda", 1);

@@ -67,8 +67,8 @@ int do_test(const char *test_name, const char *bus_dir, const char *codelet_dir,
         starpu_conf_init(&conf);
         starpu_conf_noworker(&conf);
         conf.ncpus = -1;
-        conf.nmpi_ms = -1;
-        conf.ntcpip_ms = -1;
+        conf.nmpi_sc = -1;
+        conf.ntcpip_sc = -1;
 
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;

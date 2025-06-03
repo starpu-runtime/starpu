@@ -133,9 +133,9 @@ struct _starpu_sched_ctx
 	unsigned hierarchy_level;
 
 	/** if we execute non-StarPU code inside the context
-	   we have a single master worker that stays awake,
-	   if not master is -1 */
-	int main_master;
+	    we have a single primary worker that stays awake,
+	   if not main_primary is -1 */
+	int main_primary;
 
 	/** ctx nesting the current ctx */
 	unsigned nesting_sched_ctx;
@@ -248,7 +248,7 @@ void _starpu_sched_ctx_post_exec_task_cb(int workerid, struct starpu_task *task,
 
 void starpu_sched_ctx_add_combined_workers(int *combined_workers_to_add, unsigned n_combined_workers_to_add, unsigned sched_ctx_id);
 
-/** if the worker is the master of a parallel context, and the job is meant to be executed on this parallel context, return a pointer to the context */
+/** if the worker is the primary of a parallel context, and the job is meant to be executed on this parallel context, return a pointer to the context */
 struct _starpu_sched_ctx *__starpu_sched_ctx_get_sched_ctx_for_worker_and_job(struct _starpu_worker *worker, struct _starpu_job *j);
 
 #define _starpu_sched_ctx_get_sched_ctx_for_worker_and_job(w,j) \
@@ -305,9 +305,9 @@ static inline void _starpu_sched_ctx_unlock_read(unsigned sched_ctx_id)
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&sched_ctx->rwlock);
 }
 
-static inline unsigned _starpu_sched_ctx_worker_is_master_for_child_ctx(unsigned sched_ctx_id, unsigned workerid, struct starpu_task *task)
+static inline unsigned _starpu_sched_ctx_worker_is_primary_for_child_ctx(unsigned sched_ctx_id, unsigned workerid, struct starpu_task *task)
 {
-	unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(workerid, sched_ctx_id);
+	unsigned child_sched_ctx = starpu_sched_ctx_worker_is_primary_for_child_ctx(workerid, sched_ctx_id);
 	if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
 	{
 		starpu_sched_ctx_move_task_to_ctx_locked(task, child_sched_ctx, 1);

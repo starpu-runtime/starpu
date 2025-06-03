@@ -81,7 +81,7 @@ static void send_done(void *arg)
 	DEBUG("DO SEND %d\n", (int)z);
 }
 
-#if defined(STARPU_USE_MPI) && !defined(STARPU_USE_MPI_MASTER_SLAVE)
+#if defined(STARPU_USE_MPI) && !defined(STARPU_USE_MPI_SERVER_CLIENT)
 /* Post MPI send */
 static void create_task_save_mpi_send(unsigned iter, unsigned z, int dir, int local_rank)
 {
@@ -143,7 +143,7 @@ void create_task_save(unsigned iter, unsigned z, int dir, int local_rank)
 	int node_z = get_block_mpi_node(z);
 	int node_z_and_d = get_block_mpi_node(z+dir);
 
-#if defined(STARPU_USE_MPI) && !defined(STARPU_USE_MPI_MASTER_SLAVE)
+#if defined(STARPU_USE_MPI) && !defined(STARPU_USE_MPI_SERVER_CLIENT)
 	if (node_z == local_rank)
 	{
 		/* Save data from update */

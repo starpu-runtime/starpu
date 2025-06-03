@@ -110,7 +110,7 @@ enum errcase {SOCK_INIT, SOCK_GETADDRINFO, SOCK_GETADDRINFO_LOCAL};
 			sock = accept(sockfd, addr, addrlen);	\
 			if(sock < 0)				\
 			{					\
-				perror("fail to receive the request of slave"); \
+				perror("fail to receive the request of the worker"); \
 				return -1;				\
 			}						\
 			sock;						\
@@ -163,14 +163,14 @@ enum errcase {SOCK_INIT, SOCK_GETADDRINFO, SOCK_GETADDRINFO_LOCAL};
 
 
 /* This function contains all steps to initialize a socket before connect and accept steps.
- * When we call this function, we need to indicate that it is for master-slave (master = 1)
- * or slave-slave (master = 0). We also need to provide the information sin_addr "source_addr"
+ * When we call this function, we need to indicate that it is for server client (server = 1)
+ * or client-worker (server = 0). We also need to provide the information sin_addr "source_addr"
  * and sin_port "source_port" that we want to set to initialize the binding address and
  * the argument "backlog" for listen. It can generate a TCP/IP socket "ss" or a local socket "ls",
  * and the bound address "source_addr_init" with its size "source_addr_init_size".
  * For local socket, it also generates the bound address "local_name" linking a local path.
  */
-static inline int master_init(int master, int *ss, int *ls, struct sockaddr_in *source_addr_init, socklen_t *source_addr_init_size, struct sockaddr_un *local_name, unsigned long source_addr, unsigned short source_port, int backlog)
+static inline int server_init(int server, int *ss, int *ls, struct sockaddr_in *source_addr_init, socklen_t *source_addr_init_size, struct sockaddr_un *local_name, unsigned long source_addr, unsigned short source_port, int backlog)
 {
 	/*TCPIP*/
 	*ss = SOCKET(AF_INET, SOCK_STREAM, 0, SOCK_INIT);
@@ -178,7 +178,7 @@ static inline int master_init(int master, int *ss, int *ls, struct sockaddr_in *
 	struct sockaddr_in addr_init = ADDR_INIT(source_addr, source_port);
 	socklen_t addr_init_size = sizeof(addr_init);
 
-	if(master)
+	if(server)
 	{
 		int one = 1;
 		setsockopt(*ss, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one));
@@ -187,7 +187,7 @@ static inline int master_init(int master, int *ss, int *ls, struct sockaddr_in *
 
 	BIND(*ss, (struct sockaddr*) &addr_init, addr_init_size);
 
-	if(!master)
+	if(!server)
 	{
 		GETSOCKNAME(*ss, (struct sockaddr*) &addr_init, &addr_init_size);
 	}
@@ -220,7 +220,7 @@ static inline int master_init(int master, int *ss, int *ls, struct sockaddr_in *
  * the socket of the other side "sink_sock". It will also show whether the zerocopy setting
  * is successful (zerocopy = 1) or not (zerocopy = 0). This setting is only for async communication.
  */
-static inline int master_accept(int *sink_sock, int source_sock, int local_sock, int *zerocopy, int * local_sock_flag)
+static inline int server_accept(int *sink_sock, int source_sock, int local_sock, int *zerocopy, int * local_sock_flag)
 {
 	struct sockaddr_in sink_addr;
 	socklen_t sink_addr_size = sizeof(sink_addr);
@@ -247,7 +247,7 @@ static inline int master_accept(int *sink_sock, int source_sock, int local_sock,
 
 		GETSOCKNAME(*sink_sock, (struct sockaddr*) &boundAddr, &boundAddr_size);
 
-		/*master and slave sides use the same ip address*/
+		/* server and worker sides use the same ip address*/
 		if(boundAddr.sin_addr.s_addr == sink_addr.sin_addr.s_addr)
 		{
 		    close(*sink_sock);
@@ -271,12 +271,12 @@ static inline int master_accept(int *sink_sock, int source_sock, int local_sock,
 }
 
 /* Connect step. We provide the connection address for TCP/IP socket, either it is addrinfo "cur" got from
- * function getaddrinfo in master-salve mode, or it is "source_addr" in slave-slave mode. It will generate
- * the socket of the other side "source_sock", In the case that slave connects to master, we need to get
+ * function getaddrinfo in server-worker mode, or it is "source_addr" in client-worker mode. It will generate
+ * the socket of the other side "source_sock", In the case that worker connects to server, we need to get
  * the address "source_addr" to which "source_sock" is bound. It will also show whether the zerocopy setting
  * is successful (zerocopy = 1) or not (zerocopy = 0). This setting is only for async communication.
  */
-static inline int slave_connect(int *source_sock, struct addrinfo *cur, struct sockaddr_in *bound_addr, struct sockaddr_in *source_addr, int *zerocopy, int * local_sock_flag)
+static inline int client_connect(int *source_sock, struct addrinfo *cur, struct sockaddr_in *bound_addr, struct sockaddr_in *source_addr, int *zerocopy, int * local_sock_flag)
 {
 	if(cur != NULL)
 	{
@@ -314,7 +314,7 @@ static inline int slave_connect(int *source_sock, struct addrinfo *cur, struct s
 	/*local socket*/
 	if (starpu_getenv_number_default("STARPU_TCPIP_USE_LOCAL_SOCKET", 1) != 0)
 	{
-		/*master and slave sides use the same ip address*/
+		/** server and client sides use the same ip address*/
 		if(boundAddr.sin_addr.s_addr == peerAddr.sin_addr.s_addr)
 		{
 			close(*source_sock);

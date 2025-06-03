@@ -58,7 +58,7 @@ int main(int argc, char **argv)
 	if (starpu_cpu_worker_get_count() != 2
 		|| starpu_cuda_worker_get_count() != 0
 		|| starpu_opencl_worker_get_count() != 0
-		|| starpu_mpi_ms_worker_get_count() != 0)
+		|| starpu_mpi_sc_worker_get_count() != 0)
 	{
 		starpu_shutdown();
 		fprintf(stderr, "example needs exactly two cpu cores.\n");

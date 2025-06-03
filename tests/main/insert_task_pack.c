@@ -40,8 +40,8 @@ int main(int argc, char **argv)
 	starpu_conf_init(&conf);
 	starpu_conf_noworker(&conf);
 	conf.ncpus = -1;
-	conf.nmpi_ms = -1;
-	conf.ntcpip_ms = -1;
+	conf.nmpi_sc = -1;
+	conf.ntcpip_sc = -1;
 
 	(void)argv;
 

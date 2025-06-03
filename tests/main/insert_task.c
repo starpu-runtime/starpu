@@ -57,7 +57,7 @@ struct starpu_codelet mycodelet_args =
 };
 
 /* This one cheats by getting the factor through a global variable, which cannot
- * work in master-slave mode, so we can only run it on a local CPU */
+ * work in server client mode, so we can only run it on a local CPU */
 struct starpu_codelet mycodelet_noargs =
 {
 	.modes = { STARPU_RW, STARPU_RW },
@@ -129,8 +129,8 @@ int main(void)
 	starpu_conf_init(&conf);
 	starpu_conf_noworker(&conf);
 	conf.ncpus = -1;
-	conf.nmpi_ms = -1;
-	conf.ntcpip_ms = -1;
+	conf.nmpi_sc = -1;
+	conf.ntcpip_sc = -1;
 
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;

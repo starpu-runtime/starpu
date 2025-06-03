@@ -63,8 +63,8 @@ int main(int argc, char **argv)
 	starpu_conf_init(&conf);
 	starpu_conf_noworker(&conf);
 	conf.ncpus = -1;
-	conf.nmpi_ms = -1;
-	conf.ntcpip_ms = -1;
+	conf.nmpi_sc = -1;
+	conf.ntcpip_sc = -1;
 
 	int ret = starpu_initialize(&conf, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;

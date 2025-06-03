@@ -386,13 +386,13 @@ having to calibrate performance models for each GPU of a homogeneous set of GPU
 devices for instance, the model can be shared by using the environment
 variables \ref STARPU_PERF_MODEL_HOMOGENEOUS_CUDA, \ref
 STARPU_PERF_MODEL_HOMOGENEOUS_OPENCL and \ref
-STARPU_PERF_MODEL_HOMOGENEOUS_MPI_MS depending on your GPU device
+STARPU_PERF_MODEL_HOMOGENEOUS_MPI_SC depending on your GPU device
 type.
 
 \code{.shell}
 export STARPU_PERF_MODEL_HOMOGENEOUS_CUDA=1
 export STARPU_PERF_MODEL_HOMOGENEOUS_OPENCL=1
-export STARPU_PERF_MODEL_HOMOGENEOUS_MPI_MS=1
+export STARPU_PERF_MODEL_HOMOGENEOUS_MPI_SC=1
 \endcode
 
 To force continuing calibration,

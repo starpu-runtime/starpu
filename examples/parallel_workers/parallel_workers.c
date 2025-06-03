@@ -67,7 +67,7 @@ int main(void)
 	int ret, i;
 	struct starpu_parallel_worker_config *parallel_workers;
 
-	setenv("STARPU_NMPI_MS","0",1);
+	setenv("STARPU_NMPI_SC","0",1);
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)

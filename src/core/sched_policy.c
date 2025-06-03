@@ -755,7 +755,7 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 			 * disappeared already */
 			starpu_push_task_end(task);
 			if(!sched_ctx->awake_workers)
-				ret = _starpu_push_task_on_specific_worker(task, sched_ctx->main_master);
+				ret = _starpu_push_task_on_specific_worker(task, sched_ctx->main_primary);
 			else
 			{
 				struct starpu_worker_collection *workers = sched_ctx->workers;

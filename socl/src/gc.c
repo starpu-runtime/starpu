@@ -153,7 +153,7 @@ void gc_entity_init(void *arg, void (*release_callback)(void*), char * name)
 
 	struct entity * e = (entity)arg;
 
-	e->dispatch = &socl_master_dispatch;
+	e->dispatch = &socl_primary_dispatch;
 	e->refs = 1;
 	e->release_callback = release_callback;
 	e->prev = NULL;

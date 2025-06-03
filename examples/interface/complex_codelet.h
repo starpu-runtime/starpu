@@ -68,7 +68,7 @@ void compare_complex_codelet(void *descr[], void *_args)
 struct starpu_codelet cl_compare =
 {
 	.cpu_funcs = {compare_complex_codelet},
-	/* dereferencing compare won't work on MPI Master Slave */
+	/* dereferencing compare won't work on MPI Server Client mode */
 	/* .cpu_funcs_name = {"compare_complex_codelet"}, */
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_R},

@@ -23,7 +23,7 @@
 #define NITER 32
 #define SIZE_BANDWIDTH (1024*1024)
 
-#define DRIVER_MPI_MASTER_NODE_DEFAULT 0
+#define DRIVER_MPI_SERVER_NODE_DEFAULT 0
 
 static int mpi_initialized = 0, mpi_shutdown = 0;
 static int extern_initialized = 0;
@@ -32,28 +32,28 @@ static int src_node_id;
 int _starpu_mpi_common_multiple_thread;
 
 /* (For a given datawizard we may have several starpu_interface_copy calls) */
-LIST_TYPE(_starpu_mpi_ms_event_request,
+LIST_TYPE(_starpu_mpi_sc_event_request,
 	MPI_Request request;
 );
 
-struct _starpu_mpi_ms_async_event
+struct _starpu_mpi_sc_async_event
 {
 	int is_sender;
-	struct _starpu_mpi_ms_event_request_list requests;
+	struct _starpu_mpi_sc_event_request_list requests;
 };
 
-static inline struct _starpu_mpi_ms_async_event *_starpu_mpi_ms_async_event(union _starpu_async_channel_event *_event)
+static inline struct _starpu_mpi_sc_async_event *_starpu_mpi_sc_async_event(union _starpu_async_channel_event *_event)
 {
-	struct _starpu_mpi_ms_async_event *event;
+	struct _starpu_mpi_sc_async_event *event;
 	STARPU_STATIC_ASSERT(sizeof(*event) <= sizeof(*_event));
 	event = (void *) _event;
 	return event;
 }
 
-/* This lets the user decide which MPI rank is to be the master. Usually it's just rank 0 */
+/* This lets the user decide which MPI rank is to be the server. Usually it's just rank 0 */
 static void _starpu_mpi_set_src_node_id()
 {
-	int node_id = starpu_getenv_number("STARPU_MPI_MASTER_NODE");
+	int node_id = starpu_getenv_number("STARPU_MPI_SERVER_NODE");
 
 	if (node_id != -1)
 	{
@@ -66,17 +66,17 @@ static void _starpu_mpi_set_src_node_id()
 			src_node_id = node_id;
 			return;
 		}
-		else if (id_proc == DRIVER_MPI_MASTER_NODE_DEFAULT)
+		else if (id_proc == DRIVER_MPI_SERVER_NODE_DEFAULT)
 		{
 			/* Only one node prints the error message. */
-			_STARPU_MSG("The node (%d) you specify to be the master is "
+			_STARPU_MSG("The node (%d) you specify to be the server is "
 				    "greater than the total number of nodes (%d). "
-				    "StarPU will use node %d.\n", node_id, nb_proc, DRIVER_MPI_MASTER_NODE_DEFAULT);
+				    "StarPU will use node %d.\n", node_id, nb_proc, DRIVER_MPI_SERVER_NODE_DEFAULT);
 		}
 	}
 
 	/* Node by default. */
-	src_node_id = DRIVER_MPI_MASTER_NODE_DEFAULT;
+	src_node_id = DRIVER_MPI_SERVER_NODE_DEFAULT;
 }
 
 int _starpu_mpi_common_mp_init()
@@ -89,7 +89,7 @@ int _starpu_mpi_common_mp_init()
 
 	mpi_initialized = 1;
 
-	_starpu_mpi_common_multiple_thread = starpu_getenv_number_default("STARPU_MPI_MS_MULTIPLE_THREAD", 0);
+	_starpu_mpi_common_multiple_thread = starpu_getenv_number_default("STARPU_MPI_SC_MULTIPLE_THREAD", 0);
 
 	if (MPI_Initialized(&extern_initialized) != MPI_SUCCESS)
 		STARPU_ABORT_MSG("Cannot check if MPI is initialized or not !");
@@ -109,18 +109,18 @@ int _starpu_mpi_common_mp_init()
 		if (thread_support != required)
 		{
 			if (required == MPI_THREAD_MULTIPLE)
-				_STARPU_DISP("MPI doesn't support MPI_THREAD_MULTIPLE option. MPI Master-Slave can have problems if multiple slaves are launched. \n");
+				_STARPU_DISP("MPI doesn't support MPI_THREAD_MULTIPLE option. MPI Server Client can have problems if multiple clients are launched. \n");
 			if (required == MPI_THREAD_FUNNELED)
 				_STARPU_DISP("MPI doesn't support MPI_THREAD_FUNNELED option. Many errors can occur. \n");
 		}
 	}
 
-	/* Find which node is the master */
+	/* Find which node is the server */
 	_starpu_mpi_set_src_node_id();
 
 	/* In MPI case we look at the rank to know if we are a sink */
 	if (!_starpu_mpi_common_is_src_node())
-		setenv("STARPU_SINK", "STARPU_MPI_MS", 1);
+		setenv("STARPU_SINK", "STARPU_MPI_SC", 1);
 
 	return 1;
 }
@@ -156,7 +156,7 @@ void _starpu_mpi_common_mp_initialize_src_sink(struct _starpu_mp_node *node)
 {
 	struct _starpu_machine_topology *topology = &_starpu_get_machine_config()->topology;
 
-	int nmpicores = starpu_getenv_number("STARPU_NMPIMSTHREADS");
+	int nmpicores = starpu_getenv_number("STARPU_MPI_SC_NTHREADS");
 	if (nmpicores == -1)
 	{
 		int nhyperthreads = topology->nhwpus / topology->nhwworker[STARPU_CPU_WORKER][0];
@@ -185,7 +185,7 @@ int _starpu_mpi_common_recv_is_ready(const struct _starpu_mp_node *mp_node)
 	}
 
 	res = MPI_Iprobe(source, SYNC_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
-	STARPU_ASSERT_MSG(res == MPI_SUCCESS, "MPI Master/Slave cannot test if we received a message !");
+	STARPU_ASSERT_MSG(res == MPI_SUCCESS, "MPI Server Client cannot test if we received a message !");
 
 	return flag;
 }
@@ -209,7 +209,7 @@ int _starpu_mpi_common_notif_recv_is_ready(const struct _starpu_mp_node *mp_node
 	}
 
 	res = MPI_Iprobe(source, NOTIF_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
-	STARPU_ASSERT_MSG(res == MPI_SUCCESS, "MPI Master/Slave cannot test if we received a message !");
+	STARPU_ASSERT_MSG(res == MPI_SUCCESS, "MPI Server Client cannot test if we received a message !");
 
 	return flag;
 }
@@ -277,24 +277,24 @@ static void __starpu_mpi_common_send_to_device(const struct _starpu_mp_node *nod
 	{
 		/* Asynchronous send */
 		struct _starpu_async_channel * channel = event;
-		struct _starpu_mpi_ms_async_event *mpi_ms_event = _starpu_mpi_ms_async_event(&channel->event);
-		mpi_ms_event->is_sender = 1;
+		struct _starpu_mpi_sc_async_event *mpi_sc_event = _starpu_mpi_sc_async_event(&channel->event);
+		mpi_sc_event->is_sender = 1;
 
 		/* call by sink, we need to initialize some parts, for host it's done in data_request.c */
 		if (channel->node_ops == NULL)
 		{
 			/* Initialize the list */
-			_starpu_mpi_ms_event_request_list_init(&mpi_ms_event->requests);
+			_starpu_mpi_sc_event_request_list_init(&mpi_sc_event->requests);
 		}
 
-		struct _starpu_mpi_ms_event_request * req = _starpu_mpi_ms_event_request_new();
+		struct _starpu_mpi_sc_event_request * req = _starpu_mpi_sc_event_request_new();
 
 		res = MPI_Isend(msg, len, MPI_BYTE, dst_devid, ASYNC_TAG, MPI_COMM_WORLD, &req->request);
 
 		channel->starpu_mp_common_finished_receiver++;
 		channel->starpu_mp_common_finished_sender++;
 
-		_starpu_mpi_ms_event_request_list_push_back(&mpi_ms_event->requests, req);
+		_starpu_mpi_sc_event_request_list_push_back(&mpi_sc_event->requests, req);
 	}
 	else
 	{
@@ -307,7 +307,7 @@ static void __starpu_mpi_common_send_to_device(const struct _starpu_mp_node *nod
 			res = MPI_Send(msg, len, MPI_BYTE, dst_devid, NOTIF_TAG, MPI_COMM_WORLD);
 	}
 
-	STARPU_ASSERT_MSG(res == MPI_SUCCESS, "MPI Master/Slave cannot receive a msg with a size of %d Bytes !", len);
+	STARPU_ASSERT_MSG(res == MPI_SUCCESS, "MPI Server Client cannot receive a msg with a size of %d Bytes !", len);
 }
 
 void _starpu_mpi_common_send_to_device(const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, int dst_devid, void *msg, int len, void * event)
@@ -326,25 +326,25 @@ static void __starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *n
 	{
 		/* Asynchronous recv */
 		struct _starpu_async_channel * channel = event;
-		struct _starpu_mpi_ms_async_event *mpi_ms_event = _starpu_mpi_ms_async_event(&channel->event);
-		mpi_ms_event->is_sender = 0;
+		struct _starpu_mpi_sc_async_event *mpi_sc_event = _starpu_mpi_sc_async_event(&channel->event);
+		mpi_sc_event->is_sender = 0;
 
 		/* call by sink, we need to initialize some parts, for host it's done in data_request.c */
 		if (channel->node_ops == NULL)
 		{
 			/* Initialize the list */
-			_starpu_mpi_ms_event_request_list_init(&mpi_ms_event->requests);
+			_starpu_mpi_sc_event_request_list_init(&mpi_sc_event->requests);
 		}
 
-		struct _starpu_mpi_ms_event_request * req = _starpu_mpi_ms_event_request_new();
+		struct _starpu_mpi_sc_event_request * req = _starpu_mpi_sc_event_request_new();
 
 		res = MPI_Irecv(msg, len, MPI_BYTE, src_devid, ASYNC_TAG, MPI_COMM_WORLD, &req->request);
-		STARPU_ASSERT_MSG(res == MPI_SUCCESS, "MPI Master/Slave cannot Ireceive a msg with a size of %d Bytes !", len);
+		STARPU_ASSERT_MSG(res == MPI_SUCCESS, "MPI Server Client cannot Ireceive a msg with a size of %d Bytes !", len);
 
 		channel->starpu_mp_common_finished_receiver++;
 		channel->starpu_mp_common_finished_sender++;
 
-		_starpu_mpi_ms_event_request_list_push_back(&mpi_ms_event->requests, req);
+		_starpu_mpi_sc_event_request_list_push_back(&mpi_sc_event->requests, req);
 	}
 	else
 	{
@@ -359,8 +359,8 @@ static void __starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *n
 		int num_expected;
 		MPI_Get_count(&s, MPI_BYTE, &num_expected);
 
-		STARPU_ASSERT_MSG(num_expected == len, "MPI Master/Slave received a msg with a size of %d Bytes (expected %d Bytes) !", num_expected, len);
-		STARPU_ASSERT_MSG(res == MPI_SUCCESS, "MPI Master/Slave cannot receive a msg with a size of %d Bytes !", len);
+		STARPU_ASSERT_MSG(num_expected == len, "MPI Server Client received a msg with a size of %d Bytes (expected %d Bytes) !", num_expected, len);
+		STARPU_ASSERT_MSG(res == MPI_SUCCESS, "MPI Server Client cannot receive a msg with a size of %d Bytes !", len);
 	}
 }
 
@@ -395,23 +395,23 @@ static void _starpu_mpi_common_polling_node(struct _starpu_mp_node * node)
  */
 unsigned int _starpu_mpi_common_test_event(struct _starpu_async_channel * event)
 {
-	struct _starpu_mpi_ms_async_event *mpi_ms_event = _starpu_mpi_ms_async_event(&event->event);
+	struct _starpu_mpi_sc_async_event *mpi_sc_event = _starpu_mpi_sc_async_event(&event->event);
 
-	struct _starpu_mpi_ms_event_request * req = _starpu_mpi_ms_event_request_list_begin(&mpi_ms_event->requests);
-	struct _starpu_mpi_ms_event_request * req_next;
+	struct _starpu_mpi_sc_event_request * req = _starpu_mpi_sc_event_request_list_begin(&mpi_sc_event->requests);
+	struct _starpu_mpi_sc_event_request * req_next;
 
-	while (req != _starpu_mpi_ms_event_request_list_end(&mpi_ms_event->requests))
+	while (req != _starpu_mpi_sc_event_request_list_end(&mpi_sc_event->requests))
 	{
-		req_next = _starpu_mpi_ms_event_request_list_next(req);
+		req_next = _starpu_mpi_sc_event_request_list_next(req);
 
 		int flag = 0;
 		MPI_Test(&req->request, &flag, MPI_STATUS_IGNORE);
 		if (flag)
 		{
-			_starpu_mpi_ms_event_request_list_erase(&mpi_ms_event->requests, req);
-			_starpu_mpi_ms_event_request_delete(req);
+			_starpu_mpi_sc_event_request_list_erase(&mpi_sc_event->requests, req);
+			_starpu_mpi_sc_event_request_delete(req);
 
-			if (mpi_ms_event->is_sender)
+			if (mpi_sc_event->is_sender)
 				event->starpu_mp_common_finished_sender--;
 			else
 				event->starpu_mp_common_finished_receiver--;
@@ -432,29 +432,29 @@ unsigned int _starpu_mpi_common_test_event(struct _starpu_async_channel * event)
 /* Only used at starpu_shutdown */
 void _starpu_mpi_common_wait_request_completion(struct _starpu_async_channel * event)
 {
-	struct _starpu_mpi_ms_async_event *mpi_ms_event = _starpu_mpi_ms_async_event(&event->event);
+	struct _starpu_mpi_sc_async_event *mpi_sc_event = _starpu_mpi_sc_async_event(&event->event);
 
-	struct _starpu_mpi_ms_event_request * req = _starpu_mpi_ms_event_request_list_begin(&mpi_ms_event->requests);
-	struct _starpu_mpi_ms_event_request * req_next;
+	struct _starpu_mpi_sc_event_request * req = _starpu_mpi_sc_event_request_list_begin(&mpi_sc_event->requests);
+	struct _starpu_mpi_sc_event_request * req_next;
 
-	while (req != _starpu_mpi_ms_event_request_list_end(&mpi_ms_event->requests))
+	while (req != _starpu_mpi_sc_event_request_list_end(&mpi_sc_event->requests))
 	{
-		req_next = _starpu_mpi_ms_event_request_list_next(req);
+		req_next = _starpu_mpi_sc_event_request_list_next(req);
 
 		MPI_Wait(&req->request, MPI_STATUS_IGNORE);
-		_starpu_mpi_ms_event_request_list_erase(&mpi_ms_event->requests, req);
+		_starpu_mpi_sc_event_request_list_erase(&mpi_sc_event->requests, req);
 
-		_starpu_mpi_ms_event_request_delete(req);
+		_starpu_mpi_sc_event_request_delete(req);
 		req = req_next;
 
-		if (mpi_ms_event->is_sender)
+		if (mpi_sc_event->is_sender)
 			event->starpu_mp_common_finished_sender--;
 		else
 			event->starpu_mp_common_finished_receiver--;
 
 	}
 
-	STARPU_ASSERT_MSG(_starpu_mpi_ms_event_request_list_empty(&mpi_ms_event->requests), "MPI Request list is not empty after a wait_event !");
+	STARPU_ASSERT_MSG(_starpu_mpi_sc_event_request_list_empty(&mpi_sc_event->requests), "MPI Request list is not empty after a wait_event !");
 
 	//incoming ack from devices
 	while(event->starpu_mp_common_finished_sender > 0 || event->starpu_mp_common_finished_receiver > 0)
@@ -510,7 +510,7 @@ void _starpu_mpi_common_measure_bandwidth_latency(double timing_dtod[STARPU_MAXM
 				for (iter = 0; iter < NITER; iter++)
 				{
 					ret = MPI_Send(buf, SIZE_BANDWIDTH, MPI_BYTE, receiver, 42, MPI_COMM_WORLD);
-					STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "Bandwidth of MPI Master/Slave cannot be measured !");
+					STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "Bandwidth of MPI Server Client cannot be measured !");
 				}
 				end = starpu_timing_now();
 				timing_dtod[sender][receiver] = (end - start)/NITER/SIZE_BANDWIDTH;
@@ -520,7 +520,7 @@ void _starpu_mpi_common_measure_bandwidth_latency(double timing_dtod[STARPU_MAXM
 				for (iter = 0; iter < NITER; iter++)
 				{
 					ret = MPI_Send(buf, 1, MPI_BYTE, receiver, 42, MPI_COMM_WORLD);
-					STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "Latency of MPI Master/Slave cannot be measured !");
+					STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "Latency of MPI Server Client cannot be measured !");
 				}
 				end = starpu_timing_now();
 				latency_dtod[sender][receiver] = (end - start)/NITER;
@@ -532,19 +532,19 @@ void _starpu_mpi_common_measure_bandwidth_latency(double timing_dtod[STARPU_MAXM
 				for (iter = 0; iter < NITER; iter++)
 				{
 					ret = MPI_Recv(buf, SIZE_BANDWIDTH, MPI_BYTE, sender, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-					STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "Bandwidth of MPI Master/Slave cannot be measured !");
+					STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "Bandwidth of MPI Server Client cannot be measured !");
 				}
 
 				/* measure latency sender to receiver */
 				for (iter = 0; iter < NITER; iter++)
 				{
 					ret = MPI_Recv(buf, 1, MPI_BYTE, sender, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-					STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "Bandwidth of MPI Master/Slave cannot be measured !");
+					STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "Bandwidth of MPI Server Client cannot be measured !");
 				}
 			}
 		}
 
-		/* When a sender finished its work, it has to send its results to the master */
+		/* When a sender finished its work, it has to send its results to the server */
 
 		/* Sender doesn't need to send to itself its data */
 		if (sender == src_node_id)
@@ -557,7 +557,7 @@ void _starpu_mpi_common_measure_bandwidth_latency(double timing_dtod[STARPU_MAXM
 			MPI_Send(latency_dtod[sender], STARPU_MAXMPIDEVS, MPI_DOUBLE, src_node_id, 42, MPI_COMM_WORLD);
 		}
 
-		/* the master node receives the data */
+		/* the server node receives the data */
 		if (src_node_id == id_proc)
 		{
 			MPI_Recv(timing_dtod[sender], STARPU_MAXMPIDEVS, MPI_DOUBLE, sender, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);

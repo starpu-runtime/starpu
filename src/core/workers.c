@@ -317,8 +317,8 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 				if (task->cl->max_fpga_funcs[impl] != NULL)
 					return 1;
 				break;
-			case STARPU_MPI_MS_WORKER:
-			case STARPU_TCPIP_MS_WORKER:
+			case STARPU_MPI_SC_WORKER:
+			case STARPU_TCPIP_SC_WORKER:
 				if (task->cl->cpu_funcs_name[impl] != NULL)
 					return 1;
 				break;
@@ -369,8 +369,8 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 				if (task->cl->max_fpga_funcs[impl] != NULL)
 					test_implementation = 1;
 				break;
-			case STARPU_MPI_MS_WORKER:
-			case STARPU_TCPIP_MS_WORKER:
+			case STARPU_MPI_SC_WORKER:
+			case STARPU_TCPIP_SC_WORKER:
 				if (task->cl->cpu_funcs_name[impl] != NULL)
 					test_implementation = 1;
 				break;
@@ -441,14 +441,14 @@ uint32_t _starpu_worker_exists(struct starpu_task *task)
 	    _starpu_worker_exists_and_can_execute(task, STARPU_MAX_FPGA_WORKER))
 		return 1;
 #endif
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-	if ((task->where & STARPU_MPI_MS) &&
-	    _starpu_worker_exists_and_can_execute(task, STARPU_MPI_MS_WORKER))
+#ifdef STARPU_USE_MPI_SERVER_CLIENT
+	if ((task->where & STARPU_MPI_SC) &&
+	    _starpu_worker_exists_and_can_execute(task, STARPU_MPI_SC_WORKER))
 		return 1;
 #endif
-#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
-	if ((task->where & STARPU_TCPIP_MS) &&
-	    _starpu_worker_exists_and_can_execute(task, STARPU_TCPIP_MS_WORKER))
+#ifdef STARPU_USE_TCPIP_SERVER_CLIENT
+	if ((task->where & STARPU_TCPIP_SC) &&
+	    _starpu_worker_exists_and_can_execute(task, STARPU_TCPIP_SC_WORKER))
 		return 1;
 #endif
 
@@ -457,7 +457,7 @@ uint32_t _starpu_worker_exists(struct starpu_task *task)
 
 uint32_t _starpu_can_submit_ms_task(void)
 {
-	return (STARPU_MPI_MS & _starpu_config.worker_mask) || (STARPU_TCPIP_MS & _starpu_config.worker_mask) ;
+	return (STARPU_MPI_SC & _starpu_config.worker_mask) || (STARPU_TCPIP_SC & _starpu_config.worker_mask) ;
 }
 
 uint32_t _starpu_can_submit_cuda_task(void)
@@ -532,8 +532,8 @@ static inline int _starpu_can_use_nth_implementation(enum starpu_worker_archtype
 		starpu_max_fpga_func_t func = _starpu_task_get_fpga_nth_implementation(cl, nimpl);
 		return func != NULL;
 	}
-	case STARPU_MPI_MS_WORKER:
-	case STARPU_TCPIP_MS_WORKER:
+	case STARPU_MPI_SC_WORKER:
+	case STARPU_TCPIP_SC_WORKER:
 	{
 		const char *func_name = _starpu_task_get_cpu_name_nth_implementation(cl, nimpl);
 		return func_name != NULL;
@@ -883,7 +883,7 @@ void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu_machin
 	workerarg->reverse_phase[0] = 0;
 	workerarg->reverse_phase[1] = 0;
 	workerarg->pop_ctx_priority = 1;
-	workerarg->is_slave_somewhere = 0;
+	workerarg->is_sub_worker_somewhere = 0;
 
 	workerarg->state_relax_refcnt = 1;
 #ifdef STARPU_SPINLOCK_CHECK
@@ -1141,8 +1141,8 @@ int starpu_conf_init(struct starpu_conf *conf)
 	conf->nhip = starpu_getenv_number("STARPU_NHIP");
 	conf->nopencl = starpu_getenv_number("STARPU_NOPENCL");
 	conf->nmax_fpga = starpu_getenv_number("STARPU_NMAX_FPGA");
-	conf->nmpi_ms = starpu_getenv_number("STARPU_NMPI_MS");
-	conf->ntcpip_ms = starpu_getenv_number("STARPU_NTCPIP_MS");
+	conf->nmpi_sc = starpu_getenv_number("STARPU_NMPI_SC");
+	conf->ntcpip_sc = starpu_getenv_number("STARPU_NTCPIP_SC");
 	conf->calibrate = starpu_getenv_number("STARPU_CALIBRATE");
 	conf->bus_calibrate = starpu_getenv_number("STARPU_BUS_CALIBRATE");
 
@@ -1157,7 +1157,7 @@ int starpu_conf_init(struct starpu_conf *conf)
 	conf->use_explicit_workers_hip_gpuid = 0; /* TODO */
 	conf->use_explicit_workers_opencl_gpuid = 0; /* TODO */
 	conf->use_explicit_workers_max_fpga_deviceid = 0; /* TODO */
-	conf->use_explicit_workers_mpi_ms_deviceid = 0; /* TODO */
+	conf->use_explicit_workers_mpi_sc_deviceid = 0; /* TODO */
 
 	conf->single_combined_worker = starpu_getenv_number("STARPU_SINGLE_COMBINED_WORKER");
 	if (conf->single_combined_worker == -1)
@@ -1212,20 +1212,20 @@ int starpu_conf_init(struct starpu_conf *conf)
 		conf->disable_asynchronous_max_fpga_copy = 0;
 #endif
 
-#if defined(STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY)
-	conf->disable_asynchronous_mpi_ms_copy = 1;
+#if defined(STARPU_DISABLE_ASYNCHRONOUS_MPI_SC_COPY)
+	conf->disable_asynchronous_mpi_sc_copy = 1;
 #else
-	conf->disable_asynchronous_mpi_ms_copy = starpu_getenv_number("STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY");
-	if(conf->disable_asynchronous_mpi_ms_copy == -1)
-		conf->disable_asynchronous_mpi_ms_copy = 0;
+	conf->disable_asynchronous_mpi_sc_copy = starpu_getenv_number("STARPU_DISABLE_ASYNCHRONOUS_MPI_SC_COPY");
+	if(conf->disable_asynchronous_mpi_sc_copy == -1)
+		conf->disable_asynchronous_mpi_sc_copy = 0;
 #endif
 
-#if defined(STARPU_DISABLE_ASYNCHRONOUS_TCPIP_MS_COPY)
-	conf->disable_asynchronous_tcpip_ms_copy = 1;
+#if defined(STARPU_DISABLE_ASYNCHRONOUS_TCPIP_SC_COPY)
+	conf->disable_asynchronous_tcpip_sc_copy = 1;
 #else
-	conf->disable_asynchronous_tcpip_ms_copy = starpu_getenv_number("STARPU_DISABLE_ASYNCHRONOUS_TCPIP_MS_COPY");
-	if(conf->disable_asynchronous_tcpip_ms_copy == -1)
-		conf->disable_asynchronous_tcpip_ms_copy = 0;
+	conf->disable_asynchronous_tcpip_sc_copy = starpu_getenv_number("STARPU_DISABLE_ASYNCHRONOUS_TCPIP_SC_COPY");
+	if(conf->disable_asynchronous_tcpip_sc_copy == -1)
+		conf->disable_asynchronous_tcpip_sc_copy = 0;
 #endif
 
 	conf->enable_map = starpu_getenv_number("STARPU_ENABLE_MAP");
@@ -1252,8 +1252,8 @@ int starpu_conf_noworker(struct starpu_conf *conf)
 	conf->nhip = 0;
 	conf->nopencl = 0;
 	conf->nmax_fpga = 0;
-	conf->nmpi_ms = 0;
-	conf->ntcpip_ms = 0;
+	conf->nmpi_sc = 0;
+	conf->ntcpip_sc = 0;
 	return 0;
 }
 
@@ -1294,8 +1294,8 @@ void _starpu_conf_check_environment(struct starpu_conf *conf)
 	_starpu_conf_set_value_against_environment("STARPU_NHIP", &conf->nhip, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_NOPENCL", &conf->nopencl, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_NMAX_FPGA", &conf->nmax_fpga, conf->precedence_over_environment_variables);
-	_starpu_conf_set_value_against_environment("STARPU_NMPI_MS", &conf->nmpi_ms, conf->precedence_over_environment_variables);
-	_starpu_conf_set_value_against_environment("STARPU_NTCPIP_MS", &conf->ntcpip_ms, conf->precedence_over_environment_variables);
+	_starpu_conf_set_value_against_environment("STARPU_NMPI_SC", &conf->nmpi_sc, conf->precedence_over_environment_variables);
+	_starpu_conf_set_value_against_environment("STARPU_NTCPIP_SC", &conf->ntcpip_sc, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_CALIBRATE", &conf->calibrate, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_BUS_CALIBRATE", &conf->bus_calibrate, conf->precedence_over_environment_variables);
 #ifdef STARPU_SIMGRID
@@ -1315,8 +1315,8 @@ void _starpu_conf_check_environment(struct starpu_conf *conf)
 	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_HIP_COPY", &conf->disable_asynchronous_hip_copy, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY", &conf->disable_asynchronous_opencl_copy, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_MAX_FPGA_COPY", &conf->disable_asynchronous_max_fpga_copy, conf->precedence_over_environment_variables);
-	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY", &conf->disable_asynchronous_mpi_ms_copy, conf->precedence_over_environment_variables);
-	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_TCPIP_MS_COPY", &conf->disable_asynchronous_tcpip_ms_copy, conf->precedence_over_environment_variables);
+	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_MPI_SC_COPY", &conf->disable_asynchronous_mpi_sc_copy, conf->precedence_over_environment_variables);
+	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_TCPIP_SC_COPY", &conf->disable_asynchronous_tcpip_sc_copy, conf->precedence_over_environment_variables);
 
 	_starpu_conf_set_value_against_environment("STARPU_ENABLE_MAP", &conf->enable_map, conf->precedence_over_environment_variables);
 
@@ -1326,8 +1326,8 @@ void _starpu_conf_check_environment(struct starpu_conf *conf)
 	asynchronous_copy_disabled[STARPU_OPENCL_RAM] = conf->disable_asynchronous_opencl_copy;
 	asynchronous_copy_disabled[STARPU_MAX_FPGA_RAM] = conf->disable_asynchronous_max_fpga_copy;
 	asynchronous_copy_disabled[STARPU_DISK_RAM] = 0;
-	asynchronous_copy_disabled[STARPU_MPI_MS_RAM] = conf->disable_asynchronous_mpi_ms_copy;
-	asynchronous_copy_disabled[STARPU_TCPIP_MS_RAM] = conf->disable_asynchronous_tcpip_ms_copy;
+	asynchronous_copy_disabled[STARPU_MPI_SC_RAM] = conf->disable_asynchronous_mpi_sc_copy;
+	asynchronous_copy_disabled[STARPU_TCPIP_SC_RAM] = conf->disable_asynchronous_tcpip_sc_copy;
 
 	_starpu_conf_set_value_against_environment("STARPU_MIN_PRIO", &conf->global_sched_ctx_min_priority, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_MAX_PRIO", &conf->global_sched_ctx_max_priority, conf->precedence_over_environment_variables);
@@ -1561,8 +1561,8 @@ void starpu_drivers_preinit(void)
 	_starpu_hip_preinit();
 	_starpu_opencl_preinit();
 	_starpu_max_fpga_preinit();
-	_starpu_mpi_ms_preinit();
-	_starpu_tcpip_ms_preinit();
+	_starpu_mpi_sc_preinit();
+	_starpu_tcpip_sc_preinit();
 	_starpu_disk_preinit();
 }
 
@@ -1630,18 +1630,18 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 #ifdef STARPU_USE_MP
 	_starpu_set_argc_argv(argc, argv);
 
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
+#ifdef STARPU_USE_MPI_SERVER_CLIENT
 	if (_starpu_mpi_common_mp_init() == -ENODEV)
 	{
-		_STARPU_DISP("Warning: starpu_init called several times, ignoring slaves in this restart\n");
+		_STARPU_DISP("Warning: starpu_init called several times, ignoring clients in this restart\n");
 		no_ms = 1;
 	}
 #endif
 
-#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
+#ifdef STARPU_USE_TCPIP_SERVER_CLIENT
 	if (_starpu_tcpip_common_mp_init() == -ENODEV)
 	{
-		_STARPU_DISP("Warning: starpu_init called several times, ignoring slaves in this restart\n");
+		_STARPU_DISP("Warning: starpu_init called several times, ignoring clients in this restart\n");
 		no_ms = 1;
 	}
 #endif
@@ -1759,20 +1759,20 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 
 	if (no_ms)
 	{
-		_starpu_config.conf.nmpi_ms = 0;
-		_starpu_config.conf.ntcpip_ms = 0;
+		_starpu_config.conf.nmpi_sc = 0;
+		_starpu_config.conf.ntcpip_sc = 0;
 	}
 
-	if (is_a_sink && _starpu_config.conf.nmpi_ms == 0 &&
-		_starpu_config.conf.ntcpip_ms == 0)
+	if (is_a_sink && _starpu_config.conf.nmpi_sc == 0 &&
+		_starpu_config.conf.ntcpip_sc == 0)
 	{
 		/* MS was explicitly disabled, abort sinks and leave source alone */
 
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
+#ifdef STARPU_USE_MPI_SERVER_CLIENT
 		if (_starpu_mpi_common_is_mp_initialized())
 			_starpu_mpi_common_mp_deinit();
 #endif
-#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
+#ifdef STARPU_USE_TCPIP_SERVER_CLIENT
 		if (_starpu_tcpip_common_is_mp_initialized())
 			_starpu_tcpip_common_mp_deinit();
 #endif
@@ -1856,11 +1856,11 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 		if (_starpu_config.conf.n_not_launched_drivers)
 			free(_starpu_config.conf.not_launched_drivers);
 
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
+#ifdef STARPU_USE_MPI_SERVER_CLIENT
 		if (_starpu_mpi_common_is_mp_initialized())
 			_starpu_mpi_common_mp_deinit();
 #endif
-#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
+#ifdef STARPU_USE_TCPIP_SERVER_CLIENT
 		if (_starpu_tcpip_common_is_mp_initialized())
 			_starpu_tcpip_common_mp_deinit();
 #endif
@@ -2255,12 +2255,12 @@ void starpu_shutdown(void)
 		free(_starpu_config.conf.not_launched_drivers);
 	STARPU_AYU_FINISH();
 
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
+#ifdef STARPU_USE_MPI_SERVER_CLIENT
 	if (_starpu_mpi_common_is_mp_initialized())
 		_starpu_mpi_common_mp_deinit();
 #endif
 
-#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
+#ifdef STARPU_USE_TCPIP_SERVER_CLIENT
 	if (_starpu_tcpip_common_is_mp_initialized())
 		_starpu_tcpip_common_mp_deinit();
 #endif
@@ -2375,10 +2375,10 @@ unsigned starpu_worker_is_blocked_in_parallel(int workerid)
 	return ret;
 }
 
-unsigned starpu_worker_is_slave_somewhere(int workerid)
+unsigned starpu_worker_is_sub_worker_somewhere(int workerid)
 {
 	starpu_worker_lock(workerid);
-	unsigned ret = _starpu_config.workers[workerid].is_slave_somewhere;
+	unsigned ret = _starpu_config.workers[workerid].is_sub_worker_somewhere;
 	starpu_worker_unlock(workerid);
 	return ret;
 }
@@ -2455,14 +2455,14 @@ int starpu_asynchronous_max_fpga_copy_disabled(void)
 	return _starpu_config.conf.disable_asynchronous_max_fpga_copy;
 }
 
-int starpu_asynchronous_mpi_ms_copy_disabled(void)
+int starpu_asynchronous_mpi_sc_copy_disabled(void)
 {
-	return _starpu_config.conf.disable_asynchronous_mpi_ms_copy;
+	return _starpu_config.conf.disable_asynchronous_mpi_sc_copy;
 }
 
-int starpu_asynchronous_tcpip_ms_copy_disabled(void)
+int starpu_asynchronous_tcpip_sc_copy_disabled(void)
 {
-	return _starpu_config.conf.disable_asynchronous_tcpip_ms_copy;
+	return _starpu_config.conf.disable_asynchronous_tcpip_sc_copy;
 }
 
 /* Return whether memory mapping is disabled (0) or enabled (1) */
@@ -2476,14 +2476,14 @@ int starpu_asynchronous_copy_disabled_for(enum starpu_node_kind kind)
 	return asynchronous_copy_disabled[kind];
 }
 
-unsigned starpu_mpi_ms_worker_get_count(void)
+unsigned starpu_mpi_sc_worker_get_count(void)
 {
-	return starpu_worker_get_count_by_type(STARPU_MPI_MS_WORKER);
+	return starpu_worker_get_count_by_type(STARPU_MPI_SC_WORKER);
 }
 
-unsigned starpu_tcpip_ms_worker_get_count(void)
+unsigned starpu_tcpip_sc_worker_get_count(void)
 {
-	return starpu_worker_get_count_by_type(STARPU_TCPIP_MS_WORKER);
+	return starpu_worker_get_count_by_type(STARPU_TCPIP_SC_WORKER);
 }
 
 /* When analyzing performance, it is useful to see what is the processing unit

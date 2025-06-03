@@ -19,7 +19,7 @@ LAUNCHER	=
 include $(top_srcdir)/make/starpu.mk
 
 STARPU_MPI_NP ?= 4
-# These are always defined, both for starpu-mpi and for mpi-ms
+# These are always defined, both for starpu-mpi and for mpi server client
 # For MPI tests we don't want to oversubscribe the system
 MPI_RUN_ENV			= STARPU_WORKERS_GETBIND=0 STARPU_WORKERS_NOBIND=1 STARPU_NCPU=3
 if STARPU_SIMGRID

@@ -51,8 +51,8 @@ enum starpu_worker_archtype
 	STARPU_CUDA_WORKER     = 1,  /**< NVIDIA CUDA device */
 	STARPU_OPENCL_WORKER   = 2,  /**< OpenCL device */
 	STARPU_MAX_FPGA_WORKER = 4,  /**< Maxeler FPGA device */
-	STARPU_MPI_MS_WORKER   = 5,  /**< MPI Slave device */
-	STARPU_TCPIP_MS_WORKER = 6,  /**< TCPIP Slave device */
+	STARPU_MPI_SC_WORKER   = 5,  /**< MPI server client device */
+	STARPU_TCPIP_SC_WORKER = 6,  /**< TCPIP server client device */
 	STARPU_HIP_WORKER      = 7,  /**< NVIDIA/AMD HIP device */
 	STARPU_NARCH	       = 8,  /**< Number of arch types */
 	STARPU_ANY_WORKER      = 255 /**< any worker, used in the hypervisor */
@@ -105,11 +105,11 @@ struct starpu_worker_collection
 	unsigned nworkers;
 	void *unblocked_workers;
 	unsigned nunblocked_workers;
-	void *masters;
-	unsigned nmasters;
+	void *primaries;
+	unsigned nprimaries;
 	char present[STARPU_NMAXWORKERS];
 	char is_unblocked[STARPU_NMAXWORKERS];
-	char is_master[STARPU_NMAXWORKERS];
+	char is_primary[STARPU_NMAXWORKERS];
 	/**
 	   The type of structure
 	*/
@@ -206,16 +206,16 @@ unsigned starpu_hip_worker_get_count(void);
 unsigned starpu_opencl_worker_get_count(void);
 
 /**
-   Return the number of MPI Master Slave workers controlled by StarPU.
+   Return the number of MPI clients controlled by StarPU.
    See \ref TopologyWorkers for more details.
 */
-unsigned starpu_mpi_ms_worker_get_count(void);
+unsigned starpu_mpi_sc_worker_get_count(void);
 
 /**
-   Return the number of TCPIP Master Slave workers controlled by StarPU.
+   Return the number of TCPIP clients controlled by StarPU.
    See \ref TopologyWorkers for more details.
 */
-unsigned starpu_tcpip_ms_worker_get_count(void);
+unsigned starpu_tcpip_sc_worker_get_count(void);
 
 /**
    Return the identifier of the current worker, i.e the one associated
@@ -389,7 +389,7 @@ unsigned starpu_worker_is_blocked_in_parallel(int workerid);
 /**
    See \ref SchedulingHelpers for more details.
  */
-unsigned starpu_worker_is_slave_somewhere(int workerid);
+unsigned starpu_worker_is_sub_worker_somewhere(int workerid);
 
 /**
    Return worker \p type as a string.

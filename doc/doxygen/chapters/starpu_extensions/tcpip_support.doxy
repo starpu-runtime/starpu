@@ -16,13 +16,13 @@
 
 /*! \page TCPIPSupport TCP/IP Support
 
-\section TCPIPMasterSlave TCP/IP Master Slave Support
+\section TCPIPServerclient TCP/IP Server Client Support
 
 StarPU provides a transparent way to execute applications across many
-nodes. The Master Slave support permits to use remote cores without
-thinking about data distribution. This support can be activated with
-the \c configure option \ref enable-tcpip-master-slave
-"--enable-tcpip-master-slave".
+nodes. The Server Client support permits to use remote cores without
+dealing with data distribution. This support can be activated with
+the \c configure option \ref enable-tcpip-server-client
+"--enable-tcpip-server-client".
 
 The existing kernels for CPU devices can be used as such. They only have to be
 exposed through the name of the function in the \ref starpu_codelet::cpu_funcs_name field.
@@ -30,24 +30,24 @@ Functions have to be globally-visible (i.e. not static) for StarPU to
 be able to look them up, and <c>-rdynamic</c> must be passed to gcc (or
 <c>-export-dynamic</c> to ld) so that symbols of the main program are visible.
 
-By default, one core is dedicated on the master node to manage the
-entire set of slaves.
+By default, one core is dedicated on the server node to manage the
+entire set of clients.
 
-Choosing the number of cores on each slave device is done by setting
-the environment variable \ref STARPU_NTCPIPMSTHREADS "STARPU_NTCPIPMSTHREADS=\<number\>"
+Choosing the number of cores on each client device is done by setting
+the environment variable \ref STARPU_TCPIP_SC_NTHREADS "STARPU_TCPIP_SC_NTHREADS=\<number\>"
 with <c>\<number\></c> being the requested number of cores. By default,
-all the slave's cores are used.
+all the client's cores are used.
 
-The master should be given the number of slaves that are expected to be run with
-the \ref STARPU_TCPIP_MS_SLAVES environment variable.
+The server should be given the number of clients that are expected to be run with
+the \ref STARPU_TCPIP_SC_CLIENTS environment variable.
 
-The slaves should then be started, and their number also should be given with
-the \ref STARPU_TCPIP_MS_SLAVES environment variable. They should additionally be
-given the IP address of the master with the \ref STARPU_TCPIP_MS_MASTER environment
+The clients should then be started with the same \ref
+STARPU_TCPIP_SC_CLIENTS environment variable. They should additionally
+be given the IP address of the server with the \ref STARPU_TCPIP_SC_SERVER environment
 variable.
 
 For simple local checks, one can use the <c>starpu_tcpipexec</c> tool, which just
-starts the application several times. Setting the number of slaves nodes is done
+starts the application several times. Setting the number of client nodes is done
 by changing the <c>-np</c> parameter.
 
 */

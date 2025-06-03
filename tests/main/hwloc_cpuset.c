@@ -30,8 +30,8 @@ int main(void)
 #ifdef STARPU_HAVE_HWLOC
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
-	conf.nmpi_ms = 0;
-	conf.ntcpip_ms = 0;
+	conf.nmpi_sc = 0;
+	conf.ntcpip_sc = 0;
 
 	int ret = starpu_init(&conf);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;

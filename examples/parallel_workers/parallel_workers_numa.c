@@ -41,7 +41,7 @@ static struct starpu_codelet display_cl =
 
 int main(void)
 {
-	setenv("STARPU_NMPI_MS","0",1);
+	setenv("STARPU_NMPI_SC","0",1);
 
 	int ret = starpu_init(NULL);
 	if (ret == -ENODEV)

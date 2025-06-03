@@ -333,8 +333,8 @@ struct _starpu_heteroprio_data
 	unsigned workers_laheteroprio_wgroup_index[STARPU_NMAXWORKERS];
 	/* Number of wgroups */
 	unsigned nb_wgroups;
-	/* The task queue for the tasks inserted by the master thread */
-	unsigned master_tasks_queue_idx;
+	/* The task queue for the tasks inserted by the primary thread */
+	unsigned primary_tasks_queue_idx;
 	/* Arch related to each wgroup (for now only one kind of arch per wgroup */
 	unsigned arch_of_wgroups[LAHETEROPRIO_MAX_WORKER_GROUPS];
 	/* The pop offset per group */
@@ -646,13 +646,13 @@ void starpu_heteroprio_map_wgroup_memory_nodes_hp(struct _starpu_heteroprio_data
 	if (starpu_cpu_worker_get_count() != 0)
 	{
 		unsigned cpu_0 = starpu_worker_get_by_type(STARPU_CPU_WORKER, 0);
-		hp->master_tasks_queue_idx = starpu_worker_get_memory_node(cpu_0);
+		hp->primary_tasks_queue_idx = starpu_worker_get_memory_node(cpu_0);
 	}
 	else
 	{
 		// Consider memory node 0 as the CPU
 		STARPU_ASSERT(starpu_node_get_kind(0) == STARPU_CPU_RAM);
-		hp->master_tasks_queue_idx = 0;
+		hp->primary_tasks_queue_idx = 0;
 	}
 	// Build memory distance matrix
 	double dist_mem_matrix[LAHETEROPRIO_MAX_WORKER_GROUPS][LAHETEROPRIO_MAX_WORKER_GROUPS] = {{ 0 }};
@@ -1643,7 +1643,7 @@ static void deinitialize_heteroprio_policy(unsigned sched_ctx_id)
 		{
 			_STARPU_MSG("[LASTATS] Tasks pushed per workers to mem node:\n");
 			unsigned nb_tasks = 0;
-			_STARPU_MSG("[LASTATS] Master: ");
+			_STARPU_MSG("[LASTATS] Primary: ");
 			unsigned idx_mem;
 			for (idx_mem = 0; idx_mem < hp->nb_wgroups; ++idx_mem)
 			{
@@ -1919,7 +1919,7 @@ This warning will only be displayed once.\n");
 		{
 			size_t max_size_so_far = 0;
 			unsigned idx_max_size = 0;
-			const unsigned wgroupid = (workerid == (unsigned)-1 ? hp->master_tasks_queue_idx : hp->workers_laheteroprio_wgroup_index[workerid]);
+			const unsigned wgroupid = (workerid == (unsigned)-1 ? hp->primary_tasks_queue_idx : hp->workers_laheteroprio_wgroup_index[workerid]);
 			size_t data_per_mem_node[LAHETEROPRIO_MAX_WORKER_GROUPS] = { 0 };
 			assert(nnodes <= LAHETEROPRIO_MAX_WORKER_GROUPS);
 			unsigned idx_data;
@@ -1959,7 +1959,7 @@ This warning will only be displayed once.\n");
 		}
 		else if (pushStrategy == PUSH_LC_SMWB)
 		{
-			const unsigned wgroupid = (workerid == (unsigned)-1 ? hp->master_tasks_queue_idx : hp->workers_laheteroprio_wgroup_index[workerid]);
+			const unsigned wgroupid = (workerid == (unsigned)-1 ? hp->primary_tasks_queue_idx : hp->workers_laheteroprio_wgroup_index[workerid]);
 			assert(nnodes <= LAHETEROPRIO_MAX_WORKER_GROUPS);
 			const unsigned N = STARPU_TASK_GET_NBUFFERS(task);
 			unsigned data_exist_every_where[128] = { 0 };
@@ -2063,7 +2063,7 @@ This warning will only be displayed once.\n");
 		}
 		else
 		{
-			const unsigned wgroupid = (workerid == (unsigned)-1 ? hp->master_tasks_queue_idx : hp->workers_laheteroprio_wgroup_index[workerid]);
+			const unsigned wgroupid = (workerid == (unsigned)-1 ? hp->primary_tasks_queue_idx : hp->workers_laheteroprio_wgroup_index[workerid]);
 			assert(nnodes <= LAHETEROPRIO_MAX_WORKER_GROUPS);
 			const unsigned N = STARPU_TASK_GET_NBUFFERS(task);
 			assert(N <= 128);
@@ -2152,8 +2152,8 @@ This warning will only be displayed once.\n");
 	{
 		if (workerid == (unsigned)-1)
 		{
-			/* master thread */
-			best_mem_node = hp->master_tasks_queue_idx;
+			/* primary thread */
+			best_mem_node = hp->primary_tasks_queue_idx;
 		}
 		else
 		{
@@ -3731,7 +3731,7 @@ done:		;
 		starpu_worker_relax_on();
 		_starpu_sched_ctx_lock_write(sched_ctx_id);
 		starpu_worker_relax_off();
-		if (_starpu_sched_ctx_worker_is_master_for_child_ctx(sched_ctx_id, workerid, task))
+		if (_starpu_sched_ctx_worker_is_primary_for_child_ctx(sched_ctx_id, workerid, task))
 			task = NULL;
 		_starpu_sched_ctx_unlock_write(sched_ctx_id);
 

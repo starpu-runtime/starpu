@@ -278,9 +278,9 @@ main(void)
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
 
-	/* this example doesn't support Master-Slave */
-	conf.nmpi_ms = 0;
-	conf.ntcpip_ms = 0;
+	/* this example doesn't support server client mode */
+	conf.nmpi_sc = 0;
+	conf.ntcpip_sc = 0;
 #if defined(STARPU_USE_CUDA0) || defined(STARPU_USE_CUDA1)
 	conf.ncuda = 0;
 #endif

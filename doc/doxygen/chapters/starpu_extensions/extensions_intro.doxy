@@ -62,9 +62,9 @@ Chapter \ref MPISupport shows how to integrate MPI processes in
 StarPU.
 </li>
 <li>
-Chapter \ref TCPIPSupport shows a TCP/IP master slave mechanism
+Chapter \ref TCPIPSupport shows a TCP/IP server client mechanism
 which can execute application across many remote cores without
-thinking about data distribution.
+dealing about data distribution.
 </li>
 <li>
 Chapter \ref Transactions shows how to cancel a sequence of

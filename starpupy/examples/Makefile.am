@@ -27,7 +27,7 @@ CLEANFILES = *.gcno *.gcda *.linkinfo \
 	starpu_py_perfmodel.concurrent.py \
 	starpu_py_numpy.concurrent.py
 
-if STARPU_USE_MPI_MASTER_SLAVE
+if STARPU_USE_MPI_SERVER_CLIENT
 TESTS_ENVIRONMENT	+=	LOADER_ARGS="--mpirun"
 endif
 

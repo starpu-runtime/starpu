@@ -38,7 +38,7 @@ except Exception as e:
 def await_fut(fut):
     return fut.result()
 
-if starpupy.worker_get_count_by_type(starpu.STARPU_MPI_MS_WORKER) >= 1 or starpupy.worker_get_count_by_type(starpu.STARPU_TCPIP_MS_WORKER) >= 1:
+if starpupy.worker_get_count_by_type(starpu.STARPU_MPI_SC_WORKER) >= 1 or starpupy.worker_get_count_by_type(starpu.STARPU_TCPIP_SC_WORKER) >= 1:
 	print("This program does not work in MS mode")
 	starpu.shutdown()
 	exit(77)

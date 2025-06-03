@@ -69,10 +69,10 @@ struct starpu_perfmodel_arch* starpu_worker_get_perf_archtype(int workerid, unsi
 	{
 		// test if sched_ctx_id is a parallel worker with the worker being its main worker
 		struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-		if (sched_ctx->main_master == workerid)
+		if (sched_ctx->main_primary == workerid)
 			return _starpu_sched_ctx_get_perf_archtype(sched_ctx->id);
 
-		unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(workerid, sched_ctx_id);
+		unsigned child_sched_ctx = starpu_sched_ctx_worker_is_primary_for_child_ctx(workerid, sched_ctx_id);
 		if (child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
 			return _starpu_sched_ctx_get_perf_archtype(child_sched_ctx);
 

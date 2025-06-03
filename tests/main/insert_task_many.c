@@ -46,7 +46,7 @@ void func_cpu(void *descr[], void *_args)
 struct starpu_codelet codelet_dyn =
 {
 	.cpu_funcs = {func_cpu},
-	/* starpu_task_get_current() doesn't work on MPI Master Slave */
+	/* starpu_task_get_current() doesn't work on MPI server client mode */
 	/* .cpu_funcs_name = {"func_cpu"}, */
 	.nbuffers = NPARAMS,
 };
@@ -57,7 +57,7 @@ struct starpu_codelet codelet_dyn =
 struct starpu_codelet codelet_toomany =
 {
 	.cpu_funcs = {func_cpu},
-	/* starpu_task_get_current() doesn't work on MPI Master Slave */
+	/* starpu_task_get_current() doesn't work on MPI server client mode */
 	/* .cpu_funcs_name = {"func_cpu"}, */
 	.nbuffers = NPARAMS,
 	.modes =
@@ -97,7 +97,7 @@ struct starpu_codelet codelet_toomany =
 struct starpu_codelet codelet_variable =
 {
 	.cpu_funcs = {func_cpu},
-	/* starpu_task_get_current() doesn't work on MPI Master Slave */
+	/* starpu_task_get_current() doesn't work on MPI server client mode */
 	/* .cpu_funcs_name = {"func_cpu"}, */
 	.nbuffers = STARPU_VARIABLE_NBUFFERS,
 };
@@ -111,8 +111,8 @@ int main(void)
 	starpu_conf_init(&conf);
 	starpu_conf_noworker(&conf);
 	conf.ncpus = -1;
-	conf.nmpi_ms = -1;
-	conf.ntcpip_ms = -1;
+	conf.nmpi_sc = -1;
+	conf.ntcpip_sc = -1;
 
 #ifdef STARPU_QUICK_CHECK
 	int nloops = 4;

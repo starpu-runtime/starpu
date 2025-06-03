@@ -53,8 +53,8 @@ int main(void)
 	conf.precedence_over_environment_variables = 1;
 	starpu_conf_noworker(&conf);
 	conf.ncpus = 1;
-	conf.nmpi_ms = -1;
-	conf.ntcpip_ms = -1;
+	conf.nmpi_sc = -1;
+	conf.ntcpip_sc = -1;
 
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;

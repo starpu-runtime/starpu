@@ -43,7 +43,7 @@
 	(node)->report_error(__starpu_func__, __FILE__, __LINE__, (status))
 enum _starpu_mp_command
 {
-	/* Commands from master to slave */
+	/* Commands from server to client */
 
 	STARPU_MP_COMMAND_EXIT,
 	STARPU_MP_COMMAND_EXECUTE,
@@ -68,7 +68,7 @@ enum _starpu_mp_command
 	STARPU_MP_COMMAND_RECV_FROM_SINK_ASYNC,
 	STARPU_MP_COMMAND_SEND_TO_SINK_ASYNC,
 
-	/* Synchronous answers from slave to master */
+	/* Synchronous answers from client to server */
 	STARPU_MP_COMMAND_ERROR_EXECUTE,
 	STARPU_MP_COMMAND_ERROR_EXECUTE_DETACHED,
 	STARPU_MP_COMMAND_ANSWER_LOOKUP,
@@ -82,7 +82,7 @@ enum _starpu_mp_command
 	STARPU_MP_COMMAND_ANSWER_EXECUTION_SUBMITTED,
 	STARPU_MP_COMMAND_ANSWER_EXECUTION_DETACHED_SUBMITTED,
 
-	/* Asynchronous notifications from slave to master */
+	/* Asynchronous notifications from client to server */
 	STARPU_MP_COMMAND_NOTIF_RECV_FROM_HOST_ASYNC_COMPLETED,
 	STARPU_MP_COMMAND_NOTIF_SEND_TO_HOST_ASYNC_COMPLETED,
 	STARPU_MP_COMMAND_NOTIF_RECV_FROM_SINK_ASYNC_COMPLETED,
@@ -110,10 +110,10 @@ const char *_starpu_mp_common_node_kind_to_string(const int kind);
 
 union _starpu_mp_connection
 {
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
+#ifdef STARPU_USE_MPI_SERVER_CLIENT
 	int mpi_remote_nodeid;
 #endif
-#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
+#ifdef STARPU_USE_TCPIP_SERVER_CLIENT
 	struct _starpu_tcpip_socket *tcpip_mp_connection;
 #endif
 };

@@ -98,14 +98,14 @@ static int tree_get_next_unblocked_worker(struct starpu_worker_collection *worke
 	return ret;
 }
 
-static unsigned tree_has_next_master(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it)
+static unsigned tree_has_next_primary(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it)
 {
 	STARPU_ASSERT(it != NULL);
 	if(workers->nworkers == 0)
 		return 0;
 
 	struct starpu_tree *tree = (struct starpu_tree*)workers->collection_private;
-	struct starpu_tree *neighbour = starpu_tree_get_neighbour(tree, (struct starpu_tree*)it->value, it->visited, workers->is_master);
+	struct starpu_tree *neighbour = starpu_tree_get_neighbour(tree, (struct starpu_tree*)it->value, it->visited, workers->is_primary);
 
 	if(!neighbour)
 	{
@@ -120,7 +120,7 @@ static unsigned tree_has_next_master(struct starpu_worker_collection *workers, s
 	int w;
 	for(w = 0; w < nworkers; w++)
 	{
-		if(!it->visited[workerids[w]] && workers->is_master[workerids[w]])
+		if(!it->visited[workerids[w]] && workers->is_primary[workerids[w]])
 		{
 			id = workerids[w];
 			it->possible_value = neighbour;
@@ -133,7 +133,7 @@ static unsigned tree_has_next_master(struct starpu_worker_collection *workers, s
 	return 1;
 }
 
-static int tree_get_next_master(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it)
+static int tree_get_next_primary(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it)
 {
 	int ret = -1;
 
@@ -145,7 +145,7 @@ static int tree_get_next_master(struct starpu_worker_collection *workers, struct
 		it->possible_value = NULL;
 	}
 	else
-		neighbour = starpu_tree_get_neighbour(tree, (struct starpu_tree*)it->value, it->visited, workers->is_master);
+		neighbour = starpu_tree_get_neighbour(tree, (struct starpu_tree*)it->value, it->visited, workers->is_primary);
 
 	STARPU_ASSERT_MSG(neighbour, "no element anymore");
 
@@ -155,7 +155,7 @@ static int tree_get_next_master(struct starpu_worker_collection *workers, struct
 	int w;
 	for(w = 0; w < nworkers; w++)
 	{
-		if(!it->visited[workerids[w]] && workers->is_master[workerids[w]])
+		if(!it->visited[workerids[w]] && workers->is_primary[workerids[w]])
 		{
 			ret = workerids[w];
 			it->visited[workerids[w]] = 1;
@@ -171,7 +171,7 @@ static int tree_get_next_master(struct starpu_worker_collection *workers, struct
 static unsigned tree_has_next(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it)
 {
 	if(it->possibly_parallel == 1)
-		return tree_has_next_master(workers, it);
+		return tree_has_next_primary(workers, it);
 	else if(it->possibly_parallel == 0)
 		return tree_has_next_unblocked_worker(workers, it);
 
@@ -229,7 +229,7 @@ static unsigned tree_has_next(struct starpu_worker_collection *workers, struct s
 static int tree_get_next(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it)
 {
 	if(it->possibly_parallel == 1)
-		return tree_get_next_master(workers, it);
+		return tree_get_next_primary(workers, it);
 	else if(it->possibly_parallel == 0)
 		return tree_get_next_unblocked_worker(workers, it);
 
@@ -293,7 +293,7 @@ static int tree_remove(struct starpu_worker_collection *workers, int worker)
 			}
 		workers->present[worker] = 0;
 		workers->is_unblocked[worker] = 0;
-		workers->is_master[worker] = 0;
+		workers->is_primary[worker] = 0;
 		workers->nworkers--;
 		return worker;
 	}
@@ -314,7 +314,7 @@ static void tree_init(struct starpu_worker_collection *workers)
 		workers->workerids[i] = -1;
 		workers->present[i] = 0;
 		workers->is_unblocked[i] = 0;
-		workers->is_master[i] = 0;
+		workers->is_primary[i] = 0;
 	}
 
 	return;
@@ -350,9 +350,9 @@ static void tree_init_iterator_for_parallel_tasks(struct starpu_worker_collectio
 	for(i = 0; i < nworkers; i++)
 	{
 		workers->is_unblocked[i] = (workers->present[i] && !starpu_worker_is_blocked_in_parallel(i));
-		if(!it->possibly_parallel) /* don't bother filling the table with masters we won't use it anyway */
+		if(!it->possibly_parallel) /* don't bother filling the table with primarys we won't use it anyway */
 			continue;
-		workers->is_master[i] = (workers->present[i] && !starpu_worker_is_blocked_in_parallel(i) && !starpu_worker_is_slave_somewhere(i));
+		workers->is_primary[i] = (workers->present[i] && !starpu_worker_is_blocked_in_parallel(i) && !starpu_worker_is_sub_worker_somewhere(i));
 	}
 }
 

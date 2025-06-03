@@ -198,20 +198,20 @@ struct starpu_conf
 	int nmax_fpga;
 
 	/**
-	   Number of MPI Master Slave devices that StarPU can use.
+	   Number of MPI server client devices that StarPU can use.
 	   This can also be specified with the environment variable
-	   \ref STARPU_NMPI_MS.
+	   \ref STARPU_NMPI_SC.
 	   (default = \c -1)
 	*/
-	int nmpi_ms;
+	int nmpi_sc;
 
 	/**
-	   Number of TCP/IP Master Slave devices that StarPU can use.
+	   Number of TCP/IP server client devices that StarPU can use.
 	   This can also be specified with the environment variable
-	   \ref STARPU_NTCPIP_MS.
+	   \ref STARPU_NTCPIP_SC.
 	   (default = \c -1)
 	*/
-	int ntcpip_ms;
+	int ntcpip_sc;
 
 	/**
 	   If this flag is set, the starpu_conf::workers_bindid array
@@ -323,22 +323,22 @@ struct starpu_conf
 #endif
 
 	/**
-	   If this flag is set, the MPI Master Slave workers will be
-	   attached to the MPI Master Slave devices specified in the
-	   array starpu_conf::workers_mpi_ms_deviceid. Otherwise,
-	   StarPU affects the MPI Master Slave devices in a
+	   If this flag is set, the MPI clients will be
+	   attached to the MPI client devices specified in the
+	   array starpu_conf::workers_mpi_sc_deviceid. Otherwise,
+	   StarPU affects the MPI client devices in a
 	   round-robin fashion.
 	   (default = \c 0)
 	*/
-	unsigned use_explicit_workers_mpi_ms_deviceid;
+	unsigned use_explicit_workers_mpi_sc_deviceid;
 
 	/**
 	   If the flag
-	   starpu_conf::use_explicit_workers_mpi_ms_deviceid is set,
+	   starpu_conf::use_explicit_workers_mpi_sc_deviceid is set,
 	   the array contains the logical identifiers of the MPI
-	   Master Slave devices to be used.
+	   client devices to be used.
 	*/
-	unsigned workers_mpi_ms_deviceid[STARPU_NMAXWORKERS];
+	unsigned workers_mpi_sc_deviceid[STARPU_NMAXWORKERS];
 
 	/**
 	   If this flag is set, StarPU will recalibrate the bus.  If
@@ -449,29 +449,29 @@ struct starpu_conf
 
 	/**
 	   This flag should be set to 1 to disable asynchronous copies
-	   between CPUs and MPI Master Slave devices.
+	   between CPUs and MPI client devices.
 	   This can also be specified with the environment variable
-	   \ref STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY.
+	   \ref STARPU_DISABLE_ASYNCHRONOUS_MPI_SC_COPY.
 	   This can also be specified at compilation time by giving to
 	   the configure script the option \ref
-	   disable-asynchronous-mpi-master-slave-copy
-	   "--disable-asynchronous-mpi-master-slave-copy".
+	   disable-asynchronous-mpi-server-client-copy
+	   "--disable-asynchronous-mpi-server-client-copy".
 	   (default = \c 0).
 	*/
-	int disable_asynchronous_mpi_ms_copy;
+	int disable_asynchronous_mpi_sc_copy;
 
 	/**
 	   This flag should be set to 1 to disable asynchronous copies
-	   between CPUs and TCP/IP Master Slave devices.
+	   between CPUs and TCP/IP client devices.
 	   This can also be specified with the environment variable
-	   \ref STARPU_DISABLE_ASYNCHRONOUS_TCPIP_MS_COPY.
+	   \ref STARPU_DISABLE_ASYNCHRONOUS_TCPIP_SC_COPY.
 	   This can also be specified at compilation time by giving to
 	   the configure script the option \ref
-	   disable-asynchronous-tcpip-master-slave-copy
-	   "--disable-asynchronous-tcpip-master-slave-copy".
+	   disable-asynchronous-tcpip-server-client-copy
+	   "--disable-asynchronous-tcpip-server-client-copy".
 	   (default = \c 0).
 	*/
-	int disable_asynchronous_tcpip_ms_copy;
+	int disable_asynchronous_tcpip_sc_copy;
 
 	/**
 	   This flag should be set to 1 to disable asynchronous copies
@@ -635,7 +635,7 @@ int starpu_init(struct starpu_conf *conf) STARPU_WARN_UNUSED_RESULT;
 /**
    Similar to starpu_init(), but also take the \p argc and \p argv as
    defined by the application, which is necessary when running in
-   Simgrid mode or MPI Master Slave mode.
+   Simgrid mode or MPI server client mode.
    Do not call starpu_init() and starpu_initialize() in the same
    program. See \ref SubmittingATask for more details.
 */
@@ -799,18 +799,18 @@ int starpu_asynchronous_opencl_copy_disabled(void);
 int starpu_asynchronous_max_fpga_copy_disabled(void);
 
 /**
-   Return 1 if asynchronous data transfers between CPU and MPI Slave
-   devices are disabled.
-   See \ref mpimsWorkers for more details.
+   Return 1 if asynchronous data transfers between CPU and MPI
+   server client devices are disabled.
+   See \ref mpiscWorkers for more details.
 */
-int starpu_asynchronous_mpi_ms_copy_disabled(void);
+int starpu_asynchronous_mpi_sc_copy_disabled(void);
 
 /**
-   Return 1 if asynchronous data transfers between CPU and TCP/IP Slave
-   devices are disabled.
-   See \ref tcpipmsWorkers for more details.
+   Return 1 if asynchronous data transfers between CPU and TCP/IP
+   server client devices are disabled.
+   See \ref tcpipscWorkers for more details.
 */
-int starpu_asynchronous_tcpip_ms_copy_disabled(void);
+int starpu_asynchronous_tcpip_sc_copy_disabled(void);
 
 /**
    Return 1 if asynchronous data transfers with a given kind of memory

@@ -75,8 +75,8 @@ int main(int argc, char **argv)
 	starpu_conf_init(&conf);
 	starpu_conf_noworker(&conf);
 	conf.ncpus = -1;
-	conf.nmpi_ms = -1;
-	conf.ntcpip_ms = -1;
+	conf.nmpi_sc = -1;
+	conf.ntcpip_sc = -1;
 
 	snprintf(s, sizeof(s), "%u", (N*3/4)*SIZE/(1024*1024));
 	/* We make NUMA nodes not big enough for all data */

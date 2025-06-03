@@ -25,14 +25,14 @@
 
 #pragma GCC visibility push(hidden)
 
-void _starpu_mpi_ms_preinit(void);
+void _starpu_mpi_sc_preinit(void);
 
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-extern struct _starpu_node_ops _starpu_driver_mpi_ms_node_ops;
+#ifdef STARPU_USE_MPI_SERVER_CLIENT
+extern struct _starpu_node_ops _starpu_driver_mpi_sc_node_ops;
 
 /** Array of structures containing all the information useful to send
  * and receive information with devices */
-struct _starpu_mp_node *_starpu_mpi_ms_src_get_actual_thread_mp_node();
+struct _starpu_mp_node *_starpu_mpi_sc_src_get_actual_thread_mp_node();
 
 unsigned _starpu_mpi_src_get_device_count();
 void *_starpu_mpi_src_worker(void *arg);
@@ -46,7 +46,7 @@ void _starpu_deinit_mpi_config(struct _starpu_machine_config *config);
 void _starpu_mpi_source_init(struct _starpu_mp_node *node);
 void _starpu_mpi_source_deinit(struct _starpu_mp_node *node);
 
-#endif /* STARPU_USE_MPI_MASTER_SLAVE */
+#endif /* STARPU_USE_MPI_SERVER_CLIENT */
 
 #pragma GCC visibility pop
 

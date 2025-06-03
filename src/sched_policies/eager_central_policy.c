@@ -172,7 +172,7 @@ static struct starpu_task *pop_task_eager_policy(unsigned sched_ctx_id)
 		starpu_worker_relax_off();
 		starpu_sched_ctx_list_task_counters_decrement_all_ctx_locked(chosen_task, sched_ctx_id);
 
-		if (_starpu_sched_ctx_worker_is_master_for_child_ctx(sched_ctx_id, workerid, chosen_task))
+		if (_starpu_sched_ctx_worker_is_primary_for_child_ctx(sched_ctx_id, workerid, chosen_task))
 			chosen_task = NULL;
 		_starpu_sched_ctx_unlock_write(sched_ctx_id);
 	}

@@ -298,7 +298,7 @@ int main(int argc, char *argv[])
 #endif
 #endif
 
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
+#ifdef STARPU_USE_MPI_SERVER_CLIENT
 	/* compare values between the 2 values of timeout */
 	if (getenv("MPIEXEC_TIMEOUT"))
 	{

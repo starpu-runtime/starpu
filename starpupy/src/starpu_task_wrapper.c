@@ -1918,11 +1918,11 @@ PyMODINIT_FUNC PyInit_starpupy(void)
 	PyEval_InitThreads();
 #endif
 
-#if defined(STARPU_USE_MPI_MASTER_SLAVE)
+#if defined(STARPU_USE_MPI_SERVER_CLIENT)
 	active_multi_interpreter = 1;
 #else
 	if (starpu_getenv_number_default("STARPUPY_MULTI_INTERPRETER", 0)
-		|| starpu_getenv_number("STARPU_TCPIP_MS_SLAVES") > 0)
+		|| starpu_getenv_number("STARPU_TCPIP_SC_CLIENTS") > 0)
 		active_multi_interpreter = 1;
 #endif
 

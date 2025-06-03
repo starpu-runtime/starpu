@@ -112,8 +112,8 @@ enum starpu_node_kind
 	STARPU_OPENCL_RAM   = 3,  /**< OpenCL device */
 	STARPU_MAX_FPGA_RAM = 4,  /**< Maxeler FPGA device */
 	STARPU_DISK_RAM	    = 5,  /**< Disk memory */
-	STARPU_MPI_MS_RAM   = 6,  /**< MPI Slave device */
-	STARPU_TCPIP_MS_RAM = 7,  /**< TCPIP Slave device */
+	STARPU_MPI_SC_RAM   = 6,  /**< MPI client device */
+	STARPU_TCPIP_SC_RAM = 7,  /**< TCPIP client device */
 	STARPU_HIP_RAM	    = 8,  /**< NVIDIA/AMD HIP device */
 	STARPU_MAX_RAM	    = 8,  /**< Maximum value of memory types */
 	STARPU_NRAM	    = 9,  /**< Number of memory types */
@@ -689,7 +689,7 @@ struct starpu_data_interface_ops
 	/**
 	   Pack the interface into a contiguous buffer and set the
 	   size of the newly created buffer in \p count. This function
-	   is used in master slave mode for data interfaces with a
+	   is used in server client mode for data interfaces with a
 	   dynamic content.
 	*/
 	int (*pack_meta)(void *data_interface, void **ptr, starpu_ssize_t *count);
@@ -697,7 +697,7 @@ struct starpu_data_interface_ops
 	/**
 	   Unpack the interface from the given buffer and set the size
 	   of the unpacked data in \p count. This function
-	   is used in master slave mode for data interfaces with a
+	   is used in server client mode for data interfaces with a
 	   dynamic content.
 	*/
 	int (*unpack_meta)(void **data_interface, void *ptr, starpu_ssize_t *count);
@@ -745,7 +745,7 @@ void starpu_data_register(starpu_data_handle_t *handleptr, int home_node, void *
    calling starpu_data_interface_get_next_id().
    The function is automatically called when registering a piece of
    data with starpu_data_register(). It is only necessary to call it
-   beforehand for some specific cases (such as the usmaster slave mode).
+   beforehand for some specific cases (such as the server client mode).
 */
 void starpu_data_register_ops(struct starpu_data_interface_ops *ops);
 

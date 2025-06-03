@@ -73,8 +73,8 @@ makes the multiple interpreters execution of Python actually serial rather than
 parallel, and the execution of Python program is single-threaded essentially.
 
 For the pure Python script with python versions up to 3.11, the only way
-to achieve parallelism is to use the master-slave mechanism (Section \ref
-StarpupyMasterSlave).  Parallelism may be implemented with multi-interpreters
+to achieve parallelism is to use the server client mechanism (Section \ref
+StarpupyServerclient).  Parallelism may be implemented with multi-interpreters
 in the future Python version. Details can be found in Section \ref
 MultipleInterpreters.  Otherwise parallelism can be achieved when external
 C applications are called or external APIs e.g. BLAS API is used for Numpy
@@ -1404,9 +1404,9 @@ We can see that the custom function takes more time than \c numpy function overa
 \image html starpupy_handle_func_perf_pickle.png width=85%
 \image latex starpupy_handle_func_perf_pickle.png "" width=\textwidth
 
-\section StarpupyMasterSlave Master Slave Support
+\section StarpupyServerclient Server Client Support
 
-StarPU Python interface provides MPI master slave support as well. Please refer to \ref MPIMasterSlave for the specific usage.
+StarPU Python interface provides MPI server client support as well. Please refer to \ref MPIServerclient for the specific usage.
 
 When you write your Python script, make sure to import all required functions before the \c starpu module. Functions imported after the \c starpu module can only be submitted using their name as a string when calling \c task_submit(), this will decrease the submission efficiency.
 

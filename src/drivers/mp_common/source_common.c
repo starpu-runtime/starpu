@@ -41,12 +41,12 @@ struct starpu_save_thread_env
 #endif
 };
 
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
+#ifdef STARPU_USE_MPI_SERVER_CLIENT
 struct starpu_save_thread_env save_thread_env[STARPU_MAXMPIDEVS];
 struct _starpu_mp_node *_starpu_src_nodes[STARPU_NARCH][STARPU_MAXMPIDEVS];
 #endif
 
-#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
+#ifdef STARPU_USE_TCPIP_SERVER_CLIENT
 struct starpu_save_thread_env save_thread_env[STARPU_MAXTCPIPDEVS];
 struct _starpu_mp_node *_starpu_src_nodes[STARPU_NARCH][STARPU_MAXTCPIPDEVS];
 #endif
@@ -56,7 +56,7 @@ struct _starpu_mp_node *_starpu_src_nodes[STARPU_NARCH][STARPU_MAXTCPIPDEVS];
 static starpu_pthread_mutex_t htbl_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 
 /* Structure used by host to store information about a kernel executable on
- * a MPI MS device : its name, and its address on each device.
+ * a MPI server client device : its name, and its address on each device.
  * If a kernel has been initialized, then a lookup has already been achieved and the
  * device knows how to call it, else the host still needs to do a lookup.
  */
@@ -484,7 +484,7 @@ int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 	/* If the user didn't give any cl_arg, there is no need to send it */
 	if (cl_arg)
 	{
-		STARPU_ASSERT_MSG(cl_arg_size, "Execution of tasks on master-slave needs cl_arg_size to be set, to transfer the content of cl_arg");
+		STARPU_ASSERT_MSG(cl_arg_size, "Execution of tasks on server client needs cl_arg_size to be set, to transfer the content of cl_arg");
 		buffer_size += cl_arg_size;
 	}
 
@@ -549,7 +549,7 @@ int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 					  id == STARPU_CSR_INTERFACE_ID ||
 					  id == STARPU_BCSR_INTERFACE_ID ||
 					  id == STARPU_COO_INTERFACE_ID,
-					  "Master-Slave currently cannot work with interface type %d (%s)", id, handle->ops->name);
+					  "Server Client currently cannot work with interface type %d (%s)", id, handle->ops->name);
 
 			memcpy((void*) buffer_ptr, interfaces[i], handle->ops->interface_size);
 			STARPU_ASSERT(handle->ops->interface_size <= sizeof(union _starpu_interface));
@@ -663,7 +663,7 @@ static starpu_cpu_func_t starpu_src_common_get_kernel(const char *func_name)
 		int ret = _starpu_src_common_lookup(node, (void (**)(void))&kernel->func[devid], kernel->name);
 		if (ret)
 		{
-			_STARPU_DISP("Could not resolve function %s on slave %d\n", kernel->name, devid);
+			_STARPU_DISP("Could not resolve function %s on worker %d\n", kernel->name, devid);
 			return NULL;
 		}
 	}
@@ -675,11 +675,11 @@ starpu_cpu_func_t _starpu_src_common_get_cpu_func_from_codelet(struct starpu_cod
 {
 	/* Try to use cpu_func_name. */
 	const char *func_name = _starpu_task_get_cpu_name_nth_implementation(cl, nimpl);
-	STARPU_ASSERT_MSG(func_name, "when master-slave is used, cpu_funcs_name has to be defined and the function be non-static");
+	STARPU_ASSERT_MSG(func_name, "when server client is used, cpu_funcs_name has to be defined and the function be non-static");
 
 	starpu_cpu_func_t kernel = starpu_src_common_get_kernel(func_name);
 
-	STARPU_ASSERT_MSG(kernel, "when master-slave is used, cpu_funcs_name has to be defined and the function be non-static");
+	STARPU_ASSERT_MSG(kernel, "when server client is used, cpu_funcs_name has to be defined and the function be non-static");
 
 	return kernel;
 }
@@ -688,21 +688,21 @@ void(* _starpu_src_common_get_cpu_func_from_job(const struct _starpu_mp_node *no
 {
 	/* Try to use cpu_func_name. */
 	const char *func_name = _starpu_task_get_cpu_name_nth_implementation(j->task->cl, j->nimpl);
-	STARPU_ASSERT_MSG(func_name, "when master-slave is used, cpu_funcs_name has to be defined and the function be non-static");
+	STARPU_ASSERT_MSG(func_name, "when server client is used, cpu_funcs_name has to be defined and the function be non-static");
 
 	starpu_cpu_func_t kernel = starpu_src_common_get_kernel(func_name);
 
-	STARPU_ASSERT_MSG(kernel, "when master-slave is used, cpu_funcs_name has to be defined and the function be non-static");
+	STARPU_ASSERT_MSG(kernel, "when server client is used, cpu_funcs_name has to be defined and the function be non-static");
 
 	return (void (*)(void))kernel;
 }
 
 struct _starpu_mp_node *_starpu_src_common_get_mp_node_from_devid(enum starpu_worker_archtype archtype, int devid)
 {
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
+#ifdef STARPU_USE_MPI_SERVER_CLIENT
 	STARPU_ASSERT_MSG_ALWAYS(devid >= 0 && devid < STARPU_MAXMPIDEVS, "bogus devid %d for device %d\n", devid, devid);
 #endif
-#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
+#ifdef STARPU_USE_TCPIP_SERVER_CLIENT
 	STARPU_ASSERT_MSG_ALWAYS(devid >= 0 && devid < STARPU_MAXTCPIPDEVS, "bogus devid %d for device %d\n", devid, devid);
 #endif
 

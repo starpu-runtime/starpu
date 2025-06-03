@@ -23,12 +23,12 @@
 
 #pragma GCC visibility push(hidden)
 
-#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
+#ifdef STARPU_USE_TCPIP_SERVER_CLIENT
 
 void _starpu_tcpip_sink_init(struct _starpu_mp_node *node);
 void _starpu_tcpip_sink_bind_thread(const struct _starpu_mp_node *mp_node STARPU_ATTRIBUTE_UNUSED, int coreid, int * core_table, int nb_core);
 
-#endif  /* STARPU_USE_TCPIP_MASTER_SLAVE */
+#endif  /* STARPU_USE_TCPIP_SERVER_CLIENT */
 
 #pragma GCC visibility pop
 

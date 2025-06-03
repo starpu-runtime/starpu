@@ -297,7 +297,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		starpu_worker_relax_on();
 		_starpu_sched_ctx_lock_write(sched_ctx_id);
 		starpu_worker_relax_off();
-		if (_starpu_sched_ctx_worker_is_master_for_child_ctx(sched_ctx_id, best_workerid, task))
+		if (_starpu_sched_ctx_worker_is_primary_for_child_ctx(sched_ctx_id, best_workerid, task))
 			task = NULL;
 		_starpu_sched_ctx_unlock_write(sched_ctx_id);
 

@@ -117,7 +117,7 @@ int main(void)
 	struct starpu_vector_interface *vectori;
 	double *vector;
 
-	// When using master-slave MPI mode, it is necessary for the slaves to know about the complex interface
+	// When using server client MPI mode, it is necessary for the workers to know about the complex interface
 	starpu_complex_data_register_ops();
 
 	ret = starpu_init(NULL);

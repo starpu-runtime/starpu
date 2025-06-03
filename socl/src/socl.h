@@ -781,7 +781,7 @@ soclIcdGetPlatformIDsKHR(cl_uint          /* num_entries */,
 			 cl_platform_id * /* platforms */,
 			 cl_uint *        /* num_platforms */) CL_EXT_SUFFIX__VERSION_1_0;
 
-extern struct _cl_icd_dispatch socl_master_dispatch;
+extern struct _cl_icd_dispatch socl_primary_dispatch;
 extern struct _cl_platform_id socl_platform;
 extern struct _cl_device_id * socl_devices;
 extern unsigned int socl_device_count;

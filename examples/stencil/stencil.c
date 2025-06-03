@@ -192,7 +192,7 @@ void func(unsigned task_per_worker[STARPU_NMAXWORKERS])
 
 unsigned global_workerid(unsigned local_workerid)
 {
-#if defined(STARPU_USE_MPI) && !defined(STARPU_USE_MPI_MASTER_SLAVE)
+#if defined(STARPU_USE_MPI) && !defined(STARPU_USE_MPI_SERVER_CLIENT)
 	int rank;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	unsigned workers_per_node = starpu_worker_get_count();
@@ -209,7 +209,7 @@ int main(int argc, char **argv)
 	int world_size;
 	int ret;
 
-#if defined(STARPU_USE_MPI) && !defined(STARPU_SIMGRID) && !defined(STARPU_USE_MPI_MASTER_SLAVE)
+#if defined(STARPU_USE_MPI) && !defined(STARPU_SIMGRID) && !defined(STARPU_USE_MPI_SERVER_CLIENT)
 	int thread_support;
 	if (MPI_Init_thread(&argc, &argv, MPI_THREAD_SERIALIZED, &thread_support))
 	{
@@ -235,15 +235,15 @@ int main(int argc, char **argv)
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
 
-	/*nbz is a global variable, this example doesn't support Master-Slave*/
-	conf.nmpi_ms = 0;
-	conf.ntcpip_ms = 0;
+	/*nbz is a global variable, this example doesn't support server client mode*/
+	conf.nmpi_sc = 0;
+	conf.ntcpip_sc = 0;
 
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-#if defined(STARPU_USE_MPI) && !defined(STARPU_SIMGRID) && !defined(STARPU_USE_MPI_MASTER_SLAVE)
+#if defined(STARPU_USE_MPI) && !defined(STARPU_SIMGRID) && !defined(STARPU_USE_MPI_SERVER_CLIENT)
 	ret = starpu_mpi_init(NULL, NULL, 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 #endif
@@ -257,7 +257,7 @@ int main(int argc, char **argv)
 
 	create_tasks(rank);
 
-#if defined(STARPU_USE_MPI) && !defined(STARPU_SIMGRID) && !defined(STARPU_USE_MPI_MASTER_SLAVE)
+#if defined(STARPU_USE_MPI) && !defined(STARPU_SIMGRID) && !defined(STARPU_USE_MPI_SERVER_CLIENT)
 	int barrier_ret = MPI_Barrier(MPI_COMM_WORLD);
 	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);
 #endif
@@ -274,7 +274,7 @@ int main(int argc, char **argv)
 
 	end = starpu_timing_now();
 
-#if defined(STARPU_USE_MPI) && !defined(STARPU_SIMGRID) && !defined(STARPU_USE_MPI_MASTER_SLAVE)
+#if defined(STARPU_USE_MPI) && !defined(STARPU_SIMGRID) && !defined(STARPU_USE_MPI_SERVER_CLIENT)
 	barrier_ret = MPI_Barrier(MPI_COMM_WORLD);
 	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);
 #endif
@@ -285,7 +285,7 @@ int main(int argc, char **argv)
 
 	/*display_debug(nbz, niter, rank);*/
 
-#if defined(STARPU_USE_MPI) && !defined(STARPU_SIMGRID) && !defined(STARPU_USE_MPI_MASTER_SLAVE)
+#if defined(STARPU_USE_MPI) && !defined(STARPU_SIMGRID) && !defined(STARPU_USE_MPI_SERVER_CLIENT)
 	starpu_mpi_shutdown();
 #endif
 
@@ -296,7 +296,7 @@ int main(int argc, char **argv)
 	double max_timing = timing;
 	double sum_timing = timing;
 
-#if defined(STARPU_USE_MPI) && !defined(STARPU_SIMGRID) && !defined(STARPU_USE_MPI_MASTER_SLAVE)
+#if defined(STARPU_USE_MPI) && !defined(STARPU_SIMGRID) && !defined(STARPU_USE_MPI_SERVER_CLIENT)
 	int reduce_ret;
 
 	reduce_ret = MPI_Reduce(&timing, &min_timing, 1, MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
@@ -379,7 +379,7 @@ int main(int argc, char **argv)
 	free_problem(rank);
 	starpu_shutdown();
 
-#if defined(STARPU_USE_MPI) && !defined(STARPU_SIMGRID) && !defined(STARPU_USE_MPI_MASTER_SLAVE)
+#if defined(STARPU_USE_MPI) && !defined(STARPU_SIMGRID) && !defined(STARPU_USE_MPI_SERVER_CLIENT)
 	MPI_Finalize();
 #endif
 

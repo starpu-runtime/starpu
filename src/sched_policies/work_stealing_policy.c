@@ -590,7 +590,7 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 			_starpu_sched_ctx_lock_write(sched_ctx_id);
 			starpu_worker_relax_off();
 			starpu_sched_ctx_list_task_counters_decrement(sched_ctx_id, workerid);
-			if (_starpu_sched_ctx_worker_is_master_for_child_ctx(sched_ctx_id, workerid, task))
+			if (_starpu_sched_ctx_worker_is_primary_for_child_ctx(sched_ctx_id, workerid, task))
 				task = NULL;
 			_starpu_sched_ctx_unlock_write(sched_ctx_id);
 		}
@@ -655,7 +655,7 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 		starpu_worker_relax_on();
 		_starpu_sched_ctx_lock_write(sched_ctx_id);
 		starpu_worker_relax_off();
-		if (_starpu_sched_ctx_worker_is_master_for_child_ctx(sched_ctx_id, workerid, task))
+		if (_starpu_sched_ctx_worker_is_primary_for_child_ctx(sched_ctx_id, workerid, task))
 			task = NULL;
 		_starpu_sched_ctx_unlock_write(sched_ctx_id);
 		if (!task)

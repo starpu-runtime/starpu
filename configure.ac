@@ -769,62 +769,62 @@ if test x$enable_mpi = xyes -a x$build_nmad_lib = xno -a ! -z "`$mpicc_path --sh
   AC_DEFINE(HAVE_PIOMAN, [1], [PIOman (from PM2) is available])
 fi
 
-###############################################################################
-#                                                                             #
-#                             MPI Master Slave                                #
-#                                                                             #
-###############################################################################
+###################################################################
+#                                                                 #
+#                      MPI Server Client                          #
+#                                                                 #
+###################################################################
 
-AC_ARG_ENABLE(mpi-master-slave, [AS_HELP_STRING([--enable-mpi-master-slave],
-                              [Enable StarPU to run with the master-slave mode])],
-              use_mpi_master_slave=$enableval,
-              use_mpi_master_slave=no)
+AC_ARG_ENABLE(mpi-server-client, [AS_HELP_STRING([--enable-mpi-server-client],
+                              [Enable StarPU to run with the server-client mode])],
+              use_mpi_server_client=$enableval,
+              use_mpi_server_client=no)
 
 if test x$enable_simgrid = xyes; then
-	if test x$use_mpi_master_slave = xyes; then
-		AC_MSG_ERROR([MPI Master Slave not supported with simgrid])
+	if test x$use_mpi_server_client = xyes; then
+		AC_MSG_ERROR([MPI Server Client not supported with simgrid])
 	fi
-	use_mpi_master_slave=no
+	use_mpi_server_client=no
 fi
 
 # in case it is explicitly required, but mpicc is not available, this is an error
-if test x$use_mpi_master_slave = xyes -a ! -x "$mpicc_path"; then
+if test x$use_mpi_server_client = xyes -a ! -x "$mpicc_path"; then
    AC_MSG_ERROR([Compiler MPI '$mpicc_path' not valid])
 fi
 
-#We can only build MPI Master Slave if User wants it and MPI compiler are available
-if test x$use_mpi_master_slave = xyes -a x$mpicc_path != xno -a x${mpicxx_path} != xno ; then
-    build_mpi_master_slave=yes
+#We can only build MPI Server Client if User wants it and MPI compiler are available
+if test x$use_mpi_server_client = xyes -a x$mpicc_path != xno -a x${mpicxx_path} != xno ; then
+    build_mpi_server_client=yes
 else
-    build_mpi_master_slave=no
+    build_mpi_server_client=no
 fi
 
 #users cannot use both at the same time
-if test x$build_mpi_master_slave = xyes -a x$enable_mpi = xyes; then
-    AC_MSG_WARN(StarPU-MPI and MPI Master-Slave cannot be used at the same time ! Disabling StarPU-MPI...)
+if test x$build_mpi_server_client = xyes -a x$enable_mpi = xyes; then
+    AC_MSG_WARN(StarPU-MPI and MPI Server-Client cannot be used at the same time ! Disabling StarPU-MPI...)
     build_mpi_lib=no
     build_nmad_lib=no
     enable_mpi=no
 fi
 
-if test x$build_mpi_master_slave = xyes; then
-    AC_DEFINE(STARPU_USE_MPI_MASTER_SLAVE, [1], [MPI Master Slave support is enabled])
+if test x$build_mpi_server_client = xyes; then
+    AC_DEFINE(STARPU_USE_MPI_SERVER_CLIENT, [1], [MPI Server Client support is enabled])
     CC=$mpicc_path
     CCLD=$mpicc_path
     CXX=$mpicxx_path
     CXXLD=mpicxx_path
 fi
 
-AC_MSG_CHECKING(whether the MPI master-slave mode should be enabled)
-AC_MSG_RESULT($build_mpi_master_slave)
-AM_CONDITIONAL([STARPU_USE_MPI_MASTER_SLAVE], [test x$build_mpi_master_slave = xyes])
+AC_MSG_CHECKING(whether the MPI server-client mode should be enabled)
+AC_MSG_RESULT($build_mpi_server_client)
+AM_CONDITIONAL([STARPU_USE_MPI_SERVER_CLIENT], [test x$build_mpi_server_client = xyes])
 
-AC_MSG_CHECKING(maximum number of MPI master-slave devices)
+AC_MSG_CHECKING(maximum number of MPI server-client devices)
 AC_ARG_ENABLE(maxmpidev, [AS_HELP_STRING([--enable-maxmpidev=<number>],
-			[maximum number of MPI master-slave devices])],
+			[maximum number of MPI server-client devices])],
 			nmaxmpidev=$enableval,
             [
-             if test x$build_mpi_master_slave = xyes; then
+             if test x$build_mpi_server_client = xyes; then
                  nmaxmpidev=4
              else
                  nmaxmpidev=0
@@ -837,32 +837,32 @@ fi
 AC_MSG_RESULT($nmaxmpidev)
 AC_DEFINE_UNQUOTED(STARPU_MAXMPIDEVS, [$nmaxmpidev], [maximum number of MPI devices])
 
-###############################################################################
-#                                                                             #
-#                             TCP/IP Master Slave                             #
-#                                                                             #
-###############################################################################
+###################################################################
+#                                                                 #
+#                TCP/IP Server Client                             #
+#                                                                 #
+###################################################################
 
-AC_ARG_ENABLE(tcpip-master-slave, [AS_HELP_STRING([--enable-tcpip-master-slave],
-                              [Enable StarPU to run with the master-slave mode])],
-              build_tcpip_master_slave=$enableval,
-              build_tcpip_master_slave=no)
+AC_ARG_ENABLE(tcpip-server-client, [AS_HELP_STRING([--enable-tcpip-server-client],
+                              [Enable StarPU to run with the server-client mode])],
+              build_tcpip_server_client=$enableval,
+              build_tcpip_server_client=no)
 
-if test x$build_tcpip_master_slave = xyes; then
+if test x$build_tcpip_server_client = xyes; then
 	AC_CHECK_LIB([dl], [dlsym])
-    AC_DEFINE(STARPU_USE_TCPIP_MASTER_SLAVE, [1], [TCPIP Master Slave support is enabled])
+    AC_DEFINE(STARPU_USE_TCPIP_SERVER_CLIENT, [1], [TCPIP Server Client support is enabled])
 fi
 
-AC_MSG_CHECKING(whether the TCP/IP master-slave mode should be enabled)
-AC_MSG_RESULT($build_tcpip_master_slave)
-AM_CONDITIONAL([STARPU_USE_TCPIP_MASTER_SLAVE], [test x$build_tcpip_master_slave = xyes])
+AC_MSG_CHECKING(whether the TCP/IP server-client mode should be enabled)
+AC_MSG_RESULT($build_tcpip_server_client)
+AM_CONDITIONAL([STARPU_USE_TCPIP_SERVER_CLIENT], [test x$build_tcpip_server_client = xyes])
 
-AC_MSG_CHECKING(maximum number of TCP/IP master-slave devices)
+AC_MSG_CHECKING(maximum number of TCP/IP server-client devices)
 AC_ARG_ENABLE(maxtcpipdev, [AS_HELP_STRING([--enable-maxtcpipdev=<number>],
-			[maximum number of TCP/IP master-slave devices])],
+			[maximum number of TCP/IP server-client devices])],
 			nmaxtcpipdev=$enableval,
             [
-             if test x$build_tcpip_master_slave = xyes; then
+             if test x$build_tcpip_server_client = xyes; then
                  nmaxtcpipdev=4
              else
                  nmaxtcpipdev=0
@@ -1009,7 +1009,7 @@ if test x$enable_mpi_verbose = xextra; then
 	AC_DEFINE(STARPU_MPI_EXTRA_VERBOSE, [1], [display MPI verbose debug messages])
 fi
 
-if test x$enable_mpi = xyes -o x$build_mpi_master_slave = xyes ; then
+if test x$enable_mpi = xyes -o x$build_mpi_server_client = xyes ; then
     cc_or_mpicc=$mpicc_path
     # For some reason, libtool uses gcc instead of mpicc when linking
     # libstarpumpi.
@@ -2568,30 +2568,30 @@ if test x$disable_asynchronous_opencl_copy = xyes ; then
    AC_DEFINE([STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY], [1], [Define to 1 to disable asynchronous copy between CPU and OpenCL devices])
 fi
 
-AC_MSG_CHECKING(whether asynchronous MPI Master Slave copy should be disabled)
-AC_ARG_ENABLE(asynchronous-mpi-master-slave-copy, [AS_HELP_STRING([--disable-asynchronous-mpi-master-slave-copy],
-			[disable asynchronous copy between MPI Master and MPI Slave devices])],
-			enable_asynchronous_mpi_master_slave_copy=$enableval, enable_asynchronous_mpi_master_slave_copy=yes)
-disable_asynchronous_mpi_master_slave_copy=no
-if test x$enable_asynchronous_mpi_master_slave_copy = xno ; then
-   disable_asynchronous_mpi_master_slave_copy=yes
+AC_MSG_CHECKING(whether asynchronous MPI Server Client copy should be disabled)
+AC_ARG_ENABLE(asynchronous-mpi-server-client-copy, [AS_HELP_STRING([--disable-asynchronous-mpi-server-client-copy],
+			[disable asynchronous copy between MPI Server and MPI worker devices])],
+			enable_asynchronous_mpi_server_client_copy=$enableval, enable_asynchronous_mpi_server_client_copy=yes)
+disable_asynchronous_mpi_server_client_copy=no
+if test x$enable_asynchronous_mpi_server_client_copy = xno ; then
+   disable_asynchronous_mpi_server_client_copy=yes
 fi
-AC_MSG_RESULT($disable_asynchronous_mpi_master_slave_copy)
-if test x$disable_asynchronous_mpi_master_slave_copy = xyes ; then
-   AC_DEFINE([STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY], [1], [Define to 1 to disable asynchronous copy between MPI Master and MPI Slave devices])
+AC_MSG_RESULT($disable_asynchronous_mpi_server_client_copy)
+if test x$disable_asynchronous_mpi_server_client_copy = xyes ; then
+   AC_DEFINE([STARPU_DISABLE_ASYNCHRONOUS_MPI_SC_COPY], [1], [Define to 1 to disable asynchronous copy between MPI server and MPI worker devices])
 fi
 
-AC_MSG_CHECKING(whether asynchronous TCP/IP Master Slave copy should be disabled)
-AC_ARG_ENABLE(asynchronous-tcpip-master-slave-copy, [AS_HELP_STRING([--disable-asynchronous-tcpip-master-slave-copy],
-			[disable asynchronous copy between TCP/IP Master and TCP/IP Slave devices])],
-			enable_asynchronous_tcpip_master_slave_copy=$enableval, enable_asynchronous_tcpip_master_slave_copy=yes)
-disable_asynchronous_tcpip_master_slave_copy=no
-if test x$enable_asynchronous_tcpip_master_slave_copy = xno ; then
-   disable_asynchronous_tcpip_master_slave_copy=yes
+AC_MSG_CHECKING(whether asynchronous TCP/IP Server Client copy should be disabled)
+AC_ARG_ENABLE(asynchronous-tcpip-server-client-copy, [AS_HELP_STRING([--disable-asynchronous-tcpip-server-client-copy],
+			[disable asynchronous copy between TCP/IP server and TCP/IP worker devices])],
+			enable_asynchronous_tcpip_server_client_copy=$enableval, enable_asynchronous_tcpip_server_client_copy=yes)
+disable_asynchronous_tcpip_server_client_copy=no
+if test x$enable_asynchronous_tcpip_server_client_copy = xno ; then
+   disable_asynchronous_tcpip_server_client_copy=yes
 fi
-AC_MSG_RESULT($disable_asynchronous_tcpip_master_slave_copy)
-if test x$disable_asynchronous_tcpip_master_slave_copy = xyes ; then
-   AC_DEFINE([STARPU_DISABLE_ASYNCHRONOUS_TCPIP_MS_COPY], [1], [Define to 1 to disable asynchronous copy between TCP/IP Master and TCP/IP Slave devices])
+AC_MSG_RESULT($disable_asynchronous_tcpip_server_client_copy)
+if test x$disable_asynchronous_tcpip_server_client_copy = xyes ; then
+   AC_DEFINE([STARPU_DISABLE_ASYNCHRONOUS_TCPIP_SC_COPY], [1], [Define to 1 to disable asynchronous copy between TCP/IP server and TCP/IP worker devices])
 fi
 
 AC_MSG_CHECKING(whether asynchronous Maxeler FPGA copy should be disabled)
@@ -2670,7 +2670,7 @@ if test "x$enable_build_fortran_requested" = "xyes" ; then
 
 	if test "x$enable_build_fortran" = "xyes" ; then
 		AC_DEFINE(STARPU_HAVE_FC, [1], [Define this if a Fortran compiler is available])
-		if test x$build_mpi_lib = xyes -o x$build_nmad_lib = xyes -o x$build_mpi_master_slave = xyes ; then
+		if test x$build_mpi_lib = xyes -o x$build_nmad_lib = xyes -o x$build_mpi_server_client = xyes ; then
 			#Check MPIFORT
 			mpifort_path_explicit=no
 			if test x$enable_simgrid = xyes ; then
@@ -2729,7 +2729,7 @@ if test "x$enable_build_fortran" = "xyes" ; then
 fi
 
 #We have MPI C/C++ compiler
-if test x$build_mpi_master_slave = xyes; then
+if test x$build_mpi_server_client = xyes; then
     #Check if we can compile fortran cases
     if test x$use_mpi_fort = xyes ; then
         F77LD=$mpifort_path
@@ -3174,10 +3174,10 @@ if test x$maxnodes = x0 ; then
 			nodes=`expr $nodes + $nmaxmaxfpgadev`
 		fi
 
-		#nmaxmpidev = 0 if mpi master-slave is disabled
+		#nmaxmpidev = 0 if mpi server-client is disabled
 		nodes=`expr $nodes + $nmaxmpidev`
 
-		#nmaxtcpipdev = 0 if tcpip master-slave is disabled
+		#nmaxtcpipdev = 0 if tcpip server-client is disabled
 		nodes=`expr $nodes + $nmaxtcpipdev`
  	fi
 
@@ -3253,14 +3253,14 @@ if test x$enable_simgrid != xyes; then
 	if test x$enable_opencl != xyes; then
 		nmaxopencldev=0
 	fi
-    #By default, if we cannot build mpi master-slave nmaxmpidev is set to zero.
+    #By default, if we cannot build mpi server-client nmaxmpidev is set to zero.
     #But with the multiplication with maxcpus, we need to put it to one.
-    if test x$build_mpi_master_slave != xyes; then
+    if test x$build_mpi_server_client != xyes; then
         nmaxmpidev=1
     fi
-    #By default, if we cannot build tcp/ip master-slave nmaxtcpipdev is set to zero.
+    #By default, if we cannot build tcp/ip server-client nmaxtcpipdev is set to zero.
     #But with the multiplication with maxcpus, we need to put it to one.
-    if test x$build_tcpip_master_slave != xyes; then
+    if test x$build_tcpip_server_client != xyes; then
         nmaxtcpipdev=1
     fi
 fi
@@ -3346,20 +3346,20 @@ AC_DEFINE_UNQUOTED(STARPU_HISTORYMAXERROR, [$calibration_heuristic], [calibratio
 #                                                                             #
 ###############################################################################
 
-if test x$build_mpi_master_slave = xyes -o x$build_tcpip_master_slave = xyes; then
- 	build_master_slave=yes
+if test x$build_mpi_server_client = xyes -o x$build_tcpip_server_client = xyes; then
+ 	build_server_client=yes
 else
-    build_master_slave=no
+    build_server_client=no
 fi
 
-AC_MSG_CHECKING(whether the master-slave mode should be enabled)
-AC_MSG_RESULT($build_master_slave)
-AM_CONDITIONAL([STARPU_USE_MP], test "x$build_master_slave" = "xyes")
+AC_MSG_CHECKING(whether the server-client mode should be enabled)
+AC_MSG_RESULT($build_server_client)
+AM_CONDITIONAL([STARPU_USE_MP], test "x$build_server_client" = "xyes")
 
 AC_ARG_ENABLE([export-dynamic], [AS_HELP_STRING([--disable-export-dynamic],
 			  [Prevent the linker from adding all symbols to the dynamic symbol table])], [], [])
 
-if test x$build_master_slave = xyes; then
+if test x$build_server_client = xyes; then
 	AC_DEFINE(STARPU_USE_MP, [1], [Message-passing SINKs support
 		  is enabled])
 
@@ -4856,8 +4856,8 @@ AC_MSG_NOTICE([
 	Maximum number of HIP devices:                 $nmaxhipdev
 	Maximum number of OpenCL devices:              $nmaxopencldev
 	Maximum number of Maxeler FPGA devices:        $nmaxmaxfpgadev
-	Maximum number of MPI master-slave devices:    $nmaxmpidev
-	Maximum number of TCP/IP master-slave devices: $nmaxtcpipdev
+	Maximum number of MPI server-client devices:    $nmaxmpidev
+	Maximum number of TCP/IP server-client devices: $nmaxtcpipdev
 	Maximum number of memory nodes:                $maxnodes
 	Maximum number of task buffers:                $nmaxbuffers
 
@@ -4883,8 +4883,8 @@ AC_MSG_NOTICE([
 	       StarPU MPI failure tolerance stats:            $use_mpi_ft_stats
 	       StarPU MPI(nmad) enabled:                      $build_nmad_lib
 	       MPI test suite:                                $running_mpi_check
-	       Master-Slave MPI enabled:                      $build_mpi_master_slave
-	       Master-Slave TCP/IP enabled:                   $build_tcpip_master_slave
+	       Server-Client MPI enabled:                     $build_mpi_server_client
+	       Server-Client TCP/IP enabled:                  $build_tcpip_server_client
 	       FFT Support:                                   $fft_support
 	       Resource Management enabled:                   $starpurm_support
 	       Python Interface enabled:                      $starpupy_support

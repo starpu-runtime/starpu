@@ -243,7 +243,7 @@ Set maximum exponential backoff of number of cycles to pause when spinning. Defa
 <dd>
 \anchor STARPU_SINK
 \addindex __env__STARPU_SINK
-Defined internally by StarPU when running in master slave mode.
+Defined internally by StarPU when running in server client mode.
 </dd>
 
 <dt>STARPU_ENABLE_MAP</dt>
@@ -502,101 +502,101 @@ the one reported by the Maxeler stack).
 Disable asynchronous copies between CPU and Maxeler FPGA devices. One can call starpu_asynchronous_max_fpga_copy_disabled() to check whether asynchronous data transfers between CPU and Maxeler FPGA devices are disabled.
 </dd>
 
-\subsection mpimsWorkers MPI Master Slave Workers
+\subsection mpiscWorkers MPI Server Client Workers
 <dl>
-<dt>STARPU_NMPI_MS</dt>
+<dt>STARPU_NMPI_SC</dt>
 <dd>
-\anchor STARPU_NMPI_MS
-\addindex __env__STARPU_NMPI_MS
-Specify the number of MPI master slave devices that StarPU can use.
+\anchor STARPU_NMPI_SC
+\addindex __env__STARPU_NMPI_SC
+Specify the number of MPI server client devices that StarPU can use.
 </dd>
 
-<dt>STARPU_NMPIMSTHREADS</dt>
+<dt>STARPU_MPI_SC_NTHREADS</dt>
 <dd>
-\anchor STARPU_NMPIMSTHREADS
-\addindex __env__STARPU_NMPIMSTHREADS
-Specift the number of threads to use on the MPI Slave devices.
+\anchor STARPU_MPI_SC_NTHREADS
+\addindex __env__STARPU_MPI_SC_NTHREADS
+Specify the number of threads to use on the MPI client devices.
 </dd>
 
-<dt>STARPU_MPI_MS_MULTIPLE_THREAD</dt>
+<dt>STARPU_MPI_SC_MULTIPLE_THREAD</dt>
 <dd>
-\anchor STARPU_MPI_MS_MULTIPLE_THREAD
-\addindex __env__STARPU_MPI_MS_MULTIPLE_THREAD
-Specify whether the master should use one thread per slave, or one thread for
-driver all slaves. Default value is 0.
+\anchor STARPU_MPI_SC_MULTIPLE_THREAD
+\addindex __env__STARPU_MPI_SC_MULTIPLE_THREAD
+Specify whether the server should use one thread per client, or one thread for
+driving all clients. Default value is 0.
 </dd>
 
-<dt>STARPU_MPI_MASTER_NODE</dt>
+<dt>STARPU_MPI_SERVER_NODE</dt>
 <dd>
-\anchor STARPU_MPI_MASTER_NODE
-\addindex __env__STARPU_MPI_MASTER_NODE
-Specify the rank of the MPI process which will be the master. Default value is 0.
+\anchor STARPU_MPI_SERVER_NODE
+\addindex __env__STARPU_MPI_SERVER_NODE
+Specify the rank of the MPI process which will be the server. Default value is 0.
 </dd>
 
-<dt>STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY</dt>
+<dt>STARPU_DISABLE_ASYNCHRONOUS_MPI_SC_COPY</dt>
 <dd>
-\anchor STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY
-\addindex __env__STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY
-Disable asynchronous copies between CPU and MPI Slave devices. One can call starpu_asynchronous_mpi_ms_copy_disabled() to check whether asynchronous data transfers between CPU and MPI Slave devices are disabled.
+\anchor STARPU_DISABLE_ASYNCHRONOUS_MPI_SC_COPY
+\addindex __env__STARPU_DISABLE_ASYNCHRONOUS_MPI_SC_COPY
+Disable asynchronous copies between CPU and MPI client devices. One can call starpu_asynchronous_mpi_sc_copy_disabled() to check whether asynchronous data transfers between CPU and MPI client devices are disabled.
 </dd>
 
 </dl>
 
-\subsection tcpipmsWorkers TCP/IP Master Slave Workers
+\subsection tcpipscWorkers TCP/IP Server Client Workers
 
 <dl>
 
-<dt>STARPU_NTCPIP_MS</dt>
+<dt>STARPU_NTCPIP_SC</dt>
 <dd>
-\anchor STARPU_NTCPIP_MS
-\addindex __env__STARPU_NTCPIP_MS
-Specify the number of TCP/IP master slave devices that StarPU can use.
+\anchor STARPU_NTCPIP_SC
+\addindex __env__STARPU_NTCPIP_SC
+Specify the number of TCP/IP server client devices that StarPU can use.
 </dd>
 
-<dt>STARPU_TCPIP_MS_SLAVES</dt>
+<dt>STARPU_TCPIP_SC_CLIENTS</dt>
 <dd>
-\anchor STARPU_TCPIP_MS_SLAVES
-\addindex __env__STARPU_TCPIP_MS_SLAVES
-Specify the number of TCP/IP master slave processes that are expected to be
-run. This should be provided both to the master and to the slaves.
+\anchor STARPU_TCPIP_SC_CLIENTS
+\addindex __env__STARPU_TCPIP_SC_CLIENTS
+Specify the number of TCP/IP client processes that are expected to be
+run. This should be provided both to the server and to the clients.
 </dd>
 
-<dt>STARPU_TCPIP_MS_MASTER</dt>
+<dt>STARPU_TCPIP_SC_SERVER</dt>
 <dd>
-\anchor STARPU_TCPIP_MS_MASTER
-\addindex __env__STARPU_TCPIP_MS_MASTER
-Specify (for slaves) the IP address of the master so they can connect to
+\anchor STARPU_TCPIP_SC_SERVER
+\addindex __env__STARPU_TCPIP_SC_SERVER
+Specify (for clients) the IP address of the server so they can connect to
 it. They will then automatically connect to each other.
 </dd>
 
-<dt>STARPU_TCPIP_MS_PORT</dt>
+<dt>STARPU_TCPIP_SC_PORT</dt>
 <dd>
-\anchor STARPU_TCPIP_MS_PORT
-\addindex __env__STARPU_TCPIP_MS_PORT
-Specify the port of the master, for connexions between slaves and the master.
+\anchor STARPU_TCPIP_SC_PORT
+\addindex __env__STARPU_TCPIP_SC_PORT
+Specify the port of the server, for connexions between clients and the server.
 Default value is 1234.
 </dd>
 
-<dt>STARPU_NTCPIPMSTHREADS</dt>
+<dt>STARPU_TCPIP_SC_NTHREADS</dt>
 <dd>
-\anchor STARPU_NTCPIPMSTHREADS
-\addindex __env__STARPU_NTCPIPMSTHREADS
-Specify the number of threads to use on the TCP/IP Slave devices.
+\anchor STARPU_TCPIP_SC_NTHREADS
+\addindex __env__STARPU_TCPIP_SC_NTHREADS
+Specify the number of threads to use on the TCP/IP client devices.
 </dd>
 
-<dt>STARPU_TCPIP_MS_MULTIPLE_THREAD</dt>
+<dt>STARPU_TCPIP_SC_MULTIPLE_THREAD</dt>
 <dd>
-\anchor STARPU_TCPIP_MS_MULTIPLE_THREAD
-\addindex __env__STARPU_TCPIP_MS_MULTIPLE_THREAD
-Specify whether the master should use one thread per slave, or one thread for
-driver all slaves. Default value is 0.
+\anchor STARPU_TCPIP_SC_MULTIPLE_THREAD
+\addindex __env__STARPU_TCPIP_SC_MULTIPLE_THREAD
+Specify whether the server should use one thread per client, or one thread for
+driving all clients. Default value is 0.
 </dd>
 
-<dt>STARPU_DISABLE_ASYNCHRONOUS_TCPIP_MS_COPY</dt>
+<dt>STARPU_DISABLE_ASYNCHRONOUS_TCPIP_SC_COPY</dt>
 <dd>
-\anchor STARPU_DISABLE_ASYNCHRONOUS_TCPIP_MS_COPY
-\addindex __env__STARPU_DISABLE_ASYNCHRONOUS_TCPIP_MS_COPY
-Disable asynchronous copies between CPU and TCP/IP Slave devices. One can call starpu_asynchronous_tcpip_ms_copy_disabled() to check whether asynchronous data transfers between CPU and TCP/IP Slave devices are disabled.
+\anchor STARPU_DISABLE_ASYNCHRONOUS_TCPIP_SC_COPY
+\addindex __env__STARPU_DISABLE_ASYNCHRONOUS_TCPIP_SC_COPY
+Disable asynchronous copies between CPU and TCP/IP client devices. One can call starpu_asynchronous_tcpip_sc_copy_disabled() to check whether asynchronous data transfers between CPU and TCP/IP client devices are disabled.
 </dd>
 
 </dl>
@@ -918,7 +918,7 @@ Specify the number of memory nodes contained in an affinity group. An affinity
 group will be composed of the closest memory nodes to a worker of a given architecture,
 and this worker will look for tasks available inside these memory nodes, before
 considering stealing tasks outside this group.
-ARCH can be \c CPU, \c CUDA, \c OPENCL, \c SCC, \c MPI_MS, etc.
+ARCH can be \c CPU, \c CUDA, \c OPENCL, \c SCC, \c MPI_SC, etc.
 </dd>
 
 <dt>STARPU_LAHETEROPRIO_PRIO_STEP_[ARCH]</dt>
@@ -928,7 +928,7 @@ ARCH can be \c CPU, \c CUDA, \c OPENCL, \c SCC, \c MPI_MS, etc.
 Specify the number of buckets in the local memory node in which a worker will look for
 available tasks, before this worker starts looking for tasks in other memory nodes' buckets.
 ARCH indicates that this number is specific to a given arch which can be:
-\c CPU, \c CUDA, \c OPENCL, \c SCC, \c MPI_MS, etc.
+\c CPU, \c CUDA, \c OPENCL, \c SCC, \c MPI_SC, etc.
 </dd>
 
 </dl>
@@ -1371,14 +1371,14 @@ calibration to be much faster, since measurements only have to be once for all
 OpenCL GPUs.
 </dd>
 
-<dt>STARPU_PERF_MODEL_HOMOGENEOUS_MPI_MS</dt>
+<dt>STARPU_PERF_MODEL_HOMOGENEOUS_MPI_SC</dt>
 <dd>
-\anchor STARPU_PERF_MODEL_HOMOGENEOUS_MPI_MS
-\addindex __env__STARPU_PERF_MODEL_HOMOGENEOUS_MPI_MS
-When set to 1, StarPU will assume that all MPI Slave devices have the same
+\anchor STARPU_PERF_MODEL_HOMOGENEOUS_MPI_SC
+\addindex __env__STARPU_PERF_MODEL_HOMOGENEOUS_MPI_SC
+When set to 1, StarPU will assume that all MPI clients have the same
 performance, and thus share performance models for them, thus allowing kernel
 calibration to be much faster, since measurements only have to be once for all
-MPI Slaves.
+MPI clients.
 </dd>
 
 <dt>STARPU_HOSTNAME</dt>

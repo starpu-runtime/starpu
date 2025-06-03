@@ -17,7 +17,7 @@
 
 #include "socl.h"
 
-struct _cl_icd_dispatch socl_master_dispatch =
+struct _cl_icd_dispatch socl_primary_dispatch =
 {
 	soclGetPlatformIDs,
 	soclGetPlatformInfo,
@@ -143,7 +143,7 @@ struct _cl_icd_dispatch socl_master_dispatch =
 	(void *) NULL
 };
 
-struct _cl_platform_id socl_platform = {&socl_master_dispatch};
+struct _cl_platform_id socl_platform = {&socl_primary_dispatch};
 
 const char * __attribute__ ((aligned (16))) SOCL_PROFILE = "FULL_PROFILE";
 const char * __attribute__ ((aligned (16))) SOCL_VERSION = "OpenCL 1.0 SOCL Edition (0.1.0)";

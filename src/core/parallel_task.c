@@ -52,7 +52,7 @@ void starpu_parallel_task_barrier_init_n(struct starpu_task* task, int worker_si
 
 void starpu_parallel_task_barrier_init(struct starpu_task* task, int workerid)
 {
-	/* The master needs to dispatch the task between the
+	/* The server needs to dispatch the task between the
 	 * different combined workers */
 	struct _starpu_combined_worker *combined_worker =  _starpu_get_combined_worker_struct(workerid);
 	int worker_size = combined_worker->worker_size;

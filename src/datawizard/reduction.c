@@ -114,14 +114,14 @@ void _starpu_init_data_replicate(starpu_data_handle_t handle, struct _starpu_dat
 			init_func = _starpu_task_get_opencl_nth_implementation(init_cl, 0);
 			break;
 
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-		case STARPU_MPI_MS_WORKER:
+#ifdef STARPU_USE_MPI_SERVER_CLIENT
+		case STARPU_MPI_SC_WORKER:
 			init_func = _starpu_src_common_get_cpu_func_from_codelet(init_cl, 0);
 			break;
 #endif
 
-#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
-		case STARPU_TCPIP_MS_WORKER:
+#ifdef STARPU_USE_TCPIP_SERVER_CLIENT
+		case STARPU_TCPIP_SC_WORKER:
 			init_func = _starpu_src_common_get_cpu_func_from_codelet(init_cl, 0);
 			break;
 #endif
@@ -135,10 +135,10 @@ void _starpu_init_data_replicate(starpu_data_handle_t handle, struct _starpu_dat
 
 	switch (starpu_worker_get_type(workerid))
 	{
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-		case STARPU_MPI_MS_WORKER:
+#ifdef STARPU_USE_MPI_SERVER_CLIENT
+		case STARPU_MPI_SC_WORKER:
 		{
-			struct _starpu_mp_node *node = _starpu_mpi_ms_src_get_actual_thread_mp_node();
+			struct _starpu_mp_node *node = _starpu_mpi_sc_src_get_actual_thread_mp_node();
 			int subworkerid = _starpu_get_worker_struct(workerid)->subworkerid;
 			void * arg;
 			int arg_size;
@@ -153,10 +153,10 @@ void _starpu_init_data_replicate(starpu_data_handle_t handle, struct _starpu_dat
 			break;
 		}
 #endif
-#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
-		case STARPU_TCPIP_MS_WORKER:
+#ifdef STARPU_USE_TCPIP_SERVER_CLIENT
+		case STARPU_TCPIP_SC_WORKER:
 		{
-			struct _starpu_mp_node *node = _starpu_tcpip_ms_src_get_actual_thread_mp_node();
+			struct _starpu_mp_node *node = _starpu_tcpip_sc_src_get_actual_thread_mp_node();
 			int subworkerid = _starpu_get_worker_struct(workerid)->subworkerid;
 			void * arg;
 			int arg_size;

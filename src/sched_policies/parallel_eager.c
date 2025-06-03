@@ -75,14 +75,14 @@ static void initialize_peager_common(void)
 			int *workers;
 			int size;
 			starpu_combined_worker_get_description(combined_workerid, &size, &workers);
-			int master = workers[0];
-			if (size > common_data->max_combination_size[master])
+			int primary = workers[0];
+			if (size > common_data->max_combination_size[primary])
 			{
-				common_data->max_combination_size[master] = size;
+				common_data->max_combination_size[primary] = size;
 			}
-			int cnt = common_data->possible_combinations_cnt[master]++;
-			common_data->possible_combinations[master][cnt] = combined_workerid;
-			common_data->possible_combinations_size[master][cnt] = size;
+			int cnt = common_data->possible_combinations_cnt[primary]++;
+			common_data->possible_combinations[primary][cnt] = combined_workerid;
+			common_data->possible_combinations_size[primary][cnt] = size;
 		}
 	}
 	else
@@ -135,7 +135,7 @@ static void peager_add_workers(unsigned sched_ctx_id, int *workerids, unsigned n
 		}
 		starpu_sched_ctx_worker_shares_tasks_lists(workerid, sched_ctx_id);
 
-		/* slaves pick up tasks from their local queue, their master
+		/* clients pick up tasks from their local queue, their primary
 		 * will put tasks directly in that local list when a parallel
 		 * tasks comes. */
 		starpu_st_fifo_taskq_init(&data->local_fifo[workerid]);
@@ -157,7 +157,7 @@ static void initialize_peager_policy(unsigned sched_ctx_id)
 
 	_STARPU_DISP("Warning: the peager scheduler is mostly a proof of concept and not really very optimized\n");
 
-	/* masters pick tasks from that queue */
+	/* primarys pick tasks from that queue */
 	starpu_st_fifo_taskq_init(&data->fifo);
 
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
@@ -212,7 +212,7 @@ static int push_task_peager_policy(struct starpu_task *task)
 		}
 		if ((!is_parallel_task) /* This is not a parallel task, can wake any workerid */
 				|| (common_data->no_combined_workers) /* There is no combined workerid */
-				|| (common_data->max_combination_size[workerid] > 1) /* This is a combined workerid master and the task is parallel */
+				|| (common_data->max_combination_size[workerid] > 1) /* This is a combined workerid primary and the task is parallel */
 		   )
 		{
 			starpu_wake_worker_relax_light(workerid);
@@ -244,27 +244,27 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 	}
 
 	struct starpu_task *task;
-	int slave_task = 0;
+	int client_task = 0;
 	starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	starpu_worker_relax_off();
-	/* check if a slave task is available in the local queue */
+	/* check if a client task is available in the local queue */
 	task = starpu_st_fifo_taskq_pop_task(&data->local_fifo[workerid], workerid);
 	if (!task)
 	{
-		/* no slave task, try to pop a task as master */
+		/* no client task, try to pop a task as primary */
 		task = starpu_st_fifo_taskq_pop_task(&data->fifo, workerid);
 		if (task)
 		{
-			_STARPU_DEBUG("poping master task %p\n", task);
+			_STARPU_DEBUG("poping primary task %p\n", task);
 		}
 
 #if 1
-		/* Optional heuristic to filter out purely slave workers for parallel tasks */
+		/* Optional heuristic to filter out purely clients for parallel tasks */
 		if (task && task->cl && task->cl->max_parallelism > 1 && common_data->max_combination_size[workerid] == 1 && !common_data->no_combined_workers)
 		{
-			/* task is potentially parallel, leave it for a combined worker master */
-			_STARPU_DEBUG("pushing back master task %p\n", task);
+			/* task is potentially parallel, leave it for a combined worker primary */
+			_STARPU_DEBUG("pushing back primary task %p\n", task);
 			starpu_st_fifo_taskq_push_back_task(&data->fifo, task);
 			task = NULL;
 		}
@@ -272,10 +272,10 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 	}
 	else
 	{
-		slave_task = 1;
-		_STARPU_DEBUG("poping slave task %p\n", task);
+		client_task = 1;
+		_STARPU_DEBUG("poping client task %p\n", task);
 	}
-	if (!task || slave_task)
+	if (!task || client_task)
 	{
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 		goto ret;
@@ -298,7 +298,7 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 	}
 	_STARPU_DEBUG("task %p, best_workerid=%d, best_size=%d\n", task, best_workerid, best_size);
 
-	/* In case nobody can execute this task, we let the master
+	/* In case nobody can execute this task, we let the primary
 	 * worker take it anyway, so that it can discard it afterward.
 	 * */
 	if (best_workerid == -1)
@@ -311,7 +311,7 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 	if (best_workerid < (int) starpu_worker_get_count())
 	{
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-		/* The master is alone */
+		/* The primary is alone */
 		goto ret;
 	}
 	starpu_parallel_task_barrier_init(task, best_workerid);
@@ -320,7 +320,7 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 	starpu_combined_worker_get_description(best_workerid, &worker_size, &combined_workerid);
 
 	_STARPU_DEBUG("dispatching task %p on combined worker %d of size %d\n", task, best_workerid, worker_size);
-	/* Dispatch task aliases to the different slaves */
+	/* Dispatch task aliases to the different workers */
 	for (i = 1; i < worker_size; i++)
 	{
 		struct starpu_task *alias = starpu_task_dup(task);
@@ -330,14 +330,14 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 		starpu_st_fifo_taskq_push_task(&data->local_fifo[local_worker], alias);
 	}
 
-	/* The master also manipulated an alias */
-	struct starpu_task *master_alias = starpu_task_dup(task);
-	master_alias->destroy = 1;
-	task = master_alias;
+	/* The primary also manipulated an alias */
+	struct starpu_task *primary_alias = starpu_task_dup(task);
+	primary_alias->destroy = 1;
+	task = primary_alias;
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
-	_starpu_trace_job_push(master_alias, master_alias->priority > 0);
+	_starpu_trace_job_push(primary_alias, primary_alias->priority > 0);
 
 	for (i = 1; i < worker_size; i++)
 	{

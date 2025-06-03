@@ -252,8 +252,8 @@ starpu_task::prologue_callback_pop_func. Such a function can be
 similar to the OpenMP thread team creation one (see above). An example is available in <c>examples/sched_ctx/parallel_tasks_reuse_handle.c</c>.
 
 Note that the OpenMP mode is the default mode both for parallel workers and
-contexts. The result of a parallel worker creation is a woken-up master worker
-and sleeping "slaves" which allow the master to run tasks on their
+contexts. The result of a parallel worker creation is a woken-up primary worker
+and sleeping "workers" which allow the primary worker to run tasks on their
 resources.
 
 To create a parallel worker with woken-up workers, the flag

@@ -143,7 +143,7 @@ int _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)
 			 * 	Other should be ok */
 
 			if (starpu_node_get_kind(i) == STARPU_CPU_RAM ||
-			    starpu_node_get_kind(i) == STARPU_MPI_MS_RAM)
+			    starpu_node_get_kind(i) == STARPU_MPI_SC_RAM)
 				i_ram = i;
 			else if (starpu_node_get_kind(i) == STARPU_DISK_RAM)
 				i_disk = i;

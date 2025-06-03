@@ -379,18 +379,18 @@ it is therefore necessary to disable asynchronous data transfers.
 Disable asynchronous copies between CPU and HIP devices.
 </dd>
 
-<dt>--disable-asynchronous-mpi-master-slave-copy</dt>
+<dt>--disable-asynchronous-mpi-server-client-copy</dt>
 <dd>
-\anchor disable-asynchronous-mpi-master-slave-copy
-\addindex __configure__--disable-asynchronous-mpi-master-slave-copy
-Disable asynchronous copies between CPU and MPI Slave devices.
+\anchor disable-asynchronous-mpi-server-client-copy
+\addindex __configure__--disable-asynchronous-mpi-server-client-copy
+Disable asynchronous copies between CPU and MPI worker devices.
 </dd>
 
-<dt>--disable-asynchronous-tcpip-master-slave-copy</dt>
+<dt>--disable-asynchronous-tcpip-server-client-copy</dt>
 <dd>
-\anchor disable-asynchronous-tcpip-master-slave-copy
-\addindex __configure__--disable-asynchronous-mpi-master-slave-copy
-Disable asynchronous copies between CPU and MPI Slave devices.
+\anchor disable-asynchronous-tcpip-server-client-copy
+\addindex __configure__--disable-asynchronous-mpi-server-client-copy
+Disable asynchronous copies between CPU and MPI worker devices.
 </dd>
 
 <dt>--disable-asynchronous-fpga-copy</dt>
@@ -477,11 +477,11 @@ concurrent \c MPI_Isend calls accessing the data
 and StarPU does not read from it from tasks during the communication.
 </dd>
 
-<dt>--enable-mpi-master-slave</dt>
+<dt>--enable-mpi-server-client</dt>
 <dd>
-\anchor enable-mpi-master-slave
-\addindex __configure__--enable-mpi-master-slave
-Enable the MPI Master-Slave support. By default, it is disabled.
+\anchor enable-mpi-server-client
+\addindex __configure__--enable-mpi-server-client
+Enable the MPI Server-Client support. By default, it is disabled.
 </dd>
 
 <dt>--enable-mpi-verbose</dt>
@@ -511,11 +511,11 @@ Enable the MPI checkpoint mechanism. See \ref API_MPI_FT_Support
 Enable the statistics for the MPI checkpoint mechanism. See \ref API_MPI_FT_Support
 </dd>
 
-<dt>--enable-tcpip-master-slave</dt>
+<dt>--enable-tcpip-server-client</dt>
 <dd>
-\anchor enable-tcpip-master-slave
-\addindex __configure__--enable-mpi-master-slave
-Enable the TCP/IP Master-Slave support (\ref TCPIPSupport). By default, it is disabled.
+\anchor enable-tcpip-server-client
+\addindex __configure__--enable-mpi-server-client
+Enable the TCP/IP Server-Client support (\ref TCPIPSupport). By default, it is disabled.
 </dd>
 
 <dt>--enable-nmad</dt>

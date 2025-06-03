@@ -106,19 +106,18 @@
 #undef STARPU_USE_MAX_FPGA
 
 /**
-   Defined when StarPU has been installed with MPI Master Slave
-   support. It should be used in your code to detect the availability
-   of MPI Master Slave.
+   Defined when StarPU has been installed with MPI server client
+   support. It should be used in your code to detect the
+   availability of this support
    @ingroup API_MPI_Support
 */
-#undef STARPU_USE_MPI_MASTER_SLAVE
+#undef STARPU_USE_MPI_SERVER_CLIENT
 
 /**
-   Defined when StarPU has been installed with TCP/IP Master Slave
-   support. It should be used in your code to detect the availability
-   of TCP/IP Master Slave.
+   Defined when StarPU has been installed with TCP/IP server client
+   support. It should be used in your code to detect its availability.
 */
-#undef STARPU_USE_TCPIP_MASTER_SLAVE
+#undef STARPU_USE_TCPIP_SERVER_CLIENT
 
 /**
    Defined when StarPU has been installed with OpenMP Runtime support.

@@ -28,7 +28,7 @@ $0 [option ....] application
 Options:
    -np      To set the number of workers
    -nobind
-   -ncpus   To set the number of threads to use on the TCP/IP Slave devices (environment variable STARPU_NTCPIPMSTHREADS)
+   -ncpus   To set the number of threads to use on the TCP/IP client devices (environment variable STARPU_TCPIP_SC_NTHREADS)
    -nolocal
    -ex      To specify an external launcher for the application
    -v       Output version information and exit
@@ -66,7 +66,7 @@ while true; do
 			shift
 			;;
 		"-ncpus")
-			export STARPU_NTCPIPMSTHREADS=$2
+			export STARPU_TCPIP_SC_NTHREADS=$2
 			shift 2
 			;;
 		"-nolocal")
@@ -86,15 +86,15 @@ done
 trap 'kill -INT $CHILDPIDS' INT
 trap 'kill -QUIT $CHILDPIDS' QUIT
 
-export STARPU_TCPIP_MS_PORT=$((10000 + $$ % 20000))
-#echo "STARPU_TCPIP_MS_SLAVES=$NP $@"
-STARPU_TCPIP_MS_SLAVES=$NP $EXECUTE "$@" &
+export STARPU_TCPIP_SC_PORT=$((10000 + $$ % 20000))
+#echo "STARPU_TCPIP_SC_CLIENTS=$NP $@"
+STARPU_TCPIP_SC_CLIENTS=$NP $EXECUTE "$@" &
 CHILDPIDS="$!"
 
 sleep 1
 for i in $(seq 1 $NP):
 do
-	STARPU_TCPIP_MS_SLAVES=$NP STARPU_TCPIP_MS_MASTER="127.0.0.1" $EXECUTE "$@" &
+	STARPU_TCPIP_SC_CLIENTS=$NP STARPU_TCPIP_SC_SERVER="127.0.0.1" $EXECUTE "$@" &
 	CHILDPIDS="$CHILDPIDS $!"
 done
 wait %1

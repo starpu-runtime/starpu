@@ -53,14 +53,14 @@ export STARPU_SUB_PARALLEL
 endif
 
 export MS_LAUNCHER
-if STARPU_USE_MPI_MASTER_SLAVE
+if STARPU_USE_MPI_SERVER_CLIENT
 # Make tests run through mpiexec
 LAUNCHER			+= $(abs_top_srcdir)/tools/starpu_msexec
 MS_LAUNCHER 			= $(STARPU_MPIEXEC)
-LAUNCHER_ENV			+= $(MPI_RUN_ENV) STARPU_NMPIMSTHREADS=4
+LAUNCHER_ENV			+= $(MPI_RUN_ENV) STARPU_MPI_SC_NTHREADS=4
 endif
 
-if STARPU_USE_TCPIP_MASTER_SLAVE
+if STARPU_USE_TCPIP_SERVER_CLIENT
 LAUNCHER			+= $(abs_top_srcdir)/tools/starpu_msexec
 MS_LAUNCHER			= $(abs_top_builddir)/tools/starpu_tcpipexec -np 2 -nobind -ncpus 1
 # switch off local socket usage

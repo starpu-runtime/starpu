@@ -1292,14 +1292,14 @@ MPI interface of StarPU (described in \ref API_MPI_Support) is the same.
 
 
 
-\section MPIMasterSlave MPI Master Slave Support
+\section MPIServerclient MPI Server Client Support
 
 StarPU provides another way to execute applications across many
-nodes. The Master Slave support permits to use remote cores without
+nodes. The Server Client support permits to use remote cores without
 thinking about data distribution. This support can be activated with
-the \c configure option \ref enable-mpi-master-slave
-"--enable-mpi-master-slave". However, you should not activate both MPI
-support and MPI Master-Slave support.
+the \c configure option \ref enable-mpi-server-client
+"--enable-mpi-server-client". However, you should not
+activate this support together with the MPI support.
 
 The existing kernels for CPU devices can be used as such. They only have to be
 exposed through the name of the function in the \ref starpu_codelet::cpu_funcs_name field.
@@ -1307,26 +1307,27 @@ Functions have to be globally-visible (i.e. not static) for StarPU to
 be able to look them up, and <c>-rdynamic</c> must be passed to gcc (or
 <c>-export-dynamic</c> to ld) so that symbols of the main program are visible.
 
-By default, one core is dedicated on the master node to manage the
-entire set of slaves. If the implementation of MPI you are using has a
+By default, one core is dedicated on the server node to manage the
+entire set of clients. If the implementation of MPI you are using has a
 good multiple threads support, you can set the \ref
-STARPU_MPI_MS_MULTIPLE_THREAD environment variable to 1 to dedicate one core per
-slave.
+STARPU_MPI_SC_MULTIPLE_THREAD environment variable to 1 to dedicate one core per
+worker.
 
-Choosing the number of cores on each slave device is done by setting
-the environment variable \ref STARPU_NMPIMSTHREADS "STARPU_NMPIMSTHREADS=\<number\>"
+Choosing the number of cores on each worker device is done by setting
+the environment variable \ref STARPU_MPI_SC_NTHREADS "STARPU_MPI_SC_NTHREADS=\<number\>"
 with <c>\<number\></c> being the requested number of cores. By default,
-all the slave's cores are used.
+all the worker's cores are used.
 
-Setting the number of slaves nodes is done by changing the <c>-np</c>
+Setting the number of client nodes is done by changing the <c>-np</c>
 parameter when executing the application with mpirun or mpiexec.
 
-The master node is by default the node with the MPI rank equal to 0.
+The server node is by default the node with the MPI rank equal to 0.
 To select another node, use the environment variable \ref
-STARPU_MPI_MASTER_NODE "STARPU_MPI_MASTER_NODE=\<number\>" with
+STARPU_MPI_SERVER_NODE "STARPU_MPI_SERVER_NODE=\<number\>" with
 <c>\<number\></c> being the requested MPI rank node.
 
-A simple example <c>tests/main/insert_task.c</c> can be used to test the MPI master slave support.
+A simple example <c>tests/main/insert_task.c</c> can be used to test
+the MPI server client support.
 
 \section MPICheckpoint MPI Checkpoint Support
 

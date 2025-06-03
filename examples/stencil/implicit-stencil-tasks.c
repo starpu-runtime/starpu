@@ -34,7 +34,7 @@
 # define DEBUG(fmt, ...)
 #endif
 
-#if defined(STARPU_USE_MPI) && !defined(STARPU_USE_MPI_MASTER_SLAVE)
+#if defined(STARPU_USE_MPI) && !defined(STARPU_USE_MPI_SERVER_CLIENT)
 #include <starpu_mpi.h>
 #undef starpu_task_insert
 #define starpu_task_insert(...) starpu_mpi_task_insert(MPI_COMM_WORLD, __VA_ARGS__)

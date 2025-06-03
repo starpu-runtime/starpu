@@ -719,11 +719,11 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 		_starpu_opencl_discover_devices(config);
 	if (config->conf.nmax_fpga != 0)
 		_starpu_max_fpga_discover_devices(config);
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-	config->topology.nhwdevices[STARPU_MPI_MS_WORKER] = _starpu_mpi_src_get_device_count();
+#ifdef STARPU_USE_MPI_SERVER_CLIENT
+	config->topology.nhwdevices[STARPU_MPI_SC_WORKER] = _starpu_mpi_src_get_device_count();
 #endif
-#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
-	config->topology.nhwdevices[STARPU_TCPIP_MS_WORKER] = _starpu_tcpip_src_get_device_count();
+#ifdef STARPU_USE_TCPIP_SERVER_CLIENT
+	config->topology.nhwdevices[STARPU_TCPIP_SC_WORKER] = _starpu_tcpip_src_get_device_count();
 #endif
 
 	topology_is_initialized = 1;
@@ -1363,10 +1363,10 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 	_starpu_init_max_fpga_config(topology, config);
 #endif
 
-#if defined(STARPU_USE_MPI_MASTER_SLAVE)
+#if defined(STARPU_USE_MPI_SERVER_CLIENT)
 	_starpu_init_mpi_config(topology, config, &config->conf, no_mp_config);
 #endif
-#if defined(STARPU_USE_TCPIP_MASTER_SLAVE)
+#if defined(STARPU_USE_TCPIP_SERVER_CLIENT)
 	_starpu_init_tcpip_config(topology, config, &config->conf, no_mp_config);
 #endif
 
@@ -2148,10 +2148,10 @@ int _starpu_build_topology(struct _starpu_machine_config *config, int no_mp_conf
 
 void _starpu_destroy_topology(struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED)
 {
-#if defined(STARPU_USE_MPI_MASTER_SLAVE)
+#if defined(STARPU_USE_MPI_SERVER_CLIENT)
 	_starpu_deinit_mpi_config(config);
 #endif
-#if defined(STARPU_USE_TCPIP_MASTER_SLAVE)
+#if defined(STARPU_USE_TCPIP_SERVER_CLIENT)
 	_starpu_deinit_tcpip_config(config);
 #endif
 

@@ -48,11 +48,11 @@
 #include <drivers/hip/driver_hip.h>
 #include <drivers/opencl/driver_opencl.h>
 
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
+#ifdef STARPU_USE_MPI_SERVER_CLIENT
 #include <drivers/mpi/driver_mpi_source.h>
 #endif
 
-#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
+#ifdef STARPU_USE_TCPIP_SERVER_CLIENT
 #include <drivers/tcpip/driver_tcpip_source.h>
 #endif
 
@@ -279,7 +279,7 @@ LIST_TYPE(_starpu_worker,
 	unsigned reverse_phase[2];
 
 	unsigned pop_ctx_priority;	  /**< indicate which priority of ctx is currently active: the values are 0 or 1*/
-	unsigned is_slave_somewhere;	  /**< bool to indicate if the worker is slave in a ctx */
+	unsigned is_sub_worker_somewhere;	  /**< bool to indicate if the worker is sub worker in a ctx */
 
 	struct _starpu_sched_ctx *stream_ctx;
 

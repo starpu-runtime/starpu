@@ -24,7 +24,7 @@
 
 #pragma GCC visibility push(hidden)
 
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
+#ifdef STARPU_USE_MPI_SERVER_CLIENT
 
 #define SYNC_TAG 44
 #define ASYNC_TAG 45
@@ -64,7 +64,7 @@ void _starpu_mpi_common_barrier(void);
 
 void _starpu_mpi_common_measure_bandwidth_latency(double bandwidth_dtod[STARPU_MAXMPIDEVS][STARPU_MAXMPIDEVS], double latency_dtod[STARPU_MAXMPIDEVS][STARPU_MAXMPIDEVS]);
 
-#endif  /* STARPU_USE_MPI_MASTER_SLAVE */
+#endif  /* STARPU_USE_MPI_SERVER_CLIENT */
 
 #pragma GCC visibility pop
 

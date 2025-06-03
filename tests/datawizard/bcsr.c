@@ -121,8 +121,8 @@ int main(int argc, char **argv)
 	conf.precedence_over_environment_variables = 1;
 	starpu_conf_noworker(&conf);
 	conf.ncpus = -1;
-	conf.nmpi_ms = -1;
-	conf.ntcpip_ms = -1;
+	conf.nmpi_sc = -1;
+	conf.ntcpip_sc = -1;
 
 	if (starpu_initialize(&conf, &argc, &argv) == -ENODEV)
 		return STARPU_TEST_SKIPPED;

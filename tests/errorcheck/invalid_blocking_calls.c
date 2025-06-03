@@ -23,7 +23,7 @@
  * codelet function, which is invalid. This test is thus expected to fail.
  */
 
-/* mpirun may not exit if it fails, skip the test for master-slave */
+/* mpirun may not exit if it fails, skip the test for server client */
 #if defined(STARPU_NO_ASSERT)
 int main(void)
 {

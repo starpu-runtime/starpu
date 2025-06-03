@@ -44,12 +44,12 @@ int main(int argc, char **argv)
 		unsigned ncpu = starpu_cpu_worker_get_count();
 		unsigned ncuda = starpu_cuda_worker_get_count();
 		unsigned nopencl = starpu_opencl_worker_get_count();
-		unsigned nmpi_ms = starpu_mpi_ms_worker_get_count();
+		unsigned nmpi_sc = starpu_mpi_sc_worker_get_count();
 		FPRINTF(stderr, "StarPU has found :\n");
 		FPRINTF(stderr, "\t%u CPU cores\n", ncpu);
 		FPRINTF(stderr, "\t%u CUDA devices\n", ncuda);
 		FPRINTF(stderr, "\t%u OpenCL devices\n", nopencl);
-		FPRINTF(stderr, "\t%u MPI Master-Slaves devices\n", nmpi_ms);
+		FPRINTF(stderr, "\t%u MPI client devices\n", nmpi_sc);
 		return EXIT_FAILURE;
 	}
 

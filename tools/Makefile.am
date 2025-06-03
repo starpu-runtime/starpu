@@ -507,7 +507,7 @@ starpu_fxt_data_trace.1: starpu_fxt_data_trace$(EXEEXT)
 	$(V_help2man) LC_ALL=C help2man --no-discard-stderr -N -n "Print data trace from raw StarPU FxT trace" --output=$@ ./$<
 endif
 
-if STARPU_USE_TCPIP_MASTER_SLAVE
+if STARPU_USE_TCPIP_SERVER_CLIENT
 starpu_tcpipexec.1: starpu_tcpipexec
 	@chmod +x $<
 	$(V_help2man) LC_ALL=C help2man --no-discard-stderr -N -n "Execute TCPIP application" --output=$@ ./$<
@@ -537,7 +537,7 @@ dist_man1_MANS +=\
 	starpu_fxt_data_trace.1
 endif
 
-if STARPU_USE_TCPIP_MASTER_SLAVE
+if STARPU_USE_TCPIP_SERVER_CLIENT
 dist_man1_MANS +=\
 	starpu_tcpipexec.1
 endif
@@ -552,7 +552,7 @@ dist_pkgdata_DATA += starpu_smpi.xslt
 dist_bin_SCRIPTS += starpu_smpirun
 endif
 
-if STARPU_USE_TCPIP_MASTER_SLAVE
+if STARPU_USE_TCPIP_SERVER_CLIENT
 dist_bin_SCRIPTS += starpu_tcpipexec
 endif
 

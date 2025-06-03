@@ -34,7 +34,7 @@ const char *_starpu_mp_common_command_to_string(const enum _starpu_mp_command co
 {
 	switch(command)
 	{
-		/* Commands from master to slave */
+		/* Commands from server to client */
 		case STARPU_MP_COMMAND_EXIT:
 			return "EXIT";
 		case STARPU_MP_COMMAND_EXECUTE:
@@ -76,7 +76,7 @@ const char *_starpu_mp_common_command_to_string(const enum _starpu_mp_command co
 		case STARPU_MP_COMMAND_SEND_TO_SINK_ASYNC:
 			return "SEND_TO_SINK_ASYNC";
 
-		/* Synchronous answers from slave to master */
+		/* Synchronous answers from client to server */
 		case STARPU_MP_COMMAND_ERROR_EXECUTE:
 			return "ERROR_EXECUTE";
 		case STARPU_MP_COMMAND_ERROR_EXECUTE_DETACHED:
@@ -102,7 +102,7 @@ const char *_starpu_mp_common_command_to_string(const enum _starpu_mp_command co
 		case STARPU_MP_COMMAND_ANSWER_EXECUTION_DETACHED_SUBMITTED:
 			return "ANSWER_EXECUTION_DETACHED_SUBMITTED";
 
-		/* Asynchronous notifications from slave to master */
+		/* Asynchronous notifications from client to server */
 		case STARPU_MP_COMMAND_NOTIF_RECV_FROM_HOST_ASYNC_COMPLETED:
 			return "NOTIF_RECV_FROM_HOST_ASYNC_COMPLETED";
 		case STARPU_MP_COMMAND_NOTIF_SEND_TO_HOST_ASYNC_COMPLETED:
@@ -156,7 +156,7 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 
 	switch(node->kind)
 	{
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
+#ifdef STARPU_USE_MPI_SERVER_CLIENT
 		case STARPU_NODE_MPI_SOURCE:
 		{
 			/*
@@ -235,9 +235,9 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 			node->unmap = _starpu_sink_common_unmap;
 		}
 		break;
-#endif /* STARPU_USE_MPI_MASTER_SLAVE */
+#endif /* STARPU_USE_MPI_SERVER_CLIENT */
 
-#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
+#ifdef STARPU_USE_TCPIP_SERVER_CLIENT
 		case STARPU_NODE_TCPIP_SOURCE:
 		{
 			/*
@@ -317,7 +317,7 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 			node->unmap = _starpu_sink_common_unmap;
 		}
 		break;
-#endif /* STARPU_USE_TCPIP_MASTER_SLAVE */
+#endif /* STARPU_USE_TCPIP_SERVER_CLIENT */
 
 		default:
 			STARPU_ASSERT(0);

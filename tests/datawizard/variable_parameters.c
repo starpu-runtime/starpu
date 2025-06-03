@@ -101,7 +101,7 @@ static struct starpu_codelet increment_cl =
 #endif
 	.cpu_funcs = {increment_cpu_kernel},
 
-	/* starpu_task_get_current() doesn't work on MPI Master Slave */
+	/* starpu_task_get_current() doesn't work on MPI Server Client Mode */
 	/*.cpu_funcs_name = {"increment_cpu_kernel"},*/
 	.nbuffers = STARPU_VARIABLE_NBUFFERS,
 };

@@ -23,12 +23,12 @@
 
 #pragma GCC visibility push(hidden)
 
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
+#ifdef STARPU_USE_MPI_SERVER_CLIENT
 
 void _starpu_mpi_sink_init(struct _starpu_mp_node *node);
 void _starpu_mpi_sink_bind_thread(const struct _starpu_mp_node *mp_node STARPU_ATTRIBUTE_UNUSED, int coreid, int * core_table, int nb_core);
 
-#endif  /* STARPU_USE_MPI_MASTER_SLAVE */
+#endif  /* STARPU_USE_MPI_SERVER_CLIENT */
 
 #pragma GCC visibility pop
 

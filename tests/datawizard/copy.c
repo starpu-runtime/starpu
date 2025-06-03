@@ -64,7 +64,7 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	if (starpu_worker_get_count_by_type(STARPU_CUDA_WORKER) == 0 && starpu_worker_get_count_by_type(STARPU_OPENCL_WORKER) == 0 &&
-	    starpu_worker_get_count_by_type(STARPU_MPI_MS_WORKER) == 0)
+	    starpu_worker_get_count_by_type(STARPU_MPI_SC_WORKER) == 0)
 	{
 		FPRINTF(stderr, "This application requires a CUDA , OpenCL Worker\n");
 		starpu_shutdown();

@@ -39,10 +39,10 @@ int main(int argc, char** argv)
 	starpu_conf_init(&conf);
 
 #ifdef STARPU_DEVEL
-#warning FIXME: this example does not support Master-Slave
+#warning FIXME: this example does not support server client mode
 #endif
-	conf.nmpi_ms = 0;
-	conf.ntcpip_ms = 0;
+	conf.nmpi_sc = 0;
+	conf.ntcpip_sc = 0;
 
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV)

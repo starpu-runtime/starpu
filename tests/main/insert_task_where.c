@@ -42,8 +42,8 @@ int main(void)
 #ifndef STARPU_SIMGRID
 	conf.ncuda = -1;
 #endif
-	conf.nmpi_ms = -1;
-	conf.ntcpip_ms = -1;
+	conf.nmpi_sc = -1;
+	conf.ntcpip_sc = -1;
 
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;

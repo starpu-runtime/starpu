@@ -25,14 +25,14 @@
 
 #pragma GCC visibility push(hidden)
 
-void _starpu_tcpip_ms_preinit(void);
+void _starpu_tcpip_sc_preinit(void);
 
-#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
-extern struct _starpu_node_ops _starpu_driver_tcpip_ms_node_ops;
+#ifdef STARPU_USE_TCPIP_SERVER_CLIENT
+extern struct _starpu_node_ops _starpu_driver_tcpip_sc_node_ops;
 
 /** Array of structures containing all the information useful to send
  * and receive information with devices */
-struct _starpu_mp_node *_starpu_tcpip_ms_src_get_actual_thread_mp_node();
+struct _starpu_mp_node *_starpu_tcpip_sc_src_get_actual_thread_mp_node();
 
 unsigned _starpu_tcpip_src_get_device_count();
 void _starpu_init_tcpip_config(struct _starpu_machine_topology * topology, struct _starpu_machine_config *config, struct starpu_conf *user_conf, int no_mp_config);
@@ -44,7 +44,7 @@ void *_starpu_tcpip_src_worker(void *arg);
 void _starpu_tcpip_source_init(struct _starpu_mp_node *node);
 void _starpu_tcpip_source_deinit(struct _starpu_mp_node *node);
 
-#endif /* STARPU_USE_TCPIP_MASTER_SLAVE */
+#endif /* STARPU_USE_TCPIP_SERVER_CLIENT */
 
 #pragma GCC visibility pop
 

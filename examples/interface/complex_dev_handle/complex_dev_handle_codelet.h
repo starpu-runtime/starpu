@@ -68,7 +68,7 @@ void compare_complex_dev_handle_codelet(void *descr[], void *_args)
 struct starpu_codelet cl_dev_handle_compare =
 {
 	.cpu_funcs = {compare_complex_dev_handle_codelet},
-	/* dereferencing compare won't work on MPI Master Slave */
+	/* dereferencing compare won't work on MPI Server Client Mode */
 	/* .cpu_funcs_name = {"compare_complex_dev_handle_codelet"}, */
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_R},
@@ -98,7 +98,7 @@ void display_complex_dev_handle_codelet(void *descr[], void *_args)
 struct starpu_codelet cl_dev_handle_display =
 {
 	.cpu_funcs = {display_complex_dev_handle_codelet},
-	/* MPI Master Slave does not use pack/unpack yet */
+	/* MPI Server Client Mode does not use pack/unpack yet */
 	/* .cpu_funcs_name = {"display_complex_dev_handle_codelet"}, */
 	.nbuffers = 1,
 	.modes = {STARPU_R},

@@ -88,16 +88,16 @@ extern "C" {
 /**
    To be used when setting the field starpu_codelet::where (or
    starpu_task::where) to specify the codelet (or the task) may be
-   executed on a MPI Slave processing unit.
+   executed on a MPI client processing unit.
 */
-#define STARPU_MPI_MS STARPU_WORKER_TO_MASK(STARPU_MPI_MS_WORKER)
+#define STARPU_MPI_SC STARPU_WORKER_TO_MASK(STARPU_MPI_SC_WORKER)
 
 /**
    To be used when setting the field starpu_codelet::where (or
    starpu_task::where) to specify the codelet (or the task) may be
-   executed on a TCP/IP Slave processing unit.
+   executed on a TCP/IP client processing unit.
 */
-#define STARPU_TCPIP_MS STARPU_WORKER_TO_MASK(STARPU_TCPIP_MS_WORKER)
+#define STARPU_TCPIP_SC STARPU_WORKER_TO_MASK(STARPU_TCPIP_SC_WORKER)
 
 /**
    Value to be set in starpu_codelet::flags to execute the codelet
@@ -499,8 +499,8 @@ struct starpu_codelet
 	   Optional array of strings which provide the name of the CPU
 	   functions referenced in the array
 	   starpu_codelet::cpu_funcs. This can be used when running on
-	   MPI MS devices for StarPU to simply look
-	   up the MPI MS function implementation through its name.
+	   MPI server client devices for StarPU to simply look
+	   up the MPI server client function implementation through its name.
 	*/
 	const char *cpu_funcs_name[STARPU_MAXIMPLEMENTATIONS];
 
@@ -849,8 +849,8 @@ struct starpu_task
 	   static memory or dynamic allocation (starpu_task::cl_arg_free can be
 	   used for convenience in that case).
 
-	   For the master/slave drivers however, the content pointed by cl_arg
-	   is copied to the slave, so the size of the data must be set in
+	   For the server client drivers however, the content pointed by cl_arg
+	   is copied to the distant worker, so the size of the data must be set in
 	   starpu_task::cl_arg_size.
 
 	   starpu_codelet_pack_args() and starpu_codelet_unpack_args() are

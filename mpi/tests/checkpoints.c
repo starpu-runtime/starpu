@@ -61,8 +61,8 @@ int pseudotest_checkpoint_template_register(int argc, char* argv[])
 	starpu_conf_init(&conf);
 	starpu_conf_noworker(&conf);
 	conf.ncpus = -1;
-	conf.nmpi_ms = -1;
-	conf.ntcpip_ms = -1;
+	conf.nmpi_sc = -1;
+	conf.ntcpip_sc = -1;
 
 	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, &conf);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
@@ -118,8 +118,8 @@ int test_checkpoint_submit(int argc, char* argv[])
 	starpu_conf_init(&conf);
 	starpu_conf_noworker(&conf);
 	conf.ncpus = -1;
-	conf.nmpi_ms = -1;
-	conf.ntcpip_ms = -1;
+	conf.nmpi_sc = -1;
+	conf.ntcpip_sc = -1;
 
 	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, &conf);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
