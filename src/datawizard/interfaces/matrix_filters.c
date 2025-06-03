@@ -149,7 +149,7 @@ void starpu_matrix_filter_pick_vector_y(void *parent_interface, void *child_inte
 
 	uintptr_t chunk_pos = (uintptr_t)f->filter_arg_ptr;
 
-	STARPU_ASSERT_MSG(nchunks <= nx, "cannot get %u vectors", nchunks);
+	STARPU_ASSERT_MSG((chunk_pos + nchunks) <= ny, "cannot get %u vectors", nchunks);
 	STARPU_ASSERT_MSG((chunk_pos + id) < ny, "the chosen vector should be in the matrix");
 
 	size_t offset = (chunk_pos + id) * blocksize * elemsize;
