@@ -1259,7 +1259,7 @@ static void _starpu_opencl_device_name(int devid, char *name, size_t size)
 	cl_device_id device;
 	cl_int err=0;
 	starpu_opencl_get_device(devid, &device);
-	err = clGetDeviceInfo(device, CL_DEVICE_NAME, size, &name, NULL);
+	err = clGetDeviceInfo(device, CL_DEVICE_NAME, size, name, NULL);
 	if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 }
 
