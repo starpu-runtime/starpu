@@ -323,7 +323,7 @@ int starpu_mpi_issend_detached(starpu_data_handle_t data_handle, int dest, starp
 struct _starpu_mpi_req* _starpu_mpi_isend_cache_aware(starpu_data_handle_t data_handle, int dest, starpu_mpi_tag_t data_tag, MPI_Comm comm, unsigned detached, unsigned sync, int prio, void (*callback)(void *), void *_arg, int sequential_consistency, int* cache_flag)
 {
 	struct _starpu_mpi_req* req = NULL;
-	int already_sent = starpu_mpi_cached_send_set(data_handle, dest);
+	int already_sent = starpu_mpi_cached_send_set(data_handle, dest, comm);
 	if (already_sent == 0)
 	{
 		*cache_flag = 0;
@@ -595,7 +595,7 @@ int starpu_mpi_get_data_on_node_detached(MPI_Comm comm, starpu_data_handle_t dat
 	else if (me == rank)
 	{
 		_STARPU_MPI_DEBUG(1, "Migrating data %p from %d to %d\n", data_handle, rank, node);
-		int already_sent = starpu_mpi_cached_send_set(data_handle, node);
+		int already_sent = starpu_mpi_cached_send_set(data_handle, node, comm);
 		if (already_sent == 0)
 		{
 			_STARPU_MPI_DEBUG(1, "Sending data %p to %d\n", data_handle, node);
@@ -640,7 +640,7 @@ int starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle_t data_handle,
 	else if (me == rank)
 	{
 		_STARPU_MPI_DEBUG(1, "Migrating data %p from %d to %d\n", data_handle, rank, node);
-		int already_sent = starpu_mpi_cached_send_set(data_handle, node);
+		int already_sent = starpu_mpi_cached_send_set(data_handle, node, comm);
 		if (already_sent == 0)
 		{
 			_STARPU_MPI_DEBUG(1, "Sending data %p to %d\n", data_handle, node);

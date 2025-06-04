@@ -2096,6 +2096,7 @@ char *starpu_task_status_get_as_string(enum starpu_task_status status);
    See \ref HowToReduceTheMemoryFootprintOfInternalDataStructures for more details.
 */
 void starpu_set_limit_min_submitted_tasks(int limit_min);
+int starpu_get_limit_min_submitted_tasks();
 
 /**
    Specify a maximum number of submitted tasks allowed at a given
@@ -2105,6 +2106,7 @@ void starpu_set_limit_min_submitted_tasks(int limit_min);
    See \ref HowToReduceTheMemoryFootprintOfInternalDataStructures for more details.
 */
 void starpu_set_limit_max_submitted_tasks(int limit_min);
+int starpu_get_limit_max_submitted_tasks();
 
 /** @} */
 
