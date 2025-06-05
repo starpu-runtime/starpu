@@ -27,6 +27,11 @@
  *
  * Use ./tasks_size_overhead.sh to generate a plot of the result.
  *
+ * A given curve tells how well running a flurry of tasks of the given duration
+ * scales with the number of cores. The point at which the curve flattens or
+ * falls down is the maximum number of cores with which the overhead is not too
+ * high. To remain efficient with more cores, one has to use larger tasks.
+ *
  * Thanks Martin Tillenius for the idea.
  */
 
