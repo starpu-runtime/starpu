@@ -33,7 +33,7 @@ executing these tasks with StarPU is correct up to about 30 cores executing
 these tasks: the measured speedup is close to a linear speedup. With more than
 30 cores, the speedup decreases, which means the tasks are too small to
 overcome the scheduler overhead. Conclusion: with more than 30 cores, tasks
-needs to last more than 128 µs for the selected scheduler to be efficient.
+need to last more than 128 µs for the selected scheduler to be efficient.
 
 \image html tasks_size_overhead.png
 \image latex tasks_size_overhead.png "" width=\textwidth
