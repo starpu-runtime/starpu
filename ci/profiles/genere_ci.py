@@ -120,6 +120,8 @@ def create_builder(profile, profile_iname, profile_name, profile_host):
     p.addStep(Command(["cd", "$starpu_build_dir"]))
 
     configure_options = ["--enable-quick-check", "--disable-build-doc"]
+    if bench:
+        configure_options = ["--disable-build-doc"]
     global_opts = True
     if 'global_opts' in profile.keys():
         global_opts = profile['global_opts']
