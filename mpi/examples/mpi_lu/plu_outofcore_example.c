@@ -378,6 +378,13 @@ int main(int argc, char **argv)
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &world_size);
 
+	if (starpu_cpu_worker_get_count() + starpu_cuda_worker_get_count() == 0)
+	{
+		FPRINTF_MPI(stderr, "No CPU or CUDA worker is available\n");
+		starpu_mpi_shutdown();
+		return (rank == 0 ? 77 : 0);
+	}
+
 	if (p == -1 && q==-1)
 	{
 		fprintf(stderr, "Setting default values for p and q\n");
