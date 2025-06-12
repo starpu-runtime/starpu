@@ -1842,7 +1842,8 @@ int starpu_task_finished(struct starpu_task *task) STARPU_WARN_UNUSED_RESULT;
 /**
    Block until \p task has been executed. It is not possible to
    synchronize with a task more than once. It is not possible to wait
-   for synchronous or detached tasks. Upon successful completion, this
+   for synchronous (starpu_task::synchronous = 1) or detached tasks
+   (starpu_task::detach = 1). Upon successful completion, this
    function returns 0. Otherwise, <c>-EINVAL</c> indicates that the
    specified task was either synchronous or detached.
    See \ref SubmittingATask for more details.
