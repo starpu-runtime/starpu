@@ -50,6 +50,10 @@ benchmarks_update:
 
 coverage:
   extends: [.benchmarks_master, .benchmarks_artifacts]
+  timeout: 2h
+  variables:
+    RUNNER_SCRIPT_TIMEOUT: 118m
+    RUNNER_AFTER_SCRIPT_TIMEOUT: 2m
   tags: ['starpu', 'node_gpu']
   script:
     - ./ci/scripts/run_profile.sh coverage
