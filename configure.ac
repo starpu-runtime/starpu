@@ -4234,6 +4234,9 @@ then
 	do
 		STARPUPY_EXTRA_LINK_ARGS="$STARPUPY_EXTRA_LINK_ARGS '$flag', "
 	done
+	if test x$enable_coverage = xyes; then
+		STARPUPY_EXTRA_LINK_ARGS="$STARPUPY_EXTRA_LINK_ARGS '-lgcov', "
+	fi
 fi
 AC_SUBST(STARPUPY_EXTRA_LINK_ARGS)
 
