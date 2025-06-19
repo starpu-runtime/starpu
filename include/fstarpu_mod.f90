@@ -35,6 +35,8 @@ module fstarpu_mod
 
         type(c_ptr), bind(C) :: FSTARPU_DATA_ARRAY
         type(c_ptr), bind(C) :: FSTARPU_DATA_MODE_ARRAY
+        type(c_ptr), bind(C) :: FSTARPU_NODE_ARRAY
+        type(c_ptr), bind(C) :: FSTARPU_DATA_MODE_NODE_ARRAY
         type(c_ptr), bind(C) :: FSTARPU_CL_ARGS
         type(c_ptr), bind(C) :: FSTARPU_CL_ARGS_NFREE
         type(c_ptr), bind(C) :: FSTARPU_TASK_DEPS_ARRAY
@@ -2524,6 +2526,8 @@ module fstarpu_mod
 
                         FSTARPU_DATA_ARRAY      = fstarpu_get_constant(C_CHAR_"FSTARPU_DATA_ARRAY"//C_NULL_CHAR)
                         FSTARPU_DATA_MODE_ARRAY = fstarpu_get_constant(C_CHAR_"FSTARPU_DATA_MODE_ARRAY"//C_NULL_CHAR)
+                        FSTARPU_NODE_ARRAY = fstarpu_get_constant(C_CHAR_"FSTARPU_NODE_ARRAY"//C_NULL_CHAR)
+                        FSTARPU_DATA_MODE_NODE_ARRAY = fstarpu_get_constant(C_CHAR_"FSTARPU_DATA_MODE_NODE_ARRAY"//C_NULL_CHAR)
                         FSTARPU_CL_ARGS = fstarpu_get_constant(C_CHAR_"FSTARPU_CL_ARGS"//C_NULL_CHAR)
                         FSTARPU_CL_ARGS_NFREE = fstarpu_get_constant(C_CHAR_"FSTARPU_CL_ARGS_NFREE"//C_NULL_CHAR)
                         FSTARPU_TASK_DEPS_ARRAY = fstarpu_get_constant(C_CHAR_"FSTARPU_TASK_DEPS_ARRAY"//C_NULL_CHAR)

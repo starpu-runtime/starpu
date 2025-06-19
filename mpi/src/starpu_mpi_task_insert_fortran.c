@@ -94,6 +94,12 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 			arg_i++;
 			break;
 		}
+		case  STARPU_NODE_ARRAY:
+		{
+			arg_i++;
+			arg_i++;
+			break;
+		}
 		case  STARPU_DATA_ARRAY:
 		{
 			arg_i++;
@@ -131,6 +137,38 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 		{
 			arg_i++;
 			struct starpu_data_descr *_descrs = arglist[arg_i];
+			arg_i++;
+			int nb_handles = *(int *)arglist[arg_i];
+			int i;
+
+			for(i=0 ; i<nb_handles ; i++)
+			{
+				enum starpu_data_access_mode mode = _descrs[i].mode;
+				if (node_selected == 0)
+				{
+					int ret = _starpu_mpi_find_executee_node(_descrs[i].handle, mode, me, do_execute, &inconsistent_execute, xrank);
+					if (ret == -EINVAL)
+					{
+						free(descrs);
+						_starpu_trace_task_mpi_decode_end();
+						return ret;
+					}
+				}
+				if (nb_data >= nb_allocated_data)
+				{
+					nb_allocated_data *= 2;
+					_STARPU_MPI_REALLOC(descrs, nb_allocated_data * sizeof(struct starpu_data_descr));
+				}
+				descrs[nb_data].handle = _descrs[i].handle;
+				descrs[nb_data].mode = mode;
+				nb_data ++;
+			}
+			break;
+		}
+		case  STARPU_DATA_MODE_NODE_ARRAY:
+		{
+			arg_i++;
+			struct starpu_data_mode_node_descr *_descrs = arglist[arg_i];
 			arg_i++;
 			int nb_handles = *(int *)arglist[arg_i];
 			int i;

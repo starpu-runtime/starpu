@@ -55,6 +55,12 @@ The maximum number of data that a task can manage is set by the macro \ref STARP
 
 However, if you have specific cases where you need tasks to manage more data than the maximum allowed, you can use the starpu_task::dyn_handles field when defining a task, along with the starpu_codelet::dyn_modes field when defining the corresponding codelet.
 
+As such, if you need to specify the node location with more data than the maximum allowed, you can use starpu_codelet::dyn_nodes (and set the starpu_codelet::specific_nodes to 1).
+
+If the modes and/or nodes are not common to each task using a codelet, you can use the correponding fiels in starpu_task : starpu_task::dyn_modes and/or starpu_task::dyn_nodes.
+
+If starpu_task::dyn_modes (resp. starpu_task::dyn_nodes) is not NULL, it will be automatically freed when the task is destroyed by StarPU.
+
 This dynamic handle mechanism allows tasks to handle additional data beyond the usual limit imposed by \ref STARPU_NMAXBUFS.
 
 \code{.c}

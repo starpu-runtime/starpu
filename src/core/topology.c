@@ -255,9 +255,7 @@ int starpu_memory_nodes_numa_id_to_devid(int osid)
 /* Avoid using this one, prefer _starpu_task_data_get_node_on_worker */
 int _starpu_task_data_get_node_on_node(struct starpu_task *task, unsigned index, unsigned local_node)
 {
-	int node = STARPU_SPECIFIC_NODE_LOCAL;
-	if (task->cl->specific_nodes)
-		node = STARPU_CODELET_GET_NODE(task->cl, index);
+	int node = STARPU_TASK_GET_NODE(task, index, STARPU_SPECIFIC_NODE_LOCAL);
 	switch (node)
 	{
 	case STARPU_SPECIFIC_NODE_LOCAL:
@@ -318,9 +316,7 @@ int _starpu_task_data_get_node_on_node(struct starpu_task *task, unsigned index,
 int _starpu_task_data_get_node_on_worker(struct starpu_task *task, unsigned index, unsigned worker)
 {
 	unsigned local_node = starpu_worker_get_memory_node(worker);
-	int node = STARPU_SPECIFIC_NODE_LOCAL;
-	if (task->cl->specific_nodes)
-		node = STARPU_CODELET_GET_NODE(task->cl, index);
+	int node = STARPU_TASK_GET_NODE(task, index, STARPU_SPECIFIC_NODE_LOCAL);
 	switch (node)
 	{
 	case STARPU_SPECIFIC_NODE_LOCAL:
