@@ -1257,6 +1257,24 @@ size_t starpu_matrix_get_allocsize(starpu_data_handle_t handle);
 		STARPU_MATRIX_CHECK(interface);                               \
 		(((struct starpu_matrix_interface *)(interface))->allocsize); \
 	})
+#define STARPU_MATRIX_SET_NX(interface, newnx)                                   \
+	do {                                                                     \
+		STARPU_MATRIX_CHECK(interface);                                  \
+		(((struct starpu_matrix_interface *)(interface))->nx) = (newnx); \
+	}                                                                        \
+	while (0)
+#define STARPU_MATRIX_SET_NY(interface, newny)                                   \
+	do {                                                                     \
+		STARPU_MATRIX_CHECK(interface);                                  \
+		(((struct starpu_matrix_interface *)(interface))->ny) = (newny); \
+	}                                                                        \
+	while (0)
+#define STARPU_MATRIX_SET_LD(interface, newld)                                   \
+	do {                                                                     \
+		STARPU_MATRIX_CHECK(interface);                                  \
+		(((struct starpu_matrix_interface *)(interface))->ld) = (newld); \
+	}                                                                        \
+	while (0)
 #else
 /**
    Return a pointer to the matrix designated by \p interface, valid
@@ -1300,39 +1318,24 @@ size_t starpu_matrix_get_allocsize(starpu_data_handle_t handle);
    Return the allocated size of the matrix designated by \p interface.
 */
 #define STARPU_MATRIX_GET_ALLOCSIZE(interface)	(((struct starpu_matrix_interface *)(interface))->allocsize)
-#endif
-
 /**
    Set the number of elements on the x-axis of the matrix
    designated by \p interface.
 */
-#define STARPU_MATRIX_SET_NX(interface, newnx)                                   \
-	do {                                                                     \
-		STARPU_MATRIX_CHECK(interface);                                  \
-		(((struct starpu_matrix_interface *)(interface))->nx) = (newnx); \
-	}                                                                        \
-	while (0)
+#define STARPU_MATRIX_SET_NX(interface, newnx)  (((struct starpu_matrix_interface *)(interface))->nx) = (newnx)
+
 /**
    Set the number of elements on the y-axis of the matrix
    designated by \p interface.
 */
-#define STARPU_MATRIX_SET_NY(interface, newny)                                   \
-	do {                                                                     \
-		STARPU_MATRIX_CHECK(interface);                                  \
-		(((struct starpu_matrix_interface *)(interface))->ny) = (newny); \
-	}                                                                        \
-	while (0)
+#define STARPU_MATRIX_SET_NY(interface, newny)  (((struct starpu_matrix_interface *)(interface))->ny) = (newny)
 /**
    Set the number of elements between each row of the matrix
    designated by \p interface. May be set to the same value as nx when there is
    no padding.
 */
-#define STARPU_MATRIX_SET_LD(interface, newld)                                   \
-	do {                                                                     \
-		STARPU_MATRIX_CHECK(interface);                                  \
-		(((struct starpu_matrix_interface *)(interface))->ld) = (newld); \
-	}                                                                        \
-	while (0)
+#define STARPU_MATRIX_SET_LD(interface, newld) (((struct starpu_matrix_interface *)(interface))->ld) = (newld)
+#endif
 
 /** @} */
 
@@ -2127,6 +2130,11 @@ uintptr_t starpu_vector_get_local_ptr(starpu_data_handle_t handle);
 		STARPU_VECTOR_CHECK(interface);                                \
 		(((struct starpu_vector_interface *)(interface))->slice_base); \
 	})
+#define STARPU_VECTOR_SET_NX(interface, newnx) (                                   \
+	do {                                                                       \
+		STARPU_VECTOR_CHECK(interface);                                    \
+		((((struct starpu_vector_interface *)(interface))->nx) = (newnx)); \
+	} while(0)
 #else
 /**
    Return a pointer to the array designated by \p interface, valid on
@@ -2165,18 +2173,12 @@ uintptr_t starpu_vector_get_local_ptr(starpu_data_handle_t handle);
    \p interface.
  */
 #define STARPU_VECTOR_GET_SLICE_BASE(interface) (((struct starpu_vector_interface *)(interface))->slice_base)
-#endif
-
 /**
    Set the number of elements registered into the array designated by \p
    interface.
  */
-#define STARPU_VECTOR_SET_NX(interface, newnx)                                   \
-	do {                                                                     \
-		STARPU_VECTOR_CHECK(interface);                                  \
-		(((struct starpu_vector_interface *)(interface))->nx) = (newnx); \
-	}                                                                        \
-	while (0)
+#define STARPU_VECTOR_SET_NX(interface, newnx) (((struct starpu_vector_interface *)(interface))->nx) = (newnx)
+#endif
 
 /** @} */
 
