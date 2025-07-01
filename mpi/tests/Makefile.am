@@ -140,6 +140,7 @@ starpu_mpi_TESTS +=				\
 	insert_task_sent_cache			\
 	insert_task_recv_cache			\
 	insert_task_seq				\
+	cache_comm				\
 	tags_allocate				\
 	tags_checking				\
 	sync					\
@@ -218,6 +219,7 @@ noinst_PROGRAMS +=				\
 	insert_task_dyn_handles			\
 	insert_task_seq				\
 	insert_task_tags			\
+	cache_comm				\
 	multiple_send				\
 	multiple_comms				\
 	mpi_scatter_gather			\

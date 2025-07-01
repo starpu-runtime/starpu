@@ -491,20 +491,30 @@ int starpu_mpi_cached_cp_receive_set(starpu_data_handle_t data_handle);
 void starpu_mpi_cached_receive_clear(starpu_data_handle_t data);
 
 /**
-   Test whether \p data_handle is cached for emission to node \p dest,
-   i.e. the value was previously sent to \p dest, and not flushed
-   since then.
+   Test whether \p data_handle is cached for emission to node \p dest
+   in the communicator \p comm i.e. the value was previously sent to \p
+   dest, and not flushed since then.
 */
-int starpu_mpi_cached_send(starpu_data_handle_t data_handle, int dest);
+int starpu_mpi_cached_send_comm(starpu_data_handle_t data_handle, int dest, MPI_Comm comm);
 
 /**
- * If \p data is already available in the emission cache for node
- * \p dest, return 1
- * If \p data is NOT available in the emission cache for node \p dest,
- * add it to the cache and return 0
- * Return 0 if the communication cache is not enabled
+   Test whether \p data_handle is cached for emission to node \p dest
+   in the communicator \p MPI_COMM_WORLD i.e. the value was previously sent to \p
+   dest, and not flushed since then.
+*/
+#define starpu_mpi_cached_send(data_handle, dest) starpu_mpi_cached_send_comm(data_handle, dest, MPI_COMM_WORLD)
+
+/**
+   If \p data is already available in the emission cache for node
+   \p dest in the communicator \p comm, return 1
+   If \p data is NOT available in the emission cache for node \p dest
+   in the communicator \p comm,
+   add it to the cache and return 0
+   Return 0 if the communication cache is not enabled
  */
-int starpu_mpi_cached_send_set(starpu_data_handle_t data, int dest);
+int starpu_mpi_cached_send_set_comm(starpu_data_handle_t data_handle, int dest, MPI_Comm comm);
+
+#define starpu_mpi_cached_send_set(data_handle, dest) starpu_mpi_cached_send_set_comm(data_handle, dest, MPI_COMM_WORLD)
 
 /**
  * Remove \p data from the emission cache

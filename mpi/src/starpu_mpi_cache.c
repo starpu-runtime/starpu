@@ -21,6 +21,7 @@
 #include <starpu_mpi_cache.h>
 #include <starpu_mpi_cache_stats.h>
 #include <starpu_mpi_private.h>
+#include <starpu_mpi_init.h>
 #include <mpi_failure_tolerance/starpu_mpi_ft_stats.h>
 
 /* Whether we are allowed to keep copies of remote data. */
@@ -318,7 +319,7 @@ void starpu_mpi_cached_send_clear(starpu_data_handle_t data_handle)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&_cache_mutex);
 }
 
-int starpu_mpi_cached_send_set(starpu_data_handle_t data_handle, int dest)
+int starpu_mpi_cached_send_set_comm(starpu_data_handle_t data_handle, int dest, MPI_Comm comm)
 {
 	struct _starpu_mpi_data *mpi_data = data_handle->mpi_data;
 
@@ -326,6 +327,13 @@ int starpu_mpi_cached_send_set(starpu_data_handle_t data_handle, int dest)
 		return 0;
 
 	STARPU_MPI_ASSERT_MSG(dest < _starpu_cache_comm_size, "Node %d invalid. Max node is %d\n", dest, _starpu_cache_comm_size);
+
+	if (comm != MPI_COMM_WORLD)
+	{
+		struct comm_size_entry *entry;
+		HASH_FIND(hh, registered_comms, &comm, sizeof(entry->comm), entry);
+		dest = entry->translated_ranks[dest];
+	}
 
 	STARPU_PTHREAD_MUTEX_LOCK(&_cache_mutex);
 	int already_sent = mpi_data->cache_sent[dest];
@@ -343,13 +351,20 @@ int starpu_mpi_cached_send_set(starpu_data_handle_t data_handle, int dest)
 	return already_sent;
 }
 
-int starpu_mpi_cached_send(starpu_data_handle_t data_handle, int dest)
+int starpu_mpi_cached_send_comm(starpu_data_handle_t data_handle, int dest, MPI_Comm comm)
 {
 	struct _starpu_mpi_data *mpi_data = data_handle->mpi_data;
 	int already_sent;
 
 	if (_starpu_cache_enabled == 0)
 		return 0;
+
+	if (comm != MPI_COMM_WORLD)
+	{
+		struct comm_size_entry *entry;
+		HASH_FIND(hh, registered_comms, &comm, sizeof(entry->comm), entry);
+		dest = entry->translated_ranks[dest];
+	}
 
 	STARPU_PTHREAD_MUTEX_LOCK(&_cache_mutex);
 	STARPU_MPI_ASSERT_MSG(dest < _starpu_cache_comm_size, "Node %d invalid. Max node is %d\n", dest, _starpu_cache_comm_size);

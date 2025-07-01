@@ -19,6 +19,8 @@
 
 #include <starpu.h>
 #include <starpu_mpi.h>
+#include <starpu_mpi_private.h>
+#include <common/uthash.h>
 
 /** @file */
 
@@ -27,6 +29,16 @@ extern "C"
 {
 #endif
 
+struct comm_size_entry
+{
+	UT_hash_handle hh;
+	MPI_Comm comm;
+	int size;
+	int rank;
+	int *translated_ranks;
+};
+
+extern struct comm_size_entry *registered_comms;
 void _starpu_mpi_do_initialize(struct _starpu_mpi_argc_argv *argc_argv);
 
 #ifdef __cplusplus

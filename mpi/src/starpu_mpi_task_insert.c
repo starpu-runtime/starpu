@@ -173,7 +173,7 @@ int _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum s
 			if (exchange_needed)
 				*exchange_needed = 1;
 			/* The node owns the data, but another node is going to execute the codelet, the node needs to send the data to the executee node. */
-			int already_sent = starpu_mpi_cached_send_set(data, xrank);
+			int already_sent = starpu_mpi_cached_send_set_comm(data, xrank, comm);
 			if (already_sent == 0)
 			{
 				if (data_tag == -1)

@@ -16,6 +16,7 @@
 
 #include <stdlib.h>
 #include <starpu_mpi.h>
+#include <starpu_mpi_init.h>
 #include <starpu_mpi_datatype.h>
 #include <starpu_mpi_private.h>
 #include <starpu_mpi_cache.h>
@@ -404,15 +405,7 @@ int starpu_mpi_shutdown(void)
 	return starpu_mpi_shutdown_comm(MPI_COMM_WORLD);
 }
 
-struct comm_size_entry
-{
-	UT_hash_handle hh;
-	MPI_Comm comm;
-	int size;
-	int rank;
-};
-
-static struct comm_size_entry *registered_comms = NULL;
+struct comm_size_entry *registered_comms = NULL;
 
 int starpu_mpi_shutdown_comm(MPI_Comm comm)
 {
@@ -446,6 +439,8 @@ int starpu_mpi_shutdown_comm(MPI_Comm comm)
 	struct comm_size_entry *entry=NULL, *tmp=NULL;
 	HASH_ITER(hh, registered_comms, entry, tmp)
 	{
+		free(entry->translated_ranks);
+		entry->translated_ranks = NULL;
 		HASH_DEL(registered_comms, entry);
 		free(entry);
 	}
@@ -460,11 +455,27 @@ int starpu_mpi_comm_register(MPI_Comm comm)
 {
 	struct comm_size_entry *entry;
 
-	_STARPU_MPI_MALLOC(entry, sizeof(*entry));
+	_STARPU_MPI_CALLOC(entry, 1, sizeof(*entry));
 	entry->comm = comm;
 	MPI_Comm_size(_starpu_mpi_ulfm_get_mpi_comm_from_key(entry->comm), &(entry->size));
 	MPI_Comm_rank(_starpu_mpi_ulfm_get_mpi_comm_from_key(entry->comm), &(entry->rank));
 	HASH_ADD(hh, registered_comms, comm, sizeof(entry->comm), entry);
+
+	if (comm != MPI_COMM_WORLD)
+	{
+		_STARPU_MPI_CALLOC(entry->translated_ranks, entry->size, (sizeof(int)));
+		MPI_Group comm_world_group;
+		MPI_Group new_group;
+		MPI_Comm_group(MPI_COMM_WORLD, &comm_world_group);
+		MPI_Comm_group(comm, &new_group);
+		int dest[entry->size];
+		int i;
+		for(i=0 ; i<entry->size ; i++)
+		{
+			dest[i] = i;
+		}
+		MPI_Group_translate_ranks(new_group, entry->size, dest, comm_world_group, entry->translated_ranks);
+	}
 	return 0;
 }
 
