@@ -348,6 +348,16 @@ void starpu_set_limit_max_submitted_tasks(int limit_max)
 	limit_max_submitted_tasks = limit_max;
 }
 
+int starpu_get_limit_min_submitted_tasks()
+{
+	return limit_min_submitted_tasks;
+}
+
+int starpu_get_limit_max_submitted_tasks()
+{
+	return limit_max_submitted_tasks;
+}
+
 void starpu_task_init(struct starpu_task *task)
 {
 	/* TODO: memcpy from a template instead? benchmark it */

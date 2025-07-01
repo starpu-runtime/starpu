@@ -2099,6 +2099,12 @@ char *starpu_task_status_get_as_string(enum starpu_task_status status);
 void starpu_set_limit_min_submitted_tasks(int limit_min);
 
 /**
+   Return the current minimum number of submitted tasks allowed at a
+   given time. See starpu_set_limit_min_submitted_tasks()
+ */
+int starpu_get_limit_min_submitted_tasks();
+
+/**
    Specify a maximum number of submitted tasks allowed at a given
    time, this allows to control the task submission flow. The value
    can also be specified with the environment variable \ref
@@ -2106,6 +2112,12 @@ void starpu_set_limit_min_submitted_tasks(int limit_min);
    See \ref HowToReduceTheMemoryFootprintOfInternalDataStructures for more details.
 */
 void starpu_set_limit_max_submitted_tasks(int limit_min);
+
+/**
+   Return the current maximum number of submitted tasks allowed at a
+   given time. See starpu_set_limit_max_submitted_tasks()
+ */
+int starpu_get_limit_max_submitted_tasks();
 
 /** @} */
 
