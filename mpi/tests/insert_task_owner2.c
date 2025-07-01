@@ -43,7 +43,7 @@ struct starpu_codelet mycodelet =
 
 int main(int argc, char **argv)
 {
-	int rank, size, err;
+	int rank=0, size, err;
 	int x[3], y=0;
 	int oldx[3];
 	int i, ret=0;

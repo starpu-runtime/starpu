@@ -205,7 +205,7 @@ int exchange_complex(int rank, starpu_mpi_tag_t initial_tag)
 int main(int argc, char **argv)
 {
 	int ret=0, global_ret=0;
-	int rank, size;
+	int rank=0, size;
 	int mpi_init;
 	struct starpu_conf conf;
 	starpu_mpi_tag_t initial_tag = 0;
