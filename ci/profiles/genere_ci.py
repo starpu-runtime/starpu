@@ -190,7 +190,8 @@ def create_builder(profile, profile_iname, profile_name, profile_host):
         checkCommand = ["make"] + parallel + ["--keep-going", "check"] + restrict
 
         p.addStep(Command(["set +e"]))
-        p.addStep(Command(["("] + checkCommand + ["; ret=$? ) | " + "tee", "-a", "$starpu_artifacts/fulllog.txt"]))
+        p.addStep(Command(["(", "set", "-o", "pipefail", ";"] + checkCommand + ["| " + "tee", "-a", "$starpu_artifacts/fulllog.txt", ")"]))
+        p.addStep(Command(["ret=$?"]))
         p.addStep(Command([""]))
 
         if profile['showsuite']:
