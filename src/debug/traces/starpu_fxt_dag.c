@@ -23,7 +23,9 @@
 #include "starpu_fxt.h"
 
 static FILE *out_file;
+static FILE *out_worker_file = NULL;
 static unsigned cluster_cnt;
+static char *_out_worker_file_path;
 
 void _starpu_fxt_dag_init(char *out_path)
 {
@@ -59,6 +61,23 @@ void _starpu_fxt_dag_terminate(void)
 
 	/* Close the last cluster */
 	fprintf(out_file, "}\n");
+
+	/* is there a worker file */
+	if (out_worker_file)
+	{
+		fclose(out_worker_file);
+		cluster_cnt++;
+		fprintf(out_file, "subgraph cluster_%u {\n", cluster_cnt);
+		fprintf(out_file, "\tcolor=green;\n");
+		out_worker_file = fopen(_out_worker_file_path, "r");
+		int a;
+		while ((a = fgetc(out_worker_file)) != EOF)
+		{
+			fputc(a, out_file);
+		}
+		fclose(out_worker_file);
+		fprintf(out_file, "}\n");
+	}
 	/* Close the graph */
 	fprintf(out_file, "}\n");
 	fclose(out_file);
@@ -176,6 +195,35 @@ void _starpu_fxt_dag_add_sync_point(void)
 	/* Create a new cluster */
 	fprintf(out_file, "subgraph cluster_%u {\n", cluster_cnt);
 	fprintf(out_file, "\tcolor=black;\n");
+}
+
+void _starpu_fxt_dag_set_worker(int worker_id, const char *worker_kind, char *worker_color)
+{
+	if (out_file)
+	{
+		if (!out_worker_file)
+		{
+			char *path = starpu_getenv("TMPDIR");
+			if (!path)
+				path = starpu_getenv("TEMP");
+			if (!path)
+				path = starpu_getenv("TMP");
+			if (!path)
+				path = "/tmp";
+			int bogusfile;
+			_out_worker_file_path = _starpu_mktemp(path, O_RDWR, &bogusfile);
+			close(bogusfile);
+			out_worker_file = fopen(_out_worker_file_path, "w+");
+			if (!out_worker_file)
+			{
+				_STARPU_MSG("error while opening %s\n", _out_worker_file_path);
+				perror("fopen");
+				_exit(EXIT_FAILURE);
+			}
+		}
+		fprintf(out_worker_file, "\t \"worker_%d_%s\" [ shape=box, style=filled, fillcolor=\"%s\", fontcolor=\"black\"]\n",
+			worker_id, worker_kind, worker_color);
+	}
 }
 
 #endif /* STARPU_USE_FXT */

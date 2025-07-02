@@ -1529,6 +1529,8 @@ static void handle_worker_init_start(struct fxt_ev_native *ev, struct starpu_fxt
 
 	if (activity_file)
 		fprintf(activity_file, "name\t%d\t%s %d\n", workerid, kindstr, devid);
+	if (options->show_workers)
+		_starpu_fxt_dag_set_worker(workerid, kindstr, worker_colors[workerid]);
 
 	snprintf(options->worker_names[workerid], sizeof(options->worker_names[workerid])-1, "%s %d", kindstr, devid);
 	options->worker_names[workerid][sizeof(options->worker_names[workerid])-1] = 0;

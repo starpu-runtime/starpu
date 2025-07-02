@@ -51,6 +51,8 @@ New features:
     function family starpu_task_insert.
 
 Small features:
+  * Add FXT option -show-workers to display the available workers in
+    the dot file
   * Add FXT option -use-task-color to propagate the specified task
     color to the contexts
   * Add flag STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY_FIRST and

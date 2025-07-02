@@ -49,6 +49,7 @@ static void usage()
 	fprintf(stderr, "   -internal		show StarPU-internal tasks in DAG\n");
 	fprintf(stderr, "   -number-events	generate a file counting FxT events by type\n");
 	fprintf(stderr, "   -use-task-color	propagate the specified task color to the contexts\n");
+	fprintf(stderr, "   -show-workers	show the workers in the dot file\n");
 	fprintf(stderr, "   -iter-clusters	put the tasks by iteration group in the dag.dot\n");
 	fprintf(stderr, "   -h, --help		display this help and exit\n");
 	fprintf(stderr, "   -v, --version	output version information and exit\n\n");

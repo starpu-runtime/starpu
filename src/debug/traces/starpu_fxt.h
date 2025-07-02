@@ -95,7 +95,8 @@ void _starpu_fxt_dag_add_send(int src, unsigned long dep_prev, unsigned long tag
 void _starpu_fxt_dag_add_receive(int dst, unsigned long dep_prev, unsigned long tag, unsigned long id);
 void _starpu_fxt_dag_add_sync_point(void);
 unsigned _starpu_fxt_data_get_coord(unsigned long handle, int mpi_rank, unsigned dim);
-const char * _starpu_fxt_data_get_name(unsigned long handle, int mpi_rank);
+const char *_starpu_fxt_data_get_name(unsigned long handle, int mpi_rank);
+void _starpu_fxt_dag_set_worker(int worker_id, const char *worker_kind, char *worker_color);
 
 void _starpu_convert_numa_nodes_bitmap_to_str(long bitmap, char str[]);
 
@@ -108,7 +109,7 @@ void _starpu_fxt_mpi_add_send_transfer(int src, int dst, long mpi_tag, size_t si
 void _starpu_fxt_mpi_send_transfer_set_numa_node(int src, int dest, long jobid, long numa_nodes_bitmap);
 void _starpu_fxt_mpi_add_recv_transfer(int src, int dst, long mpi_tag, float date, long jobid, unsigned long handle);
 void _starpu_fxt_mpi_recv_transfer_set_numa_node(int src, int dst, long jobid, long numa_nodes_bitmap);
-void _starpu_fxt_display_mpi_transfers(struct starpu_fxt_options *options, int *ranks, FILE *out_paje_file, FILE* out_comms_file);
+void _starpu_fxt_display_mpi_transfers(struct starpu_fxt_options *options, int *ranks, FILE *out_paje_file, FILE *out_comms_file);
 
 void _starpu_fxt_write_paje_header(FILE *file, struct starpu_fxt_options *options);
 
