@@ -283,7 +283,7 @@ for builder in builderset():
     os.makedirs(dirname, exist_ok=True)
     script_name =  dirname + "/" + builder.name + ".sh"
     fout = open(script_name, "w")
-    fout.write("#!/bin/sh\n\n")
+    fout.write("#!/bin/bash\n\n")
     fout.write("echo \"#PROFILE:" + builder.host + ":" + builder.name + "\"\n")
 
     fout.write("\n")
