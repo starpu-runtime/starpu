@@ -59,16 +59,19 @@ int main(int argc, char **argv)
 	int redux_value_2 = 7;
 	void* redux_cl_args;
 	size_t redux_cl_args_size;
-	starpu_codelet_pack_args(&redux_cl_args, &redux_cl_args_size,
-		STARPU_VALUE, &redux_value_1, sizeof(redux_value_1),
-		STARPU_VALUE, &redux_value_2, sizeof(redux_value_2),
-		0);
+	struct starpu_conf conf;
 
 	/* Not supported yet */
 	if (starpu_getenv_number_default("STARPU_GLOBAL_ARBITER", 0) > 0)
 		return STARPU_TEST_SKIPPED;
 
-	ret = starpu_initialize(NULL, &argc, &argv);
+	/* This test uses a redux codelet with a value on the heap, hence it cannot work with server client */
+	starpu_conf_init(&conf);
+	starpu_conf_noworker(&conf);
+	conf.nmpi_sc = -1;
+	conf.ntcpip_sc = -1;
+
+	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
@@ -78,6 +81,11 @@ int main(int argc, char **argv)
 		starpu_shutdown();
 		return STARPU_TEST_SKIPPED;
 	}
+
+	starpu_codelet_pack_args(&redux_cl_args, &redux_cl_args_size,
+				 STARPU_VALUE, &redux_value_1, sizeof(redux_value_1),
+				 STARPU_VALUE, &redux_value_2, sizeof(redux_value_2),
+				 0);
 
 	increment_load_opencl();
 
