@@ -78,7 +78,7 @@ void _starpu_mpi_cache_init(MPI_Comm comm)
 	}
 
 	_starpu_cache_comm = comm;
-	starpu_mpi_comm_size(comm, &_starpu_cache_comm_size);
+	starpu_mpi_comm_size(MPI_COMM_WORLD, &_starpu_cache_comm_size);
 	_starpu_mpi_cache_stats_init();
 	STARPU_PTHREAD_MUTEX_INIT(&_cache_mutex, NULL);
 }
