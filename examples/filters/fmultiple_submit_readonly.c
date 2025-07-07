@@ -173,6 +173,12 @@ int main(void)
 	starpu_data_handle_t vert_handle[PARTS];
 	starpu_data_handle_t horiz_handle[PARTS];
 
+#ifndef STARPU_HAVE_SETENV
+	return 77;
+#else
+	setenv("STARPU_USE_NUMA", "0", 1);
+#endif
+
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
 		return 77;
