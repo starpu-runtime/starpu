@@ -135,7 +135,7 @@ void starpu_codelet_unpack_discard_arg(struct starpu_codelet_pack_arg_data *stat
 	state->nargs++;
 }
 
-void _starpu_task_insert_data_make_room(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_buffers, int current_buffer, int room, int with_node)
+void starpu_task_insert_data_make_room(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_buffers, int current_buffer, int room)
 {
 	if (current_buffer + room > STARPU_NMAXBUFS)
 	{
@@ -157,17 +157,6 @@ void _starpu_task_insert_data_make_room(struct starpu_codelet *cl, struct starpu
 					task->dyn_modes[i] = task->modes[i];
 				}
 			}
-			if (with_node)
-			{
-				if (cl2->nbuffers == STARPU_VARIABLE_NBUFFERS || !cl2->dyn_nodes)
-				{
-					_STARPU_MALLOC(task->dyn_nodes, *allocated_buffers * sizeof(int));
-					for(i=0 ; i<current_buffer ; i++)
-					{
-						task->dyn_nodes[i] = task->nodes[i];
-					}
-				}
-			}
 		}
 		else if (current_buffer + room > *allocated_buffers)
 		{
@@ -177,20 +166,8 @@ void _starpu_task_insert_data_make_room(struct starpu_codelet *cl, struct starpu
 			{
 				_STARPU_REALLOC(task->dyn_modes, *allocated_buffers * sizeof(enum starpu_data_access_mode));
 			}
-			if (with_node)
-			{
-				if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS || !cl->dyn_nodes)
-				{
-					_STARPU_REALLOC(task->dyn_nodes, *allocated_buffers * sizeof(int));
-				}
-			}
 		}
 	}
-}
-
-void starpu_task_insert_data_make_room(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_buffers, int current_buffer, int room)
-{
-	_starpu_task_insert_data_make_room(cl, task, allocated_buffers, current_buffer, room, 0);
 }
 
 void starpu_task_insert_data_process_arg(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_buffers, int *current_buffer, int arg_type, starpu_data_handle_t handle)
@@ -226,47 +203,16 @@ void starpu_task_insert_data_process_arg(struct starpu_codelet *cl, struct starp
 	(*current_buffer)++;
 }
 
-void _starpu_task_insert_data(struct starpu_codelet *cl, struct starpu_task *task, int buffer, starpu_data_handle_t handle, int set_mode, enum starpu_data_access_mode mode, int set_node, int node)
-{
-	STARPU_ASSERT_MSG(cl->nbuffers == STARPU_VARIABLE_NBUFFERS || buffer < cl->nbuffers, "Too many data passed to starpu_task_insert");
-	STARPU_TASK_SET_HANDLE(task, handle, buffer);
-
-	if (set_mode)
-	{
-		if (task->dyn_modes)
-		{
-			task->dyn_modes[buffer] = mode;
-		}
-		else if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS || (cl->nbuffers > STARPU_NMAXBUFS && !cl->dyn_modes))
-			STARPU_TASK_SET_MODE(task, mode, buffer);
-		else if (STARPU_CODELET_GET_MODE(cl, buffer))
-		{
-			STARPU_ASSERT_MSG(STARPU_CODELET_GET_MODE(cl, buffer) == mode,
-					  "The codelet <%s> defines the access mode %d for the buffer %d which is different from the mode %d given to starpu_task_insert\n",
-					  _starpu_codelet_get_name(cl), STARPU_CODELET_GET_MODE(cl, buffer),
-					  buffer, mode);
-		}
-		else
-		{
-			STARPU_CODELET_SET_MODE(cl, mode, buffer);
-		}
-	}
-	if (set_node)
-	{
-		task->specific_nodes = 1;
-		STARPU_TASK_SET_NODE(task, node, buffer);
-	}
-}
-
 void starpu_task_insert_data_process_array_arg(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_buffers, int *current_buffer, int nb_handles, starpu_data_handle_t *handles)
 {
 	STARPU_ASSERT(cl != NULL);
+
 	starpu_task_insert_data_make_room(cl, task, allocated_buffers, *current_buffer, nb_handles);
 
 	int i;
 	for(i=0 ; i<nb_handles ; i++)
 	{
-		_starpu_task_insert_data(cl, task, *current_buffer, handles[i], 0, 0, 0, 0);
+		STARPU_TASK_SET_HANDLE(task, handles[i], *current_buffer);
 		(*current_buffer)++;
 	}
 }
@@ -274,27 +220,35 @@ void starpu_task_insert_data_process_array_arg(struct starpu_codelet *cl, struct
 void starpu_task_insert_data_process_mode_array_arg(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_buffers, int *current_buffer, int nb_descrs, struct starpu_data_descr *descrs)
 {
 	STARPU_ASSERT(cl != NULL);
+
 	starpu_task_insert_data_make_room(cl, task, allocated_buffers, *current_buffer, nb_descrs);
 
 	int i;
 	for(i=0 ; i<nb_descrs ; i++)
 	{
-		_starpu_task_insert_data(cl, task, *current_buffer, descrs[i].handle, 1, descrs[i].mode, 0, 0);
+		STARPU_ASSERT_MSG(cl->nbuffers == STARPU_VARIABLE_NBUFFERS || *current_buffer < cl->nbuffers, "Too many data passed to starpu_task_insert");
+		STARPU_TASK_SET_HANDLE(task, descrs[i].handle, *current_buffer);
+		if (task->dyn_modes)
+		{
+			task->dyn_modes[*current_buffer] = descrs[i].mode;
+		}
+		else if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS || (cl->nbuffers > STARPU_NMAXBUFS && !cl->dyn_modes))
+			STARPU_TASK_SET_MODE(task, descrs[i].mode, *current_buffer);
+		else if (STARPU_CODELET_GET_MODE(cl, *current_buffer))
+		{
+			STARPU_ASSERT_MSG(STARPU_CODELET_GET_MODE(cl, *current_buffer) == descrs[i].mode,
+					"The codelet <%s> defines the access mode %d for the buffer %d which is different from the mode %d given to starpu_task_insert\n",
+					_starpu_codelet_get_name(cl), STARPU_CODELET_GET_MODE(cl, *current_buffer),
+					*current_buffer, descrs[i].mode);
+		}
+		else
+		{
+			STARPU_CODELET_SET_MODE(cl, descrs[i].mode, *current_buffer);
+		}
+
 		(*current_buffer)++;
 	}
-}
 
-void starpu_task_insert_data_process_mode_node_array_arg(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_buffers, int *current_buffer, int nb_descrs, struct starpu_data_mode_node_descr *descrs)
-{
-	STARPU_ASSERT(cl != NULL);
-	_starpu_task_insert_data_make_room(cl, task, allocated_buffers, *current_buffer, nb_descrs, 1);
-
-	int i;
-	for(i=0 ; i<nb_descrs ; i++)
-	{
-		_starpu_task_insert_data(cl, task, *current_buffer, descrs[i].handle, 1, descrs[i].mode, 1, descrs[i].node);
-		(*current_buffer)++;
-	}
 }
 
 int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *task, va_list varg_list)
@@ -306,8 +260,6 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 	unsigned nend_deps = 0;
 	struct starpu_task **task_deps_array = NULL;
 	struct starpu_task **task_end_deps_array = NULL;
-	int *nodes = NULL;
-	int nb_nodes = -1;
 
 	_starpu_trace_task_build_start();
 
@@ -384,21 +336,6 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 			struct starpu_data_descr *descrs = va_arg(varg_list, struct starpu_data_descr *);
 			int nb_descrs = va_arg(varg_list, int);
 			starpu_task_insert_data_process_mode_array_arg(cl, task, &allocated_buffers, &current_buffer, nb_descrs, descrs);
-			break;
-		}
-		case STARPU_DATA_MODE_NODE_ARRAY:
-		{
-			STARPU_ASSERT_MSG(nodes == NULL, "Parameter 'STARPU_DATA_MODE_NODE_ARRAY' cannot be specified together with parameter 'STARPU_NODE_ARRAY'");
-			struct starpu_data_mode_node_descr *descrs = va_arg(varg_list, struct starpu_data_mode_node_descr *);
-			nb_nodes = va_arg(varg_list, int);
-			starpu_task_insert_data_process_mode_node_array_arg(cl, task, &allocated_buffers, &current_buffer, nb_nodes, descrs);
-			break;
-		}
-		case STARPU_NODE_ARRAY:
-		{
-			STARPU_ASSERT_MSG(nb_nodes == -1, "Parameter 'STARPU_NODE_ARRAY' can only be specified once");
-			nodes = va_arg(varg_list, int *);
-			nb_nodes = va_arg(varg_list, int);
 			break;
 		}
 		case STARPU_EPILOGUE_CALLBACK:
@@ -675,7 +612,7 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 		}
 		default:
 		{
-			STARPU_ABORT_MSG("Unrecognized argument %d (%d), did you perhaps forget to end arguments with 0?\n", arg_type, arg_type >> STARPU_MODE_SHIFT);
+			STARPU_ABORT_MSG("Unrecognized argument %d, did you perhaps forget to end arguments with 0?\n", arg_type);
 		}
 		}
 	}
@@ -711,19 +648,6 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 	if (task_end_deps_array)
 	{
 		starpu_task_declare_end_deps_array(task, nend_deps, task_end_deps_array);
-	}
-
-	if (nodes)
-	{
-		STARPU_ASSERT_MSG(nb_nodes <= task->nbuffers, "The number of nodes (%d) specified with STARPU_NODE_ARRAY is higher than the number of data in the task (%d)", nb_nodes, task->nbuffers);
-		task->specific_nodes = 1;
-		if (task->dyn_handles)
-		{
-			_STARPU_CALLOC(task->dyn_nodes, task->nbuffers, sizeof(int));
-		}
-		int i;
-		for(i=0 ; i<nb_nodes ; i++)
-			STARPU_TASK_SET_NODE(task, nodes[i], i);
 	}
 
 	_starpu_trace_task_build_end();
@@ -836,24 +760,6 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 			arg_i++;
 			int nb_descrs = *(int *)arglist[arg_i];
 			starpu_task_insert_data_process_mode_array_arg(cl, task, &allocated_buffers, &current_buffer, nb_descrs, descrs);
-			break;
-		}
-		case STARPU_NODE_ARRAY:
-		{
-			arg_i++;
-			int *nodes = arglist[arg_i];
-			arg_i++;
-			int nb_descrs = *(int *)arglist[arg_i];
-			assert(0);
-			break;
-		}
-		case STARPU_DATA_MODE_NODE_ARRAY:
-		{
-			arg_i++;
-			struct starpu_data_mode_node_descr *descrs = arglist[arg_i];
-			arg_i++;
-			int nb_descrs = *(int *)arglist[arg_i];
-			starpu_task_insert_data_process_mode_node_array_arg(cl, task, &allocated_buffers, &current_buffer, nb_descrs, descrs);
 			break;
 		}
 		case STARPU_EPILOGUE_CALLBACK:

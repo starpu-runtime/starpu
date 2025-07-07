@@ -202,7 +202,6 @@ myPROGRAMS +=				\
 	main/insert_task_dyn_handles		\
 	main/insert_task_array			\
 	main/insert_task_many			\
-	main/insert_task_many_dyn_nodes			\
 	main/job				\
 	main/multithreaded			\
 	main/starpu_task_bundle			\

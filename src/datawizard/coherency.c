@@ -1472,7 +1472,9 @@ void _starpu_fetch_nowhere_task_input(struct _starpu_job *j)
 	for (index = 0; index < nbuffers; index++)
 	{
 		/* Note here we just follow what was requested, and not use _starpu_task_data_get_node* */
-		int node = STARPU_TASK_GET_NODE(task, descrs[index].index, -1);
+		int node = -1;
+		if (task->cl->specific_nodes)
+			node = STARPU_CODELET_GET_NODE(task->cl, descrs[index].index);
 		descrs[index].node = node;
 		if (node != -1)
 			nfetchbuffers++;

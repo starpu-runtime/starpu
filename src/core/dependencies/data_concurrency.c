@@ -468,8 +468,9 @@ void _starpu_job_set_ordered_buffers(struct _starpu_job *j)
 		buffers[i].index = i;
 		buffers[i].handle = STARPU_TASK_GET_HANDLE(task, i);
 		buffers[i].mode = STARPU_TASK_GET_MODE(task, i);
-		buffers[i].orig_node = STARPU_TASK_GET_NODE(task, i, STARPU_SPECIFIC_NODE_NONE);
-		buffers[i].orig_node = STARPU_SPECIFIC_NODE_NONE;
+		buffers[i].orig_node = task->cl
+			? (task->cl->specific_nodes ? STARPU_CODELET_GET_NODE(task->cl, i) : -1)
+			: STARPU_SPECIFIC_NODE_NONE;
 		buffers[i].node = -1;
 	}
 	_starpu_sort_task_handles(buffers, nbuffers);
@@ -481,8 +482,8 @@ void _starpu_job_set_ordered_buffers(struct _starpu_job *j)
 		for (i=1 ; i<nbuffers; i++)
 		{
 			if (buffers[i].handle == buffers[i-1].handle
-			    && STARPU_TASK_GET_NODE(task, buffers[i].index, 0) !=
-			    STARPU_TASK_GET_NODE(task, buffers[i-1].index, 0))
+				&& STARPU_CODELET_GET_NODE(task->cl, buffers[i].index) !=
+				   STARPU_CODELET_GET_NODE(task->cl, buffers[i-1].index))
 			{
 				STARPU_ASSERT_MSG(!(buffers[i].mode & STARPU_W) &&
 						  !(buffers[i-1].mode & STARPU_W),

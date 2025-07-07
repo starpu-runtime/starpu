@@ -428,12 +428,6 @@ void starpu_task_clean(struct starpu_task *task)
 		task->dyn_modes = NULL;
 	}
 
-	if (task->dyn_nodes)
-	{
-		free(task->dyn_nodes);
-		task->dyn_nodes = NULL;
-	}
-
 	struct _starpu_job *j = (struct _starpu_job *)task->starpu_private;
 
 	if (j)
@@ -995,7 +989,7 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 			starpu_data_handle_t handle = descrs[i].handle;
 			enum starpu_data_access_mode mode = descrs[i].mode;
 
-			int node = STARPU_TASK_GET_NODE(task, i, -1);
+			int node = task->cl->specific_nodes ? STARPU_CODELET_GET_NODE(task->cl, i) : -1;
 			/* Make sure handles are valid */
 			STARPU_ASSERT_MSG(handle->magic == _STARPU_TASK_MAGIC, "data %p is invalid (was it already unregistered?)", handle);
 			/* Make sure handles are not partitioned */

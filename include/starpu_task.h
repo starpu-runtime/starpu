@@ -265,46 +265,40 @@ typedef void (*starpu_recursive_task_gen_dag_func_t)(struct starpu_task *, void 
 #define STARPU_VARIABLE_NBUFFERS (-1)
 
 /**
-   Value to be set in the fields starpu_task::nodes, or starpu_task::dyn_nodes,
-   starpu_codelet::nodes or starpu_codelet::dyn_nodes to request
+   Value to be set in the starpu_codelet::nodes field to request
    StarPU to put the data in local memory of the worker running the task (this
    is the default behavior).
 */
 #define STARPU_SPECIFIC_NODE_LOCAL (-1)
 
 /**
-   Value to be set in the fields starpu_task::nodes, or starpu_task::dyn_nodes,
-   starpu_codelet::nodes or starpu_codelet::dyn_nodes to request
+   Value to be set in the starpu_codelet::nodes field to request
    StarPU to put the data in CPU-accessible memory (and let StarPU
    choose the NUMA node).
 */
 #define STARPU_SPECIFIC_NODE_CPU (-2)
 
 /**
-   Value to be set in the fields starpu_task::nodes, or starpu_task::dyn_nodes,
-   starpu_codelet::nodes or starpu_codelet::dyn_nodes to request
+   Value to be set in the starpu_codelet::nodes field to request
    StarPU to put the data in some slow memory.
 */
 #define STARPU_SPECIFIC_NODE_SLOW (-3)
 
 /**
-   Value to be set in the fields starpu_task::nodes, or starpu_task::dyn_nodes,
-   starpu_codelet::nodes or starpu_codelet::dyn_nodes to request
+   Value to be set in the starpu_codelet::nodes field to request
    StarPU to put the data in some fast memory.
 */
 #define STARPU_SPECIFIC_NODE_FAST (-4)
 
 /**
-   Value to be set in the fields starpu_task::nodes, or starpu_task::dyn_nodes,
-   starpu_codelet::nodes or starpu_codelet::dyn_nodes to let StarPU decide
+   Value to be set in the starpu_codelet::nodes field to let StarPU decide
    whether to put the data in the local memory of the worker running the task,
    or in CPU-accessible memory (and let StarPU choose the NUMA node).
 */
 #define STARPU_SPECIFIC_NODE_LOCAL_OR_CPU (-5)
 
 /**
-   Value to be set in the fields starpu_task::nodes, or starpu_task::dyn_nodes,
-   starpu_codelet::nodes or starpu_codelet::dyn_nodes to make StarPU not actually
+   Value to be set in the starpu_codelet::nodes field to make StarPU not actually
    put the data in any particular memory, i.e. the task will only get the
    sequential consistency dependencies, but not actually trigger any data
    transfer.
@@ -556,7 +550,7 @@ struct starpu_codelet
 	   data greater than \ref STARPU_NMAXBUFS (see \ref
 	   SettingManyDataHandlesForATask). When defining a codelet,
 	   one should either define this field or the field
-	   starpu_codelet::modes.
+	   starpu_codelet::modes defined above.
 	*/
 	enum starpu_data_access_mode *dyn_modes;
 
@@ -594,7 +588,7 @@ struct starpu_codelet
 	   \ref STARPU_NMAXBUFS (see \ref
 	   SettingManyDataHandlesForATask). When defining a codelet,
 	   one should either define this field or the field
-	   starpu_codelet::nodes.
+	   starpu_codelet::nodes defined above.
 	*/
 	int *dyn_nodes;
 
@@ -682,16 +676,6 @@ struct starpu_data_descr
 };
 
 /**
-   Describe a data handle along with an access mode and a node.
-*/
-struct starpu_data_mode_node_descr
-{
-	starpu_data_handle_t handle;	   /**< data */
-	enum starpu_data_access_mode mode; /**< access mode */
-	int node;                          /**< where to send the data */
-};
-
-/**
    Describe a task that can be offloaded on the various processing
    units managed by StarPU. It instantiates a codelet. It can either
    be allocated dynamically with the function starpu_task_create(), or
@@ -758,7 +742,7 @@ struct starpu_task
 	int nbuffers;
 
 	/**
-	   Keep dyn_handles, dyn_interfaces, dyn_modes and dyn_nodes before the
+	   Keep dyn_handles, dyn_interfaces and dyn_modes before the
 	   equivalent static arrays, so we can detect dyn_handles
 	   being NULL while nbuffers being bigger that STARPU_NMAXBUFS
 	   (otherwise the overflow would put a non-NULL)
@@ -807,22 +791,6 @@ struct starpu_task
 	enum starpu_data_access_mode *dyn_modes;
 
 	/**
-	   Optional field. When starpu_task::specific_nodes is 1,
-	   this specifies the memory nodes where each data should be
-	   sent to for task execution. The number of entries in this
-	   array is starpu_codelet::nbuffers. This field should be
-	   used for tasks having a number of data greater than
-	   \ref STARPU_NMAXBUFS (see \ref
-	   SettingManyDataHandlesForATask). When submitting a task,
-	   one should either define this field or the field
-	   starpu_task::nodes.
-
-	   With starpu_task_insert() and alike this is automatically filled
-	   when using ::STARPU_NODE_ARRAY or ::STARPU_DATA_MODE_NODE_ARRAY.
-	*/
-	int *dyn_nodes;
-
-	/**
 	   Array of ::starpu_data_handle_t. Specify the handles to the
 	   different pieces of data accessed by the task. The number
 	   of entries in this array must be specified in the field
@@ -859,35 +827,6 @@ struct starpu_task
 	   when using ::STARPU_DATA_MODE_ARRAY and alike.
 	*/
 	enum starpu_data_access_mode modes[STARPU_NMAXBUFS];
-
-	/**
-	   Used only when starpu_codelet::nbuffers is \ref
-	   STARPU_VARIABLE_NBUFFERS and starpu_task::specific_nodes is 1.
-	   This specifies the memory nodes where each data should be
-	   sent to for task execution. This can be a specific memory
-	   node (>= 0), or any of ::STARPU_SPECIFIC_NODE_LOCAL,
-	   ::STARPU_SPECIFIC_NODE_CPU, ::STARPU_SPECIFIC_NODE_SLOW,
-	   :STARPU_SPECIFIC_NODE_FASTSTARPU_SPECIFIC_NODE_FAST,
-	   ::STARPU_SPECIFIC_NODE_LOCAL_OR_CPU,
-	   ::STARPU_SPECIFIC_NODE_NONE.
-
-	   The number of entries in this
-	   array is starpu_codelet::nbuffers, and should not exceed
-	   \ref STARPU_NMAXBUFS.
-
-	   With starpu_task_insert() and alike this is automatically filled
-	   when using ::STARPU_NODE_ARRAY or ::STARPU_DATA_MODE_NODE_ARRAY.
-	*/
-	int nodes[STARPU_NMAXBUFS];
-
-	/**
-	   Default value is 0. If this flag is set, StarPU will not
-	   systematically send all data to the memory node where the
-	   task will be executing, it will read the
-	   starpu_task::nodes or starpu_task::dyn_nodes array
-	   to determine, for each data, on which memory node to send it.
-	*/
-	unsigned specific_nodes;
 
 	/**
 	   Optional pointer to an array of characters which allows to
@@ -1649,7 +1588,6 @@ struct starpu_task
 		.dyn_handles		      = NULL,                   \
 		.dyn_interfaces		      = NULL,                   \
 		.dyn_modes		      = NULL,                   \
-		.dyn_nodes                    = NULL,                   \
 		.name			      = NULL,                   \
 		.possibly_parallel	      = 0                       \
 	}
@@ -1761,8 +1699,7 @@ struct starpu_task
    starpu_codelet::nodes or the \p i -th element of the field
    starpu_codelet::dyn_nodes (see \ref SettingManyDataHandlesForATask)
 */
-#define STARPU_CODELET_GET_NODE(codelet, i) \
-	(((codelet)->dyn_nodes) ? (codelet)->dyn_nodes[i] : (assert(i < STARPU_NMAXBUFS), (codelet)->nodes[i]))
+#define STARPU_CODELET_GET_NODE(codelet, i) (((codelet)->dyn_nodes) ? (codelet)->dyn_nodes[i] : (codelet)->nodes[i])
 
 /**
    Set the target node of the \p i -th data handle of \p codelet. If
@@ -1778,79 +1715,6 @@ struct starpu_task
 		else                                      \
 			(codelet)->nodes[i] = __node;     \
 	}                                                 \
-	while (0)
-
-/**
-   Return the memory node for the \p i -th data in the given \p task.
-   If unspecified, return \p default_value.
-
-   The node value can either be set at the task level or at the
-   codelet level. The task level will overwrite the codelet level.
-   This means:
-   - If the value is set at the task level (i.e
-     starpu_task::specific_nodes is 1), the value in the task will be
-     returned.
-   - If the value is set at the codelet level and not at the task
-     level (i.e starpu_task::specific_nodes is 0, and
-     starpu_codelet::specific_nodes is 1), the value in the codelet
-     will be returned.
-   - If none of the values are set, \p default_value will be returned.
-
-   The task and the codelet can be using a static or dynamic number of
-   handles. Hence the function will either return the \p i -th element
-   of the field starpu_task::nodes or starpu_codelet::nodes, or the
-   \p i -th element of the field starpu_task::dyn_nodes or
-   starpu_codelet::dyn_nodes (see \ref SettingManyDataHandlesForATask)
- */
-static inline int starpu_task_get_node(struct starpu_task *task, int i, int default_value)
-{
-	if (task->specific_nodes == 0 && task->cl && task->cl->specific_nodes == 0)
-		return default_value;
-	if (task->specific_nodes == 0 && task->cl && task->cl->specific_nodes == 1)
-		return STARPU_CODELET_GET_NODE(task->cl, i);
-	if (task->specific_nodes == 1)
-	{
-		if (task->dyn_nodes)
-			return task->dyn_nodes[i];
-		else
-		{
-			assert(i < STARPU_NMAXBUFS);
-			return task->nodes[i];
-		}
-	}
-	return default_value;
-}
-
-/**
-   Return the memory node for the \p i -th data handle of \p task or
-   \p default_value if unspecified.
-   See starpu_task_get_node() for a full documentation.
-*/
-#define STARPU_TASK_GET_NODE(task, i, default_value) starpu_task_get_node(task, i, default_value)
-
-
-/**
-   Set the access node of the \p i -th data handle of \p task. If \p
-   task is defined with a static or dynamic number of handles, will
-   either set the \p i -th element of the field starpu_task::nodes or
-   the \p i -th element of the field starpu_task::dyn_nodes (see \ref
-   SettingManyDataHandlesForATask)
-*/
-#define STARPU_TASK_SET_NODE(task, node, i)				\
-	do {								\
-		if ((task)->cl->nbuffers == STARPU_VARIABLE_NBUFFERS || (task)->cl->nbuffers > STARPU_NMAXBUFS)	\
-			if ((task)->dyn_nodes)				\
-				(task)->dyn_nodes[i] = node;		\
-			else						\
-				(task)->nodes[i] = node;		\
-		else							\
-		{							\
-			int cl_node = STARPU_CODELET_GET_NODE((task)->cl, i); \
-			STARPU_ASSERT_MSG(cl_node == node,		\
-					  "Task <%s> can't set its  %d-th buffer node to %d as the codelet it derives from uses %d", \
-					  (task)->cl->name, i, node, cl_node); \
-		}							\
-	}								\
 	while (0)
 
 /**

@@ -46,10 +46,6 @@ New features:
   * Add basic support for nOS-V hypervision
   * Enable STARPU_MPI_THREAD_MULTIPLE_SEND by default on mpich, openmpi ≥ 4
     and Mad-MPI.
-  * Add the possibility to define memory nodes (i.e nodes where to
-    send data to for task execution) at the task level, together with
-    flags STARPU_NODE_ARRAY and STARPU_DATA_MODE_NODE_ARRAY for the
-    function family starpu_task_insert.
 
 Small features:
   * Add FXT option -show-workers to display the available workers in
