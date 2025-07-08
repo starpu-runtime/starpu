@@ -148,5 +148,5 @@ int main(int argc, char **argv)
 	if (!mpi_init)
 		MPI_Finalize();
 
-	return (rank == 0) ? ret : 0;
+	return (rank == 0) ? (ret == -ENODEV ? 0 : ret) : 0;
 }
