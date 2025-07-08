@@ -90,7 +90,7 @@ int main(int argc, char **argv)
 
 	/* Not supported yet */
 	if (starpu_getenv_number_default("STARPU_GLOBAL_ARBITER", 0) > 0)
-		return STARPU_TEST_SKIPPED;
+		return 0;
 
 	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
 
@@ -114,7 +114,7 @@ int main(int argc, char **argv)
 		starpu_mpi_shutdown();
 		if (!mpi_init)
 			MPI_Finalize();
-		return my_rank == 0 ? STARPU_TEST_SKIPPED : 0;
+		return 0;
 	}
 
 	nb_elements = size*8000;

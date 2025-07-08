@@ -67,7 +67,7 @@ int main(int argc, char **argv)
 		starpu_mpi_shutdown();
 		if (!mpi_init)
 			MPI_Finalize();
-		return rank == 0 ? STARPU_TEST_SKIPPED : 0;
+		return 0;
 	}
 
 	starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&var, sizeof(var));

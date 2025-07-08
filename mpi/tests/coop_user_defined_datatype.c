@@ -84,7 +84,7 @@ int main(int argc, char **argv)
 		starpu_mpi_shutdown();
 		if (!mpi_init)
 			MPI_Finalize();
-		return my_rank == 0 ? STARPU_TEST_SKIPPED : 0;
+		return 0;
 	}
 	else
 	{

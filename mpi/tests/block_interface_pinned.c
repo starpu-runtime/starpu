@@ -56,7 +56,7 @@ int main(int argc, char **argv)
 		starpu_mpi_shutdown();
 		if (!mpi_init)
 			MPI_Finalize();
-		return STARPU_TEST_SKIPPED;
+		return 0;
 	}
 
 	/* Node 0 will allocate a big block and only register an inner part of

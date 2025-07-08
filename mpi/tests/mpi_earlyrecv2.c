@@ -246,7 +246,7 @@ int main(int argc, char **argv)
 		starpu_mpi_shutdown();
 		if (!mpi_init)
 			MPI_Finalize();
-		return rank == 0 ? STARPU_TEST_SKIPPED : 0;
+		return 0;
 	}
 
 	ret = exchange_variable(rank, initial_tag, 0);

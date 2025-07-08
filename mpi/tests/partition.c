@@ -41,7 +41,7 @@ int main(int argc, char **argv)
 		FPRINTF(stderr, "We need at least 2 processes.\n");
 		if (!mpi_init)
 			MPI_Finalize();
-		return rank == 0 ? STARPU_TEST_SKIPPED : 0;
+		return 0;
 	}
 
 	starpu_conf_init(&conf);

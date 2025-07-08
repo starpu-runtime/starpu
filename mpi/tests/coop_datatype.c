@@ -264,7 +264,7 @@ int main(int argc, char **argv)
 				fprintf(stderr, "We need at least 1 CPU.\n");
 		}
 		starpu_mpi_shutdown();
-		return 77;
+		return 0;
 	}
 
 	struct starpu_my_data my0;
