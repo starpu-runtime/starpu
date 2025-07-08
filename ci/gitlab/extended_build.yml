@@ -37,21 +37,14 @@ compilation:
 .manual_template:
   extends: [.main_template, .extended_check_master_manual_branch]
   allow_failure: false
-  stage: extended_check
 
 .manual_failure_template:
   extends: .manual_template
   allow_failure: true
 
-32bit:
-  extends: .manual_template
-  tags: ['starpu', 'node_32bit']
-  parallel:
-    matrix:
-      - PROFILE: [32bit]
-
 san:
   extends: .manual_template
+  stage: extended_check_san
   tags: ['starpu', 'node_nogpu']
   parallel:
     matrix:
@@ -59,106 +52,15 @@ san:
 
 tsan:
   extends: .manual_failure_template
+  stage: extended_check_san
   tags: ['starpu', 'node_nogpu']
   parallel:
     matrix:
       - PROFILE: [tsan]
 
-simgrid:
-  extends: .manual_template
-  tags: ['starpu', 'node_nogpu']
-  parallel:
-    matrix:
-      - PROFILE: [simgrid-mc, simgrid-mpi, simgrid-nogpu, simgrid-only, simgrid-opencl, simgrid]
-
-starpupy:
-  extends: .manual_template
-  tags: ['starpu', 'node_nogpu']
-  parallel:
-    matrix:
-      - PROFILE: [starpupy-mpi-ms, starpupy-tcpip-ms]
-
-nogpu:
-  extends: .manual_template
-  tags: ['starpu', 'node_nogpu']
-  parallel:
-    matrix:
-      - PROFILE: [default-nogpu, disable-all, maxnodes-1]
-
-ms:
-  extends: .manual_template
-  tags: ['starpu', 'node_nogpu']
-  parallel:
-    matrix:
-      - PROFILE: [mpi-ms, mpi-ms-thread, tcpip-ms, tcpip-ms-thread]
-
-valgrind:
-  extends: .manual_template
-  tags: ['starpu', 'node_nogpu']
-  timeout: 2h
-  parallel:
-    matrix:
-      - PROFILE: [valgrind]
-
-grind:
-  extends: .manual_failure_template
-  tags: ['starpu', 'node_nogpu']
-  allow_failure: true
-  parallel:
-    matrix:
-      - PROFILE: [valgrind-tcp-ip, helgrind]
-
-scan:
-  extends: .manual_template
-  tags: ['starpu', 'node_gpu']
-  parallel:
-    matrix:
-      - PROFILE: [compilation-scan]
-
-full_options:
-  extends: .manual_template
-  tags: ['starpu', 'node_gpu']
-  parallel:
-    matrix:
-      - PROFILE: [full-options, full-options-without-fxt, full-options-and-fxt-poti, full-options-and-fxt-lock]
-
-gpu:
-  extends: .manual_template
-  tags: ['starpu', 'node_gpu']
-  parallel:
-    matrix:
-      - PROFILE: [cuda-opencl, cuda-opencl-runtime, cuda-cudaid, ncuda-nopencl-zero, cuda0, cuda1, cuda4-nopeer-transfer, cuda-multiworker, cuda-multithread, cuda-monothread, cuda-nopipeline, opencl-only, opencl-nopipeline, hip-only]
-
-basic:
-  extends: .manual_template
-  tags: ['starpu', 'node_gpu']
-  parallel:
-    matrix:
-      - PROFILE: [default, without-hwloc, numa, enable-fast, enable-spinlock-check, debug-verbose, profiling, memory-stats, disable-allocation-cache, arbiter, intel]
-
-extensions1:
-  extends: .manual_template
-  tags: ['starpu', 'node_gpu']
-  parallel:
-    matrix:
-      - PROFILE: [cluster, starpurm, starpupy-multi-interp]
-
-extensions2:
-  extends: .manual_template
-  tags: ['starpu', 'node_gpu']
-  parallel:
-    matrix:
-      - PROFILE: [sched-ctx-hypervisor, starpufft-examples, openmp]
-
-drivers:
-  extends: .manual_template
-  tags: ['starpu', 'node_gpu']
-  parallel:
-    matrix:
-      - PROFILE: [blocking-drivers, blocking-drivers-mhp, disable-cpu, limit-cpu]
-
 sanitizer:
   extends: .manual_template
+  stage: extended_check_san
   timeout: 2h
   variables:
     RUNNER_SCRIPT_TIMEOUT: 118m
@@ -168,15 +70,139 @@ sanitizer:
     matrix:
       - PROFILE: [compute-sanitizer, compute-sanitizer-race, compute-sanitizer-sync]
 
+scan:
+  extends: .manual_template
+  stage: extended_check_san
+  tags: ['starpu', 'node_gpu']
+  parallel:
+    matrix:
+      - PROFILE: [compilation-scan]
+
+valgrind:
+  extends: .manual_template
+  stage: extended_check_grind
+  tags: ['starpu', 'node_nogpu']
+  timeout: 2h
+  parallel:
+    matrix:
+      - PROFILE: [valgrind]
+
+grind:
+  extends: .manual_failure_template
+  stage: extended_check_grind
+  tags: ['starpu', 'node_nogpu']
+  allow_failure: true
+  parallel:
+    matrix:
+      - PROFILE: [valgrind-tcp-ip, helgrind]
+
+simgrid:
+  extends: .manual_template
+  stage: extended_check_simgrid
+  tags: ['starpu', 'node_nogpu']
+  parallel:
+    matrix:
+      - PROFILE: [simgrid-mc, simgrid-mpi, simgrid-nogpu, simgrid-only, simgrid-opencl, simgrid]
+
+nogpu:
+  extends: .manual_template
+  stage: extended_check_basic
+  tags: ['starpu', 'node_nogpu']
+  parallel:
+    matrix:
+      - PROFILE: [default-nogpu, disable-all, maxnodes-1]
+
+full_options:
+  extends: .manual_template
+  stage: extended_check_basic
+  tags: ['starpu', 'node_gpu']
+  parallel:
+    matrix:
+      - PROFILE: [full-options, full-options-without-fxt, full-options-and-fxt-poti, full-options-and-fxt-lock]
+
+drivers:
+  extends: .manual_template
+  stage: extended_check_basic
+  tags: ['starpu', 'node_gpu']
+  parallel:
+    matrix:
+      - PROFILE: [blocking-drivers, blocking-drivers-mhp, disable-cpu, limit-cpu]
+
+32bit:
+  extends: .manual_template
+  stage: extended_check_basic
+  tags: ['starpu', 'node_32bit']
+  parallel:
+    matrix:
+      - PROFILE: [32bit]
+
+basic:
+  extends: .manual_template
+  stage: extended_check_basic
+  tags: ['starpu', 'node_gpu']
+  parallel:
+    matrix:
+      - PROFILE: [default, without-hwloc, numa, enable-fast, enable-spinlock-check, debug-verbose, profiling, memory-stats, disable-allocation-cache, arbiter, intel]
+
+gpu:
+  extends: .manual_template
+  stage: extended_check_gpu
+  tags: ['starpu', 'node_gpu']
+  parallel:
+    matrix:
+      - PROFILE: [cuda-opencl, cuda-opencl-runtime, cuda-cudaid, ncuda-nopencl-zero, cuda0, cuda1, cuda4-nopeer-transfer, cuda-multiworker, cuda-multithread, cuda-monothread, cuda-nopipeline, opencl-only, opencl-nopipeline, hip-only]
+
+extensions:
+  extends: .manual_template
+  stage: extended_check_extensions
+  tags: ['starpu', 'node_nogpu']
+  parallel:
+    matrix:
+      - PROFILE: [starpupy-mpi-ms, starpupy-tcpip-ms]
+
+extensions1:
+  extends: .manual_template
+  stage: extended_check_extensions
+  tags: ['starpu', 'node_gpu']
+  parallel:
+    matrix:
+      - PROFILE: [cluster, starpurm, starpupy-multi-interp]
+
+extensions2:
+  extends: .manual_template
+  stage: extended_check_extensions
+  tags: ['starpu', 'node_gpu']
+  parallel:
+    matrix:
+      - PROFILE: [sched-ctx-hypervisor, starpufft-examples, openmp]
+
+extensions_failures:
+  extends: .manual_failure_template
+  stage: extended_check_extensions
+  tags: ['starpu', 'node_gpu']
+  parallel:
+    matrix:
+      - PROFILE: [julia]
+
 mpi:
   extends: .manual_template
+  stage: extended_check_mpi
   tags: ['starpu', 'node_gpu']
   parallel:
     matrix:
       - PROFILE: [mpi-nocache, nmad, intel-mpi]
 
+ms:
+  extends: .manual_template
+  stage: extended_check_mpi
+  tags: ['starpu', 'node_nogpu']
+  parallel:
+    matrix:
+      - PROFILE: [mpi-ms, mpi-ms-thread, tcpip-ms, tcpip-ms-thread]
+
 blas:
   extends: .manual_template
+  stage: extended_check_blas
   tags: ['starpu', 'node_gpu']
   parallel:
     matrix:
@@ -184,6 +210,7 @@ blas:
 
 scheduler:
   extends: .manual_template
+  stage: extended_check_schedulers
   tags: ['starpu', 'node_gpu']
   parallel:
     matrix:
@@ -191,15 +218,9 @@ scheduler:
 
 scheduler_failures:
   extends: .manual_failure_template
+  stage: extended_check_schedulers
   tags: ['starpu', 'node_gpu']
   parallel:
     matrix:
       - PROFILE: [darts]
-
-extensions_failures:
-  extends: .manual_failure_template
-  tags: ['starpu', 'node_gpu']
-  parallel:
-    matrix:
-      - PROFILE: [julia]
 
