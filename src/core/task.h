@@ -75,6 +75,15 @@ static inline struct _starpu_job *_starpu_get_job_associated_to_task(struct star
 	return _starpu_get_job_associated_to_task_slow(task, job);
 }
 
+int _starpu_task_is_recursive(struct starpu_task *task);
+extern int _starpu_recursive_tasks_disable_sequential_consistency;
+
+#ifdef STARPU_RECURSIVE_TASKS
+int _starpu_task_generate_dag_if_needed(struct starpu_task *task);
+struct starpu_task *_starpu_recursive_task_which_generate_dag(void) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
+int _starpu_task_get_level(struct starpu_task *task);
+#endif
+
 /** Submits starpu internal tasks to the initial context */
 int _starpu_task_submit_internally(struct starpu_task *task);
 

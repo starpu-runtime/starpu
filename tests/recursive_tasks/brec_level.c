@@ -16,56 +16,16 @@
  */
 
 #include <starpu.h>
-#define PARTS 2
-#define SIZE  24
+#include "basic.h"
 
-#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
-
-struct starpu_data_filter f =
-{
-	.filter_func = starpu_vector_filter_block,
-	.nchildren = PARTS
-};
-
-void sub_data_read_func(void *buffers[], void *arg)
-{
-}
-
-void sub_data_func(void *buffers[], void *arg)
-{
-	int *v = (int*)STARPU_VECTOR_GET_PTR(buffers[0]);
-	size_t nx = STARPU_VECTOR_GET_NX(buffers[0]);
-	size_t i;
-
-	for(i=0 ; i<nx ; i++)
-		v[i] *= 2;
-}
-
-struct starpu_codelet sub_data_codelet =
-{
-	.cpu_funcs = {sub_data_func},
-	.nbuffers = 1,
-};
-
-struct starpu_codelet sub_data_read_codelet =
-{
-	.cpu_funcs = {sub_data_read_func},
-	.nbuffers = 1,
-};
-
-int is_recursive_task(struct starpu_task *t, void *arg)
-{
-	return 1;
-}
-
-void rec2_recursive_task_gen_dag(struct starpu_task *t, void *arg)
+void rec2_recursive_task_gen_dag(struct starpu_task *t, void *arg, void **b)
 {
 	unsigned i;
 	starpu_data_handle_t *subdata = (starpu_data_handle_t *)arg;
 
 	for(i=0 ; i<PARTS ; i++)
 	{
-		int ret = starpu_task_insert(&sub_data_read_codelet,
+		int ret = starpu_task_insert(&sub_data_RO_codelet,
 					     STARPU_R, subdata[i],
 					     STARPU_RECURSIVE_TASK_PARENT, t,
 					     STARPU_NAME, "B1_L3_task",
@@ -76,17 +36,17 @@ void rec2_recursive_task_gen_dag(struct starpu_task *t, void *arg)
 
 starpu_data_handle_t sub_handles_l2[PARTS][PARTS];
 
-void rec_recursive_task_gen_dag(struct starpu_task *t, void *arg)
+void rec_recursive_task_gen_dag(struct starpu_task *t, void *arg, void **b)
 {
 	unsigned i;
 	starpu_data_handle_t *subdata = (starpu_data_handle_t *)arg;
 
 	for(i=0 ; i<PARTS ; i++)
 	{
-		int ret = starpu_task_insert(&sub_data_read_codelet,
+		int ret = starpu_task_insert(&sub_data_RO_codelet,
 					     STARPU_R, subdata[i],
 					     STARPU_RECURSIVE_TASK_PARENT, t,
-					     STARPU_RECURSIVE_TASK_FUNC, &is_recursive_task,
+					     STARPU_RECURSIVE_TASK_FUNC, &is_recursive_task_always,
 					     STARPU_RECURSIVE_TASK_GEN_DAG_FUNC, &rec2_recursive_task_gen_dag,
 					     STARPU_RECURSIVE_TASK_GEN_DAG_FUNC_ARG, sub_handles_l2[i],
 					     STARPU_NAME, "B1_L2",
@@ -95,14 +55,14 @@ void rec_recursive_task_gen_dag(struct starpu_task *t, void *arg)
 	}
 }
 
-void recursive_task_gen_dag(struct starpu_task *t, void *arg)
+void recursive_task_gen_dag_read(struct starpu_task *t, void *arg, void **b)
 {
 	unsigned i;
 	starpu_data_handle_t *subdata = (starpu_data_handle_t *)arg;
 
 	for(i=0 ; i<PARTS ; i++)
 	{
-		int ret = starpu_task_insert(&sub_data_read_codelet,
+		int ret = starpu_task_insert(&sub_data_RO_codelet,
 					     STARPU_R, subdata[i],
 					     STARPU_RECURSIVE_TASK_PARENT, t,
 					     STARPU_NAME, "B2_L2_task",
@@ -153,19 +113,19 @@ int main(int argv, char **argc)
 				 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
-	ret = starpu_task_insert(&sub_data_read_codelet,
+	ret = starpu_task_insert(&sub_data_RO_codelet,
 				 STARPU_R, main_handle,
-				 STARPU_RECURSIVE_TASK_FUNC, &is_recursive_task,
+				 STARPU_RECURSIVE_TASK_FUNC, &is_recursive_task_always,
 				 STARPU_RECURSIVE_TASK_GEN_DAG_FUNC, &rec_recursive_task_gen_dag,
 				 STARPU_RECURSIVE_TASK_GEN_DAG_FUNC_ARG, sub_handles_l1,
 				 STARPU_NAME, "B1_L1",
 				 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
-	ret = starpu_task_insert(&sub_data_read_codelet,
+	ret = starpu_task_insert(&sub_data_RO_codelet,
 				 STARPU_R, main_handle,
-				 STARPU_RECURSIVE_TASK_FUNC, &is_recursive_task,
-				 STARPU_RECURSIVE_TASK_GEN_DAG_FUNC, &recursive_task_gen_dag,
+				 STARPU_RECURSIVE_TASK_FUNC, &is_recursive_task_always,
+				 STARPU_RECURSIVE_TASK_GEN_DAG_FUNC, &recursive_task_gen_dag_read,
 				 STARPU_RECURSIVE_TASK_GEN_DAG_FUNC_ARG, sub_handles_l1,
 				 STARPU_NAME, "B2_L1",
 				 0);

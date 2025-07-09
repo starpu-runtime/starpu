@@ -492,6 +492,7 @@ static struct _starpu_data_request *_starpu_search_existing_data_request(struct 
 			{
 				replicate->refcnt++;
 				replicate->handle->busy_count++;
+				_STARPU_RECURSIVE_TASKS_DEBUG("Take busy count on data %p on search existing\n", replicate->handle);
 			}
 
 			r->mode = (enum starpu_data_access_mode) ((int) r->mode | (int) STARPU_R);
@@ -848,6 +849,7 @@ int _starpu_fetch_data_on_node(starpu_data_handle_t handle, int node, struct _st
 	_STARPU_LOG_IN();
 
 	_starpu_spin_lock(&handle->header_lock);
+	_STARPU_RECURSIVE_TASKS_DEBUG("DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n acquiring handle %p\nDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDd\n", handle);
 
 	if (mode & STARPU_R && is_prefetch > STARPU_FETCH)
 	{
@@ -885,6 +887,7 @@ int _starpu_fetch_data_on_node(starpu_data_handle_t handle, int node, struct _st
 				handle->per_node[i].refcnt++;
 		}
 		handle->busy_count++;
+		_STARPU_RECURSIVE_TASKS_DEBUG("Take busy count on data %p on add fetch data on node\n", handle);
 	}
 
 	struct _starpu_data_request *r;
@@ -997,6 +1000,7 @@ void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_
 
 		STARPU_ASSERT_MSG(handle->busy_count > 0, "handle %p released too many times on node %u", handle, memory_node);
 		handle->busy_count--;
+		_STARPU_RECURSIVE_TASKS_DEBUG("Release busy count on data %p on release data on node\n", handle);
 	}
 
 	if (!_starpu_notify_data_dependencies(handle, down_to_mode))
@@ -1005,6 +1009,9 @@ void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_
 
 int _starpu_prefetch_task_input_prio(struct starpu_task *task, int target_node, int worker, int prio, enum starpu_is_prefetch prefetch)
 {
+#ifdef STARPU_RECURSIVE_TASKS
+	int task_rec = _starpu_task_is_recursive(task);
+#endif
 #ifdef STARPU_OPENMP
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 	/* do not attempt to prefetch task input if this is an OpenMP task resuming after blocking */
@@ -1022,6 +1029,13 @@ int _starpu_prefetch_task_input_prio(struct starpu_task *task, int target_node, 
 
 		if (mode & (STARPU_SCRATCH|STARPU_REDUX))
 			continue;
+
+#ifdef STARPU_RECURSIVE_TASKS
+		if (!(mode & STARPU_RECURSIVE_TASK_STRONG) && task_rec)
+		{
+			continue;
+		}
+#endif
 
 		int node;
 		if (target_node >= 0)
@@ -1183,6 +1197,10 @@ int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, in
 		int ret;
 		starpu_data_handle_t handle = descrs[index].handle;
 		enum starpu_data_access_mode mode = descrs[index].mode;
+#ifdef STARPU_RECURSIVE_TASKS
+		if (_starpu_task_is_recursive(task) && !(mode & STARPU_RECURSIVE_TASK_STRONG))
+			continue;
+#endif
 		int orig_node = descrs[index].orig_node;
 		int node = _starpu_task_data_get_node_on_worker(task, descrs[index].index, workerid);
 		/* We set this here for coherency with __starpu_push_task_output */
@@ -1420,6 +1438,7 @@ void __starpu_push_task_output(struct _starpu_job *j)
 		 * _starpu_release_task_enforce_sequential_consistency call */
 		_starpu_spin_lock(&handle->header_lock);
 		handle->busy_count++;
+		_STARPU_RECURSIVE_TASKS_DEBUG("Take busy count on data %p on job %p\n", handle, j);
 
 		if (node == -1)
 		{
@@ -1499,6 +1518,10 @@ void _starpu_fetch_nowhere_task_input(struct _starpu_job *j)
 		starpu_data_handle_t handle = descrs[index].handle;
 		enum starpu_data_access_mode mode = descrs[index].mode;
 		int node = descrs[index].node;
+#ifdef STARPU_RECURSIVE_TASKS
+		if ((mode&STARPU_R) && handle->on_multiple_node)
+			mode = STARPU_W;
+#endif
 		if (node == -1)
 			continue;
 

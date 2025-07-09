@@ -27,7 +27,7 @@ struct b_args
 	starpu_data_handle_t *sub3;
 };
 
-void recursive_task_gen_dag_ter(struct starpu_task *t, void *arg)
+void recursive_task_gen_dag_ter(struct starpu_task *t, void *arg, void **b)
 {
 	FPRINTF(stderr, "Hello i am a recursive task\n");
 	int i, ret;
@@ -59,7 +59,7 @@ void recursive_task_gen_dag_ter(struct starpu_task *t, void *arg)
 struct starpu_codelet recursive_task_codelet_ter =
 {
 	.cpu_funcs = {recursive_task_func},
-	.recursive_task_func = is_recursive_task,
+	.recursive_task_func = is_recursive_task_always,
 	.recursive_task_gen_dag_func = recursive_task_gen_dag_ter,
 	.nbuffers = 3,
 	.model = &starpu_perfmodel_nop

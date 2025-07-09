@@ -79,7 +79,11 @@ static struct _starpu_driver_info driver_info =
 	.name_var = "CPU",
 	.name_lower = "cpu",
 	.memory_kind = STARPU_CPU_RAM,
+#ifdef STARPU_RECURSIVE_TASKS
+	.alpha = 1.f,
+#else
 	.alpha = 0.5f,
+#endif
 	.wait_for_worker_initialization = 1,
 #ifdef STARPU_USE_CPU
 	.driver_ops = &_starpu_driver_cpu_ops,
@@ -401,18 +405,31 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 			rc = _starpu_trace_start_executing( j, worker_task, cpu_args, func);
 
 #ifdef STARPU_SIMGRID
-			if (cl->flags & STARPU_CODELET_SIMGRID_EXECUTE)
-				func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
-			else if (cl->flags & STARPU_CODELET_SIMGRID_EXECUTE_AND_INJECT)
+#ifdef STARPU_RECURSIVE_TASKS
+			struct timespec start;
+			_starpu_clock_gettime(&start);
+			_starpu_clear_worker_status(cpu_args, STATUS_INDEX_EXECUTING, &start);
+			_starpu_add_worker_status(cpu_args, STATUS_INDEX_SUBMITTING, &start);
+			int ret = _starpu_task_generate_dag_if_needed(task) ;
+			_starpu_clock_gettime(&start);
+			_starpu_clear_worker_status(cpu_args, STATUS_INDEX_SUBMITTING, &start);
+			_starpu_add_worker_status(cpu_args, STATUS_INDEX_EXECUTING, &start);
+			if(!ret)
+#endif
 			{
-				_SIMGRID_TIMER_BEGIN(1);
-				func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
-				_SIMGRID_TIMER_END;
-			}
-			else
-			{
-				struct _starpu_sched_ctx *sched_ctx = _starpu_sched_ctx_get_sched_ctx_for_worker_and_job(cpu_args, j);
-				_starpu_simgrid_submit_job(cpu_args->workerid, sched_ctx->id, j, perf_arch, NAN, NAN, NULL);
+				if (cl->flags & STARPU_CODELET_SIMGRID_EXECUTE)
+					func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
+				else if (cl->flags & STARPU_CODELET_SIMGRID_EXECUTE_AND_INJECT)
+				{
+					_SIMGRID_TIMER_BEGIN(1);
+					func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
+					_SIMGRID_TIMER_END;
+				}
+				else
+				{
+					struct _starpu_sched_ctx *sched_ctx = _starpu_sched_ctx_get_sched_ctx_for_worker_and_job(cpu_args, j);
+					_starpu_simgrid_submit_job(cpu_args->workerid, sched_ctx->id, j, perf_arch, NAN, NAN, NULL);
+				}
 			}
 #else
 #ifdef STARPU_PAPI
@@ -436,7 +453,23 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 			else
 #endif
 			{
-				func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
+#ifdef STARPU_RECURSIVE_TASKS
+				struct timespec start;
+				_starpu_clock_gettime(&start);
+				_starpu_clear_worker_status(cpu_args, STATUS_INDEX_EXECUTING, &start);
+				_starpu_add_worker_status(cpu_args, STATUS_INDEX_SUBMITTING, &start);
+				int ret = _starpu_task_generate_dag_if_needed(task) ;
+				_starpu_clock_gettime(&start);
+				_starpu_clear_worker_status(cpu_args, STATUS_INDEX_SUBMITTING, &start);
+				_starpu_add_worker_status(cpu_args, STATUS_INDEX_EXECUTING, &start);
+
+		//		if (task->where == STARPU_CPU && !_starpu_task_is_recursive(task))
+		//				fprintf(stderr, "Executing task %p %s at %lf\n", task, task->name, starpu_timing_now());
+				if(!ret)
+#endif
+					func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
+			//	if (task->where == STARPU_CPU && !_starpu_task_is_recursive(task))
+			//			fprintf(stderr, "End executing task %p %s at %lf\n", task, task->name, starpu_timing_now());
 			}
 #ifdef STARPU_PAPI
 			if (rank == 0)
@@ -515,6 +548,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 
 static int _starpu_cpu_driver_execute_task(struct _starpu_worker *cpu_worker, struct starpu_task *task, struct _starpu_job *j)
 {
+	_STARPU_RECURSIVE_TASKS_DEBUG("Start executing %s(%p)\n", starpu_task_get_name(task), task);
 	int res;
 
 	int rank;
@@ -593,7 +627,14 @@ static int _starpu_cpu_driver_execute_task(struct _starpu_worker *cpu_worker, st
 	}
 
 	if (rank == 0)
-		_starpu_handle_job_termination(j);
+	{
+#ifdef STARPU_RECURSIVE_TASKS
+		if (j->recursive.is_recursive_task)
+			_starpu_handle_recursive_task_termination(j);
+		else
+#endif
+			_starpu_handle_job_termination(j);
+	}
 	return 0;
 }
 
@@ -703,7 +744,11 @@ static int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 #else
 	const unsigned continuation_wake_up = 0;
 #endif
-	if (rank == 0 && !continuation_wake_up)
+	if (rank == 0 && !continuation_wake_up
+#ifdef STARPU_RECURSIVE_TASKS
+//	    && !_starpu_job_is_recursive(j)
+#endif
+		)
 	{
 		res = _starpu_fetch_task_input(task, j, 1);
 		STARPU_ASSERT(res == 0);

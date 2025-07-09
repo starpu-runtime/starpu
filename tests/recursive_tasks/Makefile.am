@@ -66,6 +66,7 @@ if STARPU_RECURSIVE_TASKS
 myPROGRAMS +=		\
 	b		\
 	bb		\
+	bb_strongdeps	\
 	btb		\
 	btb_func	\
 	bbt		\

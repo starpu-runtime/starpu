@@ -978,6 +978,10 @@ int _starpu_check_that_no_data_request_is_pending(unsigned node, unsigned peer_n
 	return !_starpu_get_node_struct(node)->data_requests_npending[peer_node][inout];
 }
 
+int _starpu_get_nb_request_pending(unsigned node, unsigned peer_node, enum _starpu_data_request_inout inout)
+{
+	return _starpu_get_node_struct(node)->data_requests_npending[peer_node][inout];
+}
 
 void _starpu_update_prefetch_status(struct _starpu_data_request *r, enum starpu_is_prefetch prefetch)
 {

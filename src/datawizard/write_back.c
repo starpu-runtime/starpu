@@ -60,6 +60,8 @@ void _starpu_write_through_data(starpu_data_handle_t handle, unsigned requesting
 				STARPU_ASSERT(handle->current_mode != STARPU_REDUX);
 				STARPU_ASSERT(handle->current_mode != STARPU_SCRATCH);
 				handle->refcnt++;
+				_STARPU_RECURSIVE_TASKS_DEBUG("Take refcnt on data %p \n", handle) ;
+				_STARPU_RECURSIVE_TASKS_DEBUG("Take busy count on data %p \n", handle) ;
 				handle->busy_count++;
 				handle->current_mode = STARPU_R;
 

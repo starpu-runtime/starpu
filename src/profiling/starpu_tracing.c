@@ -736,7 +736,7 @@ int _starpu_trace_recursive_task(struct _starpu_job *job STARPU_ATTRIBUTE_UNUSED
 #ifdef STARPU_USE_FXT
 	if(STARPU_UNLIKELY((_STARPU_FUT_KEYMASK_TASK) & fut_active))
 	{
-		unsigned int is_recursive_task=(job)->is_recursive_task;
+		unsigned int is_recursive_task=(job)->recursive.is_recursive_task;
 		unsigned long recursive_task_parent=(job)->task->recursive_task_parent;
 		FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_RECURSIVE_TASK, (job)->job_id, is_recursive_task, recursive_task_parent);
 	}
@@ -1076,12 +1076,14 @@ int _starpu_trace_worker_sleep_end()
  * \p iter is the optional outermost iteration number metadata in which the task submission occurs.
  * \p iter is the optional innermost iteration number metadata in which the task submission occurs.
  */
-int _starpu_trace_task_submit(struct _starpu_job *job STARPU_ATTRIBUTE_UNUSED, long iter STARPU_ATTRIBUTE_UNUSED, long subiter STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_task_submit(struct _starpu_job *job STARPU_ATTRIBUTE_UNUSED, long iter STARPU_ATTRIBUTE_UNUSED, long subiter STARPU_ATTRIBUTE_UNUSED, struct _starpu_job *pjob STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	FUT_FULL_PROBE7(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_SUBMIT, (job)->job_id, iter, subiter, (job)->task->no_submitorder?0:_starpu_fxt_get_submit_order(), (job)->task->priority, (job)->task->type, _starpu_gettid());
 #endif
-
+#ifdef STARPU_RECURSIVE_TASKS
+	FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_RECURSIVE_SUBMIT, (job)->job_id, (job)->recursive.level, ((pjob) ? (pjob)->job_id : 0));
+#endif
 #ifdef STARPU_PROF_TASKSTUBS
 // unsigned long starpu_task_get_job_id(struct starpu_task *task);
 
@@ -2118,7 +2120,7 @@ int _starpu_trace_handle_data_register(starpu_data_handle_t *handle STARPU_ATTRI
 			(*handle)->ops->describe(__interface, __buf, sizeof(__buf));
 		else
 			__buf[0] = 0;
-		_STARPU_FUT_FULL_PROBE4STR(_STARPU_FUT_KEYMASK_META, _STARPU_FUT_HANDLE_DATA_REGISTER, (*handle), __data_size, __max_data_size, (*handle)->home_node, __buf);
+		_STARPU_FUT_FULL_PROBE5STR(_STARPU_FUT_KEYMASK_META, _STARPU_FUT_HANDLE_DATA_REGISTER, (*handle), __data_size, __max_data_size, (*handle)->home_node, (*handle)->parent_handle, __buf);
 	}
 #endif
 	return 0;

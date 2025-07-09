@@ -43,6 +43,9 @@
 #ifdef STARPU_HAVE_WINDOWS
 #include <windows.h>
 #endif
+#ifdef STARPU_RECURSIVE_TASKS
+#include <core/jobs_recursive.h>
+#endif
 
 /* global counters */
 static int __g_total_submitted;
@@ -358,6 +361,15 @@ int starpu_get_limit_max_submitted_tasks()
 	return limit_max_submitted_tasks;
 }
 
+#ifdef STARPU_RECURSIVE_TASKS
+starpu_pthread_key_t _starpu_pthread_is_on_recursive_task_key;
+
+struct starpu_task *_starpu_recursive_task_which_generate_dag(void)
+{
+	return ((struct starpu_task *) STARPU_PTHREAD_GETSPECIFIC(_starpu_pthread_is_on_recursive_task_key));
+}
+#endif
+
 void starpu_task_init(struct starpu_task *task)
 {
 	/* TODO: memcpy from a template instead? benchmark it */
@@ -483,6 +495,9 @@ void _starpu_task_destroy(struct starpu_task *task)
 	}
 	else
 	{
+#ifdef STARPU_RECURSIVE_TASKS
+		_starpu_job_splitter_destroy(_starpu_get_job_associated_to_task(task));
+#endif
 		starpu_task_clean(task);
 		/* TODO handle the case of task with detach = 1 and destroy = 1 */
 		/* TODO handle the case of non terminated tasks -> assertion failure, it's too dangerous to be doing something like this */
@@ -601,6 +616,14 @@ int starpu_task_wait_array(struct starpu_task **tasks, unsigned nb_tasks)
 	return 0;
 }
 
+#ifdef STARPU_RECURSIVE_TASKS
+int _starpu_task_get_level(struct starpu_task *task)
+{
+	struct _starpu_job *job = _starpu_get_job_associated_to_task(task);
+	return job->recursive.level;
+}
+#endif
+
 #ifdef STARPU_OPENMP
 int _starpu_task_test_termination(struct starpu_task *task)
 {
@@ -694,6 +717,7 @@ int _starpu_submit_job(struct _starpu_job *j, int nodeps)
 		{
 			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
 			_starpu_spin_lock(&handle->header_lock);
+			_STARPU_RECURSIVE_TASKS_DEBUG("Busy count taken on data %p by job %p.\n", handle, j);
 			handle->busy_count++;
 			_starpu_spin_unlock(&handle->header_lock);
 		}
@@ -912,17 +936,12 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 	unsigned is_sync = task->synchronous;
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 
+	_STARPU_RECURSIVE_TASKS_DEBUG("[task %p] submitted on recursive task %p\n", task, _starpu_recursive_task_which_generate_dag());
+
 	if (task->status == STARPU_TASK_STOPPED || task->status == STARPU_TASK_FINISHED)
 		task->status = STARPU_TASK_INIT;
 	else
 		STARPU_ASSERT(task->status == STARPU_TASK_INIT);
-
-#ifdef STARPU_RECURSIVE_TASKS
-	if ((j->task->recursive_task_func && j->task->recursive_task_func(j->task, j->task->recursive_task_func_arg)) || (j->task->cl && j->task->cl->recursive_task_func && j->task->cl->recursive_task_func(j->task, j->task->recursive_task_func_arg)))
-		j->is_recursive_task = 1;
-	else
-		j->is_recursive_task = 0;
-#endif
 
 	if (j->internal)
 	{
@@ -1003,19 +1022,20 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 
 			if (!(task->cl->flags & STARPU_CODELET_NOPLANS) &&
 			    ((handle->nplans && !handle->nchildren) || handle->siblings)
-#ifdef STARPU_RECURSIVE_TASKS
-			    && !j->is_recursive_task
-			    /*
-			     * => require to set the is_recursive_task a soon as possible and not in the turn_task_into_recursive_task.
-			     */
-#endif
 			    && !(mode & STARPU_NOPLAN))
 				/* This handle is involved with asynchronous
 				 * partitioning as a parent or a child, make
 				 * sure the right plan is active, submit
 				 * appropriate partitioning / unpartitioning if
 				 * not */
-				_starpu_data_partition_access_submit(handle, (mode & (STARPU_W|STARPU_REDUX)) != 0);
+			{
+				_STARPU_RECURSIVE_TASKS_DEBUG("[%s(%p)] Call access_submit() for %p\n", starpu_task_get_name(task), task, handle);
+				int write_only = 0;
+#ifdef STARPU_RECURSIVE_TASKS
+				write_only = (mode & (STARPU_W|STARPU_REDUX)) != 0 && (mode & STARPU_R) == 0;
+#endif
+				_starpu_data_partition_access_submit(handle, (mode & (STARPU_W|STARPU_REDUX)) != 0, write_only, NULL);
+			}
 		}
 
 		/* Check the type of worker(s) required by the task exist */
@@ -1043,6 +1063,24 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 
 	return 0;
 }
+
+int _starpu_task_is_recursive(struct starpu_task *task)
+{
+#ifdef STARPU_RECURSIVE_TASKS
+	return _starpu_job_is_recursive(_starpu_get_job_associated_to_task(task));
+#else
+	(void)task;
+	return 0;
+#endif
+}
+
+#ifdef STARPU_RECURSIVE_TASKS
+int _starpu_task_generate_dag_if_needed(struct starpu_task * task)
+{
+	struct _starpu_job * j = _starpu_get_job_associated_to_task(task);
+	return _starpu_job_generate_dag_if_needed(j);
+}
+#endif
 
 /* application should submit new tasks to StarPU through this function */
 int _starpu_task_submit(struct starpu_task *task, int nodeps)
@@ -1089,6 +1127,21 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 		0
 #endif
 		;
+
+#ifdef STARPU_RECURSIVE_TASKS
+	if (j->task->recursive_task_gen_dag_func)
+		_starpu_recursive_tasks_disable_sequential_consistency = 1;
+
+	_STARPU_DEBUG("Task %p(%s) submitted on recursive task %p\n", j->task, j->task->name, _starpu_recursive_task_which_generate_dag());
+	j->recursive.is_from_recursive_task = task->recursive_task_is_sync_task == 0 && _starpu_recursive_task_which_generate_dag() != NULL;
+	j->recursive.parent_task = task->recursive_task_is_sync_task == 0 ? _starpu_recursive_task_which_generate_dag() : NULL;
+	if (j->recursive.parent_task)
+	{
+		j->recursive.level = _starpu_task_get_level(j->recursive.parent_task) + 1;
+		j->recursive.recursive_mode = _starpu_get_job_associated_to_task(_starpu_recursive_task_which_generate_dag())->recursive.recursive_mode;
+	}
+#endif
+
 	if (!_starpu_perf_counter_paused() && !j->internal && !continuation)
 	{
 		(void) STARPU_PERF_COUNTER_ADD64(&_starpu_task__g_total_submitted__value, 1);
@@ -1128,12 +1181,118 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 		_starpu_job_set_ordered_buffers(j);
 	}
 
+#ifdef STARPU_RECURSIVE_TASKS
+	unsigned i, nbuffers = 0;
+	starpu_data_handle_t handle;
+	/* If task->cl is NULL the nbuffers macro segfault */
+	if (task->cl)
+	{
+		nbuffers = STARPU_TASK_GET_NBUFFERS(task);
+		/* We wanna lock partition_mutex for every task handle
+		 * to prevent any funny business with automatic unpartitioning */
+		// for recursive tasks, we need to take the partition mutexes in an ordered way to prevent deadlock because two tasks have same buffers but with other order
+		// to do it, we just sort them by ascendant order of handle
+		int look_order[nbuffers];
+		starpu_data_handle_t handlei, handlej;
+		for (i = 0; i < nbuffers; i++)
+		{
+			look_order[i] = i;
+		}
+		for (i = 0; i < nbuffers; i++)
+		{
+			unsigned k;
+			handlei = STARPU_TASK_GET_HANDLE(task, look_order[i]);
+			for (k = i+1; k < nbuffers; k++)
+			{
+				handlej = STARPU_TASK_GET_HANDLE(task, look_order[k]);
+				if (handlei->partition_mutex > handlej->partition_mutex)
+				{
+					handlei = handlej;
+					int tmp = look_order[i];
+					look_order[i] = look_order[k];
+					look_order[k] = tmp;
+				}
+			}
+		}
+		for (i = 0; i < nbuffers; i++)
+		{
+			handle = STARPU_TASK_GET_HANDLE(task, look_order[i]);
+			_STARPU_DEBUG("[%s(%p)] Lock mutex %p\n", starpu_task_get_name(task), task, handle->partition_mutex);
+			/* We don't want anyone unpartitioning this handle while we are checking how it's partitioned */
+			STARPU_PTHREAD_MUTEX_LOCK(handle->partition_mutex);
+			/* If this is a partition/unpartition all the locks are the same */
+			if (task->cl == handle->switch_cl)
+				break;
+		}
+		struct _starpu_job *pjob = NULL;
+		int buf_start = 0;
+		if (j->recursive.parent_task != NULL)
+		{
+			pjob = _starpu_get_job_associated_to_task(j->recursive.parent_task);
+			j->recursive.handles_states->nb_handles = nbuffers + pjob->recursive.handles_states->nb_handles;
+			buf_start = pjob->recursive.handles_states->nb_handles;
+			_STARPU_CALLOC(j->recursive.handles_states->handles, j->recursive.handles_states->nb_handles, sizeof(j->recursive.handles_states->handles[0]));
+			_STARPU_CALLOC(j->recursive.handles_states->initialized, j->recursive.handles_states->nb_handles, sizeof(j->recursive.handles_states->initialized[0]));
+			memcpy(j->recursive.handles_states->handles, pjob->recursive.handles_states->handles, sizeof(starpu_data_handle_t)*(pjob->recursive.handles_states->nb_handles));
+			memcpy(j->recursive.handles_states->initialized, pjob->recursive.handles_states->initialized, sizeof(int)*(pjob->recursive.handles_states->nb_handles));
+		}
+		else
+		{
+			j->recursive.handles_states->nb_handles = nbuffers;
+			_STARPU_CALLOC(j->recursive.handles_states->handles, j->recursive.handles_states->nb_handles, sizeof(j->recursive.handles_states->handles[0]));
+			_STARPU_CALLOC(j->recursive.handles_states->initialized, j->recursive.handles_states->nb_handles, sizeof(j->recursive.handles_states->initialized[0]));
+		}
+		for (i = 0; i < nbuffers; i++)
+		{
+			handle = STARPU_TASK_GET_HANDLE(task, i);
+			j->recursive.handles_states->initialized[i+buf_start] = handle->initialized;
+			j->recursive.handles_states->handles[i+buf_start] = handle;
+			if (pjob != NULL && !j->recursive.handles_states->initialized[i+buf_start])
+			{
+				// we need to recover the initialized value of the parent of the handle ; or the current values of initialized
+				// we are going to find the parent of this handle
+				int parent_nbuffers = pjob->recursive.handles_states->nb_handles;
+				int jj, ind_parent = -1;
+				starpu_data_handle_t parent_handle = handle, tmp_handle, handlee;
+				for (jj = parent_nbuffers-1 ; jj >= 0 ; jj--)
+				{
+						tmp_handle = pjob->recursive.handles_states->handles[jj];
+						if (tmp_handle->root_handle == handle->root_handle)
+						{
+							// maybe tmp_handle is the parent we search for
+							handlee = handle->parent_handle;
+							while (handlee != NULL && handlee != tmp_handle)
+							{
+								handlee = handlee->parent_handle;
+							}
+							if (handlee == tmp_handle)
+							{
+								parent_handle = handlee;
+								ind_parent = jj;
+								break;
+							}
+						}
+				}
+				STARPU_ASSERT_MSG(ind_parent >= 0 || parent_handle->last_partition == task || parent_handle->last_unpartition == task, "When using recursive tasks, the children tasks of recursive task have to use children handles of the recursive task's handles");
+				if (ind_parent >= 0)
+					j->recursive.handles_states->initialized[i+buf_start] = pjob->recursive.handles_states->initialized[ind_parent];
+			}
+		}
+	}
+#endif /* STARPU_RECURSIVE_TASKS */
 	ret = _starpu_task_submit_head(task);
 	if (ret)
 	{
 		_starpu_trace_task_submit_end();
 		return ret;
 	}
+	struct _starpu_job *pjob = NULL;
+#ifndef STARPU_RECURSIVE_TASKS
+	(void)pjob;
+#endif
+#ifdef STARPU_RECURSIVE_TASKS
+	pjob = j->recursive.parent_task ? _starpu_get_job_associated_to_task(j->recursive.parent_task) : NULL;
+#endif
 
 	if (!continuation)
 	{
@@ -1144,26 +1303,138 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 #endif
 	}
 
-	/* If this is a continuation, we don't modify the implicit data dependencies detected earlier. */
-	if (task->cl && !continuation && !nodeps
 #ifdef STARPU_RECURSIVE_TASKS
-	    && !j->is_recursive_task
-#endif
-		)
+	if (j->recursive.parent_task)
 	{
-	    _starpu_detect_implicit_data_deps(task);
+		// set split_scheme for this subask
+		if (pjob->recursive.split_scheme)
+		{
+			j->recursive.split_scheme = pjob->recursive.split_scheme;
+			j->recursive.split_ind = pjob->recursive.split_ind;
+			j->recursive.ind_task_in_scheme = pjob->recursive.split_ind[pjob->recursive.ind_task_in_scheme] + pjob->recursive.total_real_nsubtasks;
+			j->recursive.scheduling = pjob->recursive.scheduling;
+
+		//	if (j->recursive.level < 2)
+		//		fprintf(stderr, "Submit %s(%p), a task child of %s(level %u), with split_scheme %s. Ind_in_scheme is %u\n", j->task->name, j->task, j->recursive.parent_task->name, j->recursive.level, pjob->recursive.split_scheme, j->recursive.ind_task_in_scheme);
+		}
+//		if (pjob->recursive.level == 0)
+//			fprintf(stderr, "Add one task to %p %s\n", pjob->task, pjob->task->name);
+		pjob->recursive.total_nchildren ++;
+		if (j->task->cl && j->task->cl->model)
+		{
+//			if (j->recursive.split_scheme)
+//				j->task->where = j->recursive.scheduling[j->recursive.ind_task_in_scheme] == '0' ? STARPU_CPU : STARPU_CUDA;
+			pjob->recursive.total_real_nsubtasks ++;
+		}
+
+		j->recursive.parent_task->destroy = 0;/* TODO: why ?*/
+
+		if (j->task->cl && j->task->cl->model && pjob->recursive.subgraph_created)
+		{
+			_starpu_recursive_perfmodel_add_subtask_to_subgraph(pjob->recursive.subgraph_created, j->task);
+		}
 	}
+#endif /* STARPU_RECURSIVE_TASKS */
+
+	/* If this is a continuation, we don't modify the implicit data dependencies detected earlier. */
+	if (task->cl && !continuation && !nodeps)
+	{
+#ifdef STARPU_RECURSIVE_TASKS
+		/* starpu_data_handle_t handle = _STARPU_JOB_GET_ORDERED_BUFFERS(j)[0].handle; */
+		handle = STARPU_TASK_GET_HANDLE(task, 0);
+		/* We don't want dependencies in the case of recursive task partitioning
+		 * because the recursive task is, by construction, ready. */
+		_STARPU_RECURSIVE_TASKS_DEBUG("Task %p(%s), with handle %p with last_partitition %p is checked for dependencies.\n", task, task->name, handle, handle ? handle->last_partition : NULL);
+		if (handle && task != handle->last_partition)
+		{
+			_STARPU_RECURSIVE_TASKS_DEBUG("Checking dependencies for %s(%p)\n", starpu_task_get_name(task), task);
+			_starpu_detect_implicit_data_deps(task);
+
+			for (i=0; i<nbuffers; i++)
+			{
+				if (task == STARPU_TASK_GET_HANDLE(task, 0)->last_unpartition)
+					break;
+				/* If one of the data used by the task comes from a
+				 * handle whose parent is being partitioned we need
+				 * a dependency with the partition task */
+				/* Should also check the access mode! */
+				handle = STARPU_TASK_GET_HANDLE(task, i)->parent_handle;
+				if (handle && handle->last_partition != NULL)
+				{
+					_STARPU_RECURSIVE_TASKS_DEBUG("Adding task deps %s(%p) -> %s(%p)\n",
+								      starpu_task_get_name(handle->last_partition), handle->last_partition,
+								      starpu_task_get_name(task), task);
+					starpu_task_declare_deps(task, 1, handle->last_partition);
+				}
+			}
+		}
+		else if (handle && task == handle->last_partition && handle->parent_handle && handle->parent_handle->last_partition)
+		{
+			_STARPU_RECURSIVE_TASKS_DEBUG("Adding task deps %s(%p) -> %s(%p)\n",
+											starpu_task_get_name(handle->parent_handle->last_partition), handle->parent_handle->last_partition,
+											starpu_task_get_name(task), task);
+			starpu_task_declare_deps(task, 1, handle->parent_handle->last_partition);
+		}
+		if (handle && task == handle->last_partition)
+		{
+			// We need to put at 1 the initialized values of the children
+			for (i=1; i < nbuffers; i++)
+			{
+				handle = STARPU_TASK_GET_HANDLE(task, i);
+				handle->initialized = 1;
+			}
+		}
+#else
+		_starpu_detect_implicit_data_deps(task);
+#endif /* STARPU_RECURSIVE_TASKS */
+	}
+
+#ifdef STARPU_RECURSIVE_TASKS
+	/* Unlocking all partition_mutex */
+	if (task->cl)
+	{
+		int look_order[nbuffers];
+		starpu_data_handle_t handlei, handlej;
+		for (i = 0; i < nbuffers; i++)
+		{
+			look_order[i] = i;
+		}
+		for (i = 0; i < nbuffers; i++)
+		{
+			unsigned k;
+			handlei = STARPU_TASK_GET_HANDLE(task, look_order[i]);
+			for (k = i+1; k < nbuffers; k++)
+			{
+				handlej = STARPU_TASK_GET_HANDLE(task, look_order[k]);
+				if (handlei->partition_mutex > handlej->partition_mutex)
+				{
+					handlei = handlej;
+					int tmp = look_order[i];
+					look_order[i] = look_order[k];
+					look_order[k] = tmp;
+				}
+			}
+		}
+		for (i = 0; i < nbuffers; i++)
+		{
+			handle = STARPU_TASK_GET_HANDLE(task, look_order[i]);
+			STARPU_PTHREAD_MUTEX_UNLOCK(handle->partition_mutex);
+			_STARPU_RECURSIVE_TASKS_DEBUG("[%s(%p)] Unlock mutex %p\n", starpu_task_get_name(task), task, handle->partition_mutex);
+			/* If this is a partition/unpartition all the locks are the same */
+			if (task->cl == handle->switch_cl) break;
+		}
+	}
+#endif /* STARPU_RECURSIVE_TASKS */
 
 	if (!continuation)
 	{
 		task->iterations[0] = _starpu_get_sched_ctx_struct(task->sched_ctx)->iterations[0];
 		task->iterations[1] = _starpu_get_sched_ctx_struct(task->sched_ctx)->iterations[1];
-		_starpu_trace_task_submit(j, task->iterations[0], task->iterations[1]);
+		_starpu_trace_task_submit(j, task->iterations[0], task->iterations[1], pjob);
 		_starpu_trace_task_color(j);
 		_starpu_trace_task_name(j);
 		_starpu_trace_task_line(j);
 	}
-
 
 	if (STARPU_UNLIKELY(bundle))
 	{

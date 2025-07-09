@@ -446,6 +446,14 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 {
 	int nbasic_workers = (int)starpu_worker_get_count();
 
+	// We push on a specific worker, and so we will not pass by the unpartition engine, so we need to turn it NOW
+#ifdef STARPU_RECURSIVE_TASKS
+	if (_starpu_turn_task_into_recursive_task_at_scheduler(task))
+	{
+		return 0;
+	}
+#endif
+
 	/* Is this a basic worker or a combined worker ? */
 	int is_basic_worker = (workerid < nbasic_workers);
 
@@ -600,6 +608,7 @@ int _starpu_repush_task(struct _starpu_job *j)
 	unsigned can_push = _starpu_increment_nready_tasks_of_sched_ctx(task->sched_ctx, task->flops, task);
 	STARPU_ASSERT(task->status == STARPU_TASK_BLOCKED || task->status == STARPU_TASK_BLOCKED_ON_TAG || task->status == STARPU_TASK_BLOCKED_ON_TASK || task->status == STARPU_TASK_BLOCKED_ON_DATA);
 	task->status = STARPU_TASK_READY;
+	_STARPU_RECURSIVE_TASKS_DEBUG("[%d] %s(%p) is now READY.\n", starpu_worker_get_id(), starpu_task_get_name(task), task);
 	const unsigned continuation =
 #ifdef STARPU_OPENMP
 		j->continuation
@@ -672,6 +681,13 @@ int _starpu_repush_task(struct _starpu_job *j)
 			task->prologue_callback_pop_func(task->prologue_callback_pop_arg);
 			_starpu_set_current_task(NULL);
 		}
+#ifdef STARPU_RECURSIVE_TASKS
+		// We need to unpartition the task maybe
+		if (_starpu_turn_task_into_recursive_task_at_scheduler(task))
+		{
+			return 0; // we need to wait for unpartition !
+		}
+#endif
 
 		{
 			int worker_id = starpu_worker_get_id();
@@ -688,7 +704,7 @@ int _starpu_repush_task(struct _starpu_job *j)
 		{
 			if (task->cl
 #ifdef STARPU_RECURSIVE_TASKS
-			    && !j->is_recursive_task
+//			    && !j->is_recursive_task
 #endif
 			    )
 				__starpu_push_task_output(j);
@@ -855,6 +871,11 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
  */
 int starpu_push_task_end(struct starpu_task *task)
 {
+	if (task->where == STARPU_CPU && !_starpu_task_is_recursive(task))
+	{
+//		fprintf(stderr, "CPu has task %p %s at %lf\n", task, task->name, starpu_timing_now());
+	}
+
 	_starpu_profiling_set_task_push_end_time(task);
 	task->scheduled = 1;
 	return 0;
@@ -902,6 +923,8 @@ struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t
 
 	_starpu_spin_lock(&handle->header_lock);
 	handle->refcnt++;
+	_STARPU_RECURSIVE_TASKS_DEBUG("Take refcnt on data %p by conversion task\n", handle);
+	_STARPU_RECURSIVE_TASKS_DEBUG("Take busy count on data %p by conversion task\n", handle);
 	handle->busy_count++;
 	_starpu_spin_unlock(&handle->header_lock);
 

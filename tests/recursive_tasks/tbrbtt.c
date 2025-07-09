@@ -55,7 +55,7 @@ struct starpu_codelet task_2arg_codelet =
 	.nbuffers = 2
 };
 
-void recursive_task_2arg_gen_dag(struct starpu_task *t, void *arg)
+void recursive_task_2arg_gen_dag(struct starpu_task *t, void *arg, void **b)
 {
 	FPRINTF(stderr, "Recursive task level 2\n");
 	struct handle_partition *handles = (struct handle_partition*)arg;
@@ -79,12 +79,12 @@ void recursive_task_2arg_gen_dag(struct starpu_task *t, void *arg)
 struct starpu_codelet recursive_task_2arg_codelet =
 {
 	.cpu_funcs = {recursive_task_func},
-	.recursive_task_func = is_recursive_task,
+	.recursive_task_func = is_recursive_task_always,
 	.recursive_task_gen_dag_func = recursive_task_2arg_gen_dag,
 	.nbuffers = 2
 };
 
-void recursive_task_1arg_gen_dag(struct starpu_task *t, void *arg)
+void recursive_task_1arg_gen_dag(struct starpu_task *t, void *arg, void **b)
 {
 	FPRINTF(stderr, "Recursive task level 1\n");
 	struct handle_partition *handles = (struct handle_partition*)arg;
@@ -101,7 +101,7 @@ void recursive_task_1arg_gen_dag(struct starpu_task *t, void *arg)
 struct starpu_codelet recursive_task_1arg_codelet =
 {
 	.cpu_funcs = {recursive_task_func},
-	.recursive_task_func = is_recursive_task,
+	.recursive_task_func = is_recursive_task_always,
 	.recursive_task_gen_dag_func = recursive_task_1arg_gen_dag,
 	.nbuffers = 1
 };

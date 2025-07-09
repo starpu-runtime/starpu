@@ -28,6 +28,7 @@
 #include <datawizard/memory_nodes.h>
 #include <profiling/profiling.h>
 #include <profiling/bound.h>
+#include <profiling/splitter_bound.h>
 #include <core/debug.h>
 #include <limits.h>
 #include <core/workers.h>
@@ -42,6 +43,7 @@ static unsigned long njobs, maxnjobs;
 static struct _starpu_job_multilist_all_submitted all_jobs_list;
 static starpu_pthread_mutex_t all_jobs_list_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 #endif
+#include <core/jobs_recursive.h>
 
 void _starpu_job_crash();
 
@@ -51,6 +53,10 @@ void _starpu_job_init(void)
 	task_progress = starpu_getenv_number_default("STARPU_TASK_PROGRESS", 0);
 #ifdef STARPU_DEBUG
 	_starpu_job_multilist_head_init_all_submitted(&all_jobs_list);
+	starpu_pthread_mutex_init(&all_jobs_list_mutex, NULL);
+#endif
+#ifdef STARPU_RECURSIVE_TASKS
+	_starpu_job_splitter_policy_init();
 #endif
 	_starpu_crash_add_hook(&_starpu_job_crash);
 }
@@ -84,7 +90,7 @@ void _starpu_exclude_task_from_dag(struct starpu_task *task)
 }
 
 /* create an internal struct _starpu_job structure to encapsulate the task */
-struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_task *task)
+struct _starpu_job *STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_task *task)
 {
 	struct _starpu_job *job;
 	_STARPU_LOG_IN();
@@ -98,7 +104,10 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 		_STARPU_MALLOC(job->dyn_ordered_buffers, STARPU_TASK_GET_NBUFFERS(task) * sizeof(job->dyn_ordered_buffers[0]));
 		_STARPU_CALLOC(job->dyn_dep_slots, STARPU_TASK_GET_NBUFFERS(task), sizeof(job->dyn_dep_slots[0]));
 	}
-
+#ifdef STARPU_RECURSIVE_TASKS
+	_STARPU_CALLOC(job->recursive.handles_states, 1, sizeof(job->recursive.handles_states[0]));
+	job->recursive.cuda_worker_executor_id = -1;
+#endif
 	job->task = task;
 
 	if (
@@ -142,7 +151,7 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 	return job;
 }
 
-struct _starpu_job* _starpu_get_job_associated_to_task_slow(struct starpu_task *task, struct _starpu_job *job)
+struct _starpu_job *_starpu_get_job_associated_to_task_slow(struct starpu_task *task, struct _starpu_job *job)
 {
 	if (job == _STARPU_JOB_UNSET)
 	{
@@ -191,7 +200,17 @@ void _starpu_job_destroy(struct _starpu_job *j)
 		STARPU_PTHREAD_BARRIER_DESTROY(&j->after_work_barrier);
 		STARPU_ASSERT(j->after_work_busy_barrier == 0);
 	}
-
+#ifdef STARPU_RECURSIVE_TASKS
+	if (j->recursive.handles_states)
+	{
+		if (j->recursive.handles_states->nb_handles > 0)
+		{
+			free(j->recursive.handles_states->handles);
+			free(j->recursive.handles_states->initialized);
+		}
+		free(j->recursive.handles_states);
+	}
+#endif
 	_starpu_cg_list_deinit(&j->job_successors);
 	if (j->dyn_ordered_buffers)
 	{
@@ -343,6 +362,7 @@ void starpu_task_end_dep_add(struct starpu_task *t, int nb_deps)
 
 void _starpu_handle_job_termination(struct _starpu_job *j)
 {
+	_STARPU_RECURSIVE_TASKS_DEBUG("Liberate deps of job %p\n", j);
 	if (j->task->nb_termination_call_required != 0)
 	{
 		STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
@@ -351,7 +371,10 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 		if (nb != 0) return;
 	}
-
+#ifdef STARPU_RECURSIVE_TASKS
+	if (!_starpu_job_is_recursive(j))
+		_starpu_job_splitter_termination(j);
+#endif
 	if (task_progress)
 	{
 		unsigned long jobs = STARPU_ATOMIC_ADDL(&njobs_finished, 1);
@@ -440,11 +463,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 #endif //STARPU_USE_SC_HYPERVISOR
 
 	/* We release handle reference count */
-	if (task->cl && !continuation
-#ifdef STARPU_RECURSIVE_TASKS
-	    && !j->is_recursive_task
-#endif
-	    )
+	if (task->cl && !continuation)
 	{
 		unsigned i;
 		unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
@@ -461,6 +480,10 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		{
 			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
 			_starpu_spin_lock(&handle->header_lock);
+#ifdef STARPU_RECURSIVE_TASKS
+			handle->nb_tasks_on_handle ++;
+#endif
+			_STARPU_RECURSIVE_TASKS_DEBUG("Release busy count 0 on data %p by job %p\n", handle, j);
 			handle->busy_count--;
 			if (!_starpu_data_check_not_busy(handle))
 				_starpu_spin_unlock(&handle->header_lock);
@@ -475,6 +498,9 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	 * data as it's not linked to an actual worker */
 	/* control task should not execute post_exec_hook */
 	if(j->task_size == 1 && !nowhere && !j->internal
+#ifdef STARPU_RECURSIVE_TASKS
+			&& !j->recursive.is_recursive_task
+#endif
 #ifdef STARPU_OPENMP
 	/* If this is a continuation, we do not execute the post_exec_hook. The
 	 * post_exec_hook will be run only when the continued task fully
@@ -527,6 +553,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		_starpu_release_data_enforce_sequential_consistency(j->task, &j->implicit_dep_slot, handle);
 		/* Release reference taken while setting implicit_dep_handle */
 		_starpu_spin_lock(&handle->header_lock);
+		_STARPU_RECURSIVE_TASKS_DEBUG("Release busy count on data 1 %p by job %p\n", handle, j);
 		handle->busy_count--;
 		if (!_starpu_data_check_not_busy(handle))
 			_starpu_spin_unlock(&handle->header_lock);
@@ -592,6 +619,12 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	 */
 	_starpu_trace_task_done(j);
 
+#ifdef STARPU_RECURSIVE_TASKS
+//if (!j->recursive.is_recursive_task)
+	_starpu_job_splitter_liberate_parent(j);
+#endif /* STARPU_RECURSIVE_TASKS */
+
+
 	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 
 	/* NB: we do not save those values before the callback, in case the
@@ -629,8 +662,14 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		 * the data structures now. In case the job was already locked
 		 * by the caller, it is its responsibility to destroy the task.
 		 * */
-		if (destroy)
+		if (destroy
+#ifdef STARPU_RECURSIVE_TASKS
+		    && (!j->recursive.is_recursive_task ) //|| (j->recursive.is_recursive_task && j->recursive.total_nchildren != j->recursive.total_nchildren_end))
+#endif
+			)
+		{
 			_starpu_task_destroy(task);
+		}
 	}
 
 	/* A continuation is not much different from a regenerated task. */
@@ -746,138 +785,6 @@ static unsigned _starpu_not_all_task_deps_are_fulfilled(struct _starpu_job *j)
 	return ret;
 }
 
-#ifdef STARPU_RECURSIVE_TASKS
-int _starpu_recursive_task_unpartition_data_if_needed(struct _starpu_job *j)
-{
-	//_STARPU_DEBUG("[%s(%p)]\n", starpu_task_get_name(j->task), j->task);
-	int unpartition_needed = 0;
-	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(j->task);
-	unsigned nhandle = 0;
-	unsigned i;
-	struct starpu_task *control_task = NULL;
-
-	for (i = 0; i < nbuffers; i++)
-	{
-		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(j->task, i);
-		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(j->task, i);
-
-		STARPU_PTHREAD_MUTEX_LOCK(&handle->unpartition_mutex);
-
-		/**
-		 * Version A
-		 *
-		 * We create a control task with the required data
-		 * dependencies that will be automatically/magically
-		 * handled by _starpu_data_partition_access_submit()
-		 * called in _starpu_task_submit_head().
-		 */
-		if (handle->nplans > 0)
-		{
-			if (unpartition_needed == 0)
-			{
-				control_task = starpu_task_create();
-				control_task->name = "ucontrol";
-				_starpu_task_declare_deps_array(j->task, 1, &control_task, 0);
-
-				unpartition_needed = 1;
-			}
-
-			//STARPU_TASK_SET_HANDLE(control_task, handle, nhandle);
-			control_task->handles[nhandle] = handle;
-			//STARPU_TASK_SET_MODE(control_task, mode, nhandle);
-			control_task->modes[nhandle] = mode;
-			nhandle ++;
-		}
-		/**
-		 * Version B
-		 *
-		 * We find a way to call directly
-		 * _starpu_data_partition_access_submit() here, and we
-		 * (re-)plug the current task onto the last task
-		 * generated by
-		 * _starpu_data_partition_access_submit().
-		 */
-		else
-		{
-			//_starpu_data_partition_access_submit(handle, (mode & STARPU_W) != 0);
-			// + replug on the current task
-		}
-		STARPU_PTHREAD_MUTEX_UNLOCK(&handle->unpartition_mutex);
-	}
-
-	// No data has been partitioned, let's keep going
-	if (unpartition_needed == 0)
-	{
-		return 0;
-	}
-
-	// Add the dependency on the unpartition tasks
-	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
-	j->task->status = STARPU_TASK_BLOCKED_ON_TASK;
-	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
-
-	STARPU_ASSERT(control_task);
-	int ret = starpu_task_submit(control_task);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit(control_task)");
-
-	return 1;
-}
-
-static int _starpu_turn_task_into_recursive_task(struct _starpu_job *j)
-{
-	if (j->already_turned_into_recursive_task)
-	{
-		/*
-		 * We have first checked all dependencies of the recursive task,
-		 * and secondly checked in a second stage the additional
-		 * partition/unpartition dependencies
-		 */
-		STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
-		return 0;
-	}
-	j->already_turned_into_recursive_task = 1;
-	//_STARPU_DEBUG("[%s(%p)]\n", starpu_task_get_name(j->task), j->task);
-
-	if (j->is_recursive_task == 1)
-	{
-		STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
-		return 0;
-	}
-	else if (j->task->cl == NULL)
-	{
-		STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
-		return 0;
-	}
-	else
-	{
-		STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
-		return _starpu_recursive_task_unpartition_data_if_needed(j);
-	}
-}
-
-void _starpu_recursive_task_execute(struct _starpu_job *j)
-{
-	_starpu_trace_recursive_task(j);
-	_starpu_trace_task_name_line_color(j);
-	_starpu_trace_start_codelet_body(j, 0, NULL, 0, 0);
-	STARPU_ASSERT_MSG(j->task->recursive_task_gen_dag_func!=NULL || (j->task->cl && j->task->cl->recursive_task_gen_dag_func!=NULL),
-			  "task->recursive_task_gen_dag_func MUST be defined\n");
-
-#ifdef STARPU_VERBOSE
-	struct timespec tp;
-	clock_gettime(CLOCK_MONOTONIC, &tp);
-	unsigned long long timestamp = 1000000000ULL*tp.tv_sec + tp.tv_nsec;
-	_STARPU_DEBUG("{%llu} [%s(%p)] Running recursive task\n", timestamp, starpu_task_get_name(j->task), j->task);
-#endif
-	if (j->task->recursive_task_gen_dag_func)
-		j->task->recursive_task_gen_dag_func(j->task, j->task->recursive_task_gen_dag_func_arg);
-	else
-		j->task->cl->recursive_task_gen_dag_func(j->task, j->task->recursive_task_gen_dag_func_arg);
-	j->task->where = STARPU_NOWHERE;
-	_starpu_trace_end_codelet_body(j, 0, NULL, 0, 0);
-}
-#endif
-
 /*
  *	In order, we enforce tag, task and data dependencies. The task is
  *	passed to the scheduler only once all these constraints are fulfilled.
@@ -914,31 +821,30 @@ unsigned _starpu_enforce_deps_and_schedule(struct _starpu_job *j)
 	 * case and come back later when these new dependencies are
 	 * fulfilled
 	 */
-	if (_starpu_turn_task_into_recursive_task(j))
+	if (!call_splitter_on_scheduler)
 	{
-		_STARPU_LOG_OUT_TAG("recursive_task");
-		return 0;
+		if (_starpu_turn_task_into_recursive_task(j))
+		{
+			_STARPU_LOG_OUT_TAG("recursive_task");
+			return 0;
+		}
 	}
+	else
+	{
+		STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+	}
+
 #else
 	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 #endif
 
-#ifdef STARPU_RECURSIVE_TASKS
-	if (j->is_recursive_task == 1)
+	/* respect data concurrent access */
+	if (_starpu_concurrent_data_access(j))
 	{
-		_starpu_recursive_task_execute(j);
+		_STARPU_RECURSIVE_TASKS_DEBUG("Task %p(%s) is in concurrent access\n", j->task, j->task->name);
+		_STARPU_LOG_OUT_TAG("concurrent_data_access");
+		return 0;
 	}
-	else
-#endif
-	{
-		/* respect data concurrent access */
-		if (_starpu_concurrent_data_access(j))
-		{
-			_STARPU_LOG_OUT_TAG("concurrent_data_access");
-			return 0;
-		}
-	}
-
 #ifdef STARPU_RECURSIVE_TASKS
 	if (j->task->recursive_task_parent != 0)
 		_starpu_trace_recursive_task_deps(j->task->recursive_task_parent, j);
@@ -962,28 +868,25 @@ unsigned _starpu_enforce_deps_starting_from_task(struct _starpu_job *j)
 		return 0;
 	}
 #ifdef STARPU_RECURSIVE_TASKS
-	if (_starpu_turn_task_into_recursive_task(j))
+	if (!call_splitter_on_scheduler)
 	{
-		_STARPU_LOG_OUT_TAG("recursive_task");
-		return 0;
+		if (_starpu_turn_task_into_recursive_task(j))
+		{
+			_STARPU_LOG_OUT_TAG("recursive_task");
+			return 0;
+		}
+	}
+	else
+	{
+		STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 	}
 #else
 	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 #endif
 
-#ifdef STARPU_RECURSIVE_TASKS
-	if (j->is_recursive_task == 1)
-	{
-		_starpu_recursive_task_execute(j);
-	}
-	else
-#endif
-	{
-		/* respect data concurrent access */
-		if (_starpu_concurrent_data_access(j))
-			return 0;
-	}
-
+	/* respect data concurrent access */
+	if (_starpu_concurrent_data_access(j))
+		return 0;
 #ifdef STARPU_RECURSIVE_TASKS
 	if (j->task->recursive_task_parent != 0)
 		_starpu_trace_recursive_task_deps(j->task->recursive_task_parent, j);

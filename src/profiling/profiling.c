@@ -418,6 +418,9 @@ static void _starpu_worker_time_accumulate(struct starpu_profiling_worker_info *
 	case STATUS_INDEX_INITIALIZING:
 		/* no profiling info for init */
 		break;
+	case STATUS_INDEX_SUBMITTING:
+		/* todo check it is correct */
+		break;
 	case STATUS_INDEX_NR:
 		STARPU_ASSERT(0);
 	}

@@ -40,17 +40,28 @@ tasks.
 
 //Figure of recursive tasks graph and computing task graph that maps with it
 
+Publication on recursive tasks can be found at
+https://starpu.gitlabpages.inria.fr/publications.html#on-recursive-tasks
+
+Please note that this feature is still under progress, and is not
+expected to be fully working.
+
+To enable recursive tasks in StarPU, one needs to set the configure option
+\ref enable-recursive-tasks "--enable-recursive-tasks".
+
 \section RecursiveTasksExamples An Example
 
-In order to understand the recursive tasks model, an example of
-"bubblification" is showed here. We start from a simple example,
-multiplying the elements of a vector.
+In order to understand the recursive tasks model, an example of how to
+transform an application to use recursive tasks is showed here. We
+start from a simple example, multiplying the elements of a vector.
+
+The full example is available in the file <c>examples/recursive_tasks/vector.c</c>.
 
 \subsection RecursiveTasksInitialVersion Initial Version
 
-A computation is done several times on a vector split in smaller
-vectors. For each step and each sub-vector, a task is generated to
-perform the computation.
+A computation is done on a vector split in smaller vectors. For each
+step and each sub-vector, a task is generated to perform the
+computation.
 
 \code{.c}
 void func_cpu(void *descr[], void *_args)
@@ -58,7 +69,7 @@ void func_cpu(void *descr[], void *_args)
 	(void) _args;
 	size_t x;
 	size_t nx = STARPU_VECTOR_GET_NX(descr[0]);
-	TYPE *v = (TYPE *)STARPU_VECTOR_GET_PTR(descr[0]);
+	int *v = (int *)STARPU_VECTOR_GET_PTR(descr[0]);
 
 	for(x=0 ; x<nx ; x++)
 		v[x] += 1;
@@ -73,7 +84,7 @@ struct starpu_codelet vector_cl =
 
 int vector_no_recursive_task()
 {
-	TYPE *vector;
+	int *vector;
 	starpu_data_handle_t vhandle;
 
 	/* ... */
@@ -81,13 +92,12 @@ int vector_no_recursive_task()
 	starpu_vector_data_register(&vhandle, 0, (uintptr_t)vector, X, sizeof(vector[0]));
 	starpu_data_map_filters(vhandle, 1, &f);
 
-	for(loop=0 ; loop<NITER; loop++)
-		for (x = 0; x < SLICES; x++)
-		{
-			starpu_task_insert(&vector_cl,
-					 STARPU_RW, starpu_data_get_sub_data(vhandle, 1, x),
-					 0);
-		}
+	for (x = 0; x < SLICES; x++)
+	{
+		starpu_task_insert(&vector_cl,
+				 STARPU_RW, starpu_data_get_sub_data(vhandle, 1, x),
+				 0);
+	}
 
 	starpu_data_unpartition(vhandle, STARPU_MAIN_RAM);
 	starpu_data_unregister(vhandle);
@@ -98,76 +108,6 @@ int vector_no_recursive_task()
 
 \subsection RecursiveTasksVersion Recursive Tasks Version
 
-The recursive tasks version of the code replaces the inner loop that realizes
-the tasks insertion by a call to a recursive tasks creation. At its execution,
-the recursive task will insert the computing tasks. The recursive task graph is built
-accordingly to the dependencies of the subdata.
-
-\code{.c}
-void no_func(void *buffers[], void *arg)
-{
-	assert(0);
-	return;
-}
-
-int is_recursive_task(struct starpu_task *t, void *arg)
-{
-	(void)arg;
-	(void)t;
-	return 1;
-}
-
-void recursive_task_gen_dag(struct starpu_task *t, void *arg)
-{
-	int i;
-	starpu_data_handle_t *subdata = (starpu_data_handle_t *)arg;
-
-	for(i=0 ; i<SLICES ; i++)
-	{
-		starpu_task_insert(&vector_cl,
-				STARPU_RW, subdata[i],
-				0);
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
-	}
-}
-
-struct starpu_codelet recursive_task_codelet =
-{
-	.cpu_funcs = {no_func},
-	.recursive_task_func = is_recursive_task,
-	.recursive_task_gen_dag_func = recursive_task_gen_dag,
-	.nbuffers = 1
-};
-
-int vector_recursive_task()
-{
-	TYPE *vector;
-	starpu_data_handle_t vhandle;
-	starpu_data_handle_t sub_handles[SLICES];
-
-	/* ... */
-
-	starpu_vector_data_register(&vhandle, 0, (uintptr_t)vector, X, sizeof(vector[0]));
-	starpu_data_partition_plan(vhandle, &f, sub_handles);
-
-	for(loop=0 ; loop<NITER; loop++)
-	{
-		starpu_task_insert(&recursive_task_codelet,
-				STARPU_RW, vhandle,
-				STARPU_NAME, "B1",
-				STARPU_RECURSIVE_TASK_GEN_DAG_FUNC_ARG, sub_handles,
-				0);
-	}
-
-	starpu_data_partition_clean(vhandle, SLICES, sub_handles);
-	starpu_data_unregister(vhandle);
-
-	/* ... */
-}
-\endcode
-
-The full example is available in the file <c>recursive_tasks/tests/vector/vector.c</c>.
-
 To define a recursive task, one needs to define the fields
 starpu_codelet::recursive_task_func and starpu_codelet::recursive_task_gen_dag_func.
 
@@ -177,11 +117,15 @@ transformed into a recursive_task. If the function returns a non-zero value,
 the function starpu_codelet::recursive_task_gen_dag_func will be executed to
 create the new graph of tasks.
 
+&nbsp;
+
 The pointer functions can also be defined when calling
 starpu_task_insert() by using the arguments ::STARPU_RECURSIVE_TASK_FUNC and
 ::STARPU_RECURSIVE_TASK_GEN_DAG_FUNC. Both these functions can be passed
 parameters through the arguments ::STARPU_RECURSIVE_TASK_FUNC_ARG and
 ::STARPU_RECURSIVE_TASK_GEN_DAG_FUNC_ARG
+
+&nbsp;
 
 When executed, the function starpu_codelet::recursive_task_func will be given
 as parameter the task being checked, and the value specified with
@@ -191,6 +135,135 @@ When executed, the function starpu_codelet::recursive_task_gen_dag_func will be
 given as parameter the task being turned into a recursive task and
 the value specified with ::STARPU_RECURSIVE_TASK_GEN_DAG_FUNC_ARG.
 
-An example involving these functions is in <c>recursive_tasks/tests/basic/brec.c</c>. And more examples are available in <c>recursive_tasks/tests/basic/*.c</c>.
+&nbsp;
+
+As for our example, the recursive tasks version of the code replaces
+the inner loop that realizes the tasks insertion by a call to a
+recursive tasks creation. At its execution, the recursive task will
+insert the computing tasks.
+
+The vector has first been splitted into \c SLICES parts, and the first
+sub-part has also been splitted into \c SLICES parts.
+
+The function \c is_recursive_task() hence inquires with the StarPU
+function starpu_data_partition_get_nplans() to find out if the handle
+has been asynchronously splitted.
+
+The first call to starpu_task_insert() in the function \c
+vector_recursive_task() will end up in calling the function \c
+recursive_task_gen_dag() as defined by \c
+recursive_task_codelet::recursive_task_gen_dag_func. This function
+calls starpu_task_insert() on each sub-vector, for the sub-vectors
+which are splitted the same mechanism will be performed, for the
+unsplitted sub-vectors, \c func_cpu() will be called as set by \c
+recursive_task_codelet::cpu_funcs.
+
+&nbsp;
+
+\code{.c}
+int is_recursive_task(struct starpu_task *t, void *arg)
+{
+	(void)arg;
+	(void)t;
+	starpu_data_handle_t *handles = STARPU_TASK_GET_HANDLES(t);
+	return (starpu_data_partition_get_nplans(handles[0]) > 0);
+}
+
+struct starpu_codelet recursive_task_codelet =
+{
+	.cpu_funcs = {func_cpu},
+	.recursive_task_func = is_recursive_task,
+	.recursive_task_gen_dag_func = recursive_task_gen_dag,
+	.nbuffers = 1
+};
+
+// slices for the whole vector
+starpu_data_handle_t sub_handles[SLICES];
+// slices for the first sub-vector
+starpu_data_handle_t sub_sub_handles[SLICES];
+
+void recursive_task_gen_dag(struct starpu_task *t, void *arg)
+{
+	int i;
+	starpu_data_handle_t *subdata = (starpu_data_handle_t *)arg;
+
+	for(i=0 ; i<SLICES ; i++)
+	{
+		starpu_task_insert(&recursive_task_codelet,
+				   STARPU_RW, subdata[i],
+				   STARPU_RECURSIVE_TASK_GEN_DAG_FUNC_ARG, sub_sub_handles,
+				   0);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+	}
+}
+
+int vector_recursive_task()
+{
+	int *vector;
+	starpu_data_handle_t vhandle;
+
+	/* ... */
+
+	starpu_vector_data_register(&vhandle, 0, (uintptr_t)vector, X, sizeof(vector[0]));
+	starpu_data_partition_plan(vhandle, &f, sub_handles);
+	starpu_data_partition_plan(sub_handles[0], &f, sub_sub_handles);
+
+	for(loop=0 ; loop<NITER; loop++)
+	{
+		starpu_task_insert(&recursive_task_codelet,
+				STARPU_RW, vhandle,
+				STARPU_RECURSIVE_TASK_GEN_DAG_FUNC_ARG, sub_handles,
+				0);
+	}
+
+	starpu_data_partition_clean(sub_handles[0], SLICES, sub_sub_handles);
+	starpu_data_partition_clean(vhandle, SLICES, sub_handles);
+	starpu_data_unregister(vhandle);
+
+	/* ... */
+}
+\endcode
+
+More examples are available in <c>tests/recursive_tasks/*.c</c>.
+
+\section Splitter Using A Splitter to Automatically Split Recursive Tasks
+
+The Splitter is a new feature in StarPU that enables dynamic,
+runtime-guided splitting of recursive tasks into sub-task graphs
+(subDAGs). This mechanism allows tasks to be turned into recursive
+tasks during execution based on the system state, leading to more
+adaptive and efficient parallelism.
+
+To activate the Splitter, users must set the environment variable \ref
+STARPU_RECURSIVE_TASK_SPLITTER_POLICY.
+
+The possible values are:
+- 0:  Splitting is user-guided. The programmer explicitly decides when
+  to split tasks.
+- 1: A task is automatically split when the current number of ready
+  tasks in the runtime system is less than three times the number of
+  processing units. This policy is particularly suited for homogeneous
+  shared-memory configurations.
+- 4: Splitting decisions are guided by a Linear Programming (LP) model
+  to optimize execution.
+
+\subsection SplitterExtension Extensions enabled to allow Splitter
+
+Several extensions have been introduced in StarPU to support this
+dynamic task splitting mechanism.
+
+- Deferred Splitting Decision: The decision to transform a task into
+  subtasks is made \emph{after} its dependencies have been satisfied.
+  This allows the runtime to make informed decisions based on the
+  current execution context.
+- Runtime Splitting: The actual splitting of the task also occurs at
+  runtime, after dependency resolution, ensuring that the decision
+  takes into account up-to-date runtime information.
+- Deferred Dependency Release: Dependencies of a recursive task are
+  not released upon submission of all its subtasks. Instead, they are
+  released as soon as one of the subtasks completes. This
+  synchronization mechanism aligns task submission with execution and
+  enables finer-grained dynamic scheduling.
+
 
 */

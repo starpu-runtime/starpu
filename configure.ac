@@ -250,12 +250,16 @@ AC_ARG_ENABLE(recursive-tasks, [AS_HELP_STRING([--enable-recursive-tasks],
 			[build the recursive tasks support])],
 			enable_recursive_tasks=$enableval, enable_recursive_tasks=no)
 
-AC_MSG_CHECKING([for recursive tasks support])
-
 if test x$enable_recursive_tasks = xyes; then
+	AC_MSG_NOTICE([
+
+WARNING: recursive tasks are enabled. This work is under progress. To be used with caution
+
+])
 	AC_DEFINE(STARPU_RECURSIVE_TASKS, [1], [Define this to enable recursive tasks support])
 fi
 
+AC_MSG_CHECKING([for recursive tasks support])
 AM_CONDITIONAL([STARPU_RECURSIVE_TASKS], [test "x$enable_recursive_tasks" = "xyes"])
 AC_MSG_RESULT($enable_recursive_tasks)
 

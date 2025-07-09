@@ -550,9 +550,6 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 		STARPU_PTHREAD_MUTEX_DESTROY(&child_handle->busy_mutex);
 		STARPU_PTHREAD_COND_DESTROY(&child_handle->busy_cond);
 		STARPU_PTHREAD_MUTEX_DESTROY(&child_handle->sequential_consistency_mutex);
-#ifdef STARPU_RECURSIVE_TASKS
-		STARPU_PTHREAD_MUTEX_DESTROY(&child_handle->unpartition_mutex);
-#endif
 
 		STARPU_HG_ENABLE_CHECKING(child_handle->post_sync_tasks_cnt);
 		STARPU_HG_ENABLE_CHECKING(child_handle->busy_count);
@@ -621,11 +618,27 @@ void starpu_data_partition_plan(starpu_data_handle_t initial_handle, struct star
 	}
 	_starpu_data_partition(initial_handle, children, nparts, f, 0);
 
+#ifdef STARPU_RECURSIVE_TASKS
+	for (i = 0; i < nparts; i++)
+	{
+		/* This is certainly not the smartest way to do that */
+		STARPU_PTHREAD_MUTEX_DESTROY(childrenp[i]->partition_mutex);
+		free(childrenp[i]->partition_mutex);
+		childrenp[i]->partition_mutex = childrenp[i]->root_handle->partition_mutex;
+	}
+#endif
+
 	if (!cl)
 	{
 		/* Create a codelet that will make the coherency on the home node */
 		_STARPU_CALLOC(initial_handle->switch_cl, 1, sizeof(*initial_handle->switch_cl));
 		cl = initial_handle->switch_cl;
+#if 0
+#ifdef STARPU_RECURSIVE_TASKS
+		cl->cuda_funcs[0] = empty_func;
+		cl->cpu_funcs[0] = empty_func;
+#endif
+#endif
 		cl->where = STARPU_NOWHERE;
 		cl->nbuffers = STARPU_VARIABLE_NBUFFERS;
 		cl->flags = STARPU_CODELET_NOPLANS;
@@ -645,19 +658,38 @@ void starpu_data_partition_plan(starpu_data_handle_t initial_handle, struct star
 void starpu_data_partition_clean_node(starpu_data_handle_t root_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node)
 {
 	unsigned i;
+	int active = children[0]->active;
+#ifdef STARPU_RECURSIVE_TASKS
+	active = active || children[0]->active_ro;
+#endif
 
-	if (children[0]->active)
+	if (active)
 	{
 		starpu_data_unpartition_submit(root_handle, nparts, children, gather_node);
 	}
 
 	free(children[0]->siblings);
 
-	for (i = 0; i < nparts; i++)
+#ifdef STARPU_RECURSIVE_TASKS
+	if (active)
+#endif
 	{
-		children[i]->siblings = NULL;
-		starpu_data_unregister_submit(children[i]);
+		for (i = 0; i < nparts; i++)
+		{
+			children[i]->siblings = NULL;
+			starpu_data_unregister_submit(children[i]);
+		}
 	}
+#ifdef STARPU_RECURSIVE_TASKS
+	else
+	{
+		for (i = 0; i < nparts; i++)
+		{
+			children[i]->siblings = NULL;
+			starpu_data_unregister(children[i]);
+		}
+	}
+#endif
 
 	_starpu_spin_lock(&root_handle->header_lock);
 	root_handle->nplans--;
@@ -672,8 +704,52 @@ void starpu_data_partition_clean(starpu_data_handle_t root_handle, unsigned npar
 	starpu_data_partition_clean_node(root_handle, nparts, children, root_handle->home_node);
 }
 
-static
-void _starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, unsigned char *handles_sequential_consistency)
+#ifdef STARPU_RECURSIVE_TASKS
+struct partition_cb_arg
+{
+	starpu_data_handle_t handle;
+};
+
+static void partition_callback_func(void *arg)
+{
+	struct partition_cb_arg *cb_arg = (struct partition_cb_arg*)arg;
+	starpu_data_handle_t handle = cb_arg->handle;
+	STARPU_PTHREAD_MUTEX_LOCK(handle->partition_mutex);
+	handle->last_partition = NULL;
+	struct starpu_task *task = starpu_task_get_current();
+	task->destroy=1;
+	STARPU_PTHREAD_MUTEX_UNLOCK(handle->partition_mutex);
+	_STARPU_RECURSIVE_TASKS_DEBUG("[%p][%s] Callback complete\n", starpu_task_get_current(), starpu_task_get_name(starpu_task_get_current()));
+}
+
+// we search on this function the state of data_we_search_state
+// we have first to find the first task parent T  of task_we_search_state (which can be task_we_search_state)
+// which use data_we_search_state or a parent D. It means that there is no task between T and task_we_search_state which use a data between data_we_search_state and D
+int _starpu_get_initialized_state_on_parent_task_parent_data(starpu_data_handle_t data_we_search_state, struct starpu_task * task_we_search_state)
+{
+	int nbuffers = _starpu_get_job_associated_to_task(task_we_search_state)->recursive.handles_states->nb_handles;
+	int i;
+	for (i = nbuffers-1 ; i >= 0 ; i--)
+	{
+		starpu_data_handle_t handle = _starpu_get_job_associated_to_task(task_we_search_state)->recursive.handles_states->handles[i];
+		if (handle->root_handle == data_we_search_state->root_handle)
+		{
+			starpu_data_handle_t tmp_handle = data_we_search_state;
+			while (tmp_handle != NULL && tmp_handle != handle)
+			{
+				tmp_handle = tmp_handle->parent_handle;
+			}
+			if (tmp_handle != NULL && _starpu_get_job_associated_to_task(task_we_search_state)->recursive.handles_states->initialized[i])
+			{
+				return 1;
+			}
+		}
+	}
+	return 0;
+}
+#endif /* STARPU_RECURSIVE_TASKS */
+
+void _starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, unsigned char *handles_sequential_consistency, int write_only)
 {
 	unsigned i;
 	STARPU_ASSERT_MSG(initial_handle->sequential_consistency, "partition planning is currently only supported for data with sequential consistency");
@@ -686,6 +762,10 @@ void _starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned
 	initial_handle->active_children = children[0]->siblings;
 	_starpu_spin_unlock(&initial_handle->header_lock);
 
+#ifdef STARPU_RECURSIVE_TASKS
+	starpu_add_data_cut();
+#endif /* STARPU_RECURSIVE_TASKS */
+
 	for (i = 0; i < nparts; i++)
 	{
 		_starpu_spin_lock(&children[i]->header_lock);
@@ -693,9 +773,12 @@ void _starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned
 		_starpu_spin_unlock(&children[i]->header_lock);
 	}
 
+#ifndef STARPU_RECURSIVE_TASKS
+/* With recursive tasks, this is the submission of the partition that will enable a partition of these tasks */
 	if (!initial_handle->initialized)
 		/* No need for coherency, it is not initialized */
 		return;
+#endif
 
 	struct starpu_data_descr descr[nparts];
 	for (i = 0; i < nparts; i++)
@@ -703,7 +786,42 @@ void _starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned
 		STARPU_ASSERT_MSG(children[i]->parent_handle == initial_handle, "child(%d) %p is partitioned from %p and not from the given parameter %p", i, children[i], children[i]->parent_handle, initial_handle);
 		descr[i].handle = children[i];
 		descr[i].mode = STARPU_W;
+#ifdef STARPU_RECURSIVE_TASKS
+		children[i]->initialized = 1; // we know that from now, the children handles are initialized : either the father hande is init, or we are on a recursive task so a partition is going to be submitted
+#endif
 	}
+
+#ifdef STARPU_RECURSIVE_TASKS
+	struct partition_cb_arg *cb_arg = malloc(sizeof(struct partition_cb_arg));
+	cb_arg->handle = initial_handle;
+
+	char *pname;
+	asprintf(&pname, "partition(%p)", initial_handle);
+	struct starpu_task *partition;
+	if (handles_sequential_consistency)
+		partition = starpu_task_build(initial_handle->switch_cl, write_only ? STARPU_W : STARPU_RW, initial_handle, STARPU_DATA_MODE_ARRAY, descr, nparts,
+					      STARPU_NAME, pname,
+					      STARPU_HANDLES_SEQUENTIAL_CONSISTENCY, handles_sequential_consistency,
+					      STARPU_EPILOGUE_CALLBACK, partition_callback_func,
+					      STARPU_EPILOGUE_CALLBACK_ARG, cb_arg,
+					      0);
+	else
+		partition = starpu_task_build(initial_handle->switch_cl, write_only ? STARPU_W : STARPU_RW, initial_handle, STARPU_DATA_MODE_ARRAY, descr, nparts,
+					      STARPU_NAME, pname,
+					      STARPU_EPILOGUE_CALLBACK, partition_callback_func,
+					      STARPU_EPILOGUE_CALLBACK_ARG, cb_arg,
+					      0);
+
+	STARPU_ASSERT(!initial_handle->last_partition);
+	initial_handle->last_partition = partition;
+
+	partition->destroy = 0;
+
+	initial_handle->initialized = 0;
+	int ret = starpu_task_submit(partition);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit(partition)");
+	_STARPU_DEBUG("[%p][%s] Submitted\n", partition, pname);
+#else
 	/* TODO: assert nparts too */
 	int ret;
 	if (handles_sequential_consistency)
@@ -718,6 +836,7 @@ void _starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	if (!handles_sequential_consistency || handles_sequential_consistency[0])
 		_starpu_data_invalidate_submit_noplan(initial_handle);
+#endif /* STARPU_RECURSIVE_TASKS */
 }
 
 void starpu_data_partition_submit_sequential_consistency(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int sequential_consistency)
@@ -727,12 +846,17 @@ void starpu_data_partition_submit_sequential_consistency(starpu_data_handle_t in
 	handles_sequential_consistency[0] = sequential_consistency;
 	for(i=1 ; i<nparts+1 ; i++) handles_sequential_consistency[i] = children[i-1]->sequential_consistency;
 
-	_starpu_data_partition_submit(initial_handle, nparts, children, handles_sequential_consistency);
+	_starpu_data_partition_submit(initial_handle, nparts, children, handles_sequential_consistency, 0);
+}
+
+void starpu_data_partition_writeonly_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children)
+{
+	_starpu_data_partition_submit(initial_handle, nparts, children, NULL, 1);
 }
 
 void starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children)
 {
-	_starpu_data_partition_submit(initial_handle, nparts, children, NULL);
+	_starpu_data_partition_submit(initial_handle, nparts, children, NULL, 0);
 }
 
 void starpu_data_partition_readonly_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children)
@@ -767,7 +891,11 @@ void starpu_data_partition_readonly_submit_sequential_consistency(starpu_data_ha
 		_starpu_spin_unlock(&children[i]->header_lock);
 	}
 
-	STARPU_ASSERT_MSG(initial_handle->initialized || initial_handle->init_cl, "It is odd to read-only-partition a data which does not have a value yet");
+	STARPU_ASSERT_MSG(initial_handle->initialized || initial_handle->init_cl
+#ifdef STARPU_RECURSIVE_TASKS
+			|| (_starpu_recursive_task_which_generate_dag() != NULL &&  _starpu_get_initialized_state_on_parent_task_parent_data(initial_handle, _starpu_recursive_task_which_generate_dag()))
+#endif
+			, "It is odd to read-only-partition a data which does not have a value yet");
 	struct starpu_data_descr descr[nparts];
 	char handles_sequential_consistency[nparts+1];
 	handles_sequential_consistency[0] = sequential_consistency;
@@ -779,12 +907,44 @@ void starpu_data_partition_readonly_submit_sequential_consistency(starpu_data_ha
 		descr[i].mode = STARPU_W;
 		handles_sequential_consistency[i+1] = (char) children[i]->sequential_consistency;
 	}
+
+#ifdef STARPU_RECURSIVE_TASKS
+	struct partition_cb_arg *cb_arg = malloc(sizeof(struct partition_cb_arg));
+	cb_arg->handle = initial_handle;
+
+	char *pname;
+	asprintf(&pname, "partitionRO(%p)", initial_handle);
+	/* TODO: assert nparts too */
+	struct starpu_task *partitionRO;
+	partitionRO = starpu_task_build(initial_handle->switch_cl, STARPU_R, initial_handle,
+					STARPU_DATA_MODE_ARRAY, descr, nparts,
+					STARPU_NAME, pname,
+					STARPU_HANDLES_SEQUENTIAL_CONSISTENCY, handles_sequential_consistency,
+					STARPU_EPILOGUE_CALLBACK, partition_callback_func,
+					STARPU_EPILOGUE_CALLBACK_ARG, cb_arg,
+					0);
+
+	/* We only manage one partition plan for now, so we don't
+	 * want handle->last_partition to be non-NULL here. */
+	STARPU_ASSERT(!initial_handle->last_partition);
+	initial_handle->last_partition = partitionRO;
+
+	partitionRO->destroy = 0;
+
+	struct starpu_task *ctrl = initial_handle->ctrl_unpartition;
+	if (ctrl) starpu_task_declare_deps(partitionRO, 1, ctrl);
+
+	int ret = starpu_task_submit(partitionRO);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit(partitionRO)");
+	_STARPU_DEBUG("[%p][%s] Submitted\n", partitionRO, pname);
+#else
 	/* TODO: assert nparts too */
 	int ret = starpu_task_insert(initial_handle->switch_cl, STARPU_R, initial_handle,
 				     STARPU_DATA_MODE_ARRAY, descr, nparts,
 				     STARPU_HANDLES_SEQUENTIAL_CONSISTENCY, handles_sequential_consistency,
 				     0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+#endif /* STARPU_RECURSIVE_TASKS */
 }
 
 void starpu_data_partition_readwrite_upgrade_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children)
@@ -810,11 +970,52 @@ void starpu_data_partition_readwrite_upgrade_submit(starpu_data_handle_t initial
 		descr[i].handle = children[i];
 		descr[i].mode = STARPU_W;
 	}
+
+#ifdef STARPU_RECURSIVE_TASKS
+	struct partition_cb_arg *cb_arg = malloc(sizeof(struct partition_cb_arg));
+	cb_arg->handle = initial_handle;
+
+	char *pname;
+	asprintf(&pname, "partRO2RW(%p)", initial_handle);
+	struct starpu_task *partRO2RW;
+	partRO2RW = starpu_task_build(initial_handle->switch_cl, STARPU_RW /*STARPU_W*/ /*STARPU_W seems more appropriate in this case*/, initial_handle, STARPU_DATA_MODE_ARRAY, descr, nparts,
+					STARPU_EXECUTE_WHERE, STARPU_NOWHERE,
+				      STARPU_NAME, pname,
+				      STARPU_EPILOGUE_CALLBACK, partition_callback_func,
+				      STARPU_EPILOGUE_CALLBACK_ARG, cb_arg,
+				      0);
+
+	/* Not sure that this is needed yet, we might trigger the assert */
+	/* STARPU_ASSERT(!initial_handle->last_partition); */
+	if (initial_handle->last_partition)
+	{
+		starpu_task_declare_deps(partRO2RW, 1, initial_handle->last_partition);
+		initial_handle->last_partition->destroy = 1;
+	}
+
+	initial_handle->last_partition = partRO2RW;
+
+//	_starpu_data_invalidate_submit_noplan(initial_handle);
+	initial_handle->initialized = 0;
+
+	partRO2RW->destroy = 0;
+
+	int ret = starpu_task_submit(partRO2RW);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit(partRO2RW)");
+#else
 	/* TODO: assert nparts too */
 	int ret = starpu_task_insert(initial_handle->switch_cl, STARPU_RW, initial_handle, STARPU_DATA_MODE_ARRAY, descr, nparts, 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	_starpu_data_invalidate_submit_noplan(initial_handle);
+#endif
 }
+
+struct unpartition_cb_arg
+{
+	starpu_data_handle_t initial_handle;
+	unsigned nparts;
+	starpu_data_handle_t *children;
+};
 
 void starpu_data_partition_readonly_downgrade_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children)
 {
@@ -865,14 +1066,21 @@ void starpu_data_partition_readonly_downgrade_submit(starpu_data_handle_t initia
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 }
 
-void _starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node, unsigned char *handles_sequential_consistency, void (*callback_func)(void *), void *callback_arg)
+void _starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node, unsigned char *handles_sequential_consistency, void (*callback_func)(void *), void *callback_arg, struct starpu_task *ctrl, int write_only)
 {
+#ifndef STARPU_RECURSIVE_TASKS
+	(void)ctrl;
+#endif
 	unsigned i;
 	STARPU_ASSERT_MSG(initial_handle->sequential_consistency, "partition planning is currently only supported for data with sequential consistency");
 	STARPU_ASSERT_MSG(gather_node == initial_handle->home_node || gather_node == -1, "gathering node different from home node is currently not supported");
 	_starpu_spin_lock(&initial_handle->header_lock);
 	STARPU_ASSERT_MSG(initial_handle->partitioned >= 1, "No partition planning is active for handle %p", initial_handle);
 	STARPU_ASSERT_MSG(nparts > 0, "One can't partition into 0 parts");
+#ifdef STARPU_RECURSIVE_TASKS
+	starpu_remove_data_cut();
+#endif /* STARPU_RECURSIVE_TASKS */
+
 	if (initial_handle->part_readonly)
 	{
 		/* Replace this children set with the last set in the list of readonly children sets */
@@ -905,6 +1113,14 @@ void _starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsign
 		_starpu_spin_lock(&children[i]->header_lock);
 		children[i]->active = 0;
 		children[i]->active_ro = 0;
+		/* This might not be the callback we are thinking of,
+		 * maybe use the function ptr instead?
+		 * Check if the unpartition isn't ready before setting the flag?
+		 */
+#ifdef STARPU_RECURSIVE_TASKS
+		if (callback_arg)
+			children[i]->not_yet_unpartitioned = 1;
+#endif /* STARPU_RECURSIVE_TASKS */
 		_starpu_spin_unlock(&children[i]->header_lock);
 	}
 
@@ -913,14 +1129,58 @@ void _starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsign
 	for (i = 0, n = 0; i < nparts; i++)
 	{
 		STARPU_ASSERT_MSG(children[i]->parent_handle == initial_handle, "child(%d) %p is partitioned from %p and not from the given parameter %p", i, children[i], children[i]->parent_handle, initial_handle);
+#ifndef STARPU_RECURSIVE_TASKS
 		if (!children[i]->initialized)
 			/* Dropped value, do not care about coherency for this one */
 			continue;
+#endif
 		descr[n].handle = children[i];
-		descr[n].mode = STARPU_RW;
+		descr[n].mode = write_only ? STARPU_W : STARPU_RW;
 		n++;
 	}
+#ifdef STARPU_RECURSIVE_TASKS
 	/* TODO: assert nparts too */
+	initial_handle->initialized = 1; // we need to put this manually because we do not have seq consistency on the handle
+					  // It implies that we will not pass by detect_implicit_data_deps for this handle and so set the flag correctly :/
+	int ret;
+	struct starpu_task *unpartition;
+	char *uname;
+	asprintf(&uname, "unpartition(%p)", initial_handle);
+	if (handles_sequential_consistency)
+		unpartition = starpu_task_build(initial_handle->switch_cl, STARPU_W, initial_handle, STARPU_DATA_MODE_ARRAY, descr, n,
+						STARPU_NAME, uname,
+						STARPU_HANDLES_SEQUENTIAL_CONSISTENCY, handles_sequential_consistency,
+						/* This epilogue callback should only be used if this is recursive task unpartitioning */
+						STARPU_EPILOGUE_CALLBACK, callback_func,
+						STARPU_EPILOGUE_CALLBACK_ARG, callback_arg,
+						/* STARPU_CALLBACK_WITH_ARG_NFREE, callback_func, callback_arg, */
+						0);
+	else
+		unpartition = starpu_task_build(initial_handle->switch_cl, STARPU_W, initial_handle, STARPU_DATA_MODE_ARRAY, descr, n,
+						STARPU_NAME, uname,
+						STARPU_CALLBACK_WITH_ARG_NFREE, callback_func, callback_arg,
+						0);
+	STARPU_ASSERT_MSG((unpartition != NULL), "starpu_task_build(unpartition)");
+
+	if (ctrl)
+	{
+		starpu_task_declare_deps(ctrl, 1, unpartition);
+		initial_handle->ctrl_unpartition = ctrl; /* Reset in the unpartition callback */
+		for (i=0; i<nparts; i++)
+			children[i]->ctrl_unpartition_children = ctrl; /* Reset after pluggin the acquire_release in it */
+	}
+
+	/* Reset to NULL in a callback */
+	STARPU_ASSERT(!initial_handle->last_unpartition);
+	initial_handle->last_unpartition = unpartition;
+	/* We put this flag at 0 to be able to place a dependency
+	   going out of this unpartition after it was inserted.
+	   Reset to 1 in the callback */
+	unpartition->destroy = 0;
+
+	ret = starpu_task_submit(unpartition);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit(unpartition)");
+#else
 	int ret;
 	if (handles_sequential_consistency)
 		ret = starpu_task_insert(initial_handle->switch_cl, STARPU_W, initial_handle, STARPU_DATA_MODE_ARRAY, descr, n,
@@ -934,42 +1194,35 @@ void _starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsign
 					 STARPU_CALLBACK_WITH_ARG_NFREE, callback_func, callback_arg,
 					 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+#endif /* STARPU_RECURSIVE_TASKS */
 
 	for (i = 0; i < nparts; i++)
 	{
 #ifdef STARPU_DEVEL
 #warning that s costly, perhaps we could add a STARPU_INVALIDATE mode that does the invalidation after the task?
 #endif
+#ifndef STARPU_RECURSIVE_TASKS
 		if (!handles_sequential_consistency || handles_sequential_consistency[i+1])
 			_starpu_data_invalidate_submit_noplan(children[i]);
+#else
+		children[i]->initialized = 0;
+#endif /* STARPU_RECURSIVE_TASKS */
 	}
 }
 
 void starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node)
 {
-	_starpu_data_unpartition_submit(initial_handle, nparts, children, gather_node, NULL, NULL, NULL);
+	_starpu_data_unpartition_submit(initial_handle, nparts, children, gather_node, NULL, NULL, NULL, NULL, 0);
 }
 
-void starpu_data_unpartition_submit_sequential_consistency_cb(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node, int sequential_consistency, void (*callback_func)(void *), void *callback_arg)
+void _starpu_data_unpartition_readonly_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node, unsigned char *handles_sequential_consistency, void (*callback_func)(void *), void *callback_arg, struct starpu_task *ctrl)
 {
-	unsigned i;
-	unsigned char handles_sequential_consistency[nparts+1];
-	handles_sequential_consistency[0] = sequential_consistency;
-	for(i=1 ; i<nparts+1 ; i++) handles_sequential_consistency[i] = children[i-1]->sequential_consistency;
-	_starpu_data_unpartition_submit(initial_handle, nparts, children, gather_node, handles_sequential_consistency, callback_func, callback_arg);
-}
-
-void starpu_data_unpartition_submit_sequential_consistency(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node, int sequential_consistency)
-{
-	unsigned i;
-	unsigned char handles_sequential_consistency[nparts+1];
-	handles_sequential_consistency[0] = sequential_consistency;
-	for(i=1 ; i<nparts+1 ; i++) handles_sequential_consistency[i] = children[i-1]->sequential_consistency;
-	_starpu_data_unpartition_submit(initial_handle, nparts, children, gather_node, handles_sequential_consistency, NULL, NULL);
-}
-
-void starpu_data_unpartition_readonly_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node)
-{
+#ifndef STARPU_RECURSIVE_TASKS
+	(void)handles_sequential_consistency;
+	(void)callback_func;
+	(void)callback_arg;
+	(void)ctrl;
+#endif
 	STARPU_ASSERT_MSG(initial_handle->sequential_consistency, "partition planning is currently only supported for data with sequential consistency");
 	STARPU_ASSERT_MSG(gather_node == initial_handle->home_node || gather_node == -1, "gathering node different from home node is currently not supported");
 	_starpu_spin_lock(&initial_handle->header_lock);
@@ -983,20 +1236,180 @@ void starpu_data_unpartition_readonly_submit(starpu_data_handle_t initial_handle
 	for (i = 0, n = 0; i < nparts; i++)
 	{
 		STARPU_ASSERT_MSG(children[i]->parent_handle == initial_handle, "child(%d) %p is partitioned from %p and not from the given parameter %p", i, children[i], children[i]->parent_handle, initial_handle);
+#ifndef STARPU_RECURSIVE_TASKS
 		if (!children[i]->initialized)
 			/* Dropped value, do not care about coherency for this one */
 			continue;
+#endif /* STARPU_RECURSIVE_TASKS */
 		descr[n].handle = children[i];
 		descr[n].mode = STARPU_R;
 		n++;
 	}
+
+#ifdef STARPU_RECURSIVE_TASKS
+	 for (i = 0; i < nparts; i++)
+	 {
+	 	_starpu_spin_lock(&children[i]->header_lock);
+	 	children[i]->active = 1;
+	 	children[i]->active_ro = 1;
+	 	_starpu_spin_unlock(&children[i]->header_lock);
+	 }
+
+	/* With recursive tasks we might arrive here after a partition RW */
+	if (initial_handle->active_children)
+	{
+		_starpu_spin_lock(&initial_handle->header_lock);
+		if (initial_handle->nactive_readonly_children < initial_handle->partitioned)
+		{
+			_STARPU_REALLOC(initial_handle->active_readonly_children, initial_handle->partitioned * sizeof(initial_handle->active_readonly_children[0]));
+			_STARPU_REALLOC(initial_handle->active_readonly_nchildren, initial_handle->partitioned * sizeof(initial_handle->active_readonly_nchildren[0]));
+			initial_handle->nactive_readonly_children = initial_handle->partitioned;
+		}
+		initial_handle->active_readonly_children[0] = children[0]->siblings;
+		initial_handle->active_readonly_nchildren[0] = children[0]->nsiblings;
+		initial_handle->active_children = NULL;
+		initial_handle->active_nchildren = 0;
+		_starpu_spin_unlock(&initial_handle->header_lock);
+	}
+
+	if (callback_arg)
+	{
+		for (i = 0; i < nparts; i++)
+		{
+			_starpu_spin_lock(&children[i]->header_lock);
+			/* This might not be the callback we are thinking of,
+			 * maybe use the function ptr instead?
+			 * Check if the unpartition isn't ready before setting the flag? */
+			children[i]->not_yet_unpartitioned = 1;
+			_starpu_spin_unlock(&children[i]->header_lock);
+		}
+	}
+	initial_handle->initialized = 1;
+	int ret;
+	struct starpu_task *unpartitionRO;
+	char *uname;
+	asprintf(&uname, "unpartitionRO(%p)", initial_handle);
+	unpartitionRO = starpu_task_build(initial_handle->switch_cl, STARPU_W, initial_handle, STARPU_DATA_MODE_ARRAY, descr, n,
+					  STARPU_HANDLES_SEQUENTIAL_CONSISTENCY, handles_sequential_consistency,
+					  STARPU_EPILOGUE_CALLBACK, callback_func,
+					  STARPU_EPILOGUE_CALLBACK_ARG, callback_arg,
+					  STARPU_NAME, uname, 0);
+	STARPU_ASSERT_MSG((unpartitionRO != NULL), "starpu_task_build(unpartition)");
+
+	if (ctrl)
+	{
+		starpu_task_declare_deps(ctrl, 1, unpartitionRO);
+		initial_handle->ctrl_unpartition = ctrl; /* Reset in the unpartition callback */
+	}
+
+	/* Reset to NULL in a callback */
+	STARPU_ASSERT(!initial_handle->last_unpartition);
+	initial_handle->last_unpartition = unpartitionRO;
+	/* We put this flag at 0 to be able to place a dependency
+	   going out of this unpartition after it was inserted.
+	   Reset to 1 in the callback */
+	unpartitionRO->destroy = 0;
+
+	ret = starpu_task_submit(unpartitionRO);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit(unpartitionRO)");
+#else
 	/* TODO: assert nparts too */
 	int ret = starpu_task_insert(initial_handle->switch_cl, STARPU_W, initial_handle, STARPU_DATA_MODE_ARRAY, descr, n, 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert")
+#endif /* STARPU_RECURSIVE_TASKS */
+}
+
+
+
+void starpu_data_unpartition_submit_write_only(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node)
+{
+	_starpu_data_unpartition_submit(initial_handle, nparts, children, gather_node, NULL, NULL, NULL, NULL, 1);
+}
+
+#ifdef STARPU_RECURSIVE_TASKS
+void _starpu_recursive_task_unpartition_callback(void *arg)
+{
+
+	struct unpartition_cb_arg *cb_arg = (struct unpartition_cb_arg*)arg;
+	starpu_data_handle_t initial_handle  = cb_arg->initial_handle;
+	starpu_data_handle_t *children       = cb_arg->children;
+	unsigned i;
+
+	_STARPU_DEBUG("[%p][%s] Entering callback\n", initial_handle->last_unpartition, starpu_task_get_name(initial_handle->last_unpartition));
+
+	STARPU_PTHREAD_MUTEX_LOCK(initial_handle->partition_mutex);
+	for (i = 0; i < cb_arg->nparts; i++)
+	{
+		_starpu_spin_lock(&children[i]->header_lock);
+		children[i]->not_yet_unpartitioned = 0;
+		/* children[i]->ctrl_unpartition = NULL; */
+		_starpu_spin_unlock(&children[i]->header_lock);
+	}
+	initial_handle->last_unpartition->destroy = 1;
+	initial_handle->last_unpartition = NULL;
+	STARPU_PTHREAD_MUTEX_UNLOCK(initial_handle->partition_mutex);
+	//fprintf(stderr, "handle %p has been unpart\n", initial_handle);
+
+	/* free(cb_arg); */
+	/* Is this a sure thing? */
+	struct starpu_task *task = starpu_task_get_current();
+	_STARPU_DEBUG("[%p][%s] Callback complete\n", task, starpu_task_get_name(task));
+}
+#endif /* STARPU_RECURSIVE_TASKS */
+
+void starpu_data_unpartition_submit_ctrl(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node, int write, int write_only, struct starpu_task *ctrl)
+{
+#ifndef STARPU_RECURSIVE_TASKS
+	(void)write;
+	(void)write_only;
+#endif
+	unsigned i;
+	unsigned char handles_sequential_consistency[nparts+1];
+	for (i=0; i<nparts; i++)
+		handles_sequential_consistency[i+1] = children[i]->sequential_consistency;
+
+#ifdef STARPU_RECURSIVE_TASKS
+	struct unpartition_cb_arg *cb_arg = malloc(sizeof(struct unpartition_cb_arg));
+	cb_arg->initial_handle = initial_handle;
+	cb_arg->nparts         = nparts;
+	cb_arg->children       = children;
+
+	handles_sequential_consistency[0] = 0;
+	if (write)
+		_starpu_data_unpartition_submit(initial_handle, nparts, children, gather_node, handles_sequential_consistency, _starpu_recursive_task_unpartition_callback, cb_arg, ctrl, write_only);
+	else
+		_starpu_data_unpartition_readonly_submit(initial_handle, nparts, children, gather_node, handles_sequential_consistency, _starpu_recursive_task_unpartition_callback, cb_arg, ctrl);
+#else
+	handles_sequential_consistency[0] = 1;
+	_starpu_data_unpartition_submit(initial_handle, nparts, children, gather_node, handles_sequential_consistency, NULL, NULL, ctrl, 0);
+#endif /* STARPU_RECURSIVE_TASKS */
+}
+
+void starpu_data_unpartition_submit_sequential_consistency_cb(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node, int sequential_consistency, void (*callback_func)(void *), void *callback_arg)
+{
+	unsigned i;
+	unsigned char handles_sequential_consistency[nparts+1];
+	handles_sequential_consistency[0] = sequential_consistency;
+	for(i=1 ; i<nparts+1 ; i++) handles_sequential_consistency[i] = children[i-1]->sequential_consistency;
+	_starpu_data_unpartition_submit(initial_handle, nparts, children, gather_node, handles_sequential_consistency, callback_func, callback_arg, NULL, 0);
+}
+
+void starpu_data_unpartition_submit_sequential_consistency(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node, int sequential_consistency)
+{
+	unsigned i;
+	unsigned char handles_sequential_consistency[nparts+1];
+	handles_sequential_consistency[0] = sequential_consistency;
+	for(i=1 ; i<nparts+1 ; i++) handles_sequential_consistency[i] = children[i-1]->sequential_consistency;
+	_starpu_data_unpartition_submit(initial_handle, nparts, children, gather_node, handles_sequential_consistency, NULL, NULL, NULL, 0);
+}
+
+void starpu_data_unpartition_readonly_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node)
+{
+	_starpu_data_unpartition_readonly_submit(initial_handle, nparts, children, gather_node, NULL, NULL, NULL, NULL);
 }
 
 /* Unpartition everything below ancestor */
-static void starpu_data_unpartition_submit_r(starpu_data_handle_t ancestor, int gathering_node)
+void _starpu_data_unpartition_submit_r(starpu_data_handle_t ancestor, int gathering_node, int write, int write_only, struct starpu_task *ctrl)
 {
 	unsigned i, j, nsiblings;
 	if (!ancestor->partitioned)
@@ -1013,13 +1426,20 @@ static void starpu_data_unpartition_submit_r(starpu_data_handle_t ancestor, int 
 			starpu_data_handle_t *children = ancestor->active_readonly_children[0];
 			_STARPU_DEBUG("unpartition readonly children %p etc.\n", children[0]);
 			nsiblings = children[0]->nsiblings;
-			for (j = 0; j < nsiblings; j++)
+
+			/* Only submit recursively if the original unpartition isn't 'recursive task unpartitioning' */
+#ifdef STARPU_RECURSIVE_TASKS
+			if (!ctrl)
+#endif
 			{
-				/* Make sure our children are unpartitioned */
-				starpu_data_unpartition_submit_r(children[j], gathering_node);
+				for (j = 0; j < nsiblings; j++)
+				{
+					/* Make sure our children are unpartitioned */
+					_starpu_data_unpartition_submit_r(children[j], gathering_node, write, write_only, NULL);
+				}
 			}
 			/* And unpartition them */
-			starpu_data_unpartition_submit(ancestor, nsiblings, children, gathering_node);
+			starpu_data_unpartition_submit_ctrl(ancestor, nsiblings, children, gathering_node, write, write_only, ctrl);
 		}
 	}
 	else
@@ -1027,23 +1447,117 @@ static void starpu_data_unpartition_submit_r(starpu_data_handle_t ancestor, int 
 		_STARPU_DEBUG("unpartition children %p\n", ancestor->active_children);
 		/* Only one partition */
 		nsiblings = ancestor->active_children[0]->nsiblings;
-		for (i = 0; i < nsiblings; i++)
-			starpu_data_unpartition_submit_r(ancestor->active_children[i], gathering_node);
+#ifdef STARPU_RECURSIVE_TASKS
+		if (!ctrl)
+#endif
+		{
+			for (i = 0; i < nsiblings; i++)
+				_starpu_data_unpartition_submit_r(ancestor->active_children[i], gathering_node, write, write_only, ctrl);
+	}
 		/* And unpartition ourself */
-		starpu_data_unpartition_submit(ancestor, nsiblings, ancestor->active_children, gathering_node);
+		starpu_data_unpartition_submit_ctrl(ancestor, nsiblings, ancestor->active_children, gathering_node, write, write_only, ctrl);
 	}
 }
 
-/* Make ancestor partition itself properly for target */
-static void _starpu_data_partition_access_look_up(starpu_data_handle_t ancestor, starpu_data_handle_t target, int write)
+void starpu_data_unpartition_submit_r_write_only(starpu_data_handle_t ancestor, int gathering_node, int write, struct starpu_task *ctrl)
 {
+	_starpu_data_unpartition_submit_r(ancestor, gathering_node, write, 1, ctrl);
+}
+void starpu_data_unpartition_submit_r(starpu_data_handle_t ancestor, int gathering_node, int write, struct starpu_task *ctrl)
+{
+	_starpu_data_unpartition_submit_r(ancestor, gathering_node, write, 0, ctrl);
+}
+
+/* Make ancestor partition itself properly for target */
+static void _starpu_data_partition_access_look_up(starpu_data_handle_t ancestor, starpu_data_handle_t target, int write, int write_only, struct starpu_task *ctrl)
+{
+#ifndef STARPU_RECURSIVE_TASKS
+	(void)ctrl;
+	(void)write_only;
+#endif
+#ifdef STARPU_RECURSIVE_TASKS
+	(void)target;
+	if (ctrl)
+	{
+		/* When we have a ctrl task, we are executing a task on the handle ancestor : this is a real task, so we have maybe to submit an unpartition (and this is the only thing we can do */
+		/* This case, we execute a task on ancestor */
+		STARPU_PTHREAD_MUTEX_LOCK(ancestor->partition_mutex);
+		if (ancestor->partitioned)
+		{
+			if (write || !ancestor->part_readonly)
+			{
+				/* need to unpartition data
+ 				 * If write, we need a complete unpartition,
+ 				 * else we have to be on part_readonly mode
+ 				 */
+				if (write_only)
+					starpu_data_unpartition_submit_r_write_only(ancestor, STARPU_MAIN_RAM, write, ctrl);
+				else
+					starpu_data_unpartition_submit_r(ancestor, STARPU_MAIN_RAM, write, ctrl);
+			}
+			/* On other case, we are in read-mode and we have a part_ro state */
+		}
+		STARPU_PTHREAD_MUTEX_UNLOCK(ancestor->partition_mutex);
+	}
+	else
+	{
+		/* We do not have a ctrl task. It means we are submitting a task on handle, so, to possibilities : we need to partition the parent, or we need to make a RO2RW part */
+		/* This case, we execute a task on the father of ancestor (if exists) -> if the father does not exists, then we are submitting the big graph, and we have nothing to do
+ 		 * Else we are submitting a subtask, and maybe we have to partition */
+
+		starpu_data_handle_t parent_handle = ancestor->parent_handle;
+		if (!parent_handle)
+		{
+			/* We submit a task on the main context, no need to partition, NEVER */
+			_STARPU_DEBUG("No parent for data %p : we are not in a recursive task, no need for partition\n", ancestor);
+			return;
+		}
+		STARPU_PTHREAD_MUTEX_LOCK(ancestor->partition_mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(parent_handle->partition_mutex);
+		/* We submit a task on a subcontext */
+		if (!parent_handle->partitioned)
+		{
+			/* We have to partition on the right way our parent*/
+			if (write)
+			{
+				if (write_only)
+				{
+					_STARPU_DEBUG("partition data %p WO\n", parent_handle);
+					starpu_data_partition_writeonly_submit(parent_handle, ancestor->nsiblings, ancestor->siblings);
+				}
+				else
+				{
+					_STARPU_DEBUG("partition data %p RW\n", parent_handle);
+					starpu_data_partition_submit(parent_handle, ancestor->nsiblings, ancestor->siblings);
+				}
+			}
+			else
+			{
+				_STARPU_DEBUG("partition data %p RO\n", parent_handle);
+				starpu_data_partition_readonly_submit(parent_handle, ancestor->nsiblings, ancestor->siblings);
+			}
+		}
+		else if (parent_handle->part_readonly && write )
+		{
+			/* Need to upgrade the partition */
+			_STARPU_DEBUG("Turn partition of data %p RO to RW\n", parent_handle);
+			starpu_data_partition_readwrite_upgrade_submit(parent_handle, ancestor->nsiblings, ancestor->siblings);
+		}
+		else
+		{
+			_STARPU_DEBUG("Parent handle %p is already partitioned. No need for partitionning\n", parent_handle);
+		}
+		STARPU_PTHREAD_MUTEX_UNLOCK(parent_handle->partition_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(ancestor->partition_mutex);
+	}
+#else
 	/* First make sure ancestor has proper state, if not, ask parent */
 	if (!ancestor->active || (write && ancestor->active_ro))
 	{
 		/* (The root is always active-rw) */
 		STARPU_ASSERT(ancestor->parent_handle);
 		_STARPU_DEBUG("ancestor %p is not ready: %s, asking parent %p\n", ancestor, ancestor->active ? ancestor->active_ro ? "RO" : "RW" : "NONE", ancestor->parent_handle);
-		_starpu_data_partition_access_look_up(ancestor->parent_handle, ancestor, write);
+		_starpu_data_partition_access_look_up(ancestor->parent_handle, ancestor, write, 0, NULL);
 		_STARPU_DEBUG("ancestor %p is now ready\n", ancestor);
 	}
 	else
@@ -1064,7 +1578,7 @@ static void _starpu_data_partition_access_look_up(starpu_data_handle_t ancestor,
 #ifdef STARPU_DEVEL
 #warning FIXME: better choose gathering node
 #endif
-		starpu_data_unpartition_submit_r(ancestor, ancestor->home_node);
+		starpu_data_unpartition_submit_r(ancestor, ancestor->home_node, write, NULL);
 	}
 
 	if (!target)
@@ -1110,12 +1624,13 @@ static void _starpu_data_partition_access_look_up(starpu_data_handle_t ancestor,
 			starpu_data_partition_readonly_submit(ancestor, target->nsiblings, target->siblings);
 		}
 	}
+#endif /* STARPU_RECURSIVE_TASKS */
 }
 
-void _starpu_data_partition_access_submit(starpu_data_handle_t target, int write)
+void _starpu_data_partition_access_submit(starpu_data_handle_t target, int write, int write_only, struct starpu_task *ctrl)
 {
-	_STARPU_DEBUG("accessing %p %s\n", target, write ? "RW" : "RO");
-	_starpu_data_partition_access_look_up(target, NULL, write);
+	_STARPU_DEBUG("accessing %p %s\n", target, write ? (write_only ? "W" : "RW") : "RO");
+	_starpu_data_partition_access_look_up(target, NULL, write, write_only, ctrl);
 }
 
 void starpu_filter_nparts_compute_chunk_size_and_offset(unsigned n, unsigned nparts,

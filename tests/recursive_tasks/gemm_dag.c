@@ -92,12 +92,7 @@ struct starpu_codelet gemm_codelet =
 	.nbuffers = 3
 };
 
-int always_recursive_task(struct starpu_task *t, void *arg)
-{
-	return 1;
-}
-
-int is_recursive_task(struct starpu_task *t, void *arg)
+int is_recursive_task(struct starpu_task *t, void *arg, void **buffers)
 {
 	struct recursive_task_arg *b = (struct recursive_task_arg*)arg;
 	/* printf("call is_recursive_task b=%p\n", b); */
@@ -114,7 +109,7 @@ int is_recursive_task(struct starpu_task *t, void *arg)
 
 void insert_dag(starpu_data_handle_t *A, starpu_data_handle_t *B, starpu_data_handle_t *C, starpu_data_handle_t *subA, starpu_data_handle_t *subB, starpu_data_handle_t *subC, struct starpu_task *t);
 
-void recursive_task_gen_dag_func(struct starpu_task *t, void *arg)
+void recursive_task_gen_dag_func(struct starpu_task *t, void *arg, void **b)
 {
 	struct recursive_task_arg *b_a = (struct recursive_task_arg*)arg;
 	starpu_data_handle_t *subhandlesA = b_a->subA;
@@ -188,9 +183,9 @@ void insert_dag(starpu_data_handle_t *A, starpu_data_handle_t *B, starpu_data_ha
 					 STARPU_R, handleA1,
 					 STARPU_R, handleB1,
 					 STARPU_RW, handleC,
-					 STARPU_RECURSIVE_TASK_FUNC, is_recursive_task,
+					 STARPU_RECURSIVE_TASK_FUNC, &is_recursive_task,
 					 STARPU_RECURSIVE_TASK_FUNC_ARG, b_a,
-					 STARPU_RECURSIVE_TASK_GEN_DAG_FUNC, recursive_task_gen_dag_func,
+					 STARPU_RECURSIVE_TASK_GEN_DAG_FUNC, &recursive_task_gen_dag_func,
 					 STARPU_RECURSIVE_TASK_GEN_DAG_FUNC_ARG, b_a,
 					 STARPU_RECURSIVE_TASK_PARENT, t,
 					 STARPU_TASK_SYNCHRONOUS, SYNC,
@@ -209,9 +204,9 @@ void insert_dag(starpu_data_handle_t *A, starpu_data_handle_t *B, starpu_data_ha
 					 STARPU_R, handleA2,
 					 STARPU_R, handleB2,
 					 STARPU_RW, handleC,
-					 STARPU_RECURSIVE_TASK_FUNC, is_recursive_task,
+					 STARPU_RECURSIVE_TASK_FUNC, &is_recursive_task,
 					 STARPU_RECURSIVE_TASK_FUNC_ARG, NULL,
-					 STARPU_RECURSIVE_TASK_GEN_DAG_FUNC, recursive_task_gen_dag_func,
+					 STARPU_RECURSIVE_TASK_GEN_DAG_FUNC, &recursive_task_gen_dag_func,
 					 STARPU_RECURSIVE_TASK_GEN_DAG_FUNC_ARG, b_a,
 					 STARPU_RECURSIVE_TASK_PARENT, t,
 					 STARPU_TASK_SYNCHRONOUS, SYNC,

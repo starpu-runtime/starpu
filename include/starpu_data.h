@@ -148,7 +148,10 @@ enum starpu_data_access_mode
 	STARPU_NOFOOTPRINT = (1 << 10),           /**< Ignore this data for the footprint computation. See \ref ScratchData
 						   */
 	STARPU_NONE	 = (1 << 11),		  /**< todo */
-	STARPU_ACCESS_MODE_MAX = (1 << 12)        /**< The purpose of ::STARPU_ACCESS_MODE_MAX is to
+	STARPU_RECURSIVE_TASK_STRONG = (1 << 12), /**< Ensure a strong dependency between the data and
+						     the recursive task, i.e the data will be waited for and
+						     given to the recursive task decision function for consultation */
+	STARPU_ACCESS_MODE_MAX = (1 << 13)        /**< The purpose of ::STARPU_ACCESS_MODE_MAX is to
 						     be the maximum of this enum.
 						  */
 };

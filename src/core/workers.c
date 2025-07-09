@@ -61,6 +61,10 @@
 #include <core/simgrid.h>
 #endif
 
+#ifdef STARPU_RECURSIVE_TASKS
+#include <core/jobs_recursive.h>
+#endif
+
 #ifdef STARPU_NOSV
 #include <nosv.h>
 #endif
@@ -607,6 +611,10 @@ static inline int _starpu_can_execute_task_any_impl(unsigned workerid, struct st
 int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl)
 {
 	/* TODO: check that the task operand sizes will fit on that device */
+#ifdef STARPU_RECURSIVE_TASKS
+	if (_starpu_task_is_recursive(task) && starpu_worker_get_type(workerid) != STARPU_CPU_WORKER)
+		return 0;
+#endif
 	return _starpu_can_execute_task_any_impl(workerid, task) &&
 		_starpu_can_use_nth_implementation(_starpu_config.workers[workerid].arch, task->cl, nimpl) &&
 		(!task->cl->can_execute || task->cl->can_execute(workerid, task, nimpl));
@@ -698,6 +706,10 @@ int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_tas
 	struct starpu_codelet *cl = task->cl;
 	unsigned nworkers = _starpu_config.topology.nworkers;
 
+#ifdef STARPU_RECURSIVE_TASKS
+	if (_starpu_task_is_recursive(task) && starpu_worker_get_type(workerid) != STARPU_CPU_WORKER)
+		return 0;
+#endif
 
 	/* Is this a parallel worker ? */
 	if (workerid < nworkers)
@@ -1877,6 +1889,11 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	_starpu_profiling_init();
 
 	_starpu_task_init();
+#ifdef STARPU_RECURSIVE_TASKS
+	_starpu_rec_task_init();
+	starpu_pthread_key_create(&_starpu_pthread_is_on_recursive_task_key, NULL);
+	// we do not need to initalize the values of this key, because by default when calling, the keys are set to 0 ; and by default we are also not in a recursive task
+#endif
 
 	for (worker = 0; worker < _starpu_config.topology.nworkers; worker++)
 		_starpu_worker_init(&_starpu_config.workers[worker], &_starpu_config);
@@ -2183,10 +2200,12 @@ void starpu_shutdown(void)
 	     }
 	}
 
+#ifdef STARPU_RECURSIVE_TASKS
+	_starpu_rec_task_deinit();
+#endif
 	starpu_profiling_bus_helper_display_summary();
 	starpu_profiling_worker_helper_display_summary();
 	starpu_bound_clear();
-
 	_starpu_deinitialize_registered_performance_models();
 
 	_starpu_watchdog_shutdown();
@@ -2241,6 +2260,9 @@ void starpu_shutdown(void)
 
 	_starpu_task_deinit();
 
+#ifdef STARPU_RECURSIVE_TASKS
+	starpu_pthread_key_delete(_starpu_pthread_is_on_recursive_task_key) ;
+#endif
 	STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 	initialized = UNINITIALIZED;
 	/* Let someone else that wants to initialize it again do it */

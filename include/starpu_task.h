@@ -212,14 +212,16 @@ typedef void (*starpu_max_fpga_func_t)(void **, void *);
 /**
    @ingroup API_Recursive_Tasks
    Recursive Task decision function
+   See \ref RecursiveTasks for more details.
 */
-typedef int (*starpu_recursive_task_func_t)(struct starpu_task *, void *);
+typedef int (*starpu_recursive_task_func_t)(struct starpu_task *, void *, void **);
 
 /**
    @ingroup API_Recursive_Tasks
    Recursive Task DAG generation function
+   See \ref RecursiveTasks for more details.
 */
-typedef void (*starpu_recursive_task_gen_dag_func_t)(struct starpu_task *, void *);
+typedef void (*starpu_recursive_task_gen_dag_func_t)(struct starpu_task *, void *, void**);
 
 /**
    @deprecated
@@ -507,13 +509,21 @@ struct starpu_codelet
 	/**
 	   Optional function to decide if the task is to be
 	   transformed into a recursive task
+	   See \ref RecursiveTasks for more details.
 	 */
 	starpu_recursive_task_func_t recursive_task_func;
 
 	/**
 	   Optional function to transform the task into a new graph
+	   See \ref RecursiveTasks for more details.
 	 */
 	starpu_recursive_task_gen_dag_func_t recursive_task_gen_dag_func;
+
+	/**
+	   @private.
+	   Used by the splitter bound to record the index of this codelet inside GLPK
+	*/
+	unsigned long recursive_task_splitter_register_ind;
 
 	/**
 	   Specify the number of arguments taken by the codelet. These
@@ -1482,6 +1492,13 @@ struct starpu_task
 #endif
 
 	/**
+	   When using recursive tasks, field that indicates if this
+	   task is only for synchronisation, and thus does not have to
+	   be considered as inside the recursive graph
+	*/
+	int recursive_task_is_sync_task:1;
+
+	/**
 	   When using recursive tasks, the job identifier of the
 	   recursive task task which created the current task
 	*/
@@ -1510,6 +1527,13 @@ struct starpu_task
 	   be given when calling the recursive task DAG generation function
 	 */
 	void *recursive_task_gen_dag_func_arg;
+
+	/**
+	   When using recursive tasks and MPI, a flag that indicates
+	   the communication are already made in another level, and
+	   thus does no have to be made
+	*/
+	unsigned recursive_task_communication_already_made;
 
 	/**
 	   @private

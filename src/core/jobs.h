@@ -42,6 +42,10 @@
 #include <common/utils.h>
 #include <common/list.h>
 
+#ifdef STARPU_RECURSIVE_TASKS
+#include <core/perfmodel/recursive_perfmodel.h>
+#endif
+
 #ifdef STARPU_NOSV
 #include <nosv.h>
 #endif
@@ -69,6 +73,63 @@ struct _starpu_data_descr
 			     parameter order, and this provides the ordered
 			     index */
 };
+
+#ifdef STARPU_RECURSIVE_TASKS
+struct _starpu_data_initialized
+{
+	int nb_handles;
+	starpu_data_handle_t *handles;
+	int *initialized;
+};
+#endif
+
+#ifdef STARPU_RECURSIVE_TASKS
+enum splitter_mode
+{
+	SPLITTER_BIG_GPU,
+	SPLITTER_LITTLE_GPU,
+	SPLITTER_CPU
+};
+
+struct _starpu_recursive_job
+{
+	int need_part_unpart;
+	int already_turned_into_recursive_task;
+	struct starpu_task *parent_task;
+	struct _starpu_data_initialized *handles_states;
+	unsigned is_recursive_task;
+	unsigned is_recursive_task_unpartitioned;
+	unsigned is_from_recursive_task:1;
+	unsigned already_end:1;
+	unsigned deps_free:1;
+	unsigned is_recursive_task_processed:1;
+	unsigned is_recursive_task_destroy:1;
+	unsigned level;
+	unsigned goal_level;
+	unsigned long total_nchildren;
+	unsigned long total_nchildren_end;
+	unsigned long total_nchildren_destroy;
+	unsigned long total_real_nsubtasks;
+	unsigned long total_nsubtasks_cpu;
+	unsigned long total_nsubtasks_gpu;
+	unsigned long total_nsubtasks_cpu_end;
+	/* This task that is recursive is the first of this type, thus all its subtasks are registered to obtain a recursive perfmodel on this subgraph. If not created, then equal to NULL */
+	struct _starpu_recursive_perfmodel_subgraph *subgraph_created;
+	/* The target level of this task and its children */
+	enum splitter_mode recursive_mode;
+	unsigned ind_task_in_scheme;
+	char *split_scheme; // split_scheme represents all split scheme of the hierarchy of the current tasks. In particular, split_scheme[ind_task_in_scheme] says if the task shoulb be split.
+	char *scheduling; // split_scheme represents all split scheme of the hierarchy of the current tasks. In particular, split_scheme[ind_task_in_scheme] says if the task shoulb be split.
+	unsigned *split_ind;  // split_ind[ind_task_in_scheme] is the index of the split scheme of the current task, if this task is split. split_ind[split_ind[ind_task_in_scheme]] is the index of the splt scheme of the first subtask if it split
+	unsigned allocated_cpus;
+	struct _starpu_task_time_ratio *corresponding_ratio_ptr;
+	long cuda_worker_executor_id; // if a task is split, then all the subparts that are executed on a GPU are executed on the same. Set to -1 on the parent, when a first subtask is executed, it is set to the good number on the parent, and each has to find the suitable value on the parent
+	double start_time;
+	double split_time;
+	double best_time;
+	unsigned long cuda_time;
+};
+#endif
 
 #ifdef STARPU_DEBUG
 MULTILIST_CREATE_TYPE(_starpu_job, all_submitted)
@@ -215,8 +276,7 @@ struct _starpu_job
 #endif
 
 #ifdef STARPU_RECURSIVE_TASKS
-	int already_turned_into_recursive_task;
-	unsigned is_recursive_task:1;
+	struct _starpu_recursive_job recursive;
 #endif
 
 #ifdef STARPU_PROF_TASKSTUBS
@@ -298,6 +358,15 @@ struct starpu_task *_starpu_pop_local_task(struct _starpu_worker *worker);
 /** Put a task into the pool of tasks that are explicitly attributed to the
  * specified worker. */
 int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *task);
+
+#ifdef STARPU_RECURSIVE_TASKS
+void _starpu_rec_task_init();
+int _starpu_job_is_recursive(struct _starpu_job *job);
+int _starpu_job_generate_dag_if_needed(struct _starpu_job *job);
+void _starpu_handle_recursive_task_termination(struct _starpu_job *j);
+struct starpu_task *_starpu_turn_task_into_recursive_task(struct _starpu_job *j);
+int _starpu_turn_task_into_recursive_task_at_scheduler(struct starpu_task *task);
+#endif
 
 #define _STARPU_JOB_GET_ORDERED_BUFFER_INDEX(job, i) ((job->dyn_ordered_buffers) ? job->dyn_ordered_buffers[i].index : job->ordered_buffers[i].index)
 #define _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(job, i) ((job->dyn_ordered_buffers) ? job->dyn_ordered_buffers[i].handle : job->ordered_buffers[i].handle)

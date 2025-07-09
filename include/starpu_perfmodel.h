@@ -180,6 +180,8 @@ enum starpu_perfmodel_type
 struct _starpu_perfmodel_state;
 typedef struct _starpu_perfmodel_state *starpu_perfmodel_state_t;
 
+#define STARPU_RECURSIVE_TASKS_NMAX_LEVELS 16
+
 /**
    Contain all information about a performance model. At least the
    type and symbol fields have to be filled when defining a performance
@@ -283,6 +285,17 @@ struct starpu_perfmodel
 	*/
 	unsigned is_init;
 
+	/**
+	   \private
+	   Whether the model is recorded for load of recursive graph
+	*/
+	unsigned is_recorded_recursive;
+	/**
+	  \private
+	  A list of codelets graphs that, for each node, it represents the subgraph of this codelet for a given size
+	*/
+	struct starpu_recursive_perfmodel_subgraph_list *recursive_graphs;
+
 	void (*parameters)(struct starpu_task *task, double *parameters);
 	/**
 	   \private
@@ -311,6 +324,10 @@ struct starpu_perfmodel
 	   \private
 	*/
 	starpu_perfmodel_state_t state;
+	/**
+	   \private
+	*/
+	uint32_t footprint_per_level[STARPU_RECURSIVE_TASKS_NMAX_LEVELS];
 };
 
 /**

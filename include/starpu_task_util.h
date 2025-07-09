@@ -366,6 +366,7 @@ extern "C" {
    \ingroup API_Recursive_Tasks
    Used when calling starpu_task_insert(), must be followed by a
    pointer to a recursive_task decision function ::starpu_recursive_task_func_t
+   See \ref RecursiveTasks for more details.
 */
 #define STARPU_RECURSIVE_TASK_FUNC (47 << STARPU_MODE_SHIFT)
 
@@ -374,6 +375,7 @@ extern "C" {
    Used when calling starpu_task_insert(), must be followed by a
    pointer which will be passed to the function defined in
    starpu_codelet::recursive_task_func
+   See \ref RecursiveTasks for more details.
 */
 #define STARPU_RECURSIVE_TASK_FUNC_ARG (48 << STARPU_MODE_SHIFT)
 
@@ -382,6 +384,7 @@ extern "C" {
    Used when calling starpu_task_insert(), must be followed by a
    pointer to a recursive task DAG generation function
    ::starpu_recursive_task_gen_dag_func_t
+   See \ref RecursiveTasks for more details.
 */
 #define STARPU_RECURSIVE_TASK_GEN_DAG_FUNC (49 << STARPU_MODE_SHIFT)
 
@@ -390,6 +393,7 @@ extern "C" {
    Used when calling starpu_task_insert(), must be followed by a
    pointer which will be passed to the function defined in
    starpu_codelet::recursive_task_gen_dag_func
+   See \ref RecursiveTasks for more details.
 */
 #define STARPU_RECURSIVE_TASK_GEN_DAG_FUNC_ARG (50 << STARPU_MODE_SHIFT)
 
@@ -398,21 +402,31 @@ extern "C" {
    Used when calling starpu_task_insert(), must be followed by a
    pointer to a task. The task will be set as the parent task of the recursive task
    when using the offline tracing tool.
+   See \ref RecursiveTasks for more details.
 */
 #define STARPU_RECURSIVE_TASK_PARENT (51 << STARPU_MODE_SHIFT)
+
+/**
+   \ingroup API_Recursive_Tasks
+   Used when calling starpu_mpi_task_insert(). The task has to be a recursive task
+   which is going to explode. Indicate the recursive task has not to be pruned by
+   the calling node.
+   See \ref RecursiveTasks for more details.
+*/
+#define STARPU_RECURSIVE_TASK_NO_PRUNE (52 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), must be followed by a
    pointer to a soon callback function.
 */
-#define STARPU_SOON_CALLBACK (52 << STARPU_MODE_SHIFT)
+#define STARPU_SOON_CALLBACK (53 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), must be followed by a
    pointer to be given as an argument to the soon callback
    function
 */
-#define STARPU_SOON_CALLBACK_ARG (53 << STARPU_MODE_SHIFT)
+#define STARPU_SOON_CALLBACK_ARG (54 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), similarly to
@@ -421,12 +435,12 @@ extern "C" {
    the argument will not be freed, i.e
    starpu_task::soon_callback_pop_arg_free will be set to 0
 */
-#define STARPU_SOON_CALLBACK_ARG_NFREE (54 << STARPU_MODE_SHIFT)
+#define STARPU_SOON_CALLBACK_ARG_NFREE (55 << STARPU_MODE_SHIFT)
 
 /**
    This has to be the last mode value plus 1
 */
-#define STARPU_SHIFTED_MODE_MAX (55 << STARPU_MODE_SHIFT)
+#define STARPU_SHIFTED_MODE_MAX (56 << STARPU_MODE_SHIFT)
 
 /**
    Set the given \p task corresponding to \p cl with the following arguments.

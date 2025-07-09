@@ -86,9 +86,11 @@ noinst_HEADERS = 						\
 	core/sched_ctx.h					\
 	core/sched_ctx_list.h					\
 	core/perfmodel/perfmodel.h				\
+	core/perfmodel/recursive_perfmodel.h				\
 	core/perfmodel/regression.h				\
 	core/perfmodel/multiple_regression.h			\
 	core/jobs.h						\
+	core/jobs_recursive.h					\
 	core/devices.h						\
 	core/task.h						\
 	core/drivers.h						\
@@ -100,9 +102,11 @@ noinst_HEADERS = 						\
 	core/simgrid.h						\
 	core/task_bundle.h					\
 	core/detect_combined_workers.h				\
+	sched_policies/deque_modeling_policy_data_aware.h	\
 	sched_policies/helper_mct.h				\
 	sched_policies/fifo_queues.h				\
 	sched_policies/heteroprio.h				\
+	sched_policies/splitter.h				\
 	datawizard/node_ops.h					\
 	datawizard/footprint.h					\
 	datawizard/datawizard.h					\
@@ -158,6 +162,7 @@ noinst_HEADERS = 						\
 	profiling/starpu_tracing.h		 		\
 	profiling/fxt/fxt.h			 		\
 	profiling/bound.h					\
+	profiling/splitter_bound.h					\
 	profiling/profiling.h					\
 	profiling/callbacks/callbacks.h				\
 	util/openmp_runtime_support.h				\
@@ -183,6 +188,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	common/inlines.c					\
 	common/knobs.c						\
 	core/jobs.c						\
+	core/jobs_recursive.c					\
 	core/task.c						\
 	core/task_bundle.c					\
 	core/tree.c						\
@@ -210,6 +216,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
         core/perfmodel/energy_model.c                           \
 	core/perfmodel/perfmodel_bus.c				\
 	core/perfmodel/perfmodel.c				\
+	core/perfmodel/recursive_perfmodel.c				\
 	core/perfmodel/perfmodel_print.c			\
 	core/perfmodel/perfmodel_nan.c				\
 	core/perfmodel/regression.c				\
@@ -221,6 +228,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	core/sched_ctx_list.c					\
 	core/parallel_task.c					\
 	core/detect_combined_workers.c				\
+	sched_policies/splitter.c				\
 	sched_policies/eager_central_policy.c			\
 	sched_policies/eager_central_priority_policy.c		\
 	sched_policies/work_stealing_policy.c			\
@@ -291,6 +299,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	profiling/fxt/fxt.c					\
 	profiling/profiling.c					\
 	profiling/bound.c					\
+	profiling/splitter_bound.c					\
 	profiling/profiling_helpers.c				\
 	profiling/callbacks/callbacks.c				\
 	worker_collection/worker_list.c				\

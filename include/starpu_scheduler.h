@@ -422,6 +422,13 @@ uint32_t starpu_task_data_footprint(struct starpu_task *task);
 */
 double starpu_task_expected_length(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl);
 
+#ifdef STARPU_RECURSIVE_TASKS
+/**
+   Return expected codelet duraton at level 0 for the fastest PU
+*/
+double starpu_codelet_expected_length_by_level(struct starpu_codelet *cl, int level);
+#endif
+
 /**
    Same as starpu_task_expected_length() but for a precise worker.
    See \ref SchedulingHelpers for more details.

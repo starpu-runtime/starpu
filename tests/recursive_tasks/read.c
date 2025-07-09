@@ -25,7 +25,7 @@ struct starpu_codelet sub_data_chain_codelet =
 	.name = "sub_data_chain_cl"
 };
 
-void recursive_task_chain_gen_dag(struct starpu_task *t, void *arg)
+void recursive_task_chain_gen_dag(struct starpu_task *t, void *arg, void **b)
 {
 	FPRINTF(stderr, "Hello i am a recursive task\n");
 	starpu_data_handle_t *subdata = (starpu_data_handle_t *)arg;
@@ -44,7 +44,7 @@ void recursive_task_chain_gen_dag(struct starpu_task *t, void *arg)
 struct starpu_codelet recursive_task_chain_codelet =
 {
 	.cpu_funcs = {recursive_task_func},
-	.recursive_task_func = is_recursive_task,
+	.recursive_task_func = is_recursive_task_always,
 	.recursive_task_gen_dag_func = recursive_task_chain_gen_dag,
 	.nbuffers = 1
 };

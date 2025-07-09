@@ -474,6 +474,10 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 			task->recursive_task_gen_dag_func_arg = va_arg(varg_list,void*);
 			break;
 		}
+		case STARPU_RECURSIVE_TASK_NO_PRUNE:
+		{
+			break;
+		}
 		case STARPU_RECURSIVE_TASK_PARENT:
 		{
 			struct starpu_task *parent = va_arg(varg_list, struct starpu_task *);

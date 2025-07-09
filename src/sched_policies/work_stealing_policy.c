@@ -669,6 +669,14 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 static
 int ws_push_task(struct starpu_task *task)
 {
+#ifdef STARPU_RECURSIVE_TASKS
+	// go out of schedule op for now
+	if (_starpu_turn_task_into_recursive_task_at_scheduler(task))
+	{
+		return 0;
+	}
+#endif
+
 	unsigned sched_ctx_id = task->sched_ctx;
 	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	int workerid;

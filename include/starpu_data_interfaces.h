@@ -758,6 +758,13 @@ void starpu_data_register_ops(struct starpu_data_interface_ops *ops);
 void starpu_data_ptr_register(starpu_data_handle_t handle, unsigned node);
 
 /**
+   Register that a buffer for \p handle on \p node will be set with handle a subdata. This is typically
+   used by starpu_sub*_ptr_register helpers before setting the interface pointers for
+   this node, to tell the core that that is now allocated.
+*/
+void starpu_subdata_ptr_register(starpu_data_handle_t handle, unsigned node);
+
+/**
    Register a new piece of data into the handle \p handledst with the
    same interface as the handle \p handlesrc.
    See \ref DataHandlesHelpers for more details.
@@ -1180,6 +1187,13 @@ void starpu_matrix_data_register_allocsize(starpu_data_handle_t *handle, int hom
    (for OpenCL, notably), with \p ld elements between rows.
 */
 void starpu_matrix_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr, uintptr_t dev_handle, size_t offset, size_t ld);
+
+/**
+   Register into the \p handle (that is a subhandle of a matrix)that to store data on node \p node it should use the
+   buffer located at \p ptr, or device handle \p dev_handle and offset \p offset
+   (for OpenCL, notably), with \p ld elements between rows.
+*/
+void starpu_submatrix_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr, uintptr_t dev_handle, size_t offset, size_t ld);
 
 /**
    Return the number of elements on the x-axis of the matrix

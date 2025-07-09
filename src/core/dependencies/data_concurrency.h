@@ -26,6 +26,7 @@
 void _starpu_job_set_ordered_buffers(struct _starpu_job *j);
 
 unsigned _starpu_concurrent_data_access(struct _starpu_job *j);
+unsigned _starpu_concurrent_data_release(struct _starpu_job *j);
 void _starpu_submit_job_enforce_arbitered_deps(struct _starpu_job *j, unsigned buf, unsigned nbuffers);
 void _starpu_submit_job_take_data_deps(struct _starpu_job *j);
 void _starpu_enforce_data_deps_notify_job_ready_soon(struct _starpu_job *j, _starpu_notify_job_start_data *data);

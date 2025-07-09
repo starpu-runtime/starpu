@@ -186,6 +186,7 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 		/* there cannot be multiple writers or a new writer
 		 * while the data is in read mode */
 
+		_STARPU_RECURSIVE_TASKS_DEBUG("Take busy count on data %p by job %p\n", handle, j);
 		handle->busy_count++;
 		/* enqueue the request */
 		struct _starpu_data_requester *r = _starpu_data_requester_new();
@@ -210,6 +211,8 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 	{
 		handle->refcnt++;
 		handle->busy_count++;
+		_STARPU_RECURSIVE_TASKS_DEBUG("Take busy count on data %p by job %p\n", handle, j);
+		_STARPU_RECURSIVE_TASKS_DEBUG("Take refcnt on data %p by job %p\n", handle, j);
 
 		/* Do not write to handle->current_mode if it is already
 		 * R. This avoids a spurious warning from helgrind when
@@ -284,6 +287,8 @@ static void _starpu_take_data(unsigned request_from_codelet,
 	STARPU_ASSERT_MSG(mode == previous_mode, "mode was %d, but requested %d", previous_mode, mode);
 
 	handle->refcnt++;
+	_STARPU_RECURSIVE_TASKS_DEBUG("Take refcnt on data %p by job %p\n", handle, j);
+	_STARPU_RECURSIVE_TASKS_DEBUG("Take busy count on data %p by job %p\n", handle, j);
 	handle->busy_count++;
 
 	_starpu_spin_unlock(&handle->header_lock);
@@ -317,6 +322,7 @@ static unsigned _submit_job_access_data(struct _starpu_job *j, unsigned start_bu
 	unsigned buf;
 	int bufdup;
 
+	_STARPU_RECURSIVE_TASKS_DEBUG("for task %p(%s) (job %p)) we make access form buffer %u\n", j->task, j->task->name, j, start_buffer_index);
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(j->task);
 	for (buf = start_buffer_index; buf < nbuffers; buf++)
 	{
@@ -325,6 +331,7 @@ static unsigned _submit_job_access_data(struct _starpu_job *j, unsigned start_bu
 
 		for (bufdup = (int) buf-1; bufdup >= 0; bufdup--)
 		{
+			_STARPU_RECURSIVE_TASKS_DEBUG("for task %p(%s) we look at handle %p\n", j->task, j->task->name, handle);
 			starpu_data_handle_t handle_dup = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, bufdup);
 			int node_dup = _STARPU_JOB_GET_ORDERED_BUFFER_ORIG_NODE(j, bufdup);
 			if (handle_dup == handle && node_dup == node)
@@ -340,6 +347,7 @@ static unsigned _submit_job_access_data(struct _starpu_job *j, unsigned start_bu
 		STARPU_ASSERT(j->task->status == STARPU_TASK_BLOCKED || j->task->status == STARPU_TASK_BLOCKED_ON_TAG || j->task->status == STARPU_TASK_BLOCKED_ON_TASK || j->task->status == STARPU_TASK_BLOCKED_ON_DATA);
 		j->task->status = STARPU_TASK_BLOCKED_ON_DATA;
 
+		_STARPU_RECURSIVE_TASKS_DEBUG("Handle %p has arbiter ? %p\n", handle, handle->arbiter);
 		if(handle->arbiter)
 		{
 			/* We arrived on an arbitered data, we stop and proceed
@@ -350,6 +358,7 @@ static unsigned _submit_job_access_data(struct _starpu_job *j, unsigned start_bu
 
 		if (attempt_to_submit_data_request_from_job(j, buf))
 		{
+			_STARPU_RECURSIVE_TASKS_DEBUG("Handle %p is not ready\n", handle);
 			return 1;
 		}
 
@@ -358,6 +367,52 @@ static unsigned _submit_job_access_data(struct _starpu_job *j, unsigned start_bu
 	}
 
 	return 0;
+}
+
+static unsigned _submit_job_release_data(struct _starpu_job *j, unsigned start_buffer_index)
+{
+	unsigned buf;
+
+	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(j->task);
+	for (buf = start_buffer_index; buf < nbuffers; buf++)
+	{
+		starpu_data_handle_t handle = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buf);
+
+		_STARPU_DEBUG("For task %p(%s) we look at handle %p\n", j->task, j->task->name, handle);
+		if (buf)
+		{
+			starpu_data_handle_t handle_m1 = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buf-1);
+			if (handle_m1 == handle)
+				/* We have already requested this data, skip it. This
+				 * depends on ordering putting writes before reads, see
+				 * _starpu_compar_handles.  */
+				continue;
+		}
+
+		if(handle->arbiter)
+		{
+			/* We arrived on an arbitered data, we stop and proceed
+			 * with the arbiter second step.  */
+			STARPU_ASSERT_MSG(0, "We need to make it arbiter");
+			return 1;
+		}
+
+		_starpu_spin_lock(&handle->header_lock);
+		if (!_starpu_notify_data_dependencies(handle, STARPU_NONE))
+			_starpu_spin_unlock(&handle->header_lock);
+
+	}
+
+	return 0;
+}
+
+unsigned _starpu_concurrent_data_release(struct _starpu_job *j)
+{
+	struct starpu_codelet *cl = j->task->cl;
+
+	if ((cl == NULL) || (STARPU_TASK_GET_NBUFFERS(j->task) == 0))
+ 		return 0;
+	return _submit_job_release_data(j, 0);
 }
 
 static void take_data_from_job(struct _starpu_job *j, unsigned buffer_index)
@@ -574,7 +629,9 @@ int _starpu_notify_data_dependencies(starpu_data_handle_t handle, enum starpu_da
 		/* A data access has finished so we remove a reference. */
 		STARPU_ASSERT(handle->refcnt > 0);
 		handle->refcnt--;
+		_STARPU_RECURSIVE_TASKS_DEBUG("Release refcnt on data %p\n", handle);
 		STARPU_ASSERT(handle->busy_count > 0);
+		_STARPU_RECURSIVE_TASKS_DEBUG("Release busy count on data %p\n", handle);
 		handle->busy_count--;
 		if (_starpu_data_check_not_busy(handle))
 			/* Handle was destroyed, nothing left to do.  */
@@ -643,6 +700,8 @@ int _starpu_notify_data_dependencies(starpu_data_handle_t handle, enum starpu_da
 			/* The data is now attributed to that request so we put a
 			 * reference on it. */
 			handle->refcnt++;
+			_STARPU_RECURSIVE_TASKS_DEBUG("Take refcnt on data %p on release data (new attribution)\n", handle);
+			_STARPU_RECURSIVE_TASKS_DEBUG("Take busy count on data %p on release data (new attribution)\n", handle);
 			handle->busy_count++;
 
 			enum starpu_data_access_mode previous_mode = handle->current_mode;
@@ -674,6 +733,7 @@ int _starpu_notify_data_dependencies(starpu_data_handle_t handle, enum starpu_da
 
 			_starpu_spin_lock(&handle->header_lock);
 			STARPU_ASSERT(handle->busy_count > 0);
+			_STARPU_RECURSIVE_TASKS_DEBUG("Release busy count on data %p on release data (after push)\n", handle);
 			handle->busy_count--;
 			if (_starpu_data_check_not_busy(handle))
 				return 1;

@@ -100,7 +100,7 @@ void recursive_task_func(void *buffers[], void *arg)
 	return;
 }
 
-int is_recursive_task(struct starpu_task *t, void *arg)
+int is_recursive_task_always(struct starpu_task *t, void *arg, void **buffers)
 {
 	(void)arg;
 	(void)t;
@@ -110,7 +110,7 @@ int is_recursive_task(struct starpu_task *t, void *arg)
 }
 
 // Function which change when called a second time
-int is_recursive_task_only_second_time(struct starpu_task *t, void *arg)
+int is_recursive_task_only_second_time(struct starpu_task *t, void *arg, void **buffers)
 {
 	assert(arg);
 	int * v = (int*) arg;
@@ -120,7 +120,7 @@ int is_recursive_task_only_second_time(struct starpu_task *t, void *arg)
 	return 0;
 }
 
-void recursive_task_gen_dag(struct starpu_task *t, void *arg)
+void recursive_task_gen_dag(struct starpu_task *t, void *arg, void **buffers)
 {
 	FPRINTF(stderr, "Hello i am a recursive task\n");
 	int i;
@@ -153,13 +153,13 @@ struct starpu_codelet recursive_task_codelet =
 {
 	.cpu_funcs = {recursive_task_func},
 	.cuda_funcs = {recursive_task_func},
-	.recursive_task_func = is_recursive_task,
+	.recursive_task_func = is_recursive_task_always,
 	.recursive_task_gen_dag_func = recursive_task_gen_dag,
 	.nbuffers = 1,
 	.model = &starpu_perfmodel_nop
 };
 
-void recursive_taskRO_gen_dag(struct starpu_task *t, void *arg)
+void recursive_taskRO_gen_dag(struct starpu_task *t, void *arg, void **buffers)
 {
 	FPRINTF(stderr, "Hello i am a recursive_task\n");
 	int i;
@@ -178,7 +178,7 @@ void recursive_taskRO_gen_dag(struct starpu_task *t, void *arg)
 struct starpu_codelet recursive_taskRO_codelet =
 {
 	.cpu_funcs = {recursive_task_func},
-	.recursive_task_func = is_recursive_task,
+	.recursive_task_func = is_recursive_task_always,
 	.recursive_task_gen_dag_func = recursive_taskRO_gen_dag,
 	.nbuffers = 1,
 	.model = &starpu_perfmodel_nop
@@ -195,6 +195,7 @@ void task_func(void *buffers[], void *arg)
 	{
 		v[i] += 10;
 	}
+	print_vector(v, nx, "task_2");
 }
 
 extern void task_cuda_func(void *buffers[], void *arg);

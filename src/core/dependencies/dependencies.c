@@ -22,6 +22,10 @@
 #include <core/sched_policy.h>
 #include <core/dependencies/data_concurrency.h>
 
+#ifdef STARPU_RECURSIVE_TASKS
+#include <sched_policies/splitter.h>
+#endif
+
 /* We assume that the job will not disappear under our hands */
 void _starpu_notify_dependencies(struct _starpu_job *j)
 {

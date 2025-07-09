@@ -23,7 +23,11 @@ static struct _starpu_driver_info driver_info =
 	.name_var = "CUDA",
 	.name_lower = "cuda",
 	.memory_kind = STARPU_CUDA_RAM,
+#ifdef STARPU_RECURSIVE_TASKS
+	.alpha = 1.f,
+#else
 	.alpha = 13.33f,
+#endif
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	.driver_ops = &_starpu_driver_cuda_ops,
 	.run_worker = _starpu_cuda_worker,

@@ -315,6 +315,11 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 			if (j->task->failed)
 				/* Do not record perfmodel for failed tasks, they may terminate earlier */
 				do_update_time_model = 0;
+#ifdef STARPU_RECURSIVE_TASKS
+			if (j->recursive.is_recursive_task)
+				/* Do not record perfmodel for recursive task, the time is te submission time */
+				do_update_time_model = 0;
+#endif
 			if (do_update_time_model)
 			{
 				_starpu_update_perfmodel_history(j, j->task->cl->model, perf_arch, worker->devid, time_consumed, j->nimpl, 1);

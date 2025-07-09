@@ -18,6 +18,8 @@ StarPU 1.5.0
 ==============================================
 Changes:
    * Rename hierarchical tasks in recursive tasks
+   * Update decision mechanisms for recursive tasks, by using a
+     splitter mechanism.
    * Fix asynchronous partitioning with data without home node
    * Allow large sizes for vector, matrix, block, tensor and ndim data
      interfaces, and use proper MPI datatypes to exchange them.

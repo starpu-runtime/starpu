@@ -1299,6 +1299,11 @@ PythonParallelism). Default value is Disable for now, until python is fully
 ready for this.
 </dd>
 
+<dt>STARPU_RECURSIVE_TASK_SPLITTER_POLICY</dt>
+<dd>
+\anchor STARPU_RECURSIVE_TASK_SPLITTER_POLICY
+\addindex __env__STARPU_RECURSIVE_TASK_SPLITTER_POLICY
+Define the splitter policy to be used for recursive tasks. See \ref Splitter.
 </dl>
 
 \section MiscellaneousAndDebug Miscellaneous And Debug

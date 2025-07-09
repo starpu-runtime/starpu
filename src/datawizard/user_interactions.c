@@ -30,20 +30,29 @@ static void _starpu_data_check_initialized(starpu_data_handle_t handle, enum sta
 	if (((handle->nplans && !handle->nchildren) || handle->siblings)
 		&& !(mode & STARPU_NOPLAN))
 	{
-		_starpu_data_partition_access_submit(handle, (mode & STARPU_W) != 0);
+		_STARPU_RECURSIVE_TASKS_DEBUG("Call access_submit() for %p\n", handle);
+		_starpu_data_partition_access_submit(handle, (mode & STARPU_W) != 0, (mode & STARPU_W) != 0 && (mode & STARPU_R) == 0, NULL);
 	}
 
 	if (!(mode & STARPU_R))
 		return;
 
-	if (!handle->initialized && handle->init_cl)
+	int initialized = handle->initialized;
+#ifdef STARPU_RECURSIVE_TASKS
+	if (!initialized && _starpu_recursive_task_which_generate_dag() != NULL)
+	{
+		initialized += _starpu_get_initialized_state_on_parent_task_parent_data(handle, _starpu_recursive_task_which_generate_dag());
+	}
+#endif
+	if (!initialized && handle->init_cl)
 	{
 		int ret = starpu_task_insert(handle->init_cl,
 			STARPU_CL_ARGS_NFREE, handle->init_cl_arg, 0,
 			STARPU_W, handle, 0);
 		STARPU_ASSERT(ret == 0);
+		initialized = 1;
 	}
-	STARPU_ASSERT_MSG(handle->initialized, "handle %p is not initialized while trying to read it\n", handle);
+	STARPU_ASSERT_MSG(initialized, "handle %p is not initialized while trying to read it\n", handle);
 }
 
 /* Explicitly ask StarPU to allocate room for a piece of data on the specified
@@ -146,10 +155,13 @@ static void _starpu_data_acquire_fetch_data_callback(void *arg)
 	struct user_interaction_wrapper *wrapper = (struct user_interaction_wrapper *) arg;
 	starpu_data_handle_t handle = wrapper->handle;
 
+//	_STARPU_DEBUG("Calling acquire callback for task %p(%s) on handle %p\n", wrapper->pre_sync_task, wrapper->pre_sync_task->name, wrapper->handle);
 	/* At that moment, the caller holds a reference to the piece of data.
 	 * We enqueue the "post" sync task in the list associated to the handle
 	 * so that it is submitted by the starpu_data_release
 	 * function. */
+
+	_STARPU_RECURSIVE_TASKS_DEBUG("Acquire has post_sync_task ? %p(%s)\n", wrapper->post_sync_task, wrapper->post_sync_task ? wrapper->post_sync_task->name : NULL);
 	if (wrapper->post_sync_task)
 		_starpu_add_post_sync_tasks(wrapper->post_sync_task, handle);
 
@@ -168,6 +180,7 @@ static void _starpu_data_acquire_continuation_non_blocking(void *arg)
 		/* This can change the node at will according to the current data situation */
 		wrapper->callback_acquired(wrapper->callback_arg, &wrapper->node, wrapper->mode);
 
+//	_STARPU_RECURSIVE_TASKS_DEBUG("Calling acquire for task %p(%s) on handle %p\n", wrapper->pre_sync_task, wrapper->pre_sync_task->name, wrapper->handle);
 	_starpu_data_acquire_launch_fetch(arg, 1, _starpu_data_acquire_fetch_data_callback, arg);
 }
 
@@ -176,6 +189,7 @@ static void starpu_data_acquire_cb_pre_sync_callback(void *arg)
 {
 	struct user_interaction_wrapper *wrapper = (struct user_interaction_wrapper *) arg;
 
+//	_STARPU_RECURSIVE_TASKS_DEBUG("Calling callback for task %p(%s) on handle %p\n", wrapper->pre_sync_task, wrapper->pre_sync_task->name, wrapper->handle);
 	/*
 	 * we try to get the data, if we do not succeed immediately,
 	 * we set a callback function that will be executed
@@ -186,26 +200,47 @@ static void starpu_data_acquire_cb_pre_sync_callback(void *arg)
 			_starpu_data_acquire_continuation_non_blocking, wrapper))
 	{
 		/* no one has locked this data yet, so we proceed immediately */
+		_STARPU_RECURSIVE_TASKS_DEBUG("data %p available on task %p\n", wrapper->handle, wrapper->pre_sync_task);
 		_starpu_data_acquire_continuation_non_blocking(wrapper);
 	}
 }
 
+#ifdef STARPU_RECURSIVE_TASKS
+static void empty_function(STARPU_ATTRIBUTE_UNUSED void * buffers[], STARPU_ATTRIBUTE_UNUSED void * cl_arg)
+{
+}
+
+static struct starpu_codelet control_cl =
+{ // this function is only used before mpi_ssend, so we do not need any cuda or opencl function : the send will be done by the cpu
+        .cpu_funcs = {empty_function},
+        .nbuffers = STARPU_VARIABLE_NBUFFERS
+};
+#endif
+
 /* The data must be released by calling starpu_data_release later on */
-int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_data_handle_t handle, int node,
+int _starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_data_handle_t handle, int node,
 							  enum starpu_data_access_mode mode,
 							  void (*callback_soon)(void *arg, double delay),
 							  void (*callback_acquired)(void *arg, int *node, enum starpu_data_access_mode mode),
 							  void (*callback)(void *arg),
 							  void *arg,
 							  int sequential_consistency, int quick,
-							  long *pre_sync_jobid, long *post_sync_jobid, int prio)
+							  long *pre_sync_jobid, long *post_sync_jobid, int prio, int need_to_be_unpart_or_part)
 {
+#ifndef STARPU_RECURSIVE_TASKS
+	(void)need_to_be_unpart_or_part;
+#endif
 	STARPU_ASSERT(handle);
 	STARPU_ASSERT_MSG(handle->nchildren == 0, "Acquiring a partitioned data (%p) is not possible", handle);
 	_STARPU_LOG_IN();
 
 	/* Check that previous tasks have set a value if needed */
-	_starpu_data_check_initialized(handle, mode);
+
+#ifdef STARPU_RECURSIVE_TASKS
+	if (!need_to_be_unpart_or_part)
+		// only when we do not need to part or unpart -> if we need, maybe data is not initialized, but it is normal
+#endif
+		_starpu_data_check_initialized(handle, mode);
 
 	struct user_interaction_wrapper *wrapper;
 	_STARPU_MALLOC(wrapper, sizeof(struct user_interaction_wrapper));
@@ -220,15 +255,28 @@ int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_dat
 	wrapper->post_sync_task = NULL;
 	wrapper->prio = prio;
 
+#ifdef STARPU_RECURSIVE_TASKS
+	_STARPU_RECURSIVE_TASKS_DEBUG( "ACQUIRING HANDLE %p in mode %d\n", handle, mode);
+	assert(mode != 0);
+#endif
+
 	STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
 	int handle_sequential_consistency = handle->sequential_consistency;
 	if (handle_sequential_consistency && sequential_consistency)
 	{
-		struct starpu_task *new_task;
+		struct starpu_task *new_task = NULL;
 		struct _starpu_job *pre_sync_job, *post_sync_job;
+#ifdef STARPU_RECURSIVE_TASKS
+		int submit_pre_sync = 1; //need_to_be_unpart_or_part;
+#else
 		int submit_pre_sync = 0;
+#endif
 		wrapper->pre_sync_task = starpu_task_create();
+#ifdef STARPU_RECURSIVE_TASKS_VERBOSE
+		asprintf(&wrapper->pre_sync_task->name, "_starpu_data_acquire_cb_pre(%p)", handle);
+#else
 		wrapper->pre_sync_task->name = "_starpu_data_acquire_cb_pre";
+#endif
 		wrapper->pre_sync_task->detach = 1;
 		wrapper->pre_sync_task->callback_func = starpu_data_acquire_cb_pre_sync_callback;
 		wrapper->pre_sync_task->callback_arg = wrapper;
@@ -241,7 +289,11 @@ int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_dat
 			*pre_sync_jobid = pre_sync_job->job_id;
 
 		wrapper->post_sync_task = starpu_task_create();
+#ifdef STARPU_RECURSIVE_TASKS_VERBOSE
+		asprintf(&wrapper->post_sync_task->name, "_starpu_data_acquire_cb_release(%p)", handle);
+#else
 		wrapper->post_sync_task->name = "_starpu_data_acquire_cb_release";
+#endif
 		wrapper->post_sync_task->detach = 1;
 		wrapper->post_sync_task->type = STARPU_TASK_TYPE_DATA_ACQUIRE;
 		wrapper->post_sync_task->priority = prio;
@@ -252,8 +304,74 @@ int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_dat
 		if (quick)
 			pre_sync_job->quick_next = post_sync_job;
 
-		new_task = _starpu_detect_implicit_data_deps_with_handle(wrapper->pre_sync_task, &submit_pre_sync, wrapper->post_sync_task, &_starpu_get_job_associated_to_task(wrapper->post_sync_task)->implicit_dep_slot, handle, mode, sequential_consistency);
+#ifdef STARPU_RECURSIVE_TASKS
+		struct starpu_task *control_task = NULL, *control_task_end = NULL;
+		if (need_to_be_unpart_or_part)
+		{
+			submit_pre_sync = 1;
+			control_task = starpu_task_create();
+                        control_task->name = "control_sync_jobids";
+                        control_task->cl = &control_cl;
+                        control_task->handles[0] = handle;
+                        control_task->modes[0] = mode;
+			control_task->nbuffers = 1;
+                        starpu_task_declare_deps(wrapper->pre_sync_task, 1, control_task);
+			control_task_end = starpu_task_create();
+			control_task_end ->name = "control_sync_jobids_end";
+			struct _starpu_job *j_end = _starpu_get_job_associated_to_task (control_task_end);
+			j_end->recursive.need_part_unpart = 0;
+			control_task_end->handles[0] = handle;
+			control_task_end->modes[0] = mode;
+			control_task_end->nbuffers = 1;
+			starpu_task_declare_deps(control_task_end, 1, wrapper->post_sync_task);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
+			starpu_task_submit(control_task);
+			STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
+		}
 		STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(handle->partition_mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
+		/* recursive_task unpartitioning */
+/*		if (handle->ctrl_unpartition_children)
+		{
+			_STARPU_DEBUG("EEEEEEEEEEEEEEEEEEEEEEEEEE\nacquire on unpartition handle %p\nEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n", handle);
+			// plug the post_sync tasks before the control task
+			starpu_task_declare_deps(handle->ctrl_unpartition_children, 1, wrapper->post_sync_task);
+			_STARPU_DEBUG("[%p] Set dependencies rel(%p) -> ctrl(%p)\n", handle, wrapper->post_sync_task, handle->ctrl_unpartition_children);
+			handle->ctrl_unpartition_children = NULL;
+		}*/
+		if (handle->ctrl_unpartition)
+		{
+			starpu_task_declare_deps(wrapper->pre_sync_task, 1, handle->ctrl_unpartition);
+			_STARPU_RECURSIVE_TASKS_DEBUG("Set dependencies rel(%p) -> ctrl(%p)\n", handle->ctrl_unpartition, wrapper->pre_sync_task);
+//			submit_pre_sync = 1;
+		}
+
+		/* recursive_task partitioning */
+		if (handle->last_partition)
+		{
+			_STARPU_RECURSIVE_TASKS_DEBUG("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC\nacquire on partition handle %p\nCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC\n", handle);
+			/* plug the pre_sync task after the partition needing it */
+			starpu_task_declare_deps(wrapper->pre_sync_task, 1, handle->last_partition);
+			_STARPU_RECURSIVE_TASKS_DEBUG("[%p] Set dependencies %s(%p) -> acq(%p)\n", handle, starpu_task_get_name(handle->last_partition), handle->last_partition, wrapper->pre_sync_task);
+			starpu_task_declare_deps(wrapper->post_sync_task, 1, wrapper->pre_sync_task);
+			_STARPU_RECURSIVE_TASKS_DEBUG("[%p] Set dependencies acq(%p) -> rel(%p)\n", handle, wrapper->pre_sync_task, wrapper->post_sync_task);
+			submit_pre_sync = 1;
+			/* handle->last_partition = NULL; */
+			/* Est-il possible que des acquires issus d'une autre tâche que last_partition arrive ici ? */
+		}
+		else
+#endif
+		{
+			_STARPU_RECURSIVE_TASKS_DEBUG("JJJJJJJJJJJJJJJJJJJJJJJJJJJ\ndetecting implicit data deps normally for handle %p\nJJJJJJJJJJJJJJJJJJJJJJJJJJJJ\n", handle);
+			new_task = _starpu_detect_implicit_data_deps_with_handle(wrapper->pre_sync_task, &submit_pre_sync, wrapper->post_sync_task, &_starpu_get_job_associated_to_task(wrapper->post_sync_task)->implicit_dep_slot, handle, mode, sequential_consistency);
+		}
+
+		STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
+#ifdef STARPU_RECURSIVE_TASKS
+		STARPU_PTHREAD_MUTEX_UNLOCK(handle->partition_mutex);
+#endif
+
 
 		if (STARPU_UNLIKELY(new_task))
 		{
@@ -272,6 +390,12 @@ int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_dat
 			starpu_task_destroy(wrapper->pre_sync_task);
 			starpu_data_acquire_cb_pre_sync_callback(wrapper);
 		}
+#ifdef STARPU_RECURSIVE_TASKS
+		if (control_task_end)
+		{
+			starpu_task_submit(control_task_end);
+		}
+#endif
 	}
 	else
 	{
@@ -288,7 +412,26 @@ int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_dat
 	return 0;
 }
 
-static int starpu_data_acquire_on_node_cb_sequential_consistency_quick(starpu_data_handle_t handle, int node,
+int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_data_handle_t handle, int node,
+							  enum starpu_data_access_mode mode,
+							  void (*callback_soon)(void *arg, double delay),
+							  void (*callback_acquired)(void *arg, int *node, enum starpu_data_access_mode mode),
+							  void (*callback)(void *arg),
+							  void *arg,
+							  int sequential_consistency, int quick,
+							  long *pre_sync_jobid, long *post_sync_jobid, int prio)
+{
+	return 	_starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(handle, node,
+										   mode,
+										   callback_soon,
+										   callback_acquired,
+										   callback,
+										   arg,
+										   sequential_consistency, quick,
+										   pre_sync_jobid, post_sync_jobid, prio, 1);
+}
+
+int starpu_data_acquire_on_node_cb_sequential_consistency_quick(starpu_data_handle_t handle, int node,
 								enum starpu_data_access_mode mode, void (*callback)(void *), void *arg,
 								int sequential_consistency, int quick)
 {
@@ -369,6 +512,8 @@ static inline void _starpu_data_acquire_continuation(void *arg)
 	_starpu_data_acquire_wrapper_finished(wrapper);
 }
 
+int _starpu_recursive_tasks_disable_sequential_consistency = 0;
+
 /* The data must be released by calling starpu_data_release later on */
 int starpu_data_acquire_on_node(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode)
 {
@@ -389,6 +534,7 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, int node, enum star
 		int ret;
 		_starpu_spin_lock(&handle->header_lock);
 		handle->refcnt--;
+		_STARPU_RECURSIVE_TASKS_DEBUG("Release refcnt on data %p\n", handle);
 		handle->busy_count--;
 		handle->mf_node = node;
 		_starpu_spin_unlock(&handle->header_lock);
@@ -417,7 +563,14 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, int node, enum star
 		wrapper.post_sync_task->detach = 1;
 		wrapper.post_sync_task->type = STARPU_TASK_TYPE_DATA_ACQUIRE;
 
-		new_task = _starpu_detect_implicit_data_deps_with_handle(wrapper.pre_sync_task, &submit_pre_sync, wrapper.post_sync_task, &_starpu_get_job_associated_to_task(wrapper.post_sync_task)->implicit_dep_slot, handle, mode, sequential_consistency);
+		/**
+		   The insertion of the first recursive task is going
+		   to disable sequential_consistency (even though it
+		   might be a bit cheeky, it's needed in the case of
+		   recursive task partitioning
+		*/
+		new_task = _starpu_detect_implicit_data_deps_with_handle(wrapper.pre_sync_task, &submit_pre_sync, wrapper.post_sync_task, &_starpu_get_job_associated_to_task(wrapper.post_sync_task)->implicit_dep_slot, handle, mode,
+									 _starpu_recursive_tasks_disable_sequential_consistency ? 0 : sequential_consistency);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 
 		if (STARPU_UNLIKELY(new_task))
@@ -542,6 +695,7 @@ void starpu_data_release_to_on_node(starpu_data_handle_t handle, enum starpu_dat
 		"We only support releasing from W to R");
 
 	/* In case there are some implicit dependencies, unlock the "post sync" tasks */
+	_STARPU_RECURSIVE_TASKS_DEBUG("Unlocking post_sync task for handle %p\n", handle);
 	_starpu_unlock_post_sync_tasks(handle, mode);
 
 	/* The application can now release the rw-lock */
@@ -605,6 +759,11 @@ int __starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsign
 
 	/* it is forbidden to call this function from a callback or a codelet */
 	STARPU_ASSERT_MSG(async || _starpu_worker_may_perform_blocking_calls(), "Synchronous prefetch is not possible from a task or a callback");
+
+#ifdef STARPU_RECURSIVE_TASKS
+	/* Check that previous tasks have set a value if needed */
+	_starpu_data_check_initialized(handle, mode);
+#endif
 
 	struct user_interaction_wrapper *wrapper;
 	_STARPU_MALLOC(wrapper, sizeof(*wrapper));
@@ -736,12 +895,37 @@ static void _starpu_data_wont_use(void *data)
 	}
 }
 
+#ifdef STARPU_RECURSIVE_TASKS
+#if 0
+static void flush_func(void *buffers[], void *arg)
+{
+	(void) buffers;
+	(void) arg;
+}
+
+static struct starpu_codelet flush_codelet =
+{
+	.cpu_funcs = {flush_func},
+	.nbuffers = 1
+};
+#endif
+#endif
+
 void starpu_data_wont_use(starpu_data_handle_t handle)
 {
+#ifndef STARPU_RECURSIVE_TASKS
 	if (!handle->initialized)
 		/* No value atm actually */
 		return;
+#endif
 
+#ifdef STARPU_RECURSIVE_TASKS
+//	char *fname;
+//	asprintf(&fname, "Flush(%p)", handle);
+//	starpu_task_insert(&flush_codelet,
+//			   STARPU_RW, handle,
+//			   STARPU_NAME, fname, 0);
+#else
 	if (starpu_data_get_nb_children(handle) != 0)
 	{
 		int i;
@@ -750,10 +934,10 @@ void starpu_data_wont_use(starpu_data_handle_t handle)
 		return;
 	}
 
-	if (handle->partitioned != 0)
+	if (handle->nactive_readonly_children != 0)
 	{
 		unsigned i;
-		for(i=0 ; i<handle->partitioned; i++)
+		for(i=0 ; i<handle->nactive_readonly_children; i++)
 		{
 			unsigned j;
 			for(j=0 ; j<handle->active_readonly_nchildren[i] ; j++)
@@ -768,6 +952,7 @@ void starpu_data_wont_use(starpu_data_handle_t handle)
 			starpu_data_wont_use(handle->active_children[j]);
 		return;
 	}
+#endif
 
 	_starpu_trace_data_wont_use(&handle);
 	starpu_data_acquire_on_node_cb_sequential_consistency_quick(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, STARPU_R, _starpu_data_wont_use, handle, 1, 1);

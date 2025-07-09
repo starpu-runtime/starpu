@@ -65,6 +65,11 @@ struct starpu_task *_starpu_pop_task(struct _starpu_worker *worker);
 void _starpu_sched_post_exec_hook(struct starpu_task *task);
 int _starpu_pop_task_end(struct starpu_task *task);
 
+#ifdef STARPU_RECURSIVE_TASKS
+void _starpu_update_task_level(struct starpu_task *task);
+void _starpu_update_task_level_end(struct starpu_task *task);
+#endif
+
 struct starpu_task *_starpu_create_conversion_task(starpu_data_handle_t handle,
 						   unsigned int node) STARPU_ATTRIBUTE_MALLOC;
 

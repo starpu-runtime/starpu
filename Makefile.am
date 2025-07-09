@@ -205,6 +205,7 @@ EXTRA_DIST += ci/scripts/coverity.sh
 EXTRA_DIST += ci/scripts/mpi_ulfm.sh
 EXTRA_DIST += ci/scripts/mpich_struct.sh
 EXTRA_DIST += ci/scripts/mpich.sh
+EXTRA_DIST += ci/scripts/recursive_tasks.sh
 EXTRA_DIST += ci/scripts/run_profile.sh
 EXTRA_DIST += ci/scripts/clean_profile.sh
 EXTRA_DIST += ci/scripts/simgrid.sh

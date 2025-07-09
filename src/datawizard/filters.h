@@ -29,7 +29,14 @@
 #pragma GCC visibility push(hidden)
 
 /** submit asynchronous unpartitioning / partitioning to make target active read-only or read-write */
-void _starpu_data_partition_access_submit(starpu_data_handle_t target, int write);
+void _starpu_data_partition_access_submit(starpu_data_handle_t target, int write, int write_only, struct starpu_task *ctrl);
+void starpu_data_unpartition_submit_r(starpu_data_handle_t initial_handle, int gathering_node, int write, struct starpu_task *ctrl);
+
+#ifdef STARPU_RECURSIVE_TASKS
+int _starpu_get_initialized_state_on_parent_task_parent_data(starpu_data_handle_t data_we_search_state, struct starpu_task *task_we_search_state);
+void starpu_add_data_cut();
+void starpu_remove_data_cut();
+#endif
 
 #pragma GCC visibility pop
 

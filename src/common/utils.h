@@ -101,6 +101,12 @@ extern "C" {
 #define STARPU_UYIELD() _STARPU_UYIELD()
 #endif
 
+#ifdef STARPU_RECURSIVE_TASKS_VERBOSE
+#  define _STARPU_RECURSIVE_TASKS_DEBUG(fmt, ...) do { if (!_starpu_silent) {fprintf(stderr, STARPU_DEBUG_PREFIX"[%s] " fmt ,__starpu_func__ ,## __VA_ARGS__); fflush(stderr); }} while(0)
+#else
+#  define _STARPU_RECURSIVE_TASKS_DEBUG(fmt, ...) do { } while (0)
+#endif
+
 #ifdef STARPU_VERBOSE
 #  define _STARPU_DEBUG(fmt, ...) do { if (!_starpu_silent) {fprintf(stderr, STARPU_DEBUG_PREFIX"[%s] " fmt ,__starpu_func__ ,## __VA_ARGS__); fflush(stderr); }} while(0)
 #  define _STARPU_DEBUG_NO_HEADER(fmt, ...) do { if (!_starpu_silent) {fprintf(stderr, fmt , ## __VA_ARGS__); fflush(stderr); }} while(0)

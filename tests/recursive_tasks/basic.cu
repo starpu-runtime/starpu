@@ -19,7 +19,7 @@
 static __global__ void print_vector_cuda(unsigned n, int *v, int prefix)
 {
 	unsigned i;
-	printf(prefix == 0 ? "task" : (prefix == 1 ? "subtask" : (prefix == 2 ? "task_ro" : "subtask_ro")));
+	printf(prefix == 0 ? "task2" : (prefix == 1 ? "subtask" : (prefix == 2 ? "task_ro" : "subtask_ro")));
 
 	for (i=0; i<n; i++)
 	{
@@ -96,6 +96,7 @@ extern "C" void task_cuda_func(void *buffers[], void *arg)
         unsigned threads_per_block = 64;
         unsigned nblocks = (nx + threads_per_block-1) / threads_per_block;
         add_cuda<<<nblocks, threads_per_block, 0, starpu_cuda_get_local_stream()>>>(nx, v, 10);
+	print_vector_cuda<<<1, 1, 0, starpu_cuda_get_local_stream()>>>(nx, v, 0);
         cudaError_t status = cudaGetLastError();
         if (status != cudaSuccess) STARPU_CUDA_REPORT_ERROR(status);
         cudaStreamSynchronize(starpu_cuda_get_local_stream());

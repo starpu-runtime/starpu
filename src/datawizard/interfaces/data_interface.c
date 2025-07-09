@@ -244,6 +244,20 @@ void _starpu_data_initialize_per_worker(starpu_data_handle_t handle)
 	}
 }
 
+void starpu_subdata_ptr_register(starpu_data_handle_t handle, unsigned node)
+{
+	handle->initialized = 1;
+	handle->home_node = node;
+	struct _starpu_data_replicate *replicate = &handle->per_node[node];
+
+	_starpu_spin_lock(&handle->header_lock);
+	replicate->state = STARPU_OWNER;
+	replicate->initialized = 1;
+	_starpu_spin_unlock(&handle->header_lock);
+	starpu_data_ptr_register(handle, node);
+}
+
+
 void starpu_data_ptr_register(starpu_data_handle_t handle, unsigned node)
 {
 	struct _starpu_data_replicate *replicate = &handle->per_node[node];
@@ -278,7 +292,17 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 	STARPU_PTHREAD_MUTEX_INIT0(&handle->busy_mutex, NULL);
 	STARPU_PTHREAD_COND_INIT0(&handle->busy_cond, NULL);
 #ifdef STARPU_RECURSIVE_TASKS
-	STARPU_PTHREAD_MUTEX_INIT0(&handle->unpartition_mutex, NULL);
+	pthread_mutexattr_t attr;
+	pthread_mutexattr_init(&attr);
+	pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+	handle->partition_mutex = malloc(sizeof(starpu_pthread_mutex_t));
+	STARPU_PTHREAD_MUTEX_INIT(handle->partition_mutex, &attr);
+
+	/* handle->npartition_RO = 0; */
+	/* handle->last_unpartition = NULL; */
+	/* handle->last_partition = NULL; */
+	/* handle->ctrl_unpartition = NULL; */
+	/* handle->ctrl_unpartition_children = NULL; */
 #endif
 
 	//handle->root_handle
@@ -685,7 +709,7 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 
 		/* If sequential consistency is enabled, wait until data is available */
 		if ((handle->nplans && !handle->nchildren) || handle->siblings)
-			_starpu_data_partition_access_submit(handle, !handle->readonly);
+			_starpu_data_partition_access_submit(handle, !handle->readonly, 0, NULL);
 		_starpu_data_wait_until_available(handle, handle->readonly?STARPU_R:STARPU_RW, "starpu_data_unregister");
 	}
 
@@ -882,7 +906,11 @@ retry_busy:
 	STARPU_PTHREAD_COND_DESTROY(&handle->busy_cond);
 	STARPU_PTHREAD_MUTEX_DESTROY(&handle->sequential_consistency_mutex);
 #ifdef STARPU_RECURSIVE_TASKS
-	STARPU_PTHREAD_MUTEX_DESTROY(&handle->unpartition_mutex);
+	if (!handle->parent_handle)
+	{
+		STARPU_PTHREAD_MUTEX_DESTROY(handle->partition_mutex);
+		free(handle->partition_mutex);
+	}
 #endif
 
 	STARPU_HG_ENABLE_CHECKING(handle->post_sync_tasks_cnt);
@@ -901,11 +929,28 @@ retry_busy:
 	(void)STARPU_ATOMIC_ADD(&nregistered, -1);
 }
 
+#ifdef STARPU_RECURSIVE_TASKS
+static int get_dump_data_is_init = 0;
+static int need_dump = 0;
+#endif
+
 void starpu_data_unregister(starpu_data_handle_t handle)
 {
 	STARPU_ASSERT_MSG(handle->magic == 42, "data %p is invalid (was it already registered?)", handle);
 	STARPU_ASSERT_MSG(!handle->lazy_unregister, "data %p can not be unregistered twice", handle);
-
+#ifdef STARPU_RECURSIVE_TASKS
+	if (!get_dump_data_is_init)
+	{
+        	need_dump = starpu_getenv_number_default("STARPU_DATA_NEED_DUMP", 0);
+		get_dump_data_is_init = 1;
+	}
+	if (need_dump)
+	{
+		FILE *f = fopen("data_rec_dump", "a");
+		fprintf(f, "handle %p ; parent_handle : %p ; nb_tasks : %u\n", handle, handle->parent_handle, handle->nb_tasks_on_handle);
+		fclose(f);
+	}
+#endif
 	_starpu_data_unregister(handle, 1, 0);
 }
 
@@ -1126,6 +1171,7 @@ void starpu_data_invalidate_submit(starpu_data_handle_t handle)
 {
 	STARPU_ASSERT(handle);
 
+	_STARPU_RECURSIVE_TASKS_DEBUG("YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY\nCalling invalidate submit on %p\nYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY\n", handle);
 	starpu_data_acquire_on_node_cb(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, STARPU_W, _starpu_data_invalidate, handle);
 
 	handle->initialized = 0;

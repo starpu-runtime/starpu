@@ -170,6 +170,17 @@ void starpu_matrix_ptr_register(starpu_data_handle_t handle, unsigned node,
 	matrix_interface->ld = ld;
 }
 
+void starpu_submatrix_ptr_register(starpu_data_handle_t handle, unsigned node,
+				uintptr_t ptr, uintptr_t dev_handle, size_t offset, size_t ld)
+{
+	struct starpu_matrix_interface *matrix_interface = starpu_data_get_interface_on_node(handle, node);
+	starpu_subdata_ptr_register(handle, node);
+	matrix_interface->ptr = ptr;
+	matrix_interface->dev_handle = dev_handle;
+	matrix_interface->offset = offset;
+	matrix_interface->ld = ld;
+}
+
 static uint32_t footprint_matrix_interface_crc32(starpu_data_handle_t handle)
 {
 	return starpu_hash_crc32c_be(starpu_matrix_get_nx(handle), starpu_matrix_get_ny(handle));

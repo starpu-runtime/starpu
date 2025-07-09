@@ -191,7 +191,7 @@ int _starpu_trace_worker_sleep_start();
 /* Wake up, so clear the status */
 int _starpu_trace_worker_sleep_end();
 /* Submit a task */
-int _starpu_trace_task_submit(struct _starpu_job *job, long iter, long subiter);
+int _starpu_trace_task_submit(struct _starpu_job *job, long iter, long subiter, struct _starpu_job *pjob);
 /* Before a task is submitted to the scheduler */
 int _starpu_trace_task_submit_start();
 /* After a task is submitted to the scheduler */

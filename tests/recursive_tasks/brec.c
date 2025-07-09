@@ -43,7 +43,7 @@ struct starpu_codelet sub_data_codelet =
 	.nbuffers = 1,
 };
 
-int rec_is_recursive_task(struct starpu_task *t, void *arg)
+int rec_is_recursive_task(struct starpu_task *t, void *arg, void **b)
 {
 	int *v = (int *)arg;
 
@@ -61,7 +61,7 @@ int rec_is_recursive_task(struct starpu_task *t, void *arg)
 	return val;
 }
 
-void rec2_recursive_task_gen_dag(struct starpu_task *t, void *arg)
+void rec2_recursive_task_gen_dag(struct starpu_task *t, void *arg, void **b)
 {
 	starpu_data_handle_t *subdata = (starpu_data_handle_t *)arg;
 	int i;
@@ -89,7 +89,7 @@ starpu_data_handle_t sub_handles_l2[PARTS][PARTS];
 /* int *seed1 = rdar1; */
 /* int *seed2 = rdar2; */
 
-void rec_recursive_task_gen_dag(struct starpu_task *t, void *arg)
+void rec_recursive_task_gen_dag(struct starpu_task *t, void *arg, void **b)
 {
 	starpu_data_handle_t *subdata = (starpu_data_handle_t *)arg;
 	unsigned i;

@@ -599,6 +599,18 @@ int starpu_sched_component_is_heft(struct starpu_sched_component *component);
 /** @} */
 
 /**
+   @name Resource-mapping Splitter Component API
+   @{
+*/
+
+/**
+   create a splitter component
+*/
+struct starpu_sched_component *starpu_sched_component_splitter_create(struct starpu_sched_tree *tree);
+
+/** @} */
+
+/**
    @name Resource-mapping Heteroprio Component API
    @{
 */

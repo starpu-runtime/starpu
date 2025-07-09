@@ -190,9 +190,28 @@ struct _starpu_data_state
 	unsigned depth; /** what's the depth of the tree ? */
 
 #ifdef STARPU_RECURSIVE_TASKS
-	starpu_pthread_mutex_t unpartition_mutex;
+	/* To protect changes in the partition status of the handle */
+	starpu_pthread_mutex_t *partition_mutex;
+	/* Whether a children has effectively been unpartitioned or not.
+	 * Equals 1 after the submission and 0 after the callback
+	 */
+	int not_yet_unpartitioned;
+	int npartition_RO;
+	/* Keep track of the last unpartitioning task submitted for this handle */
+	struct starpu_task *last_unpartition;
+	/* Keep track of the last partition task submitted for this handle */
+	struct starpu_task *last_partition;
+	/* Store the control task associated to last_unpartition */
+	struct starpu_task *ctrl_unpartition;
+	/* The control task used to gather the children-acquiring-tasks following the unpartition */
+	struct starpu_task *ctrl_unpartition_children;
+	/* This handle is posseded by multiple node, which indicate that we need to initialize it or not */
+	unsigned on_multiple_node:1;
+	unsigned nb_tasks_on_handle; // for stats, number of tasks which use this handle
 #endif
 
+	starpu_data_handle_t *mpi_children;
+	unsigned mpi_nchildren;
 	/** Synchronous partitioning */
 	starpu_data_handle_t children;
 	unsigned nchildren;
@@ -428,6 +447,13 @@ void _starpu_data_end_reduction_mode_terminate(starpu_data_handle_t handle);
 void _starpu_data_unmap(starpu_data_handle_t handle, unsigned node);
 
 void _starpu_data_set_unregister_hook(starpu_data_handle_t handle, _starpu_data_handle_unregister_hook func) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
+
+int _starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_data_handle_t handle, int node,
+									    enum starpu_data_access_mode mode,
+									    void (*callback_soon)(void *arg, double delay),
+									    void (*callback_acquired)(void *arg, int *node, enum starpu_data_access_mode mode),
+									    void (*callback)(void *arg),
+									    void *arg, int sequential_consistency, int quick, long *pre_sync_jobid, long *post_sync_jobid, int prio, int need_part_unpart) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
 
 static inline unsigned _starpu_data_get_gathering_node(starpu_data_handle_t handle)
 {

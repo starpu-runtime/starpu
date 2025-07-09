@@ -202,6 +202,9 @@ static double starpu_model_expected_perf(struct starpu_task *task, struct starpu
 	double exp_perf = 0.0;
 	if (model)
 	{
+#ifdef STARPU_RECURSIVE_TASKS
+		_starpu_recursive_perfmodel_record_codelet(task->cl);
+#endif
 		_starpu_init_and_load_perfmodel(model);
 
 		struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
@@ -260,14 +263,20 @@ double starpu_task_expected_length(struct starpu_task *task, struct starpu_perfm
 	if (!task->cl)
 		/* Tasks without codelet don't actually take time */
 		return 0.0;
+	if (_starpu_task_is_recursive(task))
+		/* recursive_tasks takes 0.5ms for now UGGLY STUPID CONSTANT*/
+		return 0.5;
 	return starpu_model_expected_perf(task, task->cl->model, arch, nimpl);
 }
 
 double starpu_task_worker_expected_length(struct starpu_task *task, unsigned workerid, unsigned sched_ctx_id, unsigned nimpl)
 {
 	if (!task->cl)
-		/* Tasks without codelet don't actually take time */
+		/* Tasks without codelet or recursive tasks don't actually take time */
 		return 0.0;
+//	if (_starpu_task_is_recursive(task))
+		/* recursive tasks takes 0.5us for now UGGLY STUPID CONSTANT*/
+//		return 0.5;
 	return starpu_model_worker_expected_perf(task, task->cl->model, workerid, sched_ctx_id, nimpl);
 }
 
@@ -401,6 +410,8 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 		sum += starpu_task_expected_length(conversion_task, arch, nimpl);
 		_starpu_spin_lock(&handle->header_lock);
 		handle->refcnt--;
+		_STARPU_RECURSIVE_TASKS_DEBUG("Release busy count on data %p by job %p\n", handle, task->starpu_private);
+		_STARPU_RECURSIVE_TASKS_DEBUG("Release refcnt on data %p by job %p\n", handle, task->starpu_private);
 		handle->busy_count--;
 		if (!_starpu_data_check_not_busy(handle))
 			_starpu_spin_unlock(&handle->header_lock);
@@ -503,7 +514,10 @@ double starpu_task_expected_data_transfer_time_for(struct starpu_task *task, uns
 	unsigned buffer;
 
 	double penalty = 0.0;
-
+	if (_starpu_task_is_recursive(task))
+	{
+		return penalty;  /* no time because no transfer */
+	}
 	for (buffer = 0; buffer < nbuffers; buffer++)
 	{
 		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, buffer);

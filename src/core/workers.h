@@ -568,6 +568,9 @@ extern struct _starpu_machine_config _starpu_config;
 extern int _starpu_keys_initialized;
 extern starpu_pthread_key_t _starpu_worker_key;
 extern starpu_pthread_key_t _starpu_worker_set_key;
+#ifdef STARPU_RECURSIVE_TASKS
+extern starpu_pthread_key_t _starpu_pthread_is_on_recursive_task_key;
+#endif
 
 void _starpu_set_catch_signals(int do_catch_signal);
 

@@ -22,6 +22,7 @@
 #include <float.h>
 #include <core/sched_policy.h>
 #include <core/task.h>
+#include <core/jobs_recursive.h>
 
 static int mct_push_task(struct starpu_sched_component * component, struct starpu_task * task)
 {
@@ -57,21 +58,34 @@ static int mct_push_task(struct starpu_sched_component * component, struct starp
 	if(nsuitable_components == 0)
 		return eager_calibration_push_task(component, task);
 
-
-
 	/* Entering critical section to make sure no two workers
 	   make scheduling decisions at the same time */
 	STARPU_COMPONENT_MUTEX_LOCK(&d->scheduling_mutex);
-
-	starpu_mct_compute_expected_times(component, task, estimated_lengths, estimated_transfer_length,
+	int best_icomponent = 0;
+#ifdef STARPU_RECURSIVE_TASKS
+	long id = _starpu_get_cuda_executor_id(task);
+	if (id != -1)
+	{
+		best_icomponent = id;
+	}
+	else
+	{
+#endif
+		starpu_mct_compute_expected_times(component, task, estimated_lengths, estimated_transfer_length,
 					  estimated_ends_with_task, &min_exp_end_of_task, &max_exp_end_of_workers, suitable_components, nsuitable_components);
 
-	/* Compute the energy, if provided*/
-	starpu_mct_compute_energy(component, task, local_energy, suitable_components, nsuitable_components);
+		/* Compute the energy, if provided*/
+		starpu_mct_compute_energy(component, task, local_energy, suitable_components, nsuitable_components);
 
-	int best_icomponent = starpu_mct_get_best_component(d, task, estimated_lengths, estimated_transfer_length,
-							    estimated_ends_with_task, local_energy, min_exp_end_of_task, max_exp_end_of_workers, suitable_components, nsuitable_components);
-
+		best_icomponent = starpu_mct_get_best_component(d, task, estimated_lengths, estimated_transfer_length,
+								estimated_ends_with_task, local_energy, min_exp_end_of_task, max_exp_end_of_workers, suitable_components, nsuitable_components);
+#ifdef STARPU_RECURSIVE_TASKS
+	}
+	if (id == -1)
+	{
+		_starpu_set_cuda_executor_id(task, best_icomponent);
+	}
+#endif
 	/* If no best component is found, it means that the perfmodel of
 	 * the task had been purged since it has been pushed on the mct component. */
 	/* FIXME: We should perform a push_back message to its parent so that it will

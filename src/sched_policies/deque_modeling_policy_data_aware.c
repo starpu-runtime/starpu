@@ -24,6 +24,8 @@
 #include <starpu_config.h>
 #include <starpu_scheduler.h>
 #include <schedulers/starpu_scheduler_toolbox.h>
+#include <sched_policies/deque_modeling_policy_data_aware.h>
+#include <sched_policies/splitter.h>
 
 #include <core/task.h>
 #include <core/workers.h>
@@ -32,7 +34,6 @@
 #ifdef BUILDING_STARPU
 #include <datawizard/memory_nodes.h>
 #endif
-#include <sched_policies/fifo_queues.h>
 
 #include <limits.h>
 #include <math.h> /* for fpclassify() checks on knob values */
@@ -47,21 +48,6 @@
 #endif
 
 //#define NOTIFY_READY_SOON
-
-struct _starpu_dmda_data
-{
-	double alpha;
-	double beta;
-	double _gamma;
-	double idle_power;
-
-	struct starpu_st_fifo_taskq queue_array[STARPU_NMAXWORKERS];
-
-	long int total_task_cnt;
-	long int ready_task_cnt;
-	long int eager_task_cnt; /* number of tasks scheduled without model */
-	int num_priorities;
-};
 
 /* performance steering knobs */
 
@@ -620,6 +606,12 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 
 static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sched_ctx_id, unsigned da, unsigned simulate, unsigned sorted_decision)
 {
+#ifdef STARPU_RECURSIVE_TASKS
+	if (_starpu_turn_task_into_recursive_task_at_scheduler(task))
+	{
+		return 0.;
+	}
+#endif
 	/* find the queue */
 	int best = -1, best_in_ctx = -1;
 	int selected_impl = 0;
@@ -672,6 +664,11 @@ static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned 
 			unsigned worker = workers->get_next(workers, &it);
 			unsigned nimpl;
 			unsigned impl_mask;
+
+#ifdef STARPU_RECURSIVE_TASKS
+			if (_starpu_task_is_recursive(task) && starpu_worker_get_type(worker) != STARPU_CPU_WORKER)
+				continue; // never eecute submission tasks on GPUs
+#endif
 
 			if (!starpu_worker_can_execute_task_impl(worker, task, &impl_mask))
 				continue;
@@ -886,6 +883,10 @@ static void initialize_dmda_policy(unsigned sched_ctx_id)
 
 #ifdef NOTIFY_READY_SOON
 	starpu_task_notify_ready_soon_register(dmda_notify_ready_soon, dt);
+#endif
+#ifdef STARPU_RECURSIVE_TASKS
+	dt->num_levels_of_tasks = starpu_getenv_float_default("STARPU_NUM_LEVELS_OF_TASKS", 0);
+	_splitter_initialize_data();
 #endif
 }
 

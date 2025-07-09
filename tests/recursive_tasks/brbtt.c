@@ -20,7 +20,7 @@
 #define SIZE 8
 #include "basic.h"
 
-void rec2_recursive_task_gen_dag(struct starpu_task *t, void *arg)
+void rec2_recursive_task_gen_dag(struct starpu_task *t, void *arg, void **b)
 {
 	int i;
 	starpu_data_handle_t *subdata = (starpu_data_handle_t *)arg;
@@ -47,7 +47,7 @@ void rec2_recursive_task_gen_dag(struct starpu_task *t, void *arg)
 
 starpu_data_handle_t sub_handles_l2[PARTS][PARTS];
 
-void rec_recursive_task_gen_dag(struct starpu_task *t, void *arg)
+void rec_recursive_task_gen_dag(struct starpu_task *t, void *arg, void **b)
 {
 	int i;
 	starpu_data_handle_t *subdata = (starpu_data_handle_t *)arg;

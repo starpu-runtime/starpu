@@ -66,6 +66,13 @@ check:
   image: registry.gitlab.inria.fr/starpu/starpu-docker/ci-${NODE}
   tags: ['ci.inria.fr', 'linux', 'large']
 
+check_recursive_tasks:
+  extends: .check_template
+  image: registry.gitlab.inria.fr/starpu/starpu-docker/ci-debian12
+  tags: ['ci.inria.fr', 'linux', 'large']
+  script:
+    - ./ci/scripts/recursive_tasks.sh
+
 check_mpi:
   extends: .check_template
   image: registry.gitlab.inria.fr/starpu/starpu-docker/ci-ubuntu1804
@@ -96,3 +103,4 @@ deploy_chameleon:
   tags: ['ci.inria.fr', 'linux', 'large']
   script:
     - ./ci/scripts/chameleon.sh
+

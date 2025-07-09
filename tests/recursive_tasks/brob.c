@@ -59,12 +59,7 @@ struct starpu_codelet my_sub_data_codelet_ro =
 	.modes = {STARPU_R}
 };
 
-int my_is_recursive_task(struct starpu_task *t, void *arg)
-{
-	return 1;
-}
-
-void recro2_recursive_task_gen_dag(struct starpu_task *t, void *arg)
+void recro2_recursive_task_gen_dag(struct starpu_task *t, void *arg, void **b)
 {
         starpu_data_handle_t *subdata = (starpu_data_handle_t *)arg;
         unsigned i;
@@ -79,7 +74,7 @@ void recro2_recursive_task_gen_dag(struct starpu_task *t, void *arg)
         }
 }
 
-void recro_recursive_task_gen_dag(struct starpu_task *t, void *arg)
+void recro_recursive_task_gen_dag(struct starpu_task *t, void *arg, void **b)
 {
         starpu_data_handle_t *subdata = (starpu_data_handle_t *)arg;
         unsigned i;
@@ -88,7 +83,7 @@ void recro_recursive_task_gen_dag(struct starpu_task *t, void *arg)
         {
                 int ret = starpu_task_insert(&my_sub_data_codelet_ro,
                                              STARPU_R, subdata[i],
-                                             STARPU_RECURSIVE_TASK_FUNC, &my_is_recursive_task,
+                                             STARPU_RECURSIVE_TASK_FUNC, &is_recursive_task_always,
                                              STARPU_RECURSIVE_TASK_GEN_DAG_FUNC, &recro2_recursive_task_gen_dag,
                                              STARPU_RECURSIVE_TASK_GEN_DAG_FUNC_ARG, sub_handles_l2[i],
                                              STARPU_NAME, "Bro_L2",
@@ -97,8 +92,7 @@ void recro_recursive_task_gen_dag(struct starpu_task *t, void *arg)
         }
 }
 
-
-void rec2_recursive_task_gen_dag(struct starpu_task *t, void *arg)
+void rec2_recursive_task_gen_dag(struct starpu_task *t, void *arg, void **b)
 {
         starpu_data_handle_t *subdata = (starpu_data_handle_t *)arg;
         unsigned i;
@@ -113,7 +107,7 @@ void rec2_recursive_task_gen_dag(struct starpu_task *t, void *arg)
         }
 }
 
-void rec_recursive_task_gen_dag(struct starpu_task *t, void *arg)
+void rec_recursive_task_gen_dag(struct starpu_task *t, void *arg, void **b)
 {
         starpu_data_handle_t *subdata = (starpu_data_handle_t *)arg;
         unsigned i;
@@ -122,7 +116,7 @@ void rec_recursive_task_gen_dag(struct starpu_task *t, void *arg)
         {
                 int ret = starpu_task_insert(&my_sub_data_codelet,
                                              STARPU_RW, subdata[i],
-                                             STARPU_RECURSIVE_TASK_FUNC, &my_is_recursive_task,
+                                             STARPU_RECURSIVE_TASK_FUNC, &is_recursive_task_always,
                                              STARPU_RECURSIVE_TASK_GEN_DAG_FUNC, &rec2_recursive_task_gen_dag,
                                              STARPU_RECURSIVE_TASK_GEN_DAG_FUNC_ARG, sub_handles_l2[i],
                                              STARPU_NAME, "B_L2",
@@ -169,7 +163,7 @@ int main(int argv, char **argc)
 				 STARPU_NAME, "Bro_L1",
 				 STARPU_RECURSIVE_TASK_GEN_DAG_FUNC, &recro_recursive_task_gen_dag,
 				 STARPU_RECURSIVE_TASK_GEN_DAG_FUNC_ARG, sub_handles_l1,
-				 STARPU_RECURSIVE_TASK_FUNC, &my_is_recursive_task,
+				 STARPU_RECURSIVE_TASK_FUNC, &is_recursive_task_always,
 				 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
@@ -178,7 +172,7 @@ int main(int argv, char **argc)
 				 STARPU_NAME, "B_L1",
 				 STARPU_RECURSIVE_TASK_GEN_DAG_FUNC, &rec_recursive_task_gen_dag,
 				 STARPU_RECURSIVE_TASK_GEN_DAG_FUNC_ARG, sub_handles_l1,
-				 STARPU_RECURSIVE_TASK_FUNC, &my_is_recursive_task,
+				 STARPU_RECURSIVE_TASK_FUNC, &is_recursive_task_always,
 				 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 

@@ -102,6 +102,7 @@ struct task_info
 	int workerid;
 	int node;
 	double submit_time;
+	double ready_time;
 	double start_time;
 	double end_time;
 	unsigned long footprint;
@@ -117,8 +118,9 @@ struct task_info
 	struct data_parameter_info *data;
 	int mpi_rank;
 #ifdef STARPU_RECURSIVE_TASKS
+	unsigned level;
 	unsigned is_recursive_task;
-	unsigned long recursive_task_parent;
+	unsigned long recursive_task_parent_id;
 #endif
 };
 
@@ -164,8 +166,9 @@ static struct task_info *get_task(unsigned long job_id, int mpi_rank)
 		task->data = NULL;
 		task->mpi_rank = mpi_rank;
 #ifdef STARPU_RECURSIVE_TASKS
+		task->level = 0;
 		task->is_recursive_task = 0;
-		task->recursive_task_parent = 0;
+		task->recursive_task_parent_id = 0;
 #endif
 		HASH_ADD(hh, tasks_info, job_id, sizeof(task->job_id), task);
 	}
@@ -262,6 +265,8 @@ static void task_dump(struct task_info *task, struct starpu_fxt_options *options
 		fprintf(tasks_file, "MemoryNode: %d\n", task->node);
 	if (task->submit_time != 0.)
 		fprintf(tasks_file, "SubmitTime: %f\n", task->submit_time);
+	if (task->ready_time != 0.)
+		fprintf(tasks_file, "ReadyTime: %f\n", task->ready_time);
 	if (task->start_time != 0.)
 		fprintf(tasks_file, "StartTime: %f\n", task->start_time);
 	if (task->end_time != 0.)
@@ -313,8 +318,10 @@ static void task_dump(struct task_info *task, struct starpu_fxt_options *options
 	}
 	fprintf(tasks_file, "MPIRank: %d\n", task->mpi_rank);
 #ifdef STARPU_RECURSIVE_TASKS
-	fprintf(tasks_file, "Recursive_Task: %u\n", task->is_recursive_task);
-	fprintf(tasks_file, "ParentRecursive_Task: %lu\n", task->recursive_task_parent);
+	fprintf(tasks_file, "RecursiveTask: %u\n", task->is_recursive_task);
+	fprintf(tasks_file, "Level: %u\n", task->level);
+	fprintf(tasks_file, "ParentRecursiveTask: %lu\n", task->recursive_task_parent_id);
+
 #endif
 	if (task->nend_deps)
 	{
@@ -357,6 +364,7 @@ struct data_info
 	int mpi_rank;
 	int mpi_owner;
 	long mpi_tag;
+	unsigned long parent_handle;
 };
 
 static struct data_info *data_info;
@@ -380,6 +388,7 @@ static struct data_info *get_data(unsigned long handle, int mpi_rank)
 		data->mpi_rank = mpi_rank;
 		data->mpi_owner = mpi_rank;
 		data->mpi_tag = -1;
+		data->parent_handle = 0;
 		HASH_ADD(hh, data_info, handle, sizeof(handle), data);
 	}
 	else
@@ -435,6 +444,7 @@ static void data_dump(struct data_info *data)
 		fprintf(data_file, "MaxSize: %lu\n", (unsigned long) data->max_size);
 	if (data->description)
 		fprintf(data_file, "Description: %s\n", data->description);
+	fprintf(data_file, "ParentHandle: %lx\n", data->parent_handle);
 	if (data->dimensions)
 	{
 		unsigned i;
@@ -2264,11 +2274,12 @@ static void handle_data_register(struct fxt_ev_native *ev, struct starpu_fxt_opt
 	unsigned long handle = ev->param[0];
 	char *prefix = options->file_prefix;
 	struct data_info *data = get_data(handle, options->file_rank);
-	char *description = get_fxt_string(ev, 4);
+	char *description = get_fxt_string(ev, 5);
 
 	data->size = ev->param[1];
 	data->max_size = ev->param[2];
 	data->home_node = ev->param[3];
+	data->parent_handle = ev->param[4];
 	if (description[0])
 		data->description = strdup(description);
 
@@ -2776,6 +2787,8 @@ static void handle_job_push(struct fxt_ev_native *ev, struct starpu_fxt_options 
 
 	_starpu_fxt_component_update_ntasks(nsubmitted, curq_size);
 
+	struct task_info *taski = get_task(task, options->file_rank);
+	taski->ready_time  = get_event_time_stamp(ev, options);
 	if (!options->no_counter && out_paje_file)
 	{
 #ifdef STARPU_HAVE_POTI
@@ -3013,6 +3026,20 @@ static void handle_task_end_dep(struct fxt_ev_native *ev, struct starpu_fxt_opti
 		_starpu_fxt_dag_add_task_end_dep(options->file_prefix, dep_succ, dep_prev);
 }
 
+static void handle_task_recursive_submit(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
+{
+	(void)ev;
+	(void)options;
+#ifdef STARPU_RECURSIVE_TASKS
+	unsigned long job_id = ev->param[0];
+	unsigned level = ev->param[1];
+	unsigned long recursive_task_parent_id = ev->param[2];
+	struct task_info *task = get_task(job_id, options->file_rank);
+	task->level = level;
+	task->recursive_task_parent_id = recursive_task_parent_id;
+#endif
+}
+
 static void handle_task_submit(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	unsigned long job_id = ev->param[0];
@@ -3021,7 +3048,6 @@ static void handle_task_submit(struct fxt_ev_native *ev, struct starpu_fxt_optio
 	unsigned long submit_order = ev->param[3];
 	long priority = (long) ev->param[4];
 	unsigned type = ev->param[5];
-
 	struct task_info *task = get_task(job_id, options->file_rank);
 	task->submit_time = get_event_time_stamp(ev, options);
 	task->submit_order = submit_order;
@@ -3107,14 +3133,11 @@ static void handle_recursive_task(struct fxt_ev_native *ev, struct starpu_fxt_op
 {
 	unsigned long job_id = ev->param[0];
 	int is_recursive_task = (int)ev->param[1];
-	unsigned long recursive_task_parent = ev->param[2];
-
 	struct task_info *task = get_task(job_id, options->file_rank);
 	task->is_recursive_task = is_recursive_task;
-	task->recursive_task_parent = recursive_task_parent;
 
 	if (!task->exclude_from_dag && show_task(task, options))
-		_starpu_fxt_dag_set_recursive_task(options->file_prefix, job_id, task->is_recursive_task, task->recursive_task_parent);
+		_starpu_fxt_dag_set_recursive_task(options->file_prefix, job_id, task->is_recursive_task, task->recursive_task_parent_id);
 }
 #endif
 
@@ -3897,6 +3920,10 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 
 			case _STARPU_FUT_TASK_SUBMIT:
 				handle_task_submit(&ev, options);
+				break;
+
+			case _STARPU_FUT_TASK_RECURSIVE_SUBMIT:
+				handle_task_recursive_submit(&ev, options);
 				break;
 
 			case _STARPU_FUT_TASK_BUILD_START:

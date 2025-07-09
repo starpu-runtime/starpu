@@ -68,6 +68,7 @@ static void _starpu_add_accessor(starpu_data_handle_t handle, struct starpu_task
 		_starpu_task_declare_deps_array(pre_sync_task, 1, task_array, 0);
 		_starpu_add_dependency(handle, handle->last_sync_task, pre_sync_task);
 		_STARPU_DEP_DEBUG("dep %p -> %p\n", handle->last_sync_task, pre_sync_task);
+		_STARPU_RECURSIVE_TASKS_DEBUG("Adding dep between task %p(%s) and task %p(%s)\n", handle->last_sync_task, (handle->last_sync_task != NULL ? handle->last_sync_task->name : NULL), pre_sync_task, pre_sync_task != NULL ? pre_sync_task->name : NULL);
 	}
 	else
 	{
@@ -98,6 +99,7 @@ static void _starpu_add_accessor(starpu_data_handle_t handle, struct starpu_task
 		/* Add a reference to be released in _starpu_handle_job_termination */
 		_starpu_spin_lock(&handle->header_lock);
 		handle->busy_count++;
+		_STARPU_RECURSIVE_TASKS_DEBUG("Take busy count on data %p on add successor\n", handle);
 		_starpu_spin_unlock(&handle->header_lock);
 		_starpu_get_job_associated_to_task(pre_sync_task)->implicit_dep_handle = handle;
 	}
@@ -188,6 +190,7 @@ static void _starpu_add_sync_task(starpu_data_handle_t handle, struct starpu_tas
 		/* Add a reference to be released in _starpu_handle_job_termination */
 		_starpu_spin_lock(&handle->header_lock);
 		handle->busy_count++;
+		_STARPU_RECURSIVE_TASKS_DEBUG("Take busy count on data %p on add sync task\n", handle);
 		_starpu_spin_unlock(&handle->header_lock);
 		_starpu_get_job_associated_to_task(post_sync_task)->implicit_dep_handle = handle;
 	}
@@ -224,11 +227,25 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 	{
 		struct _starpu_job *pre_sync_job = _starpu_get_job_associated_to_task(pre_sync_task);
 		struct _starpu_job *post_sync_job = _starpu_get_job_associated_to_task(post_sync_task);
-
-		if (mode & STARPU_R && !handle->initialized)
+		int handle_initialized = handle->initialized;
+#ifdef STARPU_RECURSIVE_TASKS
+		if (!handle_initialized)
 		{
-			STARPU_ASSERT_MSG(handle->init_cl, "Handle %p is not initialized, it cannot be read", handle);
-			/* The task will initialize it with init_cl */
+			handle_initialized += _starpu_get_initialized_state_on_parent_task_parent_data(handle, pre_sync_task);
+		}
+#endif
+		if (mode & STARPU_R && !handle_initialized
+#ifdef STARPU_RECURSIVE_TASKS
+				&& !(pre_sync_job->recursive.is_from_recursive_task && post_sync_job->recursive.is_from_recursive_task)
+#endif
+				&& !(*submit_pre_sync))
+		{	// the case pre_sync_job and post_sync_job are submitted from recursive tasks, we do not care about initialization of handles
+			STARPU_ASSERT_MSG(handle->init_cl
+#ifdef STARPU_RECURSIVE_TASKS
+					|| handle->on_multiple_node
+#endif
+					|| handle->partitioned, "Handle %p is not initialized, it cannot be read", handle);
+			/* The task will initialize it with init_cl or by unpartitionning it or there is no need to initialize it */
 			handle->initialized = 1;
 		}
 
@@ -236,6 +253,7 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 		{
 
 			STARPU_ASSERT_MSG(!handle->readonly, "Read-only handle %p can not be written to", handle);
+			_STARPU_RECURSIVE_TASKS_DEBUG("Put handle %p on initialized with task %p\n", handle, pre_sync_task);
 
 			handle->initialized = 1;
 			/* We will change our value, disconnect from our readonly duplicates */
@@ -297,6 +315,7 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 			/* Can access concurrently with current tasks */
 			if (handle->last_sync_task != NULL)
 				*submit_pre_sync = 1;
+			_STARPU_RECURSIVE_TASKS_DEBUG("Making access for task %p (%s) concurrently\n", pre_sync_task, pre_sync_task->name);
 			_starpu_add_accessor(handle, pre_sync_task, submit_pre_sync, post_sync_task, post_sync_task_dependency_slot);
 		}
 		else
@@ -339,7 +358,7 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 					sync_task->cl = NULL;
 					sync_task->type = post_sync_task->type;
 					sync_task->priority = post_sync_task->priority;
-
+					sync_task->recursive_task_is_sync_task = 1;
 					/* Make this task wait for the previous ones */
 					_starpu_add_sync_task(handle, sync_task, sync_task, post_sync_task);
 					/* And the requested task wait for this one */
@@ -358,6 +377,7 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 					 * and start depending on it. */
 					*submit_pre_sync = 1;
 					_STARPU_DEP_DEBUG("One previous accessor, depending on it\n");
+					_STARPU_RECURSIVE_TASKS_DEBUG("One previous accessor, depending on it. New last sync task is %p (%s)\n", l->task, l->task != NULL ? l->task->name : NULL);
 					handle->last_sync_task = l->task;
 					l->next = NULL;
 					l->prev = NULL;
@@ -614,6 +634,7 @@ void _starpu_release_task_enforce_sequential_consistency(struct _starpu_job *j)
 		/* Release the reference acquired in _starpu_push_task_output */
 		_starpu_spin_lock(&handle->header_lock);
 		STARPU_ASSERT(handle->busy_count > 0);
+		_STARPU_RECURSIVE_TASKS_DEBUG("Release busy count on data %pi by job %p\n", handle, j);
 		handle->busy_count--;
 		if (!_starpu_data_check_not_busy(handle))
 			_starpu_spin_unlock(&handle->header_lock);
@@ -665,6 +686,7 @@ void _starpu_unlock_post_sync_tasks(starpu_data_handle_t handle, enum starpu_dat
 		if (last_cnt == 1)
 		{
 			/* unlock all tasks : we need not hold the lock while unlocking all these tasks */
+			_STARPU_RECURSIVE_TASKS_DEBUG("Unlocking all tasks\n");
 			do_submit_tasks = 1;
 			post_sync_tasks = handle->post_sync_tasks;
 			handle->post_sync_tasks = NULL;
@@ -679,6 +701,7 @@ void _starpu_unlock_post_sync_tasks(starpu_data_handle_t handle, enum starpu_dat
 		while (link)
 		{
 			/* There is no need to depend on that task now, since it was already unlocked */
+			_STARPU_RECURSIVE_TASKS_DEBUG("releasing task %p\n", link->task);
 			_starpu_release_data_enforce_sequential_consistency(link->task, &_starpu_get_job_associated_to_task(link->task)->implicit_dep_slot, handle);
 
 			int ret = _starpu_task_submit_internally(link->task);

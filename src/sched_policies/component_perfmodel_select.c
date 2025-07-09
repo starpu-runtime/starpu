@@ -81,6 +81,13 @@ int starpu_sched_component_is_perfmodel_select(struct starpu_sched_component * c
 	return component->push_task == perfmodel_select_push_task;
 }
 
+static double perfmodel_select_estimated_end(struct starpu_sched_component *component)
+{
+	STARPU_ASSERT(component && component->data);
+	struct _starpu_perfmodel_select_data *data = component->data;
+	return data->perfmodel_component->estimated_end(data->perfmodel_component);
+}
+
 struct starpu_sched_component * starpu_sched_component_perfmodel_select_create(struct starpu_sched_tree *tree, struct starpu_sched_component_perfmodel_select_data * params)
 {
 	STARPU_ASSERT(params);
@@ -99,7 +106,8 @@ struct starpu_sched_component * starpu_sched_component_perfmodel_select_create(s
 	component->push_task = perfmodel_select_push_task;
 	component->pull_task = perfmodel_select_pull_task;
 	component->deinit_data = perfmodel_select_component_deinit_data;
-	component->estimated_end = starpu_sched_component_estimated_end_min;
+	//component->estimated_end = starpu_sched_component_estimated_end_min;
+	component->estimated_end = perfmodel_select_estimated_end;
 
 	return component;
 }

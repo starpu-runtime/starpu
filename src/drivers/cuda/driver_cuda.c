@@ -2129,7 +2129,9 @@ static void start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *work
 {
 	STARPU_ASSERT(j);
 	struct starpu_task *task = j->task;
-
+#ifdef STARPU_RECURSIVE_TASKS
+	STARPU_ASSERT_MSG(!j->recursive.is_recursive_task, "A submission task cannot be executed on GPU\n") ;
+#endif
 	int profiling = starpu_profiling_status_get();
 
 	STARPU_ASSERT(task);
