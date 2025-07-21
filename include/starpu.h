@@ -42,7 +42,7 @@ typedef INT_PTR intptr_t;
 #include <windows.h>
 #endif
 
-#if defined(STARPU_USE_OPENCL) && !defined(__CUDACC__)
+#if defined(STARPU_USE_OPENCL) && !defined(__CUDACC__) && !defined(__HIPCC__)
 #include <starpu_opencl.h>
 #endif
 
