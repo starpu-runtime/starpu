@@ -268,7 +268,7 @@ struct starpu_data_copy_methods
 	int (*hip_to_hip_async)(void);
 #endif
 
-#if defined(STARPU_USE_OPENCL) && !defined(__CUDACC__)
+#if defined(STARPU_USE_OPENCL) && !defined(__CUDACC__) && !defined(__HIPCC__)
 	/**
 	   Define how to copy data from the \p src_interface interface on the
 	   \p src_node CPU node to the \p dst_interface interface on the \p
