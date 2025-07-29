@@ -126,43 +126,53 @@ set output "$odir/activity.eps"
 set xrange [$starttime:$endtime]
 set size $width,$total_height
 set multiplot;
-
-set origin 0.0,0.0;
 set size $width,$height;
 
+set key above
+set origin 0.0,$total_height - $height;
+set key above
+
 set logscale y
+set ylabel "Number of tasks"
+set noyrange
 
-plot "$inputfile_cnt_submitted" using (\$2/1000):3 with filledcurves lt rgb "#999999" title "submitted",\
-	"$inputfile_cnt_ready" using (\$2/1000):3 with filledcurves lt rgb "#000000" title "ready"
+plot "$inputfile_cnt_submitted" using (\$2/1000):3 with filledcurves lt rgb "#999999" title "Submitted",\
+	"$inputfile_cnt_ready" using (\$2/1000):3 with filledcurves lt rgb "#000000" title "Ready"
 
-set nologscale y
-
+set nologscale
 EOF
 
-cnt=0
+
+cnt=1 # Keep first row for the number of ready/submitted tasks graph
 for worker in $workers
 do
 	grep "^$worker\s" $inputfile > .tmp.$worker
 
-	starty=$(echo "$height + ($height * $cnt)"|bc -l)
+	# Gnuplot origin is lower left
+	starty=$(echo "$total_height - ($height + ($height * $cnt))"|bc -l)
+
+	if [ $cnt -eq $nworkers ]; then
+	    # Add xlabel at the bottom of the global graph, below the last graph
+cat >> gnuplotcmd << EOF
+set xlabel "Time (s)"
+EOF
+	fi
 
 cat >> gnuplotcmd << EOF
 
 set origin 0.0,$starty;
-set size $width,$height;
-
-set key off
-
 set yrange [0:100]
+set ylabel "$(cut -f2- $names |grep "^$worker\s" | cut -f2)"
 
-set ylabel "$(cut -f2- $names |grep "^$worker$" | cut -f2)"
+plot ".tmp.$worker" using (\$2/1000):(100) title "Sleep" with filledcurves y1=0.0 lt rgb "#000000",\
+	 ".tmp.$worker" using (\$2/1000):((100*(\$4+\$5))/\$3) title "Overhead" with filledcurves y1=0.0 lt rgb "#ff0000", \
+	 ".tmp.$worker" using (\$2/1000):((100*\$4)/\$3) title "Computation" with filledcurves y1=0.0 lt rgb "#00ff00"
 
-plot ".tmp.$worker" using (\$2/1000):(100) with filledcurves y1=0.0 lt rgb "#000000" notitle,\
-	 ".tmp.$worker" using (\$2/1000):((100*(\$4+\$5))/\$3) with filledcurves y1=0.0 lt rgb "#ff0000" notitle,\
-	 ".tmp.$worker" using (\$2/1000):((100*\$4)/\$3) with filledcurves y1=0.0 lt rgb "#00ff00" notitle
+set nokey
+set noxlabel
 EOF
 
-	cnt=$(($cnt+1))	
+	cnt=$(($cnt+1))
 done
 
 
@@ -181,7 +191,7 @@ rm $set_profiling_list
 rm $set_profiling_list.enable
 rm $set_profiling_list.disable
 
-#rm $names
+rm $names
 
 for worker in $workers
 do
