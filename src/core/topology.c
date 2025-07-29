@@ -615,8 +615,9 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 
 		hwloc_bitmap_t cpuset = hwloc_bitmap_alloc();
 		hwloc_bitmap_t log_cpuset = hwloc_bitmap_alloc();
+		hwloc_bitmap_t check_cpuset = hwloc_bitmap_alloc();
 		hwloc_bitmap_t log_coreset = hwloc_bitmap_alloc();
-		unsigned n, i, first, last, weight;
+		unsigned n, i, j, check_first, check_last, check_weight, weight;
 		int ret;
 
 		do {
@@ -650,18 +651,25 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 						break;
 					}
 				}
+
+				/* For the check, include all PUs from the core to make the set contiguous, we will pick up just one from it by default */
+				for (j = 0; j < core->arity; j++)
+					hwloc_bitmap_set(check_cpuset, core->children[j]->logical_index);
+
 				hwloc_bitmap_set(log_coreset, core->logical_index);
 			}
 
 			/* Check that PU numbers are consecutive */
-			first = hwloc_bitmap_first(log_cpuset);
-			last = hwloc_bitmap_last(log_cpuset);
-			weight = hwloc_bitmap_weight(log_cpuset);
-			if (last - first + 1 != weight)
+			check_first = hwloc_bitmap_first(check_cpuset);
+			check_last = hwloc_bitmap_last(check_cpuset);
+			check_weight = hwloc_bitmap_weight(check_cpuset);
+			if (check_last - check_first + 1 != check_weight)
 			{
-				_STARPU_DISP("Warning: hwloc reported non-consecutive binding, this is not supported yet, sorry, please use STARPU_WORKERS_CPUID or STARPU_WORKERS_COREID to set this by hand\n");
+				_STARPU_DISP("Warning: hwloc reported non-consecutive binding (first %u last %d weight %u, this is not supported yet, sorry, please use STARPU_WORKERS_CPUID or STARPU_WORKERS_COREID to set this by hand\n", check_first, check_last, check_weight);
 				break;
 			}
+
+			weight = hwloc_bitmap_weight(log_cpuset);
 
 			if (weight == 1 || hwloc_bitmap_weight(log_coreset) == 1)
 			{
@@ -674,10 +682,11 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 				_STARPU_DISP("You can use STARPU_WORKERS_GETBIND=0 to bypass it, but make sure you are not oversubscribing the machine.\n");
 			}
 			topology->nusedpus = weight;
-			topology->firstusedpu = first;
+			topology->firstusedpu = hwloc_bitmap_first(log_cpuset);;
 		} while(0);
 
 		hwloc_bitmap_free(cpuset);
+		hwloc_bitmap_free(check_cpuset);
 		topology->log_cpuset = log_cpuset;
 		topology->log_coreset = log_coreset;
 	}
@@ -889,7 +898,15 @@ static void _starpu_initialize_workers_bindid(struct _starpu_machine_config *con
 			}
 
 			/* Add a worker to this core, by using this logical PU */
-			topology->workers_bindid[nbindids++] = (unsigned)i + topology->firstusedpu;
+			unsigned allocated = topology->firstusedpu + (unsigned)i;
+
+#if defined(STARPU_HAVE_HWLOC)
+			if (config->topology.log_cpuset &&
+				!hwloc_bitmap_isset(config->topology.log_cpuset, allocated))
+				_STARPU_DISP("Warning: logical CPU id %u is not in the CPU binding provided by the OS, did you specify an STARPU_NTHREADS_PER_CORE value that is not covered by the OS-provided CPU binding?\n", allocated);
+#endif
+
+			topology->workers_bindid[nbindids++] = allocated;
 			k++;
 			i++;
 		}
