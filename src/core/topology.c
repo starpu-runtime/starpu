@@ -619,6 +619,9 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 		hwloc_bitmap_t log_coreset = hwloc_bitmap_alloc();
 		unsigned n, i, j, first, last, weight;
 		int ret;
+#ifdef STARPU_VERBOSE
+		char *str;
+#endif
 
 		do
 		{
@@ -629,6 +632,12 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 				_STARPU_DISP("Warning: could not get current CPU binding: %s\n", strerror(errno));
 				break;
 			}
+
+#ifdef STARPU_VERBOSE
+			hwloc_bitmap_asprintf(&str, cpuset);
+			_STARPU_DEBUG("Got cpu physical binding: %s\n", str);
+			free(str);
+#endif
 
 			/* Compute logical sets */
 			n = hwloc_get_nbobjs_by_depth(topology->hwtopology, config->pu_depth);
@@ -659,6 +668,18 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 
 				hwloc_bitmap_set(log_coreset, core->logical_index);
 			}
+
+#ifdef STARPU_VERBOSE
+			hwloc_bitmap_asprintf(&str, log_cpuset);
+			_STARPU_DEBUG("This maps to logical binding: %s\n", str);
+			free(str);
+			hwloc_bitmap_asprintf(&str, check_cpuset);
+			_STARPU_DEBUG("Which we extend to: %s\n", str);
+			free(str);
+			hwloc_bitmap_asprintf(&str, log_coreset);
+			_STARPU_DEBUG("The logical core binding is thus: %s\n", str);
+			free(str);
+#endif
 
 			/* Check that PU numbers are consecutive */
 			first = hwloc_bitmap_first(check_cpuset);
