@@ -617,7 +617,7 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 		hwloc_bitmap_t log_cpuset = hwloc_bitmap_alloc();
 		hwloc_bitmap_t check_cpuset = hwloc_bitmap_alloc();
 		hwloc_bitmap_t log_coreset = hwloc_bitmap_alloc();
-		unsigned n, i, j, check_first, check_last, check_weight, weight;
+		unsigned n, i, j, first, last, weight;
 		int ret;
 
 		do {
@@ -652,7 +652,7 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 					}
 				}
 
-				/* For the check, include all PUs from the core to make the set contiguous, we will pick up just one from it by default */
+				/* Include all PUs from the core to make the set contiguous, we will pick up just one from it by default */
 				for (j = 0; j < core->arity; j++)
 					hwloc_bitmap_set(check_cpuset, core->children[j]->logical_index);
 
@@ -660,18 +660,16 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 			}
 
 			/* Check that PU numbers are consecutive */
-			check_first = hwloc_bitmap_first(check_cpuset);
-			check_last = hwloc_bitmap_last(check_cpuset);
-			check_weight = hwloc_bitmap_weight(check_cpuset);
-			if (check_last - check_first + 1 != check_weight)
+			first = hwloc_bitmap_first(check_cpuset);
+			last = hwloc_bitmap_last(check_cpuset);
+			weight = hwloc_bitmap_weight(check_cpuset);
+			if (last - first + 1 != weight)
 			{
-				_STARPU_DISP("Warning: hwloc reported non-consecutive binding (first %u last %d weight %u, this is not supported yet, sorry, please use STARPU_WORKERS_CPUID or STARPU_WORKERS_COREID to set this by hand\n", check_first, check_last, check_weight);
+				_STARPU_DISP("Warning: hwloc reported non-consecutive binding (first %u last %d weight %u, this is not supported yet, sorry, please use STARPU_WORKERS_CPUID or STARPU_WORKERS_COREID to set this by hand\n", first, last, weight);
 				break;
 			}
 
-			weight = hwloc_bitmap_weight(log_cpuset);
-
-			if (weight == 1 || hwloc_bitmap_weight(log_coreset) == 1)
+			if (hwloc_bitmap_weight(log_cpuset) == 1 || hwloc_bitmap_weight(log_coreset) == 1)
 			{
 				const char *omp_bind = starpu_getenv("OMP_PROC_BIND");
 				_STARPU_DISP("Warning: the current CPU binding set contains only one CPU.\n");
