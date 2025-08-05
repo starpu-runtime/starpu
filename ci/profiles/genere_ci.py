@@ -214,6 +214,7 @@ def create_builder(profile, profile_iname, profile_name, profile_host):
             p.addStep(Command(["cp", "-rp", "coverage", "$starpu_artifacts/coverage_$STARPU_GITVERSION"]))
         p.addStep(Command([""]))
 
+    p.addStep(Command(["for x  in $(find . -name \"*log\") ; do mkdir -p logs/$(dirname $x) && cp $x logs/$(dirname $x) ; done"]))
     p.addStep(Command(["make", "clean", ">", "/dev/null", "2>&1"]))
     if profile['ignore_fail']:
         p.addStep(Command(["exit", "0"]))
