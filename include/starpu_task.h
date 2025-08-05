@@ -1576,7 +1576,7 @@ struct starpu_task
 #define STARPU_TASK_INITIALIZER                                                      \
 	{                                                                            \
 		.name			                   = NULL,	             \
-		.iterations                                = NULL,                   \
+		.iterations                                = {0,0},	             \
 		.file                                      = NULL,                   \
 		.line                                      = 0,			     \
 		.cl			                   = NULL,                   \
