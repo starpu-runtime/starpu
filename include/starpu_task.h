@@ -1585,8 +1585,9 @@ struct starpu_task
 		.dyn_handles		                   = NULL,                   \
 		.dyn_interfaces		                   = NULL,                   \
 		.dyn_modes		                   = NULL,                   \
-		.handles                                   = NULL,		     \
-		.interfaces                                = NULL,                   \
+		.handles                                   = { NULL },		     \
+		.interfaces                                = { NULL },               \
+		.modes                                     = { 0 },                  \
 		.handles_sequential_consistency            = NULL,                   \
 		.cl_arg			                   = NULL,                   \
 		.cl_arg_size		                   = 0,                      \
