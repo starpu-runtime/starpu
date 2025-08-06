@@ -945,7 +945,7 @@ static void generate_bus_affinity_file(void)
 
 static int check_bus_affinity_file(void)
 {
-	int ret = 1;
+	int ret;
 	FILE *f;
 	int locked;
 	unsigned dummy;
@@ -963,19 +963,20 @@ static int check_bus_affinity_file(void)
 	ret = fscanf(f, "# GPU\t");
 	if (ret == EOF)
 	{
-		if (locked)
-			_starpu_frdunlock(f);
-		return 0;
+		ret = 0;
+		goto out;
 	}
 	STARPU_ASSERT_MSG(ret == 0, "Error when reading from file '%s'", path);
 
 	ret = fscanf(f, "NUMA%u\t", &dummy);
+	ret = ret == 1;
 
+out:
 	if (locked)
 		_starpu_frdunlock(f);
 
 	fclose(f);
-	return ret == 1;
+	return ret;
 }
 
 static void load_bus_affinity_file(void)
