@@ -1054,7 +1054,7 @@ static void write_bus_affinity_file_content(void)
 #endif
 
 	if (locked)
-		_starpu_frdunlock(f);
+		_starpu_fwrunlock(f);
 	fclose(f);
 #endif
 }
