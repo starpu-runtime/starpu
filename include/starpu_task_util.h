@@ -14,6 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <starpu.h>
+
 #ifndef __STARPU_TASK_UTIL_H__
 #define __STARPU_TASK_UTIL_H__
 
@@ -21,7 +23,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include <starpu.h>
 
 #ifdef __cplusplus
 extern "C" {
