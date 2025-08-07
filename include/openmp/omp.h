@@ -14,10 +14,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <starpu.h>
+
 #ifndef __STARPU_OPENMP_OMP_H__
 #define __STARPU_OPENMP_OMP_H__
-
-#include <starpu.h>
 
 #if defined STARPU_OPENMP
 typedef starpu_omp_lock_t omp_lock_t;
