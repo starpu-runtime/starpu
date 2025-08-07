@@ -16,10 +16,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <starpu.h>
+
 #ifndef __STARPU_SCHED_COMPONENT_H__
 #define __STARPU_SCHED_COMPONENT_H__
-
-#include <starpu.h>
 
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
@@ -563,6 +563,7 @@ struct starpu_sched_component_mct_data
 	double beta;
 	double _gamma;
 	double idle_power;
+	int nolock;
 };
 
 /**

@@ -14,11 +14,12 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <starpu.h>
+
 #ifndef __STARPU_HELPER_H__
 #define __STARPU_HELPER_H__
 
 #include <stdio.h>
-#include <starpu.h>
 
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
