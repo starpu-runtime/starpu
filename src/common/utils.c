@@ -762,6 +762,7 @@ void starpu_display_bindings(void)
 #if defined(STARPU_HAVE_HWLOC) && !defined(STARPU_SIMGRID)
 	int value = starpu_getenv_number_default("STARPU_DISPLAY_BINDINGS", 0);
 	int ret = 0;
+	setenv("HWLOC_COMPONENTS", "linux,windows,darwin,stop");
 	if (value == 2)
 		ret = system("lstopo --ps -");
 	else
