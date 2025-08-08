@@ -20,10 +20,10 @@ variables:
   RUNNER_SCRIPT_TIMEOUT: 58m
   RUNNER_AFTER_SCRIPT_TIMEOUT: 2m
 
-workflow:
-  auto_cancel:
-    on_new_commit: interruptible
-    on_job_failure: all
+#workflow:
+#  auto_cancel:
+#    on_new_commit: interruptible
+#    on_job_failure: all
 
 .extended_check_master_manual_branch:
   rules:
