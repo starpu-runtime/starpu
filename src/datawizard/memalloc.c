@@ -1605,7 +1605,7 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 
 	/* If this is RAM and pinned this will be slow
 	   In case we only want fast allocations return here */
-	if(only_fast_alloc && (starpu_node_get_kind(dst_node) != STARPU_CPU_RAM || _starpu_malloc_willpin_on_node(dst_node))
+	if (only_fast_alloc && (starpu_node_get_kind(dst_node) != STARPU_CPU_RAM || _starpu_malloc_willpin_on_node(dst_node)))
 		return -ENOMEM;
 
 	STARPU_ASSERT(handle->ops);
