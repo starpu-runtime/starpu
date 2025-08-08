@@ -3433,21 +3433,26 @@ AC_ARG_ENABLE(openmp-llvm, [AS_HELP_STRING([--enable-openmp-llvm],
 			[build the OpenMP LLVM runtime support])],
 			enable_openmp_llvm=$enableval, enable_openmp_llvm=no)
 
+have_valid_openmp_llvm=yes
 openmp_llvm_msg=""
 if test x$starpu_windows = xyes ; then
-   enable_openmp_llvm=no
+   have_valid_openmp_llvm=no
    openmp_llvm_msg="disabled on windows"
 fi
 if test x$enable_simgrid = xyes ; then
-   enable_openmp_llvm=no
+   have_valid_openmp_llvm=no
    openmp_llvm_msg="incompatibility with Simgrid support"
 fi
 if test x$PROG_CLANG = x ; then
-   enable_openmp_llvm=no
+   have_valid_openmp_llvm=no
    openmp_llvm_msg="missing clang"
 fi
 
-if test x$enable_openmp_llvm = xyes; then
+if test x$enable_openmp_llvm = xyes -a x$have_valid_openmp_llvm = xno ; then
+   AC_MSG_ERROR([OpenMP LLVM runtime support requested but not available as $openmp_llvm_msg])
+fi
+
+if test x$enable_openmp_llvm = xyes -a x$have_valid_openmp_llvm = xyes ; then
 	AC_DEFINE(STARPU_OPENMP_LLVM, [1], [Define this to enable LLVM OpenMP runtime support])
 	STARPU_OPENMP_CPPFLAGS="-I$STARPU_SRC_DIR/include/openmp"
 	AC_SUBST(STARPU_OPENMP_CPPFLAGS)
