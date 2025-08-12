@@ -33,18 +33,9 @@
 #include <starpu_mpi.h>
 #include "helper.h"
 
-#if !defined(STARPU_HAVE_SETENV)
-#warning setenv is not defined. Skipping test
-int main(void)
-{
-	return STARPU_TEST_SKIPPED;
-}
-#else
-
-
 static void parent_cpu_func(void *descr[], void *args)
 {
-	starpu_sleep(2); // Give time to submit other tasks and detect coop
+	starpu_sleep(1); // Give time to submit other tasks and detect coop
 }
 
 static struct starpu_codelet parent_cl =
@@ -73,27 +64,14 @@ static inline int my_distrib(int x, int nb_nodes)
 	return x % nb_nodes;
 }
 
-static inline void do_test(starpu_mpi_tag_t *initial_tag, char* cache_enabled)
+static inline void do_test(starpu_mpi_tag_t *initial_tag, int rank, int worldsize, int cache_enabled)
 {
-	int ret, rank, worldsize, i;
+	int ret, i;
 	int* data;
 	starpu_data_handle_t* handles;
-	struct starpu_conf conf;
 
-	setenv("STARPU_MPI_CACHE", cache_enabled, 1);
-
-	starpu_conf_init(&conf);
-	starpu_conf_noworker(&conf);
-	conf.ncpus = -1;
-	conf.nmpi_sc = -1;
-	conf.ntcpip_sc = -1;
-
-	ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, &conf);
-	if (ret == -ENODEV) return;
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
-
-	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
-	starpu_mpi_comm_size(MPI_COMM_WORLD, &worldsize);
+	starpu_mpi_cache_set(0);
+	starpu_mpi_cache_set(cache_enabled);
 
 	int nblocks = 2 * worldsize;
 	int **blocks = malloc(nblocks * sizeof(int*));
@@ -140,20 +118,35 @@ static inline void do_test(starpu_mpi_tag_t *initial_tag, char* cache_enabled)
 	free(blocks);
 
 	*initial_tag += 2*worldsize;
-	starpu_mpi_shutdown();
 }
 
 int main(int argc, char **argv)
 {
 	starpu_mpi_tag_t initial_tag = 0;
+	struct starpu_conf conf;
+	int ret, rank, worldsize, mpi_init;
 
-	MPI_INIT_THREAD_real(&argc, &argv, MPI_THREAD_SERIALIZED);
+	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
+	starpu_conf_init(&conf);
+	starpu_conf_noworker(&conf);
+	conf.ncpus = -1;
+	conf.nmpi_sc = -1;
+	conf.ntcpip_sc = -1;
 
-	do_test(&initial_tag, /* disable cache */ "0");
-	do_test(&initial_tag, /* enable cache */ "1");
+	ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, &conf);
+	if (ret == -ENODEV) goto enodev;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
-	MPI_Finalize();
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
+	starpu_mpi_comm_size(MPI_COMM_WORLD, &worldsize);
+
+	do_test(&initial_tag, rank, worldsize, /* disable cache */ 0);
+	do_test(&initial_tag, rank, worldsize, /* enable cache */ 1);
+
+	starpu_mpi_shutdown();
+enodev:
+	if (!mpi_init)
+		MPI_Finalize();
 
 	return 0;
 }
-#endif

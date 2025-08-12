@@ -48,6 +48,8 @@ int starpu_mpi_cache_set(int enabled)
 {
 	if (enabled == 1)
 	{
+		STARPU_PTHREAD_MUTEX_DESTROY(&_cache_mutex);
+		STARPU_PTHREAD_MUTEX_INIT(&_cache_mutex, NULL);
 		_starpu_cache_enabled = 1;
 	}
 	else
@@ -58,6 +60,8 @@ int starpu_mpi_cache_set(int enabled)
 			starpu_mpi_cache_flush_all_data(_starpu_cache_comm);
 			_starpu_mpi_cache_shutdown();
 		}
+		STARPU_PTHREAD_MUTEX_DESTROY(&_cache_mutex);
+		STARPU_PTHREAD_MUTEX_INIT(&_cache_mutex, NULL);
 		_starpu_cache_enabled = 0;
 	}
 	return 0;
