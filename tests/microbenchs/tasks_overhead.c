@@ -96,6 +96,9 @@ int main(int argc, char **argv)
 	double start_exec;
 	double end_exec;
 	struct starpu_conf conf;
+
+	if (getenv("STARPU_MICROBENCHS_DISABLED")) return STARPU_TEST_SKIPPED;
+
 	starpu_conf_init(&conf);
 	conf.ncpus = 2;
 
