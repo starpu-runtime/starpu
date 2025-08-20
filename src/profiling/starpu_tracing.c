@@ -1079,10 +1079,11 @@ int _starpu_trace_worker_sleep_end()
 int _starpu_trace_task_submit(struct _starpu_job *job STARPU_ATTRIBUTE_UNUSED, long iter STARPU_ATTRIBUTE_UNUSED, long subiter STARPU_ATTRIBUTE_UNUSED, struct _starpu_job *pjob STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
-	FUT_FULL_PROBE7(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_SUBMIT, (job)->job_id, iter, subiter, (job)->task->no_submitorder?0:_starpu_fxt_get_submit_order(), (job)->task->priority, (job)->task->type, _starpu_gettid());
-#endif
 #ifdef STARPU_RECURSIVE_TASKS
 	FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_RECURSIVE_SUBMIT, (job)->job_id, (job)->recursive.level, ((pjob) ? (pjob)->job_id : 0));
+#else
+	FUT_FULL_PROBE7(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_SUBMIT, (job)->job_id, iter, subiter, (job)->task->no_submitorder?0:_starpu_fxt_get_submit_order(), (job)->task->priority, (job)->task->type, _starpu_gettid());
+#endif
 #endif
 #ifdef STARPU_PROF_TASKSTUBS
 // unsigned long starpu_task_get_job_id(struct starpu_task *task);
