@@ -1,0 +1,1 @@
+All informations on how to contribute to StarPU are available on this page https://starpu.gitlabpages.inria.fr/involved.html
