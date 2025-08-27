@@ -527,25 +527,25 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 	   CONFIG. */
 	struct _starpu_machine_topology *topology = &config->topology;
 
-	if (topology_is_initialized)
+	if (!config->force_conf_reload && topology_is_initialized)
 		return;
 
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
-	if (config->conf.nopencl != 0)
+	if (config->conf.nopencl != 0 || config->force_conf_reload)
 		_starpu_opencl_init();
 #endif
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
-	if (config->conf.ncuda != 0)
+	if (config->conf.ncuda != 0 || config->force_conf_reload)
 		_starpu_init_cuda();
 #endif
 
 #if defined(STARPU_USE_HIP)
-	if (config->conf.nhip != 0)
+	if (config->conf.nhip != 0 || config->force_conf_reload)
 		_starpu_init_hip();
 #endif
 
 #if defined(STARPU_USE_MAX_FPGA)
-	if (config->conf.nmax_fpga != 0)
+	if (config->conf.nmax_fpga != 0 || config->force_conf_reload)
 		_starpu_init_max_fpga();
 #endif
 
@@ -739,14 +739,23 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 	if (!starpu_getenv_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_CPU", 1))
 		config->topology.nhwdevices[STARPU_CPU_WORKER] = config->topology.nhwworker[STARPU_CPU_WORKER][0];
 
-	if (config->conf.ncuda != 0)
+	if (config->conf.ncuda == 0 && !config->force_conf_reload)
+		config->topology.nhwdevices[STARPU_CUDA_WORKER] = _STARPU_TOPOLOGY_NHWDEVICE_ZEROED;
+	else
 		_starpu_cuda_discover_devices(config);
-	if (config->conf.nhip != 0)
+	if (config->conf.nhip == 0 && !config->force_conf_reload)
+		config->topology.nhwdevices[STARPU_HIP_WORKER] = _STARPU_TOPOLOGY_NHWDEVICE_ZEROED;
+	else
 		_starpu_hip_discover_devices(config);
-	if (config->conf.nopencl != 0)
+	if (config->conf.nopencl == 0 && !config->force_conf_reload)
+		config->topology.nhwdevices[STARPU_OPENCL_WORKER] = _STARPU_TOPOLOGY_NHWDEVICE_ZEROED;
+	else
 		_starpu_opencl_discover_devices(config);
-	if (config->conf.nmax_fpga != 0)
+	if (config->conf.nmax_fpga == 0 && !config->force_conf_reload)
+		config->topology.nhwdevices[STARPU_MAX_FPGA_WORKER] = _STARPU_TOPOLOGY_NHWDEVICE_ZEROED;
+	else
 		_starpu_max_fpga_discover_devices(config);
+
 #ifdef STARPU_USE_MPI_SERVER_CLIENT
 	config->topology.nhwdevices[STARPU_MPI_SC_WORKER] = _starpu_mpi_src_get_device_count();
 #endif
@@ -755,6 +764,7 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 #endif
 
 	topology_is_initialized = 1;
+	config->force_conf_reload = 0;
 }
 
 /*

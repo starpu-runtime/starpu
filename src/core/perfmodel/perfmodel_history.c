@@ -98,11 +98,12 @@ void _starpu_initialize_registered_performance_models(void)
 	{
 		if(archtype != STARPU_MPI_SC_WORKER && archtype != STARPU_TCPIP_SC_WORKER)
 		{
-			ndevices += conf->topology.nhwdevices[archtype];
+			if (conf->topology.nhwdevices[archtype] != _STARPU_TOPOLOGY_NHWDEVICE_ZEROED)
+				ndevices += conf->topology.nhwdevices[archtype];
 		}
 		else
 		{
-			unsigned i;
+			int i;
 			for(i = 0; i < conf->topology.nhwdevices[archtype]; i++)
 				ndevices += conf->topology.nhwworker[archtype][i];
 		}

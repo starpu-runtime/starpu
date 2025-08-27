@@ -498,6 +498,15 @@ void feed(void)
 Measurement has to be provided in milliseconds for the completion time models,
 and in Joules for the energy consumption models.
 
+The first time StarPU is launched on a new node, it will trigger a
+bus benchmarking. StarPU will benchmark all the hardware devices
+available on the node, regardless of the number of devices requested
+for the execution. Likewise, if the number of requested devices is
+lower than the number of available devices, the calibration will not
+be triggered. However, you can force bus recalibration by running the
+tool \c starpu_calibrate_bus or by setting the environment variable
+\ref STARPU_BUS_CALIBRATE.
+
 \section Profiling Profiling
 
 A quick view of how many tasks each worker has executed can be obtained by setting

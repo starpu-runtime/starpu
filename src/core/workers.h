@@ -355,6 +355,14 @@ struct _starpu_worker_set
 	unsigned wait_for_set_initialization;
 };
 
+/**
+ * Used in the field _starpu_machine_topology::nhwdevices to indicate that the user
+ * requested 0 devices of this type, thus we do not want to initialise the driver to get
+ * the value of hardware devices on the node, StarPU will read the value in the bus
+ * performance file.
+*/
+#define _STARPU_TOPOLOGY_NHWDEVICE_ZEROED -1
+
 struct _starpu_machine_topology
 {
 	/** Total number of workers. */
@@ -390,9 +398,12 @@ struct _starpu_machine_topology
 	unsigned nusedpus;
 
 	/** Total number of devices, as detected. May be different from the
-	 * actual number of devices run by StarPU.
+	 * actual number of devices run by StarPU. If the value is set
+	 * to \c _STARPU_TOPOLOGY_NHWDEVICE_ZEROED, it means the user
+	 * requested 0 devices of this type, the real value will be
+	 * get from the bus performance file
 	 */
-	unsigned nhwdevices[STARPU_NARCH];
+	int nhwdevices[STARPU_NARCH];
 	/** Total number of worker for each device, as detected. May be different from the
 	 * actual number of workers run by StarPU.
 	 */
@@ -499,6 +510,13 @@ struct _starpu_machine_config
 	 * the result of (worker_mask & STARPU_CUDA). */
 	uint32_t worker_mask;
 
+	/** set to 1 to force reloading the configuration, and
+	 * especially the detection of hardware devices. This is
+	 * needed when the user-configuration requests for example 0
+	 * CUDA devices and the performance files are not available
+	 * and thus must be created.
+	 */
+	int force_conf_reload;
 	/** either the user given configuration passed to starpu_init or a default configuration */
 	struct starpu_conf conf;
 

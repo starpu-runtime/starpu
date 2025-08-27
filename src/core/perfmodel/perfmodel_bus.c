@@ -99,9 +99,9 @@ static double raw_latency_matrix[STARPU_MAXNODES][STARPU_MAXNODES];	/* µs, inde
 static double latency_matrix[STARPU_MAXNODES][STARPU_MAXNODES];		/* µs, indexed by memory nodes */
 static unsigned was_benchmarked = 0;
 #ifndef STARPU_SIMGRID
-static unsigned ncpus = 0;
+static int ncpus = 0;
 #endif
-static unsigned nmem[STARPU_NRAM];
+static int nmem[STARPU_NRAM];
 #define nnumas (nmem[STARPU_CPU_RAM])
 #define ncuda (nmem[STARPU_CUDA_RAM])
 #define nhip (nmem[STARPU_HIP_RAM])
@@ -477,7 +477,7 @@ static void measure_bandwidth_between_host_and_dev(int dev, struct dev_timing de
 	enum starpu_worker_archtype arch = starpu_memory_node_get_worker_archtype(type);
 
 	/* We measure the bandwidth between each GPU and each NUMA node */
-	unsigned numa_id;
+	int numa_id;
 	for (numa_id = 0; numa_id < nnumas; numa_id++)
 	{
 		/* Store STARPU_memnode for later */
@@ -608,7 +608,7 @@ static void benchmark_all_memory_nodes(void)
 	_STARPU_DISP("Can not measure bus in simgrid mode, please run starpu_calibrate_bus in non-simgrid mode to make sure the bus performance model was calibrated\n");
 	STARPU_ABORT();
 #else /* !SIMGRID */
-	unsigned i, j;
+	int i, j;
 
 	_STARPU_DEBUG("Benchmarking the speed of the bus\n");
 
@@ -803,7 +803,7 @@ static void load_bus_affinity_file_content(void)
 
 	locked = _starpu_frdlock(f) == 0;
 
-	unsigned gpu;
+	int gpu;
 	enum starpu_node_kind type;
 	unsigned ok = 1;
 
@@ -823,9 +823,9 @@ static void load_bus_affinity_file_content(void)
 				break;
 			}
 
-			STARPU_ASSERT(dummy == gpu);
+			STARPU_ASSERT(dummy == (unsigned)gpu);
 
-			unsigned numa;
+			int numa;
 			for (numa = 0; numa < nnumas; numa++)
 			{
 				ret = fscanf(f, "%u\t", &affinity_matrix[type][gpu][numa]);
@@ -900,8 +900,8 @@ static void write_bus_affinity_file_content(void)
 	fseek(f, 0, SEEK_SET);
 	_starpu_fftruncate(f, 0);
 
-	unsigned numa;
-	unsigned gpu;
+	int numa;
+	int gpu;
 	enum starpu_node_kind type;
 
 	fprintf(f, "# GPU\t");
@@ -1018,7 +1018,7 @@ void starpu_bus_print_affinity(FILE *f)
 
 	for (type = STARPU_CPU_RAM+1; type < STARPU_NRAM; type++)
 	{
-		unsigned gpu;
+		int gpu;
 
 		if (!nmem[type])
 			continue;
@@ -1026,7 +1026,7 @@ void starpu_bus_print_affinity(FILE *f)
 		fprintf(f, "# %s\n", starpu_memory_driver_info[type].name_upper);
 		for(gpu = 0 ; gpu<nmem[type] ; gpu++)
 		{
-			unsigned numa;
+			int numa;
 
 			fprintf(f, "%u\t", gpu);
 			for (numa = 0; numa < nnumas; numa++)
@@ -1156,7 +1156,7 @@ static double search_bus_best_latency(int src, enum starpu_node_kind type, int h
 	double best = 0.0;
 	double actual = 0.0;
 	unsigned check = 0;
-	unsigned numa;
+	int numa;
 	for (numa = 0; numa < nnumas; numa++)
 	{
 		if (htod)
@@ -1175,9 +1175,9 @@ static double search_bus_best_latency(int src, enum starpu_node_kind type, int h
 static void write_bus_latency_file_content(void)
 {
 	enum starpu_node_kind type;
-	unsigned src, dst, maxnode;
+	int src, dst, maxnode;
 	/* Boundaries to check if src or dst are inside the interval */
-	unsigned b_low, b_up;
+	int b_low, b_up;
 	FILE *f;
 	int locked;
 
@@ -1241,8 +1241,8 @@ static void write_bus_latency_file_content(void)
 					latency += numa_latency[src-b_low][dst-b_low];
 
 				/* copy interval to check numa index later */
-				unsigned numa_low = b_low;
-				unsigned numa_up = b_up;
+				int numa_low = b_low;
+				int numa_up = b_up;
 
 				b_low += nnumas;
 				/* ---- End NUMA ---- */
@@ -1444,7 +1444,7 @@ static double search_bus_best_timing(int src, enum starpu_node_kind type, int ht
 	double best = 0.0;
 	double actual = 0.0;
 	unsigned check = 0;
-	unsigned numa;
+	int numa;
 	for (numa = 0; numa < nnumas; numa++)
 	{
 		if (htod)
@@ -1463,8 +1463,8 @@ static double search_bus_best_timing(int src, enum starpu_node_kind type, int ht
 static void write_bus_bandwidth_file_content(void)
 {
 	enum starpu_node_kind type;
-	unsigned src, dst, maxnode;
-	unsigned b_low, b_up;
+	int src, dst, maxnode;
+	int b_low, b_up;
 	FILE *f;
 	int locked;
 
@@ -1519,8 +1519,8 @@ static void write_bus_bandwidth_file_content(void)
 					slowness += numa_timing[src-b_low][dst-b_low];
 
 				/* copy interval to check numa index later */
-				unsigned numa_low = b_low;
-				unsigned numa_up = b_up;
+				int numa_low = b_low;
+				int numa_up = b_up;
 
 				b_low += nnumas;
 				/* End NUMA */
@@ -1587,7 +1587,8 @@ void starpu_bus_print_filenames(FILE *output)
 
 void starpu_bus_print_bandwidth(FILE *f)
 {
-	unsigned src, dst, maxnode = starpu_memory_nodes_get_count();
+	unsigned src, dst;
+	unsigned maxnode = starpu_memory_nodes_get_count();
 
 	fprintf(f, "from/to\t");
 	for (dst = 0; dst < maxnode; dst++)
@@ -1638,20 +1639,21 @@ void starpu_bus_print_bandwidth(FILE *f)
 			}
 			enum starpu_worker_archtype arch = starpu_memory_node_get_worker_archtype(type);
 			const char *type_str = starpu_worker_get_type_as_string(arch);
-			for (src = 0; src < nmem[type]; src++)
+			int xsrc;
+			for (xsrc = 0; xsrc < nmem[type]; xsrc++)
 			{
 				struct dev_timing *timing;
 				struct _starpu_machine_config * config = _starpu_get_machine_config();
 				unsigned nhwnumas = _starpu_topology_get_nhwnumanodes(config);
 				unsigned numa;
-				fprintf(f, "%s%u\t", type_str, src);
+				fprintf(f, "%s%d\t", type_str, xsrc);
 				for (numa = 0; numa < nhwnumas; numa++)
 				{
-					timing = &timing_per_numa[type][src][numa];
+					timing = &timing_per_numa[type][xsrc][numa];
 					if (timing->timing_htod)
 						fprintf(f, "%2d %.0f %.0f\t", timing->numa_id, 1/timing->timing_htod, 1/timing->timing_dtoh);
 					else
-						fprintf(f, "%2u\t", affinity_matrix[type][src][numa]);
+						fprintf(f, "%2u\t", affinity_matrix[type][xsrc][numa]);
 				}
 				fprintf(f, "\n");
 			}
@@ -1717,7 +1719,7 @@ static int mpi_check_recalibrate(int my_recalibrate)
 }
 #endif
 
-static void compare_value_and_recalibrate(enum starpu_node_kind type, const char * msg, unsigned val_file, unsigned val_detected)
+static void compare_value_and_recalibrate(enum starpu_node_kind type, const char *msg, unsigned val_file, unsigned val_detected)
 {
 	int recalibrate = 0;
 	if (val_file != val_detected &&
@@ -1769,6 +1771,7 @@ static void check_bus_config_file(void)
 	{
 		if (location < 0)
 			_STARPU_DISP("No performance model for the bus, calibrating...\n");
+		config->force_conf_reload = 1;
 		_starpu_bus_force_sampling(location);
 		if (location < 0)
 			_STARPU_DISP("... done\n");
@@ -1820,6 +1823,16 @@ static void check_bus_config_file(void)
 		nnumas = _starpu_topology_get_nhwnumanodes(config);
 
 		enum starpu_worker_archtype arch;
+		for (type = STARPU_CPU_RAM; type < STARPU_NRAM; ++type)
+		{
+			if (type != STARPU_DISK_RAM)
+			{
+				arch = starpu_memory_node_get_worker_archtype(type);
+				if (topology->nhwdevices[arch] == _STARPU_TOPOLOGY_NHWDEVICE_ZEROED)
+					topology->nhwdevices[arch] = n_read[type];
+			}
+		}
+
 		for (type = STARPU_CPU_RAM+1; type < STARPU_NRAM; ++type)
 		{
 			if (type != STARPU_DISK_RAM)
@@ -1833,8 +1846,7 @@ static void check_bus_config_file(void)
 		compare_value_and_recalibrate(STARPU_CPU_RAM, "CPUS", read_cpus, ncpus);
 		for (type = STARPU_CPU_RAM; type < STARPU_NRAM; type++)
 		{
-			compare_value_and_recalibrate(type,
-				starpu_memory_driver_info[type].name_upper, n_read[type], nmem[type]);
+			compare_value_and_recalibrate(type, starpu_memory_driver_info[type].name_upper, n_read[type], nmem[type]);
 		}
 	}
 }
@@ -2404,7 +2416,7 @@ static void write_bus_platform_file_content(int version)
 {
 	FILE *f;
 	char path[PATH_LENGTH];
-	unsigned i;
+	int i;
 	const char *speed, *flops, *Bps, *s;
 	char dash;
 	int locked;
@@ -2492,7 +2504,7 @@ static void write_bus_platform_file_content(int version)
 	 */
 	double max_bandwidth = 0;
 	double max_bandwidth_numa[nnumas];
-	unsigned numa;
+	int numa;
 	for (numa = 0; numa < nnumas; numa++)
 		max_bandwidth_numa[numa] = 0.;
 
@@ -2552,7 +2564,7 @@ static void write_bus_platform_file_content(int version)
 			/* Write Device/Device bandwidths and latencies */
 			for (i = 0; i < nmem[type]; i++)
 			{
-				unsigned j;
+				int j;
 				char i_name[16];
 				snprintf(i_name, sizeof(i_name), "%s%u", name, i);
 				for (j = 0; j < nmem[type]; j++)
@@ -2586,7 +2598,7 @@ static void write_bus_platform_file_content(int version)
 				}
 				for (i = 0; i < nmem[type]; i++)
 				{
-					unsigned j;
+					int j;
 					char i_name[16];
 					snprintf(i_name, sizeof(i_name), "%s%u", name, i);
 					for (j = 0; j < nmem[type]; j++)
@@ -2623,7 +2635,7 @@ static int have_hwloc_pci_bw_routes(FILE *f, const char *Bps, const char *s)
 	(void)Bps;
 	(void)s;
 #if HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX && defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
-	unsigned i;
+	int i;
 
 	/* If we have enough hwloc information, write PCI bandwidths and routes */
 	if (!starpu_getenv_number_default("STARPU_PCI_FLAT", 0) && ncuda > 0)
@@ -2658,7 +2670,7 @@ static int have_hwloc_pci_bw_routes(FILE *f, const char *Bps, const char *s)
 		if (_starpu_nvmlDeviceGetNvLinkState && _starpu_nvmlDeviceGetNvLinkRemotePciInfo)
 		for (i = 0; i < ncuda; i++)
 		{
-			unsigned j;
+			int j;
 
 			if (!props[i].name[0])
 				continue;
@@ -2673,7 +2685,7 @@ static int have_hwloc_pci_bw_routes(FILE *f, const char *Bps, const char *s)
 				nvmlEnableState_t active;
 				nvmlReturn_t nvmlret;
 				nvmlPciInfo_t pci;
-				unsigned k;
+				int k;
 				_starpu_nvmlIntNvLinkDeviceType_t remote_type = _STARPU_NVML_NVLINK_DEVICE_TYPE_UNKNOWN;
 
 				nvmlret = _starpu_nvmlDeviceGetNvLinkState(nvmldev, j, &active);
@@ -2748,7 +2760,7 @@ static int have_hwloc_pci_bw_routes(FILE *f, const char *Bps, const char *s)
 
 		for (i = 0; i < ncuda; i++)
 		{
-			unsigned j;
+			int j;
 			for (j = i+1; j < ncuda; j++)
 			{
 				if (nvswitch[i] && nvswitch[j])
@@ -2770,8 +2782,7 @@ static int have_hwloc_pci_bw_routes(FILE *f, const char *Bps, const char *s)
 		/* Find paths and record measured bandwidth along the path */
 		for (i = 0; i < ncuda; i++)
 		{
-			unsigned j;
-
+			int j;
 			for (j = 0; j < ncuda; j++)
 				if (i != j && !nvlink[i][j] && !nvlinkhost[i] && !nvlinkhost[j])
 					if (!find_platform_cuda_path(topology, i, j, 1000000. / timing_dtod[STARPU_CUDA_RAM][i][j]))
@@ -2797,7 +2808,7 @@ static int have_hwloc_pci_bw_routes(FILE *f, const char *Bps, const char *s)
 
 		for (i = 0; i < ncuda; i++)
 		{
-			unsigned j;
+			int j;
 			for (j = 0; j < ncuda; j++)
 				if (i != j)
 				{

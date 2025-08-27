@@ -28,6 +28,10 @@ Changes:
    * Add to the gitlab CI the extended check profiles which were
      previously run on buildbot
    * Rename master-slave to server-client
+   * User-requested configurations disabling specific devices will not
+     trigger a benchmarking of the bus. The benchmarking will be done
+     the first time StarPU is launched with all the hardware devices
+     available on the node.
 
 Small changes:
   * Fix build system for StarPU Python interface
