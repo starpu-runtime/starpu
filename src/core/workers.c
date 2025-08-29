@@ -956,9 +956,9 @@ void _starpu_driver_start(struct _starpu_worker *worker, enum starpu_worker_arch
 	setitimer(ITIMER_PROF, &prof_itimer, NULL);
 #endif
 
-	_STARPU_DEBUG("worker %p %d for dev %d is ready on logical cpu %d\n", worker, worker->workerid, devid, worker->bindid);
+	_STARPU_EXTRA_DEBUG("worker %p %d for dev %d is ready on logical cpu %d\n", worker, worker->workerid, devid, worker->bindid);
 #ifdef STARPU_HAVE_HWLOC
-	_STARPU_DEBUG("worker %p %d cpuset start at %d\n", worker, worker->workerid, hwloc_bitmap_first(worker->hwloc_cpu_set));
+	_STARPU_EXTRA_DEBUG("worker %p %d cpuset start at %d\n", worker, worker->workerid, hwloc_bitmap_first(worker->hwloc_cpu_set));
 #endif
 }
 
@@ -978,13 +978,14 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 #endif
 	STARPU_AYU_INIT();
 
+	_STARPU_DEBUG("initialising %u workers\n", nworkers);
 	/* Launch workers asynchronously */
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		struct _starpu_worker *workerarg = &pconfig->workers[worker];
 		workerarg->wait_for_worker_initialization = 0;
 
-		_STARPU_DEBUG("initialising worker %u/%u\n", worker, nworkers);
+		_STARPU_EXTRA_DEBUG("initialising worker %u/%u\n", worker, nworkers);
 
 		_starpu_init_worker_queue(workerarg);
 
@@ -1060,11 +1061,12 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 #endif
 	}
 
+	_STARPU_DEBUG("waiting for workers initialization\n");
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		struct _starpu_worker *workerarg = &pconfig->workers[worker];
 
-		_STARPU_DEBUG("waiting for worker %u initialization\n", worker);
+		_STARPU_EXTRA_DEBUG("waiting for worker %u initialization\n", worker);
 		if (!workerarg->run_by_starpu)
 			continue;
 
@@ -1098,11 +1100,12 @@ void starpu_worker_wait_for_initialisation()
 	unsigned nworkers = starpu_worker_get_count();
 	unsigned workerid;
 
+	_STARPU_DEBUG("waiting for workers initialization\n");
 	for (workerid = 0; workerid < nworkers; workerid++)
 	{
 		struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 
-		_STARPU_DEBUG("waiting for worker %u initialization\n", workerid);
+		_STARPU_EXTRA_DEBUG("waiting for worker %u initialization\n", workerid);
 		if (!worker->run_by_starpu)
 			break;
 
@@ -1992,7 +1995,7 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 
 	for (workerid = 0; workerid < pconfig->topology.nworkers; workerid++)
 	{
-		_STARPU_DEBUG("wait for worker %u\n", workerid);
+		_STARPU_EXTRA_DEBUG("wait for worker %u\n", workerid);
 
 		struct _starpu_worker_set *set = pconfig->workers[workerid].set;
 		struct _starpu_worker *worker = &pconfig->workers[workerid];
