@@ -2067,31 +2067,25 @@ choose_target(starpu_data_handle_t handle, unsigned node)
 	else
 	{
 		/* handle->home_node == -1 */
-		/* no place for data in RAM, we push on disk */
-		if (starpu_node_get_kind(node) == STARPU_CPU_RAM)
+		/* try to push data to RAM if we can before to push on disk*/
+		unsigned i;
+		unsigned nb_numa_nodes = starpu_memory_nodes_get_numa_count();
+		for (i=0; i<nb_numa_nodes; i++)
+		{
+			if (i == node) continue;
+			struct _starpu_node *node_struct = _starpu_get_node_struct(i);
+			if (handle->per_node[i].allocated ||
+			    (starpu_ssize_t) size_handle < node_struct->mc_cache_size ||
+			    _starpu_memory_manager_test_allocate_size(i, size_handle - node_struct->mc_cache_size) == 1)
+			{
+				target = i;
+				break;
+			}
+		}
+		/* no place in RAM */
+		if (target == -1)
 		{
 			target = get_better_disk_can_accept_size(handle, node);
-		} else {
-		/* node != 0 */
-		/* try to push data to RAM if we can before to push on disk*/
-			unsigned i;
-			unsigned nb_numa_nodes = starpu_memory_nodes_get_numa_count();
-			for (i=0; i<nb_numa_nodes; i++)
-			{
-				struct _starpu_node *node_struct = _starpu_get_node_struct(i);
-				if (handle->per_node[i].allocated ||
-				    (starpu_ssize_t) size_handle < node_struct->mc_cache_size ||
-				    _starpu_memory_manager_test_allocate_size(i, size_handle - node_struct->mc_cache_size) == 1)
-				{
-					target = i;
-					break;
-				}
-			}
-			/* no place in RAM */
-			if (target == -1)
-			{
-				target = get_better_disk_can_accept_size(handle, node);
-			}
 		}
 	}
 	/* we haven't the right to write on the disk */
