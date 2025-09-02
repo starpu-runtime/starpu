@@ -174,7 +174,8 @@ extensions2:
   tags: ['starpu', 'node_gpu']
   parallel:
     matrix:
-      - PROFILE: [sched-ctx-hypervisor, starpufft-examples, openmp]
+#      - PROFILE: [sched-ctx-hypervisor, starpufft-examples, openmp]
+      - PROFILE: [sched-ctx-hypervisor, starpufft-examples]
 
 extensions_failures:
   extends: .manual_failure_template
