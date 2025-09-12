@@ -663,6 +663,10 @@ static void benchmark_all_memory_nodes(void)
 	enum starpu_node_kind type;
 	for (type = STARPU_CPU_RAM+1; type < STARPU_NRAM; ++type)
 	{
+		nmem[type] = 0;
+	}
+	for (type = STARPU_CPU_RAM+1; type < STARPU_NRAM; ++type)
+	{
 		if (starpu_memory_driver_info[type].ops &&
 		    starpu_memory_driver_info[type].ops->calibrate_bus)
 		{
