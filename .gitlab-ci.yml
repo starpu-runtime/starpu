@@ -147,3 +147,43 @@ release:
     - cat release-cli.txt
     - eval "$(cat release-cli.txt)"
 
+
+.coverage:
+  stage: daily
+  rules:
+    - if: ($CI_PIPELINE_SCHEDULE_DESCRIPTION != null && $STARPU_RUN_BENCHMARKS == "yes")
+      when: always
+
+.coverage_artifacts:
+  before_script:
+    - rm -rf ./artifacts
+  artifacts:
+    when: always
+    paths:
+      - artifacts
+
+coverage:
+  extends: [.coverage, .coverage_artifacts]
+  timeout: 2h
+  variables:
+    RUNNER_SCRIPT_TIMEOUT: 118m
+    RUNNER_AFTER_SCRIPT_TIMEOUT: 2m
+  tags: ['starpu', 'node_gpu']
+  script:
+    - ./contrib/gitlab/run_profile.sh coverage
+  after_script:
+    - ./contrib/gitlab/clean_profile.sh coverage
+
+coverage_update:
+  extends: .coverage
+  timeout: 2h
+  variables:
+    RUNNER_SCRIPT_TIMEOUT: 118m
+    RUNNER_AFTER_SCRIPT_TIMEOUT: 2m
+  dependencies:
+    - coverage
+  needs:
+    - coverage
+  tags: ['starpu', 'node_gpu']
+  script:
+    - ./contrib/gitlab/upload.sh ./artifacts
