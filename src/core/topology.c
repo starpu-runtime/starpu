@@ -530,6 +530,16 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 	if (!config->force_conf_reload && topology_is_initialized)
 		return;
 
+	if (topology_is_initialized)
+	{
+#ifdef STARPU_HAVE_HWLOC
+		_starpu_deallocate_topology_userdata(hwloc_get_root_obj(config->topology.hwtopology));
+		hwloc_bitmap_free(config->topology.log_cpuset);
+		hwloc_bitmap_free(config->topology.log_coreset);
+		hwloc_topology_destroy(config->topology.hwtopology);
+#endif
+	}
+
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 	if (config->conf.nopencl != 0 || config->force_conf_reload)
 		_starpu_opencl_init();
