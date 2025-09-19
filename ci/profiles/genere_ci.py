@@ -189,6 +189,10 @@ def create_builder(profile, profile_iname, profile_name, profile_host):
             restrict = profile['rcheck']
         checkCommand = ["make"] + parallel + ["--keep-going", "check"] + restrict
 
+        p.addStep(Command(["# is make check disabled?"]))
+        p.addStep(Command(["if test \"$1\" == \"-x\" ; then exit $ret ; fi"]))
+        p.addStep(Command([""]))
+
         p.addStep(Command(["set +e"]))
         p.addStep(Command(["(", "set", "-o", "pipefail", ";"] + checkCommand + ["| " + "tee", "-a", "$starpu_artifacts/fulllog.txt", ")"]))
         p.addStep(Command(["ret=$?"]))
@@ -198,8 +202,8 @@ def create_builder(profile, profile_iname, profile_name, profile_host):
             p.addStep(Command(["make", "showsuite"] + restrict + [">", "$starpu_artifacts/make_showsuite.txt"]))
         p.addStep(Command(["make", "showcheck"] + restrict + [">", "$starpu_artifacts/make_showcheck.txt"]))
 
-    p.addStep(Command(["cat", "$starpu_artifacts/make_showsuite.txt", ">>", "$starpu_artifacts/fulllog.txt"]))
-    p.addStep(Command(["cat", "$starpu_artifacts/make_showcheck.txt", ">>", "$starpu_artifacts/fulllog.txt"]))
+        p.addStep(Command(["cat", "$starpu_artifacts/make_showsuite.txt", ">>", "$starpu_artifacts/fulllog.txt"]))
+        p.addStep(Command(["cat", "$starpu_artifacts/make_showcheck.txt", ">>", "$starpu_artifacts/fulllog.txt"]))
 
     if profile['deploy']:
         p.addStep(Command([""]))

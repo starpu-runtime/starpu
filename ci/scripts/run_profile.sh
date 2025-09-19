@@ -22,8 +22,11 @@ then
     exit 1
 fi
 
+profile=$1
+shift
+
 set -x
-script=$($(dirname $0)/../profiles/genere_ci.py -p $1)
+script=$($(dirname $0)/../profiles/genere_ci.py -p $profile)
 if test -z "$script"
 then
     echo Profile $1 unknown
@@ -31,4 +34,5 @@ then
 fi
 
 echo "Running script $script"
-. $script
+. $script $*
+
