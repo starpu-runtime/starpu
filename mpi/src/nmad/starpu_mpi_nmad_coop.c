@@ -95,11 +95,12 @@ void _starpu_mpi_submit_coop_sends(struct _starpu_mpi_coop_sends *coop_sends, in
 		unsigned i = 0;
 		struct _starpu_mpi_req *starpu_req;
 
-		struct mcast_send* mcast = malloc(sizeof(struct mcast_send));
-		mcast->dests = malloc(n * sizeof(int));
+		struct mcast_send *mcast;
+		_STARPU_MALLOC(mcast, sizeof(struct mcast_send));
+		_STARPU_MALLOC(mcast->dests, n * sizeof(int));
 		if (_starpu_mpi_use_prio)
 		{
-			mcast->prios = malloc(n * sizeof(int));
+			_STARPU_MALLOC(mcast->prios, n * sizeof(int));
 		}
 		else
 		{

@@ -363,7 +363,7 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 				HASH_FIND(hh, unique_shared_alloc_table, &dim, sizeof(dim), block);
 				if(block==NULL)
 				{
-					block = (struct unique_shared_alloc*)malloc(sizeof(struct unique_shared_alloc));
+					_STARPU_MALLOC(block, sizeof(struct unique_shared_alloc));
 					block->addr = SMPI_SHARED_MALLOC(dim);
 					block->count = 1;
 					block->id = dim;

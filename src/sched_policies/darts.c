@@ -364,7 +364,7 @@ void starpu_darts_reinitialize_structures(unsigned sched_ctx_id)
 	/* Re-init for the next iteration of the application */
 	free(tab_gpu_planned_task);
 	iteration_DARTS++; /* Used to know if a data must be added again in the list of data of each planned task. */
-	tab_gpu_planned_task = calloc(_nb_gpus, sizeof(struct _starpu_darts_gpu_planned_task));
+	_STARPU_CALLOC(tab_gpu_planned_task, _nb_gpus, sizeof(struct _starpu_darts_gpu_planned_task));
 	_starpu_darts_tab_gpu_planned_task_init();
 
 	_REFINED_MUTEX_UNLOCK();
@@ -590,7 +590,7 @@ static void initialize_task_data_gpu_single_task_no_dependencies(struct starpu_t
 				/* If the data already has an existing structure */
 				if (STARPU_TASK_GET_HANDLE(task, j)->user_data != NULL)
 				{
-					hud = malloc(sizeof(*hud));
+					_STARPU_MALLOC(hud, sizeof(*hud));
 					hud = STARPU_TASK_GET_HANDLE(task, j)->user_data;
 
 					if ((hud->last_iteration_DARTS != iteration_DARTS || hud->is_present_in_data_not_used_yet[i] == 0) && (access_mode_is_W == false)) /* It is a new iteration of the same application, so the data must be re-initialized. */
@@ -631,7 +631,8 @@ static void initialize_task_data_gpu_single_task_no_dependencies(struct starpu_t
 	}
 
 	/* Adding the pointer in the task. */
-	struct _starpu_darts_pointer_in_task *pt = malloc(sizeof(*pt));
+	struct _starpu_darts_pointer_in_task *pt;
+	_STARPU_MALLOC(pt, sizeof(*pt));
 	pt->pointer_to_cell = task;
 
 	/* If no read at all for this task, don't add the data in the task */
@@ -643,8 +644,8 @@ static void initialize_task_data_gpu_single_task_no_dependencies(struct starpu_t
 		return;
 	}
 
-	pt->pointer_to_D = malloc(number_read_data*sizeof(STARPU_TASK_GET_HANDLE(task, 0)));
-	pt->tud = malloc(number_read_data*sizeof(_starpu_darts_task_using_data_new()));
+	_STARPU_MALLOC(pt->pointer_to_D, number_read_data*sizeof(STARPU_TASK_GET_HANDLE(task, 0)));
+	_STARPU_MALLOC(pt->tud, number_read_data*sizeof(_starpu_darts_task_using_data_new()));
 
 	unsigned i;
 	for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
@@ -677,10 +678,10 @@ static void initialize_task_data_gpu_single_task_no_dependencies(struct starpu_t
 				hud->last_iteration_DARTS = iteration_DARTS;
 
 				/* Need to init them with the number of GPU */
-				hud->nb_task_in_pulled_task = malloc(_nb_gpus*sizeof(int));
-				hud->nb_task_in_planned_task = malloc(_nb_gpus*sizeof(int));
-				hud->last_check_to_choose_from = malloc(_nb_gpus*sizeof(int));
-				hud->is_present_in_data_not_used_yet = malloc(_nb_gpus*sizeof(int));
+				_STARPU_MALLOC(hud->nb_task_in_pulled_task, _nb_gpus*sizeof(int));
+				_STARPU_MALLOC(hud->nb_task_in_planned_task, _nb_gpus*sizeof(int));
+				_STARPU_MALLOC(hud->last_check_to_choose_from, _nb_gpus*sizeof(int));
+				_STARPU_MALLOC(hud->is_present_in_data_not_used_yet, _nb_gpus*sizeof(int));
 				hud->sum_remaining_task_expected_length = starpu_task_expected_length(task, perf_arch, 0);
 
 				int j;
@@ -747,14 +748,15 @@ static void initialize_task_data_gpu_single_task_dependencies(struct starpu_task
 			/* Unregister fix */
 			_starpu_data_set_unregister_hook(STARPU_TASK_GET_HANDLE(task, i), unregister_data_all_pu);
 
-			struct _starpu_darts_handle_user_data *hud = malloc(sizeof(*hud));
+			struct _starpu_darts_handle_user_data *hud;
+			_STARPU_MALLOC(hud, sizeof(*hud));
 			hud->last_iteration_DARTS = iteration_DARTS;
-			hud->nb_task_in_pulled_task = malloc(_nb_gpus*sizeof(int));
-			hud->nb_task_in_planned_task = malloc(_nb_gpus*sizeof(int));
-			hud->last_check_to_choose_from = malloc(_nb_gpus*sizeof(int));
-			hud->is_present_in_data_not_used_yet = malloc(_nb_gpus*sizeof(int));
+			_STARPU_MALLOC(hud->nb_task_in_pulled_task, _nb_gpus*sizeof(int));
+			_STARPU_MALLOC(hud->nb_task_in_planned_task, _nb_gpus*sizeof(int));
+			_STARPU_MALLOC(hud->last_check_to_choose_from, _nb_gpus*sizeof(int));
+			_STARPU_MALLOC(hud->is_present_in_data_not_used_yet, _nb_gpus*sizeof(int));
 			hud->sum_remaining_task_expected_length = starpu_task_expected_length(task, perf_arch, 0);
-			hud->data_not_used = malloc(_nb_gpus*sizeof(struct _starpu_darts_gpu_data_not_used*));
+			_STARPU_MALLOC(hud->data_not_used, _nb_gpus*sizeof(struct _starpu_darts_gpu_data_not_used*));
 
 			_STARPU_SCHED_PRINT("Data is new. Expected length in data %p: %f\n", STARPU_TASK_GET_HANDLE(task, i), hud->sum_remaining_task_expected_length);
 
@@ -853,7 +855,8 @@ static void initialize_task_data_gpu_single_task_dependencies(struct starpu_task
 	}
 
 	/* Adding the pointer in the task. */
-	struct _starpu_darts_pointer_in_task *pt = malloc(sizeof(*pt));
+	struct _starpu_darts_pointer_in_task *pt;
+	_STARPU_MALLOC(pt, sizeof(*pt));
 	pt->pointer_to_cell = task;
 
 	/* If no read at all for this task, don't add the data in the task */
@@ -865,8 +868,8 @@ static void initialize_task_data_gpu_single_task_dependencies(struct starpu_task
 		return;
 	}
 
-	pt->pointer_to_D = malloc(number_read_data*sizeof(STARPU_TASK_GET_HANDLE(task, 0)));
-	pt->tud = malloc(number_read_data*sizeof(_starpu_darts_task_using_data_new()));
+	_STARPU_MALLOC(pt->pointer_to_D, number_read_data*sizeof(STARPU_TASK_GET_HANDLE(task, 0)));
+	_STARPU_MALLOC(pt->tud, number_read_data*sizeof(_starpu_darts_task_using_data_new()));
 
 	for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 	{
@@ -1048,8 +1051,8 @@ static int darts_push_task(struct starpu_sched_component *component, struct star
 	/* Pushing free task directly in a gpu's planned task. */
 	if (push_free_task_on_gpu_with_least_task_in_planned_task == 1) /* Getting the gpu with the least tasks in planned task */
 	{
-		sorted_gpu_list_by_nb_task_in_planned_task = malloc(_nb_gpus*sizeof(int));
-		planned_task_sizes = malloc(_nb_gpus*sizeof(int));
+		_STARPU_MALLOC(sorted_gpu_list_by_nb_task_in_planned_task, _nb_gpus*sizeof(int));
+		_STARPU_MALLOC(planned_task_sizes, _nb_gpus*sizeof(int));
 		int j;
 		for (j = 0; j < _nb_gpus; j++)
 		{
@@ -3129,8 +3132,8 @@ static starpu_data_handle_t darts_victim_selector(starpu_data_handle_t toload, u
 				starpu_task_list_erase(&tab_gpu_planned_task[current_gpu].planned_task, pt->pointer_to_cell);
 
 				pt->pointer_to_cell = task;
-				pt->pointer_to_D = malloc(get_nbuffer_without_scratch(task)*sizeof(STARPU_TASK_GET_HANDLE(task, 0)));
-				pt->tud = malloc(get_nbuffer_without_scratch(task)*sizeof(_starpu_darts_task_using_data_new()));
+				_STARPU_MALLOC(pt->pointer_to_D, get_nbuffer_without_scratch(task)*sizeof(STARPU_TASK_GET_HANDLE(task, 0)));
+				_STARPU_MALLOC(pt->tud, get_nbuffer_without_scratch(task)*sizeof(_starpu_darts_task_using_data_new()));
 
 				for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 				{
@@ -3293,7 +3296,7 @@ struct starpu_sched_component *starpu_sched_component_darts_create(struct starpu
 	new_tasks_initialized = false;
 	round_robin_free_task = -1; /* Starts at -1 because it is updated at the beginning and not the end of push_task. Thus to start at 0 on the first task you need to init it at -1. */
 	/* Initialize memory node of each GPU or CPU */
-	memory_nodes = malloc(sizeof(int)*_nb_gpus);
+	_STARPU_MALLOC(memory_nodes, sizeof(int)*_nb_gpus);
 	int i;
 	for (i = 0; i < _nb_gpus; i++)
 	{
@@ -3364,16 +3367,16 @@ struct starpu_sched_component *starpu_sched_component_darts_create(struct starpu
 	starpu_task_list_init(&data->sched_list);
 	starpu_task_list_init(&data->main_task_list);
 
-	tab_gpu_planned_task = malloc(_nb_gpus*sizeof(struct _starpu_darts_gpu_planned_task));
+	_STARPU_MALLOC(tab_gpu_planned_task, _nb_gpus*sizeof(struct _starpu_darts_gpu_planned_task));
 	_starpu_darts_tab_gpu_planned_task_init();
-	tab_gpu_pulled_task = malloc(_nb_gpus*sizeof(struct _starpu_darts_gpu_pulled_task));
+	_STARPU_MALLOC(tab_gpu_pulled_task, _nb_gpus*sizeof(struct _starpu_darts_gpu_pulled_task));
 	_starpu_darts_tab_gpu_pulled_task_init();
 
 	_REFINED_MUTEX_INIT();
 	_LINEAR_MUTEX_INIT();
 
-	Dopt = calloc(_nb_gpus, sizeof(starpu_data_handle_t));
-	data_conflict = malloc(_nb_gpus*sizeof(bool));
+	_STARPU_CALLOC(Do, c(_nb_gpus, sizeof(starpu_data_handle_t));
+	_STARPU_MALLOC(data_conflict, _nb_gpus*sizeof(bool));
 
 	component->data = data;
 	component->push_task = darts_push_task;

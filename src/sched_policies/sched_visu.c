@@ -50,8 +50,8 @@ void _sched_visu_init(int nb_gpus)
 {
 	(void)nb_gpus;
 #ifdef PRINT_PYTHON
-	_index_current_popped_task = malloc(sizeof(int)*nb_gpus);
-	_index_current_popped_task_prefetch = malloc(sizeof(int)*nb_gpus);
+	_STARPU_MALLOC(_index_current_popped_task, sizeof(int)*nb_gpus);
+	_STARPU_MALLOC(_index_current_popped_task_prefetch, sizeof(int)*nb_gpus);
 	_index_current_popped_task_all_gpu = 0;
 	_index_current_popped_task_all_gpu_prefetch = 0;
 #endif

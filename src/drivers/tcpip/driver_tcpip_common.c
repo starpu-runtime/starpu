@@ -61,7 +61,7 @@ typedef starpu_ssize_t(*what_t)(int fd, void *buf, size_t count);
 static int tcpip_initialized = 0;
 //static int src_node_id = 0;
 static int nb_sink;
-static char* host_port;
+static char *host_port;
 static int index_sink = 0;
 
 int _starpu_tcpip_common_multiple_thread;
@@ -106,7 +106,7 @@ struct _starpu_tcpip_sc_request
 	/*the struct of client socket to send/receive message*/
 	struct _starpu_tcpip_socket *client_sock;
 	/*the message to send/receive*/
-	char* buf;
+	char *buf;
 	/*the length of message*/
 	int len;
 	/*a flag to detect whether the operation is completed*/
@@ -154,7 +154,7 @@ struct _starpu_tcpip_req_pending
 };
 
 //function thread
-static void * _starpu_tcpip_thread_pending(void *foo STARPU_ATTRIBUTE_UNUSED)
+static void *_starpu_tcpip_thread_pending(void *foo STARPU_ATTRIBUTE_UNUSED)
 {
 	fd_set reads;
 	fd_set writes;
@@ -196,7 +196,7 @@ static void * _starpu_tcpip_thread_pending(void *foo STARPU_ATTRIBUTE_UNUSED)
 				_SELECT_PRINT("pop push loop %d\n", i);
 				_starpu_spin_lock(&ListLock);
 				STARPU_ASSERT(!_starpu_tcpip_sc_request_multilist_empty_thread(&thread_list));
-				struct _starpu_tcpip_sc_request * req_thread = _starpu_tcpip_sc_request_multilist_pop_front_thread(&thread_list);
+				struct _starpu_tcpip_sc_request *req_thread = _starpu_tcpip_sc_request_multilist_pop_front_thread(&thread_list);
 				_starpu_spin_unlock(&ListLock);
 
 				int client_sock = req_thread->client_sock->async_sock;
@@ -235,10 +235,10 @@ static void * _starpu_tcpip_thread_pending(void *foo STARPU_ATTRIBUTE_UNUSED)
 			int client_sock = table->client_sock;
 			_SELECT_PRINT("client_sock in loop is %d\n", client_sock);
 
-			void socket_action(what_t what, const char * whatstr, struct _starpu_tcpip_sc_request_multilist_thread *list, fd_set * fdset)
+			void socket_action(what_t what, const char *whatstr, struct _starpu_tcpip_sc_request_multilist_thread *list, fd_set *fdset)
 			{
-				struct _starpu_tcpip_sc_request * req = _starpu_tcpip_sc_request_multilist_begin_thread(list);
-				char* msg = req->buf;
+				struct _starpu_tcpip_sc_request *req = _starpu_tcpip_sc_request_multilist_begin_thread(list);
+				char *msg = req->buf;
 				int len = req->len;
 
 				int res = 0;
@@ -277,7 +277,7 @@ static void * _starpu_tcpip_thread_pending(void *foo STARPU_ATTRIBUTE_UNUSED)
 
 				if(pfd.revents & POLLERR)
 				{
-					struct _starpu_tcpip_sc_request * req_pending = _starpu_tcpip_sc_request_multilist_begin_pending(&table->pending_list);
+					struct _starpu_tcpip_sc_request *req_pending = _starpu_tcpip_sc_request_multilist_begin_pending(&table->pending_list);
 					_ZC_PRINT("nbsend is %d\n", req_pending->client_sock->nbsend);
 					struct sock_extended_err *serr;
 					struct msghdr mg = {};
@@ -324,7 +324,7 @@ static void * _starpu_tcpip_thread_pending(void *foo STARPU_ATTRIBUTE_UNUSED)
 					_ZC_PRINT("send end is %d\n", req_pending->send_end);
 					while(!_starpu_tcpip_sc_request_multilist_empty_pending(&table->pending_list))
 					{
-						struct _starpu_tcpip_sc_request * req_tmp = _starpu_tcpip_sc_request_multilist_begin_pending(&table->pending_list);
+						struct _starpu_tcpip_sc_request *req_tmp = _starpu_tcpip_sc_request_multilist_begin_pending(&table->pending_list);
 
 						if(hi+1 >= req_tmp->send_end)
 						{
@@ -349,8 +349,8 @@ static void * _starpu_tcpip_thread_pending(void *foo STARPU_ATTRIBUTE_UNUSED)
 				{
 					if(!(_starpu_tcpip_sc_request_multilist_empty_thread(&table->send_list)))
 					{
-						struct _starpu_tcpip_sc_request * req = _starpu_tcpip_sc_request_multilist_begin_thread(&table->send_list);
-						char* msg = req->buf;
+						struct _starpu_tcpip_sc_request *req = _starpu_tcpip_sc_request_multilist_begin_thread(&table->send_list);
+						char *msg = req->buf;
 						int len = req->len;
 
 						if(req->client_sock->zerocopy)
@@ -458,7 +458,7 @@ int _starpu_tcpip_common_mp_init()
 	_STARPU_CALLOC(tcpip_sock, nb_sink + 1, sizeof(struct _starpu_tcpip_socket));
 	_STARPU_MALLOC(local_flag, (nb_sink + 1)*sizeof(int));
 
-	struct sockaddr_in* sink_addr_list;
+	struct sockaddr_in *sink_addr_list;
 	_STARPU_MALLOC(sink_addr_list, (nb_sink + 1)*sizeof(struct sockaddr_in));
 
 #if _TCPIP_DEBUG
@@ -1054,11 +1054,11 @@ void _starpu_tcpip_common_signal(const struct _starpu_mp_node *mp_node STARPU_AT
 	STARPU_ASSERT(res == 0);
 }
 
-static void __starpu_tcpip_common_send(const struct _starpu_mp_node *node, void *msg, int len, void * event, int notif);
-static void __starpu_tcpip_common_recv(const struct _starpu_mp_node *node, void *msg, int len, void * event, int notif);
-static void _starpu_tcpip_common_action_socket(what_t what, const char * whatstr, int is_sender, const struct _starpu_mp_node *node, struct _starpu_tcpip_socket *client_sock, void *msg, int len, void * event, int notif);
-static void _starpu_tcpip_common_send_to_socket(const struct _starpu_mp_node *node, struct _starpu_tcpip_socket *dst_sock, void *msg, int len, void * event, int notif);
-static void _starpu_tcpip_common_recv_from_socket(const struct _starpu_mp_node *node, struct _starpu_tcpip_socket *src_sock, void *msg, int len, void * event, int notif);
+static void __starpu_tcpip_common_send(const struct _starpu_mp_node *node, void *msg, int len, void *event, int notif);
+static void __starpu_tcpip_common_recv(const struct _starpu_mp_node *node, void *msg, int len, void *event, int notif);
+static void _starpu_tcpip_common_action_socket(what_t what, const char *whatstr, int is_sender, const struct _starpu_mp_node *node, struct _starpu_tcpip_socket *client_sock, void *msg, int len, void *event, int notif);
+static void _starpu_tcpip_common_send_to_socket(const struct _starpu_mp_node *node, struct _starpu_tcpip_socket *dst_sock, void *msg, int len, void *event, int notif);
+static void _starpu_tcpip_common_recv_from_socket(const struct _starpu_mp_node *node, struct _starpu_tcpip_socket *src_sock, void *msg, int len, void *event, int notif);
 
 /* SEND */
 void _starpu_tcpip_common_mp_send(const struct _starpu_mp_node *node, void *msg, int len)
@@ -1072,24 +1072,24 @@ void _starpu_tcpip_common_nt_send(const struct _starpu_mp_node *node, void *msg,
 }
 
 /* SEND to source node */
-void _starpu_tcpip_common_send(const struct _starpu_mp_node *node, void *msg, int len, void * event)
+void _starpu_tcpip_common_send(const struct _starpu_mp_node *node, void *msg, int len, void *event)
 {
 	__starpu_tcpip_common_send(node, msg, len, event, 0);
 }
 
-static void __starpu_tcpip_common_send(const struct _starpu_mp_node *node, void *msg, int len, void * event, int notif)
+static void __starpu_tcpip_common_send(const struct _starpu_mp_node *node, void *msg, int len, void *event, int notif)
 {
 	_starpu_tcpip_common_send_to_socket(node, node->mp_connection.tcpip_mp_connection, msg, len, event, notif);
 }
 
 /* SEND to any node */
-void _starpu_tcpip_common_send_to_device(const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, int devid, void *msg, int len, void * event)
+void _starpu_tcpip_common_send_to_device(const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, int devid, void *msg, int len, void *event)
 {
 	struct _starpu_tcpip_socket *dst_sock = &tcpip_sock[devid];
 	_starpu_tcpip_common_send_to_socket(node, dst_sock, msg, len, event, 0);
 }
 
-static void _starpu_tcpip_common_send_to_socket(const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, struct _starpu_tcpip_socket *dst_sock, void *msg, int len, void * event, int notif)
+static void _starpu_tcpip_common_send_to_socket(const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, struct _starpu_tcpip_socket *dst_sock, void *msg, int len, void *event, int notif)
 {
 	_starpu_tcpip_common_action_socket((what_t)write, "send", 1, node, dst_sock, msg, len, event, notif);
 }
@@ -1106,38 +1106,38 @@ void _starpu_tcpip_common_nt_recv(const struct _starpu_mp_node *node, void *msg,
 	__starpu_tcpip_common_recv(node, msg, len, NULL, 1);
 }
 
-void _starpu_tcpip_common_recv(const struct _starpu_mp_node *node, void *msg, int len, void * event)
+void _starpu_tcpip_common_recv(const struct _starpu_mp_node *node, void *msg, int len, void *event)
 {
 	__starpu_tcpip_common_recv(node, msg, len, event, 0);
 }
 
 /* RECV from source node */
-static void __starpu_tcpip_common_recv(const struct _starpu_mp_node *node, void *msg, int len, void * event, int notif)
+static void __starpu_tcpip_common_recv(const struct _starpu_mp_node *node, void *msg, int len, void *event, int notif)
 {
 	_starpu_tcpip_common_recv_from_socket(node, node->mp_connection.tcpip_mp_connection, msg, len, event, notif);
 }
 
 /* RECV from any node */
-void _starpu_tcpip_common_recv_from_device(const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, int devid, void *msg, int len, void * event)
+void _starpu_tcpip_common_recv_from_device(const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, int devid, void *msg, int len, void *event)
 {
 	struct _starpu_tcpip_socket *src_sock = &tcpip_sock[devid];
 	_starpu_tcpip_common_recv_from_socket(node, src_sock, msg, len, event, 0);
 }
 
-static void _starpu_tcpip_common_recv_from_socket(const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, struct _starpu_tcpip_socket *src_sock, void *msg, int len, void * event, int notif)
+static void _starpu_tcpip_common_recv_from_socket(const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, struct _starpu_tcpip_socket *src_sock, void *msg, int len, void *event, int notif)
 {
 	_starpu_tcpip_common_action_socket(read, "recv", 0, node, src_sock, msg, len, event, notif);
 }
 
 /*do refactor for SEND to and RECV from socket */
-static void _starpu_tcpip_common_action_socket(what_t what, const char * whatstr, int is_sender, const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, struct _starpu_tcpip_socket *client_sock, void *msg, int len, void * event, int notif)
+static void _starpu_tcpip_common_action_socket(what_t what, const char *whatstr, int is_sender, const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, struct _starpu_tcpip_socket *client_sock, void *msg, int len, void *event, int notif)
 {
 	if (event)
 	{
 		_TCPIP_PRINT("async %s\n", whatstr);
 		_TCPIP_PRINT("%s %d bytes to %d message %x\n", whatstr, len, client_sock->async_sock, *((int *) (uintptr_t)msg));
 		/* Asynchronous*/
-		struct _starpu_async_channel * channel = event;
+		struct _starpu_async_channel *channel = event;
 		struct _starpu_tcpip_sc_async_event *tcpip_sc_event = _starpu_tcpip_sc_async_event(&channel->event);
 		tcpip_sc_event->is_sender = is_sender;
 
@@ -1163,7 +1163,8 @@ static void _starpu_tcpip_common_action_socket(what_t what, const char * whatstr
 		 * pointers come from */
 		if (is_sender)
 		{
-			char *c = malloc(len);
+			char *c;
+			_STARPU_MALLOC(c, len);
 			memcpy(c, msg, len);
 			free(c);
 		}
@@ -1234,7 +1235,7 @@ static void _starpu_tcpip_common_action_socket(what_t what, const char * whatstr
 
 }
 
-static void _starpu_tcpip_common_polling_node(struct _starpu_mp_node * node)
+static void _starpu_tcpip_common_polling_node(struct _starpu_mp_node *node)
 {
 	/* poll the asynchronous messages.*/
 	if (node != NULL)
@@ -1257,14 +1258,14 @@ static void _starpu_tcpip_common_polling_node(struct _starpu_mp_node * node)
 }
 
 /*do refactor for test event and wait request completion */
-static unsigned int _starpu_tcpip_common_action_completion(int wait, struct _starpu_async_channel * event)
+static unsigned int _starpu_tcpip_common_action_completion(int wait, struct _starpu_async_channel *event)
 {
 	struct _starpu_tcpip_sc_async_event *tcpip_sc_event = _starpu_tcpip_sc_async_event(&event->event);
 
 	if (tcpip_sc_event->requests != NULL)
 	{
-		struct _starpu_tcpip_sc_request * req;
-		struct _starpu_tcpip_sc_request * req_next;
+		struct _starpu_tcpip_sc_request *req;
+		struct _starpu_tcpip_sc_request *req_next;
 
 		//_TCPIP_PRINT("event requests is %p\n", req);
 		for (req = _starpu_tcpip_sc_request_multilist_begin_event(tcpip_sc_event->requests);
@@ -1324,7 +1325,7 @@ static unsigned int _starpu_tcpip_common_action_completion(int wait, struct _sta
 /* - In device to device communications, the first ack received by host
  * is considered as the sender (but it cannot be, in fact, the sender)
  */
-unsigned int _starpu_tcpip_common_test_event(struct _starpu_async_channel * event)
+unsigned int _starpu_tcpip_common_test_event(struct _starpu_async_channel *event)
 {
 	return _starpu_tcpip_common_action_completion(0, event);
 }
@@ -1333,7 +1334,7 @@ unsigned int _starpu_tcpip_common_test_event(struct _starpu_async_channel * even
  * is considered as the sender (but it cannot be, in fact, the sender)
  */
 /* Only used at starpu_shutdown */
-void _starpu_tcpip_common_wait_request_completion(struct _starpu_async_channel * event)
+void _starpu_tcpip_common_wait_request_completion(struct _starpu_async_channel *event)
 {
 	_starpu_tcpip_common_action_completion(1, event);
 }
@@ -1385,7 +1386,7 @@ void _starpu_tcpip_common_measure_bandwidth_latency(double timing_dtod[STARPU_MA
 	int ret;
 	unsigned iter;
 	//_TCPIP_PRINT("index_sink is %d\n", index_sink);
-	char * buf;
+	char *buf;
 	_STARPU_MALLOC(buf, SIZE_BANDWIDTH);
 	memset(buf, 0, SIZE_BANDWIDTH);
 

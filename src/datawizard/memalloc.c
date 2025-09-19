@@ -606,7 +606,8 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 			/* Handle is busy, abort */
 			return 0;
 
-		if (!mc->replicate) {
+		if (!mc->replicate)
+		{
 			/* _starpu_request_mem_chunk_removal removed it before us */
 			_starpu_spin_unlock(&handle->header_lock);
 			return 0;

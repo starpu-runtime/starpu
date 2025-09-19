@@ -150,7 +150,7 @@ static struct starpu_task *random_order_pull_task(struct starpu_sched_component 
 			if (starpu_get_env_number_default("PRINTF",0) == 1) printf("%d task(s) have been pulled\n",NT);
 
 			temp_task_1  = starpu_task_list_begin(&data->popped_task_list);
-			//~ data->temp_pointer_1->package_data = malloc(STARPU_TASK_GET_NBUFFERS(temp_task_1)*sizeof(data->temp_pointer_1->package_data[0]));
+			//~ _STARPU_MALLOC(data->temp_pointer_1->package_data,  STARPU_TASK_GET_NBUFFERS(temp_task_1)*sizeof(data->temp_pointer_1->package_data[0]));
 			/* One task == one link in the linked list */
 			do_not_add_more = NT - 1;
 			for (temp_task_1  = starpu_task_list_begin(&data->popped_task_list); temp_task_1 != starpu_task_list_end(&data->popped_task_list); temp_task_1  = temp_task_2)

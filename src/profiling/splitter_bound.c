@@ -437,9 +437,13 @@ void _starpu_splitter_bound_calculate()
 	// 			- One variable for each type of task, level and resource, representing the number of task of this type and this level that are not split
 	// 			- One variable for each type of task and level, representing the number of task of this type and this level that are split
 	// 			- One variable representing the execution time
-	int *ia = calloc((2*nb_resources + nb_task_used*nb_level)*( (1+nb_resources)*nb_level*nb_task_used + 1)+1, sizeof(int));
-	int *ja = calloc((2*nb_resources + nb_task_used*nb_level)*( (1+nb_resources)*nb_level*nb_task_used + 1)+1, sizeof(int));
-	double *ar = calloc((2*nb_resources + nb_task_used*nb_level)*( (1+nb_resources)*nb_level*nb_task_used + 1)+1, sizeof(double));
+	int *ia;
+	int *ja;
+	double *ar;
+
+	_STARPU_CALLOC(ia, (2*nb_resources + nb_task_used*nb_level)*( (1+nb_resources)*nb_level*nb_task_used + 1)+1, sizeof(int));
+	_STARPU_CALLOC(ja, (2*nb_resources + nb_task_used*nb_level)*( (1+nb_resources)*nb_level*nb_task_used + 1)+1, sizeof(int));
+	_STARPU_CALLOC(ar, (2*nb_resources + nb_task_used*nb_level)*( (1+nb_resources)*nb_level*nb_task_used + 1)+1, sizeof(double));
 
 	struct starpu_perfmodel_arch *arch_cpu = starpu_worker_get_perf_archtype(starpu_worker_get_by_type(STARPU_CPU_WORKER, 0), STARPU_NMAX_SCHED_CTXS);
 	struct starpu_perfmodel_arch *arch_gpu = nb_cuda > 0 ? starpu_worker_get_perf_archtype(starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0), STARPU_NMAX_SCHED_CTXS) : NULL;

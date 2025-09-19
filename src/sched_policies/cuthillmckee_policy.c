@@ -63,7 +63,8 @@ struct my_list_cm
 /* Put a link at the beginning of the linked list */
 static void insertion_cuthillmckee(struct cuthillmckee_sched_data *a)
 {
-	struct my_list_cm *new = malloc(sizeof(*new)); /* Creation of a new link */
+	struct my_list_cm *new; /* Creation of a new link */
+	_STARPU_MALLOC(new, sizeof(*new));
 	starpu_task_list_init(&new->sub_list);
 	new->next = a->temp_pointer_1;
 	a->temp_pointer_1 = new;
@@ -382,8 +383,9 @@ struct starpu_sched_component *starpu_sched_component_cuthillmckee_create(struct
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "cuthillmckee");
 
 	struct cuthillmckee_sched_data *data;
-	struct my_list_cm *my_data = malloc(sizeof(*my_data));
+	struct my_list_cm *my_data;
 	_STARPU_MALLOC(data, sizeof(*data));
+	_STARPU_MALLOC(my_data, sizeof(*my_data));
 
 	do_schedule_done_cm = false;
 

@@ -32,7 +32,7 @@ void cpu_task(void **buffers, void *args)
 	int size;
 
 	numbers = (int *) STARPU_VECTOR_GET_PTR(buffers[0]);
-	starpu_codelet_unpack_args (args, &size);
+	starpu_codelet_unpack_args(args, &size);
 
 	for(i = 0; i < (int)size; i++)
 	{
@@ -48,7 +48,7 @@ static void cuda_task(void **buffers, void *args)
 	int size;
 
 	numbers = (int *)STARPU_VECTOR_GET_PTR(buffers[0]);
-	starpu_codelet_unpack_args (args, &size);
+	starpu_codelet_unpack_args(args, &size);
 
 	for(i = 0; i < (int)size; i++)
 	{
@@ -117,18 +117,15 @@ int main(int argc, char *argv[])
 	err = starpu_malloc((void **)&pointer, count * sizeof(int));
 	STARPU_ASSERT((err == 0) && (pointer != NULL));
 
-	starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)pointer,
-				      sizeof(int));
+	starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)pointer, sizeof(int));
 	STARPU_ASSERT(starpu_data_handle_to_pointer(handle, STARPU_MAIN_RAM) == pointer);
 	starpu_data_unregister(handle);
 
-	starpu_vector_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)pointer,
-				    count, sizeof(int));
+	starpu_vector_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)pointer, count, sizeof(int));
 	STARPU_ASSERT(starpu_data_handle_to_pointer(handle, STARPU_MAIN_RAM) == pointer);
 	starpu_data_unregister(handle);
 
-	starpu_matrix_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)pointer, count,
-				    count, 1, sizeof(int));
+	starpu_matrix_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)pointer, count, count, 1, sizeof(int));
 	STARPU_ASSERT(starpu_data_handle_to_pointer(handle, STARPU_MAIN_RAM) == pointer);
 	starpu_data_unregister(handle);
 
@@ -136,8 +133,7 @@ int main(int argc, char *argv[])
 	pointer = NULL;
 
 	/* Lazy allocation.  */
-	starpu_vector_data_register(&handle, -1, 0 /* NULL */,
-				    count, sizeof(int));
+	starpu_vector_data_register(&handle, -1, 0 /* NULL */, count, sizeof(int));
 	STARPU_ASSERT(starpu_data_handle_to_pointer(handle, STARPU_MAIN_RAM) == NULL);
 
 	/* Pass the handle to a task.  */

@@ -280,12 +280,9 @@ int main(int argc, char *argv[])
 	else if (timeout <= 0)
 	{
 		timeout = DEFAULT_TIMEOUT;
-		if ((launcher && strstr(launcher, "valgrind")) ||
-		    (launcher && strstr(launcher, "helgrind")) ||
-		    tsan)
+		if ((launcher && strstr(launcher, "valgrind")) || (launcher && strstr(launcher, "helgrind")) || tsan)
 			timeout *= 20;
-		if (asan || usan || lsan ||
-		    (launcher && strstr(launcher, "compute-sanitizer")))
+		if (asan || usan || lsan || (launcher && strstr(launcher, "compute-sanitizer")))
 			timeout *= 5;
 
 		if (timeout > 1750)

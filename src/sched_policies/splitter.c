@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020-2024  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2025  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -150,7 +150,7 @@ void _splitter_initialize_data()
 {
 	splitter_data.mutex = malloc(sizeof(starpu_pthread_mutex_t));
 	STARPU_PTHREAD_MUTEX_INIT(splitter_data.mutex, NULL);
-	splitter_data.cache_entries = calloc(NMAX_CL, sizeof(struct cl_data_splitter_entry*));
+	_STARPU_CALLOC(splitter_data.cache_entries, NMAX_CL, sizeof(struct cl_data_splitter_entry*));
 	splitter_data.nb_cache_entries = 0;
 	splitter_data.nb_tasks_registered = 0;
 	splitter_data.nb_tasks_cpus = 0;

@@ -792,7 +792,8 @@ void _starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned
 	}
 
 #ifdef STARPU_RECURSIVE_TASKS
-	struct partition_cb_arg *cb_arg = malloc(sizeof(struct partition_cb_arg));
+	struct partition_cb_arg *cb_arg;
+	_STARPU_MALLOC(cb_arg, sizeof(struct partition_cb_arg));
 	cb_arg->handle = initial_handle;
 
 	char *pname;
@@ -909,7 +910,8 @@ void starpu_data_partition_readonly_submit_sequential_consistency(starpu_data_ha
 	}
 
 #ifdef STARPU_RECURSIVE_TASKS
-	struct partition_cb_arg *cb_arg = malloc(sizeof(struct partition_cb_arg));
+	struct partition_cb_arg *cb_arg;
+	_STARPU_MALLOC(cb_arg, sizeof(struct partition_cb_arg));
 	cb_arg->handle = initial_handle;
 
 	char *pname;
@@ -972,7 +974,8 @@ void starpu_data_partition_readwrite_upgrade_submit(starpu_data_handle_t initial
 	}
 
 #ifdef STARPU_RECURSIVE_TASKS
-	struct partition_cb_arg *cb_arg = malloc(sizeof(struct partition_cb_arg));
+	struct partition_cb_arg *cb_arg;
+	_STARPU_MALLOC(cb, arg, sizeof(struct partition_cb_arg));
 	cb_arg->handle = initial_handle;
 
 	char *pname;
@@ -1369,7 +1372,8 @@ void starpu_data_unpartition_submit_ctrl(starpu_data_handle_t initial_handle, un
 		handles_sequential_consistency[i+1] = children[i]->sequential_consistency;
 
 #ifdef STARPU_RECURSIVE_TASKS
-	struct unpartition_cb_arg *cb_arg = malloc(sizeof(struct unpartition_cb_arg));
+	struct unpartition_cb_arg *cb_arg;
+	_STARPU_MALLOC(cb_arg, sizeof(struct unpartition_cb_arg));
 	cb_arg->initial_handle = initial_handle;
 	cb_arg->nparts         = nparts;
 	cb_arg->children       = children;

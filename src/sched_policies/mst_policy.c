@@ -92,8 +92,10 @@ static struct starpu_task_list mst(struct starpu_task_list task_list, int number
 
 	/* Struct of packages to have one task by package and thus being able to number each task.
 	 * We need to number them to recognize them later on. */
-	struct _starpu_HFP_my_list *temp_sub_list = malloc(sizeof(*temp_sub_list));
-	struct _starpu_HFP_paquets *temp_paquets = malloc(sizeof(*temp_paquets));
+	struct _starpu_HFP_my_list *temp_sub_list;
+	struct _starpu_HFP_paquets *temp_paquets;
+	_STARPU_MALLOC(temp_sub_list, sizeof(*temp_sub_list));
+	_STARPU_MALLOC(temp_paquets, sizeof(*temp_paquets));
 	starpu_task_list_init(&temp_sub_list->sub_list);
 	temp_sub_list->next = NULL;
 	temp_paquets->temp_pointer_1 = temp_sub_list;
@@ -369,10 +371,12 @@ struct starpu_sched_component *starpu_sched_component_mst_create(struct starpu_s
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "mst");
 
 	struct _starpu_HFP_sched_data *data;
-	struct _starpu_HFP_my_list *my_data = malloc(sizeof(*my_data));
-	struct _starpu_HFP_paquets *paquets_data = malloc(sizeof(*paquets_data));
-	_STARPU_MALLOC(data, sizeof(*data));
+	struct _starpu_HFP_my_list *my_data;
+	struct _starpu_HFP_paquets *paquets_data;
 
+	_STARPU_MALLOC(data, sizeof(*data));
+	_STARPU_MALLOC(my_data, sizeof(*my_data));
+	_STARPU_MALLOC(paquets_data, sizeof(*paquets_data));
 	_starpu_visu_init();
 
 	STARPU_PTHREAD_MUTEX_INIT(&data->policy_mutex, NULL);

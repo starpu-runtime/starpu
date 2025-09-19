@@ -306,13 +306,13 @@ static int get_common_data_last_package(struct _starpu_HFP_my_list *I, struct _s
 
 	if (strcmp(_starpu_HFP_appli, "chol_model_11") == 0)
 	{
-		donnee_J = calloc((J->package_nb_data*1.5), sizeof(J->package_data[0]));
-		donnee_I = malloc((I->package_nb_data*1.5) * sizeof(I->package_data[0]));
+		_STARPU_CALLOC(do, alloc((J->package_nb_data*1.5), sizeof(J->package_data[0]));
+		_STARPU_MALLOC(donnee_I, (I->package_nb_data*1.5) * sizeof(I->package_data[0]));
 	}
 	else
 	{
-		donnee_J = calloc((J->package_nb_data), sizeof(J->package_data[0]));
-		donnee_I = malloc((I->package_nb_data) * sizeof(I->package_data[0]));
+		_STARPU_CALLOC(do, alloc((J->package_nb_data), sizeof(J->package_data[0]));
+		_STARPU_MALLOC(donnee_I, (I->package_nb_data) * sizeof(I->package_data[0]));
 	}
 
 	if (evaluation_I == 0)
@@ -343,7 +343,8 @@ static int get_common_data_last_package(struct _starpu_HFP_my_list *I, struct _s
 				break;
 			}
 			poids_tache_en_cours = 0;
-			starpu_data_handle_t * tab_tache_en_cours = malloc((STARPU_TASK_GET_NBUFFERS(task)) * sizeof(I->package_data[0]));
+			starpu_data_handle_t *tab_tache_en_cours;
+			_STARPU_MALLOC(tab_tache_en_cours, (STARPU_TASK_GET_NBUFFERS(task)) * sizeof(I->package_data[0]));
 			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 			{
 				tab_tache_en_cours[i] = NULL;
@@ -413,7 +414,8 @@ static int get_common_data_last_package(struct _starpu_HFP_my_list *I, struct _s
 				task = starpu_task_list_next(task);
 			}
 			poids_tache_en_cours = 0;
-			starpu_data_handle_t * tab_tache_en_cours = malloc((STARPU_TASK_GET_NBUFFERS(task)) * sizeof(I->package_data[0]));
+			starpu_data_handle_t *tab_tache_en_cours;
+			_STARPU_MALLOC(tab_tache_en_cours, (STARPU_TASK_GET_NBUFFERS(task)) * sizeof(I->package_data[0]));
 			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 			{
 				tab_tache_en_cours[i] = NULL;
@@ -501,7 +503,8 @@ static int get_common_data_last_package(struct _starpu_HFP_my_list *I, struct _s
 			{
 				task = starpu_task_list_next(task);
 			}
-			starpu_data_handle_t * tab_tache_en_cours = malloc((STARPU_TASK_GET_NBUFFERS(task)) * sizeof(I->package_data[0]));
+			starpu_data_handle_t *tab_tache_en_cours;
+			_STARPU_MALLOC(tab_tache_en_cours, (STARPU_TASK_GET_NBUFFERS(task)) * sizeof(I->package_data[0]));
 			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 			{
 				tab_tache_en_cours[i] = NULL;
@@ -562,7 +565,8 @@ static int get_common_data_last_package(struct _starpu_HFP_my_list *I, struct _s
 				break;
 			}
 			poids_tache_en_cours = 0;
-			starpu_data_handle_t * tab_tache_en_cours = malloc((STARPU_TASK_GET_NBUFFERS(task)) * sizeof(J->package_data[0]));
+			starpu_data_handle_t *tab_tache_en_cours;
+			_STARPU_MALLOC(tab_tache_en_cours, (STARPU_TASK_GET_NBUFFERS(task)) * sizeof(J->package_data[0]));
 			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 			{
 				tab_tache_en_cours[i] = NULL;
@@ -633,7 +637,8 @@ static int get_common_data_last_package(struct _starpu_HFP_my_list *I, struct _s
 				task = starpu_task_list_next(task);
 			}
 			poids_tache_en_cours = 0;
-			starpu_data_handle_t * tab_tache_en_cours = malloc((STARPU_TASK_GET_NBUFFERS(task)) * sizeof(J->package_data[0]));
+			starpu_data_handle_t *tab_tache_en_cours;
+			_STARPU_MALLOC(tab_tache_en_cours, (STARPU_TASK_GET_NBUFFERS(task)) * sizeof(J->package_data[0]));
 			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 			{
 				tab_tache_en_cours[i] = NULL;
@@ -721,7 +726,8 @@ static int get_common_data_last_package(struct _starpu_HFP_my_list *I, struct _s
 			{
 				task = starpu_task_list_next(task);
 			}
-			starpu_data_handle_t * tab_tache_en_cours = malloc((STARPU_TASK_GET_NBUFFERS(task)) * sizeof(J->package_data[0]));
+			starpu_data_handle_t *tab_tache_en_cours;
+			_STARPU_MALLOC(tab_tache_en_cours, (STARPU_TASK_GET_NBUFFERS(task)) * sizeof(J->package_data[0]));
 			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 			{
 				tab_tache_en_cours[i] = NULL;
@@ -785,7 +791,8 @@ static int HFP_pointeurComparator(const void *first, const void *second)
 //	int processing_order[_nb_gpus]; /* One for each GPU */
 //	for (i = 0; i < _nb_gpus; i++) { processing_order[i] = 0; }
 //	int size = strlen("Output_maxime/Data_coordinates_order_last_.tex") + strlen(algo) + 1;
-//	char *path = (char *)malloc(size);
+//	char *path;
+//      _STARPU_MALLOC(path, size);
 //	strcpy(path, "Output_maxime/Data_coordinates_order_last_");
 //	strcat(path, algo);
 //	strcat(path, ".tex");
@@ -794,7 +801,7 @@ static int HFP_pointeurComparator(const void *first, const void *second)
 //
 //	FILE * fcoordinate_order_last = fopen(path, "w");
 //	size = strlen("Output_maxime/Data_coordinates_order_last_.txt") + strlen(algo) + 1;
-//	path = (char *)malloc(size);
+//      _STARPU_MALLOC(path, size);
 //	strcpy(path, "Output_maxime/Data_coordinates_order_last_");
 //	strcat(path, algo);
 //	strcat(path, ".txt");
@@ -1106,8 +1113,11 @@ static int HFP_pointeurComparator(const void *first, const void *second)
  * Which is different than expected time used in our experiments. */
 static struct _starpu_HFP_data_on_node *init_data_list(starpu_data_handle_t d)
 {
-	struct _starpu_HFP_data_on_node *liste = malloc(sizeof(*liste));
-	struct _starpu_HFP_handle *element = malloc(sizeof(*element));
+	struct _starpu_HFP_data_on_node *liste;
+	struct _starpu_HFP_handle *element;
+
+	_STARPU_MALLOC(liste, sizeof(*liste));
+	_STARPU_MALLOC(element, sizeof(*element));
 
 	if (liste == NULL || element == NULL)
 	{
@@ -1154,7 +1164,8 @@ static bool is_it_a_C_tile_data_never_used_again(starpu_data_handle_t h, int i, 
 /* Encore une fois seulement pour MULTIGPU == 6 */
 static void insertion_data_on_node(struct _starpu_HFP_data_on_node *liste, starpu_data_handle_t nvNombre, int use_order, int i, struct starpu_task_list *l, struct starpu_task *current_task)
 {
-	struct _starpu_HFP_handle *nouveau = malloc(sizeof(*nouveau));
+	struct _starpu_HFP_handle *nouveau;
+	_STARPU_MALLOC(nouveau, sizeof(*nouveau));
 	if (liste == NULL || nouveau == NULL)
 	{
 		perror("List in void insertion_data_on_node is NULL\n");
@@ -1281,9 +1292,11 @@ static void merge_task_and_package(struct _starpu_HFP_my_list *package, struct s
 {
 	int tab_runner = 0; int nb_duplicate_data = 0;
 	package->nb_task_in_sub_list++;
-	starpu_data_handle_t *temp_data_tab = malloc((package->package_nb_data + STARPU_TASK_GET_NBUFFERS(task))*sizeof(package->package_data[0]));
+	starpu_data_handle_t *temp_data_tab;
 	int i=0;
 	unsigned j=0;
+
+	_STARPU_MALLOC(temp_data_tab, (package->package_nb_data + STARPU_TASK_GET_NBUFFERS(task))*sizeof(package->package_data[0]));
 	while (i < package->package_nb_data && j < STARPU_TASK_GET_NBUFFERS(task))
 	{
 		if (package->package_data[i] <= STARPU_TASK_GET_HANDLE(task,j))
@@ -1318,7 +1331,7 @@ static void merge_task_and_package(struct _starpu_HFP_my_list *package, struct s
 			nb_duplicate_data++;
 		}
 	}
-	package->package_data = malloc((package->package_nb_data + STARPU_TASK_GET_NBUFFERS(task) - nb_duplicate_data) * sizeof(starpu_data_handle_t));
+	_STARPU_MALLOC(package->package_data, (package->package_nb_data + STARPU_TASK_GET_NBUFFERS(task) - nb_duplicate_data) * sizeof(starpu_data_handle_t));
 	j = 0;
 	for (i = 0; i < (package->package_nb_data + (int)STARPU_TASK_GET_NBUFFERS(task)); i++)
 	{
@@ -1862,8 +1875,11 @@ static int HFP_push_task(struct starpu_sched_component *component, struct starpu
  */
 static struct _starpu_HFP_paquets* hierarchical_fair_packing(struct starpu_task_list *task_list, int number_task, int number_of_package_to_build)
 {
-	struct _starpu_HFP_paquets *paquets_data = malloc(sizeof(*paquets_data));
-	struct _starpu_HFP_my_list *my_data = malloc(sizeof(*my_data));
+	struct _starpu_HFP_paquets *paquets_data;
+	struct _starpu_HFP_my_list *my_data;
+
+	_STARPU_MALLOC(my_data, sizeof(*my_data));
+	_STARPU_MALLOC(paquets_data, sizeof(*paquets_data));
 	starpu_task_list_init(&my_data->sub_list);
 	starpu_task_list_init(&my_data->refused_fifo_list);
 	my_data->next = NULL;
@@ -1908,8 +1924,9 @@ static struct _starpu_HFP_paquets* hierarchical_fair_packing(struct starpu_task_
 			n_duplicate_cho = 0;
 
 			/* Getting the number of duplicate and filling a temp_tab */
-			starpu_data_handle_t *temp_data_tab_cho = malloc(STARPU_TASK_GET_NBUFFERS(task)*sizeof(paquets_data->temp_pointer_1->package_data[0]));
+			starpu_data_handle_t *temp_data_tab_cho;
 			unsigned i;
+			_STARPU_MALLOC(temp_data_tab_cho, STARPU_TASK_GET_NBUFFERS(task)*sizeof(paquets_data->temp_pointer_1->package_data[0]));
 			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task) - 1; i++)
 			{
 				if (STARPU_TASK_GET_HANDLE(task, i) == STARPU_TASK_GET_HANDLE(task, i + 1))
@@ -1923,7 +1940,7 @@ static struct _starpu_HFP_paquets* hierarchical_fair_packing(struct starpu_task_
 				}
 			}
 			temp_data_tab_cho[i] = STARPU_TASK_GET_HANDLE(task, i);
-			paquets_data->temp_pointer_1->package_data = malloc((STARPU_TASK_GET_NBUFFERS(task) - n_duplicate_cho)*sizeof(paquets_data->temp_pointer_1->package_data[0]));
+			_STARPU_MALLOC(paquets_data->temp_pointer_1->package_data, (STARPU_TASK_GET_NBUFFERS(task) - n_duplicate_cho)*sizeof(paquets_data->temp_pointer_1->package_data[0]));
 			int j = 0;
 			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 			{
@@ -1937,7 +1954,7 @@ static struct _starpu_HFP_paquets* hierarchical_fair_packing(struct starpu_task_
 		}
 		else
 		{
-			paquets_data->temp_pointer_1->package_data = malloc(STARPU_TASK_GET_NBUFFERS(task)*sizeof(paquets_data->temp_pointer_1->package_data[0]));
+			_STARPU_MALLOC(paquets_data->temp_pointer_1->package_data, STARPU_TASK_GET_NBUFFERS(task)*sizeof(paquets_data->temp_pointer_1->package_data[0]));
 
 			/* Mise à NULL de data to evict next pour eviter les pb en réel sur grid5k */
 			paquets_data->temp_pointer_1->data_to_evict_next = NULL;
@@ -1965,7 +1982,7 @@ static struct _starpu_HFP_paquets* hierarchical_fair_packing(struct starpu_task_
 			_starpu_HFP_insertion(paquets_data);
 
 			/*TODO utile ??? */
-			//~ paquets_data->temp_pointer_1->package_data = malloc(STARPU_TASK_GET_NBUFFERS(task)*sizeof(paquets_data->temp_pointer_1->package_data[0]));
+			//~ _STARPU_MALLOC(paquets_data->temp_pointer_1->package_data, STARPU_TASK_GET_NBUFFERS(task)*sizeof(paquets_data->temp_pointer_1->package_data[0]));
 		}
 		do_not_add_more--;
 	}
@@ -2036,7 +2053,8 @@ static struct _starpu_HFP_paquets* hierarchical_fair_packing(struct starpu_task_
 										/* Fusion des tableaux de données */
 										//~ _print_in_terminal ("malloc de %d.\n", paquets_data->temp_pointer_2->package_nb_data + paquets_data->temp_pointer_1->package_nb_data);
 
-										starpu_data_handle_t *temp_data_tab = malloc((paquets_data->temp_pointer_1->package_nb_data + paquets_data->temp_pointer_2->package_nb_data) * sizeof(paquets_data->temp_pointer_1->package_data[0]));
+										starpu_data_handle_t *temp_data_tab;
+										_STARPU_MALLOC(temp_data_tab, (paquets_data->temp_pointer_1->package_nb_data + paquets_data->temp_pointer_2->package_nb_data) * sizeof(paquets_data->temp_pointer_1->package_data[0]));
 										while (i_bis < paquets_data->temp_pointer_1->package_nb_data && j_bis < paquets_data->temp_pointer_2->package_nb_data)
 										{
 											if (paquets_data->temp_pointer_1->package_data[i_bis] == paquets_data->temp_pointer_2->package_data[j_bis])
@@ -2076,7 +2094,7 @@ static struct _starpu_HFP_paquets* hierarchical_fair_packing(struct starpu_task_
 										/* Remplissage du tableau de données en ignorant les doublons */
 										paquets_data->temp_pointer_1->data_weight = 0;
 										//~ print_in_terminal ("malloc de %d.\n", paquets_data->temp_pointer_2->package_nb_data + paquets_data->temp_pointer_1->package_nb_data - nb_duplicate_data);
-										paquets_data->temp_pointer_1->package_data = malloc((paquets_data->temp_pointer_1->package_nb_data + paquets_data->temp_pointer_2->package_nb_data - nb_duplicate_data) * sizeof(starpu_data_handle_t));
+										_STARPU_MALLOC(paquets_data->temp_pointer_1->package_data, (paquets_data->temp_pointer_1->package_nb_data + paquets_data->temp_pointer_2->package_nb_data - nb_duplicate_data) * sizeof(starpu_data_handle_t));
 										j_bis = 0;
 										for (i_bis = 0; i_bis < (paquets_data->temp_pointer_1->package_nb_data + paquets_data->temp_pointer_2->package_nb_data); i_bis++)
 										{
@@ -2400,7 +2418,8 @@ static struct _starpu_HFP_paquets* hierarchical_fair_packing(struct starpu_task_
 							nb_duplicate_data = 0;
 
 							/* Fusion des tableaux de données */
-							starpu_data_handle_t *temp_data_tab = malloc((paquets_data->temp_pointer_1->package_nb_data + paquets_data->temp_pointer_2->package_nb_data) * sizeof(paquets_data->temp_pointer_1->package_data[0]));
+							starpu_data_handle_t *temp_data_tab;
+							_STARPU_MALLOC(temp_data_tab, (paquets_data->temp_pointer_1->package_nb_data + paquets_data->temp_pointer_2->package_nb_data) * sizeof(paquets_data->temp_pointer_1->package_data[0]));
 							while (i_bis < paquets_data->temp_pointer_1->package_nb_data && j_bis < paquets_data->temp_pointer_2->package_nb_data)
 							{
 								if (paquets_data->temp_pointer_1->package_data[i_bis] == paquets_data->temp_pointer_2->package_data[j_bis])
@@ -2452,8 +2471,8 @@ static struct _starpu_HFP_paquets* hierarchical_fair_packing(struct starpu_task_
 
 							/* Remplissage du tableau de données en ignorant les doublons */
 							//~ printf("malloc dans le vrai de %d.\n", paquets_data->temp_pointer_1->package_nb_data + paquets_data->temp_pointer_2->package_nb_data - nb_duplicate_data);
-							paquets_data->temp_pointer_1->package_data = malloc((paquets_data->temp_pointer_1->package_nb_data + paquets_data->temp_pointer_2->package_nb_data - nb_duplicate_data) * sizeof(starpu_data_handle_t));
-							//~ paquets_data->temp_pointer_1->package_data = malloc((paquets_data->temp_pointer_1->package_nb_data + paquets_data->temp_pointer_2->package_nb_data - nb_duplicate_data) * sizeof(paquets_data->temp_pointer_2->package_data[0]));
+							_STARPU_MALLOC(paquets_data->temp_pointer_1->package_data, (paquets_data->temp_pointer_1->package_nb_data + paquets_data->temp_pointer_2->package_nb_data - nb_duplicate_data) * sizeof(starpu_data_handle_t));
+							//~ _STARPU_MALLOC(paquets_data->temp_pointer_1->package_data, paquets_data->temp_pointer_1->package_nb_data + paquets_data->temp_pointer_2->package_nb_data - nb_duplicate_data) * sizeof(paquets_data->temp_pointer_2->package_data[0]));
 							//~ printf("Apres le malloc.\n"); fflush(stdout);
 							j_bis = 0;
 							for (i_bis = 0; i_bis < (paquets_data->temp_pointer_1->package_nb_data + paquets_data->temp_pointer_2->package_nb_data); i_bis++)
@@ -2548,8 +2567,11 @@ static struct _starpu_HFP_paquets* hierarchical_fair_packing(struct starpu_task_
  */
 static struct starpu_task_list hierarchical_fair_packing_one_task_list (struct starpu_task_list task_list, int number_task)
 {
-	struct _starpu_HFP_paquets *paquets_data = malloc(sizeof(*paquets_data));
-	struct _starpu_HFP_my_list *my_data = malloc(sizeof(*my_data));
+	struct _starpu_HFP_paquets *paquets_data;
+	struct _starpu_HFP_my_list *my_data;
+
+	_STARPU_MALLOC(paquets_data, sizeof(*paquets_data));
+	_STARPU_MALLOC(my_data, sizeof(*my_data));
 	starpu_task_list_init(&my_data->sub_list);
 	my_data->next = NULL;
 	paquets_data->temp_pointer_1 = my_data;
@@ -2569,11 +2591,11 @@ static struct starpu_task_list hierarchical_fair_packing_one_task_list (struct s
 	int min_nb_task_in_sub_list = 0; int nb_min_task_packages = 0;
 	struct starpu_task *task; int nb_of_loop = 0; int packaging_impossible = 0; int link_index = 0; int NB_TOTAL_DONNEES = 0;
 	task  = starpu_task_list_begin(&task_list);
-	paquets_data->temp_pointer_1->package_data = malloc(STARPU_TASK_GET_NBUFFERS(task)*sizeof(paquets_data->temp_pointer_1->package_data[0]));
+	_STARPU_MALLOC(paquets_data->temp_pointer_1->package_data, STARPU_TASK_GET_NBUFFERS(task)*sizeof(paquets_data->temp_pointer_1->package_data[0]));
 	struct starpu_task *temp_task;
 
 	//~ task  = starpu_task_list_begin(&task_list);
-	//~ paquets_data->temp_pointer_1->package_data = malloc(STARPU_TASK_GET_NBUFFERS(task)*sizeof(paquets_data->temp_pointer_1->package_data[0]));
+	//~ _STARPU_MALLOC(paquets_data->temp_pointer_1->package_data, STARPU_TASK_GET_NBUFFERS(task)*sizeof(paquets_data->temp_pointer_1->package_data[0]));
 	/* One task == one link in the linked list */
 	int do_not_add_more = number_task - 1;
 	for (task = starpu_task_list_begin(&task_list); task != starpu_task_list_end(&task_list); task = temp_task)
@@ -2581,7 +2603,7 @@ static struct starpu_task_list hierarchical_fair_packing_one_task_list (struct s
 		temp_task = starpu_task_list_next(task);
 		task = starpu_task_list_pop_front(&task_list);
 
-		paquets_data->temp_pointer_1->package_data = malloc(STARPU_TASK_GET_NBUFFERS(task)*sizeof(paquets_data->temp_pointer_1->package_data[0]));
+		_STARPU_MALLOC(paquets_data->temp_pointer_1->package_data, STARPU_TASK_GET_NBUFFERS(task)*sizeof(paquets_data->temp_pointer_1->package_data[0]));
 
 		unsigned j;
 		for (j = 0; j < STARPU_TASK_GET_NBUFFERS(task); j++)
@@ -2602,7 +2624,7 @@ static struct starpu_task_list hierarchical_fair_packing_one_task_list (struct s
 		if(do_not_add_more != 0)
 		{
 			_starpu_HFP_insertion(paquets_data);
-			paquets_data->temp_pointer_1->package_data = malloc(STARPU_TASK_GET_NBUFFERS(task)*sizeof(paquets_data->temp_pointer_1->package_data[0]));
+			_STARPU_MALLOC(paquets_data->temp_pointer_1->package_data, STARPU_TASK_GET_NBUFFERS(task)*sizeof(paquets_data->temp_pointer_1->package_data[0]));
 		}
 		do_not_add_more--;
 	}
@@ -2614,12 +2636,15 @@ static struct starpu_task_list hierarchical_fair_packing_one_task_list (struct s
 	   int coordinate_visualization_matrix_size = N;
 	   int coordinate_visualization_matrix[coordinate_visualization_matrix_size][coordinate_visualization_matrix_size];
 	   int coordinate_order_visualization_matrix[coordinate_visualization_matrix_size][coordinate_visualization_matrix_size];
-	   for (i_bis = 0; i_bis < N; i_bis++) {
-	   for (j_bis = 0; j_bis < N; j_bis++) {
+	   for (i_bis = 0; i_bis < N; i_bis++)
+	   {
+	   for (j_bis = 0; j_bis < N; j_bis++)
+	   {
 	   coordinate_visualization_matrix[j_bis][i_bis] = 0;
 	   coordinate_order_visualization_matrix[j_bis][i_bis] = 0;
 	   }
-	   } */
+	   }
+	*/
 
 	/* if (_print_in_terminal == 1) { init_visualisation_tache_matrice_format_tex(); } */
 	/* THE while loop. Stop when no more packaging are possible */
@@ -2966,7 +2991,8 @@ static struct starpu_task_list hierarchical_fair_packing_one_task_list (struct s
 									paquets_data->temp_pointer_1->nb_task_in_sub_list ++;
 								}
 								i_bis = 0; j_bis = 0; tab_runner = 0;
-								starpu_data_handle_t *temp_data_tab = malloc((paquets_data->temp_pointer_1->package_nb_data + paquets_data->temp_pointer_2->package_nb_data) * sizeof(paquets_data->temp_pointer_1->package_data[0]));
+								starpu_data_handle_t *temp_data_tab;
+								_STARPU_MALLOC(temp_data_tab, (paquets_data->temp_pointer_1->package_nb_data + paquets_data->temp_pointer_2->package_nb_data) * sizeof(paquets_data->temp_pointer_1->package_data[0]));
 								while (i_bis < paquets_data->temp_pointer_1->package_nb_data && j_bis < paquets_data->temp_pointer_2->package_nb_data)
 								{
 									if (paquets_data->temp_pointer_1->package_data[i_bis] <= paquets_data->temp_pointer_2->package_data[j_bis])
@@ -2997,7 +3023,7 @@ static struct starpu_task_list hierarchical_fair_packing_one_task_list (struct s
 										nb_duplicate_data++;
 									}
 								}
-								paquets_data->temp_pointer_1->package_data = malloc((paquets_data->temp_pointer_1->package_nb_data + paquets_data->temp_pointer_2->package_nb_data - nb_duplicate_data) * sizeof(starpu_data_handle_t));
+								_STARPU_MALLOC(paquets_data->temp_pointer_1->package_data, (paquets_data->temp_pointer_1->package_nb_data + paquets_data->temp_pointer_2->package_nb_data - nb_duplicate_data) * sizeof(starpu_data_handle_t));
 								j_bis = 0;
 								for (i_bis = 0; i_bis < (paquets_data->temp_pointer_1->package_nb_data + paquets_data->temp_pointer_2->package_nb_data); i_bis++)
 								{
@@ -3620,7 +3646,8 @@ void _starpu_hmetis_scheduling(struct _starpu_HFP_paquets *p, struct starpu_task
 		size += sizeof(buffer);
 	}
 	rewind(f2);
-	char *system_call = (char *)malloc(size);
+	char *system_call;
+	_STARPU_MALLOC(system_call, size);
 	strcpy(system_call, "hmetis ");
 	strcat(system_call, _output_directory);
 	strcat(system_call, "/input_hMETIS.txt");
@@ -4296,9 +4323,12 @@ struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_s
 	}
 
 	struct _starpu_HFP_sched_data *data;
-	struct _starpu_HFP_my_list *my_data = malloc(sizeof(*my_data));
-	struct _starpu_HFP_paquets *paquets_data = malloc(sizeof(*paquets_data));
+	struct _starpu_HFP_my_list *my_data;
+	struct _starpu_HFP_paquets *paquets_data;
+
 	_STARPU_MALLOC(data, sizeof(*data));
+	_STARPU_MALLOC(my_data, sizeof(*my_data));
+	_STARPU_MALLOC(paquets_data, sizeof(*paquets_data));
 
 	STARPU_PTHREAD_MUTEX_INIT(&data->policy_mutex, NULL);
 	starpu_task_list_init(&data->sched_list);

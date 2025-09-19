@@ -67,7 +67,7 @@ void _create_timer(struct _starpu_job *job, void *func)
 	{
 		unsigned k = 0;
 		unsigned n;
-		parents = (uint64_t*) malloc(nb_parents*sizeof(uint64_t));
+		_STARPU_MALLOC(parents, nb_parents*sizeof(uint64_t));
 		for(n=0 ; n < job->job_successors.ndeps; n++)
 		{
 			if (!job->job_successors.done[n])

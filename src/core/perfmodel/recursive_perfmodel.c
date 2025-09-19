@@ -691,7 +691,8 @@ static struct _starpu_recursive_perfmodel_graph_node_list *_starpu_recursive_per
 		tmp_subgraph = tmp_subgraph->next_node;
 	}
 
-	unsigned *has_preds = calloc(nb_tasks, sizeof(unsigned));
+	unsigned *has_preds;
+	_STARPU_CALLOC(ha, nb_tasks, sizeof(unsigned));
 	tmp_subgraph = subgraph_nodes;
 
 	while(tmp_subgraph)
@@ -839,8 +840,9 @@ static int _starpu_recursive_perfmodel_schedule_graph_asap(struct _starpu_recurs
 		fprintf(stderr, "\n\n");
 
 	/* Second step is init the number of predecessors for each task */
-	*scheduling = calloc(nb_tasks, sizeof(*scheduling));
-	unsigned *nb_preds_for_each = calloc(nb_tasks, sizeof(unsigned));
+	unsigned *nb_preds_for_each;
+	_STARPU_CALLOC(*scheduling, nb_tasks, sizeof(*scheduling));
+	_STARPU_CALLOC(nb_preds_for_each, nb_tasks, sizeof(unsigned));
 	tmp_nodes = nodes_to_schedule;
 	while(tmp_nodes)
 	{
@@ -854,10 +856,13 @@ static int _starpu_recursive_perfmodel_schedule_graph_asap(struct _starpu_recurs
 	}
 	/* Now we can start the schedule */
 	unsigned nb_tasks_scheduled = 0;
-	double *min_start_for_each = calloc(nb_tasks, sizeof(double)); /* The minimal start, that is updated: each time a task is scheduled, we update the min start for each successors */
-	double *min_idle_time_cpus = calloc(ncpu_can_use, sizeof(double)); /* During the execution, the moment a CPU become idle */
-	double *min_idle_time_gpus = calloc(ncuda_can_use, sizeof(double)); /* During the execution, the moment a CPU become idle */
+	double *min_start_for_each; /* The minimal start, that is updated: each time a task is scheduled, we update the min start for each successors */
+	double *min_idle_time_cpus; /* During the execution, the moment a CPU become idle */
+	double *min_idle_time_gpus; /* During the execution, the moment a CPU become idle */
 	unsigned index;
+	_STARPU_CALLOC(min_start_for_each, nb_tasks, sizeof(double));
+	_STARPU_CALLOC(min_idle_time_cpus, ncpu_can_use, sizeof(double));
+	_STARPU_CALLOC(min_idle_time_gpus, ncuda_can_use, sizeof(double));
 	for (index = 0; index < ncpu_can_use; index++)
 	{
 		min_idle_time_cpus[index] = idle_cpu;
@@ -1070,14 +1075,19 @@ static void __get_best_time_rec_version_from_nodes(struct starpu_task *task_to_s
 
 static struct split_description * get_best_time_rec_version_from_nodes(struct starpu_task *task_to_sched)
 {
-	char *split_scheme = calloc(10000, sizeof(char));
-	unsigned *first_subtask_index = calloc(10000, sizeof(unsigned));
+	char *split_scheme;
+	unsigned *first_subtask_index;
+	struct split_description *best_dec;
 	struct _starpu_recursive_perfmodel_graph_node_list lst;
-	struct _starpu_recursive_perfmodel_graph_node node = {
-	task_to_sched->cl, _starpu_job_get_data_size(task_to_sched->cl->model, NULL, 0, _starpu_get_job_associated_to_task(task_to_sched)), 0, starpu_task_data_footprint(task_to_sched), 0, 0, 0, 2, NULL };
+	struct _starpu_recursive_perfmodel_graph_node node =
+	{
+		task_to_sched->cl, _starpu_job_get_data_size(task_to_sched->cl->model, NULL, 0, _starpu_get_job_associated_to_task(task_to_sched)), 0, starpu_task_data_footprint(task_to_sched), 0, 0, 0, 2, NULL
+	};
+
+	_STARPU_CALLOC(split_scheme, 10000, sizeof(char));
+	_STARPU_CALLOC(first_subtask_index, 10000, sizeof(unsigned));
 	lst.node = &node;
 	lst.next_node = NULL;
-	struct split_description * best_dec;
 	starpu_malloc((void**)&best_dec, sizeof(*best_dec));
 	memset(best_dec, 0, sizeof(*best_dec));
 	best_dec->general_time = -1.;
@@ -1193,11 +1203,16 @@ static void __get_best_rec_version_from_nodes(struct starpu_task *task_to_sched,
 
 static void get_best_rec_version_from_nodes(struct starpu_task *task_to_sched, double *ncpu_mean_used, double *ncuda_mean_used, double *best_time, double sequential_gpu_time, struct split_description *split_description)
 {
-	char *split_scheme = calloc(10000, sizeof(char));
-	unsigned *first_subtask_index = calloc(10000, sizeof(unsigned));
+	char *split_scheme;
+	unsigned *first_subtask_index;
 	struct _starpu_recursive_perfmodel_graph_node_list lst;
-	struct _starpu_recursive_perfmodel_graph_node node = {
-	task_to_sched->cl, _starpu_job_get_data_size(task_to_sched->cl->model, NULL, 0, _starpu_get_job_associated_to_task(task_to_sched)), 0, starpu_task_data_footprint(task_to_sched), 0, 0, 0, 2, NULL };
+	struct _starpu_recursive_perfmodel_graph_node node =
+	{
+		task_to_sched->cl, _starpu_job_get_data_size(task_to_sched->cl->model, NULL, 0, _starpu_get_job_associated_to_task(task_to_sched)), 0, starpu_task_data_footprint(task_to_sched), 0, 0, 0, 2, NULL
+	};
+
+	_STARPU_CALLOC(split_scheme, 10000, sizeof(char));
+	_STARPU_CALLOC(first_subtask_index, 10000, sizeof(unsigned));
 	lst.node = &node;
 	lst.next_node = NULL;
 	__get_best_rec_version_from_nodes(task_to_sched, &lst, 0, split_scheme, first_subtask_index, 1, &lst, ncpu_mean_used, ncuda_mean_used,  best_time, sequential_gpu_time, split_description);
@@ -1206,7 +1221,6 @@ static void get_best_rec_version_from_nodes(struct starpu_task *task_to_sched, d
 void _starpu_recursive_perfmodel_get_best_schedule_alap(struct starpu_task *task, struct _starpu_recursive_perfmodel_subgraph *graph, double *best_time, double *ncuda_mean_used, double *ncpu_mean_used)
 {
 	unsigned nb_cpus = starpu_cpu_worker_get_count(), nb_cuda = starpu_cuda_worker_get_count();
-
 	struct starpu_perfmodel_arch *arch_gpu = nb_cuda > 0 ? starpu_worker_get_perf_archtype(starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0), STARPU_NMAX_SCHED_CTXS) : NULL;
 
 	if (graph == NULL || !graph->subgraph_initialisation_is_finished)

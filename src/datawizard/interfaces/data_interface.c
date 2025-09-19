@@ -295,7 +295,7 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 	pthread_mutexattr_t attr;
 	pthread_mutexattr_init(&attr);
 	pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
-	handle->partition_mutex = malloc(sizeof(starpu_pthread_mutex_t));
+	_STARPU_MALLOC(handle->partition_mutex, sizeof(starpu_pthread_mutex_t));
 	STARPU_PTHREAD_MUTEX_INIT(handle->partition_mutex, &attr);
 
 	/* handle->npartition_RO = 0; */

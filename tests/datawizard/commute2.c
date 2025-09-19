@@ -114,7 +114,7 @@ int main(void)
 	starpu_usleep(100000);
 	starpu_data_release(a_handle);
 
-	starpu_task_wait_for_all ();
+	starpu_task_wait_for_all();
 
 enodev:
 	starpu_data_unregister(res_handle);
