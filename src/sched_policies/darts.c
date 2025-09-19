@@ -3375,7 +3375,7 @@ struct starpu_sched_component *starpu_sched_component_darts_create(struct starpu
 	_REFINED_MUTEX_INIT();
 	_LINEAR_MUTEX_INIT();
 
-	_STARPU_CALLOC(Do, c(_nb_gpus, sizeof(starpu_data_handle_t));
+	_STARPU_CALLOC(Dopt, _nb_gpus, sizeof(starpu_data_handle_t));
 	_STARPU_MALLOC(data_conflict, _nb_gpus*sizeof(bool));
 
 	component->data = data;

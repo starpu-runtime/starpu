@@ -306,12 +306,12 @@ static int get_common_data_last_package(struct _starpu_HFP_my_list *I, struct _s
 
 	if (strcmp(_starpu_HFP_appli, "chol_model_11") == 0)
 	{
-		_STARPU_CALLOC(do, alloc((J->package_nb_data*1.5), sizeof(J->package_data[0]));
+		_STARPU_CALLOC(donnee_J, (J->package_nb_data*1.5), sizeof(J->package_data[0]));
 		_STARPU_MALLOC(donnee_I, (I->package_nb_data*1.5) * sizeof(I->package_data[0]));
 	}
 	else
 	{
-		_STARPU_CALLOC(do, alloc((J->package_nb_data), sizeof(J->package_data[0]));
+		_STARPU_CALLOC(donnee_J, (J->package_nb_data), sizeof(J->package_data[0]));
 		_STARPU_MALLOC(donnee_I, (I->package_nb_data) * sizeof(I->package_data[0]));
 	}
 
