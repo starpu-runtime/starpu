@@ -692,7 +692,7 @@ static struct _starpu_recursive_perfmodel_graph_node_list *_starpu_recursive_per
 	}
 
 	unsigned *has_preds;
-	_STARPU_CALLOC(ha, nb_tasks, sizeof(unsigned));
+	_STARPU_CALLOC(has_preds, nb_tasks, sizeof(unsigned));
 	tmp_subgraph = subgraph_nodes;
 
 	while(tmp_subgraph)
