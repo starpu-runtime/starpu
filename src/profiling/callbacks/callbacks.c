@@ -79,7 +79,7 @@ struct starpu_prof_tool_info _starpu_prof_tool_get_info(enum starpu_prof_tool_ev
 	ret.fun_ptr = fun_ptr;
 	ret.memnode = memnode;
 
-	ret.thread_id = (int)pthread_self();
+	ret.thread_id = (int)(intptr_t)pthread_self();
 	ret.worker_id = workerid;
 
 	/* unused fields */
@@ -110,7 +110,7 @@ struct starpu_prof_tool_info _starpu_prof_tool_get_info_d(enum starpu_prof_tool_
 	ret.bytes_transfered = transfered;
 	ret.fun_ptr = NULL;
 
-	ret.thread_id = (int)pthread_self();
+	ret.thread_id = (int)(intptr_t)pthread_self();
 	ret.worker_id = workerid;
 
 	/* unused fields */
@@ -134,7 +134,7 @@ struct starpu_prof_tool_info _starpu_prof_tool_get_info_init(enum starpu_prof_to
 	ret.driver_type = driver;
 	ret.conf = conf;
 
-	ret.thread_id = (int)pthread_self();
+	ret.thread_id = (int)(intptr_t)pthread_self();
 	ret.worker_id = 0;
 
 	/* unused fields */
