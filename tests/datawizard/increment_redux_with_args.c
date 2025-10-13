@@ -34,8 +34,8 @@ struct starpu_codelet init_with_args_cl =
 
 void redux_with_args_cpu(void *descr[], void *arg)
 {
-	int value_1;
-	int value_2;
+	unsigned value_1;
+	unsigned value_2;
 	starpu_codelet_unpack_args(arg, &value_1, &value_2);
 	unsigned *dst = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	unsigned *src = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[1]);
@@ -55,8 +55,8 @@ int main(int argc, char **argv)
 	unsigned var = 0;
 	starpu_data_handle_t handle;
 	unsigned init_value = 42;
-	int redux_value_1 = 5;
-	int redux_value_2 = 7;
+	unsigned redux_value_1 = 5;
+	unsigned redux_value_2 = 7;
 	void* redux_cl_args;
 	size_t redux_cl_args_size;
 	struct starpu_conf conf;
@@ -96,7 +96,7 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	starpu_data_unregister(handle);
 
-	int expected_value = init_value + redux_value_1 + redux_value_2 + 1;
+	unsigned expected_value = init_value + redux_value_1 + redux_value_2 + 1;
 	if (var != expected_value)
 	{
 		FPRINTF(stderr, "Value %u != Expected value %u\n", var, expected_value);
