@@ -975,7 +975,7 @@ void starpu_data_partition_readwrite_upgrade_submit(starpu_data_handle_t initial
 
 #ifdef STARPU_RECURSIVE_TASKS
 	struct partition_cb_arg *cb_arg;
-	_STARPU_MALLOC(cb, arg, sizeof(struct partition_cb_arg));
+	_STARPU_MALLOC(cb_arg, sizeof(struct partition_cb_arg));
 	cb_arg->handle = initial_handle;
 
 	char *pname;
