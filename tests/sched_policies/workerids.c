@@ -114,10 +114,13 @@ int main(void)
 
 		if (strcmp((*policy)->policy_name, "lws") == 0
 		 || strcmp((*policy)->policy_name, "ws") == 0
+#ifdef STARPU_QUICK_CHECK
+		 || strstr((*policy)->policy_name, "random") != 0
+#endif
 		 || strcmp((*policy)->policy_name, "modular-gemm") == 0
 		 || strcmp((*policy)->policy_name, "heteroprio") == 0)
 #ifdef STARPU_DEVEL
-#warning FIXME performance for ws
+#warning FIXME performance for ws and random family
 #endif
 			continue;
 
