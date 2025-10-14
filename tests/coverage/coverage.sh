@@ -18,9 +18,12 @@ exampledir=../examples/
 
 check_success()
 {
-    if [ $1 != 0 ] ; then
+    if [ $1 -eq 77 ] ; then
+	echo "skip"
+	exit $1
+    elif [ $1 != 0 ] ; then
 	echo "failure"
-        exit $1
+	exit $1
     fi
 }
 
