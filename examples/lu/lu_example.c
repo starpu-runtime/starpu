@@ -388,7 +388,11 @@ int main(int argc, char **argv)
 
 #ifdef STARPU_QUICK_CHECK
 	if (!size)
+#ifndef STARPU_SIMGRID
+		size = 32*2*power_cbrt;
+#else
 		size = 320*2*power_cbrt;
+#endif
 	if (!nblocks)
 		nblocks = 2*power_cbrt;
 #else

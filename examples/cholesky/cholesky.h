@@ -142,7 +142,11 @@ static inline void init_sizes(void)
 
 #ifdef STARPU_QUICK_CHECK
 	if (!size_p)
+#ifndef STARPU_SIMGRID
+		size_p = 32*2*power_cbrt;
+#else
 		size_p = 320*2*power_cbrt;
+#endif
 	if (!nblocks_p)
 		nblocks_p = 2*power_cbrt;
 	if (!nbigblocks_p)
