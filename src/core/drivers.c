@@ -66,13 +66,6 @@ int starpu_driver_deinit(struct starpu_driver *d)
 	if (worker->driver_ops == NULL)
 		return -EINVAL;
 	else
-	{
-		while (_starpu_machine_is_running())
-		{
-			_starpu_may_pause();
-			worker->driver_ops->run_once(worker);
-		}
 		return worker->driver_ops->deinit(worker);
-	}
 }
 
