@@ -1487,7 +1487,7 @@ static int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 
 	/* Then poll for completed jobs */
 	if (worker->pipeline_length)
-		task = worker->current_tasks[worker->first_task]
+		task = worker->current_tasks[worker->first_task];
 	else
 		task = worker->current_task;
 	if (worker->ntasks && task != worker->task_transferring)
