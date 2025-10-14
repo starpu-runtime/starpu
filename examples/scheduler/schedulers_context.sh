@@ -16,10 +16,14 @@
 #
 check_success()
 {
-    if [ $1 -ne 0 ] ; then
+    if [ $1 -eq 77 ] ; then
+	( echo SKIP: STARPU_SCHED=$sched $basedir/../sched_ctx/sched_ctx >&9 ) 2> /dev/null || true
+	echo "skip" >&2
+	exit $1
+    elif [ $1 -ne 0 ] ; then
 	( echo FAIL: STARPU_SCHED=$sched $basedir/../sched_ctx/sched_ctx >&9 ) 2> /dev/null || true
 	echo "failure" >&2
-        exit $1
+	exit $1
     else
 	( echo PASS: STARPU_SCHED=$sched $basedir/../sched_ctx/sched_ctx >&9 ) 2> /dev/null || true
     fi
