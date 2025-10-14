@@ -39,7 +39,11 @@ static unsigned long size = 1024;
 #else
 static unsigned long size = 4096;
 #endif
+#if defined(STARPU_QUICK_CHECK) && defined(STARPU_SIMGRID)
+static unsigned nblocks = 4;
+#else
 static unsigned nblocks = 16;
+#endif
 static unsigned check = 0;
 static int p = -1;
 static int q = -1;
