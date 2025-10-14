@@ -722,7 +722,11 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 	}
 
 	/* Then poll for completed jobs */
-	if (worker->ntasks && worker->current_tasks[worker->first_task] != worker->task_transferring)
+	if (worker->pipeline_length)
+		task = worker->current_tasks[worker->first_task]
+	else
+		task = worker->current_task;
+	if (worker->ntasks && task != worker->task_transferring)
 	{
 #ifndef STARPU_SIMGRID
 		size_t size;
@@ -730,8 +734,6 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 #endif
 
 		/* On-going asynchronous task, check for its termination first */
-
-		task = worker->current_tasks[worker->first_task];
 
 #ifdef STARPU_SIMGRID
 		if (!task_finished[worker->devid][worker->first_task])
@@ -806,14 +808,11 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 
 	j = _starpu_get_job_associated_to_task(task);
 
-	worker->current_tasks[(worker->first_task  + worker->ntasks)%STARPU_MAX_PIPELINE] = task;
-	worker->ntasks++;
-	if (worker->pipeline_length == 0)
-	/* _starpu_get_worker_task checks .current_task field if pipeline_length == 0
-	 *
-	 * TODO: update driver to not use current_tasks[] when pipeline_length == 0,
-	 * as for cuda driver */
+	if (worker->pipeline_length)
+		worker->current_tasks[(worker->first_task  + worker->ntasks)%STARPU_MAX_PIPELINE] = task;
+	else
 		worker->current_task = task;
+	worker->ntasks++;
 
 	/* can OpenCL do that task ? */
 	if (!_STARPU_OPENCL_MAY_PERFORM(j))
