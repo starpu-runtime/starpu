@@ -26,7 +26,11 @@
 #endif
 
 #ifdef STARPU_QUICK_CHECK
+#ifdef STARPU_SIMGRID
 unsigned size = 2*320;
+#else
+unsigned size = 2*32;
+#endif
 unsigned nblocks = 2;
 unsigned nbigblocks = 2;
 #elif !defined(STARPU_LONG_CHECK)

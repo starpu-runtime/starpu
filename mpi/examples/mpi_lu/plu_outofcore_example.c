@@ -37,7 +37,11 @@
 #include <valgrind/valgrind.h>
 #endif
 
+#ifdef STARPU_QUICK_CHECK
+static unsigned long size = 1024;
+#else
 static unsigned long size = 4096;
+#endif
 static unsigned nblocks = 16;
 static size_t blocksize;
 static unsigned check = 0;
