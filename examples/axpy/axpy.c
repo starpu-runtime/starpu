@@ -37,7 +37,11 @@
 #define AXPY	STARPU_SAXPY
 #define CUBLASAXPY	cublasSaxpy
 
+#ifdef STARPU_QUICK_CHECK
+#define N	(16*1024)
+#else
 #define N	(16*1024*1024)
+#endif
 
 #define NBLOCKS	8
 
