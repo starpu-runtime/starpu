@@ -27,6 +27,7 @@ int main(int argc, char **argv)
 	int ret;
 	starpu_data_handle_t handle;
 	int mpi_init;
+	struct starpu_conf conf;
 
 #ifdef STARPU_HAVE_VALGRIND_H
 	if (RUNNING_ON_VALGRIND)
@@ -37,7 +38,10 @@ int main(int argc, char **argv)
 
 	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
 
-	ret = starpu_mpi_init_conf(NULL, NULL, mpi_init, MPI_COMM_WORLD, NULL);
+	starpu_conf_init(&conf);
+	starpu_conf_noworker(&conf);
+	conf.ncpus = -1;
+	ret = starpu_mpi_init_conf(NULL, NULL, mpi_init, MPI_COMM_WORLD, &conf);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	starpu_vector_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&ret, 1, sizeof(int));

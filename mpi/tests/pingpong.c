@@ -49,6 +49,7 @@ int main(int argc, char **argv)
 	int data_size = DEFAULT_DATA_SIZE;
 	int sleep_time = DEFAULT_SLEEP_TIME;
 	int method = DEFAULT_METHOD;
+	struct starpu_conf conf;
 
 	for (i = 1; i < argc; i++)
 	{
@@ -100,7 +101,10 @@ int main(int argc, char **argv)
 
 	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
 
-	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, NULL);
+	starpu_conf_init(&conf);
+	starpu_conf_noworker(&conf);
+	conf.ncpus = -1;
+	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, &conf);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);

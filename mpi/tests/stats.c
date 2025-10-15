@@ -31,6 +31,7 @@ int main(int argc, char **argv)
 	int value;
 	starpu_data_handle_t handle;
 	size_t *stats;
+	struct starpu_conf conf;
 
 	unsetenv("STARPU_MPI_CACHE");
 	unsetenv("STARPU_MPI_STATS");
@@ -38,7 +39,10 @@ int main(int argc, char **argv)
 
 	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
 
-	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, NULL);
+	starpu_conf_init(&conf);
+	starpu_conf_noworker(&conf);
+	conf.ncpus = -1;
+	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, &conf);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);

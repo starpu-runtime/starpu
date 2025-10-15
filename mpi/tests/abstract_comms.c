@@ -234,6 +234,7 @@ int main(int argc, char *argv[])
 {
 	int ret;
 	int mpi_init;
+	struct starpu_conf conf;
 
 	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
 	int level;
@@ -247,7 +248,10 @@ int main(int argc, char *argv[])
 	MPI_Comm new_world;
 	MPI_Comm_dup(MPI_COMM_WORLD, &new_world);
 	MPI_Comm_set_name(new_world, "application duplicated comm");
-	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, NULL);
+	starpu_conf_init(&conf);
+	starpu_conf_noworker(&conf);
+	conf.ncpus = -1;
+	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, &conf);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_ini_conf");
 
 	if (starpu_cpu_worker_get_count() == 0)
