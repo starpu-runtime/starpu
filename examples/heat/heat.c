@@ -22,8 +22,8 @@
 
 /* default values */
 #ifdef STARPU_QUICK_CHECK
-static unsigned ntheta = 8+2;
-static unsigned nthick = 8+2;
+static unsigned ntheta = 2+2;
+static unsigned nthick = 2+2;
 #else
 static unsigned ntheta = 32+2;
 static unsigned nthick = 32+2;
