@@ -208,7 +208,7 @@ void _starpu_init_hip_config(struct _starpu_machine_topology *topology, struct _
 
 	int nhip = config->conf.nhip;
 
-	if (nhip != 0)
+	if (nhip != 0 || config->force_conf_reload)
 	{
 		/* The user did not disable HIP. We need to initialize HIP
 		 * early to count the number of devices */

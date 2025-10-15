@@ -88,7 +88,7 @@ void _starpu_init_tcpip_config(struct _starpu_machine_topology *topology, struct
 
 	int ntcpipsc = user_conf->ntcpip_sc;
 
-	if(ntcpipsc != 0)
+	if(ntcpipsc != 0 || config->force_conf_reload)
 	{
 		/* Discover and initialize the number of TCPIP nodes through the mp
 		 * infrastructure. */

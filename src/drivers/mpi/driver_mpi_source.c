@@ -90,7 +90,7 @@ void _starpu_init_mpi_config(struct _starpu_machine_topology *topology, struct _
 
 	int nmpisc = user_conf->nmpi_sc;
 
-	if (nmpisc != 0)
+	if (nmpisc != 0 || config->force_conf_reload)
 	{
 		/* Discover and initialize the number of MPI nodes through the mp
 		 * infrastructure. */

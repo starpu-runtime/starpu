@@ -120,7 +120,7 @@ void _starpu_init_cpu_config(struct _starpu_machine_topology *topology, struct _
 {
 	int ncpu = config->conf.ncpus;
 
-	if (ncpu != 0)
+	if (ncpu != 0 || config->force_conf_reload)
 	{
 		STARPU_ASSERT_MSG(ncpu >= -1, "ncpus can not be negative and different from -1 (is is %d)", ncpu);
 

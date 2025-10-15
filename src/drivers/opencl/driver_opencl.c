@@ -281,7 +281,7 @@ void _starpu_init_opencl_config(struct _starpu_machine_topology *topology, struc
 {
 	int nopencl = config->conf.nopencl;
 
-	if (nopencl != 0)
+	if (nopencl != 0 || config->force_conf_reload)
 	{
 		/* The user did not disable OPENCL. We need to initialize
 		 * OpenCL early to count the number of devices */

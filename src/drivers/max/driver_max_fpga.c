@@ -159,7 +159,7 @@ void _starpu_max_fpga_discover_devices (struct _starpu_machine_config *config)
 void _starpu_init_max_fpga_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *)
 {
 	int nmax_fpga = config->conf.nmax_fpga;
-	if (nmax_fpga != 0)
+	if (nmax_fpga != 0 || config->force_conf_reload)
 	{
 		/* The user did not disable FPGA. We need to initialize
 		 * FPGA early to count the number of devices */

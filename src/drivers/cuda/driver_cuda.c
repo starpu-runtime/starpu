@@ -436,7 +436,7 @@ void _starpu_init_cuda_config(struct _starpu_machine_topology *topology, struct 
 
 	int ncuda = config->conf.ncuda;
 
-	if (ncuda != 0)
+	if (ncuda != 0 || config->force_conf_reload)
 	{
 		/* The user did not disable CUDA. We need to
 		 * initialize CUDA early to count the number of
