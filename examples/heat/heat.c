@@ -24,12 +24,14 @@
 #ifdef STARPU_QUICK_CHECK
 static unsigned ntheta = 2+2;
 static unsigned nthick = 2+2;
+static unsigned nblocks = 4;
+static unsigned nbigblocks = 2;
 #else
 static unsigned ntheta = 32+2;
 static unsigned nthick = 32+2;
-#endif
 static unsigned nblocks = 16;
 static unsigned nbigblocks = 8;
+#endif
 static unsigned shape = 0;
 static unsigned pinned = 0;
 static unsigned check = 0;
@@ -775,7 +777,7 @@ int main(int argc, char **argv)
 
 		FPRINTF(stderr, "Problem size : %ux%u (%ux%u) (%lu MB)\n", newsize, newsize, DIM, DIM, ((unsigned long)newsize*newsize*4UL)/(1024*1024));
 
-		STARPU_ASSERT(newsize % nblocks == 0);
+		STARPU_ASSERT_MSG(newsize % nblocks == 0, "newsize %u is not divisible by nblocks %u", newsize, nblocks);
 
 		switch (version)
 		{
