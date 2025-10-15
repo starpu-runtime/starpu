@@ -3026,7 +3026,7 @@ void starpu_worker_display_all(FILE *output)
 
 void _starpu_worker_refuse_task(struct _starpu_worker *worker, struct starpu_task *task)
 {
-	if (worker->pipeline_length || worker->arch == STARPU_OPENCL_WORKER)
+	if (worker->pipeline_length)
 	{
 		int j;
 		for (j = 0; j < worker->ntasks; j++)
