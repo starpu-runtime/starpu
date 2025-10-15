@@ -20,6 +20,14 @@ SUFFIXES = .hip
 CC=$(MPICC)
 CCLD=$(MPICC)
 
+if STARPU_QUICK_CHECK
+# GPU initialization is serialized, don't bother testing with more than one
+STARPU_NCUDA ?= 1
+export STARPU_NCUDA
+STARPU_NOPENCL ?= 1
+export STARPU_NOPENCL
+endif
+
 include $(top_srcdir)/make/starpu-loader.mk
 
 LAUNCHER	= $(STARPU_MPIEXEC)
