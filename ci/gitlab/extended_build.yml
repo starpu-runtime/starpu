@@ -96,14 +96,6 @@ grind:
     matrix:
       - PROFILE: [valgrind-tcp-ip, helgrind]
 
-simgrid:
-  extends: .manual_template
-  stage: extended_check_simgrid
-  tags: ['starpu', 'node_nogpu']
-  parallel:
-    matrix:
-      - PROFILE: [simgrid, simgrid-nogpu, simgrid-only, simgrid-opencl, simgrid-mc, simgrid-mpi]
-
 nogpu:
   extends: .manual_template
   stage: extended_check_basic
@@ -143,6 +135,15 @@ basic:
   parallel:
     matrix:
       - PROFILE: [default, without-hwloc, numa, enable-fast, enable-spinlock-check, debug-verbose, profiling, memory-stats, disable-allocation-cache, arbiter, intel]
+
+simgrid:
+  extends: .manual_template
+  stage: extended_check_basic
+  image: registry.gitlab.inria.fr/starpu/starpu-docker/ci-debian12
+  tags: ['ci.inria.fr', 'linux', 'large']
+  parallel:
+    matrix:
+      - PROFILE: [simgrid, simgrid-nogpu, simgrid-only, simgrid-opencl, simgrid-mc, simgrid-mpi]
 
 gpu:
   extends: .manual_template

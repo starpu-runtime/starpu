@@ -27,7 +27,6 @@ stages:
   - extended_check_mpi
   - extended_check_san
   - extended_check_schedulers
-  - extended_check_simgrid
   - analyze
   - deploy
   - new-release

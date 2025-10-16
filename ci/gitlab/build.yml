@@ -58,6 +58,12 @@ check_ci:
   script:
     - ./ci/scripts/check.sh
 
+check_gpu:
+  extends: .check_template
+  tags: ['starpu', 'node_gpu']
+  script:
+    - ./ci/scripts/check.sh
+
 check:
   extends: .check_template
   parallel:
