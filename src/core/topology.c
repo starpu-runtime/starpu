@@ -1200,7 +1200,8 @@ void _starpu_topology_check_ndevices(int *ndevices, unsigned nhwdevices, int ove
 
 	char name[64];
 	snprintf(name, sizeof(name), "STARPU_%s_MAX", vname);
-	unsigned max = starpu_getenv_number_default(name, static_max);
+	int env_max = starpu_get_env_number(name);
+	unsigned max = env_max == -1 || (unsigned) env_max > static_max ? static_max : (unsigned) env_max;
 
 	STARPU_ASSERT_MSG(*ndevices >= -1, "%s can not be negative and different from -1 (is is %d)", nname, *ndevices);
 
