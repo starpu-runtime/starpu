@@ -48,8 +48,6 @@ int starpu_mpi_cache_set(int enabled)
 {
 	if (enabled == 1)
 	{
-		STARPU_PTHREAD_MUTEX_DESTROY(&_cache_mutex);
-		STARPU_PTHREAD_MUTEX_INIT(&_cache_mutex, NULL);
 		_starpu_cache_enabled = 1;
 	}
 	else
@@ -60,8 +58,6 @@ int starpu_mpi_cache_set(int enabled)
 			starpu_mpi_cache_flush_all_data(_starpu_cache_comm);
 			_starpu_mpi_cache_shutdown();
 		}
-		STARPU_PTHREAD_MUTEX_DESTROY(&_cache_mutex);
-		STARPU_PTHREAD_MUTEX_INIT(&_cache_mutex, NULL);
 		_starpu_cache_enabled = 0;
 	}
 	return 0;
@@ -69,6 +65,7 @@ int starpu_mpi_cache_set(int enabled)
 
 void _starpu_mpi_cache_init(MPI_Comm comm)
 {
+	STARPU_PTHREAD_MUTEX_INIT(&_cache_mutex, NULL);
 	_starpu_cache_enabled = starpu_getenv_number("STARPU_MPI_CACHE");
 	if (_starpu_cache_enabled == -1)
 	{
@@ -84,7 +81,6 @@ void _starpu_mpi_cache_init(MPI_Comm comm)
 	_starpu_cache_comm = comm;
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &_starpu_cache_comm_size);
 	_starpu_mpi_cache_stats_init();
-	STARPU_PTHREAD_MUTEX_INIT(&_cache_mutex, NULL);
 }
 
 void _starpu_mpi_cache_shutdown(void)
