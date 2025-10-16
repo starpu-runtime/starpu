@@ -48,7 +48,8 @@ int starpu_mpi_cache_set(int enabled)
 {
 	if (enabled == 1)
 	{
-		if (!_starpu_cache_enabled) {
+		if (!_starpu_cache_enabled)
+		{
 			STARPU_PTHREAD_MUTEX_INIT(&_cache_mutex, NULL);
 			_starpu_cache_enabled = 1;
 		}
