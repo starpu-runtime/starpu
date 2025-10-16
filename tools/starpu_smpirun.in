@@ -41,7 +41,7 @@ else
 	DASH=_
 fi
 
-EXTRA_OPT=""
+EXTRA_OPT="--cfg=smpi/host-speed:2000000kf"
 
 if [ "$SMPI_MAJOR" -ge 4 -o \( "$SMPI_MAJOR" = 3 -a "$SMPI_MINOR" -ge 16 \) ]
 then
