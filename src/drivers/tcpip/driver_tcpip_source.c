@@ -57,7 +57,7 @@ static void __starpu_init_tcpip_config(struct _starpu_machine_topology * topolog
 	int ntcpipcores;
 	ntcpipcores = starpu_getenv_number("STARPU_TCPIP_SC_NTHREADS");
 
-	_starpu_topology_check_ndevices(&ntcpipcores, nbcores, 0, INT_MAX, 0, "STARPU_TCPIP_SC_NTHREADS", "TCPIP cores", "");
+	_starpu_topology_check_ndevices(&ntcpipcores, nbcores, 0, INT_MAX, 0, "STARPU_TCPIP_SC_NTHREADS", "TCPIP_SC_NTHREADS", "TCPIP cores", "");
 
 	tcpip_worker_set[tcpip_idx].workers = &config->workers[topology->nworkers];
 	tcpip_worker_set[tcpip_idx].nworkers = ntcpipcores;

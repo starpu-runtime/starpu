@@ -1193,10 +1193,14 @@ void _starpu_topology_filter(hwloc_topology_t topology)
 }
 #endif
 
-void _starpu_topology_check_ndevices(int *ndevices, unsigned nhwdevices, int overflow, unsigned max, int reserved, const char *nname, const char *dname, const char *configurename)
+void _starpu_topology_check_ndevices(int *ndevices, unsigned nhwdevices, int overflow, unsigned static_max, int reserved, const char *nname, const char *dname, const char *vname, const char *configurename)
 {
 	if (!*ndevices)
 		return;
+
+	char name[64];
+	snprintf(name, sizeof(name), "STARPU_%s_MAX", vname);
+	unsigned max = starpu_getenv_number_default(name, static_max);
 
 	STARPU_ASSERT_MSG(*ndevices >= -1, "%s can not be negative and different from -1 (is is %d)", nname, *ndevices);
 

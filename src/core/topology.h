@@ -69,9 +69,10 @@ void _starpu_initialize_workers_deviceid(int *explicit_workers_gpuid,
 /** Get the next devid for architecture \p type */
 int _starpu_get_next_devid(struct _starpu_machine_topology *topology, struct _starpu_machine_config *config, enum starpu_worker_archtype arch);
 
-/** Check that \p *ndevices is not larger than \p nhwdevices (unless \p overflow is 1), and is not larger than \p max.
- * Cap it otherwise, and advise using the \p configurename ./configure option in the \p max case. */
-void _starpu_topology_check_ndevices(int *ndevices, unsigned nhwdevices, int overflow, unsigned max, int reserved, const char *nname, const char *dname, const char *configurename);
+/** Check that \p *ndevices is not larger than \p nhwdevices (unless \p overflow is 1), and is not larger than \p max nor STARPU_vname_MAX
+ * Cap it otherwise, and advise using the \p configurename ./configure option in the \p max case.
+ * For debugging, \p nname is the field name in starpu_config, and \p dname is a printable name for the type of device */
+void _starpu_topology_check_ndevices(int *ndevices, unsigned nhwdevices, int overflow, unsigned max, int reserved, const char *nname, const char *dname, const char *vname, const char *configurename);
 
 /** Configures the topology according to the desired worker distribution on the device.
  * - homogeneous tells to use devid 0 for the perfmodel (all devices have the same performance)

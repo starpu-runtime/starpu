@@ -59,7 +59,7 @@ static void __starpu_init_mpi_config(struct _starpu_machine_topology *topology,
 	int nmpicores;
 	nmpicores = starpu_getenv_number("STARPU_MPI_SC_NTHREADS");
 
-	_starpu_topology_check_ndevices(&nmpicores, nhwcores, 0, INT_MAX, 0, "STARPU_MPI_SC_NTHREADS", "MPI cores", "");
+	_starpu_topology_check_ndevices(&nmpicores, nhwcores, 0, INT_MAX, 0, "STARPU_MPI_SC_NTHREADS", "MPI_SC_NTHREADS", "MPI cores", "");
 
 	mpi_worker_set[mpi_idx].workers = &config->workers[topology->nworkers];
 	mpi_worker_set[mpi_idx].nworkers = nmpicores;

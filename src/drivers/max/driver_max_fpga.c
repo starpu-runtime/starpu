@@ -166,7 +166,7 @@ void _starpu_init_max_fpga_config(struct _starpu_machine_topology *topology, str
 		_starpu_init_max_fpga();
 		int nb_devices = _starpu_max_fpga_get_device_count();
 
-		_starpu_topology_check_ndevices(&nmax_fpga, nb_devices, 0, STARPU_MAXMAXFPGADEVS, 0, "nmax_fpga", "Maxeler FPGA", "maxmaxfpgadev");
+		_starpu_topology_check_ndevices(&nmax_fpga, nb_devices, 0, STARPU_MAXMAXFPGADEVS, 0, "nmax_fpga", "Maxeler FPGA", "NMAX_FPGA", "maxmaxfpgadev");
 	}
 
 	/* Now we know how many MAX FPGA devices will be used */

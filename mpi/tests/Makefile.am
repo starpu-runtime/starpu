@@ -22,10 +22,10 @@ CCLD=$(MPICC)
 
 if STARPU_QUICK_CHECK
 # GPU initialization is serialized, don't bother testing with more than one
-STARPU_NCUDA ?= 1
-export STARPU_NCUDA
-STARPU_NOPENCL ?= 1
-export STARPU_NOPENCL
+STARPU_NCUDA_MAX ?= 1
+export STARPU_NCUDA_MAX
+STARPU_NOPENCL_MAX ?= 1
+export STARPU_NOPENCL_MAX
 endif
 
 include $(top_srcdir)/make/starpu-loader.mk

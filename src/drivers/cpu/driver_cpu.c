@@ -131,7 +131,7 @@ void _starpu_init_cpu_config(struct _starpu_machine_topology *topology, struct _
 		int nth_per_core = starpu_getenv_number_default("STARPU_NTHREADS_PER_CORE", 1);
 		avail_cpus *= nth_per_core;
 
-		_starpu_topology_check_ndevices(&ncpu, avail_cpus, 1, STARPU_MAXCPUS, config->conf.reserve_ncpus, "ncpus", "CPU cores", "maxcpus");
+		_starpu_topology_check_ndevices(&ncpu, avail_cpus, 1, STARPU_MAXCPUS, config->conf.reserve_ncpus, "ncpus", "CPU cores", "NCPU", "maxcpus");
 	}
 
 	topology->ndevices[STARPU_CPU_WORKER] = 1;
