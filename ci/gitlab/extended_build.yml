@@ -102,7 +102,7 @@ simgrid:
   tags: ['starpu', 'node_nogpu']
   parallel:
     matrix:
-      - PROFILE: [simgrid-mc, simgrid-mpi, simgrid-nogpu, simgrid-only, simgrid-opencl, simgrid]
+      - PROFILE: [simgrid, simgrid-nogpu, simgrid-only, simgrid-opencl, simgrid-mc, simgrid-mpi]
 
 nogpu:
   extends: .manual_template
