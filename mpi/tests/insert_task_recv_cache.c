@@ -162,6 +162,7 @@ int main(int argc, char **argv)
 
 	setenv("STARPU_MPI_STATS", "1", 1);
 	setenv("STARPU_MPI_CACHE_STATS", "1", 1);
+	setenv("STARPU_SUBALLOCATOR", "0", 1);
 
 	comm_amount_with_cache = malloc(size * sizeof(size_t));
 	comm_amount_without_cache = malloc(size * sizeof(size_t));
