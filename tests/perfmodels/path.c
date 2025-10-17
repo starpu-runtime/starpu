@@ -42,13 +42,10 @@ void *_set_sampling_dir(char *sampling_dir, size_t s)
 void randomstring(char *name, int nb)
 {
 	int n;
-	static char charset[] = "abcdefghijklmnopqrstuvwxyz";
 
-	for(n = 0 ;n < nb-1 ; n++)
-	{
-                int key = starpu_lrand48() % (int)(sizeof(charset) -1);
-                name[n] = charset[key];
-	}
+	for(n = 0; n < nb-1 ; n++)
+                name[n] = 'a' + starpu_lrand48() % 26;
+
 	name[nb-1]='\0';
 }
 
