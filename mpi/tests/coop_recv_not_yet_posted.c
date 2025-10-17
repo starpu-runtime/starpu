@@ -86,7 +86,7 @@ int main(int argc, char **argv)
 	{
 		if (rank == 2)
 		{
-			sleep(5);
+			starpu_sleep(0.2);
 		}
 		printf("[%d] will post recv\n", rank);
 		fflush(stdout);
