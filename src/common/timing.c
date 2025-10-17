@@ -264,3 +264,8 @@ double starpu_timing_now(void)
 	return starpu_timing_timespec_to_us(&now);
 #endif
 }
+
+double starpu_timing_get_reference(void)
+{
+	return starpu_timing_timespec_to_us(&_starpu_reference_start_time_ts);
+}

@@ -209,6 +209,11 @@ void starpu_execute_on_specific_workers(void (*func)(void *), void *arg, unsigne
 double starpu_timing_now(void);
 
 /**
+   Return the reference date in micro-seconds (i.e. the time of starpu_init()).
+*/
+double starpu_timing_get_reference(void);
+
+/**
    Copy the content of \p src_handle into \p dst_handle. The parameter \p
    asynchronous indicates whether the function should block or not. In
    the case of an asynchronous call, it is possible to synchronize with
