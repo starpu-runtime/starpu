@@ -80,6 +80,7 @@ def create_builder(profile, profile_iname, profile_name, profile_host):
     p.addStep(Command(["STARPU_BRANCH=$CI_COMMIT_BRANCH"]))
     p.addStep(Command(["if test -z \"$STARPU_BRANCH\" ; then STARPU_BRANCH=$(git branch --show-current) ; fi"]))
     p.addStep(Command(["starpu_src_dir=$PWD"]))
+    p.addStep(Command(["git config --global --add safe.directory $PWD"]))
     p.addStep(Command(['STARPU_GITVERSION=$(git log -n 1 --pretty="%H")']))
     p.addStep(Command(["starpu_artifacts=$starpu_src_dir/artifacts/$STARPU_GITVERSION"]))
     p.addStep(Command(["mkdir", "-p", "$starpu_artifacts"]))
