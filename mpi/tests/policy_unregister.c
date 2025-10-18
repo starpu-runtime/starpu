@@ -44,11 +44,13 @@ int main(int argc, char **argv)
 	conf.ntcpip_sc = -1;
 
 	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, &conf);
+	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	starpu_mpi_node_selection_unregister_policy(STARPU_MPI_NODE_SELECTION_MOST_R_DATA);
 
 	starpu_mpi_shutdown();
+enodev:
 	if (!mpi_init)
 		MPI_Finalize();
 

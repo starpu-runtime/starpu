@@ -29,11 +29,13 @@ int main(int argc, char **argv)
 	starpu_conf_noworker(&conf);
 	conf.ncpus = -1;
 	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, &conf);
+	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	starpu_mpi_barrier(MPI_COMM_WORLD);
 
 	starpu_mpi_shutdown();
+enodev:
 	if (!mpi_init)
 		MPI_Finalize();
 

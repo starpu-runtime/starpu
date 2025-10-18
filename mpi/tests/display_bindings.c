@@ -38,9 +38,11 @@ int main(int argc, char **argv)
 	starpu_conf_noworker(&conf);
 	conf.ncpus = -1;
 	ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, &conf);
+	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	starpu_mpi_shutdown();
+enodev:
 	MPI_Finalize();
 
 	return EXIT_SUCCESS;

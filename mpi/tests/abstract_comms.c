@@ -235,6 +235,7 @@ int main(int argc, char *argv[])
 	int ret;
 	int mpi_init;
 	struct starpu_conf conf;
+	int status = 0;
 
 	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
 	int level;
@@ -252,6 +253,7 @@ int main(int argc, char *argv[])
 	starpu_conf_noworker(&conf);
 	conf.ncpus = -1;
 	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, &conf);
+	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_ini_conf");
 
 	if (starpu_cpu_worker_get_count() == 0)
@@ -304,7 +306,6 @@ int main(int argc, char *argv[])
 
 	undistribute_matrix_C();
 	unregister_matrices();
-	int status = 0;
 	if (comm_rank == 0)
 	{
 		status = check_result();
@@ -312,6 +313,7 @@ int main(int argc, char *argv[])
 	}
 
 	starpu_mpi_shutdown();
+enodev:
 	if (!mpi_init)
 		MPI_Finalize();
 	return status;

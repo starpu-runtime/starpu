@@ -28,11 +28,13 @@ int main(int argc, char **argv)
 	struct starpu_conf conf;
 
 	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
 	starpu_conf_init(&conf);
 	starpu_conf_noworker(&conf);
 	conf.ncpus = -1;
 	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, &conf);
+	if (ret == -ENODEV) { ret = STARPU_TEST_SKIPPED; goto enodev; }
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
@@ -137,6 +139,7 @@ int main(int argc, char **argv)
 
 	starpu_mpi_shutdown();
 
+enodev:
 	if (!mpi_init)
 		MPI_Finalize();
 

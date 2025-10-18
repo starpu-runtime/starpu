@@ -42,6 +42,7 @@ int main(int argc, char **argv)
 	starpu_conf_noworker(&conf);
 	conf.ncpus = -1;
 	ret = starpu_mpi_init_conf(NULL, NULL, mpi_init, MPI_COMM_WORLD, &conf);
+	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	starpu_vector_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&ret, 1, sizeof(int));
@@ -49,6 +50,7 @@ int main(int argc, char **argv)
 	starpu_data_unregister(handle);
 
 	starpu_mpi_shutdown();
+enodev:
 	if (!mpi_init)
 		MPI_Finalize();
 

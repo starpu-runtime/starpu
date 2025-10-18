@@ -65,6 +65,7 @@ int pseudotest_checkpoint_template_register(int argc, char* argv[])
 	conf.ntcpip_sc = -1;
 
 	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, &conf);
+	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	FPRINTF_MPI(stderr, "Init ok - my rnk %d - size %d\n", me, nb_nodes);
@@ -190,6 +191,7 @@ int test_checkpoint_submit(int argc, char* argv[])
 
 	starpu_mpi_shutdown();
 
+enodev:
 	if (!mpi_init)
 		MPI_Finalize();
 

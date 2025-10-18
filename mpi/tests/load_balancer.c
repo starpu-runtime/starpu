@@ -59,6 +59,7 @@ int main(int argc, char **argv)
 	conf.ncpus = -1;
 	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
 	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, &conf);
+	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	unsetenv("STARPU_MPI_LB");
@@ -69,6 +70,7 @@ int main(int argc, char **argv)
 	starpu_mpi_lb_shutdown();
 
 	starpu_mpi_shutdown();
+enodev:
 	if (!mpi_init)
 		MPI_Finalize();
 

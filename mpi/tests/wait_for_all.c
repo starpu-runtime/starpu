@@ -41,6 +41,7 @@ int main(int argc, char **argv)
 	starpu_conf_noworker(&conf);
 	conf.ncpus = -1;
 	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, &conf);
+	if (ret == -ENODEV) { ret = STARPU_TEST_SKIPPED; goto enodev; }
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
@@ -88,14 +89,16 @@ int main(int argc, char **argv)
 	free(value);
 
 	starpu_mpi_shutdown();
-	if (!mpi_init)
-		MPI_Finalize();
 
 	if (rank == 0 && comm_completed == 42)
 	{
 		FPRINTF(stderr, "comm still not completed\n");
 		ret = 1;
 	}
+
+enodev:
+	if (!mpi_init)
+		MPI_Finalize();
 
 	return (rank == 0) ? ret : 0;
 }
