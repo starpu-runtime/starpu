@@ -38,6 +38,8 @@ int main(int argc, char **argv)
 	int i;
 	struct starpu_conf conf;
 	int mpi_init;
+	int status = STARPU_TEST_SKIPPED;
+	int rank;
 
 #ifdef STARPU_HAVE_VALGRIND_H
 	if (RUNNING_ON_VALGRIND)
@@ -47,6 +49,7 @@ int main(int argc, char **argv)
 	disable_coredump();
 
 	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
 	starpu_conf_init(&conf);
 	starpu_conf_noworker(&conf);
@@ -57,6 +60,7 @@ int main(int argc, char **argv)
 	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, &conf);
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
+	status = EXIT_SUCCESS;
 
 	for(i=0 ; i<_STARPU_MPI_NODE_SELECTION_MAX_POLICY+1 ; i++)
 	{
@@ -69,5 +73,5 @@ enodev:
 	if (!mpi_init)
 		MPI_Finalize();
 
-	return 0;
+	return rank == 0 ? status : 0;
 }
