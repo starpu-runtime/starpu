@@ -16,4 +16,4 @@
 #
 
 export STARPU_MICROBENCHS_DISABLED=1
-STARPU_USER_CONFIGURE_OPTIONS="--enable-simgrid --disable-cuda --disable-mpi --disable-mpi-check --disable-starpupy" ./ci/scripts/check.sh
+STARPU_USER_CONFIGURE_OPTIONS="--enable-simgrid --disable-cuda --disable-mpi --disable-mpi-check" ./ci/scripts/check.sh
