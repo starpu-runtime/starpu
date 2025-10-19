@@ -58,7 +58,7 @@ tsan:
     matrix:
       - PROFILE: [tsan]
 
-sanitizer:
+cuda-sanitizer:
   extends: .manual_template
   stage: extended_check_san
   timeout: 2h
