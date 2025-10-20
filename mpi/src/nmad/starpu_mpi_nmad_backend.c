@@ -28,8 +28,6 @@ static void starpu_mpi_nmad_backend_constructor(void)
 {
 	/* strat_prio is preferred for StarPU instead of default strat_aggreg */
 	setenv("NMAD_STRATEGY", "prio", 0 /* do not overwrite user-supplied value, if set */);
-	/* prefer rcache on ibverbs */
-	setenv("NMAD_IBVERBS_RCACHE", "1", 0);
 	/* use pioman dedicated thread */
 	setenv("PIOM_DEDICATED", "1", 0);
 	/* pioman waits for starpu to place its dedicated thread */
