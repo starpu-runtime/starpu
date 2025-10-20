@@ -53,6 +53,9 @@ install-exec-local: all
 	@if test -d $(DESTDIR)$(prefix)/lib/python$(PYTHON_VERSION) ; \
 	then	\
 		chmod u+w $(DESTDIR)$(prefix)/lib/python$(PYTHON_VERSION) ; \
+	fi
+	@if test -d $(DESTDIR)$(prefix)/lib/python$(PYTHON_VERSION)/site-packages ; \
+	then	\
 		chmod u+w $(DESTDIR)$(prefix)/lib/python$(PYTHON_VERSION)/site-packages ; \
 	fi
 	$(MKDIR_P) $(PYTHONPATH)/starpu
