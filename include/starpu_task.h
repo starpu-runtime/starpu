@@ -1497,7 +1497,7 @@ struct starpu_task
 	   task is only for synchronisation, and thus does not have to
 	   be considered as inside the recursive graph
 	*/
-	int recursive_task_is_sync_task:1;
+	unsigned recursive_task_is_sync_task:1;
 
 	/**
 	   When using recursive tasks, the job identifier of the
