@@ -134,7 +134,9 @@ static char cuda_peer_enabled[STARPU_MAXCUDADEVS][STARPU_MAXCUDADEVS];
 #endif
 #endif
 
+#ifndef STARPU_SIMGRID
 static int _starpu_cuda_peer_access(int devid, int peer_devid);
+#endif
 
 int _starpu_nworker_per_cuda;
 
@@ -1232,7 +1234,11 @@ static uintptr_t _starpu_cuda_malloc_on_device(int devid, size_t size, int flags
 
 static void _starpu_cuda_memset_on_device(uintptr_t ptr, int c, size_t size)
 {
-#ifndef STARPU_SIMGRID
+#ifdef STARPU_SIMGRID
+	(void)ptr;
+	(void)c;
+	(void)size;
+#else
 	cudaError_t status;
 	status = cudaMemset((void*) ptr, c, size);
 	if (STARPU_UNLIKELY(status != cudaSuccess))
