@@ -63,11 +63,6 @@ void _starpu_max_fpga_early_init(void)
 	memset(&max_fpga_memory_init, 0, sizeof(max_fpga_memory_init));
 }
 
-/* This is called to initialize FPGA and discover devices */
-void _starpu_init_max_fpga()
-{
-}
-
 static void _starpu_initialize_workers_max_fpga_deviceid(struct _starpu_machine_config *config)
 {
 	struct _starpu_machine_topology *topology = &config->topology;
@@ -167,7 +162,6 @@ void _starpu_init_max_fpga_config(struct _starpu_machine_topology *topology, str
 	{
 		/* The user did not disable FPGA. We need to initialize
 		 * FPGA early to count the number of devices */
-		_starpu_init_max_fpga();
 		int nb_devices = _starpu_max_fpga_get_device_count();
 
 		_starpu_topology_check_ndevices(&nmax_fpga, nb_devices, 0, STARPU_MAXMAXFPGADEVS, 0, "nmax_fpga", "Maxeler FPGA", "NMAX_FPGA", "maxmaxfpgadev");

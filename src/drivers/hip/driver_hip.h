@@ -62,7 +62,6 @@ void _starpu_hip_discover_devices(struct _starpu_machine_config *);
 void _starpu_init_hip_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *);
 void _starpu_hip_init_worker_binding(struct _starpu_machine_config *config, int no_mp_config, struct _starpu_worker *workerarg);
 void _starpu_hip_init_worker_memory(struct _starpu_machine_config *config, int no_mp_config, struct _starpu_worker *workerarg);
-void _starpu_init_hip(void);
 void *_starpu_hip_worker(void *);
 #else
 #  define _starpu_hip_discover_devices(config) ((void) config)

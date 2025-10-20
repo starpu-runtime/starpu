@@ -125,7 +125,7 @@ void _starpu_opencl_early_init(void)
 	memset(&opencl_memory_init, 0, sizeof(opencl_memory_init));
 }
 
-void _starpu_init_opencl(void)
+static void _starpu_init_opencl(void)
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&big_lock);
 	if (!init_done)
@@ -241,6 +241,13 @@ void _starpu_init_opencl(void)
 		init_done=1;
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&big_lock);
+}
+
+void _starpu_opencl_init_driver(struct _starpu_machine_config *config)
+{
+	if (config->conf.nopencl == 0 && !config->force_conf_reload)
+		return;
+	_starpu_init_opencl();
 }
 
 unsigned _starpu_opencl_get_device_count(void)

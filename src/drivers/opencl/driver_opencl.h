@@ -45,6 +45,7 @@ struct _starpu_machine_config;
 void _starpu_opencl_discover_devices(struct _starpu_machine_config *config);
 
 void _starpu_opencl_early_init(void);
+void _starpu_opencl_init_driver(struct _starpu_machine_config *config);
 unsigned _starpu_opencl_get_device_count(void);
 #ifdef STARPU_HAVE_HWLOC
 struct _starpu_machine_topology;
@@ -53,7 +54,6 @@ hwloc_obj_t _starpu_opencl_get_hwloc_obj(hwloc_topology_t topology, int devid);
 void _starpu_init_opencl_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *);
 void _starpu_opencl_init_worker_binding(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg);
 void _starpu_opencl_init_worker_memory(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg);
-void _starpu_init_opencl(void);
 void *_starpu_opencl_worker(void *);
 extern struct _starpu_node_ops _starpu_driver_opencl_node_ops;
 #else

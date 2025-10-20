@@ -161,11 +161,6 @@ static unsigned _starpu_get_hip_device_count(void)
 	return (unsigned)cnt;
 }
 
-/* This is run from initialize to determine the number of HIP devices */
-void _starpu_init_hip(void)
-{
-}
-
 /* This is called to really discover the hardware */
 void _starpu_hip_discover_devices(struct _starpu_machine_config *config)
 {
@@ -212,7 +207,6 @@ void _starpu_init_hip_config(struct _starpu_machine_topology *topology, struct _
 	{
 		/* The user did not disable HIP. We need to initialize HIP
 		 * early to count the number of devices */
-		_starpu_init_hip();
 		int nb_devices = _starpu_get_hip_device_count();
 
 		_starpu_topology_check_ndevices(&nhip, nb_devices, 0, STARPU_MAXHIPDEVS, 0, "nhip", "HIP", "NHIP", "maxhipdev");

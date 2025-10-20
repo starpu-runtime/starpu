@@ -55,7 +55,6 @@ void _starpu_cuda_discover_devices (struct _starpu_machine_config *);
 void _starpu_init_cuda_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *);
 void _starpu_cuda_init_worker_binding(struct _starpu_machine_config *config, int no_mp_config, struct _starpu_worker *workerarg);
 void _starpu_cuda_init_worker_memory(struct _starpu_machine_config *config, int no_mp_config, struct _starpu_worker *workerarg);
-void _starpu_init_cuda(void);
 void _starpu_init_cublas_v2_func(void);
 void _starpu_shutdown_cublas_v2_func(void);
 void _starpu_cublas_v2_init(void);

@@ -540,24 +540,10 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 #endif
 	}
 
-#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
-	if (config->conf.nopencl != 0 || config->force_conf_reload)
-		_starpu_init_opencl();
-#endif
-#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
-	if (config->conf.ncuda != 0 || config->force_conf_reload)
-		_starpu_init_cuda();
-#endif
-
-#if defined(STARPU_USE_HIP)
-	if (config->conf.nhip != 0 || config->force_conf_reload)
-		_starpu_init_hip();
-#endif
-
-#if defined(STARPU_USE_MAX_FPGA)
-	if (config->conf.nmax_fpga != 0 || config->force_conf_reload)
-		_starpu_init_max_fpga();
-#endif
+	enum starpu_worker_archtype type;
+	for (type = 0; type < STARPU_NARCH; type++)
+		if (starpu_driver_info[type].init_driver)
+			starpu_driver_info[type].init_driver(config);
 
 	nobind = starpu_getenv_number("STARPU_WORKERS_NOBIND");
 

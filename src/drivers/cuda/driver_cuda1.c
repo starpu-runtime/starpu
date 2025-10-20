@@ -160,11 +160,6 @@ static unsigned _starpu_get_cuda_device_count(void)
 	return (unsigned)cnt;
 }
 
-/* This is run from initialize to determine the number of CUDA devices */
-void _starpu_init_cuda(void)
-{
-}
-
 /* This is called to really discover the hardware */
 void _starpu_cuda_discover_devices(struct _starpu_machine_config *config)
 {
