@@ -245,7 +245,7 @@ static void _starpu_init_opencl(void)
 
 void _starpu_opencl_init_driver(struct _starpu_machine_config *config)
 {
-	if (config->conf.nopencl == 0 && !config->force_conf_reload)
+	if (config && config->conf.nopencl == 0 && !config->force_conf_reload)
 		return;
 	_starpu_init_opencl();
 }
