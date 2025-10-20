@@ -61,15 +61,6 @@ void starpu_data_set_reduction_methods_with_args(starpu_data_handle_t handle, st
 	_starpu_codelet_check_deprecated_fields(redux_cl);
 	_starpu_codelet_check_deprecated_fields(init_cl);
 
-	unsigned child;
-	for (child = 0; child < handle->nchildren; child++)
-	{
-		/* make sure that the flags are applied to the children as well */
-		starpu_data_handle_t child_handle = starpu_data_get_child(handle, child);
-		if (child_handle->nchildren > 0)
-			starpu_data_set_reduction_methods_with_args(child_handle, redux_cl, redux_cl_arg, init_cl, init_cl_arg);
-	}
-
 	handle->redux_cl = redux_cl;
 	handle->init_cl = init_cl;
 	handle->redux_cl_arg = redux_cl_arg;
