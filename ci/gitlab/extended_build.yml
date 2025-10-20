@@ -143,7 +143,15 @@ simgrid:
   tags: ['ci.inria.fr', 'linux', 'large']
   parallel:
     matrix:
-      - PROFILE: [simgrid, simgrid-nogpu, simgrid-only, simgrid-opencl, simgrid-mc, simgrid-mpi]
+      - PROFILE: [simgrid, simgrid-nogpu, simgrid-only, simgrid-opencl, simgrid-mpi]
+
+simgrid-mc:
+  extends: .manual_template
+  stage: extended_check_basic
+  tags: ['starpu', 'node_nogpu']
+  parallel:
+    matrix:
+      - PROFILE: [simgrid-mc]
 
 gpu:
   extends: .manual_template
