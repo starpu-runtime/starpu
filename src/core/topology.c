@@ -1393,35 +1393,16 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 			_STARPU_DISP("Warning: Could not reserve requested logical core %d (logical cpu %d) for MPI, got %d instead\n", mpi_thread_coreid, mpi_thread_cpuid, got_cpuid);
 	}
 
-#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
-	_starpu_init_cuda_config(topology, config);
-#endif
+	enum starpu_worker_archtype type;
+	for (type = STARPU_CPU_WORKER + 1; type < STARPU_NARCH; type++)
+		if (starpu_driver_info[type].init_config)
+			starpu_driver_info[type].init_config(topology, config);
 
-#if defined(STARPU_USE_HIP)
-	_starpu_init_hip_config(topology, config);
-#endif
-
-/* We put the OpenCL section after the CUDA section: we rather use NVidia GPUs in CUDA mode than in OpenCL mode */
-#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
-	_starpu_init_opencl_config(topology, config);
-#endif
-
-#ifdef STARPU_USE_MAX_FPGA
-	_starpu_init_max_fpga_config(topology, config);
-#endif
-
-#if defined(STARPU_USE_MPI_SERVER_CLIENT)
-	_starpu_init_mpi_config(topology, config, &config->conf, no_mp_config);
-#endif
-#if defined(STARPU_USE_TCPIP_SERVER_CLIENT)
-	_starpu_init_tcpip_config(topology, config, &config->conf, no_mp_config);
-#endif
-
-/* we put the CPU section after the accelerator : in case there was an
- * accelerator found, we devote one cpu */
-#if defined(STARPU_USE_CPU) || defined(STARPU_SIMGRID)
-	_starpu_init_cpu_config(topology, config);
-#endif
+	/* We put the OpenCL section after the CUDA section: we rather use NVidia GPUs in CUDA mode than in OpenCL mode */
+	/* we put the CPU section after the accelerator : in case there was an
+	 * accelerator found, we devote one cpu */
+	if (starpu_driver_info[STARPU_CPU_WORKER].init_config)
+		starpu_driver_info[STARPU_CPU_WORKER].init_config(topology, config);
 
 	if (topology->nworkers == 0)
 	{

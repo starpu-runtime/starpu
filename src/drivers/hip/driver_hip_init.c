@@ -26,6 +26,7 @@ static struct _starpu_driver_info driver_info =
 	.alpha = 13.33f,
 #if defined(STARPU_USE_HIP)
 	.early_init = _starpu_hip_early_init,
+	.init_config = _starpu_init_hip_config,
 	.driver_ops = &_starpu_driver_hip_ops,
 	.run_worker = _starpu_hip_worker,
 #if defined(STARPU_HAVE_HWLOC)

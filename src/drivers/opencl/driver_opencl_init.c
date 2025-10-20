@@ -28,6 +28,7 @@ static struct _starpu_driver_info driver_info =
 #if defined(STARPU_USE_OPENCL)
 	.early_init = _starpu_opencl_early_init,
 	.init_driver = _starpu_opencl_init_driver,
+	.init_config = _starpu_init_opencl_config,
 	.driver_ops = &_starpu_driver_opencl_ops,
 #ifdef STARPU_HAVE_HWLOC
 	.get_hwloc_obj = _starpu_opencl_get_hwloc_obj,
