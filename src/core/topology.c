@@ -542,7 +542,7 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 	if (config->conf.nopencl != 0 || config->force_conf_reload)
-		_starpu_opencl_init();
+		_starpu_init_opencl();
 #endif
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	if (config->conf.ncuda != 0 || config->force_conf_reload)

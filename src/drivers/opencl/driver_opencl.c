@@ -123,6 +123,10 @@ void _starpu_opencl_init(void)
 {
 	memset(&opencl_bindid_init, 0, sizeof(opencl_bindid_init));
 	memset(&opencl_memory_init, 0, sizeof(opencl_memory_init));
+}
+
+void _starpu_init_opencl(void)
+{
 	STARPU_PTHREAD_MUTEX_LOCK(&big_lock);
 	if (!init_done)
 	{
@@ -241,10 +245,7 @@ void _starpu_opencl_init(void)
 
 unsigned _starpu_opencl_get_device_count(void)
 {
-	if (!init_done)
-	{
-		_starpu_opencl_init();
-	}
+	_starpu_init_opencl();
 	return nb_devices;
 }
 
@@ -285,7 +286,7 @@ void _starpu_init_opencl_config(struct _starpu_machine_topology *topology, struc
 	{
 		/* The user did not disable OPENCL. We need to initialize
 		 * OpenCL early to count the number of devices */
-		_starpu_opencl_init();
+		_starpu_init_opencl();
 		int n = _starpu_opencl_get_device_count();
 
 		_starpu_topology_check_ndevices(&nopencl, n, 0, STARPU_MAXOPENCLDEVS, 0, "nopencl", "OpenCL", "OPENCL", "maxopencldev");
@@ -505,10 +506,7 @@ static unsigned _starpu_opencl_get_device_name(int dev, char *name, int lname)
 {
 	int err;
 
-	if (!init_done)
-	{
-		_starpu_opencl_init();
-	}
+	_starpu_init_opencl();
 
 	// Get device name
 	err = clGetDeviceInfo(devices[dev], CL_DEVICE_NAME, lname, name, NULL);
@@ -1711,8 +1709,7 @@ struct _starpu_driver_ops _starpu_driver_opencl_ops =
 #ifdef STARPU_USE_OPENCL
 cl_device_type _starpu_opencl_get_device_type(int devid)
 {
-	if (!init_done)
-		_starpu_opencl_init();
+	_starpu_init_opencl();
 	return type[devid];
 }
 #endif /* STARPU_USE_OPENCL */

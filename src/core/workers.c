@@ -1926,6 +1926,10 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	_starpu_cuda_init();
 #endif
 
+#if defined(STARPU_USE_OPENCL)
+	_starpu_opencl_init();
+#endif
+
 #if defined(STARPU_USE_HIP)
 	_starpu_hip_init();
 #endif
