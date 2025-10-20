@@ -735,17 +735,9 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 	if (!starpu_getenv_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_CPU", 1))
 		config->topology.nhwdevices[STARPU_CPU_WORKER] = config->topology.nhwworker[STARPU_CPU_WORKER][0];
 
-	_starpu_cuda_discover_devices(config);
-	_starpu_hip_discover_devices(config);
-	_starpu_opencl_discover_devices(config);
-	_starpu_max_fpga_discover_devices(config);
-
-#ifdef STARPU_USE_MPI_SERVER_CLIENT
-	config->topology.nhwdevices[STARPU_MPI_SC_WORKER] = _starpu_mpi_src_get_device_count();
-#endif
-#ifdef STARPU_USE_TCPIP_SERVER_CLIENT
-	config->topology.nhwdevices[STARPU_TCPIP_SC_WORKER] = _starpu_tcpip_src_get_device_count();
-#endif
+	for (type = STARPU_CPU_WORKER+1; type < STARPU_NARCH; type++)
+		if (starpu_driver_info[type].discover_devices)
+			starpu_driver_info[type].discover_devices(config);
 
 	topology_is_initialized = 1;
 	config->force_conf_reload = 0;

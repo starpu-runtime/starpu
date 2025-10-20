@@ -25,6 +25,7 @@ static struct _starpu_driver_info driver_info =
 	.memory_kind = STARPU_MPI_SC_RAM,
 	.alpha = 1.0f,
 #ifdef STARPU_USE_MPI_SERVER_CLIENT
+	.discover_devices = _starpu_mpi_src_discover_devices,
 	.init_config = _starpu_init_mpi_config,
 	.run_worker = _starpu_mpi_src_worker,
 	.init_worker_binding = _starpu_mpi_init_worker_binding,

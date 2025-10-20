@@ -35,6 +35,7 @@ extern struct _starpu_node_ops _starpu_driver_mpi_sc_node_ops;
 struct _starpu_mp_node *_starpu_mpi_sc_src_get_actual_thread_mp_node();
 
 unsigned _starpu_mpi_src_get_device_count();
+void _starpu_mpi_src_discover_devices(struct _starpu_machine_config *config);
 void *_starpu_mpi_src_worker(void *arg);
 
 void _starpu_init_mpi_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *config,

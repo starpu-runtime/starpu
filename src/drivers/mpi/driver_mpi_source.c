@@ -263,6 +263,11 @@ unsigned _starpu_mpi_src_get_device_count()
 	return nb_mpi_devices;
 }
 
+void _starpu_mpi_src_discover_devices(struct _starpu_machine_config *config)
+{
+	config->topology.nhwdevices[STARPU_MPI_SC_WORKER] = _starpu_mpi_src_get_device_count();
+}
+
 void *_starpu_mpi_src_worker(void *arg)
 {
 	struct _starpu_worker *worker0 = arg;

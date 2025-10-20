@@ -27,6 +27,7 @@ static struct _starpu_driver_info driver_info =
 	.wait_for_worker_initialization = 1,
 #ifdef STARPU_USE_MAX_FPGA
 	.early_init = _starpu_max_fpga_early_init,
+	.discover_devices = _starpu_max_fpga_discover_devices,
 	.init_config = _starpu_init_max_fpga_config,
 	.driver_ops = &_starpu_driver_max_fpga_ops,
 	.run_worker = _starpu_max_fpga_worker,

@@ -257,6 +257,11 @@ unsigned _starpu_tcpip_src_get_device_count()
 	return nmpirw;
 }
 
+void _starpu_tcpip_src_discover_devices(struct _starpu_machine_config *config)
+{
+	config->topology.nhwdevices[STARPU_TCPIP_SC_WORKER] = _starpu_tcpip_src_get_device_count();
+}
+
 void *_starpu_tcpip_src_worker(void *arg)
 {
 	struct _starpu_worker *worker0 = arg;
