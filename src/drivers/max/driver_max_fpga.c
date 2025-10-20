@@ -57,11 +57,15 @@ max_engine_t *starpu_max_fpga_get_local_engine(void)
 	return engines[devid];
 }
 
-/* This is called to initialize FPGA and discover devices */
-void _starpu_init_max_fpga()
+void _starpu_max_fpga_early_init(void)
 {
 	memset(&max_fpga_bindid_init, 0, sizeof(max_fpga_bindid_init));
 	memset(&max_fpga_memory_init, 0, sizeof(max_fpga_memory_init));
+}
+
+/* This is called to initialize FPGA and discover devices */
+void _starpu_init_max_fpga()
+{
 }
 
 static void _starpu_initialize_workers_max_fpga_deviceid(struct _starpu_machine_config *config)

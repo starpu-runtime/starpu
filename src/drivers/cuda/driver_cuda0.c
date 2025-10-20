@@ -86,7 +86,7 @@ const struct cudaDeviceProp *starpu_cuda_get_device_properties(unsigned workerid
 
 
 /* Early library initialization, before anything else, just initialize data */
-void _starpu_cuda_init(void)
+void _starpu_cuda_early_init(void)
 {
 	memset(&cuda_bindid_init, 0, sizeof(cuda_bindid_init));
 	memset(&cuda_memory_init, 0, sizeof(cuda_memory_init));

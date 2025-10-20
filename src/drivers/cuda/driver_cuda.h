@@ -43,7 +43,6 @@ extern struct _starpu_node_ops _starpu_driver_cuda_node_ops;
 
 extern int _starpu_nworker_per_cuda;
 
-void _starpu_cuda_init(void);
 #ifdef STARPU_HAVE_HWLOC
 struct _starpu_machine_topology;
 hwloc_obj_t _starpu_cuda_get_hwloc_obj(hwloc_topology_t topology, int devid);
@@ -51,6 +50,7 @@ hwloc_obj_t _starpu_cuda_get_hwloc_obj(hwloc_topology_t topology, int devid);
 extern int _starpu_cuda_bus_ids[STARPU_MAXCUDADEVS+STARPU_MAXNUMANODES][STARPU_MAXCUDADEVS+STARPU_MAXNUMANODES];
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
+void _starpu_cuda_early_init(void);
 void _starpu_cuda_discover_devices (struct _starpu_machine_config *);
 void _starpu_init_cuda_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *);
 void _starpu_cuda_init_worker_binding(struct _starpu_machine_config *config, int no_mp_config, struct _starpu_worker *workerarg);

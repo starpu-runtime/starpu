@@ -37,6 +37,7 @@ typedef unsigned * fpga_mem;
 extern struct _starpu_driver_ops _starpu_driver_max_fpga_ops;
 extern struct _starpu_node_ops _starpu_driver_max_fpga_node_ops;
 
+void _starpu_max_fpga_early_init(void);
 void _starpu_init_max_fpga(void);
 void _starpu_init_max_fpga_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *);
 void _starpu_max_fpga_discover_devices (struct _starpu_machine_config *config);

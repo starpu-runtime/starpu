@@ -130,7 +130,7 @@ const struct hipDeviceProp_t *starpu_hip_get_device_properties(unsigned workerid
 
 
 /* Early library initialization, before anything else, just initialize data */
-void _starpu_hip_init(void)
+void _starpu_hip_early_init(void)
 {
 	int i;
 	for (i = 0; i < STARPU_MAXHIPDEVS; i++)

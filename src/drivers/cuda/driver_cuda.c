@@ -191,7 +191,7 @@ const struct cudaDeviceProp *starpu_cuda_get_device_properties(unsigned workerid
 
 
 /* Early library initialization, before anything else, just initialize data */
-void _starpu_cuda_init(void)
+void _starpu_cuda_early_init(void)
 {
 	unsigned i;
 	for (i = 0; i < STARPU_MAXCUDADEVS; i++)

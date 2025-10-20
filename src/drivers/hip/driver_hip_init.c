@@ -25,6 +25,7 @@ static struct _starpu_driver_info driver_info =
 	.memory_kind = STARPU_HIP_RAM,
 	.alpha = 13.33f,
 #if defined(STARPU_USE_HIP)
+	.early_init = _starpu_hip_early_init,
 	.driver_ops = &_starpu_driver_hip_ops,
 	.run_worker = _starpu_hip_worker,
 #if defined(STARPU_HAVE_HWLOC)

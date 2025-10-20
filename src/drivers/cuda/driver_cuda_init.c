@@ -29,6 +29,7 @@ static struct _starpu_driver_info driver_info =
 	.alpha = 13.33f,
 #endif
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
+	.early_init = _starpu_cuda_early_init,
 	.driver_ops = &_starpu_driver_cuda_ops,
 	.run_worker = _starpu_cuda_worker,
 #if defined(STARPU_HAVE_HWLOC) && !defined(STARPU_USE_CUDA0)

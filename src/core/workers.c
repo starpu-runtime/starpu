@@ -1922,17 +1922,10 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	_starpu_perf_counter_init(&_starpu_config);
 	_starpu_perf_knob_init();
 
-#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
-	_starpu_cuda_init();
-#endif
-
-#if defined(STARPU_USE_OPENCL)
-	_starpu_opencl_init();
-#endif
-
-#if defined(STARPU_USE_HIP)
-	_starpu_hip_init();
-#endif
+	enum starpu_worker_archtype type;
+	for (type = 0; type < STARPU_NARCH; type++)
+		if (starpu_driver_info[type].early_init)
+			starpu_driver_info[type].early_init();
 
 #ifdef STARPU_SIMGRID
 	_starpu_simgrid_init();

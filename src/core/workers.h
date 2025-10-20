@@ -553,6 +553,7 @@ struct _starpu_driver_info
 	double alpha;	/**< Typical relative speed compared to a CPU core */
 	unsigned wait_for_worker_initialization;	/**< Whether we should make the core wait for worker initialization before starting other workers initialization */
 	const struct _starpu_driver_ops *driver_ops;	/**< optional: Driver operations */
+	void (*early_init)(void);			/**< (optional) Initialize data structures (called once for all instances) */
 	void *(*run_worker)(void *);	/**< Actually run the worker */
 	void (*init_worker_binding)(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg); /**< Setup worker CPU binding */
 	void (*init_worker_memory)(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg); /**< Setup worker memory node */

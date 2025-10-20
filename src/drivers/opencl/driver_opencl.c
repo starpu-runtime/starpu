@@ -119,7 +119,7 @@ void starpu_opencl_get_current_context(cl_context *context)
 #endif /* STARPU_USE_OPENCL */
 
 /* This is called to initialize opencl and discover devices */
-void _starpu_opencl_init(void)
+void _starpu_opencl_early_init(void)
 {
 	memset(&opencl_bindid_init, 0, sizeof(opencl_bindid_init));
 	memset(&opencl_memory_init, 0, sizeof(opencl_memory_init));
