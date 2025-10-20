@@ -749,7 +749,7 @@ int _starpu_get_initialized_state_on_parent_task_parent_data(starpu_data_handle_
 }
 #endif /* STARPU_RECURSIVE_TASKS */
 
-void _starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, unsigned char *handles_sequential_consistency, int write_only)
+void _starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, unsigned char *handles_sequential_consistency, int write_only STARPU_ATTRIBUTE_UNUSED)
 {
 	unsigned i;
 	STARPU_ASSERT_MSG(initial_handle->sequential_consistency, "partition planning is currently only supported for data with sequential consistency");
