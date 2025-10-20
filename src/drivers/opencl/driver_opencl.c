@@ -262,6 +262,11 @@ void _starpu_opencl_discover_devices(struct _starpu_machine_config *config)
 	/* Discover the number of OpenCL devices. Fill the result in CONFIG. */
 	/* As OpenCL must have been initialized before calling this function,
 	 * `nb_device' is ensured to be correctly set. */
+	if (config->conf.nopencl == 0 && !config->force_conf_reload)
+	{
+		config->topology.nhwdevices[STARPU_OPENCL_WORKER] = _STARPU_TOPOLOGY_NHWDEVICE_ZEROED;
+		return;
+	}
 	STARPU_ASSERT(init_done == 1);
 	config->topology.nhwdevices[STARPU_OPENCL_WORKER] = nb_devices;
 }

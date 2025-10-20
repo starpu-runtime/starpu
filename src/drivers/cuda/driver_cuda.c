@@ -229,6 +229,12 @@ static unsigned _starpu_get_cuda_device_count(void)
 /* This is called to really discover the hardware */
 void _starpu_cuda_discover_devices(struct _starpu_machine_config *config)
 {
+	if (config->conf.ncuda == 0 && !config->force_conf_reload)
+	{
+		config->topology.nhwdevices[STARPU_CUDA_WORKER] = _STARPU_TOPOLOGY_NHWDEVICE_ZEROED;
+		return;
+	}
+
 	/* Discover the number of CUDA devices. Fill the result in CONFIG. */
 
 #ifdef STARPU_SIMGRID

@@ -735,22 +735,10 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 	if (!starpu_getenv_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_CPU", 1))
 		config->topology.nhwdevices[STARPU_CPU_WORKER] = config->topology.nhwworker[STARPU_CPU_WORKER][0];
 
-	if (config->conf.ncuda == 0 && !config->force_conf_reload)
-		config->topology.nhwdevices[STARPU_CUDA_WORKER] = _STARPU_TOPOLOGY_NHWDEVICE_ZEROED;
-	else
-		_starpu_cuda_discover_devices(config);
-	if (config->conf.nhip == 0 && !config->force_conf_reload)
-		config->topology.nhwdevices[STARPU_HIP_WORKER] = _STARPU_TOPOLOGY_NHWDEVICE_ZEROED;
-	else
-		_starpu_hip_discover_devices(config);
-	if (config->conf.nopencl == 0 && !config->force_conf_reload)
-		config->topology.nhwdevices[STARPU_OPENCL_WORKER] = _STARPU_TOPOLOGY_NHWDEVICE_ZEROED;
-	else
-		_starpu_opencl_discover_devices(config);
-	if (config->conf.nmax_fpga == 0 && !config->force_conf_reload)
-		config->topology.nhwdevices[STARPU_MAX_FPGA_WORKER] = _STARPU_TOPOLOGY_NHWDEVICE_ZEROED;
-	else
-		_starpu_max_fpga_discover_devices(config);
+	_starpu_cuda_discover_devices(config);
+	_starpu_hip_discover_devices(config);
+	_starpu_opencl_discover_devices(config);
+	_starpu_max_fpga_discover_devices(config);
 
 #ifdef STARPU_USE_MPI_SERVER_CLIENT
 	config->topology.nhwdevices[STARPU_MPI_SC_WORKER] = _starpu_mpi_src_get_device_count();

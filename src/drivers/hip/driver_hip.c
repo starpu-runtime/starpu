@@ -165,6 +165,11 @@ static unsigned _starpu_get_hip_device_count(void)
 void _starpu_hip_discover_devices(struct _starpu_machine_config *config)
 {
 	/* Discover the number of HIP devices. Fill the result in CONFIG. */
+	if (config->conf.nhip == 0 && !config->force_conf_reload)
+	{
+		config->topology.nhwdevices[STARPU_HIP_WORKER] = _STARPU_TOPOLOGY_NHWDEVICE_ZEROED;
+		return;
+	}
 
 	int cnt;
 	hipError_t hipres;

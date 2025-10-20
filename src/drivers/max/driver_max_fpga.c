@@ -87,6 +87,11 @@ static unsigned _starpu_max_fpga_get_device_count(void)
 /* This is called to really discover the hardware */
 void _starpu_max_fpga_discover_devices (struct _starpu_machine_config *config)
 {
+	if (config->conf.nmax_fpga == 0 && !config->force_conf_reload)
+	{
+		config->topology.nhwdevices[STARPU_MAX_FPGA_WORKER] = _STARPU_TOPOLOGY_NHWDEVICE_ZEROED;
+		return;
+	}
 	//TODO: This is statically assigned, in the next round of integration
 	// I will have to read from the struct fpga in fpga
 	struct starpu_max_load *load = _starpu_config.conf.max_fpga_load;
