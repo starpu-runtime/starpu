@@ -308,8 +308,6 @@ static int _starpu_cuda_driver_init(struct _starpu_worker *worker)
 
 	init_device_context(devid, memnode);
 
-	unsigned workerid = worker->workerid;
-
 	float size = (float) global_mem[devid] / (1<<30);
 	/* get the device's name */
 	char devname[64];
