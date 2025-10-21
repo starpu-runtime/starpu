@@ -340,7 +340,7 @@ static int _starpu_cuda_driver_init(struct _starpu_worker *worker)
 
 static int _starpu_cuda_driver_deinit(struct _starpu_worker *worker)
 {
-	_starpu_trace_worker_deinit_start;
+	_starpu_trace_worker_deinit_start();
 
 	unsigned devid = worker->devid;
 	unsigned memnode = worker->memory_node;
