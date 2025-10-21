@@ -71,8 +71,7 @@ static void __starpu_init_tcpip_config(struct _starpu_machine_topology * topolog
 }
 
 /* Determine which devices we will use */
-void _starpu_init_tcpip_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *config,
-				   struct starpu_conf *user_conf, int no_mp_config)
+void _starpu_init_tcpip_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *config, int no_mp_config)
 {
 	int i;
 
@@ -86,7 +85,7 @@ void _starpu_init_tcpip_config(struct _starpu_machine_topology *topology, struct
 	for (i = 0; i < (int) (sizeof(tcpip_worker_set)/sizeof(tcpip_worker_set[0])); i++)
 		tcpip_worker_set[i].workers = NULL;
 
-	int ntcpipsc = user_conf->ntcpip_sc;
+	int ntcpipsc = config->conf.ntcpip_sc;
 
 	if(ntcpipsc != 0 || config->force_conf_reload)
 	{

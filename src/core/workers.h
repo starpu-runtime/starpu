@@ -556,7 +556,7 @@ struct _starpu_driver_info
 	void (*early_init)(void);			/**< (optional) Initialize data structures (called once for all instances) */
 	void (*init_driver)(struct _starpu_machine_config *config);	/**< (optional) Initialize low-level driver library (called once for all instances), so it is able to tell the number of devices. */
 	void (*discover_devices)(struct _starpu_machine_config *config);	/**< Set config->topology.nhwdevices[type]*/
-	void (*init_config)(struct _starpu_machine_topology *topology, struct _starpu_machine_config *config);	/**< Decide the number of devices to drive and fill worker structures. This is typically achieved by calling _starpu_topology_configure_workers(). It can also use _starpu_initialize_workers_deviceid and _starpu_topology_configure_workers helpers */
+	void (*init_config)(struct _starpu_machine_topology *topology, struct _starpu_machine_config *config, int no_mp_config);	/**< Decide the number of devices to drive and fill worker structures. This is typically achieved by calling _starpu_topology_configure_workers(). It can also use _starpu_initialize_workers_deviceid and _starpu_topology_configure_workers helpers */
 	void *(*run_worker)(void *);	/**< Actually run the worker */
 	void (*init_worker_binding)(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg); /**< Setup worker CPU binding */
 	void (*init_worker_memory)(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg); /**< Setup worker memory node */

@@ -1307,7 +1307,7 @@ static unsigned _starpu_topology_count_ngpus(hwloc_obj_t obj)
 }
 #endif
 
-static int _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED)
+static int _starpu_init_machine_config(struct _starpu_machine_config *config, int no_mp_config)
 {
 	int i;
 
@@ -1376,13 +1376,13 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 	enum starpu_worker_archtype type;
 	for (type = STARPU_CPU_WORKER + 1; type < STARPU_NARCH; type++)
 		if (starpu_driver_info[type].init_config)
-			starpu_driver_info[type].init_config(topology, config);
+			starpu_driver_info[type].init_config(topology, config, no_mp_config);
 
 	/* We put the OpenCL section after the CUDA section: we rather use NVidia GPUs in CUDA mode than in OpenCL mode */
 	/* we put the CPU section after the accelerator : in case there was an
 	 * accelerator found, we devote one cpu */
 	if (starpu_driver_info[STARPU_CPU_WORKER].init_config)
-		starpu_driver_info[STARPU_CPU_WORKER].init_config(topology, config);
+		starpu_driver_info[STARPU_CPU_WORKER].init_config(topology, config, no_mp_config);
 
 	if (topology->nworkers == 0)
 	{

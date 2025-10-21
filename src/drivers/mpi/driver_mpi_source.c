@@ -73,8 +73,7 @@ static void __starpu_init_mpi_config(struct _starpu_machine_topology *topology,
 }
 
 /* Determine which devices we will use */
-void _starpu_init_mpi_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *config,
-			     struct starpu_conf *user_conf, int no_mp_config)
+void _starpu_init_mpi_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *config, int no_mp_config)
 {
 	int i;
 
@@ -88,7 +87,7 @@ void _starpu_init_mpi_config(struct _starpu_machine_topology *topology, struct _
 	for (i = 0; i < (int) (sizeof(mpi_worker_set)/sizeof(mpi_worker_set[0])); i++)
 		mpi_worker_set[i].workers = NULL;
 
-	int nmpisc = user_conf->nmpi_sc;
+	int nmpisc = config->conf.nmpi_sc;
 
 	if (nmpisc != 0 || config->force_conf_reload)
 	{

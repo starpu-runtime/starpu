@@ -59,7 +59,7 @@ extern int _starpu_hip_bus_ids[STARPU_MAXHIPDEVS+STARPU_MAXNUMANODES][STARPU_MAX
 #if defined(STARPU_USE_HIP)
 void _starpu_hip_early_init(void);
 void _starpu_hip_discover_devices(struct _starpu_machine_config *);
-void _starpu_init_hip_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *);
+void _starpu_init_hip_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *, int no_mp_config);
 void _starpu_hip_init_worker_binding(struct _starpu_machine_config *config, int no_mp_config, struct _starpu_worker *workerarg);
 void _starpu_hip_init_worker_memory(struct _starpu_machine_config *config, int no_mp_config, struct _starpu_worker *workerarg);
 void *_starpu_hip_worker(void *);

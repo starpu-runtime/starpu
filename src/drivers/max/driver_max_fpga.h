@@ -39,7 +39,7 @@ extern struct _starpu_node_ops _starpu_driver_max_fpga_node_ops;
 
 void _starpu_max_fpga_early_init(void);
 void _starpu_init_max_fpga(void);
-void _starpu_init_max_fpga_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *);
+void _starpu_init_max_fpga_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *, int no_mp_config);
 void _starpu_max_fpga_discover_devices (struct _starpu_machine_config *config);
 void _starpu_max_fpga_init_worker_binding(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg);
 void _starpu_max_fpga_init_worker_memory(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg);

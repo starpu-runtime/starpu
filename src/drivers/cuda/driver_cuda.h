@@ -52,7 +52,7 @@ extern int _starpu_cuda_bus_ids[STARPU_MAXCUDADEVS+STARPU_MAXNUMANODES][STARPU_M
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 void _starpu_cuda_early_init(void);
 void _starpu_cuda_discover_devices (struct _starpu_machine_config *);
-void _starpu_init_cuda_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *);
+void _starpu_init_cuda_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *, int no_mp_config);
 void _starpu_cuda_init_worker_binding(struct _starpu_machine_config *config, int no_mp_config, struct _starpu_worker *workerarg);
 void _starpu_cuda_init_worker_memory(struct _starpu_machine_config *config, int no_mp_config, struct _starpu_worker *workerarg);
 void _starpu_init_cublas_v2_func(void);

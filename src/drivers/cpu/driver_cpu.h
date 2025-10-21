@@ -31,7 +31,7 @@ extern struct _starpu_driver_ops _starpu_driver_cpu_ops;
 /* Reserve one CPU core as busy for starting a driver thread */
 void _starpu_cpu_busy_cpu(unsigned num);
 
-void _starpu_init_cpu_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *config);
+void _starpu_init_cpu_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *config, int no_mp_config);
 
 #pragma GCC visibility pop
 

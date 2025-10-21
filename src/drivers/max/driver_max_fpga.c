@@ -160,7 +160,7 @@ void _starpu_max_fpga_discover_devices (struct _starpu_machine_config *config)
 }
 
 /* Determine which devices we will use */
-void _starpu_init_max_fpga_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *)
+void _starpu_init_max_fpga_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *, int no_mp_config STARPU_ATTRIBUTE_UNUSED)
 {
 	int nmax_fpga = config->conf.nmax_fpga;
 	if (nmax_fpga != 0 || config->force_conf_reload)

@@ -117,7 +117,7 @@ void _starpu_cpu_busy_cpu(unsigned num)
 
 #if defined(STARPU_USE_CPU) || defined(STARPU_SIMGRID)
 /* Determine which devices we will use */
-void _starpu_init_cpu_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *config)
+void _starpu_init_cpu_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED)
 {
 	int ncpu = config->conf.ncpus;
 

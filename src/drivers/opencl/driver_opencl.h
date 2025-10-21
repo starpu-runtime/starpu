@@ -51,7 +51,7 @@ unsigned _starpu_opencl_get_device_count(void);
 struct _starpu_machine_topology;
 hwloc_obj_t _starpu_opencl_get_hwloc_obj(hwloc_topology_t topology, int devid);
 #endif
-void _starpu_init_opencl_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *);
+void _starpu_init_opencl_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *, int no_mp_config);
 void _starpu_opencl_init_worker_binding(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg);
 void _starpu_opencl_init_worker_memory(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg);
 void *_starpu_opencl_worker(void *);

@@ -290,7 +290,7 @@ static void _starpu_initialize_workers_opencl_gpuid(struct _starpu_machine_confi
 }
 
 /* Determine which devices we will use */
-void _starpu_init_opencl_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *config)
+void _starpu_init_opencl_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED)
 {
 	int nopencl = config->conf.nopencl;
 
