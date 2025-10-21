@@ -152,7 +152,6 @@ void _starpu_init_cuda_config(struct _starpu_machine_topology *topology, struct 
 		 * initialize CUDA early to count the number of
 		 * devices
 		 */
-		_starpu_init_cuda();
 		int nb_devices = _starpu_get_cuda_device_count();
 
 		_starpu_topology_check_ndevices(&ncuda, nb_devices, 0, STARPU_MAXCUDADEVS, 0, "ncuda", "CUDA", "NCUDA", "maxcudadev");
