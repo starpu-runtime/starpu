@@ -265,7 +265,9 @@ double starpu_timing_now(void)
 #endif
 }
 
+#if !defined(STARPU_SIMGRID) && defined(HAVE_CLOCK_GETTIME) && defined(CLOCK_MONOTONIC)
 double starpu_timing_get_reference(void)
 {
 	return starpu_timing_timespec_to_us(&_starpu_reference_start_time_ts);
 }
+#endif
