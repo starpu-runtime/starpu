@@ -1762,7 +1762,7 @@ int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_
 	STARPU_ASSERT(replicate->mapped == STARPU_UNMAPPED);
 	STARPU_ASSERT(replicate->data_interface);
 
-	if (handle->parent_handle && dst_node == _starpu_data_get_gathering_node(handle))
+	if (replicate == &handle->per_node[dst_node] && handle->parent_handle && dst_node == _starpu_data_get_gathering_node(handle))
 	{
 		/* We are on the gathering node, we have to reuse the allocation of the parent, for gathering coherency. */
 		/* If the parent is not allocated yet, we now want to force allocation, to make sure to reuse the same allocation. */

@@ -269,6 +269,7 @@ myPROGRAMS +=				\
 	datawizard/critical_section_with_void_interface\
 	datawizard/increment_init		\
 	datawizard/increment_redux		\
+	datawizard/increment_redux_partition	\
 	datawizard/increment_redux_v2		\
 	datawizard/increment_redux_with_args	\
 	datawizard/increment_redux_lazy		\
@@ -552,6 +553,22 @@ datawizard_increment_redux_SOURCES +=		\
 endif
 if STARPU_USE_OPENCL
 datawizard_increment_redux_SOURCES +=		\
+	variable/increment_opencl.c
+endif
+
+datawizard_increment_redux_partition_SOURCES =		\
+	datawizard/increment_redux_partition.c		\
+	variable/increment.c
+if STARPU_USE_CUDA
+datawizard_increment_redux_partition_SOURCES +=		\
+	variable/increment_cuda.cu
+endif
+if STARPU_USE_HIP
+datawizard_increment_redux_partition_SOURCES +=		\
+	variable/increment_hip.hip
+endif
+if STARPU_USE_OPENCL
+datawizard_increment_redux_partition_SOURCES +=		\
 	variable/increment_opencl.c
 endif
 
