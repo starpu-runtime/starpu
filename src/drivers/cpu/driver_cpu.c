@@ -67,7 +67,9 @@
 #include <nosv/affinity.h>
 #endif
 
+#ifdef STARPU_USE_CPU
 static void *_starpu_cpu_worker(void *arg);
+#endif
 static void _starpu_cpu_init_worker_binding(struct _starpu_machine_config *config, int no_mp_config, struct _starpu_worker *workerarg);
 static void _starpu_cpu_init_worker_memory(struct _starpu_machine_config *config, int no_mp_config, struct _starpu_worker *workerarg);
 
