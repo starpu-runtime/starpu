@@ -298,6 +298,9 @@ void _starpu_mpi_clear_data_after_execution(starpu_data_handle_t data, enum star
 #ifdef STARPU_DEVEL
 #warning FIXME: better simply call starpu_mpi_cache_flush
 #endif
+#ifdef STARPU_DEVEL
+#warning FIXME: ideally we would drop from the cache only for other nodes than the owner and the executor
+#endif
 			starpu_mpi_cached_send_clear(data);
 			starpu_mpi_cached_receive_clear(data);
 		}
