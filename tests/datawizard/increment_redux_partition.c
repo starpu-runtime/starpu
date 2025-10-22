@@ -86,23 +86,9 @@ int main(int argc, char **argv)
 		}
 	}
 
-	status = EXIT_SUCCESS;
-	for (i = 0; i < N; i++)
-	{
-		starpu_data_handle_t sub_handle = starpu_data_get_sub_data(handle, 1, i);
-
-		ret = starpu_data_acquire(sub_handle, STARPU_R);
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
-		if (vec[i] != i + ntasks)
-		{
-			FPRINTF(stderr, "[end of loop] Value %u != Expected value %u\n", vec[i], ntasks);
-			status = EXIT_FAILURE;
-		}
-		starpu_data_release(sub_handle);
-	}
-
 	starpu_data_unpartition(handle, STARPU_MAIN_RAM);
 
+	status = EXIT_SUCCESS;
 	starpu_data_acquire(handle, STARPU_R);
 	for (i = 0; i < N; i++)
 	{
