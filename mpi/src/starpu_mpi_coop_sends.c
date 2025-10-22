@@ -245,8 +245,12 @@ static int _starpu_mpi_coop_send_compatible(struct _starpu_mpi_req *req, struct 
 	}
 
 	struct _starpu_mpi_req *prevreq = _starpu_mpi_req_multilist_begin_coop_sends(&coop_sends->reqs);
-	return /* we can cope with tag being different */
-	          prevreq->node_tag.node.comm == req->node_tag.node.comm
+	/* We could cope with tags being different, but NewMadeleine's mcast
+	 * interface doesn't support it (yet, should be quite easy to support). If
+	 * we send a mcast mixing sends with differents tags, they will be sent
+	 * with the same tag, and thus not matching with posted recvs... */
+	return prevreq->node_tag.data_tag == req->node_tag.data_tag
+	       && prevreq->node_tag.node.comm == req->node_tag.node.comm
 	       && prevreq->sequential_consistency == req->sequential_consistency;
 }
 
