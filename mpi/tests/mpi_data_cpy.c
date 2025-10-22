@@ -17,8 +17,21 @@
 #include <starpu_mpi.h>
 #include "helper.h"
 
+/* This test shows how to use starpu_mpi_data_cpy() to copy data between two
+ * handles, which are actually on different processes and require a MPI
+ * communication.
+ *
+ * The test executes a ring: process 0 starts with a value 0, increments it,
+ * send the value to process 1, process 1 incrementes the received value, it
+ * sends it to process 2, and so on... To send the data to the following
+ * process, we actually use starpu_data_cpy to send the data to *all*
+ * processes.
+ *
+ * Warning: sending the same data to several processes triggers a broadcast
+ * when NewMadeleine is used. It should be transparent, though.
+ * */
+
 #define DATA_TAG 666
-#define INC_COUNT 10
 
 void func_cpu(void *descr[], void *_args)
 {
@@ -66,6 +79,8 @@ int main(int argc, char **argv)
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
 
+        const int inc_count = size * 3; // Make the value be incremented by each process 3 times
+
         data = (starpu_data_handle_t*)malloc(size*sizeof(starpu_data_handle_t));
         for(i=0; i<size; i++)
 	{
@@ -76,7 +91,7 @@ int main(int argc, char **argv)
                 starpu_mpi_data_register_comm(data[i],  DATA_TAG + i,  i, MPI_COMM_WORLD);
         }
 
-        for(i=0; i<INC_COUNT; i++)
+        for(i=0; i<inc_count; i++)
 	{
 		int j;
 
@@ -100,8 +115,8 @@ int main(int argc, char **argv)
 
 	if (ret == 0)
 	{
-		FPRINTF_MPI(stderr, "value after calculation: %d (expected %d)\n", value, INC_COUNT);
-		STARPU_ASSERT_MSG(value == INC_COUNT, "[rank %d] value %d is not the expected value %d\n", rank, value, INC_COUNT);
+		FPRINTF_MPI(stderr, "value after calculation: %d (expected %d)\n", value, inc_count);
+		STARPU_ASSERT_MSG(value == inc_count, "[rank %d] value %d is not the expected value %d\n", rank, value, inc_count);
 	}
 
         starpu_mpi_shutdown();
