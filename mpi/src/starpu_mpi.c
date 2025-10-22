@@ -706,9 +706,6 @@ void starpu_mpi_comm_stats_enable()
 
 int _starpu_mpi_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle, MPI_Comm comm, int asynchronous, void (*callback_func)(void *), void *callback_arg, int priority)
 {
-	int src, dst;
-	int ret;
-
 	if (dst_handle == src_handle)
 	{
 		if (callback_func)
@@ -716,41 +713,38 @@ int _starpu_mpi_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t s
 		return 0;
 	}
 
-	ret = 0;
-	src = starpu_mpi_data_get_rank(src_handle);
-	dst = starpu_mpi_data_get_rank(dst_handle);
+	int ret = 0;
+	int src_rank = starpu_mpi_data_get_rank(src_handle);
+	int dst_rank = starpu_mpi_data_get_rank(dst_handle);
 
-	if (src == dst)
+	if (src_rank == dst_rank)
 		// Both data are on the same node, no need to transfer data
 		ret = starpu_data_cpy_priority(dst_handle, src_handle, asynchronous, callback_func, callback_arg, priority);
 	else
 	{
 		// We need to transfer data
-		int rank;
-		starpu_mpi_tag_t tag;
+		int my_rank;
+		starpu_mpi_comm_rank(comm, &my_rank);
+		starpu_mpi_tag_t tag = starpu_mpi_data_get_tag(dst_handle);
 
-		tag = starpu_mpi_data_get_tag(dst_handle);
-		starpu_mpi_comm_rank(comm, &rank);
-
-		if (rank == src)
+		if (my_rank == src_rank)
 		{
 			if (asynchronous == 1)
-				ret = starpu_mpi_isend_detached_prio(src_handle, dst, tag, priority, comm, NULL, NULL);
+				ret = starpu_mpi_isend_detached_prio(src_handle, dst_rank, tag, priority, comm, NULL, NULL);
 			else
-				ret = starpu_mpi_send_prio(src_handle, dst, tag, priority, comm);
+				ret = starpu_mpi_send_prio(src_handle, dst_rank, tag, priority, comm);
 		}
-		else if (rank == dst)
+		else if (my_rank == dst_rank)
 		{
 			if (asynchronous == 1)
-				ret = starpu_mpi_irecv_detached_prio(dst_handle, src, tag, priority, comm, callback_func, callback_arg);
+				ret = starpu_mpi_irecv_detached_prio(dst_handle, src_rank, tag, priority, comm, callback_func, callback_arg);
 			else
 			{
-				ret = starpu_mpi_recv_prio(dst_handle, src, tag, priority, comm, MPI_STATUS_IGNORE);
+				ret = starpu_mpi_recv_prio(dst_handle, src_rank, tag, priority, comm, MPI_STATUS_IGNORE);
 				if (callback_func)
 					callback_func(callback_arg);
 			}
 			return ret;
-
 		}
 	}
 	starpu_mpi_cache_flush(comm, dst_handle);
