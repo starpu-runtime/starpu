@@ -38,8 +38,7 @@ unsigned _starpu_mpi_src_get_device_count();
 void _starpu_mpi_src_discover_devices(struct _starpu_machine_config *config);
 void *_starpu_mpi_src_worker(void *arg);
 
-void _starpu_init_mpi_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *config,
-			    struct starpu_conf *user_conf, int no_mp_config);
+void _starpu_init_mpi_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *config, int no_mp_config);
 void _starpu_mpi_init_worker_binding(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg);
 void _starpu_mpi_init_worker_memory(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg);
 void _starpu_deinit_mpi_config(struct _starpu_machine_config *config);
