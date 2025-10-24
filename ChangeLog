@@ -14,6 +14,14 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
+StarPU 1.4.9
+==============================================
+Small changes:
+  * Support STARPU_WORKERS_GETBIND in the case where only one thread per core is provided by the OS
+  * When using STARPU_WORKERS_GETBIND, fix counting nusedpus
+  * Fix each public API file by including starpu.h before the inclusion guard
+  * Fix make install on systems with a dist-packages python directory
+
 StarPU 1.4.8
 ==============================================
 Small features:
