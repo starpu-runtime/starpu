@@ -18,6 +18,6 @@
 if test -n "$STARPU_MICROBENCHS_DISABLED" ; then exit 77 ; fi
 
 ROOT=${0%.sh}
-$MS_LAUNCHER $STARPU_LAUNCH $ROOT "$@" > tasks_size_overhead.output
+$STARPU_MS_LAUNCHER $STARPU_LOADER $ROOT "$@" > tasks_size_overhead.output
 $ROOT.gp
 gv tasks_size_overhead.eps

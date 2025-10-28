@@ -37,7 +37,7 @@ calibrate_point()
 		export STARPU_SCHED=$strat
 		export STARPU_CALIBRATE=1
 		export STARPU_PREFETCH=$prefetch
-		val=`$MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat/heat -pin -nblocks $nblocks -size $size -v3 2> /dev/null`
+		val=`$STARPU_MS_LAUNCHER $STARPU_LOADER $ROOTDIR/examples/heat/heat -pin -nblocks $nblocks -size $size -v3 2> /dev/null`
 		echo "$val"
 	done
 
@@ -67,7 +67,7 @@ trace_point()
 		export STARPU_SCHED=$strat
 		export STARPU_CALIBRATE=$docalibrate
 		export STARPU_PREFETCH=$prefetch
-		val=`$MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat/heat -pin -nblocks $nblocks -size $size -v3  2> /dev/null`
+		val=`$STARPU_MS_LAUNCHER $STARPU_LOADER $ROOTDIR/examples/heat/heat -pin -nblocks $nblocks -size $size -v3  2> /dev/null`
 		echo "$val"
 		echo "$val" >> $filename
 	done

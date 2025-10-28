@@ -26,10 +26,10 @@ max=20
 
 for logi in `seq 0 $max`
 do
-	$MS_LAUNCHER $STARPU_LAUNCH $examplebindir/incrementer $i 2> .tmpperf
+	$STARPU_MS_LAUNCHER $STARPU_LOADER $examplebindir/incrementer $i 2> .tmpperf
 
 	grep "ms" .tmpperf
-	grep "ms" .tmpperf | sed -e "s/^\(.*\) elems took \(.*\) ms$/\1	\2/" >> .perftable 
+	grep "ms" .tmpperf | sed -e "s/^\(.*\) elems took \(.*\) ms$/\1	\2/" >> .perftable
 
 	i=$((2 * $i))
 done

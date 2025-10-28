@@ -34,14 +34,14 @@ trace_stress()
 
 	line="$memstress"
 
-	for size in $sizelist 
+	for size in $sizelist
 	do
 		nblocks=$(($size / 1024))
 		echo "Computing size $size with $memstress MB of memory LESS"
-		
+
 		echo "$ROOTDIR/examples/mult/dw_mult -x $size -y $size -z $size -nblocks $nblocks 2>/dev/null"
-		timing=`$MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/mult/dw_mult -x $size -y $size -z $size -nblocks $nblocks 2>/dev/null`
-	
+		timing=`$STARPU_MS_LAUNCHER $STARPU_LOADER $ROOTDIR/examples/mult/dw_mult -x $size -y $size -z $size -nblocks $nblocks 2>/dev/null`
+
 		echo "size : $size memstress $memstress => $timing us"
 
 		line="$line	$timing"

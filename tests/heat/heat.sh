@@ -46,7 +46,7 @@ do
 			export STARPU_NCUDA=$cublas
 
 			echo "size $size cpus $cpus cublas $cublas blocks $blocks"
-			$MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat -nthick 34 -ntheta $(($theta+2)) -nblocks $BLOCKS 2>/dev/null| tee $filename
+			$STARPU_MS_LAUNCHER $STARPU_LOADER $ROOTDIR/examples/heat -nthick 34 -ntheta $(($theta+2)) -nblocks $BLOCKS 2>/dev/null| tee $filename
 		done
 	done
 
@@ -62,7 +62,7 @@ do
 			export STARPU_NCUDA=$cublas
 
 			echo "size $size cpus $cpus cublas $cublas blocks $blocks"
-			$MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat -nthick 34 -ntheta $(($theta+2)) -nblocks $BLOCKS 2>/dev/null| tee $filename
+			$STARPU_MS_LAUNCHER $STARPU_LOADER $ROOTDIR/examples/heat -nthick 34 -ntheta $(($theta+2)) -nblocks $BLOCKS 2>/dev/null| tee $filename
 		done
 	done
 done
@@ -89,14 +89,14 @@ do
 
 		echo "size $size cpus 4 cublas 0 blocks $blocks"
 		filename=$TIMINGDIR/timing.4.0.$size.$blocks
-		$MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat -nthick 34 -ntheta $(($theta+2)) -nblocks $blocks 2>/dev/null| tee $filename
+		$STARPU_MS_LAUNCHER $STARPU_LOADER $ROOTDIR/examples/heat -nthick 34 -ntheta $(($theta+2)) -nblocks $blocks 2>/dev/null| tee $filename
 
 		export STARPU_NCPUS=3
 		export STARPU_NCUDA=1
 
 		echo "size $size cpus 3 cublas 1 blocks $blocks"
 		filename=$TIMINGDIR/timing.3.1.$size.$blocks
-		$MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat -nthick 34 -ntheta $(($theta+2)) -nblocks $blocks 2>/dev/null| tee $filename
+		$STARPU_MS_LAUNCHER $STARPU_LOADER $ROOTDIR/examples/heat -nthick 34 -ntheta $(($theta+2)) -nblocks $blocks 2>/dev/null| tee $filename
 	done
 done
 

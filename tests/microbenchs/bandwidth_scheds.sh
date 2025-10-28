@@ -68,7 +68,7 @@ run()
 		extra=
 	fi
 
-	STARPU_BACKOFF_MIN=0 STARPU_BACKOFF_MAX=0 STARPU_SCHED=$sched $STARPU_SUB_PARALLEL $MS_LAUNCHER $STARPU_LAUNCH $DIR/bandwidth $fast $extra "$@" | tee bandwidth-$sched.dat
+	STARPU_BACKOFF_MIN=0 STARPU_BACKOFF_MAX=0 STARPU_SCHED=$sched $STARPU_SUB_PARALLEL $STARPU_MS_LAUNCHER $STARPU_LOADER $DIR/bandwidth $fast $extra "$@" | tee bandwidth-$sched.dat
 	echo "\"bandwidth-$sched.dat\" using 1:3 with linespoints lt $type pt $type title \"$sched\", \\" >> bandwidth.gp
 	echo "\"bandwidth-$sched.dat\" using 1:8 with linespoints lt $type pt $type notitle, \\" >> bandwidth.gp
 }

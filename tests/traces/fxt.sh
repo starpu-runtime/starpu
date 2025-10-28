@@ -29,7 +29,7 @@ export STARPU_FXT_PREFIX=$TRACEDIR
 export STARPU_FXT_TRACE=1
 export STARPU_GENERATE_TRACE_OPTIONS="-no-acquire -c -label-deps"
 export STARPU_GENERATE_TRACE=1
-$MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/tests/traces/fxt
+$STARPU_MS_LAUNCHER $STARPU_LOADER $ROOTDIR/tests/traces/fxt
 
 prof_file=prof_file_${USER}_0
 if test -z "$USER"

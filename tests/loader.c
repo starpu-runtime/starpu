@@ -332,22 +332,22 @@ int main(int argc, char *argv[])
                 /* This is a shell script, don't run ourself on bash, but make
                  * the script call us for each program invocation */
 
-		char *launch = NULL;
+		char *loader = NULL;
 		if (top_builddir == NULL)
 			// this may fail if .libs is in the directory path
-			setenv("STARPU_LAUNCH", argv[0], 1);
+			setenv("STARPU_LOADER", argv[0], 1);
 		else
 		{
-			launch = malloc(strlen(top_builddir) + strlen("/tests/loader") + 1);
-			strcpy(launch, top_builddir);
-			strcat(launch, "/tests/loader");
-			setenv("STARPU_LAUNCH", launch, 1);
+			loader = malloc(strlen(top_builddir) + strlen("/tests/loader") + 1);
+			strcpy(loader, top_builddir);
+			strcat(loader, "/tests/loader");
+			setenv("STARPU_LOADER", loader, 1);
 		}
 
 		execvp(test_name, argv+x-1);
 
 		fprintf(stderr, "[error] '%s' failed to exec. test marked as failed\n", test_name);
-		free(launch);
+		free(loader);
 		exit(EXIT_FAILURE);
 	}
 
@@ -447,6 +447,15 @@ int main(int argc, char *argv[])
 #endif
 #endif
 		launcher_argv[i++] = NULL;
+
+		if (getenv("STARPU_LAUNCHER_DEBUG"))
+		{
+			fprintf(stderr, "+");
+			int y;
+			for(y=0;y<i;y++)
+				fprintf(stderr, " %s", launcher_argv[y]);
+			fprintf(stderr, "\n");
+		}
 		execvp(*launcher_argv, launcher_argv);
 
 		fprintf(stderr, "[error] '%s' failed to exec. test marked as failed\n", test_name);

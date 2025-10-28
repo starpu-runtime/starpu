@@ -19,4 +19,4 @@ if test -n "$STARPU_MICROBENCHS_DISABLED" ; then exit 77 ; fi
 
 ROOT=${0%.sh}
 ROOT=$(echo $ROOT | sed 's/tasks_data_overhead/tasks_overhead/')
-exec $MS_LAUNCHER $STARPU_LAUNCH $ROOT -b 1 "$@"
+exec $STARPU_MS_LAUNCHER $STARPU_LOADER $ROOT -b 1 "$@"

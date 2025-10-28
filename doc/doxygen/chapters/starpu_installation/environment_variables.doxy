@@ -2006,6 +2006,14 @@ Setting it to 1 displays the binding masks. Setting it to 2 displays the topolog
 If MPI is enabled, display the binding of each node.<br>
 Users can manually display the binding by calling starpu_display_bindings().
 </dd>
+
+<dt>STARPU_LAUNCHER_DEBUG</dt>
+<dd>
+\anchor STARPU_LAUNCHER_DEBUG
+\addindex __env__STARPU_LAUNCHER_DEBUG
+When defined, running a test displays extra informations on what is launched.
+</dd>
+
 </dl>
 
 \section ConfiguringTheHypervisor Configuring The Hypervisor

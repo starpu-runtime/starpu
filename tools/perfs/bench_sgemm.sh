@@ -57,7 +57,7 @@ do
 	fi
 
 	echo "GotoBLAS -> size $size niter $niter"
-	timing=`STARPU_NCPUS=1 STARPU_NCUDA=0 $MS_LAUNCHER $STARPU_LAUNCH $INSTALLDIR/lib/starpu/examples/dw_mult_no_filters -x $size -y $size -z $size -nblocks 1 -iter $niter 2> /dev/null`
+	timing=`STARPU_NCPUS=1 STARPU_NCUDA=0 $STARPU_MS_LAUNCHER $STARPU_LOADER $INSTALLDIR/lib/starpu/examples/dw_mult_no_filters -x $size -y $size -z $size -nblocks 1 -iter $niter 2> /dev/null`
 	echo "$size	$timing	$niter" >> $cpu_output
 done
 
@@ -74,7 +74,7 @@ do
 	fi
 
 	echo "CUBLAS -> size $size niter $niter"
-	timing=`STARPU_NCPUS=0 STARPU_NCUDA=1 $MS_LAUNCHER $STARPU_LAUNCH $INSTALLDIR/lib/starpu/examples/dw_mult_no_filters -x $size -y $size -z $size -nblocks 1 -iter $niter 2 -pin 2> /dev/null`
+	timing=`STARPU_NCPUS=0 STARPU_NCUDA=1 $STARPU_MS_LAUNCHER $STARPU_LOADER $INSTALLDIR/lib/starpu/examples/dw_mult_no_filters -x $size -y $size -z $size -nblocks 1 -iter $niter 2 -pin 2> /dev/null`
 	echo "$size	$timing	$niter" >> $gpu_output
 done
 

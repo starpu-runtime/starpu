@@ -60,7 +60,7 @@ do
 
 	echo "ITER $iter -> I $i NBLOCKS $nblocks"
 
-	STARPU_CALIBRATE=1 STARPU_SCHED="dm" $MS_LAUNCHER $STARPU_LAUNCH ../../examples/heat/heat -nblocks $nblocks -nthick 34 -ntheta $ntheta -pin 2> output.log.err > output.log
+	STARPU_CALIBRATE=1 STARPU_SCHED="dm" $STARPU_MS_LAUNCHER $STARPU_LOADER ../../examples/heat/heat -nblocks $nblocks -nthick 34 -ntheta $ntheta -pin 2> output.log.err > output.log
 	gflops=`grep "Synthetic GFlops :" output.log.err| sed -e "s/Synthetic GFlops ://"`
 
 	sumgflops[$i]=$(echo "${sumgflops[$i]} + $gflops"|bc -l)
@@ -84,7 +84,7 @@ do
 	cpu_taskcnt=$(($cpu_taskcnt + $ntaskcpu0 + $ntaskcpu1 + $ntaskcpu2 ))
 	gpu_taskcnt=$(($gpu_taskcnt + $ntaskcuda0))
 
-	cpu_ntasktotal[$i]=$( echo "$cpu_taskcnt + ${cpu_ntasktotal[$i]}" | bc -l) 
+	cpu_ntasktotal[$i]=$( echo "$cpu_taskcnt + ${cpu_ntasktotal[$i]}" | bc -l)
 	gpu_ntasktotal[$i]=$( echo "$gpu_taskcnt + ${gpu_ntasktotal[$i]}" | bc -l)
 done
 done
@@ -94,7 +94,7 @@ echo "#ntaskscpu #avg. error cpu #ntaskgpu #avg. error gpu #avg. gflops" > gnupl
 for nblocks in $nblockslist
 do
 	i=$(($i + 1))
-	
+
 	avggflops=$(echo "${sumgflops[$i]}/$niter"|bc -l)
 
 	cpu_ntasks=$(echo "${cpu_ntasktotal[$i]}/$niter" | bc -l)

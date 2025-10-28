@@ -28,7 +28,7 @@ make STARPU_ATLAS=1 CPUS=16 1> /dev/null 2> /dev/null
 echo "speedup ..."
 
 for theta in 32 64 128 256 512 1024
-do	
+do
 	size=$(($theta * 32))
 
 	echo "# ncpus	time	reftime" >  $TIMINGDIR/speedup.$size
@@ -40,7 +40,7 @@ do
 		echo "ncpus $cpus size $size"
 
 		filename=$TIMINGDIR/timing.$cpus.$size
-		$MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat -v2 -pin -nthick 34 -ntheta $(($theta+2)) -nblocks 16 2>/dev/null| tee $filename
+		$STARPU_MS_LAUNCHER $STARPU_LOADER $ROOTDIR/examples/heat -v2 -pin -nthick 34 -ntheta $(($theta+2)) -nblocks 16 2>/dev/null| tee $filename
 
 		echo "$cpus	`cat $TIMINGDIR/timing.$cpus.$size`	`cat  $TIMINGDIR/timing.1.$size`" >> $TIMINGDIR/speedup.$size
 	done

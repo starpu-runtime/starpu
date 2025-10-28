@@ -34,11 +34,11 @@ trace_perturbation()
 
 		ntheta=$(( $(($blocks*32)) + 2))
 		size=$(( $(($blocks*32)) * 32))
-	
+
 		echo "size : $size"
-	
+
 		OPTIONS="-pin -v2 -nblocks $blocks -ntheta $ntheta -nthick 34"
-		
+
 		cd $ROOTDIR
 		filename=$TIMINGDIR/pertubate.$size.$AMPL
 		#rm -f $filename
@@ -52,11 +52,11 @@ trace_perturbation()
 		else
 			nsamples=1
 		fi
-		
+
 		for iter in `seq 1 $nsamples`
 		do
 			echo "$iter / $nsamples"
-			 val=`$MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null`
+			 val=`$STARPU_MS_LAUNCHER $STARPU_LOADER $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null`
 			 echo "$val" >> $filename
 		done
 	done

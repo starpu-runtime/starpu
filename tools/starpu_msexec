@@ -14,14 +14,20 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
-# Usually run program through $MS_LAUNCHER, unless it is a shell script, in
-# which case it is the shell script that will run the program through $MS_LAUNCHER
+# Usually run program through $STARPU_MS_LAUNCHER, unless it is a shell script, in
+# which case it is the shell script that will run the program through $STARPU_MS_LAUNCHER
+
+if test -n "$STARPU_LAUNCHER_DEBUG"
+then
+    echo "+ $0"
+    set -x
+fi
 
 case "$2" in
         *.sh)
 		exec "$@"
 		;;
 	*)
-		exec $MS_LAUNCHER "$@"
+		exec $STARPU_MS_LAUNCHER "$@"
 		;;
 esac

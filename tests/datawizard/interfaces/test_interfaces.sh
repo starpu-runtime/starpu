@@ -17,7 +17,7 @@
 
 for i in bcsr block coo csr matrix multiformat ndim tensor variable vector void
 do
-    $MS_LAUNCHER $STARPU_LAUNCH ./tests/datawizard/interfaces/$i/${i}_interface
+    $STARPU_MS_LAUNCHER $STARPU_LOADER ./tests/datawizard/interfaces/$i/${i}_interface
     ret=$?
     if test "$ret" = "0"
     then

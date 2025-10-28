@@ -39,7 +39,7 @@ test_with_timeout()
 
 	echo "$application"
 
-	$MS_LAUNCHER $STARPU_LAUNCH $application > /dev/null 2> /dev/null & _pid_appli=$!;
+	$STARPU_MS_LAUNCHER $STARPU_LOADER $application > /dev/null 2> /dev/null & _pid_appli=$!;
 	(sleep $timeout ; kill -9 $_pid_appli 2> /dev/null) & _pid_killer=$!
 	wait $_pid_appli
 	ret=$?

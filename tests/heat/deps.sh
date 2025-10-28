@@ -24,22 +24,22 @@ trace_deps()
 	do
 		ntheta=$(( $(($blocks*32)) + 2))
 		size=$(( $(($blocks*32)) * 32))
-	
+
 		echo "size : $size"
-	
+
 		OPTIONS="-pin -nblocks $blocks -ntheta $ntheta -nthick 34 -v$DEPS"
-		
+
 		cd $ROOTDIR
 		filename=$TIMINGDIR/deps.v$DEPS.$size
 		#rm -f $filename
 		make clean 1> /dev/null 2> /dev/null
 		make examples -j STARPU_ATLAS=1 CPUS=$MAXCPU CUDA=1 1> /dev/null 2> /dev/null
 		cd $DIR
-		
+
 		for iter in `seq 1 $maxiter`
 		do
 			echo "$iter / $maxiter"
-			 val=`$MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null`
+			 val=`$STARPU_MS_LAUNCHER $STARPU_LOADER $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null`
 			 echo "$val" >> $filename
 		done
 	done

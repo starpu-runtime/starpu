@@ -32,14 +32,14 @@ else
 	SIDE=160
 fi
 
-$MS_LAUNCHER $STARPU_LAUNCH $PREFIX/lu_implicit_example_float -size $(($SIDE * 4)) -nblocks 4 -piv
-$MS_LAUNCHER $STARPU_LAUNCH $PREFIX/lu_implicit_example_float -size $(($SIDE * 4)) -nblocks 4 -no-stride
-$MS_LAUNCHER $STARPU_LAUNCH $PREFIX/lu_implicit_example_float -size $(($SIDE * 4)) -nblocks 4 -bound
-$MS_LAUNCHER $STARPU_LAUNCH $PREFIX/lu_implicit_example_float -size $(($SIDE * 2)) -nblocks 2 -bounddeps -directory $STARPU_FXT_PREFIX
-$MS_LAUNCHER $STARPU_LAUNCH $PREFIX/lu_implicit_example_float -size $(($SIDE * 2)) -nblocks 2 -bound -bounddeps -bounddepsprio -directory $STARPU_FXT_PREFIX
+$STARPU_MS_LAUNCHER $STARPU_LOADER $PREFIX/lu_implicit_example_float -size $(($SIDE * 4)) -nblocks 4 -piv
+$STARPU_MS_LAUNCHER $STARPU_LOADER $PREFIX/lu_implicit_example_float -size $(($SIDE * 4)) -nblocks 4 -no-stride
+$STARPU_MS_LAUNCHER $STARPU_LOADER $PREFIX/lu_implicit_example_float -size $(($SIDE * 4)) -nblocks 4 -bound
+$STARPU_MS_LAUNCHER $STARPU_LOADER $PREFIX/lu_implicit_example_float -size $(($SIDE * 2)) -nblocks 2 -bounddeps -directory $STARPU_FXT_PREFIX
+$STARPU_MS_LAUNCHER $STARPU_LOADER $PREFIX/lu_implicit_example_float -size $(($SIDE * 2)) -nblocks 2 -bound -bounddeps -bounddepsprio -directory $STARPU_FXT_PREFIX
 
-$MS_LAUNCHER $STARPU_LAUNCH $PREFIX/lu_example_float -size $(($SIDE * 4)) -nblocks 4 -piv
-$MS_LAUNCHER $STARPU_LAUNCH $PREFIX/lu_example_float -size $(($SIDE * 4)) -nblocks 4 -no-stride
-$MS_LAUNCHER $STARPU_LAUNCH $PREFIX/lu_example_float -size $(($SIDE * 4)) -nblocks 4 -bound
-$MS_LAUNCHER $STARPU_LAUNCH $PREFIX/lu_example_float -size $(($SIDE * 2)) -nblocks 2 -bounddeps -directory $PREFIX/lu.traces
-$MS_LAUNCHER $STARPU_LAUNCH $PREFIX/lu_example_float -size $(($SIDE * 2)) -nblocks 2 -bound -bounddeps -bounddepsprio -directory $STARPU_FXT_PREFIX
+$STARPU_MS_LAUNCHER $STARPU_LOADER $PREFIX/lu_example_float -size $(($SIDE * 4)) -nblocks 4 -piv
+$STARPU_MS_LAUNCHER $STARPU_LOADER $PREFIX/lu_example_float -size $(($SIDE * 4)) -nblocks 4 -no-stride
+$STARPU_MS_LAUNCHER $STARPU_LOADER $PREFIX/lu_example_float -size $(($SIDE * 4)) -nblocks 4 -bound
+$STARPU_MS_LAUNCHER $STARPU_LOADER $PREFIX/lu_example_float -size $(($SIDE * 2)) -nblocks 2 -bounddeps -directory $PREFIX/lu.traces
+$STARPU_MS_LAUNCHER $STARPU_LOADER $PREFIX/lu_example_float -size $(($SIDE * 2)) -nblocks 2 -bound -bounddeps -bounddepsprio -directory $STARPU_FXT_PREFIX

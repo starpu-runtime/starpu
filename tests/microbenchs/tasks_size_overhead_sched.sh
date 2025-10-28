@@ -20,7 +20,7 @@ if test -n "$STARPU_MICROBENCHS_DISABLED" ; then exit 77 ; fi
 ROOT=${0%.sh}
 ROOT=${ROOT%_sched}
 unset STARPU_SSILENT
-$_MS_LAUNCHER $STARPU_LAUNCH $_STARPU_LAUNCH $ROOT "$@" > tasks_size_overhead.output
+$_STARPU_MS_LAUNCHER $STARPU_LOADER $_STARPU_LOADER $ROOT "$@" > tasks_size_overhead.output
 ret=$?
 if test "$ret" = "0" && [ -z "$(echo $MAKEFLAGS | sed -ne 's/.*-j\([0-9]\+\).*/\1/p')" ]
 then

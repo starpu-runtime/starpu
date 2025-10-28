@@ -36,7 +36,7 @@ trace_granularity()
 	minblocks=$(($MINSIZE/$grain))
 	#maxblocks=2
 	maxblocks=$(($MAXSIZE/$grain))
-	
+
 	if test $maxblocks -ge 128; then
 		maxblocks=128
 	fi
@@ -48,20 +48,20 @@ trace_granularity()
 	for blocks in `seq $minblocks $step $maxblocks`
 	do
 		size=$(($blocks*$grain))
-		
+
 		echo "size : $size (grain $grain nblocks $blocks)"
-	
+
 		calibrate_grain $grain $size
-	
+
 		OPTIONS="-pin -nblocks $blocks -size $size -v3"
-		
+
 		filename=$TIMINGDIR/granularity.$grain.$size
 		#rm -f $filename
-		
+
 		for iter in `seq 1 $maxiter`
 		do
 			echo "$iter / $maxiter"
-			 val=`STARPU_NCPUS=8 STARPU_NCUDA=3 STARPU_SCHED="dmda" STARPU_PREFETCH=1 STARPU_CALIBRATE=1 $MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null`
+			 val=`STARPU_NCPUS=8 STARPU_NCUDA=3 STARPU_SCHED="dmda" STARPU_PREFETCH=1 STARPU_CALIBRATE=1 $STARPU_MS_LAUNCHER $STARPU_LOADER $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null`
 			 echo "$val"
 			 echo "$val" >> $filename
 		done
@@ -78,7 +78,7 @@ trace_granularity_hybrid()
 	minblocks=$(($MINSIZE/$grain))
 	#maxblocks=2
 	maxblocks=$(($MAXSIZE/$grain))
-	
+
 	if test $maxblocks -ge 64; then
 		maxblocks=64
 	fi
@@ -89,20 +89,20 @@ trace_granularity_hybrid()
 	for blocks in `seq $minblocks $step $maxblocks`
 	do
 		size=$(($blocks*$grain))
-		
+
 		ntheta=$(( $(($size/32)) + 2))
-	
+
 		echo "size : $size (grain $grain nblocks $blocks)"
-	
+
 		OPTIONS="-pin -nblocks $blocks -ntheta $ntheta -nthick 34 -v4"
-		
+
 		filename=$TIMINGDIR/hybrid.$grain.$size
 		#rm -f $filename
-		
+
 		for iter in `seq 1 $maxiter`
 		do
 			echo "$iter / $maxiter"
-			 val=`STARPU_SCHED="dmda" STARPU_PREFETCH=1 STARPU_CALIBRATE=1 $MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null`
+			 val=`STARPU_SCHED="dmda" STARPU_PREFETCH=1 STARPU_CALIBRATE=1 $STARPU_MS_LAUNCHER $STARPU_LOADER $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null`
 			 echo "$val"
 			 echo "$val" >> $filename
 		done
@@ -122,12 +122,12 @@ calibrate_grain()
 
 	OPTIONS="-pin -nblocks $blocks -size $size -v3"
 
-	STARPU_NCUDA=3 STARPU_NCPUS=8 STARPU_CALIBRATE=1 STARPU_SCHED="dm" $MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null 
-	STARPU_NCUDA=3 STARPU_NCPUS=8 STARPU_CALIBRATE=1 STARPU_PREFETCH=1 STARPU_SCHED="dmda" $MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null
-	STARPU_NCUDA=3 STARPU_NCPUS=8 STARPU_CALIBRATE=1 STARPU_PREFETCH=1 STARPU_SCHED="dmda" $MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null
-	STARPU_NCUDA=3 STARPU_NCPUS=8 STARPU_CALIBRATE=1 STARPU_PREFETCH=1 STARPU_SCHED="dmda" $MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null
-	STARPU_NCUDA=3 STARPU_NCPUS=8 STARPU_CALIBRATE=1 STARPU_PREFETCH=1 STARPU_SCHED="dmda" $MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null
-	STARPU_NCUDA=3 STARPU_NCPUS=8 STARPU_CALIBRATE=1 STARPU_PREFETCH=1 STARPU_SCHED="dmda" $MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null
+	STARPU_NCUDA=3 STARPU_NCPUS=8 STARPU_CALIBRATE=1 STARPU_SCHED="dm" $STARPU_MS_LAUNCHER $STARPU_LOADER $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null
+	STARPU_NCUDA=3 STARPU_NCPUS=8 STARPU_CALIBRATE=1 STARPU_PREFETCH=1 STARPU_SCHED="dmda" $STARPU_MS_LAUNCHER $STARPU_LOADER $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null
+	STARPU_NCUDA=3 STARPU_NCPUS=8 STARPU_CALIBRATE=1 STARPU_PREFETCH=1 STARPU_SCHED="dmda" $STARPU_MS_LAUNCHER $STARPU_LOADER $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null
+	STARPU_NCUDA=3 STARPU_NCPUS=8 STARPU_CALIBRATE=1 STARPU_PREFETCH=1 STARPU_SCHED="dmda" $STARPU_MS_LAUNCHER $STARPU_LOADER $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null
+	STARPU_NCUDA=3 STARPU_NCPUS=8 STARPU_CALIBRATE=1 STARPU_PREFETCH=1 STARPU_SCHED="dmda" $STARPU_MS_LAUNCHER $STARPU_LOADER $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null
+	STARPU_NCUDA=3 STARPU_NCPUS=8 STARPU_CALIBRATE=1 STARPU_PREFETCH=1 STARPU_SCHED="dmda" $STARPU_MS_LAUNCHER $STARPU_LOADER $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null
 }
 
 mkdir -p $TIMINGDIR
@@ -156,6 +156,6 @@ cd $DIR
 for grain in $grainlist
 do
 #	trace_granularity_hybrid $grain;
-	trace_granularity $grain;	
+	trace_granularity $grain;
 #	trace_granularity_nomodel $grain;
 done

@@ -48,39 +48,39 @@ cd $DIR
 init;
 
 echo "heat.dm.8k.no.pin.v2"
-timing=`STARPU_SCHED="dm" $MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -v2 2> log`
+timing=`STARPU_SCHED="dm" $STARPU_MS_LAUNCHER $STARPU_LOADER $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -v2 2> log`
 save_cov "heat.dm.8k.no.pin.v2";
 
 echo "heat.prio.8k"
-timing=`STARPU_SCHED="prio" $MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -v2 -pin 2> log`
+timing=`STARPU_SCHED="prio" $STARPU_MS_LAUNCHER $STARPU_LOADER $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -v2 -pin 2> log`
 save_cov "heat.prio.8k";
 
 echo "heat.dm.8k.v2"
-timing=`STARPU_SCHED="dm" $MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 2> log`
+timing=`STARPU_SCHED="dm" $STARPU_MS_LAUNCHER $STARPU_LOADER $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 2> log`
 save_cov "heat.dm.8k.v2";
 
 echo "heat.ws.8k.v2"
-timing=`STARPU_SCHED="ws" $MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 2> log`
+timing=`STARPU_SCHED="ws" $STARPU_MS_LAUNCHER $STARPU_LOADER $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 2> log`
 save_cov "heat.ws.8k.v2";
 
 echo "heat.lws.8k.v2"
-timing=`STARPU_SCHED="lws" $MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 2> log`
+timing=`STARPU_SCHED="lws" $STARPU_MS_LAUNCHER $STARPU_LOADER $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 2> log`
 save_cov "heat.lws.8k.v2";
 
 echo "heat.greedy.8k.v2"
-timing=`STARPU_SCHED="greedy" $MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 2> log`
+timing=`STARPU_SCHED="greedy" $STARPU_MS_LAUNCHER $STARPU_LOADER $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 2> log`
 save_cov "heat.greedy.8k.v2";
 
 echo "heat.dm.8k.cg"
-timing=`$MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 -cg 2> log`
+timing=`$STARPU_MS_LAUNCHER $STARPU_LOADER $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 -cg 2> log`
 save_cov "heat.dm.8k.cg";
 
 echo "heat.dm.8k.v3"
-timing=`STARPU_SCHED="dm" $MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v3 2> log`
+timing=`STARPU_SCHED="dm" $STARPU_MS_LAUNCHER $STARPU_LOADER $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v3 2> log`
 save_cov "heat.dm.8k.v3";
 
 echo "incrementer"
-timing=`$MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/incrementer/incrementer 2> log`
+timing=`$STARPU_MS_LAUNCHER $STARPU_LOADER $ROOTDIR/examples/incrementer/incrementer 2> log`
 save_cov "incrementer";
 
 generatehtml;

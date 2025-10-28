@@ -33,23 +33,23 @@ trace_sched()
 	for blocks in `seq 24 2 24`
 	do
 		size=$(($blocks*1024))
-	
+
 		echo "size : $size"
-	
+
 		OPTIONS="-pin -nblocks $blocks -size $size"
 
 		if [ $use_prio -eq 0 ]
 		then
 			OPTIONS="$OPTIONS -no-prio"
 		fi
-		
+
 		filename=$TIMINGDIR/sched.$STARPU_SCHED.$size.$use_prio
 
 		for iter in `seq 1 $maxiter`
 		do
 			echo "$iter / $maxiter"
 			echo "$ROOTDIR/examples/cholesky/dw_cholesky $OPTIONS 2> /dev/null"
-			val=`$MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/cholesky/dw_cholesky $OPTIONS 2> /dev/null`
+			val=`$STARPU_MS_LAUNCHER $STARPU_LOADER $ROOTDIR/examples/cholesky/dw_cholesky $OPTIONS 2> /dev/null`
 			echo "$val" >> $filename
 			echo "$val"
 		done
@@ -64,9 +64,9 @@ export STARPU_CALIBRATE=1
 mkdir -p $TIMINGDIR
 
 # calibrate
-for i in `seq 1 5` 
+for i in `seq 1 5`
 do
-STARPU_SCHED="dm" $MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/cholesky/dw_cholesky -nblocks 16 -size 16384 2> /dev/null
+STARPU_SCHED="dm" $STARPU_MS_LAUNCHER $STARPU_LOADER $ROOTDIR/examples/cholesky/dw_cholesky -nblocks 16 -size 16384 2> /dev/null
 done
 
 for sched in $schedlist

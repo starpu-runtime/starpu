@@ -19,7 +19,7 @@ noinst_PROGRAMS		=
 #
 # Test loading goes through a lot of launchers:
 #
-# - $(LAUNCHER) is called first, to run the test through starpu_msexec, i.e.
+# - $(STARPU_LAUNCHER) is called first, to run the test through starpu_msexec, i.e.
 #   either mpirun or starpu_tcpipexec
 #
 # - $(LOADER), i.e. tests/loader, is then called to implement timeout, running
@@ -33,15 +33,15 @@ noinst_PROGRAMS		=
 #
 # - $(STARPU_SUB_PARALLEL) is called to control parallelism (see below)
 #
-# - $(MS_LAUNCHER) is called to run the test through starpu_msexec
+# - $(STARPU_MS_LAUNCHER) is called to run the test through starpu_msexec
 #
-# - $(STARPU_LAUNCH) was set by tests/loader to its own path, to run the program
+# - $(STARPU_LOADER) is set by tests/loader to its own path, to run the program
 #   through it.
 #
 # - $(STARPU_CHECK_LAUNCHER) $(STARPU_CHECK_LAUNCHER_ARGS) is called by loader
 #
 
-export LAUNCHER
+export STARPU_LAUNCHER
 
 if HAVE_PARALLEL
 # When GNU parallel is available and -j is passed to make, run tests through
@@ -52,31 +52,31 @@ STARPU_SUB_PARALLEL=$(shell echo $(MAKEFLAGS) | sed -ne 's/.*-j\([0-9]\+\).*/par
 export STARPU_SUB_PARALLEL
 endif
 
-export MS_LAUNCHER
+export STARPU_MS_LAUNCHER
 if STARPU_USE_MPI_SERVER_CLIENT
 # Make tests run through mpiexec
-LAUNCHER			+= $(abs_top_srcdir)/tools/starpu_msexec
-MS_LAUNCHER 			= $(STARPU_MPIEXEC)
-LAUNCHER_ENV			+= $(MPI_RUN_ENV) STARPU_MPI_SC_NTHREADS=4
+STARPU_LAUNCHER			+= $(abs_top_srcdir)/tools/starpu_msexec
+STARPU_MS_LAUNCHER 		= $(STARPU_MPIEXEC)
+STARPU_LAUNCHER_ENV		+= $(STARPU_MPI_RUN_ENV) STARPU_MPI_SC_NTHREADS=4
 endif
 
 if STARPU_USE_TCPIP_SERVER_CLIENT
-LAUNCHER			+= $(abs_top_srcdir)/tools/starpu_msexec
-MS_LAUNCHER			= $(abs_top_builddir)/tools/starpu_tcpipexec -np 2 -nobind -ncpus 1
+STARPU_LAUNCHER			+= $(abs_top_srcdir)/tools/starpu_msexec
+STARPU_MS_LAUNCHER		= $(abs_top_builddir)/tools/starpu_tcpipexec -np 2 -nobind -ncpus 1
 # switch off local socket usage
-#MS_LAUNCHER			= $(abs_top_builddir)/tools/starpu_tcpipexec -np 2 -nobind -ncpus 1 -nolocal
-LAUNCHER_ENV			+= STARPU_RESERVE_NCPU=2
+#STARPU_MS_LAUNCHER		= $(abs_top_builddir)/tools/starpu_tcpipexec -np 2 -nobind -ncpus 1 -nolocal
+STARPU_LAUNCHER_ENV		+= STARPU_RESERVE_NCPU=2
 endif
 
-LAUNCHER	?=
-MS_LAUNCHER	?=
+STARPU_LAUNCHER		?=
+STARPU_MS_LAUNCHER	?=
 
 if STARPU_HAVE_WINDOWS
-LOADER_BIN		=	$(LAUNCHER) $(EXTERNAL)
+LOADER_BIN		=	$(STARPU_LAUNCHER) $(EXTERNAL)
 else
 LOADER			?=	./loader
 loader_CPPFLAGS 	= 	$(AM_CPPFLAGS) -I$(top_builddir)/src/
-LOADER_BIN		=	$(LAUNCHER) $(LOADER) $(EXTERNAL)
+LOADER_BIN		=	$(STARPU_LAUNCHER) $(LOADER) $(EXTERNAL)
 noinst_PROGRAMS		+=	loader
 endif
 
@@ -86,10 +86,10 @@ export LSAN_OPTIONS
 export TSAN_OPTIONS
 
 if STARPU_HAVE_AM111
-TESTS_ENVIRONMENT	=	$(LAUNCHER_ENV) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
+TESTS_ENVIRONMENT	=	$(STARPU_LAUNCHER_ENV) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
 LOG_COMPILER	 	=	$(LOADER_BIN)
 else
-TESTS_ENVIRONMENT 	=	$(LAUNCHER_ENV) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN)
+TESTS_ENVIRONMENT 	=	$(STARPU_LAUNCHER_ENV) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN)
 endif
 
 AM_TESTS_FD_REDIRECT = 9>&2

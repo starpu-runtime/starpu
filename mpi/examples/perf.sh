@@ -21,7 +21,7 @@
 # k = sqrt(1500*np)
 # np = 1 => k = 32
 # np = 2 => k = 48
-# np = 3 => k = 64 
+# np = 3 => k = 64
 # np = 4 => k = 64
 
 # Problem size
@@ -39,7 +39,7 @@ ncalibrate=0
 for i in `seq 1 $ncalibrate`
 do
 echo "STARPU_CALIBRATE $i/$ncalibrate"
-STARPU_CALIBRATE=1 STARPU_SCHED="dmda" STARPU_PREFETCH=1 mpirun -machinefile machinefile.${PBS_JOBID} -np $nnodes $MS_LAUNCHER $STARPU_LAUNCH ./mpi_lu/plu_example_float -p 2 -q 2 -nblocks 32 -size $((32*$BLOCKSIZE)) -numa
+STARPU_CALIBRATE=1 STARPU_SCHED="dmda" STARPU_PREFETCH=1 mpirun -machinefile machinefile.${PBS_JOBID} -np $nnodes $STARPU_MS_LAUNCHER $STARPU_LOADER ./mpi_lu/plu_example_float -p 2 -q 2 -nblocks 32 -size $((32*$BLOCKSIZE)) -numa
 done
 
 func()
@@ -56,7 +56,7 @@ echo "*******************************************">> log
 cat log
 cat log >> log.all
 
-STARPU_NCPUS=0 STARPU_NCUDA=$ngpus STARPU_SCHED="dmda" STARPU_PREFETCH=1 mpirun -machinefile machinefile.${PBS_JOBID} -np $np $MS_LAUNCHER $STARPU_LAUNCH ./mpi_lu/plu_example_float -p $p -q $q -nblocks $nblocks -size $(($nblocks * $BLOCKSIZE)) -numa > log.out 2> log.err
+STARPU_NCPUS=0 STARPU_NCUDA=$ngpus STARPU_SCHED="dmda" STARPU_PREFETCH=1 mpirun -machinefile machinefile.${PBS_JOBID} -np $np $STARPU_MS_LAUNCHER $STARPU_LOADER ./mpi_lu/plu_example_float -p $p -q $q -nblocks $nblocks -size $(($nblocks * $BLOCKSIZE)) -numa > log.out 2> log.err
 cat log.out > log
 cat log.err >> log
 cat log

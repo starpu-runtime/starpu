@@ -38,7 +38,7 @@ measure_heat()
 	nblocks=$3
 	size=$4
 
-	if [ $size -le 16384 ] 
+	if [ $size -le 16384 ]
 	then
 		nsample=1
 	else
@@ -50,7 +50,7 @@ measure_heat()
 	for i in `seq 1 $nsample`
 	do
 		echo "iter $i/$nsample"
-		val=`STARPU_SCHED=$policy $MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat/heat -nthick $thick -ntheta $theta -nblocks $nblocks -pin -v2 2>/dev/null`
+		val=`STARPU_SCHED=$policy $STARPU_MS_LAUNCHER $STARPU_LOADER $ROOTDIR/examples/heat/heat -nthick $thick -ntheta $theta -nblocks $nblocks -pin -v2 2>/dev/null`
 		total=`echo "$val + $total" |bc -l`
 	done
 
@@ -73,7 +73,7 @@ trace_size()
 	size=$1
 
 	echo "Computing size $size"
-	
+
 	line="$size"
 
 	for tile in $tilelist
@@ -110,7 +110,7 @@ cd $DIR
 
 filename=$TIMINGDIR/gflops.greedy.data
 policy=greedy
-trace_header 
+trace_header
 for size in $sizelist
 do
 	trace_size $size;
@@ -120,7 +120,7 @@ cd $DIR
 
 filename=$TIMINGDIR/gflops.prio.data
 policy=prio
-trace_header 
+trace_header
 for size in $sizelist
 do
 	trace_size $size;
@@ -128,7 +128,7 @@ done
 
 filename=$TIMINGDIR/gflops.ws.data
 policy=ws
-trace_header 
+trace_header
 for size in $sizelist
 do
 	trace_size $size;
@@ -137,7 +137,7 @@ done
 
 filename=$TIMINGDIR/gflops.lws.data
 policy=lws
-trace_header 
+trace_header
 for size in $sizelist
 do
 	trace_size $size;
@@ -146,7 +146,7 @@ done
 
 filename=$TIMINGDIR/gflops.noprio.data
 policy=no-prio
-trace_header 
+trace_header
 for size in $sizelist
 do
 	trace_size $size;

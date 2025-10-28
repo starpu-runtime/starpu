@@ -31,19 +31,19 @@ t_total_avg=0
 for s in `seq 1 $nsamples`
 do
     echo "$ROOTDIR/examples/$BENCH_NAME $OPTIONS"
-    
-    val=`$MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/$BENCH_NAME $OPTIONS`
-    
+
+    val=`$STARPU_MS_LAUNCHER $STARPU_LOADER $ROOTDIR/examples/$BENCH_NAME $OPTIONS`
+
     echo "$val"
-    
+
     results=($val)
-    
+
     gflops1_avg=$(echo "$gflops1_avg+${results[0]}"|bc -l)
     gflops2_avg=$(echo "$gflops2_avg+${results[1]}"|bc -l)
     t1_avg=$(echo "$t1_avg+${results[2]}"|bc -l)
     t2_avg=$(echo "$t2_avg+${results[3]}"|bc -l)
     t_total_avg=$(echo "$t_total_avg+${results[4]}"|bc -l)
-    
+
 done
 
 gflops1_avg=$(echo "$gflops1_avg / $nsamples"|bc -l)

@@ -38,7 +38,7 @@ run()
 	sched=$1
 
 	set +e
-	STARPU_SCHED=$sched $STARPU_SUB_PARALLEL $MS_LAUNCHER $STARPU_LAUNCH $(dirname $0)/$TEST "$@"
+	STARPU_SCHED=$sched $STARPU_SUB_PARALLEL $STARPU_MS_LAUNCHER $STARPU_LOADER $(dirname $0)/$TEST "$@"
 	ret=$?
 	set -e
 	if test $ret = 0

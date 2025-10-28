@@ -36,7 +36,7 @@ measure_heat()
 	nblocks=$3
 	size=$4
 
-	if [ $size -le 2048 ] 
+	if [ $size -le 2048 ]
 	then
 		nsample=1
 	else
@@ -48,7 +48,7 @@ measure_heat()
 	for i in `seq 1 $nsample`
 	do
 		echo "iter $i/$nsample"
-		val=`$MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/heat -nthick $thick -ntheta $theta -nblocks $nblocks -pin -v2 2>/dev/null`
+		val=`$STARPU_MS_LAUNCHER $STARPU_LOADER $ROOTDIR/examples/heat -nthick $thick -ntheta $theta -nblocks $nblocks -pin -v2 2>/dev/null`
 		total=`echo "$val + $total" |bc -l`
 	done
 
@@ -71,7 +71,7 @@ trace_size()
 	size=$1
 
 	echo "Computing size $size"
-	
+
 	line="$size"
 
 	for tile in $tilelist
@@ -107,7 +107,7 @@ make STARPU_ATLAS=1 CUDA=1 CPUS=3 1> /dev/null 2> /dev/null
 
 cd $DIR
 
-trace_header 
+trace_header
 for size in $sizelist
 do
 	trace_size $size;

@@ -67,6 +67,8 @@ Small features:
     number of asynchronous partitions for a given data at submission
     time
   * Add starpu_data_get_on_node_cb_prio()
+  * When environment variable STARPU_LAUNCHER_DEBUG is set, running a
+    test displays extra informations on what is launched
 
 StarPU 1.4.9
 ==============================================

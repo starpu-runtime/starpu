@@ -40,7 +40,7 @@ trace_size()
 	size=$1
 
 	echo "Computing size $size"
-	
+
 	line="$size"
 
 	for tile in $tilelist
@@ -50,7 +50,7 @@ trace_size()
 		if [ $tile -lt $size -a $nblocks -lt 32 -a $(($size % $tile)) == 0 ];
 		then
 			echo "start tile $tile size $size nblocks $nblocks  "
-			timing=`$MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/mult/dw_mult -pin -x $size -y $size -z $size -nblocks $nblocks 2>/dev/null`
+			timing=`$STARPU_MS_LAUNCHER $STARPU_LOADER $ROOTDIR/examples/mult/dw_mult -pin -x $size -y $size -z $size -nblocks $nblocks 2>/dev/null`
 		else
 			timing="x"
 		fi
@@ -71,7 +71,7 @@ make examples STARPU_ATLAS=1 CUDA=1 CPUS=3 1> /dev/null 2> /dev/null
 
 cd $DIR
 
-trace_header 
+trace_header
 for size in $sizelist
 do
 	trace_size $size;

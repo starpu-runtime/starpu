@@ -16,7 +16,7 @@
 include $(top_srcdir)/make/starpu-tests.mk
 include $(top_srcdir)/make/starpu-loader.mk
 if STARPU_SIMGRID
-LOADER_BIN = $(LAUNCHER)
+LOADER_BIN = $(STARPU_LAUNCHER)
 endif
 
 AM_CFLAGS +=  $(APP_CFLAGS)
@@ -30,8 +30,8 @@ LIBS += $(STARPU_EXPORTED_LIBS)
 if STARPU_USE_MPI
 LIBS += $(top_builddir)/mpi/src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la  $(MPICC_LDFLAGS)
 AM_CPPFLAGS += -I$(top_srcdir)/mpi/include $(MPICC_CFLAGS)
-LAUNCHER			= $(STARPU_MPIEXEC)
-LAUNCHER_ENV			= $(MPI_RUN_ENV)
+STARPU_LAUNCHER			= $(STARPU_MPIEXEC)
+STARPU_LAUNCHER_ENV		= $(STARPU_MPI_RUN_ENV)
 if STARPU_SIMGRID
 NVCCFLAGS		+= --compiler-options -fPIC
 endif

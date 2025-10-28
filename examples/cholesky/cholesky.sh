@@ -49,7 +49,7 @@ for STARPU_SCHED in $STARPU_SCHEDS ; do
 done
 echo
 
-$MS_LAUNCHER $STARPU_LAUNCH ${ROOT}_implicit -size $((10 * 960)) -nblocks 10 -check
+$STARPU_MS_LAUNCHER $STARPU_LOADER ${ROOT}_implicit -size $((10 * 960)) -nblocks 10 -check
 [ $? = 0 ] || exit 1
 
 for size in `seq 2 $INCR $STOP` ; do
@@ -57,11 +57,11 @@ for size in `seq 2 $INCR $STOP` ; do
 	for STARPU_SCHED in $STARPU_SCHEDS
 	do
 		export STARPU_SCHED
-		GFLOPS=`$MS_LAUNCHER $STARPU_LAUNCH ${ROOT}_implicit -size $((size * 960)) -nblocks $size 2> /dev/null | grep -v GFlop/s | cut -d '	' -f 3`
+		GFLOPS=`$STARPU_MS_LAUNCHER $STARPU_LOADER ${ROOT}_implicit -size $((size * 960)) -nblocks $size 2> /dev/null | grep -v GFlop/s | cut -d '	' -f 3`
 		[ -n "$GFLOPS" ] || GFLOPS='""'
 		echo -n "	$GFLOPS"
 	done
-	echo 
+	echo
 done
 ) | tee cholesky.output
 

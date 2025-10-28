@@ -26,11 +26,11 @@ trace_sched()
 	for blocks in `seq 10 2 24`
 	do
 		size=$(($blocks*1024))
-	
+
 		echo "size : $size"
-	
+
 		OPTIONS="-pin -nblocks $blocks -size $size"
-		
+
 		cd $ROOTDIR
 		filename=$TIMINGDIR/sched.$STARPU_SCHED.$size
 
@@ -38,7 +38,7 @@ trace_sched()
 		do
 			echo "$iter / $maxiter"
 			 echo "$ROOTDIR/examples/cholesky/dw_cholesky $OPTIONS 2> /dev/null"
-			 val=`$MS_LAUNCHER $STARPU_LAUNCH $ROOTDIR/examples/cholesky/dw_cholesky $OPTIONS 2> /dev/null`
+			 val=`$STARPU_MS_LAUNCHER $STARPU_LOADER $ROOTDIR/examples/cholesky/dw_cholesky $OPTIONS 2> /dev/null`
 			 echo "$val" >> $filename
 		done
 	done
