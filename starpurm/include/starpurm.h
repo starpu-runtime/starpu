@@ -14,8 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef __STARPURM_H__
-#define __STARPURM_H__
+#ifndef __STARPU_STARPURM_H__
+#define __STARPU_STARPURM_H__
 
 #include <hwloc.h>
 #include <starpurm_config.h>
@@ -501,4 +501,4 @@ hwloc_cpuset_t starpurm_get_all_device_workers_cpuset_by_type(int typeid);
 #ifdef __cplusplus
 }
 #endif
-#endif /* __STARPURM_H__ */
+#endif /* __STARPU_STARPURM_H__ */

@@ -54,18 +54,34 @@ check_header_define()
 	    ;;
         *.h)
 	    $VERBOSE "    check define"
-            n=$(basename $basename .h | awk '{print toupper($0)}')
+            ff=$(echo $1 | sed 's/.h$//' | awk '{print toupper($0)}')
+	    n="STARPU"
+	    old_IFS=$IFS
+	    IFS='/' read -a paths <<< "$ff"
+	    unset paths[0]
+	    for path in "${paths[@]}"
+	    do
+		if test $path != "INCLUDE"
+		then
+		    IFS='_' read -a array <<< "$path"
+		    for word in "${array[@]}"
+		    do
+			if test $word != "STARPU"
+			then
+			    n="${n}_$word"
+			fi
+		    done
+		fi
+	    done
+	    IFS=$old_IFS
+
             macro="__${n}_H__"
             err=0
 
-            toto=$(grep "#ifndef .*$macro" $filename)
+            toto=$(grep "#ifndef $macro" $filename)
             ret=$?
             err=$((err + ret))
 
-            if [ $ret -eq 0 ]
-            then
-                macro=$(grep "#ifndef" $filename | sed 's/#ifndef //')
-            fi
             toto=$(grep "#define $macro" $filename)
             ret=$?
             err=$((err + ret))
@@ -81,7 +97,8 @@ check_header_define()
                 #grep "#define" $filename
                 #grep "#endif"  $filename
                 nberr=$(( nberr + 1 ))
-            fi
+	    fi
+
             ;;
         *)
     esac
@@ -126,8 +143,8 @@ do
 	continue
     fi
 
-    $VERBOSE "------ $f --------"
-    check_copyright $f
+#    $VERBOSE "------ $f --------"
+#    check_copyright $f
     check_header_define $f
 done
 

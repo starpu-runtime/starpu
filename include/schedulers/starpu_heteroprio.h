@@ -16,8 +16,8 @@
 
 #include <starpu.h>
 
-#ifndef __STARPU_HETEROPRIO_H__
-#define __STARPU_HETEROPRIO_H__
+#ifndef __STARPU_SCHEDULERS_HETEROPRIO_H__
+#define __STARPU_SCHEDULERS_HETEROPRIO_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -129,4 +129,4 @@ void starpu_heteroprio_print_wgroups(FILE *stream, unsigned sched_ctx_id);
 }
 #endif
 
-#endif /* __STARPU_HETEROPRIO_H__ */
+#endif /* __STARPU_SCHEDULERS_HETEROPRIO_H__ */

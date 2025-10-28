@@ -14,8 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef __SC_HYPERVISOR_POLICY_H__
-#define __SC_HYPERVISOR_POLICY_H__
+#ifndef __STARPU_SC_HYPERVISOR_POLICY_H__
+#define __STARPU_SC_HYPERVISOR_POLICY_H__
 
 #include <sc_hypervisor.h>
 
@@ -224,4 +224,4 @@ struct types_of_workers *sc_hypervisor_get_types_of_workers(int *workers, unsign
 }
 #endif
 
-#endif /* __SC_HYPERVISOR_POLICY_H__ */
+#endif /* __STARPU_SC_HYPERVISOR_POLICY_H__ */

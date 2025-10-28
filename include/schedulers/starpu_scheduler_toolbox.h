@@ -17,8 +17,8 @@
 
 #include <starpu.h>
 
-#ifndef __STARPU_SCHEDULER_TOOLBOX_H__
-#define __STARPU_SCHEDULER_TOOLBOX_H__
+#ifndef __STARPU_SCHEDULERS_SCHEDULER_TOOLBOX_H__
+#define __STARPU_SCHEDULERS_SCHEDULER_TOOLBOX_H__
 
 #include <starpu_scheduler.h>
 
@@ -170,4 +170,4 @@ void starpu_st_non_ready_buffers_size(struct starpu_task *task, unsigned worker,
 }
 #endif
 
-#endif /* __STARPU_SCHEDULER_TOOLBOX_H__ */
+#endif /* __STARPU_SCHEDULERS_SCHEDULER_TOOLBOX_H__ */
