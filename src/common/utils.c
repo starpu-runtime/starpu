@@ -687,7 +687,7 @@ static void remove_spaces(char *str)
 
 	while (str[j] != '\0')
 	{
-		if (isspace(str[j]))
+		if (isspace((int) str[j]))
 		{
 			j++;
 			continue;
