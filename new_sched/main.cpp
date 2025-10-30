@@ -1,0 +1,61 @@
+/* Demo program using the graph_standalone scheduler library (C++) */
+
+#include <cstdio>
+#include <cstdlib>
+#include <thread>
+#include <chrono>
+
+#include <starpu.h>
+
+static void inc_cpu(void *buffers[], void *cl_arg)
+{
+    (void)cl_arg;
+    int *ptr = (int*)STARPU_VARIABLE_GET_PTR(buffers[0]);
+    (*ptr)++;
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+}
+
+int main()
+{
+    int ntasks;
+    int ret;
+    starpu_conf conf;
+    starpu_data_handle_t handle;
+    int value = 0;
+    struct starpu_codelet cl = {};
+
+    starpu_conf_init(&conf);
+    ret = starpu_init(&conf);
+    if (ret == -ENODEV)
+        return 77;
+    STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+    ntasks = 320;
+
+    /* Register a variable data handle for an integer */
+    starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&value, sizeof(int));
+
+    /* Prepare codelet: one RW variable, CPU implementation increments and sleeps 1ms */
+    cl.where = STARPU_CPU;
+    cl.cpu_funcs[0] = inc_cpu;
+    cl.nbuffers = 1;
+    cl.modes[0] = (starpu_data_access_mode)(STARPU_RW);
+
+    for (int i = 0; i < ntasks; i++)
+    {
+        starpu_task *task = starpu_task_create();
+        task->cl = &cl;
+        task->handles[0] = handle;
+        task->cl_arg = NULL;
+        ret = starpu_task_submit(task);
+        STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+    }
+
+    starpu_task_wait_for_all();
+    starpu_data_unregister(handle);
+    printf("Final value: %d\n", value);
+    starpu_shutdown();
+    return 0;
+}
+
+
