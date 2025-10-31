@@ -48,7 +48,7 @@ static char *enum_to_string(int exit_code)
 		case TASK_SUBMISSION_FAILURE:
 			return "Task submission failed";
 		default:
-			STARPU_ASSERT_MSG(0, "unknown error code %d\n", exit_code);
+			STARPU_ABORT_MSG("unknown error code %d\n", exit_code);
 	}
 }
 
