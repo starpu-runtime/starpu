@@ -183,7 +183,7 @@ static int find_cpu_from_numa_node(unsigned numa_id)
 
 #if !defined(STARPU_SIMGRID)
 
-static void set_numa_distance(int dev, unsigned numa, enum starpu_worker_archtype arch, struct dev_timing *dev_timing_per_cpu)
+static void set_numa_distance(int dev STARPU_ATTRIBUTE_UNUSED, unsigned numa STARPU_ATTRIBUTE_UNUSED, enum starpu_worker_archtype arch STARPU_ATTRIBUTE_UNUSED, struct dev_timing *dev_timing_per_cpu)
 {
 	/* A priori we don't know the distance */
 	dev_timing_per_cpu->numa_distance = -1;
@@ -232,7 +232,7 @@ static void set_numa_distance(int dev, unsigned numa, enum starpu_worker_archtyp
 /* TODO: factorize MPI_SC and TCPIP_SC. Will probably need to introduce a method
  * for MPI_Barrier, and for determining which combinations should be measured. */
 
-static void measure_bandwidth_between_host_and_dev_on_numa(int dev, enum starpu_node_kind kind, unsigned numa, int cpu,
+static void measure_bandwidth_between_host_and_dev_on_numa(int dev, enum starpu_node_kind kind, unsigned numa STARPU_ATTRIBUTE_UNUSED, int cpu,
 							   struct dev_timing *dev_timing_per_cpu,
 							   uint64_t *dev_size,
 							   char dev_name[DEV_MAXLENGTH])
