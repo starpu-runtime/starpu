@@ -89,6 +89,11 @@ static void do_schedule_graph(unsigned sched_ctx_id)
     std::unique_lock<std::mutex> lock(data->policy_mutex);
     starpu_worker_relax_off();
 
+    std::cerr << "Do schedule graph called" << std::endl;
+    std::cerr << "Fifo size: " << data->fifo.size() << std::endl;
+    std::cerr << "CPU queue size: " << data->cpu_q.size() << std::endl;
+    std::cerr << "GPU queue size: " << data->gpu_q.size() << std::endl;
+
     // Move all tasks from fifo bag to queues
     while(!data->fifo.empty())
     {
@@ -97,6 +102,11 @@ static void do_schedule_graph(unsigned sched_ctx_id)
         auto queue = select_queue(sched_ctx_id, data, task);
         queue->push_back(task);
     }
+
+    std::cerr << "After moving tasks from fifo to queues" << std::endl;
+    std::cerr << "Fifo size: " << data->fifo.size() << std::endl;
+    std::cerr << "CPU queue size: " << data->cpu_q.size() << std::endl;
+    std::cerr << "GPU queue size: " << data->gpu_q.size() << std::endl;
 }
 
 // Pop a task from the graph scheduler
@@ -110,7 +120,15 @@ static struct starpu_task *pop_task_graph(unsigned sched_ctx_id)
     // perform the graph-based scheduling
     if (!data->fifo.empty() && data->cpu_q.empty() && data->gpu_q.empty())
     {
-        do_schedule_graph(sched_ctx_id);
+        // Relax the worker to allow other threads to access the scheduler data
+        starpu_worker_relax_on();
+        std::unique_lock<std::mutex> lock(data->policy_mutex);
+        starpu_worker_relax_off();
+
+        // std::cerr << "Enforcing graph-based scheduling" << std::endl;
+        lock.unlock();
+
+        // do_schedule_graph(sched_ctx_id);
     }
 
     // Select the queue for the worker
