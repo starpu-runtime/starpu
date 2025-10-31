@@ -596,8 +596,8 @@ no_calibration:
 #endif
 	{
 		/* Cannot make a real calibration */
-		numa_timing[numa_src][numa_dst] = 0.01;
-		numa_latency[numa_src][numa_dst] = 0;
+		*timing_nton = 0.01;
+		*latency_nton = 0;
 	}
 }
 #endif /* !defined(STARPU_SIMGRID) */
