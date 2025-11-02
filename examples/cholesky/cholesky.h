@@ -196,6 +196,7 @@ extern struct starpu_codelet cl_syrk_cpu;
 extern struct starpu_codelet cl_gemm_cpu;
 
 extern starpu_data_handle_t scratch;
+extern starpu_data_handle_t devInfo;
 
 void cholesky_kernel_init(int nb);
 void cholesky_kernel_fini(void);

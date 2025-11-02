@@ -84,6 +84,7 @@ void time_init(starpu_data_handle_t data, double *potrf, double *trsm, double *g
 				 STARPU_RW, starpu_data_get_sub_data(data, 2, 0, 0),
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
 					 STARPU_SCRATCH, scratch,
+					 STARPU_SCRATCH, devInfo,
 #endif
 				 0);
 	*potrf = time_for_model(task);
@@ -251,6 +252,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 					 STARPU_RW, sdatakk,
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
 					 STARPU_SCRATCH, scratch,
+					 STARPU_SCRATCH, devInfo,
 #endif
 					 STARPU_CALLBACK, (k == 3*nblocks/4)?callback_turn_spmd_on:NULL,
 					 STARPU_FLOPS, (double) FLOPS_SPOTRF(nn),

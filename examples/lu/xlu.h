@@ -109,6 +109,7 @@ extern unsigned bounddeps;
 extern unsigned boundprio;
 
 extern starpu_data_handle_t scratch;
+extern starpu_data_handle_t devInfo;
 void lu_kernel_init(int nb);
 void lu_kernel_fini(void);
 

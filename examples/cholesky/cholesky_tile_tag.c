@@ -69,6 +69,7 @@ static struct starpu_task * create_task_potrf(unsigned k, unsigned nblocks)
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
 	/* Temporary data to save libcusolver from allocating/deallocating memory */
 	task->handles[1] = scratch;
+	task->handles[2] = devInfo;
 #endif
 
 	/* this is an important task */

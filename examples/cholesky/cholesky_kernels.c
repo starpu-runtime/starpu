@@ -40,6 +40,7 @@ static const float m1 = -1.0;
 #endif
 
 starpu_data_handle_t scratch = NULL;
+starpu_data_handle_t devInfo = NULL;
 
 static inline void chol_common_cpu_codelet_update_gemm(void *descr[], int s, void *_args)
 {
@@ -283,9 +284,10 @@ static inline void chol_common_codelet_update_potrf(void *descr[], int s, void *
 			{
 				cusolverStatus_t sstatus;
 				float *workspace = (float *)STARPU_VARIABLE_GET_PTR(descr[1]);
+				int *d_info = (int *)STARPU_VARIABLE_GET_PTR(descr[2]);
 				int Lwork = STARPU_VARIABLE_GET_ELEMSIZE(descr[1]) / sizeof(float);
 
-				sstatus = cusolverDnSpotrf(starpu_cusolverDn_get_local_handle(), CUBLAS_FILL_MODE_LOWER, nx, sub11, ld, workspace, Lwork, NULL);
+				sstatus = cusolverDnSpotrf(starpu_cusolverDn_get_local_handle(), CUBLAS_FILL_MODE_LOWER, nx, sub11, ld, workspace, Lwork, d_info);
 				if (sstatus != CUSOLVER_STATUS_SUCCESS)
 					STARPU_CUSOLVER_REPORT_ERROR(sstatus);
 			}
@@ -409,12 +411,13 @@ struct starpu_codelet cl_potrf =
 	.cuda_funcs = {(void*)1},
 #endif
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
-	.nbuffers = 2,
+	.nbuffers = 3,
 #else
 	.nbuffers = 1,
 #endif
 	.modes = { STARPU_RW
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+		, STARPU_SCRATCH | STARPU_NOFOOTPRINT
 		, STARPU_SCRATCH | STARPU_NOFOOTPRINT
 #endif
 	},
@@ -490,12 +493,13 @@ struct starpu_codelet cl_potrf_gpu =
 	.cuda_funcs = {(void*)1},
 #endif
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
-	.nbuffers = 2,
+	.nbuffers = 3,
 #else
 	.nbuffers = 1,
 #endif
 	.modes = { STARPU_RW
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+		, STARPU_SCRATCH | STARPU_NOFOOTPRINT
 		, STARPU_SCRATCH | STARPU_NOFOOTPRINT
 #endif
 	},
@@ -540,12 +544,13 @@ struct starpu_codelet cl_potrf_cpu =
 	.cpu_funcs = {chol_cpu_codelet_update_potrf},
 	.cpu_funcs_name = {"chol_cpu_codelet_update_potrf"},
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
-	.nbuffers = 2,
+	.nbuffers = 3,
 #else
 	.nbuffers = 1,
 #endif
 	.modes = { STARPU_RW
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+		, STARPU_SCRATCH | STARPU_NOFOOTPRINT
 		, STARPU_SCRATCH | STARPU_NOFOOTPRINT
 #endif
 	},
@@ -584,8 +589,13 @@ void cholesky_kernel_init(int nb)
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
 	int Lwork = 0;
 	if (starpu_cuda_worker_get_count())
-		cusolverDnSpotrf_bufferSize(starpu_cusolverDn_get_local_handle(), CUBLAS_FILL_MODE_LOWER, nb, NULL, nb, &Lwork);
+	{
+		cusolverStatus_t sstatus = cusolverDnSpotrf_bufferSize(starpu_cusolverDn_get_local_handle(), CUBLAS_FILL_MODE_LOWER, nb, NULL, nb, &Lwork);
+		if (sstatus != CUSOLVER_STATUS_SUCCESS)
+			STARPU_CUSOLVER_REPORT_ERROR(sstatus);
+	}
 	starpu_variable_data_register(&scratch, -1, 0, Lwork * sizeof(float));
+	starpu_variable_data_register(&devInfo, -1, 0, sizeof(int));
 #endif
 }
 
@@ -593,5 +603,6 @@ void cholesky_kernel_fini(void)
 {
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
 	starpu_data_unregister(scratch);
+	starpu_data_unregister(devInfo);
 #endif
 }
