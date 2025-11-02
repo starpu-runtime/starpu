@@ -69,7 +69,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 #define A(i,j) starpu_data_get_sub_data(dataA, 2, i, j)
 
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
-#define PASS_scratch STARPU_SCRATCH, scratch,
+#define PASS_scratch STARPU_SCRATCH, scratch, STARPU_SCRATCH, devInfo,
 #else
 #define PASS_scratch
 #endif

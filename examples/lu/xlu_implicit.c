@@ -32,6 +32,7 @@ static int create_task_getrf(starpu_data_handle_t dataA, unsigned k, unsigned no
 
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
 	task->handles[1] = scratch;
+	task->handles[2] = devInfo;
 #endif
 
 	task->tag_id = TAG_GETRF(k);

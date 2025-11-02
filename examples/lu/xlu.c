@@ -50,6 +50,7 @@ static struct starpu_task *create_task_getrf(starpu_data_handle_t dataA, unsigne
 
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
 	task->handles[1] = scratch;
+	task->handles[2] = devInfo;
 #endif
 
 	/* this is an important task */
