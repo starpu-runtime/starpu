@@ -35,20 +35,38 @@ static cusolverRfHandle_t mainRf_handle;
 
 static void init_cusolver_func(void *args STARPU_ATTRIBUTE_UNUSED)
 {
-	cusolverDnCreate(&cusolverDn_handles[starpu_worker_get_id_check()]);
-	cusolverDnSetStream(cusolverDn_handles[starpu_worker_get_id_check()], starpu_cuda_get_local_stream());
-	cusolverSpCreate(&cusolverSp_handles[starpu_worker_get_id_check()]);
-	cusolverSpSetStream(cusolverSp_handles[starpu_worker_get_id_check()], starpu_cuda_get_local_stream());
-	cusolverRfCreate(&cusolverRf_handles[starpu_worker_get_id_check()]);
+	if (cusolverDnCreate(&cusolverDn_handles[starpu_worker_get_id_check()]) != CUSOLVER_STATUS_SUCCESS)
+		cusolverDn_handles[starpu_worker_get_id_check()] = NULL;
+	else
+		cusolverDnSetStream(cusolverDn_handles[starpu_worker_get_id_check()], starpu_cuda_get_local_stream());
+	if (cusolverSpCreate(&cusolverSp_handles[starpu_worker_get_id_check()]) != CUSOLVER_STATUS_SUCCESS)
+		cusolverSp_handles[starpu_worker_get_id_check()] = NULL;
+	else
+		cusolverSpSetStream(cusolverSp_handles[starpu_worker_get_id_check()], starpu_cuda_get_local_stream());
+	if (cusolverRfCreate(&cusolverRf_handles[starpu_worker_get_id_check()]) != CUSOLVER_STATUS_SUCCESS)
+		cusolverRf_handles[starpu_worker_get_id_check()] = NULL;
 	// Not available?
-	//cusolverRfSetStream(cusolverRf_handles[starpu_worker_get_id_check()], starpu_cuda_get_local_stream());
+	//else
+	//	cusolverRfSetStream(cusolverRf_handles[starpu_worker_get_id_check()], starpu_cuda_get_local_stream());
 }
 
 static void shutdown_cusolver_func(void *args STARPU_ATTRIBUTE_UNUSED)
 {
-	cusolverDnDestroy(cusolverDn_handles[starpu_worker_get_id_check()]);
-	cusolverSpDestroy(cusolverSp_handles[starpu_worker_get_id_check()]);
-	cusolverRfDestroy(cusolverRf_handles[starpu_worker_get_id_check()]);
+	if (cusolverDn_handles[starpu_worker_get_id_check()])
+	{
+		cusolverDnDestroy(cusolverDn_handles[starpu_worker_get_id_check()]);
+		cusolverDn_handles[starpu_worker_get_id_check()] = NULL;
+	}
+	if (cusolverSp_handles[starpu_worker_get_id_check()])
+	{
+		cusolverSpDestroy(cusolverSp_handles[starpu_worker_get_id_check()]);
+		cusolverSp_handles[starpu_worker_get_id_check()] = NULL;
+	}
+	if (cusolverRf_handles[starpu_worker_get_id_check()])
+	{
+		cusolverRfDestroy(cusolverRf_handles[starpu_worker_get_id_check()]);
+		cusolverRf_handles[starpu_worker_get_id_check()] = NULL;
+	}
 }
 #endif
 
@@ -76,11 +94,20 @@ void starpu_cusolver_shutdown(void)
 	starpu_execute_on_each_worker_ex(shutdown_cusolver_func, NULL, STARPU_CUDA, "shutdown_cusolver");
 
 	if (mainDn_handle)
+	{
 		cusolverDnDestroy(mainDn_handle);
+		mainDn_handle = NULL;
+	}
 	if (mainSp_handle)
+	{
 		cusolverSpDestroy(mainSp_handle);
+		mainSp_handle = NULL;
+	}
 	if (mainRf_handle)
+	{
 		cusolverRfDestroy(mainRf_handle);
+		mainRf_handle = NULL;
+	}
 #endif
 }
 
@@ -90,7 +117,7 @@ cusolverDnHandle_t starpu_cusolverDn_get_local_handle(void)
 	if (!starpu_cuda_worker_get_count())
 		return NULL;
 	int workerid = starpu_worker_get_id();
-	if (workerid >= 0)
+	if (workerid >= 0 && cusolverDn_handles[workerid])
 		return cusolverDn_handles[workerid];
 	else
 		return mainDn_handle;
@@ -101,7 +128,7 @@ cusolverSpHandle_t starpu_cusolverSp_get_local_handle(void)
 	if (!starpu_cuda_worker_get_count())
 		return NULL;
 	int workerid = starpu_worker_get_id();
-	if (workerid >= 0)
+	if (workerid >= 0 && cusolverSp_handles[workerid])
 		return cusolverSp_handles[workerid];
 	else
 		return mainSp_handle;
@@ -112,7 +139,7 @@ cusolverRfHandle_t starpu_cusolverRf_get_local_handle(void)
 	if (!starpu_cuda_worker_get_count())
 		return NULL;
 	int workerid = starpu_worker_get_id();
-	if (workerid >= 0)
+	if (workerid >= 0 && cusolverRf_handles[workerid])
 		return cusolverRf_handles[workerid];
 	else
 		return mainRf_handle;
