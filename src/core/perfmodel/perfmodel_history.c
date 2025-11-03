@@ -981,7 +981,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 
 static void dump_history_entry_xml(FILE *f, struct starpu_perfmodel_history_entry *entry)
 {
-	fprintf(f, "      <entry footprint=\"%08x\" size=\"%lu\" flops=\"%e\" mean=\"%e\" deviation=\"%e\" sum=\"%e\" sum2=\"%e\" nsample=\"%u\"/>\n", entry->footprint, (unsigned long) entry->size, entry->flops, entry->mean, entry->deviation, entry->sum, entry->sum2, entry->nsample);
+	fprintf(f, "      <entry footprint=\"%08x\" size=\"%zu\" flops=\"%e\" mean=\"%e\" deviation=\"%e\" sum=\"%e\" sum2=\"%e\" nsample=\"%u\"/>\n", entry->footprint, entry->size, entry->flops, entry->mean, entry->deviation, entry->sum, entry->sum2, entry->nsample);
 }
 
 static void dump_reg_model_xml(FILE *f, struct starpu_perfmodel *model, int comb, int impl)
@@ -1619,7 +1619,7 @@ docal:
 		char archname[STR_SHORT_LENGTH];
 
 		starpu_perfmodel_get_arch_name(arch, archname, sizeof(archname), nimpl);
-		_STARPU_DISP("Warning: model %s is not calibrated enough for %s size %lu (only %u measurements from size %lu to %lu), forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this. You probably need to run again to continue calibrating the model, until this warning disappears.\n", model->symbol, archname, (unsigned long) size, regmodel?regmodel->nsample:0, regmodel?regmodel->minx:0, regmodel?regmodel->maxx:0);
+		_STARPU_DISP("Warning: model %s is not calibrated enough for %s size %zu (only %u measurements from size %lu to %lu), forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this. You probably need to run again to continue calibrating the model, until this warning disappears.\n", model->symbol, archname, size, regmodel?regmodel->nsample:0, regmodel?regmodel->minx:0, regmodel?regmodel->maxx:0);
 		_starpu_set_calibrate_flag(1);
 		model->benchmarking = 1;
 	}
@@ -1681,7 +1681,7 @@ docal:
 			char archname[STR_SHORT_LENGTH];
 
 			starpu_perfmodel_get_arch_name(arch, archname, sizeof(archname), nimpl);
-			_STARPU_DISP("Warning: model %s is not calibrated enough for %s size %lu (only %u measurements), forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this. You probably need to run again to continue calibrating the model, until this warning disappears.\n", model->symbol, archname, (unsigned long) size, entry && entry->history_entry ? entry->history_entry->nsample : 0);
+			_STARPU_DISP("Warning: model %s is not calibrated enough for %s size %zu (only %u measurements), forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this. You probably need to run again to continue calibrating the model, until this warning disappears.\n", model->symbol, archname, size, entry && entry->history_entry ? entry->history_entry->nsample : 0);
 			_starpu_set_calibrate_flag(1);
 			model->benchmarking = 1;
 		}
@@ -2075,7 +2075,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 
 		STARPU_ASSERT(j->footprint_is_computed);
 
-		fprintf(f, "0x%x\t%lu\t%f\t%f\t%f\t%u\t\t", j->footprint, (unsigned long) __starpu_job_get_data_size(model, arch, impl, j), measured, task->predicted, task->predicted_transfer, cpuid);
+		fprintf(f, "0x%x\t%zu\t%f\t%f\t%f\t%u\t\t", j->footprint, __starpu_job_get_data_size(model, arch, impl, j), measured, task->predicted, task->predicted_transfer, cpuid);
 		unsigned i;
 		unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 

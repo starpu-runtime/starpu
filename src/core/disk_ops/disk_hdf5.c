@@ -278,7 +278,7 @@ static void starpu_hdf5_copy_internal(struct _starpu_hdf5_work * work)
 
 		void * ptr;
 		int ret = _starpu_malloc_flags_on_node(STARPU_MAIN_RAM, &ptr, work->size, 0);
-		STARPU_ASSERT_MSG(ret == 0, "Cannot allocate %lu bytes to perform disk to disk operation", (unsigned long)work->size);
+		STARPU_ASSERT_MSG(ret == 0, "Cannot allocate %zu bytes to perform disk to disk operation", work->size);
 
 		/* buffer is only used internally to store intermediate data */
 		work->ptr = ptr;

@@ -182,7 +182,7 @@ static void print_entry(const char *name, const char *archname, FILE *output, st
 	fprintf(output, "Model: %s\n", name);
 	fprintf(output, "Architecture: %s\n", archname);
 	fprintf(output, "Footprint: %08x\n", entry->footprint);
-	fprintf(output, "Size: %lu\n", (unsigned long) entry->size);
+	fprintf(output, "Size: %zu\n", entry->size);
 	if (!isnan(entry->flops))
 		fprintf(output, "Flops: %-15e\n", entry->flops);
 	fprintf(output, "Mean: %-15e\nStddev: %-15e\n",

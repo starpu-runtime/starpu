@@ -285,7 +285,7 @@ static void free_block_on_node(starpu_data_handle_t handleptr, unsigned nx, unsi
 
 void display_memory_consumption(int rank)
 {
-	FPRINTF(stderr, "%lu B of memory were allocated on node %d\n", (unsigned long) allocated, rank);
+	FPRINTF(stderr, "%zu B of memory were allocated on node %d\n", allocated, rank);
 }
 
 void allocate_memory_on_node(int rank)

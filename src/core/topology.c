@@ -1716,7 +1716,7 @@ static size_t _starpu_cpu_get_global_mem_size(int nodeid, struct _starpu_machine
 		limit = starpu_getenv_number("STARPU_LIMIT_CPU_MEM");
 		if (limit != -1 && numa_enabled)
 		{
-			_STARPU_DISP("NUMA is enabled and STARPU_LIMIT_CPU_MEM is set to %luMB. Assuming that it should be distributed over the %d NUMA node(s). You probably want to use STARPU_LIMIT_CPU_NUMA_MEM instead.\n", (long) limit, _starpu_topology_get_nnumanodes(config));
+			_STARPU_DISP("NUMA is enabled and STARPU_LIMIT_CPU_MEM is set to %zuMB. Assuming that it should be distributed over the %d NUMA node(s). You probably want to use STARPU_LIMIT_CPU_NUMA_MEM instead.\n", limit, _starpu_topology_get_nnumanodes(config));
 			limit /= _starpu_topology_get_nnumanodes(config);
 		}
 	}
@@ -1730,9 +1730,9 @@ static size_t _starpu_cpu_get_global_mem_size(int nodeid, struct _starpu_machine
 	else if (global_mem && (size_t)limit * 1024*1024 > global_mem)
 	{
 		if (numa_enabled)
-			_STARPU_DISP("The requested limit %ldMB for NUMA node %d is higher that available memory %luMB, using the latter\n", (unsigned long) limit, nodeid, (unsigned long) global_mem / (1024*1024));
+			_STARPU_DISP("The requested limit %ldMB for NUMA node %d is higher that available memory %zuMB, using the latter\n", limit, nodeid, (unsigned long) global_mem / (1024*1024));
 		else
-			_STARPU_DISP("The requested limit %ldMB is higher that available memory %luMB, using the latter\n", (long) limit, (unsigned long) global_mem / (1024*1024));
+			_STARPU_DISP("The requested limit %ldMB is higher that available memory %zuMB, using the latter\n", limit, (unsigned long) global_mem / (1024*1024));
 		return global_mem;
 	}
 	else

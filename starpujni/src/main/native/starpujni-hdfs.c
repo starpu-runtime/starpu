@@ -245,7 +245,7 @@ static int s_starpujni_disk_read(void *base, void *obj, void *buf, off_t offset,
 	{
 		nb = hdfsRead(hdfs->fs, is, buf, size);
 		if (nb < 0)
-			HDFS_ERRMSG("while reading %lu bytes from offset %ld in %s.",
+			HDFS_ERRMSG("while reading %zu bytes from offset %ld in %s.",
 				     size, (long) offset, file->path);
 		hdfsCloseFile(hdfs->fs, is);
 	}
@@ -262,11 +262,11 @@ static int s_copy(struct hdfs_base *base, const char *dstPath, hdfsFile dst, hdf
 	void *buffer = NULL;
 	int res = 0;
 	size_t remain = size;
-	S("offset=%ld size=%lu", (long) offset, size);
+	S("offset=%ld size=%zu", (long) offset, size);
 
 	starpu_malloc_flags(&buffer, size, 0);
 	if (buffer == NULL)
-		HDFS_ERRMSG_GOTO(err, "can't allocate copy buffer of size %lu.", size);
+		HDFS_ERRMSG_GOTO(err, "can't allocate copy buffer of size %zu.", size);
 	if (hdfsSeek(base->fs, src, offset) < 0)
 		HDFS_ERRMSG_GOTO(err, "can't seek at %ld in input file.", (long) offset);
 	while (remain > 0)
@@ -281,7 +281,7 @@ static int s_copy(struct hdfs_base *base, const char *dstPath, hdfsFile dst, hdf
 	if (s_hdfs_write(base, dstPath, dst, buffer, size) != size)
 		HDFS_ERRMSG_GOTO(err, "while writing %ld bytes.", size);
 	res = 1;
-	E("offset=%ld size=%lu", (long) offset, size);
+	E("offset=%ld size=%zu", (long) offset, size);
 
 err:
 	if (buffer != NULL)
@@ -294,7 +294,7 @@ static int s_starpujni_disk_write(void *base, void *obj, const void *buf, off_t 
 {
 	struct hdfs_base *hdfs = base;
 	struct hdfs_file *file = obj;
-	S("%s offset=%ld size=%lu", file->path, (long) offset, size);
+	S("%s offset=%ld size=%zu", file->path, (long) offset, size);
 	struct hdfs_file *tmp = s_hdfs_mktemp(hdfs, STARPU_MAX(offset + size, file->file_size));
 	hdfsFile tmpos;
 	hdfsFile is = NULL;
@@ -375,7 +375,7 @@ static int s_starpujni_disk_full_read(void *base, void *obj, void **ptr, size_t 
 		return -1;
 	if (ssize != file->file_size)
 	{
-		HDFS_ERRMSG("inconsistent size %lu (expected size = %lu) for file %s",
+		HDFS_ERRMSG("inconsistent size %zu (expected size = %zu) for file %s",
 			     ssize, file->file_size, file->path);
 		return -1;
 	}
@@ -393,7 +393,7 @@ static int s_starpujni_disk_full_read(void *base, void *obj, void **ptr, size_t 
 		starpu_free_on_node_flags(dst_node, (uintptr_t) *ptr, ssize, 0);
 		*ptr = NULL;
 		*size = 0;
-		HDFS_ERRMSG("can't read %lu bytes from %s.", ssize, file->path);
+		HDFS_ERRMSG("can't read %zu bytes from %s.", ssize, file->path);
 	}
 	return ssize;
 }
@@ -630,7 +630,7 @@ static int s_hdfs_write(struct hdfs_base *hdfs, const char *path, hdfsFile outpu
 
 	if (result != size)
 	{
-		HDFS_ERRMSG("while writing %lu bytes in %s.", size, path);
+		HDFS_ERRMSG("while writing %zu bytes in %s.", size, path);
 		result = -1;
 	}
 	if (hdfsHSync(hdfs->fs, output) < 0)

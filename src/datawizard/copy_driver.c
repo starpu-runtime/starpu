@@ -513,8 +513,8 @@ int starpu_interface_copy2d(uintptr_t src, size_t src_offset, unsigned src_node,
 	int src_devid = starpu_memory_node_get_devid(src_node);
 	int dst_devid = starpu_memory_node_get_devid(dst_node);
 
-	STARPU_ASSERT_MSG(ld_src >= blocksize, "block size %lu is bigger than ld %lu in source", (unsigned long) blocksize, (unsigned long) ld_src);
-	STARPU_ASSERT_MSG(ld_dst >= blocksize, "block size %lu is bigger than ld %lu in destination", (unsigned long) blocksize, (unsigned long) ld_dst);
+	STARPU_ASSERT_MSG(ld_src >= blocksize, "block size %zu is bigger than ld %zu in source", blocksize, ld_src);
+	STARPU_ASSERT_MSG(ld_dst >= blocksize, "block size %zu is bigger than ld %zu in destination", blocksize, ld_dst);
 
 	if (ld_src == blocksize && ld_dst == blocksize)
 		/* Optimize contiguous case */
@@ -564,11 +564,11 @@ int starpu_interface_copy3d(uintptr_t src, size_t src_offset, unsigned src_node,
 	const struct _starpu_node_ops *src_node_ops = _starpu_memory_node_get_node_ops(src_node);
 	const struct _starpu_node_ops *dst_node_ops = _starpu_memory_node_get_node_ops(dst_node);
 
-	STARPU_ASSERT_MSG(ld1_src >= blocksize, "block size %lu is bigger than ld %lu in source", (unsigned long) blocksize, (unsigned long) ld1_src);
-	STARPU_ASSERT_MSG(ld1_dst >= blocksize, "block size %lu is bigger than ld %lu in destination", (unsigned long) blocksize, (unsigned long) ld1_dst);
+	STARPU_ASSERT_MSG(ld1_src >= blocksize, "block size %zu is bigger than ld %zu in source", blocksize, ld1_src);
+	STARPU_ASSERT_MSG(ld1_dst >= blocksize, "block size %zu is bigger than ld %zu in destination", blocksize, ld1_dst);
 
-	STARPU_ASSERT_MSG(ld2_src >= numblocks_1 * ld1_src, "block group size %lu is bigger than group ld %lu in source", (unsigned long) (numblocks_1 * ld1_src), (unsigned long) ld2_src);
-	STARPU_ASSERT_MSG(ld2_dst >= numblocks_1 * ld1_dst, "block group size %lu is bigger than group ld %lu in destination", (unsigned long) (numblocks_1 * ld1_dst), (unsigned long) ld2_dst);
+	STARPU_ASSERT_MSG(ld2_src >= numblocks_1 * ld1_src, "block group size %zu is bigger than group ld %zu in source", (numblocks_1 * ld1_src), ld2_src);
+	STARPU_ASSERT_MSG(ld2_dst >= numblocks_1 * ld1_dst, "block group size %zu is bigger than group ld %zu in destination", (numblocks_1 * ld1_dst), ld2_dst);
 
 	if (ld2_src == blocksize * numblocks_1 &&
 	    ld2_dst == blocksize * numblocks_1)
@@ -620,14 +620,14 @@ int starpu_interface_copy4d(uintptr_t src, size_t src_offset, unsigned src_node,
 	int ret = 0;
 	unsigned i;
 
-	STARPU_ASSERT_MSG(ld1_src >= blocksize, "block size %lu is bigger than ld %lu in source", (unsigned long) blocksize, (unsigned long) ld1_src);
-	STARPU_ASSERT_MSG(ld1_dst >= blocksize, "block size %lu is bigger than ld %lu in destination", (unsigned long) blocksize, (unsigned long) ld1_dst);
+	STARPU_ASSERT_MSG(ld1_src >= blocksize, "block size %zu is bigger than ld %zu in source", blocksize, ld1_src);
+	STARPU_ASSERT_MSG(ld1_dst >= blocksize, "block size %zu is bigger than ld %zu in destination", blocksize, ld1_dst);
 
-	STARPU_ASSERT_MSG(ld2_src >= numblocks_1 * ld1_src, "block group size %lu is bigger than group ld %lu in source", (unsigned long) (numblocks_1 * ld1_src), (unsigned long) ld2_src);
-	STARPU_ASSERT_MSG(ld2_dst >= numblocks_1 * ld1_dst, "block group size %lu is bigger than group ld %lu in destination", (unsigned long) (numblocks_1 * ld1_dst), (unsigned long) ld2_dst);
+	STARPU_ASSERT_MSG(ld2_src >= numblocks_1 * ld1_src, "block group size %zu is bigger than group ld %zu in source", (numblocks_1 * ld1_src), ld2_src);
+	STARPU_ASSERT_MSG(ld2_dst >= numblocks_1 * ld1_dst, "block group size %zu is bigger than group ld %zu in destination", (numblocks_1 * ld1_dst), ld2_dst);
 
-	STARPU_ASSERT_MSG(ld3_src >= numblocks_2 * ld2_src, "block group group size %lu is bigger than group group ld %lu in source", (unsigned long) (numblocks_2 * ld2_src), (unsigned long) ld3_src);
-	STARPU_ASSERT_MSG(ld3_dst >= numblocks_2 * ld2_dst, "block group group size %lu is bigger than group group ld %lu in destination", (unsigned long) (numblocks_2 * ld2_dst), (unsigned long) ld3_dst);
+	STARPU_ASSERT_MSG(ld3_src >= numblocks_2 * ld2_src, "block group group size %zu is bigger than group group ld %zu in source", (numblocks_2 * ld2_src), ld3_src);
+	STARPU_ASSERT_MSG(ld3_dst >= numblocks_2 * ld2_dst, "block group group size %zu is bigger than group group ld %zu in destination", (numblocks_2 * ld2_dst), ld3_dst);
 
 	if (ld3_src == blocksize * numblocks_1 * numblocks_2 &&
 	    ld3_dst == blocksize * numblocks_1 * numblocks_2)
@@ -730,8 +730,8 @@ int starpu_interface_copynd(uintptr_t src, size_t src_offset, unsigned src_node,
 	{
 		for (i = 0; i < ndim-1; i++)
 		{
-			STARPU_ASSERT_MSG(ldn_src[i+1] >= nn[i] * ldn_src[i], "block size %lu is bigger than ld %lu in source", (unsigned long) nn[i] * ldn_src[i], (unsigned long) ldn_src[i+1]);
-			STARPU_ASSERT_MSG(ldn_dst[i+1] >= nn[i] * ldn_dst[i], "block size %lu is bigger than ld %lu in destination", (unsigned long) nn[i] * ldn_dst[i], (unsigned long) ldn_dst[i+1]);
+			STARPU_ASSERT_MSG(ldn_src[i+1] >= nn[i] * ldn_src[i], "block size %zu is bigger than ld %zu in source", nn[i] * ldn_src[i], ldn_src[i+1]);
+			STARPU_ASSERT_MSG(ldn_dst[i+1] >= nn[i] * ldn_dst[i], "block size %zu is bigger than ld %zu in destination", nn[i] * ldn_dst[i], ldn_dst[i+1]);
 		}
 
 		if (ldn_src[ndim-1] == _get_size(nn, ndim-1) &&

@@ -292,7 +292,7 @@ int starpu_unistd_global_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, voi
 		while (bytes_to_write > 0)
 		{
 			nb = pread(fd, buf, bytes_to_write, offset);
-			STARPU_ASSERT_MSG(nb >= 0, "Starpu Disk unistd pread failed: size %lu got errno %d", (unsigned long) size, errno);
+			STARPU_ASSERT_MSG(nb >= 0, "Starpu Disk unistd pread failed: size %zu got errno %d", size, errno);
 			bytes_to_write -= nb;
 			buf = (char*) buf + nb;
 			offset += nb;
@@ -307,12 +307,12 @@ int starpu_unistd_global_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, voi
 			fd = _starpu_unistd_reopen(obj);
 
 		int res = lseek(fd, offset, SEEK_SET);
-		STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd lseek for read failed: offset %lu got errno %d", (unsigned long) offset, errno);
+		STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd lseek for read failed: offset %zu got errno %d", offset, errno);
 
 		while (bytes_to_write > 0)
 		{
 			nb = read(fd, buf, bytes_to_write);
-			STARPU_ASSERT_MSG(nb >= 0, "Starpu Disk unistd read failed: offset %lu got errno %d", (unsigned long) offset, errno);
+			STARPU_ASSERT_MSG(nb >= 0, "Starpu Disk unistd read failed: offset %zu got errno %d", offset, errno);
 			bytes_to_write -= nb;
 			buf = (char*) buf + nb;
 			offset += nb;
@@ -438,7 +438,7 @@ int starpu_unistd_global_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, co
 		while (bytes_to_write > 0)
 		{
 			res = pwrite(fd, buf, bytes_to_write, offset);
-			STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd pwrite failed: offset %lu got errno %d", (unsigned long) offset, errno);
+			STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd pwrite failed: offset %zu got errno %d", offset, errno);
 			bytes_to_write -= res;
 			buf = (char*) buf + res;
 			offset += res;
@@ -453,12 +453,12 @@ int starpu_unistd_global_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, co
 			fd = _starpu_unistd_reopen(obj);
 
 		res = lseek(fd, offset, SEEK_SET);
-		STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd lseek for write failed: offset %lu got errno %d", (unsigned long) offset, errno);
+		STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd lseek for write failed: offset %zu got errno %d", offset, errno);
 
 		while (bytes_to_write > 0)
 		{
 			res = write(fd, buf, bytes_to_write);
-			STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd write failed: offset %lu got errno %d", (unsigned long) offset, errno);
+			STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd write failed: offset %zu got errno %d", offset, errno);
 			bytes_to_write -= res;
 			buf = (char*) buf + res;
 			offset += res;

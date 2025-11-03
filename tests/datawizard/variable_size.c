@@ -140,13 +140,13 @@ static void display_variable_size(starpu_data_handle_t handle, FILE *f)
 	struct variable_size_interface *variable_interface =
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
-	fprintf(f, "%lu\t", (unsigned long) variable_interface->size);
+	fprintf(f, "%zu\t", variable_interface->size);
 }
 
 static starpu_ssize_t describe_variable_size(void *data_interface, char *buf, size_t size)
 {
 	struct variable_size_interface *variable_interface = data_interface;
-	return snprintf(buf, size, "vv%lu\t", (unsigned long) variable_interface->size);
+	return snprintf(buf, size, "vv%zu\t", variable_interface->size);
 }
 
 /* returns the size of the allocated area */
@@ -233,7 +233,7 @@ static void kernel(void *descr[], void *cl_arg)
 	variable_interface->ptr = starpu_malloc_on_node_flags(dst_node, variable_interface->size + increase, STARPU_MALLOC_PINNED | STARPU_MALLOC_COUNT | STARPU_MEMORY_OVERFLOW);
 	VALGRIND_MAKE_MEM_DEFINED_IF_ADDRESSABLE((void*) variable_interface->ptr, variable_interface->size + increase);
 	STARPU_ASSERT(variable_interface->ptr);
-	/* fprintf(stderr,"increase from %lu by %lu\n", variable_interface->size, increase); */
+	/* fprintf(stderr,"increase from %zu by %zu\n", variable_interface->size, increase); */
 	starpu_free_on_node_flags(dst_node, old, variable_interface->size, STARPU_MALLOC_PINNED | STARPU_MALLOC_COUNT | STARPU_MEMORY_OVERFLOW);
 	variable_interface->size += increase;
 

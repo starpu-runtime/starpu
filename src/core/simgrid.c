@@ -1223,7 +1223,7 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 	double start = 0.;
 	struct transfer *transfer = transfer_new();
 
-	_STARPU_DEBUG("creating transfer %p for %lu bytes\n", transfer, (unsigned long) size);
+	_STARPU_DEBUG("creating transfer %p for %zu bytes\n", transfer, size);
 
 #if defined(HAVE_SG_HOST_SEND_TO) || defined(HAVE_SG_HOST_SENDTO)
 	transfer->size = size;

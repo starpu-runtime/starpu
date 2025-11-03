@@ -305,7 +305,7 @@ static void task_dump(struct task_info *task, struct starpu_fxt_options *options
 		fprintf(tasks_file, "\n");
 		fprintf(tasks_file, "Sizes:");
 		for (i = 0; i < task->ndata; i++)
-			fprintf(tasks_file, " %lu", task->data[i].size);
+			fprintf(tasks_file, " %zu", task->data[i].size);
 		fprintf(tasks_file, "\n");
 		fprintf(tasks_file, "NumaNodes:");
 		for (i = 0; i < task->ndata; i++)
@@ -439,9 +439,9 @@ static void data_dump(struct data_info *data)
 		fprintf(data_file, "MPIRank: %d\n", data->mpi_rank);
 	if (data->name)
 		fprintf(data_file, "Name: %s\n", data->name);
-	fprintf(data_file, "Size: %lu\n", (unsigned long) data->size);
+	fprintf(data_file, "Size: %zu\n", data->size);
 	if (data->max_size != -1)
-		fprintf(data_file, "MaxSize: %lu\n", (unsigned long) data->max_size);
+		fprintf(data_file, "MaxSize: %zu\n", data->max_size);
 	if (data->description)
 		fprintf(data_file, "Description: %s\n", data->description);
 	fprintf(data_file, "ParentHandle: %lx\n", data->parent_handle);

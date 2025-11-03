@@ -84,7 +84,7 @@ void starpu_malloc_set_hooks(starpu_malloc_hook _malloc_hook, starpu_free_hook _
 
 void starpu_malloc_set_align(size_t align)
 {
-	STARPU_ASSERT_MSG(!(align & (align - 1)), "Alignment given to starpu_malloc_set_align (%lu) must be a power of two", (unsigned long) align);
+	STARPU_ASSERT_MSG(!(align & (align - 1)), "Alignment given to starpu_malloc_set_align (%zu) must be a power of two", align);
 	if (_malloc_align < align)
 		_malloc_align = align;
 }
@@ -392,7 +392,7 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 		unsigned i;
 		if (buf == MAP_FAILED)
 		{
-			_STARPU_DISP("Warning: could not allocate %luMiB of memory, you need to run \"sysctl vm.overcommit_memory=1\" as root to allow so big allocations\n", (unsigned long) (dim >> 20));
+			_STARPU_DISP("Warning: could not allocate %zuMiB of memory, you need to run \"sysctl vm.overcommit_memory=1\" as root to allow so big allocations\n", (dim >> 20));
 			ret = -ENOMEM;
 			*A = NULL;
 		}
@@ -519,7 +519,7 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 end:
 	if (ret == 0)
 	{
-		STARPU_ASSERT_MSG(*A, "Failed to allocated memory of size %lu b\n", (unsigned long)dim);
+		STARPU_ASSERT_MSG(*A, "Failed to allocated memory of size %zu b\n", dim);
 	}
 	else if (flags & STARPU_MALLOC_COUNT)
 	{

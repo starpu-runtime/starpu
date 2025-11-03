@@ -412,7 +412,7 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comm
 				_starpu_fxt_dag_add_receive(dst, match->jobid, mpi_tag, id);
 #ifdef STARPU_HAVE_POTI
 			char paje_value[STARPU_POTI_STR_LEN], paje_key[STARPU_POTI_STR_LEN];
-			snprintf(paje_value, sizeof(paje_value), "%lu", (long unsigned) size);
+			snprintf(paje_value, sizeof(paje_value), "%zu", size);
 			snprintf(paje_key, sizeof(paje_key), "mpicom_%lu", id);
 			snprintf(mpi_container, sizeof(mpi_container), "%d_mpict", src);
 
@@ -436,8 +436,8 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comm
 #else
 			fprintf(out_paje_file, "13	%.9f	%d_mpict	bwo_mpi	%f\n", start_date, src, current_out_bandwidth[src]);
 			fprintf(out_paje_file, "13	%.9f	%d_mpict	bwi_mpi	%f\n", start_date, dst, current_in_bandwidth[dst]);
-			fprintf(out_paje_file, "23	%.9f	MPIL	MPIroot	%lu	%d_mpict	mpicom_%lu	%ld	%s	%d	%lx	\"%s\"	%u	%u\n", start_date, (unsigned long)size, src, id, mpi_tag, get_mpi_type_str(cur->type), cur->prio, send_handle, cur->name, cur->X, cur->Y);
-			fprintf(out_paje_file, "19	%.9f	MPIL	MPIroot	%lu	%d_mpict	mpicom_%lu\n", end_date, (unsigned long)size, dst, id);
+			fprintf(out_paje_file, "23	%.9f	MPIL	MPIroot	%zu	%d_mpict	mpicom_%lu	%ld	%s	%d	%lx	\"%s\"	%u	%u\n", start_date, size, src, id, mpi_tag, get_mpi_type_str(cur->type), cur->prio, send_handle, cur->name, cur->X, cur->Y);
+			fprintf(out_paje_file, "19	%.9f	MPIL	MPIroot	%zu	%d_mpict	mpicom_%lu\n", end_date, size, dst, id);
 #endif
 
 			if (out_comms_file != NULL)
@@ -453,7 +453,7 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comm
 					fprintf(out_comms_file, "SendJobId: %d_%ld\n", src, cur->jobid);
 				if (match->jobid != -1)
 					fprintf(out_comms_file, "RecvJobId: %d_%ld\n", dst, match->jobid);
-				fprintf(out_comms_file, "Size: %lu\n", (unsigned long)size);
+				fprintf(out_comms_file, "Size: %zu\n", size);
 				fprintf(out_comms_file, "Priority: %d\n", cur->prio);
 				fprintf(out_comms_file, "Type: %s\n", get_mpi_type_str(cur->type));
 				char str[STARPU_TRACE_STR_LEN] = "";

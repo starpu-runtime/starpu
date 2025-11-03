@@ -624,7 +624,7 @@ void starpu_bound_print_lp(FILE *output)
 		for (t1 = tasks; t1; t1 = t1->next)
 			for (i = 0; i < t1->depsn; i++)
 			{
-				fprintf(output, "/* %lu bytes transferred */\n", (unsigned long) t1->deps[i].size);
+				fprintf(output, "/* %zu bytes transferred */\n", t1->deps[i].size);
 				fprintf(output, "s%lu >= c%lu", t1->id, t1->deps[i].dep->id);
 				/* Transfer time: pick up one source node and a worker on it */
 				for (n = 0; n < starpu_memory_nodes_get_count(); n++)

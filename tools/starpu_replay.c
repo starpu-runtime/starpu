@@ -212,19 +212,19 @@ static void display_replay(starpu_data_handle_t handle, FILE *f)
 	struct replay_interface *replay_interface =
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
-	fprintf(f, "%lu/%lu/%lu\t",
-			(unsigned long) replay_interface->size,
-			(unsigned long) replay_interface->alloc_size,
-			(unsigned long) replay_interface->max_size);
+	fprintf(f, "%zu/%zu/%zu\t",
+		replay_interface->size,
+		replay_interface->alloc_size,
+		replay_interface->max_size);
 }
 
 static starpu_ssize_t describe_replay(void *data_interface, char *buf, size_t size)
 {
 	struct replay_interface *replay_interface = data_interface;
-	return snprintf(buf, size, "r%lu/%lu/%lu\t",
-			(unsigned long) replay_interface->size,
-			(unsigned long) replay_interface->alloc_size,
-			(unsigned long) replay_interface->max_size);
+	return snprintf(buf, size, "r%zu/%zu/%zu\t",
+			replay_interface->size,
+			replay_interface->alloc_size,
+			replay_interface->max_size);
 }
 
 static starpu_ssize_t allocate_replay_on_node(void *data_interface, unsigned dst_node)
