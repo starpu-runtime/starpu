@@ -127,6 +127,7 @@ union starpu_prof_tool_event_info
 */
 struct starpu_prof_tool_api_info
 {
+	char unused;
 	/*acc_device_api device_api;
 	  int valid_bytes;
 	  acc_device_t device_type;
