@@ -24,12 +24,10 @@ build_for_windows:
   image: registry.gitlab.inria.fr/starpu/starpu-docker/ci-debian12
   tags: ['ci.inria.fr', 'linux', 'large']
   script:
-    - ./ci/scripts/build.sh
+    - ./ci/scripts/build.sh --disable-doc
   artifacts:
     paths:
       - starpu*.tar.gz
-      - starpu*.pdf
-      - html
 
 check_windows:
   extends: .windows

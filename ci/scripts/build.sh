@@ -26,22 +26,30 @@ then
     . $HOME/starpu_specific_env.sh
 fi
 
+configure_doc="--enable-build-doc-pdf"
+if test "$1" == "--disable-doc"
+then
+    configure_doc=""
+fi
+
 BUILD=./build_$$
 ./autogen.sh
 if test -d $BUILD ; then chmod -R 777 $BUILD && rm -rf $BUILD ; fi
 mkdir $BUILD && cd $BUILD
-../configure --enable-build-doc-pdf $STARPU_USER_CONFIGURE_OPTIONS
+../configure $configure_doc $STARPU_USER_CONFIGURE_OPTIONS
 make -j4
 make dist
 cp *gz ..
-cp doc/doxygen/starpu.pdf ..
-cp doc/doxygen_dev/starpu_dev.pdf ..
-cp -rp doc/doxygen/html ..
+if test "$1" != "--disable-doc"
+then
+    cp doc/doxygen/starpu.pdf ..
+    cp doc/doxygen_dev/starpu_dev.pdf ..
+    cp -rp doc/doxygen/html ..
+fi
 make clean
 cd ../
 
 tarball=$(ls -tr starpu-*.tar.gz | tail -1)
-
 if test -z "$tarball"
 then
     echo Error. No tar.gz file
@@ -50,10 +58,13 @@ then
     exit 1
 fi
 
-if test ! -f starpu.pdf
+if test "$1" != "--disable-doc"
 then
-    echo Error. No documentation file
-    ls
-    pwd
-    exit 1
+    if test ! -f starpu.pdf
+    then
+	echo Error. No documentation file
+	ls
+	pwd
+	exit 1
+    fi
 fi
