@@ -596,6 +596,8 @@ no_calibration:
 #endif
 	{
 		/* Cannot make a real calibration */
+		(void) numa_src;
+		(void) numa_dst;
 		*timing_nton = 0.01;
 		*latency_nton = 0;
 	}

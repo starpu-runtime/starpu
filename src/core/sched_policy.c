@@ -42,7 +42,9 @@ long _starpu_task_break_on_sched = -1;
 long _starpu_task_break_on_pop = -1;
 long _starpu_task_break_on_exec = -1;
 static const char *starpu_idle_file;
+#ifdef HAVE_DLOPEN
 static void *dl_sched_handle = NULL;
+#endif
 static const char *sched_lib = NULL;
 
 void _starpu_sched_init(void)
