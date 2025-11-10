@@ -114,7 +114,7 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 	int descriptor = open(path_file_start, O_RDWR);
 	if (descriptor < 0)
 		goto enoent2;
-#ifdef STARPU_HAVE_WINDOWS
+#if defined(STARPU_HAVE_WINDOWS) && !defined(__CYGWIN__)
 	_commit(descriptor);
 #else
 	fsync(descriptor);
@@ -133,7 +133,7 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 	fclose(f);
 
 	descriptor = open(path_file_end, O_RDWR);
-#ifdef STARPU_HAVE_WINDOWS
+#if defined(STARPU_HAVE_WINDOWS) && !defined(__CYGWIN__)
 	_commit(descriptor);
 #else
 	fsync(descriptor);

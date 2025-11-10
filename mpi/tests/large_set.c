@@ -81,7 +81,7 @@ static void create_file()
 	char *tmp = "starpu_XXXXXX";
 	strcpy(_f_buffer_name, tmp);
 
-#ifdef STARPU_HAVE_WINDOWS
+#if defined(STARPU_HAVE_WINDOWS) && !defined(__CYGWIN__)
 	_mktemp(_f_buffer_name);
 #else
 	int id = mkstemp(_f_buffer_name);

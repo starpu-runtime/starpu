@@ -39,7 +39,7 @@ int _check_number(double val, int checknan)
 
 	strcpy(filename, tmp);
 
-#ifdef STARPU_HAVE_WINDOWS
+#if defined(STARPU_HAVE_WINDOWS) && !defined(__CYGWIN__)
 	_mktemp(filename);
 #else
 	{

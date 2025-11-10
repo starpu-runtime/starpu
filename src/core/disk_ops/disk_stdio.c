@@ -389,7 +389,7 @@ static int get_stdio_bandwidth_between_disk_and_main_ram(unsigned node, void *ba
 		int res = fflush(f);
 		STARPU_ASSERT_MSG(res == 0, "Slowness computation failed \n");
 
-#ifdef STARPU_HAVE_WINDOWS
+#if defined(STARPU_HAVE_WINDOWS) && !defined(__CYGWIN__)
 		res = _commit(fileno(f));
 #else
 		res = fsync(fileno(f));
@@ -424,7 +424,7 @@ static int get_stdio_bandwidth_between_disk_and_main_ram(unsigned node, void *ba
 		int res = fflush(f);
 		STARPU_ASSERT_MSG(res == 0, "Latency computation failed");
 
-#ifdef STARPU_HAVE_WINDOWS
+#if defined(STARPU_HAVE_WINDOWS) && !defined(__CYGWIN__)
 		res = _commit(fileno(f));
 #else
 		res = fsync(fileno(f));

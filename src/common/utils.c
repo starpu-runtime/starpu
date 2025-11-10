@@ -28,6 +28,7 @@
 
 #ifdef STARPU_HAVE_WINDOWS
 #include <windows.h>
+#include <io.h>
 #endif
 
 #ifdef __linux__
@@ -219,10 +220,7 @@ char *_starpu_mktemp(const char *directory, int flags, int *fd)
 
 	snprintf(baseCpy, strlen(directory)+1+strlen(tmp)+1, "%s/%s", directory, tmp);
 
-#if defined(STARPU_HAVE_WINDOWS)
-	_mktemp(baseCpy);
-	*fd = open(baseCpy, flags);
-#elif defined (HAVE_MKOSTEMP)
+#if defined (HAVE_MKOSTEMP)
 	flags &= ~O_RDWR;
 	*fd = mkostemp(baseCpy, flags);
 
@@ -231,9 +229,14 @@ char *_starpu_mktemp(const char *directory, int flags, int *fd)
 		/* It failed, but perhaps still created the file, clean the mess */
 		unlink(baseCpy);
 	}
-#else
+#elif defined (HAVE_MKSTEMP)
 	STARPU_ASSERT(flags == (O_RDWR | O_BINARY) || flags == (O_RDWR | O_BINARY | O_DIRECT));
 	*fd = mkstemp(baseCpy);
+#elif defined(STARPU_HAVE_WINDOWS)
+	_mktemp(baseCpy);
+	*fd = open(baseCpy, flags);
+#else
+#error no known mktemp function on this system
 #endif
 
 	/* fail */

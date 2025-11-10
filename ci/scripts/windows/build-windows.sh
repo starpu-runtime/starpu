@@ -16,6 +16,7 @@
 #
 
 set -e
+set -x
 
 export LC_ALL=C
 oldPATH=$PATH
@@ -32,27 +33,43 @@ test -d $basename && chmod -R u+rwX $basename && rm -rf $basename
 tar xfz $tarball
 touch --date="last hour" $(find $basename)
 version=$(echo $basename | cut -d- -f2)
-winball=starpu-win32-build-${version}
+winball=starpu-win64-build-${version}
 
 export STARPU_HOME=$PWD
+mkdir artifacts
 
 rm -rf ${basename}/build
-mkdir ${basename}/build
+mkdir -p ${basename}/build
 cd ${basename}/build
 
 #export HWLOC=/c/StarPU/hwloc-win32-build-1.11.0
 
-prefix=${PWD}/../../${winball}
+prefix=${STARPU_HOME}/${winball}
 rm -rf $prefix
 
 #--with-hwloc=${HWLOC}
-options="--without-hwloc --enable-quick-check --enable-debug --enable-verbose --enable-native-winthreads"
+options="--without-hwloc --enable-quick-check --enable-debug --enable-verbose"
+#--enable-native-winthreads"
 day=$(date +%u)
+ret=0
+set +e
 if test $day -le 5
 then
     ../configure --prefix=$prefix $options --disable-build-examples $STARPU_USER_CONFIGURE_OPTIONS
+    ret=$?
 else
     ../configure --prefix=$prefix $options $STARPU_USER_CONFIGURE_OPTIONS
+    ret=$?
+fi
+set -e
+
+# save config.log as artifact
+cp config.log $STARPU_HOME/artifacts
+
+# deal with configure error
+if test "$ret" != "0"
+then
+    exit $ret
 fi
 
 make
@@ -71,18 +88,15 @@ fail=$(grep FAIL ${CHECK} | grep -v XFAIL || true)
 if test -z "$fail"
 then
     make install
-    cd ../../
-    cp /c/MinGW/bin/pthread*dll ${winball}/bin
-    cp /c/MinGW/bin/libgcc*dll ${winball}/bin
+    cd $prefix/../
+    #cp /c/MinGW/bin/pthread*dll ${winball}/bin
+    #cp /c/MinGW/bin/libgcc*dll ${winball}/bin
     #    cp ${HWLOC}/bin/*dll ${winball}/bin
     zip -r ${winball}.zip ${winball}
-
-    rm -rf starpu_install
-    mv ${winball} starpu_install
+    mv ${winball}.zip $STARPU_HOME/artifacts
 fi
 
 PATH=$oldPATH
 
 echo $fail
 exit $(grep FAIL ${CHECK} | grep -v XFAIL | wc -l)
-

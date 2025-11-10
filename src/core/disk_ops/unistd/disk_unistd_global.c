@@ -407,7 +407,7 @@ int starpu_unistd_global_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj
 
 	if (fd < 0)
 		fd = _starpu_unistd_reopen(obj);
-#ifdef STARPU_HAVE_WINDOWS
+#if defined(STARPU_HAVE_WINDOWS) && !defined(__CYGWIN__)
 	*size = _filelength(fd);
 #else
 	struct stat st;
@@ -575,7 +575,7 @@ void * starpu_unistd_global_async_full_read (void * base, void * obj, void ** pt
 
 	if (fd < 0)
 		fd = _starpu_unistd_reopen(obj);
-#ifdef STARPU_HAVE_WINDOWS
+#if defined(STARPU_HAVE_WINDOWS) && !defined(__CYGWIN__)
 	*size = _filelength(fd);
 #else
 	struct stat st;
@@ -816,7 +816,7 @@ int _starpu_get_unistd_global_bandwidth_between_disk_and_main_ram(unsigned node,
 
 		if (fd < 0)
 			fd = _starpu_unistd_reopen(tmp);
-#ifdef STARPU_HAVE_WINDOWS
+#if defined(STARPU_HAVE_WINDOWS) && !defined(__CYGWIN__)
 		res = _commit(fd);
 #else
 		res = fsync(fd);
@@ -847,7 +847,7 @@ int _starpu_get_unistd_global_bandwidth_between_disk_and_main_ram(unsigned node,
 
 		if (fd < 0)
 			fd = _starpu_unistd_reopen(tmp);
-#ifdef STARPU_HAVE_WINDOWS
+#if defined(STARPU_HAVE_WINDOWS) && !defined(__CYGWIN__)
 		res = _commit(fd);
 #else
 		res = fsync(fd);

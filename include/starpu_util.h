@@ -373,7 +373,7 @@ extern "C" {
 #endif
 
 #if defined(STARPU_HAVE_STRERROR_R)
-#if (!defined(__GLIBC__) || !__GLIBC__) || ((_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && (!defined(_GNU_SOURCE)))
+#if (!defined(__CYGWIN__)) && (!defined(__GLIBC__) || !__GLIBC__ || ((_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && (!defined(_GNU_SOURCE))))
 /* XSI-compliant version of strerror_r returns an int */
 #define starpu_strerror_r(errnum, buf, buflen)                    \
 	do                                                        \

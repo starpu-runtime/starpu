@@ -1,0 +1,53 @@
+# StarPU --- Runtime system for heterogeneous multicore architectures.
+#
+# Copyright (C) 2009-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+#
+# StarPU is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation; either version 2.1 of the License, or (at
+# your option) any later version.
+#
+# StarPU is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# See the GNU Lesser General Public License in COPYING.LGPL for more details.
+
+.windows:
+  rules:
+    - if: ($CI_PIPELINE_SCHEDULE_DESCRIPTION != null && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $STARPU_RUN_WINDOWS == "yes")
+      when: always
+
+build_for_windows:
+  extends: .windows
+  stage: build
+  image: registry.gitlab.inria.fr/starpu/starpu-docker/ci-debian12
+  tags: ['ci.inria.fr', 'linux', 'large']
+  script:
+    - ./ci/scripts/build.sh
+  artifacts:
+    paths:
+      - starpu*.tar.gz
+      - starpu*.pdf
+      - html
+
+check_windows:
+  extends: .windows
+  stage: check
+  needs: [build_for_windows]
+  dependencies:
+    - build_for_windows
+  timeout: 4h
+  variables:
+    RUNNER_SCRIPT_TIMEOUT: 238m
+    RUNNER_AFTER_SCRIPT_TIMEOUT: 2m
+  tags:
+    - starpu
+    - windows
+  script:
+    - sh -c "sed -i 's/\r//' ./ci/scripts/windows/build-windows.sh"
+    - sh -c ./ci/scripts/windows/build-windows.sh
+  artifacts:
+    when: always
+    paths:
+      - artifacts/*

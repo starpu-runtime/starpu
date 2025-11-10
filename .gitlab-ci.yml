@@ -37,5 +37,6 @@ include:
   - local: ci/gitlab/common.yml
   - local: ci/gitlab/daily.yml
   - local: ci/gitlab/build.yml
+  - local: ci/gitlab/windows.yml
   - local: ci/gitlab/extended_build.yml
   - local: ci/gitlab/releases.yml
