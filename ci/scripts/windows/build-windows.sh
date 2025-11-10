@@ -22,7 +22,7 @@ export LC_ALL=C
 oldPATH=$PATH
 # Add both PATHS for msys and cygdrive
 export PATH="/c/Program Files/Microsoft Visual Studio/2022/Community/VC/bin":"/c/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE":"/c/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.42.34433/bin/Hostx64/x64":$oldPATH
-export PATH="/cygdrive/c/Program Files/Microsoft Visual Studio/2022/Community/VC/bin":"/cygdrive/c/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE":"/cygdrive/c/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.42.34433/bin/Hostx64/x64":$oldPATH
+export PATH="/cygdrive/c/Program Files/Microsoft Visual Studio/2022/Community/VC/bin":"/cygdrive/c/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE":"/cygdrive/c/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.42.34433/bin/Hostx64/x64":$PATH
 
 tarball=$(ls -tr starpu*.tar.gz | tail -1)
 if test -z "$tarball" ; then
