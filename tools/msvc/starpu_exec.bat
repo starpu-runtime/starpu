@@ -28,7 +28,7 @@ FOR %%F IN (%STARPU_PATH%\bin\*dll) DO COPY %%F starpu\%%~nF
 FOR %%F IN (%HWLOC%\bin\*dll) DO COPY %%F starpu
 
 set STARPU_OLDPATH=%PATH%
-call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" x86
+call "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat" x86
 cl %1 %STARPU_CFLAGS% %STARPU_LDFLAGS%
 
 set PATH=starpu;c:\MinGW\bin;%PATH%
