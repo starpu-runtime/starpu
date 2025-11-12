@@ -50,7 +50,7 @@ prefix=${STARPU_HOME}/${winball}
 rm -rf $prefix
 
 #--with-hwloc=${HWLOC}
-options="--without-hwloc --enable-quick-check --enable-debug --enable-verbose"
+options="--without-hwloc --enable-quick-check --enable-debug --enable-verbose --disable-fortran"
 #--enable-native-winthreads"
 day=$(date +%u)
 ret=0
