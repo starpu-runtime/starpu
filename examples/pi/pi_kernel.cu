@@ -132,7 +132,7 @@ extern "C" void cuda_kernel(void *descr[], void *cl_arg)
 
 	/* How many threads per block ? At most 256, but no more threads than
 	 * there are entries to process per block. */
-	unsigned nthread_per_block = STARPU_MIN(MAXTHREADSPERBLOCK, (nx / nblocks));
+	unsigned nthread_per_block = STARPU_MIN(MAXTHREADSPERBLOCK, ((nx + nblocks-1) / nblocks));
 
 	/* each entry of per_block_cnt contains the number of successful shots
 	 * in the corresponding block. */

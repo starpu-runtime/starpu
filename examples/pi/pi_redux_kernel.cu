@@ -110,7 +110,7 @@ extern "C" void pi_redux_cuda_kernel(float *x, float *y, unsigned n, unsigned lo
 
 	/* How many threads per block ? At most 256, but no more threads than
 	 * there are entries to process per block. */
-	unsigned nthread_per_block = STARPU_MIN(MAXTHREADSPERBLOCK, (n / nblocks));
+	unsigned nthread_per_block = STARPU_MIN(MAXTHREADSPERBLOCK, ((n + nblock-1) / nblocks));
 
 	/* each entry of per_block_cnt contains the number of successful shots
 	 * in the corresponding block. */

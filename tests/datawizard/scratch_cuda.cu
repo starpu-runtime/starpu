@@ -43,7 +43,7 @@ extern "C" void cuda_f(void *descr[], void *_args)
 	cudaMemcpyAsync(tmp, v, nx*elemsize, cudaMemcpyDeviceToDevice, starpu_cuda_get_local_stream());
 
 	unsigned nblocks = 128;
-	unsigned nthread_per_block = STARPU_MIN(MAXTHREADSPERBLOCK, (nx / nblocks));
+	unsigned nthread_per_block = STARPU_MIN(MAXTHREADSPERBLOCK, ((nx + nblocks-1) / nblocks));
 
 	increment_vector<<<nblocks, nthread_per_block, 0, starpu_cuda_get_local_stream()>>>(v, tmp, nx);
 	cudaError_t status = cudaGetLastError();
