@@ -1085,6 +1085,7 @@ case "$target" in
 *-*-mingw*|*-*-cygwin*|*-*-msys*)
   starpu_windows=yes
   libext=a
+  STARPU_EXPORTED_LIBS="$STARPU_EXPORTED_LIBS -lwsock32"
   AC_DEFINE(STARPU_HAVE_WINDOWS, [1], [Define this on windows.])
   ;;
 *-*-linux*)
