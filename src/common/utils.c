@@ -99,7 +99,7 @@ int _starpu_mkpath(const char *s, mode_t mode)
 #if defined(_WIN32)
 		/* C:/ or C:\ */
 	    || (s[0] && s[1] == ':' && (s[2] == '/' || s[2] == '\\') && !s[3])
-	    || (s[0] == '\\')
+	    || strcmp(s, "\\") == 0
 #endif
 		)
 		return 0;
