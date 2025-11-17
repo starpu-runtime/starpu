@@ -1,5 +1,13 @@
 {
-    "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
+    "@context": [
+	"https://doi.org/10.5063/schema/codemeta-2.0",
+	{
+	    "numpex-catalog": "https://numpex.github.io/sw-catalog/terms-1.0/index.jsonld#",
+	    "Role": "https://schema.org/Role",
+	    "roleName": "https://schema.org/roleName",
+	    "url": "https://schema.org/url"
+	}
+    ],
     "@type": "SoftwareSourceCode",
     "license": "https://spdx.org/licenses/LGPL-2.1",
     "codeRepository": "https://gitlab.inria.fr/starpu/starpu.git",
@@ -75,16 +83,26 @@
             }
         }
     ],
-    "softwareHelp": "https://starpu.gitlabpages.inria.fr/doc.html",
-    "installURL" : [
+    "numpex-catalog:annotatedLink": [
 	{
-	    "name" : "guix",
-	    "url" : "https://gitlab.inria.fr/guix-hpc/guix-hpc/-/blob/master/inria/storm.scm"
+	    "@type": "Role",
+	    "roleName": "numpex-catalog:documentation",
+	    "url": "https://starpu.gitlabpages.inria.fr/doc.html"
 	},
 	{
-	    "name" : "spack",
-	    "url" : "https://github.com/spack/spack-packages/tree/develop/repos/spack_repo/builtin/packages/starpu/package.py"
+	    "@type": "Role",
+	    "roleName": "numpex-catalog:discussion",
+	    "url": "https://discord.gg/vKVJsuHB8U"
+	},
+	{
+	    "@type": "Role",
+	    "roleName": "numpex-catalog:guix_package",
+	    "url": "https://gitlab.inria.fr/guix-hpc/guix-hpc/-/blob/master/inria/storm.scm"
+	},
+	{
+	    "@type": "Role",
+	    "roleName": "numpex-catalog:spack_package",
+	    "url": "https://github.com/spack/spack-packages/tree/develop/repos/spack_repo/builtin/packages/starpu/package.py"
 	}
-    ],
-    "softwareSuggestions" : "https://discord.gg/vKVJsuHB8U"
+    ]
 }
