@@ -36,7 +36,7 @@ test -d $basename && chmod -R u+rwX $basename && rm -rf $basename
 unzip $zipball
 
 cd $basename
-export STARPU_PATH=$PWD
+. ./bin/starpu_env -d $PWD
 cd share/doc/starpu/tutorial/
 make
 ./hello_world.exe

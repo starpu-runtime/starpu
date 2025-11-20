@@ -26,6 +26,7 @@ usage()
     echo "Options:"
     echo "	-h, --help          display this help and exit"
     echo "	-v, --version       output version information and exit"
+    echo "	-d directory        overwrite StarPU installation directory"
     echo ""
     echo "Report bugs to <@PACKAGE_BUGREPORT@>"
 }
@@ -36,26 +37,57 @@ then
 elif [ "$1" = "-h" ] || [ "$1" = "--help" ]
 then
     usage
+elif [ "$1" = "-d" ]
+then
+    if [ "$2" != "" ]
+    then
+	# if a argument is given for the StarPU root directory, suppose sub-directories are in standard location
+	prefix=$(realpath $2)
+	exec_prefix=$prefix
+	starpu_bindir=${exec_prefix}/bin
+	starpu_libdir=${exec_prefix}/lib
+	starpu_datarootdir=${exec_prefix}/share
+    fi
 else
     prefix=$(realpath @prefix@)
     exec_prefix=$(realpath @exec_prefix@)
     starpu_bindir=$(realpath @bindir@)
     starpu_libdir=$(realpath @libdir@)
     starpu_datarootdir=$(realpath @datarootdir@)
-    if test -f $starpu_bindir/starpu_machine_display -a -f $starpu_libdir/pkgconfig/libstarpu.pc
-    then
-	echo "Setting StarPU environment for $prefix"
-	export STARPU_ROOT=$prefix
-	export PKG_CONFIG_PATH=$starpu_libdir/pkgconfig:$PKG_CONFIG_PATH
-	export LD_LIBRARY_PATH=$starpu_libdir:$LD_LIBRARY_PATH
-	export PATH=$starpu_bindir:$PATH
-	export MANPATH=$starpu_datarootdir/man:$MANPATH
-	if [ -n "@PYTHON@" ]
-	then
-	    for d in $starpu_libdir/@PYTHON@*/site-packages ; do export PYTHONPATH=$d:$PYTHONPATH ; done
-	fi
-    else
-	echo "[Error] $prefix is not a valid StarPU installation directory"
-    fi
 fi
 
+if test -f $starpu_bindir/starpu_machine_display -a -f $starpu_libdir/pkgconfig/libstarpu.pc -a -d $starpu_bindir -a -d $starpu_libdir -a -d $starpu_datarootdir
+then
+    echo "Setting StarPU environment for $prefix"
+    export STARPU_ROOT=$prefix
+    export PKG_CONFIG_PATH=$starpu_libdir/pkgconfig:$PKG_CONFIG_PATH
+    export LD_LIBRARY_PATH=$starpu_libdir:$LD_LIBRARY_PATH
+    export PATH=$starpu_bindir:$PATH
+    export MANPATH=$starpu_datarootdir/man:$MANPATH
+    if [ -n "@PYTHON@" ]
+    then
+	for d in $starpu_libdir/@PYTHON@*/site-packages ; do export PYTHONPATH=$d:$PYTHONPATH ; done
+    fi
+else
+    echo "[Error] '$prefix' is not a valid StarPU installation directory ..."
+    if test ! -f $starpu_bindir/starpu_machine_display
+    then
+	echo "     ... cannot find executable '$starpu_bindir/starpu_machine_display'"
+    fi
+    if test ! -f $starpu_libdir/pkgconfig/libstarpu.pc
+    then
+	echo "     ... cannot find file       '$starpu_libdir/pkgconfig/libstarpu.pc'"
+    fi
+    if test ! -d $starpu_bindir
+    then
+	echo "     ... cannot find directory  '$starpu_bindir'"
+    fi
+    if test ! -d $starpu_libdir
+    then
+	echo "     ... cannot find directory  '$starpu_libdir'"
+    fi
+    if test ! -d $starpu_datarootdir
+    then
+	echo "     ... cannot find directory  '$starpu_datarootdir'"
+    fi
+fi
