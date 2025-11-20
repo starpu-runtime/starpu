@@ -53,9 +53,9 @@ check_windows:
 run_windows:
   extends: .windows
   stage: check
-  needs: [check_for_windows]
+  needs: [check_windows]
   dependencies:
-    - check_for_windows
+    - check_windows
   timeout: 4h
   variables:
     RUNNER_SCRIPT_TIMEOUT: 238m
