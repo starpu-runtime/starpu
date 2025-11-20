@@ -44,4 +44,4 @@ make
 
 # upload zipball in package registry
 version=$(echo $zipball | sed 's/.*-//' | sed 's/.zip//')
-curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file $zipballt "https://gitlab.inria.fr/api/v4/projects/${CI_PROJECT_ID}/packages/generic/starpu-windows/${version}/${zipball}"
+curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file $zipball "https://gitlab.inria.fr/api/v4/projects/${CI_PROJECT_ID}/packages/generic/starpu-windows/${version}/${zipball}"
