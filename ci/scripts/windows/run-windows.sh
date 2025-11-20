@@ -25,6 +25,7 @@ export PATH="/c/Program Files/Microsoft Visual Studio/2022/Community/VC/bin":"/c
 export PATH="/cygdrive/c/Program Files/Microsoft Visual Studio/2022/Community/VC/bin":"/cygdrive/c/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE":"/cygdrive/c/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.42.34433/bin/Hostx64/x64":$PATH
 
 cd artifacts
+zipdir=$PWD
 zipball=$(ls -tr starpu*.zip | tail -1)
 if test -z "$zipball" ; then
     echo Zipball not available
@@ -44,4 +45,4 @@ make
 
 # upload zipball in package registry
 version=$(echo $zipball | sed 's/.*-//' | sed 's/.zip//')
-curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file $zipball "https://gitlab.inria.fr/api/v4/projects/${CI_PROJECT_ID}/packages/generic/starpu-windows/${version}/${zipball}"
+curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file $zipdir/$zipball "https://gitlab.inria.fr/api/v4/projects/${CI_PROJECT_ID}/packages/generic/starpu-windows/${version}/${zipball}"
