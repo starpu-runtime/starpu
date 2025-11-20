@@ -13,8 +13,8 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
-CFLAGS          +=      $$(pkg-config --cflags starpu-1.4)
-LDLIBS          +=      $$(pkg-config --libs starpu-1.4)
+CFLAGS          +=      $$(pkg-config --define-prefix --cflags starpu-1.4)
+LDLIBS          +=      $$(pkg-config --define-prefix --libs starpu-1.4)
 
 HAS_CUDA	=	$(shell starpu_config | grep 'STARPU_USE_CUDA 1')
 NVCC		?=	nvcc -std=c++11
