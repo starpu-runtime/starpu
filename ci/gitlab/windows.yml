@@ -49,3 +49,20 @@ check_windows:
     when: always
     paths:
       - artifacts/*
+
+run_windows:
+  extends: .windows
+  stage: check
+  needs: [check_for_windows]
+  dependencies:
+    - check_for_windows
+  timeout: 4h
+  variables:
+    RUNNER_SCRIPT_TIMEOUT: 238m
+    RUNNER_AFTER_SCRIPT_TIMEOUT: 2m
+  tags:
+    - starpu
+    - windows
+  script:
+    - sh -c "sed -i 's/\r//' ./ci/scripts/windows/run-windows.sh"
+    - sh -c ./ci/scripts/windows/run-windows.sh
