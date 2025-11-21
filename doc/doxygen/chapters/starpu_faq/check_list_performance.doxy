@@ -361,6 +361,28 @@ starpu_memory_get_available() and starpu_memory_wait_available() to submit
 tasks only when there is enough memory space to allocate the data needed by the
 task, i.e. when enough data are available for reuse in the allocation cache.
 
+\section WorkingSetDoesntFit When the Working Set Does Not Fit
+
+If the working set does not fit in memory, we are in an out-of-core situation,
+and StarPU will have to move data back-and-forth between the limited memory and
+larger memory. This happens both between GPUs and CPUs, and between CPUs and the
+disk (see \ref OutOfCore).
+
+This is a very difficult problem in general. By default, StarPU uses a
+Least-Recently-Used data replacement policy, which in various cases will perform
+just fine. In other cases, where indeed more data is needed than memory space,
+StarPU will have to decide an optimized tasks order to reduce data transfers.
+This is achieved notably by the `dmdar` scheduler, which prioritises tasks whose
+data is already in the GPU, and by the `dmdas` scheduler, which uses tasks
+priorities first, and then prioritises tasks whose data is already in the GPU.
+It is also useful to try the `darts` scheduler, which was exactly meant for
+dealing with such out-of-core situations, see
+<a href=https://inria.hal.science/hal-05226796v1/file/JPDC.pdf>
+the DARTS research paper</a> for details.
+
+It can be also useful to try to tune the \ref STARPU_TARGET_CLEAN_BUFFERS and
+\ref STARPU_MINIMUM_CLEAN_BUFFERS environment variables.
+
 \section PerformanceModelCalibration Performance Model Calibration
 
 Most schedulers are based on an estimation of codelet duration on each kind
