@@ -73,7 +73,7 @@ If (<b>and only if</b>) your <b>codelets have performance models</b> (\ref
 PerformanceModelExample), you should change the scheduler thanks to the
 environment variable \ref STARPU_SCHED, to select one of the policies below, in
 order to take advantage of StarPU's performance modelling. For instance,
-<c>export STARPU_SCHED=dmda</c> . Use <c>help</c> to get the list of available
+<c>export STARPU_SCHED=dmdas</c> . Use <c>help</c> to get the list of available
 schedulers.
 
 <b>Note:</B> Depending on the performance model type chosen, some preliminary
@@ -126,6 +126,20 @@ it are being executed simultaneously.
 - The <b>peager</b> (parallel eager) scheduler is similar to eager, it also
 supports parallel tasks (still experimental). It should not be used when several
 contexts using it are being executed simultaneously.
+
+- The <b>darts</b> scheduler aims at privileging data reuse, by focusing on
+scheduling tasks whose data is already available, and on scheduling data
+transfers which will allow tasks to be run the more. See
+<a href=https://inria.hal.science/hal-05226796v1/file/JPDC.pdf>
+the DARTS research paper</a> for details.
+
+Overall, the recommended scheduler would be the <b>dmdas</b> scheduler, because
+it both takes into account tasks priorities, and it privileges tasks whose
+data buffers are already on the target devices, thus being able to cope with
+out-of-core situations. If the data set is really much larger than the target
+device memory, it might be useful to try <b>dmdar</b> to ignore tasks priorities
+and focus on data reuse. It would also be useful to try the <b>darts</b>
+scheduler which specifically aims at prioritizing data reuse.
 
 \subsection ExistingModularizedSchedulers Modularized Schedulers
 
