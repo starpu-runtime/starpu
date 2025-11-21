@@ -186,23 +186,12 @@ coverage_update:
   script:
     - ./contrib/gitlab/upload.sh ./artifacts
 
-build_for_windows:
-  extends: .main_template
-  stage: build
-  image: registry.gitlab.inria.fr/starpu/starpu-docker/ci-debian12
-  tags: ['ci.inria.fr', 'linux', 'large']
-  script:
-    - ./contrib/gitlab/build.sh --disable-doc
-  artifacts:
-    paths:
-      - starpu*.tar.gz
-
 check_windows:
   extends: .main_template
   stage: check
-  needs: [build_for_windows]
+  needs: [build]
   dependencies:
-    - build_for_windows
+    - build
   timeout: 4h
   variables:
     RUNNER_SCRIPT_TIMEOUT: 238m
