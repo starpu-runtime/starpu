@@ -186,13 +186,8 @@ coverage_update:
   script:
     - ./contrib/gitlab/upload.sh ./artifacts
 
-.windows:
-  rules:
-    - if: ($CI_PIPELINE_SCHEDULE_DESCRIPTION != null && $STARPU_RUN_WINDOWS == "yes")
-      when: always
-
 build_for_windows:
-  extends: .windows
+  extends: .main_template
   stage: build
   image: registry.gitlab.inria.fr/starpu/starpu-docker/ci-debian12
   tags: ['ci.inria.fr', 'linux', 'large']
@@ -203,7 +198,7 @@ build_for_windows:
       - starpu*.tar.gz
 
 check_windows:
-  extends: .windows
+  extends: .main_template
   stage: check
   needs: [build_for_windows]
   dependencies:
@@ -224,7 +219,7 @@ check_windows:
       - artifacts/*
 
 run_windows:
-  extends: .windows
+  extends: .main_template
   stage: check
   needs: [check_windows]
   dependencies:
