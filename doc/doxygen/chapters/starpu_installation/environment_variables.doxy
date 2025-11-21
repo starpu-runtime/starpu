@@ -1661,17 +1661,19 @@ performing a periodic eviction pass. Default value is 0%.
 Specify the minimum percentage of number of buffers that should be clean in GPUs
 (or in main memory, when using out of core), i.e. used by StarPU, but for which
 a copy is available in memory (or on disk, when using out of core), below which
-asynchronous writebacks will be issued. Default value is 5%.
+asynchronous writebacks will be issued. This is thus the amount of buffers
+that will be reusable immediately without having to wait for transfers.
+The default value is 5%.
 </dd>
 
 <dt>STARPU_TARGET_CLEAN_BUFFERS</dt>
 <dd>
 \anchor STARPU_TARGET_CLEAN_BUFFERS
 \addindex __env__STARPU_TARGET_CLEAN_BUFFERS
-Specify the target percentage of number of buffers that should be reached in
+Specify the target percentage of number of buffers that should be clean in
 GPUs (or in main memory, when using out of core), i.e. used by StarPU, but for
 which a copy is available in memory (or on disk, when using out of core), when
-performing an asynchronous writeback pass. Default value is 10%.
+performing an asynchronous writeback pass. The default value is 10%.
 </dd>
 
 <dt>STARPU_DISK_SWAP</dt>
