@@ -17,7 +17,7 @@
 
 set -e
 
-./contrib/ci.inria.fr/job-0-tarball.sh
+./contrib/ci.inria.fr/job-0-tarball.sh $*
 
 tarball=$(ls -tr starpu-*.tar.gz | tail -1)
 
@@ -29,10 +29,13 @@ then
     exit 1
 fi
 
-if test ! -f starpu.pdf
+if test "$1" != "--disable-doc"
 then
-    echo Error. No documentation file
-    ls
-    pwd
-    exit 1
+    if test ! -f starpu.pdf
+    then
+	echo Error. No documentation file
+	ls
+	pwd
+	exit 1
+    fi
 fi

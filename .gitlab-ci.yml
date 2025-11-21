@@ -185,3 +185,57 @@ coverage_update:
   tags: ['starpu', 'node_gpu']
   script:
     - ./contrib/gitlab/upload.sh ./artifacts
+
+.windows:
+  rules:
+    - if: ($CI_PIPELINE_SCHEDULE_DESCRIPTION != null && $STARPU_RUN_WINDOWS == "yes")
+      when: always
+
+build_for_windows:
+  extends: .windows
+  stage: build
+  image: registry.gitlab.inria.fr/starpu/starpu-docker/ci-debian12
+  tags: ['ci.inria.fr', 'linux', 'large']
+  script:
+    - ./contrib/gitlab/build.sh --disable-doc
+  artifacts:
+    paths:
+      - starpu*.tar.gz
+
+check_windows:
+  extends: .windows
+  stage: check
+  needs: [build_for_windows]
+  dependencies:
+    - build_for_windows
+  timeout: 4h
+  variables:
+    RUNNER_SCRIPT_TIMEOUT: 238m
+    RUNNER_AFTER_SCRIPT_TIMEOUT: 2m
+  tags:
+    - starpu
+    - windows
+  script:
+    - sh -c "sed -i 's/\r//' ./contrib/gitlab/windows/build-windows.sh"
+    - sh -c ./contrib/gitlab/windows/build-windows.sh
+  artifacts:
+    when: always
+    paths:
+      - artifacts/*
+
+run_windows:
+  extends: .windows
+  stage: check
+  needs: [check_windows]
+  dependencies:
+    - check_windows
+  timeout: 4h
+  variables:
+    RUNNER_SCRIPT_TIMEOUT: 238m
+    RUNNER_AFTER_SCRIPT_TIMEOUT: 2m
+  tags:
+    - starpu
+    - windows
+  script:
+    - sh -c "sed -i 's/\r//' ./contrib/gitlab/windows/run-windows.sh"
+    - sh -c ./contrib/gitlab/windows/run-windows.sh

@@ -26,16 +26,25 @@ then
     . $HOME/starpu_specific_env.sh
 fi
 
+configure_doc="--enable-build-doc-pdf"
+if test "$1" == "--disable-doc"
+then
+    configure_doc=""
+fi
+
 BUILD=./build_$$
 
 ./autogen.sh
 if test -d $BUILD ; then chmod -R 777 $BUILD && rm -rf $BUILD ; fi
 mkdir $BUILD && cd $BUILD
-../configure --enable-build-doc-pdf $STARPU_USER_CONFIGURE_OPTIONS
+../configure $configure_doc $STARPU_USER_CONFIGURE_OPTIONS
 make -j4
 make dist
 cp *gz ..
-cp doc/doxygen/starpu.pdf ..
-cp doc/doxygen_dev/starpu_dev.pdf ..
+if test "$1" != "--disable-doc"
+then
+    cp doc/doxygen/starpu.pdf ..
+    cp doc/doxygen_dev/starpu_dev.pdf ..
+fi
 make clean
 
