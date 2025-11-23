@@ -45,4 +45,6 @@ make
 
 # upload zipball in package registry
 version=$(echo $zipball | sed 's/.*-//' | sed 's/.zip//')
+# first try to remove the file if it already exists
+curl --request DELETE --header "JOB-TOKEN: ${CI_JOB_TOKEN}" "https://gitlab.inria.fr/api/v4/projects/${CI_PROJECT_ID}/packages/generic/starpu-windows/${version}/${zipball}"
 curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file $zipdir/$zipball "https://gitlab.inria.fr/api/v4/projects/${CI_PROJECT_ID}/packages/generic/starpu-windows/${version}/${zipball}"
