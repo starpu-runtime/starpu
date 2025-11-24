@@ -1,5 +1,6 @@
 {
     "editor.tabSize": 8,
     "editor.indentSize": 8,
-    "editor.insertSpaces": false
+    "editor.insertSpaces": false,
+    "cmake.ignoreCMakeListsMissing": true
 }
