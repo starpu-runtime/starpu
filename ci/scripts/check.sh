@@ -72,9 +72,7 @@ then
 fi
 
 starpu_src_dir=$PWD
-git config --global --add safe.directory $PWD
-STARPU_GITVERSION=$(git log -n 1 --pretty="%H")
-starpu_artifacts=$starpu_src_dir/artifacts/$STARPU_GITVERSION
+starpu_artifacts=$starpu_src_dir/artifacts
 mkdir -p $starpu_artifacts
 
 (
