@@ -47,6 +47,12 @@ build:
     - build
   script:
     - ./ci/scripts/check.sh
+  before_script:
+    - rm -rf ./artifacts
+  artifacts:
+    when: always
+    paths:
+      - artifacts
 
 check_ci:
   extends: .check_template

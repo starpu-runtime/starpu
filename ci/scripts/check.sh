@@ -71,6 +71,12 @@ then
     cd $basename
 fi
 
+starpu_src_dir=$PWD
+git config --global --add safe.directory $PWD
+STARPU_GITVERSION=$(git log -n 1 --pretty="%H")
+starpu_artifacts=$starpu_src_dir/artifacts/$STARPU_GITVERSION
+mkdir -p $starpu_artifacts
+
 (
     echo "oldPWD=\${PWD}"
     env|grep -v LS_COLORS | grep '^[A-Z]'|grep -v BASH_FUNC | grep '=' | sed 's/=/=\"/'| sed 's/$/\"/' | sed 's/^/export /'
@@ -131,7 +137,7 @@ then
 #else
     # we do a normal check, a long check takes too long on VM nodes
 fi
-../configure $CONFIGURE_OPTIONS $CONFIGURE_CHECK  $STARPU_CONFIGURE_OPTIONS $STARPU_USER_CONFIGURE_OPTIONS
+../configure $CONFIGURE_OPTIONS $CONFIGURE_CHECK  $STARPU_CONFIGURE_OPTIONS $STARPU_USER_CONFIGURE_OPTIONS | tee $starpu_artifacts/fulllog.txt
 
 if test "$COVERITY" == "1"
 then
@@ -142,18 +148,18 @@ then
     exit 0
 fi
 
-make -j4
-make dist
+make -j4 | tee $starpu_artifacts/fulllog.txt
+make dist | tee $starpu_artifacts/fulllog.txt
 set +e
 set -o pipefail
 if test -n "$STARPU_CHECK_DIRS"
 then
     for x in $STARPU_CHECK_DIRS
     do
-	make check -C $x 2>&1 | tee  ../check_$$
+	make check -C $x 2>&1 | tee  $starpu_artifacts/check_$$
     done
 else
-    make -k check 2>&1 | tee  ../check_$$
+    make -k check 2>&1 | tee  $starpu_artifacts/check_$$
 fi
 RET=$?
 
@@ -161,14 +167,14 @@ if test -n "$STARPU_CHECK_DIRS"
 then
     for x in $STARPU_CHECK_DIRS
     do
-	make showcheckfailed -C $x
+	make showcheckfailed -C $x | tee  $starpu_artifacts/check_$$
     done
 else
-    make showcheckfailed
+    make showcheckfailed | tee  $starpu_artifacts/check_$$
 fi
 make clean
 
-grep "^FAIL:" ../check_$$ || true
+grep "^FAIL:" $starpu_artifacts/check_$$ || true
 
 echo "Running on $(uname -a)"
 exit $RET
