@@ -16,6 +16,7 @@
 
 #include <stdio.h>
 #include <unistd.h>
+#include <stdint.h>
 
 #include <starpu.h>
 #include "../helper.h"
@@ -45,7 +46,7 @@ int main(int argc, char **argv)
 	/* create a new dummy task with a tag */
 	task = starpu_task_create();
 	task->callback_func = callback;
-	task->callback_arg = (void *)tag;
+	task->callback_arg = (void *)(intptr_t)tag;
 	task->cl = &starpu_codelet_nop;
 	task->cl_arg = NULL;
 	task->destroy = 0; /* tell StarPU to not destroy the task */
