@@ -43,8 +43,16 @@ make
 ./hello_world.exe
 ./vector_scal.exe
 
-# upload zipball in package registry
 version=$(echo $zipball | sed 's/.*-//' | sed 's/.zip//')
+# get the package id
+package_id=$(curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --url https://gitlab.inria.fr/api/v4/projects/${CI_PROJECT_ID}/packages | jq '.[] | select(.version == "'$version'") | .id')
+
 # first try to remove the file if it already exists
-curl --request DELETE --header "JOB-TOKEN: ${CI_JOB_TOKEN}" "https://gitlab.inria.fr/api/v4/projects/${CI_PROJECT_ID}/packages/generic/starpu-windows/${version}/${zipball}"
+file_ids=$(curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --url https://gitlab.inria.fr/api/v4/projects/${CI_PROJECT_ID}/packages/$package_id/package_files|jq '.[] | select(.file_name == "'$zipball'") | .id')
+for x in $file_ids
+do
+    curl --request DELETE --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --url https://gitlab.inria.fr/api/v4/projects/${CI_PROJECT_ID}/packages/$package_id/package_files/$x
+done
+
+# upload zipball in package registry
 curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file $zipdir/$zipball "https://gitlab.inria.fr/api/v4/projects/${CI_PROJECT_ID}/packages/generic/starpu-windows/${version}/${zipball}"
