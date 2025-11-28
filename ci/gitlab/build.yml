@@ -58,11 +58,17 @@ check_ci:
   extends: .check_template
   parallel:
     matrix:
-      - NODE: [centos72amd64, macosx]
+      - NODE: [centos72amd64]
   tags:
     - ${NODE}
-  script:
-    - ./ci/scripts/check.sh
+
+check_macos:
+  extends: .check_template
+  tags: [macosx]
+  timeout: 2h
+  variables:
+    RUNNER_SCRIPT_TIMEOUT: 118m
+    RUNNER_AFTER_SCRIPT_TIMEOUT: 2m
 
 check_gpu:
   extends: .check_template
