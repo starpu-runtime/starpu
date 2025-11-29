@@ -51,7 +51,8 @@ package_id=$(curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --url https://gitlab.inr
 file_ids=$(curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --url https://gitlab.inria.fr/api/v4/projects/${CI_PROJECT_ID}/packages/$package_id/package_files|jq '.[] | select(.file_name == "'$zipball'") | .id')
 for x in $file_ids
 do
-    curl --request DELETE --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --url https://gitlab.inria.fr/api/v4/projects/${CI_PROJECT_ID}/packages/$package_id/package_files/$x
+    xx=(echo $x | tr -d '\r')
+    curl --request DELETE --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --url https://gitlab.inria.fr/api/v4/projects/${CI_PROJECT_ID}/packages/$package_id/package_files/$xx
 done
 
 # upload zipball in package registry
