@@ -351,6 +351,7 @@ myPROGRAMS +=				\
 	microbenchs/matrix_as_vector		\
 	microbenchs/bandwidth			\
 	overlap/gpu_concurrency			\
+	parallel_tasks/swap			\
 	parallel_tasks/combined_worker_assign_workerid	\
 	parallel_tasks/explicit_combined_worker	\
 	parallel_tasks/parallel_kernels		\
