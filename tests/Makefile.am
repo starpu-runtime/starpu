@@ -333,6 +333,7 @@ myPROGRAMS +=				\
 	helper/starpu_data_dup_ro		\
 	helper/starpu_create_sync_task		\
 	overlap/gpu_concurrency			\
+	parallel_tasks/swap			\
 	parallel_tasks/combined_worker_assign_workerid	\
 	parallel_tasks/explicit_combined_worker	\
 	parallel_tasks/parallel_kernels		\
