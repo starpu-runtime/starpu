@@ -60,7 +60,7 @@ will return \c NULL.
 \subsection TransactionsTasks Transaction Tasks
 Tasks governed by the same transaction object should be passed that transaction object either through
 the \c .transaction field of \ref starpu_task structures, using the \ref STARPU_TRANSACTION argument
-of \ref starpu_task_insert().
+of starpu_task_insert().
 
 \subsection TransactionsEpochNext Epoch Transition
 The transition from one transaction epoch to the next is expressed using the

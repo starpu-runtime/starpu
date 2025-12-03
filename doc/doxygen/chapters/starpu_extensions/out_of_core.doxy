@@ -50,7 +50,7 @@ machine memory size, but part of it is taken by the kernel, the system,
 daemons, and the application's own allocated data, whose size can not be
 predicted. That is why users need to specify what StarPU can afford.
 
-Some Out-of-core tests are worth giving a read, see <c>tests/disk/*.c</c>
+Some Out-of-core tests are worth giving a read, see <c>tests/disk/\*.c</c>
 
 \section UseANewDiskMemory Use a new disk memory
 

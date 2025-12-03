@@ -127,7 +127,7 @@ submitted).
 \subsection StarPUDataManagementLibrary StarPU Data Management Library
 
 As StarPU dynamically schedules tasks at runtime, the need for data
-transfers is automatically managed in a``just-in-time'' manner between
+transfers is automatically managed in a``just-in-time`` manner between
 different processing units,
 This automated approach alleviates the burden on application
 programmers to explicitly handle data transfers.

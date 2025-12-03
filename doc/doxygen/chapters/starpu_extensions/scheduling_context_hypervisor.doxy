@@ -37,7 +37,7 @@ decides accordingly when and how the contexts can be resized. Basic
 strategies of resizing scheduling contexts already exist, but a
 platform for implementing additional custom ones is available.
 
-Several examples of hypervisor are provided in <c>sc_hypervisor/examples/*.c</c>
+Several examples of hypervisor are provided in <c>sc_hypervisor/examples/\*.c</c>
 
 \section StartTheHypervisor Start the Hypervisor
 
@@ -230,6 +230,6 @@ struct sc_hypervisor_policy dummy_policy =
 };
 \endcode
 
-Examples are provided in <c>sc_hypervisor/src/hypervisor_policies/*_policy.c</c>
+Examples are provided in <c>sc_hypervisor/src/hypervisor_policies/\*_policy.c</c>
 
 */

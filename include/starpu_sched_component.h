@@ -742,6 +742,8 @@ struct starpu_sched_component_specs
 struct starpu_sched_tree *starpu_sched_component_make_scheduler(unsigned sched_ctx_id, struct starpu_sched_component_specs s);
 #endif /* STARPU_HAVE_HWLOC */
 
+/** @} */
+
 /**
    @name Basic API
    @{

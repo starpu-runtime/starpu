@@ -274,7 +274,7 @@ The design load can also be delegated to StarPU by specifying an array
 of load specifications in <c>starpu_conf::max_fpga_load</c>, and use
 starpu_max_fpga_get_local_engine() to access the loaded max engines.
 
-Complete examples are available in <c>tests/fpga/*.c</c>
+Complete examples are available in <c>tests/fpga/\*.c</c>
 
 \subsection MaxFPGADataTransfers Data Transfers in StarPU/Maxeler FPGA Applications
 
