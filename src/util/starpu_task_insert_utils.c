@@ -282,6 +282,10 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 			starpu_data_handle_t handle = va_arg(varg_list, starpu_data_handle_t);
 			starpu_task_insert_data_process_arg(cl, task, &allocated_buffers, &current_buffer, arg_type, handle);
 		}
+		else if (arg_type == STARPU_NONE)
+		{
+			(void)va_arg(varg_list, starpu_data_handle_t);
+		}
 		else if (arg_type == STARPU_DATA_ARRAY)
 		{
 			// Expect to find a array of handles and its size
@@ -616,6 +620,11 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 			arg_i++;
 			starpu_data_handle_t handle = arglist[arg_i];
 			starpu_task_insert_data_process_arg(cl, task, &allocated_buffers, &current_buffer, arg_type, handle);
+		}
+		else if (arg_type == STARPU_NONE)
+		{
+			arg_i++;
+			(void)arglist[arg_i];
 		}
 		else if (arg_type == STARPU_DATA_ARRAY)
 		{
