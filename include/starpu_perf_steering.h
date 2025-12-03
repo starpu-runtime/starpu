@@ -31,7 +31,7 @@ extern "C" {
 
 /**
    @name API
-   \anchor PM_API
+   \anchor PS_API
    @{
 */
 

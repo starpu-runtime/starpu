@@ -64,7 +64,7 @@ application, called a \b tag. Task dependencies can be enforced by callback func
 
 \subsection StarPUDataManagementLibrary StarPU Data Management Library
 
-Because StarPU dynamically schedules tasks at runtime, the need for data transfers between different processing units is automatically managed in a``just-in-time'' manner. This automated approach reduces the burden on application programmers to explicitly handle data transfers. Furthemore, to minimize unnecessary transfers, StarPU retains data at the location of its last use, even if changes have been made there. In addition, StarPU allows multiple instances of the same data to coexist on different processing units as long as the data remains unchanegd.
+Because StarPU dynamically schedules tasks at runtime, the need for data transfers between different processing units is automatically managed in a ``just-in-time`` manner. This automated approach reduces the burden on application programmers to explicitly handle data transfers. Furthemore, to minimize unnecessary transfers, StarPU retains data at the location of its last use, even if changes have been made there. In addition, StarPU allows multiple instances of the same data to coexist on different processing units as long as the data remains unchanegd.
 
 \section ApplicationTaskification Application Taskification
 

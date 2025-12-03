@@ -1065,6 +1065,8 @@ void starpu_mpi_tags_free(int64_t mintag);
 
 /** @} */
 
+/** @} */
+
 #ifdef __cplusplus
 }
 #endif

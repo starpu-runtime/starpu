@@ -224,7 +224,7 @@ int vector_recursive_task()
 }
 \endcode
 
-More examples are available in <c>tests/recursive_tasks/*.c</c>.
+More examples are available in <c>tests/recursive_tasks/\*.c</c>.
 
 \section Splitter Using A Splitter to Automatically Split Recursive Tasks
 

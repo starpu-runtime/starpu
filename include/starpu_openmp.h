@@ -56,7 +56,7 @@ typedef struct
 
 /**
    Set of constants for selecting the for loop iteration scheduling
-   algorithm (\anchor OMPFor) as defined by the OpenMP specification.
+   algorithm (see \ref OMPFor) as defined by the OpenMP specification.
    \sa starpu_omp_for()
    \sa starpu_omp_for_inline_first()
    \sa starpu_omp_for_inline_next()

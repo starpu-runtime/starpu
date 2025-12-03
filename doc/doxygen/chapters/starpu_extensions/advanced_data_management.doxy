@@ -414,7 +414,7 @@ can compare <c>examples/interface/complex_interface.c</c> vs
 StarPU provides a series of predefined filters in \ref API_Data_Partition, but
 additional filters can be defined by the application. The principle is that the
 filter function just fills the memory location of the <c>i-th</c> subpart of a data.
-Examples are provided in <c>src/datawizard/interfaces/*_filters.c</c>,
+Examples are provided in <c>src/datawizard/interfaces/\*_filters.c</c>,
 check \ref starpu_data_filter::filter_func for further details.
 The helper function starpu_filter_nparts_compute_chunk_size_and_offset() can be used to
 compute the division of pieces of data.
@@ -785,7 +785,7 @@ In the example described above, the two pointers stored in the data interface
 are data buffers, which may point into main memory, GPU memory, etc. One may also
 want to store pointers to meta-data for the interface, for instance the list of
 dimensions sizes for the n-dimension matrix interface, but such pointers are to
-be handled completely differently. More examples are provided in <c>src/datawizard/interfaces/*_interface.c</c>
+be handled completely differently. More examples are provided in <c>src/datawizard/interfaces/\*_interface.c</c>
 
 More precisely, there are two types of pointers:
 

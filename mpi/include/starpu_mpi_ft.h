@@ -123,9 +123,9 @@ static inline int starpu_mpi_checkpoint_template_print(starpu_mpi_checkpoint_tem
 static inline int starpu_mpi_checkpoint_init(void) { return 0; }
 static inline int starpu_mpi_checkpoint_shutdown(void) { return 0; }
 
-/** @} */
-
 #endif // STARPU_USE_MPI_FT
+
+/** @} */
 
 #ifdef __cplusplus
 }

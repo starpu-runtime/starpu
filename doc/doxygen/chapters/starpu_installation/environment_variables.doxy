@@ -1230,13 +1230,6 @@ When unset or set to 0, the platform file created for SimGrid will
 contain PCI bandwidths and routes.
 </dd>
 
-<dt>STARPU_SIMGRID_CUDA_QUEUE_COST</dt>
-<dd>
-\anchor STARPU_SIMGRID_CUDA_QUEUE_COST
-\addindex __env__STARPU_SIMGRID_CUDA_QUEUE_COST
-When unset or set to 1, simulate within SimGrid the GPU transfer queueing.
-</dd>
-
 <dt>STARPU_MALLOC_SIMULATION_FOLD</dt>
 <dd>
 \anchor STARPU_MALLOC_SIMULATION_FOLD

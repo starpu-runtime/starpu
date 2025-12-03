@@ -219,7 +219,7 @@ This function also produces trace when the configure option
 Behave identically to starpu_pthread_mutex_lock(),
 except that it does not block the calling thread if the mutex is
 already locked by another thread (or by the calling thread in the case
-of a ``fast''  mutex). Instead, the function returns immediately with
+of a ``fast``  mutex). Instead, the function returns immediately with
 the error code \c EBUSY.
 
 This function also produces trace when the configure option

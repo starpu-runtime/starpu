@@ -30,7 +30,7 @@ catchup assertions. If your program is valgrind-safe, you can use it, see \ref
 UsingOtherDebugger.
 
 Depending on your toolchain, it might happen that you get
-<c>undefined reference to `__stack_chk_guard'</c> errors. In that case, use the
+<c>undefined reference to `__stack_chk_guard`</c> errors. In that case, use the
 <c>--disable-fstack-protector-all</c> option to avoid the issue.
 
 Then, if your program crashes with an assertion error, a segfault, etc. you can send us the result of
@@ -89,7 +89,7 @@ was passed to <c>configure</c>
 Valgrind can be used on StarPU: valgrind.h just needs to be found at <c>configure</c>
 time, to tell valgrind about some known false positives and disable host memory
 pinning. Other known false positives can be suppressed by giving the suppression
-files in <c>tools/valgrind/*.suppr</c> to valgrind's <c>--suppressions</c> option.
+files in <c>tools/valgrind/\*.suppr</c> to valgrind's <c>--suppressions</c> option.
 
 The environment variable \ref STARPU_DISABLE_KERNELS can also be set to <c>1</c> to make
 StarPU does everything (schedule tasks, transfer memory, etc.) except actually
