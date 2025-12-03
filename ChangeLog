@@ -14,6 +14,16 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
+StarPU 1.4.10
+==============================================
+Small changes:
+  * Fix STARPU_NONE value so it can be used in a list of argument and
+    not misread as the end of arguments marker.
+  * Fix handle fetching which was done incorrectly when using parallel
+    tasks
+  * Add -d option to starpu_env to allow the use of relocatable
+    libraries
+
 StarPU 1.4.9
 ==============================================
 Small changes:
