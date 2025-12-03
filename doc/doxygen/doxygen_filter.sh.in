@@ -15,7 +15,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 if [ "$(basename $1)" == "starpufft.h" ] ; then
-    gcc -E $1 -I @top_srcdir@/include/ -I @top_builddir@/include/ |grep -i starpufft
+    gcc -D__HIP_PLATFORM_AMD__ -E $1 -I @top_srcdir@/include/ -I @top_builddir@/include/ |grep -i starpufft
 else
     # the macro STARPU_DEPRECATED needs to be removed as it is not properly processed by doxygen
     # lines starting with // in the doxygen input files are considered as comments to be removed
