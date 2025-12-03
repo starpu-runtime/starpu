@@ -1166,13 +1166,14 @@ static void _starpu_fetch_task_input_cb(void *arg)
  * or to improve overlapping, it can call _starpu_fetch_task_input with
  * async==1, then wait for transfers to complete, then call
  * _starpu_fetch_task_input_tail to complete the fetch.	 */
-int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, int async)
+int _starpu_fetch_task_input(struct starpu_task *worker_task, struct _starpu_job *j, int async)
 {
+	struct starpu_task *task = j->task;
 	struct _starpu_worker *worker = _starpu_get_local_worker_key();
 	int workerid = worker->workerid;
 	if (async)
 	{
-		worker->task_transferring = task;
+		worker->task_transferring = worker_task;
 		worker->nb_buffers_transferred = 0;
 		if (worker->ntasks <= 1)
 			_starpu_trace_worker_start_fetch_input(NULL, workerid);
@@ -1234,7 +1235,7 @@ int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, in
 		if (async)
 		{
 			ret = _starpu_fetch_data_on_node(handle, node, local_replicate, mode, 0, task, STARPU_FETCH, 1,
-					_starpu_fetch_task_input_cb, worker, task->priority, "_starpu_fetch_task_input");
+							 _starpu_fetch_task_input_cb, worker, task->priority, "_starpu_fetch_task_input");
 #ifdef STARPU_SIMGRID
 			if (_starpu_simgrid_fetching_input_cost())
 				starpu_sleep(0.000001);
