@@ -596,7 +596,7 @@ static int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 #endif
 		j = _starpu_get_job_associated_to_task(pending_task);
 
-		_starpu_fetch_task_input_tail(pending_task, j, cpu_worker);
+		_starpu_fetch_task_input_tail(j->task, j, cpu_worker);
 		/* Reset it */
 		cpu_worker->task_transferring = NULL;
 
