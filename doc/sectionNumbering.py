@@ -29,8 +29,8 @@ with open(sys.argv[1]+"/doxygen-config.cfg", "r", encoding="utf-8") as fin:
                 if ".doxy" in xx:
                     with open(xx, "r", encoding="utf-8") as fin:
                         for line in fin.readlines():
-                            if "\page" in line:
-                                line = line.replace("/*! \page ", "").strip()
+                            if "\\page" in line:
+                                line = line.replace("/*! \\page ", "").strip()
                                 files[xx] = line[0:line.index(" ")]+".html"
 
 htmlfiles = ["index.html"]
