@@ -705,7 +705,7 @@ By default, they are neither compiled nor checked.
 Search for FxT under <c>prefix</c>.
 FxT (http://savannah.nongnu.org/projects/fkt) is used to generate
 traces of scheduling events, which can then be rendered them using ViTE
-(\ref Off-linePerformanceFeedback).  <c>prefix</c> should
+(\ref OfflinePerformanceTools).  <c>prefix</c> should
 notably contain <c>include/fxt/fxt.h</c>.
 </dd>
 
