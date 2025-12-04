@@ -213,7 +213,7 @@ not is controlled per session by the field \c not_launched_drivers of the \c
 starpu_conf struct, and is decided in \c _starpu_launch_drivers function.
 
 When managed automatically, cycles of operations for a worker are handled by the corresponding
-driver specific <code>_starpu_<DRV>_worker()</code> function, where \c DRV is a driver name such as
+driver specific <code>_starpu_DRV_worker()</code> function, where \c DRV is a driver name such as
 cpu (\c _starpu_cpu_worker) or cuda (\c _starpu_cuda_worker), for instance.
 Otherwise, the application must supply a thread which will repeatedly call \ref
 starpu_driver_run_once() for the corresponding worker.

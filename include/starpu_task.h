@@ -521,7 +521,7 @@ struct starpu_codelet
 	starpu_recursive_task_gen_dag_func_t recursive_task_gen_dag_func;
 
 	/**
-	   @private.
+	   @private
 	   Used by the splitter bound to record the index of this codelet inside GLPK
 	*/
 	unsigned long recursive_task_splitter_register_ind;

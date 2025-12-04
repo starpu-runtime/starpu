@@ -83,12 +83,9 @@ INPUT_FILTER           = @top_builddir@/doc/doxygen/doxygen_filter.sh
 #LATEX_HEADER           = @top_srcdir@/doc/doxygen/refman.tex
 
 IMAGE_PATH             = @top_srcdir@/doc/doxygen/chapters/starpu_basics/images \
-		         @top_srcdir@/doc/doxygen/chapters/starpu_introduction/images \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_performances/images \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_faq/images \
-			 @top_srcdir@/doc/doxygen/chapters/starpu_installation/images \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_languages/images \
-			 @top_srcdir@/doc/doxygen/chapters/starpu_applications/images \
 			 @top_srcdir@/doc/doxygen/chapters/starpu_extensions/images
 
 GENERATE_LATEX         = @DOC_GENERATE_LATEX@

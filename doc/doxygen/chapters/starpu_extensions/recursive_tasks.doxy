@@ -253,7 +253,7 @@ Several extensions have been introduced in StarPU to support this
 dynamic task splitting mechanism.
 
 - Deferred Splitting Decision: The decision to transform a task into
-  subtasks is made \emph{after} its dependencies have been satisfied.
+  subtasks is made <em>after</em> its dependencies have been satisfied.
   This allows the runtime to make informed decisions based on the
   current execution context.
 - Runtime Splitting: The actual splitting of the task also occurs at

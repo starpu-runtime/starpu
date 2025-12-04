@@ -35,7 +35,7 @@ these tasks: the measured speedup is close to a linear speedup. With more than
 overcome the scheduler overhead. Conclusion: with more than 30 cores, tasks
 need to last more than 128 µs for the selected scheduler to be efficient.
 
-\image html tasks_size_overhead.png
+\image html tasks_size_overhead.png width=60%
 \image latex tasks_size_overhead.png "" width=\textwidth
 
 \section DataTransferLatency Data Transfer Latency
