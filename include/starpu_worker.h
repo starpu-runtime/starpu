@@ -532,7 +532,7 @@ int starpu_memory_nodes_numa_id_to_devid(int osid);
 int starpu_memory_nodes_numa_devid_to_id(unsigned id);
 
 /**
-   Return the type of \p node as defined by ::starpu_node_kind. For
+   Return the type of \p node as defined by starpu_node_kind. For
    example, when defining a new data interface, this function should
    be used in the allocation function to determine on which device the
    memory needs to be allocated.
@@ -677,16 +677,16 @@ int starpu_combined_worker_get_id(void);
 
 /**
    Return the size of the current combined worker, i.e. the total
-   number of CPUS running the same task in the case of ::STARPU_SPMD
+   number of CPUS running the same task in the case of STARPU_SPMD
    parallel tasks, or the total number of threads that the task is
-   allowed to start in the case of ::STARPU_FORKJOIN parallel tasks.
+   allowed to start in the case of STARPU_FORKJOIN parallel tasks.
    See \ref Fork-modeParallelTasks and \ref SPMD-modeParallelTasks for more details.
 */
 int starpu_combined_worker_get_size(void);
 
 /**
    Return the rank of the current thread within the combined worker.
-   Can only be used in ::STARPU_SPMD parallel tasks, to know which
+   Can only be used in STARPU_SPMD parallel tasks, to know which
    part of the task to work on.
    See \ref SPMD-modeParallelTasks for more details.
 */

@@ -28,7 +28,7 @@ to be low enough to keep efficiency.  Running
 of the speedup of tasks of various sizes, depending on the number of CPUs being
 used.
 
-\image html tasks_size_overhead.png
+\image html tasks_size_overhead.png width=60%
 \image latex tasks_size_overhead.png "" width=\textwidth
 
 \section DataTransferLatency Data Transfer Latency
