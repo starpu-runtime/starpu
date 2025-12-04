@@ -211,13 +211,15 @@ typedef void (*starpu_opencl_func_t)(void **, void *);
 typedef void (*starpu_max_fpga_func_t)(void **, void *);
 
 /**
-   @ingroup API_Bubble Hierarchical Dags
+   @ingroup API_Bubble
+   Hierarchical Dags
    Bubble decision function
 */
 typedef int (*starpu_bubble_func_t)(struct starpu_task *t, void *arg);
 
 /**
-   @ingroup API_Bubble Hierarchical Dags
+   @ingroup API_Bubble
+   Hierarchical Dags
    Bubble DAG generation function
 */
 typedef void (*starpu_bubble_gen_dag_func_t)(struct starpu_task *t, void *arg);
