@@ -14,9 +14,9 @@
     "contIntegration": "https://ci.inria.fr/starpu/",
     "dateCreated": "2009-03-01",
     "datePublished": "2009-04-02",
-    "version": "1.4.2",
-    "dateModified": "2023-11-23",
-    "downloadUrl": "https://files.inria.fr/starpu/starpu-1.4.2/starpu-1.4.2.tar.gz",
+    "version": "1.4.11",
+    "dateModified": "2025-12-04",
+    "downloadUrl": "https://files.inria.fr/starpu/starpu-1.4.11/starpu-1.4.11.tar.gz",
     "issueTracker": "https://github.com/starpu-runtime/starpu/issues",
     "name": "StarPU",
     "description": "StarPU is a task-based runtime system for heterogeneous platforms coupling a performance modeling scheduler with a distributed shared-memory manager. It provides a framework for task scheduling on heterogeneous, accelerated platforms, together with an API for implementing various classes of scheduling algorithms. This scheduling framework jointly works with a distributed shared-memory manager to optimize task mappings and data transfers, and to overlap communications with computations.",
@@ -31,7 +31,7 @@
 	"https://hal.inria.fr/tel-01959127",
 	"https://hal.inria.fr/tel-03105625"
     ],
-    "releaseNotes": "https://files.inria.fr/starpu/starpu-1.4.2/log.txt",
+    "releaseNotes": "https://files.inria.fr/starpu/starpu-1.4.11/log.txt",
     "keywords": [
         "HPC High-Performance Computing",
         "Task Paradigm",
