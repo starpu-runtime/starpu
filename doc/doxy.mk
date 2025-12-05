@@ -78,9 +78,14 @@ chapters/version.sty: $(chapters)
 	done
 
 chapters/version.html: $(chapters) $(images)
-	@for f in $(chapters) ; do \
-                if test -f $(top_srcdir)/doc/$(DOX_MAIN_DIR)/$$f ; then $(PROG_STAT) --format=%Y $(top_srcdir)/doc/$(DOX_MAIN_DIR)/$$f ; fi \
-        done | sort -r | head -1 > timestamp_html
+	@if [ -n "$$SOURCE_DATE_EPOCH" ]; \
+	then \
+		echo $$SOURCE_DATE_EPOCH > timestamp_html ; \
+	else \
+		for f in $(chapters) ; do \
+			if test -f $(top_srcdir)/doc/$(DOX_MAIN_DIR)/$$f ; then $(PROG_STAT) --format=%Y $(top_srcdir)/doc/$(DOX_MAIN_DIR)/$$f ; fi \
+		done | sort -r | head -1 > timestamp_html ; \
+	fi
 	@if test -s timestamp_html ; then \
 		LC_ALL=C $(PROG_DATE) --date=@`cat timestamp_html` +"%F" > timestamp_html_updated ;\
 		LC_ALL=C $(PROG_DATE) --date=@`cat timestamp_html` +"%B %Y" > timestamp_html_updated_month ;\
