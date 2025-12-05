@@ -29,11 +29,13 @@ usage()
     echo "	-d directory        overwrite StarPU installation directory"
     echo ""
     echo "Report bugs to <@PACKAGE_BUGREPORT@>"
+    exit 0
 }
 
 if [ "$1" = "-v" ] || [ "$1" = "--version" ]
 then
     echo "$PROGNAME (@PACKAGE_NAME@) @PACKAGE_VERSION@"
+    exit 0
 elif [ "$1" = "-h" ] || [ "$1" = "--help" ]
 then
     usage
