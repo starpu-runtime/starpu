@@ -146,6 +146,6 @@ done
 make clean
 
 # execute on the frontal node to upload release files on files.inria.fr/starpu
-TMP_DIR=$(ssh luckyluke mktemp -d 2>/dev/null)
+TMP_DIR=$(ssh luckyluke mktemp -p \$HOME -d 2>/dev/null)
 scp -pr ${ARTIFACTS} luckyluke:${TMP_DIR}
 ssh luckyluke $HOME/softs/starpu/starpu-scripts/mirror/scripts/uploadRelease.sh ${TMP_DIR}/${ARTIFACTS} ${release} ${DATE}
