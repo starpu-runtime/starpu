@@ -20,9 +20,10 @@
  */
 
 #include <starpu_config.h>
-#include <parallel_worker/starpu_parallel_worker_create.h>
 
 #ifdef STARPU_PARALLEL_WORKER
+
+#include <parallel_worker/starpu_parallel_worker_create.h>
 
 starpu_binding_function _starpu_parallel_worker_type_get_func(enum starpu_parallel_worker_types type)
 {
