@@ -19,10 +19,12 @@
 #ifdef STARPU_SIMGRID
 #include <starpu.h>
 #include <core/simgrid.h>
+#if SIMGRID_VERSION < 32501
 #if SIMGRID_VERSION >= 32190
 #include <simgrid/simix.hpp>
 #else
 #include <simgrid/simix.h>
+#endif
 #endif
 #include <smpi/smpi.h>
 
