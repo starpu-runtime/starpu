@@ -674,8 +674,8 @@ static void benchmark_all_memory_nodes(void)
 		{
 			enum starpu_worker_archtype arch = starpu_memory_node_get_worker_archtype(type);
 			const char *type_str = starpu_worker_get_type_as_string(arch);
-			if (starpu_driver_info[type].init_driver)
-				starpu_driver_info[type].init_driver(NULL);
+			if (starpu_driver_info[arch].init_driver)
+				starpu_driver_info[arch].init_driver(NULL);
 			nmem[type] = topology->nhwdevices[arch];
 			for (i = 0; i < nmem[type]; i++)
 			{
