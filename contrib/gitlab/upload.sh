@@ -65,7 +65,7 @@ then
     exit 1
 fi
 
-TMP_DIR=$(ssh luckyluke mktemp -p \$HOME -d 2>/dev/null)
+TMP_DIR=$(today=$(date "+%F") ssh luckyluke "mkdir -p \$HOME/starpu_artifacts/$today && mktemp -p \$HOME/starpu_artifacts/$today -d" 2>/dev/null)
 # copy files on the frontal node
 scp -pr $RELEASE_STAMPFILE $RELEASE_DIR luckyluke:$TMP_DIR/$(dirname $RELEASE_STAMPFILE)/
 
