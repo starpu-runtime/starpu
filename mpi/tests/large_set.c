@@ -565,10 +565,10 @@ int main(int argc, char **argv)
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank_comm);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &size_comm);
 
-	if (size_comm < 2)
+	if (size_comm < 2 || starpu_cpu_worker_get_count() <= 1)
 	{
 		if (rank_comm == 0)
-			FPRINTF(stderr, "We need at least 2 processes (size %d).\n", size_comm);
+			FPRINTF(stderr, "We need at least 2 processes (size %d) or more than 1 CPU per node (%d).\n", size_comm, starpu_cpu_worker_get_count());
 
 		starpu_mpi_shutdown();
 		if (!mpi_init)
