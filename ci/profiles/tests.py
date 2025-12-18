@@ -480,7 +480,7 @@ profiles = [
                         # see https://github.com/ROCm/clr/pull/101
                         'HWLOC_COMPONENTS' : '-opencl',
       },
-      'opts'        : [ '--enable-simgrid', '--disable-mpi', '--enable-simgrid-mc', '--with-simgrid-dir=/usr/local/stow/simgrid-3.32-mc', '--disable-cuda', '--disable-hip', '--disable-opencl', '--enable-blas-lib=none', '--disable-mlr', '--disable-glpk' ],
+      'opts'        : [ '--enable-simgrid', '--disable-mpi', '--enable-simgrid-mc', '--with-simgrid-dir=/usr/local/stow/simgrid-3.32-mc', '--disable-cuda', '--disable-hip', '--disable-opencl', '--enable-blas-lib=none', '--disable-mlr', '--disable-glpk', '--disable-starpupy' ],
       'deploy'      : True,
       'parallel'    : 16,
       'hosts'       : ['node_nogpu'],
