@@ -521,6 +521,13 @@ int check_dataset(struct data_function data_funcs, struct type_function type_fun
 
 int _starpu_test_datatype();
 
+#if STARPU_MAXNODES == 1 || UINTPTR_MAX == 0xffffffff
+// do not run with a single memory node or on 32bit machines
+int main(int argc, char **argv)
+{
+	return STARPU_TEST_SKIPPED;
+}
+#else
 int main(int argc, char **argv)
 {
 	int ret;
@@ -565,10 +572,10 @@ int main(int argc, char **argv)
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank_comm);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &size_comm);
 
-	if (size_comm < 2 || starpu_cpu_worker_get_count() <= 1)
+	if (size_comm < 2)
 	{
 		if (rank_comm == 0)
-			FPRINTF(stderr, "We need at least 2 processes (size %d) or more than 1 CPU per node (%d).\n", size_comm, starpu_cpu_worker_get_count());
+			FPRINTF(stderr, "We need at least 2 processes (size %d).\n", size_comm);
 
 		starpu_mpi_shutdown();
 		if (!mpi_init)
@@ -704,3 +711,5 @@ end:
 
 	return rank_comm == 0 ? ret ==-ENODEV ? 0 : ret : 0;
 }
+#endif
+
