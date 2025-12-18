@@ -69,6 +69,7 @@ Small features:
   * Add starpu_data_get_on_node_cb_prio()
   * When environment variable STARPU_LAUNCHER_DEBUG is set, running a
     test displays extra informations on what is launched
+  * Add starpu_data_handle_to_pointer_ref/unref()
 
 StarPU 1.4.10
 ==============================================

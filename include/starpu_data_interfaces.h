@@ -780,6 +780,17 @@ void starpu_data_register_same(starpu_data_handle_t *handledst, starpu_data_hand
 void *starpu_data_handle_to_pointer(starpu_data_handle_t handle, unsigned node);
 
 /**
+ * Same than starpu_data_handle_to_pointer() but keeps a reference on the replicate.
+ * Should be used alongside starpu_data_handle_to_pointer_unref().
+ */
+void *starpu_data_handle_to_pointer_ref(starpu_data_handle_t handle, unsigned node);
+
+/**
+ * Releases a reference taken with starpu_data_handle_to_pointer_ref().
+ */
+void starpu_data_handle_to_pointer_unref(starpu_data_handle_t handle, unsigned node);
+
+/**
    Return the local pointer associated with \p handle or <c>NULL</c> if
    \p handle’s interface does not have any data allocated locally.
    See \ref DataPointers for more details.

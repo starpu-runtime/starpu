@@ -398,7 +398,7 @@ This means that:
 <li>partitioning filters have to copy over <c>dev_handle</c> without modifying it, set in the child different values of <c>offset</c>, and set <c>ptr</c> accordingly as the sum of <c>dev_handle</c> and <c>offset</c>.</li>
 </ul>
 
-We can call starpu_data_handle_to_pointer() to get <c>ptr</c> associated with the data handle, or call starpu_data_get_local_ptr() to get the local pointer associated with the data handle.
+We can call starpu_data_handle_to_pointer() to get <c>ptr</c> associated with the data handle, or call starpu_data_get_local_ptr() to get the local pointer associated with the data handle. Note however that unless this is called from e.g. within a task which holds a reference to that data buffer, StarPU might free the buffer if e.g. memory is tight or the handle is unregistered. To make sure that the buffer does not disappear, one may have to call starpu_data_handle_to_pointer_ref() which keeps a reference to the buffer until starpu_data_handle_to_pointer_unref() is called.
 
 Examples in the directory <c>examples/interface/complex_dev_handle/</c> show how to generate and implement an interface supporting OpenCL.
 

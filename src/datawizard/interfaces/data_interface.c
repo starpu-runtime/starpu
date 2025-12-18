@@ -515,6 +515,44 @@ void *starpu_data_handle_to_pointer(starpu_data_handle_t handle, unsigned node)
 	return NULL;
 }
 
+void *starpu_data_handle_to_pointer_ref(starpu_data_handle_t handle, unsigned node)
+{
+    void *ptr = NULL;
+    _starpu_spin_lock(&handle->header_lock);
+    /* Check whether the operation is supported and the node has actually
+     * been allocated.  */
+    if (!starpu_data_test_if_allocated_on_node(handle, node)) {
+        _starpu_spin_unlock(&handle->header_lock);
+        return NULL;
+    }
+    if (handle->ops->to_pointer)
+    {
+        ptr = handle->ops->to_pointer(starpu_data_get_interface_on_node(handle, node), node);
+    }
+    else if (handle->ops->handle_to_pointer)
+    {
+        /* Deprecated */
+        ptr = handle->ops->handle_to_pointer(handle, node);
+    }
+    /* Keep a reference on the replicate while the application is using it,
+     * until it calls starpu_data_handle_to_pointer_unref */
+    handle->per_node[node].refcnt++;
+    handle->busy_count++;
+    _starpu_spin_unlock(&handle->header_lock);
+
+    return ptr;
+}
+
+void starpu_data_handle_to_pointer_unref(starpu_data_handle_t handle, unsigned node)
+{
+    _starpu_spin_lock(&handle->header_lock);
+    /* Release reference taken in starpu_data_handle_to_pointer_ref */
+    handle->per_node[node].refcnt--;
+    handle->busy_count--;
+    if (!_starpu_data_check_not_busy(handle))
+        _starpu_spin_unlock(&handle->header_lock);
+}
+
 void *starpu_data_get_local_ptr(starpu_data_handle_t handle)
 {
 	return starpu_data_handle_to_pointer(handle, starpu_worker_get_local_memory_node());
