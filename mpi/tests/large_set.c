@@ -534,6 +534,8 @@ int main(int argc, char **argv)
 	struct starpu_conf conf;
 	int mpi_init, i;
 
+	STARPU_SKIP_IF_VALGRIND_RETURN_ZERO;
+
 	for(i=1 ; i<argc ; i++)
 	{
 		if (strcmp(argv[i], "--no-check") == 0) check = 0;
