@@ -50,6 +50,8 @@ int main()
 
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
+	conf.nmpi_sc = 0;
+	conf.ntcpip_sc = 0;
 	conf.ncpus = 2;
 	conf.sched_policy_name = "peager";
 	conf.calibrate = 1;
