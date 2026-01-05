@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2021-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2021-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -55,6 +55,12 @@ build:
     - build
   script:
     - ./contrib/gitlab/deploy.sh
+  before_script:
+    - rm -rf ./artifacts
+  artifacts:
+    when: always
+    paths:
+      - artifacts
 
 check_ci:
   extends: .check_template
@@ -63,8 +69,6 @@ check_ci:
       - NODE: [centos72amd64, macosx]
   tags:
     - ${NODE}
-  script:
-    - ./contrib/gitlab/deploy.sh
 
 check:
   extends: .check_template

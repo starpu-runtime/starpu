@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2013-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2013-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -49,6 +49,10 @@ then
     shift
     BRANCH=$1
 fi
+
+starpu_src_dir=$PWD
+starpu_artifacts=$starpu_src_dir/artifacts
+mkdir -p $starpu_artifacts
 
 basename=$(basename $tarball .tar.gz)
 export STARPU_HOME=$PWD/$basename/home
@@ -114,7 +118,7 @@ fi
 export STARPU_MICROBENCHS_DISABLED=1
 export STARPU_TIMEOUT_ENV=3600
 export MPIEXEC_TIMEOUT=3600
-CONFIGURE_OPTIONS="--enable-debug --enable-verbose --disable-build-examples --enable-mpi-check=maybe --enable-mpi-minimal-tests --disable-build-doc $ARGS"
+CONFIGURE_OPTIONS="--enable-debug --enable-verbose --disable-build-examples --enable-mpi-check=maybe --enable-mpi-minimal-tests --disable-build-doc $ARGS" | tee $starpu_artifacts/fulllog.txt
 CONFIGURE_CHECK=""
 day=$(date +%u)
 if test $day -le 5
@@ -134,17 +138,17 @@ then
     exit 0
 fi
 
-make -j4
-make dist
+make -j4 | tee $starpu_artifacts/fulllog.txt
+make dist | tee $starpu_artifacts/fulllog.txt
 set +e
 set -o pipefail
-make -k check 2>&1 | tee  ../check_$$
+make -k check 2>&1 | tee $starpu_artifacts/check_$$
 RET=$?
 
-make showcheckfailed
+make showcheckfailed | tee  $starpu_artifacts/check_$$
 make clean
 
-grep "^FAIL:" ../check_$$ || true
+grep "^FAIL:" $starpu_artifacts/check_$$ || true
 
 echo "Running on $(uname -a)"
 exit $RET
