@@ -19,7 +19,7 @@
     paths:
       - artifacts
   before_script:
-    - rm -rf ./artifacts
+    - if test -e artifacts ; then mv artifacts artifacts2 ; fi
   script:
     - ./ci/scripts/run_profile.sh ${PROFILE}
   after_script:
