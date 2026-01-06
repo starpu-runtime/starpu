@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2010-2025  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2010-2026  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -77,10 +77,10 @@ def create_builder(profile, profile_iname, profile_name, profile_host):
     p.addStep(Command(["set", "-e"]))
 
     p.addStep(Command([""]))
+    p.addStep(Command(["git config --global --add safe.directory $PWD"]))
     p.addStep(Command(["STARPU_BRANCH=$CI_COMMIT_BRANCH"]))
     p.addStep(Command(["if test -z \"$STARPU_BRANCH\" ; then STARPU_BRANCH=$(git branch --show-current) ; fi"]))
     p.addStep(Command(["starpu_src_dir=$PWD"]))
-    p.addStep(Command(["git config --global --add safe.directory $PWD"]))
     p.addStep(Command(['STARPU_GITVERSION=$(git log -n 1 --pretty="%H")']))
     p.addStep(Command(["starpu_artifacts=$starpu_src_dir/artifacts/$STARPU_GITVERSION"]))
     p.addStep(Command(["mkdir", "-p", "$starpu_artifacts"]))
