@@ -516,15 +516,19 @@ STARPUFFT(report_error)(const char *func, const char *file, int line, cufftResul
 		errormsg = "unaligned data";
 		break;
 #if defined(MAX_CUFFT_ERROR) && (MAX_CUFFT_ERROR >= 0xE)
+#if (CUDART_VERSION < 13000)
 	case CUFFT_INCOMPLETE_PARAMETER_LIST:
 		errormsg = "incomplete parameter list";
 		break;
+#endif
 	case CUFFT_INVALID_DEVICE:
 		errormsg = "invalid device";
 		break;
+#if (CUDART_VERSION < 13000)
 	case CUFFT_PARSE_ERROR:
 		errormsg = "parse error";
 		break;
+#endif
 	case CUFFT_NO_WORKSPACE:
 		errormsg = "no workspace";
 		break;
