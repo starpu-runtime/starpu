@@ -34,22 +34,22 @@ static void starpu_mpi_nmad_backend_constructor(void)
 	setenv("PIOM_DEDICATED_WAIT", "1", 0);
 }
 
-void _starpu_mpi_nmad_backend_init(struct starpu_conf *conf)
+static void _starpu_mpi_nmad_backend_init(struct starpu_conf *conf)
 {
 	(void)conf;
 	nm_abi_config_check();
 }
 
-void _starpu_mpi_nmad_backend_shutdown(void)
+static void _starpu_mpi_nmad_backend_shutdown(void)
 {
 }
 
-int _starpu_mpi_nmad_backend_reserve_core(void)
+static int _starpu_mpi_nmad_backend_reserve_core(void)
 {
 	return 1;
 }
 
-void _starpu_mpi_nmad_backend_request_init(struct _starpu_mpi_req *req)
+static void _starpu_mpi_nmad_backend_request_init(struct _starpu_mpi_req *req)
 {
 	_STARPU_MPI_CALLOC(req->backend, 1, sizeof(struct _starpu_mpi_req_backend));
 	piom_cond_init(&req->backend->req_cond, 0);
@@ -61,31 +61,31 @@ void _starpu_mpi_nmad_backend_request_init(struct _starpu_mpi_req *req)
 	_starpu_spin_init(&req->backend->finalized_to_destroy_lock);
 }
 
-void _starpu_mpi_nmad_backend_request_fill(struct _starpu_mpi_req *req, int is_internal_req STARPU_ATTRIBUTE_UNUSED, starpu_mpi_comm internal_comm STARPU_ATTRIBUTE_UNUSED)
+static void _starpu_mpi_nmad_backend_request_fill(struct _starpu_mpi_req *req, int is_internal_req STARPU_ATTRIBUTE_UNUSED, starpu_mpi_comm internal_comm STARPU_ATTRIBUTE_UNUSED)
 {
 	/* this function gives session and gate: */
 	nm_mpi_nmad_dest(&req->backend->session, &req->backend->gate, req->node_tag.node.comm, req->node_tag.node.rank);
 }
 
-void _starpu_mpi_nmad_backend_request_destroy(struct _starpu_mpi_req *req)
+static void _starpu_mpi_nmad_backend_request_destroy(struct _starpu_mpi_req *req)
 {
 	piom_cond_destroy(&(req->backend->req_cond));
 	_starpu_spin_destroy(&req->backend->finalized_to_destroy_lock);
 	free(req->backend);
 }
 
-void _starpu_mpi_nmad_backend_data_clear(starpu_data_handle_t data_handle)
+static void _starpu_mpi_nmad_backend_data_clear(starpu_data_handle_t data_handle)
 {
 	(void)data_handle;
 }
 
-void _starpu_mpi_nmad_backend_data_register(starpu_data_handle_t data_handle, starpu_mpi_tag_t data_tag)
+static void _starpu_mpi_nmad_backend_data_register(starpu_data_handle_t data_handle, starpu_mpi_tag_t data_tag)
 {
 	(void)data_handle;
 	(void)data_tag;
 }
 
-void _starpu_mpi_nmad_backend_comm_register(MPI_Comm comm)
+static void _starpu_mpi_nmad_backend_comm_register(MPI_Comm comm)
 {
 	(void)comm;
 }
