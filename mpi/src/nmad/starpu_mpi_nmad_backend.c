@@ -90,6 +90,17 @@ static void _starpu_mpi_nmad_backend_comm_register(MPI_Comm comm)
 	(void)comm;
 }
 
+static void _starpu_mpi_nmad_early_prefetch(struct _starpu_mpi_req *req)
+{
+	(void)req;
+}
+
+static void _starpu_mpi_nmad_early_unfetch(struct _starpu_mpi_req *req)
+{
+	(void)req;
+	STARPU_MPI_ASSERT_MSG(0, "early unfetch not implemented yet");
+}
+
 struct _starpu_mpi_backend _mpi_backend =
 {
 	._starpu_mpi_backend_init = _starpu_mpi_nmad_backend_init,
@@ -117,8 +128,8 @@ struct _starpu_mpi_backend _mpi_backend =
 	._starpu_mpi_backend_isend_size_func = _starpu_mpi_isend_func,
 	._starpu_mpi_backend_irecv_size_func = _starpu_mpi_irecv_func,
 
-	._starpu_mpi_backend_early_prefetch_func = NULL,
-	._starpu_mpi_backend_early_unfetch_func = NULL,
+	._starpu_mpi_backend_early_prefetch_func = _starpu_mpi_nmad_early_prefetch,
+	._starpu_mpi_backend_early_unfetch_func = _starpu_mpi_nmad_early_unfetch,
 };
 
 #endif /* STARPU_USE_MPI_NMAD*/
