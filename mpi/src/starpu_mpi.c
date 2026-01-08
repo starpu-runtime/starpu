@@ -196,15 +196,16 @@ static void _starpu_mpi_soon_callback(void *arg, STARPU_ATTRIBUTE_UNUSED double 
 	_STARPU_MPI_LOG_OUT();
 }
 
-/* If early_node is assigned, then early prefetching is in progress. */
-static int _starpu_mpi_early_prefetch_in_progress(const struct _starpu_mpi_req *req)
+/* If early_node is assigned, then request is early prefetched. */
+static int _starpu_mpi_req_is_early_prefetched(const struct _starpu_mpi_req *req)
 {
 	return req->early_node != (unsigned) -1;
 }
 
-static void _starpu_mpi_early_prefetch_cancel_if_in_progress(struct _starpu_mpi_req *req)
+/* Cancel early prefetching if it was requested. */
+static void _starpu_mpi_early_unfetch_if_requested(struct _starpu_mpi_req *req)
 {
-	if (_starpu_mpi_early_prefetch_in_progress(req)) {
+	if (_starpu_mpi_req_is_early_prefetched(req)) {
 		_mpi_backend._starpu_mpi_backend_early_unfetch_func(req);
 		starpu_data_handle_to_pointer_unref(req->data_handle, req->early_node);
 		req->early_node = (unsigned) -1;
@@ -241,7 +242,7 @@ static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_dat
 		/* Data location changed since the soon callback was called. If
 		 * an early prefetch is in progress, then it shall be
 		 * cancelled */
-		_starpu_mpi_early_prefetch_cancel_if_in_progess(req);
+		_starpu_mpi_early_unfetch_if_requested(req);
 		req->ptr = starpu_data_handle_to_pointer_ref(req->data_handle, node);
 		_mpi_backend._starpu_mpi_backend_early_prefetch_func(req);
 	}
