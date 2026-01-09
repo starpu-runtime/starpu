@@ -103,6 +103,7 @@ void _starpu_mpi_req_willpost(struct _starpu_mpi_req *req STARPU_ATTRIBUTE_UNUSE
 
 void _starpu_mpi_init_nmad_send_req(struct _starpu_mpi_req *req)
 {
+	STARPU_ASSERT(req->request_type == SEND_REQ);
 	struct nm_data_s data;
 	nm_mpi_nmad_data_get(&data, (void*)req->ptr, req->datatype, req->count);
 	nm_sr_send_init(req->backend->session, &(req->backend->data_request));
