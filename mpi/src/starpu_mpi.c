@@ -234,10 +234,11 @@ static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_dat
 	if (req->early_node != (unsigned) node)
 	{
 		/* Data location changed since the soon callback was called. If
-		 * an early prefetch is in progress, then it shall be
+		 * an early prefetch was requested, then it shall be
 		 * cancelled */
 		_starpu_mpi_early_unfetch_if_requested(req);
 		req->ptr = starpu_data_handle_to_pointer_ref(req->data_handle, node);
+		req->early_node = node;
 		_mpi_backend._starpu_mpi_backend_early_prefetch_func(req);
 	}
 }
