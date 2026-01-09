@@ -122,7 +122,8 @@ static void _starpu_mpi_isend_known_datatype(struct _starpu_mpi_req *req)
 
 	_STARPU_MPI_TRACE_ISEND_SUBMIT_BEGIN(req->node_tag.node.rank, req->node_tag.data_tag, 0);
 
-	_starpu_mpi_init_nmad_send_req(req);
+	if (!_starpu_mpi_req_is_early_prefetched(req))
+		_starpu_mpi_init_nmad_send_req(req);
 
 	// this trace event is the start of the communication link:
 	_STARPU_MPI_TRACE_ISEND_SUBMIT_END(_STARPU_MPI_FUT_POINT_TO_POINT_SEND, req, req->prio);
@@ -147,7 +148,8 @@ void _starpu_mpi_isend_func(struct _starpu_mpi_req *req)
 {
 	_STARPU_MPI_LOG_IN();
 
-	_starpu_mpi_datatype_allocate(req->data_handle, req);
+	if (!_starpu_mpi_req_is_early_prefetched(req))
+		_starpu_mpi_datatype_allocate(req->data_handle, req);
 
 	if (req->registered_datatype == 1)
 	{
