@@ -101,6 +101,15 @@ void _starpu_mpi_req_willpost(struct _starpu_mpi_req *req STARPU_ATTRIBUTE_UNUSE
 /*                                                      */
 /********************************************************/
 
+void _starpu_mpi_init_nmad_send_req(struct _starpu_mpi_req *req)
+{
+	struct nm_data_s data;
+	nm_mpi_nmad_data_get(&data, (void*)req->ptr, req->datatype, req->count);
+	nm_sr_send_init(req->backend->session, &(req->backend->data_request));
+	nm_sr_send_pack_data(req->backend->session, &(req->backend->data_request), &data);
+	nm_sr_send_set_priority(req->backend->session, &req->backend->data_request, req->prio);
+}
+
 static void _starpu_mpi_isend_known_datatype(struct _starpu_mpi_req *req)
 {
 	_STARPU_MPI_LOG_IN();
@@ -113,11 +122,7 @@ static void _starpu_mpi_isend_known_datatype(struct _starpu_mpi_req *req)
 
 	_STARPU_MPI_TRACE_ISEND_SUBMIT_BEGIN(req->node_tag.node.rank, req->node_tag.data_tag, 0);
 
-	struct nm_data_s data;
-	nm_mpi_nmad_data_get(&data, (void*)req->ptr, req->datatype, req->count);
-	nm_sr_send_init(req->backend->session, &(req->backend->data_request));
-	nm_sr_send_pack_data(req->backend->session, &(req->backend->data_request), &data);
-	nm_sr_send_set_priority(req->backend->session, &req->backend->data_request, req->prio);
+	_starpu_mpi_init_nmad_send_req(req);
 
 	// this trace event is the start of the communication link:
 	_STARPU_MPI_TRACE_ISEND_SUBMIT_END(_STARPU_MPI_FUT_POINT_TO_POINT_SEND, req, req->prio);
