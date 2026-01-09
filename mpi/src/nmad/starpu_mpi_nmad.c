@@ -108,6 +108,7 @@ void _starpu_mpi_init_nmad_send_req(struct _starpu_mpi_req *req)
 	nm_sr_send_init(req->backend->session, &(req->backend->data_request));
 	nm_sr_send_pack_data(req->backend->session, &(req->backend->data_request), &data);
 	nm_sr_send_set_priority(req->backend->session, &req->backend->data_request, req->prio);
+	nm_sr_send_dest(req->backend->session, &req->backend->data_request, req->backend->gate, req->node_tag.data_tag);
 }
 
 static void _starpu_mpi_isend_known_datatype(struct _starpu_mpi_req *req)
@@ -130,7 +131,7 @@ static void _starpu_mpi_isend_known_datatype(struct _starpu_mpi_req *req)
 
 	if (req->sync == 0)
 	{
-		req->ret = nm_sr_send_isend(req->backend->session, &(req->backend->data_request), req->backend->gate, req->node_tag.data_tag);
+		req->ret = nm_sr_send_submit(req->backend->session, &(req->backend->data_request));
 		STARPU_ASSERT_MSG(req->ret == NM_ESUCCESS, "MPI_Isend returning %d", req->ret);
 	}
 	else

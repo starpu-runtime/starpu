@@ -92,13 +92,15 @@ static void _starpu_mpi_nmad_backend_comm_register(MPI_Comm comm)
 
 static void _starpu_mpi_nmad_early_prefetch(struct _starpu_mpi_req *req)
 {
-	(void)req;
+	STARPU_ASSERT(req->request_type == SEND_REQ);
+	_starpu_mpi_init_nmad_send_req(req);
+	nm_sr_send_early_prefetch(req->backend->session, &req->backend->data_request);
 }
 
 static void _starpu_mpi_nmad_early_unfetch(struct _starpu_mpi_req *req)
 {
-	(void)req;
-	STARPU_MPI_ASSERT_MSG(0, "early unfetch not implemented yet");
+	STARPU_ASSERT(req->request_type == SEND_REQ);
+	nm_sr_send_early_unfetch(req->backend->session, &req->backend->data_request);
 }
 
 struct _starpu_mpi_backend _mpi_backend =
