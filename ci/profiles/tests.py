@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2010-2025  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2010-2026  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -669,7 +669,7 @@ profiles = [
     },
     { 'name'        : 'lsan',
       'opts'        : ['--enable-spinlock-check', '--enable-verbose', '--enable-tcpip-server-client',
-                       '--disable-cuda', '--disable-hip', '--disable-opencl', '--enable-memory-stats', '--enable-model-debug',
+                       '--disable-cuda', '--disable-hip', '--disable-opencl', '--enable-memory-stats', '--enable-model-debug', '--disable-starpupy',
                        '--enable-maxcpus=128', '--enable-maxnumanodes=8', '--enable-openmp', '--disable-full-gdb-information', '--disable-mpi-check', '--disable-starpu-openmp'],
       'global_env'  : False,
       'hwloc_input' : False,
