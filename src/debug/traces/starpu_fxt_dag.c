@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -170,13 +170,25 @@ void _starpu_fxt_dag_set_task_line(const char *prefix, unsigned long job_id, con
 		fprintf(out_file, "\t \"task_%s%lu\" [ href=\"%s#%d\" ]\n", prefix, job_id, file, line);
 }
 
-void _starpu_fxt_dag_add_send(int src, unsigned long dep_prev, unsigned long tag, unsigned long id)
+void _starpu_fxt_dag_add_before_send(int src, unsigned long dep_prev, unsigned long tag, unsigned long id)
 {
 	if (out_file)
 		fprintf(out_file, "\t \"task_%d_%lu\"->\"mpi_%lu_%lu\"\n", src, dep_prev, tag, id);
 }
 
-void _starpu_fxt_dag_add_receive(int dst, unsigned long dep_prev, unsigned long tag, unsigned long id)
+void _starpu_fxt_dag_add_after_send(int src, unsigned long dep_prev, unsigned long tag, unsigned long id)
+{
+	if (out_file)
+		fprintf(out_file, "\t \"mpi_%lu_%lu\"->\"task_%d_%lu\"\n", tag, id, src, dep_prev);
+}
+
+void _starpu_fxt_dag_add_before_receive(int dst, unsigned long dep_prev, unsigned long tag, unsigned long id)
+{
+	if (out_file)
+		fprintf(out_file, "\t \"task_%d_%lu\"->\"mpi_%lu_%lu\"\n", dst, dep_prev, tag, id);
+}
+
+void _starpu_fxt_dag_add_after_receive(int dst, unsigned long dep_prev, unsigned long tag, unsigned long id)
 {
 	if (out_file)
 		fprintf(out_file, "\t \"mpi_%lu_%lu\"->\"task_%d_%lu\"\n", tag, id, dst, dep_prev);

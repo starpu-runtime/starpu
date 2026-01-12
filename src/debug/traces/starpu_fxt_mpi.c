@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2017-2020  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -29,7 +29,8 @@ LIST_TYPE(mpi_transfer,
 	long mpi_tag;
 	size_t size;
 	float date;
-	long jobid;
+	long pre_sync_jobid;
+	long post_sync_jobid;
 	double bandwidth;
 	unsigned long handle;
 	char *name;
@@ -134,7 +135,7 @@ static unsigned mpi_recvs_used[STARPU_FXT_MAX_FILES] = {0};
  * transfer, thus avoiding a quadratic complexity. */
 static unsigned mpi_recvs_matched[STARPU_FXT_MAX_FILES][STARPU_FXT_MAX_FILES] = { {0} };
 
-void _starpu_fxt_mpi_add_send_transfer(int src, int dst, long mpi_tag, size_t size, float date, long jobid, unsigned long handle, unsigned type, int prio)
+void _starpu_fxt_mpi_add_send_transfer(int src, int dst, long mpi_tag, size_t size, float date, long pre_sync_jobid, long post_sync_jobid, unsigned long handle, unsigned type, int prio)
 {
 	STARPU_ASSERT(src >= 0);
 	if (src >= STARPU_FXT_MAX_FILES)
@@ -161,7 +162,8 @@ void _starpu_fxt_mpi_add_send_transfer(int src, int dst, long mpi_tag, size_t si
 	mpi_sends[src][slot].mpi_tag = mpi_tag;
 	mpi_sends[src][slot].size = size;
 	mpi_sends[src][slot].date = date;
-	mpi_sends[src][slot].jobid = jobid;
+	mpi_sends[src][slot].pre_sync_jobid = pre_sync_jobid;
+	mpi_sends[src][slot].post_sync_jobid = post_sync_jobid;
 	mpi_sends[src][slot].handle = handle;
 	mpi_sends[src][slot].X = _starpu_fxt_data_get_coord(handle, src, 0);
 	mpi_sends[src][slot].Y = _starpu_fxt_data_get_coord(handle, src, 1);
@@ -187,7 +189,7 @@ void _starpu_fxt_mpi_send_transfer_set_numa_node(int src, int dest, long jobid, 
 		* _starpu_fxt_mpi_add_send_transfer, so the send transfer should have been
 		* added recently: */
 		slot = mpi_sends_used[src] - i - 1;
-		if (mpi_sends[src][slot].dst == dest && mpi_sends[src][slot].jobid == jobid)
+		if (mpi_sends[src][slot].dst == dest && mpi_sends[src][slot].pre_sync_jobid == jobid)
 		{
 			mpi_sends[src][slot].numa_nodes_bitmap = numa_nodes_bitmap;
 			return;
@@ -197,7 +199,7 @@ void _starpu_fxt_mpi_send_transfer_set_numa_node(int src, int dest, long jobid, 
 	_STARPU_MSG("Warning: did not find the send transfer from %d to %d with jobid %ld\n", src, dest, jobid);
 }
 
-void _starpu_fxt_mpi_add_recv_transfer(int src, int dst, long mpi_tag, float date, long jobid, unsigned long handle)
+void _starpu_fxt_mpi_add_recv_transfer(int src, int dst, long mpi_tag, float date, long pre_sync_jobid, long post_sync_jobid, unsigned long handle)
 {
 	if (dst >= STARPU_FXT_MAX_FILES)
 		return;
@@ -222,7 +224,8 @@ void _starpu_fxt_mpi_add_recv_transfer(int src, int dst, long mpi_tag, float dat
 	mpi_recvs[dst][slot].dst = dst;
 	mpi_recvs[dst][slot].mpi_tag = mpi_tag;
 	mpi_recvs[dst][slot].date = date;
-	mpi_recvs[dst][slot].jobid = jobid;
+	mpi_recvs[dst][slot].pre_sync_jobid = pre_sync_jobid;
+	mpi_recvs[dst][slot].post_sync_jobid = post_sync_jobid;
 	mpi_recvs[dst][slot].handle = handle;
 	mpi_recvs[dst][slot].numa_nodes_bitmap = -1;
 }
@@ -240,7 +243,7 @@ void _starpu_fxt_mpi_recv_transfer_set_numa_node(int src, int dst, long jobid, l
 		* _starpu_fxt_mpi_add_send_transfer, so the send transfer should have been
 		* added recently: */
 		slot = mpi_recvs_used[dst] - i - 1;
-		if (mpi_recvs[dst][slot].src == src && mpi_recvs[dst][slot].jobid == jobid)
+		if (mpi_recvs[dst][slot].src == src && mpi_recvs[dst][slot].post_sync_jobid == jobid)
 		{
 			mpi_recvs[dst][slot].numa_nodes_bitmap = numa_nodes_bitmap;
 			return;
@@ -406,10 +409,14 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comm
 			}
 
 			unsigned long id = mpi_com_id++;
-			if (cur->jobid != -1)
-				_starpu_fxt_dag_add_send(src, cur->jobid, mpi_tag, id);
-			if (match->jobid != -1)
-				_starpu_fxt_dag_add_receive(dst, match->jobid, mpi_tag, id);
+			if (cur->pre_sync_jobid != -1)
+				_starpu_fxt_dag_add_before_send(src, cur->pre_sync_jobid, mpi_tag, id);
+			if (cur->post_sync_jobid != -1)
+				_starpu_fxt_dag_add_after_send(src, cur->post_sync_jobid, mpi_tag, id);
+			if (match->pre_sync_jobid != -1)
+				_starpu_fxt_dag_add_before_receive(dst, match->pre_sync_jobid, mpi_tag, id);
+			if (match->post_sync_jobid != -1)
+				_starpu_fxt_dag_add_after_receive(dst, match->post_sync_jobid, mpi_tag, id);
 #ifdef STARPU_HAVE_POTI
 			char paje_value[STARPU_POTI_STR_LEN], paje_key[STARPU_POTI_STR_LEN];
 			snprintf(paje_value, sizeof(paje_value), "%zu", size);
@@ -449,10 +456,10 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comm
 				fprintf(out_comms_file, "RecvTime: %.9f\n", end_date);
 				fprintf(out_comms_file, "SendHandle: %lx\n", send_handle);
 				fprintf(out_comms_file, "RecvHandle: %lx\n", recv_handle);
-				if (cur->jobid != -1)
-					fprintf(out_comms_file, "SendJobId: %d_%ld\n", src, cur->jobid);
-				if (match->jobid != -1)
-					fprintf(out_comms_file, "RecvJobId: %d_%ld\n", dst, match->jobid);
+				if (cur->pre_sync_jobid != -1)
+					fprintf(out_comms_file, "SendJobId: %d_%ld\n", src, cur->pre_sync_jobid);
+				if (match->post_sync_jobid != -1)
+					fprintf(out_comms_file, "RecvJobId: %d_%ld\n", dst, match->post_sync_jobid);
 				fprintf(out_comms_file, "Size: %zu\n", size);
 				fprintf(out_comms_file, "Priority: %d\n", cur->prio);
 				fprintf(out_comms_file, "Type: %s\n", get_mpi_type_str(cur->type));

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2018-2020  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -91,8 +91,10 @@ void _starpu_fxt_dag_set_task_name(const char *prefix, unsigned long job_id, con
 void _starpu_fxt_dag_set_recursive_task(const char *prefix, unsigned long job_id, int is_recursive_task, unsigned long recursive_task_parent);
 #endif
 void _starpu_fxt_dag_set_task_line(const char *prefix, unsigned long job_id, const char *file, int line);
-void _starpu_fxt_dag_add_send(int src, unsigned long dep_prev, unsigned long tag, unsigned long id);
-void _starpu_fxt_dag_add_receive(int dst, unsigned long dep_prev, unsigned long tag, unsigned long id);
+void _starpu_fxt_dag_add_before_send(int src, unsigned long dep_prev, unsigned long tag, unsigned long id);
+void _starpu_fxt_dag_add_after_send(int src, unsigned long dep_prev, unsigned long tag, unsigned long id);
+void _starpu_fxt_dag_add_before_receive(int dst, unsigned long dep_prev, unsigned long tag, unsigned long id);
+void _starpu_fxt_dag_add_after_receive(int dst, unsigned long dep_prev, unsigned long tag, unsigned long id);
 void _starpu_fxt_dag_add_sync_point(void);
 unsigned _starpu_fxt_data_get_coord(unsigned long handle, int mpi_rank, unsigned dim);
 const char *_starpu_fxt_data_get_name(unsigned long handle, int mpi_rank);
@@ -105,9 +107,9 @@ void _starpu_convert_numa_nodes_bitmap_to_str(long bitmap, char str[]);
  */
 
 struct starpu_fxt_mpi_offset _starpu_fxt_mpi_find_sync_points(char *filename_in, int *key, int *rank);
-void _starpu_fxt_mpi_add_send_transfer(int src, int dst, long mpi_tag, size_t size, float date, long jobid, unsigned long handle, unsigned type, int prio);
+void _starpu_fxt_mpi_add_send_transfer(int src, int dst, long mpi_tag, size_t size, float date, long pre_sync_jobid, long post_sync_jobid, unsigned long handle, unsigned type, int prio);
 void _starpu_fxt_mpi_send_transfer_set_numa_node(int src, int dest, long jobid, long numa_nodes_bitmap);
-void _starpu_fxt_mpi_add_recv_transfer(int src, int dst, long mpi_tag, float date, long jobid, unsigned long handle);
+void _starpu_fxt_mpi_add_recv_transfer(int src, int dst, long mpi_tag, float date, long pre_sync_jobid, long post_sync_jobid, unsigned long handle);
 void _starpu_fxt_mpi_recv_transfer_set_numa_node(int src, int dst, long jobid, long numa_nodes_bitmap);
 void _starpu_fxt_display_mpi_transfers(struct starpu_fxt_options *options, int *ranks, FILE *out_paje_file, FILE *out_comms_file);
 

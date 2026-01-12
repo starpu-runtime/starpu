@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2017-2021  Federal University of Rio Grande do Sul (UFRGS)
  * Copyright (C) 2013-2013  Thibaut Lambert
  * Copyright (C) 2013-2013  Joris Pablo
@@ -3323,9 +3323,10 @@ static void handle_mpi_isend_submit_end(struct fxt_ev_native *ev, struct starpu_
 	int dest = ev->param[1];
 	int mpi_tag = ev->param[2];
 	size_t size = ev->param[3];
-	long jobid = ev->param[4];
-	unsigned long handle = ev->param[5];
-	int prio = ev->param[6];
+	long pre_sync_jobid = ev->param[4];
+	long post_sync_jobid = ev->param[5];
+	unsigned long handle = ev->param[6];
+	int prio = ev->param[7];
 	double date = get_event_time_stamp(ev, options);
 
 	do_mpicommthread_set_state(date, options->file_prefix, "P");
@@ -3339,7 +3340,7 @@ static void handle_mpi_isend_submit_end(struct fxt_ev_native *ev, struct starpu_
 		}
 	}
 	else
-		_starpu_fxt_mpi_add_send_transfer(options->file_rank, dest, mpi_tag, size, date, jobid, handle, type, prio);
+		_starpu_fxt_mpi_add_send_transfer(options->file_rank, dest, mpi_tag, size, date, pre_sync_jobid, post_sync_jobid, handle, type, prio);
 }
 
 static void handle_mpi_isend_numa_node(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
@@ -3398,7 +3399,8 @@ static void handle_mpi_irecv_terminated(struct fxt_ev_native *ev, struct starpu_
 {
 	int src = ev->param[0];
 	int mpi_tag = ev->param[1];
-	long jobid = ev->param[2];
+	long pre_sync_jobid = ev->param[2];
+	long post_sync_jobid = ev->param[3];
 	unsigned long handle = ev->param[4];
 	double date = get_event_time_stamp(ev, options);
 
@@ -3411,7 +3413,7 @@ static void handle_mpi_irecv_terminated(struct fxt_ev_native *ev, struct starpu_
 		}
 	}
 	else
-		_starpu_fxt_mpi_add_recv_transfer(src, options->file_rank, mpi_tag, date, jobid, handle);
+		_starpu_fxt_mpi_add_recv_transfer(src, options->file_rank, mpi_tag, date, pre_sync_jobid, post_sync_jobid, handle);
 }
 
 static void handle_mpi_irecv_numa_node(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
