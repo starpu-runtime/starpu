@@ -1175,7 +1175,7 @@ static void _starpu_mpi_test_detached_requests(void)
 
 static void _starpu_mpi_handle_detached_request(struct _starpu_mpi_req *req)
 {
-	if (req->detached)
+	if (req->detached == 1)
 	{
 		STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 
