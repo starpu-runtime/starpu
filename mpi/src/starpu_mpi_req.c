@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2017-2017  Guillaume Beauchamp
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -104,6 +104,7 @@ struct _starpu_mpi_req *_starpu_mpi_request_fill(starpu_data_handle_t data_handl
 
 void _starpu_mpi_request_destroy(struct _starpu_mpi_req *req)
 {
+	STARPU_ASSERT_MSG(req->completed == 1, "cannot destroy a non-completed request %p\n", req);
 	_mpi_backend._starpu_mpi_backend_request_destroy(req);
 	free(req->datatype_name);
 	req->datatype_name = NULL;

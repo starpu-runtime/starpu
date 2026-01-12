@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2017-2017  Guillaume Beauchamp
  * Copyright (C) 2021-2021  Federal University of Rio Grande do Sul (UFRGS)
  *
@@ -650,12 +650,11 @@ int _starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&(req->backend->req_mutex));
 
 	/* Initialize the request structure */
-	 _starpu_mpi_request_init(&waiting_req);
-	waiting_req->prio = INT_MAX;
+	waiting_req = _starpu_mpi_request_fill(NULL, 0, 0, MPI_COMM_WORLD, 0, 0,
+					       INT_MAX, NULL, NULL,
+					       WAIT_REQ, _starpu_mpi_wait_func, 0, 0, MPI_COMM_WORLD, 0);
 	waiting_req->status = status;
 	waiting_req->backend->other_request = req;
-	waiting_req->func = _starpu_mpi_wait_func;
-	waiting_req->request_type = WAIT_REQ;
 
 	_STARPU_MPI_INC_POSTED_REQUESTS(waiting_req, 1);
 	_starpu_mpi_submit_ready_request(waiting_req);
@@ -666,6 +665,7 @@ int _starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
 		STARPU_PTHREAD_COND_WAIT(&req->backend->req_cond, &req->backend->req_mutex);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&req->backend->req_mutex);
 
+	waiting_req->completed = 1;
 	/* The internal request structure was automatically allocated */
 	_STARPU_MPI_INC_POSTED_REQUESTS(waiting_req, -1);
 	_starpu_mpi_request_destroy(waiting_req);
@@ -757,14 +757,13 @@ int _starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 		struct _starpu_mpi_req *testing_req;
 
 		/* Initialize the request structure */
-		_starpu_mpi_request_init(&testing_req);
-		testing_req->prio = INT_MAX;
+		testing_req = _starpu_mpi_request_fill(NULL, 0, 0, MPI_COMM_WORLD, 0, 0,
+						       INT_MAX, NULL, NULL,
+						       TEST_REQ, _starpu_mpi_test_func,
+						       0, 0, MPI_COMM_WORLD, 0);
 		testing_req->flag = flag;
 		testing_req->status = status;
 		testing_req->backend->other_request = req;
-		testing_req->func = _starpu_mpi_test_func;
-		testing_req->completed = 0;
-		testing_req->request_type = TEST_REQ;
 
 		_STARPU_MPI_INC_POSTED_REQUESTS(testing_req, 1);
 		_starpu_mpi_submit_ready_request(testing_req);
@@ -835,12 +834,7 @@ int _starpu_mpi_barrier(MPI_Comm comm)
 	struct _starpu_mpi_req *barrier_req;
 
 	/* Initialize the request structure */
-	_starpu_mpi_request_init(&barrier_req);
-	barrier_req->prio = INT_MAX;
-	barrier_req->func = _starpu_mpi_barrier_func;
-	barrier_req->request_type = BARRIER_REQ;
-	barrier_req->node_tag.node.comm = comm;
-	barrier_req->backend->internal_comm = _starpu_mpi_ulfm_get_mpi_comm_from_key(barrier_req->node_tag.node.comm);
+	barrier_req = _starpu_mpi_request_fill(NULL, 0, 0, comm, 0, 0, 0, NULL, NULL, BARRIER_REQ, _starpu_mpi_barrier_func, 0, 0, _starpu_mpi_ulfm_get_mpi_comm_from_key(comm), -1);
 
 	_STARPU_MPI_INC_POSTED_REQUESTS(barrier_req, 1);
 	_starpu_mpi_submit_ready_request(barrier_req);
@@ -1525,21 +1519,9 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 #warning creating a request is not really useful.
 #endif
 							/* Initialize the request structure */
-							_starpu_mpi_request_init(&new_req);
-							new_req->request_type = RECV_REQ;
-							new_req->data_handle = NULL;
-							new_req->node_tag.node.rank = envelope_status.MPI_SOURCE;
-							new_req->node_tag.data_tag = envelope->data_tag;
-							new_req->node_tag.node.comm = envelope_app_comm;
-							new_req->backend->internal_comm = envelope_comm;
-							new_req->detached = 1;
-							new_req->sync = 1;
-							new_req->callback = NULL;
-							new_req->callback_arg = NULL;
-							new_req->func = _starpu_mpi_irecv_size_func;
-							new_req->sequential_consistency = 1;
-							new_req->backend->is_internal_req = 0; // ????
-							new_req->count = envelope->size;
+							new_req = _starpu_mpi_request_fill(NULL, envelope_status.MPI_SOURCE, envelope->data_tag, envelope_app_comm,
+											   1, 1, 0, NULL, NULL, RECV_REQ, _starpu_mpi_irecv_size_func,
+											   1, 0, envelope_comm, envelope->size);
 							_starpu_mpi_sync_data_add(new_req);
 							/* We have queued our sync request, we can let _starpu_mpi_submit_ready_request find it */
 							STARPU_PTHREAD_MUTEX_UNLOCK(&early_data_mutex);
