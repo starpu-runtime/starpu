@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -355,8 +355,14 @@ submitting a defined number of requests. This behavior can be tuned with the
 environment variable \ref STARPU_MPI_NREADY_PROCESS.
 
 The function starpu_mpi_issend() allows to perform a synchronous-mode,
-non-blocking send of a data. It can also be specified when using
-starpu_mpi_task_insert() with the parameter ::STARPU_SSEND.
+non-blocking send of a data. Like MPI_Issend, it will wait for the receiver to
+have posted the reception before sending the data. Otherwise, if the
+transmission was performed earlier, the receiver would have had to allocate an
+early reception buffer. With starpu_mpi_issend(), the sender will
+delay the transmission (which monopolizes the send buffer in read mode until the
+receiver is ready).
+It can also be specified when using starpu_mpi_task_insert() with the parameter
+::STARPU_SSEND.
 
 \ref MPIPtpCommunication gives the list of all the
 point to point communications defined in StarPU-MPI.
