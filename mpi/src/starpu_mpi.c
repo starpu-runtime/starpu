@@ -229,6 +229,9 @@ static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_dat
 		return;
 	}
 
+	if (!req->registered_datatype)
+		return;
+
 	_STARPU_MPI_LOG_IN();
 	if (req->early_node != (unsigned) node)
 	{
