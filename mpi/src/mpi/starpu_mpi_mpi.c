@@ -296,6 +296,7 @@ void _starpu_mpi_submit_ready_request(void *arg)
 					STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 					_starpu_mpi_req_list_push_front(&ready_recv_requests, req);
 					/* Throw away the dumb request that was only used to know that we got the envelope */
+					sync_req->completed = 1;
 					_starpu_mpi_request_destroy(sync_req);
 				}
 				else
