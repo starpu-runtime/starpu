@@ -183,7 +183,6 @@ static void _starpu_mpi_soon_callback(void *arg, STARPU_ATTRIBUTE_UNUSED double 
 	}
 
 	_STARPU_MPI_LOG_IN();
-
 	_starpu_mpi_datatype_allocate(req->data_handle, req);
 	if (req->node == (unsigned) -1)
 		req->early_node = _starpu_mpi_choose_node(req->data_handle, STARPU_R);
@@ -192,7 +191,6 @@ static void _starpu_mpi_soon_callback(void *arg, STARPU_ATTRIBUTE_UNUSED double 
 	req->count = 1;
 	req->ptr = starpu_data_handle_to_pointer_ref(req->data_handle, req->early_node);
 	_mpi_backend._starpu_mpi_backend_early_prefetch_func(req);
-
 	_STARPU_MPI_LOG_OUT();
 }
 
@@ -231,6 +229,7 @@ static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_dat
 		return;
 	}
 
+	_STARPU_MPI_LOG_IN();
 	if (req->early_node != (unsigned) node)
 	{
 		/* Data location changed since the soon callback was called. If
@@ -242,6 +241,7 @@ static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_dat
 		req->early_node = node;
 		_mpi_backend._starpu_mpi_backend_early_prefetch_func(req);
 	}
+	_STARPU_MPI_LOG_OUT();
 }
 
 void _starpu_mpi_isend_irecv_common(struct _starpu_mpi_req *req, enum starpu_data_access_mode mode, int sequential_consistency)
