@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -136,7 +136,7 @@ int _starpu_debug_rank;
 			starpu_mpi_comm_rank(comm, &_rank); \
 			MPI_Type_size(datatype, &__size); \
 			MPI_Comm_get_name(comm, _comm_name, &_comm_name_len); \
-			fprintf(stderr, "[%d][starpu_mpi] :%d:%s:%d:%"PRIi64":%"PRIi64":%s:%p:%zu:%zu:%s:%d\n", _rank, _rank, way, node, tag, utag, _comm_name, ptr, count, __size, __starpu_func__ , __LINE__); \
+			fprintf(stderr, "[%d][starpu_mpi] :%d:%s:%d:%"PRIi64":%"PRIi64":%s:%p:%zu:%d:%s:%d\n", _rank, _rank, way, node, tag, utag, _comm_name, ptr, count, __size, __starpu_func__ , __LINE__); \
 			fflush(stderr);	\
 		} \
 	} while(0)
@@ -364,6 +364,9 @@ void _starpu_mpi_data_flush(starpu_data_handle_t data_handle);
 
 /** To be called at initialization to set up the tags upper bound */
 void _starpu_mpi_tags_init(void);
+
+/** return the number of early data received */
+int _starpu_mpi_get_early_data_nb();
 
 struct _starpu_mpi_argc_argv
 {

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2017-2017  Guillaume Beauchamp
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -78,6 +78,11 @@ static starpu_sem_t callback_sem;
 
 static int nmad_mcast_started = 0;
 
+// this function does not make sense when using the nmad backend, we provide a dummy implementation
+int _starpu_mpi_get_early_data_nb()
+{
+	return 0;
+}
 
 /********************************************************/
 /*                                                      */

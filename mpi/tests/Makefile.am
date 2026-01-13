@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -141,6 +141,7 @@ starpu_mpi_TESTS +=				\
 	display_bindings			\
 	mpi_earlyrecv2				\
 	mpi_earlyrecv2_sync			\
+	mpi_sync				\
 	block_interface				\
 	block_interface_pinned			\
 	ndim_interface				\
@@ -190,6 +191,7 @@ noinst_PROGRAMS +=				\
 	mpi_earlyrecv				\
 	mpi_earlyrecv2				\
 	mpi_earlyrecv2_sync			\
+	mpi_sync				\
 	mpi_irecv				\
 	mpi_barrier				\
 	mpi_isend_detached			\

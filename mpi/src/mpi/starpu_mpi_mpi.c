@@ -58,6 +58,12 @@ static unsigned nready_process;
 
 /* Force allocation of early data */
 static int early_data_force_allocate;
+static int early_data_nb = 0;
+
+int _starpu_mpi_get_early_data_nb()
+{
+	return early_data_nb;
+}
 
 static void _starpu_mpi_handle_ready_request(struct _starpu_mpi_req *req);
 static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req);
@@ -1529,6 +1535,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 						}
 						else
 						{
+							early_data_nb ++;
 							/* This will release early_data_mutex when appropriate */
 							_starpu_mpi_receive_early_data(envelope, envelope_status, envelope_app_comm, envelope_comm);
 						}
