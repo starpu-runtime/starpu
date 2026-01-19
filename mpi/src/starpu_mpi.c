@@ -213,6 +213,7 @@ static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_dat
 	 * current state of the handle and decide which node we prefer for the data
 	 * fetch */
 
+	_STARPU_MPI_LOG_IN();
 	STARPU_ASSERT(node >= -1);
 	if ((node == -1) && (mode & STARPU_R || !_starpu_mpi_mem_late))
 		node = _starpu_mpi_choose_node(req->data_handle, mode);
@@ -232,7 +233,6 @@ static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_dat
 	if (!req->registered_datatype)
 		return;
 
-	_STARPU_MPI_LOG_IN();
 	if (req->early_node != (unsigned) node)
 	{
 		STARPU_MPI_ASSERT_MSG(0, "no acquired callback yet");
