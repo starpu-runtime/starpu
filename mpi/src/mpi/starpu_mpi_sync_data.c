@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,7 +29,10 @@ struct _starpu_mpi_sync_data_handle_hashlist
 	struct _starpu_mpi_node_tag node_tag;
 };
 
-/** stores data which have been received by MPI but have not been requested by the application */
+/** stores synchronous-send requests which have been received by MPI but not matched yet */
+#ifdef STARPU_DEVEL
+#warning TODO: to avoid mixing things, we could split into one hash for the synchronous-send requests that we have and are waiting for a recv ack, and another one for the synchronous-send enveloppes that we have received and are waiting for the receive to be posted (in that latter case we do not need a full request, _starpu_mpi_submit_ready_request only needs the byte count)
+#endif
 static starpu_pthread_mutex_t _starpu_mpi_sync_data_handle_mutex;
 static struct _starpu_mpi_sync_data_handle_hashlist *_starpu_mpi_sync_data_handle_hashmap = NULL;
 static int _starpu_mpi_sync_data_handle_hashmap_count = 0;
