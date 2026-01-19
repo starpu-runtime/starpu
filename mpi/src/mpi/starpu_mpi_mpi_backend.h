@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -71,9 +71,20 @@ struct _starpu_mpi_req_backend
 
 	struct _starpu_mpi_envelope* envelope;
 
+	// 1 in internal requests, i.e. that we created ourself to receive an early data
 	unsigned is_internal_req:1;
+
+	// 1 in the internal request if it can be destroyed, i.e. because we have
+	// - either finished copying the data from the early-data handle and
+	// the internal request completion will destroy it.
+	// - or the internal request completion has finished and
+	// the data copy will destroy it.
 	unsigned to_destroy:1;
+
+	// points to the internal request if data is received before posting this request
 	struct _starpu_mpi_req *internal_req;
+
+	// points to the handle in which the data is received early
 	struct _starpu_mpi_early_data_handle *early_data_handle;
 	UT_hash_handle hh;
 };
