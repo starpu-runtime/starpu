@@ -196,12 +196,6 @@ static void _starpu_mpi_soon_callback(void *arg, STARPU_ATTRIBUTE_UNUSED double 
 	_STARPU_MPI_LOG_OUT();
 }
 
-/* If early_node is assigned, then request is early prefetched. */
-static int _starpu_mpi_req_is_early_prefetched(const struct _starpu_mpi_req *req)
-{
-	return req->early_node != (unsigned) -1;
-}
-
 /* Cancel early prefetching if it was requested. */
 static void _starpu_mpi_early_unfetch_if_requested(struct _starpu_mpi_req *req)
 {

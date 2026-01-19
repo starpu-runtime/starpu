@@ -381,6 +381,12 @@ void _starpu_mpi_tags_init(void);
 /** return the number of early data received */
 int _starpu_mpi_get_early_data_nb();
 
+/* If early_node is assigned, then request is early prefetched. */
+static inline int _starpu_mpi_req_is_early_prefetched(const struct _starpu_mpi_req *req)
+{
+	return req->early_node != (unsigned) -1;
+}
+
 struct _starpu_mpi_argc_argv
 {
 	int initialize_mpi;
