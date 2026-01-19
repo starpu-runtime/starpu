@@ -755,6 +755,9 @@ static int _starpu_data_interface_compare(void *data_interface_a, struct starpu_
 }
 
 #ifdef STARPU_USE_ALLOCATION_CACHE
+#ifdef STARPU_DEVEL
+#warning make this option rather chosen with an environment variable
+#endif
 /* This function must be called with node->mc_lock taken */
 static struct _starpu_mem_chunk *_starpu_memchunk_cache_lookup_locked(unsigned node, starpu_data_handle_t handle, uint32_t footprint)
 {
