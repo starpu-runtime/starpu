@@ -451,13 +451,18 @@ static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 	// this trace event is the start of the communication link:
 	_STARPU_MPI_TRACE_ISEND_SUBMIT_END(_STARPU_MPI_FUT_POINT_TO_POINT_SEND, req, req->prio);
 
+	/* Remember whether the request is detached before unleashing starpu_mpi_wait/test that can destroy it.  */
+	int detached = req->detached;
+	STARPU_ASSERT(detached >= 0);
+
 	/* somebody is perhaps waiting for the MPI request to be posted */
 	STARPU_PTHREAD_MUTEX_LOCK(&req->backend->req_mutex);
 	req->submitted = 1;
 	STARPU_PTHREAD_COND_BROADCAST(&req->backend->req_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&req->backend->req_mutex);
 
-	_starpu_mpi_handle_detached_request(req);
+	if (detached)
+		_starpu_mpi_handle_detached_request(req);
 
 	_STARPU_MPI_LOG_OUT();
 }
@@ -583,13 +588,18 @@ void _starpu_mpi_irecv_size_func(struct _starpu_mpi_req *req)
 
 	_STARPU_MPI_TRACE_IRECV_SUBMIT_END(req->node_tag.node.rank, req->node_tag.data_tag);
 
+	/* Remember whether the request is detached before unleashing starpu_mpi_wait/test that can destroy it.  */
+	int detached = req->detached;
+	STARPU_ASSERT(detached >= 0);
+
 	/* somebody is perhaps waiting for the MPI request to be posted */
 	STARPU_PTHREAD_MUTEX_LOCK(&req->backend->req_mutex);
 	req->submitted = 1;
 	STARPU_PTHREAD_COND_BROADCAST(&req->backend->req_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&req->backend->req_mutex);
 
-	_starpu_mpi_handle_detached_request(req);
+	if (detached)
+		_starpu_mpi_handle_detached_request(req);
 
 	_STARPU_MPI_LOG_OUT();
 }
@@ -1178,21 +1188,18 @@ static void _starpu_mpi_test_detached_requests(void)
 
 static void _starpu_mpi_handle_detached_request(struct _starpu_mpi_req *req)
 {
-	if (req->detached == 1)
-	{
-		STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 
-		if (req->request_type == SEND_REQ && ndetached_send_requests_max > 0)
-			// if ndetached_send_requests_max == 0, we don't limit the number of concurrent MPI send requests
-			ndetached_send_requests++;
+	if (req->request_type == SEND_REQ && ndetached_send_requests_max > 0)
+		// if ndetached_send_requests_max == 0, we don't limit the number of concurrent MPI send requests
+		ndetached_send_requests++;
 
-		/* put the submitted request into the list of pending requests
-		 * so that it can be handled by the progression mechanisms */
-		_starpu_mpi_req_list_push_back(&detached_requests, req);
+	/* put the submitted request into the list of pending requests
+	 * so that it can be handled by the progression mechanisms */
+	_starpu_mpi_req_list_push_back(&detached_requests, req);
 
-		STARPU_PTHREAD_COND_SIGNAL(&progress_cond);
-		STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
-	}
+	STARPU_PTHREAD_COND_SIGNAL(&progress_cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 }
 
 static void _starpu_mpi_handle_ready_request(struct _starpu_mpi_req *req)
