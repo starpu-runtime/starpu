@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2023  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2023, 2026  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2017       Guillaume Beauchamp
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -406,13 +406,18 @@ static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 
 	_STARPU_MPI_TRACE_ISEND_SUBMIT_END(req->node_tag.node.rank, req->node_tag.data_tag, starpu_data_get_size(req->data_handle), req->pre_sync_jobid);
 
+	/* Remember whether the request is detached before unleashing starpu_mpi_wait/test that can destroy it.  */
+	int detached = req->detached;
+	STARPU_ASSERT(detached >= 0);
+
 	/* somebody is perhaps waiting for the MPI request to be posted */
 	STARPU_PTHREAD_MUTEX_LOCK(&req->backend->req_mutex);
 	req->submitted = 1;
 	STARPU_PTHREAD_COND_BROADCAST(&req->backend->req_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&req->backend->req_mutex);
 
-	_starpu_mpi_handle_detached_request(req);
+	if (detached)
+		_starpu_mpi_handle_detached_request(req);
 
 	_STARPU_MPI_LOG_OUT();
 }
@@ -531,13 +536,18 @@ void _starpu_mpi_irecv_size_func(struct _starpu_mpi_req *req)
 
 	_STARPU_MPI_TRACE_IRECV_SUBMIT_END(req->node_tag.node.rank, req->node_tag.data_tag);
 
+	/* Remember whether the request is detached before unleashing starpu_mpi_wait/test that can destroy it.  */
+	int detached = req->detached;
+	STARPU_ASSERT(detached >= 0);
+
 	/* somebody is perhaps waiting for the MPI request to be posted */
 	STARPU_PTHREAD_MUTEX_LOCK(&req->backend->req_mutex);
 	req->submitted = 1;
 	STARPU_PTHREAD_COND_BROADCAST(&req->backend->req_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&req->backend->req_mutex);
 
-	_starpu_mpi_handle_detached_request(req);
+	if (detached)
+		_starpu_mpi_handle_detached_request(req);
 
 	_STARPU_MPI_LOG_OUT();
 }
@@ -1096,20 +1106,17 @@ static void _starpu_mpi_test_detached_requests(void)
 
 static void _starpu_mpi_handle_detached_request(struct _starpu_mpi_req *req)
 {
-	if (req->detached)
-	{
-		/* put the submitted request into the list of pending requests
-		 * so that it can be handled by the progression mechanisms */
-		STARPU_PTHREAD_MUTEX_LOCK(&detached_requests_mutex);
-		if (req->request_type == SEND_REQ)
-			detached_send_nrequests++;
-		_starpu_mpi_req_list_push_back(&detached_requests, req);
-		STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
+	/* put the submitted request into the list of pending requests
+	 * so that it can be handled by the progression mechanisms */
+	STARPU_PTHREAD_MUTEX_LOCK(&detached_requests_mutex);
+	if (req->request_type == SEND_REQ)
+		detached_send_nrequests++;
+	_starpu_mpi_req_list_push_back(&detached_requests, req);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
 
-		STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
-		STARPU_PTHREAD_COND_SIGNAL(&progress_cond);
-		STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
-	}
+	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
+	STARPU_PTHREAD_COND_SIGNAL(&progress_cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 }
 
 static void _starpu_mpi_handle_ready_request(struct _starpu_mpi_req *req)
