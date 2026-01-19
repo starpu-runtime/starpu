@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2018-2022   Federal University of Rio Grande do Sul (UFRGS)
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -3470,7 +3470,7 @@ AC_MSG_RESULT($enable_openmp_llvm $openmp_llvm_msg)
 #                                                                             #
 ###############################################################################
 
-AC_ARG_ENABLE(openmp, [AS_HELP_STRING([--enable-starpu-openmp],
+AC_ARG_ENABLE(openmp, [AS_HELP_STRING([--enable-openmp],
 			[build the OpenMP runtime support])],
 			enable_openmp=$enableval, enable_openmp=no)
 
