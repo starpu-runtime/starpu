@@ -626,6 +626,8 @@ int _starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
 	int ret;
 	struct _starpu_mpi_req *req = *public_req;
 
+	STARPU_MPI_ASSERT_MSG(!req->detached, "MPI_Wait cannot be called on a detached request");
+
 	_STARPU_MPI_LOG_IN();
 
 #ifdef STARPU_SIMGRID
