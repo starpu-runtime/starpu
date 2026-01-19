@@ -767,59 +767,65 @@ void starpurm_initialize_with_cpuset(const hwloc_cpuset_t initially_owned_cpuset
 	}
 
 	int max_opencl_worker_devid = 0;
-	int opencl_workerids[opencl_nunits];
-	starpu_worker_get_ids_by_type(STARPU_OPENCL_WORKER, opencl_workerids, opencl_nunits);
-	rm->unit_offsets_by_type[starpurm_unit_opencl] = unitid;
-	for (i = 0; i < opencl_nunits; i++)
+	if (opencl_nunits)
 	{
-		rm->units[unitid].id = unitid;
-		rm->units[unitid].type = starpurm_unit_opencl;
-		rm->units[unitid].selected = 1; /* enabled by default */
-		rm->units[unitid].devid = starpu_worker_get_devid(rm->units[unitid].workerid);
-		rm->units[unitid].workerid = opencl_workerids[i];
-		if (max_worker_id < rm->units[unitid].workerid)
+		int opencl_workerids[opencl_nunits];
+		starpu_worker_get_ids_by_type(STARPU_OPENCL_WORKER, opencl_workerids, opencl_nunits);
+		rm->unit_offsets_by_type[starpurm_unit_opencl] = unitid;
+		for (i = 0; i < opencl_nunits; i++)
 		{
-			max_worker_id = rm->units[unitid].workerid;
+			rm->units[unitid].id = unitid;
+			rm->units[unitid].type = starpurm_unit_opencl;
+			rm->units[unitid].selected = 1; /* enabled by default */
+			rm->units[unitid].devid = starpu_worker_get_devid(rm->units[unitid].workerid);
+			rm->units[unitid].workerid = opencl_workerids[i];
+			if (max_worker_id < rm->units[unitid].workerid)
+			{
+				max_worker_id = rm->units[unitid].workerid;
+			}
+			rm->units[unitid].devid = starpu_worker_get_devid(rm->units[unitid].workerid);
+			if (max_opencl_worker_devid < rm->units[unitid].devid)
+			{
+				max_opencl_worker_devid = rm->units[unitid].devid;
+			}
+			rm->units[unitid].worker_cpuset = starpu_worker_get_hwloc_cpuset(rm->units[unitid].workerid);
+			STARPU_PTHREAD_COND_INIT(&rm->units[unitid].unit_available_cond, NULL);
+			hwloc_bitmap_or(rm->global_cpuset, rm->global_cpuset, rm->units[unitid].worker_cpuset);
+			hwloc_bitmap_or(rm->all_opencl_device_workers_cpuset, rm->all_opencl_device_workers_cpuset, rm->units[unitid].worker_cpuset);
+			hwloc_bitmap_or(rm->all_device_workers_cpuset, rm->all_device_workers_cpuset, rm->units[unitid].worker_cpuset);
+			unitid++;
 		}
-		rm->units[unitid].devid = starpu_worker_get_devid(rm->units[unitid].workerid);
-		if (max_opencl_worker_devid < rm->units[unitid].devid)
-		{
-			max_opencl_worker_devid = rm->units[unitid].devid;
-		}
-		rm->units[unitid].worker_cpuset = starpu_worker_get_hwloc_cpuset(rm->units[unitid].workerid);
-		STARPU_PTHREAD_COND_INIT(&rm->units[unitid].unit_available_cond, NULL);
-		hwloc_bitmap_or(rm->global_cpuset, rm->global_cpuset, rm->units[unitid].worker_cpuset);
-		hwloc_bitmap_or(rm->all_opencl_device_workers_cpuset, rm->all_opencl_device_workers_cpuset, rm->units[unitid].worker_cpuset);
-		hwloc_bitmap_or(rm->all_device_workers_cpuset, rm->all_device_workers_cpuset, rm->units[unitid].worker_cpuset);
-		unitid++;
 	}
 
 	int max_cuda_worker_devid = 0;
-	int cuda_workerids[opencl_nunits];
-	starpu_worker_get_ids_by_type(STARPU_CUDA_WORKER, cuda_workerids, cuda_nunits);
-	rm->unit_offsets_by_type[starpurm_unit_cuda] = unitid;
-	for (i = 0; i < cuda_nunits; i++)
+	if (opencl_nunits)
 	{
-		rm->units[unitid].id = unitid;
-		rm->units[unitid].type = starpurm_unit_cuda;
-		rm->units[unitid].selected = 1; /* enabled by default */
-		rm->units[unitid].workerid = cuda_workerids[i];
-		rm->units[unitid].devid = starpu_worker_get_devid(rm->units[unitid].workerid);
-		if (max_worker_id < rm->units[unitid].workerid)
+		int cuda_workerids[opencl_nunits];
+		starpu_worker_get_ids_by_type(STARPU_CUDA_WORKER, cuda_workerids, cuda_nunits);
+		rm->unit_offsets_by_type[starpurm_unit_cuda] = unitid;
+		for (i = 0; i < cuda_nunits; i++)
 		{
-			max_worker_id = rm->units[unitid].workerid;
+			rm->units[unitid].id = unitid;
+			rm->units[unitid].type = starpurm_unit_cuda;
+			rm->units[unitid].selected = 1; /* enabled by default */
+			rm->units[unitid].workerid = cuda_workerids[i];
+			rm->units[unitid].devid = starpu_worker_get_devid(rm->units[unitid].workerid);
+			if (max_worker_id < rm->units[unitid].workerid)
+			{
+				max_worker_id = rm->units[unitid].workerid;
+			}
+			rm->units[unitid].devid = starpu_worker_get_devid(rm->units[unitid].workerid);
+			if (max_cuda_worker_devid < rm->units[unitid].devid)
+			{
+				max_cuda_worker_devid = rm->units[unitid].devid;
+			}
+			rm->units[unitid].worker_cpuset = starpu_worker_get_hwloc_cpuset(rm->units[unitid].workerid);
+			STARPU_PTHREAD_COND_INIT(&rm->units[unitid].unit_available_cond, NULL);
+			hwloc_bitmap_or(rm->global_cpuset, rm->global_cpuset, rm->units[unitid].worker_cpuset);
+			hwloc_bitmap_or(rm->all_cuda_device_workers_cpuset, rm->all_cuda_device_workers_cpuset, rm->units[unitid].worker_cpuset);
+			hwloc_bitmap_or(rm->all_device_workers_cpuset, rm->all_device_workers_cpuset, rm->units[unitid].worker_cpuset);
+			unitid++;
 		}
-		rm->units[unitid].devid = starpu_worker_get_devid(rm->units[unitid].workerid);
-		if (max_cuda_worker_devid < rm->units[unitid].devid)
-		{
-			max_cuda_worker_devid = rm->units[unitid].devid;
-		}
-		rm->units[unitid].worker_cpuset = starpu_worker_get_hwloc_cpuset(rm->units[unitid].workerid);
-		STARPU_PTHREAD_COND_INIT(&rm->units[unitid].unit_available_cond, NULL);
-		hwloc_bitmap_or(rm->global_cpuset, rm->global_cpuset, rm->units[unitid].worker_cpuset);
-		hwloc_bitmap_or(rm->all_cuda_device_workers_cpuset, rm->all_cuda_device_workers_cpuset, rm->units[unitid].worker_cpuset);
-		hwloc_bitmap_or(rm->all_device_workers_cpuset, rm->all_device_workers_cpuset, rm->units[unitid].worker_cpuset);
-		unitid++;
 	}
 
 	rm->max_worker_id = max_worker_id;
@@ -831,6 +837,7 @@ void starpurm_initialize_with_cpuset(const hwloc_cpuset_t initially_owned_cpuset
 		}
 		for (i=0; i<rm->nunits; i++)
 		{
+			assert(rm->units[i].workerid < max_worker_id+1);
 			worker_unit_ids[rm->units[i].workerid] = i;
 		}
 		rm->worker_unit_ids = worker_unit_ids;
@@ -838,7 +845,7 @@ void starpurm_initialize_with_cpuset(const hwloc_cpuset_t initially_owned_cpuset
 
 	rm->max_cpu_worker_devid = max_cpu_worker_devid;
 	{
-		int *cpu_worker_devids_to_unit_id = malloc(max_cpu_worker_devid * sizeof(*cpu_worker_devids_to_unit_id));
+		int *cpu_worker_devids_to_unit_id = malloc((max_cpu_worker_devid+1) * sizeof(*cpu_worker_devids_to_unit_id));
 		for (i = 0; i < max_cpu_worker_devid; i++)
 		{
 			cpu_worker_devids_to_unit_id[i] = -1;
@@ -846,6 +853,7 @@ void starpurm_initialize_with_cpuset(const hwloc_cpuset_t initially_owned_cpuset
 		const int offset = rm->unit_offsets_by_type[starpurm_unit_cpu];
 		for (i = 0; i < cpu_nunits; i++)
 		{
+			assert(rm->units[i].devid < max_cpu_worker_devid+1);
 			cpu_worker_devids_to_unit_id[rm->units[i].devid] = offset + i;
 		}
 		rm->cpu_worker_devids_to_unit_id = cpu_worker_devids_to_unit_id;
@@ -986,6 +994,7 @@ void starpurm_shutdown(void)
 	int i;
 	for (i=0; i<rm->nunits; i++)
 	{
+		hwloc_bitmap_free(rm->units[i].worker_cpuset);
 		STARPU_PTHREAD_COND_DESTROY(&rm->units[i].unit_available_cond);
 	}
 	free(rm->units);
@@ -996,6 +1005,18 @@ void starpurm_shutdown(void)
 
 	free(rm->unit_offsets_by_type);
 	rm->unit_offsets_by_type = NULL;
+
+	free(rm->worker_unit_ids);
+	rm->worker_unit_ids = NULL;
+
+	free(rm->cpu_worker_devids_to_unit_id);
+	rm->cpu_worker_devids_to_unit_id = NULL;
+
+	free(rm->opencl_worker_devids_to_unit_id);
+	rm->opencl_worker_devids_to_unit_id = NULL;
+
+	free(rm->cuda_worker_devids_to_unit_id);
+	rm->cuda_worker_devids_to_unit_id = NULL;
 
 	free(rm);
 	_starpurm = NULL;

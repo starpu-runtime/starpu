@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2017-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2017-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -153,6 +153,7 @@ static void test2(const int N, const int task_mult)
 	const double scalar = 3.0;
 	starpu_data_handle_t vector_handle;
 	int ret;
+	int nb_children = rm_nb_cpu_units*task_mult;
 
 	starpu_malloc((void **)&vector, N * sizeof(*vector));
 	{
@@ -166,20 +167,20 @@ static void test2(const int N, const int task_mult)
 	struct starpu_data_filter partition_filter =
 	{
 		.filter_func = starpu_vector_filter_block,
-		.nchildren = rm_nb_cpu_units * task_mult
+		.nchildren = nb_children
 	};
 
 	starpu_data_partition(vector_handle, &partition_filter);
 
 	{
 		int i;
-		for (i = 0; i < rm_nb_cpu_units*task_mult; i++)
+		for (i = 0; i < nb_children; i++)
 		{
 			starpu_data_handle_t sub_vector_handle = starpu_data_get_sub_data(vector_handle, 1, i);
 			ret = starpu_task_insert(&vector_scale_cl,
-					STARPU_RW, sub_vector_handle,
-					STARPU_VALUE, &scalar, sizeof(scalar),
-					0);
+						 STARPU_RW, sub_vector_handle,
+						 STARPU_VALUE, &scalar, sizeof(scalar),
+						 0);
 			assert(ret == 0);
 		}
 	}
