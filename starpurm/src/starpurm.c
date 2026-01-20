@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2017-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2017-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -767,65 +767,59 @@ void starpurm_initialize_with_cpuset(const hwloc_cpuset_t initially_owned_cpuset
 	}
 
 	int max_opencl_worker_devid = 0;
-	if (opencl_nunits)
+	int opencl_workerids[opencl_nunits];
+	starpu_worker_get_ids_by_type(STARPU_OPENCL_WORKER, opencl_workerids, opencl_nunits);
+	rm->unit_offsets_by_type[starpurm_unit_opencl] = unitid;
+	for (i = 0; i < opencl_nunits; i++)
 	{
-		int opencl_workerids[opencl_nunits];
-		starpu_worker_get_ids_by_type(STARPU_OPENCL_WORKER, opencl_workerids, opencl_nunits);
-		rm->unit_offsets_by_type[starpurm_unit_opencl] = unitid;
-		for (i = 0; i < opencl_nunits; i++)
+		rm->units[unitid].id = unitid;
+		rm->units[unitid].type = starpurm_unit_opencl;
+		rm->units[unitid].selected = 1; /* enabled by default */
+		rm->units[unitid].devid = starpu_worker_get_devid(rm->units[unitid].workerid);
+		rm->units[unitid].workerid = opencl_workerids[i];
+		if (max_worker_id < rm->units[unitid].workerid)
 		{
-			rm->units[unitid].id = unitid;
-			rm->units[unitid].type = starpurm_unit_opencl;
-			rm->units[unitid].selected = 1; /* enabled by default */
-			rm->units[unitid].devid = starpu_worker_get_devid(rm->units[unitid].workerid);
-			rm->units[unitid].workerid = opencl_workerids[i];
-			if (max_worker_id < rm->units[unitid].workerid)
-			{
-				max_worker_id = rm->units[unitid].workerid;
-			}
-			rm->units[unitid].devid = starpu_worker_get_devid(rm->units[unitid].workerid);
-			if (max_opencl_worker_devid < rm->units[unitid].devid)
-			{
-				max_opencl_worker_devid = rm->units[unitid].devid;
-			}
-			rm->units[unitid].worker_cpuset = starpu_worker_get_hwloc_cpuset(rm->units[unitid].workerid);
-			STARPU_PTHREAD_COND_INIT(&rm->units[unitid].unit_available_cond, NULL);
-			hwloc_bitmap_or(rm->global_cpuset, rm->global_cpuset, rm->units[unitid].worker_cpuset);
-			hwloc_bitmap_or(rm->all_opencl_device_workers_cpuset, rm->all_opencl_device_workers_cpuset, rm->units[unitid].worker_cpuset);
-			hwloc_bitmap_or(rm->all_device_workers_cpuset, rm->all_device_workers_cpuset, rm->units[unitid].worker_cpuset);
-			unitid++;
+			max_worker_id = rm->units[unitid].workerid;
 		}
+		rm->units[unitid].devid = starpu_worker_get_devid(rm->units[unitid].workerid);
+		if (max_opencl_worker_devid < rm->units[unitid].devid)
+		{
+			max_opencl_worker_devid = rm->units[unitid].devid;
+		}
+		rm->units[unitid].worker_cpuset = starpu_worker_get_hwloc_cpuset(rm->units[unitid].workerid);
+		STARPU_PTHREAD_COND_INIT(&rm->units[unitid].unit_available_cond, NULL);
+		hwloc_bitmap_or(rm->global_cpuset, rm->global_cpuset, rm->units[unitid].worker_cpuset);
+		hwloc_bitmap_or(rm->all_opencl_device_workers_cpuset, rm->all_opencl_device_workers_cpuset, rm->units[unitid].worker_cpuset);
+		hwloc_bitmap_or(rm->all_device_workers_cpuset, rm->all_device_workers_cpuset, rm->units[unitid].worker_cpuset);
+		unitid++;
 	}
 
 	int max_cuda_worker_devid = 0;
-	if (opencl_nunits)
+	int cuda_workerids[opencl_nunits];
+	starpu_worker_get_ids_by_type(STARPU_CUDA_WORKER, cuda_workerids, cuda_nunits);
+	rm->unit_offsets_by_type[starpurm_unit_cuda] = unitid;
+	for (i = 0; i < cuda_nunits; i++)
 	{
-		int cuda_workerids[opencl_nunits];
-		starpu_worker_get_ids_by_type(STARPU_CUDA_WORKER, cuda_workerids, cuda_nunits);
-		rm->unit_offsets_by_type[starpurm_unit_cuda] = unitid;
-		for (i = 0; i < cuda_nunits; i++)
+		rm->units[unitid].id = unitid;
+		rm->units[unitid].type = starpurm_unit_cuda;
+		rm->units[unitid].selected = 1; /* enabled by default */
+		rm->units[unitid].workerid = cuda_workerids[i];
+		rm->units[unitid].devid = starpu_worker_get_devid(rm->units[unitid].workerid);
+		if (max_worker_id < rm->units[unitid].workerid)
 		{
-			rm->units[unitid].id = unitid;
-			rm->units[unitid].type = starpurm_unit_cuda;
-			rm->units[unitid].selected = 1; /* enabled by default */
-			rm->units[unitid].workerid = cuda_workerids[i];
-			rm->units[unitid].devid = starpu_worker_get_devid(rm->units[unitid].workerid);
-			if (max_worker_id < rm->units[unitid].workerid)
-			{
-				max_worker_id = rm->units[unitid].workerid;
-			}
-			rm->units[unitid].devid = starpu_worker_get_devid(rm->units[unitid].workerid);
-			if (max_cuda_worker_devid < rm->units[unitid].devid)
-			{
-				max_cuda_worker_devid = rm->units[unitid].devid;
-			}
-			rm->units[unitid].worker_cpuset = starpu_worker_get_hwloc_cpuset(rm->units[unitid].workerid);
-			STARPU_PTHREAD_COND_INIT(&rm->units[unitid].unit_available_cond, NULL);
-			hwloc_bitmap_or(rm->global_cpuset, rm->global_cpuset, rm->units[unitid].worker_cpuset);
-			hwloc_bitmap_or(rm->all_cuda_device_workers_cpuset, rm->all_cuda_device_workers_cpuset, rm->units[unitid].worker_cpuset);
-			hwloc_bitmap_or(rm->all_device_workers_cpuset, rm->all_device_workers_cpuset, rm->units[unitid].worker_cpuset);
-			unitid++;
+			max_worker_id = rm->units[unitid].workerid;
 		}
+		rm->units[unitid].devid = starpu_worker_get_devid(rm->units[unitid].workerid);
+		if (max_cuda_worker_devid < rm->units[unitid].devid)
+		{
+			max_cuda_worker_devid = rm->units[unitid].devid;
+		}
+		rm->units[unitid].worker_cpuset = starpu_worker_get_hwloc_cpuset(rm->units[unitid].workerid);
+		STARPU_PTHREAD_COND_INIT(&rm->units[unitid].unit_available_cond, NULL);
+		hwloc_bitmap_or(rm->global_cpuset, rm->global_cpuset, rm->units[unitid].worker_cpuset);
+		hwloc_bitmap_or(rm->all_cuda_device_workers_cpuset, rm->all_cuda_device_workers_cpuset, rm->units[unitid].worker_cpuset);
+		hwloc_bitmap_or(rm->all_device_workers_cpuset, rm->all_device_workers_cpuset, rm->units[unitid].worker_cpuset);
+		unitid++;
 	}
 
 	rm->max_worker_id = max_worker_id;
