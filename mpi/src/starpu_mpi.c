@@ -184,10 +184,8 @@ static void _starpu_mpi_soon_callback(void *arg, STARPU_ATTRIBUTE_UNUSED double 
 
 	_STARPU_MPI_LOG_IN();
 	if (req->node == (unsigned) -1)
-		req->early_node = _starpu_mpi_choose_node(req->data_handle, STARPU_R);
-	else
-		req->early_node = req->node;
-	req->node = req->early_node;
+		req->node = _starpu_mpi_choose_node(req->data_handle, STARPU_R);
+	req->early_node = req->node;
 	_starpu_mpi_datatype_allocate(req->data_handle, req);
 	req->count = 1;
 	req->ptr = starpu_data_handle_to_pointer_ref(req->data_handle, req->early_node);
