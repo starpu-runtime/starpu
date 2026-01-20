@@ -51,6 +51,7 @@ static int _starpu_mpi_nmad_backend_reserve_core(void)
 
 static void _starpu_mpi_nmad_backend_request_init(struct _starpu_mpi_req *req)
 {
+	STARPU_MPI_ASSERT_MSG(req->backend == NULL, "MPI request backend already initialized");
 	_STARPU_MPI_CALLOC(req->backend, 1, sizeof(struct _starpu_mpi_req_backend));
 	piom_cond_init(&req->backend->req_cond, 0);
 	req->backend->data_request = NM_SR_REQUEST_NULL;
@@ -72,6 +73,7 @@ static void _starpu_mpi_nmad_backend_request_destroy(struct _starpu_mpi_req *req
 	piom_cond_destroy(&(req->backend->req_cond));
 	_starpu_spin_destroy(&req->backend->finalized_to_destroy_lock);
 	free(req->backend);
+	req->backend = NULL;
 }
 
 static void _starpu_mpi_nmad_backend_data_clear(starpu_data_handle_t data_handle)
