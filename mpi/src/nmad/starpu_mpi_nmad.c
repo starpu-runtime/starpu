@@ -104,13 +104,15 @@ void _starpu_mpi_req_willpost(struct _starpu_mpi_req *req STARPU_ATTRIBUTE_UNUSE
 void _starpu_mpi_init_nmad_send_req(struct _starpu_mpi_req *req)
 {
 	/* req backend's session and gate already set by
-	 * _starpu_mpi_nmad_backend_request_fill */
+	 * _starpu_mpi_nmad_backend_request_fill in
+	   _starpu_mpi_isend_common */
 	STARPU_ASSERT(req->request_type == SEND_REQ);
 	struct nm_data_s data;
 	nm_mpi_nmad_data_get(&data, (void*)req->ptr, req->datatype, req->count);
 	nm_sr_send_init(req->backend->session, &(req->backend->data_request));
 	nm_sr_send_pack_data(req->backend->session, &(req->backend->data_request), &data);
 	nm_sr_send_set_priority(req->backend->session, &req->backend->data_request, req->prio);
+	nm_sr_send_dest(req->backend->session, &req->backend->data_request, req->backend->gate, req->node_tag.data_tag);
 }
 
 static void _starpu_mpi_isend_known_datatype(struct _starpu_mpi_req *req)
