@@ -1244,6 +1244,7 @@ enum starpu_data_interface_id starpu_data_get_interface_id(starpu_data_handle_t 
 
 void *starpu_data_get_interface_on_node(starpu_data_handle_t handle, unsigned memory_node)
 {
+	STARPU_ASSERT(memory_node != (unsigned)-1);
 	return handle->per_node[memory_node].data_interface;
 }
 
