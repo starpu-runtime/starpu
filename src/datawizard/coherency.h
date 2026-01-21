@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -107,7 +107,8 @@ struct _starpu_data_replicate
 
 	/** The number of prefetches that we made for this replicate for various tasks
 	 * This is also the number of tasks that we will wait to see use the mc before
-	 * we attempt to evict it.
+	 * we attempt to evict it. We have to make sure we decrement it on task
+	 * termination, otherwise the data would stay allocated.
 	 */
 	unsigned nb_tasks_prefetch;
 
