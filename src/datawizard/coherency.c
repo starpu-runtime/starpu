@@ -992,6 +992,22 @@ void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_
 		_starpu_spin_unlock(&handle->header_lock);
 }
 
+/* Compute wether we should prefetch data buffers for data of such task with such mode */
+
+static int _starpu_should_prefetch_task_input(struct starpu_task *task, enum starpu_data_access_mode mode)
+{
+	if (mode & (STARPU_SCRATCH|STARPU_REDUX))
+		return 0;
+
+#ifdef STARPU_RECURSIVE_TASKS
+	if (!(mode & STARPU_RECURSIVE_TASK_STRONG) && _starpu_task_is_recursive(task))
+	{
+		return 1;
+	}
+#endif
+	return 0;
+}
+
 int _starpu_prefetch_task_input_prio(struct starpu_task *task, int target_node, int worker, int prio, enum starpu_is_prefetch prefetch)
 {
 #ifdef STARPU_OPENMP
@@ -1009,10 +1025,9 @@ int _starpu_prefetch_task_input_prio(struct starpu_task *task, int target_node, 
 		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, index);
 		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, index);
 
-		/* Also update conditions in _starpu_fetch_task_input_tail accordingly for releasing
+		/* Prefetch condition shared with _starpu_fetch_task_input_tail for releasing
 		 * nb_tasks_prefetch. */
-
-		if (mode & (STARPU_SCRATCH|STARPU_REDUX))
+		if (!_starpu_should_prefetch_task_input(task, mode))
 			continue;
 
 		int node;
@@ -1316,14 +1331,9 @@ void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job 
 		_starpu_spin_lock(&handle->header_lock);
 		if (local_replicate->mc)
 		{
-			if (task->prefetched && local_replicate->initialized
-				/* See prefetch conditions in
-				 * _starpu_prefetch_task_input_prio and alike */
-				&& !(mode & (STARPU_SCRATCH|STARPU_REDUX))
-#ifdef STARPU_RECURSIVE_TASKS
-				&& !(!(mode & STARPU_RECURSIVE_TASK_STRONG) && task_rec)
-#endif
-				)
+			if (task->prefetched && local_replicate->initialized &&
+				/* Prefetch condition shared with _starpu_prefetch_task_input_prio */
+				_starpu_should_prefetch_task_input(task, mode))
 			{
 				/* Allocations or transfer prefetches should have been done by now and marked
 				 * this mc as needed for us.
