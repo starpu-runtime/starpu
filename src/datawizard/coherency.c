@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2018,2021  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -1009,6 +1009,9 @@ int _starpu_prefetch_task_input_prio(struct starpu_task *task, int target_node, 
 		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, index);
 		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, index);
 
+		/* Also update conditions in _starpu_fetch_task_input_tail accordingly for releasing
+		 * nb_tasks_prefetch. */
+
 		if (mode & (STARPU_SCRATCH|STARPU_REDUX))
 			continue;
 
@@ -1313,16 +1316,19 @@ void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job 
 		_starpu_spin_lock(&handle->header_lock);
 		if (local_replicate->mc)
 		{
-			if (task->prefetched && local_replicate->initialized &&
+			if (task->prefetched && local_replicate->initialized
 				/* See prefetch conditions in
-				 * starpu_prefetch_task_input_on_node_prio and alike */
-				!(mode & (STARPU_SCRATCH|STARPU_REDUX)) &&
-				(mode & STARPU_R))
+				 * _starpu_prefetch_task_input_prio and alike */
+				&& !(mode & (STARPU_SCRATCH|STARPU_REDUX))
+#ifdef STARPU_RECURSIVE_TASKS
+				&& !(!(mode & STARPU_RECURSIVE_TASK_STRONG) && task_rec)
+#endif
+				)
 			{
 				/* Allocations or transfer prefetches should have been done by now and marked
 				 * this mc as needed for us.
 				 * Now that we added a reference for the task, we can relieve that.  */
-				/* Note: the replicate might have been evicted in between, thus not 100% sure
+				/* Note: the replicate might still have been evicted in between, thus not 100% sure
 				 * that our prefetch request is still recorded here.  */
 				if (local_replicate->nb_tasks_prefetch > 0)
 					local_replicate->nb_tasks_prefetch--;
