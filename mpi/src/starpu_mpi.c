@@ -242,8 +242,9 @@ static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_dat
 		 * cancelled */
 		_STARPU_MPI_DEBUG(20, "data location moved between soon and acquired callbacks\n");
 		_starpu_mpi_early_unfetch_if_requested(req);
-		req->ptr = starpu_data_handle_to_pointer_ref(req->data_handle, node);
 		req->early_node = node;
+		_starpu_mpi_datatype_allocate(req->data_handle, req);
+		req->ptr = starpu_data_handle_to_pointer_ref(req->data_handle, node);
 		_mpi_backend._starpu_mpi_backend_early_prefetch_func(req);
 	}
 	_STARPU_MPI_LOG_OUT();
