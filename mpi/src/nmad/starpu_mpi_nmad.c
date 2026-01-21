@@ -162,8 +162,11 @@ void _starpu_mpi_isend_func(struct _starpu_mpi_req *req)
 	if (req->registered_datatype == 1)
 	{
 		/* We can give the handle pointer directly to NewMadeleine */
-		req->count = 1;
-		req->ptr = starpu_data_handle_to_pointer(req->data_handle, req->node);
+		if (!_starpu_mpi_req_is_early_prefetched(req))
+		{
+			req->count = 1;
+			req->ptr = starpu_data_handle_to_pointer(req->data_handle, req->node);
+		}
 
 		_starpu_mpi_isend_known_datatype(req);
 	}
