@@ -27,7 +27,7 @@ void _starpu_mpi_request_init(struct _starpu_mpi_req **req)
 	//(*req)->data_handle = NULL;
 	//(*req)->prio = 0;
 
-	//(*req)->early_node = 0;
+	(*req)->early_node = (unsigned) -1;
 	(*req)->node = (unsigned) -1;
 
 	//(*req)->datatype = 0;
