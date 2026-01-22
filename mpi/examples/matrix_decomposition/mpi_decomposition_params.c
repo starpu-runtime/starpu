@@ -164,6 +164,7 @@ void parse_args(int argc, char **argv, int nodes)
 			}
 		}
 	}
-	FPRINTF(stdout, "size: %u - nblocks: %u - dblocksx: %d - dblocksy: %d\n", size, nblocks, dblockx, dblocky);
+	if (starpu_mpi_world_rank() == 0)
+		FPRINTF(stdout, "size: %u - nblocks: %u - dblocksx: %d - dblocksy: %d\n", size, nblocks, dblockx, dblocky);
 }
 
