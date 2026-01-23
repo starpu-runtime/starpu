@@ -237,7 +237,6 @@ static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_dat
 
 	if (req->early_node != (unsigned) node)
 	{
-		STARPU_MPI_ASSERT_MSG(0, "no acquired callback yet");
 		/* Data location changed since the soon callback was called. If
 		 * an early prefetch was requested, then it shall be
 		 * cancelled */
