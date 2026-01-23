@@ -188,7 +188,7 @@ static void _starpu_mpi_soon_callback(void *arg, STARPU_ATTRIBUTE_UNUSED double 
 	req->early_node = req->node;
 	_starpu_mpi_datatype_allocate(req->data_handle, req);
 	req->count = 1;
-	req->ptr = starpu_data_handle_to_pointer_ref(req->data_handle, req->early_node);
+	req->ptr = starpu_data_handle_to_pointer(req->data_handle, req->early_node);
 	_mpi_backend._starpu_mpi_backend_early_prefetch_func(req);
 	_STARPU_MPI_LOG_OUT();
 }
@@ -246,7 +246,7 @@ static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_dat
 		req->early_node = node;
 		_starpu_mpi_datatype_allocate(req->data_handle, req);
 		req->count = 1;
-		req->ptr = starpu_data_handle_to_pointer_ref(req->data_handle, node);
+		req->ptr = starpu_data_handle_to_pointer(req->data_handle, node);
 		_mpi_backend._starpu_mpi_backend_early_prefetch_func(req);
 	}
 	_STARPU_MPI_LOG_OUT();
