@@ -199,6 +199,8 @@ static void _starpu_mpi_early_unfetch_if_requested(struct _starpu_mpi_req *req)
 	if (_starpu_mpi_req_is_early_prefetched(req)) {
 		_mpi_backend._starpu_mpi_backend_early_unfetch_func(req);
 		starpu_data_handle_to_pointer_unref(req->data_handle, req->early_node);
+		req->count = 0;
+		req->ptr = NULL;
 		_starpu_mpi_datatype_free(req->data_handle, &req->datatype);
 		req->early_node = (unsigned) -1;
 	}
@@ -243,6 +245,7 @@ static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_dat
 		_starpu_mpi_early_unfetch_if_requested(req);
 		req->early_node = node;
 		_starpu_mpi_datatype_allocate(req->data_handle, req);
+		req->count = 1;
 		req->ptr = starpu_data_handle_to_pointer_ref(req->data_handle, node);
 		_mpi_backend._starpu_mpi_backend_early_prefetch_func(req);
 	}
