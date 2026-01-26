@@ -1017,10 +1017,10 @@ static int _starpu_should_prefetch_task_input(struct starpu_task *task, enum sta
 #ifdef STARPU_RECURSIVE_TASKS
 	if (!(mode & STARPU_RECURSIVE_TASK_STRONG) && _starpu_task_is_recursive(task))
 	{
-		return 1;
+		return 0;
 	}
 #endif
-	return 0;
+	return 1;
 }
 
 int _starpu_prefetch_task_input_prio(struct starpu_task *task, int target_node, int worker, int prio, enum starpu_is_prefetch prefetch)
