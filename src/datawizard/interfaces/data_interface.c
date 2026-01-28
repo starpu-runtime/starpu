@@ -1294,6 +1294,8 @@ size_t starpu_data_get_alloc_size(starpu_data_handle_t handle)
 
 void starpu_data_set_name(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED, const char *name STARPU_ATTRIBUTE_UNUSED)
 {
+	strncpy(handle->name, name, sizeof(handle->name)-1);
+	handle->name[sizeof(handle->name)-1] = 0;
 	_starpu_trace_data_name(handle, name);
 }
 

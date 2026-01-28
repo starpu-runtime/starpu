@@ -375,7 +375,11 @@ end
 define starpu-print-data
   set language c
   set $data = (starpu_data_handle_t) $arg0
-  printf "Data handle %p\n", $data
+  if $data->name[0]
+    printf "Data handle %s (%p)\n", $data->name, $data
+  else
+    printf "Data handle %p\n", $data
+  end
   if $data->ops->interfaceid == 0
     printf "Matrix\n"
   end

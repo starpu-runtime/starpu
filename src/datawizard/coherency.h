@@ -368,6 +368,8 @@ struct _starpu_data_state
 	 * took it yet */
 	int last_locality;
 
+	/** Application-provided name. */
+	char name[16];
 	/** Application-provided coordinates. The maximum dimension (5) is
 	  * relatively arbitrary. */
 	unsigned dimensions;

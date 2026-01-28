@@ -66,8 +66,11 @@ static void partition_mult_data(void)
 	size_t x, y, z;
 
 	starpu_matrix_data_register(&A_handle, STARPU_MAIN_RAM, (uintptr_t)A, ydim, ydim, zdim, sizeof(TYPE));
+	starpu_data_set_name(A_handle, "A");
 	starpu_matrix_data_register(&B_handle, STARPU_MAIN_RAM, (uintptr_t)B, zdim, zdim, xdim, sizeof(TYPE));
+	starpu_data_set_name(B_handle, "B");
 	starpu_matrix_data_register(&C_handle, STARPU_MAIN_RAM, (uintptr_t)C, ydim, ydim, xdim, sizeof(TYPE));
+	starpu_data_set_name(C_handle, "C");
 
 	struct starpu_data_filter vert;
 	memset(&vert, 0, sizeof(vert));
