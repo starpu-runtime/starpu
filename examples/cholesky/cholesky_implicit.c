@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013-2013  Thibaut Lambert
  * Copyright (C) 2010-2010  Mehdi Juhoor
  *
@@ -445,7 +445,6 @@ static int cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 		{
 			starpu_data_handle_t data = starpu_data_get_sub_data(dataA, 2, m, n);
 			starpu_data_set_name(data, "subA");
-			starpu_data_set_coordinates(data, 2, m, n);
 		}
 
 	cholesky_kernel_init(size / nblocks);

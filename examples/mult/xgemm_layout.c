@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2017-2017  Erwan Leria
  * Copyright (C) 2010-2010  Mehdi Juhoor
  *
@@ -148,14 +148,6 @@ static void partition_mult_data(void)
 		starpu_data_map_filters(A_handle, 2, &vertA, &horiz);
 		starpu_data_map_filters(B_handle, 2, &vert, &horizB);
 		starpu_data_map_filters(C_handle, 2, &vert, &horiz);
-
-		for (y = 0; y < nslicesy; y++)
-		for (z = 0; z < nslicesz; z++)
-			starpu_data_set_coordinates(starpu_data_get_sub_data(A_handle, 2, z, y), 2, z, y);
-
-		for (x = 0; x < nslicesx; x++)
-		for (z = 0; z < nslicesz; z++)
-			starpu_data_set_coordinates(starpu_data_get_sub_data(B_handle, 2, x, z), 2, x, z);
 	}
 	else
 	{
@@ -163,17 +155,7 @@ static void partition_mult_data(void)
 		starpu_data_partition(A_handle, &horiz);
 
 		starpu_data_map_filters(C_handle, 2, &vert, &horiz);
-
-		for (y = 0; y < nslicesy; y++)
-			starpu_data_set_coordinates(starpu_data_get_sub_data(A_handle, 1, y), 2, 0, y);
-
-		for (x = 0; x < nslicesx; x++)
-			starpu_data_set_coordinates(starpu_data_get_sub_data(B_handle, 1, x), 2, x, 0);
 	}
-
-	for (x = 0; x < nslicesx; x++)
-	for (y = 0; y < nslicesy; y++)
-		starpu_data_set_coordinates(starpu_data_get_sub_data(C_handle, 2, x, y), 2, x, y);
 }
 
 #ifdef STARPU_USE_CUDA

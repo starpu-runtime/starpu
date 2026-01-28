@@ -278,6 +278,17 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		child->init_cl = initial_handle->init_cl;
 		child->init_cl_arg = initial_handle->init_cl_arg;
 
+		/* We can opportunistically introduce a dimension. Application can override that if they wish */
+		unsigned dimension = initial_handle->dimensions;
+		if (dimension)
+			memcpy(child->coordinates, initial_handle->coordinates, sizeof(*initial_handle->coordinates) * dimension);
+		if (dimension < sizeof(initial_handle->coordinates) / sizeof(*initial_handle->coordinates))
+		{
+			child->dimensions = dimension + 1;
+			child->coordinates[dimension] = i;
+			_starpu_trace_data_coordinates(child, child->dimensions, child->coordinates);
+		}
+
 		for (node = 0; node < STARPU_MAXNODES; node++)
 		{
 			struct _starpu_data_replicate *initial_replicate;
