@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -408,6 +408,15 @@ define starpu-print-data
   end
   if $data->ops->interfaceid > 9
     printf "Interface id %d\n", $data->ops->interfaceid
+  end
+  if $data->dimensions
+    printf "Coordinates:"
+    set $n = 0
+    while $n < $data->dimensions
+      printf " %d", $data->coordinates[$n]
+      set $n = $n + 1
+    end
+    printf "\n"
   end
   printf "Home node %d\n", $data->home_node
   printf "RWlock refs %d\n", $data->refcnt
