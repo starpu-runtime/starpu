@@ -205,11 +205,11 @@ void _starpu_update_data_state(starpu_data_handle_t handle,
 				/* The mapping node will be kept up to date */
 				continue;
 			if (handle->per_node[node].state != STARPU_INVALID)
-				_starpu_trace_data_state_invalid(&handle, node);
+				_starpu_trace_data_state_invalid(handle, node);
 			handle->per_node[node].state = STARPU_INVALID;
 		}
 		if (requesting_replicate->state != STARPU_OWNER)
-			_starpu_trace_data_state_owner(&handle, requesting_node);
+			_starpu_trace_data_state_owner(handle, requesting_node);
 		requesting_replicate->state = STARPU_OWNER;
 		if (handle->home_node != -1 && handle->per_node[handle->home_node].state == STARPU_INVALID)
 			/* Notify that this MC is now dirty */
@@ -228,12 +228,12 @@ void _starpu_update_data_state(starpu_data_handle_t handle,
 				if (replicate->state != STARPU_INVALID)
 				{
 					if (replicate->state != STARPU_SHARED)
-						_starpu_trace_data_state_shared(&handle, node);
+						_starpu_trace_data_state_shared(handle, node);
 					replicate->state = STARPU_SHARED;
 				}
 			}
 			if (requesting_replicate->state != STARPU_SHARED)
-				_starpu_trace_data_state_shared(&handle, requesting_node);
+				_starpu_trace_data_state_shared(handle, requesting_node);
 			requesting_replicate->state = STARPU_SHARED;
 		}
 	}

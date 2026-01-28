@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2021-2021  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -358,7 +358,7 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 
 		dst_replicate->initialized = 1;
 
-		_starpu_trace_start_driver_copy(src_node, dst_node, size, com_id, prefetch, &handle);
+		_starpu_trace_start_driver_copy(src_node, dst_node, size, com_id, prefetch, handle);
 		int ret_copy = copy_data_1_to_1_generic(handle, src_replicate, dst_replicate, req);
 		if (!req)
 			/* Synchronous, this is already finished */

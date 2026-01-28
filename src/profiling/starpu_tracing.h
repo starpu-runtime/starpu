@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2022-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2022-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2023-2025  École de Technologie Supérieure (ETS, Montréal)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -140,17 +140,17 @@ int _starpu_trace_task_done(struct _starpu_job *job);
 int _starpu_trace_tag_done(struct _starpu_tag* tag);
 
 /* Set the data's name */
-int _starpu_trace_data_name(starpu_data_handle_t *handle, const char* name);
+int _starpu_trace_data_name(starpu_data_handle_t handle, const char* name);
 /* Set the data's coordinates array */
-int _starpu_trace_data_coordinates(starpu_data_handle_t *handle, unsigned dim, int v[]);
+int _starpu_trace_data_coordinates(starpu_data_handle_t handle, unsigned dim, int v[]);
 /* Copy data */
 int _starpu_trace_data_copy(unsigned src_node, unsigned dst_node, size_t size);
 /* Set all my children's handles as not being used in the future */
-int _starpu_trace_data_wont_use(starpu_data_handle_t *handle);
+int _starpu_trace_data_wont_use(starpu_data_handle_t handle);
 /* Set all my memory chunks as not being used in the future */
-int _starpu_trace_data_doing_wont_use(starpu_data_handle_t *handle);
+int _starpu_trace_data_doing_wont_use(starpu_data_handle_t handle);
 /* Start data copy request */
-int _starpu_trace_start_driver_copy(unsigned src_node, unsigned dst_node, size_t size, unsigned long com_id, enum starpu_is_prefetch prefetch, starpu_data_handle_t *handle);
+int _starpu_trace_start_driver_copy(unsigned src_node, unsigned dst_node, size_t size, unsigned long com_id, enum starpu_is_prefetch prefetch, starpu_data_handle_t handle);
 /* Data copy request completed */
 int _starpu_trace_end_driver_copy(unsigned src_node, unsigned dst_node, size_t size, unsigned long com_id,enum starpu_is_prefetch prefetch);
 /* Start asynchronous data request */
@@ -159,22 +159,22 @@ int _starpu_trace_start_driver_copy_async(unsigned src_node, unsigned dst_node);
 int _starpu_trace_end_driver_copy_async(unsigned src_node, unsigned dst_node);
 
 /* Register a data handle */
-int _starpu_trace_handle_data_register(starpu_data_handle_t *handle);
+int _starpu_trace_handle_data_register(starpu_data_handle_t handle);
 /* Unregister a data handle */
-int _starpu_trace_handle_data_unregister(starpu_data_handle_t *handle);
+int _starpu_trace_handle_data_unregister(starpu_data_handle_t handle);
 /* Set the data's state as invalid */
-int _starpu_trace_data_state_invalid(starpu_data_handle_t *handle, unsigned node);
+int _starpu_trace_data_state_invalid(starpu_data_handle_t handle, unsigned node);
 /* Set the data's owner */
-int _starpu_trace_data_state_owner(starpu_data_handle_t *handle, unsigned node);
+int _starpu_trace_data_state_owner(starpu_data_handle_t handle, unsigned node);
 /* Set the data's state as shared */
-int _starpu_trace_data_state_shared(starpu_data_handle_t *handle, unsigned node);
+int _starpu_trace_data_state_shared(starpu_data_handle_t handle, unsigned node);
 /* Create a data request */
-int _starpu_trace_data_request_created(starpu_data_handle_t *handle, int orig, int dest, int prio, enum starpu_is_prefetch is_prefetch, struct _starpu_data_request *req);
+int _starpu_trace_data_request_created(starpu_data_handle_t handle, int orig, int dest, int prio, enum starpu_is_prefetch is_prefetch, struct _starpu_data_request *req);
 
 /* Start unapplying a filter */
-int _starpu_trace_start_unpartition(starpu_data_handle_t *handle, unsigned memnode);
+int _starpu_trace_start_unpartition(starpu_data_handle_t handle, unsigned memnode);
 /* Finished unapplying a filter */
-int _starpu_trace_end_unpartition(starpu_data_handle_t *handle, unsigned memnode);
+int _starpu_trace_end_unpartition(starpu_data_handle_t handle, unsigned memnode);
 
 /* Schedule a task (work stealing scheduling policy) */
 int _starpu_trace_work_stealing(unsigned empty_q, unsigned victim_q);
@@ -234,21 +234,21 @@ int _starpu_trace_hypervisor_begin();
 int _starpu_trace_hypervisor_end();
 
 /* Beginning of a memory allocation */
-int _starpu_trace_start_alloc(unsigned memnode, size_t size, starpu_data_handle_t *handle, enum starpu_is_prefetch is_prefetch);
+int _starpu_trace_start_alloc(unsigned memnode, size_t size, starpu_data_handle_t handle, enum starpu_is_prefetch is_prefetch);
 /* End of a memory allocation */
-int _starpu_trace_end_alloc(unsigned memnode, starpu_data_handle_t *handle, starpu_ssize_t r);
+int _starpu_trace_end_alloc(unsigned memnode, starpu_data_handle_t handle, starpu_ssize_t r);
 /* Beginning of a memory allocation using allocation cache */
-int _starpu_trace_start_alloc_reuse(unsigned memnode, size_t size, starpu_data_handle_t *handle, enum starpu_is_prefetch is_prefetch);
+int _starpu_trace_start_alloc_reuse(unsigned memnode, size_t size, starpu_data_handle_t handle, enum starpu_is_prefetch is_prefetch);
 /* End of a memory allocation using allocation cache */
-int _starpu_trace_end_alloc_reuse(unsigned memnode, starpu_data_handle_t *handle, starpu_ssize_t r);
+int _starpu_trace_end_alloc_reuse(unsigned memnode, starpu_data_handle_t handle, starpu_ssize_t r);
 /* Before memory is freeed */
-int _starpu_trace_start_free(unsigned memnode, size_t size, starpu_data_handle_t *handle);
+int _starpu_trace_start_free(unsigned memnode, size_t size, starpu_data_handle_t handle);
 /* After memory is freeed */
-int _starpu_trace_end_free(unsigned memnode, starpu_data_handle_t *handle);
+int _starpu_trace_end_free(unsigned memnode, starpu_data_handle_t handle);
 /* Before a subtree is transfered to a node */
-int _starpu_trace_start_writeback(unsigned memnode, starpu_data_handle_t *handle);
+int _starpu_trace_start_writeback(unsigned memnode, starpu_data_handle_t handle);
 /* After a subtree is transfered to a node */
-int _starpu_trace_end_writeback(unsigned memnode, starpu_data_handle_t *handle);
+int _starpu_trace_end_writeback(unsigned memnode, starpu_data_handle_t handle);
 /* Allocate memory */
 int _starpu_trace_used_mem(unsigned memnode, size_t used);
 /* Before trying to free the buffers currently in use on the memory node */

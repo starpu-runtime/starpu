@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2018-2021  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -341,7 +341,7 @@ static int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT transfer_subtree_to_node(starpu_d
 
 			/* some other node may have the copy */
 			if (src_replicate->state != STARPU_INVALID)
-				_starpu_trace_data_state_invalid(&handle, src_node);
+				_starpu_trace_data_state_invalid(handle, src_node);
 			src_replicate->state = STARPU_INVALID;
 
 			/* count the number of copies */
@@ -358,7 +358,7 @@ static int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT transfer_subtree_to_node(starpu_d
 			if (cnt == 1)
 			{
 				if (handle->per_node[last].state != STARPU_OWNER)
-					_starpu_trace_data_state_owner(&handle, last);
+					_starpu_trace_data_state_owner(handle, last);
 				handle->per_node[last].state = STARPU_OWNER;
 			}
 
@@ -434,9 +434,9 @@ static size_t free_memory_on_node(struct _starpu_mem_chunk *mc, unsigned node)
 			data_interface = mc->chunk_interface;
 		STARPU_ASSERT(data_interface);
 
-	       _starpu_trace_start_free(node, mc->size, &handle);
+	       _starpu_trace_start_free(node, mc->size, handle);
 		mc->ops->free_data_on_node(data_interface, node);
-	       _starpu_trace_end_free(node, &handle);
+	       _starpu_trace_end_free(node, handle);
 
 		if (handle)
 			notify_handle_children(handle, replicate, node);
@@ -671,12 +671,12 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 				if (handle->per_node[node].state == STARPU_OWNER)
 					_starpu_memory_handle_stats_invalidated(handle, node);
 #endif
-			       _starpu_trace_start_writeback(node, &handle);
+			       _starpu_trace_start_writeback(node, handle);
 				/* Note: this may need to allocate data etc.
 				 * and thus release the header lock, take
 				 * mc_lock, etc. */
 				res = transfer_subtree_to_node(handle, node, target);
-			       _starpu_trace_end_writeback(node, &handle);
+			       _starpu_trace_end_writeback(node, handle);
 #ifdef STARPU_MEMORY_STATS
 				_starpu_memory_handle_stats_loaded_owner(handle, target);
 #endif
@@ -1595,16 +1595,16 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 
 #ifdef STARPU_USE_ALLOCATION_CACHE
 	if (!prefetch_oom)
-		_starpu_trace_start_alloc_reuse(dst_node, data_size, &handle, is_prefetch);
+		_starpu_trace_start_alloc_reuse(dst_node, data_size, handle, is_prefetch);
 	if (try_to_find_reusable_mc(dst_node, handle, replicate, footprint))
 	{
 		_starpu_allocation_cache_hit(dst_node);
 		if (!prefetch_oom)
-			_starpu_trace_end_alloc_reuse(dst_node, &handle, 1);
+			_starpu_trace_end_alloc_reuse(dst_node, handle, 1);
 		return data_size;
 	}
 	if (!prefetch_oom)
-		_starpu_trace_end_alloc_reuse(dst_node, &handle, 0);
+		_starpu_trace_end_alloc_reuse(dst_node, handle, 0);
 #endif
 
 	/* If this is RAM and pinned this will be slow
@@ -1632,11 +1632,11 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 	do
 	{
 		if (!prefetch_oom)
-			_starpu_trace_start_alloc(dst_node, data_size, &handle, is_prefetch);
+			_starpu_trace_start_alloc(dst_node, data_size, handle, is_prefetch);
 
 		allocated_memory = handle->ops->allocate_data_on_node(data_interface, dst_node);
 		if (!prefetch_oom)
-			_starpu_trace_end_alloc(dst_node, &handle, allocated_memory);
+			_starpu_trace_end_alloc(dst_node, handle, allocated_memory);
 
 		if (allocated_memory == -ENOMEM)
 		{
@@ -1735,9 +1735,9 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 	else if (replicate->allocated)
 	{
 		/* Argl, somebody allocated it in between already, drop this one */
-	       _starpu_trace_start_free(dst_node, data_size, &handle);
+	       _starpu_trace_start_free(dst_node, data_size, handle);
 		handle->ops->free_data_on_node(data_interface, dst_node);
-	       _starpu_trace_end_free(dst_node, &handle);
+	       _starpu_trace_end_free(dst_node, handle);
 		allocated_memory = 0;
 	}
 	else

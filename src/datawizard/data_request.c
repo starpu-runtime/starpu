@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013-2013  Thibaut Lambert
  * Copyright (C) 2018-2021  Federal University of Rio Grande do Sul (UFRGS)
  *
@@ -153,7 +153,7 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 
 	_starpu_spin_init(&r->lock);
 
-	_starpu_trace_data_request_created(&handle, src_replicate?src_replicate->memory_node:-1, dst_replicate?dst_replicate->memory_node:-1, prio, is_prefetch, r);
+	_starpu_trace_data_request_created(handle, src_replicate?src_replicate->memory_node:-1, dst_replicate?dst_replicate->memory_node:-1, prio, is_prefetch, r);
 
 	r->origin = origin;
 	r->handle = handle;

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2022-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2022-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2023-2025  École de Technologie Supérieure (ETS, Montréal)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -870,7 +870,7 @@ int _starpu_trace_tag_done(struct _starpu_tag *tag STARPU_ATTRIBUTE_UNUSED)
  * \p handle is the corresponding data handle.
  * \p name is the name to be assigned to the data handle.
  */
-int _starpu_trace_data_name(starpu_data_handle_t *handle STARPU_ATTRIBUTE_UNUSED, const char *name STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_data_name(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED, const char *name STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	_STARPU_FUT_FULL_PROBE1STR(_STARPU_FUT_KEYMASK_META, _STARPU_FUT_DATA_NAME, handle, name);
@@ -884,7 +884,7 @@ int _starpu_trace_data_name(starpu_data_handle_t *handle STARPU_ATTRIBUTE_UNUSED
  * \p dim is the number of dimensions for the coordinates.
  * \p v is the array of coordinates.
  */
-int _starpu_trace_data_coordinates(starpu_data_handle_t *handle STARPU_ATTRIBUTE_UNUSED, unsigned dim STARPU_ATTRIBUTE_UNUSED, int v[] STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_data_coordinates(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED, unsigned dim STARPU_ATTRIBUTE_UNUSED, int v[] STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	switch (dim)
@@ -917,7 +917,7 @@ int _starpu_trace_data_copy(unsigned src_node STARPU_ATTRIBUTE_UNUSED, unsigned 
  * A data handle has been marked as eligible for cache eviction.
  * \p handle is the corresponding data handle.
  */
-int _starpu_trace_data_wont_use(starpu_data_handle_t *handle STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_data_wont_use(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	FUT_FULL_PROBE4(_STARPU_FUT_KEYMASK_DATA, _STARPU_FUT_DATA_WONT_USE, handle, _starpu_fxt_get_submit_order(), _starpu_fxt_get_job_id(), _starpu_gettid());
@@ -929,7 +929,7 @@ int _starpu_trace_data_wont_use(starpu_data_handle_t *handle STARPU_ATTRIBUTE_UN
  * A data handle cache eviction mark is being processed.
  * \p handle is the corresponding data handle.
  */
-int _starpu_trace_data_doing_wont_use(starpu_data_handle_t *handle STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_data_doing_wont_use(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	FUT_FULL_PROBE1(_STARPU_FUT_KEYMASK_DSM, _STARPU_FUT_DATA_DOING_WONT_USE, handle);
@@ -946,7 +946,7 @@ int _starpu_trace_data_doing_wont_use(starpu_data_handle_t *handle STARPU_ATTRIB
  * \p prefetch is the prefetch level.
  * \p handle is the corresponding data handle.
  */
-int _starpu_trace_start_driver_copy(unsigned src_node STARPU_ATTRIBUTE_UNUSED, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRIBUTE_UNUSED, unsigned long com_id STARPU_ATTRIBUTE_UNUSED, enum starpu_is_prefetch prefetch STARPU_ATTRIBUTE_UNUSED, starpu_data_handle_t *handle STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_start_driver_copy(unsigned src_node STARPU_ATTRIBUTE_UNUSED, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRIBUTE_UNUSED, unsigned long com_id STARPU_ATTRIBUTE_UNUSED, enum starpu_is_prefetch prefetch STARPU_ATTRIBUTE_UNUSED, starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	FUT_FULL_PROBE6(_STARPU_FUT_KEYMASK_DSM, _STARPU_FUT_START_DRIVER_COPY, src_node, dst_node, size, com_id, prefetch, handle);
@@ -1301,7 +1301,7 @@ int _starpu_trace_task_wait_for_all_end()
  * \p handle is the corresponding data handle.
  * \p is_prefetch is a boolean indicating whether the operation is speculative of performed by necessity.
  */
-int _starpu_trace_start_alloc(unsigned memnode STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRIBUTE_UNUSED, starpu_data_handle_t *handle STARPU_ATTRIBUTE_UNUSED, enum starpu_is_prefetch is_prefetch STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_start_alloc(unsigned memnode STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRIBUTE_UNUSED, starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED, enum starpu_is_prefetch is_prefetch STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	FUT_FULL_PROBE5(_STARPU_FUT_KEYMASK_DSM, _STARPU_FUT_START_ALLOC, memnode, _starpu_gettid(), size, handle, is_prefetch);
@@ -1315,7 +1315,7 @@ int _starpu_trace_start_alloc(unsigned memnode STARPU_ATTRIBUTE_UNUSED, size_t s
  * \p handle is the corresponding data handle.
  * \p r is the size of the memory allocated.
  */
-int _starpu_trace_end_alloc(unsigned memnode STARPU_ATTRIBUTE_UNUSED, starpu_data_handle_t *handle STARPU_ATTRIBUTE_UNUSED, starpu_ssize_t r STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_end_alloc(unsigned memnode STARPU_ATTRIBUTE_UNUSED, starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED, starpu_ssize_t r STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	FUT_FULL_PROBE4(_STARPU_FUT_KEYMASK_DSM, _STARPU_FUT_END_ALLOC, memnode, _starpu_gettid(), handle, r);
@@ -1330,7 +1330,7 @@ int _starpu_trace_end_alloc(unsigned memnode STARPU_ATTRIBUTE_UNUSED, starpu_dat
  * \p handle is the corresponding data handle.
  * \p is_prefetch is a boolean indicating whether the operation is speculative of performed by necessity.
  */
-int _starpu_trace_start_alloc_reuse(unsigned memnode STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRIBUTE_UNUSED, starpu_data_handle_t *handle STARPU_ATTRIBUTE_UNUSED, enum starpu_is_prefetch is_prefetch STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_start_alloc_reuse(unsigned memnode STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRIBUTE_UNUSED, starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED, enum starpu_is_prefetch is_prefetch STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	FUT_FULL_PROBE5(_STARPU_FUT_KEYMASK_DSM_VERBOSE, _STARPU_FUT_START_ALLOC_REUSE, memnode, _starpu_gettid(), size, handle, is_prefetch);
@@ -1344,7 +1344,7 @@ int _starpu_trace_start_alloc_reuse(unsigned memnode STARPU_ATTRIBUTE_UNUSED, si
  * \p handle is the corresponding data handle.
  * \p r is the size of the memory allocated.
  */
-int _starpu_trace_end_alloc_reuse(unsigned memnode STARPU_ATTRIBUTE_UNUSED, starpu_data_handle_t *handle STARPU_ATTRIBUTE_UNUSED, starpu_ssize_t r STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_end_alloc_reuse(unsigned memnode STARPU_ATTRIBUTE_UNUSED, starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED, starpu_ssize_t r STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	FUT_FULL_PROBE4(_STARPU_FUT_KEYMASK_DSM_VERBOSE, _STARPU_FUT_END_ALLOC_REUSE, memnode, _starpu_gettid(), handle, r);
@@ -1358,7 +1358,7 @@ int _starpu_trace_end_alloc_reuse(unsigned memnode STARPU_ATTRIBUTE_UNUSED, star
  * \p size is the size of the memory allocated.
  * \p handle is the corresponding data handle.
  */
-int _starpu_trace_start_free(unsigned memnode STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRIBUTE_UNUSED, starpu_data_handle_t *handle STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_start_free(unsigned memnode STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRIBUTE_UNUSED, starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	FUT_FULL_PROBE4(_STARPU_FUT_KEYMASK_DSM_VERBOSE, _STARPU_FUT_START_FREE, memnode, _starpu_gettid(), size, handle);
@@ -1372,7 +1372,7 @@ int _starpu_trace_start_free(unsigned memnode STARPU_ATTRIBUTE_UNUSED, size_t si
  * \p size is the size of the memory allocated.
  * \p handle is the corresponding data handle.
  */
-int _starpu_trace_end_free(unsigned memnode STARPU_ATTRIBUTE_UNUSED, starpu_data_handle_t *handle STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_end_free(unsigned memnode STARPU_ATTRIBUTE_UNUSED, starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_DSM_VERBOSE, _STARPU_FUT_END_FREE, memnode, _starpu_gettid(), handle);
@@ -1385,7 +1385,7 @@ int _starpu_trace_end_free(unsigned memnode STARPU_ATTRIBUTE_UNUSED, starpu_data
  * \p memnode is the destination node.
  * \p handle is the corresponding data handle.
  */
-int _starpu_trace_start_writeback(unsigned memnode STARPU_ATTRIBUTE_UNUSED, starpu_data_handle_t *handle STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_start_writeback(unsigned memnode STARPU_ATTRIBUTE_UNUSED, starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_DSM_VERBOSE, _STARPU_FUT_START_WRITEBACK, memnode, _starpu_gettid(), handle);
@@ -1398,7 +1398,7 @@ int _starpu_trace_start_writeback(unsigned memnode STARPU_ATTRIBUTE_UNUSED, star
  * \p memnode is the destination node.
  * \p handle is the corresponding data handle.
  */
-int _starpu_trace_end_writeback(unsigned memnode STARPU_ATTRIBUTE_UNUSED, starpu_data_handle_t *handle STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_end_writeback(unsigned memnode STARPU_ATTRIBUTE_UNUSED, starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_DSM_VERBOSE, _STARPU_FUT_END_WRITEBACK, memnode, _starpu_gettid(), handle);
@@ -2031,7 +2031,7 @@ int _starpu_trace_data_load(int workerid STARPU_ATTRIBUTE_UNUSED, size_t size ST
 	return 0;
 }
 
-int _starpu_trace_start_unpartition(starpu_data_handle_t *handle STARPU_ATTRIBUTE_UNUSED, unsigned memnode STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_start_unpartition(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED, unsigned memnode STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_DSM, _STARPU_FUT_START_UNPARTITION_ON_TID, memnode, _starpu_gettid(), handle);
@@ -2039,7 +2039,7 @@ int _starpu_trace_start_unpartition(starpu_data_handle_t *handle STARPU_ATTRIBUT
 	return 0;
 }
 
-int _starpu_trace_end_unpartition(starpu_data_handle_t *handle STARPU_ATTRIBUTE_UNUSED, unsigned memnode STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_end_unpartition(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED, unsigned memnode STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_DSM, _STARPU_FUT_END_UNPARTITION_ON_TID, memnode, _starpu_gettid(), handle);
@@ -2107,26 +2107,26 @@ int _starpu_trace_sched_component_pull(struct starpu_sched_component *from STARP
 	return 0;
 }
 
-int _starpu_trace_handle_data_register(starpu_data_handle_t *handle STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_handle_data_register(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	if(STARPU_UNLIKELY((_STARPU_FUT_KEYMASK_META) & fut_active))
 	{
-		const size_t __data_size = (*handle)->ops->get_size((*handle));
-		const starpu_ssize_t __max_data_size = _starpu_data_get_max_size((*handle));
+		const size_t __data_size = handle->ops->get_size(handle);
+		const starpu_ssize_t __max_data_size = _starpu_data_get_max_size(handle);
 		char __buf[(FXT_MAX_PARAMS-4)*sizeof(long)];
-		void *__interface = (*handle)->per_node[0].data_interface;
-		if ((*handle)->ops->describe)
-			(*handle)->ops->describe(__interface, __buf, sizeof(__buf));
+		void *__interface = handle->per_node[0].data_interface;
+		if (handle->ops->describe)
+			handle->ops->describe(__interface, __buf, sizeof(__buf));
 		else
 			__buf[0] = 0;
-		_STARPU_FUT_FULL_PROBE5STR(_STARPU_FUT_KEYMASK_META, _STARPU_FUT_HANDLE_DATA_REGISTER, (*handle), __data_size, __max_data_size, (*handle)->home_node, (*handle)->parent_handle, __buf);
+		_STARPU_FUT_FULL_PROBE5STR(_STARPU_FUT_KEYMASK_META, _STARPU_FUT_HANDLE_DATA_REGISTER, handle, __data_size, __max_data_size, handle->home_node, handle->parent_handle, __buf);
 	}
 #endif
 	return 0;
 }
 
-int _starpu_trace_handle_data_unregister(starpu_data_handle_t *handle STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_handle_data_unregister(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	FUT_FULL_PROBE1(_STARPU_FUT_KEYMASK_DATA, _STARPU_FUT_HANDLE_DATA_UNREGISTER, handle);
@@ -2135,7 +2135,7 @@ int _starpu_trace_handle_data_unregister(starpu_data_handle_t *handle STARPU_ATT
 }
 
 //Coherency Data Traces
-int _starpu_trace_data_state_invalid(starpu_data_handle_t *handle STARPU_ATTRIBUTE_UNUSED, unsigned node STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_data_state_invalid(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED, unsigned node STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	FUT_FULL_PROBE2(_STARPU_FUT_KEYMASK_DSM_VERBOSE, _STARPU_FUT_DATA_STATE_INVALID, handle, node);
@@ -2143,7 +2143,7 @@ int _starpu_trace_data_state_invalid(starpu_data_handle_t *handle STARPU_ATTRIBU
 	return 0;
 }
 
-int _starpu_trace_data_state_owner(starpu_data_handle_t *handle STARPU_ATTRIBUTE_UNUSED, unsigned node STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_data_state_owner(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED, unsigned node STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	FUT_FULL_PROBE2(_STARPU_FUT_KEYMASK_DSM_VERBOSE, _STARPU_FUT_DATA_STATE_OWNER, handle, node);
@@ -2151,7 +2151,7 @@ int _starpu_trace_data_state_owner(starpu_data_handle_t *handle STARPU_ATTRIBUTE
 	return 0;
 }
 
-int _starpu_trace_data_state_shared(starpu_data_handle_t *handle STARPU_ATTRIBUTE_UNUSED, unsigned node STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_data_state_shared(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED, unsigned node STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	FUT_FULL_PROBE2(_STARPU_FUT_KEYMASK_DSM_VERBOSE, _STARPU_FUT_DATA_STATE_SHARED, handle, node);
@@ -2159,7 +2159,7 @@ int _starpu_trace_data_state_shared(starpu_data_handle_t *handle STARPU_ATTRIBUT
 	return 0;
 }
 
-int _starpu_trace_data_request_created(starpu_data_handle_t *handle STARPU_ATTRIBUTE_UNUSED, int orig STARPU_ATTRIBUTE_UNUSED, int dest STARPU_ATTRIBUTE_UNUSED, int prio STARPU_ATTRIBUTE_UNUSED, enum starpu_is_prefetch is_prefetch STARPU_ATTRIBUTE_UNUSED, struct _starpu_data_request *req STARPU_ATTRIBUTE_UNUSED)
+int _starpu_trace_data_request_created(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED, int orig STARPU_ATTRIBUTE_UNUSED, int dest STARPU_ATTRIBUTE_UNUSED, int prio STARPU_ATTRIBUTE_UNUSED, enum starpu_is_prefetch is_prefetch STARPU_ATTRIBUTE_UNUSED, struct _starpu_data_request *req STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_FXT
 	FUT_FULL_PROBE6(_STARPU_FUT_KEYMASK_DSM_VERBOSE, _STARPU_FUT_DATA_REQUEST_CREATED, orig, dest, prio, handle, is_prefetch, req);
