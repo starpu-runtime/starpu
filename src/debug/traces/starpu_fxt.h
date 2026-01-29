@@ -100,7 +100,7 @@ unsigned _starpu_fxt_data_get_coord(unsigned long handle, int mpi_rank, unsigned
 const char *_starpu_fxt_data_get_name(unsigned long handle, int mpi_rank);
 void _starpu_fxt_dag_set_worker(int worker_id, const char *worker_kind, char *worker_color);
 
-void _starpu_convert_numa_nodes_bitmap_to_str(long bitmap, char str[]);
+void _starpu_convert_numa_nodes_bitmap_to_str(long bitmap, size_t len, char str[len]);
 
 /*
  *	MPI

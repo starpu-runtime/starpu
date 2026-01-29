@@ -464,9 +464,9 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comm
 				fprintf(out_comms_file, "Priority: %d\n", cur->prio);
 				fprintf(out_comms_file, "Type: %s\n", get_mpi_type_str(cur->type));
 				char str[STARPU_TRACE_STR_LEN] = "";
-				_starpu_convert_numa_nodes_bitmap_to_str(send_numa_nodes_bitmap, str);
+				_starpu_convert_numa_nodes_bitmap_to_str(send_numa_nodes_bitmap, sizeof(str), str);
 				fprintf(out_comms_file, "SendNumaNodes: %s\n", str);
-				_starpu_convert_numa_nodes_bitmap_to_str(recv_numa_nodes_bitmap, str);
+				_starpu_convert_numa_nodes_bitmap_to_str(recv_numa_nodes_bitmap, sizeof(str), str);
 				fprintf(out_comms_file, "RecvNumaNodes: %s\n", str);
 				fprintf(out_comms_file, "\n");
 			}
