@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2017-2021  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -186,34 +186,39 @@ static int show_task(struct task_info *task, struct starpu_fxt_options *options)
 	return 1;
 }
 
-void _starpu_convert_numa_nodes_bitmap_to_str(long bitmap, char* str)
+void _starpu_convert_numa_nodes_bitmap_to_str(long bitmap, size_t len, char str[len])
 {
+	unsigned res;
 	if (bitmap < 0)
 	{
-		sprintf(str, "%ld", bitmap);
+		res = snprintf(str, len, "%ld", bitmap);
 	}
 	else
 	{
 		long i = 0;
 		int first = 1;
-		for (; i < (long) (sizeof(bitmap)*8)-1; i++)
+
+		res = 0;
+		for (; i < (long) (sizeof(bitmap)*8)-1 && res < len; i++)
 		{
 			if (bitmap & ((long) 1 << i))
 			{
 				if (first)
-				{
-					sprintf(str, "%ld", i);
 					first = 0;
-				}
 				else
-				{
-					strcat(str, ",");
-					char number[4];
-					sprintf(number, "%ld", i);
-					strcat(str, number);
-				}
+					str[res++] = ',';
+
+				res += snprintf(str+res, len-res, "%ld", i);
 			}
 		}
+	}
+	if (res >= len-1)
+	{
+		/* Truncated, show it is truncated */
+		str[len-4] = '.';
+		str[len-3] = '.';
+		str[len-2] = '.';
+		str[len-1] = 0;
 	}
 }
 
@@ -305,7 +310,7 @@ static void task_dump(struct task_info *task, struct starpu_fxt_options *options
 		for (i = 0; i < task->ndata; i++)
 		{
 			char str[STARPU_TRACE_STR_LEN] = "";
-			_starpu_convert_numa_nodes_bitmap_to_str(task->data[i].numa_nodes_bitmap, str);
+			_starpu_convert_numa_nodes_bitmap_to_str(task->data[i].numa_nodes_bitmap, sizeof(str), str);
 			fprintf(tasks_file, " %s", str);
 		}
 		fprintf(tasks_file, "\n");
@@ -1849,15 +1854,23 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 	if (worker < 0) return;
 
 	char parameters[256];
-	size_t eaten = 0;
+	size_t eaten = 0, max;
 	if (!last_codelet_parameter[worker])
 		snprintf(parameters, sizeof(parameters) - 1, "nodata");
 	else
 	{
 		int i;
-		for (i = 0; i < last_codelet_parameter[worker] && i < MAX_PARAMETERS; i++)
+		max = sizeof(parameters);
+		for (i = 0; i < last_codelet_parameter[worker] && i < MAX_PARAMETERS && eaten < max; i++)
 		{
 			eaten += snprintf(parameters + eaten, sizeof(parameters) - eaten - 1, "%s%s", i?" ":"", last_codelet_parameter_description[worker][i]);
+		}
+		if (eaten >= max)
+		{
+			parameters[max-4] = '.';
+			parameters[max-3] = '.';
+			parameters[max-2] = '.';
+			parameters[max-1] = 0;
 		}
 	}
 	parameters[sizeof(parameters)-1] = 0;
@@ -1885,12 +1898,20 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 	}
 
 	char numa_nodes_str[STARPU_TRACE_STR_LEN] = "";
+	max = sizeof(numa_nodes_str);
 	eaten = 0;
-	for (i = 0; i < task->ndata; i++)
+	for (i = 0; i < task->ndata && eaten < max; i++)
 	{
 		char str[STARPU_TRACE_STR_LEN] = "";
-		_starpu_convert_numa_nodes_bitmap_to_str(task->data[i].numa_nodes_bitmap, str);
-		eaten += snprintf(numa_nodes_str + eaten, sizeof(numa_nodes_str) - eaten - 1, "%s%s", i ? "_" : "", str);
+		_starpu_convert_numa_nodes_bitmap_to_str(task->data[i].numa_nodes_bitmap, sizeof(str), str);
+		eaten += snprintf(numa_nodes_str + eaten, max - eaten - 1, "%s%s", i ? "_" : "", str);
+	}
+	if (eaten >= max)
+	{
+		numa_nodes_str[max-4] = '.';
+		numa_nodes_str[max-3] = '.';
+		numa_nodes_str[max-2] = '.';
+		numa_nodes_str[max-1] = 0;
 	}
 	numa_nodes_str[sizeof(numa_nodes_str)-1] = 0;
 
