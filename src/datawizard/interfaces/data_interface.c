@@ -416,6 +416,7 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 
 	handle->last_locality = -1;
 
+	//handle->name = "";
 	//handle->dimensions = 0;
 	//handle->coordinates = {};
 
