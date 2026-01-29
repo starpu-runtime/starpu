@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2016-2016  Uppsala University
  * Copyright (C) 2013-2013  Thibaut Lambert
  * Copyright (C) 2013-2013  Simon Archipoff
@@ -1235,7 +1235,10 @@ profiling:
 	if(task->prologue_callback_pop_func)
 	{
 		_starpu_set_current_task(task);
+		struct _starpu_job *job = _starpu_get_job_associated_to_task(task);
+		_starpu_trace_start_callback(job);
 		task->prologue_callback_pop_func(task->prologue_callback_pop_arg);
+		_starpu_trace_end_callback(job);
 		_starpu_set_current_task(NULL);
 	}
 
