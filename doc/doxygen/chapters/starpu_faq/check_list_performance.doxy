@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -174,16 +174,16 @@ in \c examples/cholesky
 If the kernel can be made to only use this local stream or other self-allocated
 streams, i.e. the whole kernel submission can be made asynchronous, then
 one should enable asynchronous execution of the kernel.  This means setting
-the flag ::STARPU_CUDA_ASYNC in the corresponding field starpu_codelet::cuda_flags, and dropping the
-<c>cudaStreamSynchronize()</c> call at the end of the <c>cuda_func</c> function, so that it
+the flag ::STARPU_CUDA_ASYNC (resp ::STARPU_HIP_ASYNC) in the corresponding field starpu_codelet::cuda_flags (resp starpu_codelet::hip_flags), and dropping the
+<c>cudaStreamSynchronize()</c> call (resp <c>hipStreamSynchronize()</c>)) at the end of the <c>cuda_func</c> function (resp <c>hip_func</c>), so that it
 returns immediately after having queued the kernel to the local stream. That way, StarPU will be
 able to submit and complete data transfers while kernels are executing, instead of only at each
 kernel submission. The kernel just has to make sure that StarPU can use the
 local stream to synchronize with the kernel startup and completion.
 
-Using the flag ::STARPU_CUDA_ASYNC also permits to enable concurrent kernel
+Using the flag ::STARPU_CUDA_ASYNC (resp ::STARPU_HIP_ASYNC) also permits to enable concurrent kernel
 execution, on cards which support it (Kepler and later, notably). This is
-enabled by setting the environment variable \ref STARPU_NWORKER_PER_CUDA to the
+enabled by setting the environment variable \ref STARPU_NWORKER_PER_CUDA (resp \ref STARPU_NWORKER_PER_HIP) to the
 number of kernels to be executed concurrently.  This is useful when kernels are
 small and do not feed the whole GPU with threads to run.
 
