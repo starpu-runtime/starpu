@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -56,6 +56,11 @@ static void init_hipblas_func(void *args STARPU_ATTRIBUTE_UNUSED)
 {
 	unsigned idx = get_idx();
 	hipblasStatus_t status = hipblasCreate(&hipblas_handles[starpu_worker_get_id_check()]);
+#ifdef STARPU_USE_HIP_CUDA
+	STARPU_ASSERT (status != HIPBLAS_STATUS_NOT_INITIALIZED, "hipblas initialization failed, it seems hipblas was built against rocm, while StarPU is built against cuda\n");
+#else
+	STARPU_ASSERT (status != HIPBLAS_STATUS_NOT_INITIALIZED, "hipblas initialization failed, it seems hipblas was built against cuda, while StarPU is built against rocm\n");
+#endif
 	if (status != HIPBLAS_STATUS_SUCCESS)
 		STARPU_HIPBLAS_REPORT_ERROR(status);
 	status=hipblasSetStream(hipblas_handles[starpu_worker_get_id_check()], starpu_hip_get_local_stream());
