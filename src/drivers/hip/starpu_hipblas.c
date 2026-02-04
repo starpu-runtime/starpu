@@ -57,9 +57,9 @@ static void init_hipblas_func(void *args STARPU_ATTRIBUTE_UNUSED)
 	unsigned idx = get_idx();
 	hipblasStatus_t status = hipblasCreate(&hipblas_handles[starpu_worker_get_id_check()]);
 #ifdef STARPU_USE_HIP_CUDA
-	STARPU_ASSERT (status != HIPBLAS_STATUS_NOT_INITIALIZED, "hipblas initialization failed, it seems hipblas was built against rocm, while StarPU is built against cuda\n");
+	STARPU_ASSERT_MSG(status != HIPBLAS_STATUS_NOT_INITIALIZED, "hipblas initialization failed, it seems hipblas was built against rocm, while StarPU is built against cuda\n");
 #else
-	STARPU_ASSERT (status != HIPBLAS_STATUS_NOT_INITIALIZED, "hipblas initialization failed, it seems hipblas was built against cuda, while StarPU is built against rocm\n");
+	STARPU_ASSERT_MSG(status != HIPBLAS_STATUS_NOT_INITIALIZED, "hipblas initialization failed, it seems hipblas was built against cuda, while StarPU is built against rocm\n");
 #endif
 	if (status != HIPBLAS_STATUS_SUCCESS)
 		STARPU_HIPBLAS_REPORT_ERROR(status);
