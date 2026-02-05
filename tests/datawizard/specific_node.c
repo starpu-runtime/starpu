@@ -31,6 +31,71 @@
 
 unsigned data, data2;
 
+void specific4_kernel(void *descr[], void *arg)
+{
+	(void)arg;
+	int node = starpu_task_get_current_data_node(0);
+	STARPU_ASSERT(node >= 0);
+	STARPU_ASSERT(starpu_node_get_kind(node) == STARPU_CPU_RAM);
+	unsigned *dataptr = (unsigned*) STARPU_VARIABLE_GET_PTR(descr[0]);
+
+	if (node == STARPU_MAIN_RAM)
+		STARPU_ASSERT(dataptr == &data);
+
+	(*dataptr)++;
+
+	int node2 = starpu_task_get_current_data_node(1);
+	STARPU_ASSERT(node2 >= 0);
+	STARPU_ASSERT(starpu_node_get_kind(node2) == starpu_node_get_kind(starpu_worker_get_local_memory_node())
+			|| starpu_node_get_kind(node2) == STARPU_CPU_RAM);
+	dataptr = (unsigned*) STARPU_VARIABLE_GET_PTR(descr[1]);
+
+	if (node2 == STARPU_MAIN_RAM)
+		STARPU_ASSERT(dataptr == &data || dataptr == &data2);
+}
+
+static struct starpu_codelet specific4_cl =
+{
+	.cpu_funcs = {specific4_kernel},
+	.cuda_funcs = {specific4_kernel},
+	.opencl_funcs = {specific4_kernel},
+	.hip_funcs = {specific4_kernel},
+	.nbuffers = 2,
+	.modes = {STARPU_RW, STARPU_RW},
+	.specific_nodes = 1,
+	.nodes = {STARPU_SPECIFIC_NODE_CPU, STARPU_SPECIFIC_NODE_LOCAL_OR_SIMILAR_OR_CPU},
+};
+
+void specific4_ro_kernel(void *descr[], void *arg)
+{
+	(void)arg;
+	int node = starpu_task_get_current_data_node(0);
+	STARPU_ASSERT(node >= 0);
+	STARPU_ASSERT((unsigned)node == starpu_worker_get_local_memory_node());
+	unsigned *dataptr = (unsigned*) STARPU_VARIABLE_GET_PTR(descr[0]);
+
+	int node2 = starpu_task_get_current_data_node(1);
+	STARPU_ASSERT(node2 >= 0);
+	STARPU_ASSERT(starpu_node_get_kind(node2) == starpu_node_get_kind(starpu_worker_get_local_memory_node())
+			|| starpu_node_get_kind(node2) == STARPU_CPU_RAM);
+	dataptr = (unsigned*) STARPU_VARIABLE_GET_PTR(descr[1]);
+
+	if (node2 == STARPU_MAIN_RAM)
+		STARPU_ASSERT(dataptr == &data || dataptr == &data2);
+}
+
+static struct starpu_codelet specific4_cl_ro =
+{
+	.cpu_funcs = {specific4_ro_kernel},
+	.cuda_funcs = {specific4_ro_kernel},
+	.opencl_funcs = {specific4_ro_kernel},
+	.hip_funcs = {specific4_ro_kernel},
+	.nbuffers = 2,
+	.modes = {STARPU_R, STARPU_R},
+	.specific_nodes = 1,
+	.nodes = {STARPU_SPECIFIC_NODE_LOCAL, STARPU_SPECIFIC_NODE_LOCAL_OR_SIMILAR_OR_CPU},
+};
+
 void specific3_kernel(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 	(void)arg;
@@ -177,9 +242,9 @@ int main(void)
 	starpu_data_handle_t data_handle, data_handle2;
 
 #ifdef STARPU_QUICK_CHECK
-	unsigned ntasks = 16;
+	unsigned ntasks = 20;
 #else
-	unsigned ntasks = 1024;
+	unsigned ntasks = 1280;
 #endif
 
 	int ret;
@@ -206,7 +271,7 @@ int main(void)
 	for (i = 0; i < ntasks; i++)
 	{
 		struct starpu_task *task = starpu_task_create();
-		switch (i%8)
+		switch (i%10)
 		{
 		case 0:
 			task->cl = &specific_cl;
@@ -218,24 +283,30 @@ int main(void)
 			task->cl = &specific3_cl;
 			break;
 		case 3:
-			task->cl = &increment_cl;
+			task->cl = &specific4_cl;
 			break;
 		case 4:
-			task->cl = &specific_cl_ro;
+			task->cl = &increment_cl;
 			break;
 		case 5:
-			task->cl = &specific2_cl_ro;
+			task->cl = &specific_cl_ro;
 			break;
 		case 6:
-			task->cl = &specific3_cl;
+			task->cl = &specific2_cl_ro;
 			break;
 		case 7:
+			task->cl = &specific3_cl;
+			break;
+		case 8:
+			task->cl = &specific4_cl_ro;
+			break;
+		case 9:
 			task->cl = &increment_cl;
 			break;
 		}
 
 		task->handles[0] = data_handle;
-		if (i % 8 >= 4)
+		if (i % 10 >= 5)
 			task->handles[1] = data_handle;
 		else
 			task->handles[1] = data_handle2;
@@ -248,7 +319,7 @@ int main(void)
 	starpu_data_unregister(data_handle);
 	starpu_data_unregister(data_handle2);
 
-	ret = (data == (ntasks*4) / 8) ? EXIT_SUCCESS : EXIT_FAILURE;
+	ret = (data == (ntasks*5) / 10) ? EXIT_SUCCESS : EXIT_FAILURE;
 
 	increment_unload_opencl();
 	starpu_shutdown();

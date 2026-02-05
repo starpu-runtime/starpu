@@ -1004,6 +1004,11 @@ struct starpu_codelet cl =
 };
 \endcode
 
+In cases where the kernel is fine with some data being either local or in any memory of the
+same kind (or in the main memory if no such "other" memory exists),
+::STARPU_SPECIFIC_NODE_LOCAL_OR_SIMILAR_OR_CPU can be used. StarPU will let the data be in main
+memory, or the memory of another accelerator of the same kind, and be accessed by the kernel.
+
 An example for specifying target node is available in <c>tests/datawizard/specific_node.c</c>.
 
 */

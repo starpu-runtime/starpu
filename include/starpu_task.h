@@ -297,7 +297,7 @@ typedef void (*starpu_recursive_task_gen_dag_func_t)(struct starpu_task *, void 
    Value to be set in the starpu_codelet::nodes field to let StarPU decide
    whether to put the data in the local memory of the worker running the task,
    or in CPU-accessible memory (and let StarPU choose the NUMA node).
-   The task can determine which node the data resides in with 
+   The task can determine which node the data resides in with
    starpu_task_get_current_data_node()
 */
 #define STARPU_SPECIFIC_NODE_LOCAL_OR_CPU (-5)
@@ -307,10 +307,10 @@ typedef void (*starpu_recursive_task_gen_dag_func_t)(struct starpu_task *, void 
    whether to put the data in the local memory of the worker running the task,
    or leave it in another similar kind of memory (or in CPU-accessible memory
    if such memory does not exist).
-   The task can determine which node the data resides in with 
+   The task can determine which node the data resides in with
    starpu_task_get_current_data_node()
 */
-#define STARPU_SPECIFIC_NODE_LOCAL_OR_SIMILAR (-6)
+#define STARPU_SPECIFIC_NODE_LOCAL_OR_SIMILAR_OR_CPU (-6)
 
 /**
    Value to be set in the starpu_codelet::nodes field to make StarPU not actually
@@ -594,6 +594,7 @@ struct starpu_codelet
 	   ::STARPU_SPECIFIC_NODE_CPU, ::STARPU_SPECIFIC_NODE_SLOW,
 	   :STARPU_SPECIFIC_NODE_FASTSTARPU_SPECIFIC_NODE_FAST,
 	   ::STARPU_SPECIFIC_NODE_LOCAL_OR_CPU,
+	   ::STARPU_SPECIFIC_NODE_LOCAL_OR_SIMILAR_OR_CPU,
 	   ::STARPU_SPECIFIC_NODE_NONE.
 
 	   The number of entries in this

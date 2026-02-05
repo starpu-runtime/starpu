@@ -70,6 +70,8 @@ Small features:
   * When environment variable STARPU_LAUNCHER_DEBUG is set, running a
     test displays extra informations on what is launched
   * Add starpu_data_handle_to_pointer_ref/unref()
+  * Add STARPU_SPECIFIC_NODE_LOCAL_OR_SIMILAR_OR_CPU to allow data to
+    be local or in memory of same kind (or cpu)
 
 StarPU 1.4.10
 ==============================================
