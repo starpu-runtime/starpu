@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010-2010  Mehdi Juhoor
  * Copyright (C) 2011-2011  Télécom Sud Paris
  * Copyright (C) 2013-2013  Thibaut Lambert
@@ -881,7 +881,13 @@ static void init_device_context(unsigned devid, unsigned memnode)
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
 #ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
+#if CUDART_VERSION >= 5000
+	int computeMode;
+	cures = cudaDeviceGetAttribute(&computeMode, cudaDevAttrComputeMode, devid);
+	if (!cures && computeMode == cudaComputeModeExclusive)
+#else
 	if (props[devid].computeMode == cudaComputeModeExclusive)
+#endif
 	{
 		_STARPU_MSG("CUDA is in EXCLUSIVE-THREAD mode, but StarPU was built with multithread GPU control support, please either ask your administrator to use EXCLUSIVE-PROCESS mode (which should really be fine), or reconfigure with --disable-cuda-memcpy-peer but that will disable the memcpy-peer optimizations\n");
 		STARPU_ABORT();
