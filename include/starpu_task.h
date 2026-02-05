@@ -303,12 +303,22 @@ typedef void (*starpu_recursive_task_gen_dag_func_t)(struct starpu_task *, void 
 #define STARPU_SPECIFIC_NODE_LOCAL_OR_CPU (-5)
 
 /**
+   Value to be set in the starpu_codelet::nodes field to let StarPU decide
+   whether to put the data in the local memory of the worker running the task,
+   or leave it in another similar kind of memory (or in CPU-accessible memory
+   if such memory does not exist).
+   The task can determine which node the data resides in with 
+   starpu_task_get_current_data_node()
+*/
+#define STARPU_SPECIFIC_NODE_LOCAL_OR_SIMILAR (-6)
+
+/**
    Value to be set in the starpu_codelet::nodes field to make StarPU not actually
    put the data in any particular memory, i.e. the task will only get the
    sequential consistency dependencies, but not actually trigger any data
    transfer.
 */
-#define STARPU_SPECIFIC_NODE_NONE (-6)
+#define STARPU_SPECIFIC_NODE_NONE (-7)
 
 struct starpu_transaction;
 struct _starpu_trs_epoch;
