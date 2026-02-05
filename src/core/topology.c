@@ -285,7 +285,7 @@ int _starpu_task_data_get_node_on_node(struct starpu_task *task, unsigned index,
 			enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, index);
 			if (mode & STARPU_R)
 			{
-				if (mode & STARPU_R && task->handles[index]->per_node[local_node].state != STARPU_INVALID)
+				if (task->handles[index]->per_node[local_node].state != STARPU_INVALID)
 				{
 					/* It is here already, rather access it from here */
 					node = local_node;
