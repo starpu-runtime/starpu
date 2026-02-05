@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2022-2022  École de Technologie Supérieure (ETS, Montréal)
  * Copyright (C) 2021-2021  Federal University of Rio Grande do Sul (UFRGS)
  * Copyright (C) 2016-2016  Uppsala University
@@ -527,7 +527,9 @@ static void init_device_context(unsigned devid, unsigned memnode)
 	if (STARPU_UNLIKELY(hipres))
 		STARPU_HIP_REPORT_ERROR(hipres);
 #ifdef STARPU_HAVE_HIP_MEMCPY_PEER
-	if (props[devid].computeMode == hipComputeModeExclusive)
+	int computeMode;
+	hipres = hipDeviceGetAttribute(&computeMode, hipDeviceAttributeComputeMode, devid);
+	if (!hipres && computeMode == hipComputeModeExclusive)
 	{
 		_STARPU_MSG("HIP is in EXCLUSIVE-THREAD mode, but StarPU was built with multithread GPU control support, please either ask your administrator to use EXCLUSIVE-PROCESS mode (which should really be fine), or reconfigure with --disable-hip-memcpy-peer but that will disable the memcpy-peer optimizations\n");
 		STARPU_ABORT();
