@@ -46,6 +46,8 @@ def create_builder(profile, profile_iname, profile_name, profile_host):
     p.env.update({'starpu_build_dir' : "$HOME/builds/" + profile_name + "/build"})
     p.env.update({'starpu_src_dir' : "$PWD"})
     p.env.update({'STARPU_OPENCL_PROGRAM_DIR' : "$PWD"})
+    p.env.update({'STARPU_TIMEOUT_ENV' : '3600'})
+    p.env.update({'MPIEXEC_TIMEOUT' : '3600'})
     global_env = True
     if 'global_env' in profile.keys():
         global_env = profile['global_env']
