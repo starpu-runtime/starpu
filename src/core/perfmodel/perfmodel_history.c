@@ -814,16 +814,6 @@ static void check_per_arch_model(struct starpu_perfmodel *model, int comb, unsig
 	/* count the number of elements in the lists */
 	struct starpu_perfmodel_history_list *ptr = NULL;
 
-	if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED  || model->type == STARPU_REGRESSION_BASED)
-	{
-		/* Dump the list of all entries in the history */
-		ptr = per_arch_model->list;
-		while(ptr)
-		{
-			ptr = ptr->next;
-		}
-	}
-
 	/* header */
 	char archname[STR_SHORT_LENGTH];
 	starpu_perfmodel_get_arch_name(arch_combs[comb], archname,  sizeof(archname), impl);
