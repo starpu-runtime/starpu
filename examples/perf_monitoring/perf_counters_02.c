@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2019-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -80,7 +80,7 @@ void func(void *buffers[], void *cl_args)
 {
 	int *int_vector = (int*)STARPU_VECTOR_GET_PTR(buffers[0]);
 	size_t NX = (int)STARPU_VECTOR_GET_NX(buffers[0]);
-	const int niters;
+	int niters;
 	starpu_codelet_unpack_args(cl_args, &niters);
 	int i;
 	for (i=0; i<niters; i++)
@@ -106,7 +106,7 @@ const enum starpu_perf_counter_scope c_scope = starpu_perf_counter_scope_per_cod
 #define NITER 1000
 #define VECTOR_LEN 2
 
-int main(int argc, char **argv)
+int main(void)
 {
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);

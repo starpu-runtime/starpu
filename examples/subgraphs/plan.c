@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -36,7 +36,9 @@ int do_starpu_init()
 	return 0;
 }
 
-void do_init_sub_data(int matrix[NX][NY], starpu_data_handle_t handle, starpu_data_handle_t sub_handle[PARTS], void (*filter_func)(void *parent_interface, void *child_interface, struct starpu_data_filter *, unsigned id, unsigned nparts), int x, int y, int nx, int ny, int ld)
+void do_init_sub_data(STARPU_ATTRIBUTE_UNUSED int matrix[NX][NY], starpu_data_handle_t handle, starpu_data_handle_t sub_handle[PARTS],
+		      void (*filter_func)(void *parent_interface, void *child_interface, struct starpu_data_filter *, unsigned id, unsigned nparts),
+		      STARPU_ATTRIBUTE_UNUSED int x, STARPU_ATTRIBUTE_UNUSED int y, STARPU_ATTRIBUTE_UNUSED int nx, STARPU_ATTRIBUTE_UNUSED int ny, STARPU_ATTRIBUTE_UNUSED int ld)
 {
 	struct starpu_data_filter f =
 	{
@@ -46,7 +48,9 @@ void do_init_sub_data(int matrix[NX][NY], starpu_data_handle_t handle, starpu_da
 	starpu_data_partition_plan(handle, &f, sub_handle);
 }
 
-int do_apply_sub_graph(starpu_data_handle_t handle, starpu_data_handle_t sub_handle[PARTS], void (*filter_func)(void *parent_interface, void *child_interface, struct starpu_data_filter *, unsigned id, unsigned nparts), int factor, int start)
+int do_apply_sub_graph(STARPU_ATTRIBUTE_UNUSED starpu_data_handle_t handle, STARPU_ATTRIBUTE_UNUSED starpu_data_handle_t sub_handle[PARTS],
+		       STARPU_ATTRIBUTE_UNUSED void (*filter_func)(void *parent_interface, void *child_interface, struct starpu_data_filter *, unsigned id, unsigned nparts),
+		       int factor, int start)
 {
 	int i, ret;
 
@@ -72,7 +76,7 @@ int do_clean_sub_graph(starpu_data_handle_t handle, starpu_data_handle_t sub_han
 	return 0;
 }
 
-void do_clean_sub_data(starpu_data_handle_t sub_handle[PARTS])
+void do_clean_sub_data(STARPU_ATTRIBUTE_UNUSED starpu_data_handle_t sub_handle[PARTS])
 {
 	// nothing to do
 }

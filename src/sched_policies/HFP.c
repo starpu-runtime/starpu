@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -2589,7 +2589,9 @@ static struct starpu_task_list hierarchical_fair_packing_one_task_list (struct s
 	long int weight_package_j = 0; int i = 0;
 	int bool_data_common = 0; int GPU_limit_switch = 1; int temp_nb_min_task_packages = 0; int i_bis = 0; int j_bis = 0; int tab_runner = 0; int index_head_1 = 0; int index_head_2 = 0; int common_data_last_package_i2_j = 0; int common_data_last_package_i1_j = 0; int common_data_last_package_i_j1 = 0; int common_data_last_package_i_j2 = 0;
 	int min_nb_task_in_sub_list = 0; int nb_min_task_packages = 0;
-	struct starpu_task *task; int nb_of_loop = 0; int packaging_impossible = 0; int link_index = 0; int NB_TOTAL_DONNEES = 0;
+	struct starpu_task *task; int packaging_impossible = 0; int link_index = 0;
+	//int NB_TOTAL_DONNEES = 0;
+	//int nb_of_loop = 0;
 	task  = starpu_task_list_begin(&task_list);
 	_STARPU_MALLOC(paquets_data->temp_pointer_1->package_data, STARPU_TASK_GET_NBUFFERS(task)*sizeof(paquets_data->temp_pointer_1->package_data[0]));
 	struct starpu_task *temp_task;
@@ -2611,7 +2613,7 @@ static struct starpu_task_list hierarchical_fair_packing_one_task_list (struct s
 			paquets_data->temp_pointer_1->package_data[j] = STARPU_TASK_GET_HANDLE(task, j);
 		}
 		paquets_data->temp_pointer_1->package_nb_data = STARPU_TASK_GET_NBUFFERS(task);
-		NB_TOTAL_DONNEES+=STARPU_TASK_GET_NBUFFERS(task);
+		//NB_TOTAL_DONNEES+=STARPU_TASK_GET_NBUFFERS(task);
 		/* We sort our data in the packages */
 		qsort(paquets_data->temp_pointer_1->package_data,paquets_data->temp_pointer_1->package_nb_data,sizeof(paquets_data->temp_pointer_1->package_data[0]),HFP_pointeurComparator);
 		/* Pushing the task and the number of the package in the package*/
@@ -2651,7 +2653,7 @@ static struct starpu_task_list hierarchical_fair_packing_one_task_list (struct s
 	while (packaging_impossible == 0)
 	{
 	beginning_while_packaging_impossible:
-		nb_of_loop++;
+		//nb_of_loop++;
 		packaging_impossible = 1;
 		//~ if (_print_in_terminal == 1) { printf("############# Itération numéro : %d #############\n",nb_of_loop); }
 
@@ -2694,7 +2696,7 @@ static struct starpu_task_list hierarchical_fair_packing_one_task_list (struct s
 					int j;
 					for (j = 0; j < paquets_data->temp_pointer_2->package_nb_data; j++)
 					{
-						if ((paquets_data->temp_pointer_1->package_data[i] == paquets_data->temp_pointer_2->package_data[j]))
+						if (paquets_data->temp_pointer_1->package_data[i] == paquets_data->temp_pointer_2->package_data[j])
 						{
 							matrice_donnees_commune[index_head_1][index_head_2] += starpu_data_get_size(paquets_data->temp_pointer_2->package_data[j]) + starpu_data_get_size(paquets_data->temp_pointer_1->package_data[i]);
 							matrice_donnees_commune[index_head_2][index_head_1] += starpu_data_get_size(paquets_data->temp_pointer_2->package_data[j]) + starpu_data_get_size(paquets_data->temp_pointer_1->package_data[i]);
@@ -3640,7 +3642,7 @@ void _starpu_hmetis_scheduling(struct _starpu_HFP_paquets *p, struct starpu_task
 	//~ dbglvl : 0. Sert à montrer des infos de debug; Si besoin mettre (1, 2 ou 4).
 
 	int size = strlen("hmetis ") + strlen(_output_directory) + strlen("/input_hMETIS.txt_");
-	char buffer[100];
+	char buffer[101];
 	while (fscanf(f2, "%100s", buffer) == 1)
 	{
 		size += sizeof(buffer);

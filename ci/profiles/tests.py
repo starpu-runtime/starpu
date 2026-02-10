@@ -537,7 +537,7 @@ profiles = [
 
     # Intel profile
     { 'name'        : 'intel',
-      'opts'        : ['--disable-cuda', '--disable-opencl', '--disable-hip', '--disable-static', '--disable-starpupy', '--enable-blas-lib=none'],
+      'opts'        : ['--disable-cuda', '--disable-opencl', '--disable-hip', '--disable-static', '--disable-starpupy', '--enable-blas-lib=none', '--disable-fortran'],
       'env'         : { 'CC' : 'icx -fpie', 'CXX' : 'icpx', 'FCC' : 'ifx', 'F77' : 'ifx', 'FC' : 'ifx', 'OMPI_CC' : 'icpx', 'LDSHARED' : 'icpx', 'LD_LIBRARY_PATH' : '/soft/amd64/intel/compilers_and_libraries/linux/lib/intel64_lin'},
       'deploy'      : True,
       'prologue'    : [".", "/soft/amd64/intel/oneapi/2025.0/oneapi-vars.sh", "--force"],

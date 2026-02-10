@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2022-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2022-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2022-2023  École de Technologie Supérieure (ETS, Montréal)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -18,7 +18,7 @@
 #include <starpu.h>
 #include <starpu_profiling_tool.h>
 
-void myfunction_cb(struct starpu_prof_tool_info *prof_info, union starpu_prof_tool_event_info *event_info, struct starpu_prof_tool_api_info *api_info)
+void myfunction_cb(struct starpu_prof_tool_info *prof_info, STARPU_ATTRIBUTE_UNUSED union starpu_prof_tool_event_info *event_info, STARPU_ATTRIBUTE_UNUSED struct starpu_prof_tool_api_info *api_info)
 {
 	if (NULL != prof_info)
 	{
@@ -60,7 +60,7 @@ void myfunction_cb(struct starpu_prof_tool_info *prof_info, union starpu_prof_to
 }
 
 /* Mandatory */
-void starpu_prof_tool_library_register(starpu_prof_tool_entry_register_func reg, starpu_prof_tool_entry_register_func unreg)
+void starpu_prof_tool_library_register(starpu_prof_tool_entry_register_func reg, STARPU_ATTRIBUTE_UNUSED starpu_prof_tool_entry_register_func unreg)
 {
 	enum  starpu_prof_tool_command info = 0;
 	reg(starpu_prof_tool_event_driver_init, &myfunction_cb, info);

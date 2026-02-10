@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,6 +23,7 @@
 
 void display_func(void *buffers[], void *cl_arg)
 {
+	(void) cl_arg;
 	size_t i;
 
 	/* length of the vector */
@@ -36,8 +37,9 @@ void display_func(void *buffers[], void *cl_arg)
 	FPRINTF(stderr, "\n");
 }
 
-void cpu_func(void *buffers[], void *cl_arg)
+void cpu_func(void *buffers[], void *args)
 {
+	(void) args;
 	size_t i;
 
 	/* length of the vector */

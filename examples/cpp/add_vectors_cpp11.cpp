@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -28,13 +28,14 @@
 
 #include <starpu.h>
 #if !defined(STARPU_HAVE_CXX11)
-int main(int argc, char **argv)
+int main(void)
 {
 	return 77;
 }
 #else
 void cpu_kernel_add_vectors(void *buffers[], void *cl_arg)
 {
+	(void) buffers; (void) cl_arg;
 	// get the current task
 	auto task = starpu_task_get_current();
 
@@ -56,7 +57,7 @@ void cpu_kernel_add_vectors(void *buffers[], void *cl_arg)
 		(*vec_C)[i] = (*vec_A)[i] + (*vec_B)[i];
 }
 
-int main(int argc, char **argv)
+int main(void)
 {
 	constexpr int vec_size = 1024;
 

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2018-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2018-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -46,6 +46,7 @@ static int _do_start_transaction(int val)
 
 int do_start_transaction(void *descr, void *arg)
 {
+	(void) descr;
 	int val = (int)(intptr_t)arg;
 	int ret = _do_start_transaction(val);
 	return ret;
@@ -53,7 +54,7 @@ int do_start_transaction(void *descr, void *arg)
 
 void cpu_func(void *descr[], void *_args)
 {
-	(void)_args;
+	(void) _args;
 	int *val = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	*val += 1;
 }

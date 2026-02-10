@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -40,11 +40,11 @@ extern "C" void cpu_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 	val[1] += 1.0f;
 }
 
-int main(int argc, char **argv)
+int main(void)
 {
 	int ret = 0;
 	starpu_data_handle_t float_array_handle;
-	float float_array[4] __attribute__ ((aligned (16))) = { 0.0f, 0.0f, 0.0f, 0.0f};
+	float float_array[4] __attribute__ ((aligned (16))) = {0.0f, 0.0f, 0.0f, 0.0f};
         struct starpu_codelet cl;
 	unsigned i;
 	unsigned niter = 50;

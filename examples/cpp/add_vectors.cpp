@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -30,6 +30,8 @@
 
 void cpu_kernel_add_vectors(void *buffers[], void *cl_arg)
 {
+	(void) buffers;
+	(void) cl_arg;
 	// get the current task
 	starpu_task* task = starpu_task_get_current();
 
@@ -53,7 +55,7 @@ void cpu_kernel_add_vectors(void *buffers[], void *cl_arg)
 
 #define VEC_SIZE 1024
 
-int main(int argc, char **argv)
+int main(void)
 {
 	std::vector<char> vec_A(VEC_SIZE, 2); // all the vector is initialized to 2
 	std::vector<char> vec_B(VEC_SIZE, 3); // all the vector is initialized to 3

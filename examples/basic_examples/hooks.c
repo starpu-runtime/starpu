@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2023-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2023-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,7 +21,7 @@
 static int check_malloc = 0;
 static int check_free = 0;
 
-int malloc_hook(unsigned dst_node, void **A, size_t dim, int flags)
+int malloc_hook(STARPU_ATTRIBUTE_UNUSED unsigned dst_node, void **A, size_t dim, STARPU_ATTRIBUTE_UNUSED int flags)
 {
 	int ret = 0;
 
@@ -35,7 +35,7 @@ int malloc_hook(unsigned dst_node, void **A, size_t dim, int flags)
 	return ret;
 }
 
-int free_hook(unsigned dst_node, void *A, size_t dim, int flags)
+int free_hook(STARPU_ATTRIBUTE_UNUSED unsigned dst_node, void *A, STARPU_ATTRIBUTE_UNUSED size_t dim, STARPU_ATTRIBUTE_UNUSED int flags)
 {
 	free(A);
 	check_free++;

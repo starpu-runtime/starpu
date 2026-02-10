@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2019-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -66,7 +66,7 @@ void starpu_complex_filter_canonical(void *parent_interface, void *child_interfa
 	vector_child->allocsize = vector_child->nx * vector_child->elemsize;
 }
 
-struct starpu_data_interface_ops *starpu_complex_filter_canonical_child_ops(STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned child)
+struct starpu_data_interface_ops *starpu_complex_filter_canonical_child_ops(STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, STARPU_ATTRIBUTE_UNUSED unsigned child)
 {
 	return &starpu_interface_vector_ops;
 }
