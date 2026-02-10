@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013-2013  Thibaut Lambert
  * Copyright (C) 2011-2011  Télécom SudParis
  *
@@ -813,7 +813,6 @@ static void check_per_arch_model(struct starpu_perfmodel *model, int comb, unsig
 	per_arch_model = &model->state->per_arch[comb][impl];
 	/* count the number of elements in the lists */
 	struct starpu_perfmodel_history_list *ptr = NULL;
-	unsigned nentries = 0;
 
 	if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED  || model->type == STARPU_REGRESSION_BASED)
 	{
@@ -821,7 +820,6 @@ static void check_per_arch_model(struct starpu_perfmodel *model, int comb, unsig
 		ptr = per_arch_model->list;
 		while(ptr)
 		{
-			nentries++;
 			ptr = ptr->next;
 		}
 	}

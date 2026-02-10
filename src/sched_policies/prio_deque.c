@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013-2013  Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -103,13 +103,6 @@ int starpu_st_prio_deque_pop_this_task(struct starpu_st_prio_deque *pdeque, int 
 	}
 
 	return 0;
-}
-
-static inline int pred_true(struct starpu_task *t STARPU_ATTRIBUTE_UNUSED, void *v STARPU_ATTRIBUTE_UNUSED)
-{
-	(void)t;
-	(void)v;
-	return 1;
 }
 
 static inline int pred_can_execute(struct starpu_task * t, void * pworkerid)

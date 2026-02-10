@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020-2025  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2026  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -35,6 +35,7 @@ struct worker_data_node
 	double end_time_not_busy;
 };
 
+#if 0
 static inline double predict_best_end_of_task(struct starpu_task *task, struct worker_data_node *data_nodes, unsigned nb_nodes, int sched_ctx_id, double min_start, unsigned *best_node_p, double *length_of_task)
 {
 	unsigned best_node = -1, best_impl =-1;
@@ -86,6 +87,7 @@ static inline double predict_best_end_of_task(struct starpu_task *task, struct w
 	}
 	return best_exp_end;
 }
+#endif
 
 #define STARPU_DEFAULT_CUT_RATIO 0. // 0.08
 #define NMAX_CL 256

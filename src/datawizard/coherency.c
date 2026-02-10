@@ -1009,7 +1009,7 @@ void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_
 
 /* Compute wether we should prefetch data buffers for data of such task with such mode */
 
-static int _starpu_should_prefetch_task_input(struct starpu_task *task, enum starpu_data_access_mode mode)
+static int _starpu_should_prefetch_task_input(STARPU_ATTRIBUTE_UNUSED struct starpu_task *task, enum starpu_data_access_mode mode)
 {
 	if (mode & (STARPU_SCRATCH|STARPU_REDUX))
 		return 0;

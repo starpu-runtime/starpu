@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013-2013  Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -92,19 +92,6 @@ static struct starpu_task *  steal_task_round_robin(struct starpu_sched_componen
 }
 
 /**
- * Return a worker to whom add a task.
- * Selecting a worker is done in a round-robin fashion.
- */
-static unsigned select_worker_round_robin(struct starpu_sched_component * component)
-{
-	struct _starpu_component_work_stealing_data *ws = (struct _starpu_component_work_stealing_data*)component->data;
-	unsigned i = (ws->last_push_child + 1) % component->nchildren ;
-	ws->last_push_child = i;
-	return i;
-}
-
-
-/**
  * Return a worker from which a task can be stolen.
  * This is a phony function used to call the right
  * function depending on the value of USE_OVERLOAD.
@@ -114,23 +101,10 @@ static inline struct starpu_task * steal_task(struct starpu_sched_component * co
 	return steal_task_round_robin(component, workerid);
 }
 
-/**
- * Return a worker from which a task can be stolen.
- * This is a phony function used to call the right
- * function depending on the value of USE_OVERLOAD.
- */
-static inline unsigned select_worker(struct starpu_sched_component * component)
-{
-	return select_worker_round_robin(component);
-}
-
-
 static int is_worker_of_component(struct starpu_sched_component * component, int workerid)
 {
 	return starpu_bitmap_get(&component->workers, workerid);
 }
-
-
 
 static struct starpu_task * pull_task(struct starpu_sched_component * component, struct starpu_sched_component * to STARPU_ATTRIBUTE_UNUSED)
 {
@@ -277,7 +251,6 @@ static int push_task(struct starpu_sched_component * component, struct starpu_ta
 	return ret;
 }
 
-
 //this function is special, when a worker call it, we want to push the task in his fifo
 int starpu_sched_tree_work_stealing_push_task(struct starpu_task *task)
 {
@@ -324,7 +297,6 @@ int starpu_sched_tree_work_stealing_push_task(struct starpu_task *task)
 
 	return starpu_sched_tree_push_task(task);
 }
-
 
 static void _ws_add_child(struct starpu_sched_component * component, struct starpu_sched_component * child)
 {

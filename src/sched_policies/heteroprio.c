@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2016-2016  Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -1963,7 +1963,7 @@ This warning will only be displayed once.\n");
 			assert(nnodes <= LAHETEROPRIO_MAX_WORKER_GROUPS);
 			const unsigned N = STARPU_TASK_GET_NBUFFERS(task);
 			unsigned data_exist_every_where[128] = { 0 };
-			unsigned nb_data_exist_every_where = 0;
+			//unsigned nb_data_exist_every_where = 0;
 			{
 				unsigned idx_data;
 				for (idx_data = 0; idx_data < N; ++idx_data)
@@ -1983,18 +1983,18 @@ This warning will only be displayed once.\n");
 							break;
 						}
 					}
-					if (data_exist_every_where[idx_data])
-					{
-						nb_data_exist_every_where += 1;
-					}
+					//if (data_exist_every_where[idx_data])
+					//{
+					//	nb_data_exist_every_where += 1;
+					//}
 				}
 			}
 			assert(N <= 128);
 			unsigned data_is_read[128] = { 0 };
-			unsigned Nw = 0;
-			size_t total_size = 0;
-			size_t total_size_in_read = 0;
-			size_t total_size_in_write = 0;
+			//unsigned Nw = 0;
+			//size_t total_size = 0;
+			//size_t total_size_in_read = 0;
+			//size_t total_size_in_write = 0;
 			size_t data_sizes[128] = { 0 };
 			unsigned data_Ri[128] = { 0 };
 			size_t data_per_mem_node[LAHETEROPRIO_MAX_WORKER_GROUPS] = { 0 };
@@ -2011,16 +2011,16 @@ This warning will only be displayed once.\n");
 						const starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, idx_data);
 						data_sizes[idx_data] = starpu_data_get_size(handle);
 						data_is_read[idx_data] = (STARPU_TASK_GET_MODE(task, idx_data) == STARPU_R);
-						total_size += data_sizes[idx_data];
-						if (data_is_read[idx_data])
-						{
-							total_size_in_read += data_sizes[idx_data];
-						}
-						else
-						{
-							total_size_in_write += data_sizes[idx_data];
-							Nw += 1;
-						}
+						//total_size += data_sizes[idx_data];
+						//if (data_is_read[idx_data])
+						//{
+						//	total_size_in_read += data_sizes[idx_data];
+						//}
+						//else
+						//{
+						//	total_size_in_write += data_sizes[idx_data];
+						//	Nw += 1;
+						//}
 						unsigned idx_node;
 						for (idx_node = 0; idx_node < nnodes; ++idx_node)
 						{
@@ -2069,7 +2069,7 @@ This warning will only be displayed once.\n");
 			assert(N <= 128);
 			unsigned data_is_read[128] = { 0 };
 			unsigned Nw = 0;
-			size_t total_size = 0;
+			//size_t total_size = 0;
 			size_t total_size_in_read = 0;
 			size_t total_size_in_write = 0;
 			size_t data_sizes[128] = { 0 };
@@ -2086,7 +2086,7 @@ This warning will only be displayed once.\n");
 					const starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, idx_data);
 					data_sizes[idx_data] = starpu_data_get_size(handle);
 					data_is_read[idx_data] = (STARPU_TASK_GET_MODE(task, idx_data) == STARPU_R);
-					total_size += data_sizes[idx_data];
+					//total_size += data_sizes[idx_data];
 					if (data_is_read[idx_data])
 					{
 						total_size_in_read += data_sizes[idx_data];

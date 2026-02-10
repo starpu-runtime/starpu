@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013-2013  Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -315,7 +315,6 @@ static void mst_do_schedule(struct starpu_sched_component *component)
 	int i = 0;
 	struct starpu_task_list temp_task_list;
 	starpu_task_list_init(&temp_task_list);
-	int NB_TOTAL_DONNEES = 0;
 	struct _starpu_HFP_sched_data *data = component->data;
 	struct starpu_task *task = NULL;
 	_starpu_HFP_NT = 0;
@@ -347,7 +346,6 @@ static void mst_do_schedule(struct starpu_sched_component *component)
 			while (!starpu_task_list_empty(&data->sched_list))
 			{
 				task = starpu_task_list_pop_front(&data->sched_list);
-				NB_TOTAL_DONNEES+=STARPU_TASK_GET_NBUFFERS(task);
 				_starpu_HFP_NT++;
 				_STARPU_SCHED_PRINT("%p\n",task);
 				starpu_task_list_push_back(&temp_task_list, task);
