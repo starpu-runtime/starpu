@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013-2013  Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -203,80 +203,79 @@
     struct ENAME *_head; /**< @internal head of the list */ \
     struct ENAME *_tail; /**< @internal tail of the list */ \
   }; \
-  /** @internal */LIST_INLINE struct ENAME *ENAME##_new(void) \
+  /** @internal */LIST_INLINE struct ENAME STARPU_ATTRIBUTE_UNUSED *ENAME##_new(void) \
     { struct ENAME *e; _STARPU_MALLOC(e, sizeof(struct ENAME)); \
       e->_next = NULL; e->_prev = NULL; return e; } \
-  /** @internal */LIST_INLINE void ENAME##_delete(struct ENAME *e) \
+  /** @internal */LIST_INLINE void STARPU_ATTRIBUTE_UNUSED ENAME##_delete(struct ENAME *e) \
     { LIST_CLEAR(&e->_next); LIST_CLEAR(&e->_prev); free(e); } \
-  /** @internal */LIST_INLINE void ENAME##_list_push_front(struct ENAME##_list *l, struct ENAME *e) \
+  /** @internal */LIST_INLINE void STARPU_ATTRIBUTE_UNUSED ENAME##_list_push_front(struct ENAME##_list *l, struct ENAME *e) \
     { if(l->_tail == NULL) l->_tail = e; else l->_head->_prev = e; \
       e->_prev = NULL; e->_next = l->_head; l->_head = e; } \
-  /** @internal */LIST_INLINE void ENAME##_list_push_back(struct ENAME##_list *l, struct ENAME *e) \
+  /** @internal */LIST_INLINE void STARPU_ATTRIBUTE_UNUSED ENAME##_list_push_back(struct ENAME##_list *l, struct ENAME *e) \
     { if(l->_head == NULL) l->_head = e; else l->_tail->_next = e; \
       e->_next = NULL; e->_prev = l->_tail; l->_tail = e; } \
-  /** @internal */LIST_INLINE void ENAME##_list_insert_before(struct ENAME##_list *l, struct ENAME *e, struct ENAME *o) \
+  /** @internal */LIST_INLINE void STARPU_ATTRIBUTE_UNUSED ENAME##_list_insert_before(struct ENAME##_list *l, struct ENAME *e, struct ENAME *o) \
     { struct ENAME *p = o->_prev; if (p) { p->_next = e; e->_prev = p; } else { l->_head = e; e->_prev = NULL; } \
       e->_next = o; o->_prev = e; } \
-  /** @internal */LIST_INLINE void ENAME##_list_insert_after(struct ENAME##_list *l, struct ENAME *e, struct ENAME *o) \
+  /** @internal */LIST_INLINE void STARPU_ATTRIBUTE_UNUSED ENAME##_list_insert_after(struct ENAME##_list *l, struct ENAME *e, struct ENAME *o) \
     { struct ENAME *n = o->_next; if (n) { n->_prev = e; e->_next = n; } else { l->_tail = e; e->_next = NULL; } \
       e->_prev = o; o->_next = e; } \
-  /** @internal */LIST_INLINE void ENAME##_list_push_list_front(struct ENAME##_list *l1, struct ENAME##_list *l2) \
+  /** @internal */LIST_INLINE void STARPU_ATTRIBUTE_UNUSED ENAME##_list_push_list_front(struct ENAME##_list *l1, struct ENAME##_list *l2) \
     { if (l2->_head == NULL) { l2->_head = l1->_head; l2->_tail = l1->_tail; } \
       else if (l1->_head != NULL) { l1->_tail->_next = l2->_head; l2->_head->_prev = l1->_tail; l2->_head = l1->_head; } } \
-  /** @internal */LIST_INLINE void ENAME##_list_push_list_back(struct ENAME##_list *l1, struct ENAME##_list *l2) \
+  /** @internal */LIST_INLINE void STARPU_ATTRIBUTE_UNUSED ENAME##_list_push_list_back(struct ENAME##_list *l1, struct ENAME##_list *l2) \
     { if(l1->_head == NULL) { l1->_head = l2->_head; l1->_tail = l2->_tail; } \
       else if (l2->_head != NULL) { l1->_tail->_next = l2->_head; l2->_head->_prev = l1->_tail; l1->_tail = l2->_tail; } } \
-  /** @internal */LIST_INLINE struct ENAME *ENAME##_list_front(const struct ENAME##_list *l) \
+  /** @internal */LIST_INLINE struct ENAME STARPU_ATTRIBUTE_UNUSED *ENAME##_list_front(const struct ENAME##_list *l) \
     { return l->_head; } \
-  /** @internal */LIST_INLINE struct ENAME *ENAME##_list_back(const struct ENAME##_list *l) \
+  /** @internal */LIST_INLINE struct ENAME STARPU_ATTRIBUTE_UNUSED *ENAME##_list_back(const struct ENAME##_list *l) \
     { return l->_tail; } \
-  /** @internal */LIST_INLINE void ENAME##_list_init(struct ENAME##_list *l) \
+  /** @internal */LIST_INLINE void STARPU_ATTRIBUTE_UNUSED ENAME##_list_init(struct ENAME##_list *l) \
     { l->_head=NULL; l->_tail=NULL; } \
-  /** @internal */LIST_INLINE void ENAME##_list_init0(struct ENAME##_list *l STARPU_ATTRIBUTE_UNUSED) \
+  /** @internal */LIST_INLINE void STARPU_ATTRIBUTE_UNUSED ENAME##_list_init0(struct ENAME##_list *l STARPU_ATTRIBUTE_UNUSED) \
     { } \
-  /** @internal */LIST_INLINE struct ENAME##_list *ENAME##_list_new(void) \
+  /** @internal */LIST_INLINE struct ENAME##_list STARPU_ATTRIBUTE_UNUSED *ENAME##_list_new(void) \
     { struct ENAME##_list *l; _STARPU_MALLOC(l, sizeof(struct ENAME##_list)); \
       ENAME##_list_init(l); return l; } \
-  /** @internal */LIST_INLINE int ENAME##_list_empty(const struct ENAME##_list *l) \
+  /** @internal */LIST_INLINE int STARPU_ATTRIBUTE_UNUSED ENAME##_list_empty(const struct ENAME##_list *l) \
     { return (l->_head == NULL); } \
-  /** @internal */LIST_INLINE void ENAME##_list_delete(struct ENAME##_list *l) \
+  /** @internal */LIST_INLINE void STARPU_ATTRIBUTE_UNUSED ENAME##_list_delete(struct ENAME##_list *l) \
     { LIST_CLEAR(&l->_head); LIST_CLEAR(&l->_tail); free(l); } \
-  /** @internal */LIST_INLINE void ENAME##_list_erase(struct ENAME##_list *l, struct ENAME *c) \
+  /** @internal */LIST_INLINE void STARPU_ATTRIBUTE_UNUSED ENAME##_list_erase(struct ENAME##_list *l, struct ENAME *c) \
     { struct ENAME *p = c->_prev; if(p) p->_next = c->_next; else l->_head = c->_next; \
       if(c->_next) c->_next->_prev = p; else l->_tail = p; \
       LIST_CLEAR(&c->_next); LIST_CLEAR(&c->_prev); } \
-  /** @internal */LIST_INLINE struct ENAME *ENAME##_list_pop_front(struct ENAME##_list *l) \
+  /** @internal */LIST_INLINE struct ENAME STARPU_ATTRIBUTE_UNUSED *ENAME##_list_pop_front(struct ENAME##_list *l) \
     { struct ENAME *e = ENAME##_list_front(l); \
       ENAME##_list_erase(l, e); return e; } \
-  /** @internal */LIST_INLINE struct ENAME *ENAME##_list_pop_back(struct ENAME##_list *l) \
+  /** @internal */LIST_INLINE struct ENAME STARPU_ATTRIBUTE_UNUSED *ENAME##_list_pop_back(struct ENAME##_list *l) \
     { struct ENAME *e = ENAME##_list_back(l); \
       ENAME##_list_erase(l, e); return e; } \
-  /** @internal */LIST_INLINE struct ENAME *ENAME##_list_begin(const struct ENAME##_list *l) \
+  /** @internal */LIST_INLINE struct ENAME STARPU_ATTRIBUTE_UNUSED *ENAME##_list_begin(const struct ENAME##_list *l) \
     { return l->_head; } \
-  /** @internal */LIST_INLINE struct ENAME *ENAME##_list_end(const struct ENAME##_list *l STARPU_ATTRIBUTE_UNUSED) \
+  /** @internal */LIST_INLINE struct ENAME STARPU_ATTRIBUTE_UNUSED *ENAME##_list_end(const struct ENAME##_list *l STARPU_ATTRIBUTE_UNUSED) \
     { return NULL; } \
-  /** @internal */LIST_INLINE struct ENAME *ENAME##_list_next(const struct ENAME *i) \
+  /** @internal */LIST_INLINE struct ENAME STARPU_ATTRIBUTE_UNUSED *ENAME##_list_next(const struct ENAME *i) \
     { return i->_next; } \
-  /** @internal */LIST_INLINE struct ENAME *ENAME##_list_last(const struct ENAME##_list *l) \
+  /** @internal */LIST_INLINE struct ENAME STARPU_ATTRIBUTE_UNUSED *ENAME##_list_last(const struct ENAME##_list *l) \
     { return l->_tail; } \
-  /** @internal */LIST_INLINE struct ENAME *ENAME##_list_alpha(const struct ENAME##_list *l STARPU_ATTRIBUTE_UNUSED) \
+  /** @internal */LIST_INLINE struct ENAME STARPU_ATTRIBUTE_UNUSED *ENAME##_list_alpha(const struct ENAME##_list *l STARPU_ATTRIBUTE_UNUSED) \
     { return NULL; } \
-  /** @internal */LIST_INLINE struct ENAME *ENAME##_list_prev(const struct ENAME *i) \
+  /** @internal */LIST_INLINE struct ENAME STARPU_ATTRIBUTE_UNUSED *ENAME##_list_prev(const struct ENAME *i) \
     { return i->_prev; } \
-  /** @internal */LIST_INLINE int ENAME##_list_ismember(const struct ENAME##_list *l, const struct ENAME *e) \
+  /** @internal */LIST_INLINE int STARPU_ATTRIBUTE_UNUSED ENAME##_list_ismember(const struct ENAME##_list *l, const struct ENAME *e) \
     { struct ENAME *i=l->_head; while(i!=NULL){ if (i == e) return 1; i=i->_next; } return 0; } \
-  /** @internal */LIST_INLINE int ENAME##_list_member(const struct ENAME##_list *l, const struct ENAME *e) \
+  /** @internal */LIST_INLINE int STARPU_ATTRIBUTE_UNUSED ENAME##_list_member(const struct ENAME##_list *l, const struct ENAME *e) \
     { struct ENAME *i=l->_head; int k=0; while(i!=NULL){if (i == e) return k; k++; i=i->_next; } return -1; } \
-  /** @internal */LIST_INLINE int ENAME##_list_size(const struct ENAME##_list *l) \
+  /** @internal */LIST_INLINE int STARPU_ATTRIBUTE_UNUSED ENAME##_list_size(const struct ENAME##_list *l) \
     { struct ENAME *i=l->_head; int k=0; while(i!=NULL){k++;i=i->_next;} return k; } \
-  /** @internal */LIST_INLINE int ENAME##_list_check(const struct ENAME##_list *l) \
+  /** @internal */LIST_INLINE int STARPU_ATTRIBUTE_UNUSED ENAME##_list_check(const struct ENAME##_list *l) \
     { struct ENAME *i=l->_head; while(i) \
     { if ((i->_next == NULL) && i != l->_tail) return 0; \
       if (i->_next == i) return 0; \
       i=i->_next;} return 1; } \
-  /** @internal */LIST_INLINE void ENAME##_list_move(struct ENAME##_list *ldst, struct ENAME##_list *lsrc) \
+  /** @internal */LIST_INLINE void STARPU_ATTRIBUTE_UNUSED ENAME##_list_move(struct ENAME##_list *ldst, struct ENAME##_list *lsrc) \
     { ENAME##_list_init(ldst); ldst->_head = lsrc->_head; ldst->_tail = lsrc->_tail; lsrc->_head = NULL; lsrc->_tail = NULL; }
-
 
 #ifdef STARPU_DEBUG
 #define STARPU_ASSERT_MULTILIST(expr) STARPU_ASSERT(expr)
