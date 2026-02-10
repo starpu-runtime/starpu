@@ -42,7 +42,7 @@ int compute(char *file_name, int load_as_file, int with_malloc)
 {
 #ifndef STARPU_USE_OPENCL
 	(void) file_name; (void) load_as_file; (void) with_malloc;
-#enddif
+#endif
 	float float_array[4] STARPU_ATTRIBUTE_ALIGNED(16) = { 0.0f, 0.0f, 0.0f, 0.0f};
 	starpu_data_handle_t float_array_handle;
 	unsigned i;
