@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -72,6 +72,8 @@ Small features:
   * Add starpu_data_handle_to_pointer_ref/unref()
   * Add STARPU_SPECIFIC_NODE_LOCAL_OR_SIMILAR_OR_CPU to allow data to
     be local or in memory of same kind (or cpu)
+  * Add environment variable STARPU_PROFILING_TASK to automatically
+    display task profiling information
 
 StarPU 1.4.10
 ==============================================

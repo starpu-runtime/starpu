@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2020-2020  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -83,6 +83,8 @@ void _starpu_profiling_init(void);
 void _starpu_profiling_start(void);
 
 void _starpu_profiling_terminate(void);
+
+void _starpu_profiling_task_info_print(struct starpu_task *task);
 
 #pragma GCC visibility pop
 

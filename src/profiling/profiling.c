@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2020-2020  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -29,6 +29,12 @@
 #include <papi.h>
 #endif
 
+static char *_profiling_task_print;
+static int _profiling_task_print_callback = 0;
+static int _profiling_task_print_acquire = 0;
+static int _profiling_task_print_push = 0;
+static int _profiling_task_print_pop = 0;
+static int _profiling_task_print_release = 0;
 #ifdef STARPU_PAPI
 static starpu_pthread_mutex_t papi_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 static int papi_events[PAPI_MAX_HWCTRS];
@@ -189,6 +195,38 @@ void _starpu_profiling_init(void)
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&papi_mutex);
 #endif
+	_profiling_task_print = starpu_getenv("STARPU_PROFILING_TASK");
+	if (_profiling_task_print)
+	{
+		if (strstr(_profiling_task_print, "ALL"))
+		{
+			_profiling_task_print_callback = 1;
+			_profiling_task_print_acquire = 1;
+			_profiling_task_print_push = 1;
+			_profiling_task_print_pop = 1;
+			_profiling_task_print_release = 1;
+		}
+		else
+		{
+			_profiling_task_print_callback = strstr(_profiling_task_print, "callback") != NULL;
+			_profiling_task_print_acquire = strstr(_profiling_task_print, "acquire") != NULL;
+			_profiling_task_print_push = strstr(_profiling_task_print, "push") != NULL;
+			_profiling_task_print_pop = strstr(_profiling_task_print, "pop") != NULL;
+			_profiling_task_print_release = strstr(_profiling_task_print, "release") != NULL;
+		}
+		fprintf(stderr, "#SPT:Task_name:worker_id:delay:length");
+		if (_profiling_task_print_push)
+			fprintf(stderr,":push_start:push_end");
+		if (_profiling_task_print_pop)
+			fprintf(stderr,":pop_start:pop_end");
+		if (_profiling_task_print_callback)
+			fprintf(stderr,":callback_start:callback_end");
+		if (_profiling_task_print_acquire)
+			fprintf(stderr,":acquire_data_start:acquire_data_end");
+		if (_profiling_task_print_release)
+			fprintf(stderr,":release_data_start:release_data_end");
+		fprintf(stderr,"\n");
+	}
 }
 
 #ifdef STARPU_PAPI
@@ -705,4 +743,58 @@ int starpu_profiling_status_get(void)
 	ret = _starpu_profiling;
 	ANNOTATE_HAPPENS_BEFORE(&_starpu_profiling);
 	return ret;
+}
+
+static int _starpu_profiling_task_info_print2(char *message, int length, struct timespec *origin, struct timespec *start, struct timespec *end)
+{
+	double dstart = starpu_timing_timespec_to_us(start);
+	if (dstart)
+		dstart = starpu_timing_timespec_delay_us(origin, start);
+	double dend = starpu_timing_timespec_to_us(end);
+	if (dend)
+		dend = starpu_timing_timespec_delay_us(origin, end);
+	return snprintf(message, length, ":%2.2lf:%2.2lf", dstart, dend);
+}
+
+void _starpu_profiling_task_info_print(struct starpu_task *task)
+{
+	if (_profiling_task_print)
+	{
+		struct starpu_profiling_task_info *info = task->profiling_info;
+
+		double delay = starpu_timing_timespec_delay_us(&info->submit_time, &info->start_time);
+		double length = starpu_timing_timespec_delay_us(&info->start_time, &info->end_time);
+
+#define _PROFILING_TASK_MESSAGE_LENGTH 1024
+		char profiling_task_message[_PROFILING_TASK_MESSAGE_LENGTH];
+		int x, y;
+		x = snprintf(profiling_task_message, _PROFILING_TASK_MESSAGE_LENGTH, "SPT:%s:%d:%2.2lf:%2.2lf", starpu_task_get_name(task), info->workerid,
+			     delay, length);
+		if (_profiling_task_print_push && x<_PROFILING_TASK_MESSAGE_LENGTH)
+		{
+			y = _starpu_profiling_task_info_print2(profiling_task_message+x, _PROFILING_TASK_MESSAGE_LENGTH-x, &info->submit_time, &info->push_start_time, &info->push_end_time);
+			x += y;
+		}
+		if (_profiling_task_print_pop && x<_PROFILING_TASK_MESSAGE_LENGTH)
+		{
+			y = _starpu_profiling_task_info_print2(profiling_task_message+x, _PROFILING_TASK_MESSAGE_LENGTH-x, &info->submit_time, &info->pop_start_time, &info->pop_end_time);
+			x += y;
+		}
+		if (_profiling_task_print_callback && x<_PROFILING_TASK_MESSAGE_LENGTH)
+		{
+			y = _starpu_profiling_task_info_print2(profiling_task_message+x, _PROFILING_TASK_MESSAGE_LENGTH-x, &info->submit_time, &info->callback_start_time, &info->callback_end_time);
+			x += y;
+		}
+		if (_profiling_task_print_acquire && x<_PROFILING_TASK_MESSAGE_LENGTH)
+		{
+			y = _starpu_profiling_task_info_print2(profiling_task_message+x, _PROFILING_TASK_MESSAGE_LENGTH-x, &info->submit_time, &info->acquire_data_start_time, &info->acquire_data_end_time);
+			x += y;
+		}
+		if (_profiling_task_print_release && x<_PROFILING_TASK_MESSAGE_LENGTH)
+		{
+			y = _starpu_profiling_task_info_print2(profiling_task_message+x, _PROFILING_TASK_MESSAGE_LENGTH-x, &info->submit_time, &info->release_data_start_time, &info->release_data_end_time);
+			x += y;
+		}
+		fprintf(stderr, "%s\n", profiling_task_message);
+	}
 }

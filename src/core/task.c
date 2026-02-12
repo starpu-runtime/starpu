@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2016-2016  Uppsala University
  * Copyright (C) 2013-2013  Thibaut Lambert
  * Copyright (C) 2011-2011  Télécom Sud Paris
@@ -417,6 +417,7 @@ void starpu_task_clean(struct starpu_task *task)
 	/* If a buffer was allocated to store the profiling info, we free it. */
 	if (task->profiling_info)
 	{
+		_starpu_profiling_task_info_print(task);
 		free(task->profiling_info);
 		task->profiling_info = NULL;
 	}

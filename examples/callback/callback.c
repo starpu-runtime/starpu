@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -49,6 +49,7 @@ void callback_func(void *callback_arg)
 	(void)callback_arg;
 
 	struct starpu_task *task = starpu_task_create();
+	task->name = "without_callback";
 	task->cl = &cl;
 	task->handles[0] = handle;
 
@@ -69,6 +70,7 @@ int main(void)
 	starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&v, sizeof(int));
 
 	struct starpu_task *task = starpu_task_create();
+	task->name = "with_callback";
 	task->cl = &cl;
 	task->callback_func = callback_func;
 	task->callback_arg = NULL;

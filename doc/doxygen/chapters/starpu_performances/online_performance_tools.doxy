@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -69,6 +69,45 @@ It is worth noting that the application may directly access this structure from
 the callback executed at the end of the task. The structure starpu_task
 associated to the callback currently being executed is indeed accessible with
 the function starpu_task_get_current().
+
+It is also possible to directly print informations about task profiling by setting the environment variable \ref STARPU_PROFILING_TASK. When set, StarPU will automatically display informations before destroying a task. All related lines are prefixed by <c>SPT</c> or <c>#SPT</c> to be easily grepped from the standard error stream. The environment variable can be set with different values to filter the output columns.
+- <c>push</c> will display the time between the submission time and the start and end times when the task was submitted to the scheduler (starpu_profiling_task_info::push_start_time and starpu_profiling_task_info::push_end_time)
+- <c>pop</c> will display the time between the submission time and the start and end times when the scheduler started to be requested for a task, and eventually gave that task (starpu_profiling_task_info::pop_start_time and starpu_profiling_task_info::pop_end_time)
+- <c>callback</c> will display the time between the submission time and the start and end times when the worker started the application callback for the task (starpu_profiling_task_info::callback_start_time and starpu_profiling_task_info::callback_end_time)
+- <c>acquire</c> will display the time between the submission time and the start and end times when the worker started fetching input data (starpu_profiling_task_info::acquire_data_start_time and starpu_profiling_task_info::acquire_data_end_time)
+- <c>release</c> will display the time between the submission time and the start and end times when the worker started releasing data (starpu_profiling_task_info::release_data_start_time and starpu_profiling_task_info::release_data_end_time)
+- <c>ALL</c> will display all the above values
+- any other values will only display the task name, the worker id it was executed on, the delay between the submission time and the execution time and the lenght of the execution.
+
+\verbatim
+$ STARPU_PROFILING=1 STARPU_PROFILING_TASK="ALL" ./cholesky_tag
+#SPT:Task_name:worker_id:delay:length:push_start:push_end:pop_start:pop_end:callback_start:callback_end:acquire_data_start:acquire_data_end:release_data_start:release_data_end
+SPT:chol_model_potrf:1:32.02:29.29:3.51:10.74:15.11:19.75:0.00:0.00:22.71:29.34:63.15:64.27
+SPT:chol_model_trsm:0:136.47:33825.37:126.75:129.04:129.49:133.42:0.00:0.00:134.34:135.92:33965.11:33968.82
+SPT:chol_model_potrf:0:33986.64:10.70:33977.80:33979.61:33979.89:33982.29:0.00:0.00:33983.29:33985.72:33997.90:33998.20
+SPT:chol_model_syrk:5:33967.01:24.87:33946.56:33950.79:33952.95:33958.00:0.00:0.00:33960.02:33965.20:33992.98:33994.43
+# size	ms	GFlop/s
+64	40	0.0
+\endverbatim
+
+\verbatim
+$ STARPU_PROFILING=1 STARPU_PROFILING_TASK="1" ./cholesky_tag
+#SPT:Task_name:worker_id:delay:length
+SPT:chol_model_potrf:1:38.79:27.88
+SPT:chol_model_trsm:10:201.69:32765.37
+SPT:chol_model_syrk:7:32942.70:22.96
+# size	ms	GFlop/s
+SPT:chol_model_potrf:19:32942.75:17.32
+64	33	0.0
+\endverbatim
+
+\verbatim
+$ STARPU_PROFILING=1 STARPU_PROFILING_TASK="callback" ./examples/callback/callback
+#SPT:Task_name:worker_id:delay:length:callback_start:callback_end
+SPT:with_callback:1:31.51:12.41:51.82:62.88
+SPT:without_callback:3:15.79:3.59:0.00:0.00
+v -> 42
+\endverbatim
 
 \subsection Per-codeletFeedback Per-codelet Feedback
 
