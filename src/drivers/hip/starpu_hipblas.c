@@ -28,10 +28,6 @@
 #include <rocblas/rocblas.h>
 #endif
 
-#ifdef STARPU_USE_HIP_CUDA
-#include <cublas.h>
-#endif
-
 static int hipblas_initialized[STARPU_NMAXWORKERS];
 static hipblasHandle_t hipblas_handles[STARPU_NMAXWORKERS];
 static hipblasHandle_t main_handle;
