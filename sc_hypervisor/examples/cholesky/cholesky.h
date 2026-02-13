@@ -25,6 +25,7 @@
 #ifdef STARPU_USE_CUDA
 #include <cuda.h>
 #include <cuda_runtime.h>
+#include <starpu_cublas_v2.h>
 #endif
 
 #include <common/blas.h>
