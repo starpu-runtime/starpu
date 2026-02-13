@@ -19,7 +19,7 @@
 #include <common/config.h>
 #include <core/workers.h>
 
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) && defined(STARPU_USE_CUBLAS)
 #include <drivers/cuda/driver_cuda.h>
 
 //#ifdef CUBLAS_V2_H_
@@ -76,11 +76,9 @@ static void shutdown_cublas_func(void *args STARPU_ATTRIBUTE_UNUSED)
 
 	_starpu_shutdown_cublas_v2_func();
 }
-#endif
 
 void starpu_cublas_init(void)
 {
-#ifdef STARPU_USE_CUDA
 	if (!starpu_cuda_worker_get_count())
 		return;
 	unsigned i;
@@ -91,23 +89,19 @@ void starpu_cublas_init(void)
 	starpu_execute_on_each_worker_ex(set_cublas_stream_func, NULL, STARPU_CUDA, "set_cublas_stream_func");
 
 	_starpu_cublas_v2_init();
-#endif
 }
 
 void starpu_cublas_shutdown(void)
 {
-#ifdef STARPU_USE_CUDA
 	if (!starpu_cuda_worker_get_count())
 		return;
 	starpu_execute_on_each_worker_ex(shutdown_cublas_func, NULL, STARPU_CUDA, "shutdown_cublas");
 
 	_starpu_cublas_v2_shutdown();
-#endif
 }
 
 void starpu_cublas_set_stream(void)
 {
-#ifdef STARPU_USE_CUDA
 	if (!starpu_cuda_worker_get_count())
 		return;
 	unsigned workerid = starpu_worker_get_id_check();
@@ -116,5 +110,14 @@ void starpu_cublas_set_stream(void)
 		(!_starpu_get_machine_config()->topology.cuda_th_per_stream &&
 		 _starpu_get_machine_config()->topology.nworker[STARPU_CUDA_WORKER][devnum] > 1))
 		cublasSetKernelStream(starpu_cuda_get_local_stream());
-#endif
 }
+#else
+void starpu_cublas_init(void)
+{
+}
+
+void starpu_cublas_shutdown(void)
+{
+}
+#endif
+
