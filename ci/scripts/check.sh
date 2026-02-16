@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2013-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2013-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -135,7 +135,7 @@ then
 #else
     # we do a normal check, a long check takes too long on VM nodes
 fi
-../configure $CONFIGURE_OPTIONS $CONFIGURE_CHECK  $STARPU_CONFIGURE_OPTIONS $STARPU_USER_CONFIGURE_OPTIONS | tee $starpu_artifacts/fulllog.txt
+../configure $CONFIGURE_OPTIONS $CONFIGURE_CHECK  $STARPU_CONFIGURE_OPTIONS $STARPU_USER_CONFIGURE_OPTIONS | tee -a $starpu_artifacts/fulllog.txt
 
 if test "$COVERITY" == "1"
 then
@@ -146,18 +146,18 @@ then
     exit 0
 fi
 
-make -j4 | tee $starpu_artifacts/fulllog.txt
-make dist | tee $starpu_artifacts/fulllog.txt
+make -j4 | tee -a $starpu_artifacts/fulllog.txt
+make dist | tee -a $starpu_artifacts/fulllog.txt
 set +e
 set -o pipefail
 if test -n "$STARPU_CHECK_DIRS"
 then
     for x in $STARPU_CHECK_DIRS
     do
-	make check -C $x 2>&1 | tee  $starpu_artifacts/check_$$
+	make check -C $x 2>&1 | tee -a $starpu_artifacts/fulllog.txt
     done
 else
-    make -k check 2>&1 | tee  $starpu_artifacts/check_$$
+    make -k check 2>&1 | tee -a $starpu_artifacts/fulllog.txt
 fi
 RET=$?
 
@@ -165,14 +165,14 @@ if test -n "$STARPU_CHECK_DIRS"
 then
     for x in $STARPU_CHECK_DIRS
     do
-	make showcheckfailed -C $x | tee  $starpu_artifacts/check_$$
+	make showcheckfailed -C $x | tee -a $starpu_artifacts/fulllog.txt
     done
 else
-    make showcheckfailed | tee  $starpu_artifacts/check_$$
+    make showcheckfailed | tee -a $starpu_artifacts/fulllog.txt
 fi
 make clean
 
-grep "^FAIL:" $starpu_artifacts/check_$$ || true
+grep "^FAIL:" $starpu_artifacts/fulllog.txt || true
 
 echo "Running on $(uname -a)"
 exit $RET
