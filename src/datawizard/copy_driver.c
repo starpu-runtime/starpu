@@ -426,7 +426,7 @@ void starpu_interface_end_driver_copy_async_devid(int src_dev, enum starpu_node_
 {
 	double end = starpu_timing_now();
 
-	unsigned src_node, dst_node;
+	unsigned src_node=0, dst_node=0;
 #ifdef STARPU_USE_FXT
 	src_node = starpu_memory_devid_find_node(src_dev, src_kind);
 	dst_node = starpu_memory_devid_find_node(dst_dev, dst_kind);
