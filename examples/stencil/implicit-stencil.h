@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -86,7 +86,7 @@ starpu_tag_t TAG_START(int z, int dir);
 int MPI_TAG0(int z, int iter, int dir);
 int MPI_TAG1(int z, int iter, int dir);
 
-#define MIN(a,b)	((a)<(b)?(a):(b))
+#define STMIN(a,b)	((a)<(b)?(a):(b))
 
 void create_blocks_array(size_t sizex, size_t sizey, size_t sizez, size_t nbz);
 void free_blocks_array();

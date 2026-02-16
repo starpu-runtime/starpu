@@ -113,7 +113,7 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-	int nb;
+	int nb=0;
 	ret = exchange_variable(rank, 100, starpu_mpi_isend_detached);
 	if (rank%2 == 0)
 	{
