@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,7 +20,6 @@
 #include "helper.h"
 #include "gemm_helper.h"
 
-
 #define CHECK_TASK_SUBMIT(ret) do {				\
 	if (ret == -ENODEV)					\
 	{							\
@@ -28,7 +27,6 @@
 	}							\
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");	\
 } while(0)
-
 
 unsigned nslices = 4;
 #if defined(STARPU_QUICK_CHECK) && !defined(STARPU_SIMGRID)
@@ -65,7 +63,6 @@ static void check_output(void)
 	}
 }
 
-
 static void partition_mult_data(void)
 {
 	starpu_matrix_data_register(&A_handle, STARPU_MAIN_RAM, (uintptr_t)A,
@@ -91,7 +88,6 @@ static void partition_mult_data(void)
 	starpu_data_map_filters(C_handle, 2, &vert, &horiz);
 }
 
-
 static void cpu_init_matrix_random(void *descr[], void *arg)
 {
 	(void)arg;
@@ -108,7 +104,6 @@ static void cpu_init_matrix_random(void *descr[], void *arg)
 	}
 }
 
-
 static void cpu_init_matrix_zero(void *descr[], void *arg)
 {
 	(void)arg;
@@ -122,7 +117,6 @@ static void cpu_init_matrix_zero(void *descr[], void *arg)
 		subA[i] = (TYPE) (0);
 	}
 }
-
 
 static void cpu_mult(void *descr[], void *arg)
 {
@@ -332,5 +326,3 @@ void gemm_release()
 	starpu_free_flags(B, matrix_dim*matrix_dim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 	starpu_free_flags(C, matrix_dim*matrix_dim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 }
-
-

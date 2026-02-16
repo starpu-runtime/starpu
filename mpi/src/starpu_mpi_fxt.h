@@ -204,5 +204,4 @@ void _starpu_mpi_fxt_shutdown();
 }
 #endif
 
-
 #endif /* __STARPU_MPI_FXT_H__ */

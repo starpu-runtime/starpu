@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -118,7 +118,6 @@ sc_hypervisor_ctl(sched_ctx,
                     SC_HYPERVISOR_TIME_TO_APPLY, 2,
                     NULL);
 \endcode
-
 
 The <b>Idleness</b> based strategy moves workers unused in a certain context to another one needing them.
 (see \ref API_SC_Hypervisor_usage)

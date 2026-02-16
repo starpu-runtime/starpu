@@ -151,7 +151,6 @@ int _starpu_trace_initialize_begin()
 	return 0;
 }
 
-
 /**
  * A new memory node is registered.
  * \p nodeid is the id of the new node.
@@ -1865,7 +1864,6 @@ int _starpu_trace_rwlock_unlocked()
 #endif
 	return 0;
 }
-
 
 #ifdef STARPU_FXT_LOCK_TRACES
 #ifdef STARPU_USE_FXT

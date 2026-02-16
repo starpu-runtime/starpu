@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013-2013  Joris Pablo
  * Copyright (C) 2013-2013  Simon Archipoff
  * Copyright (C) 2013-2013  Thibaut Lambert
@@ -37,7 +37,6 @@
 
 #include <limits.h>
 #include <math.h> /* for fpclassify() checks on knob values */
-
 
 #ifndef DBL_MIN
 #define DBL_MIN __DBL_MIN__
@@ -219,7 +218,6 @@ static void _starpu_fifo_task_finished(struct starpu_st_fifo_taskq *fifo, struct
 	fifo->exp_end = fifo->exp_start + fifo->exp_len;
 }
 
-
 static struct starpu_task *_dmda_pop_task(unsigned sched_ctx_id, int ready)
 {
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
@@ -384,7 +382,6 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 			for(i = 0; i <= task_prio; i++)
 				dt->queue_array[best_workerid].ntasks_per_priority[i]++;
 		}
-
 
 #if !defined(STARPU_NON_BLOCKING_DRIVERS) || defined(STARPU_SIMGRID)
 		starpu_wake_worker_locked(best_workerid);
@@ -651,7 +648,6 @@ static double _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned 
 					    da ? local_energy : NULL,
 					    &forced_best,
 					    &forced_impl, sched_ctx_id, sorted_decision);
-
 
 	if (forced_best == -1)
 	{

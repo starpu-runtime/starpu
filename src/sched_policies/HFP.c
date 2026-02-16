@@ -1606,9 +1606,8 @@ struct starpu_task *_starpu_HFP_get_task_to_return(struct starpu_sched_component
 			task = starpu_task_list_pop_front(&a->temp_pointer_1->sub_list);
 			a->temp_pointer_1->expected_time_pulled_out += starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
 
-				//~ gettimeofday(&time_end_gettasktoreturn, NULL);
-	//~ time_total_gettasktoreturn += (time_end_gettasktoreturn.tv_sec - time_start_gettasktoreturn.tv_sec)*1000000LL + time_end_gettasktoreturn.tv_usec - time_start_gettasktoreturn.tv_usec;
-
+			//~ gettimeofday(&time_end_gettasktoreturn, NULL);
+			//~ time_total_gettasktoreturn += (time_end_gettasktoreturn.tv_sec - time_start_gettasktoreturn.tv_sec)*1000000LL + time_end_gettasktoreturn.tv_usec - time_start_gettasktoreturn.tv_usec;
 
 			return task;
 		}

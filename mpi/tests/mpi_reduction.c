@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -145,7 +145,6 @@ int main(int argc, char **argv)
 	{
 		starpu_variable_data_register(&dot_handle, -1, (uintptr_t)NULL, sizeof(dot));
 	}
-
 
 	handles = (starpu_data_handle_t *) malloc(nb_elements*sizeof(handles[0]));
 	for(x = 0; x < nb_elements; x+=step)

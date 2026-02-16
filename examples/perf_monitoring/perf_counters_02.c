@@ -138,7 +138,6 @@ int main(void)
 	id_g_peak_ready = starpu_perf_counter_name_to_id(g_scope, "starpu.task.g_peak_ready");
 	STARPU_ASSERT(id_g_peak_ready != -1);
 
-
 	id_w_total_executed = starpu_perf_counter_name_to_id(w_scope, "starpu.task.w_total_executed");
 	STARPU_ASSERT(id_w_total_executed != -1);
 	id_w_cumul_execution_time = starpu_perf_counter_name_to_id(w_scope, "starpu.task.w_cumul_execution_time");

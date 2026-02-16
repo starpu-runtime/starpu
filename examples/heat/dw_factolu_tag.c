@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013-2013  Thibaut Lambert
  * Copyright (C) 2010-2010  Mehdi Juhoor
  *
@@ -272,8 +272,6 @@ static void dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks)
 		FPRINTF(stderr, "No worker may execute this task\n");
 		exit(-1);
 	}
-
-
 
 	/* stall the application until the end of computations */
 	starpu_tag_wait(TAG_GETRF(nblocks-1));

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -137,7 +137,6 @@ location.
 If <c>libhwloc</c> is not available on your system, the option
 \ref without-hwloc "--without-hwloc" should be explicitly given when calling the
 script <c>configure</c>.
-
 
 \subsection GettingSources Getting Sources
 

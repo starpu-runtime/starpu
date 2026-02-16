@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -87,7 +87,6 @@ int main(void)
 
 	starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&val, sizeof(int));
 
-
 	/* This tests a small constant number of arguments with starpu_task_submit */
 	task = starpu_task_create();
 	task->synchronous = 1;
@@ -101,7 +100,6 @@ int main(void)
 	ret = starpu_task_submit(task);
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-
 
 	/* This tests a large constant number of arguments with starpu_task_submit */
 	task2 = starpu_task_create();
@@ -121,7 +119,6 @@ int main(void)
 	ret = starpu_task_submit(task2);
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-
 
 	/* This tests a large variable number of arguments with starpu_task_submit */
 	task3 = starpu_task_create();
@@ -143,7 +140,6 @@ int main(void)
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-
 	/* This tests a small number of arguments with starpu_task_insert */
 	ret = starpu_task_insert(&dummy_small_cl,
 				 STARPU_VALUE, &(dummy_small_cl.nbuffers), sizeof(dummy_small_cl.nbuffers),
@@ -153,7 +149,6 @@ int main(void)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	ret = starpu_task_wait_for_all();
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
-
 
 	/* This tests a large constant number of arguments with starpu_task_insert */
 	descrs = malloc(dummy_big_cl.nbuffers * sizeof(struct starpu_data_descr));
@@ -172,7 +167,6 @@ int main(void)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 	free(descrs);
 
-
 	/* This tests a large variable number of arguments with starpu_task_insert */
 	descrs = malloc(dummy_big_cl.nbuffers * sizeof(struct starpu_data_descr));
 	for(i=0 ; i<dummy_big_cl.nbuffers ; i++)
@@ -189,7 +183,6 @@ int main(void)
 	ret = starpu_task_wait_for_all();
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 	free(descrs);
-
 
 	starpu_data_unregister(handle);
 	starpu_shutdown();

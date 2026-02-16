@@ -36,7 +36,6 @@ static unsigned target_clean_p;
 /* Whether CPU memory has been explicitly limited by user */
 static int limit_cpu_mem;
 
-
 /* TODO: no home doesn't mean always clean, should push to larger memory nodes */
 #define MC_LIST_PUSH_BACK(node_struct, mc) do {				 \
 	_starpu_mem_chunk_list_push_back(&node_struct->mc_list, mc);	 \
@@ -449,8 +448,6 @@ static size_t free_memory_on_node(struct _starpu_mem_chunk *mc, unsigned node)
 
 	return freed;
 }
-
-
 
 /* mc_lock is held */
 static size_t do_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
@@ -1052,7 +1049,6 @@ static size_t free_potentially_in_use_mc(unsigned node, unsigned force, size_t r
 			return 0;
 		}
 	}
-
 
 	/*
 	 * We have to unlock mc_lock before locking header_lock, so we have

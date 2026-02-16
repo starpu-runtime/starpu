@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013-2013  Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -30,8 +30,6 @@
 #endif
 
 #include "sched_component.h"
-
-
 
 /* The scheduler is built by a recursive function called on the hwloc topology with a starpu_sched_specs structure,
  * each call return a set of starpu_sched_component, not a single one, because you may have a topology like that :
@@ -278,7 +276,6 @@ struct starpu_sched_tree * starpu_sched_component_make_scheduler(unsigned sched_
 		STARPU_ASSERT(worker);
 		set_worker_leaf(tree->root,worker_component, sched_ctx_id, specs);
 	}
-
 
 	starpu_sched_tree_update_workers(tree);
 #ifdef STARPU_DEVEL

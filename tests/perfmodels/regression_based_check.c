@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011-2011  Télécom Sud Paris
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -35,7 +35,6 @@
 #else
 #define END 16777216
 #endif
-
 
 void memset_cpu(void *descr[], void *arg)
 {
@@ -154,14 +153,12 @@ static void compare_performance(int size, struct starpu_codelet *codelet, struct
 		struct starpu_task *task = tasks[i];
 		struct starpu_profiling_task_info *info = task->profiling_info;
 
-
 		/* How long was the task execution ? */
 		length_sum += starpu_timing_timespec_delay_us(&info->start_time, &info->end_time);
 
 		/* We don't need the task structure anymore */
 		starpu_task_destroy(task);
 	}
-
 
 	/* Display the occupancy of all workers during the test */
 	unsigned worker;
@@ -174,7 +171,6 @@ static void compare_performance(int size, struct starpu_codelet *codelet, struct
 		char workername[128];
 		starpu_worker_get_name(worker, workername, sizeof(workername));
 		unsigned nimpl;
-
 
 		if (starpu_worker_get_type(worker)==STARPU_CPU_WORKER)
 		{
@@ -189,10 +185,7 @@ static void compare_performance(int size, struct starpu_codelet *codelet, struct
 			}
 		}
 	}
-
-
 }
-
 
 int main(int argc, char **argv)
 {
@@ -229,7 +222,6 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
 	starpu_shutdown();
-
 
 	/* Test Phase */
 	starpu_conf_init(&conf);

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -31,7 +31,6 @@
 
 #define VERBOSE 0
 
-
 static int M  = 1024; /* Matrix size */
 static int N  = 1024; /* Matrix size */
 static int K  = 1024; /* Matrix size */
@@ -44,7 +43,6 @@ static int trace = 0; /* whether to trace */
 #define MB ((M)/(BS)) /* Number of blocks */
 #define NB ((N)/(BS)) /* Number of blocks */
 #define KB ((K)/(BS)) /* Number of blocks */
-
 
 /* Arrays of data handles for managing matrix blocks */
 static starpu_data_handle_t *A_h;
@@ -271,7 +269,6 @@ static void init_matrices(void)
 	init_matrix(C,C_h,MB,NB);
 	starpu_mpi_wait_for_all(MPI_COMM_WORLD);
 }
-
 
 int main(int argc, char *argv[])
 {

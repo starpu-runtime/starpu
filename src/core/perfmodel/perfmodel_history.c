@@ -555,7 +555,6 @@ static void scan_reg_model(FILE *f, const char *path, struct starpu_perfmodel_re
 	STARPU_ASSERT_MSG(res == 0, "Incorrect performance model file %s", path);
 }
 
-
 #ifndef STARPU_SIMGRID
 static void check_history_entry(struct starpu_perfmodel_history_entry *entry)
 {
@@ -677,7 +676,6 @@ static void parse_per_arch_model_file(FILE *f, const char *path, struct starpu_p
 		/* else unknown, leave invalid */
 	}
 }
-
 
 static void parse_arch(FILE *f, const char *path, struct starpu_perfmodel *model, unsigned scan_history, int comb)
 {

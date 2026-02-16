@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -305,7 +305,6 @@ static size_t bcsr_interface_get_size(starpu_data_handle_t handle)
 
 	return size;
 }
-
 
 /* memory allocation/deallocation primitives for the BLAS interface */
 

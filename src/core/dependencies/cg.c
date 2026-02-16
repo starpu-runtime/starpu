@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -279,7 +279,6 @@ void _starpu_notify_cg(void *pred STARPU_ATTRIBUTE_UNUSED, struct _starpu_cg *cg
 				else
 					STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
-
 				break;
 			}
 
@@ -347,7 +346,6 @@ void _starpu_notify_job_ready_soon_cg(void *pred STARPU_ATTRIBUTE_UNUSED, struct
 		}
 	}
 }
-
 
 /* Caller just has to promise that the list will not disappear.
  * _starpu_notify_cg_list protects the list itself.

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2020-2020  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -161,7 +161,6 @@ can be listed by typing <c>./configure --help</c>. For example,
 <c>./configure NVCCFLAGS="-arch sm_20"</c> adds a flag for the compilation of
 CUDA kernels, and <c>NVCC_CC=gcc-5</c> allows to change the C++ compiler
 used by nvcc.
-
 
 \section ConfiguringWorkers Configuring Workers
 

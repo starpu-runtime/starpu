@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -39,7 +39,6 @@ static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs, int *workers, i
 
 	int total_nw[nw];
 	sc_hypervisor_group_workers_by_type(tw, total_nw);
-
 
 	struct timeval start_time;
 	struct timeval end_time;
@@ -182,7 +181,6 @@ static void _resize_if_speed_diff(unsigned sched_ctx, int worker)
 			int npus_parent = -1;
 			if(level > 0)
 				npus_parent = starpu_sched_ctx_get_workers_list(parent, &pus_parent);
-
 
 			unsigned *sched_ctxs = NULL;
 			int nsched_ctxs = 0;

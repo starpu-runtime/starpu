@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013-2013  Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -49,7 +49,6 @@ unsigned sc_hypervisor_find_lowest_prio_sched_ctx(unsigned req_sched_ctx, int nw
 	unsigned sched_ctx = STARPU_NMAX_SCHED_CTXS;
 	unsigned *sched_ctxs = sc_hypervisor_get_sched_ctxs();
 	int nsched_ctxs = sc_hypervisor_get_nsched_ctxs();
-
 
 	struct sc_hypervisor_policy_config *config = NULL;
 
@@ -293,7 +292,6 @@ unsigned sc_hypervisor_policy_resize(unsigned sender_sched_ctx, unsigned receive
 
 }
 
-
 unsigned sc_hypervisor_policy_resize_to_unknown_receiver(unsigned sender_sched_ctx, unsigned now)
 {
 	return sc_hypervisor_policy_resize(sender_sched_ctx, STARPU_NMAX_SCHED_CTXS, 0, now);
@@ -489,7 +487,6 @@ unsigned sc_hypervisor_check_speed_gap_btw_ctxs(unsigned *sched_ctxs_in, int ns_
 	struct sc_hypervisor_wrapper* sc_w;
 	struct sc_hypervisor_wrapper* other_sc_w;
 
-
 	double optimal_v[ns];
 	unsigned has_opt_v = 1;
 	for(i = 0; i < ns; i++)
@@ -512,7 +509,6 @@ unsigned sc_hypervisor_check_speed_gap_btw_ctxs(unsigned *sched_ctxs_in, int ns_
 		sc_hypervisor_group_workers_by_type(tw, total_nw);
 
 //		double vmax = sc_hypervisor_lp_get_nworkers_per_ctx(ns, nw, nworkers_per_ctx, total_nw, tw, sched_ctxs);
-
 
 //		if(vmax != 0.0)
 		{

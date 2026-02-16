@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -248,7 +248,6 @@ void construct_contexts()
 	int nworkers2 = cpu2 + gpu + gpu2;
 	/* unsigned n_all_gpus = gpu + gpu1 + gpu2; */
 
-
 	int i;
 	/* int k = 0; */
 	nworkers1 = 12;
@@ -260,10 +259,8 @@ void construct_contexts()
 	/* for(i = gpu; i < gpu + gpu1; i++) */
 	/* 	p1.workers[k++] = i; */
 
-
 	/* for(i = n_all_gpus; i < n_all_gpus + cpu1; i++) */
 	/* 	p1.workers[k++] = i; */
-
 
 	for(i = 0; i < 12; i++)
 		p1.workers[i] = i;

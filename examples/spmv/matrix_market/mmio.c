@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,7 +20,6 @@
 *
 *
 */
-
 
 #include <stdio.h>
 #include <string.h>
@@ -321,7 +320,6 @@ int mm_read_mtx_crd(char *fname, int *M, int *N, int *nz, int **I, int **J, doub
 	else
 		if ((f = fopen(fname, "r")) == NULL)
 			return MM_COULD_NOT_READ_FILE;
-
 
 	if ((ret_code = mm_read_banner(f, matcode)) != 0)
 	{

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -70,7 +70,6 @@ static void print_vector_from_descr(size_t nx, TYPE *v)
 	}
 	fprintf(stderr, "\n");
 }
-
 
 static void print_matrix_from_descr(size_t nx, size_t ny, size_t ld, TYPE *mat)
 {
@@ -641,7 +640,6 @@ int scal_axpy_kernel(HANDLE_TYPE_VECTOR v1, TYPE p1,
 	return 0;
 }
 
-
 /*
  *	AXPY kernel : v1 = v1 + p1 * v2
  */
@@ -719,7 +717,6 @@ int axpy_kernel(HANDLE_TYPE_VECTOR v1,
 	}
 	return 0;
 }
-
 
 /*
  *	Main loop
@@ -831,7 +828,6 @@ int cg(void)
 
 	return 0;
 }
-
 
 void parse_common_args(int argc, char **argv)
 {

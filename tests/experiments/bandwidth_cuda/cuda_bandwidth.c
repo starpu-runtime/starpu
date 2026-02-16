@@ -14,7 +14,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE 1
 #endif
@@ -46,7 +45,6 @@ void * d_A;
 float *A, *B, *C;
 
 unsigned cuda_initialized = 0;
-
 
 static void parse_args(int argc, char **argv)
 {
@@ -96,8 +94,6 @@ static void parse_args(int argc, char **argv)
 	STARPU_ASSERT(CPU_LD >= MATRIXSIZE);
 	STARPU_ASSERT(GPU_LD >= MATRIXSIZE);
 }
-
-
 
 void bind_thread(int cpu)
 {

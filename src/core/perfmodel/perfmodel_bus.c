@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013-2013  Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -1320,7 +1320,6 @@ static void load_bus_latency_file(void)
 	}
 
 }
-
 
 /*
  *	Bandwidth

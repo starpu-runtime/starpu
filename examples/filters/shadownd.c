@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010-2010  Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -675,7 +675,6 @@ int main(void)
 						matrix[m][SHADOWT+NT+l][SHADOWZ+NZ+k][SHADOWY+NY+j][SHADOWX+NX+i] = matrix[m+NG][SHADOWT+l][SHADOWZ+k][SHADOWY+j][SHADOWX+i];
 						matrix[SHADOWG+NG+m][SHADOWT+NT+l][SHADOWZ+NZ+k][SHADOWY+NY+j][SHADOWX+NX+i] = matrix[SHADOWG+m][SHADOWT+l][SHADOWZ+k][SHADOWY+j][SHADOWX+i];
 					}
-
 
 	FPRINTF(stderr,"IN	Matrix:\n");
 	for(m=0 ; m<NG + 2*SHADOWG ; m++)

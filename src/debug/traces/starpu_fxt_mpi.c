@@ -253,7 +253,6 @@ void _starpu_fxt_mpi_recv_transfer_set_numa_node(int src, int dst, long jobid, l
 	_STARPU_MSG("Warning: did not find the recv transfer from %d to %d with jobid %ld\n", src, dst, jobid);
 }
 
-
 static
 struct mpi_transfer *try_to_match_send_transfer(int src, int dst, long mpi_tag)
 {

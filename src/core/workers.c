@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011-2011  Télécom Sud Paris
  * Copyright (C) 2013-2013  Thibaut Lambert
  * Copyright (C) 2016-2016  Uppsala University
@@ -82,7 +82,6 @@
 #define ffs(arg) _bit_scan_forward(arg)
 #endif
 #endif
-
 
 static int asynchronous_copy_disabled[STARPU_MAX_RAM+1];
 
@@ -697,8 +696,6 @@ int starpu_worker_can_execute_task_first_impl(unsigned workerid, struct starpu_t
 	return 0;
 }
 
-
-
 int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl)
 {
 	/* TODO: check that the task operand sizes will fit on that device */
@@ -1201,7 +1198,6 @@ int starpu_conf_init(struct starpu_conf *conf)
 	if (conf->disable_asynchronous_cuda_copy == -1)
 		conf->disable_asynchronous_cuda_copy = 0;
 #endif
-
 
 #if defined(STARPU_DISABLE_ASYNCHRONOUS_HIP_COPY)
 	conf->disable_asynchronous_hip_copy = 1;
@@ -2440,7 +2436,6 @@ unsigned starpu_cuda_worker_get_count(void)
 	return starpu_worker_get_count_by_type(STARPU_CUDA_WORKER);
 }
 
-
 unsigned starpu_hip_worker_get_count(void)
 {
 	return starpu_worker_get_count_by_type(STARPU_HIP_WORKER);
@@ -2460,7 +2455,6 @@ int starpu_asynchronous_cuda_copy_disabled(void)
 {
 	return _starpu_config.conf.disable_asynchronous_cuda_copy;
 }
-
 
 int starpu_asynchronous_hip_copy_disabled(void)
 {

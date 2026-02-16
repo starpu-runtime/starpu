@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2021-2021  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -364,8 +364,6 @@ unsigned _starpu_attempt_to_submit_arbitered_data_request(unsigned request_from_
 	return put_in_list;
 
 }
-
-
 
 #ifdef LOCK_OR_DELEGATE
 /* These are the arguments passed to _submit_job_enforce_arbitered_deps */

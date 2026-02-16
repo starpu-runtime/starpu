@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2017-2017  Erwan Leria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -31,7 +31,6 @@
 #include <common/utils.h>
 #include <starpu_scheduler.h>
 #include <common/rbtree.h>
-
 
 #define REPLAY_NMAX_DEPENDENCIES 8
 
@@ -122,8 +121,6 @@ static struct perfmodel
 	struct starpu_perfmodel perfmodel;
 	char * model_name;
 } * model_hash;
-
-
 
 /*
  * Replay data interface
@@ -277,7 +274,6 @@ static struct starpu_data_interface_ops replay_interface_ops =
 	.dontcache = 1,
 };
 
-
 /* [SUBMITORDER] The tree of the submit order */
 
 static struct starpu_rbtree tree = STARPU_RBTREE_INITIALIZER;
@@ -402,11 +398,9 @@ static struct starpu_codelet cl =
 	.flags = STARPU_CODELET_SIMGRID_EXECUTE,
 };
 
-
 /* * * * * * * * * * * * * *
 * * * * * Functions * * * * *
 * * * * * * * * * * * * * * */
-
 
 /* The following function checks if the program has to use static or dynamic arrays*/
 static int set_alloc_mode(int total_parameters)
@@ -634,7 +628,6 @@ int submit_tasks(void)
 				return -1;
 			}
 
-
 			//fprintf(stderr, "submitting task %s (%lu, %llu)\n", currentTask->task.name?currentTask->task.name:"anonymous", currentTask->jobid, (unsigned long long) currentTask->task.tag_id);
 			if (!(currentTask->submit_order % 1000))
 			{
@@ -662,7 +655,6 @@ int submit_tasks(void)
 
 	return 1;
 }
-
 
 /* * * * * * * * * * * * * * * */
 /* * * * * * MAIN * * * * * * */
@@ -789,7 +781,6 @@ int main(int argc, char **argv)
 
 			starpu_rbtree_node_init(&task->node);
 			starpu_rbtree_insert(&tree, &task->node, diff);
-
 
 			task->jobid = jobid;
 			task->iteration = iteration;

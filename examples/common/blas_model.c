@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -30,7 +30,6 @@ double gemm_cost(struct starpu_task *task, unsigned nimpl)
 {
 	/* C = A * B */
 	uint32_t nxC, nyC, nxA;
-
 
 	nxC = starpu_matrix_get_nx(task->descr[2].handle);
 	nyC = starpu_matrix_get_ny(task->descr[2].handle);

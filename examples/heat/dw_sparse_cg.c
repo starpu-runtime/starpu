@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -50,7 +50,6 @@ static void create_data(float **_nzvalA, float **_vecb, float **_vecx, uint32_t 
 	assert(nzval);
 	assert(colind);
 	assert(rowptr);
-
 
 	/* fill the matrix */
 	unsigned row;
@@ -463,9 +462,8 @@ void conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
 	starpu_free_noflag(ptr_vecq, nrow*sizeof(float));
 }
 
-
 void do_conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
-			unsigned nrow, uint32_t *colind, uint32_t *rowptr)
+			   unsigned nrow, uint32_t *colind, uint32_t *rowptr)
 {
 	/* start the runtime */
 	int ret;

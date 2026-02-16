@@ -1135,7 +1135,6 @@ pick:
 		}
 	  }
 
-
 	if (!task)
 	{
 		if (starpu_idle_file)
@@ -1150,7 +1149,6 @@ pick:
 		idle_start[worker->workerid] = 0.0;
 	}
 
-
 #ifdef STARPU_USE_SC_HYPERVISOR
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
 	struct starpu_sched_ctx_performance_counters *perf_counters = sched_ctx->perf_counters;
@@ -1163,12 +1161,10 @@ pick:
 	}
 #endif //STARPU_USE_SC_HYPERVISOR
 
-
 	/* Make sure we do not bother with all the multiformat-specific code if
 	 * it is not necessary. */
 	if (!_starpu_task_uses_multiformat_handles(task))
 		goto profiling;
-
 
 	/* This is either a conversion task, or a regular task for which the
 	 * conversion tasks have already been created and submitted */

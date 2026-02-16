@@ -189,7 +189,6 @@ const struct cudaDeviceProp *starpu_cuda_get_device_properties(unsigned workerid
 }
 #endif /* STARPU_USE_CUDA */
 
-
 /* Early library initialization, before anything else, just initialize data */
 void _starpu_cuda_early_init(void)
 {
@@ -1456,7 +1455,6 @@ int starpu_cuda_copy2d_async_sync_devid(void *src_ptr, int src_devid, enum starp
 		p.dstPtr = make_cudaPitchedPtr((char *)dst_ptr, ld_dst, blocksize, numblocks);
 		p.extent = make_cudaExtent(blocksize, numblocks, 1);
 
-
 		if (stream)
 		{
 			double start;
@@ -1505,7 +1503,6 @@ int starpu_cuda_copy2d_async_sync_devid(void *src_ptr, int src_devid, enum starp
 		}
 	}
 
-
 	return -EAGAIN;
 }
 
@@ -1548,7 +1545,6 @@ starpu_cuda_copy3d_async_sync(void *src_ptr, unsigned src_node,
 		p.dstPtr = make_cudaPitchedPtr((char *)dst_ptr, ld1_dst, blocksize, numblocks);
 		// FIXME: how to pass ld2_src / ld2_dst ??
 		p.extent = make_cudaExtent(blocksize, numblocks_1, numblocks_2);
-
 
 		if (stream)
 		{
@@ -1603,7 +1599,6 @@ starpu_cuda_copy3d_async_sync(void *src_ptr, unsigned src_node,
 			return 0;
 		}
 	}
-
 
 	return -EAGAIN;
 }
@@ -2201,7 +2196,6 @@ static void start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *work
 		}
 #endif
 
-
 		func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
 
 #endif
@@ -2265,7 +2259,6 @@ static void execute_job_on_cuda(struct starpu_task *task, struct _starpu_worker 
 static void finish_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worker)
 {
 	int profiling = starpu_profiling_status_get();
-
 
 #ifdef HAVE_NVMLDEVICEGETTOTALENERGYCONSUMPTION
 	if (profiling && _starpu_energy_profiling && j->task->profiling_info && j->task->profiling_info->energy_consumed && _starpu_nvmlDeviceGetTotalEnergyConsumption)
@@ -2464,7 +2457,6 @@ static int _starpu_cuda_driver_run_once(struct _starpu_worker *worker)
 		if (!task)
 			continue;
 
-
 		j = _starpu_get_job_associated_to_task(task);
 
 		/* can CUDA do that task ? */
@@ -2511,7 +2503,6 @@ void *_starpu_cuda_worker(void *_arg)
 
 	return NULL;
 }
-
 
 #ifdef STARPU_HAVE_HWLOC
 hwloc_obj_t _starpu_cuda_get_hwloc_obj(hwloc_topology_t topology, int devid)

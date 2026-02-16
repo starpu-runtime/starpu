@@ -449,8 +449,6 @@ static struct starpu_data_interface_ops interface_complex_ops =
 };
 \endcode
 
-
-
 Instead of defining pack and unpack operations, users may want to
 attach an MPI type to their user-defined data interface. The function
 starpu_mpi_interface_datatype_register() allows doing so. This function takes 3
@@ -1252,7 +1250,6 @@ data transfers and supports data matrices which do not fit in memory (out-of-cor
 </li>
 </ul>
 
-
 \section Nmad Using the NewMadeleine communication library
 
 NewMadeleine (see https://pm2.gitlabpages.inria.fr/newmadeleine/, part of the PM2
@@ -1295,8 +1292,6 @@ parameter \c \-\-with-input=openmpi=nmad and MadMPI can be used with \c
 
 Whatever implementation (NewMadeleine or MadMPI) is used by StarPU, the public
 MPI interface of StarPU (described in \ref API_MPI_Support) is the same.
-
-
 
 \section MPIServerclient MPI Server Client Support
 

@@ -81,8 +81,6 @@ int MPI_TAG1(int z, int iter, int dir)
 	return tag;
 }
 
-
-
 /*
  *	Block descriptors
  */
@@ -229,8 +227,6 @@ void assign_blocks_to_workers(int rank)
 		}
 	}
 }
-
-
 
 void assign_blocks_to_mpi_nodes(int world_size)
 {

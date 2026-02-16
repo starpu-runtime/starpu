@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013-2013  Thibaut Lambert
  * Copyright (C) 2010-2010  Mehdi Juhoor
  *
@@ -172,8 +172,6 @@ static int create_task_gemm(starpu_data_handle_t dataA, unsigned k, unsigned m, 
 	if (ret != -ENODEV) STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	return ret;
 }
-
-
 
 /*
  *	code to bootstrap the factorization

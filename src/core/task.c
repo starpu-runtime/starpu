@@ -463,7 +463,6 @@ struct starpu_task * STARPU_ATTRIBUTE_MALLOC starpu_task_create(void)
 	return task;
 }
 
-
 static struct starpu_codelet _starpu_data_sync_cl =
 {
 	.where = STARPU_NOWHERE,
@@ -1920,7 +1919,6 @@ int starpu_task_nsubmitted(void)
 	}
 	return nsubmitted;
 }
-
 
 int starpu_task_nready(void)
 {

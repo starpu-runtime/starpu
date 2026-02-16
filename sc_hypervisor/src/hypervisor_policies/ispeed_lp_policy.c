@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -116,7 +116,6 @@ static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs , int *workers, 
 
 	struct types_of_workers *tw = sc_hypervisor_get_types_of_workers(workers, nw);
 	int ntypes_of_workers = tw->nw;
-
 
 	double w_in_s[ns][nw];
 

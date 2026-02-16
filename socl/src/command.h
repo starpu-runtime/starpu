@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -94,7 +94,6 @@ typedef struct command_ndrange_kernel_t
 	cl_uint		 num_buffers;
 	cl_mem *	 buffers;
 } * command_ndrange_kernel;
-
 
 typedef struct command_read_buffer_t
 {
@@ -206,6 +205,5 @@ cl_int command_map_buffer_submit(command_map_buffer cmd);
 cl_int command_unmap_mem_object_submit(command_unmap_mem_object cmd);
 cl_int command_marker_submit(command_marker cmd);
 cl_int command_barrier_submit(command_barrier cmd);
-
 
 #endif /* SOCL_COMMANDS_H */

@@ -883,7 +883,6 @@ void starpurm_initialize_with_cpuset(const hwloc_cpuset_t initially_owned_cpuset
 		rm->cuda_worker_devids_to_unit_id = cuda_worker_devids_to_unit_id;
 	}
 
-
 	/* create StarPU sched_ctx for RM instance */
 	{
 		int workerids[rm->nunits];
@@ -1015,7 +1014,6 @@ void starpurm_shutdown(void)
 	free(rm);
 	_starpurm = NULL;
 }
-
 
 void starpurm_spawn_kernel_on_cpus(void *data, void(*f)(void *), void *args, hwloc_cpuset_t cpuset)
 {
@@ -1207,7 +1205,6 @@ int starpurm_drs_enabled_p(void)
 	return rm->dynamic_resource_sharing;
 }
 
-
 starpurm_drs_ret_t starpurm_set_max_parallelism(starpurm_drs_desc_t *spd, int ncpus)
 {
 	(void)spd;
@@ -1228,7 +1225,6 @@ starpurm_drs_ret_t starpurm_set_max_parallelism(starpurm_drs_desc_t *spd, int nc
 	}
 	return starpurm_DRS_SUCCESS;
 }
-
 
 starpurm_drs_ret_t starpurm_callback_set(starpurm_drs_desc_t *spd, starpurm_drs_cbs_t which, starpurm_drs_cb_t callback)
 {
@@ -1395,7 +1391,6 @@ starpurm_drs_ret_t starpurm_lend(starpurm_drs_desc_t *spd)
 	return starpurm_assign_all_cpus_to_starpu(spd);
 }
 
-
 starpurm_drs_ret_t starpurm_reclaim_cpu(starpurm_drs_desc_t *spd, int cpuid)
 {
 	return starpurm_withdraw_cpu_from_starpu(spd, cpuid);
@@ -1436,7 +1431,6 @@ starpurm_drs_ret_t starpurm_acquire_cpu_mask(starpurm_drs_desc_t *spd, const hwl
 	return starpurm_withdraw_cpu_mask_from_starpu(spd, mask);
 }
 
-
 starpurm_drs_ret_t starpurm_return_all(starpurm_drs_desc_t *spd)
 {
 	return starpurm_assign_all_cpus_to_starpu(spd);
@@ -1446,7 +1440,6 @@ starpurm_drs_ret_t starpurm_return_cpu(starpurm_drs_desc_t *spd, int cpuid)
 {
 	return starpurm_assign_cpu_to_starpu(spd, cpuid);
 }
-
 
 /* Pause/resume */
 starpurm_drs_ret_t starpurm_create_block_condition(starpurm_block_cond_t *cond)
@@ -1470,7 +1463,6 @@ void starpurm_signal_block_condition(starpurm_block_cond_t *cond)
 	(void)cond;
 	assert(0);
 }
-
 
 void starpurm_register_polling_service(const char *service_name, starpurm_polling_t function, void *data)
 {
@@ -1702,7 +1694,6 @@ starpurm_drs_ret_t starpurm_lend_all_devices(starpurm_drs_desc_t *spd, int type_
 	return starpurm_assign_all_devices_to_starpu(spd, type_id);
 }
 
-
 starpurm_drs_ret_t starpurm_reclaim_device(starpurm_drs_desc_t *spd, int type_id, int unit_rank)
 {
 	return starpurm_withdraw_device_from_starpu(spd, type_id, unit_rank);
@@ -1742,7 +1733,6 @@ starpurm_drs_ret_t starpurm_acquire_device_mask(starpurm_drs_desc_t *spd, const 
 {
 	return starpurm_withdraw_device_mask_from_starpu(spd, mask);
 }
-
 
 starpurm_drs_ret_t starpurm_return_all_devices(starpurm_drs_desc_t *spd, int type_id)
 {

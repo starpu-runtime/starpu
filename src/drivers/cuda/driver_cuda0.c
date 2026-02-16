@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2021-2021  Federal University of Rio Grande do Sul (UFRGS)
  * Copyright (C) 2016-2016  Uppsala University
  * Copyright (C) 2013-2013  Thibaut Lambert
@@ -83,7 +83,6 @@ const struct cudaDeviceProp *starpu_cuda_get_device_properties(unsigned workerid
 	unsigned devid = config->workers[workerid].devid;
 	return &props[devid];
 }
-
 
 /* Early library initialization, before anything else, just initialize data */
 void _starpu_cuda_early_init(void)
@@ -730,7 +729,6 @@ void *_starpu_cuda_worker(void *_arg)
 
 	return NULL;
 }
-
 
 void starpu_cublas_report_error(const char *func, const char *file, int line, int status)
 {

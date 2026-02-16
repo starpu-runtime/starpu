@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -124,7 +124,6 @@ static starpu_pthread_mutex_t refined_mutex; /* Protect the main task list and t
 #define _LINEAR_MUTEX_UNLOCK()
 #define _LINEAR_MUTEX_INIT()
 #endif
-
 
 static int can_a_data_be_in_mem_and_in_not_used_yet;
 static int eviction_strategy_darts;
@@ -3402,7 +3401,6 @@ static void initialize_darts_center_policy(unsigned sched_ctx_id)
 							   STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY |
 							   STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY_FIRST |
 							   STARPU_SCHED_SIMPLE_IMPL, sched_ctx_id);
-
 
 	/* To avoid systematic prefetch in sched_policy.c */
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);

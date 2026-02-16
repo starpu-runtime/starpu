@@ -48,7 +48,6 @@ struct _starpu_component_work_stealing_data
 	unsigned size;
 };
 
-
 /**
  * steal a task in a round robin way
  * return NULL if none available
@@ -335,7 +334,6 @@ static void _ws_remove_child(struct starpu_sched_component * component, struct s
 	STARPU_ASSERT(i_component != component->nchildren);
 	struct starpu_st_prio_deque tmp_fifo = wsd->per_worker[i_component].fifo;
 	wsd->per_worker[i_component].fifo = wsd->per_worker[component->nchildren - 1].fifo;
-
 
 	component->children[i_component] = component->children[component->nchildren - 1];
 	component->nchildren--;

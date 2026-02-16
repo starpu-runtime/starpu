@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -84,8 +84,6 @@ static unsigned count_row_blocks(tmp_block_t *block_list)
 
 	return (maxrow+1);
 }
-
-
 
 /* Find the block that corresponds to (i,j) if it exists in the list */
 
@@ -349,7 +347,6 @@ bcsr_t *mm_file_to_bcsr(char *filename, unsigned c, unsigned r)
 
 	if ((mm_read_mtx_crd_size(f, &M, &N, &nz)) !=0)
 		exit(1);
-
 
 	/* reseve memory for matrices */
 

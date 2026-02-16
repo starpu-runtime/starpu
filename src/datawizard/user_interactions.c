@@ -142,12 +142,9 @@ static inline void _starpu_data_acquire_launch_fetch(struct user_interaction_wra
 	STARPU_ASSERT(!ret);
 }
 
-
-
 /*
  *	Non Blocking data request from application
  */
-
 
 /* Called when fetch is done, call the callback */
 static void _starpu_data_acquire_fetch_data_callback(void *arg)
@@ -372,7 +369,6 @@ int _starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_da
 		STARPU_PTHREAD_MUTEX_UNLOCK(handle->partition_mutex);
 #endif
 
-
 		if (STARPU_UNLIKELY(new_task))
 		{
 			int ret = _starpu_task_submit_internally(new_task);
@@ -469,7 +465,6 @@ int starpu_data_acquire_cb_sequential_consistency(starpu_data_handle_t handle,
 	return starpu_data_acquire_on_node_cb_sequential_consistency(handle, home_node, mode, callback, arg, sequential_consistency);
 }
 
-
 int starpu_data_get_on_node_cb_prio(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode, void (*callback)(void *), void *arg, enum starpu_is_prefetch prefetch, int prio)
 {
 	if (node == STARPU_ACQUIRE_NO_NODE)
@@ -498,8 +493,6 @@ int starpu_data_get_on_node_cb_prio(starpu_data_handle_t handle, int node, enum 
 /*
  *	Blocking data request from application
  */
-
-
 
 static inline void _starpu_data_acquire_continuation(void *arg)
 {

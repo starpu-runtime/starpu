@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -257,7 +257,6 @@ inline void STARPU_DGEMM(char *transa, char *transb, int M, int N, int K,
 			 &beta, C, &ldc);
 }
 
-
 inline void STARPU_SGEMV(char *transa, int M, int N, float alpha, float *A, int lda,
 		float *X, int incX, float beta, float *Y, int incY)
 {
@@ -513,7 +512,6 @@ void STARPU_DSWAP(const int n, double *X, const int incX, double *Y, const int i
 void STARPU_SPOTRF(const char*uplo, const int n, float *a, const int lda) { }
 
 void STARPU_DPOTRF(const char*uplo, const int n, double *a, const int lda) { }
-
 
 #else
 #error "no BLAS lib available..."

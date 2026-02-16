@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -81,7 +81,6 @@ static double time_threshold = 20000;
 /******************************************************************************
  *                              Balancing                                     *
  *****************************************************************************/
-
 
 /* Decides which data has to move where, and fills the
  * data_movements_handles[my_rank] data handle from that.

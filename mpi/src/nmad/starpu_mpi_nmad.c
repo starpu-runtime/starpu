@@ -54,7 +54,6 @@ void _starpu_mpi_handle_pending_request(struct _starpu_mpi_req *req);
 static inline void _starpu_mpi_request_end(struct _starpu_mpi_req* req, int post_callback_sem);
 static inline void _starpu_mpi_request_try_end(struct _starpu_mpi_req* req, int post_callback_sem);
 
-
 /* Condition to wake up waiting for all current MPI requests to finish */
 static starpu_pthread_t progress_thread;
 static starpu_pthread_cond_t progress_cond;
@@ -639,7 +638,6 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 #endif
 #endif
 
-
 	if (_starpu_mpi_use_coop_sends)
 	{
 		if (argc_argv->world_size > 2)
@@ -702,10 +700,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		free(c);
 	}
 
-
 	/** Now, shutting down MPI **/
-
-
 	STARPU_ASSERT_MSG(callback_lfstack_pop(&callback_stack)==NULL, "List of callback not empty.");
 	STARPU_ASSERT_MSG(nb_pending_requests==0, "Request still pending.");
 

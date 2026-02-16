@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2020-2020  Télécom Sud Paris
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -36,7 +36,6 @@ unsigned starpu_mct_compute_execution_times(struct starpu_sched_component *compo
 					    double *estimated_transfer_length,
 					    unsigned *suitable_components);
 
-
 void starpu_mct_compute_expected_times(struct starpu_sched_component *component,
 				       struct starpu_task *task,
 				       double *estimated_lengths,
@@ -64,7 +63,6 @@ int starpu_mct_get_best_component(struct _starpu_mct_data *d,
 				  double max_exp_end_of_workers,
 				  unsigned *suitable_components,
 				  unsigned nsuitable_components);
-
 
 void starpu_mct_compute_energy(struct starpu_sched_component *component,
 			       struct starpu_task *task ,

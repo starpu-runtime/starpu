@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -84,7 +84,6 @@ void display_stat_heat(void)
 			FPRINTF(stderr, "\t\t%s -> %u / %u (%2.2f %%)\n", name, count_trsm_ll_per_worker[worker], count_trsm_ll_total, (100.0*count_trsm_ll_per_worker[worker])/count_trsm_ll_total);
 		}
 	}
-
 
 	FPRINTF(stderr, "\t21 (TRSM)\n");
 	for (worker = 0; worker < nworkers; worker++)
@@ -413,7 +412,6 @@ static inline void dw_common_codelet_update_getrf(void *descr[], int s, void *_a
 			break;
 	}
 }
-
 
 void dw_cpu_codelet_update_getrf(void *descr[], void *_args)
 {

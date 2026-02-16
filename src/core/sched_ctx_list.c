@@ -403,7 +403,6 @@ int _starpu_sched_ctx_list_push_event(struct _starpu_sched_ctx_list *list, unsig
 	return 0;
 }
 
-
 int _starpu_sched_ctx_list_pop_event(struct _starpu_sched_ctx_list *list, unsigned sched_ctx)
 {
 	struct _starpu_sched_ctx_elt *elt = _starpu_sched_ctx_elt_find(list, sched_ctx);

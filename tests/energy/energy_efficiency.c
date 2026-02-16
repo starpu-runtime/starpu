@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2016-2016  Bérangère Subervie
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -37,7 +37,6 @@
  * (which wouldn't be true for real kernels, measurements would be needed, to
  * feed the performance models).
  */
-
 
 /* These are the different frequency and power parameters, as measured and
  * provided to this program */
@@ -104,7 +103,6 @@ static float frequency(int worker, unsigned i)
 	}
 }
 
-
 /* This is from magma
 
   -- Innovative Computing Laboratory
@@ -155,20 +153,15 @@ static float frequency(int worker, unsigned i)
 
 #define FLOPS_STRSM(__m, __n) (FMULS_TRSM((__m), (__n)) + FADDS_TRSM((__m), (__n)))
 
-
 #define FMULS_SYRK(__k, __n) (0.5 * (double)(__k) * (double)(__n) * ((double)(__n)+1.))
 #define FADDS_SYRK(__k, __n) (0.5 * (double)(__k) * (double)(__n) * ((double)(__n)+1.))
 
 #define FLOPS_SSYRK(__k, __n) (FMULS_SYRK((__k), (__n)) + FADDS_SYRK((__k), (__n)))
 
-
-
 #define FMULS_GEMM(__m, __n, __k) ((double)(__m) * (double)(__n) * (double)(__k))
 #define FADDS_GEMM(__m, __n, __k) ((double)(__m) * (double)(__n) * (double)(__k))
 
 #define FLOPS_SGEMM(__m, __n, __k) (FMULS_GEMM((__m), (__n), (__k)) + FADDS_GEMM((__m), (__n), (__k)))
-
-
 
 /* Tags for spotting tasks in the trace */
 #define TAG_POTRF(k)	((starpu_tag_t)((1ULL<<60) | (unsigned long long)(k)))
@@ -180,7 +173,6 @@ static float frequency(int worker, unsigned i)
 
 /* Arbitrary tile size */
 #define	TILE_SIZE	512
-
 
 /*
  * Kernel time performance models, would normally be provided by measurements
@@ -256,7 +248,6 @@ static double potrf_time(struct starpu_task *t, unsigned workerid, unsigned i)
 	(void)t;
 	return _potrf_time(frequency(workerid, i));
 }
-
 
 /* stub for kernel, shouldn't be getting called in simgrid mode */
 void dummy_func(void *descr[], void *_args)
@@ -422,7 +413,6 @@ int main(int argc, char *argv[])
 			POTRF_FLOPS(TILE_SIZE) / _potrf_time(freq_fast) / 1000 / power(freq_fast));
 	printf("\n");
 
-
 	/* Now compute */
 
 	starpu_data_handle_t A[N][N];
@@ -513,7 +503,6 @@ int main(int argc, char *argv[])
 		energy_sum += energy;
 		energy_sum2 += energy*energy;
 	}
-
 
 	/* Make stats and print */
 

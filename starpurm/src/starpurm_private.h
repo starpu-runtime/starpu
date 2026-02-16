@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2017-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2017-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -139,7 +139,6 @@ struct s_starpurm
 	struct s_starpurm_event *event_list_head;
 	struct s_starpurm_event *event_list_tail;
 };
-
 
 #ifdef STARPURM_HAVE_DLB
 void starpurm_dlb_init(struct s_starpurm *rm);

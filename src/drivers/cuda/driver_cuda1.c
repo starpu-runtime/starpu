@@ -90,7 +90,6 @@ static size_t _starpu_cuda_get_global_mem_size(unsigned devid)
 	return global_mem[devid];
 }
 
-
 static cudaStream_t starpu_cuda_get_in_transfer_stream(int dst_devid)
 {
 	cudaStream_t stream;
@@ -132,7 +131,6 @@ const struct cudaDeviceProp *starpu_cuda_get_device_properties(unsigned workerid
 	unsigned devid = config->workers[workerid].devid;
 	return &props[devid];
 }
-
 
 /* Early library initialization, before anything else, just initialize data */
 void _starpu_cuda_early_init(void)
@@ -452,7 +450,6 @@ static void deinit_worker_context(unsigned workerid, unsigned devid)
 	cudaStreamDestroy(streams[workerid]);
 }
 
-
 /* This is run from the driver thread to initialize the driver CUDA context */
 static int _starpu_cuda_driver_init(struct _starpu_worker *worker)
 {
@@ -701,7 +698,6 @@ int starpu_cuda_copy2d_async_sync_devid(void *src_ptr, int src_devid, enum starp
 		p.srcPtr = make_cudaPitchedPtr((char *)src_ptr, ld_src, blocksize, numblocks);
 		p.dstPtr = make_cudaPitchedPtr((char *)dst_ptr, ld_dst, blocksize, numblocks);
 		p.extent = make_cudaExtent(blocksize, numblocks, 1);
-
 
 		if (stream)
 		{
@@ -1286,7 +1282,6 @@ void *_starpu_cuda_worker(void *_arg)
 
 	return NULL;
 }
-
 
 #ifdef STARPU_HAVE_HWLOC
 hwloc_obj_t _starpu_cuda_get_hwloc_obj(hwloc_topology_t topology, int devid)

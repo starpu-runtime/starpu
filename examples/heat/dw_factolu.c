@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013-2013  Thibaut Lambert
  * Copyright (C) 2010-2010  Mehdi Juhoor
  *
@@ -104,8 +104,6 @@ static struct starpu_codelet cl_gemm =
 	.modes = {STARPU_R, STARPU_R, STARPU_RW},
 	.model = &model_gemm
 };
-
-
 
 #define STARTED	0x01
 #define DONE	0x11
@@ -474,12 +472,9 @@ void dw_callback_v2_codelet_update_getrf(void *argcb)
 	free(argcb);
 }
 
-
-
 /*
  *	Callbacks
  */
-
 
 void dw_callback_codelet_update_getrf(void *argcb)
 {
@@ -553,7 +548,6 @@ void dw_callback_codelet_update_getrf(void *argcb)
 		free(remaining);
 	}
 }
-
 
 void dw_callback_codelet_update_gemm(void *argcb)
 {
@@ -647,8 +641,6 @@ void dw_callback_codelet_update_trsm_ll_21(void *argcb)
 		free(remaining_tasks);
 	}
 }
-
-
 
 /*
  *	code to bootstrap the factorization

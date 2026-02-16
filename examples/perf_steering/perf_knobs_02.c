@@ -89,7 +89,6 @@ int main(void)
 		STARPU_ASSERT(val == val_save);
 	}
 
-
 	{
 		const char * const knob_name       = "starpu.worker.w_bind_to_pu_knob";
 		const char * const knob_scope_name = "per_worker";
@@ -141,7 +140,6 @@ int main(void)
 		val = starpu_perf_knob_get_per_scheduler_int32_value(id, "prio");
 		printf("- %d\n", val);
 	}
-
 
 	starpu_shutdown();
 

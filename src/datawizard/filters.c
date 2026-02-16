@@ -1336,8 +1336,6 @@ void _starpu_data_unpartition_readonly_submit(starpu_data_handle_t initial_handl
 #endif /* STARPU_RECURSIVE_TASKS */
 }
 
-
-
 void starpu_data_unpartition_submit_write_only(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node)
 {
 	_starpu_data_unpartition_submit(initial_handle, nparts, children, gather_node, NULL, NULL, NULL, NULL, 1);

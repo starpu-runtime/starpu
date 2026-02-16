@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2016-2016  Uppsala University
  * Copyright (C) 2013-2013  Thibaut Lambert
  * Copyright (C) 2011-2011  Télécom Sud Paris
@@ -88,7 +88,6 @@ struct starpu_perfmodel_arch* starpu_worker_get_perf_archtype(int workerid, unsi
 
 	if (workerid < (int)config->topology.nworkers)
 		return &config->workers[workerid].perf_arch;
-
 
 	/* We have a combined worker */
 	unsigned ncombinedworkers = config->topology.ncombinedworkers;
@@ -929,7 +928,6 @@ void starpu_perfmodel_free_sampling(void)
 	_perf_model_dir_bus = NULL;
 	_starpu_free_arch_combs();
 }
-
 
 static double nop_cost_function(struct starpu_task *t STARPU_ATTRIBUTE_UNUSED, struct starpu_perfmodel_arch *a STARPU_ATTRIBUTE_UNUSED, unsigned i STARPU_ATTRIBUTE_UNUSED)
 {

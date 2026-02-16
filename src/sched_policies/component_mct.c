@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013-2013  Simon Archipoff
  * Copyright (C) 2020-2020  Télécom Sud Paris
  *
@@ -95,7 +95,6 @@ static int mct_push_task(struct starpu_sched_component * component, struct starp
 		STARPU_COMPONENT_MUTEX_UNLOCK(&d->scheduling_mutex);
 		return eager_calibration_push_task(component, task);
 	}
-
 
 	best_component = component->children[best_icomponent];
 

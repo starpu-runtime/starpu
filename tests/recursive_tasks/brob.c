@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2019-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2019-2019  Gwenole Lucas
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -32,7 +32,6 @@ void my_sub_data_func_ro(void *buffers[], void *arg)
 	size_t i;
 	print_vector(v, nx, "subsubtask_ro : ");
 }
-
 
 void my_sub_data_func(void *buffers[], void *arg)
 {

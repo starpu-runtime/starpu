@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013-2013  Thibaut Lambert
  * Copyright (C) 2011-2011  Télécom Sud Paris
  *
@@ -342,7 +342,6 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 				skip_worker[worker_ctx][nimpl] = 0;
 			}
 
-
 			struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(workerid, sched_ctx_id);
 
 			local_task_length[worker_ctx][nimpl] = starpu_task_expected_length(task, perf_arch,nimpl);
@@ -402,7 +401,6 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 				nimpl_best = nimpl;
 			}
 
-
 			local_energy[worker_ctx][nimpl] = starpu_task_expected_energy(task, perf_arch,nimpl);
 			//_STARPU_DEBUG("Scheduler parallel heft: task length (%lf) local energy (%lf) workerid (%u) kernel (%u) \n", local_task_length[workerid],local_energy[workerid],workerid,nimpl);
 
@@ -419,7 +417,6 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 		forced_best_ctx = ntasks_best_ctx;
 		forced_nimpl = nimpl_best;
 	}
-
 
 	if (forced_best == -1)
 	{

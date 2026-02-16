@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013-2013  Thibaut Lambert
  * Copyright (C) 2011-2011  Télécom Sud Paris
  *
@@ -671,7 +671,6 @@ void starpu_bound_print_lp(FILE *output)
 				}
 			}
 
-
 		fprintf(output, "\n/* Each tag finishes when its corresponding task finishes */\n");
 		for (t1 = tasks; t1; t1 = t1->next)
 			if (t1->use_tag)
@@ -789,7 +788,6 @@ void starpu_bound_print_lp(FILE *output)
 				}
 			}
 		}
-
 
 		for (t1 = tasks; t1; t1 = t1->next)
 			for (t2 = t1->next; t2; t2 = t2->next)

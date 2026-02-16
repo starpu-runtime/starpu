@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -90,7 +90,6 @@ static void _size_ctxs(unsigned *sched_ctxs, int nsched_ctxs , int *workers, int
 	for(i = 0; i < nw; i++)
 		tasks[i] = (double*)malloc(nt*sizeof(double));
 
-
 	struct teft_lp_data specific_data;
 	specific_data.nt = nt;
 	specific_data.tasks = tasks;
@@ -113,7 +112,6 @@ static void _size_ctxs(unsigned *sched_ctxs, int nsched_ctxs , int *workers, int
 		found_sol = sc_hypervisor_lp_execute_dichotomy(ns, nw, w_in_s, 1, (void*)&specific_data,
 							       tmin, tmax, smallest_tmax, _compute_workers_distrib);
 	}
-
 
 	/* if we did find at least one solution redistribute the resources */
 	if(found_sol)
@@ -221,7 +219,6 @@ static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs , int *workers, 
 		struct timeval end_time;
 		gettimeofday(&start_time, NULL);
 
-
 		found_sol = sc_hypervisor_lp_execute_dichotomy(ns, nw, w_in_s, 1, (void*)&specific_data,
 							       tmin, tmax, smallest_tmax, _compute_workers_distrib);
 		gettimeofday(&end_time, NULL);
@@ -322,7 +319,6 @@ static void teft_lp_resize_ctxs(unsigned *sched_ctxs, int nsched_ctxs , int *wor
 				return;
 			}
 		}
-
 
 		_try_resizing(sched_ctxs, nsched_ctxs, workers, nworkers);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&act_hypervisor_mutex);

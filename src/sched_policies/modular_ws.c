@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013-2013  Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -18,7 +18,6 @@
 #include <starpu_sched_component.h>
 #include <starpu_scheduler.h>
 
-
 static void initialize_ws_center_policy(unsigned sched_ctx_id)
 {
 	starpu_sched_component_initialize_simple_scheduler((starpu_sched_component_create_t) starpu_sched_component_work_stealing_create, NULL,
@@ -26,7 +25,6 @@ static void initialize_ws_center_policy(unsigned sched_ctx_id)
 			STARPU_SCHED_SIMPLE_WS_BELOW |
 			STARPU_SCHED_SIMPLE_IMPL, sched_ctx_id);
 }
-
 
 struct starpu_sched_policy _starpu_sched_modular_ws_policy =
 {

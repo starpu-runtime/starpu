@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -222,7 +222,6 @@ void construct_contexts()
 		printf("%u ", i);
 	}
 
-
 	for(i = n_all_gpus; i < n_all_gpus + cpu1; i++)
 	{
 		procs[k++] = i;
@@ -264,7 +263,6 @@ void construct_contexts()
 	starpu_sched_ctx_set_inheritor(p2.ctx, p1.ctx);
 	p2.nprocs = nprocs2;
 }
-
 
 void parse_args_ctx(int argc, char **argv)
 {

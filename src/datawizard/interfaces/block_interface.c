@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -28,7 +28,6 @@ static const struct starpu_data_copy_methods block_copy_data_methods_s =
 {
 	.any_to_any = copy_any_to_any,
 };
-
 
 static void register_block_handle(starpu_data_handle_t handle, int home_node, void *data_interface);
 static void *block_to_pointer(void *data_interface, unsigned node);
@@ -298,7 +297,6 @@ static int unpack_block_handle(starpu_data_handle_t handle, unsigned node, void 
 	return 0;
 }
 
-
 static size_t block_interface_get_size(starpu_data_handle_t handle)
 {
 	size_t size;
@@ -414,7 +412,6 @@ size_t starpu_block_get_elemsize(starpu_data_handle_t handle)
 
 	return block_interface->elemsize;
 }
-
 
 /* memory allocation/deallocation primitives for the BLOCK interface */
 

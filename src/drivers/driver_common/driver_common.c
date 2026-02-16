@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013-2013  Thibaut Lambert
  * Copyright (C) 2011-2011  Télécom Sud Paris
  *
@@ -399,7 +399,6 @@ static void _starpu_worker_set_status_wakeup(int workerid)
 	}
 }
 
-
 #if !defined(STARPU_SIMGRID)
 static void _starpu_exponential_backoff(struct _starpu_worker *worker)
 {
@@ -429,8 +428,6 @@ static void _starpu_exponential_backoff(struct _starpu_worker *worker)
 	}
 }
 #endif
-
-
 
 /* Workers may block when there is no work to do at all. */
 struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int workerid, unsigned memnode STARPU_ATTRIBUTE_UNUSED)

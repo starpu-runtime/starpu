@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,11 +17,9 @@
 #ifndef COMMON_BFS_H
 #define COMMON_BFS_H
 
-
 #define MAX_THREADS_PER_BLOCK 512
 
 #define OPEN
-
 
 //Structure to hold a node information
 struct Node

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013-2013  Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -232,7 +232,6 @@ static void assign_combinations_without_hwloc(struct starpu_worker_collection* w
 		}
 	}
 }
-
 
 static void find_and_assign_combinations_without_hwloc(int *workerids, int nworkers)
 {

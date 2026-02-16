@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -100,8 +100,6 @@ void ppm_to_file(struct ppm_image *ppm, char *filename)
 
 	fclose(file);
 }
-
-
 
 char *filename_in = "serpents.ppm";
 char *filename_out = "serpents.small.ppm";

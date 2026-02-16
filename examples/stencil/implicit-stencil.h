@@ -60,7 +60,6 @@ struct block_description
 
 	size_t bz;
 
-
 	/* For each of the following buffers, there are two (0/1) buffers to
 	 * make new/old switch costless. */
 

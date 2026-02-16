@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -59,7 +59,6 @@ static unsigned _get_slowest_sched_ctx(void)
 
 	return slowest_sched_ctx;
 }
-
 
 /* get first nworkers with the highest idle time in the context */
 static int* _get_slowest_workers(unsigned sched_ctx, int *nworkers, enum starpu_worker_archtype arch)

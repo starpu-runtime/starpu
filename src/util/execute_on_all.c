@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2022-2022  École de Technologie Supérieure (ETS, Montréal)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -60,7 +60,6 @@ void starpu_execute_on_specific_workers(void (*func)(void*), void * arg, unsigne
 		.func = func,
 		.arg = arg
 	};
-
 
 	for (w = 0; w < num_workers; w++)
 	{
@@ -128,7 +127,6 @@ void starpu_execute_on_each_worker_ex(void (*func)(void *), void *arg, uint32_t 
 		.func = func,
 		.arg = arg
 	};
-
 
 	for (worker = 0; worker < nworkers; worker++)
 	{

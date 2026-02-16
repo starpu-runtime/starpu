@@ -323,11 +323,9 @@ int _starpu_wait_data_request_completion(struct _starpu_data_request *r, enum _s
 	starpu_pthread_wait_destroy(&wait);
 #endif
 
-
 	retval = r->retval;
 	if (retval)
 		_STARPU_DISP("REQUEST %p completed with retval %d!\n", r, r->retval);
-
 
 	r->refcnt--;
 
@@ -404,7 +402,6 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 
 	struct _starpu_data_replicate *src_replicate = r->src_replicate;
 	struct _starpu_data_replicate *dst_replicate = r->dst_replicate;
-
 
 	if (r->canceled < 2 && dst_replicate)
 	{
@@ -620,7 +617,6 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, enum _star
 
 	/* perform the transfer */
 	/* the header of the data must be locked by the worker that submitted the request */
-
 
 	if (dst_replicate && dst_replicate->state == STARPU_INVALID)
 		r->retval = _starpu_driver_copy_data_1_to_1(handle, src_replicate,

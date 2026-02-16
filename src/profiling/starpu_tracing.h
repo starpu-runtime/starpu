@@ -333,5 +333,4 @@ int _starpu_trace_start_parallel_sync(struct _starpu_job *job);
 /* After a barrier synchronizing the threads */
 int _starpu_trace_end_parallel_sync(struct _starpu_job *job);
 
-
 #endif	/* #ifndef STARPU_TRACE_H */

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010-2010  Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -55,14 +55,12 @@ void starpu_vector_filter_block(void *parent_interface, void *child_interface, S
 	_starpu_vector_filter_block(parent_interface, child_interface, f, id, nchunks, 0);
 }
 
-
 void starpu_vector_filter_block_shadow(void *parent_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
 {
 	uintptr_t shadow_size = (uintptr_t) f->filter_arg_ptr;
 
 	_starpu_vector_filter_block(parent_interface, child_interface, f, id, nchunks, shadow_size);
 }
-
 
 void starpu_vector_filter_divide_in_2(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, STARPU_ATTRIBUTE_UNUSED unsigned nchunks)
 {
@@ -112,7 +110,6 @@ void starpu_vector_filter_divide_in_2(void *parent_interface, void *child_interf
 		}
 	}
 }
-
 
 void starpu_vector_filter_list_long(void *parent_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, STARPU_ATTRIBUTE_UNUSED unsigned nchunks)
 {

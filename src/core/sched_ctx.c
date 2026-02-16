@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2016-2016  Uppsala University
  * Copyright (C) 2017-2017  Arthur Chevalier
  *
@@ -324,7 +324,6 @@ static void _do_add_notified_workers(struct _starpu_sched_ctx *sched_ctx, int *w
 
 			}
 
-
 			int nsize =  (sched_ctx->perf_arch.ndevices+nfinal_devices);
 			_STARPU_REALLOC(sched_ctx->perf_arch.devices, nsize*sizeof(struct starpu_perfmodel_device));
 
@@ -360,7 +359,6 @@ static void _do_add_notified_workers(struct _starpu_sched_ctx *sched_ctx, int *w
 
 		}
 	}
-
 
 	_starpu_sched_ctx_update_parallel_workers_with(sched_ctx->id);
 
@@ -1610,7 +1608,6 @@ unsigned _starpu_increment_nready_tasks_of_sched_ctx(unsigned sched_ctx_id, doub
 
 	_starpu_barrier_counter_increment(&sched_ctx->ready_tasks_barrier, ready_flops);
 
-
 	if(!sched_ctx->is_initial_sched)
 	{
 		if(!_starpu_can_push_task(sched_ctx, task))
@@ -1640,7 +1637,6 @@ void _starpu_decrement_nready_tasks_of_sched_ctx(unsigned sched_ctx_id, double r
 	}
 
 	_starpu_barrier_counter_decrement_until_empty_counter(&sched_ctx->ready_tasks_barrier, ready_flops);
-
 
 	if(!sched_ctx->is_initial_sched)
 	{
@@ -2337,7 +2333,6 @@ void starpu_sched_ctx_move_task_to_ctx(struct starpu_task *task, unsigned sched_
 		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 	}
 
-
 	task->sched_ctx = sched_ctx;
 
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
@@ -2772,8 +2767,6 @@ void _starpu_worker_apply_deferred_ctx_changes(void)
 		free(chg->workerids_to_change);
 		_starpu_ctx_change_delete(chg);
 	}
-
-
 }
 
 /*

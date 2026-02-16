@@ -508,8 +508,6 @@ static struct _starpu_data_request *_starpu_search_existing_data_request(struct 
 	return NULL;
 }
 
-
-
 /*
  * This function is called when the data is needed on the local node, this
  * returns a pointer to the local copy
@@ -832,7 +830,6 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 	if (!async)
 		requests[nhops - 1]->refcnt++;
 
-
 	/* we only submit the first request, the remaining will be
 	 * automatically submitted afterward */
 	if (!reused_requests[0])
@@ -1076,7 +1073,6 @@ int starpu_prefetch_task_input_on_node_prio(struct starpu_task *task, unsigned t
 {
 	return starpu_prefetch_task_input_prio(task, target_node, -1, prio);
 }
-
 
 int starpu_prefetch_task_input_on_node(struct starpu_task *task, unsigned node)
 {

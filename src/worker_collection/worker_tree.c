@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -80,7 +80,6 @@ static int tree_get_next_unblocked_worker(struct starpu_worker_collection *worke
 
 	STARPU_ASSERT_MSG(neighbour, "no element anymore");
 
-
 	int *workerids;
 	int nworkers = starpu_bindid_get_workerids(neighbour->id, &workerids);
 	int w;
@@ -148,7 +147,6 @@ static int tree_get_next_primary(struct starpu_worker_collection *workers, struc
 		neighbour = starpu_tree_get_neighbour(tree, (struct starpu_tree*)it->value, it->visited, workers->is_primary);
 
 	STARPU_ASSERT_MSG(neighbour, "no element anymore");
-
 
 	int *workerids;
 	int nworkers = starpu_bindid_get_workerids(neighbour->id, &workerids);
@@ -247,7 +245,6 @@ static int tree_get_next(struct starpu_worker_collection *workers, struct starpu
 
 	STARPU_ASSERT_MSG(neighbour, "no element anymore");
 
-
 	int *workerids;
 	int nworkers = starpu_bindid_get_workerids(neighbour->id, &workerids);
 	int w;
@@ -278,7 +275,6 @@ static int tree_add(struct starpu_worker_collection *workers, int worker)
 	else
 		return -1;
 }
-
 
 static int tree_remove(struct starpu_worker_collection *workers, int worker)
 {

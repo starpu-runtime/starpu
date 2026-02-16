@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013-2013  Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -78,7 +78,6 @@ test_coo_cpu_func(void *buffers[], void *args)
 	}
 }
 
-
 static void
 register_data(void)
 {
@@ -110,7 +109,6 @@ register_data(void)
 	columns[3] = 1;
 	rows[3] = 1;
 	values[3] = 3;
-
 
 	int i;
 	for (i = 0; i < MATRIX_SIZE; i++)

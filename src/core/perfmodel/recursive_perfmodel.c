@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -386,7 +386,6 @@ static int _starpu_recursive_perfmodel_read_one_subgraph_from_disk(struct starpu
 	node_lst->next = model->recursive_graphs;
 	model->recursive_graphs = node_lst;
 
-
 	struct starpu_recursive_perfmodel_subgraph_list *global_lst;
 	starpu_malloc((void**)&global_lst, sizeof(*global_lst));
 	global_lst->graph = subgraph;
@@ -435,7 +434,6 @@ static int _starpu_recursive_perfmodel_read_one_subgraph_from_disk(struct starpu
 		{
 			return 0;
 		}
-
 
 		node->cl = good_cl;
 		node->nb_sucs = 0;
@@ -1094,7 +1092,6 @@ static struct split_description * get_best_time_rec_version_from_nodes(struct st
 	__get_best_time_rec_version_from_nodes(task_to_sched, &lst, 0, split_scheme, first_subtask_index, 1, &lst, best_dec);
 	return best_dec;
 }
-
 
 // task_to_sched is the subgraph we want to schedule
 // nodes_to_schedule corresponds to the current list of nodes we wwould like to decide if it is preferable to split them or not

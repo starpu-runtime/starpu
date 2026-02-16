@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2019-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -866,7 +866,6 @@ __STARPU_PERF_KNOB_GET_TYPED_VALUE(global, float, float);
 __STARPU_PERF_KNOB_GET_TYPED_VALUE(global, double, double);
 
 #undef __STARPU_PERF_KNOB_SAMPLE_GET_TYPED_VALUE
-
 
 #define __STARPU_PERF_KNOB_SET_TYPED_VALUE_WITH_CONTEXT(SCOPE_NAME, STRING, TYPE, CONTEXT_TYPE, CONTEXT_VAR) \
 void starpu_perf_knob_set_##SCOPE_NAME##_##STRING##_value(const int knob_id, CONTEXT_TYPE CONTEXT_VAR, const TYPE value) \

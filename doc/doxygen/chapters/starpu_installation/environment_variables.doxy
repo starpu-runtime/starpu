@@ -638,7 +638,6 @@ Disable asynchronous copies between CPU and HIP devices. One can call starpu_asy
 
 </dl>
 
-
 \subsection mpiConf MPI Configuration
 <dl>
 

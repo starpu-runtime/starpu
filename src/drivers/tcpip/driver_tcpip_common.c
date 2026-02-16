@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2021-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2021-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -1093,7 +1093,6 @@ static void _starpu_tcpip_common_send_to_socket(const struct _starpu_mp_node *no
 {
 	_starpu_tcpip_common_action_socket((what_t)write, "send", 1, node, dst_sock, msg, len, event, notif);
 }
-
 
 /* RECV */
 void _starpu_tcpip_common_mp_recv(const struct _starpu_mp_node *node, void *msg, int len)

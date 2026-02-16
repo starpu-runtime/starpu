@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,7 +21,6 @@
 #include <sys/time.h>
 
 static double _glp_resolve(int ns, int nw, double speed[ns][nw], double w_in_s[ns][nw], unsigned integer);
-
 
 static unsigned _compute_max_speed(int ns, int nw, double w_in_s[ns][nw], unsigned *in_sched_ctxs, int *workers)
 {
@@ -44,7 +43,6 @@ static unsigned _compute_max_speed(int ns, int nw, double w_in_s[ns][nw], unsign
 			speed[s][w] = sc_hypervisor_get_speed(sc_w, arch);
 		}
 	}
-
 
 	struct timeval start_time;
 	struct timeval end_time;
@@ -86,7 +84,6 @@ static double _glp_resolve(int ns, int nw, double speed[ns][nw], double w_in_s[n
 		int ia[ne], ja[ne];
 		double ar[ne];
 
-
 		/* Variables:  x[s][w]
 		 the acknwoledgment that the worker w belongs to the context s */
 		glp_add_cols(lp, nw*ns + 1);
@@ -112,7 +109,6 @@ static double _glp_resolve(int ns, int nw, double speed[ns][nw], double w_in_s[n
 		glp_set_col_name(lp, nw*ns+1, "vmax");
 		glp_set_col_bnds(lp, nw*ns+1, GLP_LO, 0.0, 0.0);
 		glp_set_obj_coef(lp, nw*ns+1, 1.);
-
 
 		int curr_row_idx = 0;
 		/* Total worker speed */
@@ -223,7 +219,6 @@ static double _glp_resolve(int ns, int nw, double speed[ns][nw], double w_in_s[n
 	return res;
 }
 
-
 static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs , int *workers, int nworkers)
 {
 	int ns = sched_ctxs == NULL ? sc_hypervisor_get_nsched_ctxs() : nsched_ctxs;
@@ -274,7 +269,6 @@ static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs , int *workers, 
 /*				for(s = 0; s < ns; s++) */
 /*					printf("%d: cpus = %lf gpus = %lf cpus_round = %d gpus_round = %d\n", s, nworkers[s][1], nworkers[s][0], */
 /*					       nworkers_rounded[s][1], nworkers_rounded[s][0]); */
-
 
 		sc_hypervisor_lp_redistribute_resources_in_ctxs(ns, tw->nw, nworkers_per_ctx_rounded, nworkers_per_ctx, sched_ctxs, tw);
 		free(tw);

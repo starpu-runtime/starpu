@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010-2010  Mehdi Juhoor
  * Copyright (C) 2011-2011  Télécom Sud Paris
  * Copyright (C) 2013-2013  Thibaut Lambert
@@ -1716,7 +1716,6 @@ struct _starpu_driver_ops _starpu_driver_opencl_ops =
 	.is_devid = _starpu_opencl_driver_is_devid,
 };
 #endif
-
 
 #ifdef STARPU_USE_OPENCL
 cl_device_type _starpu_opencl_get_device_type(int devid)

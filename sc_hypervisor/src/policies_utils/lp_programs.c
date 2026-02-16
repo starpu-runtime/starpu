@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,7 +29,6 @@ double sc_hypervisor_lp_simulate_distrib_tasks(int ns, int nw, int nt, double w_
 	struct sc_hypervisor_policy_task_pool * tp;
 	int t, w, s;
 	glp_prob *lp;
-
 
 	lp = glp_create_prob();
 	glp_set_prob_name(lp, "StarPU theoretical bound");
@@ -215,7 +214,6 @@ double sc_hypervisor_lp_simulate_distrib_tasks(int ns, int nw, int nt, double w_
 		lp = NULL;
 		return 0.0;
 	}
-
 
 	if (is_integer)
 	{
@@ -466,7 +464,6 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
 		return 0.0;
 	}
 
-
 	if (integer)
 	{
 		glp_iocp iocp;
@@ -530,7 +527,6 @@ double sc_hypervisor_lp_simulate_distrib_flops_on_sample(int ns, int nw, double 
 		int ia[ne], ja[ne];
 		double ar[ne];
 
-
 		/* Variables: number of flops assigned to worker w in context s, and
 		 the acknwoledgment that the worker w belongs to the context s */
 		glp_add_cols(lp, 2*nw*ns);
@@ -558,7 +554,6 @@ double sc_hypervisor_lp_simulate_distrib_flops_on_sample(int ns, int nw, double 
 					glp_set_col_bnds(lp, nw*ns+colnum_sample(w,s), GLP_DB, 0.0, 1.0);
 
 			}
-
 
 		int curr_row_idx = 0;
 		/* Total worker execution time */

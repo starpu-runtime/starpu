@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013-2013  Thibaut Lambert
  * Copyright (C) 2011-2011  Télécom Sud Paris
  *
@@ -28,7 +28,6 @@
  */
 
 /* #define USE_PERTURBATION	1 */
-
 
 #ifdef USE_PERTURBATION
 #define PERTURB(a)	((starpu_drand48()*2.0f*(AMPL) + 1.0f - (AMPL))*(a))
@@ -68,7 +67,6 @@ double task_trsm_ll_cost(struct starpu_task *task, unsigned nimpl)
 	return PERTURB(cost);
 }
 
-
 double task_trsm_ru_cost(struct starpu_task *task, unsigned nimpl)
 {
 	(void)nimpl;
@@ -82,8 +80,6 @@ double task_trsm_ru_cost(struct starpu_task *task, unsigned nimpl)
 	/* fprintf(stderr, "task TRSM_RU predicts %e\n", cost); */
 	return PERTURB(cost);
 }
-
-
 
 double task_gemm_cost(struct starpu_task *task, unsigned nimpl)
 {
@@ -104,7 +100,6 @@ double task_gemm_cost(struct starpu_task *task, unsigned nimpl)
  *	Models for CUDA
  *
  */
-
 
 double task_getrf_cost_cuda(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
@@ -134,7 +129,6 @@ double task_trsm_ll_cost_cuda(struct starpu_task *task, struct starpu_perfmodel_
 	return PERTURB(cost);
 }
 
-
 double task_trsm_ru_cost_cuda(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	(void)arch;
@@ -148,8 +142,6 @@ double task_trsm_ru_cost_cuda(struct starpu_task *task, struct starpu_perfmodel_
 /*	printf("CUDA task TRSM_RU ; predict %e\n", cost); */
 	return PERTURB(cost);
 }
-
-
 
 double task_gemm_cost_cuda(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
@@ -201,7 +193,6 @@ double task_trsm_ll_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_a
 	return PERTURB(cost);
 }
 
-
 double task_trsm_ru_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	(void)arch;
@@ -215,8 +206,6 @@ double task_trsm_ru_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_a
 /*	printf("CPU task TRSM_RU ; predict %e\n", cost); */
 	return PERTURB(cost);
 }
-
-
 
 double task_gemm_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {

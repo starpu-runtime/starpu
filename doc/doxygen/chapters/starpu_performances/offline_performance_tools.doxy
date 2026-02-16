@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2020-2021  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -395,11 +395,9 @@ language. The file, created in the current directory, is named
 It is possible to get a graphical output of the graph by using the
 <c>graphviz</c> library:
 
-
 \verbatim
 $ dot -Tpdf dag.dot -o output.pdf
 \endverbatim
-
 
 or visualize it directly with a program like <c>xdot</c>:
 
@@ -415,7 +413,6 @@ In the task graph, the color of each node is computed as follows:
 </ol>
 
 Moreover, the option <c>-no-acquire</c> of <c>starpu_fxt_tool</c> hides StarPU internal tasks for data acquisition from the graph. On the contrary, the option <c>-internal</c> shows more internal tasks.
-
 
 \subsection TraceTaskDetails Getting Task Details
 
@@ -502,7 +499,6 @@ same graph but with elapsed time between send and usage of a data by the sender.
 \image html trace_send_use.png
 \image latex trace_send_use.png "" width=\textwidth
 
-
 \subsection NumberEvents Number of events in trace files
 
 When launched with the option <c>-number-events</c>, <c>starpu_fxt_tool</c> will
@@ -518,7 +514,6 @@ $ starpu_fxt_number_events_to_names.py number_events.data
 The number of recorded events (and thus the performance overhead introduced by
 tracing) can be reduced by setting which categories of events to record with
 the environment variable \ref STARPU_FXT_EVENTS.
-
 
 \subsection LimitingScopeTrace Limiting The Scope Of The Trace
 
@@ -1275,7 +1270,6 @@ Node #3
 	Loaded (Shared) : 0
 	Invalidated (was Owner) : 0
 
-
 #---------------------
 ...
 \endverbatim
@@ -1314,8 +1308,6 @@ Synthetic GFlop/s : 44.21
 
 // TODO: data transfer stats are similar to the ones displayed when
 // setting STARPU_BUS_STATS
-
-
 
 \section TraceMpi Tracing MPI applications
 
@@ -1460,6 +1452,5 @@ With a line per task, we can see additional events of the task's life cycle: the
 
 \image html traces_tasks.png width=60%
 \image latex traces_tasks.png "" width=\textwidth
-
 
 */

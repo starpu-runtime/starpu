@@ -218,7 +218,6 @@ CPU 2
 	all time: executing: 2116.08 ms callback: 0.18 ms waiting: 0.01 ms sleeping: 1096.21 ms scheduling: 283.75 ms
 	22.029343 GFlop/s
 
-
 Global time split: total 12851.60 ms = executing: 7938.01 ms (61.77%) + callback: 3.53 ms (0.03%) + waiting: 5.36 ms (0.04%) + sleeping: 4901.05 ms (38.14%) + scheduling: 0.06 ms (0.00%) + overhead 3.59 ms (0.03%)
 \endverbatim
 
@@ -454,11 +453,9 @@ is based on multiple linear regression. In this model, users
 define both the relevant parameters and the equation for computing the
 task duration.
 
-
 \f[
 T_{kernel} = a + b(M^{\alpha_1} * N^{\beta_1} * K^{\gamma_1}) + c(M^{\alpha_2} * N^{\beta_2} * K^{\gamma_2}) + ...
 \f]
-
 
 \f$M, N, K\f$ are the parameters of the task, added at the task
 creation. These need to be extracted by the <c>cl_perf_func</c>
@@ -682,7 +679,6 @@ Counter Name	                      |Counter Definition
 \c starpu.task.w_total_executed	      |Total number of tasks executed on a given worker
 \c starpu.task.w_cumul_execution_time |Cumulated execution time of tasks executed on a given worker
 
-
 \subsubsection PerfMonCountCounterExportedPerCodelet Per-Codelet Scope
 
 Counter Name	                      |Counter Definition
@@ -705,7 +701,6 @@ StarPU must first be initialized, by a call to starpu_init(), for performance co
 int ret = starpu_init(NULL);
 \endcode
 
-
 <b>Step 1: Allocate a counter set</b>
 
 A counter set has to be allocated on the per-worker scope. The per-worker scope id can be obtained by name, or with the pre-defined enum value ::starpu_perf_counter_scope_per_worker.
@@ -714,7 +709,6 @@ A counter set has to be allocated on the per-worker scope. The per-worker scope 
 enum starpu_perf_counter_scope w_scope = starpu_perf_counter_scope_per_worker;
 struct starpu_perf_counter_set *w_set = starpu_perf_counter_set_alloc(w_scope);
 \endcode
-
 
 <b>Step 2: Get the counter IDs</b>
 Each performance counter has a unique ID used to refer to it in subsequent calls to the performance monitoring framework.
@@ -727,7 +721,6 @@ int id_w_cumul_execution_time = starpu_perf_counter_name_to_id(w_scope,
                                                "starpu.task.w_cumul_execution_time");
 \endcode
 
-
 <b>Step 3: Enable the counters in the counter set</b>
 
 This step indicates which counters will be collected into performance monitoring samples for the listeners referring to this counter set.
@@ -736,7 +729,6 @@ This step indicates which counters will be collected into performance monitoring
 starpu_perf_counter_set_enable_id(w_set, id_w_total_executed);
 starpu_perf_counter_set_enable_id(w_set, id_w_cumul_execution_time);
 \endcode
-
 
 <b>Step 4: Write a listener callback</b>
 
@@ -760,7 +752,6 @@ void w_listener_cb(struct starpu_perf_counter_listener *listener,
 }
 \endcode
 
-
 <b>Step 5: Initialize the listener</b>
 
 This step allocates the listener structure and prepares it to listen to the selected set of per-worker counters. However, it is not actually active until Step 6, once it is attached to one or more worker.
@@ -770,7 +761,6 @@ struct starpu_perf_counter_listener * w_listener =
                        starpu_perf_counter_listener_init(w_set, w_listener_cb, NULL);
 \endcode
 
-
 <b>Step 6: Set the listener on all workers</b>
 This step actually makes the listener active, in this case on every StarPU worker thread.
 
@@ -778,9 +768,7 @@ This step actually makes the listener active, in this case on every StarPU worke
 starpu_perf_counter_set_all_per_worker_listeners(w_listener);
 \endcode
 
-
 After this step, any task assigned to a worker will be counted in that worker selected performance counters, and reported to the listener.
-
 
 \section PerfKnobs Performance Steering Knobs
 
@@ -844,14 +832,12 @@ Knob Name  	                            |Knob Definition
 \c starpu.global.g_calibrate_knob           |Enable/disable the calibration of performance models
 \c starpu.global.g_enable_catch_signal_knob |Enable/disable the catching of UNIX signals
 
-
 \subsubsection PerfKnobsExportedPerWorker Per-worker Scope
 
 Knob Name	                      |Knob Definition
 --------------------------------------|------------------------------------------------------------
 \c starpu.worker.w_bind_to_pu_knob    |Change the processing unit to which a worker thread is bound
 \c starpu.worker.w_enable_worker_knob |Disable/re-enable a worker thread to be selected for task execution
-
 
 \subsubsection PerfKnobsExportedPerScheduler Per-Scheduler Scope
 
@@ -863,7 +849,6 @@ Knob Name	                       |Knob Definition
 \c starpu.dmda.s_beta_knob 	       |Scaling factor for the Beta constant for Deque Model schedulers to alter the weight of the estimated data transfer time for the task's input(s)
 \c starpu.dmda.s_gamma_knob	       |Scaling factor for the Gamma constant for Deque Model schedulers to alter the weight of the estimated power consumption of the task
 \c starpu.dmda.s_idle_power_knob       |Scaling factor for the baseline Idle power consumption estimation of the corresponding processing unit
-
 
 \subsection PerfKnobsSequence Sequence of operations
 
@@ -886,7 +871,6 @@ int w_scope = starpu_perf_knob_scope_name_to_id("per_worker");
 int w_enable_id = starpu_perf_knob_name_to_id(w_scope, "starpu.worker.w_enable_worker_knob");
 \endcode
 
-
 <b>Step 2: Get the knob current value</b>
 
 This knob is an On/Off knob. Its value type is therefore a 32-bit integer, with value 0 for Off and value !0 for On. The getter functions for per-worker knobs expect the knob ID as first argument, and the worker ID as second argument. Here the getter call obtains the value of worker 5.
@@ -908,9 +892,5 @@ Subsequently, setting the value of the knob back to 1 enables the corresponding 
 \code{.c}
 starpu_perf_knob_set_per_worker_int32_value(w_enable_id, 5, 1);
 \endcode
-
-
-
-
 
 */

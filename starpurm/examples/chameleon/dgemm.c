@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2017-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2017-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -94,7 +94,6 @@ static void init_rm_infos(void)
 	rm_nb_cpu_units = nb_cpu_units;
 	rm_nb_cuda_units = nb_cuda_units;
 }
-
 
 static void disp_cpuset(hwloc_cpuset_t selected_cpuset)
 {

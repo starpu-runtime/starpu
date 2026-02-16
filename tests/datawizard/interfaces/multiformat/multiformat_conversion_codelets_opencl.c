@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -63,7 +63,6 @@ void cpu_to_opencl_opencl_func(void *buffers[], void *args)
 	err = clSetKernelArg(kernel, 2, sizeof(n), &n);
 	if (err != CL_SUCCESS)
 		STARPU_OPENCL_REPORT_ERROR(err);
-
 
 	{
 		size_t global=n;

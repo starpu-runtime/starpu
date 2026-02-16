@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2019-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -229,7 +229,6 @@ static inline int _starpu_perf_counter_id_build(const enum starpu_perf_counter_s
 	return (index << _STARPU_PERF_COUNTER_ID_SCOPE_BITS) | scope;
 }
 
-
 void _starpu_perf_counter_sample_init(struct starpu_perf_counter_sample *sample, enum starpu_perf_counter_scope scope);
 void _starpu_perf_counter_sample_exit(struct starpu_perf_counter_sample *sample);
 void _starpu_perf_counter_init(struct _starpu_machine_config *pconfig);
@@ -285,7 +284,6 @@ extern starpu_perf_counter_int64_t _starpu_task__g_current_ready__value;
 
 /* performance counter registration routines per modules */
 void _starpu__task_c__register_counters(void);	/* module: task.c */
-
 
 /* -------------------------------------------------------------------- */
 /* Performance Steering */

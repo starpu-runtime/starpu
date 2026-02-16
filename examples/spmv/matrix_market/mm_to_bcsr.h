@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -44,7 +44,6 @@ typedef struct
 	uint32_t *colind;
 	uint32_t *rowptr;
 } bcsr_t;
-
 
 /* directly read input from a file */
 bcsr_t *mm_file_to_bcsr(char *filename, unsigned c, unsigned r);

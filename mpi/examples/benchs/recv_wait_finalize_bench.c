@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2021-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2021-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -97,13 +97,11 @@ static struct starpu_codelet finalized_cl =
 	.modes = { STARPU_W }
 };
 
-
 static void usage(void)
 {
 	fprintf(stderr, "-s array size - number of bytes to broadcast [%d]\n", DEFAULT_ARRAY_SIZE);
 	fprintf(stderr, "-rounds rounds - number of iterations [%d]\n", DEFAULT_ROUND);
 }
-
 
 static void bcast(int nb_dests, double* time_to_receive, double* time_to_finalize)
 {
@@ -149,7 +147,6 @@ static void bcast(int nb_dests, double* time_to_receive, double* time_to_finaliz
 	*time_to_receive = received_time - t_begin;
 	*time_to_finalize = finalized_time - t_begin;
 }
-
 
 int main(int argc, char**argv)
 {

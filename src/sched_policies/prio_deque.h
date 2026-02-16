@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2016-2016  Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -34,7 +34,5 @@ struct starpu_st_prio_deque
 	// Careful: those are NOT maintained by the prio_queue operations
 	double exp_start, exp_end, exp_len;
 };
-
-
 
 #endif /* __PRIO_DEQUE_H__ */

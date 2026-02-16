@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -189,7 +189,6 @@ static struct sc_hypervisor_policy_config* _ctl(unsigned sched_ctx, va_list varg
 			config->time_sample = va_arg(varg_list, double);
 			break;
 
-
 /* not important for the strateg, needed just to jump these args in the iteration of the args */
 		case SC_HYPERVISOR_TIME_TO_APPLY:
 			va_arg(varg_list, int);
@@ -204,7 +203,6 @@ static struct sc_hypervisor_policy_config* _ctl(unsigned sched_ctx, va_list varg
 
 	return later ? config : NULL;
 }
-
 
 void sc_hypervisor_ctl(unsigned sched_ctx, ...)
 {

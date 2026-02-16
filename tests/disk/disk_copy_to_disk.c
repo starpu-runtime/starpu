@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -194,7 +194,6 @@ int dotest_hdf5(struct starpu_disk_ops *ops, char *base)
 {
 	int *A, *C;
 	herr_t status;
-
 
 	/* Initialize path */
 	const char *path_obj_start = "STARPU_DISK_COMPUTE_DATA";

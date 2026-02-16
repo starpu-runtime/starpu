@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -61,7 +61,6 @@ static void sched_ctx_func(void *descr[], void *arg)
 
 	//printf("w %d executed %d it \n", w, n);
 }
-
 
 static struct starpu_codelet sched_ctx_codelet =
 {
@@ -172,7 +171,6 @@ int main(void)
 	if (nprocs6)
 		sched_ctx6 = starpu_sched_ctx_create(procs6, nprocs6, "ctx6", STARPU_SCHED_CTX_NESTED, sched_ctx2, 0);
 
-
 	int i;
 	for (i = 0; i < ntasks; i++)
 	{
@@ -202,12 +200,9 @@ int main(void)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
-
 	/* tell starpu when you finished submitting tasks to this context
 	   in order to allow moving resources from this context to the inheritor one
 	   when its corresponding tasks finished executing */
-
-
 
 	/* wait for all tasks at the end*/
 	starpu_task_wait_for_all();

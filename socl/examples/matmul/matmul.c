@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -209,7 +209,6 @@ int shrCompareL2fe(const float* reference, const float* data, const unsigned int
 	return result;
 }
 
-
 int main(int argc, const char** argv)
 {
 	cl_uint platform_count;
@@ -318,8 +317,6 @@ int main(int argc, const char** argv)
 	if (device_count == 0)
 		error("No device found\n");
 
-
-
 	cl_kernel multiplicationKernel[platform_count];
 
 	printf("\nUsing Matrix Sizes: A(%lu x %lu), B(%lu x %lu), C(%lu x %lu)\n",
@@ -366,7 +363,6 @@ int main(int argc, const char** argv)
 	fillArray(A_data, A_size);
 	fillArray(B_data, B_size);
 	memset(C_data, 0, C_size);
-
 
 	printf("Computing...\n");
 	workOffset[0] = 0;
@@ -421,7 +417,6 @@ int main(int argc, const char** argv)
 		if(i+1 < BLOCKS)
 			workOffset[i + 1] = workOffset[i] + workSize[i];
 	}
-
 
 	// CPU sync with GPU
 	for (p=0; p<platform_count;p++)
@@ -483,7 +478,6 @@ int main(int argc, const char** argv)
 		clReleaseEvent(GPUExecution[i]);
 		clReleaseEvent(GPUDone[i]);
 	}
-
 
 	for (p=0; p<platform_count;p++)
 	{

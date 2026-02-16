@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -54,7 +54,6 @@
  */
 
 //#define USE_LOCALITY
-
 
 //#define USE_LOCALITY_TASKS
 
@@ -120,7 +119,6 @@ struct _starpu_work_stealing_data
 static int calibration_value = 0;
 
 #endif /* USE_OVERLOAD */
-
 
 /**
  * Return a worker from which a task can be stolen.
@@ -529,7 +527,6 @@ static unsigned select_worker_overload(struct _starpu_work_stealing_data *ws, st
 
 #endif /* USE_OVERLOAD */
 
-
 /**
  * Return a worker from which a task can be stolen.
  * This is a phony function used to call the right
@@ -558,7 +555,6 @@ static inline unsigned select_worker(struct _starpu_work_stealing_data *ws, stru
 	return select_worker_round_robin(ws, task, sched_ctx_id);
 #endif /* USE_OVERLOAD */
 }
-
 
 /* Note: this is not scalable work stealing,  use lws instead */
 static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)

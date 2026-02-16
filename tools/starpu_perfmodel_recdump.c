@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011-2011  Télécom Sud Paris
  * Copyright (C) 2020-2020  Federal University of Rio Grande do Sul (UFRGS)
  *
@@ -34,7 +34,6 @@
 #include <core/perfmodel/perfmodel.h>
 
 #define STRHEADCMP(s, head) strncmp(s, head, strlen(head))
-
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
 #include <windows.h>

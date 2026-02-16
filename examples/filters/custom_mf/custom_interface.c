@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -77,7 +77,6 @@ static size_t   custom_interface_get_size(starpu_data_handle_t handle);
 static uint32_t footprint_custom_interface_crc32(starpu_data_handle_t handle);
 static void     display_custom_interface(starpu_data_handle_t handle, FILE *f);
 static size_t custom_get_nx(starpu_data_handle_t handle);
-
 
 static struct starpu_multiformat_data_interface_ops*get_mf_ops(void *data_interface)
 {
@@ -207,7 +206,6 @@ custom_to_pointer(void *data, unsigned node)
 {
 	struct custom_data_interface *data_interface = data;
 
-
 	switch(starpu_node_get_kind(node))
 	{
 		case STARPU_CPU_RAM:
@@ -256,7 +254,6 @@ custom_get_nx(starpu_data_handle_t handle)
 				starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 	return data_interface->nx;
 }
-
 
 void custom_data_register(starpu_data_handle_t *handle,
 				 int home_node,
@@ -311,7 +308,6 @@ copy_cuda_common_async(void *src_interface, unsigned src_node,
 				      src_custom->cpu_ptr,
 				      size, kind, stream);
 		assert(err == cudaSuccess);
-
 
 		err = cudaMalloc(&dst_custom->cuda_ptr, size);
 		assert(err == cudaSuccess);

@@ -257,7 +257,6 @@ void starpu_subdata_ptr_register(starpu_data_handle_t handle, unsigned node)
 	starpu_data_ptr_register(handle, node);
 }
 
-
 void starpu_data_ptr_register(starpu_data_handle_t handle, unsigned node)
 {
 	struct _starpu_data_replicate *replicate = &handle->per_node[node];
@@ -1065,7 +1064,6 @@ static void __starpu_data_deinitialize(starpu_data_handle_t handle)
 		}
 	}
 }
-
 
 static void _starpu_data_invalidate(void *data)
 {

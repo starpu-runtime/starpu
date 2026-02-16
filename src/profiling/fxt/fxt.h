@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2018-2020  Federal University of Rio Grande do Sul (UFRGS)
  * Copyright (C) 2013-2013  Joris Pablo
  *
@@ -18,7 +18,6 @@
 
 #ifndef __FXT_H__
 #define __FXT_H__
-
 
 /** @file */
 
@@ -800,13 +799,6 @@ do {									\
         } \
 } while(0)
 #endif
-
-
-
-
-
-
-
 
 /* TODO: the following macros are never called
  * -> shall we remove them ?

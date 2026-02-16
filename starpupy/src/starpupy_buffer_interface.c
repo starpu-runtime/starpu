@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -363,7 +363,6 @@ static void pybuffer_unregister_data_handle(starpu_data_handle_t handle)
 			STARPU_ASSERT(local_interface->object == NULL);
 			STARPU_ASSERT(local_interface->py_buffer == NULL);
 		}
-
 
 #ifdef STARPU_PYTHON_HAVE_NUMPY
 		free(local_interface->array_dim);

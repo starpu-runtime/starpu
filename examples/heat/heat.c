@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -132,8 +132,6 @@ static void parse_args(int argc, char **argv)
 		}
 	}
 }
-
-
 
 /*
  * The Finite element method code
@@ -315,7 +313,6 @@ static inline float integrale_sum(unsigned theta_i, unsigned thick_i, unsigned t
 	return integral;
 }
 
-
 static float compute_A_value(unsigned i, unsigned j, point *pmesh)
 {
 	float value = 0.0f;
@@ -346,7 +343,6 @@ static float compute_A_value(unsigned i, unsigned j, point *pmesh)
 done:
 	return value;
 }
-
 
 #define TRANSLATE(k)	(RefArray[(k)])
 #define TRANSLATEBACK(k)	(RefArrayBack[(k)])
@@ -384,7 +380,6 @@ static void solve_system(unsigned size, unsigned subsize, float *result, int *Re
 
 		/* LUB = B */
 		memcpy(LUB, B, subsize*sizeof(float));
-
 
 		/* LUB = U * LUB */
 		STARPU_STRMV("U", "N", "U", subsize, A, subsize, LUB, 1);

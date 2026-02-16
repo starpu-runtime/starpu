@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2021-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2021-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -161,7 +161,6 @@ enum errcase {SOCK_INIT, SOCK_GETADDRINFO, SOCK_GETADDRINFO_LOCAL};
 			zc;						\
 		})
 
-
 /* This function contains all steps to initialize a socket before connect and accept steps.
  * When we call this function, we need to indicate that it is for server client (server = 1)
  * or client-worker (server = 0). We also need to provide the information sin_addr "source_addr"
@@ -183,7 +182,6 @@ static inline int server_init(int server, int *ss, int *ls, struct sockaddr_in *
 		int one = 1;
 		setsockopt(*ss, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one));
 	}
-
 
 	BIND(*ss, (struct sockaddr*) &addr_init, addr_init_size);
 

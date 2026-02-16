@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013-2013  Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -256,13 +256,11 @@ static void set_properties(struct starpu_sched_component * component)
 			is_all_same_component = 0;
 	}
 
-
 	if(is_homogeneous)
 		component->properties |= STARPU_SCHED_COMPONENT_HOMOGENEOUS;
 	if(is_all_same_component)
 		component->properties |= STARPU_SCHED_COMPONENT_SINGLE_MEMORY_NODE;
 }
-
 
 /* recursively set the component->workers member of component's subtree
  */
@@ -320,13 +318,9 @@ nocombined:
 	component->notify_change_workers(component);
 }
 
-
-
 /******************************************************************************
  *          			Scheduling Trees' helper functions        			  *
  ******************************************************************************/
-
-
 
 struct starpu_bitmap * _starpu_get_worker_mask(unsigned sched_ctx_id)
 {
@@ -349,8 +343,6 @@ void starpu_sched_tree_update_workers(struct starpu_sched_tree * t)
 	if (t->root)
 		_starpu_sched_component_update_workers(t->root);
 }
-
-
 
 /******************************************************************************
  *          			Scheduling Trees' Functions                			  *
@@ -406,7 +398,6 @@ struct starpu_task * starpu_sched_component_pull_task(struct starpu_sched_compon
 		_starpu_trace_sched_component_pull(from, to, task);
 	return task;
 }
-
 
 /*
  * Pump mechanic to get the task flow rolling. Takes tasks from
@@ -540,12 +531,9 @@ void starpu_sched_tree_deinitialize(unsigned sched_ctx_id)
 	starpu_sched_tree_destroy(t);
 }
 
-
 /******************************************************************************
  *          Interface Functions for Generic Scheduling Components             *
  ******************************************************************************/
-
-
 
 void starpu_sched_component_add_child(struct starpu_sched_component* component, struct starpu_sched_component * child)
 {

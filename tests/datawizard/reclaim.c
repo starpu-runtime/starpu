@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -41,7 +41,6 @@ static unsigned ntasks = 250;
 #  define BLOCK_SIZE (64*1024*1024)
 static unsigned ntasks = 1000;
 #endif
-
 
 #ifdef STARPU_HAVE_HWLOC
 static uint64_t get_total_memory_size(void)

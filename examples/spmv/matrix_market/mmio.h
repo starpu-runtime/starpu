@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -41,7 +41,6 @@ int mm_write_banner(FILE *f, MM_typecode matcode);
 int mm_write_mtx_crd_size(FILE *f, int M, int N, int nz);
 int mm_write_mtx_array_size(FILE *f, int M, int N);
 
-
 /********************* MM_typecode query functions ***************************/
 
 #define mm_is_matrix(typecode)	((typecode)[0]=='M')
@@ -75,7 +74,6 @@ int mm_is_valid(MM_typecode matcode);		/* too complex for a macro */
 #define mm_set_real(typecode)	((*typecode)[2]='R')
 #define mm_set_pattern(typecode)((*typecode)[2]='P')
 #define mm_set_integer(typecode)((*typecode)[2]='I')
-
 
 #define mm_set_symmetric(typecode)((*typecode)[3]='S')
 #define mm_set_general(typecode)((*typecode)[3]='G')
@@ -137,6 +135,5 @@ int mm_read_mtx_crd_entry(FILE *f, int *I_, int *J, double *real, double *img,
 			  MM_typecode matcode);
 int mm_read_unsymmetric_sparse(const char *fname, int *M_, int *N_, int *nz_,
 			       double **val_, int **I_, int **J_);
-
 
 #endif

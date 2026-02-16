@@ -128,7 +128,6 @@ const struct hipDeviceProp_t *starpu_hip_get_device_properties(unsigned workerid
 }
 #endif /* STARPU_USE_HIP */
 
-
 /* Early library initialization, before anything else, just initialize data */
 void _starpu_hip_early_init(void)
 {
@@ -1599,7 +1598,6 @@ int _starpu_hip_driver_run_once(struct _starpu_worker *worker)
 		task = tasks[i];
 		if (!task)
 			continue;
-
 
 		j = _starpu_get_job_associated_to_task(task);
 

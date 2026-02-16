@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -224,7 +224,6 @@ static void _starpu_deinit_mpi_node(int devid)
 	_starpu_mp_common_node_destroy(_starpu_src_nodes[STARPU_MPI_SC_WORKER][devid]);
 }
 
-
 void _starpu_deinit_mpi_config(struct _starpu_machine_config *config)
 {
 	struct _starpu_machine_topology *topology = &config->topology;
@@ -234,17 +233,14 @@ void _starpu_deinit_mpi_config(struct _starpu_machine_config *config)
 		_starpu_deinit_mpi_node(i);
 }
 
-
 void _starpu_mpi_source_init(struct _starpu_mp_node *node)
 {
 	_starpu_mpi_common_mp_initialize_src_sink(node);
 	//TODO
 }
 
-
 void _starpu_mpi_source_deinit(struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED)
 {
-
 }
 
 unsigned _starpu_mpi_src_get_device_count()

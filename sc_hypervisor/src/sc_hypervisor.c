@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -47,7 +47,6 @@ extern struct sc_hypervisor_policy ispeed_policy;
 extern struct sc_hypervisor_policy hard_coded_policy;
 extern struct sc_hypervisor_policy perf_count_policy;
 
-
 static struct sc_hypervisor_policy *predefined_policies[] =
 {
 	&idle_policy,
@@ -81,7 +80,6 @@ static void _load_hypervisor_policy(struct sc_hypervisor_policy *policy)
 	hypervisor.policy.start_ctx = policy->start_ctx;
 	hypervisor.policy.init_worker = policy->init_worker;
 }
-
 
 static struct sc_hypervisor_policy *_find_hypervisor_policy_from_name(const char *policy_name)
 {
@@ -156,7 +154,6 @@ static struct sc_hypervisor_policy *_select_hypervisor_policy(struct sc_hypervis
 
 	return &idle_policy;
 }
-
 
 /* initializez the performance counters that starpu will use to retrieve hints for resizing */
 void* sc_hypervisor_init(struct sc_hypervisor_policy *hypervisor_policy)
@@ -330,8 +327,6 @@ void sc_hypervisor_print_overhead()
 		f = fopen(sched_env, "a");
 	fprintf(f, "%lf \n", hyp_overhead);
 	fclose(f);
-
-
 }
 
 /* the hypervisor is in charge only of the contexts registered to it*/
@@ -437,7 +432,6 @@ void sc_hypervisor_reset_react_start_time(unsigned sched_ctx, unsigned now)
 		hypervisor.sched_ctx_w[sched_ctx].hyp_react_start_time = starpu_timing_now();
 	starpu_sched_ctx_update_start_resizing_sample(sched_ctx, starpu_timing_now());
 }
-
 
 double _get_max_speed_gap()
 {
@@ -641,7 +635,6 @@ void sc_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned receiver_sch
 				hypervisor.sched_ctx_w[sender_sched_ctx].resize_ack.nmoved_workers = nworkers_to_move;
 				hypervisor.sched_ctx_w[sender_sched_ctx].resize_ack.acked_workers = (int*)malloc(nworkers_to_move * sizeof(int));
 
-
 				unsigned i;
 				for(i = 0; i < nworkers_to_move; i++)
 				{
@@ -734,7 +727,6 @@ void sc_hypervisor_remove_workers_from_sched_ctx(int* workers_to_remove, unsigne
 				hypervisor.sched_ctx_w[sched_ctx].resize_ack.moved_workers = (int*)malloc(nworkers_to_remove * sizeof(int));
 				hypervisor.sched_ctx_w[sched_ctx].resize_ack.nmoved_workers = (int)nworkers;
 				hypervisor.sched_ctx_w[sched_ctx].resize_ack.acked_workers = (int*)malloc(nworkers_to_remove * sizeof(int));
-
 
 				for(i = 0; i < nworkers; i++)
 				{
@@ -887,7 +879,6 @@ void _sc_hypervisor_allow_compute_idle(unsigned sched_ctx, int worker, unsigned 
 {
 	hypervisor.sched_ctx_w[sched_ctx].compute_idle[worker] = allow;
 }
-
 
 int _update_max_hierarchically(unsigned *sched_ctxs, int nsched_ctxs)
 {
@@ -1141,8 +1132,6 @@ void sc_hypervisor_update_resize_interval(unsigned *sched_ctxs, int nsched_ctxs,
 		}
 	}
 
-
-
 	/*if the sum of the max cpus is smaller than the total cpus available
 	  increase the max for the ones having more ready tasks to exec */
 	/* if(configured && total_max_nworkers < max_workers) */
@@ -1219,7 +1208,6 @@ static void notify_idle_cycle(unsigned sched_ctx, int worker, double idle_time)
 
 	if(sc_w->idle_start_time[worker] == 0.0 && sc_w->hyp_react_start_time != 0.0)
 		sc_w->idle_start_time[worker] = starpu_timing_now();
-
 
 	if(sc_w->idle_start_time[worker] > 0.0)
 	{
@@ -1338,7 +1326,6 @@ static void notify_poped_task(unsigned sched_ctx, int worker)
 	if(hypervisor.policy.handle_idle_end)
 		hypervisor.policy.handle_idle_end(sched_ctx, worker);
 }
-
 
 static void _update_counters_hierarchically(int worker, unsigned sched_ctx, double flops, size_t data_size)
 {
@@ -1703,7 +1690,6 @@ void sc_hypervisor_get_leaves(unsigned *sched_ctxs, int nsched_ctxs, unsigned *l
 	}
 	return;
 }
-
 
 void sc_hypervisor_init_worker(int workerid, unsigned sched_ctx)
 {

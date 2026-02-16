@@ -915,7 +915,6 @@ int _starpu_mpi_wait_for_all_in_ctx(MPI_Comm comm, unsigned sched_ctx)
 	return _starpu_mpi_wait_for_all__(comm, sched_ctx);
 }
 
-
 /********************************************************/
 /*							*/
 /*  Progression						*/
@@ -1642,7 +1641,6 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		_starpu_mpi_comm_cancel_recv();
 		envelope_request_submitted = 0;
 	}
-
 
 #ifdef STARPU_SIMGRID
 	STARPU_PTHREAD_MUTEX_LOCK(&wait_counter_mutex);

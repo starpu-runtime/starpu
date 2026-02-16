@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,13 +18,11 @@
 #include "sc_hypervisor_intern.h"
 #include <math.h>
 
-
 double sc_hypervisor_get_ctx_speed(struct sc_hypervisor_wrapper* sc_w)
 {
 	struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(sc_w->sched_ctx);
 	double elapsed_flops = sc_hypervisor_get_elapsed_flops_per_sched_ctx(sc_w);
 	double sample = config->ispeed_ctx_sample;
-
 
 	double total_elapsed_flops = sc_hypervisor_get_total_elapsed_flops_per_sched_ctx(sc_w);
 	double total_flops = sc_w->total_flops;

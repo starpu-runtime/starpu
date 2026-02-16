@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -566,7 +566,6 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
 	STARPU_ASSERT(src_multiformat->ops != NULL);
 
 	size = src_multiformat->nx * src_multiformat->ops->opencl_elemsize;
-
 
 	err = starpu_opencl_copy_ram_to_opencl(src_multiformat->cpu_ptr,
 					       src_node,

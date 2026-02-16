@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -713,7 +713,6 @@ static starpu_ssize_t size_meta_ndim_handle(struct starpu_ndim_interface *ndarr)
 	count += ndarr->ndim * (sizeof(ndarr->ldn[0]) + sizeof(ndarr->nn[0])) + sizeof(ndarr->ptr) + sizeof(ndarr->dev_handle);
 	return count;
 }
-
 
 #define _pack(dst, src) do { memcpy(dst, &src, sizeof(src)); dst += sizeof(src); } while (0)
 

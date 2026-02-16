@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -50,7 +50,6 @@ The energy actually consumed by the total execution can be displayed by setting
 For OpenCL devices, on-line task consumption measurement is currently supported through the OpenCL extension
 <c>CL_PROFILING_POWER_CONSUMED</c>, implemented in the MoviSim simulator.
 
-
 For CUDA devices, on-line task consumption measurement is supported on V100
 cards and beyond. This however only works for quite long tasks, since the
 measurement granularity is about 10ms.
@@ -86,16 +85,12 @@ There are other functions in StarPU that are used to measure the energy consumed
 
 We have extended the performance model of StarPU to measure energy and power values of CPUs. These values are measured using the existing Performance API (PAPI) analysis library. PAPI provides the tool designer and application engineer with a consistent interface and methodology for use of the performance counter hardware found in most major microprocessors. PAPI enables software engineers to see, in near real time, the relation between software performance and processor events.
 
-
 - To measure energy consumption of CPUs, we use the <c>RAPL</c> events, which are available on CPU architecture:
 <c>RAPL_ENERGY_PKG</c> that represents the whole CPU socket power consumption,
 and <c>RAPL_ENERGY_DRAM</c> that represents the RAM power consumption.
 
-
-
 PAPI provides a generic, portable interface for the hardware performance counters available on all modern CPUs and some other components of interest that are scattered across the chip
 and system.
-
 
 In order to use the right <c>rapl events</c> for energy measurement, user should check the <c>rapl events</c> available on the machine, using this command:
 

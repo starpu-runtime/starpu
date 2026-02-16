@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -71,7 +71,6 @@ void scal_cpu_func(void *buffers[], void *_args)
 
 	int begin = get_first_element_rank(n, rank, nb_workers);
 
-
 	for (i = 0; i < nel_worker; i++)
 	{
 		rank = i + begin;
@@ -119,7 +118,6 @@ int main(void)
 		conf.ncpus /= 2;
 		starpu_shutdown();
 	}
-
 
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return 77;

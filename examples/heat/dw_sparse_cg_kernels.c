@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -47,7 +47,6 @@
  * 		}
  */
 
-
 /*
  *	compute r = b - A x
  *
@@ -66,7 +65,6 @@ void cpu_codelet_func_1(void *descr[], void *arg)
 	float *vecx = (float *)STARPU_VECTOR_GET_PTR(descr[1]);
 	float *vecr = (float *)STARPU_VECTOR_GET_PTR(descr[2]);
 	float *vecb = (float *)STARPU_VECTOR_GET_PTR(descr[3]);
-
 
 	uint32_t nrow;
 
@@ -161,7 +159,6 @@ void cublas_codelet_func_3(void *descr[], void *arg)
 }
 #endif
 
-
 /*
  *	compute q with : q = A d
  *
@@ -255,8 +252,6 @@ void cublas_codelet_func_5(void *descr[], void *arg)
 	pb->alpha = pb->delta_new / dot;
 }
 #endif
-
-
 
 /*
  *	compute x = x + alpha d

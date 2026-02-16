@@ -167,7 +167,6 @@
  * *********************************************************
  */
 
-
 #ifndef LIST_INLINE
 #define LIST_INLINE static inline
 #endif

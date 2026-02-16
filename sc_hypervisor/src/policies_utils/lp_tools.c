@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -139,7 +139,6 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 		_set_optimal_v(sched_ctxs[0], optimal_v);
 		return 1.0;
 	}
-
 
 	unsigned tmp_sched_ctxs[STARPU_NMAX_SCHED_CTXS];
 	double tmp_flops[STARPU_NMAX_SCHED_CTXS];
@@ -503,7 +502,6 @@ void _lp_find_workers_to_accept(int nw, int ns, unsigned sched_ctx, int sched_ct
 			tmp_nw_move[w] -=  *nw_move;
 		}
 
-
 		double needed = res[sched_ctx_idx][w] - (nw_ctx2 * 1.0);
 		int x = floor(needed);
 		double x_double = (double)x;
@@ -563,7 +561,6 @@ void sc_hypervisor_lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rou
 		int tmp_workers_add[nw][STARPU_NMAXWORKERS];
 		int tmp_nw_add[nw];
 
-
 		for(w = 0; w < nw; w++)
 		{
 			tmp_nw_move[w] = 0;
@@ -592,7 +589,6 @@ void sc_hypervisor_lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rou
 
 				int workers_add[STARPU_NMAXWORKERS];
 				int nw_add = 0;
-
 
 				_lp_find_workers_to_accept(nw, ns, sched_ctxs[s2], s2,
 							   tmp_nw_move, tmp_workers_move,

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2016-2016  Uppsala University
  * Copyright (C) 2013-2013  Thibaut Lambert
  *
@@ -619,7 +619,6 @@ static inline unsigned _starpu_machine_is_running(void)
 	ANNOTATE_HAPPENS_BEFORE(&_starpu_config.running);
 	return ret;
 }
-
 
 /** initialise a worker */
 void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu_machine_config *pconfig);

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013-2013  Simon Archipoff
  * Copyright (C) 2011-2011  Télécom Sud Paris
  *
@@ -54,13 +54,9 @@
  *
  */
 
-
-
 /******************************************************************************
  *					  Worker Components' Data Structures					  *
  *****************************************************************************/
-
-
 
 struct _starpu_task_grid
 {
@@ -84,7 +80,6 @@ struct _starpu_task_grid
 		int * pntasks;
 	};
 };
-
 
 /* list->exp_start, list->exp_len, list-exp_end and list->ntasks
  * are updated by starpu_sched_component_worker_push_task(component, task) and pre_exec_hook
@@ -164,12 +159,9 @@ struct _starpu_worker_component_data
 /* this array store worker components */
 static struct starpu_sched_component * _worker_components[STARPU_NMAX_SCHED_CTXS][STARPU_NMAXWORKERS];
 
-
 /******************************************************************************
  *				Worker Components' Task List and Grid Functions				  *
  *****************************************************************************/
-
-
 
 static struct _starpu_worker_task_list * _starpu_worker_task_list_create(void)
 {
@@ -349,13 +341,9 @@ static inline struct starpu_task * _starpu_worker_task_list_pop(struct _starpu_w
 	return NULL;
 }
 
-
-
 /******************************************************************************
  *			Worker Components' Public Helper Functions (Part 1)		     	  *
  *****************************************************************************/
-
-
 
 struct _starpu_worker * _starpu_sched_component_worker_get_worker(struct starpu_sched_component * worker_component)
 {
@@ -367,8 +355,6 @@ struct _starpu_worker * _starpu_sched_component_worker_get_worker(struct starpu_
 /******************************************************************************
  *				Worker Components' Private Helper Functions			      	  *
  *****************************************************************************/
-
-
 
 #ifndef STARPU_NO_ASSERT
 static int _worker_consistant(struct starpu_sched_component * component)
@@ -391,13 +377,9 @@ static int _worker_consistant(struct starpu_sched_component * component)
 }
 #endif
 
-
-
 /******************************************************************************
  *				Simple Worker Components' Interface Functions			      *
  *****************************************************************************/
-
-
 
 static int simple_worker_can_pull(struct starpu_sched_component * worker_component)
 {
@@ -592,13 +574,9 @@ static struct starpu_sched_component * starpu_sched_component_worker_create(stru
 	return component;
 }
 
-
-
 /******************************************************************************
  *				Combined Worker Components' Interface Functions			      *
  *****************************************************************************/
-
-
 
 static int combined_worker_can_pull(struct starpu_sched_component * component)
 {
@@ -777,12 +755,9 @@ static struct starpu_sched_component  * starpu_sched_component_combined_worker_c
 	return component;
 }
 
-
 /******************************************************************************
  *			Worker Components' Public Helper Functions (Part 2)			      *
  *****************************************************************************/
-
-
 
 void _starpu_sched_component_lock_all_workers(void)
 {
@@ -876,7 +851,4 @@ struct starpu_sched_component * starpu_sched_component_worker_new(unsigned sched
 	_worker_components[sched_ctx][workerid] = component;
 	return component;
 }
-
-
-
 

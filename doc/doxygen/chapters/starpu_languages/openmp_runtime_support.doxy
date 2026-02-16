@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2014-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -186,7 +186,6 @@ void parallel_region_f(void *buffers[], void *args)
 \sa starpu_omp_ordered()
 \sa starpu_omp_ordered_inline_begin()
 \sa starpu_omp_ordered_inline_end()
-
 
 \subsection OMPSections Sections
 OpenMP <c>sections</c> worksharing constructs are supported using the

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -180,7 +180,6 @@ int starpu_pthread_exit(void *retval STARPU_ATTRIBUTE_UNUSED)
 	STARPU_ABORT_MSG("MSG_process_kill(MSG_process_self()) returned?!");
 }
 
-
 int starpu_pthread_attr_init(starpu_pthread_attr_t *attr)
 {
 	attr->stacksize = 0;
@@ -316,7 +315,6 @@ int starpu_pthread_mutexattr_init(starpu_pthread_mutexattr_t *attr STARPU_ATTRIB
 {
 	return 0;
 }
-
 
 /* Indexed by key-1 */
 static int used_key[MAX_TSD];
@@ -577,7 +575,6 @@ int starpu_pthread_rwlock_trywrlock(starpu_pthread_rwlock_t *rwlock)
 
 	return p_ret;
 }
-
 
 int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock)
 {

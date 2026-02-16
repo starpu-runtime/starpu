@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -111,7 +111,6 @@ We can call starpu_workers_get_tree() to get information about the tree faciliti
 \subsection TopologyBus Bus
 
 StarPU provides several functions to declare or retrieve information about the buses in a machine. The function starpu_bus_get_count() can be used to get the total number of buses available. To obtain the identifier of the bus between a source and destination point, the function starpu_bus_get_id() can be called. The source and destination points of a bus can be obtained by calling the functions starpu_bus_get_src() and starpu_bus_get_dst() respectively. Furthermore, users can use the function starpu_bus_set_direct() to declare that there is a direct link between a GPU and memory to the driver. The direct link can significantly reduce data transfer latency and improve overall performance. Moreover, users can use the function starpu_bus_get_direct() to retrieve information about whether a direct link has been established between a GPU and memory using the starpu_bus_set_direct() function. starpu_bus_set_ngpus() and starpu_bus_get_ngpus() functions can be used to declare and retrieve the number of GPUs of this bus that users need.
-
 
 \section UsingTheDriverAPI Using The Driver API
 
@@ -253,7 +252,6 @@ Or add the following line in the file <c>/etc/sysctl.conf</c>
 security.models.extensions.user_set_cpu_affinity=1
 \endverbatim
 
-
 \section StarPUEatsCPUs StarPU permanently eats 100% of all CPUs
 
 Yes, this is on purpose.
@@ -282,7 +280,6 @@ that StarPU must not be paused when you call starpu_shutdown(), and
 that this function pair works in a push/pull manner, i.e. you need to
 match the number of calls to these functions to clear their effect.
 
-
 One way to use these functions could be:
 \code{.c}
 starpu_init(NULL);
@@ -290,7 +287,6 @@ starpu_worker_wait_for_initialisation(); // Wait for the worker to complete its 
 starpu_pause(); // To submit all the tasks without a single one executing
 submit_some_tasks();
 starpu_resume(); // The tasks start executing
-
 
 starpu_task_wait_for_all();
 starpu_pause(); // Stop the workers from polling

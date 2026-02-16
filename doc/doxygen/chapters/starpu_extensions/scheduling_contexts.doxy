@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -27,7 +27,6 @@ to minimize interferences between the execution of multiple parallel
 kernels, by partitioning the underlying pool of workers using
 contexts. Scheduling contexts additionally allow a user to make use of
 a different scheduling policy depending on the target resource set.
-
 
 \section CreatingAContext Creating A Context
 
@@ -244,6 +243,5 @@ However, if resources are never allocated to the context, the
 application will not terminate. If these tasks have low priority, the
 application can inform StarPU to not submit them by calling the
 function starpu_sched_ctx_stop_task_submission().
-
 
 */

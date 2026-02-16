@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,7 +18,6 @@
 #include <assert.h>
 #include <starpu.h>
 #include <common/blas.h>
-
 
 /*
  *	Conjugate Gradient
@@ -277,7 +276,6 @@ static void display_x_result(void)
 	}
 }
 
-
 static void parse_args(int argc, char **argv)
 {
 	int i;
@@ -292,7 +290,6 @@ static void parse_args(int argc, char **argv)
 
 	parse_common_args(argc, argv);
 }
-
 
 int main(int argc, char **argv)
 {

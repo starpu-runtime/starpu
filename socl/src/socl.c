@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2012-2012  Vincent Danjean
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -151,7 +151,6 @@ const char * __attribute__ ((aligned (16))) SOCL_PLATFORM_NAME    = "SOCL Platfo
 const char * __attribute__ ((aligned (16))) SOCL_VENDOR  = "Inria";
 const char * __attribute__ ((aligned (16))) SOCL_PLATFORM_EXTENSIONS = "cl_khr_icd";
 const char * __attribute__ ((aligned (16))) SOCL_PLATFORM_ICD_SUFFIX_KHR ="SOCL";
-
 
 /* Command queues with profiling enabled
  * This allows us to disable StarPU profiling it

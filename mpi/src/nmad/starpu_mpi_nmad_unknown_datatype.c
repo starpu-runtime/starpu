@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2019-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,7 +14,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-
 #include <common/config.h>
 
 #ifdef STARPU_USE_MPI_NMAD
@@ -26,8 +25,6 @@
 #include "starpu_mpi_nmad.h"
 #include "starpu_mpi_nmad_backend.h"
 #include "starpu_mpi_nmad_unknown_datatype.h"
-
-
 
 /**********************************************
 * Send
@@ -84,7 +81,6 @@ void _starpu_mpi_isend_unknown_datatype(struct _starpu_mpi_req *req)
 
 	_STARPU_MPI_LOG_OUT();
 }
-
 
 /**********************************************
  * Receive

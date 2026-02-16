@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -72,7 +72,6 @@ static int push_task_dummy(struct starpu_task *task)
 
 	/* NB: In this simplistic strategy, we assume that the context in which
 	   we push task has at least one worker*/
-
 
 	/* lock all workers when pushing tasks on a list where all
 	   of them would pop for tasks */

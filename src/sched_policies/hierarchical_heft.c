@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013-2013  Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -26,14 +26,10 @@ static struct  starpu_sched_component_composed_recipe *  recipe_for_worker(enum 
 	return r;
 }
 
-
-
-
 static void initialize_heft_center_policy(unsigned sched_ctx_id)
 {
 	struct starpu_sched_component_specs specs;
 	memset(&specs,0,sizeof(specs));
-
 
 	struct starpu_sched_component_mct_data heft_data =
 	{
@@ -64,14 +60,9 @@ static void initialize_heft_center_policy(unsigned sched_ctx_id)
 
 	starpu_sched_component_composed_recipe_destroy(specs.hwloc_machine_composed_sched_component);
 
-
 	starpu_sched_tree_update_workers(t);
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)t);
 }
-
-
-
-
 
 struct starpu_sched_policy _starpu_sched_tree_heft_hierarchical_policy =
 {

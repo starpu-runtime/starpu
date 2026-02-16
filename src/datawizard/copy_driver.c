@@ -596,7 +596,6 @@ int starpu_interface_copy3d(uintptr_t src, size_t src_offset, unsigned src_node,
 							     numblocks_2, ld2_src, ld2_dst,
 							     async_channel);
 
-
 	for (i = 0; i < numblocks_2; i++)
 	{
 		if (starpu_interface_copy2d(src, src_offset + i*ld2_src, src_node,

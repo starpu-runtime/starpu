@@ -2448,7 +2448,6 @@ static const char *copy_link_type(enum starpu_is_prefetch prefetch)
 	}
 }
 
-
 static void handle_checkpoint_begin(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	/* Add an event in the trace */
@@ -2547,7 +2546,6 @@ static void handle_start_driver_copy(struct fxt_ev_native *ev, struct starpu_fxt
 
 }
 
-
 static void handle_work_stealing(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
 	if (out_paje_file)
@@ -2577,7 +2575,6 @@ static void handle_work_stealing(struct fxt_ev_native *ev, struct starpu_fxt_opt
 
 	steal_number++;
 }
-
 
 static void handle_end_driver_copy(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
@@ -2845,7 +2842,6 @@ static void handle_job_push(struct fxt_ev_native *ev, struct starpu_fxt_options 
 		fprintf(sched_tasks_file, "\n");
 	}
 }
-
 
 static void handle_job_pop(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {
@@ -3139,7 +3135,6 @@ static void handle_task_name(struct fxt_ev_native *ev, struct starpu_fxt_options
 			code = 0;
 		}
 
-
 		char *fontcolor = code <= 1 ? "white" : "black";
 
 		if (options->iter_clusters)
@@ -3177,7 +3172,6 @@ static void handle_task_line(struct fxt_ev_native *ev, struct starpu_fxt_options
 	if (!task->exclude_from_dag && show_task(task, options))
 		_starpu_fxt_dag_set_task_line(options->file_prefix, job_id, task->file, line);
 }
-
 
 static void handle_task_done(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
 {

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2018-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2018-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -181,16 +181,13 @@ governed by the following set of state flags and counters:
   request for being added to a parallel task team. Must be protected by the
   worker's \c sched_mutex.
 
-
 - \c state_unblock_in_parallel_req: set to \c !0 when a thread is waiting on a request
   for the worker to be removed from a parallel task team. Must be protected by the
   worker's \c sched_mutex.
 
-
 - \c state_unblock_in_parallel_ack: set to \c !0 by the worker when acknowledging a
   request for being removed from a parallel task team. Must be protected by the
   worker's \c sched_mutex.
-
 
 - \c block_in_parallel_ref_count: counts the number of consecutive pending requests
   to enter parallel task teams. Only the first of a train of requests for
@@ -199,7 +196,6 @@ governed by the following set of state flags and counters:
   requests to leave a parallel task team triggers the transition of flag
   \c state_unblock_in_parallel_req from \c 0 to \c 1. Must be protected by the
   worker's \c sched_mutex.
-
 
 \subsubsection CoreEntitiesWorkersOperations Operations
 
@@ -271,7 +267,6 @@ Once the worker has a pending task assigned and the input data for that task are
 available in the memory node reachable by the worker's computing unit, the
 worker calls \c _starpu_cpu_driver_execute_task (or the corresponding driver
 specific function) to proceed to the execution of the task.
-
 
 \subsection CoreEntitiesContexts Scheduling Contexts
 

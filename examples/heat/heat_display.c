@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -140,7 +140,6 @@ static void display(void)
 	glFlush ();
 }
 
-
 static void pressKey(unsigned char key, int x, int y)
 {
 	switch (key)
@@ -154,8 +153,6 @@ static void pressKey(unsigned char key, int x, int y)
 	}
 }
 
-
-
 static void reshape (int w, int h)
 {
 	glViewport (0, 0, (GLsizei) w, (GLsizei) h);
@@ -164,7 +161,6 @@ static void reshape (int w, int h)
 	glFrustum (xmin, xmax, ymin, ymax, 5.0f, 5.0f);
 	glMatrixMode (GL_MODELVIEW);
 }
-
 
 void find_limits(void)
 {

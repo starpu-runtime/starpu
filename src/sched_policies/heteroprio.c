@@ -364,15 +364,12 @@ struct _starpu_heteroprio_data
 	// if set to 0: will gather data from execution (task time, NOD, etc.)
 	unsigned freeze_data_gathering;
 
-
 	unsigned autoheteroprio_print_prio_after_ordering;
 	unsigned autoheteroprio_print_data_on_update;
-
 
 	// 0 = if a task has no implementation on arch, expected time will be AUTOHETEROPRIO_LONG_TIME
 	// 1 = if a task has no implementation on arch, expected time will be the shortest time among all archs
 	unsigned autoheteroprio_time_estimation_policy;
-
 
 	// environment hyperparameters
 
@@ -2196,7 +2193,6 @@ static void print_priorities(struct _starpu_heteroprio_data *hp)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&hp->auto_calibration_mutex);
 }
 
-
 static double get_autoheteroprio_arch_busy_proportion(struct _starpu_heteroprio_data *hp, unsigned arch)
 {
 	double total = hp->average_arch_busy_time[arch] + hp->average_arch_free_time[arch];
@@ -2220,7 +2216,6 @@ static double get_autoheteroprio_estimated_time(struct _starpu_heteroprio_data *
 	{ // if arch is legit but we have no time information, return a decent arbitrary time
 		return AUTOHETEROPRIO_FAIR_TIME;
 	}
-
 
 	if(hp->autoheteroprio_time_estimation_policy == 0)
 	{
@@ -2641,7 +2636,6 @@ static void order_priorities(struct _starpu_heteroprio_data *hp)
 	}
 */
 
-
 	STARPU_PTHREAD_MUTEX_UNLOCK(&hp->auto_calibration_mutex);
 }
 
@@ -2845,9 +2839,6 @@ static double get_job_NRT(struct _starpu_heteroprio_data *hp, struct _starpu_job
 
 	return NOD;
 }
-
-
-
 
 static void register_arch_times(struct _starpu_heteroprio_data *hp, unsigned arch, double busy_time, double free_time)
 {
@@ -3098,7 +3089,6 @@ static void register_task_arch_execution(struct _starpu_heteroprio_data *hp, uns
 	normalize_task_arch_proportions(hp, task_priority);
 }
 
-
 static void add_successors_best_time_sum_to_data(struct _starpu_heteroprio_data *hp, unsigned task_priority, double sum)
 {
 	STARPU_ASSERT(!hp->freeze_data_gathering);
@@ -3212,7 +3202,6 @@ static int push_task_heteroprio_policy(struct starpu_task *task)
 has not been called while you are using the heteroprio in LA mode. To fix this, you can either turn LA mode off by setting \
 the HETEROPRIO_USE_LA variable to 0, or calling starpu_laheteroprio_map_wgroup_memory_nodes after starpu_laheteroprio_set_nb_prios.\n");
 	}
-
 
 	const unsigned best_mem_node = computed_best_mem_node;
 

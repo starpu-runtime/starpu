@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010-2010  Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -231,7 +231,6 @@ starpu_data_handle_t get_block_with_striding(starpu_data_handle_t *dataAp, unsig
 	return starpu_data_get_sub_data(*dataAp, 2, j, i);
 }
 
-
 int STARPU_LU(lu_decomposition_pivot)(TYPE *matA, unsigned *ipiv, unsigned size, unsigned ld, unsigned nblocks, unsigned no_prio)
 {
 	if (starpu_mpi_sc_worker_get_count())
@@ -300,7 +299,6 @@ int STARPU_LU(lu_decomposition_pivot)(TYPE *matA, unsigned *ipiv, unsigned size,
 	return 0;
 }
 
-
 starpu_data_handle_t get_block_with_no_striding(starpu_data_handle_t *dataAp, unsigned nblocks, unsigned j, unsigned i)
 {
 	/* dataAp is an array of data handle */
@@ -356,7 +354,6 @@ int STARPU_LU(lu_decomposition_pivot_no_stride)(TYPE **matA, unsigned *ipiv, uns
 		PRINTF("\t%.0f\t%.1f", min, flop/min/1000000.0f);
 	}
 	PRINTF("\n");
-
 
 	for (bj = 0; bj < nblocks; bj++)
 	for (bi = 0; bi < nblocks; bi++)
