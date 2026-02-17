@@ -223,6 +223,7 @@ def create_builder(profile, profile_iname, profile_name, profile_host):
 
     p.addStep(Command(["for x  in $(find . -name \"*log\") ; do mkdir -p logs/$(dirname $x) && cp $x logs/$(dirname $x) ; done > /dev/null 2>&1"]))
     p.addStep(Command(["make", "clean", ">", "/dev/null", "2>&1"]))
+    p.addStep(Command(["rm -f $(find . -name \"core.*\" -type f) > /dev/null 2>&1"]))
     if profile['ignore_fail']:
         p.addStep(Command(["exit", "0"]))
     else:
