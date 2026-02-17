@@ -213,7 +213,7 @@ typedef void (*starpu_perf_counter_sample_updater)(struct starpu_perf_counter_sa
 static inline enum starpu_perf_counter_scope _starpu_perf_counter_id_get_scope(const int counter_id)
 {
 	STARPU_ASSERT(counter_id >= 0);
-	return counter_id & ((1 << _STARPU_PERF_COUNTER_ID_SCOPE_BITS) - 1);
+	return (enum starpu_perf_counter_scope) (counter_id & ((1 << _STARPU_PERF_COUNTER_ID_SCOPE_BITS) - 1));
 }
 
 static inline int _starpu_perf_counter_id_get_index(const int counter_id)
