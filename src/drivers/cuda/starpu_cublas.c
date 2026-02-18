@@ -19,7 +19,7 @@
 #include <common/config.h>
 #include <core/workers.h>
 
-#if defined(STARPU_USE_CUDA) && defined(STARPU_USE_CUBLAS)
+#ifdef STARPU_USE_CUDA
 #include <drivers/cuda/driver_cuda.h>
 #include <cublas.h>
 
