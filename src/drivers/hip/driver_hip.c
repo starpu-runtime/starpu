@@ -1695,10 +1695,10 @@ void starpu_hipblas_report_error(const char *func STARPU_ATTRIBUTE_UNUSED, const
         STARPU_ABORT();
 }
 
-void starpu_hip_report_error(const char *func, const char *file, int line, hipError_t status)
+void starpu_hip_report_error(const char *func, const char *file, int line, hipError_t error)
 {
-	const char *errormsg = hipGetErrorString(status);
-	_STARPU_ERROR("oops in %s (%s:%d)... %d: %s \n", func, file, line, status, errormsg);
+	const char *errormsg = hipGetErrorString(error);
+	_STARPU_ERROR("oops in %s (%s:%d)... %d: %s \n", func, file, line, error, errormsg);
 }
 
 int _starpu_hip_run_from_worker(struct _starpu_worker *worker)

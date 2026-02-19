@@ -66,7 +66,7 @@ static struct starpu_task * create_task_potrf(starpu_data_handle_t dataA, unsign
 	/* which sub-data is manipulated ? */
 	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, k);
 
-#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+#if (defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)) || (defined(STARPU_USE_HIP) && defined(STARPU_HAVE_LIBHIPSOLVER))
 	/* Temporary data to save libcusolver from allocating/deallocating memory */
 	task->handles[1] = scratch;
 	task->handles[2] = devInfo;
@@ -312,6 +312,8 @@ static int initialize_system(int argc, char **argv, float **A, unsigned pinned)
 
 	starpu_cublas_init();
 	starpu_cusolver_init();
+	starpu_hipblas_init();
+	starpu_hipsolver_init();
 
 	if (pinned)
 		flags |= STARPU_MALLOC_PINNED;
@@ -352,6 +354,8 @@ static void shutdown_system(float **matA, unsigned dim, unsigned pinned)
 
 	starpu_cusolver_shutdown();
 	starpu_cublas_shutdown();
+	starpu_hipsolver_shutdown();
+	starpu_hipblas_shutdown();
 	starpu_shutdown();
 }
 

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013-2013  Thibaut Lambert
  * Copyright (C) 2010-2010  Mehdi Juhoor
  *
@@ -47,6 +47,8 @@ static int initialize_system(int argc, char **argv, float **A, unsigned pinned)
 
 	starpu_cublas_init();
 	starpu_cusolver_init();
+	starpu_hipblas_init();
+	starpu_hipsolver_init();
 
 	if (pinned)
 		flags |= STARPU_MALLOC_PINNED;
@@ -65,6 +67,8 @@ static void shutdown_system(float **matA, unsigned dim, unsigned pinned)
 
 	starpu_cusolver_shutdown();
 	starpu_cublas_shutdown();
+	starpu_hipsolver_shutdown();
+	starpu_hipblas_shutdown();
 	starpu_shutdown();
 }
 

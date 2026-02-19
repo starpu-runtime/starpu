@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2023-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2023-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -46,6 +46,8 @@ static int initialize_system(int argc, char **argv, float **A, unsigned pinned)
 
 	starpu_cublas_init();
 	starpu_cusolver_init();
+	starpu_hipblas_init();
+	starpu_hipsolver_init();
 
 	char *env_pw_level = starpu_getenv("STARPU_PARALLEL_WORKER_LEVEL");
 	if (env_pw_level == NULL)
@@ -106,6 +108,8 @@ static void shutdown_system(float **matA, unsigned dim, unsigned pinned)
 		starpu_parallel_worker_shutdown(pw_config);
 	starpu_cusolver_shutdown();
 	starpu_cublas_shutdown();
+	starpu_hipsolver_shutdown();
+	starpu_hipblas_shutdown();
 	starpu_shutdown();
 }
 

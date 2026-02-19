@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013-2013  Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -66,7 +66,7 @@ static struct starpu_task * create_task_potrf(unsigned k, unsigned nblocks)
 	/* which sub-data is manipulated ? */
 	task->handles[0] = A_state[k][k];
 
-#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+#if (defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)) || (defined(STARPU_USE_HIP) && defined(STARPU_HAVE_LIBHIPSOLVER))
 	/* Temporary data to save libcusolver from allocating/deallocating memory */
 	task->handles[1] = scratch;
 	task->handles[2] = devInfo;
@@ -267,6 +267,8 @@ int main(int argc, char **argv)
 
 	starpu_cublas_init();
 	starpu_cusolver_init();
+	starpu_hipblas_init();
+	starpu_hipsolver_init();
 
 	for (m = 0; m < nblocks_p; m++)
 	for (n = 0; n < nblocks_p; n++)
@@ -330,6 +332,8 @@ int main(int argc, char **argv)
 
 	starpu_cusolver_shutdown();
 	starpu_cublas_shutdown();
+	starpu_hipsolver_shutdown();
+	starpu_hipblas_shutdown();
 
 	starpu_shutdown();
 	return ret;

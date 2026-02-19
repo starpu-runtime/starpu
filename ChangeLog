@@ -52,6 +52,7 @@ New features:
   * Add basic support for nOS-V hypervision
   * Enable STARPU_MPI_THREAD_MULTIPLE_SEND by default on mpich, openmpi ≥ 4
     and Mad-MPI.
+  * Add HIPSOLVER support.
 
 Small features:
   * Add FXT option -show-workers to display the available workers in

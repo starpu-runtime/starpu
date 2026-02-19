@@ -171,6 +171,19 @@ It is useful to use a ::STARPU_SCRATCH buffer
 whose size was set to the amount returned by \c cusolver*Spotrf_bufferSize . An example can be seen
 in \c examples/cholesky
 
+All that applied for CUDA above also applies for HIP with few (not all
+have been implemented yet) correponding helper functions available:
+- For hipblas:
+  - starpu_hipblas_init()
+  - starpu_hipblas_get_local_handle()
+  - starpu_hipblas_shutdown()
+- For hipsolver:
+  - starpu_hipsolver_init()
+  - starpu_hipsolverDn_get_local_handle()
+  - starpu_hipsolverSp_get_local_handle()
+  - starpu_hipsolverRf_get_local_handle()
+  - starpu_hipsolver_shutdown()
+
 If the kernel can be made to only use this local stream or other self-allocated
 streams, i.e. the whole kernel submission can be made asynchronous, then
 one should enable asynchronous execution of the kernel.  This means setting

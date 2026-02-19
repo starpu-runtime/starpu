@@ -68,7 +68,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 
 #define A(i,j) starpu_data_get_sub_data(dataA, 2, i, j)
 
-#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+#if (defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)) || (defined(STARPU_USE_HIP) && defined(STARPU_HAVE_LIBHIPSOLVER))
 #define PASS_scratch STARPU_SCRATCH, scratch, STARPU_SCRATCH, devInfo,
 #else
 #define PASS_scratch
@@ -398,6 +398,8 @@ int main(int argc, char **argv)
 
 	starpu_cublas_init();
 	starpu_cusolver_init();
+	starpu_hipblas_init();
+	starpu_hipsolver_init();
 
 	if(with_ctxs_p)
 	{
@@ -415,6 +417,8 @@ int main(int argc, char **argv)
 
 	starpu_cusolver_shutdown();
 	starpu_cublas_shutdown();
+	starpu_hipsolver_shutdown();
+	starpu_hipblas_shutdown();
 	starpu_shutdown();
 
 	return 0;

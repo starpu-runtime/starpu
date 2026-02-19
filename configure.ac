@@ -2169,7 +2169,7 @@ if test x$have_valid_hip = xyes; then
     CPPFLAGS="${CPPFLAGS} $STARPU_HIPBLAS_DIRS $STARPU_HIP_CPPFLAGS "
     AC_CHECK_HEADERS([hip/hip_runtime.h hip/hip_runtime_api.h],[have_valid_hip=yes],[have_valid_hip=no])
     if test x$custom_hipblas_dir != x; then
-        AC_CHECK_HEADER([$custom_hipblas_dir/include/hipblas.h],[have_valid_hipblas=yes],[have_valid_hipblas=no])
+        AC_CHECK_HEADER([$custom_hipblas_dir/include/hipblas/hipblas.h],[have_valid_hipblas=yes],[have_valid_hipblas=no])
         AC_MSG_NOTICE(['hipblas' custom])
     else
         AC_CHECK_HEADER([hipblas/hipblas.h],[have_valid_hipblas=yes],[have_valid_hipblas=no])
@@ -2259,17 +2259,32 @@ if test "x$enable_hip" = xyes; then
         if test "$HIP_PLATFORM" = "amd"; then
 	        STARPU_HIP_LDFLAGS="-L$HIP_LIB_DIR -lamdhip64 $STARPU_HIPBLAS_LDFLAGS -lstdc++"
         fi
+	SAVED_CPPFLAGS="$CPPFLAGS"
+        CPPFLAGS="${CPPFLAGS} $STARPU_HIPBLAS_DIRS $STARPU_HIP_CPPFLAGS "
+ 	# we also check that hipsolver is available
+	AC_CHECK_LIB([hipsolver],[hipsolverDnCreate],
+                     [AC_DEFINE([STARPU_HAVE_LIBHIPSOLVER], [1], [Define to 1 if you have the hipsolver library])
+                                STARPU_HIPBLAS_LDFLAGS="$STARPU_HIPBLAS_LDFLAGS -lhipsolver"])
 
-        AC_ARG_ENABLE(hip_memcpy_peer, [AS_HELP_STRING([--disable-hip-memcpy-peer], [if you want to disable peer transfers when using hip])],, [enable_hip_memcpy_peer=$enable_hip])
+	AC_CHECK_LIB([hipsolver],[hipsolverSpCreate],
+                     [AC_DEFINE([STARPU_HAVE_LIBHIPSOLVER_SP], [1], [Define to 1 if the hipsolver library defines the Sp functions])
+                                ])
+	AC_CHECK_LIB([hipsolver],[hipsolverRfCreate],
+                     [AC_DEFINE([STARPU_HAVE_LIBHIPSOLVER_RF], [1], [Define to 1 if the hipsolver library defines the Rf functions])
+                                ])
+
+	AC_ARG_ENABLE(hip_memcpy_peer, [AS_HELP_STRING([--disable-hip-memcpy-peer], [if you want to disable peer transfers when using hip])],, [enable_hip_memcpy_peer=$enable_hip])
         if test x$enable_hip_memcpy_peer = xyes; then
                 AC_DEFINE(STARPU_HAVE_HIP_MEMCPY_PEER,[1],[Peer transfers are supported in HIP])
         fi
+        CPPFLAGS="${SAVED_CPPFLAGS}"
 else
 	STARPU_HIP_LDFLAGS=
 	STARPU_HIP_CPPFLAGS=
 	enable_hip_memcpy_peer=no
 fi
 
+AC_SUBST(STARPU_HIPBLAS_LDFLAGS)
 AC_SUBST(STARPU_HIP_LDFLAGS)
 AC_SUBST(STARPU_HIP_CPPFLAGS)
 AM_CONDITIONAL(STARPU_USE_HIP, test x$enable_hip = xyes)
@@ -4565,7 +4580,7 @@ fi
 
 
 CPPFLAGS="$CPPFLAGS -DSTARPU_SAMPLING_DIR=\"\\\"${datarootdir}/starpu/perfmodels/sampling\\\"\""
-STARPU_BASIC_H_CPPFLAGS="$HWLOC_CFLAGS $STARPU_CUDA_CPPFLAGS $STARPU_HIP_CPPFLAGS $STARPU_OPENCL_CPPFLAGS $STARPU_MAX_FPGA_CPPFLAGS $SIMGRID_CFLAGS $PAPI_CFLAGS $STARPU_OPENMP_CPPFLAGS"
+STARPU_BASIC_H_CPPFLAGS="$HWLOC_CFLAGS $STARPU_CUDA_CPPFLAGS $STARPU_HIP_CPPFLAGS $STARPU_OPENCL_CPPFLAGS $STARPU_MAX_FPGA_CPPFLAGS $SIMGRID_CFLAGS $PAPI_CFLAGS $STARPU_OPENMP_CPPFLAGS $STARPU_HIPBLAS_DIRS"
 
 # these are the flags needed to compile starpu.h
 STARPU_H_CPPFLAGS="$STARPU_BASIC_H_CPPFLAGS"
@@ -4575,7 +4590,7 @@ STARPU_NVCC_H_CPPFLAGS="$STARPU_BASIC_H_CPPFLAGS"
 AC_SUBST([STARPU_NVCC_H_CPPFLAGS])
 
 # these are the flags needed for linking libstarpu (and thus also for static linking)
-LIBSTARPU_LDFLAGS="$STARPU_OPENCL_LDFLAGS $STARPU_CUDA_LDFLAGS $STARPU_HIP_LDFLAGS $HWLOC_LIBS $FXT_LDFLAGS $FXT_LIBS $PAPI_LIBS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LDFLAGS $STARPU_BLAS_LDFLAGS $DGELS_LIBS $STARPU_MAX_FPGA_LDFLAGS $STARPU_DLOPEN_LDFLAGS"
+LIBSTARPU_LDFLAGS="$STARPU_OPENCL_LDFLAGS $STARPU_CUDA_LDFLAGS $STARPU_HIP_LDFLAGS $STARPU_HIPBLAS_LDFLAGS $HWLOC_LIBS $FXT_LDFLAGS $FXT_LIBS $PAPI_LIBS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LDFLAGS $STARPU_BLAS_LDFLAGS $DGELS_LIBS $STARPU_MAX_FPGA_LDFLAGS $STARPU_DLOPEN_LDFLAGS"
 AC_SUBST([LIBSTARPU_LDFLAGS])
 
 # these are the flags needed for linking against libstarpu (because starpu.h makes its includer use pthread_*, simgrid, etc.)

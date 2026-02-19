@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -365,6 +365,7 @@ if STARPU_USE_HIP
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/hip/driver_hip.c
 endif
 
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/hip/starpu_hipsolver.c
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/hip/starpu_hipblas.c
 
 if STARPU_USE_CUDA0

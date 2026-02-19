@@ -29,12 +29,16 @@
 #include "magma_lapack.h"
 #endif
 #endif
+#if defined(STARPU_USE_HIP)
+#include <starpu_hipblas.h>
+#include <starpu_hipsolver.h>
+#endif
 
 /*
  *   GEMM
  */
 
-#if defined(STARPU_USE_CUDA)
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_HIP)
 static const float p1 =  1.0;
 static const float m1 = -1.0;
 #endif
@@ -101,6 +105,20 @@ static inline void chol_common_cpu_codelet_update_gemm(void *descr[], int s, voi
 		break;
 	}
 #endif
+#if defined(STARPU_USE_HIP) && defined(STARPU_USE_HIPBLAS)
+	case 2:
+	{
+		/* HIP kernel */
+		hipblasStatus_t status = hipblasSgemm(starpu_hipblas_get_local_handle(),
+				HIPBLAS_OP_N, HIPBLAS_OP_T, dy, dx, dz,
+				&m1, left, ld21, right, ld12,
+				&p1, center, ld22);
+		if (status != HIPBLAS_STATUS_SUCCESS)
+			STARPU_HIPBLAS_REPORT_ERROR(status);
+
+		break;
+	}
+#endif
 	default:
 		STARPU_ABORT();
 		break;
@@ -118,6 +136,13 @@ void chol_cublas_codelet_update_gemm(void *descr[], void *_args)
 	chol_common_cpu_codelet_update_gemm(descr, 1, _args);
 }
 #endif /* STARPU_USE_CUDA */
+
+#if defined(STARPU_USE_HIP) && defined(STARPU_USE_HIPBLAS)
+void chol_hipblas_codelet_update_gemm(void *descr[], void *_args)
+{
+	chol_common_cpu_codelet_update_gemm(descr, 2, _args);
+}
+#endif /* STARPU_USE_HIP */
 
 /*
  *   SYRK
@@ -158,6 +183,19 @@ static inline void chol_common_cpu_codelet_update_syrk(void *descr[], int s, voi
 		break;
 	}
 #endif
+#if defined(STARPU_USE_HIP) && defined(STARPU_USE_HIPBLAS)
+	case 2:
+	{
+		/* HIP kernel */
+		hipblasStatus_t status = hipblasSsyrk(starpu_hipblas_get_local_handle(),
+				HIPBLAS_FILL_MODE_LOWER, HIPBLAS_OP_N, dx, dz,
+				&m1, left, ld21,
+				&p1, center, ld22);
+		if (status != HIPBLAS_STATUS_SUCCESS)
+			STARPU_HIPBLAS_REPORT_ERROR(status);
+		break;
+	}
+#endif
 	default:
 		STARPU_ABORT();
 		break;
@@ -175,6 +213,13 @@ void chol_cublas_codelet_update_syrk(void *descr[], void *_args)
 	chol_common_cpu_codelet_update_syrk(descr, 1, _args);
 }
 #endif /* STARPU_USE_CUDA */
+
+#if defined(STARPU_USE_HIP) && defined(STARPU_USE_HIPBLAS)
+void chol_hipblas_codelet_update_syrk(void *descr[], void *_args)
+{
+	chol_common_cpu_codelet_update_syrk(descr, 2, _args);
+}
+#endif /* STARPU_USE_HIP */
 
 /*
  * TRSM
@@ -199,6 +244,9 @@ static inline void chol_common_codelet_update_trsm(void *descr[], int s, void *_
 #ifdef STARPU_USE_CUDA
 	cublasStatus_t status;
 #endif
+#if defined(STARPU_USE_HIP) && defined(STARPU_USE_HIPBLAS)
+	hipblasStatus_t hipStatus;
+#endif
 
 	switch (s)
 	{
@@ -212,6 +260,15 @@ static inline void chol_common_codelet_update_trsm(void *descr[], int s, void *_
 					nx21, ny21, &p1, sub11, ld11, sub21, ld21);
 			if (status != CUBLAS_STATUS_SUCCESS)
 				STARPU_CUBLAS_REPORT_ERROR(status);
+			break;
+#endif
+#if defined(STARPU_USE_HIP) && defined(STARPU_USE_HIPBLAS)
+		case 2:
+			hipStatus = hipblasStrsm(starpu_hipblas_get_local_handle(),
+						 HIPBLAS_SIDE_RIGHT, HIPBLAS_FILL_MODE_LOWER, HIPBLAS_OP_T, HIPBLAS_DIAG_NON_UNIT,
+						 nx21, ny21, &p1, sub11, ld11, sub21, ld21);
+			if (hipStatus != HIPBLAS_STATUS_SUCCESS)
+				STARPU_HIPBLAS_REPORT_ERROR(hipStatus);
 			break;
 #endif
 		default:
@@ -229,6 +286,13 @@ void chol_cpu_codelet_update_trsm(void *descr[], void *_args)
 void chol_cublas_codelet_update_trsm(void *descr[], void *_args)
 {
 	chol_common_codelet_update_trsm(descr, 1, _args);
+}
+#endif
+
+#if defined(STARPU_USE_HIP) && defined(STARPU_USE_HIPBLAS)
+void chol_hipblas_codelet_update_trsm(void *descr[], void *_args)
+{
+	chol_common_codelet_update_trsm(descr, 2, _args);
 }
 #endif
 
@@ -357,6 +421,61 @@ static inline void chol_common_codelet_update_potrf(void *descr[], int s, void *
 #endif
 			break;
 #endif
+#ifdef STARPU_USE_HIP
+		case 2:
+#ifdef STARPU_HAVE_LIBHIPSOLVER
+			{
+				hipsolverStatus_t sstatus;
+				float *workspace = (float *)STARPU_VARIABLE_GET_PTR(descr[1]);
+				int *d_info = (int *)STARPU_VARIABLE_GET_PTR(descr[2]);
+				int Lwork = STARPU_VARIABLE_GET_ELEMSIZE(descr[1]) / sizeof(float);
+
+				sstatus = hipsolverDnSpotrf(starpu_hipsolverDn_get_local_handle(), HIPBLAS_FILL_MODE_LOWER, nx, sub11, ld, workspace, Lwork, d_info);
+				if (sstatus != HIPSOLVER_STATUS_SUCCESS)
+					STARPU_HIPSOLVER_REPORT_STATUS(sstatus);
+			}
+#elif STARPU_USE_HIPBLAS
+			{
+
+				float *lambda11;
+				hipblasStatus_t status;
+				hipStream_t stream = starpu_hip_get_local_stream();
+				hipblasHandle_t handle = starpu_hipblas_get_local_handle();
+				hipHostAlloc((void **)&lambda11, sizeof(float), 0);
+
+				for (z = 0; z < nx; z++)
+				{
+					hipMemcpyAsync(lambda11, &sub11[z+z*ld], sizeof(float), hipMemcpyDeviceToHost, stream);
+					hipStreamSynchronize(stream);
+
+					STARPU_ASSERT(*lambda11 != 0.0f);
+
+					*lambda11 = sqrt(*lambda11);
+
+					/* hipblasSetVector(1, sizeof(float), lambda11, sizeof(float), &sub11[z+z*ld], sizeof(float)); */
+					hipMemcpyAsync(&sub11[z+z*ld], lambda11, sizeof(float), hipMemcpyHostToDevice, stream);
+					float scal = 1.0f/(*lambda11);
+
+					status = hipblasSscal(handle,
+							      nx - z - 1, &scal, &sub11[(z+1)+z*ld], 1);
+					if (status != HIPBLAS_STATUS_SUCCESS)
+						STARPU_HIPBLAS_REPORT_STATUS(status);
+
+					status = hipblasSsyr(handle,
+							     HIPBLAS_FILL_MODE_UPPER,
+							     nx - z - 1, &m1,
+							     &sub11[(z+1)+z*ld], 1,
+						    &sub11[(z+1)+(z+1)*ld], ld);
+					if (status != HIPBLAS_STATUS_SUCCESS)
+						STARPU_HIPBLAS_REPORT_ERROR(status);
+				}
+
+				hipStreamSynchronize(stream);
+				hipFreeHost(lambda11);
+			}
+#endif
+			break;
+#endif
 		default:
 			STARPU_ABORT();
 			break;
@@ -374,6 +493,13 @@ void chol_cublas_codelet_update_potrf(void *descr[], void *_args)
 	chol_common_codelet_update_potrf(descr, 1, _args);
 }
 #endif/* STARPU_USE_CUDA */
+
+#if defined(STARPU_USE_HIP) && defined(STARPU_USE_HIPBLAS)
+void chol_hipblas_codelet_update_potrf(void *descr[], void *_args)
+{
+	chol_common_codelet_update_potrf(descr, 2, _args);
+}
+#endif/* STARPU_USE_HIP */
 
 struct starpu_perfmodel chol_model_potrf =
 {
@@ -409,13 +535,21 @@ struct starpu_codelet cl_potrf =
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
 #endif
-#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+#if defined(STARPU_USE_HIP) && defined(STARPU_USE_HIPBLAS)
+	.hip_funcs = {chol_hipblas_codelet_update_potrf},
+#if defined(STARPU_HAVE_LIBHIPSOLVER)
+	.hip_flags = {STARPU_HIP_ASYNC},
+#endif
+#elif defined(STARPU_SIMGRID)
+	.hip_funcs = {(void*)1},
+#endif
+#if (defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)) || (defined(STARPU_USE_HIP) && defined(STARPU_HAVE_LIBHIPSOLVER))
 	.nbuffers = 3,
 #else
 	.nbuffers = 1,
 #endif
 	.modes = { STARPU_RW
-#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+#if (defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)) || (defined(STARPU_USE_HIP) && defined(STARPU_HAVE_LIBHIPSOLVER))
 		, STARPU_SCRATCH | STARPU_NOFOOTPRINT
 		, STARPU_SCRATCH | STARPU_NOFOOTPRINT
 #endif
@@ -436,6 +570,12 @@ struct starpu_codelet cl_trsm =
 	.cuda_funcs = {(void*)1},
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
+#if defined(STARPU_USE_HIP) && defined(STARPU_USE_HIPBLAS)
+	.hip_funcs = {chol_hipblas_codelet_update_trsm},
+#elif defined(STARPU_SIMGRID)
+	.hip_funcs = {(void*)1},
+#endif
+	.hip_flags = {STARPU_HIP_ASYNC},
 	.nbuffers = 2,
 	.modes = { STARPU_R, STARPU_RW },
 	.model = &chol_model_trsm,
@@ -455,6 +595,12 @@ struct starpu_codelet cl_syrk =
 	.cuda_funcs = {(void*)1},
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
+#if defined(STARPU_USE_HIP) && defined(STARPU_USE_HIPBLAS)
+	.hip_funcs = {chol_hipblas_codelet_update_syrk},
+#elif defined(STARPU_SIMGRID)
+	.hip_funcs = {(void*)1},
+#endif
+	.hip_flags = {STARPU_HIP_ASYNC},
 	.nbuffers = 2,
 	.modes = { STARPU_R, STARPU_RW },
 	.model = &chol_model_syrk,
@@ -474,6 +620,12 @@ struct starpu_codelet cl_gemm =
 	.cuda_funcs = {(void*)1},
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
+#if defined(STARPU_USE_HIP) && defined(STARPU_USE_HIPBLAS)
+	.hip_funcs = {chol_hipblas_codelet_update_gemm},
+#elif defined(STARPU_SIMGRID)
+	.hip_funcs = {(void*)1},
+#endif
+	.hip_flags = {STARPU_HIP_ASYNC},
 	.nbuffers = 3,
 	.modes = { STARPU_R, STARPU_R, STARPU_RW },
 	.model = &chol_model_gemm,
@@ -491,7 +643,15 @@ struct starpu_codelet cl_potrf_gpu =
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
 #endif
-#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+#if defined(STARPU_USE_HIP) && defined(STARPU_USE_HIPBLAS)
+	.hip_funcs = {chol_hipblas_codelet_update_potrf},
+#  if defined(STARPU_HAVE_LIBHIPSOLVER)
+	.hip_flags = {STARPU_HIP_ASYNC},
+#  endif
+#elif defined(STARPU_SIMGRID)
+	.hip_funcs = {(void*)1},
+#endif
+#if (defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)) || (defined(STARPU_USE_HIP) && defined(STARPU_HAVE_LIBHIPSOLVER))
 	.nbuffers = 3,
 #else
 	.nbuffers = 1,
@@ -515,6 +675,12 @@ struct starpu_codelet cl_trsm_gpu =
 	.cuda_funcs = {(void*)1},
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
+#if defined(STARPU_USE_HIP) && defined(STARPU_USE_HIPBLAS)
+	.hip_funcs = {chol_hipblas_codelet_update_trsm},
+#elif defined(STARPU_SIMGRID)
+	.hip_funcs = {(void*)1},
+#endif
+	.hip_flags = {STARPU_HIP_ASYNC},
 	.nbuffers = 2,
 	.modes = { STARPU_R, STARPU_RW },
 	.model = &chol_model_trsm,
@@ -530,6 +696,12 @@ struct starpu_codelet cl_gemm_gpu =
 	.cuda_funcs = {(void*)1},
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
+#if defined(STARPU_USE_HIP) && defined(STARPU_USE_HIPBLAS)
+	.hip_funcs = {chol_hipblas_codelet_update_gemm},
+#elif defined(STARPU_SIMGRID)
+	.hip_funcs = {(void*)1},
+#endif
+	.hip_flags = {STARPU_HIP_ASYNC},
 	.nbuffers = 3,
 	.modes = { STARPU_R, STARPU_R, STARPU_RW },
 	.model = &chol_model_gemm,
@@ -542,13 +714,13 @@ struct starpu_codelet cl_potrf_cpu =
 	.type = STARPU_SEQ,
 	.cpu_funcs = {chol_cpu_codelet_update_potrf},
 	.cpu_funcs_name = {"chol_cpu_codelet_update_potrf"},
-#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+#if (defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)) || (defined(STARPU_USE_HIP) && defined(STARPU_HAVE_LIBHIPSOLVER))
 	.nbuffers = 3,
 #else
 	.nbuffers = 1,
 #endif
 	.modes = { STARPU_RW
-#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+#if (defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)) || (defined(STARPU_USE_HIP) && defined(STARPU_HAVE_LIBHIPSOLVER))
 		, STARPU_SCRATCH | STARPU_NOFOOTPRINT
 		, STARPU_SCRATCH | STARPU_NOFOOTPRINT
 #endif
@@ -596,11 +768,22 @@ void cholesky_kernel_init(int nb)
 	starpu_variable_data_register(&scratch, -1, 0, Lwork * sizeof(float));
 	starpu_variable_data_register(&devInfo, -1, 0, sizeof(int));
 #endif
+#if defined(STARPU_USE_HIP) && defined(STARPU_HAVE_LIBHIPSOLVER)
+	int Lwork = 0;
+	if (starpu_hip_worker_get_count())
+	{
+		hipsolverStatus_t sstatus = hipsolverDnSpotrf_bufferSize(starpu_hipsolverDn_get_local_handle(), HIPBLAS_FILL_MODE_LOWER, nb, NULL, nb, &Lwork);
+		if (sstatus != HIPSOLVER_STATUS_SUCCESS)
+			STARPU_HIPSOLVER_REPORT_STATUS(sstatus);
+	}
+	starpu_variable_data_register(&scratch, -1, 0, Lwork * sizeof(float));
+	starpu_variable_data_register(&devInfo, -1, 0, sizeof(int));
+#endif
 }
 
 void cholesky_kernel_fini(void)
 {
-#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+#if (defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)) || (defined(STARPU_USE_HIP) && defined(STARPU_HAVE_LIBHIPSOLVER))
 	starpu_data_unregister(scratch);
 	starpu_data_unregister(devInfo);
 #endif

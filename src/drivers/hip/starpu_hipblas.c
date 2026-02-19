@@ -15,24 +15,29 @@
  */
 
 #include <starpu.h>
-#include <starpu_hip.h>
 #include <common/config.h>
 #include <core/workers.h>
 
-#ifdef STARPU_USE_HIP
-#ifdef STARPU_USE_HIPBLAS
+#if defined(STARPU_USE_HIP) && defined(STARPU_USE_HIPBLAS)
 #include <hipblas/hipblas.h>
-#include <starpu_hipblas.h>
+#endif
 
 #ifdef STARPU_USE_HIP_ROC
 #include <rocblas/rocblas.h>
 #endif
 
+#ifdef STARPU_USE_HIP_CUDA
+#include <cublas.h>
+#endif
+
+#if defined(STARPU_USE_HIP) && defined(STARPU_USE_HIPBLAS)
 static int hipblas_initialized[STARPU_NMAXWORKERS];
 static hipblasHandle_t hipblas_handles[STARPU_NMAXWORKERS];
 static hipblasHandle_t main_handle;
 static starpu_pthread_mutex_t mutex;
+#endif
 
+#if defined(STARPU_USE_HIP) && defined(STARPU_USE_HIPBLAS)
 static unsigned get_idx(void)
 {
 	unsigned workerid = starpu_worker_get_id_check();
@@ -91,8 +96,7 @@ static void shutdown_hipblas_func(void *args STARPU_ATTRIBUTE_UNUSED)
 
 	hipblasDestroy(hipblas_handles[starpu_worker_get_id_check()]);
 }
-#endif /* STARPU_USE_HIPBLAS */
-#endif /* STARPU_USE_HIP */
+#endif
 
 void starpu_hipblas_init(void)
 {

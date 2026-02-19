@@ -82,7 +82,7 @@ void time_init(starpu_data_handle_t data, double *potrf, double *trsm, double *g
 
 	task = starpu_task_build(&cl_potrf,
 				 STARPU_RW, starpu_data_get_sub_data(data, 2, 0, 0),
-#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+#if (defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)) || (defined(STARPU_USE_HIP) && defined(STARPU_HAVE_LIBHIPSOLVER))
 					 STARPU_SCRATCH, scratch,
 					 STARPU_SCRATCH, devInfo,
 #endif
@@ -216,7 +216,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 {
 	double start;
 	double end;
-	
+
 	if (niter_p == 1)
 		median_p = 0; /* With only 1 iteration, no need to compute the median */
 
@@ -250,7 +250,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		ret = starpu_task_insert(&cl_potrf,
 					 STARPU_PRIORITY, potrf_priority(nblocks, k, t_potrf, t_trsm, t_syrk, t_gemm),
 					 STARPU_RW, sdatakk,
-#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)
+ #if (defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_LIBCUSOLVER)) || (defined(STARPU_USE_HIP) && defined(STARPU_HAVE_LIBHIPSOLVER))
 					 STARPU_SCRATCH, scratch,
 					 STARPU_SCRATCH, devInfo,
 #endif
@@ -345,7 +345,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 				timing_total += end - start;
 				flop_total += flop;
 				timing_square += (end-start) * (end-start);
-				
+
 				if (median_p)
 				{
 					tab_for_median[current_iteration - 2] = flop/timing/1000.0f;
@@ -359,7 +359,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 					qsort(tab_for_median, tab_size, sizeof(double), compare_double);
 					median = tab_for_median[tab_size/2];
 				}
-				
+
 				average_flop = average_flop/(niter_p - 1);
 
 				double average = timing_total/(niter_p - 1);
@@ -370,7 +370,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 				PRINTF("\n");
 
 				//~ PRINTF("%lu\t%.0f\t%.1f", nx, timing/1000, (flop/timing/1000.0f));
-				
+
 				if (!median_p)
 					PRINTF("%lu\t%.0f\t%.1f\t%.1f", nx, timing/1000, average_flop, flop_total/(niter_p-1)/(average*average)*deviation/1000.0);
 				else
@@ -610,9 +610,11 @@ int main(int argc, char **argv)
 	/* Init for the median */
 	tab_size = niter_p - 1;
 	tab_for_median = malloc(sizeof(double)*tab_size);
-	
+
 	starpu_cublas_init();
 	starpu_cusolver_init();
+	starpu_hipblas_init();
+	starpu_hipsolver_init();
 
 	int i;
 	for (i = 0; i < niter_p; i++)
@@ -635,11 +637,13 @@ int main(int argc, char **argv)
 
 		starpu_reset_scheduler();
 	}
-	
+
 	free(tab_for_median);
-	
+
 	starpu_cusolver_shutdown();
 	starpu_cublas_shutdown();
+	starpu_hipsolver_shutdown();
+	starpu_hipblas_shutdown();
 	starpu_shutdown();
 
 	return 0;
