@@ -479,7 +479,6 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 		 * executed, and thus hanging. */
 		_starpu_worker_set_status_sleeping(workerid);
 		_starpu_worker_leave_sched_op(worker);
-		STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 
 #ifndef STARPU_NON_BLOCKING_DRIVERS
 		if (_starpu_worker_can_block(memnode, worker)
@@ -552,7 +551,6 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 	worker->spinning_backoff = worker->config->conf.driver_spinning_backoff_min;
 
 	_starpu_worker_leave_sched_op(worker);
-	STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 
 	STARPU_AYU_PRERUNTASK(_starpu_get_job_associated_to_task(task)->job_id, workerid);
@@ -620,10 +618,11 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 			{
 				_starpu_worker_set_status_scheduling_done(workers[i].workerid);
 				_starpu_worker_set_status_wakeup(workers[i].workerid);
-				STARPU_PTHREAD_COND_BROADCAST(&workers[i].sched_cond);
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 				_starpu_worker_leave_sched_op(&workers[i]);
 				STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&workers[i].sched_mutex);
+#else
+				STARPU_PTHREAD_COND_BROADCAST(&workers[i].sched_cond);
 #endif
 
 				count ++;
@@ -665,10 +664,9 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 				_starpu_worker_set_status_sleeping(workers[i].workerid);
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 				_starpu_worker_leave_sched_op(&workers[i]);
-#endif
-				STARPU_PTHREAD_COND_BROADCAST(&workers[i].sched_cond);
-#ifdef STARPU_NON_BLOCKING_DRIVERS
 				STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&workers[i].sched_mutex);
+#else
+				STARPU_PTHREAD_COND_BROADCAST(&workers[i].sched_cond);
 #endif
 			}
 		}
