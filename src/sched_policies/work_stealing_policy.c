@@ -897,7 +897,7 @@ static void initialize_lws_policy(unsigned sched_ctx_id)
 			|| starpu_memory_nodes_get_numa_count() > 1
 		)
 	{
-		_STARPU_DISP("Warning: you are running the default lws scheduler, which is not a very smart scheduler, while the system has GPUs or several memory nodes. Make sure to read the StarPU documentation about adding performance models in order to be able to use the dmda or dmdas scheduler instead.\n");
+		_STARPU_DISP("Warning: you are running the default lws scheduler, which is not a very smart scheduler, while the system has GPUs or several memory nodes. Make sure to read the StarPU documentation about adding performance models in order to be able to use the dmdar or dmdas scheduler instead.\n");
 	}
 
 #ifdef STARPU_HAVE_HWLOC
