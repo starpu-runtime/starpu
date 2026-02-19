@@ -784,6 +784,15 @@ static void initialize_ws_policy(unsigned sched_ctx_id)
 		starpu_sched_ctx_set_min_priority(sched_ctx_id, INT_MIN);
 	if (starpu_sched_ctx_max_priority_is_set(sched_ctx_id) == 0)
 		starpu_sched_ctx_set_max_priority(sched_ctx_id, INT_MAX);
+
+	if (starpu_worker_get_count() != starpu_cpu_worker_get_count()
+			|| starpu_memory_nodes_get_numa_count() > 1
+		)
+	{
+		_STARPU_DISP("Warning: you are running the ws scheduler, which is a really dumb scheduler, while the system has GPUs or several memory nodes. Make sure to read the StarPU documentation about adding performance models in order to be able to use the dmdar or dmdas scheduler instead.\n");
+	}
+	else
+		_STARPU_DISP("Warning: you are running the ws scheduler, which is a really dumb scheduler. Better use the lws scheduler\n");
 }
 
 static void deinit_ws_policy(unsigned sched_ctx_id)
