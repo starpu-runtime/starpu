@@ -48,8 +48,8 @@ static void init_hipsolver_func(void *args STARPU_ATTRIBUTE_UNUSED)
 	if (hipsolverRfCreate(&hipsolverRf_handles[starpu_worker_get_id_check()]) != HIPSOLVER_STATUS_SUCCESS)
 		hipsolverRf_handles[starpu_worker_get_id_check()] = NULL;
 	// Not available?
-	else
-		hipsolverRfSetStream(hipsolverRf_handles[starpu_worker_get_id_check()], starpu_hip_get_local_stream());
+	//else
+	//	hipsolverRfSetStream(hipsolverRf_handles[starpu_worker_get_id_check()], starpu_hip_get_local_stream());
 #endif
 }
 
