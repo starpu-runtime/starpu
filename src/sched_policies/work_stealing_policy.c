@@ -556,7 +556,6 @@ static inline unsigned select_worker(struct _starpu_work_stealing_data *ws, stru
 #endif /* USE_OVERLOAD */
 }
 
-/* Note: this is not scalable work stealing,  use lws instead */
 static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 {
 	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
