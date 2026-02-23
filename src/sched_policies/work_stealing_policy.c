@@ -766,7 +766,7 @@ static void ws_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nw
 	}
 }
 
-static void initialize_ws_policy(unsigned sched_ctx_id)
+static void initialize_ws_policy_inter(unsigned sched_ctx_id)
 {
 	struct _starpu_work_stealing_data *ws;
 	_STARPU_MALLOC(ws, sizeof(struct _starpu_work_stealing_data));
@@ -784,10 +784,13 @@ static void initialize_ws_policy(unsigned sched_ctx_id)
 		starpu_sched_ctx_set_min_priority(sched_ctx_id, INT_MIN);
 	if (starpu_sched_ctx_max_priority_is_set(sched_ctx_id) == 0)
 		starpu_sched_ctx_set_max_priority(sched_ctx_id, INT_MAX);
+}
 
-	if (starpu_worker_get_count() != starpu_cpu_worker_get_count()
-			|| starpu_memory_nodes_get_numa_count() > 1
-		)
+static void initialize_ws_policy(unsigned sched_ctx_id)
+{
+	initialize_ws_policy_inter(sched_ctx_id);
+
+	if (starpu_worker_get_count() != starpu_cpu_worker_get_count() || starpu_memory_nodes_get_numa_count() > 1)
 	{
 		_STARPU_DISP("Warning: you are running the ws scheduler, which is a really dumb scheduler, while the system has GPUs or several memory nodes. Make sure to read the StarPU documentation about adding performance models in order to be able to use the dmdar or dmdas scheduler instead.\n");
 	}
@@ -899,11 +902,9 @@ static void lws_add_workers(unsigned sched_ctx_id, int *workerids,
 static void initialize_lws_policy(unsigned sched_ctx_id)
 {
 	/* lws is loosely based on ws, except that it might use hwloc. */
-	initialize_ws_policy(sched_ctx_id);
+	initialize_ws_policy_inter(sched_ctx_id);
 
-	if (starpu_worker_get_count() != starpu_cpu_worker_get_count()
-			|| starpu_memory_nodes_get_numa_count() > 1
-		)
+	if (starpu_worker_get_count() != starpu_cpu_worker_get_count() || starpu_memory_nodes_get_numa_count() > 1)
 	{
 		_STARPU_DISP("Warning: you are running the default lws scheduler, which is not a very smart scheduler, while the system has GPUs or several memory nodes. Make sure to read the StarPU documentation about adding performance models in order to be able to use the dmdar or dmdas scheduler instead.\n");
 	}
