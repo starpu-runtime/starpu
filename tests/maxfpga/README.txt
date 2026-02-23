@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2019-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2019-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -13,7 +13,6 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
-
 
 ######################
 ##### Examples ######
@@ -33,14 +32,12 @@
 - max_fpga_mux.c goes one step further by making input/output on the CPU or
   local memory at will.
 
-
 ######################
 ##### Maxeler  ######
 ######################
 $ export XILINXD_LICENSE_FILE=2100@jumax
 $ module load vivado maxcompiler
 $ module load devtoolset/8
-
 
 The Makefiles then build the program automatically. They do the equivalent of
 the following, written here only for information:
@@ -64,8 +61,6 @@ Building the slic object file (simulation):
 
 $ sliccompile MyTasks.max
 
-
-
 Once built, to start the simulation:
 
 $ maxcompilersim -c LIMA -n $USER-MyTasks restart
@@ -75,7 +70,6 @@ $ export SLIC_CONF="use_simulation=$USER-MyTasks"
 PS: To stop simulation
 
 $ maxcompilersim -c LIMA -n $USER-MyTasks stop
-
 
 #################################
 ##### StarPU with Maxeler  ######

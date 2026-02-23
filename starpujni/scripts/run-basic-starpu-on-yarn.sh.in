@@ -1,5 +1,4 @@
-#!/bin/bash 
-
+#!/bin/bash
 
 OS="$(uname -s | tr [A-Z] [a-z])"
 ARCH="$(uname -m | tr [A-Z] [a-z])"
@@ -9,7 +8,6 @@ STARPUYARNPKG=fr.labri.hpccloud.yarn.examples
 NB_CONTAINERS=5
 MASTERCLASS="${STARPUYARNPKG}.starpu.basic.StarPUMaster"
 SLAVECLASS="${STARPUYARNPKG}.starpu.basic.StarPUSlave"
-
 
 yarn jar ${JARFILE} --jar ${JARFILE} \
      --container-master-class ${MASTERCLASS} \

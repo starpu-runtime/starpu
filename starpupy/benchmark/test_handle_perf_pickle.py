@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2021-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2021-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -94,7 +94,7 @@ def test_comp_handle(a,b):
 			end_exec2=time.time()
 
 			list_await.append(end_exec2-start_exec2)
-		
+
 		program_submit1.append(statistics.mean(list_submit))
 		program_await1.append(statistics.mean(list_await))
 
@@ -133,11 +133,11 @@ def test_comp(a,b):
 
 		list_std21.append(statistics.stdev(list_submit))
 		list_std22.append(statistics.stdev(list_await))
-		
+
 	loop=asyncio.get_event_loop()
 	nest_asyncio.apply()
 	loop.run_until_complete(asy_main())
-	
+
 #without using starpu
 def test_numpy(a,b):
 	async def asy_main():
@@ -148,7 +148,7 @@ def test_numpy(a,b):
 			start_exec1=time.time()
 			add(a, b)
 			end_exec1=time.time()
-			
+
 			list_submit.append(end_exec1-start_exec1)
 
 		program_submit3.append(statistics.mean(list_submit))
@@ -159,7 +159,6 @@ def test_numpy(a,b):
 	nest_asyncio.apply()
 	loop.run_until_complete(asy_main())
 
-
 #with handle
 for i in list_size:
 	#print("i with handle is", i)
@@ -168,7 +167,7 @@ for i in list_size:
 
 	starpu.unregister(A)
 
-#without handle	
+#without handle
 for i in list_size:
 	#print("i without handle is", i)
 	A = np.arange(i)
@@ -178,7 +177,6 @@ for i in list_size:
 for i in list_size:
 	A = np.arange(i)
 	test_numpy(A, A)
-
 
 withhandle_dict={'program_submit':program_submit1, 'program_await': program_await1}
 nohandle_dict={'program_submit':program_submit2, 'program_await': program_await2}
@@ -191,20 +189,20 @@ nostarpu_dict={'program_submit':program_submit3}
 dict_std={'list_std11':list_std11, 'list_std12':list_std12, 'list_std21':list_std21, 'list_std22':list_std22, 'list_std3':list_std3}
 
 #####write the dict in file#####
-js1 = json.dumps(withhandle_dict)   
-file1 = open('handle_perf1.txt', 'w')  
-file1.write(js1)  
+js1 = json.dumps(withhandle_dict)
+file1 = open('handle_perf1.txt', 'w')
+file1.write(js1)
 file1.close()
 
-js2 = json.dumps(nohandle_dict)   
-file2 = open('handle_perf2.txt', 'w')  
-file2.write(js2)  
-file2.close() 
+js2 = json.dumps(nohandle_dict)
+file2 = open('handle_perf2.txt', 'w')
+file2.write(js2)
+file2.close()
 
-js3 = json.dumps(nostarpu_dict)   
-file3 = open('handle_perf3.txt', 'w')  
-file3.write(js3)  
-file3.close() 
+js3 = json.dumps(nostarpu_dict)
+file3 = open('handle_perf3.txt', 'w')
+file3.write(js3)
+file3.close()
 
 js_std = json.dumps(dict_std)
 file_std = open('handle_perf_std.txt', 'w')

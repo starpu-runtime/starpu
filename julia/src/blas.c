@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,24 +19,23 @@
 
 #include "blas.h"
 
-inline void STARPU_SGEMM(char *transa, char *transb, BLASINT M, BLASINT N, BLASINT K, 
-			float alpha, const float *A, BLASINT lda, const float *B, BLASINT ldb, 
+inline void STARPU_SGEMM(char *transa, char *transb, BLASINT M, BLASINT N, BLASINT K,
+			float alpha, const float *A, BLASINT lda, const float *B, BLASINT ldb,
 			float beta, float *C, BLASINT ldc)
 {
 	sgemm_64_(transa, transb, &M, &N, &K, &alpha,
 			 A, &lda, B, &ldb,
-			 &beta, C, &ldc);	
+			 &beta, C, &ldc);
 }
 
-inline void STARPU_DGEMM(char *transa, char *transb, BLASINT M, BLASINT N, BLASINT K, 
-			double alpha, double *A, BLASINT lda, double *B, BLASINT ldb, 
+inline void STARPU_DGEMM(char *transa, char *transb, BLASINT M, BLASINT N, BLASINT K,
+			double alpha, double *A, BLASINT lda, double *B, BLASINT ldb,
 			double beta, double *C, BLASINT ldc)
 {
 	dgemm_64_(transa, transb, &M, &N, &K, &alpha,
 			 A, &lda, B, &ldb,
-			 &beta, C, &ldc);	
+			 &beta, C, &ldc);
 }
-
 
 inline void STARPU_SGEMV(char *transa, BLASINT M, BLASINT N, float alpha, float *A, BLASINT lda,
 		float *X, BLASINT incX, float beta, float *Y, BLASINT incY)
@@ -89,7 +88,7 @@ void STARPU_DTRSM (const char *side, const char *uplo, const char *transa,
 void STARPU_SSYR (const char *uplo, const BLASINT n, const float alpha,
                   const float *x, const BLASINT incx, float *A, const BLASINT lda)
 {
-	ssyr_64_(uplo, &n, &alpha, x, &incx, A, &lda); 
+	ssyr_64_(uplo, &n, &alpha, x, &incx, A, &lda);
 }
 
 void STARPU_SSYRK (const char *uplo, const char *trans, const BLASINT n,
@@ -97,7 +96,7 @@ void STARPU_SSYRK (const char *uplo, const char *trans, const BLASINT n,
                    const BLASINT lda, const float beta, float *C,
                    const BLASINT ldc)
 {
-	ssyrk_64_(uplo, trans, &n, &k, &alpha, A, &lda, &beta, C, &ldc); 
+	ssyrk_64_(uplo, trans, &n, &k, &alpha, A, &lda, &beta, C, &ldc);
 }
 
 void STARPU_SGER(const BLASINT m, const BLASINT n, const float alpha,
@@ -114,8 +113,8 @@ void STARPU_DGER(const BLASINT m, const BLASINT n, const double alpha,
 	dger_64_(&m, &n, &alpha, x, &incx, y, &incy, A, &lda);
 }
 
-void STARPU_STRSV (const char *uplo, const char *trans, const char *diag, 
-                   const BLASINT n, const float *A, const BLASINT lda, float *x, 
+void STARPU_STRSV (const char *uplo, const char *trans, const char *diag,
+                   const BLASINT n, const float *A, const BLASINT lda, float *x,
                    const BLASINT incx)
 {
 	strsv_64_(uplo, trans, diag, &n, A, &lda, x, &incx);

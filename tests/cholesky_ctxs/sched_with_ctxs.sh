@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2011-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2011-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -43,7 +43,6 @@ then
     nmincpus2=0
 fi
 
-
 blocks1=40
 blocks2=40
 
@@ -58,12 +57,10 @@ do
     fi
 
     ncpus1=$j
-    ncpus2=$(($nmaxcpus-$j))    
-    
+    ncpus2=$(($nmaxcpus-$j))
+
     OPTIONS="-with_ctxs -nblocks1 $blocks1 -size1 $size1 -nblocks2 $blocks2 -size2 $size2 -gpu $gpu -gpu1 $gpu1 -gpu2 $gpu2 -cpu1 $ncpus1 -cpu2 $ncpus2"
 
     source evaluate_expression.sh "$BENCH_NAME" "$OPTIONS" "$filename" "$gpu $gpu1 $gpu2 $ncpus1 $ncpus2"
 
 done
-
-

@@ -21,8 +21,6 @@ public class MyTasksMuxManager extends MAX5CManager
 
                 LMemInterface iface = addLMemInterface();
 
-
-
 		Mux joinInAT1 = mux("joinInAT1");
 		Mux joinInBT1 = mux("joinInBT1");
 
@@ -43,7 +41,6 @@ public class MyTasksMuxManager extends MAX5CManager
                 addStreamToCPU("outCT1CPU") <== outCT1CPU;
                 iface.addStreamToLMem("outCT1LMem", LMemCommandGroup.MemoryAccessPattern.LINEAR_1D) <== outCT1LMem;
 
-
 		Mux joinInAT2 = mux("joinInAT2");
 		Mux joinInBT2 = mux("joinInBT2");
 
@@ -63,8 +60,6 @@ public class MyTasksMuxManager extends MAX5CManager
 		forkOutCT2.getInput() <== kernel2.getOutput("outCT2");
                 addStreamToCPU("outCT2CPU") <== outCT2CPU;
                 iface.addStreamToLMem("outCT2LMem", LMemCommandGroup.MemoryAccessPattern.LINEAR_1D) <== outCT2LMem;
-
-
 
 		Mux joinInAT3 = mux("joinInAT3");
 		Mux joinInBT3 = mux("joinInBT3");

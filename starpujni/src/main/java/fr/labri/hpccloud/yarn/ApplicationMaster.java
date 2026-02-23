@@ -244,7 +244,6 @@ public class ApplicationMaster {
     private NMCallbackHandler nmCallbackHandler = new NMCallbackHandler();
     private RMCallbackHandler rmCallbackHandler = new RMCallbackHandler();
 
-
     /**
      * @param args Command line args
      */
@@ -638,7 +637,6 @@ public class ApplicationMaster {
         return localResources;
     }
 
-
     private ContainerLaunchContext getMasterContext() throws IOException {
         Map<String, LocalResource> localResources = buildContainerLocalResources(getAppID(), getFS());
         List<String> masterCommands = buildContainerCommands(true);
@@ -747,7 +745,6 @@ public class ApplicationMaster {
                 done = true;
             }
         }
-
 
         @Override
         public void onContainersAllocated(List<Container> allocatedContainers) {

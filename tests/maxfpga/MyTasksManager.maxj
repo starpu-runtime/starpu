@@ -25,14 +25,12 @@ public class MyTasksManager extends MAX5CManager
 
                 LMemInterface iface = addLMemInterface();
 
-
                 kernel1.getInput("inAT1") <== addStreamFromCPU("inAT1");
 
                 kernel1.getInput("inBT1") <== addStreamFromCPU("inBT1");
 
                 DFELink outCT1 = iface.addStreamToLMem("outCT1", LMemCommandGroup.MemoryAccessPattern.LINEAR_1D);
                 outCT1 <== kernel1.getOutput("outCT1");
-
 
                 DFELink inAT2 = iface.addStreamFromLMem("inAT2", LMemCommandGroup.MemoryAccessPattern.LINEAR_1D);
                 kernel2.getInput("inAT2") <== inAT2;
@@ -43,7 +41,6 @@ public class MyTasksManager extends MAX5CManager
                 DFELink outCT2 = iface.addStreamToLMem("outCT2", LMemCommandGroup.MemoryAccessPattern.LINEAR_1D);
                 outCT2 <== kernel2.getOutput("outCT2");
 
-
                 DFELink inAT3 = iface.addStreamFromLMem("inAT3", LMemCommandGroup.MemoryAccessPattern.LINEAR_1D);
                 kernel3.getInput("inAT3") <== inAT3;
 
@@ -51,7 +48,6 @@ public class MyTasksManager extends MAX5CManager
                 kernel3.getInput("inBT3") <== inBT3;
 
                 addStreamToCPU("outCT3") <== kernel3.getOutput("outCT3");
-
 
                 createSlicInterface(interfaceT1("interfaceT1"));
                 createSlicInterface(interfaceT2("interfaceT2"));
@@ -90,7 +86,6 @@ public class MyTasksManager extends MAX5CManager
 
                 return ei;
         }
-
 
         private static EngineInterface interfaceT2(String name)
 	{

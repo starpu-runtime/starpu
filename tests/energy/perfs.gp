@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -24,19 +24,17 @@ power_fast = 8.2
 TRSM_DECAY = 0.5
 POTRF_DECAY = 0.5
 
-
 # Plot the power according to frequency (cubic curve)
 
 freq_min3 = freq_min * freq_min * freq_min
 freq_fast3 = freq_fast * freq_fast * freq_fast
 alpha = (power_fast - power_min) / (freq_fast3 - freq_min3)
 power(frequency) = power_min + alpha * (frequency*frequency*frequency - freq_min3)
- 
+
 set output "power.eps"
 set ylabel "power (W)"
 
 plot [frequency=freq_min:freq_fast] [y=0:] power(frequency) lw 2 notitle
-
 
 # Plot the kernel performance according to frequency
 
@@ -56,7 +54,6 @@ plot [frequency=freq_min:freq_fast] \
      trsm_max_perf * trsm_factor(frequency) lw 2 title "trsm", \
      potrf_max_perf * potrf_factor(frequency) lw 2 title "potrf"
 
-
 # Plot the kernel efficiency according to frequency
 
 set output "efficiency.eps"
@@ -73,4 +70,3 @@ plot [frequency=freq_min:freq_fast] \
      gemm_max_efficiency * gemm_factor(frequency) / power_factor(frequency) lw 2 title "gemm", \
      trsm_max_efficiency * trsm_factor(frequency) / power_factor(frequency)  lw 2 title "trsm", \
      potrf_max_efficiency * potrf_factor(frequency) / power_factor(frequency)  lw 2 title "potrf"
-

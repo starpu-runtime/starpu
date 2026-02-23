@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2013-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2013-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2013-2013   Simon Archipoff
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -15,7 +15,6 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-
 Mutex policy
 
 scheduler have to be protected when the hypervisor is modifying it.
@@ -24,8 +23,6 @@ the application to push a task
 and one mutex per worker which should be taken by workers when they pop
 or push a task.
 The hypervisor must take all of them to modifying the scheduler.
-
-
 
 Creation/Destruction
 
@@ -39,8 +36,6 @@ creation
 Workers components are particulars, there is no creation function, only
 accessor to guaranty uniqueness of worker components. worker_component->workers and
 worker_component->workers_in_ctx should not be modified.
-
-
 
 Add/Remove workers
 
@@ -59,7 +54,6 @@ of fifo, we have to know how many workers are available to the fifo
 component. We also have a problem for shared object. The first way seems to
 be better.
 
-
 Hierarchical construction
 
 Bugs everywhere, works only in simple and particulars cases.
@@ -68,7 +62,6 @@ hwloc topology. Hierarchical heft seems to work on simple machines with numa com
 and GPUs
 this fail if hwloc_socket_composed_sched_component or hwloc_cache_composed_sched_component is not
 NULL
-
 
 Various things
 

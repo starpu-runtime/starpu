@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -99,7 +99,6 @@ class HandleNumpy(Handle):
 			self.obj=new_empty_numpy(shape, self.dtype)
 			self.obj_id=id(self.obj)
 			self.handle_cap=starpupy.starpupy_data_register(self.obj, self)
-
 
 #detect class handle
 class Handle_token(object):

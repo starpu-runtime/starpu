@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2008-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2008-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -134,7 +134,6 @@ do
 	trace_size $size;
 done
 
-
 filename=$TIMINGDIR/gflops.lws.data
 policy=lws
 trace_header
@@ -143,7 +142,6 @@ do
 	trace_size $size;
 done
 
-
 filename=$TIMINGDIR/gflops.noprio.data
 policy=no-prio
 trace_header
@@ -151,7 +149,5 @@ for size in $sizelist
 do
 	trace_size $size;
 done
-
-
 
 paste $TIMINGDIR/gflops.greedy.data $TIMINGDIR/gflops.prio.data $TIMINGDIR/gflops.ws.data $TIMINGDIR/gflops.noprio.data > $TIMINGDIR/gflops.merged.data

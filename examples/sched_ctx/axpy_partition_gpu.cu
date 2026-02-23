@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2016-2016  Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -26,16 +26,12 @@
 
 //This code demonstrates how to transform a kernel to execute on a given set of GPU SMs.
 
-
 // Original kernel
 __global__ void saxpy(int n, float a, float *x, float *y)
 {
 	int i = blockIdx.x*blockDim.x + threadIdx.x;
 	if (i<n)  y[i] = a*x[i] + y[i];
 }
-
-
-
 
 // Transformed kernel
 __global__ void saxpy_partitioned(__P_KARGS, int n, float a, float *x, float *y)
@@ -46,7 +42,6 @@ __global__ void saxpy_partitioned(__P_KARGS, int n, float a, float *x, float *y)
 	if (i<n)  y[i] = a*x[i] + y[i];
   __P_LOOPEND;
 }
-
 
 extern "C" void cuda_axpy(void *descr[], void *_args)
 {

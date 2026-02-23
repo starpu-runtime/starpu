@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2022-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2022-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -27,7 +27,6 @@ foreach(var JARFILE HEADERS_DIR LIBRARY_OUTPUT_DIR LAUNCHER_CLASS)
         message(FATAL_ERROR "missing variable STARPUJNI_${var}")
     endif()
 endforeach()
-
 
 foreach(var HADOOP_COMMON_HOME HADOOP_COMMON_LIB_NATIVE_DIR)
     if(NOT DEFINED ${var})

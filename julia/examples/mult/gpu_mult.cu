@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2018-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2018-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2018-2018  Alexis Juven
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -21,7 +21,6 @@ extern "C" {
 
 #include <stdint.h>
 #include <stdio.h>
-
 
 __global__ void gpuMultKernel
 (
@@ -48,15 +47,11 @@ __global__ void gpuMultKernel
 	}
 
 	subC[i + j*ldC] = sum;
-
 }
-
-
 
 #define THREADS_PER_BLOCK 64
 extern "C" void gpu_mult(void * descr[], void * args)
 {
-
 	float * d_subA, * d_subB, * d_subC;
 	size_t nxC, nyC, nyA;
 	size_t ldA, ldB, ldC;
@@ -83,5 +78,4 @@ extern "C" void gpu_mult(void * descr[], void * args)
 	if (status != cudaSuccess) STARPU_CUDA_REPORT_ERROR(status);
 
 	cudaStreamSynchronize(starpu_cuda_get_local_stream());
-
 }

@@ -1,6 +1,6 @@
 ! StarPU --- Runtime system for heterogeneous multicore architectures.
 !
-! Copyright (C) 2016-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+! Copyright (C) 2016-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 !
 ! StarPU is free software; you can redistribute it and/or modify
 ! it under the terms of the GNU Lesser General Public License as published by
@@ -31,7 +31,6 @@ program nf_sched_ctx
         integer(c_int) :: nprocs1
         integer(c_int), dimension(:), allocatable :: procs1
         integer(c_int) :: ctx1
-
 
         ! sub-list of cpu worker ids for sched context 2
         integer(c_int) :: nprocs2

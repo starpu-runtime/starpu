@@ -1,7 +1,7 @@
 <!---
  StarPU --- Runtime system for heterogeneous multicore architectures.
 
- Copyright (C) 2022-2022    University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ Copyright (C) 2022-2022, 2026    University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 
  StarPU is free software; you can redistribute it and/or modify
  it under the terms of the GNU Lesser General Public License as published by
@@ -24,7 +24,6 @@ $ mvn package
 $ java -jar build/linux-amd64/starpujni-1.0-SNAPSHOT.jar Pi3
 $ java -jar build/linux-amd64/starpujni-1.0-SNAPSHOT.jar TransitiveClosure
 
-
 $ mvn package -Pfat-jar
 $ gdb ./build/linux-amd64/native/src/test/native/jvm-launcher
 puis
@@ -38,12 +37,12 @@ continue
 
 In order to run examples, use the script generated in `build/`*platform*`/scripts/run-example.sh`.
 
-If maven is invoked with the goal `test-compile` a small C program 
-`jvm-launcher` that behaves like `run-examples.sh` is compiled. The 
+If maven is invoked with the goal `test-compile` a small C program
+`jvm-launcher` that behaves like `run-examples.sh` is compiled. The
 binary is located in directory: `build/`*platform*`/native/src/test/native/jvm-launcher`
 In order to work properly the CLASSPATH has to reference external jar files likes Hadoop ones.
 The list of Hadoop jar files is available as a classpath with the command: `hadoop classpath`
-If necessary, the additional option `--glob` can be used to expand wildcards characters and 
+If necessary, the additional option `--glob` can be used to expand wildcards characters and
 get the actual list of jar files.
 
 ## Master/Slave application on Yarn
@@ -79,4 +78,3 @@ The LSD platform uses an older version of Hadoop 2.7:
 - Documentation on LSD platform: https://www.labri.fr/perso/flalanne/LSDDocumentation/
 - DFS NameNode: https://h301.lsd.labri.fr:50470/ ou https://h306.lsd.labri.fr:50470/
 - Yarn Resource Manager: https://h301.lsd.labri.fr:8090/ ou https://h304.lsd.labri.fr:50470/
-

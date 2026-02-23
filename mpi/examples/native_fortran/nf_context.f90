@@ -1,6 +1,6 @@
 ! StarPU --- Runtime system for heterogeneous multicore architectures.
 !
-! Copyright (C) 2024-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+! Copyright (C) 2024-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 !
 ! StarPU is free software; you can redistribute it and/or modify
 ! it under the terms of the GNU Lesser General Public License as published by
@@ -130,7 +130,6 @@ program nf_context
 
 end program nf_context
 
-
 subroutine f_sleep(t)
   implicit none
   integer :: t_start, t_end, t_rate
@@ -142,7 +141,6 @@ subroutine f_sleep(t)
      if(ta.gt.t) return
   end do
 end subroutine f_sleep
-
 
 recursive subroutine task_cpu_func(buffers, cl_arg) bind(C)
   use fstarpu_mod

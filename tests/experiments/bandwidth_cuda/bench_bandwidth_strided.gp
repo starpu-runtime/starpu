@@ -1,7 +1,7 @@
 #!/usr/bin/gnuplot -persist
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -29,9 +29,8 @@ set ylabel "Bandwidth (MB/s)"
 #      ".results/htod-pin.1024.data"  with linespoint   title "stride 1024" ,\
 #      ".results/htod-pin.2048.data"  with linespoint   title "stride 2048" ,\
 #      ".results/htod-pin.4096.data"  with linespoint   title "stride 4096" ,\
-#      ".results/htod-pin.8192.data"  with linespoint   title "stride 8192" 
-# 
-
+#      ".results/htod-pin.8192.data"  with linespoint   title "stride 8192"
+#
 
 plot ".results/htod-pin.data" with linespoint	title "Host to Device (pinned)" ,\
      ".results/htod-pin.2.data"  with linespoint   title "stride 2" ,\
@@ -46,6 +45,4 @@ plot ".results/htod-pin.data" with linespoint	title "Host to Device (pinned)" ,\
      ".results/htod-pin.1024.data"  with linespoint   title "stride 1024" ,\
      ".results/htod-pin.2048.data"  with linespoint   title "stride 2048" ,\
      ".results/htod-pin.4096.data"  with linespoint   title "stride 4096" ,\
-     ".results/htod-pin.8192.data"  with linespoint   title "stride 8192" 
-
-
+     ".results/htod-pin.8192.data"  with linespoint   title "stride 8192"

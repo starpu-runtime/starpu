@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -39,7 +39,6 @@ function starpu_codelet(;
     if (length(modes) > STARPU_NMAXBUFS)
         error("Codelet has too much buffers ($(length(modes)) but only $STARPU_NMAXBUFS are allowed)")
     end
-
 
     if (where_to_execute == nothing)
         real_where = ((cpu_func != nothing) * STARPU_CPU) | ((cuda_func != nothing) * STARPU_CUDA)
@@ -188,7 +187,6 @@ function starpu_task(;
 
     return output
 end
-
 
 function create_param_struct_from_clarg(codelet_name, cl_arg)
     struct_params_name = CODELETS_PARAMS_STRUCT[codelet_name]
@@ -363,7 +361,6 @@ function starpu_task_wait(task :: jl_starpu_task)
 
     # starpu_task_wait(Ref(task.c_task))
 end
-
 
 """
     Blocks until every submitted task has finished.

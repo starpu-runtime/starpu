@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -23,7 +23,7 @@ find timing/* -name "$prefix.*" > filelist
 grainlist=`sed -e "s/.*$prefix\.\(.*\)\.\(.*\)$/\1/" filelist |sort -n|uniq|xargs`
 sizelist=`sed -e "s/.*$prefix\.\(.*\)\.\(.*\)$/\2/" filelist |sort -n|uniq`
 
-# Make some header 
+# Make some header
 line="#SIZE	"
 for grain in $grainlist
 do
@@ -40,7 +40,7 @@ do
 		# Compute Average value ...
 
 		if test -f timing/$prefix.$grain.$size; then
-			# file does exists 
+			# file does exists
 			filename=timing/$prefix.$grain.$size
 
 			# echo "GRAIN $grain SIZE $size exists !"
@@ -52,7 +52,7 @@ do
 				do
 					sum=$(echo "$sum + $i"|bc -l)
 				done
-				
+
 				# average execution time is ...
 				mean=$(echo "$sum / $nsample"|bc -l)
 
@@ -60,18 +60,18 @@ do
 				gflops=$(echo "2.0 * $size * $size * $size / (3000000 * $mean)"|bc -l)
 
 				# just make this a bit prettier ..
-				gflops=`echo $gflops | sed -e "s/\(.*\.[0-9][0-9]\).*$/\1/"` 
+				gflops=`echo $gflops | sed -e "s/\(.*\.[0-9][0-9]\).*$/\1/"`
 
 				line="$line     $gflops"
 			else
 				# we have no valid sample even if the file exists
 				line="$line     x"
-			fi 
+			fi
 		else
 			# file does not exist
 			line="$line     x"
 		fi
-		
+
 		line="$line	"
 	done
 
@@ -95,7 +95,6 @@ gnuplot > /dev/null << EOF
 set term postscript eps enhanced color
 set output "$prefix.eps"
 
-
 set pointsize 0.75
 #set title "Impact of granularity"
 set grid y
@@ -107,8 +106,6 @@ set size 0.65
 set xlabel "Matrix size"
 set ylabel "GFlop/s"
 
-
 $gnuplotline
 
 EOF
-

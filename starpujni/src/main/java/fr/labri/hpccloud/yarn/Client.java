@@ -168,7 +168,6 @@ public class Client {
     private String optContainerMasterClass;
     private String optContainerSlaveClass;
 
-
     private Map<String, String> optContainerEnv = new HashMap<String, String>();
     // Shell Command Container priority
 
@@ -259,7 +258,6 @@ public class Client {
         yarnClient.init(conf);
     }
 
-
     /**
      * Helper function to print out usage
      */
@@ -316,7 +314,6 @@ public class Client {
 
         optAppMasterJar = Utils.getMandatoryOption(cliParser, OPT_JAR);
 
-
         Utils.parseKeyValueOption(cliParser, OPT_CONTAINER_ENV, optContainerEnv);
 
         optContainerMasterClass = Utils.getMandatoryOption(cliParser, OPT_CONTAINER_MASTER_CLASS);
@@ -324,7 +321,6 @@ public class Client {
         optContainerMemory = Utils.parseIntegerOption(cliParser, OPT_CONTAINER_MEMORY, DEFAULT_CONTAINER_MEMORY);
         optContainerVirtualCores = Utils.parseIntegerOption(cliParser, OPT_CONTAINER_VCORES, DEFAULT_CONTAINER_VCORES);
         optNumContainers = Utils.parseIntegerOption(cliParser, OPT_NUM_CONTAINERS, DEFAULT_NUM_CONTAINERS);
-
 
         if (optContainerMemory < 0 || optContainerVirtualCores < 0 || optNumContainers < 1) {
             throw new IllegalArgumentException("Invalid no. of containers or container memory/vcores specified, exiting."
@@ -415,14 +411,12 @@ public class Client {
             appContext.setNodeLabelExpression(optNodeLabelExpression);
         }
 
-
         // Set up the container launch context for the application master
         ApplicationId appId = appContext.getApplicationId();
         applicationHdfsDirectory = Utils.getFsApplicationSuffix(optAppName, appId);
 
         ContainerLaunchContext amContainer = buildAMContainerContext(appId);
         appContext.setAMContainerSpec(amContainer);
-
 
         // Set up resource type requirements
         // For now, both memory and vcores are supported, so we set memory and

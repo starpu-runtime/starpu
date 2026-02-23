@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2018-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2018-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -14,12 +14,9 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-
 #======================================================
                 GLOBAL PARSING
 ======================================================#
-
-
 
 starpu_parse_key_word_parsing_function = Dict{Symbol, Function}()
 
@@ -55,7 +52,6 @@ starpu_parse_key_word_parsing_function[:(:)] = starpu_parse_interval
 starpu_parse_key_word_parsing_function[:(::)] = starpu_parse_typed
 starpu_parse_key_word_parsing_function[:(=)] = starpu_parse_affect
 starpu_parse_key_word_parsing_function[:(.)] = starpu_parse_field
-
 
 """
     Executes the starpu_parse function on the following expression,

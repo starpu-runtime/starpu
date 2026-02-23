@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +15,6 @@
  */
 @initialize:python@
 handles = {}
-
 
 @select@
 position p;
@@ -35,7 +34,6 @@ s = "%s(%s),%s:%s" % (f,e,p[0].file,p[0].line)
 e = "%s" % e
 handles[e]=s
 
-
 @check@
 position p;
 identifier select.e;
@@ -51,7 +49,6 @@ p << check.p;
 e = "%s" % e
 if e in handles:
         del handles[e]
-
 
 @finalize:python@
 for s in handles.values():

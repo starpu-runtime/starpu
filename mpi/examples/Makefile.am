@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -112,7 +112,6 @@ examplebin_PROGRAMS +=		\
 starpu_mpi_EXAMPLES +=		\
 	cache/cache		\
 	cache/cache_disable
-
 
 ##################
 # MPI LU example #
@@ -436,7 +435,6 @@ endif
 endif
 endif
 
-
 ###################
 # complex example #
 ###################
@@ -544,7 +542,6 @@ native_fortran/nf_mpi_redux.o: fstarpu_mpi_mod.mod fstarpu_mod.mod
 native_fortran/nf_mpi_redux_tree.o: fstarpu_mpi_mod.mod fstarpu_mod.mod
 endif
 endif
-
 
 ##########
 # benchs #

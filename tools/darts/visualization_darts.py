@@ -3,7 +3,7 @@
 #
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -646,7 +646,6 @@ if APPLI in ("Matrice_ligne", "Matrice3D", "MatriceZ4", "MatriceZN"):
                 if NGPU == 1:
                     ax[j, i].text(-0.29, -0.09, string, fontsize = 13, color="red", transform=ax[j, i].transAxes, bbox=dict(facecolor='none', edgecolor='red'))
 
-
         # Printing
         for i in range(NROW):
             for j in range(NCOL):
@@ -875,7 +874,6 @@ elif APPLI == "Cholesky":
             elif int(fields[3]) == 7:
                 ax8[i, j].text(int(fields[2]), int(fields[1]), order[int(fields[3])], va="center", ha="center", color = "white", size = size_numero_dans_les_cases)
 
-
         order[int(fields[3])] = order[int(fields[3])] + 1
 
     if lignes_dans_les_cases_et_sur_le_cote is True:
@@ -929,7 +927,6 @@ elif APPLI == "Cholesky":
                 already_fetched_y[i, j][int(fields[2]), int(fields[1])] = 1
             if int(fields[5]) == 1:
                 already_fetched_z[i, j][int(fields[2]), int(fields[1])] = 1
-
 
         next(file_coord_prefetch)
         for line in file_coord_prefetch:
@@ -1004,7 +1001,6 @@ if APPLI == "Matrice_ligne":
     image_format = 'svg'
     image_name1 = ORDO + '_M2D_N' + str(N) + "." + image_format
     fig.savefig(image_name1, format=image_format, dpi=1200)
-
 
 if APPLI == "Cholesky":
     image_format = 'svg'

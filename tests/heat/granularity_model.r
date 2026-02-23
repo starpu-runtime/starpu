@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2008-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2008-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -25,7 +25,6 @@ gflops <- function (x, size)
 {
 	2*size*size*size/(3000000*x);
 }
-
 
 parse <- function (size, grain)
 {
@@ -53,7 +52,6 @@ handle_size <- function (size, grain)
 
 	return(gflops);
 }
-
 
 handle_grain <- function(grain)
 {
@@ -98,15 +96,6 @@ handle_grain_mean <- function(grain)
 	);
 }
 
-
-
-
-
-
-
-
-
-
 parse_nm <- function (size, grain)
 {
 	filename = paste("timing/granularity.nomodel", grain, size, sep=".");
@@ -133,7 +122,6 @@ handle_size_nm <- function (size, grain)
 
 	return(gflops);
 }
-
 
 handle_grain_nm <- function(grain)
 {
@@ -247,14 +235,11 @@ display_grain <- function()
 	mtext("GFlops", side=2, line=2, las=0, cex=1.6)
 
 	title("Effect of granularity on the impact of scheduling");
-
 }
 
 display_grain()
 
 # boxplot(result, col=c("yellow", "red", "green"), xlab=sizelist);
-
-
 
 # plot(c(sizelist,sizelist,sizelist), c(result_greedy, result_prio, result_dm));
 # plot(sizelist, result_dm);

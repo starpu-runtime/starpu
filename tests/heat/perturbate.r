@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2008-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2008-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -65,8 +65,6 @@ handle_size_ref <- function (size)
 	return(gflops);
 }
 
-
-
 handle_ampl <- function(ampl)
 {
 	gflopstab <- NULL;
@@ -120,7 +118,6 @@ handle_ref_mean <- function()
 	);
 }
 
-
 trace_ampl <- function(ampl, color, style)
 {
 	#points(handle_ampl(ampl)$size, handle_ampl(ampl)$gflops, col=color);
@@ -148,8 +145,6 @@ display_ampl <- function()
 	trace_ampl("0.1", "black", 1);
 	trace_ampl("0.0", "black", 0);
 
-
-
 	axis(1, at=sizelist, font=1.6)
 	axis(2, at=seq(0, 100, 10), tck=1, font=1.6)
 #	axis(4, at=seq(0, 100, 10))
@@ -158,13 +153,10 @@ display_ampl <- function()
 	labels <- c("greedy", "0 %", "10 %", "25 %", "50 %", "100 %")
 	legend("topleft", inset=.05, title="Perturbation", labels, lwd=c(2, 1, 1, 1, 1, 1), pch=c(-1, 0, 1, 2, 5, 4), lty=c(2, 1, 1, 1, 1, 1), col=c("black", "black", "black", "black", "black", "black"), bty="y", bg="white")
 
-
-
 	mtext("matrix size", side=1, line=2, cex=1.6)
 	mtext("GFlops", side=2, line=2, las=0, cex=1.6)
 
 #	title("Impact of performance prediction innacuracies on LU decomposition");
-
 }
 
 display_ampl()

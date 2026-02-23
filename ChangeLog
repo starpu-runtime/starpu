@@ -735,7 +735,6 @@ Small features:
      acquisitions too.
    * Add a way to choose the dag.dot colors.
 
-
 StarPU 1.2.3 (git revision 586ba6452a8eef99f275c891ce08933ae542c6c2)
 ====================================================================
 
@@ -1561,7 +1560,6 @@ Small changes:
   * Add an OpenMP fork-join example.
   * Documentation improvement.
 
-
 StarPU 0.9 (git revision 12bba8528fc0d85367d885cddc383ba54efca464)
 ==================================================================
 The extensions release
@@ -1654,7 +1652,6 @@ The Stabilizing-the-Basics release
   * An initial documentation is added
   * More examples are supplied
 
-
 StarPU 0.1.0 (git revision 911869a96b40c74eb92b30a43d3e08bf445d8078)
 ====================================================================
 First release.
@@ -1673,7 +1670,6 @@ Changes:
  * Software-based DSM
    - transparent data coherency management
    - High-level expressive interface
-
 
 # Local Variables:
 # mode: text

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -73,8 +73,6 @@ extern "C" __global__ void spmv_kernel_3(uint32_t nnz, uint32_t nrow, float *nzv
 
 		vecout[row] = tmp;
 	}
-
-
 }
 
 extern "C" void spmv_kernel_cuda(void *descr[], void *args)

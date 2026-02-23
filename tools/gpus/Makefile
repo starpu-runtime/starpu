@@ -17,5 +17,3 @@ hip:
 hip_run:
 	hipcc -std=c++14 $(shell hipconfig --cpp_config) --x cu vector.hip -o vector
 	./vector
-
-

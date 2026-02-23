@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2011-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2011-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -51,7 +51,6 @@ gflops2_avg=$(echo "$gflops2_avg / $nsamples"|bc -l)
 t1_avg=$(echo "$t1_avg / $nsamples"|bc -l)
 t2_avg=$(echo "$t2_avg / $nsamples"|bc -l)
 t_total_avg=$(echo "$t_total_avg / $nsamples"|bc -l)
-
 
 echo "$print_options `printf '%2.2f %2.2f %2.2f %2.2f %2.2f' $gflops1_avg $gflops2_avg $t1_avg $t2_avg $t_total_avg`"
 echo "$print_options `printf '%2.2f %2.2f %2.2f %2.2f %2.2f' $gflops1_avg $gflops2_avg $t1_avg $t2_avg $t_total_avg`" >> $filename

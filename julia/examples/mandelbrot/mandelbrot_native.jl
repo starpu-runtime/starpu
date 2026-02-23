@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2019-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2019-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -108,6 +108,5 @@ function display_time(cr ::Float64, ci ::Float64, start_dim ::Int64, step_dim ::
         println("$(dim) $(res)")
     end
 end
-
 
 display_time(-0.800671,-0.158392,32,32,512,4, 0)

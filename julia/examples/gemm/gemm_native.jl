@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -27,7 +27,6 @@ function gemm_without_starpu(A :: Matrix{Float32}, B :: Matrix{Float32}, C :: Ma
     end
     return tmin
 end
-
 
 function compute_times(io,start_dim, step_dim, stop_dim)
     for dim in (start_dim : step_dim : stop_dim)

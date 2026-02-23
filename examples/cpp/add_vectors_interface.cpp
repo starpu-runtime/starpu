@@ -116,7 +116,6 @@ class my_allocator
 		return size_type(-1);
 	}
 
-
 	template <class U>
 		struct rebind
 		{
@@ -549,8 +548,6 @@ static starpu_ssize_t vector_cpp_describe(void *data_interface, char *buf, size_
 /*
  * End of interface
  */
-
-
 
 /* Kernel using STL objects */
 

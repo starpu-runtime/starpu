@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2022-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2022-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -62,7 +62,6 @@ set(starpujni_SOURCES
         starpujni-jobject-vector.c starpujni-jobject-vector.h
         starpujni-hdfs.c starpujni-hdfs.h
         )
-
 
 add_library(starpujni MODULE "${starpujni_SOURCES}")
 add_dependencies(build-all starpujni)

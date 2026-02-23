@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2008-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2008-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -44,7 +44,6 @@ handle_size <- function (size, sched)
 
 	return(gflops);
 }
-
 
 handle_sched <- function(sched)
 {
@@ -100,7 +99,6 @@ handle_sched_max <- function(sched)
 	);
 }
 
-
 handle_sched_min <- function(sched)
 {
 	gflopstab <- NULL;
@@ -118,9 +116,6 @@ handle_sched_min <- function(sched)
 		data.frame(gflops=gflopstab, size=sizetab, sched=array(sched, c(length(gflopstab)) ))
 	);
 }
-
-
-
 
 trace_sched <- function(sched, color, style, prout)
 {
@@ -164,7 +159,7 @@ trace_sched <- function(sched, color, style, prout)
 
 			lines(handle_sched_mean(sched)$size, handle_sched_mean(sched)$gflops, col=color, type = "o", pch=style, lty=2, lwd=2);
 		}
-		else 
+		else
 		{
 			lines(handle_sched_mean(sched)$size, handle_sched_mean(sched)$gflops, col=color, type = "o", pch=style, lwd=2);
 		}
@@ -191,12 +186,10 @@ display_sched <- function()
         labels <- c("greedy", "weighted random (mean)")
 	legend("bottomright", inset=.05, title="Scheduling policy", labels, lwd=2, pch=c(2, 1),lty=c(1, 2), col=c("red", "blue" ), bty="y", bg="white", cex=1.6)
 
-
 	mtext("matrix size", side=1, line=2, cex=1.6)
 	mtext("GFlops", side=2, line=2, las=0, cex=1.6)
 
 	title("Matrix Multiplication");
-
 }
 
 display_sched()

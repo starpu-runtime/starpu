@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -26,17 +26,17 @@ using LinearAlgebra
     # Naive version
     @parallel for j in (1 : width_m2)
        @parallel for i in (1 : height_m1)
-    
+
              sum :: Float32 = 0.
 
              for k in (1 : width_m1)
                  sum = sum + m1[i, k] * m2[k, j]
              end
-    
+
              m3[i, j] = sum
          end
      end
-    # ##### Tiled and unrolled version 
+    # ##### Tiled and unrolled version
     # for l in (1 : width_m2)
     #     for m in (1 : height_m1)
     #         m3[m,l] = 0
@@ -55,9 +55,9 @@ using LinearAlgebra
     #                     alpha21 :: Float32 =m2[kk+2,jj+1]
     #                     alpha30 :: Float32 =m2[kk+3,jj]
     #                     alpha31 :: Float32 =m2[kk+3,jj+1]
-    #                     for ii in (i : 1 : i+STRIDE-1) 
+    #                     for ii in (i : 1 : i+STRIDE-1)
     #                         m3[ii, jj] = m3[ii, jj] + m1[ii, kk] * alpha00 + m1[ii, kk+1] * alpha10 + m1[ii, kk+2] * alpha20 + m1[ii,kk+3]*alpha30
-    #                         m3[ii, jj+1] = m3[ii, jj+1] + m1[ii, kk] * alpha01 + m1[ii, kk+1] * alpha11 + m1[ii, kk+2]*alpha21 + m1[ii,kk+3]*alpha31 
+    #                         m3[ii, jj+1] = m3[ii, jj+1] + m1[ii, kk] * alpha01 + m1[ii, kk+1] * alpha11 + m1[ii, kk+2]*alpha21 + m1[ii,kk+3]*alpha31
     #                     end
     #                 end
     #             end
@@ -67,7 +67,6 @@ using LinearAlgebra
 
     return
 end
-
 
 starpu_init()
 
@@ -103,7 +102,6 @@ function multiply_with_starpu(A :: Matrix{Float32}, B :: Matrix{Float32}, C :: M
     end
     return tmin
 end
-
 
 function check(A, B, C)
     expected = A * B
@@ -147,4 +145,3 @@ compute_times(io,16*stride,4*stride,128*stride,2,2,stride)
 close(io)
 
 starpu_shutdown()
-

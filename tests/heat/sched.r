@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2008-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2008-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -39,7 +39,6 @@ handle_size <- function (size, sched)
 #	return(data.frame(gflops=gflops, size=array(size, c(length(gflops))), sched=array(sched, c(length(gflops)))));
 	return(gflops);
 }
-
 
 handle_sched <- function(sched)
 {
@@ -111,14 +110,11 @@ display_sched <- function()
 	mtext("GFlops", side=2, line=2, las=0, cex=1.6)
 
 #	title("Impact of the scheduling strategy on LU decomposition");
-
 }
 
 display_sched()
 
 # boxplot(result, col=c("yellow", "red", "green"), xlab=sizelist);
-
-
 
 # plot(c(sizelist,sizelist,sizelist), c(result_greedy, result_prio, result_dm));
 # plot(sizelist, result_dm);

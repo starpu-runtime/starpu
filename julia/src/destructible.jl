@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -39,7 +39,6 @@ macro starpu_block(expr)
     end
 end
 
-
 function StarpuDestructible(obj :: T, destructors :: Function...) where T
 
     if (isempty(starpu_block_list))
@@ -73,7 +72,6 @@ function starpu_destruct!(x :: StarpuDestructible)
 
     return nothing
 end
-
 
 function starpu_exit_block()
 

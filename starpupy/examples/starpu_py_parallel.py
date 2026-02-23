@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -284,7 +284,6 @@ if np is not None:
     print("the program execution time is", end_exec9-start_exec9)
     print("the cpu execution time is", end_cpu9-start_cpu9)
 
-
     print("--input is iterable function list")
     start_exec10=time.time()
     start_cpu10=time.process_time()
@@ -351,7 +350,6 @@ if np is not None:
         res6=await(fut6)
         #print("The return array is", np.concatenate(res6))
         print("The return array is", A)
-
 
         print("--(scal)(2, (j for j in a))")
         a=np.arange(N)

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,9 +22,7 @@
 			 insert task handles[i] in STARPU_RW|STARPU_COMMUTE, and handles[j] in STARPU_RW|STARPU_COMMUTE
  */
 
-
 // @FUSE_STARPU
-
 
 #include <starpu.h>
 #include "../helper.h"
@@ -64,7 +62,6 @@ void callback_slow(void * /*buffers*/[], void * /*cl_arg*/)
 	val = STARPU_ATOMIC_ADD(&nb_slow, -1);
 	FPRINTF(stdout,"callback_slow out (%u)\n", val); fflush(stdout);
 }
-
 
 int main(int /*argc*/, char** /*argv*/)
 {

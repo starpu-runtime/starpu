@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2018-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2018-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -102,8 +102,6 @@ function replace_pattern(expr :: StarpuExpr, replace_€ :: StarpuExpr...)
     return apply(func_to_apply, expr)
 end
 
-
-
 import Base.any
 
 """
@@ -136,7 +134,6 @@ function any(cond :: Function, expr :: StarpuExpr)
 
     return false
 end
-
 
 import Base.all
 
@@ -214,8 +211,6 @@ function visit_preorder(func :: Function, expr :: StarpuExprIf)
     visit_preorder(func, expr.then_statement)
     return expr
 end
-
-
 
 function visit_preorder(func :: Function, expr :: StarpuExprIfElse)
     func(expr)
@@ -384,8 +379,6 @@ end
 #     substitute_preorder(func, expr.then_statement)
 #     return expr
 # end
-
-
 
 # function substitute_preorder(expr :: StarpuExprIfElse, match :: StarpuExpr, replace :: StarpuExpr)
 #         if expr == match

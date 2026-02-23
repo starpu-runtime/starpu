@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2021-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2021-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -150,7 +150,6 @@ def test_numpy(a,b):
 	loop=asyncio.get_event_loop()
 	nest_asyncio.apply()
 	loop.run_until_complete(asy_main())
-
 
 #with handle return future
 for i in test_handle_bench.list_size:

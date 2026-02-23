@@ -3,7 +3,7 @@
 #
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -72,7 +72,6 @@ for line in fxt_codes_raw.split("\n"):
         assert key not in fxt_codes
 
         fxt_codes[key] = elements[1]
-
 
 # Convert content of the file:
 nb_events = 0

@@ -1,6 +1,6 @@
 ! StarPU --- Runtime system for heterogeneous multicore architectures.
 !
-! Copyright (C) 2016-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+! Copyright (C) 2016-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 !
 ! StarPU is free software; you can redistribute it and/or modify
 ! it under the terms of the GNU Lesser General Public License as published by
@@ -31,7 +31,6 @@ program nf_mm_2dbc
      integer                       :: m, n, b
      type(block_type), allocatable :: blocks(:,:)
   end type dsmat_type
-
 
   logical, parameter              :: verbose = .false.
   logical                         :: trace = .false.
@@ -201,7 +200,6 @@ program nf_mm_2dbc
      call unregister_matrix(B,kb,nb)
      call unregister_matrix(C,mb,nb)
   end do
-
 
   call fstarpu_codelet_free(cl_mm)
   call fstarpu_codelet_free(cl_fill)

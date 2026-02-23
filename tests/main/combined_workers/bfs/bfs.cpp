@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,7 +24,6 @@
 #include "timer.h"
 
 #define NB_ITERATION 10
-
 
 extern void omp_bfs_func(void *buffers[], void *_args);
 
@@ -89,7 +88,6 @@ void read_file(char *input_f, unsigned int *nb_nodes, unsigned int *nb_edges,
 		fscanf(fp,"%d",&cost);
 		(*origin_graph_edges)[i] = id;
 	}
-
 
 	// allocate mem for the result on host side
 	*origin_cost = (int*) malloc( sizeof(int)* (*nb_nodes));
@@ -248,7 +246,6 @@ int main( int argc, char** argv)
 	fclose(fpo);
 	printf("Result stored in result.txt\n");
 
-
 	// cleanup memory
 	free(graph_nodes);
 	free(graph_edges);
@@ -262,5 +259,4 @@ int main( int argc, char** argv)
 	free(origin_updating_graph_mask);
 	free(origin_graph_visited);
 	free(origin_cost);
-
 }

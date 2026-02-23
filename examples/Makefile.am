@@ -98,7 +98,6 @@ EXTRA_DIST = 					\
 	fortran90/Makefile.mk				\
 	profiling_tool/prof.sh
 
-
 CLEANFILES = *.gcno *.gcda *.linkinfo *.mod starpu_idle_microsec.log *.mps */*.mps */*/*.mps *.dot */*.dot */*/*.dot *.pl */*.pl */*/*.pl *.png *.output tasks.rec perfs.rec */perfs.rec */*/perfs.rec perfs2.rec fortran90/starpu_mod.f90 native_fortran/fstarpu_mod.f90 *.csv *.md *.Rmd *.pdf *.html
 
 clean-local:
@@ -400,7 +399,6 @@ STARPU_EXAMPLES +=				\
 	cg/cg					\
 	pipeline/pipeline			\
 	transactions/trs_sgemm
-
 
 SHELL_TESTS += \
 	heat/heat.sh				\
@@ -1289,7 +1287,6 @@ lu_lu_implicit_example_complex_double_LDADD =	\
 endif
 endif
 
-
 ################
 # Heat example #
 ################
@@ -1607,7 +1604,6 @@ subgraphs_plan_SOURCES	=		\
 	subgraphs/plan.c		\
 	subgraphs/codelets.c
 
-
 ############################
 # recursive tasks examples #
 ############################
@@ -1639,7 +1635,6 @@ mod_interface.mod: fortran90/mod_interface.o
 # - list explicit dependences to control proper module files dependencies
 fortran90/mod_compute.o: mod_types.mod mod_interface.mod starpu_mod.mod
 fortran90/f90_example.o: mod_types.mod mod_interface.mod mod_compute.mod starpu_mod.mod
-
 
 # Native Fortran example
 

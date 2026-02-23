@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -42,14 +42,13 @@ function multiply_with_starpu(A :: Matrix{Float32}, B :: Matrix{Float32}, C :: M
     cl = starpu_codelet(
         cpu_func  = "gemm",
         cuda_func = "",
-        modes =[STARPU_R,STARPU_R,STARPU_RW], 
+        modes =[STARPU_R,STARPU_R,STARPU_RW],
         perfmodel = perfmodel,
     )
     task = starpu_task(cl = cl, handles =[hA,hB,hC], cl_arg = (alpha,beta), callback = nothing,
 		callback_arg = nothing, tag = nothing, tag_only = nothing,
                        sequential_consistency = true,
                        detach = 1, color = nothing, where = nothing)
-
 
     for i in (1 : 10 )
         t=time_ns()
@@ -66,7 +65,6 @@ starpu_task_submit(Ref(task.c_task))
     starpu_data_unregister(hC)
     return tmin
 end
-
 
 function approximately_equals(
     A :: Matrix{Cfloat},
@@ -143,4 +141,3 @@ compute_times(io,64,512,4096,1,1)
 close(io)
 
 starpu_shutdown()
-

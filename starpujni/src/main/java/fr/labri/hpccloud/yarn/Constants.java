@@ -24,7 +24,6 @@ public class Constants {
   public static String OPT_CONTAINER_MASTER_CLASS = "container-master-class";
   public static String OPT_CONTAINER_SLAVE_CLASS = "container-slave-class";
 
-
   public static String OPT_LOG_PROPERTIES = "log_properties";
   public static String OPT_ATTEMPT_FAILURES_VALIDITY_INTERVAL = "attempt_failures_validity_interval";
   public static String OPT_DEBUG = "debug";
@@ -35,7 +34,6 @@ public class Constants {
   public static String OPT_HELP = "help";
   public static String OPT_NODE_LABEL_EXPRESSION = "node_label_expression";
   public static String OPT_APP_ATTEMPT_ID = "app_attempt_id";
-
 
   public static String LOCAL_RSRC_LOG4J_PROPERTIES = "log4j.properties";
   public static String LOCAL_RSRC_APPLICATION_JAR = "starpu-masterslave.jar";

@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -123,7 +123,6 @@ INPUT                  = @top_srcdir@/doc/doxygen_dev/chapters/000_introduction.
 			 @top_srcdir@/mpi/src/starpu_mpi_private.h \
 			 @top_srcdir@/mpi/src/starpu_mpi_cache_stats.h \
 			 @top_srcdir@/starpurm/src/starpurm_private.h
-
 
 EXAMPLE_PATH           = @top_srcdir@/doc/doxygen \
 		         @top_srcdir@/doc/doxygen_dev \

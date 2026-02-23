@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash
 
 OS="$(uname -s | tr [A-Z] [a-z])"
 ARCH="$(uname -m | tr [A-Z] [a-z])"
@@ -20,5 +20,3 @@ then
 fi
 
 exec java ${MAINCLASS} $*
-
-

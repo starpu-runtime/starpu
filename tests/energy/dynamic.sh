@@ -1,7 +1,7 @@
 #!/bin/sh
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -63,7 +63,6 @@ for gamma in $GAMMAS; do
 	"dynamic.$gamma.dat" using 3:7:4:8 with xyerrorlines lw 2 title "$gamma", \\
 EOF
 done
-
 
 gnuplot dynamic.gp
 gv dynamic.eps &

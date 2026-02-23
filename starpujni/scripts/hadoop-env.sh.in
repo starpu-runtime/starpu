@@ -18,5 +18,3 @@ done
 
 echo "running $CMD" 1>&2
 exec $CMD
-
-

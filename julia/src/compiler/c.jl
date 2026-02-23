@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -48,10 +48,8 @@ function interval_evaluation_declarations(set :: StarpuExprInterval, for_index_v
     iter_var = starpu_parse(Symbol(:iter_, id))
     iter_decl = replace_pattern(decl_pattern, iter_var)
 
-
     return StarpuExpr[start_decl, step_decl, dim_decl, iter_decl, index_decl]
 end
-
 
 function add_for_loop_declarations(expr :: StarpuExpr)
 
@@ -120,7 +118,6 @@ function flatten_blocks(expr :: StarpuExpr)
     return apply(func_to_run, expr)
 end
 
-
 function substitute_argument_usage(expr :: StarpuExpr, arg_index, buffer_name :: Symbol, arg_name :: Symbol, ptr_name :: Symbol)
     function func_to_apply(x :: StarpuExpr)
 
@@ -148,8 +145,6 @@ function substitute_argument_usage(expr :: StarpuExpr, arg_index, buffer_name ::
 
     return apply(func_to_apply, expr)
 end
-
-
 
 function substitute_args(expr :: StarpuExprFunction)
     new_body = expr.body
@@ -207,10 +202,7 @@ function substitute_args(expr :: StarpuExprFunction)
         else
             error("Task arguments must be either matrix, vector, ref or scalar (got $(expr.args[i].typ))")
         end
-
-
     end
-
 
     new_args = [
         starpu_parse(:($buffer_arg_name :: Ptr{Ptr{Nothing}})),
@@ -227,8 +219,6 @@ func_substitution = Dict(
     :ld     => :STARPU_MATRIX_GET_LD,
     :length => :STARPU_VECTOR_GET_NX
 )
-
-
 
 function substitute_func_calls(expr :: StarpuExpr)
 
@@ -272,7 +262,6 @@ function substitute_indexing(expr :: StarpuExpr)
         #if !isa(x.ref, StarpuExprVar)
         #    error("Only variable indexing is allowed") #TODO allow more ?
         #end
-
 
         nb_indexes = length(x.indexes)
 

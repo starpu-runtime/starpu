@@ -420,7 +420,6 @@
    fun:_starpu_init_topology
 }
 
-
 {
    <insert_a_suppression_name_here>
    Memcheck:Leak

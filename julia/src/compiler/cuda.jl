@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -14,11 +14,9 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-
 function is_indep_for_expr(x :: StarpuExpr)
     return isa(x, StarpuExprFor) && x.is_independant
 end
-
 
 function extract_init_indep_finish(expr :: StarpuExpr) # TODO : it is not a correct extraction (example : if (cond) {@indep for ...} else {return} would not work)
                                                             # better use apply() (NOTE :assert_no_indep_for already exists) to find recursively every for loops
@@ -52,9 +50,6 @@ function extract_init_indep_finish(expr :: StarpuExpr) # TODO : it is not a corr
 
     return expr.exprs, nothing, finish
 end
-
-
-
 
 function analyse_variable_declarations(expr :: StarpuExpr, already_defined :: Vector{StarpuExprTypedVar} = StarpuExprTypedVar[])
 
@@ -115,8 +110,6 @@ function analyse_variable_declarations(expr :: StarpuExpr, already_defined :: Ve
     return defined_variable, undefined_variables
 end
 
-
-
 function find_variable(name :: Symbol, vars :: Vector{StarpuExprTypedVar})
 
     for x in vars
@@ -127,8 +120,6 @@ function find_variable(name :: Symbol, vars :: Vector{StarpuExprTypedVar})
 
     return nothing
 end
-
-
 
 function add_device_to_interval_call(expr :: StarpuExpr)
 
@@ -470,7 +461,6 @@ function transform_to_cuda_kernel(func :: StarpuExprFunction)
     return prekernel, kernel
 end
 
-
 struct StarpuIndepFor
 
     iters :: Vector{Symbol}
@@ -478,7 +468,6 @@ struct StarpuIndepFor
 
     body :: StarpuExpr
 end
-
 
 function assert_no_indep_for(expr :: StarpuExpr)
 
@@ -492,7 +481,6 @@ function assert_no_indep_for(expr :: StarpuExpr)
 
     return apply(func_to_run, expr)
 end
-
 
 function StarpuIndepFor(expr :: StarpuExprFor)
 
@@ -517,7 +505,6 @@ function StarpuIndepFor(expr :: StarpuExprFor)
 
     return StarpuIndepFor(iters, sets, assert_no_indep_for(for_loop))
 end
-
 
 function translate_index_code(dims :: Vector{StarpuExprVar})
 
@@ -555,12 +542,6 @@ function translate_index_code(dims :: Vector{StarpuExprVar})
 
     return reverse(output)
 end
-
-
-
-
-
-
 
 function kernel_index_declarations(ind_for :: StarpuIndepFor)
 
@@ -602,15 +583,10 @@ function kernel_index_declarations(ind_for :: StarpuIndepFor)
         push!(ker_instr_to_add_later_on, iter_decl)
     end
 
-
     return dims, ker_instr_to_add_later_on, pre_kernel_instr , kernel_args, kernel_instr
 end
 
-
-
 function analyse_sets(ind_for :: StarpuIndepFor)
-
-
     decl_pattern = @parse € :: Int64 = €
     nblocks_decl_pattern = @parse € :: Int64 = (€ + THREADS_PER_BLOCK - 1)/THREADS_PER_BLOCK
 
@@ -629,7 +605,6 @@ function analyse_sets(ind_for :: StarpuIndepFor)
     nblocks_var = @parse nblocks
     nblocks_decl = replace_pattern(nblocks_decl_pattern, nblocks_var, nthreads_var)
     push!(pre_kernel_instr, nblocks_decl)
-
 
     index_decomposition = translate_index_code(dims)
 

@@ -1,6 +1,6 @@
 // StarPU --- Runtime system for heterogeneous multicore architectures.
 //
-// Copyright (C) 2022-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+// Copyright (C) 2022-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 //
 // StarPU is free software; you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
@@ -16,7 +16,6 @@
 package fr.labri.hpccloud.yarn.examples.starpu.nativetests;
 
 import fr.labri.hpccloud.yarn.MasterSlaveObject;
-
 
 import fr.labri.hpccloud.starpu.StarPU;
 import fr.labri.hpccloud.starpu.StarPUException;

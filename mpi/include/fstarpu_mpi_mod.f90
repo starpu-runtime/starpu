@@ -1,6 +1,6 @@
 ! StarPU --- Runtime system for heterogeneous multicore architectures.
 !
-! Copyright (C) 2016-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+! Copyright (C) 2016-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 !
 ! StarPU is free software; you can redistribute it and/or modify
 ! it under the terms of the GNU Lesser General Public License as published by
@@ -227,7 +227,6 @@ module fstarpu_mpi_mod
                         integer(c_int), value, intent(in) :: seq_const
                 end function fstarpu_mpi_recv_detached_sequential_consistency
 
-
                 ! int starpu_mpi_init_comm(int *argc, char ***argv, int initialize_mpi, MPI_Comm comm);
                 ! -> cf fstarpu_mpi_init
                 ! int starpu_mpi_init(int *argc, char ***argv, int initialize_mpi);
@@ -353,7 +352,6 @@ module fstarpu_mpi_mod
                         type(c_ptr), value, intent(in) :: rarg
                 end function fstarpu_mpi_gather_detached
 
-
                 ! int starpu_mpi_isend_detached_unlock_tag(starpu_data_handle_t data_handle, int dest, starpu_mpi_tag_t data_tag, MPI_Comm comm, starpu_tag_t tag);
                 function fstarpu_mpi_isend_detached_unlock_tag (dh, dst, data_tag, mpi_comm, starpu_tag) bind(C)
                         use iso_c_binding
@@ -441,7 +439,6 @@ module fstarpu_mpi_mod
                         integer(c_size_t), intent(in) :: comm_stats(*)
                 end subroutine fstarpu_mpi_comm_stats_retrieve
 
-
                 ! void starpu_mpi_cache_flush(MPI_Comm comm, starpu_data_handle_t data_handle);
                 subroutine fstarpu_mpi_cache_flush(mpi_comm,dh) bind(C)
                         use iso_c_binding
@@ -474,7 +471,6 @@ module fstarpu_mpi_mod
                         integer(c_int), intent(out) :: rank
                         integer(c_int) :: fstarpu_mpi_comm_rank
                 end function fstarpu_mpi_comm_rank
-
 
                 ! int starpu_mpi_world_rank(void);
                 function fstarpu_mpi_world_rank() bind(C,name="starpu_mpi_world_rank")
@@ -680,7 +676,6 @@ module fstarpu_mpi_mod
                         type(c_ptr), value, intent(in) :: dh
                 end function fstarpu_mpi_datatype_unregister
 
-
                 function fstarpu_mpi_req_alloc() bind(C)
                         use iso_c_binding
                         implicit none
@@ -704,8 +699,6 @@ module fstarpu_mpi_mod
                         implicit none
                         type(c_ptr),value,intent(in) :: st
                 end subroutine fstarpu_mpi_status_free
-
-
 
         end interface
 

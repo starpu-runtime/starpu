@@ -184,7 +184,6 @@ images = 	\
 	chapters/starpu_performances/images/tasks.json.gz \
 	chapters/starpu_performances/images/threads.json.gz
 
-
 if STARPU_BUILD_DOC
 starpu_config.h: $(top_srcdir)/include/starpu_config.h.in
 	@$(SED) 's/#undef \(.*\)/#define \1 1/' $< > $@

@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -41,7 +41,6 @@ end
 function callbackC(task)
     starpu_task_end_dep_release(task)
 end
-
 
 function main()
     value = Ref(Int32(12))
@@ -90,7 +89,6 @@ function main()
         end
 	starpu_data_release_on_node(handle, STARPU_MAIN_RAM);
     end
-
 
     println("Value = ", value[])
 end

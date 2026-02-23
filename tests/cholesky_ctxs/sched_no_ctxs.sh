@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2011-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2011-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -24,7 +24,6 @@ nsamples=5
 
 filename=$TIMINGDIR/cholesky_no_ctxs
 
-
 nmaxcpus=12
 nmincpus=1
 blocks1=40
@@ -32,7 +31,6 @@ blocks2=40
 
 size1=20000
 size2=10000
-
 
 for j in `seq $nmincpus 1 $nmaxcpus`
 do
@@ -42,14 +40,8 @@ do
     else
 	export STARPU_NCPUS=$(($j-3))
     fi
-    
+
     OPTIONS="$2 -with_noctxs -nblocks1 $blocks1 -size1 $size1 -nblocks2 $blocks2 -size2 $size2"
 
     source evaluate_expression.sh "$BENCH_NAME" "$OPTIONS" "$filename" "$j"
-
 done
-    
-
-
-
-

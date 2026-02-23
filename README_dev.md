@@ -1,7 +1,7 @@
 <!---
  StarPU --- Runtime system for heterogeneous multicore architectures.
 
- Copyright (C) 2009-2025    University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ Copyright (C) 2009-2026    University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 
  StarPU is free software; you can redistribute it and/or modify
  it under the terms of the GNU Lesser General Public License as published by
@@ -80,7 +80,6 @@ typedef uint64_t starpu_tag_t;
 
 - When a variable can only take a finite set of values, use an `enum`
   type instead of defining macros for each of the values.
-
 
 ##  Coding Style
 

@@ -1,7 +1,7 @@
 #!/bin/sh
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -31,7 +31,7 @@ export NITER=30
 GAMMAS="1000000 100000 10000 0"
 
 for gamma in $GAMMAS; do
-	(for ncpu_slow in $(seq 0 24) ; do 
+	(for ncpu_slow in $(seq 0 24) ; do
 		STARPU_SCHED_GAMMA=$gamma STARPU_NCPU_SLOW=$ncpu_slow \
 			./energy_efficiency $N $NITER | grep "^$(($N * 512))	" &
 	done) | sort -n -k 2 > static.$gamma.dat
@@ -65,7 +65,6 @@ for gamma in $GAMMAS; do
 	"static.$gamma.dat" using 3:7:4:8 with xyerrorlines title "$gamma", \\
 EOF
 done
-
 
 gnuplot static.gp
 gv static.eps &

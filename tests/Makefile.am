@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -869,7 +869,6 @@ main_subgraph_repeat_regenerate_tag_cycle_SOURCES +=		\
 	variable/increment_opencl.c
 endif
 
-
 if STARPU_HAVE_FC
 fortran90_init_01_SOURCES =	\
 	fortran90/starpu_mod.f90	\
@@ -1022,7 +1021,6 @@ nobase_STARPU_OPENCL_DATA_DATA += \
 	datawizard/interfaces/csr/csr_opencl_kernel.cl
 endif
 
-
 ####################
 # Vector interface #
 ####################
@@ -1064,7 +1062,6 @@ datawizard_interfaces_matrix_matrix_interface_SOURCES+= \
 nobase_STARPU_OPENCL_DATA_DATA+= \
 	datawizard/interfaces/matrix/matrix_opencl_kernel.cl
 endif
-
 
 #########################
 # Multiformat interface #
@@ -1110,7 +1107,6 @@ datawizard_interfaces_multiformat_advanced_multiformat_handle_conversion_SOURCES
 datawizard_interfaces_multiformat_advanced_same_handle_SOURCES= \
 	datawizard/interfaces/multiformat/advanced/generic.c               \
 	datawizard/interfaces/multiformat/advanced/same_handle.c
-
 
 ######################
 # Variable interface #
@@ -1232,5 +1228,3 @@ slic_%.o: %.max
 
 CLEANFILES += */*.max */*.class max_fpga/*.h
 endif
-
-

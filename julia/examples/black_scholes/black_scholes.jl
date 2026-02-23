@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2019-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2019-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2019-2019   Mael Keryell
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -19,9 +19,9 @@ using StarPU
 
 @target STARPU_CPU+STARPU_CUDA
 @codelet function black_scholes(data ::Matrix{Float64}, res ::Matrix{Float64}) :: Float32
-    
+
     widthn ::Int64 = width(data)
-        
+
     # data[1,...] -> S
     # data[2,...] -> K
     # data[3,...] -> r
@@ -35,15 +35,10 @@ using StarPU
     b4 ::Float64 = -1.821255978
     b5 ::Float64 = 1.330274428
 
-    
     @parallel for i = 1:widthn
-        
 
         d1 ::Float64 = (log(data[1,i] / data[2,i]) + (data[3,i] + pow(data[5,i], 2.0) * 0.5) * data[4,i]) / (data[5,i] * sqrt(data[4,i]))
         d2 ::Float64 = (log(data[1,i] / data[2,i]) + (data[3,i] - pow(data[5,i], 2.0) * 0.5) * data[4,i]) / (data[5,i] * sqrt(data[4,i]))
-        
-
-
 
         f ::Float64 = 0
         ff ::Float64 = 0
@@ -53,17 +48,14 @@ using StarPU
         s4 ::Float64 = 0
         s5 ::Float64 = 0
         sz ::Float64 = 0
-        
 
-
-        
         ######## Compute normcdf of d1
 
         normd1p ::Float64 = 0
         normd1n ::Float64 = 0
 
         boold1 ::Int64 = (d1 >= 0) + (d1 <= 0)
-        
+
         if (boold1 >= 2)
             normd1p = 0.5
             normd1n = 0.5
@@ -77,24 +69,23 @@ using StarPU
             s4 = b4 / pow((1 + p * tmp1), 4.0)
             s5 = b5 / pow((1 + p * tmp1), 5.0)
             sz = ff * (s1 + s2 + s3 + s4 + s5)
-        
+
             if (d1 > 0)
                 normd1p = 1 - sz # normcdf(d1)
                 normd1n = sz # normcdf(-d1)
             else
                 normd1p = sz
                 normd1n = 1 - sz
-            end    
+            end
         end
         ########
-        
 
         ######## Compute normcdf of d2
         normd2p ::Float64 = 0
         normd2n ::Float64 = 0
 
         boold2 ::Int64 = (d2 >= 0) + (d2 <= 0)
-        
+
         if (boold2 >= 2)
             normd2p = 0.5
             normd2n = 0.5
@@ -108,8 +99,7 @@ using StarPU
             s4 = b4 / pow((1 + p * tmp2), 4.0)
             s5 = b5 / pow((1 + p * tmp2), 5.0)
             sz = ff * (s1 + s2 + s3 + s4 + s5)
-        
-        
+
             if (d2 > 0)
                 normd2p = 1 - sz # normcdf(d2)
                 normd2n = sz # normcdf(-d2)
@@ -120,13 +110,13 @@ using StarPU
         end
         # normd1p = (1 + erf(d1/sqrt(2.0)))/2.0
         # normd1n = (1 + erf(-d1/sqrt(2.0)))/2.0
-        
+
         # normd2p = (1 + erf(d2/sqrt(2.0)))/2.0
         # normd2n = (1 + erf(-d2/sqrt(2.0)))/2.0
-        
+
         res[1,i] = data[1,i] * (normd1p) - data[2,i]*exp(-data[3,i]*data[4,i]) * (normd2p) # S * N(d1) - r*exp(-r*T) * norm(d2)
         res[2,i] = -data[1,i] * (normd1n) + data[2,i]*exp(-data[3,i]*data[4,i]) * (normd2n) # -S * N(-d1) + r*exp(-r*T) * norm(-d2)
-        
+
     end
     return 0
 end
@@ -141,15 +131,14 @@ function black_scholes_starpu(data ::Matrix{Float64}, res ::Matrix{Float64}, nsl
 
         starpu_data_partition(dat_handle, vert)
         starpu_data_partition(res_handle, vert)
-        
+
         #Compute the price of call and put option in the res matrix
         @starpu_sync_tasks for task in (1:nslices)
-            @starpu_async_cl black_scholes(dat_handle[task], res_handle[task]) [STARPU_RW, STARPU_RW] 
+            @starpu_async_cl black_scholes(dat_handle[task], res_handle[task]) [STARPU_RW, STARPU_RW]
         end
     end
     return 0
 end
-
 
 function init_data(data, data_nbr);
     for i in 1:data_nbr
@@ -161,11 +150,8 @@ function init_data(data, data_nbr);
     end
     return data
 end
-        
-
 
 function median_times(data_nbr, nslices, nbr_tests)
-
     data ::Matrix{Float64} = zeros(5, data_nbr)
     # data[1,1] = 100.0
     # data[2,1] = 100.0
@@ -173,13 +159,12 @@ function median_times(data_nbr, nslices, nbr_tests)
     # data[4,1] = 1.0
     # data[5,1] = 0.2
 
-
     res ::Matrix{Float64} = zeros(2, data_nbr)
 
     exec_times ::Vector{Float64} = [0. for i in 1:nbr_tests]
 
     for i = 1:nbr_tests
-        
+
         init_data(data, data_nbr)
 
         tic()
@@ -191,13 +176,13 @@ function median_times(data_nbr, nslices, nbr_tests)
     sort!(exec_times)
     # println(data)
     # println(res)
-    
+
     return exec_times[1 + div(nbr_tests - 1, 2)]
 end
 
 function display_times(start_nbr, step_nbr, stop_nbr, nslices, nbr_tests)
     i = 1
-    open("black_scholes_times.dat", "w") do f 
+    open("black_scholes_times.dat", "w") do f
         for data_nbr in (start_nbr : step_nbr : stop_nbr)
             t = median_times(data_nbr, nslices, nbr_tests)
             println("Number of data:\n$data_nbr\nTimes:\njl: $t\nC: $(mtc[i])\nGen: $(mtcgen[i])")

@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2018-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2018-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -32,7 +32,6 @@
             return output
         end
     end
-
 
     export LinkedList
     mutable struct LinkedList{T}
@@ -73,7 +72,6 @@
         return new_first
     end
 
-
     export add_to_tail!
     function add_to_tail!(l :: LinkedList{T}, el :: T) where {T}
 
@@ -94,7 +92,6 @@
         return new_last
     end
 
-
     function LinkedList(v :: Union{Array{T,N}, NTuple{N,T}}) where {N,T}
 
         output = LinkedList{T}()
@@ -105,7 +102,6 @@
 
         return output
     end
-
 
     export remove_link!
     function remove_link!(lnk :: Link{T}) where {T}
@@ -136,15 +132,10 @@
         return lnk.data
     end
 
-
     export is_linked
     function is_linked(lnk :: Link)
         return (lnk.list != nothing)
     end
-
-
-
-
 
     export foreach_asc
     macro foreach_asc(list, lnk_iterator, expression)
@@ -160,7 +151,6 @@
         end
     end
 
-
     export foreach_desc
     macro foreach_desc(list, lnk_iterator, expression)
 
@@ -174,9 +164,6 @@
             end
         end
     end
-
-
-
 
     function Base.show(io :: IO, lnk :: Link{T}) where {T}
 
@@ -203,8 +190,6 @@
 
     end
 
-
-
     function Base.show(io :: IO, l :: LinkedList{T}) where {T}
 
         print(io, "LinkedList{$T}{")
@@ -223,13 +208,10 @@
 
     end
 
-
-
     #import Base.start
     function start(l :: LinkedList)
         return nothing
     end
-
 
     #import Base.done
     function done(l :: LinkedList, state)
@@ -240,7 +222,6 @@
 
         return isnothing(state.next)
     end
-
 
     #import Base.next
     function next(l :: LinkedList, state)
@@ -253,7 +234,6 @@
 
         return (next_link.data, next_link)
     end
-
 
     #import Base.endof
     function endof(l :: LinkedList)
@@ -276,7 +256,6 @@
         return lnk
     end
 
-
     import Base.getindex
     function getindex(l :: LinkedList, ind)
         return index_to_link(l,ind).data
@@ -288,27 +267,20 @@
         lnk.data = value
     end
 
-
-
-
-
     import Base.eltype
     function eltype(l :: LinkedList{T}) where T
         return T
     end
-
 
     import Base.isempty
     function isempty(l :: LinkedList)
         return (l.nelement == 0)
     end
 
-
     import Base.empty!
     function empty!(l :: LinkedList)
         @foreach_asc l lnk remove_link!(lnk)
     end
-
 
     import Base.length
     function length(l :: LinkedList)

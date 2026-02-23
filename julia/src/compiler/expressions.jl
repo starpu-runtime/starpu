@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -18,7 +18,6 @@
 ======================================================#
 abstract type StarpuExpr end
 abstract type StarpuExprTyped <: StarpuExpr end
-
 
 struct StarpuExprTypedVar <: StarpuExprTyped
     name :: Symbol
@@ -93,7 +92,6 @@ struct StarpuExprIf <: StarpuExpr
     then_statement :: StarpuExpr
 end
 
-
 struct StarpuExprIfElse <: StarpuExpr
     cond :: StarpuExpr
     then_statement :: StarpuExpr
@@ -140,7 +138,6 @@ function starpu_parse_affect(x :: Expr)
     return StarpuExprAffect(var, expr)
 end
 
-
 function equals(x :: StarpuExprAffect, y :: StarpuExpr)
 
     if typeof(y) != StarpuExprAffect
@@ -149,7 +146,6 @@ function equals(x :: StarpuExprAffect, y :: StarpuExpr)
 
     return equals(x.var, y.var) && equals(x.expr, y.expr)
 end
-
 
 function print(io :: IO, x :: StarpuExprAffect ; indent = 0, restrict = false)
 
@@ -183,9 +179,6 @@ end
 (series of instruction, not C variable scoping block)
 ======================================================#
 
-
-
-
 function is_unwanted(x :: Symbol)
     return false
 end
@@ -201,12 +194,11 @@ end
 function starpu_parse_block(x :: Expr)
     if (x.head != :block)
         error("Invalid \"block\" expression")
-    end    
+    end
     exprs = map(starpu_parse, filter(!is_unwanted, x.args))
 
     return StarpuExprBlock(exprs)
 end
-
 
 function print(io :: IO, x :: StarpuExprBlock ; indent = 0, restrict=false)
     for i in (1 : length(x.exprs))
@@ -218,9 +210,6 @@ function print(io :: IO, x :: StarpuExprBlock ; indent = 0, restrict=false)
     end
 end
 
-
-
-
 function apply(func :: Function, expr :: StarpuExprBlock)
 
     return func(StarpuExprBlock(map((x -> apply(func, x)), expr.exprs)))
@@ -229,9 +218,6 @@ end
 #======================================================
                 FUNCTION CALL
 ======================================================#
-
-
-
 
 function starpu_parse_call(x :: Expr)
 
@@ -252,9 +238,7 @@ function starpu_parse_call(x :: Expr)
     return StarpuExprCall(func.name, args)
 end
 
-
 starpu_infix_operators = (:(+), :(*), :(-), :(/), :(<), :(>), :(<=), :(>=), :(!=), :(%))
-
 
 function print_prefix(io :: IO, x :: StarpuExprCall ; indent = 0, restrict=false)
 
@@ -269,7 +253,6 @@ function print_prefix(io :: IO, x :: StarpuExprCall ; indent = 0, restrict=false
 
     print(io, ")")
 end
-
 
 function print_infix(io :: IO, x :: StarpuExprCall ; indent = 0,restrict=false)
     for i in (1 : length(x.args))
@@ -291,9 +274,6 @@ function print(io :: IO, x :: StarpuExprCall ; indent = 0,restrict=false)
     end
 end
 
-
-
-
 function apply(func :: Function, expr :: StarpuExprCall)
 
     return func(StarpuExprCall(expr.func, map((x -> apply(func, x)), expr.args)))
@@ -302,10 +282,6 @@ end
 #======================================================
                 CUDA KERNEL CALL
 ======================================================#
-
-
-
-
 
 function print(io :: IO, expr :: StarpuExprCudaCall ; indent = 0,restrict=false)
 
@@ -342,7 +318,6 @@ function print(io :: IO, expr :: StarpuExprCudaCall ; indent = 0,restrict=false)
 
 end
 
-
 function apply(func :: Function, expr :: StarpuExprCudaCall)
 
     nblocks = func(expr.nblocks)
@@ -352,14 +327,9 @@ function apply(func :: Function, expr :: StarpuExprCudaCall)
     return StarpuExprCudaCall(expr.ker_name, nblocks, threads_per_block, args)
 end
 
-
 #======================================================
                 STRUCTURE FIELDS
 ======================================================#
-
-
-
-
 
 function starpu_parse_field(x :: Expr)
 
@@ -376,14 +346,11 @@ function starpu_parse_field(x :: Expr)
     return StarpuExprField(left, x.args[2].value, false)
 end
 
-
 function print(io :: IO, x :: StarpuExprField ; indent = 0,restrict=false)
     print(io, "(")
     print(io, x.left, indent = indent)
     print(io, ")", x.is_an_arrow ? "->" : '.', x.field)
 end
-
-
 
 function apply(func :: Function, expr :: StarpuExprField)
     return func(StarpuExprField(func(expr.left), expr.field, expr.is_an_arrow))
@@ -392,10 +359,6 @@ end
 #======================================================
                 FOR LOOPS
 ======================================================#
-
-
-
-
 
 function starpu_parse_for(x :: Expr; is_independant = false)
 
@@ -423,10 +386,6 @@ function starpu_parse_for(x :: Expr; is_independant = false)
 
     return StarpuExprFor(iter.name, set, body, is_independant, StarpuExpr[])
 end
-
-
-
-
 
 function print(io :: IO, x :: StarpuExprFor ; indent = 0,restrict=false)
 
@@ -478,8 +437,6 @@ function print(io :: IO, x :: StarpuExprFor ; indent = 0,restrict=false)
     print_newline(io, indent)
 end
 
-
-
 function apply(func :: Function, expr :: StarpuExprFor)
 
     set_declarations = map( (x -> apply(func, x)), expr.set_declarations)
@@ -489,13 +446,9 @@ function apply(func :: Function, expr :: StarpuExprFor)
     return func(StarpuExprFor(expr.iter, set, body, expr.is_independant, set_declarations))
 end
 
-
 #======================================================
                 FUNCTION DECLARATION
 ======================================================#
-
-
-
 
 function starpu_parse_function(x :: Expr)
 
@@ -528,8 +481,6 @@ function starpu_parse_function(x :: Expr)
     return StarpuExprFunction(typed_decl.typ, prototype.func, arg_list, body)
 end
 
-
-
 function print(io :: IO, x :: StarpuExprFunction ; indent = 0,restrict=false)
 
     print(io, starpu_type_traduction(x.ret_type), " ")
@@ -556,8 +507,6 @@ function print(io :: IO, x :: StarpuExprFunction ; indent = 0,restrict=false)
     print_newline(io, indent)
 end
 
-
-
 function apply(func :: Function, expr :: StarpuExprFunction)
 
     args = map((x -> apply(func, x)), expr.args)
@@ -566,14 +515,9 @@ function apply(func :: Function, expr :: StarpuExprFunction)
     return func(StarpuExprFunction(expr.ret_type, expr.func, args, body))
 end
 
-
 #======================================================
                 IF STATEMENT
 ======================================================#
-
-
-
-
 
 function starpu_parse_if(x :: Expr)
 
@@ -598,7 +542,6 @@ function starpu_parse_if(x :: Expr)
 
     return StarpuExprIfElse(cond, then_statement, else_statement)
 end
-
 
 function print(io :: IO, x :: Union{StarpuExprIf, StarpuExprIfElse}; indent = 0,restrict=false)
 
@@ -628,8 +571,6 @@ function print(io :: IO, x :: Union{StarpuExprIf, StarpuExprIfElse}; indent = 0,
 
 end
 
-
-
 function apply(func :: Function, expr :: StarpuExprIf)
 
     cond = apply(func, expr.cond)
@@ -637,8 +578,6 @@ function apply(func :: Function, expr :: StarpuExprIf)
 
     return func(StarpuExprIf(cond, then_statement))
 end
-
-
 
 function apply(func :: Function, expr :: StarpuExprIfElse)
 
@@ -652,9 +591,6 @@ end
 #======================================================
                 INTERVALS
 ======================================================#
-
-
-
 
 function starpu_parse_interval(x :: Expr)
 
@@ -673,8 +609,6 @@ function starpu_parse_interval(x :: Expr)
     return StarpuExprInterval(start, steop, stop)
 end
 
-
-
 function apply(func :: Function, expr :: StarpuExprInterval)
 
     start = apply(func, expr.start)
@@ -687,9 +621,6 @@ end
 #======================================================
                 ARRAYS AND REFERENCES
 ======================================================#
-
-
-
 
 function starpu_parse_ref(x :: Expr)
 
@@ -710,8 +641,6 @@ function starpu_parse_ref(x :: Expr)
     return StarpuExprRef(ref, indexes)
 end
 
-
-
 function equals(x :: StarpuExprRef, y :: StarpuExpr)
 
     if typeof(y) != StarpuExprRef
@@ -724,9 +653,6 @@ function equals(x :: StarpuExprRef, y :: StarpuExpr)
 
     return all(map(equals, x.indexes, y.indexes))
 end
-
-
-
 
 function print(io :: IO, x :: StarpuExprRef ; indent = 0,restrict=false)
 
@@ -782,8 +708,6 @@ end
                 RETURN EXPRESSION
 ======================================================#
 
-
-
 function starpu_parse_return(x :: Expr)
     if (x.head != :return)
         error("Invalid \"return\" expression")
@@ -836,13 +760,7 @@ function print(io :: IO, x :: StarpuExprValue ; indent = 0,restrict=false)
     print(io, value)
 end
 
-
-
-
-
 print(io :: IO, x :: StarpuExprInvalid ; indent = 0) = print(io, "INVALID")
-
-
 
 function starpu_parse(raw_value :: Any)
     return StarpuExprValue(raw_value)
@@ -855,8 +773,6 @@ end
 #======================================================
                 TYPED EXPRESSION
 ======================================================#
-
-
 
 function starpu_parse_typed(x :: Expr)
 
@@ -914,8 +830,6 @@ function print(io :: IO, x :: StarpuExprTyped ; indent = 0,restrict=false)
     end
 end
 
-
-
 function apply(func :: Function, expr :: StarpuExprTypedExpr)
 
     new_expr = apply(func, expr.expr)
@@ -926,7 +840,6 @@ end
 #======================================================
                 While loop
 ======================================================#
-
 
 function starpu_parse_while(x :: Expr)
 
@@ -946,7 +859,6 @@ function starpu_parse_while(x :: Expr)
     return StarpuExprWhile(cond, body)
 end
 
-
 function print(io :: IO, x :: StarpuExprWhile ; indent = 0)
     print_newline(io, indent)
     print(io, "while (")
@@ -960,8 +872,6 @@ function print(io :: IO, x :: StarpuExprWhile ; indent = 0)
     print(io, "}")
     print_newline(io, indent)
 end
-
-
 
 function apply(func :: Function, expr :: StarpuExprWhile)
 

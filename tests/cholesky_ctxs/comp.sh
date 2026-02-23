@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2011-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2011-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -25,7 +25,7 @@ best_gflops_withoutctxs=$6
 rm -rf $outfilename
 
 while read line
-do 
+do
     results=($line)
 
     gflops1=0
@@ -60,7 +60,7 @@ do
 	if [ $compute_effic -eq 1 ]
 	then
 	    gflops_norm=$(echo "$gflops/$best_gflops_withoutctxs"|bc -l)
-	    
+
 	    echo "$gpu $gpu1 $gpu2 $ncpus1 $ncpus2 `printf '%2.2f %2.2f' $gflops $gflops_norm`" >> $outfilename$gpu1$gpu2
 	else
 	    nres=$(echo "$gpu+$gpu1+$gpu2+$ncpus1+$ncpus2"|bc -l)
@@ -68,8 +68,8 @@ do
 
 	    gflop_rate=$(echo "$gflops/$nres"|bc -l)
 	    gflop_norm_rate=$(echo "$gflop_rate/$best_gflops_rate"|bc -l)
-	    
-	    echo "$ncpus1 $ncpus2 `printf '%2.2f %2.2f %2.2f' $gflops $gflop_rate $gflop_norm_rate`" >> $outfilename  
+
+	    echo "$ncpus1 $ncpus2 `printf '%2.2f %2.2f %2.2f' $gflops $gflop_rate $gflop_norm_rate`" >> $outfilename
 	fi
     else
 
@@ -78,7 +78,6 @@ do
 	gflops2=${results[2]}
 	t1=${results[3]}
 	t2=${results[4]}
-
 
 	maxtime=$(echo "$t1/$t2"|bc -l)
 	maxtime=${maxtime/.*}
@@ -99,9 +98,7 @@ do
 	    gflop_rate=$(echo "$gflops/$nres"|bc -l)
 	    echo "$nres `printf '%2.2f %2.2f' $gflops $gflop_rate`" >> $outfilename
 	fi
-	
+
     fi
 
-
 done < $infilename
-

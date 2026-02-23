@@ -347,7 +347,6 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/modular_ws.c				\
 	sched_policies/modular_ez.c
 
-
 if STARPU_HAVE_LEVELDB
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += core/disk_ops/disk_leveldb.cpp
 endif
@@ -409,7 +408,6 @@ if STARPU_LINUX_SYS
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += core/disk_ops/disk_unistd_o_direct.c
 endif
 
-
 if STARPU_HAVE_HWLOC
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += \
 	sched_policies/scheduler_maker.c			\
@@ -455,7 +453,6 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/tcpip/driver_tcpip_co
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/tcpip/driver_tcpip_source.c
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/tcpip/driver_tcpip_sink.c
 endif
-
 
 #########################################
 dist-hook:

@@ -1,7 +1,7 @@
 #!/bin/sh
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2010-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2010-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -142,7 +142,6 @@ plot "$inputfile_cnt_submitted" using (\$2/1000):3 with filledcurves lt rgb "#99
 set nologscale
 EOF
 
-
 cnt=1 # Keep first row for the number of ready/submitted tasks graph
 for worker in $workers
 do
@@ -174,7 +173,6 @@ EOF
 
 	cnt=$(($cnt+1))
 done
-
 
 cat >> gnuplotcmd << EOF
 unset multiplot

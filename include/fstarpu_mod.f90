@@ -1,6 +1,6 @@
 ! StarPU --- Runtime system for heterogeneous multicore architectures.
 !
-! Copyright (C) 2016-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+! Copyright (C) 2016-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 !
 ! StarPU is free software; you can redistribute it and/or modify
 ! it under the terms of the GNU Lesser General Public License as published by
@@ -281,7 +281,6 @@ module fstarpu_mod
                         integer(c_int), value, intent(in) :: id
                 end function fstarpu_worker_is_combined_worker
 
-
                 ! unsigned starpu_cpu_worker_get_count(void);
                 function fstarpu_cpu_worker_get_count() bind(C,name="starpu_cpu_worker_get_count")
                         use iso_c_binding, only: c_int
@@ -381,7 +380,6 @@ module fstarpu_mod
                         integer(c_size_t),value,intent(in) :: maxlen
                 end subroutine fstarpu_worker_get_name
 
-
                 ! int starpu_worker_get_devid(int id);
                 function fstarpu_worker_get_devid(id) bind(C,name="starpu_worker_get_devid")
                         use iso_c_binding, only: c_int
@@ -464,7 +462,6 @@ module fstarpu_mod
                         type(c_ptr), value, intent(in)    :: task
                 end subroutine fstarpu_task_end_dep_release
 
-
                 ! int starpu_tag_wait(starpu_tag_t id);
                 function fstarpu_tag_wait(id) bind(C,name="starpu_tag_wait")
                         use iso_c_binding, only: c_int, c_long_long
@@ -504,7 +501,6 @@ module fstarpu_mod
                         type(c_ptr) :: fstarpu_tag_get_task
                         integer(c_long_long), value, intent(in) :: id
                 end function fstarpu_tag_get_task
-
 
                 ! void starpu_task_init(struct starpu_task *task);
                 subroutine fstarpu_task_init (task) bind(C,name="starpu_task_init")
@@ -573,7 +569,6 @@ module fstarpu_mod
                         type(c_ptr), intent(in) :: task_array
                 end function fstarpu_task_wait_array
 
-
                 ! int starpu_task_wait_for_all(void);
                 subroutine fstarpu_task_wait_for_all () bind(C,name="starpu_task_wait_for_all")
                 end subroutine fstarpu_task_wait_for_all
@@ -630,7 +625,6 @@ module fstarpu_mod
                         use iso_c_binding, only: c_ptr
                         type(c_ptr), value, intent(in) :: codelet
                 end subroutine fstarpu_codelet_display_stats
-
 
                 ! struct starpu_task *starpu_task_get_current(void);
                 function fstarpu_task_get_current () bind(C,name="starpu_task_get_current")
@@ -832,7 +826,6 @@ module fstarpu_mod
 
                 ! int starpu_data_interface_get_next_id(void);
                 ! void starpu_data_register(starpu_data_handle_t *handleptr, unsigned home_node, void *data_interface, struct starpu_data_interface_ops *ops);
-
 
                 ! void starpu_data_ptr_register(starpu_data_handle_t handle, unsigned node);
                 subroutine fstarpug_data_ptr_register (dh,node) bind(C,name="starpu_data_ptr_register")
@@ -1104,7 +1097,6 @@ module fstarpu_mod
                         type(c_ptr), value, intent(in) :: dev_handle
                         integer(c_size_t), value, intent(in) :: offset
                 end subroutine fstarpu_vector_ptr_register
-
 
                 function fstarpu_vector_get_ptr(buffers, i) bind(C)
                         use iso_c_binding, only: c_ptr, c_int
@@ -1565,7 +1557,6 @@ module fstarpu_mod
                         type(c_ptr), value, intent(in) :: nparts
                 end subroutine fstarpu_block_filter_depth_block_shadow
 
-
                 ! == starpu_data.h ==
 
                 ! void starpu_data_unregister(starpu_data_handle_t handle);
@@ -1856,7 +1847,6 @@ module fstarpu_mod
                         type(c_ptr), value, intent(in) :: handle
                         type(c_ptr), value, intent(in) :: mode ! C func expects c_intptr_t
                 end subroutine fstarpu_data_descr_set
-
 
                 subroutine fstarpu_task_insert(arglist) bind(C)
                         use iso_c_binding, only: c_ptr
@@ -2178,7 +2168,6 @@ module fstarpu_mod
                         type(c_ptr), value, intent(in) :: param
                         integer(c_int), value, intent(in) :: sched_ctx_id
                 end function fstarpu_sched_ctx_exec_parallel_code
-
 
                 ! int starpu_sched_ctx_get_nready_tasks(unsigned sched_ctx_id);
                 function fstarpu_sched_ctx_get_nready_tasks (sched_ctx_id) &

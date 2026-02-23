@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2014-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2014-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2014-2014   Université Joseph Fourier
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -53,7 +53,7 @@ read_df <- function(file,range1,range2) {
 # Considering only the states with a given name
   if (name != "All")
     df<-df[df$Value %in% name[[1]],]
-  
+
 # Aligning to begin time from 0
   m <- min(df$Start)
   df$Start <- df$Start - m
@@ -108,7 +108,7 @@ while (i <= length(args))
         else
           dfout<-dp
       }
-    
+
     i <- i+1
   }
 
@@ -121,5 +121,3 @@ if (nrow(dfout)==0)
 
 # Write results into the new .csv file
 write.table(dfout, file=outputfile, row.names=FALSE, sep = ", ")
-
-

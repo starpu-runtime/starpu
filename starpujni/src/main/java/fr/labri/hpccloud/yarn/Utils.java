@@ -82,7 +82,6 @@ public class Utils {
         return getMandatoryOption(cliParser, option, "no option --"+option+ " has been specified");
     }
 
-
     public static void parseKeyValueOption(String[] options, Map<String, String> result) {
         for (String kv : options) {
             kv = kv.trim();
@@ -122,7 +121,6 @@ public class Utils {
             IOUtils.closeQuietly(fs);
         }
     }
-
 
     public static String createJavaCommand (int vmMemory, String className, String outputPrefix, Iterable<String> args) {
         Vector<String> vargs = new Vector<>(30);
