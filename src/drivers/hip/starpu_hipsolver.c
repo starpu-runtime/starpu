@@ -47,9 +47,10 @@ static void init_hipsolver_func(void *args STARPU_ATTRIBUTE_UNUSED)
 #ifdef STARPU_HAVE_LIBHIPSOLVER_RF
 	if (hipsolverRfCreate(&hipsolverRf_handles[starpu_worker_get_id_check()]) != HIPSOLVER_STATUS_SUCCESS)
 		hipsolverRf_handles[starpu_worker_get_id_check()] = NULL;
-	// Not available?
-	//else
-	//	hipsolverRfSetStream(hipsolverRf_handles[starpu_worker_get_id_check()], starpu_hip_get_local_stream());
+#ifdef STARPU_HAVE_LIBHIPSOLVER_RFSETSTREAM
+	else
+		hipsolverRfSetStream(hipsolverRf_handles[starpu_worker_get_id_check()], starpu_hip_get_local_stream());
+#endif
 #endif
 }
 

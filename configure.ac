@@ -2272,6 +2272,9 @@ if test "x$enable_hip" = xyes; then
 	AC_CHECK_LIB([hipsolver],[hipsolverRfCreate],
                      [AC_DEFINE([STARPU_HAVE_LIBHIPSOLVER_RF], [1], [Define to 1 if the hipsolver library defines the Rf functions])
                                 ])
+	AC_CHECK_LIB([hipsolver],[hipsolverRfSetStream],
+                     [AC_DEFINE([STARPU_HAVE_LIBHIPSOLVER_RFSETSTREAM], [1], [Define to 1 if the hipsolver library defines the function hipsolverRfSetStream])
+                                ])
 
 	AC_ARG_ENABLE(hip_memcpy_peer, [AS_HELP_STRING([--disable-hip-memcpy-peer], [if you want to disable peer transfers when using hip])],, [enable_hip_memcpy_peer=$enable_hip])
         if test x$enable_hip_memcpy_peer = xyes; then
