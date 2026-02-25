@@ -310,6 +310,9 @@ insert_task_count_SOURCES += ring_kernel_hip.hip
 endif
 mpi_reduction_SOURCES = mpi_reduction.c
 mpi_reduction_SOURCES += mpi_reduction_kernels.c
+if STARPU_USE_CUDA
+mpi_reduction_SOURCES += mpi_reduction_kernels_cuda.cu
+endif
 user_defined_datatype_SOURCES = user_defined_datatype.c
 user_defined_datatype_SOURCES += ../../examples/interface/complex_interface.c
 

@@ -23,9 +23,19 @@ extern void redux_cpu_func(void *descr[], void *cl_arg);
 extern void dot_cpu_func(void *descr[], void *cl_arg);
 extern void display_cpu_func(void *descr[], void *cl_arg);
 
+#ifdef STARPU_USE_CUDA
+extern void init_cuda_func(void *descr[], void *cl_arg);
+extern void redux_cuda_func(void *descr[], void *cl_arg);
+extern void dot_cuda_func(void *descr[], void *cl_arg);
+#endif
+
 static struct starpu_codelet init_codelet =
 {
 	.cpu_funcs = {init_cpu_func},
+#if defined(STARPU_USE_CUDA)
+	.cuda_funcs = {init_cuda_func},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
+#endif
 	.nbuffers = 1,
 	.modes = {STARPU_W},
 #ifdef STARPU_SIMGRID
@@ -37,6 +47,10 @@ static struct starpu_codelet init_codelet =
 static struct starpu_codelet redux_codelet =
 {
 	.cpu_funcs = {redux_cpu_func},
+#if defined(STARPU_USE_CUDA)
+	.cuda_funcs = {redux_cuda_func},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
+#endif
 	.modes = {STARPU_MPI_REDUX, STARPU_R},
 	.nbuffers = 2,
 #ifdef STARPU_SIMGRID
@@ -48,6 +62,10 @@ static struct starpu_codelet redux_codelet =
 static struct starpu_codelet dot_codelet =
 {
 	.cpu_funcs = {dot_cpu_func},
+#if defined(STARPU_USE_CUDA)
+	.cuda_funcs = {dot_cuda_func},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
+#endif
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_REDUX},
 #ifdef STARPU_SIMGRID
