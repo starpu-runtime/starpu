@@ -298,7 +298,7 @@ starpu_resume();
 starpu_shutdown();
 \endcode
 
-\section GPUEatingCores When running with CUDA or OpenCL devices, I am seeing less CPU cores
+\section GPUEatingCores When running with CUDA/HIP or OpenCL devices, I am seeing less CPU cores
 
 Yes, this is on purpose.
 
