@@ -188,7 +188,11 @@ When the starpu_sched_policy::push_task method has pushed a task for another
 worker, one has to call starpu_wake_worker_relax(), starpu_wake_worker_relax_light(), starpu_wake_worker_no_relax() or starpu_wake_worker_locked() so that the worker wakes up
 and picks it. If the task was pushed on a shared queue, one may want to only
 wake one idle worker. An example doing this is available in
-<c>src/sched_policies/eager_central_policy.c</c>. When the scheduling policy makes a scheduling decision for a task, it shouhld call starpu_sched_task_break().
+<c>src/sched_policies/eager_central_policy.c</c>.
+
+When the scheduling policy makes a scheduling decision for a task, it should call
+starpu_sched_task_break() so that the \ref STARPU_TASK_BREAK_ON_SCHED environment
+variable works.
 
 Schedulers can set the minimum or maximum task priority level supported by the scheduling
 policy by calling starpu_sched_set_min_priority() or starpu_sched_set_max_priority(), and then applications can call
