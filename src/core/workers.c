@@ -2342,8 +2342,6 @@ unsigned starpu_worker_is_blocked_in_parallel(int workerid)
 	if (workerid != cur_workerid)
 		starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
-	if (workerid != cur_workerid)
-		starpu_worker_relax_off();
 	struct _starpu_worker *cur_worker = NULL;
 	if (workerid != cur_workerid)
 	{
@@ -2388,6 +2386,8 @@ unsigned starpu_worker_is_blocked_in_parallel(int workerid)
 	 * made a scheduling decision - after the fact. */
 	worker->state_blocked_in_parallel_observed = 1;
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
+	if (workerid != cur_workerid)
+		starpu_worker_relax_off();
 	if (relax_own_observation_state)
 	{
 		STARPU_PTHREAD_MUTEX_LOCK_SCHED(&cur_worker->sched_mutex);
