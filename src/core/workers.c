@@ -2320,9 +2320,13 @@ unsigned starpu_worker_is_blocked_in_parallel(int workerid)
 	int relax_own_observation_state = 0;
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	STARPU_ASSERT(worker != NULL);
-	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
-	struct _starpu_worker *cur_worker = NULL;
 	int cur_workerid = starpu_worker_get_id();
+	if (workerid != cur_workerid)
+		starpu_worker_relax_on();
+	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
+	if (workerid != cur_workerid)
+		starpu_worker_relax_off();
+	struct _starpu_worker *cur_worker = NULL;
 	if (workerid != cur_workerid)
 	{
 		/* in order to observe the 'blocked' state of a worker from
