@@ -182,6 +182,10 @@ int main(int argc, char **argv)
 		task->handles[0] = sobol_qrng_direction_handle;
 		task->handles[1] = starpu_data_get_sub_data(cnt_array_handle, 1, i);
 
+		// for cuda
+		task->cl_arg = &nshot_per_task;
+		task->cl_arg_size = sizeof(nshot_per_task);
+
 		ret = starpu_task_submit(task);
 		STARPU_ASSERT(!ret);
 	}
