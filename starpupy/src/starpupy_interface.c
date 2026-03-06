@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -118,12 +118,7 @@ static PyObject * _pyobject_pack_data(struct starpupyobject_interface *pyobject_
 	PyObject *obj = pyobject_interface->object;
 
 	PyObject *cloudpickle_module = PyImport_ImportModule("cloudpickle");
-	if (cloudpickle_module == NULL)
-	{
-		printf("can't find cloudpickle module\n");
-		Py_XDECREF(cloudpickle_module);
-		exit(1);
-	}
+	STARPUPY_ASSERT_MSG(cloudpickle_module, "can't find cloudpickle module\n");
 	PyObject *dumps = PyObject_GetAttrString(cloudpickle_module, "dumps");
 	PyObject *obj_bytes = PyObject_CallFunctionObjArgs(dumps, obj, NULL);
 
@@ -174,12 +169,7 @@ static int _pyobject_peek_data(struct starpupyobject_interface *pyobject_interfa
 
 	char *data = ptr;
 	PyObject *pickle_module = PyImport_ImportModule("pickle");
-	if (pickle_module == NULL)
-	{
-		printf("can't find pickle module\n");
-		Py_XDECREF(pickle_module);
-		exit(1);
-	}
+	STARPUPY_ASSERT_MSG(pickle_module, "can't find pickle module\n");
 	PyObject *loads = PyObject_GetAttrString(pickle_module, "loads");
 	/* TODO: should tell python that we want allocation to happen on node \p node */
 	PyObject *obj_bytes_str = PyBytes_FromStringAndSize(data, count);

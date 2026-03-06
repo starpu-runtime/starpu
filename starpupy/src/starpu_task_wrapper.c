@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -94,20 +94,6 @@
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
-
-static void STARPU_ATTRIBUTE_NORETURN print_exception(const char *msg, ...)
-{
-	PyObject *type, *value, *traceback;
-	PyErr_Fetch(&type, &value, &traceback);
-	PyObject *str = PyObject_CallMethod(value, "__str__", NULL);
-	Py_UCS4 *wstr = PyUnicode_AsUCS4Copy(str);
-	va_list ap;
-	va_start(ap, msg);
-	vfprintf(stderr, msg, ap);
-	va_end(ap);
-	fprintf(stderr, "got exception %ls\n", wstr);
-	STARPU_ASSERT(0);
-}
 
 /*********************Functions passed in task_submit wrapper***********************/
 
@@ -334,14 +320,12 @@ void starpupy_codelet_func(void *descr[], void *cl_arg)
 		starpu_codelet_pick_arg(&data, (void**)&func_data, &func_data_size);
 		/*use cloudpickle to load function (maybe only function name), return a new reference*/
 		pFunc=starpu_cloudpickle_loads(func_data, func_data_size);
-		if (!pFunc)
-			print_exception("cloudpickle could not unpack the function from the main interpreter");
+		STARPUPY_ASSERT_MSG(pFunc, "cloudpickle could not unpack the function from the main interpreter");
 		/*get argList char**/
 		starpu_codelet_pick_arg(&data, (void**)&arg_data, &arg_data_size);
 		/*use cloudpickle to load argList*/
 		argList=starpu_cloudpickle_loads(arg_data, arg_data_size);
-		if (!argList)
-			print_exception("cloudpickle could not unpack the argument list from the main interpreter");
+		STARPUPY_ASSERT_MSG(argList, "cloudpickle could not unpack the argument list from the main interpreter");
 	}
 	else
 	{
@@ -364,26 +348,35 @@ void starpupy_codelet_func(void *descr[], void *cl_arg)
 
 	starpu_codelet_unpack_arg_fini(&data);
 
+	PyObject *pModule = NULL;
 	/* if the function name is passed in*/
 	const char* tp_func = Py_TYPE(pFunc)->tp_name;
 	if (strcmp(tp_func, "str")==0)
 	{
-		/*getattr(sys.modules[__name__], "<functionname>")*/
-		/*get sys.modules*/
-		PyObject *sys_modules = PyImport_GetModuleDict();
-		/*protect borrowed reference, decrement after being called by the function*/
-		Py_INCREF(sys_modules);
-		/*get sys.modules[__name__]*/
-		PyObject *sys_modules_name=PyDict_GetItemString(sys_modules,"__main__");
-		/*protect borrowed reference, decrement after being called by the function*/
-		Py_INCREF(sys_modules_name);
-		/*get function object*/
-		func_py=PyObject_GetAttr(sys_modules_name,pFunc);
-		Py_DECREF(sys_modules);
-		Py_DECREF(sys_modules_name);
+		PyObject *pStr = PyObject_Str(pFunc);
+		const char *cStr = PyUnicode_AsUTF8(pStr);
+		char *funcname = strrchr(cStr,'.');
+
+		STARPU_ASSERT_MSG(funcname != NULL,
+				  "The python function \"%s\" cannot be loaded. It looks like you forgot to specify the module name. When using the multi_interpreter mode, one should use for example \"math.sqrt\" instead of \"sqrt\"\n",
+				  cStr);
+
+		char *module = strdup(cStr);
+		module[strlen(module)-strlen(funcname)] = '\0';
+		funcname++;
+		Py_DECREF(pStr);
+
+		PyObject *pName = PyUnicode_FromString(module);
+		pModule = PyImport_Import(pName);
+		STARPU_ASSERT_MSG(pModule != 0, "The python module \"%s\" cannot be loaded\n", module);
+
+		func_py = PyObject_GetAttrString(pModule, funcname);
 
 		/*decrement the reference obtained from unpack*/
+		Py_DECREF(pName);
+		//Py_DECREF(pModule);
 		Py_DECREF(pFunc);
+		free(module);
 	}
 	else
 	{
@@ -445,16 +438,18 @@ void starpupy_codelet_func(void *descr[], void *cl_arg)
 
 	/*call the python function get the return value rv, it's a new reference*/
 	PyObject *rv = PyObject_CallObject(func_py, pArglist);
-	if (!rv)
-		PyErr_PrintEx(1);
+	STARPUPY_ASSERT_MSG(rv, "Cannot get the return value");
 
 	// printf("arglist after applying is ");
 	//    PyObject_Print(pArglist, stdout, 0);
 	//    printf("\n");
 
-	// printf("rv after call function is ");
-	// PyObject_Print(rv, stdout, 0);
-	//    printf("\n");
+	printf("rv after call function is ");
+	PyObject_Print(rv, stdout, 0);
+	printf("\n");
+	fprintf(stderr, "type return object %s\n", Py_TYPE(rv)->tp_name);
+	///	PyObject_Print(Py_TYPE(rv), stdout, 0);
+
 
 	/*if return handle*/
 	if(h_flag)

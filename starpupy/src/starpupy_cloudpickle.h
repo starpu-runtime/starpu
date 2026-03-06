@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,9 +14,13 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#ifndef __STARPUPY_CLOUDPICKLE_H__
+#define __STARPUPY_CLOUDPICKLE_H__
+
 #include <starpu.h>
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
+#include <starpupy_private.h>
 
 static PyObject *dumps; /*cloudpickle.dumps method*/
 static PyObject *loads; /*pickle.loads method*/
@@ -25,6 +29,7 @@ static PyObject *loads; /*pickle.loads method*/
 static inline PyObject* starpu_cloudpickle_dumps(PyObject *obj, char **obj_data, Py_ssize_t *obj_data_size)
 {
 	PyObject *obj_bytes= PyObject_CallFunctionObjArgs(dumps, obj, NULL);
+	STARPUPY_ASSERT_MSG(obj_bytes, "cannot get the object to dump");
 
 	PyBytes_AsStringAndSize(obj_bytes, obj_data, obj_data_size);
 
@@ -40,3 +45,5 @@ static inline PyObject* starpu_cloudpickle_loads(char* pyString, Py_ssize_t pySt
 
 	return obj;
 }
+
+#endif /* __STARPUPY_CLOUDPICKLE_H__ */

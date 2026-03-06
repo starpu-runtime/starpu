@@ -121,7 +121,12 @@ The Python function used for task submission follows the format:
 </li>
 </ul>
 
-You can also provide the function as a string.
+You can also provide the function as a string. In that case, the function name must be fully specified with its module name.
+
+\code{.py}
+starpu.task_submit()(sqrt, 4)
+starpu.task_submit()("math.floor", 4)
+\endcode
 
 By submitting tasks through this function, you enable StarPU to
 perform optimizations for your program's execution. It's recommended

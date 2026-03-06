@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -13,7 +13,7 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
-from math import sqrt
+
 import starpu
 from starpu import starpupy
 import time
@@ -103,7 +103,7 @@ def sub_deco(x,a):
 ###############################################################################
 
 async def main():
-	#submit function "hello"
+    #submit function "hello"
     fut = starpu.task_submit()(hello)
     await(fut)
 
@@ -114,10 +114,10 @@ async def main():
     #apply starpu.delayed(func1_deco())
     await(func1_deco())
 
-	#submit function "func2"
+    #submit function "func2"
     fut2 = starpu.task_submit()(func2)
     res2 = await(fut2)
-	#print the result of function
+    #print the result of function
     print("This is a function no input and the return value is", res2)
 
     #submit function "multi"
@@ -125,17 +125,17 @@ async def main():
     res3 = await(fut3)
     print("The result of function multi is :", res3)
 
-	#submit function "add"
+    #submit function "add"
     fut4 = starpu.task_submit()(add, 1.2, 2.5, 3.6, 4.9)
     res4 = await(fut4)
     print("The result of function add is :", res4)
 
-	#submit function "sub" but only provide function name
+    #submit function "sub" but only provide function name
     fut5 = starpu.task_submit()(sub, 6, 2, 5.9)
     res5 = await(fut5)
     print("The result of function sub is:", res5)
 
-	#apply starpu.delayed(add_deco)
+    #apply starpu.delayed(add_deco)
     fut6 = add_deco(1,2,3)
     #res6 = await(fut6)
     #print("The result of function is", res6)
@@ -146,16 +146,21 @@ async def main():
     print("The first argument of this function is the result of Example 8")
     print("The result of function is", res7)
 
-    fut8 = starpu.task_submit()("sqrt", 4)
+    from math import sqrt
+    fut8 = starpu.task_submit()(sqrt, 4)
     res8 = await(fut8)
-    print("The result of function sqrt is:", res8)
+    print("The result of function math.sqrt is:", res8)
+
+    fut9 = starpu.task_submit()("math.floor", 4)
+    res9 = await(fut9)
+    print("The result of function math.floor is:", res9)
 
 try:
-        asyncio.run(main())
+    asyncio.run(main())
 except starpupy.error as e:
-        print("No worker to execute the job")
-        starpu.shutdown()
-        exit(77)
+    print("No worker to execute the job")
+    starpu.shutdown()
+    exit(77)
 
 starpu.shutdown()
 #starpu.task_wait_for_all()
