@@ -708,6 +708,14 @@ traces of scheduling events, which can then be rendered them using ViTE
 notably contain <c>include/fxt/fxt.h</c>.
 </dd>
 
+
+<dt>--enable-poti</dt>
+<dd>
+\anchor enable-poti
+\addindex __configure__--enable-poti
+Use [Poti library](https://github.com/schnorr/poti) to generate Paje traces.
+</dd>
+
 <dt>--with-perf-model-dir=<c>dir</c></dt>
 <dd>
 \anchor with-perf-model-dir
