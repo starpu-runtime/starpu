@@ -368,7 +368,7 @@ void starpupy_codelet_func(void *descr[], void *cl_arg)
 
 		PyObject *pName = PyUnicode_FromString(module);
 		pModule = PyImport_Import(pName);
-		STARPU_ASSERT_MSG(pModule != 0, "The python module \"%s\" cannot be loaded\n", module);
+		STARPUPY_ASSERT_MSG(pModule != 0, "The python module \"%s\" cannot be loaded\n", module);
 
 		func_py = PyObject_GetAttrString(pModule, funcname);
 
