@@ -205,9 +205,9 @@ PyObject* starpu_data_partition_wrapper(PyObject *self, PyObject *args)
 	/* partition along the given dimension */
 	f.filter_arg = dim;
 
-	Py_BEGIN_ALLOW_THREADS
+	Py_BEGIN_ALLOW_THREADS;
 	starpu_data_partition_plan(handle, &f, handles);
-	Py_END_ALLOW_THREADS
+	Py_END_ALLOW_THREADS;
 
 	PyObject *handle_list = PyList_New(nparts);
 	for(i=0; i<nparts; i++)
@@ -290,9 +290,9 @@ PyObject* starpu_data_unpartition_wrapper(PyObject *self, PyObject *args)
 		Py_DECREF(handles_cap);
 	}
 
-	Py_BEGIN_ALLOW_THREADS
+	Py_BEGIN_ALLOW_THREADS;
 	starpu_data_partition_clean(handle, nparts, handles);
-	Py_END_ALLOW_THREADS
+	Py_END_ALLOW_THREADS;
 
 	/*return type is void*/
 	Py_INCREF(Py_None);

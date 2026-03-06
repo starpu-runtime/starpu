@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -318,9 +318,9 @@ PyObject *starpupy_get_object_wrapper(PyObject *self, PyObject *args)
 
 	int ret;
 	/*call starpu_data_acquire*/
-	Py_BEGIN_ALLOW_THREADS
+	Py_BEGIN_ALLOW_THREADS;
 	ret= starpu_data_acquire(handle, STARPU_R);
-	Py_END_ALLOW_THREADS
+	Py_END_ALLOW_THREADS;
 	if (ret!=0)
 	{
 		RETURN_EXCEPT("Unexpected value %d returned for starpu_data_acquire", ret);
@@ -342,9 +342,9 @@ PyObject *starpupy_get_object_wrapper(PyObject *self, PyObject *args)
 	}
 
 	/*call starpu_data_release method*/
-	Py_BEGIN_ALLOW_THREADS
+	Py_BEGIN_ALLOW_THREADS;
 	starpu_data_release(handle);
-	Py_END_ALLOW_THREADS
+	Py_END_ALLOW_THREADS;
 
 	if(obj == NULL)
 	{
@@ -443,23 +443,23 @@ PyObject *starpupy_acquire_handle_wrapper(PyObject *self, PyObject *args)
 	if(strcmp(obj_mode, "R") == 0)
 	{
 		/*call starpu_data_acquire(STARPU_R)*/
-		Py_BEGIN_ALLOW_THREADS
+		Py_BEGIN_ALLOW_THREADS;
 		ret= starpu_data_acquire(handle, STARPU_R);
-		Py_END_ALLOW_THREADS
+		Py_END_ALLOW_THREADS;
 	}
 	if(strcmp(obj_mode, "W") == 0)
 	{
 		/*call starpu_data_acquire(STARPU_W)*/
-		Py_BEGIN_ALLOW_THREADS
+		Py_BEGIN_ALLOW_THREADS;
 		ret= starpu_data_acquire(handle, STARPU_W);
-		Py_END_ALLOW_THREADS
+		Py_END_ALLOW_THREADS;
 	}
 	if(strcmp(obj_mode, "RW") == 0)
 	{
 		/*call starpu_data_acquire(STARPU_RW)*/
-		Py_BEGIN_ALLOW_THREADS
+		Py_BEGIN_ALLOW_THREADS;
 		ret= starpu_data_acquire(handle, STARPU_RW);
-		Py_END_ALLOW_THREADS
+		Py_END_ALLOW_THREADS;
 	}
 
 	free(obj_mode);
@@ -511,25 +511,25 @@ PyObject *starpupy_acquire_object_wrapper(PyObject *self, PyObject *args)
 	if(strcmp(obj_mode, "R") == 0)
 	{
 		/*call starpu_data_acquire(STARPU_R)*/
-		Py_BEGIN_ALLOW_THREADS
+		Py_BEGIN_ALLOW_THREADS;
 		ret= starpu_data_acquire(handle, STARPU_R);
-		Py_END_ALLOW_THREADS
+		Py_END_ALLOW_THREADS;
 	}
 
 	if(strcmp(obj_mode, "W") == 0)
 	{
 		/*call starpu_data_acquire(STARPU_W)*/
-		Py_BEGIN_ALLOW_THREADS
+		Py_BEGIN_ALLOW_THREADS;
 		ret= starpu_data_acquire(handle, STARPU_W);
-		Py_END_ALLOW_THREADS
+		Py_END_ALLOW_THREADS;
 	}
 
 	if(strcmp(obj_mode, "RW") == 0)
 	{
 		/*call starpu_data_acquire(STARPU_RW)*/
-		Py_BEGIN_ALLOW_THREADS
+		Py_BEGIN_ALLOW_THREADS;
 		ret= starpu_data_acquire(handle, STARPU_RW);
-		Py_END_ALLOW_THREADS
+		Py_END_ALLOW_THREADS;
 	}
 
 	free(obj_mode);
@@ -579,9 +579,9 @@ PyObject *starpupy_release_handle_wrapper(PyObject *self, PyObject *args)
 	}
 
 	/*call starpu_data_release method*/
-	Py_BEGIN_ALLOW_THREADS
+	Py_BEGIN_ALLOW_THREADS;
 	starpu_data_release(handle);
-	Py_END_ALLOW_THREADS
+	Py_END_ALLOW_THREADS;
 
 	/*return type is void*/
 	Py_INCREF(Py_None);
@@ -612,9 +612,9 @@ PyObject *starpupy_release_object_wrapper(PyObject *self, PyObject *args)
 	Py_DECREF(handle_cap);
 
 	/*call starpu_data_release method*/
-	Py_BEGIN_ALLOW_THREADS
+	Py_BEGIN_ALLOW_THREADS;
 	starpu_data_release(handle);
-	Py_END_ALLOW_THREADS
+	Py_END_ALLOW_THREADS;
 
 	/*return type is void*/
 	Py_INCREF(Py_None);
@@ -666,9 +666,9 @@ PyObject *starpupy_data_unregister_wrapper(PyObject *self, PyObject *args)
 	}
 
 	/*call starpu_data_unregister method*/
-	Py_BEGIN_ALLOW_THREADS
+	Py_BEGIN_ALLOW_THREADS;
 	starpu_data_unregister(handle);
-	Py_END_ALLOW_THREADS
+	Py_END_ALLOW_THREADS;
 
 	PyCapsule_SetPointer(handle_cap, (void*)-1);
 
@@ -711,9 +711,9 @@ PyObject *starpupy_data_unregister_object_wrapper(PyObject *self, PyObject *args
 	}
 
 	/*call starpu_data_unregister method*/
-	Py_BEGIN_ALLOW_THREADS
+	Py_BEGIN_ALLOW_THREADS;
 	starpu_data_unregister(handle);
-	Py_END_ALLOW_THREADS
+	Py_END_ALLOW_THREADS;
 
 	PyCapsule_SetPointer(handle_cap, (void*)-1);
 
@@ -749,9 +749,9 @@ PyObject *starpupy_data_unregister_submit_wrapper(PyObject *self, PyObject *args
 	}
 
 	/*call starpu_data_unregister method*/
-	Py_BEGIN_ALLOW_THREADS
+	Py_BEGIN_ALLOW_THREADS;
 	starpu_data_unregister_submit(handle);
-	Py_END_ALLOW_THREADS
+	Py_END_ALLOW_THREADS;
 
 	PyCapsule_SetPointer(handle_cap, (void*)-1);
 
@@ -795,9 +795,9 @@ PyObject *starpupy_data_unregister_submit_object_wrapper(PyObject *self, PyObjec
 	}
 
 	/*call starpu_data_unregister method*/
-	Py_BEGIN_ALLOW_THREADS
+	Py_BEGIN_ALLOW_THREADS;
 	starpu_data_unregister_submit(handle);
-	Py_END_ALLOW_THREADS
+	Py_END_ALLOW_THREADS;
 
 	PyCapsule_SetPointer(handle_cap, (void*)-1);
 

@@ -1648,9 +1648,9 @@ static PyObject* starpu_shutdown_wrapper(PyObject *self, PyObject *args)
 		if (handle != (void*)-1)
 		{
 			/*call starpu_data_unregister method*/
-			Py_BEGIN_ALLOW_THREADS
+			Py_BEGIN_ALLOW_THREADS;
 			starpu_data_unregister(handle);
-			Py_END_ALLOW_THREADS
+			Py_END_ALLOW_THREADS;
 
 			PyCapsule_SetPointer(handle_cap, (void*)-1);
 		}
@@ -1678,9 +1678,9 @@ static PyObject* starpu_shutdown_wrapper(PyObject *self, PyObject *args)
 		if (handle != (void*)-1)
 		{
 			/*call starpu_data_unregister method*/
-			Py_BEGIN_ALLOW_THREADS
+			Py_BEGIN_ALLOW_THREADS;
 			starpu_data_unregister(handle);
-			Py_END_ALLOW_THREADS
+			Py_END_ALLOW_THREADS;
 
 			PyCapsule_SetPointer(handle_cap, (void*)-1);
 		}
