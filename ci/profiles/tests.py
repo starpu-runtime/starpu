@@ -510,19 +510,21 @@ profiles = [
       'hosts'       : ['node_gpu']
     },
     { 'name'        : 'starpupy-multi-interp',
-      'env'         : { 'STARPUPY_MULTI_INTERPRETER' : '1' },
+      'env'         : { 'STARPUPY_MULTI_INTERPRETER' : '1', 'PYTHON' : 'python-3.11' },
       'deploy'      : True,
       'hosts'       : ['node_gpu'],
       'rcheck'      : ['-C', 'starpupy']
 
     },
     { 'name'        : 'starpupy-mpi-ms',
+      'env'         : {'PYTHON' : 'python-3.11'},
       'opts'        : ['--enable-python-multi-interpreter', '--enable-mpi-server-client', '--disable-socl', '--disable-cpu', '--disable-cuda', '--disable-hip', '--disable-opencl'],
       'deploy'      : True,
       'hosts'       : ['node_nogpu'],
       'rcheck'      : ['-C', 'starpupy']
     },
     { 'name'        : 'starpupy-tcpip-ms',
+      'env'         : {'PYTHON' : 'python-3.11'},
       'opts'        : ['--enable-python-multi-interpreter', '--enable-tcpip-server-client', '--disable-socl', '--disable-cpu', '--disable-cuda', '--disable-hip', '--disable-opencl'],
       'deploy'      : True,
       'hosts'       : ['node_nogpu'],
