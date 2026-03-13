@@ -61,6 +61,7 @@ int main(int argc, char **argv)
 	starpu_data_handle_t *data_handles;
 	starpu_data_handle_t factor_handle;
 	struct starpu_data_descr *descrs;
+	int *nodes;
 	int mpi_init;
 	struct starpu_conf conf;
 
@@ -90,12 +91,14 @@ int main(int argc, char **argv)
 	x = calloc(1, (STARPU_NMAXBUFS+15) * sizeof(int));
 	data_handles = malloc((STARPU_NMAXBUFS+15) * sizeof(starpu_data_handle_t));
 	descrs = malloc((STARPU_NMAXBUFS+15) * sizeof(struct starpu_data_descr));
+	nodes = malloc((STARPU_NMAXBUFS+15) * sizeof(int));
 	for(i=0 ; i<STARPU_NMAXBUFS+15 ; i++)
 	{
 		starpu_variable_data_register(&data_handles[i], STARPU_MAIN_RAM, (uintptr_t)&x[i], sizeof(x[i]));
 		starpu_mpi_data_register(data_handles[i], i, 0);
 		descrs[i].handle = data_handles[i];
 		descrs[i].mode = STARPU_RW;
+		nodes[i] = -(i%7);
 	}
 	if (rank == 1)
 		factor=FFACTOR;
@@ -106,6 +109,7 @@ int main(int argc, char **argv)
 	{
 		ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &codelet,
 					     STARPU_DATA_MODE_ARRAY, descrs, STARPU_NMAXBUFS-1,
+					     STARPU_NODE_ARRAY, nodes, STARPU_NMAXBUFS-1,
 					     STARPU_R, factor_handle,
 					     0);
 		if (ret == -ENODEV)
@@ -114,6 +118,7 @@ int main(int argc, char **argv)
 
 		ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &codelet,
 					     STARPU_DATA_MODE_ARRAY, descrs, STARPU_NMAXBUFS+15,
+					     STARPU_NODE_ARRAY, nodes, STARPU_NMAXBUFS+15,
 					     STARPU_R, factor_handle,
 					     0);
 		if (ret == -ENODEV)

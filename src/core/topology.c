@@ -257,7 +257,7 @@ int _starpu_task_data_get_node_on_node(struct starpu_task *task, unsigned index,
 {
 	int node = STARPU_SPECIFIC_NODE_LOCAL;
 	if (task->cl->specific_nodes)
-		node = STARPU_CODELET_GET_NODE(task->cl, index);
+		node = STARPU_TASK_GET_NODE(task, index);
 	switch (node)
 	{
 	case STARPU_SPECIFIC_NODE_LOCAL:
@@ -283,9 +283,10 @@ int _starpu_task_data_get_node_on_node(struct starpu_task *task, unsigned index,
 	case STARPU_SPECIFIC_NODE_LOCAL_OR_CPU:
 		{
 			enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, index);
+			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, index);
 			if (mode & STARPU_R)
 			{
-				if (task->handles[index]->per_node[local_node].state != STARPU_INVALID)
+				if (handle->per_node[local_node].state != STARPU_INVALID)
 				{
 					/* It is here already, rather access it from here */
 					node = local_node;
@@ -299,7 +300,6 @@ int _starpu_task_data_get_node_on_node(struct starpu_task *task, unsigned index,
 			else
 			{
 				/* Nothing to read, consider where to write */
-				starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, index);
 				if (handle->wt_mask & (1 << STARPU_MAIN_RAM))
 					/* Write through, better simply write to the main memory */
 					node = STARPU_MAIN_RAM;
@@ -312,9 +312,10 @@ int _starpu_task_data_get_node_on_node(struct starpu_task *task, unsigned index,
 	case STARPU_SPECIFIC_NODE_LOCAL_OR_SIMILAR_OR_CPU:
 		{
 			enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, index);
+			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, index);
 			if (mode & STARPU_R)
 			{
-				if (task->handles[index]->per_node[local_node].state != STARPU_INVALID)
+				if (handle->per_node[local_node].state != STARPU_INVALID)
 				{
 					/* It is here already, rather access it from here */
 					node = local_node;
@@ -328,7 +329,7 @@ int _starpu_task_data_get_node_on_node(struct starpu_task *task, unsigned index,
 					unsigned i;
 					for (i = 0; i < STARPU_MAXNODES; i++)
 					{
-						if (task->handles[index]->per_node[i].state != STARPU_INVALID
+						if (handle->per_node[i].state != STARPU_INVALID
 						        && starpu_node_get_kind(i) == starpu_node_get_kind(local_node))
 						{
 							node = i;
@@ -340,7 +341,6 @@ int _starpu_task_data_get_node_on_node(struct starpu_task *task, unsigned index,
 			else
 			{
 				/* Nothing to read, consider where to write */
-				starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, index);
 				if (handle->wt_mask & (1 << STARPU_MAIN_RAM))
 					/* Write through, better simply write to the main memory */
 					node = STARPU_MAIN_RAM;
@@ -361,7 +361,7 @@ int _starpu_task_data_get_node_on_worker(struct starpu_task *task, unsigned inde
 	unsigned local_node = starpu_worker_get_memory_node(worker);
 	int node = STARPU_SPECIFIC_NODE_LOCAL;
 	if (task->cl->specific_nodes)
-		node = STARPU_CODELET_GET_NODE(task->cl, index);
+		node = STARPU_TASK_GET_NODE(task, index);
 	switch (node)
 	{
 	case STARPU_SPECIFIC_NODE_CPU:

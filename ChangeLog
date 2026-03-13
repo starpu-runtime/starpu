@@ -81,6 +81,8 @@ Small features:
     task across multiples ranks
   * Add STARPU_MPI_SAME access mode to force the runtime to skip distributed
     cache coherency retrieval mechanism
+  * Add task level specific node managment for codelets with variable number
+    of buffers
 
 StarPU 1.4.10
 ==============================================

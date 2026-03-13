@@ -255,11 +255,80 @@ void starpu_task_insert_data_process_mode_array_arg(struct starpu_codelet *cl, s
 
 }
 
+void starpu_task_insert_data_make_node_room(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_nodes, int current_node, int room)
+{
+	task->specific_nodes = 1;
+	if (current_node + room > STARPU_NMAXBUFS)
+	{
+		if (*allocated_nodes == 0)
+		{
+			int i;
+			struct starpu_codelet *cl2 = task->cl;
+			*allocated_nodes = (current_node + room) * 2;
+			if (cl2->specific_nodes && (cl2->nbuffers == STARPU_VARIABLE_NBUFFERS || !cl2->dyn_nodes))
+			{
+				_STARPU_MALLOC(task->dyn_nodes, *allocated_nodes * sizeof(int));
+				for(i=0 ; i<current_node ; i++)
+				{
+					task->dyn_nodes[i] = task->nodes[i];
+				}
+			}
+		}
+		else if (current_node + room > *allocated_nodes)
+		{
+			*allocated_nodes = (current_node + room) * 2;
+			if (cl->specific_nodes && (cl->nbuffers == STARPU_VARIABLE_NBUFFERS || !cl->dyn_nodes))
+			{
+				_STARPU_REALLOC(task->dyn_nodes, *allocated_nodes * sizeof(int));
+			}
+		}
+	}
+}
+
+
+void starpu_task_insert_process_node_array_arg(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_nodes, int *current_node, int nb_nodes, int *node_array)
+{
+	STARPU_ASSERT(cl != NULL);
+
+	starpu_task_insert_data_make_node_room(cl, task, allocated_nodes, *current_node, nb_nodes);
+
+	int i;
+	if(cl->specific_nodes)
+	{
+		for(i=0 ; i<nb_nodes ; i++)
+		{
+			if (task->dyn_nodes)
+			{
+				task->dyn_nodes[i] = node_array[i];
+			}
+			else if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS || (cl->nbuffers > STARPU_NMAXBUFS && !cl->dyn_nodes))
+				STARPU_TASK_SET_NODE(task, node_array[i], i);
+			else if (STARPU_CODELET_GET_NODE(cl, i))
+			{
+				STARPU_ASSERT_MSG(STARPU_CODELET_GET_NODE(cl, i) == node_array[i],
+						"The codelet <%s> defines the specific node %d for the buffer %d which is different from the node %d given to starpu_task_insert\n",
+						_starpu_codelet_get_name(cl), STARPU_CODELET_GET_NODE(cl, i),
+						i, node_array[i]);
+			}
+			else
+			{
+				STARPU_CODELET_SET_NODE(cl, node_array[i], i);
+			}
+		}
+	}
+	else
+	{
+		_STARPU_MSG("Nodes array given to non-specific nodes codelet\n");
+	}
+}
+
 int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *task, va_list varg_list)
 {
 	int arg_type;
 	int current_buffer;
+	int current_node;
 	int allocated_buffers = 0;
+	int allocated_nodes = 0;
 	unsigned ndeps = 0;
 	unsigned nend_deps = 0;
 	struct starpu_task **task_deps_array = NULL;
@@ -269,6 +338,7 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 
 	task->cl = cl;
 	current_buffer = 0;
+	current_node = 0;
 
 	struct starpu_codelet_pack_arg_data state;
 	starpu_codelet_pack_arg_init(&state);
@@ -340,6 +410,13 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 			struct starpu_data_descr *descrs = va_arg(varg_list, struct starpu_data_descr *);
 			int nb_descrs = va_arg(varg_list, int);
 			starpu_task_insert_data_process_mode_array_arg(cl, task, &allocated_buffers, &current_buffer, nb_descrs, descrs);
+			break;
+		}
+		case STARPU_NODE_ARRAY:
+		{
+			int *node_array = va_arg(varg_list, int *);
+			int nb_nodes = va_arg(varg_list, int);
+			starpu_task_insert_process_node_array_arg(cl, task, &allocated_nodes, &current_node, nb_nodes, node_array);
 			break;
 		}
 		case STARPU_EPILOGUE_CALLBACK:
@@ -630,6 +707,14 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 		if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS)
 		{
 			task->nbuffers = current_buffer;
+
+			/**
+			   Because task->dyn_nodes is used instead of cl->dyn_nodes as soon as at least one node was given as an argument to a task
+			   We must assert user has given a node to every handle, or else values of task->dyn_nodes are unitialized
+			*/
+			if( cl->specific_nodes && current_node != 0 ) {
+				STARPU_ASSERT_MSG(current_buffer == current_node, "Incoherent number of buffers between cl (%d) and number of specific nodes (%d)", current_buffer, current_node);
+			}
 		}
 		else
 		{
@@ -667,6 +752,8 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 	int arg_i = 0;
 	int current_buffer = 0;
 	int allocated_buffers = 0;
+	int current_node = 0;
+	int allocated_nodes = 0;
 	unsigned ndeps = 0;
 	unsigned nend_deps = 0;
 	struct starpu_task **task_deps_array = NULL;
@@ -768,6 +855,15 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 			arg_i++;
 			int nb_descrs = *(int *)arglist[arg_i];
 			starpu_task_insert_data_process_mode_array_arg(cl, task, &allocated_buffers, &current_buffer, nb_descrs, descrs);
+			break;
+		}
+		case STARPU_NODE_ARRAY:
+		{
+			arg_i++;
+			int *node_array = arglist[arg_i];
+			arg_i++;
+			int nb_nodes = *(int *)arglist[arg_i];
+			starpu_task_insert_process_node_array_arg(cl, task, &allocated_nodes, &current_node, nb_nodes, node_array);
 			break;
 		}
 		case STARPU_EPILOGUE_CALLBACK:
@@ -1083,6 +1179,15 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 		if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS)
 		{
 			task->nbuffers = current_buffer;
+
+			/**
+			   Because task->dyn_nodes is used instead of cl->dyn_nodes as soon as at least one node was given as an argument to a task
+			   We must assert user has given a node to every handle, or else values of task->dyn_nodes are unitialized
+			*/
+			if( cl->specific_nodes && current_node != 0 )
+			{
+				STARPU_ASSERT_MSG(current_buffer == current_node, "Incoherent number of buffers between cl (%d) and number of specific nodes (%d)", current_buffer, current_node);
+			}
 		}
 		else
 		{

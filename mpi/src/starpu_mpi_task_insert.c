@@ -403,7 +403,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 			(void)va_arg(varg_list_copy, size_t);
 			break;
 		}
-		case  STARPU_DATA_ARRAY:
+		case STARPU_DATA_ARRAY:
 		{
 			starpu_data_handle_t *data = va_arg(varg_list_copy, starpu_data_handle_t *);
 			int nb_handles = va_arg(varg_list_copy, int);
@@ -435,7 +435,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 			}
 			break;
 		}
-		case  STARPU_DATA_MODE_ARRAY:
+		case STARPU_DATA_MODE_ARRAY:
 		{
 			struct starpu_data_descr *_descrs = va_arg(varg_list_copy, struct starpu_data_descr*);
 			int nb_handles = va_arg(varg_list_copy, int);
@@ -464,6 +464,12 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 				descrs[nb_data].mode = mode;
 				nb_data ++;
 			}
+			break;
+		}
+		case STARPU_NODE_ARRAY:
+		{
+			(void)va_arg(varg_list_copy, int*);
+			(void)va_arg(varg_list_copy, int);
 			break;
 		}
 		case STARPU_EPILOGUE_CALLBACK:

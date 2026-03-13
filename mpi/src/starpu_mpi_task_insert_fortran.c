@@ -159,6 +159,14 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 			}
 			break;
 		}
+		case STARPU_NODE_ARRAY:
+		{
+			/* Node array */
+			arg_i++;
+			/* Node number */
+			arg_i++;
+			break;
+		}
 		case STARPU_EPILOGUE_CALLBACK:
 		case STARPU_EPILOGUE_CALLBACK_ARG:
 		{
