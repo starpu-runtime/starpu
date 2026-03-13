@@ -569,6 +569,29 @@ void starpu_task_insert_data_process_array_arg(struct starpu_codelet *cl, struct
 void starpu_task_insert_data_process_mode_array_arg(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_buffers, int *current_buffer, int nb_descrs, struct starpu_data_descr *descrs);
 
 /**
+   Assuming that there are already \p current_node specific nodes
+   passed to the task, and if *allocated_nodes is not 0, the
+   <c>task->dyn_nodes</c> array has size \p *allocated_nodes, this
+   function makes room for \p room other specific nodes, allocating or
+   reallocating <c>task->dyn_nodes</c> as necessary and updating \p
+   *allocated_nodes accordingly. One can thus start with
+   *allocated_nodes equal to 0 and current_node equal to 0, then
+   make room by calling this function, then store specific nodes with
+   STARPU_TASK_SET_NODE(), make room again with this function, store
+   yet more specific nodes, etc.
+   See \ref OtherTaskUtility for more details.
+*/
+void starpu_task_insert_data_make_node_room(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_nodes, int current_node, int room);
+
+/**
+   Store \p nb_nodes specific nodes described by \p node_array into task \p
+   task, updating \p *allocated_nodes and \p *current_node
+   accordingly.
+   See \ref OtherTaskUtility for more details.
+*/
+void starpu_task_insert_process_node_array_arg(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_nodes, int *current_node, int nb_nodes, int *node_array);
+
+/**
    Pack arguments of type ::STARPU_VALUE into a buffer which can be
    given to a codelet and later unpacked with the function
    starpu_codelet_unpack_args().
