@@ -151,7 +151,15 @@ enum starpu_data_access_mode
 	STARPU_RECURSIVE_TASK_STRONG = (1 << 12), /**< Ensure a strong dependency between the data and
 						     the recursive task, i.e the data will be waited for and
 						     given to the recursive task decision function for consultation */
-	STARPU_ACCESS_MODE_MAX = (1 << 13)        /**< The purpose of ::STARPU_ACCESS_MODE_MAX is to
+	STARPU_MPI_SAME=(1<<13),   /**<  Used jointly with STARPU_W or STARPU_RW, disable 
+				         writing back the result to the owner node and flushing 
+				         the cache on other nodes. This allows a set of nodes to 
+				         hold the same value for a handle as its home node. One 
+ 				         has to execute the RW task on all these nodes, so that they 
+				         all end up with the same value in the handle, for coherency. 
+				         Conversely we then have the value available in cache in all nodes, 
+				         without requiring a communication. */
+	STARPU_ACCESS_MODE_MAX = (1 << 14)        /**< The purpose of ::STARPU_ACCESS_MODE_MAX is to
 						     be the maximum of this enum.
 						  */
 };

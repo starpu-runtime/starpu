@@ -124,6 +124,8 @@ void _starpu_mpi_cache_data_clear(starpu_data_handle_t data_handle)
 	}
 
 	free(mpi_data->cache_sent);
+	free(mpi_data->alternative_source);
+	mpi_data->alternative_source = NULL;
 }
 
 void _starpu_mpi_cache_data_init(starpu_data_handle_t data_handle)
@@ -139,9 +141,11 @@ void _starpu_mpi_cache_data_init(starpu_data_handle_t data_handle)
 	mpi_data->ft_induced_cache_received = 0;
 	mpi_data->ft_induced_cache_received_count = 0;
 	_STARPU_MALLOC(mpi_data->cache_sent, _starpu_cache_comm_size*sizeof(mpi_data->cache_sent[0]));
+	_STARPU_MALLOC(mpi_data->alternative_source, _starpu_cache_comm_size*sizeof(mpi_data->alternative_source[0]));
 	for(i=0 ; i<_starpu_cache_comm_size ; i++)
 	{
 		mpi_data->cache_sent[i] = 0;
+		mpi_data->alternative_source[i] = -1;
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&_cache_mutex);
 }
@@ -318,6 +322,7 @@ void starpu_mpi_cached_send_clear(starpu_data_handle_t data_handle)
 			mpi_data->cache_sent[n] = 0;
 			_starpu_mpi_cache_data_remove_nolock(data_handle);
 		}
+		mpi_data->alternative_source[n] = -1;
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&_cache_mutex);
 }
@@ -352,6 +357,16 @@ int starpu_mpi_cached_send_set_comm(starpu_data_handle_t data_handle, int dest, 
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&_cache_mutex);
 	return already_sent;
+}
+
+void _starpu_mpi_cache_add_alternative(starpu_data_handle_t data_handle, int source)
+{
+	struct _starpu_mpi_data *mpi_data = data_handle->mpi_data;
+
+	if (_starpu_cache_enabled == 0)
+		return;
+
+	mpi_data->alternative_source[source] = 1;
 }
 
 int starpu_mpi_cached_send_comm(starpu_data_handle_t data_handle, int dest, MPI_Comm comm)

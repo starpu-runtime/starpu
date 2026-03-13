@@ -144,13 +144,14 @@ int _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum s
 	if (data && mode & STARPU_R && !(mode & STARPU_MPI_REDUX_INTERNAL))
 	{
 		int mpi_rank = starpu_mpi_data_get_rank(data);
+		int srank = starpu_mpi_data_get_source(data, xrank);
 		starpu_mpi_tag_t data_tag = starpu_mpi_data_get_tag(data);
 		if (mpi_rank == -1)
 		{
 			_STARPU_ERROR("StarPU needs to be told the MPI rank of this data, using starpu_mpi_data_register\n");
 		}
 
-		if (do_execute && mpi_rank != STARPU_MPI_PER_NODE && mpi_rank != me)
+		if (do_execute && mpi_rank != STARPU_MPI_PER_NODE && srank != me)
 		{
 			if (exchange_needed)
 				*exchange_needed = 1;
@@ -160,15 +161,15 @@ int _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum s
 			{
 				if (data_tag == -1)
 					_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
-				_STARPU_MPI_DEBUG(1, "Receiving data %p from %d with prio %d\n", data, mpi_rank, prio);
-				int ret = starpu_mpi_irecv_detached_prio(data, mpi_rank, data_tag, prio, comm, NULL, NULL);
+				_STARPU_MPI_DEBUG(1, "Receiving data %p owned by %d from %d with prio %d\n", data, mpi_rank, srank, prio);
+				int ret = starpu_mpi_irecv_detached_prio(data, srank, data_tag, prio, comm, NULL, NULL);
 				if (ret)
 					return ret;
 			}
 			// else the node has already received the data
 		}
 
-		if (!do_execute && mpi_rank == me)
+		if (!do_execute && srank == me)
 		{
 			if (exchange_needed)
 				*exchange_needed = 1;
@@ -178,8 +179,9 @@ int _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum s
 			{
 				if (data_tag == -1)
 					_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
-				_STARPU_MPI_DEBUG(1, "Sending data %p to %d with prio %d\n", data, xrank, prio);
-				_SEND_DATA(data, mode, xrank, data_tag, prio, comm, NULL, NULL);
+				_STARPU_MPI_DEBUG(1, "Sending data %p owned by %d to %d with prio %d\n", data, mpi_rank, xrank, prio);
+				if (srank == me || srank == -1)
+					_SEND_DATA(data, mode, xrank, data_tag, prio, comm, NULL, NULL);
 			}
 			/* Else the data has already been sent
 			 *
@@ -818,19 +820,18 @@ int _starpu_mpi_task_postbuild_v(MPI_Comm comm, int me, int xrank, int do_execut
 	_starpu_trace_task_mpi_post_start();
 	starpu_mpi_comm_rank(comm, &me);
 
-	if (exchange_needed)
+	for(i=0 ; i<nb_data ; i++)
 	{
-		for(i=0 ; i<nb_data ; i++)
+		if (!(descrs[i].mode & STARPU_MPI_SAME))
 		{
-			_starpu_mpi_exchange_data_after_execution(descrs[i].handle, descrs[i].mode, me, xrank, do_execute, prio, comm);
-		}
-	}
-
-	if (_starpu_cache_enabled || do_execute)
-	{
-		for(i=0 ; i<nb_data ; i++)
-		{
-			_starpu_mpi_clear_data_after_execution(descrs[i].handle, descrs[i].mode, me, do_execute);
+			if (exchange_needed)
+			{
+				_starpu_mpi_exchange_data_after_execution(descrs[i].handle, descrs[i].mode, me, xrank, do_execute, prio, comm);
+			}
+			if (_starpu_cache_enabled || do_execute)
+			{
+				_starpu_mpi_clear_data_after_execution(descrs[i].handle, descrs[i].mode, me, do_execute);
+			}
 		}
 	}
 
@@ -1316,3 +1317,175 @@ void _starpu_mpi_redux_wrapup_data_all()
 	}
  	return;
 }
+
+static
+int _starpu_mpi_tasks_build_v(MPI_Comm comm, struct starpu_codelet *codelet, struct starpu_task **task, int *xrank_p, struct starpu_data_descr **descrs_p, int *nb_data_p, int *prio_p, int p, int* nodes, va_list varg_list)
+{
+	int me, do_execute, xrank, node_xrank, nb_nodes;
+	int ret;
+	int i;
+	int node;
+	struct starpu_data_descr *descrs = NULL;
+	int nb_data;
+	int prio;
+
+	_STARPU_MPI_LOG_IN();
+
+	starpu_mpi_comm_rank(comm, &me);
+	starpu_mpi_comm_size(comm, &nb_nodes);
+
+	/* Find out whether we are to execute the data because we own the data to be written to. */
+	ret = _starpu_mpi_task_decode_v(codelet, me, nb_nodes, &xrank, &do_execute, &descrs, &nb_data, &prio, varg_list);
+	if (ret < 0)
+		return ret;
+
+	_starpu_trace_task_mpi_pre_start();
+	do_execute = 0;
+	/* Send and receive data as requested */
+	for(i=0 ; i<nb_data ; i++)
+	{
+                if (descrs[i].handle && descrs[i].handle->mpi_data)
+		{
+			char* redux_map = starpu_mpi_data_get_redux_map(descrs[i].handle);
+			if (redux_map != NULL && descrs[i].mode & STARPU_R && ( descrs[i].mode & ~ STARPU_REDUX || descrs[i].mode & ~ STARPU_MPI_REDUX ))
+			{
+				_starpu_mpi_redux_wrapup_data(descrs[i].handle);
+			}
+		}
+		for (node=0; node<p; node++)
+		{
+			node_xrank = nodes[node];
+			if (me == node_xrank)
+				do_execute = 1;
+			_starpu_mpi_exchange_data_before_execution(descrs[i].handle, descrs[i].mode, me, node_xrank, me == node_xrank, prio, comm, NULL);
+		}
+		if (descrs[i].mode & STARPU_W)
+		{
+			descrs[i].mode += STARPU_MPI_SAME;
+		}
+	}
+
+	if (xrank_p)
+		*xrank_p = xrank;
+	if (nb_data_p)
+		*nb_data_p = nb_data;
+	if (prio_p)
+		*prio_p = prio;
+
+	if (descrs_p)
+		*descrs_p = descrs;
+	else
+		free(descrs);
+
+	if (do_execute == 1)
+	{
+		va_list varg_list_copy;
+		_STARPU_MPI_DEBUG(100, "Execution of the codelet %p (%s)\n", codelet, codelet?codelet->name:NULL);
+
+		*task = starpu_task_create();
+		(*task)->cl_arg_free = 1;
+		(*task)->callback_arg_free = 1;
+		(*task)->prologue_callback_arg_free = 1;
+		(*task)->prologue_callback_pop_arg_free = 1;
+
+		va_copy(varg_list_copy, varg_list);
+		_starpu_task_insert_create(codelet, *task, varg_list_copy);
+		va_end(varg_list_copy);
+
+		if ((*task)->cl)
+		{
+			/* we suppose the current context is not going to change between now and the execution of the task */
+			(*task)->sched_ctx = _starpu_sched_ctx_get_current_context();
+			/* Check the type of worker(s) required by the task exist */
+			if (STARPU_UNLIKELY(!_starpu_worker_exists(*task)))
+			{
+				_STARPU_MPI_DEBUG(0, "There is no worker to execute the codelet %p (%s)\n", codelet, codelet?codelet->name:NULL);
+				return -ENODEV;
+			}
+
+			/* In case we require that a task should be explicitely
+			 * executed on a specific worker, we make sure that the worker
+			 * is able to execute this task.  */
+			if (STARPU_UNLIKELY((*task)->execute_on_a_specific_worker && !starpu_combined_worker_can_execute_task((*task)->workerid, *task, 0)))
+			{
+				_STARPU_MPI_DEBUG(0, "The specified worker %d cannot execute the codelet %p (%s)\n", (*task)->workerid, codelet, codelet?codelet->name:NULL);
+				return -ENODEV;
+			}
+		}
+	}
+
+	_starpu_trace_task_mpi_pre_end();
+
+	return do_execute;
+}
+
+static
+int _starpu_mpi_tasks_insert_v(MPI_Comm comm, struct starpu_codelet *codelet, int p, int* nodes, va_list varg_list)
+{
+	struct starpu_task *task;
+	int ret, val = 0;
+	struct starpu_data_descr *descrs;
+	int nb_data;
+	int prio;
+	int home_rank;
+
+	/* ret = 1 if me is in nodes */
+	ret = _starpu_mpi_tasks_build_v(comm, codelet, &task, &home_rank, &descrs, &nb_data, &prio, p, nodes, varg_list);
+	if (ret < 0)
+		return ret;
+
+	int node, tmp_rk;
+	/* sanitize node set because of sequential consistency */
+	for (node=0; node < p; node ++)
+	{
+		if (nodes[node] == home_rank)
+		{
+			tmp_rk = nodes[p-1];
+			nodes[p-1] = nodes[node];
+			nodes[node] = tmp_rk;
+			break;
+		}
+	}
+	int me;
+	starpu_mpi_comm_rank(comm, &me);
+
+	if (ret == 1)
+	{
+		ret = starpu_task_submit(task);
+
+		if (STARPU_UNLIKELY(ret == -ENODEV))
+		{
+			_STARPU_MSG("submission of task %p wih codelet %p failed (symbol `%s') (err: ENODEV)\n",
+				    task, task->cl,
+				    (codelet == NULL) ? "none" :
+				    task->cl->name ? task->cl->name :
+				    (task->cl->model && task->cl->model->symbol)?task->cl->model->symbol:"none");
+
+			task->destroy = 0;
+			starpu_task_destroy(task);
+			free(descrs);
+			return -ENODEV;
+		}
+		if (pre_submit_hook)
+			pre_submit_hook(task);
+	}
+	for (node=0; node < p; node++)
+	{
+		val = _starpu_mpi_task_postbuild_v(comm, me, nodes[node], me == nodes[node], descrs, nb_data, prio, 1);
+	}
+	free(descrs);
+	return val;
+}
+
+#undef starpu_mpi_tasks_insert
+int starpu_mpi_tasks_insert(MPI_Comm comm, struct starpu_codelet *codelet, int p, int* nodes,...)
+{
+	va_list varg_list;
+	int ret;
+
+	va_start(varg_list, nodes);
+	ret = _starpu_mpi_tasks_insert_v(comm, codelet, p, nodes, varg_list);
+	va_end(varg_list);
+	return ret;
+}
+

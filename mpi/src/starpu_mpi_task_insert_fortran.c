@@ -409,6 +409,103 @@ int _fstarpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, str
 }
 
 static
+int _fstarpu_mpi_tasks_build_v(MPI_Comm comm, struct starpu_codelet *codelet, struct starpu_task **task, int *xrank_p, struct starpu_data_descr **descrs_p, int *nb_data_p, int *prio_p, int p, int* nodes, void **arglist)
+{
+	int me, do_execute, xrank, nb_nodes;
+	int ret;
+	int i;
+	struct starpu_data_descr *descrs;
+	int nb_data;
+	int prio;
+	int node, node_xrank;
+
+	_STARPU_MPI_LOG_IN();
+
+	starpu_mpi_comm_rank(comm, &me);
+	starpu_mpi_comm_size(comm, &nb_nodes);
+
+	/* Find out whether we are to execute the data because we own the data to be written to. */
+	ret = _fstarpu_mpi_task_decode_v(codelet, me, nb_nodes, &xrank, &do_execute, &descrs, &nb_data, &prio, arglist);
+	if (ret < 0)
+		return ret;
+
+	_starpu_trace_task_mpi_pre_start();
+	do_execute = 0;
+	/* Send and receive data as requested */
+	for(i=0 ; i<nb_data ; i++)
+	{
+		starpu_data_handle_t hdl = descrs[i].handle;
+                if (hdl && _starpu_mpi_data_get(hdl))
+		{
+			char *redux_map = starpu_mpi_data_get_redux_map(hdl);
+			if (redux_map != NULL && descrs[i].mode & STARPU_R && ( descrs[i].mode & ~ STARPU_REDUX || descrs[i].mode & ~ STARPU_MPI_REDUX ))
+			{
+				_starpu_mpi_redux_wrapup_data(hdl);
+			}
+		}
+		for (node = 0; node < p; node++)
+		{
+			node_xrank = nodes[node];
+			if (me == node_xrank)
+				do_execute = 1;
+			_starpu_mpi_exchange_data_before_execution(descrs[i].handle, descrs[i].mode, me, node_xrank, me == node_xrank, prio, comm, NULL);
+		}
+		if (descrs[i].mode & STARPU_W)
+		{
+			descrs[i].mode += STARPU_MPI_SAME;
+		}
+	}
+
+	if (xrank_p)
+		*xrank_p = xrank;
+	if (nb_data_p)
+		*nb_data_p = nb_data;
+	if (prio_p)
+		*prio_p = prio;
+
+	if (descrs_p)
+		*descrs_p = descrs;
+	else
+		free(descrs);
+	_starpu_trace_task_mpi_pre_end();
+
+	if (do_execute)
+	{
+		_STARPU_MPI_DEBUG(100, "Execution of the codelet %p (%s)\n", codelet, codelet?codelet->name:NULL);
+
+		*task = starpu_task_create();
+		(*task)->cl_arg_free = 1;
+		(*task)->callback_arg_free = 1;
+		(*task)->prologue_callback_arg_free = 1;
+		(*task)->prologue_callback_pop_arg_free = 1;
+
+		_fstarpu_task_insert_create(codelet, *task, arglist);
+// 		FIXME why is this necessary in the C-implementation but not the fortran one ?
+//		if ((*task)->cl)
+//		{
+//			/* we suppose the current context is not going to change between now and the execution of the task */
+//			(*task)->sched_ctx = _starpu_sched_ctx_get_current_context();
+//			/* Check the type of worker(s) required by the task exist */
+//			if (STARPU_UNLIKELY(!_starpu_worker_exists(*task)))
+//			{
+//				_STARPU_MPI_DEBUG(0, "There is no worker to execute the codelet %p (%s)\n", codelet, codelet?codelet->name:NULL);
+//				return -ENODEV;
+//			}
+//
+//			/* In case we require that a task should be explicitely
+//			 * executed on a specific worker, we make sure that the worker
+//			 * is able to execute this task.  */
+//			if (STARPU_UNLIKELY((*task)->execute_on_a_specific_worker && !starpu_combined_worker_can_execute_task((*task)->workerid, *task, 0)))
+//			{
+//				_STARPU_MPI_DEBUG(0, "The specified worker %d cannot execute the codelet %p (%s)\n", (*task)->workerid, codelet, codelet?codelet->name:NULL);
+//				return -ENODEV;
+//			}
+//		}
+	}
+	return do_execute;
+}
+
+static
 int _fstarpu_mpi_task_insert_v(MPI_Comm comm, struct starpu_codelet *codelet, void **arglist)
 {
 	struct starpu_task *task;
@@ -455,6 +552,61 @@ int _fstarpu_mpi_task_insert_v(MPI_Comm comm, struct starpu_codelet *codelet, vo
 	return val;
 }
 
+static
+int _fstarpu_mpi_tasks_insert_v(MPI_Comm comm, struct starpu_codelet *codelet, int p, int* nodes, void **arglist)
+{
+	struct starpu_task *task;
+	int ret;
+	struct starpu_data_descr *descrs;
+	int nb_data;
+	int prio;
+	int me;
+	int node, tmp_rk;
+	int home_rank;
+
+	starpu_mpi_comm_rank(comm, &me);
+
+	/* return 1 if me is in nodes */
+	ret = _fstarpu_mpi_tasks_build_v(comm, codelet, &task, &home_rank, &descrs, &nb_data, &prio, p, nodes, arglist);
+	if (ret < 0)
+		return ret;
+
+	/* sanitize node set because of sequential consistency */
+	for (node=0; node < p; node ++)
+	{
+		if (nodes[node] == home_rank)
+		{
+			tmp_rk = nodes[p-1];
+			nodes[p-1] = nodes[node];
+			nodes[node] = tmp_rk;
+			break;
+		}
+	}
+
+	if (ret == 1)
+	{
+		ret = starpu_task_submit(task);
+
+		if (STARPU_UNLIKELY(ret == -ENODEV))
+		{
+			_STARPU_MSG("submission of task %p wih codelet %p failed (symbol `%s') (err: ENODEV)\n",
+				    task, task->cl,
+				    (codelet == NULL) ? "none" :
+				    task->cl->name ? task->cl->name :
+				    (task->cl->model && task->cl->model->symbol)?task->cl->model->symbol:"none");
+
+			task->destroy = 0;
+			starpu_task_destroy(task);
+		}
+	}
+	for (node = 0; node < p; node ++)
+	{
+		ret = _starpu_mpi_task_postbuild_v(comm, me, nodes[node], me == nodes[node], descrs, nb_data, prio, 1);
+	}
+	free(descrs);
+	return ret;
+}
+
 void fstarpu_mpi_task_insert(void **arglist)
 {
 	MPI_Fint comm = *((MPI_Fint *)arglist[0]);
@@ -466,6 +618,22 @@ void fstarpu_mpi_task_insert(void **arglist)
 
 	int ret;
 	ret = _fstarpu_mpi_task_insert_v(MPI_Comm_f2c(comm), codelet, arglist+2);
+	STARPU_ASSERT(ret >= 0);
+}
+
+void fstarpu_mpi_tasks_insert(void **arglist)
+{
+	MPI_Fint comm = *((MPI_Fint *)arglist[0]);
+	struct starpu_codelet *codelet = arglist[1];
+	if (codelet == NULL)
+	{
+		STARPU_ABORT_MSG("task without codelet");
+	}
+	int p = *((int*)arglist[2]);
+	int* nodes = (int*)arglist[3];
+
+	int ret;
+	ret = _fstarpu_mpi_tasks_insert_v(MPI_Comm_f2c(comm), codelet, p, nodes, arglist+4);
 	STARPU_ASSERT(ret >= 0);
 }
 

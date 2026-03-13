@@ -75,6 +75,12 @@ Small features:
     be local or in memory of same kind (or cpu)
   * Add environment variable STARPU_PROFILING_TASK to automatically
     display task profiling information
+  * Add starpu_data_set/get_source() to allow a node to provide a given handle
+    to other nodes instead of the owner of the handle
+  * Add starpu_mpi_insert_tasks() to allow multiple nodes to submit the same
+    task across multiples ranks
+  * Add STARPU_MPI_SAME access mode to force the runtime to skip distributed
+    cache coherency retrieval mechanism
 
 StarPU 1.4.10
 ==============================================

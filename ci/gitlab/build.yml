@@ -80,7 +80,7 @@ check:
   extends: .check_template
   parallel:
     matrix:
-      - NODE: [debian12, debian10, ubuntu1604, ubuntu1804, ubuntu2004]
+      - NODE: [debian12, debian10, ubuntu1604, ubuntu1804, ubuntu2004, ubuntu2204]
   image: registry.gitlab.inria.fr/starpu/starpu-docker/ci-${NODE}
   tags: ['ci.inria.fr', 'linux', 'large']
 

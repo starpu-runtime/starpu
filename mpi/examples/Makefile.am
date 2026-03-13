@@ -435,6 +435,44 @@ endif
 endif
 endif
 
+##############################
+# alternative_source example #
+##############################
+
+examplebin_PROGRAMS +=		  	\
+	cache/alternative_source
+
+starpu_mpi_EXAMPLES	+=		\
+	cache/alternative_source
+
+examplebin_PROGRAMS +=			  	 	\
+	alternative_sources/alternative_source_RAR 	\
+	alternative_sources/alternative_source_RAR_prune \
+	alternative_sources/alternative_source_WAR
+
+############################
+# replicated_tasks example #
+############################
+
+examplebin_PROGRAMS +=			  	 \
+	replicated_tasks/replicated_work  	 \
+	replicated_tasks/replicated_works  	 \
+	replicated_tasks/replicated_source
+
+replicated_tasks_replicated_works_SOURCES =	\
+	replicated_tasks/replicated_works.c
+
+replicated_tasks_replicated_work_SOURCES =	\
+	replicated_tasks/replicated_work.c
+
+replicated_tasks_replicated_source_SOURCES =	\
+	replicated_tasks/replicated_source.c
+
+starpu_mpi_EXAMPLES	+=			\
+	replicated_tasks/replicated_work	\
+	replicated_tasks/replicated_works	\
+	replicated_tasks/replicated_source
+
 ###################
 # complex example #
 ###################

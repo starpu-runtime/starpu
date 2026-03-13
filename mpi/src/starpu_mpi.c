@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2019-2021  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -507,6 +507,7 @@ struct _starpu_mpi_data *_starpu_mpi_data_get(starpu_data_handle_t data_handle)
 		mpi_data->node_tag.node.rank = -1;
 		mpi_data->node_tag.node.comm = MPI_COMM_WORLD;
 		mpi_data->nb_future_sends = 0;
+ 	 	mpi_data->alternative_source = NULL;
 		_starpu_spin_init(&mpi_data->coop_lock);
 		data_handle->mpi_data = mpi_data;
 		_starpu_mpi_cache_data_init(data_handle);
@@ -574,6 +575,9 @@ int starpu_mpi_get_data_on_node_detached(MPI_Comm comm, starpu_data_handle_t dat
 
 	starpu_mpi_comm_rank(comm, &me);
 	if (node == rank)
+		return 0;
+
+	if (node == starpu_mpi_data_get_source(data_handle, node))
 		return 0;
 
 	data_tag = starpu_mpi_data_get_tag(data_handle);
@@ -759,4 +763,133 @@ int starpu_mpi_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t sr
 int starpu_mpi_data_cpy_priority(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle, MPI_Comm comm, int asynchronous, void (*callback_func)(void *), void *callback_arg, int priority)
 {
 	return _starpu_mpi_data_cpy(dst_handle, src_handle, comm, asynchronous, callback_func, callback_arg, priority);
+}
+
+int starpu_mpi_data_get_source(starpu_data_handle_t data, int node)
+{
+	int rank = -1;
+	int result = -1;
+	int size = starpu_mpi_world_size();
+
+	if (data && node != STARPU_MPI_PER_NODE)
+	{
+		STARPU_ASSERT_MSG(node < size, "Rank of node (%d) is not valid for WORLD of size %d\n", node, size);
+		STARPU_ASSERT_MSG(0 <= node, "Rank of node (%d) is not valid for WORLD of size %d\n", node, size);
+        	rank = starpu_mpi_data_get_rank(data);
+        	if (((struct _starpu_mpi_data *)(data->mpi_data))->alternative_source)
+		{
+		        result = ((struct _starpu_mpi_data *)(data->mpi_data))->alternative_source[node];
+		}
+	}
+	return result == -1 ? rank : result;
+}
+
+void starpu_mpi_data_set_source(starpu_data_handle_t data, int node, int new_source)
+{
+	int me, size, ret;
+	MPI_Comm comm;
+	struct _starpu_mpi_data *mpi_data;
+	starpu_mpi_tag_t data_tag;
+
+	if (starpu_mpi_cache_is_enabled() == 0)
+	{
+		_STARPU_MSG("MPI cache is disabled, calling starpu_mpi_data_set_source() is irrelevant\n");
+		return;
+	}
+	mpi_data = _starpu_mpi_data_get(data);
+	data_tag = starpu_mpi_data_get_tag(data);
+	comm = mpi_data->node_tag.node.comm;
+
+	starpu_mpi_comm_size(comm, &size);
+	STARPU_ASSERT_MSG(new_source < size, "new_source (%d) is not a valid rank in WORLD of size %d\n", new_source, size);
+	STARPU_ASSERT_MSG(node < size, "node (%d) is not a valid rank in WORLD of size %d\n", node, size);
+	STARPU_ASSERT_MSG(data->mpi_data, "starpu_mpi_data_register MUST be called for data %p\n", data);
+
+	int source_source = starpu_mpi_data_get_source(data,new_source);
+	if (source_source == new_source && source_source == starpu_mpi_data_get_rank(data))
+	{
+		_STARPU_MPI_DEBUG(10, "%d and its source for data %p are the same\n", new_source, data);
+		return;
+	}
+
+	_STARPU_MPI_DEBUG(1, "Data %p will be received from %d by %d\n", data, new_source, node);
+
+	/* set cache*/
+	/* TODO new_source should get the same "cache state" as the home owner of data */
+	starpu_mpi_comm_rank(comm, &me);
+	ret = 0;
+	/* get data on new_source */
+ 	if (me == new_source)
+	{
+		int already_received = starpu_mpi_cached_receive_set(data);
+		if (already_received == 0)
+		{
+			_STARPU_MPI_DEBUG(2, "Receiving data %p from %d so I can source to %d\n", data, source_source, node);
+			ret = starpu_mpi_irecv_detached(data, source_source, data_tag, comm, NULL,NULL);
+		}
+		else
+		{
+			_STARPU_MPI_DEBUG(5, "Already received data %p from %d to source to %d\n", data, source_source, node);
+		}
+	}
+	else if (me == source_source)
+	{
+		int already_sent = starpu_mpi_cached_send_set(data, new_source);
+		if (already_sent == 0)
+		{
+			_STARPU_MPI_DEBUG(2, "Sending data %p to %d\n", data, new_source);
+			ret = starpu_mpi_isend_detached(data, new_source, data_tag, comm, NULL, NULL);
+		}
+		else
+		{
+			_STARPU_MPI_DEBUG(5, "Already sent data %p to %d\n", data, new_source);
+		}
+	}
+  	/* node forgets it has cached data ; new_source never held cache for them anyway */
+	else if (me == node)
+	{
+		starpu_mpi_cache_flush(comm, data);
+	}
+
+        if (ret)
+	{
+		_STARPU_ERROR("Could not carry out detached send or recv.\n");
+ 	}
+
+	/* set source */
+	mpi_data->alternative_source[node] = new_source;
+	return;
+}
+
+// NB : this is used internally only by starpu_mpi_cached_send_clear
+void starpu_mpi_data_reset_source(starpu_data_handle_t data, int node)
+{
+	struct _starpu_mpi_data *mpi_data;
+	MPI_Comm comm;
+	int size, rank;
+	if (!starpu_mpi_cache_is_enabled())
+	{
+		_STARPU_MPI_DEBUG(2, "No cache = no alternative source\n");
+		return;
+	}
+
+	STARPU_ASSERT_MSG(data->mpi_data, "starpu_mpi_data_register MUST be called for data %p\n", data);
+
+ 	mpi_data = _starpu_mpi_data_get(data);
+	comm = mpi_data->node_tag.node.comm;
+	starpu_mpi_comm_rank(comm, &rank);
+	starpu_mpi_comm_size(comm, &size);
+
+	STARPU_ASSERT_MSG(node < size, "Rank of node (%d) is not valid for WORLD of size %d\n", node, size);
+	STARPU_ASSERT_MSG(-1 < node, "Rank of node (%d) is not a valid rank\n", node);
+
+	/* TODO the alternatives sources could send their cache state to the original owner */
+  	/* node forget it is caching data */
+	if (rank == node)
+	{
+		starpu_mpi_cache_flush(comm, data);
+	}
+	_STARPU_MPI_DEBUG(1, "Data %p will be received from owner by %d instead of %d\n", data, node, mpi_data->alternative_source[node]);
+	mpi_data->alternative_source[node] = -1;
+	return;
 }

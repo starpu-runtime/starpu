@@ -32,6 +32,7 @@ module fstarpu_mod
         type(c_ptr), bind(C) :: FSTARPU_COMMUTE
         type(c_ptr), bind(C) :: FSTARPU_SSEND
         type(c_ptr), bind(C) :: FSTARPU_LOCALITY
+        type(c_ptr), bind(C) :: FSTARPU_MPI_SAME
 
         type(c_ptr), bind(C) :: FSTARPU_DATA_ARRAY
         type(c_ptr), bind(C) :: FSTARPU_DATA_MODE_ARRAY

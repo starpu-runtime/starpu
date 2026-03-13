@@ -265,6 +265,11 @@ module fstarpu_mpi_mod
                         use iso_c_binding, only: c_ptr
                         type(c_ptr), dimension(*), intent(in) :: arglist
                 end subroutine fstarpu_mpi_insert_task
+                ! int starpu_mpi_tasks_insert(MPI_Comm comm, struct starpu_codelet *codelet, int p, int* nodes,...);
+                subroutine fstarpu_mpi_tasks_insert(arglist) bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), dimension(*), intent(in) :: arglist
+                end subroutine fstarpu_mpi_tasks_insert
 
                 ! void starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle_t data_handle, int node);
                 subroutine fstarpu_mpi_get_data_on_node(mpi_comm,dh,node) bind(C)
@@ -640,6 +645,32 @@ module fstarpu_mpi_mod
                         integer(c_int) :: fstarpu_mpi_cache_set
                         integer(c_int), value, intent(in) :: enabled
                 end function fstarpu_mpi_cache_set
+
+                !int starpu_mpi_data_get_source(starpu_data_handle_t data, int node); 
+                function fstarpu_mpi_data_get_source(dh, node) bind(C,name="starpu_mpi_data_get_source")
+                        use iso_c_binding
+                        implicit none
+                        integer(c_int)                    :: fstarpu_mpi_data_get_source
+                        type(c_ptr), value, intent(in)    :: dh
+                        integer(c_int), value, intent(in) :: node
+                end function fstarpu_mpi_data_get_source
+
+                !void starpu_mpi_data_set_source(starpu_data_handle_t data, int node, int new_source); 
+                subroutine fstarpu_mpi_data_set_source(dh, node, src) bind(C,name="starpu_mpi_data_set_source")
+                        use iso_c_binding
+                        implicit none
+                        type(c_ptr), value, intent(in)    :: dh
+                        integer(c_int), value, intent(in) :: node
+                        integer(c_int), value, intent(in) :: src
+                end subroutine fstarpu_mpi_data_set_source
+
+                !void starpu_mpi_data_reset_source(starpu_data_handle_t data, int node);
+                subroutine fstarpu_mpi_data_reset_source(dh, node) bind(C,name="starpu_mpi_data_reset_source")
+                        use iso_c_binding
+                        implicit none
+                        type(c_ptr), value, intent(in)    :: dh
+                        integer(c_int), value, intent(in) :: node
+                end subroutine fstarpu_mpi_data_reset_source
 
                 ! int starpu_mpi_wait_for_all(MPI_Comm comm);
                 function fstarpu_mpi_wait_for_all (mpi_comm) bind(C)

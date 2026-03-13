@@ -673,6 +673,11 @@ int starpu_mpi_task_insert(MPI_Comm comm, struct starpu_codelet *codelet, ...);
 #endif
 
 /**
+   Insert the same task on the first \p p nodes in nodes. RW access modes are modified to add the ::MPI_SAME flag.
+*/
+int starpu_mpi_tasks_insert(MPI_Comm comm, struct starpu_codelet *codelet, int p, int* nodes, ...);
+
+/**
    Identical to starpu_mpi_task_insert(). Symbol kept for backward compatibility.
 */
 int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...);
@@ -986,6 +991,29 @@ void starpu_mpi_comm_stats_enable(void);
    through the environment variable \ref STARPU_MPI_STATS.
 */
 void starpu_mpi_comm_stats_retrieve(size_t *comm_stats);
+
+/** @} */
+
+/**
+   @name Alternative source
+   \anchor MPIAltSrc
+   @{
+*/
+
+/**
+   Return the alternative source used by \p node to receive this \p data.
+*/
+int starpu_mpi_data_get_source(starpu_data_handle_t data, int node);
+
+/**
+   Modify the alternative source used by \p node to receive this \p data to \p new_source.
+*/
+void starpu_mpi_data_set_source(starpu_data_handle_t data, int node, int new_source);
+
+/**
+   Modify the alternative source used by \p node to receive this \p data to the default (home node).
+*/
+void starpu_mpi_data_reset_source(starpu_data_handle_t data, int node);
 
 /** @} */
 

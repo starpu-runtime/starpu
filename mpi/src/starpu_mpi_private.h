@@ -231,6 +231,9 @@ struct _starpu_mpi_data
 	struct _starpu_mpi_node_tag node_tag;
 	char *cache_sent;
 	unsigned int cache_received;
+ 	/** Alternative sources to receive this data from.
+ 	  * If alternative_source[i] is set to -1, use home node; otherwise use value as rank for source. */
+  	int *alternative_source;
 	unsigned int ft_induced_cache_received:1;
 	unsigned int ft_induced_cache_received_count:1;
 	unsigned int modified:1; // Whether the data has been modified since the registration.

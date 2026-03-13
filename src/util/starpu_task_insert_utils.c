@@ -180,6 +180,10 @@ void starpu_task_insert_data_process_arg(struct starpu_codelet *cl, struct starp
 
 	enum starpu_data_access_mode arg_mode = (enum starpu_data_access_mode) arg_type & ~STARPU_SSEND & ~STARPU_NOFOOTPRINT;
 
+	if (arg_mode & STARPU_MPI_SAME)
+	{
+		arg_mode = arg_mode - STARPU_MPI_SAME;
+	}
 	if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS || (cl->nbuffers > STARPU_NMAXBUFS && !cl->dyn_modes))
 	{
 		STARPU_TASK_SET_MODE(task, arg_mode,* current_buffer);

@@ -1061,6 +1061,85 @@ latest value on the original home node.
     }
 \endcode
 
+\section MPIAlternative MPI Alternative Source
+
+It is possible to setup an alternative source for a data handle. When
+submitting task, the MPI layer selects, by default, the home owner of the
+handle to prepare the communications requests. This may have
+sub-optimal performance in some cases.
+
+Let us assume many processes are placed per node in an application
+aware of the network topology: communications over sockets are faster than
+communications over the network. In such a case, if a data \c D has to be
+broadcasted from a process \c P on a given node to processes on another
+node \c N, it may be beneficial for processes on \c N to setup a single
+process \c Q as an alternative source for \c D. This way, \c D will
+transit over the network once to \c Q and then be transmitted over the
+socket to other processes on \c N.
+
+The presented behaviour can be obtained through the function
+starpu_mpi_data_set_source(). Examples are available in the
+directory \c mpi/examples/alternative_sources.
+
+\section MPISame MPI Task Replication
+
+Normally, a task submitted to StarPU is executed only by one MPI rank. If this
+task produces a result within a handle that is owned by the
+executing rank, then no MPI communication of this handle is required. 
+However if the executing
+rank is any other rank, two communications could be issued : one communication
+if ::STARPU_R is used to obtain the data on the executing rank 
+and another communication so that the owner rank obtains an up-to-date copy of
+the handle.
+
+In some cases - for instance if multiple nodes require an iteratively updated
+value of a handle - it is more
+efficient to replicate tasks on various MPI ranks to get the result on them
+without multiple MPI communications. Writing this by hand by creating specific handles
+to store replicated values would however come at the cost of clarity and
+expressiveness of the code. The task replication support of StarPU provided by
+::STARPU_MPI_SAME allows to get tasks replicated in a seamless way.
+
+The use of this feature is presented in
+\c mpi/examples/replicated_tasks/replicated_work.c. It can be used in addition with
+alternative sources, as presented in \c mpi/examples/replicated_tasks/replicated_source.c.
+
+When inserting tasks to replicated computation over a set of nodes,
+including the owner of the original data, the owner should be the last
+node to insert the replicating task to follow sequential consistency, as in the
+following snippets.
+
+\code{.c}
+ 	for (rk = 0; rk < 2; rk ++)
+	{
+		if (rk != 0)
+		{
+			starpu_mpi_task_insert(MPI_COMM_WORLD, &repl_work_cl,
+					       STARPU_RW | STARPU_MPI_SAME, A_h,
+					       STARPU_EXECUTE_ON_NODE, rk,
+					       0);
+		}
+	}
+	starpu_mpi_task_insert(MPI_COMM_WORLD, &repl_work_cl,
+			       STARPU_RW | STARPU_MPI_SAME, A_h,
+			       STARPU_EXECUTE_ON_NODE, 0,
+			       0);
+\endcode
+
+An additional insertion routine starpu_mpi_tasks_insert() is available to simplify
+the replication of the same codelet over an array of MPI ranks - note the s.
+All passed handles accessed in ::STARPU_R mode are
+also accessed with ::STARPU_MPI_SAME. The usage is presented in
+\c mpi/examples/replicated_tasks/replicated_works.c. The example included in
+this section simplifies to the following code.
+
+\code{.c}
+	int ranks[2] = {0,1};
+	starpu_mpi_tasks_insert(MPI_COMM_WORLD, &repl_work_cl, 
+				2, ranks,
+				STARPU_RW, A_h);
+\endcode
+
 \section MPICollective MPI Collective Operations
 
 The functions are described in \ref MPICollectiveOperations.
