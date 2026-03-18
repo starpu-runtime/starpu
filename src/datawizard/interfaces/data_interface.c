@@ -1067,7 +1067,7 @@ static void __starpu_data_deinitialize(starpu_data_handle_t handle)
 	}
 }
 
-static void _starpu_data_invalidate(void *data)
+void _starpu_data_invalidate(void *data)
 {
 	starpu_data_handle_t handle = data;
 	size_t size = _starpu_data_get_alloc_size(handle);

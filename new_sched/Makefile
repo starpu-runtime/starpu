@@ -6,7 +6,7 @@ CXXSTD ?= -std=c++17
 CXXFLAGS ?= -O0 -g -pthread -fPIC -D_GNU_SOURCE -D_XOPEN_SOURCE=700
 
 # Use pkg-config for StarPU
-PKG_CFLAGS := $(shell pkg-config --cflags $(PKG) 2>/dev/null)
+PKG_CFLAGS := $(shell pkg-config --cflags $(PKG) 2>/dev/null) -I/Users/muxas/Code/starpu/src -I/Users/muxas/Code/starpu/build/src
 PKG_LIBS   := $(shell pkg-config --libs $(PKG) 2>/dev/null) -pthread
 
 ifeq ($(PKG_CFLAGS),)
@@ -39,7 +39,7 @@ clean:
 	rm -f $(LIB_OBJS) $(DEMO_OBJS) $(LIB) $(DEMO)
 
 run:	$(LIB) $(DEMO)
-	LD_LIBRARY_PATH=. STARPU_SCHED=graph_standalone STARPU_SCHED_LIB=./$(LIB) ./$(DEMO)
+	LD_LIBRARY_PATH=. STARPU_SCHED=graph_standalone STARPU_SCHED_LIB=./$(LIB) STARPU_NCPU=1 ./$(DEMO)
 
 run2:	$(DEMO)
-	./$(DEMO)
+	STARPU_NCPU=1 ./$(DEMO)

@@ -43,7 +43,7 @@ static void _starpu_add_ghost_dependency(starpu_data_handle_t handle, unsigned l
 	STARPU_AYU_ADDDEPENDENCY(previous, handle, next_job->job_id);
 }
 
-static void _starpu_add_dependency(starpu_data_handle_t handle, struct starpu_task *previous, struct starpu_task *next)
+void _starpu_add_dependency(starpu_data_handle_t handle, struct starpu_task *previous, struct starpu_task *next)
 {
 	_starpu_add_ghost_dependency(handle, _starpu_get_job_associated_to_task(previous)->job_id, next);
 }

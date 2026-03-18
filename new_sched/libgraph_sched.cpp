@@ -9,6 +9,7 @@
 #include <mutex>
 #include <deque>
 
+#define BUILDING_STARPU
 #include <starpu.h>
 #include <starpu_scheduler.h>
 #include <starpu_bitmap.h>
@@ -17,6 +18,11 @@
 #include <vector>
 #include <list>
 #include <cassert>
+
+#include <datawizard/coherency.h>
+#include <datawizard/interfaces/data_interface.h>
+extern "C" void _starpu_data_invalidate(void *data);
+extern "C" void _starpu_add_dependency(starpu_data_handle_t handle, struct starpu_task *previous, struct starpu_task *next);
 
 // Data access modes matching StarPU definitions
 enum DataAccessMode {
@@ -329,10 +335,20 @@ static void submit_hook_graph(struct starpu_task *task)
     std::unique_lock<std::mutex> lock(data->policy_mutex);
     starpu_worker_relax_off();
 
-    data->task_graph.add_task(task);
-    std::cerr << "Submitted task " << task << " to task graph" << std::endl;
-    std::cerr << "Task graph size: " << data->task_graph.size() << std::endl;
-    std::cerr << "Ready tasks: " << data->task_graph.get_ready_tasks().size() << std::endl;
+    // Ignore special STARPU tasks, that goto Submit, but not to post-exec hook
+    if (!task->name or std::strncmp(task->name, "_starpu", 7))
+    {
+        data->task_graph.add_task(task);
+        std::cerr << "Submit hook\n";
+        std::cerr << "    Submitted task " << task;
+        if (task->name)
+        {
+            std::cerr << " (" << task->name << ")";
+        }
+        std::cerr << std::endl;
+        std::cerr << "    Task graph size: " << data->task_graph.size() << std::endl;
+        std::cerr << "    Ready tasks: " << data->task_graph.get_ready_tasks().size() << std::endl;
+    }
 }
 
 static int push_task_graph(struct starpu_task *task)
@@ -346,9 +362,16 @@ static int push_task_graph(struct starpu_task *task)
     std::unique_lock<std::mutex> lock(data->policy_mutex);
     starpu_worker_relax_off();
 
-    std::cerr << "Pushing task " << task << std::endl;
-    std::cerr << "Pushed tasks size: " << data->pushed_tasks.size() << std::endl;
     data->pushed_tasks.push_back(task);
+
+    std::cerr << "Push task\n";
+    std::cerr << "    Pushing task " << task;
+    if (task->name)
+    {
+        std::cerr << " (" << task->name << ")";
+    }
+    std::cerr << std::endl;
+    std::cerr << "    Pushed tasks size: " << data->pushed_tasks.size() << std::endl;
     starpu_push_task_end(task);
 
     return 0;
@@ -365,15 +388,60 @@ static void do_schedule_graph(unsigned sched_ctx_id)
     std::unique_lock<std::mutex> lock(data->policy_mutex);
     starpu_worker_relax_off();
 
-    // std::cerr << "Do schedule graph called" << std::endl;
-    // std::cerr << "Task graph size: " << data->task_graph.size() << std::endl;
+    std::cerr << "Do schedule graph\n";
+    std::cerr << "    Task graph size: " << data->task_graph.size() << std::endl;
+
+    for (struct starpu_task *task: data->task_graph.get_all_tasks())
+    {
+        std::cerr << "    " << task->name;
+        bool checkpointable = true;
+        int nbuffers = STARPU_TASK_GET_NBUFFERS(task);
+        const enum starpu_data_access_mode *modes = &STARPU_TASK_GET_MODE(task, 0);
+        const starpu_data_handle_t *handles = STARPU_TASK_GET_HANDLES(task);
+        for (int i = 0; i < nbuffers; ++i)
+        {
+            if ((modes[i] == STARPU_RW) or (modes[i] == (STARPU_RW | STARPU_COMMUTE)))
+            {
+                checkpointable = false;
+                break;
+            }
+        }
+        if (checkpointable)
+        {
+            std::cerr << " checkpointable\n";
+            std::cerr << "    Trying to checkpoint it\n";
+            auto task_checkpoint = starpu_task_create();
+            task_checkpoint->cl = task->cl;
+            task_checkpoint->name = task->name;
+            task_checkpoint->sequential_consistency = 0;
+            for (int i = 0; i < nbuffers; ++i)
+            {
+                if (modes[i] == STARPU_W)
+                {
+                    auto handle_output = handles[i];
+                    // starpu_data_acquire_on_node_cb_sequential_consistency(
+                    //     handle_output,
+                    //     STARPU_ACQUIRE_NO_NODE_LOCK_ALL,
+                    //     STARPU_W,
+                    //     _starpu_data_invalidate,
+                    //     handle_output,
+                    //     0 // Sequential consistency flag
+                    // );
+                }
+                task_checkpoint->handles[i] = task->handles[i];
+            }
+            lock.unlock();
+            if(starpu_task_submit(task_checkpoint))
+            {
+                std::cerr << "    Submitted new checkpoint task successfully" << std::endl;
+            }
+            lock.lock();
+            // std::cerr << task_checkpoint->ndeps << std::endl;
+        }
+        std::cerr << std::endl;
+    }
     // std::cerr << "CPU queue size: " << data->cpu_q.size() << std::endl;
     // std::cerr << "GPU queue size: " << data->gpu_q.size() << std::endl;
-
-    // std::cerr << "After scheduling ready tasks" << std::endl;
-    // std::cerr << "Task graph size: " << data->task_graph.size() << std::endl;
-    // std::cerr << "CPU queue size: " << data->cpu_q.size() << std::endl;
-    // std::cerr << "GPU queue size: " << data->gpu_q.size() << std::endl
 }
 
 // Pop a task from the graph scheduler
@@ -395,15 +463,17 @@ static struct starpu_task *pop_task_graph(unsigned sched_ctx_id)
     std::unique_lock<std::mutex> lock(data->policy_mutex);
     starpu_worker_relax_off();
 
-    // Get ready tasks from the graph
-    std::vector<starpu_task*> ready_tasks = data->task_graph.get_ready_tasks();
-    // std::cerr << "Pop task called" << std::endl;
-    // std::cerr << "Task graph size: " << data->task_graph.size() << std::endl;
-    // std::cerr << "Ready tasks: " << ready_tasks.size() << std::endl;
     if (!data->pushed_tasks.empty())
     {
+        // Get ready tasks from the graph
+        std::vector<starpu_task*> ready_tasks = data->task_graph.get_ready_tasks();
+        std::cerr << "Pop task\n";
+        // std::cerr << "    Task graph size: " << data->task_graph.size() << std::endl;
+        // std::cerr << "    Ready tasks: " << ready_tasks.size() << std::endl;
+        std::cerr << "    Available pushed tasks: " << data->pushed_tasks.size() << std::endl;
         auto task = data->pushed_tasks.front();
         data->pushed_tasks.pop_front();
+        std::cerr << "    Popped task " << task << std::endl;
         return task;
     }
     else
@@ -425,9 +495,10 @@ static void post_exec_hook_graph(struct starpu_task *task, unsigned sched_ctx_id
     
     data->task_graph.mark_finished(task);
 
-    std::cerr << "Post-exec hook called for task " << task << std::endl;
-    std::cerr << "Task graph size: " << data->task_graph.size() << std::endl;
-    std::cerr << "Ready tasks: " << data->task_graph.get_ready_tasks().size() << std::endl;
+    std::cerr << "Post-exec hook\n";
+    std::cerr << "    Hook called for task " << task << std::endl;
+    // std::cerr << "Task graph size: " << data->task_graph.size() << std::endl;
+    // std::cerr << "Ready tasks: " << data->task_graph.get_ready_tasks().size() << std::endl;
 }
 
 // Define the graph scheduler policy as a global variable
