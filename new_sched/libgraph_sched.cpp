@@ -279,32 +279,9 @@ struct graph_sched_data
     // Only tasks from this list can be launched by the StarPU, other tasks
     // will fail to be launched.
     std::deque<struct starpu_task*> pushed_tasks;
-    // Queue of tasks for CPU workers
-    // std::deque<struct starpu_task*> cpu_q;
-    // Queue of tasks for GPU workers
-    // std::deque<struct starpu_task*> gpu_q;
     // Mutex to protect the scheduler data
     std::mutex policy_mutex;
 };
-
-// // Simple heuristic to choose CPU or GPU queue
-// static std::deque<struct starpu_task*> *select_queue(
-//     unsigned sched_ctx_id,
-//     struct graph_sched_data *data,
-//     struct starpu_task *task
-// )
-// {
-//     (void)sched_ctx_id; (void)data;
-//     // Prefer CPU if the codelet has a CPU implementation, otherwise GPU
-//     const struct starpu_codelet *cl = task->cl;
-//     if (cl && (cl->where & STARPU_CPU))
-//         return &data->cpu_q;
-// #ifdef STARPU_USE_CUDA
-//     if (cl && (cl->where & STARPU_CUDA))
-//         return &data->gpu_q;
-// #endif
-//     return &data->cpu_q;  // fallback
-// }
 
 // Initialize the graph scheduler
 static void init_graph_sched(unsigned sched_ctx_id)
@@ -440,8 +417,6 @@ static void do_schedule_graph(unsigned sched_ctx_id)
         }
         std::cerr << std::endl;
     }
-    // std::cerr << "CPU queue size: " << data->cpu_q.size() << std::endl;
-    // std::cerr << "GPU queue size: " << data->gpu_q.size() << std::endl;
 }
 
 // Pop a task from the graph scheduler
@@ -450,13 +425,6 @@ static struct starpu_task *pop_task_graph(unsigned sched_ctx_id)
     unsigned workerid = starpu_worker_get_id_check();
     auto data = static_cast<graph_sched_data *>(
         starpu_sched_ctx_get_policy_data(sched_ctx_id));
-
-    // // Select the queue for the worker
-    // std::deque<struct starpu_task*> *queue;
-    // if (starpu_worker_get_type(workerid) == STARPU_CPU_WORKER)
-    //     queue = &data->cpu_q;
-    // else
-    //     queue = &data->gpu_q;
 
     // Relax the worker to allow other threads to access the scheduler data
     starpu_worker_relax_on();
