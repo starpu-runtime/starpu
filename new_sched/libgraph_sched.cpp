@@ -249,6 +249,26 @@ public:
             }
         }
 
+        // Remove from successors' predecessor sets to avoid dangling pointers after delete
+        for (GraphTask* successor : graph_task->successors)
+            successor->predecessors.erase(graph_task);
+
+        // If we just finished a predecessor of an internal task, that internal task may now
+        // have all predecessors scheduled -> it's done (no post_exec for internal tasks).
+        std::vector<starpu_task*> internal_to_mark;
+        for (GraphTask* successor : graph_task->successors)
+        {
+            if (!successor->task || !is_internal_no_post_exec(successor->task))
+                continue;
+            bool all_preds_scheduled = true;
+            for (GraphTask* p : successor->predecessors)
+                if (!p->scheduled) { all_preds_scheduled = false; break; }
+            if (all_preds_scheduled)
+                internal_to_mark.push_back(successor->task);
+        }
+        for (starpu_task* t : internal_to_mark)
+            mark_finished(t);
+
         // Remove the task from the graph completely
         task_map.erase(it);
         delete graph_task;
@@ -257,6 +277,38 @@ public:
     static bool is_internal_no_post_exec(starpu_task* t) {
         return t->name && (std::strcmp(t->name, "_starpu_data_acquire_cb_pre") == 0 ||
                            std::strcmp(t->name, "_starpu_data_acquire_cb_release") == 0);
+    }
+
+    // Remove all internal tasks (acquire_cb_pre/release, _ckp, ghost) from the graph.
+    // Call at deinit for any that weren't removed during execution.
+    void remove_internal_tasks() {
+        std::vector<starpu_task*> to_remove;
+        for (auto& pair : task_map) {
+            starpu_task* t = pair.first;
+            if (!t) continue;
+            if (is_internal_no_post_exec(t))
+                to_remove.push_back(t);
+            else if (!t->name || std::strncmp(t->name, "_starpu", 7) == 0 ||
+                     (t->name && std::strcmp(t->name, "_ckp") == 0))
+                to_remove.push_back(t);
+        }
+        for (starpu_task* t : to_remove)
+            mark_finished(t);
+    }
+
+    // When task is pushed, its predecessors have completed. Mark internal predecessors
+    // finished so they get removed from the graph (they don't trigger post_exec_hook).
+    void mark_finished_internal_predecessors(starpu_task* task) {
+        auto it = task_map.find(task);
+        if (it == task_map.end()) return;
+        GraphTask* gt = it->second;
+        std::vector<starpu_task*> to_mark;
+        for (GraphTask* pred : gt->predecessors) {
+            if (pred->task && is_internal_no_post_exec(pred->task))
+                to_mark.push_back(pred->task);
+        }
+        for (starpu_task* t : to_mark)
+            mark_finished(t);
     }
 
     // Get ready tasks (tasks that can be scheduled)
@@ -538,10 +590,11 @@ static void deinit_graph_sched(unsigned sched_ctx_id)
 {
     auto data = static_cast<graph_sched_data *>(
         starpu_sched_ctx_get_policy_data(sched_ctx_id));
-    /* StarPU internal tasks (_starpu_data_acquire_*, etc.) do not trigger post_exec_hook,
-     * so they may remain in our graph. Rely on TaskGraph destructor to clean up. */
+    /* Remove any remaining internal tasks (acquire_cb_pre/release, _ckp, ghost) that don't
+     * trigger post_exec_hook and may not get popped. */
+    data->task_graph.remove_internal_tasks();
     if (!data->task_graph.empty())
-        std::cerr << "deinit: task graph has " << data->task_graph.size() << " leftover tasks (StarPU internal)\n";
+        std::cerr << "deinit: task graph has " << data->task_graph.size() << " leftover tasks\n";
     delete data;
 }
 
@@ -663,6 +716,9 @@ static int push_task_graph(struct starpu_task *task)
 
     data->pushed_tasks.push_back(task);
     data->task_graph.mark_ready_if_in_graph(task);
+    /* Internal tasks (acquire_cb_pre/release) don't trigger post_exec_hook, so mark them
+     * finished when a successor is pushed (that successor's deps are done). */
+    data->task_graph.mark_finished_internal_predecessors(task);
 
     std::cerr << "Push task\n";
     std::cerr << "    Pushing task " << task;
@@ -688,8 +744,8 @@ static void do_schedule_graph(unsigned sched_ctx_id)
 
     ensure_checkpoint_config();
 
-    /* Apply checkpointing once: register pending checkpoints. The actual invalidate+C is submitted
-     * in post_exec when R1 completes (R1 callback). */
+    /* Apply checkpointing once: create C for each W->R1->R2 chain, turning it into W->R1->C->R2.
+     * C depends on R1. R2 depends on C. Invalidation happens in post_exec when R1 completes. */
     if (g_checkpoint_count > 0 && !data->checkpoints_applied)
     {
         data->checkpoints_applied = true;
@@ -702,9 +758,40 @@ static void do_schedule_graph(unsigned sched_ctx_id)
             std::shuffle(list.begin(), list.end(), g);
             for (unsigned i = 0; i < n; ++i)
             {
-                auto [r1, r2] = data->task_graph.get_r1_r2_for_w(list[i].handle, list[i].w_task);
-                if (r1 && r2 && !data->checkpoint_tasks.count({list[i].handle, list[i].w_task}))
-                    data->pending_checkpoints.push_back({list[i].handle, list[i].w_task, r1, r2, list[i].w_task->cl});
+                starpu_data_handle_t handle = list[i].handle;
+                starpu_task* w_task = list[i].w_task;
+                auto [r1, r2] = data->task_graph.get_r1_r2_for_w(handle, w_task);
+                if (!r1 || !r2 || data->checkpoint_tasks.count({handle, w_task}))
+                    continue;
+                data->pending_checkpoints.push_back({handle, w_task, r1, r2, list[i].w_task->cl});
+
+                struct starpu_codelet* cl = list[i].w_task->cl;
+                unsigned nbuffers = cl && cl->nbuffers != STARPU_VARIABLE_NBUFFERS ? (unsigned)cl->nbuffers : 1;
+                if (nbuffers == 0 || nbuffers > STARPU_NMAXBUFS) nbuffers = 1;
+                starpu_task* task_checkpoint = starpu_task_create();
+                task_checkpoint->cl = cl;
+                task_checkpoint->name = "_ckp";
+                task_checkpoint->sequential_consistency = 0;
+                task_checkpoint->sched_ctx = sched_ctx_id;
+                STARPU_TASK_SET_HANDLE(task_checkpoint, handle, 0);
+
+                starpu_task* c_deps_pre[1] = { r1 };
+                starpu_task_declare_deps_array_relaxed(task_checkpoint, 1, c_deps_pre);
+                _starpu_add_dependency(handle, r1, task_checkpoint);
+
+                starpu_task* c_deps[1] = { task_checkpoint };
+                starpu_task_declare_deps_array_relaxed(r2, 1, c_deps);
+                _starpu_add_dependency(handle, task_checkpoint, r2);
+
+                data->task_graph.add_task_with_predecessors(task_checkpoint, {r1});
+                data->task_graph.add_dependency(r2, task_checkpoint);
+                data->checkpoint_c_by_r1[r1] = task_checkpoint;
+                data->checkpoint_c_by_handle[handle] = task_checkpoint;
+                data->checkpoint_tasks[{handle, w_task}] = task_checkpoint;
+
+                lock.unlock();
+                starpu_task_submit(task_checkpoint);
+                lock.lock();
             }
         }
     }
@@ -797,41 +884,10 @@ static void post_exec_hook_graph(struct starpu_task *task, unsigned sched_ctx_id
             struct starpu_codelet* cl = it->cl;
             it = data->pending_checkpoints.erase(it);
 
-            std::cerr << "R1 callback: mock invalidation for handle " << handle << " (would call starpu_data_invalidate_submit_sequential_consistency)\n";
-
-            data->pending_ckp_r1 = r1;
-            data->pending_ckp_release_handle = handle;
-
-            /* Use stored codelet; avoid touching w_task (completed task may be in undefined state). */
-            unsigned nbuffers = cl && cl->nbuffers != STARPU_VARIABLE_NBUFFERS ? (unsigned)cl->nbuffers : 1;
-            if (nbuffers == 0 || nbuffers > STARPU_NMAXBUFS) nbuffers = 1;
-            auto task_checkpoint = starpu_task_create();
-            task_checkpoint->cl = cl;
-            task_checkpoint->name = "_ckp";
-            task_checkpoint->sequential_consistency = 0;
-            task_checkpoint->sched_ctx = sched_ctx_id;
-            STARPU_TASK_SET_HANDLE(task_checkpoint, handle, 0);
-
-            starpu_task* c_deps_pre[1] = { r1 };
-            starpu_task_declare_deps_array_relaxed(task_checkpoint, 1, c_deps_pre);
-            _starpu_add_dependency(handle, r1, task_checkpoint);
-
-            starpu_task* c_deps[1] = { task_checkpoint };
-            starpu_task_declare_deps_array_relaxed(r2, 1, c_deps);
-            _starpu_add_dependency(handle, task_checkpoint, r2);
-
-            std::vector<starpu_task*> c_preds = {r1};
-            if (data->last_ckp_acquire_cb_pre)
-                c_preds.push_back(data->last_ckp_acquire_cb_pre);
-            data->task_graph.add_task_with_predecessors(task_checkpoint, c_preds);
-            data->task_graph.add_dependency(r2, task_checkpoint);
-            data->checkpoint_c_by_r1[r1] = task_checkpoint;
-            data->checkpoint_c_by_handle[handle] = task_checkpoint;
-            data->checkpoint_tasks[{handle, w_task}] = task_checkpoint;
-
-            lock.unlock();
-            starpu_task_submit(task_checkpoint);
-            lock.lock();
+            /* Invalidate handle so C (created in do_schedule) will re-init it. Using sequential_consistency=0
+             * causes StarPU to skip creating acquire tasks and run the invalidate callback directly
+             * (user_interactions.c lines 271-279). With seq_cons=1, StarPU would create acquire_cb_pre/release. */
+            starpu_data_invalidate_submit_sequential_consistency(handle, 0);
             break;
         }
         else
