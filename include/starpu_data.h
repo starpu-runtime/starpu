@@ -280,6 +280,14 @@ void starpu_data_invalidate(starpu_data_handle_t handle);
 void starpu_data_invalidate_submit(starpu_data_handle_t handle);
 
 /**
+   Like starpu_data_invalidate_submit(), but with explicit sequential
+   consistency. When \p sequential_consistency is 1, implicit data
+   dependencies are enforced even if the handle has them disabled.
+   Use this when invalidate_submit would otherwise create no data deps.
+*/
+void starpu_data_invalidate_submit_sequential_consistency(starpu_data_handle_t handle, int sequential_consistency);
+
+/**
    Specify that the data \p handle can be discarded without impacting
    the application.
 */
