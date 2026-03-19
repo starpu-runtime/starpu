@@ -4,6 +4,7 @@
 #include <cstdlib>
 
 #include <starpu.h>
+#include <starpu_perfmodel.h>
 
 static void init_buf(void *buffers[], void *cl_arg)
 {
@@ -20,16 +21,43 @@ static void add_buf(void *buffers[], void *cl_arg)
     (*ptr_dst) += (*ptr_src);
 }
 
+/* History-based perf models (see starpu_perfmodel.h: type + symbol; rest zero). */
+static struct starpu_perfmodel perfmodel_init = {
+	STARPU_HISTORY_BASED,
+	nullptr, /* cost_function */
+	nullptr, /* arch_cost_function */
+	nullptr, /* worker_cost_function */
+	nullptr, /* size_base */
+	nullptr, /* footprint */
+	"graph_demo_init",
+};
+
+static struct starpu_perfmodel perfmodel_add = {
+	STARPU_HISTORY_BASED,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	"graph_demo_add",
+};
+
 static struct starpu_codelet cl_init = {
 	.cpu_funcs = {init_buf},
+	.cpu_funcs_name = {"init_buf"},
 	.nbuffers = 1,
-	.modes = {STARPU_W}
+	.modes = {STARPU_W},
+	.name = "cl_init",
+	.model = &perfmodel_init,
 };
 
 static struct starpu_codelet cl_add = {
 	.cpu_funcs = {add_buf},
+	.cpu_funcs_name = {"add_buf"},
 	.nbuffers = 2,
-	.modes = {STARPU_R, STARPU_RW}
+	.modes = {STARPU_R, STARPU_RW},
+	.name = "cl_add",
+	.model = &perfmodel_add,
 };
 
 int main()
@@ -40,6 +68,12 @@ int main()
     int y = 3;
 
     starpu_conf_init(&conf);
+    /* Single worker: graph scheduler uses one execution unit (CPU for now; GPU later).
+     * Target worker id for perf-model times (see init_sched in libgraph_sched). */
+    conf.ncpus = 1;
+    if (!getenv("STARPU_GRAPH_SCHED_WORKER_ID"))
+        setenv("STARPU_GRAPH_SCHED_WORKER_ID", "0", 1);
+
     ret = starpu_init(&conf);
     if (ret == -ENODEV)
         return 77;
@@ -53,10 +87,22 @@ int main()
     starpu_pause();
     starpu_task_insert(&cl_init, STARPU_W, handle_x, STARPU_NAME, "init_x", 0);
     starpu_task_insert(&cl_add, STARPU_R, handle_x, STARPU_RW, handle_y, STARPU_NAME, "add_x_to_y_1", 0);
+    
+    starpu_resume();
+    starpu_task_wait_for_all();
+
     starpu_task_insert(&cl_add, STARPU_R, handle_x, STARPU_RW, handle_y, STARPU_NAME, "add_x_to_y_2", 0);
     starpu_data_invalidate_submit(handle_x);
-    starpu_resume();
 
+    starpu_task_wait_for_all();
+    starpu_pause();
+
+    starpu_task_insert(&cl_init, STARPU_W, handle_x, STARPU_NAME, "init_x", 0);
+    starpu_task_insert(&cl_add, STARPU_R, handle_x, STARPU_RW, handle_y, STARPU_NAME, "add_x_to_y_1", 0);
+    starpu_task_insert(&cl_add, STARPU_R, handle_x, STARPU_RW, handle_y, STARPU_NAME, "add_x_to_y_2", 0);
+    starpu_data_invalidate_submit(handle_x);
+
+    starpu_resume();
     starpu_task_wait_for_all();
     starpu_data_unregister(handle_x);
     starpu_data_unregister(handle_y);
