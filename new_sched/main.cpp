@@ -2,15 +2,8 @@
 
 #include <iostream>
 #include <cstdlib>
-#include <thread>
-#include <chrono>
 
-// #define BUILDING_STARPU
 #include <starpu.h>
-// #include <datawizard/coherency.h>
-// #include <datawizard/interfaces/data_interface.h>
-
-// extern "C" void _starpu_data_invalidate(void *data);
 
 static void init_buf(void *buffers[], void *cl_arg)
 {
@@ -52,7 +45,6 @@ int main()
         return 77;
     STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-    // Register a variable data handles for an integers
     starpu_variable_data_register(&handle_x, -1, (uintptr_t)0, sizeof(int));
     starpu_variable_data_register(&handle_y, STARPU_MAIN_RAM, (uintptr_t)&y, sizeof(int));
 
@@ -62,15 +54,11 @@ int main()
     starpu_task_insert(&cl_add, STARPU_R, handle_x, STARPU_RW, handle_y, STARPU_NAME, "add_x_to_y_2", 0);
     starpu_data_invalidate_submit(handle_x);
     starpu_resume();
-    std::cerr << "Waiting for all tasks to complete" << std::endl;
+
     starpu_task_wait_for_all();
-    std::cerr << "All tasks completed" << std::endl;
     starpu_data_unregister(handle_x);
     starpu_data_unregister(handle_y);
-    std::cerr << "Data unregistered" << std::endl;
     printf("Final value: %d\n", y);
     starpu_shutdown();
     return 0;
 }
-
-

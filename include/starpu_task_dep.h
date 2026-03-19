@@ -47,6 +47,13 @@ extern "C" {
 void starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[]);
 
 /**
+   Like starpu_task_declare_deps_array() but skips submission/termination checks.
+   For use by schedulers when adding deps to already-submitted tasks (e.g. under
+   starpu_pause before any execution). Use only when safe.
+*/
+void starpu_task_declare_deps_array_relaxed(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[]);
+
+/**
    Declare task dependencies between a \p task and an series of \p
    ndeps tasks, similarly to starpu_task_declare_deps_array(), but the
    tasks are passed after \p ndeps, which indicates how many tasks \p

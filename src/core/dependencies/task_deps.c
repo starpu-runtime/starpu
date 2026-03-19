@@ -158,6 +158,13 @@ void starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, st
 	_starpu_task_declare_deps_array(task, ndeps, task_array, 1);
 }
 
+/* For schedulers that add deps to already-submitted tasks (e.g. under starpu_pause).
+ * Skips submission/termination checks. Use only when no execution has occurred. */
+void starpu_task_declare_deps_array_relaxed(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[])
+{
+	_starpu_task_declare_deps_array(task, ndeps, task_array, 0);
+}
+
 void starpu_task_declare_deps(struct starpu_task *task, unsigned ndeps, ...)
 {
 	if (ndeps == 0)
