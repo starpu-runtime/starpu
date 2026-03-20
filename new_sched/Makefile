@@ -39,17 +39,21 @@ $(DEMO): $(DEMO_OBJS) $(LIB)
 clean:
 	rm -f $(LIB_OBJS) $(DEMO_OBJS) $(LIB) $(DEMO)
 
+# StarPU defaults STARPU_CALIBRATE_MINIMUM=10: history-based models do not report expected time
+# until that many samples exist per (codelet, arch, footprint). Use 1 for demo / remat B/s lines.
 run:	$(LIB) $(DEMO)
 	LD_LIBRARY_PATH=. STARPU_SCHED=graph_standalone STARPU_SCHED_LIB=./$(LIB) STARPU_NCPU=1 \
-	STARPU_GRAPH_SCHED_CHECKPOINT_COUNT=1 STARPU_GRAPH_SCHED_VERBOSE=0 ./$(DEMO)
+	STARPU_CALIBRATE_MINIMUM=1 \
+	STARPU_GRAPH_SCHED_CHECKPOINT_COUNT=8 STARPU_GRAPH_SCHED_VERBOSE=1 ./$(DEMO)
 
 # Run with FxT traces enabled; traces stored in new_sched/traces/
 # Requires StarPU built with --with-fxt. Use starpu_fxt_tool to convert raw traces.
 run-fxt:	$(LIB) $(DEMO)
 	@mkdir -p traces
 	LD_LIBRARY_PATH=. STARPU_SCHED=graph_standalone STARPU_SCHED_LIB=./$(LIB) STARPU_NCPU=1 \
+	STARPU_CALIBRATE_MINIMUM=1 \
 	STARPU_FXT_TRACE=1 STARPU_FXT_PREFIX=$(CURDIR)/traces STARPU_GENERATE_TRACE=1 \
-	STARPU_GRAPH_SCHED_CHECKPOINT_COUNT=1 STARPU_GRAPH_SCHED_VERBOSE=1 ./$(DEMO)
+	STARPU_GRAPH_SCHED_CHECKPOINT_COUNT=8 STARPU_GRAPH_SCHED_VERBOSE=1 ./$(DEMO)
 	@echo "Traces saved in $(CURDIR)/traces/"
 
 run2:	$(DEMO)
