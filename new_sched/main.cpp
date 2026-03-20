@@ -191,8 +191,6 @@ int main()
                        STARPU_W, hf, STARPU_R, hc, STARPU_R, he,
                        STARPU_CL_ARGS, graph_demo_axby_alloc(1, 1), sizeof(graph_demo_axby),
                        0);
-    // starpu_data_invalidate_submit(hc);
-    // starpu_data_invalidate_submit(he);
     starpu_task_insert(&cl_touch,
                        STARPU_R, hf,
                        0);

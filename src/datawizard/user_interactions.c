@@ -566,14 +566,11 @@ int starpu_data_invalidate_submit_with_deps(starpu_data_handle_t handle,
 {
 	STARPU_ASSERT(handle);
 
-	int ret = _starpu_data_acquire_on_node_cb_with_deps(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL,
+	return _starpu_data_acquire_on_node_cb_with_deps(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL,
 			STARPU_W, _starpu_data_invalidate, handle,
 			ndeps_input, input_deps, ndeps_output, output_deps,
 			"_starpu_data_invalidate_with_deps_pre",
 			"_starpu_data_invalidate_with_deps_post");
-
-	handle->initialized = 0;
-	return ret;
 }
 
 int starpu_data_acquire_cb(starpu_data_handle_t handle,

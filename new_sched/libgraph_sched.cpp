@@ -1054,10 +1054,6 @@ static void graph_sched_apply_explicit_invalidations(graph_sched_data *data, std
         int ret = starpu_data_invalidate_submit_with_deps(cand.handle, 1, input_dep, 1, output_dep);
         lock.lock();
         STARPU_ASSERT_MSG(ret == 0, "graph_standalone: failed to submit explicit invalidation");
-        /* The next graph access is a pure writer already submitted with explicit deps, so the handle
-         * is logically reinitialized from StarPU's submission-time point of view. This mirrors the
-         * regular implicit-dependency path, which flips initialized on W submission. */
-        starpu_data_set_initialized(cand.handle, 1);
         data->n_invalidate_handles_submitted++;
 
         if (graph_sched_verbose_push_pop_ckp(data->verbosity))
