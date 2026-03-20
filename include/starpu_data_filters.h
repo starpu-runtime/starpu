@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010-2010  Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -284,7 +284,7 @@ void starpu_data_partition_readonly_submit(starpu_data_handle_t initial_handle, 
    Similar to starpu_data_partition_readonly_submit(), but allow to
    specify the coherency to be used for the main data \p initial_handle.
    See \ref AsynchronousPartitioning for more details.
- */
+*/
 void starpu_data_partition_readonly_submit_sequential_consistency(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int sequential_consistency);
 
 /**
@@ -1147,7 +1147,7 @@ struct starpu_data_interface_ops *starpu_ndim_filter_to_variable_child_ops(struc
    into account the size of the elements stored in the data structure \p elemsize
    and \p blocksize, which is most often 1.
    See \ref DefiningANewDataFilter for more details.
- */
+*/
 void starpu_filter_nparts_compute_chunk_size_and_offset(unsigned n, unsigned nparts, size_t elemsize, unsigned id, size_t blocksize, size_t *chunk_size, size_t *offset);
 
 /** @} */

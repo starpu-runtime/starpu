@@ -15,12 +15,12 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/*
- * This is the public config.h file, installed along libstarpu.
- *
- * It should only contain the build-time #defines which have an effect on the
- * API & ABI.
- */
+/**
+   This is the public config.h file, installed along libstarpu.
+
+   It should only contain the build-time #defines which have an effect on the
+   API & ABI.
+*/
 
 #ifndef __STARPU_CONFIG_PUBLIC_H__
 #define __STARPU_CONFIG_PUBLIC_H__
@@ -291,14 +291,14 @@
    Define the maximum number of Maxeler FPGA devices that are supported by
    StarPU.
    @ingroup API_Max_FPGA_Extensions
- */
+*/
 #undef STARPU_MAXMAXFPGADEVS
 
 /**
    Define the maximum number of HIP devices that are supported by
    StarPU.
    @ingroup API_HIP_Extensions
- */
+*/
 #undef STARPU_MAXHIPDEVS
 
 /**

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2019-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -37,7 +37,7 @@ extern "C" {
 
 /**
    Enum of all possible performance knob scopes.
- */
+*/
 enum starpu_perf_knob_scope
 {
 	starpu_perf_knob_scope_undefined     = 0, /**< undefined scope */
@@ -48,7 +48,7 @@ enum starpu_perf_knob_scope
 
 /**
    Enum of all possible performance knob value type.
- */
+*/
 enum starpu_perf_knob_type
 {
 	starpu_perf_knob_type_undefined = 0, /**< undefined value type */

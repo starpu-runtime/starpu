@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013-2013  Simon Archipoff
  * Copyright (C) 2017-2017  Arthur Chevalier
  *
@@ -222,12 +222,12 @@ void starpu_sched_tree_destroy(struct starpu_sched_tree *tree);
 /**
    calls starpu_sched_tree_destroy, ready for use for starpu_sched_policy::deinit_sched field.
    See \ref ImplementAModularizedScheduler for more details.
- */
+*/
 void starpu_sched_tree_deinitialize(unsigned sched_ctx_id);
 
 /**
    See \ref ImplementAModularizedScheduler for more details.
- */
+*/
 struct starpu_sched_tree *starpu_sched_tree_get(unsigned sched_ctx_id);
 
 /**
@@ -504,7 +504,7 @@ struct starpu_sched_component *starpu_sched_component_work_stealing_create(struc
 
 /**
    return true iff \p component is a work stealing component
- */
+*/
 int starpu_sched_component_is_work_stealing(struct starpu_sched_component *component);
 
 /**

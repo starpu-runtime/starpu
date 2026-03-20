@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013-2013  Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -41,39 +41,48 @@ extern "C" {
 
 /** create a empty starpu_bitmap */
 static inline struct starpu_bitmap *starpu_bitmap_create(void) STARPU_ATTRIBUTE_MALLOC;
+
 /** zero a starpu_bitmap */
 static inline void starpu_bitmap_init(struct starpu_bitmap *b);
+
 /** free \p b */
 static inline void starpu_bitmap_destroy(struct starpu_bitmap *b);
 
 /** set bit \p e in \p b */
 static inline void starpu_bitmap_set(struct starpu_bitmap *b, int e);
+
 /** unset bit \p e in \p b */
 static inline void starpu_bitmap_unset(struct starpu_bitmap *b, int e);
+
 /** unset all bits in \p b */
 static inline void starpu_bitmap_unset_all(struct starpu_bitmap *b);
 
 /** return true iff bit \p e is set in \p b */
 static inline int starpu_bitmap_get(struct starpu_bitmap *b, int e);
+
 /** Basically compute \c starpu_bitmap_unset_all(\p a) ; \p a = \p b & \p c; */
 static inline void starpu_bitmap_unset_and(struct starpu_bitmap *a, struct starpu_bitmap *b, struct starpu_bitmap *c);
+
 /** Basically compute \p a |= \p b */
 static inline void starpu_bitmap_or(struct starpu_bitmap *a, struct starpu_bitmap *b);
+
 /** return 1 iff \p e is set in \p b1 AND \p e is set in \p b2 */
 static inline int starpu_bitmap_and_get(struct starpu_bitmap *b1, struct starpu_bitmap *b2, int e);
+
 /** return the number of set bits in \p b */
 static inline int starpu_bitmap_cardinal(struct starpu_bitmap *b);
 
 /** return the index of the first set bit of \p b, -1 if none */
 static inline int starpu_bitmap_first(struct starpu_bitmap *b);
+
 /** return the position of the last set bit of \p b, -1 if none */
 static inline int starpu_bitmap_last(struct starpu_bitmap *b);
+
 /** return the position of set bit right after \p e in \p b, -1 if none */
 static inline int starpu_bitmap_next(struct starpu_bitmap *b, int e);
+
 /** todo */
 static inline int starpu_bitmap_has_next(struct starpu_bitmap *b, int e);
-
-/** @} */
 
 /**
    todo
@@ -83,6 +92,8 @@ struct starpu_bitmap
 	unsigned long bits[_STARPU_BITMAP_SIZE];
 	int cardinal;
 };
+
+/** @} */
 
 #ifdef _STARPU_DEBUG_BITMAP
 static int _starpu_check_bitmap(struct starpu_bitmap *b)

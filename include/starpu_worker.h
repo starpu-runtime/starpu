@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2016-2016  Uppsala University
  * Copyright (C) 2013-2013  Thibaut Lambert
  *
@@ -377,18 +377,18 @@ unsigned starpu_worker_get_sched_ctx_list(int worker, unsigned **sched_ctx);
    well end just after this function returns.
 
    See \ref Per-taskFeedback for more details.
- */
+*/
 void starpu_worker_get_current_task_exp_end(unsigned workerid, struct timespec *date);
 
 /**
    Return whether worker \p workerid is currently blocked in a parallel task.
    See \ref SchedulingHelpers for more details.
- */
+*/
 unsigned starpu_worker_is_blocked_in_parallel(int workerid);
 
 /**
    See \ref SchedulingHelpers for more details.
- */
+*/
 unsigned starpu_worker_is_sub_worker_somewhere(int workerid);
 
 /**
@@ -540,13 +540,13 @@ int starpu_node_needs_offset(unsigned node);
 /**
    Return the type of worker which operates on memory node kind \p node_kind.
    See \ref TopologyWorkers for more details.
-  */
+*/
 enum starpu_worker_archtype starpu_memory_node_get_worker_archtype(enum starpu_node_kind node_kind);
 
 /**
    Return the type of memory node that arch type \p type operates on.
    See \ref TopologyWorkers for more details.
-  */
+*/
 enum starpu_node_kind starpu_worker_get_memory_node_kind(enum starpu_worker_archtype type);
 
 /**
@@ -716,7 +716,7 @@ int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_tas
    Initialise the barrier for the parallel task, and dispatch the task
    between the different workers of the given combined worker.
    See \ref SchedulingHelpers for more details.
- */
+*/
 void starpu_parallel_task_barrier_init(struct starpu_task *task, int workerid);
 
 /**

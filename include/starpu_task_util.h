@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -42,7 +42,7 @@ extern "C" {
 /**
    Used when calling starpu_task_insert(), must be followed by a
    pointer to a constant value and the size of the constant
- */
+*/
 #define STARPU_VALUE (1 << STARPU_MODE_SHIFT)
 
 /**
@@ -76,7 +76,7 @@ extern "C" {
    Used when calling starpu_mpi_task_insert(), must be followed by a
    integer value which specified the node on which to execute the
    codelet.
- */
+*/
 #define STARPU_EXECUTE_ON_NODE (6 << STARPU_MODE_SHIFT)
 
 /**
@@ -285,13 +285,13 @@ extern "C" {
 /**
    Used when calling starpu_task_insert() and alike, must be followed
    by a pointer to a struct starpu_profiling_task_info
- */
+*/
 #define STARPU_TASK_PROFILING_INFO (36 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert() and alike, must be followed
    by an unsigned specifying not to allocate a submitorder id for the task
- */
+*/
 #define STARPU_TASK_NO_SUBMITORDER (37 << STARPU_MODE_SHIFT)
 
 /**
@@ -332,14 +332,14 @@ extern "C" {
 /**
    Used when calling starpu_task_insert() and alike, must be followed
    by a void* specifying the value to be set in starpu_task::sched_data
- */
+*/
 #define STARPU_TASK_SCHED_DATA (42 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert() and alike, must be followed
    by a struct starpu_transaction * specifying the value to be set in
    the transaction field of the task.
- */
+*/
 #define STARPU_TRANSACTION (43 << STARPU_MODE_SHIFT)
 
 /**

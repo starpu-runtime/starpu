@@ -40,7 +40,7 @@ extern "C" {
 /**
    @defgroup API_HIP_Extensions HIP Extensions
    @{
- */
+*/
 
 /**
    Report a HIPBLAS error.

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2016-2016  Uppsala University
  * Copyright (C) 2013-2013  Thibaut Lambert
  * Copyright (C) 2011-2011  Télécom Sud Paris
@@ -212,14 +212,14 @@ struct starpu_sched_policy **starpu_sched_get_predefined_policies(void);
    Allow an external library to return a scheduling policy to be
    loaded dynamically.
    See \ref UsingaNewSchedulingPolicy for more details.
- */
+*/
 struct starpu_sched_policy *starpu_get_sched_lib_policy(const char *name);
 
 /**
    Allow an external library to return a list of scheduling policies to be
    loaded dynamically.
    See \ref UsingaNewSchedulingPolicy for more details.
- */
+*/
 struct starpu_sched_policy **starpu_get_sched_lib_policies(void);
 
 /**
@@ -525,7 +525,7 @@ void starpu_sched_ctx_worker_shares_tasks_lists(int workerid, int sched_ctx_id);
 
    See \ref STARPU_TASK_BREAK_ON_SCHED
    See \ref DefiningANewBasicSchedulingPolicy for more details.
- */
+*/
 void starpu_sched_task_break(struct starpu_task *task);
 
 /**

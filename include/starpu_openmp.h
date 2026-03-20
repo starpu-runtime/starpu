@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2014-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -186,8 +186,8 @@ struct starpu_omp_task_region_attr
 	int final_clause;
 
 	/**
-	    Boolean indicating whether the \b untied clause of the
-	    corresponding <c>pragma omp task</c> is true or false.
+	   Boolean indicating whether the \b untied clause of the
+	   corresponding <c>pragma omp task</c> is true or false.
 	*/
 	int untied_clause;
 	/**
@@ -567,7 +567,7 @@ extern void starpu_omp_ordered_inline_end(void) __STARPU_OMP_NOTHROW;
    This function can be used to implement <c>\#pragma omp sections</c> and <c>\#pragma omp section</c>.
 
    See \ref OMPSections for more details.
- */
+*/
 extern void starpu_omp_sections(unsigned long long nb_sections, void (**section_f)(void *arg), void **section_arg, int nowait) __STARPU_OMP_NOTHROW;
 
 /**
@@ -585,7 +585,7 @@ extern void starpu_omp_sections(unsigned long long nb_sections, void (**section_
    \sa starpu_omp_sections
 
    See \ref OMPSections for more details.
- */
+*/
 extern void starpu_omp_sections_combined(unsigned long long nb_sections, void (*section_f)(unsigned long long section_num, void *arg), void *section_arg, int nowait) __STARPU_OMP_NOTHROW;
 
 /** @} */
@@ -604,7 +604,7 @@ extern void starpu_omp_sections_combined(unsigned long long nb_sections, void (*
    This function can be used to implement <c>\#pragma omp task</c>.
 
    See \ref OMPTaskExplicit for more details.
- */
+*/
 extern void starpu_omp_task_region(const struct starpu_omp_task_region_attr *attr) __STARPU_OMP_NOTHROW;
 
 /**
@@ -615,7 +615,7 @@ extern void starpu_omp_task_region(const struct starpu_omp_task_region_attr *att
    This function can be used to implement <c>\#pragma omp taskwait</c>.
 
    See \ref OMPTaskSyncs for more details.
- */
+*/
 extern void starpu_omp_taskwait(void) __STARPU_OMP_NOTHROW;
 
 /**
@@ -628,7 +628,7 @@ extern void starpu_omp_taskwait(void) __STARPU_OMP_NOTHROW;
    \sa starpu_omp_taskgroup_inline_end
 
    See \ref OMPTaskSyncs for more details.
- */
+*/
 extern void starpu_omp_taskgroup(void (*f)(void *arg), void *arg) __STARPU_OMP_NOTHROW;
 
 /**
@@ -641,7 +641,7 @@ extern void starpu_omp_taskgroup(void (*f)(void *arg), void *arg) __STARPU_OMP_N
    \sa starpu_omp_taskgroup_inline_end
 
    See \ref OMPTaskSyncs for more details.
- */
+*/
 extern void starpu_omp_taskgroup_inline_begin(void) __STARPU_OMP_NOTHROW;
 
 /**
@@ -654,7 +654,7 @@ extern void starpu_omp_taskgroup_inline_begin(void) __STARPU_OMP_NOTHROW;
    \sa starpu_omp_taskgroup_inline_begin
 
    See \ref OMPTaskSyncs for more details.
- */
+*/
 extern void starpu_omp_taskgroup_inline_end(void) __STARPU_OMP_NOTHROW;
 
 extern void starpu_omp_taskloop_inline_begin(struct starpu_omp_task_region_attr *attr) __STARPU_OMP_NOTHROW;
@@ -696,7 +696,7 @@ extern void starpu_omp_set_num_threads(int threads) __STARPU_OMP_NOTHROW;
    \sa starpu_omp_get_num_procs
 
    See \ref OMPStandard for more details.
- */
+*/
 extern int starpu_omp_get_num_threads(void) __STARPU_OMP_NOTHROW;
 
 /**
@@ -711,7 +711,7 @@ extern int starpu_omp_get_num_threads(void) __STARPU_OMP_NOTHROW;
    \sa starpu_omp_get_num_procs
 
    See \ref OMPStandard for more details.
- */
+*/
 extern int starpu_omp_get_thread_num(void) __STARPU_OMP_NOTHROW;
 
 /**
@@ -726,7 +726,7 @@ extern int starpu_omp_get_thread_num(void) __STARPU_OMP_NOTHROW;
    \sa starpu_omp_get_num_procs
 
    See \ref OMPStandard for more details.
- */
+*/
 extern int starpu_omp_get_max_threads(void) __STARPU_OMP_NOTHROW;
 
 /**
@@ -811,7 +811,7 @@ extern int starpu_omp_get_nested(void) __STARPU_OMP_NOTHROW;
    Return the state of the cancel ICVS var.
 
    See \ref OMPStandard for more details.
- */
+*/
 extern int starpu_omp_get_cancellation(void) __STARPU_OMP_NOTHROW;
 
 /**
@@ -823,7 +823,7 @@ extern int starpu_omp_get_cancellation(void) __STARPU_OMP_NOTHROW;
    \sa starpu_omp_get_schedule
 
    See \ref OMPFor for more details.
- */
+*/
 extern void starpu_omp_set_schedule(enum starpu_omp_sched_value kind, int modifier) __STARPU_OMP_NOTHROW;
 
 /**
@@ -1012,7 +1012,7 @@ extern void starpu_omp_set_default_device(int device_num) __STARPU_OMP_NOTHROW;
    \sa starpu_omp_is_initial_device
 
    See \ref OMPStandard for more details.
- */
+*/
 extern int starpu_omp_get_default_device(void) __STARPU_OMP_NOTHROW;
 
 /**
@@ -1225,7 +1225,7 @@ extern int starpu_omp_test_nest_lock(starpu_omp_nest_lock_t *lock) __STARPU_OMP_
    region.
 
    \sa starpu_omp_atomic_fallback_inline_end
- */
+*/
 extern void starpu_omp_atomic_fallback_inline_begin(void) __STARPU_OMP_NOTHROW;
 
 /**
@@ -1233,7 +1233,7 @@ extern void starpu_omp_atomic_fallback_inline_begin(void) __STARPU_OMP_NOTHROW;
    Release the exclusive access to the global atomic region.
 
    \sa starpu_omp_atomic_fallback_inline_begin
- */
+*/
 extern void starpu_omp_atomic_fallback_inline_end(void) __STARPU_OMP_NOTHROW;
 
 /**
@@ -1265,12 +1265,12 @@ extern double starpu_omp_get_wtick(void) __STARPU_OMP_NOTHROW;
    \p slice_base is the base of an array slice, expressed in number of vector elements from the array base.
 
    \sa STARPU_VECTOR_GET_SLICE_BASE
- */
+*/
 extern void starpu_omp_vector_annotate(starpu_data_handle_t handle, uint32_t slice_base) __STARPU_OMP_NOTHROW;
 
 /**
    Only use internally by StarPU.
- */
+*/
 extern struct starpu_arbiter *starpu_omp_get_default_arbiter(void) __STARPU_OMP_NOTHROW;
 
 /**
@@ -1280,7 +1280,7 @@ extern struct starpu_arbiter *starpu_omp_get_default_arbiter(void) __STARPU_OMP_
    \sa starpu_omp_data_lookup
 
    See \ref OMPDataDependencies for more details.
- */
+*/
 extern void starpu_omp_handle_register(starpu_data_handle_t handle) __STARPU_OMP_NOTHROW;
 
 /**
@@ -1290,7 +1290,7 @@ extern void starpu_omp_handle_register(starpu_data_handle_t handle) __STARPU_OMP
    \sa starpu_omp_data_lookup
 
    See \ref OMPDataDependencies for more details.
- */
+*/
 extern void starpu_omp_handle_unregister(starpu_data_handle_t handle) __STARPU_OMP_NOTHROW;
 
 /**

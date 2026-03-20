@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2016-2016  Uppsala University
  * Copyright (C) 2011-2011  Télécom Sud Paris
  *
@@ -237,7 +237,7 @@ void starpu_tag_notify_restart_from_apps(starpu_tag_t id);
 /**
    Return the task associated to the tag \p id.
    See \ref TasksAndTagsDependencies for more details.
- */
+*/
 struct starpu_task *starpu_tag_get_task(starpu_tag_t id);
 
 /**
@@ -245,7 +245,7 @@ struct starpu_task *starpu_tag_get_task(starpu_tag_t id);
    The current implementation requires that no starpu_tag_wait_array() is
    currently pending.
    See \ref TasksAndTagsDependencies for more details.
- */
+*/
 void starpu_tag_clear(void);
 
 /** @} */

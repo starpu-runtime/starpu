@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2016-2016  Uppsala University
  * Copyright (C) 2011-2011  Télécom Sud Paris
  *
@@ -507,7 +507,7 @@ struct starpu_codelet
            set, then the field starpu_codelet::max_fpga_funcs is ignored if
            ::STARPU_MAX_FPGA does not appear in the field
            starpu_codelet::where, it must be non-<c>NULL</c> otherwise.
-        */
+	*/
 	starpu_max_fpga_func_t max_fpga_funcs[STARPU_MAXIMPLEMENTATIONS];
 
 	/**
@@ -1927,7 +1927,7 @@ struct starpu_task *starpu_task_create(void) STARPU_ATTRIBUTE_MALLOC;
    starpu_task_end_dep_add() / starpu_task_end_dep_release() to add dependencies
    against this task before submitting it.
    See \ref SynchronizationTasks for more details.
- */
+*/
 struct starpu_task *starpu_task_create_sync(starpu_data_handle_t handle, enum starpu_data_access_mode mode) STARPU_ATTRIBUTE_MALLOC;
 
 /**
@@ -2266,7 +2266,7 @@ void starpu_set_limit_min_submitted_tasks(int limit_min);
 /**
    Return the current minimum number of submitted tasks allowed at a
    given time. See starpu_set_limit_min_submitted_tasks()
- */
+*/
 int starpu_get_limit_min_submitted_tasks();
 
 /**
@@ -2281,7 +2281,7 @@ void starpu_set_limit_max_submitted_tasks(int limit_min);
 /**
    Return the current maximum number of submitted tasks allowed at a
    given time. See starpu_set_limit_max_submitted_tasks()
- */
+*/
 int starpu_get_limit_max_submitted_tasks();
 
 /** @} */
@@ -2289,7 +2289,7 @@ int starpu_get_limit_max_submitted_tasks();
 /**
    @defgroup API_Transactions Transactions
    @{
- */
+*/
 
 /**
    Function to open a new transaction object and start the first transaction epoch.

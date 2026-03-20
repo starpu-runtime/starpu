@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -31,75 +31,76 @@ extern "C" {
 /**
    @defgroup API_Parallel_Worker Parallel Workers
    @{
- */
+*/
 
 /**
    Used when calling starpu_parallel_worker_init()
- */
+*/
 #define STARPU_PARALLEL_WORKER_MIN_NB (1 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_parallel_worker_init()
- */
+*/
 #define STARPU_PARALLEL_WORKER_MAX_NB (2 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_parallel_worker_init()
- */
+*/
 #define STARPU_PARALLEL_WORKER_NB (3 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_parallel_worker_init()
- */
+*/
 #define STARPU_PARALLEL_WORKER_PREFERE_MIN (4 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_parallel_worker_init()
- */
+*/
 #define STARPU_PARALLEL_WORKER_KEEP_HOMOGENEOUS (5 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_parallel_worker_init()
- */
+*/
 #define STARPU_PARALLEL_WORKER_POLICY_NAME (6 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_parallel_worker_init()
- */
+*/
 #define STARPU_PARALLEL_WORKER_POLICY_STRUCT (7 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_parallel_worker_init()
- */
+*/
 #define STARPU_PARALLEL_WORKER_CREATE_FUNC (8 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_parallel_worker_init()
- */
+*/
 #define STARPU_PARALLEL_WORKER_CREATE_FUNC_ARG (9 << STARPU_MODE_SHIFT)
+
 /**
    Used when calling starpu_parallel_worker_init()
- */
+*/
 #define STARPU_PARALLEL_WORKER_TYPE (10 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_parallel_worker_init()
- */
+*/
 #define STARPU_PARALLEL_WORKER_AWAKE_WORKERS (11 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_parallel_worker_init()
- */
+*/
 #define STARPU_PARALLEL_WORKER_PARTITION_ONE (12 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_parallel_worker_init()
- */
+*/
 #define STARPU_PARALLEL_WORKER_NEW (13 << STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_parallel_worker_init()
- */
+*/
 #define STARPU_PARALLEL_WORKER_NCORES (14 << STARPU_MODE_SHIFT)
 
 /**
@@ -115,7 +116,7 @@ enum starpu_parallel_worker_types
 
 /**
    Parallel_Worker configuration
- */
+*/
 struct starpu_parallel_worker_config;
 
 /**
@@ -124,21 +125,23 @@ struct starpu_parallel_worker_config;
 
    This returns NULL if too many parallel workers were created.
    The --enable-max-sched-ctxs configure option can be used to increase the limitation.
- */
+*/
 struct starpu_parallel_worker_config *starpu_parallel_worker_init(hwloc_obj_type_t parallel_worker_level, ...);
 
 /**
    Delete the given parallel_workers configuration
- */
+*/
 int starpu_parallel_worker_shutdown(struct starpu_parallel_worker_config *parallel_workers);
 
 /**
    Print the given parallel_workers configuration.
    See \ref CreatingParallel for more details.
- */
+*/
 int starpu_parallel_worker_print(struct starpu_parallel_worker_config *parallel_workers);
 
-/** Prologue functions */
+/**
+   Prologue functions
+*/
 void starpu_parallel_worker_openmp_prologue(void *);
 #define starpu_parallel_worker_intel_openmp_mkl_prologue starpu_parallel_worker_openmp_prologue
 #ifdef STARPU_MKL
@@ -171,13 +174,25 @@ enum starpu_cluster_types
 	STARPU_CLUSTER_GNU_OPENMP_MKL,   /**< deprecated */
 #endif
 };
-/** @deprecated Use starpu_parallel_worker_config */
+
+/**
+   @deprecated Use starpu_parallel_worker_config
+*/
 struct starpu_cluster_machine;
-/** @deprecated Use starpu_parallel_worker_init() */
+
+/**
+   @deprecated Use starpu_parallel_worker_init()
+*/
 struct starpu_cluster_machine *starpu_cluster_machine(hwloc_obj_type_t cluster_level, ...) STARPU_DEPRECATED;
-/** @deprecated Use starpu_parallel_worker_shutdown() */
+
+/**
+   @deprecated Use starpu_parallel_worker_shutdown()
+*/
 int starpu_uncluster_machine(struct starpu_cluster_machine *clusters) STARPU_DEPRECATED;
-/** @deprecated Use starpu_parallel_worker_print() */
+
+/**
+   @deprecated Use starpu_parallel_worker_print()
+*/
 int starpu_cluster_print(struct starpu_cluster_machine *clusters) STARPU_DEPRECATED;
 
 /** @} */

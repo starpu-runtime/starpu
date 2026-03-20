@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2016-2016  Uppsala University
  * Copyright (C) 2017-2017  Arthur Chevalier
  *
@@ -332,7 +332,7 @@ void starpu_sched_ctx_unbook_workers_for_task(unsigned sched_ctx_id, int primary
 /**
    Return the first context (child of sched_ctx_id) where the workerid
    is primary
- */
+*/
 unsigned starpu_sched_ctx_worker_is_primary_for_child_ctx(int workerid, unsigned sched_ctx_id);
 
 /**

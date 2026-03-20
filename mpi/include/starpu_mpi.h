@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2021-2021  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -477,17 +477,17 @@ void starpu_mpi_cache_flush_all_data(MPI_Comm comm);
 int starpu_mpi_cached_receive(starpu_data_handle_t data_handle);
 
 /**
- * If \p data is already available in the reception cache, return 1
- * If \p data is NOT available in the reception cache, add it to the
- * cache and return 0
- * Return 0 if the communication cache is not enabled
- */
+   If \p data is already available in the reception cache, return 1
+   If \p data is NOT available in the reception cache, add it to the
+   cache and return 0
+   Return 0 if the communication cache is not enabled
+*/
 int starpu_mpi_cached_receive_set(starpu_data_handle_t data);
 int starpu_mpi_cached_cp_receive_set(starpu_data_handle_t data_handle);
 
 /**
- * Remove \p data from the reception cache
- */
+   Remove \p data from the reception cache
+*/
 void starpu_mpi_cached_receive_clear(starpu_data_handle_t data);
 
 /**
@@ -511,14 +511,14 @@ int starpu_mpi_cached_send_comm(starpu_data_handle_t data_handle, int dest, MPI_
    in the communicator \p comm,
    add it to the cache and return 0
    Return 0 if the communication cache is not enabled
- */
+*/
 int starpu_mpi_cached_send_set_comm(starpu_data_handle_t data_handle, int dest, MPI_Comm comm);
 
 #define starpu_mpi_cached_send_set(data_handle, dest) starpu_mpi_cached_send_set_comm(data_handle, dest, MPI_COMM_WORLD)
 
 /**
- * Remove \p data from the emission cache
- */
+   Remove \p data from the emission cache
+*/
 void starpu_mpi_cached_send_clear(starpu_data_handle_t data);
 
 /** @} */
@@ -707,7 +707,7 @@ struct starpu_task *starpu_mpi_task_build(MPI_Comm comm, struct starpu_codelet *
 
 /**
    Offer a va_list variant of starpu_mpi_task_build.
- */
+*/
 struct starpu_task *starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, va_list varg_list);
 
 /**
@@ -719,14 +719,14 @@ int starpu_mpi_task_post_build(MPI_Comm comm, struct starpu_codelet *codelet, ..
 
 /**
    Offer a va_list variant of starpu_mpi_task_post_build.
- */
+*/
 int starpu_mpi_task_post_build_v(MPI_Comm comm, struct starpu_codelet *codelet, va_list varg_list);
 
 /**
    Structure used to pass data from
    starpu_mpi_task_exchange_data_before_execution() to
    starpu_mpi_task_exchange_data_after_execution()
- */
+*/
 struct starpu_mpi_task_exchange_params
 {
 	int do_execute;      /**< is the caller going to execute the task */
@@ -744,7 +744,7 @@ struct starpu_mpi_task_exchange_params
    selected node, all nodes MUST call the function
    starpu_mpi_task_exchange_data_after_execution() with the parameters
    \p descrs and \p params.
- */
+*/
 int starpu_mpi_task_exchange_data_before_execution(MPI_Comm comm, struct starpu_task *task, struct starpu_data_descr *descrs, struct starpu_mpi_task_exchange_params *params);
 
 /**
@@ -819,7 +819,7 @@ void starpu_mpi_data_migrate(MPI_Comm comm, starpu_data_handle_t handle, int new
 
 /**
    Define the current policy
- */
+*/
 #define STARPU_MPI_NODE_SELECTION_CURRENT_POLICY -1
 /**
    Define the policy in which the selected node is the one having the

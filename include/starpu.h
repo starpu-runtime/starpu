@@ -320,7 +320,7 @@ struct starpu_conf
 
 	   If this is not set, it is assumed that the basic static SLiC
            interface is used.
-        */
+	*/
 	struct starpu_max_load *max_fpga_load;
 #else
 	void *max_fpga_load;
@@ -682,7 +682,7 @@ void starpu_resume(void);
 /**
    Return !0 if task processing by workers is currently paused, 0 otherwise.
    See \ref StarPUEatsCPUs for more details.
- */
+*/
 int starpu_is_paused(void);
 
 /**
@@ -699,7 +699,7 @@ int starpu_is_paused(void);
    ::STARPU_THREAD_ACTIVE or 0. When \p npreferred is set to non-zero,
    \p preferred is an array of size \p npreferred in which a
    preference of PU binding IDs can be set. By default StarPU will
-   return the first PU available for binding. 
+   return the first PU available for binding.
    See \ref KernelThreadsStartedByStarPU and \ref cpuWorkers for more details.
 */
 unsigned starpu_get_next_bindid(unsigned flags, unsigned *preferred, unsigned npreferred);

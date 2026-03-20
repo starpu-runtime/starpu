@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2021-2021  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -151,13 +151,13 @@ enum starpu_data_access_mode
 	STARPU_RECURSIVE_TASK_STRONG = (1 << 12), /**< Ensure a strong dependency between the data and
 						     the recursive task, i.e the data will be waited for and
 						     given to the recursive task decision function for consultation */
-	STARPU_MPI_SAME=(1<<13),   /**<  Used jointly with STARPU_W or STARPU_RW, disable 
-				         writing back the result to the owner node and flushing 
-				         the cache on other nodes. This allows a set of nodes to 
-				         hold the same value for a handle as its home node. One 
- 				         has to execute the RW task on all these nodes, so that they 
-				         all end up with the same value in the handle, for coherency. 
-				         Conversely we then have the value available in cache in all nodes, 
+	STARPU_MPI_SAME=(1<<13),   /**<  Used jointly with STARPU_W or STARPU_RW, disable
+				         writing back the result to the owner node and flushing
+				         the cache on other nodes. This allows a set of nodes to
+				         hold the same value for a handle as its home node. One
+ 				         has to execute the RW task on all these nodes, so that they
+				         all end up with the same value in the handle, for coherency.
+				         Conversely we then have the value available in cache in all nodes,
 				         without requiring a communication. */
 	STARPU_ACCESS_MODE_MAX = (1 << 14)        /**< The purpose of ::STARPU_ACCESS_MODE_MAX is to
 						     be the maximum of this enum.
@@ -548,7 +548,7 @@ int starpu_data_prefetch_on_node(starpu_data_handle_t handle, unsigned node, uns
 
 /**
    See \ref DataPrefetch for more details.
- */
+*/
 int starpu_data_prefetch_on_node_prio(starpu_data_handle_t handle, unsigned node, unsigned async, int prio);
 
 /**
@@ -563,7 +563,7 @@ int starpu_data_idle_prefetch_on_node(starpu_data_handle_t handle, unsigned node
 
 /**
    See \ref DataPrefetch for more details.
- */
+*/
 int starpu_data_idle_prefetch_on_node_prio(starpu_data_handle_t handle, unsigned node, unsigned async, int prio);
 
 /**
@@ -801,7 +801,7 @@ typedef starpu_data_handle_t starpu_data_victim_selector(starpu_data_handle_t to
    \p node is the node on which the failure happened.
 
    \p data is the same data as passed in the starpu_data_register_victim_selector() call.
- */
+*/
 typedef void starpu_data_victim_eviction_failed(starpu_data_handle_t victim, unsigned node, void *data);
 
 /**

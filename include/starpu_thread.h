@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -66,9 +66,9 @@
 extern "C" {
 #endif
 
-/*
- * Encapsulation of the pthread_create function.
- */
+/**
+   Encapsulation of the pthread_create function.
+*/
 
 #ifdef STARPU_SIMGRID
 
@@ -129,9 +129,9 @@ typedef pthread_attr_t starpu_pthread_attr_t;
 #define starpu_pthread_setname(name)
 #endif
 
-/*
- * Encapsulation of the pthread_mutex_* functions.
- */
+/**
+   Encapsulation of the pthread_mutex_* functions.
+*/
 
 #ifdef STARPU_SIMGRID
 #ifdef STARPU_HAVE_SIMGRID_MUTEX_H
@@ -186,9 +186,9 @@ int starpu_pthread_mutex_trylock_sched(starpu_pthread_mutex_t *mutex);
 void starpu_pthread_mutex_check_sched(starpu_pthread_mutex_t *mutex, char *file, int line);
 #endif
 
-/*
- * Encapsulation of the pthread_key_* functions.
- */
+/**
+   Encapsulation of the pthread_key_* functions.
+*/
 #ifdef STARPU_SIMGRID
 
 typedef int starpu_pthread_key_t;
@@ -208,9 +208,9 @@ typedef pthread_key_t starpu_pthread_key_t;
 
 #endif /* STARPU_SIMGRID, _MSC_VER */
 
-/*
- * Encapsulation of the pthread_cond_* functions.
- */
+/**
+   Encapsulation of the pthread_cond_* functions.
+*/
 
 #ifdef STARPU_SIMGRID
 
@@ -250,9 +250,9 @@ int starpu_pthread_cond_wait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t
 
 #endif /* STARPU_SIMGRID, _MSC_VER */
 
-/*
- * Encapsulation of the pthread_rwlock_* functions.
- */
+/**
+   Encapsulation of the pthread_rwlock_* functions.
+*/
 
 #ifdef STARPU_SIMGRID
 
@@ -297,9 +297,9 @@ int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock);
 
 #endif /* STARPU_SIMGRID, _MSC_VER */
 
-/*
- * Encapsulation of the pthread_barrier_* functions.
- */
+/**
+   Encapsulation of the pthread_barrier_* functions.
+*/
 
 #if defined(STARPU_SIMGRID) || (!defined(STARPU_HAVE_PTHREAD_BARRIER) && (!defined(_MSC_VER) || defined(BUILDING_STARPU)))
 
@@ -350,9 +350,9 @@ int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier);
 
 #endif /* STARPU_SIMGRID, !STARPU_HAVE_PTHREAD_BARRIER, _MSC_VER */
 
-/*
- * Encapsulation of the pthread_spin_* functions.
- */
+/**
+   Encapsulation of the pthread_spin_* functions.
+*/
 
 #if defined(STARPU_SIMGRID) || (defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)) || !defined(STARPU_HAVE_PTHREAD_SPIN_LOCK)
 
@@ -384,9 +384,9 @@ typedef pthread_spinlock_t starpu_pthread_spinlock_t;
 
 #endif /* !(defined(STARPU_SIMGRID) || !defined(STARPU_HAVE_PTHREAD_SPIN_LOCK)) */
 
-/*
- * Other needed pthread definitions
- */
+/**
+   Other needed pthread definitions
+*/
 
 #if defined(_MSC_VER) && !defined(BUILDING_STARPU)
 typedef void *starpu_pthread_rwlock_t;
@@ -473,9 +473,9 @@ int starpu_pthread_wait_timedwait(starpu_pthread_wait_t *w, const struct timespe
 int starpu_pthread_wait_destroy(starpu_pthread_wait_t *w);
 #endif
 
-/*
- * Encapsulation of the semaphore functions.
- */
+/**
+   Encapsulation of the semaphore functions.
+*/
 
 #ifdef STARPU_SIMGRID
 

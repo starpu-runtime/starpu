@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -54,12 +54,12 @@ extern int _starpu_silent;
 /**
    Retrieve the value of an environment variable.
    See \ref ExecutionConfigurationThroughEnvironmentVariables for more details.
- */
+*/
 char *starpu_getenv(const char *str);
 
 /**
    Same as starpu_get_env_string_var_default()
- */
+*/
 #define starpu_getenv_string_var_default(s, ss, d) starpu_get_env_string_var_default(s, ss, d)
 
 /**
@@ -67,12 +67,12 @@ char *starpu_getenv(const char *str);
    Raise an error if the environment variable \c str is defined with a value not in \c strings
    Return \c defvalue if the environment variable \c str is not defined.
    See \ref ExecutionConfigurationThroughEnvironmentVariables for more details.
- */
+*/
 int starpu_get_env_string_var_default(const char *str, const char *strings[], int defvalue);
 
 /**
    Same as starpu_get_env_size_default()
- */
+*/
 #define starpu_getenv_size_default(s, d) starpu_get_env_size_default(s, d)
 
 /**
@@ -80,12 +80,12 @@ int starpu_get_env_string_var_default(const char *str, const char *strings[], in
    If the environment variable \c str is not defined or is empty, return \c defval
    Raise an error if the value of the environment variable \c str is not well-defined.
    See \ref ExecutionConfigurationThroughEnvironmentVariables for more details.
- */
+*/
 int starpu_get_env_size_default(const char *str, int defval);
 
 /**
    Same as starpu_get_env_number()
- */
+*/
 #define starpu_getenv_number(s) starpu_get_env_number(s)
 
 /**
@@ -125,7 +125,7 @@ static __starpu_inline int starpu_get_env_number(const char *str)
 
 /**
    Same as starpu_get_env_number_default()
- */
+*/
 #define starpu_getenv_number_default(s, d) starpu_get_env_number_default(s, d)
 
 static __starpu_inline int starpu_get_env_number_default(const char *str, int defval)
@@ -138,7 +138,7 @@ static __starpu_inline int starpu_get_env_number_default(const char *str, int de
 
 /**
    Same as starpu_get_env_float_default()
- */
+*/
 #define starpu_getenv_float_default(s, d) starpu_get_env_float_default(s, d)
 
 static __starpu_inline float starpu_get_env_float_default(const char *str, float defval)

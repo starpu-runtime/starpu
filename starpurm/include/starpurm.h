@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2017-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2017-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -341,14 +341,14 @@ starpurm_drs_ret_t starpurm_assign_device_to_starpu(starpurm_drs_desc_t *spd, in
    Extend StarPU's default scheduling context to use \p ndevices more
    devices of type \p type_id, up to the number of StarPU workers
    initialized for such device type.
- */
+*/
 starpurm_drs_ret_t starpurm_assign_devices_to_starpu(starpurm_drs_desc_t *spd, int type_id, int ndevices);
 
 /**
    Extend StarPU's default scheduling context to use additional
    devices as designated by their corresponding StarPU worker
    thread(s) CPU-set \p mask.
- */
+*/
 starpurm_drs_ret_t starpurm_assign_device_mask_to_starpu(starpurm_drs_desc_t *spd, const hwloc_cpuset_t mask);
 
 /**
@@ -360,7 +360,7 @@ starpurm_drs_ret_t starpurm_assign_all_devices_to_starpu(starpurm_drs_desc_t *sp
 /**
    Shrink StarPU's default scheduling context to not use \p unit_rank
    nth device of type \p type_id.
- */
+*/
 starpurm_drs_ret_t starpurm_withdraw_device_from_starpu(starpurm_drs_desc_t *spd, int type_id, int unit_rank);
 
 /**
@@ -475,7 +475,7 @@ hwloc_cpuset_t starpurm_get_global_cpuset(void);
 /**
    Return the CPU-set of the StarPU worker threads currently selected
    in the default StarPU's scheduling context.
- */
+*/
 hwloc_cpuset_t starpurm_get_selected_cpuset(void);
 
 /**
@@ -486,7 +486,7 @@ hwloc_cpuset_t starpurm_get_all_cpu_workers_cpuset(void);
 /**
    Return the cumulated CPU-set of all "non-CPU" StarPU worker
    threads.
- */
+*/
 hwloc_cpuset_t starpurm_get_all_device_workers_cpuset(void);
 
 /**

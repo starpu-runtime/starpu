@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2022-2022  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -298,7 +298,7 @@ void starpu_sleep(float nb_sec);
    Sleep for the given \p nb_micro_sec micro-seconds.
    In simgrid mode, this only sleeps within virtual time.
    See \ref Helpers for more details.
-  */
+*/
 void starpu_usleep(float nb_micro_sec);
 
 /**
@@ -306,7 +306,7 @@ void starpu_usleep(float nb_micro_sec);
    This is support in simgrid mode, to record how much energy was used, and will
    show up in further call to starpu_energy_used().
    See \ref Energy-basedScheduling fore more details.
-  */
+*/
 void starpu_energy_use(float joules);
 
 /**
@@ -314,7 +314,7 @@ void starpu_energy_use(float joules);
    This account the amounts passed to starpu_energy_use(), but also the static
    energy use set by the \ref STARPU_IDLE_POWER environment variable.
    See \ref Energy-basedScheduling fore more details.
-  */
+*/
 double starpu_energy_used(void);
 
 /** @} */

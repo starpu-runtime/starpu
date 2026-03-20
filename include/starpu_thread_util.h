@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -28,9 +28,9 @@ extern "C" {
 #endif
 
 #if !(defined(_MSC_VER) && !defined(BUILDING_STARPU))
-/*
- * Encapsulation of the starpu_pthread_create_* functions.
- */
+/**
+   Encapsulation of the starpu_pthread_create_* functions.
+*/
 
 #define STARPU_PTHREAD_CREATE_ON(name, thread, attr, routine, arg, where)                                  \
 	do {                                                                                               \
@@ -71,9 +71,9 @@ extern "C" {
 	}                                                             \
 	while (0)
 
-/*
- * Encapsulation of the starpu_pthread_mutex_* functions.
- */
+/**
+   Encapsulation of the starpu_pthread_mutex_* functions.
+*/
 
 #define _STARPU_PTHREAD_MUTEX_INIT(mutex, attr)                          \
 	do {                                                             \
@@ -213,9 +213,9 @@ static STARPU_INLINE int _starpu_pthread_mutex_trylock_sched(starpu_pthread_mute
 	}                                                                        \
 	while (0)
 
-/*
- * Encapsulation of the starpu_pthread_key_* functions.
- */
+/**
+   Encapsulation of the starpu_pthread_key_* functions.
+*/
 #define STARPU_PTHREAD_KEY_CREATE(key, destr)                            \
 	do {                                                             \
 		int p_ret = starpu_pthread_key_create((key), (destr));   \
@@ -254,9 +254,9 @@ static STARPU_INLINE int _starpu_pthread_mutex_trylock_sched(starpu_pthread_mute
 
 #define STARPU_PTHREAD_GETSPECIFIC(key) starpu_pthread_getspecific((key))
 
-/*
- * Encapsulation of the starpu_pthread_rwlock_* functions.
- */
+/**
+   Encapsulation of the starpu_pthread_rwlock_* functions.
+*/
 #define _STARPU_PTHREAD_RWLOCK_INIT(rwlock, attr)                         \
 	do {                                                              \
 		int p_ret = starpu_pthread_rwlock_init((rwlock), (attr)); \
@@ -372,9 +372,9 @@ static STARPU_INLINE int _starpu_pthread_rwlock_trywrlock(starpu_pthread_rwlock_
 	}                                                                    \
 	while (0)
 
-/*
- * Encapsulation of the starpu_pthread_cond_* functions.
- */
+/**
+   Encapsulation of the starpu_pthread_cond_* functions.
+*/
 #define _STARPU_PTHREAD_COND_INIT(cond, attr)                           \
 	do {                                                            \
 		int p_ret = starpu_pthread_cond_init((cond), (attr));   \
@@ -478,9 +478,9 @@ static STARPU_INLINE int _starpu_pthread_cond_timedwait(starpu_pthread_cond_t *c
 }
 #endif
 
-/*
- * Encapsulation of the starpu_pthread_barrier_* functions.
- */
+/**
+   Encapsulation of the starpu_pthread_barrier_* functions.
+*/
 
 #define STARPU_PTHREAD_BARRIER_INIT(barrier, attr, count)                            \
 	do {                                                                         \
