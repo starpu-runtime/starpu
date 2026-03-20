@@ -33,7 +33,6 @@
 
 extern "C" void _starpu_add_dependency(starpu_data_handle_t handle, struct starpu_task *previous, struct starpu_task *next);
 extern "C" void starpu_task_declare_deps_array_relaxed(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[]);
-extern "C" void starpu_data_invalidate_submit_no_sequential_consistency(starpu_data_handle_t handle);
 
 /* STARPU_GRAPH_SCHED_VERBOSE: 0=off, 1=init/deinit, 2=push/pop/_ckp + checkpoint reports,
  * 3=submit + do_schedule one line (total/ready tasks), 4=full do_schedule dump. Higher values clamp to 4. */
@@ -1335,22 +1334,11 @@ static void post_exec_hook_graph(struct starpu_task *task, unsigned sched_ctx_id
     std::unique_lock<std::mutex> lock(data->policy_mutex);
     starpu_worker_relax_off();
 
-    /* Invalidate after predecessors of straight-W consumers (chain of Access modes). Checkpoint C uses
-     * w_task's codelet (e.g. STARPU_W), so R1->C makes R1 a predecessor of W and triggers invalidate here. */
-    std::vector<starpu_data_handle_t> inv =
-        data->task_graph.handles_to_invalidate_after(task);
+    /* Checkpoint path: data invalidation before _ckp rematerialization is disabled for now (host
+     * starpu_data_acquire(STARPU_R) after the DAG requires handles to stay initialized). */
     data->n_tasks_post_exec++;
-    data->n_invalidate_handles_submitted += (uint64_t)inv.size();
-    for (starpu_data_handle_t h : inv)
-        starpu_data_invalidate_submit_no_sequential_consistency(h);
 
     data->task_graph.mark_finished(task);
-
-    if (graph_sched_verbose_push_pop_ckp(data->verbosity) && !inv.empty()) {
-        std::cerr << "Post-exec: data invalidation submitted (" << inv.size() << " handle"
-                  << (inv.size() == 1 ? "" : "s") << ") after "
-                  << graph_sched_task_label(task) << " (" << task << ")\n";
-    }
 }
 
 // Define the graph scheduler policy as a global variable

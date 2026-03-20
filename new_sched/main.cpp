@@ -5,9 +5,9 @@
  * Writers compute z = a*x + b*y with scalars (a,b) in heap cl_arg (STARPU_CL_ARGS; StarPU frees).
  * Automatic _ckp tasks are inserted by starpu_graph_sched_apply_auto_checkpoints() after submit.
  *
- * Each scalar is starpu_malloc’d and registered on STARPU_MAIN_RAM (no app-side int variables).
- * Inputs a, b, d are set to 1 on the host via starpu_data_acquire(STARPU_W) / release and
- * starpu_variable_get_local_ptr (no reduction-method lazy init).
+ * Each scalar handle is registered with home node -1 and null pointer so StarPU allocates storage
+ * lazily. Inputs a, b, d are set to 1 via starpu_data_acquire(STARPU_W) / release and
+ * starpu_variable_get_local_ptr.
  *
  * Kernels optionally sleep so STARPU_HISTORY_BASED models record non-zero durations (tiny CPU work
  * often measures as 0 µs). Override with STARPU_GRAPH_DEMO_KERNEL_SLEEP_US (0 = no sleep).
@@ -110,21 +110,6 @@ static struct starpu_codelet cl_touch = {
     .model = &perfmodel_read,
 };
 
-static void register_malloced_int(starpu_data_handle_t *handle)
-{
-    int *p;
-    int r = starpu_malloc((void **)&p, sizeof(int));
-    STARPU_CHECK_RETURN_VALUE(r, "starpu_malloc");
-    starpu_variable_data_register(handle, STARPU_MAIN_RAM, (uintptr_t)p, sizeof(int));
-}
-
-static void unregister_malloced_int(starpu_data_handle_t handle)
-{
-    void *p = (void *)starpu_variable_get_local_ptr(handle);
-    starpu_data_unregister(handle);
-    starpu_free_noflag(p, sizeof(int));
-}
-
 static void init_variable_host(starpu_data_handle_t handle)
 {
     int r = starpu_data_acquire(handle, STARPU_W);
@@ -135,14 +120,14 @@ static void init_variable_host(starpu_data_handle_t handle)
     starpu_data_release(handle);
 }
 
-/** Read scalar after the DAG: avoid starpu_data_acquire(STARPU_R) here when automatic checkpoints +
- *  invalidate have run — StarPU may leave handle->initialized == 0 after read-only tails even though
- *  MAIN_RAM still holds the last written value (kernel path does not flip the flag the same way). */
 static int read_int_handle(starpu_data_handle_t handle)
 {
-    void *p = starpu_data_handle_to_pointer(handle, STARPU_MAIN_RAM);
-    STARPU_ASSERT_MSG(p, "read_int_handle: buffer not on MAIN_RAM");
-    return *static_cast<const int *>(p);
+    int r = starpu_data_acquire(handle, STARPU_R);
+    STARPU_CHECK_RETURN_VALUE(r, "starpu_data_acquire");
+    const int *ptr = (const int *)starpu_variable_get_local_ptr(handle);
+    int v = *ptr;
+    starpu_data_release(handle);
+    return v;
 }
 
 int main()
@@ -161,12 +146,12 @@ int main()
         return 77;
     STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-    register_malloced_int(&ha);
-    register_malloced_int(&hb);
-    register_malloced_int(&hd);
-    register_malloced_int(&hc);
-    register_malloced_int(&he);
-    register_malloced_int(&hf);
+    starpu_variable_data_register(&ha, -1, 0, sizeof(int));
+    starpu_variable_data_register(&hb, -1, 0, sizeof(int));
+    starpu_variable_data_register(&hd, -1, 0, sizeof(int));
+    starpu_variable_data_register(&hc, -1, 0, sizeof(int));
+    starpu_variable_data_register(&he, -1, 0, sizeof(int));
+    starpu_variable_data_register(&hf, -1, 0, sizeof(int));
 
     init_variable_host(ha);
     init_variable_host(hb);
@@ -227,12 +212,12 @@ int main()
     const int ve = read_int_handle(he);
     const int vf = read_int_handle(hf);
 
-    unregister_malloced_int(ha);
-    unregister_malloced_int(hb);
-    unregister_malloced_int(hd);
-    unregister_malloced_int(hc);
-    unregister_malloced_int(he);
-    unregister_malloced_int(hf);
+    starpu_data_unregister(ha);
+    starpu_data_unregister(hb);
+    starpu_data_unregister(hd);
+    starpu_data_unregister(hc);
+    starpu_data_unregister(he);
+    starpu_data_unregister(hf);
 
     std::cout << "DAG done. c=" << vc << " e=" << ve << " f=" << vf
               << " (expect c=2, e=2, f=4 with cl_arg a=b=1 and inputs 1); checkpointable (WRR + remat timing): "
