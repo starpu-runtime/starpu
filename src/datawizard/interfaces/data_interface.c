@@ -1218,12 +1218,14 @@ void starpu_data_invalidate_submit(starpu_data_handle_t handle)
 	handle->initialized = 0;
 }
 
-void starpu_data_invalidate_submit_sequential_consistency(starpu_data_handle_t handle, int sequential_consistency)
+void starpu_data_invalidate_submit_no_sequential_consistency(starpu_data_handle_t handle)
 {
 	STARPU_ASSERT(handle);
 
-	starpu_data_acquire_on_node_cb_sequential_consistency(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, STARPU_W, _starpu_data_invalidate, handle, sequential_consistency);
+	starpu_data_acquire_on_node_cb_sequential_consistency(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, STARPU_W, _starpu_data_invalidate, handle, 0);
 
+	/* Same as starpu_data_invalidate_submit: logical value is gone for readers
+	 * as soon as invalidation is requested; mirrors deinitialized replicas. */
 	handle->initialized = 0;
 }
 

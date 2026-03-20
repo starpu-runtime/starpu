@@ -34,11 +34,11 @@ static struct starpu_perfmodel perfmodel_init = {
 
 static struct starpu_perfmodel perfmodel_add = {
 	STARPU_HISTORY_BASED,
-	nullptr,
-	nullptr,
-	nullptr,
-	nullptr,
-	nullptr,
+	nullptr, /* cost_function */
+	nullptr, /* arch_cost_function */
+	nullptr, /* worker_cost_function */
+	nullptr, /* size_base */
+	nullptr, /* footprint */
 	"graph_demo_add",
 };
 

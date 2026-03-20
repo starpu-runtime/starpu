@@ -30,8 +30,7 @@
 
 extern "C" void _starpu_add_dependency(starpu_data_handle_t handle, struct starpu_task *previous, struct starpu_task *next);
 extern "C" void starpu_task_declare_deps_array_relaxed(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[]);
-extern "C" void starpu_data_invalidate_submit_sequential_consistency(starpu_data_handle_t handle, int sequential_consistency);
-extern "C" void starpu_do_schedule(void);
+extern "C" void starpu_data_invalidate_submit_no_sequential_consistency(starpu_data_handle_t handle);
 
 // Data access modes matching StarPU definitions
 enum DataAccessMode {
@@ -952,7 +951,7 @@ static void post_exec_hook_graph(struct starpu_task *task, unsigned sched_ctx_id
     /* Invalidate after predecessors of straight-W consumers (chain of Access modes). Checkpoint C uses
      * w_task's codelet (e.g. STARPU_W), so R1->C makes R1 a predecessor of W and triggers invalidate here. */
     for (starpu_data_handle_t h : data->task_graph.handles_to_invalidate_after(task))
-        starpu_data_invalidate_submit_sequential_consistency(h, 0);
+        starpu_data_invalidate_submit_no_sequential_consistency(h);
 
     data->task_graph.mark_finished(task);
 
