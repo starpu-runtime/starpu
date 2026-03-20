@@ -55,6 +55,8 @@ static void graph_demo_kernel_sleep_us(void)
 
 static void add3_buf(void *buffers[], void *cl_arg)
 {
+    unsigned nbuf = STARPU_TASK_GET_NBUFFERS(starpu_task_get_current());
+    STARPU_ASSERT_MSG(nbuf == 3u, "add3_buf: expect 3 buffers from task_insert");
     const graph_demo_axby *ab = (const graph_demo_axby *)cl_arg;
     STARPU_ASSERT_MSG(ab, "add3_buf: cl_arg");
     int *dst = (int *)STARPU_VARIABLE_GET_PTR(buffers[0]);
@@ -67,6 +69,8 @@ static void add3_buf(void *buffers[], void *cl_arg)
 static void touch_read(void *buffers[], void *cl_arg)
 {
     (void)cl_arg;
+    unsigned nbuf = STARPU_TASK_GET_NBUFFERS(starpu_task_get_current());
+    STARPU_ASSERT_MSG(nbuf == 1u, "touch_read: expect 1 buffer from task_insert");
     volatile int v = *(const int *)STARPU_VARIABLE_GET_PTR(buffers[0]);
     (void)v;
     graph_demo_kernel_sleep_us();
@@ -95,8 +99,7 @@ static struct starpu_perfmodel perfmodel_read = {
 static struct starpu_codelet cl_add3 = {
     .cpu_funcs = {add3_buf},
     .cpu_funcs_name = {"add3_buf"},
-    .nbuffers = 3,
-    .modes = {STARPU_W, STARPU_R, STARPU_R},
+    .nbuffers = STARPU_VARIABLE_NBUFFERS,
     .name = "cl_add3",
     .model = &perfmodel_add3,
 };
@@ -104,8 +107,7 @@ static struct starpu_codelet cl_add3 = {
 static struct starpu_codelet cl_touch = {
     .cpu_funcs = {touch_read},
     .cpu_funcs_name = {"touch_read"},
-    .nbuffers = 1,
-    .modes = {STARPU_R},
+    .nbuffers = STARPU_VARIABLE_NBUFFERS,
     .name = "cl_touch",
     .model = &perfmodel_read,
 };
@@ -162,6 +164,8 @@ int main()
     else
         starpu_graph_sched_set_checkpoint_count(0);
 
+    starpu_pause();
+
     starpu_task_insert(&cl_add3,
                        STARPU_W, hc, STARPU_R, ha, STARPU_R, hb,
                        STARPU_CL_ARGS, graph_demo_axby_alloc(1, 1), sizeof(graph_demo_axby),
@@ -198,11 +202,12 @@ int main()
 
     starpu_graph_sched_apply_auto_checkpoints(0);
 
+    starpu_resume();
+    starpu_task_wait_for_all();
+
     const int vc = read_int_handle(hc);
     const int ve = read_int_handle(he);
     const int vf = read_int_handle(hf);
-
-    starpu_task_wait_for_all();
 
     starpu_data_unregister(ha);
     starpu_data_unregister(hb);

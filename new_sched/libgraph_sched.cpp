@@ -980,6 +980,14 @@ static bool graph_sched_insert_checkpoint_writer(graph_sched_data *data,
             h = handle;
         STARPU_TASK_SET_HANDLE(task_checkpoint, h, bi);
     }
+    /* For STARPU_VARIABLE_NBUFFERS, StarPU uses task->nbuffers and task-local modes
+     * (STARPU_TASK_GET_NBUFFERS / STARPU_TASK_GET_MODE). starpu_task_create() leaves
+     * nbuffers at 0 and modes cleared — rematerialization then sees the wrong layout. */
+    if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS) {
+        for (unsigned bi = 0; bi < nbuf; bi++)
+            STARPU_TASK_SET_MODE(task_checkpoint, STARPU_TASK_GET_MODE(w_task, bi), bi);
+        task_checkpoint->nbuffers = (int)nbuf;
+    }
 
     checkpoint_task_copy_cl_arg(task_checkpoint, w_task);
     task_checkpoint->sched_data = static_cast<void *>(w_task);
