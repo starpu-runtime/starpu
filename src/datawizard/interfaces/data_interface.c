@@ -1229,6 +1229,14 @@ void starpu_data_invalidate_submit_no_sequential_consistency(starpu_data_handle_
 	handle->initialized = 0;
 }
 
+void starpu_data_set_initialized(starpu_data_handle_t handle, unsigned initialized)
+{
+	STARPU_ASSERT(handle);
+	_starpu_spin_lock(&handle->header_lock);
+	handle->initialized = initialized ? 1 : 0;
+	_starpu_spin_unlock(&handle->header_lock);
+}
+
 void _starpu_data_invalidate_submit_noplan(starpu_data_handle_t handle)
 {
 	STARPU_ASSERT(handle);

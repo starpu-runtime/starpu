@@ -75,6 +75,8 @@ struct starpu_data_interface_ops *_starpu_data_interface_get_ops(unsigned interf
 
 void _starpu_data_deinitialize_submit_noplan(starpu_data_handle_t handle);
 
+void _starpu_data_invalidate(void *data);
+
 void _starpu_data_invalidate_submit_noplan(starpu_data_handle_t handle);
 
 #pragma GCC visibility pop

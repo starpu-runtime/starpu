@@ -33,6 +33,7 @@ extern "C" {
 */
 
 struct _starpu_data_state;
+struct starpu_task;
 
 /**
    StarPU uses ::starpu_data_handle_t as an opaque handle to manage a
@@ -289,6 +290,38 @@ void starpu_data_invalidate_submit(starpu_data_handle_t handle);
    initializer) repopulates the handle.
 */
 void starpu_data_invalidate_submit_no_sequential_consistency(starpu_data_handle_t handle);
+
+/**
+   Submit invalidation of the data \p handle between already-submitted
+   tasks, by creating internal synchronization tasks with explicit task
+   dependencies. The invalidation runs after all tasks listed in
+   \p input_deps complete, and each task listed in \p output_deps will
+   additionally wait for the invalidation to finish.
+
+   Contrary to starpu_data_invalidate_submit(), this does not use the
+   current tail of the handle's sequential-consistency history to place the
+   invalidation. It is meant for schedulers or advanced users that have
+   already built a DAG and need to insert the invalidation at a precise
+   point inside it.
+
+   The handle is marked uninitialized immediately, like
+   starpu_data_invalidate_submit(). This function therefore must only be
+   used when the caller knows that no reader remains between
+   \p input_deps and \p output_deps.
+*/
+int starpu_data_invalidate_submit_with_deps(starpu_data_handle_t handle,
+	unsigned ndeps_input, struct starpu_task *input_deps[],
+	unsigned ndeps_output, struct starpu_task *output_deps[]);
+
+/**
+   Override the logical initialization state of \p handle.
+
+   This only changes whether future StarPU/API reads consider that the handle
+   currently has, or will have, a value. It does not move or allocate data by
+   itself. This is intended for advanced runtimes and schedulers that insert
+   their own internal synchronization/rematerialization tasks.
+*/
+void starpu_data_set_initialized(starpu_data_handle_t handle, unsigned initialized);
 
 /**
    Specify that the data \p handle can be discarded without impacting

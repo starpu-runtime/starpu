@@ -880,6 +880,7 @@ struct graph_sched_data
     std::mutex policy_mutex;
     graph_checkpoint_tasks_map_t checkpoint_tasks;
     bool checkpoints_applied = false;
+    bool invalidations_applied = false;
     std::map<starpu_task*, starpu_task*> checkpoint_c_by_r1;
     std::map<starpu_data_handle_t, starpu_task*> checkpoint_c_by_handle;
     /* Single worker this policy targets (CPU now; same id space for a lone GPU later). */
@@ -1011,6 +1012,61 @@ static bool graph_sched_insert_checkpoint_writer(graph_sched_data *data,
     if (submit_ret == 0)
         data->n_checkpoint_tasks_inserted++;
     return true;
+}
+
+static void graph_sched_apply_explicit_invalidations(graph_sched_data *data, std::unique_lock<std::mutex> &lock)
+{
+    if (data->invalidations_applied)
+        return;
+    data->invalidations_applied = true;
+
+    struct InvalidationCandidate {
+        starpu_data_handle_t handle;
+        starpu_task *pred_task;
+        starpu_task *next_task;
+    };
+
+    std::vector<InvalidationCandidate> candidates;
+    for (starpu_data_handle_t handle : data->task_graph.get_data_handles())
+    {
+        const TaskChain *chain_ptr = data->task_graph.get_task_chain(handle);
+        if (!chain_ptr)
+            continue;
+        const auto &chain = chain_ptr->chain;
+        for (auto it = chain.begin(); it != chain.end(); ++it)
+        {
+            auto next_it = std::next(it);
+            if (next_it == chain.end())
+                break;
+            if (!it->first || !next_it->first)
+                continue;
+            DataAccessMode next_mode = next_it->second;
+            if ((next_mode & W) && !(next_mode & R))
+                candidates.push_back({handle, it->first, next_it->first});
+        }
+    }
+
+    for (const auto &cand : candidates)
+    {
+        starpu_task *input_dep[1] = { cand.pred_task };
+        starpu_task *output_dep[1] = { cand.next_task };
+        lock.unlock();
+        int ret = starpu_data_invalidate_submit_with_deps(cand.handle, 1, input_dep, 1, output_dep);
+        lock.lock();
+        STARPU_ASSERT_MSG(ret == 0, "graph_standalone: failed to submit explicit invalidation");
+        /* The next graph access is a pure writer already submitted with explicit deps, so the handle
+         * is logically reinitialized from StarPU's submission-time point of view. This mirrors the
+         * regular implicit-dependency path, which flips initialized on W submission. */
+        starpu_data_set_initialized(cand.handle, 1);
+        data->n_invalidate_handles_submitted++;
+
+        if (graph_sched_verbose_push_pop_ckp(data->verbosity))
+        {
+            std::cerr << "graph_standalone: invalidate [" << cand.handle << "] after "
+                      << graph_sched_task_label(cand.pred_task) << " before "
+                      << graph_sched_task_label(cand.next_task) << std::endl;
+        }
+    }
 }
 
 static void graph_sched_report_checkpoint_discovery(graph_sched_data *data, unsigned sched_ctx_id)
@@ -1454,6 +1510,7 @@ void starpu_graph_sched_apply_auto_checkpoints(unsigned sched_ctx_id)
     std::unique_lock<std::mutex> lock(data->policy_mutex);
     graph_sched_report_checkpoint_discovery(data, sched_ctx_id);
     graph_sched_run_auto_checkpoint_insertion(data, sched_ctx_id, lock);
+    graph_sched_apply_explicit_invalidations(data, lock);
     graph_sched_report_ckp_remat_verbose(data, sched_ctx_id);
 }
 

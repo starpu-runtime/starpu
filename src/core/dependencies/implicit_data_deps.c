@@ -36,7 +36,7 @@ void _starpu_implicit_data_deps_write_hook(void (*func)(starpu_data_handle_t))
 	write_hook = func;
 }
 
-static void _starpu_add_ghost_dependency(starpu_data_handle_t handle, unsigned long previous, struct starpu_task *next)
+void _starpu_add_ghost_dependency(starpu_data_handle_t handle, unsigned long previous, struct starpu_task *next)
 {
 	struct _starpu_job *next_job = _starpu_get_job_associated_to_task(next);
 	_starpu_bound_job_id_dep(handle, next_job, previous);
