@@ -1,5 +1,8 @@
 /* Optional checkpointing config for graph_standalone scheduler.
  * Checkpointing is OFF by default. Set count or env STARPU_GRAPH_SCHED_CHECKPOINT_COUNT.
+ *
+ * Verbose scheduler stderr (hooks, do_schedule, etc.): set STARPU_GRAPH_SCHED_VERBOSE to a
+ * non-zero integer before StarPU init / scheduler load. Default is silent (0 / unset).
  */
 
 #ifndef GRAPH_SCHED_H

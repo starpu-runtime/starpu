@@ -82,8 +82,6 @@ int main()
     starpu_variable_data_register(&handle_x, -1, (uintptr_t)0, sizeof(int));
     starpu_variable_data_register(&handle_y, STARPU_MAIN_RAM, (uintptr_t)&y, sizeof(int));
 
-    std::cerr << "handle_x: " << handle_x << "\nhandle_y: " << handle_y << std::endl;
-
     starpu_pause();
     starpu_task_insert(&cl_init, STARPU_W, handle_x, STARPU_NAME, "init_x", 0);
     starpu_task_insert(&cl_add, STARPU_R, handle_x, STARPU_RW, handle_y, STARPU_NAME, "add_x_to_y_1", 0);

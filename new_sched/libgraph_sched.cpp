@@ -451,8 +451,8 @@ public:
         return out;
     }
 
-    // Get all checkpointable tasks: W in W->R->R chains (by handle).
-    // Returns unique (handle, w_task) pairs. User picks one and calls add_checkpoint.
+    // W tasks in W→R→R chains (by handle). Raw graph view; policy uses get_checkpointable_tasks_open
+    // to drop (handle, W) pairs that already have an inserted checkpoint.
     struct Checkpointable { starpu_data_handle_t handle; starpu_task* w_task; };
     std::vector<Checkpointable> get_checkpointable_tasks() const {
         std::vector<Checkpointable> result;
@@ -513,6 +513,42 @@ public:
         }
         if (!has_unscheduled_pred)
             ready_tasks.insert(graph_task);
+    }
+
+    /* Checkpoint tasks use add_task_with_predecessors() and never hit add_task(), so they are absent
+     * from data_chains until spliced here after R1. Otherwise handles_to_invalidate_after(R1) sees
+     * R2 (read) as successor and does not invalidate before _ckp's W. */
+    void insert_access_after_on_handle(starpu_task* pred_task, starpu_data_handle_t handle,
+                                       starpu_task* new_task, DataAccessMode mode)
+    {
+        auto gt_it = task_map.find(new_task);
+        if (gt_it == task_map.end())
+            return;
+        GraphTask* new_gt = gt_it->second;
+        new_gt->data_accesses.push_back({handle, mode});
+
+        auto pred_gt_it = task_map.find(pred_task);
+        if (pred_gt_it == task_map.end())
+            return;
+        GraphTask* pred_gt = pred_gt_it->second;
+
+        auto& dt_vec = data_to_tasks[handle];
+        auto pit = std::find(dt_vec.begin(), dt_vec.end(), pred_gt);
+        if (pit != dt_vec.end())
+            dt_vec.insert(std::next(pit), new_gt);
+        else
+            dt_vec.push_back(new_gt);
+
+        auto ch_it = data_chains.find(handle);
+        if (ch_it == data_chains.end())
+            return;
+        std::list<std::pair<starpu_task*, DataAccessMode>>& ch = ch_it->second->chain;
+        for (auto it = ch.begin(); it != ch.end(); ++it) {
+            if (it->first == pred_task) {
+                ch.insert(std::next(it), {new_task, mode});
+                return;
+            }
+        }
     }
 
     // Add pred as predecessor of task (both must be in graph)
@@ -629,10 +665,28 @@ static unsigned index_of_pure_w_buffer(const struct starpu_task* task)
     return std::numeric_limits<unsigned>::max();
 }
 
-static std::vector<TaskGraph::Checkpointable> filter_wr_checkpointables(const TaskGraph& g)
+using graph_checkpoint_tasks_map_t =
+    std::map<std::pair<starpu_data_handle_t, starpu_task*>, starpu_task*>;
+
+/** Checkpointable W tasks excluding (handle, W) pairs that already have an inserted checkpoint. */
+static std::vector<TaskGraph::Checkpointable> get_checkpointable_tasks_open(
+    const TaskGraph& g,
+    const graph_checkpoint_tasks_map_t& checkpoint_tasks)
 {
     std::vector<TaskGraph::Checkpointable> out;
     for (const auto& c : g.get_checkpointable_tasks()) {
+        if (!checkpoint_tasks.count({c.handle, c.w_task}))
+            out.push_back(c);
+    }
+    return out;
+}
+
+static std::vector<TaskGraph::Checkpointable> filter_wr_checkpointables(
+    const TaskGraph& g,
+    const graph_checkpoint_tasks_map_t& checkpoint_tasks)
+{
+    std::vector<TaskGraph::Checkpointable> out;
+    for (const auto& c : get_checkpointable_tasks_open(g, checkpoint_tasks)) {
         if (task_is_single_w_rest_r(c.w_task))
             out.push_back(c);
     }
@@ -670,15 +724,24 @@ struct graph_sched_data
      * in push order). Pop must not bypass this — otherwise scheduling would ignore do_schedule. */
     std::deque<struct starpu_task*> schedulable_queue;
     std::mutex policy_mutex;
-    std::map<std::pair<starpu_data_handle_t, starpu_task*>, starpu_task*> checkpoint_tasks;
+    graph_checkpoint_tasks_map_t checkpoint_tasks;
     bool checkpoints_applied = false;
     std::map<starpu_task*, starpu_task*> checkpoint_c_by_r1;
     std::map<starpu_data_handle_t, starpu_task*> checkpoint_c_by_handle;
-    /* Logged once when checkpointing is enabled but no W→R→R chain exists yet. */
-    bool checkpoint_wrr_empty_hint_logged = false;
     /* Single worker this policy targets (CPU now; same id space for a lone GPU later). */
     unsigned policy_worker_id = 0;
+    /* Non-zero: stderr diagnostics (from STARPU_GRAPH_SCHED_VERBOSE at init). */
+    unsigned verbosity = 0;
 };
+
+/* Checkpoint/internal tasks: omit hook logging (no checkpoint stderr in hooks). */
+static bool graph_sched_task_internal(const struct starpu_task *task)
+{
+    if (!task || !task->name)
+        return true;
+    return std::strcmp(task->name, "_ckp") == 0
+        || std::strcmp(task->name, "_ckp_inv") == 0;
+}
 
 // Initialize the graph scheduler
 static void init_graph_sched(unsigned sched_ctx_id)
@@ -686,8 +749,12 @@ static void init_graph_sched(unsigned sched_ctx_id)
     auto data = new graph_sched_data;
     const char* e = getenv("STARPU_GRAPH_SCHED_WORKER_ID");
     data->policy_worker_id = e ? (unsigned)atoi(e) : 0;
+    const char *verb = getenv("STARPU_GRAPH_SCHED_VERBOSE");
+    if (verb && verb[0])
+        data->verbosity = (unsigned)strtoul(verb, nullptr, 10);
     starpu_sched_ctx_set_policy_data(sched_ctx_id, data);
-    std::cerr << "graph_standalone: policy worker id " << data->policy_worker_id << std::endl;
+    if (data->verbosity)
+        std::cerr << "graph_standalone: policy worker id " << data->policy_worker_id << std::endl;
 }
 
 // Deinitialize the graph scheduler
@@ -698,7 +765,7 @@ static void deinit_graph_sched(unsigned sched_ctx_id)
     /* Remove any remaining internal tasks (acquire_cb_pre/release, _ckp, ghost) that don't
      * trigger post_exec_hook and may not get popped. */
     data->task_graph.remove_internal_tasks();
-    if (!data->task_graph.empty())
+    if (data->verbosity && !data->task_graph.empty())
         std::cerr << "deinit: task graph has " << data->task_graph.size() << " leftover tasks\n";
     delete data;
 }
@@ -717,23 +784,15 @@ static void submit_hook_graph(struct starpu_task *task)
     if (task_not_scheduled_via_policy_queues(task))
         return;
 
-    std::cerr << "Submit hook\n";
-    std::cerr << "    Submitted task " << task;
-    if (task->name)
-        std::cerr << " (" << task->name << ")";
-    std::cerr << std::endl;
+    if (graph_sched_task_internal(task))
+        return;
 
-    bool is_internal = !task->name ||
-        std::strcmp(task->name, "_ckp") == 0 ||
-        std::strcmp(task->name, "_ckp_inv") == 0;
-
-    if (!is_internal)
-    {
-        data->task_graph.add_task(task);
-        std::cerr << "    Add " << task->name << " to scheduler task_graph" << std::endl;
+    if (data->verbosity) {
+        const char *task_name = starpu_task_get_name(task);
+        std::cerr << "Submit hook: " << (task_name ? task_name : "(unnamed)")
+                  << " (" << task << ")\n";
     }
-    std::cerr << "    Task graph size: " << data->task_graph.size() << std::endl;
-    std::cerr << "    Ready tasks: " << data->task_graph.get_ready_tasks().size() << std::endl;
+    data->task_graph.add_task(task);
 }
 
 static int push_task_graph(struct starpu_task *task)
@@ -753,12 +812,11 @@ static int push_task_graph(struct starpu_task *task)
      * finished when a successor is pushed (that successor's deps are done). */
     data->task_graph.mark_finished_internal_predecessors(task);
 
-    std::cerr << "Push task\n";
-    std::cerr << "    Pushing task " << task;
-    if (task->name)
-        std::cerr << " (" << task->name << ")";
-    std::cerr << std::endl;
-    std::cerr << "    Pushed tasks size: " << data->pushed_tasks.size() << std::endl;
+    if (data->verbosity && !graph_sched_task_internal(task)) {
+        const char *task_name = starpu_task_get_name(task);
+        std::cerr << "Push: " << (task_name ? task_name : "(unnamed)")
+                  << " (" << task << ")\n";
+    }
     starpu_push_task_end(task);
 
     return 0;
@@ -781,24 +839,9 @@ static void do_schedule_graph(unsigned sched_ctx_id)
      * times come from StarPU perf models (historical/regression), for policy_worker_id. */
     if (g_checkpoint_count > 0 && !data->checkpoints_applied)
     {
-        std::cerr << "    W-pattern tasks (single STARPU_W, only STARPU_R elsewhere):\n";
-        for (starpu_task* t : data->task_graph.get_all_tasks()) {
-            if (!task_is_single_w_rest_r(t)) continue;
-            std::cerr << "        " << (t->name ? t->name : "?") << "  [W of W->R->R shape]\n";
-        }
-        std::vector<TaskGraph::Checkpointable> wr_cp = filter_wr_checkpointables(data->task_graph);
-        std::cerr << "    Checkpointable (W->R->R + W-pattern):\n";
-        for (const auto& c : wr_cp)
-            std::cerr << "        W task " << (c.w_task->name ? c.w_task->name : "?") << "\n";
-
-        if (wr_cp.empty()) {
-            /* W-pattern lists writers that *could* head W→R→R; checkpointing still needs two readers
-             * on the same handle in the graph (chain length ≥ 3). Do not set checkpoints_applied. */
-            if (!data->checkpoint_wrr_empty_hint_logged) {
-                std::cerr << "        (none yet — need W→R→R on a handle; with only W→R the chain is incomplete)\n";
-                data->checkpoint_wrr_empty_hint_logged = true;
-            }
-        } else {
+        std::vector<TaskGraph::Checkpointable> wr_cp =
+            filter_wr_checkpointables(data->task_graph, data->checkpoint_tasks);
+        if (!wr_cp.empty()) {
             unsigned target = std::min(g_checkpoint_count, (unsigned)wr_cp.size());
             std::random_device rd;
             std::mt19937 gen(rd());
@@ -843,11 +886,6 @@ static void do_schedule_graph(unsigned sched_ctx_id)
                 clarg[2] = t_c_s;
                 task_checkpoint->cl_arg = clarg;
 
-                std::cerr << "    _ckp perf model: worker " << wid
-                          << "  W_time=" << t_w_us << "us  C_time=" << t_c_us
-                          << "us  restoration_Bps=" << restoration_bps
-                          << "  (W_buf " << nbytes << " B)\n";
-
                 starpu_task* c_deps_pre[1] = { r1 };
                 starpu_task_declare_deps_array_relaxed(task_checkpoint, 1, c_deps_pre);
                 _starpu_add_dependency(handle, r1, task_checkpoint);
@@ -858,6 +896,9 @@ static void do_schedule_graph(unsigned sched_ctx_id)
 
                 data->task_graph.add_task_with_predecessors(task_checkpoint, {r1});
                 data->task_graph.add_dependency(r2, task_checkpoint);
+                DataAccessMode ckp_mode =
+                    static_cast<DataAccessMode>(STARPU_TASK_GET_MODE(task_checkpoint, 0));
+                data->task_graph.insert_access_after_on_handle(r1, handle, task_checkpoint, ckp_mode);
                 data->checkpoint_c_by_r1[r1] = task_checkpoint;
                 data->checkpoint_c_by_handle[handle] = task_checkpoint;
                 data->checkpoint_tasks[{handle, w_task}] = task_checkpoint;
@@ -872,12 +913,24 @@ static void do_schedule_graph(unsigned sched_ctx_id)
         }
     }
 
-    std::cerr << "Do schedule graph\n";
-    std::cerr << "    Task graph size: " << data->task_graph.size() << std::endl;
+    if (data->verbosity) {
+        std::cerr << "Do schedule graph\n";
+        std::cerr << "    Task graph size: " << data->task_graph.size() << std::endl;
 
-    for (struct starpu_task *task: data->task_graph.get_all_tasks())
-    {
-        std::cerr << "    " << (task->name ? task->name : "?") << std::endl;
+        {
+            const auto checkpointable =
+                get_checkpointable_tasks_open(data->task_graph, data->checkpoint_tasks);
+            unsigned ckp_in_graph = 0;
+            for (starpu_task* t : data->task_graph.get_all_tasks())
+                if (t->name && std::strcmp(t->name, "_ckp") == 0)
+                    ckp_in_graph++;
+            std::cerr << "    Checkpointable tasks: " << checkpointable.size() << std::endl;
+            std::cerr << "    Checkpoint tasks: " << ckp_in_graph << " currently in graph, "
+                      << data->checkpoint_tasks.size() << " inserted historically (tracked pairs)\n";
+        }
+
+        for (struct starpu_task *task: data->task_graph.get_all_tasks())
+            std::cerr << "    " << (task->name ? task->name : "?") << std::endl;
     }
 
     data->schedulable_queue.clear();
@@ -890,7 +943,8 @@ static void do_schedule_graph(unsigned sched_ctx_id)
                 data->schedulable_queue.push_back(t);
         }
     }
-    std::cerr << "    Schedulable (this pass): " << data->schedulable_queue.size() << std::endl;
+    if (data->verbosity)
+        std::cerr << "    Schedulable (this pass): " << data->schedulable_queue.size() << std::endl;
 }
 
 // Pop a task from the graph scheduler
@@ -915,8 +969,11 @@ static struct starpu_task *pop_task_graph(unsigned sched_ctx_id)
                 continue;
             starpu_task* task = *it;
             data->pushed_tasks.erase(it);
-            std::cerr << "Pop task\n";
-            std::cerr << "    Popped task " << task << std::endl;
+            if (data->verbosity && !graph_sched_task_internal(task)) {
+                const char *task_name = starpu_task_get_name(task);
+                std::cerr << "Pop: " << (task_name ? task_name : "(unnamed)")
+                          << " (" << task << ")\n";
+            }
             return task;
         }
         return nullptr;
@@ -950,13 +1007,19 @@ static void post_exec_hook_graph(struct starpu_task *task, unsigned sched_ctx_id
 
     /* Invalidate after predecessors of straight-W consumers (chain of Access modes). Checkpoint C uses
      * w_task's codelet (e.g. STARPU_W), so R1->C makes R1 a predecessor of W and triggers invalidate here. */
-    for (starpu_data_handle_t h : data->task_graph.handles_to_invalidate_after(task))
+    std::vector<starpu_data_handle_t> inv =
+        data->task_graph.handles_to_invalidate_after(task);
+    for (starpu_data_handle_t h : inv)
         starpu_data_invalidate_submit_no_sequential_consistency(h);
 
     data->task_graph.mark_finished(task);
 
-    std::cerr << "Post-exec hook\n";
-    std::cerr << "    Hook called for task " << task << std::endl;
+    if (data->verbosity && !inv.empty()) {
+        const char *task_name = starpu_task_get_name(task);
+        std::cerr << "Post-exec: data invalidation submitted (" << inv.size() << " handle"
+                  << (inv.size() == 1 ? "" : "s") << ") after "
+                  << (task_name ? task_name : "(unnamed)") << " (" << task << ")\n";
+    }
 }
 
 // Define the graph scheduler policy as a global variable
@@ -1018,7 +1081,7 @@ void starpu_graph_sched_get_checkpointable_tasks(unsigned sched_ctx_id, starpu_g
     if (!p) return;
     auto *data = static_cast<graph_sched_data *>(p);
     std::lock_guard<std::mutex> lock(data->policy_mutex);
-    auto list = data->task_graph.get_checkpointable_tasks();
+    auto list = get_checkpointable_tasks_open(data->task_graph, data->checkpoint_tasks);
     for (const auto& c : list)
         cb(c.handle, c.w_task, arg);
 }
@@ -1039,7 +1102,7 @@ static int add_checkpoint_internal(unsigned sched_ctx_id, starpu_data_handle_t h
     return 0;
 }
 
-// Add checkpoint for (handle, w_task). Call after get_checkpointable_tasks, while paused.
+// Add checkpoint for (handle, w_task). Call after starpu_graph_sched_get_checkpointable_tasks, while paused.
 int starpu_graph_sched_add_checkpoint(starpu_data_handle_t handle, struct starpu_task *w_task)
 {
     unsigned sched_ctx_id = starpu_sched_ctx_get_context();
