@@ -187,30 +187,22 @@ int main()
                        STARPU_W, hf, STARPU_R, hc, STARPU_R, he,
                        STARPU_CL_ARGS, graph_demo_axby_alloc(1, 1), sizeof(graph_demo_axby),
                        0);
+    // starpu_data_invalidate_submit(hc);
+    // starpu_data_invalidate_submit(he);
     starpu_task_insert(&cl_touch,
                        STARPU_R, hf,
                        0);
     starpu_task_insert(&cl_touch,
                        STARPU_R, hf,
                        0);
-
-    unsigned wrr = 0, auto_ok = 0;
-    starpu_graph_sched_get_checkpoint_eligibility(0, &wrr, &auto_ok);
-    if (wrr > auto_ok) {
-        std::cerr << "graph_sched: " << (wrr - auto_ok)
-                  << " W→R→R chain(s) are not eligible for automatic checkpoint (writer must be "
-                     "1×STARPU_W + rest STARPU_R)\n";
-    }
-    /* Eligibility uses W→R→R chains with positive StarPU expected time on GRAPH_SCHED worker (cold
-     * HISTORY_BASED can report 0 here until the perf file has enough samples). */
 
     starpu_graph_sched_apply_auto_checkpoints(0);
-
-    starpu_task_wait_for_all();
 
     const int vc = read_int_handle(hc);
     const int ve = read_int_handle(he);
     const int vf = read_int_handle(hf);
+
+    starpu_task_wait_for_all();
 
     starpu_data_unregister(ha);
     starpu_data_unregister(hb);
@@ -219,10 +211,8 @@ int main()
     starpu_data_unregister(he);
     starpu_data_unregister(hf);
 
-    std::cout << "DAG done. c=" << vc << " e=" << ve << " f=" << vf
-              << " (expect c=2, e=2, f=4 with cl_arg a=b=1 and inputs 1); checkpointable (WRR + remat timing): "
-              << wrr
-              << ", auto-checkpoint-compatible writers: " << auto_ok << "\n";
+    // std::cout << "DAG done. c=" << vc << " e=" << ve << " f=" << vf
+    //           << " (expect c=2, e=2, f=4 with cl_arg a=b=1 and inputs 1);";
     starpu_shutdown();
     return 0;
 }
