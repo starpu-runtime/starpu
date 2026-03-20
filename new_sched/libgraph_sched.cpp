@@ -773,6 +773,22 @@ static std::vector<TaskGraph::Checkpointable> filter_wr_checkpointables(
     return out;
 }
 
+/** Same candidate set as the automatic _ckp inserter (single-W-rest-R + no read of already-checkpointed data). */
+static std::vector<TaskGraph::Checkpointable> get_auto_checkpoint_candidates(
+    const TaskGraph& g,
+    const graph_checkpoint_tasks_map_t& checkpoint_tasks,
+    unsigned workerid,
+    unsigned sched_ctx_id)
+{
+    std::unordered_set<starpu_data_handle_t> checkpointed_outputs;
+    checkpointed_outputs.reserve(checkpoint_tasks.size());
+    for (const auto& kv : checkpoint_tasks)
+        checkpointed_outputs.insert(kv.first.first);
+    std::vector<TaskGraph::Checkpointable> wr =
+        filter_wr_checkpointables(g, checkpoint_tasks, workerid, sched_ctx_id);
+    return filter_drop_readers_of_checkpointed_outputs(std::move(wr), checkpointed_outputs);
+}
+
 /** Bytes/s for rematerializing written buffer: size(W) / expected writer time (same as _ckp cl_arg[0]). */
 static double checkpointable_restoration_bps(const TaskGraph::Checkpointable& c,
     unsigned workerid,
@@ -1042,14 +1058,10 @@ static void do_schedule_graph(unsigned sched_ctx_id)
         std::cerr << "    Task graph size: " << data->task_graph.size() << std::endl;
 
         {
-            const auto checkpointable =
-                get_checkpointable_tasks_open_timed(data->task_graph, data->checkpoint_tasks,
-                                                    data->policy_worker_id, sched_ctx_id);
             unsigned ckp_in_graph = 0;
             for (starpu_task* t : data->task_graph.get_all_tasks())
                 if (t->name && std::strcmp(t->name, "_ckp") == 0)
                     ckp_in_graph++;
-            std::cerr << "    Checkpointable tasks: " << checkpointable.size() << std::endl;
             std::cerr << "    Checkpoint tasks: " << ckp_in_graph << " currently in graph, "
                       << data->checkpoint_tasks.size() << " inserted historically (tracked pairs)\n";
         }
@@ -1058,8 +1070,8 @@ static void do_schedule_graph(unsigned sched_ctx_id)
          * so the first do_schedule pass often sees n/a; later passes can print B/s once tasks have run. */
         {
             const unsigned wid = data->policy_worker_id;
-            for (const auto& c : get_checkpointable_tasks_open_timed(data->task_graph, data->checkpoint_tasks,
-                                                                    data->policy_worker_id, sched_ctx_id)) {
+            for (const auto& c : get_auto_checkpoint_candidates(data->task_graph, data->checkpoint_tasks,
+                                                                data->policy_worker_id, sched_ctx_id)) {
                 unsigned wi = index_of_pure_w_buffer(c.w_task);
                 if (wi == std::numeric_limits<unsigned>::max())
                     continue;
