@@ -1,9 +1,9 @@
 /* Demo: user-style DAG + graph_sched checkpoint/invalidation safety hooks.
  *
- * After init: three cl_add3 producers in a chain — add_c (→hc), add_e (→he), add_f (→hf) — each
- * followed by two pure reads so every intermediate/output has W→R→R. add_f reads hc and he; those
- * handles are separate W→R→R chains. Automatic checkpoints can still target hf (add_f) after hc/he
- * _ckps: rematerialization order follows StarPU data deps and wire_ckp_reader_deps on each handle.
+ * After init: three cl_add3 producers in a chain (→hc, →he, →hf) — each followed by two pure reads
+ * so every intermediate/output has W→R→R. hf’s writer reads hc and he (separate W→R→R chains).
+ * Writers compute z = a*x + b*y with scalars (a,b) in heap cl_arg (STARPU_CL_ARGS; StarPU frees).
+ * Automatic _ckp tasks are inserted by starpu_graph_sched_apply_auto_checkpoints() after submit.
  *
  * Each scalar is starpu_malloc’d and registered on STARPU_MAIN_RAM (no app-side int variables).
  * Inputs a, b, d are set to 1 on the host via starpu_data_acquire(STARPU_W) / release and
@@ -21,8 +21,23 @@
 #include <starpu.h>
 #include <starpu_data.h>
 #include <starpu_perfmodel.h>
+#include <starpu_task_util.h>
 
 #include "graph_sched.h"
+
+struct graph_demo_axby {
+    int a;
+    int b;
+};
+
+static graph_demo_axby *graph_demo_axby_alloc(int a, int b)
+{
+    graph_demo_axby *p = (graph_demo_axby *)std::malloc(sizeof(graph_demo_axby));
+    STARPU_ASSERT_MSG(p, "graph_demo_axby_alloc");
+    p->a = a;
+    p->b = b;
+    return p;
+}
 
 static void graph_demo_kernel_sleep_us(void)
 {
@@ -40,11 +55,12 @@ static void graph_demo_kernel_sleep_us(void)
 
 static void add3_buf(void *buffers[], void *cl_arg)
 {
-    (void)cl_arg;
+    const graph_demo_axby *ab = (const graph_demo_axby *)cl_arg;
+    STARPU_ASSERT_MSG(ab, "add3_buf: cl_arg");
     int *dst = (int *)STARPU_VARIABLE_GET_PTR(buffers[0]);
     const int *s0 = (int *)STARPU_VARIABLE_GET_PTR(buffers[1]);
     const int *s1 = (int *)STARPU_VARIABLE_GET_PTR(buffers[2]);
-    *dst = *s0 + *s1;
+    *dst = ab->a * (*s0) + ab->b * (*s1);
     graph_demo_kernel_sleep_us();
 }
 
@@ -156,9 +172,6 @@ int main()
     init_variable_host(hb);
     init_variable_host(hd);
 
-    const int seq_off = 0;
-
-    // starpu_pause();
     if (const char *e = getenv("STARPU_GRAPH_SCHED_CHECKPOINT_COUNT"))
         starpu_graph_sched_set_checkpoint_count((unsigned)atoi(e));
     else
@@ -166,49 +179,34 @@ int main()
 
     starpu_task_insert(&cl_add3,
                        STARPU_W, hc, STARPU_R, ha, STARPU_R, hb,
-                       STARPU_NAME, "add_c",
-                       STARPU_SEQUENTIAL_CONSISTENCY, seq_off,
+                       STARPU_CL_ARGS, graph_demo_axby_alloc(1, 1), sizeof(graph_demo_axby),
                        0);
     starpu_task_insert(&cl_touch,
                        STARPU_R, hc,
-                       STARPU_NAME, "read_c_1",
-                       STARPU_SEQUENTIAL_CONSISTENCY, seq_off,
                        0);
     starpu_task_insert(&cl_touch,
                        STARPU_R, hc,
-                       STARPU_NAME, "read_c_2",
-                       STARPU_SEQUENTIAL_CONSISTENCY, seq_off,
                        0);
 
     starpu_task_insert(&cl_add3,
                        STARPU_W, he, STARPU_R, hb, STARPU_R, hd,
-                       STARPU_NAME, "add_e",
-                       STARPU_SEQUENTIAL_CONSISTENCY, seq_off,
+                       STARPU_CL_ARGS, graph_demo_axby_alloc(1, 1), sizeof(graph_demo_axby),
                        0);
     starpu_task_insert(&cl_touch,
                        STARPU_R, he,
-                       STARPU_NAME, "read_e_1",
-                       STARPU_SEQUENTIAL_CONSISTENCY, seq_off,
                        0);
     starpu_task_insert(&cl_touch,
                        STARPU_R, he,
-                       STARPU_NAME, "read_e_2",
-                       STARPU_SEQUENTIAL_CONSISTENCY, seq_off,
                        0);
     starpu_task_insert(&cl_add3,
                        STARPU_W, hf, STARPU_R, hc, STARPU_R, he,
-                       STARPU_NAME, "add_f",
-                       STARPU_SEQUENTIAL_CONSISTENCY, seq_off,
+                       STARPU_CL_ARGS, graph_demo_axby_alloc(1, 1), sizeof(graph_demo_axby),
                        0);
     starpu_task_insert(&cl_touch,
                        STARPU_R, hf,
-                       STARPU_NAME, "read_f_1",
-                       STARPU_SEQUENTIAL_CONSISTENCY, seq_off,
                        0);
     starpu_task_insert(&cl_touch,
                        STARPU_R, hf,
-                       STARPU_NAME, "read_f_2",
-                       STARPU_SEQUENTIAL_CONSISTENCY, seq_off,
                        0);
 
     unsigned wrr = 0, auto_ok = 0;
@@ -221,7 +219,8 @@ int main()
     /* Eligibility uses W→R→R chains with positive StarPU expected time on GRAPH_SCHED worker (cold
      * HISTORY_BASED can report 0 here until the perf file has enough samples). */
 
-    // starpu_resume();
+    starpu_graph_sched_apply_auto_checkpoints(0);
+
     starpu_task_wait_for_all();
 
     const int vc = read_int_handle(hc);
@@ -236,7 +235,7 @@ int main()
     unregister_malloced_int(hf);
 
     std::cout << "DAG done. c=" << vc << " e=" << ve << " f=" << vf
-              << " (expect c=2, e=2, f=4 with a,b,d initialized to 1); checkpointable (WRR + remat timing): "
+              << " (expect c=2, e=2, f=4 with cl_arg a=b=1 and inputs 1); checkpointable (WRR + remat timing): "
               << wrr
               << ", auto-checkpoint-compatible writers: " << auto_ok << "\n";
     starpu_shutdown();

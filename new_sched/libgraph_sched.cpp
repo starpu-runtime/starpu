@@ -28,10 +28,49 @@
 #include <limits>
 #include <iomanip>
 #include <sstream>
+#include <cstddef>
+#include <cstdint>
 
 extern "C" void _starpu_add_dependency(starpu_data_handle_t handle, struct starpu_task *previous, struct starpu_task *next);
 extern "C" void starpu_task_declare_deps_array_relaxed(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[]);
 extern "C" void starpu_data_invalidate_submit_no_sequential_consistency(starpu_data_handle_t handle);
+
+/* STARPU_GRAPH_SCHED_VERBOSE: 0=off, 1=init/deinit, 2=push/pop/_ckp + checkpoint reports,
+ * 3=submit + do_schedule one line (total/ready tasks), 4=full do_schedule dump. Higher values clamp to 4. */
+static unsigned graph_sched_parse_verbose_env(const char *verb)
+{
+    if (!verb || !verb[0])
+        return 0;
+    unsigned v = (unsigned)strtoul(verb, nullptr, 10);
+    return v > 4 ? 4 : v;
+}
+
+static inline bool graph_sched_verbose_init(unsigned v)
+{
+    return v >= 1;
+}
+
+static inline bool graph_sched_verbose_push_pop_ckp(unsigned v)
+{
+    return v >= 2;
+}
+
+static inline bool graph_sched_verbose_submit(unsigned v)
+{
+    return v >= 3;
+}
+
+/** do_schedule: one line total_tasks / ready_tasks (no graph listing). */
+static inline bool graph_sched_verbose_do_schedule_summary(unsigned v)
+{
+    return v >= 3;
+}
+
+/** do_schedule: remat lines + per-task listing (implies summary line when total_tasks > 0). */
+static inline bool graph_sched_verbose_do_schedule(unsigned v)
+{
+    return v >= 4;
+}
 
 // Data access modes matching StarPU definitions
 enum DataAccessMode {
@@ -308,8 +347,9 @@ public:
             if (!t) continue;
             if (is_internal_no_post_exec(t))
                 to_remove.push_back(t);
-            else if (!t->name || std::strncmp(t->name, "_starpu", 7) == 0 ||
-                     (t->name && std::strcmp(t->name, "_ckp") == 0))
+            else if (t->name && (std::strncmp(t->name, "_starpu", 7) == 0 ||
+                     std::strncmp(t->name, "starpu_", 7) == 0 ||
+                     std::strcmp(t->name, "_ckp") == 0))
                 to_remove.push_back(t);
         }
         for (starpu_task* t : to_remove)
@@ -800,7 +840,7 @@ static std::vector<TaskGraph::Checkpointable> get_auto_checkpoint_candidates(
     return filter_wr_checkpointables(g, checkpoint_tasks, workerid, sched_ctx_id);
 }
 
-/** Bytes/s for rematerializing written buffer: size(W) / expected writer time (same as _ckp cl_arg[0]). */
+/** Bytes/s for rematerializing written buffer: size(W) / expected writer time. */
 static double checkpointable_restoration_bps(const TaskGraph::Checkpointable& c,
     unsigned workerid,
     unsigned sched_ctx_id)
@@ -845,29 +885,260 @@ struct graph_sched_data
     std::map<starpu_data_handle_t, starpu_task*> checkpoint_c_by_handle;
     /* Single worker this policy targets (CPU now; same id space for a lone GPU later). */
     unsigned policy_worker_id = 0;
-    /* Non-zero: stderr diagnostics (from STARPU_GRAPH_SCHED_VERBOSE at init). */
+    /* STARPU_GRAPH_SCHED_VERBOSE level 0–4 (see graph_sched_parse_verbose_env). */
     unsigned verbosity = 0;
     /* Rematerialization: log throughput once t_us>0; n/a explained once while HISTORY_BASED is cold. */
     std::set<std::pair<starpu_data_handle_t, starpu_task*>> remat_speed_ok_logged_checkpointable;
     std::set<std::pair<starpu_data_handle_t, starpu_task*>> remat_speed_na_logged_checkpointable;
     std::unordered_set<starpu_task*> remat_speed_ok_logged_ckp;
     std::unordered_set<starpu_task*> remat_speed_na_logged_ckp;
+    /* Cumulative stats (policy_mutex); printed at deinit. */
+    uint64_t n_tasks_post_exec = 0;
+    uint64_t n_checkpoint_tasks_inserted = 0;
+    uint64_t n_invalidate_handles_submitted = 0;
 };
 
-/* Checkpoint/internal tasks: omit generic hook logging (see graph_sched_verbose_ckp for _ckp). */
+static const char *graph_sched_task_label(const struct starpu_task *task)
+{
+    if (task && task->name && task->name[0])
+        return task->name;
+    if (task && task->cl && task->cl->name && task->cl->name[0])
+        return task->cl->name;
+    return "(unnamed)";
+}
+
+/** If the app left starpu_task::name empty, point it at the codelet name (static string). */
+static void graph_sched_resolve_empty_task_name(struct starpu_task *task)
+{
+    if (!task || !task->cl || !task->cl->name || !task->cl->name[0])
+        return;
+    if (task->name && task->name[0])
+        return;
+    task->name = (char *)task->cl->name;
+}
+
+static void checkpoint_task_copy_cl_arg(struct starpu_task *dst, const struct starpu_task *src)
+{
+    dst->cl_arg = nullptr;
+    dst->cl_arg_size = 0;
+    dst->cl_arg_free = 0;
+    if (!src)
+        return;
+    if (src->cl_arg_size > 0 && src->cl_arg) {
+        void *copy = malloc(src->cl_arg_size);
+        if (!copy)
+            return;
+        std::memcpy(copy, src->cl_arg, src->cl_arg_size);
+        dst->cl_arg = copy;
+        dst->cl_arg_size = src->cl_arg_size;
+        dst->cl_arg_free = 1;
+    } else if (src->cl_arg) {
+        dst->cl_arg = src->cl_arg;
+        dst->cl_arg_size = 0;
+        dst->cl_arg_free = 0;
+    }
+}
+
+/** Insert one _ckp rematerializing \p w_task on \p handle after R1. Lock must be held; released
+ *  around starpu_task_submit. Returns false if the pair is invalid or already checkpointed. */
+static bool graph_sched_insert_checkpoint_writer(graph_sched_data *data,
+    unsigned sched_ctx_id,
+    starpu_data_handle_t handle,
+    starpu_task *w_task,
+    std::unique_lock<std::mutex> &lock)
+{
+    if (data->checkpoint_tasks.count({handle, w_task}))
+        return false;
+    auto [r1, r2] = data->task_graph.get_r1_r2_for_w(handle, w_task);
+    if (!r1 || !r2)
+        return false;
+    unsigned wi = index_of_pure_w_buffer(w_task);
+    if (wi == std::numeric_limits<unsigned>::max())
+        return false;
+    if (!task_is_single_w_rest_r(w_task))
+        return false;
+
+    const unsigned wid = data->policy_worker_id;
+    double t_w_us = task_expected_length_us_model(w_task, wid, sched_ctx_id);
+    if (!std::isfinite(t_w_us) || t_w_us <= 0.)
+        return false;
+
+    struct starpu_codelet* cl = w_task->cl;
+    unsigned nbuf = STARPU_TASK_GET_NBUFFERS(w_task);
+    if (nbuf == 0 || nbuf > STARPU_NMAXBUFS)
+        return false;
+
+    starpu_task* task_checkpoint = starpu_task_create();
+    task_checkpoint->cl = cl;
+    task_checkpoint->name = "_ckp";
+    /* Must stay 0: explicit starpu_task_declare_deps_array_relaxed + _starpu_add_dependency for _ckp
+     * already encode ordering; sequential_consistency=1 adds implicit deps and can deadlock. */
+    task_checkpoint->sequential_consistency = 0;
+    task_checkpoint->sched_ctx = sched_ctx_id;
+    for (unsigned bi = 0; bi < nbuf; bi++) {
+        starpu_data_handle_t h = STARPU_TASK_GET_HANDLE(w_task, bi);
+        if (bi == wi)
+            h = handle;
+        STARPU_TASK_SET_HANDLE(task_checkpoint, h, bi);
+    }
+
+    checkpoint_task_copy_cl_arg(task_checkpoint, w_task);
+    task_checkpoint->sched_data = static_cast<void *>(w_task);
+
+    starpu_task* c_deps_pre[1] = { r1 };
+    starpu_task_declare_deps_array_relaxed(task_checkpoint, 1, c_deps_pre);
+    _starpu_add_dependency(handle, r1, task_checkpoint);
+
+    data->task_graph.add_task_with_predecessors(task_checkpoint, {r1});
+    DataAccessMode ckp_mode =
+        static_cast<DataAccessMode>(STARPU_TASK_GET_MODE(w_task, wi));
+    data->task_graph.insert_access_after_on_handle(r1, handle, task_checkpoint, ckp_mode);
+    data->task_graph.wire_ckp_reader_deps(handle, r1, task_checkpoint);
+    data->checkpoint_c_by_r1[r1] = task_checkpoint;
+    data->checkpoint_c_by_handle[handle] = task_checkpoint;
+    data->checkpoint_tasks[{handle, w_task}] = task_checkpoint;
+
+    lock.unlock();
+    int submit_ret = starpu_task_submit(task_checkpoint);
+    lock.lock();
+    if (submit_ret == 0)
+        data->n_checkpoint_tasks_inserted++;
+    return true;
+}
+
+static void graph_sched_report_checkpoint_discovery(graph_sched_data *data, unsigned sched_ctx_id)
+{
+    if (!graph_sched_verbose_push_pop_ckp(data->verbosity))
+        return;
+
+    const unsigned wid = data->policy_worker_id;
+    auto candidates = get_auto_checkpoint_candidates(data->task_graph, data->checkpoint_tasks,
+                                                   wid, sched_ctx_id);
+    std::cerr << "graph_standalone: checkpoint discovery: " << candidates.size()
+              << " automatic candidate(s)";
+    if (g_checkpoint_count > 0)
+        std::cerr << ", inserting up to " << g_checkpoint_count;
+    std::cerr << std::endl;
+
+    for (const auto& c : candidates) {
+        unsigned wi = index_of_pure_w_buffer(c.w_task);
+        if (wi == std::numeric_limits<unsigned>::max())
+            continue;
+        const auto key = std::make_pair(c.handle, c.w_task);
+        if (data->remat_speed_ok_logged_checkpointable.count(key))
+            continue;
+        starpu_data_handle_t wh = STARPU_TASK_GET_HANDLE(c.w_task, wi);
+        size_t nbytes = starpu_data_get_size(wh);
+        double t_us = task_expected_length_us_model(c.w_task, wid, sched_ctx_id);
+        double t_s = (t_us > 0.) ? (t_us * 1e-6) : 0.;
+        const char* nm = graph_sched_task_label(c.w_task);
+        if (t_s > 0.) {
+            data->remat_speed_ok_logged_checkpointable.insert(key);
+            std::cerr << "    checkpointable W \"" << nm << "\" (" << c.w_task
+                      << ") rematerialization: " << format_scientific_3sig((double)nbytes / t_s)
+                      << " B/s (" << format_scientific_3sig((double)nbytes) << " B / "
+                      << format_scientific_3sig(t_us * 1e-3) << " ms)\n";
+        } else if (data->remat_speed_na_logged_checkpointable.insert(key).second) {
+            std::cerr << "    checkpointable W \"" << nm << "\" (" << c.w_task
+                      << ") rematerialization: n/a (StarPU expected length <= 0: HISTORY_BASED "
+                         "needs enough samples per bucket — default STARPU_CALIBRATE_MINIMUM "
+                         "is 10 (see ~/.starpu/sampling/codelets/). Or no matching "
+                         "footprint/arch yet; "
+                      << format_scientific_3sig((double)nbytes) << " B)\n";
+        }
+    }
+}
+
+static void graph_sched_report_ckp_remat_verbose(graph_sched_data *data, unsigned sched_ctx_id)
+{
+    if (!graph_sched_verbose_push_pop_ckp(data->verbosity))
+        return;
+    const unsigned wid = data->policy_worker_id;
+    for (starpu_task* t : data->task_graph.get_all_tasks()) {
+        if (!t->name || std::strcmp(t->name, "_ckp") != 0)
+            continue;
+        if (data->remat_speed_ok_logged_ckp.count(t))
+            continue;
+        starpu_data_handle_t h = STARPU_TASK_GET_HANDLE(t, 0);
+        size_t nbytes = starpu_data_get_size(h);
+        double t_us = task_expected_length_us_model(t, wid, sched_ctx_id);
+        double t_s = (t_us > 0.) ? (t_us * 1e-6) : 0.;
+        if (t_s > 0.) {
+            data->remat_speed_ok_logged_ckp.insert(t);
+            std::cerr << "    checkpointed _ckp (" << t << ") checkpoint for [" << t->sched_data
+                      << "] rematerialization: " << format_scientific_3sig((double)nbytes / t_s)
+                      << " B/s (" << format_scientific_3sig((double)nbytes) << " B / "
+                      << format_scientific_3sig(t_us * 1e-3) << " ms)\n";
+        } else if (data->remat_speed_na_logged_ckp.insert(t).second) {
+            std::cerr << "    checkpointed _ckp (" << t << ") checkpoint for [" << t->sched_data
+                      << "] rematerialization: n/a (StarPU expected length <= 0: HISTORY_BASED "
+                         "needs enough samples per bucket — default STARPU_CALIBRATE_MINIMUM "
+                         "is 10 (see ~/.starpu/sampling/codelets/). _ckp may use a different "
+                         "footprint key than the original writer; "
+                      << format_scientific_3sig((double)nbytes) << " B)\n";
+        }
+    }
+}
+
+static void graph_sched_run_auto_checkpoint_insertion(graph_sched_data *data, unsigned sched_ctx_id,
+    std::unique_lock<std::mutex> &lock)
+{
+    if (g_checkpoint_count == 0 || data->checkpoints_applied)
+        return;
+
+    unsigned submitted = 0;
+    const unsigned wid = data->policy_worker_id;
+
+    while (submitted < g_checkpoint_count) {
+        std::vector<TaskGraph::Checkpointable> wr_cp =
+            filter_wr_checkpointables(data->task_graph, data->checkpoint_tasks,
+                                      data->policy_worker_id, sched_ctx_id);
+        if (wr_cp.empty())
+            break;
+        std::sort(wr_cp.begin(), wr_cp.end(),
+            [wid, sched_ctx_id](const TaskGraph::Checkpointable& a, const TaskGraph::Checkpointable& b) {
+                double sa = checkpointable_restoration_bps(a, wid, sched_ctx_id);
+                double sb = checkpointable_restoration_bps(b, wid, sched_ctx_id);
+                if (sa != sb)
+                    return sa > sb;
+                if (a.handle != b.handle)
+                    return a.handle < b.handle;
+                return a.w_task < b.w_task;
+            });
+
+        bool placed = false;
+        for (const TaskGraph::Checkpointable& cand : wr_cp) {
+            if (graph_sched_insert_checkpoint_writer(data, sched_ctx_id, cand.handle, cand.w_task, lock)) {
+                submitted++;
+                placed = true;
+                break;
+            }
+        }
+        if (!placed)
+            break;
+    }
+    if (submitted > 0)
+        data->checkpoints_applied = true;
+}
+
+/* Checkpoint/internal tasks: omit generic hook logging (see graph_sched_verbose_ckp for _ckp).
+ * Empty task->name is not internal — user tasks often omit STARPU_NAME (resolved to cl->name in submit_hook). */
 static bool graph_sched_task_internal(const struct starpu_task *task)
 {
-    if (!task || !task->name)
+    if (!task)
         return true;
+    if (!task->name)
+        return false;
     return std::strcmp(task->name, "_ckp") == 0
         || std::strcmp(task->name, "_ckp_inv") == 0;
 }
 
-/** When STARPU_GRAPH_SCHED_VERBOSE is set: log checkpoint rematerialization tasks (sched_data = writer). */
+/** Level >= 2: log _ckp on submit/push/pop. */
 static void graph_sched_verbose_ckp(const graph_sched_data *data, const char *stage_label,
                                   const struct starpu_task *task)
 {
-    if (!data->verbosity || !task || !task->name || std::strcmp(task->name, "_ckp") != 0)
+    if (!graph_sched_verbose_push_pop_ckp(data->verbosity) || !task || !task->name
+        || std::strcmp(task->name, "_ckp") != 0)
         return;
     std::cerr << stage_label << "_ckp checkpoint for [" << task->sched_data << "]\n";
 }
@@ -878,11 +1149,9 @@ static void init_graph_sched(unsigned sched_ctx_id)
     auto data = new graph_sched_data;
     const char* e = getenv("STARPU_GRAPH_SCHED_WORKER_ID");
     data->policy_worker_id = e ? (unsigned)atoi(e) : 0;
-    const char *verb = getenv("STARPU_GRAPH_SCHED_VERBOSE");
-    if (verb && verb[0])
-        data->verbosity = (unsigned)strtoul(verb, nullptr, 10);
+    data->verbosity = graph_sched_parse_verbose_env(getenv("STARPU_GRAPH_SCHED_VERBOSE"));
     starpu_sched_ctx_set_policy_data(sched_ctx_id, data);
-    if (data->verbosity)
+    if (graph_sched_verbose_init(data->verbosity))
         std::cerr << "graph_standalone: policy worker id " << data->policy_worker_id << std::endl;
 }
 
@@ -894,8 +1163,12 @@ static void deinit_graph_sched(unsigned sched_ctx_id)
     /* Remove any remaining internal tasks (acquire_cb_pre/release, _ckp, ghost) that don't
      * trigger post_exec_hook and may not get popped. */
     data->task_graph.remove_internal_tasks();
-    if (data->verbosity && !data->task_graph.empty())
+    if (graph_sched_verbose_init(data->verbosity) && !data->task_graph.empty())
         std::cerr << "deinit: task graph has " << data->task_graph.size() << " leftover tasks\n";
+    std::cerr << "graph_standalone deinit: tasks_executed (post_exec)=" << data->n_tasks_post_exec
+              << ", checkpoint_tasks_inserted=" << data->n_checkpoint_tasks_inserted
+              << ", invalidated_handles (graph invalidation submits)=" << data->n_invalidate_handles_submitted
+              << std::endl;
     delete data;
 }
 
@@ -913,14 +1186,15 @@ static void submit_hook_graph(struct starpu_task *task)
     if (task_not_scheduled_via_policy_queues(task))
         return;
 
+    graph_sched_resolve_empty_task_name(task);
+
     graph_sched_verbose_ckp(data, "Submit hook: ", task);
 
     if (graph_sched_task_internal(task))
         return;
 
-    if (data->verbosity) {
-        const char *task_name = starpu_task_get_name(task);
-        std::cerr << "Submit hook: " << (task_name ? task_name : "(unnamed)")
+    if (graph_sched_verbose_submit(data->verbosity)) {
+        std::cerr << "Submit hook: " << graph_sched_task_label(task)
                   << " (" << task << ")\n";
     }
     data->task_graph.add_task(task);
@@ -937,6 +1211,14 @@ static int push_task_graph(struct starpu_task *task)
     std::unique_lock<std::mutex> lock(data->policy_mutex);
     starpu_worker_relax_off();
 
+    /* Tasks StarPU routes only through hooks (not our push/pop queues) never hit submit_hook’s
+     * add_task; all other work must already be in task_graph. */
+    if (!task_not_scheduled_via_policy_queues(task)) {
+        STARPU_ASSERT_MSG(data->task_graph.has_task(task),
+            "graph_standalone: push_task for a task that is not in the policy task graph "
+            "(expected submit_hook add_task or add_task_with_predecessors first)");
+    }
+
     data->pushed_tasks.push_back(task);
     data->task_graph.mark_ready_if_in_graph(task);
     /* Internal tasks (acquire_cb_pre/release) don't trigger post_exec_hook, so mark them
@@ -945,9 +1227,8 @@ static int push_task_graph(struct starpu_task *task)
 
     graph_sched_verbose_ckp(data, "Push: ", task);
 
-    if (data->verbosity && !graph_sched_task_internal(task)) {
-        const char *task_name = starpu_task_get_name(task);
-        std::cerr << "Push: " << (task_name ? task_name : "(unnamed)")
+    if (graph_sched_verbose_push_pop_ckp(data->verbosity) && !graph_sched_task_internal(task)) {
+        std::cerr << "Push: " << graph_sched_task_label(task)
                   << " (" << task << ")\n";
     }
     starpu_push_task_end(task);
@@ -966,189 +1247,8 @@ static void do_schedule_graph(unsigned sched_ctx_id)
     std::unique_lock<std::mutex> lock(data->policy_mutex);
     starpu_worker_relax_off();
 
-    ensure_checkpoint_config();
-
-    /* Checkpoint: W->R1->R2; W must be single STARPU_W + only STARPU_R elsewhere. Candidates sorted by
-     * descending restoration B/s (written-byte size / expected W time), then take up to checkpoint_count. */
-    if (g_checkpoint_count > 0 && !data->checkpoints_applied)
-    {
-        unsigned submitted = 0;
-        const unsigned wid = data->policy_worker_id;
-
-        while (submitted < g_checkpoint_count) {
-            std::vector<TaskGraph::Checkpointable> wr_cp =
-                filter_wr_checkpointables(data->task_graph, data->checkpoint_tasks,
-                                          data->policy_worker_id, sched_ctx_id);
-            if (wr_cp.empty())
-                break;
-            std::sort(wr_cp.begin(), wr_cp.end(),
-                [wid, sched_ctx_id](const TaskGraph::Checkpointable& a, const TaskGraph::Checkpointable& b) {
-                    double sa = checkpointable_restoration_bps(a, wid, sched_ctx_id);
-                    double sb = checkpointable_restoration_bps(b, wid, sched_ctx_id);
-                    if (sa != sb)
-                        return sa > sb;
-                    if (a.handle != b.handle)
-                        return a.handle < b.handle;
-                    return a.w_task < b.w_task;
-                });
-
-            bool placed = false;
-            for (const TaskGraph::Checkpointable& cand : wr_cp) {
-                starpu_data_handle_t handle = cand.handle;
-                starpu_task* w_task = cand.w_task;
-                if (data->checkpoint_tasks.count({handle, w_task}))
-                    continue;
-                auto [r1, r2] = data->task_graph.get_r1_r2_for_w(handle, w_task);
-                if (!r1 || !r2)
-                    continue;
-                unsigned wi = index_of_pure_w_buffer(w_task);
-                if (wi == std::numeric_limits<unsigned>::max())
-                    continue;
-                starpu_data_handle_t wh = STARPU_TASK_GET_HANDLE(w_task, wi);
-                size_t nbytes = starpu_data_get_size(wh);
-
-                double t_w_us = task_expected_length_us_model(w_task, wid, sched_ctx_id);
-                double t_w_s = (t_w_us > 0.) ? (t_w_us * 1e-6) : 0.;
-                double restoration_bps = (t_w_s > 0.) ? (double)nbytes / t_w_s : 0.;
-
-                struct starpu_codelet* cl = w_task->cl;
-                unsigned nbuf = STARPU_TASK_GET_NBUFFERS(w_task);
-                if (nbuf == 0 || nbuf > STARPU_NMAXBUFS)
-                    continue;
-                starpu_task* task_checkpoint = starpu_task_create();
-                task_checkpoint->cl = cl;
-                task_checkpoint->name = "_ckp";
-                task_checkpoint->sequential_consistency = 0;
-                task_checkpoint->sched_ctx = sched_ctx_id;
-                /* Rematerialize the same kernel as the writer: copy every buffer handle from the
-                 * original task so inputs stay valid; the written slot must be the checkpointed handle. */
-                for (unsigned bi = 0; bi < nbuf; bi++) {
-                    starpu_data_handle_t h = STARPU_TASK_GET_HANDLE(w_task, bi);
-                    if (bi == wi)
-                        h = handle;
-                    STARPU_TASK_SET_HANDLE(task_checkpoint, h, bi);
-                }
-
-                double t_c_us = task_expected_length_us_model(task_checkpoint, wid, sched_ctx_id);
-                double t_c_s = (t_c_us > 0.) ? (t_c_us * 1e-6) : 0.;
-
-                /* [0] restoration throughput (B/s), [1] expected W time (s), [2] expected C time (s) */
-                double* clarg = new double[3];
-                clarg[0] = restoration_bps;
-                clarg[1] = t_w_s;
-                clarg[2] = t_c_s;
-                task_checkpoint->cl_arg = clarg;
-                /* Scheduler field: pointer to the original writer task (not allocated here; StarPU won't free it). */
-                task_checkpoint->sched_data = static_cast<void *>(w_task);
-
-                starpu_task* c_deps_pre[1] = { r1 };
-                starpu_task_declare_deps_array_relaxed(task_checkpoint, 1, c_deps_pre);
-                _starpu_add_dependency(handle, r1, task_checkpoint);
-
-                data->task_graph.add_task_with_predecessors(task_checkpoint, {r1});
-                DataAccessMode ckp_mode =
-                    static_cast<DataAccessMode>(STARPU_TASK_GET_MODE(w_task, wi));
-                data->task_graph.insert_access_after_on_handle(r1, handle, task_checkpoint, ckp_mode);
-                /* All readers of handle after R1 (read_c_2, add_f, …) need _ckp, not only R2. */
-                data->task_graph.wire_ckp_reader_deps(handle, r1, task_checkpoint);
-                data->checkpoint_c_by_r1[r1] = task_checkpoint;
-                data->checkpoint_c_by_handle[handle] = task_checkpoint;
-                data->checkpoint_tasks[{handle, w_task}] = task_checkpoint;
-
-                lock.unlock();
-                starpu_task_submit(task_checkpoint);
-                lock.lock();
-                submitted++;
-                placed = true;
-                break;
-            }
-            if (!placed)
-                break;
-        }
-        if (submitted > 0)
-            data->checkpoints_applied = true;
-    }
-
-    if (data->verbosity) {
-        std::cerr << "Do schedule graph\n";
-        std::cerr << "    Task graph size: " << data->task_graph.size() << std::endl;
-
-        {
-            unsigned ckp_in_graph = 0;
-            for (starpu_task* t : data->task_graph.get_all_tasks())
-                if (t->name && std::strcmp(t->name, "_ckp") == 0)
-                    ckp_in_graph++;
-            std::cerr << "    Checkpoint tasks: " << ckp_in_graph << " currently in graph, "
-                      << data->checkpoint_tasks.size() << " inserted historically (tracked pairs)\n";
-        }
-
-        /* Rematerialization (perf model, policy worker): HISTORY_BASED has no prediction until samples exist,
-         * so the first do_schedule pass often sees n/a; later passes can print B/s once tasks have run. */
-        {
-            const unsigned wid = data->policy_worker_id;
-            for (const auto& c : get_auto_checkpoint_candidates(data->task_graph, data->checkpoint_tasks,
-                                                                data->policy_worker_id, sched_ctx_id)) {
-                unsigned wi = index_of_pure_w_buffer(c.w_task);
-                if (wi == std::numeric_limits<unsigned>::max())
-                    continue;
-                const auto key = std::make_pair(c.handle, c.w_task);
-                if (data->remat_speed_ok_logged_checkpointable.count(key))
-                    continue;
-                starpu_data_handle_t wh = STARPU_TASK_GET_HANDLE(c.w_task, wi);
-                size_t nbytes = starpu_data_get_size(wh);
-                double t_us = task_expected_length_us_model(c.w_task, wid, sched_ctx_id);
-                double t_s = (t_us > 0.) ? (t_us * 1e-6) : 0.;
-                const char* nm = c.w_task->name ? c.w_task->name : "(unnamed)";
-                if (t_s > 0.) {
-                    data->remat_speed_ok_logged_checkpointable.insert(key);
-                    std::cerr << "    checkpointable W \"" << nm << "\" (" << c.w_task
-                              << ") rematerialization: " << format_scientific_3sig((double)nbytes / t_s)
-                              << " B/s (" << format_scientific_3sig((double)nbytes) << " B / "
-                              << format_scientific_3sig(t_us * 1e-3) << " ms)\n";
-                } else if (data->remat_speed_na_logged_checkpointable.insert(key).second) {
-                    std::cerr << "    checkpointable W \"" << nm << "\" (" << c.w_task
-                              << ") rematerialization: n/a (StarPU expected length <= 0: HISTORY_BASED "
-                                 "needs enough samples per bucket — default STARPU_CALIBRATE_MINIMUM "
-                                 "is 10 (see ~/.starpu/sampling/codelets/). Or no matching "
-                                 "footprint/arch yet; "
-                              << format_scientific_3sig((double)nbytes) << " B)\n";
-                }
-                /* else: n/a already printed; still waiting for t_s>0 — omit line (avoid broken stderr) */
-            }
-
-            for (starpu_task* t : data->task_graph.get_all_tasks()) {
-                if (!t->name || std::strcmp(t->name, "_ckp") != 0)
-                    continue;
-                if (data->remat_speed_ok_logged_ckp.count(t))
-                    continue;
-                starpu_data_handle_t h = STARPU_TASK_GET_HANDLE(t, 0);
-                size_t nbytes = starpu_data_get_size(h);
-                double t_us = task_expected_length_us_model(t, wid, sched_ctx_id);
-                double t_s = (t_us > 0.) ? (t_us * 1e-6) : 0.;
-                if (t_s > 0.) {
-                    data->remat_speed_ok_logged_ckp.insert(t);
-                    std::cerr << "    checkpointed _ckp (" << t << ") checkpoint for [" << t->sched_data
-                              << "] rematerialization: " << format_scientific_3sig((double)nbytes / t_s)
-                              << " B/s (" << format_scientific_3sig((double)nbytes) << " B / "
-                              << format_scientific_3sig(t_us * 1e-3) << " ms)\n";
-                } else if (data->remat_speed_na_logged_ckp.insert(t).second) {
-                    std::cerr << "    checkpointed _ckp (" << t << ") checkpoint for [" << t->sched_data
-                              << "] rematerialization: n/a (StarPU expected length <= 0: HISTORY_BASED "
-                                 "needs enough samples per bucket — default STARPU_CALIBRATE_MINIMUM "
-                                 "is 10 (see ~/.starpu/sampling/codelets/). _ckp may use a different "
-                                 "footprint key than the original writer; "
-                              << format_scientific_3sig((double)nbytes) << " B)\n";
-                }
-            }
-        }
-
-        for (struct starpu_task *task: data->task_graph.get_all_tasks()) {
-            std::cerr << "    " << (task->name ? task->name : "?");
-            if (task->name && std::strcmp(task->name, "_ckp") == 0)
-                std::cerr << " checkpoint for [" << task->sched_data << "]";
-            std::cerr << std::endl;
-        }
-    }
+    const size_t do_sched_total_tasks = data->task_graph.size();
+    const size_t do_sched_ready_tasks = data->task_graph.get_ready_tasks().size();
 
     data->schedulable_queue.clear();
     {
@@ -1160,8 +1260,21 @@ static void do_schedule_graph(unsigned sched_ctx_id)
                 data->schedulable_queue.push_back(t);
         }
     }
-    if (data->verbosity)
-        std::cerr << "    Schedulable (this pass): " << data->schedulable_queue.size() << std::endl;
+
+    if (do_sched_total_tasks > 0 && graph_sched_verbose_do_schedule_summary(data->verbosity)) {
+        std::cerr << "Do schedule: total_tasks=" << do_sched_total_tasks
+                  << " ready_tasks=" << do_sched_ready_tasks << std::endl;
+    }
+    if (do_sched_total_tasks > 0 && graph_sched_verbose_do_schedule(data->verbosity)) {
+        graph_sched_report_ckp_remat_verbose(data, sched_ctx_id);
+
+        for (struct starpu_task *task: data->task_graph.get_all_tasks()) {
+            std::cerr << "    " << graph_sched_task_label(task);
+            if (task->name && std::strcmp(task->name, "_ckp") == 0)
+                std::cerr << " checkpoint for [" << task->sched_data << "]";
+            std::cerr << std::endl;
+        }
+    }
 }
 
 // Pop a task from the graph scheduler
@@ -1187,9 +1300,8 @@ static struct starpu_task *pop_task_graph(unsigned sched_ctx_id)
             starpu_task* task = *it;
             data->pushed_tasks.erase(it);
             graph_sched_verbose_ckp(data, "Pop: ", task);
-            if (data->verbosity && !graph_sched_task_internal(task)) {
-                const char *task_name = starpu_task_get_name(task);
-                std::cerr << "Pop: " << (task_name ? task_name : "(unnamed)")
+            if (graph_sched_verbose_push_pop_ckp(data->verbosity) && !graph_sched_task_internal(task)) {
+                std::cerr << "Pop: " << graph_sched_task_label(task)
                           << " (" << task << ")\n";
             }
             return task;
@@ -1227,16 +1339,17 @@ static void post_exec_hook_graph(struct starpu_task *task, unsigned sched_ctx_id
      * w_task's codelet (e.g. STARPU_W), so R1->C makes R1 a predecessor of W and triggers invalidate here. */
     std::vector<starpu_data_handle_t> inv =
         data->task_graph.handles_to_invalidate_after(task);
+    data->n_tasks_post_exec++;
+    data->n_invalidate_handles_submitted += (uint64_t)inv.size();
     for (starpu_data_handle_t h : inv)
         starpu_data_invalidate_submit_no_sequential_consistency(h);
 
     data->task_graph.mark_finished(task);
 
-    if (data->verbosity && !inv.empty()) {
-        const char *task_name = starpu_task_get_name(task);
+    if (graph_sched_verbose_push_pop_ckp(data->verbosity) && !inv.empty()) {
         std::cerr << "Post-exec: data invalidation submitted (" << inv.size() << " handle"
                   << (inv.size() == 1 ? "" : "s") << ") after "
-                  << (task_name ? task_name : "(unnamed)") << " (" << task << ")\n";
+                  << graph_sched_task_label(task) << " (" << task << ")\n";
     }
 }
 
@@ -1314,19 +1427,38 @@ static int add_checkpoint_internal(unsigned sched_ctx_id, starpu_data_handle_t h
 
     std::unique_lock<std::mutex> lock(data->policy_mutex);
     if (data->checkpoint_tasks.count({handle, w_task})) return 0;
-
-    auto [r1, r2] = data->task_graph.get_r1_r2_for_w(handle, w_task);
-    if (!r1 || !r2) return -1;
-
+    if (!graph_sched_insert_checkpoint_writer(data, sched_ctx_id, handle, w_task, lock))
+        return -1;
     return 0;
 }
 
-// Add checkpoint for (handle, w_task). Call after starpu_graph_sched_get_checkpointable_tasks, while paused.
+// Add checkpoint for (handle, w_task). Uses policy_mutex like other graph_sched entry points.
 int starpu_graph_sched_add_checkpoint(starpu_data_handle_t handle, struct starpu_task *w_task)
 {
     unsigned sched_ctx_id = starpu_sched_ctx_get_context();
     if (sched_ctx_id >= (unsigned)STARPU_NMAX_SCHED_CTXS) sched_ctx_id = 0;
     return add_checkpoint_internal(sched_ctx_id, handle, w_task);
+}
+
+void starpu_graph_sched_apply_auto_checkpoints(unsigned sched_ctx_id)
+{
+    if (sched_ctx_id == 0)
+        sched_ctx_id = starpu_sched_ctx_get_context();
+    if (sched_ctx_id >= (unsigned)STARPU_NMAX_SCHED_CTXS)
+        sched_ctx_id = 0;
+
+    ensure_checkpoint_config();
+
+    void *p = starpu_sched_ctx_get_policy_data(sched_ctx_id);
+    if (!p)
+        return;
+    auto *data = static_cast<graph_sched_data *>(p);
+    /* Same policy_mutex as submit_hook / push_task / pop_task / do_schedule — serializes graph
+     * mutation vs concurrent scheduler access (no starpu_pause/resume). */
+    std::unique_lock<std::mutex> lock(data->policy_mutex);
+    graph_sched_report_checkpoint_discovery(data, sched_ctx_id);
+    graph_sched_run_auto_checkpoint_insertion(data, sched_ctx_id, lock);
+    graph_sched_report_ckp_remat_verbose(data, sched_ctx_id);
 }
 
 void starpu_graph_sched_set_checkpoint_count(unsigned n)

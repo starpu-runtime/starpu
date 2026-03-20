@@ -28,5 +28,6 @@ Run the demo:
 Environment variables:
 - `STARPU_SCHED` should be unset or empty when running, since this program sets its own policy.
 - `STARPU_SILENT=1` silences progress prints from this example.
+- `STARPU_GRAPH_SCHED_VERBOSE` for the loadable policy: `0` none; `1` init/deinit; `2` push/pop/post-exec + checkpoint lines; `3` submit hook + `do_schedule` one-liner (total/ready tasks); `4` full `do_schedule` listing (see `graph_sched.h`).
 
 
