@@ -2,11 +2,12 @@
  *
  * After init: three cl_add3 producers in a chain — add_c (→hc), add_e (→he), add_f (→hf) — each
  * followed by two pure reads so every intermediate/output has W→R→R. add_f reads hc and he; those
- * handles are separate W→R→R chains. If an automatic checkpoint is placed on hc or he first, the
- * policy then drops add_f from the remaining checkpoint pool (its writer reads those outputs).
+ * handles are separate W→R→R chains. Automatic checkpoints can still target hf (add_f) after hc/he
+ * _ckps: rematerialization order follows StarPU data deps and wire_ckp_reader_deps on each handle.
  *
- * Init writers (cl_init) are excluded from checkpoint eligibility. Automatic checkpoint
- * rematerialization clones all buffers from the original writer; fused add3 satisfies “one W, rest R”.
+ * Each scalar is starpu_malloc’d and registered on STARPU_MAIN_RAM (no app-side int variables).
+ * Inputs a, b, d are set to 1 on the host via starpu_data_acquire(STARPU_W) / release and
+ * starpu_variable_get_local_ptr (no reduction-method lazy init).
  *
  * Kernels optionally sleep so STARPU_HISTORY_BASED models record non-zero durations (tiny CPU work
  * often measures as 0 µs). Override with STARPU_GRAPH_DEMO_KERNEL_SLEEP_US (0 = no sleep).
@@ -18,6 +19,7 @@
 #include <thread>
 
 #include <starpu.h>
+#include <starpu_data.h>
 #include <starpu_perfmodel.h>
 
 #include "graph_sched.h"
@@ -34,14 +36,6 @@ static void graph_demo_kernel_sleep_us(void)
     if (us == 0)
         return;
     std::this_thread::sleep_for(std::chrono::microseconds(us));
-}
-
-static void init_buf(void *buffers[], void *cl_arg)
-{
-    (void)cl_arg;
-    int *ptr = (int *)STARPU_VARIABLE_GET_PTR(buffers[0]);
-    *ptr = 1;
-    graph_demo_kernel_sleep_us();
 }
 
 static void add3_buf(void *buffers[], void *cl_arg)
@@ -61,16 +55,6 @@ static void touch_read(void *buffers[], void *cl_arg)
     (void)v;
     graph_demo_kernel_sleep_us();
 }
-
-static struct starpu_perfmodel perfmodel_init = {
-    STARPU_HISTORY_BASED,
-    nullptr,
-    nullptr,
-    nullptr,
-    nullptr,
-    nullptr,
-    "graph_demo_init",
-};
 
 static struct starpu_perfmodel perfmodel_add3 = {
     STARPU_HISTORY_BASED,
@@ -92,15 +76,6 @@ static struct starpu_perfmodel perfmodel_read = {
     "graph_demo_read",
 };
 
-static struct starpu_codelet cl_init = {
-    .cpu_funcs = {init_buf},
-    .cpu_funcs_name = {"init_buf"},
-    .nbuffers = 1,
-    .modes = {STARPU_W},
-    .name = "cl_init",
-    .model = &perfmodel_init,
-};
-
 static struct starpu_codelet cl_add3 = {
     .cpu_funcs = {add3_buf},
     .cpu_funcs_name = {"add3_buf"},
@@ -119,12 +94,46 @@ static struct starpu_codelet cl_touch = {
     .model = &perfmodel_read,
 };
 
+static void register_malloced_int(starpu_data_handle_t *handle)
+{
+    int *p;
+    int r = starpu_malloc((void **)&p, sizeof(int));
+    STARPU_CHECK_RETURN_VALUE(r, "starpu_malloc");
+    starpu_variable_data_register(handle, STARPU_MAIN_RAM, (uintptr_t)p, sizeof(int));
+}
+
+static void unregister_malloced_int(starpu_data_handle_t handle)
+{
+    void *p = (void *)starpu_variable_get_local_ptr(handle);
+    starpu_data_unregister(handle);
+    starpu_free_noflag(p, sizeof(int));
+}
+
+static void init_variable_host(starpu_data_handle_t handle)
+{
+    int r = starpu_data_acquire(handle, STARPU_W);
+    STARPU_CHECK_RETURN_VALUE(r, "starpu_data_acquire");
+    int *ptr = (int *)starpu_variable_get_local_ptr(handle);
+    *ptr = 1;
+    graph_demo_kernel_sleep_us();
+    starpu_data_release(handle);
+}
+
+/** Read scalar after the DAG: avoid starpu_data_acquire(STARPU_R) here when automatic checkpoints +
+ *  invalidate have run — StarPU may leave handle->initialized == 0 after read-only tails even though
+ *  MAIN_RAM still holds the last written value (kernel path does not flip the flag the same way). */
+static int read_int_handle(starpu_data_handle_t handle)
+{
+    void *p = starpu_data_handle_to_pointer(handle, STARPU_MAIN_RAM);
+    STARPU_ASSERT_MSG(p, "read_int_handle: buffer not on MAIN_RAM");
+    return *static_cast<const int *>(p);
+}
+
 int main()
 {
     int ret;
     starpu_conf conf;
     starpu_data_handle_t ha, hb, hd, hc, he, hf;
-    int va = 0, vb = 0, vd = 0, vc = 0, ve = 0, vf = 0;
 
     starpu_conf_init(&conf);
     conf.ncpus = 1;
@@ -136,36 +145,24 @@ int main()
         return 77;
     STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-    starpu_variable_data_register(&ha, STARPU_MAIN_RAM, (uintptr_t)&va, sizeof(int));
-    starpu_variable_data_register(&hb, STARPU_MAIN_RAM, (uintptr_t)&vb, sizeof(int));
-    starpu_variable_data_register(&hd, STARPU_MAIN_RAM, (uintptr_t)&vd, sizeof(int));
-    starpu_variable_data_register(&hc, STARPU_MAIN_RAM, (uintptr_t)&vc, sizeof(int));
-    starpu_variable_data_register(&he, STARPU_MAIN_RAM, (uintptr_t)&ve, sizeof(int));
-    starpu_variable_data_register(&hf, STARPU_MAIN_RAM, (uintptr_t)&vf, sizeof(int));
+    register_malloced_int(&ha);
+    register_malloced_int(&hb);
+    register_malloced_int(&hd);
+    register_malloced_int(&hc);
+    register_malloced_int(&he);
+    register_malloced_int(&hf);
+
+    init_variable_host(ha);
+    init_variable_host(hb);
+    init_variable_host(hd);
 
     const int seq_off = 0;
 
-    starpu_pause();
+    // starpu_pause();
     if (const char *e = getenv("STARPU_GRAPH_SCHED_CHECKPOINT_COUNT"))
         starpu_graph_sched_set_checkpoint_count((unsigned)atoi(e));
     else
         starpu_graph_sched_set_checkpoint_count(0);
-
-    starpu_task_insert(&cl_init,
-                       STARPU_W, ha,
-                       STARPU_NAME, "init_a",
-                       STARPU_SEQUENTIAL_CONSISTENCY, seq_off,
-                       0);
-    starpu_task_insert(&cl_init,
-                       STARPU_W, hb,
-                       STARPU_NAME, "init_b",
-                       STARPU_SEQUENTIAL_CONSISTENCY, seq_off,
-                       0);
-    starpu_task_insert(&cl_init,
-                       STARPU_W, hd,
-                       STARPU_NAME, "init_d",
-                       STARPU_SEQUENTIAL_CONSISTENCY, seq_off,
-                       0);
 
     starpu_task_insert(&cl_add3,
                        STARPU_W, hc, STARPU_R, ha, STARPU_R, hb,
@@ -224,18 +221,23 @@ int main()
     /* Eligibility uses W→R→R chains with positive StarPU expected time on GRAPH_SCHED worker (cold
      * HISTORY_BASED can report 0 here until the perf file has enough samples). */
 
-    starpu_resume();
+    // starpu_resume();
     starpu_task_wait_for_all();
 
-    starpu_data_unregister(ha);
-    starpu_data_unregister(hb);
-    starpu_data_unregister(hd);
-    starpu_data_unregister(hc);
-    starpu_data_unregister(he);
-    starpu_data_unregister(hf);
+    const int vc = read_int_handle(hc);
+    const int ve = read_int_handle(he);
+    const int vf = read_int_handle(hf);
+
+    unregister_malloced_int(ha);
+    unregister_malloced_int(hb);
+    unregister_malloced_int(hd);
+    unregister_malloced_int(hc);
+    unregister_malloced_int(he);
+    unregister_malloced_int(hf);
 
     std::cout << "DAG done. c=" << vc << " e=" << ve << " f=" << vf
-              << " (expect c=2, e=2, f=4 with init_buf=1); checkpointable (WRR + remat timing): " << wrr
+              << " (expect c=2, e=2, f=4 with a,b,d initialized to 1); checkpointable (WRR + remat timing): "
+              << wrr
               << ", auto-checkpoint-compatible writers: " << auto_ok << "\n";
     starpu_shutdown();
     return 0;

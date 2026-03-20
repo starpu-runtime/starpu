@@ -22,15 +22,16 @@
  *      starpu_pause() is held), call starpu_graph_sched_get_checkpoint_eligibility() to compare
  *      how many W→R→R chains exist vs how many satisfy rule (2). Chains that fail (2) are
  *      skipped by automatic checkpointing. Init writers (codelet name "cl_init") are never
- *      checkpoint candidates. When inserting automatic checkpoints, after each chosen checkpoint
- *      the policy drops remaining candidates whose writer pure-reads that output handle (unsafe
- *      rematerialization); eligibility APIs list all open W→R→R chains before that pruning.
+ *      checkpoint candidates. A writer may pure-read another handle that already has an automatic
+ *      _ckp (e.g. add_f reads hc/he); that writer’s own chain can still be checkpointed — StarPU
+ *      data dependencies and per-handle _ckp ordering must keep inputs valid when its _ckp runs.
  *
  *   4. Invalidation: post_exec may submit starpu_data_invalidate_submit_no_sequential_consistency
  *      on a handle when the *next* access on that handle (in submission order on the graph) is a
- *      pure overwrite. Splicing _ckp between R1 and R2 changes that successor; the scheduler
- *      inserts the checkpoint node into the per-handle chain so ordering stays consistent with
- *      data dependencies.
+ *      pure overwrite. Splicing _ckp after R1 rematerializes before later reads; the scheduler
+ *      wires StarPU and graph dependencies so every reader of that handle after R1 in the chain
+ *      (not only the nominal R2) depends on _ckp — e.g. add_f reading hc after read_c_1 must wait
+ *      for _ckp, not only add_c.
  *
  * Verbose scheduler stderr: set STARPU_GRAPH_SCHED_VERBOSE to a non-zero integer before StarPU
  * init. Default is silent.
