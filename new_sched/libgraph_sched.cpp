@@ -27,6 +27,8 @@
 #include <cassert>
 #include <cmath>
 #include <limits>
+#include <iomanip>
+#include <sstream>
 
 extern "C" void _starpu_add_dependency(starpu_data_handle_t handle, struct starpu_task *previous, struct starpu_task *next);
 extern "C" void starpu_task_declare_deps_array_relaxed(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[]);
@@ -708,6 +710,14 @@ static double task_expected_length_us_model(struct starpu_task* task, unsigned w
     return -1.;
 }
 
+/* Scientific notation, three significant digits (mantissa d.dd). */
+static std::string format_scientific_3sig(double x)
+{
+    std::ostringstream os;
+    os << std::scientific << std::setprecision(2) << x;
+    return os.str();
+}
+
 static void ensure_checkpoint_config(void)
 {
     if (g_checkpoint_count_initialized) return;
@@ -732,6 +742,9 @@ struct graph_sched_data
     unsigned policy_worker_id = 0;
     /* Non-zero: stderr diagnostics (from STARPU_GRAPH_SCHED_VERBOSE at init). */
     unsigned verbosity = 0;
+    /* Rematerialization line printed once per (handle, W) / per _ckp (do_schedule runs many times). */
+    std::set<std::pair<starpu_data_handle_t, starpu_task*>> remat_speed_logged_checkpointable;
+    std::unordered_set<starpu_task*> remat_speed_logged_ckp;
 };
 
 /* Checkpoint/internal tasks: omit hook logging (no checkpoint stderr in hooks). */
@@ -927,6 +940,51 @@ static void do_schedule_graph(unsigned sched_ctx_id)
             std::cerr << "    Checkpointable tasks: " << checkpointable.size() << std::endl;
             std::cerr << "    Checkpoint tasks: " << ckp_in_graph << " currently in graph, "
                       << data->checkpoint_tasks.size() << " inserted historically (tracked pairs)\n";
+        }
+
+        /* Rematerialization (perf model, policy worker): once per (handle,W) / per _ckp. */
+        {
+            const unsigned wid = data->policy_worker_id;
+            for (const auto& c : get_checkpointable_tasks_open(data->task_graph, data->checkpoint_tasks)) {
+                unsigned wi = index_of_pure_w_buffer(c.w_task);
+                if (wi == std::numeric_limits<unsigned>::max())
+                    continue;
+                if (!data->remat_speed_logged_checkpointable.insert({c.handle, c.w_task}).second)
+                    continue;
+                starpu_data_handle_t wh = STARPU_TASK_GET_HANDLE(c.w_task, wi);
+                size_t nbytes = starpu_data_get_size(wh);
+                double t_us = task_expected_length_us_model(c.w_task, wid, sched_ctx_id);
+                double t_s = (t_us > 0.) ? (t_us * 1e-6) : 0.;
+                const char* nm = c.w_task->name ? c.w_task->name : "(unnamed)";
+                std::cerr << "    checkpointable W \"" << nm << "\" (" << c.w_task
+                          << ") rematerialization: ";
+                if (t_s > 0.)
+                    std::cerr << format_scientific_3sig((double)nbytes / t_s) << " B/s ("
+                              << format_scientific_3sig((double)nbytes) << " B / "
+                              << format_scientific_3sig(t_us * 1e-3) << " ms)\n";
+                else
+                    std::cerr << "n/a (no positive expected length; "
+                              << format_scientific_3sig((double)nbytes) << " B)\n";
+            }
+
+            for (starpu_task* t : data->task_graph.get_all_tasks()) {
+                if (!t->name || std::strcmp(t->name, "_ckp") != 0)
+                    continue;
+                if (!data->remat_speed_logged_ckp.insert(t).second)
+                    continue;
+                starpu_data_handle_t h = STARPU_TASK_GET_HANDLE(t, 0);
+                size_t nbytes = starpu_data_get_size(h);
+                double t_us = task_expected_length_us_model(t, wid, sched_ctx_id);
+                double t_s = (t_us > 0.) ? (t_us * 1e-6) : 0.;
+                std::cerr << "    checkpointed _ckp (" << t << ") rematerialization: ";
+                if (t_s > 0.)
+                    std::cerr << format_scientific_3sig((double)nbytes / t_s) << " B/s ("
+                              << format_scientific_3sig((double)nbytes) << " B / "
+                              << format_scientific_3sig(t_us * 1e-3) << " ms)\n";
+                else
+                    std::cerr << "n/a (no positive expected length; "
+                              << format_scientific_3sig((double)nbytes) << " B)\n";
+            }
         }
 
         for (struct starpu_task *task: data->task_graph.get_all_tasks())
