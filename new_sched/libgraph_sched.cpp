@@ -870,6 +870,13 @@ static void ensure_checkpoint_config(void)
     if (e) g_checkpoint_count = (unsigned)atoi(e);
 }
 
+/** If non-zero, graph_sched_apply_explicit_invalidations does not submit invalidations (debug). */
+static bool graph_sched_explicit_invalidation_disabled_by_env(void)
+{
+    const char *e = getenv("STARPU_GRAPH_SCHED_DISABLE_INVALIDATION");
+    return e && e[0] && atoi(e) != 0;
+}
+
 struct graph_sched_data
 {
     TaskGraph task_graph;
@@ -1020,6 +1027,13 @@ static void graph_sched_apply_explicit_invalidations(graph_sched_data *data, std
         return;
     data->invalidations_applied = true;
 
+    if (graph_sched_explicit_invalidation_disabled_by_env()) {
+        if (graph_sched_verbose_push_pop_ckp(data->verbosity))
+            std::cerr << "graph_standalone: explicit invalidations skipped "
+                         "(STARPU_GRAPH_SCHED_DISABLE_INVALIDATION)\n";
+        return;
+    }
+
     struct InvalidationCandidate {
         starpu_data_handle_t handle;
         starpu_task *pred_task;
@@ -1041,8 +1055,12 @@ static void graph_sched_apply_explicit_invalidations(graph_sched_data *data, std
             if (!it->first || !next_it->first)
                 continue;
             DataAccessMode next_mode = next_it->second;
-            if ((next_mode & W) && !(next_mode & R))
+            if ((next_mode & W) && !(next_mode & R)) {
+                /* … → pred → next pure W includes … → R1 → _ckp: submit invalidation after R1 and
+                 * before _ckp so the rematerialization write sees the same “fresh overwrite” slot as
+                 * any other pure W (one graph invalidation per _ckp edge on that handle). */
                 candidates.push_back({handle, it->first, next_it->first});
+            }
         }
     }
 

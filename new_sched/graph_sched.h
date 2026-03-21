@@ -29,13 +29,11 @@
  *   4. Invalidation: after graph finalization, the scheduler may submit
  *      starpu_data_invalidate_submit_with_deps() on a handle when the *next*
  *      access on that handle (in submission order on the graph) is a pure
- *      overwrite. This positions the invalidation between already-submitted
- *      tasks with explicit predecessor/successor arrays instead of using the
- *      current tail of StarPU's handle history. Splicing _ckp after R1
- *      rematerializes before later reads; the scheduler wires StarPU and graph
- *      dependencies so every reader of that handle after R1 in the chain (not
- *      only the nominal R2) depends on _ckp — e.g. add_f reading hc after
- *      read_c_1 must wait for _ckp, not only add_c.
+ *      overwrite. That includes automatic rematerialization tasks: the chain
+ *      … → R1 → _ckp (pure W) → R2 yields one invalidation between R1 and _ckp,
+ *      i.e. one graph invalidation per _ckp edge, same rule as for any other
+ *      pure-W successor. Set STARPU_GRAPH_SCHED_DISABLE_INVALIDATION=1 to skip
+ *      all explicit invalidation submits (debug).
  *
  * Verbose scheduler stderr (STARPU_GRAPH_SCHED_VERBOSE, default 0): 0 = none; 1 = init/deinit;
  * 2 = push/pop and _ckp checkpoint hook lines + checkpoint discovery/remat detail; 3 = submit hook
