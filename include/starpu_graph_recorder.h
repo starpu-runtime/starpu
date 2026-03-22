@@ -30,7 +30,7 @@ int _starpu_graph_recording_depth(void);
 
 void _starpu_graph_recorder_set_flushing(int on);
 
-/* 0 = captured, <0 = not captured (caller uses StarPU path), >0 = error */
+/* 0 = captured or intentionally ignored by scheduler, <0 = not captured (caller uses StarPU path), >0 = error */
 int _starpu_graph_recorder_try_capture_task(struct starpu_task *task);
 int _starpu_graph_recorder_try_capture_invalidate(starpu_data_handle_t handle);
 int _starpu_graph_recorder_try_capture_wont_use(starpu_data_handle_t handle);

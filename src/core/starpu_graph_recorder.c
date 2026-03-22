@@ -88,7 +88,10 @@ int _starpu_graph_recorder_try_capture_wont_use(starpu_data_handle_t handle)
 {
 	if (recorder_flushing)
 		return -1;
-	if (recording_depth <= 0 || !policy_is_graph_recorder() || !recorder_capture_wont_use)
+	if (recording_depth <= 0 || !policy_is_graph_recorder())
 		return -1;
+	/* graph_recorder ignores wont_use hints instead of replaying or forwarding them */
+	if (!recorder_capture_wont_use)
+		return 0;
 	return recorder_capture_wont_use(handle, recorder_arg);
 }

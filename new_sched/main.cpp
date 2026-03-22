@@ -95,9 +95,6 @@ int main()
         STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
     }
 
-    starpu_data_wont_use(acc[CHAIN_LEN - 1]);
-    for (int j = 0; j < LEAF_COUNT; j++)
-        starpu_data_wont_use(leaf_out[j]);
     starpu_data_invalidate_submit(h_a);
     starpu_data_invalidate_submit(h_b);
     for (int j = 0; j < LEAF_COUNT; j++)

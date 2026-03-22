@@ -29,7 +29,7 @@ static void graph_sched_wake_workers(unsigned sched_ctx_id)
     }
 }
 
-/** 0 = quiet; 1 = init/deinit; 2 = + flush summary; 3 = + per-checkpoint buffer dump. */
+/** 0 = quiet; 1 = init/deinit; 2 = + flush summary. */
 static int graph_sched_verbose_env(void)
 {
     const char *e = getenv("STARPU_GRAPH_SCHED_VERBOSE");
@@ -51,8 +51,8 @@ static void deinit_graph_sched(unsigned sched_ctx_id)
     graph_sched_recorder_deinit(data, sched_ctx_id);
     if (graph_sched_verbose_env() >= 1) {
         std::cerr << "graph_recorder: deinit sched_ctx " << sched_ctx_id << std::endl;
-        std::cerr << "graph_recorder: deinit policy stats: checkpointed_tasks=" << data->graph_checkpointed_tasks
-                  << " synthetic_invalidate_inserts=" << data->graph_added_invalidate_submit << std::endl;
+        std::cerr << "graph_recorder: deinit policy stats: synthetic_invalidate_inserts="
+                  << data->graph_added_invalidate_submit << std::endl;
     }
     delete data;
 }

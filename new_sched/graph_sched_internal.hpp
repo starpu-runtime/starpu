@@ -10,10 +10,34 @@
 
 #include <starpu.h>
 
-struct GraphRecordedOp {
-    enum Kind { TASK, INVALIDATE, WONT_USE } kind;
-    struct starpu_task *task;
-    starpu_data_handle_t handle;
+constexpr size_t GRAPH_ACCESS_NONE = static_cast<size_t>(-1);
+constexpr unsigned GRAPH_ACCESS_INVALIDATE_RAW = 1u << 30;
+
+struct GraphOpHandleAccessRef {
+    starpu_data_handle_t handle = nullptr;
+    size_t access_idx = GRAPH_ACCESS_NONE;
+};
+
+struct GraphHandleAccess {
+    starpu_data_handle_t handle = nullptr;
+    unsigned mode = 0;
+    struct starpu_task *task = nullptr;
+    size_t op_idx = GRAPH_ACCESS_NONE;
+    size_t prev_for_handle = GRAPH_ACCESS_NONE;
+    size_t next_for_handle = GRAPH_ACCESS_NONE;
+};
+
+struct GraphHandleAccessList {
+    size_t head = GRAPH_ACCESS_NONE;
+    size_t tail = GRAPH_ACCESS_NONE;
+};
+
+struct GraphOp {
+    enum Kind { TASK, INVALIDATE } kind;
+    struct starpu_task *task = nullptr;
+    starpu_data_handle_t handle = nullptr;
+    std::vector<GraphOpHandleAccessRef> handle_accesses;
+    std::vector<size_t> dependencies;
 };
 
 struct graph_sched_data {
@@ -21,23 +45,14 @@ struct graph_sched_data {
     std::deque<struct starpu_task *> ready_queue;
     const char *policy_log_name = "graph_recorder";
 
-    /** Recorded ops in capture order (synthetic invalidates may be inserted; checkpoints spliced after R1 at finalize). */
-    std::vector<GraphRecordedOp> graph_record_ops;
+    /** Operations in capture order; synthetic ops may be inserted and indexed here too. */
+    std::vector<GraphOp> graph_ops;
 
-    /**
-     * Index in graph_record_ops of the last TASK that references each handle (any access mode).
-     * Used for synthetic pre-write invalidate insertion. Updated when inserting ops before the tail
-     * shifts indices (see graph_recorder.cpp).
-     */
-    std::unordered_map<void *, size_t> graph_handle_last_task_idx;
-
-    /** Extra edges (predecessor -> successor) for checkpoint tasks; cleared each recording session. */
-    std::vector<std::pair<size_t, size_t>> graph_checkpoint_edges;
+    /** Linked per-handle access chains for task buffers and invalidate hints. */
+    std::vector<GraphHandleAccess> graph_handle_accesses;
+    std::unordered_map<void *, GraphHandleAccessList> graph_handle_access_lists;
 
     unsigned graph_record_nested = 0;
-
-    /** Checkpoint tasks (cloned producers) injected this recording session; reset at outermost recording_begin. */
-    unsigned graph_checkpointed_tasks = 0;
 
     /** Synthetic invalidate_submit ops this session; reset at outermost recording_begin. */
     unsigned graph_added_invalidate_submit = 0;

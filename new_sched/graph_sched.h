@@ -2,7 +2,7 @@
  *
  * Placeholder for a custom task graph; current implementation uses a simple FIFO of ready tasks.
  * StarPU extension hooks (starpu_graph_recorder) register with this policy for deferred
- * starpu_task_insert / starpu_data_invalidate_submit / starpu_data_wont_use while a session is open.
+ * starpu_task_insert / starpu_data_invalidate_submit while a session is open.
  */
 
 #ifndef GRAPH_SCHED_H
