@@ -5,13 +5,17 @@
 #include "graph_sched_internal.hpp"
 
 #include <starpu_graph_recorder.h>
+#include <starpu_data.h>
 #include <starpu_sched_ctx.h>
 #include <starpu_scheduler.h>
 #include <starpu_task.h>
+#include <starpu_task_util.h>
 
+#include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <utility>
+#include <vector>
 
 static graph_sched_data *graph_recorder_policy_data(unsigned sched_ctx_id)
 {
@@ -27,6 +31,18 @@ static graph_sched_data *graph_recorder_policy_data(unsigned sched_ctx_id)
 }
 
 namespace {
+
+/** Heap copy of packed cl_arg; StarPU frees via STARPU_CL_ARGS (cl_arg_free). */
+static void *graph_dup_cl_arg(const void *src, size_t n)
+{
+    if (!src || n == 0)
+        return nullptr;
+    void *p = std::malloc(n);
+    if (!p)
+        return nullptr;
+    std::memcpy(p, src, n);
+    return p;
+}
 
 /** Pure write (not STARPU_RW / RMW): overwrite may require a prior invalidate_submit. */
 static bool graph_mode_is_write_only_overwrite(enum starpu_data_access_mode mode)
@@ -96,6 +112,199 @@ static void graph_sched_register_task_handles(graph_sched_data *data, std::list<
             continue;
         data->graph_handle_task_refs[static_cast<void *>(h)].push_back(task_it);
     }
+}
+
+static bool graph_task_reads_handle(struct starpu_task *task, starpu_data_handle_t h)
+{
+    if (!task->cl)
+        return false;
+    const unsigned nbuf = STARPU_TASK_GET_NBUFFERS(task);
+    for (unsigned i = 0; i < nbuf; i++) {
+        if (STARPU_TASK_GET_HANDLE(task, i) != h)
+            continue;
+        enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, i);
+        if ((mode & STARPU_SCRATCH) != 0)
+            continue;
+        return (mode & STARPU_R) != 0;
+    }
+    return false;
+}
+
+/** W1: task writes \p h (any non-scratch STARPU_W). */
+static bool graph_task_writes_handle(struct starpu_task *task, starpu_data_handle_t h)
+{
+    if (!task->cl)
+        return false;
+    const unsigned nbuf = STARPU_TASK_GET_NBUFFERS(task);
+    for (unsigned i = 0; i < nbuf; i++) {
+        if (STARPU_TASK_GET_HANDLE(task, i) != h)
+            continue;
+        enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, i);
+        if ((mode & STARPU_SCRATCH) != 0)
+            continue;
+        return (mode & STARPU_W) != 0;
+    }
+    return false;
+}
+
+/**
+ * Checkpoint W1 must use exactly one STARPU_W buffer and otherwise only STARPU_R or STARPU_SCRATCH
+ * (no STARPU_RW, redux, or scratch combined with R/W).
+ */
+static bool graph_task_is_valid_w1_access_shape(struct starpu_task *task)
+{
+    if (!task->cl)
+        return false;
+    const unsigned nbuf = STARPU_TASK_GET_NBUFFERS(task);
+    if (nbuf == 0)
+        return false;
+
+    const enum starpu_data_access_mode allowed_annotations =
+        (enum starpu_data_access_mode)(STARPU_COMMUTE | STARPU_SSEND | STARPU_LOCALITY | STARPU_NOFOOTPRINT | STARPU_NOPLAN
+                                       | STARPU_UNMAP);
+
+    unsigned n_write = 0;
+    for (unsigned i = 0; i < nbuf; i++) {
+        enum starpu_data_access_mode m = STARPU_TASK_GET_MODE(task, i);
+        if (m & (STARPU_REDUX | STARPU_MPI_REDUX))
+            return false;
+        if (m & ~(STARPU_R | STARPU_W | STARPU_SCRATCH | allowed_annotations))
+            return false;
+
+        const bool r = (m & STARPU_R) != 0;
+        const bool w = (m & STARPU_W) != 0;
+        const bool s = (m & STARPU_SCRATCH) != 0;
+        if (r && w)
+            return false; /* STARPU_RW */
+        if (s && (r || w))
+            return false;
+        if (!r && !w && !s)
+            return false;
+
+        if (w)
+            n_write++;
+    }
+    return n_write == 1;
+}
+
+static starpu_data_handle_t graph_find_checkpoint_handle(struct starpu_task *w1, struct starpu_task *r1,
+                                                         struct starpu_task *r2)
+{
+    if (!w1->cl)
+        return nullptr;
+    const unsigned nbuf = STARPU_TASK_GET_NBUFFERS(w1);
+    for (unsigned i = 0; i < nbuf; i++) {
+        starpu_data_handle_t h = STARPU_TASK_GET_HANDLE(w1, i);
+        if (!h)
+            continue;
+        if (!graph_task_writes_handle(w1, h))
+            continue;
+        if (graph_task_reads_handle(r1, h) && graph_task_reads_handle(r2, h))
+            return h;
+    }
+    return nullptr;
+}
+
+/**
+ * Same handles and access modes as \p w1 (for starpu_task_build + STARPU_DATA_MODE_ARRAY).
+ * Supports STARPU_VARIABLE_NBUFFERS (uses starpu_task::nbuffers / dyn_handles).
+ */
+static bool graph_copy_w1_data_descrs(struct starpu_task *w1, std::vector<starpu_data_descr> &descrs_out)
+{
+    if (!w1->cl)
+        return false;
+    const unsigned nbuf = STARPU_TASK_GET_NBUFFERS(w1);
+    if (nbuf == 0)
+        return false;
+    if (w1->cl->nbuffers == STARPU_VARIABLE_NBUFFERS && w1->nbuffers != (int)nbuf)
+        return false;
+
+    descrs_out.resize(nbuf);
+    for (unsigned i = 0; i < nbuf; i++) {
+        starpu_data_handle_t hi = STARPU_TASK_GET_HANDLE(w1, i);
+        if (!hi)
+            return false;
+        descrs_out[i].handle = hi;
+        descrs_out[i].mode = STARPU_TASK_GET_MODE(w1, i);
+    }
+    return true;
+}
+
+/**
+ * Scan consecutive TASK ops in recorded order; on the first W1->R1->R2 match, insert W2 (clone of W1)
+ * immediately after R1. Returns true if one checkpoint was inserted, false if no match.
+ */
+static bool graph_sched_try_insert_one_checkpoint(graph_sched_data *data)
+{
+    std::vector<std::list<GraphRecordedOp>::iterator> task_iters;
+    task_iters.reserve(64);
+    for (auto it = data->graph_record_ops.begin(); it != data->graph_record_ops.end(); ++it) {
+        if (it->kind == GraphRecordedOp::TASK && it->task && it->task->cl)
+            task_iters.push_back(it);
+    }
+    if (task_iters.size() < 3)
+        return false;
+
+    for (size_t i = 0; i + 2 < task_iters.size(); i++) {
+        struct starpu_task *w1 = task_iters[i]->task;
+        struct starpu_task *r1 = task_iters[i + 1]->task;
+        struct starpu_task *r2 = task_iters[i + 2]->task;
+        if (!graph_task_is_valid_w1_access_shape(w1))
+            continue;
+        if (!graph_find_checkpoint_handle(w1, r1, r2))
+            continue;
+
+        std::vector<starpu_data_descr> descrs;
+        if (!graph_copy_w1_data_descrs(w1, descrs))
+            continue;
+
+        void *cl_arg_copy = graph_dup_cl_arg(w1->cl_arg, w1->cl_arg_size);
+        if (w1->cl_arg != nullptr && w1->cl_arg_size > 0 && !cl_arg_copy)
+            continue;
+
+        unsigned sched_ctx = r1->sched_ctx;
+        struct starpu_task *w2 = nullptr;
+        if (cl_arg_copy)
+            w2 = starpu_task_build(w1->cl, STARPU_SCHED_CTX, (int)sched_ctx, STARPU_DATA_MODE_ARRAY, descrs.data(),
+                                   (int)descrs.size(), STARPU_CL_ARGS, cl_arg_copy, w1->cl_arg_size, STARPU_NAME,
+                                   "graph_checkpoint", 0);
+        else
+            w2 = starpu_task_build(w1->cl, STARPU_SCHED_CTX, (int)sched_ctx, STARPU_DATA_MODE_ARRAY, descrs.data(),
+                                   (int)descrs.size(), STARPU_NAME, "graph_checkpoint", 0);
+        if (!w2) {
+            std::free(cl_arg_copy);
+            continue;
+        }
+
+        GraphRecordedOp op{};
+        op.kind = GraphRecordedOp::TASK;
+        op.task = w2;
+        op.handle = nullptr;
+        data->graph_record_ops.insert(std::next(task_iters[i + 1]), op);
+        data->graph_checkpointed_tasks++;
+        return true;
+    }
+    return false;
+}
+
+/** Replay-order pass: synthetic checkpoint tasks need the same pre-write invalidate logic as captured tasks. */
+static void graph_sched_reapply_auto_invalidates(graph_sched_data *data)
+{
+    data->graph_handle_task_refs.clear();
+    for (auto it = data->graph_record_ops.begin(); it != data->graph_record_ops.end(); ++it) {
+        if (it->kind != GraphRecordedOp::TASK || !it->task)
+            continue;
+        graph_sched_insert_missing_pre_write_invalidates(data, it->task);
+        graph_sched_register_task_handles(data, it, it->task);
+    }
+}
+
+static void graph_sched_finalize_recorded_graph(graph_sched_data *data)
+{
+    /* Each insertion can create new W1->R1->R2 triples among TASK ops; repeat until stable. */
+    while (graph_sched_try_insert_one_checkpoint(data))
+        ;
+    graph_sched_reapply_auto_invalidates(data);
 }
 
 static void graph_sched_append_captured_task(graph_sched_data *data, struct starpu_task *task)
@@ -216,6 +425,7 @@ void graph_sched_recorder_deinit(graph_sched_data *data, unsigned sched_ctx_id)
                 break;
             data->graph_record_nested--;
             if (data->graph_record_nested == 0) {
+                graph_sched_finalize_recorded_graph(data);
                 checkpointed_tasks = data->graph_checkpointed_tasks;
                 added_invalidate_submit = data->graph_added_invalidate_submit;
                 replay = std::move(data->graph_record_ops);
@@ -263,6 +473,7 @@ void starpu_graph_sched_graph_recording_end(unsigned sched_ctx_id)
 
         data->graph_record_nested--;
         if (data->graph_record_nested == 0) {
+            graph_sched_finalize_recorded_graph(data);
             checkpointed_tasks = data->graph_checkpointed_tasks;
             added_invalidate_submit = data->graph_added_invalidate_submit;
             replay = std::move(data->graph_record_ops);

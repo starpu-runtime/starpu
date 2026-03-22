@@ -34,7 +34,7 @@ struct graph_sched_data {
 
     unsigned graph_record_nested = 0;
 
-    /** Placeholder for future checkpoint-injected tasks; reset at outermost recording_begin. */
+    /** Number of checkpoint tasks injected this recording session; reset at outermost recording_begin. */
     unsigned graph_checkpointed_tasks = 0;
 
     /** Synthetic invalidate_submit ops this session; reset at outermost recording_begin. */
