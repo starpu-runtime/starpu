@@ -15,6 +15,7 @@ constexpr unsigned GRAPH_ACCESS_INVALIDATE_RAW = 1u << 30;
 
 struct GraphOpHandleAccessRef {
     starpu_data_handle_t handle = nullptr;
+    unsigned mode = 0;
     size_t access_idx = GRAPH_ACCESS_NONE;
 };
 
@@ -38,6 +39,9 @@ struct GraphOp {
     starpu_data_handle_t handle = nullptr;
     std::vector<GraphOpHandleAccessRef> handle_accesses;
     std::vector<size_t> dependencies;
+    bool checkpoint_idempotent = false;
+    bool checkpoint_wrr = false;
+    bool checkpointable = false;
 };
 
 struct graph_sched_data {
@@ -56,4 +60,8 @@ struct graph_sched_data {
 
     /** Synthetic invalidate_submit ops this session; reset at outermost recording_begin. */
     unsigned graph_added_invalidate_submit = 0;
+
+    /** Cumulative replay stats across all recording sessions for this policy instance. */
+    unsigned graph_total_checkpoint_inserts = 0;
+    unsigned graph_total_synthetic_invalidate_inserts = 0;
 };

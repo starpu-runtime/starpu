@@ -51,8 +51,10 @@ static void deinit_graph_sched(unsigned sched_ctx_id)
     graph_sched_recorder_deinit(data, sched_ctx_id);
     if (graph_sched_verbose_env() >= 1) {
         std::cerr << "graph_recorder: deinit sched_ctx " << sched_ctx_id << std::endl;
-        std::cerr << "graph_recorder: deinit policy stats: synthetic_invalidate_inserts="
-                  << data->graph_added_invalidate_submit << std::endl;
+        std::cerr << "graph_recorder: deinit policy stats: checkpointed_tasks="
+                  << data->graph_total_checkpoint_inserts
+                  << " synthetic_invalidate_inserts="
+                  << data->graph_total_synthetic_invalidate_inserts << std::endl;
     }
     delete data;
 }

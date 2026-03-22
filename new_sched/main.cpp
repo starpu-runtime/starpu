@@ -94,6 +94,11 @@ int main()
                                  STARPU_W, leaf_out[j], STARPU_R, acc[CHAIN_LEN - 1], STARPU_R, leaf_in[j], 0);
         STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
     }
+    /* Overwrite acc[last] after it has been read by the fan-out, so auto-invalidate
+     * has to inject an invalidate_submit before this pure STARPU_W overwrite. */
+    ret = starpu_task_insert(&cl_add, STARPU_VALUE, &alpha, sizeof(alpha), STARPU_VALUE, &beta, sizeof(beta),
+                             STARPU_W, acc[CHAIN_LEN - 1], STARPU_R, h_a, STARPU_R, h_b, 0);
+    STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
     starpu_data_invalidate_submit(h_a);
     starpu_data_invalidate_submit(h_b);
@@ -105,9 +110,9 @@ int main()
     starpu_task_wait_for_all();
 
     const int a = 10, b = 32;
-    const int expect_acc = a + CHAIN_LEN * b;
+    const int expect_acc = a + b;
     const int check_leaf = 3;
-    const int expect_leaf = expect_acc + check_leaf;
+    const int expect_leaf = a + CHAIN_LEN * b + check_leaf;
 
     ret = starpu_data_acquire(acc[CHAIN_LEN - 1], STARPU_R);
     STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
