@@ -26,6 +26,7 @@
 #include <common/starpu_spinlock.h>
 #include <core/task.h>
 #include <core/workers.h>
+#include <starpu_graph_recorder.h>
 #ifdef STARPU_OPENMP
 #include <util/openmp_runtime_support.h>
 #endif
@@ -1208,7 +1209,7 @@ void starpu_data_invalidate(starpu_data_handle_t handle)
 	handle->initialized = 0;
 }
 
-void starpu_data_invalidate_submit(starpu_data_handle_t handle)
+void _starpu_data_invalidate_submit_impl(starpu_data_handle_t handle)
 {
 	STARPU_ASSERT(handle);
 
@@ -1216,6 +1217,21 @@ void starpu_data_invalidate_submit(starpu_data_handle_t handle)
 	starpu_data_acquire_on_node_cb(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, STARPU_W, _starpu_data_invalidate, handle);
 
 	handle->initialized = 0;
+}
+
+void starpu_data_invalidate_submit(starpu_data_handle_t handle)
+{
+	int ret;
+
+	STARPU_ASSERT(handle);
+
+	ret = _starpu_graph_recorder_try_capture_invalidate(handle);
+	if (ret == 0)
+		return;
+	if (ret > 0)
+		return;
+
+	_starpu_data_invalidate_submit_impl(handle);
 }
 
 void starpu_data_invalidate_submit_no_sequential_consistency(starpu_data_handle_t handle)

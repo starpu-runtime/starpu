@@ -416,7 +416,13 @@ void _starpu_worker_start_state(int workerid, enum _starpu_worker_status_index i
 		struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 
 		STARPU_PTHREAD_MUTEX_LOCK(&worker->profiling_info_mutex);
-		STARPU_ASSERT(worker->profiling_registered_start[index] == 0);
+		/* Drivers may assign worker->status = STATUS_UNKNOWN without stop_state
+		 * (e.g. end of driver init), leaving profiling_registered_start stale. */
+		if (worker->profiling_registered_start[index] != 0)
+		{
+			STARPU_PTHREAD_MUTEX_UNLOCK(&worker->profiling_info_mutex);
+			return;
+		}
 		worker->profiling_registered_start[index] = 1;
 		worker->profiling_registered_start_date[index] = *start_time;
 
@@ -480,7 +486,8 @@ void _starpu_worker_stop_state(int workerid, enum _starpu_worker_status_index in
 
 		STARPU_PTHREAD_MUTEX_LOCK(&worker->profiling_info_mutex);
 
-		STARPU_ASSERT (worker->profiling_registered_start[index] == 1);
+		/* See _starpu_worker_start_state: status may be cleared without stop_state. */
+		if (worker->profiling_registered_start[index] == 1)
 		{
 			state_start = &worker->profiling_registered_start_date[index];
 

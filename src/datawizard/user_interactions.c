@@ -26,6 +26,7 @@
 #include <core/sched_policy.h>
 #include <datawizard/memory_nodes.h>
 #include <datawizard/interfaces/data_interface.h>
+#include <starpu_graph_recorder.h>
 
 static void _starpu_data_check_initialized(starpu_data_handle_t handle, enum starpu_data_access_mode mode)
 {
@@ -1023,53 +1024,28 @@ static void _starpu_data_wont_use(void *data)
 	}
 }
 
-#ifdef STARPU_RECURSIVE_TASKS
-#if 0
-static void flush_func(void *buffers[], void *arg)
+void _starpu_data_wont_use_impl(starpu_data_handle_t handle)
 {
-	(void) buffers;
-	(void) arg;
-}
-
-static struct starpu_codelet flush_codelet =
-{
-	.cpu_funcs = {flush_func},
-	.nbuffers = 1
-};
-#endif
-#endif
-
-void starpu_data_wont_use(starpu_data_handle_t handle)
-{
-#ifndef STARPU_RECURSIVE_TASKS
 	if (!handle->initialized)
 		/* No value atm actually */
 		return;
-#endif
 
-#ifdef STARPU_RECURSIVE_TASKS
-//	char *fname;
-//	asprintf(&fname, "Flush(%p)", handle);
-//	starpu_task_insert(&flush_codelet,
-//			   STARPU_RW, handle,
-//			   STARPU_NAME, fname, 0);
-#else
 	if (starpu_data_get_nb_children(handle) != 0)
 	{
 		int i;
 		for(i=0 ; i<starpu_data_get_nb_children(handle) ; i++)
-			starpu_data_wont_use(starpu_data_get_child(handle, i));
+			_starpu_data_wont_use_impl(starpu_data_get_child(handle, i));
 		return;
 	}
 
-	if (handle->nactive_readonly_children != 0)
+	if (handle->partitioned != 0)
 	{
 		unsigned i;
-		for(i=0 ; i<handle->nactive_readonly_children; i++)
+		for(i=0 ; i<handle->partitioned; i++)
 		{
 			unsigned j;
 			for(j=0 ; j<handle->active_readonly_nchildren[i] ; j++)
-				starpu_data_wont_use(handle->active_readonly_children[i][j]);
+				_starpu_data_wont_use_impl(handle->active_readonly_children[i][j]);
 		}
 	}
 
@@ -1077,13 +1053,28 @@ void starpu_data_wont_use(starpu_data_handle_t handle)
 	{
 		unsigned j;
 		for(j=0 ; j<handle->active_nchildren ; j++)
-			starpu_data_wont_use(handle->active_children[j]);
+			_starpu_data_wont_use_impl(handle->active_children[j]);
 		return;
 	}
-#endif
 
 	_starpu_trace_data_wont_use(handle);
 	starpu_data_acquire_on_node_cb_sequential_consistency_quick(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, STARPU_R, _starpu_data_wont_use, handle, 1, 1);
+}
+
+void starpu_data_wont_use(starpu_data_handle_t handle)
+{
+	int ret;
+
+	if (!handle->initialized)
+		return;
+
+	ret = _starpu_graph_recorder_try_capture_wont_use(handle);
+	if (ret == 0)
+		return;
+	if (ret > 0)
+		return;
+
+	_starpu_data_wont_use_impl(handle);
 }
 
 /*

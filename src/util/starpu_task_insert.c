@@ -21,6 +21,7 @@
 #include <common/config.h>
 #include <stdarg.h>
 #include <util/starpu_task_insert_utils.h>
+#include <starpu_graph_recorder.h>
 
 void starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, ...)
 {
@@ -151,12 +152,11 @@ struct starpu_task *_starpu_task_build_v(struct starpu_task *ptask, struct starp
 }
 
 #undef starpu_task_submit
-int _starpu_task_insert_v(struct starpu_codelet *cl, va_list varg_list)
+int _starpu_task_insert_submit_built_task(struct starpu_task *task)
 {
-	struct starpu_task *task;
 	int ret;
+	struct starpu_codelet *cl = task ? task->cl : NULL;
 
-	task = _starpu_task_build_v(NULL, cl, NULL, 1, varg_list);
 	ret = starpu_task_submit(task);
 
 	if (STARPU_UNLIKELY(ret == -ENODEV))
@@ -171,6 +171,22 @@ int _starpu_task_insert_v(struct starpu_codelet *cl, va_list varg_list)
 		starpu_task_destroy(task);
 	}
 	return ret;
+}
+
+int _starpu_task_insert_v(struct starpu_codelet *cl, va_list varg_list)
+{
+	struct starpu_task *task;
+	int ret;
+
+	task = _starpu_task_build_v(NULL, cl, NULL, 1, varg_list);
+	if (!task)
+		return -EINVAL;
+
+	ret = _starpu_graph_recorder_try_capture_task(task);
+	if (ret >= 0)
+		return ret;
+
+	return _starpu_task_insert_submit_built_task(task);
 }
 
 #undef starpu_task_set

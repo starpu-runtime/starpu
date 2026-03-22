@@ -223,6 +223,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	core/perfmodel/regression.c				\
 	core/perfmodel/multiple_regression.c			\
 	core/sched_policy.c					\
+	core/starpu_graph_recorder.c				\
 	core/simgrid.c						\
 	core/simgrid_cpp.cpp					\
 	core/sched_ctx.c					\

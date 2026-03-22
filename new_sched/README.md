@@ -1,34 +1,21 @@
-Standalone Graph-Inspired Scheduler (StarPU)
+graph_recorder (StarPU skeleton)
 
-This is a standalone project that implements a graph-based scheduling policy inspired by StarPU's in-tree `graph_test` policy, but usable as an external application-defined scheduler.
+Minimal loadable scheduler **`graph_recorder`**: FIFO queue of ready tasks, plus registration with StarPU’s **`starpu_graph_recorder`** extension (`starpu_graph_sched_graph_recording_begin` / `end` in `graph_sched.h`).
 
-Key points:
-- Uses public StarPU scheduler API (`starpu_sched_policy`) to plug a custom scheduler.
-- Records ready tasks into a bag until `do_schedule`, then partitions tasks into CPU/GPU queues using a simple device-power heuristic.
-- Fully self-contained: does not rely on StarPU internal headers.
-
-Build prerequisites:
-- StarPU installed and discoverable via `pkg-config` (package name: `starpu-1.4`).
+The previous checkpoint / TaskGraph implementation was removed on purpose; replace `libgraph_sched.cpp` with your own graph logic while keeping the hooks you need.
 
 Build:
 ```bash
 cd new_sched
-make
+make   # needs pkg-config starpu-1.4 + installed StarPU with starpu_graph_recorder.h
 ```
 
-Artifacts:
-- Shared library: `libgraph_standalone_sched.so` (loadable StarPU scheduler)
-- Demo program: `demo_graph_sched`
+Artifacts: `libgraph_recorder_sched.so`, `demo_graph_sched`.
 
-Run the demo:
+Run with this policy:
 ```bash
-./demo_graph_sched
+STARPU_SCHED=graph_recorder STARPU_SCHED_LIB=./libgraph_recorder_sched.so ./demo_graph_sched
 ```
+Or `make run`. `make run2` uses StarPU’s built-in scheduler (library still linked for the demo binary).
 
-Environment variables:
-- `STARPU_SCHED` should be unset or empty when running, since this program sets its own policy.
-- `STARPU_SILENT=1` silences progress prints from this example.
-- `STARPU_GRAPH_SCHED_VERBOSE` for the loadable policy: `0` none; `1` init/deinit; `2` push/pop/post-exec + checkpoint lines; `3` submit hook + `do_schedule` one-liner (total/ready tasks); `4` full `do_schedule` listing (see `graph_sched.h`).
-- `STARPU_GRAPH_SCHED_DISABLE_INVALIDATION=1` skips all `starpu_data_invalidate_submit_with_deps` calls from the graph invalidation pass (useful to debug checkpoint / coherency issues).
-
-
+Env: `STARPU_GRAPH_SCHED_VERBOSE=1` prints init/deinit lines.
