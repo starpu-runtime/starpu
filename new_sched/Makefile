@@ -36,6 +36,10 @@ $(DEMO): $(DEMO_OBJS) $(LIB)
 %.o: %.cpp
 	$(CXX) $(ALL_CXXFLAGS) -c $< -o $@
 
+# graph_recorder.cpp is #included from libgraph_sched.cpp — list it so edits rebuild the .so.
+libgraph_sched.o: libgraph_sched.cpp graph_recorder.cpp graph_sched_internal.hpp
+	$(CXX) $(ALL_CXXFLAGS) -c libgraph_sched.cpp -o $@
+
 .PHONY: clean run run-fxt
 
 clean:
