@@ -64,4 +64,10 @@ struct graph_sched_data {
     /** Cumulative replay stats across all recording sessions for this policy instance. */
     unsigned graph_total_checkpoint_inserts = 0;
     unsigned graph_total_synthetic_invalidate_inserts = 0;
+
+    /** STARPU_GRAPH_SCHED_WORKER → starpu_worker_get_by_devid; -1 if unset or not resolved. */
+    int graph_pinned_worker_id = -1;
 };
+
+/** Policy init: resolve STARPU_GRAPH_SCHED_WORKER into graph_pinned_worker_id and log target. */
+void graph_sched_init_pinned_worker(graph_sched_data *data);

@@ -11,12 +11,130 @@
 #include <starpu_scheduler.h>
 #include <starpu_task.h>
 #include <starpu_task_util.h>
+#include <starpu_worker.h>
 
+#include <cerrno>
+#include <climits>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <string>
 #include <queue>
 #include <vector>
+
+/**
+ * STARPU_GRAPH_SCHED_WORKER=TYPE:devid (e.g. CPU:0, CUDA:1) → starpu_worker_get_by_devid.
+ * If unset: try CUDA:0, then CPU:0. Types (case-insensitive): CPU, CUDA, HIP, OPENCL.
+ */
+static int graph_sched_parse_explicit_worker_string(const char *e)
+{
+    if (!e || !*e)
+        return -1;
+
+    while (*e == ' ' || *e == '\t')
+        e++;
+    const char *colon = std::strchr(e, ':');
+    if (!colon || colon == e)
+        return -1;
+
+    std::string type(e, colon);
+    while (!type.empty() && (type.back() == ' ' || type.back() == '\t'))
+        type.pop_back();
+    for (char &c : type) {
+        if (c >= 'A' && c <= 'Z')
+            c = static_cast<char>(c - 'A' + 'a');
+    }
+
+    const char *idstr = colon + 1;
+    while (*idstr == ' ' || *idstr == '\t')
+        idstr++;
+    if (!*idstr)
+        return -1;
+
+    char *end = nullptr;
+    const long devid_long = std::strtol(idstr, &end, 10);
+    if (end == idstr || devid_long < 0 || devid_long > static_cast<long>(INT_MAX))
+        return -1;
+    while (*end == ' ' || *end == '\t')
+        end++;
+    if (*end != '\0')
+        return -1;
+
+    enum starpu_worker_archtype wtype;
+    if (type == "cpu")
+        wtype = STARPU_CPU_WORKER;
+    else if (type == "cuda")
+        wtype = STARPU_CUDA_WORKER;
+    else if (type == "hip")
+        wtype = STARPU_HIP_WORKER;
+    else if (type == "opencl")
+        wtype = STARPU_OPENCL_WORKER;
+    else
+        return -1;
+
+    return starpu_worker_get_by_devid(wtype, static_cast<int>(devid_long));
+}
+
+[[noreturn]] static void graph_sched_fatal_pin_worker_unavailable(const std::string &detail)
+{
+    std::cerr << "graph_recorder: fatal: cannot resolve a worker to pin graph-recorded tasks: " << detail << '\n';
+    std::exit(1);
+}
+
+static void graph_sched_log_pinned_worker_target(int wid, const char *prefix_line)
+{
+    const enum starpu_worker_archtype wtype = starpu_worker_get_type(wid);
+    const int devid = starpu_worker_get_devid(wid);
+    const char *type_str = starpu_worker_get_type_as_string(wtype);
+    char wname[256];
+    wname[0] = '\0';
+    starpu_worker_get_name(wid, wname, sizeof(wname));
+    std::cerr << "graph_recorder: graph-recorded tasks: " << (prefix_line ? prefix_line : "") << "pin type="
+              << (type_str ? type_str : "?") << " id=" << devid << " worker_id=" << wid;
+    if (wname[0])
+        std::cerr << " (" << wname << ")";
+    std::cerr << '\n';
+}
+
+void graph_sched_init_pinned_worker(graph_sched_data *data)
+{
+    const char *ew = std::getenv("STARPU_GRAPH_SCHED_WORKER");
+
+    if (ew && ew[0]) {
+        data->graph_pinned_worker_id = graph_sched_parse_explicit_worker_string(ew);
+        if (data->graph_pinned_worker_id < 0) {
+            graph_sched_fatal_pin_worker_unavailable(std::string("STARPU_GRAPH_SCHED_WORKER=\"") + ew +
+                                                     "\" invalid or no such worker (check type:devid and topology)");
+        }
+        graph_sched_log_pinned_worker_target(data->graph_pinned_worker_id,
+                                             "STARPU_GRAPH_SCHED_WORKER set; ");
+        return;
+    }
+
+    const int cuda_w = starpu_worker_get_by_devid(STARPU_CUDA_WORKER, 0);
+    if (cuda_w >= 0) {
+        data->graph_pinned_worker_id = cuda_w;
+        graph_sched_log_pinned_worker_target(cuda_w, "STARPU_GRAPH_SCHED_WORKER unset; default CUDA:0; ");
+        return;
+    }
+
+    const int cpu_w = starpu_worker_get_by_devid(STARPU_CPU_WORKER, 0);
+    data->graph_pinned_worker_id = cpu_w;
+    if (cpu_w < 0) {
+        graph_sched_fatal_pin_worker_unavailable(
+            "STARPU_GRAPH_SCHED_WORKER unset, CUDA:0 unavailable, and CPU:0 unavailable (e.g. STARPU_NCPU=0 with no GPU)");
+    }
+    graph_sched_log_pinned_worker_target(cpu_w,
+                                         "STARPU_GRAPH_SCHED_WORKER unset; CUDA:0 unavailable; default CPU:0; ");
+}
+
+static bool graph_sched_task_runnable_on_pinned_worker(const struct starpu_task *task, unsigned workerid)
+{
+    if (!task->cl)
+        return true;
+    unsigned nimpl = 0;
+    return starpu_worker_can_execute_task_first_impl(workerid, const_cast<struct starpu_task *>(task), &nimpl) != 0;
+}
 
 /* Default on. Set STARPU_GRAPH_SCHED_AUTO_INVALIDATE=0 to disable synthetic invalidate_submit. */
 static bool graph_sched_auto_invalidate_enabled(void)
@@ -928,7 +1046,7 @@ static unsigned graph_sched_insert_checkpoints(std::vector<GraphOp> &ops, std::v
 /* Call only with policy_mutex released: replay submits tasks and may call push_task_graph. */
 GraphReplayStats graph_sched_replay_recorded_ops(std::vector<GraphOp> ops,
                                                  std::vector<GraphHandleAccess> handle_accesses,
-                                                 unsigned added_invalidate_submit)
+                                                 unsigned added_invalidate_submit, int pin_worker)
 {
     GraphReplayStats stats{};
     stats.added_invalidate_submit = added_invalidate_submit;
@@ -969,11 +1087,25 @@ GraphReplayStats graph_sched_replay_recorded_ops(std::vector<GraphOp> ops,
     std::vector<size_t> topo_order;
     graph_sched_compute_topological_order(ops, topo_order);
 
+    if (pin_worker >= 0 && graph_sched_verbose_env() >= 2) {
+        char wname[256];
+        wname[0] = '\0';
+        starpu_worker_get_name(pin_worker, wname, sizeof(wname));
+        std::cerr << "graph_recorder: flush replay pinning tasks to worker_id=" << pin_worker;
+        if (wname[0])
+            std::cerr << " (" << wname << ")";
+        std::cerr << std::endl;
+    }
+
     _starpu_graph_recorder_set_flushing(1);
     for (size_t op_idx : topo_order) {
         const GraphOp &op = ops[op_idx];
         switch (op.kind) {
         case GraphOp::TASK:
+            if (pin_worker >= 0) {
+                op.task->execute_on_a_specific_worker = 1;
+                op.task->workerid = static_cast<unsigned>(pin_worker);
+            }
             _starpu_task_insert_submit_built_task(op.task);
             break;
         case GraphOp::INVALIDATE:
@@ -995,6 +1127,17 @@ static int graph_sched_capture_task_hook(struct starpu_task *task, void *arg)
     std::lock_guard<std::mutex> lock(data->policy_mutex);
     if (data->graph_record_nested == 0)
         return -1;
+    if (data->graph_pinned_worker_id >= 0 && task->cl) {
+        const unsigned wid = static_cast<unsigned>(data->graph_pinned_worker_id);
+        if (!graph_sched_task_runnable_on_pinned_worker(task, wid)) {
+            const char *cln = task->cl->name ? task->cl->name : "?";
+            std::cerr << "graph_recorder: codelet \"" << cln << "\" cannot execute on pinned worker_id="
+                      << data->graph_pinned_worker_id << " (STARPU_GRAPH_SCHED_WORKER)\n";
+            task->destroy = 0;
+            starpu_task_destroy(task);
+            return EINVAL;
+        }
+    }
     graph_sched_append_captured_task(data, task);
     return 0;
 }
@@ -1044,8 +1187,8 @@ void graph_sched_recorder_deinit(graph_sched_data *data, unsigned sched_ctx_id)
                 data->graph_handle_access_lists.clear();
             }
         }
-        GraphReplayStats stats =
-            graph_sched_replay_recorded_ops(std::move(replay), std::move(replay_handle_accesses), added_invalidate_submit);
+        GraphReplayStats stats = graph_sched_replay_recorded_ops(std::move(replay), std::move(replay_handle_accesses),
+                                                                 added_invalidate_submit, data->graph_pinned_worker_id);
         {
             std::lock_guard<std::mutex> lock(data->policy_mutex);
             data->graph_total_checkpoint_inserts += stats.inserted_checkpoints;
@@ -1102,7 +1245,8 @@ void starpu_graph_sched_graph_recording_end(unsigned sched_ctx_id)
 
     if (outermost_end) {
         GraphReplayStats stats =
-            graph_sched_replay_recorded_ops(std::move(replay), std::move(replay_handle_accesses), added_invalidate_submit);
+            graph_sched_replay_recorded_ops(std::move(replay), std::move(replay_handle_accesses), added_invalidate_submit,
+                                            data->graph_pinned_worker_id);
         std::lock_guard<std::mutex> lock(data->policy_mutex);
         data->graph_total_checkpoint_inserts += stats.inserted_checkpoints;
         data->graph_total_synthetic_invalidate_inserts += stats.added_invalidate_submit;

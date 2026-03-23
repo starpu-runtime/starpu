@@ -39,6 +39,7 @@ static int graph_sched_verbose_env(void)
 static void init_graph_sched(unsigned sched_ctx_id)
 {
     auto *data = new graph_sched_data;
+    graph_sched_init_pinned_worker(data);
     starpu_sched_ctx_set_policy_data(sched_ctx_id, data);
     graph_sched_recorder_register(data);
     if (graph_sched_verbose_env() >= 1)
