@@ -184,6 +184,14 @@ static bool graph_access_mode_is_writer(unsigned mode)
     return !graph_access_mode_is_invalidate(mode) && ((mode & STARPU_W) != 0);
 }
 
+/** Task writers and explicit invalidates both end a handle "version" for dependency purposes. */
+static bool graph_access_is_handle_producer_for_deps(const GraphHandleAccess &a)
+{
+    if (graph_access_mode_is_invalidate(a.mode))
+        return true;
+    return graph_access_mode_is_writer(a.mode) && a.task != nullptr;
+}
+
 static void graph_op_add_dependency(GraphOp &op, size_t dep_idx)
 {
     if (dep_idx == GRAPH_ACCESS_NONE)
@@ -195,36 +203,130 @@ static void graph_op_add_dependency(GraphOp &op, size_t dep_idx)
     op.dependencies.push_back(dep_idx);
 }
 
+/**
+ * Per-handle dependency rules (see graph_sched_append_handle_access chains):
+ *
+ * - Pure STARPU_R (not STARPU_RW): depend only on the nearest previous handle producer — task
+ *   STARPU_W / STARPU_RW, or an invalidate op on this handle. No prior producer matches external init.
+ *
+ * - STARPU_W / STARPU_RW on a task: depend on every pure STARPU_R back to the previous producer,
+ *   then on that producer (task writer or invalidate), so reads of the current version finish first
+ *   and writes serialize.
+ *
+ * - starpu_data_invalidate_submit (INVALIDATE op): same back-edges as a writer (invalidation is a
+ *   version change). Pure STARPU_W after invalidate depends on that invalidate as the producer.
+ */
+static void graph_op_add_pure_read_dependencies(graph_sched_data *data, GraphOp &op, size_t access_idx)
+{
+    size_t prev_idx = data->graph_handle_accesses[access_idx].prev_for_handle;
+    while (prev_idx != GRAPH_ACCESS_NONE) {
+        if (prev_idx >= data->graph_handle_accesses.size())
+            break;
+        const GraphHandleAccess &prev = data->graph_handle_accesses[prev_idx];
+        if (graph_access_is_handle_producer_for_deps(prev)) {
+            graph_op_add_dependency(op, prev.op_idx);
+            break;
+        }
+        prev_idx = prev.prev_for_handle;
+    }
+}
+
+static void graph_op_add_writer_or_invalidate_dependencies(graph_sched_data *data, GraphOp &op, size_t access_idx)
+{
+    size_t prev_idx = data->graph_handle_accesses[access_idx].prev_for_handle;
+    while (prev_idx != GRAPH_ACCESS_NONE) {
+        if (prev_idx >= data->graph_handle_accesses.size())
+            break;
+        const GraphHandleAccess &prev = data->graph_handle_accesses[prev_idx];
+        if (graph_access_mode_is_pure_read(prev.mode) && prev.task != nullptr)
+            graph_op_add_dependency(op, prev.op_idx);
+        else if (graph_access_is_handle_producer_for_deps(prev)) {
+            graph_op_add_dependency(op, prev.op_idx);
+            break;
+        }
+        prev_idx = prev.prev_for_handle;
+    }
+}
+
+/** StarPU: after invalidate, the next use of the handle must be pure STARPU_W until data is valid again. */
+static void graph_sched_validate_invalidate_then_pure_write_windows(graph_sched_data *data)
+{
+    for (const auto &entry : data->graph_handle_access_lists) {
+        size_t idx = entry.second.head;
+        bool need_pure_w_after_invalidate = false;
+        bool reported_this_window = false;
+
+        while (idx != GRAPH_ACCESS_NONE) {
+            if (idx >= data->graph_handle_accesses.size())
+                break;
+            const GraphHandleAccess &a = data->graph_handle_accesses[idx];
+            const unsigned m = a.mode;
+
+            if (graph_access_mode_is_invalidate(m)) {
+                need_pure_w_after_invalidate = true;
+                reported_this_window = false;
+                idx = a.next_for_handle;
+                continue;
+            }
+
+            if (need_pure_w_after_invalidate) {
+                if (graph_access_mode_is_pure_write(m)) {
+                    need_pure_w_after_invalidate = false;
+                    reported_this_window = false;
+                } else if (!reported_this_window) {
+                    std::cerr << "graph_recorder: invalid recording — handle access between invalidate and pure "
+                                   "STARPU_W (StarPU requires pure write after invalidate). handle="
+                                << entry.first << " op_idx=" << a.op_idx << std::endl;
+                    reported_this_window = true;
+                }
+            }
+
+            idx = a.next_for_handle;
+        }
+    }
+}
+
 static void graph_sched_refresh_op_dependencies(graph_sched_data *data)
 {
     for (GraphOp &op : data->graph_ops)
         op.dependencies.clear();
 
     for (GraphOp &op : data->graph_ops) {
+        if (op.kind == GraphOp::INVALIDATE) {
+            for (const GraphOpHandleAccessRef &ref : op.handle_accesses) {
+                if (ref.access_idx >= data->graph_handle_accesses.size())
+                    continue;
+                graph_op_add_writer_or_invalidate_dependencies(data, op, ref.access_idx);
+            }
+            continue;
+        }
+
         if (op.kind != GraphOp::TASK)
             continue;
+
         for (const GraphOpHandleAccessRef &ref : op.handle_accesses) {
             if (ref.access_idx >= data->graph_handle_accesses.size())
                 continue;
-            size_t prev_idx = data->graph_handle_accesses[ref.access_idx].prev_for_handle;
-            while (prev_idx != GRAPH_ACCESS_NONE) {
-                if (prev_idx >= data->graph_handle_accesses.size())
-                    break;
-                const GraphHandleAccess &prev = data->graph_handle_accesses[prev_idx];
-                if (graph_access_mode_is_writer(prev.mode) && prev.task != nullptr) {
-                    graph_op_add_dependency(op, prev.op_idx);
-                    break;
-                }
-                prev_idx = prev.prev_for_handle;
+            const unsigned mode = ref.mode;
+
+            if (graph_access_mode_is_pure_read(mode)) {
+                graph_op_add_pure_read_dependencies(data, op, ref.access_idx);
+                continue;
             }
+
+            if (graph_access_mode_is_writer(mode))
+                graph_op_add_writer_or_invalidate_dependencies(data, op, ref.access_idx);
         }
     }
+
+    graph_sched_validate_invalidate_then_pure_write_windows(data);
 }
 
 /**
- * If handle H will be write-only (STARPU_W) and some task already used H, insert a
- * synthetic invalidate_submit after that last task only when the user has not
- * already recorded invalidate_submit for H between that task and this write.
+ * If handle H will be write-only (STARPU_W) and some task already used H, insert a synthetic
+ * invalidate_submit after that last access when the user has not already recorded invalidate_submit for H
+ * on the chain before this write. The INVALIDATE GraphOp is inserted and linked on H before the new task is
+ * appended, so the handle chain is ... -> prior -> invalidate -> pure STARPU_W (no STARPU_R on H in between).
  */
 static void graph_sched_insert_missing_pre_write_invalidates(graph_sched_data *data, struct starpu_task *task)
 {
