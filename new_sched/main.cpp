@@ -39,7 +39,7 @@ static struct starpu_codelet cl_add = {
 
 /* Long trunk: acc[0]=a+b, acc[i]=acc[i-1]+b. Fan-out: each leaf_j = acc[last]+leaf_in[j]
  * (same math with alpha=beta=1). Codelet uses variable buffer count + cl_arg scalars. */
-enum { CHAIN_LEN = 32, LEAF_COUNT = 16 };
+enum { CHAIN_LEN = 8, LEAF_COUNT = 4 };
 
 int main()
 {

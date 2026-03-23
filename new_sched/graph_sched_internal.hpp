@@ -40,7 +40,10 @@ struct GraphOp {
     struct starpu_task *task = nullptr;
     starpu_data_handle_t handle = nullptr;
     std::vector<GraphOpHandleAccessRef> handle_accesses;
-    std::vector<size_t> dependencies;
+    /** Op indices that must complete before this op (tasks and INVALIDATE). */
+    std::vector<size_t> predecessors;
+    /** Op indices that depend on this op (tasks and INVALIDATE). */
+    std::vector<size_t> successors;
     bool checkpoint_idempotent = false;
     bool checkpoint_wrr = false;
     bool checkpointable = false;
@@ -48,6 +51,13 @@ struct GraphOp {
     std::int64_t memory_bytes_delta_after = 0;
     /** Expected execution time on the graph target worker (µs), from StarPU perf models; NaN if N/A or INVALIDATE. */
     double predicted_exec_time = std::numeric_limits<double>::quiet_NaN();
+};
+
+/** Idempotent graph task with StarPU predicted duration on the pinned worker (see graph_sched_replay). */
+struct GraphIdempotentTaskPredicted {
+    struct starpu_task *task = nullptr;
+    /** Expected execution time on the designated (pinned) worker in µs; +inf if StarPU has no valid estimate. */
+    double predicted_exec_time_us = std::numeric_limits<double>::infinity();
 };
 
 struct graph_sched_data {
@@ -74,6 +84,19 @@ struct graph_sched_data {
 
     /** STARPU_GRAPH_SCHED_WORKER → starpu_worker_get_by_devid; -1 if unset or not resolved. */
     int graph_pinned_worker_id = -1;
+
+    /**
+     * starpu_memory_get_total(starpu_worker_get_memory_node(pinned worker)): StarPU-reported max bytes on that node.
+     * -1 means no STARPU per-node RAM limit is set (starpu_memory_get_total returns -1).
+     */
+    std::int64_t graph_pinned_worker_max_memory_bytes = -1;
+    /** starpu_memory_get_available(same node); -1 when no STARPU RAM limit is set on the node. */
+    std::int64_t graph_pinned_worker_available_memory_bytes = -1;
+    /** starpu_memory_get_used(same node) — StarPU-accounted use on that node. */
+    std::uint64_t graph_pinned_worker_starpu_used_bytes = 0;
+
+    /** Filled when outermost graph recording ends: checkpoint-idempotent TASK ops, ascending by predicted_exec_time_us. */
+    std::vector<GraphIdempotentTaskPredicted> graph_idempotent_tasks_sorted;
 };
 
 /** Policy init: resolve STARPU_GRAPH_SCHED_WORKER into graph_pinned_worker_id and log target. */

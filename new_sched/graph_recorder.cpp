@@ -1,7 +1,7 @@
 /* Graph recording for graph_recorder policy: queues task_insert / invalidate_submit
  * while a session is open, then replays via StarPU impl symbols (see starpu_graph_recorder.h).
  * Operations live in a std::vector; flush builds a DAG from per-handle ordering, then
- * topologically sorts before submit. Built as part of libgraph_sched.cpp. */
+ * then greedy memory-aware topological order before submit. Built as part of libgraph_sched.cpp. */
 
 #include "graph_sched_internal.hpp"
 
@@ -13,6 +13,8 @@
 #include <starpu_task_util.h>
 #include <starpu_worker.h>
 
+#include <algorithm>
+#include <cmath>
 #include <cerrno>
 #include <climits>
 #include <cstdlib>
@@ -100,6 +102,39 @@ static void graph_sched_log_pinned_worker_target(int wid, const char *prefix_lin
     std::cerr << '\n';
 }
 
+static void graph_sched_read_pinned_worker_memory_into(graph_sched_data *data)
+{
+    data->graph_pinned_worker_max_memory_bytes = -1;
+    data->graph_pinned_worker_available_memory_bytes = -1;
+    data->graph_pinned_worker_starpu_used_bytes = 0;
+    if (!data || data->graph_pinned_worker_id < 0)
+        return;
+    const unsigned wid = static_cast<unsigned>(data->graph_pinned_worker_id);
+    const unsigned node = starpu_worker_get_memory_node(wid);
+    const starpu_ssize_t tot = starpu_memory_get_total(node);
+    if (tot >= 0)
+        data->graph_pinned_worker_max_memory_bytes = static_cast<std::int64_t>(tot);
+    const starpu_ssize_t avail = starpu_memory_get_available(node);
+    if (avail >= 0)
+        data->graph_pinned_worker_available_memory_bytes = static_cast<std::int64_t>(avail);
+    data->graph_pinned_worker_starpu_used_bytes = starpu_memory_get_used(node);
+}
+
+static void graph_sched_maybe_log_pinned_worker_memory_verbose(const graph_sched_data *data)
+{
+    if (graph_sched_verbose_env() < 6 || !data || data->graph_pinned_worker_id < 0)
+        return;
+    const unsigned node =
+        starpu_worker_get_memory_node(static_cast<unsigned>(data->graph_pinned_worker_id));
+    std::cerr << "graph_recorder: pinned worker memory: node=" << node
+              << " starpu_total_bytes=" << data->graph_pinned_worker_max_memory_bytes
+              << " starpu_available_bytes=" << data->graph_pinned_worker_available_memory_bytes
+              << " starpu_used_bytes=" << data->graph_pinned_worker_starpu_used_bytes;
+    if (data->graph_pinned_worker_max_memory_bytes < 0)
+        std::cerr << " (STARPU RAM limit not set on this memory node)";
+    std::cerr << std::endl;
+}
+
 void graph_sched_init_pinned_worker(graph_sched_data *data)
 {
     const char *ew = std::getenv("STARPU_GRAPH_SCHED_WORKER");
@@ -112,6 +147,8 @@ void graph_sched_init_pinned_worker(graph_sched_data *data)
         }
         graph_sched_log_pinned_worker_target(data->graph_pinned_worker_id,
                                              "STARPU_GRAPH_SCHED_WORKER set; ");
+        graph_sched_read_pinned_worker_memory_into(data);
+        graph_sched_maybe_log_pinned_worker_memory_verbose(data);
         return;
     }
 
@@ -119,6 +156,8 @@ void graph_sched_init_pinned_worker(graph_sched_data *data)
     if (cuda_w >= 0) {
         data->graph_pinned_worker_id = cuda_w;
         graph_sched_log_pinned_worker_target(cuda_w, "STARPU_GRAPH_SCHED_WORKER unset; default CUDA:0; ");
+        graph_sched_read_pinned_worker_memory_into(data);
+        graph_sched_maybe_log_pinned_worker_memory_verbose(data);
         return;
     }
 
@@ -130,6 +169,8 @@ void graph_sched_init_pinned_worker(graph_sched_data *data)
     }
     graph_sched_log_pinned_worker_target(cpu_w,
                                          "STARPU_GRAPH_SCHED_WORKER unset; CUDA:0 unavailable; default CPU:0; ");
+    graph_sched_read_pinned_worker_memory_into(data);
+    graph_sched_maybe_log_pinned_worker_memory_verbose(data);
 }
 
 static bool graph_sched_task_runnable_on_pinned_worker(const struct starpu_task *task, unsigned workerid)
@@ -232,12 +273,16 @@ static void graph_sched_bump_indices_after_insert(graph_sched_data *data, size_t
     graph_sched_bump_handle_access_op_indices_after_insert(data->graph_handle_accesses, insert_pos);
 }
 
-static void graph_sched_bump_op_dependency_indices_after_insert(std::vector<GraphOp> &ops, size_t insert_pos)
+static void graph_sched_bump_op_graph_indices_after_insert(std::vector<GraphOp> &ops, size_t insert_pos)
 {
     for (GraphOp &op : ops) {
-        for (size_t &dep_idx : op.dependencies) {
-            if (dep_idx >= insert_pos)
-                dep_idx++;
+        for (size_t &idx : op.predecessors) {
+            if (idx >= insert_pos)
+                idx++;
+        }
+        for (size_t &idx : op.successors) {
+            if (idx >= insert_pos)
+                idx++;
         }
     }
 }
@@ -317,15 +362,29 @@ static bool graph_access_is_handle_producer_for_deps(const GraphHandleAccess &a)
     return graph_access_mode_is_writer(a.mode) && a.task != nullptr;
 }
 
-static void graph_op_add_dependency(GraphOp &op, size_t dep_idx)
+/** \p producer_op_idx must finish before \p consumer_op_idx (maintains predecessors + successors). */
+static void graph_op_add_edge(std::vector<GraphOp> &ops, size_t consumer_op_idx, size_t producer_op_idx)
 {
-    if (dep_idx == GRAPH_ACCESS_NONE)
+    if (producer_op_idx == GRAPH_ACCESS_NONE || consumer_op_idx == GRAPH_ACCESS_NONE)
         return;
-    for (size_t existing : op.dependencies) {
-        if (existing == dep_idx)
+    if (producer_op_idx == consumer_op_idx)
+        return;
+    if (producer_op_idx >= ops.size() || consumer_op_idx >= ops.size())
+        return;
+
+    GraphOp &consumer = ops[consumer_op_idx];
+    for (size_t existing : consumer.predecessors) {
+        if (existing == producer_op_idx)
             return;
     }
-    op.dependencies.push_back(dep_idx);
+    consumer.predecessors.push_back(producer_op_idx);
+
+    GraphOp &producer = ops[producer_op_idx];
+    for (size_t existing : producer.successors) {
+        if (existing == consumer_op_idx)
+            return;
+    }
+    producer.successors.push_back(consumer_op_idx);
 }
 
 /**
@@ -341,7 +400,7 @@ static void graph_op_add_dependency(GraphOp &op, size_t dep_idx)
  * - starpu_data_invalidate_submit (INVALIDATE op): same back-edges as a writer (invalidation is a
  *   version change). Pure STARPU_W after invalidate depends on that invalidate as the producer.
  */
-static void graph_op_add_pure_read_dependencies(graph_sched_data *data, GraphOp &op, size_t access_idx)
+static void graph_op_add_pure_read_dependencies(graph_sched_data *data, size_t consumer_op_idx, size_t access_idx)
 {
     size_t prev_idx = data->graph_handle_accesses[access_idx].prev_for_handle;
     while (prev_idx != GRAPH_ACCESS_NONE) {
@@ -349,14 +408,15 @@ static void graph_op_add_pure_read_dependencies(graph_sched_data *data, GraphOp 
             break;
         const GraphHandleAccess &prev = data->graph_handle_accesses[prev_idx];
         if (graph_access_is_handle_producer_for_deps(prev)) {
-            graph_op_add_dependency(op, prev.op_idx);
+            graph_op_add_edge(data->graph_ops, consumer_op_idx, prev.op_idx);
             break;
         }
         prev_idx = prev.prev_for_handle;
     }
 }
 
-static void graph_op_add_writer_or_invalidate_dependencies(graph_sched_data *data, GraphOp &op, size_t access_idx)
+static void graph_op_add_writer_or_invalidate_dependencies(graph_sched_data *data, size_t consumer_op_idx,
+                                                           size_t access_idx)
 {
     size_t prev_idx = data->graph_handle_accesses[access_idx].prev_for_handle;
     while (prev_idx != GRAPH_ACCESS_NONE) {
@@ -364,9 +424,9 @@ static void graph_op_add_writer_or_invalidate_dependencies(graph_sched_data *dat
             break;
         const GraphHandleAccess &prev = data->graph_handle_accesses[prev_idx];
         if (graph_access_mode_is_pure_read(prev.mode) && prev.task != nullptr)
-            graph_op_add_dependency(op, prev.op_idx);
+            graph_op_add_edge(data->graph_ops, consumer_op_idx, prev.op_idx);
         else if (graph_access_is_handle_producer_for_deps(prev)) {
-            graph_op_add_dependency(op, prev.op_idx);
+            graph_op_add_edge(data->graph_ops, consumer_op_idx, prev.op_idx);
             break;
         }
         prev_idx = prev.prev_for_handle;
@@ -413,15 +473,18 @@ static void graph_sched_validate_invalidate_then_pure_write_windows(graph_sched_
 
 static void graph_sched_refresh_op_dependencies(graph_sched_data *data)
 {
-    for (GraphOp &op : data->graph_ops)
-        op.dependencies.clear();
-
     for (GraphOp &op : data->graph_ops) {
+        op.predecessors.clear();
+        op.successors.clear();
+    }
+
+    for (size_t op_idx = 0; op_idx < data->graph_ops.size(); ++op_idx) {
+        GraphOp &op = data->graph_ops[op_idx];
         if (op.kind == GraphOp::INVALIDATE) {
             for (const GraphOpHandleAccessRef &ref : op.handle_accesses) {
                 if (ref.access_idx >= data->graph_handle_accesses.size())
                     continue;
-                graph_op_add_writer_or_invalidate_dependencies(data, op, ref.access_idx);
+                graph_op_add_writer_or_invalidate_dependencies(data, op_idx, ref.access_idx);
             }
             continue;
         }
@@ -435,12 +498,12 @@ static void graph_sched_refresh_op_dependencies(graph_sched_data *data)
             const unsigned mode = ref.mode;
 
             if (graph_access_mode_is_pure_read(mode)) {
-                graph_op_add_pure_read_dependencies(data, op, ref.access_idx);
+                graph_op_add_pure_read_dependencies(data, op_idx, ref.access_idx);
                 continue;
             }
 
             if (graph_access_mode_is_writer(mode))
-                graph_op_add_writer_or_invalidate_dependencies(data, op, ref.access_idx);
+                graph_op_add_writer_or_invalidate_dependencies(data, op_idx, ref.access_idx);
         }
     }
 
@@ -531,6 +594,52 @@ static double graph_sched_predicted_exec_time_us_for_pinned_worker(struct starpu
     return best;
 }
 
+/** Map StarPU expected-length outliers to +inf for ordering (user: unknown / -1 → inf). */
+static double graph_sched_effective_predicted_us(double starpu_expected_length_us)
+{
+    if (std::isnan(starpu_expected_length_us) || !std::isfinite(starpu_expected_length_us) ||
+        starpu_expected_length_us < 0.0)
+        return std::numeric_limits<double>::infinity();
+    return starpu_expected_length_us;
+}
+
+static void graph_sched_fill_idempotent_tasks_sorted_by_starpu_time(graph_sched_data *policy_data,
+                                                                    const std::vector<GraphOp> &ops, int pin_worker)
+{
+    if (!policy_data)
+        return;
+    policy_data->graph_idempotent_tasks_sorted.clear();
+
+    std::vector<GraphIdempotentTaskPredicted> rows;
+    for (const GraphOp &op : ops) {
+        if (op.kind != GraphOp::TASK || !op.checkpoint_idempotent || !op.task)
+            continue;
+        const double raw =
+            graph_sched_predicted_exec_time_us_for_pinned_worker(op.task, pin_worker, op.task->sched_ctx);
+        rows.push_back({op.task, graph_sched_effective_predicted_us(raw)});
+    }
+    std::sort(rows.begin(), rows.end(), [](const GraphIdempotentTaskPredicted &a, const GraphIdempotentTaskPredicted &b) {
+        return a.predicted_exec_time_us < b.predicted_exec_time_us;
+    });
+    policy_data->graph_idempotent_tasks_sorted = std::move(rows);
+
+    if (graph_sched_verbose_env() >= 3) {
+        std::cerr << "graph_recorder: idempotent tasks by predicted time (µs) on pinned worker_id=" << pin_worker
+                  << " (count=" << policy_data->graph_idempotent_tasks_sorted.size() << "):" << std::endl;
+        for (const GraphIdempotentTaskPredicted &row : policy_data->graph_idempotent_tasks_sorted) {
+            const char *cln =
+                (row.task && row.task->cl && row.task->cl->name) ? row.task->cl->name : "?";
+            const unsigned long jid = row.task ? starpu_task_get_job_id(row.task) : 0;
+            std::cerr << "  task_id=" << jid << " cl=" << cln << " predicted_us=";
+            if (std::isfinite(row.predicted_exec_time_us))
+                std::cerr << row.predicted_exec_time_us;
+            else
+                std::cerr << "inf";
+            std::cerr << std::endl;
+        }
+    }
+}
+
 static void graph_sched_append_captured_task(graph_sched_data *data, struct starpu_task *task)
 {
     graph_sched_insert_missing_pre_write_invalidates(data, task);
@@ -568,9 +677,9 @@ static void graph_sched_compute_topological_order(const std::vector<GraphOp> &op
         indegree[v]++;
     };
 
-    for (size_t op_idx = 0; op_idx < n; ++op_idx) {
-        for (size_t dep_idx : ops[op_idx].dependencies)
-            add_edge(dep_idx, op_idx);
+    for (size_t u = 0; u < n; ++u) {
+        for (size_t v : ops[u].successors)
+            add_edge(u, v);
     }
     std::priority_queue<size_t, std::vector<size_t>, std::greater<size_t>> ready;
     for (size_t i = 0; i < n; ++i) {
@@ -669,6 +778,82 @@ static bool graph_sched_handle_live_before_graph(const std::vector<GraphHandleAc
 }
 
 /**
+ * Schedule-independent memory hint for greedy topo: pure STARPU_W adds each distinct buffer's size; read/scratch/RW
+ * without pure W adds 0; invalidate_submit contributes -size(handle). Checkpoint clones match their source codelet.
+ */
+static std::int64_t graph_sched_op_intrinsic_memory_delta(const GraphOp &op)
+{
+    if (op.kind == GraphOp::INVALIDATE) {
+        if (!op.handle)
+            return 0;
+        return -static_cast<std::int64_t>(starpu_data_get_size(op.handle));
+    }
+    if (op.kind != GraphOp::TASK)
+        return 0;
+    std::int64_t d = 0;
+    std::unordered_set<void *> seen;
+    for (const GraphOpHandleAccessRef &ref : op.handle_accesses) {
+        if (!ref.handle || !graph_access_mode_is_pure_write(ref.mode))
+            continue;
+        void *p = static_cast<void *>(ref.handle);
+        if (!seen.insert(p).second)
+            continue;
+        d += static_cast<std::int64_t>(starpu_data_get_size(ref.handle));
+    }
+    return d;
+}
+
+/** Pinned-node footprint model: byte change if \p op runs when \p resident holds live pure-write handles. */
+static std::int64_t graph_sched_op_memory_delta_for_resident(const GraphOp &op,
+                                                              const std::unordered_set<void *> &resident)
+{
+    if (op.kind == GraphOp::INVALIDATE) {
+        starpu_data_handle_t h = op.handle;
+        if (!h)
+            return 0;
+        void *p = static_cast<void *>(h);
+        if (resident.find(p) == resident.end())
+            return 0;
+        return -static_cast<std::int64_t>(starpu_data_get_size(h));
+    }
+    if (op.kind == GraphOp::TASK) {
+        std::int64_t d = 0;
+        std::unordered_set<void *> new_pure_writes;
+        for (const GraphOpHandleAccessRef &ref : op.handle_accesses) {
+            if (!ref.handle || !graph_access_mode_is_pure_write(ref.mode))
+                continue;
+            void *p = static_cast<void *>(ref.handle);
+            if (!new_pure_writes.insert(p).second)
+                continue;
+            if (resident.find(p) == resident.end())
+                d += static_cast<std::int64_t>(starpu_data_get_size(ref.handle));
+        }
+        return d;
+    }
+    return 0;
+}
+
+static void graph_sched_op_apply_memory_effect_to_resident(const GraphOp &op, std::unordered_set<void *> &resident)
+{
+    if (op.kind == GraphOp::INVALIDATE) {
+        starpu_data_handle_t h = op.handle;
+        if (h)
+            resident.erase(static_cast<void *>(h));
+        return;
+    }
+    if (op.kind != GraphOp::TASK)
+        return;
+    std::unordered_set<void *> new_pure_writes;
+    for (const GraphOpHandleAccessRef &ref : op.handle_accesses) {
+        if (!ref.handle || !graph_access_mode_is_pure_write(ref.mode))
+            continue;
+        void *p = static_cast<void *>(ref.handle);
+        if (new_pure_writes.insert(p).second)
+            resident.insert(p);
+    }
+}
+
+/**
  * Fills GraphOp::memory_bytes_delta_after for pinned-node footprint simulation and records the topo-order index
  * at which required bytes are maximal *after* executing that op (not including the pre-replay baseline alone).
  */
@@ -715,32 +900,10 @@ static void graph_sched_compute_memory_after_ops(std::vector<GraphOp> &ops, cons
         if (opi >= ops.size())
             continue;
         GraphOp &op = ops[opi];
-        std::int64_t d = 0;
-
-        if (op.kind == GraphOp::INVALIDATE) {
-            starpu_data_handle_t h = op.handle;
-            if (h) {
-                void *p = static_cast<void *>(h);
-                if (resident.erase(p))
-                    d -= static_cast<std::int64_t>(starpu_data_get_size(h));
-            }
-        } else if (op.kind == GraphOp::TASK) {
-            std::unordered_set<void *> new_pure_writes;
-            for (const GraphOpHandleAccessRef &ref : op.handle_accesses) {
-                if (!ref.handle || !graph_access_mode_is_pure_write(ref.mode))
-                    continue;
-                void *p = static_cast<void *>(ref.handle);
-                if (!new_pure_writes.insert(p).second)
-                    continue;
-                if (resident.find(p) == resident.end())
-                    d += static_cast<std::int64_t>(starpu_data_get_size(ref.handle));
-            }
-            for (void *p : new_pure_writes)
-                resident.insert(p);
-        }
-
+        const std::int64_t d = graph_sched_op_memory_delta_for_resident(op, resident);
         op.memory_bytes_delta_after = d;
         current += d;
+        graph_sched_op_apply_memory_effect_to_resident(op, resident);
 
         if (print_memory_trace) {
             const std::ios::fmtflags trace_flags = std::cerr.flags();
@@ -763,6 +926,73 @@ static void graph_sched_compute_memory_after_ops(std::vector<GraphOp> &ops, cons
         *peak_topo_index_out = peak_topo_i;
 }
 
+/**
+ * Topological order over the same DAG as graph_sched_compute_topological_order, using predecessors / successors.
+ * Greedy: among ready ops, pick minimal graph_sched_op_intrinsic_memory_delta (precomputed once per op).
+ */
+static void graph_sched_compute_greedy_memory_topological_order(const std::vector<GraphOp> &ops,
+                                                                std::vector<size_t> &order_out)
+{
+    const size_t n = ops.size();
+    order_out.clear();
+    if (n == 0)
+        return;
+
+    std::vector<std::int64_t> intrinsic_delta(n);
+    for (size_t i = 0; i < n; ++i)
+        intrinsic_delta[i] = graph_sched_op_intrinsic_memory_delta(ops[i]);
+
+    std::vector<unsigned> indegree(n, 0);
+    for (size_t i = 0; i < n; ++i)
+        indegree[i] = static_cast<unsigned>(ops[i].predecessors.size());
+
+    std::vector<size_t> ready;
+    ready.reserve(n);
+    for (size_t i = 0; i < n; ++i) {
+        if (indegree[i] == 0)
+            ready.push_back(i);
+    }
+
+    order_out.reserve(n);
+    while (!ready.empty()) {
+        size_t best = ready[0];
+        std::int64_t best_delta = intrinsic_delta[best];
+        for (size_t k = 1; k < ready.size(); ++k) {
+            const size_t u = ready[k];
+            const std::int64_t d = intrinsic_delta[u];
+            if (d < best_delta || (d == best_delta && u < best)) {
+                best_delta = d;
+                best = u;
+            }
+        }
+
+        for (size_t k = 0; k < ready.size(); ++k) {
+            if (ready[k] == best) {
+                ready[k] = ready.back();
+                ready.pop_back();
+                break;
+            }
+        }
+
+        order_out.push_back(best);
+
+        for (size_t v : ops[best].successors) {
+            if (v >= n)
+                continue;
+            indegree[v]--;
+            if (indegree[v] == 0)
+                ready.push_back(v);
+        }
+    }
+
+    if (order_out.size() != n) {
+        if (graph_sched_verbose_env() >= 2)
+            std::cerr << "graph_recorder: greedy memory topo failed (cycle?), falling back to lexicographic topo"
+                      << std::endl;
+        graph_sched_compute_topological_order(ops, order_out);
+    }
+}
+
 static bool graph_sched_has_cycle(const std::vector<GraphOp> &ops)
 {
     const size_t n = ops.size();
@@ -783,9 +1013,9 @@ static bool graph_sched_has_cycle(const std::vector<GraphOp> &ops)
         indegree[v]++;
     };
 
-    for (size_t op_idx = 0; op_idx < n; ++op_idx) {
-        for (size_t dep_idx : ops[op_idx].dependencies)
-            add_edge(dep_idx, op_idx);
+    for (size_t u = 0; u < n; ++u) {
+        for (size_t v : ops[u].successors)
+            add_edge(u, v);
     }
     std::priority_queue<size_t, std::vector<size_t>, std::greater<size_t>> ready;
     for (size_t i = 0; i < n; ++i) {
@@ -913,7 +1143,7 @@ static void graph_sched_add_handle_prefix_task_dependencies(std::vector<GraphOp>
             return;
         const GraphHandleAccess &access = handle_accesses[idx];
         if (access.task != nullptr)
-            graph_op_add_dependency(ops[target_op_idx], access.op_idx);
+            graph_op_add_edge(ops, target_op_idx, access.op_idx);
         if (idx == last_access_idx)
             break;
         idx = access.next_for_handle;
@@ -935,7 +1165,7 @@ static void graph_sched_add_handle_suffix_read_dependencies(std::vector<GraphOp>
         if (graph_access_mode_is_invalidate(access.mode) || graph_access_mode_is_writer(access.mode))
             break;
         if (access.task != nullptr && graph_access_mode_is_pure_read(access.mode))
-            graph_op_add_dependency(ops[access.op_idx], producer_op_idx);
+            graph_op_add_edge(ops, access.op_idx, producer_op_idx);
         idx = access.next_for_handle;
     }
 }
@@ -1099,7 +1329,7 @@ static bool graph_sched_insert_checkpoint_for_wrr_task(std::vector<GraphOp> &ops
     inv_op.handle = write_ref_copy.handle;
 
     ops.insert(ops.begin() + inv_insert_pos, inv_op);
-    graph_sched_bump_op_dependency_indices_after_insert(ops, inv_insert_pos);
+    graph_sched_bump_op_graph_indices_after_insert(ops, inv_insert_pos);
     graph_sched_bump_handle_access_op_indices_after_insert(handle_accesses, inv_insert_pos);
 
     const size_t inv_op_idx = inv_insert_pos;
@@ -1115,7 +1345,7 @@ static bool graph_sched_insert_checkpoint_for_wrr_task(std::vector<GraphOp> &ops
     checkpoint_op.task = checkpoint_task;
 
     ops.insert(ops.begin() + checkpoint_insert_pos, checkpoint_op);
-    graph_sched_bump_op_dependency_indices_after_insert(ops, checkpoint_insert_pos);
+    graph_sched_bump_op_graph_indices_after_insert(ops, checkpoint_insert_pos);
     graph_sched_bump_handle_access_op_indices_after_insert(handle_accesses, checkpoint_insert_pos);
 
     const size_t checkpoint_op_idx = checkpoint_insert_pos;
@@ -1141,17 +1371,17 @@ static bool graph_sched_insert_checkpoint_for_wrr_task(std::vector<GraphOp> &ops
 
         const size_t prev_producer_op_idx =
             graph_sched_find_prev_handle_producer_op_idx(handle_accesses, handle_accesses[inserted_idx].prev_for_handle);
-        graph_op_add_dependency(w2, prev_producer_op_idx);
+        graph_op_add_edge(ops, checkpoint_op_idx, prev_producer_op_idx);
 
         const size_t next_producer_op_idx =
             graph_sched_find_next_handle_producer_op_idx(handle_accesses, handle_accesses[inserted_idx].next_for_handle);
         if (next_producer_op_idx != GRAPH_ACCESS_NONE && next_producer_op_idx < ops.size())
-            graph_op_add_dependency(ops[next_producer_op_idx], checkpoint_op_idx);
+            graph_op_add_edge(ops, next_producer_op_idx, checkpoint_op_idx);
     }
 
     graph_sched_add_handle_prefix_task_dependencies(ops, handle_accesses, write_ref_copy.access_idx, r1_access_idx,
                                                     inv_op_idx);
-    graph_op_add_dependency(w2, inv_op_idx);
+    graph_op_add_edge(ops, checkpoint_op_idx, inv_op_idx);
     graph_sched_add_handle_suffix_read_dependencies(ops, handle_accesses, r2_access_idx, checkpoint_op_idx);
 
     return true;
@@ -1333,7 +1563,8 @@ static unsigned graph_sched_insert_checkpoints(std::vector<GraphOp> &ops, std::v
 /* Call only with policy_mutex released: replay submits tasks and may call push_task_graph. */
 GraphReplayStats graph_sched_replay_recorded_ops(std::vector<GraphOp> ops,
                                                  std::vector<GraphHandleAccess> handle_accesses,
-                                                 unsigned added_invalidate_submit, int pin_worker)
+                                                 unsigned added_invalidate_submit, int pin_worker,
+                                                 graph_sched_data *policy_data)
 {
     GraphReplayStats stats{};
     stats.added_invalidate_submit = added_invalidate_submit;
@@ -1373,8 +1604,10 @@ GraphReplayStats graph_sched_replay_recorded_ops(std::vector<GraphOp> ops,
                   << " checkpoint_max=" << graph_sched_checkpoint_max_env()
                   << std::endl;
 
+    graph_sched_fill_idempotent_tasks_sorted_by_starpu_time(policy_data, ops, pin_worker);
+
     std::vector<size_t> topo_order;
-    graph_sched_compute_topological_order(ops, topo_order);
+    graph_sched_compute_greedy_memory_topological_order(ops, topo_order);
 
     size_t mem_peak_topo_i = 0;
     std::int64_t mem_peak_bytes = 0;
@@ -1383,11 +1616,20 @@ GraphReplayStats graph_sched_replay_recorded_ops(std::vector<GraphOp> ops,
     graph_sched_compute_memory_after_ops(ops, handle_accesses, topo_order, &mem_peak_topo_i, &mem_peak_bytes,
                                          &mem_initial_bytes, &mem_initial_live_handles, graph_sched_verbose_env() >= 6);
 
-    if (graph_sched_verbose_env() >= 3 && !topo_order.empty())
+    if (graph_sched_verbose_env() >= 3 && !topo_order.empty()) {
         std::cerr << "graph_recorder: memory footprint (pinned worker node model): initial_live_handles="
                   << mem_initial_live_handles << " initial_live_bytes=" << mem_initial_bytes
                   << " peak_bytes_after_topo_op=" << mem_peak_bytes
-                  << " peak_topo_order_index=" << mem_peak_topo_i << std::endl;
+                  << " peak_topo_order_index=" << mem_peak_topo_i;
+        if (policy_data) {
+            std::cerr << " worker_max_memory_bytes=" << policy_data->graph_pinned_worker_max_memory_bytes
+                      << " worker_available_memory_bytes=" << policy_data->graph_pinned_worker_available_memory_bytes
+                      << " worker_starpu_used_bytes=" << policy_data->graph_pinned_worker_starpu_used_bytes;
+            if (policy_data->graph_pinned_worker_max_memory_bytes < 0)
+                std::cerr << " (STARPU RAM limit not set on this memory node)";
+        }
+        std::cerr << std::endl;
+    }
 
     if (pin_worker >= 0 && graph_sched_verbose_env() >= 2) {
         char wname[256];
@@ -1489,8 +1731,9 @@ void graph_sched_recorder_deinit(graph_sched_data *data, unsigned sched_ctx_id)
                 data->graph_handle_access_lists.clear();
             }
         }
-        GraphReplayStats stats = graph_sched_replay_recorded_ops(std::move(replay), std::move(replay_handle_accesses),
-                                                                 added_invalidate_submit, data->graph_pinned_worker_id);
+        GraphReplayStats stats =
+            graph_sched_replay_recorded_ops(std::move(replay), std::move(replay_handle_accesses),
+                                            added_invalidate_submit, data->graph_pinned_worker_id, data);
         {
             std::lock_guard<std::mutex> lock(data->policy_mutex);
             data->graph_total_checkpoint_inserts += stats.inserted_checkpoints;
@@ -1515,6 +1758,7 @@ void starpu_graph_sched_graph_recording_begin(unsigned sched_ctx_id)
         data->graph_handle_accesses.clear();
         data->graph_handle_access_lists.clear();
         data->graph_added_invalidate_submit = 0;
+        data->graph_idempotent_tasks_sorted.clear();
     }
     data->graph_record_nested++;
 }
@@ -1548,7 +1792,7 @@ void starpu_graph_sched_graph_recording_end(unsigned sched_ctx_id)
     if (outermost_end) {
         GraphReplayStats stats =
             graph_sched_replay_recorded_ops(std::move(replay), std::move(replay_handle_accesses), added_invalidate_submit,
-                                            data->graph_pinned_worker_id);
+                                            data->graph_pinned_worker_id, data);
         std::lock_guard<std::mutex> lock(data->policy_mutex);
         data->graph_total_checkpoint_inserts += stats.inserted_checkpoints;
         data->graph_total_synthetic_invalidate_inserts += stats.added_invalidate_submit;

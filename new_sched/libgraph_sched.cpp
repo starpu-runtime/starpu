@@ -29,7 +29,7 @@ static void graph_sched_wake_workers(unsigned sched_ctx_id)
     }
 }
 
-/** 0 = quiet; 1 = init/deinit; 2 = + flush summary; 3 = + checkpoint pass + memory peak; 6 = + per-op memory trace. */
+/** 0 = quiet; 1 = init/deinit; 2 = + flush summary; 3 = + checkpoint pass + memory peak; 6 = + pinned worker memory line at init + per-op memory trace. */
 static int graph_sched_verbose_env(void)
 {
     const char *e = getenv("STARPU_GRAPH_SCHED_VERBOSE");
