@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -92,6 +92,9 @@ dynamic task graph.
 <li>
 You can find how to partition a machine into parallel workers in
 Chapter \ref ParallelWorker.
+</li>
+<li>
+Chapter \ref DARTS shows a scheduler designed to address memory constraints.
 </li>
 <li>
 Chapter \ref InteroperabilitySupport shows how StarPU can coexist
