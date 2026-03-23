@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -40,8 +40,12 @@ struct _starpu_graph_node
 	/** pointer to the job, if it is still alive, NULL otherwise */
 	struct _starpu_job *job;
 
-	/**
-	 * Fields for graph analysis for scheduling heuristics
+	/** Field for doing simulation at runtime */
+	struct starpu_task *presentTaskInSimulation;
+	/** Number of dependencies remaining in Simulation */
+	unsigned ndeps_remaining_in_simulation;
+
+	/** Fields for graph analysis for scheduling heuristics
 	 */
 	/** Member of list of all jobs without incoming dependency */
 	struct _starpu_graph_node_multilist_top top;
@@ -98,6 +102,9 @@ void _starpu_graph_wrlock(void);
 void _starpu_graph_rdlock(void);
 void _starpu_graph_wrunlock(void);
 void _starpu_graph_rdunlock(void);
+void _starpu_drop_lock(void);
+void _starpu_drop_unlock(void);
+void synchronize_node_and_task_graphs(void);
 
 /** Add a job to the graph, called before any _starpu_graph_add_job_dep call */
 void _starpu_graph_add_job(struct _starpu_job *job);

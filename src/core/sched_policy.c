@@ -116,6 +116,9 @@ static struct starpu_sched_policy *predefined_policies_non_default[] =
 	&_starpu_sched_modular_heft_HFP_policy,
 	&_starpu_sched_mst_policy,
 	&_starpu_sched_cuthillmckee_policy,
+	&_starpu_sched_hp_policy,
+	&_starpu_sched_hp_lookahead_policy,
+	&_starpu_sched_hp_lookahead_sync_policy,
 	NULL
 };
 

@@ -49,6 +49,7 @@ New features:
     victims.
   * Add bus performance model for HIP driver.
   * New scheduler darts (Data-Aware Reactive Task Scheduling)
+  * New heteroprio schedulers
   * Add basic support for nOS-V hypervision
   * Enable STARPU_MPI_THREAD_MULTIPLE_SEND by default on mpich, openmpi ≥ 4
     and Mad-MPI.

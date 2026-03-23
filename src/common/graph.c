@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -66,7 +66,39 @@ void _starpu_graph_wrlock(void)
 	starpu_worker_relax_off();
 }
 
+void _starpu_drop_lock(void)
+{
+    STARPU_PTHREAD_MUTEX_LOCK(&dropped_lock);
+}
+
+void _starpu_drop_unlock(void)
+{
+    STARPU_PTHREAD_MUTEX_UNLOCK(&dropped_lock);
+}
+
 void _starpu_graph_drop_node(struct _starpu_graph_node *node);
+
+/* This is called after acquiring graph_lock and dropped_lock */
+void synchronize_node_and_task_graphs(void)
+{
+	struct _starpu_graph_node *node, *next;
+	struct _starpu_graph_node_multilist_dropped dropping;
+
+	/* Pick up the list of dropped nodes */
+	_starpu_graph_node_multilist_move_dropped(&dropped, &dropping);
+
+	/* And now process it if it's not empty.  */
+	if (!_starpu_graph_node_multilist_empty_dropped(&dropping))
+	{
+		for (node = _starpu_graph_node_multilist_begin_dropped(&dropping);
+		     node != _starpu_graph_node_multilist_end_dropped(&dropping);
+		     node = next)
+		{
+			next = _starpu_graph_node_multilist_next_dropped(node);
+			_starpu_graph_drop_node(node);
+		}
+	}
+}
 
 /* This flushes the list of nodes to be dropped. Both the dropped_lock and
  * graph_lock mutexes have to be held on entry, and are released.  */

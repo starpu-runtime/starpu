@@ -114,6 +114,9 @@ versinclude_HEADERS = 				\
 	include/starpu_bound.h			\
 	include/starpu_scheduler.h		\
 	include/schedulers/starpu_heteroprio.h	\
+	include/schedulers/starpu_hpbasic.h	\
+	include/schedulers/starpu_hplookahead.h	\
+	include/schedulers/starpu_hplookahead_sync_graphs.h \
 	include/starpu_sched_component.h	\
 	include/starpu_sched_ctx.h		\
 	include/starpu_sched_ctx_hypervisor.h	\

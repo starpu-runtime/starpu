@@ -238,6 +238,9 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/parallel_heft.c				\
 	sched_policies/parallel_eager.c				\
 	sched_policies/heteroprio.c				\
+	sched_policies/hpbasic.c				\
+	sched_policies/hplookahead.c				\
+	sched_policies/hplookahead_sync_graphs.c		\
 	sched_policies/graph_test_policy.c			\
 	drivers/driver_common/driver_common.c			\
 	drivers/disk/driver_disk.c				\
