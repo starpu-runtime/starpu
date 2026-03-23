@@ -47,7 +47,7 @@ clean:
 
 run:	$(LIB) $(DEMO)
 	LD_LIBRARY_PATH=. STARPU_SCHED=graph_recorder STARPU_SCHED_LIB=./$(LIB) STARPU_NCPU=1 \
-	STARPU_SILENT=1 STARPU_GRAPH_SCHED_VERBOSE=5 STARPU_GRAPH_SCHED_CHECKPOINT_MAX=100 ./$(DEMO)
+	STARPU_SILENT=1 STARPU_GRAPH_SCHED_VERBOSE=6 STARPU_GRAPH_SCHED_CHECKPOINT_MAX=100 ./$(DEMO)
 
 # Run with FxT traces enabled; traces stored in new_sched/traces/
 # Requires StarPU built with --with-fxt. Use starpu_fxt_tool to convert raw traces.

@@ -2,7 +2,9 @@
 
 #pragma once
 
+#include <cstdint>
 #include <deque>
+#include <limits>
 #include <mutex>
 #include <unordered_map>
 #include <utility>
@@ -42,6 +44,10 @@ struct GraphOp {
     bool checkpoint_idempotent = false;
     bool checkpoint_wrr = false;
     bool checkpointable = false;
+    /** Change in bytes required on the pinned worker memory node after this op completes (replay analysis). */
+    std::int64_t memory_bytes_delta_after = 0;
+    /** Expected execution time on the graph target worker (µs), from StarPU perf models; NaN if N/A or INVALIDATE. */
+    double predicted_exec_time = std::numeric_limits<double>::quiet_NaN();
 };
 
 struct graph_sched_data {
@@ -58,11 +64,12 @@ struct graph_sched_data {
 
     unsigned graph_record_nested = 0;
 
-    /** Synthetic invalidate_submit ops this session; reset at outermost recording_begin. */
+    /** Capture-time only: synthetic invalidate_submit before pure STARPU_W; reset at outermost recording_begin. */
     unsigned graph_added_invalidate_submit = 0;
 
     /** Cumulative replay stats across all recording sessions for this policy instance. */
     unsigned graph_total_checkpoint_inserts = 0;
+    /** Sum of capture_pre_write invalidates only (flush-time checkpoint invalidates are not included). */
     unsigned graph_total_synthetic_invalidate_inserts = 0;
 
     /** STARPU_GRAPH_SCHED_WORKER → starpu_worker_get_by_devid; -1 if unset or not resolved. */

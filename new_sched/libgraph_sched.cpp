@@ -29,7 +29,7 @@ static void graph_sched_wake_workers(unsigned sched_ctx_id)
     }
 }
 
-/** 0 = quiet; 1 = init/deinit; 2 = + flush summary. */
+/** 0 = quiet; 1 = init/deinit; 2 = + flush summary; 3 = + checkpoint pass + memory peak; 6 = + per-op memory trace. */
 static int graph_sched_verbose_env(void)
 {
     const char *e = getenv("STARPU_GRAPH_SCHED_VERBOSE");
@@ -54,7 +54,7 @@ static void deinit_graph_sched(unsigned sched_ctx_id)
         std::cerr << "graph_recorder: deinit sched_ctx " << sched_ctx_id << std::endl;
         std::cerr << "graph_recorder: deinit policy stats: checkpointed_tasks="
                   << data->graph_total_checkpoint_inserts
-                  << " synthetic_invalidate_inserts="
+                  << " (each checkpoint prepends one invalidate op at flush) capture_pre_write_invalidates="
                   << data->graph_total_synthetic_invalidate_inserts << std::endl;
     }
     delete data;

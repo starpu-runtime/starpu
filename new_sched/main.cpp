@@ -1,7 +1,9 @@
 /* Demo: run a few tasks under the loadable graph_recorder policy (skeleton FIFO scheduler). */
 
+#include <chrono>
 #include <cstdlib>
 #include <iostream>
+#include <thread>
 
 #include <starpu.h>
 #include <starpu_data.h>
@@ -13,6 +15,7 @@
 /** z = alpha*x + beta*y — buffers z,x,y (W,R,R); alpha,beta packed via STARPU_VALUE in task_insert. */
 static void lincomb_bufs(void *buffers[], void *cl_arg)
 {
+    std::this_thread::sleep_for(std::chrono::nanoseconds(100));
     int alpha, beta;
     starpu_codelet_unpack_args(cl_arg, &alpha, &beta);
     int *z = (int *)STARPU_VARIABLE_GET_PTR(buffers[0]);
@@ -21,11 +24,17 @@ static void lincomb_bufs(void *buffers[], void *cl_arg)
     *z = alpha * (*x) + beta * (*y);
 }
 
+static struct starpu_perfmodel cl_lincomb_perfmodel = {
+    .type = STARPU_HISTORY_BASED,
+    .symbol = "demo_graph_lincomb",
+};
+
 static struct starpu_codelet cl_add = {
     .cpu_funcs = {lincomb_bufs},
     .cpu_funcs_name = {"lincomb_bufs"},
     .nbuffers = STARPU_VARIABLE_NBUFFERS,
     .name = "cl_lincomb_var",
+    .model = &cl_lincomb_perfmodel,
 };
 
 /* Long trunk: acc[0]=a+b, acc[i]=acc[i-1]+b. Fan-out: each leaf_j = acc[last]+leaf_in[j]
