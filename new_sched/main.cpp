@@ -33,8 +33,8 @@ static struct starpu_codelet cl_add = {
     .cpu_funcs = {lincomb_bufs},
     .cpu_funcs_name = {"lincomb_bufs"},
     .nbuffers = STARPU_VARIABLE_NBUFFERS,
-    .name = "cl_lincomb_var",
     .model = &cl_lincomb_perfmodel,
+    .name = "cl_lincomb_var",
 };
 
 /* Long trunk: acc[0]=a+b, acc[i]=acc[i-1]+b. Fan-out: each leaf_j = acc[last]+leaf_in[j]

@@ -19,6 +19,10 @@ endif
 # Allow users to pass EXTRA_CFLAGS (optional)
 ALL_CXXFLAGS := $(CXXSTD) $(CXXFLAGS) $(PKG_CFLAGS) $(EXTRA_CFLAGS)
 
+# Link libstarpu into the DSO so dlopen() succeeds: Python/StarPU load this module with RTLD_LOCAL,
+# so StarPU symbols are not visible from the main program — without DT_NEEDED on libstarpu you get
+# undefined symbol errors (e.g. starpu_worker_get_memory_node). One libstarpu.so per process is still
+# a single runtime. Build the graph .so against the same libstarpu as the host app (single runtime).
 LIB := libgraph_recorder_sched.so
 LIB_OBJS := libgraph_sched.o
 
@@ -46,14 +50,16 @@ clean:
 	rm -f $(LIB_OBJS) $(DEMO_OBJS) $(LIB) $(DEMO)
 
 run:	$(LIB) $(DEMO)
-	LD_LIBRARY_PATH=. STARPU_SCHED=graph_recorder STARPU_SCHED_LIB=./$(LIB) STARPU_NCPU=1 \
+	@lb="$$(pkg-config --variable=libdir $(PKG) 2>/dev/null)"; \
+	LD_LIBRARY_PATH="$$lb:$$LD_LIBRARY_PATH:." STARPU_SCHED=graph_recorder STARPU_SCHED_LIB=./$(LIB) STARPU_NCPU=1 \
 	STARPU_SILENT=1 STARPU_GRAPH_SCHED_VERBOSE=6 STARPU_GRAPH_SCHED_CHECKPOINT_MAX=100 ./$(DEMO)
 
 # Run with FxT traces enabled; traces stored in new_sched/traces/
 # Requires StarPU built with --with-fxt. Use starpu_fxt_tool to convert raw traces.
 run-fxt:	$(LIB) $(DEMO)
 	@mkdir -p traces
-	LD_LIBRARY_PATH=. STARPU_SCHED=graph_recorder STARPU_SCHED_LIB=./$(LIB) STARPU_NCPU=1 \
+	@lb="$$(pkg-config --variable=libdir $(PKG) 2>/dev/null)"; \
+	LD_LIBRARY_PATH="$$lb:$$LD_LIBRARY_PATH:." STARPU_SCHED=graph_recorder STARPU_SCHED_LIB=./$(LIB) STARPU_NCPU=1 \
 	STARPU_GRAPH_SCHED_VERBOSE=1 STARPU_SILENT=1 \
 	STARPU_FXT_TRACE=1 STARPU_FXT_PREFIX=$(CURDIR)/traces STARPU_GENERATE_TRACE=1 \
 	./$(DEMO)

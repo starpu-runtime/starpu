@@ -13,9 +13,14 @@
 #include <starpu_task_util.h>
 #include <starpu_worker.h>
 
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_SIMGRID)
+#include <starpu_cuda.h>
+#endif
+
 #include <algorithm>
+#include <chrono>
 #include <cmath>
-#include <cerrno>
+#include <cctype>
 #include <climits>
 #include <cstdlib>
 #include <limits>
@@ -25,65 +30,100 @@
 #include <iostream>
 #include <string>
 #include <queue>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
+static std::string graph_sched_trim_worker_env(const char *e)
+{
+    if (!e)
+        return {};
+    std::string s(e);
+    while (!s.empty() && std::isspace(static_cast<unsigned char>(s.back())))
+        s.pop_back();
+    while (!s.empty() && std::isspace(static_cast<unsigned char>(s.front())))
+        s.erase(s.begin());
+    return s;
+}
+
 /**
- * STARPU_GRAPH_SCHED_WORKER=TYPE:devid (e.g. CPU:0, CUDA:1) → starpu_worker_get_by_devid.
- * If unset: try CUDA:0, then CPU:0. Types (case-insensitive): CPU, CUDA, HIP, OPENCL.
+ * STARPU_GRAPH_SCHED_WORKER=TYPE:num only: cpu or cuda (case-insensitive), num = device id.
+ * Resolves with starpu_worker_get_by_devid; if that fails, starpu_worker_get_by_type(TYPE, num)
+ * (n-th worker of that type). Value is trimmed (whitespace / CR / LF). No bare global worker index.
  */
 static int graph_sched_parse_explicit_worker_string(const char *e)
 {
-    if (!e || !*e)
+    const std::string trimmed = graph_sched_trim_worker_env(e);
+    if (trimmed.empty())
         return -1;
 
-    while (*e == ' ' || *e == '\t')
-        e++;
-    const char *colon = std::strchr(e, ':');
-    if (!colon || colon == e)
+    const char *colon = std::strchr(trimmed.c_str(), ':');
+    if (!colon || colon == trimmed.c_str())
         return -1;
 
-    std::string type(e, colon);
-    while (!type.empty() && (type.back() == ' ' || type.back() == '\t'))
+    std::string type(trimmed.c_str(), colon);
+    while (!type.empty() && std::isspace(static_cast<unsigned char>(type.back())))
         type.pop_back();
-    for (char &c : type) {
-        if (c >= 'A' && c <= 'Z')
-            c = static_cast<char>(c - 'A' + 'a');
-    }
+    while (!type.empty() && std::isspace(static_cast<unsigned char>(type.front())))
+        type.erase(type.begin());
+    if (type.empty())
+        return -1;
 
-    const char *idstr = colon + 1;
-    while (*idstr == ' ' || *idstr == '\t')
-        idstr++;
-    if (!*idstr)
+    std::string idtail(colon + 1);
+    while (!idtail.empty() && std::isspace(static_cast<unsigned char>(idtail.front())))
+        idtail.erase(idtail.begin());
+    while (!idtail.empty() && std::isspace(static_cast<unsigned char>(idtail.back())))
+        idtail.pop_back();
+    if (idtail.empty())
         return -1;
 
     char *end = nullptr;
-    const long devid_long = std::strtol(idstr, &end, 10);
-    if (end == idstr || devid_long < 0 || devid_long > static_cast<long>(INT_MAX))
+    const long devid_long = std::strtol(idtail.c_str(), &end, 10);
+    if (end == idtail.c_str() || devid_long < 0 || devid_long > static_cast<long>(INT_MAX))
         return -1;
-    while (*end == ' ' || *end == '\t')
-        end++;
     if (*end != '\0')
         return -1;
 
+    std::string tl = type;
+    for (char &c : tl) {
+        if (c >= 'A' && c <= 'Z')
+            c = static_cast<char>(c - 'A' + 'a');
+    }
     enum starpu_worker_archtype wtype;
-    if (type == "cpu")
+    if (tl == "cpu")
         wtype = STARPU_CPU_WORKER;
-    else if (type == "cuda")
+    else if (tl == "cuda")
         wtype = STARPU_CUDA_WORKER;
-    else if (type == "hip")
-        wtype = STARPU_HIP_WORKER;
-    else if (type == "opencl")
-        wtype = STARPU_OPENCL_WORKER;
     else
         return -1;
 
-    return starpu_worker_get_by_devid(wtype, static_cast<int>(devid_long));
+    const int num = static_cast<int>(devid_long);
+    int wid = starpu_worker_get_by_devid(wtype, num);
+    if (wid >= 0)
+        return wid;
+    return starpu_worker_get_by_type(wtype, num);
+}
+
+static void graph_sched_log_pin_diagnostics(void)
+{
+    const unsigned n = starpu_worker_get_count();
+    const int nc = starpu_worker_get_count_by_type(STARPU_CPU_WORKER);
+    const int ng = starpu_worker_get_count_by_type(STARPU_CUDA_WORKER);
+    std::cerr << "graph_recorder: pin diagnostics: starpu_worker_get_count()=" << n << " ncpu_workers=" << nc
+              << " ncuda_workers=" << ng << '\n';
+    static const char *const keys[] = {"STARPU_NCPU", "STARPU_NCPUS", "STARPU_NCUDA", "STARPU_WORKERS",
+                                       "STARPU_GRAPH_SCHED_WORKER"};
+    for (const char *k : keys) {
+        const char *v = std::getenv(k);
+        if (v && v[0])
+            std::cerr << "graph_recorder: " << k << "=" << v << '\n';
+    }
 }
 
 [[noreturn]] static void graph_sched_fatal_pin_worker_unavailable(const std::string &detail)
 {
     std::cerr << "graph_recorder: fatal: cannot resolve a worker to pin graph-recorded tasks: " << detail << '\n';
+    graph_sched_log_pin_diagnostics();
     std::exit(1);
 }
 
@@ -95,12 +135,35 @@ static void graph_sched_log_pinned_worker_target(int wid, const char *prefix_lin
     char wname[256];
     wname[0] = '\0';
     starpu_worker_get_name(wid, wname, sizeof(wname));
-    std::cerr << "graph_recorder: graph-recorded tasks: " << (prefix_line ? prefix_line : "") << "pin type="
-              << (type_str ? type_str : "?") << " id=" << devid << " worker_id=" << wid;
+    /* device id (e.g. CUDA:0) is not the same as StarPU's global worker index; see starpu_machine_display. */
+    std::cerr << "graph_recorder: graph-recorded tasks: " << (prefix_line ? prefix_line : "") << "pin arch="
+              << (type_str ? type_str : "?") << " device_id=" << devid << " global_worker_id=" << wid;
     if (wname[0])
-        std::cerr << " (" << wname << ")";
+        std::cerr << " (\"" << wname << "\")";
     std::cerr << '\n';
 }
+
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_SIMGRID)
+/**
+ * Device total and free memory from the CUDA driver (cudaMemGetInfo).
+ * Used at scheduler init before StarPU has registered STARPU_CUDA_RAM caps on the memory node.
+ */
+static bool graph_sched_cuda_device_mem_stats(int cuda_devid, std::int64_t *total_out, std::int64_t *avail_out)
+{
+    if (cuda_devid < 0 || !total_out || !avail_out)
+        return false;
+    cudaError_t err = cudaSetDevice(cuda_devid);
+    if (err != cudaSuccess)
+        return false;
+    size_t free_b = 0, total_b = 0;
+    err = cudaMemGetInfo(&free_b, &total_b);
+    if (err != cudaSuccess)
+        return false;
+    *total_out = static_cast<std::int64_t>(total_b);
+    *avail_out = static_cast<std::int64_t>(free_b);
+    return true;
+}
+#endif
 
 static void graph_sched_read_pinned_worker_memory_into(graph_sched_data *data)
 {
@@ -111,12 +174,37 @@ static void graph_sched_read_pinned_worker_memory_into(graph_sched_data *data)
         return;
     const unsigned wid = static_cast<unsigned>(data->graph_pinned_worker_id);
     const unsigned node = starpu_worker_get_memory_node(wid);
+    const enum starpu_worker_archtype wtype = starpu_worker_get_type(static_cast<int>(wid));
+
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_SIMGRID)
+    if (wtype == STARPU_CUDA_WORKER) {
+        const int cuda_devid = starpu_worker_get_devid(static_cast<int>(wid));
+        std::int64_t ctot = -1, cavail = -1;
+        if (graph_sched_cuda_device_mem_stats(cuda_devid, &ctot, &cavail)) {
+            data->graph_pinned_worker_max_memory_bytes = ctot;
+            data->graph_pinned_worker_available_memory_bytes = cavail;
+        } else if (cuda_devid >= 0) {
+            struct cudaDeviceProp prop{};
+            if (cudaGetDeviceProperties(&prop, cuda_devid) == cudaSuccess)
+                data->graph_pinned_worker_max_memory_bytes = static_cast<std::int64_t>(prop.totalGlobalMem);
+        }
+    }
+#endif
+
     const starpu_ssize_t tot = starpu_memory_get_total(node);
-    if (tot >= 0)
-        data->graph_pinned_worker_max_memory_bytes = static_cast<std::int64_t>(tot);
-    const starpu_ssize_t avail = starpu_memory_get_available(node);
-    if (avail >= 0)
-        data->graph_pinned_worker_available_memory_bytes = static_cast<std::int64_t>(avail);
+    if (tot >= 0) {
+        if (data->graph_pinned_worker_max_memory_bytes < 0)
+            data->graph_pinned_worker_max_memory_bytes = static_cast<std::int64_t>(tot);
+        const starpu_ssize_t avail = starpu_memory_get_available(node);
+        if (avail >= 0) {
+            if (data->graph_pinned_worker_available_memory_bytes < 0)
+                data->graph_pinned_worker_available_memory_bytes = static_cast<std::int64_t>(avail);
+        }
+    } else {
+        const starpu_ssize_t avail = starpu_memory_get_available(node);
+        if (avail >= 0 && data->graph_pinned_worker_available_memory_bytes < 0)
+            data->graph_pinned_worker_available_memory_bytes = static_cast<std::int64_t>(avail);
+    }
     data->graph_pinned_worker_starpu_used_bytes = starpu_memory_get_used(node);
 }
 
@@ -124,26 +212,45 @@ static void graph_sched_maybe_log_pinned_worker_memory_verbose(const graph_sched
 {
     if (graph_sched_verbose_env() < 6 || !data || data->graph_pinned_worker_id < 0)
         return;
-    const unsigned node =
-        starpu_worker_get_memory_node(static_cast<unsigned>(data->graph_pinned_worker_id));
-    std::cerr << "graph_recorder: pinned worker memory: node=" << node
-              << " starpu_total_bytes=" << data->graph_pinned_worker_max_memory_bytes
-              << " starpu_available_bytes=" << data->graph_pinned_worker_available_memory_bytes
-              << " starpu_used_bytes=" << data->graph_pinned_worker_starpu_used_bytes;
-    if (data->graph_pinned_worker_max_memory_bytes < 0)
-        std::cerr << " (STARPU RAM limit not set on this memory node)";
+    const unsigned wid = static_cast<unsigned>(data->graph_pinned_worker_id);
+    const unsigned node = starpu_worker_get_memory_node(wid);
+    const enum starpu_worker_archtype wtype = starpu_worker_get_type(static_cast<int>(wid));
+    const bool device_worker =
+        (wtype == STARPU_CUDA_WORKER || wtype == STARPU_HIP_WORKER || wtype == STARPU_OPENCL_WORKER);
+
+    std::cerr << "graph_recorder: pinned worker memory: memory_node=" << node
+              << " total_bytes=" << data->graph_pinned_worker_max_memory_bytes
+              << " available_bytes=" << data->graph_pinned_worker_available_memory_bytes
+              << " starpu_tracked_used_bytes=" << data->graph_pinned_worker_starpu_used_bytes;
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_SIMGRID)
+    if (wtype == STARPU_CUDA_WORKER && data->graph_pinned_worker_max_memory_bytes >= 0)
+        std::cerr << " (CUDA device: cudaMemGetInfo / cudaGetDeviceProperties)";
+#endif
+    if (data->graph_pinned_worker_max_memory_bytes < 0) {
+        if (device_worker) {
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_SIMGRID)
+            if (wtype == STARPU_CUDA_WORKER)
+                std::cerr << " (CUDA runtime query failed; check device visibility and cudart link)";
+            else
+#endif
+                std::cerr << " (device memory stats not queried for this worker type)";
+        } else {
+            std::cerr << " (STARPU RAM limit not set on this memory node; see STARPU_LIMIT_*)";
+        }
+    }
     std::cerr << std::endl;
 }
 
 void graph_sched_init_pinned_worker(graph_sched_data *data)
 {
-    const char *ew = std::getenv("STARPU_GRAPH_SCHED_WORKER");
+    /* Trim so inherited / Makefile "VAR= " does not skip defaults; parse() also trims internally. */
+    const std::string ew_opt = graph_sched_trim_worker_env(std::getenv("STARPU_GRAPH_SCHED_WORKER"));
 
-    if (ew && ew[0]) {
-        data->graph_pinned_worker_id = graph_sched_parse_explicit_worker_string(ew);
+    if (!ew_opt.empty()) {
+        data->graph_pinned_worker_id = graph_sched_parse_explicit_worker_string(ew_opt.c_str());
         if (data->graph_pinned_worker_id < 0) {
-            graph_sched_fatal_pin_worker_unavailable(std::string("STARPU_GRAPH_SCHED_WORKER=\"") + ew +
-                                                     "\" invalid or no such worker (check type:devid and topology)");
+            graph_sched_fatal_pin_worker_unavailable(std::string("STARPU_GRAPH_SCHED_WORKER=\"") + ew_opt +
+                                                     "\" invalid or no such worker (use CPU:num or CUDA:num, device id)");
         }
         graph_sched_log_pinned_worker_target(data->graph_pinned_worker_id,
                                              "STARPU_GRAPH_SCHED_WORKER set; ");
@@ -152,7 +259,9 @@ void graph_sched_init_pinned_worker(graph_sched_data *data)
         return;
     }
 
-    const int cuda_w = starpu_worker_get_by_devid(STARPU_CUDA_WORKER, 0);
+    int cuda_w = starpu_worker_get_by_devid(STARPU_CUDA_WORKER, 0);
+    if (cuda_w < 0)
+        cuda_w = starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0);
     if (cuda_w >= 0) {
         data->graph_pinned_worker_id = cuda_w;
         graph_sched_log_pinned_worker_target(cuda_w, "STARPU_GRAPH_SCHED_WORKER unset; default CUDA:0; ");
@@ -161,7 +270,9 @@ void graph_sched_init_pinned_worker(graph_sched_data *data)
         return;
     }
 
-    const int cpu_w = starpu_worker_get_by_devid(STARPU_CPU_WORKER, 0);
+    int cpu_w = starpu_worker_get_by_devid(STARPU_CPU_WORKER, 0);
+    if (cpu_w < 0)
+        cpu_w = starpu_worker_get_by_type(STARPU_CPU_WORKER, 0);
     data->graph_pinned_worker_id = cpu_w;
     if (cpu_w < 0) {
         graph_sched_fatal_pin_worker_unavailable(
@@ -179,6 +290,48 @@ static bool graph_sched_task_runnable_on_pinned_worker(const struct starpu_task 
         return true;
     unsigned nimpl = 0;
     return starpu_worker_can_execute_task_first_impl(workerid, const_cast<struct starpu_task *>(task), &nimpl) != 0;
+}
+
+/**
+ * Pin replay to \p pin_worker only if that worker can execute the task; otherwise clear worker binding.
+ * When \p cl_runnable_cache is non-null and the codelet has no per-task can_execute hook, results are cached by
+ * codelet pointer so replay avoids one StarPU query per task for repeated codelets.
+ */
+static void graph_sched_apply_replay_worker_pin(struct starpu_task *task, int pin_worker, int sched_verbose,
+                                                std::unordered_map<const struct starpu_codelet *, bool> *cl_runnable_cache)
+{
+    if (pin_worker < 0 || !task)
+        return;
+    const unsigned pw = static_cast<unsigned>(pin_worker);
+    if (!task->cl) {
+        task->execute_on_a_specific_worker = 1;
+        task->workerid = pw;
+        return;
+    }
+
+    bool runnable;
+    if (cl_runnable_cache && !task->cl->can_execute) {
+        const auto it = cl_runnable_cache->find(task->cl);
+        if (it != cl_runnable_cache->end())
+            runnable = it->second;
+        else {
+            runnable = graph_sched_task_runnable_on_pinned_worker(task, pw);
+            cl_runnable_cache->emplace(task->cl, runnable);
+        }
+    } else
+        runnable = graph_sched_task_runnable_on_pinned_worker(task, pw);
+
+    if (!runnable) {
+        if (sched_verbose >= 3) {
+            const char *cln = task->cl->name ? task->cl->name : "?";
+            std::cerr << "graph_recorder: replay leave unpinned: codelet \"" << cln
+                      << "\" cannot run on graph pin worker_id=" << pin_worker << '\n';
+        }
+        task->execute_on_a_specific_worker = 0;
+        return;
+    }
+    task->execute_on_a_specific_worker = 1;
+    task->workerid = pw;
 }
 
 /* Default on. Set STARPU_GRAPH_SCHED_AUTO_INVALIDATE=0 to disable synthetic invalidate_submit. */
@@ -199,6 +352,11 @@ static unsigned graph_sched_checkpoint_max_env(void)
         return value > 0 ? static_cast<unsigned>(value) : 0u;
     }();
     return checkpoint_max;
+}
+
+static double graph_sched_elapsed_sec(std::chrono::steady_clock::time_point a, std::chrono::steady_clock::time_point b)
+{
+    return std::chrono::duration<double>(b - a).count();
 }
 
 static graph_sched_data *graph_recorder_policy_data(unsigned sched_ctx_id)
@@ -309,17 +467,6 @@ static size_t graph_sched_append_handle_access(graph_sched_data *data, size_t op
     list.tail = access_idx;
 
     return access_idx;
-}
-
-[[maybe_unused]] static const GraphHandleAccess *
-graph_sched_find_op_access(const std::vector<GraphHandleAccess> &handle_accesses, const GraphOp &op,
-                           starpu_data_handle_t handle)
-{
-    for (const GraphOpHandleAccessRef &ref : op.handle_accesses) {
-        if (ref.handle == handle && ref.access_idx < handle_accesses.size())
-            return &handle_accesses[ref.access_idx];
-    }
-    return nullptr;
 }
 
 static void graph_sched_register_task_accesses(graph_sched_data *data, size_t op_idx, struct starpu_task *task)
@@ -853,18 +1000,12 @@ static void graph_sched_op_apply_memory_effect_to_resident(const GraphOp &op, st
     }
 }
 
-/**
- * Fills GraphOp::memory_bytes_delta_after for pinned-node footprint simulation and records the topo-order index
- * at which required bytes are maximal *after* executing that op (not including the pre-replay baseline alone).
- */
-static void graph_sched_compute_memory_after_ops(std::vector<GraphOp> &ops, const std::vector<GraphHandleAccess> &ha,
+/** Pinned-node footprint simulation: peak/initial bytes and optional per-op trace (verbose 6). */
+static void graph_sched_compute_memory_after_ops(const std::vector<GraphOp> &ops, const std::vector<GraphHandleAccess> &ha,
                                                  const std::vector<size_t> &topo_order, size_t *peak_topo_index_out,
                                                  std::int64_t *peak_bytes_out, std::int64_t *initial_bytes_out,
                                                  size_t *initial_live_handle_count_out, bool print_memory_trace)
 {
-    for (GraphOp &op : ops)
-        op.memory_bytes_delta_after = 0;
-
     std::vector<starpu_data_handle_t> unique_handles;
     graph_sched_collect_unique_handles(ha, unique_handles);
 
@@ -899,9 +1040,8 @@ static void graph_sched_compute_memory_after_ops(std::vector<GraphOp> &ops, cons
         const size_t opi = topo_order[ti];
         if (opi >= ops.size())
             continue;
-        GraphOp &op = ops[opi];
+        const GraphOp &op = ops[opi];
         const std::int64_t d = graph_sched_op_memory_delta_for_resident(op, resident);
-        op.memory_bytes_delta_after = d;
         current += d;
         graph_sched_op_apply_memory_effect_to_resident(op, resident);
 
@@ -929,14 +1069,34 @@ static void graph_sched_compute_memory_after_ops(std::vector<GraphOp> &ops, cons
 /**
  * Topological order over the same DAG as graph_sched_compute_topological_order, using predecessors / successors.
  * Greedy: among ready ops, pick minimal graph_sched_op_intrinsic_memory_delta (precomputed once per op).
+ *
+ * If non-null, \p greedy_attempt_sec_out is the wall time for the greedy attempt (prep + main loop), whether or not
+ * it succeeds. \p lex_fallback_sec_out is the time spent in lexicographic Kahn topo when greedy fails (else 0).
+ * \p greedy_prep_sec_out / \p greedy_loop_sec_out split the greedy attempt (see verbose level 4 timing lines).
  */
 static void graph_sched_compute_greedy_memory_topological_order(const std::vector<GraphOp> &ops,
-                                                                std::vector<size_t> &order_out)
+                                                                std::vector<size_t> &order_out,
+                                                                double *greedy_attempt_sec_out,
+                                                                double *lex_fallback_sec_out,
+                                                                double *greedy_prep_sec_out,
+                                                                double *greedy_loop_sec_out)
 {
+    using clock = std::chrono::steady_clock;
     const size_t n = ops.size();
     order_out.clear();
-    if (n == 0)
+    if (n == 0) {
+        if (greedy_attempt_sec_out)
+            *greedy_attempt_sec_out = 0;
+        if (lex_fallback_sec_out)
+            *lex_fallback_sec_out = 0;
+        if (greedy_prep_sec_out)
+            *greedy_prep_sec_out = 0;
+        if (greedy_loop_sec_out)
+            *greedy_loop_sec_out = 0;
         return;
+    }
+
+    const clock::time_point t_greedy_start = clock::now();
 
     std::vector<std::int64_t> intrinsic_delta(n);
     for (size_t i = 0; i < n; ++i)
@@ -952,6 +1112,8 @@ static void graph_sched_compute_greedy_memory_topological_order(const std::vecto
         if (indegree[i] == 0)
             ready.push_back(i);
     }
+
+    const clock::time_point t_after_prep = clock::now();
 
     order_out.reserve(n);
     while (!ready.empty()) {
@@ -985,57 +1147,26 @@ static void graph_sched_compute_greedy_memory_topological_order(const std::vecto
         }
     }
 
+    const clock::time_point t_after_loop = clock::now();
+
+    if (greedy_prep_sec_out)
+        *greedy_prep_sec_out = graph_sched_elapsed_sec(t_greedy_start, t_after_prep);
+    if (greedy_loop_sec_out)
+        *greedy_loop_sec_out = graph_sched_elapsed_sec(t_after_prep, t_after_loop);
+    if (greedy_attempt_sec_out)
+        *greedy_attempt_sec_out = graph_sched_elapsed_sec(t_greedy_start, t_after_loop);
+
     if (order_out.size() != n) {
         if (graph_sched_verbose_env() >= 2)
             std::cerr << "graph_recorder: greedy memory topo failed (cycle?), falling back to lexicographic topo"
                       << std::endl;
+        const clock::time_point t_lex_start = clock::now();
         graph_sched_compute_topological_order(ops, order_out);
-    }
-}
-
-static bool graph_sched_has_cycle(const std::vector<GraphOp> &ops)
-{
-    const size_t n = ops.size();
-    if (n == 0)
-        return false;
-
-    std::vector<std::vector<size_t>> succ(n);
-    std::vector<unsigned> indegree(n, 0);
-
-    auto add_edge = [&](size_t u, size_t v) {
-        if (u >= n || v >= n || u == v)
-            return;
-        for (size_t x : succ[u]) {
-            if (x == v)
-                return;
-        }
-        succ[u].push_back(v);
-        indegree[v]++;
-    };
-
-    for (size_t u = 0; u < n; ++u) {
-        for (size_t v : ops[u].successors)
-            add_edge(u, v);
-    }
-    std::priority_queue<size_t, std::vector<size_t>, std::greater<size_t>> ready;
-    for (size_t i = 0; i < n; ++i) {
-        if (indegree[i] == 0)
-            ready.push(i);
-    }
-
-    size_t visited = 0;
-    while (!ready.empty()) {
-        const size_t u = ready.top();
-        ready.pop();
-        visited++;
-        for (size_t v : succ[u]) {
-            indegree[v]--;
-            if (indegree[v] == 0)
-                ready.push(v);
-        }
-    }
-
-    return visited != n;
+        const clock::time_point t_lex_end = clock::now();
+        if (lex_fallback_sec_out)
+            *lex_fallback_sec_out = graph_sched_elapsed_sec(t_lex_start, t_lex_end);
+    } else if (lex_fallback_sec_out)
+        *lex_fallback_sec_out = 0;
 }
 
 static bool graph_op_is_checkpoint_idempotent(const GraphOp &op)
@@ -1182,8 +1313,9 @@ static bool graph_op_is_checkpoint_wrr(const GraphOp &op, const std::vector<Grap
 }
 
 static void graph_sched_destroy_checkpoint_task(struct starpu_task *task);
-static bool graph_op_is_checkpointable_with_wrr(const std::vector<GraphOp> &ops,
-                                                const std::vector<GraphHandleAccess> &handle_accesses, size_t op_idx);
+static bool graph_sched_insert_checkpoint_for_wrr_task(std::vector<GraphOp> &ops,
+                                                       std::vector<GraphHandleAccess> &handle_accesses, size_t op_idx,
+                                                       struct starpu_task *checkpoint_task, int pin_worker);
 
 static struct starpu_task *graph_sched_clone_task_for_checkpoint(const struct starpu_task *task)
 {
@@ -1453,31 +1585,6 @@ static void graph_sched_update_checkpoint_state_for_op(std::vector<GraphOp> &ops
     GraphOp &op = ops[op_idx];
     op.checkpoint_idempotent = graph_op_is_checkpoint_idempotent(op);
     op.checkpoint_wrr = op.checkpoint_idempotent && graph_op_is_checkpoint_wrr(op, handle_accesses);
-    op.checkpointable = op.checkpoint_wrr && graph_op_is_checkpointable_with_wrr(ops, handle_accesses, op_idx);
-}
-
-static bool graph_op_is_checkpointable_with_wrr(const std::vector<GraphOp> &ops,
-                                                const std::vector<GraphHandleAccess> &handle_accesses, size_t op_idx)
-{
-    if (op_idx >= ops.size())
-        return false;
-
-    const GraphOp &op = ops[op_idx];
-    if (!op.checkpoint_wrr || !op.task)
-        return false;
-
-    std::vector<GraphOp> trial_ops = ops;
-    std::vector<GraphHandleAccess> trial_handle_accesses = handle_accesses;
-    struct starpu_task *checkpoint_task = graph_sched_clone_task_for_checkpoint(op.task);
-    if (!checkpoint_task)
-        return false;
-    if (!graph_sched_insert_checkpoint_for_wrr_task(trial_ops, trial_handle_accesses, op_idx, checkpoint_task, -1)) {
-        graph_sched_destroy_checkpoint_task(checkpoint_task);
-        return false;
-    }
-    const bool has_cycle = graph_sched_has_cycle(trial_ops);
-    graph_sched_destroy_checkpoint_task(checkpoint_task);
-    return !has_cycle;
 }
 
 static void graph_sched_refresh_all_checkpoint_states(std::vector<GraphOp> &ops,
@@ -1489,11 +1596,10 @@ static void graph_sched_refresh_all_checkpoint_states(std::vector<GraphOp> &ops,
 }
 
 static void graph_sched_collect_checkpoint_counts(const std::vector<GraphOp> &ops, size_t &idempotent_tasks_out,
-                                                  size_t &wrr_tasks_out, size_t &checkpointable_tasks_out)
+                                                  size_t &wrr_tasks_out)
 {
     idempotent_tasks_out = 0;
     wrr_tasks_out = 0;
-    checkpointable_tasks_out = 0;
 
     for (const GraphOp &op : ops) {
         if (!op.checkpoint_idempotent)
@@ -1502,15 +1608,13 @@ static void graph_sched_collect_checkpoint_counts(const std::vector<GraphOp> &op
         if (!op.checkpoint_wrr)
             continue;
         wrr_tasks_out++;
-        if (op.checkpointable)
-            checkpointable_tasks_out++;
     }
 }
 
-static size_t graph_sched_find_first_checkpointable_op(const std::vector<GraphOp> &ops)
+static size_t graph_sched_find_first_wrr_checkpoint_op(const std::vector<GraphOp> &ops)
 {
     for (size_t op_idx = 0; op_idx < ops.size(); ++op_idx) {
-        if (ops[op_idx].checkpointable)
+        if (ops[op_idx].checkpoint_wrr)
             return op_idx;
     }
     return GRAPH_ACCESS_NONE;
@@ -1520,11 +1624,12 @@ static unsigned graph_sched_insert_checkpoints(std::vector<GraphOp> &ops, std::v
                                                int pin_worker)
 {
     const unsigned checkpoint_max = graph_sched_checkpoint_max_env();
+    const int sched_verbose = graph_sched_verbose_env();
     unsigned inserted = 0;
     graph_sched_refresh_all_checkpoint_states(ops, handle_accesses);
 
     while (inserted < checkpoint_max) {
-        const size_t op_idx = graph_sched_find_first_checkpointable_op(ops);
+        const size_t op_idx = graph_sched_find_first_wrr_checkpoint_op(ops);
         if (op_idx == GRAPH_ACCESS_NONE)
             break;
 
@@ -1547,7 +1652,7 @@ static unsigned graph_sched_insert_checkpoints(std::vector<GraphOp> &ops, std::v
         for (size_t affected_op_idx : affected_op_indices)
             graph_sched_update_checkpoint_state_for_op(ops, handle_accesses, affected_op_idx);
 
-        if (graph_sched_verbose_env() >= 5) {
+        if (sched_verbose >= 5) {
             const char *cl_name = (checkpointed_task && checkpointed_task->cl && checkpointed_task->cl->name)
                                       ? checkpointed_task->cl->name
                                       : "unknown";
@@ -1566,19 +1671,26 @@ GraphReplayStats graph_sched_replay_recorded_ops(std::vector<GraphOp> ops,
                                                  unsigned added_invalidate_submit, int pin_worker,
                                                  graph_sched_data *policy_data)
 {
+    using clock = std::chrono::steady_clock;
+    const clock::time_point t_flush_wall_start = clock::now();
+    const int vb = graph_sched_verbose_env();
+
     GraphReplayStats stats{};
     stats.added_invalidate_submit = added_invalidate_submit;
+
+    clock::time_point t_ckpt_beg = clock::now();
     const unsigned inserted_checkpoints = graph_sched_insert_checkpoints(ops, handle_accesses, pin_worker);
+    clock::time_point t_ckpt_end = clock::now();
     stats.inserted_checkpoints = inserted_checkpoints;
     stats.checkpoint_invalidate_inserts = inserted_checkpoints;
 
+    clock::time_point t_counts_beg = clock::now();
     size_t checkpoint_idempotent_task_count = 0;
     size_t checkpoint_wrr_task_count = 0;
-    size_t checkpointable_task_count = 0;
-    graph_sched_collect_checkpoint_counts(ops, checkpoint_idempotent_task_count, checkpoint_wrr_task_count,
-                                          checkpointable_task_count);
+    graph_sched_collect_checkpoint_counts(ops, checkpoint_idempotent_task_count, checkpoint_wrr_task_count);
+    clock::time_point t_counts_end = clock::now();
 
-    if (graph_sched_verbose_env() >= 2) {
+    if (vb >= 2) {
         size_t n_task = 0, n_invalidate = 0;
         for (const GraphOp &op : ops) {
             switch (op.kind) {
@@ -1596,27 +1708,37 @@ GraphReplayStats graph_sched_replay_recorded_ops(std::vector<GraphOp> ops,
                   << " checkpoint_prepended_invalidates=" << inserted_checkpoints
                   << " auto_invalidate_env=" << (::graph_sched_auto_invalidate_enabled() ? 1 : 0) << std::endl;
     }
-    if (graph_sched_verbose_env() >= 3)
+    if (vb >= 3)
         std::cerr << "graph_recorder: checkpoint pass: idempotent_tasks=" << checkpoint_idempotent_task_count
-                  << " wrr_tasks=" << checkpoint_wrr_task_count
-                  << " checkpointable_tasks=" << checkpointable_task_count
-                  << " inserted_checkpoints=" << inserted_checkpoints
-                  << " checkpoint_max=" << graph_sched_checkpoint_max_env()
-                  << std::endl;
+                  << " wrr_tasks=" << checkpoint_wrr_task_count << " inserted_checkpoints=" << inserted_checkpoints
+                  << " checkpoint_max=" << graph_sched_checkpoint_max_env() << std::endl;
 
+    clock::time_point t_idemp_beg = clock::now();
     graph_sched_fill_idempotent_tasks_sorted_by_starpu_time(policy_data, ops, pin_worker);
+    clock::time_point t_idemp_end = clock::now();
 
     std::vector<size_t> topo_order;
-    graph_sched_compute_greedy_memory_topological_order(ops, topo_order);
+    double topo_greedy_attempt_sec = 0;
+    double topo_lex_fallback_sec = 0;
+    double greedy_prep_sec = 0;
+    double greedy_loop_sec = 0;
+    clock::time_point t_topo_beg = clock::now();
+    graph_sched_compute_greedy_memory_topological_order(ops, topo_order, &topo_greedy_attempt_sec, &topo_lex_fallback_sec,
+                                                        &greedy_prep_sec, &greedy_loop_sec);
+    clock::time_point t_topo_end = clock::now();
 
     size_t mem_peak_topo_i = 0;
     std::int64_t mem_peak_bytes = 0;
     std::int64_t mem_initial_bytes = 0;
     size_t mem_initial_live_handles = 0;
-    graph_sched_compute_memory_after_ops(ops, handle_accesses, topo_order, &mem_peak_topo_i, &mem_peak_bytes,
-                                         &mem_initial_bytes, &mem_initial_live_handles, graph_sched_verbose_env() >= 6);
+    clock::time_point t_mem_beg = clock::now();
+    /* Footprint simulation only needed for verbose >= 3 (and per-op trace at 6). */
+    if (vb >= 3)
+        graph_sched_compute_memory_after_ops(ops, handle_accesses, topo_order, &mem_peak_topo_i, &mem_peak_bytes,
+                                             &mem_initial_bytes, &mem_initial_live_handles, vb >= 6);
+    clock::time_point t_mem_end = clock::now();
 
-    if (graph_sched_verbose_env() >= 3 && !topo_order.empty()) {
+    if (vb >= 3 && !topo_order.empty()) {
         std::cerr << "graph_recorder: memory footprint (pinned worker node model): initial_live_handles="
                   << mem_initial_live_handles << " initial_live_bytes=" << mem_initial_bytes
                   << " peak_bytes_after_topo_op=" << mem_peak_bytes
@@ -1631,7 +1753,7 @@ GraphReplayStats graph_sched_replay_recorded_ops(std::vector<GraphOp> ops,
         std::cerr << std::endl;
     }
 
-    if (pin_worker >= 0 && graph_sched_verbose_env() >= 2) {
+    if (pin_worker >= 0 && vb >= 2) {
         char wname[256];
         wname[0] = '\0';
         starpu_worker_get_name(pin_worker, wname, sizeof(wname));
@@ -1641,15 +1763,26 @@ GraphReplayStats graph_sched_replay_recorded_ops(std::vector<GraphOp> ops,
         std::cerr << std::endl;
     }
 
+    std::unordered_map<const struct starpu_codelet *, bool> pin_cl_runnable;
+    std::unordered_map<const struct starpu_codelet *, bool> *pin_cl_cache = nullptr;
+    if (pin_worker >= 0) {
+        size_t n_task_ops = 0;
+        for (const GraphOp &o : ops) {
+            if (o.kind == GraphOp::TASK)
+                n_task_ops++;
+        }
+        pin_cl_runnable.reserve(std::max<size_t>(16, n_task_ops / 4));
+        pin_cl_cache = &pin_cl_runnable;
+    }
+
+    clock::time_point t_replay_beg = clock::now();
     _starpu_graph_recorder_set_flushing(1);
     for (size_t op_idx : topo_order) {
         const GraphOp &op = ops[op_idx];
         switch (op.kind) {
         case GraphOp::TASK:
-            if (pin_worker >= 0) {
-                op.task->execute_on_a_specific_worker = 1;
-                op.task->workerid = static_cast<unsigned>(pin_worker);
-            }
+            if (pin_worker >= 0)
+                graph_sched_apply_replay_worker_pin(op.task, pin_worker, vb, pin_cl_cache);
             _starpu_task_insert_submit_built_task(op.task);
             break;
         case GraphOp::INVALIDATE:
@@ -1658,6 +1791,44 @@ GraphReplayStats graph_sched_replay_recorded_ops(std::vector<GraphOp> ops,
         }
     }
     _starpu_graph_recorder_set_flushing(0);
+    clock::time_point t_replay_end = clock::now();
+
+    const clock::time_point t_flush_wall_end = clock::now();
+    if (vb >= 2) {
+        const std::ios::fmtflags ff = std::cerr.flags();
+        std::cerr << std::fixed << std::setprecision(3);
+        const double total_ms = 1000.0 * graph_sched_elapsed_sec(t_flush_wall_start, t_flush_wall_end);
+        const double ckpt_ms = 1000.0 * graph_sched_elapsed_sec(t_ckpt_beg, t_ckpt_end);
+        const double topo_ms = 1000.0 * graph_sched_elapsed_sec(t_topo_beg, t_topo_end);
+        const double mem_ms = 1000.0 * graph_sched_elapsed_sec(t_mem_beg, t_mem_end);
+        const double replay_ms = 1000.0 * graph_sched_elapsed_sec(t_replay_beg, t_replay_end);
+        std::cerr << "graph_recorder: flush timing (ms): wall_total=" << total_ms
+                  << " insert_checkpoints=" << ckpt_ms << " topological_order=" << topo_ms
+                  << " memory_after_ops=" << mem_ms << " replay_submit=" << replay_ms;
+        if (vb >= 6)
+            std::cerr << " (memory_after_ops includes per-op trace I/O)";
+        std::cerr << std::endl;
+        std::cerr.flags(ff);
+    }
+    if (vb >= 3) {
+        const std::ios::fmtflags ff = std::cerr.flags();
+        std::cerr << std::fixed << std::setprecision(3);
+        std::cerr << "graph_recorder: flush timing detail (ms): collect_checkpoint_counts="
+                  << 1000.0 * graph_sched_elapsed_sec(t_counts_beg, t_counts_end)
+                  << " idempotent_tasks_sort=" << 1000.0 * graph_sched_elapsed_sec(t_idemp_beg, t_idemp_end)
+                  << " topo_greedy_attempt=" << 1000.0 * topo_greedy_attempt_sec
+                  << " topo_lex_fallback=" << 1000.0 * topo_lex_fallback_sec
+                  << " graph_ops=" << ops.size() << " topo_len=" << topo_order.size() << std::endl;
+        std::cerr.flags(ff);
+    }
+    if (vb >= 4) {
+        const std::ios::fmtflags ff = std::cerr.flags();
+        std::cerr << std::fixed << std::setprecision(3);
+        std::cerr << "graph_recorder: greedy topo split (ms): prep_intrinsic_indegree_ready="
+                  << 1000.0 * greedy_prep_sec << " main_pick_ready_loop=" << 1000.0 * greedy_loop_sec << std::endl;
+        std::cerr.flags(ff);
+    }
+
     return stats;
 }
 
@@ -1671,17 +1842,6 @@ static int graph_sched_capture_task_hook(struct starpu_task *task, void *arg)
     std::lock_guard<std::mutex> lock(data->policy_mutex);
     if (data->graph_record_nested == 0)
         return -1;
-    if (data->graph_pinned_worker_id >= 0 && task->cl) {
-        const unsigned wid = static_cast<unsigned>(data->graph_pinned_worker_id);
-        if (!graph_sched_task_runnable_on_pinned_worker(task, wid)) {
-            const char *cln = task->cl->name ? task->cl->name : "?";
-            std::cerr << "graph_recorder: codelet \"" << cln << "\" cannot execute on pinned worker_id="
-                      << data->graph_pinned_worker_id << " (STARPU_GRAPH_SCHED_WORKER)\n";
-            task->destroy = 0;
-            starpu_task_destroy(task);
-            return EINVAL;
-        }
-    }
     graph_sched_append_captured_task(data, task);
     return 0;
 }

@@ -45,10 +45,8 @@ struct GraphOp {
     /** Op indices that depend on this op (tasks and INVALIDATE). */
     std::vector<size_t> successors;
     bool checkpoint_idempotent = false;
+    /** Idempotent task with WRR pattern (eligible for checkpoint insertion when under checkpoint_max). */
     bool checkpoint_wrr = false;
-    bool checkpointable = false;
-    /** Change in bytes required on the pinned worker memory node after this op completes (replay analysis). */
-    std::int64_t memory_bytes_delta_after = 0;
     /** Expected execution time on the graph target worker (µs), from StarPU perf models; NaN if N/A or INVALIDATE. */
     double predicted_exec_time = std::numeric_limits<double>::quiet_NaN();
 };
@@ -82,15 +80,16 @@ struct graph_sched_data {
     /** Sum of capture_pre_write invalidates only (flush-time checkpoint invalidates are not included). */
     unsigned graph_total_synthetic_invalidate_inserts = 0;
 
-    /** STARPU_GRAPH_SCHED_WORKER → starpu_worker_get_by_devid; -1 if unset or not resolved. */
+    /** STARPU_GRAPH_SCHED_WORKER → worker id (CPU:n / CUDA:n only; devid then ordinal by type); -1 if unset. */
     int graph_pinned_worker_id = -1;
 
     /**
-     * starpu_memory_get_total(starpu_worker_get_memory_node(pinned worker)): StarPU-reported max bytes on that node.
-     * -1 means no STARPU per-node RAM limit is set (starpu_memory_get_total returns -1).
+     * Capacity hint for the pinned worker's memory node: for CUDA, filled at init via cudaMemGetInfo (device total /
+     * free) when StarPU is built with CUDA; otherwise starpu_memory_get_total / _available on the worker's node.
+     * -1 when unknown.
      */
     std::int64_t graph_pinned_worker_max_memory_bytes = -1;
-    /** starpu_memory_get_available(same node); -1 when no STARPU RAM limit is set on the node. */
+    /** Companion to graph_pinned_worker_max_memory_bytes (free / available bytes). */
     std::int64_t graph_pinned_worker_available_memory_bytes = -1;
     /** starpu_memory_get_used(same node) — StarPU-accounted use on that node. */
     std::uint64_t graph_pinned_worker_starpu_used_bytes = 0;

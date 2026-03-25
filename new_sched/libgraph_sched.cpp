@@ -29,7 +29,7 @@ static void graph_sched_wake_workers(unsigned sched_ctx_id)
     }
 }
 
-/** 0 = quiet; 1 = init/deinit; 2 = + flush summary; 3 = + checkpoint pass + memory peak; 6 = + pinned worker memory line at init + per-op memory trace. */
+/** 0 = quiet; 1 = init/deinit; 2 = + flush summary + flush timing (ms); 3 = + checkpoint pass + memory peak + per-phase flush timing; 4 = + greedy topo prep vs loop; 6 = + pinned worker memory line at init + per-op memory trace (memory_after_ops time includes trace I/O). */
 static int graph_sched_verbose_env(void)
 {
     const char *e = getenv("STARPU_GRAPH_SCHED_VERBOSE");
@@ -121,7 +121,7 @@ static struct starpu_sched_policy _starpu_sched_graph_policy = {
     .do_schedule = do_schedule_graph,
     .add_workers = nullptr,
     .remove_workers = nullptr,
-    .prefetches = 0,
+    .prefetches = 1,
     .policy_name = "graph_recorder",
     .policy_description = "skeleton FIFO + graph recording hooks (custom graph TBD)",
     .worker_type = STARPU_WORKER_LIST,
