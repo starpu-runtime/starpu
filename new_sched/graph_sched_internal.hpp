@@ -44,8 +44,9 @@ struct GraphOp {
     std::vector<size_t> predecessors;
     /** Op indices that depend on this op (tasks and INVALIDATE). */
     std::vector<size_t> successors;
+    /** Single pure-W producer whose written handle is a parsed checkpointable activation (see graph_sched_parse_captured_data_handles). */
     bool checkpoint_idempotent = false;
-    /** Idempotent task with WRR pattern (eligible for checkpoint insertion when under checkpoint_max). */
+    /** Same as checkpoint_idempotent: activation producers are treated as WRR-eligible for checkpoint insertion. */
     bool checkpoint_wrr = false;
     /** Expected execution time on the graph target worker (µs), from StarPU perf models; NaN if N/A or INVALIDATE. */
     double predicted_exec_time = std::numeric_limits<double>::quiet_NaN();
@@ -67,7 +68,8 @@ struct graph_sched_captured_handle_groups {
     std::vector<starpu_data_handle_t> gradients;
     /** Optimizer buffers (e.g. Adam m/v) not touched in first forward. */
     std::vector<starpu_data_handle_t> states;
-    /** Checkpointable activations: produced in subiter 1 (one W, ≥1 R, no RW), consumed in subiter 2 (R-only). */
+    /** Checkpointable activations: produced in subiter 1 (one W, ≥1 R, no RW), consumed in subiter 2 (R-only).
+     *  Graph checkpoint insertion uses \e only this list (never \a offloadable_activations). */
     std::vector<starpu_data_handle_t> activations;
     /** Like \a activations but subiter 1 may use ::STARPU_RW (same backward rule). Superset of checkpointable. */
     std::vector<starpu_data_handle_t> offloadable_activations;
@@ -122,8 +124,8 @@ struct graph_sched_data {
     std::uint64_t graph_pinned_worker_starpu_used_bytes = 0;
 
     /**
-     * Filled when outermost graph recording ends: WRR TASK ops, descending by rematerialization_speed_bps
-     * (fastest rematerializers / highest bytes-per-second first → checkpoint insertion order under checkpoint_max).
+     * Filled when outermost graph recording ends: checkpoint-eligible TASK ops (checkpointable-activation producers),
+     * descending by rematerialization_speed_bps (fastest rematerializers first → checkpoint insertion order under checkpoint_max).
      */
     std::vector<GraphIdempotentTaskPredicted> graph_idempotent_tasks_sorted;
 
