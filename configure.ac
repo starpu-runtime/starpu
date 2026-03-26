@@ -3056,8 +3056,14 @@ AC_ARG_ENABLE(glpk, [AS_HELP_STRING([--disable-glpk],
 			     [disable using glpk for bound computation])],
 			     enable_glpk=$enableval, enable_glpk=yes)
 if test x$enable_glpk = xyes; then
-	AC_CHECK_HEADERS([glpk.h], [AC_DEFINE([STARPU_HAVE_GLPK_H], [1], [Define to 1 if you have the <glpk.h> header file.])])
-	STARPU_HAVE_LIBRARY(GLPK, [glpk])
+	AC_CHECK_HEADERS([glpk.h], [have_glpk_header=yes], [have_glpk_header=no])
+	if test "$have_glpk_header" = "yes" ; then
+		STARPU_HAVE_LIBRARY(GLPK, [glpk])
+		if test "$ac_cv_lib_glpk_main" = "yes" ; then
+		   AC_DEFINE([STARPU_HAVE_GLPK_H], [1], [Define to 1 if you have the <glpk.h> header file.])
+		   STARPU_GLPK_LDFLAGS="-lglpk"
+	   	fi
+	fi
 fi
 
 AC_ARG_WITH(ayudame1-include-dir,
