@@ -49,13 +49,40 @@ struct GraphOp {
     bool checkpoint_wrr = false;
     /** Expected execution time on the graph target worker (µs), from StarPU perf models; NaN if N/A or INVALIDATE. */
     double predicted_exec_time = std::numeric_limits<double>::quiet_NaN();
+
+    /**
+     * Sched_ctx iteration at capture when set: get_iteration(ctx,1) if nested push, else get_iteration(ctx,0).
+     * Convention: 0 = preparation (e.g. clear gradients); 1 .. UINT32_MAX-1 = minibatch index;
+     * UINT32_MAX (4294967295) = optimizer step.
+     */
+    bool graph_stage_subiteration_valid = false;
+    std::uint32_t graph_stage_subiteration = 0;
 };
 
-/** Idempotent graph task with StarPU predicted duration on the pinned worker (see graph_sched_replay). */
+/** Handles classified from a finished graph capture (see graph_sched_parse_captured_data_handles). */
+struct graph_sched_captured_handle_groups {
+    /** Weights etc.: optimizer-step candidates that also appear on any task in subiteration 1 (first forward). */
+    std::vector<starpu_data_handle_t> parameters;
+    /** Gradient tensors: pure ::STARPU_R on optimizer step (subiteration UINT32_MAX). */
+    std::vector<starpu_data_handle_t> gradients;
+    /** Optimizer buffers (e.g. Adam m/v) not touched in first forward. */
+    std::vector<starpu_data_handle_t> states;
+    /** Checkpointable activations: produced in subiter 1 (one W, ≥1 R, no RW), consumed in subiter 2 (R-only). */
+    std::vector<starpu_data_handle_t> activations;
+    /** Like \a activations but subiter 1 may use ::STARPU_RW (same backward rule). Superset of checkpointable. */
+    std::vector<starpu_data_handle_t> offloadable_activations;
+};
+
+/** WRR checkpoint candidate ranked by rematerialization speed (see graph_sched_replay_recorded_ops). */
+
 struct GraphIdempotentTaskPredicted {
     struct starpu_task *task = nullptr;
     /** Expected execution time on the designated (pinned) worker in µs; +inf if StarPU has no valid estimate. */
     double predicted_exec_time_us = std::numeric_limits<double>::infinity();
+    /** Distinct pure-STARPU_W buffers: sum of starpu_data_get_size (bytes to rematerialize). */
+    std::int64_t rematerialization_bytes = 0;
+    /** rematerialization_bytes / (predicted_exec_time_us / 1e6); 0 when time invalid or bytes 0. */
+    double rematerialization_speed_bps = 0;
 };
 
 struct graph_sched_data {
@@ -94,8 +121,14 @@ struct graph_sched_data {
     /** starpu_memory_get_used(same node) — StarPU-accounted use on that node. */
     std::uint64_t graph_pinned_worker_starpu_used_bytes = 0;
 
-    /** Filled when outermost graph recording ends: checkpoint-idempotent TASK ops, ascending by predicted_exec_time_us. */
+    /**
+     * Filled when outermost graph recording ends: WRR TASK ops, descending by rematerialization_speed_bps
+     * (fastest rematerializers / highest bytes-per-second first → checkpoint insertion order under checkpoint_max).
+     */
     std::vector<GraphIdempotentTaskPredicted> graph_idempotent_tasks_sorted;
+
+    /** Filled when outermost recording ends, before replay (parser runs on captured ops). */
+    graph_sched_captured_handle_groups graph_captured_handle_groups;
 };
 
 /** Policy init: resolve STARPU_GRAPH_SCHED_WORKER into graph_pinned_worker_id and log target. */

@@ -264,6 +264,19 @@ unsigned starpu_sched_ctx_worker_get_id(unsigned sched_ctx_id);
 
 unsigned starpu_sched_ctx_get_ctx_for_task(struct starpu_task *task);
 
+/**
+   Return the iteration slot set by starpu_iteration_push() / starpu_iteration_pop()
+   for scheduling context \p sched_ctx_id.
+
+   \p index must be 0 (first / outer \c starpu_iteration_push) or 1 (nested inner push).
+
+   Returns -1 if \p sched_ctx_id is invalid, the context was deleted, \p index is out of range,
+   or that nesting level has no active iteration (after the matching pop).
+
+   See also \ref starpu_iteration_push.
+*/
+long starpu_sched_ctx_get_iteration(unsigned sched_ctx_id, unsigned index);
+
 unsigned starpu_worker_get_sched_ctx_id_stream(unsigned stream_workerid);
 
 /**

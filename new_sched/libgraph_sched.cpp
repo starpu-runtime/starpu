@@ -29,7 +29,7 @@ static void graph_sched_wake_workers(unsigned sched_ctx_id)
     }
 }
 
-/** 0 = quiet; 1 = init/deinit; 2 = + flush summary + flush timing (ms); 3 = + checkpoint pass + memory peak + per-phase flush timing; 4 = + greedy topo prep vs loop; 6 = + pinned worker memory line at init + per-op memory trace (memory_after_ops time includes trace I/O). */
+/** 0 = quiet; 1 = init/deinit; 2 = + flush summary + flush timing (ms); 3 = + checkpoint pass + memory peak + per-phase flush timing + captured handle_parser counts/bytes; 4 = + greedy topo prep vs loop (memory + replay); 6 = + pinned worker memory line at init + per-op memory trace (memory_peak_sim time includes trace I/O). */
 static int graph_sched_verbose_env(void)
 {
     const char *e = getenv("STARPU_GRAPH_SCHED_VERBOSE");

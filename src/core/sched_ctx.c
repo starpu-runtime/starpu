@@ -2688,6 +2688,18 @@ unsigned starpu_sched_ctx_has_starpu_scheduler(unsigned sched_ctx_id, unsigned *
 	return sched_ctx->sched_policy != NULL;
 }
 
+long starpu_sched_ctx_get_iteration(unsigned sched_ctx_id, unsigned index)
+{
+	if (index >= 2)
+		return -1;
+	if (sched_ctx_id >= STARPU_NMAX_SCHED_CTXS)
+		return -1;
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	if (!sched_ctx || sched_ctx->id == STARPU_NMAX_SCHED_CTXS)
+		return -1;
+	return sched_ctx->iterations[index];
+}
+
 void *starpu_sched_ctx_get_user_data(unsigned sched_ctx_id)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
