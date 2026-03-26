@@ -45,7 +45,7 @@ void print_vector(int *v, size_t nx, const char *label)
 		cur += snprintf(&message[cur], 100000 - cur, "%3d,", v[i]);
 	}
 	snprintf(&message[cur], 100000 - cur, "%3d\n", v[nx-1]);
-	FPRINTF(stderr, message);
+	FPRINTF(stderr, "%s", message);
 }
 
 void sub_data_func(void *buffers[], void *arg)

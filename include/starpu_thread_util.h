@@ -91,7 +91,7 @@ extern "C" {
 #ifdef STARPU_PTHREAD_MUTEX_INITIALIZER_ZERO
 #define STARPU_PTHREAD_MUTEX_INIT(mutex, attr)                   \
 	do {                                                     \
-		if (!attr)                                       \
+		if (attr == NULL)                                \
 			memset(mutex, 0, sizeof(*mutex));        \
 		else                                             \
 			_STARPU_PTHREAD_MUTEX_INIT(mutex, attr); \

@@ -809,7 +809,7 @@ static struct starpu_task *pop_task_from_hp_lookahead_ready_queue(unsigned sched
 					data->exp_start_in_simulation[minIndex] += model;
 					data->presentTaskInSimulation[minIndex] = task;
 
-					unsigned AminIndex = data->localIndicesToWorkerId[minIndex];
+					//unsigned AminIndex = data->localIndicesToWorkerId[minIndex];
 
 					goto repeatWhileTrue;
 				}
@@ -836,7 +836,7 @@ static struct starpu_task *pop_task_from_hp_lookahead_ready_queue(unsigned sched
 								data->exp_start_in_simulation[minIndex] += model;
 								data->presentTaskInSimulation[minIndex] = task;
 
-								unsigned AminIndex = data->localIndicesToWorkerId[minIndex];
+								//unsigned AminIndex = data->localIndicesToWorkerId[minIndex];
 
 								goto repeatWhileTrue;
 							}
