@@ -111,35 +111,24 @@ int main(void)
 				 STARPU_DATA_MODE_ARRAY, descrs, STARPU_NMAXBUFS,
 				 STARPU_NODE_ARRAY, nodes, STARPU_NMAXBUFS,
 				 0);
-		if (ret == -ENODEV) return ret;
+		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
 		ret = starpu_task_insert(&specific_cl,
 				 STARPU_DATA_MODE_ARRAY, dyn_descrs, STARPU_NMAXBUFS * 2,
 				 STARPU_NODE_ARRAY, dyn_nodes, STARPU_NMAXBUFS * 2,
 				 0);
-		if (ret == -ENODEV) return ret;
+		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	}
 
-	for (i = 0; i < STARPU_NMAXBUFS; i++)
-	{
-		starpu_data_unregister(data_handle[i]);
-	}
-	for (i = 0; i < STARPU_NMAXBUFS; i++)
-	{
-		starpu_data_unregister(dyn_data_handle[i]);
-	}
-
-
-	starpu_shutdown();
-
-	return ret;
-
+	goto realend;
 enodev:
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */
+	ret = STARPU_TEST_SKIPPED;
+realend:
 	for (i = 0; i < STARPU_NMAXBUFS; i++)
 	{
 		starpu_data_unregister(data_handle[i]);
