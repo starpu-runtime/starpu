@@ -3296,14 +3296,29 @@ if test x$enable_simgrid != xyes; then
         nmaxtcpipdev=1
     fi
 fi
+
+# Computes the maximum number of combined worker.
+# With a binary-tree topology we may need as many as cpus
+AC_ARG_ENABLE(maxcombinedworkers, [AS_HELP_STRING([--enable-maxcombinedworkers=<number>],
+			[maximum number of combined workers])],
+			nmaxcombinedworkers=$enableval, nmaxcombinedworkers=auto)
+if test x$nmaxcombinedworkers = xauto
+then
+	nmaxcombinedworkers=$maxcpus
+fi
+AC_MSG_CHECKING(Maximum number of workers combinations)
+AC_MSG_RESULT($nmaxcombinedworkers)
+AC_DEFINE_UNQUOTED(STARPU_NMAX_COMBINEDWORKERS,
+	[$nmaxcombinedworkers], [Maximum number of worker combinations])
+
 if test $maxcpus = 0
 then
 	nmaxworkers=`expr 16 \* \( \( \( $nmaxmpidev \* 64 \) + $nmaxcudadev + $nmaxhipdev + $nmaxopencldev + $nmaxmaxfpgadev + 15 \) / 16 \) `
 elif test $nmaxmpidev = 0
 then
-	nmaxworkers=`expr 16 \* \( \( $maxcpus + $nmaxcudadev + $nmaxhipdev + $nmaxopencldev + $nmaxmaxfpgadev + 15 \) / 16 \) `
+	nmaxworkers=`expr 16 \* \( \( $maxcpus + $nmaxcombinedworkers + $nmaxcudadev + $nmaxhipdev + $nmaxopencldev + $nmaxmaxfpgadev + 15 \) / 16 \) `
 else
-	nmaxworkers=`expr 16 \* \( \( \( $nmaxmpidev \* $maxcpus \) + $nmaxcudadev + $nmaxhipdev + $nmaxopencldev + $nmaxmaxfpgadev + 15 \) / 16 \) `
+	nmaxworkers=`expr 16 \* \( \( \( $nmaxmpidev \* \( $maxcpus + $nmaxcombinedworkers \) \) + $nmaxcudadev + $nmaxhipdev + $nmaxopencldev + $nmaxmaxfpgadev + 15 \) / 16 \) `
 fi
 AC_MSG_CHECKING(Maximum number of workers)
 AC_MSG_RESULT($nmaxworkers)
@@ -3328,13 +3343,6 @@ if test $nmaxdevs -lt $nmaxtcpipdev; then
 	nmaxdevs=$nmaxtcpipdev
 fi
 AC_DEFINE_UNQUOTED(STARPU_NMAXDEVS, [$nmaxdevs], [Maximum number of device per device arch])
-
-# Computes the maximum number of combined worker
-nmaxcombinedworkers=$maxcpus
-AC_MSG_CHECKING(Maximum number of workers combinations)
-AC_MSG_RESULT($nmaxcombinedworkers)
-AC_DEFINE_UNQUOTED(STARPU_NMAX_COMBINEDWORKERS,
-	[$nmaxcombinedworkers], [Maximum number of worker combinations])
 
 
 
@@ -4892,6 +4900,7 @@ AC_MSG_NOTICE([
 	devices, but the maximum number of devices StarPU can manage)
 
 	Maximum number of CPUs:                        $maxcpus
+	Maximum number of combined workers:            $maxcombinedworkers
 	Maximum number of CUDA devices:                $nmaxcudadev
 	Maximum number of HIP devices:                 $nmaxhipdev
 	Maximum number of OpenCL devices:              $nmaxopencldev
