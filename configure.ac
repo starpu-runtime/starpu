@@ -1482,7 +1482,12 @@ AC_ARG_ENABLE(maxcpus, [AS_HELP_STRING([--enable-maxcpus=<number>],
 			maxcpus=$enableval, maxcpus=auto)
 if test x$maxcpus = xauto
 then
-	confcpu=$(getconf _NPROCESSORS_ONLN 2>/dev/null)
+	confcpu=$(hwloc-calc -N core all 2>/dev/null)
+	if test x$confcpu = x
+	then
+		AC_MSG_WARN([did not get core count from hwloc-calc, falling back to number of hyperthreads])
+		confcpu=$(getconf _NPROCESSORS_ONLN 2>/dev/null)
+	fi
 	if test x$confcpu = x
 	then
 		AC_MSG_ERROR([cannot get the number of CPUS, please specify a numerical value with --enable-maxcpus])
