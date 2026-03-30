@@ -204,6 +204,19 @@ used if the running host has a larger number of CPUs than the
 build machine.
 </dd>
 
+<dt>--enable-maxcombinedworkers=<c>count</c></dt>
+<dd>
+\anchor enable-maxcombinedworkers
+\addindex __configure__--enable-maxcombinedworkers
+Use at most <c>count</c> combined workers.
+
+The default value is <c>auto</c>, which will take the value from \ref
+enable-maxcpus , to allow to create combined workers for even a completely
+binary-tree-shaped topology.
+
+If the application will not use parallel tasks, this can be set to 0.
+</dd>
+
 <dt>--enable-maxnumanodes=<c>count</c></dt>
 <dd>
 \anchor enable-maxnumanodes

@@ -296,6 +296,7 @@ application when calling \c configure.
 To reduce the memory footprint of the data internal structures of StarPU, one
 can set the \c configure parameters
 \ref enable-maxcpus "--enable-maxcpus",
+\ref enable-maxcombinedworkers "--enable-maxcombinedworkers",
 \ref enable-maxnumanodes "--enable-maxnumanodes",
 \ref enable-maxcudadev "--enable-maxcudadev",
 \ref enable-maxopencldev "--enable-maxopencldev" and
