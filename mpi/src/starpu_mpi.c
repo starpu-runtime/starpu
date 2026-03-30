@@ -40,12 +40,11 @@ int _starpu_mpi_choose_node(starpu_data_handle_t handle, enum starpu_data_access
 	if (mode & STARPU_W)
 	{
 		/* Receiving */
+		/* Where to receive the data? */
 
 		/* TODO: lookup NIC location */
-		/* Where to receive the data? */
-		if (handle->home_node >= 0 && starpu_node_get_kind(handle->home_node) == STARPU_CPU_RAM)
-			/* For now, better use the home node to avoid duplicates */
-			return handle->home_node;
+
+		/* TODO: we should ideally ask the scheduler what it thinks about it, considering the tasks that will be released. */
 
 		/* Several potential places */
 		unsigned i;
@@ -60,6 +59,10 @@ int _starpu_mpi_choose_node(starpu_data_handle_t handle, enum starpu_data_access
 					/* This node already has allocated buffers, let's just use it */
 					return i;
 			}
+
+		if (handle->home_node >= 0 && starpu_node_get_kind(handle->home_node) == STARPU_CPU_RAM)
+			/* For now, better use the home node to avoid duplicates */
+			return handle->home_node;
 
 		for (i = 0; i < STARPU_MAXNODES; i++)
 		{
