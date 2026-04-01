@@ -620,6 +620,7 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 
 		hwloc_bitmap_t cpuset = hwloc_bitmap_alloc();
 		hwloc_bitmap_t log_cpuset = hwloc_bitmap_alloc();
+		hwloc_bitmap_t singlelog_cpuset = hwloc_bitmap_alloc();
 		hwloc_bitmap_t check_cpuset = hwloc_bitmap_alloc();
 		hwloc_bitmap_t log_coreset = hwloc_bitmap_alloc();
 		unsigned n, i, j, first, last, weight;
@@ -671,7 +672,11 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 				for (j = 0; j < core->arity; j++)
 					hwloc_bitmap_set(check_cpuset, core->children[j]->logical_index);
 
-				hwloc_bitmap_set(log_coreset, core->logical_index);
+				if (! hwloc_bitmap_isset(log_coreset, core->logical_index))
+				{
+					hwloc_bitmap_set(log_coreset, core->logical_index);
+					hwloc_bitmap_set(singlelog_cpuset, i);
+				}
 			}
 
 #ifdef STARPU_VERBOSE
@@ -684,17 +689,10 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 			hwloc_bitmap_asprintf(&str, log_coreset);
 			_STARPU_DEBUG("The logical core binding is thus: %s\n", str);
 			free(str);
+			hwloc_bitmap_asprintf(&str, singlelog_cpuset);
+			_STARPU_DEBUG("And the singlified logical binding: %s\n", str);
+			free(str);
 #endif
-
-			/* Check that PU numbers are consecutive */
-			first = hwloc_bitmap_first(check_cpuset);
-			last = hwloc_bitmap_last(check_cpuset);
-			weight = hwloc_bitmap_weight(check_cpuset);
-			if (last - first + 1 != weight)
-			{
-				_STARPU_DISP("Warning: hwloc reported non-consecutive binding (first %u last %d weight %u, this is not supported yet, sorry, please use STARPU_WORKERS_CPUID or STARPU_WORKERS_COREID to set this by hand\n", first, last, weight);
-				break;
-			}
 
 			if (hwloc_bitmap_weight(log_cpuset) == 1 || hwloc_bitmap_weight(log_coreset) == 1)
 			{
@@ -706,6 +704,54 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 					_STARPU_DISP("Maybe you need to tell your job scheduler to bind on all allocated cores (e.g. --exclusive --ntasks-per-node=1 or --cpus-per-task for Slurm, or --bind-to board for openmpi).\n");
 				_STARPU_DISP("You can use STARPU_WORKERS_GETBIND=0 to bypass it, but make sure you are not oversubscribing the machine.\n");
 			}
+
+			/* Check that PU numbers are consecutive */
+			first = hwloc_bitmap_first(check_cpuset);
+			last = hwloc_bitmap_last(check_cpuset);
+			weight = hwloc_bitmap_weight(check_cpuset);
+			if (last - first + 1 != weight)
+			{
+				_STARPU_DEBUG("Warning: hwloc reported non-consecutive binding (first %u last %d weight %u)\n", first, last, weight);
+				if (starpu_getenv("STARPU_WORKERS_CPUID")
+				 || starpu_getenv("STARPU_WORKERS_COREID"))
+					/* Ok, not a problem, user specified which units to use anyway */
+					break;
+
+				/* Ah, have to set this by hand for _starpu_initialize_workers_bindid to process */
+				/* FIXME: rather transmit in a simpler way */
+
+				/* We use only these */
+				weight = hwloc_bitmap_weight(singlelog_cpuset);
+				topology->nusedpus = weight;
+
+				/* We already singlify the used hyperthreads, so we can forget about cores */
+				topology->nhwworker[STARPU_CPU_WORKER][0] = topology->nhwpus;
+
+				/* Fabricate the list of logical cpuids to use */
+				int max = hwloc_bitmap_last(singlelog_cpuset);
+				STARPU_ASSERT_MSG(max >= 0, "hwloc reported a binding bitmap that is empty or infinite??");
+				unsigned max_digits = max ? log10(max)+1 : 1;
+				int size = (max_digits + 1) * weight + 1;
+				char *value = malloc(size), *cur = value;
+				int bit;
+
+				for (bit = hwloc_bitmap_first(singlelog_cpuset);
+				     bit >= 0;
+				     bit = hwloc_bitmap_next(singlelog_cpuset, bit))
+				{
+					int done = snprintf(cur, size - (cur-value), "%d,", bit);
+					STARPU_ASSERT(done > 0);
+					STARPU_ASSERT((cur-value) + done < size);
+					cur += done;
+				}
+				/* Eat last comma */
+				cur[-1] = '\0';
+
+				_STARPU_DEBUG("Setting STARPU_WORKERS_CPUID to %s\n", value);
+				setenv("STARPU_WORKERS_CPUID", value, 0);
+				break;
+			}
+
 			topology->nusedpus = weight;
 			topology->firstusedpu = hwloc_bitmap_first(log_cpuset);;
 		} while(0);
