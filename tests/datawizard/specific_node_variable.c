@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -54,8 +54,8 @@ int main(void)
 	starpu_data_handle_t dyn_data_handle[STARPU_NMAXBUFS*2];
 	int dyn_data[STARPU_NMAXBUFS*2];
 
-	struct starpu_data_descr *descrs = malloc(STARPU_NMAXBUFS * sizeof(struct starpu_data_descr));
-	struct starpu_data_descr *dyn_descrs = malloc(STARPU_NMAXBUFS * 2 * sizeof(struct starpu_data_descr));
+	struct starpu_data_descr *descrs;
+	struct starpu_data_descr *dyn_descrs;
 
 	int nodes[STARPU_NMAXBUFS];
 	int dyn_nodes[2*STARPU_NMAXBUFS];
@@ -66,7 +66,9 @@ int main(void)
 	unsigned ntasks = 1280;
 #endif
 
+	unsigned i;
 	int ret;
+	int specific_node_count;
 
 	/* Disable prefetching, it makes the test work just by luck */
 #ifdef STARPU_HAVE_SETENV
@@ -77,9 +79,9 @@ int main(void)
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-
-	unsigned i;
-	int specific_node_count = starpu_memory_nodes_get_count() - STARPU_SPECIFIC_NODE_NONE;
+	specific_node_count = starpu_memory_nodes_get_count() - STARPU_SPECIFIC_NODE_NONE;
+	descrs = malloc(STARPU_NMAXBUFS * sizeof(struct starpu_data_descr));
+	dyn_descrs = malloc(STARPU_NMAXBUFS * 2 * sizeof(struct starpu_data_descr));
 
 	for (i = 0; i < STARPU_NMAXBUFS; i++)
 	{
