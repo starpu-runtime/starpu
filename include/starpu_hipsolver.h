@@ -34,16 +34,12 @@ extern "C" {
    Initialize HIPSOLVER on every HIP device
    controlled by StarPU. This call blocks until HIPSOLVER has been properly
    initialized on every device.
-
-   See \ref HIP-specificOptimizations
 */
 void starpu_hipsolver_init(void);
 
 /**
    Synchronously deinitialize the HIPSOLVER library on
    every HIP device.
-
-   See \ref HIP-specificOptimizations
 */
 void starpu_hipsolver_shutdown(void);
 
@@ -52,7 +48,6 @@ void starpu_hipsolver_shutdown(void);
    Return the HIPSOLVER Dense handle to be used to queue HIPSOLVER
    kernels. It is properly initialized and configured for multistream by
    starpu_hipsolver_init().
-   See \ref HIP-specificOptimizations
 */
 hipsolverDnHandle_t starpu_hipsolverDn_get_local_handle(void);
 
@@ -61,8 +56,6 @@ hipsolverDnHandle_t starpu_hipsolverDn_get_local_handle(void);
    Return the HIPSOLVER Sparse handle to be used to queue HIPSOLVER
    kernels. It is properly initialized and configured for multistream by
    starpu_hipsolver_init().
-
-   See \ref HIP-specificOptimizations
 */
 hipsolverSpHandle_t starpu_hipsolverSp_get_local_handle(void);
 #endif
@@ -72,8 +65,6 @@ hipsolverSpHandle_t starpu_hipsolverSp_get_local_handle(void);
    Return the HIPSOLVER Refactorization handle to be used to queue HIPSOLVER
    kernels. It is properly initialized and configured for multistream by
    starpu_hipsolver_init().
-
-   See \ref HIP-specificOptimizations
 */
 hipsolverRfHandle_t starpu_hipsolverRf_get_local_handle(void);
 #endif

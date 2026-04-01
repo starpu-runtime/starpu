@@ -673,7 +673,7 @@ int starpu_mpi_task_insert(MPI_Comm comm, struct starpu_codelet *codelet, ...);
 #endif
 
 /**
-   Insert the same task on the first \p p nodes in nodes. RW access modes are modified to add the ::MPI_SAME flag.
+   Insert the same task on the first \p p nodes in nodes. RW access modes are modified to add the ::STARPU_MPI_SAME flag.
 */
 int starpu_mpi_tasks_insert(MPI_Comm comm, struct starpu_codelet *codelet, int p, int* nodes, ...);
 

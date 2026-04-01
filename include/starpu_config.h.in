@@ -16,19 +16,18 @@
  */
 
 /**
-   This is the public config.h file, installed along libstarpu.
-
-   It should only contain the build-time #defines which have an effect on the
-   API & ABI.
+   @defgroup API_Config Configuration
+   @brief This is the public config.h file, installed along libstarpu. It should only contain the build-time \#defines which have an effect on the API & ABI.
+   @{
 */
 
 #ifndef __STARPU_CONFIG_PUBLIC_H__
 #define __STARPU_CONFIG_PUBLIC_H__
 
 /**
+   @ingroup API_Versioning
    Define the major version of StarPU. This is the version used when
    compiling the application.
-   @ingroup API_Versioning
 */
 #undef STARPU_MAJOR_VERSION
 
@@ -40,19 +39,19 @@
 #undef STARPU_MINOR_VERSION
 
 /**
+   @ingroup API_Versioning
    Define the release version of StarPU. This is the version used when
    compiling the application.
-   @ingroup API_Versioning
 */
 #undef STARPU_RELEASE_VERSION
 
 #undef STARPU_USE_CPU
 
 /**
+   @ingroup API_CUDA_Extensions
    Defined when StarPU has been installed with
    CUDA support. It should be used in your code to detect the
    availability of CUDA.
-   @ingroup API_CUDA_Extensions
 */
 #undef STARPU_USE_CUDA
 
@@ -67,49 +66,49 @@
 #undef STARPU_USE_CUDA1
 
 /**
+   @ingroup API_HIP_Extensions
    Defined when StarPU has been installed with
    HIP support. It should be used in your code to detect the
    availability of HIP.
-   @ingroup API_HIP_Extensions
 */
 #undef STARPU_USE_HIP
 
 /**
+   @ingroup API_HIP_Extensions
    Defined when StarPU has been installed with
    HIP BLAS support. It should be used in your code to detect the
    availability of HIP BLAS.
-   @ingroup API_HIP_Extensions
 */
 #undef STARPU_USE_HIPBLAS
 
 /**
+   @ingroup API_CUDA_Extensions
    Defined when StarPU has been installed with
    NVidia-ML support. It should be used in your code to detect the
    availability of NVML-related functions.
-   @ingroup API_CUDA_Extensions
 */
 #undef STARPU_HAVE_NVML_H
 
 /**
+   @ingroup API_OpenCL_Extensions
    Defined when StarPU has been installed with OpenCL support. It
    should be used in your code to detect the availability of OpenCL as
    shown in \ref FullSourceCodeVectorScal.
-   @ingroup API_OpenCL_Extensions
 */
 #undef STARPU_USE_OPENCL
 
 /**
+   @ingroup API_Max_FPGA_Extensions
    Defined when StarPU has been installed with FPGA support. It should
    be used in your code to detect the availability of FPGA.
-   @ingroup API_Max_FPGA_Extensions
 */
 #undef STARPU_USE_MAX_FPGA
 
 /**
+   @ingroup API_MPI_Support
    Defined when StarPU has been installed with MPI server client
    support. It should be used in your code to detect the
    availability of this support
-   @ingroup API_MPI_Support
 */
 #undef STARPU_USE_MPI_SERVER_CLIENT
 
@@ -120,10 +119,10 @@
 #undef STARPU_USE_TCPIP_SERVER_CLIENT
 
 /**
+   @ingroup API_OpenMP_Runtime_Support
    Defined when StarPU has been installed with OpenMP Runtime support.
    It should be used in your code to detect the availability of the
    runtime support for OpenMP.
-   @ingroup API_OpenMP_Runtime_Support
 */
 #undef STARPU_OPENMP
 
@@ -152,9 +151,9 @@
 #undef STARPU_HAVE_ICC
 
 /**
+   @ingroup API_MPI_Support
    Defined when StarPU has been installed with MPI support. It should
    be used in your code to detect the availability of MPI.
-   @ingroup API_MPI_Support
 */
 #undef STARPU_USE_MPI
 #undef STARPU_USE_MPI_MPI
@@ -172,9 +171,9 @@
 #undef STARPU_HAVE_BLAS
 
 /**
+   @ingroup API_OpenCL_Extensions
    Define the directory in which the OpenCL codelets of the
    applications provided with StarPU have been installed.
-   @ingroup API_OpenCL_Extensions
 */
 #undef STARPU_OPENCL_DATADIR
 
@@ -232,94 +231,94 @@
 #undef STARPU_HAVE_CURAND
 
 /**
+   @ingroup API_Workers
    Define the maximum number of memory nodes managed by StarPU. The
    default value can be modified at configure by using the option \ref
    enable-maxnodes "--enable-maxnodes". Reducing it allows to
    considerably reduce memory used by StarPU data structures.
-   @ingroup API_Workers
 */
 #undef STARPU_MAXNODES
 
 /**
+   @ingroup API_Codelet_And_Tasks
    Define the maximum number of buffers that tasks will be able to
    take as parameters. The default value is 8, it can be changed by
    using the configure option \ref enable-maxbuffers
    "--enable-maxbuffers".
-   @ingroup API_Codelet_And_Tasks
 */
 #undef STARPU_NMAXBUFS
 
 /**
+   @ingroup API_MPI_Support
    Define the maximum number of fxt mpi files that can be read when
    generating traces. The default value is 64, it can be changed by
    using the configure option \ref enable-fxt-max-files
    "--enable-fxt-max-files".
-   @ingroup API_MPI_Support
 */
 #undef STARPU_FXT_MAX_FILES
 
 /**
+   @ingroup API_Workers
    Define the maximum number of CPU workers managed by StarPU. The
    default value can be modified at configure by using the option \ref
    enable-maxcpus "--enable-maxcpus".
-   @ingroup API_Workers
 */
 #undef STARPU_MAXCPUS
 
 /**
+   @ingroup API_Workers
    Define the maximum number of NUMA nodes managed by StarPU. The
    default value can be modified at configure by using the option \ref
    enable-maxnumanodes "--enable-maxnumanodes".
-   @ingroup API_Workers
 */
 #undef STARPU_MAXNUMANODES
 
 /**
-   Define the maximum number of CUDA devices that are supported by StarPU.
    @ingroup API_CUDA_Extensions
+   Define the maximum number of CUDA devices that are supported by StarPU.
 */
 #undef STARPU_MAXCUDADEVS
 
 /**
+   @ingroup API_OpenCL_Extensions
    Define the maximum number of OpenCL devices that are supported by
    StarPU.
-   @ingroup API_OpenCL_Extensions
 */
 #undef STARPU_MAXOPENCLDEVS
 
 /**
+   @ingroup API_Max_FPGA_Extensions
    Define the maximum number of Maxeler FPGA devices that are supported by
    StarPU.
-   @ingroup API_Max_FPGA_Extensions
 */
 #undef STARPU_MAXMAXFPGADEVS
 
 /**
+   @ingroup API_HIP_Extensions
    Define the maximum number of HIP devices that are supported by
    StarPU.
-   @ingroup API_HIP_Extensions
 */
 #undef STARPU_MAXHIPDEVS
 
 /**
-   Define the maximum number of workers managed by StarPU.
    @ingroup API_Workers
+   Define the maximum number of workers managed by StarPU.
 */
 #undef STARPU_NMAXWORKERS
 
 /**
+   @ingroup API_Scheduling_Policy
    Define the maximum number of scheduling contexts managed by StarPU.
    The default value can be modified at configure by using the option
    \ref enable-max-sched-ctxs "--enable-max-sched-ctxs".
-   @ingroup API_Scheduling_Policy
 */
 #undef STARPU_NMAX_SCHED_CTXS
 
 /**
+   @ingroup API_Scheduling_Policy
    Define the maximum number of implementations per architecture. The
    default value can be modified at configure by using the option \ref
    enable-maximplementations "--enable-maximplementations".
-   @ingroup API_Scheduling_Policy
 */
 #undef STARPU_MAXIMPLEMENTATIONS
 
@@ -394,3 +393,5 @@ typedef ssize_t starpu_ssize_t;
 #undef STARPU_PROF_TOOL
 
 #endif
+
+/** @} */

@@ -109,7 +109,7 @@ $(DOX_HTML_DIR): $(DOX_TAG)
 
 $(DOX_TAG): $(dox_inputs)
 	@rm -fr $(DOX_HTML_DIR) $(DOX_LATEX_DIR)
-	@$(DOXYGEN) $(DOX_CONFIG)
+	@if [ "$(DOX_MAIN_DIR)" == "doxygen" ] ; then $(DOXYGEN) $(DOX_CONFIG) ; else $(DOXYGEN) $(DOX_CONFIG) 2>&1 | grep -v resolve ; fi
 	@if test -f $(DOX_HTML_DIR)/DocOrganization.html ; then $(SED) -i 's/ModuleDocumentation <\/li>/<a class="el" href="modules.html">Modules<\/a>/' $(DOX_HTML_DIR)/DocOrganization.html ; fi
 	@if test -f $(DOX_HTML_DIR)/DocOrganization.html ; then $(SED) -i 's/FileDocumentation <\/li>/<a class="el" href="files.html">Files<\/a>/' $(DOX_HTML_DIR)/DocOrganization.html ; fi
         # comment for the line below: what we really want to do is to remove the line, but dy doing so, it avoids opening the interactive menu when browsing files
