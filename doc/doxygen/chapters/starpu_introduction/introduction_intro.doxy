@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,6 +21,17 @@
 
 
 // we need to keep 2 blank lines above
+\section How_to_cite How to cite this document
+
+Please use the following bibtex entry to cite StarPU documentation.
+
+\code{bib}
+@Manual{StarPU_Handbook,
+  title = 	 {StarPU Handbook},
+  note = 	 {Available at \url{https://files.inria.fr/starpu/doc/html/}}
+}
+\endcode
+
 \section Motivation Motivation
 
 The use of specialized hardware, such as accelerators or coprocessors, offers an interesting approach to overcoming the physical limitations faced by processor architects. As a result, many machines are now equipped with one or more accelerators (e.g. a GPU) in addition to the usual processor(s). While considerable efforts has been devoted to offloading computation to such accelerators, very little attention has been paid to portability concerns, and to the ability of heterogeneous accelerators and processors to interact with each other.
