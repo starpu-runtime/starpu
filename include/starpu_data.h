@@ -501,8 +501,14 @@ enum starpu_is_prefetch
    available there for tasks. If \p async is 0, the call will
    block until the transfer is achieved, else the call will return immediately,
    after having just queued the request. In the latter case, the request will
-   asynchronously wait for the completion of any task writing on the
-   data. See \ref DataPrefetch for more details.
+   asynchronously wait for the completion of any task currently writing on the
+   data.
+
+   Note that this function does not wait for all tasks writing on the data, only
+   the currently-executing. To wait for all tasks, i.e. integrate in the task
+   graph, starpu_data_acquire should be used instead.
+
+   See \ref DataPrefetch for more details.
 */
 int starpu_data_fetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async);
 
@@ -512,12 +518,20 @@ int starpu_data_fetch_on_node(starpu_data_handle_t handle, unsigned node, unsign
    available there for tasks. If \p async is 0, the call will
    block until the transfer is achieved, else the call will return immediately,
    after having just queued the request. In the latter case, the request will
-   asynchronously wait for the completion of any task writing on the
-   data. See \ref DataPrefetch for more details.
+   asynchronously wait for the completion of any task currently writing on the
+   data.
+
+   Note that this function does not wait for all tasks writing on the data, only
+   the currently-executing. To wait for all tasks, i.e. integrate in the task
+   graph, starpu_data_acquire should be used instead.
+
+   See \ref DataPrefetch for more details.
 */
 int starpu_data_prefetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async);
 
 /**
+   Same as starpu_data_prefetch_on_node, but allows to define a transfer priority \p prio
+
    See \ref DataPrefetch for more details.
  */
 int starpu_data_prefetch_on_node_prio(starpu_data_handle_t handle, unsigned node, unsigned async, int prio);
@@ -528,11 +542,19 @@ int starpu_data_prefetch_on_node_prio(starpu_data_handle_t handle, unsigned node
    available there for tasks, but only when the bus is really idle. If \p async is 0, the call will
    block until the transfer is achieved, else the call will return immediately,
    after having just queued the request. In the latter case, the request will
-   asynchronously wait for the completion of any task writing on the data. See \ref DataPrefetch for more details.
+   asynchronously wait for the completion of any task currently writing on the data.
+
+   Note that this function does not wait for all tasks writing on the data, only
+   the currently-executing. To wait for all tasks, i.e. integrate in the task
+   graph, starpu_data_acquire should be used instead.
+
+   See \ref DataPrefetch for more details.
 */
 int starpu_data_idle_prefetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async);
 
 /**
+   Same as starpu_data_idle_prefetch_on_node, but allows to define a transfer priority \p prio
+
    See \ref DataPrefetch for more details.
  */
 int starpu_data_idle_prefetch_on_node_prio(starpu_data_handle_t handle, unsigned node, unsigned async, int prio);
