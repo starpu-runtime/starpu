@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -66,6 +66,12 @@ void bind_func(void *arg)
 	return;
 }
 
+#if HWLOC_API_VERSION >= 0x00020000
+#define HWLOC_object HWLOC_OBJ_PACKAGE
+#else
+#define HWLOC_object HWLOC_OBJ_SOCKET
+#endif
+
 int main(void)
 {
 	int ret, i;
@@ -78,7 +84,7 @@ int main(void)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	parallel_workers = starpu_parallel_worker_init(HWLOC_OBJ_SOCKET,
+	parallel_workers = starpu_parallel_worker_init(HWLOC_object,
 						       STARPU_PARALLEL_WORKER_POLICY_NAME, "dmdas",
 						       STARPU_PARALLEL_WORKER_CREATE_FUNC, &bind_func,
 						       STARPU_PARALLEL_WORKER_CREATE_FUNC_ARG, NULL,

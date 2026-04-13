@@ -2257,7 +2257,12 @@ void starpu_topology_print(FILE *output)
 			last_numa_obj = numa_obj;
 		}
 		fprintf(output, "\t");
+#if HWLOC_API_VERSION >= 0x00020000
+		/* HWLOC_OBJ_SOCKET was renamed in hwloc 2.0 */
+		socket_obj = hwloc_get_ancestor_obj_by_type(topo, HWLOC_OBJ_PACKAGE, pu_obj);
+#else
 		socket_obj = hwloc_get_ancestor_obj_by_type(topo, HWLOC_OBJ_SOCKET, pu_obj);
+#endif
 		if (socket_obj != last_socket_obj)
 		{
 			if (socket_obj)

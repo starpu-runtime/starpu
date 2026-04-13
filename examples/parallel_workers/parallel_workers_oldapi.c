@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,6 +23,12 @@ int main(void)
 }
 #else
 
+#if HWLOC_API_VERSION >= 0x00020000
+#define HWLOC_object HWLOC_OBJ_PACKAGE
+#else
+#define HWLOC_object HWLOC_OBJ_SOCKET
+#endif
+
 int main(void)
 {
 	int ret;
@@ -35,7 +41,7 @@ int main(void)
 
 	/* We regroup resources under each sockets into a parallel worker. We express a partition
 	 * of one socket to create two internal parallel workers */
-	clusters = starpu_cluster_machine(HWLOC_OBJ_SOCKET,
+	clusters = starpu_cluster_machine(HWLOC_object,
 					  STARPU_CLUSTER_POLICY_NAME, "dmdas",
 					  STARPU_PARALLEL_WORKER_PARTITION_ONE,
 					  STARPU_PARALLEL_WORKER_NEW,

@@ -79,7 +79,12 @@ static struct sched_component_list helper_make_scheduler(struct starpu_sched_tre
 		CASE(HWLOC_OBJ_MACHINE,hwloc_machine_composed_sched_component);
 		CASE(HWLOC_OBJ_GROUP,hwloc_component_composed_sched_component);
 		CASE(HWLOC_OBJ_NUMANODE,hwloc_component_composed_sched_component);
+#if HWLOC_API_VERSION >= 0x00020000
+		/* HWLOC_OBJ_SOCKET was renamed in hwloc 2.0 */
+		CASE(HWLOC_OBJ_PACKAGE,hwloc_socket_composed_sched_component);
+#else
 		CASE(HWLOC_OBJ_SOCKET,hwloc_socket_composed_sched_component);
+#endif
 #ifdef HWLOC_OBJ_CACHE
 		CASE(HWLOC_OBJ_CACHE,hwloc_cache_composed_sched_component);
 #endif

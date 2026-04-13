@@ -68,7 +68,7 @@ current machine state.
 
 \code{.c}
 struct starpu_parallel_worker_config *parallel_workers;
-parallel_workers = starpu_parallel_worker_init(HWLOC_OBJ_SOCKET, 0);
+parallel_workers = starpu_parallel_worker_init(HWLOC_OBJ_PACKAGE, 0);
 starpu_parallel_worker_print(parallel_workers);
 
 /* submit some tasks with OpenMP computations */
@@ -178,7 +178,7 @@ in the example below, which is creating a \c MKL parallel worker.
 
 \code{.c}
 struct starpu_parallel_worker_config *parallel_workers;
-parallel_workers = starpu_parallel_worker_init(HWLOC_OBJ_SOCKET,
+parallel_workers = starpu_parallel_worker_init(HWLOC_OBJ_PACKAGE,
                                  STARPU_PARALLEL_WORKER_TYPE, STARPU_PARALLEL_WORKER_GNU_OPENMP_MKL,
                                  0);
 \endcode
@@ -195,7 +195,7 @@ void foo_func(void* foo_arg);
 
 int foo_arg = 0;
 struct starpu_parallel_worker_config *parallel_workers;
-parallel_workers = starpu_parallel_worker_init(HWLOC_OBJ_SOCKET,
+parallel_workers = starpu_parallel_worker_init(HWLOC_OBJ_PACKAGE,
                                   STARPU_PARALLEL_WORKER_CREATE_FUNC, &foo_func,
                                   STARPU_PARALLEL_WORKER_CREATE_FUNC_ARG, &foo_arg,
                                   0);
