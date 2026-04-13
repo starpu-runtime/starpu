@@ -102,7 +102,12 @@ int starpu_energy_start(int workerid STARPU_ATTRIBUTE_UNUSED, enum starpu_worker
 		struct _starpu_machine_config *config = _starpu_get_machine_config();
 		hwloc_topology_t topology = config->topology.hwtopology;
 
+#if HWLOC_API_VERSION >= 0x00020000
+		/* HWLOC_OBJ_SOCKET was renamed in hwloc 2.0 */
 		nsockets = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_PACKAGE);
+#else
+		nsockets = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_SOCKET);
+#endif
 
 		if ((retval = PAPI_library_init(PAPI_VER_CURRENT)) != PAPI_VER_CURRENT)
 			ERROR_RETURN(retval, "PAPI_library_init");
@@ -115,7 +120,12 @@ int starpu_energy_start(int workerid STARPU_ATTRIBUTE_UNUSED, enum starpu_worker
 		for (i = 0 ; i < nsockets ; i ++)
 		{
 			/* return the index of socket */
+#if HWLOC_API_VERSION >= 0x00020000
+			/* HWLOC_OBJ_SOCKET was renamed in hwloc 2.0 */
 			hwloc_obj_t obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_PACKAGE, i);
+#else
+			hwloc_obj_t obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_SOCKET, i);
+#endif
 			STARPU_ASSERT(obj);
 			if ((retval = add_event(EventSet, obj->os_index)) != PAPI_OK)
 			{

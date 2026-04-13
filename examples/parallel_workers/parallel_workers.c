@@ -61,6 +61,12 @@ static struct starpu_codelet sum_cl =
 	.modes={STARPU_RW,STARPU_R, STARPU_R}
 };
 
+#if HWLOC_API_VERSION >= 0x00020000
+#define HWLOC_object HWLOC_OBJ_PACKAGE
+#else
+#define HWLOC_object HWLOC_OBJ_SOCKET
+#endif
+
 int main(void)
 {
 	int ntasks = NTASKS;
@@ -76,7 +82,7 @@ int main(void)
 
 	/* We regroup resources under each sockets into a parallel worker. We express a partition
 	 * of one socket to create two internal parallel workers */
-	parallel_workers = starpu_parallel_worker_init(HWLOC_OBJ_SOCKET,
+	parallel_workers = starpu_parallel_worker_init(HWLOC_object,
 						       STARPU_PARALLEL_WORKER_POLICY_NAME, "dmdas",
 						       STARPU_PARALLEL_WORKER_PARTITION_ONE,
 						       STARPU_PARALLEL_WORKER_NEW,
