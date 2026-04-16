@@ -134,7 +134,7 @@ basic:
   tags: ['starpu', 'node_gpu']
   parallel:
     matrix:
-      - PROFILE: [default, without-hwloc, hwloc1, numa, enable-fast, enable-spinlock-check, debug-verbose, profiling, memory-stats, disable-allocation-cache, arbiter, intel]
+      - PROFILE: [default, without-hwloc, hwloc1, hwloc3, numa, enable-fast, enable-spinlock-check, debug-verbose, profiling, memory-stats, disable-allocation-cache, arbiter, intel]
 
 simgrid:
   extends: .manual_template

@@ -260,6 +260,12 @@ profiles = [
       'env'         : { 'PKG_CONFIG_PATH' : '/usr/local/stow/hwloc-1.11.13/lib/pkgconfig', 'STARPU_USE_NUMA' : '1', 'STARPU_HWLOC_INPUT' : '/home/benchmarks/buildbot/workers/hwloc1.xml' },
       'hosts'       : ['node_gpu']
     },
+    { 'name'        : 'hwloc3',
+      'deploy'      : True,
+      'hwloc_input' : None,
+      'env'         : { 'PKG_CONFIG_PATH' : '/usr/local/stow/hwloc-3.0.0a1/lib/pkgconfig'},
+      'hosts'       : ['node_gpu']
+    },
     { 'name'        : 'memory-stats',
       'opts'        : ['--enable-memory-stats'],
       'deploy'      : True,
