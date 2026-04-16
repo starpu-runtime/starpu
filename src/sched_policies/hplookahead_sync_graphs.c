@@ -20,6 +20,7 @@
 #include <schedulers/starpu_hplookahead_sync_graphs.h>
 #include <core/task.h>
 #include <common/graph.h>
+#include <common/utils.h>
 #include <sched_policies/fifo_queues.h>
 #include <limits.h>
 #include <core/workers.h>
@@ -1141,9 +1142,9 @@ static void hp_lookahead_add_workers(unsigned sched_ctx_id, int *workerIds, unsi
 	unsigned i;
 
 	data->nWorkers = nworkers;
-	data->localIndicesToWorkerId = (unsigned *)malloc(nworkers * sizeof(unsigned));
-	data->nEntriesInWQs = (unsigned *)malloc(nworkers * sizeof(unsigned));
-	data->nExaminedEntriesInWQs = (unsigned *)malloc(nworkers * sizeof(unsigned));
+	_STARPU_MALLOC(data->localIndicesToWorkerId, nworkers * sizeof(unsigned));
+	_STARPU_MALLOC(data->nEntriesInWQs, nworkers * sizeof(unsigned));
+	_STARPU_MALLOC(data->nExaminedEntriesInWQs, nworkers * sizeof(unsigned));
 
 	for (i = 0; i < nworkers; i++)
 	{
@@ -1159,8 +1160,8 @@ static void hp_lookahead_add_workers(unsigned sched_ctx_id, int *workerIds, unsi
 			data->workers_queue[workerId]->exp_len = 0;
 		}
 		/* Allocate memory to store all tasks in execution to fulfill pipeline length*/
-		data->presentNodeInExecution[workerId] = (struct _starpu_graph_node **)malloc(STARPU_MAX_PIPELINE * sizeof(struct _starpu_graph_node *));
-		data->expectedCompletionTimeOfDispatchedTasks[workerId] = (double *)malloc(STARPU_MAX_PIPELINE * sizeof(double));
+		_STARPU_MALLOC(data->presentNodeInExecution[workerId], STARPU_MAX_PIPELINE * sizeof(struct _starpu_graph_node *));
+		_STARPU_MALLOC(data->expectedCompletionTimeOfDispatchedTasks[workerId], STARPU_MAX_PIPELINE * sizeof(double));
 		unsigned j;
 		for(j=0; j<STARPU_MAX_PIPELINE; j++)
 			data->presentNodeInExecution[workerId][j] = NULL;
@@ -1209,20 +1210,19 @@ static void hp_lookahead_remove_workers(unsigned sched_ctx_id, int *workerIds, u
 
 static void init_hp_lookahead_sched(unsigned sched_ctx_id)
 {
-	struct _starpu_hp_lookahead_data *data = (struct _starpu_hp_lookahead_data*)malloc(sizeof(struct _starpu_hp_lookahead_data));
-	data->ready_queues = (struct _starpu_hplookahead_sync_graphs_ready_queue *)malloc(sizeof(struct _starpu_hplookahead_sync_graphs_ready_queue));
+	struct _starpu_hp_lookahead_data *data;
+	_STARPU_MALLOC(data, sizeof(struct _starpu_hp_lookahead_data));
+	_STARPU_MALLOC(data->ready_queues, sizeof(struct _starpu_hplookahead_sync_graphs_ready_queue));
 	data->ready_queues->types_of_tasks = 0;
 	data->ready_queues->ntasks = 0;
-
-	data->workers_queue = (struct starpu_st_fifo_taskq**)malloc(STARPU_NMAXWORKERS*sizeof(struct starpu_st_fifo_taskq*));
-
-	data->exp_start_in_simulation = (double *)malloc(STARPU_NMAXWORKERS*sizeof(double));
-	data->presentNodeInSimulation= (struct _starpu_graph_node **)calloc(STARPU_NMAXWORKERS, sizeof(struct _starpu_graph_node  *));
-	data->presentNodeInExecution = (struct _starpu_graph_node ***)calloc(STARPU_NMAXWORKERS, sizeof(struct _starpu_graph_node **));
-	data->expectedCompletionTimeOfDispatchedTasks = (double **)calloc(STARPU_NMAXWORKERS, sizeof(double*));
-	data->presentIndexOfNodeInExecution = (unsigned *)calloc(STARPU_NMAXWORKERS, sizeof(unsigned));
+	_STARPU_MALLOC(data->workers_queue, STARPU_NMAXWORKERS*sizeof(struct starpu_st_fifo_taskq*));
+	_STARPU_MALLOC(data->exp_start_in_simulation, STARPU_NMAXWORKERS*sizeof(double));
+	_STARPU_CALLOC(data->presentNodeInSimulation, STARPU_NMAXWORKERS, sizeof(struct _starpu_graph_node  *));
+	_STARPU_CALLOC(data->presentNodeInExecution, STARPU_NMAXWORKERS, sizeof(struct _starpu_graph_node **));
+	_STARPU_CALLOC(data->expectedCompletionTimeOfDispatchedTasks, STARPU_NMAXWORKERS, sizeof(double*));
+	_STARPU_CALLOC(data->presentIndexOfNodeInExecution, STARPU_NMAXWORKERS, sizeof(unsigned));
 	/*TODO: Can be changed to a boolean value*/
-	data->isTaskInExecution = (unsigned *)malloc(STARPU_NMAXWORKERS * sizeof(unsigned));
+	_STARPU_MALLOC(data->isTaskInExecution, STARPU_NMAXWORKERS * sizeof(unsigned));
 	int i;
 	for(i = 0; i < STARPU_NMAXWORKERS; i++)
 	{

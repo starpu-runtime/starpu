@@ -99,7 +99,6 @@ AC_CACHE_CHECK([for parallel that supports semaphores with exit code], [ac_cv_pa
 AC_SUBST([PARALLEL], [$ac_cv_path_PARALLEL])
 AM_CONDITIONAL([HAVE_PARALLEL], [test "x$PARALLEL" != "xno"])
 
-
 dnl locate pkg-config
 PKG_PROG_PKG_CONFIG
 
@@ -992,8 +991,6 @@ AM_CONDITIONAL(STARPU_USE_MPI_FT_STATS, [test x$use_mpi_ft_stats = xyes])
 
 ###### End of failure tolerance material ######
 
-
-
 AC_ARG_WITH(mpiexec-args, [AS_HELP_STRING([--with-mpiexec-args[=<arguments to give when running mpiexec>]],
 					  [Arguments for mpiexec])],
 	    [
@@ -1075,7 +1072,6 @@ fi
 AC_MSG_RESULT($nmaxnumanodes)
 AC_DEFINE_UNQUOTED(STARPU_MAXNUMANODES, [$nmaxnumanodes],
 		[maximum number of NUMA nodes])
-
 
 ###############################################################################
 
@@ -1316,7 +1312,6 @@ if test "x$enable_hdf5" != xno ; then
 		fi
 	done
 
-
 	AC_ARG_WITH(hdf5-lib-dir,
 		[AS_HELP_STRING([--with-hdf5-lib-dir=<path>],
 		[specify where HDF5 libraries are installed])],
@@ -1351,7 +1346,6 @@ else
 	enable_hdf5=no
 fi
 AM_CONDITIONAL(STARPU_HAVE_HDF5, test "x$enable_hdf5" = "xyes")
-
 
 # This defines HAVE_SYNC_VAL_COMPARE_AND_SWAP
 STARPU_CHECK_SYNC_VAL_COMPARE_AND_SWAP
@@ -1462,7 +1456,6 @@ AC_ARG_ENABLE([sc_hypervisor_debug],
     [enable debug for resizing contexts (experimental)])],
   [enable_sc_hypervisor_debug="yes"],
   [enable_sc_hypervisor_debug="no"])
-
 
 AC_SUBST(STARPU_SC_HYPERVISOR_DEBUG, $enable_sc_hypervisor_debug)
 AM_CONDITIONAL([STARPU_SC_HYPERVISOR_DEBUG], [test "x$enable_sc_hypervisor_debug" = "xyes"])
@@ -2301,8 +2294,6 @@ AM_CONDITIONAL(STARPU_USE_HIP, test x$enable_hip = xyes)
 #AC_ARG_VAR([HIPCC_CC], [C compiler for HIP compiler])
 AC_ARG_VAR([HIPCCFLAGS], [HIP compiler flags])
 
-
-
 ###############################################################################
 #                                                                             #
 #                                 OpenCL settings                             #
@@ -2550,7 +2541,6 @@ if test x$enable_max_fpga = xyes; then
 	AC_DEFINE(STARPU_USE_MAX_FPGA,[1],[Maxeler FPGA support is activated])
 fi
 
-
 ###############################################################################
 #                                                                             #
 # General GPU settings                                                        #
@@ -2767,7 +2757,6 @@ if test x$build_mpi_server_client = xyes; then
         enable_build_fortran=no
     fi
 fi
-
 
 AM_CONDITIONAL([STARPU_HAVE_FC], [test "x$FC" != "x" -a "x$enable_build_fortran" = "xyes"])
 AM_CONDITIONAL([STARPU_HAVE_F77], [test "x$F77" != "x" -a "x$enable_build_fortran" = "xyes"])
@@ -3234,7 +3223,6 @@ AC_MSG_RESULT($maxnodes)
 AC_DEFINE_UNQUOTED(STARPU_MAXNODES, [$maxnodes],
 		[maximum number of memory nodes])
 
-
 AC_MSG_CHECKING(whether allocation cache should be used)
 AC_ARG_ENABLE(allocation-cache, [AS_HELP_STRING([--disable-allocation-cache],
 			[disable data allocation cache])],
@@ -3345,8 +3333,6 @@ if test $nmaxdevs -lt $nmaxtcpipdev; then
 fi
 AC_DEFINE_UNQUOTED(STARPU_NMAXDEVS, [$nmaxdevs], [Maximum number of device per device arch])
 
-
-
 # Computes the maximum number of implementations per arch
 AC_MSG_CHECKING(maximum number of implementations)
 AC_ARG_ENABLE(maximplementations, [AS_HELP_STRING([--enable-maximplementations=<number>],
@@ -3379,7 +3365,6 @@ AC_ARG_ENABLE(calibration-heuristic, [AS_HELP_STRING([--enable-calibration-heuri
 			calibration_heuristic=$enableval, calibration_heuristic=50)
 AC_MSG_RESULT($calibration_heuristic)
 AC_DEFINE_UNQUOTED(STARPU_HISTORYMAXERROR, [$calibration_heuristic], [calibration heuristic value])
-
 
 ###############################################################################
 #                                                                             #
@@ -4601,10 +4586,8 @@ if test x$enable_openmp = xyes -a \( x$enable_cuda0 = xyes -o x$enable_cuda1 = x
     AC_MSG_ERROR([Cuda0 or Cuda1 not supported with OpenMP])
 fi
 
-
 CPPFLAGS="$CPPFLAGS -DSTARPU_SAMPLING_DIR=\"\\\"${datarootdir}/starpu/perfmodels/sampling\\\"\""
 STARPU_BASIC_H_CPPFLAGS="$HWLOC_CFLAGS $STARPU_CUDA_CPPFLAGS $STARPU_HIP_CPPFLAGS $STARPU_OPENCL_CPPFLAGS $STARPU_MAX_FPGA_CPPFLAGS $SIMGRID_CFLAGS $PAPI_CFLAGS $STARPU_OPENMP_CPPFLAGS $STARPU_HIPBLAS_DIRS $STARPU_PROF_TOOL_CPPFLAGS"
-
 
 # these are the flags needed to compile starpu.h
 STARPU_H_CPPFLAGS="$STARPU_BASIC_H_CPPFLAGS"

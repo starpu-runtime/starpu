@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -284,7 +284,6 @@ void starpu_task_insert_data_make_node_room(struct starpu_codelet *cl, struct st
 		}
 	}
 }
-
 
 void starpu_task_insert_process_node_array_arg(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_nodes, int *current_node, int nb_nodes, int *node_array)
 {
@@ -712,7 +711,8 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 			   Because task->dyn_nodes is used instead of cl->dyn_nodes as soon as at least one node was given as an argument to a task
 			   We must assert user has given a node to every handle, or else values of task->dyn_nodes are unitialized
 			*/
-			if( cl->specific_nodes && current_node != 0 ) {
+			if (cl->specific_nodes && current_node != 0)
+			{
 				STARPU_ASSERT_MSG(current_buffer == current_node, "Incoherent number of buffers between cl (%d) and number of specific nodes (%d)", current_buffer, current_node);
 			}
 		}

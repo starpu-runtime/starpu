@@ -24,6 +24,7 @@
 #include <limits.h>
 #include <core/workers.h>
 #include <datawizard/memory_nodes.h>
+#include <common/utils.h>
 
 #ifdef HAVE_AYUDAME_H
 #include <Ayudame.h>
@@ -261,18 +262,17 @@ static void releaseAndAddtoVT(struct starpu_task *task, struct _starpu_hp_lookah
 
 static void init_hp_lookahead_sched(unsigned sched_ctx_id)
 {
-	struct _starpu_hp_lookahead_data *data = (struct _starpu_hp_lookahead_data*)malloc(sizeof(struct _starpu_hp_lookahead_data));
-	data->ready_queues = (struct _starpu_hplookahead_ready_queue *)malloc(sizeof(struct _starpu_hplookahead_ready_queue));
+	struct _starpu_hp_lookahead_data *data;
+	_STARPU_MALLOC(data, sizeof(struct _starpu_hp_lookahead_data));
+	_STARPU_MALLOC(data->ready_queues, sizeof(struct _starpu_hplookahead_ready_queue));
 	data->ready_queues->types_of_tasks = 0;
 	data->ready_queues->ntasks = 0;
-
-	data->workers_queue = (struct starpu_st_fifo_taskq**)malloc(STARPU_NMAXWORKERS*sizeof(struct starpu_st_fifo_taskq*));
-
-	data->exp_start_in_simulation = (double *)malloc(STARPU_NMAXWORKERS*sizeof(double));
-	data->presentTaskInSimulation= (struct starpu_task **)malloc(STARPU_NMAXWORKERS*sizeof(struct starpu_task *));
-	data->presentTaskInExecution = (struct starpu_task ***)malloc(STARPU_NMAXWORKERS*sizeof(struct starpu_task **));
-	data->presentIndexOfTaskInExecution = (unsigned *)malloc(STARPU_NMAXWORKERS * sizeof(unsigned));
-	data->isTaskInExecution = (unsigned *)malloc(STARPU_NMAXWORKERS * sizeof(unsigned));
+	_STARPU_MALLOC(data->workers_queue, STARPU_NMAXWORKERS*sizeof(struct starpu_st_fifo_taskq*));
+	_STARPU_MALLOC(data->exp_start_in_simulation, STARPU_NMAXWORKERS*sizeof(double));
+	_STARPU_MALLOC(data->presentTaskInSimulation, STARPU_NMAXWORKERS*sizeof(struct starpu_task *));
+	_STARPU_MALLOC(data->presentTaskInExecution, STARPU_NMAXWORKERS*sizeof(struct starpu_task **));
+	_STARPU_MALLOC(data->presentIndexOfTaskInExecution, STARPU_NMAXWORKERS * sizeof(unsigned));
+	_STARPU_MALLOC(data->isTaskInExecution, STARPU_NMAXWORKERS * sizeof(unsigned));
 	int i;
 	for(i = 0; i < STARPU_NMAXWORKERS; i++)
 	{
@@ -325,9 +325,9 @@ static void hp_lookahead_add_workers(unsigned sched_ctx_id, int *workerIds, unsi
 	unsigned i;
 
 	data->nWorkers = nworkers;
-	data->localIndicesToWorkerId = (unsigned *)malloc(nworkers * sizeof(unsigned));
-	data->nEntriesInWQs = (unsigned *)malloc(nworkers * sizeof(unsigned));
-	data->nExaminedEntriesInWQs = (unsigned *)malloc(nworkers * sizeof(unsigned));
+	_STARPU_MALLOC(data->localIndicesToWorkerId, nworkers * sizeof(unsigned));
+	_STARPU_MALLOC(data->nEntriesInWQs, nworkers * sizeof(unsigned));
+	_STARPU_MALLOC(data->nExaminedEntriesInWQs, nworkers * sizeof(unsigned));
 
 	for (i = 0; i < nworkers; i++)
 	{
@@ -343,7 +343,7 @@ static void hp_lookahead_add_workers(unsigned sched_ctx_id, int *workerIds, unsi
 			data->workers_queue[workerId]->exp_len = 0;
 		}
 		/* Allocate memory to store all tasks in execution to fulfill pipeline length*/
-		data->presentTaskInExecution[workerId] = (struct starpu_task **)malloc(STARPU_MAX_PIPELINE * sizeof(struct starpu_task *));
+		_STARPU_MALLOC(data->presentTaskInExecution[workerId], STARPU_MAX_PIPELINE * sizeof(struct starpu_task *));
 		unsigned j;
 		for(j=0; j<STARPU_MAX_PIPELINE; j++)
 			data->presentTaskInExecution[workerId][j] = NULL;

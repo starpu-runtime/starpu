@@ -721,7 +721,6 @@ traces of scheduling events, which can then be rendered them using ViTE
 notably contain <c>include/fxt/fxt.h</c>.
 </dd>
 
-
 <dt>--enable-poti</dt>
 <dd>
 \anchor enable-poti

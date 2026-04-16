@@ -732,9 +732,11 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 				STARPU_ASSERT_MSG(max >= 0, "hwloc reported a binding bitmap that is empty or infinite??");
 				unsigned max_digits = max ? log10(max)+1 : 1;
 				int size = (max_digits + 1) * weight + 1;
-				char *value = malloc(size), *cur = value;
+				char *value, *cur;
 				int bit;
 
+				_STARPU_MALLOC(value, size);
+				cur = value;
 				for (bit = hwloc_bitmap_first(singlelog_cpuset);
 				     bit >= 0;
 				     bit = hwloc_bitmap_next(singlelog_cpuset, bit))

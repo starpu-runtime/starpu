@@ -450,7 +450,6 @@ void starpupy_codelet_func(void *descr[], void *cl_arg)
 	fprintf(stderr, "type return object %s\n", Py_TYPE(rv)->tp_name);
 	///	PyObject_Print(Py_TYPE(rv), stdout, 0);
 
-
 	/*if return handle*/
 	if(h_flag)
 	{

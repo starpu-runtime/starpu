@@ -291,7 +291,7 @@ int _starpu_trace_start_executing(struct _starpu_job *j, struct starpu_task *wor
 			struct starpu_prof_tool_data_info data[STARPU_NMAXBUFS];
 			starpu_data_handle_t handle;
 			if(pi.nbuffers > STARPU_NMAXBUFS)
-				pi.buffers = malloc(sizeof(struct starpu_prof_tool_data_info) * pi.nbuffers);
+				_STARPU_MALLOC(pi.buffers, sizeof(struct starpu_prof_tool_data_info) * pi.nbuffers);
 			else
 				pi.buffers = data;
 

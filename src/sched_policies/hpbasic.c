@@ -23,6 +23,7 @@
 #include <limits.h>
 #include <core/workers.h>
 #include <datawizard/memory_nodes.h>
+#include <common/utils.h>
 
 #ifdef HAVE_AYUDAME_H
 #include <Ayudame.h>
@@ -56,7 +57,8 @@ struct _starpu_hpbasic_ready_queue
 
 static void init_hp_sched(unsigned sched_ctx_id)
 {
-	struct _starpu_hpbasic_ready_queue *data = (struct _starpu_hpbasic_ready_queue*)malloc(sizeof(struct _starpu_hpbasic_ready_queue));
+	struct _starpu_hpbasic_ready_queue *data;
+	_STARPU_MALLOC(data, sizeof(struct _starpu_hpbasic_ready_queue));
 	data->types_of_tasks = 0;
 
 	/* Create a condition variable to protect it */

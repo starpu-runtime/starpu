@@ -56,7 +56,6 @@ static struct starpu_codelet display_cl =
 #define HWLOC_object HWLOC_OBJ_SOCKET
 #endif
 
-
 int main(void)
 {
 	int ret;
