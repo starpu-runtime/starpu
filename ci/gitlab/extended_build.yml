@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2021-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2021-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -134,7 +134,7 @@ basic:
   tags: ['starpu', 'node_gpu']
   parallel:
     matrix:
-      - PROFILE: [default, without-hwloc, numa, enable-fast, enable-spinlock-check, debug-verbose, profiling, memory-stats, disable-allocation-cache, arbiter, intel]
+      - PROFILE: [default, without-hwloc, hwloc1, numa, enable-fast, enable-spinlock-check, debug-verbose, profiling, memory-stats, disable-allocation-cache, arbiter, intel]
 
 simgrid:
   extends: .manual_template
