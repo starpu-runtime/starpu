@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2022-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2022-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2022-2023  École de Technologie Supérieure (ETS, Montréal)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -76,6 +76,9 @@ enum starpu_prof_tool_command
 	starpu_prof_tool_command_toggle_per_thread = 2
 };
 
+/**
+   todo
+*/
 struct starpu_prof_tool_data_info
 {
 	starpu_data_handle_t handle;
@@ -86,6 +89,7 @@ struct starpu_prof_tool_data_info
 	enum starpu_data_access_mode mode;
 
 };
+
 /**
    General information
 */
@@ -118,15 +122,20 @@ struct starpu_prof_tool_info
 	*/
 	long iterations[2];
 
-	int nbuffers; /** Specify the number of buffers.*/
+	/**
+	   Specify the number of buffers.
+	*/
+	int nbuffers;
 
-	struct starpu_prof_tool_data_info *buffers; /** Array of nbuffers data_info	*/
+	/**
+	   Array of nbuffers data_info
+	*/
+	struct starpu_prof_tool_data_info *buffers;
 
         /**
 	   The application can set this to the number of floating points
 	   operations that the task will have to achieve.
 	*/
-
 	double flops;
 
 	/*    int valid_bytes;
