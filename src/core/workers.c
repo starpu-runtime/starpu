@@ -1628,11 +1628,11 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	/* This initializes _starpu_silent, thus needs to be early */
 	_starpu_util_init();
 
-	int rc = _starpu_prof_tool_try_load();
-	(void) rc; /* unused for now */
 	int no_ms = 0;
 
 #ifdef STARPU_PROF_TOOL
+	int rc = _starpu_prof_tool_try_load();
+	(void) rc; /* unused for now */
 	struct starpu_prof_tool_info pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_init_begin, 0, 0, starpu_prof_tool_driver_cpu, -1, NULL);
 	starpu_prof_tool_callbacks.starpu_prof_tool_event_init(&pi, NULL, NULL);
 	starpu_prof_tool_callbacks.starpu_prof_tool_event_init_begin(&pi, NULL, NULL);

@@ -284,8 +284,36 @@ int _starpu_trace_start_executing(struct _starpu_job *j, struct starpu_task *wor
 		pi = _starpu_prof_tool_get_info(event_type, devid, worker_task->workerid, driver_type, -1, func);
 		pi.model_name = _starpu_job_get_model_name(j);
 		pi.task_name = _starpu_job_get_task_name(j);
+		pi.iterations[0] = worker_task->iterations[0];
+		pi.iterations[1] = worker_task->iterations[1];
+		pi.nbuffers = STARPU_TASK_GET_NBUFFERS(j->task);
+		{
+			struct starpu_prof_tool_data_info data[STARPU_NMAXBUFS];
+			starpu_data_handle_t handle;
+			if(pi.nbuffers > STARPU_NMAXBUFS)
+				pi.buffers = malloc(sizeof(struct starpu_prof_tool_data_info) * pi.nbuffers);
+			else
+				pi.buffers = data;
 
-		callback(&pi, NULL, NULL);
+			for(int i =0; i<pi.nbuffers; i++)
+			{
+				handle = STARPU_TASK_GET_HANDLE(j->task, i);
+				pi.buffers[i].handle = handle->root_handle;
+				pi.buffers[i].dimensions = handle->dimensions;
+				for(unsigned k=0; k<pi.buffers[i].dimensions; k++)
+				{
+					pi.buffers[i].coordinates[k] = handle->coordinates[k];
+				}
+				pi.buffers[i].mode = STARPU_TASK_GET_MODE(j->task, i);
+			}
+			pi.flops = j->task->flops;
+
+			callback(&pi, NULL, NULL);
+
+			if(pi.nbuffers > STARPU_NMAXBUFS)
+				free(pi.buffers);
+
+		}
 	out:
 		;
 	}

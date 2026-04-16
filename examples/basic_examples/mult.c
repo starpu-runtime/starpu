@@ -197,10 +197,13 @@ static void partition_mult_data(void)
 	 */
 	starpu_matrix_data_register(&A_handle, STARPU_MAIN_RAM, (uintptr_t)A,
 		ydim, ydim, zdim, sizeof(float));
+	starpu_data_set_name(A_handle, "A");
 	starpu_matrix_data_register(&B_handle, STARPU_MAIN_RAM, (uintptr_t)B,
 		zdim, zdim, xdim, sizeof(float));
+	starpu_data_set_name(B_handle, "B");
 	starpu_matrix_data_register(&C_handle, STARPU_MAIN_RAM, (uintptr_t)C,
 		ydim, ydim, xdim, sizeof(float));
+	starpu_data_set_name(C_handle, "C");
 
 	/* A filter is a method to partition a data into disjoint chunks, it is
 	 * described by the means of the "struct starpu_data_filter" structure that

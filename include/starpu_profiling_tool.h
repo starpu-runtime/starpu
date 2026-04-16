@@ -76,6 +76,16 @@ enum starpu_prof_tool_command
 	starpu_prof_tool_command_toggle_per_thread = 2
 };
 
+struct starpu_prof_tool_data_info
+{
+	starpu_data_handle_t handle;
+
+	unsigned dimensions;
+	int coordinates[5];
+
+	enum starpu_data_access_mode mode;
+
+};
 /**
    General information
 */
@@ -98,6 +108,26 @@ struct starpu_prof_tool_info
 	unsigned bytes_transfered;
 
 	void* fun_ptr;  /* NULL when not relevant (driver init etc) */
+
+	/* if a task is being executed, the following information is available */
+
+	/**
+	   Store the iteration numbers (as defined by
+	   starpu_iteration_push() / starpu_iteration_pop()) during
+	   task submission.
+	*/
+	long iterations[2];
+
+	int nbuffers; /** Specify the number of buffers.*/
+
+	struct starpu_prof_tool_data_info *buffers; /** Array of nbuffers data_info	*/
+
+        /**
+	   The application can set this to the number of floating points
+	   operations that the task will have to achieve.
+	*/
+
+	double flops;
 
 	/*    int valid_bytes;
 	      int version;

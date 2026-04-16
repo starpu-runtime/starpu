@@ -89,6 +89,13 @@ struct starpu_prof_tool_info _starpu_prof_tool_get_info(enum starpu_prof_tool_ev
 	ret.bytes_to_transfer = 0;
 	ret.bytes_transfered = 0;
 
+	ret.nbuffers = 0;
+	ret.buffers = NULL;
+
+	ret.iterations[0] = 0;
+	ret.iterations[1] = 0;
+	ret.flops = 0;
+
 	return ret;
 }
 
@@ -119,6 +126,13 @@ struct starpu_prof_tool_info _starpu_prof_tool_get_info_d(enum starpu_prof_tool_
 	ret.conf = NULL;
 	ret.fun_ptr = NULL;
 
+	ret.nbuffers = 0;
+	ret.buffers = NULL;
+	ret.iterations[0] = 0;
+	ret.iterations[1] = 0;
+
+	ret.flops = 0;
+
 	return ret;
 }
 
@@ -144,6 +158,13 @@ struct starpu_prof_tool_info _starpu_prof_tool_get_info_init(enum starpu_prof_to
 	ret.bytes_to_transfer = 0;
 	ret.bytes_transfered = 0;
 	ret.fun_ptr = NULL;
+
+	ret.nbuffers = 0;
+	ret.buffers = NULL;
+	ret.iterations[0] = 0;
+	ret.iterations[1] = 0;
+
+	ret.flops = 0;
 
 	return ret;
 }
