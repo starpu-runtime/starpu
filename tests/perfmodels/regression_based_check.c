@@ -84,7 +84,7 @@ static struct starpu_codelet nl_memset_cl =
 	.modes = {STARPU_SCRATCH}
 };
 
-static void test_memset(int nelems, struct starpu_codelet *codelet)
+static int test_memset(int nelems, struct starpu_codelet *codelet)
 {
 	int nloops = 100;
 	int loop;
@@ -99,13 +99,13 @@ static void test_memset(int nelems, struct starpu_codelet *codelet)
 		task->handles[0] = handle;
 
 		int ret = starpu_task_submit(task);
-		if (ret == -ENODEV)
-			exit(STARPU_TEST_SKIPPED);
+		if (ret == -ENODEV) return ENODEV;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
 	starpu_do_schedule();
 	starpu_data_unregister(handle);
+	return 0;
 }
 
 static void compare_performance(int size, struct starpu_codelet *codelet, struct starpu_task *compar_task)
@@ -209,13 +209,23 @@ int main(int argc, char **argv)
 	for (size = STARTlin; size < END; size *= 2)
 	{
 		/* Use a linear regression */
-		test_memset(size, &memset_cl);
+		ret = test_memset(size, &memset_cl);
+		if (ret == ENODEV)
+		{
+			starpu_shutdown();
+			return STARPU_TEST_SKIPPED;
+		}
 	}
 
 	for (size = START; size < END; size *= 2)
 	{
 		/* Use a non-linear regression */
-		test_memset(size, &nl_memset_cl);
+		ret = test_memset(size, &nl_memset_cl);
+		if (ret == ENODEV)
+		{
+			starpu_shutdown();
+			return STARPU_TEST_SKIPPED;
+		}
 	}
 
 	ret = starpu_task_wait_for_all();
