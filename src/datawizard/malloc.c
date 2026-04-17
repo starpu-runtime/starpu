@@ -319,7 +319,7 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 			}
 			goto end;
 #endif /* STARPU_USE_HIP */
-		}
+//		}
 //		else if (_starpu_can_submit_opencl_task())
 //		{
 //#ifdef STARPU_USE_OPENCL
@@ -347,8 +347,8 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 //			STARPU_ASSERT(push_res != -ENODEV);
 //			goto end;
 //#endif /* STARPU_USE_OPENCL */
-//		}
 #endif /* STARPU_SIMGRID */
+		}
 	}
 
 #ifdef STARPU_SIMGRID
