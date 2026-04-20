@@ -31,6 +31,9 @@ DEMO_OBJS := main.o
 
 all: $(LIB) $(DEMO)
 
+# Convenience alias: `make build` (same as `make` / `make all`)
+build: all
+
 $(LIB): $(LIB_OBJS)
 	$(CXX) -shared -o $@ $^ $(PKG_LIBS)
 
@@ -44,23 +47,23 @@ $(DEMO): $(DEMO_OBJS) $(LIB)
 libgraph_sched.o: libgraph_sched.cpp graph_recorder.cpp graph_sched_internal.hpp
 	$(CXX) $(ALL_CXXFLAGS) -c libgraph_sched.cpp -o $@
 
-.PHONY: clean run run-fxt
+.PHONY: all build clean run run-fxt
 
 clean:
 	rm -f $(LIB_OBJS) $(DEMO_OBJS) $(LIB) $(DEMO)
 
 run:	$(LIB) $(DEMO)
 	@lb="$$(pkg-config --variable=libdir $(PKG) 2>/dev/null)"; \
-	LD_LIBRARY_PATH="$$lb:$$LD_LIBRARY_PATH:." STARPU_SCHED=graph_recorder STARPU_SCHED_LIB=./$(LIB) STARPU_NCPU=1 \
-	STARPU_SILENT=1 STARPU_GRAPH_SCHED_VERBOSE=6 STARPU_GRAPH_SCHED_CHECKPOINT_MAX=100 ./$(DEMO)
+	LD_LIBRARY_PATH="$$lb:$$LD_LIBRARY_PATH:." STARPU_SCHED=graph_recorder STARPU_SCHED_LIB=./$(LIB) \
+	STARPU_NCPU=1 STARPU_NCUDA=1 STARPU_SILENT=1 STARPU_GRAPH_SCHED_VERBOSE=6 STARPU_GRAPH_SCHED_CHECKPOINT_MAX=100 ./$(DEMO)
 
 # Run with FxT traces enabled; traces stored in new_sched/traces/
 # Requires StarPU built with --with-fxt. Use starpu_fxt_tool to convert raw traces.
 run-fxt:	$(LIB) $(DEMO)
 	@mkdir -p traces
 	@lb="$$(pkg-config --variable=libdir $(PKG) 2>/dev/null)"; \
-	LD_LIBRARY_PATH="$$lb:$$LD_LIBRARY_PATH:." STARPU_SCHED=graph_recorder STARPU_SCHED_LIB=./$(LIB) STARPU_NCPU=1 \
-	STARPU_GRAPH_SCHED_VERBOSE=1 STARPU_SILENT=1 \
+	LD_LIBRARY_PATH="$$lb:$$LD_LIBRARY_PATH:." STARPU_SCHED=graph_recorder STARPU_SCHED_LIB=./$(LIB) \
+	STARPU_NCPU=1 STARPU_NCUDA=1 STARPU_GRAPH_SCHED_VERBOSE=1 STARPU_SILENT=1 \
 	STARPU_FXT_TRACE=1 STARPU_FXT_PREFIX=$(CURDIR)/traces STARPU_GENERATE_TRACE=1 \
 	./$(DEMO)
 	@echo "Traces saved in $(CURDIR)/traces/"

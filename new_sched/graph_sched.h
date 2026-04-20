@@ -4,10 +4,11 @@
  * StarPU extension hooks (starpu_graph_recorder) register with this policy for deferred
  * starpu_task_insert / starpu_data_invalidate_submit while a session is open.
  *
- * Policy init reads STARPU_GRAPH_SCHED_WORKER as TYPE:num only: cpu or cuda (case-insensitive), num = device id
+ * Policy init reads STARPU_GRAPH_SCHED_WORKER as cuda:num only (case-insensitive), num = CUDA device id
  * (not a global worker index). Resolution: starpu_worker_get_by_devid, then starpu_worker_get_by_type.
- * The value is trimmed (whitespace / CR / LF). If unset, default is CUDA:0 when present, else CPU:0.
- * Mixed CPU/GPU graphs: recording accepts all tasks; flush replay pins only when the codelet can run on the pin.
+ * The value is trimmed (whitespace / CR / LF). If unset, default is CUDA:0. CPU workers are not supported
+ * (memory-aware CUDA training). Recording may include non-CUDA tasks; flush replay pins only when the codelet
+ * can run on the CUDA pin worker.
  */
 
 #ifndef GRAPH_SCHED_H

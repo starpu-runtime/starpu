@@ -109,17 +109,21 @@ struct graph_sched_data {
     /** Sum of capture_pre_write invalidates only (flush-time checkpoint invalidates are not included). */
     unsigned graph_total_synthetic_invalidate_inserts = 0;
 
-    /** STARPU_GRAPH_SCHED_WORKER → worker id (CPU:n / CUDA:n only; devid then ordinal by type); -1 if unset. */
+    /** STARPU_GRAPH_SCHED_WORKER → CUDA worker id (cuda:n; devid then ordinal); -1 if unset. */
     int graph_pinned_worker_id = -1;
 
     /**
-     * Capacity hint for the pinned worker's memory node: for CUDA, filled at init via cudaMemGetInfo (device total /
-     * free) when StarPU is built with CUDA; otherwise starpu_memory_get_total / _available on the worker's node.
-     * -1 when unknown.
+     * Driver-reported GPU capacity (cudaMemGetInfo total / cudaGetDeviceProperties), or StarPU node total if unset.
+     * Can exceed the StarPU allocation budget when STARPU_LIMIT_CUDA*_MEM caps RAM.
      */
     std::int64_t graph_pinned_worker_max_memory_bytes = -1;
     /** Companion to graph_pinned_worker_max_memory_bytes (free / available bytes). */
     std::int64_t graph_pinned_worker_available_memory_bytes = -1;
+    /**
+     * Scheduler budget on the pinned CUDA node: from starpu_memory_get_total / STARPU_LIMIT_* / fallbacks,
+     * then clamped so it never exceeds graph_pinned_worker_available_memory_bytes when that is known.
+     */
+    std::int64_t graph_pinned_worker_max_allowed_memory_bytes = -1;
     /** starpu_memory_get_used(same node) — StarPU-accounted use on that node. */
     std::uint64_t graph_pinned_worker_starpu_used_bytes = 0;
 
