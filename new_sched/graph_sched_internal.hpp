@@ -7,6 +7,7 @@
 #include <limits>
 #include <mutex>
 #include <unordered_map>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -52,12 +53,25 @@ struct GraphOp {
     double predicted_exec_time = std::numeric_limits<double>::quiet_NaN();
 
     /**
+     * Outer sched_ctx iteration from starpu_sched_ctx_get_iteration(ctx, 0) when set (batch / epoch index with nested
+     * starpu_iteration_push). Independent of graph_stage_subiteration (inner slot or single-level fallback).
+     */
+    bool graph_stage_batch_iteration_valid = false;
+    std::uint32_t graph_stage_batch_iteration = 0;
+
+    /**
      * Sched_ctx iteration at capture when set: get_iteration(ctx,1) if nested push, else get_iteration(ctx,0).
      * Convention: 0 = preparation (e.g. clear gradients); 1 .. UINT32_MAX-1 = minibatch index;
      * UINT32_MAX (4294967295) = optimizer step.
      */
     bool graph_stage_subiteration_valid = false;
     std::uint32_t graph_stage_subiteration = 0;
+};
+
+/** Per-task capture signature for batch-repeatability checks (codelet name + buffer footprint; see graph_recorder). */
+struct GraphBatchTaskStructureSig {
+    std::string codelet_name;
+    std::vector<size_t> buffer_sizes;
 };
 
 /** Handles classified from a finished graph capture (see graph_sched_parse_captured_data_handles). */
@@ -135,6 +149,27 @@ struct graph_sched_data {
 
     /** Filled when outermost recording ends, before replay (parser runs on captured ops). */
     graph_sched_captured_handle_groups graph_captured_handle_groups;
+
+    /** Previous flush TASK-only structure (operation + footprint); replay reuse and checkpoint compat vs previous batch. */
+    bool graph_prev_flush_task_sigs_valid = false;
+    std::vector<GraphBatchTaskStructureSig> graph_prev_flush_task_structure_sigs;
+
+    /** Last computed replay submission order (indices into ops after checkpoint insertion); see graph_recorder. */
+    bool graph_cached_replay_order_valid = false;
+    std::vector<size_t> graph_cached_replay_op_order;
+    size_t graph_cached_pre_checkpoint_op_count = 0;
+    unsigned graph_cached_inserted_checkpoints = 0;
+    size_t graph_cached_replay_final_op_count = 0;
+
+    /**
+     * Optimized TASK submission order within the first \e repeating minibatch pair (graph subiter 3=forward, 4=backward),
+     * as a permutation of capture-order indices into that pair's TASK list. Minibatch 0 (subiter 1/2) may include
+     * subiteration 0 (init); it is not used here. Later pairs (5/6), (7/8)… reuse this pattern via tie-break when the
+     * minibatch chain matches.
+     */
+    bool graph_minibatch_pair_task_toporder_pattern_valid = false;
+    std::vector<unsigned> graph_minibatch_pair_task_toporder_pattern;
+    unsigned graph_minibatch_pair_task_count = 0;
 };
 
 /** Policy init: resolve STARPU_GRAPH_SCHED_WORKER into graph_pinned_worker_id and log target. */

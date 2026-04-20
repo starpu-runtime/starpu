@@ -475,7 +475,20 @@ struct GraphReplayStats {
     unsigned added_invalidate_submit = 0;
     /** Flush-time: one `GraphOp::INVALIDATE` per inserted checkpoint (WRR path). */
     unsigned checkpoint_invalidate_inserts = 0;
+    /** Optimizer-state handles: RAM prefetch + GPU evict hints before optimizer (see STARPU_GRAPH_SCHED_OPTIMIZER_STATE_OFFLOAD). */
+    unsigned optimizer_state_offload_hints = 0;
+    /** Optimizer-state handles: prefetch to pinned GPU before first optimizer task. */
+    unsigned optimizer_state_prefetch_hints = 0;
 };
+
+/** Default 0: set to 1 to enable RAM offload + GPU prefetch hints for parsed optimizer \c states (see query guards). */
+static int graph_sched_optimizer_state_offload_env(void)
+{
+    const char *e = getenv("STARPU_GRAPH_SCHED_OPTIMIZER_STATE_OFFLOAD");
+    if (!e || !e[0])
+        return 0;
+    return atoi(e) != 0;
+}
 
 /** Pure write (not STARPU_RW / RMW): overwrite may require a prior invalidate_submit. */
 [[maybe_unused]] static bool graph_mode_is_write_only_overwrite(enum starpu_data_access_mode mode)
@@ -929,11 +942,13 @@ static void graph_sched_append_minibatch_task_list_diag(std::string &s, const ch
 }
 
 /**
- * Assumes sched_ctx iteration convention: first minibatch uses graph subiterations 1 (forward) and 2 (backward);
- * further minibatches use 3/4, 5/6, … in capture order. Compares task counts and pairwise task structure vs minibatch 0.
+ * Sched_ctx convention: minibatch k uses graph subiterations 2k+1 (forward) and 2k+2 (backward).
+ * Within one capture, each non-empty minibatch must match the \e previous minibatch in structure (codelet + footprint),
+ * analogous to batch-level “prev flush”: pair (3,4) vs (1,2), then (5,6) vs (3,4), etc. The first minibatch can differ
+ * from nothing prior; later minibatches only need to repeat the immediately preceding pair.
  *
- * @return true if WRR checkpointing may use parsed activations (every present later minibatch matches the first), or if
- *         there is no first-minibatch template to contradict. false → caller must pass nullptr for checkpoint keys.
+ * @return true if WRR checkpointing may use parsed activations, or if there is no (1/2) template to contradict.
+ *         false → caller must pass nullptr for checkpoint keys.
  */
 static bool graph_sched_minibatch_template_allows_checkpointing(const std::vector<GraphOp> &ops, int verbose)
 {
@@ -942,6 +957,9 @@ static bool graph_sched_minibatch_template_allows_checkpointing(const std::vecto
     graph_sched_collect_op_indices_for_subiteration(ops, 2u, ref_bwd);
 
     if (ref_fwd.empty() && ref_bwd.empty()) {
+        if (verbose >= 2)
+            std::cerr << "graph_recorder: minibatch_compat: iteration_repeat_skipped=1 reason=no_subiter_1_2_task_ops"
+                      << std::endl;
         if (verbose >= 3)
             std::cerr << "graph_recorder: minibatch_compat: first_minibatch (graph_subiter 1/2) has no task ops; skip template "
                          "check (checkpointing unchanged)"
@@ -950,30 +968,37 @@ static bool graph_sched_minibatch_template_allows_checkpointing(const std::vecto
     }
 
     bool all_compatible = true;
+    unsigned minibatch_steps_compared = 0;
     const std::uint32_t max_sub = graph_sched_max_graph_subiteration_non_optimizer(ops);
     /* Avoid pathological loops if iteration values are huge; 4096 covers 2047 extra minibatches. */
     const std::uint32_t hi = std::min<std::uint32_t>(max_sub, 8192u);
 
     for (unsigned m = 1u; 2u * m + 2u <= hi; ++m) {
+        const std::uint32_t rfs = 2u * (m - 1u) + 1u;
+        const std::uint32_t rbs = 2u * (m - 1u) + 2u;
         const std::uint32_t fs = 2u * m + 1u;
         const std::uint32_t bs = 2u * m + 2u;
+        graph_sched_collect_op_indices_for_subiteration(ops, rfs, ref_fwd);
+        graph_sched_collect_op_indices_for_subiteration(ops, rbs, ref_bwd);
         graph_sched_collect_op_indices_for_subiteration(ops, fs, cur_fwd);
         graph_sched_collect_op_indices_for_subiteration(ops, bs, cur_bwd);
         if (cur_fwd.empty() && cur_bwd.empty())
             continue;
 
+        minibatch_steps_compared++;
+
         bool ok = true;
         std::string detail;
         if (cur_fwd.size() != ref_fwd.size()) {
             ok = false;
-            detail = "forward_task_count first=" + std::to_string(ref_fwd.size()) + " other=" + std::to_string(cur_fwd.size());
-            graph_sched_append_minibatch_task_list_diag(detail, " first_fwd", ops, ref_fwd);
-            graph_sched_append_minibatch_task_list_diag(detail, " other_fwd", ops, cur_fwd);
+            detail = "forward_task_count prev=" + std::to_string(ref_fwd.size()) + " cur=" + std::to_string(cur_fwd.size());
+            graph_sched_append_minibatch_task_list_diag(detail, " prev_fwd", ops, ref_fwd);
+            graph_sched_append_minibatch_task_list_diag(detail, " cur_fwd", ops, cur_fwd);
         } else if (cur_bwd.size() != ref_bwd.size()) {
             ok = false;
-            detail = "backward_task_count first=" + std::to_string(ref_bwd.size()) + " other=" + std::to_string(cur_bwd.size());
-            graph_sched_append_minibatch_task_list_diag(detail, " first_bwd", ops, ref_bwd);
-            graph_sched_append_minibatch_task_list_diag(detail, " other_bwd", ops, cur_bwd);
+            detail = "backward_task_count prev=" + std::to_string(ref_bwd.size()) + " cur=" + std::to_string(cur_bwd.size());
+            graph_sched_append_minibatch_task_list_diag(detail, " prev_bwd", ops, ref_bwd);
+            graph_sched_append_minibatch_task_list_diag(detail, " cur_bwd", ops, cur_bwd);
         } else {
             const char *tag = nullptr;
             unsigned bi = 0;
@@ -999,19 +1024,292 @@ static bool graph_sched_minibatch_template_allows_checkpointing(const std::vecto
             all_compatible = false;
 
         if (verbose >= 3) {
-            std::cerr << "graph_recorder: minibatch_compat: minibatch_index=" << m << " graph_subiter_fwd=" << fs
-                      << " graph_subiter_bwd=" << bs << " compatible_with_first=" << (ok ? 1 : 0);
+            std::cerr << "graph_recorder: minibatch_compat: minibatch_index=" << m << " ref_graph_subiter_fwd=" << rfs
+                      << " ref_graph_subiter_bwd=" << rbs << " cur_graph_subiter_fwd=" << fs << " cur_graph_subiter_bwd=" << bs
+                      << " compatible_with_previous_minibatch=" << (ok ? 1 : 0);
             if (!ok && !detail.empty())
                 std::cerr << " (" << detail << ")";
             std::cerr << std::endl;
         }
     }
 
+    if (verbose >= 2)
+        std::cerr << "graph_recorder: minibatch_compat: iteration_repeat_chain_ok=" << (all_compatible ? 1 : 0)
+                  << " minibatch_steps_compared=" << minibatch_steps_compared << std::endl;
+
     if (!all_compatible && verbose >= 1)
-        std::cerr << "graph_recorder: checkpointing disabled: at least one later fwd/bwd minibatch does not match the "
-                     "first (STARPU_GRAPH_SCHED_VERBOSE>=3 for per-minibatch lines)"
+        std::cerr << "graph_recorder: checkpointing disabled: at least one fwd/bwd minibatch does not match the previous "
+                     "minibatch in this capture (STARPU_GRAPH_SCHED_VERBOSE>=3 for per-step lines)"
                   << std::endl;
     return all_compatible;
+}
+
+/** TASKs only: capture order = all subiter \p fs then all \p bs (same as graph_sched_collect_op_indices_for_subiteration). */
+static void graph_sched_collect_task_op_indices_two_subiters(const std::vector<GraphOp> &ops, std::uint32_t fs,
+                                                             std::uint32_t bs, std::vector<size_t> &cap_out)
+{
+    std::vector<size_t> cf, cb;
+    graph_sched_collect_op_indices_for_subiteration(ops, fs, cf);
+    graph_sched_collect_op_indices_for_subiteration(ops, bs, cb);
+    cap_out.clear();
+    cap_out.reserve(cf.size() + cb.size());
+    for (size_t x : cf)
+        cap_out.push_back(x);
+    for (size_t x : cb)
+        cap_out.push_back(x);
+}
+
+/**
+ * From replay greedy topo over the first repeating minibatch (graph subiter 3/4 TASKs), record which capture-order
+ * TASK (local index) is k-th in submission order — used as template for later pairs.
+ */
+static bool graph_sched_extract_minibatch_pair_task_toporder_pattern(const std::vector<GraphOp> &ops,
+                                                                     const std::vector<size_t> &topo_order,
+                                                                     std::vector<unsigned> &pattern_out,
+                                                                     unsigned &L_out)
+{
+    std::vector<size_t> cap;
+    graph_sched_collect_task_op_indices_two_subiters(ops, 3u, 4u, cap);
+    L_out = static_cast<unsigned>(cap.size());
+    if (L_out == 0)
+        return false;
+    std::unordered_map<size_t, unsigned> op_to_local;
+    op_to_local.reserve(cap.size());
+    for (unsigned k = 0; k < L_out; ++k)
+        op_to_local[cap[k]] = k;
+    pattern_out.clear();
+    pattern_out.reserve(L_out);
+    for (size_t ti : topo_order) {
+        const auto it = op_to_local.find(ti);
+        if (it != op_to_local.end())
+            pattern_out.push_back(it->second);
+    }
+    return pattern_out.size() == L_out;
+}
+
+/** Tie ranks for repeating minibatch TASK ops: each block uses the same permutation \p pattern over its TASK list. */
+static bool graph_sched_build_minibatch_replay_tie_ranks(const std::vector<GraphOp> &ops,
+                                                         const std::vector<unsigned> &pattern, unsigned L,
+                                                         std::vector<unsigned> &tie_out)
+{
+    const size_t n = ops.size();
+    tie_out.resize(n);
+    for (size_t i = 0; i < n; ++i)
+        tie_out[i] = static_cast<unsigned>(i);
+
+    if (pattern.size() != L || L == 0)
+        return false;
+
+    const std::uint32_t max_sub = graph_sched_max_graph_subiteration_non_optimizer(ops);
+    const std::uint32_t hi = std::min<std::uint32_t>(max_sub, 8192u);
+    unsigned block_idx = 0;
+    for (unsigned m = 1u; 2u * m + 2u <= hi; ++m) {
+        const std::uint32_t fs = 2u * m + 1u;
+        const std::uint32_t bs = 2u * m + 2u;
+        std::vector<size_t> cap;
+        graph_sched_collect_task_op_indices_two_subiters(ops, fs, bs, cap);
+        if (cap.size() != L)
+            return false;
+        for (unsigned k = 0; k < L; ++k) {
+            const size_t oi = cap[pattern[k]];
+            if (oi >= n)
+                return false;
+            tie_out[oi] = block_idx * 1000000u + k;
+        }
+        block_idx++;
+    }
+    return true;
+}
+
+static bool graph_sched_infer_batch_capture_context(const std::vector<GraphOp> &ops, bool *has_batch_tags_out,
+                                                    std::uint32_t *batch_value_out)
+{
+    if (has_batch_tags_out)
+        *has_batch_tags_out = false;
+    bool saw_task = false;
+    bool any_valid = false;
+    bool any_invalid = false;
+    std::uint32_t v = 0;
+    bool v_set = false;
+    for (const GraphOp &op : ops) {
+        if (op.kind != GraphOp::TASK || !op.task)
+            continue;
+        saw_task = true;
+        if (op.graph_stage_batch_iteration_valid) {
+            any_valid = true;
+            if (!v_set) {
+                v = op.graph_stage_batch_iteration;
+                v_set = true;
+            } else if (op.graph_stage_batch_iteration != v)
+                return false;
+        } else {
+            any_invalid = true;
+        }
+    }
+    if (!saw_task)
+        return true;
+    if (any_valid && any_invalid)
+        return false;
+    if (any_valid && has_batch_tags_out && batch_value_out) {
+        *has_batch_tags_out = true;
+        *batch_value_out = v;
+    }
+    return true;
+}
+
+static void graph_sched_append_task_structure_sig_from_op(const GraphOp &op,
+                                                          std::vector<GraphBatchTaskStructureSig> &out)
+{
+    if (op.kind != GraphOp::TASK || !op.task)
+        return;
+    struct starpu_task *t = op.task;
+    GraphBatchTaskStructureSig s;
+    if (t->cl && t->cl->name)
+        s.codelet_name = t->cl->name;
+    if (t->cl) {
+        const unsigned nbuf = STARPU_TASK_GET_NBUFFERS(t);
+        s.buffer_sizes.reserve(nbuf);
+        for (unsigned i = 0; i < nbuf; ++i) {
+            starpu_data_handle_t h = STARPU_TASK_GET_HANDLE(t, i);
+            s.buffer_sizes.push_back(h ? starpu_data_get_size(h) : 0u);
+        }
+    }
+    out.push_back(std::move(s));
+}
+
+static void graph_sched_collect_task_structure_sigs(const std::vector<GraphOp> &ops, bool has_batch_tags,
+                                                    std::uint32_t batch_value,
+                                                    std::vector<GraphBatchTaskStructureSig> &out)
+{
+    out.clear();
+    for (const GraphOp &op : ops) {
+        if (op.kind != GraphOp::TASK || !op.task)
+            continue;
+        if (has_batch_tags) {
+            if (!op.graph_stage_batch_iteration_valid || op.graph_stage_batch_iteration != batch_value)
+                continue;
+        }
+        graph_sched_append_task_structure_sig_from_op(op, out);
+    }
+}
+
+static bool graph_sched_task_structure_sig_equal(const GraphBatchTaskStructureSig &a, const GraphBatchTaskStructureSig &b)
+{
+    if (a.codelet_name != b.codelet_name)
+        return false;
+    if (a.buffer_sizes.size() != b.buffer_sizes.size())
+        return false;
+    for (size_t i = 0; i < a.buffer_sizes.size(); ++i) {
+        if (a.buffer_sizes[i] != b.buffer_sizes[i])
+            return false;
+    }
+    return true;
+}
+
+static bool graph_sched_task_structure_sigs_equal(const std::vector<GraphBatchTaskStructureSig> &a,
+                                                  const std::vector<GraphBatchTaskStructureSig> &b)
+{
+    if (a.size() != b.size())
+        return false;
+    for (size_t i = 0; i < a.size(); ++i) {
+        if (!graph_sched_task_structure_sig_equal(a[i], b[i]))
+            return false;
+    }
+    return true;
+}
+
+static bool graph_sched_topo_order_valid_perm(const std::vector<size_t> &order, size_t n)
+{
+    if (order.size() != n)
+        return false;
+    if (n == 0)
+        return true;
+    std::vector<unsigned char> seen(n, 0);
+    for (size_t x : order) {
+        if (x >= n)
+            return false;
+        if (seen[x])
+            return false;
+        seen[x] = 1;
+    }
+    return true;
+}
+
+static std::string graph_sched_task_structure_sig_one_line(const GraphBatchTaskStructureSig &s)
+{
+    std::string r = "cl=\"" + s.codelet_name + "\" buf_bytes=[";
+    for (size_t i = 0; i < s.buffer_sizes.size(); ++i) {
+        if (i != 0)
+            r += ',';
+        r += std::to_string(s.buffer_sizes[i]);
+    }
+    r += ']';
+    return r;
+}
+
+/**
+ * Activation checkpoint keys require the current capture to match the \e previous flush's TASK structure (codelet +
+ * buffer footprint), same slice as \c graph_prev_flush_task_structure_sigs will hold after this flush ends.
+ * First flush has no prior capture → always allowed. Batch \e N can match batch \e N-1 even when batch \e N-1 differed
+ * from batch \e N-2 (e.g. optimizer buffers STARPU_W vs STARPU_RW across epochs).
+ */
+static bool graph_sched_prev_batch_structure_matches_for_checkpoint(const std::vector<GraphOp> &ops,
+                                                                      graph_sched_data *data, int verbose)
+{
+    if (!data)
+        return true;
+
+    bool has_batch = false;
+    std::uint32_t batch_val = 0;
+    if (!graph_sched_infer_batch_capture_context(ops, &has_batch, &batch_val)) {
+        if (verbose >= 1)
+            std::cerr << "graph_recorder: batch_compat: inconsistent outer batch iteration among TASK ops; checkpointing "
+                         "disabled for this flush"
+                      << std::endl;
+        return false;
+    }
+
+    std::vector<GraphBatchTaskStructureSig> cur;
+    graph_sched_collect_task_structure_sigs(ops, has_batch, has_batch ? batch_val : 0, cur);
+
+    if (!data->graph_prev_flush_task_sigs_valid) {
+        if (verbose >= 2)
+            std::cerr << "graph_recorder: batch_compat: iteration_repeat_skipped=1 reason=no_prev_flush n_task_ops="
+                      << cur.size() << std::endl;
+        if (verbose >= 3)
+            std::cerr << "graph_recorder: batch_compat: no_prev_batch_structure (first flush); checkpoint activation keys "
+                         "allowed n_task_ops="
+                      << cur.size() << std::endl;
+        return true;
+    }
+
+    const auto &ref = data->graph_prev_flush_task_structure_sigs;
+    if (ref.size() != cur.size()) {
+        if (verbose >= 1)
+            std::cerr << "graph_recorder: batch_compat: task op count differs from previous batch (prev=" << ref.size()
+                      << " current=" << cur.size() << "); checkpointing disabled for this flush" << std::endl;
+        return false;
+    }
+    for (size_t i = 0; i < ref.size(); ++i) {
+        if (!graph_sched_task_structure_sig_equal(ref[i], cur[i])) {
+            if (verbose >= 1)
+                std::cerr << "graph_recorder: batch_compat: task structure differs from previous batch at task_op_index="
+                          << i << "; checkpointing disabled for this flush" << std::endl;
+            if (verbose >= 3)
+                std::cerr << "graph_recorder: batch_compat:   prev: " << graph_sched_task_structure_sig_one_line(ref[i])
+                          << " | current: " << graph_sched_task_structure_sig_one_line(cur[i]) << std::endl;
+            return false;
+        }
+    }
+    if (verbose >= 2) {
+        std::cerr << "graph_recorder: batch_compat: iteration_repeat_vs_prev_flush_ok=1 matches_prev_batch_template=1 "
+                     "compatible_with_prev_batch=1 n_task_ops="
+                  << cur.size();
+        if (has_batch)
+            std::cerr << " outer_batch_iteration=" << batch_val;
+        std::cerr << std::endl;
+    }
+    return true;
 }
 
 /** Bump stored op indices after inserting one element at \p insert_pos (indices at or after shift by 1). */
@@ -1365,13 +1663,20 @@ static unsigned graph_sched_iteration_source_sched_ctx(unsigned task_sched_ctx_i
 
 /**
  * Read sched_ctx iteration into \p op: nested slot 1 if set, else slot 0 (single starpu_iteration_push).
- * Leaves invalid if both unset.
+ * Leaves invalid if both unset. Outer batch index is always read from slot 0 when set (see graph_stage_batch_iteration_*).
  */
 static void graph_sched_graph_op_set_stage_from_sched_ctx(GraphOp &op, unsigned task_sched_ctx_id)
 {
+    op.graph_stage_batch_iteration_valid = false;
+    op.graph_stage_batch_iteration = 0;
     op.graph_stage_subiteration_valid = false;
     op.graph_stage_subiteration = 0;
     const unsigned ctx = graph_sched_iteration_source_sched_ctx(task_sched_ctx_id);
+    long b = starpu_sched_ctx_get_iteration(ctx, 0);
+    if (b >= 0 && b <= static_cast<long>(std::numeric_limits<std::uint32_t>::max())) {
+        op.graph_stage_batch_iteration_valid = true;
+        op.graph_stage_batch_iteration = static_cast<std::uint32_t>(b);
+    }
     long v = starpu_sched_ctx_get_iteration(ctx, 1);
     if (v < 0)
         v = starpu_sched_ctx_get_iteration(ctx, 0);
@@ -1747,7 +2052,8 @@ static void graph_sched_compute_greedy_memory_topological_order(const std::vecto
                                                                 double *greedy_attempt_sec_out,
                                                                 double *lex_fallback_sec_out,
                                                                 double *greedy_prep_sec_out,
-                                                                double *greedy_loop_sec_out)
+                                                                double *greedy_loop_sec_out,
+                                                                const std::vector<unsigned> *tie_break = nullptr)
 {
     using clock = std::chrono::steady_clock;
     const size_t n = ops.size();
@@ -1763,6 +2069,8 @@ static void graph_sched_compute_greedy_memory_topological_order(const std::vecto
             *greedy_loop_sec_out = 0;
         return;
     }
+
+    const bool use_tie = tie_break && tie_break->size() == n;
 
     const clock::time_point t_greedy_start = clock::now();
 
@@ -1790,7 +2098,16 @@ static void graph_sched_compute_greedy_memory_topological_order(const std::vecto
         for (size_t k = 1; k < ready.size(); ++k) {
             const size_t u = ready[k];
             const std::int64_t d = intrinsic_delta[u];
-            if (d < best_delta || (d == best_delta && u < best)) {
+            bool better = d < best_delta;
+            if (!better && d == best_delta) {
+                if (use_tie) {
+                    if ((*tie_break)[u] < (*tie_break)[best])
+                        better = true;
+                } else if (u < best) {
+                    better = true;
+                }
+            }
+            if (better) {
                 best_delta = d;
                 best = u;
             }
@@ -2233,6 +2550,8 @@ static bool graph_sched_insert_checkpoint_for_wrr_task(std::vector<GraphOp> &ops
     checkpoint_op.task = checkpoint_task;
     checkpoint_op.graph_stage_subiteration_valid = op.graph_stage_subiteration_valid;
     checkpoint_op.graph_stage_subiteration = op.graph_stage_subiteration;
+    checkpoint_op.graph_stage_batch_iteration_valid = op.graph_stage_batch_iteration_valid;
+    checkpoint_op.graph_stage_batch_iteration = op.graph_stage_batch_iteration;
 
     ops.insert(ops.begin() + checkpoint_insert_pos, checkpoint_op);
     graph_sched_bump_op_graph_indices_after_insert(ops, checkpoint_insert_pos);
@@ -2569,16 +2888,177 @@ static unsigned graph_sched_insert_checkpoints(std::vector<GraphOp> &ops, std::v
     return inserted;
 }
 
+static void graph_sched_checkpoint_pool_stats(const std::vector<GraphOp> &ops,
+                                              const std::vector<GraphHandleAccess> &handle_accesses,
+                                              const std::unordered_set<void *> *checkpointable_activation_keys,
+                                              size_t *checkpoint_activation_producers_out,
+                                              size_t *checkpoint_chain_insertable_out)
+{
+    graph_sched_collect_checkpoint_eligible_count(ops, *checkpoint_activation_producers_out);
+    *checkpoint_chain_insertable_out = 0;
+    std::vector<size_t> chain_feasible_scratch;
+    for (const GraphOp &op : ops) {
+        if (!op.checkpoint_wrr)
+            continue;
+        const GraphOpHandleAccessRef *wact = graph_op_find_single_pure_write_access(op);
+        if (!wact || !wact->handle || !checkpointable_activation_keys ||
+            !checkpointable_activation_keys->count(static_cast<void *>(wact->handle)))
+            continue;
+        const GraphOpHandleAccessRef *wr = nullptr;
+        const char *fr = nullptr;
+        unsigned n = 0;
+        if (graph_sched_checkpoint_wrr_chain_resolve(op, ops, handle_accesses, &wr, chain_feasible_scratch, &fr, &n))
+            (*checkpoint_chain_insertable_out)++;
+    }
+}
+
+/**
+ * Replay greedy topo with optional tie-break from the stored first repeating minibatch (3/4) TASK order; updates template.
+ * Minibatch 0 (subiter 1/2, possibly mixed with subiter 0) is left to the default greedy tie (op index).
+ */
+static void graph_sched_run_replay_greedy_topo_with_minibatch_template(
+    const std::vector<GraphOp> &ops, std::vector<size_t> &topo_order, graph_sched_data *policy_data, int vb,
+    bool minibatch_chain_ok_for_checkpoint, double *topo_replay_greedy_attempt_sec, double *topo_replay_lex_fallback_sec,
+    double *greedy_replay_prep_sec, double *greedy_replay_loop_sec)
+{
+    if (policy_data && !minibatch_chain_ok_for_checkpoint)
+        policy_data->graph_minibatch_pair_task_toporder_pattern_valid = false;
+
+    std::vector<unsigned> tie;
+    const std::vector<unsigned> *tie_ptr = nullptr;
+    if (policy_data && policy_data->graph_minibatch_pair_task_toporder_pattern_valid && minibatch_chain_ok_for_checkpoint
+        && policy_data->graph_minibatch_pair_task_count > 0
+        && !policy_data->graph_minibatch_pair_task_toporder_pattern.empty()
+        && graph_sched_build_minibatch_replay_tie_ranks(ops, policy_data->graph_minibatch_pair_task_toporder_pattern,
+                                                        policy_data->graph_minibatch_pair_task_count, tie)) {
+        tie_ptr = &tie;
+        if (vb >= 2)
+            std::cerr << "graph_recorder: minibatch_compat: replay_greedy_using_optimized_minibatch_template_tie_break=1"
+                      << std::endl;
+    }
+
+    graph_sched_compute_greedy_memory_topological_order(ops, topo_order, topo_replay_greedy_attempt_sec,
+                                                          topo_replay_lex_fallback_sec, greedy_replay_prep_sec,
+                                                          greedy_replay_loop_sec, tie_ptr);
+
+    if (!policy_data)
+        return;
+
+    if (minibatch_chain_ok_for_checkpoint) {
+        std::vector<unsigned> new_pat;
+        unsigned L = 0;
+        if (graph_sched_extract_minibatch_pair_task_toporder_pattern(ops, topo_order, new_pat, L) && L > 0) {
+            policy_data->graph_minibatch_pair_task_toporder_pattern = std::move(new_pat);
+            policy_data->graph_minibatch_pair_task_count = L;
+            policy_data->graph_minibatch_pair_task_toporder_pattern_valid = true;
+            if (vb >= 2)
+                std::cerr << "graph_recorder: minibatch_compat: updated_minibatch_template_task_count=" << L
+                          << " (canonical pair graph_subiter 3/4; minibatch 0 uses 1/2 and may include subiter 0)"
+                          << std::endl;
+        } else
+            policy_data->graph_minibatch_pair_task_toporder_pattern_valid = false;
+    } else
+        policy_data->graph_minibatch_pair_task_toporder_pattern_valid = false;
+}
+
+static size_t graph_sched_find_first_optimizer_topo_index(const std::vector<GraphOp> &ops,
+                                                          const std::vector<size_t> &topo_order)
+{
+    constexpr std::uint32_t k_opt = std::numeric_limits<std::uint32_t>::max();
+    for (size_t ti = 0; ti < topo_order.size(); ++ti) {
+        const GraphOp &gop = ops[topo_order[ti]];
+        if (gop.kind == GraphOp::TASK && gop.task && gop.graph_stage_subiteration_valid
+            && gop.graph_stage_subiteration == k_opt)
+            return ti;
+    }
+    return topo_order.size();
+}
+
+static bool graph_sched_data_valid_on_node(starpu_data_handle_t h, int memory_node)
+{
+    int a = 0, v = 0, loading = 0, req = 0;
+    starpu_data_query_status2(h, memory_node, &a, &v, &loading, &req);
+    return v != 0;
+}
+
+/**
+ * Between the last minibatch task and the first optimizer task: hint replicate optimizer states to main RAM and evict
+ * from \p gpu_mem_node, then prefetch back to GPU for the optimizer step.
+ *
+ * starpu_data_prefetch_on_node uses a read path and asserts if the handle has never been initialized in the StarPU
+ * sense (no completed producer yet). We only prefetch from a node when \c starpu_data_query_status2 reports \c is_valid
+ * there, except after a GPU→RAM offload we chain an async GPU prefetch (StarPU orders requests per handle).
+ */
+static void graph_sched_emit_optimizer_state_offload_and_prefetch_hints(const graph_sched_captured_handle_groups *groups,
+                                                                        unsigned gpu_mem_node, int vb,
+                                                                        GraphReplayStats &stats, bool run_offload_phase)
+{
+    if (!groups || groups->states.empty())
+        return;
+
+    const int ram_node = static_cast<int>(STARPU_MAIN_RAM);
+    const int gpu_node = static_cast<int>(gpu_mem_node);
+
+    std::unordered_set<void *> seen;
+    seen.reserve(groups->states.size() * 2 + 8);
+    unsigned skipped_uninitialized = 0;
+
+    for (starpu_data_handle_t h : groups->states) {
+        if (!h)
+            continue;
+        void *key = static_cast<void *>(h);
+        if (!seen.insert(key).second)
+            continue;
+
+        const bool v_gpu = graph_sched_data_valid_on_node(h, gpu_node);
+        const bool v_ram = graph_sched_data_valid_on_node(h, ram_node);
+
+        if (run_offload_phase && v_gpu) {
+            (void)starpu_data_prefetch_on_node(h, STARPU_MAIN_RAM, 1);
+            (void)starpu_data_evict_from_node(h, gpu_mem_node);
+            stats.optimizer_state_offload_hints++;
+            /* Restore on GPU for optimizer reads; valid source was on GPU before offload chain. */
+            (void)starpu_data_prefetch_on_node(h, gpu_mem_node, 1);
+            stats.optimizer_state_prefetch_hints++;
+            continue;
+        }
+
+        if (v_gpu) {
+            /* Already resident on GPU. */
+            continue;
+        }
+        if (v_ram) {
+            (void)starpu_data_prefetch_on_node(h, gpu_mem_node, 1);
+            stats.optimizer_state_prefetch_hints++;
+            continue;
+        }
+
+        /* No valid replica: first-touch optimizer buffer; let the optimizer task initialize (STARPU_W). */
+        skipped_uninitialized++;
+    }
+
+    if (vb >= 2) {
+        std::cerr << "graph_recorder: optimizer_state_hints: unique_handles=" << seen.size()
+                  << " offload_phase=" << (run_offload_phase ? 1 : 0) << " ram_node=" << ram_node
+                  << " gpu_node=" << gpu_mem_node << " skipped_uninitialized_no_valid_copy=" << skipped_uninitialized
+                  << std::endl;
+    }
+}
+
 /* Call only with policy_mutex released: replay submits tasks and may call push_task_graph. */
 GraphReplayStats graph_sched_replay_recorded_ops(std::vector<GraphOp> ops,
                                                  std::vector<GraphHandleAccess> handle_accesses,
                                                  unsigned added_invalidate_submit, int pin_worker,
                                                  graph_sched_data *policy_data,
-                                                 const graph_sched_captured_handle_groups *captured_for_checkpoint)
+                                                 const graph_sched_captured_handle_groups *captured_for_checkpoint,
+                                                 const graph_sched_captured_handle_groups *captured_for_offload_hints,
+                                                 bool try_reuse_cached_submission_order,
+                                                 bool minibatch_chain_ok_for_checkpoint)
 {
     using clock = std::chrono::steady_clock;
     const clock::time_point t_flush_wall_start = clock::now();
     const int vb = graph_sched_verbose_env();
+    const size_t entry_op_count = ops.size();
 
     GraphReplayStats stats{};
     stats.added_invalidate_submit = added_invalidate_submit;
@@ -2594,104 +3074,217 @@ GraphReplayStats graph_sched_replay_recorded_ops(std::vector<GraphOp> ops,
         checkpointable_activation_keys = &checkpointable_activation_keys_storage;
     }
 
-    /* 1) Greedy memory-aware topological order on the recorded graph (before checkpoint insertion). */
     std::vector<size_t> topo_for_memory;
+    std::vector<size_t> topo_order;
     double topo_mem_greedy_attempt_sec = 0;
     double topo_mem_lex_fallback_sec = 0;
     double greedy_mem_prep_sec = 0;
     double greedy_mem_loop_sec = 0;
-    clock::time_point t_topo_mem_beg = clock::now();
-    graph_sched_compute_greedy_memory_topological_order(ops, topo_for_memory, &topo_mem_greedy_attempt_sec,
-                                                        &topo_mem_lex_fallback_sec, &greedy_mem_prep_sec,
-                                                        &greedy_mem_loop_sec);
-    clock::time_point t_topo_mem_end = clock::now();
-
-    /* 2) Peak memory along that order (pinned-node footprint model). */
-    size_t mem_peak_topo_i = 0;
-    std::int64_t mem_peak_bytes = 0;
-    std::int64_t mem_initial_bytes = 0;
-    size_t mem_initial_live_handles = 0;
-    clock::time_point t_mem_beg = clock::now();
-    graph_sched_compute_memory_after_ops(ops, handle_accesses, topo_for_memory, &mem_peak_topo_i, &mem_peak_bytes,
-                                         &mem_initial_bytes, &mem_initial_live_handles, vb >= 6);
-    clock::time_point t_mem_end = clock::now();
-
-    /* 3) Mark checkpoint-eligible tasks: structural idempotent producers whose pure-W handle is a parsed checkpointable activation. */
-    clock::time_point t_classify_beg = clock::now();
-    graph_sched_refresh_all_checkpoint_states(ops, handle_accesses, checkpointable_activation_keys);
-    clock::time_point t_classify_end = clock::now();
-
-    /* 4) WRR checkpoint insertion order: descending rematerialization speed (fastest rematerializers first). */
-    clock::time_point t_wrr_sort_beg = clock::now();
-    graph_sched_fill_wrr_checkpoint_order_by_remat_speed(policy_data, ops, pin_worker, checkpointable_activation_keys);
-    clock::time_point t_wrr_sort_end = clock::now();
-
-    /* Pool sizes before insert: activation producers vs how many pass forward/backward read chain rule on the handle. */
-    clock::time_point t_checkpoint_pool_beg = clock::now();
-    size_t checkpoint_activation_producers = 0;
-    graph_sched_collect_checkpoint_eligible_count(ops, checkpoint_activation_producers);
-    std::vector<size_t> chain_feasible_scratch;
-    size_t checkpoint_chain_insertable = 0;
-    for (const GraphOp &op : ops) {
-        if (!op.checkpoint_wrr)
-            continue;
-        const GraphOpHandleAccessRef *wact = graph_op_find_single_pure_write_access(op);
-        if (!wact || !wact->handle || !checkpointable_activation_keys ||
-            !checkpointable_activation_keys->count(static_cast<void *>(wact->handle)))
-            continue;
-        const GraphOpHandleAccessRef *wr = nullptr;
-        const char *fr = nullptr;
-        unsigned n = 0;
-        if (graph_sched_checkpoint_wrr_chain_resolve(op, ops, handle_accesses, &wr, chain_feasible_scratch, &fr, &n))
-            checkpoint_chain_insertable++;
-    }
-    clock::time_point t_checkpoint_pool_end = clock::now();
-
-    /* 5) Insert checkpoint clones (invalidates + cloned tasks) up to checkpoint_max. */
-    clock::time_point t_ckpt_beg = clock::now();
-    const unsigned inserted_checkpoints =
-        graph_sched_insert_checkpoints(ops, handle_accesses, pin_worker, policy_data, checkpointable_activation_keys);
-    clock::time_point t_ckpt_end = clock::now();
-    stats.inserted_checkpoints = inserted_checkpoints;
-    stats.checkpoint_invalidate_inserts = inserted_checkpoints;
-
-    if (vb >= 2) {
-        size_t n_task = 0, n_invalidate = 0;
-        for (const GraphOp &op : ops) {
-            switch (op.kind) {
-            case GraphOp::TASK:
-                n_task++;
-                break;
-            case GraphOp::INVALIDATE:
-                n_invalidate++;
-                break;
-            }
-        }
-        std::cerr << "graph_recorder: flush ops: tasks=" << n_task
-                  << " invalidate_graph_ops_total=" << n_invalidate
-                  << " capture_pre_write_invalidates=" << added_invalidate_submit
-                  << " checkpoint_prepended_invalidates=" << inserted_checkpoints
-                  << " auto_invalidate_env=" << (::graph_sched_auto_invalidate_enabled() ? 1 : 0) << std::endl;
-    }
-    if (vb >= 3) {
-        std::cerr << "graph_recorder: checkpoint pass: activation_producers=" << checkpoint_activation_producers
-                  << " chain_insertable_tasks=" << checkpoint_chain_insertable
-                  << " (subset with valid subiter-1 then subiter-2 pure reads on written handle after W)"
-                  << " inserted_checkpoints=" << inserted_checkpoints
-                  << " checkpoint_max=" << graph_sched_checkpoint_max_env() << std::endl;
-    }
-
-    /* 6) Recompute greedy topo after checkpoint ops changed the graph; replay uses this order. */
-    std::vector<size_t> topo_order;
     double topo_replay_greedy_attempt_sec = 0;
     double topo_replay_lex_fallback_sec = 0;
     double greedy_replay_prep_sec = 0;
     double greedy_replay_loop_sec = 0;
+
+    size_t mem_peak_topo_i = 0;
+    std::int64_t mem_peak_bytes = 0;
+    std::int64_t mem_initial_bytes = 0;
+    size_t mem_initial_live_handles = 0;
+
+    clock::time_point t_topo_mem_beg = clock::now();
+    clock::time_point t_topo_mem_end = clock::now();
+    clock::time_point t_mem_beg = clock::now();
+    clock::time_point t_mem_end = clock::now();
+    clock::time_point t_classify_beg = clock::now();
+    clock::time_point t_classify_end = clock::now();
+    clock::time_point t_wrr_sort_beg = clock::now();
+    clock::time_point t_wrr_sort_end = clock::now();
+    clock::time_point t_checkpoint_pool_beg = clock::now();
+    clock::time_point t_checkpoint_pool_end = clock::now();
+    clock::time_point t_ckpt_beg = clock::now();
+    clock::time_point t_ckpt_end = clock::now();
     clock::time_point t_topo_replay_beg = clock::now();
-    graph_sched_compute_greedy_memory_topological_order(ops, topo_order, &topo_replay_greedy_attempt_sec,
-                                                          &topo_replay_lex_fallback_sec, &greedy_replay_prep_sec,
-                                                          &greedy_replay_loop_sec);
     clock::time_point t_topo_replay_end = clock::now();
+
+    unsigned inserted_checkpoints = 0;
+    bool reused_cached_submission_order = false;
+    /** True when we skip pre-checkpoint greedy memory topo + peak sim (structure matches previous flush). */
+    bool compatible_batch_fast_path = false;
+    bool checkpoint_insert_ran = false;
+
+    size_t checkpoint_activation_producers = 0;
+    size_t checkpoint_chain_insertable = 0;
+
+    if (try_reuse_cached_submission_order && policy_data && policy_data->graph_cached_replay_order_valid
+        && entry_op_count == policy_data->graph_cached_pre_checkpoint_op_count) {
+        compatible_batch_fast_path = true;
+        t_topo_mem_beg = t_topo_mem_end = t_mem_beg = t_mem_end = clock::now();
+
+        t_classify_beg = clock::now();
+        graph_sched_refresh_all_checkpoint_states(ops, handle_accesses, checkpointable_activation_keys);
+        t_classify_end = clock::now();
+
+        /* Same WRR ordering as the full flush path: insert_checkpoints uses graph_idempotent_tasks_sorted when set.
+         * Skipping this caused capture-order inserts → different checkpoint set vs cached replay_order / sizes. */
+        t_wrr_sort_beg = clock::now();
+        graph_sched_fill_wrr_checkpoint_order_by_remat_speed(policy_data, ops, pin_worker, checkpointable_activation_keys);
+        t_wrr_sort_end = clock::now();
+
+        t_checkpoint_pool_beg = clock::now();
+        graph_sched_checkpoint_pool_stats(ops, handle_accesses, checkpointable_activation_keys,
+                                          &checkpoint_activation_producers, &checkpoint_chain_insertable);
+        t_checkpoint_pool_end = clock::now();
+
+        t_ckpt_beg = clock::now();
+        inserted_checkpoints =
+            graph_sched_insert_checkpoints(ops, handle_accesses, pin_worker, policy_data, checkpointable_activation_keys);
+        t_ckpt_end = clock::now();
+        checkpoint_insert_ran = true;
+        stats.inserted_checkpoints = inserted_checkpoints;
+        stats.checkpoint_invalidate_inserts = inserted_checkpoints;
+
+        if (vb >= 2) {
+            size_t n_task = 0, n_invalidate = 0;
+            for (const GraphOp &op : ops) {
+                switch (op.kind) {
+                case GraphOp::TASK:
+                    n_task++;
+                    break;
+                case GraphOp::INVALIDATE:
+                    n_invalidate++;
+                    break;
+                }
+            }
+            std::cerr << "graph_recorder: flush ops: tasks=" << n_task
+                      << " invalidate_graph_ops_total=" << n_invalidate
+                      << " capture_pre_write_invalidates=" << added_invalidate_submit
+                      << " checkpoint_prepended_invalidates=" << inserted_checkpoints
+                      << " auto_invalidate_env=" << (::graph_sched_auto_invalidate_enabled() ? 1 : 0) << std::endl;
+        }
+        if (vb >= 3) {
+            std::cerr << "graph_recorder: checkpoint pass: activation_producers=" << checkpoint_activation_producers
+                      << " chain_insertable_tasks=" << checkpoint_chain_insertable
+                      << " (subset with valid subiter-1 then subiter-2 pure reads on written handle after W)"
+                      << " inserted_checkpoints=" << inserted_checkpoints
+                      << " checkpoint_max=" << graph_sched_checkpoint_max_env() << std::endl;
+        }
+
+        /* Cached permutations are only validated as permutations, not as topological orders of *this* graph after
+         * checkpoint insert; reusing them caused StarPU implicit-dep / uninitialized-handle failures. Always recompute
+         * replay greedy topo; compare to prior cache for metrics only. */
+        const unsigned prev_cached_ins = policy_data->graph_cached_inserted_checkpoints;
+        const size_t prev_cached_final = policy_data->graph_cached_replay_final_op_count;
+        const std::vector<size_t> prev_cached_replay_order = policy_data->graph_cached_replay_op_order;
+
+        t_topo_replay_beg = clock::now();
+        graph_sched_run_replay_greedy_topo_with_minibatch_template(
+            ops, topo_order, policy_data, vb, minibatch_chain_ok_for_checkpoint, &topo_replay_greedy_attempt_sec,
+            &topo_replay_lex_fallback_sec, &greedy_replay_prep_sec, &greedy_replay_loop_sec);
+        t_topo_replay_end = clock::now();
+
+        reused_cached_submission_order = (inserted_checkpoints == prev_cached_ins && ops.size() == prev_cached_final
+                                          && graph_sched_topo_order_valid_perm(prev_cached_replay_order, ops.size())
+                                          && topo_order == prev_cached_replay_order);
+
+        if (policy_data) {
+            policy_data->graph_cached_pre_checkpoint_op_count = entry_op_count;
+            policy_data->graph_cached_inserted_checkpoints = inserted_checkpoints;
+            policy_data->graph_cached_replay_final_op_count = ops.size();
+            policy_data->graph_cached_replay_op_order = topo_order;
+            policy_data->graph_cached_replay_order_valid = true;
+        }
+    }
+
+    if (!reused_cached_submission_order && !checkpoint_insert_ran) {
+        /* 1) Greedy memory-aware topological order on the recorded graph (before checkpoint insertion). */
+        t_topo_mem_beg = clock::now();
+        graph_sched_compute_greedy_memory_topological_order(ops, topo_for_memory, &topo_mem_greedy_attempt_sec,
+                                                              &topo_mem_lex_fallback_sec, &greedy_mem_prep_sec,
+                                                              &greedy_mem_loop_sec);
+        t_topo_mem_end = clock::now();
+
+        /* 2) Peak memory along that order (pinned-node footprint model). */
+        t_mem_beg = clock::now();
+        graph_sched_compute_memory_after_ops(ops, handle_accesses, topo_for_memory, &mem_peak_topo_i, &mem_peak_bytes,
+                                             &mem_initial_bytes, &mem_initial_live_handles, vb >= 6);
+        t_mem_end = clock::now();
+
+        /* 3) Mark checkpoint-eligible tasks: structural idempotent producers whose pure-W handle is a parsed
+         * checkpointable activation. */
+        t_classify_beg = clock::now();
+        graph_sched_refresh_all_checkpoint_states(ops, handle_accesses, checkpointable_activation_keys);
+        t_classify_end = clock::now();
+
+        /* 4) WRR checkpoint insertion order: descending rematerialization speed (fastest rematerializers first). */
+        t_wrr_sort_beg = clock::now();
+        graph_sched_fill_wrr_checkpoint_order_by_remat_speed(policy_data, ops, pin_worker, checkpointable_activation_keys);
+        t_wrr_sort_end = clock::now();
+
+        /* Pool sizes before insert: activation producers vs how many pass forward/backward read chain rule on the handle. */
+        t_checkpoint_pool_beg = clock::now();
+        graph_sched_checkpoint_pool_stats(ops, handle_accesses, checkpointable_activation_keys,
+                                          &checkpoint_activation_producers, &checkpoint_chain_insertable);
+        t_checkpoint_pool_end = clock::now();
+
+        /* 5) Insert checkpoint clones (invalidates + cloned tasks) up to checkpoint_max. */
+        t_ckpt_beg = clock::now();
+        inserted_checkpoints =
+            graph_sched_insert_checkpoints(ops, handle_accesses, pin_worker, policy_data, checkpointable_activation_keys);
+        t_ckpt_end = clock::now();
+        stats.inserted_checkpoints = inserted_checkpoints;
+        stats.checkpoint_invalidate_inserts = inserted_checkpoints;
+
+        if (vb >= 2) {
+            size_t n_task = 0, n_invalidate = 0;
+            for (const GraphOp &op : ops) {
+                switch (op.kind) {
+                case GraphOp::TASK:
+                    n_task++;
+                    break;
+                case GraphOp::INVALIDATE:
+                    n_invalidate++;
+                    break;
+                }
+            }
+            std::cerr << "graph_recorder: flush ops: tasks=" << n_task
+                      << " invalidate_graph_ops_total=" << n_invalidate
+                      << " capture_pre_write_invalidates=" << added_invalidate_submit
+                      << " checkpoint_prepended_invalidates=" << inserted_checkpoints
+                      << " auto_invalidate_env=" << (::graph_sched_auto_invalidate_enabled() ? 1 : 0) << std::endl;
+        }
+        if (vb >= 3) {
+            std::cerr << "graph_recorder: checkpoint pass: activation_producers=" << checkpoint_activation_producers
+                      << " chain_insertable_tasks=" << checkpoint_chain_insertable
+                      << " (subset with valid subiter-1 then subiter-2 pure reads on written handle after W)"
+                      << " inserted_checkpoints=" << inserted_checkpoints
+                      << " checkpoint_max=" << graph_sched_checkpoint_max_env() << std::endl;
+        }
+
+        /* 6) Recompute greedy topo after checkpoint ops changed the graph; replay uses this order. */
+        t_topo_replay_beg = clock::now();
+        graph_sched_run_replay_greedy_topo_with_minibatch_template(
+            ops, topo_order, policy_data, vb, minibatch_chain_ok_for_checkpoint, &topo_replay_greedy_attempt_sec,
+            &topo_replay_lex_fallback_sec, &greedy_replay_prep_sec, &greedy_replay_loop_sec);
+        t_topo_replay_end = clock::now();
+
+        if (policy_data) {
+            policy_data->graph_cached_pre_checkpoint_op_count = entry_op_count;
+            policy_data->graph_cached_inserted_checkpoints = inserted_checkpoints;
+            policy_data->graph_cached_replay_final_op_count = ops.size();
+            policy_data->graph_cached_replay_op_order = topo_order;
+            policy_data->graph_cached_replay_order_valid = true;
+        }
+
+        if (vb >= 2) {
+            std::cerr << "graph_recorder: replay: reuse_cached_submission_order=0 (computed new greedy topo + memory "
+                         "passes; cached order updated for future compatible batches)"
+                      << std::endl;
+        }
+    } else if (compatible_batch_fast_path && vb >= 2) {
+        std::cerr << "graph_recorder: replay: compatible_batch_fast_path=1 skipped_greedy_memory_topo=1 "
+                     "skipped_memory_peak_sim=1 replay_greedy_topo_after_checkpoints=1 "
+                     "replay_topo_identical_to_prior_cache="
+                  << (reused_cached_submission_order ? 1 : 0) << std::endl;
+    }
 
     if (vb >= 3 && !topo_for_memory.empty()) {
         std::cerr << "graph_recorder: memory footprint (pinned worker node model): initial_live_handles="
@@ -2731,10 +3324,25 @@ GraphReplayStats graph_sched_replay_recorded_ops(std::vector<GraphOp> ops,
         pin_cl_cache = &pin_cl_runnable;
     }
 
+    const size_t first_opt_topo = graph_sched_find_first_optimizer_topo_index(ops, topo_order);
+    const bool have_optimizer_phase = first_opt_topo < topo_order.size();
+    const bool offload_env = graph_sched_optimizer_state_offload_env() != 0;
+    unsigned gpu_mem_node_for_hints = 0;
+    if (pin_worker >= 0)
+        gpu_mem_node_for_hints = starpu_worker_get_memory_node(static_cast<unsigned>(pin_worker));
+
     clock::time_point t_replay_beg = clock::now();
     _starpu_graph_recorder_set_flushing(1);
-    for (size_t op_idx : topo_order) {
+    for (size_t ti = 0; ti < topo_order.size(); ++ti) {
+        const size_t op_idx = topo_order[ti];
         const GraphOp &op = ops[op_idx];
+
+        if (offload_env && captured_for_offload_hints && pin_worker >= 0 && have_optimizer_phase && ti == first_opt_topo) {
+            const bool run_offload_phase = first_opt_topo > 0;
+            graph_sched_emit_optimizer_state_offload_and_prefetch_hints(captured_for_offload_hints, gpu_mem_node_for_hints,
+                                                                          vb, stats, run_offload_phase);
+        }
+
         switch (op.kind) {
         case GraphOp::TASK:
             if (pin_worker >= 0)
@@ -2860,20 +3468,57 @@ void graph_sched_recorder_deinit(graph_sched_data *data, unsigned sched_ctx_id)
         }
         graph_sched_captured_handle_groups parsed{};
         bool minibatch_ok_for_checkpoint = true;
+        bool batch_ok_for_checkpoint = true;
+        bool try_reuse_cached_order = false;
+        std::vector<GraphBatchTaskStructureSig> cur_flush_task_sigs;
         if (moved_capture) {
             const int v = graph_sched_verbose_env();
             graph_sched_parse_captured_data_handles(replay, parsed, v);
-            minibatch_ok_for_checkpoint = graph_sched_minibatch_template_allows_checkpointing(replay, v);
+            bool has_batch = false;
+            std::uint32_t batch_val = 0;
+            if (!graph_sched_infer_batch_capture_context(replay, &has_batch, &batch_val))
+                has_batch = false;
+            graph_sched_collect_task_structure_sigs(replay, has_batch, has_batch ? batch_val : 0, cur_flush_task_sigs);
+            const bool matches_previous_flush =
+                data->graph_prev_flush_task_sigs_valid
+                && graph_sched_task_structure_sigs_equal(cur_flush_task_sigs, data->graph_prev_flush_task_structure_sigs);
+
+            if (matches_previous_flush) {
+                /* Same TASK structure as last flush (handles differ): reuse cached submission order + minibatch template;
+                   no need to re-validate intra-capture minibatch chain or vs previous batch. */
+                minibatch_ok_for_checkpoint = true;
+                batch_ok_for_checkpoint = true;
+                if (v >= 2)
+                    std::cerr << "graph_recorder: flush_compat: skipped_minibatch_and_prev_batch_structure_checks=1 "
+                                 "reason=matches_previous_flush_task_structure (cached optimizations; replay with current "
+                                 "handles)"
+                              << std::endl;
+            } else {
+                minibatch_ok_for_checkpoint = graph_sched_minibatch_template_allows_checkpointing(replay, v);
+                batch_ok_for_checkpoint = graph_sched_prev_batch_structure_matches_for_checkpoint(replay, data, v);
+            }
+
+            try_reuse_cached_order = matches_previous_flush && data->graph_cached_replay_order_valid;
+            if (v >= 2) {
+                std::cerr << "graph_recorder: flush_compat: matches_previous_flush_task_structure="
+                          << (matches_previous_flush ? 1 : 0)
+                          << " try_reuse_cached_submission_order=" << (try_reuse_cached_order ? 1 : 0) << std::endl;
+            }
         }
         const graph_sched_captured_handle_groups *cp =
-            (moved_capture && minibatch_ok_for_checkpoint) ? &parsed : nullptr;
-        GraphReplayStats stats =
-            graph_sched_replay_recorded_ops(std::move(replay), std::move(replay_handle_accesses),
-                                            added_invalidate_submit, data->graph_pinned_worker_id, data, cp);
+            (moved_capture && minibatch_ok_for_checkpoint && batch_ok_for_checkpoint) ? &parsed : nullptr;
+        const graph_sched_captured_handle_groups *const offload_hints = moved_capture ? &parsed : nullptr;
+        const bool mb_chain_for_replay = moved_capture ? minibatch_ok_for_checkpoint : true;
+        GraphReplayStats stats = graph_sched_replay_recorded_ops(
+            std::move(replay), std::move(replay_handle_accesses), added_invalidate_submit, data->graph_pinned_worker_id,
+            data, cp, offload_hints, try_reuse_cached_order, mb_chain_for_replay);
         {
             std::lock_guard<std::mutex> lock(data->policy_mutex);
-            if (moved_capture)
+            if (moved_capture) {
                 data->graph_captured_handle_groups = std::move(parsed);
+                data->graph_prev_flush_task_structure_sigs = std::move(cur_flush_task_sigs);
+                data->graph_prev_flush_task_sigs_valid = true;
+            }
             data->graph_total_checkpoint_inserts += stats.inserted_checkpoints;
             data->graph_total_synthetic_invalidate_inserts += stats.added_invalidate_submit;
         }
@@ -2932,14 +3577,46 @@ void starpu_graph_sched_graph_recording_end(unsigned sched_ctx_id)
         graph_sched_captured_handle_groups parsed{};
         const int v = graph_sched_verbose_env();
         graph_sched_parse_captured_data_handles(replay, parsed, v);
-        const bool minibatch_ok_for_checkpoint = graph_sched_minibatch_template_allows_checkpointing(replay, v);
+        bool has_batch = false;
+        std::uint32_t batch_val = 0;
+        if (!graph_sched_infer_batch_capture_context(replay, &has_batch, &batch_val))
+            has_batch = false;
+        std::vector<GraphBatchTaskStructureSig> cur_flush_task_sigs;
+        graph_sched_collect_task_structure_sigs(replay, has_batch, has_batch ? batch_val : 0, cur_flush_task_sigs);
+        const bool matches_previous_flush =
+            data->graph_prev_flush_task_sigs_valid
+            && graph_sched_task_structure_sigs_equal(cur_flush_task_sigs, data->graph_prev_flush_task_structure_sigs);
+
+        bool minibatch_ok_for_checkpoint;
+        bool batch_ok_for_checkpoint;
+        if (matches_previous_flush) {
+            minibatch_ok_for_checkpoint = true;
+            batch_ok_for_checkpoint = true;
+            if (v >= 2)
+                std::cerr << "graph_recorder: flush_compat: skipped_minibatch_and_prev_batch_structure_checks=1 "
+                             "reason=matches_previous_flush_task_structure (cached optimizations; replay with current "
+                             "handles)"
+                          << std::endl;
+        } else {
+            minibatch_ok_for_checkpoint = graph_sched_minibatch_template_allows_checkpointing(replay, v);
+            batch_ok_for_checkpoint = graph_sched_prev_batch_structure_matches_for_checkpoint(replay, data, v);
+        }
+
+        const bool try_reuse_cached_order = matches_previous_flush && data->graph_cached_replay_order_valid;
+        if (v >= 2) {
+            std::cerr << "graph_recorder: flush_compat: matches_previous_flush_task_structure="
+                      << (matches_previous_flush ? 1 : 0)
+                      << " try_reuse_cached_submission_order=" << (try_reuse_cached_order ? 1 : 0) << std::endl;
+        }
         const graph_sched_captured_handle_groups *const cp =
-            minibatch_ok_for_checkpoint ? &parsed : nullptr;
-        GraphReplayStats stats =
-            graph_sched_replay_recorded_ops(std::move(replay), std::move(replay_handle_accesses), added_invalidate_submit,
-                                            data->graph_pinned_worker_id, data, cp);
+            (minibatch_ok_for_checkpoint && batch_ok_for_checkpoint) ? &parsed : nullptr;
+        GraphReplayStats stats = graph_sched_replay_recorded_ops(
+            std::move(replay), std::move(replay_handle_accesses), added_invalidate_submit, data->graph_pinned_worker_id,
+            data, cp, &parsed, try_reuse_cached_order, minibatch_ok_for_checkpoint);
         std::lock_guard<std::mutex> lock(data->policy_mutex);
         data->graph_captured_handle_groups = std::move(parsed);
+        data->graph_prev_flush_task_structure_sigs = std::move(cur_flush_task_sigs);
+        data->graph_prev_flush_task_sigs_valid = true;
         data->graph_total_checkpoint_inserts += stats.inserted_checkpoints;
         data->graph_total_synthetic_invalidate_inserts += stats.added_invalidate_submit;
     }

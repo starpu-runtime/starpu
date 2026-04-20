@@ -9,6 +9,11 @@
  * The value is trimmed (whitespace / CR / LF). If unset, default is CUDA:0. CPU workers are not supported
  * (memory-aware CUDA training). Recording may include non-CUDA tasks; flush replay pins only when the codelet
  * can run on the CUDA pin worker.
+ *
+ * Optional: STARPU_GRAPH_SCHED_OPTIMIZER_STATE_OFFLOAD (default 0) — when the captured graph includes an optimizer
+ * phase (graph subiteration UINT32_MAX) and parsed optimizer-state handles (Adam m/v, etc.), emit StarPU hints before
+ * the first optimizer task: replicate to main RAM and evict from the pinned GPU, then prefetch back to GPU for the
+ * optimizer step. Set to 0 to disable.
  */
 
 #ifndef GRAPH_SCHED_H
