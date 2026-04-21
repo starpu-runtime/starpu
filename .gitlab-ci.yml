@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -19,14 +19,7 @@ stages:
   - daily
   - build
   - check
-  - extended_check_basic
-  - extended_check_blas
-  - extended_check_extensions
-  - extended_check_gpu
-  - extended_check_grind
-  - extended_check_mpi
-  - extended_check_san
-  - extended_check_schedulers
+  - extended_check
   - analyze
   - deploy
   - new-release
