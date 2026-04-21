@@ -44,7 +44,7 @@ compilation:
 
 san:
   extends: .manual_template
-  stage: extended_check_san
+  stage: extended_check
   tags: ['starpu', 'node_nogpu']
   parallel:
     matrix:
@@ -52,7 +52,7 @@ san:
 
 tsan:
   extends: .manual_failure_template
-  stage: extended_check_san
+  stage: extended_check
   tags: ['starpu', 'node_nogpu']
   parallel:
     matrix:
@@ -60,7 +60,7 @@ tsan:
 
 cuda-sanitizer:
   extends: .manual_template
-  stage: extended_check_san
+  stage: extended_check
   timeout: 2h
   variables:
     RUNNER_SCRIPT_TIMEOUT: 118m
@@ -72,7 +72,7 @@ cuda-sanitizer:
 
 scan:
   extends: .manual_template
-  stage: extended_check_san
+  stage: extended_check
   tags: ['starpu', 'node_gpu']
   parallel:
     matrix:
@@ -80,7 +80,7 @@ scan:
 
 valgrind:
   extends: .manual_template
-  stage: extended_check_grind
+  stage: extended_check
   tags: ['starpu', 'node_nogpu']
   timeout: 2h
   parallel:
@@ -89,7 +89,7 @@ valgrind:
 
 grind:
   extends: .manual_failure_template
-  stage: extended_check_grind
+  stage: extended_check
   tags: ['starpu', 'node_nogpu']
   allow_failure: true
   parallel:
@@ -98,7 +98,7 @@ grind:
 
 nogpu:
   extends: .manual_template
-  stage: extended_check_basic
+  stage: extended_check
   tags: ['starpu', 'node_nogpu']
   parallel:
     matrix:
@@ -106,7 +106,7 @@ nogpu:
 
 full_options:
   extends: .manual_template
-  stage: extended_check_basic
+  stage: extended_check
   tags: ['starpu', 'node_gpu']
   parallel:
     matrix:
@@ -114,7 +114,7 @@ full_options:
 
 drivers:
   extends: .manual_template
-  stage: extended_check_basic
+  stage: extended_check
   tags: ['starpu', 'node_gpu']
   parallel:
     matrix:
@@ -122,7 +122,7 @@ drivers:
 
 32bit:
   extends: .manual_template
-  stage: extended_check_basic
+  stage: extended_check
   tags: ['starpu', 'node_32bit']
   parallel:
     matrix:
@@ -130,7 +130,7 @@ drivers:
 
 basic:
   extends: .manual_template
-  stage: extended_check_basic
+  stage: extended_check
   tags: ['starpu', 'node_gpu']
   parallel:
     matrix:
@@ -138,7 +138,7 @@ basic:
 
 simgrid:
   extends: .manual_template
-  stage: extended_check_basic
+  stage: extended_check
   image: registry.gitlab.inria.fr/starpu/starpu-docker/ci-debian12
   tags: ['ci.inria.fr', 'linux', 'large']
   parallel:
@@ -147,7 +147,7 @@ simgrid:
 
 simgrid-mc:
   extends: .manual_template
-  stage: extended_check_basic
+  stage: extended_check
   tags: ['starpu', 'node_nogpu']
   parallel:
     matrix:
@@ -155,7 +155,7 @@ simgrid-mc:
 
 gpu:
   extends: .manual_template
-  stage: extended_check_gpu
+  stage: extended_check
   tags: ['starpu', 'node_gpu']
   parallel:
     matrix:
@@ -163,7 +163,7 @@ gpu:
 
 extensions:
   extends: .manual_template
-  stage: extended_check_extensions
+  stage: extended_check
   tags: ['starpu', 'node_nogpu']
   parallel:
     matrix:
@@ -171,7 +171,7 @@ extensions:
 
 extensions1:
   extends: .manual_template
-  stage: extended_check_extensions
+  stage: extended_check
   tags: ['starpu', 'node_gpu']
   parallel:
     matrix:
@@ -179,7 +179,7 @@ extensions1:
 
 extensions2:
   extends: .manual_template
-  stage: extended_check_extensions
+  stage: extended_check
   tags: ['starpu', 'node_gpu']
   parallel:
     matrix:
@@ -188,7 +188,7 @@ extensions2:
 
 extensions_failures:
   extends: .manual_failure_template
-  stage: extended_check_extensions
+  stage: extended_check
   tags: ['starpu', 'node_gpu']
   parallel:
     matrix:
@@ -196,7 +196,7 @@ extensions_failures:
 
 mpi:
   extends: .manual_template
-  stage: extended_check_mpi
+  stage: extended_check
   tags: ['starpu', 'node_gpu']
   parallel:
     matrix:
@@ -204,7 +204,7 @@ mpi:
 
 ms:
   extends: .manual_template
-  stage: extended_check_mpi
+  stage: extended_check
   tags: ['starpu', 'node_nogpu']
   parallel:
     matrix:
@@ -212,7 +212,7 @@ ms:
 
 blas:
   extends: .manual_template
-  stage: extended_check_blas
+  stage: extended_check
   tags: ['starpu', 'node_gpu']
   parallel:
     matrix:
@@ -220,7 +220,7 @@ blas:
 
 scheduler:
   extends: .manual_template
-  stage: extended_check_schedulers
+  stage: extended_check
   tags: ['starpu', 'node_gpu']
   parallel:
     matrix:
@@ -228,7 +228,7 @@ scheduler:
 
 scheduler_failures:
   extends: .manual_failure_template
-  stage: extended_check_schedulers
+  stage: extended_check
   tags: ['starpu', 'node_gpu']
   parallel:
     matrix:
