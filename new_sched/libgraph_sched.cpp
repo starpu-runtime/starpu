@@ -1,14 +1,17 @@
 /* graph_recorder — minimal loadable StarPU policy (FIFO ready queue).
  * Replace/extend with your own graph structure; recording hooks are wired for starpu_graph_recorder. */
 
+#include <chrono>
 #include <cstdlib>
 #include <cstring>
+#include <iomanip>
 #include <iostream>
 
 #include <starpu.h>
 #include <starpu_data.h>
 #include <starpu_sched_ctx.h>
 #include <starpu_scheduler.h>
+#include <starpu_worker.h>
 
 #include "graph_sched_internal.hpp"
 
@@ -29,7 +32,7 @@ static void graph_sched_wake_workers(unsigned sched_ctx_id)
     }
 }
 
-/** 0 = quiet; 1 = init/deinit + line when WRR checkpointing is skipped (minibatch structure mismatch vs previous minibatch in capture, or batch vs previous flush) or inconsistent batch tags; 2 = + flush summary + flush timing (ms) + iteration-repeat (minibatch chain, batch vs prev flush, flush/replay reuse); 3 = + checkpoint pass + memory peak + per-phase flush timing + captured handle_parser counts/bytes + per-minibatch per-step lines + batch sig detail; 4 = + greedy topo prep vs loop (memory + replay); 6 = + per-op memory trace at flush (memory_peak_sim time includes trace I/O). Pinned GPU memory is always printed once at policy init. */
+/** 0 = quiet; 1 = init/deinit + line when WRR checkpointing is skipped (minibatch structure mismatch vs previous minibatch in capture, or batch vs previous flush) or inconsistent batch tags; 2 = + flush summary + flush timing (ms) + graph_planning_total (wall pre-submit) + iteration-repeat (minibatch chain, batch vs prev flush, flush/replay reuse); 3 = + checkpoint pass + memory peak + per-phase flush timing + captured handle_parser counts/bytes + per-minibatch per-step lines + batch sig detail + cumulative pop_task/post_exec_hook/graph_planning at deinit; 4 = + greedy topo prep vs loop (memory + replay); 6 = + per-op memory trace at flush (memory_peak_sim time includes trace I/O). Pinned GPU memory is always printed once at policy init. */
 static int graph_sched_verbose_env(void)
 {
     const char *e = getenv("STARPU_GRAPH_SCHED_VERBOSE");
@@ -55,7 +58,52 @@ static void deinit_graph_sched(unsigned sched_ctx_id)
         std::cerr << "graph_recorder: deinit policy stats: checkpointed_tasks="
                   << data->graph_total_checkpoint_inserts
                   << " (each checkpoint prepends one invalidate op at flush) capture_pre_write_invalidates="
-                  << data->graph_total_synthetic_invalidate_inserts << std::endl;
+                  << data->graph_total_synthetic_invalidate_inserts
+                  << " pending_gpu_evict_drained=" << data->graph_pending_gpu_evict_drained << std::endl;
+    }
+    if (graph_sched_verbose_env() >= 3) {
+        const std::uint64_t pop_ns = data->graph_sched_pop_time_ns.load(std::memory_order_relaxed);
+        const unsigned pop_n = data->graph_sched_pop_calls.load(std::memory_order_relaxed);
+        const std::uint64_t pop_r_ns = data->graph_sched_pop_time_ns_replay.load(std::memory_order_relaxed);
+        const unsigned pop_r_n = data->graph_sched_pop_calls_replay.load(std::memory_order_relaxed);
+        const std::uint64_t post_ns = data->graph_sched_post_exec_time_ns.load(std::memory_order_relaxed);
+        const unsigned post_n = data->graph_sched_post_exec_calls.load(std::memory_order_relaxed);
+        const std::uint64_t post_r_ns = data->graph_sched_post_exec_time_ns_replay.load(std::memory_order_relaxed);
+        const unsigned post_r_n = data->graph_sched_post_exec_calls_replay.load(std::memory_order_relaxed);
+        const double pop_s = static_cast<double>(pop_ns) * 1e-9;
+        const double pop_r_s = static_cast<double>(pop_r_ns) * 1e-9;
+        const double post_s = static_cast<double>(post_ns) * 1e-9;
+        const double post_r_s = static_cast<double>(post_r_ns) * 1e-9;
+        const std::ios::fmtflags ff = std::cerr.flags();
+        std::cerr << "graph_recorder: deinit sched_policy_hooks:"
+                     " pop_sec_pinned_cuda_worker=" << std::fixed << std::setprecision(6) << pop_s << " pop_calls=" << pop_n;
+        if (pop_n > 0)
+            std::cerr << " pop_avg_us=" << std::setprecision(3) << (pop_s * 1e6 / static_cast<double>(pop_n));
+        std::cerr << " | pop_sec_graph_flush_replay_scope=" << std::setprecision(6) << pop_r_s << " pop_calls_replay="
+                  << pop_r_n;
+        if (pop_r_n > 0)
+            std::cerr << " pop_replay_avg_us=" << std::setprecision(3)
+                      << (pop_r_s * 1e6 / static_cast<double>(pop_r_n));
+        std::cerr << " | post_exec_cpu_sec_sum_all_threads=" << std::setprecision(6) << post_s << " post_exec_calls="
+                  << post_n;
+        if (post_n > 0)
+            std::cerr << " post_exec_avg_us=" << std::setprecision(3) << (post_s * 1e6 / static_cast<double>(post_n));
+        std::cerr << " | post_exec_sec_graph_flush_replay_scope=" << std::setprecision(6) << post_r_s
+                  << " post_exec_calls_replay=" << post_r_n;
+        if (post_r_n > 0)
+            std::cerr << " post_exec_replay_avg_us=" << std::setprecision(3)
+                      << (post_r_s * 1e6 / static_cast<double>(post_r_n));
+        const std::uint64_t plan_ns = data->graph_sched_graph_planning_time_ns.load(std::memory_order_relaxed);
+        const unsigned plan_n = data->graph_sched_graph_planning_flush_count.load(std::memory_order_relaxed);
+        const double plan_s = static_cast<double>(plan_ns) * 1e-9;
+        std::cerr << " | graph_planning_sec_sum=" << std::setprecision(6) << plan_s << " graph_planning_flushes=" << plan_n;
+        if (plan_n > 0)
+            std::cerr << " graph_planning_avg_ms=" << std::setprecision(3) << (plan_s * 1e3 / static_cast<double>(plan_n));
+        std::cerr << "\ngraph_recorder: deinit sched_policy_hooks_note: pop_* counts only the STARPU_GRAPH_SCHED pinned "
+                     "CUDA worker; other workers return immediately from pop_task. post_exec_* still sums all workers. "
+                     "graph_planning_* is wall time from each flush start until replay submit (includes classify/WRR/pool/"
+                     "mem_offload_plan and other pre-submit work).\n";
+        std::cerr.flags(ff);
     }
     delete data;
 }
@@ -82,11 +130,67 @@ static int push_task_graph(struct starpu_task *task)
     return 0;
 }
 
+namespace {
+
+struct GraphSchedPopTimer {
+    graph_sched_data *const data;
+    const std::chrono::steady_clock::time_point t0;
+    explicit GraphSchedPopTimer(graph_sched_data *d) : data(d), t0(std::chrono::steady_clock::now()) {}
+    ~GraphSchedPopTimer()
+    {
+        if (!data)
+            return;
+        const auto t1 = std::chrono::steady_clock::now();
+        const std::uint64_t ns = static_cast<std::uint64_t>(
+            std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count());
+        data->graph_sched_pop_time_ns.fetch_add(ns, std::memory_order_relaxed);
+        data->graph_sched_pop_calls.fetch_add(1u, std::memory_order_relaxed);
+        if (data->graph_replay_accounting_depth.load(std::memory_order_relaxed) > 0) {
+            data->graph_sched_pop_time_ns_replay.fetch_add(ns, std::memory_order_relaxed);
+            data->graph_sched_pop_calls_replay.fetch_add(1u, std::memory_order_relaxed);
+        }
+    }
+};
+
+struct GraphSchedPostExecTimer {
+    graph_sched_data *const data;
+    const std::chrono::steady_clock::time_point t0;
+    explicit GraphSchedPostExecTimer(graph_sched_data *d) : data(d), t0(std::chrono::steady_clock::now()) {}
+    ~GraphSchedPostExecTimer()
+    {
+        if (!data)
+            return;
+        const auto t1 = std::chrono::steady_clock::now();
+        const std::uint64_t ns = static_cast<std::uint64_t>(
+            std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count());
+        data->graph_sched_post_exec_time_ns.fetch_add(ns, std::memory_order_relaxed);
+        data->graph_sched_post_exec_calls.fetch_add(1u, std::memory_order_relaxed);
+        if (data->graph_replay_accounting_depth.load(std::memory_order_relaxed) > 0) {
+            data->graph_sched_post_exec_time_ns_replay.fetch_add(ns, std::memory_order_relaxed);
+            data->graph_sched_post_exec_calls_replay.fetch_add(1u, std::memory_order_relaxed);
+        }
+    }
+};
+
+} /* namespace */
+
 static struct starpu_task *pop_task_graph(unsigned sched_ctx_id)
 {
     auto *data = static_cast<graph_sched_data *>(starpu_sched_ctx_get_policy_data(sched_ctx_id));
+    if (!data)
+        return nullptr;
+    /* Only the pinned CUDA worker may take tasks from our queue; other workers must not contend on policy_mutex. */
+    const int wid = starpu_worker_get_id();
+    if (data->graph_pinned_worker_id >= 0 && wid != data->graph_pinned_worker_id)
+        return nullptr;
+
+    const GraphSchedPopTimer pop_timer(data);
 
     starpu_worker_relax_on();
+    if (data->graph_pinned_worker_id >= 0) {
+        const unsigned gpu_node = starpu_worker_get_memory_node(static_cast<unsigned>(data->graph_pinned_worker_id));
+        graph_sched_drain_pending_gpu_evicts(data, gpu_node);
+    }
     std::lock_guard<std::mutex> lock(data->policy_mutex);
     starpu_worker_relax_off();
 
@@ -104,8 +208,12 @@ static void do_schedule_graph(unsigned sched_ctx_id)
 
 static void post_exec_hook_graph(struct starpu_task *task, unsigned sched_ctx_id)
 {
-    (void)task;
-    (void)sched_ctx_id;
+    auto *data = static_cast<graph_sched_data *>(starpu_sched_ctx_get_policy_data(sched_ctx_id));
+    const GraphSchedPostExecTimer post_timer(data);
+    if (!data || data->graph_pinned_worker_id < 0 || !task)
+        return;
+    const unsigned gpu_node = starpu_worker_get_memory_node(static_cast<unsigned>(data->graph_pinned_worker_id));
+    graph_sched_run_post_exec_offloads(data, task, gpu_node);
 }
 
 static struct starpu_sched_policy _starpu_sched_graph_policy = {

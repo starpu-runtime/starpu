@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <cstdint>
 #include <deque>
 #include <limits>
@@ -74,6 +75,27 @@ struct GraphBatchTaskStructureSig {
     std::vector<size_t> buffer_sizes;
 };
 
+/** Bitmask for PGA vs S memory accounting (graph_sched_build_handle_role_maps). */
+enum graph_sched_handle_role : std::uint8_t {
+    GRAPH_ROLE_NONE = 0,
+    GRAPH_ROLE_P = 1 << 0,
+    GRAPH_ROLE_G = 1 << 1,
+    GRAPH_ROLE_A = 1 << 2,
+    GRAPH_ROLE_S = 1 << 3,
+};
+
+/** Cached CUDA budget offload plan for optimizer states (S). */
+struct graph_sched_mem_offload_plan {
+    bool valid = false;
+    /** Budget value used when the plan was computed (for invalidation). */
+    std::int64_t budget_bytes = -1;
+    /** Snapshot metrics from the last full plan (bytes); used for logs when reusing the plan. */
+    std::int64_t peak_pga_bytes = 0;
+    std::int64_t sum_s_bytes = 0;
+    /** Handles to cycle through CPU RAM during minibatch; stable order for replay. */
+    std::vector<void *> s_offload_keys;
+};
+
 /** Handles classified from a finished graph capture (see graph_sched_parse_captured_data_handles). */
 struct graph_sched_captured_handle_groups {
     /** Weights etc.: optimizer-step candidates that also appear on any task in subiteration 1 (first forward). */
@@ -103,6 +125,11 @@ struct GraphIdempotentTaskPredicted {
 
 struct graph_sched_data {
     std::mutex policy_mutex;
+    /**
+     * Separate lock for deferred S offload (task→handles map + pending GPU evict queue). post_exec and pop_task
+     * interact with this without touching the ready queue, avoiding deadlocks with push/pop on policy_mutex.
+     */
+    std::mutex graph_offload_mutex;
     std::deque<struct starpu_task *> ready_queue;
     const char *policy_log_name = "graph_recorder";
 
@@ -170,7 +197,70 @@ struct graph_sched_data {
     bool graph_minibatch_pair_task_toporder_pattern_valid = false;
     std::vector<unsigned> graph_minibatch_pair_task_toporder_pattern;
     unsigned graph_minibatch_pair_task_count = 0;
+
+    /** Last successful automatic S offload plan (compatible batch reuses). */
+    graph_sched_mem_offload_plan graph_mem_offload_plan;
+
+    /**
+     * GPU replicas waiting for eviction after async RAM prefetch (see graph_sched_run_post_exec_offloads /
+     * graph_sched_drain_pending_gpu_evicts).
+     */
+    std::vector<starpu_data_handle_t> graph_pending_gpu_evict_handles;
+    /**
+     * After \p task completes (post_exec), prefetch optimizer-state buffers to RAM and enqueue for GPU eviction in
+     * pop_task once starpu_data_can_evict allows it.
+     */
+    std::unordered_map<struct starpu_task *, std::vector<starpu_data_handle_t>> graph_offload_after_task_handles;
+    /** Successful starpu_data_evict_from_node calls from drain_pending (diagnostics). */
+    unsigned graph_pending_gpu_evict_drained = 0;
+
+    /**
+     * Depth > 0 while graph_sched_replay_recorded_ops runs (flush replay). Used to attribute pop/post_exec time to
+     * graph flush vs all other scheduled tasks.
+     */
+    std::atomic<int> graph_replay_accounting_depth{0};
+
+    /** Sum of pop_task durations over all threads and calls (can exceed wall-clock if workers run in parallel). */
+    std::atomic<std::uint64_t> graph_sched_pop_time_ns{0};
+    std::atomic<unsigned> graph_sched_pop_calls{0};
+    /** pop_task time/calls only while graph_replay_accounting_depth > 0 (graph flush replay path). */
+    std::atomic<std::uint64_t> graph_sched_pop_time_ns_replay{0};
+    std::atomic<unsigned> graph_sched_pop_calls_replay{0};
+
+    /** Same split for post_exec_hook. */
+    std::atomic<std::uint64_t> graph_sched_post_exec_time_ns{0};
+    std::atomic<unsigned> graph_sched_post_exec_calls{0};
+    std::atomic<std::uint64_t> graph_sched_post_exec_time_ns_replay{0};
+    std::atomic<unsigned> graph_sched_post_exec_calls_replay{0};
+
+    /** Cumulative wall time spent in graph_sched_replay_recorded_ops from flush start until replay submit begins. */
+    std::atomic<std::uint64_t> graph_sched_graph_planning_time_ns{0};
+    std::atomic<unsigned> graph_sched_graph_planning_flush_count{0};
+};
+
+/** RAII: increment graph_replay_accounting_depth for the dynamic scope of graph_sched_replay_recorded_ops. */
+struct graph_sched_replay_accounting_scope {
+    graph_sched_data *d = nullptr;
+    explicit graph_sched_replay_accounting_scope(graph_sched_data *p) : d(p)
+    {
+        if (d)
+            d->graph_replay_accounting_depth.fetch_add(1, std::memory_order_relaxed);
+    }
+    graph_sched_replay_accounting_scope(const graph_sched_replay_accounting_scope &) = delete;
+    graph_sched_replay_accounting_scope &operator=(const graph_sched_replay_accounting_scope &) = delete;
+    ~graph_sched_replay_accounting_scope()
+    {
+        if (d)
+            d->graph_replay_accounting_depth.fetch_sub(1, std::memory_order_relaxed);
+    }
 };
 
 /** Policy init: resolve STARPU_GRAPH_SCHED_WORKER into graph_pinned_worker_id and log target. */
 void graph_sched_init_pinned_worker(graph_sched_data *data);
+
+/** Register S handles to offload after \p task completes (replay boundary); actual RAM prefetch + pending list in post_exec. */
+void graph_sched_register_offload_after_task(graph_sched_data *data, struct starpu_task *task,
+                                             const std::vector<void *> &s_offload_keys);
+void graph_sched_run_post_exec_offloads(graph_sched_data *data, struct starpu_task *task, unsigned gpu_mem_node);
+void graph_sched_drain_pending_gpu_evicts(graph_sched_data *data, unsigned gpu_mem_node);
+void graph_sched_clear_offload_task_registrations(graph_sched_data *data);

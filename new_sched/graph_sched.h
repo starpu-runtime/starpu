@@ -14,6 +14,10 @@
  * phase (graph subiteration UINT32_MAX) and parsed optimizer-state handles (Adam m/v, etc.), emit StarPU hints before
  * the first optimizer task: replicate to main RAM and evict from the pinned GPU, then prefetch back to GPU for the
  * optimizer step. Set to 0 to disable.
+ *
+ * Optional: STARPU_GRAPH_SCHED_STARPU_MEM_AVAILABLE_FRACTION (default 0.9) — fraction of StarPU's CUDA memory limit
+ * (starpu_memory_get_total on the worker node, or STARPU_LIMIT_CUDA*_MEM when total is unknown) used as planner
+ * "available" bytes (headroom for StarPU's allocator). Must be in (0,1].
  */
 
 #ifndef GRAPH_SCHED_H
