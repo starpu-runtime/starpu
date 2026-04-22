@@ -33,6 +33,7 @@
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 #define PRINTF(fmt, ...) do { if (!getenv("STARPU_SSILENT")) {printf(fmt, ## __VA_ARGS__); }} while(0)
+#define check_enodev(ret, task) do { if (ret == -ENODEV) { FPRINTF(stderr, "no worker can execute the task %s\n", starpu_task_get_name(task)); starpu_shutdown(); exit(0); }} while(0)
 
 #define BLAS3_FLOP(n1,n2,n3)    \
 	(2*((uint64_t)n1)*((uint64_t)n2)*((uint64_t)n3))

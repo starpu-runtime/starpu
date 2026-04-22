@@ -127,6 +127,7 @@ static void create_task_trsm_ll(starpu_data_handle_t dataA, unsigned k, unsigned
 	}
 
 	ret = starpu_task_submit(task);
+	check_enodev(ret, task);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
@@ -169,6 +170,7 @@ static void create_task_trsm_ru(starpu_data_handle_t dataA, unsigned k, unsigned
 	}
 
 	ret = starpu_task_submit(task);
+	check_enodev(ret, task);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
@@ -215,6 +217,7 @@ static void create_task_gemm(starpu_data_handle_t dataA, unsigned k, unsigned i,
 	}
 
 	ret = starpu_task_submit(task);
+	check_enodev(ret, task);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
@@ -246,6 +249,7 @@ static void dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks)
 		else
 		{
 			ret = starpu_task_submit(task);
+			check_enodev(ret, task);
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 
@@ -267,11 +271,8 @@ static void dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks)
 	/* schedule the codelet */
 	start = starpu_timing_now();
 	ret = starpu_task_submit(entry_task);
-	if (STARPU_UNLIKELY(ret == -ENODEV))
-	{
-		FPRINTF(stderr, "No worker may execute this task\n");
-		exit(-1);
-	}
+	check_enodev(ret, entry_task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	/* stall the application until the end of computations */
 	starpu_tag_wait(TAG_GETRF(nblocks-1));

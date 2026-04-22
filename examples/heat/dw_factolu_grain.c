@@ -129,6 +129,7 @@ static void create_task_trsm_ll(starpu_data_handle_t dataA, unsigned k, unsigned
 	}
 
 	ret = starpu_task_submit(task);
+	check_enodev(ret, task);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
@@ -172,6 +173,7 @@ static void create_task_trsm_ru(starpu_data_handle_t dataA, unsigned k, unsigned
 	}
 
 	ret = starpu_task_submit(task);
+	check_enodev(ret, task);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
@@ -218,6 +220,7 @@ static void create_task_gemm(starpu_data_handle_t dataA, unsigned k, unsigned i,
 	}
 
 	ret = starpu_task_submit(task);
+	check_enodev(ret, task);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
@@ -273,6 +276,7 @@ static void dw_factoLU_grain_inner(float *matA, unsigned size, unsigned inner_si
 		else
 		{
 			ret = starpu_task_submit(task);
+			check_enodev(ret, task);
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 
@@ -292,11 +296,8 @@ static void dw_factoLU_grain_inner(float *matA, unsigned size, unsigned inner_si
 	}
 
 	ret = starpu_task_submit(entry_task);
-	if (STARPU_UNLIKELY(ret == -ENODEV))
-	{
-		FPRINTF(stderr, "No worker may execute this task\n");
-		exit(-1);
-	}
+	check_enodev(ret, entry_task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	/* is this the last call to dw_factoLU_grain_inner ? */
 	if (inner_size == size)

@@ -151,6 +151,7 @@ void dw_callback_v2_codelet_update_gemm(void *argcb)
 
 		debug("ugemm %d %d %d start ugetrf %d\n", k, i, j, k + 1);
 		ret = starpu_task_submit(task);
+		check_enodev(ret, task);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
@@ -186,6 +187,7 @@ void dw_callback_v2_codelet_update_gemm(void *argcb)
 
 					debug("ugemm %d %d %d start utrsmru %d %d\n", k, i, j, k+1, j);
 					ret = starpu_task_submit(task_trsm_ru);
+					check_enodev(ret, task_trsm_ru);
 					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 				}
 		}
@@ -223,6 +225,7 @@ void dw_callback_v2_codelet_update_gemm(void *argcb)
 
 					debug("ugemm %d %d %d start utrsmll %d %d\n", k, i, j, k+1, i);
 					ret = starpu_task_submit(task_trsm_ll);
+					check_enodev(ret, task_trsm_ll);
 					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 				}
 		}
@@ -285,6 +288,7 @@ void dw_callback_v2_codelet_update_trsm_ll(void *argcb)
 
 				debug("utrsmll %d %d start ugemm %d %d %d\n", i, k, i, k, slicey);
 				ret = starpu_task_submit(task_gemm);
+				check_enodev(ret, task_gemm);
 				STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 			}
 		}
@@ -346,6 +350,7 @@ void dw_callback_v2_codelet_update_trsm_ru(void *argcb)
 
 				debug("utrsmru %d %d start ugemm %d %d %d\n", i, k, i, slicex, k);
 				ret = starpu_task_submit(task_gemm);
+				check_enodev(ret, task_gemm);
 				STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 			}
 		}
@@ -420,6 +425,7 @@ void dw_callback_v2_codelet_update_getrf(void *argcb)
 
 					debug("ugetrf %d start utrsmll %d %d\n", i, i, slice);
 					ret = starpu_task_submit(task_trsm_ll);
+					check_enodev(ret, task_trsm_ll);
 					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 				}
 			}
@@ -464,6 +470,7 @@ void dw_callback_v2_codelet_update_getrf(void *argcb)
 
 					debug("ugetrf %d start utrsmru %d %d\n", i, i, slice);
 					ret = starpu_task_submit(task_trsm_ru);
+					check_enodev(ret, task_trsm_ru);
 					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 				}
 			}
@@ -540,8 +547,10 @@ void dw_callback_codelet_update_getrf(void *argcb)
 			task_trsm_ru->handles[1] = starpu_data_get_sub_data(args->dataA, 2, utrsmrua->i, utrsmrua->k);
 
 			ret = starpu_task_submit(task_trsm_ll);
+			check_enodev(ret, task_trsm_ll);
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 			ret = starpu_task_submit(task_trsm_ru);
+			check_enodev(ret, task_trsm_ru);
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 
@@ -581,6 +590,7 @@ void dw_callback_codelet_update_gemm(void *argcb)
 
 		/* schedule the codelet */
 		ret = starpu_task_submit(task);
+		check_enodev(ret, task);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
@@ -634,6 +644,7 @@ void dw_callback_codelet_update_trsm_ll_21(void *argcb)
 
 				/* schedule that codelet */
 				ret = starpu_task_submit(task_gemm);
+				check_enodev(ret, task_gemm);
 				STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 			}
 		}
@@ -668,6 +679,7 @@ void dw_codelet_facto(starpu_data_handle_t dataA, unsigned nblocks)
 
 	/* schedule the codelet */
 	ret = starpu_task_submit(task);
+	check_enodev(ret, task);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	starpu_task_wait_for_all();
@@ -715,11 +727,8 @@ void dw_codelet_facto_v2(starpu_data_handle_t dataA, unsigned nblocks)
 
 	/* schedule the codelet */
 	int ret = starpu_task_submit(task);
-	if (STARPU_UNLIKELY(ret == -ENODEV))
-	{
-		FPRINTF(stderr, "No worker may execute this task\n");
-		exit(0);
-	}
+	check_enodev(ret, task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	starpu_task_wait_for_all();
 

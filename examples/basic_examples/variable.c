@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -46,7 +46,7 @@ int main(int argc, char **argv)
 	int ret;
 
 	ret = starpu_init(NULL);
-	if (ret == -ENODEV) goto enodev;
+	if (ret == -ENODEV) return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	if (argc == 2) niter = atoi(argv[1]);
@@ -101,10 +101,15 @@ int main(int argc, char **argv)
 	FPRINTF(stderr, "variable -> %f\n", foo);
 	FPRINTF(stderr, "result is %scorrect\n", foo==niter?"":"IN");
 
+enodev:
+#ifdef STARPU_USE_OPENCL
+	int xret = starpu_opencl_unload_opencl(&opencl_program);
+	STARPU_CHECK_RETURN_VALUE(xret, "starpu_opencl_unload_opencl");
+#endif
 	starpu_shutdown();
 
-	return (foo == niter) ? EXIT_SUCCESS:EXIT_FAILURE;
-
-enodev:
-	return 77;
+	if (ret == -ENODEV)
+		return 77;
+	else
+		return (foo == niter) ? EXIT_SUCCESS:EXIT_FAILURE;
 }

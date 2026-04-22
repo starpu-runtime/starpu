@@ -84,11 +84,8 @@ int main(void)
 					 STARPU_RW, float_array_handle,
 					 STARPU_TAG_ONLY, (starpu_tag_t) i,
 					 0);
-                if (STARPU_UNLIKELY(ret == -ENODEV))
-                {
-			FPRINTF(stderr, "No worker may execute this task\n");
-			exit(77);
-                }
+                if (STARPU_UNLIKELY(ret == -ENODEV)) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
         }
 
 	starpu_task_wait_for_all();
@@ -113,4 +110,13 @@ int main(void)
 	}
 
 	return EXIT_SUCCESS;
+
+enodev:
+#ifdef STARPU_USE_OPENCL
+	ret = starpu_opencl_unload_opencl(&opencl_program);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
+#endif
+	starpu_shutdown();
+	FPRINTF(stderr, "No worker may execute this task\n");
+	return 77;
 }

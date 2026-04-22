@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -109,7 +109,8 @@ int main(int argc, char **argv)
 		if (STARPU_UNLIKELY(ret == -ENODEV))
 		{
 			FPRINTF(stderr, "No worker may execute this task\n");
-			exit(0);
+			starpu_data_unregister(float_array_handle);
+			goto enodev;
 		}
 	}
 
@@ -119,11 +120,6 @@ int main(int argc, char **argv)
 	starpu_data_unregister(float_array_handle);
 
 	end = starpu_timing_now();
-
-#ifdef STARPU_USE_OPENCL
-	ret = starpu_opencl_unload_opencl(&opencl_program);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
-#endif
 
 	FPRINTF(stderr, "array -> %f, %f, %f, %f\n", float_array[0],
 		float_array[1], float_array[2], float_array[3]);
@@ -138,7 +134,12 @@ int main(int argc, char **argv)
 
 	FPRINTF(stderr, "%u elems took %f ms\n", niter, timing/1000);
 
+enodev:
+#ifdef STARPU_USE_OPENCL
+	int xret = starpu_opencl_unload_opencl(&opencl_program);
+	STARPU_CHECK_RETURN_VALUE(xret, "starpu_opencl_unload_opencl");
+#endif
 	starpu_shutdown();
 
-	return ret;
+	return ret == -ENODEV ? 77 : ret;
 }

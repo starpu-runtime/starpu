@@ -21,6 +21,7 @@
 
 #include "dw_sparse_cg.h"
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
+#define check_enodev(ret, task) do { if (ret == -ENODEV) { FPRINTF(stderr, "no worker can execute the task %s\n", starpu_task_get_name(task)); starpu_shutdown(); exit(0); }} while(0)
 
 static struct starpu_task *create_task(starpu_tag_t id)
 {
@@ -189,15 +190,15 @@ void init_cg(struct cg_problem *problem)
 
 	/* launch the computation now */
 	ret = starpu_task_submit(task1);
-	if (STARPU_UNLIKELY(ret == -ENODEV))
-	{
-		FPRINTF(stderr, "No worker may execute this task\n");
-		exit(0);
-	}
+	check_enodev(ret, task1);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+
 	ret = starpu_task_submit(task2);
+	check_enodev(ret, task2);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+
 	ret = starpu_task_submit(task3);
+	check_enodev(ret, task3);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
@@ -341,16 +342,27 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 
 	/* launch the computation now */
 	ret = starpu_task_submit(task4);
+	check_enodev(ret, task4);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+
 	ret = starpu_task_submit(task5);
+	check_enodev(ret, task5);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+
 	ret = starpu_task_submit(task6);
+	check_enodev(ret, task6);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+
 	ret = starpu_task_submit(task7);
+	check_enodev(ret, task7);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+
 	ret = starpu_task_submit(task8);
+	check_enodev(ret, task8);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+
 	ret = starpu_task_submit(task9);
+	check_enodev(ret, task9);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -129,7 +129,7 @@ int main(void)
 
 	/* Initialize StarPU with default configuration */
 	int ret = starpu_init(NULL);
-	if (ret == -ENODEV) goto enodev;
+	if (ret == -ENODEV) return 77;
 
 	FPRINTF(stderr, "[BEFORE] 1-th element    : %3.2f\n", vector[1]);
 	FPRINTF(stderr, "[BEFORE] (NX-1)th element: %3.2f\n", vector[NX-1]);
@@ -177,7 +177,7 @@ int main(void)
 
 	/* execute the task on any eligible computational resource */
 	ret = starpu_task_submit(task);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	if (ret != -ENODEV) STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	/* StarPU does not need to manipulate the array anymore so we can stop
 	 * monitoring it */
@@ -185,19 +185,20 @@ int main(void)
 	starpu_memory_unpin(vector, sizeof(vector));
 
 #ifdef STARPU_USE_OPENCL
-	ret = starpu_opencl_unload_opencl(&opencl_program);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
+	int xret = starpu_opencl_unload_opencl(&opencl_program);
+	STARPU_CHECK_RETURN_VALUE(xret, "starpu_opencl_unload_opencl");
 #endif
 
 	/* terminate StarPU, no task can be submitted after */
 	starpu_shutdown();
 
-	ret = approximately_equal(vector[1], (1+1.0f) * factor) && approximately_equal(vector[NX-1], (NX-1+1.0f) * factor);
-	FPRINTF(stderr, "[AFTER] 1-th element     : %3.2f (should be %3.2f)\n", vector[1], (1+1.0f) * factor);
-	FPRINTF(stderr, "[AFTER] (NX-1)-th element: %3.2f (should be %3.2f)\n", vector[NX-1], (NX-1+1.0f) * factor);
-	FPRINTF(stderr, "[AFTER] Computation is%s correct\n", ret?"":" NOT");
-	return (ret ? EXIT_SUCCESS : EXIT_FAILURE);
-
-enodev:
-	return 77;
+	if (ret == -ENODEV) return 77;
+	else
+	{
+		ret = approximately_equal(vector[1], (1+1.0f) * factor) && approximately_equal(vector[NX-1], (NX-1+1.0f) * factor);
+		FPRINTF(stderr, "[AFTER] 1-th element     : %3.2f (should be %3.2f)\n", vector[1], (1+1.0f) * factor);
+		FPRINTF(stderr, "[AFTER] (NX-1)-th element: %3.2f (should be %3.2f)\n", vector[NX-1], (NX-1+1.0f) * factor);
+		FPRINTF(stderr, "[AFTER] Computation is%s correct\n", ret?"":" NOT");
+		return (ret ? EXIT_SUCCESS : EXIT_FAILURE);
+	}
 }
