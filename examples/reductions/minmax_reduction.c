@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -198,12 +198,12 @@ int main(void)
 		task->handles[1] = _minmax_handle;
 
 		ret = starpu_task_submit(task);
-		if (ret)
+		if (ret == -ENODEV)
 		{
-			STARPU_ASSERT(ret == -ENODEV);
-			FPRINTF(stderr, "This test can only run on CPUs, but there are no CPU workers (this is not a bug).\n");
-			return 77;
+			FPRINTF(stderr, "No worker may execute this task\n");
+			break;
 		}
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
 	for (block = 0; block < _nblocks; block++)
@@ -212,14 +212,16 @@ int main(void)
 	}
 	starpu_data_unregister(_minmax_handle);
 
-	FPRINTF(stderr, "Min : %e\n", _minmax[0]);
-	FPRINTF(stderr, "Max : %e\n", _minmax[1]);
-
-	STARPU_ASSERT(_minmax[0] <= _minmax[1]);
+	if (ret != -ENODEV)
+	{
+		FPRINTF(stderr, "Min : %e\n", _minmax[0]);
+		FPRINTF(stderr, "Max : %e\n", _minmax[1]);
+		STARPU_ASSERT(_minmax[0] <= _minmax[1]);
+	}
 
 	starpu_free_noflag(_x, size*sizeof(TYPE));
 	free(_x_handles);
 	starpu_shutdown();
 
-	return 0;
+	return (ret == -ENODEV) ? 77 : 0;
 }
