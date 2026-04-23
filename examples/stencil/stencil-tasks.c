@@ -66,7 +66,10 @@ static void create_task_save_local(unsigned iter, unsigned z, int dir)
 	{
 		FPRINTF(stderr, "Could not submit task save: %d\n", ret);
 		if (ret == -ENODEV)
+		{
+			starpu_shutdown();
 			exit(77);
+		}
 		STARPU_ABORT();
 	}
 }
@@ -221,7 +224,10 @@ void create_task_update(unsigned iter, unsigned z, int local_rank)
 	{
 		FPRINTF(stderr, "Could not submit task update block: %d\n", ret);
 		if (ret == -ENODEV)
+		{
+			starpu_shutdown();
 			exit(77);
+		}
 		STARPU_ABORT();
 	}
 }
@@ -279,7 +285,10 @@ void create_start_task(int z, int dir)
 	{
 		FPRINTF(stderr, "Could not submit task initial wait: %d\n", ret);
 		if (ret == -ENODEV)
+		{
+			starpu_shutdown();
 			exit(77);
+		}
 		STARPU_ABORT();
 	}
 }

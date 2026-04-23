@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -64,7 +64,10 @@ void create_task_memset(size_t sizex, size_t sizey, size_t z)
 	{
 		FPRINTF(stderr, "Could not submit task memset: %d\n", ret);
 		if (ret == -ENODEV)
+		{
+			starpu_shutdown();
 			exit(77);
+		}
 		STARPU_ABORT();
 	}
 }
@@ -84,7 +87,10 @@ void create_task_initlayer(size_t sizex, size_t sizey, size_t z)
 	{
 		FPRINTF(stderr, "Could not submit task initlayer: %d\n", ret);
 		if (ret == -ENODEV)
+		{
+			starpu_shutdown();
 			exit(77);
+		}
 		STARPU_ABORT();
 	}
 }
@@ -113,7 +119,10 @@ static void create_task_save_local(size_t z, int dir)
 	{
 		FPRINTF(stderr, "Could not submit task save: %d\n", ret);
 		if (ret == -ENODEV)
+		{
+			starpu_shutdown();
 			exit(77);
+		}
 		STARPU_ABORT();
 	}
 }
@@ -156,7 +165,10 @@ void create_task_update(size_t iter, size_t z, int local_rank)
 	{
 		FPRINTF(stderr, "Could not submit task update block: %d\n", ret);
 		if (ret == -ENODEV)
+		{
+			starpu_shutdown();
 			exit(77);
+		}
 		STARPU_ABORT();
 	}
 }
