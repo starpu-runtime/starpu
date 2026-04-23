@@ -216,47 +216,47 @@ static int pack_tensor_handle(starpu_data_handle_t handle, unsigned node, void *
 	if (ptr != NULL)
 	{
 		size_t t, z, y;
-		char *block = (void *)tensor_interface->ptr;
+		char *tensor = (void *)tensor_interface->ptr;
 
 		*ptr = (void *)starpu_malloc_on_node_flags(node, *count, 0);
 
 		char *cur = *ptr;
 		if (IS_CONTIGUOUS_TENSOR(nx, ny, nz, nt, ldy, ldz, ldt))
-			memcpy(cur, block, nx * ny * nz * nt * elemsize);
+			memcpy(cur, tensor, nx * ny * nz * nt * elemsize);
 		else
 		{
-			char *block_t = block;
+			char *tensor_t = tensor;
 			for(t=0 ; t<nt ; t++)
 			{
 				if (IS_CONTIGUOUS_BLOCK(nx, ny, nz, ldy, ldz))
 				{
-					memcpy(cur, block_t, nx * ny * nz * elemsize);
+					memcpy(cur, tensor_t, nx * ny * nz * elemsize);
 					cur += nx*ny*nz*elemsize;
 				}
 				else
 				{
-					char *block_z = block_t;
+					char *tensor_z = tensor_t;
 					for(z=0 ; z<nz ; z++)
 					{
 						if (IS_CONTIGUOUS_MATRIX(nx, ny, ldy))
 						{
-							memcpy(cur, block_z, nx * ny * elemsize);
+							memcpy(cur, tensor_z, nx * ny * elemsize);
 							cur += nx*ny*elemsize;
 						}
 						else
 						{
-							char *block_y = block_z;
+							char *tensor_y = tensor_z;
 							for(y=0 ; y<ny ; y++)
 							{
-								memcpy(cur, block_y, nx*elemsize);
+								memcpy(cur, tensor_y, nx*elemsize);
 								cur += nx*elemsize;
-								block_y += ldy * elemsize;
+								tensor_y += ldy * elemsize;
 							}
 						}
-						block_z += ldz * elemsize;
+						tensor_z += ldz * elemsize;
 					}
 				}
-				block_t += ldt * elemsize;
+				tensor_t += ldt * elemsize;
 			}
 		}
 	}
@@ -284,44 +284,44 @@ static int peek_tensor_handle(starpu_data_handle_t handle, unsigned node, void *
 
 	size_t t, z, y;
 	char *cur = ptr;
-	char *block = (void *)tensor_interface->ptr;
+	char *tensor = (void *)tensor_interface->ptr;
 
 	if (IS_CONTIGUOUS_TENSOR(nx, ny, nz, nt, ldy, ldz, ldt))
-		memcpy(block, cur, nx * ny * nz * nt * elemsize);
+		memcpy(tensor, cur, nx * ny * nz * nt * elemsize);
 	else
 	{
-		char *block_t = block;
+		char *tensor_t = tensor;
 		for(t=0 ; t<nt ; t++)
 		{
 			if (IS_CONTIGUOUS_BLOCK(nx, ny, nz, ldy, ldz))
 			{
-				memcpy(block_t, cur, nx * ny * nz * elemsize);
+				memcpy(tensor_t, cur, nx * ny * nz * elemsize);
 				cur += nx*ny*nz*elemsize;
 			}
 			else
 			{
-				char *block_z = block_t;
+				char *tensor_z = tensor_t;
 				for(z=0 ; z<nz ; z++)
 				{
 					if (IS_CONTIGUOUS_MATRIX(nx, ny, ldy))
 					{
-						memcpy(block_z, cur, nx * ny * elemsize);
+						memcpy(tensor_z, cur, nx * ny * elemsize);
 						cur += nx*ny*elemsize;
 					}
 					else
 					{
-						char *block_y = block_z;
+						char *tensor_y = tensor_z;
 						for(y=0 ; y<ny ; y++)
 						{
-							memcpy(block_y, cur, nx*elemsize);
+							memcpy(tensor_y, cur, nx*elemsize);
 							cur += nx*elemsize;
-							block_y += ldy * elemsize;
+							tensor_y += ldy * elemsize;
 						}
 					}
-					block_z += ldz * elemsize;
+					tensor_z += ldz * elemsize;
 				}
 			}
-			block_t += ldt * elemsize;
+			tensor_t += ldt * elemsize;
 		}
 	}
 
@@ -344,7 +344,7 @@ static size_t tensor_interface_get_size(starpu_data_handle_t handle)
 	tensor_interface = (struct starpu_tensor_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 #ifdef STARPU_DEBUG
-	STARPU_ASSERT_MSG(tensor_interface->id == STARPU_TENSOR_INTERFACE_ID, "Error. The given data is not a block.");
+	STARPU_ASSERT_MSG(tensor_interface->id == STARPU_TENSOR_INTERFACE_ID, "Error. The given data is not a tensor.");
 #endif
 
 	size = tensor_interface->nx*tensor_interface->ny*tensor_interface->nz*tensor_interface->nt*tensor_interface->elemsize;
@@ -359,7 +359,7 @@ size_t starpu_tensor_get_nx(starpu_data_handle_t handle)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 #ifdef STARPU_DEBUG
-	STARPU_ASSERT_MSG(tensor_interface->id == STARPU_TENSOR_INTERFACE_ID, "Error. The given data is not a block.");
+	STARPU_ASSERT_MSG(tensor_interface->id == STARPU_TENSOR_INTERFACE_ID, "Error. The given data is not a tensor.");
 #endif
 
 	return tensor_interface->nx;
@@ -371,7 +371,7 @@ size_t starpu_tensor_get_ny(starpu_data_handle_t handle)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 #ifdef STARPU_DEBUG
-	STARPU_ASSERT_MSG(tensor_interface->id == STARPU_TENSOR_INTERFACE_ID, "Error. The given data is not a block.");
+	STARPU_ASSERT_MSG(tensor_interface->id == STARPU_TENSOR_INTERFACE_ID, "Error. The given data is not a tensor.");
 #endif
 
 	return tensor_interface->ny;
@@ -383,7 +383,7 @@ size_t starpu_tensor_get_nz(starpu_data_handle_t handle)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 #ifdef STARPU_DEBUG
-	STARPU_ASSERT_MSG(tensor_interface->id == STARPU_TENSOR_INTERFACE_ID, "Error. The given data is not a block.");
+	STARPU_ASSERT_MSG(tensor_interface->id == STARPU_TENSOR_INTERFACE_ID, "Error. The given data is not a tensor.");
 #endif
 
 	return tensor_interface->nz;
@@ -395,7 +395,7 @@ size_t starpu_tensor_get_nt(starpu_data_handle_t handle)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 #ifdef STARPU_DEBUG
-	STARPU_ASSERT_MSG(tensor_interface->id == STARPU_TENSOR_INTERFACE_ID, "Error. The given data is not a block.");
+	STARPU_ASSERT_MSG(tensor_interface->id == STARPU_TENSOR_INTERFACE_ID, "Error. The given data is not a tensor.");
 #endif
 
 	return tensor_interface->nt;
@@ -412,7 +412,7 @@ size_t starpu_tensor_get_local_ldy(starpu_data_handle_t handle)
 		starpu_data_get_interface_on_node(handle, node);
 
 #ifdef STARPU_DEBUG
-	STARPU_ASSERT_MSG(tensor_interface->id == STARPU_TENSOR_INTERFACE_ID, "Error. The given data is not a block.");
+	STARPU_ASSERT_MSG(tensor_interface->id == STARPU_TENSOR_INTERFACE_ID, "Error. The given data is not a tensor.");
 #endif
 
 	return tensor_interface->ldy;
@@ -429,7 +429,7 @@ size_t starpu_tensor_get_local_ldz(starpu_data_handle_t handle)
 		starpu_data_get_interface_on_node(handle, node);
 
 #ifdef STARPU_DEBUG
-	STARPU_ASSERT_MSG(tensor_interface->id == STARPU_TENSOR_INTERFACE_ID, "Error. The given data is not a block.");
+	STARPU_ASSERT_MSG(tensor_interface->id == STARPU_TENSOR_INTERFACE_ID, "Error. The given data is not a tensor.");
 #endif
 
 	return tensor_interface->ldz;
@@ -446,7 +446,7 @@ size_t starpu_tensor_get_local_ldt(starpu_data_handle_t handle)
 		starpu_data_get_interface_on_node(handle, node);
 
 #ifdef STARPU_DEBUG
-	STARPU_ASSERT_MSG(tensor_interface->id == STARPU_TENSOR_INTERFACE_ID, "Error. The given data is not a block.");
+	STARPU_ASSERT_MSG(tensor_interface->id == STARPU_TENSOR_INTERFACE_ID, "Error. The given data is not a tensor.");
 #endif
 
 	return tensor_interface->ldt;
@@ -463,7 +463,7 @@ uintptr_t starpu_tensor_get_local_ptr(starpu_data_handle_t handle)
 		starpu_data_get_interface_on_node(handle, node);
 
 #ifdef STARPU_DEBUG
-	STARPU_ASSERT_MSG(tensor_interface->id == STARPU_TENSOR_INTERFACE_ID, "Error. The given data is not a block.");
+	STARPU_ASSERT_MSG(tensor_interface->id == STARPU_TENSOR_INTERFACE_ID, "Error. The given data is not a tensor.");
 #endif
 
 	return tensor_interface->ptr;
@@ -475,7 +475,7 @@ size_t starpu_tensor_get_elemsize(starpu_data_handle_t handle)
 		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 #ifdef STARPU_DEBUG
-	STARPU_ASSERT_MSG(tensor_interface->id == STARPU_TENSOR_INTERFACE_ID, "Error. The given data is not a block.");
+	STARPU_ASSERT_MSG(tensor_interface->id == STARPU_TENSOR_INTERFACE_ID, "Error. The given data is not a tensor.");
 #endif
 
 	return tensor_interface->elemsize;
@@ -488,13 +488,13 @@ static starpu_ssize_t allocate_tensor_buffer_on_node(void *data_interface_, unsi
 {
 	uintptr_t addr = 0, handle;
 
-	struct starpu_tensor_interface *dst_block = (struct starpu_tensor_interface *) data_interface_;
+	struct starpu_tensor_interface *dst_tensor = (struct starpu_tensor_interface *) data_interface_;
 
-	size_t nx = dst_block->nx;
-	size_t ny = dst_block->ny;
-	size_t nz = dst_block->nz;
-	size_t nt = dst_block->nt;
-	size_t elemsize = dst_block->elemsize;
+	size_t nx = dst_tensor->nx;
+	size_t ny = dst_tensor->ny;
+	size_t nz = dst_tensor->nz;
+	size_t nt = dst_tensor->nt;
+	size_t elemsize = dst_tensor->elemsize;
 
 	starpu_ssize_t allocated_memory;
 
@@ -509,12 +509,12 @@ static starpu_ssize_t allocate_tensor_buffer_on_node(void *data_interface_, unsi
 	allocated_memory = nx*ny*nz*nt*elemsize;
 
 	/* update the data properly in consequence */
-	dst_block->ptr = addr;
-	dst_block->dev_handle = handle;
-	dst_block->offset = 0;
-	dst_block->ldy = nx;
-	dst_block->ldz = nx*ny;
-	dst_block->ldt = nx*ny*nz;
+	dst_tensor->ptr = addr;
+	dst_tensor->dev_handle = handle;
+	dst_tensor->offset = 0;
+	dst_tensor->ldy = nx;
+	dst_tensor->ldz = nx*ny;
+	dst_tensor->ldt = nx*ny*nz;
 
 	return allocated_memory;
 }
@@ -580,25 +580,25 @@ static int update_map_tensor(void *src_interface, unsigned src_node,
 
 static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data)
 {
-	struct starpu_tensor_interface *src_block = (struct starpu_tensor_interface *) src_interface;
-	struct starpu_tensor_interface *dst_block = (struct starpu_tensor_interface *) dst_interface;
+	struct starpu_tensor_interface *src_tensor = (struct starpu_tensor_interface *) src_interface;
+	struct starpu_tensor_interface *dst_tensor = (struct starpu_tensor_interface *) dst_interface;
 	int ret = 0;
 
-	size_t nx = dst_block->nx;
-	size_t ny = dst_block->ny;
-	size_t nz = dst_block->nz;
-	size_t nt = dst_block->nt;
-	size_t elemsize = dst_block->elemsize;
+	size_t nx = dst_tensor->nx;
+	size_t ny = dst_tensor->ny;
+	size_t nz = dst_tensor->nz;
+	size_t nt = dst_tensor->nt;
+	size_t elemsize = dst_tensor->elemsize;
 
-	size_t ldy_src = src_block->ldy;
-	size_t ldz_src = src_block->ldz;
-	size_t ldt_src = src_block->ldt;
-	size_t ldy_dst = dst_block->ldy;
-	size_t ldz_dst = dst_block->ldz;
-	size_t ldt_dst = dst_block->ldt;
+	size_t ldy_src = src_tensor->ldy;
+	size_t ldz_src = src_tensor->ldz;
+	size_t ldt_src = src_tensor->ldt;
+	size_t ldy_dst = dst_tensor->ldy;
+	size_t ldz_dst = dst_tensor->ldz;
+	size_t ldt_dst = dst_tensor->ldt;
 
-	if (starpu_interface_copy4d(src_block->dev_handle, src_block->offset, src_node,
-				    dst_block->dev_handle, dst_block->offset, dst_node,
+	if (starpu_interface_copy4d(src_tensor->dev_handle, src_tensor->offset, src_node,
+				    dst_tensor->dev_handle, dst_tensor->offset, dst_node,
 				    nx * elemsize,
 				    ny, ldy_src * elemsize, ldy_dst * elemsize,
 				    nz, ldz_src * elemsize, ldz_dst * elemsize,
@@ -613,11 +613,11 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 
 static starpu_ssize_t describe(void *data_interface, char *buf, size_t size)
 {
-	struct starpu_tensor_interface *block = (struct starpu_tensor_interface *) data_interface;
+	struct starpu_tensor_interface *tensor = (struct starpu_tensor_interface *) data_interface;
 	return snprintf(buf, size, "T%zux%zux%zux%zux%zu",
-			block->nx,
-			block->ny,
-			block->nz,
-			block->nt,
-			block->elemsize);
+			tensor->nx,
+			tensor->ny,
+			tensor->nz,
+			tensor->nt,
+			tensor->elemsize);
 }
