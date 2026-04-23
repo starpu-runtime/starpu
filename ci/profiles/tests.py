@@ -226,6 +226,13 @@ profiles = [
       'deploy'      : True,
       'hosts'       : ['node_gpu']
     },
+    { 'name'        : 'sycl-only',
+      'opts'        : ['--disable-cpu', '--disable-cuda', '--disable-opencl', '--disable-hip', '--enable-sycl', '--disable-mpi', '--disable-fortran'],
+      'prologue'    : ["source", "/opt/intel/oneapi/setvars.sh"],
+      'env'         : { 'CC' : 'icx', 'CXX' : 'icpx', 'FCC' : 'ifx', 'F77' : 'ifx', 'FC' : 'ifx', 'LDSHARED' : 'icpx'},
+      'deploy'      : True,
+      'hosts'       : ['node_gpu']
+    },
     { 'name'        : 'hip-only',
       'opts'        : ['--disable-cpu', '--disable-cuda', '--disable-opencl', '--enable-hip', '--enable-mpi-minimal-tests'],
       'deploy'      : True,

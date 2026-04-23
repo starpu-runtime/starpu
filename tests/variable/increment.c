@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -33,6 +33,11 @@ extern void increment_opencl(void *buffers[], void *args);
 extern void redux_opencl(void *descr[], void *arg);
 extern void neutral_opencl(void *descr[], void *arg);
 #endif
+#ifdef STARPU_USE_SYCL
+extern void increment_sycl(void *buffers[], void *args);
+extern void redux_sycl(void *descr[], void *arg);
+extern void neutral_sycl(void *descr[], void *arg);
+#endif
 
 void increment_cpu(void *descr[], void *arg)
 {
@@ -57,6 +62,10 @@ struct starpu_codelet increment_cl =
 	.opencl_funcs = {increment_opencl},
 	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
+#ifdef STARPU_USE_SYCL
+	.sycl_funcs = {increment_sycl},
+	.sycl_flags = {STARPU_SYCL_ASYNC},
+#endif
 	.cpu_funcs_name = {"increment_cpu"},
 	.nbuffers = 1,
 
@@ -78,6 +87,10 @@ struct starpu_codelet increment_redux_cl =
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {increment_opencl},
 	.opencl_flags = {STARPU_OPENCL_ASYNC},
+#endif
+#ifdef STARPU_USE_SYCL
+	.sycl_funcs = {increment_sycl},
+	.sycl_flags = {STARPU_SYCL_ASYNC},
 #endif
 	.cpu_funcs_name = {"increment_cpu"},
 	.nbuffers = 1,
@@ -110,6 +123,10 @@ struct starpu_codelet redux_cl =
 	.opencl_funcs = {redux_opencl},
 	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
+#ifdef STARPU_USE_SYCL
+	.sycl_funcs = {redux_sycl},
+	.sycl_flags = {STARPU_SYCL_ASYNC},
+#endif
 	.cpu_funcs = {redux_cpu},
 	.cpu_funcs_name = {"redux_cpu"},
 
@@ -137,6 +154,10 @@ struct starpu_codelet neutral_cl =
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {neutral_opencl},
 	.opencl_flags = {STARPU_OPENCL_ASYNC},
+#endif
+#ifdef STARPU_USE_SYCL
+	.sycl_funcs = {neutral_sycl},
+	.sycl_flags = {STARPU_SYCL_ASYNC},
 #endif
 	.cpu_funcs = {neutral_cpu},
 	.cpu_funcs_name = {"neutral_cpu"},

@@ -290,6 +290,12 @@ static void measure_bandwidth_between_host_and_dev_on_numa(int dev, enum starpu_
 	else
 #endif
 	{
+#if defined(STARPU_USE_SYCL)
+		/* can't register with SYCL, use pinned allocation instead */
+		if (kind == STARPU_SYCL_RAM)
+			h_buffer = (unsigned char*)ops->malloc_on_host(size);
+		else
+#endif
 		/* we use STARPU_MAIN_RAM */
 		_STARPU_MALLOC(h_buffer, size);
 	}
@@ -378,7 +384,12 @@ static void measure_bandwidth_between_host_and_dev_on_numa(int dev, enum starpu_
 	}
 	else
 #endif
-	{
+        {
+#if defined(STARPU_USE_SYCL)
+		if (kind == STARPU_SYCL_RAM)
+			ops->free_on_host((uintptr_t)h_buffer);
+		else
+#endif
 		free(h_buffer);
 	}
 	ops->free_on_device(dev, d_buffer, size, 0);

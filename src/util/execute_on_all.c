@@ -49,6 +49,7 @@ void starpu_execute_on_specific_workers(void (*func)(void*), void * arg, unsigne
 		.where = 0xFF,
 		.cuda_funcs = {wrapper_func},
 		.hip_funcs = {wrapper_func},
+		.sycl_funcs = {wrapper_func},
 		.cpu_funcs = {wrapper_func},
 		.opencl_funcs = {wrapper_func},
 		.nbuffers = 0,
@@ -108,7 +109,7 @@ void starpu_execute_on_each_worker_ex(void (*func)(void *), void *arg, uint32_t 
 	unsigned nworkers = starpu_worker_get_count();
 	struct starpu_task *tasks[STARPU_NMAXWORKERS];
 
-	STARPU_ASSERT_MSG((where & ~STARPU_CPU & ~STARPU_CUDA & ~STARPU_OPENCL & ~STARPU_HIP) == 0, "This function is implemented only on CPU, CUDA, HIP, OpenCL");
+	STARPU_ASSERT_MSG((where & ~STARPU_CPU & ~STARPU_CUDA & ~STARPU_OPENCL & ~STARPU_HIP & ~STARPU_SYCL) == 0, "This function is implemented only on CPU, CUDA, HIP, SYCL, OpenCL");
 
 	/* create a wrapper codelet */
 	struct starpu_codelet wrapper_cl =
@@ -116,6 +117,7 @@ void starpu_execute_on_each_worker_ex(void (*func)(void *), void *arg, uint32_t 
 		.where = where,
 		.cuda_funcs = {wrapper_func},
 		.hip_funcs = {wrapper_func},
+		.sycl_funcs = {wrapper_func},
 		.cpu_funcs = {wrapper_func},
 		.opencl_funcs = {wrapper_func},
 		.nbuffers = 0,

@@ -46,6 +46,13 @@ static const TYPE p1_hip = 1.0;
 static const TYPE v0_hip = 0.0;
 #endif
 
+#include <starpu_syclblas.h>
+#ifdef STARPU_USE_SYCL
+#include "sycl_gemm.h"
+static const TYPE p1_sycl = 1.0;
+static const TYPE v0_sycl = 0.0;
+#endif
+
 #ifdef STARPU_QUICK_CHECK
 static unsigned niter = 2;
 #else
@@ -179,6 +186,42 @@ static void hipblas_gemm(void *descr[], void *arg)
 #endif
 #endif
 
+#ifdef STARPU_USE_SYCL
+#ifdef STARPU_USE_SYCLBLAS
+static void syclblas_mult(void *descr[], void *arg, const TYPE *beta)
+{
+        (void)arg;
+        TYPE *subA = (TYPE *)STARPU_MATRIX_GET_PTR(descr[0]);
+        TYPE *subB = (TYPE *)STARPU_MATRIX_GET_PTR(descr[1]);
+        TYPE *subC = (TYPE *)STARPU_MATRIX_GET_PTR(descr[2]);
+
+        unsigned nxC = STARPU_MATRIX_GET_NX(descr[2]);
+        unsigned nyC = STARPU_MATRIX_GET_NY(descr[2]);
+        unsigned nyA = STARPU_MATRIX_GET_NY(descr[0]);
+
+        unsigned ldA = STARPU_MATRIX_GET_LD(descr[0]);
+        unsigned ldB = STARPU_MATRIX_GET_LD(descr[1]);
+        unsigned ldC = STARPU_MATRIX_GET_LD(descr[2]);
+
+        int status = SYCLBLAS_GEMM(nxC, nyC, nyA,
+				   p1_sycl, subA, ldA, subB, ldB,
+				   *beta, subC, ldC);
+        if (status != 0)
+		STARPU_SYCLBLAS_REPORT_ERROR(status);
+}
+
+static void syclblas_gemm0(void *descr[], void *arg)
+{
+        syclblas_mult(descr, arg, &v0_sycl);
+}
+
+static void syclblas_gemm(void *descr[], void *arg)
+{
+        syclblas_mult(descr, arg, &p1_sycl);
+}
+#endif
+#endif
+
 #ifdef STARPU_HAVE_BLAS
 void cpu_mult(void *descr[], void *arg, TYPE beta);
 void cpu_gemm0(void *descr[], void *arg)
@@ -215,6 +258,7 @@ int main(int argc, char **argv)
 
 	starpu_cublas_init();
 	starpu_hipblas_init();
+	starpu_syclblas_init();
 
 	init_problem_data();
 	partition_mult_data();
@@ -224,6 +268,7 @@ int main(int argc, char **argv)
 
 	starpu_cublas_shutdown();
 	starpu_hipblas_shutdown();
+	starpu_syclblas_shutdown();
 	starpu_shutdown();
 
 	return ret;

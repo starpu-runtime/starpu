@@ -17,3 +17,7 @@ hip:
 hip_run:
 	hipcc -std=c++14 $(shell hipconfig --cpp_config) --x cu vector.hip -o vector
 	./vector
+
+sycl:
+	icpx -fsycl check_sycl.cpp -o check_sycl
+	./check_sycl

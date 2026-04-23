@@ -115,8 +115,9 @@ enum starpu_node_kind
 	STARPU_MPI_SC_RAM   = 6,  /**< MPI client device */
 	STARPU_TCPIP_SC_RAM = 7,  /**< TCPIP client device */
 	STARPU_HIP_RAM	    = 8,  /**< NVIDIA/AMD HIP device */
-	STARPU_MAX_RAM	    = 8,  /**< Maximum value of memory types */
-	STARPU_NRAM	    = 9,  /**< Number of memory types */
+	STARPU_SYCL_RAM	    = 9,  /**< NVIDIA/AMD SYCL device */
+	STARPU_MAX_RAM	    = 9,  /**< Maximum value of memory types */
+	STARPU_NRAM	    = 10,  /**< Number of memory types */
 };
 
 /**
@@ -163,6 +164,13 @@ struct starpu_data_copy_methods
 	/**
 	   Define how to copy data from the \p src_interface interface on the
 	   \p src_node CPU node to the \p dst_interface interface on the \p
+	   dst_node SYCL node. Return 0 on success.
+	*/
+	int (*ram_to_sycl)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+
+	/**
+	   Define how to copy data from the \p src_interface interface on the
+	   \p src_node CPU node to the \p dst_interface interface on the \p
 	   dst_node OpenCL node. Return 0 on success.
 	*/
 	int (*ram_to_opencl)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
@@ -201,6 +209,20 @@ struct starpu_data_copy_methods
 	   dst_node HIP node. Return 0 on success.
 	*/
 	int (*hip_to_hip)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+
+	/**
+	   Define how to copy data from the \p src_interface interface on the
+	   \p src_node SYCL node to the \p dst_interface interface on the \p
+	   dst_node CPU node. Return 0 on success.
+	*/
+	int (*sycl_to_ram)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+
+	/**
+	   Define how to copy data from the \p src_interface interface on the
+	   \p src_node SYCL node to the \p dst_interface interface on the \p
+	   dst_node SYCL node. Return 0 on success.
+	*/
+	int (*sycl_to_sycl)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 
 	/**
 	   Define how to copy data from the \p src_interface interface on the
@@ -293,6 +315,42 @@ struct starpu_data_copy_methods
 	int (*ram_to_hip_async)(void);
 	int (*hip_to_ram_async)(void);
 	int (*hip_to_hip_async)(void);
+#endif
+
+#ifdef STARPU_USE_SYCL
+	/**
+	   Define how to copy data from the \p src_interface interface on the
+	   \p src_node CPU node to the \p dst_interface interface on the \p
+	   dst_node SYCL node. Must return 0 if the transfer was actually
+	   completed completely synchronously, or <c>-EAGAIN</c> if at least
+	   some transfers are still ongoing and should be awaited for by the
+	   core.
+	*/
+	int (*ram_to_sycl_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+
+	/**
+	   Define how to copy data from the \p src_interface interface on the
+	   \p src_node SYCL node to the \p dst_interface interface on the \p
+	   dst_node CPU node. Must return 0 if the transfer was actually
+	   completed completely synchronously, or <c>-EAGAIN</c> if at least
+	   some transfers are still ongoing and should be awaited for by the
+	   core.
+	*/
+	int (*sycl_to_ram_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+
+	/**
+	   Define how to copy data from the \p src_interface interface on the
+	   \p src_node SYCL node to the \p dst_interface interface on the \p
+	   dst_node SYCL node. Must return 0 if the transfer was actually
+           completed completely synchronously, or <c>-EAGAIN</c> if at least
+           some transfers are still ongoing and should be awaited for by the
+           core.
+	*/
+	int (*sycl_to_sycl_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+#else
+	int (*ram_to_sycl_async)(void);
+	int (*sycl_to_ram_async)(void);
+	int (*sycl_to_sycl_async)(void);
 #endif
 
 #if defined(STARPU_USE_OPENCL) && !defined(__CUDACC__) && !defined(__HIPCC__)
@@ -2864,6 +2922,11 @@ void starpu_multiformat_data_register(starpu_data_handle_t *handle, int home_nod
    Return the local pointer to the data with HIP format.
 */
 #define STARPU_MULTIFORMAT_GET_HIP_PTR(interface) (((struct starpu_multiformat_interface *)(interface))->hip_ptr)
+
+/**
+   Return the local pointer to the data with SYCL format.
+*/
+#define STARPU_MULTIFORMAT_GET_SYCL_PTR(interface) (((struct starpu_multiformat_interface *)(interface))->sycl_ptr)
 
 /**
    Return the local pointer to the data with OpenCL format.

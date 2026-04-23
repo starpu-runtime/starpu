@@ -1513,6 +1513,86 @@ fi
 
 ###############################################################################
 #                                                                             #
+#                                 SYCL settings                               #
+#                                                                             #
+###############################################################################
+
+AC_MSG_CHECKING([maximum number of SYCL devices])
+AC_ARG_ENABLE([maxsycldev], [AS_HELP_STRING([--enable-maxsycldev=<number>],
+                            [maximum number of SYCL devices])],
+              [nmaxsycldev=$enableval], [nmaxsycldev=8])
+
+if test x$nmaxsycldev = x -o x$nmaxsycldev = xyes; then
+	    AC_MSG_ERROR([The --enable-maxsycldev option needs to be given a number])
+fi
+
+AC_MSG_RESULT($nmaxsycldev)
+AC_DEFINE_UNQUOTED([STARPU_MAXSYCLDEVS], [$nmaxsycldev],
+			       [maximum number of SYCL devices])
+
+AC_ARG_ENABLE([sycl], [AS_HELP_STRING([--enable-sycl], [Enable SYCL support])],
+              [], [enable_sycl=maybe])
+
+if test x$enable_simgrid = xyes; then
+		if test x$enable_sycl = xyes; then
+			AC_MSG_ERROR([SYCL not supported with simgrid])
+		fi
+		enable_sycl=no
+fi
+
+have_valid_sycl=no
+if test "x$enable_sycl" = xyes; then
+		STARPU_SYCL_CXXFLAGS="-fsycl"
+		STARPU_SYCL_LDFLAGS="-Xcompiler -fsycl -qmkl"
+
+		SAVED_CXXFLAGS="$CXXFLAGS"
+		CXXFLAGS="${CXXFLAGS} $STARPU_SYCL_CXXFLAGS"
+		AC_CHECK_HEADERS([sycl/sycl.hpp], [have_valid_sycl=yes], [have_valid_sycl=no])
+		AC_CHECK_HEADERS([dpct/dpct.hpp], [have_valid_sycl=yes], [have_valid_sycl=no])
+		CXXFLAGS="${SAVED_CXXFLAGS}"
+		have_valid_sycl=yes
+fi
+
+# In case SYCL was explicitly required, but is not available, this is an error
+if test x$enable_sycl = xyes -a x$have_valid_sycl = xno; then
+        AC_MSG_ERROR([cannot find SYCL])
+fi
+
+# Now we enable SYCL if and only if a proper setup is available
+enable_sycl=$have_valid_sycl
+
+if test "x$enable_sycl" = xyes; then
+        AC_DEFINE([STARPU_USE_SYCL], [1], [Define to 1 if the SYCL driver is to be tested])
+
+        AC_ARG_ENABLE([sycl_memcpy_peer],
+                    [AS_HELP_STRING([--disable-sycl-memcpy-peer],
+									[if you want to disable peer transfers when using SYCL])],
+                    [], [enable_sycl_memcpy_peer=$enable_sycl])
+
+        if test x$enable_sycl_memcpy_peer = xyes; then
+		        AC_DEFINE([STARPU_HAVE_SYCL_MEMCPY_PEER], [1], [Peer transfers are supported in SYCL])
+	fi
+
+        CXXFLAGS="$CXXFLAGS $STARPU_SYCL_CXXFLAGS"
+	LDFLAGS="$LDFLAGS $STARPU_SYCL_LDFLAGS"
+else
+        STARPU_SYCL_LDFLAGS=
+	STARPU_SYCL_CXXFLAGS=
+	enable_sycl_memcpy_peer=no
+fi
+
+AC_SUBST([STARPU_SYCL_LDFLAGS])
+AC_SUBST([STARPU_SYCL_CXXFLAGS])
+AM_CONDITIONAL([STARPU_USE_SYCL], test x$enable_sycl = xyes)
+
+AC_DEFINE([STARPU_USE_SYCLBLAS], [1], [SYCLBLAS support is enabled])
+AM_CONDITIONAL([STARPU_USE_SYCLBLAS], test x$enable_sycl = xyes)
+AC_SUBST([STARPU_USE_SYCLBLAS], $enable_sycl)
+
+AC_ARG_VAR([SYCLCCFLAGS], [SYCL compiler flags])
+
+###############################################################################
+#                                                                             #
 #                                 CUDA settings                               #
 #                                                                             #
 ###############################################################################
@@ -3190,6 +3270,11 @@ if test x$maxnodes = x0 ; then
 			# odd number.
 			nodes=`expr $nodes + $nmaxopencldev`
 		fi
+		if test x$enable_sycl = xyes ; then
+			# we could have used nmaxsycldev + 1, but this would certainly give an
+			# odd number.
+			nodes=`expr $nodes + $nmaxsycldev`
+		fi
 		if test x$enable_max_fpga = xyes ; then
 			# we could have used nmaxmaxfpgadev + 1, but this would certainly give an
 			# odd number.
@@ -4597,7 +4682,7 @@ STARPU_NVCC_H_CPPFLAGS="$STARPU_BASIC_H_CPPFLAGS"
 AC_SUBST([STARPU_NVCC_H_CPPFLAGS])
 
 # these are the flags needed for linking libstarpu (and thus also for static linking)
-LIBSTARPU_LDFLAGS="$STARPU_OPENCL_LDFLAGS $STARPU_CUDA_LDFLAGS $STARPU_HIP_LDFLAGS $STARPU_HIPBLAS_LDFLAGS $HWLOC_LIBS $FXT_LDFLAGS $FXT_LIBS $PAPI_LIBS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LDFLAGS $STARPU_BLAS_LDFLAGS $DGELS_LIBS $STARPU_MAX_FPGA_LDFLAGS $STARPU_DLOPEN_LDFLAGS"
+LIBSTARPU_LDFLAGS="$STARPU_OPENCL_LDFLAGS $STARPU_CUDA_LDFLAGS $STARPU_HIP_LDFLAGS $STARPU_HIPBLAS_LDFLAGS $STARPU_SYCL_LDFLAGS $HWLOC_LIBS $FXT_LDFLAGS $FXT_LIBS $PAPI_LIBS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LDFLAGS $STARPU_BLAS_LDFLAGS $DGELS_LIBS $STARPU_MAX_FPGA_LDFLAGS $STARPU_DLOPEN_LDFLAGS"
 AC_SUBST([LIBSTARPU_LDFLAGS])
 
 # these are the flags needed for linking against libstarpu (because starpu.h makes its includer use pthread_*, simgrid, etc.)
@@ -4875,6 +4960,7 @@ AC_MSG_NOTICE([
 	CPUs     enabled: $enable_cpu
 	CUDA     enabled: $enable_cuda $NO_NVML
 	HIP      enabled: $enable_hip
+	SYCL     enabled: $enable_sycl
 	OpenCL   enabled: $enable_opencl
 	Max FPGA enabled: $enable_max_fpga
 
@@ -4888,6 +4974,7 @@ AC_MSG_NOTICE([
 	Maximum number of combined workers:            $maxcombinedworkers
 	Maximum number of CUDA devices:                $nmaxcudadev
 	Maximum number of HIP devices:                 $nmaxhipdev
+	Maximum number of SYCL devices:                $nmaxsycldev
 	Maximum number of OpenCL devices:              $nmaxopencldev
 	Maximum number of Maxeler FPGA devices:        $nmaxmaxfpgadev
 	Maximum number of MPI server-client devices:    $nmaxmpidev
@@ -4898,6 +4985,7 @@ AC_MSG_NOTICE([
 	CUDA GPU-GPU transfers: $enable_cuda_memcpy_peer
 	CUDA Map:               $enable_cuda_map
 	HIP GPU-GPU transfers:  $enable_hip_memcpy_peer
+	SYCL GPU-GPU transfers: $enable_sycl_memcpy_peer
 	Allocation cache:       $enable_allocation_cache
 
 	Magma enabled:     $have_magma

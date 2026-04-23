@@ -365,11 +365,14 @@ static struct starpu_codelet cl_gemm0 =
 	.cuda_funcs = {cublas_gemm0},
 #elif defined(STARPU_USE_HIP) && defined(STARPU_USE_HIPBLAS)
 	.hip_funcs = {hipblas_gemm0},
+#elif defined(STARPU_USE_SYCL) && defined(STARPU_USE_SYCLBLAS)
+	.sycl_funcs = {syclblas_gemm0},
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.hip_flags = {STARPU_HIP_ASYNC},
+	.sycl_flags = {STARPU_SYCL_ASYNC},
 	.nbuffers = 3,
 	.modes = {STARPU_R, STARPU_R, STARPU_R},
 	.model = &starpu_gemm_model
@@ -388,11 +391,14 @@ static struct starpu_codelet cl_gemm =
 	.cuda_funcs = {cublas_gemm},
 #elif defined(STARPU_USE_HIP) && defined(STARPU_USE_HIPBLAS)
 	.hip_funcs = {hipblas_gemm},
+#elif defined(STARPU_USE_SYCL) && defined(STARPU_USE_SYCLBLAS)
+	.sycl_funcs = {syclblas_gemm},
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.hip_flags = {STARPU_HIP_ASYNC},
+	.sycl_flags = {STARPU_SYCL_ASYNC},
 	.nbuffers = 3,
 	.modes = {STARPU_R, STARPU_R, STARPU_REDUX},
 	.model = &starpu_gemm_model

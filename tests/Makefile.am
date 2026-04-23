@@ -436,6 +436,10 @@ increment_sources +=		\
 nobase_STARPU_OPENCL_DATA_DATA += \
 	variable/increment_opencl_kernel.cl
 endif
+if STARPU_USE_SYCL
+increment_sources +=		\
+	variable/increment_sycl.cpp
+endif
 
 datawizard_acquire_release_SOURCES =		\
 	datawizard/acquire_release.c		\

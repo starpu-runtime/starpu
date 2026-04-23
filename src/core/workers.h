@@ -46,6 +46,7 @@
 #include <core/drivers.h>
 #include <drivers/cuda/driver_cuda.h>
 #include <drivers/hip/driver_hip.h>
+#include <drivers/sycl/driver_sycl.h>
 #include <drivers/opencl/driver_opencl.h>
 
 #ifdef STARPU_USE_MPI_SERVER_CLIENT
@@ -431,6 +432,11 @@ struct _starpu_machine_topology
 	/** Whether we should have one thread per device (for hip) */
 	int hip_th_per_dev;
 
+	/** Whether we should have one thread per stream (for sycl) */
+	int sycl_th_per_stream;
+	/** Whether we should have one thread per device (for sycl) */
+	int sycl_th_per_dev;
+
 	/** Indicates the successive logical PU identifier that should be used
 	 * to bind the workers. It is either filled according to the
 	 * user's explicit parameters (from starpu_conf) or according
@@ -635,6 +641,9 @@ uint32_t _starpu_can_submit_cuda_task(void);
 /** Is there a worker that can execute HIP code ? */
 uint32_t _starpu_can_submit_hip_task(void);
 
+/** Is there a worker that can execute SYCL code ? */
+uint32_t _starpu_can_submit_sycl_task(void);
+
 /** Is there a worker that can execute CPU code ? */
 uint32_t _starpu_can_submit_cpu_task(void);
 
@@ -743,7 +752,8 @@ static inline void _starpu_worker_add_status(int workerid, enum _starpu_worker_s
 	STARPU_ASSERT(!(_starpu_config.workers[workerid].status & (1 << status)));
 	if (starpu_profiling_status_get())
 		_starpu_worker_start_state(workerid, status, NULL);
-	_starpu_config.workers[workerid].status |= (1 << status);
+	_starpu_config.workers[workerid].status =
+          (enum _starpu_worker_status)(_starpu_config.workers[workerid].status | (1 << status));
 }
 
 /** Change the status of the worker which indicates what the worker is currently
@@ -753,7 +763,8 @@ static inline void _starpu_worker_clear_status(int workerid, enum _starpu_worker
 	STARPU_ASSERT((_starpu_config.workers[workerid].status & (1 << status)));
 	if (starpu_profiling_status_get())
 		_starpu_worker_stop_state(workerid, status, NULL);
-	_starpu_config.workers[workerid].status &= ~(1 << status);
+	_starpu_config.workers[workerid].status =
+          (enum _starpu_worker_status)(_starpu_config.workers[workerid].status & ~(1 << status));
 }
 
 /** We keep an initial sched ctx which might be used in case no other ctx is available */

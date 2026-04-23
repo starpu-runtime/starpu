@@ -85,6 +85,7 @@ chapters =	\
 	chapters/starpu_extensions/cuda_support.doxy		\
 	chapters/starpu_extensions/opencl_support.doxy		\
 	chapters/starpu_extensions/max_fpga_support.doxy		\
+	chapters/starpu_extensions/sycl_support.doxy		\
 	chapters/starpu_extensions/out_of_core.doxy		\
 	chapters/starpu_extensions/mpi_support.doxy		\
 	chapters/starpu_extensions/tcpip_support.doxy		\
@@ -233,6 +234,9 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/include/starpu_simgrid_wrap.h	\
 	$(top_srcdir)/include/starpu_sink.h		\
 	$(top_srcdir)/include/starpu_stdlib.h		\
+	$(top_srcdir)/include/starpu_sycl.h		\
+	$(top_srcdir)/include/starpu_syclblas.h		\
+	$(top_srcdir)/include/starpu_sycl.hpp		\
 	$(top_srcdir)/include/starpu_task_bundle.h	\
 	$(top_srcdir)/include/starpu_task_dep.h		\
 	$(top_srcdir)/include/starpu_task.h		\

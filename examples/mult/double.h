@@ -19,6 +19,7 @@
 
 #define CUBLAS_GEMM cublasDgemm
 #define HIPBLAS_GEMM hipblasDgemm
+#define SYCLBLAS_GEMM syclblasDgemm
 #define CPU_GEMM	STARPU_DGEMM
 #define CPU_ASUM	STARPU_DASUM
 #define CPU_IAMAX	STARPU_IDAMAX

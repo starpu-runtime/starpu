@@ -82,7 +82,22 @@
 #undef STARPU_USE_HIPBLAS
 
 /**
-   @ingroup API_CUDA_Extensions
+   @ingroup API_SYCL_Extensions
+   Defined when StarPU has been installed with
+   SYCL support. It should be used in your code to detect the
+   availability of SYCL.
+*/
+#undef STARPU_USE_SYCL
+
+/**
+   @ingroup API_SYCL_Extensions
+   Defined when StarPU has been installed with
+   SYCL BLAS support. It should be used in your code to detect the
+   availability of SYCL BLAS.
+*/
+#undef STARPU_USE_SYCLBLAS
+
+/**
    Defined when StarPU has been installed with
    NVidia-ML support. It should be used in your code to detect the
    availability of NVML-related functions.
@@ -301,6 +316,13 @@
 #undef STARPU_MAXHIPDEVS
 
 /**
+   @ingroup API_SYCL_Extensions
+   Define the maximum number of SYCL devices that are supported by
+   StarPU.
+ */
+#undef STARPU_MAXSYCLDEVS
+
+/**
    @ingroup API_Workers
    Define the maximum number of workers managed by StarPU.
 */
@@ -327,6 +349,7 @@
 #undef STARPU_HAVE_GLPK_H
 
 #undef STARPU_HAVE_CUDA_MEMCPY_PEER
+#undef STARPU_HAVE_SYCL_MEMCPY_PEER
 #undef STARPU_HAVE_LIBNUMA
 
 #undef STARPU_HAVE_WINDOWS

@@ -51,6 +51,7 @@
 #include <drivers/cpu/driver_cpu.h>
 #include <drivers/cuda/driver_cuda.h>
 #include <drivers/hip/driver_hip.h>
+#include <drivers/sycl/driver_sycl.h>
 #include <drivers/opencl/driver_opencl.h>
 #include <drivers/max/driver_max_fpga.h>
 #include <drivers/mpi/driver_mpi_source.h>
@@ -312,6 +313,10 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 				if (task->cl->hip_funcs[impl] != NULL)
 					return 1;
 				break;
+			case STARPU_SYCL_WORKER:
+				if (task->cl->sycl_funcs[impl] != NULL)
+					return 1;
+				break;
 			case STARPU_OPENCL_WORKER:
 				if (task->cl->opencl_funcs[impl] != NULL)
 					return 1;
@@ -362,6 +367,10 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 				break;
 			case STARPU_HIP_WORKER:
 				if (task->cl->hip_funcs[impl] != NULL)
+					test_implementation = 1;
+				break;
+			case STARPU_SYCL_WORKER:
+				if (task->cl->sycl_funcs[impl] != NULL)
 					test_implementation = 1;
 				break;
 			case STARPU_OPENCL_WORKER:
@@ -434,6 +443,11 @@ uint32_t _starpu_worker_exists(struct starpu_task *task)
 	    _starpu_worker_exists_and_can_execute(task, STARPU_HIP_WORKER))
 		return 1;
 #endif
+#if defined(STARPU_USE_SYCL)
+	if ((task->where & STARPU_SYCL) &&
+	    _starpu_worker_exists_and_can_execute(task, STARPU_SYCL_WORKER))
+		return 1;
+#endif
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 	if ((task->where & STARPU_OPENCL) &&
 	    _starpu_worker_exists_and_can_execute(task, STARPU_OPENCL_WORKER))
@@ -473,6 +487,11 @@ uint32_t _starpu_can_submit_hip_task(void)
 	return STARPU_HIP & _starpu_config.worker_mask;
 }
 
+uint32_t _starpu_can_submit_sycl_task(void)
+{
+	return STARPU_SYCL & _starpu_config.worker_mask;
+}
+
 uint32_t _starpu_can_submit_cpu_task(void)
 {
 	return STARPU_CPU & _starpu_config.worker_mask;
@@ -489,7 +508,7 @@ static inline int _starpu_can_use_nth_implementation(enum starpu_worker_archtype
 	{
 	case STARPU_ANY_WORKER:
 	{
-		int cpu_func_enabled=1, cuda_func_enabled=1, hip_func_enabled=1, opencl_func_enabled=1;
+		int cpu_func_enabled=1, cuda_func_enabled=1, hip_func_enabled=1, opencl_func_enabled=1, sycl_func_enabled=1;
 
 #if defined(STARPU_USE_CPU) || defined(STARPU_SIMGRID)
 		starpu_cpu_func_t cpu_func = _starpu_task_get_cpu_nth_implementation(cl, nimpl);
@@ -503,12 +522,16 @@ static inline int _starpu_can_use_nth_implementation(enum starpu_worker_archtype
 		starpu_hip_func_t hip_func = _starpu_task_get_hip_nth_implementation(cl, nimpl);
 		hip_func_enabled = hip_func != NULL && starpu_hip_worker_get_count();
 #endif
+#if defined(STARPU_USE_SYCL)
+		starpu_sycl_func_t sycl_func = _starpu_task_get_sycl_nth_implementation(cl, nimpl);
+		sycl_func_enabled = sycl_func != NULL && starpu_sycl_worker_get_count();
+#endif
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 		starpu_opencl_func_t opencl_func = _starpu_task_get_opencl_nth_implementation(cl, nimpl);
 		opencl_func_enabled = opencl_func != NULL && starpu_opencl_worker_get_count();
 #endif
 
-		return cpu_func_enabled && cuda_func_enabled && opencl_func_enabled && hip_func_enabled;
+		return cpu_func_enabled && cuda_func_enabled && opencl_func_enabled && hip_func_enabled && sycl_func_enabled;
 	}
 	case STARPU_CPU_WORKER:
 	{
@@ -523,6 +546,11 @@ static inline int _starpu_can_use_nth_implementation(enum starpu_worker_archtype
 	case STARPU_HIP_WORKER:
 	{
 		starpu_hip_func_t func = _starpu_task_get_hip_nth_implementation(cl, nimpl);
+		return func != NULL;
+	}
+	case STARPU_SYCL_WORKER:
+	{
+		starpu_sycl_func_t func = _starpu_task_get_sycl_nth_implementation(cl, nimpl);
 		return func != NULL;
 	}
 	case STARPU_OPENCL_WORKER:
@@ -800,6 +828,10 @@ static unsigned _starpu_may_launch_driver(struct starpu_conf *conf,
 			break;
 		case STARPU_HIP_WORKER:
 			if (d->id.hip_id == conf->not_launched_drivers[i].id.hip_id)
+				return 0;
+			break;
+		case STARPU_SYCL_WORKER:
+			if (d->id.sycl_id == conf->not_launched_drivers[i].id.sycl_id)
 				return 0;
 			break;
 #ifdef STARPU_USE_OPENCL
@@ -1151,6 +1183,7 @@ int starpu_conf_init(struct starpu_conf *conf)
 	conf->reserve_ncpus = starpu_getenv_number("STARPU_RESERVE_NCPU");
 	conf->ncuda = starpu_getenv_number("STARPU_NCUDA");
 	conf->nhip = starpu_getenv_number("STARPU_NHIP");
+	conf->nsycl = starpu_getenv_number("STARPU_NSYCL");
 	conf->nopencl = starpu_getenv_number("STARPU_NOPENCL");
 	conf->nmax_fpga = starpu_getenv_number("STARPU_NMAX_FPGA");
 	conf->nmpi_sc = starpu_getenv_number("STARPU_NMPI_SC");
@@ -1167,6 +1200,7 @@ int starpu_conf_init(struct starpu_conf *conf)
 	conf->use_explicit_workers_bindid = 0; /* TODO */
 	conf->use_explicit_workers_cuda_gpuid = 0; /* TODO */
 	conf->use_explicit_workers_hip_gpuid = 0; /* TODO */
+	conf->use_explicit_workers_sycl_gpuid = 0; /* TODO */
 	conf->use_explicit_workers_opencl_gpuid = 0; /* TODO */
 	conf->use_explicit_workers_max_fpga_deviceid = 0; /* TODO */
 	conf->use_explicit_workers_mpi_sc_deviceid = 0; /* TODO */
@@ -1205,6 +1239,14 @@ int starpu_conf_init(struct starpu_conf *conf)
 	conf->disable_asynchronous_hip_copy = starpu_getenv_number("STARPU_DISABLE_ASYNCHRONOUS_HIP_COPY");
 	if (conf->disable_asynchronous_hip_copy == -1)
 		conf->disable_asynchronous_hip_copy = 0;
+#endif
+
+#if defined(STARPU_DISABLE_ASYNCHRONOUS_SYCL_COPY)
+	conf->disable_asynchronous_sycl_copy = 1;
+#else
+	conf->disable_asynchronous_sycl_copy = starpu_getenv_number("STARPU_DISABLE_ASYNCHRONOUS_SYCL_COPY");
+	if (conf->disable_asynchronous_sycl_copy == -1)
+		conf->disable_asynchronous_sycl_copy = 0;
 #endif
 
 #if defined(STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY)
@@ -1261,6 +1303,7 @@ int starpu_conf_noworker(struct starpu_conf *conf)
 	conf->ncpus = 0;
 	conf->ncuda = 0;
 	conf->nhip = 0;
+	conf->nsycl = 0;
 	conf->nopencl = 0;
 	conf->nmax_fpga = 0;
 	conf->nmpi_sc = 0;
@@ -1303,6 +1346,7 @@ void _starpu_conf_check_environment(struct starpu_conf *conf)
 	}
 	_starpu_conf_set_value_against_environment("STARPU_NCUDA", &conf->ncuda, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_NHIP", &conf->nhip, conf->precedence_over_environment_variables);
+	_starpu_conf_set_value_against_environment("STARPU_NSYCL", &conf->nsycl, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_NOPENCL", &conf->nopencl, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_NMAX_FPGA", &conf->nmax_fpga, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_NMPI_SC", &conf->nmpi_sc, conf->precedence_over_environment_variables);
@@ -1324,6 +1368,7 @@ void _starpu_conf_check_environment(struct starpu_conf *conf)
 	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_COPY", &conf->disable_asynchronous_copy, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY", &conf->disable_asynchronous_cuda_copy, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_HIP_COPY", &conf->disable_asynchronous_hip_copy, conf->precedence_over_environment_variables);
+	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_SYCL_COPY", &conf->disable_asynchronous_sycl_copy, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY", &conf->disable_asynchronous_opencl_copy, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_MAX_FPGA_COPY", &conf->disable_asynchronous_max_fpga_copy, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_MPI_SC_COPY", &conf->disable_asynchronous_mpi_sc_copy, conf->precedence_over_environment_variables);
@@ -1334,6 +1379,7 @@ void _starpu_conf_check_environment(struct starpu_conf *conf)
 	asynchronous_copy_disabled[STARPU_CPU_RAM] = 0;
 	asynchronous_copy_disabled[STARPU_CUDA_RAM] = conf->disable_asynchronous_cuda_copy;
 	asynchronous_copy_disabled[STARPU_HIP_RAM] = conf->disable_asynchronous_hip_copy;
+	asynchronous_copy_disabled[STARPU_SYCL_RAM] = conf->disable_asynchronous_sycl_copy;
 	asynchronous_copy_disabled[STARPU_OPENCL_RAM] = conf->disable_asynchronous_opencl_copy;
 	asynchronous_copy_disabled[STARPU_MAX_FPGA_RAM] = conf->disable_asynchronous_max_fpga_copy;
 	asynchronous_copy_disabled[STARPU_DISK_RAM] = 0;
@@ -1570,6 +1616,7 @@ void starpu_drivers_preinit(void)
 	_starpu_cpu_preinit();
 	_starpu_cuda_preinit();
 	_starpu_hip_preinit();
+	_starpu_sycl_preinit();
 	_starpu_opencl_preinit();
 	_starpu_max_fpga_preinit();
 	_starpu_mpi_sc_preinit();
@@ -2108,6 +2155,9 @@ unsigned _starpu_worker_can_block(unsigned memnode STARPU_ATTRIBUTE_UNUSED, stru
 	case STARPU_HIP_WORKER:
 		driver.id.hip_id = worker->devid;
 		break;
+	case STARPU_SYCL_WORKER:
+		driver.id.sycl_id = worker->devid;
+		break;
 #ifdef STARPU_USE_OPENCL
 	case STARPU_OPENCL_WORKER:
 		starpu_opencl_get_device(worker->devid, &driver.id.opencl_id);
@@ -2445,6 +2495,11 @@ unsigned starpu_hip_worker_get_count(void)
 	return starpu_worker_get_count_by_type(STARPU_HIP_WORKER);
 }
 
+unsigned starpu_sycl_worker_get_count(void)
+{
+	return starpu_worker_get_count_by_type(STARPU_SYCL_WORKER);
+}
+
 unsigned starpu_opencl_worker_get_count(void)
 {
 	return starpu_worker_get_count_by_type(STARPU_OPENCL_WORKER);
@@ -2463,6 +2518,11 @@ int starpu_asynchronous_cuda_copy_disabled(void)
 int starpu_asynchronous_hip_copy_disabled(void)
 {
 	return _starpu_config.conf.disable_asynchronous_hip_copy;
+}
+
+int starpu_asynchronous_sycl_copy_disabled(void)
+{
+	return _starpu_config.conf.disable_asynchronous_sycl_copy;
 }
 
 int starpu_asynchronous_opencl_copy_disabled(void)

@@ -54,7 +54,8 @@ enum starpu_worker_archtype
 	STARPU_MPI_SC_WORKER   = 5,  /**< MPI server client device */
 	STARPU_TCPIP_SC_WORKER = 6,  /**< TCPIP server client device */
 	STARPU_HIP_WORKER      = 7,  /**< NVIDIA/AMD HIP device */
-	STARPU_NARCH	       = 8,  /**< Number of arch types */
+	STARPU_SYCL_WORKER     = 8,  /**< SYCL device */
+	STARPU_NARCH	       = 9,  /**< Number of arch types */
 	STARPU_ANY_WORKER      = 255 /**< any worker, used in the hypervisor */
 };
 
@@ -197,6 +198,13 @@ unsigned starpu_cuda_worker_get_count(void);
    See \ref TopologyWorkers for more details.
 */
 unsigned starpu_hip_worker_get_count(void);
+
+/**
+   Return the number of SYCL devices controlled by StarPU. The return
+   value should be at most \ref STARPU_MAXSYCLDEVS.
+   See \ref TopologyWorkers for more details.
+*/
+unsigned starpu_sycl_worker_get_count(void);
 
 /**
    Return the number of OpenCL devices controlled by StarPU. The

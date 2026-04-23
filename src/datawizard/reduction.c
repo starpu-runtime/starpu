@@ -106,6 +106,13 @@ void _starpu_init_data_replicate(starpu_data_handle_t handle, struct _starpu_dat
 			starpu_hip_set_device(starpu_worker_get_devid(workerid));
 #endif
 			break;
+		case STARPU_SYCL_WORKER:
+			init_func = _starpu_task_get_sycl_nth_implementation(init_cl, 0);
+#if defined(STARPU_HAVE_SYCL_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
+			/* We make sure we do manipulate the proper device */
+			starpu_sycl_set_device(starpu_worker_get_devid(workerid));
+#endif
+			break;
 		case STARPU_OPENCL_WORKER:
 			init_func = _starpu_task_get_opencl_nth_implementation(init_cl, 0);
 			break;

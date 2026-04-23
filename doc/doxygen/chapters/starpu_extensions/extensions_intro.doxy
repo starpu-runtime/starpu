@@ -50,7 +50,8 @@ Other chapters cover some further usages of StarPU.
 Chapters \ref CUDASupport and \ref OpenCLSupport show how to use
 GPU devices with CUDA or OpenCL. Chapter \ref MaxFPGASupport
 explains how StarPU support Field Programmable Gate Array (FPGA)
-applications exploiting DFE configurations.
+applications exploiting DFE configurations. Chapter \ref SYCLSupport
+shows how to use the SYCL model on various devices.
 </li>
 <li>
 If you need to store more data than what the main memory (RAM) can

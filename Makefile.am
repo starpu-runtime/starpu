@@ -104,6 +104,8 @@ versinclude_HEADERS = 				\
 	include/starpu_fxt.h			\
 	include/starpu_cuda.h			\
 	include/starpu_hip.h			\
+	include/starpu_sycl.hpp			\
+	include/starpu_sycl.h  			\
 	include/starpu_opencl.h			\
 	include/starpu_max_fpga.h		\
 	include/starpu_openmp.h			\
@@ -131,6 +133,7 @@ versinclude_HEADERS = 				\
 	include/starpu_cusparse.h		\
 	include/starpu_hipblas.h		\
 	include/starpu_hipsolver.h		\
+	include/starpu_syclblas.h		\
 	include/starpu_driver.h			\
 	include/starpu_stdlib.h			\
 	include/starpu_thread.h			\

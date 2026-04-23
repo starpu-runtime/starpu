@@ -1,0 +1,50 @@
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+
+/*! \page SYCLSupport SYCL Support
+
+StarPU provides a SYCL support to use the SYCL layer on various processors.
+
+It targets SYCL compatible GPUs (mainly Intel), and has mostly been
+tested on Intel Max 1100 with minilu and exclusively with the Intel
+oneapi toolchain (\c icx and \c icpx compilers). It thus may not work
+with other compilers without some modifications (build and dpct helper
+functions).
+
+One may want to take care to select which SYCL device should be
+visible to StarPU. For example on a mono-socket system with 2 GPUs the
+SYCL runtime can report 5 SYCL devices:
+
+\verbatim
+$ sycl-ls
+[level_zero:gpu][level_zero:0] Intel(R) oneAPI Unified Runtime over Level-Zero, Intel(R) Data Center GPU Max 1100 12.60.7 [1.6.33578+42]
+[level_zero:gpu][level_zero:1] Intel(R) oneAPI Unified Runtime over Level-Zero, Intel(R) Data Center GPU Max 1100 12.60.7 [1.6.33578+42]
+[opencl:cpu][opencl:0] Intel(R) OpenCL, Intel(R) Xeon(R) 6747P OpenCL 3.0 (Build 0) [2025.20.10.0.23_160000]
+[opencl:gpu][opencl:1] Intel(R) OpenCL Graphics, Intel(R) Data Center GPU Max 1100 OpenCL 3.0 NEO  [25.18.33578]
+[opencl:gpu][opencl:2] Intel(R) OpenCL Graphics, Intel(R) Data Center GPU Max 1100 OpenCL 3.0 NEO  [25.18.33578]
+\endverbatim
+
+The environment variable \c ONEAPI_DEVICE_SELECTOR allows to select
+specific devices, e.g.:
+
+\verbatim
+$ ONEAPI_DEVICE_SELECTOR=level_zero:* sycl-ls
+[level_zero:gpu] Intel(R) oneAPI Unified Runtime over Level-Zero, Intel(R) Data Center GPU Max 1100 12.60.7 [1.6.33578+42]
+[level_zero:gpu] Intel(R) oneAPI Unified Runtime over Level-Zero, Intel(R) Data Center GPU Max 1100 12.60.7 [1.6.33578+42]
+\endverbatim
+
+
+*/

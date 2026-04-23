@@ -145,6 +145,7 @@ noinst_HEADERS = 						\
 	drivers/cpu/driver_cpu.h				\
 	drivers/cuda/driver_cuda.h				\
 	drivers/hip/driver_hip.h				\
+	drivers/sycl/driver_sycl.h				\
 	drivers/opencl/driver_opencl.h				\
 	drivers/opencl/driver_opencl_utils.h			\
 	drivers/max/driver_max_fpga.h				\
@@ -362,6 +363,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cpu/driver_cpu.c
 
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/hip/driver_hip_init.c
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cuda/driver_cuda_init.c
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/sycl/driver_sycl_init.c
 
 if STARPU_USE_HIP
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/hip/driver_hip.c
@@ -369,6 +371,12 @@ endif
 
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/hip/starpu_hipsolver.c
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/hip/starpu_hipblas.c
+
+if STARPU_USE_SYCL
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/sycl/driver_sycl.cpp
+endif
+
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/sycl/starpu_syclblas.cpp
 
 if STARPU_USE_CUDA0
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cuda/driver_cuda0.c

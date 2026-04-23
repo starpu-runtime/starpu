@@ -24,7 +24,7 @@ AM_FCFLAGS += $(MAGMA_CFLAGS) $(APP_FCFLAGS)
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/ -I$(top_builddir)/include $(STARPU_H_CPPFLAGS)
 AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@
 LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@ $(STARPU_EXPORTED_LIBS)
-LIBS += $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_HIP_LDFLAGS) $(STARPU_HIPBLAS_LDFLAGS)
+LIBS += $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_HIP_LDFLAGS) $(STARPU_HIPBLAS_LDFLAGS) $(STARPU_SYCL_LDFLAGS)
 LIBS += $(MAGMA_LIBS)
 
 SUBDIRS = stencil
@@ -367,6 +367,12 @@ STARPU_EXAMPLES +=				\
 	mult/dgemm
 endif
 
+if STARPU_USE_SYCLBLAS
+STARPU_EXAMPLES +=				\
+	mult/sgemm 				\
+	mult/dgemm
+endif
+
 if !STARPU_NO_BLAS_LIB
 STARPU_EXAMPLES +=				\
 	mult/sgemm 				\
@@ -509,6 +515,11 @@ basic_examples_vector_scal_SOURCES +=		\
 	basic_examples/vector_scal_hip.hip
 basic_examples_mult_SOURCES +=		        \
 	basic_examples/mult_hip.hip
+endif
+
+if STARPU_USE_SYCL
+basic_examples_mult_SOURCES +=		        \
+	basic_examples/mult_sycl.cpp
 endif
 
 if STARPU_USE_OPENCL
@@ -1108,6 +1119,18 @@ mult_sgemm_layout_SOURCES += 			\
 mult_dgemm_layout_SOURCES += 			\
 	common/blas.c
 endif
+
+if STARPU_USE_SYCL
+mult_sgemm_SOURCES += 				\
+	mult/sycl_gemm.cpp
+mult_dgemm_SOURCES += 				\
+	mult/sycl_gemm.cpp
+mult_sgemm_layout_SOURCES += 			\
+	mult/sycl_gemm.cpp
+mult_dgemm_layout_SOURCES += 			\
+	mult/sycl_gemm.cpp
+endif
+
 
 #####################
 # Trs_sgemm example #

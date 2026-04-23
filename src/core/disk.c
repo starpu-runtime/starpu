@@ -33,6 +33,7 @@
 #include <datawizard/memory_manager.h>
 #include <datawizard/memalloc.h>
 
+#include <drivers/sycl/driver_sycl.h>
 #include <drivers/cuda/driver_cuda.h>
 #include <drivers/opencl/driver_opencl.h>
 #include <drivers/disk/driver_disk.h>

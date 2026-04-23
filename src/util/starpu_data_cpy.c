@@ -82,6 +82,22 @@ static void common_data_cpy_func(void *descr[], void *cl_arg)
 			break;
 		}
 #endif
+#ifdef STARPU_USE_SYCL
+		case STARPU_SYCL_WORKER:
+		{
+			if (copy_methods->sycl_to_sycl_async)
+			{
+				copy_methods->sycl_to_sycl_async(src_interface, memory_node, dst_interface, memory_node);
+				return;
+			}
+			else if (copy_methods->sycl_to_sycl)
+			{
+				copy_methods->sycl_to_sycl(src_interface, memory_node, dst_interface, memory_node);
+				return;
+			}
+			break;
+		}
+#endif
 		case STARPU_OPENCL_WORKER:
 			if (copy_methods->opencl_to_opencl)
 			{
@@ -106,11 +122,12 @@ static struct starpu_perfmodel copy_model =
 
 static struct starpu_codelet copy_cl =
 {
-	.where = STARPU_CPU|STARPU_CUDA|STARPU_HIP|STARPU_OPENCL,
+	.where = STARPU_CPU|STARPU_CUDA|STARPU_HIP|STARPU_SYCL|STARPU_OPENCL,
 	.cpu_funcs = {common_data_cpy_func},
 	.cuda_funcs = {common_data_cpy_func},
 	.opencl_funcs = {common_data_cpy_func},
 	.hip_funcs = {common_data_cpy_func},
+	.sycl_funcs = {common_data_cpy_func},
 	.nbuffers = 2,
 	.modes = {STARPU_W, STARPU_R},
 	.model = &copy_model

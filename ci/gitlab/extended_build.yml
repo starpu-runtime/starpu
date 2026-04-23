@@ -159,7 +159,7 @@ gpu:
   tags: ['starpu', 'node_gpu']
   parallel:
     matrix:
-      - PROFILE: [cuda-opencl, cuda-opencl-runtime, cuda-cudaid, ncuda-nopencl-zero, cuda0, cuda1, cuda4-nopeer-transfer, cuda-multiworker, cuda-multithread, cuda-monothread, cuda-nopipeline, opencl-only, opencl-nopipeline, hip-only]
+      - PROFILE: [cuda-opencl, cuda-opencl-runtime, cuda-cudaid, ncuda-nopencl-zero, cuda0, cuda1, cuda4-nopeer-transfer, cuda-multiworker, cuda-multithread, cuda-monothread, cuda-nopipeline, opencl-only, opencl-nopipeline, hip-only, sycl-only]
 
 extensions:
   extends: .manual_template

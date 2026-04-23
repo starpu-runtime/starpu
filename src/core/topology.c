@@ -29,6 +29,7 @@
 #include <core/topology.h>
 #include <drivers/cuda/driver_cuda.h>
 #include <drivers/hip/driver_hip.h>
+#include <drivers/sycl/driver_sycl.h>
 #include <drivers/cpu/driver_cpu.h>
 #include <drivers/max/driver_max_fpga.h>
 #include <drivers/mpi/driver_mpi_source.h>

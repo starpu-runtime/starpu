@@ -853,6 +853,20 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	}
 #endif
 
+#if defined(STARPU_USE_SYCL)
+	some_impl = 0;
+	for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
+		if (cl->sycl_funcs[i])
+		{
+			some_impl = 1;
+			break;
+		}
+	if (some_impl && is_where_unset)
+	{
+		where |= STARPU_SYCL;
+	}
+#endif
+
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 	/* OpenCL */
 	if (cl->opencl_func && cl->opencl_func != STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS && cl->opencl_funcs[0])
@@ -2566,6 +2580,7 @@ struct starpu_codelet starpu_codelet_nop =
 	.cpu_funcs = {starpu_codelet_nop_func},
 	.cuda_funcs = {starpu_codelet_nop_func},
 	.hip_funcs = {starpu_codelet_nop_func},
+	.sycl_funcs = {starpu_codelet_nop_func},
 	.opencl_funcs = {starpu_codelet_nop_func},
 	.cpu_funcs_name = {"starpu_codelet_nop_func"},
 	.model = NULL,

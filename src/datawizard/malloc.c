@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2018-2022  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -168,6 +168,10 @@ static int _starpu_malloc_should_pin(int flags)
 		{
 			return 1;
 		}
+		if (_starpu_can_submit_sycl_task())
+		{
+			return 1;
+		}
 //		if (_starpu_can_submit_opencl_task())
 //			return 1;
 	}
@@ -180,6 +184,7 @@ int _starpu_malloc_willpin_on_node(unsigned dst_node)
 	return (_starpu_malloc_should_pin(flags) && STARPU_RUNNING_ON_VALGRIND == 0
 			&& (_starpu_can_submit_cuda_task()
 			    || _starpu_can_submit_hip_task()
+			    || _starpu_can_submit_sycl_task()
 			    /* || _starpu_can_submit_opencl_task() */
 			));
 }
@@ -319,6 +324,23 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 			}
 			goto end;
 #endif /* STARPU_USE_HIP */
+		}
+		if (_starpu_can_submit_sycl_task())
+		{
+#ifdef STARPU_USE_SYCL
+			const struct _starpu_node_ops *ops = starpu_memory_driver_info[STARPU_SYCL_RAM].ops;
+			if (ops && ops->malloc_on_host)
+			{
+				*A = (void*)ops->malloc_on_host(dim);
+			}
+			else
+				STARPU_ABORT_MSG("No malloc_on_host function defined for device %s\n", "SYCL");
+			if (STARPU_UNLIKELY(!A))
+			{
+				ret = -ENOMEM;
+			}
+			goto end;
+#endif /* STARPU_USE_SYCL */
 //		}
 //		else if (_starpu_can_submit_opencl_task())
 //		{
@@ -658,6 +680,21 @@ int _starpu_free_flags_on_node(unsigned dst_node, void *A, size_t dim, int flags
 				STARPU_HIP_REPORT_ERROR(hipres);
 			goto out;
 #endif /* STARPU_USE_HIP */
+		}
+		if (_starpu_can_submit_sycl_task())
+		{
+#ifdef STARPU_USE_SYCL
+			const struct _starpu_node_ops *ops = starpu_memory_driver_info[STARPU_SYCL_RAM].ops;
+			if (ops && ops->free_on_host)
+			{
+				ops->free_on_host((uintptr_t)A);
+			}
+			else
+			{
+				STARPU_ABORT_MSG("No malloc_on_host function defined for device %s\n", "SYCL");
+				goto out;
+			}
+#endif /* STARPU_USE_SYCL */
 #endif /* STARPU_SIMGRID */
 		}
 //	else if (_starpu_can_submit_opencl_task())
@@ -829,6 +866,10 @@ starpu_memory_pin(void *addr STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRIBU
 #if defined(STARPU_USE_HIP)
 		if (hipHostRegister(addr, size, hipHostRegisterPortable) != hipSuccess)
 			return -1;
+#endif
+#if defined(STARPU_USE_SYCL)
+		_STARPU_MSG("Warning: It is not possible to pin allocated memory of SYCL device.\n");
+		return -1;
 #endif
 	}
 	return 0;

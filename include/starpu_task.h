@@ -75,6 +75,13 @@ extern "C" {
 /**
    To be used when setting the field starpu_codelet::where (or
    starpu_task::where) to specify the codelet (or the task) may be
+   executed on a SYCL processing unit.
+*/
+#define STARPU_SYCL STARPU_WORKER_TO_MASK(STARPU_SYCL_WORKER)
+
+/**
+   To be used when setting the field starpu_codelet::where (or
+   starpu_task::where) to specify the codelet (or the task) may be
    executed on a OpenCL processing unit.
 */
 #define STARPU_OPENCL STARPU_WORKER_TO_MASK(STARPU_OPENCL_WORKER)
@@ -131,6 +138,12 @@ extern "C" {
    HIP kernel execution. This requires to use the proper HIP stream
 */
 #define STARPU_HIP_ASYNC (1 << 0)
+
+/**
+   Value to be set in starpu_codelet::sycl_flags to allow asynchronous
+   SYCL kernel execution. This requires to use the proper SYCL stream
+*/
+#define STARPU_SYCL_ASYNC (1 << 0)
 
 /**
    Value to be set in starpu_codelet::opencl_flags to allow
@@ -199,6 +212,11 @@ typedef void (*starpu_cuda_func_t)(void **, void *);
    HIP implementation of a codelet.
 */
 typedef void (*starpu_hip_func_t)(void **, void *);
+
+/**
+   SYCL implementation of a codelet.
+*/
+typedef void (*starpu_sycl_func_t)(void **, void *);
 
 /**
    OpenCL implementation of a codelet.
@@ -354,7 +372,8 @@ struct starpu_codelet
 	/**
 	   Optional field to indicate which types of processing units
 	   are able to execute the codelet. The different values
-	   ::STARPU_CPU, ::STARPU_CUDA, ::STARPU_HIP, ::STARPU_OPENCL can be
+	   ::STARPU_CPU, ::STARPU_CUDA, ::STARPU_HIP,
+	   ::STARPU_OPENCL, ::STARPU_SYCL can be
 	   combined to specify on which types of processing units the
 	   codelet can be executed. ::STARPU_CPU|::STARPU_CUDA for
 	   instance indicates that the codelet is implemented for both
@@ -471,6 +490,28 @@ struct starpu_codelet
 	   asynchronous execution.
 	*/
 	char hip_flags[STARPU_MAXIMPLEMENTATIONS];
+
+	/**
+	   Optional array of function pointers to the SYCL
+	   implementations of the codelet. The functions must be
+	   host-functions written in the SYCL runtime API. Their
+	   prototype must be:
+	   \code{.c}
+	   void sycl_func(void *buffers[], void *cl_arg)
+	   \endcode
+	   If the field starpu_codelet::where is set, then the field
+	   starpu_codelet::sycl_funcs is ignored if ::STARPU_SYCL does
+	   not appear in the field starpu_codelet::where, it must be
+	   non-<c>NULL</c> otherwise.
+	*/
+	starpu_sycl_func_t sycl_funcs[STARPU_MAXIMPLEMENTATIONS];
+
+	/**
+	   Optional array of flags for sycl execution. They specify
+	   some semantic details about sycl kernel execution, such as
+	   asynchronous execution.
+	*/
+	char sycl_flags[STARPU_MAXIMPLEMENTATIONS];
 
 	/**
 	   Optional array of function pointers to the OpenCL

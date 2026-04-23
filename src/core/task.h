@@ -127,6 +127,11 @@ static inline starpu_hip_func_t _starpu_task_get_hip_nth_implementation(struct s
 	return cl->hip_funcs[nimpl];
 }
 
+static inline starpu_sycl_func_t _starpu_task_get_sycl_nth_implementation(struct starpu_codelet *cl, unsigned nimpl)
+{
+	return cl->sycl_funcs[nimpl];
+}
+
 static inline starpu_opencl_func_t _starpu_task_get_opencl_nth_implementation(struct starpu_codelet *cl, unsigned nimpl)
 {
 	return cl->opencl_funcs[nimpl];

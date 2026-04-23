@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -154,6 +154,8 @@ struct _starpu_node_ops
 	/** Allocate \p size bytes of data on device \p devid.
 	 * \p flags can contain STARPU_MALLOC_* flags, only useful for CPU memory  */
 	uintptr_t (*malloc_on_device)(int devid, size_t size, int flags);
+	/** Allocate \p size bytes of pinned data on host. */
+	uintptr_t (*malloc_on_host)(size_t size);
 	/** Memset \p size bytes of data at \p ptr to byte \p c */
 	void (*memset_on_device)(uintptr_t ptr, int c, size_t size);
 	/** Free data \p addr, which was a previous allocation of \p size bytes
@@ -161,6 +163,8 @@ struct _starpu_node_ops
 	void (*free_on_device)(int devid, uintptr_t addr, size_t size, int flags);
 	/** Check that data \p addr is indeed in device \p devid */
 	void (*check_on_device)(int devid, uintptr_t addr, size_t size);
+	/** Free data \p addr, which was a previous pinnned allocation of \p size bytes. */
+	void (*free_on_host)(uintptr_t addr);
 
 	/** Map data a piece of data to this type of node from another type of node.
 	 * This method is optional */

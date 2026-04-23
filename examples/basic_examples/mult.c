@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010-2010  Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -54,6 +54,7 @@ static size_t zdim = 512;
 
 extern void hip_mult(void *descr[], void *arg);
 extern void cuda_mult(void *descr[], void *arg);
+extern void sycl_mult(void *descr[], void *arg);
 
 /*
  * That program should compute C = A * B
@@ -293,11 +294,15 @@ static struct starpu_codelet cl =
 	.hip_funcs = {hip_mult},
 	.hip_flags = {STARPU_HIP_ASYNC},
 #endif
+#ifdef STARPU_USE_SYCL
+	/* SYCL implementation of the codelet */
+	.sycl_funcs = {sycl_mult},
+        .sycl_flags = {STARPU_SYCL_ASYNC},
+#endif
 #ifdef STARPU_USE_CUDA
 	/* CUDA implementation of the codelet */
 	.cuda_funcs = {cuda_mult},
         .cuda_flags = {STARPU_CUDA_ASYNC},
-	.where     = STARPU_CUDA,
 #endif
 	/* the codelet manipulates 3 buffers that are managed by the DSM */
 	.nbuffers = 3,
@@ -368,6 +373,13 @@ static int launch_tasks(void)
 	return 0;
 }
 
+// allow a bigger error when SYCL is enabled
+#ifdef STARPU_USE_SYCL
+  #define ALLOWED_ERROR  1e-5
+#else
+  #define ALLOWED_ERROR  1e-6
+#endif
+
 void check_result(float* C_gpu, float* C_ref, size_t ldC)
 {
 	size_t i,j;
@@ -375,10 +387,10 @@ void check_result(float* C_gpu, float* C_ref, size_t ldC)
 	{
 		for (j = 0; j < xdim; j++)
 		{
-			if(C_gpu[j + i*ldC]-C_ref[j + i*ldC] > 1e-6*C_ref[j + i*ldC])
+			if(C_gpu[j + i*ldC]-C_ref[j + i*ldC] > ALLOWED_ERROR*C_ref[j + i*ldC])
 			{
-				printf("| Cref[%zu,%zu]=%f - Cgpu[%zu,%zu]=%f | Error in the computation of C: the difference between the two is bigger than 1e-6 * the reference"
-				       , i, j, C_ref[j + i*ldC], i, j, C_gpu[j + i*ldC]);
+				printf("| Cref[%zu,%zu]=%f - Cgpu[%zu,%zu]=%f | Error in the computation of C: the difference between the two is bigger than %f * the reference"
+				       , i, j, C_ref[j + i*ldC], i, j, C_gpu[j + i*ldC], ALLOWED_ERROR);
 				exit(1);
 			}
 		}
