@@ -730,6 +730,11 @@ void starpu_data_set_reduction_methods(starpu_data_handle_t handle, struct starp
 */
 void starpu_data_set_reduction_methods_with_args(starpu_data_handle_t handle, struct starpu_codelet *redux_cl, void *redux_cl_arg, struct starpu_codelet *init_cl, void *init_cl_arg);
 
+/**
+   Returns a boolean indicating if reduction methods are associated to the \p handle.
+*/
+unsigned starpu_data_has_reduction_methods(starpu_data_handle_t handle);
+
 struct starpu_data_interface_ops *starpu_data_get_interface_ops(starpu_data_handle_t handle);
 
 /**

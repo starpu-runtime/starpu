@@ -69,6 +69,11 @@ void starpu_data_set_reduction_methods_with_args(starpu_data_handle_t handle, st
 	_starpu_spin_unlock(&handle->header_lock);
 }
 
+unsigned starpu_data_has_reduction_methods(starpu_data_handle_t handle)
+{
+	return handle->redux_cl != NULL && handle->init_cl != NULL;
+}
+
 void _starpu_init_data_replicate(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, int workerid)
 {
 	STARPU_ASSERT(replicate);
