@@ -43,6 +43,8 @@ Small changes:
   * Configure option to enable StarPU OpenMP runtime support has been
     renamed (from --enable-openmp) to --enable-starpu-openmp
   * Update MPI cache mechanism to cope with several communicators
+  * Added `starpu_data_has_reduction_methods` function to retrieve wether a
+    certain handle is using redux
 
 New features:
   * Add starpu_data_register_victim_selector to let schedulers select eviction
