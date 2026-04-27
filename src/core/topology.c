@@ -761,6 +761,7 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 
 		hwloc_bitmap_free(cpuset);
 		hwloc_bitmap_free(check_cpuset);
+		hwloc_bitmap_free(singlelog_cpuset);
 		topology->log_cpuset = log_cpuset;
 		topology->log_coreset = log_coreset;
 	}
