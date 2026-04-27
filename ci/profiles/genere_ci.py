@@ -98,9 +98,9 @@ def create_builder(profile, profile_iname, profile_name, profile_host):
     p.addStep(Command(["rm", "-rf", "$starpu_build_dir"]))
     p.addStep(Command(["mkdir", "-p", "$starpu_build_dir"]))
     p.addStep(Command(["("]))
-    p.addStep(Command(["\techo", '"xoldPWD=\${PWD}"']))
+    p.addStep(Command(["\techo", '"xoldPWD=\\${PWD}"']))
     p.addStep(Command(["\tenv|grep -v LS_COLORS | grep -v DISPLAY | grep -v SSH_TTY | grep '^[A-Z]'|grep -v BASH_FUNC | grep '=' | sed 's/=/=\"/'| sed 's/$/\"/' | sed 's/^/export /'"]))
-    p.addStep(Command(["\techo", '"cd \$xoldPWD"']))
+    p.addStep(Command(["\techo", '"cd \\$xoldPWD"']))
     p.addStep(Command([")", ">", "$starpu_build_dir/env.sh"]))
 
     ## build the commands
