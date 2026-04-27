@@ -863,7 +863,7 @@ static void dmda_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned 
 	}
 }
 
-static void initialize_dmda_policy(unsigned sched_ctx_id)
+static void _initialize_dmda_policy(unsigned sched_ctx_id)
 {
 	struct _starpu_dmda_data *dt;
 	_STARPU_CALLOC(dt, 1, sizeof(struct _starpu_dmda_data));
@@ -891,15 +891,29 @@ static void initialize_dmda_policy(unsigned sched_ctx_id)
 #endif
 }
 
-static void initialize_dmda_sorted_policy(unsigned sched_ctx_id)
+static void initialize_dmda_policy(unsigned sched_ctx_id)
 {
-	initialize_dmda_policy(sched_ctx_id);
+	_STARPU_DISP("Warning: you are running the dm or dmda scheduler, which are not the best schedulers. You should rather use dmdar to take data readiness into account, and also try dmdas if you have set task priorities.\n");
+
+	_initialize_dmda_policy(sched_ctx_id);
+}
+
+static void _initialize_dmda_sorted_policy(unsigned sched_ctx_id)
+{
+	_initialize_dmda_policy(sched_ctx_id);
 
 	/* The application may use any integer */
 	if (starpu_sched_ctx_min_priority_is_set(sched_ctx_id) == 0)
 		starpu_sched_ctx_set_min_priority(sched_ctx_id, INT_MIN);
 	if (starpu_sched_ctx_max_priority_is_set(sched_ctx_id) == 0)
 		starpu_sched_ctx_set_max_priority(sched_ctx_id, INT_MAX);
+}
+
+static void initialize_dmda_sorted_policy(unsigned sched_ctx_id)
+{
+	_STARPU_DISP("Warning: you are running the dmdap scheduler, which is not the best scheduler. You should rather use dmdas to take data readiness into account\n");
+
+	_initialize_dmda_sorted_policy(sched_ctx_id);
 }
 
 static void deinitialize_dmda_policy(unsigned sched_ctx_id)
@@ -1106,7 +1120,7 @@ struct starpu_sched_policy _starpu_sched_dmda_prio_policy =
 
 struct starpu_sched_policy _starpu_sched_dmda_sorted_policy =
 {
-	.init_sched = initialize_dmda_sorted_policy,
+	.init_sched = _initialize_dmda_sorted_policy,
 	.deinit_sched = deinitialize_dmda_policy,
 	.add_workers = dmda_add_workers ,
 	.remove_workers = dmda_remove_workers,
@@ -1124,7 +1138,7 @@ struct starpu_sched_policy _starpu_sched_dmda_sorted_policy =
 
 struct starpu_sched_policy _starpu_sched_dmda_sorted_decision_policy =
 {
-	.init_sched = initialize_dmda_sorted_policy,
+	.init_sched = _initialize_dmda_sorted_policy,
 	.deinit_sched = deinitialize_dmda_policy,
 	.add_workers = dmda_add_workers ,
 	.remove_workers = dmda_remove_workers,
@@ -1142,7 +1156,7 @@ struct starpu_sched_policy _starpu_sched_dmda_sorted_decision_policy =
 
 struct starpu_sched_policy _starpu_sched_dmda_ready_policy =
 {
-	.init_sched = initialize_dmda_policy,
+	.init_sched = _initialize_dmda_policy,
 	.deinit_sched = deinitialize_dmda_policy,
 	.add_workers = dmda_add_workers ,
 	.remove_workers = dmda_remove_workers,
