@@ -434,6 +434,20 @@ int starpu_data_acquire_try(starpu_data_handle_t handle, enum starpu_data_access
 */
 int starpu_data_acquire_on_node_try(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode);
 
+/**
+   In case starpu_data_acquire_on_node was given ::STARPU_ACQUIRE_NO_NODE,
+   no allocation was requested, and we have only waited for the semantic
+   coherency. In case one eventually wants to allocate the handle on a \p node
+   before releasing the handle (e.g. to eventually fill it in much later than
+   getting the acquisition), starpu_data_acquire_to_node() can be used to
+   upgrade the acquisition request to a given node. This is currently supported
+   only for a write-only request.
+   starpu_data_release_on_node then needs to be given the same \p node number.
+
+   See \ref DataPrefetch for more details.
+*/
+int starpu_data_acquire_to_node(starpu_data_handle_t handle, unsigned node);
+
 #ifdef __GCC__
 
 /**

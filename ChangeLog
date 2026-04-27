@@ -45,6 +45,7 @@ Small changes:
   * Update MPI cache mechanism to cope with several communicators
   * Added `starpu_data_has_reduction_methods` function to retrieve wether a
     certain handle is using redux
+  * Add starpu_data_acquire_to_node.
 
 New features:
   * Add starpu_data_register_victim_selector to let schedulers select eviction

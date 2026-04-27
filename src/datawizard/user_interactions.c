@@ -77,6 +77,23 @@ int starpu_data_request_allocation(starpu_data_handle_t handle, unsigned node)
 	return 0;
 }
 
+int starpu_data_acquire_to_node(starpu_data_handle_t handle, unsigned node)
+{
+	STARPU_ASSERT(handle);
+	struct _starpu_data_replicate *replicate = &handle->per_node[node];
+
+	_starpu_fetch_data_on_node(handle, node, replicate, STARPU_W, 0, NULL, STARPU_FETCH, 0,
+			NULL, NULL, STARPU_DEFAULT_PRIO, "starpu_data_acquire_to_node");
+
+	_starpu_spin_lock(&handle->header_lock);
+	/* _starpu_fetch_data_on_node got an additionnal reference on the
+	 * handle, which we already got on the first acquisition. */
+	handle->busy_count--;
+	_starpu_spin_unlock(&handle->header_lock);
+
+	return 0;
+}
+
 struct user_interaction_wrapper
 {
 	starpu_data_handle_t handle;

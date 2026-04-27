@@ -1666,6 +1666,14 @@ module fstarpu_mod
                         integer(c_int), value, intent(in) :: node
                 end subroutine fstarpu_data_request_allocation
 
+                ! int starpu_data_acquire_to_node(starpu_data_handle_t handle, unsigned node);
+                subroutine fstarpu_data_acquire_to_node (dh, node) &
+                                bind(C,name="starpu_data_acquire_to_node")
+                        use iso_c_binding, only: c_ptr, c_int
+                        type(c_ptr), value, intent(in) :: dh
+                        integer(c_int), value, intent(in) :: node
+                end subroutine fstarpu_data_acquire_to_node
+
                 ! int starpu_data_fetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async);
                 subroutine fstarpu_data_fetch_on_node (dh, node, async) &
                                 bind(C,name="starpu_data_fetch_on_node")
