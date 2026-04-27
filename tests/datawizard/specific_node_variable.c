@@ -140,5 +140,7 @@ realend:
 		starpu_data_unregister(dyn_data_handle[i]);
 	}
 	starpu_shutdown();
+	free(descrs);
+	free(dyn_descrs);
 	return STARPU_TEST_SKIPPED;
 }
