@@ -46,6 +46,8 @@ Small changes:
   * Added `starpu_data_has_reduction_methods` function to retrieve wether a
     certain handle is using redux
   * Add starpu_data_acquire_to_node.
+  * New STARPU_MPI_MEM_LATE environment variable to allocate mpi reception
+    buffer at MPI reception time.
 
 New features:
   * Add starpu_data_register_victim_selector to let schedulers select eviction

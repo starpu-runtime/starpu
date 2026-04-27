@@ -219,6 +219,7 @@ void _starpu_mpi_submit_ready_request(void *arg)
 		 * before the next submission of the envelope-catching request. */
 		if (req->backend->is_internal_req)
 		{
+			_starpu_mpi_irecv_allocate(req);
 			_starpu_mpi_datatype_allocate(req->data_handle, req);
 			if (req->registered_datatype == 1)
 			{
@@ -287,6 +288,7 @@ void _starpu_mpi_submit_ready_request(void *arg)
 					STARPU_PTHREAD_MUTEX_UNLOCK(&early_data_mutex);
 					/* Case: we already received the send envelope, we can proceed with the receive */
 					req->sync = 1;
+					_starpu_mpi_irecv_allocate(req);
 					_starpu_mpi_datatype_allocate(req->data_handle, req);
 					if (req->registered_datatype == 1)
 					{
@@ -1005,6 +1007,8 @@ static void _starpu_mpi_early_data_cb(void* arg)
 {
 	struct _starpu_mpi_early_data_cb_args *args = arg;
 
+	_starpu_mpi_irecv_allocate(args->req);
+
 	if (args->buffer)
 	{
 		/* Data has been received as a raw memory, it has to be unpacked */
@@ -1562,6 +1566,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 
 						early_request->sync = envelope->sync;
 						early_request->backend->internal_comm = envelope_comm;
+						_starpu_mpi_irecv_allocate(early_request);
 						_starpu_mpi_datatype_allocate(early_request->data_handle, early_request);
 						if (early_request->registered_datatype == 1)
 						{

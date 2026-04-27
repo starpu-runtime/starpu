@@ -83,6 +83,7 @@ extern int _starpu_mpi_thread_cpuid;
 extern int _starpu_mpi_thread_multiple_send;
 extern int _starpu_mpi_use_coop_sends;
 extern int _starpu_mpi_mem_throttle;
+extern int _starpu_mpi_mem_late;
 extern int _starpu_mpi_recv_wait_finalize;
 extern int _starpu_mpi_has_cuda;
 extern int _starpu_mpi_has_hip;
@@ -261,7 +262,7 @@ LIST_TYPE(_starpu_mpi_req,
 	  starpu_data_handle_t data_handle;
 
 	  int prio;
-	  unsigned node;	/* Which StarPU memory node this will read from / write to */
+	  int node;	/* Which StarPU memory node this will read from / write to */
 
 	  /** description of the data to be sent/received */
 	  MPI_Datatype datatype;
@@ -361,7 +362,11 @@ char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type);
 
 struct _starpu_mpi_req *_starpu_mpi_irecv_common(starpu_data_handle_t data_handle, int source, starpu_mpi_tag_t data_tag, MPI_Comm comm, starpu_mpi_comm internal_comm, unsigned detached, unsigned sync, void (*callback)(void *), void *arg, int sequential_consistency, int is_internal_req, starpu_ssize_t count, int prio);
 
+/* Choose the starpu node to receive MPI data into.  */
 int _starpu_mpi_choose_node(starpu_data_handle_t data_handle, enum starpu_data_access_mode mode);
+
+/* Make sure the we have a destination node where to receive the MPI data, notably for the _starpu_mpi_mem_late case.  */
+void _starpu_mpi_irecv_allocate(struct _starpu_mpi_req *req);
 
 void _starpu_mpi_data_flush(starpu_data_handle_t data_handle);
 

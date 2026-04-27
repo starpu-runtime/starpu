@@ -194,6 +194,7 @@ void _starpu_mpi_irecv_func(struct _starpu_mpi_req *req)
 {
 	_STARPU_MPI_LOG_IN();
 
+	_starpu_mpi_irecv_allocate(req);
 	_starpu_mpi_datatype_allocate(req->data_handle, req);
 	if (req->registered_datatype == 1)
 	{

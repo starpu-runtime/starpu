@@ -1217,6 +1217,15 @@ block when the memory allocation required for network reception overflows the
 available main memory (as typically set by \ref STARPU_LIMIT_CPU_MEM)
 </dd>
 
+<dt>STARPU_MPI_MEM_LATE</dt>
+<dd>
+\anchor STARPU_MPI_MEM_LATE
+\addindex __env__STARPU_MPI_MEM_LATE
+When set to a positive value, this makes StarPU-MPI allocate reception buffers
+at the last time, which allows to avoid allocating all reception buffers right
+from the start, but introduces the allocation delay on the reception path.
+</dd>
+
 <dt>STARPU_MPI_EARLYDATA_ALLOCATE</dt>
 <dd>
 \anchor STARPU_MPI_EARLYDATA_ALLOCATE

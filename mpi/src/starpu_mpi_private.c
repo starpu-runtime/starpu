@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2020-2020  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -32,6 +32,7 @@ int _starpu_mpi_fake_world_size = -1;
 int _starpu_mpi_fake_world_rank = -1;
 int _starpu_mpi_use_coop_sends = 1;
 int _starpu_mpi_mem_throttle = 0;
+int _starpu_mpi_mem_late = 0;
 int _starpu_mpi_recv_wait_finalize = 0;
 
 void _starpu_mpi_set_debug_level_min(int level)
@@ -77,6 +78,7 @@ void _starpu_mpi_env_init(void)
 	_starpu_mpi_use_prio = starpu_getenv_number_default("STARPU_MPI_PRIORITIES", 1);
 	_starpu_mpi_use_coop_sends = starpu_getenv_number_default("STARPU_MPI_COOP_SENDS", 1);
 	_starpu_mpi_mem_throttle = starpu_getenv_number_default("STARPU_MPI_MEM_THROTTLE", 0);
+	_starpu_mpi_mem_late = starpu_getenv_number_default("STARPU_MPI_MEM_LATE", 0);
 	_starpu_debug_level_min = starpu_getenv_number_default("STARPU_MPI_DEBUG_LEVEL_MIN", 0);
 	_starpu_debug_level_max = starpu_getenv_number_default("STARPU_MPI_DEBUG_LEVEL_MAX", 0);
 	_starpu_mpi_recv_wait_finalize = starpu_getenv_number_default("STARPU_MPI_RECV_WAIT_FINALIZE", _starpu_mpi_recv_wait_finalize);

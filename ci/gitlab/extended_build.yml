@@ -200,7 +200,7 @@ mpi:
   tags: ['starpu', 'node_gpu']
   parallel:
     matrix:
-      - PROFILE: [mpi-nocache, nmad, intel-mpi]
+      - PROFILE: [mpi-nocache, mpi-mem-late, nmad, intel-mpi]
 
 ms:
   extends: .manual_template

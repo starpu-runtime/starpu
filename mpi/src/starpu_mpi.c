@@ -148,6 +148,18 @@ int _starpu_mpi_choose_node(starpu_data_handle_t handle, enum starpu_data_access
 	}
 }
 
+void _starpu_mpi_irecv_allocate(struct _starpu_mpi_req *req)
+{
+	if (req->node >= 0)
+		/* Already allocated */
+		return;
+
+	/* Still not allocated! We really have to allocate it now.  */
+	int node = _starpu_mpi_choose_node(req->data_handle, STARPU_W);
+	starpu_data_acquire_to_node(req->data_handle, node);
+	req->node = node;
+}
+
 static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_data_access_mode mode)
 {
 	struct _starpu_mpi_req *req = arg;
@@ -157,7 +169,7 @@ static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_dat
 	 * current state of the handle and decide which node we prefer for the data
 	 * fetch */
 
-	if (node < 0)
+	if (node < 0 && (mode & STARPU_R || !_starpu_mpi_mem_late))
 		node = _starpu_mpi_choose_node(req->data_handle, mode);
 
 	req->node = *nodep = node;
