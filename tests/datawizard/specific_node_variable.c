@@ -135,7 +135,7 @@ realend:
 	{
 		starpu_data_unregister(data_handle[i]);
 	}
-	for (i = 0; i < STARPU_NMAXBUFS; i++)
+	for (i = 0; i < STARPU_NMAXBUFS*2; i++)
 	{
 		starpu_data_unregister(dyn_data_handle[i]);
 	}
