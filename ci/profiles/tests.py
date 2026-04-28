@@ -176,6 +176,17 @@ profiles = [
       'prologue'    : ['/home/benchmarks/buildbot/master/starpu/scripts/updatePm2.sh', 'pukabi+madmpi.conf'],
       'hosts'       : ['node_gpu']
     },
+    { 'name'        : 'nmad-mem-late',
+      'deploy'      : True,
+      'opts'        : ['--enable-nmad', '--enable-mpi-check', '--disable-cuda', '--disable-hip', '--disable-opencl', '--disable-starpupy'],
+      'rcheck'      : ['-C', 'mpi'],
+      'env'         : {'PATH' : '${HOME}/softs/starpu/pm2/install/master/bin:${PATH}',
+                       'LD_LIBRARY_PATH' : '${HOME}/softs/starpu/pm2/install/master/lib:${LD_LIBRARY_PATH}',
+                       'PKG_CONFIG_PATH' : '${HOME}/softs/starpu/pm2/install/master/lib/pkgconfig:${PKG_CONFIG_PATH}',
+                       'STARPU_MPI_MEM_LATE' : '1' },
+      'prologue'    : ['/home/benchmarks/buildbot/master/starpu/scripts/updatePm2.sh', 'pukabi+madmpi.conf'],
+      'hosts'       : ['node_gpu']
+    },
     { 'name'        : 'enable-fast',
       'opts'        : ['--enable-fast', '--disable-full-gdb-information'],
       'deploy'      : True,
