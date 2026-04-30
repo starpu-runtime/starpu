@@ -32,6 +32,7 @@ Changes:
      trigger a benchmarking of the bus. The benchmarking will be done
      the first time StarPU is launched with all the hardware devices
      available on the node.
+   * Implemented copy on write for starpu_data_dup_ro.
 
 Small changes:
   * Fix build system for StarPU Python interface

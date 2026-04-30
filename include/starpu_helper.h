@@ -237,18 +237,27 @@ int starpu_data_cpy_priority(starpu_data_handle_t dst_handle, starpu_data_handle
 /**
    Create a copy of \p src_handle, and return a new handle in \p dst_handle,
    which is to be used only for read accesses. This allows StarPU to optimize it
-   by not actually copying the data whenever possible (e.g. it may possibly
-   simply return src_handle itself).
+   by not actually copying the data whenever possible (e.g. the tasks using it
+   may possibly simply use src_handle itself). To access such a duplicate with
+   starpu_data_acquire, starpu_data_dup_ro_get() should be used to retrieve the
+   proper handle to be used (either the src_handle, or a duplicate if src_handle
+   was modified in between).
    The parameter \p asynchronous indicates whether the function should block
    or not. In the case of an asynchronous call, it is possible to synchronize
    with the termination of this operation either by the means of implicit
-   dependencies (if enabled) or by calling starpu_task_wait_for_all(). If
-   \p callback_func is not <c>NULL</c>, this callback function is executed after
-   the handle has been copied, and it is given the pointer \p
-   callback_arg as argument.
+   dependencies (if enabled) or by calling starpu_task_wait_for_all().
    See \ref DataHandlesHelpers for more details.
 */
-int starpu_data_dup_ro(starpu_data_handle_t *dst_handle, starpu_data_handle_t src_handle, int asynchronous);
+int starpu_data_dup_ro(starpu_data_handle_t *dst_handle, starpu_data_handle_t src_handle);
+
+/**
+   For a readonly duplicate produced by starpu_data_dup_ro(), return either
+   the source handle used during starpu_data_dup_ro() (if it was not modified in
+   between), or \p handle (if the source handle was modified in between).
+
+   Note that this is meaningful only during submission time.
+*/
+starpu_data_handle_t starpu_data_dup_ro_get(starpu_data_handle_t handle);
 
 /**
    Call hwloc-ps or lstopo to display binding of each process and thread running on

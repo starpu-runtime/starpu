@@ -17,6 +17,7 @@
 #include <stdlib.h>
 
 #include <common/utils.h>
+#include <datawizard/coherency.h>
 #include <mpi_failure_tolerance/starpu_mpi_checkpoint.h>
 #include <mpi_failure_tolerance/starpu_mpi_checkpoint_template.h>
 #include <mpi_failure_tolerance/starpu_mpi_checkpoint_package.h>
@@ -79,7 +80,7 @@ void _starpu_mpi_push_cp_ack_recv_cb(struct _starpu_mpi_cp_ack_arg_cb *arg)
 void _recv_internal_dup_ro_cb(void *_args)
 {
 	struct _starpu_mpi_cp_ack_arg_cb *arg = (struct _starpu_mpi_cp_ack_arg_cb *)_args;
-	starpu_data_release(arg->copy_handle);
+	starpu_data_release(arg->cow_backing_handle);
 	_starpu_mpi_store_data_and_send_ack_cb(arg);
 }
 
@@ -228,8 +229,9 @@ int starpu_mpi_checkpoint_template_submit(starpu_mpi_checkpoint_template_t cp_te
 								      NULL, NULL, 1, 0, 1, &arg->cache_flag);
 					// The callback needs to do nothing. The cached one must release the handle.
 					//  _recv_internal_data_stats(arg);  // Now done in data_cache_set
-					starpu_data_dup_ro(&arg->copy_handle, arg->handle, 1);
-					starpu_data_acquire_cb(arg->copy_handle, STARPU_R, _recv_internal_dup_ro_cb, arg);
+					starpu_data_dup_ro(&arg->copy_handle, arg->handle);
+					_starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(arg->copy_handle, &arg->cow_backing_handle, STARPU_MAIN_RAM, STARPU_R, NULL, NULL, _recv_internal_dup_ro_cb, arg,1, 1, NULL , NULL, STARPU_DEFAULT_PRIO, 1);
+//					starpu_data_acquire_cb(arg->copy_handle, STARPU_R, _recv_internal_dup_ro_cb, arg);
 					// The callback need to store the data and post ack send.
 				}
 				break;

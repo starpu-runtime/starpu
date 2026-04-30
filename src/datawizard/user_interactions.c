@@ -21,6 +21,7 @@
 #include <datawizard/coherency.h>
 #include <datawizard/copy_driver.h>
 #include <datawizard/write_back.h>
+#include <util/starpu_data_cpy.h>
 #include <core/dependencies/data_concurrency.h>
 #include <core/sched_policy.h>
 #include <datawizard/memory_nodes.h>
@@ -232,7 +233,7 @@ static struct starpu_codelet control_cl =
 #endif
 
 /* The data must be released by calling starpu_data_release later on */
-int _starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_data_handle_t handle, int node,
+int _starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_data_handle_t handle, starpu_data_handle_t *real_handlep, int node,
 							  enum starpu_data_access_mode mode,
 							  void (*callback_soon)(void *arg, double delay),
 							  void (*callback_acquired)(void *arg, int *node, enum starpu_data_access_mode mode),
@@ -241,11 +242,17 @@ int _starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_da
 							  int sequential_consistency, int quick,
 							  long *pre_sync_jobid, long *post_sync_jobid, int prio, int need_to_be_unpart_or_part)
 {
+	starpu_data_handle_t real_handle = handle;
 #ifndef STARPU_RECURSIVE_TASKS
 	(void)need_to_be_unpart_or_part;
 #endif
 	STARPU_ASSERT(handle);
 	STARPU_ASSERT_MSG(handle->nchildren == 0, "Acquiring a partitioned data (%p) is not possible", handle);
+	STARPU_ASSERT_MSG(!(handle->readonly && mode & STARPU_W), "We are not supposed to modify a RO duplicate!");
+	if (mode & STARPU_W)
+		/* We are modifying the data, achieve copy-on-write.  */
+		_starpu_data_dup_ro_cow(handle, prio);
+
 	_STARPU_LOG_IN();
 
 	/* Check that previous tasks have set a value if needed */
@@ -377,11 +384,27 @@ int _starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_da
 		else
 #endif
 		{
-			_STARPU_RECURSIVE_TASKS_DEBUG("JJJJJJJJJJJJJJJJJJJJJJJJJJJ\ndetecting implicit data deps normally for handle %p\nJJJJJJJJJJJJJJJJJJJJJJJJJJJJ\n", handle);
-			new_task = _starpu_detect_implicit_data_deps_with_handle(wrapper->pre_sync_task, &submit_pre_sync, wrapper->post_sync_task, &_starpu_get_job_associated_to_task(wrapper->post_sync_task)->implicit_dep_slot, handle, mode, sequential_consistency);
+			while (handle->readonly_copying)
+				/* Submission thread is submitting a copy-on-write, wait for it. */
+				STARPU_PTHREAD_COND_WAIT(&handle->sequential_consistency_cond, &handle->sequential_consistency_mutex);
+
+			/* Possibly get the original handle for a copy-on-write RO duplicate */
+			real_handle = starpu_data_dup_ro_get(handle);
+			if (real_handlep)
+				/* And set the real handle early before the callback might be called */
+				*real_handlep = real_handle;
+			if (real_handle != handle)
+			{
+				wrapper->handle = real_handle;
+				STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
+				STARPU_PTHREAD_MUTEX_LOCK(&real_handle->sequential_consistency_mutex);
+			}
+
+			_STARPU_RECURSIVE_TASKS_DEBUG("JJJJJJJJJJJJJJJJJJJJJJJJJJJ\ndetecting implicit data deps normally for handle %p (actually %p)\nJJJJJJJJJJJJJJJJJJJJJJJJJJJJ\n", handle, real_handle);
+			new_task = _starpu_detect_implicit_data_deps_with_handle(wrapper->pre_sync_task, &submit_pre_sync, wrapper->post_sync_task, &_starpu_get_job_associated_to_task(wrapper->post_sync_task)->implicit_dep_slot, real_handle, mode, sequential_consistency);
 		}
 
-		STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&real_handle->sequential_consistency_mutex);
 #ifdef STARPU_RECURSIVE_TASKS
 		STARPU_PTHREAD_MUTEX_UNLOCK(handle->partition_mutex);
 #endif
@@ -418,6 +441,9 @@ int _starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_da
 			*post_sync_jobid = -1;
 		STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 
+		if (real_handlep)
+			*real_handlep = real_handle;
+
 		starpu_data_acquire_cb_pre_sync_callback(wrapper);
 	}
 
@@ -425,7 +451,7 @@ int _starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_da
 	return 0;
 }
 
-int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_data_handle_t handle, int node,
+int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_data_handle_t handle, starpu_data_handle_t *real_handle, int node,
 							  enum starpu_data_access_mode mode,
 							  void (*callback_soon)(void *arg, double delay),
 							  void (*callback_acquired)(void *arg, int *node, enum starpu_data_access_mode mode),
@@ -434,7 +460,7 @@ int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_dat
 							  int sequential_consistency, int quick,
 							  long *pre_sync_jobid, long *post_sync_jobid, int prio)
 {
-	return 	_starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(handle, node,
+	return 	_starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(handle, real_handle, node,
 										   mode,
 										   callback_soon,
 										   callback_acquired,
@@ -448,7 +474,7 @@ int starpu_data_acquire_on_node_cb_sequential_consistency_quick(starpu_data_hand
 								enum starpu_data_access_mode mode, void (*callback)(void *), void *arg,
 								int sequential_consistency, int quick)
 {
-	return starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(handle, node, mode, NULL, NULL, callback, arg, sequential_consistency, quick, NULL, NULL, STARPU_DEFAULT_PRIO);
+	return starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(handle, NULL, node, mode, NULL, NULL, callback, arg, sequential_consistency, quick, NULL, NULL, STARPU_DEFAULT_PRIO);
 }
 
 int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t handle, int node,
@@ -527,8 +553,17 @@ int _starpu_recursive_tasks_disable_sequential_consistency = 0;
 /* The data must be released by calling starpu_data_release later on */
 int starpu_data_acquire_on_node(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode)
 {
+#ifdef STARPU_DEVEL
+#warning we should be able to just call starpu_data_acquire_on_node_cb(handle, node, mode, NULL, NULL)
+#endif
+
 	STARPU_ASSERT(handle);
 	STARPU_ASSERT_MSG(handle->nchildren == 0, "Acquiring a partitioned data is not possible");
+	STARPU_ASSERT_MSG(!(handle->readonly && mode & STARPU_W), "We are not supposed to modify a RO duplicate!");
+	if (mode & STARPU_W)
+		/* We are modifying the data, achieve copy-on-write.  */
+		_starpu_data_dup_ro_cow(handle, STARPU_DEFAULT_PRIO);
+
 	_STARPU_LOG_IN();
 
 	/* unless asynchronous, it is forbidden to call this function from a callback or a codelet */

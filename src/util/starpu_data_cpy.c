@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013-2013  Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -194,8 +194,7 @@ int starpu_data_cpy_priority(starpu_data_handle_t dst_handle, starpu_data_handle
 	return _starpu_data_cpy(dst_handle, src_handle, asynchronous, callback_func, callback_arg, 0, NULL, priority);
 }
 
-/* TODO: implement copy on write, and introduce starpu_data_dup as well */
-int starpu_data_dup_ro(starpu_data_handle_t *dst_handle, starpu_data_handle_t src_handle, int asynchronous)
+int starpu_data_dup_ro(starpu_data_handle_t *dst_handle, starpu_data_handle_t src_handle)
 {
 	_starpu_spin_lock(&src_handle->header_lock);
 	if (src_handle->readonly_dup)
@@ -218,7 +217,7 @@ int starpu_data_dup_ro(starpu_data_handle_t *dst_handle, starpu_data_handle_t sr
 	_starpu_spin_unlock(&src_handle->header_lock);
 
 	starpu_data_register_same(dst_handle, src_handle);
-	_starpu_data_cpy(*dst_handle, src_handle, asynchronous, NULL, NULL, 0, NULL, STARPU_DEFAULT_PRIO);
+	(*dst_handle)->initialized = 1;
 	(*dst_handle)->readonly = 1;
 
 	_starpu_spin_lock(&src_handle->header_lock);
@@ -227,4 +226,35 @@ int starpu_data_dup_ro(starpu_data_handle_t *dst_handle, starpu_data_handle_t sr
 	_starpu_spin_unlock(&src_handle->header_lock);
 
 	return 0;
+}
+
+void _starpu_data_dup_ro_cow(starpu_data_handle_t handle, int priority)
+{
+	starpu_data_handle_t ro_handle = handle->readonly_dup;
+	if (!ro_handle)
+		/* No RO copy */
+		return;
+
+	/* We are modifying the source of duplicates, copy it and unconnect it from the duplicates */
+
+	/* Synchronize with any execution-time starpu_data_acquire on the RO copy */
+	STARPU_PTHREAD_MUTEX_LOCK(&ro_handle->sequential_consistency_mutex);
+	handle->readonly_dup->readonly_dup_of = NULL;
+	handle->readonly_dup = NULL;
+	ro_handle->readonly_copying = 1;
+	STARPU_PTHREAD_MUTEX_UNLOCK(&ro_handle->sequential_consistency_mutex);
+	_starpu_data_cpy(ro_handle, handle, 1, NULL, NULL, 0, NULL, priority);
+	STARPU_PTHREAD_MUTEX_LOCK(&ro_handle->sequential_consistency_mutex);
+	ro_handle->readonly_copying = 0;
+	STARPU_PTHREAD_COND_SIGNAL(&ro_handle->sequential_consistency_cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&ro_handle->sequential_consistency_mutex);
+}
+
+starpu_data_handle_t starpu_data_dup_ro_get(starpu_data_handle_t handle)
+{
+	if (!handle->readonly || !handle->readonly_dup_of)
+		/* Already disconnected */
+		return handle;
+	/* We are reading a duplicate which still has a source, use the source instead of the duplicate */
+	return handle->readonly_dup_of;
 }

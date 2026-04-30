@@ -47,6 +47,7 @@ struct _starpu_mpi_cp_ack_arg_cb
 	int                           rank;
 	starpu_data_handle_t          handle;
 	starpu_data_handle_t          copy_handle;
+	starpu_data_handle_t          cow_backing_handle;
 	int type;
 	int count;
 	starpu_mpi_tag_t              tag;

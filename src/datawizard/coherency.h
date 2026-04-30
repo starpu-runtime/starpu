@@ -259,6 +259,8 @@ struct _starpu_data_state
 	unsigned sequential_consistency:1;
 	/** Whether we shall not ever write to this handle, thus allowing various optimizations */
 	unsigned readonly:1;
+	/** Whether we are currently copying the copy-on-write data into this read-only handle */
+	unsigned readonly_copying:1;
 
 	/** where the data home is, i.e. which node it was registered from ? -1 if none yet */
 	int home_node;
@@ -297,6 +299,8 @@ struct _starpu_data_state
 	/** This lock should protect any operation to enforce
 	 * sequential_consistency */
 	starpu_pthread_mutex_t sequential_consistency_mutex;
+	/** This condition can be used to wait for a change in sequential ordering */
+	starpu_pthread_cond_t sequential_consistency_cond;
 
 	/** The last submitted task (or application data request) that declared
 	 * it would modify the piece of data ? Any task accessing the data in a
@@ -451,7 +455,7 @@ void _starpu_data_unmap(starpu_data_handle_t handle, unsigned node);
 
 void _starpu_data_set_unregister_hook(starpu_data_handle_t handle, _starpu_data_handle_unregister_hook func) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
 
-int _starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_data_handle_t handle, int node,
+int _starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_data_handle_t handle, starpu_data_handle_t *real_handle, int node,
 									    enum starpu_data_access_mode mode,
 									    void (*callback_soon)(void *arg, double delay),
 									    void (*callback_acquired)(void *arg, int *node, enum starpu_data_access_mode mode),

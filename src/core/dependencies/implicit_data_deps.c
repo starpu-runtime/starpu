@@ -252,7 +252,7 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 		if (mode & STARPU_W || mode == STARPU_REDUX)
 		{
 
-			STARPU_ASSERT_MSG(!handle->readonly, "Read-only handle %p can not be written to", handle);
+			STARPU_ASSERT_MSG(!handle->readonly || handle->readonly_copying, "Read-only handle %p can not be written to", handle);
 			_STARPU_RECURSIVE_TASKS_DEBUG("Put handle %p on initialized with task %p\n", handle, pre_sync_task);
 
 			handle->initialized = 1;

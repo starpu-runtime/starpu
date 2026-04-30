@@ -30,6 +30,7 @@
 #include <common/config.h>
 #include <common/utils.h>
 #include <common/knobs.h>
+#include <util/starpu_data_cpy.h>
 #include <datawizard/memory_nodes.h>
 #include <profiling/profiling.h>
 #include <profiling/bound.h>
@@ -1197,6 +1198,27 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 
 	if (task->cl && !continuation)
 	{
+		/* Enforce copy on write */
+		unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(j->task);
+		unsigned i;
+
+		for (i=0 ; i<nbuffers; i++)
+		{
+			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
+			enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, i);
+
+			if (mode & STARPU_W || mode == STARPU_REDUX)
+				/* We are modifying the source of RO duplicates, achieve, copy on write */
+				_starpu_data_dup_ro_cow(handle, task->priority);
+
+			if (handle->readonly && handle->readonly_dup_of)
+			{
+				/* We are reading a duplicate which still has a source, use the source instead of the duplicate */
+				STARPU_ASSERT_MSG(!(mode & STARPU_W || mode == STARPU_REDUX), "We are not supposed to modify a RO duplicate!");
+				STARPU_TASK_SET_HANDLE(task, handle->readonly_dup_of, i);
+			}
+		}
+
 		_starpu_job_set_ordered_buffers(j);
 	}
 

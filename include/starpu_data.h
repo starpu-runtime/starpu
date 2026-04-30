@@ -410,9 +410,15 @@ int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t h
    but the data is not fetched yet. It is given a pointer to the node, which it
    can modify if it wishes so.
 
+   \p real_handle, if non-NULL, is usually filled with \p handle, except when \p
+   handle is a copy-on-write RO copy produced with starpu_data_dup_ro and no
+   copy-on-write has happend yet, in which case it is filled with the original
+   handle of the copy, which should be used instead in the callback and in the
+   starpu_data_release call.
+
    This is a very internal interface, subject to changes, do not use this.
 */
-int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode, void (*callback_soon)(void *arg, double delay), void (*callback_acquired)(void *arg, int *node, enum starpu_data_access_mode mode), void (*callback)(void *arg), void *arg, int sequential_consistency, int quick, long *pre_sync_jobid, long *post_sync_jobid, int prio);
+int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_data_handle_t handle, starpu_data_handle_t *real_handle, int node, enum starpu_data_access_mode mode, void (*callback_soon)(void *arg, double delay), void (*callback_acquired)(void *arg, int *node, enum starpu_data_access_mode mode), void (*callback)(void *arg), void *arg, int sequential_consistency, int quick, long *pre_sync_jobid, long *post_sync_jobid, int prio);
 
 /**
    The application can call this function instead of starpu_data_acquire() so as to

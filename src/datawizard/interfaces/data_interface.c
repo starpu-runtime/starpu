@@ -156,6 +156,7 @@ static void _starpu_register_new_data(starpu_data_handle_t handle, int home_node
 	handle->sequential_consistency = starpu_data_get_default_sequential_consistency_flag();
 	handle->initialized = home_node != -1;
 	//handle->readonly = 0;
+	//handle->readonly_copying = 0;
 	handle->ooc = 1;
 
 	/* By default, there are no methods available to perform a reduction */
@@ -365,6 +366,7 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 	//handle->removed_from_context_hash = 0;
 
 	STARPU_PTHREAD_MUTEX_INIT0(&handle->sequential_consistency_mutex, NULL);
+	STARPU_PTHREAD_COND_INIT0(&handle->sequential_consistency_cond, NULL);
 
 	handle->last_submitted_mode = STARPU_R;
 	//handle->last_sync_task = NULL;
