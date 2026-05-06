@@ -1331,7 +1331,7 @@ void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job 
 		_starpu_spin_lock(&handle->header_lock);
 		if (local_replicate->mc)
 		{
-			if (task->prefetched && local_replicate->initialized &&
+			if (task->prefetched &&
 				/* Prefetch condition shared with _starpu_prefetch_task_input_prio */
 				_starpu_should_prefetch_task_input(task, mode))
 			{
