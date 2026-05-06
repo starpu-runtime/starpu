@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -72,12 +72,18 @@ int __starpu_datawizard_progress(unsigned may_alloc, unsigned push_requests)
 
 	if (!worker)
 	{
-		/* Call from main application, only make RAM requests progress */
+		/* Call from main application, only make RAM and disk requests progress */
 		int ret = 0;
-		int nnumas = starpu_memory_nodes_get_numa_count();
-		int numa;
-		for (numa = 0; numa < nnumas; numa++)
-			ret |=  ___starpu_datawizard_progress(numa, may_alloc, push_requests);
+		int nnodes = starpu_memory_nodes_get_count();
+		int node;
+		for (node = 0; node < nnodes; node++)
+		{
+			enum starpu_node_kind kind = starpu_node_get_kind(node);
+			if (kind != STARPU_CPU_RAM && kind != STARPU_DISK_RAM)
+				continue;
+			ret |=	___starpu_datawizard_progress(node, may_alloc, push_requests);
+		}
+		_starpu_execute_registered_progression_hooks();
 
 		return ret;
 	}
