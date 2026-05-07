@@ -491,6 +491,9 @@ void _starpu_mpi_common_measure_bandwidth_latency(double timing_dtod[STARPU_MAXM
 	int ret;
 	unsigned iter;
 
+	if (!_starpu_config.conf.nmpi_sc)
+		return;
+
 	int nb_proc, id_proc;
 	MPI_Comm_rank(MPI_COMM_WORLD, &id_proc);
 	MPI_Comm_size(MPI_COMM_WORLD, &nb_proc);
