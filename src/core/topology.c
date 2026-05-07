@@ -1110,13 +1110,17 @@ unsigned _starpu_topology_get_nhwnumanodes(struct _starpu_machine_config *config
 #if defined(STARPU_HAVE_HWLOC)
 	_starpu_init_topology(config);
 
+	if (numa_enabled == -1)
+		numa_enabled = starpu_getenv_number_default("STARPU_USE_NUMA", 0);
+
 	struct _starpu_machine_topology *topology = &config->topology;
 	int nnumanodes = hwloc_get_nbobjs_by_type(topology->hwtopology, HWLOC_OBJ_NUMANODE);
 	unsigned res = nnumanodes > 0 ? nnumanodes : 1;
 
 	if (res > STARPU_MAXNUMANODES)
 	{
-		_STARPU_DISP("Warning: Number of NUMA nodes discovered %d is higher than configured %d, reducing to that. Use configure option --enable-maxnumanodes=xxx to increase the maximum value of supported NUMA nodes.\n", res, STARPU_MAXNUMANODES);
+		if (numa_enabled)
+			_STARPU_DISP("Warning: Number of NUMA nodes discovered %d is higher than configured %d, reducing to that. Use configure option --enable-maxnumanodes=xxx to increase the maximum value of supported NUMA nodes.\n", res, STARPU_MAXNUMANODES);
 		res = STARPU_MAXNUMANODES;
 	}
 	return res;
