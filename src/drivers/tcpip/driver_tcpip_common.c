@@ -1389,6 +1389,9 @@ void _starpu_tcpip_common_measure_bandwidth_latency(double timing_dtod[STARPU_MA
 	_STARPU_MALLOC(buf, SIZE_BANDWIDTH);
 	memset(buf, 0, SIZE_BANDWIDTH);
 
+	if (!_starpu_config.conf.ntcpip_sc)
+		return;
+
 	if (!is_running)
 		_starpu_tcpip_common_mp_init();
 
