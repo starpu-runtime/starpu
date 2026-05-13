@@ -3,11 +3,12 @@
  * Recording uses StarPU's starpu_graph_recorder hooks; starpu_graph_sched_graph_recording_begin / end
  * defer task_insert / invalidate_submit while a session is open, then the policy flushes and replays.
  *
- * **Quiescence (outermost recording_end):** while graph_record_nested is still held, the implementation unlocks the
- * policy mutex, calls starpu_task_wait_for_all(), then re-locks before linearizing linked-list capture into graph_ops
- * and moving the capture out for parsing. Do not call recording_end from a StarPU context where waiting could
- * deadlock. graph_sgoc_finalize_outermost_capture then parses the graph (no second wait). Application code may still
- * call starpu_task_wait_for_all() after recording_end to wait for flush replay submissions to complete.
+ * **Quiescence:** On outermost recording_begin the policy mutex is released, starpu_task_wait_for_all() runs (so the
+ * capture starts from a quiescent scheduler), then the mutex is re-acquired; graph_capture_wall_start is taken after
+ * that wait. On outermost recording_end the same pattern runs before linearizing capture into graph_ops. Do not call
+ * recording_begin/end from a StarPU context where waiting could deadlock. graph_sgoc_finalize_outermost_capture then
+ * parses the graph (no further wait inside finalize). Application code may still call starpu_task_wait_for_all() after
+ * recording_end to wait for flush replay submissions to complete.
  *
  * Load with STARPU_SCHED=sgoc and STARPU_SCHED_LIB pointing at libgraph_sgoc_sched.so (see new_sched/Makefile run).
  *
@@ -49,7 +50,9 @@
  * offload evictions use the pending queue above.
  *
  * Optional: STARPU_GRAPH_SCHED_CAPTURE_TIMING — when non-empty and non-zero, stderr lines `sgoc_capture_timing:` with
- * per-phase +delta ms for recording_end / deinit_flush / linearize / finalize / flush (see graph_sgoc.cpp).
+ * per-phase +delta ms for recording_begin (begin wait), recording_end / deinit_flush / linearize / finalize / flush
+ * (see graph_sgoc.cpp). The same `sgoc_capture_timing:` phase lines are printed when STARPU_GRAPH_SCHED_VERBOSE>=2
+ * without setting CAPTURE_TIMING.
  */
 
 #ifndef GRAPH_SCHED_H

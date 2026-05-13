@@ -20,9 +20,18 @@
 #include "graph_sched_pin_worker_extract.inc"
 #undef GRAPH_SCHED_PIN_LOG_TAG
 
-/** Non-zero `STARPU_GRAPH_SCHED_CAPTURE_TIMING`: stderr phase timings for graph capture / flush (ms deltas). */
-static bool graph_sched_capture_timing_enabled()
+/** Same rule as graph_sgoc_bundle.inc graph_sched_verbose_env (read here before bundle is included). */
+static int graph_sched_verbose_starpu_env()
 {
+    const char *e = std::getenv("STARPU_GRAPH_SCHED_VERBOSE");
+    return (e && e[0]) ? std::atoi(e) : 0;
+}
+
+/** True if per-phase capture/flush timing should go to stderr (STARPU_GRAPH_SCHED_CAPTURE_TIMING or VERBOSE>=2). */
+static bool graph_sched_capture_phase_report_enabled()
+{
+    if (graph_sched_verbose_starpu_env() >= 2)
+        return true;
     const char *e = std::getenv("STARPU_GRAPH_SCHED_CAPTURE_TIMING");
     return e && e[0] && std::atoi(e) != 0;
 }
@@ -33,7 +42,7 @@ struct SgocCapturePhaseTimer {
     explicit SgocCapturePhaseTimer(const char *w) : t(std::chrono::steady_clock::now()), where(w) {}
     void lap(const char *label)
     {
-        if (!graph_sched_capture_timing_enabled())
+        if (!graph_sched_capture_phase_report_enabled())
             return;
         const auto t2 = std::chrono::steady_clock::now();
         const double ms = std::chrono::duration<double, std::milli>(t2 - t).count();
@@ -103,7 +112,8 @@ void graph_sgoc_finalize_outermost_capture(graph_sched_data *data, std::vector<G
                                            std::vector<GraphHandleAccess> &&replay_ha,
                                            unsigned added_invalidate_submit, unsigned sched_ctx_id)
 {
-    /* starpu_task_wait_for_all() runs in recording_end (before linearize) so work is quiesced before this path. */
+    /* starpu_task_wait_for_all() runs at outermost recording_begin (quiesce before capture) and recording_end
+     * (before linearize) so work is quiesced before this path. */
 
     SgocCapturePhaseTimer timer("finalize");
     graph_sched_captured_handle_groups parsed{};
@@ -534,7 +544,8 @@ void graph_sched_account_outermost_capture_end(graph_sched_data *data)
         const std::ios::fmtflags ff = std::cerr.flags();
         std::cerr << std::fixed << std::setprecision(6) << (data->policy_log_name ? data->policy_log_name : "graph")
                   << ": graph_capture_wall_sec=" << sec
-                  << " (outermost recording_begin → recording_end; excludes replay/planning)" << std::endl;
+                  << " (outermost: wall clock after begin wait at recording_begin through account at recording_end "
+                     "after end wait; excludes both waits and flush replay/planning)" << std::endl;
         std::cerr.flags(ff);
     }
 }
@@ -549,8 +560,18 @@ void starpu_graph_sched_graph_recording_begin(unsigned sched_ctx_id)
 
     _starpu_graph_recording_push();
 
-    std::lock_guard<std::mutex> lock(data->policy_mutex);
+    std::unique_lock<std::mutex> lock(data->policy_mutex);
     if (data->graph_record_nested == 0) {
+        lock.unlock();
+        const auto w0 = std::chrono::steady_clock::now();
+        starpu_task_wait_for_all();
+        const auto w1 = std::chrono::steady_clock::now();
+        const double wait_ms = std::chrono::duration<double, std::milli>(w1 - w0).count();
+        if (graph_sched_capture_phase_report_enabled()) {
+            std::cerr << "sgoc_capture_timing: recording_begin starpu_task_wait_for_all +" << std::fixed
+                      << std::setprecision(3) << wait_ms << " ms" << std::endl;
+        }
+        lock.lock();
         data->graph_capture_wall_start = std::chrono::steady_clock::now();
         data->graph_ops.clear();
         data->graph_handle_accesses.clear();

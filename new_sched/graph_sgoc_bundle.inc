@@ -32,6 +32,15 @@ static int graph_sched_verbose_env(void)
     return (e && e[0]) ? atoi(e) : 0;
 }
 
+/** stderr phase timings when STARPU_GRAPH_SCHED_VERBOSE>=2 or STARPU_GRAPH_SCHED_CAPTURE_TIMING (see graph_sgoc.cpp). */
+static bool graph_sched_capture_phase_report_enabled(void)
+{
+    if (graph_sched_verbose_env() >= 2)
+        return true;
+    const char *e = getenv("STARPU_GRAPH_SCHED_CAPTURE_TIMING");
+    return e && e[0] && atoi(e) != 0;
+}
+
 static std::string graph_sched_trim_worker_env(const char *e)
 {
     if (!e)
@@ -655,19 +664,21 @@ static void graph_op_add_edge(std::vector<GraphOp> &ops, size_t consumer_op_idx,
 
 static void graph_sched_validate_invalidate_then_pure_write_windows(graph_sched_data *data);
 
-/** Same as graph_op_add_edge but during SGOC list capture: pred/succ store capture_stable_id values. */
-static void graph_op_add_edge_stable(GraphOp *consumer, size_t producer_stable,
-                                     const std::unordered_map<size_t, GraphOp *> &by_stable)
+/** SGOC list capture: add one pred/succ edge (indices are capture_stable_id values). O(1) map + degree scan. */
+static void graph_op_add_edge_stable_sgoc(graph_sched_data *data, GraphOp *consumer, size_t producer_stable)
 {
-    if (!consumer || producer_stable == GRAPH_ACCESS_NONE)
+    if (!data || !data->graph_sgoc || !consumer)
         return;
+    if (producer_stable == GRAPH_ACCESS_NONE)
+        return;
+    graph_sched_data::graph_sgoc_runtime &G = *data->graph_sgoc;
     const size_t cons = consumer->capture_stable_id;
     if (producer_stable == cons)
         return;
-    const auto pit = by_stable.find(producer_stable);
-    if (pit == by_stable.end() || !pit->second)
+    const auto pit = G.capture_id_to_iter.find(producer_stable);
+    if (pit == G.capture_id_to_iter.end() || pit->second == G.capture_ops.end())
         return;
-    GraphOp *producer = pit->second;
+    GraphOp *producer = &*pit->second;
 
     for (size_t existing : consumer->predecessors) {
         if (existing == producer_stable)
@@ -682,8 +693,7 @@ static void graph_op_add_edge_stable(GraphOp *consumer, size_t producer_stable,
     producer->successors.push_back(cons);
 }
 
-static void graph_op_add_pure_read_dependencies_stable(graph_sched_data *data, GraphOp *consumer, size_t access_idx,
-                                                       const std::unordered_map<size_t, GraphOp *> &by_stable)
+static void graph_op_add_pure_read_dependencies_sgoc(graph_sched_data *data, GraphOp *consumer, size_t access_idx)
 {
     size_t prev_idx = data->graph_handle_accesses[access_idx].prev_for_handle;
     while (prev_idx != GRAPH_ACCESS_NONE) {
@@ -691,16 +701,15 @@ static void graph_op_add_pure_read_dependencies_stable(graph_sched_data *data, G
             break;
         const GraphHandleAccess &prev = data->graph_handle_accesses[prev_idx];
         if (graph_access_is_handle_producer_for_deps(prev)) {
-            graph_op_add_edge_stable(consumer, prev.op_idx, by_stable);
+            graph_op_add_edge_stable_sgoc(data, consumer, prev.op_idx);
             break;
         }
         prev_idx = prev.prev_for_handle;
     }
 }
 
-static void graph_op_add_writer_or_invalidate_dependencies_stable(graph_sched_data *data, GraphOp *consumer,
-                                                                  size_t access_idx,
-                                                                  const std::unordered_map<size_t, GraphOp *> &by_stable)
+static void graph_op_add_writer_or_invalidate_dependencies_sgoc(graph_sched_data *data, GraphOp *consumer,
+                                                                  size_t access_idx)
 {
     size_t prev_idx = data->graph_handle_accesses[access_idx].prev_for_handle;
     while (prev_idx != GRAPH_ACCESS_NONE) {
@@ -708,56 +717,44 @@ static void graph_op_add_writer_or_invalidate_dependencies_stable(graph_sched_da
             break;
         const GraphHandleAccess &prev = data->graph_handle_accesses[prev_idx];
         if (graph_access_mode_is_pure_read(prev.mode) && prev.task != nullptr)
-            graph_op_add_edge_stable(consumer, prev.op_idx, by_stable);
+            graph_op_add_edge_stable_sgoc(data, consumer, prev.op_idx);
         else if (graph_access_is_handle_producer_for_deps(prev)) {
-            graph_op_add_edge_stable(consumer, prev.op_idx, by_stable);
+            graph_op_add_edge_stable_sgoc(data, consumer, prev.op_idx);
             break;
         }
         prev_idx = prev.prev_for_handle;
     }
 }
 
-static void graph_sgoc_refresh_op_dependencies_capture(graph_sched_data *data)
+/**
+ * Incremental SGOC capture: add dependency edges for \p op only from current handle-access chains.
+ * Amortized O(bufs × chain depth) per call instead of rebuilding the full capture graph each append.
+ */
+static void graph_sgoc_capture_add_edges_for_op(graph_sched_data *data, GraphOp &op)
 {
-    if (!data->graph_sgoc)
+    if (!data || !data->graph_sgoc)
         return;
-    graph_sched_data::graph_sgoc_runtime &G = *data->graph_sgoc;
-    if (G.capture_ops.empty())
-        return;
-
-    std::unordered_map<size_t, GraphOp *> by_stable;
-    by_stable.reserve(G.capture_ops.size() * 2);
-    for (GraphOp &op : G.capture_ops) {
-        op.predecessors.clear();
-        op.successors.clear();
-        by_stable[op.capture_stable_id] = &op;
-    }
-
-    for (GraphOp &op : G.capture_ops) {
-        if (op.kind == GraphOp::INVALIDATE) {
-            for (const GraphOpHandleAccessRef &ref : op.handle_accesses) {
-                if (ref.access_idx >= data->graph_handle_accesses.size())
-                    continue;
-                graph_op_add_writer_or_invalidate_dependencies_stable(data, &op, ref.access_idx, by_stable);
-            }
-            continue;
-        }
-        if (op.kind != GraphOp::TASK)
-            continue;
+    if (op.kind == GraphOp::INVALIDATE) {
         for (const GraphOpHandleAccessRef &ref : op.handle_accesses) {
             if (ref.access_idx >= data->graph_handle_accesses.size())
                 continue;
-            const unsigned mode = ref.mode;
-            if (graph_access_mode_is_pure_read(mode)) {
-                graph_op_add_pure_read_dependencies_stable(data, &op, ref.access_idx, by_stable);
-                continue;
-            }
-            if (graph_access_mode_is_writer(mode))
-                graph_op_add_writer_or_invalidate_dependencies_stable(data, &op, ref.access_idx, by_stable);
+            graph_op_add_writer_or_invalidate_dependencies_sgoc(data, &op, ref.access_idx);
         }
+        return;
     }
-
-    graph_sched_validate_invalidate_then_pure_write_windows(data);
+    if (op.kind != GraphOp::TASK)
+        return;
+    for (const GraphOpHandleAccessRef &ref : op.handle_accesses) {
+        if (ref.access_idx >= data->graph_handle_accesses.size())
+            continue;
+        const unsigned mode = ref.mode;
+        if (graph_access_mode_is_pure_read(mode)) {
+            graph_op_add_pure_read_dependencies_sgoc(data, &op, ref.access_idx);
+            continue;
+        }
+        if (graph_access_mode_is_writer(mode))
+            graph_op_add_writer_or_invalidate_dependencies_sgoc(data, &op, ref.access_idx);
+    }
 }
 
 /**
@@ -931,6 +928,7 @@ static void graph_sched_insert_missing_pre_write_invalidates(graph_sched_data *d
                 G.capture_id_to_iter[sid] = std::prev(G.capture_ops.end());
                 graph_sched_register_invalidate_access_op(data, G.capture_ops.back(), sid, h);
                 data->graph_added_invalidate_submit++;
+                graph_sgoc_capture_add_edges_for_op(data, G.capture_ops.back());
                 continue;
             }
 
@@ -955,8 +953,8 @@ static void graph_sched_insert_missing_pre_write_invalidates(graph_sched_data *d
             G.capture_id_to_iter[sid] = it_new;
             graph_sched_register_invalidate_access_op(data, *it_new, sid, h);
             data->graph_added_invalidate_submit++;
+            graph_sgoc_capture_add_edges_for_op(data, *it_new);
         }
-        graph_sgoc_refresh_op_dependencies_capture(data);
         return;
     }
 
@@ -1101,7 +1099,7 @@ static void graph_sched_append_captured_task(graph_sched_data *data, struct star
         G.capture_id_to_iter[sid] = std::prev(G.capture_ops.end());
         GraphOp &op_ref = G.capture_ops.back();
         graph_sched_register_task_accesses_op(data, sid, task, op_ref);
-        graph_sgoc_refresh_op_dependencies_capture(data);
+        graph_sgoc_capture_add_edges_for_op(data, op_ref);
         return;
     }
 
@@ -2325,8 +2323,7 @@ void graph_sgoc_linearize_capture_to_ops(graph_sched_data *data)
     if (!data || !data->graph_sgoc)
         return;
     graph_sched_data::graph_sgoc_runtime &G = *data->graph_sgoc;
-    const char *const te = getenv("STARPU_GRAPH_SCHED_CAPTURE_TIMING");
-    const bool cap_tim = te && te[0] && atoi(te) != 0;
+    const bool cap_tim = graph_sched_capture_phase_report_enabled();
     const auto t_lin0 = std::chrono::steady_clock::now();
     const size_t n_listed = G.capture_ops.size();
     if (G.capture_ops.empty()) {
@@ -2338,6 +2335,9 @@ void graph_sgoc_linearize_capture_to_ops(graph_sched_data *data)
         }
         return;
     }
+
+    /* One O(total accesses) pass; incremental capture no longer calls this per append. */
+    graph_sched_validate_invalidate_then_pure_write_windows(data);
 
     std::unordered_map<size_t, size_t> sid_to_idx;
     sid_to_idx.reserve(G.capture_ops.size() * 2u);
@@ -2410,6 +2410,6 @@ static void graph_sched_append_capture_explicit_invalidate(graph_sched_data *dat
     G.capture_ops.push_back(std::move(op));
     G.capture_id_to_iter[sid] = std::prev(G.capture_ops.end());
     graph_sched_register_invalidate_access_op(data, G.capture_ops.back(), sid, handle);
-    graph_sgoc_refresh_op_dependencies_capture(data);
+    graph_sgoc_capture_add_edges_for_op(data, G.capture_ops.back());
 }
 

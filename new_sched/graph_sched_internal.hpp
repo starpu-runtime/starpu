@@ -229,7 +229,7 @@ struct graph_sched_data {
     std::unordered_map<void *, GraphHandleAccessList> graph_handle_access_lists;
 
     unsigned graph_record_nested = 0;
-    /** Wall start of outermost capture (set when graph_record_nested goes 0→1). */
+    /** Wall start of outermost capture: set after recording_begin's starpu_task_wait_for_all (not before). */
     std::chrono::steady_clock::time_point graph_capture_wall_start{};
 
     /** Capture-time only: synthetic invalidate_submit before pure STARPU_W; reset at outermost recording_begin. */
