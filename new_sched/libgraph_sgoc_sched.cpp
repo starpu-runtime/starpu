@@ -240,7 +240,7 @@ static struct starpu_sched_policy _starpu_sched_sgoc_policy = {
     .remove_workers = nullptr,
     .prefetches = 1,
     .policy_name = "sgoc",
-    .policy_description = "SGOC: graph capture + Belady MM plan; prefetch at pop; optional StarPU victim eviction",
+    .policy_description = "SGOC: graph capture + Belady MM plan; demand GPU fetch at pop; optional StarPU victim eviction",
     .worker_type = STARPU_WORKER_LIST,
 };
 

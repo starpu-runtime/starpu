@@ -29,7 +29,7 @@
  * would otherwise scale the pinned allowance).
  *
  * Optional: STARPU_GRAPH_SCHED_SGOC_MEM_DEBUG — when non-empty and non-zero, stderr logs per-flush MM plan advance
- * (mean topo-slot lead for prefetches/offloads vs consumer) and replay counters (RAM offload / GPU prefetch / evict).
+ * (mean topo-slot lead for planned MM prefetches/offloads vs consumer) and replay counters (RAM offload / GPU fetch / evict).
  *
  * Optional: STARPU_GRAPH_SCHED_OPTIMIZER_STATE_OFFLOAD (default 0) — when the captured graph includes an optimizer
  * phase (graph subiteration UINT32_MAX) and parsed optimizer-state handles (Adam m/v, etc.), emit StarPU hints before
@@ -40,11 +40,16 @@
  * limit (starpu_memory_get_total on the worker node, or STARPU_LIMIT_CUDA*_MEM when total is unknown) used as planner
  * allowance before STARPU_GRAPH_SCHED_MEM_BUDGET_FRACTION (SGOC default 1.0). Must be in (0,1].
  *
- * Runtime: consumer prefetches for the MM plan are started from pop_task (after pending GPU evict drain on the pin
- * worker) when built against StarPU without starpu_data_register_victim_selector; with a new enough StarPU (see
- * Makefile nm check / make STARPUSGOC_HAS_VICTIM_SELECTOR=1), SGOC registers a global Belady victim selector for the
- * pinned GPU memory node: post_exec still prefetches offloaded state to RAM, but GPU eviction is left to StarPU.
- * post_exec only drains a deferred prefetch queue when MM hints execute.
+ * Runtime: post_exec registers planned S-offloads (async RAM replicate), queues each handle for GPU eviction, and
+ * immediately tries graph_sched_drain_pending_gpu_evicts (starpu_data_can_evict + starpu_data_evict_from_node when the
+ * RAM copy is valid — offload is not treated as instantaneous). pop_task and pre_exec drain the same queue before
+ * scheduling fetches. A GPU starpu_data_fetch_on_node is started only when starpu_memory_get_available reports enough
+ * free bytes on the pinned CUDA node (if known) and the planner mem_budget headroom allows it. With StarPU new enough
+ * (STARPUSGOC_HAS_VICTIM_SELECTOR=1), a Belady victim selector still handles implicit allocation pressure; explicit
+ * offload evictions use the pending queue above.
+ *
+ * Optional: STARPU_GRAPH_SCHED_CAPTURE_TIMING — when non-empty and non-zero, stderr lines `sgoc_capture_timing:` with
+ * per-phase +delta ms for recording_end / deinit_flush / linearize / finalize / flush (see graph_sgoc.cpp).
  */
 
 #ifndef GRAPH_SCHED_H

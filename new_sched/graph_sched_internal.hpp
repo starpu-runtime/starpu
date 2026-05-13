@@ -213,8 +213,9 @@ struct graph_sched_data {
      */
     std::mutex graph_offload_mutex;
     /**
-     * When true, starpu_data_register_victim_selector is active for this policy instance and GPU offload skips
-     * manual starpu_data_evict_from_node + pending queue (StarPU evicts using our Belady callback).
+     * When true, starpu_data_register_victim_selector is active: StarPU may call our Belady callback for implicit GPU
+     * allocation/reuse pressure. Explicit S-offloads still use graph_pending_gpu_evict_handles + drain (RAM-valid
+     * then starpu_data_evict_from_node) so offload is not assumed instantaneous.
      */
     bool graph_runtime_starpu_victim = false;
     std::deque<struct starpu_task *> ready_queue;
@@ -296,15 +297,15 @@ struct graph_sched_data {
     graph_sched_gpu_memory_manager graph_gpu_mm;
 
     /**
-     * GPU replicas waiting for eviction after async RAM prefetch (see graph_sched_run_post_exec_offloads /
-     * graph_sched_drain_pending_gpu_evicts).
+     * After async RAM prefetch from post_exec offload hints: handles queued for GPU eviction once
+     * starpu_data_can_evict allows (RAM replica valid). Drained from pop_task, pre_exec, and end of post_exec offload.
      */
     std::vector<starpu_data_handle_t> graph_pending_gpu_evict_handles;
     /** Mirror of graph_pending_gpu_evict_handles.size(); updated under graph_offload_mutex. Skips drain in pop_task when 0. */
     std::atomic<std::size_t> graph_pending_gpu_evict_pending_count{0};
     /**
-     * After \p task completes (post_exec), prefetch optimizer-state buffers to RAM and enqueue for GPU eviction in
-     * pop_task once starpu_data_can_evict allows it.
+     * After \p task completes (post_exec), async RAM replicate for planned S-offloads; handles are queued for GPU
+     * eviction (graph_pending_gpu_evict_handles) and drain runs from post_exec, pop_task, pre_exec, and before GPU fetch.
      */
     std::unordered_map<struct starpu_task *, std::vector<starpu_data_handle_t>> graph_offload_after_task_handles;
     /** Successful starpu_data_evict_from_node calls from drain_pending (diagnostics). */
@@ -379,17 +380,18 @@ struct graph_sched_data {
     long graph_push_last_outer_iteration = -1;
 
     /**
-     * SGOC (graph_sgoc): flush-time hints and runtime prefetch bookkeeping. Null when policy is not sgoc.
+     * SGOC (graph_sgoc): flush-time hints and runtime GPU transfer bookkeeping. Null when policy is not sgoc.
      */
     struct graph_sgoc_runtime {
-        /** Per-task prefetch list from MM plan; issued at that task's pop_task after evict drain (anchor may precede consumer). */
+        /** Legacy: MM anchor prefetch lists (no longer issued at pop; GPU uses demand fetch for the popped task). */
         std::unordered_map<struct starpu_task *, std::vector<starpu_data_handle_t>> pre_exec_prefetch;
-        /** Optional extra prefetches deferred to post_exec when pre_exec lacked GPU budget. */
+        /** Reserved; not used in the demand-fetch pop path. */
         std::unordered_map<struct starpu_task *, std::vector<starpu_data_handle_t>> post_exec_prefetch;
         /** RAM offload then GPU evict queue registration targets (post_exec of prior task). */
         std::unordered_map<struct starpu_task *, std::vector<starpu_data_handle_t>> post_exec_offload_order;
+        /** Handles whose GPU demand fetch was deferred (e.g. VRAM budget); drained from pre_exec/post_exec. */
         std::deque<starpu_data_handle_t> deferred_prefetch;
-        /** Optimistic model: handles we prefetched and treat as GPU-resident until evict drains / victim picks. */
+        /** Optimistic model: handles we issued a GPU fetch for and treat as GPU-resident until evict drains / victim picks. */
         std::unordered_set<void *> tracked_gpu_resident;
         std::int64_t tracked_gpu_bytes = 0;
         /** Protects Belady tables + victim eviction predict bookkeeping (victim selector vs post_exec). */

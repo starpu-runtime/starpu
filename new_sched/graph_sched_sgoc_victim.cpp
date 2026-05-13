@@ -4,6 +4,8 @@
 #include "graph_sched_internal.hpp"
 
 #include <starpu_data.h>
+#include <starpu_data_interfaces.h>
+#include <starpu_hash.h>
 #include <starpu_task.h>
 
 #include <cstdint>
@@ -61,6 +63,19 @@ static void tracked_restore_if_predicted(graph_sched_data::graph_sgoc_runtime &G
     G.tracked_gpu_bytes += sz;
 }
 
+/** Same contract as StarPU's internal _starpu_compute_data_alloc_footprint (memalloc reuse path). */
+static std::uint32_t sgoc_starpu_alloc_footprint(starpu_data_handle_t handle)
+{
+    struct starpu_data_interface_ops *ops = starpu_data_get_interface_ops(handle);
+    if (!ops || (!ops->alloc_footprint && !ops->footprint))
+        return 0;
+    const std::uint32_t interfaceid = static_cast<std::uint32_t>(starpu_data_get_interface_id(handle));
+    const std::uint32_t init = interfaceid < STARPU_MAX_INTERFACE_ID ? interfaceid : 0;
+    const std::uint32_t handle_footprint =
+        ops->alloc_footprint ? ops->alloc_footprint(handle) : ops->footprint(handle);
+    return starpu_hash_crc32c_be(handle_footprint, init);
+}
+
 } /* namespace */
 
 extern "C" {
@@ -68,7 +83,6 @@ extern "C" {
 static starpu_data_handle_t sgoc_victim_selector_c(starpu_data_handle_t toload, unsigned node,
                                                    enum starpu_is_prefetch is_prefetch, void *opaque)
 {
-    (void)toload;
     (void)is_prefetch;
     auto *policy = static_cast<graph_sched_data *>(opaque);
     if (!policy || !policy->graph_sgoc || !policy->graph_runtime_starpu_victim)
@@ -77,6 +91,8 @@ static starpu_data_handle_t sgoc_victim_selector_c(starpu_data_handle_t toload, 
         || static_cast<unsigned>(policy->graph_pinned_worker_mem_node) != node)
         return STARPU_DATA_NO_VICTIM;
     graph_sched_data::graph_sgoc_runtime &G = *policy->graph_sgoc;
+
+    const std::uint32_t required_alloc_fp = toload ? sgoc_starpu_alloc_footprint(toload) : 0u;
 
     starpu_data_handle_t *handles = nullptr;
     int *valid = nullptr;
@@ -103,9 +119,14 @@ static starpu_data_handle_t sgoc_victim_selector_c(starpu_data_handle_t toload, 
             continue;
         if (!starpu_data_can_evict(h, node, is_prefetch))
             continue;
+        if (required_alloc_fp != 0u && sgoc_starpu_alloc_footprint(h) != required_alloc_fp)
+            continue;
 
         void *p = static_cast<void *>(h);
-        const size_t next_slot = belady_min_next_topo_slot(G.belady_remaining_slots[p]);
+        size_t next_slot = belady_inf_next();
+        auto rs = G.belady_remaining_slots.find(p);
+        if (rs != G.belady_remaining_slots.end())
+            next_slot = belady_min_next_topo_slot(rs->second);
         const std::uint64_t sz = static_cast<std::uint64_t>(starpu_data_get_size(h));
 
         if (!have_best || next_slot > best_next || (next_slot == best_next && sz > best_size)) {

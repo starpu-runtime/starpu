@@ -2325,8 +2325,19 @@ void graph_sgoc_linearize_capture_to_ops(graph_sched_data *data)
     if (!data || !data->graph_sgoc)
         return;
     graph_sched_data::graph_sgoc_runtime &G = *data->graph_sgoc;
-    if (G.capture_ops.empty())
+    const char *const te = getenv("STARPU_GRAPH_SCHED_CAPTURE_TIMING");
+    const bool cap_tim = te && te[0] && atoi(te) != 0;
+    const auto t_lin0 = std::chrono::steady_clock::now();
+    const size_t n_listed = G.capture_ops.size();
+    if (G.capture_ops.empty()) {
+        if (cap_tim) {
+            const auto t_lin1 = std::chrono::steady_clock::now();
+            const double ms = std::chrono::duration<double, std::milli>(t_lin1 - t_lin0).count();
+            std::cerr << "sgoc_capture_timing: linearize +" << std::fixed << std::setprecision(3) << ms
+                      << " ms list_ops=0 (no-op)" << std::endl;
+        }
         return;
+    }
 
     std::unordered_map<size_t, size_t> sid_to_idx;
     sid_to_idx.reserve(G.capture_ops.size() * 2u);
@@ -2376,6 +2387,12 @@ void graph_sgoc_linearize_capture_to_ops(graph_sched_data *data)
     }
 
     data->graph_ops = std::move(out);
+    if (cap_tim) {
+        const auto t_lin1 = std::chrono::steady_clock::now();
+        const double ms = std::chrono::duration<double, std::milli>(t_lin1 - t_lin0).count();
+        std::cerr << "sgoc_capture_timing: linearize +" << std::fixed << std::setprecision(3) << ms << " ms list_ops="
+                  << n_listed << " graph_ops_out=" << data->graph_ops.size() << std::endl;
+    }
 }
 
 static void graph_sched_append_capture_explicit_invalidate(graph_sched_data *data, starpu_data_handle_t handle)

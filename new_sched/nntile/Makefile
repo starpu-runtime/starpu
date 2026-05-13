@@ -42,7 +42,8 @@ STARPU_ENV := OMP_NUM_THREADS=1 \
 	STARPU_GRAPH_SCHED_VERBOSE=3 \
 	STARPU_GRAPH_SCHED_CHECKPOINT_MAX=0 \
 	STARPU_LIMIT_CUDA_MEM=3000 \
-	STARPU_GRAPH_SCHED_SGOC_MEM_DEBUG=1
+	STARPU_GRAPH_SCHED_SGOC_MEM_DEBUG=1 \
+	STARPU_GRAPH_SCHED_STARPU_MEM_AVAILABLE_FRACTION=0.9
 
 # Copy pure-Python graph scheduler helpers from NNTILE source into the build tree so ``make run`` picks up
 # graph_recorder_sched + graph_capture_sched without a full CMake rebuild.
@@ -65,7 +66,7 @@ GPT2_TRAIN := python ../wrappers/python/examples/gpt2_lmhead_training.py \
 	--dtype=fp32 \
 	--nepochs=1 \
 	--seq-len=1024 \
-	--batch-size=1 \
+	--batch-size=16 \
 	--minibatch-size=1 \
 	--dataset-file=tinystories/train.bin \
 	--seed=$(TRAIN_SEED)
@@ -121,6 +122,9 @@ run: run_graph
 
 run_dmdasd:
 	cd $(NOTEBOOK_DIR) && $(STARPU_ENV) STARPU_SCHED=dmdasd $(GPT2_TRAIN)
+
+run_darts:
+	cd $(NOTEBOOK_DIR) && $(STARPU_ENV) STARPU_SCHED=darts $(GPT2_TRAIN)
 
 # Loadable SGOC graph policy from $(GRAPH_SCHED_DIR) (see that tree's Makefile).
 # SGOC pins recorded replay using STARPU_GRAPH_SCHED_WORKER (see starpu-sched new_sched).
