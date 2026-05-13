@@ -103,8 +103,10 @@ int main(int argc, char **argv)
 
 enodev:
 #ifdef STARPU_USE_OPENCL
-	int xret = starpu_opencl_unload_opencl(&opencl_program);
-	STARPU_CHECK_RETURN_VALUE(xret, "starpu_opencl_unload_opencl");
+	{
+		int xret = starpu_opencl_unload_opencl(&opencl_program);
+		STARPU_CHECK_RETURN_VALUE(xret, "starpu_opencl_unload_opencl");
+	}
 #endif
 	starpu_shutdown();
 
