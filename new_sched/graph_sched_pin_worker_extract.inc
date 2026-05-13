@@ -254,6 +254,7 @@ static void graph_sched_read_pinned_worker_memory_into(graph_sched_data *data)
         return;
     const unsigned wid = static_cast<unsigned>(data->graph_pinned_worker_id);
     const unsigned node = starpu_worker_get_memory_node(wid);
+    data->graph_pinned_worker_mem_node = static_cast<int>(node);
     const enum starpu_worker_archtype wtype = starpu_worker_get_type(static_cast<int>(wid));
 
 #if defined(STARPU_USE_CUDA) && !defined(STARPU_SIMGRID)

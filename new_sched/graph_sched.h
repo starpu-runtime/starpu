@@ -41,7 +41,10 @@
  * allowance before STARPU_GRAPH_SCHED_MEM_BUDGET_FRACTION (SGOC default 1.0). Must be in (0,1].
  *
  * Runtime: consumer prefetches for the MM plan are started from pop_task (after pending GPU evict drain on the pin
- * worker); pre_exec only drains a deferred prefetch queue when MM hints execute.
+ * worker) when built against StarPU without starpu_data_register_victim_selector; with a new enough StarPU (see
+ * Makefile nm check / make STARPUSGOC_HAS_VICTIM_SELECTOR=1), SGOC registers a global Belady victim selector for the
+ * pinned GPU memory node: post_exec still prefetches offloaded state to RAM, but GPU eviction is left to StarPU.
+ * post_exec only drains a deferred prefetch queue when MM hints execute.
  */
 
 #ifndef GRAPH_SCHED_H

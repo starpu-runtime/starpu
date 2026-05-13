@@ -118,6 +118,7 @@ void graph_sched_sgoc_clear_runtime(graph_sched_data *data)
     G.dbg_gpu_prefetch_issue.store(0, std::memory_order_relaxed);
     G.dbg_gpu_prefetch_bytes.store(0, std::memory_order_relaxed);
     G.dbg_evict_ok.store(0, std::memory_order_relaxed);
+    graph_sched_sgoc_victim_clear_belady(data);
 }
 
 static size_t sgoc_count_task_ops(const std::vector<GraphOp> &ops)
@@ -325,6 +326,7 @@ void graph_sched_sgoc_release_outermost_capture(graph_sched_data *data, std::vec
     if (pin_worker >= 0)
         G.gpu_mem_node = starpu_worker_get_memory_node(static_cast<unsigned>(pin_worker));
     G.mem_budget_bytes = mem_budget;
+    graph_sched_sgoc_victim_rebuild_belady(data, topo_order);
     if (G.mm_execute && pin_worker >= 0) {
         const starpu_ssize_t used = starpu_memory_get_used(G.gpu_mem_node);
         if (used >= 0)

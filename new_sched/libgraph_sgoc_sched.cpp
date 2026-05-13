@@ -47,15 +47,24 @@ static void init_sgoc_sched(unsigned sched_ctx_id)
     graph_sched_init_pinned_worker(data);
     starpu_sched_ctx_set_policy_data(sched_ctx_id, data);
     graph_sched_sgoc_register(data);
+    graph_sched_sgoc_victim_policy_init(data);
     if (graph_sgoc_bundle::graph_sched_verbose_env() >= 1) {
         std::cerr << "sgoc: init sched_ctx " << sched_ctx_id << " libgraph_sgoc_sched built " << __DATE__ << " "
-                  << __TIME__ << "\n";
+                  << __TIME__;
+#if STARPUSGOC_HAS_VICTIM_SELECTOR
+        if (data->graph_runtime_starpu_victim)
+            std::cerr << " starpu_victim_belady=1";
+        else
+            std::cerr << " starpu_victim_belady=0";
+#endif
+        std::cerr << "\n";
     }
 }
 
 static void deinit_sgoc_sched(unsigned sched_ctx_id)
 {
     auto *data = static_cast<graph_sched_data *>(starpu_sched_ctx_get_policy_data(sched_ctx_id));
+    graph_sched_sgoc_victim_policy_deinit(data);
     graph_sched_sgoc_deinit(data, sched_ctx_id);
     if (graph_sgoc_bundle::graph_sched_verbose_env() >= 1)
         std::cerr << "sgoc: deinit sched_ctx " << sched_ctx_id << std::endl;
@@ -206,6 +215,7 @@ static void post_exec_hook_sgoc(struct starpu_task *task, unsigned sched_ctx_id)
     const GraphSchedPostExecTimer post_timer(data);
     if (!data || data->graph_pinned_worker_id < 0 || !task)
         return;
+    graph_sched_sgoc_victim_note_task_completed(data, task);
     const unsigned gpu_node = starpu_worker_get_memory_node(static_cast<unsigned>(data->graph_pinned_worker_id));
     graph_sched_sgoc_post_exec_hook(data, task, gpu_node);
 }
@@ -230,7 +240,7 @@ static struct starpu_sched_policy _starpu_sched_sgoc_policy = {
     .remove_workers = nullptr,
     .prefetches = 1,
     .policy_name = "sgoc",
-    .policy_description = "SGOC: graph capture (list) + wait-before-plan + greedy VRAM topo + Belady MM; prefetch at pop",
+    .policy_description = "SGOC: graph capture + Belady MM plan; prefetch at pop; optional StarPU victim eviction",
     .worker_type = STARPU_WORKER_LIST,
 };
 

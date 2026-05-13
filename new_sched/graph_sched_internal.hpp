@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <deque>
 #include <list>
+#include <map>
 #include <limits>
 #include <memory>
 #include <mutex>
@@ -211,6 +212,11 @@ struct graph_sched_data {
      * interact with this without touching the ready queue, avoiding deadlocks with push/pop on policy_mutex.
      */
     std::mutex graph_offload_mutex;
+    /**
+     * When true, starpu_data_register_victim_selector is active for this policy instance and GPU offload skips
+     * manual starpu_data_evict_from_node + pending queue (StarPU evicts using our Belady callback).
+     */
+    bool graph_runtime_starpu_victim = false;
     std::deque<struct starpu_task *> ready_queue;
     const char *policy_log_name = "sgoc";
 
@@ -235,6 +241,8 @@ struct graph_sched_data {
 
     /** STARPU_GRAPH_SCHED_WORKER → CUDA worker id (cuda:n; devid then ordinal); -1 if unset. */
     int graph_pinned_worker_id = -1;
+    /** starpu_worker_get_memory_node(pinned worker); -1 until graph_sched_read_pinned_worker_memory_into runs. */
+    int graph_pinned_worker_mem_node = -1;
 
     /**
      * Driver-reported GPU capacity (cudaMemGetInfo total / cudaGetDeviceProperties), or StarPU node total if unset.
@@ -381,9 +389,17 @@ struct graph_sched_data {
         /** RAM offload then GPU evict queue registration targets (post_exec of prior task). */
         std::unordered_map<struct starpu_task *, std::vector<starpu_data_handle_t>> post_exec_offload_order;
         std::deque<starpu_data_handle_t> deferred_prefetch;
-        /** Optimistic model: handles we prefetched and treat as GPU-resident until evict drains. */
+        /** Optimistic model: handles we prefetched and treat as GPU-resident until evict drains / victim picks. */
         std::unordered_set<void *> tracked_gpu_resident;
         std::int64_t tracked_gpu_bytes = 0;
+        /** Protects Belady tables + victim eviction predict bookkeeping (victim selector vs post_exec). */
+        std::mutex victim_state_mutex;
+        /** Replay topo slot (0..len-1) per TASK pointer for the last flushed graph (Belady future reference). */
+        std::unordered_map<const struct starpu_task *, unsigned> belady_task_topo_slot;
+        /** Remaining TASK topo slots where each handle is still referenced (multiset as map<slot,count>). */
+        std::unordered_map<void *, std::map<size_t, unsigned>> belady_remaining_slots;
+        /** Handles we optimistically removed from tracked_gpu_* when returning them from the victim selector. */
+        std::unordered_set<void *> victim_evict_predict_removed;
         int mm_execute = 0;
         unsigned gpu_mem_node = 0;
         std::int64_t mem_budget_bytes = 0;
@@ -467,6 +483,13 @@ void graph_sched_sgoc_release_outermost_capture(graph_sched_data *data, std::vec
                                                 std::uint32_t batch_val, int vb, unsigned sched_ctx_id);
 
 void graph_sched_sgoc_clear_runtime(graph_sched_data *data);
+
+/** Belady victim selector (starpu_data_register_victim_selector); no-op when built with STARPUSGOC_HAS_VICTIM_SELECTOR=0. */
+void graph_sched_sgoc_victim_policy_init(graph_sched_data *data);
+void graph_sched_sgoc_victim_policy_deinit(graph_sched_data *data);
+void graph_sched_sgoc_victim_rebuild_belady(graph_sched_data *data, const std::vector<size_t> &topo_order);
+void graph_sched_sgoc_victim_note_task_completed(graph_sched_data *data, struct starpu_task *task);
+void graph_sched_sgoc_victim_clear_belady(graph_sched_data *data);
 void graph_sched_sgoc_register(graph_sched_data *data);
 void graph_sched_sgoc_deinit(graph_sched_data *data, unsigned sched_ctx_id);
 void graph_sched_account_outermost_capture_end(graph_sched_data *data);

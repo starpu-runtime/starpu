@@ -44,6 +44,7 @@ void graph_sched_run_post_exec_offloads(graph_sched_data *data, struct starpu_ta
 {
     if (!data || !task)
         return;
+    const bool starpu_victim = data->graph_runtime_starpu_victim;
     std::vector<starpu_data_handle_t> work;
     {
         std::lock_guard<std::mutex> lock(data->graph_offload_mutex);
@@ -71,24 +72,28 @@ void graph_sched_run_post_exec_offloads(graph_sched_data *data, struct starpu_ta
     }
     if (to_pending.empty())
         return;
-    std::lock_guard<std::mutex> lock(data->graph_offload_mutex);
-    for (starpu_data_handle_t h : to_pending) {
-        bool dup = false;
-        for (starpu_data_handle_t p : data->graph_pending_gpu_evict_handles) {
-            if (p == h) {
-                dup = true;
-                break;
+    if (!starpu_victim) {
+        std::lock_guard<std::mutex> lock(data->graph_offload_mutex);
+        for (starpu_data_handle_t h : to_pending) {
+            bool dup = false;
+            for (starpu_data_handle_t p : data->graph_pending_gpu_evict_handles) {
+                if (p == h) {
+                    dup = true;
+                    break;
+                }
             }
+            if (!dup)
+                data->graph_pending_gpu_evict_handles.push_back(h);
         }
-        if (!dup)
-            data->graph_pending_gpu_evict_handles.push_back(h);
+        graph_sched_sync_pending_evict_count(data);
     }
-    graph_sched_sync_pending_evict_count(data);
 }
 
 void graph_sched_drain_pending_gpu_evicts(graph_sched_data *data, unsigned gpu_mem_node)
 {
     if (!data)
+        return;
+    if (data->graph_runtime_starpu_victim)
         return;
     if (data->graph_pending_gpu_evict_pending_count.load(std::memory_order_relaxed) == 0)
         return;

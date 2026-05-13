@@ -11,14 +11,19 @@ CXXFLAGS ?= -O0 -g -pthread -fPIC -D_GNU_SOURCE -D_XOPEN_SOURCE=700
 PKG_CFLAGS := $(shell pkg-config --cflags $(PKG) 2>/dev/null) -I../include -pthread
 PKG_LIBS   := $(shell pkg-config --libs $(PKG) 2>/dev/null) -pthread
 
+PKG_LIBDIR := $(shell pkg-config --variable=libdir $(PKG) 2>/dev/null)
+STARPU_SO  := $(firstword $(wildcard $(PKG_LIBDIR)/libstarpu-1.4.so $(PKG_LIBDIR)/libstarpu.so $(PKG_LIBDIR)/libstarpu*.so))
+# StarPU ≥ ~1.5: victim selector API (nm on the shared lib; override with make STARPUSGOC_HAS_VICTIM_SELECTOR=1).
+STARPUSGOC_HAS_VICTIM_SELECTOR ?= $(shell if test -n "$(STARPU_SO)" && nm -D "$(STARPU_SO)" 2>/dev/null | grep -q ' starpu_data_register_victim_selector$$' && nm -D "$(STARPU_SO)" 2>/dev/null | grep -q ' starpu_data_get_node_data$$'; then echo 1; else echo 0; fi)
+
 ifeq ($(PKG_CFLAGS),)
 $(warning pkg-config could not find $(PKG). Ensure StarPU is installed and pkg-config path is set.)
 endif
 
-ALL_CXXFLAGS := $(CXXSTD) $(CXXFLAGS) $(PKG_CFLAGS) $(EXTRA_CFLAGS)
+ALL_CXXFLAGS := $(CXXSTD) $(CXXFLAGS) $(PKG_CFLAGS) -DSTARPUSGOC_HAS_VICTIM_SELECTOR=$(STARPUSGOC_HAS_VICTIM_SELECTOR) $(EXTRA_CFLAGS)
 
 LIB := libgraph_sgoc_sched.so
-LIB_OBJS := libgraph_sgoc_sched.o graph_sched_offload.o graph_sched_policy_lookup.o
+LIB_OBJS := libgraph_sgoc_sched.o graph_sched_offload.o graph_sched_policy_lookup.o graph_sched_sgoc_victim.o
 
 DEMO := demo_graph_sched
 DEMO_OBJS := main.o
@@ -41,6 +46,9 @@ graph_sched_offload.o: graph_sched_offload.cpp graph_sched_internal.hpp
 
 graph_sched_policy_lookup.o: graph_sched_policy_lookup.cpp graph_sched_internal.hpp
 	$(CXX) $(ALL_CXXFLAGS) -c graph_sched_policy_lookup.cpp -o $@
+
+graph_sched_sgoc_victim.o: graph_sched_sgoc_victim.cpp graph_sched_internal.hpp
+	$(CXX) $(ALL_CXXFLAGS) -c graph_sched_sgoc_victim.cpp -o $@
 
 main.o: main.cpp graph_sched.h
 	$(CXX) $(ALL_CXXFLAGS) -c main.cpp -o $@
