@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Extension API for loadable schedulers (graph_recorder policy in new_sched):
+ * Extension API for loadable schedulers (SGOC graph policy in new_sched):
  * record starpu_task_insert / starpu_data_invalidate_submit / starpu_data_wont_use
  * and replay them in order after starpu_graph_sched_graph_recording_end().
  */

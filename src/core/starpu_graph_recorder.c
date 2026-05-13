@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Dispatch layer for graph_recorder policy (see new_sched / graph_sched).
+ * Dispatch layer for graph capture used by loadable graph schedulers
+ * (graph_recorder, sgoc; see new_sched / graph_sched).
  */
 
 #include <common/config.h>
@@ -16,11 +17,15 @@ static void *recorder_arg;
 static int (*recorder_capture_task)(struct starpu_task *task, void *arg);
 static int (*recorder_capture_invalidate)(starpu_data_handle_t handle, void *arg);
 static int (*recorder_capture_wont_use)(starpu_data_handle_t handle, void *arg);
-static int policy_is_graph_recorder(void)
+
+/** Policies that register graph recorder hooks and expect try_capture_* to run during recording_depth > 0. */
+static int policy_supports_graph_capture(void)
 {
 	struct starpu_sched_policy *p = starpu_sched_get_sched_policy();
 
-	return p && p->policy_name && !strcmp(p->policy_name, "graph_recorder");
+	if (!p || !p->policy_name)
+		return 0;
+	return !strcmp(p->policy_name, "graph_recorder") || !strcmp(p->policy_name, "sgoc");
 }
 
 void _starpu_graph_recorder_register(
@@ -70,7 +75,7 @@ int _starpu_graph_recorder_try_capture_task(struct starpu_task *task)
 {
 	if (recorder_flushing)
 		return -1;
-	if (recording_depth <= 0 || !policy_is_graph_recorder() || !recorder_capture_task)
+	if (recording_depth <= 0 || !policy_supports_graph_capture() || !recorder_capture_task)
 		return -1;
 	return recorder_capture_task(task, recorder_arg);
 }
@@ -79,7 +84,7 @@ int _starpu_graph_recorder_try_capture_invalidate(starpu_data_handle_t handle)
 {
 	if (recorder_flushing)
 		return -1;
-	if (recording_depth <= 0 || !policy_is_graph_recorder() || !recorder_capture_invalidate)
+	if (recording_depth <= 0 || !policy_supports_graph_capture() || !recorder_capture_invalidate)
 		return -1;
 	return recorder_capture_invalidate(handle, recorder_arg);
 }
@@ -88,7 +93,7 @@ int _starpu_graph_recorder_try_capture_wont_use(starpu_data_handle_t handle)
 {
 	if (recorder_flushing)
 		return -1;
-	if (recording_depth <= 0 || !policy_is_graph_recorder())
+	if (recording_depth <= 0 || !policy_supports_graph_capture())
 		return -1;
 	/* graph_recorder ignores wont_use hints instead of replaying or forwarding them */
 	if (!recorder_capture_wont_use)

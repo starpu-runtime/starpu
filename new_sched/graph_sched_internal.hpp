@@ -1,4 +1,5 @@
-/* Shared types for graph_recorder policy (libgraph_sched + graph_recorder). */
+/* Shared types for the SGOC graph scheduler (libgraph_sgoc_sched.so). graph_recorder.cpp + libgraph_sched.cpp
+ * remain in-tree as a reference for batch/minibatch-oriented features and are not built by new_sched/Makefile. */
 
 #pragma once
 
@@ -6,7 +7,9 @@
 #include <chrono>
 #include <cstdint>
 #include <deque>
+#include <list>
 #include <limits>
+#include <memory>
 #include <mutex>
 #include <unordered_map>
 #include <unordered_set>
@@ -15,6 +18,11 @@
 #include <utility>
 
 #include <starpu.h>
+
+#include <cstring>
+
+#include <starpu_sched_ctx.h>
+#include <starpu_scheduler.h>
 
 constexpr size_t GRAPH_ACCESS_NONE = static_cast<size_t>(-1);
 constexpr unsigned GRAPH_ACCESS_INVALIDATE_RAW = 1u << 30;
@@ -74,6 +82,11 @@ struct GraphOp {
      * Omitted from batch-compat trace so comparison matches the application graph (explicit invalidate_submit only).
      */
     bool capture_synthetic_invalidate = false;
+    /**
+     * SGOC linked-list capture: unique id until linearized to graph_ops; pred/succ reference peer stable ids during
+     * capture, then remap to dense indices.
+     */
+    size_t capture_stable_id = 0;
 };
 
 /** Per-task capture signature for batch-repeatability checks (codelet name + buffer footprint; see graph_recorder). */
@@ -112,25 +125,56 @@ struct graph_batch0_task_hint_entry {
     std::vector<unsigned> prefix_invalidate_buffer_indices;
 };
 
-/** Bitmask for PGA vs S memory accounting (graph_sched_build_handle_role_maps). */
-enum graph_sched_handle_role : std::uint8_t {
-    GRAPH_ROLE_NONE = 0,
-    GRAPH_ROLE_P = 1 << 0,
-    GRAPH_ROLE_G = 1 << 1,
-    GRAPH_ROLE_A = 1 << 2,
-    GRAPH_ROLE_S = 1 << 3,
-};
-
-/** Cached CUDA budget offload plan for optimizer states (S). */
+/** Cached CUDA budget offload plan from batch-0 linear MM optimization; later outer batches reuse without replanning. */
 struct graph_sched_mem_offload_plan {
     bool valid = false;
-    /** Budget value used when the plan was computed (for invalidation). */
+    /** Snapshot of effective budget (bytes) when the plan was computed; informational — replay does not require equality. */
     std::int64_t budget_bytes = -1;
-    /** Snapshot metrics from the last full plan (bytes); used for logs when reusing the plan. */
+    /** Peak simulated GPU bytes from the last linear offload plan (bytes); used for logs when reusing the plan. */
     std::int64_t peak_pga_bytes = 0;
     std::int64_t sum_s_bytes = 0;
     /** Handles to cycle through CPU RAM during minibatch; stable order for replay. */
     std::vector<void *> s_offload_keys;
+    /**
+     * Parallel to batch-0 replay topo order (same length as cached topo): simulation lists and derived exec placement.
+     * Indexed by topo slot (includes INVALIDATE steps; TASK-only rows carry handle lists).
+     */
+    std::vector<std::vector<void *>> topo_offload_before_task;
+    std::vector<std::vector<void *>> topo_prefetch_before_task;
+    /** Derived: offload after this topo TASK completes (last-use-before-offload mapping). */
+    std::vector<std::vector<void *>> topo_post_exec_offload_order;
+    /** Derived: GPU prefetch at pop of this topo TASK (anchor); may be earlier than the consumer that needs the data. */
+    std::vector<std::vector<void *>> topo_pre_exec_prefetch_order;
+};
+
+/**
+ * GPU memory planning snapshot for graph_recorder: linear replay over a topo order with simulated offload-before-task
+ * marks (role-agnostic victim selection). Planning only — no StarPU moves.
+ */
+struct graph_sched_gpu_memory_manager {
+    /** Distinct persistent handles selected for offload, first-seen order during the planning pass. */
+    std::deque<void *> offload_prefetch_fifo;
+    /** Peak simulated GPU bytes along the modeled replay (invalidate / pure-W / prefetch-from-offload). */
+    std::int64_t peak_simulated_bytes = 0;
+    /** Sum of unique optimizer-state (S) handle sizes from capture (logging). */
+    std::int64_t sum_s_unique_bytes = 0;
+    std::int64_t budget_bytes = 0;
+    /** Bytes modeled before the first op (live handles + forced P/S resident). */
+    std::int64_t initial_resident_bytes = 0;
+    /** Peak bytes after applying offload marks in simulation (same as peak_simulated when hints fit). */
+    std::int64_t peak_after_plan_bytes = 0;
+    /** Total offload-hint insertions (same handle may be counted more than once if re-offloaded later). */
+    unsigned offload_mark_events = 0;
+    /** Distinct handles that received at least one offload mark. */
+    unsigned marked_offload_unique = 0;
+    /** Parallel to replay topo_order index: simulated offload-before-task marks (planning pass order per slot). */
+    std::vector<std::vector<void *>> topo_offload_before_task;
+    /** Parallel to topo index: simulated prefetch-before-task (from offload state). */
+    std::vector<std::vector<void *>> topo_prefetch_before_task;
+    /** Parallel to topo index: handles to offload in post_exec of this TASK (reverse walk + wrap passes). */
+    std::vector<std::vector<void *>> topo_post_exec_offload_order;
+    /** Parallel to topo index: handles to prefetch at pop of this TASK (earliest slot with simulated budget headroom). */
+    std::vector<std::vector<void *>> topo_pre_exec_prefetch_order;
 };
 
 /** Handles classified from a finished graph capture (see graph_sched_parse_captured_data_handles). */
@@ -168,7 +212,7 @@ struct graph_sched_data {
      */
     std::mutex graph_offload_mutex;
     std::deque<struct starpu_task *> ready_queue;
-    const char *policy_log_name = "graph_recorder";
+    const char *policy_log_name = "sgoc";
 
     /** Operations in capture order; synthetic ops may be inserted and indexed here too. */
     std::vector<GraphOp> graph_ops;
@@ -239,6 +283,9 @@ struct graph_sched_data {
 
     /** Last successful automatic S offload plan (compatible batch reuses). */
     graph_sched_mem_offload_plan graph_mem_offload_plan;
+
+    /** Latest linear topo offload-plan snapshot (see graph_sched_gpu_mm_plan_linear_topo_offloads). */
+    graph_sched_gpu_memory_manager graph_gpu_mm;
 
     /**
      * GPU replicas waiting for eviction after async RAM prefetch (see graph_sched_run_post_exec_offloads /
@@ -323,6 +370,43 @@ struct graph_sched_data {
     /** Last outer sched_ctx iteration (slot 0) seen in incremental push; used to reset per-batch cursors. */
     long graph_push_last_outer_iteration = -1;
 
+    /**
+     * SGOC (graph_sgoc): flush-time hints and runtime prefetch bookkeeping. Null when policy is not sgoc.
+     */
+    struct graph_sgoc_runtime {
+        /** Per-task prefetch list from MM plan; issued at that task's pop_task after evict drain (anchor may precede consumer). */
+        std::unordered_map<struct starpu_task *, std::vector<starpu_data_handle_t>> pre_exec_prefetch;
+        /** Optional extra prefetches deferred to post_exec when pre_exec lacked GPU budget. */
+        std::unordered_map<struct starpu_task *, std::vector<starpu_data_handle_t>> post_exec_prefetch;
+        /** RAM offload then GPU evict queue registration targets (post_exec of prior task). */
+        std::unordered_map<struct starpu_task *, std::vector<starpu_data_handle_t>> post_exec_offload_order;
+        std::deque<starpu_data_handle_t> deferred_prefetch;
+        /** Optimistic model: handles we prefetched and treat as GPU-resident until evict drains. */
+        std::unordered_set<void *> tracked_gpu_resident;
+        std::int64_t tracked_gpu_bytes = 0;
+        int mm_execute = 0;
+        unsigned gpu_mem_node = 0;
+        std::int64_t mem_budget_bytes = 0;
+        /** After flush-time quiescence: handles valid on pinned GPU (starpu_data_query_status2 v bit). */
+        std::unordered_set<void *> flush_starpu_gpu_resident;
+        /** Same snapshot pass: handle valid on main RAM but not on the pinned GPU node (initialized, not GPU-resident). */
+        std::unordered_set<void *> flush_starpu_ram_valid_not_gpu;
+
+        /** Capture order (SGOC); synthetic invalidates inserted in O(1). Linearized to graph_ops at recording end. */
+        std::list<GraphOp> capture_ops;
+        std::unordered_map<size_t, std::list<GraphOp>::iterator> capture_id_to_iter;
+        size_t capture_next_stable_id = 1;
+
+        /** Non-zero when STARPU_GRAPH_SCHED_SGOC_MEM_DEBUG is set (flush-scoped). */
+        int mem_debug = 0;
+        std::atomic<std::uint64_t> dbg_offload_ram_issue{0};
+        std::atomic<std::uint64_t> dbg_offload_ram_bytes{0};
+        std::atomic<std::uint64_t> dbg_gpu_prefetch_issue{0};
+        std::atomic<std::uint64_t> dbg_gpu_prefetch_bytes{0};
+        std::atomic<std::uint64_t> dbg_evict_ok{0};
+    };
+    std::unique_ptr<graph_sgoc_runtime> graph_sgoc;
+
     /** push_task: tasks that matched batch-0 template and used incremental path (pin + enqueue). */
     std::atomic<std::uint64_t> graph_stat_push_incremental{0};
     /** push_task: tasks queued on the standard path (includes outer iter 0, incremental disabled, or no template match). */
@@ -351,6 +435,41 @@ struct graph_sched_replay_accounting_scope {
             d->graph_replay_accounting_depth.fetch_sub(1, std::memory_order_relaxed);
     }
 };
+
+/** Policy data for sched_ctx when the active policy is sgoc (shared recording API). */
+graph_sched_data *graph_sched_graph_policy_data(unsigned sched_ctx_id);
+
+/** graph_recorder.cpp (reference) — outermost capture flush with batch/minibatch template and checkpoints. */
+void graph_sched_recorder_release_outermost_capture(graph_sched_data *data, std::vector<GraphOp> replay,
+                                                    std::vector<GraphHandleAccess> replay_ha,
+                                                    graph_sched_captured_handle_groups &parsed, bool has_batch,
+                                                    std::uint32_t batch_val, int vb, unsigned sched_ctx_id);
+
+void graph_sched_recorder_register(graph_sched_data *data);
+void graph_sched_recorder_deinit(graph_sched_data *data, unsigned sched_ctx_id);
+
+namespace graph_sgoc_bundle {
+/** Non-zero if STARPU_GRAPH_SCHED_SGOC_MEM_DEBUG enables MM offload/prefetch advance logging. */
+int graph_sched_sgoc_mem_debug_env(void);
+/** Log planned topo-slot advance for prefetches/offloads (requires populated \p mm lists). */
+void graph_sched_sgoc_log_mm_plan_advance_debug(const std::vector<GraphOp> &ops, const std::vector<size_t> &topo_order,
+                                                const graph_sched_gpu_memory_manager &mm);
+} /* namespace graph_sgoc_bundle */
+
+void graph_sched_sgoc_pre_exec_hook(graph_sched_data *data, struct starpu_task *task);
+void graph_sched_sgoc_post_exec_hook(graph_sched_data *data, struct starpu_task *task, unsigned gpu_mem_node);
+void graph_sched_sgoc_pop_prefetch_hook(graph_sched_data *data, struct starpu_task *task);
+
+/** graph_sgoc.cpp — SGOC flush (greedy memory topo, GPU MM, synthetic invalidates). */
+void graph_sched_sgoc_release_outermost_capture(graph_sched_data *data, std::vector<GraphOp> replay,
+                                                std::vector<GraphHandleAccess> replay_ha,
+                                                graph_sched_captured_handle_groups &parsed, bool has_batch,
+                                                std::uint32_t batch_val, int vb, unsigned sched_ctx_id);
+
+void graph_sched_sgoc_clear_runtime(graph_sched_data *data);
+void graph_sched_sgoc_register(graph_sched_data *data);
+void graph_sched_sgoc_deinit(graph_sched_data *data, unsigned sched_ctx_id);
+void graph_sched_account_outermost_capture_end(graph_sched_data *data);
 
 /** Policy init: resolve STARPU_GRAPH_SCHED_WORKER into graph_pinned_worker_id and log target. */
 void graph_sched_init_pinned_worker(graph_sched_data *data);

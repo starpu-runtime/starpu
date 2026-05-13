@@ -1,8 +1,12 @@
-/* Graph recording for graph_recorder policy: queues task_insert / invalidate_submit
- * while a session is open, then replays via StarPU impl symbols (see starpu_graph_recorder.h).
+/* Graph recording — historical graph_recorder policy (reference only; not built by new_sched/Makefile).
+ * Queues task_insert / invalidate_submit while a session is open, then replays via StarPU impl symbols
+ * (see starpu_graph_recorder.h). The shipped SGOC scheduler uses graph_sgoc_bundle.inc for core graph algorithms;
+ * starpu_graph_sched_graph_recording_* and graph_sched_sgoc_deinit are implemented in graph_sgoc.cpp.
+ *
  * Linear flush (default debug_simple): greedy memory topological submit order; capture order stays for batch-compat /
  * batch-0 template. STARPU_GRAPH_SCHED_LINEAR_REPLAY_GREEDY=0 forces capture-order submit.
- * Set STARPU_GRAPH_SCHED_DEBUG_SIMPLE=0 for incremental push_task + full batch-0 hint extraction. Built as part of libgraph_sched.cpp. */
+ * Set STARPU_GRAPH_SCHED_DEBUG_SIMPLE=0 for incremental push_task + full batch-0 hint extraction when compiling
+ * this file together with graph_sgoc.cpp (e.g. ad-hoc reference build). */
 
 #include "graph_sched_internal.hpp"
 
@@ -1007,43 +1011,43 @@ static void graph_sched_append_minibatch_task_list_diag(std::string &s, const ch
 
 /**
  * Sched_ctx convention: minibatch k uses graph subiterations 2k+1 (forward) and 2k+2 (backward).
- * Within one capture, each non-empty minibatch must match the \e previous minibatch in structure (codelet + footprint),
- * analogous to batch-level “prev flush”: pair (3,4) vs (1,2), then (5,6) vs (3,4), etc. The first minibatch can differ
- * from nothing prior; later minibatches only need to repeat the immediately preceding pair.
+ * Minibatch 0 is forward=subiter 1, backward=subiter 2.
  *
- * @return true if WRR checkpointing may use parsed activations, or if there is no (1/2) template to contradict.
- *         false → caller must pass nullptr for checkpoint keys.
+ * Invoked only for outer-batch-0 captures (first macro-batch template). For each later minibatch m≥1 in the same
+ * capture, compares TASK structure (codelet name + per-buffer footprint) to minibatch 0: forward phase separately,
+ * backward phase separately.
+ *
+ * @return true if every non-empty later minibatch matches minibatch 0 on both phases, or there is no minibatch-0 TASK
+ *         template to contradict.
  */
-static bool graph_sched_minibatch_template_allows_checkpointing(const std::vector<GraphOp> &ops, int verbose)
+static bool graph_sched_minibatch0_compat_check(const std::vector<GraphOp> &ops, int verbose)
 {
-    std::vector<size_t> ref_fwd, ref_bwd, cur_fwd, cur_bwd;
-    graph_sched_collect_op_indices_for_subiteration(ops, 1u, ref_fwd);
-    graph_sched_collect_op_indices_for_subiteration(ops, 2u, ref_bwd);
+    std::vector<size_t> mb0_fwd, mb0_bwd;
+    graph_sched_collect_op_indices_for_subiteration(ops, 1u, mb0_fwd);
+    graph_sched_collect_op_indices_for_subiteration(ops, 2u, mb0_bwd);
 
-    if (ref_fwd.empty() && ref_bwd.empty()) {
+    if (mb0_fwd.empty() && mb0_bwd.empty()) {
         if (verbose >= 2)
-            std::cerr << "graph_recorder: minibatch_compat: iteration_repeat_skipped=1 reason=no_subiter_1_2_task_ops"
+            std::cerr << "graph_recorder: minibatch_compat: outer_batch_is_batch0=1 iteration_repeat_skipped=1 "
+                         "reason=no_subiter_1_2_task_ops"
                       << std::endl;
         if (verbose >= 3)
-            std::cerr << "graph_recorder: minibatch_compat: first_minibatch (graph_subiter 1/2) has no task ops; skip template "
-                         "check (checkpointing unchanged)"
+            std::cerr << "graph_recorder: minibatch_compat: outer_batch_is_batch0=1 minibatch0 (graph_subiter 1/2) has no "
+                         "task ops; skip vs-minibatch0 check"
                       << std::endl;
         return true;
     }
 
-    bool all_compatible = true;
+    bool all_fwd_ok = true;
+    bool all_bwd_ok = true;
     unsigned minibatch_steps_compared = 0;
     const std::uint32_t max_sub = graph_sched_max_graph_subiteration_non_optimizer(ops);
-    /* Avoid pathological loops if iteration values are huge; 4096 covers 2047 extra minibatches. */
     const std::uint32_t hi = std::min<std::uint32_t>(max_sub, 8192u);
 
     for (unsigned m = 1u; 2u * m + 2u <= hi; ++m) {
-        const std::uint32_t rfs = 2u * (m - 1u) + 1u;
-        const std::uint32_t rbs = 2u * (m - 1u) + 2u;
         const std::uint32_t fs = 2u * m + 1u;
         const std::uint32_t bs = 2u * m + 2u;
-        graph_sched_collect_op_indices_for_subiteration(ops, rfs, ref_fwd);
-        graph_sched_collect_op_indices_for_subiteration(ops, rbs, ref_bwd);
+        std::vector<size_t> cur_fwd, cur_bwd;
         graph_sched_collect_op_indices_for_subiteration(ops, fs, cur_fwd);
         graph_sched_collect_op_indices_for_subiteration(ops, bs, cur_bwd);
         if (cur_fwd.empty() && cur_bwd.empty())
@@ -1051,59 +1055,81 @@ static bool graph_sched_minibatch_template_allows_checkpointing(const std::vecto
 
         minibatch_steps_compared++;
 
-        bool ok = true;
-        std::string detail;
-        if (cur_fwd.size() != ref_fwd.size()) {
-            ok = false;
-            detail = "forward_task_count prev=" + std::to_string(ref_fwd.size()) + " cur=" + std::to_string(cur_fwd.size());
-            graph_sched_append_minibatch_task_list_diag(detail, " prev_fwd", ops, ref_fwd);
-            graph_sched_append_minibatch_task_list_diag(detail, " cur_fwd", ops, cur_fwd);
-        } else if (cur_bwd.size() != ref_bwd.size()) {
-            ok = false;
-            detail = "backward_task_count prev=" + std::to_string(ref_bwd.size()) + " cur=" + std::to_string(cur_bwd.size());
-            graph_sched_append_minibatch_task_list_diag(detail, " prev_bwd", ops, ref_bwd);
-            graph_sched_append_minibatch_task_list_diag(detail, " cur_bwd", ops, cur_bwd);
+        bool fwd_ok = true;
+        std::string fwd_detail;
+        if (mb0_fwd.size() != cur_fwd.size()) {
+            fwd_ok = false;
+            fwd_detail = "forward_task_count_mb0=" + std::to_string(mb0_fwd.size()) + " cur=" + std::to_string(cur_fwd.size());
+            graph_sched_append_minibatch_task_list_diag(fwd_detail, " mb0_fwd", ops, mb0_fwd);
+            graph_sched_append_minibatch_task_list_diag(fwd_detail, " cur_fwd", ops, cur_fwd);
         } else {
             const char *tag = nullptr;
             unsigned bi = 0;
             for (size_t i = 0; i < cur_fwd.size(); ++i) {
-                if (!graph_sched_tasks_minibatch_compatible(ops[ref_fwd[i]].task, ops[cur_fwd[i]].task, &tag, &bi)) {
-                    ok = false;
-                    detail = graph_sched_minibatch_task_pair_mismatch_detail("forward", i, ops[ref_fwd[i]].task,
-                                                                           ops[cur_fwd[i]].task, tag, bi);
-                    break;
-                }
-            }
-            for (size_t i = 0; i < cur_bwd.size() && ok; ++i) {
-                if (!graph_sched_tasks_minibatch_compatible(ops[ref_bwd[i]].task, ops[cur_bwd[i]].task, &tag, &bi)) {
-                    ok = false;
-                    detail = graph_sched_minibatch_task_pair_mismatch_detail("backward", i, ops[ref_bwd[i]].task,
-                                                                           ops[cur_bwd[i]].task, tag, bi);
+                if (!graph_sched_tasks_minibatch_compatible(ops[mb0_fwd[i]].task, ops[cur_fwd[i]].task, &tag, &bi)) {
+                    fwd_ok = false;
+                    fwd_detail = graph_sched_minibatch_task_pair_mismatch_detail("forward", i, ops[mb0_fwd[i]].task,
+                                                                               ops[cur_fwd[i]].task, tag, bi);
                     break;
                 }
             }
         }
 
-        if (!ok)
-            all_compatible = false;
+        bool bwd_ok = true;
+        std::string bwd_detail;
+        if (mb0_bwd.size() != cur_bwd.size()) {
+            bwd_ok = false;
+            bwd_detail =
+                "backward_task_count_mb0=" + std::to_string(mb0_bwd.size()) + " cur=" + std::to_string(cur_bwd.size());
+            graph_sched_append_minibatch_task_list_diag(bwd_detail, " mb0_bwd", ops, mb0_bwd);
+            graph_sched_append_minibatch_task_list_diag(bwd_detail, " cur_bwd", ops, cur_bwd);
+        } else {
+            const char *tag = nullptr;
+            unsigned bi = 0;
+            for (size_t i = 0; i < cur_bwd.size(); ++i) {
+                if (!graph_sched_tasks_minibatch_compatible(ops[mb0_bwd[i]].task, ops[cur_bwd[i]].task, &tag, &bi)) {
+                    bwd_ok = false;
+                    bwd_detail = graph_sched_minibatch_task_pair_mismatch_detail("backward", i, ops[mb0_bwd[i]].task,
+                                                                               ops[cur_bwd[i]].task, tag, bi);
+                    break;
+                }
+            }
+        }
+
+        if (!fwd_ok)
+            all_fwd_ok = false;
+        if (!bwd_ok)
+            all_bwd_ok = false;
 
         if (verbose >= 3) {
-            std::cerr << "graph_recorder: minibatch_compat: minibatch_index=" << m << " ref_graph_subiter_fwd=" << rfs
-                      << " ref_graph_subiter_bwd=" << rbs << " cur_graph_subiter_fwd=" << fs << " cur_graph_subiter_bwd=" << bs
-                      << " compatible_with_previous_minibatch=" << (ok ? 1 : 0);
-            if (!ok && !detail.empty())
-                std::cerr << " (" << detail << ")";
+            std::cerr << "graph_recorder: minibatch_compat: outer_batch_is_batch0=1 minibatch_index=" << m
+                      << " vs_minibatch0 graph_subiter_fwd=" << fs << "(cf_mb0_subiter_1)"
+                      << " forward_matches_mb0=" << (fwd_ok ? 1 : 0);
+            if (!fwd_ok && !fwd_detail.empty())
+                std::cerr << " (" << fwd_detail << ")";
+            std::cerr << std::endl;
+            std::cerr << "graph_recorder: minibatch_compat: outer_batch_is_batch0=1 minibatch_index=" << m
+                      << " vs_minibatch0 graph_subiter_bwd=" << bs << "(cf_mb0_subiter_2)"
+                      << " backward_matches_mb0=" << (bwd_ok ? 1 : 0);
+            if (!bwd_ok && !bwd_detail.empty())
+                std::cerr << " (" << bwd_detail << ")";
             std::cerr << std::endl;
         }
     }
 
-    if (verbose >= 2)
-        std::cerr << "graph_recorder: minibatch_compat: iteration_repeat_chain_ok=" << (all_compatible ? 1 : 0)
+    const bool all_compatible = all_fwd_ok && all_bwd_ok;
+    if (verbose >= 2) {
+        std::cerr << "graph_recorder: minibatch_compat: outer_batch_is_batch0=1 anchor=minibatch0(subiter_1_2)"
+                  << " all_later_minibatches_match_mb0_forward=" << (all_fwd_ok ? 1 : 0)
+                  << " all_later_minibatches_match_mb0_backward=" << (all_bwd_ok ? 1 : 0)
+                  << " all_match_mb0_fwd_and_bwd=" << (all_compatible ? 1 : 0)
                   << " minibatch_steps_compared=" << minibatch_steps_compared << std::endl;
+    }
 
     if (!all_compatible && verbose >= 1)
-        std::cerr << "graph_recorder: checkpointing disabled: at least one fwd/bwd minibatch does not match the previous "
-                     "minibatch in this capture (STARPU_GRAPH_SCHED_VERBOSE>=3 for per-step lines)"
+        std::cerr << "graph_recorder: checkpointing disabled: outer_batch_is_batch0=1 — at least one later minibatch "
+                     "differs from minibatch0 on forward (subiter 1) or backward (subiter 2) TASK structure "
+                     "(STARPU_GRAPH_SCHED_VERBOSE>=3 for per-minibatch lines)"
                   << std::endl;
     return all_compatible;
 }
@@ -3094,32 +3120,6 @@ static void graph_sched_run_replay_greedy_topo_with_minibatch_template(
         policy_data->graph_minibatch_pair_task_toporder_pattern_valid = false;
 }
 
-static void graph_sched_build_handle_role_maps(const graph_sched_captured_handle_groups &g,
-                                               std::unordered_map<void *, std::uint8_t> &roles_out)
-{
-    roles_out.clear();
-    auto bump = [&](starpu_data_handle_t h, std::uint8_t bit) {
-        if (!h)
-            return;
-        roles_out[static_cast<void *>(h)] |= bit;
-    };
-    for (starpu_data_handle_t h : g.parameters)
-        bump(h, GRAPH_ROLE_P);
-    for (starpu_data_handle_t h : g.gradients)
-        bump(h, GRAPH_ROLE_G);
-    for (starpu_data_handle_t h : g.activations)
-        bump(h, GRAPH_ROLE_A);
-    for (starpu_data_handle_t h : g.offloadable_activations)
-        bump(h, GRAPH_ROLE_A);
-    for (starpu_data_handle_t h : g.states)
-        bump(h, GRAPH_ROLE_S);
-}
-
-static bool graph_sched_role_has_pga(std::uint8_t r)
-{
-    return (r & (GRAPH_ROLE_P | GRAPH_ROLE_G | GRAPH_ROLE_A)) != 0;
-}
-
 static std::int64_t graph_sched_sum_unique_handle_bytes(const std::vector<starpu_data_handle_t> &handles)
 {
     std::unordered_set<void *> seen;
@@ -3135,7 +3135,7 @@ static std::int64_t graph_sched_sum_unique_handle_bytes(const std::vector<starpu
     return sum;
 }
 
-/** Default 1: enable automatic S offload planning when peak_PGA + sum(S) exceeds budget. */
+/** Default 1: enable automatic offload-before-task planning (linear topo simulation vs GPU budget). */
 static int graph_sched_mem_offload_auto_env(void)
 {
     const char *e = getenv("STARPU_GRAPH_SCHED_MEM_OFFLOAD_AUTO");
@@ -3167,118 +3167,501 @@ static std::int64_t graph_sched_force_mem_budget_bytes_env(void)
     return static_cast<std::int64_t>(v);
 }
 
-static void graph_sched_compute_peak_pga_first_minibatch(
-    const std::vector<GraphOp> &ops, const std::vector<GraphHandleAccess> &ha, const std::vector<size_t> &topo_order,
-    const std::unordered_map<void *, std::uint8_t> &roles, std::int64_t *peak_pga_out)
+/**
+ * Default 0: when 1, replay may emit StarPU prefetch/offload actions driven by stored GPU MM planning
+ * (planning itself runs only on outer batch-0; later batches reuse the saved plan).
+ */
+static int graph_sched_mm_execute_hints_env(void)
 {
-    *peak_pga_out = 0;
-    constexpr std::uint32_t k_fwd = 1u;
-    constexpr std::uint32_t k_bwd = 2u;
+    const char *e = getenv("STARPU_GRAPH_SCHED_MM_EXECUTE_HINTS");
+    if (!e || !e[0])
+        return 0;
+    return atoi(e) != 0;
+}
 
-    std::vector<starpu_data_handle_t> unique_handles;
-    graph_sched_collect_unique_handles(ha, unique_handles);
-    std::unordered_set<void *> resident;
-    resident.reserve(unique_handles.size() + 8);
+/** Same outer-batch-0 predicate as \c graph_sched_release_outermost_capture \c batch0_like. */
+static bool graph_sched_outer_batch0_capture(bool has_batch, std::uint32_t batch_val)
+{
+    return !has_batch || batch_val == 0u;
+}
 
-    for (starpu_data_handle_t h : unique_handles) {
-        if (!h || !graph_sched_handle_live_before_graph(ha, h))
-            continue;
-        void *p = static_cast<void *>(h);
-        if (!resident.insert(p).second)
-            continue;
+/** Infer outer batch 0 from tagged ops when \p has_batch / \p batch_val are unavailable (e.g. checkpoint replay path). */
+static bool graph_sched_outer_batch0_from_ops(const std::vector<GraphOp> &ops)
+{
+    for (const GraphOp &op : ops) {
+        if (op.graph_stage_batch_iteration_valid)
+            return op.graph_stage_batch_iteration == 0u;
     }
-
-    std::int64_t peak_pga = 0;
-    for (size_t tix = 0; tix < topo_order.size(); ++tix) {
-        const size_t opi = topo_order[tix];
-        if (opi >= ops.size())
-            continue;
-        const GraphOp &op = ops[opi];
-        const std::int64_t d = graph_sched_op_memory_delta_for_resident(op, resident);
-        (void)d;
-        graph_sched_op_apply_memory_effect_to_resident(op, resident);
-
-        if (op.kind != GraphOp::TASK || !op.graph_stage_subiteration_valid)
-            continue;
-        const std::uint32_t sub = op.graph_stage_subiteration;
-        if (sub != k_fwd && sub != k_bwd)
-            continue;
-
-        std::int64_t pga = 0;
-        for (void *p : resident) {
-            const auto it = roles.find(p);
-            if (it == roles.end())
-                continue;
-            if (!graph_sched_role_has_pga(it->second))
-                continue;
-            pga += static_cast<std::int64_t>(starpu_data_get_size(static_cast<starpu_data_handle_t>(p)));
-        }
-        if (pga > peak_pga)
-            peak_pga = pga;
-    }
-    *peak_pga_out = peak_pga;
+    return true;
 }
 
 /**
- * Greedy: offload S in order of increasing last topo index in first minibatch (subiter 1/2); never-seen S first.
- * Returns unique handles to offload to CPU during minibatch.
+ * Projected GPU footprint immediately before executing \p op (TASK): same rules as graph_sched_op_memory_delta /
+ * graph_sched_op_apply_memory_effect — no handle classification by P/G/A/S.
  */
-static void graph_sched_select_s_offload_lru(const std::vector<GraphOp> &ops, const std::vector<size_t> &topo_order,
-                                           const graph_sched_captured_handle_groups &groups,
-                                           std::int64_t peak_pga, std::int64_t sum_s_bytes, std::int64_t budget_bytes,
-                                           std::vector<void *> &s_offload_keys_out)
+static std::int64_t graph_sched_gpu_mm_projected_bytes_before_task(std::int64_t base_bytes,
+                                                                   const std::unordered_set<void *> &resident,
+                                                                   const std::unordered_set<void *> &offloaded,
+                                                                   const GraphOp &op)
 {
-    s_offload_keys_out.clear();
-    if (budget_bytes <= 0 || groups.states.empty())
-        return;
-
-    std::unordered_set<void *> s_keys;
-    s_keys.reserve(groups.states.size() * 2 + 8);
-    for (starpu_data_handle_t h : groups.states) {
-        if (h)
-            s_keys.insert(static_cast<void *>(h));
+    if (op.kind != GraphOp::TASK)
+        return base_bytes;
+    std::int64_t proj = base_bytes;
+    std::unordered_set<void *> bump_once;
+    bump_once.reserve(op.handle_accesses.size() * 2 + 8u);
+    for (const GraphOpHandleAccessRef &ref : op.handle_accesses) {
+        if (!ref.handle || graph_access_mode_is_invalidate(ref.mode))
+            continue;
+        void *p = static_cast<void *>(ref.handle);
+        if (!bump_once.insert(p).second)
+            continue;
+        if (offloaded.count(p) != 0) {
+            proj += static_cast<std::int64_t>(starpu_data_get_size(ref.handle));
+            continue;
+        }
+        if (resident.count(p) != 0)
+            continue;
+        proj += static_cast<std::int64_t>(starpu_data_get_size(ref.handle));
     }
+    return proj;
+}
 
-    std::unordered_map<void *, size_t> last_seen;
+static void graph_sched_gpu_mm_build_task_topo_appearances(const std::vector<GraphOp> &ops,
+                                                           const std::vector<size_t> &topo_order,
+                                                           std::unordered_map<void *, std::vector<size_t>> &out)
+{
+    out.clear();
     for (size_t ti = 0; ti < topo_order.size(); ++ti) {
-        const GraphOp &op = ops[topo_order[ti]];
-        if (op.kind != GraphOp::TASK || !op.graph_stage_subiteration_valid)
+        const size_t opi = topo_order[ti];
+        if (opi >= ops.size())
             continue;
-        const std::uint32_t sub = op.graph_stage_subiteration;
-        if (sub != 1u && sub != 2u)
+        const GraphOp &op = ops[opi];
+        if (op.kind != GraphOp::TASK)
             continue;
+        std::unordered_set<void *> seen;
+        seen.reserve(op.handle_accesses.size() + 4u);
         for (const GraphOpHandleAccessRef &ref : op.handle_accesses) {
             if (!ref.handle || graph_access_mode_is_invalidate(ref.mode))
                 continue;
-            void *k = static_cast<void *>(ref.handle);
-            if (!s_keys.count(k))
+            void *p = static_cast<void *>(ref.handle);
+            if (!seen.insert(p).second)
                 continue;
-            last_seen[k] = ti;
+            out[p].push_back(ti);
+        }
+    }
+}
+
+/**
+ * Earliest topo index at which this handle is needed **after** \p ti (Belady-style distance).
+ * If there is no further appearance in the current batch pass, the next need is the first appearance in a
+ * virtually repeated batch: \p num_topo_tasks + v.front(). Handles that never appear in any TASK have no bound
+ * on next need here — return UINT64_MAX so they rank as furthest (best offload victims).
+ */
+static std::uint64_t graph_sched_gpu_mm_next_need_topo_index(const std::vector<size_t> &v, size_t ti,
+                                                             size_t num_topo_tasks)
+{
+    const auto ub = std::upper_bound(v.begin(), v.end(), ti);
+    if (ub != v.end())
+        return static_cast<std::uint64_t>(*ub);
+    if (!v.empty())
+        return static_cast<std::uint64_t>(num_topo_tasks) + static_cast<std::uint64_t>(v.front());
+    return std::numeric_limits<std::uint64_t>::max();
+}
+
+/**
+ * From simulated \p offload_before_topo (offload-before-task at each topo slot), derive ordered post_exec offload
+ * lists: each handle is scheduled after the TASK where it is last used before the offload point (reverse topo walk;
+ * optional wrap passes without ingesting new offload marks until \p pending clears).
+ */
+static void graph_sched_gpu_mm_derive_post_exec_offload_order(const std::vector<GraphOp> &ops,
+                                                              const std::vector<size_t> &topo_order,
+                                                              const std::vector<std::vector<void *>> &offload_before_topo,
+                                                              std::vector<std::vector<void *>> &post_exec_out)
+{
+    const size_t T = topo_order.size();
+    post_exec_out.assign(T, {});
+    std::unordered_set<void *> pending;
+    pending.reserve(64u);
+
+    auto match_task = [&](size_t ti) {
+        const size_t opi = topo_order[ti];
+        if (opi >= ops.size())
+            return;
+        const GraphOp &op = ops[opi];
+        if (op.kind != GraphOp::TASK)
+            return;
+        std::unordered_set<void *> seen;
+        seen.reserve(op.handle_accesses.size() + 4u);
+        for (const GraphOpHandleAccessRef &ref : op.handle_accesses) {
+            if (!ref.handle || graph_access_mode_is_invalidate(ref.mode))
+                continue;
+            void *p = static_cast<void *>(ref.handle);
+            if (!seen.insert(p).second)
+                continue;
+            if (pending.erase(p))
+                post_exec_out[ti].push_back(p);
+        }
+    };
+
+    auto reverse_pass = [&](bool add_offload_marks) {
+        for (ssize_t sti = static_cast<ssize_t>(T) - 1; sti >= 0; --sti) {
+            const size_t ti = static_cast<size_t>(sti);
+            const size_t opi = topo_order[ti];
+            if (opi >= ops.size())
+                continue;
+            const GraphOp &op = ops[opi];
+            if (add_offload_marks && op.kind == GraphOp::TASK && ti < offload_before_topo.size()) {
+                for (void *h : offload_before_topo[ti]) {
+                    if (h)
+                        pending.insert(h);
+                }
+            }
+            match_task(ti);
+        }
+    };
+
+    reverse_pass(true);
+    while (!pending.empty()) {
+        const size_t before = pending.size();
+        reverse_pass(false);
+        if (pending.size() == before)
+            break;
+    }
+}
+
+/**
+ * After greedy (or capture) topo order is fixed, simulate linear replay; invalidate / pure-W footprint matches
+ * graph_sched_op_memory_*. Offload victim selection is role-agnostic (any GPU-resident buffer). Planning only.
+ * Victim = furthest next need (Belady); need times extend into a virtual copy of the batch when there is no use
+ * left in the current pass; ties break by last appearance index in one batch (used last in the next virtual batch).
+ */
+static void graph_sched_gpu_mm_plan_linear_topo_offloads(const std::vector<GraphOp> &ops,
+                                                         const std::vector<GraphHandleAccess> &handle_accesses,
+                                                         const std::vector<size_t> &topo_order,
+                                                         const graph_sched_captured_handle_groups &groups,
+                                                         std::int64_t budget_bytes,
+                                                         graph_sched_gpu_memory_manager &mm,
+                                                         std::vector<void *> &unique_offload_handles_out, int verbose)
+{
+    mm.offload_prefetch_fifo.clear();
+    unique_offload_handles_out.clear();
+    mm.budget_bytes = budget_bytes;
+    mm.sum_s_unique_bytes = graph_sched_sum_unique_handle_bytes(groups.states);
+    mm.offload_mark_events = 0;
+    mm.marked_offload_unique = 0;
+    mm.peak_simulated_bytes = 0;
+    mm.initial_resident_bytes = 0;
+    mm.peak_after_plan_bytes = 0;
+    mm.topo_offload_before_task.clear();
+    mm.topo_prefetch_before_task.clear();
+    mm.topo_post_exec_offload_order.clear();
+    mm.topo_pre_exec_prefetch_order.clear();
+
+    if (budget_bytes <= 0 || topo_order.empty()) {
+        if (verbose >= 1 && budget_bytes <= 0)
+            std::cerr << "graph_recorder: gpu_memory_manager: budget_bytes<=0; skip linear offload planning"
+                      << std::endl;
+        return;
+    }
+
+    std::unordered_set<void *> resident;
+    std::unordered_set<void *> offloaded;
+    std::int64_t current_bytes = 0;
+
+    auto resident_insert = [&](starpu_data_handle_t h) {
+        if (!h)
+            return;
+        void *p = static_cast<void *>(h);
+        if (!resident.insert(p).second)
+            return;
+        current_bytes += static_cast<std::int64_t>(starpu_data_get_size(h));
+    };
+
+    std::vector<starpu_data_handle_t> unique_handles;
+    graph_sched_collect_unique_handles(handle_accesses, unique_handles);
+    for (starpu_data_handle_t h : unique_handles) {
+        if (!h || !graph_sched_handle_live_before_graph(handle_accesses, h))
+            continue;
+        resident_insert(h);
+    }
+    for (starpu_data_handle_t h : groups.parameters)
+        resident_insert(h);
+    for (starpu_data_handle_t h : groups.states)
+        resident_insert(h);
+
+    mm.initial_resident_bytes = current_bytes;
+
+    std::unordered_map<void *, std::vector<size_t>> appearances;
+    graph_sched_gpu_mm_build_task_topo_appearances(ops, topo_order, appearances);
+    static const std::vector<size_t> empty_topo_app;
+
+    const size_t topo_slots = topo_order.size();
+    std::vector<std::vector<void *>> offload_before_topo(topo_slots);
+    std::vector<std::vector<void *>> prefetch_before_topo(topo_slots);
+
+    std::unordered_set<void *> forbidden;
+    std::vector<void *> fifo_unique;
+    std::unordered_set<void *> fifo_seen;
+
+    std::int64_t peak_track = current_bytes;
+
+    auto note_peak = [&]() {
+        if (current_bytes > peak_track)
+            peak_track = current_bytes;
+    };
+
+    note_peak();
+
+    for (size_t ti = 0; ti < topo_order.size(); ++ti) {
+        const size_t opi = topo_order[ti];
+        if (opi >= ops.size())
+            continue;
+        const GraphOp &op = ops[opi];
+
+        if (op.kind == GraphOp::INVALIDATE) {
+            starpu_data_handle_t ih = op.handle;
+            if (ih) {
+                void *p = static_cast<void *>(ih);
+                if (resident.erase(p))
+                    current_bytes -= static_cast<std::int64_t>(starpu_data_get_size(ih));
+                offloaded.erase(p);
+            }
+            note_peak();
+            continue;
+        }
+
+        if (op.kind != GraphOp::TASK)
+            continue;
+
+        forbidden.clear();
+        forbidden.reserve(op.handle_accesses.size() + 4u);
+        for (const GraphOpHandleAccessRef &ref : op.handle_accesses) {
+            if (!ref.handle || graph_access_mode_is_invalidate(ref.mode))
+                continue;
+            forbidden.insert(static_cast<void *>(ref.handle));
+        }
+
+        while (true) {
+            const std::int64_t proj =
+                graph_sched_gpu_mm_projected_bytes_before_task(current_bytes, resident, offloaded, op);
+            if (proj <= budget_bytes)
+                break;
+
+            void *best_k = nullptr;
+            std::uint64_t best_need = 0;
+            size_t best_last_in_batch = 0;
+            bool has_best = false;
+            const size_t num_topo_tasks = topo_order.size();
+            for (void *k : resident) {
+                if (forbidden.count(k) != 0)
+                    continue;
+                const auto it = appearances.find(k);
+                const std::vector<size_t> &app = (it != appearances.end()) ? it->second : empty_topo_app;
+                const std::uint64_t need =
+                    graph_sched_gpu_mm_next_need_topo_index(app, ti, num_topo_tasks);
+                const size_t last_in_batch = app.empty() ? static_cast<size_t>(0) : app.back();
+                if (!has_best || need > best_need
+                    || (need == best_need && last_in_batch > best_last_in_batch)
+                    || (need == best_need && last_in_batch == best_last_in_batch && k > best_k)) {
+                    best_need = need;
+                    best_last_in_batch = last_in_batch;
+                    best_k = k;
+                    has_best = true;
+                }
+            }
+
+            if (!has_best) {
+                if (verbose >= 1)
+                    std::cerr << "graph_recorder: gpu_memory_manager: cannot offload further (no eligible GPU-resident "
+                                 "handle) at topo_idx="
+                              << ti << " projected_before_task_bytes=" << proj << " budget=" << budget_bytes << std::endl;
+                break;
+            }
+
+            starpu_data_handle_t hk = static_cast<starpu_data_handle_t>(best_k);
+            const std::int64_t sz = static_cast<std::int64_t>(starpu_data_get_size(hk));
+            resident.erase(best_k);
+            offloaded.insert(best_k);
+            current_bytes -= sz;
+            mm.offload_mark_events++;
+            offload_before_topo[ti].push_back(best_k);
+            if (fifo_seen.insert(best_k).second)
+                fifo_unique.push_back(best_k);
+        }
+
+        std::unordered_set<void *> pf_once;
+        pf_once.reserve(op.handle_accesses.size() + 4u);
+        for (const GraphOpHandleAccessRef &ref : op.handle_accesses) {
+            if (!ref.handle || graph_access_mode_is_invalidate(ref.mode))
+                continue;
+            void *p = static_cast<void *>(ref.handle);
+            if (offloaded.count(p) == 0)
+                continue;
+            if (!pf_once.insert(p).second)
+                continue;
+            prefetch_before_topo[ti].push_back(p);
+            current_bytes += static_cast<std::int64_t>(starpu_data_get_size(ref.handle));
+            resident.insert(p);
+            offloaded.erase(p);
+        }
+
+        const std::int64_t d = graph_sched_op_memory_delta_for_resident(op, resident);
+        current_bytes += d;
+        graph_sched_op_apply_memory_effect_to_resident(op, resident);
+        note_peak();
+    }
+
+    mm.peak_simulated_bytes = peak_track;
+    mm.peak_after_plan_bytes = peak_track;
+    mm.marked_offload_unique = static_cast<unsigned>(fifo_unique.size());
+    for (void *k : fifo_unique)
+        mm.offload_prefetch_fifo.push_back(k);
+    unique_offload_handles_out = std::move(fifo_unique);
+
+    mm.topo_offload_before_task = std::move(offload_before_topo);
+    mm.topo_prefetch_before_task = std::move(prefetch_before_topo);
+    graph_sched_gpu_mm_derive_post_exec_offload_order(ops, topo_order, mm.topo_offload_before_task,
+                                                      mm.topo_post_exec_offload_order);
+    mm.topo_pre_exec_prefetch_order = mm.topo_prefetch_before_task;
+
+    if (mm.peak_after_plan_bytes > budget_bytes && verbose >= 1) {
+        std::cerr << "graph_recorder: gpu_memory_manager: warning peak_after_plan_bytes=" << mm.peak_after_plan_bytes
+                  << " still exceeds budget=" << budget_bytes
+                  << " (consider raising STARPU_LIMIT_CUDA*_MEM or budget fraction)" << std::endl;
+    }
+
+    if (verbose >= 2) {
+        std::cerr << "graph_recorder: gpu_memory_manager: linear_topo_plan initial_resident_bytes=" << mm.initial_resident_bytes
+                  << " peak_simulated_bytes=" << mm.peak_simulated_bytes << " budget=" << budget_bytes
+                  << " offload_events=" << mm.offload_mark_events << " marked_offload_unique=" << mm.marked_offload_unique
+                  << std::endl;
+    }
+}
+
+static void graph_sched_gpu_mm_restore_from_cached_plan(const graph_sched_mem_offload_plan &plan, std::int64_t budget_bytes,
+                                                        graph_sched_gpu_memory_manager &mm)
+{
+    mm.offload_prefetch_fifo.clear();
+    mm.peak_simulated_bytes = plan.peak_pga_bytes;
+    mm.sum_s_unique_bytes = plan.sum_s_bytes;
+    mm.budget_bytes = budget_bytes;
+    mm.initial_resident_bytes = 0;
+    mm.peak_after_plan_bytes = plan.peak_pga_bytes;
+    mm.offload_mark_events = 0;
+    mm.topo_offload_before_task = plan.topo_offload_before_task;
+    mm.topo_prefetch_before_task = plan.topo_prefetch_before_task;
+    mm.topo_post_exec_offload_order = plan.topo_post_exec_offload_order;
+    mm.topo_pre_exec_prefetch_order = plan.topo_pre_exec_prefetch_order;
+    for (void *k : plan.s_offload_keys)
+        mm.offload_prefetch_fifo.push_back(k);
+    mm.marked_offload_unique = static_cast<unsigned>(plan.s_offload_keys.size());
+}
+
+/**
+ * GPU budget offload-before-task planning under linear replay of \p topo_order (greedy or capture order).
+ * The linear planner runs only when \p outer_batch0_capture is true (outer batch index 0); later batches reuse
+ * \c graph_mem_offload_plan stored from batch-0. Used by full flush replay and linear capture replay.
+ */
+static void graph_sched_apply_gpu_mm_plan_from_capture(const std::vector<GraphOp> &ops,
+                                                       const std::vector<GraphHandleAccess> &handle_accesses,
+                                                       const std::vector<size_t> &topo_order,
+                                                       graph_sched_data *policy_data,
+                                                       const graph_sched_captured_handle_groups *captured_for_offload_hints,
+                                                       int pin_worker, int vb, bool batch_matches_previous_flush,
+                                                       bool outer_batch0_capture,
+                                                       std::vector<void *> &s_offload_active_out)
+{
+    s_offload_active_out.clear();
+    if (!graph_sched_mem_offload_auto_env() || !policy_data || !captured_for_offload_hints
+        || captured_for_offload_hints->states.empty() || pin_worker < 0)
+        return;
+
+    std::int64_t mem_budget = policy_data->graph_pinned_worker_max_allowed_memory_bytes;
+    const std::int64_t forced_budget = graph_sched_force_mem_budget_bytes_env();
+    if (forced_budget >= 0)
+        mem_budget = forced_budget;
+    if (mem_budget <= 0)
+        return;
+
+    mem_budget = static_cast<std::int64_t>(static_cast<double>(mem_budget) * graph_sched_mem_budget_fraction_env());
+
+    std::int64_t mem_sum_s_log = graph_sched_sum_unique_handle_bytes(captured_for_offload_hints->states);
+
+    const bool have_saved_plan = policy_data->graph_mem_offload_plan.valid;
+
+    std::int64_t mem_peak_log = 0;
+    bool ran_linear_topo_planner = false;
+
+    if (!outer_batch0_capture) {
+        /* Replay only: reuse batch-0 findings; never re-run the memory optimization pass (budget is fixed for the run). */
+        if (have_saved_plan) {
+            s_offload_active_out = policy_data->graph_mem_offload_plan.s_offload_keys;
+            mem_peak_log = policy_data->graph_mem_offload_plan.peak_pga_bytes;
+            mem_sum_s_log = policy_data->graph_mem_offload_plan.sum_s_bytes;
+            graph_sched_gpu_mm_restore_from_cached_plan(policy_data->graph_mem_offload_plan, mem_budget,
+                                                        policy_data->graph_gpu_mm);
+        } else {
+            policy_data->graph_gpu_mm = graph_sched_gpu_memory_manager{};
+            mem_peak_log = 0;
+        }
+    } else {
+        const bool mem_reuse_plan = batch_matches_previous_flush && have_saved_plan;
+
+        if (mem_reuse_plan) {
+            s_offload_active_out = policy_data->graph_mem_offload_plan.s_offload_keys;
+            mem_peak_log = policy_data->graph_mem_offload_plan.peak_pga_bytes;
+            mem_sum_s_log = policy_data->graph_mem_offload_plan.sum_s_bytes;
+            graph_sched_gpu_mm_restore_from_cached_plan(policy_data->graph_mem_offload_plan, mem_budget,
+                                                        policy_data->graph_gpu_mm);
+        } else {
+            if (!handle_accesses.empty()) {
+                graph_sched_gpu_mm_plan_linear_topo_offloads(ops, handle_accesses, topo_order, *captured_for_offload_hints,
+                                                             mem_budget, policy_data->graph_gpu_mm, s_offload_active_out,
+                                                             vb);
+                ran_linear_topo_planner = true;
+                mem_peak_log = policy_data->graph_gpu_mm.peak_simulated_bytes;
+            } else {
+                if (vb >= 2)
+                    std::cerr << "graph_recorder: gpu_memory_manager: note handle_accesses_empty; skip linear offload "
+                                 "planning"
+                              << std::endl;
+                policy_data->graph_gpu_mm = graph_sched_gpu_memory_manager{};
+                mem_peak_log = 0;
+            }
+            policy_data->graph_mem_offload_plan.valid = true;
+            policy_data->graph_mem_offload_plan.budget_bytes = mem_budget;
+            policy_data->graph_mem_offload_plan.peak_pga_bytes = mem_peak_log;
+            policy_data->graph_mem_offload_plan.sum_s_bytes = mem_sum_s_log;
+            policy_data->graph_mem_offload_plan.s_offload_keys = s_offload_active_out;
+            policy_data->graph_mem_offload_plan.topo_offload_before_task = policy_data->graph_gpu_mm.topo_offload_before_task;
+            policy_data->graph_mem_offload_plan.topo_prefetch_before_task = policy_data->graph_gpu_mm.topo_prefetch_before_task;
+            policy_data->graph_mem_offload_plan.topo_post_exec_offload_order =
+                policy_data->graph_gpu_mm.topo_post_exec_offload_order;
+            policy_data->graph_mem_offload_plan.topo_pre_exec_prefetch_order =
+                policy_data->graph_gpu_mm.topo_pre_exec_prefetch_order;
         }
     }
 
-    std::vector<void *> s_sorted(s_keys.begin(), s_keys.end());
-    auto rank = [&](void *k) -> size_t {
-        const auto it = last_seen.find(k);
-        if (it == last_seen.end())
-            return 0;
-        return it->second + 1;
-    };
-    std::sort(s_sorted.begin(), s_sorted.end(), [&](void *a, void *b) {
-        const size_t ra = rank(a);
-        const size_t rb = rank(b);
-        if (ra != rb)
-            return ra < rb;
-        return a < b;
-    });
+    const bool reused_saved =
+        !outer_batch0_capture ? policy_data->graph_mem_offload_plan.valid
+                              : (batch_matches_previous_flush && have_saved_plan && !ran_linear_topo_planner);
 
-    std::int64_t sum_s_rem = sum_s_bytes;
-    for (void *k : s_sorted) {
-        if (peak_pga + sum_s_rem <= budget_bytes)
-            break;
-        starpu_data_handle_t h = static_cast<starpu_data_handle_t>(k);
-        sum_s_rem -= static_cast<std::int64_t>(starpu_data_get_size(h));
-        s_offload_keys_out.push_back(k);
+    if (vb >= 1) {
+        std::cerr << "graph_recorder: gpu_memory_manager: marked_offload_unique="
+                  << policy_data->graph_gpu_mm.marked_offload_unique << " offload_mark_events="
+                  << policy_data->graph_gpu_mm.offload_mark_events << " peak_simulated_bytes=" << mem_peak_log
+                  << " sum_s=" << mem_sum_s_log << " budget=" << mem_budget << " outer_batch0_capture="
+                  << (outer_batch0_capture ? 1 : 0) << " ran_linear_topo_planner=" << (ran_linear_topo_planner ? 1 : 0)
+                  << " reused_saved_plan=" << (reused_saved ? 1 : 0) << std::endl;
+    }
+    if (vb >= 2) {
+        std::cerr << "graph_recorder: mem_offload_plan: budget_bytes=" << mem_budget
+                  << " peak_simulated_bytes=" << mem_peak_log << " sum_s_bytes=" << mem_sum_s_log
+                  << " s_offload_n=" << s_offload_active_out.size()
+                  << " gpu_mm_marked_unique=" << policy_data->graph_gpu_mm.marked_offload_unique
+                  << " gpu_mm_offload_events=" << policy_data->graph_gpu_mm.offload_mark_events << " outer_batch0_capture="
+                  << (outer_batch0_capture ? 1 : 0) << " ran_linear_topo_planner=" << (ran_linear_topo_planner ? 1 : 0)
+                  << " reused_saved_plan=" << (reused_saved ? 1 : 0) << std::endl;
     }
 }
 
@@ -3784,46 +4167,17 @@ GraphReplayStats graph_sched_replay_recorded_ops(std::vector<GraphOp> ops,
     std::vector<void *> s_offload_active;
     std::int64_t mem_peak_pga_log = -1;
     std::int64_t mem_sum_s_log = -1;
-    bool mem_reuse_plan = false;
     clock::time_point t_mem_offload_beg = clock::now();
     clock::time_point t_mem_offload_end = clock::now();
     if (graph_sched_mem_offload_auto_env() && policy_data && captured_for_offload_hints
         && !captured_for_offload_hints->states.empty() && pin_worker >= 0) {
         t_mem_offload_beg = clock::now();
-        std::int64_t mem_budget = policy_data->graph_pinned_worker_max_allowed_memory_bytes;
-        const std::int64_t forced_budget = graph_sched_force_mem_budget_bytes_env();
-        if (forced_budget >= 0)
-            mem_budget = forced_budget;
-        if (mem_budget > 0) {
-            mem_budget = static_cast<std::int64_t>(static_cast<double>(mem_budget) * graph_sched_mem_budget_fraction_env());
-            mem_reuse_plan = batch_matches_previous_flush && policy_data->graph_mem_offload_plan.valid
-                && policy_data->graph_mem_offload_plan.budget_bytes == mem_budget;
-            mem_sum_s_log = graph_sched_sum_unique_handle_bytes(captured_for_offload_hints->states);
-            if (mem_reuse_plan) {
-                s_offload_active = policy_data->graph_mem_offload_plan.s_offload_keys;
-                mem_peak_pga_log = policy_data->graph_mem_offload_plan.peak_pga_bytes;
-                mem_sum_s_log = policy_data->graph_mem_offload_plan.sum_s_bytes;
-            } else {
-                std::unordered_map<void *, std::uint8_t> roles;
-                graph_sched_build_handle_role_maps(*captured_for_offload_hints, roles);
-                graph_sched_compute_peak_pga_first_minibatch(ops, handle_accesses, topo_order, roles, &mem_peak_pga_log);
-                if (mem_peak_pga_log + mem_sum_s_log > mem_budget) {
-                    graph_sched_select_s_offload_lru(ops, topo_order, *captured_for_offload_hints, mem_peak_pga_log,
-                                                     mem_sum_s_log, mem_budget, s_offload_active);
-                }
-                policy_data->graph_mem_offload_plan.valid = true;
-                policy_data->graph_mem_offload_plan.budget_bytes = mem_budget;
-                policy_data->graph_mem_offload_plan.peak_pga_bytes = mem_peak_pga_log;
-                policy_data->graph_mem_offload_plan.sum_s_bytes = mem_sum_s_log;
-                policy_data->graph_mem_offload_plan.s_offload_keys = s_offload_active;
-            }
-            if (vb >= 2) {
-                std::cerr << "graph_recorder: mem_offload_plan: budget_bytes=" << mem_budget
-                          << " peak_pga_bytes=" << mem_peak_pga_log << " sum_s_bytes=" << mem_sum_s_log
-                          << " s_offload_n=" << s_offload_active.size() << " reuse_cached_plan=" << (mem_reuse_plan ? 1 : 0)
-                          << std::endl;
-            }
-        }
+        graph_sched_apply_gpu_mm_plan_from_capture(ops, handle_accesses, topo_order, policy_data,
+                                                   captured_for_offload_hints, pin_worker, vb,
+                                                   batch_matches_previous_flush,
+                                                   graph_sched_outer_batch0_from_ops(ops), s_offload_active);
+        mem_peak_pga_log = policy_data->graph_mem_offload_plan.peak_pga_bytes;
+        mem_sum_s_log = policy_data->graph_mem_offload_plan.sum_s_bytes;
         t_mem_offload_end = clock::now();
     }
 
@@ -3833,6 +4187,8 @@ GraphReplayStats graph_sched_replay_recorded_ops(std::vector<GraphOp> ops,
     unsigned gpu_mem_node_for_hints = 0;
     if (pin_worker >= 0)
         gpu_mem_node_for_hints = starpu_worker_get_memory_node(static_cast<unsigned>(pin_worker));
+
+    const bool mm_execute_hints = graph_sched_mm_execute_hints_env();
 
     clock::time_point t_replay_beg = clock::now();
     const double graph_planning_sec = graph_sched_elapsed_sec(t_flush_wall_start, t_replay_beg);
@@ -3846,7 +4202,7 @@ GraphReplayStats graph_sched_replay_recorded_ops(std::vector<GraphOp> ops,
         const size_t op_idx = topo_order[ti];
         const GraphOp &op = ops[op_idx];
 
-        if (!s_offload_active.empty() && pin_worker >= 0 && ti > 0) {
+        if (mm_execute_hints && !s_offload_active.empty() && pin_worker >= 0 && ti > 0) {
             const GraphOp &prev = ops[topo_order[ti - 1]];
             if (op.kind == GraphOp::TASK && prev.kind == GraphOp::TASK && graph_sched_task_is_forward_subiter_after_first(op)
                 && prev.graph_stage_subiteration_valid && op.graph_stage_subiteration_valid
@@ -3856,7 +4212,8 @@ GraphReplayStats graph_sched_replay_recorded_ops(std::vector<GraphOp> ops,
             }
         }
 
-        if (offload_env && captured_for_offload_hints && pin_worker >= 0 && have_optimizer_phase && ti == first_opt_topo) {
+        if (mm_execute_hints && offload_env && captured_for_offload_hints && pin_worker >= 0 && have_optimizer_phase
+            && ti == first_opt_topo) {
             const bool run_offload_phase = first_opt_topo > 0;
             graph_sched_emit_optimizer_state_offload_and_prefetch_hints(captured_for_offload_hints, gpu_mem_node_for_hints,
                                                                           vb, stats, run_offload_phase);
@@ -3873,7 +4230,7 @@ GraphReplayStats graph_sched_replay_recorded_ops(std::vector<GraphOp> ops,
             break;
         }
 
-        if (!s_offload_active.empty() && pin_worker >= 0 && op.kind == GraphOp::TASK
+        if (mm_execute_hints && !s_offload_active.empty() && pin_worker >= 0 && op.kind == GraphOp::TASK
             && graph_sched_task_is_backward_subiter(op)) {
             bool emit_boundary_off = false;
             if (ti + 1 >= topo_order.size()) {
@@ -3966,145 +4323,7 @@ GraphReplayStats graph_sched_replay_recorded_ops(std::vector<GraphOp> ops,
 
 } /* namespace */
 
-static bool graph_sched_query_valid_on_node(starpu_data_handle_t h, int memory_node)
-{
-    int a = 0, v = 0, loading = 0, req = 0;
-    starpu_data_query_status2(h, memory_node, &a, &v, &loading, &req);
-    return v != 0;
-}
-
-static void graph_sched_sync_pending_evict_count(graph_sched_data *data)
-{
-    data->graph_pending_gpu_evict_pending_count.store(data->graph_pending_gpu_evict_handles.size(),
-                                                      std::memory_order_relaxed);
-}
-
-void graph_sched_register_offload_after_task(graph_sched_data *data, struct starpu_task *task,
-                                             const std::vector<void *> &s_offload_keys)
-{
-    if (!data || !task || s_offload_keys.empty())
-        return;
-    std::lock_guard<std::mutex> lock(data->graph_offload_mutex);
-    auto &vec = data->graph_offload_after_task_handles[task];
-    std::unordered_set<void *> seen;
-    seen.reserve(vec.size() + s_offload_keys.size());
-    for (starpu_data_handle_t h : vec)
-        if (h)
-            seen.insert(static_cast<void *>(h));
-    for (void *k : s_offload_keys) {
-        if (!k || seen.count(k))
-            continue;
-        seen.insert(k);
-        vec.push_back(static_cast<starpu_data_handle_t>(k));
-    }
-}
-
-void graph_sched_run_post_exec_offloads(graph_sched_data *data, struct starpu_task *task, unsigned gpu_mem_node)
-{
-    if (!data || !task)
-        return;
-    std::vector<starpu_data_handle_t> work;
-    {
-        std::lock_guard<std::mutex> lock(data->graph_offload_mutex);
-        auto it = data->graph_offload_after_task_handles.find(task);
-        if (it == data->graph_offload_after_task_handles.end())
-            return;
-        work = std::move(it->second);
-        data->graph_offload_after_task_handles.erase(it);
-    }
-    const int gpu_i = static_cast<int>(gpu_mem_node);
-    std::vector<starpu_data_handle_t> to_pending;
-    to_pending.reserve(work.size());
-    for (starpu_data_handle_t h : work) {
-        if (!h)
-            continue;
-        if (!graph_sched_query_valid_on_node(h, gpu_i))
-            continue;
-        (void)starpu_data_prefetch_on_node(h, STARPU_MAIN_RAM, 1);
-        to_pending.push_back(h);
-    }
-    if (to_pending.empty())
-        return;
-    std::lock_guard<std::mutex> lock(data->graph_offload_mutex);
-    for (starpu_data_handle_t h : to_pending) {
-        bool dup = false;
-        for (starpu_data_handle_t p : data->graph_pending_gpu_evict_handles) {
-            if (p == h) {
-                dup = true;
-                break;
-            }
-        }
-        if (!dup)
-            data->graph_pending_gpu_evict_handles.push_back(h);
-    }
-    graph_sched_sync_pending_evict_count(data);
-}
-
-void graph_sched_drain_pending_gpu_evicts(graph_sched_data *data, unsigned gpu_mem_node)
-{
-    if (!data)
-        return;
-    if (data->graph_pending_gpu_evict_pending_count.load(std::memory_order_relaxed) == 0)
-        return;
-    /* Never call starpu_data_* eviction while holding graph_offload_mutex: they may re-enter the scheduler. */
-    std::vector<starpu_data_handle_t> batch;
-    {
-        std::lock_guard<std::mutex> lock(data->graph_offload_mutex);
-        batch.swap(data->graph_pending_gpu_evict_handles);
-        graph_sched_sync_pending_evict_count(data);
-    }
-    std::vector<starpu_data_handle_t> retry;
-    retry.reserve(batch.size());
-    for (starpu_data_handle_t h : batch) {
-        if (!h)
-            continue;
-        if (starpu_data_can_evict(h, gpu_mem_node, STARPU_PREFETCH)
-            && starpu_data_evict_from_node(h, gpu_mem_node) == 0) {
-            std::lock_guard<std::mutex> lock(data->graph_offload_mutex);
-            data->graph_pending_gpu_evict_drained++;
-        } else
-            retry.push_back(h);
-    }
-    if (retry.empty())
-        return;
-    std::lock_guard<std::mutex> lock(data->graph_offload_mutex);
-    for (starpu_data_handle_t h : retry) {
-        bool dup = false;
-        for (starpu_data_handle_t p : data->graph_pending_gpu_evict_handles) {
-            if (p == h) {
-                dup = true;
-                break;
-            }
-        }
-        if (!dup)
-            data->graph_pending_gpu_evict_handles.push_back(h);
-    }
-    graph_sched_sync_pending_evict_count(data);
-}
-
-void graph_sched_clear_offload_task_registrations(graph_sched_data *data)
-{
-    if (!data)
-        return;
-    std::lock_guard<std::mutex> lock(data->graph_offload_mutex);
-    data->graph_offload_after_task_handles.clear();
-}
-
-/** Wall time from outermost recording_begin to outermost recording_end (application capture region only). */
-static void graph_sched_account_outermost_capture_end(graph_sched_data *data)
-{
-    const auto t_end = std::chrono::steady_clock::now();
-    const double sec = std::chrono::duration<double>(t_end - data->graph_capture_wall_start).count();
-    const std::uint64_t ns = static_cast<std::uint64_t>(sec * 1e9);
-    data->graph_sched_graph_capture_wall_time_ns.fetch_add(ns, std::memory_order_relaxed);
-    data->graph_sched_graph_capture_sessions.fetch_add(1u, std::memory_order_relaxed);
-    if (graph_sched_verbose_env() >= 2) {
-        const std::ios::fmtflags ff = std::cerr.flags();
-        std::cerr << std::fixed << std::setprecision(6) << "graph_recorder: graph_capture_wall_sec=" << sec
-                  << " (outermost recording_begin → recording_end; excludes replay/planning)" << std::endl;
-        std::cerr.flags(ff);
-    }
-}
+/* graph_sched_account_outermost_capture_end is defined in graph_sgoc.cpp (shipped SGOC library). */
 
 static constexpr std::uint32_t GRAPH_BATCH0_OPT_CLASSIFY = 1u;
 static constexpr std::uint32_t GRAPH_BATCH0_OPT_PRE_W_INV = 2u;
@@ -4561,8 +4780,9 @@ static void graph_sched_build_batch0_extended_replay_plan(const std::vector<Grap
     valid_out = user_task_index > 0 && !plan_out.empty();
 }
 
-static GraphReplayStats graph_sched_replay_linear_capture_order(std::vector<GraphOp> ops, int pin_worker,
-                                                                graph_sched_data *policy_data,
+static GraphReplayStats graph_sched_replay_linear_capture_order(std::vector<GraphOp> ops,
+                                                                std::vector<GraphHandleAccess> handle_accesses,
+                                                                int pin_worker, graph_sched_data *policy_data,
                                                                 const graph_sched_captured_handle_groups *parsed_opt,
                                                                 bool emit_post_optimizer_g_inv, bool has_batch,
                                                                 std::uint32_t batch_val, int vb, unsigned sched_ctx_id,
@@ -4613,12 +4833,11 @@ static starpu_data_handle_t graph_sched_plan_replay_map_invalidate_handle(
     return nullptr;
 }
 
-static GraphReplayStats graph_sched_replay_linear_from_batch0_plan(graph_sched_data *data, const std::vector<GraphOp> &ops,
-                                                                   int pin_worker,
-                                                                   const graph_sched_captured_handle_groups *parsed_opt,
-                                                                   bool emit_post_optimizer_g_inv, bool has_batch,
-                                                                   std::uint32_t batch_val, int vb, unsigned sched_ctx_id,
-                                                                   const std::chrono::steady_clock::time_point &t_flush_wall_start)
+static GraphReplayStats graph_sched_replay_linear_from_batch0_plan(
+    graph_sched_data *data, const std::vector<GraphOp> &ops, std::vector<GraphHandleAccess> handle_accesses,
+    int pin_worker, const graph_sched_captured_handle_groups *parsed_opt, bool emit_post_optimizer_g_inv, bool has_batch,
+    std::uint32_t batch_val, int vb, unsigned sched_ctx_id,
+    const std::chrono::steady_clock::time_point &t_flush_wall_start)
 {
     using clock = std::chrono::steady_clock;
     GraphReplayStats stats{};
@@ -4644,9 +4863,9 @@ static GraphReplayStats graph_sched_replay_linear_from_batch0_plan(graph_sched_d
                       << user_tasks.size() << " batch0_tpl_tasks=" << data->graph_batch0_task_structure_sigs.size()
                       << std::endl;
         }
-        return graph_sched_replay_linear_capture_order(std::vector<GraphOp>(ops), pin_worker, data, parsed_opt,
-                                                       emit_post_optimizer_g_inv, has_batch, batch_val, vb, sched_ctx_id,
-                                                       true);
+        return graph_sched_replay_linear_capture_order(std::vector<GraphOp>(ops), std::move(handle_accesses), pin_worker,
+                                                       data, parsed_opt, emit_post_optimizer_g_inv, has_batch, batch_val,
+                                                       vb, sched_ctx_id, true);
     }
 
     std::vector<std::vector<starpu_data_handle_t>> cur_handles;
@@ -4709,9 +4928,9 @@ static GraphReplayStats graph_sched_replay_linear_from_batch0_plan(graph_sched_d
                     std::cerr << "graph_recorder: batch0_plan_replay: user_task_index_oob idx=" << step.user_task_index
                               << " n=" << user_tasks.size() << " (fallback to linear ops)\n";
                 _starpu_graph_recorder_set_flushing(0);
-                return graph_sched_replay_linear_capture_order(std::vector<GraphOp>(ops), pin_worker, data, parsed_opt,
-                                                               emit_post_optimizer_g_inv, has_batch, batch_val, vb,
-                                                               sched_ctx_id, true);
+                return graph_sched_replay_linear_capture_order(std::vector<GraphOp>(ops), std::move(handle_accesses),
+                                                               pin_worker, data, parsed_opt, emit_post_optimizer_g_inv,
+                                                               has_batch, batch_val, vb, sched_ctx_id, true);
             }
             struct starpu_task *const t = user_tasks[step.user_task_index];
             if (pin_worker >= 0)
@@ -4757,10 +4976,12 @@ static GraphReplayStats graph_sched_replay_linear_from_batch0_plan(graph_sched_d
  * Default: \c graph_sched_compute_greedy_memory_topological_order (same greedy memory rule as full flush planning).
  * Set \c STARPU_GRAPH_SCHED_LINEAR_REPLAY_GREEDY=0 for strict capture order. Batch-compat / batch-0 template use the
  * capture-order \p replay vector in \c graph_sched_release_outermost_capture before this runs — unchanged.
+ * \p handle_accesses: parallel access list from capture (enables GPU memory / S-offload planning on this path).
  * \p emit_post_optimizer_g_inv: after last optimizer TASK, invalidate gradient buffers (batch-0 release only).
  */
-static GraphReplayStats graph_sched_replay_linear_capture_order(std::vector<GraphOp> ops, int pin_worker,
-                                                                graph_sched_data *policy_data,
+static GraphReplayStats graph_sched_replay_linear_capture_order(std::vector<GraphOp> ops,
+                                                                std::vector<GraphHandleAccess> handle_accesses,
+                                                                int pin_worker, graph_sched_data *policy_data,
                                                                 const graph_sched_captured_handle_groups *parsed_opt,
                                                                 bool emit_post_optimizer_g_inv, bool has_batch,
                                                                 std::uint32_t batch_val, int vb, unsigned sched_ctx_id,
@@ -4785,14 +5006,6 @@ static GraphReplayStats graph_sched_replay_linear_capture_order(std::vector<Grap
     const unsigned ctx_res = graph_sched_resolve_sched_ctx_id(sched_ctx_id);
     const long outer_iter0 = starpu_sched_ctx_get_iteration(ctx_res, 0);
 
-    if (!force_ops_linear && policy_data && graph_sched_batch0_plan_replay_enabled()
-        && policy_data->graph_batch0_extended_replay_plan_valid && !policy_data->graph_batch0_extended_replay_plan.empty()
-        && outer_iter0 > 0) {
-        return graph_sched_replay_linear_from_batch0_plan(policy_data, ops, pin_worker, parsed_opt,
-                                                          emit_post_optimizer_g_inv, has_batch, batch_val, vb, sched_ctx_id,
-                                                          t_flush_wall_start);
-    }
-
     std::vector<size_t> linear_submit_order;
     linear_submit_order.reserve(ops.size());
     double greedy_linear_attempt_sec = 0;
@@ -4815,6 +5028,21 @@ static GraphReplayStats graph_sched_replay_linear_capture_order(std::vector<Grap
     } else {
         for (size_t i = 0; i < ops.size(); ++i)
             linear_submit_order.push_back(i);
+    }
+
+    std::vector<void *> s_offload_linear_scratch;
+    if (!force_ops_linear && parsed_opt && policy_data && pin_worker >= 0)
+        graph_sched_apply_gpu_mm_plan_from_capture(ops, handle_accesses, linear_submit_order, policy_data, parsed_opt,
+                                                   pin_worker, vb, false,
+                                                   graph_sched_outer_batch0_capture(has_batch, batch_val),
+                                                   s_offload_linear_scratch);
+
+    if (!force_ops_linear && policy_data && graph_sched_batch0_plan_replay_enabled()
+        && policy_data->graph_batch0_extended_replay_plan_valid && !policy_data->graph_batch0_extended_replay_plan.empty()
+        && outer_iter0 > 0) {
+        return graph_sched_replay_linear_from_batch0_plan(policy_data, ops, std::move(handle_accesses), pin_worker,
+                                                        parsed_opt, emit_post_optimizer_g_inv, has_batch, batch_val, vb,
+                                                        sched_ctx_id, t_flush_wall_start);
     }
 
     const clock::time_point t_replay_beg = clock::now();
@@ -5255,9 +5483,10 @@ static void graph_sched_log_batch_compat_skipped_empty_capture(graph_sched_data 
               << std::endl;
 }
 
-static void graph_sched_release_outermost_capture(graph_sched_data *data, std::vector<GraphOp> replay,
-                                                  graph_sched_captured_handle_groups &parsed, bool has_batch,
-                                                  std::uint32_t batch_val, int vb, unsigned sched_ctx_id)
+void graph_sched_recorder_release_outermost_capture(graph_sched_data *data, std::vector<GraphOp> replay,
+                                                    std::vector<GraphHandleAccess> replay_ha,
+                                                    graph_sched_captured_handle_groups &parsed, bool has_batch,
+                                                    std::uint32_t batch_val, int vb, unsigned sched_ctx_id)
 {
     const size_t n_task_ops = graph_sched_count_all_task_ops(replay);
     if (n_task_ops == 0) {
@@ -5275,15 +5504,19 @@ static void graph_sched_release_outermost_capture(graph_sched_data *data, std::v
     const bool simple = graph_sched_debug_simple_flush();
     if (batch0_like) {
         graph_sched_store_batch0_hints_from_capture(data, replay, parsed, has_batch, batch_val, vb);
+        /* Minibatch0 vs later minibatches (graph subiter 1/2 anchor): logs only for this outer-batch-0 capture. */
+        (void)graph_sched_minibatch0_compat_check(replay, vb);
         const bool emit_post_opt_g = !simple;
-        (void)graph_sched_replay_linear_capture_order(std::move(replay), data->graph_pinned_worker_id, data, &parsed,
-                                                      emit_post_opt_g, has_batch, batch_val, vb, sched_ctx_id);
+        (void)graph_sched_replay_linear_capture_order(std::move(replay), std::move(replay_ha),
+                                                      data->graph_pinned_worker_id, data, &parsed, emit_post_opt_g,
+                                                      has_batch, batch_val, vb, sched_ctx_id);
     } else {
         if (has_batch && batch_val >= 1u)
             graph_sched_log_batch_vs_batch0_template(data, replay, has_batch, batch_val, vb);
         const bool emit_post_opt_g = !simple;
-        (void)graph_sched_replay_linear_capture_order(std::move(replay), data->graph_pinned_worker_id, data, &parsed,
-                                                      emit_post_opt_g, has_batch, batch_val, vb, sched_ctx_id);
+        (void)graph_sched_replay_linear_capture_order(std::move(replay), std::move(replay_ha),
+                                                      data->graph_pinned_worker_id, data, &parsed, emit_post_opt_g,
+                                                      has_batch, batch_val, vb, sched_ctx_id);
     }
 }
 
@@ -5438,6 +5671,8 @@ static int graph_sched_capture_invalidate_hook(starpu_data_handle_t handle, void
     return 0;
 }
 
+} /* extern "C" */
+
 void graph_sched_recorder_register(graph_sched_data *data)
 {
     _starpu_graph_recorder_register(
@@ -5449,123 +5684,10 @@ void graph_sched_recorder_register(graph_sched_data *data)
 
 void graph_sched_recorder_deinit(graph_sched_data *data, unsigned sched_ctx_id)
 {
-    for (;;) {
-        std::vector<GraphOp> replay;
-        std::vector<GraphHandleAccess> replay_handle_accesses;
-        unsigned added_invalidate_submit = 0;
-        bool moved_capture = false;
-        {
-            std::unique_lock<std::mutex> lock(data->policy_mutex);
-            if (data->graph_record_nested == 0)
-                break;
-            data->graph_record_nested--;
-            if (data->graph_record_nested == 0) {
-                graph_sched_account_outermost_capture_end(data);
-                moved_capture = true;
-                added_invalidate_submit = data->graph_added_invalidate_submit;
-                replay = std::move(data->graph_ops);
-                replay_handle_accesses = std::move(data->graph_handle_accesses);
-                data->graph_handle_accesses.clear();
-                data->graph_handle_access_lists.clear();
-            }
-        }
-        graph_sched_captured_handle_groups parsed{};
-        std::vector<GraphBatchTaskStructureSig> cur_flush_task_sigs;
-        if (moved_capture) {
-            const int v = graph_sched_verbose_env();
-            graph_sched_parse_captured_data_handles(replay, parsed, v);
-            bool has_batch = false;
-            std::uint32_t batch_val = 0;
-            if (!graph_sched_infer_batch_capture_context(replay, &has_batch, &batch_val))
-                has_batch = false;
-            graph_sched_collect_task_structure_sigs(replay, has_batch, has_batch ? batch_val : 0, cur_flush_task_sigs);
-            graph_sched_release_outermost_capture(data, std::move(replay), parsed, has_batch, batch_val, v, sched_ctx_id);
-        }
-        {
-            std::lock_guard<std::mutex> lock(data->policy_mutex);
-            if (moved_capture) {
-                data->graph_captured_handle_groups = std::move(parsed);
-                data->graph_prev_flush_task_structure_sigs = std::move(cur_flush_task_sigs);
-                data->graph_prev_flush_task_sigs_valid = true;
-            }
-            if (moved_capture)
-                data->graph_total_synthetic_invalidate_inserts += added_invalidate_submit;
-        }
-        _starpu_graph_recording_pop();
-    }
-    _starpu_graph_recorder_unregister(data);
+    graph_sched_sgoc_deinit(data, sched_ctx_id);
 }
 
-void starpu_graph_sched_graph_recording_begin(unsigned sched_ctx_id)
-{
-    graph_sched_data *data = graph_recorder_policy_data(sched_ctx_id);
-    if (!data)
-        return;
-
-    _starpu_graph_recording_push();
-
-    std::lock_guard<std::mutex> lock(data->policy_mutex);
-    if (data->graph_record_nested == 0) {
-        data->graph_capture_wall_start = std::chrono::steady_clock::now();
-        data->graph_ops.clear();
-        data->graph_handle_accesses.clear();
-        data->graph_handle_access_lists.clear();
-        data->graph_added_invalidate_submit = 0;
-        data->graph_idempotent_tasks_sorted.clear();
-        data->graph_captured_handle_groups = {};
-        /* Keep graph_mem_offload_plan across captures: replay invalidates/recomputes when the batch structure or budget
-         * differs (see graph_sched_replay_recorded_ops mem_reuse_plan). Clearing here prevented reuse_cached_plan. */
-        graph_sched_clear_offload_task_registrations(data);
-    }
-    data->graph_record_nested++;
-}
-
-void starpu_graph_sched_graph_recording_end(unsigned sched_ctx_id)
-{
-    graph_sched_data *data = graph_recorder_policy_data(sched_ctx_id);
-    if (!data)
-        return;
-
-    std::vector<GraphOp> replay;
-    std::vector<GraphHandleAccess> replay_handle_accesses;
-    bool outermost_end = false;
-    unsigned added_invalidate_submit = 0;
-    {
-        std::unique_lock<std::mutex> lock(data->policy_mutex);
-        if (data->graph_record_nested == 0)
-            return;
-
-        data->graph_record_nested--;
-        if (data->graph_record_nested == 0) {
-            graph_sched_account_outermost_capture_end(data);
-            added_invalidate_submit = data->graph_added_invalidate_submit;
-            replay = std::move(data->graph_ops);
-            replay_handle_accesses = std::move(data->graph_handle_accesses);
-            data->graph_handle_accesses.clear();
-            data->graph_handle_access_lists.clear();
-            outermost_end = true;
-        }
-    }
-
-    if (outermost_end) {
-        graph_sched_captured_handle_groups parsed{};
-        const int v = graph_sched_verbose_env();
-        graph_sched_parse_captured_data_handles(replay, parsed, v);
-        bool has_batch = false;
-        std::uint32_t batch_val = 0;
-        if (!graph_sched_infer_batch_capture_context(replay, &has_batch, &batch_val))
-            has_batch = false;
-        std::vector<GraphBatchTaskStructureSig> cur_flush_task_sigs;
-        graph_sched_collect_task_structure_sigs(replay, has_batch, has_batch ? batch_val : 0, cur_flush_task_sigs);
-        graph_sched_release_outermost_capture(data, std::move(replay), parsed, has_batch, batch_val, v, sched_ctx_id);
-        std::lock_guard<std::mutex> lock(data->policy_mutex);
-        data->graph_captured_handle_groups = std::move(parsed);
-        data->graph_prev_flush_task_structure_sigs = std::move(cur_flush_task_sigs);
-        data->graph_prev_flush_task_sigs_valid = true;
-        data->graph_total_synthetic_invalidate_inserts += added_invalidate_submit;
-    }
-
-    _starpu_graph_recording_pop();
-}
-
-} /* extern "C" */
+/*
+ * starpu_graph_sched_graph_recording_begin / end and graph_sched_account_outermost_capture_end are implemented
+ * in graph_sgoc.cpp for the shipped SGOC library (single graph scheduler).
+ */

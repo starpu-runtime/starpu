@@ -1,5 +1,6 @@
-/* graph_recorder — minimal loadable StarPU policy (central queue; pop picks most-ready task like dmdasd).
- * Replace/extend with your own graph structure; recording hooks are wired for starpu_graph_recorder. */
+/* Reference loadable StarPU policy: graph_recorder (historical). Not built by new_sched/Makefile.
+ * For the shipped graph scheduler see libgraph_sgoc_sched.cpp. This file includes graph_recorder.cpp
+ * (batch/minibatch template, checkpoints, incremental push). */
 
 #include <chrono>
 #include <cstdlib>

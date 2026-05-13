@@ -1,4 +1,4 @@
-/* Demo: run a few tasks under the loadable graph_recorder policy (skeleton FIFO scheduler). */
+/* Demo: run tasks under the SGOC loadable graph scheduler (see graph_sched.h). */
 
 #include <chrono>
 #include <cstdlib>
@@ -87,7 +87,7 @@ int main()
     const int alpha = 1;
     const int beta = 1;
 
-    /* Optional: exercise deferred recording (no-ops when not using graph_recorder policy). */
+    /* Deferred recording (no-ops when not using the sgoc graph policy). */
     starpu_graph_sched_graph_recording_begin(0);
 
     ret = starpu_task_insert(&cl_add, STARPU_VALUE, &alpha, sizeof(alpha), STARPU_VALUE, &beta, sizeof(beta),
@@ -115,7 +115,7 @@ int main()
         starpu_data_invalidate_submit(leaf_in[j]);
 
     starpu_graph_sched_graph_recording_end(0);
-
+    /* Wait for tasks submitted during flush replay (scheduler already waited before planning). */
     starpu_task_wait_for_all();
 
     const int a = 10, b = 32;
