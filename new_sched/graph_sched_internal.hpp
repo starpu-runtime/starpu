@@ -331,6 +331,14 @@ struct graph_sched_data {
     std::atomic<std::uint64_t> graph_sched_pop_time_ns_replay{0};
     std::atomic<unsigned> graph_sched_pop_calls_replay{0};
 
+    /**
+     * SGOC pinned CUDA worker: task returned from pop had all buffers data-ready (starpu_st_non_ready_buffers_size:
+     * non_ready==0 and non_allocated==0 for that worker).
+     */
+    std::atomic<std::uint64_t> dbg_sgoc_pop_picked_data_ready{0};
+    /** SGOC pinned worker: task returned from pop still had pending transfers or unallocated buffers (non_ready>0 or non_allocated>0). */
+    std::atomic<std::uint64_t> dbg_sgoc_pop_picked_data_not_ready{0};
+
     /** Same split for post_exec_hook. */
     std::atomic<std::uint64_t> graph_sched_post_exec_time_ns{0};
     std::atomic<unsigned> graph_sched_post_exec_calls{0};
@@ -415,6 +423,8 @@ struct graph_sched_data {
         /** Handles we optimistically removed from tracked_gpu_* when returning them from the victim selector. */
         std::unordered_set<void *> victim_evict_predict_removed;
         int mm_execute = 0;
+        /** Non-zero: stderr one-line MM plan vs replay ordering trace (STARPU_GRAPH_SCHED_MM_ORDER_TRACE). */
+        int mm_order_trace = 0;
         unsigned gpu_mem_node = 0;
         std::int64_t mem_budget_bytes = 0;
         /** After flush-time quiescence: handles valid on pinned GPU (starpu_data_query_status2 v bit). */
@@ -434,6 +444,22 @@ struct graph_sched_data {
         std::atomic<std::uint64_t> dbg_gpu_prefetch_issue{0};
         std::atomic<std::uint64_t> dbg_gpu_prefetch_bytes{0};
         std::atomic<std::uint64_t> dbg_evict_ok{0};
+        /** MM_ORDER_TRACE: offload handles appended in register_offload_after_task (replay flush). */
+        std::atomic<std::uint64_t> dbg_mm_trace_offload_regs{0};
+        /** MM_ORDER_TRACE: sgoc_try_demand_fetch_handle_to_gpu calls from anchor prefetch lists. */
+        std::atomic<std::uint64_t> dbg_mm_trace_anchor_fetch_try{0};
+        /** MM_ORDER_TRACE: sgoc_try_demand_fetch_handle_to_gpu calls from pop_task task buffers. */
+        std::atomic<std::uint64_t> dbg_mm_trace_taskbuf_fetch_try{0};
+        /** MM_ORDER_TRACE: post_exec offload hook invocations with a non-empty work list. */
+        std::atomic<std::uint64_t> dbg_mm_trace_post_exec_offload_tasks{0};
+
+        /** Last completed flush: snapshot for deinit-time MM logs (ops/topo cleared before tasks finish). */
+        bool mm_obs_last_flush_valid = false;
+        size_t mm_obs_last_topo_slots = 0;
+        size_t mm_obs_last_replay_tasks_submitted = 0;
+        int mm_obs_last_mem_offload_auto = 0;
+        int mm_obs_last_pin_worker = -1;
+        int mm_obs_last_mm_execute = 0;
     };
     std::unique_ptr<graph_sgoc_runtime> graph_sgoc;
 
@@ -481,9 +507,10 @@ void graph_sched_recorder_deinit(graph_sched_data *data, unsigned sched_ctx_id);
 namespace graph_sgoc_bundle {
 /** Non-zero if STARPU_GRAPH_SCHED_SGOC_MEM_DEBUG enables MM offload/prefetch advance logging. */
 int graph_sched_sgoc_mem_debug_env(void);
-/** Log planned topo-slot advance for prefetches/offloads (requires populated \p mm lists). */
-void graph_sched_sgoc_log_mm_plan_advance_debug(const std::vector<GraphOp> &ops, const std::vector<size_t> &topo_order,
-                                                const graph_sched_gpu_memory_manager &mm);
+/** Non-zero if STARPU_GRAPH_SCHED_MM_ORDER_TRACE enables per-flush MM plan vs replay ordering summary on stderr. */
+int graph_sched_mm_order_trace_env(void);
+/** Log planned topo-slot advance for prefetches/offloads (\p topo_slots = full replay topo length; \p mm lists). */
+void graph_sched_sgoc_log_mm_plan_advance_debug(size_t topo_slots, const graph_sched_gpu_memory_manager &mm);
 } /* namespace graph_sgoc_bundle */
 
 void graph_sched_sgoc_pre_exec_hook(graph_sched_data *data, struct starpu_task *task);
@@ -506,6 +533,8 @@ void graph_sched_sgoc_victim_note_task_completed(graph_sched_data *data, struct 
 void graph_sched_sgoc_victim_clear_belady(graph_sched_data *data);
 void graph_sched_sgoc_register(graph_sched_data *data);
 void graph_sched_sgoc_deinit(graph_sched_data *data, unsigned sched_ctx_id);
+/** Policy deinit: stderr MM plan / replay / pop data-readiness when MEM_DEBUG and/or MM_ORDER_TRACE (no StarPU wait). */
+void graph_sched_sgoc_print_memory_observations(graph_sched_data *data);
 void graph_sched_account_outermost_capture_end(graph_sched_data *data);
 
 /** Policy init: resolve STARPU_GRAPH_SCHED_WORKER into graph_pinned_worker_id and log target. */

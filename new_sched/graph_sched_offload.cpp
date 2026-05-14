@@ -34,6 +34,36 @@ static bool graph_sched_task_uses_handle_for_ram_read_offload(struct starpu_task
     return false;
 }
 
+/** True if this task may write \p h on the worker (conservative when buffer not found). */
+static bool graph_sched_task_writes_handle(struct starpu_task *task, starpu_data_handle_t h)
+{
+    if (!task || !h || !task->cl)
+        return true;
+    const unsigned nbuf = STARPU_TASK_GET_NBUFFERS(task);
+    for (unsigned j = 0; j < nbuf; ++j) {
+        if (STARPU_TASK_GET_HANDLE(task, j) != h)
+            continue;
+        const unsigned mode = STARPU_TASK_GET_MODE(task, j);
+        if ((mode & STARPU_SCRATCH) != 0)
+            return false;
+        if ((mode & STARPU_REDUX) != 0 || (mode & STARPU_MPI_REDUX) != 0)
+            return true;
+        return (mode & STARPU_W) != 0;
+    }
+    return true;
+}
+
+static void graph_sched_pending_gpu_evict_push_unique(graph_sched_data *data, starpu_data_handle_t h)
+{
+    if (!h)
+        return;
+    for (starpu_data_handle_t p : data->graph_pending_gpu_evict_handles) {
+        if (p == h)
+            return;
+    }
+    data->graph_pending_gpu_evict_handles.push_back(h);
+}
+
 static void graph_sched_sync_pending_evict_count(graph_sched_data *data)
 {
     data->graph_pending_gpu_evict_pending_count.store(data->graph_pending_gpu_evict_handles.size(),
@@ -64,6 +94,11 @@ void graph_sched_drain_deferred_ram_offload_copies(graph_sched_data *data, unsig
             continue;
         if (!graph_sched_query_valid_on_node(h, gpu_i))
             continue;
+        /* Coherent RAM replica already tracked by StarPU — skip W acquire and evict GPU copy. */
+        if (graph_sched_query_valid_on_node(h, ram_i)) {
+            to_pending.push_back(h);
+            continue;
+        }
         /* W-mode acquire skips read-initialization assert (see StarPU user_interactions _starpu_data_check_initialized). */
         if (starpu_data_acquire_on_node_try(h, ram_i, STARPU_W) != 0)
             continue;
@@ -102,6 +137,7 @@ void graph_sched_register_offload_after_task(graph_sched_data *data, struct star
         return;
     std::lock_guard<std::mutex> lock(data->graph_offload_mutex);
     auto &vec = data->graph_offload_after_task_handles[task];
+    const size_t before = vec.size();
     std::unordered_set<void *> seen;
     seen.reserve(vec.size() + s_offload_keys.size());
     for (starpu_data_handle_t h : vec)
@@ -116,6 +152,9 @@ void graph_sched_register_offload_after_task(graph_sched_data *data, struct star
         seen.insert(k);
         vec.push_back(h);
     }
+    if (data->graph_sgoc && data->graph_sgoc->mm_order_trace && vec.size() > before)
+        data->graph_sgoc->dbg_mm_trace_offload_regs.fetch_add(static_cast<std::uint64_t>(vec.size() - before),
+                                                              std::memory_order_relaxed);
 }
 
 void graph_sched_run_post_exec_offloads(graph_sched_data *data, struct starpu_task *task, unsigned gpu_mem_node)
@@ -131,20 +170,38 @@ void graph_sched_run_post_exec_offloads(graph_sched_data *data, struct starpu_ta
         work = std::move(it->second);
         data->graph_offload_after_task_handles.erase(it);
     }
+    if (!work.empty() && data->graph_sgoc && data->graph_sgoc->mm_order_trace)
+        data->graph_sgoc->dbg_mm_trace_post_exec_offload_tasks.fetch_add(1u, std::memory_order_relaxed);
     const int gpu_i = static_cast<int>(gpu_mem_node);
+    const int ram_i = static_cast<int>(STARPU_MAIN_RAM);
+    std::vector<starpu_data_handle_t> defer_ram;
+    defer_ram.reserve(work.size());
+    std::vector<starpu_data_handle_t> direct_evict;
+    direct_evict.reserve(work.size());
+    for (starpu_data_handle_t h : work) {
+        if (!h)
+            continue;
+        if (!graph_sched_task_uses_handle_for_ram_read_offload(task, h))
+            continue;
+        if (!graph_sched_query_valid_on_node(h, gpu_i))
+            continue;
+        /* Belady plan schedules offload at this post_exec (after last use before the simulated pressure point). If RAM
+         * already holds a coherent replica and this task did not write the buffer, replicate is unnecessary — evict GPU
+         * immediately (typical read-only parameters). */
+        if (graph_sched_query_valid_on_node(h, ram_i) && !graph_sched_task_writes_handle(task, h))
+            direct_evict.push_back(h);
+        else
+            defer_ram.push_back(h);
+    }
     {
         std::lock_guard<std::mutex> lock(data->graph_offload_mutex);
-        for (starpu_data_handle_t h : work) {
-            if (!h)
-                continue;
-            if (!graph_sched_task_uses_handle_for_ram_read_offload(task, h))
-                continue;
-            if (!graph_sched_query_valid_on_node(h, gpu_i))
-                continue;
+        for (starpu_data_handle_t h : defer_ram)
             data->graph_offload_defer_ram_w_acquire.push_back(h);
-        }
+        for (starpu_data_handle_t h : direct_evict)
+            graph_sched_pending_gpu_evict_push_unique(data, h);
+        graph_sched_sync_pending_evict_count(data);
     }
-    /* RAM replicate + GPU evict: graph_sched_drain_deferred_ram_offload_copies (push_task / end of flush). */
+    /* Deferred RAM replicate + GPU evict: graph_sched_drain_deferred_ram_offload_copies (push_task / end of flush). */
     graph_sched_drain_pending_gpu_evicts(data, gpu_mem_node);
 }
 

@@ -1584,6 +1584,15 @@ int graph_sched_sgoc_mem_debug_env(void)
     return atoi(e) != 0;
 }
 
+/** Non-zero: one stderr summary per SGOC flush comparing MM plan lists to replay hook activity. */
+int graph_sched_mm_order_trace_env(void)
+{
+    const char *e = getenv("STARPU_GRAPH_SCHED_MM_ORDER_TRACE");
+    if (!e || !e[0])
+        return 0;
+    return atoi(e) != 0;
+}
+
 /**
  * Projected GPU footprint immediately before executing \p op (TASK): same rules as graph_sched_op_memory_delta /
  * graph_sched_op_apply_memory_effect — no handle classification by P/G/A/S.
@@ -1779,11 +1788,9 @@ static size_t sgoc_mm_debug_min_anchor_topo(const std::vector<std::vector<void *
     return best;
 }
 
-void graph_sched_sgoc_log_mm_plan_advance_debug(const std::vector<GraphOp> &ops, const std::vector<size_t> &topo_order,
-                                                const graph_sched_gpu_memory_manager &mm)
+void graph_sched_sgoc_log_mm_plan_advance_debug(size_t topo_slots, const graph_sched_gpu_memory_manager &mm)
 {
-    (void)ops;
-    const size_t T = topo_order.size();
+    const size_t T = topo_slots;
     std::uint64_t pf_n = 0, pf_early = 0, pf_slot_sum = 0, pf_early_bytes = 0, pf_all_bytes = 0;
     for (size_t ti = 0; ti < T; ++ti) {
         if (ti >= mm.topo_prefetch_before_task.size())

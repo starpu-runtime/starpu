@@ -29,8 +29,13 @@
  * budget in bytes (after STARPU_GRAPH_SCHED_STARPU_MEM_AVAILABLE_FRACTION and STARPU_GRAPH_SCHED_MEM_BUDGET_FRACTION
  * would otherwise scale the pinned allowance).
  *
- * Optional: STARPU_GRAPH_SCHED_SGOC_MEM_DEBUG — when non-empty and non-zero, stderr logs per-flush MM plan advance
- * (mean topo-slot lead for planned MM prefetches/offloads vs consumer) and replay counters (RAM offload / GPU fetch / evict).
+ * Optional: STARPU_GRAPH_SCHED_SGOC_MEM_DEBUG — when non-empty and non-zero, stderr logs at **policy deinit**
+ * (scheduler teardown; no starpu_task_wait_for_all — unsafe during starpu_shutdown). MM plan advance, replay counters,
+ * and pinned-worker pop_task data-readiness. Call starpu_task_wait_for_all from the application before StarPU shutdown
+ * if you need counters after all replay tasks have finished.
+ *
+ * Optional: STARPU_GRAPH_SCHED_MM_ORDER_TRACE — when non-empty and non-zero, stderr prints at **policy deinit** one line
+ * summarizing the last flush MM plan lists vs accumulated replay hook counters (same teardown caveat as MEM_DEBUG).
  *
  * Optional: STARPU_GRAPH_SCHED_OPTIMIZER_STATE_OFFLOAD (default 0) — when the captured graph includes an optimizer
  * phase (graph subiteration UINT32_MAX) and parsed optimizer-state handles (Adam m/v, etc.), emit StarPU hints before

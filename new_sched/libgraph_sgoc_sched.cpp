@@ -66,6 +66,7 @@ static void deinit_sgoc_sched(unsigned sched_ctx_id)
     auto *data = static_cast<graph_sched_data *>(starpu_sched_ctx_get_policy_data(sched_ctx_id));
     graph_sched_sgoc_victim_policy_deinit(data);
     graph_sched_sgoc_deinit(data, sched_ctx_id);
+    graph_sched_sgoc_print_memory_observations(data);
     if (graph_sgoc_bundle::graph_sched_verbose_env() >= 1)
         std::cerr << "sgoc: deinit sched_ctx " << sched_ctx_id << std::endl;
     delete data;
@@ -200,8 +201,15 @@ static struct starpu_task *pop_task_sgoc(unsigned sched_ctx_id)
     if (data->ready_queue.empty())
         return nullptr;
     struct starpu_task *picked = graph_sched_pop_first_ready_task(data, static_cast<unsigned>(wid));
-    if (picked)
+    if (picked) {
+        size_t nr = 0, nl = 0, na = 0;
+        starpu_st_non_ready_buffers_size(picked, static_cast<unsigned>(wid), &nr, &nl, &na);
+        if (nr == 0 && na == 0)
+            data->dbg_sgoc_pop_picked_data_ready.fetch_add(1u, std::memory_order_relaxed);
+        else
+            data->dbg_sgoc_pop_picked_data_not_ready.fetch_add(1u, std::memory_order_relaxed);
         graph_sched_sgoc_pop_prefetch_hook(data, picked);
+    }
     return picked;
 }
 
