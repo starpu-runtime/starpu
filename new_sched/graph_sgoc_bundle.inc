@@ -2110,8 +2110,7 @@ static void graph_sched_apply_gpu_mm_plan_from_capture(const std::vector<GraphOp
                                                        const std::unordered_set<void *> *starpu_gpu_resident_truth)
 {
     s_offload_active_out.clear();
-    if (!graph_sched_mem_offload_auto_env() || !policy_data || !captured_for_offload_hints
-        || captured_for_offload_hints->states.empty() || pin_worker < 0)
+    if (!graph_sched_mem_offload_auto_env() || !policy_data || !captured_for_offload_hints || pin_worker < 0)
         return;
 
     const bool sgoc_flush = policy_data->policy_log_name && std::strcmp(policy_data->policy_log_name, "sgoc") == 0;

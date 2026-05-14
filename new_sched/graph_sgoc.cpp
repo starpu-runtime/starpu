@@ -146,6 +146,7 @@ void graph_sched_sgoc_clear_runtime(graph_sched_data *data)
     G.pre_exec_prefetch.clear();
     G.post_exec_prefetch.clear();
     G.post_exec_offload_order.clear();
+    G.replay_task_topo_slot.clear();
     G.deferred_prefetch.clear();
     G.tracked_gpu_resident.clear();
     G.tracked_gpu_bytes = 0;
@@ -251,6 +252,23 @@ void graph_sched_sgoc_pop_prefetch_hook(graph_sched_data *data, struct starpu_ta
     if (!data || !task || !data->graph_sgoc || !data->graph_sgoc->mm_execute)
         return;
     graph_sched_data::graph_sgoc_runtime &G = *data->graph_sgoc;
+    const graph_sched_gpu_memory_manager &mm = data->graph_gpu_mm;
+
+    /* MM plan: GPU demand-fetch handles assigned to this anchor topo slot (may be several slots before consumer). */
+    const auto it_anchor = G.replay_task_topo_slot.find(task);
+    if (it_anchor != G.replay_task_topo_slot.end()) {
+        const unsigned ti = it_anchor->second;
+        if (ti < mm.topo_pre_exec_prefetch_order.size()) {
+            for (void *hv : mm.topo_pre_exec_prefetch_order[ti]) {
+                starpu_data_handle_t h = static_cast<starpu_data_handle_t>(hv);
+                if (!h)
+                    continue;
+                if (!sgoc_try_demand_fetch_handle_to_gpu(data, h))
+                    G.deferred_prefetch.push_back(h);
+            }
+        }
+    }
+
     const unsigned nbuf = STARPU_TASK_GET_NBUFFERS(task);
     for (unsigned j = 0; j < nbuf; ++j) {
         const enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, j);
@@ -376,7 +394,7 @@ void graph_sched_sgoc_release_outermost_capture(graph_sched_data *data, std::vec
     }
     flush_timer.lap("compute_exec_topo_order");
 
-    if (graph_sgoc_bundle::graph_sched_mem_offload_auto_env() && !parsed.states.empty() && pin_worker >= 0)
+    if (graph_sgoc_bundle::graph_sched_mem_offload_auto_env() && pin_worker >= 0)
         graph_sgoc_bundle::graph_sched_apply_gpu_mm_plan_from_capture(
             data->graph_ops, data->graph_handle_accesses, topo_order, data, &parsed, pin_worker, vb, false,
             true, s_offload_active, starpu_truth);
@@ -398,6 +416,16 @@ void graph_sched_sgoc_release_outermost_capture(graph_sched_data *data, std::vec
     flush_timer.lap("runtime_mm_init_victim_tracked_bytes");
 
     const graph_sched_gpu_memory_manager &mm = data->graph_gpu_mm;
+
+    G.replay_task_topo_slot.clear();
+    for (size_t ti = 0; ti < topo_order.size(); ++ti) {
+        const size_t opi = topo_order[ti];
+        if (opi >= data->graph_ops.size())
+            continue;
+        const GraphOp &op = data->graph_ops[opi];
+        if (op.kind == GraphOp::TASK && op.task)
+            G.replay_task_topo_slot[op.task] = static_cast<unsigned>(ti);
+    }
 
     if (G.mem_debug)
         graph_sgoc_bundle::graph_sched_sgoc_log_mm_plan_advance_debug(data->graph_ops, topo_order, mm);
@@ -438,6 +466,9 @@ void graph_sched_sgoc_release_outermost_capture(graph_sched_data *data, std::vec
         }
     }
     flush_timer.lap(("replay_submit n_task=" + std::to_string(n_task_submitted) + " n_topo_slots=" + std::to_string(topo_order.size())).c_str());
+
+    if (pin_worker >= 0)
+        graph_sched_drain_deferred_ram_offload_copies(data, G.gpu_mem_node);
 
     _starpu_graph_recorder_set_flushing(0);
 

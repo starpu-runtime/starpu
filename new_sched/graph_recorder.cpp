@@ -3572,8 +3572,7 @@ static void graph_sched_apply_gpu_mm_plan_from_capture(const std::vector<GraphOp
                                                        std::vector<void *> &s_offload_active_out)
 {
     s_offload_active_out.clear();
-    if (!graph_sched_mem_offload_auto_env() || !policy_data || !captured_for_offload_hints
-        || captured_for_offload_hints->states.empty() || pin_worker < 0)
+    if (!graph_sched_mem_offload_auto_env() || !policy_data || !captured_for_offload_hints || pin_worker < 0)
         return;
 
     std::int64_t mem_budget = policy_data->graph_pinned_worker_max_allowed_memory_bytes;
@@ -4169,8 +4168,7 @@ GraphReplayStats graph_sched_replay_recorded_ops(std::vector<GraphOp> ops,
     std::int64_t mem_sum_s_log = -1;
     clock::time_point t_mem_offload_beg = clock::now();
     clock::time_point t_mem_offload_end = clock::now();
-    if (graph_sched_mem_offload_auto_env() && policy_data && captured_for_offload_hints
-        && !captured_for_offload_hints->states.empty() && pin_worker >= 0) {
+    if (graph_sched_mem_offload_auto_env() && policy_data && captured_for_offload_hints && pin_worker >= 0) {
         t_mem_offload_beg = clock::now();
         graph_sched_apply_gpu_mm_plan_from_capture(ops, handle_accesses, topo_order, policy_data,
                                                    captured_for_offload_hints, pin_worker, vb,

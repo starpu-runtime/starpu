@@ -43,7 +43,9 @@ STARPU_ENV := OMP_NUM_THREADS=1 \
 	STARPU_GRAPH_SCHED_CHECKPOINT_MAX=0 \
 	STARPU_LIMIT_CUDA_MEM=3000 \
 	STARPU_GRAPH_SCHED_SGOC_MEM_DEBUG=1 \
-	STARPU_GRAPH_SCHED_STARPU_MEM_AVAILABLE_FRACTION=0.9
+	STARPU_GRAPH_SCHED_STARPU_MEM_AVAILABLE_FRACTION=0.9 \
+	STARPU_GRAPH_SCHED_MM_EXECUTE_HINTS=1 \
+	STARPU_GRAPH_SCHED_MEM_OFFLOAD_AUTO=1
 
 # Copy pure-Python graph scheduler helpers from NNTILE source into the build tree so ``make run`` picks up
 # graph_recorder_sched + graph_capture_sched without a full CMake rebuild.

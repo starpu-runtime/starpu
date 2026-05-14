@@ -134,7 +134,8 @@ struct graph_sched_mem_offload_plan {
     /** Peak simulated GPU bytes from the last linear offload plan (bytes); used for logs when reusing the plan. */
     std::int64_t peak_pga_bytes = 0;
     std::int64_t sum_s_bytes = 0;
-    /** Handles to cycle through CPU RAM during minibatch; stable order for replay. */
+    /** Distinct handles selected by the linear Belady offload plan (any role); stable order for replay. Legacy field
+     *  name \c s_offload_* kept from when only optimizer-state (S) buffers were classified in capture. */
     std::vector<void *> s_offload_keys;
     /**
      * Parallel to batch-0 replay topo order (same length as cached topo): simulation lists and derived exec placement.
@@ -157,7 +158,7 @@ struct graph_sched_gpu_memory_manager {
     std::deque<void *> offload_prefetch_fifo;
     /** Peak simulated GPU bytes along the modeled replay (invalidate / pure-W / prefetch-from-offload). */
     std::int64_t peak_simulated_bytes = 0;
-    /** Sum of unique optimizer-state (S) handle sizes from capture (logging). */
+    /** Sum of unique optimizer-state handle sizes from capture groups (logging only; victims are not limited to S). */
     std::int64_t sum_s_unique_bytes = 0;
     std::int64_t budget_bytes = 0;
     /** Bytes modeled before the first op (live handles + forced P/S resident). */
@@ -208,14 +209,14 @@ struct GraphIdempotentTaskPredicted {
 struct graph_sched_data {
     std::mutex policy_mutex;
     /**
-     * Separate lock for deferred S offload (task→handles map + pending GPU evict queue). post_exec and pop_task
+     * Separate lock for deferred GPU→RAM offload (task→handles map + pending GPU evict queue). post_exec and pop_task
      * interact with this without touching the ready queue, avoiding deadlocks with push/pop on policy_mutex.
      */
     std::mutex graph_offload_mutex;
     /**
      * When true, starpu_data_register_victim_selector is active: StarPU may call our Belady callback for implicit GPU
-     * allocation/reuse pressure. Explicit S-offloads still use graph_pending_gpu_evict_handles + drain (RAM-valid
-     * then starpu_data_evict_from_node) so offload is not assumed instantaneous.
+     * allocation/reuse pressure. Explicit MM-planned offloads still use graph_pending_gpu_evict_handles + drain
+     * (RAM-valid then starpu_data_evict_from_node) so offload is not assumed instantaneous.
      */
     bool graph_runtime_starpu_victim = false;
     std::deque<struct starpu_task *> ready_queue;
@@ -290,7 +291,7 @@ struct graph_sched_data {
     std::vector<unsigned> graph_minibatch_pair_task_toporder_pattern;
     unsigned graph_minibatch_pair_task_count = 0;
 
-    /** Last successful automatic S offload plan (compatible batch reuses). */
+    /** Last successful automatic GPU MM offload plan (compatible batch reuses). */
     graph_sched_mem_offload_plan graph_mem_offload_plan;
 
     /** Latest linear topo offload-plan snapshot (see graph_sched_gpu_mm_plan_linear_topo_offloads). */
@@ -308,6 +309,12 @@ struct graph_sched_data {
      * eviction (graph_pending_gpu_evict_handles) and drain runs from post_exec, pop_task, pre_exec, and before GPU fetch.
      */
     std::unordered_map<struct starpu_task *, std::vector<starpu_data_handle_t>> graph_offload_after_task_handles;
+    /**
+     * GPU→RAM offload: post_exec runs on the CUDA driver thread where starpu_data_prefetch_on_node(..., RAM) can
+     * assert for handles not yet read-initialized. Queue handles here; drain from push_task (non-driver) with
+     * starpu_data_acquire_on_node_try(..., STARPU_MAIN_RAM, STARPU_W) then release_on_node, then GPU evict.
+     */
+    std::deque<starpu_data_handle_t> graph_offload_defer_ram_w_acquire;
     /** Successful starpu_data_evict_from_node calls from drain_pending (diagnostics). */
     unsigned graph_pending_gpu_evict_drained = 0;
 
@@ -383,7 +390,7 @@ struct graph_sched_data {
      * SGOC (graph_sgoc): flush-time hints and runtime GPU transfer bookkeeping. Null when policy is not sgoc.
      */
     struct graph_sgoc_runtime {
-        /** Legacy: MM anchor prefetch lists (no longer issued at pop; GPU uses demand fetch for the popped task). */
+        /** Unused: MM anchor prefetches use \c replay_task_topo_slot + \c graph_gpu_mm.topo_pre_exec_prefetch_order. */
         std::unordered_map<struct starpu_task *, std::vector<starpu_data_handle_t>> pre_exec_prefetch;
         /** Reserved; not used in the demand-fetch pop path. */
         std::unordered_map<struct starpu_task *, std::vector<starpu_data_handle_t>> post_exec_prefetch;
@@ -396,7 +403,12 @@ struct graph_sched_data {
         std::int64_t tracked_gpu_bytes = 0;
         /** Protects Belady tables + victim eviction predict bookkeeping (victim selector vs post_exec). */
         std::mutex victim_state_mutex;
-        /** Replay topo slot (0..len-1) per TASK pointer for the last flushed graph (Belady future reference). */
+        /**
+         * Full replay topo index (INVALIDATE + TASK slots) per TASK for the last flushed graph.
+         * Filled before any replay submit so \c graph_sched_sgoc_pop_prefetch_hook can issue MM anchor prefetches.
+         */
+        std::unordered_map<const struct starpu_task *, unsigned> replay_task_topo_slot;
+        /** Replay topo slot per TASK when StarPU victim/Belady is enabled (same indices as \c replay_task_topo_slot). */
         std::unordered_map<const struct starpu_task *, unsigned> belady_task_topo_slot;
         /** Remaining TASK topo slots where each handle is still referenced (multiset as map<slot,count>). */
         std::unordered_map<void *, std::map<size_t, unsigned>> belady_remaining_slots;
@@ -499,10 +511,11 @@ void graph_sched_account_outermost_capture_end(graph_sched_data *data);
 /** Policy init: resolve STARPU_GRAPH_SCHED_WORKER into graph_pinned_worker_id and log target. */
 void graph_sched_init_pinned_worker(graph_sched_data *data);
 
-/** Register S handles to offload after \p task completes (replay boundary); actual RAM prefetch + pending list in post_exec. */
+/** Register S handles to offload after \p task completes; RAM replicate is deferred (see graph_offload_defer_ram_w_acquire). */
 void graph_sched_register_offload_after_task(graph_sched_data *data, struct starpu_task *task,
                                              const std::vector<void *> &s_offload_keys);
 void graph_sched_run_post_exec_offloads(graph_sched_data *data, struct starpu_task *task, unsigned gpu_mem_node);
+void graph_sched_drain_deferred_ram_offload_copies(graph_sched_data *data, unsigned gpu_mem_node);
 void graph_sched_drain_pending_gpu_evicts(graph_sched_data *data, unsigned gpu_mem_node);
 void graph_sched_clear_offload_task_registrations(graph_sched_data *data);
 

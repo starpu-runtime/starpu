@@ -75,6 +75,10 @@ static int push_task_sgoc(struct starpu_task *task)
 {
     unsigned sched_ctx_id = task->sched_ctx;
     auto *data = static_cast<graph_sched_data *>(starpu_sched_ctx_get_policy_data(sched_ctx_id));
+    if (data && data->graph_pinned_worker_id >= 0) {
+        const unsigned gpu_node = starpu_worker_get_memory_node(static_cast<unsigned>(data->graph_pinned_worker_id));
+        graph_sched_drain_deferred_ram_offload_copies(data, gpu_node);
+    }
     starpu_worker_relax_on();
     data->graph_stat_push_fifo.fetch_add(1u, std::memory_order_relaxed);
     {
