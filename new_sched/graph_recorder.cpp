@@ -3226,6 +3226,31 @@ static std::int64_t graph_sched_gpu_mm_projected_bytes_before_task(std::int64_t 
     return proj;
 }
 
+static bool graph_sched_gpu_mm_next_graph_touch_is_invalidate_without_intervening_task(
+    const std::vector<GraphOp> &ops, const std::vector<size_t> &topo_order, void *key, size_t from_ti)
+{
+    for (size_t tj = from_ti + 1; tj < topo_order.size(); ++tj) {
+        const size_t opi = topo_order[tj];
+        if (opi >= ops.size())
+            continue;
+        const GraphOp &oj = ops[opi];
+        if (oj.kind == GraphOp::INVALIDATE) {
+            if (oj.handle && static_cast<void *>(oj.handle) == key)
+                return true;
+            continue;
+        }
+        if (oj.kind == GraphOp::TASK) {
+            for (const GraphOpHandleAccessRef &ref : oj.handle_accesses) {
+                if (!ref.handle || graph_access_mode_is_invalidate(ref.mode))
+                    continue;
+                if (static_cast<void *>(ref.handle) == key)
+                    return false;
+            }
+        }
+    }
+    return false;
+}
+
 static void graph_sched_gpu_mm_build_task_topo_appearances(const std::vector<GraphOp> &ops,
                                                            const std::vector<size_t> &topo_order,
                                                            std::unordered_map<void *, std::vector<size_t>> &out)
@@ -3355,7 +3380,9 @@ static void graph_sched_gpu_mm_plan_linear_topo_offloads(const std::vector<Graph
     mm.topo_offload_before_task.clear();
     mm.topo_prefetch_before_task.clear();
     mm.topo_post_exec_offload_order.clear();
+    mm.topo_post_exec_evict_gpu_only_order.clear();
     mm.topo_pre_exec_prefetch_order.clear();
+    mm.evict_only_mark_events = 0;
 
     if (budget_bytes <= 0 || topo_order.empty()) {
         if (verbose >= 1 && budget_bytes <= 0)
@@ -3397,6 +3424,7 @@ static void graph_sched_gpu_mm_plan_linear_topo_offloads(const std::vector<Graph
 
     const size_t topo_slots = topo_order.size();
     std::vector<std::vector<void *>> offload_before_topo(topo_slots);
+    std::vector<std::vector<void *>> evict_only_before_topo(topo_slots);
     std::vector<std::vector<void *>> prefetch_before_topo(topo_slots);
 
     std::unordered_set<void *> forbidden;
@@ -3481,12 +3509,17 @@ static void graph_sched_gpu_mm_plan_linear_topo_offloads(const std::vector<Graph
             starpu_data_handle_t hk = static_cast<starpu_data_handle_t>(best_k);
             const std::int64_t sz = static_cast<std::int64_t>(starpu_data_get_size(hk));
             resident.erase(best_k);
-            offloaded.insert(best_k);
             current_bytes -= sz;
-            mm.offload_mark_events++;
-            offload_before_topo[ti].push_back(best_k);
-            if (fifo_seen.insert(best_k).second)
-                fifo_unique.push_back(best_k);
+            if (graph_sched_gpu_mm_next_graph_touch_is_invalidate_without_intervening_task(ops, topo_order, best_k, ti)) {
+                mm.evict_only_mark_events++;
+                evict_only_before_topo[ti].push_back(best_k);
+            } else {
+                offloaded.insert(best_k);
+                mm.offload_mark_events++;
+                offload_before_topo[ti].push_back(best_k);
+                if (fifo_seen.insert(best_k).second)
+                    fifo_unique.push_back(best_k);
+            }
         }
 
         std::unordered_set<void *> pf_once;
@@ -3522,6 +3555,8 @@ static void graph_sched_gpu_mm_plan_linear_topo_offloads(const std::vector<Graph
     mm.topo_prefetch_before_task = std::move(prefetch_before_topo);
     graph_sched_gpu_mm_derive_post_exec_offload_order(ops, topo_order, mm.topo_offload_before_task,
                                                       mm.topo_post_exec_offload_order);
+    graph_sched_gpu_mm_derive_post_exec_offload_order(ops, topo_order, evict_only_before_topo,
+                                                      mm.topo_post_exec_evict_gpu_only_order);
     mm.topo_pre_exec_prefetch_order = mm.topo_prefetch_before_task;
 
     if (mm.peak_after_plan_bytes > budget_bytes && verbose >= 1) {
@@ -3534,7 +3569,7 @@ static void graph_sched_gpu_mm_plan_linear_topo_offloads(const std::vector<Graph
         std::cerr << "graph_recorder: gpu_memory_manager: linear_topo_plan initial_resident_bytes=" << mm.initial_resident_bytes
                   << " peak_simulated_bytes=" << mm.peak_simulated_bytes << " budget=" << budget_bytes
                   << " offload_events=" << mm.offload_mark_events << " marked_offload_unique=" << mm.marked_offload_unique
-                  << std::endl;
+                  << " evict_only_events=" << mm.evict_only_mark_events << std::endl;
     }
 }
 
@@ -3551,6 +3586,7 @@ static void graph_sched_gpu_mm_restore_from_cached_plan(const graph_sched_mem_of
     mm.topo_offload_before_task = plan.topo_offload_before_task;
     mm.topo_prefetch_before_task = plan.topo_prefetch_before_task;
     mm.topo_post_exec_offload_order = plan.topo_post_exec_offload_order;
+    mm.topo_post_exec_evict_gpu_only_order = plan.topo_post_exec_evict_gpu_only_order;
     mm.topo_pre_exec_prefetch_order = plan.topo_pre_exec_prefetch_order;
     for (void *k : plan.s_offload_keys)
         mm.offload_prefetch_fifo.push_back(k);
@@ -3636,6 +3672,8 @@ static void graph_sched_apply_gpu_mm_plan_from_capture(const std::vector<GraphOp
             policy_data->graph_mem_offload_plan.topo_prefetch_before_task = policy_data->graph_gpu_mm.topo_prefetch_before_task;
             policy_data->graph_mem_offload_plan.topo_post_exec_offload_order =
                 policy_data->graph_gpu_mm.topo_post_exec_offload_order;
+            policy_data->graph_mem_offload_plan.topo_post_exec_evict_gpu_only_order =
+                policy_data->graph_gpu_mm.topo_post_exec_evict_gpu_only_order;
             policy_data->graph_mem_offload_plan.topo_pre_exec_prefetch_order =
                 policy_data->graph_gpu_mm.topo_pre_exec_prefetch_order;
         }

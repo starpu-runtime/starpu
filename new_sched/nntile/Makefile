@@ -40,13 +40,15 @@ STARPU_ENV := OMP_NUM_THREADS=1 \
 	STARPU_HOSTNAME=GPT2_LMHead_example \
 	STARPU_FXT_PREFIX=$(NOTEBOOK_DIR)/starpu/fxt \
 	STARPU_GRAPH_SCHED_VERBOSE=3 \
-	STARPU_GRAPH_SCHED_CHECKPOINT_MAX=0 \
-	STARPU_LIMIT_CUDA_MEM=3000 \
+	STARPU_LIMIT_CUDA_MEM=2000 \
 	STARPU_GRAPH_SCHED_SGOC_MEM_DEBUG=1 \
 	STARPU_GRAPH_SCHED_MM_ORDER_TRACE=1 \
 	STARPU_GRAPH_SCHED_STARPU_MEM_AVAILABLE_FRACTION=0.9 \
 	STARPU_GRAPH_SCHED_MM_EXECUTE_HINTS=1 \
 	STARPU_GRAPH_SCHED_MEM_OFFLOAD_AUTO=1
+
+# Max WRR graph checkpoints per sgoc flush (see graph_sched.h). Example: make run_graph CKPT_MAX=24
+CKPT_MAX ?= 0
 
 # Copy pure-Python graph scheduler helpers from NNTILE source into the build tree so ``make run`` picks up
 # graph_recorder_sched + graph_capture_sched without a full CMake rebuild.
@@ -136,6 +138,6 @@ run_darts:
 # so the policy uses its default (CUDA:0 if a GPU exists, else CPU:0). Override on the make line if needed.
 run_graph: sync_nntile_graph_sched_py
 	@echo "new_sched/nntile: STARPU_SCHED_LIB=$(GRAPH_SCHED_SO) (rebuild with: make -C $(GRAPH_SCHED_DIR))" >&2
-	cd $(NOTEBOOK_DIR) && $(STARPU_ENV) STARPU_SCHED=sgoc \
+	cd $(NOTEBOOK_DIR) && $(STARPU_ENV) STARPU_GRAPH_SCHED_CHECKPOINT_MAX=$(CKPT_MAX) STARPU_SCHED=sgoc \
 		STARPU_SCHED_LIB=$(GRAPH_SCHED_SO) \
 		$(GPT2_TRAIN)

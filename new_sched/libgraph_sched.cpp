@@ -329,6 +329,7 @@ static void post_exec_hook_graph(struct starpu_task *task, unsigned sched_ctx_id
         return;
     const unsigned gpu_node = starpu_worker_get_memory_node(static_cast<unsigned>(data->graph_pinned_worker_id));
     graph_sched_run_post_exec_offloads(data, task, gpu_node);
+    graph_sched_run_post_exec_evict_gpu_only(data, task, gpu_node);
 }
 
 static struct starpu_sched_policy _starpu_sched_graph_policy = {

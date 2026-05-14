@@ -130,6 +130,26 @@ void graph_sched_drain_deferred_ram_offload_copies(graph_sched_data *data, unsig
     graph_sched_drain_pending_gpu_evicts(data, gpu_mem_node);
 }
 
+void graph_sched_register_evict_gpu_only_after_task(graph_sched_data *data, struct starpu_task *task,
+                                                    const std::vector<void *> &handles)
+{
+    if (!data || !task || handles.empty())
+        return;
+    std::lock_guard<std::mutex> lock(data->graph_offload_mutex);
+    auto &vec = data->graph_evict_gpu_only_after_task_handles[task];
+    std::unordered_set<void *> seen;
+    seen.reserve(vec.size() + handles.size());
+    for (starpu_data_handle_t h : vec)
+        if (h)
+            seen.insert(static_cast<void *>(h));
+    for (void *k : handles) {
+        if (!k || seen.count(k))
+            continue;
+        seen.insert(k);
+        vec.push_back(static_cast<starpu_data_handle_t>(k));
+    }
+}
+
 void graph_sched_register_offload_after_task(graph_sched_data *data, struct starpu_task *task,
                                              const std::vector<void *> &s_offload_keys)
 {
@@ -205,6 +225,30 @@ void graph_sched_run_post_exec_offloads(graph_sched_data *data, struct starpu_ta
     graph_sched_drain_pending_gpu_evicts(data, gpu_mem_node);
 }
 
+void graph_sched_run_post_exec_evict_gpu_only(graph_sched_data *data, struct starpu_task *task, unsigned gpu_mem_node)
+{
+    if (!data || !task)
+        return;
+    std::vector<starpu_data_handle_t> work;
+    {
+        std::lock_guard<std::mutex> lock(data->graph_offload_mutex);
+        auto it = data->graph_evict_gpu_only_after_task_handles.find(task);
+        if (it == data->graph_evict_gpu_only_after_task_handles.end())
+            return;
+        work = std::move(it->second);
+        data->graph_evict_gpu_only_after_task_handles.erase(it);
+    }
+    const int gpu_i = static_cast<int>(gpu_mem_node);
+    for (starpu_data_handle_t h : work) {
+        if (!h)
+            continue;
+        if (!graph_sched_query_valid_on_node(h, gpu_i))
+            continue;
+        graph_sched_pending_gpu_evict_push_unique(data, h);
+    }
+    graph_sched_drain_pending_gpu_evicts(data, gpu_mem_node);
+}
+
 void graph_sched_drain_pending_gpu_evicts(graph_sched_data *data, unsigned gpu_mem_node)
 {
     if (!data)
@@ -260,6 +304,7 @@ void graph_sched_clear_offload_task_registrations(graph_sched_data *data)
         return;
     std::lock_guard<std::mutex> lock(data->graph_offload_mutex);
     data->graph_offload_after_task_handles.clear();
+    data->graph_evict_gpu_only_after_task_handles.clear();
     data->graph_offload_defer_ram_w_acquire.clear();
     data->graph_pending_gpu_evict_handles.clear();
     graph_sched_sync_pending_evict_count(data);

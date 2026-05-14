@@ -91,6 +91,8 @@ static void sgoc_fill_flush_residency_sets_from_ops(graph_sched_data *data, cons
 
 
 namespace graph_sgoc_bundle {
+static void sgoc_rebuild_handle_access_lists(graph_sched_data *data);
+void graph_sgoc_rebuild_lists_and_refresh_deps(graph_sched_data *data);
 #include "graph_sgoc_bundle.inc"
 
 static void sgoc_rebuild_handle_access_lists(graph_sched_data *data)
@@ -107,6 +109,12 @@ static void sgoc_rebuild_handle_access_lists(graph_sched_data *data)
         if (a.next_for_handle == GRAPH_ACCESS_NONE)
             L.tail = i;
     }
+}
+
+void graph_sgoc_rebuild_lists_and_refresh_deps(graph_sched_data *data)
+{
+    sgoc_rebuild_handle_access_lists(data);
+    graph_sched_refresh_op_dependencies(data);
 }
 
 void graph_sgoc_finalize_outermost_capture(graph_sched_data *data, std::vector<GraphOp> &&replay,
@@ -302,6 +310,7 @@ void graph_sched_sgoc_post_exec_hook(graph_sched_data *data, struct starpu_task 
     if (!data || !task)
         return;
     graph_sched_run_post_exec_offloads(data, task, gpu_mem_node);
+    graph_sched_run_post_exec_evict_gpu_only(data, task, gpu_mem_node);
     if (data->graph_sgoc && data->graph_sgoc->mm_execute)
         sgoc_drain_deferred_prefetch(data);
 }
@@ -386,8 +395,15 @@ void graph_sched_sgoc_release_outermost_capture(graph_sched_data *data, std::vec
                                                 graph_sched_captured_handle_groups &parsed, bool has_batch,
                                                 std::uint32_t batch_val, int vb, unsigned sched_ctx_id)
 {
-    /* SGOC plans one finished capture at a time; recurring similar graphs are the expected workload and
-     * inform future extensions (Belady-style reuse, prefetch, residency across sessions). */
+    /* Flush pipeline (post recording_end linearize): replay holds dense graph_ops + handle_accesses with
+     * capture-time synthetic pre-W invalidates already materialized as INVALIDATE ops.
+     *  (1) Install ops/HA, rebuild handle lists, refresh pred/succ (idempotent if linearize already refreshed).
+     *  (2) WRR checkpoints (STARPU_GRAPH_SCHED_CHECKPOINT_MAX): invalidate + cloned producer before backward read.
+     *  (3) StarPU residency snapshot for optional ready-VRAM topo tie-break.
+     *  (4) Lex topo + memory-peak sim on that order (diagnostics / legacy greedy trigger).
+     *  (5) Exec topo: ready-set greedy VRAM order (default) or lex + greedy-memory fallback.
+     *  (6) MM Belady linear plan + runtime victim Belady — both consume post-checkpoint \a graph_ops and \a topo_order
+     *      (extra TASK slots from rematerialization clones affect appearances / greedy choices). */
     SgocCapturePhaseTimer flush_timer("flush");
     (void)has_batch;
     (void)batch_val;
@@ -424,6 +440,9 @@ void graph_sched_sgoc_release_outermost_capture(graph_sched_data *data, std::vec
         graph_sgoc_bundle::graph_sched_refresh_op_dependencies(data);
     }
     flush_timer.lap("move_ops_rebuild_access_deps");
+
+    graph_sgoc_bundle::graph_sgoc_apply_wrr_checkpoints_before_topo(data, parsed, vb);
+    flush_timer.lap("wrr_checkpoints_before_topo");
 
     const int pin_worker = data->graph_pinned_worker_id;
     std::vector<void *> s_offload_active;
@@ -549,6 +568,10 @@ void graph_sched_sgoc_release_outermost_capture(graph_sched_data *data, std::vec
             if (G.mm_execute && pin_worker >= 0 && ti < mm.topo_post_exec_offload_order.size()
                 && !mm.topo_post_exec_offload_order[ti].empty() && op.task)
                 graph_sched_register_offload_after_task(data, op.task, mm.topo_post_exec_offload_order[ti]);
+            if (G.mm_execute && pin_worker >= 0 && ti < mm.topo_post_exec_evict_gpu_only_order.size()
+                && !mm.topo_post_exec_evict_gpu_only_order[ti].empty() && op.task)
+                graph_sched_register_evict_gpu_only_after_task(data, op.task,
+                                                               mm.topo_post_exec_evict_gpu_only_order[ti]);
             break;
         case GraphOp::INVALIDATE:
             _starpu_data_invalidate_submit_impl(op.handle);

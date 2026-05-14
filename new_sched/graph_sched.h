@@ -22,6 +22,29 @@
  * graph_recorder.cpp reference. Each SGOC flush is self-contained (GPU MM Belady plan + mem_offload_plan cache are
  * refreshed every outer recording_end for the sgoc policy).
  *
+ * Optional: STARPU_GRAPH_SCHED_CHECKPOINT_MAX (default 0 = off) — max WRR checkpoint clones per recording flush,
+ * after activation classification (same P/S/G/A minibatch-1/2 rules as graph_recorder via graph_sched_parse_captured_data_handles)
+ * and before topological sort. Candidates are ordered by best rematerialization bytes per predicted microsecond on the
+ * pinned CUDA worker (then shorter predicted time, then task pointer). Insertion uses the same chain rule as the reference
+ * (forward pure-read in graph subiter 1, backward pure-read in subiter 2; invalidate + clone immediately before the
+ * backward read). Linearize ends with a handle-list rebuild + full pred/succ refresh so dense \c op_idx matches edges
+ * before checkpoint insertion; greedy VRAM topo and MM Belady then run on the post-checkpoint DAG (extra TASK ops add
+ * topo appearances for rematerialized handles). With STARPU_GRAPH_SCHED_VERBOSE>=3, stderr lists WRR-ranked candidates, pool sizes, each successful
+ * insert (producer op index, codelet, job id, written handle, clone task pointer, remat_bytes), and skip reasons at
+ * verbose >= 2.
+ *
+ * Activation classification for checkpoint keys merges **all** subiter-1/2 tasks in the capture by default; a second
+ * forward pure-W on the same handle (e.g. next minibatch) sets f_w>1 and removes checkpointability. Set
+ * STARPU_GRAPH_SCHED_ACTIVATION_AGG_FIRST_OUTER_BATCH=1 to aggregate only tasks at the minimum \c graph_stage_batch_iteration
+ * among subiter-1/2 tasks (requires a valid batch tag on **every** such task; otherwise the filter is ignored).
+ *
+ * **Host–device traffic:** these checkpoints are *not* “skip storing activations to save PCIe” (that would be a different
+ * algorithm). Each insert adds an explicit invalidate on the activation handle and an extra cloned producer task before
+ * the backward read. MM Belady and runtime victim state are driven from the **post-checkpoint** graph and topo order, but
+ * offload/prefetch **counts** can still match a no-checkpoint run when pressure is similar: remat TASKs touch the same
+ * handles as consumers (Belady's forbidden set per slot shrinks), and non-activation tensors may dominate evictions.
+ * STARPU_BUS_STATS totals are often dominated by full training tensor traffic either way.
+ *
  * Optional: STARPU_GRAPH_SCHED_SGOC_READYVRAM_TOPO (default on, non-zero) — ready-set topological order that
  * greedily minimizes simulated GPU pure-write footprint; set to 0 to use legacy lex + greedy-memory topo.
  *
@@ -48,7 +71,9 @@
  *
  * Runtime: post_exec registers planned S-offloads (async RAM replicate), queues each handle for GPU eviction, and
  * immediately tries graph_sched_drain_pending_gpu_evicts (starpu_data_can_evict + starpu_data_evict_from_node when the
- * RAM copy is valid — offload is not treated as instantaneous). pop_task and pre_exec drain the same queue before
+ * RAM copy is valid — offload is not treated as instantaneous). When the linear MM planner sees that the next graph
+ * touch of a victim is \c invalidate_submit with no intervening TASK on that handle, it skips RAM offload and only
+ * schedules GPU eviction (same post_exec drain path, no starpu_data_acquire to main RAM). pop_task and pre_exec drain the same queue before
  * scheduling fetches. A GPU starpu_data_fetch_on_node is started only when starpu_memory_get_available reports enough
  * free bytes on the pinned CUDA node (if known) and the planner mem_budget headroom allows it. With StarPU new enough
  * (STARPUSGOC_HAS_VICTIM_SELECTOR=1), a Belady victim selector still handles implicit allocation pressure; explicit

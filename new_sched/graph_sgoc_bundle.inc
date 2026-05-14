@@ -1,6 +1,5 @@
 /* SGOC graph algorithms (see graph_sgoc.cpp). graph_recorder.cpp is an in-tree reference (batch/minibatch paths);
- * it is not built by new_sched/Makefile and keeps its own MM planner copy — SGOC-only behavior (e.g. anchor pop prefetch)
- * lives here only. */
+ * it is not built by new_sched/Makefile — SGOC-only behavior (e.g. anchor pop prefetch, WRR checkpoint flush) lives here. */
 #include "graph_sched_internal.hpp"
 #include <starpu_graph_recorder.h>
 #include <starpu_data.h>
@@ -59,6 +58,21 @@ static void graph_sched_bump_handle_access_op_indices_after_insert(std::vector<G
     for (GraphHandleAccess &access : handle_accesses) {
         if (access.op_idx >= insert_pos)
             access.op_idx++;
+    }
+}
+
+/** Bump stored op indices in predecessor/successor lists after inserting one op at \p insert_pos. */
+static void graph_sched_bump_op_graph_indices_after_insert(std::vector<GraphOp> &ops, size_t insert_pos)
+{
+    for (GraphOp &op : ops) {
+        for (size_t &idx : op.predecessors) {
+            if (idx >= insert_pos)
+                idx++;
+        }
+        for (size_t &idx : op.successors) {
+            if (idx >= insert_pos)
+                idx++;
+        }
     }
 }
 
@@ -194,6 +208,18 @@ static unsigned graph_sched_checkpoint_max_env(void)
     return checkpoint_max;
 }
 
+/**
+ * When non-zero: for activation checkpoint/offload classification only, aggregate access stats only from TASKs whose
+ * \c graph_stage_subiteration is 1 or 2 **and** \c graph_stage_batch_iteration equals the minimum batch index among
+ * those TASKs. Requires **every** subiter-1/2 TASK to have \c graph_stage_batch_iteration_valid; otherwise the filter
+ * is skipped (same as 0). Default 0 = merge **all** subiter-1/2 tasks in the capture (can inflate f_w across minibatches).
+ */
+static int graph_sched_activation_agg_first_outer_batch_env(void)
+{
+    const char *e = getenv("STARPU_GRAPH_SCHED_ACTIVATION_AGG_FIRST_OUTER_BATCH");
+    return (e && e[0] && std::atoi(e) != 0) ? 1 : 0;
+}
+
 static double graph_sched_elapsed_sec(std::chrono::steady_clock::time_point a, std::chrono::steady_clock::time_point b)
 {
     return std::chrono::duration<double>(b - a).count();
@@ -277,7 +303,7 @@ static void graph_sched_activation_stat_bump(unsigned mode, unsigned &pure_r, un
     other++;
 }
 
-/** Per-handle access counts for subiteration 1 (forward) and 2 (backward) of the first minibatch. */
+/** Per-handle access counts for forward (graph subiter 1) vs backward (subiter 2); see graph_sched_parse_captured_data_handles. */
 struct FirstMinibatchActivationAgg {
     unsigned f_r = 0, f_w = 0, f_rw = 0, f_sc = 0, f_other = 0;
     unsigned b_r = 0, b_w = 0, b_rw = 0, b_sc = 0, b_other = 0;
@@ -322,6 +348,10 @@ static std::int64_t graph_sched_sum_handle_vector_bytes(const std::vector<starpu
  * 3) \p out.activations (checkpointable) and \p out.offloadable_activations: same backward rule (subiter 2 pure R only);
  *    forward (subiter 1) is strict W+R for checkpointable, or allows ::STARPU_RW for offloadable (superset). One
  *    aggregation pass, then one classification pass over the map. Order: first appearance in subiter 1.
+ *    By default, **every** TASK with valid subiter 1 or 2 in the **entire** capture contributes to the per-handle
+ *    counters (repeated minibatches merge), so a second forward pure-W on the same handle sets f_w>1 and removes
+ *    checkpointability. Set STARPU_GRAPH_SCHED_ACTIVATION_AGG_FIRST_OUTER_BATCH=1 to aggregate only the minimum
+ *    \c graph_stage_batch_iteration slice when all subiter-1/2 TASKs carry valid batch tags.
  */
 static void graph_sched_parse_captured_data_handles(const std::vector<GraphOp> &ops,
                                                     graph_sched_captured_handle_groups &out, int verbose)
@@ -403,6 +433,40 @@ static void graph_sched_parse_captured_data_handles(const std::vector<GraphOp> &
             out.states.push_back(h);
     }
 
+    const int want_agg_first_ob = graph_sched_activation_agg_first_outer_batch_env();
+    bool agg_filter_outer_batch = false;
+    std::uint32_t agg_outer_batch_min = 0;
+    if (want_agg_first_ob) {
+        std::uint32_t min_b = std::numeric_limits<std::uint32_t>::max();
+        bool all_fwd_bwd_tagged = true;
+        bool any_fwd_bwd = false;
+        for (const GraphOp &op : ops) {
+            if (op.kind != GraphOp::TASK || !op.task)
+                continue;
+            if (!op.graph_stage_subiteration_valid)
+                continue;
+            const std::uint32_t sub = op.graph_stage_subiteration;
+            if (sub != k_first_forward_subiter && sub != k_first_backward_subiter)
+                continue;
+            any_fwd_bwd = true;
+            if (!op.graph_stage_batch_iteration_valid) {
+                all_fwd_bwd_tagged = false;
+                break;
+            }
+            min_b = std::min(min_b, op.graph_stage_batch_iteration);
+        }
+        if (any_fwd_bwd && all_fwd_bwd_tagged && min_b != std::numeric_limits<std::uint32_t>::max()) {
+            agg_filter_outer_batch = true;
+            agg_outer_batch_min = min_b;
+        }
+    }
+
+    auto agg_batch_ok = [&](const GraphOp &op) -> bool {
+        if (!agg_filter_outer_batch)
+            return true;
+        return op.graph_stage_batch_iteration_valid && op.graph_stage_batch_iteration == agg_outer_batch_min;
+    };
+
     std::unordered_map<void *, FirstMinibatchActivationAgg> activation_agg;
     for (const GraphOp &op : ops) {
         if (op.kind != GraphOp::TASK || !op.task)
@@ -411,6 +475,8 @@ static void graph_sched_parse_captured_data_handles(const std::vector<GraphOp> &
             continue;
         const std::uint32_t sub = op.graph_stage_subiteration;
         if (sub != k_first_forward_subiter && sub != k_first_backward_subiter)
+            continue;
+        if (!agg_batch_ok(op))
             continue;
         for (const GraphOpHandleAccessRef &ref : op.handle_accesses) {
             if (!ref.handle || graph_access_mode_is_invalidate(ref.mode))
@@ -422,6 +488,22 @@ static void graph_sched_parse_captured_data_handles(const std::vector<GraphOp> &
             else
                 graph_sched_activation_stat_bump(ref.mode, ag.b_r, ag.b_w, ag.b_rw, ag.b_sc, ag.b_other);
         }
+    }
+
+    if (verbose >= 3) {
+        size_t fw_gt1 = 0;
+        for (const auto &e : activation_agg) {
+            if (e.second.f_w > 1u)
+                fw_gt1++;
+        }
+        std::cerr << "sgoc: handle_parser: activation_agg_unique_handles=" << activation_agg.size()
+                  << " forward_pure_W_gt1=" << fw_gt1 << " agg_first_outer_batch_active="
+                  << (agg_filter_outer_batch ? 1 : 0);
+        if (agg_filter_outer_batch)
+            std::cerr << " outer_batch_min=" << agg_outer_batch_min;
+        else if (want_agg_first_ob)
+            std::cerr << " (FIRST_OUTER_BATCH requested but skipped: need valid batch tags on every subiter-1/2 TASK)";
+        std::cerr << std::endl;
     }
 
     std::unordered_set<void *> checkpointable_activation_keys;
@@ -442,6 +524,8 @@ static void graph_sched_parse_captured_data_handles(const std::vector<GraphOp> &
         if (op.kind != GraphOp::TASK || !op.task)
             continue;
         if (!op.graph_stage_subiteration_valid || op.graph_stage_subiteration != k_first_forward_subiter)
+            continue;
+        if (!agg_batch_ok(op))
             continue;
         for (const GraphOpHandleAccessRef &ref : op.handle_accesses) {
             if (!ref.handle || graph_access_mode_is_invalidate(ref.mode))
@@ -1501,6 +1585,803 @@ static const GraphOpHandleAccessRef *graph_op_find_single_pure_write_access(cons
     return write_ref;
 }
 
+static bool graph_op_is_checkpoint_idempotent(const GraphOp &op)
+{
+    if (op.kind != GraphOp::TASK)
+        return false;
+
+    unsigned pure_write_count = 0;
+    for (const GraphOpHandleAccessRef &ref : op.handle_accesses) {
+        if (graph_access_mode_is_pure_write(ref.mode)) {
+            pure_write_count++;
+            continue;
+        }
+        if (graph_access_mode_is_pure_read(ref.mode) || graph_access_mode_is_pure_scratch(ref.mode))
+            continue;
+        return false;
+    }
+
+    return pure_write_count == 1;
+}
+
+static void graph_sched_collect_consecutive_pure_read_task_accesses(const std::vector<GraphHandleAccess> &handle_accesses,
+                                                                    size_t write_access_idx,
+                                                                    std::vector<size_t> &read_accesses_out)
+{
+    read_accesses_out.clear();
+    if (write_access_idx >= handle_accesses.size())
+        return;
+
+    size_t next_idx = handle_accesses[write_access_idx].next_for_handle;
+    while (next_idx != GRAPH_ACCESS_NONE) {
+        if (next_idx >= handle_accesses.size())
+            break;
+
+        const GraphHandleAccess &access = handle_accesses[next_idx];
+        if (graph_access_mode_is_invalidate(access.mode) || graph_access_mode_is_writer(access.mode))
+            break;
+
+        if (access.task != nullptr) {
+            if (!graph_access_mode_is_pure_read(access.mode))
+                break;
+            read_accesses_out.push_back(next_idx);
+        }
+
+        next_idx = access.next_for_handle;
+    }
+}
+
+static bool graph_sched_access_op_graph_subiter(const std::vector<GraphOp> &ops,
+                                                const std::vector<GraphHandleAccess> &handle_accesses, size_t access_idx,
+                                                bool *valid_out, std::uint32_t *sub_out)
+{
+    if (access_idx >= handle_accesses.size())
+        return false;
+    const size_t oi = handle_accesses[access_idx].op_idx;
+    if (oi >= ops.size())
+        return false;
+    const GraphOp &rop = ops[oi];
+    *valid_out = rop.graph_stage_subiteration_valid;
+    *sub_out = rop.graph_stage_subiteration;
+    return true;
+}
+
+/**
+ * Checkpoint insertion: on the handle chain after W, require a pure-read TASK in graph subiter 1 (forward) and a later
+ * pure-read TASK in subiter 2 (backward). Invalidate + clone are scheduled immediately before the backward read.
+ */
+static bool graph_sched_checkpoint_wrr_chain_resolve(const GraphOp &producer_op, const std::vector<GraphOp> &ops,
+                                                     const std::vector<GraphHandleAccess> &handle_accesses,
+                                                     const GraphOpHandleAccessRef **write_ref_out,
+                                                     std::vector<size_t> &read_accesses_out, const char **failure_reason_out,
+                                                     unsigned *consecutive_pure_read_tasks_out)
+{
+    constexpr std::uint32_t k_first_forward_subiter = 1u;
+    constexpr std::uint32_t k_first_backward_subiter = 2u;
+
+    if (failure_reason_out)
+        *failure_reason_out = nullptr;
+    if (consecutive_pure_read_tasks_out)
+        *consecutive_pure_read_tasks_out = 0;
+    *write_ref_out = nullptr;
+    read_accesses_out.clear();
+
+    if (producer_op.kind != GraphOp::TASK || !producer_op.task) {
+        if (failure_reason_out)
+            *failure_reason_out = "not a TASK op or null task pointer";
+        return false;
+    }
+
+    const GraphOpHandleAccessRef *write_ref = graph_op_find_single_pure_write_access(producer_op);
+    *write_ref_out = write_ref;
+    if (!write_ref) {
+        if (failure_reason_out)
+            *failure_reason_out =
+                "no exactly-one pure-STARPU_W access (insert needs a single producer write ref on the checkpointed handle)";
+        return false;
+    }
+    if (write_ref->access_idx >= handle_accesses.size()) {
+        if (failure_reason_out)
+            *failure_reason_out = "pure-W access_idx is out of range for graph_handle_accesses (stale graph?)";
+        return false;
+    }
+
+    std::vector<size_t> all_reads;
+    graph_sched_collect_consecutive_pure_read_task_accesses(handle_accesses, write_ref->access_idx, all_reads);
+    if (consecutive_pure_read_tasks_out)
+        *consecutive_pure_read_tasks_out = static_cast<unsigned>(all_reads.size());
+
+    size_t r_fwd_access = GRAPH_ACCESS_NONE;
+    size_t r_bwd_access = GRAPH_ACCESS_NONE;
+    for (size_t k = 0; k < all_reads.size(); ++k) {
+        bool vf = false;
+        std::uint32_t sf = 0;
+        if (!graph_sched_access_op_graph_subiter(ops, handle_accesses, all_reads[k], &vf, &sf))
+            continue;
+        if (!vf || sf != k_first_forward_subiter)
+            continue;
+        r_fwd_access = all_reads[k];
+        for (size_t j = k + 1; j < all_reads.size(); ++j) {
+            bool vb = false;
+            std::uint32_t sb = 0;
+            if (!graph_sched_access_op_graph_subiter(ops, handle_accesses, all_reads[j], &vb, &sb))
+                continue;
+            if (vb && sb == k_first_backward_subiter) {
+                r_bwd_access = all_reads[j];
+                break;
+            }
+        }
+        break;
+    }
+
+    if (r_fwd_access == GRAPH_ACCESS_NONE || r_bwd_access == GRAPH_ACCESS_NONE) {
+        if (failure_reason_out)
+            *failure_reason_out =
+                "after W on the handle chain, need a pure-read TASK with valid graph_subiter==1 (forward) and a later "
+                "pure-read TASK with valid graph_subiter==2 (backward); invalidate is placed before that backward read";
+        return false;
+    }
+
+    read_accesses_out.push_back(r_fwd_access);
+    read_accesses_out.push_back(r_bwd_access);
+    return true;
+}
+
+static size_t graph_sched_find_prev_handle_producer_op_idx(const std::vector<GraphHandleAccess> &handle_accesses,
+                                                           size_t access_idx)
+{
+    size_t prev_idx = access_idx;
+    while (prev_idx != GRAPH_ACCESS_NONE) {
+        if (prev_idx >= handle_accesses.size())
+            return GRAPH_ACCESS_NONE;
+        const GraphHandleAccess &access = handle_accesses[prev_idx];
+        if (graph_access_is_handle_producer_for_deps(access))
+            return access.op_idx;
+        prev_idx = access.prev_for_handle;
+    }
+    return GRAPH_ACCESS_NONE;
+}
+
+static size_t graph_sched_find_next_handle_producer_op_idx(const std::vector<GraphHandleAccess> &handle_accesses,
+                                                           size_t access_idx)
+{
+    size_t next_idx = access_idx;
+    while (next_idx != GRAPH_ACCESS_NONE) {
+        if (next_idx >= handle_accesses.size())
+            return GRAPH_ACCESS_NONE;
+        const GraphHandleAccess &access = handle_accesses[next_idx];
+        if (graph_access_is_handle_producer_for_deps(access))
+            return access.op_idx;
+        next_idx = access.next_for_handle;
+    }
+    return GRAPH_ACCESS_NONE;
+}
+
+static void graph_sched_add_handle_prefix_task_dependencies(std::vector<GraphOp> &ops,
+                                                            const std::vector<GraphHandleAccess> &handle_accesses,
+                                                            size_t first_access_idx, size_t last_access_idx,
+                                                            size_t target_op_idx)
+{
+    if (target_op_idx >= ops.size() || first_access_idx >= handle_accesses.size() || last_access_idx >= handle_accesses.size())
+        return;
+
+    size_t idx = first_access_idx;
+    while (idx != GRAPH_ACCESS_NONE) {
+        if (idx >= handle_accesses.size())
+            return;
+        const GraphHandleAccess &access = handle_accesses[idx];
+        if (access.task != nullptr)
+            graph_op_add_edge(ops, target_op_idx, access.op_idx);
+        if (idx == last_access_idx)
+            break;
+        idx = access.next_for_handle;
+    }
+}
+
+static void graph_sched_add_handle_suffix_read_dependencies(std::vector<GraphOp> &ops,
+                                                            const std::vector<GraphHandleAccess> &handle_accesses,
+                                                            size_t first_access_idx, size_t producer_op_idx)
+{
+    if (producer_op_idx >= ops.size() || first_access_idx >= handle_accesses.size())
+        return;
+
+    size_t idx = first_access_idx;
+    while (idx != GRAPH_ACCESS_NONE) {
+        if (idx >= handle_accesses.size())
+            return;
+        const GraphHandleAccess &access = handle_accesses[idx];
+        if (graph_access_mode_is_invalidate(access.mode) || graph_access_mode_is_writer(access.mode))
+            break;
+        if (access.task != nullptr && graph_access_mode_is_pure_read(access.mode))
+            graph_op_add_edge(ops, access.op_idx, producer_op_idx);
+        idx = access.next_for_handle;
+    }
+}
+
+static void graph_sched_destroy_checkpoint_task(struct starpu_task *task);
+
+static struct starpu_task *graph_sched_clone_task_for_checkpoint(const struct starpu_task *task)
+{
+    if (!task)
+        return nullptr;
+
+    struct starpu_task *clone = starpu_task_create();
+    if (!clone)
+        return nullptr;
+
+    clone->cl = task->cl;
+    clone->sched_ctx = task->sched_ctx;
+    clone->name = task->name;
+    clone->file = task->file;
+    clone->line = task->line;
+
+    const unsigned nbuf = task->cl ? STARPU_TASK_GET_NBUFFERS(task) : 0;
+    clone->nbuffers = task->nbuffers;
+
+    if (task->cl_arg && task->cl_arg_size > 0) {
+        void *cl_arg_copy = std::malloc(task->cl_arg_size);
+        if (!cl_arg_copy) {
+            graph_sched_destroy_checkpoint_task(clone);
+            return nullptr;
+        }
+        std::memcpy(cl_arg_copy, task->cl_arg, task->cl_arg_size);
+        clone->cl_arg = cl_arg_copy;
+        clone->cl_arg_size = task->cl_arg_size;
+        clone->cl_arg_free = 1;
+    }
+
+    if (task->dyn_handles && nbuf > 0) {
+        size_t bytes = nbuf * sizeof(starpu_data_handle_t);
+        clone->dyn_handles = static_cast<starpu_data_handle_t *>(std::malloc(bytes));
+        if (!clone->dyn_handles) {
+            graph_sched_destroy_checkpoint_task(clone);
+            return nullptr;
+        }
+        std::memcpy(clone->dyn_handles, task->dyn_handles, bytes);
+    } else if (nbuf > 0) {
+        std::memcpy(clone->handles, task->handles, nbuf * sizeof(starpu_data_handle_t));
+    }
+
+    if ((task->cl && task->cl->nbuffers == STARPU_VARIABLE_NBUFFERS) || task->dyn_modes) {
+        size_t bytes = nbuf * sizeof(enum starpu_data_access_mode);
+        clone->dyn_modes = static_cast<enum starpu_data_access_mode *>(std::malloc(bytes));
+        if (!clone->dyn_modes) {
+            graph_sched_destroy_checkpoint_task(clone);
+            return nullptr;
+        }
+        if (task->dyn_modes)
+            std::memcpy(clone->dyn_modes, task->dyn_modes, bytes);
+        else
+            std::memcpy(clone->dyn_modes, task->modes, bytes);
+    } else if (nbuf > 0) {
+        std::memcpy(clone->modes, task->modes, nbuf * sizeof(enum starpu_data_access_mode));
+    }
+
+    return clone;
+}
+
+static void graph_sched_destroy_checkpoint_task(struct starpu_task *task)
+{
+    if (!task)
+        return;
+    if (task->dyn_modes)
+        std::free(task->dyn_modes);
+    if (task->dyn_handles)
+        std::free(task->dyn_handles);
+    if (task->cl_arg_free && task->cl_arg)
+        std::free(task->cl_arg);
+    std::free(task);
+}
+
+static size_t graph_sched_insert_handle_access_after(std::vector<GraphHandleAccess> &handle_accesses, size_t prev_idx,
+                                                     size_t op_idx, starpu_data_handle_t handle, unsigned mode,
+                                                     struct starpu_task *task)
+{
+    GraphHandleAccess access{};
+    access.handle = handle;
+    access.mode = mode;
+    access.task = task;
+    access.op_idx = op_idx;
+    access.prev_for_handle = prev_idx;
+    access.next_for_handle =
+        (prev_idx < handle_accesses.size()) ? handle_accesses[prev_idx].next_for_handle : GRAPH_ACCESS_NONE;
+
+    const size_t access_idx = handle_accesses.size();
+    handle_accesses.push_back(access);
+
+    if (prev_idx < handle_accesses.size())
+        handle_accesses[prev_idx].next_for_handle = access_idx;
+    if (access.next_for_handle != GRAPH_ACCESS_NONE && access.next_for_handle < handle_accesses.size())
+        handle_accesses[access.next_for_handle].prev_for_handle = access_idx;
+
+    return access_idx;
+}
+
+static bool graph_sched_insert_checkpoint_for_wrr_task(std::vector<GraphOp> &ops,
+                                                       std::vector<GraphHandleAccess> &handle_accesses, size_t op_idx,
+                                                       struct starpu_task *checkpoint_task, int pin_worker,
+                                                       const std::unordered_set<void *> *checkpointable_activation_keys)
+{
+    if (op_idx >= ops.size())
+        return false;
+
+    const GraphOp op = ops[op_idx];
+    const GraphOpHandleAccessRef *write_ref = nullptr;
+    std::vector<size_t> read_accesses;
+    if (!graph_sched_checkpoint_wrr_chain_resolve(op, ops, handle_accesses, &write_ref, read_accesses, nullptr, nullptr))
+        return false;
+
+    const GraphOpHandleAccessRef write_ref_copy = *write_ref;
+    if (!checkpointable_activation_keys || checkpointable_activation_keys->empty() ||
+        !checkpointable_activation_keys->count(static_cast<void *>(write_ref_copy.handle)))
+        return false;
+    const size_t r_fwd_access_idx = read_accesses[0];
+    const size_t r_bwd_access_idx = read_accesses[1];
+    if (r_fwd_access_idx >= handle_accesses.size() || r_bwd_access_idx >= handle_accesses.size())
+        return false;
+    (void)r_fwd_access_idx;
+
+    const size_t prev_before_bwd = handle_accesses[r_bwd_access_idx].prev_for_handle;
+    if (prev_before_bwd == GRAPH_ACCESS_NONE || prev_before_bwd >= handle_accesses.size())
+        return false;
+
+    const size_t r_bwd_op_idx = handle_accesses[r_bwd_access_idx].op_idx;
+    std::vector<GraphOpHandleAccessRef> read_refs;
+    read_refs.reserve(op.handle_accesses.size());
+    for (const GraphOpHandleAccessRef &ref : op.handle_accesses) {
+        if (graph_access_mode_is_pure_read(ref.mode))
+            read_refs.push_back(ref);
+    }
+
+    const size_t inv_insert_pos = r_bwd_op_idx;
+
+    GraphOp inv_op{};
+    inv_op.kind = GraphOp::INVALIDATE;
+    inv_op.task = nullptr;
+    inv_op.handle = write_ref_copy.handle;
+
+    ops.insert(ops.begin() + inv_insert_pos, inv_op);
+    graph_sched_bump_op_graph_indices_after_insert(ops, inv_insert_pos);
+    graph_sched_bump_handle_access_op_indices_after_insert(handle_accesses, inv_insert_pos);
+
+    const size_t inv_op_idx = inv_insert_pos;
+    const size_t inv_access_idx =
+        graph_sched_insert_handle_access_after(handle_accesses, prev_before_bwd, inv_op_idx, write_ref_copy.handle,
+                                               GRAPH_ACCESS_INVALIDATE_RAW, nullptr);
+    ops[inv_op_idx].handle_accesses.push_back({write_ref_copy.handle, GRAPH_ACCESS_INVALIDATE_RAW, inv_access_idx});
+
+    const size_t checkpoint_insert_pos = inv_insert_pos + 1;
+
+    GraphOp checkpoint_op{};
+    checkpoint_op.kind = GraphOp::TASK;
+    checkpoint_op.task = checkpoint_task;
+    checkpoint_op.graph_stage_subiteration_valid = op.graph_stage_subiteration_valid;
+    checkpoint_op.graph_stage_subiteration = op.graph_stage_subiteration;
+    checkpoint_op.graph_stage_batch_iteration_valid = op.graph_stage_batch_iteration_valid;
+    checkpoint_op.graph_stage_batch_iteration = op.graph_stage_batch_iteration;
+
+    ops.insert(ops.begin() + checkpoint_insert_pos, checkpoint_op);
+    graph_sched_bump_op_graph_indices_after_insert(ops, checkpoint_insert_pos);
+    graph_sched_bump_handle_access_op_indices_after_insert(handle_accesses, checkpoint_insert_pos);
+
+    const size_t checkpoint_op_idx = checkpoint_insert_pos;
+
+    GraphOp &w2 = ops[checkpoint_op_idx];
+    const size_t primary_access_idx =
+        graph_sched_insert_handle_access_after(handle_accesses, inv_access_idx, checkpoint_op_idx, write_ref_copy.handle,
+                                               write_ref_copy.mode, w2.task);
+    w2.handle_accesses.push_back({write_ref_copy.handle, write_ref_copy.mode, primary_access_idx});
+
+    if (pin_worker >= 0)
+        w2.predicted_exec_time =
+            graph_sched_predicted_exec_time_us_for_pinned_worker(w2.task, pin_worker, w2.task->sched_ctx);
+
+    for (const GraphOpHandleAccessRef &ref : read_refs) {
+        if (ref.access_idx >= handle_accesses.size())
+            continue;
+
+        const size_t inserted_idx =
+            graph_sched_insert_handle_access_after(handle_accesses, ref.access_idx, checkpoint_op_idx, ref.handle,
+                                                   ref.mode, w2.task);
+        w2.handle_accesses.push_back({ref.handle, ref.mode, inserted_idx});
+
+        const size_t prev_producer_op_idx =
+            graph_sched_find_prev_handle_producer_op_idx(handle_accesses, handle_accesses[inserted_idx].prev_for_handle);
+        graph_op_add_edge(ops, checkpoint_op_idx, prev_producer_op_idx);
+
+        const size_t next_producer_op_idx =
+            graph_sched_find_next_handle_producer_op_idx(handle_accesses, handle_accesses[inserted_idx].next_for_handle);
+        if (next_producer_op_idx != GRAPH_ACCESS_NONE && next_producer_op_idx < ops.size())
+            graph_op_add_edge(ops, next_producer_op_idx, checkpoint_op_idx);
+    }
+
+    graph_sched_add_handle_prefix_task_dependencies(ops, handle_accesses, write_ref_copy.access_idx, prev_before_bwd,
+                                                    inv_op_idx);
+    graph_op_add_edge(ops, checkpoint_op_idx, inv_op_idx);
+    graph_sched_add_handle_suffix_read_dependencies(ops, handle_accesses, r_bwd_access_idx, checkpoint_op_idx);
+
+    return true;
+}
+
+static void graph_sched_append_unique_op_idx(std::vector<size_t> &op_indices, size_t op_idx)
+{
+    if (op_idx == GRAPH_ACCESS_NONE)
+        return;
+    for (size_t existing : op_indices) {
+        if (existing == op_idx)
+            return;
+    }
+    op_indices.push_back(op_idx);
+}
+
+static void graph_sched_collect_task_ops_for_handle(const std::vector<GraphHandleAccess> &handle_accesses,
+                                                    size_t access_idx, std::vector<size_t> &op_indices_out)
+{
+    if (access_idx >= handle_accesses.size())
+        return;
+
+    size_t idx = access_idx;
+    while (idx != GRAPH_ACCESS_NONE) {
+        if (idx >= handle_accesses.size())
+            return;
+        idx = handle_accesses[idx].prev_for_handle;
+    }
+
+    idx = access_idx;
+    while (handle_accesses[idx].prev_for_handle != GRAPH_ACCESS_NONE)
+        idx = handle_accesses[idx].prev_for_handle;
+
+    while (idx != GRAPH_ACCESS_NONE) {
+        if (idx >= handle_accesses.size())
+            return;
+        const GraphHandleAccess &access = handle_accesses[idx];
+        if (access.task != nullptr)
+            graph_sched_append_unique_op_idx(op_indices_out, access.op_idx);
+        idx = access.next_for_handle;
+    }
+}
+
+static void graph_sched_collect_checkpoint_affected_ops(const std::vector<GraphOp> &ops,
+                                                        const std::vector<GraphHandleAccess> &handle_accesses,
+                                                        size_t checkpoint_op_idx,
+                                                        std::vector<size_t> &affected_op_indices_out)
+{
+    affected_op_indices_out.clear();
+    if (checkpoint_op_idx >= ops.size())
+        return;
+
+    graph_sched_append_unique_op_idx(affected_op_indices_out, checkpoint_op_idx);
+    const GraphOp &checkpoint_op = ops[checkpoint_op_idx];
+    for (const GraphOpHandleAccessRef &ref : checkpoint_op.handle_accesses) {
+        if (ref.access_idx >= handle_accesses.size())
+            continue;
+        graph_sched_collect_task_ops_for_handle(handle_accesses, ref.access_idx, affected_op_indices_out);
+    }
+}
+
+static void graph_sched_update_checkpoint_state_for_op(std::vector<GraphOp> &ops,
+                                                       const std::vector<GraphHandleAccess> &handle_accesses,
+                                                       size_t op_idx,
+                                                       const std::unordered_set<void *> *checkpointable_activation_keys)
+{
+    (void)handle_accesses;
+    if (op_idx >= ops.size())
+        return;
+
+    GraphOp &op = ops[op_idx];
+    if (!graph_op_is_checkpoint_idempotent(op) || !checkpointable_activation_keys || checkpointable_activation_keys->empty()) {
+        op.checkpoint_idempotent = false;
+        op.checkpoint_wrr = false;
+        return;
+    }
+
+    const GraphOpHandleAccessRef *write_ref = graph_op_find_single_pure_write_access(op);
+    if (!write_ref || !write_ref->handle) {
+        op.checkpoint_idempotent = false;
+        op.checkpoint_wrr = false;
+        return;
+    }
+
+    const bool activation_producer =
+        checkpointable_activation_keys->count(static_cast<void *>(write_ref->handle)) != 0;
+    op.checkpoint_idempotent = activation_producer;
+    op.checkpoint_wrr = activation_producer;
+}
+
+static void graph_sched_refresh_all_checkpoint_states(std::vector<GraphOp> &ops,
+                                                      const std::vector<GraphHandleAccess> &handle_accesses,
+                                                      const std::unordered_set<void *> *checkpointable_activation_keys)
+{
+    for (size_t op_idx = 0; op_idx < ops.size(); ++op_idx) {
+        graph_sched_update_checkpoint_state_for_op(ops, handle_accesses, op_idx, checkpointable_activation_keys);
+    }
+}
+
+static void graph_sched_collect_checkpoint_eligible_count(const std::vector<GraphOp> &ops, size_t &eligible_tasks_out)
+{
+    eligible_tasks_out = 0;
+    for (const GraphOp &op : ops) {
+        if (op.checkpoint_wrr)
+            eligible_tasks_out++;
+    }
+}
+
+static void graph_sched_log_checkpoint_candidate_skip(const std::vector<GraphOp> &ops, size_t op_idx,
+                                                      const graph_sched_data *policy_data, const char *reason,
+                                                      unsigned consecutive_reads,
+                                                      const GraphOpHandleAccessRef *write_ref)
+{
+    if (op_idx >= ops.size())
+        return;
+    const GraphOp &op = ops[op_idx];
+    struct starpu_task *t = op.task;
+    const char *cl_name = (t && t->cl && t->cl->name) ? t->cl->name : "?";
+    const unsigned long task_id = t ? starpu_task_get_job_id(t) : 0;
+    const void *wh = (write_ref && write_ref->handle) ? static_cast<const void *>(write_ref->handle) : nullptr;
+    const char *ordering = "capture_order (first op with checkpoint_wrr)";
+    if (policy_data && !policy_data->graph_idempotent_tasks_sorted.empty())
+        ordering = "rematerialization_speed_desc (graph_idempotent_tasks_sorted; same task pool)";
+
+    std::cerr << "sgoc: checkpoint insert skip — candidates are TASK ops that (1) appear as checkpointable "
+                 "activation producers in graph_sched_parse_captured_data_handles and (2) have idempotent shape "
+                 "(one pure-W, other buffers R/scratch). Ordering: " << ordering << std::endl;
+    std::cerr << "sgoc:   op_idx=" << op_idx << " task_id=" << task_id << " cl=" << cl_name;
+    if (op.graph_stage_subiteration_valid)
+        std::cerr << " graph_subiter=" << op.graph_stage_subiteration;
+    std::cerr << " written_handle=" << wh
+              << " consecutive_pure_read_TASKs_on_global_chain_after_W=" << consecutive_reads << std::endl;
+    std::cerr << "sgoc:   chain rule: after W, need a forward read (graph_subiter==1) then a backward read "
+                 "(graph_subiter==2); invalidate immediately before the backward read (see "
+                 "graph_sched_checkpoint_wrr_chain_resolve). Reason: " << (reason ? reason : "?") << std::endl;
+}
+
+static void graph_sched_build_feasible_checkpoint_task_order(const std::vector<GraphOp> &ops,
+                                                             const std::vector<GraphHandleAccess> &handle_accesses,
+                                                             const graph_sched_data *policy_data,
+                                                             const std::unordered_set<void *> *checkpointable_activation_keys,
+                                                             std::vector<struct starpu_task *> &out_tasks_in_order,
+                                                             std::vector<size_t> &chain_scratch)
+{
+    out_tasks_in_order.clear();
+    if (!checkpointable_activation_keys || checkpointable_activation_keys->empty())
+        return;
+
+    std::unordered_set<struct starpu_task *> tasks_added;
+    tasks_added.reserve(ops.size() / 8 + 16);
+
+    auto chain_ok = [&](const GraphOp &op) -> bool {
+        const GraphOpHandleAccessRef *wr = nullptr;
+        const char *fr = nullptr;
+        unsigned n = 0;
+        return graph_sched_checkpoint_wrr_chain_resolve(op, ops, handle_accesses, &wr, chain_scratch, &fr, &n);
+    };
+
+    auto try_add_task = [&](struct starpu_task *t) {
+        if (!t)
+            return;
+        if (tasks_added.count(t))
+            return;
+        for (size_t i = 0; i < ops.size(); ++i) {
+            if (ops[i].kind != GraphOp::TASK || ops[i].task != t || !ops[i].checkpoint_wrr)
+                continue;
+            const GraphOpHandleAccessRef *wr = graph_op_find_single_pure_write_access(ops[i]);
+            if (!wr || !wr->handle ||
+                !checkpointable_activation_keys->count(static_cast<void *>(wr->handle)))
+                continue;
+            if (chain_ok(ops[i])) {
+                tasks_added.insert(t);
+                out_tasks_in_order.push_back(t);
+                return;
+            }
+        }
+    };
+
+    if (policy_data && !policy_data->graph_idempotent_tasks_sorted.empty()) {
+        for (const GraphIdempotentTaskPredicted &row : policy_data->graph_idempotent_tasks_sorted)
+            try_add_task(row.task);
+    } else {
+        for (size_t i = 0; i < ops.size(); ++i) {
+            if (ops[i].kind != GraphOp::TASK || !ops[i].checkpoint_wrr)
+                continue;
+            try_add_task(ops[i].task);
+        }
+    }
+}
+
+static unsigned graph_sched_insert_checkpoints(std::vector<GraphOp> &ops, std::vector<GraphHandleAccess> &handle_accesses,
+                                               int pin_worker, graph_sched_data *policy_data,
+                                               const std::unordered_set<void *> *checkpointable_activation_keys,
+                                               bool repeat_previous_batch_flush)
+{
+    const unsigned checkpoint_max = graph_sched_checkpoint_max_env();
+    const int sched_verbose = graph_sched_verbose_env();
+    unsigned inserted = 0;
+    if (!checkpointable_activation_keys || checkpointable_activation_keys->empty())
+        return 0;
+
+    std::vector<size_t> chain_scratch;
+    std::vector<struct starpu_task *> feasible_tasks;
+    graph_sched_build_feasible_checkpoint_task_order(ops, handle_accesses, policy_data, checkpointable_activation_keys,
+                                                     feasible_tasks, chain_scratch);
+
+    if (sched_verbose >= 3 && !repeat_previous_batch_flush) {
+        std::cerr << "sgoc: checkpoint insert plan: chain_feasible_tasks=" << feasible_tasks.size()
+                  << " (only these are attempted; activation producers that fail the chain rule are not scanned)"
+                  << std::endl;
+    }
+
+    for (struct starpu_task *planned_task : feasible_tasks) {
+        if (inserted >= checkpoint_max)
+            break;
+
+        size_t op_idx = GRAPH_ACCESS_NONE;
+        for (size_t i = 0; i < ops.size(); ++i) {
+            if (ops[i].kind == GraphOp::TASK && ops[i].task == planned_task && ops[i].checkpoint_wrr) {
+                op_idx = i;
+                break;
+            }
+        }
+        if (op_idx == GRAPH_ACCESS_NONE)
+            continue;
+
+        struct starpu_task *checkpointed_task = ops[op_idx].task;
+
+        const GraphOpHandleAccessRef *wr_precheck = nullptr;
+        const char *chain_reason = nullptr;
+        unsigned n_chain_reads = 0;
+        if (!graph_sched_checkpoint_wrr_chain_resolve(ops[op_idx], ops, handle_accesses, &wr_precheck, chain_scratch,
+                                                       &chain_reason, &n_chain_reads)) {
+            if (sched_verbose >= 2 && !repeat_previous_batch_flush)
+                graph_sched_log_checkpoint_candidate_skip(ops, op_idx, policy_data, chain_reason, n_chain_reads,
+                                                          wr_precheck);
+            if (op_idx < ops.size()) {
+                ops[op_idx].checkpoint_idempotent = false;
+                ops[op_idx].checkpoint_wrr = false;
+            }
+            continue;
+        }
+
+        struct starpu_task *checkpoint_task = graph_sched_clone_task_for_checkpoint(ops[op_idx].task);
+        if (!checkpoint_task) {
+            if (graph_sched_verbose_env() >= 2)
+                std::cerr << "sgoc: failed to allocate checkpoint task clone" << std::endl;
+            break;
+        }
+        if (!graph_sched_insert_checkpoint_for_wrr_task(ops, handle_accesses, op_idx, checkpoint_task, pin_worker,
+                                                        checkpointable_activation_keys)) {
+            graph_sched_destroy_checkpoint_task(checkpoint_task);
+            if (sched_verbose >= 2)
+                std::cerr << "sgoc: checkpoint insert failed after chain precheck (bug?) op_idx=" << op_idx << std::endl;
+            if (op_idx < ops.size()) {
+                ops[op_idx].checkpoint_idempotent = false;
+                ops[op_idx].checkpoint_wrr = false;
+            }
+            continue;
+        }
+        std::vector<size_t> affected_op_indices;
+        graph_sched_collect_checkpoint_affected_ops(ops, handle_accesses, op_idx, affected_op_indices);
+        for (size_t affected_op_idx : affected_op_indices)
+            graph_sched_update_checkpoint_state_for_op(ops, handle_accesses, affected_op_idx, checkpointable_activation_keys);
+
+        for (GraphOp &o : ops) {
+            if (o.kind == GraphOp::TASK && o.task == checkpointed_task) {
+                o.checkpoint_idempotent = false;
+                o.checkpoint_wrr = false;
+            }
+        }
+
+        if (sched_verbose >= 3 && !repeat_previous_batch_flush) {
+            const char *cl_name = (checkpointed_task && checkpointed_task->cl && checkpointed_task->cl->name)
+                                      ? checkpointed_task->cl->name
+                                      : "unknown";
+            const unsigned long task_id = checkpointed_task ? starpu_task_get_job_id(checkpointed_task) : 0;
+            const void *wh =
+                (wr_precheck && wr_precheck->handle) ? static_cast<const void *>(wr_precheck->handle) : nullptr;
+            const std::int64_t rbytes = graph_sched_op_intrinsic_memory_delta(ops[op_idx]);
+            std::cerr << "sgoc: checkpoint inserted [" << (inserted + 1) << "/" << checkpoint_max
+                      << "] producer_op_idx=" << op_idx << " cl=" << cl_name << " producer_job_id=" << task_id
+                      << " written_handle=" << wh << " clone_task=" << static_cast<const void *>(checkpoint_task)
+                      << " remat_bytes=" << rbytes << std::endl;
+        }
+        inserted++;
+    }
+
+    return inserted;
+}
+
+static void graph_sched_checkpoint_pool_stats(const std::vector<GraphOp> &ops,
+                                              const std::vector<GraphHandleAccess> &handle_accesses,
+                                              const std::unordered_set<void *> *checkpointable_activation_keys,
+                                              size_t *checkpoint_activation_producers_out,
+                                              size_t *checkpoint_chain_insertable_out)
+{
+    graph_sched_collect_checkpoint_eligible_count(ops, *checkpoint_activation_producers_out);
+    *checkpoint_chain_insertable_out = 0;
+    std::vector<size_t> chain_feasible_scratch;
+    for (const GraphOp &op : ops) {
+        if (!op.checkpoint_wrr)
+            continue;
+        const GraphOpHandleAccessRef *wact = graph_op_find_single_pure_write_access(op);
+        if (!wact || !wact->handle || !checkpointable_activation_keys ||
+            !checkpointable_activation_keys->count(static_cast<void *>(wact->handle)))
+            continue;
+        const GraphOpHandleAccessRef *wr = nullptr;
+        const char *fr = nullptr;
+        unsigned n = 0;
+        if (graph_sched_checkpoint_wrr_chain_resolve(op, ops, handle_accesses, &wr, chain_feasible_scratch, &fr, &n))
+            (*checkpoint_chain_insertable_out)++;
+    }
+}
+
+/**
+ * Requires graph_sched_refresh_all_checkpoint_states already run on \p ops.
+ * Fills policy_data->graph_idempotent_tasks_sorted with activation producers, descending by rematerialization_speed_bps.
+ */
+static void graph_sched_fill_wrr_checkpoint_order_by_remat_speed(graph_sched_data *policy_data,
+                                                                 const std::vector<GraphOp> &ops, int pin_worker,
+                                                                 const std::unordered_set<void *> *checkpointable_activation_keys,
+                                                                 bool repeat_previous_batch_flush)
+{
+    if (!policy_data)
+        return;
+    policy_data->graph_idempotent_tasks_sorted.clear();
+    if (!checkpointable_activation_keys || checkpointable_activation_keys->empty())
+        return;
+
+    std::vector<GraphIdempotentTaskPredicted> rows;
+    std::unordered_set<struct starpu_task *> checkpoint_list_tasks_seen;
+    checkpoint_list_tasks_seen.reserve(ops.size() / 4 + 8);
+    for (const GraphOp &op : ops) {
+        if (op.kind != GraphOp::TASK || !op.checkpoint_wrr || !op.task)
+            continue;
+        const GraphOpHandleAccessRef *wr = graph_op_find_single_pure_write_access(op);
+        if (!wr || !wr->handle ||
+            !checkpointable_activation_keys->count(static_cast<void *>(wr->handle)))
+            continue;
+        if (!checkpoint_list_tasks_seen.insert(op.task).second)
+            continue;
+        const double raw =
+            graph_sched_predicted_exec_time_us_for_pinned_worker(op.task, pin_worker, op.task->sched_ctx);
+        const double time_us = graph_sched_effective_predicted_us(raw);
+        const std::int64_t bytes = graph_sched_op_intrinsic_memory_delta(op);
+        double bps = 0;
+        if (bytes > 0 && std::isfinite(time_us) && time_us > 0.0)
+            bps = static_cast<double>(bytes) * 1e6 / time_us;
+        GraphIdempotentTaskPredicted row{};
+        row.task = op.task;
+        row.predicted_exec_time_us = time_us;
+        row.rematerialization_bytes = bytes;
+        row.rematerialization_speed_bps = bps;
+        rows.push_back(row);
+    }
+    std::sort(rows.begin(), rows.end(), [](const GraphIdempotentTaskPredicted &a, const GraphIdempotentTaskPredicted &b) {
+        if (a.rematerialization_speed_bps != b.rematerialization_speed_bps)
+            return a.rematerialization_speed_bps > b.rematerialization_speed_bps;
+        if (a.predicted_exec_time_us != b.predicted_exec_time_us)
+            return a.predicted_exec_time_us < b.predicted_exec_time_us;
+        return a.task < b.task;
+    });
+    policy_data->graph_idempotent_tasks_sorted = std::move(rows);
+
+    if (graph_sched_verbose_env() >= 3 && !repeat_previous_batch_flush) {
+        std::cerr << "sgoc: checkpoint-eligible activation producers by rematerialization speed (descending B/s, "
+                     "fastest first; worker_id="
+                  << pin_worker << " count=" << policy_data->graph_idempotent_tasks_sorted.size() << "):" << std::endl;
+        for (const GraphIdempotentTaskPredicted &row : policy_data->graph_idempotent_tasks_sorted) {
+            const char *cln =
+                (row.task && row.task->cl && row.task->cl->name) ? row.task->cl->name : "?";
+            const unsigned long jid = row.task ? starpu_task_get_job_id(row.task) : 0;
+            std::cerr << "  task_id=" << jid << " cl=" << cln << " remat_bytes=" << row.rematerialization_bytes
+                      << " predicted_us=";
+            if (std::isfinite(row.predicted_exec_time_us))
+                std::cerr << row.predicted_exec_time_us;
+            else
+                std::cerr << "inf";
+            std::cerr << " remat_B_per_s=" << row.rematerialization_speed_bps << std::endl;
+        }
+    }
+}
+
 static std::int64_t graph_sched_sum_unique_handle_bytes(const std::vector<starpu_data_handle_t> &handles)
 {
     std::unordered_set<void *> seen;
@@ -1624,6 +2505,37 @@ static std::int64_t graph_sched_gpu_mm_projected_bytes_before_task(std::int64_t 
     return proj;
 }
 
+/**
+ * True when the next graph operation that touches \p key at the handle level, after topo slot \p from_ti, is a
+ * standalone INVALIDATE on \p key, with no TASK in between that references \p key (non-invalidate). Then a RAM offload
+ * before the pressure point is unnecessary: dropping the GPU copy matches simulation (invalidate will discard the
+ * version anyway).
+ */
+static bool graph_sched_gpu_mm_next_graph_touch_is_invalidate_without_intervening_task(
+    const std::vector<GraphOp> &ops, const std::vector<size_t> &topo_order, void *key, size_t from_ti)
+{
+    for (size_t tj = from_ti + 1; tj < topo_order.size(); ++tj) {
+        const size_t opi = topo_order[tj];
+        if (opi >= ops.size())
+            continue;
+        const GraphOp &oj = ops[opi];
+        if (oj.kind == GraphOp::INVALIDATE) {
+            if (oj.handle && static_cast<void *>(oj.handle) == key)
+                return true;
+            continue;
+        }
+        if (oj.kind == GraphOp::TASK) {
+            for (const GraphOpHandleAccessRef &ref : oj.handle_accesses) {
+                if (!ref.handle || graph_access_mode_is_invalidate(ref.mode))
+                    continue;
+                if (static_cast<void *>(ref.handle) == key)
+                    return false;
+            }
+        }
+    }
+    return false;
+}
+
 static void graph_sched_gpu_mm_build_task_topo_appearances(const std::vector<GraphOp> &ops,
                                                            const std::vector<size_t> &topo_order,
                                                            std::unordered_map<void *, std::vector<size_t>> &out)
@@ -1667,9 +2579,9 @@ static std::uint64_t graph_sched_gpu_mm_next_need_topo_index(const std::vector<s
 }
 
 /**
- * From simulated \p offload_before_topo (offload-before-task at each topo slot), derive ordered post_exec offload
- * lists: each handle is scheduled after the TASK where it is last used before the offload point (reverse topo walk;
- * optional wrap passes without ingesting new offload marks until \p pending clears).
+ * From simulated per-topo-slot handle lists (offload-before-task or evict-only-before-task), derive ordered post_exec
+ * lists: each handle is scheduled after the TASK where it is last used before that slot (reverse topo walk; optional
+ * wrap passes without ingesting new marks until \p pending clears).
  */
 static void graph_sched_gpu_mm_derive_post_exec_offload_order(const std::vector<GraphOp> &ops,
                                                               const std::vector<size_t> &topo_order,
@@ -1845,8 +2757,10 @@ void graph_sched_sgoc_log_mm_plan_advance_debug(size_t topo_slots, const graph_s
 /**
  * After greedy (or capture) topo order is fixed, simulate linear replay; invalidate / pure-W footprint matches
  * graph_sched_op_memory_*. Offload victim selection is role-agnostic (any GPU-resident buffer). Planning only.
- * Victim = furthest next need (Belady); need times extend into a virtual copy of the batch when there is no use
- * left in the current pass; ties break by last appearance index in one batch (used last in the next virtual batch).
+ * Victim = furthest next TASK appearance (Belady); if the next graph touch of that handle is \c invalidate_submit
+ * with no intervening TASK on the handle, skip RAM offload and record GPU evict-only (see \c evict_only_mark_events).
+ * Need times extend into a virtual copy of the batch when there is no TASK use left in the current pass; ties break
+ * by last TASK appearance index in one batch.
  */
 static void graph_sched_gpu_mm_plan_linear_topo_offloads(const std::vector<GraphOp> &ops,
                                                          const std::vector<GraphHandleAccess> &handle_accesses,
@@ -1869,7 +2783,9 @@ static void graph_sched_gpu_mm_plan_linear_topo_offloads(const std::vector<Graph
     mm.topo_offload_before_task.clear();
     mm.topo_prefetch_before_task.clear();
     mm.topo_post_exec_offload_order.clear();
+    mm.topo_post_exec_evict_gpu_only_order.clear();
     mm.topo_pre_exec_prefetch_order.clear();
+    mm.evict_only_mark_events = 0;
 
     if (budget_bytes <= 0 || topo_order.empty()) {
         if (verbose >= 1 && budget_bytes <= 0)
@@ -1929,10 +2845,15 @@ static void graph_sched_gpu_mm_plan_linear_topo_offloads(const std::vector<Graph
 
     const size_t topo_slots = topo_order.size();
     std::vector<std::vector<void *>> offload_before_topo(topo_slots);
+    std::vector<std::vector<void *>> evict_only_before_topo(topo_slots);
     std::vector<std::vector<void *>> prefetch_before_topo(topo_slots);
     std::vector<std::int64_t> bytes_after_each_topo_slot(topo_slots, 0);
     std::unordered_map<void *, size_t> first_offload_topo_slot;
 
+    /* Handles touched by the current TASK (including WRR rematerialization clones) are excluded from Belady victim
+     * choice at this topo slot. Remat often re-touches the same activation handles as downstream consumers, so the
+     * evictable resident set can shrink in ways that offset any hoped-for extra headroom — offload event counts may
+     * match a checkpoint-free run even under a tight budget. */
     std::unordered_set<void *> forbidden;
     std::vector<void *> fifo_unique;
     std::unordered_set<void *> fifo_seen;
@@ -2020,14 +2941,19 @@ static void graph_sched_gpu_mm_plan_linear_topo_offloads(const std::vector<Graph
             starpu_data_handle_t hk = static_cast<starpu_data_handle_t>(best_k);
             const std::int64_t sz = static_cast<std::int64_t>(starpu_data_get_size(hk));
             resident.erase(best_k);
-            offloaded.insert(best_k);
             current_bytes -= sz;
-            mm.offload_mark_events++;
-            offload_before_topo[ti].push_back(best_k);
-            if (first_offload_topo_slot.find(best_k) == first_offload_topo_slot.end())
-                first_offload_topo_slot[best_k] = ti;
-            if (fifo_seen.insert(best_k).second)
-                fifo_unique.push_back(best_k);
+            if (graph_sched_gpu_mm_next_graph_touch_is_invalidate_without_intervening_task(ops, topo_order, best_k, ti)) {
+                mm.evict_only_mark_events++;
+                evict_only_before_topo[ti].push_back(best_k);
+            } else {
+                offloaded.insert(best_k);
+                mm.offload_mark_events++;
+                offload_before_topo[ti].push_back(best_k);
+                if (first_offload_topo_slot.find(best_k) == first_offload_topo_slot.end())
+                    first_offload_topo_slot[best_k] = ti;
+                if (fifo_seen.insert(best_k).second)
+                    fifo_unique.push_back(best_k);
+            }
         }
 
         std::unordered_set<void *> pf_once;
@@ -2064,6 +2990,8 @@ static void graph_sched_gpu_mm_plan_linear_topo_offloads(const std::vector<Graph
     mm.topo_prefetch_before_task = std::move(prefetch_before_topo);
     graph_sched_gpu_mm_derive_post_exec_offload_order(ops, topo_order, mm.topo_offload_before_task,
                                                       mm.topo_post_exec_offload_order);
+    graph_sched_gpu_mm_derive_post_exec_offload_order(ops, topo_order, evict_only_before_topo,
+                                                      mm.topo_post_exec_evict_gpu_only_order);
     graph_sched_gpu_mm_derive_anchor_pop_prefetch_order(ops, topo_order, mm.topo_prefetch_before_task,
                                                         bytes_after_each_topo_slot, first_offload_topo_slot,
                                                         budget_bytes, mm.topo_pre_exec_prefetch_order);
@@ -2078,7 +3006,7 @@ static void graph_sched_gpu_mm_plan_linear_topo_offloads(const std::vector<Graph
         std::cerr << "sgoc: gpu_memory_manager: linear_topo_plan initial_resident_bytes=" << mm.initial_resident_bytes
                   << " peak_simulated_bytes=" << mm.peak_simulated_bytes << " budget=" << budget_bytes
                   << " offload_events=" << mm.offload_mark_events << " marked_offload_unique=" << mm.marked_offload_unique
-                  << std::endl;
+                  << " evict_only_events=" << mm.evict_only_mark_events << std::endl;
     }
 }
 
@@ -2095,6 +3023,7 @@ static void graph_sched_gpu_mm_restore_from_cached_plan(const graph_sched_mem_of
     mm.topo_offload_before_task = plan.topo_offload_before_task;
     mm.topo_prefetch_before_task = plan.topo_prefetch_before_task;
     mm.topo_post_exec_offload_order = plan.topo_post_exec_offload_order;
+    mm.topo_post_exec_evict_gpu_only_order = plan.topo_post_exec_evict_gpu_only_order;
     mm.topo_pre_exec_prefetch_order = plan.topo_pre_exec_prefetch_order;
     for (void *k : plan.s_offload_keys)
         mm.offload_prefetch_fifo.push_back(k);
@@ -2190,6 +3119,8 @@ static void graph_sched_apply_gpu_mm_plan_from_capture(const std::vector<GraphOp
             policy_data->graph_mem_offload_plan.topo_prefetch_before_task = policy_data->graph_gpu_mm.topo_prefetch_before_task;
             policy_data->graph_mem_offload_plan.topo_post_exec_offload_order =
                 policy_data->graph_gpu_mm.topo_post_exec_offload_order;
+            policy_data->graph_mem_offload_plan.topo_post_exec_evict_gpu_only_order =
+                policy_data->graph_gpu_mm.topo_post_exec_evict_gpu_only_order;
             policy_data->graph_mem_offload_plan.topo_pre_exec_prefetch_order =
                 policy_data->graph_gpu_mm.topo_pre_exec_prefetch_order;
         }
@@ -2202,7 +3133,8 @@ static void graph_sched_apply_gpu_mm_plan_from_capture(const std::vector<GraphOp
     if (vb >= 1) {
         std::cerr << "sgoc: gpu_memory_manager: marked_offload_unique="
                   << policy_data->graph_gpu_mm.marked_offload_unique << " offload_mark_events="
-                  << policy_data->graph_gpu_mm.offload_mark_events << " peak_simulated_bytes=" << mem_peak_log
+                  << policy_data->graph_gpu_mm.offload_mark_events << " evict_only_mark_events="
+                  << policy_data->graph_gpu_mm.evict_only_mark_events << " peak_simulated_bytes=" << mem_peak_log
                   << " sum_s=" << mem_sum_s_log << " budget=" << mem_budget << " outer_batch0_capture="
                   << (eff_outer_batch0 ? 1 : 0) << " ran_linear_topo_planner=" << (ran_linear_topo_planner ? 1 : 0)
                   << " reused_saved_plan=" << (reused_saved ? 1 : 0) << std::endl;
@@ -2393,6 +3325,9 @@ void graph_sgoc_linearize_capture_to_ops(graph_sched_data *data)
     }
 
     data->graph_ops = std::move(out);
+    /* Dense op_idx remap is done; rebuild handle list heads/tails and pred/succ from chains so the graph matches
+     * what checkpoint insertion and Belady/MM will see (capture-time synthetic pre-W invalidates are already ops). */
+    graph_sgoc_rebuild_lists_and_refresh_deps(data);
     if (cap_tim) {
         const auto t_lin1 = std::chrono::steady_clock::now();
         const double ms = std::chrono::duration<double, std::milli>(t_lin1 - t_lin0).count();
@@ -2419,3 +3354,51 @@ static void graph_sched_append_capture_explicit_invalidate(graph_sched_data *dat
     graph_sgoc_capture_add_edges_for_op(data, G.capture_ops.back());
 }
 
+/**
+ * WRR checkpoint insertion (same rules as graph_recorder): activation keys from \p parsed.activations,
+ * ordering by rematerialization bytes/µs, count capped by STARPU_GRAPH_SCHED_CHECKPOINT_MAX.
+ * Mutates \p data->graph_ops / graph_handle_accesses; caller must rebuild handle lists and refresh op deps afterward
+ * (this function does so when \p data is non-null).
+ */
+void graph_sgoc_apply_wrr_checkpoints_before_topo(graph_sched_data *data, const graph_sched_captured_handle_groups &parsed,
+                                                  int vb)
+{
+    if (!data)
+        return;
+    const unsigned ck_max = graph_sched_checkpoint_max_env();
+    if (ck_max == 0 || parsed.activations.empty())
+        return;
+
+    std::unordered_set<void *> keys;
+    keys.reserve(parsed.activations.size());
+    for (starpu_data_handle_t h : parsed.activations) {
+        if (h)
+            keys.insert(static_cast<void *>(h));
+    }
+    if (keys.empty())
+        return;
+
+    graph_sched_refresh_all_checkpoint_states(data->graph_ops, data->graph_handle_accesses, &keys);
+    graph_sched_fill_wrr_checkpoint_order_by_remat_speed(data, data->graph_ops, data->graph_pinned_worker_id, &keys,
+                                                         false);
+
+    if (vb >= 3) {
+        size_t activation_producers = 0;
+        size_t chain_insertable = 0;
+        graph_sched_checkpoint_pool_stats(data->graph_ops, data->graph_handle_accesses, &keys, &activation_producers,
+                                          &chain_insertable);
+        std::cerr << "sgoc: checkpoint pass: activation_producers=" << activation_producers
+                  << " chain_insertable=" << chain_insertable << " checkpoint_max=" << ck_max << std::endl;
+    }
+
+    const unsigned inserted =
+        graph_sched_insert_checkpoints(data->graph_ops, data->graph_handle_accesses, data->graph_pinned_worker_id, data,
+                                       &keys, false);
+    data->graph_total_checkpoint_inserts += inserted;
+
+    if (vb >= 3)
+        std::cerr << "sgoc: checkpoint pass: inserted_checkpoints=" << inserted << std::endl;
+
+    sgoc_rebuild_handle_access_lists(data);
+    graph_sched_refresh_op_dependencies(data);
+}
