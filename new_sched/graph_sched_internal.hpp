@@ -28,6 +28,27 @@
 constexpr size_t GRAPH_ACCESS_NONE = static_cast<size_t>(-1);
 constexpr unsigned GRAPH_ACCESS_INVALIDATE_RAW = 1u << 30;
 
+/** Key for WRR checkpoint eligibility when aggregating activation access stats per inner minibatch (\c graph_stage_batch_iteration). */
+struct graph_sched_checkpoint_act_slot {
+    void *handle = nullptr;
+    std::uint32_t inner_batch = 0;
+    bool inner_batch_valid = false;
+    bool operator==(const graph_sched_checkpoint_act_slot &o) const noexcept
+    {
+        return handle == o.handle && inner_batch_valid == o.inner_batch_valid && inner_batch == o.inner_batch;
+    }
+};
+
+struct graph_sched_checkpoint_act_slot_hash {
+    size_t operator()(const graph_sched_checkpoint_act_slot &s) const noexcept
+    {
+        size_t h = std::hash<void *>{}(s.handle);
+        h ^= std::hash<std::uint32_t>{}(s.inner_batch) + 0x9e3779b97f4a7c15ULL + (h << 6) + (h >> 2);
+        h ^= std::hash<bool>{}(s.inner_batch_valid) + 0x9e3779b97f4a7c15ULL + (h << 6) + (h >> 2);
+        return h;
+    }
+};
+
 struct GraphOpHandleAccessRef {
     starpu_data_handle_t handle = nullptr;
     unsigned mode = 0;
@@ -187,6 +208,18 @@ struct graph_sched_gpu_memory_manager {
 
 /** Handles classified from a finished graph capture (see graph_sched_parse_captured_data_handles). */
 struct graph_sched_captured_handle_groups {
+    /**
+     * Smallest inner graph subiteration seen on a forward training task (odd; NNTile: first microbatch forward, 1) and
+     * smallest backward training sub (even; typically 2). Used to aggregate activation stats over only that pair so
+     * per-microbatch rewrites do not inflate \c f_w across the whole capture (global odd/even merge would).
+     */
+    bool activation_checkpoint_min_pair_valid = false;
+    std::uint32_t activation_checkpoint_min_forward_sub = 0;
+    std::uint32_t activation_checkpoint_min_backward_sub = 0;
+    /** When \a activation_checkpoint_min_pair_valid: \c min_backward - \c min_forward (NNTile: 1). Forward read / backward
+     *  read on the handle chain for a producer at sub \e f are matched at \e f and \e f + this delta. */
+    std::uint32_t activation_forward_backward_delta_sub = 0;
+
     /** Weights etc.: optimizer-step candidates that also appear on any task in subiteration 1 (first forward). */
     std::vector<starpu_data_handle_t> parameters;
     /** Gradient tensors: pure ::STARPU_R on optimizer step (subiteration UINT32_MAX). */
@@ -194,16 +227,29 @@ struct graph_sched_captured_handle_groups {
     /** Optimizer buffers (e.g. Adam m/v) not touched in first forward. */
     std::vector<starpu_data_handle_t> states;
     /** Checkpointable activations: produced in subiter 1 (one W, ≥1 R, no RW), consumed in subiter 2 (R-only).
-     *  Graph checkpoint insertion uses \e only this list (never \a offloadable_activations). */
+     *  Graph checkpoint insertion uses this set (never \a offloadable_activations alone). Handles may repeat when
+     *  \c activation_checkpoint_per_inner_batch classifies the same StarPU handle in multiple inner minibatches. */
     std::vector<starpu_data_handle_t> activations;
     /** Like \a activations but subiter 1 may use ::STARPU_RW (same backward rule). Superset of checkpointable. */
     std::vector<starpu_data_handle_t> offloadable_activations;
+    /**
+     * When true: access stats and checkpoint targets are keyed by (\e handle, \c graph_stage_batch_iteration) for
+     * subiter-1/2 tasks (requires valid batch tags on those tasks). Needed when the same buffer is (re)written each
+     * inner minibatch (e.g. batch_size>1, minibatch_size=1): global merge would set f_w>1 and drop checkpointability.
+     */
+    bool activation_checkpoint_per_inner_batch = false;
+    /** Populated when \a activation_checkpoint_per_inner_batch; producer matches on (written handle, TASK batch tag). */
+    std::unordered_set<graph_sched_checkpoint_act_slot, graph_sched_checkpoint_act_slot_hash,
+                      std::equal_to<graph_sched_checkpoint_act_slot>>
+        checkpointable_activation_slots;
 };
 
 /** WRR checkpoint candidate ranked by rematerialization speed (see graph_sched_replay_recorded_ops). */
 
 struct GraphIdempotentTaskPredicted {
     struct starpu_task *task = nullptr;
+    /** Index into \c graph_ops for this activation producer (each \c GraphOp is unique; do not dedupe by \c task pointer — pool reuse). */
+    size_t producer_op_idx = GRAPH_ACCESS_NONE;
     /** Expected execution time on the designated (pinned) worker in µs; +inf if StarPU has no valid estimate. */
     double predicted_exec_time_us = std::numeric_limits<double>::infinity();
     /** Distinct pure-STARPU_W buffers: sum of starpu_data_get_size (bytes to rematerialize). */
@@ -268,8 +314,8 @@ struct graph_sched_data {
     std::uint64_t graph_pinned_worker_starpu_used_bytes = 0;
 
     /**
-     * Filled when outermost graph recording ends: checkpoint-eligible TASK ops (checkpointable-activation producers),
-     * descending by rematerialization_speed_bps (fastest rematerializers first → checkpoint insertion order under checkpoint_max).
+     * Filled when outermost graph recording ends: one row per checkpoint-candidate \c GraphOp (producer index in \c graph_ops),
+     * descending by rematerialization_speed_bps. Do not dedupe by \c starpu_task* — task structs are often reused/pooled.
      */
     std::vector<GraphIdempotentTaskPredicted> graph_idempotent_tasks_sorted;
 
