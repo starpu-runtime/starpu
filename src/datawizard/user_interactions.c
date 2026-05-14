@@ -26,7 +26,7 @@
 #include <core/sched_policy.h>
 #include <datawizard/memory_nodes.h>
 #include <datawizard/interfaces/data_interface.h>
-#include <starpu_graph_recorder.h>
+#include <starpu_graph_capture.h>
 
 static void _starpu_data_check_initialized(starpu_data_handle_t handle, enum starpu_data_access_mode mode)
 {

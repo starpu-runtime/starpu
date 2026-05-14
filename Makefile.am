@@ -121,7 +121,7 @@ versinclude_HEADERS = 				\
 	include/schedulers/starpu_hplookahead_sync_graphs.h \
 	include/starpu_sched_component.h	\
 	include/starpu_sched_ctx.h		\
-	include/starpu_graph_recorder.h		\
+	include/starpu_graph_capture.h		\
 	include/starpu_sched_ctx_hypervisor.h	\
 	include/starpu_deprecated_api.h         \
 	include/starpu_hash.h			\

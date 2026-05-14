@@ -1,17 +1,13 @@
-/* Pinned-worker init and memory logging for StarPU graph capture policies (graph_recorder, sgoc).
- * Queues task_insert / invalidate_submit while a session is open (see starpu_graph_recorder.h).
- * Linear flush (default debug_simple): greedy memory topological submit order; capture order stays for batch-compat /
- * batch-0 template. STARPU_GRAPH_SCHED_LINEAR_REPLAY_GREEDY=0 forces capture-order submit.
- * Set STARPU_GRAPH_SCHED_DEBUG_SIMPLE=0 for incremental push_task + full batch-0 hint extraction.
- * Define GRAPH_SCHED_PIN_LOG_TAG before #include for policy-specific stderr prefixes (default "graph_recorder"). */
+/* Pinned worker init and memory targets for SGOC graph capture.
+ * Define GRAPH_SCHED_PIN_LOG_TAG before #include for stderr prefixes (default "sgoc"). */
 
 #ifndef GRAPH_SCHED_PIN_LOG_TAG
-#define GRAPH_SCHED_PIN_LOG_TAG "graph_recorder"
+#define GRAPH_SCHED_PIN_LOG_TAG "sgoc"
 #endif
 
 #include "graph_sched_internal.hpp"
 
-#include <starpu_graph_recorder.h>
+#include <starpu_graph_capture.h>
 #include <starpu_data.h>
 #include <starpu_sched_ctx.h>
 #include <starpu_scheduler.h>

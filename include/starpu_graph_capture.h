@@ -1,12 +1,9 @@
-/* StarPU --- Runtime system for heterogeneous multicore architectures.
- *
- * Extension API for loadable schedulers (SGOC graph policy in new_sched):
- * record starpu_task_insert / starpu_data_invalidate_submit / starpu_data_wont_use
- * and replay them in order after starpu_graph_sched_graph_recording_end().
+/* StarPU — graph capture dispatch for the SGOC scheduler (new_sched).
+ * Names below match the legacy symbols exported by libstarpu (ABI); include path is starpu_graph_capture.h.
  */
 
-#ifndef __STARPU_GRAPH_RECORDER_H__
-#define __STARPU_GRAPH_RECORDER_H__
+#ifndef STARPU_GRAPH_CAPTURE_H
+#define STARPU_GRAPH_CAPTURE_H
 
 #include <starpu_data.h>
 
@@ -43,4 +40,4 @@ void _starpu_data_wont_use_impl(starpu_data_handle_t handle);
 }
 #endif
 
-#endif /* __STARPU_GRAPH_RECORDER_H__ */
+#endif /* STARPU_GRAPH_CAPTURE_H */

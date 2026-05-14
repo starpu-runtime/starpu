@@ -1,5 +1,4 @@
-/* Shared types for the SGOC graph scheduler (libgraph_sgoc_sched.so). graph_recorder.cpp + libgraph_sched.cpp
- * remain in-tree as a reference for batch/minibatch-oriented features and are not built by new_sched/Makefile. */
+/* Shared types for the SGOC graph scheduler (libgraph_sgoc_sched.so). */
 
 #pragma once
 
@@ -111,43 +110,15 @@ struct GraphOp {
     size_t capture_stable_id = 0;
 };
 
-/** Per-task capture signature for batch-repeatability checks (codelet name + buffer footprint; see graph_recorder). */
+/** Per-task capture signature (codelet name + buffer footprint + optional modes). */
 struct GraphBatchTaskStructureSig {
     std::string codelet_name;
     std::vector<size_t> buffer_sizes;
-    /** Filled only for batch-0 template matching; when empty, equality checks ignore modes (see graph_recorder). */
+    /** When non-empty, template equality may require matching modes per buffer. */
     std::vector<unsigned> buffer_modes;
 };
 
-/** One step in capture order for batch-vs-batch0 compat: TASK row or explicit invalidate_submit (see graph_recorder). */
-struct GraphBatchCompatStep {
-    bool is_invalidate = false;
-    /** Index into parallel TASK signature / handle rows (TASK steps only). */
-    size_t task_row = 0;
-    /** INVALIDATE steps only: handle passed to invalidate_submit. */
-    starpu_data_handle_t invalidate_handle = nullptr;
-};
-
-/**
- * Batch-0 optimized flush sequence: either the i-th TASK in user capture order, or an invalidate_submit on a
- * batch-0 template handle (mapped to the current batch at replay). Built from full graph_ops including synthetic
- * pre-W invalidates. See graph_sched_replay_linear_from_batch0_plan.
- */
-struct GraphBatchReplayStep {
-    enum Kind : std::uint8_t { USER_TASK = 0, INVALIDATE_HINT = 1 } kind = USER_TASK;
-    /** USER_TASK: index in user TASK list (0 .. n_tasks-1). */
-    size_t user_task_index = 0;
-    /** INVALIDATE_HINT: handle from batch-0 recording; replay maps to current batch via TASK-buffer pairing. */
-    starpu_data_handle_t batch0_invalidate_handle = nullptr;
-    bool synthetic_invalidate = false;
-};
-
-/** One batch-0 task worth of synthetic invalidate_submit calls to run before that task (buffer indices into the task). */
-struct graph_batch0_task_hint_entry {
-    std::vector<unsigned> prefix_invalidate_buffer_indices;
-};
-
-/** Cached CUDA budget offload plan from batch-0 linear MM optimization; later outer batches reuse without replanning. */
+/** Cached CUDA budget offload plan from linear MM optimization; a later compatible flush may reuse without replanning. */
 struct graph_sched_mem_offload_plan {
     bool valid = false;
     /** Snapshot of effective budget (bytes) when the plan was computed; informational — replay does not require equality. */
@@ -159,7 +130,7 @@ struct graph_sched_mem_offload_plan {
      *  name \c s_offload_* kept from when only optimizer-state (S) buffers were classified in capture. */
     std::vector<void *> s_offload_keys;
     /**
-     * Parallel to batch-0 replay topo order (same length as cached topo): simulation lists and derived exec placement.
+     * Parallel to replay topo order (same length as cached topo): simulation lists and derived exec placement.
      * Indexed by topo slot (includes INVALIDATE steps; TASK-only rows carry handle lists).
      */
     std::vector<std::vector<void *>> topo_offload_before_task;
@@ -173,7 +144,7 @@ struct graph_sched_mem_offload_plan {
 };
 
 /**
- * GPU memory planning snapshot for graph_recorder: linear replay over a topo order with simulated offload-before-task
+ * GPU memory planning snapshot: linear replay over a topo order with simulated offload-before-task
  * marks (role-agnostic victim selection). Planning only — no StarPU moves.
  */
 struct graph_sched_gpu_memory_manager {
@@ -322,28 +293,7 @@ struct graph_sched_data {
     /** Filled when outermost recording ends, before replay (parser runs on captured ops). */
     graph_sched_captured_handle_groups graph_captured_handle_groups;
 
-    /** Previous flush TASK-only structure (operation + footprint); replay reuse and checkpoint compat vs previous batch. */
-    bool graph_prev_flush_task_sigs_valid = false;
-    std::vector<GraphBatchTaskStructureSig> graph_prev_flush_task_structure_sigs;
-
-    /** Last computed replay submission order (indices into ops after checkpoint insertion); see graph_recorder. */
-    bool graph_cached_replay_order_valid = false;
-    std::vector<size_t> graph_cached_replay_op_order;
-    size_t graph_cached_pre_checkpoint_op_count = 0;
-    unsigned graph_cached_inserted_checkpoints = 0;
-    size_t graph_cached_replay_final_op_count = 0;
-
-    /**
-     * Optimized TASK submission order within the first \e repeating minibatch pair (graph subiter 3=forward, 4=backward),
-     * as a permutation of capture-order indices into that pair's TASK list. Minibatch 0 (subiter 1/2) may include
-     * subiteration 0 (init); it is not used here. Later pairs (5/6), (7/8)… reuse this pattern via tie-break when the
-     * minibatch chain matches.
-     */
-    bool graph_minibatch_pair_task_toporder_pattern_valid = false;
-    std::vector<unsigned> graph_minibatch_pair_task_toporder_pattern;
-    unsigned graph_minibatch_pair_task_count = 0;
-
-    /** Last successful automatic GPU MM offload plan (compatible batch reuses). */
+    /** Last successful automatic GPU MM offload plan (compatible flush may reuse). */
     graph_sched_mem_offload_plan graph_mem_offload_plan;
 
     /** Latest linear topo offload-plan snapshot (see graph_sched_gpu_mm_plan_linear_topo_offloads). */
@@ -408,54 +358,9 @@ struct graph_sched_data {
     std::atomic<unsigned> graph_sched_graph_capture_sessions{0};
 
     /**
-     * Batch-0 restricted optimization template (P/G/A/S + pre-W invalidates + post-optimizer G invalidates).
-     * When valid, batch iteration != 0 uses incremental replay in push_task; graph capture hooks are disabled.
-     * Not set when STARPU_GRAPH_SCHED_DEBUG_SIMPLE is on (default): only signatures/handles are stored for compat logs.
-     */
-    bool graph_batch0_hints_valid = false;
-    /** Bitmask: 1=P/G/A/S classified, 2=pre-STARPU_W invalidates (replay), 4=post-optimizer G invalidates. */
-    std::uint32_t graph_batch0_optimization_flags = 0;
-    /** TASK-only order for batch 0 (same order as linear scan of graph TASK ops). */
-    std::vector<GraphBatchTaskStructureSig> graph_batch0_task_structure_sigs;
-    /** Batch 0: TASK + INVALIDATE steps in full recording session order (no per-op batch tag filter; see graph_recorder). */
-    std::vector<GraphBatchCompatStep> graph_batch0_compat_trace;
-    /**
-     * Batch 0: full extended replay list (USER_TASK indices + invalidate hints with batch-0 handles).
-     * Used for outer iteration > 0 when STARPU_GRAPH_SCHED_BATCH0_PLAN_REPLAY is on: skip re-inserting synthetic
-     * invalidates during capture and replay this plan with mapped handles.
-     */
-    std::vector<GraphBatchReplayStep> graph_batch0_extended_replay_plan;
-    bool graph_batch0_extended_replay_plan_valid = false;
-    std::vector<graph_batch0_task_hint_entry> graph_batch0_task_hints;
-    /** Slots (task_index_in_batch0, buffer_index) that are optimizer \e states in batch 0 (STARPU_W there). */
-    std::unordered_set<std::uint64_t> graph_batch0_state_buffer_slots;
-    /** Slots for parameter \e gradients (G): allow STARPU_W vs STARPU_RW across batches after first touch. */
-    std::unordered_set<std::uint64_t> graph_batch0_gradient_buffer_slots;
-    /** If < n_task, after that task submit run post_optimizer_gradient invalidates on listed buffer indices. */
-    size_t graph_batch0_post_optimizer_task_index = static_cast<size_t>(-1);
-    std::vector<unsigned> graph_batch0_post_optimizer_gradient_buffer_indices;
-
-    /**
-     * Incremental replay: map footprint key (codelet name + buffer sizes) -> template indices (capture order).
-     * Ambiguous keys (duplicate structure) are resolved by matching starpu_data_handle_t per buffer to batch-0 refs.
-     */
-    std::unordered_map<std::string, std::vector<size_t>> graph_batch0_footprint_tpl_index_lists;
-    /** Batch-0 STARPU handles per template index (same order as graph_batch0_task_structure_sigs). */
-    std::vector<std::vector<starpu_data_handle_t>> graph_batch0_task_template_handles;
-    /** Per outer-iteration pass: each template index is consumed at most once per batch. */
-    std::vector<unsigned char> graph_batch0_tpl_consumed;
-
-    /** Last outer sched_ctx iteration (slot 0) seen in incremental push; used to reset per-batch cursors. */
-    long graph_push_last_outer_iteration = -1;
-
-    /**
      * SGOC (graph_sgoc): flush-time hints and runtime GPU transfer bookkeeping. Null when policy is not sgoc.
      */
     struct graph_sgoc_runtime {
-        /** Unused: MM anchor prefetches use \c replay_task_topo_slot + \c graph_gpu_mm.topo_pre_exec_prefetch_order. */
-        std::unordered_map<struct starpu_task *, std::vector<starpu_data_handle_t>> pre_exec_prefetch;
-        /** Reserved; not used in the demand-fetch pop path. */
-        std::unordered_map<struct starpu_task *, std::vector<starpu_data_handle_t>> post_exec_prefetch;
         /** RAM offload then GPU evict queue registration targets (post_exec of prior task). */
         std::unordered_map<struct starpu_task *, std::vector<starpu_data_handle_t>> post_exec_offload_order;
         /** Handles whose GPU demand fetch was deferred (e.g. VRAM budget); drained from pre_exec/post_exec. */
@@ -517,16 +422,8 @@ struct graph_sched_data {
     };
     std::unique_ptr<graph_sgoc_runtime> graph_sgoc;
 
-    /** push_task: tasks that matched batch-0 template and used incremental path (pin + enqueue). */
-    std::atomic<std::uint64_t> graph_stat_push_incremental{0};
-    /** push_task: tasks queued on the standard path (includes outer iter 0, incremental disabled, or no template match). */
+    /** push_task enqueue count (standard ready path). */
     std::atomic<std::uint64_t> graph_stat_push_fifo{0};
-    /** Times batch-0 hints were invalidated (template mismatch / missing footprint / exhausted templates). */
-    std::atomic<std::uint64_t> graph_stat_batch0_hints_invalidate{0};
-    /** sched_ctx outer iteration (slot 0) at first hints invalidation, or -1 if never. */
-    std::atomic<long> graph_batch0_first_invalidate_outer_b{-1};
-    /** Log once: first incremental success when outer iteration is 1 (second batch if iter 0 is first). */
-    std::atomic<bool> graph_logged_iter1_incremental_ok{false};
 };
 
 /** RAII: increment graph_replay_accounting_depth for the dynamic scope of graph_sched_replay_recorded_ops. */
@@ -548,15 +445,6 @@ struct graph_sched_replay_accounting_scope {
 
 /** Policy data for sched_ctx when the active policy is sgoc (shared recording API). */
 graph_sched_data *graph_sched_graph_policy_data(unsigned sched_ctx_id);
-
-/** graph_recorder.cpp (reference) — outermost capture flush with batch/minibatch template and checkpoints. */
-void graph_sched_recorder_release_outermost_capture(graph_sched_data *data, std::vector<GraphOp> replay,
-                                                    std::vector<GraphHandleAccess> replay_ha,
-                                                    graph_sched_captured_handle_groups &parsed, bool has_batch,
-                                                    std::uint32_t batch_val, int vb, unsigned sched_ctx_id);
-
-void graph_sched_recorder_register(graph_sched_data *data);
-void graph_sched_recorder_deinit(graph_sched_data *data, unsigned sched_ctx_id);
 
 namespace graph_sgoc_bundle {
 /** Non-zero if STARPU_GRAPH_SCHED_SGOC_MEM_DEBUG enables MM offload/prefetch advance logging. */
@@ -609,13 +497,6 @@ void graph_sched_run_post_exec_evict_gpu_only(graph_sched_data *data, struct sta
 void graph_sched_drain_deferred_ram_offload_copies(graph_sched_data *data, unsigned gpu_mem_node);
 void graph_sched_drain_pending_gpu_evicts(graph_sched_data *data, unsigned gpu_mem_node);
 void graph_sched_clear_offload_task_registrations(graph_sched_data *data);
-
-/**
- * When batch-0 hints are active and outer iteration (slot 0) is > 0: match task to batch-0 template (footprint +
- * handle identity, with structural fallback), apply worker pin, enqueue on ready_queue + starpu_push_task_end.
- * Synthetic invalidates are not run here (unsafe from inside push_task); they run only on batch-0 linear replay.
- */
-bool graph_sched_try_push_task_incremental(graph_sched_data *data, struct starpu_task *task);
 
 /** Outer sched_ctx iteration slot 0 for this task (batch / epoch index), or -1 if unavailable. */
 long graph_sched_task_outer_iteration(struct starpu_task *task);

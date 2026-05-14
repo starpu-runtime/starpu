@@ -39,8 +39,8 @@ STARPU_ENV := OMP_NUM_THREADS=1 \
 	STARPU_PERF_MODEL_HOMOGENEOUS_CPU=1 STARPU_PERF_MODEL_HOMOGENEOUS_CUDA=1 \
 	STARPU_HOSTNAME=GPT2_LMHead_example \
 	STARPU_FXT_PREFIX=$(NOTEBOOK_DIR)/starpu/fxt \
-	STARPU_GRAPH_SCHED_VERBOSE=3 \
-	STARPU_LIMIT_CUDA_MEM=2000 \
+	STARPU_GRAPH_SCHED_VERBOSE=0 \
+	STARPU_LIMIT_CUDA_MEM=14000 \
 	STARPU_GRAPH_SCHED_SGOC_MEM_DEBUG=1 \
 	STARPU_GRAPH_SCHED_MM_ORDER_TRACE=1 \
 	STARPU_GRAPH_SCHED_STARPU_MEM_AVAILABLE_FRACTION=1.0 \
@@ -51,7 +51,7 @@ STARPU_ENV := OMP_NUM_THREADS=1 \
 CKPT_MAX ?= 0
 
 # Copy pure-Python graph scheduler helpers from NNTILE source into the build tree so ``make run`` picks up
-# graph_recorder_sched + graph_capture_sched without a full CMake rebuild.
+# graph_capture_sched without a full CMake rebuild.
 sync_nntile_graph_sched_py:
 	@mkdir -p $(NNTILE_PYTHON)/nntile/graph_recorder_sched
 	@cp -f $(NNTILE_ROOT)/wrappers/python/nntile/graph_recorder_sched/__init__.py \
@@ -69,10 +69,10 @@ GPT2_TRAIN := python ../wrappers/python/examples/gpt2_lmhead_training.py \
 	--optimizer=adam \
 	--lr=1e-4 \
 	--dtype=fp32 \
-	--nepochs=1 \
+	--nepochs=4 \
 	--seq-len=1024 \
-	--batch-size=4 \
-	--minibatch-size=1 \
+	--batch-size=16 \
+	--minibatch-size=8 \
 	--dataset-file=tinystories/train.bin \
 	--seed=$(TRAIN_SEED)
 

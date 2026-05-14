@@ -3,7 +3,7 @@
 #include "graph_sched_internal.hpp"
 
 #include <starpu.h>
-#include <starpu_graph_recorder.h>
+#include <starpu_graph_capture.h>
 #include <starpu_stdlib.h>
 #include <starpu_task.h>
 
@@ -156,8 +156,6 @@ void graph_sched_sgoc_clear_runtime(graph_sched_data *data)
     if (!data->graph_sgoc)
         return;
     graph_sched_data::graph_sgoc_runtime &G = *data->graph_sgoc;
-    G.pre_exec_prefetch.clear();
-    G.post_exec_prefetch.clear();
     G.post_exec_offload_order.clear();
     G.replay_task_topo_slot.clear();
     G.deferred_prefetch.clear();
@@ -327,9 +325,11 @@ void graph_sched_sgoc_print_memory_observations(graph_sched_data *data)
      * StarPU barrier/wait machinery may already be torn down (pthread mutex invalid). */
     graph_sched_data::graph_sgoc_runtime &G = *data->graph_sgoc;
     const graph_sched_gpu_memory_manager &mm = data->graph_gpu_mm;
-    if (md || tr)
+    if (md || tr) {
         std::cerr << "sgoc_mem_debug: deinit memory summary (counters as of sched teardown; call "
-                     "starpu_task_wait_for_all before shutdown if you need post-replay quiescence)" << std::endl;
+                     "starpu_task_wait_for_all before shutdown if you need post-replay quiescence)"
+                  << " wrr_checkpoint_inserts_total=" << data->graph_total_checkpoint_inserts << std::endl;
+    }
     if (md && G.mm_obs_last_flush_valid)
         graph_sgoc_bundle::graph_sched_sgoc_log_mm_plan_advance_debug(G.mm_obs_last_topo_slots, mm);
     else if (md && !G.mm_obs_last_flush_valid)

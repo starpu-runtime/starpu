@@ -26,7 +26,7 @@
 #include <common/starpu_spinlock.h>
 #include <core/task.h>
 #include <core/workers.h>
-#include <starpu_graph_recorder.h>
+#include <starpu_graph_capture.h>
 #ifdef STARPU_OPENMP
 #include <util/openmp_runtime_support.h>
 #endif

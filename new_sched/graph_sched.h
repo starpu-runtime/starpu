@@ -1,6 +1,6 @@
 /* SGOC graph scheduler — loadable StarPU policy (libgraph_sgoc_sched.so).
  *
- * Recording uses StarPU's starpu_graph_recorder hooks; starpu_graph_sched_graph_recording_begin / end
+ * Graph capture uses StarPU's internal dispatch (starpu_graph_capture.h): starpu_graph_sched_graph_recording_begin / end
  * defer task_insert / invalidate_submit while a session is open, then the policy flushes and replays.
  *
  * **Quiescence:** On outermost recording_begin the policy mutex is released, starpu_task_wait_for_all() runs (so the
@@ -18,12 +18,11 @@
  * for the pinned execution path. Recording may include non-CUDA tasks; flush replay pins only when the codelet
  * can run on the CUDA pin worker.
  *
- * Design stance: SGOC is the single graph scheduler; batch/minibatch incremental replay lives only in the in-tree
- * graph_recorder.cpp reference. Each SGOC flush is self-contained (GPU MM Belady plan + mem_offload_plan cache are
- * refreshed every outer recording_end for the sgoc policy).
+ * Design stance: each SGOC flush is self-contained (GPU MM Belady plan + mem_offload_plan cache are refreshed every
+ * outer recording_end).
  *
  * Optional: STARPU_GRAPH_SCHED_CHECKPOINT_MAX (default 0 = off) — max WRR checkpoint clones per recording flush,
- * after activation classification (same P/S/G/A minibatch-1/2 rules as graph_recorder via graph_sched_parse_captured_data_handles)
+ * after activation classification (P/S/G/A via graph_sched_parse_captured_data_handles)
  * and before topological sort. Candidates are ordered by best rematerialization bytes per predicted microsecond on the
  * pinned CUDA worker (then shorter predicted time, then task pointer). Insertion uses the same chain rule as the reference
  * (forward pure-read in graph subiter 1, backward pure-read in subiter 2; invalidate + clone immediately before the

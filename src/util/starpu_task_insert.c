@@ -21,7 +21,7 @@
 #include <common/config.h>
 #include <stdarg.h>
 #include <util/starpu_task_insert_utils.h>
-#include <starpu_graph_recorder.h>
+#include <starpu_graph_capture.h>
 
 void starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, ...)
 {

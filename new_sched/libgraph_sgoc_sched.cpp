@@ -67,8 +67,10 @@ static void deinit_sgoc_sched(unsigned sched_ctx_id)
     graph_sched_sgoc_victim_policy_deinit(data);
     graph_sched_sgoc_deinit(data, sched_ctx_id);
     graph_sched_sgoc_print_memory_observations(data);
-    if (graph_sgoc_bundle::graph_sched_verbose_env() >= 1)
-        std::cerr << "sgoc: deinit sched_ctx " << sched_ctx_id << std::endl;
+    if (graph_sgoc_bundle::graph_sched_verbose_env() >= 1) {
+        std::cerr << "sgoc: deinit sched_ctx " << sched_ctx_id
+                  << " wrr_checkpoint_inserts_total=" << data->graph_total_checkpoint_inserts << std::endl;
+    }
     delete data;
 }
 

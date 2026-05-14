@@ -1,6 +1,6 @@
 /* SGOC graph algorithms (included from graph_sgoc.cpp / libgraph_sgoc_sched). Checkpoint + memory planning live here. */
 #include "graph_sched_internal.hpp"
-#include <starpu_graph_recorder.h>
+#include <starpu_graph_capture.h>
 #include <starpu_data.h>
 #include <starpu_sched_ctx.h>
 #include <starpu_scheduler.h>
