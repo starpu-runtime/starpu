@@ -15,8 +15,7 @@
 #include <limits>
 
 #include "graph_sched_internal.hpp"
-
-#include "graph_sgoc.cpp"
+#include "graph_sgoc_env.hpp"
 
 static void graph_sched_wake_workers(unsigned sched_ctx_id)
 {

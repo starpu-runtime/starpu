@@ -6,8 +6,9 @@
  * **Quiescence:** On outermost recording_begin the policy mutex is released, starpu_task_wait_for_all() runs (so the
  * capture starts from a quiescent scheduler), then the mutex is re-acquired; graph_capture_wall_start is taken after
  * that wait. On outermost recording_end the same pattern runs before linearizing capture into graph_ops. Do not call
- * recording_begin/end from a StarPU context where waiting could deadlock. graph_sgoc_finalize_outermost_capture then
- * parses the graph (no further wait inside finalize). Application code may still call starpu_task_wait_for_all() after
+ * recording_begin/end from a StarPU context where waiting could deadlock. Flush/replay is implemented in
+ * `graph_sgoc_flush.cpp` and companion `graph_sgoc_*.cpp` units (`graph_sgoc_finalize_outermost_capture` parses the
+ * graph; no further wait inside finalize). Application code may still call starpu_task_wait_for_all() after
  * recording_end to wait for flush replay submissions to complete.
  *
  * Load with STARPU_SCHED=sgoc and STARPU_SCHED_LIB pointing at libgraph_sgoc_sched.so (see new_sched/Makefile run).
@@ -80,7 +81,7 @@
  *
  * Optional: STARPU_GRAPH_SCHED_CAPTURE_TIMING — when non-empty and non-zero, stderr lines `sgoc_capture_timing:` with
  * per-phase +delta ms for recording_begin (begin wait), recording_end / deinit_flush / linearize / finalize / flush
- * (see graph_sgoc.cpp). The same `sgoc_capture_timing:` phase lines are printed when STARPU_GRAPH_SCHED_VERBOSE>=2
+ * (see graph_sgoc_capture.cpp / graph_sgoc_timing.hpp). The same `sgoc_capture_timing:` phase lines are printed when STARPU_GRAPH_SCHED_VERBOSE>=2
  * without setting CAPTURE_TIMING.
  */
 

@@ -1,4 +1,5 @@
 !Makefile
 *.so
-demo_graph_sched
 traces/
+graph_sgoc_self_test
+demo_graph_sched

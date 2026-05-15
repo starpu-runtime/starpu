@@ -1,9 +1,6 @@
-/* Pinned worker init and memory targets for SGOC graph capture.
- * Define GRAPH_SCHED_PIN_LOG_TAG before #include for stderr prefixes (default "sgoc"). */
+/* Pinned CUDA worker resolution and GPU memory budget (STARPU_GRAPH_SCHED_WORKER). */
 
-#ifndef GRAPH_SCHED_PIN_LOG_TAG
 #define GRAPH_SCHED_PIN_LOG_TAG "sgoc"
-#endif
 
 #include "graph_sched_internal.hpp"
 
@@ -105,18 +102,6 @@ static int graph_sched_parse_explicit_worker_string(const char *e)
     return starpu_worker_get_by_type(wtype, num);
 }
 
-/**
- * Debug-friendly graph flush: store batch-0 signatures for compatibility checks, submit recorded ops in capture order
- * only (no checkpoint / greedy topo / mem-offload replay path in this policy), and disable incremental push_task replay.
- * Set STARPU_GRAPH_SCHED_DEBUG_SIMPLE=0 to restore batch-0 hint extraction, footprint maps, and incremental push.
- */
-static bool graph_sched_debug_simple_flush(void)
-{
-    const char *e = getenv("STARPU_GRAPH_SCHED_DEBUG_SIMPLE");
-    if (!e || !e[0])
-        return true;
-    return !(e[0] == '0' && e[1] == '\0');
-}
 
 static void graph_sched_log_pin_diagnostics(void)
 {

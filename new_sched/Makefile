@@ -1,4 +1,4 @@
-# SGOC graph scheduler (loadable StarPU policy) + demo
+# SGOC graph scheduler (loadable StarPU policy)
 CXX ?= c++
 CXXSTD ?= -std=c++17
 CXXFLAGS ?= -O0 -g -pthread -fPIC -D_GNU_SOURCE -D_XOPEN_SOURCE=700
@@ -30,23 +30,61 @@ endif
 ALL_CXXFLAGS := $(CXXSTD) $(CXXFLAGS) $(PKG_CFLAGS) -DSTARPUSGOC_HAS_VICTIM_SELECTOR=$(STARPUSGOC_HAS_VICTIM_SELECTOR) $(EXTRA_CFLAGS)
 
 LIB := libgraph_sgoc_sched.so
-LIB_OBJS := libgraph_sgoc_sched.o graph_sched_offload.o graph_sched_policy_lookup.o graph_sched_sgoc_victim.o
+LIB_OBJS := libgraph_sgoc_sched.o graph_sgoc_dag.o graph_sgoc_parse.o graph_sgoc_topo.o graph_sgoc_mm_plan.o \
+	graph_sgoc_checkpoint_wrr.o graph_sgoc_checkpoint.o graph_sgoc_capture_linearize.o graph_sgoc_flush.o graph_sgoc_capture.o graph_sgoc_runtime.o \
+	graph_sgoc_env.o graph_sched_pinned_worker.o graph_sched_offload.o graph_sched_policy_lookup.o graph_sched_sgoc_victim.o
 
-DEMO := demo_graph_sched
-DEMO_OBJS := main.o
+SELF_TEST := graph_sgoc_self_test
 
-all: $(LIB) $(DEMO)
+all: $(LIB)
 
 build: all
 
 $(LIB): $(LIB_OBJS)
 	$(CXX) -shared -o $@ $^ $(PKG_LIBS)
 
-$(DEMO): $(DEMO_OBJS) $(LIB)
-	$(CXX) -o $@ $(DEMO_OBJS) -L. -lgraph_sgoc_sched $(PKG_LIBS)
-
-libgraph_sgoc_sched.o: libgraph_sgoc_sched.cpp graph_sgoc.cpp graph_sched_internal.hpp graph_sgoc_bundle.inc graph_sched_pin_worker_extract.inc
+libgraph_sgoc_sched.o: libgraph_sgoc_sched.cpp graph_sched_internal.hpp graph_sched_types.hpp graph_sgoc_env.hpp
 	$(CXX) $(ALL_CXXFLAGS) -c libgraph_sgoc_sched.cpp -o $@
+
+GRAPH_SGOC_HDRS := graph_sched_internal.hpp graph_sched_types.hpp graph_sgoc_common.hpp graph_sgoc_bundle_detail.hpp graph_sgoc_bundle_checkpoint.hpp \
+	graph_sgoc_bundle_dag.hpp graph_sgoc_bundle_flush.hpp graph_sgoc_bundle_mm.hpp graph_sgoc_bundle_parse.hpp \
+	graph_sgoc_bundle_topo.hpp graph_sgoc_env.hpp graph_sgoc_timing.hpp
+
+graph_sgoc_dag.o: graph_sgoc_dag.cpp $(GRAPH_SGOC_HDRS)
+	$(CXX) $(ALL_CXXFLAGS) -c graph_sgoc_dag.cpp -o $@
+
+graph_sgoc_parse.o: graph_sgoc_parse.cpp $(GRAPH_SGOC_HDRS)
+	$(CXX) $(ALL_CXXFLAGS) -c graph_sgoc_parse.cpp -o $@
+
+graph_sgoc_topo.o: graph_sgoc_topo.cpp $(GRAPH_SGOC_HDRS)
+	$(CXX) $(ALL_CXXFLAGS) -c graph_sgoc_topo.cpp -o $@
+
+graph_sgoc_mm_plan.o: graph_sgoc_mm_plan.cpp $(GRAPH_SGOC_HDRS)
+	$(CXX) $(ALL_CXXFLAGS) -c graph_sgoc_mm_plan.cpp -o $@
+
+graph_sgoc_checkpoint_wrr.o: graph_sgoc_checkpoint_wrr.cpp $(GRAPH_SGOC_HDRS)
+	$(CXX) $(ALL_CXXFLAGS) -c graph_sgoc_checkpoint_wrr.cpp -o $@
+
+graph_sgoc_checkpoint.o: graph_sgoc_checkpoint.cpp $(GRAPH_SGOC_HDRS)
+	$(CXX) $(ALL_CXXFLAGS) -c graph_sgoc_checkpoint.cpp -o $@
+
+graph_sgoc_capture_linearize.o: graph_sgoc_capture_linearize.cpp $(GRAPH_SGOC_HDRS)
+	$(CXX) $(ALL_CXXFLAGS) -c graph_sgoc_capture_linearize.cpp -o $@
+
+graph_sgoc_flush.o: graph_sgoc_flush.cpp $(GRAPH_SGOC_HDRS)
+	$(CXX) $(ALL_CXXFLAGS) -c graph_sgoc_flush.cpp -o $@
+
+graph_sgoc_capture.o: graph_sgoc_capture.cpp graph_sched_internal.hpp graph_sgoc_env.hpp graph_sgoc_timing.hpp
+	$(CXX) $(ALL_CXXFLAGS) -c graph_sgoc_capture.cpp -o $@
+
+graph_sgoc_runtime.o: graph_sgoc_runtime.cpp graph_sched_internal.hpp
+	$(CXX) $(ALL_CXXFLAGS) -c graph_sgoc_runtime.cpp -o $@
+
+graph_sgoc_env.o: graph_sgoc_env.cpp graph_sgoc_env.hpp
+	$(CXX) $(ALL_CXXFLAGS) -c graph_sgoc_env.cpp -o $@
+
+graph_sched_pinned_worker.o: graph_sched_pinned_worker.cpp graph_sched_internal.hpp
+	$(CXX) $(ALL_CXXFLAGS) -c graph_sched_pinned_worker.cpp -o $@
 
 graph_sched_offload.o: graph_sched_offload.cpp graph_sched_internal.hpp
 	$(CXX) $(ALL_CXXFLAGS) -c graph_sched_offload.cpp -o $@
@@ -57,31 +95,19 @@ graph_sched_policy_lookup.o: graph_sched_policy_lookup.cpp graph_sched_internal.
 graph_sched_sgoc_victim.o: graph_sched_sgoc_victim.cpp graph_sched_internal.hpp
 	$(CXX) $(ALL_CXXFLAGS) -c graph_sched_sgoc_victim.cpp -o $@
 
-main.o: main.cpp graph_sched.h
-	$(CXX) $(ALL_CXXFLAGS) -c main.cpp -o $@
+graph_sgoc_self_test.o: graph_sgoc_self_test.cpp $(GRAPH_SGOC_HDRS)
+	$(CXX) $(ALL_CXXFLAGS) -c graph_sgoc_self_test.cpp -o $@
 
-.PHONY: all build clean run run-fxt
+$(SELF_TEST): graph_sgoc_self_test.o graph_sgoc_topo.o graph_sgoc_dag.o graph_sgoc_env.o graph_sgoc_checkpoint_wrr.o \
+		graph_sgoc_parse.o
+	$(CXX) -o $@ $^ $(PKG_LIBS)
+
+.PHONY: all build clean check
+
+check: $(SELF_TEST)
+	@lb="$$(pkg-config --variable=libdir $(PKG) 2>/dev/null)"; \
+	test -n "$$lb" || lb='$(PKG_LIBDIR)'; \
+	LD_LIBRARY_PATH="$$lb:$$LD_LIBRARY_PATH" ./$(SELF_TEST)
 
 clean:
-	rm -f $(LIB_OBJS) $(DEMO_OBJS) $(LIB) $(DEMO)
-
-run:	$(LIB) $(DEMO)
-	@lb="$$(pkg-config --variable=libdir $(PKG) 2>/dev/null)"; \
-	test -n "$$lb" || lb='$(PKG_LIBDIR)'; \
-	LD_LIBRARY_PATH="$$lb:$$LD_LIBRARY_PATH:." STARPU_SCHED=sgoc STARPU_SCHED_LIB=./$(LIB) \
-	STARPU_NCPU=1 STARPU_NCUDA=1 STARPU_SILENT=1 STARPU_GRAPH_SCHED_VERBOSE=6 STARPU_GRAPH_SCHED_CHECKPOINT_MAX=100 ./$(DEMO)
-
-run-fxt:	$(LIB) $(DEMO)
-	@mkdir -p traces
-	@lb="$$(pkg-config --variable=libdir $(PKG) 2>/dev/null)"; \
-	test -n "$$lb" || lb='$(PKG_LIBDIR)'; \
-	LD_LIBRARY_PATH="$$lb:$$LD_LIBRARY_PATH:." STARPU_SCHED=sgoc STARPU_SCHED_LIB=./$(LIB) \
-	STARPU_NCPU=1 STARPU_NCUDA=1 STARPU_GRAPH_SCHED_VERBOSE=1 STARPU_SILENT=1 \
-	STARPU_FXT_TRACE=1 STARPU_FXT_PREFIX=$(CURDIR)/traces STARPU_GENERATE_TRACE=1 \
-	./$(DEMO)
-	@echo "Traces saved in $(CURDIR)/traces/"
-
-run2:	$(DEMO)
-	@lb="$$(pkg-config --variable=libdir $(PKG) 2>/dev/null)"; \
-	test -n "$$lb" || lb='$(PKG_LIBDIR)'; \
-	LD_LIBRARY_PATH="$$lb:$$LD_LIBRARY_PATH:." STARPU_NCPU=1 ./$(DEMO)
+	rm -f $(LIB_OBJS) $(LIB) $(SELF_TEST) graph_sgoc_self_test.o
