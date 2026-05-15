@@ -1,7 +1,7 @@
 /* Shared #includes for graph_sgoc_*.cpp (scheduler algorithms split across TUs). */
 #pragma once
 
-#include "graph_sched_internal.hpp"
+#include "graph_sgoc_internal.hpp"
 #include "graph_sgoc_env.hpp"
 #include "graph_sgoc_timing.hpp"
 

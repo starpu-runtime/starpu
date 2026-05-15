@@ -24,7 +24,7 @@ static int test_topological_order()
     ops[2].predecessors.push_back(1);
 
     std::vector<size_t> order;
-    graph_sgoc_bundle::graph_sched_compute_topological_order(ops, order);
+    graph_sgoc_bundle::graph_sgoc_compute_topological_order(ops, order);
     if (order.size() != 3)
         return fail("topo: expected 3 nodes");
 
@@ -49,7 +49,7 @@ static int test_memory_after_ops_empty_handles()
     size_t peak_i = 0;
     std::int64_t peak_b = -1, init_b = -1;
     size_t init_live = 999;
-    graph_sgoc_bundle::graph_sched_compute_memory_after_ops(ops, ha, order, &peak_i, &peak_b, &init_b, &init_live, false);
+    graph_sgoc_bundle::graph_sgoc_compute_memory_after_ops(ops, ha, order, &peak_i, &peak_b, &init_b, &init_live, false);
     if (peak_b < 0 || init_b < 0)
         return fail("memory sim: expected non-negative bytes model");
     if (init_live != 0)
@@ -62,7 +62,7 @@ static int test_checkpoint_templates_empty()
     GraphOp op{};
     op.kind = GraphOp::TASK;
     std::vector<SgocWrrCheckpointTemplate> tpl;
-    if (graph_sgoc_bundle::graph_sched_op_matches_wrr_checkpoint_templates(op, tpl))
+    if (graph_sgoc_bundle::graph_sgoc_op_matches_wrr_checkpoint_templates(op, tpl))
         return fail("checkpoint: empty templates should not match");
     return 0;
 }

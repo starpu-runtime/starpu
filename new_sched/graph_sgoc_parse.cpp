@@ -6,7 +6,7 @@
 namespace graph_sgoc_bundle {
 
 /** Bump one of pure_r / pure_w / rw / scratch / other for activation-pattern accounting. */
-void graph_sched_activation_stat_bump(unsigned mode, unsigned &pure_r, unsigned &pure_w, unsigned &rw,
+void graph_sgoc_activation_stat_bump(unsigned mode, unsigned &pure_r, unsigned &pure_w, unsigned &rw,
                                              unsigned &scratch, unsigned &other)
 {
     if (graph_access_mode_is_invalidate(mode))
@@ -33,53 +33,53 @@ void graph_sched_activation_stat_bump(unsigned mode, unsigned &pure_r, unsigned 
 /** Classify pipeline stage from the inner \c graph_stage_subiteration (StarPU nested \c iteration slot).
  * NNTile counts minibatch steps: odd = forward (1,3,5,…), even = backward (2,4,6,…); 0 = prep/clear; \c UINT32_MAX = optimizer.
  * Pipelines that tag exactly 1/2 for the first minibatch only remain compatible (1 odd, 2 even). */
-bool graph_sched_graph_subiter_is_training_stage(std::uint32_t sub)
+bool graph_sgoc_graph_subiter_is_training_stage(std::uint32_t sub)
 {
     constexpr std::uint32_t k_optimizer = std::numeric_limits<std::uint32_t>::max();
     return sub != 0u && sub != k_optimizer;
 }
 
-bool graph_sched_graph_subiter_is_forward_stage(std::uint32_t sub)
+bool graph_sgoc_graph_subiter_is_forward_stage(std::uint32_t sub)
 {
-    if (!graph_sched_graph_subiter_is_training_stage(sub))
+    if (!graph_sgoc_graph_subiter_is_training_stage(sub))
         return false;
     return (sub % 2u) == 1u;
 }
 
-bool graph_sched_graph_subiter_is_backward_stage(std::uint32_t sub)
+bool graph_sgoc_graph_subiter_is_backward_stage(std::uint32_t sub)
 {
-    if (!graph_sched_graph_subiter_is_training_stage(sub))
+    if (!graph_sgoc_graph_subiter_is_training_stage(sub))
         return false;
     return (sub % 2u) == 0u;
 }
 
-/** Per-handle access counts for forward vs backward training stages; see graph_sched_parse_captured_data_handles. */
+/** Per-handle access counts for forward vs backward training stages; see graph_sgoc_parse_captured_data_handles. */
 struct FirstMinibatchActivationAgg {
     unsigned f_r = 0, f_w = 0, f_rw = 0, f_sc = 0, f_other = 0;
     unsigned b_r = 0, b_w = 0, b_rw = 0, b_sc = 0, b_other = 0;
 };
 
-static bool graph_sched_minibatch12_backward_activation_ok(const FirstMinibatchActivationAgg &ag)
+static bool graph_sgoc_minibatch12_backward_activation_ok(const FirstMinibatchActivationAgg &ag)
 {
     return ag.b_r >= 1u && ag.b_w == 0u && ag.b_rw == 0u && ag.b_sc == 0u && ag.b_other == 0u;
 }
 
-static bool graph_sched_minibatch12_forward_checkpointable(const FirstMinibatchActivationAgg &ag)
+static bool graph_sgoc_minibatch12_forward_checkpointable(const FirstMinibatchActivationAgg &ag)
 {
     return ag.f_w == 1u && ag.f_r >= 1u && ag.f_rw == 0u && ag.f_sc == 0u && ag.f_other == 0u;
 }
 
 /** Forward rule for offloadable: same as checkpointable, or at least one ::STARPU_RW (no scratch / other). */
-static bool graph_sched_minibatch12_forward_offloadable(const FirstMinibatchActivationAgg &ag)
+static bool graph_sgoc_minibatch12_forward_offloadable(const FirstMinibatchActivationAgg &ag)
 {
     if (ag.f_sc != 0u || ag.f_other != 0u)
         return false;
-    if (graph_sched_minibatch12_forward_checkpointable(ag))
+    if (graph_sgoc_minibatch12_forward_checkpointable(ag))
         return true;
     return ag.f_rw >= 1u;
 }
 
-std::int64_t graph_sched_sum_handle_vector_bytes(const std::vector<starpu_data_handle_t> &handles)
+std::int64_t graph_sgoc_sum_handle_vector_bytes(const std::vector<starpu_data_handle_t> &handles)
 {
     std::int64_t sum = 0;
     for (starpu_data_handle_t h : handles) {
@@ -94,7 +94,7 @@ std::int64_t graph_sched_sum_handle_vector_bytes(const std::vector<starpu_data_h
  * 1) Optimizer step (subiteration UINT32_MAX): pure ::STARPU_R → \p out.gradients; pure ::STARPU_W / ::STARPU_RW
  *    by pass → parameter/state candidates (see below).
  * 2) Any W/RW candidate that also appears on a task in a \b forward training stage (odd inner subiteration; see
- *    graph_sched_graph_subiter_is_forward_stage) becomes \p out.parameters;
+ *    graph_sgoc_graph_subiter_is_forward_stage) becomes \p out.parameters;
  *    remaining W/RW candidates are \p out.states (optimizer-only buffers such as Adam m/v).
  * 3) \p out.activations (checkpointable) and \p out.offloadable_activations: forward vs backward stages **scoped to the
  *    smallest forward and smallest backward training subiterations observed** (typically first inner microbatch: 1+2
@@ -103,8 +103,8 @@ std::int64_t graph_sched_sum_handle_vector_bytes(const std::vector<starpu_data_h
  *    Same backward rule (pure R only); forward strict W+R for checkpointable, or ::STARPU_RW for offloadable.
  *    Order: first appearance on a task with the minimum forward subiteration.
  */
-void graph_sched_parse_captured_data_handles(const std::vector<GraphOp> &ops,
-                                                    graph_sched_captured_handle_groups &out, int verbose)
+void graph_sgoc_parse_captured_data_handles(const std::vector<GraphOp> &ops,
+                                                    graph_sgoc_captured_handle_groups &out, int verbose)
 {
     out.parameters.clear();
     out.gradients.clear();
@@ -122,9 +122,9 @@ void graph_sched_parse_captured_data_handles(const std::vector<GraphOp> &ops,
         if (op.kind != GraphOp::TASK || !op.task || !op.graph_stage_subiteration_valid)
             continue;
         const std::uint32_t sub = op.graph_stage_subiteration;
-        if (graph_sched_graph_subiter_is_forward_stage(sub))
+        if (graph_sgoc_graph_subiter_is_forward_stage(sub))
             min_fwd_train = std::min(min_fwd_train, sub);
-        if (graph_sched_graph_subiter_is_backward_stage(sub))
+        if (graph_sgoc_graph_subiter_is_backward_stage(sub))
             min_bwd_train = std::min(min_bwd_train, sub);
     }
     out.activation_checkpoint_min_pair_valid =
@@ -225,9 +225,9 @@ void graph_sched_parse_captured_data_handles(const std::vector<GraphOp> &ops,
             void *key = static_cast<void *>(ref.handle);
             FirstMinibatchActivationAgg &ag = activation_agg[key];
             if (sub == out.activation_checkpoint_min_forward_sub)
-                graph_sched_activation_stat_bump(ref.mode, ag.f_r, ag.f_w, ag.f_rw, ag.f_sc, ag.f_other);
+                graph_sgoc_activation_stat_bump(ref.mode, ag.f_r, ag.f_w, ag.f_rw, ag.f_sc, ag.f_other);
             else
-                graph_sched_activation_stat_bump(ref.mode, ag.b_r, ag.b_w, ag.b_rw, ag.b_sc, ag.b_other);
+                graph_sgoc_activation_stat_bump(ref.mode, ag.b_r, ag.b_w, ag.b_rw, ag.b_sc, ag.b_other);
         }
     }
 
@@ -247,11 +247,11 @@ void graph_sched_parse_captured_data_handles(const std::vector<GraphOp> &ops,
     std::unordered_set<void *> offloadable_activation_keys;
     for (const auto &entry : activation_agg) {
         const FirstMinibatchActivationAgg &ag = entry.second;
-        if (!graph_sched_minibatch12_backward_activation_ok(ag))
+        if (!graph_sgoc_minibatch12_backward_activation_ok(ag))
             continue;
-        if (graph_sched_minibatch12_forward_offloadable(ag))
+        if (graph_sgoc_minibatch12_forward_offloadable(ag))
             offloadable_activation_keys.insert(entry.first);
-        if (graph_sched_minibatch12_forward_checkpointable(ag))
+        if (graph_sgoc_minibatch12_forward_checkpointable(ag))
             checkpointable_activation_keys.insert(entry.first);
     }
 
@@ -276,11 +276,11 @@ void graph_sched_parse_captured_data_handles(const std::vector<GraphOp> &ops,
     }
 
     if (verbose >= 3) {
-        const std::int64_t bp = graph_sched_sum_handle_vector_bytes(out.parameters);
-        const std::int64_t bg = graph_sched_sum_handle_vector_bytes(out.gradients);
-        const std::int64_t bs = graph_sched_sum_handle_vector_bytes(out.states);
-        const std::int64_t ba = graph_sched_sum_handle_vector_bytes(out.activations);
-        const std::int64_t boo = graph_sched_sum_handle_vector_bytes(out.offloadable_activations);
+        const std::int64_t bp = graph_sgoc_sum_handle_vector_bytes(out.parameters);
+        const std::int64_t bg = graph_sgoc_sum_handle_vector_bytes(out.gradients);
+        const std::int64_t bs = graph_sgoc_sum_handle_vector_bytes(out.states);
+        const std::int64_t ba = graph_sgoc_sum_handle_vector_bytes(out.activations);
+        const std::int64_t boo = graph_sgoc_sum_handle_vector_bytes(out.offloadable_activations);
         const std::int64_t btot = bp + bg + bs + ba + boo;
         std::cerr << "sgoc: handle_parser: parameters n=" << out.parameters.size() << " bytes=" << bp
                   << " gradients n=" << out.gradients.size() << " bytes=" << bg
@@ -290,7 +290,7 @@ void graph_sched_parse_captured_data_handles(const std::vector<GraphOp> &ops,
                   << " total_bytes=" << btot << std::endl;
     }
 }
-bool graph_sched_infer_batch_capture_context(const std::vector<GraphOp> &ops, bool *has_batch_tags_out,
+bool graph_sgoc_infer_batch_capture_context(const std::vector<GraphOp> &ops, bool *has_batch_tags_out,
                                                     std::uint32_t *batch_value_out)
 {
     if (has_batch_tags_out)

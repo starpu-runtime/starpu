@@ -5,13 +5,13 @@
 
 namespace graph_sgoc_bundle {
 
-static double graph_sched_elapsed_sec(std::chrono::steady_clock::time_point a,
+static double graph_sgoc_elapsed_sec(std::chrono::steady_clock::time_point a,
                                                     std::chrono::steady_clock::time_point b)
 {
     return std::chrono::duration<double>(b - a).count();
 }
 
-void graph_sched_compute_topological_order(const std::vector<GraphOp> &ops,
+void graph_sgoc_compute_topological_order(const std::vector<GraphOp> &ops,
                                                   std::vector<size_t> &order_out)
 {
     const size_t n = ops.size();
@@ -56,7 +56,7 @@ void graph_sched_compute_topological_order(const std::vector<GraphOp> &ops,
     }
 
     if (order_out.size() != n) {
-        if (graph_sched_verbose_env() >= 2)
+        if (graph_sgoc_verbose_env() >= 2)
             std::cerr << "sgoc: topological sort failed (cycle?), replaying capture order" << std::endl;
         order_out.resize(0);
         for (size_t i = 0; i < n; ++i)
@@ -64,7 +64,7 @@ void graph_sched_compute_topological_order(const std::vector<GraphOp> &ops,
     }
 }
 
-size_t graph_sched_find_chain_head_idx(const std::vector<GraphHandleAccess> &ha, starpu_data_handle_t h)
+size_t graph_sgoc_find_chain_head_idx(const std::vector<GraphHandleAccess> &ha, starpu_data_handle_t h)
 {
     if (!h)
         return GRAPH_ACCESS_NONE;
@@ -75,10 +75,10 @@ size_t graph_sched_find_chain_head_idx(const std::vector<GraphHandleAccess> &ha,
     return GRAPH_ACCESS_NONE;
 }
 
-const GraphHandleAccess *graph_sched_first_task_access_on_chain(const std::vector<GraphHandleAccess> &ha,
+const GraphHandleAccess *graph_sgoc_first_task_access_on_chain(const std::vector<GraphHandleAccess> &ha,
                                                                        starpu_data_handle_t h)
 {
-    size_t idx = graph_sched_find_chain_head_idx(ha, h);
+    size_t idx = graph_sgoc_find_chain_head_idx(ha, h);
     while (idx != GRAPH_ACCESS_NONE) {
         if (idx >= ha.size())
             return nullptr;
@@ -92,7 +92,7 @@ const GraphHandleAccess *graph_sched_first_task_access_on_chain(const std::vecto
     return nullptr;
 }
 
-void graph_sched_collect_unique_handles(const std::vector<GraphHandleAccess> &ha,
+void graph_sgoc_collect_unique_handles(const std::vector<GraphHandleAccess> &ha,
                                                std::vector<starpu_data_handle_t> &handles_out)
 {
     handles_out.clear();
@@ -125,9 +125,9 @@ std::string graph_op_memory_trace_name(const GraphOp &op)
 }
 
 /** True if the first task access on this handle's chain reads existing data (STARPU_R or STARPU_RW). */
-bool graph_sched_handle_live_before_graph(const std::vector<GraphHandleAccess> &ha, starpu_data_handle_t h)
+bool graph_sgoc_handle_live_before_graph(const std::vector<GraphHandleAccess> &ha, starpu_data_handle_t h)
 {
-    const GraphHandleAccess *fa = graph_sched_first_task_access_on_chain(ha, h);
+    const GraphHandleAccess *fa = graph_sgoc_first_task_access_on_chain(ha, h);
     if (!fa)
         return false;
     return (fa->mode & STARPU_R) != 0;
@@ -138,7 +138,7 @@ bool graph_sched_handle_live_before_graph(const std::vector<GraphHandleAccess> &
  * without pure W adds 0; invalidate_submit contributes -size(handle). Checkpoint clones match their source codelet.
  */
 /** Pinned-node footprint model: byte change if \p op runs when \p resident holds live pure-write handles. */
-std::int64_t graph_sched_op_memory_delta_for_resident(const GraphOp &op,
+std::int64_t graph_sgoc_op_memory_delta_for_resident(const GraphOp &op,
                                                               const std::unordered_set<void *> &resident)
 {
     if (op.kind == GraphOp::INVALIDATE) {
@@ -167,7 +167,7 @@ std::int64_t graph_sched_op_memory_delta_for_resident(const GraphOp &op,
     return 0;
 }
 
-void graph_sched_op_apply_memory_effect_to_resident(const GraphOp &op, std::unordered_set<void *> &resident)
+void graph_sgoc_op_apply_memory_effect_to_resident(const GraphOp &op, std::unordered_set<void *> &resident)
 {
     if (op.kind == GraphOp::INVALIDATE) {
         starpu_data_handle_t h = op.handle;
@@ -188,20 +188,20 @@ void graph_sched_op_apply_memory_effect_to_resident(const GraphOp &op, std::unor
 }
 
 /** Pinned-node footprint simulation: peak/initial bytes and optional per-op trace (verbose 6). */
-void graph_sched_compute_memory_after_ops(const std::vector<GraphOp> &ops, const std::vector<GraphHandleAccess> &ha,
+void graph_sgoc_compute_memory_after_ops(const std::vector<GraphOp> &ops, const std::vector<GraphHandleAccess> &ha,
                                                  const std::vector<size_t> &topo_order, size_t *peak_topo_index_out,
                                                  std::int64_t *peak_bytes_out, std::int64_t *initial_bytes_out,
                                                  size_t *initial_live_handle_count_out, bool print_memory_trace)
 {
     std::vector<starpu_data_handle_t> unique_handles;
-    graph_sched_collect_unique_handles(ha, unique_handles);
+    graph_sgoc_collect_unique_handles(ha, unique_handles);
 
     std::unordered_set<void *> resident;
     std::int64_t current = 0;
     size_t initial_live_handles = 0;
 
     for (starpu_data_handle_t h : unique_handles) {
-        if (!h || !graph_sched_handle_live_before_graph(ha, h))
+        if (!h || !graph_sgoc_handle_live_before_graph(ha, h))
             continue;
         void *p = static_cast<void *>(h);
         if (!resident.insert(p).second)
@@ -228,9 +228,9 @@ void graph_sched_compute_memory_after_ops(const std::vector<GraphOp> &ops, const
         if (opi >= ops.size())
             continue;
         const GraphOp &op = ops[opi];
-        const std::int64_t d = graph_sched_op_memory_delta_for_resident(op, resident);
+        const std::int64_t d = graph_sgoc_op_memory_delta_for_resident(op, resident);
         current += d;
-        graph_sched_op_apply_memory_effect_to_resident(op, resident);
+        graph_sgoc_op_apply_memory_effect_to_resident(op, resident);
 
         if (print_memory_trace) {
             const std::ios::fmtflags trace_flags = std::cerr.flags();
@@ -254,14 +254,14 @@ void graph_sched_compute_memory_after_ops(const std::vector<GraphOp> &ops, const
 }
 
 /**
- * Topological order over the same DAG as graph_sched_compute_topological_order, using predecessors / successors.
- * Greedy: among ready ops, pick minimal graph_sched_op_intrinsic_memory_delta (precomputed once per op).
+ * Topological order over the same DAG as graph_sgoc_compute_topological_order, using predecessors / successors.
+ * Greedy: among ready ops, pick minimal graph_sgoc_op_intrinsic_memory_delta (precomputed once per op).
  *
  * If non-null, \p greedy_attempt_sec_out is the wall time for the greedy attempt (prep + main loop), whether or not
  * it succeeds. \p lex_fallback_sec_out is the time spent in lexicographic Kahn topo when greedy fails (else 0).
  * \p greedy_prep_sec_out / \p greedy_loop_sec_out split the greedy attempt (see verbose level 4 timing lines).
  */
-void graph_sched_compute_greedy_memory_topological_order(const std::vector<GraphOp> &ops,
+void graph_sgoc_compute_greedy_memory_topological_order(const std::vector<GraphOp> &ops,
                                                                 std::vector<size_t> &order_out,
                                                                 double *greedy_attempt_sec_out,
                                                                 double *lex_fallback_sec_out,
@@ -290,7 +290,7 @@ void graph_sched_compute_greedy_memory_topological_order(const std::vector<Graph
 
     std::vector<std::int64_t> intrinsic_delta(n);
     for (size_t i = 0; i < n; ++i)
-        intrinsic_delta[i] = graph_sched_op_intrinsic_memory_delta(ops[i]);
+        intrinsic_delta[i] = graph_sgoc_op_intrinsic_memory_delta(ops[i]);
 
     std::vector<unsigned> indegree(n, 0);
     for (size_t i = 0; i < n; ++i)
@@ -349,21 +349,21 @@ void graph_sched_compute_greedy_memory_topological_order(const std::vector<Graph
     const clock::time_point t_after_loop = clock::now();
 
     if (greedy_prep_sec_out)
-        *greedy_prep_sec_out = graph_sched_elapsed_sec(t_greedy_start, t_after_prep);
+        *greedy_prep_sec_out = graph_sgoc_elapsed_sec(t_greedy_start, t_after_prep);
     if (greedy_loop_sec_out)
-        *greedy_loop_sec_out = graph_sched_elapsed_sec(t_after_prep, t_after_loop);
+        *greedy_loop_sec_out = graph_sgoc_elapsed_sec(t_after_prep, t_after_loop);
     if (greedy_attempt_sec_out)
-        *greedy_attempt_sec_out = graph_sched_elapsed_sec(t_greedy_start, t_after_loop);
+        *greedy_attempt_sec_out = graph_sgoc_elapsed_sec(t_greedy_start, t_after_loop);
 
     if (order_out.size() != n) {
-        if (graph_sched_verbose_env() >= 2)
+        if (graph_sgoc_verbose_env() >= 2)
             std::cerr << "sgoc: greedy memory topo failed (cycle?), falling back to lexicographic topo"
                       << std::endl;
         const clock::time_point t_lex_start = clock::now();
-        graph_sched_compute_topological_order(ops, order_out);
+        graph_sgoc_compute_topological_order(ops, order_out);
         const clock::time_point t_lex_end = clock::now();
         if (lex_fallback_sec_out)
-            *lex_fallback_sec_out = graph_sched_elapsed_sec(t_lex_start, t_lex_end);
+            *lex_fallback_sec_out = graph_sgoc_elapsed_sec(t_lex_start, t_lex_end);
     } else if (lex_fallback_sec_out)
         *lex_fallback_sec_out = 0;
 }
@@ -378,7 +378,7 @@ bool graph_sgoc_ready_vram_topo_enabled(void)
 
 /**
  * Ready-set scheduler: among ops with satisfied predecessors, pick next op minimizing
- * graph_sched_op_memory_delta_for_resident under the current pure-write footprint model; ties prefer INVALIDATE
+ * graph_sgoc_op_memory_delta_for_resident under the current pure-write footprint model; ties prefer INVALIDATE
  * before TASK (free GPU bytes earlier), then lower op index.
  */
 void graph_sgoc_compute_ready_set_greedy_vram_topological_order(const std::vector<GraphOp> &ops,
@@ -394,9 +394,9 @@ void graph_sgoc_compute_ready_set_greedy_vram_topological_order(const std::vecto
 
     std::unordered_set<void *> resident;
     std::vector<starpu_data_handle_t> unique_handles;
-    graph_sched_collect_unique_handles(handle_accesses, unique_handles);
+    graph_sgoc_collect_unique_handles(handle_accesses, unique_handles);
     for (starpu_data_handle_t h : unique_handles) {
-        if (!h || !graph_sched_handle_live_before_graph(handle_accesses, h))
+        if (!h || !graph_sgoc_handle_live_before_graph(handle_accesses, h))
             continue;
         void *p = static_cast<void *>(h);
         if (starpu_gpu_resident_truth) {
@@ -421,11 +421,11 @@ void graph_sgoc_compute_ready_set_greedy_vram_topological_order(const std::vecto
     order_out.reserve(n);
     while (!ready.empty()) {
         size_t best = ready[0];
-        std::int64_t best_d = graph_sched_op_memory_delta_for_resident(ops[best], resident);
+        std::int64_t best_d = graph_sgoc_op_memory_delta_for_resident(ops[best], resident);
         bool best_inv = (ops[best].kind == GraphOp::INVALIDATE);
         for (size_t k = 1; k < ready.size(); ++k) {
             const size_t u = ready[k];
-            const std::int64_t du = graph_sched_op_memory_delta_for_resident(ops[u], resident);
+            const std::int64_t du = graph_sgoc_op_memory_delta_for_resident(ops[u], resident);
             const bool u_inv = (ops[u].kind == GraphOp::INVALIDATE);
             bool better = du < best_d;
             if (!better && du == best_d) {
@@ -450,7 +450,7 @@ void graph_sgoc_compute_ready_set_greedy_vram_topological_order(const std::vecto
         }
 
         order_out.push_back(best);
-        graph_sched_op_apply_memory_effect_to_resident(ops[best], resident);
+        graph_sgoc_op_apply_memory_effect_to_resident(ops[best], resident);
 
         for (size_t v : ops[best].successors) {
             if (v >= n)
@@ -464,7 +464,7 @@ void graph_sgoc_compute_ready_set_greedy_vram_topological_order(const std::vecto
     if (order_out.size() != n) {
         if (verbose >= 2)
             std::cerr << "sgoc: ready_vram_topo failed (cycle?), falling back to lex topo\n";
-        graph_sched_compute_topological_order(ops, order_out);
+        graph_sgoc_compute_topological_order(ops, order_out);
     }
 }
 

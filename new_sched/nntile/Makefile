@@ -3,15 +3,15 @@
 # sequence/batch settings.
 #
 # This Makefile lives under starpu-sched/new_sched/nntile/. Paths default to:
-#   GRAPH_SCHED_DIR = new_sched, STARPU_SRC = starpu-sched root, NNTILE_ROOT = sibling nntile/.
+#   GRAPH_SGOC_DIR = new_sched, STARPU_SRC = starpu-sched root, NNTILE_ROOT = sibling nntile/.
 # Override if your layout differs:
 #   make build NNTILE_ROOT=/path/to/nntile STARPU_SRC=/path/to/starpu
 #
 # Optional: STARPU_BUILD (default: $(STARPU_SRC)/build), NNTILE_BUILD, CMAKE.
 
 THIS_DIR        := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
-GRAPH_SCHED_DIR ?= $(abspath $(THIS_DIR)/..)
-STARPU_SRC      ?= $(abspath $(GRAPH_SCHED_DIR)/..)
+GRAPH_SGOC_DIR ?= $(abspath $(THIS_DIR)/..)
+STARPU_SRC      ?= $(abspath $(GRAPH_SGOC_DIR)/..)
 NNTILE_ROOT     ?= $(abspath $(STARPU_SRC)/../nntile)
 NNTILE_BUILD    ?= $(NNTILE_ROOT)/build
 
@@ -21,8 +21,8 @@ STARPU_BUILD_LIBDIR ?= $(abspath $(STARPU_BUILD)/src/.libs)
 STARPU_LD       ?= $$(pkg-config --variable=libdir starpu-1.4 2>/dev/null)
 
 CMAKE           ?= cmake
-GRAPH_SCHED_SO  := $(abspath $(GRAPH_SCHED_DIR)/libgraph_sgoc_sched.so)
-GRAPH_SCHED_LD  := $(abspath $(GRAPH_SCHED_DIR))
+GRAPH_SGOC_SO  := $(abspath $(GRAPH_SGOC_DIR)/libgraph_sgoc_sched.so)
+GRAPH_SGOC_LD  := $(abspath $(GRAPH_SGOC_DIR))
 
 NOTEBOOK_DIR    := $(NNTILE_ROOT)/notebooks
 NNTILE_PYTHON   := $(NNTILE_BUILD)/wrappers/python
@@ -30,7 +30,7 @@ TRAIN_SEED      ?= 0
 
 # Env vars from notebooks/gpt2_lmhead.ipynb (single line for one shell)
 STARPU_ENV := OMP_NUM_THREADS=1 \
-	LD_LIBRARY_PATH=$(STARPU_BUILD_LIBDIR):$(STARPU_LD):$(GRAPH_SCHED_LD):$$LD_LIBRARY_PATH \
+	LD_LIBRARY_PATH=$(STARPU_BUILD_LIBDIR):$(STARPU_LD):$(GRAPH_SGOC_LD):$$LD_LIBRARY_PATH \
 	PYTHONPATH=$(NNTILE_PYTHON) \
 	STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_SILENT=1 STARPU_FXT_TRACE=0 STARPU_WORKERS_NOBIND=1 \
 	STARPU_PROFILING=1 STARPU_BUS_STATS=1 STARPU_PREFETCH=1 \
@@ -45,14 +45,16 @@ STARPU_ENV := OMP_NUM_THREADS=1 \
 	STARPU_GRAPH_SCHED_MM_ORDER_TRACE=1 \
 	STARPU_GRAPH_SCHED_STARPU_MEM_AVAILABLE_FRACTION=1.0 \
 	STARPU_GRAPH_SCHED_MM_EXECUTE_HINTS=1 \
-	STARPU_GRAPH_SCHED_MEM_OFFLOAD_AUTO=1
+	STARPU_GRAPH_SCHED_MEM_OFFLOAD_AUTO=1 \
+	STARPU_MINIMUM_AVAILABLE_MEM=5 \
+	STARPU_TARGET_AVAILABLE_MEM=10
 
-# Max WRR graph checkpoints per sgoc flush (see graph_sched.h). Example: make run_graph CKPT_MAX=24
+# Max WRR graph checkpoints per sgoc flush (see graph_sgoc.h). Example: make run_graph CKPT_MAX=24
 CKPT_MAX ?= 0
 
 # Copy pure-Python graph scheduler helpers from NNTILE source into the build tree so ``make run`` picks up
 # graph_capture_sched without a full CMake rebuild.
-sync_nntile_graph_sched_py:
+sync_nntile_graph_sgoc_py:
 	@mkdir -p $(NNTILE_PYTHON)/nntile/graph_recorder_sched
 	@cp -f $(NNTILE_ROOT)/wrappers/python/nntile/graph_recorder_sched/__init__.py \
 		$(NNTILE_PYTHON)/nntile/graph_recorder_sched/__init__.py
@@ -76,15 +78,15 @@ GPT2_TRAIN := python ../wrappers/python/examples/gpt2_lmhead_training.py \
 	--dataset-file=tinystories/train.bin \
 	--seed=$(TRAIN_SEED)
 
-.PHONY: build build_starpu install_starpu build_graph_sched configure_nntile \
+.PHONY: build build_starpu install_starpu build_sgoc_sched configure_nntile \
 	nntile_python nntile_core nntile_graph \
-	data run run_dmdasd run_graph sync_nntile_graph_sched_py
+	data run run_dmdasd run_graph sync_nntile_graph_sgoc_py
 
 # ---------------------------------------------------------------------------
 # build: StarPU (compile + install) -> graph scheduler (in-tree, no install)
 #        -> CMake configure NNTile (incremental) -> nntile_core + nntile_graph
 # ---------------------------------------------------------------------------
-build: build_starpu install_starpu build_graph_sched configure_nntile nntile_python
+build: build_starpu install_starpu build_sgoc_sched configure_nntile nntile_python
 
 build_starpu:
 	$(MAKE) -C $(STARPU_BUILD)
@@ -92,9 +94,9 @@ build_starpu:
 install_starpu:
 	$(MAKE) -C $(STARPU_BUILD) install
 
-build_graph_sched:
-	@echo "Building SGOC graph scheduler ($(GRAPH_SCHED_DIR)) ..."
-	@$(MAKE) -C $(GRAPH_SCHED_DIR) all
+build_sgoc_sched:
+	@echo "Building SGOC graph scheduler ($(GRAPH_SGOC_DIR)) ..."
+	@$(MAKE) -C $(GRAPH_SGOC_DIR) all
 
 configure_nntile:
 	$(CMAKE) -S $(NNTILE_ROOT) -B $(NNTILE_BUILD) -GNinja \
@@ -122,7 +124,7 @@ data:
 		--batch-size=4 \
 		--dataset-select=100
 
-# PYTHONPATH -> $(NNTILE_BUILD)/wrappers/python (via STARPU_ENV); default: graph scheduler
+# PYTHONPATH -> $(NNTILE_BUILD)/wrappers/python (via STARPU_ENV); default: SGOC graph scheduler
 run: run_graph
 
 run_dmdasd:
@@ -131,13 +133,13 @@ run_dmdasd:
 run_darts:
 	cd $(NOTEBOOK_DIR) && $(STARPU_ENV) STARPU_SCHED=darts $(GPT2_TRAIN)
 
-# Loadable SGOC graph policy from $(GRAPH_SCHED_DIR) (see that tree's Makefile).
+# Loadable SGOC graph policy from $(GRAPH_SGOC_DIR) (see that tree's Makefile).
 # SGOC pins recorded replay using STARPU_GRAPH_SCHED_WORKER (see starpu-sched new_sched).
 # An inherited value (e.g. CPU:0 from your shell) is fatal if this StarPU run has no CPU workers
 # (STARPU_NCPU=0, CPU driver disabled, etc.). STARPU_GRAPH_SCHED_WORKER= in STARPU_ENV clears that
 # so the policy uses its default (CUDA:0 if a GPU exists, else CPU:0). Override on the make line if needed.
-run_graph: sync_nntile_graph_sched_py
-	@echo "new_sched/nntile: STARPU_SCHED_LIB=$(GRAPH_SCHED_SO) (rebuild with: make -C $(GRAPH_SCHED_DIR))" >&2
+run_graph: sync_nntile_graph_sgoc_py
+	@echo "new_sched/nntile: STARPU_SCHED_LIB=$(GRAPH_SGOC_SO) (rebuild with: make -C $(GRAPH_SGOC_DIR))" >&2
 	cd $(NOTEBOOK_DIR) && $(STARPU_ENV) STARPU_GRAPH_SCHED_CHECKPOINT_MAX=$(CKPT_MAX) STARPU_SCHED=sgoc \
-		STARPU_SCHED_LIB=$(GRAPH_SCHED_SO) \
+		STARPU_SCHED_LIB=$(GRAPH_SGOC_SO) \
 		$(GPT2_TRAIN)

@@ -5,40 +5,40 @@
 
 namespace graph_sgoc_bundle {
 
-void graph_sched_append_captured_task(graph_sched_data *data, struct starpu_task *task)
+void graph_sgoc_append_captured_task(graph_sgoc_data *data, struct starpu_task *task)
 {
-    graph_sched_insert_missing_pre_write_invalidates(data, task);
+    graph_sgoc_insert_missing_pre_write_invalidates(data, task);
 
     GraphOp op{};
     op.kind = GraphOp::TASK;
     op.task = task;
     op.handle = nullptr;
-    graph_sched_graph_op_set_stage_from_sched_ctx(op, task->sched_ctx, task);
+    graph_sgoc_graph_op_set_stage_from_sched_ctx(op, task->sched_ctx, task);
     op.predicted_exec_time =
-        graph_sched_predicted_exec_time_us_for_pinned_worker(task, data->graph_pinned_worker_id, task->sched_ctx);
+        graph_sgoc_predicted_exec_time_us_for_pinned_worker(task, data->graph_pinned_worker_id, task->sched_ctx);
 
     if (data->graph_sgoc) {
-        graph_sched_data::graph_sgoc_runtime &G = *data->graph_sgoc;
+        graph_sgoc_data::graph_sgoc_runtime &G = *data->graph_sgoc;
         const size_t sid = G.capture_next_stable_id++;
         op.capture_stable_id = sid;
         G.capture_ops.push_back(std::move(op));
         G.capture_id_to_iter[sid] = std::prev(G.capture_ops.end());
         GraphOp &op_ref = G.capture_ops.back();
-        graph_sched_register_task_accesses_op(data, sid, task, op_ref);
+        graph_sgoc_register_task_accesses_op(data, sid, task, op_ref);
         graph_sgoc_capture_add_edges_for_op(data, op_ref);
         return;
     }
 
     data->graph_ops.push_back(std::move(op));
-    graph_sched_register_task_accesses(data, data->graph_ops.size() - 1, task);
-    graph_sched_refresh_op_dependencies(data);
+    graph_sgoc_register_task_accesses(data, data->graph_ops.size() - 1, task);
+    graph_sgoc_refresh_op_dependencies(data);
 }
-void graph_sgoc_linearize_capture_to_ops(graph_sched_data *data)
+void graph_sgoc_linearize_capture_to_ops(graph_sgoc_data *data)
 {
     if (!data || !data->graph_sgoc)
         return;
-    graph_sched_data::graph_sgoc_runtime &G = *data->graph_sgoc;
-    const bool cap_tim = graph_sched_capture_phase_report_enabled();
+    graph_sgoc_data::graph_sgoc_runtime &G = *data->graph_sgoc;
+    const bool cap_tim = graph_sgoc_capture_phase_report_enabled();
     const auto t_lin0 = std::chrono::steady_clock::now();
     const size_t n_listed = G.capture_ops.size();
     if (G.capture_ops.empty()) {
@@ -52,7 +52,7 @@ void graph_sgoc_linearize_capture_to_ops(graph_sched_data *data)
     }
 
     /* One O(total accesses) pass; incremental capture no longer calls this per append. */
-    graph_sched_validate_invalidate_then_pure_write_windows(data);
+    graph_sgoc_validate_invalidate_then_pure_write_windows(data);
 
     std::unordered_map<size_t, size_t> sid_to_idx;
     sid_to_idx.reserve(G.capture_ops.size() * 2u);
@@ -113,21 +113,21 @@ void graph_sgoc_linearize_capture_to_ops(graph_sched_data *data)
     }
 }
 
-void graph_sched_append_capture_explicit_invalidate(graph_sched_data *data, starpu_data_handle_t handle)
+void graph_sgoc_append_capture_explicit_invalidate(graph_sgoc_data *data, starpu_data_handle_t handle)
 {
     if (!data->graph_sgoc)
         return;
-    graph_sched_data::graph_sgoc_runtime &G = *data->graph_sgoc;
+    graph_sgoc_data::graph_sgoc_runtime &G = *data->graph_sgoc;
     GraphOp op{};
     op.kind = GraphOp::INVALIDATE;
     op.task = nullptr;
     op.handle = handle;
-    graph_sched_graph_op_set_stage_from_sched_ctx(op, starpu_sched_ctx_get_context(), nullptr);
+    graph_sgoc_graph_op_set_stage_from_sched_ctx(op, starpu_sched_ctx_get_context(), nullptr);
     const size_t sid = G.capture_next_stable_id++;
     op.capture_stable_id = sid;
     G.capture_ops.push_back(std::move(op));
     G.capture_id_to_iter[sid] = std::prev(G.capture_ops.end());
-    graph_sched_register_invalidate_access_op(data, G.capture_ops.back(), sid, handle);
+    graph_sgoc_register_invalidate_access_op(data, G.capture_ops.back(), sid, handle);
     graph_sgoc_capture_add_edges_for_op(data, G.capture_ops.back());
 }
 

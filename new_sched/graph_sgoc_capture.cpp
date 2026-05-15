@@ -1,6 +1,6 @@
-/* SGOC graph capture: StarPU recorder hooks and starpu_graph_sched_graph_recording_begin / end. */
+/* SGOC graph capture: recorder hooks graph_sgoc_recording_begin/end (+ starpu_graph_sched_* legacy aliases). */
 
-#include "graph_sched_internal.hpp"
+#include "graph_sgoc_internal.hpp"
 #include "graph_sgoc_env.hpp"
 #include "graph_sgoc_timing.hpp"
 
@@ -20,32 +20,32 @@ namespace {
 
 static int sgoc_capture_task_hook(struct starpu_task *task, void *arg)
 {
-    auto *d = static_cast<graph_sched_data *>(arg);
+    auto *d = static_cast<graph_sgoc_data *>(arg);
     std::lock_guard<std::mutex> lock(d->policy_mutex);
     if (d->graph_record_nested == 0)
         return -1;
-    graph_sgoc_bundle::graph_sched_append_captured_task(d, task);
+    graph_sgoc_bundle::graph_sgoc_append_captured_task(d, task);
     return 0;
 }
 
 static int sgoc_capture_invalidate_hook(starpu_data_handle_t handle, void *arg)
 {
-    auto *d = static_cast<graph_sched_data *>(arg);
+    auto *d = static_cast<graph_sgoc_data *>(arg);
     std::lock_guard<std::mutex> lock(d->policy_mutex);
     if (d->graph_record_nested == 0)
         return -1;
-    graph_sgoc_bundle::graph_sched_append_capture_explicit_invalidate(d, handle);
+    graph_sgoc_bundle::graph_sgoc_append_capture_explicit_invalidate(d, handle);
     return 0;
 }
 
 } /* namespace */
 
-void graph_sched_sgoc_register(graph_sched_data *data)
+void graph_sgoc_register(graph_sgoc_data *data)
 {
     _starpu_graph_recorder_register(sgoc_capture_task_hook, sgoc_capture_invalidate_hook, nullptr, data);
 }
 
-void graph_sched_sgoc_deinit(graph_sched_data *data, unsigned sched_ctx_id)
+void graph_sgoc_deinit(graph_sgoc_data *data, unsigned sched_ctx_id)
 {
     for (;;) {
         SgocCapturePhaseTimer td("deinit_flush");
@@ -66,7 +66,7 @@ void graph_sched_sgoc_deinit(graph_sched_data *data, unsigned sched_ctx_id)
                 td.lap("starpu_task_wait_for_all");
                 lock.lock();
                 td.lap("policy_relock_after_wait");
-                graph_sched_account_outermost_capture_end(data);
+                graph_sgoc_account_outermost_capture_end(data);
                 td.lap("account_capture_wall_time");
                 moved_capture = true;
                 added_invalidate_submit = data->graph_added_invalidate_submit;
@@ -91,14 +91,14 @@ void graph_sched_sgoc_deinit(graph_sched_data *data, unsigned sched_ctx_id)
     _starpu_graph_recorder_unregister(data);
 }
 
-void graph_sched_account_outermost_capture_end(graph_sched_data *data)
+void graph_sgoc_account_outermost_capture_end(graph_sgoc_data *data)
 {
     const auto t_end = std::chrono::steady_clock::now();
     const double sec = std::chrono::duration<double>(t_end - data->graph_capture_wall_start).count();
     const std::uint64_t ns = static_cast<std::uint64_t>(sec * 1e9);
-    data->graph_sched_graph_capture_wall_time_ns.fetch_add(ns, std::memory_order_relaxed);
-    data->graph_sched_graph_capture_sessions.fetch_add(1u, std::memory_order_relaxed);
-    if (graph_sgoc_bundle::graph_sched_verbose_env() >= 2) {
+    data->graph_sgoc_graph_capture_wall_time_ns.fetch_add(ns, std::memory_order_relaxed);
+    data->graph_sgoc_graph_capture_sessions.fetch_add(1u, std::memory_order_relaxed);
+    if (graph_sgoc_bundle::graph_sgoc_verbose_env() >= 2) {
         const std::ios::fmtflags ff = std::cerr.flags();
         std::cerr << std::fixed << std::setprecision(6) << (data->policy_log_name ? data->policy_log_name : "graph")
                   << ": graph_capture_wall_sec=" << sec
@@ -110,9 +110,9 @@ void graph_sched_account_outermost_capture_end(graph_sched_data *data)
 
 extern "C" {
 
-void starpu_graph_sched_graph_recording_begin(unsigned sched_ctx_id)
+void graph_sgoc_recording_begin(unsigned sched_ctx_id)
 {
-    graph_sched_data *data = graph_sched_graph_policy_data(sched_ctx_id);
+    graph_sgoc_data *data = graph_sgoc_policy_data(sched_ctx_id);
     if (!data)
         return;
 
@@ -125,7 +125,7 @@ void starpu_graph_sched_graph_recording_begin(unsigned sched_ctx_id)
         starpu_task_wait_for_all();
         const auto w1 = std::chrono::steady_clock::now();
         const double wait_ms = std::chrono::duration<double, std::milli>(w1 - w0).count();
-        if (graph_sgoc_bundle::graph_sched_capture_phase_report_enabled()) {
+        if (graph_sgoc_bundle::graph_sgoc_capture_phase_report_enabled()) {
             std::cerr << "sgoc_capture_timing: recording_begin starpu_task_wait_for_all +" << std::fixed
                       << std::setprecision(3) << wait_ms << " ms" << std::endl;
         }
@@ -137,18 +137,18 @@ void starpu_graph_sched_graph_recording_begin(unsigned sched_ctx_id)
         data->graph_added_invalidate_submit = 0;
         data->graph_idempotent_tasks_sorted.clear();
         data->graph_captured_handle_groups = {};
-        graph_sched_clear_offload_task_registrations(data);
+        graph_sgoc_clear_offload_task_registrations(data);
         if (!data->graph_sgoc)
-            data->graph_sgoc = std::make_unique<graph_sched_data::graph_sgoc_runtime>();
+            data->graph_sgoc = std::make_unique<graph_sgoc_data::graph_sgoc_runtime>();
         else
-            graph_sched_sgoc_clear_runtime(data);
+            graph_sgoc_clear_runtime(data);
     }
     data->graph_record_nested++;
 }
 
-void starpu_graph_sched_graph_recording_end(unsigned sched_ctx_id)
+void graph_sgoc_recording_end(unsigned sched_ctx_id)
 {
-    graph_sched_data *data = graph_sched_graph_policy_data(sched_ctx_id);
+    graph_sgoc_data *data = graph_sgoc_policy_data(sched_ctx_id);
     if (!data)
         return;
 
@@ -172,7 +172,7 @@ void starpu_graph_sched_graph_recording_end(unsigned sched_ctx_id)
             top.lap("starpu_task_wait_for_all");
             lock.lock();
             top.lap("policy_relock_after_wait");
-            graph_sched_account_outermost_capture_end(data);
+            graph_sgoc_account_outermost_capture_end(data);
             top.lap("account_capture_wall_time");
             added_invalidate_submit = data->graph_added_invalidate_submit;
             graph_sgoc_bundle::graph_sgoc_linearize_capture_to_ops(data);
@@ -197,6 +197,16 @@ void starpu_graph_sched_graph_recording_end(unsigned sched_ctx_id)
 
     _starpu_graph_recording_pop();
     tail.lap("graph_recording_pop");
+}
+
+void starpu_graph_sched_graph_recording_begin(unsigned sched_ctx_id)
+{
+    graph_sgoc_recording_begin(sched_ctx_id);
+}
+
+void starpu_graph_sched_graph_recording_end(unsigned sched_ctx_id)
+{
+    graph_sgoc_recording_end(sched_ctx_id);
 }
 
 } /* extern "C" */

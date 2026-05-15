@@ -2,7 +2,7 @@
 
 #define GRAPH_SCHED_PIN_LOG_TAG "sgoc"
 
-#include "graph_sched_internal.hpp"
+#include "graph_sgoc_internal.hpp"
 
 #include <starpu_graph_capture.h>
 #include <starpu_data.h>
@@ -32,7 +32,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-static std::string graph_sched_trim_worker_env(const char *e)
+static std::string graph_sgoc_trim_worker_env(const char *e)
 {
     if (!e)
         return {};
@@ -49,9 +49,9 @@ static std::string graph_sched_trim_worker_env(const char *e)
  * Resolves with starpu_worker_get_by_devid; if that fails, starpu_worker_get_by_type(STARPU_CUDA_WORKER, num).
  * Value is trimmed (whitespace / CR / LF). No bare global worker index. cpu: is parsed but rejected at init.
  */
-static int graph_sched_parse_explicit_worker_string(const char *e)
+static int graph_sgoc_parse_explicit_worker_string(const char *e)
 {
-    const std::string trimmed = graph_sched_trim_worker_env(e);
+    const std::string trimmed = graph_sgoc_trim_worker_env(e);
     if (trimmed.empty())
         return -1;
 
@@ -103,7 +103,7 @@ static int graph_sched_parse_explicit_worker_string(const char *e)
 }
 
 
-static void graph_sched_log_pin_diagnostics(void)
+static void graph_sgoc_log_pin_diagnostics(void)
 {
     const unsigned n = starpu_worker_get_count();
     const int nc = starpu_worker_get_count_by_type(STARPU_CPU_WORKER);
@@ -119,15 +119,15 @@ static void graph_sched_log_pin_diagnostics(void)
     }
 }
 
-[[noreturn]] static void graph_sched_fatal_pin_worker_unavailable(const std::string &detail)
+[[noreturn]] static void graph_sgoc_fatal_pin_worker_unavailable(const std::string &detail)
 {
     std::cerr << GRAPH_SCHED_PIN_LOG_TAG << ": fatal: cannot resolve a worker to pin graph-recorded tasks: " << detail << '\n';
-    graph_sched_log_pin_diagnostics();
+    graph_sgoc_log_pin_diagnostics();
     std::exit(1);
 }
 
 /** Pinned CUDA worker is required for these graph capture policies (memory-aware GPU path). */
-[[noreturn]] static void graph_sched_fatal_pin_worker_not_cuda(int worker_id)
+[[noreturn]] static void graph_sgoc_fatal_pin_worker_not_cuda(int worker_id)
 {
     std::cerr << GRAPH_SCHED_PIN_LOG_TAG << ": fatal: CUDA worker required (STARPU_GRAPH_SCHED_WORKER=cuda:num); "
                  "CPU workers are not supported. Resolved worker_id="
@@ -137,19 +137,19 @@ static void graph_sched_log_pin_diagnostics(void)
     if (ts)
         std::cerr << " (" << ts << ')';
     std::cerr << '\n';
-    graph_sched_log_pin_diagnostics();
+    graph_sgoc_log_pin_diagnostics();
     std::exit(1);
 }
 
-static void graph_sched_require_cuda_pin_worker_or_exit(int worker_id)
+static void graph_sgoc_require_cuda_pin_worker_or_exit(int worker_id)
 {
     if (worker_id < 0)
         return;
     if (starpu_worker_get_type(worker_id) != STARPU_CUDA_WORKER)
-        graph_sched_fatal_pin_worker_not_cuda(worker_id);
+        graph_sgoc_fatal_pin_worker_not_cuda(worker_id);
 }
 
-static void graph_sched_log_pinned_worker_target(int wid, const char *prefix_line)
+static void graph_sgoc_log_pinned_worker_target(int wid, const char *prefix_line)
 {
     const enum starpu_worker_archtype wtype = starpu_worker_get_type(wid);
     const int devid = starpu_worker_get_devid(wid);
@@ -170,7 +170,7 @@ static void graph_sched_log_pinned_worker_target(int wid, const char *prefix_lin
  * Device total and free memory from the CUDA driver (cudaMemGetInfo).
  * Used at scheduler init before StarPU has registered STARPU_CUDA_RAM caps on the memory node.
  */
-static bool graph_sched_cuda_device_mem_stats(int cuda_devid, std::int64_t *total_out, std::int64_t *avail_out)
+static bool graph_sgoc_cuda_device_mem_stats(int cuda_devid, std::int64_t *total_out, std::int64_t *avail_out)
 {
     if (cuda_devid < 0 || !total_out || !avail_out)
         return false;
@@ -188,7 +188,7 @@ static bool graph_sched_cuda_device_mem_stats(int cuda_devid, std::int64_t *tota
 #endif
 
 /** Append `bytes (X.XX GiB)` or `unknown` when bytes < 0. */
-static void graph_sched_ostream_bytes_with_gib(std::ostream &os, std::int64_t bytes)
+static void graph_sgoc_ostream_bytes_with_gib(std::ostream &os, std::int64_t bytes)
 {
     if (bytes < 0) {
         os << "unknown";
@@ -204,7 +204,7 @@ static void graph_sched_ostream_bytes_with_gib(std::ostream &os, std::int64_t by
  * Same resolution as StarPU's CUDA driver for RAM caps: STARPU_LIMIT_CUDA_MEM (MiB), else
  * STARPU_LIMIT_CUDA_<devid>_MEM. Returns -1 if neither is set (StarPU then uses its internal default).
  */
-static int graph_sched_effective_starpu_limit_cuda_mb(int cuda_devid)
+static int graph_sgoc_effective_starpu_limit_cuda_mb(int cuda_devid)
 {
     int lim = starpu_getenv_number("STARPU_LIMIT_CUDA_MEM");
     if (lim == -1) {
@@ -216,7 +216,7 @@ static int graph_sched_effective_starpu_limit_cuda_mb(int cuda_devid)
 }
 
 /** Fraction of StarPU's CUDA memory node limit used as planner "available" (SGOC default 0.6; override with env). */
-static double graph_sched_starpu_available_fraction_of_limit_env(void)
+static double graph_sgoc_starpu_available_fraction_of_limit_env(void)
 {
     const char *e = getenv("STARPU_GRAPH_SCHED_STARPU_MEM_AVAILABLE_FRACTION");
     if (!e || !e[0])
@@ -225,7 +225,7 @@ static double graph_sched_starpu_available_fraction_of_limit_env(void)
     return (x > 0.0 && x <= 1.0) ? x : 0.6;
 }
 
-static void graph_sched_read_pinned_worker_memory_into(graph_sched_data *data)
+static void graph_sgoc_read_pinned_worker_memory_into(graph_sgoc_data *data)
 {
     data->graph_pinned_worker_max_memory_bytes = -1;
     data->graph_pinned_worker_available_memory_bytes = -1;
@@ -242,7 +242,7 @@ static void graph_sched_read_pinned_worker_memory_into(graph_sched_data *data)
     if (wtype == STARPU_CUDA_WORKER) {
         const int cuda_devid = starpu_worker_get_devid(static_cast<int>(wid));
         std::int64_t ctot = -1, cavail = -1;
-        if (graph_sched_cuda_device_mem_stats(cuda_devid, &ctot, &cavail)) {
+        if (graph_sgoc_cuda_device_mem_stats(cuda_devid, &ctot, &cavail)) {
             data->graph_pinned_worker_max_memory_bytes = ctot;
             data->graph_pinned_worker_available_memory_bytes = cavail;
         } else if (cuda_devid >= 0) {
@@ -275,7 +275,7 @@ static void graph_sched_read_pinned_worker_memory_into(graph_sched_data *data)
         if (tot >= 0)
             data->graph_pinned_worker_max_allowed_memory_bytes = static_cast<std::int64_t>(tot);
         else {
-            const int mb = graph_sched_effective_starpu_limit_cuda_mb(dev);
+            const int mb = graph_sgoc_effective_starpu_limit_cuda_mb(dev);
             if (mb >= 0)
                 data->graph_pinned_worker_max_allowed_memory_bytes =
                     static_cast<std::int64_t>(mb) * 1024LL * 1024LL;
@@ -294,12 +294,12 @@ static void graph_sched_read_pinned_worker_memory_into(graph_sched_data *data)
     else if (wtype == STARPU_CUDA_WORKER) {
         const int cuda_devid = starpu_worker_get_devid(static_cast<int>(wid));
         const int dev = cuda_devid >= 0 ? cuda_devid : 0;
-        const int mb = graph_sched_effective_starpu_limit_cuda_mb(dev);
+        const int mb = graph_sgoc_effective_starpu_limit_cuda_mb(dev);
         if (mb >= 0)
             starpu_limit_bytes = static_cast<std::int64_t>(mb) * 1024LL * 1024LL;
     }
     if (starpu_limit_bytes >= 0) {
-        const double frac = graph_sched_starpu_available_fraction_of_limit_env();
+        const double frac = graph_sgoc_starpu_available_fraction_of_limit_env();
         data->graph_pinned_worker_available_memory_bytes =
             static_cast<std::int64_t>(static_cast<double>(starpu_limit_bytes) * frac);
     }
@@ -310,8 +310,8 @@ static void graph_sched_read_pinned_worker_memory_into(graph_sched_data *data)
             std::min(data->graph_pinned_worker_max_allowed_memory_bytes, data->graph_pinned_worker_available_memory_bytes);
 }
 
-/** Log once at policy init after graph_sched_read_pinned_worker_memory_into (not gated on STARPU_GRAPH_SCHED_VERBOSE). */
-static void graph_sched_log_pinned_worker_memory(const graph_sched_data *data)
+/** Log once at policy init after graph_sgoc_read_pinned_worker_memory_into (not gated on STARPU_GRAPH_SCHED_VERBOSE). */
+static void graph_sgoc_log_pinned_worker_memory(const graph_sgoc_data *data)
 {
     if (!data || data->graph_pinned_worker_id < 0)
         return;
@@ -322,9 +322,9 @@ static void graph_sched_log_pinned_worker_memory(const graph_sched_data *data)
         (wtype == STARPU_CUDA_WORKER || wtype == STARPU_HIP_WORKER || wtype == STARPU_OPENCL_WORKER);
 
     std::cerr << GRAPH_SCHED_PIN_LOG_TAG << ": pinned worker GPU memory: memory_node=" << node << " total=";
-    graph_sched_ostream_bytes_with_gib(std::cerr, data->graph_pinned_worker_max_memory_bytes);
+    graph_sgoc_ostream_bytes_with_gib(std::cerr, data->graph_pinned_worker_max_memory_bytes);
     std::cerr << " available=";
-    graph_sched_ostream_bytes_with_gib(std::cerr, data->graph_pinned_worker_available_memory_bytes);
+    graph_sgoc_ostream_bytes_with_gib(std::cerr, data->graph_pinned_worker_available_memory_bytes);
     std::cerr << " starpu_tracked_used_bytes=" << data->graph_pinned_worker_starpu_used_bytes;
 #if defined(STARPU_USE_CUDA) && !defined(STARPU_SIMGRID)
     if (wtype == STARPU_CUDA_WORKER && data->graph_pinned_worker_max_memory_bytes >= 0)
@@ -352,7 +352,7 @@ static void graph_sched_log_pinned_worker_memory(const graph_sched_data *data)
         const char *v_all = starpu_getenv("STARPU_LIMIT_CUDA_MEM");
         const char *v_dev = starpu_getenv(perdev_name);
         const starpu_ssize_t stot = starpu_memory_get_total(node);
-        const int eff_mb = graph_sched_effective_starpu_limit_cuda_mb(dev);
+        const int eff_mb = graph_sgoc_effective_starpu_limit_cuda_mb(dev);
 
         std::cerr << GRAPH_SCHED_PIN_LOG_TAG << ": StarPU CUDA RAM budget (env values are MiB per StarPU docs): "
                      "STARPU_LIMIT_CUDA_MEM="
@@ -369,27 +369,27 @@ static void graph_sched_log_pinned_worker_memory(const graph_sched_data *data)
         else
             std::cerr << "unset";
         std::cerr << " | max_allowed_memory_bytes=";
-        graph_sched_ostream_bytes_with_gib(std::cerr, data->graph_pinned_worker_max_allowed_memory_bytes);
+        graph_sgoc_ostream_bytes_with_gib(std::cerr, data->graph_pinned_worker_max_allowed_memory_bytes);
         std::cerr << std::endl;
     }
 }
 
-void graph_sched_init_pinned_worker(graph_sched_data *data)
+void graph_sgoc_init_pinned_worker(graph_sgoc_data *data)
 {
     /* Trim so inherited / Makefile "VAR= " does not skip defaults; parse() also trims internally. */
-    const std::string ew_opt = graph_sched_trim_worker_env(std::getenv("STARPU_GRAPH_SCHED_WORKER"));
+    const std::string ew_opt = graph_sgoc_trim_worker_env(std::getenv("STARPU_GRAPH_SCHED_WORKER"));
 
     if (!ew_opt.empty()) {
-        data->graph_pinned_worker_id = graph_sched_parse_explicit_worker_string(ew_opt.c_str());
+        data->graph_pinned_worker_id = graph_sgoc_parse_explicit_worker_string(ew_opt.c_str());
         if (data->graph_pinned_worker_id < 0) {
-            graph_sched_fatal_pin_worker_unavailable(std::string("STARPU_GRAPH_SCHED_WORKER=\"") + ew_opt +
+            graph_sgoc_fatal_pin_worker_unavailable(std::string("STARPU_GRAPH_SCHED_WORKER=\"") + ew_opt +
                                                      "\" invalid or no such worker (use CUDA:num, device id)");
         }
-        graph_sched_require_cuda_pin_worker_or_exit(data->graph_pinned_worker_id);
-        graph_sched_log_pinned_worker_target(data->graph_pinned_worker_id,
+        graph_sgoc_require_cuda_pin_worker_or_exit(data->graph_pinned_worker_id);
+        graph_sgoc_log_pinned_worker_target(data->graph_pinned_worker_id,
                                              "STARPU_GRAPH_SCHED_WORKER set; ");
-        graph_sched_read_pinned_worker_memory_into(data);
-        graph_sched_log_pinned_worker_memory(data);
+        graph_sgoc_read_pinned_worker_memory_into(data);
+        graph_sgoc_log_pinned_worker_memory(data);
         return;
     }
 
@@ -397,12 +397,12 @@ void graph_sched_init_pinned_worker(graph_sched_data *data)
     if (cuda_w < 0)
         cuda_w = starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0);
     if (cuda_w < 0) {
-        graph_sched_fatal_pin_worker_unavailable(
+        graph_sgoc_fatal_pin_worker_unavailable(
             "STARPU_GRAPH_SCHED_WORKER unset and no CUDA worker is available (pinned graph capture is CUDA-only; "
             "enable at least one GPU worker, e.g. STARPU_NCUDA>=1)");
     }
     data->graph_pinned_worker_id = cuda_w;
-    graph_sched_log_pinned_worker_target(cuda_w, "STARPU_GRAPH_SCHED_WORKER unset; default CUDA:0; ");
-    graph_sched_read_pinned_worker_memory_into(data);
-    graph_sched_log_pinned_worker_memory(data);
+    graph_sgoc_log_pinned_worker_target(cuda_w, "STARPU_GRAPH_SCHED_WORKER unset; default CUDA:0; ");
+    graph_sgoc_read_pinned_worker_memory_into(data);
+    graph_sgoc_log_pinned_worker_memory(data);
 }

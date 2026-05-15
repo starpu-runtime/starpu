@@ -6,7 +6,7 @@
 
 namespace graph_sgoc_bundle {
 
-std::int64_t graph_sched_sum_unique_handle_bytes(const std::vector<starpu_data_handle_t> &handles)
+std::int64_t graph_sgoc_sum_unique_handle_bytes(const std::vector<starpu_data_handle_t> &handles)
 {
     std::unordered_set<void *> seen;
     std::int64_t sum = 0;
@@ -22,7 +22,7 @@ std::int64_t graph_sched_sum_unique_handle_bytes(const std::vector<starpu_data_h
 }
 
 /** Default 1: enable automatic offload-before-task planning (linear topo simulation vs GPU budget). */
-int graph_sched_mem_offload_auto_env(void)
+int graph_sgoc_mem_offload_auto_env(void)
 {
     const char *e = getenv("STARPU_GRAPH_SCHED_MEM_OFFLOAD_AUTO");
     if (!e || !e[0])
@@ -31,7 +31,7 @@ int graph_sched_mem_offload_auto_env(void)
 }
 
 /** Fraction of graph_pinned_worker_max_allowed_memory_bytes for MM planning (SGOC default 1.0; use env to trim). */
-double graph_sched_mem_budget_fraction_env(void)
+double graph_sgoc_mem_budget_fraction_env(void)
 {
     const char *e = getenv("STARPU_GRAPH_SCHED_MEM_BUDGET_FRACTION");
     if (!e || !e[0])
@@ -41,7 +41,7 @@ double graph_sched_mem_budget_fraction_env(void)
 }
 
 /** If > 0, overrides policy budget for planning/debug (bytes). */
-std::int64_t graph_sched_force_mem_budget_bytes_env(void)
+std::int64_t graph_sgoc_force_mem_budget_bytes_env(void)
 {
     const char *e = getenv("STARPU_GRAPH_SCHED_FORCE_MEM_BUDGET_BYTES");
     if (!e || !e[0])
@@ -57,7 +57,7 @@ std::int64_t graph_sched_force_mem_budget_bytes_env(void)
  * SGOC-only: if set to a non-negative decimal, overrides the planner GPU memory budget (bytes) after fraction scaling
  * of the pinned-node allowance would otherwise apply. Unset or invalid leaves the computed budget unchanged.
  */
-std::int64_t graph_sched_sgoc_budget_bytes_env(void)
+std::int64_t graph_sgoc_budget_bytes_env(void)
 {
     const char *e = getenv("STARPU_GRAPH_SCHED_SGOC_BUDGET_BYTES");
     if (!e || !e[0])
@@ -72,7 +72,7 @@ std::int64_t graph_sched_sgoc_budget_bytes_env(void)
 /**
  * Default 0: when 1, replay may emit StarPU prefetch/offload actions from the GPU MM plan built at flush.
  */
-int graph_sched_mm_execute_hints_env(void)
+int graph_sgoc_mm_execute_hints_env(void)
 {
     const char *e = getenv("STARPU_GRAPH_SCHED_MM_EXECUTE_HINTS");
     if (!e || !e[0])
@@ -81,7 +81,7 @@ int graph_sched_mm_execute_hints_env(void)
 }
 
 /** Non-zero: stderr MM prefetch/offload advance + replay counters (STARPU_GRAPH_SCHED_SGOC_MEM_DEBUG). */
-int graph_sched_sgoc_mem_debug_env(void)
+int graph_sgoc_mem_debug_env(void)
 {
     const char *e = getenv("STARPU_GRAPH_SCHED_SGOC_MEM_DEBUG");
     if (!e || !e[0])
@@ -90,7 +90,7 @@ int graph_sched_sgoc_mem_debug_env(void)
 }
 
 /** Non-zero: one stderr summary per SGOC flush comparing MM plan lists to replay hook activity. */
-int graph_sched_mm_order_trace_env(void)
+int graph_sgoc_mm_order_trace_env(void)
 {
     const char *e = getenv("STARPU_GRAPH_SCHED_MM_ORDER_TRACE");
     if (!e || !e[0])
@@ -99,10 +99,10 @@ int graph_sched_mm_order_trace_env(void)
 }
 
 /**
- * Projected GPU footprint immediately before executing \p op (TASK): same rules as graph_sched_op_memory_delta /
- * graph_sched_op_apply_memory_effect — no handle classification by P/G/A/S.
+ * Projected GPU footprint immediately before executing \p op (TASK): same rules as graph_sgoc_op_memory_delta /
+ * graph_sgoc_op_apply_memory_effect — no handle classification by P/G/A/S.
  */
-std::int64_t graph_sched_gpu_mm_projected_bytes_before_task(std::int64_t base_bytes,
+std::int64_t graph_sgoc_gpu_mm_projected_bytes_before_task(std::int64_t base_bytes,
                                                                    const std::unordered_set<void *> &resident,
                                                                    const std::unordered_set<void *> &offloaded,
                                                                    const GraphOp &op)
@@ -135,7 +135,7 @@ std::int64_t graph_sched_gpu_mm_projected_bytes_before_task(std::int64_t base_by
  * before the pressure point is unnecessary: dropping the GPU copy matches simulation (invalidate will discard the
  * version anyway).
  */
-bool graph_sched_gpu_mm_next_graph_touch_is_invalidate_without_intervening_task(
+bool graph_sgoc_gpu_mm_next_graph_touch_is_invalidate_without_intervening_task(
     const std::vector<GraphOp> &ops, const std::vector<size_t> &topo_order, void *key, size_t from_ti)
 {
     for (size_t tj = from_ti + 1; tj < topo_order.size(); ++tj) {
@@ -160,7 +160,7 @@ bool graph_sched_gpu_mm_next_graph_touch_is_invalidate_without_intervening_task(
     return false;
 }
 
-void graph_sched_gpu_mm_build_task_topo_appearances(const std::vector<GraphOp> &ops,
+void graph_sgoc_gpu_mm_build_task_topo_appearances(const std::vector<GraphOp> &ops,
                                                            const std::vector<size_t> &topo_order,
                                                            std::unordered_map<void *, std::vector<size_t>> &out)
 {
@@ -191,7 +191,7 @@ void graph_sched_gpu_mm_build_task_topo_appearances(const std::vector<GraphOp> &
  * virtually repeated batch: \p num_topo_tasks + v.front(). Handles that never appear in any TASK have no bound
  * on next need here — return UINT64_MAX so they rank as furthest (best offload victims).
  */
-std::uint64_t graph_sched_gpu_mm_next_need_topo_index(const std::vector<size_t> &v, size_t ti,
+std::uint64_t graph_sgoc_gpu_mm_next_need_topo_index(const std::vector<size_t> &v, size_t ti,
                                                              size_t num_topo_tasks)
 {
     const auto ub = std::upper_bound(v.begin(), v.end(), ti);
@@ -207,7 +207,7 @@ std::uint64_t graph_sched_gpu_mm_next_need_topo_index(const std::vector<size_t> 
  * lists: each handle is scheduled after the TASK where it is last used before that slot (reverse topo walk; optional
  * wrap passes without ingesting new marks until \p pending clears).
  */
-void graph_sched_gpu_mm_derive_post_exec_offload_order(const std::vector<GraphOp> &ops,
+void graph_sgoc_gpu_mm_derive_post_exec_offload_order(const std::vector<GraphOp> &ops,
                                                               const std::vector<size_t> &topo_order,
                                                               const std::vector<std::vector<void *>> &offload_before_topo,
                                                               std::vector<std::vector<void *>> &post_exec_out)
@@ -269,7 +269,7 @@ void graph_sched_gpu_mm_derive_post_exec_offload_order(const std::vector<GraphOp
  * to the consumer slot when no earlier TASK qualifies. Preserves global order (increasing consumer topo, then access
  * order). Runtime issues these at \c pop_task of the anchor TASK.
  */
-void graph_sched_gpu_mm_derive_anchor_pop_prefetch_order(
+void graph_sgoc_gpu_mm_derive_anchor_pop_prefetch_order(
     const std::vector<GraphOp> &ops, const std::vector<size_t> &topo_order,
     const std::vector<std::vector<void *>> &prefetch_before_topo,
     const std::vector<std::int64_t> &bytes_after_each_topo_slot,
@@ -324,7 +324,7 @@ static size_t sgoc_mm_debug_min_anchor_topo(const std::vector<std::vector<void *
     return best;
 }
 
-void graph_sched_sgoc_log_mm_plan_advance_debug(size_t topo_slots, const graph_sched_gpu_memory_manager &mm)
+void graph_sgoc_log_mm_plan_advance_debug(size_t topo_slots, const graph_sgoc_gpu_memory_manager &mm)
 {
     const size_t T = topo_slots;
     std::uint64_t pf_n = 0, pf_early = 0, pf_slot_sum = 0, pf_early_bytes = 0, pf_all_bytes = 0;
@@ -380,25 +380,25 @@ void graph_sched_sgoc_log_mm_plan_advance_debug(size_t topo_slots, const graph_s
 
 /**
  * After greedy (or capture) topo order is fixed, simulate linear replay; invalidate / pure-W footprint matches
- * graph_sched_op_memory_*. Offload victim selection is role-agnostic (any GPU-resident buffer). Planning only.
+ * graph_sgoc_op_memory_*. Offload victim selection is role-agnostic (any GPU-resident buffer). Planning only.
  * Victim = furthest next TASK appearance (Belady); if the next graph touch of that handle is \c invalidate_submit
  * with no intervening TASK on the handle, skip RAM offload and record GPU evict-only (see \c evict_only_mark_events).
  * Need times extend into a virtual copy of the batch when there is no TASK use left in the current pass; ties break
  * by last TASK appearance index in one batch.
  */
-void graph_sched_gpu_mm_plan_linear_topo_offloads(const std::vector<GraphOp> &ops,
+void graph_sgoc_gpu_mm_plan_linear_topo_offloads(const std::vector<GraphOp> &ops,
                                                          const std::vector<GraphHandleAccess> &handle_accesses,
                                                          const std::vector<size_t> &topo_order,
-                                                         const graph_sched_captured_handle_groups &groups,
+                                                         const graph_sgoc_captured_handle_groups &groups,
                                                          std::int64_t budget_bytes,
-                                                         graph_sched_gpu_memory_manager &mm,
+                                                         graph_sgoc_gpu_memory_manager &mm,
                                                          std::vector<void *> &unique_offload_handles_out, int verbose,
                                                          const std::unordered_set<void *> *starpu_gpu_resident_truth)
 {
     mm.offload_prefetch_fifo.clear();
     unique_offload_handles_out.clear();
     mm.budget_bytes = budget_bytes;
-    mm.sum_s_unique_bytes = graph_sched_sum_unique_handle_bytes(groups.states);
+    mm.sum_s_unique_bytes = graph_sgoc_sum_unique_handle_bytes(groups.states);
     mm.offload_mark_events = 0;
     mm.marked_offload_unique = 0;
     mm.peak_simulated_bytes = 0;
@@ -432,10 +432,10 @@ void graph_sched_gpu_mm_plan_linear_topo_offloads(const std::vector<GraphOp> &op
     };
 
     std::vector<starpu_data_handle_t> unique_handles;
-    graph_sched_collect_unique_handles(handle_accesses, unique_handles);
+    graph_sgoc_collect_unique_handles(handle_accesses, unique_handles);
     if (starpu_gpu_resident_truth) {
         for (starpu_data_handle_t h : unique_handles) {
-            if (!h || !graph_sched_handle_live_before_graph(handle_accesses, h))
+            if (!h || !graph_sgoc_handle_live_before_graph(handle_accesses, h))
                 continue;
             void *p = static_cast<void *>(h);
             if (starpu_gpu_resident_truth->count(p))
@@ -451,7 +451,7 @@ void graph_sched_gpu_mm_plan_linear_topo_offloads(const std::vector<GraphOp> &op
         }
     } else {
         for (starpu_data_handle_t h : unique_handles) {
-            if (!h || !graph_sched_handle_live_before_graph(handle_accesses, h))
+            if (!h || !graph_sgoc_handle_live_before_graph(handle_accesses, h))
                 continue;
             resident_insert(h);
         }
@@ -464,7 +464,7 @@ void graph_sched_gpu_mm_plan_linear_topo_offloads(const std::vector<GraphOp> &op
     mm.initial_resident_bytes = current_bytes;
 
     std::unordered_map<void *, std::vector<size_t>> appearances;
-    graph_sched_gpu_mm_build_task_topo_appearances(ops, topo_order, appearances);
+    graph_sgoc_gpu_mm_build_task_topo_appearances(ops, topo_order, appearances);
     static const std::vector<size_t> empty_topo_app;
 
     const size_t topo_slots = topo_order.size();
@@ -527,7 +527,7 @@ void graph_sched_gpu_mm_plan_linear_topo_offloads(const std::vector<GraphOp> &op
 
         while (true) {
             const std::int64_t proj =
-                graph_sched_gpu_mm_projected_bytes_before_task(current_bytes, resident, offloaded, op);
+                graph_sgoc_gpu_mm_projected_bytes_before_task(current_bytes, resident, offloaded, op);
             if (proj <= budget_bytes)
                 break;
 
@@ -542,7 +542,7 @@ void graph_sched_gpu_mm_plan_linear_topo_offloads(const std::vector<GraphOp> &op
                 const auto it = appearances.find(k);
                 const std::vector<size_t> &app = (it != appearances.end()) ? it->second : empty_topo_app;
                 const std::uint64_t need =
-                    graph_sched_gpu_mm_next_need_topo_index(app, ti, num_topo_tasks);
+                    graph_sgoc_gpu_mm_next_need_topo_index(app, ti, num_topo_tasks);
                 const size_t last_in_batch = app.empty() ? static_cast<size_t>(0) : app.back();
                 if (!has_best || need > best_need
                     || (need == best_need && last_in_batch > best_last_in_batch)
@@ -566,7 +566,7 @@ void graph_sched_gpu_mm_plan_linear_topo_offloads(const std::vector<GraphOp> &op
             const std::int64_t sz = static_cast<std::int64_t>(starpu_data_get_size(hk));
             resident.erase(best_k);
             current_bytes -= sz;
-            if (graph_sched_gpu_mm_next_graph_touch_is_invalidate_without_intervening_task(ops, topo_order, best_k, ti)) {
+            if (graph_sgoc_gpu_mm_next_graph_touch_is_invalidate_without_intervening_task(ops, topo_order, best_k, ti)) {
                 mm.evict_only_mark_events++;
                 evict_only_before_topo[ti].push_back(best_k);
             } else {
@@ -596,9 +596,9 @@ void graph_sched_gpu_mm_plan_linear_topo_offloads(const std::vector<GraphOp> &op
             offloaded.erase(p);
         }
 
-        const std::int64_t d = graph_sched_op_memory_delta_for_resident(op, resident);
+        const std::int64_t d = graph_sgoc_op_memory_delta_for_resident(op, resident);
         current_bytes += d;
-        graph_sched_op_apply_memory_effect_to_resident(op, resident);
+        graph_sgoc_op_apply_memory_effect_to_resident(op, resident);
         note_peak();
         bytes_after_each_topo_slot[ti] = current_bytes;
     }
@@ -612,11 +612,11 @@ void graph_sched_gpu_mm_plan_linear_topo_offloads(const std::vector<GraphOp> &op
 
     mm.topo_offload_before_task = std::move(offload_before_topo);
     mm.topo_prefetch_before_task = std::move(prefetch_before_topo);
-    graph_sched_gpu_mm_derive_post_exec_offload_order(ops, topo_order, mm.topo_offload_before_task,
+    graph_sgoc_gpu_mm_derive_post_exec_offload_order(ops, topo_order, mm.topo_offload_before_task,
                                                       mm.topo_post_exec_offload_order);
-    graph_sched_gpu_mm_derive_post_exec_offload_order(ops, topo_order, evict_only_before_topo,
+    graph_sgoc_gpu_mm_derive_post_exec_offload_order(ops, topo_order, evict_only_before_topo,
                                                       mm.topo_post_exec_evict_gpu_only_order);
-    graph_sched_gpu_mm_derive_anchor_pop_prefetch_order(ops, topo_order, mm.topo_prefetch_before_task,
+    graph_sgoc_gpu_mm_derive_anchor_pop_prefetch_order(ops, topo_order, mm.topo_prefetch_before_task,
                                                         bytes_after_each_topo_slot, first_offload_topo_slot,
                                                         budget_bytes, mm.topo_pre_exec_prefetch_order);
 
@@ -634,8 +634,8 @@ void graph_sched_gpu_mm_plan_linear_topo_offloads(const std::vector<GraphOp> &op
     }
 }
 
-void graph_sched_gpu_mm_restore_from_cached_plan(const graph_sched_mem_offload_plan &plan, std::int64_t budget_bytes,
-                                                        graph_sched_gpu_memory_manager &mm)
+void graph_sgoc_gpu_mm_restore_from_cached_plan(const graph_sgoc_mem_offload_plan &plan, std::int64_t budget_bytes,
+                                                        graph_sgoc_gpu_memory_manager &mm)
 {
     mm.offload_prefetch_fifo.clear();
     mm.peak_simulated_bytes = plan.peak_pga_bytes;
@@ -659,18 +659,18 @@ void graph_sched_gpu_mm_restore_from_cached_plan(const graph_sched_mem_offload_p
  * For policy_log_name \c "sgoc", each flush replans (no cross-batch reuse of graph_mem_offload_plan); the recorder
  * build may still pass \p outer_batch0_capture for API compatibility.
  */
-void graph_sched_apply_gpu_mm_plan_from_capture(const std::vector<GraphOp> &ops,
+void graph_sgoc_apply_gpu_mm_plan_from_capture(const std::vector<GraphOp> &ops,
                                                        const std::vector<GraphHandleAccess> &handle_accesses,
                                                        const std::vector<size_t> &topo_order,
-                                                       graph_sched_data *policy_data,
-                                                       const graph_sched_captured_handle_groups *captured_for_offload_hints,
+                                                       graph_sgoc_data *policy_data,
+                                                       const graph_sgoc_captured_handle_groups *captured_for_offload_hints,
                                                        int pin_worker, int vb, bool batch_matches_previous_flush,
                                                        bool outer_batch0_capture,
                                                        std::vector<void *> &s_offload_active_out,
                                                        const std::unordered_set<void *> *starpu_gpu_resident_truth)
 {
     s_offload_active_out.clear();
-    if (!graph_sched_mem_offload_auto_env() || !policy_data || !captured_for_offload_hints || pin_worker < 0)
+    if (!graph_sgoc_mem_offload_auto_env() || !policy_data || !captured_for_offload_hints || pin_worker < 0)
         return;
 
     const bool sgoc_flush = policy_data->policy_log_name && std::strcmp(policy_data->policy_log_name, "sgoc") == 0;
@@ -678,20 +678,20 @@ void graph_sched_apply_gpu_mm_plan_from_capture(const std::vector<GraphOp> &ops,
     const bool eff_batch_match_prev = sgoc_flush ? false : batch_matches_previous_flush;
 
     std::int64_t mem_budget = policy_data->graph_pinned_worker_max_allowed_memory_bytes;
-    const std::int64_t forced_budget = graph_sched_force_mem_budget_bytes_env();
+    const std::int64_t forced_budget = graph_sgoc_force_mem_budget_bytes_env();
     if (forced_budget >= 0)
         mem_budget = forced_budget;
     if (mem_budget <= 0)
         return;
 
-    mem_budget = static_cast<std::int64_t>(static_cast<double>(mem_budget) * graph_sched_mem_budget_fraction_env());
+    mem_budget = static_cast<std::int64_t>(static_cast<double>(mem_budget) * graph_sgoc_mem_budget_fraction_env());
     {
-        const std::int64_t sgoc_b = graph_sched_sgoc_budget_bytes_env();
+        const std::int64_t sgoc_b = graph_sgoc_budget_bytes_env();
         if (sgoc_b >= 0)
             mem_budget = sgoc_b;
     }
 
-    std::int64_t mem_sum_s_log = graph_sched_sum_unique_handle_bytes(captured_for_offload_hints->states);
+    std::int64_t mem_sum_s_log = graph_sgoc_sum_unique_handle_bytes(captured_for_offload_hints->states);
 
     const bool have_saved_plan = policy_data->graph_mem_offload_plan.valid;
 
@@ -704,10 +704,10 @@ void graph_sched_apply_gpu_mm_plan_from_capture(const std::vector<GraphOp> &ops,
             s_offload_active_out = policy_data->graph_mem_offload_plan.s_offload_keys;
             mem_peak_log = policy_data->graph_mem_offload_plan.peak_pga_bytes;
             mem_sum_s_log = policy_data->graph_mem_offload_plan.sum_s_bytes;
-            graph_sched_gpu_mm_restore_from_cached_plan(policy_data->graph_mem_offload_plan, mem_budget,
+            graph_sgoc_gpu_mm_restore_from_cached_plan(policy_data->graph_mem_offload_plan, mem_budget,
                                                         policy_data->graph_gpu_mm);
         } else {
-            policy_data->graph_gpu_mm = graph_sched_gpu_memory_manager{};
+            policy_data->graph_gpu_mm = graph_sgoc_gpu_memory_manager{};
             mem_peak_log = 0;
         }
     } else {
@@ -717,11 +717,11 @@ void graph_sched_apply_gpu_mm_plan_from_capture(const std::vector<GraphOp> &ops,
             s_offload_active_out = policy_data->graph_mem_offload_plan.s_offload_keys;
             mem_peak_log = policy_data->graph_mem_offload_plan.peak_pga_bytes;
             mem_sum_s_log = policy_data->graph_mem_offload_plan.sum_s_bytes;
-            graph_sched_gpu_mm_restore_from_cached_plan(policy_data->graph_mem_offload_plan, mem_budget,
+            graph_sgoc_gpu_mm_restore_from_cached_plan(policy_data->graph_mem_offload_plan, mem_budget,
                                                         policy_data->graph_gpu_mm);
         } else {
             if (!handle_accesses.empty()) {
-                graph_sched_gpu_mm_plan_linear_topo_offloads(ops, handle_accesses, topo_order, *captured_for_offload_hints,
+                graph_sgoc_gpu_mm_plan_linear_topo_offloads(ops, handle_accesses, topo_order, *captured_for_offload_hints,
                                                              mem_budget, policy_data->graph_gpu_mm, s_offload_active_out,
                                                              vb, starpu_gpu_resident_truth);
                 ran_linear_topo_planner = true;
@@ -731,7 +731,7 @@ void graph_sched_apply_gpu_mm_plan_from_capture(const std::vector<GraphOp> &ops,
                     std::cerr << "sgoc: gpu_memory_manager: note handle_accesses_empty; skip linear offload "
                                  "planning"
                               << std::endl;
-                policy_data->graph_gpu_mm = graph_sched_gpu_memory_manager{};
+                policy_data->graph_gpu_mm = graph_sgoc_gpu_memory_manager{};
                 mem_peak_log = 0;
             }
             policy_data->graph_mem_offload_plan.valid = true;

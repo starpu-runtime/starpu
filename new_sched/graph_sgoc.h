@@ -1,6 +1,6 @@
 /* SGOC graph scheduler — loadable StarPU policy (libgraph_sgoc_sched.so).
  *
- * Graph capture uses StarPU's internal dispatch (starpu_graph_capture.h): starpu_graph_sched_graph_recording_begin / end
+ * Graph capture uses StarPU's internal dispatch (starpu_graph_capture.h): graph_sgoc_recording_begin / end
  * defer task_insert / invalidate_submit while a session is open, then the policy flushes and replays.
  *
  * **Quiescence:** On outermost recording_begin the policy mutex is released, starpu_task_wait_for_all() runs (so the
@@ -11,7 +11,7 @@
  * graph; no further wait inside finalize). Application code may still call starpu_task_wait_for_all() after
  * recording_end to wait for flush replay submissions to complete.
  *
- * Load with STARPU_SCHED=sgoc and STARPU_SCHED_LIB pointing at libgraph_sgoc_sched.so (see new_sched/Makefile run).
+ * Load with STARPU_SCHED=sgoc and STARPU_SCHED_LIB pointing at libgraph_sgoc_sched.so (see new_sched/README.md).
  *
  * Policy init reads STARPU_GRAPH_SCHED_WORKER as cuda:num only (case-insensitive), num = CUDA device id
  * (not a global worker index). Resolution: starpu_worker_get_by_devid, then starpu_worker_get_by_type.
@@ -23,7 +23,7 @@
  * outer recording_end).
  *
  * Optional: STARPU_GRAPH_SCHED_CHECKPOINT_MAX (default 0 = off) — max WRR checkpoint clones per recording flush,
- * after activation classification (P/S/G/A via graph_sched_parse_captured_data_handles)
+ * after activation classification (P/S/G/A via graph_sgoc_parse_captured_data_handles)
  * and before topological sort. Candidates are ordered by best rematerialization bytes per predicted microsecond on the
  * pinned CUDA worker (then shorter predicted time, then task pointer). Insertion uses the same chain rule as the reference
  * (forward pure-read in graph subiter 1, backward pure-read in subiter 2; invalidate + clone immediately before the
@@ -69,12 +69,14 @@
  * limit (starpu_memory_get_total on the worker node, or STARPU_LIMIT_CUDA*_MEM when total is unknown) used as planner
  * allowance before STARPU_GRAPH_SCHED_MEM_BUDGET_FRACTION (SGOC default 1.0). Must be in (0,1].
  *
- * Runtime: post_exec registers planned S-offloads (async RAM replicate), queues each handle for GPU eviction, and
- * immediately tries graph_sched_drain_pending_gpu_evicts (starpu_data_can_evict + starpu_data_evict_from_node when the
- * RAM copy is valid — offload is not treated as instantaneous). When the linear MM planner sees that the next graph
- * touch of a victim is \c invalidate_submit with no intervening TASK on that handle, it skips RAM offload and only
- * schedules GPU eviction (same post_exec drain path, no starpu_data_acquire to main RAM). pop_task and pre_exec drain the same queue before
- * scheduling fetches. A GPU starpu_data_fetch_on_node is started only when starpu_memory_get_available reports enough
+ * Runtime: after flush replay, planned S-offloads are keyed off the next TASK in the replay topo (the task whose
+ * pop_task runs after the producer completes). On that follow-up pop, the policy issues starpu_data_prefetch_on_node to
+ * main RAM when needed, queues GPU eviction, and drains graph_sgoc_drain_pending_gpu_evicts (starpu_data_can_evict +
+ * starpu_data_evict_from_node when the RAM copy is valid). Producers at the end of the replay topo drain the same work
+ * from flush before returning. When the linear MM planner sees that the next graph touch of a victim is \c invalidate_submit
+ * with no intervening TASK on that handle, it skips RAM offload and only schedules GPU eviction (evict-only path). pop_task
+ * and pre_exec drain the pending-evict queue before scheduling fetches. A GPU starpu_data_fetch_on_node is started only when
+ * starpu_memory_get_available reports enough
  * free bytes on the pinned CUDA node (if known) and the planner mem_budget headroom allows it. With StarPU new enough
  * (STARPUSGOC_HAS_VICTIM_SELECTOR=1), a Belady victim selector still handles implicit allocation pressure; explicit
  * offload evictions use the pending queue above.
@@ -85,8 +87,8 @@
  * without setting CAPTURE_TIMING.
  */
 
-#ifndef GRAPH_SCHED_H
-#define GRAPH_SCHED_H
+#ifndef GRAPH_SGOC_H
+#define GRAPH_SGOC_H
 
 #include <starpu.h>
 
@@ -96,6 +98,10 @@ extern "C" {
 
 /* Defer task_insert / invalidate_submit into a queue; on end, the sgoc policy parses and replays the graph.
  * sched_ctx_id 0 = current context. Nested begin/end supported. */
+void graph_sgoc_recording_begin(unsigned sched_ctx_id);
+void graph_sgoc_recording_end(unsigned sched_ctx_id);
+
+/* Historical ctypes names used by NNTile (and older callers): same implementation as graph_sgoc_recording_*. */
 void starpu_graph_sched_graph_recording_begin(unsigned sched_ctx_id);
 void starpu_graph_sched_graph_recording_end(unsigned sched_ctx_id);
 
@@ -103,4 +109,4 @@ void starpu_graph_sched_graph_recording_end(unsigned sched_ctx_id);
 }
 #endif
 
-#endif /* GRAPH_SCHED_H */
+#endif /* GRAPH_SGOC_H */

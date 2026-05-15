@@ -14,7 +14,7 @@ struct SgocCapturePhaseTimer {
     explicit SgocCapturePhaseTimer(const char *w) : t(std::chrono::steady_clock::now()), where(w) {}
     void lap(const char *label)
     {
-        if (!graph_sgoc_bundle::graph_sched_capture_phase_report_enabled())
+        if (!graph_sgoc_bundle::graph_sgoc_capture_phase_report_enabled())
             return;
         const auto t2 = std::chrono::steady_clock::now();
         const double ms = std::chrono::duration<double, std::milli>(t2 - t).count();

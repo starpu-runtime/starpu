@@ -1,7 +1,7 @@
 /* SGOC: optional StarPU victim selector with Belady (furthest next use in replay topo) for GPU evictions.
  * Built when STARPUSGOC_HAS_VICTIM_SELECTOR=1 (StarPU exports starpu_data_register_victim_selector). */
 
-#include "graph_sched_internal.hpp"
+#include "graph_sgoc_internal.hpp"
 
 #include <starpu_data.h>
 #include <starpu_data_interfaces.h>
@@ -42,7 +42,7 @@ static size_t belady_min_next_topo_slot(const std::map<size_t, unsigned> &m)
     return m.begin()->first;
 }
 
-static void tracked_remove_if_tracked(graph_sched_data::graph_sgoc_runtime &G, starpu_data_handle_t victim)
+static void tracked_remove_if_tracked(graph_sgoc_data::graph_sgoc_runtime &G, starpu_data_handle_t victim)
 {
     void *p = static_cast<void *>(victim);
     if (!G.tracked_gpu_resident.count(p))
@@ -53,7 +53,7 @@ static void tracked_remove_if_tracked(graph_sched_data::graph_sgoc_runtime &G, s
     (void)G.victim_evict_predict_removed.insert(p);
 }
 
-static void tracked_restore_if_predicted(graph_sched_data::graph_sgoc_runtime &G, starpu_data_handle_t victim)
+static void tracked_restore_if_predicted(graph_sgoc_data::graph_sgoc_runtime &G, starpu_data_handle_t victim)
 {
     void *p = static_cast<void *>(victim);
     if (!G.victim_evict_predict_removed.erase(p))
@@ -84,13 +84,13 @@ static starpu_data_handle_t sgoc_victim_selector_c(starpu_data_handle_t toload, 
                                                    enum starpu_is_prefetch is_prefetch, void *opaque)
 {
     (void)is_prefetch;
-    auto *policy = static_cast<graph_sched_data *>(opaque);
+    auto *policy = static_cast<graph_sgoc_data *>(opaque);
     if (!policy || !policy->graph_sgoc || !policy->graph_runtime_starpu_victim)
         return STARPU_DATA_NO_VICTIM;
     if (policy->graph_pinned_worker_mem_node < 0
         || static_cast<unsigned>(policy->graph_pinned_worker_mem_node) != node)
         return STARPU_DATA_NO_VICTIM;
-    graph_sched_data::graph_sgoc_runtime &G = *policy->graph_sgoc;
+    graph_sgoc_data::graph_sgoc_runtime &G = *policy->graph_sgoc;
 
     const std::uint32_t required_alloc_fp = toload ? sgoc_starpu_alloc_footprint(toload) : 0u;
 
@@ -149,7 +149,7 @@ static starpu_data_handle_t sgoc_victim_selector_c(starpu_data_handle_t toload, 
 
 static void sgoc_victim_eviction_failed_c(starpu_data_handle_t victim, unsigned node, void *opaque)
 {
-    auto *policy = static_cast<graph_sched_data *>(opaque);
+    auto *policy = static_cast<graph_sgoc_data *>(opaque);
     if (!policy || !policy->graph_sgoc || !policy->graph_runtime_starpu_victim)
         return;
     if (policy->graph_pinned_worker_mem_node < 0
@@ -161,7 +161,7 @@ static void sgoc_victim_eviction_failed_c(starpu_data_handle_t victim, unsigned 
 
 } /* extern "C" */
 
-void graph_sched_sgoc_victim_policy_init(graph_sched_data *data)
+void graph_sgoc_victim_policy_init(graph_sgoc_data *data)
 {
     if (!data)
         return;
@@ -169,7 +169,7 @@ void graph_sched_sgoc_victim_policy_init(graph_sched_data *data)
     data->graph_runtime_starpu_victim = true;
 }
 
-void graph_sched_sgoc_victim_policy_deinit(graph_sched_data *data)
+void graph_sgoc_victim_policy_deinit(graph_sgoc_data *data)
 {
     if (!data || !data->graph_runtime_starpu_victim)
         return;
@@ -177,11 +177,11 @@ void graph_sched_sgoc_victim_policy_deinit(graph_sched_data *data)
     data->graph_runtime_starpu_victim = false;
 }
 
-void graph_sched_sgoc_victim_rebuild_belady(graph_sched_data *data, const std::vector<size_t> &topo_order)
+void graph_sgoc_victim_rebuild_belady(graph_sgoc_data *data, const std::vector<size_t> &topo_order)
 {
     if (!data || !data->graph_sgoc || !data->graph_runtime_starpu_victim)
         return;
-    graph_sched_data::graph_sgoc_runtime &G = *data->graph_sgoc;
+    graph_sgoc_data::graph_sgoc_runtime &G = *data->graph_sgoc;
     std::lock_guard<std::mutex> lk(G.victim_state_mutex);
     G.belady_task_topo_slot.clear();
     G.belady_remaining_slots.clear();
@@ -209,11 +209,11 @@ void graph_sched_sgoc_victim_rebuild_belady(graph_sched_data *data, const std::v
     }
 }
 
-void graph_sched_sgoc_victim_note_task_completed(graph_sched_data *data, struct starpu_task *task)
+void graph_sgoc_victim_note_task_completed(graph_sgoc_data *data, struct starpu_task *task)
 {
     if (!data || !task || !data->graph_sgoc || !data->graph_runtime_starpu_victim)
         return;
-    graph_sched_data::graph_sgoc_runtime &G = *data->graph_sgoc;
+    graph_sgoc_data::graph_sgoc_runtime &G = *data->graph_sgoc;
     std::lock_guard<std::mutex> lk(G.victim_state_mutex);
     auto it = G.belady_task_topo_slot.find(task);
     if (it == G.belady_task_topo_slot.end())
@@ -244,11 +244,11 @@ void graph_sched_sgoc_victim_note_task_completed(graph_sched_data *data, struct 
     }
 }
 
-void graph_sched_sgoc_victim_clear_belady(graph_sched_data *data)
+void graph_sgoc_victim_clear_belady(graph_sgoc_data *data)
 {
     if (!data || !data->graph_sgoc)
         return;
-    graph_sched_data::graph_sgoc_runtime &G = *data->graph_sgoc;
+    graph_sgoc_data::graph_sgoc_runtime &G = *data->graph_sgoc;
     std::lock_guard<std::mutex> lk(G.victim_state_mutex);
     G.belady_task_topo_slot.clear();
     G.belady_remaining_slots.clear();
@@ -257,10 +257,10 @@ void graph_sched_sgoc_victim_clear_belady(graph_sched_data *data)
 
 #else /* !STARPUSGOC_HAS_VICTIM_SELECTOR */
 
-void graph_sched_sgoc_victim_policy_init(graph_sched_data *) {}
-void graph_sched_sgoc_victim_policy_deinit(graph_sched_data *) {}
-void graph_sched_sgoc_victim_rebuild_belady(graph_sched_data *, const std::vector<size_t> &) {}
-void graph_sched_sgoc_victim_note_task_completed(graph_sched_data *, struct starpu_task *) {}
-void graph_sched_sgoc_victim_clear_belady(graph_sched_data *) {}
+void graph_sgoc_victim_policy_init(graph_sgoc_data *) {}
+void graph_sgoc_victim_policy_deinit(graph_sgoc_data *) {}
+void graph_sgoc_victim_rebuild_belady(graph_sgoc_data *, const std::vector<size_t> &) {}
+void graph_sgoc_victim_note_task_completed(graph_sgoc_data *, struct starpu_task *) {}
+void graph_sgoc_victim_clear_belady(graph_sgoc_data *) {}
 
 #endif /* STARPUSGOC_HAS_VICTIM_SELECTOR */

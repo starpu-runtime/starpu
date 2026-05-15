@@ -1,6 +1,6 @@
 /* SGOC runtime hooks: GPU demand fetch, deferred prefetch, clear runtime state. */
 
-#include "graph_sched_internal.hpp"
+#include "graph_sgoc_internal.hpp"
 
 #include <starpu.h>
 #include <starpu_data.h>
@@ -9,7 +9,7 @@
 #include <deque>
 #include <iostream>
 
-void graph_sched_sgoc_clear_runtime(graph_sched_data *data)
+void graph_sgoc_clear_runtime(graph_sgoc_data *data)
 {
     if (!data)
         return;
@@ -17,8 +17,7 @@ void graph_sched_sgoc_clear_runtime(graph_sched_data *data)
     data->dbg_sgoc_pop_picked_data_not_ready.store(0, std::memory_order_relaxed);
     if (!data->graph_sgoc)
         return;
-    graph_sched_data::graph_sgoc_runtime &G = *data->graph_sgoc;
-    G.post_exec_offload_order.clear();
+    graph_sgoc_data::graph_sgoc_runtime &G = *data->graph_sgoc;
     G.replay_task_topo_slot.clear();
     G.deferred_prefetch.clear();
     G.tracked_gpu_resident.clear();
@@ -38,17 +37,17 @@ void graph_sched_sgoc_clear_runtime(graph_sched_data *data)
     G.dbg_mm_trace_offload_regs.store(0, std::memory_order_relaxed);
     G.dbg_mm_trace_anchor_fetch_try.store(0, std::memory_order_relaxed);
     G.dbg_mm_trace_taskbuf_fetch_try.store(0, std::memory_order_relaxed);
-    G.dbg_mm_trace_post_exec_offload_tasks.store(0, std::memory_order_relaxed);
-    graph_sched_sgoc_victim_clear_belady(data);
+    G.dbg_mm_trace_followup_pop_offload_tasks.store(0, std::memory_order_relaxed);
+    graph_sgoc_victim_clear_belady(data);
 }
 
 namespace {
 
-static bool sgoc_gpu_transfer_headroom_ok(const graph_sched_data *data, std::int64_t sz)
+static bool sgoc_gpu_transfer_headroom_ok(const graph_sgoc_data *data, std::int64_t sz)
 {
     if (!data || !data->graph_sgoc || sz <= 0)
         return true;
-    const graph_sched_data::graph_sgoc_runtime &G = *data->graph_sgoc;
+    const graph_sgoc_data::graph_sgoc_runtime &G = *data->graph_sgoc;
     const starpu_ssize_t star_avail = starpu_memory_get_available(G.gpu_mem_node);
     if (star_avail >= 0 && star_avail < sz)
         return false;
@@ -57,14 +56,14 @@ static bool sgoc_gpu_transfer_headroom_ok(const graph_sched_data *data, std::int
     return true;
 }
 
-static bool sgoc_try_demand_fetch_handle_to_gpu(graph_sched_data *data, starpu_data_handle_t h)
+static bool sgoc_try_demand_fetch_handle_to_gpu(graph_sgoc_data *data, starpu_data_handle_t h)
 {
     if (!data || !h || !data->graph_sgoc)
         return false;
-    graph_sched_data::graph_sgoc_runtime &G = *data->graph_sgoc;
+    graph_sgoc_data::graph_sgoc_runtime &G = *data->graph_sgoc;
     if (!G.mm_execute)
         return true;
-    graph_sched_drain_pending_gpu_evicts(data, G.gpu_mem_node);
+    graph_sgoc_drain_pending_gpu_evicts(data, G.gpu_mem_node);
     void *p = static_cast<void *>(h);
     if (G.tracked_gpu_resident.count(p))
         return true;
@@ -82,8 +81,15 @@ static bool sgoc_try_demand_fetch_handle_to_gpu(graph_sched_data *data, starpu_d
     if (!v)
         return false;
     if (!sgoc_gpu_transfer_headroom_ok(data, sz))
+    {
+        starpu_memchunk_tidy(G.gpu_mem_node);
+    }
+    if (!sgoc_gpu_transfer_headroom_ok(data, sz))
+    {
         return false;
+    }
     (void)starpu_data_fetch_on_node(h, G.gpu_mem_node, 1u);
+    // (void)starpu_data_prefetch_on_node(h, G.gpu_mem_node, 1u);
     if (G.mem_debug) {
         G.dbg_gpu_prefetch_issue.fetch_add(1u, std::memory_order_relaxed);
         G.dbg_gpu_prefetch_bytes.fetch_add(static_cast<std::uint64_t>(sz), std::memory_order_relaxed);
@@ -93,12 +99,12 @@ static bool sgoc_try_demand_fetch_handle_to_gpu(graph_sched_data *data, starpu_d
     return true;
 }
 
-static void sgoc_drain_deferred_prefetch(graph_sched_data *data)
+static void sgoc_drain_deferred_prefetch(graph_sgoc_data *data)
 {
     if (!data || !data->graph_sgoc)
         return;
-    graph_sched_data::graph_sgoc_runtime &G = *data->graph_sgoc;
-    graph_sched_drain_pending_gpu_evicts(data, G.gpu_mem_node);
+    graph_sgoc_data::graph_sgoc_runtime &G = *data->graph_sgoc;
+    graph_sgoc_drain_pending_gpu_evicts(data, G.gpu_mem_node);
     size_t guard = 0;
     while (!G.deferred_prefetch.empty() && guard++ < G.deferred_prefetch.size() + 8u) {
         starpu_data_handle_t h = G.deferred_prefetch.front();
@@ -110,19 +116,19 @@ static void sgoc_drain_deferred_prefetch(graph_sched_data *data)
 
 } /* namespace */
 
-void graph_sched_sgoc_pre_exec_hook(graph_sched_data *data, struct starpu_task *task)
+void graph_sgoc_pre_exec_hook(graph_sgoc_data *data, struct starpu_task *task)
 {
     if (!data || !task || !data->graph_sgoc || !data->graph_sgoc->mm_execute)
         return;
     sgoc_drain_deferred_prefetch(data);
 }
 
-void graph_sched_sgoc_pop_prefetch_hook(graph_sched_data *data, struct starpu_task *task)
+void graph_sgoc_pop_prefetch_hook(graph_sgoc_data *data, struct starpu_task *task)
 {
     if (!data || !task || !data->graph_sgoc || !data->graph_sgoc->mm_execute)
         return;
-    graph_sched_data::graph_sgoc_runtime &G = *data->graph_sgoc;
-    const graph_sched_gpu_memory_manager &mm = data->graph_gpu_mm;
+    graph_sgoc_data::graph_sgoc_runtime &G = *data->graph_sgoc;
+    const graph_sgoc_gpu_memory_manager &mm = data->graph_gpu_mm;
 
     const auto it_anchor = G.replay_task_topo_slot.find(task);
     if (it_anchor != G.replay_task_topo_slot.end()) {
@@ -156,33 +162,32 @@ void graph_sched_sgoc_pop_prefetch_hook(graph_sched_data *data, struct starpu_ta
     sgoc_drain_deferred_prefetch(data);
 }
 
-void graph_sched_sgoc_post_exec_hook(graph_sched_data *data, struct starpu_task *task, unsigned gpu_mem_node)
+void graph_sgoc_post_exec_hook(graph_sgoc_data *data, struct starpu_task *task, unsigned gpu_mem_node)
 {
+    (void)gpu_mem_node;
     if (!data || !task)
         return;
-    graph_sched_run_post_exec_offloads(data, task, gpu_mem_node);
-    graph_sched_run_post_exec_evict_gpu_only(data, task, gpu_mem_node);
     if (data->graph_sgoc && data->graph_sgoc->mm_execute)
         sgoc_drain_deferred_prefetch(data);
 }
 
-void graph_sched_sgoc_print_memory_observations(graph_sched_data *data)
+void graph_sgoc_print_memory_observations(graph_sgoc_data *data)
 {
     if (!data || !data->graph_sgoc)
         return;
-    const bool md = graph_sgoc_bundle::graph_sched_sgoc_mem_debug_env() != 0;
-    const bool tr = graph_sgoc_bundle::graph_sched_mm_order_trace_env() != 0;
+    const bool md = graph_sgoc_bundle::graph_sgoc_mem_debug_env() != 0;
+    const bool tr = graph_sgoc_bundle::graph_sgoc_mm_order_trace_env() != 0;
     if (!md && !tr)
         return;
-    graph_sched_data::graph_sgoc_runtime &G = *data->graph_sgoc;
-    const graph_sched_gpu_memory_manager &mm = data->graph_gpu_mm;
+    graph_sgoc_data::graph_sgoc_runtime &G = *data->graph_sgoc;
+    const graph_sgoc_gpu_memory_manager &mm = data->graph_gpu_mm;
     if (md || tr) {
         std::cerr << "sgoc_mem_debug: deinit memory summary (counters as of sched teardown; call "
                      "starpu_task_wait_for_all before shutdown if you need post-replay quiescence)"
                   << " wrr_checkpoint_inserts_total=" << data->graph_total_checkpoint_inserts << std::endl;
     }
     if (md && G.mm_obs_last_flush_valid)
-        graph_sgoc_bundle::graph_sched_sgoc_log_mm_plan_advance_debug(G.mm_obs_last_topo_slots, mm);
+        graph_sgoc_bundle::graph_sgoc_log_mm_plan_advance_debug(G.mm_obs_last_topo_slots, mm);
     else if (md && !G.mm_obs_last_flush_valid)
         std::cerr << "sgoc_mem_debug: mm_plan (skipped: no non-empty flush snapshot in this session)" << std::endl;
 
@@ -219,7 +224,7 @@ void graph_sched_sgoc_print_memory_observations(graph_sched_data *data)
                   << " pin_cuda_worker=" << G.mm_obs_last_pin_worker << " replay_topo_slots=" << G.mm_obs_last_topo_slots
                   << " replay_tasks_submitted=" << G.mm_obs_last_replay_tasks_submitted
                   << " registered_offload_handle_refs=" << G.dbg_mm_trace_offload_regs.load()
-                  << " post_exec_offload_nonempty_hooks=" << G.dbg_mm_trace_post_exec_offload_tasks.load()
+                  << " followup_pop_offload_nonempty_hooks=" << G.dbg_mm_trace_followup_pop_offload_tasks.load()
                   << " pop_anchor_fetch_tries=" << G.dbg_mm_trace_anchor_fetch_try.load()
                   << " pop_taskbuf_fetch_tries=" << G.dbg_mm_trace_taskbuf_fetch_try.load()
                   << " | starpu_data_fetch_on_node_calls=" << G.dbg_gpu_prefetch_issue.load()

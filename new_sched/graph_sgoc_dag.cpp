@@ -4,7 +4,7 @@
 
 namespace graph_sgoc_bundle {
 
-void graph_sched_bump_handle_access_op_indices_after_insert(std::vector<GraphHandleAccess> &handle_accesses,
+void graph_sgoc_bump_handle_access_op_indices_after_insert(std::vector<GraphHandleAccess> &handle_accesses,
                                                                    size_t insert_pos)
 {
     for (GraphHandleAccess &access : handle_accesses) {
@@ -14,7 +14,7 @@ void graph_sched_bump_handle_access_op_indices_after_insert(std::vector<GraphHan
 }
 
 /** Bump stored op indices in predecessor/successor lists after inserting one op at \p insert_pos. */
-void graph_sched_bump_op_graph_indices_after_insert(std::vector<GraphOp> &ops, size_t insert_pos)
+void graph_sgoc_bump_op_graph_indices_after_insert(std::vector<GraphOp> &ops, size_t insert_pos)
 {
     for (GraphOp &op : ops) {
         for (size_t &idx : op.predecessors) {
@@ -28,12 +28,12 @@ void graph_sched_bump_op_graph_indices_after_insert(std::vector<GraphOp> &ops, s
     }
 }
 
-void graph_sched_bump_indices_after_insert(graph_sched_data *data, size_t insert_pos)
+void graph_sgoc_bump_indices_after_insert(graph_sgoc_data *data, size_t insert_pos)
 {
-    graph_sched_bump_handle_access_op_indices_after_insert(data->graph_handle_accesses, insert_pos);
+    graph_sgoc_bump_handle_access_op_indices_after_insert(data->graph_handle_accesses, insert_pos);
 }
 
-bool graph_sched_task_runnable_on_pinned_worker(const struct starpu_task *task, unsigned workerid)
+bool graph_sgoc_task_runnable_on_pinned_worker(const struct starpu_task *task, unsigned workerid)
 {
     if (!task->cl)
         return true;
@@ -46,7 +46,7 @@ bool graph_sched_task_runnable_on_pinned_worker(const struct starpu_task *task, 
  * When \p cl_runnable_cache is non-null and the codelet has no per-task can_execute hook, results are cached by
  * codelet pointer so replay avoids one StarPU query per task for repeated codelets.
  */
-void graph_sched_apply_replay_worker_pin(struct starpu_task *task, int pin_worker, int sched_verbose,
+void graph_sgoc_apply_replay_worker_pin(struct starpu_task *task, int pin_worker, int sched_verbose,
                                                 std::unordered_map<const struct starpu_codelet *, bool> *cl_runnable_cache)
 {
     if (pin_worker < 0 || !task)
@@ -64,11 +64,11 @@ void graph_sched_apply_replay_worker_pin(struct starpu_task *task, int pin_worke
         if (it != cl_runnable_cache->end())
             runnable = it->second;
         else {
-            runnable = graph_sched_task_runnable_on_pinned_worker(task, pw);
+            runnable = graph_sgoc_task_runnable_on_pinned_worker(task, pw);
             cl_runnable_cache->emplace(task->cl, runnable);
         }
     } else
-        runnable = graph_sched_task_runnable_on_pinned_worker(task, pw);
+        runnable = graph_sgoc_task_runnable_on_pinned_worker(task, pw);
 
     if (!runnable) {
         if (sched_verbose >= 3) {
@@ -84,7 +84,7 @@ void graph_sched_apply_replay_worker_pin(struct starpu_task *task, int pin_worke
 }
 
 /* Default on. Set STARPU_GRAPH_SCHED_AUTO_INVALIDATE=0 to disable synthetic invalidate_submit. */
-bool graph_sched_auto_invalidate_enabled(void)
+bool graph_sgoc_auto_invalidate_enabled(void)
 {
     static const bool enabled = [] {
         const char *e = std::getenv("STARPU_GRAPH_SCHED_AUTO_INVALIDATE");
@@ -93,7 +93,7 @@ bool graph_sched_auto_invalidate_enabled(void)
     return enabled;
 }
 
-unsigned graph_sched_checkpoint_max_env(void)
+unsigned graph_sgoc_checkpoint_max_env(void)
 {
     static const unsigned checkpoint_max = [] {
         const char *e = std::getenv("STARPU_GRAPH_SCHED_CHECKPOINT_MAX");
@@ -103,12 +103,12 @@ unsigned graph_sched_checkpoint_max_env(void)
     return checkpoint_max;
 }
 
-static double graph_sched_elapsed_sec(std::chrono::steady_clock::time_point a, std::chrono::steady_clock::time_point b)
+static double graph_sgoc_elapsed_sec(std::chrono::steady_clock::time_point a, std::chrono::steady_clock::time_point b)
 {
     return std::chrono::duration<double>(b - a).count();
 }
 /** STARPU_GRAPH_SCHED_LINEAR_REPLAY_GREEDY=0: linear flush submits in capture order; default uses greedy memory topo. */
-bool graph_sched_linear_replay_greedy_enabled(void)
+bool graph_sgoc_linear_replay_greedy_enabled(void)
 {
     const char *e = std::getenv("STARPU_GRAPH_SCHED_LINEAR_REPLAY_GREEDY");
     if (e && e[0] == '0' && e[1] == '\0')
@@ -160,7 +160,7 @@ bool graph_access_mode_is_read_write(unsigned mode)
         return false;
     return (s & STARPU_R) != 0 && (s & STARPU_W) != 0;
 }
-std::int64_t graph_sched_op_intrinsic_memory_delta(const GraphOp &op)
+std::int64_t graph_sgoc_op_intrinsic_memory_delta(const GraphOp &op)
 {
     if (op.kind == GraphOp::INVALIDATE) {
         if (!op.handle)
@@ -181,7 +181,7 @@ std::int64_t graph_sched_op_intrinsic_memory_delta(const GraphOp &op)
     }
     return d;
 }
-size_t graph_sched_append_handle_access(graph_sched_data *data, size_t op_idx, starpu_data_handle_t handle,
+size_t graph_sgoc_append_handle_access(graph_sgoc_data *data, size_t op_idx, starpu_data_handle_t handle,
                                                unsigned mode, struct starpu_task *task)
 {
     GraphHandleAccess access{};
@@ -205,7 +205,7 @@ size_t graph_sched_append_handle_access(graph_sched_data *data, size_t op_idx, s
     return access_idx;
 }
 
-void graph_sched_register_task_accesses_op(graph_sched_data *data, size_t op_idx, struct starpu_task *task,
+void graph_sgoc_register_task_accesses_op(graph_sgoc_data *data, size_t op_idx, struct starpu_task *task,
                                                   GraphOp &op)
 {
     if (!task->cl)
@@ -217,29 +217,29 @@ void graph_sched_register_task_accesses_op(graph_sched_data *data, size_t op_idx
         if (!h)
             continue;
         const unsigned mode = (unsigned)STARPU_TASK_GET_MODE(task, i);
-        const size_t access_idx = graph_sched_append_handle_access(data, op_idx, h, mode, task);
+        const size_t access_idx = graph_sgoc_append_handle_access(data, op_idx, h, mode, task);
         op.handle_accesses.push_back({h, mode, access_idx});
     }
 }
 
-void graph_sched_register_task_accesses(graph_sched_data *data, size_t op_idx, struct starpu_task *task)
+void graph_sgoc_register_task_accesses(graph_sgoc_data *data, size_t op_idx, struct starpu_task *task)
 {
-    graph_sched_register_task_accesses_op(data, op_idx, task, data->graph_ops[op_idx]);
+    graph_sgoc_register_task_accesses_op(data, op_idx, task, data->graph_ops[op_idx]);
 }
 
-void graph_sched_register_invalidate_access_op(graph_sched_data *data, GraphOp &op, size_t op_idx,
+void graph_sgoc_register_invalidate_access_op(graph_sgoc_data *data, GraphOp &op, size_t op_idx,
                                                       starpu_data_handle_t handle)
 {
     if (!handle)
         return;
     const size_t access_idx =
-        graph_sched_append_handle_access(data, op_idx, handle, GRAPH_ACCESS_INVALIDATE_RAW, nullptr);
+        graph_sgoc_append_handle_access(data, op_idx, handle, GRAPH_ACCESS_INVALIDATE_RAW, nullptr);
     op.handle_accesses.push_back({handle, GRAPH_ACCESS_INVALIDATE_RAW, access_idx});
 }
 
-void graph_sched_register_invalidate_access(graph_sched_data *data, size_t op_idx, starpu_data_handle_t handle)
+void graph_sgoc_register_invalidate_access(graph_sgoc_data *data, size_t op_idx, starpu_data_handle_t handle)
 {
-    graph_sched_register_invalidate_access_op(data, data->graph_ops[op_idx], op_idx, handle);
+    graph_sgoc_register_invalidate_access_op(data, data->graph_ops[op_idx], op_idx, handle);
 }
 
 bool graph_access_mode_is_writer(unsigned mode)
@@ -280,16 +280,16 @@ void graph_op_add_edge(std::vector<GraphOp> &ops, size_t consumer_op_idx, size_t
     producer.successors.push_back(consumer_op_idx);
 }
 
-void graph_sched_validate_invalidate_then_pure_write_windows(graph_sched_data *data);
+void graph_sgoc_validate_invalidate_then_pure_write_windows(graph_sgoc_data *data);
 
 /** SGOC list capture: add one pred/succ edge (indices are capture_stable_id values). O(1) map + degree scan. */
-void graph_op_add_edge_stable_sgoc(graph_sched_data *data, GraphOp *consumer, size_t producer_stable)
+void graph_op_add_edge_stable_sgoc(graph_sgoc_data *data, GraphOp *consumer, size_t producer_stable)
 {
     if (!data || !data->graph_sgoc || !consumer)
         return;
     if (producer_stable == GRAPH_ACCESS_NONE)
         return;
-    graph_sched_data::graph_sgoc_runtime &G = *data->graph_sgoc;
+    graph_sgoc_data::graph_sgoc_runtime &G = *data->graph_sgoc;
     const size_t cons = consumer->capture_stable_id;
     if (producer_stable == cons)
         return;
@@ -311,7 +311,7 @@ void graph_op_add_edge_stable_sgoc(graph_sched_data *data, GraphOp *consumer, si
     producer->successors.push_back(cons);
 }
 
-void graph_op_add_pure_read_dependencies_sgoc(graph_sched_data *data, GraphOp *consumer, size_t access_idx)
+void graph_op_add_pure_read_dependencies_sgoc(graph_sgoc_data *data, GraphOp *consumer, size_t access_idx)
 {
     size_t prev_idx = data->graph_handle_accesses[access_idx].prev_for_handle;
     while (prev_idx != GRAPH_ACCESS_NONE) {
@@ -326,7 +326,7 @@ void graph_op_add_pure_read_dependencies_sgoc(graph_sched_data *data, GraphOp *c
     }
 }
 
-void graph_op_add_writer_or_invalidate_dependencies_sgoc(graph_sched_data *data, GraphOp *consumer,
+void graph_op_add_writer_or_invalidate_dependencies_sgoc(graph_sgoc_data *data, GraphOp *consumer,
                                                                   size_t access_idx)
 {
     size_t prev_idx = data->graph_handle_accesses[access_idx].prev_for_handle;
@@ -348,7 +348,7 @@ void graph_op_add_writer_or_invalidate_dependencies_sgoc(graph_sched_data *data,
  * Incremental SGOC capture: add dependency edges for \p op only from current handle-access chains.
  * Amortized O(bufs × chain depth) per call instead of rebuilding the full capture graph each append.
  */
-void graph_sgoc_capture_add_edges_for_op(graph_sched_data *data, GraphOp &op)
+void graph_sgoc_capture_add_edges_for_op(graph_sgoc_data *data, GraphOp &op)
 {
     if (!data || !data->graph_sgoc)
         return;
@@ -376,7 +376,7 @@ void graph_sgoc_capture_add_edges_for_op(graph_sched_data *data, GraphOp &op)
 }
 
 /**
- * Per-handle dependency rules (see graph_sched_append_handle_access chains):
+ * Per-handle dependency rules (see graph_sgoc_append_handle_access chains):
  *
  * - Pure STARPU_R (not STARPU_RW): depend only on the nearest previous handle producer — task
  *   STARPU_W / STARPU_RW, or an invalidate op on this handle. No prior producer matches external init.
@@ -388,7 +388,7 @@ void graph_sgoc_capture_add_edges_for_op(graph_sched_data *data, GraphOp &op)
  * - starpu_data_invalidate_submit (INVALIDATE op): same back-edges as a writer (invalidation is a
  *   version change). Pure STARPU_W after invalidate depends on that invalidate as the producer.
  */
-void graph_op_add_pure_read_dependencies(graph_sched_data *data, size_t consumer_op_idx, size_t access_idx)
+void graph_op_add_pure_read_dependencies(graph_sgoc_data *data, size_t consumer_op_idx, size_t access_idx)
 {
     size_t prev_idx = data->graph_handle_accesses[access_idx].prev_for_handle;
     while (prev_idx != GRAPH_ACCESS_NONE) {
@@ -403,7 +403,7 @@ void graph_op_add_pure_read_dependencies(graph_sched_data *data, size_t consumer
     }
 }
 
-void graph_op_add_writer_or_invalidate_dependencies(graph_sched_data *data, size_t consumer_op_idx,
+void graph_op_add_writer_or_invalidate_dependencies(graph_sgoc_data *data, size_t consumer_op_idx,
                                                            size_t access_idx)
 {
     size_t prev_idx = data->graph_handle_accesses[access_idx].prev_for_handle;
@@ -422,7 +422,7 @@ void graph_op_add_writer_or_invalidate_dependencies(graph_sched_data *data, size
 }
 
 /** StarPU: after invalidate, the next use of the handle must be pure STARPU_W until data is valid again. */
-void graph_sched_validate_invalidate_then_pure_write_windows(graph_sched_data *data)
+void graph_sgoc_validate_invalidate_then_pure_write_windows(graph_sgoc_data *data)
 {
     for (const auto &entry : data->graph_handle_access_lists) {
         size_t idx = entry.second.head;
@@ -459,7 +459,7 @@ void graph_sched_validate_invalidate_then_pure_write_windows(graph_sched_data *d
     }
 }
 
-void graph_sched_refresh_op_dependencies(graph_sched_data *data)
+void graph_sgoc_refresh_op_dependencies(graph_sgoc_data *data)
 {
     for (GraphOp &op : data->graph_ops) {
         op.predecessors.clear();
@@ -495,12 +495,12 @@ void graph_sched_refresh_op_dependencies(graph_sched_data *data)
         }
     }
 
-    graph_sched_validate_invalidate_then_pure_write_windows(data);
+    graph_sgoc_validate_invalidate_then_pure_write_windows(data);
 }
 
-void graph_sched_graph_op_set_stage_from_sched_ctx(GraphOp &op, unsigned task_sched_ctx_id,
+void graph_sgoc_graph_op_set_stage_from_sched_ctx(GraphOp &op, unsigned task_sched_ctx_id,
                                                            struct starpu_task *);
-unsigned graph_sched_iteration_source_sched_ctx(unsigned task_sched_ctx_id);
+unsigned graph_sgoc_iteration_source_sched_ctx(unsigned task_sched_ctx_id);
 
 /**
  * If handle H will be write-only (STARPU_W): insert a synthetic invalidate_submit before that write when needed.
@@ -511,9 +511,9 @@ unsigned graph_sched_iteration_source_sched_ctx(unsigned task_sched_ctx_id);
  *
  * Resulting chain on H is ... -> invalidate -> pure STARPU_W (no STARPU_R on H in between).
  */
-void graph_sched_insert_missing_pre_write_invalidates(graph_sched_data *data, struct starpu_task *task)
+void graph_sgoc_insert_missing_pre_write_invalidates(graph_sgoc_data *data, struct starpu_task *task)
 {
-    if (!graph_sched_auto_invalidate_enabled())
+    if (!graph_sgoc_auto_invalidate_enabled())
         return;
     if (!task->cl)
         return;
@@ -521,7 +521,7 @@ void graph_sched_insert_missing_pre_write_invalidates(graph_sched_data *data, st
     const unsigned nbuf = STARPU_TASK_GET_NBUFFERS(task);
 
     if (data->graph_sgoc) {
-        graph_sched_data::graph_sgoc_runtime &G = *data->graph_sgoc;
+        graph_sgoc_data::graph_sgoc_runtime &G = *data->graph_sgoc;
         for (unsigned i = 0; i < nbuf; i++) {
             starpu_data_handle_t h = STARPU_TASK_GET_HANDLE(task, i);
             if (!h)
@@ -540,12 +540,12 @@ void graph_sched_insert_missing_pre_write_invalidates(graph_sched_data *data, st
                 inv.task = nullptr;
                 inv.handle = h;
                 inv.capture_synthetic_invalidate = true;
-                graph_sched_graph_op_set_stage_from_sched_ctx(inv, task->sched_ctx, task);
+                graph_sgoc_graph_op_set_stage_from_sched_ctx(inv, task->sched_ctx, task);
                 const size_t sid = G.capture_next_stable_id++;
                 inv.capture_stable_id = sid;
                 G.capture_ops.push_back(std::move(inv));
                 G.capture_id_to_iter[sid] = std::prev(G.capture_ops.end());
-                graph_sched_register_invalidate_access_op(data, G.capture_ops.back(), sid, h);
+                graph_sgoc_register_invalidate_access_op(data, G.capture_ops.back(), sid, h);
                 data->graph_added_invalidate_submit++;
                 graph_sgoc_capture_add_edges_for_op(data, G.capture_ops.back());
                 continue;
@@ -565,12 +565,12 @@ void graph_sched_insert_missing_pre_write_invalidates(graph_sched_data *data, st
             inv.task = nullptr;
             inv.handle = h;
             inv.capture_synthetic_invalidate = true;
-            graph_sched_graph_op_set_stage_from_sched_ctx(inv, task->sched_ctx, task);
+            graph_sgoc_graph_op_set_stage_from_sched_ctx(inv, task->sched_ctx, task);
             const size_t sid = G.capture_next_stable_id++;
             inv.capture_stable_id = sid;
             auto it_new = G.capture_ops.insert(std::next(it_m->second), std::move(inv));
             G.capture_id_to_iter[sid] = it_new;
-            graph_sched_register_invalidate_access_op(data, *it_new, sid, h);
+            graph_sgoc_register_invalidate_access_op(data, *it_new, sid, h);
             data->graph_added_invalidate_submit++;
             graph_sgoc_capture_add_edges_for_op(data, *it_new);
         }
@@ -595,11 +595,11 @@ void graph_sched_insert_missing_pre_write_invalidates(graph_sched_data *data, st
             inv.task = nullptr;
             inv.handle = h;
             inv.capture_synthetic_invalidate = true;
-            graph_sched_graph_op_set_stage_from_sched_ctx(inv, task->sched_ctx, task);
+            graph_sgoc_graph_op_set_stage_from_sched_ctx(inv, task->sched_ctx, task);
             data->graph_ops.push_back(inv);
-            graph_sched_register_invalidate_access(data, data->graph_ops.size() - 1, h);
+            graph_sgoc_register_invalidate_access(data, data->graph_ops.size() - 1, h);
             data->graph_added_invalidate_submit++;
-            graph_sched_refresh_op_dependencies(data);
+            graph_sgoc_refresh_op_dependencies(data);
             continue;
         }
 
@@ -613,17 +613,17 @@ void graph_sched_insert_missing_pre_write_invalidates(graph_sched_data *data, st
         inv.task = nullptr;
         inv.handle = h;
         inv.capture_synthetic_invalidate = true;
-        graph_sched_graph_op_set_stage_from_sched_ctx(inv, task->sched_ctx, task);
+        graph_sgoc_graph_op_set_stage_from_sched_ctx(inv, task->sched_ctx, task);
         data->graph_ops.insert(data->graph_ops.begin() + insert_pos, inv);
-        graph_sched_bump_indices_after_insert(data, insert_pos);
-        graph_sched_register_invalidate_access(data, insert_pos, h);
+        graph_sgoc_bump_indices_after_insert(data, insert_pos);
+        graph_sgoc_register_invalidate_access(data, insert_pos, h);
         data->graph_added_invalidate_submit++;
-        graph_sched_refresh_op_dependencies(data);
+        graph_sgoc_refresh_op_dependencies(data);
     }
 }
 
 /** Min expected duration (µs) on \p pin_worker over codelet implementations that worker can run. */
-double graph_sched_predicted_exec_time_us_for_pinned_worker(struct starpu_task *task, int pin_worker,
+double graph_sgoc_predicted_exec_time_us_for_pinned_worker(struct starpu_task *task, int pin_worker,
                                                                    unsigned sched_ctx_id)
 {
     if (!task || !task->cl || pin_worker < 0)
@@ -648,7 +648,7 @@ double graph_sched_predicted_exec_time_us_for_pinned_worker(struct starpu_task *
 }
 
 /** Map StarPU expected-length outliers to +inf for ordering (user: unknown / -1 → inf). */
-double graph_sched_effective_predicted_us(double starpu_expected_length_us)
+double graph_sgoc_effective_predicted_us(double starpu_expected_length_us)
 {
     if (std::isnan(starpu_expected_length_us) || !std::isfinite(starpu_expected_length_us) ||
         starpu_expected_length_us < 0.0)
@@ -661,7 +661,7 @@ double graph_sched_effective_predicted_us(double starpu_expected_length_us)
  * Graph capture runs before starpu_task_submit(), so task->sched_ctx is often still
  * STARPU_NMAX_SCHED_CTXS; submit later sets it from starpu_sched_ctx_get_context() / initial ctx.
  */
-unsigned graph_sched_iteration_source_sched_ctx(unsigned task_sched_ctx_id)
+unsigned graph_sgoc_iteration_source_sched_ctx(unsigned task_sched_ctx_id)
 {
     if (task_sched_ctx_id < STARPU_NMAX_SCHED_CTXS)
         return task_sched_ctx_id;
@@ -682,14 +682,14 @@ unsigned graph_sched_iteration_source_sched_ctx(unsigned task_sched_ctx_id)
  * Stage index: nested \c iteration_push uses slot 1 when set (\p g1 >= 0); if only one \c iteration_push level is
  * active (\p g1 < 0), slot 0 holds the stage index.
  */
-void graph_sched_graph_op_set_stage_from_sched_ctx(GraphOp &op, unsigned task_sched_ctx_id,
+void graph_sgoc_graph_op_set_stage_from_sched_ctx(GraphOp &op, unsigned task_sched_ctx_id,
                                                            struct starpu_task *)
 {
     op.graph_stage_batch_iteration_valid = false;
     op.graph_stage_batch_iteration = 0;
     op.graph_stage_subiteration_valid = false;
     op.graph_stage_subiteration = 0;
-    const unsigned ctx = graph_sched_iteration_source_sched_ctx(task_sched_ctx_id);
+    const unsigned ctx = graph_sgoc_iteration_source_sched_ctx(task_sched_ctx_id);
 
     long g0 = starpu_sched_ctx_get_iteration(ctx, 0);
     long g1 = starpu_sched_ctx_get_iteration(ctx, 1);
