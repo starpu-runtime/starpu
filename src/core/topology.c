@@ -158,6 +158,7 @@ int _starpu_get_logical_numa_node_worker(unsigned workerid)
 		(void) workerid; /* unused */
 		return STARPU_NUMA_MAIN_RAM;
 	}
+	return -1;
 }
 
 /* This returns the exact NUMA node next to a worker */

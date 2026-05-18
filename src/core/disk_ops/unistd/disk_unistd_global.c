@@ -307,12 +307,12 @@ int starpu_unistd_global_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, voi
 			fd = _starpu_unistd_reopen(obj);
 
 		int res = lseek(fd, offset, SEEK_SET);
-		STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd lseek for read failed: offset %zu got errno %d", offset, errno);
+		STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd lseek for read failed: offset %zu got errno %d", (size_t)offset, errno);
 
 		while (bytes_to_write > 0)
 		{
 			nb = read(fd, buf, bytes_to_write);
-			STARPU_ASSERT_MSG(nb >= 0, "Starpu Disk unistd read failed: offset %zu got errno %d", offset, errno);
+			STARPU_ASSERT_MSG(nb >= 0, "Starpu Disk unistd read failed: offset %zu got errno %d", (size_t)offset, errno);
 			bytes_to_write -= nb;
 			buf = (char*) buf + nb;
 			offset += nb;

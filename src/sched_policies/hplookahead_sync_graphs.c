@@ -791,7 +791,7 @@ static struct starpu_task* pop_task_from_hp_lookahead_ready_queue(unsigned sched
 						}
 						STARPU_ASSERT_MSG(cpuWorkerId != -1, "Task in consideration is not running on CPU: something strange");
 
-						unsigned originalMinIndex = data->localIndicesToWorkerId[minIndex];
+						originalMinIndex = data->localIndicesToWorkerId[minIndex];
 						struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(originalMinIndex, sched_ctx_id);
 						/* Expected duration of task on current worker */
 						double model = starpu_task_expected_length(taskToBeScheduled, perf_arch, 0);
@@ -810,8 +810,7 @@ static struct starpu_task* pop_task_from_hp_lookahead_ready_queue(unsigned sched
 						//Take decision for  task in consideration: taskToBeScheduled
 						{
 							struct starpu_st_fifo_taskq *fifo = data->workers_queue[originalWorker];
-
-							struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(originalWorker, sched_ctx_id);
+							struct starpu_perfmodel_arch *perf_arch = starpu_worker_get_perf_archtype(originalWorker, sched_ctx_id);
 
 							/* Expected duration of task on current worker */
 							double model = starpu_task_expected_length(taskToBeScheduled, perf_arch, 0);

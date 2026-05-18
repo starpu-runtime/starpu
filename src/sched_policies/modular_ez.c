@@ -435,9 +435,9 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 	for(i = 0; i < starpu_worker_get_count() + starpu_combined_worker_get_count(); i++)
 	{
 		/* Start from the bottom */
-		struct starpu_sched_component * worker_component = starpu_sched_component_worker_new(sched_ctx_id, i);
-		struct starpu_sched_component * worker = worker_component;
-		unsigned id;
+		struct starpu_sched_component *worker_component = starpu_sched_component_worker_new(sched_ctx_id, i);
+		struct starpu_sched_component *worker = worker_component;
+		unsigned id=nbelow;
 
 		/* Create implementation chooser if requested */
 		if (flags_bottom & STARPU_SCHED_SIMPLE_IMPL)

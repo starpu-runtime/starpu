@@ -643,7 +643,6 @@ static struct starpu_task *pop_task_from_hp_lookahead_ready_queue(unsigned sched
 				taskInConsideration = starpu_task_list_front(&data->ready_queues->task_queues[queueId].tasks_queue->taskq);
 
 			/* Store expected start time of each worker and present task in execution into temporary buffer */
-			unsigned worker;
 			for(worker =0; worker < data->nWorkers; worker++)
 			{
 				unsigned originalWorker = data->localIndicesToWorkerId[worker];
@@ -700,7 +699,7 @@ static struct starpu_task *pop_task_from_hp_lookahead_ready_queue(unsigned sched
 			unsigned virtualWorkerId;
 			for(virtualWorkerId=0; virtualWorkerId<nWorkers; virtualWorkerId++)
 			{
-				unsigned workerId = data->localIndicesToWorkerId[virtualWorkerId];
+				workerId = data->localIndicesToWorkerId[virtualWorkerId];
 
 				if(workerId == data->schedulerWorker)
 					continue;
@@ -765,15 +764,13 @@ static struct starpu_task *pop_task_from_hp_lookahead_ready_queue(unsigned sched
 
 							STARPU_ASSERT_MSG(ntaskInTheBeginning == data->ready_queues->ntasks , "At line number %d, Number of ready tasks before starting the simulation was %d but now it changed to %d\n",  __LINE__, ntaskInTheBeginning, data->ready_queues->ntasks);
 							struct starpu_task *task = NULL;
-							int queueId;
 							for(queueId = 0; queueId < data -> ready_queues->types_of_tasks && task == NULL; queueId++)
 								task = starpu_st_fifo_taskq_pop_local_task(data->ready_queues->task_queues[queueId].tasks_queue);
 
 							STARPU_ASSERT_MSG(task == taskInConsideration, "At line number %d, next task is different from the task for which simulation has started", __LINE__);
 							unsigned originalWorker = data->localIndicesToWorkerId[worker];
 							struct starpu_st_fifo_taskq *fifo = data->workers_queue[originalWorker];
-
-							struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(originalWorker, sched_ctx_id);
+							struct starpu_perfmodel_arch *perf_arch = starpu_worker_get_perf_archtype(originalWorker, sched_ctx_id);
 
 							/* Expected duration of task on current worker */
 							double model = starpu_task_expected_length(task, perf_arch, 0);
@@ -802,7 +799,7 @@ static struct starpu_task *pop_task_from_hp_lookahead_ready_queue(unsigned sched
 				{
 					struct starpu_task *task = data->workersQueue[minIndex][data->nExaminedEntriesInWQs[minIndex]];
 					data->nExaminedEntriesInWQs[minIndex]++;
-					unsigned workerId = data->localIndicesToWorkerId[minIndex];
+					workerId = data->localIndicesToWorkerId[minIndex];
 					struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(workerId, sched_ctx_id);
 					/* Expected duration of task on current worker */
 					double model = starpu_task_expected_length(task, perf_arch, 0);

@@ -208,6 +208,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 		STARPU_ABORT_MSG("No copy_interface_to function defined from node %s to node %s\n", _starpu_node_get_prefix(starpu_node_get_kind(src_node)), _starpu_node_get_prefix(starpu_node_get_kind(dst_node)));
 	}
 #endif /* !SIMGRID */
+	return -1;
 }
 
 static int update_map_generic(starpu_data_handle_t handle,
