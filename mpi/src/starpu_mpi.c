@@ -160,6 +160,42 @@ void _starpu_mpi_irecv_allocate(struct _starpu_mpi_req *req)
 	req->node = node;
 }
 
+/* If the MPI backend supports request early prefetching, trigger it. */
+static void _starpu_mpi_soon_callback(void *arg, STARPU_ATTRIBUTE_UNUSED double delay)
+{
+	struct _starpu_mpi_req *req = arg;
+
+	if (_mpi_backend._starpu_mpi_backend_early_prefetch_func == NULL) {
+		/* Backend does not support early prefetch */
+		return;
+	}
+
+	if (req->request_type != SEND_REQ) {
+		/* Nothing to prefetch early */
+		return;
+	}
+
+	if (!req->registered_datatype) {
+		/* At this point it is not possible to process unknown datatypes
+		 * because their data size can still be modified by a user task
+		 */
+		return;
+	}
+
+	_STARPU_MPI_LOG_IN();
+
+	_starpu_mpi_datatype_allocate(req->data_handle, req);
+	if (req->node == (unsigned) -1)
+		req->early_node = _starpu_mpi_choose_node(req->data_handle, STARPU_R);
+	else
+		req->early_node = req->node;
+	req->count = 1;
+	req->ptr = starpu_data_handle_to_pointer_ref(req->data_handle, req->early_node);
+	_mpi_backend._starpu_mpi_backend_early_prefetch_func(req);
+
+	_STARPU_MPI_LOG_OUT();
+}
+
 static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_data_access_mode mode)
 {
 	struct _starpu_mpi_req *req = arg;
@@ -201,15 +237,22 @@ void _starpu_mpi_isend_irecv_common(struct _starpu_mpi_req *req, enum starpu_dat
 		}
 	}
 
-	/* TODO: use soon_callback */
 	if (sequential_consistency)
 	{
+<<<<<<< HEAD
 		starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(req->data_handle, &req->data_handle, node, mode, NULL, _starpu_mpi_acquired_callback, _starpu_mpi_submit_ready_request, (void *)req, 1 /*sequential consistency*/, 1, &req->pre_sync_jobid, &req->post_sync_jobid, req->prio);
+=======
+		starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(req->data_handle, node, mode, _starpu_mpi_soon_callback, _starpu_mpi_acquired_callback, _starpu_mpi_submit_ready_request, (void *)req, 1 /*sequential consistency*/, 1, &req->pre_sync_jobid, &req->post_sync_jobid, req->prio);
+>>>>>>> 8f83a3d923 (mpi: first implementation of a callback_soon)
 	}
 	else
 	{
 		/* post_sync_job_id has already been filled */
+<<<<<<< HEAD
 		starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(req->data_handle, &req->data_handle, node, mode, NULL, _starpu_mpi_acquired_callback, _starpu_mpi_submit_ready_request, (void *)req, 0 /*sequential consistency*/, 1, &req->pre_sync_jobid, NULL, req->prio);
+=======
+		starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(req->data_handle, node, mode, _starpu_mpi_soon_callback, _starpu_mpi_acquired_callback, _starpu_mpi_submit_ready_request, (void *)req, 0 /*sequential consistency*/, 1, &req->pre_sync_jobid, NULL, req->prio);
+>>>>>>> 8f83a3d923 (mpi: first implementation of a callback_soon)
 	}
 }
 
