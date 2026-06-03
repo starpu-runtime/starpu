@@ -262,7 +262,12 @@ LIST_TYPE(_starpu_mpi_req,
 	  starpu_data_handle_t data_handle;
 
 	  int prio;
-	  int node;	/* Which StarPU memory node this will read from / write to */
+
+	  /* Which StarPU memory node this will read from / write to. early_node
+	   * is assigned early, for doing prefetching, but may become wrong if
+	   * data moves. */
+	  unsigned early_node;
+	  unsigned node;
 
 	  /** description of the data to be sent/received */
 	  MPI_Datatype datatype;
