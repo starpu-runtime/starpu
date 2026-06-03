@@ -196,6 +196,21 @@ static void _starpu_mpi_soon_callback(void *arg, STARPU_ATTRIBUTE_UNUSED double 
 	_STARPU_MPI_LOG_OUT();
 }
 
+/* If early_node is assigned, then early prefetching is in progress. */
+static int _starpu_mpi_early_prefetch_in_progress(const struct _starpu_mpi_req *req)
+{
+	return req->early_node != (unsigned) -1;
+}
+
+static void _starpu_mpi_early_prefetch_cancel_if_in_progress(struct _starpu_mpi_req *req)
+{
+	if (_starpu_mpi_early_prefetch_in_progress(req)) {
+		_mpi_backend._starpu_mpi_backend_early_unfetch_func(req);
+		starpu_data_handle_to_pointer_unref(req->data_handle, req->early_node);
+		req->early_node = (unsigned) -1;
+	}
+}
+
 static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_data_access_mode mode)
 {
 	struct _starpu_mpi_req *req = arg;
@@ -205,10 +220,31 @@ static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_dat
 	 * current state of the handle and decide which node we prefer for the data
 	 * fetch */
 
-	if (node < 0 && (mode & STARPU_R || !_starpu_mpi_mem_late))
+	STARPU_ASSERT(node >= -1);
+	if ((node == -1) && (mode & STARPU_R || !_starpu_mpi_mem_late))
 		node = _starpu_mpi_choose_node(req->data_handle, mode);
 
 	req->node = *nodep = node;
+
+	if (_mpi_backend._starpu_mpi_backend_early_prefetch_func == NULL) {
+		/* Backend does not support early prefetch */
+		return;
+	}
+
+	if (req->request_type != SEND_REQ) {
+		/* Nothing to prefetch early */
+		return;
+	}
+
+	if (req->early_node != (unsigned) node)
+	{
+		/* Data location changed since the soon callback was called. If
+		 * an early prefetch is in progress, then it shall be
+		 * cancelled */
+		_starpu_mpi_early_prefetch_cancel_if_in_progess(req);
+		req->ptr = starpu_data_handle_to_pointer_ref(req->data_handle, node);
+		_mpi_backend._starpu_mpi_backend_early_prefetch_func(req);
+	}
 }
 
 void _starpu_mpi_isend_irecv_common(struct _starpu_mpi_req *req, enum starpu_data_access_mode mode, int sequential_consistency)
