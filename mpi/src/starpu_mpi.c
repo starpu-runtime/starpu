@@ -183,7 +183,7 @@ static void _starpu_mpi_soon_callback(void *arg, STARPU_ATTRIBUTE_UNUSED double 
 	}
 
 	_STARPU_MPI_LOG_IN();
-	if (req->node == (unsigned) -1)
+	if (req->node < -1)
 		req->node = _starpu_mpi_choose_node(req->data_handle, STARPU_R);
 	req->early_node = req->node;
 	_starpu_mpi_datatype_allocate(req->data_handle, req);
@@ -202,7 +202,7 @@ static void _starpu_mpi_early_unfetch_if_requested(struct _starpu_mpi_req *req)
 		req->count = 0;
 		req->ptr = NULL;
 		_starpu_mpi_datatype_free(req->data_handle, &req->datatype);
-		req->early_node = (unsigned) -1;
+		req->early_node = -1;
 	}
 }
 
@@ -217,7 +217,7 @@ static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_dat
 
 	_STARPU_MPI_LOG_IN();
 	STARPU_ASSERT(node >= -1);
-	if ((node == -1) && (mode & STARPU_R || !_starpu_mpi_mem_late))
+	if ((node < 0) && (mode & STARPU_R || !_starpu_mpi_mem_late))
 		node = _starpu_mpi_choose_node(req->data_handle, mode);
 
 	req->node = *nodep = node;
@@ -235,7 +235,7 @@ static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_dat
 	if (!req->registered_datatype)
 		return;
 
-	if (req->early_node != (unsigned) node)
+	if (req->early_node != node)
 	{
 		/* Data location changed since the soon callback was called. If
 		 * an early prefetch was requested, then it shall be
