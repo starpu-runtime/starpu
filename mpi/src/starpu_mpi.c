@@ -202,7 +202,7 @@ static void _starpu_mpi_early_unfetch_if_requested(struct _starpu_mpi_req *req)
 		req->count = 0;
 		req->ptr = NULL;
 		_starpu_mpi_datatype_free(req->data_handle, &req->datatype);
-		req->early_node = -1;
+		req->early_node = STARPU_ACQUIRE_NO_NODE;
 	}
 }
 
