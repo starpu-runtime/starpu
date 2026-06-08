@@ -216,7 +216,6 @@ static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_dat
 	 * fetch */
 
 	_STARPU_MPI_LOG_IN();
-	STARPU_ASSERT(node >= -1);
 	if ((node < 0) && (mode & STARPU_R || !_starpu_mpi_mem_late))
 		node = _starpu_mpi_choose_node(req->data_handle, mode);
 
