@@ -240,7 +240,6 @@ static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_dat
 		/* Data location changed since the soon callback was called. If
 		 * an early prefetch was requested, then it shall be
 		 * cancelled */
-		_STARPU_MPI_DEBUG(20, "data location moved between soon and acquired callbacks\n");
 		_starpu_mpi_early_unfetch_if_requested(req);
 		req->early_node = node;
 		_starpu_mpi_datatype_allocate(req->data_handle, req);
