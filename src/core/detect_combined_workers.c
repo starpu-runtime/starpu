@@ -180,8 +180,12 @@ static void find_and_assign_combinations_with_hwloc(int *workerids, int nworkers
 
 	char *typename = starpu_getenv("STARPU_COMBINED_WORKERS_LEVEL");
 	hwloc_obj_type_t type;
+#if HWLOC_API_VERSION >= 0x20000
 	if (!typename || hwloc_type_sscanf(typename, &type, NULL, 0) == -1)
 		type = HWLOC_OBJ_TYPE_MAX;
+#else
+	STARPU_ASSERT_MSG(!typename, "STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER requires hwloc >= 2");
+#endif
 
 	if (synthesize_arity == INT_MAX && type == HWLOC_OBJ_TYPE_MAX)
 		synthesize_arity = 2;
