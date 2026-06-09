@@ -92,6 +92,8 @@ Small features:
     cache coherency retrieval mechanism
   * Add task level specific node managment for codelets with variable number
     of buffers
+  * Add STARPU_COMBINED_WORKERS_LEVEL to create combined workers at a given
+    hwloc level
 
 StarPU 1.4.10
 ==============================================

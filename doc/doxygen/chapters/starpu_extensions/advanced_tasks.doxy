@@ -413,7 +413,11 @@ topology (NUMA node, socket, cache, ...) a combined worker will be created. If
 some nodes of the hierarchy have a big arity (e.g. many cores in a socket
 without a hierarchy of shared caches), StarPU will create combined workers of
 intermediate sizes. The variable \ref STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER
-permits to tune the maximum arity between levels of combined workers.
+permits to tune the maximum arity between levels of combined workers. The
+variables \ref STARPU_MIN_WORKERSIZE and \ref STARPU_MAX_WORKERSIZE permit to
+restrict the combined worker creation to a range of CPU count. \ref
+STARPU_COMBINED_WORKERS_LEVEL can be used to just create combined workers as a
+partition of the CPU cores at a given hwloc level.
 
 The combined workers actually produced can be seen in the output of the
 tool <c>starpu_machine_display</c> (the environment variable

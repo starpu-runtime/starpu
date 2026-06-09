@@ -109,18 +109,21 @@ static void synthesize_intermediate_workers(hwloc_obj_t *children, unsigned min,
 	}
 }
 
-static void find_and_assign_combinations(hwloc_obj_t obj, unsigned min, unsigned max, unsigned synthesize_arity)
+static void find_and_assign_combinations(hwloc_obj_t obj, hwloc_obj_type_t type, unsigned min, unsigned max, unsigned synthesize_arity)
 {
 	char name[64];
 	unsigned i, n, nworkers;
 	int cpu_workers[STARPU_NMAXWORKERS];
 
 #if HWLOC_API_VERSION >= 0x10000
+	char typename[64];
+	hwloc_obj_type_snprintf(typename, sizeof(typename), obj, 0);
 	hwloc_obj_attr_snprintf(name, sizeof(name), obj, "#", 0);
+	_STARPU_DEBUG("Looking at %s#%d %s\n", typename, obj->logical_index, name);
 #else
 	hwloc_obj_snprintf(name, sizeof(name), _starpu_get_machine_config()->topology.hwtopology, obj, "#", 0);
-#endif
 	_STARPU_DEBUG("Looking at %s\n", name);
+#endif
 
 	for (n = 0, i = 0; i < obj->arity; i++)
 		if (((struct _starpu_hwloc_userdata *)obj->children[i]->userdata)->worker_list)
@@ -129,8 +132,9 @@ static void find_and_assign_combinations(hwloc_obj_t obj, unsigned min, unsigned
 
 	if (n == 1)
 	{
+		_STARPU_DEBUG("Only one child\n");
 		/* If there is only one child, we go to the next level right away */
-		find_and_assign_combinations(obj->children[0], min, max, synthesize_arity);
+		find_and_assign_combinations(obj->children[0], type, min, max, synthesize_arity);
 		return;
 	}
 
@@ -138,7 +142,7 @@ static void find_and_assign_combinations(hwloc_obj_t obj, unsigned min, unsigned
 	nworkers = 0;
 	find_workers(obj, cpu_workers, &nworkers);
 
-	if (nworkers >= min && nworkers <= max)
+	if (nworkers >= min && nworkers <= max && (type == HWLOC_OBJ_TYPE_MAX || type == obj->type))
 	{
 		_STARPU_DEBUG("Adding it\n");
 		unsigned sched_ctx_id  = starpu_sched_ctx_get_context();
@@ -158,14 +162,14 @@ static void find_and_assign_combinations(hwloc_obj_t obj, unsigned min, unsigned
 	/* And recurse */
 	for (i = 0; i < obj->arity; i++)
 		if (((struct _starpu_hwloc_userdata*) obj->children[i]->userdata)->worker_list == (void*) -1)
-			find_and_assign_combinations(obj->children[i], min, max, synthesize_arity);
+			find_and_assign_combinations(obj->children[i], type, min, max, synthesize_arity);
 }
 
 static void find_and_assign_combinations_with_hwloc(int *workerids, int nworkers)
 {
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	struct _starpu_machine_topology *topology = &config->topology;
-	int synthesize_arity = starpu_getenv_number("STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER");
+	int synthesize_arity = starpu_getenv_number_default("STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER", INT_MAX);
 
 	int min = starpu_getenv_number("STARPU_MIN_WORKERSIZE");
 	if (min < 2)
@@ -174,7 +178,12 @@ static void find_and_assign_combinations_with_hwloc(int *workerids, int nworkers
 	if (max == -1)
 		max = INT_MAX;
 
-	if (synthesize_arity == -1)
+	char *typename = starpu_getenv("STARPU_COMBINED_WORKERS_LEVEL");
+	hwloc_obj_type_t type;
+	if (!typename || hwloc_type_sscanf(typename, &type, NULL, 0) == -1)
+		type = HWLOC_OBJ_TYPE_MAX;
+
+	if (synthesize_arity == INT_MAX && type == HWLOC_OBJ_TYPE_MAX)
 		synthesize_arity = 2;
 
 	STARPU_ASSERT_MSG(synthesize_arity > 0, "STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER must be greater than 0");
@@ -195,7 +204,7 @@ static void find_and_assign_combinations_with_hwloc(int *workerids, int nworkers
 			}
 		}
 	}
-	find_and_assign_combinations(hwloc_get_root_obj(topology->hwtopology), min, max, synthesize_arity);
+	find_and_assign_combinations(hwloc_get_root_obj(topology->hwtopology), type, min, max, synthesize_arity);
 }
 
 #else /* STARPU_HAVE_HWLOC */

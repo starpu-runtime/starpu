@@ -175,6 +175,15 @@ Specify the minimum size of the combined workers. Default value is the
 number of CPU workers in the system.
 </dd>
 
+<dt>STARPU_COMBINED_WORKERS_LEVEL</dt>
+<dd>
+\anchor STARPU_COMBINED_WORKERS_LEVEL
+\addindex __env__STARPU_COMBINED_WORKERS_LEVEL
+Specify an hwloc level at which combined workers should be created, as specified
+by <c>man hwloc-calc</c>. This permits to easily partition the machine into a
+simple set of combined workers, e.g. by passing <c>l2cache</c>.
+</dd>
+
 <dt>STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER</dt>
 <dd>
 \anchor STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER
