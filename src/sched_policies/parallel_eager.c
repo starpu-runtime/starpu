@@ -16,6 +16,16 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/* Let workers fight for tasks in an eager way.
+ *
+ * If a worker is master of a combined worker, it will schedule the task for
+ * parallel execution on the largest combined worker for which it is master.
+ * This is very eager and uncoordinated.
+ *
+ * If the set of combined workers is a partition of the machine, this will just
+ * work as expected.
+ */
+
 #include <schedulers/starpu_scheduler_toolbox.h>
 #include <core/detect_combined_workers.h>
 #include <starpu_scheduler.h>
@@ -73,6 +83,7 @@ static void initialize_peager_common(void)
 			common_data->max_combination_size[i] = 1;
 		}
 
+		/* For each combined worker, record it in the possible_combinations arrays for its master worker */
 		for (i = 0; i < ncombined_workers; i++)
 		{
 			unsigned combined_workerid = nbasic_workers + i;
@@ -336,7 +347,7 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 		/* Optional heuristic to filter out purely clients for parallel tasks */
 		if (task && task->cl && task->cl->max_parallelism > 1 && common_data->max_combination_size[workerid] == 1 && !common_data->no_combined_workers)
 		{
-			/* task is potentially parallel, leave it for a combined worker primary */
+			/* task is potentially parallel and we are not part of a combined worker, leave it for a combined worker primary */
 			_STARPU_DEBUG("pushing back primary task %p\n", task);
 			starpu_st_fifo_taskq_push_back_task(&data->fifo, task);
 			task = NULL;
@@ -399,7 +410,7 @@ static struct starpu_task *pop_task_pprio_policy(unsigned sched_ctx_id)
 		/* Optional heuristic to filter out purely clients for parallel tasks */
 		if (task && task->cl && task->cl->max_parallelism > 1 && common_data->max_combination_size[workerid] == 1 && !common_data->no_combined_workers)
 		{
-			/* task is potentially parallel, leave it for a combined worker primary */
+			/* task is potentially parallel and we are not part of a combined worker, leave it for a combined worker primary */
 			_STARPU_DEBUG("pushing back primary task %p\n", task);
 			starpu_st_prio_deque_push_back_task(&data->taskq, task);
 			task = NULL;
@@ -423,7 +434,7 @@ static struct starpu_task *pop_task_pprio_policy(unsigned sched_ctx_id)
 }
 
 static struct starpu_task *pop_task_to_combined_worker(struct _starpu_peager_common_data *common_data, struct _starpu_peager_data *data, struct starpu_task *task, unsigned workerid) {
-	/* Find the largest compatible worker combination */
+	/* Find the largest combined worker for which we are master */
 	int best_size = -1;
 	int best_workerid = -1;
 	int i;
