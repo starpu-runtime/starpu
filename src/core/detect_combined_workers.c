@@ -187,7 +187,7 @@ static void find_and_assign_combinations_with_hwloc(int *workerids, int nworkers
 		STARPU_ASSERT_MSG(ret == 0, "hwloc did not recognize type name %s from STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER", typename);
 	}
 #else
-	STARPU_ASSERT_MSG(!typename, "STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER requires hwloc >= 2");
+	STARPU_ASSERT_MSG(!typename, "STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER currently implemented only for hwloc >= 2");
 #endif
 
 	if (synthesize_arity == INT_MAX && type == HWLOC_OBJ_TYPE_MAX)
