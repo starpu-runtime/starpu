@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013-2013  Thibaut Lambert
  * Copyright (C) 2011-2011  Télécom Sud Paris
  *
@@ -21,6 +21,7 @@
 #include <starpu_scheduler.h>
 #include <core/workers.h>
 #include <sched_policies/fifo_queues.h>
+#include <sched_policies/prio_deque.h>
 
 struct _starpu_peager_common_data
 {
@@ -37,7 +38,10 @@ static struct _starpu_peager_common_data *_peager_common_data = NULL;
 struct _starpu_peager_data
 {
 	starpu_pthread_mutex_t policy_mutex;
-	struct starpu_st_fifo_taskq fifo;
+	union {
+		struct starpu_st_fifo_taskq fifo;
+		struct starpu_st_prio_deque taskq;
+	};
 	struct starpu_st_fifo_taskq local_fifo[STARPU_NMAXWORKERS];
 };
 
@@ -150,18 +154,43 @@ static void peager_remove_workers(unsigned sched_ctx_id, int *workerids STARPU_A
 	}
 }
 
-static void initialize_peager_policy(unsigned sched_ctx_id)
+static void initialize_peager_common_policy(unsigned sched_ctx_id)
 {
 	struct _starpu_peager_data *data;
 	_STARPU_CALLOC(data, 1, sizeof(struct _starpu_peager_data));
 
+	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
+	STARPU_PTHREAD_MUTEX_INIT(&data->policy_mutex, NULL);
+}
+
+static void initialize_peager_policy(unsigned sched_ctx_id)
+{
 	_STARPU_DISP("Warning: the peager scheduler is mostly a proof of concept and not really very optimized\n");
+
+	initialize_peager_common_policy(sched_ctx_id);
+
+	struct _starpu_peager_data *data = (struct _starpu_peager_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	/* primarys pick tasks from that queue */
 	starpu_st_fifo_taskq_init(&data->fifo);
+}
 
-	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
-	STARPU_PTHREAD_MUTEX_INIT(&data->policy_mutex, NULL);
+static void initialize_pprio_policy(unsigned sched_ctx_id)
+{
+	_STARPU_DISP("Warning: the pprio scheduler is mostly a proof of concept and not really very optimized\n");
+
+	initialize_peager_common_policy(sched_ctx_id);
+
+	struct _starpu_peager_data *data = (struct _starpu_peager_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+
+	/* primarys pick tasks from that queue */
+	starpu_st_prio_deque_init(&data->taskq);
+
+	/* The application may use any integer */
+	if (starpu_sched_ctx_min_priority_is_set(sched_ctx_id) == 0)
+		starpu_sched_ctx_set_min_priority(sched_ctx_id, INT_MIN);
+	if (starpu_sched_ctx_max_priority_is_set(sched_ctx_id) == 0)
+		starpu_sched_ctx_set_max_priority(sched_ctx_id, INT_MAX);
 }
 
 static void deinitialize_peager_policy(unsigned sched_ctx_id)
@@ -173,6 +202,21 @@ static void deinitialize_peager_policy(unsigned sched_ctx_id)
 
 	free(data);
 }
+
+static void deinitialize_pprio_policy(unsigned sched_ctx_id)
+{
+	/* TODO check that there is no task left in the queue */
+	struct _starpu_peager_data *data = (struct _starpu_peager_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+
+	/* deallocate the job queue */
+	starpu_st_prio_deque_destroy(&data->taskq);
+
+	deinitialize_peager_policy(sched_ctx_id);
+}
+
+#ifndef STARPU_NON_BLOCKING_DRIVERS
+static void notify_combined_workers(int is_parallel_task, unsigned sched_ctx_id);
+#endif
 
 static int push_task_peager_policy(struct starpu_task *task)
 {
@@ -190,6 +234,35 @@ static int push_task_peager_policy(struct starpu_task *task)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
 #ifndef STARPU_NON_BLOCKING_DRIVERS
+	notify_combined_workers(is_parallel_task, sched_ctx_id);
+#endif
+	return ret_val;
+}
+
+static int push_task_pprio_policy(struct starpu_task *task)
+{
+	unsigned sched_ctx_id = task->sched_ctx;
+	int ret_val;
+
+	struct _starpu_peager_data *data = (struct _starpu_peager_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+
+	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
+	ret_val = starpu_st_prio_deque_push_back_task(&data->taskq, task);
+#ifndef STARPU_NON_BLOCKING_DRIVERS
+	int is_parallel_task = task->cl && task->cl->max_parallelism > 1;
+#endif
+	starpu_push_task_end(task);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+
+#ifndef STARPU_NON_BLOCKING_DRIVERS
+	notify_combined_workers(is_parallel_task, sched_ctx_id);
+#endif
+	return ret_val;
+}
+
+#ifndef STARPU_NON_BLOCKING_DRIVERS
+static void notify_combined_workers(int is_parallel_task, unsigned sched_ctx_id) {
+
 	struct _starpu_peager_common_data *common_data = _peager_common_data;
 	/* if there are no tasks block */
 	/* wake people waiting for a task */
@@ -218,17 +291,17 @@ static int push_task_peager_policy(struct starpu_task *task)
 			starpu_wake_worker_relax_light(workerid);
 		}
 	}
+}
 #endif
 
-	return ret_val;
-}
+static struct starpu_task *pop_task_to_combined_worker(struct _starpu_peager_common_data *common_data, struct _starpu_peager_data *data, struct starpu_task *task, unsigned workerid);
 
 static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 {
 	struct _starpu_peager_common_data *common_data = _peager_common_data;
 	struct _starpu_peager_data *data = (struct _starpu_peager_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
-	int workerid = starpu_worker_get_id_check();
+	unsigned workerid = starpu_worker_get_id_check();
 
 	/* If this is not a CPU then the worker simply grabs tasks from the fifo */
 	if (starpu_worker_get_type(workerid) != STARPU_CPU_WORKER)
@@ -278,8 +351,78 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 	if (!task || client_task)
 	{
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-		goto ret;
+		return task;
 	}
+
+	task = pop_task_to_combined_worker(common_data, data, task, workerid);
+
+	return task;
+}
+
+static struct starpu_task *pop_task_pprio_policy(unsigned sched_ctx_id)
+{
+	struct _starpu_peager_common_data *common_data = _peager_common_data;
+	struct _starpu_peager_data *data = (struct _starpu_peager_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+
+	unsigned workerid = starpu_worker_get_id_check();
+
+	/* If this is not a CPU then the worker simply grabs tasks from the fifo */
+	if (starpu_worker_get_type(workerid) != STARPU_CPU_WORKER)
+	{
+		struct starpu_task *task;
+		starpu_worker_relax_on();
+		STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
+		starpu_worker_relax_off();
+		task = starpu_st_prio_deque_pop_task_for_worker(&data->taskq, workerid, NULL);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+
+		return task;
+	}
+
+	struct starpu_task *task;
+	int client_task = 0;
+	starpu_worker_relax_on();
+	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
+	starpu_worker_relax_off();
+	/* check if a client task is available in the local queue */
+	task = starpu_st_fifo_taskq_pop_task(&data->local_fifo[workerid], workerid);
+	if (!task)
+	{
+		/* no client task, try to pop a task as primary */
+		task = starpu_st_prio_deque_pop_task_for_worker(&data->taskq, workerid, NULL);
+		if (task)
+		{
+			_STARPU_DEBUG("poping primary task %p\n", task);
+		}
+
+#if 1
+		/* Optional heuristic to filter out purely clients for parallel tasks */
+		if (task && task->cl && task->cl->max_parallelism > 1 && common_data->max_combination_size[workerid] == 1 && !common_data->no_combined_workers)
+		{
+			/* task is potentially parallel, leave it for a combined worker primary */
+			_STARPU_DEBUG("pushing back primary task %p\n", task);
+			starpu_st_prio_deque_push_back_task(&data->taskq, task);
+			task = NULL;
+		}
+#endif
+	}
+	else
+	{
+		client_task = 1;
+		_STARPU_DEBUG("poping client task %p\n", task);
+	}
+	if (!task || client_task)
+	{
+		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+		return task;
+	}
+
+	task = pop_task_to_combined_worker(common_data, data, task, workerid);
+
+	return task;
+}
+
+static struct starpu_task *pop_task_to_combined_worker(struct _starpu_peager_common_data *common_data, struct _starpu_peager_data *data, struct starpu_task *task, unsigned workerid) {
 	/* Find the largest compatible worker combination */
 	int best_size = -1;
 	int best_workerid = -1;
@@ -304,7 +447,7 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 	if (best_workerid == -1)
 	{
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-		goto ret;
+		return task;
 	}
 
 	/* Is this a basic worker or a combined worker ? */
@@ -312,7 +455,7 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 	{
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 		/* The primary is alone */
-		goto ret;
+		return task;
 	}
 	starpu_parallel_task_barrier_init(task, best_workerid);
 	int worker_size = 0;
@@ -349,7 +492,6 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 		starpu_worker_unlock(local_worker);
 	}
 
-ret:
 	return task;
 }
 
@@ -365,5 +507,20 @@ struct starpu_sched_policy _starpu_sched_peager_policy =
 	.post_exec_hook = NULL,
 	.policy_name = "peager",
 	.policy_description = "parallel eager policy",
+	.worker_type = STARPU_WORKER_LIST,
+};
+
+struct starpu_sched_policy _starpu_sched_pprio_policy =
+{
+	.init_sched = initialize_pprio_policy,
+	.deinit_sched = deinitialize_pprio_policy,
+	.add_workers = peager_add_workers,
+	.remove_workers = peager_remove_workers,
+	.push_task = push_task_pprio_policy,
+	.pop_task = pop_task_pprio_policy,
+	.pre_exec_hook = NULL,
+	.post_exec_hook = NULL,
+	.policy_name = "pprio",
+	.policy_description = "parallel prio policy",
 	.worker_type = STARPU_WORKER_LIST,
 };

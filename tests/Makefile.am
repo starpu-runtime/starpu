@@ -341,6 +341,7 @@ myPROGRAMS +=				\
 	parallel_tasks/parallel_kernels_trivial	\
 	parallel_tasks/parallel_kernels_spmd	\
 	parallel_tasks/spmd_peager		\
+	parallel_tasks/spmd_pprio		\
 	parallel_tasks/cuda_only		\
 	perfmodels/regression_based_memset	\
 	perfmodels/regression_based_check	\

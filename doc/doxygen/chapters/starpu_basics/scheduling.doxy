@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -106,8 +106,8 @@ alias for <b>dmda</b>.
 parallel tasks (still experimental). It should not be used when several contexts using
 it are being executed simultaneously.
 
-- The <b>peager</b> (parallel eager) scheduler is similar to eager, it also
-supports parallel tasks (still experimental). It should not be used when several
+- The <b>peager</b> (parallel eager) and <b>pprio</b> (parallel prio) schedulers are similar to eager and prio, they also
+supports parallel tasks (still experimental). They should not be used when several
 contexts using it are being executed simultaneously.
 
 - The <b>darts</b> scheduler aims at privileging data reuse, by focusing on

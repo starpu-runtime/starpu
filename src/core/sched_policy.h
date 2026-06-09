@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013-2013  Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -95,6 +95,7 @@ extern struct starpu_sched_policy _starpu_sched_dmda_sorted_decision_policy;
 extern struct starpu_sched_policy _starpu_sched_eager_policy;
 extern struct starpu_sched_policy _starpu_sched_parallel_heft_policy STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
 extern struct starpu_sched_policy _starpu_sched_peager_policy;
+extern struct starpu_sched_policy _starpu_sched_pprio_policy;
 extern struct starpu_sched_policy _starpu_sched_heteroprio_policy;
 extern struct starpu_sched_policy _starpu_sched_hp_policy;
 extern struct starpu_sched_policy _starpu_sched_hp_lookahead_policy;

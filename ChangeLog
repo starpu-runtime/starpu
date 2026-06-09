@@ -61,6 +61,7 @@ New features:
     and Mad-MPI.
   * Add HIPSOLVER support.
   * Add a SYCL driver
+  * Add pprio parallel-task scheduler.
 
 Small features:
   * Add FXT option -show-workers to display the available workers in
