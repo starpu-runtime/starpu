@@ -179,10 +179,13 @@ static void find_and_assign_combinations_with_hwloc(int *workerids, int nworkers
 		max = INT_MAX;
 
 	char *typename = starpu_getenv("STARPU_COMBINED_WORKERS_LEVEL");
-	hwloc_obj_type_t type;
+	hwloc_obj_type_t type = HWLOC_OBJ_TYPE_MAX;
 #if HWLOC_API_VERSION >= 0x20000
-	if (!typename || hwloc_type_sscanf(typename, &type, NULL, 0) == -1)
-		type = HWLOC_OBJ_TYPE_MAX;
+	if (typename)
+	{
+		int ret = hwloc_type_sscanf(typename, &type, NULL, 0);
+		STARPU_ASSERT_MSG(ret == 0, "hwloc did not recognize type name %s from STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER", typename);
+	}
 #else
 	STARPU_ASSERT_MSG(!typename, "STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER requires hwloc >= 2");
 #endif
