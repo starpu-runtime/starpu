@@ -481,12 +481,14 @@ static struct starpu_task *pop_task_to_combined_worker(struct _starpu_peager_com
 		int local_worker = combined_workerid[i];
 		alias->destroy = 1;
 		_starpu_trace_job_push(alias, alias->priority > 0);
+		alias->priority = 0;
 		starpu_st_fifo_taskq_push_task(&data->local_fifo[local_worker], alias);
 	}
 
 	/* The primary also manipulated an alias */
 	struct starpu_task *primary_alias = starpu_task_dup(task);
 	primary_alias->destroy = 1;
+	primary_alias->priority = 0;
 	task = primary_alias;
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
