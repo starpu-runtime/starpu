@@ -31,6 +31,9 @@ define starpu-print-job
     if $job->task && $job->task->name
         printf "\tname:\t\t\t\t<%s>\n", $job->task->name
     end
+    if ($job->after_work_busy_barrier > 1)
+      printf "\tparallel:\t\t\t<%d>\n", $job->after_work_busy_barrier
+    end
   end
 end
 
@@ -184,6 +187,10 @@ define starpu-tasks-on-workers
   set $num=0
   while $num<_starpu_config->topology->nworkers
     printf "Worker %s\n", _starpu_config->workers[$num].name
+    set $t = _starpu_config->workers[$num].current_task
+    if $t != 0
+      starpu-print-task $t
+    end
     starpu-tasks-on-worker $num
     set $num = $num + 1
   end
@@ -1050,6 +1057,15 @@ end
 define starpu-sched-print-fifo
     set $f = $arg0
     printf " %d tasks", $f->ntasks
+    if $f->ntasks == 1
+      set $t = $f->taskq._head
+      set $j = (struct _starpu_job *) $t->starpu_private
+      printf " (%p job %p", $t, $j
+      if $j->after_work_busy_barrier > 1
+        printf " %dw", $j->after_work_busy_barrier
+      end
+      printf ")"
+    end
     printf " start %f", $f->exp_start
     printf " len %f", $f->exp_len
     printf " end %f", $f->exp_end
@@ -1059,6 +1075,15 @@ end
 define starpu-sched-print-prio
     set $f = $arg0
     printf " %d tasks", $f->ntasks
+    if $f->ntasks == 1
+      set $t = $f->list.list._head
+      set $j = (struct _starpu_job *) $t->starpu_private
+      printf " (%p job %p", $t, $j
+      if $j->after_work_busy_barrier > 1
+        printf " %dw", $j->after_work_busy_barrier
+      end
+      printf ")"
+    end
     printf " start %f", $f->exp_start
     printf " len %f", $f->exp_len
     printf " end %f", $f->exp_end
