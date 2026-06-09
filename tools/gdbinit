@@ -1047,20 +1047,60 @@ define starpu-sched-print-lws
     end
 end
 
+define starpu-sched-print-fifo
+    set $f = $arg0
+    printf " %d tasks", $f->ntasks
+    printf " start %f", $f->exp_start
+    printf " len %f", $f->exp_len
+    printf " end %f", $f->exp_end
+    printf " piped %f", $f->pipeline_len
+end
+
+define starpu-sched-print-prio
+    set $f = $arg0
+    printf " %d tasks", $f->ntasks
+    printf " start %f", $f->exp_start
+    printf " len %f", $f->exp_len
+    printf " end %f", $f->exp_end
+end
+
 define starpu-sched-print-dmda
     set $dt = (struct _starpu_dmda_data *) _starpu_config.sched_ctxs[$arg0]->policy_data
     set $num = 0
     printf "alpha %f beta %f gamma %f power %fW\n", $dt->alpha, $dt->beta, $dt->_gamma, $dt->idle_power
     while $num < _starpu_config->topology->nworkers
       printf "Worker %s:", _starpu_config->workers[$num].name
-      printf " %d tasks", $dt->queue_array[$num].ntasks
-      printf " start %f", $dt->queue_array[$num].exp_start
-      printf " len %f", $dt->queue_array[$num].exp_len
-      printf " end %f", $dt->queue_array[$num].exp_end
-      printf " piped %f", $dt->queue_array[$num].pipeline_len
+      starpu-sched-print-fifo &$dt->queue_array[$num]
       printf "\n"
       set $num = $num + 1
     end
+end
+
+define starpu-sched-print-local-peager
+    set $p = $arg0
+    set $num = 0
+    while $num < _starpu_config->topology->nworkers
+      printf "Worker %d:", $num
+      starpu-sched-print-fifo &$p->local_fifo[$num]
+      printf "\n"
+      set $num = $num + 1
+    end
+end
+
+define starpu-sched-print-peager
+    set $p = (struct _starpu_peager_data *) _starpu_config.sched_ctxs[$arg0]->policy_data
+    printf "Main queue:"
+    starpu-sched-print-fifo &$p->fifo
+    printf "\n"
+    starpu-sched-print-local-peager $p
+end
+
+define starpu-sched-print-pprio
+    set $p = (struct _starpu_peager_data *) _starpu_config.sched_ctxs[$arg0]->policy_data
+    printf "Main queue:"
+    starpu-sched-print-prio &$p->taskq
+    printf "\n"
+    starpu-sched-print-local-peager $p
 end
 
 define starpu-mpi-print-request
