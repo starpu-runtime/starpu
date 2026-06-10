@@ -679,6 +679,7 @@ if (params.do_execute) starpu_task_submit(task);
 starpu_mpi_task_exchange_data_after_execution(MPI_COMM_WORLD, descrs, 2, params);
 \endcode
 
+It is also possible to force the execution on a specific node using starpu_mpi_task_exchange_data_before_execution_on_node().
 A full source code using these functions is available in the file <c>mpi/tests/mpi_task_submit.c</c>.
 
 If many data handles must be registered with unique tag ids, or if

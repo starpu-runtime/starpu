@@ -25,9 +25,30 @@ void func_cpu(void *descr[], void *_args)
 	FPRINTF(stdout, "VALUES: %d %d\n", *x, *y);
 }
 
+void func_on_node_cpu(void *descr[], void *_args)
+{
+	int node;
+	int rank;
+	(void)descr;
+
+	starpu_codelet_unpack_args(_args, &node);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
+	FPRINTF_MPI(stderr, "Expected node: %d - Actual node: %d\n", node, rank);
+
+	assert(node == rank);
+}
+
 struct starpu_codelet mycodelet =
 {
 	.cpu_funcs = {func_cpu},
+	.nbuffers = 2,
+	.modes = {STARPU_RW, STARPU_RW},
+	.model = &starpu_perfmodel_nop,
+};
+
+struct starpu_codelet mycodelet_on_node =
+{
+	.cpu_funcs = {func_on_node_cpu},
 	.nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_RW},
 	.model = &starpu_perfmodel_nop,
@@ -73,7 +94,7 @@ int main(int argc, char **argv)
 	}
 
 	task = starpu_task_create();
-	task->cl = &mycodelet;
+	task->cl = &mycodelet_on_node;
 	task->handles[0] = data_handles[0];
 	task->handles[1] = data_handles[1];
 
@@ -94,8 +115,41 @@ int main(int argc, char **argv)
 		task->destroy = 0;
 		starpu_task_destroy(task);
 	}
-
 	starpu_mpi_task_exchange_data_after_execution(MPI_COMM_WORLD, descrs, 2, params);
+
+	struct starpu_mpi_task_exchange_params params_on_node;
+	struct starpu_data_descr descrs_on_node[2];
+	struct starpu_task *task_on_node;
+	
+	task_on_node = starpu_task_create();
+	task_on_node->cl = &mycodelet_on_node;
+	task_on_node->handles[0] = data_handles[0];
+	task_on_node->handles[1] = data_handles[1];
+
+	int node = 0;
+	struct starpu_codelet_pack_arg_data state;
+	starpu_codelet_pack_arg_init(&state);
+	starpu_codelet_pack_arg(&state, &node, sizeof(node));
+	starpu_codelet_pack_arg_fini(&state, &task_on_node->cl_arg, &task_on_node->cl_arg_size);
+
+	starpu_mpi_task_exchange_data_before_execution_on_node(MPI_COMM_WORLD, task_on_node, descrs_on_node, &params_on_node, node);
+	if (params_on_node.do_execute)
+	{
+		ret = starpu_task_submit(task_on_node);
+		if (ret == -ENODEV)
+		{
+			task_on_node->destroy = 0;
+			starpu_task_destroy(task_on_node);
+			goto xenodev;
+		}
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	}
+	else
+	{
+		task_on_node->destroy = 0;
+		starpu_task_destroy(task_on_node);
+	}
+	starpu_mpi_task_exchange_data_after_execution(MPI_COMM_WORLD, descrs_on_node, 2, params_on_node);
 
 	starpu_task_wait_for_all();
 

@@ -990,7 +990,7 @@ int starpu_mpi_task_post_build_v(MPI_Comm comm, struct starpu_codelet *codelet, 
 	return ret;
 }
 
-int starpu_mpi_task_exchange_data_before_execution(MPI_Comm comm, struct starpu_task *task, struct starpu_data_descr *descrs, struct starpu_mpi_task_exchange_params *params)
+int starpu_mpi_task_exchange_data_before_execution_on_node(MPI_Comm comm, struct starpu_task *task, struct starpu_data_descr *descrs, struct starpu_mpi_task_exchange_params *params, int xrank)
 {
 	int nb_nodes, inconsistent_execute;
 	unsigned i;
@@ -1000,20 +1000,23 @@ int starpu_mpi_task_exchange_data_before_execution(MPI_Comm comm, struct starpu_
 	nb_data = STARPU_TASK_GET_NBUFFERS(task);
 	starpu_mpi_comm_rank(comm, &params->me);
 	starpu_mpi_comm_size(comm, &nb_nodes);
-	params->xrank = -1;
+	params->xrank = xrank;
 	inconsistent_execute = 0;
-	for(i=0 ; i<nb_data ; i++)
+	if(params->xrank == -1) 
 	{
-		descrs[i].handle = STARPU_TASK_GET_HANDLE(task, i);
-		descrs[i].mode = STARPU_TASK_GET_MODE(task, i);
-
-		int ret = _starpu_mpi_find_executee_node(descrs[i].handle,
-							 descrs[i].mode,
-							 params->me, &(params->do_execute),
-							 &inconsistent_execute, &(params->xrank));
-		if (ret == -EINVAL)
+		for(i=0 ; i<nb_data ; i++)
 		{
-			return ret;
+			descrs[i].handle = STARPU_TASK_GET_HANDLE(task, i);
+			descrs[i].mode = STARPU_TASK_GET_MODE(task, i);
+
+			int ret = _starpu_mpi_find_executee_node(descrs[i].handle,
+								descrs[i].mode,
+								params->me, &(params->do_execute),
+								&inconsistent_execute, &(params->xrank));
+			if (ret == -EINVAL)
+			{
+				return ret;
+			}
 		}
 	}
 	if (inconsistent_execute == 1 || params->xrank == -1)
@@ -1043,6 +1046,11 @@ int starpu_mpi_task_exchange_data_before_execution(MPI_Comm comm, struct starpu_
 
 	params->priority = task->priority;
 	return 0;
+}
+
+int starpu_mpi_task_exchange_data_before_execution(MPI_Comm comm, struct starpu_task *task, struct starpu_data_descr *descrs, struct starpu_mpi_task_exchange_params *params)
+{
+	return starpu_mpi_task_exchange_data_before_execution_on_node(comm, task, descrs, params, -1);
 }
 
 int starpu_mpi_task_exchange_data_after_execution(MPI_Comm comm, struct starpu_data_descr *descrs, unsigned nb_data, struct starpu_mpi_task_exchange_params params)

@@ -748,6 +748,16 @@ struct starpu_mpi_task_exchange_params
 int starpu_mpi_task_exchange_data_before_execution(MPI_Comm comm, struct starpu_task *task, struct starpu_data_descr *descrs, struct starpu_mpi_task_exchange_params *params);
 
 /**
+   Same as starpu_mpi_task_exchange_data_before_execution() except
+   execution is forced on node \p xrank.
+   After calling this function, and the submission of the task for the
+   selected node, all nodes MUST call the function
+   starpu_mpi_task_exchange_data_after_execution() with the parameters
+   \p descrs and \p params.
+*/
+int starpu_mpi_task_exchange_data_before_execution_on_node(MPI_Comm comm, struct starpu_task *task, struct starpu_data_descr *descrs, struct starpu_mpi_task_exchange_params *params, int xrank);
+
+/**
    MUST be called after a call to
    starpu_mpi_task_exchange_data_before_execution() with the same
    arguments \p descrs and \p params.
