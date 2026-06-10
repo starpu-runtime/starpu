@@ -412,7 +412,7 @@ static struct starpu_task *pop_task_pprio_policy(unsigned sched_ctx_id)
 		{
 			/* task is potentially parallel and we are not part of a combined worker, leave it for a combined worker primary */
 			_STARPU_DEBUG("pushing back primary task %p\n", task);
-			starpu_st_prio_deque_push_back_task(&data->taskq, task);
+			starpu_st_prio_deque_push_front_task(&data->taskq, task);
 			task = NULL;
 		}
 #endif
