@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -191,6 +191,9 @@ starpu_task_insert(&mycodelet,
                    STARPU_VALUE, &ffactor, sizeof(ffactor),
                    0);
 \endcode
+
+::STARPU_DATA_MODE_ARRAY can also be used if the mode needs to be specified
+because the codelet uses a variable number of data.
 
 If some part of the task insertion depends on the value of some computation,
 the macro ::STARPU_DATA_ACQUIRE_CB can be very convenient. For
