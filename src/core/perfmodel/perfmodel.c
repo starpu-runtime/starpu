@@ -660,8 +660,6 @@ static char *_perf_model_dirs_codelet[_PERF_MODEL_DIR_MAXNB];
 
 static int _perf_model_codelet_directory_existence_was_tested[_PERF_MODEL_DIR_MAXNB];
 
-static void _starpu_set_perf_model_dirs();
-
 void _starpu_find_perf_model_codelet(const char *symbol, const char *hostname, char *path, size_t maxlen)
 {
 	const char *dot = strrchr(symbol, '.');

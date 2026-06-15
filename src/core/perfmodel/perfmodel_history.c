@@ -77,7 +77,9 @@ static char _starpu_perfmodel_hostname[STR_LONG_LENGTH];
 void starpu_perfmodel_initialize(void)
 {
 	/* make sure performance model directories exist (or create them) */
-	_starpu_create_bus_sampling_directory_if_needed(-1);
+	_starpu_set_perf_model_dirs();
+	_starpu_create_bus_sampling_directory_if_needed(0);
+	_starpu_create_codelet_sampling_directory_if_needed(0);
 
 	_starpu_perfmodel_list_init(&registered_models);
 
