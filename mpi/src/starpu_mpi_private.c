@@ -34,6 +34,7 @@ int _starpu_mpi_use_coop_sends = 1;
 int _starpu_mpi_mem_throttle = 0;
 int _starpu_mpi_mem_late = 0;
 int _starpu_mpi_recv_wait_finalize = 0;
+int _starpu_mpi_early_mem_reg = 0;
 
 void _starpu_mpi_set_debug_level_min(int level)
 {
@@ -82,6 +83,14 @@ void _starpu_mpi_env_init(void)
 	_starpu_debug_level_min = starpu_getenv_number_default("STARPU_MPI_DEBUG_LEVEL_MIN", 0);
 	_starpu_debug_level_max = starpu_getenv_number_default("STARPU_MPI_DEBUG_LEVEL_MAX", 0);
 	_starpu_mpi_recv_wait_finalize = starpu_getenv_number_default("STARPU_MPI_RECV_WAIT_FINALIZE", _starpu_mpi_recv_wait_finalize);
+	_starpu_mpi_early_mem_reg = starpu_get_env_number_default("STARPU_MPI_EARLY_MEM_REG", _starpu_mpi_early_mem_reg);
+
+#ifndef STARPU_USE_MPI_NMAD
+	if (_starpu_mpi_early_mem_reg)
+	{
+		_STARPU_MPI_DISP("Warning: STARPU_MPI_EARLY_MEM_REG is set but the native NewMadeleine backend is not used.\n");
+	}
+#endif /* STARPU_USE_MPI_NMAD */
 
 	int mpi_thread_coreid = starpu_getenv_number_default("STARPU_MPI_THREAD_COREID", -1);
 	if (_starpu_mpi_thread_cpuid >= 0 && mpi_thread_coreid >= 0)

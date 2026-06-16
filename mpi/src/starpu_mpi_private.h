@@ -89,6 +89,7 @@ extern int _starpu_mpi_has_cuda;
 extern int _starpu_mpi_has_hip;
 extern int _starpu_mpi_cuda_devid;
 extern int _starpu_mpi_hip_devid;
+extern int _starpu_mpi_early_mem_reg;
 void _starpu_mpi_env_init(void);
 
 #ifdef STARPU_NO_ASSERT
