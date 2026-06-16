@@ -103,7 +103,7 @@ static void _starpu_mpi_nmad_early_prefetch(struct _starpu_mpi_req *req)
 static void _starpu_mpi_nmad_early_unfetch(struct _starpu_mpi_req *req)
 {
 	STARPU_ASSERT(req->request_type == SEND_REQ);
-	_STARPU_MPI_DEBUG(22, "triggering NIC memory unregistration from soon callback\n");
+	_STARPU_MPI_DEBUG(22, "triggering NIC memory unregistration from acquired callback\n");
 	nm_sr_send_early_unfetch(req->backend->session, &req->backend->data_request);
 }
 
