@@ -229,6 +229,13 @@ void _starpu_mpi_do_initialize(struct _starpu_mpi_argc_argv *argc_argv)
 	_mpi_world_size = argc_argv->world_size;
 	_mpi_world_rank = argc_argv->rank;
 #endif
+
+#ifndef STARPU_USE_MPI_NMAD
+	if (_starpu_mpi_early_mem_reg)
+	{
+		_STARPU_MPI_DISP("Warning: STARPU_MPI_EARLY_MEM_REG is set but the native NewMadeleine backend is not used.\n");
+	}
+#endif /* STARPU_USE_MPI_NMAD */
 }
 
 static

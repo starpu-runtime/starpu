@@ -85,13 +85,6 @@ void _starpu_mpi_env_init(void)
 	_starpu_mpi_recv_wait_finalize = starpu_getenv_number_default("STARPU_MPI_RECV_WAIT_FINALIZE", _starpu_mpi_recv_wait_finalize);
 	_starpu_mpi_early_mem_reg = starpu_get_env_number_default("STARPU_MPI_EARLY_MEM_REG", _starpu_mpi_early_mem_reg);
 
-#ifndef STARPU_USE_MPI_NMAD
-	if (_starpu_mpi_early_mem_reg)
-	{
-		_STARPU_MPI_DISP("Warning: STARPU_MPI_EARLY_MEM_REG is set but the native NewMadeleine backend is not used.\n");
-	}
-#endif /* STARPU_USE_MPI_NMAD */
-
 	int mpi_thread_coreid = starpu_getenv_number_default("STARPU_MPI_THREAD_COREID", -1);
 	if (_starpu_mpi_thread_cpuid >= 0 && mpi_thread_coreid >= 0)
 	{
