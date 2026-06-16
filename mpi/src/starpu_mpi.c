@@ -165,6 +165,10 @@ static void _starpu_mpi_soon_callback(void *arg, STARPU_ATTRIBUTE_UNUSED double 
 {
 	struct _starpu_mpi_req *req = arg;
 
+	if (!_starpu_mpi_early_mem_reg) {
+		return;
+	}
+
 	if (_mpi_backend._starpu_mpi_backend_early_prefetch_func == NULL) {
 		/* Backend does not support early prefetch */
 		return;
@@ -221,6 +225,10 @@ static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_dat
 		node = _starpu_mpi_choose_node(req->data_handle, mode);
 
 	req->node = *nodep = node;
+
+	if (!_starpu_mpi_early_mem_reg) {
+		return;
+	}
 
 	if (_mpi_backend._starpu_mpi_backend_early_prefetch_func == NULL) {
 		/* Backend does not support early prefetch */
