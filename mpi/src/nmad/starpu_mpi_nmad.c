@@ -127,7 +127,7 @@ static void _starpu_mpi_isend_known_datatype(struct _starpu_mpi_req *req)
 
 	_STARPU_MPI_TRACE_ISEND_SUBMIT_BEGIN(req->node_tag.node.rank, req->node_tag.data_tag, 0);
 
-	if (!_starpu_mpi_req_is_early_prefetched(req))
+	if (!req->early_prefetched)
 		_starpu_mpi_init_nmad_send_req(req);
 
 	// this trace event is the start of the communication link:
@@ -135,7 +135,7 @@ static void _starpu_mpi_isend_known_datatype(struct _starpu_mpi_req *req)
 
 	if (req->sync == 0)
 	{
-		if (_starpu_mpi_req_is_early_prefetched(req))
+		if (req->early_prefetched)
 			req->ret = nm_sr_send_submit(req->backend->session, &(req->backend->data_request));
 		else
 			req->ret = nm_sr_send_isend(req->backend->session, &(req->backend->data_request), req->backend->gate, req->node_tag.data_tag);
@@ -156,13 +156,13 @@ void _starpu_mpi_isend_func(struct _starpu_mpi_req *req)
 {
 	_STARPU_MPI_LOG_IN();
 
-	if (!_starpu_mpi_req_is_early_prefetched(req))
+	if (!req->early_prefetched)
 		_starpu_mpi_datatype_allocate(req->data_handle, req);
 
 	if (req->registered_datatype == 1)
 	{
 		/* We can give the handle pointer directly to NewMadeleine */
-		if (!_starpu_mpi_req_is_early_prefetched(req))
+		if (!req->early_prefetched)
 		{
 			req->count = 1;
 			req->ptr = starpu_data_handle_to_pointer(req->data_handle, req->node);

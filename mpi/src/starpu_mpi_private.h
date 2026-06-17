@@ -270,6 +270,8 @@ LIST_TYPE(_starpu_mpi_req,
 	  int early_node;
 	  int node;
 
+	  int early_prefetched;
+
 	  /** description of the data to be sent/received */
 	  MPI_Datatype datatype;
 	  char *datatype_name;
@@ -381,12 +383,6 @@ void _starpu_mpi_tags_init(void);
 
 /** return the number of early data received */
 int _starpu_mpi_get_early_data_nb();
-
-/* If early_node is assigned, then request is early prefetched. */
-static inline int _starpu_mpi_req_is_early_prefetched(const struct _starpu_mpi_req *req)
-{
-	return req->early_node >= 0;
-}
 
 struct _starpu_mpi_argc_argv
 {
