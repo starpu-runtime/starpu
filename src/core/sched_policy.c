@@ -128,6 +128,11 @@ struct starpu_sched_policy **starpu_sched_get_predefined_policies()
 	return predefined_policies;
 }
 
+struct starpu_sched_policy **starpu_sched_get_predefined_policies_non_default()
+{
+	return predefined_policies_non_default;
+}
+
 struct starpu_sched_policy *_starpu_get_sched_policy(struct _starpu_sched_ctx *sched_ctx)
 {
 	return sched_ctx->sched_policy;

@@ -209,6 +209,13 @@ struct starpu_sched_policy
 struct starpu_sched_policy **starpu_sched_get_predefined_policies(void);
 
 /**
+   Return an <c>NULL</c>-terminated array of all the predefined
+   scheduling policies which are not fully tested.
+   See \ref TaskSchedulingPolicy for more details.
+*/
+struct starpu_sched_policy **starpu_sched_get_predefined_policies_non_default(void);
+
+/**
    Allow an external library to return a scheduling policy to be
    loaded dynamically.
    See \ref UsingaNewSchedulingPolicy for more details.
