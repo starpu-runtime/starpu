@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2021-2021  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -1002,7 +1002,7 @@ int starpu_mpi_task_exchange_data_before_execution_on_node(MPI_Comm comm, struct
 	starpu_mpi_comm_size(comm, &nb_nodes);
 	params->xrank = xrank;
 	inconsistent_execute = 0;
-	if(params->xrank == -1) 
+	if(params->xrank == -1)
 	{
 		for(i=0 ; i<nb_data ; i++)
 		{
@@ -1010,9 +1010,9 @@ int starpu_mpi_task_exchange_data_before_execution_on_node(MPI_Comm comm, struct
 			descrs[i].mode = STARPU_TASK_GET_MODE(task, i);
 
 			int ret = _starpu_mpi_find_executee_node(descrs[i].handle,
-								descrs[i].mode,
-								params->me, &(params->do_execute),
-								&inconsistent_execute, &(params->xrank));
+								 descrs[i].mode,
+								 params->me, &(params->do_execute),
+								 &inconsistent_execute, &(params->xrank));
 			if (ret == -EINVAL)
 			{
 				return ret;
@@ -1034,6 +1034,9 @@ int starpu_mpi_task_exchange_data_before_execution_on_node(MPI_Comm comm, struct
 
 	for(i=0 ; i<nb_data ; i++)
 	{
+		descrs[i].handle = STARPU_TASK_GET_HANDLE(task, i);
+		descrs[i].mode = STARPU_TASK_GET_MODE(task, i);
+
 		_starpu_mpi_exchange_data_before_execution(descrs[i].handle,
 							   descrs[i].mode,
 							   params->me,
@@ -1502,4 +1505,3 @@ int starpu_mpi_tasks_insert(MPI_Comm comm, struct starpu_codelet *codelet, int p
 	va_end(varg_list);
 	return ret;
 }
-
