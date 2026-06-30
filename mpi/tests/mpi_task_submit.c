@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -97,6 +97,13 @@ int main(int argc, char **argv)
 	task->cl = &mycodelet_on_node;
 	task->handles[0] = data_handles[0];
 	task->handles[1] = data_handles[1];
+	{
+		int node = 0;
+		struct starpu_codelet_pack_arg_data state;
+		starpu_codelet_pack_arg_init(&state);
+		starpu_codelet_pack_arg(&state, &node, sizeof(node));
+		starpu_codelet_pack_arg_fini(&state, &task->cl_arg, &task->cl_arg_size);
+	}
 
 	starpu_mpi_task_exchange_data_before_execution(MPI_COMM_WORLD, task, descrs, &params);
 	if (params.do_execute)
@@ -120,17 +127,19 @@ int main(int argc, char **argv)
 	struct starpu_mpi_task_exchange_params params_on_node;
 	struct starpu_data_descr descrs_on_node[2];
 	struct starpu_task *task_on_node;
-	
+
 	task_on_node = starpu_task_create();
 	task_on_node->cl = &mycodelet_on_node;
 	task_on_node->handles[0] = data_handles[0];
 	task_on_node->handles[1] = data_handles[1];
 
-	int node = 0;
-	struct starpu_codelet_pack_arg_data state;
-	starpu_codelet_pack_arg_init(&state);
-	starpu_codelet_pack_arg(&state, &node, sizeof(node));
-	starpu_codelet_pack_arg_fini(&state, &task_on_node->cl_arg, &task_on_node->cl_arg_size);
+	{
+		int node = 0;
+		struct starpu_codelet_pack_arg_data state;
+		starpu_codelet_pack_arg_init(&state);
+		starpu_codelet_pack_arg(&state, &node, sizeof(node));
+		starpu_codelet_pack_arg_fini(&state, &task_on_node->cl_arg, &task_on_node->cl_arg_size);
+	}
 
 	starpu_mpi_task_exchange_data_before_execution_on_node(MPI_COMM_WORLD, task_on_node, descrs_on_node, &params_on_node, node);
 	if (params_on_node.do_execute)
