@@ -133,13 +133,11 @@ int main(int argc, char **argv)
 	task_on_node->handles[0] = data_handles[0];
 	task_on_node->handles[1] = data_handles[1];
 
-	{
-		int node = 0;
-		struct starpu_codelet_pack_arg_data state;
-		starpu_codelet_pack_arg_init(&state);
-		starpu_codelet_pack_arg(&state, &node, sizeof(node));
-		starpu_codelet_pack_arg_fini(&state, &task_on_node->cl_arg, &task_on_node->cl_arg_size);
-	}
+	int node = 0;
+	struct starpu_codelet_pack_arg_data state;
+	starpu_codelet_pack_arg_init(&state);
+	starpu_codelet_pack_arg(&state, &node, sizeof(node));
+	starpu_codelet_pack_arg_fini(&state, &task_on_node->cl_arg, &task_on_node->cl_arg_size);
 
 	starpu_mpi_task_exchange_data_before_execution_on_node(MPI_COMM_WORLD, task_on_node, descrs_on_node, &params_on_node, node);
 	if (params_on_node.do_execute)
