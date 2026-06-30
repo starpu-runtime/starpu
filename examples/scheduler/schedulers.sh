@@ -40,7 +40,7 @@ if [ -n "$STARPU_SCHED" ]
 then
     SCHEDULERS=$STARPU_SCHED
 else
-    SCHEDULERS=`$basedir/../../tools/starpu_sched_display | grep -v heteroprio`
+    SCHEDULERS=`$basedir/../../tools/starpu_sched_display -t | grep -v heteroprio`
 fi
 
 if [ "$STARPU_QUICK_CHECK" = 1 ]
