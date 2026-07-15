@@ -147,7 +147,7 @@ LIST_TYPE(_starpu_unregister_hook_func,
 	  _starpu_data_handle_unregister_hook hook_func;
 );
 
-/** This is initialized in both _starpu_register_new_data and _starpu_data_partition */
+/** This is initialized either in _starpu_data_handle_init, or in both _starpu_register_new_data and _starpu_data_partition */
 struct _starpu_data_state
 {
 	int magic;

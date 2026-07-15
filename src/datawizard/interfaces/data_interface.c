@@ -269,6 +269,13 @@ void starpu_data_ptr_register(starpu_data_handle_t handle, unsigned node)
 	_starpu_spin_unlock(&handle->header_lock);
 }
 
+/* Initialize a data handle.
+ *
+ * This is the common part.
+ *
+ * _starpu_register_new_data additionally initializes fields for completely new
+ * handles, and _starpu_data_partition additionally initializes fields for
+ * partitioned handles. */
 int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_interface_ops *interface_ops, unsigned int mf_node)
 {
 	unsigned node;
