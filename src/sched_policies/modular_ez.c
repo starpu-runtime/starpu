@@ -47,7 +47,7 @@
  * so far across several types of applications (cholesky, LU, stencil).
  */
 #define _STARPU_SCHED_NTASKS_THRESHOLD_HEFT 30
-#define _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT 2
+#define _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT 10
 #define _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT 1000000000.0
 
 void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, unsigned ndecisions, ...)
