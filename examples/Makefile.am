@@ -298,7 +298,8 @@ STARPU_EXAMPLES +=				\
 	dependency/sequential_consistency	\
 	subgraphs/manual			\
 	subgraphs/partition			\
-	subgraphs/plan
+	subgraphs/plan \
+	reductions/reduction_with_scratch
 endif
 
 if !STARPU_SIMGRID
@@ -1488,6 +1489,10 @@ endif
 
 reductions_dot_product_SOURCES =		\
 	reductions/dot_product.c
+
+reductions_reduction_with_scratch_SOURCES = \
+	reductions/reduction_with_scratch.c
+
 if STARPU_USE_CUDA
 reductions_dot_product_SOURCES +=		\
 	reductions/dot_product_kernels.cu
@@ -1495,7 +1500,7 @@ endif
 if STARPU_USE_OPENCL
 nobase_STARPU_OPENCL_DATA_DATA += \
 	reductions/dot_product_opencl_kernels.cl
-endif
+endif 
 
 ##################
 # Mandelbrot Set #

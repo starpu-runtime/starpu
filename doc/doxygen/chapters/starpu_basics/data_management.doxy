@@ -604,6 +604,42 @@ the initial status <c>register(NULL)</c>.
 The example <c>examples/cg/cg.c</c> also uses reduction for the blocked gemv kernel,
 leading to yet more relaxed dependencies and more parallelism.
 
+Optionally, a ::STARPU_SCRATCH temporary data can be passed to the reduction codelet. Hence, additional memory is available for complex reduction patterns. The handle associated to this temporary data should be provided through <c>starpu_data_set_reduction_scratch</c> after setting the reduction methods. Given the handle <c>reduction_h</c> associated to the reduced data, the temporary (here vector) data is defined and set as follows:
+
+\code{.c}
+// Register scratch data
+starpu_data_handle_t reduction_scratch_h;
+starpu_vector_data_register(&reduction_scratch_h, -1, 0, 100, sizeof(int));
+
+// Set reduction scratch
+starpu_data_set_reduction_scratch(reduction_h, reduction_scratch_h);
+\endcode
+
+Then, this temporary data can be accessed and used from within the reduction codelet as in the following dummy example:
+
+\code{.c}
+// Get data
+int  nx = (int)   STARPU_VECTOR_GET_NX(handles[0]);
+int *u  = (int *) STARPU_VECTOR_GET_PTR(handles[0]);
+int *v  = (int *) STARPU_VECTOR_GET_PTR(handles[1]);
+
+// Get temporary data
+int  ny = (int)   STARPU_VECTOR_GET_NX(handles[2]);
+int *s  = (int *) STARPU_VECTOR_GET_PTR(handles[2]);
+
+// Store the both pieces of input data in the temporary data
+memcpy(s,    u, nx*sizeof(int));
+memcpy(s+nx, v, nx*sizeof(int));
+
+// Compute with the temporary data
+int max_s = max_array(s, ny);
+
+// Write the result in the output data
+for (int i = 0; i < nx; i++) {
+	u[i] = max_s;
+}
+\endcode
+
 ::STARPU_REDUX can also be passed to starpu_mpi_task_insert() in the MPI
 case. This will however not produce any MPI communication, but just pass
 ::STARPU_REDUX to the underlying starpu_task_insert(). starpu_mpi_redux_data()

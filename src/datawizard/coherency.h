@@ -337,6 +337,10 @@ struct _starpu_data_state
 	void *redux_cl_arg;
 	void *init_cl_arg;
 
+	/** Handle to temporary data needed for the duration of a single
+	 * reduction task. */
+	starpu_data_handle_t redux_scratch; 
+
 	/** Are we currently performing a reduction on that handle ? If so the
 	 * reduction_refcnt should be non null until there are pending tasks
 	 * that are performing the reduction. */

@@ -733,6 +733,12 @@ void starpu_data_query_status(starpu_data_handle_t handle, int memory_node, int 
 
 struct starpu_codelet;
 
+/** Set handle to temporary scratch data. Adds a third argument
+ * to the reduction codelet. Should be called after setting the
+ * reduction method in `starpu_data_set_reduction_methods`. */
+
+void starpu_data_set_reduction_scratch(starpu_data_handle_t handle, starpu_data_handle_t redux_scratch_handle);
+
 /**
    Set the codelets to be used for \p handle when it is accessed in the
    mode ::STARPU_REDUX. Per-worker buffers will be initialized with

@@ -165,6 +165,9 @@ static void _starpu_register_new_data(starpu_data_handle_t handle, int home_node
 	//handle->init_cl = NULL;
 	//handle->init_cl_arg = NULL;
 
+	/* By default, no scratch data is allocated for the reduction codelet */
+	//handle->redux_scratch = NULL; 
+
 	/* that new data is invalid from all nodes perpective except for the
 	 * home node */
 	unsigned node;

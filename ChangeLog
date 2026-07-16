@@ -49,6 +49,7 @@ Small changes:
   * Add starpu_data_acquire_to_node.
   * New STARPU_MPI_MEM_LATE environment variable to allocate mpi reception
     buffer at MPI reception time.
+  * Add optional STARPU_SCRATCH to reduction method.
 
 New features:
   * Add starpu_data_register_victim_selector to let schedulers select eviction

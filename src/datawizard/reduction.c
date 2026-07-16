@@ -23,6 +23,18 @@
 #include <drivers/mp_common/source_common.h>
 #include <datawizard/memory_nodes.h>
 
+void starpu_data_set_reduction_scratch(starpu_data_handle_t handle, starpu_data_handle_t redux_scratch_handle)
+{
+	// Lock
+	_starpu_spin_lock(&handle->header_lock);
+
+	// Set
+	handle->redux_scratch = redux_scratch_handle;
+
+	// Unlock
+	_starpu_spin_unlock(&handle->header_lock);
+}
+
 void starpu_data_set_reduction_methods(starpu_data_handle_t handle, struct starpu_codelet *redux_cl, struct starpu_codelet *init_cl)
 {
 	starpu_data_set_reduction_methods_with_args(handle, redux_cl, NULL, init_cl, NULL);
@@ -39,7 +51,8 @@ void starpu_data_set_reduction_methods_with_args(starpu_data_handle_t handle, st
 	}
 	if (redux_cl)
 	{
-		STARPU_ASSERT_MSG(redux_cl->nbuffers == 2, "The reduction method has to take one STARPU_RW|STARPU_COMMUTE parameter and one STARPU_R parameter");
+		STARPU_ASSERT_MSG(redux_cl->nbuffers == 2 || redux_cl->nbuffers == 3, "The reduction method has to take one STARPU_RW|STARPU_COMMUTE parameter and one STARPU_R parameter (and an optional STARPU_SCRATCH handle)");
+		
 		if (!(redux_cl->modes[0] & STARPU_COMMUTE))
 		{
 			static int _warned = 0;
@@ -56,6 +69,14 @@ void starpu_data_set_reduction_methods_with_args(starpu_data_handle_t handle, st
 		mode0 &= ~STARPU_MPI_REDUX_INTERNAL;
 		STARPU_ASSERT_MSG(mode0 == (STARPU_RW | STARPU_COMMUTE), "The first parameter of the reduction method has to use STARPU_RW|STARPU_COMMUTE (or STARPU_MPI_REDUX)");
 		STARPU_ASSERT_MSG(redux_cl->modes[1] == STARPU_R, "The second parameter of the reduction method has to use STARPU_R");
+		if (redux_cl->nbuffers == 3)
+		{
+			// Assert 
+			STARPU_ASSERT_MSG(redux_cl->modes[2] == STARPU_SCRATCH, "The optional parameter of the reduction method has to be STARPU_SCRATCH");
+
+			// Init
+			handle->redux_scratch = NULL;
+		} 
 	}
 
 	_starpu_codelet_check_deprecated_fields(redux_cl);
@@ -332,6 +353,15 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle, int priority)
 					if (!(STARPU_CODELET_GET_MODE(redux_task->cl, 1)))
 						STARPU_CODELET_SET_MODE(redux_task->cl, STARPU_R, 1);
 
+					if ((handle->redux_cl)->nbuffers == 3)
+					{
+						// Assert
+						STARPU_ASSERT_MSG(handle->redux_scratch != NULL, "STARPU_SCRATCH data for the reduction codelet should be allocated\n");
+
+						if (!(STARPU_CODELET_GET_MODE(redux_task->cl, 2)))
+							STARPU_CODELET_SET_MODE(redux_task->cl, STARPU_SCRATCH, 2);
+					}
+
 					if (!(STARPU_CODELET_GET_MODE(redux_task->cl, 0) & STARPU_COMMUTE))
 					{
 						static int warned;
@@ -345,6 +375,9 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle, int priority)
 
 					STARPU_TASK_SET_HANDLE(redux_task, replicate_array[i], 0);
 					STARPU_TASK_SET_HANDLE(redux_task, replicate_array[i+step], 1);
+
+					if ((handle->redux_cl)->nbuffers == 3)
+						STARPU_TASK_SET_HANDLE(redux_task, handle->redux_scratch, 2);
 
 					int ndeps = 0;
 					struct starpu_task *task_deps[2];
@@ -433,8 +466,20 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle, int priority)
 			if (!(STARPU_CODELET_GET_MODE(redux_task->cl, 1)))
 				STARPU_CODELET_SET_MODE(redux_task->cl, STARPU_R, 1);
 
+			if ((handle->redux_cl)->nbuffers == 3)
+			{
+				// Assert
+				STARPU_ASSERT_MSG(handle->redux_scratch != NULL, "STARPU_SCRATCH data for the reduction codelet should be allocated\n");
+
+				if (!(STARPU_CODELET_GET_MODE(redux_task->cl, 2)))
+					STARPU_CODELET_SET_MODE(redux_task->cl, STARPU_SCRATCH, 2);
+			}
+
 			STARPU_TASK_SET_HANDLE(redux_task, handle, 0);
 			STARPU_TASK_SET_HANDLE(redux_task, replicate_array[replicate], 1);
+
+			if ((handle->redux_cl)->nbuffers == 3)
+				STARPU_TASK_SET_HANDLE(redux_task, handle->redux_scratch, 2);
 
 			int ret = _starpu_task_submit_internally(redux_task);
 			STARPU_ASSERT(!ret);
