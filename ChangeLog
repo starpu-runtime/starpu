@@ -16,41 +16,6 @@
 
 StarPU 1.5.0
 ==============================================
-Changes:
-   * Rename hierarchical tasks in recursive tasks
-   * Update decision mechanisms for recursive tasks, by using a
-     splitter mechanism.
-   * Fix asynchronous partitioning with data without home node
-   * Allow large sizes for vector, matrix, block, tensor and ndim data
-     interfaces, and use proper MPI datatypes to exchange them.
-   * Add soon_callback in tasks.
-   * Refactor the multiple tracing mechanisms
-   * Add to the gitlab CI the extended check profiles which were
-     previously run on buildbot
-   * Rename master-slave to server-client
-   * User-requested configurations disabling specific devices will not
-     trigger a benchmarking of the bus. The benchmarking will be done
-     the first time StarPU is launched with all the hardware devices
-     available on the node.
-   * Implemented copy on write for starpu_data_dup_ro.
-
-Small changes:
-  * Fix build system for StarPU Python interface
-  * When defined the variable STARPU_PERF_MODEL_DIR will be used to
-    dump perfmodel files.
-  * Check CUDA and HIP pointers on on-GPU data registration.
-  * STARPU_MPI_REDUX definition also sets STARPU_RW | STARPU_COMMUTE
-    and codelet mode can match task_insert mode
-  * Configure option to enable StarPU OpenMP runtime support has been
-    renamed (from --enable-openmp) to --enable-starpu-openmp
-  * Update MPI cache mechanism to cope with several communicators
-  * Added `starpu_data_has_reduction_methods` function to retrieve wether a
-    certain handle is using redux
-  * Add starpu_data_acquire_to_node.
-  * New STARPU_MPI_MEM_LATE environment variable to allocate mpi reception
-    buffer at MPI reception time.
-  * Add optional STARPU_SCRATCH to reduction method.
-
 New features:
   * Add starpu_data_register_victim_selector to let schedulers select eviction
     victims.
@@ -63,6 +28,8 @@ New features:
   * Add HIPSOLVER support.
   * Add a SYCL driver
   * Add pprio parallel-task scheduler.
+  * Add soon_callback in tasks.
+  * Implemented copy on write for starpu_data_dup_ro.
 
 Small features:
   * Add FXT option -show-workers to display the available workers in
@@ -95,6 +62,39 @@ Small features:
     of buffers
   * Add STARPU_COMBINED_WORKERS_LEVEL to create combined workers at a given
     hwloc level
+  * Added `starpu_data_has_reduction_methods` function to retrieve wether a
+    certain handle is using redux
+  * Add starpu_data_acquire_to_node.
+  * New STARPU_MPI_MEM_LATE environment variable to allocate mpi reception
+    buffer at MPI reception time.
+  * Add optional STARPU_SCRATCH to reduction method.
+
+Changes:
+  * Rename hierarchical tasks in recursive tasks
+  * Update decision mechanisms for recursive tasks, by using a
+    splitter mechanism.
+  * Fix asynchronous partitioning with data without home node
+  * Allow large sizes for vector, matrix, block, tensor and ndim data
+    interfaces, and use proper MPI datatypes to exchange them.
+  * Refactor the multiple tracing mechanisms
+  * Add to the gitlab CI the extended check profiles which were
+    previously run on buildbot
+  * Rename master-slave to server-client
+  * User-requested configurations disabling specific devices will not
+    trigger a benchmarking of the bus. The benchmarking will be done
+    the first time StarPU is launched with all the hardware devices
+    available on the node.
+
+Small changes:
+  * Fix build system for StarPU Python interface
+  * When defined the variable STARPU_PERF_MODEL_DIR will be used to
+    dump perfmodel files.
+  * Check CUDA and HIP pointers on on-GPU data registration.
+  * STARPU_MPI_REDUX definition also sets STARPU_RW | STARPU_COMMUTE
+    and codelet mode can match task_insert mode
+  * Configure option to enable StarPU OpenMP runtime support has been
+    renamed (from --enable-openmp) to --enable-starpu-openmp
+  * Update MPI cache mechanism to cope with several communicators
 
 StarPU 1.4.10
 ==============================================
