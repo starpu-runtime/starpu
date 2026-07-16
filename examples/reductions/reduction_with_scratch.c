@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -55,18 +55,18 @@ static void cl_cpu_print(void *handles[], void*arg)
 	int *u  = (int *) STARPU_VECTOR_GET_PTR(handles[0]);
 
 	// Check
-	int check = EXIT_SUCCESS; 
-    for (int i = 0; i < NX; i++) 
-    {
-    	if (u[i] != (NBLOCKS-1)) check = EXIT_FAILURE;
-    }
+	int check = EXIT_SUCCESS;
+	for (int i = 0; i < NX; i++)
+	{
+		if (u[i] != (NBLOCKS-1)) check = EXIT_FAILURE;
+	}
 
-    // Output
-    u[0] = check;
+	// Output
+	u[0] = check;
 
-    // Print
-    printf("Return %d\n", check);
-    fflush(stdout);
+	// Print
+	printf("Return %d\n", check);
+	fflush(stdout);
 }
 
 static struct starpu_codelet print_cl =
@@ -111,13 +111,13 @@ static void cl_cpu_task_init(void *handles[], void*arg)
 	int *u  = (int *) STARPU_VECTOR_GET_PTR(handles[0]);
 
 	// Init
-	for (int i = 0; i < nx; i++) 
+	for (int i = 0; i < nx; i++)
 	{
 		u[i] = 0;
 	}
 }
 
-static struct starpu_codelet task_init_cl = 
+static struct starpu_codelet task_init_cl =
 {
 	.cpu_funcs = {cl_cpu_task_init},
 	.nbuffers = 1,
@@ -143,7 +143,7 @@ static void cl_cpu_task_red(void *handles[], void*arg)
 	memcpy(s,    u, nx*sizeof(int));
 	memcpy(s+nx, v, nx*sizeof(int));
 	int max_s = max_array(s, ny);
-	for (int i = 0; i < nx; i++) 
+	for (int i = 0; i < nx; i++)
 	{
 		u[i] = max_s;
 	}
@@ -172,7 +172,7 @@ int main(int argc, char *argv[])
 	// Init reduction data
 	int *u = NULL;
 	starpu_malloc((void **) &u, NX * sizeof(int));
-	for (int i = 0; i < NX; i++) 
+	for (int i = 0; i < NX; i++)
 	{
 		u[i] = 0;
 	}
@@ -185,9 +185,9 @@ int main(int argc, char *argv[])
 	int n_elt = NX * NBLOCKS;
 	int *v = NULL;
 	starpu_malloc((void **) &v, n_elt * sizeof(int));
-	for (int i_block = 0; i_block < NBLOCKS; i_block++) 
+	for (int i_block = 0; i_block < NBLOCKS; i_block++)
 	{
-		for (int i = 0; i < NX; i++) 
+		for (int i = 0; i < NX; i++)
 		{
 			v[i_block*NX+i] = i_block;
 		}
@@ -195,7 +195,7 @@ int main(int argc, char *argv[])
 
 	// Register accumulation data
 	starpu_data_handle_t v_h[NBLOCKS];
-	for (int i_block = 0; i_block < NBLOCKS; i_block++) 
+	for (int i_block = 0; i_block < NBLOCKS; i_block++)
 	{
 		starpu_vector_data_register(&v_h[i_block], STARPU_MAIN_RAM, (uintptr_t) &v[i_block*NX], NX, sizeof(int));
 	}
@@ -211,19 +211,19 @@ int main(int argc, char *argv[])
 	starpu_data_set_reduction_scratch(u_h, red_scratch_h);
 
 	// Task
-	for (int i_block = 0; i_block < NBLOCKS; i_block++) 
+	for (int i_block = 0; i_block < NBLOCKS; i_block++)
 	{
 	    starpu_task_insert(&work_cl,
-	        STARPU_REDUX, u_h,
-	        STARPU_R,     v_h[i_block],
-	        0);
-    }
+			       STARPU_REDUX, u_h,
+			       STARPU_R,     v_h[i_block],
+			       0);
+	}
 
-    // Check
-    starpu_task_insert(&print_cl, STARPU_R, u_h, 0);
-    
+	// Check
+	starpu_task_insert(&print_cl, STARPU_R, u_h, 0);
+
 	// Unregister data
-	for (int i_block = 0; i_block < NBLOCKS; i_block++) 
+	for (int i_block = 0; i_block < NBLOCKS; i_block++)
 	{
 		starpu_data_unregister(v_h[i_block]);
 	}

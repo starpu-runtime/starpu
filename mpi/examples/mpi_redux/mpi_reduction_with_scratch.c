@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -39,7 +39,7 @@
 static int max_array(int *array, int n)
 {
 	int max = -1;
-	for (int i = 0; i < n; i++) 
+	for (int i = 0; i < n; i++)
 	{
 		if (max < array[i]) max = array[i];
 	}
@@ -90,8 +90,8 @@ static void cl_cpu_print(void *handles[], void*arg)
 
 	// Check
 	int n_rank = starpu_mpi_world_size();
-	int check = EXIT_SUCCESS; 
-	for (int i = 0; i < NX; i++) 
+	int check = EXIT_SUCCESS;
+	for (int i = 0; i < NX; i++)
 	{
 		if (v[i] != (n_rank-1)) check = EXIT_FAILURE;
 	}
@@ -122,13 +122,13 @@ static void cl_cpu_task_init(void *handles[], void*arg)
 	int *v  = (int *) STARPU_VECTOR_GET_PTR(handles[0]);
 
 	// Init
-	for (int i = 0; i < nx; i++) 
+	for (int i = 0; i < nx; i++)
 	{
 		v[i] = 0;
 	}
 }
 
-static struct starpu_codelet task_init_cl = 
+static struct starpu_codelet task_init_cl =
 {
 	.cpu_funcs = {cl_cpu_task_init},
 	.nbuffers = 1,
@@ -158,7 +158,7 @@ static void cl_cpu_task_red(void *handles[], void*arg)
 	memcpy(s,    v, nx*sizeof(int));
 	memcpy(s+nx, w, nx*sizeof(int));
 	int max_s = max_array(s, ny);
-	for (int i = 0; i < nx; i++) 
+	for (int i = 0; i < nx; i++)
 	{
 		v[i] = max_s;
 	}
@@ -204,8 +204,9 @@ int main(int argc, char *argv[])
 
 	// Init reduction data
 	int v[NX];
-	if (i_rank == 0) {
-		for (int i = 0; i < NX; i++) 
+	if (i_rank == 0)
+	{
+		for (int i = 0; i < NX; i++)
 		{
 			v[i] = 0;
 		}
@@ -213,38 +214,44 @@ int main(int argc, char *argv[])
 
 	// Register reduction data
 	starpu_data_handle_t v_h;
-	if (i_rank == 0) {
+	if (i_rank == 0)
+	{
 		starpu_vector_data_register(&v_h, STARPU_MAIN_RAM, (uintptr_t)v, NX, sizeof(int));
 	}
-	else {
+	else
+	{
 		starpu_vector_data_register(&v_h, -1, 0, NX, sizeof(int));
 	}
 
 	// Init accumulation data
 	int **w = malloc(n_rank * sizeof(int *));
-	for (int j_rank = 0; j_rank < n_rank; j_rank++) 
+	for (int j_rank = 0; j_rank < n_rank; j_rank++)
 	{
-		if (j_rank == i_rank) {
+		if (j_rank == i_rank)
+		{
 			w[j_rank] = malloc(NX * sizeof(int));
 		}
-		else {
+		else
+		{
 			w[j_rank] = NULL;
 		}
 	}
-	
-	for (int i = 0; i < NX; i++) 
+
+	for (int i = 0; i < NX; i++)
 	{
 		w[i_rank][i] = i_rank;
 	}
 
 	// Register accumulation data
 	starpu_data_handle_t w_h[n_rank];
-	for (int j_rank = 0; j_rank < n_rank; j_rank++) 
+	for (int j_rank = 0; j_rank < n_rank; j_rank++)
 	{
-		if (j_rank == i_rank) {
+		if (j_rank == i_rank)
+		{
 			starpu_vector_data_register(&w_h[j_rank], STARPU_MAIN_RAM, (uintptr_t)w[i_rank], NX, sizeof(int));
 		}
-		else {
+		else
+		{
 			starpu_vector_data_register(&w_h[j_rank], -1, 0, NX, sizeof(int));
 		}
 	}
@@ -256,7 +263,7 @@ int main(int argc, char *argv[])
 	// MPI Registration
 	starpu_mpi_tag_t tag = 0;
 	starpu_mpi_data_register(v_h, tag++, 0);
-	for (int j_rank = 0; j_rank < n_rank; j_rank++) 
+	for (int j_rank = 0; j_rank < n_rank; j_rank++)
 	{
 		starpu_mpi_data_register(w_h[j_rank], tag++, j_rank);
 	}
@@ -265,18 +272,18 @@ int main(int argc, char *argv[])
 	starpu_data_set_reduction_methods(v_h, &task_red_cl, &task_init_cl);
 
 	// Set reduction scratch data
-	starpu_data_set_reduction_scratch(v_h, red_scratch_h);  
+	starpu_data_set_reduction_scratch(v_h, red_scratch_h);
 
 	// Tasks
-	for (int j_rank = 0; j_rank < n_rank; j_rank++) 
+	for (int j_rank = 0; j_rank < n_rank; j_rank++)
 	{
 
 		starpu_mpi_task_insert(MPI_COMM_WORLD,
-							   &work_cl,
-							   STARPU_MPI_REDUX, v_h,
-							   STARPU_R, w_h[j_rank],
-							   STARPU_EXECUTE_ON_NODE, j_rank,
-							   0);
+				       &work_cl,
+				       STARPU_MPI_REDUX, v_h,
+				       STARPU_R, w_h[j_rank],
+				       STARPU_EXECUTE_ON_NODE, j_rank,
+				       0);
 	}
 
 	// Trigger reduction
@@ -284,7 +291,8 @@ int main(int argc, char *argv[])
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_redux_data");
 	starpu_mpi_wait_for_all(MPI_COMM_WORLD);
 	starpu_mpi_barrier(MPI_COMM_WORLD);
-	if (i_rank == 0) {
+	if (i_rank == 0)
+	{
 		starpu_task_insert(&print_cl, STARPU_R, v_h, 0);
 	}
 
@@ -292,17 +300,17 @@ int main(int argc, char *argv[])
 	int check = 1;
 	if (i_rank == 0) check = v[0];
 	MPI_Bcast(&check,
-              1,
-              MPI_INT,
-              0,
-              MPI_COMM_WORLD);
+		  1,
+		  MPI_INT,
+		  0,
+		  MPI_COMM_WORLD);
 
 	// printf("%d: v[0] = %d\n", i_rank, check);
 
 	// Unregister data
 	starpu_mpi_barrier(MPI_COMM_WORLD);
 	starpu_data_unregister(v_h);
-	for (int j_rank = 0; j_rank < n_rank; j_rank++) 
+	for (int j_rank = 0; j_rank < n_rank; j_rank++)
 	{
 		starpu_data_unregister(w_h[j_rank]);
 	}

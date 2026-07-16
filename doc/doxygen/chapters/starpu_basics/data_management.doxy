@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -604,7 +604,7 @@ the initial status <c>register(NULL)</c>.
 The example <c>examples/cg/cg.c</c> also uses reduction for the blocked gemv kernel,
 leading to yet more relaxed dependencies and more parallelism.
 
-Optionally, a ::STARPU_SCRATCH temporary data can be passed to the reduction codelet. Hence, additional memory is available for complex reduction patterns. The handle associated to this temporary data should be provided through <c>starpu_data_set_reduction_scratch</c> after setting the reduction methods. Given the handle <c>reduction_h</c> associated to the reduced data, the temporary (here vector) data is defined and set as follows:
+Optionally, a ::STARPU_SCRATCH temporary data can be passed to the reduction codelet. Hence, additional memory is available for complex reduction patterns. The handle associated to this temporary data should be provided through starpu_data_set_reduction_scratch() after setting the reduction methods. Given the handle <c>reduction_h</c> associated to the reduced data, the temporary (here vector) data is defined and set as follows:
 
 \code{.c}
 // Register scratch data
@@ -635,9 +635,8 @@ memcpy(s+nx, v, nx*sizeof(int));
 int max_s = max_array(s, ny);
 
 // Write the result in the output data
-for (int i = 0; i < nx; i++) {
+for (int i = 0; i < nx; i++)
 	u[i] = max_s;
-}
 \endcode
 
 ::STARPU_REDUX can also be passed to starpu_mpi_task_insert() in the MPI
