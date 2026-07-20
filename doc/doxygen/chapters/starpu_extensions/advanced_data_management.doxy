@@ -893,7 +893,8 @@ data structures: one only used on CPUs, and one only used on GPUs.
 This can be done by using the multiformat interface. StarPU
 will be able to convert data from one data structure to the other when needed.
 Note that the scheduler <c>dmda</c> is the only one optimized for this
-interface. Users must provide StarPU with conversion codelets:
+interface thanks to calling starpu_task_expected_conversion_time() .
+Users must provide StarPU with conversion codelets:
 
 \snippet multiformat.c To be included. You should update doxygen if you see this text.
 
