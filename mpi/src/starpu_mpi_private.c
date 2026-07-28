@@ -85,6 +85,17 @@ void _starpu_mpi_env_init(void)
 	_starpu_mpi_recv_wait_finalize = starpu_getenv_number_default("STARPU_MPI_RECV_WAIT_FINALIZE", _starpu_mpi_recv_wait_finalize);
 	_starpu_mpi_early_mem_reg = starpu_get_env_number_default("STARPU_MPI_EARLY_MEM_REG", _starpu_mpi_early_mem_reg);
 
+#ifdef STARPU_USE_MPI_NMAD
+	if (_starpu_mpi_early_mem_reg)
+	{
+		int nmad_early_prefetch = starpu_get_env_number_default("NMAD_ENABLE_SEND_PREFETCH", 0);
+		if (!nmad_early_prefetch)
+		{
+			_STARPU_MSG("warning: early memory registration enabled in StarPU but disabled in NewMadeleine\n");
+		}
+	}
+#endif
+
 	int mpi_thread_coreid = starpu_getenv_number_default("STARPU_MPI_THREAD_COREID", -1);
 	if (_starpu_mpi_thread_cpuid >= 0 && mpi_thread_coreid >= 0)
 	{
