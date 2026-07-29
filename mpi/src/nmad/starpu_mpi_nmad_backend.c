@@ -101,7 +101,7 @@ static void _starpu_mpi_nmad_early_mem_reg(struct _starpu_mpi_req *req)
 	nm_sr_send_early_prefetch(req->backend->session, &req->backend->data_request);
 }
 
-static void _starpu_mpi_nmad_early_unfetch(struct _starpu_mpi_req *req)
+static void _starpu_mpi_nmad_early_mem_unreg(struct _starpu_mpi_req *req)
 {
 	STARPU_ASSERT(req->request_type == SEND_REQ);
 	_STARPU_MPI_DEBUG(22, "triggering NIC memory unregistration from acquired callback\n");
@@ -136,7 +136,7 @@ struct _starpu_mpi_backend _mpi_backend =
 	._starpu_mpi_backend_irecv_size_func = _starpu_mpi_irecv_func,
 
 	._starpu_mpi_backend_early_mem_reg = _starpu_mpi_nmad_early_mem_reg,
-	._starpu_mpi_backend_early_mem_unreg = _starpu_mpi_nmad_early_unfetch,
+	._starpu_mpi_backend_early_mem_unreg = _starpu_mpi_nmad_early_mem_unreg,
 };
 
 #endif /* STARPU_USE_MPI_NMAD*/
