@@ -160,6 +160,18 @@ void _starpu_mpi_irecv_allocate(struct _starpu_mpi_req *req)
 	req->node = node;
 }
 
+static void _starpu_mpi_trigger_mem_reg(struct _starpu_mpi_req *req)
+{
+	STARPU_MPI_ASSERT_MSG(req->early_prefetched == 0,
+			      "memory registration already done for this request");
+	req->early_node = req->node;
+	req->early_prefetched = 1;
+	_starpu_mpi_datatype_allocate(req->data_handle, req);
+	req->count = 1;
+	req->ptr = starpu_data_handle_to_pointer(req->data_handle, req->early_node);
+	_mpi_backend._starpu_mpi_backend_early_mem_reg(req);
+}
+
 /* If the MPI backend supports request early prefetching, trigger it. */
 static void _starpu_mpi_soon_callback(void *arg, STARPU_ATTRIBUTE_UNUSED double delay)
 {
@@ -200,12 +212,7 @@ static void _starpu_mpi_soon_callback(void *arg, STARPU_ATTRIBUTE_UNUSED double 
 	if (req->node < 0)
 		req->node = _starpu_mpi_choose_node(req->data_handle, STARPU_R);
 	STARPU_ASSERT(req->node >= 0);
-	req->early_node = req->node;
-	req->early_prefetched = 1;
-	_starpu_mpi_datatype_allocate(req->data_handle, req);
-	req->count = 1;
-	req->ptr = starpu_data_handle_to_pointer(req->data_handle, req->early_node);
-	_mpi_backend._starpu_mpi_backend_early_mem_reg(req);
+	_starpu_mpi_trigger_mem_reg(req);
 	_STARPU_MPI_LOG_OUT();
 }
 
@@ -271,12 +278,7 @@ static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_dat
 		 * an early prefetch was requested, then it shall be
 		 * cancelled */
 		_starpu_mpi_early_unfetch_if_requested(req);
-		req->early_node = node;
-		req->early_prefetched = 1;
-		_starpu_mpi_datatype_allocate(req->data_handle, req);
-		req->count = 1;
-		req->ptr = starpu_data_handle_to_pointer(req->data_handle, node);
-		_mpi_backend._starpu_mpi_backend_early_mem_reg(req);
+		_starpu_mpi_trigger_mem_reg(req);
 	}
 	_STARPU_MPI_LOG_OUT();
 }
