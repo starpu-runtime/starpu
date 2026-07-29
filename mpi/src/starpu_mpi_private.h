@@ -428,12 +428,12 @@ struct _starpu_mpi_backend
 	void (*_starpu_mpi_backend_isend_size_func)(struct _starpu_mpi_req *req);
 	void (*_starpu_mpi_backend_irecv_size_func)(struct _starpu_mpi_req *req);
 
-	/* Optional functions for early prefetching requests. The second one
-	 * cancels the first one in case the early prefetch was done on a wrong
-	 * node. They are typically called during the soon_callback on the
-	 * acquired_callback of a request. */
-	void (*_starpu_mpi_backend_early_prefetch_func)(struct _starpu_mpi_req *req);
-	void (*_starpu_mpi_backend_early_unfetch_func)(struct _starpu_mpi_req *req);
+	/* Optional functions for early memory registration on sender-side. The
+	 * second one cancels the first one in case the memory registration was
+	 * done on a wrong node. They are typically called during the
+	 * soon_callback or the acquired_callback of a request. */
+	void (*_starpu_mpi_backend_early_mem_reg)(struct _starpu_mpi_req *req);
+	void (*_starpu_mpi_backend_early_mem_unreg)(struct _starpu_mpi_req *req);
 };
 
 extern struct _starpu_mpi_backend _mpi_backend;

@@ -254,10 +254,10 @@ void _starpu_mpi_backend_check()
 	STARPU_ASSERT(_mpi_backend._starpu_mpi_backend_test != NULL);
 	STARPU_ASSERT(_mpi_backend._starpu_mpi_backend_isend_size_func != NULL);
 	STARPU_ASSERT(_mpi_backend._starpu_mpi_backend_irecv_size_func != NULL);
-	STARPU_ASSERT((_mpi_backend._starpu_mpi_backend_early_prefetch_func == NULL
-		       && _mpi_backend._starpu_mpi_backend_early_unfetch_func == NULL)
-		      || (_mpi_backend._starpu_mpi_backend_early_prefetch_func != NULL
-			  && _mpi_backend._starpu_mpi_backend_early_unfetch_func != NULL));
+	STARPU_ASSERT((_mpi_backend._starpu_mpi_backend_early_mem_reg == NULL
+		       && _mpi_backend._starpu_mpi_backend_early_mem_unreg == NULL)
+		      || (_mpi_backend._starpu_mpi_backend_early_mem_reg != NULL
+			  && _mpi_backend._starpu_mpi_backend_early_mem_unreg != NULL));
 }
 
 static

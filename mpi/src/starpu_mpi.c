@@ -170,7 +170,7 @@ static void _starpu_mpi_soon_callback(void *arg, STARPU_ATTRIBUTE_UNUSED double 
 		return;
 	}
 
-	if (_mpi_backend._starpu_mpi_backend_early_prefetch_func == NULL)
+	if (_mpi_backend._starpu_mpi_backend_early_mem_reg == NULL)
 	{
 		/* Backend does not support early prefetch */
 		return;
@@ -205,7 +205,7 @@ static void _starpu_mpi_soon_callback(void *arg, STARPU_ATTRIBUTE_UNUSED double 
 	_starpu_mpi_datatype_allocate(req->data_handle, req);
 	req->count = 1;
 	req->ptr = starpu_data_handle_to_pointer(req->data_handle, req->early_node);
-	_mpi_backend._starpu_mpi_backend_early_prefetch_func(req);
+	_mpi_backend._starpu_mpi_backend_early_mem_reg(req);
 	_STARPU_MPI_LOG_OUT();
 }
 
@@ -214,7 +214,7 @@ static void _starpu_mpi_early_unfetch_if_requested(struct _starpu_mpi_req *req)
 {
 	if (req->early_prefetched)
 	{
-		_mpi_backend._starpu_mpi_backend_early_unfetch_func(req);
+		_mpi_backend._starpu_mpi_backend_early_mem_unreg(req);
 		starpu_data_handle_to_pointer_unref(req->data_handle, req->early_node);
 		req->early_prefetched = 0;
 		req->count = 0;
@@ -244,7 +244,7 @@ static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_dat
 		return;
 	}
 
-	if (_mpi_backend._starpu_mpi_backend_early_prefetch_func == NULL)
+	if (_mpi_backend._starpu_mpi_backend_early_mem_reg == NULL)
 	{
 		/* Backend does not support early prefetch */
 		return;
@@ -276,7 +276,7 @@ static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_dat
 		_starpu_mpi_datatype_allocate(req->data_handle, req);
 		req->count = 1;
 		req->ptr = starpu_data_handle_to_pointer(req->data_handle, node);
-		_mpi_backend._starpu_mpi_backend_early_prefetch_func(req);
+		_mpi_backend._starpu_mpi_backend_early_mem_reg(req);
 	}
 	_STARPU_MPI_LOG_OUT();
 }

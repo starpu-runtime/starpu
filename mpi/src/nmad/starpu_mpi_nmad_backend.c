@@ -92,11 +92,12 @@ static void _starpu_mpi_nmad_backend_comm_register(MPI_Comm comm)
 	(void)comm;
 }
 
-static void _starpu_mpi_nmad_early_prefetch(struct _starpu_mpi_req *req)
+static void _starpu_mpi_nmad_early_mem_reg(struct _starpu_mpi_req *req)
 {
 	STARPU_ASSERT(req->request_type == SEND_REQ);
 	_starpu_mpi_init_nmad_send_req(req);
 	_STARPU_MPI_DEBUG(21, "triggering NIC memory registration from soon callback\n");
+	/* "memory registration" is often called "prefetch" in NewMadeleine */
 	nm_sr_send_early_prefetch(req->backend->session, &req->backend->data_request);
 }
 
@@ -134,8 +135,8 @@ struct _starpu_mpi_backend _mpi_backend =
 	._starpu_mpi_backend_isend_size_func = _starpu_mpi_isend_func,
 	._starpu_mpi_backend_irecv_size_func = _starpu_mpi_irecv_func,
 
-	._starpu_mpi_backend_early_prefetch_func = _starpu_mpi_nmad_early_prefetch,
-	._starpu_mpi_backend_early_unfetch_func = _starpu_mpi_nmad_early_unfetch,
+	._starpu_mpi_backend_early_mem_reg = _starpu_mpi_nmad_early_mem_reg,
+	._starpu_mpi_backend_early_mem_unreg = _starpu_mpi_nmad_early_unfetch,
 };
 
 #endif /* STARPU_USE_MPI_NMAD*/

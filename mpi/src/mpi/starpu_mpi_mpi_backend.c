@@ -138,8 +138,8 @@ struct _starpu_mpi_backend _mpi_backend =
 	._starpu_mpi_backend_isend_size_func = _starpu_mpi_isend_size_func,
 	._starpu_mpi_backend_irecv_size_func = _starpu_mpi_irecv_size_func,
 
-	._starpu_mpi_backend_early_prefetch_func = NULL,
-	._starpu_mpi_backend_early_unfetch_func = NULL,
+	._starpu_mpi_backend_early_mem_reg = NULL,
+	._starpu_mpi_backend_early_mem_unreg = NULL,
 };
 
 #endif /* STARPU_USE_MPI_MPI*/
