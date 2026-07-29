@@ -165,16 +165,19 @@ static void _starpu_mpi_soon_callback(void *arg, STARPU_ATTRIBUTE_UNUSED double 
 {
 	struct _starpu_mpi_req *req = arg;
 
-	if (!_starpu_mpi_early_mem_reg) {
+	if (!_starpu_mpi_early_mem_reg)
+	{
 		return;
 	}
 
-	if (_mpi_backend._starpu_mpi_backend_early_prefetch_func == NULL) {
+	if (_mpi_backend._starpu_mpi_backend_early_prefetch_func == NULL)
+	{
 		/* Backend does not support early prefetch */
 		return;
 	}
 
-	if (req->request_type != SEND_REQ) {
+	if (req->request_type != SEND_REQ)
+	{
 		/* Nothing to prefetch early */
 		return;
 	}
@@ -185,7 +188,8 @@ static void _starpu_mpi_soon_callback(void *arg, STARPU_ATTRIBUTE_UNUSED double 
 		return;
 	}
 
-	if (!req->registered_datatype) {
+	if (!req->registered_datatype)
+	{
 		/* At this point it is not possible to process unknown datatypes
 		 * because their data size can still be modified by a user task
 		 */
@@ -208,7 +212,8 @@ static void _starpu_mpi_soon_callback(void *arg, STARPU_ATTRIBUTE_UNUSED double 
 /* Cancel early prefetching if it was requested. */
 static void _starpu_mpi_early_unfetch_if_requested(struct _starpu_mpi_req *req)
 {
-	if (req->early_prefetched) {
+	if (req->early_prefetched)
+	{
 		_mpi_backend._starpu_mpi_backend_early_unfetch_func(req);
 		starpu_data_handle_to_pointer_unref(req->data_handle, req->early_node);
 		req->early_prefetched = 0;
@@ -234,16 +239,19 @@ static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_dat
 
 	req->node = *nodep = node;
 
-	if (!_starpu_mpi_early_mem_reg) {
+	if (!_starpu_mpi_early_mem_reg)
+	{
 		return;
 	}
 
-	if (_mpi_backend._starpu_mpi_backend_early_prefetch_func == NULL) {
+	if (_mpi_backend._starpu_mpi_backend_early_prefetch_func == NULL)
+	{
 		/* Backend does not support early prefetch */
 		return;
 	}
 
-	if (req->request_type != SEND_REQ) {
+	if (req->request_type != SEND_REQ)
+	{
 		/* Nothing to prefetch early */
 		return;
 	}
