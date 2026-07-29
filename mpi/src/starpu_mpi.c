@@ -179,6 +179,12 @@ static void _starpu_mpi_soon_callback(void *arg, STARPU_ATTRIBUTE_UNUSED double 
 		return;
 	}
 
+	if (req->sync)
+	{
+		/* Do not deal with synchronous requests for now */
+		return;
+	}
+
 	if (!req->registered_datatype) {
 		/* At this point it is not possible to process unknown datatypes
 		 * because their data size can still be modified by a user task
@@ -239,6 +245,12 @@ static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_dat
 
 	if (req->request_type != SEND_REQ) {
 		/* Nothing to prefetch early */
+		return;
+	}
+
+	if (req->sync)
+	{
+		/* Do not deal with synchronous requests for now */
 		return;
 	}
 
