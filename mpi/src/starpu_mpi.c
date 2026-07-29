@@ -216,8 +216,8 @@ static void _starpu_mpi_soon_callback(void *arg, STARPU_ATTRIBUTE_UNUSED double 
 	_STARPU_MPI_LOG_OUT();
 }
 
-/* Cancel early prefetching if it was requested. */
-static void _starpu_mpi_early_unfetch_if_requested(struct _starpu_mpi_req *req)
+/* Cancel memory registration if it was requested. */
+static void _starpu_mpi_mem_unreg_if_requested(struct _starpu_mpi_req *req)
 {
 	if (req->early_prefetched)
 	{
@@ -277,7 +277,7 @@ static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_dat
 		/* Data location changed since the soon callback was called. If
 		 * an early prefetch was requested, then it shall be
 		 * cancelled */
-		_starpu_mpi_early_unfetch_if_requested(req);
+		_starpu_mpi_mem_unreg_if_requested(req);
 		_starpu_mpi_trigger_mem_reg(req);
 	}
 	_STARPU_MPI_LOG_OUT();
