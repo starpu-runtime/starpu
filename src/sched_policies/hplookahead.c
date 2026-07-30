@@ -599,8 +599,8 @@ static struct starpu_task *pop_task_from_hp_lookahead_ready_queue(unsigned sched
 		if(data->ready_queues->ntasks == 0)
 			goto afterAnalyzing;
 
-		int ntaskInTheBeginning = data->ready_queues->ntasks;
-		unsigned i;
+		unsigned ntaskInTheBeginning = data->ready_queues->ntasks;
+		int i;
 		double minBusyTime = DBL_MAX;
 
 		/* potential worker id on which next task can be allocated */
@@ -687,7 +687,7 @@ static struct starpu_task *pop_task_from_hp_lookahead_ready_queue(unsigned sched
 			/*Copy the codelet information from ready queues to virtual table */
 			/*Optimization: It can be assigned when a new entry is created in ready queues */
 			data->types_of_tasks_in_simulation = data->ready_queues->types_of_tasks;
-			for(i=0; i<data->types_of_tasks_in_simulation; i++)
+			for(i=0; i<(int)data->types_of_tasks_in_simulation; i++)
 			{
 				data->virtual_ready_queues[i].task_codelet = data->ready_queues->task_queues[i].task_codelet;
 				data->virtual_ready_queues[i].start_index = 0;
@@ -731,7 +731,6 @@ static struct starpu_task *pop_task_from_hp_lookahead_ready_queue(unsigned sched
 				/* In case of tie between CPU and GPU, GPU would be preferred) */
 				double minStartTime =  DBL_MAX;
 				unsigned minIndex=0;
-				unsigned worker;
 				for(worker=0; worker < nWorkers; worker++)
 				{
 					unsigned originalWorker = data->localIndicesToWorkerId[worker];
@@ -769,7 +768,7 @@ static struct starpu_task *pop_task_from_hp_lookahead_ready_queue(unsigned sched
 
 							STARPU_ASSERT_MSG(task == taskInConsideration, "At line number %d, next task is different from the task for which simulation has started", __LINE__);
 							unsigned originalWorker = data->localIndicesToWorkerId[worker];
-							struct starpu_st_fifo_taskq *fifo = data->workers_queue[originalWorker];
+							struct starpu_st_fifo_taskq *f = data->workers_queue[originalWorker];
 							struct starpu_perfmodel_arch *perf_arch = starpu_worker_get_perf_archtype(originalWorker, sched_ctx_id);
 
 							/* Expected duration of task on current worker */
@@ -779,8 +778,8 @@ static struct starpu_task *pop_task_from_hp_lookahead_ready_queue(unsigned sched
 							unsigned memory_node = starpu_worker_get_memory_node(originalWorker);
 							starpu_prefetch_task_input_on_node(task, memory_node);
 
-							fifo->exp_len  += model;
-							starpu_st_fifo_taskq_push_task(fifo, task);
+							f->exp_len  += model;
+							starpu_st_fifo_taskq_push_task(f, task);
 							data->ready_queues->ntasks --;
 							// Terminate the simulation
 							goto afterAnalyzing;
@@ -818,7 +817,6 @@ static struct starpu_task *pop_task_from_hp_lookahead_ready_queue(unsigned sched
 				{
 					{
 						/*try to take a task from virtualQueueTable */
-						int i;
 						for(i=0; i<cpuReadyQueueIndex; i++)
 						{
 							int startIndex = data->virtual_ready_queues[i].start_index;
@@ -841,7 +839,6 @@ static struct starpu_task *pop_task_from_hp_lookahead_ready_queue(unsigned sched
 					}
 					{
 						/* Try to take a task by analyzing both table as well as ready queues*/
-						int i;
 						for(i=cpuReadyQueueIndex; i <= gpuReadyQueueIndex; i++)
 						{
 							int startIndex = data->virtual_ready_queues[i].start_index;
@@ -917,8 +914,7 @@ static struct starpu_task *pop_task_from_hp_lookahead_ready_queue(unsigned sched
 					}
 					{
 						/*try to take a task from virtualQueueTable */
-						int i;
-						for(i=gpuReadyQueueIndex + 1; i<data->types_of_tasks_in_simulation; i++)
+						for(i=gpuReadyQueueIndex + 1; i<(int)data->types_of_tasks_in_simulation; i++)
 						{
 							int startIndex = data->virtual_ready_queues[i].start_index;
 							int closeIndex = data->virtual_ready_queues[i].close_index;
@@ -940,7 +936,6 @@ static struct starpu_task *pop_task_from_hp_lookahead_ready_queue(unsigned sched
 					/* Find the next eventpoint and update the exp_start time for each worker appropriately*/
 					{
 						double nextEventPoint = DBL_MAX;
-						unsigned worker;
 						/* Proceed to next iteration find a new eventpoint */
 						for(worker = 0; worker <data->nWorkers; worker++)
 						{
@@ -974,7 +969,6 @@ static struct starpu_task *pop_task_from_hp_lookahead_ready_queue(unsigned sched
 				{
 					{
 						/*try to take a task from virtualQueueTable */
-						int i;
 						for(i = data->types_of_tasks_in_simulation-1; i > gpuReadyQueueIndex;  i--)
 						{
 							int startIndex = data->virtual_ready_queues[i].start_index;
@@ -995,7 +989,6 @@ static struct starpu_task *pop_task_from_hp_lookahead_ready_queue(unsigned sched
 					}
 					{
 						/* Try to take a task by analyzing both table as well as ready queues*/
-						int i;
 						for(i=gpuReadyQueueIndex; i >= cpuReadyQueueIndex; i--)
 						{
 							int startIndex = data->virtual_ready_queues[i].start_index;
@@ -1071,7 +1064,6 @@ static struct starpu_task *pop_task_from_hp_lookahead_ready_queue(unsigned sched
 					}
 					{
 						/*try to take a task from virtualQueueTable */
-						int i;
 						for(i = cpuReadyQueueIndex-1; i >= 0; i--)
 						{
 							int startIndex = data->virtual_ready_queues[i].start_index;
@@ -1097,7 +1089,6 @@ static struct starpu_task *pop_task_from_hp_lookahead_ready_queue(unsigned sched
 						/* calculate expected end time of taskInConsideration task on minIndex and
 						 * compare with its expected completion time on CPU worker  */
 						int cpuWorkerId = -1;
-						unsigned worker;
 						for(worker=0; worker < data->nWorkers; worker++)
 						{
 							/* scheduler worker will have NULL in current Task(as well as in simulation) in execution */
@@ -1111,14 +1102,13 @@ static struct starpu_task *pop_task_from_hp_lookahead_ready_queue(unsigned sched
 						STARPU_ASSERT_MSG(ntaskInTheBeginning == data->ready_queues->ntasks , "At line number %d, Number of ready tasks before starting the simulation was %d but now it changed to %d\n",  __LINE__, ntaskInTheBeginning, data->ready_queues->ntasks);
 						/* pop task from ready queue */
 						struct starpu_task *task = NULL;
-						int queueId;
 						for(queueId = 0; queueId<data -> ready_queues->types_of_tasks && task == NULL; queueId++)
 							task = starpu_st_fifo_taskq_pop_local_task(data->ready_queues->task_queues[queueId].tasks_queue);
 
 						data->ready_queues->ntasks --;
 
 						STARPU_ASSERT_MSG(task == taskInConsideration, "At line number %d, next task is different from the task for which simulation has started", __LINE__);
-						unsigned originalMinIndex = data->localIndicesToWorkerId[minIndex];
+						originalMinIndex = data->localIndicesToWorkerId[minIndex];
 						struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(originalMinIndex, sched_ctx_id);
 						/* Expected duration of task on current worker */
 						double model = starpu_task_expected_length(taskInConsideration, perf_arch, 0);
@@ -1126,50 +1116,49 @@ static struct starpu_task *pop_task_from_hp_lookahead_ready_queue(unsigned sched
 						{
 							/* Find GPU worker whose expected completition time with allocated tasks is minimum */
 							double minCOmpletionTimeOnGPUs = DBL_MAX;
-							unsigned worker;
 							for(worker=0; worker < data->nWorkers; worker++)
 							{
 								unsigned originalWorkerId = data->localIndicesToWorkerId[worker];
 								if(starpu_worker_get_type(originalWorkerId)== STARPU_CUDA_WORKER)
 								{
-									struct starpu_st_fifo_taskq *fifo = data->workers_queue[originalWorkerId];
-									if(fifo->exp_start + fifo->exp_len < minCOmpletionTimeOnGPUs)
+									struct starpu_st_fifo_taskq *f = data->workers_queue[originalWorkerId];
+									if(f->exp_start + f->exp_len < minCOmpletionTimeOnGPUs)
 									{
-										minCOmpletionTimeOnGPUs = fifo->exp_start + fifo->exp_len;
+										minCOmpletionTimeOnGPUs = f->exp_start + f->exp_len;
 										originalMinIndex = originalWorkerId;
 									}
 								}
 							}
 							/*place task in the minIndex GPU queue */
-							struct starpu_st_fifo_taskq *fifo = data->workers_queue[originalMinIndex];
-							struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(originalMinIndex, sched_ctx_id);
+							struct starpu_st_fifo_taskq *f = data->workers_queue[originalMinIndex];
+							perf_arch = starpu_worker_get_perf_archtype(originalMinIndex, sched_ctx_id);
 
 							/* Expected duration of task on current worker */
-							double model = starpu_task_expected_length(taskInConsideration, perf_arch, 0);
+							model = starpu_task_expected_length(taskInConsideration, perf_arch, 0);
 							taskInConsideration->predicted = model;
 
 							unsigned memory_node = starpu_worker_get_memory_node(originalMinIndex);
 							starpu_prefetch_task_input_on_node(taskInConsideration, memory_node);
 
-							fifo->exp_len  += model;
-							starpu_st_fifo_taskq_push_task(fifo, taskInConsideration);
+							f->exp_len  += model;
+							starpu_st_fifo_taskq_push_task(f, taskInConsideration);
 						}
 						else
 						{
 							/* Place task in the cpu worker queue */
 							/*One optimization could be schedule all ready tasks (even non ready tasks) involved in for decision of taskInConsideration*/
 							unsigned originalCPUId = data->localIndicesToWorkerId[cpuWorkerId];
-							struct starpu_st_fifo_taskq *fifo = data->workers_queue[originalCPUId];
-							struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(originalCPUId, sched_ctx_id);
+							struct starpu_st_fifo_taskq *f = data->workers_queue[originalCPUId];
+							perf_arch = starpu_worker_get_perf_archtype(originalCPUId, sched_ctx_id);
 							/* Expected duration of task on current worker */
-							double model = starpu_task_expected_length(taskInConsideration, perf_arch, 0);
+							model = starpu_task_expected_length(taskInConsideration, perf_arch, 0);
 							taskInConsideration->predicted = model;
 
 							unsigned memory_node = starpu_worker_get_memory_node(originalCPUId);
 							starpu_prefetch_task_input_on_node(taskInConsideration, memory_node);
 
-							fifo->exp_len  += model;
-							starpu_st_fifo_taskq_push_task(fifo, taskInConsideration);
+							f->exp_len  += model;
+							starpu_st_fifo_taskq_push_task(f, taskInConsideration);
 						}
 						goto afterAnalyzing;
 					}
