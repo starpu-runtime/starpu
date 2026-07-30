@@ -57,7 +57,6 @@ int do_test(const char *test_name, const char *bus_dir, const char *codelet_dir,
 
 	FPRINTF(stderr, "\nTesting %s with <%s> and <%s>\n", test_name, bus_dir, codelet_dir);
 
-	starpu_srand48((long int)time(NULL));
 	randomstring(hostname, 10);
 	setenv("STARPU_HOSTNAME", hostname, 1);
 
@@ -138,6 +137,8 @@ int main(void)
 
 	unsetenv("STARPU_PERF_MODEL_DIR");
 	unsetenv("STARPU_PERF_MODEL_PATH");
+
+	starpu_srand48((long int)time(NULL));
 
 	_set_sampling_dir(sampling_dir, sizeof(sampling_dir));
 
