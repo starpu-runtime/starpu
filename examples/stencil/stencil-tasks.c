@@ -232,36 +232,11 @@ void create_task_update(unsigned iter, unsigned z, int local_rank)
 	}
 }
 
-/* Dummy empty codelet taking one buffer */
-void null_func(void *descr[], void *arg)
-{
-	(void)descr;
-	(void)arg;
-}
-
-static double null_cost_function(struct starpu_task *task, unsigned nimpl)
-{
-	(void) task;
-	(void) nimpl;
-	return 0.000001;
-}
-
-static struct starpu_perfmodel null_model =
-{
-	.type = STARPU_COMMON,
-	.cost_function = null_cost_function,
-	.symbol = "null"
-};
-
 static struct starpu_codelet null =
 {
+	.where = STARPU_NOWHERE,
 	.modes = { STARPU_W, STARPU_W },
-	.cpu_funcs = {null_func},
-	.cpu_funcs_name = {"null_func"},
-	.cuda_funcs = {null_func},
-	.opencl_funcs = {null_func},
 	.nbuffers = 2,
-	.model = &null_model,
 	.name = "start"
 };
 

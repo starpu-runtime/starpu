@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2017-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2017-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,12 +20,6 @@
 #define N 10
 #define LOOPS 4
 
-void null_cpu_func(void *buffers[], void *arg)
-{
-	(void)arg;
-	(void)buffers;
-}
-
 void prod_cpu_func(void *buffers[], void *arg)
 {
 	int *data = (int *)STARPU_VECTOR_GET_PTR(buffers[0]);
@@ -41,9 +35,7 @@ void prod_cpu_func(void *buffers[], void *arg)
 
 static struct starpu_codelet cl_null =
 {
-	.cpu_funcs = {null_cpu_func},
-	.cpu_funcs_name = {"null_cpu_func"},
-	.model = &starpu_perfmodel_nop,
+	.where = STARPU_NOWHERE,
 	.name = "null",
 };
 
