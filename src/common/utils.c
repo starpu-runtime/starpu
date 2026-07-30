@@ -489,9 +489,11 @@ int _starpu_check_mutex_deadlock(starpu_pthread_mutex_t *mutex)
 
 char *_starpu_get_home_path(void)
 {
-	char *path = starpu_getenv("XDG_CACHE_HOME");
+	char *path = NULL;
 	if (!path)
 		path = starpu_getenv("STARPU_HOME");
+	if (!path)
+		path = starpu_getenv("XDG_CACHE_HOME");
 #ifdef _WIN32
 	if (!path)
 		path = starpu_getenv("LOCALAPPDATA");
