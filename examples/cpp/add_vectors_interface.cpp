@@ -167,6 +167,7 @@ static const struct starpu_data_copy_methods vector_cpp_copy_data_methods_s =
 	.ram_to_ram = NULL,
 	.ram_to_cuda = NULL,
 	.ram_to_hip = NULL,
+	.ram_to_sycl = NULL,
 	.ram_to_opencl = NULL,
 	.ram_to_max_fpga = NULL,
 
@@ -175,6 +176,9 @@ static const struct starpu_data_copy_methods vector_cpp_copy_data_methods_s =
 
 	.hip_to_ram = NULL,
 	.hip_to_hip = NULL,
+
+	.sycl_to_ram = NULL,
+	.sycl_to_sycl = NULL,
 
 	.opencl_to_ram = NULL,
 	.opencl_to_opencl = NULL,
@@ -188,6 +192,10 @@ static const struct starpu_data_copy_methods vector_cpp_copy_data_methods_s =
 	.ram_to_hip_async = NULL,
 	.hip_to_ram_async = NULL,
 	.hip_to_hip_async = NULL,
+
+	.ram_to_sycl_async = NULL,
+	.sycl_to_ram_async = NULL,
+	.sycl_to_sycl_async = NULL,
 
 	.ram_to_opencl_async = NULL,
 	.opencl_to_ram_async = NULL,
@@ -206,6 +214,7 @@ static const struct starpu_data_copy_methods vector_cpp_copy_data_methods_s =
 	NULL,                      // ram_to_ram
 	NULL,                      // ram_to_cuda
 	NULL,                      // ram_to_hip
+	NULL,                      // ram_to_sycl
 	NULL,                      // ram_to_opencl
 	NULL,                      // ram_to_max_fpga
 
@@ -214,6 +223,9 @@ static const struct starpu_data_copy_methods vector_cpp_copy_data_methods_s =
 
 	NULL,                      // hip_to_ram
 	NULL,                      // hip_to_hip
+
+	NULL,                      // sycl_to_ram
+	NULL,                      // sycl_to_sycl
 
 	NULL,                      // opencl_to_ram
 	NULL,                      // opencl_to_opencl
@@ -227,6 +239,10 @@ static const struct starpu_data_copy_methods vector_cpp_copy_data_methods_s =
 	NULL,                      // ram_to_hip_async
 	NULL,                      // hip_to_ram_async
 	NULL,                      // hip_to_hip_async
+
+	NULL,                      // ram_to_sycl_async
+	NULL,                      // sycl_to_ram_async
+	NULL,                      // sycl_to_sycl_async
 
 	NULL,                      // ram_to_opencl_async
 	NULL,                      // opencl_to_ram_async
