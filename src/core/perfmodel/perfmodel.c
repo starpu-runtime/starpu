@@ -259,8 +259,8 @@ static double starpu_model_worker_expected_perf(struct starpu_task *task, struct
 
 double starpu_task_expected_length(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
-	if (!task->cl)
-		/* Tasks without codelet don't actually take time */
+	if (!task->cl || task->cl->where == STARPU_NOWHERE)
+		/* Tasks without codelet body don't actually take time */
 		return 0.0;
 	if (_starpu_task_is_recursive(task))
 		/* recursive_tasks takes 0.5ms for now UGGLY STUPID CONSTANT*/
@@ -270,8 +270,8 @@ double starpu_task_expected_length(struct starpu_task *task, struct starpu_perfm
 
 double starpu_task_worker_expected_length(struct starpu_task *task, unsigned workerid, unsigned sched_ctx_id, unsigned nimpl)
 {
-	if (!task->cl)
-		/* Tasks without codelet or recursive tasks don't actually take time */
+	if (!task->cl || task->cl->where == STARPU_NOWHERE)
+		/* Tasks without codelet body or recursive tasks don't actually take time */
 		return 0.0;
 //	if (_starpu_task_is_recursive(task))
 		/* recursive tasks takes 0.5us for now UGGLY STUPID CONSTANT*/
@@ -281,8 +281,8 @@ double starpu_task_worker_expected_length(struct starpu_task *task, unsigned wor
 
 double starpu_task_expected_length_average(struct starpu_task *task, unsigned sched_ctx_id)
 {
-	if (!task->cl)
-		/* Tasks without codelet don't actually take time */
+	if (!task->cl || task->cl->where == STARPU_NOWHERE)
+		/* Tasks without codelet body don't actually take time */
 		return 0.0;
 
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
@@ -322,16 +322,16 @@ double starpu_task_expected_length_average(struct starpu_task *task, unsigned sc
 
 double starpu_task_expected_energy(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
-	if (!task->cl)
-		/* Tasks without codelet don't actually take time */
+	if (!task->cl || task->cl->where == STARPU_NOWHERE)
+		/* Tasks without codelet body don't actually take time */
 		return 0.0;
 	return starpu_model_expected_perf(task, task->cl->energy_model, arch, nimpl);
 }
 
 double starpu_task_worker_expected_energy(struct starpu_task *task, unsigned workerid, unsigned sched_ctx_id, unsigned nimpl)
 {
-	if (!task->cl)
-		/* Tasks without codelet don't actually take time */
+	if (!task->cl || task->cl->where == STARPU_NOWHERE)
+		/* Tasks without codelet body don't actually take time */
 		return 0.0;
 	return starpu_model_worker_expected_perf(task, task->cl->energy_model, workerid, sched_ctx_id, nimpl);
 
@@ -339,8 +339,8 @@ double starpu_task_worker_expected_energy(struct starpu_task *task, unsigned wor
 
 double starpu_task_expected_energy_average(struct starpu_task *task, unsigned sched_ctx_id)
 {
-	if (!task->cl)
-		/* Tasks without codelet don't actually take time */
+	if (!task->cl || task->cl->where == STARPU_NOWHERE)
+		/* Tasks without codelet body don't actually take time */
 		return 0.0;
 
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
