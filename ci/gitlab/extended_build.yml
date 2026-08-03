@@ -32,7 +32,7 @@ compilation:
  stage: build
  parallel:
    matrix:
-     - PROFILE: [compilation-disable-cuda-disable-hip-disable-opencl, compilation-disable-cuda-enable-hip-disable-opencl, compilation-enable-cuda-disable-hip-disable-opencl, compilation-enable-cuda-enable-hip-disable-opencl, compilation-disable-cuda-disable-hip-enable-opencl, compilation-disable-cuda-enable-hip-enable-opencl, compilation-windows-i686, compilation-windows-x86-64, compilation-windows, compilation-leveldb]
+     - PROFILE: [compilation-disable-cuda-disable-hip-disable-opencl, compilation-disable-cuda-enable-hip-disable-opencl, compilation-enable-cuda-disable-hip-disable-opencl, compilation-disable-cuda-disable-hip-enable-opencl, compilation-disable-cuda-enable-hip-enable-opencl, compilation-windows-i686, compilation-windows-x86-64, compilation-windows, compilation-leveldb]
 
 .manual_template:
   extends: [.main_template, .extended_check_master_manual_branch]
