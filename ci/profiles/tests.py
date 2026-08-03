@@ -42,11 +42,6 @@ profiles = [
       'deploy'      : False,
       'hosts'       : ['node_gpu']
     },
-    { 'name'        : 'compilation-enable-cuda-enable-hip-disable-opencl',
-      'opts'        : [ '--disable-gdb', '--enable-cuda', '--enable-hip', '--disable-opencl' ],
-      'deploy'      : False,
-      'hosts'       : ['node_gpu']
-    },
     { 'name'        : 'compilation-disable-cuda-disable-hip-enable-opencl',
       'opts'        : [ '--disable-gdb', '--disable-cuda', '--disable-hip', '--enable-opencl' ],
       'deploy'      : False,
