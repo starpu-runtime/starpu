@@ -22,7 +22,7 @@
 #include <hipblas/hipblas.h>
 #endif
 
-#ifdef STARPU_USE_HIP_ROC
+#if defined(STARPU_USE_HIP_ROC) && defined(STARPU_USE_HIPBLAS)
 #include <rocblas/rocblas.h>
 #endif
 
