@@ -3787,18 +3787,20 @@ if test x$blas_lib = xmaybe -o x$blas_lib = xopenblas; then
 				  				      [AC_DEFINE([STARPU_OPENBLAS], [1], [Define to 1 if you use the openblas library.])
 					          		       AC_SUBST([STARPU_OPENBLAS], [1])
 						          	       CFLAGS="${CFLAGS} ${OPENBLAS_CFLAGS} ${BLAS_OPENBLAS_CFLAGS} "
-							               LIBS="${LIBS} ${OPENBLAS_LIBS} ${BLAS_OPENBLAS_LIBS} "
+							               STARPU_BLAS_LDFLAGS="${OPENBLAS_LIBS} ${BLAS_OPENBLAS_LIBS} "
 								       blas_lib=openblas
       								      ],
 								      [ if test x$blas_lib = xopenblas; then
-								      	   STARPU_CHECK_LIB(OPENBLAS, blas-openblas, cblas_sgemm,,AC_MSG_ERROR([cannot find blas-openblas lib]),[-lblas-openblas])
+									   STARPU_CHECK_LIB(OPENBLAS, blas-openblas, cblas_sgemm, [ STARPU_BLAS_LDFLAGS=-lblas-openblas ],
+										[ STARPU_CHECK_LIB(OPENBLAS, openblas, cblas_sgemm, [ STARPU_BLAS_LDFLAGS=-lopenblas ], AC_MSG_ERROR([cannot find openblas or blas-openblas lib]), [-lopenblas]) ],
+										[-lblas-openblas])
 				  				      	   AC_DEFINE([STARPU_OPENBLAS], [1], [Define to 1 if you use the openblas library.])
 					          		       	   AC_SUBST([STARPU_OPENBLAS], [1])
 									fi
 				  				      ])
 				  ],
 				  [ if test x$blas_lib = xopenblas; then
-				       STARPU_CHECK_LIB(OPENBLAS, openblas, cblas_sgemm,,AC_MSG_ERROR([cannot find openblas lib]),[-lopenblas])
+				       STARPU_CHECK_LIB(OPENBLAS, openblas, cblas_sgemm, [ STARPU_BLAS_LDFLAGS=-lopenblas ], AC_MSG_ERROR([cannot find openblas lib]), [-lopenblas])
 				       AC_DEFINE([STARPU_OPENBLAS], [1], [Define to 1 if you use the openblas library.])
 				       AC_SUBST([STARPU_OPENBLAS], [1])
       				    fi
