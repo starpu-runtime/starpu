@@ -3825,18 +3825,24 @@ if test x$blas_lib = xmaybe -o x$blas_lib = xmkl; then
 	)
 	LIBS=$SAVED_LIBS
     fi
+    mkl_options=0
     AC_ARG_WITH(mkl-cflags, [AS_HELP_STRING([--with-mkl-cflags], [specify MKL compilation flags])],
 	[
+	mkl_options=1
         CPPFLAGS="${CPPFLAGS} $withval"
 	blas_lib=mkl
 	])
 
     AC_ARG_WITH(mkl-ldflags, [AS_HELP_STRING([--with-mkl-ldflags], [specify MKL linking flags])],
 	[
+	mkl_options=1
 	STARPU_BLAS_LDFLAGS="$withval"
 	blas_lib=mkl
 	])
     if test x$blas_lib = xmkl; then
+	if test -z "$MKLROOT" -a $mkl_options = 0 ; then
+	    AC_MSG_ERROR([MKL was requested, but MKLROOT is empty, either define it or pass --with-mkl-cflags and --with-mkl-ldflags options])
+	fi
 	AC_DEFINE(STARPU_MKL, [1], [use MKL library])
     fi
 fi
