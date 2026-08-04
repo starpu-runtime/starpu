@@ -526,7 +526,7 @@ static struct starpu_task* pop_task_from_hp_lookahead_ready_queue(unsigned sched
 				/* Find the worker who is going to be idle soon */
 				/* In case of tie between CPU and GPU, GPU would be preferred */
 				double minStartTime =  DBL_MAX;
-				unsigned minIndex;
+				int minIndex = -1;
 				for(worker=0; worker < data->nWorkers; worker++)
 				{
 					unsigned originalWorker = data->localIndicesToWorkerId[worker];
@@ -544,6 +544,7 @@ static struct starpu_task* pop_task_from_hp_lookahead_ready_queue(unsigned sched
 						minIndex = worker;
 					}
 				}
+				STARPU_ASSERT(minIndex != -1);
 
 				/* Release all tasks finished at minStartTime */
 				for(worker=0; worker < data->nWorkers; worker++)
@@ -809,11 +810,11 @@ static struct starpu_task* pop_task_from_hp_lookahead_ready_queue(unsigned sched
 						}
 						//Take decision for  task in consideration: taskToBeScheduled
 						{
-							struct starpu_st_fifo_taskq *fifo = data->workers_queue[originalWorker];
-							struct starpu_perfmodel_arch *perf_arch = starpu_worker_get_perf_archtype(originalWorker, sched_ctx_id);
+							struct starpu_st_fifo_taskq *f = data->workers_queue[originalWorker];
+							perf_arch = starpu_worker_get_perf_archtype(originalWorker, sched_ctx_id);
 
 							/* Expected duration of task on current worker */
-							double model = starpu_task_expected_length(taskToBeScheduled, perf_arch, 0);
+							model = starpu_task_expected_length(taskToBeScheduled, perf_arch, 0);
 							taskToBeScheduled->predicted = model;
 
 							unsigned memory_node = starpu_worker_get_memory_node(originalWorker);
@@ -823,8 +824,8 @@ static struct starpu_task* pop_task_from_hp_lookahead_ready_queue(unsigned sched
 							starpu_pthread_cond_t *sched_cond;
 							starpu_worker_get_sched_condition(originalWorker, &sched_mutex, &sched_cond);
 							STARPU_PTHREAD_MUTEX_LOCK_SCHED(sched_mutex);
-							fifo->exp_len  += model;
-							starpu_st_fifo_taskq_push_task(fifo, taskToBeScheduled);
+							f->exp_len  += model;
+							starpu_st_fifo_taskq_push_task(f, taskToBeScheduled);
 							STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
 						}
 
