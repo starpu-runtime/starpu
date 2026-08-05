@@ -290,6 +290,7 @@ myPROGRAMS +=				\
 	datawizard/lazy_allocation		\
 	datawizard/no_unregister		\
 	datawizard/noreclaim			\
+	datawizard/mem_reclaim			\
 	datawizard/nowhere			\
 	datawizard/interfaces/block/block_interface \
 	datawizard/interfaces/bcsr/bcsr_interface \
@@ -335,7 +336,6 @@ myPROGRAMS +=				\
 	disk/disk_copy_to_disk			\
 	disk/disk_compute			\
 	disk/disk_pack				\
-	disk/mem_reclaim			\
 	errorcheck/invalid_blocking_calls	\
 	errorcheck/workers_cpuid		\
 	fault-tolerance/retry			\
