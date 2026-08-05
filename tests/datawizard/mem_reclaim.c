@@ -164,12 +164,12 @@ int dotest(struct starpu_disk_ops *ops, char *base, void (*vector_data_register)
 	int ret = starpu_conf_init(&conf);
 	if (ret == -EINVAL)
 		return EXIT_FAILURE;
+	// Ignore environment variables as we want to force the exact number of workers
 	conf.precedence_over_environment_variables = 1;
 
 	if (ops)
 	{
 		/* Initialize StarPU without GPU devices to make sure the memory of the GPU devices will not be used */
-		// Ignore environment variables as we want to force the exact number of workers
 		starpu_conf_noworker(&conf);
 		conf.ncpus = -1;
 		conf.nmpi_sc = -1;
