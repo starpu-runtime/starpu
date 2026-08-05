@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013-2013  Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -27,8 +27,8 @@
 #include "../helper.h"
 
 /*
- * Try to write into disk memory
- * Use mechanism to push data from main ram to disk ram
+ * Try to evict data into disk memory or GPU memory
+ * Use mechanism to push data from main ram to disk or GPU ram
  * Here we stress the memory with more tasks than what the RAM can fit.
  */
 
@@ -159,32 +159,65 @@ int dotest(struct starpu_disk_ops *ops, char *base, void (*vector_data_register)
 		return STARPU_TEST_SKIPPED;
 
 	FPRINTF(stderr, "Testing <%s>\n", text);
-	/* Initialize StarPU without GPU devices to make sure the memory of the GPU devices will not be used */
-	// Ignore environment variables as we want to force the exact number of workers
 	struct starpu_conf conf;
+
 	int ret = starpu_conf_init(&conf);
 	if (ret == -EINVAL)
 		return EXIT_FAILURE;
 	conf.precedence_over_environment_variables = 1;
-	starpu_conf_noworker(&conf);
-	conf.ncpus = -1;
-	conf.nmpi_sc = -1;
-	conf.ntcpip_sc = -1;
+
+	if (ops)
+	{
+		/* Initialize StarPU without GPU devices to make sure the memory of the GPU devices will not be used */
+		// Ignore environment variables as we want to force the exact number of workers
+		starpu_conf_noworker(&conf);
+		conf.ncpus = -1;
+		conf.nmpi_sc = -1;
+		conf.ntcpip_sc = -1;
+	}
+	else
+	{
+		/* No disk ops, try to use a GPU */
+		conf.nmpi_sc = -1;
+		conf.ntcpip_sc = -1;
+	}
+
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 
-	/* Initialize path and name */
-	/* register swap disk */
-	int new_dd = starpu_disk_register(ops, (void *) base, STARPU_DISK_SIZE_MIN);
-	/* can't write on /tmp/ */
-	if (new_dd == -ENOENT) goto enoent;
+	if (ops)
+	{
+		/* Initialize path and name */
+		/* register swap disk */
+		int new_dd = starpu_disk_register(ops, (void *) base, STARPU_DISK_SIZE_MIN);
+		/* can't write on /tmp/ */
+		if (new_dd == -ENOENT) goto enoent;
+	}
+	else
+	{
+		/* Check if we have a GPU to evict data to */
+		if (starpu_memory_nodes_get_count() == 1)
+			/* Nope, just the main memory */
+			goto enodev;
+	}
 
 	unsigned int i, j;
 
 	/* Initialize twice as much data as available memory */
 	for (i = 0; i < NDATA; i++)
 	{
-		vector_data_register(&handles[i], -1, 0, (MEMSIZE*1024*1024*2) / NDATA, sizeof(char));
+		size_t size = (MEMSIZE*1024*1024*2) / NDATA;
+
+		if (ops)
+			/* Let StarPU allocate on the fly on the disk */
+			vector_data_register(&handles[i], -1, 0, size, sizeof(char));
+		else
+		{
+			/* Allocate by hand on the GPU so StarPU knows it can write back to it */
+			uintptr_t ptr = starpu_malloc_on_node(1, size);
+			starpu_vector_data_register(&handles[i], 1, ptr, size, sizeof(char));
+		}
+
 		ret = starpu_task_insert(&zero_cl, STARPU_W, handles[i], 0);
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
@@ -268,6 +301,9 @@ int main(void)
 
 	setenv("STARPU_LIMIT_CPU_MEM", MEMSIZE_STR, 1);
 
+	/* Avoid chunks messing up with the behavior we want to observe */
+	setenv("STARPU_SUBALLOCATOR", "0", 1);
+
 	/* Build an vector-like interface which doesn't have the any_to_any helper, to force making use of pack/unpack */
 	any_to_any = starpu_interface_vector_ops.copy_methods->any_to_any;
 	memcpy(&starpu_interface_my_vector_ops, &starpu_interface_vector_ops, sizeof(starpu_interface_my_vector_ops));
@@ -285,6 +321,8 @@ int main(void)
 	ret = merge_result(ret, dotest(&starpu_disk_unistd_o_direct_ops, s, starpu_vector_data_register, "unistd_direct with read/write vector ops"));
 	if (ret == STARPU_TEST_SKIPPED) goto skipped;
 	ret = merge_result(ret, dotest(&starpu_disk_unistd_o_direct_ops, s, starpu_my_vector_data_register, "unistd_direct with pack/unpack vector ops"));
+	if (ret == STARPU_TEST_SKIPPED) goto skipped;
+	ret = merge_result(ret, dotest(NULL, s, starpu_my_vector_data_register, "unistd_direct with pack/unpack vector ops"));
 	if (ret == STARPU_TEST_SKIPPED) goto skipped;
 #endif
 
