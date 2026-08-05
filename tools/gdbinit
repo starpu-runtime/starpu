@@ -453,6 +453,13 @@ define starpu-print-data
       if $replicate.state == 2
         printf " INVALID"
       end
+      if $replicate.allocated
+	if $replicate.automatically_allocated
+	  printf " autoallocated"
+	else
+	  printf " allocated"
+	end
+      end
       if $replicate.initialized
         printf " initialized"
       end
@@ -472,6 +479,13 @@ define starpu-print-data
       end
       if $replicate.state == 2
         printf " INVALID"
+      end
+      if $replicate.allocated
+	if $replicate.automatically_allocated
+	  printf " autoallocated"
+	else
+	  printf " allocated"
+	end
       end
       if $replicate.initialized
         printf " initialized"
