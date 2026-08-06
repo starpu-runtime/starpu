@@ -170,14 +170,14 @@ int dotest(struct starpu_disk_ops *ops, char *base, void (*vector_data_register)
 		/* Initialize StarPU without GPU devices to make sure the memory of the GPU devices will not be used */
 		starpu_conf_noworker(&conf);
 		conf.ncpus = -1;
-		conf.nmpi_sc = -1;
-		conf.ntcpip_sc = -1;
+		conf.nmpi_ms = -1;
+		conf.ntcpip_ms = -1;
 	}
 	else
 	{
 		/* No disk ops, try to use a GPU */
-		conf.nmpi_sc = -1;
-		conf.ntcpip_sc = -1;
+		conf.nmpi_ms = -1;
+		conf.ntcpip_ms = -1;
 	}
 
 	ret = starpu_init(&conf);
