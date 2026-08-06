@@ -80,7 +80,7 @@ static struct starpu_codelet sum4_cl =
 	.modes={STARPU_R,STARPU_R,STARPU_RW,STARPU_W}
 };
 
-#ifdef STARPU_CUDA
+#ifdef STARPU_USE_CUDA
 /* Exercise that we notice that we do have to transfer for the read access, even
  * if we will overwrite everything in the end */
 extern void cpy_cuda(void *descr[], void *_args);
