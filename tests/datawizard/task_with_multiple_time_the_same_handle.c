@@ -132,7 +132,7 @@ int main(void)
 		                   0);
 		if (ret == -ENODEV) goto enodev;
 
-#ifdef STARPU_CUDA
+#ifdef STARPU_USE_CUDA
 		if (starpu_cuda_worker_get_count() > 0)
 		{
 			ret = starpu_task_insert(&cpy_cl,
