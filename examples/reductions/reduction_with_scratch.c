@@ -58,7 +58,11 @@ static void cl_cpu_print(void *handles[], void*arg)
 	int check = EXIT_SUCCESS;
 	for (int i = 0; i < NX; i++)
 	{
-		if (u[i] != (NBLOCKS-1)) check = EXIT_FAILURE;
+		if (u[i] != (NBLOCKS-1))
+		{
+			fprintf(stderr, "u[%d] = %d instead of %d\n", i, u[i], NBLOCKS-1);
+			check = EXIT_FAILURE;
+		}
 	}
 
 	// Output
@@ -73,7 +77,7 @@ static struct starpu_codelet print_cl =
 {
 	.cpu_funcs = {cl_cpu_print},
 	.nbuffers = 1,
-	.modes = {STARPU_R},
+	.modes = {STARPU_RW},
 	.name = "print"
 };
 
@@ -220,7 +224,7 @@ int main(int argc, char *argv[])
 	}
 
 	// Check
-	starpu_task_insert(&print_cl, STARPU_R, u_h, 0);
+	starpu_task_insert(&print_cl, STARPU_RW, u_h, 0);
 
 	// Unregister data
 	for (int i_block = 0; i_block < NBLOCKS; i_block++)
