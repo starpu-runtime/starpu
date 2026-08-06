@@ -139,6 +139,12 @@ int main(void)
 	starpu_task_wait_for_all();
 	starpu_data_unregister(handle);
 
+	if (value[0] != 72 || value[N/2] != 72)
+	{
+		FPRINTF(stderr, "value is %f instead of %f\n", value[0], 72.);
+		ret = EXIT_FAILURE;
+	}
+
 	starpu_shutdown();
 	return ret;
 
