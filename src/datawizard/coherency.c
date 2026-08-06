@@ -1022,20 +1022,21 @@ static int _starpu_should_prefetch_task_input(STARPU_ATTRIBUTE_UNUSED struct sta
 
 int _starpu_prefetch_task_input_prio(struct starpu_task *task, int target_node, int worker, int prio, enum starpu_is_prefetch prefetch)
 {
-#ifdef STARPU_OPENMP
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
+#ifdef STARPU_OPENMP
 	/* do not attempt to prefetch task input if this is an OpenMP task resuming after blocking */
 	if (j->discontinuous != 0)
 		return 0;
 #endif
 	STARPU_ASSERT_MSG(prefetch != STARPU_PREFETCH || !task->prefetched, "Prefetching was already requested for this task! Did you set 'prefetches' to 1 in the starpu_sched_policy structure?");
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
+	struct _starpu_data_descr *buffers = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
 	unsigned index;
 
 	for (index = 0; index < nbuffers; index++)
 	{
-		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, index);
-		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, index);
+		starpu_data_handle_t handle = buffers[index].handle;
+		enum starpu_data_access_mode mode = buffers[index].mode;
 
 		/* Prefetch condition shared with _starpu_fetch_task_input_tail for releasing
 		 * nb_tasks_prefetch. */

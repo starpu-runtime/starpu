@@ -619,6 +619,13 @@ datawizard_specific_node_SOURCES =		\
 	datawizard/specific_node.c		\
 	$(increment_sources)
 
+datawizard_task_with_multiple_time_the_same_handle_SOURCES =		\
+	datawizard/task_with_multiple_time_the_same_handle.c
+if STARPU_USE_CUDA
+datawizard_task_with_multiple_time_the_same_handle_SOURCES +=		\
+	datawizard/cpy_cuda.cu
+endif
+
 datawizard_test_arbiter_SOURCES =	\
 	datawizard/test_arbiter.cpp
 

@@ -513,6 +513,7 @@ void _starpu_job_set_ordered_buffers(struct _starpu_job *j)
 	 * grab then according to a total order, thus avoiding a deadlock
 	 * condition */
 	unsigned i;
+	int ii;
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(j->task);
 	struct starpu_task *task = j->task;
 	struct _starpu_data_descr *buffers = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
@@ -532,6 +533,31 @@ void _starpu_job_set_ordered_buffers(struct _starpu_job *j)
 	{
 		buffers[buffers[i].index].orderedindex = i;
 	}
+
+        /* If the same handle is passed both in W-only and R modes, we have to
+         * add R to the first W, to ensure that we transfer the data in */
+	ii = -1;
+	for (i=0 ; i<nbuffers; i++)
+	{
+		if (ii >= 0 && buffers[i].handle != buffers[ii].handle)
+			/* Another data, forget the previous one */
+			ii = -1;
+
+		if (ii < 0)
+		{
+			/* New data */
+			if ((buffers[i].mode & STARPU_W) && !(buffers[i].mode & STARPU_R))
+				/* W-only access, remember this access */
+				ii = i;
+		}
+		else
+		{
+			if (buffers[i].mode & STARPU_R)
+				/* And a read access for the same data, we have to add R to the W-only access */
+				buffers[ii].mode |= STARPU_R;
+		}
+	}
+
 	if (task->cl && task->cl->specific_nodes)
 		for (i=1 ; i<nbuffers; i++)
 		{
