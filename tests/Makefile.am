@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -794,6 +794,13 @@ endif
 if STARPU_USE_OPENCL
 datawizard_specific_node_SOURCES +=		\
 	variable/increment_opencl.c
+endif
+
+datawizard_task_with_multiple_time_the_same_handle_SOURCES =		\
+	datawizard/task_with_multiple_time_the_same_handle.c
+if STARPU_USE_CUDA
+datawizard_task_with_multiple_time_the_same_handle_SOURCES +=		\
+	datawizard/cpy_cuda.cu
 endif
 
 datawizard_test_arbiter_SOURCES =	\

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,7 +18,7 @@
 #include "../helper.h"
 
 /*
- * Test passing the same handle several times to the same task
+ * Test passing the same handle several times to the same task, with different modes
  */
 
 void sum_cpu(void * descr[], void *cl_arg)
@@ -55,6 +55,7 @@ void sum4_cpu(void * descr[], void *cl_arg)
 
 static struct starpu_codelet sum_cl =
 {
+	.name = "sum",
 	.cpu_funcs = {sum_cpu},
 	.cpu_funcs_name = {"sum_cpu"},
 	.nbuffers = 2,
@@ -63,6 +64,7 @@ static struct starpu_codelet sum_cl =
 
 static struct starpu_codelet sum3_cl =
 {
+	.name = "sum3",
 	.cpu_funcs = {sum3_cpu},
 	.cpu_funcs_name = {"sum3_cpu"},
 	.nbuffers = 3,
@@ -71,11 +73,35 @@ static struct starpu_codelet sum3_cl =
 
 static struct starpu_codelet sum4_cl =
 {
+	.name = "sum4",
 	.cpu_funcs = {sum4_cpu},
 	.cpu_funcs_name = {"sum4_cpu"},
 	.nbuffers = 4,
-	.modes={STARPU_R,STARPU_R,STARPU_RW,STARPU_RW}
+	.modes={STARPU_R,STARPU_R,STARPU_RW,STARPU_W}
 };
+
+#ifdef STARPU_USE_CUDA
+/* Exercise that we notice that we do have to transfer for the read access, even
+ * if we will overwrite everything in the end */
+extern void cpy_cuda(void *descr[], void *_args);
+
+void mycpy_cuda(void *descr[], void *_args)
+{
+	double * v_dst = (double *) STARPU_VECTOR_GET_PTR(descr[0]);
+	double * v_src = (double *) STARPU_VECTOR_GET_PTR(descr[1]);
+	STARPU_ASSERT(v_src == v_dst);
+	cpy_cuda(descr, _args);
+}
+
+static struct starpu_codelet cpy_cl =
+{
+	.name = "cpy",
+	.cuda_funcs = { mycpy_cuda },
+	.cuda_flags = { STARPU_CUDA_ASYNC },
+	.nbuffers = 2,
+	.modes={STARPU_W,STARPU_R}
+};
+#endif
 
 #define N 10
 int main(void)
@@ -88,6 +114,7 @@ int main(void)
 
 	starpu_conf_init(&conf);
 	starpu_conf_noworker(&conf);
+	conf.ncuda = -1;
 	conf.ncpus = -1;
 	conf.nmpi_ms = -1;
 	conf.ntcpip_ms = -1;
@@ -104,6 +131,18 @@ int main(void)
 		                   STARPU_R, handle,
 		                   0);
 		if (ret == -ENODEV) goto enodev;
+
+#ifdef STARPU_USE_CUDA
+		if (starpu_cuda_worker_get_count() > 0)
+		{
+			ret = starpu_task_insert(&cpy_cl,
+					   STARPU_W, handle,
+					   STARPU_R, handle,
+					   0);
+			STARPU_ASSERT(ret == 0);
+		}
+#endif
+
 		ret = starpu_task_insert(&sum3_cl,
 		                   STARPU_R, handle,
 		                   STARPU_R, handle,
@@ -131,7 +170,7 @@ int main(void)
 			STARPU_R,starpu_data_get_sub_data(handle,1,0),
 			STARPU_R,starpu_data_get_sub_data(handle,1,1),
 			STARPU_RW,starpu_data_get_sub_data(handle,1,0),
-			STARPU_RW,starpu_data_get_sub_data(handle,1,1),
+			STARPU_W,starpu_data_get_sub_data(handle,1,1),
 			0);
 
 	starpu_data_unpartition(handle, STARPU_MAIN_RAM);
