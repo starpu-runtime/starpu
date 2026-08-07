@@ -62,10 +62,10 @@ static void init_hipblas_func(void *args STARPU_ATTRIBUTE_UNUSED)
 	STARPU_ASSERT_MSG(status != HIPBLAS_STATUS_NOT_INITIALIZED, "hipblas initialization failed, it seems hipblas was built against cuda, while StarPU is built against rocm\n");
 #endif
 	if (status != HIPBLAS_STATUS_SUCCESS)
-		STARPU_HIPBLAS_REPORT_ERROR(status);
+		STARPU_HIPBLAS_REPORT_STATUS(status);
 	status=hipblasSetStream(hipblas_handles[starpu_worker_get_id_check()], starpu_hip_get_local_stream());
 	if (status != HIPBLAS_STATUS_SUCCESS)
-		STARPU_HIPBLAS_REPORT_ERROR(status);
+		STARPU_HIPBLAS_REPORT_STATUS(status);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	if (!(hipblas_initialized[idx]++))
@@ -147,4 +147,59 @@ hipblasHandle_t starpu_hipblas_get_local_handle(void)
 		return main_handle;
 }
 #endif
+
+void starpu_hipblas_report_error(const char *func, const char *file, int line, hipError_t error)
+{
+	const char *errormsg = hipGetErrorString(error);
+	_STARPU_ERROR("oops in %s (%s:%d)... %d: %s \n", func, file, line, error, errormsg);
+}
+
+void starpu_hipblas_report_status(const char *func, const char *file, int line, hipblasStatus_t status)
+{
+        char *errormsg;
+        switch (status)
+        {
+	case HIPBLAS_STATUS_SUCCESS:
+		errormsg = "HIPBLAS_STATUS_SUCCESS";
+		break;
+	case HIPBLAS_STATUS_NOT_INITIALIZED:
+		errormsg = "HIPBLAS_STATUS_NOT_INITIALIZED";
+		break;
+	case HIPBLAS_STATUS_ALLOC_FAILED:
+		errormsg = "HIPBLAS_STATUS_ALLOC_FAILED";
+		break;
+	case HIPBLAS_STATUS_INVALID_VALUE:
+		errormsg = "HIPBLAS_STATUS_INVALID_VALUE";
+		break;
+	case HIPBLAS_STATUS_MAPPING_ERROR:
+		errormsg = "HIPBLAS_STATUS_MAPPING_ERROR";
+		break;
+	case HIPBLAS_STATUS_EXECUTION_FAILED:
+		errormsg = "HIPBLAS_STATUS_EXECUTION_FAILED";
+		break;
+	case HIPBLAS_STATUS_INTERNAL_ERROR:
+		errormsg = "HIPBLAS_STATUS_INTERNAL_ERROR";
+		break;
+	case HIPBLAS_STATUS_NOT_SUPPORTED:
+		errormsg = "HIPBLAS_STATUS_NOT_SUPPORTED";
+		break;
+	case HIPBLAS_STATUS_ARCH_MISMATCH:
+		errormsg = "HIPBLAS_STATUS_ARCH_MISMATCH";
+		break;
+	case HIPBLAS_STATUS_HANDLE_IS_NULLPTR:
+		errormsg = "HIPBLAS_STATUS_HANDLE_IS_NULLPTR";
+		break;
+	case HIPBLAS_STATUS_INVALID_ENUM:
+		errormsg = "HIPBLAS_STATUS_INVALID_ENUM";
+		break;
+	case HIPBLAS_STATUS_UNKNOWN:
+		errormsg = "HIPBLAS_STATUS_UNKNOWN";
+		break;
+	default:
+		errormsg = "unknown error";
+		break;
+        }
+        _STARPU_MSG("oops in %s (%s:%d)... %d: %s \n", func, file, line, status, errormsg);
+        STARPU_ABORT();
+}
 #endif

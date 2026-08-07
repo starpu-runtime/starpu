@@ -164,7 +164,7 @@ static void hipblas_mult(void *descr[], void *arg, const TYPE *beta)
 					      &p1_hip, subA, ldA, subB, ldB,
 					      beta, subC, ldC);
         if (status != HIPBLAS_STATUS_SUCCESS)
-                STARPU_HIPBLAS_REPORT_ERROR(status);
+                STARPU_HIPBLAS_REPORT_STATUS(status);
 }
 
 static void hipblas_gemm0(void *descr[], void *arg)
