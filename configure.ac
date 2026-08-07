@@ -1839,7 +1839,7 @@ AC_DEFUN([STARPU_CHECK_CUBLAS_L],
     	AC_MSG_CHECKING(whether CUBLAS library is available in $__cublas_L)
     fi
     AC_MSG_RESULT()
-    LDFLAGS="${SAVED_LDFLAGS} ${__cublas_L}"
+    LDFLAGS="${SAVED_LDFLAGS} ${STARPU_CUDA_LDFLAGS} ${__cublas_L}"
     AC_HAVE_LIBRARY([cublas],[have_valid_cublas=yes],[have_valid_cublas=no])
     unset ac_cv_lib_cublas_main
     if test "$have_valid_cublas" = yes ; then
