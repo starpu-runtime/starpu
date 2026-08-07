@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2013-2013   Simon Archipoff
 # Copyright (C) 2011-2011   Télécom Sud Paris
 #
@@ -19,6 +19,7 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters/starpu_performances/p
                       @top_srcdir@/doc/doxygen/chapters/starpu_performances/benchmarking_starpu.doxy \
                       @top_srcdir@/doc/doxygen/chapters/starpu_performances/online_performance_tools.doxy \
                       @top_srcdir@/doc/doxygen/chapters/starpu_performances/offline_performance_tools.doxy \
+                      @top_srcdir@/doc/doxygen/chapters/starpu_faq/check_list_performance.doxy \
                       @top_srcdir@/doc/doxygen/chapters/fdl_1_3.doxy \
                       @top_srcdir@/doc/doxygen/chapters/files.doxy \
                       @top_srcdir@/doc/doxygen/chapters/api
