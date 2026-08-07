@@ -49,8 +49,6 @@ void starpu_hipblas_init(void);
    starpu_hipblas_init().
 */
 hipblasHandle_t starpu_hipblas_get_local_handle(void);
-#endif
-#endif
 
 /**
    Report a HIPBLAS error.
@@ -68,6 +66,8 @@ void starpu_hipblas_report_error(const char *func, const char *file, int line, h
    See \ref HIPSupport for more details.
 */
 void starpu_hipblas_report_status(const char *func, const char *file, int line, hipblasStatus_t status);
+#endif
+#endif
 
 /**
    Call starpu_hipblas_report_status(), passing the current function, file and line position.
