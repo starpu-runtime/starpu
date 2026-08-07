@@ -1898,7 +1898,7 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
     fi
 
     if test "$have_valid_cuda" = "no" ; then
-	for f in "/usr/local/cuda" "/c/cuda" "/cygdrive/c/cuda" "/opt/cuda" "$CUDA_ROOT" "$CUDA_PATH" "$CUDA_INC_PATH/.." "$CUDA_INC/.." "$CUDA_BIN/.." "$CUDA_SDK/.." "$CUDA_INSTALL_PATH" "$CUDA_TOOLKIT"; do
+	for f in "$NVHPC_ROOT/cuda" "$CUDA_ROOT" "$CUDA_PATH" "$CUDA_INC_PATH/.." "$CUDA_INC/.." "$CUDA_BIN/.." "$CUDA_SDK/.." "$CUDA_INSTALL_PATH" "$CUDA_TOOLKIT" "/usr/local/cuda" "/c/cuda" "/cygdrive/c/cuda" "/opt/cuda"; do
 	    if test -n "$f" ; then
 		STARPU_CHECK_CUDA("$f", "no", "no")
 		if test "$have_valid_cuda" = "yes" ; then
@@ -1912,7 +1912,7 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
     if test "$have_valid_cuda" = "yes" ; then
         STARPU_CHECK_CUBLAS("$cublas_dir", "$cublas_include_dir", "$cublas_lib_dir")
 	if test "$have_valid_cublas" = "no" ; then
-	    for f in "" "/usr/local/cuda" "/c/cuda" "/cygdrive/c/cuda" "/opt/cuda" "$CUDA_ROOT" "$CUDA_PATH" "$CUDA_INC_PATH/.." "$CUDA_INC/.." "$CUDA_BIN/.." "$CUDA_SDK/.." "$CUDA_INSTALL_PATH" "$CUDA_TOOLKIT"; do
+	    for f in "$NVHPC_ROOT/math_libs" "$CUDA_ROOT" "$CUDA_PATH" "$CUDA_INC_PATH/.." "$CUDA_INC/.." "$CUDA_BIN/.." "$CUDA_SDK/.." "$CUDA_INSTALL_PATH" "$CUDA_TOOLKIT" "/usr/local/cuda" "/c/cuda" "/cygdrive/c/cuda" "/opt/cuda"; do
 	        if test -n "$f" ; then
 		    STARPU_CHECK_CUBLAS("$f", "no", "no")
 		    if test "$have_valid_cublas" = "yes" ; then
@@ -2501,7 +2501,7 @@ AC_DEFUN([STARPU_LOOK_FOR_OPENCL],
     	if test "x$has_opencl_being_checked" != "xyes" ; then
     	    STARPU_CHECK_OPENCL("$opencl_dir", "$opencl_include_dir", "$opencl_lib_dir")
 	    if test "$have_valid_opencl" = "no" ; then
-            	for f in "/usr/local/cuda" "/c/cuda" "/cygdrive/c/cuda" "/opt/cuda" "$CUDA_ROOT" "$CUDA_PATH" "$CUDA_INC_PATH/.." "$CUDA_INSTALL_PATH" "$CUDA_TOOLKIT"; do
+		for f in "$NVHPC_ROOT/cuda" "$CUDA_ROOT" "$CUDA_PATH" "$CUDA_INC_PATH/.." "$CUDA_INC/.." "$CUDA_BIN/.." "$CUDA_SDK/.." "$CUDA_INSTALL_PATH" "$CUDA_TOOLKIT" "/usr/local/cuda" "/c/cuda" "/cygdrive/c/cuda" "/opt/cuda"; do
 		    if test -n "$f" ; then
     			STARPU_CHECK_OPENCL("$f", "no", "no")
 			if test "$have_valid_opencl" = "yes" ; then
