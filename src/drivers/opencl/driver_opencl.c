@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2022,2023  École de Technologie Supérieure (ETS, Montréal)
  * Copyright (C) 2013-2013  Thibaut Lambert
  * Copyright (C) 2011-2011  Télécom Sud Paris
@@ -1169,6 +1169,7 @@ _starpu_opencl_unmap_ram(uintptr_t src STARPU_ATTRIBUTE_UNUSED, size_t src_offse
 	return 0;
 }
 
+#if 0
 static int
 _starpu_opencl_update_opencl_map(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size)
 {
@@ -1197,6 +1198,7 @@ _starpu_opencl_update_opencl_map(uintptr_t src, size_t src_offset, unsigned src_
 
 	return 0;
 }
+#endif
 
 static int
 _starpu_opencl_update_cpu_map(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size)

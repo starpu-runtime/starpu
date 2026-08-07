@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -88,6 +88,7 @@ void starpu_parallel_worker_openmp_prologue(void *arg)
 void starpu_parallel_worker_gnu_openmp_mkl_prologue(void *arg)
 {
 	int workerid = starpu_worker_get_id();
+	(void) arg;
 
 	if (starpu_worker_get_type(workerid) == STARPU_CPU_WORKER)
 	{

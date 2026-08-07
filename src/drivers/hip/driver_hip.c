@@ -72,8 +72,6 @@ static starpu_pthread_mutex_t hip_device_init_mutex[STARPU_MAXHIPDEVS];
 static starpu_pthread_cond_t hip_device_init_cond[STARPU_MAXHIPDEVS];
 static int hip_globalbindid;
 
-static int _starpu_hip_peer_access(int devid, int peer_devid);
-
 int _starpu_nworker_per_hip;
 
 static size_t _starpu_hip_get_global_mem_size(unsigned devid)

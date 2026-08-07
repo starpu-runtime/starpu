@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2022-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2022-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2022,2023  École de Technologie Supérieure (ETS, Montréal)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -124,6 +124,7 @@ union starpu_prof_tool_event_info
 */
 struct starpu_prof_tool_api_info
 {
+	char unused;
 	/*acc_device_api device_api;
 	  int valid_bytes;
 	  acc_device_t device_type;
