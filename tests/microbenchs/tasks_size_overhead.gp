@@ -1,7 +1,7 @@
 #!/bin/sh
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -19,14 +19,14 @@ OUTPUT=tasks_size_overhead.output
 VALS=$(sed -n -e '3p' < $OUTPUT)
 
 PLOTS=""
-for x in 1 2 3 4 5 6 7 8 9 10 11
+for x in $(seq 1 11)
 do
     pos=$((2 * $x + 1))
     double=$((2 * $x))
     value=$(echo "$VALS" | cut -d '	' -f $pos)
     if test -n "$value"
     then
-	PLOTS=",\"$OUTPUT\" using 1:($value)/(\$$pos) with linespoints title columnheader($double) $PLOTS"
+	PLOTS=",\"$OUTPUT\" using 1:($value)/(\$$pos) with linespoints title sprintf(\"%s us\", columnheader($double)) $PLOTS"
     fi
 done
 
