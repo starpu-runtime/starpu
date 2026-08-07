@@ -1678,7 +1678,6 @@ AC_DEFUN([STARPU_CHECK_CUDA_L],
 [
     __cuda_L=$1
     SAVED_LDFLAGS="${LDFLAGS}"
-    STARPU_CUDA_LDFLAGS="${__cuda_L}"
     if test "$__cuda_L" = "" ; then
         AC_MSG_CHECKING(whether CUDA library is available in default location)
     else
@@ -1689,7 +1688,7 @@ AC_DEFUN([STARPU_CHECK_CUDA_L],
     AC_HAVE_LIBRARY([cudart],[have_valid_cuda=yes],[have_valid_cuda=no])
     unset ac_cv_lib_cudart_main
     if test "$have_valid_cuda" = yes ; then
-	LDFLAGS="${SAVED_LDFLAGS} ${STARPU_CUDA_LDFLAGS}"
+        STARPU_CUDA_LDFLAGS="${__cuda_L}"
     fi
     LDFLAGS="${SAVED_LDFLAGS}"
 ])
