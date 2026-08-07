@@ -93,7 +93,11 @@ static void cl_cpu_print(void *handles[], void*arg)
 	int check = EXIT_SUCCESS;
 	for (int i = 0; i < NX; i++)
 	{
-		if (v[i] != (n_rank-1)) check = EXIT_FAILURE;
+		if (v[i] != (n_rank-1))
+		{
+			fprintf(stderr, "v[%d] = %d instead of %d\n", i, v[i], n_rank-1);
+			check = EXIT_FAILURE;
+		}
 	}
 
 	// Output
@@ -108,7 +112,7 @@ static struct starpu_codelet print_cl =
 {
 	.cpu_funcs = {cl_cpu_print},
 	.nbuffers = 1,
-	.modes = {STARPU_R},
+	.modes = {STARPU_RW},
 	.name = "print"
 };
 
@@ -293,7 +297,7 @@ int main(int argc, char *argv[])
 	starpu_mpi_barrier(MPI_COMM_WORLD);
 	if (i_rank == 0)
 	{
-		starpu_task_insert(&print_cl, STARPU_R, v_h, 0);
+		starpu_task_insert(&print_cl, STARPU_RW, v_h, 0);
 	}
 
 	starpu_mpi_barrier(MPI_COMM_WORLD);
