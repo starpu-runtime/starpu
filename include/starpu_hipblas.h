@@ -53,6 +53,28 @@ hipblasHandle_t starpu_hipblas_get_local_handle(void);
 #endif
 
 /**
+   Report a HIPBLAS error.
+   See \ref HIPSupport for more details.
+*/
+void starpu_hipblas_report_error(const char *func, const char *file, int line, hipError_t error);
+
+/**
+   Call starpu_hipblas_report_error(), passing the current function, file and line position.
+*/
+#define STARPU_HIPBLAS_REPORT_ERROR(error) starpu_hipblas_report_error(__starpu_func__, __FILE__, __LINE__, error)
+
+/**
+   Report a HIPBLAS status.
+   See \ref HIPSupport for more details.
+*/
+void starpu_hipblas_report_status(const char *func, const char *file, int line, hipblasStatus_t status);
+
+/**
+   Call starpu_hipblas_report_status(), passing the current function, file and line position.
+*/
+#define STARPU_HIPBLAS_REPORT_STATUS(status) starpu_hipblas_report_status(__starpu_func__, __FILE__, __LINE__, status)
+
+/**
    Synchronously deinitialize the HIPBLAS library on
    every HIP device.
 */

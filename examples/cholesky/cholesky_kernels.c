@@ -114,7 +114,7 @@ static inline void chol_common_cpu_codelet_update_gemm(void *descr[], int s, voi
 				&m1, left, ld21, right, ld12,
 				&p1, center, ld22);
 		if (status != HIPBLAS_STATUS_SUCCESS)
-			STARPU_HIPBLAS_REPORT_ERROR(status);
+			STARPU_HIPBLAS_REPORT_STATUS(status);
 
 		break;
 	}
@@ -192,7 +192,7 @@ static inline void chol_common_cpu_codelet_update_syrk(void *descr[], int s, voi
 				&m1, left, ld21,
 				&p1, center, ld22);
 		if (status != HIPBLAS_STATUS_SUCCESS)
-			STARPU_HIPBLAS_REPORT_ERROR(status);
+			STARPU_HIPBLAS_REPORT_STATUS(status);
 		break;
 	}
 #endif
@@ -268,7 +268,7 @@ static inline void chol_common_codelet_update_trsm(void *descr[], int s, void *_
 						 HIPBLAS_SIDE_RIGHT, HIPBLAS_FILL_MODE_LOWER, HIPBLAS_OP_T, HIPBLAS_DIAG_NON_UNIT,
 						 nx21, ny21, &p1, sub11, ld11, sub21, ld21);
 			if (hipStatus != HIPBLAS_STATUS_SUCCESS)
-				STARPU_HIPBLAS_REPORT_ERROR(hipStatus);
+				STARPU_HIPBLAS_REPORT_STATUS(hipStatus);
 			break;
 #endif
 		default:
@@ -467,7 +467,7 @@ static inline void chol_common_codelet_update_potrf(void *descr[], int s, void *
 							     &sub11[(z+1)+z*ld], 1,
 						    &sub11[(z+1)+(z+1)*ld], ld);
 					if (status != HIPBLAS_STATUS_SUCCESS)
-						STARPU_HIPBLAS_REPORT_ERROR(status);
+						STARPU_HIPBLAS_REPORT_STATUS(status);
 				}
 
 				hipStreamSynchronize(stream);
