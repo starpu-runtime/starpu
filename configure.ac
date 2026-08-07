@@ -1676,22 +1676,42 @@ AC_ARG_WITH(cublas-lib-dir,
 
 AC_DEFUN([STARPU_CHECK_CUDA_L],
 [
-    __cuda_L=$1
+    __cudart_L=$1
     SAVED_LDFLAGS="${LDFLAGS}"
-    if test "$__cuda_L" = "" ; then
-        AC_MSG_CHECKING(whether CUDA library is available in default location)
+    if test "$__cudart_L" = "" ; then
+        AC_MSG_CHECKING(whether CUDA runtime library is available in default location)
     else
-    	AC_MSG_CHECKING(whether CUDA library is available in $__cuda_L)
+	AC_MSG_CHECKING(whether CUDA runtime library is available in $__cudart_L)
     fi
     AC_MSG_RESULT()
-    LDFLAGS="${SAVED_LDFLAGS} ${__cuda_L}"
+    LDFLAGS="${SAVED_LDFLAGS} ${__cudart_L}"
     AC_HAVE_LIBRARY([cudart],[have_valid_cuda=yes],[have_valid_cuda=no])
     unset ac_cv_lib_cudart_main
     if test "$have_valid_cuda" = yes ; then
-        STARPU_CUDA_LDFLAGS="${__cuda_L}"
+        STARPU_CUDA_LDFLAGS="${__cudart_L}"
     fi
     LDFLAGS="${SAVED_LDFLAGS}"
 ])
+
+AC_DEFUN([STARPU_CHECK_CUDA_DRIVER_L],
+[
+    __cuda_L=$1
+    SAVED_LDFLAGS="${LDFLAGS}"
+    if test "$__cuda_L" = "" ; then
+        AC_MSG_CHECKING(whether CUDA driver library is available in default location)
+    else
+	AC_MSG_CHECKING(whether CUDA driver library is available in $__cuda_L)
+    fi
+    AC_MSG_RESULT()
+    LDFLAGS="${SAVED_LDFLAGS} ${STARPU_CUDA_LDFLAGS} ${__cuda_L}"
+    AC_HAVE_LIBRARY([cuda],[have_valid_cuda_driver=yes],[have_valid_cuda_driver=no])
+    unset ac_cv_lib_cuda_main
+    if test "$have_valid_cuda_driver" = yes ; then
+        STARPU_CUDA_LDFLAGS="${STARPU_CUDA_LDFLAGS} ${__cuda_L}"
+    fi
+    LDFLAGS="${SAVED_LDFLAGS}"
+])
+
 AC_DEFUN([STARPU_CHECK_CUDA],
 [
     __cuda_dir=$1
@@ -1740,6 +1760,16 @@ AC_DEFUN([STARPU_CHECK_CUDA],
 			break
 		    fi
 		done
+		for __cuda_libdir in lib64 lib64/stubs lib lib/x64 lib/Win32 ; do
+		    STARPU_CHECK_CUDA_DRIVER_L("-L${__cuda_dir}/${__cuda_libdir}")
+		    if test "$have_valid_cuda_driver" = yes ; then
+			break
+		    fi
+		done
+		if test "$have_valid_cuda" = yes -a "$have_valid_cuda_driver" = no ; then
+		    AC_MSG_WARN([libcudart.so CUDA runtime found with ${STARPU_CUDA_LDFLAGS}, but libcuda.so driver not found])
+		    have_valid_cuda=no
+		fi
 	    else
 		STARPU_CHECK_CUDA_L("")
 	    fi
