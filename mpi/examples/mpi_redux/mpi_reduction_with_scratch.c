@@ -182,7 +182,14 @@ int main(int argc, char *argv[])
 {
 	// MPI Init
 	starpu_fxt_autostart_profiling(0);
-	int ret = starpu_mpi_init_conf(&argc, &argv, 1, MPI_COMM_WORLD, NULL);
+	struct starpu_conf conf;
+	starpu_conf_init(&conf);
+	conf.precedence_over_environment_variables = 1;
+	starpu_conf_noworker(&conf);
+	conf.ncpus = -1;
+	int ret = starpu_mpi_init_conf(&argc, &argv, 1, MPI_COMM_WORLD, &conf);
+	if (ret == -ENODEV)
+		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_ini_conft");
 
 	// Workers

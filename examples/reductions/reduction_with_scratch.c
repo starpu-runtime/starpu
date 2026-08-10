@@ -168,7 +168,12 @@ static struct starpu_codelet task_red_cl =
 int main(int argc, char *argv[])
 {
 	// StarPU Init
-	int ret = starpu_init(NULL);
+	struct starpu_conf conf;
+	starpu_conf_init(&conf);
+	conf.precedence_over_environment_variables = 1;
+	starpu_conf_noworker(&conf);
+	conf.ncpus = -1;
+	int ret = starpu_init(&conf);
 	if (ret == -ENODEV)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
