@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2025-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2025-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -19,15 +19,6 @@ set -x
 set -e
 dir=$(realpath $(dirname $0))
 
-<<<<<<< HEAD:contrib/gitlab/upload.sh
-SCRIPT_NAME="$HOME/softs/starpu/starpu-scripts/buildbot/scripts/uploadWebPage.sh"
-scriptExists=$(ssh luckyluke ls $SCRIPT_NAME  2>/dev/null)
-if test -z "$scriptExists"
-then
-    echo This runner is not eligible to upload latest release for StarPU
-    ssh luckyluke ls $SCRIPT_NAME
-    ssh luckyluke ls $(dirname $SCRIPT_NAME)
-=======
 SCRIPT_NAME="$HOME/softs/starpu/starpu-scripts/mirror/uploadWebPage.sh"
 FILE_SERVER="$HOME/softs/starpu/starpu-scripts/mirror/uploadWebPage.sh"
 scriptExists=$(ls $SCRIPT_NAME  2>/dev/null)
@@ -44,7 +35,6 @@ then
     echo This runner is not eligible to upload latest release for StarPU
     ls $FILE_SERVER
     ls $(dirname $FILE_SERVER)
->>>>>>> d2f1deb854 (ci: update scripts to update web server):ci/scripts/upload.sh
     exit 1
 fi
 
@@ -84,15 +74,6 @@ then
     exit 1
 fi
 
-<<<<<<< HEAD:contrib/gitlab/upload.sh
-TMP_DIR=$(today=$(date "+%F") ssh luckyluke "mkdir -p \$HOME/starpu_artifacts/$today && mktemp -p \$HOME/starpu_artifacts/$today -d" 2>/dev/null)
-# copy files on the frontal node
-scp -pr $RELEASE_STAMPFILE $RELEASE_DIR luckyluke:$TMP_DIR/$(dirname $RELEASE_STAMPFILE)/
-
-# execute on the frontal node to upload latest release on the web
-ssh luckyluke $SCRIPT_NAME $BRANCH $TMP_DIR/$RELEASE_STAMPFILE starpu-builds@inria.fr $DEPLOY
-=======
 # upload latest release on the web
 $SCRIPT_NAME $BRANCH $RELEASE_STAMPFILE starpu-builds@inria.fr $DEPLOY
->>>>>>> d2f1deb854 (ci: update scripts to update web server):ci/scripts/upload.sh
 

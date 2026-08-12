@@ -66,7 +66,7 @@ check_ci:
   extends: .check_template
   parallel:
     matrix:
-      - NODE: [centos72amd64, macosx]
+      - NODE: [macosx]
   tags:
     - ${NODE}
 
@@ -74,7 +74,7 @@ check:
   extends: .check_template
   parallel:
     matrix:
-      - NODE: [debian12, debian10, ubuntu1604, ubuntu1804, ubuntu2004]
+      - NODE: [debian12, debian10, ubuntu1604, ubuntu1804, ubuntu2004, centos9]
   image: registry.gitlab.inria.fr/starpu/starpu-docker/ci-${NODE}
   tags: ['ci.inria.fr', 'linux', 'large']
 
@@ -186,7 +186,7 @@ coverage_update:
     - coverage
   needs:
     - coverage
-  tags: ['starpu', 'node_gpu']
+  tags: ['starpu', 'update']
   script:
     - ./contrib/gitlab/upload.sh ./artifacts
 
