@@ -15,10 +15,8 @@
 
 coverity:
   extends: .benchmarks_master
-  tags:
-    - starpu
-    - linux
-    - coverity
+  image: registry.gitlab.inria.fr/starpu/starpu-docker/ci-debian12
+  tags: ['ci.inria.fr', 'linux', 'large']
   script:
     - ./ci/scripts/coverity.sh
 
