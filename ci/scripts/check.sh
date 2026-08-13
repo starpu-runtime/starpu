@@ -45,12 +45,15 @@ COVERITY=0
 if test "$1" == "-coverity"
 then
     COVERITY=1
-    if test -f $HOME/.starpu/coverity_token
+    if test -z "$COVERITY_TOKEN"
     then
-	COVERITY_TOKEN=$(cat $HOME/.starpu/coverity_token)
-    else
-	echo "Error. Coverity is enabled, but there is no file $HOME/.starpu/coverity_token"
-	exit 1
+	if test -f $HOME/.starpu/coverity_token
+	then
+	    COVERITY_TOKEN=$(cat $HOME/.starpu/coverity_token)
+	else
+	    echo "Error. Coverity is enabled, but there is no file $HOME/.starpu/coverity_token or environment variable COVERITY_TOKEN"
+	    exit 1
+	fi
     fi
     shift
     BRANCH=$1
