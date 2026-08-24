@@ -56,7 +56,27 @@ then
 	fi
     fi
     shift
-    BRANCH=$1
+    COVERITY_BRANCH=$1
+    shift
+fi
+
+SONARQUBE=0
+if test "$1" == "-sonarqube"
+then
+    shift
+    SONARQUBE=1
+    if test -z "$SONAR_TOKEN"
+    then
+	echo "Error. Sonarqube is enabled, but the environment variable SONAR_TOKEN is not defined"
+	exit 1
+    fi
+    SONARQUBE_BRANCH=$1
+    if test -z $SONARQUBE_BRANCH
+    then
+	echo "Error. You need to defined the branch"
+	exit 1
+    fi
+    shift
 fi
 
 export STARPU_HOME=$(mktemp -d $PWD/starpu_home_XXXXX)
@@ -145,7 +165,7 @@ then
     cov-build --dir cov-int make -j4
     grep "are ready for analysis" cov-int/build-log.txt
     tar caf starpu.tar.xz cov-int
-    curl -k -f --form token=$COVERITY_TOKEN --form email=starpu-builds@inria.fr --form file=@starpu.tar.xz --form version=$BRANCH --form description= 'https://scan.coverity.com/builds?project=StarPU+MR'
+    curl -k -f --form token=$COVERITY_TOKEN --form email=starpu-builds@inria.fr --form file=@starpu.tar.xz --form version=$COVERITY_BRANCH --form description= 'https://scan.coverity.com/builds?project=StarPU+MR'
     exit 0
 fi
 
@@ -163,6 +183,12 @@ else
     make -k check 2>&1 | tee -a $starpu_artifacts/fulllog.txt
 fi
 RET=$?
+
+if test "$SONARQUBE" == "1"
+then
+    SONAR_BRANCH=$SONARQUBE_BRANCH ./ci/scripts/sonar-scanner.sh
+    exit 0
+fi
 
 if test -n "$STARPU_CHECK_DIRS"
 then
