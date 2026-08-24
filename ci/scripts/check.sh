@@ -186,7 +186,7 @@ RET=$?
 
 if test "$SONARQUBE" == "1"
 then
-    SONAR_BRANCH=$SONARQUBE_BRANCH ./ci/scripts/sonar-scanner.sh
+    SONAR_BRANCH=$SONARQUBE_BRANCH $starpu_src_dir/ci/scripts/sonar-scanner.sh
     exit 0
 fi
 
