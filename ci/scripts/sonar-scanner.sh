@@ -203,8 +203,8 @@ EOF
 
 # Run the sonar-scanner analysis and submit to SonarQube server
 echo "Run sonar-scanner ..."
-time sonar-scanner -X > sonar.log
-tail -20 sonar.log
+time sonar-scanner -X > $starpu_artifacts/sonar.log
+tail -20 $starpu_artifacts/sonar.log
 
 #x=$(grep -c "ANALYSIS SUCCESSFUL" sonar.log)
 #if test "$x" == "0"

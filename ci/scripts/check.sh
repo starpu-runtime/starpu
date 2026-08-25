@@ -95,7 +95,7 @@ then
 fi
 
 starpu_src_dir=$PWD
-starpu_artifacts=$starpu_src_dir/artifacts
+export starpu_artifacts=$starpu_src_dir/artifacts
 mkdir -p $starpu_artifacts
 
 (
