@@ -19,7 +19,7 @@ set -x
 set -e
 dir=$(realpath $(dirname $0))
 
-SCRIPT_NAME="$HOME/softs/starpu/starpu-scripts/buildbot/scripts/uploadWebPage.sh"
+SCRIPT_NAME="$HOME/softs/starpu/starpu-scripts/mirror/uploadWebPage.sh"
 scriptExists=$(ssh peabody ls $SCRIPT_NAME  2>/dev/null)
 if test -z "$scriptExists"
 then
