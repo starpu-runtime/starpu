@@ -33,7 +33,7 @@ then
 fi
 export SONAR_PROJECT_KEY=$(echo "storm:starpu:git")
 
-if test -f config.log
+if test ! -f config.log
 then
     echo Error no config.log file found
     exit 1
