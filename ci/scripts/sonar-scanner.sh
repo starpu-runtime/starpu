@@ -33,31 +33,26 @@ then
 fi
 export SONAR_PROJECT_KEY=$(echo "storm:starpu:git")
 
-if test -f build/config.log
+if test -f config.log
 then
-    CONFIG_LOG=build/config.log
-    CONFIG=build
-elif test -f config.log
-then
-    CONFIG_LOG=config.log
-    CONFIG=.
-else
     echo Error no config.log file found
     exit 1
 fi
+eval $(grep ^STARPU_SRC_DIR config.log )
+export STARPU_SRC_DIR
 
 # clean valgrind core files
 rm -f $(find . -name "vgcore*")
 
-export CPPCHECK_INCLUDES="-Iinclude -Impi/include -Isrc -I${CONFIG}/src"
+export CPPCHECK_INCLUDES="-I$STARPU_SRC_DIR/include -I$STARPU_SRC_DIR/mpi/include -I$STARPU_SRC_DIR/src -I./src"
 # The gcc command allows to include the system paths for gcc, which implies the availability of libc6-dev-i386
-export SONAR_INC=$(echo include,mpi/include,src,${CONFIG}/src,examples,mpi/examples)
+export SONAR_INC=$(echo $STARPU_SRC_DIR/include,$STARPU_SRC_DIR/mpi/include,$STARPU_SRC_DIR/src,./src,$STARPU_SRC_DIR/examples,$STARPU_SRC_DIR/mpi/examples)
 #,$(echo | gcc -E -Wp,-v - 2>&1 | grep "^ " | tr '\n' ','))
 export SONAR_INCLUDES=$(echo $SONAR_INC | tr -d ' ')
 
-export DEFINITIONS_LOG=$(grep "^#define" ${CONFIG_LOG} | sed -e "s#\#define #-D#g" | sed -e "s# #=#g" | xargs)
-export DEFINITIONS_SRC=$(grep "^#undef" src/common/config.h.in| sed -e "s#\#undef #-D#g" | sed -e "s#\$#=1#g" | xargs)
-export DEFINITIONS_LOCAL=$(grep -rs "#ifdef" src/ mpi/src |awk -F':' '{print $2}' | awk '{print "-D"$2"=1"}' |sort|uniq)
+export DEFINITIONS_LOG=$(grep "^#define" ./config.log | sed -e "s#\#define #-D#g" | sed -e "s# #=#g" | xargs)
+export DEFINITIONS_SRC=$(grep "^#undef" $STARPU_SRC_DIR/src/common/config.h.in| sed -e "s#\#undef #-D#g" | sed -e "s#\$#=1#g" | xargs)
+export DEFINITIONS_LOCAL=$(grep -rs "#ifdef" $STARPU_SRC_DIR/src/ $STARPU_SRC_DIR/mpi/src |awk -F':' '{print $2}' | awk '{print "-D"$2"=1"}' |sort|uniq)
 export DEFINITIONS=$(echo ${DEFINITIONS_LOG} ${DEFINITIONS_SRC} ${DEFINITIONS_LOCAL} | tr ' ' '\012'|grep -v STARPU_NO_ASSERT|sort|uniq|tr '\012' ' ')
 
 # run scan-build make to generate clang sa reports
