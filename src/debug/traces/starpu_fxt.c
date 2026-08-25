@@ -5053,7 +5053,7 @@ uint64_t _starpu_fxt_find_start_time(char *filename_in)
 	struct fxt_ev_native ev;
 
 	int ret = fxt_next_ev(block, FXT_EV_TYPE_NATIVE, (struct fxt_ev *)&ev);
-	STARPU_ASSERT(ret == FXT_EV_OK);
+	STARPU_ASSERT_MSG(ret == FXT_EV_OK, "File %s seems corrupt", filename_in);
 
 #ifdef HAVE_FXT_BLOCKEV_LEAVE
 	fxt_blockev_leave(block);
