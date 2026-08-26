@@ -354,12 +354,39 @@ void _starpu_hip_init_worker_binding(struct _starpu_machine_config *config, int 
 	}
 }
 
+static void _starpu_hip_limit_gpu_mem_if_needed(unsigned devid)
+{
+	starpu_ssize_t limit;
+	size_t STARPU_ATTRIBUTE_UNUSED totalGlobalMem = 0;
+	size_t STARPU_ATTRIBUTE_UNUSED to_waste = 0;
+
+	/* Find the size of the memory on the device */
+	totalGlobalMem = props[devid].totalGlobalMem;
+
+	limit = starpu_getenv_number("STARPU_LIMIT_HIP_MEM");
+	if (limit == -1)
+	{
+		char name[30];
+		snprintf(name, sizeof(name), "STARPU_LIMIT_HIP_%u_MEM", devid);
+		limit = starpu_getenv_number(name);
+	}
+#if defined(STARPU_USE_HIP)
+	if (limit == -1)
+	{
+		limit = totalGlobalMem / (1024*1024) * FREE_MARGIN;
+	}
+#endif
+
+	global_mem[devid] = limit * 1024*1024;
+}
+
 /* Set up memory and buses */
 void _starpu_hip_init_worker_memory(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
 {
 	unsigned memory_node = -1;
 	unsigned devid = workerarg->devid;
 	unsigned numa;
+	hipError_t hipres;
 
 	if (hip_memory_init[devid])
 	{
@@ -368,6 +395,10 @@ void _starpu_hip_init_worker_memory(struct _starpu_machine_config *config, int n
 	else
 	{
 		hip_memory_init[devid] = 1;
+
+		hipres = hipGetDeviceProperties(&props[devid], devid);
+		if (STARPU_UNLIKELY(hipres))
+			STARPU_HIP_REPORT_ERROR(hipres);
 
 		memory_node = hip_memory_nodes[devid] = _starpu_memory_node_register(STARPU_HIP_RAM, devid);
 
@@ -433,6 +464,9 @@ void _starpu_hip_init_worker_memory(struct _starpu_machine_config *config, int n
 
 	_starpu_worker_drives_memory_node(&workerarg->set->workers[0], memory_node);
 
+	_starpu_hip_limit_gpu_mem_if_needed(devid);
+	_starpu_memory_manager_set_global_memory_size(memory_node, _starpu_hip_get_global_mem_size(devid));
+
 	workerarg->memory_node = memory_node;
 }
 
@@ -451,32 +485,6 @@ void starpu_hip_set_device(int devid STARPU_ATTRIBUTE_UNUSED)
 
 	if (STARPU_UNLIKELY(hipres))
 		STARPU_HIP_REPORT_ERROR(hipres);
-}
-
-static void _starpu_hip_limit_gpu_mem_if_needed(unsigned devid)
-{
-	starpu_ssize_t limit;
-	size_t STARPU_ATTRIBUTE_UNUSED totalGlobalMem = 0;
-	size_t STARPU_ATTRIBUTE_UNUSED to_waste = 0;
-
-	/* Find the size of the memory on the device */
-	totalGlobalMem = props[devid].totalGlobalMem;
-
-	limit = starpu_getenv_number("STARPU_LIMIT_HIP_MEM");
-	if (limit == -1)
-	{
-		char name[30];
-		snprintf(name, sizeof(name), "STARPU_LIMIT_HIP_%u_MEM", devid);
-		limit = starpu_getenv_number(name);
-	}
-#if defined(STARPU_USE_HIP)
-	if (limit == -1)
-	{
-		limit = totalGlobalMem / (1024*1024) * FREE_MARGIN;
-	}
-#endif
-
-	global_mem[devid] = limit * 1024*1024;
 }
 
 static void _starpu_hip_force_init()
@@ -508,7 +516,7 @@ static void _starpu_hip_force_init()
 }
 
 /* Really initialize one device */
-static void init_device_context(unsigned devid, unsigned memnode)
+static void init_device_context(unsigned devid)
 {
 	STARPU_ASSERT(devid < STARPU_MAXHIPDEVS);
 
@@ -556,9 +564,6 @@ static void init_device_context(unsigned devid, unsigned memnode)
 	/* force HIP to initialize the context for real */
 	_starpu_hip_force_init();
 
-	hipres = hipGetDeviceProperties(&props[devid], devid);
-	if (STARPU_UNLIKELY(hipres))
-		STARPU_HIP_REPORT_ERROR(hipres);
 #ifdef STARPU_HAVE_HIP_MEMCPY_PEER
 	int computeMode;
 	hipres = hipDeviceGetAttribute(&computeMode, hipDeviceAttributeComputeMode, devid);
@@ -594,9 +599,6 @@ static void init_device_context(unsigned devid, unsigned memnode)
 	hip_device_init[devid] = INITIALIZED;
 	STARPU_PTHREAD_COND_BROADCAST(&hip_device_init_cond[devid]);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&hip_device_init_mutex[devid]);
-
-	_starpu_hip_limit_gpu_mem_if_needed(devid);
-	_starpu_memory_manager_set_global_memory_size(memnode, _starpu_hip_get_global_mem_size(devid));
 }
 
 /* De-initialize one device */
@@ -669,7 +671,6 @@ int _starpu_hip_driver_init(struct _starpu_worker *worker)
 	{
 		worker = &worker_set->workers[i];
 		unsigned devid = worker->devid;
-		unsigned memnode = worker->memory_node;
 
 		if ((int) devid == lastdevid)
 		{
@@ -677,7 +678,7 @@ int _starpu_hip_driver_init(struct _starpu_worker *worker)
 			continue;
 		}
 		lastdevid = devid;
-		init_device_context(devid, memnode);
+		init_device_context(devid);
 
 		if (worker->config->topology.nworker[STARPU_HIP_WORKER][devid] > 1 && props[devid].concurrentKernels == 0)
 			_STARPU_DISP("Warning: STARPU_NWORKER_PER_HIP is %u, but HIP device %u does not support concurrent kernel execution!\n", worker_set->nworkers, devid);

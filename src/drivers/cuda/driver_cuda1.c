@@ -252,12 +252,27 @@ void _starpu_cuda_init_worker_binding(struct _starpu_machine_config *config, int
 	}
 }
 
+static void _starpu_cuda_limit_gpu_mem_if_needed(unsigned devid)
+{
+	starpu_ssize_t limit;
+	size_t STARPU_ATTRIBUTE_UNUSED totalGlobalMem = 0;
+	size_t STARPU_ATTRIBUTE_UNUSED to_waste = 0;
+
+	/* Find the size of the memory on the device */
+	totalGlobalMem = props[devid].totalGlobalMem;
+
+	limit = totalGlobalMem / (1024*1024) * FREE_MARGIN;
+
+	global_mem[devid] = limit * 1024*1024;
+}
+
 /* Set up memory and buses */
 void _starpu_cuda_init_worker_memory(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
 {
 	unsigned memory_node = -1;
 	unsigned devid = workerarg->devid;
 	unsigned numa;
+	cudaError_t cures;
 
 	if (cuda_memory_init[devid])
 	{
@@ -266,6 +281,10 @@ void _starpu_cuda_init_worker_memory(struct _starpu_machine_config *config, int 
 	else
 	{
 		cuda_memory_init[devid] = 1;
+
+		cures = cudaGetDeviceProperties(&props[devid], devid);
+		if (STARPU_UNLIKELY(cures))
+			STARPU_CUDA_REPORT_ERROR(cures);
 
 		memory_node = cuda_memory_nodes[devid] = _starpu_memory_node_register(STARPU_CUDA_RAM, devid);
 
@@ -319,6 +338,9 @@ void _starpu_cuda_init_worker_memory(struct _starpu_machine_config *config, int 
 
 	_starpu_worker_drives_memory_node(workerarg, memory_node);
 
+	_starpu_cuda_limit_gpu_mem_if_needed(devid);
+	_starpu_memory_manager_set_global_memory_size(memory_node, _starpu_cuda_get_global_mem_size(devid));
+
 	workerarg->memory_node = memory_node;
 }
 
@@ -333,21 +355,8 @@ void starpu_cuda_set_device(int devid STARPU_ATTRIBUTE_UNUSED)
 		STARPU_CUDA_REPORT_ERROR(cures);
 }
 
-static void _starpu_cuda_limit_gpu_mem_if_needed(unsigned devid)
-{
-	starpu_ssize_t limit;
-	size_t STARPU_ATTRIBUTE_UNUSED totalGlobalMem = 0;
-	size_t STARPU_ATTRIBUTE_UNUSED to_waste = 0;
-
-	/* Find the size of the memory on the device */
-	totalGlobalMem = props[devid].totalGlobalMem;
-
-	limit = totalGlobalMem / (1024*1024) * FREE_MARGIN;
-
-	global_mem[devid] = limit * 1024*1024;
-}
 /* Really initialize one device */
-static void init_device_context(unsigned devid, unsigned memnode)
+static void init_device_context(unsigned devid)
 {
 	STARPU_ASSERT(devid < STARPU_MAXCUDADEVS);
 
@@ -367,9 +376,6 @@ static void init_device_context(unsigned devid, unsigned memnode)
 		STARPU_CUDA_REPORT_ERROR(cures);
 	}
 
-	cures = cudaGetDeviceProperties(&props[devid], devid);
-	if (STARPU_UNLIKELY(cures))
-		STARPU_CUDA_REPORT_ERROR(cures);
 #ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 #if CUDART_VERSION >= 5000
 	int computeMode;
@@ -404,9 +410,6 @@ static void init_device_context(unsigned devid, unsigned memnode)
 				STARPU_CUDA_REPORT_ERROR(cures);
 		}
 	}
-
-	_starpu_cuda_limit_gpu_mem_if_needed(devid);
-	_starpu_memory_manager_set_global_memory_size(memnode, _starpu_cuda_get_global_mem_size(devid));
 }
 
 /* De-initialize one device */

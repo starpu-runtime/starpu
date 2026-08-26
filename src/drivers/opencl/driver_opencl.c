@@ -357,6 +357,51 @@ void _starpu_opencl_init_worker_binding(struct _starpu_machine_config *config, i
 	}
 }
 
+static void _starpu_opencl_limit_gpu_mem_if_needed(unsigned devid)
+{
+	starpu_ssize_t limit;
+	size_t STARPU_ATTRIBUTE_UNUSED totalGlobalMem = 0;
+	size_t STARPU_ATTRIBUTE_UNUSED to_waste = 0;
+
+#ifdef STARPU_SIMGRID
+	totalGlobalMem = _starpu_simgrid_get_memsize("OpenCL", devid);
+#elif defined(STARPU_USE_OPENCL)
+	/* Request the size of the current device's memory */
+	cl_int err;
+	cl_ulong size;
+	err = clGetDeviceInfo(devices[devid], CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(size), &size, NULL);
+	_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
+	totalGlobalMem = size;
+#endif
+
+	limit = starpu_getenv_number("STARPU_LIMIT_OPENCL_MEM");
+	if (limit == -1)
+	{
+		char name[30];
+		snprintf(name, sizeof(name), "STARPU_LIMIT_OPENCL_%u_MEM", devid);
+		limit = starpu_getenv_number(name);
+	}
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
+	if (limit == -1)
+	{
+		/* Use 90% of the available memory by default.	*/
+		limit = totalGlobalMem / (1024*1024) * 0.9;
+	}
+#endif
+
+	global_mem[devid] = limit * 1024*1024;
+
+#ifdef STARPU_USE_OPENCL
+	/* How much memory to waste ? */
+	to_waste = totalGlobalMem - global_mem[devid];
+#endif
+
+	_STARPU_DEBUG("OpenCL device %u: Wasting %ld MB / Limit %ld MB / Total %ld MB / Remains %ld MB\n",
+			devid, (long)to_waste/(1024*1024), (long) limit, (long)totalGlobalMem/(1024*1024),
+			(long)(totalGlobalMem - to_waste)/(1024*1024));
+
+}
+
 /* Set up memory and buses */
 void _starpu_opencl_init_worker_memory(struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
 {
@@ -396,6 +441,9 @@ void _starpu_opencl_init_worker_memory(struct _starpu_machine_config *config STA
 			_starpu_worker_drives_memory_node(workerarg, numa);
 
 	_starpu_worker_drives_memory_node(workerarg, memory_node);
+
+	_starpu_opencl_limit_gpu_mem_if_needed(devid);
+	_starpu_memory_manager_set_global_memory_size(memory_node, _starpu_opencl_get_global_mem_size(devid));
 
 	workerarg->memory_node = memory_node;
 }
@@ -530,51 +578,6 @@ static unsigned _starpu_opencl_get_device_name(int dev, char *name, int lname)
 #endif
 #endif
 
-static void _starpu_opencl_limit_gpu_mem_if_needed(unsigned devid)
-{
-	starpu_ssize_t limit;
-	size_t STARPU_ATTRIBUTE_UNUSED totalGlobalMem = 0;
-	size_t STARPU_ATTRIBUTE_UNUSED to_waste = 0;
-
-#ifdef STARPU_SIMGRID
-	totalGlobalMem = _starpu_simgrid_get_memsize("OpenCL", devid);
-#elif defined(STARPU_USE_OPENCL)
-	/* Request the size of the current device's memory */
-	cl_int err;
-	cl_ulong size;
-	err = clGetDeviceInfo(devices[devid], CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(size), &size, NULL);
-	_STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err);
-	totalGlobalMem = size;
-#endif
-
-	limit = starpu_getenv_number("STARPU_LIMIT_OPENCL_MEM");
-	if (limit == -1)
-	{
-		char name[30];
-		snprintf(name, sizeof(name), "STARPU_LIMIT_OPENCL_%u_MEM", devid);
-		limit = starpu_getenv_number(name);
-	}
-#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
-	if (limit == -1)
-	{
-		/* Use 90% of the available memory by default.	*/
-		limit = totalGlobalMem / (1024*1024) * 0.9;
-	}
-#endif
-
-	global_mem[devid] = limit * 1024*1024;
-
-#ifdef STARPU_USE_OPENCL
-	/* How much memory to waste ? */
-	to_waste = totalGlobalMem - global_mem[devid];
-#endif
-
-	_STARPU_DEBUG("OpenCL device %u: Wasting %ld MB / Limit %ld MB / Total %ld MB / Remains %ld MB\n",
-			devid, (long)to_waste/(1024*1024), (long) limit, (long)totalGlobalMem/(1024*1024),
-			(long)(totalGlobalMem - to_waste)/(1024*1024));
-
-}
-
 /* This is run from the driver thread to initialize the driver OpenCL context */
 static int _starpu_opencl_driver_init(struct _starpu_worker *worker)
 {
@@ -585,9 +588,6 @@ static int _starpu_opencl_driver_init(struct _starpu_worker *worker)
 
 	/* one more time to avoid hacks from third party lib :) */
 	_starpu_bind_thread_on_cpu(worker->bindid, worker->workerid, NULL);
-
-	_starpu_opencl_limit_gpu_mem_if_needed(devid);
-	_starpu_memory_manager_set_global_memory_size(worker->memory_node, _starpu_opencl_get_global_mem_size(devid));
 
 	float size = (float) global_mem[devid] / (1<<30);
 

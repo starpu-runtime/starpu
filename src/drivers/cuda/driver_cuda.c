@@ -594,12 +594,60 @@ void _starpu_cuda_init_worker_binding(struct _starpu_machine_config *config, int
 	}
 }
 
+/* In case we want to cap the amount of memory available on the GPUs by the
+ * mean of the STARPU_LIMIT_CUDA_MEM, we decrease the value of
+ * global_mem[devid] which is the value returned by
+ * _starpu_cuda_get_global_mem_size() to indicate how much memory can
+ * be allocated on the device
+ */
+static void _starpu_cuda_limit_gpu_mem_if_needed(unsigned devid)
+{
+	starpu_ssize_t limit;
+	size_t STARPU_ATTRIBUTE_UNUSED totalGlobalMem = 0;
+	size_t STARPU_ATTRIBUTE_UNUSED to_waste = 0;
+
+#ifdef STARPU_SIMGRID
+	totalGlobalMem = _starpu_simgrid_get_memsize("CUDA", devid);
+#elif defined(STARPU_USE_CUDA)
+	/* Find the size of the memory on the device */
+	totalGlobalMem = props[devid].totalGlobalMem;
+#endif
+
+	limit = starpu_getenv_number("STARPU_LIMIT_CUDA_MEM");
+	if (limit == -1)
+	{
+		char name[30];
+		snprintf(name, sizeof(name), "STARPU_LIMIT_CUDA_%u_MEM", devid);
+		limit = starpu_getenv_number(name);
+	}
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
+	if (limit == -1)
+	{
+		limit = totalGlobalMem / (1024*1024) * FREE_MARGIN;
+	}
+#endif
+
+	global_mem[devid] = limit * 1024*1024;
+
+#ifdef STARPU_USE_CUDA
+	/* How much memory to waste ? */
+	to_waste = totalGlobalMem - global_mem[devid];
+
+	props[devid].totalGlobalMem -= to_waste;
+#endif /* STARPU_USE_CUDA */
+
+	_STARPU_DEBUG("CUDA device %u: Wasting %ld MB / Limit %ld MB / Total %ld MB / Remains %ld MB\n",
+			devid, (long) to_waste/(1024*1024), (long) limit, (long) totalGlobalMem/(1024*1024),
+			(long) (totalGlobalMem - to_waste)/(1024*1024));
+}
+
 /* Set up memory and buses */
 void _starpu_cuda_init_worker_memory(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
 {
 	unsigned memory_node = -1;
 	unsigned devid = workerarg->devid;
 	unsigned numa;
+	cudaError_t cures;
 
 	if (cuda_memory_init[devid])
 	{
@@ -608,6 +656,10 @@ void _starpu_cuda_init_worker_memory(struct _starpu_machine_config *config, int 
 	else
 	{
 		cuda_memory_init[devid] = 1;
+
+		cures = cudaGetDeviceProperties(&props[devid], devid);
+		if (STARPU_UNLIKELY(cures))
+			STARPU_CUDA_REPORT_ERROR(cures);
 
 		memory_node = cuda_memory_nodes[devid] = _starpu_memory_node_register(STARPU_CUDA_RAM, devid);
 
@@ -706,6 +758,9 @@ void _starpu_cuda_init_worker_memory(struct _starpu_machine_config *config, int 
 
 	_starpu_worker_drives_memory_node(&workerarg->set->workers[0], memory_node);
 
+	_starpu_cuda_limit_gpu_mem_if_needed(devid);
+	_starpu_memory_manager_set_global_memory_size(memory_node, _starpu_cuda_get_global_mem_size(devid));
+
 	workerarg->memory_node = memory_node;
 }
 
@@ -765,55 +820,8 @@ done:
 #endif
 }
 
-/* In case we want to cap the amount of memory available on the GPUs by the
- * mean of the STARPU_LIMIT_CUDA_MEM, we decrease the value of
- * global_mem[devid] which is the value returned by
- * _starpu_cuda_get_global_mem_size() to indicate how much memory can
- * be allocated on the device
- */
-static void _starpu_cuda_limit_gpu_mem_if_needed(unsigned devid)
-{
-	starpu_ssize_t limit;
-	size_t STARPU_ATTRIBUTE_UNUSED totalGlobalMem = 0;
-	size_t STARPU_ATTRIBUTE_UNUSED to_waste = 0;
-
-#ifdef STARPU_SIMGRID
-	totalGlobalMem = _starpu_simgrid_get_memsize("CUDA", devid);
-#elif defined(STARPU_USE_CUDA)
-	/* Find the size of the memory on the device */
-	totalGlobalMem = props[devid].totalGlobalMem;
-#endif
-
-	limit = starpu_getenv_number("STARPU_LIMIT_CUDA_MEM");
-	if (limit == -1)
-	{
-		char name[30];
-		snprintf(name, sizeof(name), "STARPU_LIMIT_CUDA_%u_MEM", devid);
-		limit = starpu_getenv_number(name);
-	}
-#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
-	if (limit == -1)
-	{
-		limit = totalGlobalMem / (1024*1024) * FREE_MARGIN;
-	}
-#endif
-
-	global_mem[devid] = limit * 1024*1024;
-
-#ifdef STARPU_USE_CUDA
-	/* How much memory to waste ? */
-	to_waste = totalGlobalMem - global_mem[devid];
-
-	props[devid].totalGlobalMem -= to_waste;
-#endif /* STARPU_USE_CUDA */
-
-	_STARPU_DEBUG("CUDA device %u: Wasting %ld MB / Limit %ld MB / Total %ld MB / Remains %ld MB\n",
-			devid, (long) to_waste/(1024*1024), (long) limit, (long) totalGlobalMem/(1024*1024),
-			(long) (totalGlobalMem - to_waste)/(1024*1024));
-}
-
 /* Really initialize one device */
-static void init_device_context(unsigned devid, unsigned memnode)
+static void init_device_context(unsigned devid)
 {
 	STARPU_ASSERT(devid < STARPU_MAXCUDADEVS);
 
@@ -876,9 +884,6 @@ static void init_device_context(unsigned devid, unsigned memnode)
 		STARPU_CUDA_REPORT_ERROR(cures);
 	}
 
-	cures = cudaGetDeviceProperties(&props[devid], devid);
-	if (STARPU_UNLIKELY(cures))
-		STARPU_CUDA_REPORT_ERROR(cures);
 #ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 #if CUDART_VERSION >= 5000
 	int computeMode;
@@ -919,9 +924,6 @@ static void init_device_context(unsigned devid, unsigned memnode)
 	cuda_device_init[devid] = INITIALIZED;
 	STARPU_PTHREAD_COND_BROADCAST(&cuda_device_init_cond[devid]);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_device_init_mutex[devid]);
-
-	_starpu_cuda_limit_gpu_mem_if_needed(devid);
-	_starpu_memory_manager_set_global_memory_size(memnode, _starpu_cuda_get_global_mem_size(devid));
 }
 
 /* De-initialize one device */
@@ -1028,7 +1030,6 @@ static int _starpu_cuda_driver_init(struct _starpu_worker *worker)
 	{
 		worker = &worker_set->workers[i];
 		unsigned devid = worker->devid;
-		unsigned memnode = worker->memory_node;
 
 		if ((int) devid == lastdevid)
 		{
@@ -1040,7 +1041,7 @@ static int _starpu_cuda_driver_init(struct _starpu_worker *worker)
 			continue;
 		}
 		lastdevid = devid;
-		init_device_context(devid, memnode);
+		init_device_context(devid);
 
 #ifndef STARPU_SIMGRID
 		if (worker->config->topology.nworker[STARPU_CUDA_WORKER][devid] > 1 && props[devid].concurrentKernels == 0)

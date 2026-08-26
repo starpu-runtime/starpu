@@ -97,34 +97,59 @@ static int can_evict(unsigned node)
 }
 
 /* Called after initializing the set of memory nodes */
-/* We use an accelerator -> CPU RAM -> disk storage hierarchy */
+/* We use storage eviction hierarchy to the largest memory type between RAM and GPU, and to the disk */
 void _starpu_mem_chunk_init_last(void)
 {
 	unsigned disk = 0;
 	unsigned nnodes = starpu_memory_nodes_get_count(), i;
+	starpu_ssize_t non_cpu_ram_size = 0;
+	starpu_ssize_t cpu_ram_size = 0;
+
+	for (i = 0; i < nnodes; i++)
+	{
+		enum starpu_node_kind kind = starpu_node_get_kind(i);
+		starpu_ssize_t size;
+
+		switch(kind) {
+			case STARPU_DISK_RAM:
+				/* Some disk, will be able to evict RAM */
+				disk = 1;
+				break;
+			case STARPU_CPU_RAM:
+				size = starpu_memory_get_total(i);
+				if (size > 0)
+					cpu_ram_size += size;
+				break;
+			default:
+				size = starpu_memory_get_total(i);
+				if (size > 0)
+					non_cpu_ram_size += size;
+				break;
+		}
+	}
 
 	for (i = 0; i < nnodes; i++)
 	{
 		enum starpu_node_kind kind = starpu_node_get_kind(i);
 		struct _starpu_node *node_struct = _starpu_get_node_struct(i);
 
-		if (kind == STARPU_DISK_RAM)
-			/* Some disk, will be able to evict RAM */
-			/* TODO: disk hierarchy */
-			disk = 1;
-
-		else if (kind != STARPU_CPU_RAM)
-			/* This is an accelerator, we can evict to main RAM */
-			node_struct->evictable = 1;
-	}
-
-	if (disk)
-		for (i = 0; i < nnodes; i++)
-		{
-			enum starpu_node_kind kind = starpu_node_get_kind(i);
-			if (kind == STARPU_CPU_RAM)
-				_starpu_get_node_struct(i)->evictable = 1;
+		switch(kind) {
+			case STARPU_DISK_RAM:
+				/* TODO: disk hierarchy */
+				break;
+			case STARPU_CPU_RAM:
+				if (disk || (cpu_ram_size && starpu_memory_get_total(i) < non_cpu_ram_size))
+					/* Can evict to disk or to large accelerators */
+					node_struct->evictable = 1;
+				break;
+			default:
+				/* If we don't have a RAM limit, we assume it is "infinite" */
+				if (disk || !cpu_ram_size || starpu_memory_get_total(i) < cpu_ram_size)
+					/* This is an accelerator, we can evict to main RAM, or at worse disk */
+					node_struct->evictable = 1;
+				break;
 		}
+	}
 }
 
 /* A disk was registered, RAM is now evictable */

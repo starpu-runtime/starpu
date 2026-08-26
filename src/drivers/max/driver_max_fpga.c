@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2019-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -212,6 +212,16 @@ void _starpu_max_fpga_init_worker_binding(struct _starpu_machine_config *config,
 	}
 }
 
+static void _starpu_max_fpga_limit_max_fpga_mem(unsigned devid)
+{
+	starpu_ssize_t limit=-1;
+
+	//TODO
+	limit = starpu_getenv_number("STARPU_LIMIT_MAX_FPGA_MEM");
+	if(limit != -1)
+		max_fpga_mem[devid] = limit*1024*1024;
+}
+
 /* Set up memory and buses */
 void _starpu_max_fpga_init_worker_memory(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
 {
@@ -241,17 +251,10 @@ void _starpu_max_fpga_init_worker_memory(struct _starpu_machine_config *config, 
 
 	_starpu_worker_drives_memory_node(workerarg, memory_node);
 
+	_starpu_max_fpga_limit_max_fpga_mem(devid);
+	_starpu_memory_manager_set_global_memory_size(worker->memory_node, _starpu_max_fpga_get_max_fpga_mem_size(worker->devid));
+
 	workerarg->memory_node = memory_node;
-}
-
-static void _starpu_max_fpga_limit_max_fpga_mem(unsigned devid)
-{
-	starpu_ssize_t limit=-1;
-
-	//TODO
-	limit = starpu_getenv_number("STARPU_LIMIT_MAX_FPGA_MEM");
-	if(limit != -1)
-		max_fpga_mem[devid] = limit*1024*1024;
 }
 
 static void init_device_context(unsigned devid)
@@ -263,8 +266,6 @@ static void init_device_context(unsigned devid)
 	// TODO: use int	max_get_burst_size (max_file_t *maxfile, const char *name)
 	current_address[devid] = (fpga_mem) (8192*192);
 	max_fpga_mem[devid] = 128ULL*1024*1024*1024;
-
-	_starpu_max_fpga_limit_max_fpga_mem(devid);
 
 	if (!load)
 	{
@@ -319,10 +320,6 @@ static int _starpu_max_fpga_driver_init(struct _starpu_worker *worker)
 {
 	int devid = worker->devid;
 	_starpu_driver_start(worker, STARPU_MAX_FPGA_WORKER, 1);
-	/* FIXME: when we have NUMA support, properly turn node number into NUMA node number */
-	// TODO: drop test when we allocated a memory node for fpga
-	if (worker->memory_node != STARPU_MAIN_RAM)
-		_starpu_memory_manager_set_global_memory_size(worker->memory_node, _starpu_max_fpga_get_max_fpga_mem_size(worker->devid));
 
 	// TODO: multiple fpga in same thread
 	init_device_context(devid);

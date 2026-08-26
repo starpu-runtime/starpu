@@ -273,12 +273,27 @@ void _starpu_sycl_init_worker_binding(struct _starpu_machine_config *config, int
 	}
 }
 
+static void _starpu_sycl_limit_gpu_mem_if_needed(unsigned devid)
+{
+	starpu_ssize_t limit;
+	size_t STARPU_ATTRIBUTE_UNUSED totalGlobalMem = 0;
+	size_t STARPU_ATTRIBUTE_UNUSED to_waste = 0;
+
+	/* Find the size of the memory on the device */
+	totalGlobalMem = props[devid].get_global_mem_size();
+
+	limit = totalGlobalMem / (1024*1024) * FREE_MARGIN;
+
+	global_mem[devid] = limit * 1024*1024;
+}
+
 /* Set up memory and buses */
 void _starpu_sycl_init_worker_memory(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
 {
 	unsigned memory_node = -1;
 	unsigned devid = workerarg->devid;
 	unsigned numa;
+	dpct::err0 syclres;
 
 	if (sycl_memory_init[devid])
 	{
@@ -287,6 +302,8 @@ void _starpu_sycl_init_worker_memory(struct _starpu_machine_config *config, int 
 	else
 	{
 		sycl_memory_init[devid] = 1;
+
+		syclres = DPCT_CHECK_ERROR(dpct::get_device(devid).get_device_info(props[devid]));
 
 		memory_node = sycl_memory_nodes[devid] = _starpu_memory_node_register(STARPU_SYCL_RAM, devid);
 
@@ -319,6 +336,9 @@ void _starpu_sycl_init_worker_memory(struct _starpu_machine_config *config, int 
 
 	_starpu_worker_drives_memory_node(workerarg, memory_node);
 
+	_starpu_sycl_limit_gpu_mem_if_needed(devid);
+	_starpu_memory_manager_set_global_memory_size(memory_node, _starpu_sycl_get_global_mem_size(devid));
+
 	workerarg->memory_node = memory_node;
 }
 
@@ -344,20 +364,6 @@ catch (sycl::exception const &exc)
 	std::exit(1);
 }
 
-static void _starpu_sycl_limit_gpu_mem_if_needed(unsigned devid)
-{
-	starpu_ssize_t limit;
-	size_t STARPU_ATTRIBUTE_UNUSED totalGlobalMem = 0;
-	size_t STARPU_ATTRIBUTE_UNUSED to_waste = 0;
-
-	/* Find the size of the memory on the device */
-	totalGlobalMem = props[devid].get_global_mem_size();
-
-	limit = totalGlobalMem / (1024*1024) * FREE_MARGIN;
-
-	global_mem[devid] = limit * 1024*1024;
-}
-
 /* hack to force the initialization of a queue */
 static void force_queue_init(const dpct::queue_ptr& stream)
 {
@@ -372,15 +378,11 @@ static void force_queue_init(const dpct::queue_ptr& stream)
 }
 
 /* Really initialize one device */
-static void init_device_context(unsigned devid, unsigned memnode) try
+static void init_device_context(unsigned devid) try
 {
 	STARPU_ASSERT(devid < STARPU_MAXSYCLDEVS);
 
-	dpct::err0 syclres;
-
 	starpu_sycl_set_device(devid);
-
-	syclres = DPCT_CHECK_ERROR(dpct::get_device(devid).get_device_info(props[devid]));
 
 	if (STARPU_UNLIKELY(syclres))
 		STARPU_SYCL_REPORT_ERROR(syclres);
@@ -409,9 +411,6 @@ static void init_device_context(unsigned devid, unsigned memnode) try
 			force_queue_init(in_peer_transfer_streams[worker->devid][devid]);
 		}
 	}
-
-	_starpu_sycl_limit_gpu_mem_if_needed(devid);
-	_starpu_memory_manager_set_global_memory_size(memnode, _starpu_sycl_get_global_mem_size(devid));
 }
 catch (sycl::exception const &exc)
 {
@@ -476,9 +475,8 @@ static int _starpu_sycl_driver_init(struct _starpu_worker *worker)
 	_starpu_set_local_worker_key(worker);
 
 	unsigned devid = worker->devid;
-	unsigned memnode = worker->memory_node;
 
-	init_device_context(devid, memnode);
+	init_device_context(devid);
 
 	unsigned workerid = worker->workerid;
 
