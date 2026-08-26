@@ -647,7 +647,9 @@ void _starpu_cuda_init_worker_memory(struct _starpu_machine_config *config, int 
 	unsigned memory_node = -1;
 	unsigned devid = workerarg->devid;
 	unsigned numa;
+#ifndef STARPU_SIMGRID
 	cudaError_t cures;
+#endif
 
 	if (cuda_memory_init[devid])
 	{
@@ -657,9 +659,11 @@ void _starpu_cuda_init_worker_memory(struct _starpu_machine_config *config, int 
 	{
 		cuda_memory_init[devid] = 1;
 
+#ifndef STARPU_SIMGRID
 		cures = cudaGetDeviceProperties(&props[devid], devid);
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);
+#endif
 
 		memory_node = cuda_memory_nodes[devid] = _starpu_memory_node_register(STARPU_CUDA_RAM, devid);
 
