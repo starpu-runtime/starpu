@@ -44,7 +44,9 @@ enum _starpu_cache_state
 /** Defines the internal flag for the STARPU_MPI_REDUX mode */
 #define STARPU_MPI_REDUX_INTERNAL (STARPU_MPI_REDUX & ~(STARPU_RW|STARPU_COMMUTE))
 
-/** this should contain the information relative to a given data replicate  */
+/** this should contain the information relative to a given data replicate.
+ *
+ * It is initialized by _starpu_register_new_data and _starpu_data_partition */
 struct _starpu_data_replicate
 {
 	starpu_data_handle_t handle;
