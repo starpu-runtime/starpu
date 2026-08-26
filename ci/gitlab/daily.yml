@@ -75,7 +75,7 @@ coverage_update:
     - coverage
   needs:
     - coverage
-  tags: ['starpu', 'node_gpu']
+  tags: ['starpu', 'update']
   script:
     - ./ci/scripts/upload.sh ./artifacts
 
