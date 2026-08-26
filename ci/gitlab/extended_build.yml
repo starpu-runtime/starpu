@@ -123,7 +123,8 @@ drivers:
 32bit:
   extends: .manual_template
   stage: extended_check
-  tags: ['starpu', 'node_32bit']
+  image: registry.gitlab.inria.fr/starpu/starpu-docker/ci-alpine-i386
+  tags: ['ci.inria.fr', 'linux', 'large']
   parallel:
     matrix:
       - PROFILE: [32bit]
