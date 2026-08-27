@@ -455,6 +455,9 @@ void _starpu_hip_init_worker_memory(struct _starpu_machine_config *config, int n
 				}
 			}
 		}
+
+		_starpu_hip_limit_gpu_mem_if_needed(devid);
+		_starpu_memory_manager_set_global_memory_size(memory_node, _starpu_hip_get_global_mem_size(devid));
 	}
 	_starpu_memory_node_add_nworkers(memory_node);
 
@@ -463,9 +466,6 @@ void _starpu_hip_init_worker_memory(struct _starpu_machine_config *config, int n
 		_starpu_worker_drives_memory_node(&workerarg->set->workers[0], numa);
 
 	_starpu_worker_drives_memory_node(&workerarg->set->workers[0], memory_node);
-
-	_starpu_hip_limit_gpu_mem_if_needed(devid);
-	_starpu_memory_manager_set_global_memory_size(memory_node, _starpu_hip_get_global_mem_size(devid));
 
 	workerarg->memory_node = memory_node;
 }

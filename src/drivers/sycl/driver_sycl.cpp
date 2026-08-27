@@ -327,6 +327,9 @@ void _starpu_sycl_init_worker_memory(struct _starpu_machine_config *config, int 
 				STARPU_ASSERT(bus12 >= 0);
 			}
 		}
+
+		_starpu_sycl_limit_gpu_mem_if_needed(devid);
+		_starpu_memory_manager_set_global_memory_size(memory_node, _starpu_sycl_get_global_mem_size(devid));
 	}
 	_starpu_memory_node_add_nworkers(memory_node);
 
@@ -335,9 +338,6 @@ void _starpu_sycl_init_worker_memory(struct _starpu_machine_config *config, int 
 		_starpu_worker_drives_memory_node(workerarg, numa);
 
 	_starpu_worker_drives_memory_node(workerarg, memory_node);
-
-	_starpu_sycl_limit_gpu_mem_if_needed(devid);
-	_starpu_memory_manager_set_global_memory_size(memory_node, _starpu_sycl_get_global_mem_size(devid));
 
 	workerarg->memory_node = memory_node;
 }

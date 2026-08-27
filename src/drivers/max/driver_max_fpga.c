@@ -242,6 +242,8 @@ void _starpu_max_fpga_init_worker_memory(struct _starpu_machine_config *config, 
 		_starpu_register_bus(STARPU_MAIN_RAM, memory_node);
 		_starpu_register_bus(memory_node, STARPU_MAIN_RAM);
 
+		_starpu_max_fpga_limit_max_fpga_mem(devid);
+		_starpu_memory_manager_set_global_memory_size(worker->memory_node, _starpu_max_fpga_get_max_fpga_mem_size(worker->devid));
 	}
 	_starpu_memory_node_add_nworkers(memory_node);
 
@@ -250,9 +252,6 @@ void _starpu_max_fpga_init_worker_memory(struct _starpu_machine_config *config, 
 			_starpu_worker_drives_memory_node(workerarg, numa);
 
 	_starpu_worker_drives_memory_node(workerarg, memory_node);
-
-	_starpu_max_fpga_limit_max_fpga_mem(devid);
-	_starpu_memory_manager_set_global_memory_size(worker->memory_node, _starpu_max_fpga_get_max_fpga_mem_size(worker->devid));
 
 	workerarg->memory_node = memory_node;
 }

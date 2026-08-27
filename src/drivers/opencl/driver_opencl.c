@@ -433,6 +433,9 @@ void _starpu_opencl_init_worker_memory(struct _starpu_machine_config *config STA
 		if (_starpu_opencl_get_device_type(workerarg->devid) == CL_DEVICE_TYPE_CPU)
 			_starpu_memory_node_set_mapped(memory_node);
 #endif /* SIMGRID */
+
+		_starpu_opencl_limit_gpu_mem_if_needed(devid);
+		_starpu_memory_manager_set_global_memory_size(memory_node, _starpu_opencl_get_global_mem_size(devid));
 	}
 	_starpu_memory_node_add_nworkers(memory_node);
 
@@ -441,9 +444,6 @@ void _starpu_opencl_init_worker_memory(struct _starpu_machine_config *config STA
 			_starpu_worker_drives_memory_node(workerarg, numa);
 
 	_starpu_worker_drives_memory_node(workerarg, memory_node);
-
-	_starpu_opencl_limit_gpu_mem_if_needed(devid);
-	_starpu_memory_manager_set_global_memory_size(memory_node, _starpu_opencl_get_global_mem_size(devid));
 
 	workerarg->memory_node = memory_node;
 }

@@ -245,6 +245,9 @@ void _starpu_cuda_init_worker_memory(struct _starpu_machine_config *config STARP
 			_starpu_cuda_bus_ids[numa][devid+STARPU_MAXNUMANODES] = _starpu_register_bus(numa, memory_node);
 			_starpu_cuda_bus_ids[devid+STARPU_MAXNUMANODES][numa] = _starpu_register_bus(memory_node, numa);
 		}
+
+		_starpu_cuda_limit_gpu_mem_if_needed(devid);
+		_starpu_memory_manager_set_global_memory_size(memory_node, _starpu_cuda_get_global_mem_size(devid));
 	}
 	_starpu_memory_node_add_nworkers(memory_node);
 
@@ -253,9 +256,6 @@ void _starpu_cuda_init_worker_memory(struct _starpu_machine_config *config STARP
 			_starpu_worker_drives_memory_node(workerarg, numa);
 
 	_starpu_worker_drives_memory_node(workerarg, memory_node);
-
-	_starpu_cuda_limit_gpu_mem_if_needed(devid);
-	_starpu_memory_manager_set_global_memory_size(memory_node, _starpu_cuda_get_global_mem_size(devid));
 
 	workerarg->memory_node = memory_node;
 }
