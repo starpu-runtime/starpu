@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -32,12 +32,6 @@ variables:
       when: always
     - if: ($CI_PIPELINE_SCHEDULE_DESCRIPTION == null && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && ($CI_PIPELINE_SOURCE == 'merge_request_event' || ($CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS == null)))
       when: manual
-
-.benchmarks_master:
-  stage: daily
-  rules:
-    - if: ($CI_PIPELINE_SCHEDULE_DESCRIPTION != null && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $STARPU_RUN_BENCHMARKS == "yes")
-      when: always
 
 .master_branch:
   rules:

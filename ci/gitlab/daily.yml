@@ -13,21 +13,30 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+.benchmarks_master:
+  stage: daily
+
 sonarqube:
-  extends: .benchmarks_master
+  stage: daily
   image: registry.gitlab.inria.fr/starpu/starpu-docker/ci-debian12
   tags: ['ci.inria.fr', 'linux', 'large']
+  rules:
+    - if: ($CI_PIPELINE_SCHEDULE_DESCRIPTION != null && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $STARPU_RUN_SONARQUBE == "yes")
+      when: always
   script:
     - ./ci/scripts/sonarqube.sh
 
 coverity:
-  extends: .benchmarks_master
+  stage: daily
   image: registry.gitlab.inria.fr/starpu/starpu-docker/ci-debian12
   tags: ['ci.inria.fr', 'linux', 'large']
+  rules:
+    - if: ($CI_PIPELINE_SCHEDULE_DESCRIPTION != null && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $STARPU_RUN_COVERITY == "yes")
+      when: always
   script:
     - ./ci/scripts/coverity.sh
 
-.benchmarks_artifacts:
+.artifacts:
   before_script:
     - if test -e artifacts ; then mv artifacts artifacts2 ; fi
   artifacts:
@@ -36,37 +45,48 @@ coverity:
       - artifacts
 
 benchmarks:
-  extends: [.benchmarks_master, .benchmarks_artifacts]
+  stage: daily
+  extends: .artifacts
   tags: ['starpu', 'node_nogpu']
+  rules:
+    - if: ($CI_PIPELINE_SCHEDULE_DESCRIPTION != null && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $STARPU_RUN_BENCHMARKS == "yes")
+      when: always
   script:
     - ./ci/scripts/run_profile.sh benchmarks
   after_script:
     - ./ci/scripts/clean_profile.sh benchmarks
 
 benchmarks_update:
-  extends: .benchmarks_master
+  stage: daily
   dependencies:
     - benchmarks
   needs:
     - benchmarks
   tags: ['starpu', 'node_nogpu']
+  rules:
+    - if: ($CI_PIPELINE_SCHEDULE_DESCRIPTION != null && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $STARPU_RUN_BENCHMARKS == "yes")
+      when: always
   script:
     - ./ci/scripts/bench.sh ./artifacts
 
 coverage:
-  extends: [.benchmarks_master, .benchmarks_artifacts]
+  stage: daily
+  extends: .artifacts
   timeout: 2h
   variables:
     RUNNER_SCRIPT_TIMEOUT: 118m
     RUNNER_AFTER_SCRIPT_TIMEOUT: 2m
   tags: ['starpu', 'node_gpu']
+  rules:
+    - if: ($CI_PIPELINE_SCHEDULE_DESCRIPTION != null && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $STARPU_RUN_COVERAGE == "yes")
+      when: always
   script:
     - ./ci/scripts/run_profile.sh coverage
   after_script:
     - ./ci/scripts/clean_profile.sh coverage
 
 coverage_update:
-  extends: .benchmarks_master
+  stage: daily
   timeout: 2h
   variables:
     RUNNER_SCRIPT_TIMEOUT: 118m
@@ -76,6 +96,9 @@ coverage_update:
   needs:
     - coverage
   tags: ['starpu', 'update']
+  rules:
+    - if: ($CI_PIPELINE_SCHEDULE_DESCRIPTION != null && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $STARPU_RUN_COVERAGE == "yes")
+      when: always
   script:
     - ./ci/scripts/upload.sh ./artifacts
 
