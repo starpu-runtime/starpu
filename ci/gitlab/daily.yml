@@ -44,7 +44,7 @@ coverity:
 benchmarks:
   stage: daily
   extends: .artifacts
-  tags: ['starpu', 'node_nogpu']
+  tags: ['starpu', 'update']
   rules:
     - if: ($CI_PIPELINE_SCHEDULE_DESCRIPTION != null && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $STARPU_RUN_BENCHMARKS == "yes")
       when: always

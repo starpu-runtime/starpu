@@ -1,7 +1,7 @@
 #!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2025-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2025-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -19,13 +19,13 @@ set -x
 set -e
 dir=$(realpath $(dirname $0))
 
-SCRIPT_NAME="$HOME/scratch/starpu/benchmarks/scripts/uploadBenchs.sh"
-scriptExists=$(ssh luckyluke ls $SCRIPT_NAME 2>/dev/null)
+SCRIPT_NAME="$HOME/softs/starpu/benchmarks/scripts/uploadBenchs.sh"
+scriptExists=$(ls $SCRIPT_NAME 2>/dev/null)
 if test -z "$scriptExists"
 then
     echo This runner is not eligible to deploy new benchmarks for StarPU
-    ssh luckyluke ls $SCRIPT_NAME
-    ssh luckyluke ls $(dirname $SCRIPT_NAME)
+    ls $SCRIPT_NAME
+    ls $(dirname $SCRIPT_NAME)
     exit 1
 fi
 
@@ -58,10 +58,6 @@ then
     exit 1
 fi
 
-TMP_DIR=$(today=$(date "+%F") ssh luckyluke "mkdir -p \$HOME/starpu_artifacts/$today && mktemp -p \$HOME/starpu_artifacts/$today -d" 2>/dev/null)
-# copy files on the frontal node
-scp -pr $RELEASE_STAMPFILE $RELEASE_DIR luckyluke:$TMP_DIR/$(dirname $RELEASE_STAMPFILE)/
-
-# execute on the frontal node to upload benchmarks on the web
-ssh luckyluke $SCRIPT_NAME $BRANCH $TMP_DIR/$RELEASE_STAMPFILE
+# upload benchmarks on the web
+$SCRIPT_NAME $BRANCH $RELEASE_STAMPFILE
 
