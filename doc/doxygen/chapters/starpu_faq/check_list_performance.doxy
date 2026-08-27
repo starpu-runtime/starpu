@@ -91,7 +91,7 @@ link to \ref Energy-basedScheduling
 
 link to \ref StaticScheduling
 
-\section CUDA-specificOptimizations CUDA-specific Optimizations
+\section CUDA-specificOptimizations CUDA/HIP-specific Optimizations
 
 For proper overlapping of asynchronous GPU data transfers, data has to be pinned
 by CUDA. Data allocated with starpu_malloc() is always properly pinned. If the
@@ -184,12 +184,12 @@ have been implemented yet) correponding helper functions available:
   - starpu_hipsolverRf_get_local_handle()
   - starpu_hipsolver_shutdown()
 
-If the kernel can be made to only use this local stream or other self-allocated
-streams, i.e. the whole kernel submission can be made asynchronous, then
+If the kernel can be made to use this local stream or other self-allocated
+streams, i.e. kernel submission can be made asynchronous (at least the last part of it), then
 one should enable asynchronous execution of the kernel.  This means setting
 the flag ::STARPU_CUDA_ASYNC (resp ::STARPU_HIP_ASYNC) in the corresponding field starpu_codelet::cuda_flags (resp starpu_codelet::hip_flags), and dropping the
 <c>cudaStreamSynchronize()</c> call (resp <c>hipStreamSynchronize()</c>)) at the end of the <c>cuda_func</c> function (resp <c>hip_func</c>), so that it
-returns immediately after having queued the kernel to the local stream. That way, StarPU will be
+returns immediately after having queued the last kernel to the local stream. That way, StarPU will be
 able to submit and complete data transfers while kernels are executing, instead of only at each
 kernel submission. The kernel just has to make sure that StarPU can use the
 local stream to synchronize with the kernel startup and completion.
