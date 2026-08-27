@@ -13,9 +13,6 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-.benchmarks_master:
-  stage: daily
-
 sonarqube:
   stage: daily
   image: registry.gitlab.inria.fr/starpu/starpu-docker/ci-debian12
