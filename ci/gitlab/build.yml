@@ -45,6 +45,13 @@ build:
   needs: [build]
   dependencies:
     - build
+  rules:
+    changes:
+      - **/src/**/*
+      - **/include/**/*
+      - **/examples/**/*
+      - **/tests/**/*
+      - tools/**/*
   script:
     - ./ci/scripts/check.sh
   before_script:
