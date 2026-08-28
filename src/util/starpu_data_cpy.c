@@ -130,7 +130,8 @@ static struct starpu_codelet copy_cl =
 	.sycl_funcs = {common_data_cpy_func},
 	.nbuffers = 2,
 	.modes = {STARPU_W, STARPU_R},
-	.model = &copy_model
+	.model = &copy_model,
+	.color = 0xc000c0,
 };
 
 int _starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle,
