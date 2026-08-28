@@ -220,6 +220,10 @@ int starpu_data_dup_ro(starpu_data_handle_t *dst_handle, starpu_data_handle_t sr
 	(*dst_handle)->initialized = 1;
 	(*dst_handle)->readonly = 1;
 
+	(*dst_handle)->dimensions = src_handle->dimensions;
+	memcpy(&(*dst_handle)->coordinates, &src_handle->coordinates, sizeof(src_handle->coordinates));
+	_starpu_trace_data_coordinates(*dst_handle, (*dst_handle)->dimensions, (*dst_handle)->coordinates);
+
 	_starpu_spin_lock(&src_handle->header_lock);
 	src_handle->readonly_dup = (*dst_handle);
 	(*dst_handle)->readonly_dup_of = src_handle;
