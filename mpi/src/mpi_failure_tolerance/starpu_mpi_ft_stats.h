@@ -52,7 +52,7 @@ extern size_t cp_data_in_memory_size_max_at_t;
 
 static inline void stat_init();
 static inline void _starpu_ft_stats_shutdown();
-static inline void _starpu_ft_stats_write_to_fd();
+static inline void _starpu_ft_stats_write_to_fd(FILE *fd);
 static inline void _starpu_ft_stats_send_data(size_t size);
 static inline void _starpu_ft_stats_send_data_cached(size_t size);
 static inline void _starpu_ft_stats_recv_data(size_t size);
@@ -210,7 +210,7 @@ static inline void _starpu_ft_stats_service_msg_recv(size_t size)
 static inline void _starpu_ft_stats_add_cp_data_in_memory(size_t size)
 {
 	size_t tmp;
-	struct size_sample *tmp_sample, *sample = malloc(sizeof(struct size_sample));
+	struct size_sample *tmp_sample, *sample = (struct size_sample *)malloc(sizeof(struct size_sample));
 	STARPU_ASSERT_MSG((int)size != -1, "Cannot count a data of size -1. An error has occurred.\n");
 	STARPU_PTHREAD_MUTEX_LOCK(&_ft_stats_mutex);
 	cp_data_in_memory_size_total+=size;
@@ -229,7 +229,7 @@ static inline void _starpu_ft_stats_add_cp_data_in_memory(size_t size)
 static inline void _starpu_ft_stats_free_cp_data_in_memory(size_t size)
 {
 	size_t tmp;
-	struct size_sample* sample = malloc(sizeof(struct size_sample));
+	struct size_sample* sample = (struct size_sample *)malloc(sizeof(struct size_sample));
 	STARPU_ASSERT_MSG((int)size != -1, "Cannot count a data of size -1. An error has occurred.\n");
 	STARPU_PTHREAD_MUTEX_LOCK(&_ft_stats_mutex);
 	tmp = size_sample_list_back(&cp_data_in_memory_list)->size;

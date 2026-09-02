@@ -103,6 +103,13 @@ starpu_mpi_EXAMPLES	+=	\
 	stencil/stencil5_lb
 endif
 
+if STARPU_USE_MPI_FT
+examplebin_PROGRAMS +=		\
+	stencil/stencil5_checkpoint
+starpu_mpi_EXAMPLES	+=	\
+	stencil/stencil5_checkpoint
+endif
+
 ##################
 # Cache examples #
 ##################

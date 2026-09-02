@@ -274,8 +274,22 @@ noinst_PROGRAMS +=				\
 	partition
 
 if STARPU_USE_MPI_FT
-noinst_PROGRAMS +=  \
-	checkpoints
+noinst_PROGRAMS +=		\
+	checkpoints		\
+	checkpoint_storage
+
+starpu_mpi_TESTS +=		\
+	checkpoint_storage
+
+# checkpoint_storage needs a directory shared by all the nodes. The build tree
+# is one for the single-node run done here, and STARPU_CP_STORAGE_PATH lets a
+# run spanning several nodes point at a shared filesystem instead. The test
+# removes the directory itself, unless it failed.
+STARPU_CP_STORAGE_PATH	= $(abs_top_builddir)/mpi/tests/checkpoint_storage.d
+export STARPU_CP_STORAGE_PATH
+
+clean-local:
+	-rm -rf $(STARPU_CP_STORAGE_PATH)
 endif STARPU_USE_MPI_FT
 
 XFAIL_TESTS=					\

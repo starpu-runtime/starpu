@@ -96,7 +96,8 @@ noinst_HEADERS +=       \
 	mpi_failure_tolerance/starpu_mpi_ft_service_comms.h  \
 	mpi_failure_tolerance/starpu_mpi_checkpoint_package.h \
 	mpi_failure_tolerance/starpu_mpi_checkpoint_tracker.h \
-	mpi_failure_tolerance/starpu_mpi_ft_stats.h
+	mpi_failure_tolerance/starpu_mpi_ft_stats.h \
+	mpi_failure_tolerance/starpu_mpi_checkpoint_storage.h
 endif STARPU_USE_MPI_FT
 
 libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
@@ -141,6 +142,7 @@ libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES +=    \
 	mpi_failure_tolerance/starpu_mpi_checkpoint_package.c  \
 	mpi_failure_tolerance/starpu_mpi_checkpoint_tracker.c  \
 	mpi_failure_tolerance/starpu_mpi_ft_stats.c \
+	mpi_failure_tolerance/starpu_mpi_checkpoint_storage.c \
 	mpi_failure_tolerance/ulfm/starpu_mpi_ulfm_comm.c
 endif STARPU_USE_MPI_FT
 

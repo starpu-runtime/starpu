@@ -23,7 +23,6 @@
 #if defined(STARPU_USE_MPI)
 
 #include <mpi.h>
-#include <starpu_mpi_ft.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -162,6 +161,10 @@ typedef void *starpu_mpi_req;
    Type of the message tag.
 */
 typedef int64_t starpu_mpi_tag_t;
+
+/* Included here, and not with the other headers above, because the fault
+ * tolerance declarations use starpu_mpi_tag_t. */
+#include <starpu_mpi_ft.h>
 
 /**
    Get the tag used for MPI communications submitted by StarPU.

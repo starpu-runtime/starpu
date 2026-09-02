@@ -1412,17 +1412,117 @@ the MPI server client support.
 
 \section MPICheckpoint MPI Checkpoint Support
 
-StarPU provides an experimental checkpoint mechanism. It is for now only a proof
-of concept to see what the checkpointing cost is, since the restart part has not
-been integrated yet.
+StarPU provides an experimental checkpoint mechanism, enabled with the \c
+configure option \ref enable-mpi-ft "--enable-mpi-ft". A checkpoint template
+lists the data to be saved, and submitting it saves that data in the memory of
+backup nodes, so that the application can survive the loss of a node. The
+application in \c mpi/examples/matrix_decomposition shows how to use it, and the
+API is documented in \ref API_MPI_FT_Support.
 
-To enable checkpointing, you should use
-the \c configure option \ref enable-mpi-ft "--enable-mpi-ft". The
-application in the directory \c mpi/examples/matrix_decomposition
-shows how to enable checkpoints. The API documentation is available in
-\ref API_MPI_FT_Support
+Checkpoints can also be written to a filesystem shared by all the nodes, so that
+a later run of the application can resume from them. \ref MPICheckpointPersistent
+describes how to write them, and \ref MPICheckpointRestart how to read them back.
 
-Statistics can also be enabled with the \c configure option \ref
+Statistics can be enabled with the \c configure option \ref
 enable-mpi-ft-stats "--enable-mpi-ft-stats".
+
+\subsection MPICheckpointPersistent Writing Checkpoints to a Shared Filesystem
+
+An in-memory checkpoint disappears with the job, so it protects an application
+against losing some of its nodes, but not against losing all of them at once,
+and not against the job itself ending. Writing checkpoints to a filesystem the
+nodes share survives both, and lets a later run pick up where the previous one
+stopped.
+
+It takes three calls, and every node makes all three:
+
+\code{.c}
+/* once, before the first flush */
+starpu_mpi_checkpoint_set_storage_path("/scratch/shared/myapp_cp");
+
+/* as usual: which data belongs to the checkpoint */
+starpu_mpi_checkpoint_template_register(&cp_template, cp_id, 0,
+                                        STARPU_R, data_handle, backup_rank,
+                                        STARPU_VALUE, &iteration, sizeof(iteration),
+                                        ITER_TAG, backup_rank_function,
+                                        0);
+
+/* each time a checkpoint is wanted */
+starpu_mpi_checkpoint_flush_to_storage(cp_template);
+\endcode
+
+A flush can be used instead of starpu_mpi_checkpoint_template_submit(), or in
+addition to it.
+
+The directory must be one single directory that every node sees, and not a
+per-node directory that happens to share a path: a node reads entries written by
+the other nodes, both when looking for a checkpoint and when restoring from one.
+Node-local storage would not help here in any case, since it disappears together
+with the node it is attached to.
+
+Each flush writes a new checkpoint, and either commits it completely or leaves no
+trace of it:
+
+<ul>
+<li> the previous checkpoint is kept until the new one is complete; </li>
+<li> the new one becomes the current one only once every node has written all of
+     its entries, and the previous one is removed only then; </li>
+<li> if any node failed to write, the incomplete checkpoint is removed, the
+     previous one is left as the current one, and the call returns -1. </li>
+</ul>
+
+A run interrupted in the middle of a flush therefore still finds the previous
+checkpoint. Everything written is also flushed to the storage rather than only to
+the page cache, so a checkpoint survives the loss of the node that wrote it.
+
+Note that starpu_mpi_checkpoint_flush_to_storage() does \b not wait for the
+submitted tasks to complete. It only waits for the data it reads: ::STARPU_VALUE
+entries come from the application's own buffer, and ::STARPU_R entries are read
+under starpu_data_acquire(), which waits until that one handle is coherent in
+main memory. Waiting for the whole task graph would prevent a checkpoint from
+committing inside a short notice window. An application that does want a
+quiescent checkpoint can call starpu_task_wait_for_all() before flushing.
+
+\subsection MPICheckpointRestart Restarting from a Checkpoint
+
+An application that can be resumed starts by asking whether a checkpoint is
+there, before it registers any template:
+
+\code{.c}
+int restart;
+starpu_mpi_init_from_checkpoint("/scratch/shared/myapp_cp", &restart);
+\endcode
+
+This also configures the storage directory, so it replaces the call to
+starpu_mpi_checkpoint_set_storage_path(). When \c restart is set, three functions
+describe the checkpoint that was found:
+
+\code{.c}
+int cp_id   = starpu_mpi_checkpoint_get_restart_cp_id();
+int cp_inst = starpu_mpi_checkpoint_get_restart_cp_inst();
+int old_n   = starpu_mpi_checkpoint_get_restart_n_ranks();
+\endcode
+
+The application then restores the entries it wants, one at a time. An entry is
+named by the checkpoint it belongs to, by the rank that owned it when the
+checkpoint was written, and by its message tag:
+
+\code{.c}
+starpu_mpi_checkpoint_restore_handle(cp_id, cp_inst, old_rank, DATA_TAG, data_handle);
+starpu_mpi_checkpoint_restore_value(cp_id, cp_inst, old_rank, ITER_TAG,
+                                    &iteration, sizeof(iteration));
+\endcode
+
+Because \c old_rank is a parameter, the number of nodes does not have to be the
+same as it was. An application can compare \c old_n with its current number of
+nodes, decide which old ranks each node takes over, and restore their entries.
+A run can therefore resume on fewer nodes than it started with, or on more.
+
+The example <c>mpi/examples/stencil/stencil5_checkpoint.c</c> puts all of the
+above together in an iterative computation: run it with a \c -path, interrupt
+it, and run it again with the same \c -path to see it resume where it stopped
+and reach the value an uninterrupted run reaches. The test
+<c>mpi/tests/checkpoint_storage.c</c> covers the same calls, and additionally a
+node taking over the entries of a node which is gone.
 
 */

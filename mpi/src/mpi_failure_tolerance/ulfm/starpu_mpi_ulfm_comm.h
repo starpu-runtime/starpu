@@ -17,14 +17,14 @@
 #ifndef __STARPU_MPI_ULFM_COMM_H__
 #define __STARPU_MPI_ULFM_COMM_H__
 
+#include <mpi.h>
+#include <common/config.h>
+#include <starpu_mpi_private.h>
+
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-
-#include <mpi.h>
-#include <common/config.h>
-#include <starpu_mpi_private.h>
 
 #if defined(STARPU_USE_MPI_FT)
 
