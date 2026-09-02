@@ -480,7 +480,7 @@ void _starpu_worker_stop_state(int workerid, enum _starpu_worker_status_index in
 
 		STARPU_PTHREAD_MUTEX_LOCK(&worker->profiling_info_mutex);
 
-		STARPU_ASSERT (worker->profiling_registered_start[index] == 1);
+		STARPU_ASSERT(worker->profiling_registered_start[index] == 1);
 		{
 			state_start = &worker->profiling_registered_start_date[index];
 

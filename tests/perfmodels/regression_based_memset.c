@@ -230,7 +230,7 @@ static int bench_energy(int workerid, int where, enum starpu_worker_archtype arc
 
 		retval = starpu_energy_stop(codelet->energy_model, task, impl, ntasks, workerid, archtype);
 
-		starpu_task_destroy (task);
+		starpu_task_destroy(task);
 		starpu_data_unregister(handle);
 
 		if (retval != 0)

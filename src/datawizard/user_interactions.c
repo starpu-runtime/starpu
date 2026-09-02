@@ -341,7 +341,7 @@ int _starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_da
                         starpu_task_declare_deps(wrapper->pre_sync_task, 1, control_task);
 			control_task_end = starpu_task_create();
 			control_task_end ->name = "control_sync_jobids_end";
-			struct _starpu_job *j_end = _starpu_get_job_associated_to_task (control_task_end);
+			struct _starpu_job *j_end = _starpu_get_job_associated_to_task(control_task_end);
 			j_end->recursive.need_part_unpart = 0;
 			control_task_end->handles[0] = handle;
 			control_task_end->modes[0] = mode;

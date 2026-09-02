@@ -46,5 +46,4 @@ $ ONEAPI_DEVICE_SELECTOR=level_zero:* sycl-ls
 [level_zero:gpu] Intel(R) oneAPI Unified Runtime over Level-Zero, Intel(R) Data Center GPU Max 1100 12.60.7 [1.6.33578+42]
 \endverbatim
 
-
 */

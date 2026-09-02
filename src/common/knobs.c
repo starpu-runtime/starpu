@@ -75,7 +75,7 @@ void _starpu_perf_counter_init(struct _starpu_machine_config *pconfig)
 	else
 	{
 		/* defer perf counter collection until call to
-		 * starpu_perf_counter_start_collection () */
+		 * starpu_perf_counter_start_collection() */
 		pconfig->perf_counter_pause_depth = 1;
 	}
 	STARPU_ASSERT(!_starpu_machine_is_running());

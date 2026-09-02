@@ -1132,7 +1132,6 @@ mult_dgemm_layout_SOURCES += 			\
 	mult/sycl_gemm.cpp
 endif
 
-
 #####################
 # Trs_sgemm example #
 #####################

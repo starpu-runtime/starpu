@@ -48,7 +48,8 @@ static struct _starpu_peager_common_data *_peager_common_data = NULL;
 struct _starpu_peager_data
 {
 	starpu_pthread_mutex_t policy_mutex;
-	union {
+	union
+	{
 		struct starpu_st_fifo_taskq fifo;
 		struct starpu_st_prio_deque taskq;
 	};
@@ -272,7 +273,8 @@ static int push_task_pprio_policy(struct starpu_task *task)
 }
 
 #ifndef STARPU_NON_BLOCKING_DRIVERS
-static void notify_combined_workers(int is_parallel_task, unsigned sched_ctx_id) {
+static void notify_combined_workers(int is_parallel_task, unsigned sched_ctx_id)
+{
 
 	struct _starpu_peager_common_data *common_data = _peager_common_data;
 	/* if there are no tasks block */
@@ -433,7 +435,8 @@ static struct starpu_task *pop_task_pprio_policy(unsigned sched_ctx_id)
 	return task;
 }
 
-static struct starpu_task *pop_task_to_combined_worker(struct _starpu_peager_common_data *common_data, struct _starpu_peager_data *data, struct starpu_task *task, unsigned workerid) {
+static struct starpu_task *pop_task_to_combined_worker(struct _starpu_peager_common_data *common_data, struct _starpu_peager_data *data, struct starpu_task *task, unsigned workerid)
+{
 	/* Find the largest combined worker for which we are master */
 	int best_size = -1;
 	int best_workerid = -1;

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2017-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2017-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -143,7 +143,7 @@ static void starpu_hdf5_full_write_internal(struct _starpu_hdf5_work * work)
 
 		/* Count in number of elements */
 		hsize_t extendsdim[1] = {work->size/sizeDatatype};
-		status = H5Dset_extent (work->obj_dst->dataset, extendsdim);
+		status = H5Dset_extent(work->obj_dst->dataset, extendsdim);
 		STARPU_ASSERT_MSG(status >= 0, "Error when extending HDF5 dataspace !\n");
 		work->obj_dst->size = work->size;
 	}
@@ -210,7 +210,7 @@ static void starpu_hdf5_write_internal(struct _starpu_hdf5_work * work)
 	{
 		/* Count in number of elements */
 		hsize_t extendsdim[1] = {(work->offset_dst + work->size)/sizeDatatype};
-		status = H5Dset_extent (work->obj_dst->dataset, extendsdim);
+		status = H5Dset_extent(work->obj_dst->dataset, extendsdim);
 		STARPU_ASSERT_MSG(status >= 0, "Error when extending HDF5 dataspace !\n");
 		work->obj_dst->size = work->offset_dst + work->size;
 	}
@@ -468,8 +468,8 @@ static struct starpu_hdf5_obj * _starpu_hdf5_data_alloc(struct starpu_hdf5_base 
 	}
 
 	hsize_t chunkdim[1] = {STARPU_CHUNK_DIM};
-	hid_t prop = H5Pcreate (H5P_DATASET_CREATE);
-	herr_t status = H5Pset_chunk (prop, 1, chunkdim);
+	hid_t prop = H5Pcreate(H5P_DATASET_CREATE);
+	herr_t status = H5Pset_chunk(prop, 1, chunkdim);
 	STARPU_ASSERT_MSG(status >= 0, "Error when setting HDF5 property \n");
 
 	/* create a dataset at location name, with data described by the dataspace.

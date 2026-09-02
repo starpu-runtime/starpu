@@ -110,7 +110,8 @@ void _starpu_mem_chunk_init_last(void)
 		enum starpu_node_kind kind = starpu_node_get_kind(i);
 		starpu_ssize_t size;
 
-		switch(kind) {
+		switch(kind)
+		{
 			case STARPU_DISK_RAM:
 				/* Some disk, will be able to evict RAM */
 				disk = 1;
@@ -133,7 +134,8 @@ void _starpu_mem_chunk_init_last(void)
 		enum starpu_node_kind kind = starpu_node_get_kind(i);
 		struct _starpu_node *node_struct = _starpu_get_node_struct(i);
 
-		switch(kind) {
+		switch(kind)
+		{
 			case STARPU_DISK_RAM:
 				/* TODO: disk hierarchy */
 				break;

@@ -2705,52 +2705,52 @@ static int _starpu_omp_nest_lock_test(void **_internal)
 	return ret;
 }
 
-void starpu_omp_init_lock (starpu_omp_lock_t *lock)
+void starpu_omp_init_lock(starpu_omp_lock_t *lock)
 {
 	_starpu_omp_lock_init(&lock->internal);
 }
 
-void starpu_omp_destroy_lock (starpu_omp_lock_t *lock)
+void starpu_omp_destroy_lock(starpu_omp_lock_t *lock)
 {
 	_starpu_omp_lock_destroy(&lock->internal);
 }
 
-void starpu_omp_set_lock (starpu_omp_lock_t *lock)
+void starpu_omp_set_lock(starpu_omp_lock_t *lock)
 {
 	_starpu_omp_lock_set(&lock->internal);
 }
 
-void starpu_omp_unset_lock (starpu_omp_lock_t *lock)
+void starpu_omp_unset_lock(starpu_omp_lock_t *lock)
 {
 	_starpu_omp_lock_unset(&lock->internal);
 }
 
-int starpu_omp_test_lock (starpu_omp_lock_t *lock)
+int starpu_omp_test_lock(starpu_omp_lock_t *lock)
 {
 	return _starpu_omp_lock_test(&lock->internal);
 }
 
-void starpu_omp_init_nest_lock (starpu_omp_nest_lock_t *nest_lock)
+void starpu_omp_init_nest_lock(starpu_omp_nest_lock_t *nest_lock)
 {
 	_starpu_omp_nest_lock_init(&nest_lock->internal);
 }
 
-void starpu_omp_destroy_nest_lock (starpu_omp_nest_lock_t *nest_lock)
+void starpu_omp_destroy_nest_lock(starpu_omp_nest_lock_t *nest_lock)
 {
 	_starpu_omp_nest_lock_destroy(&nest_lock->internal);
 }
 
-void starpu_omp_set_nest_lock (starpu_omp_nest_lock_t *nest_lock)
+void starpu_omp_set_nest_lock(starpu_omp_nest_lock_t *nest_lock)
 {
 	_starpu_omp_nest_lock_set(&nest_lock->internal);
 }
 
-void starpu_omp_unset_nest_lock (starpu_omp_nest_lock_t *nest_lock)
+void starpu_omp_unset_nest_lock(starpu_omp_nest_lock_t *nest_lock)
 {
 	_starpu_omp_nest_lock_unset(&nest_lock->internal);
 }
 
-int starpu_omp_test_nest_lock (starpu_omp_nest_lock_t *nest_lock)
+int starpu_omp_test_nest_lock(starpu_omp_nest_lock_t *nest_lock)
 {
 	return _starpu_omp_nest_lock_test(&nest_lock->internal);
 }
