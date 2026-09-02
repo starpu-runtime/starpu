@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -127,6 +127,9 @@ int starpu_mpi_checkpoint_flush_to_storage(starpu_mpi_checkpoint_template_t cp_t
 				starpu_mpi_tag_t tag = starpu_mpi_data_get_tag(handle);
 
 				/* Acquire: guarantees data is coherent in main RAM */
+				/* TODO: we could try to use starpu_data_acquire_cb to write
+				 * data as it gets computed rather than strictly in the template
+				 * order */
 				int ret = starpu_data_acquire(handle, STARPU_R);
 				if (ret != 0)
 				{
