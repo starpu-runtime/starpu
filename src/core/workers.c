@@ -1498,7 +1498,11 @@ static void (*act_sigtrap)(int);
 void _starpu_handler(int sig)
 {
 #ifdef STARPU_VERBOSE
-	_STARPU_MSG("Catching signal '%d'\n", sig);
+#ifdef STARPU_HAVE_STRSIGNAL
+	_STARPU_MSG("Catching signal %s (%d)\n", strsignal(sig), sig);
+#else
+	_STARPU_MSG("Catching signal %d\n", sig);
+#endif
 #endif
 	_starpu_trace_finalize();
 	if (sig == SIGINT)
@@ -1540,7 +1544,11 @@ void _starpu_handler(int sig)
 
 	_starpu_crash_call_hooks();
 #ifdef STARPU_VERBOSE
-	_STARPU_MSG("Rearming signal '%d'\n", sig);
+#ifdef STARPU_HAVE_STRSIGNAL
+	_STARPU_MSG("Rearming signal %s (%d)\n", strsignal(sig), sig);
+#else
+	_STARPU_MSG("Rearming signal %d\n", sig);
+#endif
 #endif
 	raise(sig);
 }

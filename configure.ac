@@ -1236,6 +1236,8 @@ AC_CHECK_FUNC([nearbyintf], [AC_DEFINE([STARPU_HAVE_NEARBYINTF], [1], [Define to
 # ... but they may define rintf.
 AC_CHECK_FUNC([rintf], [AC_DEFINE([STARPU_HAVE_RINTF], [1], [Define to 1 if the function rintf is available.])])
 
+AC_CHECK_FUNC([strsignal], [AC_DEFINE([STARPU_HAVE_STRSIGNAL], [1], [Define to 1 if the function strsignal is available.])])
+
 # Define quick check
 AC_ARG_ENABLE(quick-check, [AS_HELP_STRING([--enable-quick-check],
 				   [Lower default values for the testcases run by make check to allow a faster execution])],
