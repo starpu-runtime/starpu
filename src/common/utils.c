@@ -417,7 +417,7 @@ int _starpu_frdlock(FILE *file)
 #endif
 	if (ret != 0 && _starpu_warn_nolock(errno))
 		return -1;
-	STARPU_ASSERT(ret == 0);
+	STARPU_ASSERT_MSG(ret == 0, "fcntl(F_SETLKW, R) returned %d (errno %d, %s)\n,", ret, errno, strerror(errno));
 	return ret;
 }
 
@@ -443,7 +443,7 @@ int _starpu_frdunlock(FILE *file)
 #endif
 	if (ret != 0 && _starpu_warn_nolock(errno))
 		return -1;
-	STARPU_ASSERT(ret == 0);
+	STARPU_ASSERT_MSG(ret == 0, "fcntl(F_SETLKW, U) returned %d (errno %d, %s)\n,", ret, errno, strerror(errno));
 	return ret;
 }
 
@@ -471,7 +471,7 @@ int _starpu_fwrlock(FILE *file)
 
 	if (ret != 0 && _starpu_warn_nolock(errno))
 		return -1;
-	STARPU_ASSERT(ret == 0);
+	STARPU_ASSERT_MSG(ret == 0, "fcntl(F_SETLKW, W) returned %d (errno %d, %s)\n,", ret, errno, strerror(errno));
 	return ret;
 }
 
