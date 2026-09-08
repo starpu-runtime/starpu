@@ -658,6 +658,17 @@ make sense to set this variable if \ref STARPU_HIP_THREAD_PER_WORKER is set to t
 (since \ref STARPU_HIP_THREAD_PER_DEV is then meaningless).
 </dd>
 
+<dt>STARPU_HIP_PIPELINE</dt>
+<dd>
+\anchor STARPU_HIP_PIPELINE
+\addindex __env__STARPU_HIP_PIPELINE
+Specify how many asynchronous tasks are submitted in advance on HIP
+devices. This for instance permits to overlap task management with the execution
+of previous tasks, but it also allows concurrent execution on Fermi cards, which
+otherwise bring spurious synchronizations. Default value is 2. Setting the value to 0 forces a synchronous
+execution of all tasks.
+</dd>
+
 <dt>STARPU_WORKERS_HPIID</dt>
 <dd>
 \anchor STARPU_WORKERS_HIPID
