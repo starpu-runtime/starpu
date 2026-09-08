@@ -2158,6 +2158,14 @@ static void execute_job_on_cuda(struct starpu_task *task, struct _starpu_worker 
 	/* Synchronous execution */
 	{
 #if !defined(STARPU_SIMGRID)
+		if (worker->set->nworkers > 1) {
+			static int warned = 0;
+			if (!warned)
+			{
+				_STARPU_DISP("task %s does not support STARPU_CUDA_ASYNC and multiple streams are used per GPU, but with a single driver thread for the whole GPU. This will lead to spurious synchronizations. Use STARPU_CUDA_THREAD_PER_WORKER=1 to use one thread per stream to avoid such synchronizations.\n", _starpu_job_get_task_name(j));
+				warned = 1;
+			}
+		}
 		STARPU_ASSERT_MSG(cudaStreamQuery(starpu_cuda_get_local_stream()) == cudaSuccess, "Unless when using the STARPU_CUDA_ASYNC flag, CUDA codelets have to wait for termination of their kernels on the starpu_cuda_get_local_stream() stream");
 #endif
 		finish_job_on_cuda(j, worker);
