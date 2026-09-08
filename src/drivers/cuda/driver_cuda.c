@@ -106,6 +106,7 @@ static cudaStream_t in_transfer_streams[STARPU_MAXCUDADEVS];
 /* Note: streams are not thread-safe, so we define them for each CUDA worker
  * emitting a GPU-GPU transfer */
 static cudaStream_t in_peer_transfer_streams[STARPU_MAXCUDADEVS][STARPU_MAXCUDADEVS];
+static int have_props[STARPU_MAXCUDADEVS];
 static struct cudaDeviceProp props[STARPU_MAXCUDADEVS];
 #ifndef STARPU_SIMGRID
 static cudaEvent_t task_events[STARPU_NMAXWORKERS][STARPU_MAX_PIPELINE];
@@ -181,10 +182,26 @@ cudaStream_t starpu_cuda_get_local_stream(void)
 	return streams[worker];
 }
 
+/* Note: not thread safe, only call from StarPU initialization */
+static void _starpu_cuda_take_device_properties(unsigned devid)
+{
+       cudaError_t cures;
+
+       if (have_props[devid])
+               return;
+
+       cures = cudaGetDeviceProperties(&props[devid], devid);
+       if (STARPU_UNLIKELY(cures))
+               STARPU_CUDA_REPORT_ERROR(cures);
+
+       have_props[devid] = 1;
+}
+
 const struct cudaDeviceProp *starpu_cuda_get_device_properties(unsigned workerid)
 {
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	unsigned devid = config->workers[workerid].devid;
+	STARPU_ASSERT(have_props[devid]);
 	return &props[devid];
 }
 #endif /* STARPU_USE_CUDA */
@@ -548,7 +565,7 @@ void _starpu_init_cuda_config(struct _starpu_machine_topology *topology, struct 
 			}
 			else
 			{
-				_STARPU_DISP("Warning: could not find location of CUDA%u, do you have the hwloc CUDA plugin installed?\n", devid);
+				_STARPU_DISP("Warning: could not find location of CUDA%u, do you have the hwloc CUDA or PCI plugin installed?\n", devid);
 			}
 		}
 #endif
@@ -606,6 +623,8 @@ static void _starpu_cuda_limit_gpu_mem_if_needed(unsigned devid)
 	size_t STARPU_ATTRIBUTE_UNUSED totalGlobalMem = 0;
 	size_t STARPU_ATTRIBUTE_UNUSED to_waste = 0;
 
+	_starpu_cuda_take_device_properties(devid);
+
 #ifdef STARPU_SIMGRID
 	totalGlobalMem = _starpu_simgrid_get_memsize("CUDA", devid);
 #elif defined(STARPU_USE_CUDA)
@@ -647,9 +666,6 @@ void _starpu_cuda_init_worker_memory(struct _starpu_machine_config *config, int 
 	unsigned memory_node = -1;
 	unsigned devid = workerarg->devid;
 	unsigned numa;
-#ifndef STARPU_SIMGRID
-	cudaError_t cures;
-#endif
 
 	if (cuda_memory_init[devid])
 	{
@@ -658,12 +674,6 @@ void _starpu_cuda_init_worker_memory(struct _starpu_machine_config *config, int 
 	else
 	{
 		cuda_memory_init[devid] = 1;
-
-#ifndef STARPU_SIMGRID
-		cures = cudaGetDeviceProperties(&props[devid], devid);
-		if (STARPU_UNLIKELY(cures))
-			STARPU_CUDA_REPORT_ERROR(cures);
-#endif
 
 		memory_node = cuda_memory_nodes[devid] = _starpu_memory_node_register(STARPU_CUDA_RAM, devid);
 
@@ -828,6 +838,7 @@ done:
 static void init_device_context(unsigned devid)
 {
 	STARPU_ASSERT(devid < STARPU_MAXCUDADEVS);
+	STARPU_ASSERT(have_props[devid]);
 
 #ifndef STARPU_SIMGRID
 	cudaError_t cures;
@@ -2512,11 +2523,21 @@ void *_starpu_cuda_worker(void *_arg)
 #ifdef STARPU_HAVE_HWLOC
 hwloc_obj_t _starpu_cuda_get_hwloc_obj(hwloc_topology_t topology, int devid)
 {
+	hwloc_obj_t obj = NULL;
 #if !defined(STARPU_SIMGRID) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX
-	return hwloc_cuda_get_device_osdev_by_index(topology, devid);
-#else
-	return NULL;
+	obj = hwloc_cuda_get_device_osdev_by_index(topology, devid);
 #endif
+	if (!obj)
+	{
+		_starpu_cuda_take_device_properties(devid);
+
+		obj = hwloc_get_pcidev_by_busid(topology,
+				props[devid].pciDomainID,
+				props[devid].pciBusID,
+				props[devid].pciDeviceID,
+				0);
+	}
+	return obj;
 }
 #endif
 

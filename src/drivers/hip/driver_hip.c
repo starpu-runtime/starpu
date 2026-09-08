@@ -59,6 +59,7 @@ static hipStream_t in_transfer_streams[STARPU_MAXHIPDEVS];
 /* Note: streams are not thread-safe, so we define them for each HIP worker
  * emitting a GPU-GPU transfer */
 static hipStream_t in_peer_transfer_streams[STARPU_MAXHIPDEVS][STARPU_MAXHIPDEVS];
+static int have_props[STARPU_MAXHIPDEVS];
 static struct hipDeviceProp_t props[STARPU_MAXHIPDEVS];
 static hipEvent_t task_events[STARPU_NMAXWORKERS][STARPU_MAX_PIPELINE];
 
@@ -122,10 +123,26 @@ hipStream_t starpu_hip_get_local_stream(void)
 	return streams[worker];
 }
 
+/* Note: not thread safe, only call from StarPU initialization */
+static void _starpu_hip_take_device_properties(unsigned devid)
+{
+	hipError_t hipres;
+
+	if (have_props[devid])
+		return;
+
+	hipres = hipGetDeviceProperties(&props[devid], devid);
+	if (STARPU_UNLIKELY(hipres))
+		STARPU_HIP_REPORT_ERROR(hipres);
+
+	have_props[devid] = 1;
+}
+
 const struct hipDeviceProp_t *starpu_hip_get_device_properties(unsigned workerid)
 {
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	unsigned devid = config->workers[workerid].devid;
+	STARPU_ASSERT(have_props[devid]);
 	return &props[devid];
 }
 #endif /* STARPU_USE_HIP */
@@ -318,7 +335,7 @@ void _starpu_init_hip_config(struct _starpu_machine_topology *topology, struct _
 			}
 			else
 			{
-				_STARPU_DEBUG("Warning: could not find location of HIP%u, do you have the hwloc HIP plugin installed?\n", devid);
+				_STARPU_DEBUG("Warning: could not find location of HIP%u, do you have the hwloc HIP or PCI plugin installed?\n", devid);
 			}
 		}
 #endif
@@ -369,6 +386,8 @@ static void _starpu_hip_limit_gpu_mem_if_needed(unsigned devid)
 	size_t STARPU_ATTRIBUTE_UNUSED totalGlobalMem = 0;
 	size_t STARPU_ATTRIBUTE_UNUSED to_waste = 0;
 
+	_starpu_hip_take_device_properties(devid);
+
 	/* Find the size of the memory on the device */
 	totalGlobalMem = props[devid].totalGlobalMem;
 
@@ -395,7 +414,6 @@ void _starpu_hip_init_worker_memory(struct _starpu_machine_config *config, int n
 	unsigned memory_node = -1;
 	unsigned devid = workerarg->devid;
 	unsigned numa;
-	hipError_t hipres;
 
 	if (hip_memory_init[devid])
 	{
@@ -404,10 +422,6 @@ void _starpu_hip_init_worker_memory(struct _starpu_machine_config *config, int n
 	else
 	{
 		hip_memory_init[devid] = 1;
-
-		hipres = hipGetDeviceProperties(&props[devid], devid);
-		if (STARPU_UNLIKELY(hipres))
-			STARPU_HIP_REPORT_ERROR(hipres);
 
 		memory_node = hip_memory_nodes[devid] = _starpu_memory_node_register(STARPU_HIP_RAM, devid);
 
@@ -528,6 +542,7 @@ static void _starpu_hip_force_init()
 static void init_device_context(unsigned devid)
 {
 	STARPU_ASSERT(devid < STARPU_MAXHIPDEVS);
+	STARPU_ASSERT(have_props[devid]);
 
 	hipError_t hipres;
 
@@ -1663,13 +1678,21 @@ void *_starpu_hip_worker(void *_arg)
 #ifdef STARPU_HAVE_HWLOC
 hwloc_obj_t _starpu_hip_get_hwloc_obj(hwloc_topology_t topology, int devid)
 {
+	hwloc_obj_t obj = NULL;
 #if HAVE_DECL_HWLOC_HIP_GET_DEVICE_OSDEV_BY_INDEX
-	return hwloc_hip_get_device_osdev_by_index(topology, devid);
-#else
-	(void)topology;
-	(void)devid;
-	return NULL;
+	obj = hwloc_hip_get_device_osdev_by_index(topology, devid);
 #endif
+	if (!obj)
+	{
+		_starpu_hip_take_device_properties(devid);
+
+		obj = hwloc_get_pcidev_by_busid(topology,
+				props[devid].pciDomainID,
+				props[devid].pciBusID,
+				props[devid].pciDeviceID,
+				0);
+	}
+	return obj;
 }
 #endif
 
