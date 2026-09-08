@@ -73,7 +73,9 @@ static int hip_device_users[STARPU_MAXHIPDEVS];
 static starpu_pthread_mutex_t hip_device_init_mutex[STARPU_MAXHIPDEVS];
 static starpu_pthread_cond_t hip_device_init_cond[STARPU_MAXHIPDEVS];
 static int hip_globalbindid;
+#ifdef STARPU_HAVE_HIP_MEMCPY_PEER
 static char hip_peer_enabled[STARPU_MAXCUDADEVS][STARPU_MAXCUDADEVS];
+#endif
 
 static int _starpu_hip_peer_access(int devid, int peer_devid);
 
@@ -617,12 +619,14 @@ static void deinit_device_context(unsigned devid STARPU_ATTRIBUTE_UNUSED)
 		if (worker->arch == STARPU_HIP_WORKER && worker->subworkerid == 0)
 		{
 			hipStreamDestroy(in_peer_transfer_streams[worker->devid][devid]);
+#ifdef STARPU_HAVE_HIP_MEMCPY_PEER
 			if (hip_peer_enabled[devid][worker->devid])
 			{
 				hipDeviceDisablePeerAccess(worker->devid);
 				(void) hipGetLastError();
 				hip_peer_enabled[devid][worker->devid] = 0;
 			}
+#endif
 		}
 	}
 }
@@ -1270,7 +1274,7 @@ static int _starpu_hip_copy2d_data_from_hip_to_hip(uintptr_t src, size_t src_off
 					    size_t blocksize, size_t numblocks, size_t ld_src, size_t ld_dst,
 					    struct _starpu_async_channel *async_channel)
 {
-#ifndef STARPU_HAVE_CUDA_MEMCPY_PEER
+#ifndef STARPU_HAVE_HIP_MEMCPY_PEER
 	STARPU_ASSERT(src_devid == dst_devid);
 #endif
 	return starpu_hip_copy2d_async_sync_devid((void*) (src + src_offset), src_devid, STARPU_HIP_RAM,
@@ -1339,6 +1343,7 @@ static void _starpu_hip_reset_device(int devid)
 
 static int _starpu_hip_peer_access(int devid, int peer_devid)
 {
+#if defined(STARPU_HAVE_HIP_MEMCPY_PEER)
 	if (starpu_getenv_number("STARPU_ENABLE_HIP_GPU_GPU_DIRECT") != 0)
 	{
 		int can;
@@ -1351,6 +1356,7 @@ static int _starpu_hip_peer_access(int devid, int peer_devid)
 			return 1;
 		}
 	}
+#endif
 	return 0;
 }
 
