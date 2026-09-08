@@ -1456,6 +1456,14 @@ static void execute_job_on_hip(struct starpu_task *task, struct _starpu_worker *
 	}
 	else /* Synchronous execution */
 	{
+		if (worker->set->nworkers > 1) {
+			static int warned = 0;
+			if (!warned)
+			{
+				_STARPU_DISP("task %s does not support STARPU_HIP_ASYNC and multiple streams are used per GPU, but with a single driver thread for the whole GPU. This will lead to spurious synchronizations. Use STARPU_HIP_THREAD_PER_WORKER=1 to use one thread per stream to avoid such synchronizations.\n", _starpu_job_get_task_name(j));
+				warned = 1;
+			}
+		}
 		STARPU_ASSERT_MSG(hipStreamQuery(starpu_hip_get_local_stream()) == hipSuccess, "Unless when using the STARPU_HIP_ASYNC flag, HIP codelets have to wait for termination of their kernels on the starpu_hip_get_local_stream() stream");
 		finish_job_on_hip(j, worker);
 	}
