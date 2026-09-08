@@ -325,9 +325,17 @@ void _starpu_init_hip_config(struct _starpu_machine_topology *topology, struct _
 void _starpu_hip_init_worker_binding(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
 {
 	/* Perhaps the worker has some "favourite" bindings  */
-	unsigned *preferred_binding = NULL;
+	unsigned preferred_binding[STARPU_NMAXWORKERS];
 	unsigned npreferred = 0;
 	unsigned devid = workerarg->devid;
+
+	if (_starpu_may_bind_automatically[STARPU_HIP_WORKER])
+	{
+		/* StarPU is allowed to bind threads automatically */
+		unsigned *preferred_numa_binding = _starpu_get_affinity_vector_by_kind(devid, STARPU_HIP_RAM);
+		unsigned npreferred_numa = _starpu_topology_get_nhwnumanodes(config);
+		npreferred = _starpu_topology_get_numa_core_binding(config, preferred_numa_binding, npreferred_numa, preferred_binding, STARPU_NMAXWORKERS);
+	}
 
 	if (hip_bindid_init[devid])
 	{
