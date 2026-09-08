@@ -2266,7 +2266,8 @@ static void execute_job_on_cuda(struct starpu_task *task, struct _starpu_worker 
 	/* Synchronous execution */
 	{
 #if !defined(STARPU_SIMGRID)
-		if (worker->set->nworkers > 1) {
+		if (worker->set->nworkers > 1)
+		{
 			static int warned = 0;
 			if (!warned)
 			{
