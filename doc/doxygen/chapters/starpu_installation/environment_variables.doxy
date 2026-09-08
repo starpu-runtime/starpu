@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2016-2016  Uppsala University
  * Copyright (C) 2020,2021  Federal University of Rio Grande do Sul (UFRGS)
  *
@@ -614,6 +614,51 @@ Specify the number of HIP devices that StarPU can use. If
 possible to select which HIP devices should be used by the means of the
 environment variable \ref STARPU_WORKERS_HIPID. By default, StarPU will
 create as many HIP workers as there are HIP devices.
+</dd>
+
+<dt>STARPU_NWORKER_PER_HIP</dt>
+<dd>
+\anchor STARPU_NWORKER_PER_HIP
+\addindex __env__STARPU_NWORKER_PER_HIP
+Specify the number of workers per HIP device, and thus the number of kernels
+which will be concurrently running on the devices, i.e. the number of HIP
+streams. Default value is 1.
+
+For parallelism to be really achieved, one also needs to make HIP codelets
+asynchronous (it is recommended for single-worker performance too anyway,
+see ::STARPU_HIP_ASYNC), or to set \ref STARPU_HIP_THREAD_PER_WORKER to 1.
+</dd>
+
+<dt>STARPU_HIP_THREAD_PER_WORKER</dt>
+<dd>
+\anchor STARPU_HIP_THREAD_PER_WORKER
+\addindex __env__STARPU_HIP_THREAD_PER_WORKER
+Specify whether the HIP driver should use one thread per stream (1) or to use
+a single thread to drive all the streams of the device or all devices (0), and
+\ref STARPU_HIP_THREAD_PER_DEV determines whether is it one thread per device or one
+thread for all devices. Default value is 0. Setting it to 1 is contradictory
+with setting \ref STARPU_HIP_THREAD_PER_DEV.
+</dd>
+
+<dt>STARPU_HIP_THREAD_PER_DEV</dt>
+<dd>
+\anchor STARPU_HIP_THREAD_PER_DEV
+\addindex __env__STARPU_HIP_THREAD_PER_DEV
+Specify whether the HIP driver should use one thread per device (1) or to use a
+single thread to drive all the devices (0). Default value is 1. It does not
+make sense to set this variable if \ref STARPU_HIP_THREAD_PER_WORKER is set to to 1
+(since \ref STARPU_HIP_THREAD_PER_DEV is then meaningless).
+</dd>
+
+<dt>STARPU_HIP_PIPELINE</dt>
+<dd>
+\anchor STARPU_HIP_PIPELINE
+\addindex __env__STARPU_HIP_PIPELINE
+Specify how many asynchronous tasks are submitted in advance on HIP
+devices. This for instance permits to overlap task management with the execution
+of previous tasks, but it also allows concurrent execution on Fermi cards, which
+otherwise bring spurious synchronizations. Default value is 2. Setting the value to 0 forces a synchronous
+execution of all tasks.
 </dd>
 
 <dt>STARPU_WORKERS_HPIID</dt>

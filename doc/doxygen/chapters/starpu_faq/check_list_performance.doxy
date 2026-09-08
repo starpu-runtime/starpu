@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -32,7 +32,7 @@ you can run the script \c tasks_size_overhead.sh to get an
 idea of the scalability of tasks depending on their duration (in µs), on your
 own system.
 
-Typically, 10µs-ish tasks are definitely too small, the CUDA overhead itself is
+Typically, 10µs-ish tasks are definitely too small, the CUDA/HIP overhead itself is
 much bigger than this.
 
 1ms-ish tasks may be a good start, but will not necessarily scale to many dozens
@@ -94,22 +94,23 @@ link to \ref StaticScheduling
 \section CUDA-specificOptimizations CUDA-specific Optimizations
 
 For proper overlapping of asynchronous GPU data transfers, data has to be pinned
-by CUDA. Data allocated with starpu_malloc() is always properly pinned. If the
+by CUDA/HIP. Data allocated with starpu_malloc() is always properly pinned. If the
 application registers to StarPU some data which has not been allocated with
 starpu_malloc(), starpu_memory_pin() should be called to pin the data
 memory. Otherwise, the "Asynchronous copy submission" parts of the execution
 traces (see \ref StatesInGantt) will show the synchronous inefficiency.
 
-Note that CUDA pinning/unpinning takes a long time, so for e.g. temporary
+Note that CUDA/HIP pinning/unpinning takes a long time, so for e.g. temporary
 data, it is much more efficient to use a StarPU temporary data (see \ref
 TemporaryData), that StarPU can reuse and thus avoid the pin/unpin cost.
 
-Due to CUDA limitations, StarPU will have a hard time overlapping its own
+Due to CUDA/HIP limitations, StarPU will have a hard time overlapping its own
 communications and the codelet computations if the application does not use a
-dedicated CUDA stream for its computations instead of the default stream,
+dedicated CUDA/HIP stream for its computations instead of the default stream,
 which synchronizes all operations of the GPU. The function
-starpu_cuda_get_local_stream() returns a stream which can be used by all CUDA codelet
-operations to avoid this issue. For instance:
+starpu_cuda_get_local_stream() (resp. starpu_hip_get_local_stream()) returns a
+stream which can be used by all CUDA (resp. HIP) codelet
+operations to avoid this issue. For instance for CUDA and for HIP:
 
 \code{.c}
 func <<<grid,block,0,starpu_cuda_get_local_stream()>>> (foo, bar);
@@ -118,8 +119,15 @@ if (status != cudaSuccess) STARPU_CUDA_REPORT_ERROR(status);
 cudaStreamSynchronize(starpu_cuda_get_local_stream());
 \endcode
 
-as well as the use of \c cudaMemcpyAsync(), etc. for each CUDA operation one needs
-to use a version that takes a stream parameter.
+\code{.c}
+func <<<grid,block,0,starpu_hip_get_local_stream()>>> (foo, bar);
+hipError_t status = hipGetLastError();
+if (status != hipSuccess) STARPU_HIP_REPORT_ERROR(status);
+hipStreamSynchronize(starpu_hip_get_local_stream());
+\endcode
+
+as well as the use of \c cudaMemcpyAsync(), \c hipMemcpyAsync, etc. for each
+CUDA/HIP operation one needs to use a version that takes a stream parameter.
 
 If the kernel uses its own non-default stream, one can synchronize this stream
 with the StarPU-provided stream this way:
@@ -133,17 +141,26 @@ cudaStreamWaitEvent(starpu_cuda_get_local_stream(), event, 0);
 cudaEventDestroy(event);
 \endcode
 
+\code{.c}
+hipEvent_t event;
+call_kernel_with_its_own_stream()
+hipEventCreateWithFlags(&event, hipEventDisableTiming);
+hipEventRecord(event, get_kernel_stream());
+hipStreamWaitEvent(starpu_hip_get_local_stream(), event, 0);
+hipEventDestroy(event);
+\endcode
+
 This code makes the StarPU-provided stream wait for a new event, which will be
 triggered by the completion of the kernel.
 
-Unfortunately, some CUDA libraries do not have stream variants of
+Unfortunately, some CUDA/HIP libraries do not have stream variants of
 kernels. This will seriously lower the potential for overlapping.
-If some CUDA calls are made without specifying this local stream,
-synchronization needs to be explicit with cudaDeviceSynchronize() around these
+If some CUDA/HIP calls are made without specifying this local stream,
+synchronization needs to be explicit with cudaDeviceSynchronize() / hipDeviceSynchronize() around these
 calls, to make sure that they get properly synchronized with the calls using
-the local stream. Notably, \c cudaMemcpy() and \c cudaMemset() are actually
-asynchronous and need such explicit synchronization! Use \c cudaMemcpyAsync() and
-\c cudaMemsetAsync() instead.
+the local stream. Notably, \c cudaMemcpy(), \c cudaMemset(), \c hipMemcpy() and \c hipMemset() are actually
+asynchronous and need such explicit synchronization! Use \c cudaMemcpyAsync(),
+\c cudaMemsetAsync() and \c hipMemcpyAsync() and \c hipMemsetAsync() instead.
 
 Calling starpu_cublas_init() will ensure StarPU to properly call the
 CUBLAS library functions, and starpu_cublas_shutdown() will synchronously deinitialize the CUBLAS library on every CUDA device. Some libraries like Magma may however change the current stream of CUBLAS v1, one then has to call starpu_cublas_set_stream() at
@@ -187,9 +204,9 @@ enabled by setting the environment variable \ref STARPU_NWORKER_PER_CUDA to the
 number of kernels to be executed concurrently.  This is useful when kernels are
 small and do not feed the whole GPU with threads to run.
 
-Concerning memory allocation, you should really not use \c cudaMalloc()/ \c cudaFree()
-within the kernel, since \c cudaFree() introduces way too many synchronizations
-within CUDA itself. You should instead add a parameter to the codelet with the
+Concerning memory allocation, you should really not use \c cudaMalloc() / \c hipMalloc() / \c cudaFree() / \c hipFree()
+within the kernel, since \c cudaFree() / \c hipFree() introduces way too many synchronizations
+within CUDA/HIP itself. You should instead add a parameter to the codelet with the
 ::STARPU_SCRATCH mode access. You can then pass to the task a handle registered
 with the desired size but with the \c NULL pointer, the handle can even be
 shared between tasks, StarPU will allocate per-task data on the fly before task
@@ -213,7 +230,7 @@ kernel startup and completion.
 \section DetectionStuckConditions Detecting Stuck Conditions
 
 It may happen that StarPU does not make progress for a long
-period of time.  It may be due to contention inside StarPU, but it may also be an external problem, such as a stuck MPI or CUDA driver.
+period of time.  It may be due to contention inside StarPU, but it may also be an external problem, such as a stuck MPI or CUDA/HIP driver.
 
 <c>export STARPU_WATCHDOG_TIMEOUT=10000</c> (\ref STARPU_WATCHDOG_TIMEOUT)
 
@@ -234,7 +251,9 @@ By default, StarPU makes sure to use at most 90% of the memory of GPU devices,
 moving data in and out of the device as appropriate, as well as using
 prefetch and write-back optimizations.
 
-The environment variables \ref STARPU_LIMIT_CUDA_MEM, \ref STARPU_LIMIT_CUDA_devid_MEM,
+The environment variables
+\ref STARPU_LIMIT_CUDA_MEM, \ref STARPU_LIMIT_CUDA_devid_MEM,
+\ref STARPU_LIMIT_HIP_MEM, \ref STARPU_LIMIT_HIP_devid_MEM,
 \ref STARPU_LIMIT_OPENCL_MEM, and \ref STARPU_LIMIT_OPENCL_devid_MEM
 can be used to control how much (in MiB) of the GPU device memory
 should be used at most by StarPU (the default value is to use 90% of the
@@ -299,6 +318,7 @@ can set the \c configure parameters
 \ref enable-maxcombinedworkers "--enable-maxcombinedworkers",
 \ref enable-maxnumanodes "--enable-maxnumanodes",
 \ref enable-maxcudadev "--enable-maxcudadev",
+\ref enable-maxhipdev "--enable-maxhipdev",
 \ref enable-maxopencldev "--enable-maxopencldev" and
 \ref enable-maxnodes "--enable-maxnodes"
 to give StarPU
@@ -407,13 +427,16 @@ overrides the hostname of the system.
 By default, StarPU stores separate performance models for each GPU. To avoid
 having to calibrate performance models for each GPU of a homogeneous set of GPU
 devices for instance, the model can be shared by using the environment
-variables \ref STARPU_PERF_MODEL_HOMOGENEOUS_CUDA, \ref
-STARPU_PERF_MODEL_HOMOGENEOUS_OPENCL and \ref
-STARPU_PERF_MODEL_HOMOGENEOUS_MPI_MS depending on your GPU device
+variables
+\ref STARPU_PERF_MODEL_HOMOGENEOUS_CUDA,
+\ref STARPU_PERF_MODEL_HOMOGENEOUS_HIP,
+\ref STARPU_PERF_MODEL_HOMOGENEOUS_OPENCL
+and \ref STARPU_PERF_MODEL_HOMOGENEOUS_MPI_MS depending on your GPU device
 type.
 
 \code{.shell}
 export STARPU_PERF_MODEL_HOMOGENEOUS_CUDA=1
+export STARPU_PERF_MODEL_HOMOGENEOUS_HIP=1
 export STARPU_PERF_MODEL_HOMOGENEOUS_OPENCL=1
 export STARPU_PERF_MODEL_HOMOGENEOUS_MPI_MS=1
 \endcode
