@@ -623,11 +623,11 @@ static void _starpu_cuda_limit_gpu_mem_if_needed(unsigned devid)
 	size_t STARPU_ATTRIBUTE_UNUSED totalGlobalMem = 0;
 	size_t STARPU_ATTRIBUTE_UNUSED to_waste = 0;
 
-	_starpu_cuda_take_device_properties(devid);
-
 #ifdef STARPU_SIMGRID
 	totalGlobalMem = _starpu_simgrid_get_memsize("CUDA", devid);
 #elif defined(STARPU_USE_CUDA)
+	_starpu_cuda_take_device_properties(devid);
+
 	/* Find the size of the memory on the device */
 	totalGlobalMem = props[devid].totalGlobalMem;
 #endif
@@ -838,9 +838,10 @@ done:
 static void init_device_context(unsigned devid)
 {
 	STARPU_ASSERT(devid < STARPU_MAXCUDADEVS);
-	STARPU_ASSERT(have_props[devid]);
 
 #ifndef STARPU_SIMGRID
+	STARPU_ASSERT(have_props[devid]);
+
 	cudaError_t cures;
 
 	/* TODO: cudaSetDeviceFlag(cudaDeviceMapHost) */
@@ -2533,9 +2534,15 @@ void *_starpu_cuda_worker(void *_arg)
 hwloc_obj_t _starpu_cuda_get_hwloc_obj(hwloc_topology_t topology, int devid)
 {
 	hwloc_obj_t obj = NULL;
-#if !defined(STARPU_SIMGRID) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX
+	(void) topology;
+	(void) devid;
+
+#if !defined(STARPU_SIMGRID)
+
+#if HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX
 	obj = hwloc_cuda_get_device_osdev_by_index(topology, devid);
 #endif
+
 	if (!obj)
 	{
 		_starpu_cuda_take_device_properties(devid);
@@ -2546,6 +2553,7 @@ hwloc_obj_t _starpu_cuda_get_hwloc_obj(hwloc_topology_t topology, int devid)
 				props[devid].pciDeviceID,
 				0);
 	}
+#endif
 	return obj;
 }
 #endif
