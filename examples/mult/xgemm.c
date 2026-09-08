@@ -130,7 +130,6 @@ static void cublas_mult(void *descr[], void *arg, const TYPE *beta)
 					    beta, subC, ldC);
 	if (status != CUBLAS_STATUS_SUCCESS)
 		STARPU_CUBLAS_REPORT_ERROR(status);
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -192,7 +191,7 @@ static struct starpu_codelet cl_gemm0 =
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
 #endif
-	//.cuda_flags = {STARPU_CUDA_ASYNC},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.hip_flags = {STARPU_HIP_ASYNC},
 	.sycl_flags = {STARPU_SYCL_ASYNC},
 	.nbuffers = 3,
@@ -217,7 +216,7 @@ static struct starpu_codelet cl_gemm =
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
 #endif
-	//.cuda_flags = {STARPU_CUDA_ASYNC},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.hip_flags = {STARPU_HIP_ASYNC},
 	.sycl_flags = {STARPU_SYCL_ASYNC},
 	.nbuffers = 3,
