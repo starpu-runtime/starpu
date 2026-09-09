@@ -172,6 +172,11 @@ static void _starpu_mpi_trigger_mem_reg(struct _starpu_mpi_req *req)
 	_mpi_backend._starpu_mpi_backend_early_mem_reg(req);
 }
 
+static void _starpu_mpi_send_notify_receiver(struct _starpu_mpi_req *req)
+{
+	_mpi_backend._starpu_mpi_backend_send_notify_receiver(req);
+}
+
 /* If the MPI backend supports request early prefetching, trigger it. */
 static void _starpu_mpi_soon_callback(void *arg, STARPU_ATTRIBUTE_UNUSED double delay)
 {
@@ -213,6 +218,7 @@ static void _starpu_mpi_soon_callback(void *arg, STARPU_ATTRIBUTE_UNUSED double 
 		req->node = _starpu_mpi_choose_node(req->data_handle, STARPU_R);
 	STARPU_ASSERT(req->node >= 0);
 	_starpu_mpi_trigger_mem_reg(req);
+	_starpu_mpi_send_notify_receiver(req);
 	_STARPU_MPI_LOG_OUT();
 }
 
@@ -279,6 +285,7 @@ static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_dat
 		 * cancelled */
 		_starpu_mpi_mem_unreg_if_requested(req);
 		_starpu_mpi_trigger_mem_reg(req);
+		_starpu_mpi_send_notify_receiver(req);
 	}
 	_STARPU_MPI_LOG_OUT();
 }
