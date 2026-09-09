@@ -271,6 +271,7 @@ LIST_TYPE(_starpu_mpi_req,
 	  int node;
 
 	  int early_prefetched;
+	  int notification_sent;
 
 	  /** description of the data to be sent/received */
 	  MPI_Datatype datatype;

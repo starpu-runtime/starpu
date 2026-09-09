@@ -175,6 +175,7 @@ static void _starpu_mpi_trigger_mem_reg(struct _starpu_mpi_req *req)
 static void _starpu_mpi_send_notify_receiver(struct _starpu_mpi_req *req)
 {
 	_mpi_backend._starpu_mpi_backend_send_notify_receiver(req);
+	req->notification_sent = 1;
 }
 
 /* If the MPI backend supports request early prefetching, trigger it. */
