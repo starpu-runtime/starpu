@@ -462,7 +462,7 @@ static int _starpu_cuda_driver_init(struct _starpu_worker *worker)
 	unsigned devid = worker->devid;
 	unsigned memnode = worker->memory_node;
 
-	init_device_context(devid, memnode);
+	init_device_context(devid);
 
 	unsigned workerid = worker->workerid;
 
