@@ -434,6 +434,13 @@ struct _starpu_mpi_backend
 	 * soon_callback or the acquired_callback of a request. */
 	void (*_starpu_mpi_backend_early_mem_reg)(struct _starpu_mpi_req *req);
 	void (*_starpu_mpi_backend_early_mem_unreg)(struct _starpu_mpi_req *req);
+
+	/* Optional function for notifying the receiver of a request short
+	 * (~1ms) before actually submitting the request. The receiver is
+	 * supposed to wait for this notification before allocating any memory
+	 * buffer for receiving the message, the aim being to reduce the memory
+	 * footprint of the program. */
+	void (*_starpu_mpi_backend_send_notify_receiver)(struct _starpu_mpi_req *req);
 };
 
 extern struct _starpu_mpi_backend _mpi_backend;

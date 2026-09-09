@@ -108,6 +108,11 @@ static void _starpu_mpi_nmad_early_mem_unreg(struct _starpu_mpi_req *req)
 	nm_sr_send_early_unfetch(req->backend->session, &req->backend->data_request);
 }
 
+static void _starpu_mpi_nmad_send_notify_receiver(struct _starpu_mpi_req *req)
+{
+	(void) req;
+}
+
 struct _starpu_mpi_backend _mpi_backend =
 {
 	._starpu_mpi_backend_init = _starpu_mpi_nmad_backend_init,
@@ -137,6 +142,8 @@ struct _starpu_mpi_backend _mpi_backend =
 
 	._starpu_mpi_backend_early_mem_reg = _starpu_mpi_nmad_early_mem_reg,
 	._starpu_mpi_backend_early_mem_unreg = _starpu_mpi_nmad_early_mem_unreg,
+
+	._starpu_mpi_backend_send_notify_receiver = _starpu_mpi_nmad_send_notify_receiver,
 };
 
 #endif /* STARPU_USE_MPI_NMAD*/
