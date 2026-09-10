@@ -72,6 +72,7 @@ static void _starpu_mpi_nmad_backend_request_destroy(struct _starpu_mpi_req *req
 {
 	piom_cond_destroy(&(req->backend->req_cond));
 	_starpu_spin_destroy(&req->backend->finalized_to_destroy_lock);
+	nm_datav_destroy(&req->backend->datav);
 	free(req->backend);
 	req->backend = NULL;
 }
