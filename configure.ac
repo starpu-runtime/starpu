@@ -4678,6 +4678,38 @@ fi
 
 ###############################################################################
 #                                                                             #
+#                          Energy Reader settings                             #
+#                                                                             #
+###############################################################################
+
+AC_ARG_ENABLE([energyreader], 
+  [AS_HELP_STRING([--enable-energyreader], 
+  [Enable the energyreader extension])], 
+  [enable_energyreader=$enableval], 
+  [enable_energyreader=no])
+if test "x$enable_energyreader" = "xyes"; then
+  PKG_CHECK_MODULES([ENERGYREADER], [energyreader], 
+    [have_valid_energyreader=yes],
+    [have_valid_energyreader=no])
+  if test "x$have_valid_energyreader" = "xyes"; then
+    AC_DEFINE([STARPU_HAVE_ENERGYREADER], 1, [Define to 1 if you have the libenergyreader library])
+    # Print LIBS and CFLAGS
+    AC_MSG_RESULT([EnergyReader found, LIBS and CFLAGS are being used:])
+    AC_MSG_RESULT([LIBS: $ENERGYREADER_LIBS])
+    AC_MSG_RESULT([CFLAGS: $ENERGYREADER_CFLAGS])
+    # Energy tracing requires Fxt
+    if test "x$enable_fxt" = "xno"; then
+      AC_MSG_WARN([Fxt not enabled, energyreader will not be able to create energy traces])
+    fi
+  else
+    AC_MSG_ERROR([energyreader enabled but not found via pkg-config])
+  fi
+fi
+
+
+
+###############################################################################
+#                                                                             #
 #                                Final settings                               #
 #                                                                             #
 ###############################################################################
@@ -4711,7 +4743,7 @@ if test x$enable_openmp = xyes -a \( x$enable_cuda0 = xyes -o x$enable_cuda1 = x
 fi
 
 CPPFLAGS="$CPPFLAGS -DSTARPU_SAMPLING_DIR=\"\\\"${datarootdir}/starpu/perfmodels/sampling\\\"\""
-STARPU_BASIC_H_CPPFLAGS="$HWLOC_CFLAGS $STARPU_CUDA_CPPFLAGS $STARPU_HIP_CPPFLAGS $STARPU_OPENCL_CPPFLAGS $STARPU_MAX_FPGA_CPPFLAGS $SIMGRID_CFLAGS $PAPI_CFLAGS $STARPU_OPENMP_CPPFLAGS $STARPU_HIPBLAS_DIRS $STARPU_PROF_TOOL_CPPFLAGS"
+STARPU_BASIC_H_CPPFLAGS="$HWLOC_CFLAGS $STARPU_CUDA_CPPFLAGS $STARPU_HIP_CPPFLAGS $STARPU_OPENCL_CPPFLAGS $STARPU_MAX_FPGA_CPPFLAGS $SIMGRID_CFLAGS $PAPI_CFLAGS $STARPU_OPENMP_CPPFLAGS $STARPU_HIPBLAS_DIRS $STARPU_PROF_TOOL_CPPFLAGS $ENERGYREADER_CFLAGS "
 
 # these are the flags needed to compile starpu.h
 STARPU_H_CPPFLAGS="$STARPU_BASIC_H_CPPFLAGS"
@@ -4721,7 +4753,7 @@ STARPU_NVCC_H_CPPFLAGS="$STARPU_BASIC_H_CPPFLAGS"
 AC_SUBST([STARPU_NVCC_H_CPPFLAGS])
 
 # these are the flags needed for linking libstarpu (and thus also for static linking)
-LIBSTARPU_LDFLAGS="$STARPU_OPENCL_LDFLAGS $STARPU_CUDA_LDFLAGS $STARPU_HIP_LDFLAGS $STARPU_HIPBLAS_LDFLAGS $STARPU_SYCL_LDFLAGS $HWLOC_LIBS $FXT_LDFLAGS $FXT_LIBS $PAPI_LIBS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LDFLAGS $STARPU_BLAS_LDFLAGS $DGELS_LIBS $STARPU_MAX_FPGA_LDFLAGS $STARPU_DLOPEN_LDFLAGS"
+LIBSTARPU_LDFLAGS="$STARPU_OPENCL_LDFLAGS $STARPU_CUDA_LDFLAGS $STARPU_HIP_LDFLAGS $STARPU_HIPBLAS_LDFLAGS $STARPU_SYCL_LDFLAGS $HWLOC_LIBS $FXT_LDFLAGS $FXT_LIBS $PAPI_LIBS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LDFLAGS $STARPU_BLAS_LDFLAGS $DGELS_LIBS $STARPU_MAX_FPGA_LDFLAGS $STARPU_DLOPEN_LDFLAGS $ENERGYREADER_LIBS "
 AC_SUBST([LIBSTARPU_LDFLAGS])
 
 # these are the flags needed for linking against libstarpu (because starpu.h makes its includer use pthread_*, simgrid, etc.)
@@ -5064,6 +5096,7 @@ AC_MSG_NOTICE([
 	       Support for multiple linear regression models: $support_mlr
 	       Recursive tasks support:                       $enable_recursive_tasks
 	       JULIA enabled:                                 $enable_julia
+	       Energy-Reader enabled:                         $enable_energyreader
 ])
 
 if test "$build_socl" = "yes" -a "$run_socl_check" = "no" ; then

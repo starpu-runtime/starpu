@@ -58,6 +58,10 @@
 #endif
 #endif
 
+#ifdef STARPU_HAVE_ENERGYREADER
+#include <common/energy_counters.h>
+#endif
+
 #ifdef STARPU_HAVE_WINDOWS
 #include <windows.h>
 #endif
@@ -781,6 +785,10 @@ static void *_starpu_cpu_worker(void *arg)
 
 	while (_starpu_machine_is_running())
 	{
+#ifdef STARPU_HAVE_ENERGYREADER
+		if (_starpu_energyreader_try_measurement(worker->workerid) != 0)
+			_STARPU_DISP("Failed to read energy consumption\n");
+#endif
 		_starpu_may_pause();
 		_starpu_cpu_driver_run_once(worker);
 	}

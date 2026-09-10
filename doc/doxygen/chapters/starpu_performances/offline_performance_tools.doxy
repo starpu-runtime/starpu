@@ -699,6 +699,84 @@ histogram of the codelet execution time distribution.
 \image html distrib_data_histo.png
 \image latex distrib_data_histo.png "" width=\textwidth
 
+\section HardwareEnergyMonitoring Hardware Energy Monitoring
+
+StarPU can monitor the energy drawn by the hardware of the machine while 
+an application is running. This relies on the external <c>energy-reader</c>
+library (see https://gitlab.com/JulesRisse/energy-reader), which provides 
+a uniform interface over several hardware counter backends:
+
+- Intel/AMD <c>RAPL</c> counters (CPU package and DRAM domains), read either
+  through <c>perf_event_open</c> or through the <c>powercap</c> sysfs
+  interface.
+- Cray <c>pm_counters</c> node-level power meters.
+- NVIDIA GPUs, through <c>NVML</c>.
+- AMD GPUs, through <c>ROCm SMI</c>.
+
+\subsection HardwareEnergyMonitoringEnabling Enabling Hardware Energy Monitoring
+
+Yo access this feature, you should configure StarPU with the \ref
+enable-energyreader "--enable-energyreader" option, which needs the
+<c>energyreader</c> package to be found by <c>pkg-config</c>. Getting the
+fine-grain trace of the measurements (see below) additionally requires
+FxT support to be enabled (see \ref GeneratingTracesWithFxT);
+
+Once such a StarPU build is installed, monitoring is disabled by
+default, and is enabled for a given run by setting the environment
+variable \ref STARPU_ENERGY_READER to <c>1</c>.
+
+Since backends do not all refresh their counters at the same rate, each
+family of counters has its own sampling period which can be modified 
+through environment variables: \ref STARPU_ENERGY_PKG_INTERVAL and \ref
+STARPU_ENERGY_CRAY_INTERVAL default to sensible values
+(RAPL counters are refreshed every 1ms internally, Cray counters every
+100ms), while \ref STARPU_ENERGY_GPU_INTERVAL is by
+default automatically computed at startup from a few probing
+measurements of the actual GPU counter refresh rate, since it varies 
+across GPU vendors and models.
+
+\subsection HardwareEnergyMonitoringOutput Collecting The Measurements
+
+Two kinds of output are produced:
+
+<ul>
+<li>
+When the application terminates (i.e. when starpu_shutdown() is
+called), a summary of the total and last-delta energy measured for each
+counter instance (e.g. one line per CPU package, per GPU, etc.) is
+printed as CSV on the standard output, for instance:
+\verbatim
+counter,backend,scope,scope_id,energy_total,energy_delta,timestamp,delay_us
+PERF_CPU_PKG,RAPL_PERF,CPU_PACKAGE,0,3.796875,0.231567,1788434595779147,9.172
+NVIDIA_GPU,NVML,GPU,0,128.452000,1.024000,1788434595812345,120.4
+\endverbatim
+See energy-reader documentation for a breakdown of the various fields.
+</li>
+<li>
+If an FxT trace is being generated (see \ref GeneratingTracesWithFxT),
+every individual sample, together with the timestamp and the worker
+which triggered the measurement, is recorded as a trace event. When
+<c>starpu_fxt_tool</c> processes the trace, this produces, alongside the
+usual Paje trace, a <c>energy.csv</c> file with one line per sample:
+\verbatim
+counter,domain,backend,scope,scope_id,worker,energy_j,delay_ns,timestamp
+PERF_CPU_PKG,CPU_PKG,RAPL_PERF,CPU_PACKAGE,0,3,0.231567,9172000,1788434595.779147
+\endverbatim
+and a <c>topo.rec</c> file describing the topology (CPU packages, cores,
+GPUs) that was detected by <c>energy-reader</c>, as well as how StarPU
+workers map onto it (core, package, device and memory node for each
+worker id), which makes it possible to relate the <c>energy.csv</c>
+samples to the Gantt diagram (see \ref CreatingAGanttDiagram) of the
+same execution.
+</li>
+</ul>
+
+A test showing how to enable the feature is available in
+<c>tests/energy/energy_reader.c</c>. It is also run by
+<c>tests/energy/energy_reader.sh</c> with FxT trace generation turned
+on, which then checks the format of the resulting <c>energy.csv</c> and
+<c>topo.rec</c> files.
+
 \section EnergyOfCodelets Energy Of Codelets
 
 A performance model of the energy of codelets can also be recorded thanks to

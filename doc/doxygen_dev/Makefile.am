@@ -91,6 +91,7 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/src/common/utils.h	\
 	$(top_srcdir)/src/common/thread.h	\
 	$(top_srcdir)/src/common/list.h	\
+	$(top_srcdir)/src/common/energy_counters.h	\
 	$(top_srcdir)/src/debug/starpu_debug_helpers.h	\
 	$(top_srcdir)/src/debug/traces/starpu_fxt.h	\
 	$(top_srcdir)/src/sched_policies/fifo_queues.h	\

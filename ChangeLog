@@ -31,6 +31,9 @@ New features:
   * Add soon_callback in tasks.
   * Implemented copy on write for starpu_data_dup_ro.
   * Add persistent checkpointing for the MPI fault tolerance support.
+  * Add hardware energy counters monitoring (RAPL, Cray pm_counters, NVML,
+    ROCm SMI) through the energy-reader library, enabled with
+    --enable-energyreader and STARPU_ENERGY_READER=1.
 
 Small features:
   * Add FXT option -show-workers to display the available workers in

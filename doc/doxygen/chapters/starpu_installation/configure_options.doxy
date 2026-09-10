@@ -893,6 +893,17 @@ Allow to make multiple linear regression models use the system-provided BLAS for
 Enable support for nOS-V hypervision (see \ref InteroperabilitySupport)
 </dd>
 
+<dt>--enable-energyreader</dt>
+<dd>
+\anchor enable-energyreader
+\addindex __configure__--enable-energyreader
+Enable hardware energy counters monitoring through the external
+<c>energy-reader</c> library, which must be found through
+<c>pkg-config</c> (see \ref HardwareEnergyMonitoring). Getting the trace of 
+the measurements additionally requires FxT support
+to be enabled (see \ref with-fxt "--with-fxt").
+</dd>
+
 </dl>
 
 */

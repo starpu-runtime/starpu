@@ -1510,6 +1510,130 @@ int _starpu_trace_papi_task_event(int event_id STARPU_ATTRIBUTE_UNUSED, struct s
 	return 0;
 }
 
+/**
+ * An energy measurement has been done.
+ */
+int _starpu_trace_energy_reading_measurement(unsigned long counter STARPU_ATTRIBUTE_UNUSED,
+					     unsigned long scope STARPU_ATTRIBUTE_UNUSED,
+					     unsigned long scope_id STARPU_ATTRIBUTE_UNUSED,
+					     unsigned long energy STARPU_ATTRIBUTE_UNUSED,
+					     unsigned long decimal_precision STARPU_ATTRIBUTE_UNUSED,
+					     unsigned long delay_ns STARPU_ATTRIBUTE_UNUSED,
+					     int workerid STARPU_ATTRIBUTE_UNUSED)
+{
+#ifdef STARPU_HAVE_ENERGYREADER
+#ifdef STARPU_USE_FXT
+	FUT_DO_PROBE8(_STARPU_FUT_ENERGY_VALUE, counter, scope, scope_id, energy,
+		      decimal_precision, delay_ns, workerid, _starpu_gettid());
+#endif
+#endif
+	return 0;
+}
+
+/**
+ * Register the logical id of a CPU detected by energy-reader, as well as their core count.
+ */
+int _starpu_trace_energy_reading_pkg_register(int pkg_id STARPU_ATTRIBUTE_UNUSED, int nb_cores STARPU_ATTRIBUTE_UNUSED)
+{
+#ifdef STARPU_HAVE_ENERGYREADER
+#ifdef STARPU_USE_FXT
+	FUT_DO_PROBE2(_STARPU_FUT_ENERGY_REGISTER_PKG, pkg_id, nb_cores);
+#endif
+#endif
+	return 0;
+}
+
+/**
+ * Register the logical id of a CPU core detected by energy-reader on a package.
+ */
+int _starpu_trace_energy_reading_core_register(int core_id STARPU_ATTRIBUTE_UNUSED, int pkg_id STARPU_ATTRIBUTE_UNUSED)
+{
+#ifdef STARPU_HAVE_ENERGYREADER
+#ifdef STARPU_USE_FXT
+	FUT_DO_PROBE2(_STARPU_FUT_ENERGY_REGISTER_CORE, core_id, pkg_id);
+#endif
+#endif
+	return 0;
+}
+
+/**
+ * Register the NVML/ROCM device id of a GPU detected by energy-reader.
+ */
+int _starpu_trace_energy_reading_gpu_register(int gpu_id STARPU_ATTRIBUTE_UNUSED, int numa_node STARPU_ATTRIBUTE_UNUSED)
+{
+#ifdef STARPU_HAVE_ENERGYREADER
+#ifdef STARPU_USE_FXT
+	FUT_DO_PROBE2(_STARPU_FUT_ENERGY_REGISTER_GPU, gpu_id, numa_node);
+#endif
+#endif
+	return 0;
+}
+
+/**
+ * Register CPU worker position on a CPU as well as its bound memory node
+ */
+int _starpu_trace_energy_reading_register_cpu_worker(int workerid STARPU_ATTRIBUTE_UNUSED, int core_logical_index STARPU_ATTRIBUTE_UNUSED, int package_logical_index STARPU_ATTRIBUTE_UNUSED, unsigned int memory_node_id STARPU_ATTRIBUTE_UNUSED, enum starpu_node_kind memory_node_kind STARPU_ATTRIBUTE_UNUSED)
+{
+#ifdef STARPU_HAVE_ENERGYREADER
+#ifdef STARPU_USE_FXT
+	FUT_DO_PROBE5(_STARPU_FUT_ENERGY_REGISTER_CPU_WORKER, workerid, core_logical_index, package_logical_index, memory_node_id, memory_node_kind);
+#endif
+#endif
+	return 0;
+}
+
+/**
+ * Register CUDA worker position on a CPU as well as its bound memory node and GPU device id's
+ */
+int _starpu_trace_energy_reading_register_cuda_worker(int workerid STARPU_ATTRIBUTE_UNUSED, int core_logical_index STARPU_ATTRIBUTE_UNUSED, int package_logical_index STARPU_ATTRIBUTE_UNUSED, unsigned int memory_node_id STARPU_ATTRIBUTE_UNUSED, enum starpu_node_kind memory_node_kind STARPU_ATTRIBUTE_UNUSED, int gpu_devid STARPU_ATTRIBUTE_UNUSED)
+{
+#ifdef STARPU_HAVE_ENERGYREADER
+#ifdef STARPU_USE_FXT
+	FUT_DO_PROBE6(_STARPU_FUT_ENERGY_REGISTER_CUDA_WORKER, workerid, core_logical_index, package_logical_index, memory_node_id, memory_node_kind, gpu_devid);
+#endif
+#endif
+	return 0;
+}
+
+/**
+ * Register HIP worker position on a CPU as well as its bound memory node and GPU device id's
+ */
+int _starpu_trace_energy_reading_register_hip_worker(int workerid STARPU_ATTRIBUTE_UNUSED, int core_logical_index STARPU_ATTRIBUTE_UNUSED, int package_logical_index STARPU_ATTRIBUTE_UNUSED, unsigned int memory_node_id STARPU_ATTRIBUTE_UNUSED, enum starpu_node_kind memory_node_kind STARPU_ATTRIBUTE_UNUSED, int gpu_devid STARPU_ATTRIBUTE_UNUSED)
+{
+#ifdef STARPU_HAVE_ENERGYREADER
+#ifdef STARPU_USE_FXT
+	FUT_DO_PROBE6(_STARPU_FUT_ENERGY_REGISTER_HIP_WORKER, workerid, core_logical_index, package_logical_index, memory_node_id, memory_node_kind, gpu_devid);
+#endif
+#endif
+	return 0;
+}
+
+/**
+ * An energy measurement has been started.
+ */
+int _starpu_trace_start_energy_measuring(void)
+{
+#ifdef STARPU_HAVE_ENERGYREADER
+#ifdef STARPU_USE_FXT
+	FUT_DO_PROBE1(_STARPU_FUT_START_ENERGY_MEASURING, _starpu_gettid());
+#endif
+#endif
+	return 0;
+}
+
+/**
+ * An energy measurement has ended.
+ */
+int _starpu_trace_end_energy_measuring(void)
+{
+#ifdef STARPU_HAVE_ENERGYREADER
+#ifdef STARPU_USE_FXT
+	FUT_DO_PROBE1(_STARPU_FUT_END_ENERGY_MEASURING, _starpu_gettid());
+#endif
+#endif
+	return 0;
+}
+
 /* We skip these events because they are called so often that they cause FxT to
  * fail and make the overall trace unreadable anyway. */
 /**

@@ -333,4 +333,23 @@ int _starpu_trace_start_parallel_sync(struct _starpu_job *job);
 /* After a barrier synchronizing the threads */
 int _starpu_trace_end_parallel_sync(struct _starpu_job *job);
 
+/* An energy measurement has been done */
+int _starpu_trace_energy_reading_measurement(unsigned long counter, unsigned long scope, unsigned long scope_id, unsigned long energy, unsigned long decimal_precision, unsigned long delay_ns, int workerid);
+/* Register the logical id of a CPU detected by energy-reader, as well as their core count */
+int _starpu_trace_energy_reading_pkg_register(int pkg_id, int nb_cores);
+/* Register the NVML/ROCM device id of a GPU detected by energy-reader */
+int _starpu_trace_energy_reading_gpu_register(int gpu_id, int numa_node);
+/* Register CPU worker position on a CPU as well as its bound memory node */
+int _starpu_trace_energy_reading_register_cpu_worker(int workerid, int core_logical_index, int package_logical_index, unsigned int memory_node_id, enum starpu_node_kind memory_node_kind);
+/* Register CUDA worker position on a CPU as well as its bound memory node and GPU device id's */
+int _starpu_trace_energy_reading_register_cuda_worker(int workerid, int core_logical_index, int package_logical_index, unsigned int memory_node_id, enum starpu_node_kind memory_node_kind, int gpu_devid);
+/* Register HIP worker position on a CPU as well as its bound memory node and GPU device id's */
+int _starpu_trace_energy_reading_register_hip_worker(int workerid, int core_logical_index, int package_logical_index, unsigned int memory_node_id, enum starpu_node_kind memory_node_kind, int gpu_devid);
+/* An energy measurement has been started */
+int _starpu_trace_start_energy_measuring(void);
+/* An energy measurement has ended */
+int _starpu_trace_end_energy_measuring(void);
+/* Register the logical id of a CPU core detected by energy-reader on a package */
+int _starpu_trace_energy_reading_core_register(int core_id, int pkg_id);
+
 #endif	/* #ifndef STARPU_TRACE_H */

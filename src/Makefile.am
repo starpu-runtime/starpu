@@ -128,6 +128,7 @@ noinst_HEADERS = 						\
 	common/list.h						\
 	common/rwlock.h						\
 	common/starpu_spinlock.h				\
+	common/energy_counters.h				\
 	common/utils.h						\
 	common/thread.h						\
 	common/barrier.h					\
@@ -182,6 +183,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	common/rwlock.c						\
 	common/starpu_spinlock.c				\
 	common/timing.c						\
+	common/energy_counters.c 			        \
 	common/utils.c						\
 	common/thread.c						\
 	common/rbtree.c						\

@@ -74,6 +74,7 @@
 #include <windows.h>
 #endif
 
+#include <common/energy_counters.h>
 #include <starpu_profiling_tool.h>
 
 #if defined(_WIN32)
@@ -1757,6 +1758,10 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	if (starpu_getenv_number("STARPU_FXT_TRACE") > 0)
 		_STARPU_DISP("Warning: FxT trace is requested but StarPU was configured without FxT support\n");
 #endif
+#if !defined(STARPU_HAVE_ENERGYREADER)
+	if (starpu_getenv_number("STARPU_ENERGY") > 0)
+		_STARPU_DISP("Warning: Energy monitoring is requested but StarPU was configured without energy monitoring support\n");
+#endif
 #ifdef STARPU_FXT_LOCK_TRACES
 	_STARPU_DISP("Warning: StarPU was configured with --enable-fxt-lock, which slows down things a huge lot, and is really only meant for StarPU insides debugging. Did you really want to enable that?\n");
 #endif
@@ -1981,6 +1986,9 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 #ifdef STARPU_SIMGRID
 	_starpu_simgrid_init();
 #endif
+
+	_starpu_energyreader_init(_starpu_config);
+
 	if (!is_a_sink)
 	{
 		/* Launch "basic" workers (ie. non-combined workers) */
@@ -2283,7 +2291,7 @@ void starpu_shutdown(void)
 		_starpu_worker_deinit(&_starpu_config.workers[worker]);
 
 	_starpu_profiling_terminate();
-
+	_starpu_energyreader_terminate();
 	_starpu_disk_unregister();
 #ifdef STARPU_HAVE_HWLOC
 	starpu_tree_free(_starpu_config.topology.tree);

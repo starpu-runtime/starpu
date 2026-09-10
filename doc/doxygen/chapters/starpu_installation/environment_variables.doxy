@@ -946,6 +946,47 @@ Enable on-line energy monitoring of tasks (\ref Per-codeletFeedback).
 Specify which PAPI events should be recorded in the trace (\ref PapiCounters).
 </dd>
 
+<dt>STARPU_ENERGY_READER</dt>
+<dd>
+\anchor STARPU_ENERGY_READER
+\addindex __env__STARPU_ENERGY_READER
+Enable hardware energy counters monitoring through the <c>energy-reader</c>
+library (\ref HardwareEnergyMonitoring). Only meaningful when StarPU was
+configured with \ref enable-energyreader "--enable-energyreader".
+(disabled by default)
+</dd>
+
+<dt>STARPU_ENERGY_PKG_INTERVAL</dt>
+<dd>
+\anchor STARPU_ENERGY_PKG_INTERVAL
+\addindex __env__STARPU_ENERGY_PKG_INTERVAL
+When \ref STARPU_ENERGY_READER is enabled and RAPL counters are
+available, set the minimum delay in milliseconds between two samples of
+the CPU package/DRAM energy counters (\ref HardwareEnergyMonitoring).
+(default: 50)
+</dd>
+
+<dt>STARPU_ENERGY_CRAY_INTERVAL</dt>
+<dd>
+\anchor STARPU_ENERGY_CRAY_INTERVAL
+\addindex __env__STARPU_ENERGY_CRAY_INTERVAL
+When \ref STARPU_ENERGY_READER is enabled and Cray <c>pm_counters</c> are
+available, set the minimum delay in milliseconds between two samples of
+these counters (\ref HardwareEnergyMonitoring).
+(default: 500)
+</dd>
+
+<dt>STARPU_ENERGY_GPU_INTERVAL</dt>
+<dd>
+\anchor STARPU_ENERGY_GPU_INTERVAL
+\addindex __env__STARPU_ENERGY_GPU_INTERVAL
+When \ref STARPU_ENERGY_READER is enabled and GPU energy counters
+(NVML or ROCm SMI) are available, set the minimum delay in milliseconds
+between two samples of the GPU energy counters (\ref
+HardwareEnergyMonitoring). When unset, StarPU probes the actual GPU
+counter refresh rate at startup and derives a suitable value from it.
+</dd>
+
 </dl>
 
 \section ConfiguringHeteroprio Configuring The Heteroprio Scheduler

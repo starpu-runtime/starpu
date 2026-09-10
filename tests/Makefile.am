@@ -39,6 +39,7 @@ EXTRA_DIST =					\
 	regression/profiles.build.only.in	\
 	energy/static.sh			\
 	energy/dynamic.sh			\
+	energy/energy_reader.sh			\
 	energy/perfs.gp				\
 	datawizard/scratch_opencl_kernel.cl     \
 	datawizard/sync_and_notify_data_opencl_codelet.cl\
@@ -82,7 +83,7 @@ CLEANFILES = 					\
 	*.gcno *.gcda *.linkinfo core starpu_idle_microsec.log *.mod *.png *.output tasks.rec perfs.rec */perfs.rec */*/perfs.rec perfs2.rec fortran90/starpu_mod.f90 bandwidth-*.dat bandwidth.gp bandwidth.eps bandwidth.svg *.csv *.md *.Rmd *.pdf *.html
 
 clean-local:
-	-rm -rf overlap/overlap.traces datawizard/locality.traces traces/fxt.traces
+	-rm -rf overlap/overlap.traces datawizard/locality.traces traces/fxt.traces energy/energy_reader.traces
 
 BUILT_SOURCES =
 
@@ -329,6 +330,7 @@ myPROGRAMS +=				\
 	disk/disk_pack				\
 	errorcheck/invalid_blocking_calls	\
 	errorcheck/workers_cpuid		\
+	energy/energy_reader			\
 	fault-tolerance/retry			\
 	helper/starpu_data_cpy			\
 	helper/starpu_data_dup_ro		\
@@ -402,6 +404,7 @@ noinst_PROGRAMS += $(myPROGRAMS)
 
 SHELL_TESTS += \
 	traces/fxt.sh \
+	energy/energy_reader.sh \
 	datawizard/locality.sh
 
 if STARPU_USE_FXT

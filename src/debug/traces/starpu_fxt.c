@@ -28,6 +28,26 @@
 #include <papi.h>
 #endif
 
+#ifdef STARPU_HAVE_ENERGYREADER
+#include <energy_reader.h> // Needed for decimal precisions
+enum energy_reader_domain
+{
+	ENERGY_READER_CPU,
+	ENERGY_READER_CORE,
+	ENERGY_READER_GPU,
+	ENERGY_READER_DRAM
+};
+double unsigned_long_to_double_with_precision(unsigned long value, int decimalPrecision)
+{
+	double factor = pow(10.0, decimalPrecision);
+	return (double)value / factor;
+}
+static void write_esolver_entry(const char *event, const char *type, const char *state_name,
+				double timestamp, int workerid, const char *worker_type,
+				int threadid, int coreid, int pkgid, int deviceid);
+enum energy_reader_gpu_type gpu_type_offline = GPU_NONE;
+#endif
+
 #ifdef STARPU_USE_FXT
 #include "starpu_fxt.h"
 #include <inttypes.h>
@@ -70,6 +90,11 @@ static FILE *tasks_file;
 static FILE *data_file;
 #ifdef STARPU_PAPI
 static FILE *papi_file;
+#endif
+#ifdef STARPU_HAVE_ENERGYREADER
+static FILE *energy_file;
+static FILE *topo_file;
+static FILE *energy_solver_file;
 #endif
 static FILE *trace_file;
 static FILE *comms_file;
@@ -402,6 +427,88 @@ static struct data_info *get_data(unsigned long handle, int mpi_rank)
 	return data;
 }
 
+#ifdef STARPU_HAVE_ENERGYREADER
+struct worker_topo_info
+{
+	UT_hash_handle hh;
+	unsigned long worker_id;
+	enum starpu_worker_archtype worker_type;
+	int core_id;
+	int pkg_id;
+	int device_id;
+	unsigned int memnode_id;
+	enum starpu_node_kind node_kind;
+};
+static struct worker_topo_info *workers_topo;
+
+static void add_worker_topo(unsigned long worker_id, enum starpu_worker_archtype worker_type,
+			    int core_logical_id, int pkg_logical_id, int device_id, int memnode_id,
+			    enum starpu_node_kind node_kind)
+{
+	struct worker_topo_info *worker_topo;
+
+	HASH_FIND(hh, workers_topo, &worker_id, sizeof(worker_id), worker_topo);
+	if (!worker_topo)
+	{
+		_STARPU_MALLOC(worker_topo, sizeof(*worker_topo));
+		worker_topo->worker_id = worker_id;
+		worker_topo->worker_type = worker_type;
+		worker_topo->core_id = core_logical_id;
+		worker_topo->pkg_id = pkg_logical_id;
+		worker_topo->device_id = device_id;
+		worker_topo->memnode_id = memnode_id;
+		worker_topo->node_kind = node_kind;
+		HASH_ADD(hh, workers_topo, worker_id, sizeof(worker_id), worker_topo);
+	}
+}
+
+static struct worker_topo_info *get_worker_topo(unsigned long worker_id)
+{
+	struct worker_topo_info *worker_topo = NULL;
+	HASH_FIND(hh, workers_topo, &worker_id, sizeof(worker_id), worker_topo);
+	return worker_topo;
+}
+
+static enum starpu_node_kind get_memnode_kind(unsigned int memnode_id)
+{
+	struct worker_topo_info *entry, *tmp;
+	HASH_ITER(hh, workers_topo, entry, tmp)
+	{
+		if (entry->memnode_id == memnode_id)
+		{
+			return entry->node_kind;
+		}
+	}
+	return -1;
+}
+
+static int get_device_id_by_memnode(unsigned int memnode_id)
+{
+	struct worker_topo_info *entry, *tmp;
+	HASH_ITER(hh, workers_topo, entry, tmp)
+	{
+		if (entry->memnode_id == memnode_id)
+		{
+			return entry->device_id;
+		}
+	}
+	return -2; // -1 is no device (i.e CPU memnode)
+}
+
+static int get_pkg_id_by_memnode(unsigned int memnode_id)
+{
+	struct worker_topo_info *entry, *tmp;
+	HASH_ITER(hh, workers_topo, entry, tmp)
+	{
+		if (entry->memnode_id == memnode_id)
+		{
+			return entry->pkg_id;
+		}
+	}
+	return -1;
+}
+#endif /* STARPU_HAVE_ENERGYREADER */
+
 unsigned _starpu_fxt_data_get_coord(unsigned long handle, int mpi_rank, unsigned dim)
 {
 	struct data_info *data = get_data(handle, mpi_rank);
@@ -567,6 +674,7 @@ static double current_computation_time;
 #define THREAD_STATE      (1 << 1)
 #define COMM_THREAD_STATE (1 << 2)
 #define USER_THREAD_STATE (1 << 3)
+#define MEMORY_NODE_STATE (1 << 4)
 
 static struct
 {
@@ -605,6 +713,18 @@ static struct
 	{ "W",   "Waiting task",		 THREAD_STATE | USER_THREAD_STATE },
 	{ "WA",  "Waiting all tasks",		 THREAD_STATE | USER_THREAD_STATE },
 	{ "No",  "Nothing",			 THREAD_STATE | USER_THREAD_STATE },
+#ifdef STARPU_HAVE_ENERGYREADER
+	{"MeRAPL", "MeasuringEnergyRapl",        WORKER_STATE | THREAD_STATE},
+	{"MeGPU", "MeasuringEnergyGpu",          WORKER_STATE | THREAD_STATE},
+#endif
+	{"A", "Allocating",                      MEMORY_NODE_STATE},
+	{"Ar", "AllocatingReuse",                MEMORY_NODE_STATE},
+	{"Co", "DriverCopy",                     MEMORY_NODE_STATE},
+	{"CoA", "DriverCopyAsync",               MEMORY_NODE_STATE},
+	{"F", "Freeing",                         MEMORY_NODE_STATE},
+	{"W", "WritingBack",                     MEMORY_NODE_STATE},
+	{"Wa", "WritingBackAsync",               MEMORY_NODE_STATE},
+	{"R", "Reclaiming",                      MEMORY_NODE_STATE},
 };
 
 struct _thread_info *_thread_infos = NULL;
@@ -900,6 +1020,43 @@ static void memnode_push_state(double time, const char *prefix, unsigned int mem
 #else
 	fprintf(out_paje_file, "11	%.9f	%smm%u	MS	%s\n", time, prefix, memnodeid, name);
 #endif
+#ifdef STARPU_HAVE_ENERGYREADER
+	if (energy_solver_file)
+	{
+		const char *event = get_state_name(name, MEMORY_NODE_STATE);
+		enum starpu_node_kind node_kind = get_memnode_kind(memnodeid);
+		char type_buff[50];
+		snprintf(type_buff, sizeof(type_buff), "MEMNODE_%d", memnodeid);
+		int device_id = -1;
+		int pkg_id = -1;
+		const char *memnode_kind;
+		switch (node_kind)
+		{
+		case STARPU_CPU_RAM:
+			// DRAM RAPL domain is linked to a PKG
+			pkg_id = get_pkg_id_by_memnode(memnodeid);
+			memnode_kind = "CPU_RAM";
+			break;
+		case STARPU_CUDA_RAM:
+			device_id = get_device_id_by_memnode(memnodeid);
+			memnode_kind = "CUDA_RAM";
+			break;
+		case STARPU_HIP_RAM:
+			device_id = get_device_id_by_memnode(memnodeid);
+			memnode_kind = "HIP_RAM";
+			break;
+		case STARPU_DISK_RAM:
+			pkg_id = get_pkg_id_by_memnode(memnodeid);
+			memnode_kind = "DISK_RAM";
+			break;
+		default:
+			memnode_kind = "UNKNOWN";
+			break;
+		}
+		write_esolver_entry("PushMemoryState", type_buff, event, time, -1,
+				    memnode_kind, -1, -1, pkg_id, device_id);
+	}
+#endif
 }
 
 static void memnode_pop_state(double time, const char *prefix, unsigned int memnodeid)
@@ -910,6 +1067,42 @@ static void memnode_pop_state(double time, const char *prefix, unsigned int memn
 	poti_PopState(time, container, "MS");
 #else
 	fprintf(out_paje_file, "12	%.9f	%smm%u	MS\n", time, prefix, memnodeid);
+#endif
+#ifdef STARPU_HAVE_ENERGYREADER
+	if (energy_solver_file)
+	{
+		enum starpu_node_kind node_kind = get_memnode_kind(memnodeid);
+		char type_buff[50];
+		snprintf(type_buff, sizeof(type_buff), "MEMNODE_%d", memnodeid);
+		int device_id = -1;
+		int pkg_id = -1;
+		const char *memnode_kind;
+		switch (node_kind)
+		{
+		case STARPU_CPU_RAM:
+			// DRAM RAPL domain is linked to a PKG
+			pkg_id = get_pkg_id_by_memnode(memnodeid);
+			memnode_kind = "CPU_RAM";
+			break;
+		case STARPU_CUDA_RAM:
+			device_id = get_device_id_by_memnode(memnodeid);
+			memnode_kind = "CUDA_RAM";
+			break;
+		case STARPU_HIP_RAM:
+			device_id = get_device_id_by_memnode(memnodeid);
+			memnode_kind = "HIP_RAM";
+			break;
+		case STARPU_DISK_RAM:
+			pkg_id = get_pkg_id_by_memnode(memnodeid);
+			memnode_kind = "DISK_RAM";
+			break;
+		default:
+			memnode_kind = "UNKNOWN";
+			break;
+		}
+		write_esolver_entry("PopMemoryState", type_buff, "N/A",
+				    time, -1, memnode_kind, -1, -1, pkg_id, device_id);
+	}
 #endif
 }
 
@@ -1283,6 +1476,132 @@ static void recfmt_user_thread_pop_state(double time, long unsigned threadid)
 	recfmt_pop_state(time, -1, threadid);
 }
 
+#ifdef STARPU_HAVE_ENERGYREADER
+static void write_esolver_entry(const char *event, const char *type, const char *state_name,
+				double timestamp, int workerid, const char *worker_type,
+				int threadid, int coreid, int pkgid, int deviceid)
+{
+	if (energy_solver_file)
+	{
+		int ret = fprintf(energy_solver_file,
+				  "%s,%s,%s,%.9f,%d,%s,%d,%d,%d,%d\n",
+				  event ? event : "N/A",
+				  type ? type : "N/A",
+				  state_name ? state_name : "N/A",
+				  timestamp,
+				  workerid,
+				  worker_type ? worker_type : "N/A",
+				  threadid,
+				  coreid,
+				  pkgid,
+				  deviceid);
+		if (ret < 0)
+		{
+			STARPU_ABORT_MSG("Failed to write in energy_solver file (err %s)", strerror(errno));
+		}
+	}
+}
+
+static void esolverfmt_dump_state(double time, const char *event, int workerid,
+				  long int threadid, const char *name, const char *type)
+{
+	int core_id = -1;
+	int pkg_id = -1;
+	int device_id = -1;
+	const char *worker_type_buf = NULL;
+	struct worker_topo_info *worker_topo = get_worker_topo(workerid);
+	if (worker_topo)
+	{
+		core_id = worker_topo->core_id;
+		pkg_id = worker_topo->pkg_id;
+		device_id = worker_topo->device_id;
+		enum starpu_worker_archtype worker_type = worker_topo->worker_type;
+		switch (worker_type)
+		{
+		case STARPU_CPU_WORKER:
+			worker_type_buf = "CPU";
+			break;
+		case STARPU_CUDA_WORKER:
+			worker_type_buf = "CUDA";
+			break;
+		case STARPU_HIP_WORKER:
+			worker_type_buf = "HIP";
+			break;
+		default:
+			worker_type_buf = "OTHER";
+			break;
+		}
+	}
+	write_esolver_entry(event, type, name, time, workerid, worker_type_buf,
+			    threadid, core_id, pkg_id, device_id);
+}
+
+static void esolverfmt_set_state(double time, int workerid, long int threadid,
+				 const char *name, const char *type)
+{
+	esolverfmt_dump_state(time, "SetState", workerid, threadid, name, type);
+}
+
+static void esolverfmt_push_state(double time, int workerid, long unsigned int threadid,
+				  const char *name, const char *type)
+{
+	esolverfmt_dump_state(time, "PushState", workerid, threadid, name, type);
+}
+
+static void esolverfmt_pop_state(double time, int workerid, long unsigned int threadid)
+{
+	esolverfmt_dump_state(time, "PopState", workerid, threadid, NULL, NULL);
+}
+
+static void esolverfmt_worker_set_state(double time, int workerid, const char *name,
+					const char *type)
+{
+	const char *state_name;
+
+	if (!strcmp(type, "Task"))
+		state_name = name;
+	else
+		state_name = get_state_name(name, WORKER_STATE);
+	esolverfmt_set_state(time, workerid, -1, state_name, type);
+}
+
+static void esolverfmt_thread_set_state(double time, unsigned long nodeid, long unsigned int threadid, const char *name, const char *type)
+{
+	const char *state_name;
+
+	/* Special case for the end event which is somehow a fake. */
+	if (!strcmp(name, "End") && !type)
+		state_name = name;
+	else
+		state_name = get_state_name(name, THREAD_STATE);
+
+	esolverfmt_set_state(time, find_worker_id(nodeid, threadid), threadid, state_name, type);
+}
+
+static void esolverfmt_thread_push_state(double time, unsigned long nodeid, long unsigned int threadid, const char *name, const char *type)
+{
+	const char *state_name = get_state_name(name, THREAD_STATE);
+	esolverfmt_push_state(time, find_worker_id(nodeid, threadid), threadid, state_name, type);
+}
+
+static void esolverfmt_thread_pop_state(double time, unsigned long nodeid, long unsigned int threadid)
+{
+	esolverfmt_pop_state(time, find_worker_id(nodeid, threadid), threadid);
+}
+
+static void esolverfmt_user_thread_push_state(double time, long unsigned threadid, const char *name, const char *type)
+{
+	const char *state_name = get_state_name(name, USER_THREAD_STATE);
+	esolverfmt_push_state(time, -1, threadid, state_name, type);
+}
+
+static void esolverfmt_user_thread_pop_state(double time, long unsigned threadid)
+{
+	esolverfmt_pop_state(time, -1, threadid);
+}
+
+#endif /* STARPU_HAVE_ENERGYREADER */
+
 /*
  *	Fill both paje file and trace file
  */
@@ -1293,6 +1612,10 @@ static void do_worker_set_state(double time, const char *prefix, int workerid, c
 		worker_set_state(time, prefix, workerid, name);
 	if (trace_file)
 		recfmt_worker_set_state(time, workerid, name, type);
+#ifdef STARPU_HAVE_ENERGYREADER
+	if (energy_solver_file)
+		esolverfmt_worker_set_state(time, workerid, name, type);
+#endif
 }
 
 static void do_thread_set_state(double time, const char *prefix, long unsigned int threadid, const char *name, const char *type, long job_id)
@@ -1301,6 +1624,10 @@ static void do_thread_set_state(double time, const char *prefix, long unsigned i
 		thread_set_state(time, prefix, threadid, name, job_id);
 	if (trace_file)
 		recfmt_thread_set_state(time, prefixTOnodeid(prefix), threadid, name, type);
+#ifdef STARPU_HAVE_ENERGYREADER
+	if (energy_solver_file)
+		esolverfmt_thread_set_state(time, prefixTOnodeid(prefix), threadid, name, type);
+#endif
 }
 
 static void do_thread_push_state(double time, const char *prefix, long unsigned int threadid, const char *name, const char *type)
@@ -1309,6 +1636,10 @@ static void do_thread_push_state(double time, const char *prefix, long unsigned 
 		thread_push_state(time, prefix, threadid, name);
 	if (trace_file)
 		recfmt_thread_push_state(time, prefixTOnodeid(prefix), threadid, name, type);
+#ifdef STARPU_HAVE_ENERGYREADER
+	if (energy_solver_file)
+		esolverfmt_thread_push_state(time, prefixTOnodeid(prefix), threadid, name, type);
+#endif
 }
 
 static void do_thread_pop_state(double time, const char *prefix, long unsigned int threadid, const char *comment)
@@ -1317,6 +1648,10 @@ static void do_thread_pop_state(double time, const char *prefix, long unsigned i
 		thread_pop_state(time, prefix, threadid, comment);
 	if (trace_file)
 		recfmt_thread_pop_state(time, prefixTOnodeid(prefix), threadid);
+#ifdef STARPU_HAVE_ENERGYREADER
+	if (energy_solver_file)
+		esolverfmt_thread_pop_state(time, prefixTOnodeid(prefix), threadid);
+#endif
 }
 
 static void do_mpicommthread_set_state(double time, const char *prefix, const char *name)
@@ -1349,6 +1684,10 @@ static void do_user_thread_push_state(double time, const char *prefix, long unsi
 		user_thread_push_state(time, prefix, threadid, name);
 	if (trace_file)
 		recfmt_user_thread_push_state(time, threadid, name, type);
+#ifdef STARPU_HAVE_ENERGYREADER
+	if (energy_solver_file)
+		esolverfmt_user_thread_push_state(time, threadid, name, type);
+#endif
 }
 
 static void do_user_thread_pop_state(double time, const char *prefix, long unsigned threadid)
@@ -1357,6 +1696,10 @@ static void do_user_thread_pop_state(double time, const char *prefix, long unsig
 		user_thread_pop_state(time, prefix, threadid);
 	if (trace_file)
 		recfmt_user_thread_pop_state(time, threadid);
+#ifdef STARPU_HAVE_ENERGYREADER
+	if (energy_solver_file)
+		esolverfmt_user_thread_pop_state(time, threadid);
+#endif
 }
 
 /*
@@ -1400,6 +1743,196 @@ static void do_thread_pop_state_worker(double time, const char *prefix, long uns
 		do_user_thread_pop_state(time, prefix, threadid);
 	}
 }
+
+#ifdef STARPU_HAVE_ENERGYREADER
+static void handle_energy_measurement(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
+{
+	energy_counter_e counter = (energy_counter_e)ev->param[0];
+	energy_scope_e scope = (energy_scope_e)ev->param[1];
+	unsigned long scope_id = (unsigned long)ev->param[2];
+	unsigned long energy_value_long = (unsigned long)ev->param[3];
+	unsigned long decimal_precision = (unsigned long)ev->param[4];
+	unsigned long delay_ns = (unsigned long)ev->param[5];
+	unsigned long worker_id = (unsigned long)ev->param[6];
+
+	double now = get_event_time_stamp(ev, options);
+	const char *counter_name = energy_reader_get_counter_name(counter);
+	const char *domain_name = energy_reader_get_domain_name(
+	    energy_reader_get_counter_domain(counter));
+	const char *backend_name = energy_reader_get_backend_name(
+	    energy_reader_get_counter_backend(counter));
+	const char *scope_name = energy_reader_get_scope_name(scope);
+	double energy_value = unsigned_long_to_double_with_precision(
+	    energy_value_long, decimal_precision);
+
+	if (energy_file)
+	{
+		fprintf(energy_file, "%s,%s,%s,%s,%lu,%lu,%.6f,%lu,%.9f\n",
+			counter_name,
+			domain_name,
+			backend_name,
+			scope_name,
+			scope_id,
+			worker_id,
+			energy_value,
+			delay_ns,
+			now);
+	}
+}
+
+static void handle_energyreader_package_register(struct fxt_ev_native *ev, struct starpu_fxt_options *options STARPU_ATTRIBUTE_UNUSED)
+{
+	int pkg_id = ev->param[0];
+	int nb_cores = ev->param[1];
+	if (topo_file)
+	{
+		fprintf(topo_file, "Type: PKG\n");
+		fprintf(topo_file, "Id: %d\n", pkg_id);
+		fprintf(topo_file, "Ncores: %d\n", nb_cores);
+		fprintf(topo_file, "\n");
+	}
+}
+
+static void handle_energyreader_core_register(struct fxt_ev_native *ev, struct starpu_fxt_options *options STARPU_ATTRIBUTE_UNUSED)
+{
+	int core_id = ev->param[0];
+	int pkg_id = ev->param[1];
+	if (topo_file)
+	{
+		fprintf(topo_file, "Type: CORE\n");
+		fprintf(topo_file, "Id: %d\n", core_id);
+		fprintf(topo_file, "Pkg: %d\n", pkg_id);
+		fprintf(topo_file, "\n");
+	}
+}
+
+static void handle_energyreader_gpu_register(struct fxt_ev_native *ev, struct starpu_fxt_options *options STARPU_ATTRIBUTE_UNUSED)
+{
+	int gpu_id = ev->param[0];
+	int numa_node = ev->param[1];
+	if (topo_file)
+	{
+		fprintf(topo_file, "Type: GPU\n");
+		fprintf(topo_file, "Id: %d\n", gpu_id);
+		fprintf(topo_file, "NumaNode: %d\n", numa_node);
+		fprintf(topo_file, "\n");
+	}
+}
+
+static void handle_energyreader_register(struct fxt_ev_native *ev, struct starpu_fxt_options *options, enum energy_reader_domain domain)
+{
+	switch (domain)
+	{
+	case ENERGY_READER_CPU:
+		handle_energyreader_package_register(ev, options);
+		break;
+	case ENERGY_READER_GPU:
+		handle_energyreader_gpu_register(ev, options);
+		break;
+	case ENERGY_READER_CORE:
+		handle_energyreader_core_register(ev, options);
+		break;
+	default:
+		_STARPU_ERROR("Unknown energy reader type\n");
+	}
+}
+
+static void handle_energy_worker_register(struct fxt_ev_native *ev,
+					  struct starpu_fxt_options *options STARPU_ATTRIBUTE_UNUSED, enum starpu_worker_archtype type)
+{
+	int workerid = ev->param[0];
+	if (workerid >= STARPU_NMAXWORKERS)
+	{
+		_STARPU_ERROR("Worker id %d is too large\n", workerid);
+		return;
+	}
+	int core_logical_index = ev->param[1];
+	int package_logical_index = ev->param[2];
+	unsigned int memory_node_id = ev->param[3];
+	enum starpu_node_kind memory_node_kind = ev->param[4];
+	int gpu_devid = -1;
+	char arch_str[32];
+	char node_str[32];
+	switch (type)
+	{
+	case STARPU_CPU_WORKER:
+		snprintf(arch_str, sizeof(arch_str), "CPU");
+		break;
+	case STARPU_CUDA_WORKER:
+		if (gpu_type_offline == GPU_NONE)
+		{
+			gpu_type_offline = GPU_NVIDIA;
+		}
+		snprintf(arch_str, sizeof(arch_str), "CUDA");
+		gpu_devid = ev->param[5];
+		break;
+	case STARPU_HIP_WORKER:
+		if (gpu_type_offline == GPU_NONE)
+		{
+			gpu_type_offline = GPU_AMD;
+		}
+		snprintf(arch_str, sizeof(arch_str), "HIP");
+		gpu_devid = ev->param[5];
+		break;
+	default:
+		snprintf(arch_str, sizeof(arch_str), "OTHER");
+		break;
+	}
+	switch (memory_node_kind)
+	{
+	case STARPU_CPU_RAM:
+		snprintf(node_str, sizeof(node_str), "CPU_RAM");
+		break;
+	case STARPU_CUDA_RAM:
+		snprintf(node_str, sizeof(node_str), "CUDA_RAM");
+		break;
+	case STARPU_HIP_RAM:
+		snprintf(node_str, sizeof(node_str), "HIP_RAM");
+		break;
+	case STARPU_DISK_RAM:
+		snprintf(node_str, sizeof(node_str), "DISK_RAM");
+		break;
+	default:
+		snprintf(node_str, sizeof(node_str), "OTHER");
+		break;
+	}
+	unsigned long workerid_key = (unsigned long)workerid;
+	add_worker_topo(workerid_key, type, core_logical_index, package_logical_index, gpu_devid, memory_node_id, memory_node_kind);
+	if (topo_file)
+	{
+		fprintf(topo_file, "Type: WORKER\n");
+		fprintf(topo_file, "WorkerType: %s\n", arch_str);
+		fprintf(topo_file, "WorkerId: %d\n", workerid);
+		fprintf(topo_file, "Pkg: %d\n", package_logical_index);
+		fprintf(topo_file, "Core: %d\n", core_logical_index);
+		fprintf(topo_file, "Device: %d\n", gpu_devid);
+		fprintf(topo_file, "MemoryNode: %d\n", memory_node_id);
+		fprintf(topo_file, "MemoryNodeKind: %s\n", node_str);
+		fprintf(topo_file, "\n");
+	}
+}
+
+static void handle_worker_energy_measuring_start(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
+{
+	char *prefix = options->file_prefix;
+	int worker = find_worker_id(prefixTOnodeid(prefix), ev->param[0]);
+	if (worker < 0)
+	{
+		return;
+	}
+	do_thread_set_state(get_event_time_stamp(ev, options), prefix, ev->param[0], "MeEnergy", "Runtime", -1);
+}
+
+static void handle_worker_energy_measuring_end(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
+{
+	char *prefix = options->file_prefix;
+	int worker = find_worker_id(prefixTOnodeid(prefix), ev->param[0]);
+	if (worker < 0)
+		return;
+	do_thread_set_state(get_event_time_stamp(ev, options), prefix, ev->param[0], "B", "Other", -1);
+}
+
+#endif /* STARPU_HAVE_ENERGYREADER */
 
 /*
  *	Initialization
@@ -1602,6 +2135,10 @@ static void handle_worker_deinit_end(struct fxt_ev_native *ev, struct starpu_fxt
 	}
 	if (trace_file)
 		recfmt_thread_set_state(get_event_time_stamp(ev, options), prefixTOnodeid(prefix), ev->param[1], "End", NULL);
+#ifdef STARPU_HAVE_ENERGYREADER
+	if (energy_solver_file)
+		esolverfmt_thread_set_state(get_event_time_stamp(ev, options), prefixTOnodeid(prefix), ev->param[1], "End", NULL);
+#endif
 }
 
 #ifdef STARPU_HAVE_POTI
@@ -3586,6 +4123,10 @@ static void handle_string_event(struct fxt_ev_native *ev, const char *event, str
 
 	if (trace_file)
 		recfmt_dump_state(get_event_time_stamp(ev, options), "ProgEvent", -1, 0, event, "Program");
+#ifdef STARPU_HAVE_ENERGYREADER
+	if (energy_solver_file)
+		esolverfmt_dump_state(get_event_time_stamp(ev, options), "ProgEvent", -1, 0, event, "Program");
+#endif
 }
 
 static void handle_event(struct fxt_ev_native *ev, struct starpu_fxt_options *options)
@@ -3834,6 +4375,36 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 			case _STARPU_FUT_END_PARALLEL_SYNC:
 				handle_end_parallel_sync(&ev, options);
 				break;
+
+#ifdef STARPU_HAVE_ENERGYREADER
+			case _STARPU_FUT_ENERGY_VALUE:
+				handle_energy_measurement(&ev, options);
+				break;
+			case _STARPU_FUT_ENERGY_REGISTER_PKG:
+				handle_energyreader_register(&ev, options, ENERGY_READER_CPU);
+				break;
+			case _STARPU_FUT_ENERGY_REGISTER_CORE:
+				handle_energyreader_register(&ev, options, ENERGY_READER_CORE);
+				break;
+			case _STARPU_FUT_ENERGY_REGISTER_GPU:
+				handle_energyreader_register(&ev, options, ENERGY_READER_GPU);
+				break;
+			case _STARPU_FUT_ENERGY_REGISTER_CPU_WORKER:
+				handle_energy_worker_register(&ev, options, STARPU_CPU_WORKER);
+				break;
+			case _STARPU_FUT_ENERGY_REGISTER_CUDA_WORKER:
+				handle_energy_worker_register(&ev, options, STARPU_CUDA_WORKER);
+				break;
+			case _STARPU_FUT_ENERGY_REGISTER_HIP_WORKER:
+				handle_energy_worker_register(&ev, options, STARPU_HIP_WORKER);
+				break;
+			case _STARPU_FUT_START_ENERGY_MEASURING:
+				handle_worker_energy_measuring_start(&ev, options);
+				break;
+			case _STARPU_FUT_END_ENERGY_MEASURING:
+				handle_worker_energy_measuring_end(&ev, options);
+				break;
+#endif /* STARPU_HAVE_ENERGYREADER */
 
 			case _STARPU_FUT_START_CALLBACK:
 				handle_start_callback(&ev, options);
@@ -4652,6 +5223,9 @@ void starpu_fxt_options_init(struct starpu_fxt_options *options)
 	options->comms_path = strdup("comms.rec");
 	options->data_path = strdup("data.rec");
 	options->papi_path = strdup("papi.rec");
+	options->energy_path = strdup("energy.csv");
+	options->topo_path = strdup("topo.rec");
+	options->energy_solver_path = strdup("energy_solver_input.csv");
 	options->anim_path = strdup("trace.html");
 	options->states_path = strdup("trace.rec");
 	options->distrib_time_path = strdup("distrib.data");
@@ -4686,6 +5260,9 @@ void _starpu_fxt_options_set_dir(struct starpu_fxt_options *options)
 	_set_dir(options->dir, &options->number_events_path);
 	_set_dir(options->dir, &options->data_path);
 	_set_dir(options->dir, &options->papi_path);
+	_set_dir(options->dir, &options->energy_path);
+	_set_dir(options->dir, &options->topo_path);
+	_set_dir(options->dir, &options->energy_solver_path);
 	_set_dir(options->dir, &options->anim_path);
 	_set_dir(options->dir, &options->states_path);
 	_set_dir(options->dir, &options->distrib_time_path);
@@ -4702,6 +5279,8 @@ void starpu_fxt_options_shutdown(struct starpu_fxt_options *options)
 	free(options->number_events_path);
 	free(options->data_path);
 	free(options->papi_path);
+	free(options->energy_path);
+	free(options->topo_path);
 	free(options->anim_path);
 	free(options->states_path);
 	free(options->distrib_time_path);
@@ -4853,6 +5432,74 @@ void _starpu_fxt_papi_file_init(struct starpu_fxt_options *options)
 #endif
 }
 
+static void _starpu_fxt_energy_file_init(struct starpu_fxt_options *options)
+{
+#ifdef STARPU_HAVE_ENERGYREADER
+	if (options->energy_path)
+	{
+		energy_file = fopen(options->energy_path, "w+");
+		if (energy_file == NULL)
+		{
+			STARPU_ABORT_MSG("Failed to open '%s' (err %s)", options->energy_path, strerror(errno));
+		}
+		char *header = "counter,domain,backend,scope,scope_id,worker,energy_j,delay_ns,timestamp\n";
+		if (fputs(header, energy_file) == EOF)
+		{
+			STARPU_ABORT_MSG("Failed to write csv header for file '%s' (err %s)", options->energy_path, strerror(errno));
+		}
+	}
+	else
+	{
+		energy_file = NULL;
+	}
+#else
+	(void)options; // avoid warning about unused variable
+#endif
+}
+
+static void _starpu_fxt_energy_solver_file_init(struct starpu_fxt_options *options)
+{
+#ifdef STARPU_HAVE_ENERGYREADER
+	if (options->energy_solver_path)
+	{
+		energy_solver_file = fopen(options->energy_solver_path, "w+");
+		if (energy_solver_file == NULL)
+		{
+			STARPU_ABORT_MSG("Failed to open '%s' (err %s)", options->energy_solver_path, strerror(errno));
+		}
+		char *header = "event,type,state_name,timestamp,worker_id,worker_type,thread,core,pkg,device\n";
+		if (fputs(header, energy_solver_file) == EOF)
+		{
+			STARPU_ABORT_MSG("Failed to write csv header for file '%s' (err %s)", options->energy_solver_path, strerror(errno));
+		}
+	}
+	else
+	{
+		energy_solver_file = NULL;
+	}
+#else
+	(void)options; // avoid warning about unused variable
+#endif
+}
+
+static void _starpu_fxt_topo_file_init(struct starpu_fxt_options *options)
+{
+#ifdef STARPU_HAVE_ENERGYREADER
+	if (options->topo_path)
+	{
+		topo_file = fopen(options->topo_path, "w+");
+		if (topo_file == NULL)
+		{
+			STARPU_ABORT_MSG("Failed to open '%s' (err %s)", options->topo_path, strerror(errno));
+		}
+	}
+	else
+		topo_file = NULL;
+#else
+	(void)options; // avoid warning about unused variable
+#endif
+}
+
 static
 void _starpu_fxt_write_trace_header(FILE *f)
 {
@@ -4959,6 +5606,29 @@ void _starpu_fxt_papi_file_close(void)
 #ifdef STARPU_PAPI
 	if (papi_file)
 		fclose(papi_file);
+#endif
+}
+void _starpu_fxt_energy_records_file_close(void)
+{
+#ifdef STARPU_HAVE_ENERGYREADER
+	if (energy_file)
+		fclose(energy_file);
+#endif
+}
+
+void _starpu_fxt_energy_topo_file_close(void)
+{
+#ifdef STARPU_HAVE_ENERGYREADER
+	if (topo_file)
+		fclose(topo_file);
+#endif
+}
+
+void _starpu_fxt_energy_solver_file_close(void)
+{
+#ifdef STARPU_HAVE_ENERGYREADER
+	if (energy_solver_file)
+		fclose(energy_solver_file);
 #endif
 }
 
@@ -5097,6 +5767,9 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 	_starpu_fxt_tasks_file_init(options);
 	_starpu_fxt_data_file_init(options);
 	_starpu_fxt_papi_file_init(options);
+	_starpu_fxt_energy_file_init(options);
+	_starpu_fxt_topo_file_init(options);
+	_starpu_fxt_energy_solver_file_init(options);
 	_starpu_fxt_comms_file_init(options);
 	_starpu_fxt_number_events_file_init(options);
 	_starpu_fxt_trace_file_init(options);
@@ -5280,6 +5953,9 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 	_starpu_fxt_tasks_file_close();
 	_starpu_fxt_data_file_close();
 	_starpu_fxt_papi_file_close();
+	_starpu_fxt_energy_records_file_close();
+	_starpu_fxt_energy_topo_file_close();
+	_starpu_fxt_energy_solver_file_close();
 	_starpu_fxt_comms_file_close();
 	_starpu_fxt_number_events_file_close();
 	_starpu_fxt_trace_file_close();
@@ -5293,7 +5969,14 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 		HASH_DEL(_thread_infos, entry);
 		free(entry);
 	}
-
+#ifdef STARPU_HAVE_ENERGYREADER
+	struct worker_topo_info *worker_entry = NULL, *worker_tmp = NULL;
+	HASH_ITER(hh, workers_topo, worker_entry, worker_tmp)
+	{
+		HASH_DEL(workers_topo, worker_entry);
+		free(worker_entry);
+	}
+#endif
 	options->nworkers = nworkers;
 	free(options->file_prefix);
 }
