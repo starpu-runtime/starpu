@@ -110,7 +110,14 @@ static void _starpu_mpi_nmad_early_mem_unreg(struct _starpu_mpi_req *req)
 
 static void _starpu_mpi_nmad_send_notify_receiver(struct _starpu_mpi_req *req)
 {
-	(void) req;
+	STARPU_ASSERT(!req->notification_sent);
+	_STARPU_MPI_DEBUG(23, "sending a notification\n");
+	nm_session_t session = req->backend->session;
+	nm_sr_request_t *nm_req = &req->backend->data_request;
+	nm_sr_send_header(session, nm_req, sizeof(size_t));
+	nm_sr_send_submit(session, nm_req);
+	/* The header will be sent eagerly as soon as possible, and thus acts as
+	   a notification */
 }
 
 struct _starpu_mpi_backend _mpi_backend =
