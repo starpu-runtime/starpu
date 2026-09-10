@@ -382,6 +382,8 @@ static void init_device_context(unsigned devid) try
 {
 	STARPU_ASSERT(devid < STARPU_MAXSYCLDEVS);
 
+	dpct::err0 syclres;
+
 	starpu_sycl_set_device(devid);
 
 	if (STARPU_UNLIKELY(syclres))
