@@ -49,6 +49,9 @@ struct _starpu_mpi_req_backend
 	/** When datatype is unknown */
 	struct nm_data_s unknown_datatype_data; // will contain size of the datatype and data itself
 	struct iovec unknown_datatype_v[2];
+
+	/* When using a notification */
+	struct nm_datav_s datav;
 };
 
 #endif /* STARPU_USE_MPI_NMAD */
