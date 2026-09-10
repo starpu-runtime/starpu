@@ -104,13 +104,26 @@ void _starpu_mpi_req_willpost(struct _starpu_mpi_req *req STARPU_ATTRIBUTE_UNUSE
 void _starpu_mpi_init_nmad_send_req(struct _starpu_mpi_req *req)
 {
 	/* req backend's session and gate already set by
-	 * _starpu_mpi_nmad_backend_request_fill in
-	   _starpu_mpi_isend_common */
+	   _starpu_mpi_nmad_backend_request_fill in _starpu_mpi_isend_common */
 	STARPU_ASSERT(req->request_type == SEND_REQ);
+
+	/* the actual user data, as an MPI datatype */
 	struct nm_data_s data;
 	nm_mpi_nmad_data_get(&data, (void*)req->ptr, req->datatype, req->count);
+
+	/* what will be given to NewMadeleine, a data  vector consisting
+	   of two pieces:
+	   - a header, which contains the size of the actual data and which
+	     is used as a notification
+	   - the actual data itself */
+	struct nm_datav_s *datav = &req->backend->datav;
+	nm_datav_init(datav);
+	size_t data_size = starpu_data_get_size(req->data_handle);
+	nm_datav_add_chunk(datav, &data_size, sizeof(data_size));
+	nm_datav_add_chunk_data(datav, &data);
+
 	nm_sr_send_init(req->backend->session, &(req->backend->data_request));
-	nm_sr_send_pack_data(req->backend->session, &(req->backend->data_request), &data);
+	nm_sr_send_pack_data(req->backend->session, &(req->backend->data_request), datav->p_data);
 	nm_sr_send_set_priority(req->backend->session, &req->backend->data_request, req->prio);
 	nm_sr_send_dest(req->backend->session, &req->backend->data_request, req->backend->gate, req->node_tag.data_tag);
 }
