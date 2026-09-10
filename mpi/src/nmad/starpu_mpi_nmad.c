@@ -147,8 +147,10 @@ static void _starpu_mpi_isend_known_datatype(struct _starpu_mpi_req *req)
 
 	if (req->sync == 0)
 	{
-		req->ret = nm_sr_send_submit(req->backend->session, &(req->backend->data_request));
-		STARPU_ASSERT_MSG(req->ret == NM_ESUCCESS, "MPI_Isend returning %d", req->ret);
+		if (!req->notification_sent) {
+			req->ret = nm_sr_send_submit(req->backend->session, &(req->backend->data_request));
+			STARPU_ASSERT_MSG(req->ret == NM_ESUCCESS, "MPI_Isend returning %d", req->ret);
+		}
 	}
 	else
 	{
