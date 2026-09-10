@@ -221,6 +221,10 @@ int main(void)
 	ret = starpu_conf_init(&conf);
 	if (ret == -EINVAL)
 		return EXIT_FAILURE;
+#ifdef STARPU_USE_CUDA0
+	/* The cuda0 driver doesn't support memory size limitation */
+	conf.ncuda = 0;
+#endif
 	conf.enable_map = 0;
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
