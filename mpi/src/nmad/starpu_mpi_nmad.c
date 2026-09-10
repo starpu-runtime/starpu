@@ -117,7 +117,6 @@ void _starpu_mpi_init_nmad_send_req(struct _starpu_mpi_req *req)
 	     is used as a notification
 	   - the actual data itself */
 	struct nm_datav_s *datav = &req->backend->datav;
-	nm_datav_init(datav);
 	size_t data_size = starpu_data_get_size(req->data_handle);
 	nm_datav_add_chunk(datav, &data_size, sizeof(data_size));
 	nm_datav_add_chunk_data(datav, &data);

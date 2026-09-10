@@ -60,6 +60,7 @@ static void _starpu_mpi_nmad_backend_request_init(struct _starpu_mpi_req *req)
 	req->backend->finalized = 0;
 	req->backend->to_destroy = 0;
 	_starpu_spin_init(&req->backend->finalized_to_destroy_lock);
+	nm_datav_init(&req->backend->datav);
 }
 
 static void _starpu_mpi_nmad_backend_request_fill(struct _starpu_mpi_req *req, int is_internal_req STARPU_ATTRIBUTE_UNUSED, starpu_mpi_comm internal_comm STARPU_ATTRIBUTE_UNUSED)
