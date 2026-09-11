@@ -1456,7 +1456,8 @@ static void execute_job_on_hip(struct starpu_task *task, struct _starpu_worker *
 	}
 	else /* Synchronous execution */
 	{
-		if (worker->set->nworkers > 1) {
+		if (worker->set->nworkers > 1)
+		{
 			static int warned = 0;
 			if (!warned)
 			{
