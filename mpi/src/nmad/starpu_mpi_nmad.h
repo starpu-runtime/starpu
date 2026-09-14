@@ -48,7 +48,7 @@ int _starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status);
 void _starpu_mpi_isend_func(struct _starpu_mpi_req *req);
 void _starpu_mpi_irecv_func(struct _starpu_mpi_req *req);
 void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req);
-void _starpu_mpi_handle_pending_request(struct _starpu_mpi_req *req);
+void _starpu_mpi_nmad_handle_pending_request(struct _starpu_mpi_req *req);
 void _starpu_mpi_handle_received_data(struct _starpu_mpi_req* req);
 void _starpu_mpi_init_nmad_send_req(struct _starpu_mpi_req *req);
 

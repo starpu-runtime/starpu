@@ -78,7 +78,7 @@ void _starpu_mpi_isend_unknown_datatype(struct _starpu_mpi_req *req)
 		STARPU_ASSERT_MSG(req->ret == NM_ESUCCESS, "nm_sr_send_issend returning %d", req->ret);
 	}
 
-	_starpu_mpi_handle_pending_request(req);
+	_starpu_mpi_nmad_handle_pending_request(req);
 
 	_STARPU_MPI_LOG_OUT();
 }

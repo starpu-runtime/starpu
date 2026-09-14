@@ -159,7 +159,7 @@ static void _starpu_mpi_isend_known_datatype(struct _starpu_mpi_req *req)
 		STARPU_ASSERT_MSG(req->ret == NM_ESUCCESS, "MPI_Issend returning %d", req->ret);
 	}
 
-	_starpu_mpi_handle_pending_request(req);
+	_starpu_mpi_nmad_handle_pending_request(req);
 
 	_STARPU_MPI_LOG_OUT();
 }
@@ -215,7 +215,7 @@ static void _starpu_mpi_irecv_known_datatype(struct _starpu_mpi_req *req)
 
 	_STARPU_MPI_TRACE_IRECV_SUBMIT_END(req->node_tag.node.rank, req->node_tag.data_tag);
 
-	_starpu_mpi_handle_pending_request(req);
+	_starpu_mpi_nmad_handle_pending_request(req);
 
 	_STARPU_MPI_LOG_OUT();
 }
@@ -589,7 +589,7 @@ void _starpu_mpi_handle_request_termination_callback(nm_sr_event_t event STARPU_
 	}
 }
 
-void _starpu_mpi_handle_pending_request(struct _starpu_mpi_req *req)
+void _starpu_mpi_nmad_handle_pending_request(struct _starpu_mpi_req *req)
 {
 	assert(req != NULL);
 	nm_sr_request_set_ref(&req->backend->data_request, req);
