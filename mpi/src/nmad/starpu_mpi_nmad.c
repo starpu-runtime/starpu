@@ -45,12 +45,12 @@
 #include <nm_sendrecv_interface.h>
 #include <nm_core_interface.h>
 
+#include "starpu_mpi_nmad.h"
 #include "starpu_mpi_nmad_coop.h"
 #include "starpu_mpi_nmad_backend.h"
 #include "starpu_mpi_nmad_unknown_datatype.h"
 
 void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req);
-void _starpu_mpi_handle_pending_request(struct _starpu_mpi_req *req);
 static inline void _starpu_mpi_request_end(struct _starpu_mpi_req* req, int post_callback_sem);
 static inline void _starpu_mpi_request_try_end(struct _starpu_mpi_req* req, int post_callback_sem);
 
