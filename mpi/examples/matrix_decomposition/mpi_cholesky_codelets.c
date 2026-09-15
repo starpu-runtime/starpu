@@ -221,7 +221,7 @@ static void run_cholesky(starpu_data_handle_t **data_handles, int rank, int node
 		if (checkpoint_enabled)
 		{
 			if (k%checkpoint_period==checkpoint_period-1)
-				starpu_mpi_checkpoint_template_submit(*checkpoint_p, -2*k);
+				starpu_mpi_checkpoint_template_submit(*checkpoint_p, (int)(2*nblocks - 2*k));
 		}
 
 		starpu_iteration_pop();
@@ -305,7 +305,7 @@ static void run_cholesky_column(starpu_data_handle_t **data_handles, int rank ST
 		if (checkpoint_enabled)
 		{
 			if (n%checkpoint_period==checkpoint_period-1)
-				starpu_mpi_checkpoint_template_submit(*checkpoint_p, (int)(nblocks - 2*n));
+				starpu_mpi_checkpoint_template_submit(*checkpoint_p, (int)(2*nblocks - 2*n));
 		}
 
 		starpu_iteration_pop();
