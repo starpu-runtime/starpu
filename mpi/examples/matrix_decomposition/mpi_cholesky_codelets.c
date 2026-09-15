@@ -259,10 +259,6 @@ static void run_cholesky_column(starpu_data_handle_t **data_handles, int rank ST
 					       STARPU_RW | STARPU_COMMUTE, data_handles[n][n],
 					       STARPU_FLOPS, (double) FLOPS_SSYRK(nn, nn),
 					       0);
-
-			/* Nobody else will need it */
-			starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[m][k]);
-			starpu_data_wont_use(data_handles[m][k]);
 		}
 
 		k = n;
@@ -298,9 +294,12 @@ static void run_cholesky_column(starpu_data_handle_t **data_handles, int rank ST
 					       0);
 		}
 
-		/* We won't need it any more */
-		starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[n][n]);
-		starpu_data_wont_use(data_handles[n][n]);
+		/* We won't need them any more */
+		for (k = 0; k <= n; k++)
+		{
+			starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[n][k]);
+			starpu_data_wont_use(data_handles[n][k]);
+		}
 
 		if (checkpoint_enabled)
 		{
