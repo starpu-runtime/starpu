@@ -173,6 +173,12 @@ static void run_cholesky(starpu_data_handle_t **data_handles, int rank, int node
 	{
 		starpu_iteration_push(k);
 
+		if (checkpoint_enabled)
+		{
+			if (k && k%checkpoint_period==0)
+				starpu_mpi_checkpoint_template_submit(*checkpoint_p, (int)(2*nblocks - 2*k));
+		}
+
 		starpu_mpi_task_insert(MPI_COMM_WORLD, &cl_potrf,
 				       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k) : STARPU_MAX_PRIO,
 				       STARPU_RW, data_handles[k][k],
@@ -218,12 +224,6 @@ static void run_cholesky(starpu_data_handle_t **data_handles, int rank, int node
 				starpu_data_wont_use(data_handles[n][k]);
 		}
 
-		if (checkpoint_enabled)
-		{
-			if (k%checkpoint_period==checkpoint_period-1)
-				starpu_mpi_checkpoint_template_submit(*checkpoint_p, (int)(2*nblocks - 2*k));
-		}
-
 		starpu_iteration_pop();
 	}
 }
@@ -245,6 +245,12 @@ static void run_cholesky_column(starpu_data_handle_t **data_handles, int rank ST
 	for (n = 0; n<nblocks; n++)
 	{
 		starpu_iteration_push(n);
+
+		if (checkpoint_enabled)
+		{
+			if (n && n%checkpoint_period==0)
+				starpu_mpi_checkpoint_template_submit(*checkpoint_p, (int)(2*nblocks - 2*n));
+		}
 
 		/* First handle the diagonal block */
 		/* Row */
@@ -301,12 +307,6 @@ static void run_cholesky_column(starpu_data_handle_t **data_handles, int rank ST
 			starpu_data_wont_use(data_handles[n][k]);
 		}
 
-		if (checkpoint_enabled)
-		{
-			if (n%checkpoint_period==checkpoint_period-1)
-				starpu_mpi_checkpoint_template_submit(*checkpoint_p, (int)(2*nblocks - 2*n));
-		}
-
 		starpu_iteration_pop();
 	}
 }
@@ -333,6 +333,12 @@ static void run_cholesky_antidiagonal(starpu_data_handle_t **data_handles, int r
 	for (a = 0; a < nblocks; a++)
 	{
 		starpu_iteration_push(a);
+
+		if (checkpoint_enabled)
+		{
+			if (a && a%checkpoint_period==0)
+				starpu_mpi_checkpoint_template_submit(*checkpoint_p, (int)(2*nblocks -2*a));
+		}
 
 		unsigned nfirst;
 		if (2*a < nblocks)
@@ -455,12 +461,6 @@ static void run_cholesky_antidiagonal(starpu_data_handle_t **data_handles, int r
 			}
 		}
 
-		if (checkpoint_enabled)
-		{
-			if (a%checkpoint_period==checkpoint_period-1)
-				starpu_mpi_checkpoint_template_submit(*checkpoint_p, (int)(2*nblocks -4*a));
-		}
-
 		starpu_iteration_pop();
 	}
 }
@@ -490,6 +490,12 @@ static void run_cholesky_prio(starpu_data_handle_t **data_handles, int rank STAR
 	for (a = 0; a < 4*nblocks; a++)
 	{
 		starpu_iteration_push(a);
+
+		if (checkpoint_enabled)
+		{
+			if (a && a%(4*checkpoint_period)==0)
+				starpu_mpi_checkpoint_template_submit(*checkpoint_p, (int)(2*nblocks - a));
+		}
 
 		for (k = 0; k < (int) nblocks; k++)
 		{
@@ -558,12 +564,6 @@ static void run_cholesky_prio(starpu_data_handle_t **data_handles, int rank STAR
 				}
 			}
 
-		}
-
-		if (checkpoint_enabled)
-		{
-			if (a%(4*checkpoint_period)==(4*checkpoint_period)-1)
-				starpu_mpi_checkpoint_template_submit(*checkpoint_p, (int)(2*nblocks - a));
 		}
 
 		starpu_iteration_pop();
