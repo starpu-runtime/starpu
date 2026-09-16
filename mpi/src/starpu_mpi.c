@@ -281,7 +281,7 @@ static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_dat
 
 	if (req->early_node != node)
 	{
-		STARPU_ASSERT_MSG(0, "Data location changed between soon and acquired callbacks");
+		STARPU_ABORT_MSG("data location changed between soon and acquired callbacks");
 		/* Data location changed since the soon callback was called. If
 		 * an early prefetch was requested, then it shall be
 		 * cancelled */
