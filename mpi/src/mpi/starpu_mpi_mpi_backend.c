@@ -141,7 +141,7 @@ struct _starpu_mpi_backend _mpi_backend =
 	._starpu_mpi_backend_early_mem_reg = NULL,
 	._starpu_mpi_backend_early_mem_unreg = NULL,
 
-	._starpu_mpi_backend_send_notify_receiver = NULL;
+	._starpu_mpi_backend_send_notify_receiver = NULL,
 };
 
 #endif /* STARPU_USE_MPI_MPI*/
