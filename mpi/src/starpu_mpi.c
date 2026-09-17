@@ -160,14 +160,22 @@ void _starpu_mpi_irecv_allocate(struct _starpu_mpi_req *req)
 	req->node = node;
 }
 
+void _starpu_mpi_req_datatype_allocate(struct _starpu_mpi_req *req)
+{
+	STARPU_MPI_ASSERT_MSG(req->datatype_allocated == 0,
+			      "request's datatype is already allocated");
+	_starpu_mpi_datatype_allocate(req->data_handle, req);
+	req->datatype_allocated = 1;
+}
+
 static void _starpu_mpi_trigger_mem_reg(struct _starpu_mpi_req *req)
 {
 	STARPU_MPI_ASSERT_MSG(req->early_prefetched == 0,
 			      "memory registration already done for this request");
 	req->early_node = req->node;
 	req->early_prefetched = 1;
-	_starpu_mpi_datatype_allocate(req->data_handle, req);
 	req->count = 1;
+	_starpu_mpi_req_datatype_allocate(req);
 	req->ptr = starpu_data_handle_to_pointer(req->data_handle, req->early_node);
 	_mpi_backend._starpu_mpi_backend_early_mem_reg(req);
 }
@@ -183,20 +191,9 @@ static void _starpu_mpi_soon_callback(void *arg, STARPU_ATTRIBUTE_UNUSED double 
 {
 	struct _starpu_mpi_req *req = arg;
 
-	if (!_starpu_mpi_early_mem_reg)
-	{
-		return;
-	}
-
-	if (_mpi_backend._starpu_mpi_backend_early_mem_reg == NULL)
-	{
-		/* Backend does not support early prefetch */
-		return;
-	}
-
 	if (req->request_type != SEND_REQ)
 	{
-		/* Nothing to prefetch early */
+		/* No work to do */
 		return;
 	}
 
@@ -218,8 +215,18 @@ static void _starpu_mpi_soon_callback(void *arg, STARPU_ATTRIBUTE_UNUSED double 
 	if (req->node < 0)
 		req->node = _starpu_mpi_choose_node(req->data_handle, STARPU_R);
 	STARPU_ASSERT(req->node >= 0);
-	_starpu_mpi_trigger_mem_reg(req);
-	_starpu_mpi_send_notify_receiver(req);
+
+	if (_starpu_mpi_recv_buffer_alloc_method == STARPU_MPI_ALLOC_NOTIFICATION)
+	{
+		_starpu_mpi_send_notify_receiver(req);
+	}
+
+	if (_starpu_mpi_early_mem_reg
+	    && (_mpi_backend._starpu_mpi_backend_early_mem_reg != NULL))
+	{
+		_starpu_mpi_trigger_mem_reg(req);
+	}
+
 	_STARPU_MPI_LOG_OUT();
 }
 
@@ -248,8 +255,12 @@ static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_dat
 	 * fetch */
 
 	_STARPU_MPI_LOG_IN();
-	if ((node < 0) && (mode & STARPU_R || !_starpu_mpi_mem_late))
+	if ((node < 0)
+	    && ((mode & STARPU_R)
+		|| (_starpu_mpi_recv_buffer_alloc_method != STARPU_MPI_ALLOC_LAST_MOMENT)))
+	{
 		node = _starpu_mpi_choose_node(req->data_handle, mode);
+	}
 
 	req->node = *nodep = node;
 

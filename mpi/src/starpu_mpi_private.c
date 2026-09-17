@@ -32,9 +32,9 @@ int _starpu_mpi_fake_world_size = -1;
 int _starpu_mpi_fake_world_rank = -1;
 int _starpu_mpi_use_coop_sends = 1;
 int _starpu_mpi_mem_throttle = 0;
-int _starpu_mpi_mem_late = 0;
 int _starpu_mpi_recv_wait_finalize = 0;
 int _starpu_mpi_early_mem_reg = 0;
+enum starpu_mpi_alloc_method _starpu_mpi_recv_buffer_alloc_method = STARPU_MPI_ALLOC_BEGINNING;
 
 void _starpu_mpi_set_debug_level_min(int level)
 {
@@ -79,11 +79,33 @@ void _starpu_mpi_env_init(void)
 	_starpu_mpi_use_prio = starpu_getenv_number_default("STARPU_MPI_PRIORITIES", 1);
 	_starpu_mpi_use_coop_sends = starpu_getenv_number_default("STARPU_MPI_COOP_SENDS", 1);
 	_starpu_mpi_mem_throttle = starpu_getenv_number_default("STARPU_MPI_MEM_THROTTLE", 0);
-	_starpu_mpi_mem_late = starpu_getenv_number_default("STARPU_MPI_MEM_LATE", 0);
 	_starpu_debug_level_min = starpu_getenv_number_default("STARPU_MPI_DEBUG_LEVEL_MIN", 0);
 	_starpu_debug_level_max = starpu_getenv_number_default("STARPU_MPI_DEBUG_LEVEL_MAX", 0);
 	_starpu_mpi_recv_wait_finalize = starpu_getenv_number_default("STARPU_MPI_RECV_WAIT_FINALIZE", _starpu_mpi_recv_wait_finalize);
 	_starpu_mpi_early_mem_reg = starpu_get_env_number_default("STARPU_MPI_EARLY_MEM_REG", _starpu_mpi_early_mem_reg);
+
+	const char *alloc_method_env = starpu_getenv("STARPU_MPI_RECV_BUFFER_ALLOC_METHOD");
+
+	if (alloc_method_env == NULL)
+	{
+		_starpu_mpi_recv_buffer_alloc_method = STARPU_MPI_ALLOC_BEGINNING;
+	}
+	else if (strcmp(alloc_method_env, "beginning"))
+	{
+		_starpu_mpi_recv_buffer_alloc_method = STARPU_MPI_ALLOC_BEGINNING;
+	}
+	else if (strcmp(alloc_method_env, "last_moment"))
+	{
+		_starpu_mpi_recv_buffer_alloc_method = STARPU_MPI_ALLOC_LAST_MOMENT;
+	}
+	else if (strcmp(alloc_method_env, "notification"))
+	{
+		_starpu_mpi_recv_buffer_alloc_method = STARPU_MPI_ALLOC_NOTIFICATION;
+	}
+	else
+	{
+		_STARPU_ERROR("invalid value for STARPU_MPI_RECV_BUFFER_ALLOC_METHOD in environment: %s", alloc_method_env);
+	}
 
 #ifdef STARPU_USE_MPI_NMAD
 	if (_starpu_mpi_early_mem_reg)

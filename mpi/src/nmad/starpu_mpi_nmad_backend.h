@@ -40,6 +40,7 @@ struct _starpu_mpi_req_backend
 	nm_sr_request_t data_request;
 	piom_cond_t req_cond;
 
+	int initialized;
 	int posted; // with coop, only one request is really posted, we need to know if the request was really posted to possibly free data
 	int has_received_data; // tell if request went through _starpu_mpi_handle_received_data() to release write lock
 	int finalized; // tell if _starpu_mpi_handle_request_termination() was called, so starpu_mpi_test() and starpu_mpi_wait() have to free the request

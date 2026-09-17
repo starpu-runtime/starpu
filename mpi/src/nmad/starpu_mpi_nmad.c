@@ -106,25 +106,48 @@ void _starpu_mpi_init_nmad_send_req(struct _starpu_mpi_req *req)
 	/* req backend's session and gate already set by
 	   _starpu_mpi_nmad_backend_request_fill in _starpu_mpi_isend_common */
 	STARPU_ASSERT(req->request_type == SEND_REQ);
-
-	/* the actual user data, as an MPI datatype */
-	struct nm_data_s data;
-	nm_mpi_nmad_data_get(&data, (void*)req->ptr, req->datatype, req->count);
-
-	/* what will be given to NewMadeleine, a data  vector consisting
-	   of two pieces:
-	   - a header, which contains the size of the actual data and which
-	     is used as a notification
-	   - the actual data itself */
-	struct nm_datav_s *datav = &req->backend->datav;
-	size_t data_size = starpu_data_get_size(req->data_handle);
-	nm_datav_add_chunk(datav, &data_size, sizeof(data_size));
-	nm_datav_add_chunk_data(datav, &data);
+	STARPU_MPI_ASSERT_MSG(req->backend->initialized == 0,
+			      "NewMadeleine send request already initialized");
 
 	nm_sr_send_init(req->backend->session, &(req->backend->data_request));
-	nm_sr_send_pack_data(req->backend->session, &(req->backend->data_request), datav->p_data);
 	nm_sr_send_set_priority(req->backend->session, &req->backend->data_request, req->prio);
-	nm_sr_send_dest(req->backend->session, &req->backend->data_request, req->backend->gate, req->node_tag.data_tag);
+
+	if (!req->sync)
+	{
+		/* no need to perform this step for synchronous requests, it
+		   will be done a submission time by nm_sr_send_issend */
+		nm_sr_send_dest(req->backend->session,
+				&req->backend->data_request,
+				req->backend->gate,
+				req->node_tag.data_tag);
+	}
+
+	/* the actual user data, as an MPI datatype */
+	struct nm_data_s recv_data;
+	nm_mpi_nmad_data_get(&recv_data, (void*)req->ptr, req->datatype, req->count);
+
+	if (_starpu_mpi_recv_buffer_alloc_method == STARPU_MPI_ALLOC_NOTIFICATION)
+	{
+		/* what will be given to NewMadeleine, a data  vector consisting
+		   of two pieces:
+		   - a header, which contains the size of the actual data and which
+		     is used as a notification
+		   - the actual data itself */
+		struct nm_datav_s *datav = &req->backend->datav;
+		size_t data_size = starpu_data_get_size(req->data_handle);
+		nm_datav_add_chunk(datav, &data_size, sizeof(data_size));
+		nm_datav_add_chunk_data(datav, &recv_data);
+
+		struct nm_data_s data;
+		nm_data_datav_build(&data, datav);
+		nm_sr_send_pack_data(req->backend->session, &(req->backend->data_request), &data);
+	}
+	else
+	{
+		nm_sr_send_pack_data(req->backend->session, &(req->backend->data_request), &recv_data);
+	}
+
+	req->backend->initialized = 1;
 }
 
 static void _starpu_mpi_isend_known_datatype(struct _starpu_mpi_req *req)
@@ -139,7 +162,7 @@ static void _starpu_mpi_isend_known_datatype(struct _starpu_mpi_req *req)
 
 	_STARPU_MPI_TRACE_ISEND_SUBMIT_BEGIN(req->node_tag.node.rank, req->node_tag.data_tag, 0);
 
-	if (!req->early_prefetched && !req->sync)
+	if (!req->early_prefetched || req->sync)
 		_starpu_mpi_init_nmad_send_req(req);
 
 	// this trace event is the start of the communication link:
@@ -147,7 +170,11 @@ static void _starpu_mpi_isend_known_datatype(struct _starpu_mpi_req *req)
 
 	if (req->sync == 0)
 	{
-		if (!req->notification_sent) {
+		/* If a notification was sent, in fact the request is actually
+		   completely submitted on the sender side, no more work to
+		   do */
+		if (!req->notification_sent)
+		{
 			req->ret = nm_sr_send_submit(req->backend->session, &(req->backend->data_request));
 			STARPU_ASSERT_MSG(req->ret == NM_ESUCCESS, "MPI_Isend returning %d", req->ret);
 		}
@@ -168,8 +195,10 @@ void _starpu_mpi_isend_func(struct _starpu_mpi_req *req)
 {
 	_STARPU_MPI_LOG_IN();
 
-	if (!req->early_prefetched)
+	if (!req->datatype_allocated)
+	{
 		_starpu_mpi_datatype_allocate(req->data_handle, req);
+	}
 
 	if (req->registered_datatype == 1)
 	{
@@ -210,7 +239,16 @@ static void _starpu_mpi_irecv_known_datatype(struct _starpu_mpi_req *req)
 	struct nm_data_s data;
 	nm_mpi_nmad_data_get(&data, (void*)req->ptr, req->datatype, req->count);
 	nm_sr_recv_init(req->backend->session, &(req->backend->data_request));
-	nm_sr_recv_unpack_data(req->backend->session, &(req->backend->data_request), &data);
+
+	if (_starpu_mpi_recv_buffer_alloc_method == STARPU_MPI_ALLOC_NOTIFICATION)
+	{
+		STARPU_ABORT_MSG("receive side does not support notifications yet");
+	}
+	else
+	{
+		nm_sr_recv_unpack_data(req->backend->session, &(req->backend->data_request), &data);
+	}
+
 	nm_sr_recv_irecv(req->backend->session, &(req->backend->data_request), req->backend->gate, req->node_tag.data_tag, NM_TAG_MASK_FULL);
 
 	_STARPU_MPI_TRACE_IRECV_SUBMIT_END(req->node_tag.node.rank, req->node_tag.data_tag);
@@ -225,7 +263,7 @@ void _starpu_mpi_irecv_func(struct _starpu_mpi_req *req)
 	_STARPU_MPI_LOG_IN();
 
 	_starpu_mpi_irecv_allocate(req);
-	_starpu_mpi_datatype_allocate(req->data_handle, req);
+	_starpu_mpi_req_datatype_allocate(req);
 	if (req->registered_datatype == 1)
 	{
 		/* We can give the handle pointer directly to NewMadeleine */

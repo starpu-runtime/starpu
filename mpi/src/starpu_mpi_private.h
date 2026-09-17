@@ -75,6 +75,25 @@ extern int _starpu_debug_level_max;
 void _starpu_mpi_set_debug_level_min(int level);
 void _starpu_mpi_set_debug_level_max(int level);
 #endif
+
+/* Methods for allocating buffers for receiving data, i.e. the buffers passed to
+   MPI_Irecv. */
+enum starpu_mpi_alloc_method
+{
+	/* Allocate all reception buffers at the beginning of the program. This
+	   is the default. */
+	STARPU_MPI_ALLOC_BEGINNING,
+	/* Allocate reception buffers at the last moment, on the task graph's
+	   critical path. Only works with the MPI backend. More precisely, the
+	   receiver allocates the reception buffer when it receives the
+	   envelope. */
+	STARPU_MPI_ALLOC_LAST_MOMENT,
+	/* The sender sends a notification prior to the actual message, the
+	 * receiver allocates its reception buffer once this notification is
+	 * received. Only works with the NewMadeleine backend. */
+	STARPU_MPI_ALLOC_NOTIFICATION
+};
+
 extern int _starpu_mpi_fake_world_size;
 extern int _starpu_mpi_fake_world_rank;
 extern int _starpu_mpi_use_prio;
@@ -83,13 +102,14 @@ extern int _starpu_mpi_thread_cpuid;
 extern int _starpu_mpi_thread_multiple_send;
 extern int _starpu_mpi_use_coop_sends;
 extern int _starpu_mpi_mem_throttle;
-extern int _starpu_mpi_mem_late;
 extern int _starpu_mpi_recv_wait_finalize;
 extern int _starpu_mpi_has_cuda;
 extern int _starpu_mpi_has_hip;
 extern int _starpu_mpi_cuda_devid;
 extern int _starpu_mpi_hip_devid;
 extern int _starpu_mpi_early_mem_reg;
+extern enum starpu_mpi_alloc_method _starpu_mpi_recv_buffer_alloc_method;
+
 void _starpu_mpi_env_init(void);
 
 #ifdef STARPU_NO_ASSERT
@@ -270,6 +290,7 @@ LIST_TYPE(_starpu_mpi_req,
 	  int early_node;
 	  int node;
 
+	  int datatype_allocated;
 	  int early_prefetched;
 	  int notification_sent;
 
@@ -374,7 +395,13 @@ struct _starpu_mpi_req *_starpu_mpi_irecv_common(starpu_data_handle_t data_handl
 /* Choose the starpu node to receive MPI data into.  */
 int _starpu_mpi_choose_node(starpu_data_handle_t data_handle, enum starpu_data_access_mode mode);
 
-/* Make sure the we have a destination node where to receive the MPI data, notably for the _starpu_mpi_mem_late case.  */
+/* Wrapper for _starpu_mpi_datatype_allocate to make sure it is not called too
+   many times. */
+void _starpu_mpi_req_datatype_allocate(struct _starpu_mpi_req *req);
+
+/* Make sure the we have a destination node where to receive the MPI data,
+   notably for the STARPU_MPI_ALLOC_LAST_MOMENT reception buffer allocation
+   method.  */
 void _starpu_mpi_irecv_allocate(struct _starpu_mpi_req *req);
 
 void _starpu_mpi_data_flush(starpu_data_handle_t data_handle);
