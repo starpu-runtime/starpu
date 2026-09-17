@@ -49,7 +49,7 @@ void _starpu_mpi_isend_prepare_unknown_datatype(struct _starpu_mpi_req* req, str
 void _starpu_mpi_isend_unknown_datatype(struct _starpu_mpi_req *req)
 {
 	_STARPU_MPI_LOG_IN();
-	_STARPU_MPI_MSG("warning: unknown datatype");
+	_STARPU_MPI_MSG("warning: unknown datatype\n");
 
 	_STARPU_MPI_DEBUG(30, "post NM isend (unknown datatype) request %p type %s tag %ld src %d data %p datasize %ld ptr %p datatype '%s' count %d registered_datatype %d sync %d\n", req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.node.rank, req->data_handle, starpu_data_get_size(req->data_handle), req->ptr, req->datatype_name, (int)req->count, req->registered_datatype, req->sync);
 
@@ -137,6 +137,8 @@ static void _starpu_mpi_unknown_datatype_recv_callback(nm_sr_event_t event, cons
 void _starpu_mpi_irecv_unknown_datatype(struct _starpu_mpi_req *req)
 {
 	_STARPU_MPI_LOG_IN();
+
+	_STARPU_MPI_MSG("warning: unknown datatype\n");
 
 	STARPU_ASSERT_MSG(req->registered_datatype != 1, "Datatype is registered, no need to receive it through this way !");
 

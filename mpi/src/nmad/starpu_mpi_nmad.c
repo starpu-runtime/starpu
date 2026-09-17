@@ -274,7 +274,6 @@ void _starpu_mpi_irecv_func(struct _starpu_mpi_req *req)
 	}
 	else
 	{
-		_STARPU_MPI_MSG("warning: unknown datatype");
 		/* More complex case: we need to first get the actual size of data we
 		 * will receive, allocate the buffer, and to a starpu_data_unpack_node() */
 		_starpu_mpi_irecv_unknown_datatype(req);
