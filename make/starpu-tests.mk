@@ -23,9 +23,9 @@ STARPU_MPI_NP ?= 4
 # For MPI tests we don't want to oversubscribe the system
 STARPU_MPI_RUN_ENV		= STARPU_WORKERS_GETBIND=0 STARPU_WORKERS_NOBIND=1 STARPU_NCPU=3
 if STARPU_SIMGRID
-STARPU_MPIEXEC			= $(abs_top_builddir)/tools/starpu_smpirun -np $(STARPU_MPI_NP) -platform $(abs_top_srcdir)/tools/perfmodels/cluster.xml -hostfile $(abs_top_srcdir)/tools/perfmodels/hostfile
+STARPU_MPIEXEC			?= $(abs_top_builddir)/tools/starpu_smpirun -np $(STARPU_MPI_NP) -platform $(abs_top_srcdir)/tools/perfmodels/cluster.xml -hostfile $(abs_top_srcdir)/tools/perfmodels/hostfile
 else
-STARPU_MPIEXEC			= $(MPIEXEC) $(MPIEXEC_ARGS) -np $(STARPU_MPI_NP)
+STARPU_MPIEXEC			?= $(MPIEXEC) $(MPIEXEC_ARGS) -np $(STARPU_MPI_NP)
 endif
 
 showcheckfailed:
