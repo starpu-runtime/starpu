@@ -297,13 +297,13 @@ static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_dat
 
 	if (req->early_node != node)
 	{
-		STARPU_ABORT_MSG("data location changed between soon and acquired callbacks");
 		/* Data location changed since the soon callback was called. If
 		 * an early prefetch was requested, then it shall be
 		 * cancelled */
 		_starpu_mpi_mem_unreg_if_requested(req);
 		_starpu_mpi_trigger_mem_reg(req);
-		_starpu_mpi_send_notify_receiver(req);
+		if (_starpu_mpi_recv_buffer_alloc_method == STARPU_MPI_ALLOC_NOTIFICATION)
+			STARPU_ABORT_MSG("situation not supported yet\n");
 	}
 	_STARPU_MPI_LOG_OUT();
 }
