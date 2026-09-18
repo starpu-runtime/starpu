@@ -90,15 +90,15 @@ void _starpu_mpi_env_init(void)
 	{
 		_starpu_mpi_recv_buffer_alloc_method = STARPU_MPI_ALLOC_BEGINNING;
 	}
-	else if (strcmp(alloc_method_env, "beginning"))
+	else if (strcmp(alloc_method_env, "beginning") == 0)
 	{
 		_starpu_mpi_recv_buffer_alloc_method = STARPU_MPI_ALLOC_BEGINNING;
 	}
-	else if (strcmp(alloc_method_env, "last_moment"))
+	else if (strcmp(alloc_method_env, "last_moment") == 0)
 	{
 		_starpu_mpi_recv_buffer_alloc_method = STARPU_MPI_ALLOC_LAST_MOMENT;
 	}
-	else if (strcmp(alloc_method_env, "notification"))
+	else if (strcmp(alloc_method_env, "notification") == 0)
 	{
 		_starpu_mpi_recv_buffer_alloc_method = STARPU_MPI_ALLOC_NOTIFICATION;
 	}
