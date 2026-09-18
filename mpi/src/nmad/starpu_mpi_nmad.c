@@ -181,7 +181,7 @@ static void _starpu_mpi_isend_known_datatype(struct _starpu_mpi_req *req)
 	}
 	else
 	{
-		_STARPU_MPI_MSG("warning: synchronous request");
+		_STARPU_MPI_MSG("warning: synchronous request\n");
 		req->ret = nm_sr_send_issend(req->backend->session, &(req->backend->data_request), req->backend->gate, req->node_tag.data_tag);
 		STARPU_ASSERT_MSG(req->ret == NM_ESUCCESS, "MPI_Issend returning %d", req->ret);
 	}
