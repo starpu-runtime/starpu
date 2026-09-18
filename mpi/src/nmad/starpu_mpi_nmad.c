@@ -530,6 +530,7 @@ void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req* req)
 	_STARPU_MPI_DEBUG(2, "complete MPI request %p type %s tag %ld src %d data %p ptr %p datatype '%s' count %d registered_datatype %d \n",
 			  req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.node.rank, req->data_handle, req->ptr, req->datatype_name, (int)req->count, req->registered_datatype);
 
+	STARPU_ASSERT(req->registered_datatype != -1);
 	assert(!req->backend->finalized);
 	req->completed = 1;
 
