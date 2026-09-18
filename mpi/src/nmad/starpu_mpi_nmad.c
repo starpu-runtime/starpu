@@ -555,7 +555,9 @@ void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req* req)
 				}
 			}
 			else
+			{
 				starpu_free_on_node_flags(req->node, (uintptr_t) req->ptr, req->count, 0);
+			}
 		}
 		else if (req->backend->posted) // with coop, only one request is really used to do the broadcast, so only posted request really allocates memory for the data:
 		{
@@ -602,7 +604,9 @@ void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req* req)
 	_STARPU_MPI_LOG_OUT();
 }
 
-void _starpu_mpi_handle_request_termination_callback(nm_sr_event_t event STARPU_ATTRIBUTE_UNUSED, const nm_sr_event_info_t* event_info STARPU_ATTRIBUTE_UNUSED, void* ref)
+void _starpu_mpi_handle_request_termination_callback(nm_sr_event_t event STARPU_ATTRIBUTE_UNUSED,
+						     const nm_sr_event_info_t* event_info STARPU_ATTRIBUTE_UNUSED,
+						     void* ref)
 {
 	assert(ref != NULL);
 
