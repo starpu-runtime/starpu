@@ -347,6 +347,7 @@ MPI_Datatype _starpu_mpi_datatype_get_user_defined_datatype(starpu_data_handle_t
 void _starpu_mpi_datatype_allocate(starpu_data_handle_t data_handle, struct _starpu_mpi_req *req)
 {
 	enum starpu_data_interface_id id = starpu_data_get_interface_id(data_handle);
+	STARPU_ASSERT(req->node != -1);
 
 	if (id < STARPU_MAX_INTERFACE_ID)
 	{
