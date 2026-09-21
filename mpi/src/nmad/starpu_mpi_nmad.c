@@ -253,11 +253,11 @@ static void _starpu_mpi_irecv_known_datatype(struct _starpu_mpi_req *req)
 		nm_sr_recv_unpack_data(req->backend->session, &(req->backend->data_request), &data);
 	}
 
+	_starpu_mpi_nmad_handle_pending_request(req);
+
 	nm_sr_recv_irecv(req->backend->session, &(req->backend->data_request), req->backend->gate, req->node_tag.data_tag, NM_TAG_MASK_FULL);
 
 	_STARPU_MPI_TRACE_IRECV_SUBMIT_END(req->node_tag.node.rank, req->node_tag.data_tag);
-
-	_starpu_mpi_nmad_handle_pending_request(req);
 
 	_STARPU_MPI_LOG_OUT();
 }
