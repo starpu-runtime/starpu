@@ -260,9 +260,9 @@ static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_dat
 	 * fetch */
 
 	_STARPU_MPI_LOG_IN();
-	if ((node < 0)
-	    && ((mode & STARPU_R)
-		|| (_starpu_mpi_recv_buffer_alloc_method != STARPU_MPI_ALLOC_LAST_MOMENT)))
+	if ((node == -1)
+	    && ((req->request_type == SEND_REQ)
+		|| (_starpu_mpi_recv_buffer_alloc_method == STARPU_MPI_ALLOC_BEGINNING)))
 	{
 		node = _starpu_mpi_choose_node(req->data_handle, mode);
 	}
