@@ -162,7 +162,7 @@ static void _starpu_mpi_isend_known_datatype(struct _starpu_mpi_req *req)
 
 	_STARPU_MPI_TRACE_ISEND_SUBMIT_BEGIN(req->node_tag.node.rank, req->node_tag.data_tag, 0);
 
-	if (!req->early_prefetched || req->sync)
+	if (!req->backend->initialized)
 		_starpu_mpi_init_nmad_send_req(req);
 
 	// this trace event is the start of the communication link:
