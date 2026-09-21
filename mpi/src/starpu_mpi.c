@@ -172,7 +172,6 @@ static void _starpu_mpi_trigger_mem_reg(struct _starpu_mpi_req *req)
 {
 	STARPU_MPI_ASSERT_MSG(req->early_prefetched == 0,
 			      "memory registration already done for this request");
-	req->early_node = req->node;
 	req->early_prefetched = 1;
 	req->count = 1;
 	if (!req->datatype_allocated)
@@ -220,6 +219,7 @@ static void _starpu_mpi_soon_callback(void *arg, STARPU_ATTRIBUTE_UNUSED double 
 	if (req->node < 0)
 		req->node = _starpu_mpi_choose_node(req->data_handle, STARPU_R);
 	STARPU_ASSERT(req->node >= 0);
+	req->early_node = req->node;
 
 	if (_starpu_mpi_recv_buffer_alloc_method == STARPU_MPI_ALLOC_NOTIFICATION)
 	{
