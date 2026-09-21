@@ -265,8 +265,12 @@ static void _starpu_mpi_irecv_known_datatype(struct _starpu_mpi_req *req)
 void _starpu_mpi_irecv_func(struct _starpu_mpi_req *req)
 {
 	_STARPU_MPI_LOG_IN();
-
-	_starpu_mpi_irecv_allocate(req);
+	if (req->node == -1)
+	{
+		req->node = _starpu_mpi_choose_node(req->data_handle, STARPU_W);
+		if (_starpu_mpi_recv_buffer_alloc_method == STARPU_MPI_ALLOC_BEGINNING)
+			starpu_data_acquire_to_node(req->data_handle, req->node);
+	}
 	_starpu_mpi_req_datatype_allocate(req);
 	if (req->registered_datatype == 1)
 	{
@@ -278,7 +282,6 @@ void _starpu_mpi_irecv_func(struct _starpu_mpi_req *req)
 		 * will receive, allocate the buffer, and to a starpu_data_unpack_node() */
 		_starpu_mpi_irecv_unknown_datatype(req);
 	}
-
 	_STARPU_MPI_LOG_OUT();
 }
 
