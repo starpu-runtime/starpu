@@ -236,8 +236,6 @@ static void _starpu_mpi_irecv_known_datatype(struct _starpu_mpi_req *req)
 
 	_STARPU_MPI_TRACE_IRECV_SUBMIT_BEGIN(req->node_tag.node.rank, req->node_tag.data_tag);
 
-	struct nm_data_s data;
-	nm_mpi_nmad_data_get(&data, (void*)req->ptr, req->datatype, req->count);
 	nm_sr_recv_init(req->backend->session, &(req->backend->data_request));
 
 	if (_starpu_mpi_recv_buffer_alloc_method == STARPU_MPI_ALLOC_NOTIFICATION)
@@ -246,6 +244,12 @@ static void _starpu_mpi_irecv_known_datatype(struct _starpu_mpi_req *req)
 	}
 	else
 	{
+		STARPU_ASSERT(_starpu_mpi_recv_buffer_alloc_method == STARPU_MPI_ALLOC_BEGINNING);
+		/* We can give the handle pointer directly to NewMadeleine */
+		req->count = 1;
+		req->ptr = starpu_data_handle_to_pointer(req->data_handle, req->node);
+		struct nm_data_s data;
+		nm_mpi_nmad_data_get(&data, (void*)req->ptr, req->datatype, req->count);
 		nm_sr_recv_unpack_data(req->backend->session, &(req->backend->data_request), &data);
 	}
 
@@ -266,15 +270,11 @@ void _starpu_mpi_irecv_func(struct _starpu_mpi_req *req)
 	_starpu_mpi_req_datatype_allocate(req);
 	if (req->registered_datatype == 1)
 	{
-		/* We can give the handle pointer directly to NewMadeleine */
-		req->count = 1;
-		req->ptr = starpu_data_handle_to_pointer(req->data_handle, req->node);
-
 		_starpu_mpi_irecv_known_datatype(req);
 	}
 	else
 	{
-		/* More complex case: we need to first get the actual size of data we
+		/* Complex case: we need to first get the actual size of data we
 		 * will receive, allocate the buffer, and to a starpu_data_unpack_node() */
 		_starpu_mpi_irecv_unknown_datatype(req);
 	}
