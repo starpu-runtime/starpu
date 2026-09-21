@@ -53,6 +53,7 @@ struct _starpu_mpi_req_backend
 
 	/* When using a notification */
 	struct nm_datav_s datav;
+	struct nm_data_s data;
 };
 
 #endif /* STARPU_USE_MPI_NMAD */

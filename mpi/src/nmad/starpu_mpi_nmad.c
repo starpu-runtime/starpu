@@ -106,6 +106,7 @@ void _starpu_mpi_init_nmad_send_req(struct _starpu_mpi_req *req)
 	/* req backend's session and gate already set by
 	   _starpu_mpi_nmad_backend_request_fill in _starpu_mpi_isend_common */
 	STARPU_ASSERT(req->request_type == SEND_REQ);
+	STARPU_ASSERT(req->count = 1);
 	STARPU_MPI_ASSERT_MSG(req->backend->initialized == 0,
 			      "NewMadeleine send request already initialized");
 
@@ -237,17 +238,12 @@ static void _starpu_mpi_irecv_known_datatype(struct _starpu_mpi_req *req)
 
 	_STARPU_MPI_TRACE_IRECV_SUBMIT_BEGIN(req->node_tag.node.rank, req->node_tag.data_tag);
 
+	req->count = 1;
 	nm_sr_recv_init(req->backend->session, &(req->backend->data_request));
 
-	if (_starpu_mpi_recv_buffer_alloc_method == STARPU_MPI_ALLOC_NOTIFICATION)
+	if (_starpu_mpi_recv_buffer_alloc_method == STARPU_MPI_ALLOC_BEGINNING)
 	{
-		STARPU_ABORT_MSG("receive side does not support notifications yet");
-	}
-	else
-	{
-		STARPU_ASSERT(_starpu_mpi_recv_buffer_alloc_method == STARPU_MPI_ALLOC_BEGINNING);
 		/* We can give the handle pointer directly to NewMadeleine */
-		req->count = 1;
 		req->ptr = starpu_data_handle_to_pointer(req->data_handle, req->node);
 		struct nm_data_s data;
 		nm_mpi_nmad_data_get(&data, (void*)req->ptr, req->datatype, req->count);
@@ -621,6 +617,33 @@ void _starpu_mpi_handle_request_termination_callback(nm_sr_event_t event STARPU_
 	{
 		_starpu_mpi_handle_request_termination(req);
 	}
+	else if (event & NM_SR_EVENT_RECV_DATA)
+	{
+		STARPU_ASSERT(_starpu_mpi_recv_buffer_alloc_method == STARPU_MPI_ALLOC_NOTIFICATION);
+		struct nm_data_s data_header;
+		nm_data_contiguous_build(&data_header, &req->count, sizeof(req->count));
+		int ret = nm_sr_recv_peek(req->backend->session,
+					  &req->backend->data_request,
+					  &data_header);
+		STARPU_ASSERT(ret == NM_ESUCCESS);
+		STARPU_ASSERT(req->count == 1);
+		STARPU_ASSERT(req->node >= 0);
+		starpu_data_acquire_to_node(req->data_handle, req->node);
+		req->ptr = starpu_data_handle_to_pointer(req->data_handle, req->node);
+		struct nm_data_s recv_data;
+		nm_mpi_nmad_data_get(&recv_data, req->ptr, req->datatype, req->count);
+		struct nm_datav_s *datav = &req->backend->datav;
+		nm_datav_add_chunk(datav, &req->count, sizeof(req->count));
+		nm_datav_add_chunk_data(datav, &recv_data);
+		struct nm_data_s *data = &req->backend->data;
+		nm_data_datav_build(data, datav);
+		nm_sr_recv_offset(req->backend->session,
+				  &req->backend->data_request,
+				  sizeof(req->count));
+		nm_sr_recv_unpack_data(req->backend->session,
+				       &req->backend->data_request,
+				       data);
+	}
 	else if (event & NM_SR_EVENT_RECV_COMPLETED && req->request_type == RECV_REQ && !_starpu_mpi_recv_wait_finalize && req->sequential_consistency)
 	{
 		/* About required sequential consistency:
@@ -639,9 +662,13 @@ void _starpu_mpi_nmad_handle_pending_request(struct _starpu_mpi_req *req)
 {
 	assert(req != NULL);
 	nm_sr_request_set_ref(&req->backend->data_request, req);
-	int ret = nm_sr_request_monitor(req->backend->session, &req->backend->data_request,
-									NM_SR_EVENT_FINALIZED | NM_SR_EVENT_RECV_COMPLETED,
-									_starpu_mpi_handle_request_termination_callback);
+	nm_sr_event_t events = NM_SR_EVENT_FINALIZED | NM_SR_EVENT_RECV_COMPLETED;
+	if (_starpu_mpi_recv_buffer_alloc_method == STARPU_MPI_ALLOC_NOTIFICATION)
+		events |= NM_SR_EVENT_RECV_DATA;
+	int ret = nm_sr_request_monitor(req->backend->session,
+					&req->backend->data_request,
+					events,
+					_starpu_mpi_handle_request_termination_callback);
 	assert(ret == NM_ESUCCESS);
 }
 

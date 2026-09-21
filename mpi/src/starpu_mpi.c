@@ -186,6 +186,14 @@ static void _starpu_mpi_trigger_mem_reg(struct _starpu_mpi_req *req)
 
 static void _starpu_mpi_send_notify_receiver(struct _starpu_mpi_req *req)
 {
+	if (!req->datatype_allocated)
+	{
+		/* data type may already be allocated in case memory has already
+		   been registered and unregistered */
+		_starpu_mpi_req_datatype_allocate(req);
+	}
+	req->count = 1;
+	req->ptr = starpu_data_handle_to_pointer(req->data_handle, req->early_node);
 	_mpi_backend._starpu_mpi_backend_send_notify_receiver(req);
 	req->notification_sent = 1;
 }

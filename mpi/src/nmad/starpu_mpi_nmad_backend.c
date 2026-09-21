@@ -97,7 +97,8 @@ static void _starpu_mpi_nmad_backend_comm_register(MPI_Comm comm)
 static void _starpu_mpi_nmad_early_mem_reg(struct _starpu_mpi_req *req)
 {
 	STARPU_ASSERT(req->request_type == SEND_REQ);
-	_starpu_mpi_init_nmad_send_req(req);
+	if (!req->backend->initialized)
+		_starpu_mpi_init_nmad_send_req(req);
 	_STARPU_MPI_DEBUG(21, "triggering NIC memory registration from soon callback\n");
 	/* "memory registration" is often called "prefetch" in NewMadeleine */
 	nm_sr_send_early_prefetch(req->backend->session, &req->backend->data_request);
@@ -114,9 +115,10 @@ static void _starpu_mpi_nmad_send_notify_receiver(struct _starpu_mpi_req *req)
 {
 	STARPU_ASSERT(!req->notification_sent);
 	_STARPU_MPI_DEBUG(23, "sending a notification\n");
+	if (!req->backend->initialized)
+		_starpu_mpi_init_nmad_send_req(req);
 	nm_session_t session = req->backend->session;
 	nm_sr_request_t *nm_req = &req->backend->data_request;
-	nm_sr_send_header(session, nm_req, sizeof(size_t));
 	nm_sr_send_submit(session, nm_req);
 	/* The header will be sent eagerly as soon as possible, and thus acts as
 	   a notification */
