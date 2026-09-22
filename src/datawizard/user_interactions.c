@@ -435,7 +435,7 @@ int _starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_da
 		}
 #endif
 	}
-	else
+	else /* no sequential consistency */
 	{
 		if (pre_sync_jobid)
 			*pre_sync_jobid = -1;
