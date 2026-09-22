@@ -290,8 +290,6 @@ static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_dat
 		req->count = 1;
 		req->ptr = starpu_data_handle_to_pointer(req->data_handle, req->early_node);
 		_starpu_mpi_trigger_mem_reg(req);
-		if (_starpu_mpi_recv_buffer_alloc_method == STARPU_MPI_ALLOC_NOTIFICATION)
-			STARPU_ABORT_MSG("situation not supported yet\n");
 		return;
 	}
 
