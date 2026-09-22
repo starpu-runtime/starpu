@@ -51,6 +51,10 @@
 #include "starpu_mpi_nmad_unknown_datatype.h"
 
 void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req);
+/* NewMadeleine request's event monitor callback for reception with notification. */
+static void _starpu_mpi_nmad_recv_with_notification_handle_events(nm_sr_event_t event,
+								  const nm_sr_event_info_t* event_info,
+								  void* ref);
 static inline void _starpu_mpi_request_end(struct _starpu_mpi_req* req, int post_callback_sem);
 static inline void _starpu_mpi_request_try_end(struct _starpu_mpi_req* req, int post_callback_sem);
 
@@ -238,17 +242,13 @@ static void _starpu_mpi_irecv_known_datatype(struct _starpu_mpi_req *req)
 
 	_STARPU_MPI_TRACE_IRECV_SUBMIT_BEGIN(req->node_tag.node.rank, req->node_tag.data_tag);
 
+	/* We can give the handle pointer directly to NewMadeleine */
 	req->count = 1;
+	req->ptr = starpu_data_handle_to_pointer(req->data_handle, req->node);
 	nm_sr_recv_init(req->backend->session, &(req->backend->data_request));
-
-	if (_starpu_mpi_recv_buffer_alloc_method == STARPU_MPI_ALLOC_BEGINNING)
-	{
-		/* We can give the handle pointer directly to NewMadeleine */
-		req->ptr = starpu_data_handle_to_pointer(req->data_handle, req->node);
-		struct nm_data_s data;
-		nm_mpi_nmad_data_get(&data, (void*)req->ptr, req->datatype, req->count);
-		nm_sr_recv_unpack_data(req->backend->session, &(req->backend->data_request), &data);
-	}
+	struct nm_data_s data;
+	nm_mpi_nmad_data_get(&data, (void*)req->ptr, req->datatype, req->count);
+	nm_sr_recv_unpack_data(req->backend->session, &(req->backend->data_request), &data);
 
 	_starpu_mpi_nmad_handle_pending_request(req);
 
@@ -259,25 +259,54 @@ static void _starpu_mpi_irecv_known_datatype(struct _starpu_mpi_req *req)
 	_STARPU_MPI_LOG_OUT();
 }
 
+static void _starpu_mpi_nmad_irecv_with_notification(struct _starpu_mpi_req *req)
+{
+	_STARPU_MPI_LOG_IN();
+	STARPU_ASSERT(_starpu_mpi_recv_buffer_alloc_method == STARPU_MPI_ALLOC_NOTIFICATION);
+	nm_sr_recv_init(req->backend->session, &req->backend->data_request);
+	nm_sr_request_set_ref(&req->backend->data_request, req);
+	nm_sr_event_t events = NM_SR_EVENT_NONE;
+	events |= NM_SR_EVENT_RECV_DATA;
+	events |= NM_SR_EVENT_RECV_COMPLETED;
+	events |= NM_SR_EVENT_FINALIZED;
+	int ret = nm_sr_request_monitor(req->backend->session,
+					&req->backend->data_request,
+					events,
+					_starpu_mpi_nmad_recv_with_notification_handle_events);
+	STARPU_ASSERT(ret == NM_ESUCCESS);
+	/* post the receive with no buffer for actually receiving, all the work
+	   is done from the event monitor, see the short example
+	   nmad/examples/sendrecv/nm_sr_iov_peek_to_allocate.c in the PM2
+	   project */
+	nm_sr_recv_irecv(req->backend->session,
+			 &req->backend->data_request,
+			 req->backend->gate,
+			 req->node_tag.data_tag,
+			 NM_TAG_MASK_FULL);
+	_STARPU_MPI_LOG_OUT();
+}
+
 void _starpu_mpi_irecv_func(struct _starpu_mpi_req *req)
 {
 	_STARPU_MPI_LOG_IN();
 	if (req->node == -1)
 	{
-		req->node = _starpu_mpi_choose_node(req->data_handle, STARPU_W);
-		if (_starpu_mpi_recv_buffer_alloc_method == STARPU_MPI_ALLOC_BEGINNING)
-			starpu_data_acquire_to_node(req->data_handle, req->node);
-	}
-	_starpu_mpi_req_datatype_allocate(req);
-	if (req->registered_datatype == 1)
-	{
-		_starpu_mpi_irecv_known_datatype(req);
+		STARPU_ASSERT(_starpu_mpi_recv_buffer_alloc_method == STARPU_MPI_ALLOC_NOTIFICATION);
+		_starpu_mpi_nmad_irecv_with_notification(req);
 	}
 	else
 	{
-		/* Complex case: we need to first get the actual size of data we
-		 * will receive, allocate the buffer, and to a starpu_data_unpack_node() */
-		_starpu_mpi_irecv_unknown_datatype(req);
+		_starpu_mpi_req_datatype_allocate(req);
+		if (req->registered_datatype == 1)
+		{
+			_starpu_mpi_irecv_known_datatype(req);
+		}
+		else
+		{
+			/* Complex case: we need to first get the actual size of data we
+			 * will receive, allocate the buffer, and to a starpu_data_unpack_node() */
+			_starpu_mpi_irecv_unknown_datatype(req);
+		}
 	}
 	_STARPU_MPI_LOG_OUT();
 }
@@ -663,13 +692,61 @@ void _starpu_mpi_nmad_handle_pending_request(struct _starpu_mpi_req *req)
 	assert(req != NULL);
 	nm_sr_request_set_ref(&req->backend->data_request, req);
 	nm_sr_event_t events = NM_SR_EVENT_FINALIZED | NM_SR_EVENT_RECV_COMPLETED;
-	if (_starpu_mpi_recv_buffer_alloc_method == STARPU_MPI_ALLOC_NOTIFICATION)
-		events |= NM_SR_EVENT_RECV_DATA;
 	int ret = nm_sr_request_monitor(req->backend->session,
 					&req->backend->data_request,
 					events,
 					_starpu_mpi_handle_request_termination_callback);
 	assert(ret == NM_ESUCCESS);
+}
+
+static void _starpu_mpi_nmad_recv_with_notification_handle_events(nm_sr_event_t event,
+								  const nm_sr_event_info_t* event_info STARPU_ATTRIBUTE_UNUSED,
+								  void* ref)
+{
+	struct _starpu_mpi_req* req = ref;
+	STARPU_ASSERT(req != NULL);
+	STARPU_ASSERT(req->request_type == RECV_REQ);
+	STARPU_ASSERT(_starpu_mpi_recv_buffer_alloc_method == STARPU_MPI_ALLOC_NOTIFICATION);
+	req->backend->posted = 1;
+	if (event & NM_SR_EVENT_FINALIZED)
+	{
+		_starpu_mpi_handle_request_termination(req);
+	}
+	else if (event & NM_SR_EVENT_RECV_DATA)
+	{
+		/* notification received */
+		struct nm_data_s data_header;
+		nm_data_contiguous_build(&data_header, &req->count, sizeof(req->count));
+		int ret = nm_sr_recv_peek(req->backend->session,
+					  &req->backend->data_request,
+					  &data_header);
+		STARPU_ASSERT(ret == NM_ESUCCESS);
+		/* the whole point of the notification mechanism is to delay the
+		   allocation until now, thus the memory node must not be set at
+		   this point */
+		STARPU_ASSERT(req->node == -1);
+		req->node = _starpu_mpi_choose_node(req->data_handle, STARPU_W);
+		STARPU_ASSERT(req->node >= 0);
+		_starpu_mpi_req_datatype_allocate(req);
+		STARPU_ASSERT(req->registered_datatype == 1);
+		/* allocate the receive buffer */
+		starpu_data_acquire_to_node(req->data_handle, req->node);
+		req->count = 1;
+		req->ptr = starpu_data_handle_to_pointer(req->data_handle, req->node);
+		struct nm_data_s recv_data;
+		nm_mpi_nmad_data_get(&recv_data, req->ptr, req->datatype, req->count);
+		struct nm_datav_s *datav = &req->backend->datav;
+		nm_datav_add_chunk(datav, &req->count, sizeof(req->count));
+		nm_datav_add_chunk_data(datav, &recv_data);
+		struct nm_data_s *data = &req->backend->data;
+		nm_data_datav_build(data, datav);
+		nm_sr_recv_offset(req->backend->session,
+				  &req->backend->data_request,
+				  sizeof(req->count));
+		nm_sr_recv_unpack_data(req->backend->session,
+				       &req->backend->data_request,
+				       data);
+	}
 }
 
 void _starpu_mpi_submit_ready_request(void *arg)
