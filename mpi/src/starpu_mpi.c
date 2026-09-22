@@ -182,7 +182,9 @@ static void _starpu_mpi_send_notify_receiver(struct _starpu_mpi_req *req)
 	req->notification_sent = 1;
 }
 
-/* If the MPI backend supports request early prefetching, trigger it. */
+/* The data will be ready to be transferred soon. On the receive side, we don't
+   care. On the send side, we may send a notification or trigger the NIC memory
+   registration. */
 static void _starpu_mpi_soon_callback(void *arg, STARPU_ATTRIBUTE_UNUSED double delay)
 {
 	struct _starpu_mpi_req *req = arg;
@@ -199,15 +201,8 @@ static void _starpu_mpi_soon_callback(void *arg, STARPU_ATTRIBUTE_UNUSED double 
 		return;
 	}
 
-	if (!req->registered_datatype)
-	{
-		/* At this point it is not possible to process unknown datatypes
-		 * because their data size can still be modified by a user task
-		 */
-		return;
-	}
-
 	_STARPU_MPI_LOG_IN();
+	STARPU_ASSERT(req->registered_datatype == -1);
 	if (req->node < 0)
 		req->node = _starpu_mpi_choose_node(req->data_handle, STARPU_R);
 	STARPU_ASSERT(req->node >= 0);
