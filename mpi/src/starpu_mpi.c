@@ -162,10 +162,8 @@ void _starpu_mpi_irecv_allocate(struct _starpu_mpi_req *req)
 
 void _starpu_mpi_req_datatype_allocate(struct _starpu_mpi_req *req)
 {
-	STARPU_MPI_ASSERT_MSG(req->datatype_allocated == 0,
-			      "request's datatype is already allocated");
+	STARPU_ASSERT(req->registered_datatype == -1);
 	_starpu_mpi_datatype_allocate(req->data_handle, req);
-	req->datatype_allocated = 1;
 }
 
 static void _starpu_mpi_trigger_mem_reg(struct _starpu_mpi_req *req)

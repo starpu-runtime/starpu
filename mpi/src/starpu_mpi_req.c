@@ -30,7 +30,6 @@ void _starpu_mpi_request_init(struct _starpu_mpi_req **req)
 	(*req)->early_node = (unsigned) -1;
 	(*req)->node = (unsigned) -1;
 
-	//(*req)->datatype_allocated = 0;
 	//(*req)->early_prefetched = 0;
 	//(*req)->notification_sent = 0;
 

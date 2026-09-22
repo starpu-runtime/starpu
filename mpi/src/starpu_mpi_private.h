@@ -290,7 +290,6 @@ LIST_TYPE(_starpu_mpi_req,
 	  int early_node;
 	  int node;
 
-	  int datatype_allocated;
 	  int early_prefetched;
 	  int notification_sent;
 
