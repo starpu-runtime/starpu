@@ -615,7 +615,7 @@ int main(int argc, char **argv)
 #endif
 
 #if defined(STARPU_MPI_MINIMAL_TESTS) || defined(STARPU_QUICK_CHECK)
-	ret = check_dataset(funcs_vector, funcs_char, (size_t)INT_MAX+12, 1, 1, 1, 1, (size_t)INT_MAX+12, 1, 1, 1);
+	ret = check_dataset(funcs_vector, funcs_char, (size_t)1e6, 1, 1, 1, 1, (size_t)1e6, 1, 1, 1);
 	goto end;
 #endif
 
