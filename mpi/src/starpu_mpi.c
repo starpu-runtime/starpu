@@ -180,16 +180,19 @@ static void _starpu_mpi_send_notify_receiver(struct _starpu_mpi_req *req)
 	req->notification_sent = 1;
 }
 
-/* The data will be ready to be transferred soon. On the receive side, we don't
-   care. On the send side, we may send a notification or trigger the NIC memory
-   registration. */
+/* The data will be ready to be transferred soon. The data is not event acquired
+   semantically at this point, on the send side, some tasks may still be writing
+   the data, on the receive side, the data may not even be allocated.
+
+   The aim is, on the send side, to send a notification or trigger the NIC
+   memory registration. On the receive side, we do nothing at this point. */
 static void _starpu_mpi_soon_callback(void *arg, STARPU_ATTRIBUTE_UNUSED double delay)
 {
 	struct _starpu_mpi_req *req = arg;
 
 	if (req->request_type != SEND_REQ)
 	{
-		/* No work to do */
+		/* The work is not done now */
 		return;
 	}
 
@@ -238,14 +241,15 @@ static void _starpu_mpi_mem_unreg_if_requested(struct _starpu_mpi_req *req)
 	}
 }
 
+/* The data was acquired in terms of dependencies, we can now look the current
+   state of the handle and decide which node we prefer for the data fetch. This
+   is the very last time we can manipulate the request before the data is
+   fetched. If *nodep is set to -1 here, then the data fetching will not be done
+   before the actual send/recv backend function is called. */
 static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_data_access_mode mode)
 {
 	struct _starpu_mpi_req *req = arg;
 	int node = *nodep;
-
-	/* The data was acquired in terms of dependencies, we can now look the
-	 * current state of the handle and decide which node we prefer for the data
-	 * fetch */
 
 	_STARPU_MPI_LOG_IN();
 	if ((node == -1)
