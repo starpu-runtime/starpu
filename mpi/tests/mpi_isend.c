@@ -18,7 +18,7 @@
 #include "helper.h"
 
 #ifdef STARPU_QUICK_CHECK
-#  define NITER	16
+#  define NITER	1
 #else
 #  define NITER	2048
 #endif

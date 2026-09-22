@@ -256,25 +256,17 @@ static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_dat
 	    && ((req->request_type == SEND_REQ)
 		|| (_starpu_mpi_recv_buffer_alloc_method == STARPU_MPI_ALLOC_BEGINNING)))
 	{
+		/* if this is a receive request and the notification system is
+		   used, node is not chosen now but when the notification is
+		   received */
 		node = _starpu_mpi_choose_node(req->data_handle, mode);
 	}
 
 	req->node = *nodep = node;
 
-	if (!_starpu_mpi_early_mem_reg)
-	{
-		return;
-	}
-
-	if (_mpi_backend._starpu_mpi_backend_early_mem_reg == NULL)
-	{
-		/* Backend does not support early prefetch */
-		return;
-	}
-
 	if (req->request_type != SEND_REQ)
 	{
-		/* Nothing to prefetch early */
+		/* The work is not done now */
 		return;
 	}
 
@@ -284,19 +276,25 @@ static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_dat
 		return;
 	}
 
-	if (!req->registered_datatype)
-		return;
-
-	if (req->early_node != node)
+	if (_starpu_mpi_early_mem_reg
+	    && _mpi_backend._starpu_mpi_backend_early_mem_reg != NULL
+	    && ((req->early_node != node) || (req->early_node == -1)))
 	{
 		/* Data location changed since the soon callback was called. If
 		 * an early prefetch was requested, then it shall be
 		 * cancelled */
+		/* warning: this part is not reliably tested yet */
+		STARPU_ASSERT(req->registered_datatype == 1);
 		_starpu_mpi_mem_unreg_if_requested(req);
+		_starpu_mpi_req_datatype_allocate(req);
+		req->count = 1;
+		req->ptr = starpu_data_handle_to_pointer(req->data_handle, req->early_node);
 		_starpu_mpi_trigger_mem_reg(req);
 		if (_starpu_mpi_recv_buffer_alloc_method == STARPU_MPI_ALLOC_NOTIFICATION)
 			STARPU_ABORT_MSG("situation not supported yet\n");
+		return;
 	}
+
 	_STARPU_MPI_LOG_OUT();
 }
 
