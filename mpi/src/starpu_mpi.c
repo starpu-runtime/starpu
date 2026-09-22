@@ -172,28 +172,12 @@ static void _starpu_mpi_trigger_mem_reg(struct _starpu_mpi_req *req)
 {
 	STARPU_MPI_ASSERT_MSG(req->early_prefetched == 0,
 			      "memory registration already done for this request");
-	req->count = 1;
-	if (!req->datatype_allocated)
-	{
-		/* data type may already be allocated in case memory has already
-		   been registered and unregistered */
-		_starpu_mpi_req_datatype_allocate(req);
-	}
-	req->ptr = starpu_data_handle_to_pointer(req->data_handle, req->early_node);
 	_mpi_backend._starpu_mpi_backend_early_mem_reg(req);
 	req->early_prefetched = 1;
 }
 
 static void _starpu_mpi_send_notify_receiver(struct _starpu_mpi_req *req)
 {
-	if (!req->datatype_allocated)
-	{
-		/* data type may already be allocated in case memory has already
-		   been registered and unregistered */
-		_starpu_mpi_req_datatype_allocate(req);
-	}
-	req->count = 1;
-	req->ptr = starpu_data_handle_to_pointer(req->data_handle, req->early_node);
 	_mpi_backend._starpu_mpi_backend_send_notify_receiver(req);
 	req->notification_sent = 1;
 }
@@ -228,6 +212,9 @@ static void _starpu_mpi_soon_callback(void *arg, STARPU_ATTRIBUTE_UNUSED double 
 		req->node = _starpu_mpi_choose_node(req->data_handle, STARPU_R);
 	STARPU_ASSERT(req->node >= 0);
 	req->early_node = req->node;
+	_starpu_mpi_req_datatype_allocate(req);
+	STARPU_ASSERT(req->registered_datatype == 1);
+	req->ptr = starpu_data_handle_to_pointer(req->data_handle, req->early_node);
 
 	if (_starpu_mpi_recv_buffer_alloc_method == STARPU_MPI_ALLOC_NOTIFICATION)
 	{
