@@ -172,7 +172,6 @@ static void _starpu_mpi_trigger_mem_reg(struct _starpu_mpi_req *req)
 {
 	STARPU_MPI_ASSERT_MSG(req->early_prefetched == 0,
 			      "memory registration already done for this request");
-	req->early_prefetched = 1;
 	req->count = 1;
 	if (!req->datatype_allocated)
 	{
@@ -182,6 +181,7 @@ static void _starpu_mpi_trigger_mem_reg(struct _starpu_mpi_req *req)
 	}
 	req->ptr = starpu_data_handle_to_pointer(req->data_handle, req->early_node);
 	_mpi_backend._starpu_mpi_backend_early_mem_reg(req);
+	req->early_prefetched = 1;
 }
 
 static void _starpu_mpi_send_notify_receiver(struct _starpu_mpi_req *req)
