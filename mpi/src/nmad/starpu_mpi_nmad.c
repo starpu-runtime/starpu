@@ -202,9 +202,7 @@ void _starpu_mpi_isend_func(struct _starpu_mpi_req *req)
 	_STARPU_MPI_LOG_IN();
 
 	if (req->registered_datatype == -1)
-	{
-		_starpu_mpi_datatype_allocate(req->data_handle, req);
-	}
+		_starpu_mpi_req_datatype_allocate(req);
 
 	if (req->registered_datatype == 1)
 	{
