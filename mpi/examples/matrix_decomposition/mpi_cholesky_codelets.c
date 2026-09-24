@@ -190,11 +190,11 @@ static void run_cholesky(starpu_data_handle_t **data_handles, int rank, int node
 					       STARPU_RW, data_handles[m][k],
 					       STARPU_FLOPS, (double) FLOPS_STRSM(nn, nn),
 					       0);
-
-			starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[k][k]);
-			if (my_distrib(k, k, nodes) == rank)
-				starpu_data_wont_use(data_handles[k][k]);
 		}
+
+		starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[k][k]);
+		if (my_distrib(k, k, nodes) == rank)
+			starpu_data_wont_use(data_handles[k][k]);
 
 		for (n = k+1; n<nblocks; n++)
 		{
