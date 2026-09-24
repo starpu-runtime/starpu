@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -195,11 +195,11 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 					       STARPU_RW, data_handles[m][k],
 					       STARPU_FLOPS, (double) FLOPS_STRSM(nn, nn),
 					       0);
-
-			starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[k][k]);
-			if (my_distrib(k, k, nodes) == rank)
-				starpu_data_wont_use(data_handles[k][k]);
 		}
+
+		starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[k][k]);
+		if (my_distrib(k, k, nodes) == rank)
+			starpu_data_wont_use(data_handles[k][k]);
 
 		for (n = k+1; n<nblocks; n++)
 		{
