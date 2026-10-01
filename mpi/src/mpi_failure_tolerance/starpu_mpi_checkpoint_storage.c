@@ -38,7 +38,9 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <fcntl.h>
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 
 #include <mpi_failure_tolerance/starpu_mpi_checkpoint_storage.h>
 #include <starpu_mpi_private.h>
