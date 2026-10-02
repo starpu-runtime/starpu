@@ -119,6 +119,12 @@ int starpu_mpi_comm_rank(MPI_Comm comm, int *rank);
 int starpu_mpi_world_rank(void);
 
 /**
+   Same as starpu_mpi_world_rank() but does not take any rank reordering into
+   account. Used internally in StarPU "core" (the non-MPI part).
+*/
+int starpu_mpi_world_rank_raw(void);
+
+/**
    Return the size of the communicator \c MPI_COMM_WORLD
 */
 int starpu_mpi_world_size(void);

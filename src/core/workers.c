@@ -19,6 +19,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <config.h>
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <strings.h>
@@ -84,6 +86,10 @@
 #define ffs(arg) _bit_scan_forward(arg)
 #endif
 #endif
+
+/* From StarPU-MPI, if enabled. */
+#pragma weak starpu_mpi_world_rank_raw
+extern int starpu_mpi_world_rank_raw(void);
 
 static int asynchronous_copy_disabled[STARPU_MAX_RAM+1];
 
@@ -852,6 +858,14 @@ static unsigned _starpu_may_launch_driver(struct starpu_conf *conf,
 #ifdef STARPU_PERF_DEBUG
 struct itimerval prof_itimer;
 #endif
+
+int _starpu_mpi_world_rank_wrapper(void)
+{
+	if (starpu_mpi_world_rank_raw == NULL)
+		return 0;
+	else
+		return starpu_mpi_world_rank_raw();
+}
 
 void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu_machine_config *pconfig)
 {
@@ -1731,15 +1745,17 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	char *perturb = starpu_getenv("MALLOC_PERTURB_");
 	if (perturb && perturb[0] && atoi(perturb) != 0)
 		_STARPU_DISP("Warning: MALLOC_PERTURB_ is set to non-zero, this makes simgrid run very slow\n");
-#else
+#else  /* STARPU_SIMGRID */
 #ifdef __GNUC__
 #ifndef __OPTIMIZE__
-	_STARPU_DISP("Warning: StarPU was configured with --enable-debug (-O0), and is thus not optimized\n");
-#endif
-#endif
+	if (_starpu_mpi_world_rank_wrapper() == 0 )
+		_STARPU_DISP("Warning: StarPU was configured with --enable-debug (-O0), and is thus not optimized\n");
+#endif /* __OPTIMIZE__ */
+#endif /* __GNUC__ */
 #ifdef STARPU_SPINLOCK_CHECK
-	_STARPU_DISP("Warning: StarPU was configured with --enable-spinlock-check, which slows down a bit\n");
-#endif
+	if (_starpu_mpi_world_rank_wrapper() == 0)
+		_STARPU_DISP("Warning: StarPU was configured with --enable-spinlock-check, which slows down a bit\n");
+#endif	/* STARPU_SPINLOCK_CHECK */
 #if 0
 #ifndef STARPU_NO_ASSERT
 	_STARPU_DISP("Warning: StarPU was configured without --enable-fast\n");
