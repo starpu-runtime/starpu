@@ -207,20 +207,33 @@ $ ../configure --prefix=$HOME/starpu
 
 \subsection BuildingStarPU Building StarPU
 
+Once the build directory is configured, run
+
 \verbatim
 $ make
 \endverbatim
 
+\subsection RunningTestSuite Running the Test Suite
+
 Once everything is built, you may want to test the result. An
 extensive set of regression tests is provided with StarPU. Running the
-tests is done by calling <c>make check</c> (by setting the variable \c STARPU_MICROBENCHS_DISABLED to disable benchmarks)
+test suite is done by calling
+
+\verbatim
+$ STARPU_MICROBENCHS_DISABLED=1 make check
+\endverbatim
+
+The variable \c STARPU_MICROBENCHS_DISABLED is set to disable benchmarks.
 
 These tests are run every night and the result from the main profile
 is publicly available
 (https://starpu.gitlabpages.inria.fr/files/testing/master/).
 
+If you wish to only run the tests for a specific part of StarPU (e.g. MPI), you
+can use
+
 \verbatim
-$ STARPU_MICROBENCHS_DISABLED=1 make check
+$ make check -C mpi
 \endverbatim
 
 \subsection InstallingStarPU Installing StarPU

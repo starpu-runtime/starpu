@@ -1299,6 +1299,18 @@ where there are many data requests with priorities greater than
 \ref STARPU_DEFAULT_PRIO the MPI drive could be blocked for long periods.
 </dd>
 
+<dt>STARPU_MPIEXEC_EXTRA_ARGS</dt>
+<dd>
+\anchor STARPU_MPIEXEC_EXTRA_ARGS
+\addindex __env__STARPU_MPIEXEC_EXTRA_ARGS
+Extra arguments to give the MPI launcher. Useful when running the MPI test
+suite. For example, to run the MPI test suite on nodes <c>host0,host1</c>, one
+can use
+\verbatim
+$ make check -C mpi STARPU_MPIEXEC_EXTRA_ARGS='-H host0,host1'
+\endverbatim
+</dd>
+
 <dt>STARPU_SIMGRID</dt>
 <dd>
 \anchor STARPU_SIMGRID

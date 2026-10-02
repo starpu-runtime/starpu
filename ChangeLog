@@ -72,6 +72,8 @@ Small features:
   * New STARPU_MPI_MEM_LATE environment variable to allocate mpi reception
     buffer at MPI reception time.
   * Add optional STARPU_SCRATCH to reduction method.
+  * Add STARPU_MPIEXEC_EXTRA_ARGS makefile variable for tuning MPI launcher
+    arguments
 
 Changes:
   * Rename hierarchical tasks in recursive tasks
