@@ -5281,6 +5281,7 @@ void starpu_fxt_options_shutdown(struct starpu_fxt_options *options)
 	free(options->papi_path);
 	free(options->energy_path);
 	free(options->topo_path);
+	free(options->energy_solver_path);
 	free(options->anim_path);
 	free(options->states_path);
 	free(options->distrib_time_path);
