@@ -767,6 +767,26 @@ struct map_allocate_info
 	char name[];
 };
 
+void _starpu_map_finish(void)
+{
+	STARPU_PTHREAD_MUTEX_LOCK(&map_tree_mutex);
+	if (!starpu_rbtree_empty(&map_tree))
+	{
+		struct starpu_rbtree_node *node;
+
+		_STARPU_ERROR("Not all mapped allocations were released!");
+		for (node = starpu_rbtree_first(&map_tree);
+		     node != NULL;
+		     node = starpu_rbtree_next(node))
+		{
+			struct map_allocate_info *map_info = (struct map_allocate_info *) node;
+			_STARPU_ERROR("%p(%lu bytes) not released, leaked file %p\n",
+					map_info->map_addr, map_info->length, map_info->name);
+		}
+	}
+	STARPU_PTHREAD_MUTEX_UNLOCK(&map_tree_mutex);
+}
+
 /* the cmp_fn arg for rb_tree_insert() */
 static unsigned int map_addr_cmp_insert(struct starpu_rbtree_node * left_elm, struct starpu_rbtree_node * right_elm)
 {
@@ -963,5 +983,8 @@ int _starpu_sink_unmap(uintptr_t map_addr, size_t length)
 	(void)map_addr;
 	(void)length;
 	return -1;
+}
+void _starpu_map_finish(void)
+{
 }
 #endif

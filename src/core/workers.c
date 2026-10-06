@@ -43,6 +43,7 @@
 #include <sched_policies/sched_component.h>
 #include <datawizard/memory_nodes.h>
 #include <common/knobs.h>
+#include <drivers/driver_common/driver_common.h>
 #include <drivers/mp_common/sink_common.h>
 #include <drivers/mp_common/source_common.h>
 #include <drivers/mpi/driver_mpi_common.h>
@@ -2351,6 +2352,7 @@ void starpu_shutdown(void)
 #ifdef STARPU_USE_MP
 	_starpu_src_common_deinit();
 #endif
+	_starpu_map_finish();
 	_starpu_print_idle_time();
 	_STARPU_DEBUG("Shutdown finished\n");
 

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013-2013  Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -48,6 +48,7 @@ int _starpu_map_deallocate(void* map_addr, size_t length);
 char* _starpu_get_fdname_from_mapaddr(uintptr_t map_addr, size_t *offset, size_t length);
 void *_starpu_sink_map(char *fd_name, size_t offset, size_t length);
 int _starpu_sink_unmap(uintptr_t map_addr, size_t length);
+void _starpu_map_finish(void);
 
 #pragma GCC visibility pop
 
