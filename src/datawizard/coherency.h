@@ -164,7 +164,7 @@ struct _starpu_data_state
 	 * STARPU_SCRATCH or STARPU_REDUX, but never a combination such as
 	 * STARPU_RW. */
 	enum starpu_data_access_mode current_mode;
-	/** protect meta data */
+	/** protect meta data, to be taken in handle pointer order */
 	struct _starpu_spinlock header_lock;
 
 	/** Condition to make application wait for all transfers before freeing handle */
@@ -464,6 +464,15 @@ void _starpu_data_set_unregister_hook(starpu_data_handle_t handle, _starpu_data_
 
 int _starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_data_handle_t handle, starpu_data_handle_t *real_handle, int node,
 									    enum starpu_data_access_mode mode,
+									    void (*callback_soon)(void *arg, double delay),
+									    void (*callback_acquired)(void *arg, int *node, enum starpu_data_access_mode mode),
+									    void (*callback)(void *arg),
+									    void *arg, int sequential_consistency, int quick, long *pre_sync_jobid, long *post_sync_jobid, int prio, int need_part_unpart) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
+
+int _starpu_data_acquire2_on_node_cb_sequential_consistency_sync_jobids(starpu_data_handle_t handle, starpu_data_handle_t *real_handle, int node,
+									    enum starpu_data_access_mode mode,
+									    starpu_data_handle_t handle2, starpu_data_handle_t *real_handle2, int node2,
+									    enum starpu_data_access_mode mode2,
 									    void (*callback_soon)(void *arg, double delay),
 									    void (*callback_acquired)(void *arg, int *node, enum starpu_data_access_mode mode),
 									    void (*callback)(void *arg),

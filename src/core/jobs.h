@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013-2013  Thibaut Lambert
  * Copyright (C) 2011-2011  Télécom Sud Paris
  *
@@ -178,6 +178,8 @@ struct _starpu_job
 	 * last_writer/readers */
 	starpu_data_handle_t implicit_dep_handle;
 	struct _starpu_task_wrapper_dlist implicit_dep_slot;
+	/** For acquiring two handles, we may need a second handle for the pre_sync_task */
+	starpu_data_handle_t implicit_dep_handle2;
 
 	/** Indicates whether the task associated to that job has already been
 	 * submitted to StarPU (1) or not (0) (using starpu_task_submit).

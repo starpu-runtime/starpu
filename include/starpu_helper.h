@@ -260,6 +260,14 @@ int starpu_data_dup_ro(starpu_data_handle_t *dst_handle, starpu_data_handle_t sr
 starpu_data_handle_t starpu_data_dup_ro_get(starpu_data_handle_t handle);
 
 /**
+   Move the content of \p src_handle into \p dst_handle. This does not perform any actual copy:
+   it just moves the buffers of \p src_handle into \p src_handle. This only works with data registered with no home node.
+
+   See \ref DataHandlesHelpers for more details.
+*/
+void starpu_data_move(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle);
+
+/**
    Call hwloc-ps or lstopo to display binding of each process and thread running on
    the machine.<br>
    Use the environment variable \ref STARPU_DISPLAY_BINDINGS to automatically

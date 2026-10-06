@@ -34,6 +34,7 @@ New features:
   * Add hardware energy counters monitoring (RAPL, Cray pm_counters, NVML,
     ROCm SMI) through the energy-reader library, enabled with
     --enable-energyreader and STARPU_ENERGY_READER=1.
+  * Add starpu_data_move to efficiently move data from one handle to another.
 
 Small features:
   * Add FXT option -show-workers to display the available workers in

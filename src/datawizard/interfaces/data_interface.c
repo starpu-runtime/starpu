@@ -1040,17 +1040,20 @@ void starpu_data_unregister_submit(starpu_data_handle_t handle)
 	starpu_data_acquire_on_node_cb(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, handle->initialized?STARPU_RW:STARPU_W, _starpu_data_unregister_submit_cb, handle);
 }
 
-static void __starpu_data_deinitialize(starpu_data_handle_t handle)
+static void __starpu_data_check_no_transfer(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_DEBUG
-	{
-		/* There shouldn't be any pending request since we acquired the data in W mode */
-		unsigned i, j, nnodes = starpu_memory_nodes_get_count();
-		for (i = 0; i < nnodes; i++)
-			for (j = 0; j < nnodes; j++)
-				STARPU_ASSERT_MSG(!handle->per_node[i].request[j], "request for handle %p pending from %u to %u while invalidating data!", handle, j, i);
-	}
+	unsigned i, j, nnodes = starpu_memory_nodes_get_count();
+	for (i = 0; i < nnodes; i++)
+		for (j = 0; j < nnodes; j++)
+			STARPU_ASSERT_MSG(!handle->per_node[i].request[j], "request for handle %p pending from %u to %u while invalidating data!", handle, j, i);
 #endif
+}
+
+static void __starpu_data_deinitialize(starpu_data_handle_t handle)
+{
+	/* There shouldn't be any pending request since we acquired the data in W mode */
+	__starpu_data_check_no_transfer(handle);
 
 	unsigned node;
 
@@ -1235,6 +1238,124 @@ void _starpu_data_invalidate_submit_noplan(starpu_data_handle_t handle)
 	starpu_data_acquire_on_node_cb(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, STARPU_W | STARPU_NOPLAN, _starpu_data_invalidate, handle);
 
 	handle->initialized = 0;
+}
+
+static void _starpu_data_move(void *data)
+{
+	starpu_data_handle_t *handles = data;
+	starpu_data_handle_t dst_handle = handles[0];
+	starpu_data_handle_t src_handle = handles[1];
+	free(handles);
+
+	if (dst_handle < src_handle)
+	{
+		_starpu_spin_lock(&dst_handle->header_lock);
+		_starpu_spin_lock(&src_handle->header_lock);
+	}
+	else
+	{
+		_starpu_spin_lock(&src_handle->header_lock);
+		_starpu_spin_lock(&dst_handle->header_lock);
+	}
+
+	//_STARPU_DEBUG("Really moving data %p to data %p\n", src_handle, dst_handle);
+
+	/* There shouldn't be any pending request since we acquired the data in W mode */
+	__starpu_data_check_no_transfer(src_handle);
+	__starpu_data_check_no_transfer(dst_handle);
+
+	unsigned node;
+
+	for (node = 0; node < STARPU_MAXNODES; node++)
+	{
+		struct _starpu_data_replicate *src_local = &src_handle->per_node[node];
+		struct _starpu_data_replicate *dst_local = &dst_handle->per_node[node];
+
+		/* We should be alone */
+		STARPU_ASSERT(src_local->refcnt == 1);
+		STARPU_ASSERT(dst_local->refcnt == 1);
+
+		dst_local->state = src_local->state;
+		src_local->state = STARPU_INVALID;
+		dst_local->initialized = src_local->initialized;
+		src_local->initialized = 0;
+
+		/* Exchange buffers, it makes src handle magically get buffers,
+		 * but it's the simplest way to get the data into dst. */
+
+		struct _starpu_mem_chunk *mc = dst_local->mc;
+		dst_local->mc = src_local->mc;
+		if (dst_local->mc)
+		{
+			dst_local->mc->data = dst_handle;
+			dst_local->mc->replicate = dst_local;
+		}
+		src_local->mc = mc;
+		if (src_local->mc)
+		{
+			src_local->mc->data = src_handle;
+			src_local->mc->replicate = src_local;
+		}
+
+		STARPU_ASSERT(!src_local->allocated || src_local->automatically_allocated);
+		STARPU_ASSERT(!dst_local->allocated || dst_local->automatically_allocated);
+
+		unsigned allocated = dst_local->allocated;
+		dst_local->allocated = src_local->allocated;
+		src_local->allocated = allocated;
+		unsigned automatically_allocated = dst_local->automatically_allocated;
+		dst_local->automatically_allocated = src_local->automatically_allocated;
+		src_local->automatically_allocated = automatically_allocated;
+
+		void *dst_interface = dst_local->data_interface;
+		dst_local->data_interface = src_local->data_interface;
+		src_local->data_interface = dst_interface;
+	}
+
+	if (src_handle->per_worker)
+	{
+		dst_handle->per_worker = src_handle->per_worker;
+		unsigned worker;
+		unsigned nworkers = starpu_worker_get_count();
+		for (worker = 0; worker < nworkers; worker++)
+		{
+			struct _starpu_data_replicate *dst_local = &dst_handle->per_worker[worker];
+
+			if (dst_local->mc)
+			{
+				dst_local->mc->data = dst_handle;
+				dst_local->mc->replicate = dst_local;
+			}
+		}
+
+		src_handle->per_worker = NULL;
+	}
+
+	_starpu_spin_unlock(&src_handle->header_lock);
+	_starpu_spin_unlock(&dst_handle->header_lock);
+
+	starpu_data_release_on_node(src_handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL);
+	starpu_data_release_on_node(dst_handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL);
+}
+
+void starpu_data_move(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle)
+{
+	STARPU_ASSERT(dst_handle);
+	STARPU_ASSERT(src_handle);
+	STARPU_ASSERT(dst_handle->ops->interfaceid == src_handle->ops->interfaceid);
+	starpu_data_handle_t *handles = malloc(2 * sizeof(*handles));
+	handles[0] = dst_handle;
+	handles[1] = src_handle;
+
+	STARPU_ASSERT_MSG(dst_handle->home_node == -1, "Can only move between anonymous handles");
+	STARPU_ASSERT_MSG(src_handle->home_node == -1, "Can only move between anonymous handles");
+
+	_starpu_data_acquire2_on_node_cb_sequential_consistency_sync_jobids(
+					dst_handle, NULL, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, STARPU_W,
+					src_handle, NULL, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, STARPU_W,
+					NULL, NULL, _starpu_data_move, handles, 1, 0, NULL, NULL, STARPU_DEFAULT_PRIO, 1);
+
+	src_handle->initialized = 0;
 }
 
 enum starpu_data_interface_id starpu_data_get_interface_id(starpu_data_handle_t handle)

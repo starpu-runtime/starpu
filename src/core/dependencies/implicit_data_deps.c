@@ -96,12 +96,19 @@ static void _starpu_add_accessor(starpu_data_handle_t handle, struct starpu_task
 
 	if (*submit_pre_sync && !pre_sync_task->cl)
 	{
+		struct _starpu_job *job = _starpu_get_job_associated_to_task(pre_sync_task);
 		/* Add a reference to be released in _starpu_handle_job_termination */
 		_starpu_spin_lock(&handle->header_lock);
 		handle->busy_count++;
 		_STARPU_RECURSIVE_TASKS_DEBUG("Take busy count on data %p on add successor\n", handle);
 		_starpu_spin_unlock(&handle->header_lock);
-		_starpu_get_job_associated_to_task(pre_sync_task)->implicit_dep_handle = handle;
+		if (!job->implicit_dep_handle)
+			job->implicit_dep_handle = handle;
+		else
+		{
+			STARPU_ASSERT(!job->implicit_dep_handle2);
+			job->implicit_dep_handle2 = handle;
+		}
 	}
 }
 

@@ -558,6 +558,18 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 			_starpu_spin_unlock(&handle->header_lock);
 	}
 
+	if (j->implicit_dep_handle2 && !continuation)
+	{
+		starpu_data_handle_t handle = j->implicit_dep_handle2;
+		_starpu_release_data_enforce_sequential_consistency(j->task, NULL, handle);
+		/* Release reference taken while setting implicit_dep_handle2 */
+		_starpu_spin_lock(&handle->header_lock);
+		_STARPU_RECURSIVE_TASKS_DEBUG("Release busy count on data 2 %p by job %p\n", handle, j);
+		handle->busy_count--;
+		if (!_starpu_data_check_not_busy(handle))
+			_starpu_spin_unlock(&handle->header_lock);
+	}
+
 	if (!continuation)
 	{
 		/* If this is a continuation, we do not notify task/tag dependencies

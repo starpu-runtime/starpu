@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -34,6 +34,9 @@
  * so that we always grab the rw-lock associated to the handles in the same
  * order. */
 void _starpu_sort_task_handles(struct _starpu_data_descr descr[], unsigned nbuffers);
+
+/* Comparison functions, returns -1 if descrA is before descrB, 1 otherwise */
+int _starpu_compar_handles(const struct _starpu_data_descr *descrA, const struct _starpu_data_descr *descrB);
 
 /** The reordering however puts alongside some different handles, just because
  * they have the same root. When avoiding to lock/acquire/load the same handle
