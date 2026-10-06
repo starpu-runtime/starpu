@@ -252,12 +252,16 @@ void starpu_data_unregister_submit(starpu_data_handle_t handle);
    data deinitialization, the first access to \p handle must be performed
    in ::STARPU_W mode. Accessing an deinitialized data in ::STARPU_R
    mode results in undefined behaviour. See \ref DataManagementAllocation for more details.
+
+   The difference with starpu_data_invalidate() is that the buffers allocations are kept.
 */
 void starpu_data_deinitialize(starpu_data_handle_t handle);
 
 /**
    Submit deinitialization of the data \p handle after completion of
    previously submitted tasks. See \ref DataManagementAllocation for more details.
+
+   The difference with starpu_data_invalidate_submit() is that the buffers allocations are kept.
 */
 void starpu_data_deinitialize_submit(starpu_data_handle_t handle);
 
