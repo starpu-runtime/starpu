@@ -774,13 +774,13 @@ void _starpu_map_finish(void)
 	{
 		struct starpu_rbtree_node *node;
 
-		_STARPU_ERROR("Not all mapped allocations were released!");
+		_STARPU_DISP("Not all mapped allocations were released!");
 		for (node = starpu_rbtree_first(&map_tree);
 		     node != NULL;
 		     node = starpu_rbtree_next(node))
 		{
 			struct map_allocate_info *map_info = (struct map_allocate_info *) node;
-			_STARPU_ERROR("%p(%lu bytes) not released, leaked file %p\n",
+			_STARPU_DISP("%p(%lu bytes) not released, leaked file %p\n",
 					map_info->map_addr, map_info->length, map_info->name);
 		}
 	}
