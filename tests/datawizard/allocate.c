@@ -221,8 +221,8 @@ int main(void)
 	ret = starpu_conf_init(&conf);
 	if (ret == -EINVAL)
 		return EXIT_FAILURE;
-#ifdef STARPU_USE_CUDA0
-	/* The cuda0 driver doesn't support memory size limitation */
+#if defined(STARPU_USE_CUDA0) || defined(STARPU_USE_CUDA1)
+	/* The cuda0 and cuda1 drivers don't support memory size limitation */
 	conf.ncuda = 0;
 #endif
 	conf.enable_map = 0;
