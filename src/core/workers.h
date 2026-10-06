@@ -70,9 +70,6 @@
 
 #define STARPU_MAX_PIPELINE 4
 
-/* Return the MPI rank of current process if running with MPI, 0 otherwise. */
-int _starpu_mpi_world_rank_wrapper(void);
-
 struct mc_cache_entry;
 struct _starpu_node
 {

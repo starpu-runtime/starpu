@@ -533,13 +533,6 @@ int starpu_mpi_world_rank(void)
 	return rank;
 }
 
-int starpu_mpi_world_rank_raw(void)
-{
-	int rank;
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	return rank;
-}
-
 int starpu_mpi_get_thread_cpuid(void)
 {
 	return _starpu_mpi_thread_cpuid;

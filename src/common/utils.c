@@ -533,6 +533,9 @@ char *_starpu_get_home_path(void)
 	return path;
 }
 
+#pragma weak starpu_mpi_world_rank
+extern int starpu_mpi_world_rank(void);
+
 void _starpu_gethostname(char *hostname, size_t size)
 {
 	char *force_mpi_hostnames = starpu_getenv("STARPU_MPI_HOSTNAMES");
@@ -542,11 +545,21 @@ void _starpu_gethostname(char *hostname, size_t size)
 	{
 		char *host=NULL, *srv_hosts;
 		srv_hosts = strdup(force_mpi_hostnames);
-		int rank = _starpu_mpi_world_rank_wrapper();
+		int rank;
 
 #ifdef STARPU_HAVE_DARWIN
 		_STARPU_DISP("Detection of MPI rank disabled on darwin, assuming rank is 0\n");
 		rank = 0;
+#else
+		if (starpu_mpi_world_rank)
+		{
+			rank = starpu_mpi_world_rank();
+		}
+		else
+		{
+			_STARPU_DISP("StarPU-MPI unavailable, the rank of this process is 0\n");
+			rank = 0;
+		}
 #endif
 
 		if (force_mpi_hostnames != NULL)
