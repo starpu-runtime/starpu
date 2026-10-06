@@ -200,7 +200,7 @@ int starpu_data_dup_ro(starpu_data_handle_t *dst_handle, starpu_data_handle_t sr
 	_starpu_spin_lock(&src_handle->header_lock);
 	if (src_handle->readonly_dup)
 	{
-		/* Already a ro duplicate, just return it with one more ref */
+		/* There already is a ro duplicate for the source, just return it with one more ref */
 		*dst_handle = src_handle->readonly_dup;
 		_starpu_spin_unlock(&src_handle->header_lock);
 		_starpu_spin_lock(&(*dst_handle)->header_lock);
@@ -210,6 +210,7 @@ int starpu_data_dup_ro(starpu_data_handle_t *dst_handle, starpu_data_handle_t sr
 	}
 	if (src_handle->readonly)
 	{
+		/* The source is itself a ro duplicate, just return it with one more ref */
 		src_handle->aliases++;
 		_starpu_spin_unlock(&src_handle->header_lock);
 		*dst_handle = src_handle;
