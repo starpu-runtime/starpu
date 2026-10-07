@@ -121,6 +121,7 @@ def create_builder(profile, profile_iname, profile_name, profile_host):
 
     p.addStep(Command(["./autogen.sh"]))
     p.addStep(Command(["cd", "$starpu_build_dir"]))
+    p.addStep(Command([""]))
 
     configure_options = ["--enable-quick-check", "--disable-build-doc"]
     if bench:
@@ -149,13 +150,23 @@ def create_builder(profile, profile_iname, profile_name, profile_host):
     else:
         configureCommand = profile_configure_command
 
-    p.addStep(Command(configureCommand + configure_options + ["| " + "tee", "$starpu_artifacts/fulllog.txt"]))
+    p.addStep(Command(["set +e"]))
+    p.addStep(Command(["(", "set", "-o", "pipefail", ";"] + configureCommand + configure_options + ["| " + "tee", "$starpu_artifacts/fulllog.txt", ")"]))
+    p.addStep(Command(["ret=$?"]))
+    p.addStep(Command(["set -e"]))
+    p.addStep(Command([""]))
 
     if scan:
         makeCommand = ["scan-build", "-o", "scan", "make", "-j", "32"]
     else:
         makeCommand = ["make", "-j", "32"]
-    p.addStep(Command(makeCommand + ["| " + "tee", "-a", "$starpu_artifacts/fulllog.txt"]))
+    p.addStep(Command(["if test $ret == 0 ; then"]))
+    p.addStep(Command(["\t", "set +e"]))
+    p.addStep(Command(["\t", "(", "set", "-o", "pipefail", ";"] + makeCommand + ["| " + "tee", "-a", "$starpu_artifacts/fulllog.txt", ")"]))
+    p.addStep(Command(["\t", "ret=$?"]))
+    p.addStep(Command(["\t", "set -e"]))
+    p.addStep(Command(["fi"]))
+    p.addStep(Command([""]))
 
     if profile['release']:
         p.addStep(Command([""]))
@@ -178,11 +189,6 @@ def create_builder(profile, profile_iname, profile_name, profile_host):
         p.addStep(Command(["rm", "-rf", "$STARPU_HOME"]))
         p.addStep(Command([""]))
 
-    p.addStep(Command(["touch", "$starpu_artifacts/make_showsuite.txt"]))
-    p.addStep(Command(["touch", "$starpu_artifacts/make_showcheck.txt"]))
-    p.addStep(Command(["ret=0"]))
-    p.addStep(Command([""]))
-
     if profile['deploy']:
         parallel = []
         if 'parallel' in profile.keys():
@@ -196,21 +202,24 @@ def create_builder(profile, profile_iname, profile_name, profile_host):
         p.addStep(Command(["if test \"$1\" == \"-x\" ; then exit $ret ; fi"]))
         p.addStep(Command([""]))
 
-        p.addStep(Command(["set +e"]))
-        p.addStep(Command(["(", "set", "-o", "pipefail", ";"] + checkCommand + ["| " + "tee", "-a", "$starpu_artifacts/fulllog.txt", ")"]))
-        p.addStep(Command(["ret=$?"]))
+        p.addStep(Command(["if test $ret == 0 ; then"]))
+        p.addStep(Command(["\t", "set +e"]))
+        p.addStep(Command(["\t", "(", "set", "-o", "pipefail", ";"] + checkCommand + ["| " + "tee", "-a", "$starpu_artifacts/fulllog.txt", ")"]))
+        p.addStep(Command(["\t", "ret=$?"]))
+        p.addStep(Command(["\t", "set -e"]))
+        p.addStep(Command(["fi"]))
         p.addStep(Command([""]))
 
+        p.addStep(Command(["if test $ret == 0 ; then"]))
         if profile['showsuite']:
-            p.addStep(Command(["make", "showsuite"] + restrict + [">", "$starpu_artifacts/make_showsuite.txt"]))
-        p.addStep(Command(["make", "showcheck"] + restrict + [">", "$starpu_artifacts/make_showcheck.txt"]))
+            p.addStep(Command(["\t", "make", "showsuite"] + restrict + [">", "$starpu_artifacts/make_showsuite.txt"]))
+        p.addStep(Command(["\t", "make", "showcheck"] + restrict + [">", "$starpu_artifacts/make_showcheck.txt"]))
 
-        p.addStep(Command(["cat", "$starpu_artifacts/make_showsuite.txt", ">>", "$starpu_artifacts/fulllog.txt"]))
-        p.addStep(Command(["cat", "$starpu_artifacts/make_showcheck.txt", ">>", "$starpu_artifacts/fulllog.txt"]))
-
-    if profile['deploy']:
+        p.addStep(Command(["\t", "cat", "$starpu_artifacts/make_showsuite.txt", ">>", "$starpu_artifacts/fulllog.txt"]))
+        p.addStep(Command(["\t", "cat", "$starpu_artifacts/make_showcheck.txt", ">>", "$starpu_artifacts/fulllog.txt"]))
+        p.addStep(Command(["\t", "make"] + ["showfailed"] + restrict + ["| " + "tee", "-a", "$starpu_artifacts/fulllog.txt"]))
+        p.addStep(Command(["fi"]))
         p.addStep(Command([""]))
-        p.addStep(Command(["make"] + ["showfailed"] + restrict + ["| " + "tee", "-a", "$starpu_artifacts/fulllog.txt"]))
 
     if 'coverage' in profile.keys():
         p.addStep(Command([""]))
