@@ -29,6 +29,13 @@
  * the sampling logic run in the driver loop.
  */
 
+#if !defined(STARPU_HAVE_SETENV)
+#warning setenv is not defined. Skipping test
+int main(int argc, char **argv)
+{
+	return STARPU_TEST_SKIPPED;
+}
+#else
 void dummy_func(void *descr[], void *arg)
 {
 	(void)descr;
@@ -68,3 +75,4 @@ int main(void)
 
 	return EXIT_SUCCESS;
 }
+#endif
