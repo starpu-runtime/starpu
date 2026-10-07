@@ -13,6 +13,14 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+.extended_check_master_manual_branch:
+  interruptible: false
+  rules:
+    - if: ($CI_PIPELINE_SCHEDULE_DESCRIPTION != null && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $STARPU_MASTER_EXTENDED_CHECK == "yes")
+      when: always
+    - if: ($CI_PIPELINE_SCHEDULE_DESCRIPTION == null && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && ($CI_PIPELINE_SOURCE == 'merge_request_event' || ($CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS == null)))
+      when: manual
+
 .main_template:
   artifacts:
     when: always
@@ -44,7 +52,7 @@ compilation:
 
 san:
   extends: .manual_template
-  stage: extended_check
+  stage: check
   tags: ['starpu', 'node_nogpu']
   parallel:
     matrix:
@@ -52,7 +60,7 @@ san:
 
 tsan:
   extends: .manual_failure_template
-  stage: extended_check
+  stage: check
   tags: ['starpu', 'node_nogpu']
   parallel:
     matrix:
@@ -60,7 +68,7 @@ tsan:
 
 cuda-sanitizer:
   extends: .manual_template
-  stage: extended_check
+  stage: check
   timeout: 2h
   variables:
     RUNNER_SCRIPT_TIMEOUT: 118m
@@ -72,7 +80,7 @@ cuda-sanitizer:
 
 scan:
   extends: .manual_template
-  stage: extended_check
+  stage: check
   tags: ['starpu', 'node_gpu']
   parallel:
     matrix:
@@ -80,7 +88,7 @@ scan:
 
 valgrind:
   extends: .manual_template
-  stage: extended_check
+  stage: check
   tags: ['starpu', 'node_nogpu']
   timeout: 2h
   parallel:
@@ -89,7 +97,7 @@ valgrind:
 
 grind:
   extends: .manual_failure_template
-  stage: extended_check
+  stage: check
   tags: ['starpu', 'node_nogpu']
   allow_failure: true
   parallel:
@@ -98,7 +106,7 @@ grind:
 
 nogpu:
   extends: .manual_template
-  stage: extended_check
+  stage: check
   tags: ['starpu', 'node_nogpu']
   parallel:
     matrix:
@@ -106,7 +114,7 @@ nogpu:
 
 full_options:
   extends: .manual_template
-  stage: extended_check
+  stage: check
   tags: ['starpu', 'node_gpu']
   parallel:
     matrix:
@@ -114,7 +122,7 @@ full_options:
 
 drivers:
   extends: .manual_template
-  stage: extended_check
+  stage: check
   tags: ['starpu', 'node_gpu']
   parallel:
     matrix:
@@ -122,7 +130,7 @@ drivers:
 
 32bit:
   extends: .manual_template
-  stage: extended_check
+  stage: check
   image: registry.gitlab.inria.fr/starpu/starpu-docker/ci-alpine-i386
   tags: ['ci.inria.fr', 'linux', 'large']
   parallel:
@@ -131,7 +139,7 @@ drivers:
 
 basic:
   extends: .manual_template
-  stage: extended_check
+  stage: check
   tags: ['starpu', 'node_gpu']
   parallel:
     matrix:
@@ -139,7 +147,7 @@ basic:
 
 simgrid:
   extends: .manual_template
-  stage: extended_check
+  stage: check
   image: registry.gitlab.inria.fr/starpu/starpu-docker/ci-debian12
   tags: ['ci.inria.fr', 'linux', 'large']
   parallel:
@@ -148,7 +156,7 @@ simgrid:
 
 simgrid-mc:
   extends: .manual_template
-  stage: extended_check
+  stage: check
   tags: ['starpu', 'node_nogpu']
   parallel:
     matrix:
@@ -156,40 +164,32 @@ simgrid-mc:
 
 gpu:
   extends: .manual_template
-  stage: extended_check
+  stage: check
   tags: ['starpu', 'node_gpu']
   parallel:
     matrix:
       - PROFILE: [cuda-opencl, cuda-opencl-runtime, cuda-cudaid, ncuda-nopencl-zero, cuda0, cuda1, cuda4-nopeer-transfer, cuda-multiworker, cuda-multithread, cuda-monothread, cuda-nopipeline, opencl-only, opencl-nopipeline, hip-only, sycl-only]
 
-extensions:
+extensions_npgpu:
   extends: .manual_template
-  stage: extended_check
+  stage: check
   tags: ['starpu', 'node_nogpu']
   parallel:
     matrix:
       - PROFILE: [starpupy-mpi-ms, starpupy-tcpip-ms]
 
-extensions1:
+extensions_gpu:
   extends: .manual_template
-  stage: extended_check
+  stage: check
   tags: ['starpu', 'node_gpu']
   parallel:
     matrix:
-      - PROFILE: [cluster, starpurm, starpupy-multi-interp]
-
-extensions2:
-  extends: .manual_template
-  stage: extended_check
-  tags: ['starpu', 'node_gpu']
-  parallel:
-    matrix:
-#      - PROFILE: [sched-ctx-hypervisor, starpufft-examples, openmp]
-      - PROFILE: [sched-ctx-hypervisor, starpufft-examples]
+      - PROFILE: [cluster, starpurm, starpupy-multi-interp, sched-ctx-hypervisor, starpufft-examples]
+#      - PROFILE: [cluster, starpurm, starpupy-multi-interp, sched-ctx-hypervisor, starpufft-examples, openmp]
 
 extensions_failures:
   extends: .manual_failure_template
-  stage: extended_check
+  stage: check
   tags: ['starpu', 'node_gpu']
   parallel:
     matrix:
@@ -197,7 +197,7 @@ extensions_failures:
 
 mpi:
   extends: .manual_template
-  stage: extended_check
+  stage: check
   tags: ['starpu', 'node_gpu']
   parallel:
     matrix:
@@ -205,7 +205,7 @@ mpi:
 
 ms:
   extends: .manual_template
-  stage: extended_check
+  stage: check
   tags: ['starpu', 'node_nogpu']
   parallel:
     matrix:
@@ -213,7 +213,7 @@ ms:
 
 blas:
   extends: .manual_template
-  stage: extended_check
+  stage: check
   tags: ['starpu', 'node_gpu']
   parallel:
     matrix:
@@ -221,7 +221,7 @@ blas:
 
 scheduler:
   extends: .manual_template
-  stage: extended_check
+  stage: check
   tags: ['starpu', 'node_gpu']
   parallel:
     matrix:
@@ -229,7 +229,7 @@ scheduler:
 
 scheduler_failures:
   extends: .manual_failure_template
-  stage: extended_check
+  stage: check
   tags: ['starpu', 'node_gpu']
   parallel:
     matrix:

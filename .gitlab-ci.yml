@@ -19,7 +19,6 @@ stages:
   - daily
   - build
   - check
-  - extended_check
   - analyze
   - deploy
   - new-release

@@ -25,14 +25,6 @@ variables:
 #    on_new_commit: interruptible
 #    on_job_failure: all
 
-.extended_check_master_manual_branch:
-  interruptible: false
-  rules:
-    - if: ($CI_PIPELINE_SCHEDULE_DESCRIPTION != null && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $STARPU_MASTER_EXTENDED_CHECK == "yes")
-      when: always
-    - if: ($CI_PIPELINE_SCHEDULE_DESCRIPTION == null && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && ($CI_PIPELINE_SOURCE == 'merge_request_event' || ($CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS == null)))
-      when: manual
-
 .master_branch:
   rules:
     - if: ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_COMMIT_MESSAGE =~ /^Merge branch/)
