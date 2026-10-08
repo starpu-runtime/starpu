@@ -125,6 +125,7 @@ static starpu_pthread_mutex_t refined_mutex; /* Protect the main task list and t
 #define _LINEAR_MUTEX_INIT()
 #endif
 
+static int inuse;
 static int can_a_data_be_in_mem_and_in_not_used_yet;
 static int eviction_strategy_darts;
 static int threshold;
@@ -3393,6 +3394,8 @@ struct starpu_sched_component *starpu_sched_component_darts_create(struct starpu
 
 static void initialize_darts_center_policy(unsigned sched_ctx_id)
 {
+	STARPU_ASSERT_MSG(!inuse, "darts cannot yet be instanced several times at the same time");
+	inuse = 1;
 	_output_directory = _sched_visu_get_output_directory();
 	starpu_sched_component_initialize_simple_scheduler((starpu_sched_component_create_t) starpu_sched_component_darts_create, NULL,
 							   STARPU_SCHED_SIMPLE_DECIDE_MEMNODES |
@@ -3425,6 +3428,7 @@ static void deinitialize_darts_center_policy(unsigned sched_ctx_id)
 {
 	struct starpu_sched_tree *tree = (struct starpu_sched_tree*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	starpu_sched_tree_destroy(tree);
+	inuse = 0;
 }
 
 /* Get the task that was last executed. Used to update the task list of pulled task. */
