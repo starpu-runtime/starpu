@@ -3173,7 +3173,7 @@ static starpu_data_handle_t darts_victim_selector(starpu_data_handle_t toload, u
 	/* Pushing the evicted data in datanotusedyet if it is still usefull to some tasks or if we are in a case with dependencies. */
 	if (choose_best_data_from == 0)
 	{
-		if (!_starpu_darts_task_using_data_list_empty(returned_handle->sched_data))
+		if (returned_handle->sched_data != NULL && !_starpu_darts_task_using_data_list_empty(returned_handle->sched_data))
 		{
 			if (dependances == 1) /* Checking if other PUs have this handle in datanotusedtyet. */
 			{
