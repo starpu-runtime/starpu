@@ -644,8 +644,8 @@ static void initialize_task_data_gpu_single_task_no_dependencies(struct starpu_t
 		return;
 	}
 
-	_STARPU_MALLOC(pt->pointer_to_D, number_read_data*sizeof(STARPU_TASK_GET_HANDLE(task, 0)));
-	_STARPU_MALLOC(pt->tud, number_read_data*sizeof(_starpu_darts_task_using_data_new()));
+	_STARPU_MALLOC(pt->pointer_to_D, STARPU_TASK_GET_NBUFFERS(task)*sizeof(STARPU_TASK_GET_HANDLE(task, 0)));
+	_STARPU_MALLOC(pt->tud, STARPU_TASK_GET_NBUFFERS(task)*sizeof(_starpu_darts_task_using_data_new()));
 
 	unsigned i;
 	for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
@@ -868,8 +868,8 @@ static void initialize_task_data_gpu_single_task_dependencies(struct starpu_task
 		return;
 	}
 
-	_STARPU_MALLOC(pt->pointer_to_D, number_read_data*sizeof(STARPU_TASK_GET_HANDLE(task, 0)));
-	_STARPU_MALLOC(pt->tud, number_read_data*sizeof(_starpu_darts_task_using_data_new()));
+	_STARPU_MALLOC(pt->pointer_to_D, STARPU_TASK_GET_NBUFFERS(task)*sizeof(STARPU_TASK_GET_HANDLE(task, 0)));
+	_STARPU_MALLOC(pt->tud, STARPU_TASK_GET_NBUFFERS(task)*sizeof(_starpu_darts_task_using_data_new()));
 
 	for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 	{
