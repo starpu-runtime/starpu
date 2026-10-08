@@ -3253,6 +3253,29 @@ static int darts_can_pull(struct starpu_sched_component *component)
 	return starpu_sched_component_can_pull(component);
 }
 
+static void darts_deinit_data(struct starpu_sched_component * component)
+{
+	STARPU_ASSERT(component && component->data);
+	struct _starpu_darts_sched_data *data = component->data;
+	int i;
+
+	free(memory_nodes);
+	for (i = 0; i < _nb_gpus; i++)
+	{
+		STARPU_ASSERT(starpu_task_list_empty(&tab_gpu_planned_task[i].planned_task));
+		STARPU_ASSERT(starpu_task_list_empty(&tab_gpu_planned_task[i].refused_fifo_list));
+		// FIXME: tab_gpu_planned_task[i].gpu_data;
+		// FIXME: tab_gpu_planned_task[i].new_gpu_data;
+		// FIXME: tab_gpu_pulled_task[i].ptl;
+	}
+	free(tab_gpu_planned_task);
+	free(tab_gpu_pulled_task);
+	free(Dopt);
+	free(data_conflict);
+
+	free(data);
+}
+
 struct starpu_sched_component *starpu_sched_component_darts_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
 {
 	/* Global variables extracted from environement variables. */
@@ -3383,6 +3406,7 @@ struct starpu_sched_component *starpu_sched_component_darts_create(struct starpu
 	component->pull_task = darts_pull_task;
 	component->can_push = darts_can_push;
 	component->can_pull = darts_can_pull;
+	component->deinit_data = darts_deinit_data;
 
 	if (eviction_strategy_darts == 1)
 	{
