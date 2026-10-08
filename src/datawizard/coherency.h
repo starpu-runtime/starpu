@@ -392,6 +392,7 @@ struct _starpu_data_state
 	/** A generic pointer to data in the scheduler (could be anything and this
 	 * is managed by the scheduler) */
 	void *sched_data;
+	void *sched_data2;
 };
 
 /** This does not take a reference on the handle, the caller has to do it,
