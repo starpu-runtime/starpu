@@ -45,6 +45,17 @@ program nf_sched_ctx
         integer(c_int), target :: arg_id
         integer(c_int), target :: arg_ctx
 
+        ! check against unsupported schedulers
+        character(len=256) :: sched
+        integer :: status
+
+        call get_environment_variable("STARPU_SCHED", sched, status=status)
+
+        if (status == 0 .and. trim(sched) == "darts") then
+                write(*, *) "darts doesn't support concurrent use yet"
+                stop 77
+        end if
+
         ! initialize StarPU with default settings
         err = fstarpu_init(C_NULL_PTR)
         if (err == -19) then

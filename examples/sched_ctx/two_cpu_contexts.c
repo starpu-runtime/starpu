@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -44,6 +44,12 @@ int main(void)
 	int *procs2 = NULL;
 	int i;
 	int n = 20;
+	char *sched = getenv("STARPU_SCHED");
+	if (sched && strcmp(sched, "darts") == 0)
+	{
+		fprintf(stderr,"darts doesn't support concurrent use yet\n");
+		return 77;
+	}
 
 	int ret = starpu_init(NULL);
 	if (ret == -ENODEV)

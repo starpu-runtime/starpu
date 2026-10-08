@@ -38,6 +38,11 @@ fi
 
 if [ -n "$STARPU_SCHED" ]
 then
+    if [ "$STARPU_SCHED" = darts ]
+    then
+	echo "darts doesn't support concurrent use yet"
+	exit 77
+    fi
     SCHEDULERS="$STARPU_SCHED"
 else
     SCHEDULERS=`$basedir/../../tools/starpu_sched_display -t | grep -v pheft | grep -v peager | grep -v heteroprio | grep -v modular-gemm`
