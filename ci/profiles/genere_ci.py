@@ -215,7 +215,8 @@ def create_builder(profile, profile_iname, profile_name, profile_host):
             p.addStep(Command(["\t", "make", "showsuite"] + restrict + [">", "$starpu_artifacts/make_showsuite.txt"]))
         p.addStep(Command(["\t", "make", "showcheck"] + restrict + [">", "$starpu_artifacts/make_showcheck.txt"]))
 
-        p.addStep(Command(["\t", "cat", "$starpu_artifacts/make_showsuite.txt", ">>", "$starpu_artifacts/fulllog.txt"]))
+        if profile['showsuite']:
+            p.addStep(Command(["\t", "cat", "$starpu_artifacts/make_showsuite.txt", ">>", "$starpu_artifacts/fulllog.txt"]))
         p.addStep(Command(["\t", "cat", "$starpu_artifacts/make_showcheck.txt", ">>", "$starpu_artifacts/fulllog.txt"]))
         p.addStep(Command(["\t", "make"] + ["showfailed"] + restrict + ["| " + "tee", "-a", "$starpu_artifacts/fulllog.txt"]))
         p.addStep(Command(["fi"]))
