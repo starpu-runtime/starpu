@@ -102,6 +102,7 @@ static struct starpu_sched_policy *predefined_policies[] =
 	&_starpu_sched_peager_policy,
 	&_starpu_sched_pprio_policy,
 	&_starpu_sched_heteroprio_policy,
+	&_starpu_sched_darts_policy,
 	&_starpu_sched_graph_test_policy,
 #ifdef STARPU_HAVE_HWLOC
 	//&_starpu_sched_tree_heft_hierarchical_policy,
@@ -111,7 +112,6 @@ static struct starpu_sched_policy *predefined_policies[] =
 
 static struct starpu_sched_policy *predefined_policies_non_default[] =
 {
-	&_starpu_sched_darts_policy,
 	&_starpu_sched_random_order_policy,
 	&_starpu_sched_HFP_policy,
 	&_starpu_sched_modular_heft_HFP_policy,

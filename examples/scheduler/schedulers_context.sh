@@ -45,7 +45,7 @@ then
     fi
     SCHEDULERS="$STARPU_SCHED"
 else
-    SCHEDULERS=`$basedir/../../tools/starpu_sched_display -t | grep -v pheft | grep -v peager | grep -v heteroprio | grep -v modular-gemm`
+    SCHEDULERS=`$basedir/../../tools/starpu_sched_display -t | grep -v pheft | grep -v peager | grep -v heteroprio | grep -v modular-gemm | grep -v darts`
 fi
 
 run()
