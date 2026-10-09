@@ -1144,7 +1144,7 @@ static int darts_push_task(struct starpu_sched_component *component, struct star
 							starpu_push_task_end(task);
 							_REFINED_MUTEX_UNLOCK();
 							_LINEAR_MUTEX_UNLOCK();
-							component->can_pull(component);
+							component->children[gpu_looked_at]->can_pull(component->children[gpu_looked_at]);
 							return 0;
 						}
 					}
@@ -1164,7 +1164,7 @@ static int darts_push_task(struct starpu_sched_component *component, struct star
 			starpu_push_task_end(task);
 			_REFINED_MUTEX_UNLOCK();
 			_LINEAR_MUTEX_UNLOCK();
-			component->can_pull(component);
+			component->children[gpu_looked_at]->can_pull(component->children[gpu_looked_at]);
 			return 0;
 		}
 	}
