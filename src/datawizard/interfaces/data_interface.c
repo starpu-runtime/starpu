@@ -1040,6 +1040,7 @@ void starpu_data_unregister_submit(starpu_data_handle_t handle)
 	starpu_data_acquire_on_node_cb(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, handle->initialized?STARPU_RW:STARPU_W, _starpu_data_unregister_submit_cb, handle);
 }
 
+/* Check that no transfer is currently ongoing */
 static void __starpu_data_check_no_transfer(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_DEBUG
@@ -1050,6 +1051,7 @@ static void __starpu_data_check_no_transfer(starpu_data_handle_t handle STARPU_A
 #endif
 }
 
+/* At execution time: deinitialize a data */
 static void __starpu_data_deinitialize(starpu_data_handle_t handle)
 {
 	/* There shouldn't be any pending request since we acquired the data in W mode */
@@ -1080,6 +1082,7 @@ static void __starpu_data_deinitialize(starpu_data_handle_t handle)
 	}
 }
 
+/* At execution time: deinitialize a data, and deallocate its buffers */
 static void _starpu_data_invalidate(void *data)
 {
 	starpu_data_handle_t handle = data;
@@ -1141,6 +1144,7 @@ static void _starpu_data_invalidate(void *data)
 	starpu_data_release_on_node(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL);
 }
 
+/* At execution time: deinitialize a data, but keep its buffers allocated */
 static void _starpu_data_deinitialize(void *data)
 {
 	starpu_data_handle_t handle = data;
