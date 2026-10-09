@@ -328,14 +328,14 @@ int _starpu_data_acquire2_on_node_cb_sequential_consistency_sync_jobids(starpu_d
 #endif
 	STARPU_ASSERT(handle);
 	STARPU_ASSERT_MSG(handle->nchildren == 0, "Acquiring a partitioned data (%p) is not possible", handle);
-	STARPU_ASSERT_MSG(!(handle->readonly && mode & STARPU_W), "We are not supposed to modify a RO duplicate!");
+	STARPU_ASSERT_MSG(!(handle->readonly && mode & STARPU_W) || handle->readonly_moving, "We are not supposed to modify a RO duplicate!");
 	if (mode & STARPU_W)
 		/* We are modifying the data, achieve copy-on-write.  */
 		_starpu_data_dup_ro_cow(handle, prio);
 	if (handle2)
 	{
 		STARPU_ASSERT_MSG(handle2->nchildren == 0, "Acquiring a partitioned data (%p) is not possible", handle2);
-		STARPU_ASSERT_MSG(!(handle2->readonly && mode2 & STARPU_W), "We are not supposed to modify a RO duplicate!");
+		STARPU_ASSERT_MSG(!(handle2->readonly && mode2 & STARPU_W) || handle->readonly_moving, "We are not supposed to modify a RO duplicate!");
 		if (mode2 & STARPU_W)
 			/* We are modifying the data, achieve copy-on-write.  */
 			_starpu_data_dup_ro_cow(handle2, prio);

@@ -21,6 +21,7 @@
 #include <datawizard/memory_nodes.h>
 #include <datawizard/memstats.h>
 #include <datawizard/malloc.h>
+#include <util/starpu_data_cpy.h>
 #include <core/dependencies/data_concurrency.h>
 #include <common/knobs.h>
 #include <common/starpu_spinlock.h>
@@ -1189,6 +1190,7 @@ void starpu_data_deinitialize(starpu_data_handle_t handle)
 {
 	STARPU_ASSERT(handle);
 
+	_starpu_data_dup_ro_deinit(handle);
 	starpu_data_acquire_on_node(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, STARPU_W);
 
 	_starpu_data_deinitialize(handle);
@@ -1200,6 +1202,7 @@ void starpu_data_deinitialize_submit(starpu_data_handle_t handle)
 {
 	STARPU_ASSERT(handle);
 
+	_starpu_data_dup_ro_deinit(handle);
 	starpu_data_acquire_on_node_cb(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, STARPU_W, _starpu_data_deinitialize, handle);
 
 	handle->initialized = 0;
@@ -1209,6 +1212,7 @@ void _starpu_data_deinitialize_submit_noplan(starpu_data_handle_t handle)
 {
 	STARPU_ASSERT(handle);
 
+	_starpu_data_dup_ro_deinit(handle);
 	starpu_data_acquire_on_node_cb(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, STARPU_W | STARPU_NOPLAN, _starpu_data_deinitialize, handle);
 
 	handle->initialized = 0;
@@ -1218,6 +1222,7 @@ void starpu_data_invalidate(starpu_data_handle_t handle)
 {
 	STARPU_ASSERT(handle);
 
+	_starpu_data_dup_ro_deinit(handle);
 	starpu_data_acquire_on_node(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, STARPU_W);
 
 	_starpu_data_invalidate(handle);
@@ -1229,6 +1234,7 @@ void starpu_data_invalidate_submit(starpu_data_handle_t handle)
 {
 	STARPU_ASSERT(handle);
 
+	_starpu_data_dup_ro_deinit(handle);
 	_STARPU_RECURSIVE_TASKS_DEBUG("YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY\nCalling invalidate submit on %p\nYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY\n", handle);
 	starpu_data_acquire_on_node_cb(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, STARPU_W, _starpu_data_invalidate, handle);
 
@@ -1239,6 +1245,7 @@ void _starpu_data_invalidate_submit_noplan(starpu_data_handle_t handle)
 {
 	STARPU_ASSERT(handle);
 
+	_starpu_data_dup_ro_deinit(handle);
 	starpu_data_acquire_on_node_cb(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, STARPU_W | STARPU_NOPLAN, _starpu_data_invalidate, handle);
 
 	handle->initialized = 0;

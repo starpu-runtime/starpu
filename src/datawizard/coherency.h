@@ -263,6 +263,8 @@ struct _starpu_data_state
 	unsigned readonly:1;
 	/** Whether we are currently copying the copy-on-write data into this read-only handle */
 	unsigned readonly_copying:1;
+	/** Whether we are currently moving the copy-on-write data into this read-only handle */
+	unsigned readonly_moving:1;
 
 	/** where the data home is, i.e. which node it was registered from ? -1 if none yet */
 	int home_node;

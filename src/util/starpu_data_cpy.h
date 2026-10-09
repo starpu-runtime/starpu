@@ -30,6 +30,9 @@ int _starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_h
 /** Achieve the Copy-on-Write on \p handle on any readonly copy, because we are writing to \p handle */
 void _starpu_data_dup_ro_cow(starpu_data_handle_t handle, int priority);
 
+/** Achieve the Copy-on-Write on \p handle on any readonly copy, because we are deinitialize to \p handle */
+void _starpu_data_dup_ro_deinit(starpu_data_handle_t handle);
+
 #pragma GCC visibility pop
 
 #endif // __STARPU_DATA_CPY_H__

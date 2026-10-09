@@ -233,6 +233,9 @@ int starpu_data_dup_ro(starpu_data_handle_t *dst_handle, starpu_data_handle_t sr
 	return 0;
 }
 
+/* Check whether this handle, that is about to be modified, is under CoW
+ * optimization, in which case we should copy the buffer to its CoW, to resolve
+ * the pending CoW. */
 void _starpu_data_dup_ro_cow(starpu_data_handle_t handle, int priority)
 {
 	starpu_data_handle_t ro_handle = handle->readonly_dup;
@@ -240,7 +243,7 @@ void _starpu_data_dup_ro_cow(starpu_data_handle_t handle, int priority)
 		/* No RO copy */
 		return;
 
-	/* We are modifying the source of duplicates, copy it and unconnect it from the duplicates */
+	/* We are about to modify the source of duplicates, copy it and unconnect it from the duplicates */
 
 	/* Synchronize with any execution-time starpu_data_acquire on the RO copy */
 	STARPU_PTHREAD_MUTEX_LOCK(&ro_handle->sequential_consistency_mutex);
@@ -251,6 +254,34 @@ void _starpu_data_dup_ro_cow(starpu_data_handle_t handle, int priority)
 	_starpu_data_cpy(ro_handle, handle, 1, NULL, NULL, 0, NULL, priority);
 	STARPU_PTHREAD_MUTEX_LOCK(&ro_handle->sequential_consistency_mutex);
 	ro_handle->readonly_copying = 0;
+	STARPU_PTHREAD_COND_SIGNAL(&ro_handle->sequential_consistency_cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&ro_handle->sequential_consistency_mutex);
+}
+
+/* Check whether this handle, that is about to be unitialized, is under CoW
+ * optimization, in which case we should move the buffer to its CoW, to resolve
+ * the pending CoW without actually having to copy. */
+void _starpu_data_dup_ro_deinit(starpu_data_handle_t handle)
+{
+	starpu_data_handle_t ro_handle = handle->readonly_dup;
+	if (!ro_handle)
+		/* No RO copy */
+		return;
+	if (ro_handle->home_node >= 0)
+		/* Cannot move data with a home node */
+		return;
+
+	/* We are about to deinitialize the source of duplicates, move it into the duplicates */
+
+	/* Synchronize with any execution-time starpu_data_acquire on the RO copy */
+	STARPU_PTHREAD_MUTEX_LOCK(&ro_handle->sequential_consistency_mutex);
+	handle->readonly_dup->readonly_dup_of = NULL;
+	handle->readonly_dup = NULL;
+	ro_handle->readonly_moving = 1;
+	STARPU_PTHREAD_MUTEX_UNLOCK(&ro_handle->sequential_consistency_mutex);
+	starpu_data_move(ro_handle, handle);
+	STARPU_PTHREAD_MUTEX_LOCK(&ro_handle->sequential_consistency_mutex);
+	ro_handle->readonly_moving = 0;
 	STARPU_PTHREAD_COND_SIGNAL(&ro_handle->sequential_consistency_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&ro_handle->sequential_consistency_mutex);
 }

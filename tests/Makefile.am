@@ -334,6 +334,7 @@ myPROGRAMS +=				\
 	fault-tolerance/retry			\
 	helper/starpu_data_cpy			\
 	helper/starpu_data_dup_ro		\
+	helper/starpu_data_dup_ro_move		\
 	helper/starpu_data_move			\
 	helper/starpu_create_sync_task		\
 	overlap/gpu_concurrency			\
