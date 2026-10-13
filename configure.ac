@@ -1618,6 +1618,7 @@ AC_DEFUN([STARPU_CHECK_CUBLAS],
     fi
 
     SAVED_CPPFLAGS="$CPPFLAGS"
+    SAVED_STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS"
     have_valid_cublas=no
 
     if test "$__cublas_include_dir" != "no" ; then
@@ -1646,7 +1647,7 @@ AC_DEFUN([STARPU_CHECK_CUBLAS],
 
     if test "$have_valid_cublas" = "no" ; then
 	CPPFLAGS="${SAVED_CPPFLAGS}"
-	unset STARPU_CUDA_LDFLAGS
+	STARPU_CUDA_LDFLAGS="${SAVED_STARPU_CUDA_LDFLAGS}"
     fi
 ])
 
