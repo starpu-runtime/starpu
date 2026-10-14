@@ -29,6 +29,7 @@
 #include <sched_policies/helper_mct.h>
 #include <common/graph.h> /* To compute the descendants and consequently add priorities */
 #include <datawizard/memory_nodes.h>
+#include <datawizard/malloc.h>
 #include <core/jobs.h>
 
 struct _starpu_darts_sched_data
@@ -2803,11 +2804,22 @@ static struct starpu_task *darts_pull_task(struct starpu_sched_component *compon
 
 	STARPU_ASSERT(STARPU_SCHED_COMPONENT_IS_HOMOGENEOUS(to));
 	unsigned workerid = starpu_bitmap_first(&to->workers_in_ctx);
-	int current_gpu = get_gpu(starpu_worker_get_memory_node(workerid)); /* Index in tabs of structs */
+	unsigned memory_node = starpu_worker_get_memory_node(workerid);
+	int current_gpu = get_gpu(memory_node); /* Index in tabs of structs */
 
 	struct starpu_task *task = get_task_to_return_pull_task_darts(current_gpu, &data->main_task_list, workerid);
 	_STARPU_SCHED_PRINT("Pulled %stask %p on PU %d.\n", task?"":"NO ", task, current_gpu);
 	_LINEAR_MUTEX_UNLOCK();
+
+	/* Fixes a deadlock hit by tests/disk/disk_copy with a single CPU worker and full main RAM. The prefetch may evict
+	 * data whose only copy is in RAM and wait for its write-back forever.
+	 * The fix here is to issue an idle prefetch and mark the task as prefetched so it is skipped. */
+	if (task && !task->prefetched && starpu_get_prefetch_flag() && starpu_node_get_kind(memory_node) == STARPU_CPU_RAM && !_starpu_malloc_willpin_on_node(memory_node))
+	{
+		starpu_idle_prefetch_task_input_on_node(task, memory_node);
+		task->prefetched = 1;
+	}
+
 	return task;
 }
 
