@@ -496,7 +496,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	 * scheduler to process it : the task structure doesn't contain any valuable
 	 * data as it's not linked to an actual worker */
 	/* control task should not execute post_exec_hook */
-	if(j->task_size == 1 && !nowhere && !j->internal
+	if(j->task_size == 1 && !nowhere
 #ifdef STARPU_RECURSIVE_TASKS
 			&& !j->recursive.is_recursive_task
 #endif
