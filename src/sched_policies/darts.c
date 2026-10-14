@@ -3031,7 +3031,11 @@ static starpu_data_handle_t darts_victim_selector(starpu_data_handle_t toload, u
 
 		struct _starpu_darts_handle_user_data *hud = data_on_node[i]->sched_data2;
 		if (!hud)
-			continue;
+		{
+			/* Data never used by any task, we can evict it first. */
+			returned_handle = data_on_node[i];
+			goto deletion_in_victim_selector;
+		}
 
 		nb_task_in_pulled_task[i] = hud->nb_task_in_pulled_task[current_gpu];
 		_STARPU_SCHED_PRINT("%d task in pulled_task for %p.\n", hud->nb_task_in_pulled_task[current_gpu], data_on_node[i]);
