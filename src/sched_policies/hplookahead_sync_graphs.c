@@ -966,13 +966,10 @@ static int  push_task_in_to_hp_lookahead_ready_queue(struct starpu_task *task)
 		 * */
 		int chosen_worker = -1;
 		unsigned chosen_impl;
-		unsigned worker;
 		unsigned min_ntasks;
 		unsigned impl_mask;
 
-		struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
-
-		struct starpu_sched_ctx_iterator it;
+		workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
 		workers->init_iterator_for_parallel_tasks(workers, &it, task);
 		/* Find the worker which has less number of assigned ready tasks in its queue */
