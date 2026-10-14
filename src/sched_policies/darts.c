@@ -29,6 +29,7 @@
 #include <sched_policies/helper_mct.h>
 #include <common/graph.h> /* To compute the descendants and consequently add priorities */
 #include <datawizard/memory_nodes.h>
+#include <core/jobs.h>
 
 struct _starpu_darts_sched_data
 {
@@ -2570,6 +2571,10 @@ static void _starpu_darts_scheduling_3D_matrix(struct starpu_task_list *main_tas
 
 static void _starpu_darts_add_task_to_pulled_task(int current_gpu, struct starpu_task *task)
 {
+	/* Internal tasks, so get_task_done would never remove them from pulled task nor decrement the value of nb_task_in_pulled_task, and their data would never be evicted. */
+	if (_starpu_get_job_associated_to_task(task)->internal)
+		return;
+
 	/* We increment for each data using the task, the number of task in pulled task associated with this data. */
 	unsigned i;
 	for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
