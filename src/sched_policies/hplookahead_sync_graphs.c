@@ -934,14 +934,16 @@ static double compute_acceleration_ratio(struct starpu_task *task, unsigned sche
 static int  push_task_in_to_hp_lookahead_ready_queue(struct starpu_task *task)
 {
 	unsigned sched_ctx_id = task->sched_ctx;
+	unsigned worker;
+	struct starpu_worker_collection *workers;
+	struct starpu_sched_ctx_iterator it;
+
 #ifndef STARPU_NON_BLOCKING_DRIVERS
 	/*if there are no tasks block */
 	/* wake people waiting for a task */
-	unsigned worker = 0;
-	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
+	workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
-	struct starpu_sched_ctx_iterator it;
-
+	worker = 0;
 	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
 	{
