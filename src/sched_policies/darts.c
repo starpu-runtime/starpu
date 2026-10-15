@@ -171,8 +171,19 @@ static struct _starpu_darts_gpu_pulled_task *tab_gpu_pulled_task;
 static int NT_DARTS;
 static int iteration_DARTS;
 static struct starpu_perfmodel_arch *perf_arch;
+static unsigned perf_sched_ctx_id;
 static int *memory_nodes;
 static char *_output_directory;
+
+/* Return expected length of a task on worker 0.
+ * starpu_task_expected_length can not use per-worker models,
+ * thus the need for a special case where task->cl->model->type == STARPU_PER_WORKER */
+static double darts_task_expected_length(struct starpu_task *task)
+{
+	if (task->cl && task->cl->model && task->cl->model->type == STARPU_PER_WORKER)
+		return starpu_task_worker_expected_length(task, 0, perf_sched_ctx_id, 0);
+	return starpu_task_expected_length(task, perf_arch, 0);
+}
 
 #ifdef STARPU_DARTS_STATS
 static int nb_return_null_after_scheduling;
@@ -683,7 +694,7 @@ static void initialize_task_data_gpu_single_task_no_dependencies(struct starpu_t
 				_STARPU_MALLOC(hud->nb_task_in_planned_task, _nb_gpus*sizeof(int));
 				_STARPU_MALLOC(hud->last_check_to_choose_from, _nb_gpus*sizeof(int));
 				_STARPU_MALLOC(hud->is_present_in_data_not_used_yet, _nb_gpus*sizeof(int));
-				hud->sum_remaining_task_expected_length = starpu_task_expected_length(task, perf_arch, 0);
+				hud->sum_remaining_task_expected_length = darts_task_expected_length(task);
 
 				int j;
 				for (j = 0; j < _nb_gpus; j++)
@@ -698,7 +709,7 @@ static void initialize_task_data_gpu_single_task_no_dependencies(struct starpu_t
 			else
 			{
 				hud = STARPU_TASK_GET_HANDLE(task, i)->sched_data2;
-				hud->sum_remaining_task_expected_length += starpu_task_expected_length(task, perf_arch, 0);
+				hud->sum_remaining_task_expected_length += darts_task_expected_length(task);
 				if (hud->last_iteration_DARTS != iteration_DARTS || hud->is_present_in_data_not_used_yet[i] == 0) /* Re-init values in hud. */
 				{
 					int j;
@@ -756,7 +767,7 @@ static void initialize_task_data_gpu_single_task_dependencies(struct starpu_task
 			_STARPU_MALLOC(hud->nb_task_in_planned_task, _nb_gpus*sizeof(int));
 			_STARPU_MALLOC(hud->last_check_to_choose_from, _nb_gpus*sizeof(int));
 			_STARPU_MALLOC(hud->is_present_in_data_not_used_yet, _nb_gpus*sizeof(int));
-			hud->sum_remaining_task_expected_length = starpu_task_expected_length(task, perf_arch, 0);
+			hud->sum_remaining_task_expected_length = darts_task_expected_length(task);
 			_STARPU_MALLOC(hud->data_not_used, _nb_gpus*sizeof(struct _starpu_darts_gpu_data_not_used*));
 
 			_STARPU_SCHED_PRINT("Data is new. Expected length in data %p: %f\n", STARPU_TASK_GET_HANDLE(task, i), hud->sum_remaining_task_expected_length);
@@ -799,7 +810,7 @@ static void initialize_task_data_gpu_single_task_dependencies(struct starpu_task
 			if (hud->last_iteration_DARTS != iteration_DARTS)
 			{
 				hud->last_iteration_DARTS = iteration_DARTS;
-				hud->sum_remaining_task_expected_length = starpu_task_expected_length(task, perf_arch, 0);
+				hud->sum_remaining_task_expected_length = darts_task_expected_length(task);
 				int j;
 				for (j = 0; j < _nb_gpus; j++)
 				{
@@ -829,7 +840,7 @@ static void initialize_task_data_gpu_single_task_dependencies(struct starpu_task
 			}
 			else
 			{
-				hud->sum_remaining_task_expected_length += starpu_task_expected_length(task, perf_arch, 0);
+				hud->sum_remaining_task_expected_length += darts_task_expected_length(task);
 
 				int j;
 				for (j = 0; j < _nb_gpus; j++)
@@ -1005,7 +1016,7 @@ static void _starpu_darts_increment_planned_task_data(struct starpu_task *task, 
 static int darts_push_task(struct starpu_sched_component *component, struct starpu_task *task)
 {
 #ifdef PRINT
-	printf("New task %p (%s, prio: %d, length: %f) in push_task with data(s):", task, starpu_task_get_name(task), task->priority, starpu_task_expected_length(task, perf_arch, 0)); fflush(stdout);
+	printf("New task %p (%s, prio: %d, length: %f) in push_task with data(s):", task, starpu_task_get_name(task), task->priority, darts_task_expected_length(task)); fflush(stdout);
 	unsigned i;
 	for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 	{
@@ -1841,7 +1852,7 @@ static void _starpu_darts_erase_task_and_data_pointer(struct starpu_task *task, 
 
 		/* Reduce expected length of task using this data */
 		struct _starpu_darts_handle_user_data *hud = pt->pointer_to_D[j]->sched_data2;
-		hud->sum_remaining_task_expected_length -= starpu_task_expected_length(task, perf_arch, 0);
+		hud->sum_remaining_task_expected_length -= darts_task_expected_length(task);
 		_STARPU_SCHED_PRINT("Adding in planned task. Expected length in data %p: %f\n", STARPU_TASK_GET_HANDLE(task, j), hud->sum_remaining_task_expected_length);
 
 	}
@@ -2090,7 +2101,7 @@ static void _starpu_darts_scheduling_3D_matrix(struct starpu_task_list *main_tas
 								temp_priority_max = t->pointer_to_T->priority;
 							}
 
-							temp_length_free_tasks_max += starpu_task_expected_length(t->pointer_to_T, perf_arch, 0);
+							temp_length_free_tasks_max += darts_task_expected_length(t->pointer_to_T);
 						}
 						else if (data_not_available == 1)
 						{
@@ -2230,7 +2241,7 @@ static void _starpu_darts_scheduling_3D_matrix(struct starpu_task_list *main_tas
 									{
 										temp_priority_max = t->pointer_to_T->priority;
 									}
-									temp_length_free_tasks_max += starpu_task_expected_length(t->pointer_to_T, perf_arch, 0);
+									temp_length_free_tasks_max += darts_task_expected_length(t->pointer_to_T);
 								}
 								else if (data_not_available == 1)
 								{
@@ -3192,7 +3203,7 @@ static starpu_data_handle_t darts_victim_selector(starpu_data_handle_t toload, u
 
 					/* Increase expected length of task using this data */
 					struct _starpu_darts_handle_user_data *hud = pt->pointer_to_D[i]->sched_data2;
-					hud->sum_remaining_task_expected_length += starpu_task_expected_length(task, perf_arch, 0);
+					hud->sum_remaining_task_expected_length += darts_task_expected_length(task);
 
 					_STARPU_SCHED_PRINT("Eviction of data %p.\n", STARPU_TASK_GET_HANDLE(task, i));
 				}
@@ -3466,6 +3477,7 @@ static void initialize_darts_center_policy(unsigned sched_ctx_id)
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	sched_ctx->sched_policy->prefetches = 1;
 
+	perf_sched_ctx_id = sched_ctx_id;
 	perf_arch = starpu_worker_get_perf_archtype(0, sched_ctx_id); /* Getting the perfmodel. Used to get the expected length of a task to tiebreak when choosing Dopt. We use 0 here because we assume all processing units to be homogeneous. TODO: use the mean performance of each processing unit or each time the performance model is needed, use the one of the selected processing unit to get the exepected task length or data transfer duration. */
 
 	if (prio != 0)
