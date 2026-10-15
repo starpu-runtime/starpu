@@ -168,7 +168,7 @@ profiles = [
       'env'         : {'PATH' : '${HOME}/softs/starpu/pm2/install/${CI_COMMIT_BRANCH}/bin:${PATH}',
                        'LD_LIBRARY_PATH' : '${HOME}/softs/starpu/pm2/install/${CI_COMMIT_BRANCH}/lib:${LD_LIBRARY_PATH}',
                        'PKG_CONFIG_PATH' : '${HOME}/softs/starpu/pm2/install/${CI_COMMIT_BRANCH}/lib/pkgconfig:${PKG_CONFIG_PATH}'},
-      'prologue'    : ['../scripts/install_pm2.sh', 'pukabi+madmpi.conf'],
+      'prologue'    : ['./ci/scripts/install_pm2.sh', 'pukabi+madmpi.conf'],
       'hosts'       : ['node_gpu']
     },
     { 'name'        : 'nmad-mem-late',
@@ -179,7 +179,7 @@ profiles = [
                        'LD_LIBRARY_PATH' : '${HOME}/softs/starpu/pm2/install/${CI_COMMIT_BRANCH}/lib:${LD_LIBRARY_PATH}',
                        'PKG_CONFIG_PATH' : '${HOME}/softs/starpu/pm2/install/${CI_COMMIT_BRANCH}/lib/pkgconfig:${PKG_CONFIG_PATH}',
                        'STARPU_MPI_MEM_LATE' : '1' },
-      'prologue'    : ['../scripts/install_pm2.sh', 'pukabi+madmpi.conf'],
+      'prologue'    : ['./ci/scripts/install_pm2.sh', 'pukabi+madmpi.conf'],
       'hosts'       : ['node_gpu']
     },
     { 'name'        : 'enable-fast',
