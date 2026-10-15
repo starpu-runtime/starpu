@@ -1111,6 +1111,7 @@ static int darts_push_task(struct starpu_sched_component *component, struct star
 				if (pt->tud[y] != NULL)
 				{
 					_starpu_darts_task_using_data_list_erase(pt->pointer_to_D[y]->sched_data, pt->tud[y]);
+					_starpu_darts_task_using_data_delete(pt->tud[y]);
 					pt->tud[y] = NULL;
 				}
 			}
@@ -1834,6 +1835,7 @@ static void _starpu_darts_erase_task_and_data_pointer(struct starpu_task *task, 
 		if (pt->tud[j] != NULL)
 		{
 			_starpu_darts_task_using_data_list_erase(pt->pointer_to_D[j]->sched_data, pt->tud[j]);
+			_starpu_darts_task_using_data_delete(pt->tud[j]);
 			pt->tud[j] = NULL;
 		}
 
@@ -2113,6 +2115,9 @@ static void _starpu_darts_scheduling_3D_matrix(struct starpu_task_list *main_tas
 	}
 	else if (choose_best_data_from == 1) /* The case where I only look at data (not yet in memory) from tasks using data in memory. */
 	{
+		/* We walk the lists of tasks using data, which other workers may also touch. */
+		_REFINED_MUTEX_LOCK();
+
 		/* To avoid looking at the same data twice in the same iteration. */
 		struct _starpu_darts_handle_user_data *hud_last_check = NULL;
 
@@ -2212,6 +2217,7 @@ static void _starpu_darts_scheduling_3D_matrix(struct starpu_task_list *main_tas
 										hud = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->sched_data2;
 										update_best_data_single_decision_tree(&number_free_task_max, &remaining_expected_length_max, &handle_popped, &priority_max, &number_1_from_free_task_max, temp_number_free_task_max, hud->sum_remaining_task_expected_length, STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k), temp_priority_max, temp_number_1_from_free_task_max, &data_chosen_index, x, &best_1_from_free_task, temp_best_1_from_free_task, temp_transfer_time_min, &transfer_time_min, temp_length_free_tasks_max, &ratio_transfertime_freetask_min);
 
+										_REFINED_MUTEX_UNLOCK();
 										goto end_choose_best_data;
 									}
 
@@ -2246,6 +2252,7 @@ static void _starpu_darts_scheduling_3D_matrix(struct starpu_task_list *main_tas
 				}
 			}
 		}
+		_REFINED_MUTEX_UNLOCK();
 	}
 
 	_STARPU_SCHED_PRINT("Best data is = %p: %d free tasks and %d 1 from free tasks. Transfer time %f\n", handle_popped, number_free_task_max, number_1_from_free_task_max, transfer_time_min);
@@ -2329,8 +2336,14 @@ static void _starpu_darts_scheduling_3D_matrix(struct starpu_task_list *main_tas
 		_STARPU_SCHED_PRINT("The data adding the most free tasks is %p and %d task.\n", handle_popped, number_free_task_max);
 
 		struct _starpu_darts_task_using_data *t;
-		for (t = _starpu_darts_task_using_data_list_begin(handle_popped->sched_data); t != _starpu_darts_task_using_data_list_end(handle_popped->sched_data); t = _starpu_darts_task_using_data_list_next(t))
+		struct _starpu_darts_task_using_data *next_t;
+		for (t = _starpu_darts_task_using_data_list_begin(handle_popped->sched_data); t != _starpu_darts_task_using_data_list_end(handle_popped->sched_data); t = next_t)
 		{
+			/* The task may be moved to planned task below, which frees it and potentially the next ones too if the task uses handle_popped several times (which can happen with task_with_multiple_time_the_same_handle for instance). So we iterate here to the next valid task that won't be freed. most of the time it's just the next one. */
+			next_t = _starpu_darts_task_using_data_list_next(t);
+			while (next_t != _starpu_darts_task_using_data_list_end(handle_popped->sched_data) && next_t->pointer_to_T == t->pointer_to_T)
+				next_t = _starpu_darts_task_using_data_list_next(next_t);
+
 			data_available = true;
 			unsigned j;
 			for (j = 0; j < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T); j++)
@@ -2372,8 +2385,10 @@ static void _starpu_darts_scheduling_3D_matrix(struct starpu_task_list *main_tas
 				printf("\n"); fflush(stdout);
 #endif
 
-				_starpu_darts_erase_task_and_data_pointer(t->pointer_to_T, main_task_list);
-				starpu_task_list_push_back(&g->planned_task, t->pointer_to_T);
+				/* Freeing task t */
+				struct starpu_task *task = t->pointer_to_T;
+				_starpu_darts_erase_task_and_data_pointer(task, main_task_list);
+				starpu_task_list_push_back(&g->planned_task, task);
 			}
 		}
 
