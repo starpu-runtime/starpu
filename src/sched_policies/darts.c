@@ -3148,6 +3148,8 @@ static starpu_data_handle_t darts_victim_selector(starpu_data_handle_t toload, u
 				starpu_task_list_erase(&tab_gpu_planned_task[current_gpu].planned_task, pt->pointer_to_cell);
 
 				pt->pointer_to_cell = task;
+				free(pt->pointer_to_D);
+				free(pt->tud);
 				_STARPU_MALLOC(pt->pointer_to_D, get_nbuffer_without_scratch(task)*sizeof(STARPU_TASK_GET_HANDLE(task, 0)));
 				_STARPU_MALLOC(pt->tud, get_nbuffer_without_scratch(task)*sizeof(_starpu_darts_task_using_data_new()));
 
@@ -3515,6 +3517,18 @@ static void get_task_done(struct starpu_task *task, unsigned sci)
 			}
 		}
 	}
+
+	/* The task is over, free the data attached to it in push_task. */
+	_REFINED_MUTEX_LOCK();
+	struct _starpu_darts_pointer_in_task *pt = task->sched_data;
+	if (pt)
+	{
+		free(pt->pointer_to_D);
+		free(pt->tud);
+		free(pt);
+		task->sched_data = NULL;
+	}
+	_REFINED_MUTEX_UNLOCK();
 
 	_LINEAR_MUTEX_UNLOCK();
 
