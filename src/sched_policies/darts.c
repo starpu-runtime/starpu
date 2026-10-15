@@ -3224,7 +3224,7 @@ static starpu_data_handle_t darts_victim_selector(starpu_data_handle_t toload, u
 					{
 						if (hud->is_present_in_data_not_used_yet[x] == 0 && (can_a_data_be_in_mem_and_in_not_used_yet == 1 || !starpu_data_is_on_node(returned_handle, memory_nodes[x])))
 						{
-							push_data_not_used_yet_random_spot(returned_handle, &tab_gpu_planned_task[x], i);
+							push_data_not_used_yet_random_spot(returned_handle, &tab_gpu_planned_task[x], x);
 						}
 					}
 				}
