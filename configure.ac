@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2025   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2026   University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2018-2018   Umeà University
 # Copyright (C) 2018,2020   Federal University of Rio Grande do Sul (UFRGS)
 # Copyright (C) 2017-2017   Guillaume Beauchamp
@@ -1460,7 +1460,7 @@ AC_DEFUN([STARPU_CHECK_CUDA_L],
     AC_HAVE_LIBRARY([cudart],[have_valid_cuda=yes],[have_valid_cuda=no])
     unset ac_cv_lib_cudart_main
     if test "$have_valid_cuda" = yes ; then
-	LDFLAGS="${SAVED_LDFLAGS} ${STARPU_CUDA_LDFLAGS}"
+	STARPU_CUDA_LDFLAGS="${STARPU_CUDA_LDFLAGS} ${__cuda_L}"
     fi
     LDFLAGS="${SAVED_LDFLAGS}"
 ])
@@ -1586,7 +1586,7 @@ AC_DEFUN([STARPU_CHECK_CUBLAS_L],
     AC_HAVE_LIBRARY([cublas],[have_valid_cublas=yes],[have_valid_cublas=no])
     unset ac_cv_lib_cublas_main
     if test "$have_valid_cublas" = yes ; then
-	LDFLAGS="${SAVED_LDFLAGS} ${STARPU_CUDA_LDFLAGS}"
+	STARPU_CUDA_LDFLAGS="${STARPU_CUDA_LDFLAGS} ${__cublas_L}"
     fi
     LDFLAGS="${SAVED_LDFLAGS}"
 ])
