@@ -1674,7 +1674,7 @@ AC_ARG_WITH(cublas-lib-dir,
 		cublas_lib_dir="$withval"
 		# in case this was not explicit yet
 		enable_cuda=yes
-	], [cublas_lib_dir=$cublas_include_dir])
+	], [cublas_lib_dir=$cuda_lib_dir])
 
 AC_DEFUN([STARPU_CHECK_CUDA_L],
 [
