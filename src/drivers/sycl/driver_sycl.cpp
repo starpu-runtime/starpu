@@ -386,9 +386,6 @@ static void init_device_context(unsigned devid) try
 
 	starpu_sycl_set_device(devid);
 
-	if (STARPU_UNLIKELY(syclres))
-		STARPU_SYCL_REPORT_ERROR(syclres);
-
 	syclres = DPCT_CHECK_ERROR(in_transfer_streams[devid] = dpct::get_current_device().create_in_order_queue());
 	if (STARPU_UNLIKELY(syclres))
 		STARPU_SYCL_REPORT_ERROR(syclres);
