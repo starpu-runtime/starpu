@@ -1731,7 +1731,7 @@ AC_DEFUN([STARPU_CHECK_CUDA],
     fi
 
     if test "$__cuda_dir" != "no" ; then
-	AC_MSG_CHECKING(whether CUDA is available in $__cuda_dir, $__cuda_include_dir and $__cuda_lib_dir)
+	AC_MSG_CHECKING([whether CUDA is available in $__cuda_dir, $__cuda_include_dir and $__cuda_lib_dir])
     else
 	AC_MSG_CHECKING(whether CUDA is available)
     fi
@@ -1866,7 +1866,7 @@ AC_DEFUN([STARPU_CHECK_CUBLAS],
     fi
 
     if test "$__cublas_dir" != "no" ; then
-	AC_MSG_CHECKING(whether CUBLAS is available in $__cublas_dir, $__cublas_include_dir and $__cublas_lib_dir)
+	AC_MSG_CHECKING([whether CUBLAS is available in $__cublas_dir, $__cublas_include_dir and $__cublas_lib_dir])
     else
 	AC_MSG_CHECKING(whether CUBLAS is available)
     fi
