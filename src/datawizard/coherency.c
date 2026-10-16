@@ -574,8 +574,12 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 
 	if ((!dst_replicate || dst_replicate->state != STARPU_INVALID) && (!nwait || is_prefetch))
 	{
+		/* We are already done */
+
 		if (dst_replicate)
 		{
+			/* With a replicate content */
+
 #ifdef STARPU_MEMORY_STATS
 			enum _starpu_cache_state old_state = dst_replicate->state;
 #endif
