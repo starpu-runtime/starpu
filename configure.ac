@@ -1449,7 +1449,6 @@ AC_DEFUN([STARPU_CHECK_CUDA_L],
 [
     __cuda_L=$1
     SAVED_LDFLAGS="${LDFLAGS}"
-    STARPU_CUDA_LDFLAGS="${__cuda_L}"
     if test "$__cuda_L" = "" ; then
         AC_MSG_CHECKING(whether CUDA library is available in default location)
     else
@@ -1575,14 +1574,13 @@ AC_DEFUN([STARPU_CHECK_CUBLAS_L],
 [
     __cublas_L=$1
     SAVED_LDFLAGS="${LDFLAGS}"
-    STARPU_CUDA_LDFLAGS="${__cublas_L}"
     if test "$__cublas_L" = "" ; then
         AC_MSG_CHECKING(whether CUBLAS library is available in default location)
     else
     	AC_MSG_CHECKING(whether CUBLAS library is available in $__cublas_L)
     fi
     AC_MSG_RESULT()
-    LDFLAGS="${SAVED_LDFLAGS} ${__cublas_L}"
+    LDFLAGS="${SAVED_LDFLAGS} ${STARPU_CUDA_LDFLAGS} ${__cublas_L}"
     AC_HAVE_LIBRARY([cublas],[have_valid_cublas=yes],[have_valid_cublas=no])
     unset ac_cv_lib_cublas_main
     if test "$have_valid_cublas" = yes ; then
@@ -1618,7 +1616,6 @@ AC_DEFUN([STARPU_CHECK_CUBLAS],
     fi
 
     SAVED_CPPFLAGS="$CPPFLAGS"
-    SAVED_STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS"
     have_valid_cublas=no
 
     if test "$__cublas_include_dir" != "no" ; then
@@ -1647,7 +1644,7 @@ AC_DEFUN([STARPU_CHECK_CUBLAS],
 
     if test "$have_valid_cublas" = "no" ; then
 	CPPFLAGS="${SAVED_CPPFLAGS}"
-	STARPU_CUDA_LDFLAGS="${SAVED_STARPU_CUDA_LDFLAGS}"
+	unset STARPU_CUDA_LDFLAGS
     fi
 ])
 
@@ -1671,7 +1668,7 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
     fi
 
     if test "$have_valid_cuda" = "no" ; then
-	for f in "/usr/local/cuda" "/c/cuda" "/cygdrive/c/cuda" "/opt/cuda" "$CUDA_ROOT" "$CUDA_PATH" "$CUDA_INC_PATH/.." "$CUDA_INC/.." "$CUDA_BIN/.." "$CUDA_SDK/.." "$CUDA_INSTALL_PATH" "$CUDA_TOOLKIT"; do
+	for f in "$NVHPC_ROOT/cuda" "$CUDA_ROOT" "$CUDA_PATH" "$CUDA_INC_PATH/.." "$CUDA_INC/.." "$CUDA_BIN/.." "$CUDA_SDK/.." "$CUDA_INSTALL_PATH" "$CUDA_TOOLKIT" "/usr/local/cuda" "/c/cuda" "/cygdrive/c/cuda" "/opt/cuda"; do
 	    if test -n "$f" ; then
 		STARPU_CHECK_CUDA("$f", "no", "no")
 		if test "$have_valid_cuda" = "yes" ; then
@@ -1685,7 +1682,7 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
     if test "$have_valid_cuda" = "yes" ; then
         STARPU_CHECK_CUBLAS("$cublas_dir", "$cublas_include_dir", "$cublas_lib_dir")
 	if test "$have_valid_cublas" = "no" ; then
-	    for f in "" "/usr/local/cuda" "/c/cuda" "/cygdrive/c/cuda" "/opt/cuda" "$CUDA_ROOT" "$CUDA_PATH" "$CUDA_INC_PATH/.." "$CUDA_INC/.." "$CUDA_BIN/.." "$CUDA_SDK/.." "$CUDA_INSTALL_PATH" "$CUDA_TOOLKIT"; do
+	    for f in "$NVHPC_ROOT/math_libs" "$CUDA_ROOT" "$CUDA_PATH" "$CUDA_INC_PATH/.." "$CUDA_INC/.." "$CUDA_BIN/.." "$CUDA_SDK/.." "$CUDA_INSTALL_PATH" "$CUDA_TOOLKIT" "/usr/local/cuda" "/c/cuda" "/cygdrive/c/cuda" "/opt/cuda"; do
 	        if test -n "$f" ; then
 		    STARPU_CHECK_CUBLAS("$f", "no", "no")
 		    if test "$have_valid_cublas" = "yes" ; then
