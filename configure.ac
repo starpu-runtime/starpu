@@ -1449,7 +1449,7 @@ AC_DEFUN([STARPU_CHECK_CUDA_L],
 [
     __cuda_L=$1
     SAVED_LDFLAGS="${LDFLAGS}"
-    if test "$__cuda_L" = "" ; then
+    if test -z "$__cuda_L" ; then
         AC_MSG_CHECKING(whether CUDA library is available in default location)
     else
     	AC_MSG_CHECKING(whether CUDA library is available in $__cuda_L)
@@ -1574,7 +1574,7 @@ AC_DEFUN([STARPU_CHECK_CUBLAS_L],
 [
     __cublas_L=$1
     SAVED_LDFLAGS="${LDFLAGS}"
-    if test "$__cublas_L" = "" ; then
+    if test -z "$__cublas_L" ; then
         AC_MSG_CHECKING(whether CUBLAS library is available in default location)
     else
     	AC_MSG_CHECKING(whether CUBLAS library is available in $__cublas_L)
