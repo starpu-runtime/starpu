@@ -1931,7 +1931,7 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
 
     if test "$have_valid_cuda" = "no" ; then
 	for f in "$NVHPC_ROOT/cuda" "$CUDA_ROOT" "$CUDA_PATH" "$CUDA_INC_PATH/.." "$CUDA_INC/.." "$CUDA_BIN/.." "$CUDA_SDK/.." "$CUDA_INSTALL_PATH" "$CUDA_TOOLKIT" "/usr/local/cuda" "/c/cuda" "/cygdrive/c/cuda" "/opt/cuda"; do
-	    if test -n "$f" ; then
+	    if test -n "$f" -a "$f" != "/.." ; then
 		STARPU_CHECK_CUDA("$f", "no", "no")
 		if test "$have_valid_cuda" = "yes" ; then
 		    break
