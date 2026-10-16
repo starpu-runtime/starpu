@@ -1020,7 +1020,7 @@ static int _starpu_should_prefetch_task_input(STARPU_ATTRIBUTE_UNUSED struct sta
 	return 1;
 }
 
-int _starpu_prefetch_task_input_prio(struct starpu_task *task, int target_node, int worker, int prio, enum starpu_is_prefetch prefetch)
+static int _starpu_prefetch_task_input_prio(struct starpu_task *task, int target_node, int worker, int prio, enum starpu_is_prefetch prefetch)
 {
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 #ifdef STARPU_OPENMP
