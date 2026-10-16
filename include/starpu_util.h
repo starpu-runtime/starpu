@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -233,7 +233,7 @@ extern "C" {
 		{                                 \
 			STARPU_DUMP_BACKTRACE();  \
 			STARPU_SIMGRID_ASSERT(0 && #x); \
-			*(int *)NULL = 0;         \
+			*(volatile int *)NULL = 0; \
 		}                                 \
 	}                                         \
 	while (0)
@@ -294,7 +294,7 @@ extern "C" {
 			STARPU_DUMP_BACKTRACE();                                                                       \
 			fprintf(stderr, "\n[starpu][%s][assert failure] " msg "\n\n", __starpu_func__, ##__VA_ARGS__); \
 			STARPU_SIMGRID_ASSERT(0 && #x);                                                                \
-			*(int *)NULL = 0;                                                                              \
+			*(volatile int *)NULL = 0;                                                                     \
 		}                                                                                                      \
 	}                                                                                                              \
 	while (0)
@@ -308,7 +308,7 @@ extern "C" {
 			STARPU_SIMGRID_ASSERT(0 && #x);                                                                \
 			assert(0 && #x);                                                                               \
 			abort();                                                                                       \
-			*(int *)NULL = 0;                                                                              \
+			*(volatile int *)NULL = 0;                                                                     \
 		}                                                                                                      \
 	}                                                                                                              \
 	while (0)
