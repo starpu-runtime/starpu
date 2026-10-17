@@ -282,7 +282,17 @@ static void _starpu_sycl_limit_gpu_mem_if_needed(unsigned devid)
 	/* Find the size of the memory on the device */
 	totalGlobalMem = props[devid].get_global_mem_size();
 
-	limit = totalGlobalMem / (1024*1024) * FREE_MARGIN;
+	limit = starpu_getenv_number("STARPU_LIMIT_SYCL_MEM");
+	if (limit == -1)
+	{
+		char name[30];
+		snprintf(name, sizeof(name), "STARPU_LIMIT_SYCL_%u_MEM", devid);
+		limit = starpu_getenv_number(name);
+	}
+	if (limit == -1)
+	{
+		limit = totalGlobalMem / (1024*1024) * FREE_MARGIN;
+	}
 
 	global_mem[devid] = limit * 1024*1024;
 }

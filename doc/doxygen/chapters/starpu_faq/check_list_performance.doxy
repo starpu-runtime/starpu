@@ -267,6 +267,7 @@ prefetch and write-back optimizations.
 The environment variables
 \ref STARPU_LIMIT_CUDA_MEM, \ref STARPU_LIMIT_CUDA_devid_MEM,
 \ref STARPU_LIMIT_HIP_MEM, \ref STARPU_LIMIT_HIP_devid_MEM,
+\ref STARPU_LIMIT_SYCL_MEM, \ref STARPU_LIMIT_SYCL_devid_MEM,
 \ref STARPU_LIMIT_OPENCL_MEM, and \ref STARPU_LIMIT_OPENCL_devid_MEM
 can be used to control how much (in MiB) of the GPU device memory
 should be used at most by StarPU (the default value is to use 90% of the
@@ -443,6 +444,7 @@ devices for instance, the model can be shared by using the environment
 variables
 \ref STARPU_PERF_MODEL_HOMOGENEOUS_CUDA,
 \ref STARPU_PERF_MODEL_HOMOGENEOUS_HIP,
+\ref STARPU_PERF_MODEL_HOMOGENEOUS_SYCL,
 \ref STARPU_PERF_MODEL_HOMOGENEOUS_OPENCL
 and \ref STARPU_PERF_MODEL_HOMOGENEOUS_MPI_SC depending on your GPU device
 type.
@@ -450,6 +452,7 @@ type.
 \code{.shell}
 export STARPU_PERF_MODEL_HOMOGENEOUS_CUDA=1
 export STARPU_PERF_MODEL_HOMOGENEOUS_HIP=1
+export STARPU_PERF_MODEL_HOMOGENEOUS_SYCL=1
 export STARPU_PERF_MODEL_HOMOGENEOUS_OPENCL=1
 export STARPU_PERF_MODEL_HOMOGENEOUS_MPI_SC=1
 \endcode
