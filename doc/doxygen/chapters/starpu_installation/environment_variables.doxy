@@ -692,6 +692,46 @@ Disable asynchronous copies between CPU and HIP devices. One can call starpu_asy
 
 </dl>
 
+\subsection syclWorkers SYCL Workers
+<dl>
+<dt>STARPU_NSYCL</dt>
+<dd>
+\anchor STARPU_NSYCL
+\addindex __env__STARPU_NSYCL
+Specify the number of SYCL devices that StarPU can use. If
+\ref STARPU_NSYCL is lower than the number of physical devices, it is
+possible to select which GPU devices should be used by the means of the
+environment variable \ref STARPU_WORKERS_SYCLID. By default, StarPU will
+create as many SYCL workers as there are GPU devices.
+</dd>
+
+
+<dt>STARPU_WORKERS_SYCLID</dt>
+<dd>
+\anchor STARPU_WORKERS_SYCLID
+\addindex __env__STARPU_WORKERS_SYCLID
+Select which SYCL devices should be used to run SYCL workers (similarly to the \ref STARPU_WORKERS_CPUID environment variable).
+On a machine equipped with 4 GPUs, setting <c>STARPU_WORKERS_SYCLID="1 3"</c> and
+<c>STARPU_NSYCL=2</c> specifies that 2 SYCL workers should be created, and that
+they should use SYCL devices #1 and #3 (the logical ordering of the devices is
+the one reported by SYCL).
+
+This variable is ignored if the field
+starpu_conf::use_explicit_workers_sycl_gpuid passed to starpu_init()
+is set.
+</dd>
+
+<dt>STARPU_DISABLE_ASYNCHRONOUS_SYCL_COPY</dt>
+<dd>
+\anchor STARPU_DISABLE_ASYNCHRONOUS_SYCL_COPY
+\addindex __env__STARPU_DISABLE_ASYNCHRONOUS_SYCL_COPY
+Disable asynchronous copies between CPU and SYCL devices. One can call starpu_asynchronous_sycl_copy_disabled() to check whether asynchronous data transfers between CPU and SYCL accelerators are disabled.
+
+See also \ref STARPU_DISABLE_ASYNCHRONOUS_COPY.
+</dd>
+
+</dl>
+
 \subsection mpiConf MPI Configuration
 <dl>
 
