@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013-2013  Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -546,6 +546,10 @@ void _starpu_swap_init(void)
 	}
 
 	size = starpu_getenv_number_default("STARPU_DISK_SWAP_SIZE", -1);
+	if (size < 0) {
+		_STARPU_DISP("Warning: STARPU_DISK_SWAP_SIZE needs to be set\n");
+		return;
+	}
 
 	starpu_disk_swap_node = starpu_disk_register(ops, path, ((size_t) size) << 20);
 	if (starpu_disk_swap_node < 0)
