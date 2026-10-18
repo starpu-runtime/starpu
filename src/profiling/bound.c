@@ -577,7 +577,10 @@ void starpu_bound_print_lp(FILE *output)
 			nt++;
 		}
 		if (!nt)
+		{
+			STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 			return;
+		}
 		fprintf(output, "/* StarPU upper bound linear programming problem, to be run in lp_solve. */\n\n");
 		fprintf(output, "/* !! This is a big system, it will be long to solve !! */\n\n");
 
@@ -822,7 +825,10 @@ void starpu_bound_print_lp(FILE *output)
 		for (tp = task_pools; tp; tp = tp->next)
 			nt++;
 		if (!nt)
+		{
+			STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 			return;
+		}
 
 		{
 			double times[nw*nt];
