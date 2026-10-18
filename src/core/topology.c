@@ -753,6 +753,7 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 
 				_STARPU_DEBUG("Setting STARPU_WORKERS_CPUID to %s\n", value);
 				setenv("STARPU_WORKERS_CPUID", value, 0);
+				free(value);
 				break;
 			}
 
