@@ -1874,7 +1874,7 @@ static void remove_workers_heteroprio_policy(unsigned sched_ctx_id, int *workeri
 
 static unsigned get_best_mem_node(struct starpu_task *task, struct _starpu_heteroprio_data *hp, const enum laheteroprio_push_strategy pushStrategy)
 {
-	const unsigned workerid = starpu_worker_get_id();
+	const int workerid = starpu_worker_get_id();
 	unsigned best_mem_node;
 
 	STARPU_ASSERT(task != NULL);
@@ -1916,7 +1916,7 @@ This warning will only be displayed once.\n");
 		{
 			size_t max_size_so_far = 0;
 			unsigned idx_max_size = 0;
-			const unsigned wgroupid = (workerid == (unsigned)-1 ? hp->primary_tasks_queue_idx : hp->workers_laheteroprio_wgroup_index[workerid]);
+			const unsigned wgroupid = (workerid == -1 ? hp->primary_tasks_queue_idx : hp->workers_laheteroprio_wgroup_index[workerid]);
 			size_t data_per_mem_node[LAHETEROPRIO_MAX_WORKER_GROUPS] = { 0 };
 			assert(nnodes <= LAHETEROPRIO_MAX_WORKER_GROUPS);
 			unsigned idx_data;
@@ -1956,7 +1956,7 @@ This warning will only be displayed once.\n");
 		}
 		else if (pushStrategy == PUSH_LC_SMWB)
 		{
-			const unsigned wgroupid = (workerid == (unsigned)-1 ? hp->primary_tasks_queue_idx : hp->workers_laheteroprio_wgroup_index[workerid]);
+			const unsigned wgroupid = (workerid == -1 ? hp->primary_tasks_queue_idx : hp->workers_laheteroprio_wgroup_index[workerid]);
 			assert(nnodes <= LAHETEROPRIO_MAX_WORKER_GROUPS);
 			const unsigned N = STARPU_TASK_GET_NBUFFERS(task);
 			unsigned data_exist_every_where[128] = { 0 };
@@ -2060,7 +2060,7 @@ This warning will only be displayed once.\n");
 		}
 		else
 		{
-			const unsigned wgroupid = (workerid == (unsigned)-1 ? hp->primary_tasks_queue_idx : hp->workers_laheteroprio_wgroup_index[workerid]);
+			const unsigned wgroupid = (workerid == -1 ? hp->primary_tasks_queue_idx : hp->workers_laheteroprio_wgroup_index[workerid]);
 			assert(nnodes <= LAHETEROPRIO_MAX_WORKER_GROUPS);
 			const unsigned N = STARPU_TASK_GET_NBUFFERS(task);
 			assert(N <= 128);
@@ -2147,7 +2147,7 @@ This warning will only be displayed once.\n");
 	}
 	else
 	{
-		if (workerid == (unsigned)-1)
+		if (workerid == -1)
 		{
 			/* primary thread */
 			best_mem_node = hp->primary_tasks_queue_idx;

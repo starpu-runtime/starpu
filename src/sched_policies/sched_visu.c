@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -197,7 +197,7 @@ void _sched_visu_pop_ready_task(struct starpu_task *task)
 
 	if (task != NULL)
 	{
-		int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
+		int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id_check());
 		_index_current_popped_task[current_gpu]++; /* Increment popped task on the right GPU */
 		_index_current_popped_task_all_gpu++;
 		int nb_data_to_load = 0;
@@ -328,8 +328,8 @@ struct starpu_task *_sched_visu_get_data_to_load(unsigned sched_ctx)
 	struct starpu_task *task = starpu_sched_tree_pop_task(sched_ctx);
 	if (task != NULL)
 	{
-		//~ int current_gpu = starpu_worker_get_id();
-		int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
+		//~ int current_gpu = starpu_worker_get_id_check();
+		int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id_check());
 		//~ printf("Ngpu = %d current = %d task = %p\n", _nb_gpus, current_gpu, task);
 		_index_current_popped_task[current_gpu]++; /* Increment popped task on the right GPU */
 		_index_current_popped_task_all_gpu++;
@@ -474,7 +474,7 @@ void _sched_visu_print_effective_order_in_file(struct starpu_task *task, int ind
 	FILE *f = NULL;
 	int tab_coordinates[2];
 
-	int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
+	int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id_check());
 	/* For the coordinates It write the coordinates (with Z for 3D), then the GPU and then the number of data needed to load for this task */
 	//~ if (_print_n != 0 && (strcmp(_starpu_HFP_appli, "starpu_sgemm_gemm") == 0))
 	if (strcmp(_starpu_HFP_appli, "starpu_sgemm_gemm") == 0)

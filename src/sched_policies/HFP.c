@@ -4199,7 +4199,7 @@ static starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, 
 	struct starpu_sched_component *temp_component = component;
 	struct _starpu_HFP_sched_data *data = temp_component->data;
 	starpu_data_handle_t returned_handle = NULL;
-	int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id()) - 1;
+	int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id_check()) - 1;
 
 	/* Je check si une eviction n'a pas été refusé. */
 	data->p->temp_pointer_1 = data->p->first_link;
@@ -4403,7 +4403,7 @@ static void get_task_done_HFP(struct starpu_task *task, unsigned sci)
 	STARPU_PTHREAD_MUTEX_LOCK(&HFP_mutex);
 	number_task_out++;
 	/* Je me place sur le bon gpu. */
-	int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id()) - 1;
+	int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id_check()) - 1;
 
 	/* Si j'utilse Belady, je pop les valeurs dans les données de la tâche qui vient de se terminer */
 	if (belady == 1)

@@ -217,7 +217,7 @@ static int push_task_in_to_ready_queue(struct starpu_task *task)
 
 static struct starpu_task *pop_task_from_ready_queue(unsigned sched_ctx_id)
 {
-	const unsigned workerid = starpu_worker_get_id();
+	const unsigned workerid = starpu_worker_get_id_check();
 	struct _starpu_hpbasic_ready_queue *data = (struct _starpu_hpbasic_ready_queue*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct starpu_task *task = NULL;
 	unsigned queueId;

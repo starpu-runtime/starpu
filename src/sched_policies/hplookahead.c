@@ -586,7 +586,7 @@ static int  push_task_in_to_hp_lookahead_ready_queue(struct starpu_task *task)
 static struct starpu_task *pop_task_from_hp_lookahead_ready_queue(unsigned sched_ctx_id)
 {
 	struct _starpu_hp_lookahead_data *data = (struct _starpu_hp_lookahead_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	unsigned workerId = starpu_worker_get_id();
+	unsigned workerId = starpu_worker_get_id_check();
 
 	/* A big lock : may impact the performance, but required for advance lookup*/
 
@@ -1215,7 +1215,7 @@ static struct starpu_task *pop_task_from_hp_lookahead_ready_queue(unsigned sched
 		STARPU_PTHREAD_MUTEX_LOCK(&data->hp_mutex);
 		STARPU_PTHREAD_MUTEX_LOCK(&data->ready_queues_mutex);
 		//pop the first task from its own workers queue
-		workerId = starpu_worker_get_id();
+		workerId = starpu_worker_get_id_check();
 		struct starpu_st_fifo_taskq *fifo = data->workers_queue[workerId];
 		struct starpu_task *task = NULL;
 
@@ -1246,7 +1246,7 @@ static struct starpu_task *pop_task_from_hp_lookahead_ready_queue(unsigned sched
 static void hp_lookahead_pre_exec_hook(struct starpu_task *task, unsigned int sched_ctx_id)
 {
 //    unsigned sched_ctx_id = starpu_sched_ctx_get_ctx_for_task(task);
-	int workerId = starpu_worker_get_id();
+	unsigned workerId = starpu_worker_get_id_check();
 	struct _starpu_hp_lookahead_data *data = (struct _starpu_hp_lookahead_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct starpu_st_fifo_taskq *fifo = data->workers_queue[workerId];
 	double model = task->predicted;
@@ -1275,7 +1275,7 @@ static void hp_lookahead_pre_exec_hook(struct starpu_task *task, unsigned int sc
 static void hp_lookahead_post_exec_hook(struct starpu_task *task, unsigned int sched_ctx_id)
 {
 //    unsigned sched_ctx_id = starpu_sched_ctx_get_ctx_for_task(task);
-	int workerId = starpu_worker_get_id();
+	unsigned workerId = starpu_worker_get_id_check();
 	struct _starpu_hp_lookahead_data *data = (struct _starpu_hp_lookahead_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	STARPU_PTHREAD_MUTEX_LOCK(&data->hp_mutex);
 	unsigned pipelineIndex;

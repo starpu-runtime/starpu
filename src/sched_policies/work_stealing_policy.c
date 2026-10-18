@@ -631,7 +631,7 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 	/* While stealing, perhaps somebody actually give us a task, don't miss
 	 * the opportunity to take it before going to sleep. */
 	{
-		struct _starpu_worker *worker = _starpu_get_worker_struct(starpu_worker_get_id());
+		struct _starpu_worker *worker = _starpu_get_worker_struct(starpu_worker_get_id_check());
 		if (!task && worker->state_keep_awake)
 		{
 			task = ws_pick_task(ws, workerid, workerid);

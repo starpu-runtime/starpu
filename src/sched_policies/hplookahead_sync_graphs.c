@@ -279,7 +279,7 @@ static void releaseAndAddtoVT(struct _starpu_graph_node *node, struct _starpu_hp
 static struct starpu_task* pop_task_from_hp_lookahead_ready_queue(unsigned sched_ctx_id)
 {
 	struct _starpu_hp_lookahead_data *data = (struct _starpu_hp_lookahead_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	unsigned workerId = starpu_worker_get_id();
+	unsigned workerId = starpu_worker_get_id_check();
 
 	/* TODO: Instead of dedicate a worker, create a dedicate thread to perform scheduling */
 
@@ -1072,7 +1072,7 @@ static int  push_task_in_to_hp_lookahead_ready_queue(struct starpu_task *task)
  * value of the expected start, end, length, etc... */
 static void hp_lookahead_pre_exec_hook(struct starpu_task *task, unsigned int sched_ctx_id)
 {
-	int workerId = starpu_worker_get_id();
+	unsigned workerId = starpu_worker_get_id_check();
 	struct _starpu_hp_lookahead_data *data = (struct _starpu_hp_lookahead_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct starpu_st_fifo_taskq *fifo = data->workers_queue[workerId];
 
@@ -1093,7 +1093,7 @@ static void hp_lookahead_pre_exec_hook(struct starpu_task *task, unsigned int sc
 static void hp_lookahead_post_exec_hook(struct starpu_task *task, unsigned int sched_ctx_id)
 {
 	//_STARPU_DEBUG("Task=%lx completed at line number %d\n", task->tag_id,  __LINE__);
-	int workerId = starpu_worker_get_id();
+	unsigned workerId = starpu_worker_get_id_check();
 	struct _starpu_hp_lookahead_data *data = (struct _starpu_hp_lookahead_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	unsigned pipelineIndex;
 	struct starpu_st_fifo_taskq *fifo = data->workers_queue[workerId];
