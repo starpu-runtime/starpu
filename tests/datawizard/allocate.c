@@ -243,7 +243,7 @@ int main(void)
 			return STARPU_TEST_SKIPPED;
 		}
 		FPRINTF(stderr, "Available memory size on node %u: %zd\n", i, available_size);
-		STARPU_CHECK_RETURN_VALUE_IS((long)available_size, SIZE_LIMIT*1024*1024, "starpu_memory_get_available (node %u)", i);
+		STARPU_CHECK_RETURN_VALUE_IS((int)available_size, SIZE_LIMIT*1024*1024, "starpu_memory_get_available (node %u)", i);
 	}
 
 	test_malloc();
