@@ -1988,7 +1988,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	_starpu_simgrid_init();
 #endif
 
-	_starpu_energyreader_init(_starpu_config);
+	_starpu_energyreader_init(&_starpu_config);
 
 	if (!is_a_sink)
 	{

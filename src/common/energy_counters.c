@@ -195,7 +195,7 @@ static int _starpu_update_energy_reader_set(int workerid, energy_samples_set_s *
 
 #endif /* STARPU_HAVE_ENERGYREADER */
 
-void _starpu_energyreader_init(struct _starpu_machine_config starpu_config_arg)
+void _starpu_energyreader_init(struct _starpu_machine_config *starpu_config_arg)
 {
 #ifdef STARPU_HAVE_ENERGYREADER
 	energy_reader_enabled = _starpu_energyreader_is_enabled();
@@ -236,7 +236,7 @@ void _starpu_energyreader_init(struct _starpu_machine_config starpu_config_arg)
 	}
 
 	// Register worker core / package / gpu with fxt
-	int nbworkers = starpu_config_arg.topology.nworkers;
+	int nbworkers = starpu_config_arg->topology.nworkers;
 	for (int worker = 0; worker < nbworkers; worker++)
 	{
 		struct _starpu_worker *worker_struct = _starpu_get_worker_struct(worker);
@@ -247,10 +247,10 @@ void _starpu_energyreader_init(struct _starpu_machine_config starpu_config_arg)
 		hwloc_obj_t hwloc_object = starpu_worker_get_hwloc_obj(workerid);
 		assert(hwloc_object != NULL);
 		assert(hwloc_object->type == HWLOC_OBJ_PU);
-		hwloc_obj_t core = hwloc_get_ancestor_obj_by_type(starpu_config_arg.topology.hwtopology, HWLOC_OBJ_CORE, hwloc_object);
+		hwloc_obj_t core = hwloc_get_ancestor_obj_by_type(starpu_config_arg->topology.hwtopology, HWLOC_OBJ_CORE, hwloc_object);
 		assert(core != NULL);
 		int core_logical_index = core->logical_index;
-		hwloc_obj_t package = hwloc_get_ancestor_obj_by_type(starpu_config_arg.topology.hwtopology, HWLOC_OBJ_PACKAGE, hwloc_object);
+		hwloc_obj_t package = hwloc_get_ancestor_obj_by_type(starpu_config_arg->topology.hwtopology, HWLOC_OBJ_PACKAGE, hwloc_object);
 		assert(package != NULL);
 		int package_logical_index = package->logical_index;
 		int gpu_devid = worker_struct->devid;

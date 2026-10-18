@@ -43,7 +43,7 @@
  * @param starpu_config_arg The machine configuration being initialized,
  * used to enumerate the workers to register.
  */
-void _starpu_energyreader_init(struct _starpu_machine_config starpu_config_arg);
+void _starpu_energyreader_init(struct _starpu_machine_config *starpu_config_arg);
 
 /**
  * @brief Print a CSV summary of the hardware energy counters, if energy
