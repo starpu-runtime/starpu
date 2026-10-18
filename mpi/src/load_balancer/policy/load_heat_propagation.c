@@ -379,7 +379,7 @@ static void submitted_task_heat(struct starpu_task *task)
 		//    STARPU_ASSERT(0);
 		//}
 
-		if (load_data_get_wakeup_threshold(*load_data_handle) > load_data_get_nfinished_tasks(*load_data_handle))
+		while (load_data_get_wakeup_threshold(*load_data_handle) > load_data_get_nfinished_tasks(*load_data_handle))
 			STARPU_PTHREAD_COND_WAIT(&load_data_cond, &load_data_mutex);
 
 		load_data_next_phase(*load_data_handle);
