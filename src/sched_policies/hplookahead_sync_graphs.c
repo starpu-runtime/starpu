@@ -323,7 +323,7 @@ static struct starpu_task* pop_task_from_hp_lookahead_ready_queue(unsigned sched
 			starpu_worker_get_sched_condition(originalWorker, &sched_mutex, &sched_cond);
 			STARPU_PTHREAD_MUTEX_LOCK_SCHED(sched_mutex);
 
-			starpu_pthread_mutex_lock(&data->protectPipelineEntries);
+			STARPU_PTHREAD_MUTEX_LOCK(&data->protectPipelineEntries);
 
 			if(data->isTaskInExecution[originalWorker] == 0)
 				fifo->exp_start = starpu_timing_now();
@@ -376,7 +376,7 @@ static struct starpu_task* pop_task_from_hp_lookahead_ready_queue(unsigned sched
 			}
 			data->nEntriesInWQs[worker] = counter;
 			data->nExaminedEntriesInWQs[worker] = 0;
-			starpu_pthread_mutex_unlock(&data->protectPipelineEntries);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&data->protectPipelineEntries);
 			STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
         }
 
@@ -400,12 +400,12 @@ static struct starpu_task* pop_task_from_hp_lookahead_ready_queue(unsigned sched
 				// while conditions ensure that GPU gets a nonnull task
 				int queueId;
 				struct starpu_task *task = NULL;
-				starpu_pthread_mutex_lock(&data->ready_queues_mutex);
+				STARPU_PTHREAD_MUTEX_LOCK(&data->ready_queues_mutex);
 				for(queueId=data->ready_queues->types_of_tasks - 1; queueId >=0 && task == NULL; queueId--)
 					task = starpu_st_fifo_taskq_pop_local_task(data->ready_queues->task_queues[queueId].tasks_queue);
 
 				data->ready_queues->ntasks --;
-				starpu_pthread_mutex_unlock(&data->ready_queues_mutex);
+				STARPU_PTHREAD_MUTEX_UNLOCK(&data->ready_queues_mutex);
 
 				struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(workerIdOfMinLoadedWorker, sched_ctx_id);
 
@@ -432,7 +432,7 @@ static struct starpu_task* pop_task_from_hp_lookahead_ready_queue(unsigned sched
 			unsigned queueId;
 			struct starpu_task *taskToBeScheduled = NULL;
 
-			starpu_pthread_mutex_lock(&data->ready_queues_mutex);
+			STARPU_PTHREAD_MUTEX_LOCK(&data->ready_queues_mutex);
 			for(queueId=0; queueId<data->ready_queues->types_of_tasks && taskToBeScheduled == NULL; queueId++)
 				taskToBeScheduled = starpu_st_fifo_taskq_pop_local_task(data->ready_queues->task_queues[queueId].tasks_queue);
 			/*Control comes here which ensures that taskToBeScheduled would not be NULL*/
@@ -457,7 +457,7 @@ static struct starpu_task* pop_task_from_hp_lookahead_ready_queue(unsigned sched
 				data->intermediate_ready_queues[queueId].close_index = counter;
 			}
 
-			starpu_pthread_mutex_unlock(&data->ready_queues_mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&data->ready_queues_mutex);
 
 			/* Add taskToBeScheduled to the worker that has minimum load*/
 			{
@@ -856,12 +856,12 @@ static struct starpu_task* pop_task_from_hp_lookahead_ready_queue(unsigned sched
 			unsigned index = data->presentIndexOfNodeInExecution[workerId];
 			struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 
-			starpu_pthread_mutex_lock(&data->protectPipelineEntries);
+			STARPU_PTHREAD_MUTEX_LOCK(&data->protectPipelineEntries);
 
 			data->presentNodeInExecution[workerId][index] = j->graph_node;
 			data->expectedCompletionTimeOfDispatchedTasks[workerId][index] = task->predicted;
 			data->presentIndexOfNodeInExecution[workerId] = (index+1)%STARPU_MAX_PIPELINE;
-			starpu_pthread_mutex_unlock(&data->protectPipelineEntries);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&data->protectPipelineEntries);
 		}
 		return task;
 	}
@@ -951,9 +951,9 @@ static int  push_task_in_to_hp_lookahead_ready_queue(struct starpu_task *task)
 		starpu_pthread_mutex_t *sched_mutex;
 		starpu_pthread_cond_t *sched_cond;
 		starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
-		starpu_pthread_mutex_lock(sched_mutex);
-		starpu_pthread_cond_signal(sched_cond);
-		starpu_pthread_mutex_unlock(sched_mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+		STARPU_PTHREAD_COND_SIGNAL(sched_cond);
+		STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 	}
 #endif
 
@@ -1016,7 +1016,7 @@ static int  push_task_in_to_hp_lookahead_ready_queue(struct starpu_task *task)
 		return 0;
     }
 
-	starpu_pthread_mutex_lock(&data->ready_queues_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&data->ready_queues_mutex);
 	/* Insert task in the appropriate queue */
 	unsigned int queueId;
 	for(queueId=0; queueId<data->ready_queues->types_of_tasks; queueId++)
@@ -1062,7 +1062,7 @@ static int  push_task_in_to_hp_lookahead_ready_queue(struct starpu_task *task)
 
 	starpu_push_task_end(task);
 
-	starpu_pthread_mutex_unlock(&data->ready_queues_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&data->ready_queues_mutex);
 
 	return 0;
 }
@@ -1107,7 +1107,7 @@ static void hp_lookahead_post_exec_hook(struct starpu_task *task, unsigned int s
 	 * of work. */
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(sched_mutex);
 
-	starpu_pthread_mutex_lock(&data->protectPipelineEntries);
+	STARPU_PTHREAD_MUTEX_LOCK(&data->protectPipelineEntries);
 
 	for(pipelineIndex=0; pipelineIndex<STARPU_MAX_PIPELINE; pipelineIndex++)
 	{
@@ -1127,7 +1127,7 @@ static void hp_lookahead_post_exec_hook(struct starpu_task *task, unsigned int s
 		data->isTaskInExecution[workerId] = 0;
 	}
 
-	starpu_pthread_mutex_unlock(&data->protectPipelineEntries);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&data->protectPipelineEntries);
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
 }
 
@@ -1233,8 +1233,8 @@ static void init_hp_lookahead_sched(unsigned sched_ctx_id)
 
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
 
-	starpu_pthread_mutex_init(&data->ready_queues_mutex, NULL);
-	starpu_pthread_mutex_init(&data->protectPipelineEntries, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&data->ready_queues_mutex, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&data->protectPipelineEntries, NULL);
 
 	/* Record graph structure of jobs in terms of incoming/outgoing edges */
 	_starpu_graph_record = 1;
@@ -1251,8 +1251,8 @@ static void deinit_hp_lookahead_sched(unsigned sched_ctx_id)
 		starpu_st_fifo_taskq_destroy(data->ready_queues->task_queues[queueId].tasks_queue);
 	}
 
-	starpu_pthread_mutex_destroy(&data->ready_queues_mutex);
-	starpu_pthread_mutex_destroy(&data->protectPipelineEntries);
+	STARPU_PTHREAD_MUTEX_DESTROY(&data->ready_queues_mutex);
+	STARPU_PTHREAD_MUTEX_DESTROY(&data->protectPipelineEntries);
 	free(data->ready_queues);
 	free(data->workers_queue);
 	free(data->exp_start_in_simulation);

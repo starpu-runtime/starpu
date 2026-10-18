@@ -65,7 +65,7 @@ static void init_hp_sched(unsigned sched_ctx_id)
 
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
 
-	starpu_pthread_mutex_init(&data->hp_mutex, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&data->hp_mutex, NULL);
 	_STARPU_DEBUG("Initialising hp scheduler\n");
 }
 
@@ -79,7 +79,7 @@ static void deinit_hp_sched(unsigned sched_ctx_id)
 		starpu_st_fifo_taskq_destroy(data->task_queues[queueId].tasks_queue);
 	}
 
-	starpu_pthread_mutex_destroy(&data->hp_mutex);
+	STARPU_PTHREAD_MUTEX_DESTROY(&data->hp_mutex);
 	free(data);
 
 	_STARPU_DEBUG("Destroying hp scheduler\n");
@@ -149,7 +149,7 @@ static int push_task_in_to_ready_queue(struct starpu_task *task)
 
 	unsigned sched_ctx_id = task->sched_ctx;
 	struct _starpu_hpbasic_ready_queue *data = (struct _starpu_hpbasic_ready_queue*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	starpu_pthread_mutex_lock(&data->hp_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&data->hp_mutex);
 	/* Insert task in the appropriate queue */
 	unsigned int queueId;
 	for(queueId=0; queueId<data->types_of_tasks; queueId++)
@@ -190,7 +190,7 @@ static int push_task_in_to_ready_queue(struct starpu_task *task)
 	}
 
 	starpu_push_task_end(task);
-	starpu_pthread_mutex_unlock(&data->hp_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&data->hp_mutex);
 
 #ifndef STARPU_NON_BLOCKING_DRIVERS
 	/*if there are no tasks block */
@@ -207,9 +207,9 @@ static int push_task_in_to_ready_queue(struct starpu_task *task)
 		starpu_pthread_mutex_t *sched_mutex;
 		starpu_pthread_cond_t *sched_cond;
 		starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
-		starpu_pthread_mutex_lock(sched_mutex);
-		starpu_pthread_cond_signal(sched_cond);
-		starpu_pthread_mutex_unlock(sched_mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+		STARPU_PTHREAD_COND_SIGNAL(sched_cond);
+		STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 	}
 #endif
 	return 0;
@@ -222,7 +222,7 @@ static struct starpu_task *pop_task_from_ready_queue(unsigned sched_ctx_id)
 	struct starpu_task *task = NULL;
 	unsigned queueId;
 
-	starpu_pthread_mutex_lock(&data->hp_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&data->hp_mutex);
 	if(starpu_worker_get_type(workerid) == STARPU_CPU_WORKER)
 	{
 		/* CPU worker selects ready queue in order of decreasing acceleration factor (CPU time /GPU time) */
@@ -239,7 +239,7 @@ static struct starpu_task *pop_task_from_ready_queue(unsigned sched_ctx_id)
 	{
 		_STARPU_DEBUG("Platform also has some another type of worker other than CPUs and GPUs\n");
 	}
-	starpu_pthread_mutex_unlock(&data->hp_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&data->hp_mutex);
 	return task;
 }
 

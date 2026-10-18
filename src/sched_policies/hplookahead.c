@@ -284,8 +284,8 @@ static void init_hp_lookahead_sched(unsigned sched_ctx_id)
 
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
 
-	starpu_pthread_mutex_init(&data->hp_mutex, NULL);
-	starpu_pthread_mutex_init(&data->ready_queues_mutex, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&data->hp_mutex, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&data->ready_queues_mutex, NULL);
 
 	/* record graph structure of jobs in terms of incoming/outgoing edges */
 	_starpu_graph_record = 1;
@@ -302,8 +302,8 @@ static void deinit_hp_lookahead_sched(unsigned sched_ctx_id)
 		starpu_st_fifo_taskq_destroy(data->ready_queues->task_queues[queueId].tasks_queue);
 	}
 
-	starpu_pthread_mutex_destroy(&data->hp_mutex);
-	starpu_pthread_mutex_destroy(&data->ready_queues_mutex);
+	STARPU_PTHREAD_MUTEX_DESTROY(&data->hp_mutex);
+	STARPU_PTHREAD_MUTEX_DESTROY(&data->ready_queues_mutex);
 	free(data->ready_queues);
 	free(data->workers_queue);
 	free(data->exp_start_in_simulation);
@@ -464,7 +464,7 @@ static int  push_task_in_to_hp_lookahead_ready_queue(struct starpu_task *task)
 		unsigned worker;
 		unsigned min_ntasks;
 		unsigned impl_mask;
-		starpu_pthread_mutex_lock(&data->ready_queues_mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(&data->ready_queues_mutex);
 		struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
 		struct starpu_sched_ctx_iterator it;
@@ -508,13 +508,13 @@ static int  push_task_in_to_hp_lookahead_ready_queue(struct starpu_task *task)
 		starpu_st_fifo_taskq_push_task(fifo, task);
 		STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
 		starpu_push_task_end(task);
-		starpu_pthread_mutex_unlock(&data->ready_queues_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&data->ready_queues_mutex);
 		return 0;
 	}
 	/*Already locked inside job termination */
-	//starpu_pthread_mutex_lock(&data->hp_mutex);
+	//STARPU_PTHREAD_MUTEX_LOCK(&data->hp_mutex);
 
-	starpu_pthread_mutex_lock(&data->ready_queues_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&data->ready_queues_mutex);
 	/* Insert task in the appropriate queue */
 	unsigned int queueId;
 	for(queueId=0; queueId<data->ready_queues->types_of_tasks; queueId++)
@@ -558,9 +558,9 @@ static int  push_task_in_to_hp_lookahead_ready_queue(struct starpu_task *task)
 
 	starpu_push_task_end(task);
 	/*Already locked inside post exec */
-	//starpu_pthread_mutex_unlock(&data->hp_mutex);
+	//STARPU_PTHREAD_MUTEX_UNLOCK(&data->hp_mutex);
 
-	starpu_pthread_mutex_unlock(&data->ready_queues_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&data->ready_queues_mutex);
 
 #ifndef STARPU_NON_BLOCKING_DRIVERS
 	/*if there are no tasks block */
@@ -575,9 +575,9 @@ static int  push_task_in_to_hp_lookahead_ready_queue(struct starpu_task *task)
 		starpu_pthread_mutex_t *sched_mutex;
 		starpu_pthread_cond_t *sched_cond;
 		starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
-		starpu_pthread_mutex_lock(sched_mutex);
-		starpu_pthread_cond_signal(sched_cond);
-		starpu_pthread_mutex_unlock(sched_mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+		STARPU_PTHREAD_COND_SIGNAL(sched_cond);
+		STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 	}
 #endif
 	return 0;
@@ -592,8 +592,8 @@ static struct starpu_task *pop_task_from_hp_lookahead_ready_queue(unsigned sched
 
 	if(workerId == data->schedulerWorker)
 	{
-		starpu_pthread_mutex_lock(&data->hp_mutex);
-		starpu_pthread_mutex_lock(&data->ready_queues_mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(&data->hp_mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(&data->ready_queues_mutex);
 
 		/* If ready queue is empty then nothing to schedule : simply return*/
 		if(data->ready_queues->ntasks == 0)
@@ -1206,14 +1206,14 @@ static struct starpu_task *pop_task_from_hp_lookahead_ready_queue(unsigned sched
 			}
 		}
 	afterAnalyzing:
-		starpu_pthread_mutex_unlock(&data->ready_queues_mutex);
-		starpu_pthread_mutex_unlock(&data->hp_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&data->ready_queues_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&data->hp_mutex);
 		return NULL;
 	}
 	else if((starpu_worker_get_type(workerId) == STARPU_CPU_WORKER)  || (starpu_worker_get_type(workerId) == STARPU_CUDA_WORKER))
 	{
-		starpu_pthread_mutex_lock(&data->hp_mutex);
-		starpu_pthread_mutex_lock(&data->ready_queues_mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(&data->hp_mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(&data->ready_queues_mutex);
 		//pop the first task from its own workers queue
 		workerId = starpu_worker_get_id();
 		struct starpu_st_fifo_taskq *fifo = data->workers_queue[workerId];
@@ -1229,8 +1229,8 @@ static struct starpu_task *pop_task_from_hp_lookahead_ready_queue(unsigned sched
 			//fifo->exp_start  = STARPU_MAX(fifo->exp_start, starpu_timing_now()) + model;
 			//fifo->exp_len  -= model;
 		}
-		starpu_pthread_mutex_unlock(&data->ready_queues_mutex);
-		starpu_pthread_mutex_unlock(&data->hp_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&data->ready_queues_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&data->hp_mutex);
 		return task;
 	}
 	else
@@ -1251,7 +1251,7 @@ static void hp_lookahead_pre_exec_hook(struct starpu_task *task, unsigned int sc
 	struct starpu_st_fifo_taskq *fifo = data->workers_queue[workerId];
 	double model = task->predicted;
 
-	starpu_pthread_mutex_lock(&data->hp_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&data->hp_mutex);
 
 	starpu_pthread_mutex_t *sched_mutex;
 	starpu_pthread_cond_t *sched_cond;
@@ -1269,7 +1269,7 @@ static void hp_lookahead_pre_exec_hook(struct starpu_task *task, unsigned int sc
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
 
-	starpu_pthread_mutex_unlock(&data->hp_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&data->hp_mutex);
 }
 
 static void hp_lookahead_post_exec_hook(struct starpu_task *task, unsigned int sched_ctx_id)
@@ -1277,7 +1277,7 @@ static void hp_lookahead_post_exec_hook(struct starpu_task *task, unsigned int s
 //    unsigned sched_ctx_id = starpu_sched_ctx_get_ctx_for_task(task);
 	int workerId = starpu_worker_get_id();
 	struct _starpu_hp_lookahead_data *data = (struct _starpu_hp_lookahead_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	starpu_pthread_mutex_lock(&data->hp_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&data->hp_mutex);
 	unsigned pipelineIndex;
 	for(pipelineIndex=0; pipelineIndex<STARPU_MAX_PIPELINE; pipelineIndex++)
 	{
@@ -1315,7 +1315,7 @@ static void hp_lookahead_post_exec_hook(struct starpu_task *task, unsigned int s
 		data->isTaskInExecution[workerId] = 0;
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
-	starpu_pthread_mutex_unlock(&data->hp_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&data->hp_mutex);
 }
 
 struct starpu_sched_policy _starpu_sched_hp_lookahead_policy =
