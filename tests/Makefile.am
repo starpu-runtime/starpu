@@ -259,6 +259,7 @@ myPROGRAMS +=				\
 	datawizard/data_invalidation		\
 	datawizard/data_deinitialize		\
 	datawizard/dining_philosophers		\
+	datawizard/dining_philosophers_2d	\
 	datawizard/manual_reduction		\
 	datawizard/readers_and_writers		\
 	datawizard/unpartition			\
