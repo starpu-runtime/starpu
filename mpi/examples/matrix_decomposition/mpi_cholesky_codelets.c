@@ -87,7 +87,7 @@ starpu_mpi_checkpoint_template_t* checkpoint_p;
 
 int backup_function(int rank)
 {
-	return (rank/dblockx)*dblockx +(rank+1)%dblockx;
+	return (rank/dblocky)*dblocky +(rank+1)%dblocky;
 //	return (rank+1)%_nodes;
 }
 

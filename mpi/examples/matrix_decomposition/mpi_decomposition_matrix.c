@@ -22,7 +22,7 @@ int my_distrib(int y, int x, int nb_nodes)
 {
 	(void)nb_nodes;
 	//return (x+y) % nb_nodes;
-	return (x%dblockx)+(y%dblocky)*dblockx;
+	return (y%dblocky)+(x%dblockx)*dblocky;
 }
 
 void matrix_display(float ***bmat, int rank, int nodes)

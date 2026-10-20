@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -152,14 +152,14 @@ void parse_args(int argc, char **argv, int nodes)
 	if (dblockx == -1 || dblocky == -1)
 	{
 		int factor;
-		dblockx = nodes;
-		dblocky = 1;
+		dblocky = nodes;
+		dblockx = 1;
 		for(factor=sqrt(nodes) ; factor>1 ; factor--)
 		{
 			if (nodes % factor == 0)
 			{
-				dblockx = nodes/factor;
-				dblocky = factor;
+				dblocky = nodes/factor;
+				dblockx = factor;
 				break;
 			}
 		}
