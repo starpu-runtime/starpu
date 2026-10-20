@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2021-2021  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -86,7 +86,7 @@ void _starpu_init_mem_chunk_lists(void);
 void _starpu_deinit_mem_chunk_lists(void);
 void _starpu_mem_chunk_init_last(void);
 void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, unsigned node, size_t size);
-int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, enum starpu_is_prefetch is_prefetch, int only_fast_alloc);
+int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, enum starpu_is_prefetch is_prefetch, int only_fast_alloc, int dont_reclaim);
 size_t _starpu_free_all_automatically_allocated_buffers(unsigned node);
 void _starpu_memchunk_recently_used(struct _starpu_mem_chunk *mc, unsigned node);
 void _starpu_memchunk_wont_use(struct _starpu_mem_chunk *m, unsigned nodec);

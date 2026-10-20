@@ -1597,7 +1597,7 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
  *
  */
 
-static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, unsigned dst_node, enum starpu_is_prefetch is_prefetch, int only_fast_alloc)
+static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, unsigned dst_node, enum starpu_is_prefetch is_prefetch, int only_fast_alloc, int dont_reclaim)
 {
 	unsigned attempts = 0;
 	starpu_ssize_t allocated_memory;
@@ -1697,6 +1697,12 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 				break;
 			}
 
+			if (dont_reclaim)
+			{
+				/* We don't want to take the time to evict at this time */
+				continue;
+			}
+
 			if (!told_reclaiming)
 			{
 				/* Prevent prefetches and such from happening */
@@ -1771,7 +1777,7 @@ out:
 	return allocated_memory;
 }
 
-int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, enum starpu_is_prefetch is_prefetch, int only_fast_alloc)
+int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, enum starpu_is_prefetch is_prefetch, int only_fast_alloc, int dont_reclaim)
 {
 	starpu_ssize_t allocated_memory;
 
@@ -1807,7 +1813,7 @@ int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_
 		if (!parent_replicate->allocated)
 		{
 			/* We have to force parent allocation to gather the data */
-			ret = _starpu_allocate_memory_on_node(handle->parent_handle, parent_replicate, is_prefetch, only_fast_alloc);
+			ret = _starpu_allocate_memory_on_node(handle->parent_handle, parent_replicate, is_prefetch, only_fast_alloc, dont_reclaim);
 		}
 
 		_starpu_spin_unlock(&handle->parent_handle->header_lock);
@@ -1841,7 +1847,7 @@ int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_
 		return 0;
 	}
 
-	allocated_memory = _starpu_allocate_interface(handle, replicate, dst_node, is_prefetch, only_fast_alloc);
+	allocated_memory = _starpu_allocate_interface(handle, replicate, dst_node, is_prefetch, only_fast_alloc, dont_reclaim);
 
 	/* perhaps we could really not handle that capacity misses */
 	if (allocated_memory == -ENOMEM)

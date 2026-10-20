@@ -292,7 +292,7 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 			/* We're not supposed to allocate there at the moment */
 			return -ENOMEM;
 
-		int ret_alloc = _starpu_allocate_memory_on_node(handle, dst_replicate, prefetch, may_alloc==_STARPU_DATAWIZARD_ONLY_FAST_ALLOC);
+		int ret_alloc = _starpu_allocate_memory_on_node(handle, dst_replicate, prefetch, may_alloc==_STARPU_DATAWIZARD_ONLY_FAST_ALLOC, may_alloc==_STARPU_DATAWIZARD_ONLY_FAST_ALLOC);
 		if (ret_alloc)
 			return -ENOMEM;
 	}
