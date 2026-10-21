@@ -210,7 +210,7 @@ def create_builder(profile, profile_iname, profile_name, profile_host):
         p.addStep(Command(["fi"]))
         p.addStep(Command([""]))
 
-        p.addStep(Command(["if test $ret == 0 ; then"]))
+        p.addStep(Command(["if test $ret != 0 ; then"]))
         if profile['showsuite']:
             p.addStep(Command(["\t", "make", "showsuite"] + restrict + [">", "$starpu_artifacts/make_showsuite.txt"]))
         p.addStep(Command(["\t", "make", "showcheck"] + restrict + [">", "$starpu_artifacts/make_showcheck.txt"]))
