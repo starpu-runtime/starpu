@@ -58,7 +58,9 @@ int _starpu_mpi_mpi_backend_reserve_core(void)
 	return (starpu_getenv_number_default("STARPU_MPI_DRIVER_CALL_FREQUENCY", 0) <= 0);
 }
 
-void _starpu_mpi_mpi_backend_request_init(struct _starpu_mpi_req *req)
+void _starpu_mpi_mpi_backend_request_init(struct _starpu_mpi_req *req,
+					  int is_internal_req,
+					  starpu_mpi_comm internal_comm)
 {
 	_STARPU_MPI_CALLOC(req->backend, 1, sizeof(struct _starpu_mpi_req_backend));
 
@@ -76,10 +78,7 @@ void _starpu_mpi_mpi_backend_request_init(struct _starpu_mpi_req *req)
 	req->backend->to_destroy = 1;
 	//req->backend->early_data_handle = NULL;
 	//req->backend->envelope = NULL;
-}
 
-void _starpu_mpi_mpi_backend_request_fill(struct _starpu_mpi_req *req, int is_internal_req, starpu_mpi_comm internal_comm)
-{
 	_starpu_mpi_comm_register(req->node_tag.node.comm);
 	req->backend->is_internal_req = is_internal_req;
 	/* For internal requests, we wait for both the request completion and the matching application request completion */
@@ -117,26 +116,25 @@ struct _starpu_mpi_backend _mpi_backend =
 	._starpu_mpi_backend_shutdown = _starpu_mpi_mpi_backend_shutdown,
 	._starpu_mpi_backend_reserve_core = _starpu_mpi_mpi_backend_reserve_core,
 	._starpu_mpi_backend_request_init = _starpu_mpi_mpi_backend_request_init,
-	._starpu_mpi_backend_request_fill = _starpu_mpi_mpi_backend_request_fill,
 	._starpu_mpi_backend_request_destroy = _starpu_mpi_mpi_backend_request_destroy,
 	._starpu_mpi_backend_data_clear = _starpu_mpi_mpi_backend_data_clear,
 	._starpu_mpi_backend_data_register = _starpu_mpi_mpi_backend_data_register,
 	._starpu_mpi_backend_comm_register = _starpu_mpi_mpi_backend_comm_register,
 
-	._starpu_mpi_backend_progress_init = _starpu_mpi_progress_init,
-	._starpu_mpi_backend_progress_shutdown = _starpu_mpi_progress_shutdown,
+	._starpu_mpi_backend_progress_init = _starpu_mpi_mpi_backend_progress_init,
+	._starpu_mpi_backend_progress_shutdown = _starpu_mpi_mpi_backend_progress_shutdown,
 #ifdef STARPU_SIMGRID
 	._starpu_mpi_backend_wait_for_initialization = _starpu_mpi_wait_for_initialization,
 #endif
 
-	._starpu_mpi_backend_barrier = _starpu_mpi_barrier,
-	._starpu_mpi_backend_wait_for_all = _starpu_mpi_wait_for_all,
-	._starpu_mpi_backend_wait_for_all_in_ctx = _starpu_mpi_wait_for_all_in_ctx,
-	._starpu_mpi_backend_wait = _starpu_mpi_wait,
-	._starpu_mpi_backend_test = _starpu_mpi_test,
+	._starpu_mpi_backend_barrier = _starpu_mpi_mpi_backend_barrier,
+	._starpu_mpi_backend_wait_for_all = _starpu_mpi_mpi_backend_wait_for_all,
+	._starpu_mpi_backend_wait_for_all_in_ctx = _starpu_mpi_mpi_backend_wait_for_all_in_ctx,
+	._starpu_mpi_backend_wait = _starpu_mpi_mpi_backend_wait,
+	._starpu_mpi_backend_test = _starpu_mpi_mpi_backend_test,
 
-	._starpu_mpi_backend_isend_size_func = _starpu_mpi_isend_size_func,
-	._starpu_mpi_backend_irecv_size_func = _starpu_mpi_irecv_size_func,
+	._starpu_mpi_backend_isend = _starpu_mpi_mpi_backend_isend,
+	._starpu_mpi_backend_irecv = _starpu_mpi_mpi_backend_irecv,
 };
 
 #endif /* STARPU_USE_MPI_MPI*/

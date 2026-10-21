@@ -45,11 +45,11 @@
 #include <nm_sendrecv_interface.h>
 #include <nm_core_interface.h>
 
+#include "starpu_mpi_nmad.h"
 #include "starpu_mpi_nmad_coop.h"
 #include "starpu_mpi_nmad_backend.h"
 #include "starpu_mpi_nmad_unknown_datatype.h"
 
-void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req);
 void _starpu_mpi_handle_pending_request(struct _starpu_mpi_req *req);
 static inline void _starpu_mpi_request_end(struct _starpu_mpi_req* req, int post_callback_sem);
 static inline void _starpu_mpi_request_try_end(struct _starpu_mpi_req* req, int post_callback_sem);
@@ -138,7 +138,7 @@ static void _starpu_mpi_isend_known_datatype(struct _starpu_mpi_req *req)
 	_STARPU_MPI_LOG_OUT();
 }
 
-void _starpu_mpi_isend_func(struct _starpu_mpi_req *req)
+void _starpu_mpi_nmad_backend_isend(struct _starpu_mpi_req *req)
 {
 	_STARPU_MPI_LOG_IN();
 
@@ -190,7 +190,7 @@ static void _starpu_mpi_irecv_known_datatype(struct _starpu_mpi_req *req)
 	_STARPU_MPI_LOG_OUT();
 }
 
-void _starpu_mpi_irecv_func(struct _starpu_mpi_req *req)
+void _starpu_mpi_nmad_backend_irecv(struct _starpu_mpi_req *req)
 {
 	_STARPU_MPI_LOG_IN();
 
@@ -228,7 +228,7 @@ void _starpu_mpi_irecv_func(struct _starpu_mpi_req *req)
 	STATUS->cancelled=0;  /**< whether request was cancelled */ \
 } while(0)
 
-int _starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
+int _starpu_mpi_nmad_backend_wait(starpu_mpi_req *public_req, MPI_Status *status)
 {
 	_STARPU_MPI_LOG_IN();
 	STARPU_MPI_ASSERT_MSG(public_req, "starpu_mpi_wait needs a valid starpu_mpi_req");
@@ -258,7 +258,7 @@ int _starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
 /*                                                      */
 /********************************************************/
 
-int _starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
+int _starpu_mpi_nmad_backend_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 {
 	_STARPU_MPI_LOG_IN();
 	STARPU_MPI_ASSERT_MSG(public_req, "starpu_mpi_test needs a valid starpu_mpi_req");
@@ -294,7 +294,7 @@ int _starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 /*                                                      */
 /********************************************************/
 
-int _starpu_mpi_barrier(MPI_Comm comm)
+int _starpu_mpi_nmad_backend_barrier(MPI_Comm comm)
 {
 	_STARPU_MPI_LOG_IN();
 
@@ -305,7 +305,7 @@ int _starpu_mpi_barrier(MPI_Comm comm)
 	return ret;
 }
 
-int _starpu_mpi_wait_for_all__(MPI_Comm comm, unsigned sched_ctx)
+int _starpu_mpi_nmad_wait_for_all__(MPI_Comm comm, unsigned sched_ctx)
 {
 	(void) comm;
 	_STARPU_MPI_LOG_IN();
@@ -333,14 +333,14 @@ int _starpu_mpi_wait_for_all__(MPI_Comm comm, unsigned sched_ctx)
 	return 0;
 }
 
-int _starpu_mpi_wait_for_all(MPI_Comm comm)
+int _starpu_mpi_nmad_backend_wait_for_all(MPI_Comm comm)
 {
-	return _starpu_mpi_wait_for_all__(comm, STARPU_NMAX_SCHED_CTXS+1);
+	return _starpu_mpi_nmad_wait_for_all__(comm, STARPU_NMAX_SCHED_CTXS+1);
 }
 
-int _starpu_mpi_wait_for_all_in_ctx(MPI_Comm comm, unsigned sched_ctx)
+int _starpu_mpi_nmad_backend_wait_for_all_in_ctx(MPI_Comm comm, unsigned sched_ctx)
 {
-	return _starpu_mpi_wait_for_all__(comm, sched_ctx);
+	return _starpu_mpi_nmad_wait_for_all__(comm, sched_ctx);
 }
 
 /********************************************************/
@@ -455,7 +455,7 @@ void _starpu_mpi_handle_received_data(struct _starpu_mpi_req* req)
 }
 
 /* Function called when nmad completely finished a request */
-void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req* req)
+void _starpu_mpi_nmad_handle_request_termination(struct _starpu_mpi_req* req)
 {
 	_STARPU_MPI_LOG_IN();
 
@@ -542,7 +542,7 @@ void _starpu_mpi_handle_request_termination_callback(nm_sr_event_t event STARPU_
 
 	if (event & NM_SR_EVENT_FINALIZED)
 	{
-		_starpu_mpi_handle_request_termination(req);
+		_starpu_mpi_nmad_handle_request_termination(req);
 	}
 	else if (event & NM_SR_EVENT_RECV_COMPLETED && req->request_type == RECV_REQ && !_starpu_mpi_recv_wait_finalize && req->sequential_consistency)
 	{
@@ -738,7 +738,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 // static int hookid = - 1;
 // #endif /* STARPU_MPI_ACTIVITY */
 
-int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
+int _starpu_mpi_nmad_backend_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 {
 	STARPU_PTHREAD_MUTEX_INIT(&progress_mutex, NULL);
 	STARPU_PTHREAD_COND_INIT(&progress_cond, NULL);
@@ -833,7 +833,7 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 	return 0;
 }
 
-void _starpu_mpi_progress_shutdown(void **value)
+void _starpu_mpi_nmad_backend_progress_shutdown(void **value)
 {
 	if (!running)
 	{

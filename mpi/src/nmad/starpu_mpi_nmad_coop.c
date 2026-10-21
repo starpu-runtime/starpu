@@ -25,11 +25,10 @@
 #include <nm_launcher_interface.h>
 #include <nm_mcast_interface.h>
 #include <nm_mpi_nmad.h>
+#include "starpu_mpi_nmad.h"
 #include "starpu_mpi_nmad_coop.h"
 #include "starpu_mpi_nmad_backend.h"
 #include "starpu_mpi_nmad_unknown_datatype.h"
-
-extern void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req);
 
 struct mcast_send
 {
@@ -55,7 +54,7 @@ void _starpu_mpi_nmad_end_coop_callback(void* arg)
 
 	mcast->req->backend->posted = 1;
 
-	_starpu_mpi_handle_request_termination(mcast->req);
+	_starpu_mpi_nmad_handle_request_termination(mcast->req);
 
 	nm_mcast_send_destroy(&mcast->mcast);
 	free(mcast->dests);
@@ -130,7 +129,7 @@ void _starpu_mpi_submit_coop_sends(struct _starpu_mpi_coop_sends *coop_sends, in
 			// Keep the first request to do the mcast, but consider other as finished:
 			if (i > 0)
 			{
-				_starpu_mpi_handle_request_termination(starpu_req);
+				_starpu_mpi_nmad_handle_request_termination(starpu_req);
 			}
 		}
 

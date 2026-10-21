@@ -238,7 +238,6 @@ void _starpu_mpi_backend_check()
 	STARPU_ASSERT(_mpi_backend._starpu_mpi_backend_shutdown != NULL);
 	STARPU_ASSERT(_mpi_backend._starpu_mpi_backend_reserve_core != NULL);
 	STARPU_ASSERT(_mpi_backend._starpu_mpi_backend_request_init != NULL);
-	STARPU_ASSERT(_mpi_backend._starpu_mpi_backend_request_fill != NULL);
 	STARPU_ASSERT(_mpi_backend._starpu_mpi_backend_request_destroy != NULL);
 	STARPU_ASSERT(_mpi_backend._starpu_mpi_backend_data_clear != NULL);
 	STARPU_ASSERT(_mpi_backend._starpu_mpi_backend_data_register != NULL);
@@ -252,8 +251,8 @@ void _starpu_mpi_backend_check()
 	STARPU_ASSERT(_mpi_backend._starpu_mpi_backend_wait_for_all != NULL);
 	STARPU_ASSERT(_mpi_backend._starpu_mpi_backend_wait != NULL);
 	STARPU_ASSERT(_mpi_backend._starpu_mpi_backend_test != NULL);
-	STARPU_ASSERT(_mpi_backend._starpu_mpi_backend_isend_size_func != NULL);
-	STARPU_ASSERT(_mpi_backend._starpu_mpi_backend_irecv_size_func != NULL);
+	STARPU_ASSERT(_mpi_backend._starpu_mpi_backend_isend != NULL);
+	STARPU_ASSERT(_mpi_backend._starpu_mpi_backend_irecv != NULL);
 }
 
 static

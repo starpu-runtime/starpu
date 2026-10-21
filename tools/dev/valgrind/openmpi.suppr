@@ -504,14 +504,14 @@
 #    by 0x10C16F05: mca_pml_ob1_send_inline (in /usr/lib/openmpi/lib/openmpi/mca_pml_ob1.so)
 #    by 0x10C17662: mca_pml_ob1_isend (in /usr/lib/openmpi/lib/openmpi/mca_pml_ob1.so)
 #    by 0x5B6471D: PMPI_Isend (in /usr/lib/openmpi/lib/libmpi.so.12.0.2)
-#    by 0x4E3F08E: _starpu_mpi_isend_size_func (starpu_mpi.c:384)
+#    by 0x4E3F08E: _starpu_mpi_mpi_backend_isend (starpu_mpi.c:384)
 #    by 0x4E4602D: _starpu_mpi_handle_ready_request (starpu_mpi.c:1132)
 #    by 0x4E47C3C: _starpu_mpi_progress_thread_func (starpu_mpi.c:1342)
 #    by 0x58E6283: start_thread (pthread_create.c:333)
 #    by 0x60F5A4C: clone (in /lib/x86_64-linux-gnu/libc-2.21.so)
 #  Address 0x1ab67c40 is 16 bytes inside a block of size 24 alloc'd
 #    at 0x4C2BBD5: calloc (vg_replace_malloc.c:711)
-#    by 0x4E3EDBA: _starpu_mpi_isend_size_func (starpu_mpi.c:369)
+#    by 0x4E3EDBA: _starpu_mpi_mpi_backend_isend (starpu_mpi.c:369)
 #    by 0x4E4602D: _starpu_mpi_handle_ready_request (starpu_mpi.c:1132)
 #    by 0x4E47C3C: _starpu_mpi_progress_thread_func (starpu_mpi.c:1342)
 #    by 0x58E6283: start_thread (pthread_create.c:333)
@@ -525,7 +525,7 @@
    fun:mca_pml_ob1_send_inline
    fun:mca_pml_ob1_isend
    fun:PMPI_Isend
-   fun:_starpu_mpi_isend_size_func
+   fun:_starpu_mpi_mpi_backend_isend
    fun:_starpu_mpi_handle_ready_request
    fun:_starpu_mpi_progress_thread_func
    fun:start_thread
@@ -540,7 +540,7 @@
    fun:mca_pml_ob1_isend
    fun:PMPI_Isend
    fun:_starpu_mpi_isend_data_func
-   fun:_starpu_mpi_isend_size_func
+   fun:_starpu_mpi_mpi_backend_isend
    fun:_starpu_mpi_handle_ready_request
    fun:_starpu_mpi_progress_thread_func
    fun:start_thread
@@ -554,7 +554,7 @@
    fun:mca_pml_ob1_isend
    fun:PMPI_Isend
    fun:_starpu_mpi_isend_data_func
-   fun:_starpu_mpi_isend_size_func
+   fun:_starpu_mpi_mpi_backend_isend
    fun:_starpu_mpi_handle_ready_request
    fun:_starpu_mpi_progress_thread_func
    fun:start_thread
@@ -567,7 +567,7 @@
    fun:mca_pml_ob1_send_inline
    fun:mca_pml_ob1_isend
    fun:PMPI_Isend
-   fun:_starpu_mpi_isend_size_func
+   fun:_starpu_mpi_mpi_backend_isend
    fun:_starpu_mpi_handle_ready_request
    fun:_starpu_mpi_progress_thread_func
    fun:start_thread
@@ -579,7 +579,7 @@
    fun:opal_convertor_pack
    ...
    fun:PMPI_Isend
-   fun:_starpu_mpi_isend_size_func
+   fun:_starpu_mpi_mpi_backend_isend
    fun:_starpu_mpi_handle_ready_request
    fun:_starpu_mpi_progress_thread_func
    fun:start_thread
@@ -592,7 +592,7 @@
    ...
    fun:PMPI_Isend
    fun:_starpu_mpi_isend_data_func
-   fun:_starpu_mpi_isend_size_func
+   fun:_starpu_mpi_mpi_backend_isend
    fun:_starpu_mpi_handle_ready_request
    fun:_starpu_mpi_progress_thread_func
    fun:start_thread
@@ -600,7 +600,7 @@
 {
    <insert_a_suppression_name_here>
    Memcheck:Addr8
-   fun:_starpu_mpi_isend_size_func
+   fun:_starpu_mpi_mpi_backend_isend
    fun:_starpu_mpi_handle_ready_request
    fun:_starpu_mpi_progress_thread_func
    fun:start_thread

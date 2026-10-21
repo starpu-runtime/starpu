@@ -347,14 +347,14 @@ void _starpu_mpi_submit_coop_sends(struct _starpu_mpi_coop_sends *coop_sends, in
  */
 void _starpu_mpi_redux_fill_post_sync_jobid(const void * const redux_data_args, long * const post_sync_jobid);
 
-void _starpu_mpi_request_init(struct _starpu_mpi_req **req);
-struct _starpu_mpi_req * _starpu_mpi_request_fill(starpu_data_handle_t data_handle,
-						  int srcdst, starpu_mpi_tag_t data_tag, MPI_Comm comm,
-						  unsigned detached, unsigned sync, int prio, void (*callback)(void *), void *arg,
-						  enum _starpu_mpi_request_type request_type, void (*func)(struct _starpu_mpi_req *),
-						  int sequential_consistency,
-						  int is_internal_req, starpu_mpi_comm internal_comm,
-						  starpu_ssize_t count);
+void _starpu_mpi_request_init(struct _starpu_mpi_req *req);
+struct _starpu_mpi_req * _starpu_mpi_request_new(starpu_data_handle_t data_handle,
+						 int srcdst, starpu_mpi_tag_t data_tag, MPI_Comm comm,
+						 unsigned detached, unsigned sync, int prio, void (*callback)(void *), void *arg,
+						 enum _starpu_mpi_request_type request_type, void (*func)(struct _starpu_mpi_req *),
+						 int sequential_consistency,
+						 int is_internal_req, starpu_mpi_comm internal_comm,
+						 starpu_ssize_t count);
 
 void _starpu_mpi_request_destroy(struct _starpu_mpi_req *req);
 
@@ -397,16 +397,20 @@ struct _starpu_mpi_backend
 {
 	void (*_starpu_mpi_backend_init)(struct starpu_conf *conf);
 	void (*_starpu_mpi_backend_shutdown)(void);
+
 	int (*_starpu_mpi_backend_reserve_core)(void);
-	void (*_starpu_mpi_backend_request_init)(struct _starpu_mpi_req *req);
-	void (*_starpu_mpi_backend_request_fill)(struct _starpu_mpi_req *req, int is_internal_req, starpu_mpi_comm internal_comm);
+
+	void (*_starpu_mpi_backend_request_init)(struct _starpu_mpi_req *req, int is_internal_req, starpu_mpi_comm internal_comm);
 	void (*_starpu_mpi_backend_request_destroy)(struct _starpu_mpi_req *req);
+
 	void (*_starpu_mpi_backend_data_clear)(starpu_data_handle_t data_handle);
 	void (*_starpu_mpi_backend_data_register)(starpu_data_handle_t data_handle, starpu_mpi_tag_t data_tag);
+
 	void (*_starpu_mpi_backend_comm_register)(MPI_Comm comm);
 
 	int (*_starpu_mpi_backend_progress_init)(struct _starpu_mpi_argc_argv *argc_argv);
 	void (*_starpu_mpi_backend_progress_shutdown)(void **value);
+
 #ifdef STARPU_SIMGRID
 	void (*_starpu_mpi_backend_wait_for_initialization)();
 #endif
@@ -417,8 +421,8 @@ struct _starpu_mpi_backend
 	int (*_starpu_mpi_backend_wait)(starpu_mpi_req *public_req, MPI_Status *status);
 	int (*_starpu_mpi_backend_test)(starpu_mpi_req *public_req, int *flag, MPI_Status *status);
 
-	void (*_starpu_mpi_backend_isend_size_func)(struct _starpu_mpi_req *req);
-	void (*_starpu_mpi_backend_irecv_size_func)(struct _starpu_mpi_req *req);
+	void (*_starpu_mpi_backend_isend)(struct _starpu_mpi_req *req);
+	void (*_starpu_mpi_backend_irecv)(struct _starpu_mpi_req *req);
 };
 
 extern struct _starpu_mpi_backend _mpi_backend;

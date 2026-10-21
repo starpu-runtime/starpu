@@ -66,7 +66,7 @@ int _starpu_mpi_get_early_data_nb()
 }
 
 static void _starpu_mpi_handle_ready_request(struct _starpu_mpi_req *req);
-static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req);
+static void _starpu_mpi_mpi_handle_request_termination(struct _starpu_mpi_req *req);
 static void _starpu_mpi_handle_detached_request(struct _starpu_mpi_req *req);
 static void _starpu_mpi_early_data_cb(void* arg);
 
@@ -469,7 +469,7 @@ static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 	_STARPU_MPI_LOG_OUT();
 }
 
-void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
+static void _starpu_mpi_isend_envelope_func(struct _starpu_mpi_req *req)
 {
 	_starpu_mpi_datatype_allocate(req->data_handle, req);
 
@@ -528,7 +528,11 @@ void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 		}
 		// We can send the data now
 	}
+}
 
+void _starpu_mpi_mpi_backend_isend(struct _starpu_mpi_req *req)
+{
+	_starpu_mpi_isend_envelope_func(req);
 	if (req->sync)
 	{
 		// If the data is to be sent in synchronous mode, we need to wait for the receiver ready message
@@ -539,7 +543,7 @@ void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 		// Otherwise we can send the data
 		_starpu_mpi_isend_data_func(req);
 	}
-
+	/* mutex was locked in _starpu_mpi_isend_envelope_func */
 	STARPU_PTHREAD_MUTEX_UNLOCK(&send_mutex);
 }
 
@@ -549,7 +553,7 @@ void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 /*							*/
 /********************************************************/
 
-void _starpu_mpi_irecv_size_func(struct _starpu_mpi_req *req)
+void _starpu_mpi_mpi_backend_irecv(struct _starpu_mpi_req *req)
 {
 	_STARPU_MPI_LOG_IN();
 
@@ -627,13 +631,13 @@ void _starpu_mpi_wait_func(struct _starpu_mpi_req *waiting_req)
 	}
 	_STARPU_MPI_TRACE_UWAIT_END(req->node_tag.node.rank, req->node_tag.data_tag);
 
-	_starpu_mpi_handle_request_termination(req);
+	_starpu_mpi_mpi_handle_request_termination(req);
 
 	_STARPU_MPI_LOG_OUT();
 }
 #endif
 
-int _starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
+int _starpu_mpi_mpi_backend_wait(starpu_mpi_req *public_req, MPI_Status *status)
 {
 	int ret;
 	struct _starpu_mpi_req *req = *public_req;
@@ -660,7 +664,7 @@ int _starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
 
 	if (status)
 		*status = req->status_store;
-	_starpu_mpi_handle_request_termination(req);
+	_starpu_mpi_mpi_handle_request_termination(req);
 #else
 	struct _starpu_mpi_req *waiting_req;
 	/* We cannot try to complete a MPI request that was not actually posted
@@ -671,9 +675,9 @@ int _starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&(req->backend->req_mutex));
 
 	/* Initialize the request structure */
-	waiting_req = _starpu_mpi_request_fill(NULL, 0, 0, MPI_COMM_WORLD, 0, 0,
-					       INT_MAX, NULL, NULL,
-					       WAIT_REQ, _starpu_mpi_wait_func, 0, 0, MPI_COMM_WORLD, 0);
+	waiting_req = _starpu_mpi_request_new(NULL, 0, 0, MPI_COMM_WORLD, 0, 0,
+					      INT_MAX, NULL, NULL,
+					      WAIT_REQ, _starpu_mpi_wait_func, 0, 0, MPI_COMM_WORLD, 0);
 	waiting_req->status = status;
 	waiting_req->backend->other_request = req;
 
@@ -736,7 +740,7 @@ void _starpu_mpi_test_func(struct _starpu_mpi_req *testing_req)
 	if (*testing_req->flag)
 	{
 		testing_req->ret = req->ret;
-		_starpu_mpi_handle_request_termination(req);
+		_starpu_mpi_mpi_handle_request_termination(req);
 	}
 
 	STARPU_PTHREAD_MUTEX_LOCK(&testing_req->backend->req_mutex);
@@ -747,7 +751,7 @@ void _starpu_mpi_test_func(struct _starpu_mpi_req *testing_req)
 }
 #endif
 
-int _starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
+int _starpu_mpi_mpi_backend_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 {
 	_STARPU_MPI_LOG_IN();
 	int ret = 0;
@@ -766,7 +770,7 @@ int _starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 	{
 		if (status)
 			*status = req->status_store;
-		_starpu_mpi_handle_request_termination(req);
+		_starpu_mpi_mpi_handle_request_termination(req);
 	}
 #else
 	STARPU_PTHREAD_MUTEX_LOCK(&req->backend->req_mutex);
@@ -778,10 +782,10 @@ int _starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 		struct _starpu_mpi_req *testing_req;
 
 		/* Initialize the request structure */
-		testing_req = _starpu_mpi_request_fill(NULL, 0, 0, MPI_COMM_WORLD, 0, 0,
-						       INT_MAX, NULL, NULL,
-						       TEST_REQ, _starpu_mpi_test_func,
-						       0, 0, MPI_COMM_WORLD, 0);
+		testing_req = _starpu_mpi_request_new(NULL, 0, 0, MPI_COMM_WORLD, 0, 0,
+						      INT_MAX, NULL, NULL,
+						      TEST_REQ, _starpu_mpi_test_func,
+						      0, 0, MPI_COMM_WORLD, 0);
 		testing_req->flag = flag;
 		testing_req->status = status;
 		testing_req->backend->other_request = req;
@@ -846,16 +850,16 @@ static void _starpu_mpi_barrier_func(struct _starpu_mpi_req *barrier_req)
 	barrier_req->ret = MPI_Barrier(barrier_req->backend->internal_comm);
 	STARPU_MPI_ASSERT_MSG(barrier_req->ret == MPI_SUCCESS, "MPI_Barrier returning %s", _starpu_mpi_get_mpi_error_code(barrier_req->ret));
 
-	_starpu_mpi_handle_request_termination(barrier_req);
+	_starpu_mpi_mpi_handle_request_termination(barrier_req);
 	_STARPU_MPI_LOG_OUT();
 }
 
-int _starpu_mpi_barrier(MPI_Comm comm)
+int _starpu_mpi_mpi_backend_barrier(MPI_Comm comm)
 {
 	struct _starpu_mpi_req *barrier_req;
 
 	/* Initialize the request structure */
-	barrier_req = _starpu_mpi_request_fill(NULL, 0, 0, comm, 0, 0, 0, NULL, NULL, BARRIER_REQ, _starpu_mpi_barrier_func, 0, 0, _starpu_mpi_ulfm_get_mpi_comm_from_key(comm), -1);
+	barrier_req = _starpu_mpi_request_new(NULL, 0, 0, comm, 0, 0, 0, NULL, NULL, BARRIER_REQ, _starpu_mpi_barrier_func, 0, 0, _starpu_mpi_ulfm_get_mpi_comm_from_key(comm), -1);
 
 	_STARPU_MPI_INC_POSTED_REQUESTS(barrier_req, 1);
 	_starpu_mpi_submit_ready_request(barrier_req);
@@ -873,7 +877,7 @@ int _starpu_mpi_barrier(MPI_Comm comm)
 	return 0;
 }
 
-int _starpu_mpi_wait_for_all__(MPI_Comm comm, unsigned sched_ctx)
+int _starpu_mpi_mpi_wait_for_all__(MPI_Comm comm, unsigned sched_ctx)
 {
 	(void) comm;
 	_STARPU_MPI_LOG_IN();
@@ -907,14 +911,14 @@ int _starpu_mpi_wait_for_all__(MPI_Comm comm, unsigned sched_ctx)
 	return 0;
 }
 
-int _starpu_mpi_wait_for_all(MPI_Comm comm)
+int _starpu_mpi_mpi_backend_wait_for_all(MPI_Comm comm)
 {
-	return _starpu_mpi_wait_for_all__(comm, STARPU_NMAX_SCHED_CTXS+1);
+	return _starpu_mpi_mpi_wait_for_all__(comm, STARPU_NMAX_SCHED_CTXS+1);
 }
 
-int _starpu_mpi_wait_for_all_in_ctx(MPI_Comm comm, unsigned sched_ctx)
+int _starpu_mpi_mpi_backend_wait_for_all_in_ctx(MPI_Comm comm, unsigned sched_ctx)
 {
-	return _starpu_mpi_wait_for_all__(comm, sched_ctx);
+	return _starpu_mpi_mpi_wait_for_all__(comm, sched_ctx);
 }
 
 /********************************************************/
@@ -923,7 +927,7 @@ int _starpu_mpi_wait_for_all_in_ctx(MPI_Comm comm, unsigned sched_ctx)
 /*							*/
 /********************************************************/
 
-static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
+void _starpu_mpi_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 {
 	_STARPU_MPI_LOG_IN();
 
@@ -1085,7 +1089,7 @@ static void _starpu_mpi_early_data_cb(void* arg)
 			args->req->backend->internal_req->backend->to_destroy = 1;
 			STARPU_PTHREAD_MUTEX_UNLOCK(&args->req->backend->internal_req->backend->req_mutex);
 		}
-		_starpu_mpi_handle_request_termination(args->req);
+		_starpu_mpi_mpi_handle_request_termination(args->req);
 		_starpu_mpi_request_destroy(args->req);
 	}
 	else
@@ -1151,7 +1155,7 @@ static void _starpu_mpi_test_detached_requests(void)
 
 			_STARPU_MPI_TRACE_COMPLETE_BEGIN(req->request_type, req->node_tag.node.rank, req->node_tag.data_tag);
 
-			_starpu_mpi_handle_request_termination(req);
+			_starpu_mpi_mpi_handle_request_termination(req);
 
 			STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 			if (req->request_type == SEND_REQ && ndetached_send_requests_max > 0)
@@ -1538,9 +1542,9 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 #warning creating a request is not really useful.
 #endif
 							/* Initialize the request structure */
-							new_req = _starpu_mpi_request_fill(NULL, envelope_status.MPI_SOURCE, envelope->data_tag, envelope_app_comm,
-											   1, 1, 0, NULL, NULL, RECV_REQ, _starpu_mpi_irecv_size_func,
-											   1, 0, envelope_comm, envelope->size);
+							new_req = _starpu_mpi_request_new(NULL, envelope_status.MPI_SOURCE, envelope->data_tag, envelope_app_comm,
+											  1, 1, 0, NULL, NULL, RECV_REQ, _starpu_mpi_mpi_backend_irecv,
+											  1, 0, envelope_comm, envelope->size);
 							_starpu_mpi_sync_data_add(new_req);
 							/* We have queued our sync request, we can let _starpu_mpi_submit_ready_request find it */
 							STARPU_PTHREAD_MUTEX_UNLOCK(&early_data_mutex);
@@ -1692,7 +1696,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	return NULL;
 }
 
-int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
+int _starpu_mpi_mpi_backend_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 {
 	STARPU_PTHREAD_MUTEX_INIT(&progress_mutex, NULL);
 	STARPU_PTHREAD_MUTEX_INIT(&early_data_mutex, NULL);
@@ -1741,7 +1745,7 @@ void _starpu_mpi_wait_for_initialization()
 }
 #endif
 
-void _starpu_mpi_progress_shutdown(void **value)
+void _starpu_mpi_mpi_backend_progress_shutdown(void **value)
 {
 	if (!running)
 	{

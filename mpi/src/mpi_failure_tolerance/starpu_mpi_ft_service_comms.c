@@ -63,9 +63,9 @@ int _starpu_mpi_ft_service_submit_rdy()
 	{
 		struct _starpu_mpi_cp_ack_arg_cb* arg;
 		_STARPU_MALLOC(arg, sizeof(struct _starpu_mpi_cp_ack_arg_cb));
-		req = _starpu_mpi_request_fill(NULL, MPI_ANY_SOURCE, _STARPU_MPI_TAG_CP_ACK, MPI_COMM_WORLD,
-					       1, 0, 0, ack_msg_recv_cb, arg, RECV_REQ, NULL,
-					       1, 0, used_comm, sizeof(arg->msg));
+		req = _starpu_mpi_request_new(NULL, MPI_ANY_SOURCE, _STARPU_MPI_TAG_CP_ACK, MPI_COMM_WORLD,
+					      1, 0, 0, ack_msg_recv_cb, arg, RECV_REQ, NULL,
+					      1, 0, used_comm, sizeof(arg->msg));
 		req->ptr = (void*)&arg->msg;
 		req->datatype = MPI_BYTE;
 		_STARPU_MALLOC(req->status, sizeof(MPI_Status));
@@ -86,9 +86,9 @@ int _starpu_mpi_ft_service_submit_rdy()
 	{
 		struct _starpu_mpi_cp_discard_arg_cb* arg;
 		_STARPU_MALLOC(arg, sizeof(struct _starpu_mpi_cp_discard_arg_cb));
-		req = _starpu_mpi_request_fill(NULL, MPI_ANY_SOURCE, _STARPU_MPI_TAG_CP_INFO, MPI_COMM_WORLD,
-		                         1, 0, 0, cp_info_recv_cb, arg, RECV_REQ, NULL,
-		                         1, 0, used_comm, sizeof(arg->msg));
+		req = _starpu_mpi_request_new(NULL, MPI_ANY_SOURCE, _STARPU_MPI_TAG_CP_INFO, MPI_COMM_WORLD,
+					      1, 0, 0, cp_info_recv_cb, arg, RECV_REQ, NULL,
+					      1, 0, used_comm, sizeof(arg->msg));
 		req->ptr = (void*)&arg->msg;
 		req->datatype = MPI_BYTE;
 		_STARPU_MALLOC(req->status, sizeof(MPI_Status));
@@ -156,7 +156,7 @@ int _starpu_mpi_ft_service_post_send(void* msg, int count, int rank, int tag, MP
 	STARPU_ASSERT_MSG(tag==_STARPU_MPI_TAG_CP_ACK || tag == _STARPU_MPI_TAG_CP_INFO, "Only _STARPU_MPI_TAG_CP_ACK or _STARPU_MPI_TAG_CP_INFO are service msgs.");
 
 	/* Initialize the request structure */
-	req = _starpu_mpi_request_fill(NULL, rank, tag, comm, 1, 0, 0, callback, arg, SEND_REQ, NULL, 1, 0, 0, count);
+	req = _starpu_mpi_request_new(NULL, rank, tag, comm, 1, 0, 0, callback, arg, SEND_REQ, NULL, 1, 0, 0, count);
 //	TODO: Check compatibility with prio
 	req->ptr = msg;
 	req->datatype = MPI_BYTE;

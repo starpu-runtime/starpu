@@ -125,7 +125,7 @@ static void _starpu_mpi_unknown_datatype_recv_callback(nm_sr_event_t event, cons
 	}
 	else if (event & NM_SR_EVENT_FINALIZED)
 	{
-		_starpu_mpi_handle_request_termination(req);
+		_starpu_mpi_nmad_handle_request_termination(req);
 	}
 	else if (event & NM_SR_EVENT_RECV_COMPLETED && !_starpu_mpi_recv_wait_finalize && req->sequential_consistency && starpu_data_get_interface_ops(req->data_handle)->peek_data)
 	{
