@@ -17,18 +17,21 @@
 
 set -x
 set -e
-dir=$(realpath $(dirname $0))
 
-SCRIPT_NAME="$HOME/softs/starpu/benchmarks/scripts/uploadBenchs.sh"
+# extract benchmarks git and check script exists
+tmpdir=$(mktemp -d)
+git clone https://starpu:${STARPU_BENCHMARKS_TOKEN}@gitlab.inria.fr/starpu/benchmarks.git $tmpdir/benchmarks
+SCRIPT_NAME="$tmpdir/benchmarks/scripts/uploadBenchs.sh"
 scriptExists=$(ls $SCRIPT_NAME 2>/dev/null)
 if test -z "$scriptExists"
 then
-    echo This runner is not eligible to deploy new benchmarks for StarPU
+    echo The script to upload the benchmarks is not available
     ls $SCRIPT_NAME
     ls $(dirname $SCRIPT_NAME)
     exit 1
 fi
 
+# check needed files for benchmarks script
 ARTIFACTS=$1
 if test ! -d "$ARTIFACTS"
 then
