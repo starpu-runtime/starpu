@@ -224,7 +224,7 @@ def create_builder(profile, profile_iname, profile_name, profile_host):
 
     if 'coverage' in profile.keys():
         p.addStep(Command([""]))
-        p.addStep(Command(["lcov", "--directory", ".", "--capture", "--output", "coverage.info"]))
+        p.addStep(Command(["lcov", "--ignore-errors", "negative", "--directory", ".", "--capture", "--output", "coverage.info"]))
         p.addStep(Command(["genhtml", "--output-directory", "coverage", "coverage.info"]))
         if profile['release']:
             p.addStep(Command(["cp", "coverage.info", "$starpu_artifacts/starpu_${STARPU_GITVERSION}.lcov"]))
