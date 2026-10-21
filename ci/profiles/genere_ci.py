@@ -306,14 +306,14 @@ for builder in builderset():
     fout.write("echo \"#PROFILE:" + builder.host + ":" + builder.name + "\"\n")
 
     fout.write("\n")
-    if builder.prologue is not None:
-        prologue = " ".join(builder.prologue.command)
-        fout.write(prologue + "\n")
 
-    fout.write("\n")
     for key in builder.env:
         fout.write("export " + key + "=\"" + builder.env[key] + "\"\n")
     fout.write("\n")
+
+    if builder.prologue is not None:
+        prologue = " ".join(builder.prologue.command)
+        fout.write(prologue + "\n" + "\n")
 
     for step in builder.steps:
         if type(step.command) is type(""):

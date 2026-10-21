@@ -15,7 +15,8 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-XROOT=${HOME}/softs/starpu/pm2
+cur_dir=${PWD}
+XROOT=$(realpath ${starpu_build_dir}/../pm2)
 mkdir -p ${XROOT}
 cd ${XROOT}
 
@@ -28,10 +29,10 @@ then
     exit 1
 fi
 
-XPREFIX=$XROOT/install/$CI_COMMIT_BRANCH
+XPREFIX=$XROOT/install
 if test "$2" != ""
 then
-    XPREFIX=$XROOT/install/$2/$CI_COMMIT_BRANCH
+    XPREFIX=$XROOT/install/$2
 fi
 ./pm2-build-packages --purge $1 --prefix=$XPREFIX
 
@@ -42,3 +43,6 @@ exec $XPREFIX/bin/mpiexec --padico-binding=none "$@"
 EOF
 ) > $XPREFIX/bin/mpiexec_nobind
 chmod +x $XPREFIX/bin/mpiexec_nobind
+
+. $XPREFIX/share/${1}.sh
+cd $cur_dir
