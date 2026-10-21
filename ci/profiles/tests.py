@@ -416,6 +416,11 @@ profiles = [
       'deploy'      : True,
       'hosts'       : ['node_gpu']
     },
+    { 'name'        : 'hp',
+      'env'         : { 'STARPU_SCHED' : 'hp' },
+      'deploy'      : True,
+      'hosts'       : ['node_gpu']
+    },
     { 'name'        : 'modular-dmdas',
       'env'         : { 'STARPU_SCHED' : 'modular-dmdas' },
       'deploy'      : True,

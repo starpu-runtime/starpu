@@ -55,7 +55,7 @@ extern struct starpu_task *task_currently_treated;
 
 void _sched_visu_init(int nb_gpus);
 char *_sched_visu_get_output_directory();
-void _sched_visu_print_data_to_load_prefetch(struct starpu_task *task, int gpu_id, int force);
+void _sched_visu_print_data_to_load_prefetch(struct starpu_task *task, unsigned memory_node, int force);
 void _sched_visu_pop_ready_task(struct starpu_task *task);
 struct starpu_task *_sched_visu_get_data_to_load(unsigned sched_ctx);
 void _sched_visu_print_packages_in_terminal(struct _starpu_HFP_paquets *a, int nb_of_loop, const char *msg);

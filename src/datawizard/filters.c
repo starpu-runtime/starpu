@@ -451,6 +451,9 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 		     a != _starpu_unregister_hook_func_list_end(&child_handle->unregister_hook);
 		     a  = _starpu_unregister_hook_func_list_next(a))
 			a->hook_func(child_handle);
+		/* The children are freed below, so also free their unregister hook, as _starpu_data_unregister does. Darts adds unregister hook to every data item its tasks uses and thus need this to avoid memory leaks. */
+		while (!_starpu_unregister_hook_func_list_empty(&child_handle->unregister_hook))
+			_starpu_unregister_hook_func_delete(_starpu_unregister_hook_func_list_pop_front(&child_handle->unregister_hook));
 
 		if (child_handle->per_worker)
 		{

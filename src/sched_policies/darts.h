@@ -47,7 +47,7 @@
 */
 #define STARPU_DARTS_HIGHEST_PRIORITY_TASK_RETURNED_IN_DEFAULT_CASE /* 0: no, 1: I return the highesth priority task of the list when I didn't found a data giving free or 1 from free task. Only makes sense if STARPU_DARTS_TASK_ORDER is set to 2. else you are defeating the purpose of randomization with TASK_ORDEr on 0 or 1. */
 #define STARPU_DARTS_CAN_A_DATA_BE_IN_MEM_AND_IN_NOT_USED_YET /* 0: no, 1 : yes */
-#define STARPU_DARTS_PUSH_FREE_TASK_ON_GPU_WITH_LEAST_TASK_IN_PLANNED_TASK /* 0: no, 1: yes, 2: round robin */
+#define STARPU_DARTS_PUSH_FREE_TASK_ON_GPU_WITH_LEAST_TASK_IN_PLANNED_TASK /* 0: no, 1: yes, 2: round robin, 3 (default): where it is expected to complete first from what is in planned tasks and from the task length and the number of workers */
 #define STARPU_DARTS_CPU_ONLY /* 0: we use only GPUs, 1: we use only CPUs, 2: we use both (not functionnal) */
 
 #pragma GCC visibility pop

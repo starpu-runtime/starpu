@@ -33,6 +33,14 @@ static int index_task_currently_treated=0;
 #endif
 struct starpu_task *task_currently_treated = NULL;
 
+/* Index of the GPU (or processing unit) of a memory node. */
+static int _sched_visu_get_gpu(unsigned memory_node)
+{
+	if (starpu_cpu_worker_get_count() == 0)
+		return memory_node - starpu_memory_nodes_get_count_by_kind(STARPU_CPU_RAM);
+	return memory_node;
+}
+
 static char *_output_directory = NULL;
 char *_sched_visu_get_output_directory()
 {
@@ -50,8 +58,9 @@ void _sched_visu_init(int nb_gpus)
 {
 	(void)nb_gpus;
 #ifdef PRINT_PYTHON
-	_STARPU_MALLOC(_index_current_popped_task, sizeof(int)*nb_gpus);
-	_STARPU_MALLOC(_index_current_popped_task_prefetch, sizeof(int)*nb_gpus);
+	/* Indexed with _sched_visu_get_gpu(), which is always below the number of memory nodes. */
+	_STARPU_CALLOC(_index_current_popped_task, starpu_memory_nodes_get_count(), sizeof(int));
+	_STARPU_CALLOC(_index_current_popped_task_prefetch, starpu_memory_nodes_get_count(), sizeof(int));
 	_index_current_popped_task_all_gpu = 0;
 	_index_current_popped_task_all_gpu_prefetch = 0;
 #endif
@@ -60,14 +69,15 @@ void _sched_visu_init(int nb_gpus)
 	_print_n = starpu_get_env_number_default("STARPU_SCHED_PRINT_N", 0);
 }
 
-/* Printing in a file the coordinates and the data loaded during prefetch for each task for visu python */
-void _sched_visu_print_data_to_load_prefetch(struct starpu_task *task, int gpu_id, int force)
+/* Printing in a file the coordinates and the data loaded during prefetch for each task for visu python.
+ * memory_node is the memory node the task is prefetched to. */
+void _sched_visu_print_data_to_load_prefetch(struct starpu_task *task, unsigned memory_node, int force)
 {
 	(void)task;
-	(void)gpu_id;
+	(void)memory_node;
 	(void)force;
 #ifdef PRINT_PYTHON
-	int current_gpu = gpu_id;
+	int current_gpu = _sched_visu_get_gpu(memory_node);
 	_index_current_popped_task_prefetch[current_gpu]++; /* Increment popped task on the right GPU */
 	_index_current_popped_task_all_gpu_prefetch++;
 	int nb_data_to_load = 0;
@@ -78,7 +88,7 @@ void _sched_visu_print_data_to_load_prefetch(struct starpu_task *task, int gpu_i
 	/* Getting the number of data to load */
 	for (i = 0; i <  STARPU_TASK_GET_NBUFFERS(task); i++)
 	{
-		if(!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(task, i), gpu_id))
+		if(!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(task, i), memory_node))
 		{
 			nb_data_to_load++;
 
@@ -162,7 +172,7 @@ void _sched_visu_print_data_to_load_prefetch(struct starpu_task *task, int gpu_i
 			{
 				fprintf(f2, "SYRK");
 				/* Attention pour SYRK il ne faut pas compter en double la donnée à charger. Donc je regarde si je l'a compté en double je fais --. */
-				if(!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(task, 0), current_gpu))
+				if(!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(task, 0), memory_node))
 				{
 					y_to_load = 0;
 				}
@@ -197,7 +207,8 @@ void _sched_visu_pop_ready_task(struct starpu_task *task)
 
 	if (task != NULL)
 	{
-		int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id_check());
+		unsigned memory_node = starpu_worker_get_memory_node(starpu_worker_get_id_check());
+		int current_gpu = _sched_visu_get_gpu(memory_node);
 		_index_current_popped_task[current_gpu]++; /* Increment popped task on the right GPU */
 		_index_current_popped_task_all_gpu++;
 		int nb_data_to_load = 0;
@@ -208,7 +219,7 @@ void _sched_visu_pop_ready_task(struct starpu_task *task)
 		/* Getting the number of data to load */
 		for (i = 0; i <  STARPU_TASK_GET_NBUFFERS(task); i++)
 		{
-			if(!starpu_data_is_on_node_excluding_prefetch(STARPU_TASK_GET_HANDLE(task, i), current_gpu))
+			if(!starpu_data_is_on_node_excluding_prefetch(STARPU_TASK_GET_HANDLE(task, i), memory_node))
 			{
 				nb_data_to_load++;
 
@@ -255,11 +266,11 @@ void _sched_visu_pop_ready_task(struct starpu_task *task)
 				starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, tab_coordinates);
 				fprintf(f2, "%d	%d", tab_coordinates[0], tab_coordinates[1]);
 				starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 0), 2, tab_coordinates);
-				fprintf(f2, "	%d	%d	%d	%d	%d\n", tab_coordinates[0], x_to_load, y_to_load, z_to_load, current_gpu - 1);
+				fprintf(f2, "	%d	%d	%d	%d	%d\n", tab_coordinates[0], x_to_load, y_to_load, z_to_load, current_gpu);
 			}
 			else
 			{
-				fprintf(f2, "%d	%d	%d	%d	%d\n", tab_coordinates[0], tab_coordinates[1], x_to_load, y_to_load, current_gpu - 1);
+				fprintf(f2, "%d	%d	%d	%d	%d\n", tab_coordinates[0], tab_coordinates[1], x_to_load, y_to_load, current_gpu);
 			}
 		}
 		else if (strcmp(starpu_task_get_name(task), "POTRF") == 0 || strcmp(starpu_task_get_name(task), "SYRK") == 0 || strcmp(starpu_task_get_name(task), "TRSM") == 0 || strcmp(starpu_task_get_name(task), "GEMM") == 0)
@@ -295,7 +306,7 @@ void _sched_visu_pop_ready_task(struct starpu_task *task)
 				if (STARPU_TASK_GET_HANDLE(task, 0) == STARPU_TASK_GET_HANDLE(task, 1))
 				{
 					fprintf(f2, "SYRK");
-					if(!starpu_data_is_on_node_excluding_prefetch(STARPU_TASK_GET_HANDLE(task, 0), current_gpu))
+					if(!starpu_data_is_on_node_excluding_prefetch(STARPU_TASK_GET_HANDLE(task, 0), memory_node))
 					{
 						y_to_load = 0;
 					}
@@ -308,7 +319,7 @@ void _sched_visu_pop_ready_task(struct starpu_task *task)
 
 			/* La je n'imprime que les coords de la dernière donnée de la tâche car c'est ce qui me donne la place dans le triangle de Cholesky. */
 			starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, STARPU_TASK_GET_NBUFFERS(task) - 1), 2, tab_coordinates);
-			fprintf(f2, "	%d	%d	%d	%d	%d	%d	%ld\n", tab_coordinates[0], tab_coordinates[1], x_to_load, y_to_load, z_to_load, current_gpu - 1, task->iterations[0]);
+			fprintf(f2, "	%d	%d	%d	%d	%d	%d	%ld\n", tab_coordinates[0], tab_coordinates[1], x_to_load, y_to_load, z_to_load, current_gpu, task->iterations[0]);
 		}
 		else
 		{
@@ -329,7 +340,8 @@ struct starpu_task *_sched_visu_get_data_to_load(unsigned sched_ctx)
 	if (task != NULL)
 	{
 		//~ int current_gpu = starpu_worker_get_id_check();
-		int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id_check());
+		unsigned memory_node = starpu_worker_get_memory_node(starpu_worker_get_id_check());
+		int current_gpu = _sched_visu_get_gpu(memory_node);
 		//~ printf("Ngpu = %d current = %d task = %p\n", _nb_gpus, current_gpu, task);
 		_index_current_popped_task[current_gpu]++; /* Increment popped task on the right GPU */
 		_index_current_popped_task_all_gpu++;
@@ -341,7 +353,7 @@ struct starpu_task *_sched_visu_get_data_to_load(unsigned sched_ctx)
 		unsigned i;
 		for (i = 0; i <  STARPU_TASK_GET_NBUFFERS(task); i++)
 		{
-			if(!starpu_data_is_on_node_excluding_prefetch(STARPU_TASK_GET_HANDLE(task, i), current_gpu))
+			if(!starpu_data_is_on_node_excluding_prefetch(STARPU_TASK_GET_HANDLE(task, i), memory_node))
 			{
 				nb_data_to_load++;
 
@@ -396,11 +408,11 @@ struct starpu_task *_sched_visu_get_data_to_load(unsigned sched_ctx)
 				starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, tab_coordinates);
 				fprintf(f2, "%d	%d", tab_coordinates[0], tab_coordinates[1]);
 				starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 0), 2, tab_coordinates);
-				fprintf(f2, "	%d	%d	%d	%d	%d\n", tab_coordinates[0], x_to_load, y_to_load, z_to_load, current_gpu - 1);
+				fprintf(f2, "	%d	%d	%d	%d	%d\n", tab_coordinates[0], x_to_load, y_to_load, z_to_load, current_gpu);
 			}
 			else
 			{
-				fprintf(f2, "%d	%d	%d	%d	%d\n", tab_coordinates[0], tab_coordinates[1], x_to_load, y_to_load, current_gpu - 1);
+				fprintf(f2, "%d	%d	%d	%d	%d\n", tab_coordinates[0], tab_coordinates[1], x_to_load, y_to_load, current_gpu);
 			}
 		}
 		else if (strcmp(starpu_task_get_name(task), "chol_model_11") == 0 || strcmp(starpu_task_get_name(task), "chol_model_21") == 0 || strcmp(starpu_task_get_name(task), "chol_model_22") == 0 || strcmp(starpu_task_get_name(task), "POTRF") == 0 || strcmp(starpu_task_get_name(task), "SYRK") == 0 || strcmp(starpu_task_get_name(task), "TRSM") == 0 || strcmp(starpu_task_get_name(task), "GEMM") == 0)
@@ -436,7 +448,7 @@ struct starpu_task *_sched_visu_get_data_to_load(unsigned sched_ctx)
 				{
 					fprintf(f2, "SYRK");
 					/* Attention pour SYRK il ne faut pas compter en double la donnée à charger. Donc je regarde si je l'a compté en double je fais --. */
-					if(!starpu_data_is_on_node_excluding_prefetch(STARPU_TASK_GET_HANDLE(task, 0), current_gpu))
+					if(!starpu_data_is_on_node_excluding_prefetch(STARPU_TASK_GET_HANDLE(task, 0), memory_node))
 					{
 						y_to_load = 0;
 					}
@@ -449,7 +461,7 @@ struct starpu_task *_sched_visu_get_data_to_load(unsigned sched_ctx)
 
 			/* La je n'imprime que les coords de la dernière donnée de la tâche car c'est ce qui me donne la place dans le triangle de Cholesky. */
 			starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, STARPU_TASK_GET_NBUFFERS(task) - 1), 2, tab_coordinates);
-			fprintf(f2, "	%d	%d	%d	%d	%d	%d	%ld\n", tab_coordinates[0], tab_coordinates[1], x_to_load, y_to_load, z_to_load, current_gpu - 1, task->iterations[0]);
+			fprintf(f2, "	%d	%d	%d	%d	%d	%d	%ld\n", tab_coordinates[0], tab_coordinates[1], x_to_load, y_to_load, z_to_load, current_gpu, task->iterations[0]);
 		}
 		else
 		{
@@ -474,7 +486,7 @@ void _sched_visu_print_effective_order_in_file(struct starpu_task *task, int ind
 	FILE *f = NULL;
 	int tab_coordinates[2];
 
-	int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id_check());
+	int current_gpu = _sched_visu_get_gpu(starpu_worker_get_memory_node(starpu_worker_get_id_check()));
 	/* For the coordinates It write the coordinates (with Z for 3D), then the GPU and then the number of data needed to load for this task */
 	//~ if (_print_n != 0 && (strcmp(_starpu_HFP_appli, "starpu_sgemm_gemm") == 0))
 	if (strcmp(_starpu_HFP_appli, "starpu_sgemm_gemm") == 0)
@@ -503,7 +515,7 @@ void _sched_visu_print_effective_order_in_file(struct starpu_task *task, int ind
 			//~ printf("Tâche n°%d %p : x = %d | y = %d | ", index_task, task, temp_tab_coordinates[0], temp_tab_coordinates[1]);
 
 			starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 0), 2, tab_coordinates);
-			fprintf(f, "	%d	%d\n", tab_coordinates[0], current_gpu - 1);
+			fprintf(f, "	%d	%d\n", tab_coordinates[0], current_gpu);
 
 			/* TODO a suppr */
 			//~ printf("z = %d\n", temp_tab_coordinates[0]);
@@ -511,7 +523,7 @@ void _sched_visu_print_effective_order_in_file(struct starpu_task *task, int ind
 		else
 		{
 			starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, tab_coordinates);
-			fprintf(f, "%d	%d	%d\n", tab_coordinates[0], tab_coordinates[1], current_gpu - 1);
+			fprintf(f, "%d	%d	%d\n", tab_coordinates[0], tab_coordinates[1], current_gpu);
 		}
 		fclose(f);
 		//~ if (index_task == NT - 1)
@@ -563,7 +575,7 @@ void _sched_visu_print_effective_order_in_file(struct starpu_task *task, int ind
 
 		/* La je n'imprime que les coords de la dernière donnée de la tâche car c'est ce qui me donne la place dans le triangle de Cholesky. */
 		starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, STARPU_TASK_GET_NBUFFERS(task) - 1), 2, tab_coordinates);
-		fprintf(f, "	%d	%d	%d	%ld\n", tab_coordinates[0], tab_coordinates[1], current_gpu - 1, task->iterations[0]);
+		fprintf(f, "	%d	%d	%d	%ld\n", tab_coordinates[0], tab_coordinates[1], current_gpu, task->iterations[0]);
 
 		fclose(f);
 	}

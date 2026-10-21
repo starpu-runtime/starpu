@@ -225,7 +225,7 @@ scheduler:
   tags: ['starpu', 'node_gpu']
   parallel:
     matrix:
-      - PROFILE: [dmdas, modular-dmdas, graph-test, modular-eager, modular-eager-prio, modular-eager-prefetching, modular-ws, modular-heft2, modular-heft, modular-heft-prio, modular-heteroprio, heteroprio]
+      - PROFILE: [dmdas, modular-dmdas, graph-test, modular-eager, modular-eager-prio, modular-eager-prefetching, modular-ws, modular-heft2, modular-heft, modular-heft-prio, modular-heteroprio, heteroprio, darts]
 
 scheduler_failures:
   extends: .manual_failure_template
@@ -233,5 +233,5 @@ scheduler_failures:
   tags: ['starpu', 'node_gpu']
   parallel:
     matrix:
-      - PROFILE: [darts]
+      - PROFILE: [hp]
 
