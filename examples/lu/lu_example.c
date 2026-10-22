@@ -24,6 +24,13 @@
 #include <math.h>
 #include <starpu.h>
 
+#include "xlu.h"
+#include "xlu_kernels.h"
+
+unsigned bound = 0;
+unsigned bounddeps = 0;
+unsigned boundprio = 0;
+
 #ifdef STARPU_CUDA_SANITIZER
 /** the test is falling with some cudablas errors which do not concern StarPU */
 int main(int argc, char **argv)
@@ -31,9 +38,6 @@ int main(int argc, char **argv)
 	return 77;
 }
 #else
-
-#include "xlu.h"
-#include "xlu_kernels.h"
 
 #ifdef STARPU_HAVE_VALGRIND_H
 #include <valgrind/valgrind.h>
@@ -53,9 +57,6 @@ static unsigned pivot = 0;
 static unsigned no_stride = 0;
 static unsigned profile = 0;
 static unsigned no_prio=0;
-unsigned bound = 0;
-unsigned bounddeps = 0;
-unsigned boundprio = 0;
 char *directory =  NULL;
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
