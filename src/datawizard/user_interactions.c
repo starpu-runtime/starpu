@@ -172,21 +172,21 @@ static inline void _starpu_data_acquire_wrapper_fini(struct user_interaction_wra
 }
 
 /* Called when the data acquisition is done, to launch the fetch into target memory */
-static inline void _starpu_data_acquirex_launch_fetch(struct user_interaction_wrapper *wrapper, int async, void (*callback)(void *), void *callback_arg, starpu_data_handle_t handle, int node)
+static inline void _starpu_data_acquirex_launch_fetch(struct user_interaction_wrapper *wrapper, int async, void (*callback)(void *), void *callback_arg, starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode)
 {
 	struct _starpu_data_replicate *replicate = node >= 0 ? &handle->per_node[node] : NULL;
 
-	int ret = _starpu_fetch_data_on_node(handle, node, replicate, wrapper->mode, wrapper->detached, NULL, wrapper->prefetch, async, callback, callback_arg, wrapper->prio, "_starpu_data_acquire_launch_fetch");
+	int ret = _starpu_fetch_data_on_node(handle, node, replicate, mode, wrapper->detached, NULL, wrapper->prefetch, async, callback, callback_arg, wrapper->prio, "_starpu_data_acquire_launch_fetch");
 	STARPU_ASSERT(!ret);
 }
 static inline void _starpu_data_acquire_launch_fetch(struct user_interaction_wrapper *wrapper, int async, void (*callback)(void *), void *callback_arg)
 {
-	_starpu_data_acquirex_launch_fetch(wrapper, async, callback, callback_arg, wrapper->handle, wrapper->node);
+	_starpu_data_acquirex_launch_fetch(wrapper, async, callback, callback_arg, wrapper->handle, wrapper->node, wrapper->mode);
 }
 
 static inline void _starpu_data_acquire2_launch_fetch(struct user_interaction_wrapper *wrapper, int async, void (*callback)(void *), void *callback_arg)
 {
-	_starpu_data_acquirex_launch_fetch(wrapper, async, callback, callback_arg, wrapper->handle2, wrapper->node2);
+	_starpu_data_acquirex_launch_fetch(wrapper, async, callback, callback_arg, wrapper->handle2, wrapper->node2, wrapper->mode2);
 }
 
 /*
@@ -352,7 +352,7 @@ int _starpu_data_acquire2_on_node_cb_sequential_consistency_sync_jobids(starpu_d
 	{
 		_starpu_data_check_initialized(handle, mode);
 		if (handle2)
-			_starpu_data_check_initialized(handle2, mode);
+			_starpu_data_check_initialized(handle2, mode2);
 	}
 
 	struct user_interaction_wrapper *wrapper;
@@ -559,11 +559,11 @@ int _starpu_data_acquire2_on_node_cb_sequential_consistency_sync_jobids(starpu_d
 				if (_starpu_compar_handles(&descr, &descr2) < 0)
 				{
 					new_task = _starpu_detect_implicit_data_deps_with_handle(wrapper->pre_sync_task, &submit_pre_sync, wrapper->post_sync_task, &_starpu_get_job_associated_to_task(wrapper->post_sync_task)->implicit_dep_slot, real_handle, mode, sequential_consistency);
-					new_task2 = _starpu_detect_implicit_data_deps_with_handle(wrapper->pre_sync_task, &submit_pre_sync, wrapper->post_sync_task2, &_starpu_get_job_associated_to_task(wrapper->post_sync_task2)->implicit_dep_slot, real_handle2, mode, sequential_consistency);
+					new_task2 = _starpu_detect_implicit_data_deps_with_handle(wrapper->pre_sync_task, &submit_pre_sync, wrapper->post_sync_task2, &_starpu_get_job_associated_to_task(wrapper->post_sync_task2)->implicit_dep_slot, real_handle2, mode2, sequential_consistency);
 				}
 				else
 				{
-					new_task2 = _starpu_detect_implicit_data_deps_with_handle(wrapper->pre_sync_task, &submit_pre_sync, wrapper->post_sync_task2, &_starpu_get_job_associated_to_task(wrapper->post_sync_task2)->implicit_dep_slot, real_handle2, mode, sequential_consistency);
+					new_task2 = _starpu_detect_implicit_data_deps_with_handle(wrapper->pre_sync_task, &submit_pre_sync, wrapper->post_sync_task2, &_starpu_get_job_associated_to_task(wrapper->post_sync_task2)->implicit_dep_slot, real_handle2, mode2, sequential_consistency);
 					new_task = _starpu_detect_implicit_data_deps_with_handle(wrapper->pre_sync_task, &submit_pre_sync, wrapper->post_sync_task, &_starpu_get_job_associated_to_task(wrapper->post_sync_task)->implicit_dep_slot, real_handle, mode, sequential_consistency);
 				}
 			}
