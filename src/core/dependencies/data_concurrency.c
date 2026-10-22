@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2021-2021  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -476,6 +476,7 @@ void _starpu_job_set_ordered_buffers(struct _starpu_job *j)
 		buffers[i].handle = STARPU_TASK_GET_HANDLE(task, i);
 		buffers[i].mode = STARPU_TASK_GET_MODE(task, i);
 		buffers[i].orig_node = task->cl ? STARPU_CODELET_GET_NODE(task->cl, i) : STARPU_SPECIFIC_NODE_NONE;
+		buffers[i].prefetch_node = -1;
 		buffers[i].node = -1;
 	}
 	_starpu_sort_task_handles(buffers, nbuffers);
