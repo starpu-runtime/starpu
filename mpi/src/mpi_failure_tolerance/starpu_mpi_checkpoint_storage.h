@@ -21,8 +21,7 @@
 #include <starpu_mpi.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 	/* Initialise the storage backend pointing at the given shared directory.

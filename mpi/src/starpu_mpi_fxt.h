@@ -25,8 +25,7 @@
 /** @file */
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 #define _STARPU_MPI_FUT_POINT_TO_POINT_SEND		0x100

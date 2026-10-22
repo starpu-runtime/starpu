@@ -546,7 +546,8 @@ void _starpu_swap_init(void)
 	}
 
 	size = starpu_getenv_number_default("STARPU_DISK_SWAP_SIZE", -1);
-	if (size < 0) {
+	if (size < 0)
+	{
 		_STARPU_DISP("Warning: STARPU_DISK_SWAP_SIZE needs to be set\n");
 		return;
 	}

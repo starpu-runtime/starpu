@@ -20,8 +20,7 @@
 #include <starpu.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /* Presently Assume that there won't be more than 100 types of

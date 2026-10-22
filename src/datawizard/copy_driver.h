@@ -30,8 +30,7 @@
 #pragma GCC visibility push(hidden)
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 struct _starpu_data_request;

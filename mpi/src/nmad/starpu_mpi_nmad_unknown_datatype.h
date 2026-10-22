@@ -22,8 +22,7 @@
 /** @file */
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 #ifdef STARPU_USE_MPI_NMAD

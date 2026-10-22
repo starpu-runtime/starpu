@@ -29,8 +29,7 @@
 #pragma GCC visibility push(hidden)
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 void _starpu_init_perfmodel(void);

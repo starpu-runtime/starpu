@@ -544,15 +544,18 @@ int _starpu_data_acquire2_on_node_cb_sequential_consistency_sync_jobids(starpu_d
 			_STARPU_RECURSIVE_TASKS_DEBUG("JJJJJJJJJJJJJJJJJJJJJJJJJJJ\ndetecting implicit data deps normally for handle %p (actually %p)\nJJJJJJJJJJJJJJJJJJJJJJJJJJJJ\n", handle, real_handle);
 			if (handle2)
 			{
-				struct _starpu_data_descr descr = {
+				struct _starpu_data_descr descr =
+				{
 					.handle = handle,
 					.mode = mode,
 				};
 
-				struct _starpu_data_descr descr2 = {
+				struct _starpu_data_descr descr2 =
+				{
 					.handle = handle2,
 					.mode = mode2,
 				};
+
 				if (_starpu_compar_handles(&descr, &descr2) < 0)
 				{
 					new_task = _starpu_detect_implicit_data_deps_with_handle(wrapper->pre_sync_task, &submit_pre_sync, wrapper->post_sync_task, &_starpu_get_job_associated_to_task(wrapper->post_sync_task)->implicit_dep_slot, real_handle, mode, sequential_consistency);
