@@ -64,6 +64,8 @@ struct _starpu_data_descr
 	starpu_data_handle_t handle;
 	enum starpu_data_access_mode mode;
 	int orig_node; /** This is the original node in the codelet */
+	int prefetch_node; /** This is the value anticipated by the scheduler,
+			         and where we have prefetched data */
 	int node; /** This is the value actually chosen, only set by
 		     _starpu_fetch_task_input for coherency with
 		     _starpu_fetch_task_input_tail and __starpu_push_task_output */

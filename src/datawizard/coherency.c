@@ -1038,8 +1038,6 @@ static int _starpu_prefetch_task_input_prio(struct starpu_task *task, int target
 		starpu_data_handle_t handle = buffers[index].handle;
 		enum starpu_data_access_mode mode = buffers[index].mode;
 
-		/* Prefetch condition shared with _starpu_fetch_task_input_tail for releasing
-		 * nb_tasks_prefetch. */
 		if (!_starpu_should_prefetch_task_input(task, mode))
 			continue;
 
@@ -1054,7 +1052,12 @@ static int _starpu_prefetch_task_input_prio(struct starpu_task *task, int target
 
 		struct _starpu_data_replicate *replicate = &handle->per_node[node];
 		if (prefetch == STARPU_PREFETCH)
+		{
+			/* Note which node we will have prefetched on, we will need to release nb_tasks_prefetch for this node, even
+			 * if we have changed our mind. */
+			buffers[index].prefetch_node = node;
 			task_prefetch_data_on_node(handle, node, replicate, mode, task, prio);
+		}
 		else
 			idle_prefetch_data_on_node(handle, node, replicate, mode, task, prio);
 	}
@@ -1208,6 +1211,7 @@ int _starpu_fetch_task_input(struct starpu_task *worker_task, struct _starpu_job
 			continue;
 #endif
 		int orig_node = descrs[index].orig_node;
+		int prefetch_node = descrs[index].prefetch_node;
 		int node = _starpu_task_data_get_node_on_worker(task, descrs[index].index, workerid);
 		/* We set this here for coherency with __starpu_push_task_output */
 		descrs[index].node = node;
@@ -1236,6 +1240,20 @@ int _starpu_fetch_task_input(struct starpu_task *worker_task, struct _starpu_job
 		}
 
 		local_replicate = get_replicate(handle, mode, workerid, node);
+
+		if (prefetch_node >= 0 && node != prefetch_node)
+		{
+			STARPU_ASSERT(task->prefetched);
+
+			/* The scheduler has changed its mind, we are going to another node than what was prefetched... Unreference it. */
+			/* Note: the replicate might still have been evicted in between, thus not 100% sure
+			 * that our prefetch request is still recorded here.  */
+			if (local_replicate->nb_tasks_prefetch > 0)
+			{
+				local_replicate->nb_tasks_prefetch--;
+				descrs[index].prefetch_node = -1;
+			}
+		}
 
 		if (async)
 		{
@@ -1336,29 +1354,28 @@ void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job 
 		starpu_data_handle_t handle = descrs[index].handle;
 		enum starpu_data_access_mode mode = descrs[index].mode;
 		int node = descrs[index].node;
+		int prefetch_node = descrs[index].prefetch_node;
 
 		if (node < 0)
 			continue;
 
 		struct _starpu_data_replicate *local_replicate;
+		struct _starpu_data_replicate *prefetched_replicate = NULL;
 		int needs_init;
 
 		local_replicate = get_replicate(handle, mode, workerid, node);
+		if (prefetch_node >= 0)
+			prefetched_replicate = get_replicate(handle, mode, workerid, prefetch_node);
 		_starpu_spin_lock(&handle->header_lock);
-		if (local_replicate->mc)
+		if (prefetched_replicate && prefetched_replicate->mc)
 		{
-			if (task->prefetched &&
-				/* Prefetch condition shared with _starpu_prefetch_task_input_prio */
-				_starpu_should_prefetch_task_input(task, mode))
-			{
-				/* Allocations or transfer prefetches should have been done by now and marked
-				 * this mc as needed for us.
-				 * Now that we added a reference for the task, we can relieve that.  */
-				/* Note: the replicate might still have been evicted in between, thus not 100% sure
-				 * that our prefetch request is still recorded here.  */
-				if (local_replicate->nb_tasks_prefetch > 0)
-					local_replicate->nb_tasks_prefetch--;
-			}
+			/* Allocations or transfer prefetches should have been done by now and marked
+			 * this mc as needed for us.
+			 * Now that we added a reference for the task, we can relieve that.  */
+			/* Note: the replicate might still have been evicted in between, thus not 100% sure
+			 * that our prefetch request is still recorded here.  */
+			if (prefetched_replicate->nb_tasks_prefetch > 0)
+				prefetched_replicate->nb_tasks_prefetch--;
 		}
 		if (!(mode & STARPU_R) && (mode & STARPU_W))
 		{
