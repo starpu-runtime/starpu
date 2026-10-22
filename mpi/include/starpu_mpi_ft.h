@@ -113,7 +113,7 @@ int starpu_mpi_checkpoint_template_freeze(starpu_mpi_checkpoint_template_t *cp_t
    execution time (when the task submitted before the starpu_mpi_checkpoint_template_submit() have been executed,
    and before this data is modified by the tasks submitted after the starpu_mpi_checkpoint_template_submit())
 */
-int starpu_mpi_checkpoint_template_submit(starpu_mpi_checkpoint_template_t cp_template, int prio);
+int starpu_mpi_checkpoint_template_submit(starpu_mpi_checkpoint_template_t cp_template, int cp_prio);
 
 int starpu_mpi_checkpoint_template_print(starpu_mpi_checkpoint_template_t cp_template);
 
@@ -125,7 +125,7 @@ int starpu_mpi_checkpoint_template_print(starpu_mpi_checkpoint_template_t cp_tem
    Return 0 on success, -1 on error.
    See \ref MPICheckpointPersistent for more details.
 */
-int starpu_mpi_checkpoint_set_storage_path(const char *path);
+int starpu_mpi_checkpoint_set_storage_path(const char *cp_path);
 
 /**
    Write the entries of the checkpoint template \p cp_template owned by the
@@ -217,13 +217,13 @@ static inline int starpu_mpi_checkpoint_template_register(starpu_mpi_checkpoint_
 static inline int starpu_mpi_checkpoint_template_create(starpu_mpi_checkpoint_template_t *cp_template STARPU_ATTRIBUTE_UNUSED, int cp_id STARPU_ATTRIBUTE_UNUSED, int cp_domain STARPU_ATTRIBUTE_UNUSED) { return 0; }
 static inline int starpu_mpi_checkpoint_template_add_entry(starpu_mpi_checkpoint_template_t *cp_template STARPU_ATTRIBUTE_UNUSED, ...) { return 0; }
 static inline int starpu_mpi_checkpoint_template_freeze(starpu_mpi_checkpoint_template_t *cp_template STARPU_ATTRIBUTE_UNUSED) { return 0; }
-static inline int starpu_mpi_checkpoint_template_submit(starpu_mpi_checkpoint_template_t cp_template STARPU_ATTRIBUTE_UNUSED, int prio STARPU_ATTRIBUTE_UNUSED) { return 0; }
+static inline int starpu_mpi_checkpoint_template_submit(starpu_mpi_checkpoint_template_t cp_template STARPU_ATTRIBUTE_UNUSED, int cp_prio STARPU_ATTRIBUTE_UNUSED) { return 0; }
 static inline int starpu_mpi_ft_turn_on(void) { return 0; }
 static inline int starpu_mpi_ft_turn_off(void) { return 0; }
 static inline int starpu_mpi_checkpoint_template_print(starpu_mpi_checkpoint_template_t cp_template STARPU_ATTRIBUTE_UNUSED) { return 0; }
 static inline int starpu_mpi_checkpoint_init(void) { return 0; }
 static inline int starpu_mpi_checkpoint_shutdown(void) { return 0; }
-static inline int starpu_mpi_checkpoint_set_storage_path(const char *path STARPU_ATTRIBUTE_UNUSED) { return 0; }
+static inline int starpu_mpi_checkpoint_set_storage_path(const char *cp_path STARPU_ATTRIBUTE_UNUSED) { return 0; }
 static inline int starpu_mpi_checkpoint_flush_to_storage(starpu_mpi_checkpoint_template_t cp_template STARPU_ATTRIBUTE_UNUSED) { return 0; }
 static inline int starpu_mpi_init_from_checkpoint(const char *storage_path STARPU_ATTRIBUTE_UNUSED, int *restart_flag) { *restart_flag = 0; return 0; }
 static inline int starpu_mpi_checkpoint_get_restart_cp_id(void) { return -1; }
