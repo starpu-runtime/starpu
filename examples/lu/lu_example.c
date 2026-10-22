@@ -24,7 +24,7 @@
 #include <math.h>
 #include <starpu.h>
 
-#ifdef STARPU_SANITIZER
+#ifdef STARPU_CUDA_SANITIZER
 /** the test is falling with some cudablas errors which do not concern StarPU */
 int main(int argc, char **argv)
 {
