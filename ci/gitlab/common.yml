@@ -16,6 +16,9 @@
 default:
   interruptible: true
   timeout: 1h
+  retry:
+    max: 2
+    when: runner_system_failure
 variables:
   RUNNER_SCRIPT_TIMEOUT: 58m
   RUNNER_AFTER_SCRIPT_TIMEOUT: 2m
