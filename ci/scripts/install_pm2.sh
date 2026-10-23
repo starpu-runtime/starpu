@@ -16,8 +16,8 @@
 #
 
 cur_dir=${PWD}
+mkdir -p ${starpu_build_dir}/../pm2
 XROOT=$(realpath ${starpu_build_dir}/../pm2)
-mkdir -p ${XROOT}
 cd ${XROOT}
 
 git clone https://gitlab.inria.fr/pm2/pm2.git
