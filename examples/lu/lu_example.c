@@ -27,6 +27,12 @@
 #include "xlu.h"
 #include "xlu_kernels.h"
 
+int niter=1;
+int median_p = 0;
+int tab_size;
+double * tab_for_median;
+int current_iteration;
+
 unsigned bound = 0;
 unsigned bounddeps = 0;
 unsigned boundprio = 0;
@@ -45,11 +51,6 @@ int main(int argc, char **argv)
 
 #include "starpu_cusolver.h"
 
-int niter=1;
-int median_p = 0;
-int tab_size;
-double * tab_for_median;
-int current_iteration;
 static unsigned long size = 0;
 static unsigned nblocks = 0;
 static unsigned check = 0;
