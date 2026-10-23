@@ -540,6 +540,11 @@ profiles = [
       'rcheck'      : ['-C', 'julia'],
       'hosts'       : ['node_gpu']
     },
+    { 'name'        : 'energyreader',
+      'opts'        : ['--enable-energyreader'],
+      'deploy'      : True,
+      'hosts'       : ['node_gpu']
+    },
     { 'name'        : 'starpupy-multi-interp',
       'env'         : { 'STARPUPY_MULTI_INTERPRETER' : '1', 'PYTHON' : 'python3.11' },
       'deploy'      : True,

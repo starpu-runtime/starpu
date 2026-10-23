@@ -4831,6 +4831,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
     tests/microbenchs/bandwidth_scheds.sh \
     tests/energy/static.sh \
     tests/energy/dynamic.sh \
+    tests/energy/energy_reader.sh \
     tests/datawizard/locality.sh \
     tests/overlap/overlap.sh \
     tests/model-checking/prio_list.sh \
