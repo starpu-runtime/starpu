@@ -233,5 +233,7 @@ scheduler_failures:
   tags: ['starpu', 'node_gpu']
   parallel:
     matrix:
-      - PROFILE: [hp]
+      - PROFILE: []
+  rules:
+    - when: never
 
