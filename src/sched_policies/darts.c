@@ -1122,6 +1122,7 @@ static void _starpu_darts_task_run_done(struct starpu_task *task, int current_gp
 /* Pushing the tasks. Each time a new task enter here, we initialize it. */
 static int darts_push_task(struct starpu_sched_component *component, struct starpu_task *task)
 {
+	STARPU_ASSERT(task->cl);
 #ifdef PRINT
 	printf("New task %p (%s, prio: %d, length: %f) in push_task with data(s):", task, starpu_task_get_name(task), task->priority, darts_task_expected_length(task)); fflush(stdout);
 	unsigned i;
