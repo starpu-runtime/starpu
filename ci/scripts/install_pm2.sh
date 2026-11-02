@@ -20,6 +20,7 @@ mkdir -p ${starpu_build_dir}/../pm2
 XROOT=$(realpath ${starpu_build_dir}/../pm2)
 cd ${XROOT}
 
+rm -rf pm2
 git clone https://gitlab.inria.fr/pm2/pm2.git
 cd pm2
 cd scripts
