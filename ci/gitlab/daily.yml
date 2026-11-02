@@ -64,7 +64,10 @@ benchmarks_update:
     - if: ($CI_PIPELINE_SCHEDULE_DESCRIPTION != null && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $STARPU_RUN_BENCHMARKS == "yes")
       when: always
   script:
-    - ./ci/scripts/bench.sh ./artifacts
+    - tmpdir=$(mktemp -d)
+    - ./ci/scripts/bench.sh $tmpdir ./artifacts
+  after_script:
+    - rm -rf $tmpdir
 
 coverage:
   stage: daily

@@ -19,7 +19,7 @@ set -x
 set -e
 
 # extract benchmarks git and check script exists
-tmpdir=$(mktemp -d)
+tmpdir=$1
 git clone https://starpu:${STARPU_BENCHMARKS_TOKEN}@gitlab.inria.fr/starpu/benchmarks.git $tmpdir/benchmarks
 SCRIPT_NAME="$tmpdir/benchmarks/scripts/uploadBenchs.sh"
 scriptExists=$(ls $SCRIPT_NAME 2>/dev/null)
@@ -32,7 +32,7 @@ then
 fi
 
 # check needed files for benchmarks script
-ARTIFACTS=$1
+ARTIFACTS=$2
 if test ! -d "$ARTIFACTS"
 then
     echo "Error. Directory <$ARTIFACTS> not found"
