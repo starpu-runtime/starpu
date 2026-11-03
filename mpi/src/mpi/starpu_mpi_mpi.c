@@ -329,7 +329,9 @@ void _starpu_mpi_submit_ready_request(void *arg)
 				/* Directly send from this thread */
 				STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 				_starpu_mpi_handle_ready_request(req);
-				STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
+				/* And we are done, no need to signal the progress thread */
+				_STARPU_MPI_LOG_OUT();
+				return;
 			}
 			else
 				/* Defer to MPI thread */
