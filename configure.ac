@@ -3052,7 +3052,7 @@ if test x$enable_fxt != xno; then
 		enable_fxt=yes
 		save_LIBS="$LIBS"
 		LIBS="$LIBS $FXT_LIBS"
-			save_LDFLAGS="$LDFLAGS"
+		save_LDFLAGS="$LDFLAGS"
 		LDFLAGS="$LDFLAGS $FXT_LDFLAGS"
 		AC_CHECK_FUNCS([fxt_close])
 		AC_CHECK_FUNCS([fxt_blockev_leave])

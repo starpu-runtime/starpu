@@ -339,3 +339,5 @@ coop_user_defined_datatype_SOURCES = coop_user_defined_datatype.c
 coop_user_defined_datatype_SOURCES += ../../examples/interface/complex_interface.c
 
 early_stuff_CFLAGS = $(AM_CFLAGS) $(FXT_CFLAGS)
+abstract_comms_CFLAGS = $(AM_CFLAGS) $(FXT_CFLAGS)
+mpi_sync_CFLAGS = $(AM_CFLAGS) $(FXT_CFLAGS)
