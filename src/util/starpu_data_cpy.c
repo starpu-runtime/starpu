@@ -267,7 +267,7 @@ void _starpu_data_dup_ro_deinit(starpu_data_handle_t handle)
 	if (!ro_handle)
 		/* No RO copy */
 		return;
-	if (ro_handle->home_node >= 0)
+	if (ro_handle->home_node >= 0 || handle->home_node >= 0)
 		/* Cannot move data with a home node */
 		return;
 
