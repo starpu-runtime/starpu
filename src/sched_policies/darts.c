@@ -3511,6 +3511,11 @@ static void darts_deinit_data(struct starpu_sched_component * component)
 	free(data);
 }
 
+int starpu_sched_component_is_darts(struct starpu_sched_component * component)
+{
+	return component->push_task == darts_push_task;
+}
+
 struct starpu_sched_component *starpu_sched_component_darts_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
 {
 	/* Global variables extracted from environement variables. */

@@ -631,6 +631,18 @@ int starpu_sched_component_is_heteroprio(struct starpu_sched_component *componen
 /** @} */
 
 /**
+   @name Resource-mapping Darts Component API
+   @{
+*/
+
+/**
+   todo
+*/
+int starpu_sched_component_is_darts(struct starpu_sched_component *component);
+
+/** @} */
+
+/**
    @name Special-purpose Best_Implementation Component API
    @{
 */

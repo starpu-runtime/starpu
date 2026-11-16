@@ -47,6 +47,7 @@
  * so far across several types of applications (cholesky, LU, stencil).
  */
 #define _STARPU_SCHED_NTASKS_THRESHOLD_HEFT 30
+#define _STARPU_SCHED_NTASKS_THRESHOLD_DARTS 10
 #define _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT 2
 #define _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT 1000000000.0
 
@@ -321,6 +322,11 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 		{
 			/* These need more queueing to allow CPUs to take some share of the work */
 			ntasks_threshold = _STARPU_SCHED_NTASKS_THRESHOLD_HEFT;
+		}
+		else if (starpu_sched_component_is_darts(decision_component))
+		{
+			/* These need more queueing to allow CPUs to take some share of the work */
+			ntasks_threshold = _STARPU_SCHED_NTASKS_THRESHOLD_DARTS;
 		}
 		else
 		{
