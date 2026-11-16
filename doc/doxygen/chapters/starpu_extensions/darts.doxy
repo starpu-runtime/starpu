@@ -45,7 +45,8 @@ In theory, DARTS can be used for any task-based application.
 \section darts_best_practices Best Practices
 
 It is highly recommended to use only GPUs or only CPUs for best performance (darts does not perform heterogeneous balancing)
-It is therefore recommended to e.g. set the variables \ref STARPU_NOPENCL and \ref STARPU_NCPU to 0.
+It is therefore recommended to e.g. set the variables \ref STARPU_NOPENCL and \ref STARPU_NCPU to 0, or to disable the CPU
+implementations of the codelets. In the Chameleon case for instance, it means passing the <c>--forcegpu</c> option.
 
 If the application does not use dependencies (such as the outer product), use the following environment variables:
 \verbatim
