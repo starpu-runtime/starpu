@@ -132,6 +132,7 @@ versinclude_HEADERS = 				\
 	include/starpu_cusolver.h		\
 	include/starpu_cusparse.h		\
 	include/starpu_hipblas.h		\
+	include/starpu_rocblas.h		\
 	include/starpu_hipsolver.h		\
 	include/starpu_syclblas.h		\
 	include/starpu_driver.h			\

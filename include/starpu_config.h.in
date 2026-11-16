@@ -82,6 +82,14 @@
 #undef STARPU_USE_HIPBLAS
 
 /**
+   @ingroup API_HIP_Extensions
+   Defined when StarPU has been installed with
+   ROCBLAS support (AMD HIP platforms). It should be used in your code
+   to detect the availability of ROCBLAS.
+*/
+#undef STARPU_USE_ROCBLAS
+
+/**
    @ingroup API_SYCL_Extensions
    Defined when StarPU has been installed with
    SYCL support. It should be used in your code to detect the

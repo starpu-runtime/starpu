@@ -373,6 +373,7 @@ endif
 
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/hip/starpu_hipsolver.c
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/hip/starpu_hipblas.c
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/hip/starpu_rocblas.c
 
 if STARPU_USE_SYCL
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/sycl/driver_sycl.cpp

@@ -194,6 +194,10 @@ have been implemented yet) correponding helper functions available:
   - starpu_hipblas_init()
   - starpu_hipblas_get_local_handle()
   - starpu_hipblas_shutdown()
+- For rocblas:
+  - starpu_rocblas_init()
+  - starpu_rocblas_get_local_handle()
+  - starpu_rocblas_shutdown()
 - For hipsolver:
   - starpu_hipsolver_init()
   - starpu_hipsolverDn_get_local_handle()

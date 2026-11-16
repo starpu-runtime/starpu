@@ -2313,10 +2313,23 @@ if test x$have_valid_hip = xyes; then
     else
         AC_MSG_WARN(['hipblas' not found, disabling HIP examples])
     fi
+
+    # ROCBLAS support (AMD only, ships with ROCm), independent from hipblas
+    have_valid_rocblas=no
+    if test "$HIP_PLATFORM" = "amd"; then
+        AC_CHECK_HEADERS([rocblas/rocblas.h],[have_valid_rocblas=yes],[have_valid_rocblas=no])
+        if test x$have_valid_rocblas = xyes; then
+            AC_HAVE_LIBRARY([rocblas],[have_valid_rocblas=yes],[have_valid_rocblas=no])
+        fi
+    fi
+    if test x$have_valid_rocblas = xyes; then
+        AC_DEFINE([STARPU_USE_ROCBLAS], [1], [ROCBLAS support is enabled])
+    fi
     CPPFLAGS="${SAVED_CPPFLAGS}"
 fi
 AC_SUBST(STARPU_USE_HIPBLAS, $have_valid_hipblas)
 AM_CONDITIONAL(STARPU_USE_HIPBLAS, test x$have_valid_hipblas = xyes)
+AC_SUBST(STARPU_USE_ROCBLAS, $have_valid_rocblas)
 
 if test x$have_valid_hip = xyes; then
     if test -z "$HIP_DIR"; then
