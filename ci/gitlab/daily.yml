@@ -65,8 +65,10 @@ benchmarks_update:
       when: always
   script:
     - tmpdir=$(mktemp -d)
+    - echo $tmpdir > ./benchmarks_tmpdir.txt
     - ./ci/scripts/bench.sh $tmpdir ./artifacts
   after_script:
+    - tmpdir=$(cat ./benchmarks_tmpdir.txt)
     - rm -rf $tmpdir
 
 coverage:
