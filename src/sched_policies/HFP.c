@@ -56,15 +56,12 @@ struct starpu_sched_policy _starpu_sched_modular_heft_HFP_policy;
  * STARPU_NTASKS_THRESHOLD=30 ou 10 si on veut moins entrer dans victim_selector peut_être
  * STARPU_MINIMUM_CLEAN_BUFFERS=0
  * STARPU_TARGET_CLEAN_BUFFERS=0
- * STARPU_CUDA_PIPELINE=4
  * STARPU_NCPU=0
  * STARPU_NOPENCL=0
  * RANDOM_TASK_ORDER
  * RECURSIVE_MATRIX_LAYOUT
  * RANDOM_DATA_ACCESS
- * STARPU_SCHED_READY=1
  * STARPU_CUDA_PIPELINE=5
- * STARPU_NTASKS_THRESHOLD=10
  */
 
 static int _get_number_GPU()

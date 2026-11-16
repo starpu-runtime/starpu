@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2025  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2026  University of Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -55,7 +55,7 @@ STARPU_DARTS_PRIO=0
 
 For example, a set of parameters for DARTS that achieves the best performance is
 \verbatim
-STARPU_SCHED_READY=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_EXPECTED_TRANSFER_TIME_WRITEBACK=0 STARPU_SCHED=darts STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=5 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ${APPLICATION}
+STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_EXPECTED_TRANSFER_TIME_WRITEBACK=0 STARPU_SCHED=darts STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=5 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ${APPLICATION}
 \endverbatim
 
 \section DARTS_Building_Visualizations Building Visualizations
@@ -106,7 +106,7 @@ Other memory-constrained schedulers are also available for experimental purposes
 packages of maximum size the size of the processing units' memory.
 It should be used with the following command line with one GPU:
 \verbatim
-STARPU_SCHED=HFP MULTIGPU=6 TASK_STEALING=3 STARPU_SCHED_READY=1 BELADY=1 ORDER_U=1 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -xy $((block_size*N)) -nblocks $((N))
+STARPU_SCHED=HFP MULTIGPU=6 TASK_STEALING=3 BELADY=1 ORDER_U=1 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -xy $((block_size*N)) -nblocks $((N))
 \endverbatim
 With multiple GPUs it should be used with:
 </li>
