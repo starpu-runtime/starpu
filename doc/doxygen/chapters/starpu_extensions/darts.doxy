@@ -56,7 +56,7 @@ STARPU_DARTS_PRIO=0
 
 For example, a set of parameters for DARTS that achieves the best performance is
 \verbatim
-STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_EXPECTED_TRANSFER_TIME_WRITEBACK=0 STARPU_SCHED=darts STARPU_CUDA_PIPELINE=5 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ${APPLICATION}
+STARPU_EXPECTED_TRANSFER_TIME_WRITEBACK=0 STARPU_SCHED=darts STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ${APPLICATION}
 \endverbatim
 
 \section DARTS_Building_Visualizations Building Visualizations
@@ -89,7 +89,7 @@ If your target application is Cholesky, use <c>-niter 1</c>. If your target appl
 
 An example of launch options is for the outer product:
 \verbatim
-STARPU_SCHED_OUTPUT=${OUTPUT_PATH} STARPU_SCHED=darts PRINT_IN_TERMINAL=1 PRINT_N=$((N)) STARPU_CUDA_PIPELINE=5 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -xy $((block_size*N)) -nblocks $((N)) -iter 1
+STARPU_SCHED_OUTPUT=${OUTPUT_PATH} STARPU_SCHED=darts PRINT_IN_TERMINAL=1 PRINT_N=$((N)) STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -xy $((block_size*N)) -nblocks $((N)) -iter 1
 python3 ./tools/darts/visualization_darts.py ${N} darts ${NGPU} Matrice_ligne 1 0 ${block_size} ${OUTPUT_PATH}
 \endverbatim
 
@@ -107,7 +107,7 @@ Other memory-constrained schedulers are also available for experimental purposes
 packages of maximum size the size of the processing units' memory.
 It should be used with the following command line with one GPU:
 \verbatim
-STARPU_SCHED=HFP MULTIGPU=6 TASK_STEALING=3 BELADY=1 ORDER_U=1 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -xy $((block_size*N)) -nblocks $((N))
+STARPU_SCHED=HFP MULTIGPU=6 TASK_STEALING=3 BELADY=1 ORDER_U=1 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -xy $((block_size*N)) -nblocks $((N))
 \endverbatim
 With multiple GPUs it should be used with:
 </li>
@@ -117,7 +117,7 @@ sparse matrix into a minimum band matrix. The algorithm is adapted to
 task-based scheduling by considering vertices as tasks and edges as
 data shares. It should be used as follows:
 \verbatim
-STARPU_SCHED=cuthillmckee REVERSE=1 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -xy $((block_size*N)) -nblocks $((N))
+STARPU_SCHED=cuthillmckee REVERSE=1 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -xy $((block_size*N)) -nblocks $((N))
 \endverbatim
 </li>
 <li>
@@ -126,14 +126,14 @@ vertices to a spanning tree with maximum weights. Vertices are tasks
 and weighted edges are the number of data shared between two tasks. It
 should be used as follows:
 \verbatim
-STARPU_SCHED=mst STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -xy $((block_size*N)) -nblocks $((N))
+STARPU_SCHED=mst STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -xy $((block_size*N)) -nblocks $((N))
 \endverbatim
 </li>
 <li>
 \c random_order returns in a randomized order a set of tasks. It
 should be used with the command line:
 \verbatim
-STARPU_SCHED=random_order STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -xy $((block_size*N)) -nblocks $((N))
+STARPU_SCHED=random_order STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -xy $((block_size*N)) -nblocks $((N))
 \endverbatim
 </li>
 </ul>
