@@ -377,6 +377,7 @@ int _starpu_turn_task_into_recursive_task_at_scheduler(struct starpu_task *task)
 #define _STARPU_JOB_GET_ORDERED_BUFFER_MODE(job, i) ((job->dyn_ordered_buffers) ? job->dyn_ordered_buffers[i].mode : job->ordered_buffers[i].mode)
 #define _STARPU_JOB_GET_ORDERED_BUFFER_NODE(job, i) ((job->dyn_ordered_buffers) ? job->dyn_ordered_buffers[i].node : job->ordered_buffers[i].node)
 #define _STARPU_JOB_GET_ORDERED_BUFFER_ORIG_NODE(job, i) ((job->dyn_ordered_buffers) ? job->dyn_ordered_buffers[i].orig_node : job->ordered_buffers[i].orig_node)
+#define _STARPU_JOB_GET_ORDERED_BUFFER_PREFETCH_NODE(job, i) ((job->dyn_ordered_buffers) ? job->dyn_ordered_buffers[i].prefetch_node : job->ordered_buffers[i].prefetch_node)
 
 #define _STARPU_JOB_SET_ORDERED_BUFFER(job, buffer, i) do { if (job->dyn_ordered_buffers) job->dyn_ordered_buffers[i] = buffer; else job->ordered_buffers[i] = buffer;} while(0)
 #define _STARPU_JOB_GET_ORDERED_BUFFERS(job) ((job->dyn_ordered_buffers) ? job->dyn_ordered_buffers : &job->ordered_buffers[0])
